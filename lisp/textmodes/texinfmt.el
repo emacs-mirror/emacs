@@ -3001,14 +3001,17 @@ Default is to leave paragraph indentation as is."
 (put 'printindex 'texinfo-format 'texinfo-format-printindex)
 
 (defun texinfo-format-printindex ()
-  (let ((indexelts (symbol-value
-                    (cdr (assoc (texinfo-parse-arg-discard)
-                                texinfo-indexvar-alist))))
-        opoint)
+  (let* ((arg (texinfo-parse-arg-discard))
+         (fmt (cdr (assoc arg texinfo-short-index-format-cmds-alist)))
+         (index-list (delq nil (mapcar (lambda (e)
+                                         (and (eq fmt (get (cdr e) 'texinfo-format))
+                                              (cdr (assoc (car e) texinfo-indexvar-alist))))
+                                       texinfo-short-index-cmds-alist)))
+         (indexelts (apply #'append nil (mapcar #'symbol-value index-list)))
+         opoint)
     (insert "\n* Menu:\n\n")
     (setq opoint (point))
     (texinfo-print-index nil indexelts)
-
     (if (memq system-type '(vax-vms windows-nt ms-dos))
         (texinfo-sort-region opoint (point))
       (shell-command-on-region opoint (point) "sort -fd" 1))))

@@ -186,5 +186,9 @@
 
 (provide 'cl-compat)
 
+;; Local variables:
+;; byte-compile-warnings: (not cl-functions)
+;; End:
+
 ;; arch-tag: 9996bb4f-aaf5-4592-b436-bf64759a3163
 ;;; cl-compat.el ends here

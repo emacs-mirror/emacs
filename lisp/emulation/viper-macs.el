@@ -39,14 +39,8 @@
 (if noninteractive
     (eval-when-compile
       (let ((load-path (cons (expand-file-name ".") load-path)))
-	(or (featurep 'viper-util)
-	    (load "viper-util.el" nil nil 'nosuffix))
-	(or (featurep 'viper-keym)
-	    (load "viper-keym.el" nil nil 'nosuffix))
-	(or (featurep 'viper-mous)
-	    (load "viper-mous.el" nil nil 'nosuffix))
 	(or (featurep 'viper-cmd)
-	    (load "viper-cmd.el" nil nil 'nosuffix))
+	    (load "viper-cmd.el" nil t 'nosuffix))
 	)))
 ;; end pacifier
 
@@ -826,7 +820,7 @@ name from there."
 (defun viper-char-array-to-macro (array)
   (let ((vec (vconcat array))
 	macro)
-    (if viper-xemacs-p
+    (if (featurep 'xemacs)
 	(setq macro (mapcar 'character-to-event vec))
       (setq macro vec))
     (vconcat (mapcar 'viper-event-key macro))))

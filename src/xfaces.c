@@ -1463,10 +1463,6 @@ tty_color_name (f, idx)
   if (idx == FACE_TTY_DEFAULT_BG_COLOR)
     return build_string (unspecified_bg);
 
-#ifdef WINDOWSNT
-  return vga_stdcolor_name (idx);
-#endif
-
   return Qunspecified;
 }
 
@@ -7464,13 +7460,11 @@ map_tty_color (f, face, idx, defaulted)
     {
       pixel = load_color (f, face, color, idx);
 
-#if defined (MSDOS) || defined (WINDOWSNT)
+#ifdef MSDOS
       /* If the foreground of the default face is the default color,
 	 use the foreground color defined by the frame.  */
-#ifdef MSDOS
       if (FRAME_MSDOS_P (f))
 	{
-#endif /* MSDOS */
 	  if (pixel == default_pixel
 	      || pixel == FACE_TTY_DEFAULT_COLOR)
 	    {
@@ -7490,10 +7484,8 @@ map_tty_color (f, face, idx, defaulted)
 	      face->lface[idx] = tty_color_name (f, pixel);
 	      *defaulted = 1;
 	    }
-#ifdef MSDOS
-	}
-#endif
-#endif /* MSDOS or WINDOWSNT */
+        }
+#endif /* MSDOS */
     }
 
   if (foreground_p)
@@ -7715,6 +7707,85 @@ face_at_buffer_position (w, pos, region_beg, region_end,
       if (oendpos < endpos)
 	endpos = oendpos;
     }
+
+  /* If in the region, merge in the region face.  */
+  if (pos >= region_beg && pos < region_end)
+    {
+      merge_named_face (f, Qregion, attrs, 0);
+
+      if (region_end < endpos)
+	endpos = region_end;
+    }
+
+  *endptr = endpos;
+
+  /* Look up a realized face with the given face attributes,
+     or realize a new one for ASCII characters.  */
+  return lookup_face (f, attrs, 0, NULL);
+}
+
+/* Return the face ID at buffer position POS for displaying ASCII
+   characters associated with overlay strings for overlay OVERLAY.
+
+   Like face_at_buffer_position except for OVERLAY.  Currently it
+   simply disregards the `face' properties of all overlays.  */
+
+int
+face_for_overlay_string (w, pos, region_beg, region_end,
+			 endptr, limit, mouse, overlay)
+     struct window *w;
+     int pos;
+     int region_beg, region_end;
+     int *endptr;
+     int limit;
+     int mouse;
+     Lisp_Object overlay;
+{
+  struct frame *f = XFRAME (w->frame);
+  Lisp_Object attrs[LFACE_VECTOR_SIZE];
+  Lisp_Object prop, position;
+  int i, noverlays;
+  Lisp_Object *overlay_vec;
+  Lisp_Object frame;
+  int endpos;
+  Lisp_Object propname = mouse ? Qmouse_face : Qface;
+  Lisp_Object limit1, end;
+  struct face *default_face;
+
+  /* W must display the current buffer.  We could write this function
+     to use the frame and buffer of W, but right now it doesn't.  */
+  /* xassert (XBUFFER (w->buffer) == current_buffer); */
+
+  XSETFRAME (frame, f);
+  XSETFASTINT (position, pos);
+
+  endpos = ZV;
+  if (pos < region_beg && region_beg < endpos)
+    endpos = region_beg;
+
+  /* Get the `face' or `mouse_face' text property at POS, and
+     determine the next position at which the property changes.  */
+  prop = Fget_text_property (position, propname, w->buffer);
+  XSETFASTINT (limit1, (limit < endpos ? limit : endpos));
+  end = Fnext_single_property_change (position, propname, w->buffer, limit1);
+  if (INTEGERP (end))
+    endpos = XINT (end);
+
+  *endptr = endpos;
+
+  default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+
+  /* Optimize common cases where we can use the default face.  */
+  if (NILP (prop)
+      && !(pos >= region_beg && pos < region_end))
+    return DEFAULT_FACE_ID;
+
+  /* Begin with attributes from the default face.  */
+  bcopy (default_face->lface, attrs, sizeof attrs);
+
+  /* Merge in attributes specified via text properties.  */
+  if (!NILP (prop))
+    merge_face_ref (f, prop, attrs, 1, 0);
 
   /* If in the region, merge in the region face.  */
   if (pos >= region_beg && pos < region_end)

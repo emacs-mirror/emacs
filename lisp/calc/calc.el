@@ -206,6 +206,84 @@
 
 (require 'calc-macs)
 
+;; Declare functions which are defined elsewhere.
+(declare-function calc-set-language "calc-lang" (lang &optional option no-refresh))
+(declare-function calc-edit-finish "calc-yank" (&optional keep))
+(declare-function calc-edit-cancel "calc-yank" ())
+(declare-function calc-do-quick-calc "calc-aent" ())
+(declare-function calc-do-calc-eval "calc-aent" (str separator args))
+(declare-function calc-do-keypad "calc-keypd" (&optional full-display interactive))
+(declare-function calcFunc-unixtime "calc-forms" (date &optional zone))
+(declare-function math-parse-date "calc-forms" (math-pd-str))
+(declare-function math-lessp "calc-ext" (a b))
+(declare-function calc-embedded-finish-command "calc-embed" ())
+(declare-function calc-embedded-select-buffer "calc-embed" ())
+(declare-function calc-embedded-mode-line-change "calc-embed" ())
+(declare-function calc-push-list-in-macro "calc-prog" (vals m sels))
+(declare-function calc-replace-selections "calc-sel" (n vals m))
+(declare-function calc-record-list "calc-misc" (vals &optional prefix))
+(declare-function calc-normalize-fancy "calc-ext" (val))
+(declare-function calc-do-handle-whys "calc-misc" ())
+(declare-function calc-top-selected "calc-sel" (&optional n m))
+(declare-function calc-sel-error "calc-sel" ())
+(declare-function calc-pop-stack-in-macro "calc-prog" (n mm))
+(declare-function calc-embedded-stack-change "calc-embed" ())
+(declare-function calc-refresh-evaltos "calc-ext" (&optional which-var))
+(declare-function calc-do-refresh "calc-misc" ())
+(declare-function calc-binary-op-fancy "calc-ext" (name func arg ident unary))
+(declare-function calc-unary-op-fancy "calc-ext" (name func arg))
+(declare-function calc-delete-selection "calc-sel" (n))
+(declare-function calc-alg-digit-entry "calc-aent" ())
+(declare-function calc-alg-entry "calc-aent" (&optional initial prompt))
+(declare-function calc-dots "calc-incom" ())
+(declare-function calc-temp-minibuffer-message "calc-misc" (m))
+(declare-function math-read-radix-digit "calc-misc" (dig))
+(declare-function calc-digit-dots "calc-incom" ())
+(declare-function math-normalize-fancy "calc-ext" (a))
+(declare-function math-normalize-nonstandard "calc-ext" ())
+(declare-function math-recompile-eval-rules "calc-alg" ())
+(declare-function math-apply-rewrites "calc-rewr" (expr rules &optional heads math-apply-rw-ruleset))
+(declare-function calc-record-why "calc-misc" (&rest stuff))
+(declare-function math-dimension-error "calc-vec" ())
+(declare-function calc-incomplete-error "calc-incom" (a))
+(declare-function math-float-fancy "calc-arith" (a))
+(declare-function math-neg-fancy "calc-arith" (a))
+(declare-function math-zerop "calc-misc" (a))
+(declare-function calc-add-fractions "calc-frac" (a b))
+(declare-function math-add-objects-fancy "calc-arith" (a b))
+(declare-function math-add-symb-fancy "calc-arith" (a b))
+(declare-function math-mul-zero "calc-arith" (a b))
+(declare-function calc-mul-fractions "calc-frac" (a b))
+(declare-function math-mul-objects-fancy "calc-arith" (a b))
+(declare-function math-mul-symb-fancy "calc-arith" (a b))
+(declare-function math-reject-arg "calc-misc" (&optional a p option))
+(declare-function math-div-by-zero "calc-arith" (a b))
+(declare-function math-div-zero "calc-arith" (a b))
+(declare-function math-make-frac "calc-frac" (num den))
+(declare-function calc-div-fractions "calc-frac" (a b))
+(declare-function math-div-objects-fancy "calc-arith" (a b))
+(declare-function math-div-symb-fancy "calc-arith" (a b))
+(declare-function math-compose-expr "calccomp" (a prec))
+(declare-function math-comp-width "calccomp" (c))
+(declare-function math-composition-to-string "calccomp" (c &optional width))
+(declare-function math-stack-value-offset-fancy "calccomp" ())
+(declare-function math-format-flat-expr-fancy "calc-ext" (a prec))
+(declare-function math-adjust-fraction "calc-ext" (a))
+(declare-function math-format-binary "calc-bin" (a))
+(declare-function math-format-radix "calc-bin" (a))
+(declare-function math-group-float "calc-ext" (str))
+(declare-function math-mod "calc-misc" (a b))
+(declare-function math-format-number-fancy "calc-ext" (a prec))
+(declare-function math-format-bignum-fancy "calc-ext" (a))
+(declare-function math-read-number-fancy "calc-ext" (s))
+(declare-function calc-do-grab-region "calc-yank" (top bot arg))
+(declare-function calc-do-grab-rectangle "calc-yank" (top bot arg &optional reduce))
+(declare-function calc-do-embedded "calc-embed" (calc-embed-arg end obeg oend))
+(declare-function calc-do-embedded-activate "calc-embed" (calc-embed-arg cbuf))
+(declare-function math-do-defmath "calc-prog" (func args body))
+(declare-function calc-load-everything "calc-ext" ())
+
+
 (defgroup calc nil
   "GNU Calc."
   :prefix "calc-"
@@ -821,9 +899,6 @@ If nil, selections displayed but ignored.")
 (defvar calc-embedded-mode-hook nil
   "Hook run when starting embedded mode.")
 
-;; Verify that Calc is running on the right kind of system.
-(defvar calc-emacs-type-lucid (not (not (string-match "Lucid" emacs-version))))
-
 ;; Set up the autoloading linkage.
 (let ((name (and (fboundp 'calc-dispatch)
 		   (eq (car-safe (symbol-function 'calc-dispatch)) 'autoload)
@@ -892,6 +967,16 @@ If nil, selections displayed but ignored.")
   "Function through which to pass strings before parsing.")
 (defvar calc-radix-formatter nil
   "Formatting function used for non-decimal numbers.")
+(defvar calc-lang-slash-idiv nil
+  "A list of languages in which / might represent integer division.")
+(defvar calc-lang-allow-underscores nil
+  "A list of languages which allow underscores in variable names.")
+(defvar calc-lang-c-type-hex nil
+  "Languages in which octal and hex numbers are written with leading 0 and 0x,")
+(defvar calc-lang-brackets-are-subscripts nil
+  "Languages in which subscripts are indicated by brackets.")
+(defvar calc-lang-parens-are-subscripts nil
+  "Languages in which subscripts are indicated by parentheses.")
 
 (defvar calc-last-kill nil)		; Last number killed in calc-mode.
 (defvar calc-dollar-values nil)		; Values to be used for '$'.
@@ -914,7 +999,6 @@ If nil, selections displayed but ignored.")
 (defvar math-eval-rules-cache-tag t)
 (defvar math-radix-explicit-format t)
 (defvar math-expr-function-mapping nil)
-(defvar math-expr-special-function-mapping nil)
 (defvar math-expr-variable-mapping nil)
 (defvar math-read-expr-quotes nil)
 (defvar math-working-step nil)
@@ -968,7 +1052,7 @@ If nil, selections displayed but ignored.")
 
 (defvar calc-digit-map
   (let ((map (make-keymap)))
-    (if calc-emacs-type-lucid
+    (if (featurep 'xemacs)
 	(map-keymap (function
 		     (lambda (keys bind)
 		       (define-key map keys
@@ -999,7 +1083,7 @@ If nil, selections displayed but ignored.")
 	      (define-key calc-mode-map x 'calc-pop)
 	      (define-key calc-mode-map
 		  (if (vectorp x)
-		      (if calc-emacs-type-lucid
+		      (if (featurep 'xemacs)
 			  (if (= (length x) 1)
 			      (vector (if (consp (aref x 0))
 					  (cons 'meta (aref x 0))
@@ -1012,6 +1096,7 @@ If nil, selections displayed but ignored.")
       (if calc-scan-for-dels
 	  (append (where-is-internal 'delete-backward-char global-map)
 		  (where-is-internal 'backward-delete-char global-map)
+		  (where-is-internal 'backward-delete-char-untabify global-map)
 		  '("\C-d"))
 	'("\177" "\C-d")))
 
@@ -1224,6 +1309,7 @@ Notations:  3.14e6     3.14 * 10^6
 	   (string-match "full" (nth 1 p))
 	   (setq calc-standalone-flag t))
       (setq p (cdr p))))
+  (require 'calc-menu)
   (run-mode-hooks 'calc-mode-hook)
   (calc-refresh t)
   (calc-set-mode-line)
@@ -2109,13 +2195,13 @@ See calc-keypad for details."
 	    (calc-prev-char nil)
 	    (calc-prev-prev-char nil)
 	    (calc-buffer (current-buffer))
-	    (buf (if calc-emacs-type-lucid
+	    (buf (if (featurep 'xemacs)
 		     (catch 'calc-foo
 		       (catch 'execute-kbd-macro
 			 (throw 'calc-foo
 				(read-from-minibuffer
 				 "Calc: " "" calc-digit-map)))
-		       (error "Lucid Emacs requires RET after %s"
+		       (error "XEmacs requires RET after %s"
 			      "digit entry in kbd macro"))
 		   (let ((old-esc (lookup-key global-map "\e")))
 		     (unwind-protect
@@ -3500,39 +3586,9 @@ and all digits are kept, regardless of Calc's current precision."
 	    (math-read-bignum (substring s 0 (- math-bignum-digit-length))))
     (list (string-to-number s))))
 
-
-(defconst math-tex-ignore-words
-  '( ("\\hbox") ("\\mbox") ("\\text") ("\\left") ("\\right")
-     ("\\,") ("\\>") ("\\:") ("\\;") ("\\!") ("\\ ")
-     ("\\quad") ("\\qquad") ("\\hfil") ("\\hfill")
-     ("\\displaystyle") ("\\textstyle") ("\\dsize") ("\\tsize")
-     ("\\scriptstyle") ("\\scriptscriptstyle") ("\\ssize") ("\\sssize")
-     ("\\rm") ("\\bf") ("\\it") ("\\sl")
-     ("\\roman") ("\\bold") ("\\italic") ("\\slanted")
-     ("\\cal") ("\\mit") ("\\Cal") ("\\Bbb") ("\\frak") ("\\goth")
-     ("\\evalto")
-     ("\\matrix" mat) ("\\bmatrix" mat) ("\\pmatrix" mat)
-     ("\\begin" begenv)
-     ("\\cr" punc ";") ("\\\\" punc ";") ("\\*" punc "*")
-     ("\\{" punc "[") ("\\}" punc "]")))
-
-(defconst math-latex-ignore-words
-  (append math-tex-ignore-words
-          '(("\\begin" begenv))))
-
-(defconst math-eqn-ignore-words
-  '( ("roman") ("bold") ("italic") ("mark") ("lineup") ("evalto")
-     ("left" ("floor") ("ceil"))
-     ("right" ("floor") ("ceil"))
-     ("arc" ("sin") ("cos") ("tan") ("sinh") ("cosh") ("tanh"))
-     ("size" n) ("font" n) ("fwd" n) ("back" n) ("up" n) ("down" n)
-     ("above" punc ",")))
-
 (defconst math-standard-opers
   '( ( "_"     calcFunc-subscr 1200 1201 )
      ( "%"     calcFunc-percent 1100 -1 )
-     ( "u+"    ident	     -1 1000 )
-     ( "u-"    neg	     -1 1000 197 )
      ( "u!"    calcFunc-lnot -1 1000 )
      ( "mod"   mod	     400 400 185 )
      ( "+/-"   sdev	     300 300 185 )
@@ -3540,6 +3596,8 @@ and all digits are kept, regardless of Calc's current precision."
      ( "!"     calcFunc-fact 210  -1 )
      ( "^"     ^             201 200 )
      ( "**"    ^             201 200 )
+     ( "u+"    ident	     -1  197 )
+     ( "u-"    neg	     -1  197 )
      ( "/"     /             190 191 )
      ( "%"     %             190 191 )
      ( "\\"    calcFunc-idiv 190 191 )
@@ -3646,7 +3704,7 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 ;;; Functions needed for Lucid Emacs support.
 
 (defun calc-read-key (&optional optkey)
-  (cond (calc-emacs-type-lucid
+  (cond ((featurep 'xemacs)
 	 (let ((event (next-command-event)))
 	   (let ((key (event-to-character event t t)))
 	     (or key optkey (error "Expected a plain keystroke"))
@@ -3664,7 +3722,7 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 
 (defun calc-clear-unread-commands ()
   (if (featurep 'xemacs)
-	(calc-emacs-type-lucid (setq unread-command-event nil))
+      (setq unread-command-event nil)
     (setq unread-command-events nil)))
 
 (when calc-always-load-extensions

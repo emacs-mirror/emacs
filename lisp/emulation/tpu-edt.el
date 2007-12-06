@@ -273,7 +273,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 ;; we use picture-mode functions
 (require 'picture)
 
@@ -1367,6 +1366,9 @@ The search is performed in the current direction."
 ;;       tpu-search-forward (t)        tpu-search-reverse (t)
 ;;       tpu-search-forward-exit (t)   tpu-search-backward-exit (t)
 
+(declare-function tpu-emacs-search "tpu-edt")
+(declare-function tpu-emacs-rev-search "tpu-edt")
+
 (defun tpu-set-search (&optional arg)
   "Set the search functions and set the search direction to the current
 direction.  If an argument is specified, don't set the search direction."
@@ -2432,7 +2434,10 @@ If FILE is nil, try to load a default file.  The default file names are
         (if (eq tpu-global-map parent)
             (set-keymap-parent map (keymap-parent parent))
           (setq map parent)))))
-  (ignore-errors (ad-disable-regexp "\\`tpu-"))
+  ;; Only has an effect if the advice in tpu-extras has been activated.
+  (condition-case nil
+      (with-no-warnings (ad-disable-regexp "\\`tpu-"))
+    (error nil))
   (setq tpu-edt-mode nil))
 
 

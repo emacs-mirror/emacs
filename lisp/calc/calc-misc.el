@@ -32,6 +32,35 @@
 (require 'calc)
 (require 'calc-macs)
 
+;; Declare functions which are defined elsewhere.
+(declare-function calc-do-keypad "calc-keypd" (&optional full-display interactive))
+(declare-function calc-inv-hyp-prefix-help "calc-help" ())
+(declare-function calc-inverse-prefix-help "calc-help" ())
+(declare-function calc-hyperbolic-prefix-help "calc-help" ())
+(declare-function calc-explain-why "calc-stuff" (why &optional more))
+(declare-function calc-clear-command-flag "calc-ext" (f))
+(declare-function calc-roll-down-with-selections "calc-sel" (n m))
+(declare-function calc-roll-up-with-selections "calc-sel" (n m))
+(declare-function calc-last-args "calc-undo" (n))
+(declare-function calc-is-inverse "calc-ext" ())
+(declare-function calc-do-prefix-help "calc-ext" (msgs group key))
+(declare-function math-objvecp "calc-ext" (a))
+(declare-function math-known-scalarp "calc-arith" (a &optional assume-scalar))
+(declare-function math-vectorp "calc-ext" (a))
+(declare-function math-matrixp "calc-ext" (a))
+(declare-function math-trunc-special "calc-arith" (a prec))
+(declare-function math-trunc-fancy "calc-arith" (a))
+(declare-function math-floor-special "calc-arith" (a prec))
+(declare-function math-floor-fancy "calc-arith" (a))
+(declare-function math-square-matrixp "calc-ext" (a))
+(declare-function math-matrix-inv-raw "calc-mtx" (m))
+(declare-function math-known-matrixp "calc-arith" (a))
+(declare-function math-mod-fancy "calc-arith" (a b))
+(declare-function math-pow-of-zero "calc-arith" (a b))
+(declare-function math-pow-zero "calc-arith" (a b))
+(declare-function math-pow-fancy "calc-arith" (a b))
+
+
 (defun calc-dispatch-help (arg)
   "C-x* is a prefix key sequence; follow it with one of these letters:
 

@@ -664,7 +664,6 @@ the change log file in another window."
 		   (list current-prefix-arg
 			 (prompt-for-change-log-name))))
   (add-change-log-entry whoami file-name t))
-;;;###autoload (define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
 
 
 (defvar change-log-indent-text 0)
@@ -826,6 +825,9 @@ Prefix arg means justify as well."
 (defvar add-log-tex-like-modes
   '(TeX-mode plain-TeX-mode LaTeX-mode tex-mode)
   "*Modes that look like TeX to `add-log-current-defun'.")
+
+(declare-function c-beginning-of-defun "cc-cmds" (&optional arg))
+(declare-function c-end-of-defun "cc-cmds" (&optional arg))
 
 ;;;###autoload
 (defun add-log-current-defun ()

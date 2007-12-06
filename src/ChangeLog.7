@@ -1481,7 +1481,7 @@
 1998-05-07  Eli Zaretskii  <eliz@mescaline.gnu.org>
 
 	* process.c (init_process, syms_of_process) [not subprocesses]:
-	Make definition consistent with prototypes on lisp.h
+	Make definition consistent with prototypes on lisp.h.
 
 1998-05-07  Kenichi Handa  <handa@etl.go.jp>
 
@@ -1777,7 +1777,7 @@
 
 	* emacs.c (standard_args): Apply --unibyte/multibyte after --nw.
 
-	* lisp.h: Include initial_obarray from lread.c
+	* lisp.h: Include initial_obarray from lread.c.
 
 	* data.c (set_internal): Test keywordness only in initial obarray.
 
@@ -2217,7 +2217,7 @@
 	* window.c (Fset_window_configuration): Fix mixing of Lisp_Object
 	and int.
 
-	* sysdep.c (init_sys_modes): Fix mixing of Lisp_Object and int
+	* sysdep.c (init_sys_modes): Fix mixing of Lisp_Object and int.
 
 	* search.c (compile_pattern, compile_pattern_1): Fix mixing of
 	Lisp_Object and int.
@@ -2246,7 +2246,7 @@
 	* fileio.c (Fwrite_region): Fix mixing of Lisp_Object and int.
 
 	* editfns.c (Fchar_after, Fchar_before): Fix mixing of Lisp_Object
-	and int
+	and int.
 
 	* coding.c (code_convert_region): Fix mixing of Lisp_Object and
 	int.
@@ -2624,7 +2624,7 @@
 1998-03-21  Richard Stallman  <rms@delysid.gnu.org>
 
 	* dired.c (Fdirectory_files):
-	In FULL case, compute number of characters
+	In FULL case, compute number of characters.
 
 	* fns.c (substring_both, Fsubstring): Use make_specified_string.
 	(concat): Make string result unibyte or multibyte as appropriate.
@@ -3077,7 +3077,7 @@
 1998-03-04  Kenichi HANDA  <handa@etl.go.jp>
 
 	* buffer.c (Fset_buffer_multibyte): Fix arg for chars_in_text.
-	Be sure not to have a multibyte sequence striding over the GAP
+	Be sure not to have a multibyte sequence striding over the GAP.
 
 	* charset.c (strwidth): Make it work for invalid bytes sequence.
 	(Fstring_width): Give byte length of STR to strwidth.
@@ -4166,7 +4166,7 @@
 	insert_from_string.  Scan string by bytes and chars.
 	(Ftry_completion): Use size_byte while comparing.
 	(Fall_completions): Use size_byte while comparing.
-	(test_completion):
+	(test_completion): Pass both kinds of size to oblookup.
 
 	* editfns.c (syms_of_editfns): Delete defsubr for sref.
 
@@ -4358,7 +4358,6 @@
 	(insert_1, indented_beyond_p): Decls changed.
 	(move_gap_both, del_range_byte, del_range_both, del_range_2)
 	(scan_newline, Ffile_locked_p): New decls.
-	(struct Lisp_Marker):
 
 	* search.c (scan_newline): Always restore prev value of immediate_quit.
 
@@ -5200,7 +5199,7 @@
 
 1997-10-21  Kenichi Handa  <handa@etl.go.jp>
 
-	* Makefile.in (xselect.o): Depend on buffer.h
+	* Makefile.in (xselect.o): Depend on buffer.h.
 
 	* coding.c (Qcoding_system_spec): Deleted.
 	(Vcoding_system_list, Vcoding_system_alist): New variables.
@@ -5844,7 +5843,7 @@
 	placed in the main popup instead of a blank-named submenu.  This
 	seems to be an undocumented feature of x-popup-menu.
 	(list_of_items): New argument HMENU.
-	Use 1 and 0 instead of Qt and Qnil for enable in add_menu_item
+	Use 1 and 0 instead of Qt and Qnil for enable in add_menu_item.
 
 1997-09-02  Geoff Voelker  <voelker@cs.washington.edu>
 
@@ -7383,7 +7382,7 @@
 	(x_new_fontset): If frame F has already using FONTSET, avoid the
 	duplicated work.  Use FS_LOAD_FONT.
 	(x_list_fonts): Call Fassoc to search Valternate_charset_table.
-	(x_load_font): Get around a buf of XListFonts
+	(x_load_font): Get around a buf of XListFonts.
 
 1997-06-20  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -7619,7 +7618,7 @@
 	* Makefile.in (XOBJ, MSDOS_OBJ, SOME_MACHINE_OBJECTS): Delete xfaces.o.
 	(obj): Add xfaces.o.
 	(FACE_SUPPORT, SOME_MACHINE_LISP): Delete faces.elc.
-	(shortlisp, lisp): Add faces.elc
+	(shortlisp, lisp): Add faces.elc.
 
 	* emacs.c (main): Call syms_of_xfaces whenever ! HAVE_NTGUI.
 
@@ -7907,7 +7906,7 @@
 	(r_alloc_init) [DOUG_LEA_MALLOC]: Call mallopt,
 	instead of setting __malloc_extra_blocks.
 
-Thu May 15 22:21:18 1997  Ken'ichi Handa  <handa@diazepam.gnu.ai.mit.edu>
+1997-05-15  Ken'ichi Handa  <handa@diazepam.gnu.ai.mit.edu>
 
 	* Makefile.in (charset.o): Add disptab.h in dependency list.
 
@@ -8578,12 +8577,11 @@ Thu May 15 22:21:18 1997  Ken'ichi Handa  <handa@diazepam.gnu.ai.mit.edu>
 	* xterm.c (dumpglyphs): Clip and highlight glyphs displayed with
 	fonts of wrong size.
 
-Sun Apr  6 10:26:53 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
+1997-04-06  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 
 	* emacs.c (init_cmdargs) [MSDOS]: Make the change that sets
 	`installation-directory' if `info' is found as its subdirectory or
 	sibling, be conditioned on MSDOS (it makes trouble on Unix).
-
 
 1997-04-05  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -8818,7 +8816,7 @@ Sun Apr  6 10:26:53 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 	* coding.c (setup_coding_system): Now, flags of ISO2022 coding
 	systems contains charsets instead of charset IDs.  Correct setting
 	coding->symbol and coding->eol_type.  The performance improved.
-	(encode_coding) : Fix typo ("=" -> "==").
+	(encode_coding): Fix typo ("=" -> "==").
 	(detect_coding_iso2022, decode_coding_iso2022): Make the code
 	robust against invalid SI and SO.
 	(ENCODE_RESET_PLANE_AND_REGISTER): Argument `eol' is deleted.
@@ -8914,7 +8912,7 @@ Sun Apr  6 10:26:53 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 
 1997-02-22  Tsugutomo ENAMI  <enami@ba2.so-net.or.jp>
 
-	* regex.c: Include charset.h and category.h
+	* regex.c: Include charset.h and category.h.
 
 	[!emacs] (BASE_LEADING_CODE_P, WORD_BOUNDARY_P, CHAR_HEAD_P)
 	(SINGLE_BYTE_CHAR_P, SAME_CHARSET_P, MULTIBYTE_FORM_LENGTH)
@@ -9407,7 +9405,7 @@ Sun Apr  6 10:26:53 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 
 	* emacs.c (main): Don't extend stack limit too far.
 
-Sun Feb  2 10:36:26 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
+1997-02-02  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 
 	* msdos.c (dos_rawgetc): When international keyboard doesn't have
 	to be supported, recognize Alt-key combinations even if the Alt
@@ -10403,7 +10401,7 @@ Sun Feb  2 10:36:26 1997  Eli Zaretskii  <eliz@wombat.gnu.ai.mit.edu>
 
 	* xfns.c (Fx_create_frame): Default Qvertical_scroll_bars to `left'.
 
-Fri Sep 20 02:37:37 1996  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
+1996-09-20  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
 
 	* xterm.c (XTclear_end_of_line): Shift end-of-line when there is a
 	left-side scroll bar by FRAME_LEFT_SCROLL_BAR_WIDTH.
@@ -10710,13 +10708,13 @@ Fri Sep 20 02:37:37 1996  Marcus Daniels  <marcus@sayre.sysc.pdx.edu>
 	(XMARKBIT): Test BITS_PER_EMACS_INT to conditionalize fast definition.
 	* m/alpha.h (BITS_PER_EMACS_INT): New definition.
 
-	* s/sol2.h (LIBS_SYSTEM): Use -lkstat instead of -lelf -lkvm
+	* s/sol2.h (LIBS_SYSTEM): Use -lkstat instead of -lelf -lkvm.
 
 	* process.c (create_process): Test HAVE_SETPGID for using setpgid.
 
 	* config.in (HAVE_SETPGID): Add #undef.
 
-	* keymap.c (syms_of_keymap): staticpro current_global_map;
+	* keymap.c (syms_of_keymap): staticpro current_global_map.
 
 	* intervals.c (get_local_map): Call indirect-function.
 

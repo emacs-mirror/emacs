@@ -29,7 +29,6 @@ Boston, MA 02110-1301, USA.  */
 
 /* Undo these defines because they are incorrect or need to be changed.  */
 #undef LIB_X11_LIB
-#undef LIBX10_SYSTEM
 #undef LIBX11_SYSTEM
 #undef USG_SHARED_LIBRARIES
 

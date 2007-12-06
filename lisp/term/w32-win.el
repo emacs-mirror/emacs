@@ -88,6 +88,10 @@
 (defvar xlfd-regexp-registry-subnum)
 (defvar w32-color-map) ;; defined in w32fns.c
 
+(declare-function w32-send-sys-command "w32fns.c")
+(declare-function w32-select-font "w32fns.c")
+(declare-function set-message-beep "w32console.c")
+
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
     (require 'fontset))
@@ -1054,17 +1058,6 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
  If FRAME is nil or not given, use the selected frame."
    (interactive "i")
    (w32-send-sys-command ?\xf100 frame))
-
-(defun x-setup-function-keys (frame)
-  "Setup Function Keys for w32."
-  (with-selected-frame frame
-     (define-key local-function-key-map [f10] 'menu-bar-open)
-
-     (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
-                                local-function-key-map global-map)
-
-     (define-key local-function-key-map [S-tab] [backtab]))
-  (set-terminal-parameter frame 'x-setup-function-keys t))
 
 
 ;; W32 systems have different fonts than commonly found on X, so
@@ -1082,12 +1075,6 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
   "Report an error when a suspend is attempted."
   (error "Suspending an Emacs running under W32 makes no sense"))
 
-
-;;; Enable Japanese fonts on Windows to be used by default.
-(set-fontset-font nil (make-char 'katakana-jisx0201) '("*" . "JISX0208-SJIS"))
-(set-fontset-font nil (make-char 'latin-jisx0201) '("*" . "JISX0208-SJIS"))
-(set-fontset-font nil (make-char 'japanese-jisx0208) '("*" . "JISX0208-SJIS"))
-(set-fontset-font nil (make-char 'japanese-jisx0208-1978) '("*" . "JISX0208-SJIS"))
 
 (defun mouse-set-font (&rest fonts)
   "Select an Emacs font from a list of known good fonts and fontsets.
@@ -1159,6 +1146,17 @@ pop-up menu are unaffected by `w32-list-proportional-fonts')."
 
   ;; Setup the default fontset.
   (setup-default-fontset)
+
+  ;; Enable Japanese fonts on Windows to be used by default.
+  (set-fontset-font nil (make-char 'katakana-jisx0201)
+		    '("*" . "JISX0208-SJIS"))
+  (set-fontset-font nil (make-char 'latin-jisx0201)
+		    '("*" . "JISX0208-SJIS"))
+  (set-fontset-font nil (make-char 'japanese-jisx0208)
+		    '("*" . "JISX0208-SJIS"))
+  (set-fontset-font nil (make-char 'japanese-jisx0208-1978)
+		    '("*" . "JISX0208-SJIS"))
+
   ;; Create the standard fontset.
   (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
   ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).

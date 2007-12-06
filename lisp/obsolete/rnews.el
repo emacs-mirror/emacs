@@ -272,19 +272,6 @@ Type \\[describe-mode] once reading news to get a list of rnews commands."
       (news-push (cons news-current-news-group news-current-certifiable)
 		 news-current-certifications))))
 
-(defun news-set-minor-modes ()
-  "Creates a minor mode list that has group name, total articles,
-and attribute for current article."
-  (setq news-minor-modes (list (cons 'foo
-				     (concat news-current-message-number
-					     "/"
-					     news-total-current-group
-					     (news-get-attribute-string)))))
-  ;; Detect Emacs versions 18.16 and up, which display
-  ;; directly from news-minor-modes by using a list for mode-name.
-  (or (boundp 'minor-mode-alist)
-      (setq minor-modes news-minor-modes)))
-
 (defun news-set-message-counters ()
   "Scan through current news-groups filelist to figure out how many messages
 are there. Set counters for use with minor mode display."

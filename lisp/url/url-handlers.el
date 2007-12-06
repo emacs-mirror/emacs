@@ -27,7 +27,7 @@
 ;;; Code:
 
 ;; (require 'url)
-(eval-when-compile (require 'url-parse))
+(require 'url-parse)
 ;; (require 'url-util)
 (eval-when-compile (require 'mm-decode))
 ;; (require 'mailcap)
@@ -40,9 +40,6 @@
 (autoload 'url-expand-file-name "url-expand" "Convert url to a fully specified url, and canonicalize it.")
 (autoload 'mm-dissect-buffer "mm-decode" "Dissect the current buffer and return a list of MIME handles.")
 (autoload 'url-scheme-get-property "url-methods" "Get property of a URL SCHEME.")
-
-(eval-when-compile
-  (require 'cl))
 
 ;; Implementation status
 ;; ---------------------

@@ -318,6 +318,8 @@ Uses `gud-<MINOR-MODE>-directories' to find the source files."
 	(setq directories (cdr directories)))
       result)))
 
+(declare-function gdb-create-define-alist "gdb-ui" ())
+
 (defun gud-find-file (file)
   ;; Don't get confused by double slashes in the name that comes from GDB.
   (while (string-match "//+" file)
@@ -709,24 +711,16 @@ The option \"--fullname\" must be included in this value."
 (defvar gud-filter-pending-text nil
   "Non-nil means this is text that has been saved for later in `gud-filter'.")
 
-;; The old gdb command.  The new one is in gdb-ui.el.
+;; If in gdba mode, gdb-ui is loaded.
+(declare-function gdb-restore-windows "gdb-ui" ())
+
+;; The old gdb command (text command mode).  The new one is in gdb-ui.el.
 ;;;###autoload
 (defun gud-gdb (command-line)
   "Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working
-directory and source-file directory for your debugger.  By
-default this command starts GDB using a graphical interface.  See
-`gdba' for more information.
-
-To run GDB in text command mode, replace the GDB \"--annotate=3\"
-option with \"--fullname\" either in the minibuffer for the
-current Emacs session, or the custom variable
-`gud-gdb-command-name' for all future sessions.  You need to use
-text command mode to debug multiple programs within one Emacs
-session."
+directory and source-file directory for your debugger."
   (interactive (list (gud-query-cmdline 'gud-gdb)))
-
-  (require 'gdb-ui)
 
   (when (and gud-comint-buffer
 	   (buffer-name gud-comint-buffer)
@@ -736,8 +730,8 @@ session."
 	(error
 	 "Multiple debugging requires restarting in text command mode"))
 
-  (gud-common-init command-line nil 'gud-gdba-marker-filter)
-  (set (make-local-variable 'gud-minor-mode) 'gdba)
+  (gud-common-init command-line nil 'gud-gdb-marker-filter)
+  (set (make-local-variable 'gud-minor-mode) 'gdb)
 
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t"
@@ -2608,6 +2602,8 @@ It is saved for when this flag is not set.")
 (defvar gud-overlay-arrow-position nil)
 (add-to-list 'overlay-arrow-variable-list 'gud-overlay-arrow-position)
 
+(declare-function gdb-reset "gdb-ui" ())
+
 (defun gud-sentinel (proc msg)
   (cond ((null (buffer-name (process-buffer proc)))
 	 ;; buffer killed
@@ -2676,6 +2672,11 @@ Obeying it means displaying in another window the specified file and line."
     (gud-display-line (car gud-last-frame) (cdr gud-last-frame))
     (setq gud-last-last-frame gud-last-frame
 	  gud-last-frame nil)))
+
+(declare-function global-hl-line-highlight  "hl-line" ())
+(declare-function hl-line-highlight         "hl-line" ())
+(declare-function gdb-display-source-buffer "gdb-ui"  (buffer))
+(declare-function gdb-display-buffer "gdb-ui" (buf dedicated &optional size))
 
 ;; Make sure the file named TRUE-FILE is in a buffer that appears on the screen
 ;; and that its line LINE is visible.
@@ -3008,6 +3009,12 @@ Link exprs of the form:
       ((= span-end ?[) t)
        (t nil)))
      (t nil))))
+
+
+(declare-function c-langelem-sym "cc-defs" (langelem))
+(declare-function c-langelem-pos "cc-defs" (langelem))
+(declare-function syntax-symbol  "gud"     (x))
+(declare-function syntax-point   "gud"     (x))
 
 (defun gud-find-class (f line)
   "Find fully qualified class in file F at line LINE.
@@ -3393,6 +3400,8 @@ With arg, dereference expr if ARG is positive, otherwise do not derereference."
 	((dbx gdbmi) (concat "print " expr))
 	((xdb pdb) (concat "p " expr))
 	(sdb (concat expr "/"))))
+
+(declare-function gdb-enqueue-input "gdb-ui" (item))
 
 (defun gud-tooltip-tips (event)
   "Show tip for identifier or selection under the mouse.

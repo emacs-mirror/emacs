@@ -98,11 +98,9 @@ Boston, MA 02110-1301, USA.  */
 #define LIBS_SYSTEM -lPW
 #endif
 
-#ifdef HAVE_X11R5
 /* configure can't get this right linking fails unless -lsocket is used.  */
 #undef HAVE_XSCREENNUMBEROFSCREEN
 #define HAVE_XSCREENNUMBEROFSCREEN
-#endif
 
 /* We don't have -loldX, and we don't need it.  */
 #define LIB_XMENU_LIB

@@ -27,6 +27,9 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(eval-when-compile
+  (when (featurep 'xemacs)
+    (require 'easy-mmode))) ; for `define-minor-mode'
 
 (require 'gnus)
 (require 'gnus-range)
@@ -268,7 +271,7 @@ It is merged with the face for the cited text belonging to the attribution."
 
 (defface gnus-cite-10 '((((class color)
 			  (background dark))
-			 (:foreground "medium purple"))
+			 (:foreground "plum1"))
 			(((class color)
 			  (background light))
 			 (:foreground "medium purple"))
@@ -294,14 +297,28 @@ It is merged with the face for the cited text belonging to the attribution."
 
 (defcustom gnus-cite-face-list
   '(gnus-cite-1 gnus-cite-2 gnus-cite-3 gnus-cite-4 gnus-cite-5 gnus-cite-6
-    gnus-cite-7 gnus-cite-8 gnus-cite-9 gnus-cite-10 gnus-cite-11)
+		gnus-cite-7 gnus-cite-8 gnus-cite-9 gnus-cite-10 gnus-cite-11)
   "*List of faces used for highlighting citations.
 
 When there are citations from multiple articles in the same message,
 Gnus will try to give each citation from each article its own face.
 This should make it easier to see who wrote what."
   :group 'gnus-cite
-  :type '(repeat face))
+  :type '(repeat face)
+  :set (lambda (symbol value)
+	 (prog1
+	     (custom-set-default symbol value)
+	   (if (boundp 'gnus-message-max-citation-depth)
+	       (setq gnus-message-max-citation-depth (length value)))
+	   (if (boundp 'gnus-message-citation-keywords)
+	       (setq gnus-message-citation-keywords
+		     `((gnus-message-search-citation-line
+			,@(let ((list nil)
+				(count 1))
+			    (dolist (face value (nreverse list))
+			      (push (list count (list 'quote face) 'prepend t)
+				    list)
+			      (setq count (1+ count)))))))))))
 
 (defcustom gnus-cite-hide-percentage 50
   "Only hide excess citation if above this percentage of the body."
@@ -367,7 +384,7 @@ in a boring face, then the pages will be skipped."
 
 ;;; Commands:
 
-(defun gnus-article-highlight-citation (&optional force)
+(defun gnus-article-highlight-citation (&optional force same-buffer)
   "Highlight cited text.
 Each citation in the article will be highlighted with a different face.
 The faces are taken from `gnus-cite-face-list'.
@@ -381,7 +398,8 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
 `gnus-cite-attribution-prefix' are considered attribution lines."
   (interactive (list 'force))
   (save-excursion
-    (set-buffer gnus-article-buffer)
+    (unless same-buffer
+      (set-buffer gnus-article-buffer))
     (gnus-cite-parse-maybe force)
     (let ((buffer-read-only nil)
 	  (alist gnus-cite-prefix-alist)
@@ -416,7 +434,7 @@ Lines matching `gnus-cite-attribution-suffix' and perhaps
 	(goto-char (point-min))
 	(forward-line (1- number))
 	(when (re-search-forward gnus-cite-attribution-suffix
-				 (gnus-point-at-eol)
+				 (point-at-eol)
 				 t)
 	  (gnus-article-add-button (match-beginning 1) (match-end 1)
 				   'gnus-cite-toggle prefix))
@@ -770,7 +788,7 @@ See also the documentation for `gnus-article-highlight-citation'."
       ;; Each line.
       (setq begin (point)
 	    guess-limit (progn (skip-chars-forward "^> \t\r\n") (point))
-	    end (gnus-point-at-bol 2)
+	    end (point-at-bol 2)
 	    start end)
       (goto-char begin)
       ;; Ignore standard Supercite attribution prefix.
@@ -793,7 +811,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 	;; Each prefix.
 	(setq end (match-end 0)
 	      prefix (buffer-substring begin end))
-	(gnus-set-text-properties 0 (length prefix) nil prefix)
+	(set-text-properties 0 (length prefix) nil prefix)
 	(setq entry (assoc prefix alist))
 	(if entry
 	    (setcdr entry (cons line (cdr entry)))
@@ -803,13 +821,24 @@ See also the documentation for `gnus-article-highlight-citation'."
       (setq line (1+ line)))
     ;; Horrible special case for some Microsoft mailers.
     (goto-char (point-min))
-    (when (re-search-forward gnus-cite-unsightly-citation-regexp max t)
-      (setq begin (count-lines (point-min) (point)))
-      (setq end (count-lines (point-min) max))
-      (setq entry nil)
-      (while (< begin end)
-	(push begin entry)
-	(setq begin (1+ begin)))
+    (setq start t begin nil entry nil)
+    (while start
+      ;; Assume this search ends up at the beginning of a line.
+      (if (re-search-forward gnus-cite-unsightly-citation-regexp max t)
+	  (progn
+	    (when (number-or-marker-p start)
+	      (setq begin (count-lines (point-min) start)
+		    end (count-lines (point-min) (match-beginning 0))))
+	    (setq start (match-end 0)))
+	(when (number-or-marker-p start)
+	  (setq begin (count-lines (point-min) start)
+		end (count-lines (point-min) max)))
+	(setq start nil))
+      (when begin
+	(while (< begin end)
+	  ;; Need to do 1+ because we're in the bol.
+	  (push (setq begin (1+ begin)) entry))))
+    (when entry
       (push (cons "" entry) alist))
     ;; We got all the potential prefixes.  Now create
     ;; `gnus-cite-prefix-alist' containing the oldest prefix for each
@@ -875,11 +904,10 @@ See also the documentation for `gnus-article-highlight-citation'."
 	(let ((al (buffer-substring (save-excursion (beginning-of-line 0)
 						    (1+ (point)))
 				    end)))
-	  (if (not (assoc al al-alist))
-	      (progn
-		(push (list wrote in prefix tag)
-		      gnus-cite-loose-attribution-alist)
-		(push (cons al t) al-alist))))))))
+	  (when (not (assoc al al-alist))
+	    (push (list wrote in prefix tag)
+		  gnus-cite-loose-attribution-alist)
+	    (push (cons al t) al-alist)))))))
 
 (defun gnus-cite-connect-attributions ()
   ;; Connect attributions to citations
@@ -1100,6 +1128,107 @@ See also the documentation for `gnus-article-highlight-citation'."
 		       prefix)
 	  (setq found t)))
       found)))
+
+
+;; Highlighting of different citation levels in message-mode.
+;; - message-cite-prefix will be overridden if this is enabled.
+
+(defvar gnus-message-max-citation-depth
+  (length gnus-cite-face-list)
+  "Maximum supported level of citation.")
+
+(defvar gnus-message-cite-prefix-regexp
+  (concat "^\\(?:" message-cite-prefix-regexp "\\)"))
+
+(defun gnus-message-search-citation-line (limit)
+  "Search for a cited line and set match data accordingly.
+Returns nil if there is no such line before LIMIT, t otherwise."
+  (when (re-search-forward gnus-message-cite-prefix-regexp limit t)
+    (let ((cdepth (min (length (apply 'concat
+				      (split-string
+				       (match-string-no-properties 0)
+				       "[ \t [:alnum:]]+")))
+		       gnus-message-max-citation-depth))
+	  (mlist (make-list (* (1+ gnus-message-max-citation-depth) 2) nil))
+	  (start (point-at-bol))
+	  (end (point-at-eol)))
+      (setcar mlist start)
+      (setcar (cdr mlist) end)
+      (setcar (nthcdr (* cdepth 2) mlist) start)
+      (setcar (nthcdr (1+ (* cdepth 2)) mlist) end)
+      (set-match-data mlist))
+    t))
+
+(defvar gnus-message-citation-keywords
+  ;; eval-when-compile ;; This breaks in XEmacs
+  `((gnus-message-search-citation-line
+     ,@(let ((list nil)
+	     (count 1))
+	 ;; (require 'gnus-cite)
+	 (dolist (face gnus-cite-face-list (nreverse list))
+	   (push (list count (list 'quote face) 'prepend t) list)
+	   (setq count (1+ count)))))) ;;
+  "Keywords for highlighting different levels of message citations.")
+
+(defvar font-lock-defaults-computed)
+(defvar font-lock-keywords)
+(defvar font-lock-set-defaults)
+
+(eval-and-compile
+  (unless (featurep 'xemacs)
+    (autoload 'font-lock-set-defaults "font-lock")))
+
+(define-minor-mode gnus-message-citation-mode
+  "Toggle `gnus-message-citation-mode' in current buffer.
+This buffer local minor mode provides additional font-lock support for
+nested citations.
+With prefix ARG, turn `gnus-message-citation-mode' on if and only if ARG
+is positive.
+Automatically turn `font-lock-mode' on when `gnus-message-citation-mode'
+is turned on."
+  nil ;; init-value
+  "" ;; lighter
+  nil ;; keymap
+  (when (eq major-mode 'message-mode)
+    (let ((defaults (car (if (featurep 'xemacs)
+			     (get 'message-mode 'font-lock-defaults)
+			   font-lock-defaults)))
+	  default keywords)
+      (while defaults
+	(setq default (if (consp defaults)
+			  (pop defaults)
+			(prog1
+			    defaults
+			  (setq defaults nil))))
+	(if gnus-message-citation-mode
+	    ;; `gnus-message-citation-keywords' should be the last
+	    ;; elements of the keywords because the others are unlikely
+	    ;; to have the OVERRIDE flags -- XEmacs applies a keyword
+	    ;; having no OVERRIDE flag to matched text even if it has
+	    ;; already other faces, while Emacs doesn't.
+	    (set (make-local-variable default)
+		 (append (default-value default)
+			 gnus-message-citation-keywords))
+	  (kill-local-variable default))))
+    ;; Force `font-lock-set-defaults' to update `font-lock-keywords'.
+    (if (featurep 'xemacs)
+	(progn
+	  (require 'font-lock)
+	  (setq font-lock-defaults-computed nil
+		font-lock-keywords nil))
+      (setq font-lock-set-defaults nil))
+    (font-lock-set-defaults)
+    (cond ((symbol-value 'font-lock-mode)
+	   (font-lock-fontify-buffer))
+	  (gnus-message-citation-mode
+	   (font-lock-mode 1)))))
+
+(defun turn-on-gnus-message-citation-mode ()
+  "Turn on `gnus-message-citation-mode'."
+  (gnus-message-citation-mode 1))
+(defun turn-off-gnus-message-citation-mode ()
+  "Turn off `gnus-message-citation-mode'."
+  (gnus-message-citation-mode -1))
 
 (gnus-ems-redefine)
 

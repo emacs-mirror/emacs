@@ -2218,7 +2218,11 @@ This combination of keys is a command to change keyboard layout.  If
 you proceed to type another non-modifier key before you let go of Alt
 and Shift, the Alt and Shift act as modifiers in the usual way.  A
 more permanent work around is to change it to another key combination,
-or disable it in the keyboard control panel.
+or disable it in the "Regional and Language Options" applet of the
+Control Panel.  (The exact sequence of mouse clicks in the "Regional
+and Language Options" applet needed to find the key combination that
+changes the keyboard layout depends on your Windows version; for XP,
+in the Languages tab, click "Details" and then "Key Settings".)
 
 ** Cygwin build of Emacs hangs after rebasing Cygwin DLLs
 

@@ -5004,6 +5004,10 @@ extern int noninteractive;
 #if SELECT_USE_CFSOCKET
 #define SELECT_TIMEOUT_THRESHOLD_RUNLOOP 0.2
 
+/* Dictionary of file descriptors vs CFSocketRef's allocated in
+   sys_select.  */
+static CFMutableDictionaryRef cfsockets_for_select;
+
 static void
 socket_callback (s, type, address, data, info)
      CFSocketRef s;
@@ -5089,6 +5093,43 @@ select_and_poll_event (nfds, rfds, wfds, efds, timeout)
     return 0;
 }
 
+/* Clean up the CFSocket associated with the file descriptor FD in
+   case the same descriptor is used in other threads later.  If no
+   CFSocket is associated with FD, then return 0 without closing FD.
+   Otherwise, return 1 with closing FD.  */
+
+int
+mac_try_close_socket (fd)
+     int fd;
+{
+#if SELECT_USE_CFSOCKET
+  if (cfsockets_for_select)
+    {
+      void *key = (void *) fd;
+      CFSocketRef socket =
+	(CFSocketRef) CFDictionaryGetValue (cfsockets_for_select, key);
+
+      if (socket)
+	{
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+	  CFOptionFlags flags = CFSocketGetSocketFlags (socket);
+
+	  if (!(flags & kCFSocketCloseOnInvalidate))
+	    CFSocketSetSocketFlags (socket, flags | kCFSocketCloseOnInvalidate);
+#endif
+	  BLOCK_INPUT;
+	  CFSocketInvalidate (socket);
+	  CFDictionaryRemoveValue (cfsockets_for_select, key);
+	  UNBLOCK_INPUT;
+
+	  return 1;
+	}
+    }
+#endif
+
+  return 0;
+}
+
 int
 sys_select (nfds, rfds, wfds, efds, timeout)
      int nfds;
@@ -5165,6 +5206,11 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	      CFDictionaryCreateMutable (NULL, 0, NULL,
 					 &kCFTypeDictionaryValueCallBacks);
 
+	  if (cfsockets_for_select == NULL)
+	    cfsockets_for_select =
+	      CFDictionaryCreateMutable (NULL, 0, NULL,
+					 &kCFTypeDictionaryValueCallBacks);
+
 	  for (minfd = 1; ; minfd++) /* nfds-1 works as a sentinel.  */
 	    if (FD_ISSET (minfd, rfds) || (wfds && FD_ISSET (minfd, wfds)))
 	      break;
@@ -5176,7 +5222,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 		CFRunLoopSourceRef source =
 		  (CFRunLoopSourceRef) CFDictionaryGetValue (sources, key);
 
-		if (source == NULL)
+		if (source == NULL || !CFRunLoopSourceIsValid (source))
 		  {
 		    CFSocketRef socket =
 		      CFSocketCreateWithNative (NULL, fd,
@@ -5186,11 +5232,12 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 
 		    if (socket == NULL)
 		      continue;
+		    CFDictionarySetValue (cfsockets_for_select, key, socket);
 		    source = CFSocketCreateRunLoopSource (NULL, socket, 0);
 		    CFRelease (socket);
 		    if (source == NULL)
 		      continue;
-		    CFDictionaryAddValue (sources, key, source);
+		    CFDictionarySetValue (sources, key, source);
 		    CFRelease (source);
 		  }
 		CFRunLoopAddSource (runloop, source, kCFRunLoopDefaultMode);

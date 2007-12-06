@@ -530,11 +530,11 @@ Use this defun with `erc-insert-modify-hook'."
 
 (defun erc-log-matches (match-type nickuserhost message)
   "Log matches in a separate buffer, determined by MATCH-TYPE.
-The behaviour of this function is controlled by the variables
-`erc-log-matches-types-alist' and `erc-log-matches-flag'. Specify the
-match types which should be logged in the former, and
-deactivate/activate match logging in the latter. See
-`erc-log-match-format'."
+The behavior of this function is controlled by the variables
+`erc-log-matches-types-alist' and `erc-log-matches-flag'.
+Specify the match types which should be logged in the former,
+and deactivate/activate match logging in the latter.
+See `erc-log-match-format'."
   (let  ((match-buffer-name (cdr (assq match-type
 				       erc-log-matches-types-alist)))
 	 (nick (nth 0 (erc-parse-user nickuserhost))))

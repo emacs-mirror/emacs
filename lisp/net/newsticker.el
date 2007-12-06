@@ -1199,10 +1199,11 @@ buffers *newsticker-wget-<feed>* will not be closed."
 (unless (fboundp 'match-string-no-properties)
   (defalias 'match-string-no-properties 'match-string))
 
-(unless (fboundp 'replace-regexp-in-string)
-  (defun replace-regexp-in-string (re rp st)
-    (save-match-data ;; apparently XEmacs needs save-match-data
-      (replace-in-string st re rp))))
+(when (featurep 'xemacs)
+  (unless (fboundp 'replace-regexp-in-string)
+    (defun replace-regexp-in-string (re rp st)
+      (save-match-data ;; apparently XEmacs needs save-match-data
+	(replace-in-string st re rp)))))
 
 ;; copied from subr.el
 (unless (fboundp 'add-to-invisibility-spec)
@@ -2598,6 +2599,9 @@ If URL is nil it is searched at point."
     (read-string "Name: ")))
   (add-to-list 'newsticker-url-list (list name url nil nil nil) t)
   (customize-variable 'newsticker-url-list))
+
+;; External.
+(declare-function w3m-toggle-inline-image "ext:w3m" (&optional force no-cache))
 
 (defun newsticker-w3m-show-inline-images ()
   "Show inline images in visible text ranges.
@@ -4842,6 +4846,11 @@ The face is chosen according the values of NT-FACE and AGE."
 ;; ======================================================================
 ;;; HTML rendering
 ;; ======================================================================
+
+;; External.
+(declare-function htmlr-reset "ext:htmlr" ())
+(declare-function htmlr-step  "ext:htmlr" ())
+
 (defun newsticker-htmlr-render (pos1 pos2) ;
   "Replacement for `htmlr-render'.
 Renders the HTML code in the region POS1 to POS2 using htmlr."

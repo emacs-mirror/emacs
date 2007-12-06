@@ -138,11 +138,7 @@ static Lisp_Object Vgtk_version_string;
 
 #endif /* USE_GTK */
 
-#ifdef HAVE_X11R4
 #define MAXREQUEST(dpy) (XMaxRequestSize (dpy))
-#else
-#define MAXREQUEST(dpy) ((dpy)->max_request_size)
-#endif
 
 /* The gray bitmap `bitmaps/gray'.  This is done because xterm.c uses
    it, and including `bitmaps/gray' more than once is a problem when
@@ -935,7 +931,7 @@ x_set_background_color (f, arg, oldval)
 	     !NILP (bar);
 	     bar = XSCROLL_BAR (bar)->next)
 	  {
-	    Window window = SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar));
+	    Window window = XSCROLL_BAR (bar)->x_window;
 	    XSetWindowBackground (dpy, window, bg);
 	  }
       }
@@ -1619,7 +1615,6 @@ x_set_name_internal (f, name)
   if (FRAME_X_WINDOW (f))
     {
       BLOCK_INPUT;
-#ifdef HAVE_X11R4
       {
 	XTextProperty text, icon;
 	int bytes, stringp;
@@ -1687,12 +1682,6 @@ x_set_name_internal (f, name)
 	if (do_free_text_value)
 	  xfree (text.value);
       }
-#else /* not HAVE_X11R4 */
-      XSetIconName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		    SDATA (name));
-      XStoreName (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
-		  SDATA (name));
-#endif /* not HAVE_X11R4 */
       UNBLOCK_INPUT;
     }
 }
@@ -1879,23 +1868,6 @@ x_default_scroll_bar_color_parameter (f, alist, prop, xprop, xclass,
 
 
 
-#if !defined (HAVE_X11R4) && !defined (HAVE_XSETWMPROTOCOLS)
-
-Status
-XSetWMProtocols (dpy, w, protocols, count)
-     Display *dpy;
-     Window w;
-     Atom *protocols;
-     int count;
-{
-  Atom prop;
-  prop = XInternAtom (dpy, "WM_PROTOCOLS", False);
-  if (prop == None) return False;
-  XChangeProperty (dpy, w, prop, XA_ATOM, 32, PropModeReplace,
-		   (unsigned char *) protocols, count);
-  return True;
-}
-#endif /* not HAVE_X11R4 && not HAVE_XSETWMPROTOCOLS */
 
 #ifdef USE_X_TOOLKIT
 
@@ -3058,7 +3030,7 @@ unwind_create_frame (frame)
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
        doc: /* Make a new X window, which is called a "frame" in Emacs terms.
-Returns an Emacs frame object.
+Return an Emacs frame object.
 ALIST is an alist of frame parameters.
 If the parameters specify that the frame should not have a minibuffer,
 and do not specify a specific minibuffer window to use,
@@ -3619,7 +3591,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
        0, 1, 0,
-       doc: /* Returns the width in pixels of the X display TERMINAL.
+       doc: /* Return the width in pixels of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -3633,7 +3605,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
        Sx_display_pixel_height, 0, 1, 0,
-       doc: /* Returns the height in pixels of the X display TERMINAL.
+       doc: /* Return the height in pixels of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -3647,7 +3619,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
        0, 1, 0,
-       doc: /* Returns the number of bitplanes of the X display TERMINAL.
+       doc: /* Return the number of bitplanes of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -3661,7 +3633,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
        0, 1, 0,
-       doc: /* Returns the number of color cells of the X display TERMINAL.
+       doc: /* Return the number of color cells of the X display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -3686,7 +3658,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        Sx_server_max_request_size,
        0, 1, 0,
-       doc: /* Returns the maximum request size of the X server of display TERMINAL.
+       doc: /* Return the maximum request size of the X server of display TERMINAL.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -3699,7 +3671,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
-       doc: /* Returns the "vendor ID" string of the X server of display TERMINAL.
+       doc: /* Return the "vendor ID" string of the X server of display TERMINAL.
 \(Labelling every distributor as a "vendor" embodies the false assumption
 that operating systems cannot be developed and distributed noncommercially.)
 The optional argument TERMINAL specifies which display to ask about.
@@ -3716,7 +3688,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
-       doc: /* Returns the version numbers of the X server of display TERMINAL.
+       doc: /* Return the version numbers of the X server of display TERMINAL.
 The value is a list of three integers: the major and minor
 version numbers of the X Protocol in use, and the distributor-specific release
 number.  See also the function `x-server-vendor'.
@@ -3776,7 +3748,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
        Sx_display_backing_store, 0, 1, 0,
-       doc: /* Returns an indication of whether X display TERMINAL does backing store.
+       doc: /* Return an indication of whether X display TERMINAL does backing store.
 The value may be `always', `when-mapped', or `not-useful'.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal id, a frame or a display name (a string).
@@ -3854,7 +3826,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-save-under", Fx_display_save_under,
        Sx_display_save_under, 0, 1, 0,
-       doc: /* Returns t if the X display TERMINAL supports the save-under feature.
+       doc: /* Return t if the X display TERMINAL supports the save-under feature.
 The optional argument TERMINAL specifies which display to ask about.
 TERMINAL should be a terminal id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -4013,11 +3985,7 @@ select_visual (dpyinfo)
 
       dpyinfo->visual = DefaultVisualOfScreen (screen);
 
-#ifdef HAVE_X11R4
       vinfo_template.visualid = XVisualIDFromVisual (dpyinfo->visual);
-#else
-      vinfo_template.visualid = dpyinfo->visual->visualid;
-#endif
       vinfo_template.screen = XScreenNumberOfScreen (screen);
       vinfo = XGetVisualInfo (dpy, VisualIDMask | VisualScreenMask,
 			      &vinfo_template, &n_visuals);

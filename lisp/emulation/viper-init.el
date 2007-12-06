@@ -26,8 +26,6 @@
 
 ;;; Code:
 
-(provide 'viper-init)
-
 ;; compiler pacifier
 (defvar mark-even-if-inactive)
 (defvar quail-mode)
@@ -49,10 +47,6 @@
   (interactive)
   (message "Viper version is %s" viper-version))
 
-;; Is it XEmacs?
-(defconst viper-xemacs-p (featurep 'xemacs))
-;; Is it Emacs?
-(defconst viper-emacs-p (not viper-xemacs-p))
 ;; Tell whether we are running as a window application or on a TTY
 
 ;; This is used to avoid compilation warnings. When emacs/xemacs forms can
@@ -116,8 +110,8 @@ In all likelihood, you don't need to bother with this setting."
   (cond ((viper-window-display-p))
 	(viper-force-faces)
 	((viper-color-display-p))
-	(viper-emacs-p (memq (viper-device-type) '(pc)))
-	(viper-xemacs-p (memq (viper-device-type) '(tty pc)))))
+	((featurep 'emacs) (memq (viper-device-type) '(pc)))
+	((featurep 'xemacs) (memq (viper-device-type) '(tty pc)))))
 
 
 ;;; Macros
@@ -356,9 +350,9 @@ Use `M-x viper-set-expert-level' to change this.")
 		   "")))))
 
 (defun viper-inactivate-input-method ()
-  (cond ((and viper-emacs-p (fboundp 'inactivate-input-method))
+  (cond ((and (featurep 'emacs) (fboundp 'inactivate-input-method))
 	 (inactivate-input-method))
-	((and viper-xemacs-p (boundp 'current-input-method))
+	((and (featurep 'xemacs) (boundp 'current-input-method))
 	 ;; XEmacs had broken quil-mode for some time, so we are working around
 	 ;; it here
 	 (setq quail-mode nil)
@@ -370,7 +364,7 @@ Use `M-x viper-set-expert-level' to change this.")
 	 (force-mode-line-update))
 	))
 (defun viper-activate-input-method ()
-  (cond ((and viper-emacs-p (fboundp 'activate-input-method))
+  (cond ((and (featurep 'emacs) (fboundp 'activate-input-method))
 	 (activate-input-method default-input-method))
 	((featurep 'xemacs)
 	 (if (fboundp 'quail-mode) (quail-mode 1)))))
@@ -433,15 +427,11 @@ delete the text being replaced, as in standard Vi."
   "*Cursor color when Viper is in Replace state."
   :type 'string
   :group 'viper)
-(if (fboundp 'make-variable-frame-local)
-    (make-variable-frame-local 'viper-replace-overlay-cursor-color))
 
 (defcustom viper-insert-state-cursor-color "Green"
   "Cursor color when Viper is in insert state."
   :type 'string
   :group 'viper)
-(if (fboundp 'make-variable-frame-local)
-    (make-variable-frame-local 'viper-insert-state-cursor-color))
 
 ;; viper-emacs-state-cursor-color doesn't work well. Causes cursor colors to be
 ;; confused in some cases. So, this var is nulled for now.
@@ -450,13 +440,17 @@ delete the text being replaced, as in standard Vi."
   "Cursor color when Viper is in Emacs state."
   :type 'string
   :group 'viper)
-(if (fboundp 'make-variable-frame-local)
-    (make-variable-frame-local 'viper-emacs-state-cursor-color))
 
 ;; internal var, used to remember the default cursor color of emacs frames
 (defvar viper-vi-state-cursor-color nil)
+
 (if (fboundp 'make-variable-frame-local)
-    (make-variable-frame-local 'viper-vi-state-cursor-color))
+    (mapc 'make-variable-frame-local
+          '(viper-replace-overlay-cursor-color
+            viper-insert-state-cursor-color
+            viper-emacs-state-cursor-color
+            viper-vi-state-cursor-color)))
+
 
 (viper-deflocalvar viper-replace-overlay nil "")
 (put 'viper-replace-overlay 'permanent-local t)
@@ -475,7 +469,7 @@ is non-nil."
   :group 'viper)
 (defcustom viper-use-replace-region-delimiters
   (or (not (viper-has-face-support-p))
-      (and viper-xemacs-p (eq (viper-device-type) 'tty)))
+      (and (featurep 'xemacs) (eq (viper-device-type) 'tty)))
   "*If non-nil, Viper will always use `viper-replace-region-end-delimiter' and
 `viper-replace-region-start-delimiter' to delimit replacement regions, even on
 color displays.  By default, the delimiters are used only on TTYs."
@@ -1018,15 +1012,18 @@ Should be set in `~/.viper' file."
 
 (defun viper-restore-cursor-type ()
   (condition-case nil
-      (if viper-xemacs-p
+      (if (featurep 'xemacs)
 	  (set (make-local-variable 'bar-cursor) nil)
 	(setq cursor-type default-cursor-type))
     (error nil)))
 
 (defun viper-set-insert-cursor-type ()
-  (if viper-xemacs-p
+  (if (featurep 'xemacs)
       (set (make-local-variable 'bar-cursor) 2)
     (setq cursor-type '(bar . 2))))
+
+
+(provide 'viper-init)
 
 
 ;; Local Variables:

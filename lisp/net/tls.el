@@ -55,6 +55,29 @@
   "Transport Layer Security (TLS) parameters."
   :group 'comm)
 
+(defcustom tls-end-of-info
+  (concat
+   "\\("
+   ;; `openssl s_client' regexp.  See ssl/ssl_txt.c lines 219-220.
+   ;; According to apps/s_client.c line 1515 `---' is always the last
+   ;; line that is printed by s_client before the real data.
+   "^    Verify return code: .+\n---\n\\|"
+   ;; `gnutls' regexp. See src/cli.c lines 721-.
+   "^- Simple Client Mode:\n"
+   "\\(\n\\|"                           ; ignore blank lines
+   ;; According to GnuTLS v2.1.5 src/cli.c lines 640-650 and 705-715
+   ;; in `main' the handshake will start after this message.  If the
+   ;; handshake fails, the programs will abort.
+   "^\\*\\*\\* Starting TLS handshake\n\\)*"
+   "\\)")
+  "Regexp matching end of TLS client informational messages.
+Client data stream begins after the last character matched by
+this.  The default matches `openssl s_client' (version 0.9.8c)
+and `gnutls-cli' (version 2.0.1) output."
+  :version "22.2"
+  :type 'regexp
+  :group 'tls)
+
 (defcustom tls-program '("gnutls-cli -p %p %h"
 			 "gnutls-cli -p %p %h --protocols ssl3"
 			 "openssl s_client -connect %h:%p -no_ssl2")
@@ -62,24 +85,91 @@
 Each entry in the list is tried until a connection is successful.
 %h is replaced with server hostname, %p with port to connect to.
 The program should read input on stdin and write output to
-stdout.  Also see `tls-success' for what the program should output
-after successful negotiation."
-  :type '(repeat string)
+stdout.
+
+See `tls-checktrust' on how to check trusted root certs.
+
+Also see `tls-success' for what the program should output after
+successful negotiation."
+  :type
+  '(choice
+    (list :tag "Choose commands"
+	  :value
+	  ("gnutls-cli -p %p %h"
+	   "gnutls-cli -p %p %h --protocols ssl3"
+	   "openssl s_client -connect %h:%p -no_ssl2")
+	  (set :inline t
+	       ;; FIXME: add brief `:tag "..."' descriptions.
+	       ;; (repeat :inline t :tag "Other" (string))
+	       ;; See `tls-checktrust':
+	       (const "gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h")
+	       (const "gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h --protocols ssl3")
+	       (const "openssl s_client -connect %h:%p -CAfile /etc/ssl/certs/ca-certificates.crt -no_ssl2")
+	       ;; No trust check:
+	       (const "gnutls-cli -p %p %h")
+	       (const "gnutls-cli -p %p %h --protocols ssl3")
+	       (const "openssl s_client -connect %h:%p -no_ssl2"))
+	  (repeat :inline t :tag "Other" (string)))
+    (const :tag "Default list of commands"
+	   ("gnutls-cli -p %p %h"
+	    "gnutls-cli -p %p %h --protocols ssl3"
+	    "openssl s_client -connect %h:%p -no_ssl2"))
+    (list :tag "List of commands"
+	  (repeat :tag "Command" (string))))
   :version "22.1"
   :group 'tls)
 
 (defcustom tls-process-connection-type nil
-  "*Value for `process-connection-type' to use when starting TLS process."
+  "Value for `process-connection-type' to use when starting TLS process."
   :version "22.1"
   :type 'boolean
   :group 'tls)
 
 (defcustom tls-success "- Handshake was completed\\|SSL handshake has read "
-  "*Regular expression indicating completed TLS handshakes.
+  "Regular expression indicating completed TLS handshakes.
 The default is what GNUTLS's \"gnutls-cli\" or OpenSSL's
 \"openssl s_client\" outputs."
   :version "22.1"
   :type 'regexp
+  :group 'tls)
+
+(defcustom tls-checktrust nil
+  "Indicate if certificates should be checked against trusted root certs.
+If this is `ask', the user can decide whether to accept an
+untrusted certificate.  You may have to adapt `tls-program' in
+order to make this feature work properly, i.e., to ensure that
+the external program knows about the root certificates you
+consider trustworthy, e.g.:
+
+\(setq tls-program
+      '(\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h\"
+	\"gnutls-cli --x509cafile /etc/ssl/certs/ca-certificates.crt -p %p %h --protocols ssl3\"
+	\"openssl s_client -connect %h:%p -CAfile /etc/ssl/certs/ca-certificates.crt -no_ssl2\"))"
+  :type '(choice (const :tag "Always" t)
+		 (const :tag "Never" nil)
+		 (const :tag "Ask" ask))
+  :version "23.0" ;; No Gnus
+  :group 'tls)
+
+(defcustom tls-untrusted
+  "- Peer's certificate is NOT trusted\\|Verify return code: \\([^0] \\|.[^ ]\\)"
+  "Regular expression indicating failure of TLS certificate verification.
+The default is what GNUTLS's \"gnutls-cli\" or OpenSSL's
+\"openssl s_client\" return in the event of unsuccessful
+verification."
+  :type 'regexp
+  :version "23.0" ;; No Gnus
+  :group 'tls)
+
+(defcustom tls-hostmismatch
+  "# The hostname in the certificate does NOT match"
+  "Regular expression indicating a host name mismatch in certificate.
+When the host name specified in the certificate doesn't match the
+name of the host you are connecting to, gnutls-cli issues a
+warning to this effect.  There is no such feature in openssl.  Set
+this to nil if you want to ignore host name mismatches."
+  :type 'regexp
+  :version "23.0" ;; No Gnus
   :group 'tls)
 
 (defcustom tls-certtool-program (executable-find "certtool")
@@ -118,7 +208,7 @@ Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
 Args are NAME BUFFER HOST PORT.
 NAME is name for process.  It is modified if necessary to make it unique.
-BUFFER is the buffer (or buffer-name) to associate with the process.
+BUFFER is the buffer (or buffer name) to associate with the process.
  Process output goes at end of that buffer, unless you specify
  an output stream or filter function to handle the output.
  BUFFER may be also nil, meaning that this process is not associated
@@ -130,35 +220,57 @@ Fourth arg PORT is an integer specifying a port to connect to."
 	process	cmd done)
     (if use-temp-buffer
 	(setq buffer (generate-new-buffer " TLS")))
-    (message "Opening TLS connection to `%s'..." host)
-    (while (and (not done) (setq cmd (pop cmds)))
-      (message "Opening TLS connection with `%s'..." cmd)
-      (let ((process-connection-type tls-process-connection-type)
-	    response)
-	(setq process (start-process
-		       name buffer shell-file-name shell-command-switch
-		       (format-spec
-			cmd
-			(format-spec-make
-			 ?h host
-			 ?p (if (integerp port)
-				(int-to-string port)
-			      port)))))
-	(while (and process
-		    (memq (process-status process) '(open run))
-		    (save-excursion
-		      (set-buffer buffer) ;; XXX "blue moon" nntp.el bug
+    (with-current-buffer buffer
+      (message "Opening TLS connection to `%s'..." host)
+      (while (and (not done) (setq cmd (pop cmds)))
+	(message "Opening TLS connection with `%s'..." cmd)
+	(let ((process-connection-type tls-process-connection-type)
+	      response)
+	  (setq process (start-process
+			 name buffer shell-file-name shell-command-switch
+			 (format-spec
+			  cmd
+			  (format-spec-make
+			   ?h host
+			   ?p (if (integerp port)
+				  (int-to-string port)
+				port)))))
+	  (while (and process
+		      (memq (process-status process) '(open run))
+		      (progn
+			(goto-char (point-min))
+			(not (setq done (re-search-forward tls-success nil t)))))
+	    (unless (accept-process-output process 1)
+	      (sit-for 1)))
+	  (message "Opening TLS connection with `%s'...%s" cmd
+		   (if done "done" "failed"))
+	  (if done
+	      (setq done process)
+	    (delete-process process))))
+      (when done
+	(save-excursion
+	  (set-buffer buffer)
+	  (when
+	      (or
+	       (and tls-checktrust
+		    (progn
 		      (goto-char (point-min))
-		      (not (setq done (re-search-forward tls-success nil t)))))
-	  (unless (accept-process-output process 1)
-            (sit-for 1)))
-	(message "Opening TLS connection with `%s'...%s" cmd
-		 (if done "done" "failed"))
-	(if done
-	    (setq done process)
-	  (delete-process process))))
-    (message "Opening TLS connection to `%s'...%s"
-	     host (if done "done" "failed"))
+		      (re-search-forward tls-untrusted nil t))
+		    (or
+		     (and (not (eq tls-checktrust 'ask))
+			  (message "The certificate presented by `%s' is NOT trusted." host))
+		     (not (yes-or-no-p
+			   (format "The certificate presented by `%s' is NOT trusted. Accept anyway? " host)))))
+	       (and tls-hostmismatch
+		    (progn
+		      (goto-char (point-min))
+		      (re-search-forward tls-hostmismatch nil t))
+		    (not (yes-or-no-p
+			  (format "Host name in certificate doesn't match `%s'. Connect anyway? " host)))))
+	    (setq done nil)
+	    (delete-process process))))
+      (message "Opening TLS connection to `%s'...%s"
+	       host (if done "done" "failed")))
     (when use-temp-buffer
       (if done (set-process-buffer process nil))
       (kill-buffer buffer))

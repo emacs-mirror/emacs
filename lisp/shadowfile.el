@@ -28,7 +28,7 @@
 ;;  This package helps you to keep identical copies of files in more than one
 ;;  place - possibly on different machines.  When you save a file, it checks
 ;;  whether it is on the list of files with "shadows", and if so, it tries to
-;;  copy it when you exit emacs (or use the shadow-copy-files command).
+;;  copy it when you exit Emacs (or use the shadow-copy-files command).
 
 ;; Installation & Use:
 
@@ -38,8 +38,8 @@
 ;;  them).  After doing this once, everything should be automatic.
 
 ;;  The lists of clusters and shadows are saved in a file called .shadows,
-;;  so that they can be remembered from one emacs session to another, even
-;;  (as much as possible) if the emacs session terminates abnormally.  The
+;;  so that they can be remembered from one Emacs session to another, even
+;;  (as much as possible) if the Emacs session terminates abnormally.  The
 ;;  files needing to be copied are stored in .shadow_todo; if a file cannot
 ;;  be copied for any reason, it will stay on the list to be tried again
 ;;  next time.  The .shadows file should itself have shadows on all your
@@ -47,7 +47,7 @@
 ;;  .shadow_todo is local information and should have no shadows.
 
 ;;  If you do not want to copy a particular file, you can answer "no" and
-;;  be asked again next time you hit C-x 4 s or exit emacs.  If you do not
+;;  be asked again next time you hit C-x 4 s or exit Emacs.  If you do not
 ;;  want to be asked again, use shadow-cancel, and you will not be asked
 ;;  until you change the file and save it again.  If you do not want to
 ;;  shadow that file ever again, you can edit it out of the .shadows
@@ -103,8 +103,8 @@ is no buffer currently visiting the file."
 
 (defcustom shadow-inhibit-overload nil
   "If non-nil, shadowfile won't redefine \\[save-buffers-kill-emacs].
-Normally it overloads the function `save-buffers-kill-emacs' to check
-for files have been changed and need to be copied to other systems."
+Normally it overloads the function `save-buffers-kill-emacs' to check for
+files that have been changed and need to be copied to other systems."
   :type 'boolean
   :group 'shadow)
 
@@ -191,12 +191,6 @@ Nondestructive; actually returns a copy of the list with the elements removed."
 	  (shadow-remove-if func (cdr list))
 	(cons (car list) (shadow-remove-if func (cdr list))))
     nil))
-
-(defun shadow-join (strings sep)
-  "Concatenate elements of the list of STRINGS with SEP between each."
-  (cond ((null strings) "")
-	((null (cdr strings)) (car strings))
-	((concat (car strings) " " (shadow-join (cdr strings) sep)))))
 
 (defun shadow-regexp-superquote (string)
   "Like `regexp-quote', but includes the ^ and $.
@@ -305,7 +299,7 @@ be matched against the primary of SITE2."
 
 (defun shadow-parse-fullname (fullname)
   "Parse FULLNAME into \(site user path) list.
-Leave it alone if it already is one.  Returns nil if the argument is
+Leave it alone if it already is one.  Return nil if the argument is
 not a full ange-ftp pathname."
   (if (listp fullname)
       fullname
@@ -398,9 +392,9 @@ local filename."
  "Return t if PATTERN matches FILE.
 If REGEXP is supplied and non-nil, the file part of the pattern is a regular
 expression, otherwise it must match exactly.  The sites and usernames must
-match---see `shadow-same-site'.  The pattern must be in full ange-ftp format, but
-the file can be any valid filename.  This function does not do any filename
-expansion or contraction, you must do that yourself first."
+match---see `shadow-same-site'.  The pattern must be in full ange-ftp format,
+but the file can be any valid filename.  This function does not do any
+filename expansion or contraction, you must do that yourself first."
  (let* ((pattern-sup (shadow-parse-fullname pattern))
 	(file-sup (shadow-parse-name file)))
    (and (shadow-same-site pattern-sup file-sup)
@@ -418,8 +412,8 @@ expansion or contraction, you must do that yourself first."
 This is a group of hosts that share directories, so that copying to or from
 one of them is sufficient to update the file on all of them.  Clusters are
 defined by a name, the network address of a primary host \(the one we copy
-files to), and a regular expression that matches the hostnames of all the sites
-in the cluster."
+files to), and a regular expression that matches the hostnames of all the
+sites in the cluster."
   (interactive (list (completing-read "Cluster name: " shadow-clusters () ())))
   (let* ((old (shadow-get-cluster name))
 	 (primary (read-string "Primary host: "
@@ -475,8 +469,8 @@ specific hostnames, or names of clusters \(see `shadow-define-cluster')."
   "Make each of a group of files be shared between hosts.
 Prompts for regular expression; files matching this are shared between a list
 of sites, which are also prompted for.  The filenames must be identical on all
-hosts \(if they aren't, use `shadow-define-literal-group' instead of this function).
-Each site can be either a hostname or the name of a cluster \(see
+hosts \(if they aren't, use `shadow-define-literal-group' instead of this
+function).  Each site can be either a hostname or the name of a cluster \(see
 `shadow-define-cluster')."
   (interactive)
   (let ((regexp (read-string
@@ -503,9 +497,7 @@ Each site can be either a hostname or the name of a cluster \(see
   ;; Mostly for debugging.
   "Interactive function to display shadows of a buffer."
   (interactive)
-  (let ((msg (shadow-join (mapcar (function cdr)
-				  (shadow-shadows-of (buffer-file-name)))
-			  " ")))
+  (let ((msg (mapconcat #'cdr (shadow-shadows-of (buffer-file-name)) " ")))
     (message "%s"
 	     (if (zerop (length msg))
 		 "No shadows."
@@ -643,11 +635,11 @@ Consider them as regular expressions if third arg REGEXP is true."
 		       "Use \\[shadow-copy-files] to update shadows."))
 	(sit-for 1))
       (shadow-write-todo-file)))
-  nil)     ; Return nil for write-file-hooks
+  nil)     ; Return nil for write-file-functions
 
 (defun shadow-remove-from-todo (pair)
   "Remove PAIR from `shadow-files-to-copy'.
-PAIR must be (eq to) one of the elements of that list."
+PAIR must be `eq' to one of the elements of that list."
   (setq shadow-files-to-copy
 	(shadow-remove-if (function (lambda (s) (eq s pair)))
 			  shadow-files-to-copy)))
@@ -655,7 +647,7 @@ PAIR must be (eq to) one of the elements of that list."
 (defun shadow-read-files ()
   "Visit and load `shadow-info-file' and `shadow-todo-file'.
 Thus restores shadowfile's state from your last Emacs session.
-Returns t unless files were locked; then returns nil."
+Return t unless files were locked; then return nil."
   (interactive)
   (if (and (fboundp 'file-locked-p)
 	   (or (stringp (file-locked-p shadow-info-file))
@@ -731,8 +723,9 @@ With non-nil argument also saves the buffer."
   (setq shadow-hashtable (make-vector 37 0)))
 
 (defun shadow-insert-var (variable)
-  "Prettily insert a `setq' command for VARIABLE,
-which, when later evaluated, will restore it to its current setting.
+  "Build a `setq' to restore VARIABLE.
+Prettily insert a `setq' command which, when later evaluated,
+will restore VARIABLE to its current setting.
 VARIABLE must be the name of a variable whose value is a list."
   (let ((standard-output (current-buffer)))
     (insert (format "(setq %s" variable))
@@ -830,16 +823,16 @@ look for files that have been changed and need to be copied to other systems."
       (defalias 'shadow-orig-save-buffers-kill-emacs
 	(symbol-function 'save-buffers-kill-emacs))
       (defalias 'save-buffers-kill-emacs 'shadow-save-buffers-kill-emacs))
-    (add-hook 'write-file-hooks 'shadow-add-to-todo)
+    (add-hook 'write-file-functions 'shadow-add-to-todo)
     (define-key ctl-x-4-map "s" 'shadow-copy-files)))
 
-(defun shadowfile-unload-hook ()
-  (if (fboundp 'shadow-orig-save-buffers-kill-emacs)
-      (fset 'save-buffers-kill-emacs
-	    (symbol-function 'shadow-orig-save-buffers-kill-emacs)))
-  (remove-hook 'write-file-hooks 'shadow-add-to-todo))
-
-(add-hook 'shadowfile-unload-hook 'shadowfile-unload-hook)
+(defun shadowfile-unload-function ()
+  (substitute-key-definition 'shadow-copy-files nil ctl-x-4-map)
+  (when (fboundp 'shadow-orig-save-buffers-kill-emacs)
+    (fset 'save-buffers-kill-emacs
+	  (symbol-function 'shadow-orig-save-buffers-kill-emacs)))
+  ;; continue standard unloading
+  nil)
 
 (provide 'shadowfile)
 

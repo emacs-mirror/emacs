@@ -277,8 +277,9 @@ One argument, the tag info returned by `snarf-tag-function'.")
 (defun tags-table-mode ()
   "Major mode for tags table file buffers."
   (interactive)
-  (setq major-mode 'tags-table-mode)
-  (setq mode-name "Tags Table")
+  (setq major-mode 'tags-table-mode
+        mode-name "Tags Table"
+        buffer-undo-list t)
   (initialize-new-tags-table))
 
 ;;;###autoload

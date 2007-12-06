@@ -81,7 +81,7 @@
 ;; HISTORY FUNCTIONS
 ;; * print-log (files &optional buffer)		   OK
 ;; - log-view-mode ()				   OK
-;; - show-log-entry (revision)			   NOT NEEDED, DEFAULT IS GOOD
+;; - show-log-entry (revision)			   OK
 ;; - wash-log (file)				   COULD BE SUPPORTED
 ;; - logentry-check ()				   NOT NEEDED
 ;; - comment-history (file)			   ??
@@ -116,7 +116,7 @@
 ;;; BACKEND PROPERTIES
 
 (defun vc-git-revision-granularity ()
-     'repository)
+  'repository)
 
 ;;; STATE-QUERYING FUNCTIONS
 
@@ -134,23 +134,25 @@
       (let* ((dir (file-name-directory file))
 	     (name (file-relative-name file dir)))
 	(and (ignore-errors
-	      (when dir (cd dir))
-	      (eq 0 (call-process "git" nil '(t nil) nil "ls-files" "-c" "-z" "--" name)))
+               (when dir (cd dir))
+               (vc-git--out-ok "ls-files" "-c" "-z" "--" name))
 	     (let ((str (buffer-string)))
 	       (and (> (length str) (length name))
-		    (string= (substring str 0 (1+ (length name))) (concat name "\0")))))))))
+		    (string= (substring str 0 (1+ (length name)))
+                             (concat name "\0")))))))))
 
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
-  (call-process "git" nil nil nil "add" "--refresh" "--" (file-relative-name file))
+  (vc-git--call nil "add" "--refresh" "--" (file-relative-name file))
   (let ((diff (vc-git--run-command-string file "diff-index" "-z" "HEAD" "--")))
-    (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} [ADMU]\0[^\0]+\0" diff))
+    (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} [ADMU]\0[^\0]+\0"
+                                diff))
         'edited
       'up-to-date)))
 
 (defun vc-git-dir-state (dir)
   (with-temp-buffer
-    (vc-git-command (current-buffer) nil nil "ls-files" "-t")
+    (vc-git-command (current-buffer) nil nil "ls-files" "-t" "-c" "-m" "-o")
     (goto-char (point-min))
     (let ((status-char nil)
 	  (file nil))
@@ -158,7 +160,8 @@
 	(setq status-char (char-after))
 	(setq file
 	      (expand-file-name
-	       (buffer-substring-no-properties (+ (point) 2) (line-end-position))))
+	       (buffer-substring-no-properties (+ (point) 2)
+                                               (line-end-position))))
 	(cond
 	 ;; The rest of the possible states in "git ls-files -t" output:
          ;;      R              removed/deleted
@@ -180,7 +183,7 @@
   "Git-specific version of `vc-working-revision'."
   (let ((str (with-output-to-string
                (with-current-buffer standard-output
-                 (call-process "git" nil '(t nil) nil "symbolic-ref" "HEAD")))))
+                 (vc-git--out-ok "symbolic-ref" "HEAD")))))
     (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
         (match-string 2 str)
       str)))
@@ -290,33 +293,48 @@
        "^commit *\\([0-9a-z]+\\)")
   (set (make-local-variable 'log-view-font-lock-keywords)
        (append
-       `((,log-view-message-re  (1 'change-log-acknowledgement))
-         (,log-view-file-re (1 'change-log-file-face)))
-         ;; Handle the case:
-         ;; user: foo@bar
-         '(("^Author:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
-            (1 'change-log-email))
-	   ;; Handle the case:
-	   ;; user: FirstName LastName <foo@bar>
-	   ("^Author:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
-	    (1 'change-log-name)
-	    (2 'change-log-email))
-	   ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
-	    (1 'change-log-name))
-	   ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
-	    (1 'change-log-name)
-	    (2 'change-log-email))
-	   ("^Merge: \\([0-9a-z]+\\) \\([0-9a-z]+\\)"
-	    (1 'change-log-acknowledgement)
-	    (2 'change-log-acknowledgement))
-	   ("^Date:   \\(.+\\)" (1 'change-log-date))
-	   ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
+        `((,log-view-message-re  (1 'change-log-acknowledgement))
+          (,log-view-file-re (1 'change-log-file-face)))
+        ;; Handle the case:
+        ;; user: foo@bar
+        '(("^Author:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
+           (1 'change-log-email))
+          ;; Handle the case:
+          ;; user: FirstName LastName <foo@bar>
+          ("^Author:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+           (1 'change-log-name)
+           (2 'change-log-email))
+          ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
+           (1 'change-log-name))
+          ("^ +\\(?:\\(?:[Aa]cked\\|[Ss]igned-[Oo]ff\\)-[Bb]y:\\)[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
+           (1 'change-log-name)
+           (2 'change-log-email))
+          ("^Merge: \\([0-9a-z]+\\) \\([0-9a-z]+\\)"
+           (1 'change-log-acknowledgement)
+           (2 'change-log-acknowledgement))
+          ("^Date:   \\(.+\\)" (1 'change-log-date))
+          ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
+
+(defun vc-git-show-log-entry (revision)
+  "Move to the log entry for REVISION.
+REVISION may have the form BRANCH, BRANCH~N,
+or BRANCH^ (where \"^\" can be repeated)."
+  (goto-char (point-min))
+  (search-forward "\ncommit" nil t
+                  (cond ((string-match "~\\([0-9]\\)$" revision)
+                         (1+ (string-to-number (match-string 1 revision))))
+                        ((string-match "\\^+$" revision)
+                         (1+ (length (match-string 0 revision))))
+                        (t nil)))
+  (beginning-of-line))
 
 (defun vc-git-diff (files &optional rev1 rev2 buffer)
   (let ((buf (or buffer "*vc-diff*")))
     (if (and rev1 rev2)
-        (vc-git-command buf 1 files "diff-tree" "--exit-code" "-p" rev1 rev2 "--")
-      (vc-git-command buf 1 files "diff-index" "--exit-code" "-p" (or rev1 "HEAD") "--"))))
+        (vc-git-command buf 1 files "diff-tree" "--exit-code" "-p"
+                        rev1 rev2 "--")
+      (vc-git-command buf 1 files "diff-index" "--exit-code" "-p"
+                      (or rev1 "HEAD") "--"))))
 
 (defun vc-git-revision-table (files)
   ;; What about `files'?!?  --Stef
@@ -341,15 +359,17 @@
     (vc-git-command buf 0 name "blame" (if rev (concat "-r" rev)))))
 
 (defun vc-git-annotate-time ()
-  (and (re-search-forward "[0-9a-f]+ (.* \\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\) \\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\) \\([-+0-9]+\\) +[0-9]+)" nil t)
+  (and (re-search-forward "[0-9a-f]+[^()]+(.* \\([0-9]+\\)-\\([0-9]+\\)-\\([0-9]+\\) \\([0-9]+\\):\\([0-9]+\\):\\([0-9]+\\) \\([-+0-9]+\\) +[0-9]+) " nil t)
        (vc-annotate-convert-time
-        (apply #'encode-time (mapcar (lambda (match) (string-to-number (match-string match))) '(6 5 4 3 2 1 7))))))
+        (apply #'encode-time (mapcar (lambda (match)
+                                       (string-to-number (match-string match)))
+                                     '(6 5 4 3 2 1 7))))))
 
 (defun vc-git-annotate-extract-revision-at-line ()
- (save-excursion
-   (move-beginning-of-line 1)
-   (and (looking-at "[0-9a-f]+")
-        (buffer-substring-no-properties (match-beginning 0) (match-end 0)))))
+  (save-excursion
+    (move-beginning-of-line 1)
+    (and (looking-at "[0-9a-f]+")
+         (buffer-substring-no-properties (match-beginning 0) (match-end 0)))))
 
 ;;; SNAPSHOT SYSTEM
 
@@ -376,42 +396,36 @@
     (vc-git-symbolic-commit
      (with-temp-buffer
        (and
-	(zerop
-	 (call-process "git" nil '(t nil) nil "rev-list"
-		       "-2" rev "--" file))
+	(vc-git--out-ok "rev-list" "-2" rev "--" file)
 	(goto-char (point-max))
 	(bolp)
 	(zerop (forward-line -1))
 	(not (bobp))
 	(buffer-substring-no-properties
-	   (point)
-	   (1- (point-max))))))))
+         (point)
+         (1- (point-max))))))))
 
 (defun vc-git-next-revision (file rev)
   "Git-specific version of `vc-next-revision'."
   (let* ((default-directory (file-name-directory
 			     (expand-file-name file)))
-	(file (file-name-nondirectory file))
-	(current-rev
-	 (with-temp-buffer
-	   (and
-	    (zerop
-	     (call-process "git" nil '(t nil) nil "rev-list"
-			   "-1" rev "--" file))
-	    (goto-char (point-max))
-	    (bolp)
-	    (zerop (forward-line -1))
-	    (bobp)
-	    (buffer-substring-no-properties
-	     (point)
-	     (1- (point-max)))))))
+         (file (file-name-nondirectory file))
+         (current-rev
+          (with-temp-buffer
+            (and
+             (vc-git--out-ok "rev-list" "-1" rev "--" file)
+             (goto-char (point-max))
+             (bolp)
+             (zerop (forward-line -1))
+             (bobp)
+             (buffer-substring-no-properties
+              (point)
+              (1- (point-max)))))))
     (and current-rev
 	 (vc-git-symbolic-commit
 	  (with-temp-buffer
 	    (and
-	     (zerop
-	      (call-process "git" nil '(t nil) nil "rev-list"
-			    "HEAD" "--" file))
+	     (vc-git--out-ok "rev-list" "HEAD" "--" file)
 	     (goto-char (point-min))
 	     (search-forward current-rev nil t)
 	     (zerop (forward-line -1))
@@ -436,13 +450,20 @@
 The difference to vc-do-command is that this function always invokes `git'."
   (apply 'vc-do-command buffer okstatus "git" file-or-list flags))
 
+(defun vc-git--call (buffer command &rest args)
+  (apply 'call-process "git" nil buffer nil command args))
+
+(defun vc-git--out-ok (command &rest args)
+  (zerop (apply 'vc-git--call '(t nil) command args)))
+
 (defun vc-git--run-command-string (file &rest args)
   "Run a git command on FILE and return its output as string."
   (let* ((ok t)
          (str (with-output-to-string
                 (with-current-buffer standard-output
-                  (unless (eq 0 (apply #'call-process "git" nil '(t nil) nil
-                                       (append args (list (file-relative-name file)))))
+                  (unless (apply 'vc-git--out-ok
+                                 (append args (list (file-relative-name
+                                                     file))))
                     (setq ok nil))))))
     (and ok str)))
 
@@ -452,10 +473,7 @@ Returns nil if not possible."
   (and commit
        (with-temp-buffer
 	 (and
-	  (zerop
-	   (call-process "git" nil '(t nil) nil "name-rev"
-			 "--name-only" "--tags"
-			 commit))
+	  (vc-git--out-ok "name-rev" "--name-only" "--tags" commit)
 	  (goto-char (point-min))
 	  (= (forward-line 2) 1)
 	  (bolp)

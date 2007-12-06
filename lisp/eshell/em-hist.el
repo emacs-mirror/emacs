@@ -22,16 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'em-hist)
-
-(eval-when-compile (require 'esh-maint))
-(require 'eshell)
-
-(defgroup eshell-hist nil
-  "This module provides command history management."
-  :tag "History list management"
-  :group 'eshell-module)
-
 ;;; Commentary:
 
 ;; Eshell's history facility imitates the syntax used by bash
@@ -70,6 +60,12 @@
 (require 'ring)
 (require 'esh-opt)
 (require 'em-pred)
+(require 'eshell)
+
+(defgroup eshell-hist nil
+  "This module provides command history management."
+  :tag "History list management"
+  :group 'eshell-module)
 
 ;;; User Variables:
 
@@ -987,6 +983,8 @@ If N is negative, search backwards for the -Nth previous match."
   (interactive)
   (isearch-done)
   (eshell-send-input))
+
+(provide 'em-hist)
 
 ;;; arch-tag: 1a847333-f864-4b96-9acd-b549d620b6c6
 ;;; em-hist.el ends here

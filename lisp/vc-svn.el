@@ -391,7 +391,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 		      (vc-delistify (mapcar 'file-relative-name files)) "\n"))
     (vc-svn-command
      buffer
-     (if (and (= (length files) 1) (vc-stay-local-p (car files)) (fboundp 'start-process)) 'async 0)
+     (if (and (= (length files) 1) (vc-stay-local-p (car files))) 'async 0)
      files "log"
      ;; By default Subversion only shows the log upto the working revision,
      ;; whereas we also want the log of the subsequent commits.  At least
@@ -422,8 +422,7 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
 	      (list "-x" (mapconcat 'identity (vc-switches nil 'diff) " "))))
 	   (async (and (not vc-disable-async-diff)
                        (vc-stay-local-p files)
-		       (or oldvers newvers) ; Svn diffs those locally.
-		       (fboundp 'start-process))))
+		       (or oldvers newvers)))) ; Svn diffs those locally.
       (apply 'vc-svn-command buffer
 	     (if async 'async 0)
 	     files "diff"

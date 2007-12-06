@@ -31,26 +31,27 @@ infodir = $(srcdir)/../../info
 MAKEINFO = makeinfo --force
 MULTI_INSTALL_INFO = $(srcdir)\..\..\nt\multi-install-info.bat
 INFO_TARGETS = $(infodir)/ccmode \
-		$(infodir)/cl $(infodir)/dired-x $(infodir)/ediff \
-		$(infodir)/forms $(infodir)/gnus $(infodir)/message \
-		$(infodir)/sieve $(infodir)/pgg $(infodir)/emacs-mime \
-		$(infodir)/info $(infodir)/mh-e $(infodir)/reftex \
-		$(infodir)/sc $(infodir)/vip $(infodir)/viper \
-		$(infodir)/widget $(infodir)/efaq $(infodir)/ada-mode \
-		$(infodir)/autotype $(infodir)/calc $(infodir)/idlwave \
-		$(infodir)/eudc $(infodir)/ebrowse $(infodir)/pcl-cvs \
-		$(infodir)/woman $(infodir)/eshell $(infodir)/org \
-		$(infodir)/url $(infodir)/speedbar $(infodir)/tramp \
-		$(infodir)/ses $(infodir)/smtpmail $(infodir)/flymake \
-		$(infodir)/newsticker $(infodir)/rcirc $(infodir)/erc
-DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
-		 ediff.dvi forms.dvi gnus.dvi message.dvi emacs-mime.dvi \
-                 gnus.dvi message.dvi sieve.dvi pgg.dvi mh-e.dvi \
-		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
-		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
-		 pcl-cvs.dvi woman.dvi eshell.dvi org.dvi url.dvi \
-		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
-                 newsticker.dvi rcirc.dvi erc.dvi
+		$(infodir)/cl $(infodir)/dbus $(infodir)/dired-x \
+		$(infodir)/ediff $(infodir)/forms $(infodir)/gnus \
+		$(infodir)/message $(infodir)/sieve $(infodir)/pgg \
+		$(infodir)/emacs-mime $(infodir)/info $(infodir)/mh-e \
+		$(infodir)/reftex $(infodir)/sc $(infodir)/vip \
+		$(infodir)/viper $(infodir)/widget $(infodir)/efaq \
+		$(infodir)/ada-mode $(infodir)/autotype $(infodir)/calc \
+		$(infodir)/idlwave $(infodir)/eudc $(infodir)/ebrowse \
+		$(infodir)/pcl-cvs $(infodir)/woman $(infodir)/eshell \
+		$(infodir)/org $(infodir)/url $(infodir)/speedbar \
+		$(infodir)/tramp $(infodir)/ses $(infodir)/smtpmail \
+		$(infodir)/flymake $(infodir)/newsticker $(infodir)/rcirc \
+		$(infodir)/erc $(infodir)/remember $(infodir)/nxml-mode
+DVI_TARGETS = calc.dvi cc-mode.dvi cl.dvi dbus.dvi dired-x.dvi \
+		ediff.dvi forms.dvi gnus.dvi message.dvi emacs-mime.dvi \
+		gnus.dvi message.dvi sieve.dvi pgg.dvi mh-e.dvi \
+		reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
+		ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
+		pcl-cvs.dvi woman.dvi eshell.dvi org.dvi url.dvi \
+		speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi flymake.dvi \
+		newsticker.dvi rcirc.dvi erc.dvi remember.dvi nxml-mode.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -113,6 +114,11 @@ $(infodir)/cl: cl.texi
 cl.dvi: cl.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/cl.texi
 
+$(infodir)/dbus: dbus.texi
+	$(MAKEINFO) dbus.texi
+dbus.dvi: dbus.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/dbus.texi
+
 $(infodir)/dired-x: dired-x.texi
 	$(MAKEINFO) dired-x.texi
 dired-x.dvi: dired-x.texi
@@ -171,6 +177,11 @@ $(infodir)/reftex: reftex.texi
 	$(MAKEINFO) reftex.texi
 reftex.dvi: reftex.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/reftex.texi
+
+$(infodir)/remember: remember.texi
+	$(MAKEINFO) remember.texi
+remember.dvi: remember.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/remember.texi
 
 $(infodir)/sc: sc.texi
 	$(MAKEINFO) sc.texi
@@ -265,6 +276,11 @@ $(infodir)/newsticker: newsticker.texi
 newsticker.dvi: newsticker.texi
 	$(ENVADD) $(TEXI2DVI) $(srcdir)/newsticker.texi
 
+$(infodir)/nxml-mode: nxml-mode.texi
+	$(MAKEINFO) nxml-mode.texi
+nxml-mod.dvi: nxml-mode.texi
+	$(ENVADD) $(TEXI2DVI) $(srcdir)/nxml-mode.texi
+
 $(infodir)/rcirc: rcirc.texi
 	$(MAKEINFO) rcirc.texi
 rcirc.dvi: rcirc.texi
@@ -280,8 +296,8 @@ mostlyclean:
 
 clean: mostlyclean
 	- $(DEL) *.dvi
-	- $(DEL) $(infodir)/ccmode* \
-		 $(infodir)/cl* $(infodir)/dired-x* \
+	- $(DEL) $(infodir)/ccmode* $(infodir)/cl* \
+		 $(infodir)/dbus* $(infodir)/dired-x* \
 		 $(infodir)/ediff* $(infodir)/forms* \
 		 $(infodir)/gnus* $(infodir)/info* \
 		 $(infodir)/message* $(infodir)/mh-e* \
@@ -297,7 +313,8 @@ clean: mostlyclean
 		 $(infodir)/url* $(infodir)/org* \
 		 $(infodir)/flymake* $(infodir)/newsticker* \
 		 $(infodir)/sieve* $(infodir)/pgg* \
-		 $(infodir)/erc* $(infodir)/rcirc*
+		 $(infodir)/erc* $(infodir)/rcirc* \
+		 $(infodir)/remember* $(infodir)/nxml-mode*
 
 distclean: clean
 

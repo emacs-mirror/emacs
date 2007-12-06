@@ -1,4 +1,4 @@
-;;; cl.el --- Common Lisp extensions for Emacs -*-byte-compile-dynamic: t;-*-
+;;; cl.el --- Common Lisp extensions for Emacs
 
 ;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007 Free Software Foundation, Inc.
@@ -109,9 +109,11 @@ printer proceeds to the next function on the list.
 This variable is not used at present, but it is defined in hopes that
 a future Emacs interpreter will be able to use it.")
 
-(add-hook 'cl-unload-hook 'cl-cannot-unload)
-(defun cl-cannot-unload ()
-  (error "Cannot unload the feature `cl'"))
+(defun cl-unload-function ()
+  "Stop unloading of the Common Lisp extensions."
+  (message "Cannot unload the feature `cl'")
+  ;; stop standard unloading!
+  t)
 
 ;;; Generalized variables.
 ;; These macros are defined here so that they
@@ -657,6 +659,11 @@ If ALIST is non-nil, the new pairs are prepended to it."
 (provide 'cl)
 
 (run-hooks 'cl-load-hook)
+
+;; Local variables:
+;; byte-compile-dynamic: t
+;; byte-compile-warnings: (not cl-functions)
+;; End:
 
 ;; arch-tag: 5f07fa74-f153-4524-9303-21f5be125851
 ;;; cl.el ends here

@@ -158,6 +158,11 @@ LOCATION is used as the address location for bbdb."
 	    (or state "")
 	    zip)))
 
+;; External.
+(declare-function bbdb-parse-phone-number "ext:bbdb-com"
+                  (string &optional number-type))
+(declare-function bbdb-string-trim "ext:bbdb" (string))
+
 (defun eudc-bbdbify-phone (phone location)
   "Parse PHONE into a vector compatible with BBDB.
 PHONE is either a string supposedly containing a phone number or

@@ -120,16 +120,16 @@ from a file."
   '(after-change-functions after-insert-file-functions
     after-make-frame-functions auto-fill-function before-change-functions
     blink-paren-function buffer-access-fontify-functions command-line-functions
-    comment-indent-function compilation-finish-functions
+    comment-indent-function compilation-finish-functions delete-frame-functions
     disabled-command-function find-file-not-found-functions
     font-lock-beginning-of-syntax-function font-lock-fontify-buffer-function
     font-lock-fontify-region-function font-lock-mark-block-function
     font-lock-syntactic-face-function font-lock-unfontify-buffer-function
     font-lock-unfontify-region-function kill-buffer-query-functions
     kill-emacs-query-functions lisp-indent-function mouse-position-function
-    redisplay-end-trigger-functions temp-buffer-show-function
-    window-scroll-functions window-size-change-functions
-    write-contents-functions write-file-functions
+    redisplay-end-trigger-functions suspend-tty-functions
+    temp-buffer-show-function window-scroll-functions
+    window-size-change-functions write-contents-functions write-file-functions
     write-region-annotate-functions)
   "A list of special hooks from Info node `(elisp)Standard Hooks'.
 
@@ -191,7 +191,7 @@ something strange, such as redefining an Emacs function."
 	 (unload-func (intern-soft (concat name "-unload-function"))))
     ;; If FEATURE-unload-function is defined and returns non-nil,
     ;; don't try to do anything more; otherwise proceed normally.
-    (unless (and (bound-and-true-p unload-func)
+    (unless (and (fboundp unload-func)
 		 (funcall unload-func))
       ;; Try to avoid losing badly when hooks installed in critical
       ;; places go away.  (Some packages install things on

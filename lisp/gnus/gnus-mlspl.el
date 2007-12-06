@@ -34,31 +34,31 @@
 (require 'nnmail)
 
 (defvar gnus-group-split-updated-hook nil
-  "Hook called just after nnmail-split-fancy is updated by
-gnus-group-split-update.")
+  "Hook called just after `nnmail-split-fancy' is updated by
+`gnus-group-split-update'.")
 
 (defvar gnus-group-split-default-catch-all-group "mail.misc"
   "Group name (or arbitrary fancy split) with default splitting rules.
-Used by gnus-group-split and gnus-group-split-update as a fallback
+Used by `gnus-group-split' and `gnus-group-split-update' as a fallback
 split, in case none of the group-based splits matches.")
 
 ;;;###autoload
 (defun gnus-group-split-setup (&optional auto-update catch-all)
-  "Set up the split for nnmail-split-fancy.
+  "Set up the split for `nnmail-split-fancy'.
 Sets things up so that nnmail-split-fancy is used for mail
 splitting, and defines the variable nnmail-split-fancy according with
 group parameters.
 
 If AUTO-UPDATE is non-nil (prefix argument accepted, if called
 interactively), it makes sure nnmail-split-fancy is re-computed before
-getting new mail, by adding gnus-group-split-update to
-nnmail-pre-get-new-mail-hook.
+getting new mail, by adding `gnus-group-split-update' to
+`nnmail-pre-get-new-mail-hook'.
 
 A non-nil CATCH-ALL replaces the current value of
-gnus-group-split-default-catch-all-group.  This variable is only used
+`gnus-group-split-default-catch-all-group'.  This variable is only used
 by gnus-group-split-update, and only when its CATCH-ALL argument is
 nil.  This argument may contain any fancy split, that will be added as
-the last split in a `|' split produced by gnus-group-split-fancy,
+the last split in a `|' split produced by `gnus-group-split-fancy',
 unless overridden by any group marked as a catch-all group.  Typical
 uses are as simple as the name of a default mail group, but more
 elaborate fancy splits may also be useful to split mail that doesn't
@@ -78,8 +78,8 @@ match any of the group-specified splitting rules.  See
 It does this by calling by calling (gnus-group-split-fancy nil
 nil CATCH-ALL).
 
-If CATCH-ALL is nil, gnus-group-split-default-catch-all-group is used
-instead.  This variable is set by gnus-group-split-setup."
+If CATCH-ALL is nil, `gnus-group-split-default-catch-all-group' is used
+instead.  This variable is set by `gnus-group-split-setup'."
   (interactive)
   (setq nnmail-split-fancy
 	(gnus-group-split-fancy
@@ -89,10 +89,10 @@ instead.  This variable is set by gnus-group-split-setup."
 
 ;;;###autoload
 (defun gnus-group-split ()
-  "Uses information from group parameters in order to split mail.
+  "Use information from group parameters in order to split mail.
 See `gnus-group-split-fancy' for more information.
 
-gnus-group-split is a valid value for nnmail-split-methods."
+`gnus-group-split' is a valid value for `nnmail-split-methods'."
   (let (nnmail-split-fancy)
     (gnus-group-split-update)
     (nnmail-split-fancy)))

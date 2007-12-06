@@ -296,7 +296,7 @@
 (defun vc-hg-revision-table (files)
   (let ((default-directory (file-name-directory (car files))))
     (with-temp-buffer
-      (vc-hg-command t nil file "log" "--template" "{rev} ")
+      (vc-hg-command t nil files "log" "--template" "{rev} ")
       (split-string 
        (buffer-substring-no-properties (point-min) (point-max))))))
 
@@ -479,6 +479,8 @@ REV is the revision to check out into WORKFILE."
     (vc-hg-command bname 0 nil "incoming" "-n")
     (pop-to-buffer bname)
     (vc-hg-incoming-mode)))
+
+(declare-function log-view-get-marked "log-view" ())
 
 ;; XXX maybe also add key bindings for these functions.
 (defun vc-hg-push ()

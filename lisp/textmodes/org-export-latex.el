@@ -1,6 +1,6 @@
  ;;; org-export-latex.el --- LaTeX exporter for org-mode
 ;;
-;; copyright (c) 2007 free software foundation, inc.
+;; Copyright (C) 2007 Free Software Foundation, Inc.
 ;;
 ;; Emacs Lisp Archive Entry
 ;; Filename: org-export-latex.el
@@ -22,7 +22,7 @@
 ;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
 ;; FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
 ;; more details.
-;; 
+;;
 ;; You should have received a copy of the GNU General Public License along
 ;; with GNU Emacs; see the file COPYING. If not, write to the Free Software
 ;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
@@ -1077,9 +1077,8 @@ Valid parameters are
 	     (path (insert (format "\\href{%s}{%s}" path desc)))
 	     (t (insert "\\texttt{" desc "}")))))))
 
-(defun org-export-latex-cleaned-string 
+(defun org-export-latex-cleaned-string (&optional commentsp)
   ;; FIXME remove commentsp call in org.el and here
-  (&optional commentsp)
   "Clean stuff in the LaTeX export."
 
   ;; Preserve line breaks

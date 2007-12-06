@@ -459,11 +459,9 @@
 	(insert-file-contents file)
 	(goto-char (point-min))
 	(setq nnslashdot-groups (read (current-buffer))))
-      (if (and nnslashdot-groups (< (length (car nnslashdot-groups)) 5))
-	  (let ((groups nnslashdot-groups))
-	    (while groups
-	      (nnslashdot-make-tuple (car groups) 5)
-	      (setq groups (cdr groups))))))))
+      (when (and nnslashdot-groups (< (length (car nnslashdot-groups)) 5))
+	(dolist (group nnslashdot-groups)
+	  (nnslashdot-make-tuple group 5))))))
 
 (defun nnslashdot-write-groups ()
   (with-temp-file (expand-file-name "groups" nnslashdot-directory)

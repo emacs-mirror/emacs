@@ -35,8 +35,6 @@ Boston, MA 02110-1301, USA.
 #include "charset.h"
 #include "coding.h"
 #include "disptab.h"
-/* Disable features in frame.h that require a Window System.  */
-#undef HAVE_WINDOW_SYSTEM
 #include "frame.h"
 #include "termhooks.h"
 #include "termchar.h"
@@ -75,6 +73,8 @@ static DWORD   prev_console_mode;
 #ifndef USE_SEPARATE_SCREEN
 static CONSOLE_CURSOR_INFO prev_console_cursor;
 #endif
+
+extern Lisp_Object Vtty_defined_color_alist;
 
 /* Determine whether to make frame dimensions match the screen buffer,
    or the current window size.  The former is desirable when running
@@ -164,6 +164,7 @@ w32con_ins_del_lines (struct frame *f, int vpos, int n)
 {
   int	     i, nb;
   SMALL_RECT scroll;
+  SMALL_RECT clip;
   COORD	     dest;
   CHAR_INFO  fill;
 
@@ -179,15 +180,16 @@ w32con_ins_del_lines (struct frame *f, int vpos, int n)
       scroll.Bottom = FRAME_LINES (f) - n;
       dest.Y = vpos + n;
     }
-  scroll.Left = 0;
-  scroll.Right = FRAME_COLS (f);
+  clip.Top = clip.Left = scroll.Left = 0;
+  clip.Right = scroll.Right = FRAME_COLS (f);
+  clip.Bottom = FRAME_LINES (f);
 
   dest.X = 0;
 
   fill.Char.AsciiChar = 0x20;
   fill.Attributes = char_attr_normal;
 
-  ScrollConsoleScreenBuffer (cur_screen, &scroll, NULL, dest, &fill);
+  ScrollConsoleScreenBuffer (cur_screen, &scroll, &clip, dest, &fill);
 
   /* Here we have to deal with a w32 console flake: If the scroll
      region looks like abc and we scroll c to a and fill with d we get
@@ -235,12 +237,13 @@ scroll_line (struct frame *f, int dist, int direction)
 {
   /* The idea here is to implement a horizontal scroll in one line to
      implement delete and half of insert.  */
-  SMALL_RECT scroll;
+  SMALL_RECT scroll, clip;
   COORD	     dest;
   CHAR_INFO  fill;
 
-  scroll.Top = cursor_coords.Y;
-  scroll.Bottom = cursor_coords.Y;
+  clip.Top = scroll.Top = clip.Bottom = scroll.Bottom = cursor_coords.Y;
+  clip.Left = 0;
+  clip.Right = FRAME_COLS (f);
 
   if (direction == LEFT)
     {
@@ -259,7 +262,7 @@ scroll_line (struct frame *f, int dist, int direction)
   fill.Char.AsciiChar = 0x20;
   fill.Attributes = char_attr_normal;
 
-  ScrollConsoleScreenBuffer (cur_screen, &scroll, NULL, dest, &fill);
+  ScrollConsoleScreenBuffer (cur_screen, &scroll, &clip, dest, &fill);
 }
 
 
@@ -290,7 +293,6 @@ static void
 w32con_write_glyphs (struct frame *f, register struct glyph *string,
                      register int len)
 {
-  int produced, consumed;
   DWORD r;
   WORD char_attr;
   unsigned char *conversion_buffer;
@@ -418,11 +420,31 @@ SOUND is nil to use the normal beep.  */)
 static void
 w32con_reset_terminal_modes (struct terminal *t)
 {
+  COORD dest;
+  CONSOLE_SCREEN_BUFFER_INFO info;
+  int n;
+  DWORD r;
+
+  /* Clear the complete screen buffer.  This is required because Emacs
+     sets the cursor position to the top of the buffer, but there might
+     be other output below the bottom of the Emacs frame if the screen buffer
+     is larger than the window size.  */
+  GetConsoleScreenBufferInfo (cur_screen, &info);
+  dest.X = 0;
+  dest.Y = 0;
+  n = info.dwSize.X * info.dwSize.Y;
+
+  FillConsoleOutputAttribute (cur_screen, char_attr_normal, n, dest, &r);
+  FillConsoleOutputCharacter (cur_screen, ' ', n, dest, &r);
+  /* Now that the screen is clear, put the cursor at the top.  */
+  SetConsoleCursorPosition (cur_screen, dest);
+  
 #ifdef USE_SEPARATE_SCREEN
   SetConsoleActiveScreenBuffer (prev_screen);
 #else
   SetConsoleCursorInfo (prev_screen, &prev_console_cursor);
 #endif
+
   SetConsoleMode (keyboard_handle, prev_console_mode);
 }
 
@@ -484,32 +506,31 @@ w32_face_attributes (f, face_id)
 
   char_attr = char_attr_normal;
 
-  if (face->foreground != FACE_TTY_DEFAULT_FG_COLOR
-      && face->foreground != FACE_TTY_DEFAULT_COLOR)
-    char_attr = (char_attr & 0xfff0) + (face->foreground % 16);
-
-  if (face->background != FACE_TTY_DEFAULT_BG_COLOR
-      && face->background != FACE_TTY_DEFAULT_COLOR)
-    char_attr = (char_attr & 0xff0f) + ((face->background % 16) << 4);
-
-
-  /* NTEMACS_TODO: Faces defined during startup get both foreground
-     and background of 0. Need a better way around this - for now detect
-     the problem and invert one of the faces to make the text readable. */
-  if (((char_attr & 0x00f0) >> 4) == (char_attr & 0x000f))
-    char_attr ^= 0x0007;
-
+  /* Reverse the default color if requested. If background and
+     foreground are specified, then they have been reversed already.  */
   if (face->tty_reverse_p)
     char_attr = (char_attr & 0xff00) + ((char_attr & 0x000f) << 4)
       + ((char_attr & 0x00f0) >> 4);
 
+  /* Before the terminal is properly initialized, all colors map to 0.
+     Don't try to resolve them.  */
+  if (NILP (Vtty_defined_color_alist))
+    return char_attr;
+
+  /* Colors should be in the range 0...15 unless they are one of
+     FACE_TTY_DEFAULT_COLOR, FACE_TTY_DEFAULT_FG_COLOR or
+     FACE_TTY_DEFAULT_BG_COLOR.  Other out of range colors are
+     invalid, so it is better to use the default color if they ever
+     get through to here.  */
+  if (face->foreground >= 0 && face->foreground < 16)
+    char_attr = (char_attr & 0xfff0) + face->foreground;
+
+  if (face->background >= 0 && face->background < 16)
+    char_attr = (char_attr & 0xff0f) + (face->background << 4);
+
   return char_attr;
 }
 
-
-/* Emulation of some X window features from xfns.c and xfaces.c.  */
-
-extern char unspecified_fg[], unspecified_bg[];
 
 
 /* Given a color index, return its standard name.  */

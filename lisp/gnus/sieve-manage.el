@@ -27,7 +27,10 @@
 ;; This library provides an elisp API for the managesieve network
 ;; protocol.
 ;;
-;; Currently only the CRAM-MD5 authentication mechanism is supported.
+;; It uses the SASL library for authentication, which means it
+;; supports DIGEST-MD5, CRAM-MD5, SCRAM-MD5, NTLM, PLAIN and LOGIN
+;; methods.  STARTTLS is not well tested, but should be easy to get to
+;; work if someone wants.
 ;;
 ;; The API should be fairly obvious for anyone familiar with the
 ;; managesieve protocol, interface functions include:
@@ -69,15 +72,18 @@
 ;;
 ;; 2001-10-31 Committed to Oort Gnus.
 ;; 2002-07-27 Added DELETESCRIPT.  Suggested by Ned Ludd.
+;; 2002-08-03 Use SASL library.
 
 ;;; Code:
 
-(require 'rfc2104)
-(or (fboundp 'md5)
-    (require 'md5))
+(or (require 'password-cache nil t)
+    (require 'password))
+(eval-when-compile
+  (require 'sasl)
+  (require 'starttls))
 (eval-and-compile
-  (autoload 'starttls-open-stream "starttls")
-  (autoload 'starttls-negotiate "starttls"))
+  (autoload 'sasl-find-mechanism "sasl")
+  (autoload 'starttls-open-stream "starttls"))
 
 ;; User customizable variables:
 
@@ -123,13 +129,22 @@ server support the stream and OPEN is a function for opening the
 stream."
   :group 'sieve-manage)
 
-(defcustom sieve-manage-authenticators '(cram-md5 plain)
+(defcustom sieve-manage-authenticators '(digest-md5
+					 cram-md5
+					 scram-md5
+					 ntlm
+					 plain
+					 login)
   "Priority of authenticators to consider when authenticating to server."
   :group 'sieve-manage)
 
 (defcustom sieve-manage-authenticator-alist
   '((cram-md5   sieve-manage-cram-md5-p       sieve-manage-cram-md5-auth)
-    (plain      sieve-manage-plain-p          sieve-manage-plain-auth))
+    (digest-md5 sieve-manage-digest-md5-p     sieve-manage-digest-md5-auth)
+    (scram-md5  sieve-manage-scram-md5-p      sieve-manage-scram-md5-auth)
+    (ntlm       sieve-manage-ntlm-p           sieve-manage-ntlm-auth)
+    (plain      sieve-manage-plain-p          sieve-manage-plain-auth)
+    (login      sieve-manage-login-p          sieve-manage-login-auth))
   "Definition of authenticators.
 
 \(NAME CHECK AUTHENTICATE)
@@ -188,38 +203,45 @@ Returns t if login was successful, nil otherwise."
   (with-current-buffer buffer
     (make-local-variable 'sieve-manage-username)
     (make-local-variable 'sieve-manage-password)
-    (let (user passwd ret reason)
-      ;;      (condition-case ()
-      (while (or (not user) (not passwd))
-	(setq user (or sieve-manage-username
-		       (read-from-minibuffer
-			(concat "Managesieve username for "
-				sieve-manage-server ": ")
-			(or user sieve-manage-default-user))))
-	(setq passwd (or sieve-manage-password
-			 (read-passwd
-			  (concat "Managesieve password for " user "@"
-				  sieve-manage-server ": "))))
-	(when (and user passwd)
-	  (if (funcall loginfunc user passwd)
-	      (progn
-		(setq ret t
-		      sieve-manage-username user)
-		(if (and (not sieve-manage-password)
-			 (y-or-n-p "Store password for this session? "))
-		    (setq sieve-manage-password passwd)))
-	    (if reason
-		(message "Login failed (reason given: %s)..." reason)
-	      (message "Login failed..."))
-	    (setq reason nil)
-	    (setq passwd nil)
-	    (sit-for 1))))
-      ;;	(quit (with-current-buffer buffer
-      ;;		(setq user nil
-      ;;		      passwd nil)))
-      ;;	(error (with-current-buffer buffer
-      ;;		 (setq user nil
-      ;;		       passwd nil))))
+    (let (user passwd ret reason passwd-key)
+      (condition-case ()
+	  (while (or (not user) (not passwd))
+	    (setq user (or sieve-manage-username
+			   (read-from-minibuffer
+			    (concat "Managesieve username for "
+				    sieve-manage-server ": ")
+			    (or user sieve-manage-default-user)))
+		  passwd-key (concat "managesieve:" user "@" sieve-manage-server
+				     ":" sieve-manage-port)
+		  passwd (or sieve-manage-password
+			     (password-read (concat "Managesieve password for "
+						    user "@" sieve-manage-server
+						    ": ")
+					    passwd-key)))
+	    (when (y-or-n-p "Store password for this session? ")
+	      (password-cache-add passwd-key (copy-sequence passwd)))
+	    (when (and user passwd)
+	      (if (funcall loginfunc user passwd)
+		  (setq ret t
+			sieve-manage-username user)
+		(if reason
+		    (message "Login failed (reason given: %s)..." reason)
+		  (message "Login failed..."))
+		(password-cache-remove passwd-key)
+		(setq sieve-manage-password nil)
+		(setq passwd nil)
+		(setq reason nil)
+		(sit-for 1))))
+	(quit (with-current-buffer buffer
+		(password-cache-remove passwd-key)
+		(setq user nil
+		      passwd nil
+		      sieve-manage-password nil)))
+	(error (with-current-buffer buffer
+		 (password-cache-remove passwd-key)
+		 (setq user nil
+		       passwd nil
+		       sieve-manage-password nil))))
       ret)))
 
 (defun sieve-manage-erase (&optional p buffer)
@@ -304,60 +326,111 @@ Returns t if login was successful, nil otherwise."
 
 ;; Authenticators
 
-(defun sieve-manage-plain-p (buffer)
-  (sieve-manage-capability "SASL" "PLAIN" buffer))
-
-(defun sieve-manage-plain-auth (buffer)
-  "Login to managesieve server using the PLAIN SASL method."
-  (let* ((done (sieve-manage-interactive-login
-		buffer
-		(lambda (user passwd)
-		  (sieve-manage-send (concat "AUTHENTICATE \"PLAIN\" \""
-					     (base64-encode-string
-					      (concat (char-to-string 0)
-						      user
-						      (char-to-string 0)
-						      passwd))
-					     "\""))
-		  (let ((rsp (sieve-manage-parse-okno)))
-		    (if (sieve-manage-ok-p rsp)
-			t
-		      (setq reason (cdr-safe rsp))
-		      nil))))))
-    (if done
-	(message "sieve: Authenticating using PLAIN...done")
-      (message "sieve: Authenticating using PLAIN...failed"))))
+(defun sieve-sasl-auth (buffer mech)
+  "Login to server using the SASL MECH method."
+  (message "sieve: Authenticating using %s..." mech)
+  (if (sieve-manage-interactive-login 
+       buffer
+       (lambda (user passwd)
+	 (let (client step tag data rsp)
+	   (setq client (sasl-make-client (sasl-find-mechanism (list mech))
+					  user "sieve" sieve-manage-server))
+	   (setq sasl-read-passphrase (function (lambda (prompt) passwd)))
+	   (setq step (sasl-next-step client nil))
+	   (setq tag
+		 (sieve-manage-send
+		  (concat
+		   "AUTHENTICATE \""
+		   mech
+		   "\""
+		   (and (sasl-step-data step)
+			(concat
+			 " \""
+			 (base64-encode-string
+			  (sasl-step-data step)
+			  'no-line-break)
+			 "\"")))))
+	   (catch 'done
+	     (while t
+	       (setq rsp nil)
+	       (goto-char (point-min))
+	       (while (null (or (progn
+				  (setq rsp (sieve-manage-is-string))
+				  (if (not (and rsp (looking-at
+						     sieve-manage-server-eol)))
+				      (setq rsp nil)
+				    (goto-char (match-end 0))
+				    rsp))
+				(setq rsp (sieve-manage-is-okno))))
+		 (accept-process-output sieve-manage-process 1)
+		 (goto-char (point-min)))
+	       (sieve-manage-erase)
+	       (when (sieve-manage-ok-p rsp)
+		 (when (string-match "^SASL \"\\([^\"]+\\)\"" (cadr rsp))
+		   (sasl-step-set-data
+		    step (base64-decode-string (match-string 1 (cadr rsp)))))
+		 (if (and (setq step (sasl-next-step client step))
+			  (setq data (sasl-step-data step)))
+		     ;; We got data for server but it's finished
+		     (error "Server not ready for SASL data: %s" data)
+		   ;; The authentication process is finished.
+		   (throw 'done t)))
+	       (unless (stringp rsp)
+		 (apply 'error "Server aborted SASL authentication: %s %s %s"
+			rsp))
+	       (sasl-step-set-data step (base64-decode-string rsp))
+	       (setq step (sasl-next-step client step))
+	       (sieve-manage-send
+		(if (sasl-step-data step)
+		    (concat "\""
+			    (base64-encode-string (sasl-step-data step)
+						  'no-line-break)
+			    "\"")
+		  "")))))))
+      (message "sieve: Authenticating using %s...done" mech)
+    (message "sieve: Authenticating using %s...failed" mech)))
 
 (defun sieve-manage-cram-md5-p (buffer)
   (sieve-manage-capability "SASL" "CRAM-MD5" buffer))
 
 (defun sieve-manage-cram-md5-auth (buffer)
   "Login to managesieve server using the CRAM-MD5 SASL method."
-  (message "sieve: Authenticating using CRAM-MD5...")
-  (let* ((done (sieve-manage-interactive-login
-		buffer
-		(lambda (user passwd)
-		  (sieve-manage-send "AUTHENTICATE \"CRAM-MD5\"")
-		  (sieve-manage-send
-		   (concat
-		    "\""
-		    (base64-encode-string
-		     (concat
-		      user " "
-		      (rfc2104-hash 'md5 64 16 passwd
-				    (base64-decode-string
-				     (prog1
-					 (sieve-manage-parse-string)
-				       (sieve-manage-erase))))))
-		    "\""))
-		  (let ((rsp (sieve-manage-parse-okno)))
-		    (if (sieve-manage-ok-p rsp)
-			t
-		      (setq reason (cdr-safe rsp))
-		      nil))))))
-    (if done
-	(message "sieve: Authenticating using CRAM-MD5...done")
-      (message "sieve: Authenticating using CRAM-MD5...failed"))))
+  (sieve-sasl-auth buffer "CRAM-MD5"))
+
+(defun sieve-manage-digest-md5-p (buffer)
+  (sieve-manage-capability "SASL" "DIGEST-MD5" buffer))
+
+(defun sieve-manage-digest-md5-auth (buffer)
+  "Login to managesieve server using the DIGEST-MD5 SASL method."
+  (sieve-sasl-auth buffer "DIGEST-MD5"))
+
+(defun sieve-manage-scram-md5-p (buffer)
+  (sieve-manage-capability "SASL" "SCRAM-MD5" buffer))
+
+(defun sieve-manage-scram-md5-auth (buffer)
+  "Login to managesieve server using the SCRAM-MD5 SASL method."
+  (sieve-sasl-auth buffer "SCRAM-MD5"))
+
+(defun sieve-manage-ntlm-p (buffer)
+  (sieve-manage-capability "SASL" "NTLM" buffer))
+
+(defun sieve-manage-ntlm-auth (buffer)
+  "Login to managesieve server using the NTLM SASL method."
+  (sieve-sasl-auth buffer "NTLM"))
+
+(defun sieve-manage-plain-p (buffer)
+  (sieve-manage-capability "SASL" "PLAIN" buffer))
+
+(defun sieve-manage-plain-auth (buffer)
+  "Login to managesieve server using the PLAIN SASL method."
+  (sieve-sasl-auth buffer "PLAIN"))
+
+(defun sieve-manage-login-p (buffer)
+  (sieve-manage-capability "SASL" "LOGIN" buffer))
+
+(defun sieve-manage-login-auth (buffer)
+  "Login to managesieve server using the LOGIN SASL method."
+  (sieve-sasl-auth buffer "LOGIN"))
 
 ;; Managesieve API
 

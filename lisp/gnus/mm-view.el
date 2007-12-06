@@ -30,15 +30,14 @@
 (require 'mailcap)
 (require 'mm-bodies)
 (require 'mm-decode)
+(require 'smime)
 
 (eval-and-compile
   (autoload 'gnus-article-prepare-display "gnus-art")
   (autoload 'vcard-parse-string "vcard")
   (autoload 'vcard-format-string "vcard")
   (autoload 'fill-flowed "flow-fill")
-  (autoload 'html2text "html2text" nil t)
-  (unless (fboundp 'diff-mode)
-    (autoload 'diff-mode "diff-mode" "" t nil)))
+  (autoload 'html2text "html2text" nil t))
 
 (defvar gnus-article-mime-handles)
 (defvar gnus-newsgroup-charset)
@@ -73,7 +72,7 @@
   "The attributes of washer types for text/html.")
 
 (defcustom mm-fill-flowed t
-  "If non-nil an format=flowed article will be displayed flowed."
+  "If non-nil a format=flowed article will be displayed flowed."
   :type 'boolean
   :version "22.1"
   :group 'mime-display)
@@ -98,19 +97,20 @@
 	  (delete-region b (+ b 2)))))))
 
 (defun mm-inline-image-xemacs (handle)
-  (insert "\n\n")
-  (forward-char -2)
-  (let ((annot (make-annotation (mm-get-image handle) nil 'text))
-	buffer-read-only)
-    (mm-handle-set-undisplayer
-     handle
-     `(lambda ()
-	(let ((b ,(point-marker))
-	      buffer-read-only)
-	  (delete-annotation ,annot)
-	  (delete-region (- b 2) b))))
-    (set-extent-property annot 'mm t)
-    (set-extent-property annot 'duplicable t)))
+  (when (featurep 'xemacs)
+    (insert "\n\n")
+    (forward-char -2)
+    (let ((annot (make-annotation (mm-get-image handle) nil 'text))
+	  buffer-read-only)
+      (mm-handle-set-undisplayer
+       handle
+       `(lambda ()
+	  (let ((b ,(point-marker))
+		buffer-read-only)
+	    (delete-annotation ,annot)
+	    (delete-region (- b 2) b))))
+      (set-extent-property annot 'mm t)
+      (set-extent-property annot 'duplicable t))))
 
 (eval-and-compile
   (if (featurep 'xemacs)
@@ -140,26 +140,26 @@
 	(charset (mail-content-type-get
 		  (mm-handle-type handle) 'charset)))
     (save-excursion
-      (insert text)
+      (insert (if charset (mm-decode-string text charset) text))
       (save-restriction
 	(narrow-to-region b (point))
-	(goto-char (point-min))
-	(if (or (and (boundp 'w3-meta-content-type-charset-regexp)
-		     (re-search-forward
-		      w3-meta-content-type-charset-regexp nil t))
-		(and (boundp 'w3-meta-charset-content-type-regexp)
-		     (re-search-forward
-		      w3-meta-charset-content-type-regexp nil t)))
+	(unless charset
+	  (goto-char (point-min))
+	  (when (or (and (boundp 'w3-meta-content-type-charset-regexp)
+			 (re-search-forward
+			  w3-meta-content-type-charset-regexp nil t))
+		    (and (boundp 'w3-meta-charset-content-type-regexp)
+			 (re-search-forward
+			  w3-meta-charset-content-type-regexp nil t)))
 	    (setq charset
-		  (or (let ((bsubstr (buffer-substring-no-properties
-				      (match-beginning 2)
-				      (match-end 2))))
-			(if (fboundp 'w3-coding-system-for-mime-charset)
-			    (w3-coding-system-for-mime-charset bsubstr)
-			  (mm-charset-to-coding-system bsubstr)))
-		      charset)))
-	(delete-region (point-min) (point-max))
-	(insert (mm-decode-string text charset))
+		  (let ((bsubstr (buffer-substring-no-properties
+				  (match-beginning 2)
+				  (match-end 2))))
+		    (if (fboundp 'w3-coding-system-for-mime-charset)
+			(w3-coding-system-for-mime-charset bsubstr)
+		      (mm-charset-to-coding-system bsubstr))))
+	    (delete-region (point-min) (point-max))
+	    (insert (mm-decode-string text charset))))
 	(save-window-excursion
 	  (save-restriction
 	    (let ((w3-strict-width width)
@@ -189,12 +189,12 @@
 	 handle
 	 `(lambda ()
 	    (let (buffer-read-only)
-	      (if (functionp 'remove-specifier)
-		  (mapcar (lambda (prop)
-			    (remove-specifier
-			     (face-property 'default prop)
-			     (current-buffer)))
-			  '(background background-pixmap foreground)))
+	      ,@(if (functionp 'remove-specifier)
+		    '((mapcar (lambda (prop)
+				(remove-specifier
+				 (face-property 'default prop)
+				 (current-buffer)))
+			      '(background background-pixmap foreground))))
 	      (delete-region ,(point-min-marker)
 			     ,(point-max-marker)))))))))
 
@@ -263,13 +263,7 @@
 	(mm-handle-set-undisplayer
 	 handle
 	 `(lambda ()
-	    (let (buffer-read-only)
-	      (if (functionp 'remove-specifier)
-		  (mapcar (lambda (prop)
-			    (remove-specifier
-			     (face-property 'default prop)
-			     (current-buffer)))
-			  '(background background-pixmap foreground)))
+	    (let ((inhibit-read-only t))
 	      (delete-region ,(point-min-marker)
 			     ,(point-max-marker)))))))))
 
@@ -428,7 +422,8 @@
       (save-restriction
 	(narrow-to-region b (point))
 	(goto-char b)
-	(fill-flowed)
+	(fill-flowed nil (equal (cdr (assoc 'delsp (mm-handle-type handle)))
+				"yes"))
 	(goto-char (point-max))))
     (save-restriction
       (narrow-to-region b (point))
@@ -448,6 +443,8 @@
   "Insert TEXT inline from HANDLE."
   (let ((b (point)))
     (insert text)
+    (unless (bolp)
+      (insert "\n"))
     (mm-handle-set-undisplayer
      handle
      `(lambda ()
@@ -530,38 +527,55 @@
 	      (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
 
 (defun mm-display-inline-fontify (handle mode)
-  (let (text)
+  (let ((charset (mail-content-type-get (mm-handle-type handle) 'charset))
+	text coding-system)
+    (unless (eq charset 'gnus-decoded)
+      (mm-with-unibyte-buffer
+	(mm-insert-part handle)
+	(mm-decompress-buffer
+	 (or (mail-content-type-get (mm-handle-disposition handle) 'name)
+	     (mail-content-type-get (mm-handle-disposition handle) 'filename))
+	 t t)
+	(unless charset
+	  (setq coding-system (mm-find-buffer-file-coding-system)))
+	(setq text (buffer-string))))
     ;; XEmacs @#$@ version of font-lock refuses to fully turn itself
     ;; on for buffers whose name begins with " ".  That's why we use
-    ;; save-current-buffer/get-buffer-create rather than
-    ;; with-temp-buffer.
-    (save-current-buffer
-      (set-buffer (generate-new-buffer "*fontification*"))
-      (unwind-protect
-	  (progn
-	    (buffer-disable-undo)
-	    (mm-insert-part handle)
-	    (require 'font-lock)
-	    (let ((font-lock-maximum-size nil)
-		  ;; Disable support modes, e.g., jit-lock, lazy-lock, etc.
-		  (font-lock-mode-hook nil)
-		  (font-lock-support-mode nil)
-		  ;; I find font-lock a bit too verbose.
-		  (font-lock-verbose nil))
-	      (funcall mode)
-	      ;; The mode function might have already turned on font-lock.
-	      (unless (symbol-value 'font-lock-mode)
-		(font-lock-fontify-buffer)))
-	    ;; By default, XEmacs font-lock uses non-duplicable text
-	    ;; properties.  This code forces all the text properties
-	    ;; to be copied along with the text.
-	    (when (fboundp 'extent-list)
-	      (map-extents (lambda (ext ignored)
-			     (set-extent-property ext 'duplicable t)
-			     nil)
-			   nil nil nil nil nil 'text-prop))
-	    (setq text (buffer-string)))
-	(kill-buffer (current-buffer))))
+    ;; `with-current-buffer'/`generate-new-buffer' rather than
+    ;; `with-temp-buffer'.
+    (with-current-buffer (generate-new-buffer "*fontification*")
+      (buffer-disable-undo)
+      (mm-enable-multibyte)
+      (insert (cond ((eq charset 'gnus-decoded)
+		     (with-current-buffer (mm-handle-buffer handle)
+		       (buffer-string)))
+		    (coding-system
+		     (mm-decode-coding-string text coding-system))
+		    (charset
+		     (mm-decode-string text charset))
+		    (t
+		     text)))
+      (require 'font-lock)
+      (let ((font-lock-maximum-size nil)
+	    ;; Disable support modes, e.g., jit-lock, lazy-lock, etc.
+	    (font-lock-mode-hook nil)
+	    (font-lock-support-mode nil)
+	    ;; I find font-lock a bit too verbose.
+	    (font-lock-verbose nil))
+	(funcall mode)
+	;; The mode function might have already turned on font-lock.
+	(unless (symbol-value 'font-lock-mode)
+	  (font-lock-fontify-buffer)))
+      ;; By default, XEmacs font-lock uses non-duplicable text
+      ;; properties.  This code forces all the text properties
+      ;; to be copied along with the text.
+      (when (featurep 'xemacs)
+	(map-extents (lambda (ext ignored)
+		       (set-extent-property ext 'duplicable t)
+		       nil)
+		     nil nil nil nil nil 'text-prop))
+      (setq text (buffer-string))
+      (kill-buffer (current-buffer)))
     (mm-insert-inline handle text)))
 
 ;; Shouldn't these functions check whether the user even wants to use
@@ -575,27 +589,28 @@
 (defun mm-display-elisp-inline (handle)
   (mm-display-inline-fontify handle 'emacs-lisp-mode))
 
+(defun mm-display-dns-inline (handle)
+  (mm-display-inline-fontify handle 'dns-mode))
+
 ;;      id-signedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)
 ;;          us(840) rsadsi(113549) pkcs(1) pkcs7(7) 2 }
 (defvar mm-pkcs7-signed-magic
   (mm-string-as-unibyte
-   (apply 'concat
-	  (mapcar 'char-to-string
-		  (list ?\x30 ?\x5c ?\x28 ?\x80 ?\x5c ?\x7c ?\x81 ?\x2e ?\x5c
-			?\x7c ?\x82 ?\x2e ?\x2e ?\x5c ?\x7c ?\x83 ?\x2e ?\x2e
-			?\x2e ?\x5c ?\x29 ?\x06 ?\x09 ?\x5c ?\x2a ?\x86 ?\x48
-			?\x86 ?\xf7 ?\x0d ?\x01 ?\x07 ?\x02)))))
+   (mapconcat 'char-to-string
+	      (list ?\x30 ?\x5c ?\x28 ?\x80 ?\x5c ?\x7c ?\x81 ?\x2e ?\x5c
+		    ?\x7c ?\x82 ?\x2e ?\x2e ?\x5c ?\x7c ?\x83 ?\x2e ?\x2e
+		    ?\x2e ?\x5c ?\x29 ?\x06 ?\x09 ?\x5c ?\x2a ?\x86 ?\x48
+		    ?\x86 ?\xf7 ?\x0d ?\x01 ?\x07 ?\x02) "")))
 
 ;;      id-envelopedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)
 ;;          us(840) rsadsi(113549) pkcs(1) pkcs7(7) 3 }
 (defvar mm-pkcs7-enveloped-magic
   (mm-string-as-unibyte
-   (apply 'concat
-	  (mapcar 'char-to-string
-		  (list ?\x30 ?\x5c ?\x28 ?\x80 ?\x5c ?\x7c ?\x81 ?\x2e ?\x5c
-			?\x7c ?\x82 ?\x2e ?\x2e ?\x5c ?\x7c ?\x83 ?\x2e ?\x2e
-			?\x2e ?\x5c ?\x29 ?\x06 ?\x09 ?\x5c ?\x2a ?\x86 ?\x48
-			?\x86 ?\xf7 ?\x0d ?\x01 ?\x07 ?\x03)))))
+   (mapconcat 'char-to-string
+	      (list ?\x30 ?\x5c ?\x28 ?\x80 ?\x5c ?\x7c ?\x81 ?\x2e ?\x5c
+		    ?\x7c ?\x82 ?\x2e ?\x2e ?\x5c ?\x7c ?\x83 ?\x2e ?\x2e
+		    ?\x2e ?\x5c ?\x29 ?\x06 ?\x09 ?\x5c ?\x2a ?\x86 ?\x48
+		    ?\x86 ?\xf7 ?\x0d ?\x01 ?\x07 ?\x03) "")))
 
 (defun mm-view-pkcs7-get-type (handle)
   (mm-with-unibyte-buffer
@@ -614,22 +629,25 @@
     (otherwise (error "Unknown or unimplemented PKCS#7 type"))))
 
 (defun mm-view-pkcs7-verify (handle)
-  ;; A bogus implementation of PKCS#7. FIXME::
-  (mm-insert-part handle)
-  (goto-char (point-min))
-  (if (search-forward "Content-Type: " nil t)
-      (delete-region (point-min) (match-beginning 0)))
-  (goto-char (point-max))
-  (if (re-search-backward "--\r?\n?" nil t)
-      (delete-region (match-end 0) (point-max)))
+  (let ((verified nil))
+    (with-temp-buffer
+      (insert "MIME-Version: 1.0\n")
+      (mm-insert-headers "application/pkcs7-mime" "base64" "smime.p7m")
+      (insert-buffer-substring (mm-handle-buffer handle))
+      (setq verified (smime-verify-region (point-min) (point-max))))
+    (goto-char (point-min))
+    (mm-insert-part handle)
+    (if (search-forward "Content-Type: " nil t)
+	(delete-region (point-min) (match-beginning 0)))
+    (goto-char (point-max))
+    (if (re-search-backward "--\r?\n?" nil t)
+	(delete-region (match-end 0) (point-max)))
+    (unless verified
+      (insert-buffer-substring smime-details-buffer)))
   (goto-char (point-min))
   (while (search-forward "\r\n" nil t)
     (replace-match "\n"))
-  (message "Verify signed PKCS#7 message is unimplemented.")
-  (sit-for 1)
   t)
-
-(autoload 'gnus-completing-read-maybe-default "gnus-util" nil nil 'macro)
 
 (defun mm-view-pkcs7-decrypt (handle)
   (insert-buffer-substring (mm-handle-buffer handle))
@@ -641,10 +659,9 @@
    (if (= (length smime-keys) 1)
        (cadar smime-keys)
      (smime-get-key-by-email
-      (gnus-completing-read-maybe-default
+      (completing-read
        (concat "Decipher using key"
-	       (if smime-keys
-		   (concat " (default " (caar smime-keys) "): ")
+	       (if smime-keys (concat "(default " (caar smime-keys) "): ")
 		 ": "))
        smime-keys nil nil nil nil (car-safe (car-safe smime-keys))))))
   (goto-char (point-min))

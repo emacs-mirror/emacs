@@ -307,7 +307,7 @@ LIST1 and LIST2 have to be sorted over <."
     (cdr top)))
 
 (defun gnus-compress-sequence (numbers &optional always-list)
-  "Convert list of numbers to a list of ranges or a single range.
+  "Convert sorted list of numbers to a list of ranges or a single range.
 If ALWAYS-LIST is non-nil, this function will always release a list of
 ranges."
   (let* ((first (car numbers))

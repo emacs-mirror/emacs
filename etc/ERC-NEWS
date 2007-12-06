@@ -11,6 +11,10 @@ It requires the tls.el library.
 ** The function `erc-ssl' will now always use ssl.el, even in the version
 of ERC that comes with Emacs.
 
+** Type `C-u' before `C-c C-j' to prompt for a channel key
+`erc-join-channel' now accepts a prefix-argument to prompt for the key
+when channels are protected by keywords.
+
 ** Changes and additions to modules
 
 *** Channel tracking (erc-track.el)

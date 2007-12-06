@@ -1674,7 +1674,7 @@ separator; otherwise, ensure unix-style directory separator."
   :tag "Printing Utilities"
   :link '(emacs-library-link :tag "Source Lisp File" "printing.el")
   :prefix "pr-"
-  :version "20"
+  :version "22.1"
   :group 'wp
   :group 'postscript)
 
@@ -1694,7 +1694,6 @@ Valid values are:
   :type '(choice :tag "Path style"
 		 (const :tag "Windows 9x/NT Style (\\)" :value windows)
 		 (const :tag "Unix Style (/)" :value unix))
-  :version "20"
   :group 'printing)
 
 
@@ -1773,7 +1772,6 @@ Examples:
 				:tag "Directory"
 				(string :value "")
 				(symbol :value symbol)))))
-  :version "20"
   :group 'printing)
 
 
@@ -1788,7 +1786,6 @@ modified by other means (for example, a lisp function), use `pr-update-menus'
 function (see it for documentation) to update text printer menu."
   :type 'symbol
   :set 'pr-txt-name-custom-set
-  :version "20"
   :group 'printing)
 
 
@@ -1921,7 +1918,6 @@ Useful links:
 			(const :tag "None" nil)
 			string)))
   :set 'pr-alist-custom-set
-  :version "20"
   :group 'printing)
 
 
@@ -1936,7 +1932,6 @@ modified by other means (for example, a lisp function), use `pr-update-menus'
 function (see it for documentation) to update PostScript printer menu."
   :type 'symbol
   :set 'pr-ps-name-custom-set
-  :version "20"
   :group 'printing)
 
 
@@ -2209,7 +2204,6 @@ Useful links:
 	     (sexp :tag "Value")))
 	   ))
   :set 'pr-alist-custom-set
-  :version "20"
   :group 'printing)
 
 
@@ -2228,7 +2222,6 @@ Useful links:
 
 See also `pr-ps-temp-file' and `pr-file-modes'."
   :type '(directory :tag "Temporary Directory")
-  :version "20"
   :group 'printing)
 
 
@@ -2237,7 +2230,6 @@ See also `pr-ps-temp-file' and `pr-file-modes'."
 
 See also `pr-temp-dir' and `pr-file-modes'."
   :type '(file :tag "PostScript Temporary File Name")
-  :version "21"
   :group 'printing)
 
 
@@ -2251,7 +2243,6 @@ It should be an integer; only the low 9 bits are used.
 
 See also `pr-temp-dir' and `pr-ps-temp-file'."
   :type '(integer :tag "File Permission Bits")
-  :version "21.3"
   :group 'printing)
 
 
@@ -2293,7 +2284,6 @@ Useful links:
   `http://www.cs.wisc.edu/~ghost/macos/index.htm'
 "
   :type '(string :tag "Ghostview Utility")
-  :version "20"
   :group 'printing)
 
 
@@ -2320,7 +2310,6 @@ Useful links:
   `http://www.cs.wisc.edu/~ghost/doc/printer.htm'
 "
   :type '(string :tag "Ghostscript Utility")
-  :version "20"
   :group 'printing)
 
 
@@ -2363,7 +2352,6 @@ Useful links:
   `http://www.cs.wisc.edu/~ghost/doc/printer.htm'
 "
   :type '(repeat (string :tag "Ghostscript Switch"))
-  :version "20"
   :group 'printing)
 
 
@@ -2380,7 +2368,6 @@ A note on the gs switches:
 See `pr-gs-switches' for documentation.
 See also `pr-ps-printer-alist'."
   :type '(string :tag "Ghostscript Device")
-  :version "20"
   :group 'printing)
 
 
@@ -2394,7 +2381,6 @@ A note on the gs switches:
 See `pr-gs-switches' for documentation.
 See also `pr-ps-printer-alist'."
   :type '(integer :tag "Ghostscript Resolution")
-  :version "20"
   :group 'printing)
 
 
@@ -2407,35 +2393,30 @@ ghostscript to print a PostScript file.
 In GNU or Unix system, if ghostscript is set as a PostScript filter, this
 variable should be nil."
   :type 'boolean
-  :version "20"
   :group 'printing)
 
 
 (defcustom pr-faces-p nil
   "*Non-nil means print with face attributes."
   :type 'boolean
-  :version "20"
   :group 'printing)
 
 
 (defcustom pr-spool-p nil
   "*Non-nil means spool printing in a buffer."
   :type 'boolean
-  :version "20"
   :group 'printing)
 
 
 (defcustom pr-file-landscape nil
   "*Non-nil means print PostScript file in landscape orientation."
   :type 'boolean
-  :version "20"
   :group 'printing)
 
 
 (defcustom pr-file-duplex nil
   "*Non-nil means print PostScript file in duplex mode."
   :type 'boolean
-  :version "20"
   :group 'printing)
 
 
@@ -2447,7 +2428,6 @@ right.
 If tumble is on, produces a printing suitable for binding at the top or
 bottom."
   :type 'boolean
-  :version "20"
   :group 'printing)
 
 
@@ -2460,7 +2440,6 @@ When this variable is non-nil, the `*-buffer*' commands will behave like
 `*-region*' commands, that is, `*-buffer*' commands will print only the region
 marked instead of all buffer."
   :type 'boolean
-  :version "20"
   :group 'printing)
 
 
@@ -2472,7 +2451,6 @@ and `*-region*' commands will behave like `*-mode*' commands; otherwise,
 `*-buffer*' commands will print the current buffer and `*-region*' commands
 will print the current region."
   :type 'boolean
-  :version "20"
   :group 'printing)
 
 
@@ -2673,7 +2651,6 @@ DEFAULT		It's a way to set default values when this entry is selected.
 	      (variable :tag "Other"))
 	     (sexp :tag "Value")))
 	   ))
-  :version "20"
   :group 'printing)
 
 
@@ -2691,7 +2668,6 @@ NOTE: Don't forget to download and install the utilities declared on
       `pr-ps-utility-alist'."
   :type '(symbol :tag "PS File Utility")
   :set 'pr-ps-utility-custom-set
-  :version "20"
   :group 'printing)
 
 
@@ -2904,7 +2880,6 @@ Useful links:
 		  (sexp :tag "Value")))
 		))
   :set 'pr-alist-custom-set
-  :version "20"
   :group 'printing)
 
 
@@ -2913,7 +2888,6 @@ Useful links:
 
 See also `pr-menu-char-height' and `pr-menu-char-width'."
   :type 'boolean
-  :version "20"
   :group 'printing)
 
 
@@ -2925,7 +2899,6 @@ menu, so don't forget to adjust it if menu position is not ok.
 
 See also `pr-menu-lock' and `pr-menu-char-width'."
   :type 'integer
-  :version "20"
   :group 'printing)
 
 
@@ -2937,7 +2910,6 @@ menu, so don't forget to adjust it if menu position is not ok.
 
 See also `pr-menu-lock' and `pr-menu-char-height'."
   :type 'integer
-  :version "20"
   :group 'printing)
 
 
@@ -3054,7 +3026,6 @@ SETTING		It's a cons like:
 	      (variable :tag "Other"))
 	     (sexp :tag "Value")))
 	   ))
-  :version "20"
   :group 'printing)
 
 
@@ -3108,7 +3079,6 @@ Any other value is ignored."
 			 (const postscript-process)
 			 (const printing)
 			 (const help)))
-  :version "20"
   :group 'printing)
 
 
@@ -3120,7 +3090,6 @@ happens when printing:
 
    Error: could not open \"c:\\temp\\prspool.ps\" for reading."
   :type 'boolean
-  :version "20"
   :group 'printing)
 
 
@@ -3134,7 +3103,6 @@ It's used by `pr-ps-directory-preview', `pr-ps-directory-using-ghostscript',
 `pr-ps-directory-print', `pr-ps-directory-ps-print', `pr-printify-directory'
 and `pr-txt-directory'."
   :type 'boolean
-  :version "20"
   :group 'printing)
 
 
@@ -3143,7 +3111,6 @@ and `pr-txt-directory'."
 
 It's used by `pr-interface'."
   :type 'string
-  :version "20"
   :group 'printing)
 
 
@@ -3157,7 +3124,6 @@ NOTE: Case is important for matching, that is, `case-fold-search' is always
 
 It's used by `pr-interface'."
   :type '(repeat (regexp :tag "Buffer Name Regexp"))
-  :version "20"
   :group 'printing)
 
 
@@ -3166,7 +3132,6 @@ It's used by `pr-interface'."
 
 It's used by `pr-interface'."
   :type 'boolean
-  :version "20"
   :group 'printing)
 
 

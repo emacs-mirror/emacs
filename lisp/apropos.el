@@ -1005,7 +1005,7 @@ If non-nil TEXT is a string that will be printed as a heading."
 (defun apropos-describe-plist (symbol)
   "Display a pretty listing of SYMBOL's plist."
   (help-setup-xref (list 'apropos-describe-plist symbol) (interactive-p))
-  (with-output-to-temp-buffer (help-buffer)
+  (with-help-window (help-buffer)
     (set-buffer standard-output)
     (princ "Symbol ")
     (prin1 symbol)
@@ -1014,8 +1014,7 @@ If non-nil TEXT is a string that will be printed as a heading."
 	(put-text-property (+ (point-min) 7) (- (point) 14)
 			   'face apropos-symbol-face))
     (insert (apropos-format-plist symbol "\n  "))
-    (princ ")")
-    (print-help-return-message)))
+    (princ ")")))
 
 
 (provide 'apropos)

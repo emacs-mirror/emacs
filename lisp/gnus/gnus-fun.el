@@ -34,6 +34,8 @@
 (require 'gnus-util)
 (require 'gnus)
 
+(defvar gnus-face-properties-alist)
+
 (defcustom gnus-x-face-directory (expand-file-name "x-faces" gnus-directory)
   "*Directory where X-Face PBM files are stored."
   :version "22.1"
@@ -46,21 +48,37 @@
   :group 'gnus-fun
   :type 'string)
 
-(defcustom gnus-convert-image-to-x-face-command "giftopnm %s | ppmnorm | pnmscale -width 48 -height 48 | ppmtopgm | pgmtopbm | pbmtoxbm | compface"
+(defcustom gnus-convert-image-to-x-face-command
+  "convert -scale 48x48! %s xbm:- | xbm2xface.pl"
   "Command for converting an image to an X-Face.
+The command must take a image filename (use \"%s\") as input.
+The output must be the Face header data on stdout in PNG format.
+
 By default it takes a GIF filename and output the X-Face header data
 on stdout."
   :version "22.1"
   :group 'gnus-fun
-  :type 'string)
+  :type '(choice (const :tag "giftopnm, netpbm (GIF input only)"
+			"giftopnm %s | ppmnorm | pnmscale -width 48 -height 48 | ppmtopgm | pgmtopbm | pbmtoxbm | compface")
+		 (const :tag "convert"
+			"convert -scale 48x48! %s xbm:- | xbm2xface.pl")
+		 (string)))
 
-(defcustom gnus-convert-image-to-face-command "djpeg %s | ppmnorm | pnmscale -width 48 -height 48 | ppmquant %d | pnmtopng"
+(defcustom gnus-convert-image-to-face-command
+  "convert -scale 48x48! %s -colors %d png:-"
   "Command for converting an image to a Face.
-By default it takes a JPEG filename and output the Face header data
-on stdout."
+
+The command must take an image filename (first format argument
+\"%s\") and the number of colors (second format argument: \"%d\")
+as input.  The output must be the Face header data on stdout in
+PNG format."
   :version "22.1"
   :group 'gnus-fun
-  :type 'string)
+  :type '(choice (const :tag "djpeg, netpbm (JPG input only)"
+			"djpeg %s | ppmnorm | pnmscale -width 48 -height 48 | ppmquant %d | pnmtopng")
+		 (const :tag "convert"
+			"convert -scale 48x48! %s -colors %d png:-")
+		 (string)))
 
 (defun gnus-shell-command-to-string (command)
   "Like `shell-command-to-string' except not mingling ERROR."
@@ -102,8 +120,11 @@ Output to the current buffer, replace text, and don't mingle error."
 
 ;;;###autoload
 (defun gnus-x-face-from-file (file)
-  "Insert an X-Face header based on an image file."
-  (interactive "fImage file name (by default GIF): ")
+  "Insert an X-Face header based on an image file.
+
+Depending on `gnus-convert-image-to-x-face-command' it may accept
+different input formats."
+  (interactive "fImage file name: ")
   (when (file-exists-p file)
     (gnus-shell-command-to-string
      (format gnus-convert-image-to-x-face-command
@@ -111,8 +132,11 @@ Output to the current buffer, replace text, and don't mingle error."
 
 ;;;###autoload
 (defun gnus-face-from-file (file)
-  "Return a Face header based on an image file."
-  (interactive "fImage file name (by default JPEG): ")
+  "Return a Face header based on an image file.
+
+Depending on `gnus-convert-image-to-face-command' it may accept
+different input formats."
+  (interactive "fImage file name: ")
   (when (file-exists-p file)
     (let ((done nil)
 	  (attempt "")
@@ -127,7 +151,7 @@ Output to the current buffer, replace text, and don't mingle error."
 			 quant))))
 	(if (> (length attempt) 726)
 	    (progn
-	      (setq quant (- quant 2))
+	      (setq quant (- quant (if (< quant 10) 1 2)))
 	      (gnus-message 9 "Length %d; trying quant %d"
 			    (length attempt) quant))
 	  (setq done t)))
@@ -197,11 +221,11 @@ colors of the displayed X-Faces."
 	   'xface
 	   (gnus-put-image
 	    (if (gnus-image-type-available-p 'xface)
-		(gnus-create-image
-		 (concat "X-Face: " data)
-		 'xface t :face 'gnus-x-face)
-	      (gnus-create-image
-	       pbm 'pbm t :face 'gnus-x-face)) nil 'xface))
+		(apply 'gnus-create-image (concat "X-Face: " data) 'xface t
+		       (cdr (assq 'xface gnus-face-properties-alist)))
+	      (apply 'gnus-create-image pbm 'pbm t
+		     (cdr (assq 'pbm gnus-face-properties-alist))))
+	    nil 'xface))
 	  (gnus-add-wash-type 'xface))))))
 
 (defun gnus-grab-cam-x-face ()

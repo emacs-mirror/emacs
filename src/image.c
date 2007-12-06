@@ -733,9 +733,9 @@ Lisp_Object Qxbm;
 /* Keywords.  */
 
 extern Lisp_Object QCwidth, QCheight, QCforeground, QCbackground, QCfile;
-extern Lisp_Object QCdata, QCtype, Qcount;
+extern Lisp_Object QCdata, QCtype;
 extern Lisp_Object Qcenter;
-Lisp_Object QCascent, QCmargin, QCrelief;
+Lisp_Object QCascent, QCmargin, QCrelief, Qcount;
 Lisp_Object QCconversion, QCcolor_symbols, QCheuristic_mask;
 Lisp_Object QCindex, QCmatrix, QCcolor_adjustment, QCmask;
 
@@ -3128,6 +3128,8 @@ convert_mono_to_color_image (f, img, foreground, background)
   release_frame_dc (f, hdc);
   old_prev = SelectObject (old_img_dc, img->pixmap);
   new_prev = SelectObject (new_img_dc, new_pixmap);
+  /* Windows convention for mono bitmaps is black = background,
+     white = foreground.  */
   SetTextColor (new_img_dc, background);
   SetBkColor (new_img_dc, foreground);
 
@@ -3523,6 +3525,19 @@ xbm_load (f, img)
 	  else
 	    bits = XBOOL_VECTOR (data)->data;
 
+#ifdef WINDOWSNT
+          {
+            char *invertedBits;
+            int nbytes, i;
+            /* Windows mono bitmaps are reversed compared with X.  */
+            invertedBits = bits;
+            nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR 
+              * img->height;
+            bits = (char *) alloca(nbytes);
+            for (i = 0; i < nbytes; i++)
+              bits[i] = XBM_BIT_SHUFFLE (invertedBits[i]);
+          }
+#endif
 	  /* Create the pixmap.  */
 
 	  Create_Pixmap_From_Bitmap_Data (f, img, bits,
@@ -9088,6 +9103,9 @@ non-numeric, there is no explicit limit on the size of images.  */);
 
   define_image_type (&xbm_type, 1);
   define_image_type (&pbm_type, 1);
+
+  Qcount = intern ("count");
+  staticpro (&Qcount);
 
   QCascent = intern (":ascent");
   staticpro (&QCascent);

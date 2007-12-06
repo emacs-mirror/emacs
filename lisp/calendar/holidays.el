@@ -208,6 +208,7 @@ The optional LABEL is used to label the buffer created."
       (display-buffer holiday-buffer)
       (message "Computing holidays...done"))))
 
+;;;###autoload
 (defalias 'holiday-list 'list-holidays)
 
 (defun calendar-check-holidays (date)
@@ -486,6 +487,9 @@ is non-nil)."
       (holiday-filter-visible-calendar
        (list (list (calendar-gregorian-from-absolute (+ abs-easter n))
                    string))))))
+
+;; Prior call to calendar-julian-from-absolute will autoload cal-julian.
+(declare-function calendar-absolute-from-julian "cal-julian" (date))
 
 (defun holiday-greek-orthodox-easter ()
   "Date of Easter according to the rule of the Council of Nicaea."

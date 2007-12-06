@@ -142,7 +142,7 @@ $(BLD)/ctags.$(O): ctags.c
 # make-docfile blindly replaces .o with .c anyway.  Keep .o in this list
 # as it is required by code in doc.c.
 #
-obj=    sunfns.o dosfns.o msdos.o \
+obj=    dosfns.o msdos.o \
 	xterm.o xfns.o xmenu.o xselect.o xrdb.o  fringe.o image.o \
 	mac.o macterm.o macfns.o macmenu.o fontset.o \
 	w32.o w32bdf.o w32console.o w32fns.o w32heap.o w32inevt.o \
@@ -156,7 +156,7 @@ obj=    sunfns.o dosfns.o msdos.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex.o undo.o \
 	alloc.o data.o doc.o editfns.o callint.o \
 	eval.o floatfns.o fns.o print.o lread.o \
-	abbrev.o syntax.o bytecode.o \
+	syntax.o bytecode.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o
@@ -171,7 +171,7 @@ WINNT_SUPPORT = $(lispsource)ls-lisp.elc $(lispsource)disp-table.elc $(lispsourc
 
 # lisp files that are loaded up on other platforms
 MSDOS_SUPPORT = $(lispsource)dos-fns.elc $(lispsource)dos-vars.elc $(lispsource)international/ccl.elc $(lispsource)international/codepage.elc
-VMS_SUPPORT = $(lispsource)vmsproc.elc $(lispsource)vms-patch.elc
+VMS_SUPPORT = $(lispsource)vmsproc.el $(lispsource)vms-patch.el
 
 lisp1= \
 	$(lispsource)abbrev.elc \

@@ -224,8 +224,8 @@ format is defined through a formatting function on
 
 Since automatic logging is not always a Good Thing (especially if
 people say things in different coding systems), you can turn logging
-behaviour on and off with the variable `erc-enable-logging', which can
-also be a predicate function. To only log when you are not set away, use:
+behavior on and off with the variable `erc-enable-logging', which can
+also be a predicate function.  To only log when you are not set away, use:
 
 \(setq erc-enable-logging
       (lambda (buffer)
@@ -268,14 +268,7 @@ The current buffer is given by BUFFER."
     (with-current-buffer buffer
       (auto-save-mode -1)
       (setq buffer-file-name nil)
-      (cond ((boundp 'write-file-functions)
-	     (set (make-local-variable 'write-file-functions)
-		  '(erc-save-buffer-in-logs)))
-	    ((boundp 'local-write-file-hooks)
-	     (setq local-write-file-hooks '(erc-save-buffer-in-logs)))
-	    (t
-	     (set (make-local-variable 'write-file-hooks)
-		  '(erc-save-buffer-in-logs))))
+      (erc-set-write-file-functions '(erc-save-buffer-in-logs))
       (when erc-log-insert-log-on-open
 	(ignore-errors (insert-file-contents (erc-current-logfile))
 		       (move-marker erc-last-saved-position
@@ -415,7 +408,8 @@ You can save every individual message by putting this function on
   (or buffer (setq buffer (current-buffer)))
   (when (erc-logging-enabled buffer)
     (let ((file (erc-current-logfile buffer))
-	  (coding-system erc-log-file-coding-system))
+	  (coding-system erc-log-file-coding-system)
+	  (inhibit-clash-detection t))	; needed for XEmacs
       (save-excursion
 	(with-current-buffer buffer
 	  (save-restriction

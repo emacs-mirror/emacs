@@ -41,8 +41,7 @@
 (require 'gnus-msg)
 (require 'gnus-sum)
 
-(eval-when-compile
-  (defvar mh-lib-progs))
+(defvar mh-lib-progs)
 
 (defun gnus-summary-save-article-folder (&optional arg)
   "Append the current article to an mh folder.

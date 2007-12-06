@@ -383,6 +383,10 @@ your changes into effect."
   "Generic mode for HOSTS files."))
 
 ;;; Windows INF files
+
+;; If i-g-m-f-f-h is defined, then so is i-g-m.
+(declare-function ini-generic-mode "generic-x")
+
 (when (memq 'inf-generic-mode generic-extras-enable-list)
 
 (define-generic-mode inf-generic-mode
@@ -442,6 +446,8 @@ like an INI file.  You can add this hook to `find-file-hook'."
       (setq imenu-generic-expression
 	    '((nil "^\\s-*\\(.*\\)\\s-*=" 1))))))
   "Generic mode for MS-Windows Registry files."))
+
+(declare-function w32-shell-name "w32-fns" ())
 
 ;;; DOS/Windows BAT files
 (when (memq 'bat-generic-mode generic-extras-enable-list)

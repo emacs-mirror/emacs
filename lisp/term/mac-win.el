@@ -84,6 +84,14 @@
 (defvar mac-font-panel-mode)
 (defvar mac-ts-active-input-overlay)
 (defvar x-invocation-args)
+(declare-function mac-code-convert-string "mac.c")
+(declare-function mac-coerce-ae-data "mac.c")
+(declare-function mac-resume-apple-event "macselect.c")
+;; Suppress warning when compiling on non-Mac.
+(declare-function mac-font-panel-mode "mac-win.el")
+(declare-function mac-atsu-font-face-attributes "macfns.c")
+(declare-function mac-ae-set-reply-parameter "macselect.c")
+(declare-function mac-clear-font-name-table "macfns.c")
 
 (defvar x-command-line-resources nil)
 
@@ -1058,28 +1066,31 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 ;;;; Function keys
 
-(substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
-			   global-map)
-
 (defun x-setup-function-keys (frame)
   "Setup Function Keys for mac."
-;; Map certain keypad keys into ASCII characters
-;; that people usually expect.
-(define-key local-function-key-map [backspace] [?\d])
-(define-key local-function-key-map [delete] [?\d])
-(define-key local-function-key-map [tab] [?\t])
-(define-key local-function-key-map [linefeed] [?\n])
-(define-key local-function-key-map [clear] [?\C-l])
-(define-key local-function-key-map [return] [?\C-m])
-(define-key local-function-key-map [escape] [?\e])
-(define-key local-function-key-map [M-backspace] [?\M-\d])
-(define-key local-function-key-map [M-delete] [?\M-\d])
-(define-key local-function-key-map [M-tab] [?\M-\t])
-(define-key local-function-key-map [M-linefeed] [?\M-\n])
-(define-key local-function-key-map [M-clear] [?\M-\C-l])
-(define-key local-function-key-map [M-return] [?\M-\C-m])
-(define-key local-function-key-map [M-escape] [?\M-\e])
-)
+  ;; Don't do this twice on the same display, or it would break
+  ;; normal-erase-is-backspace-mode.
+  (unless (terminal-parameter frame 'x-setup-function-keys)
+    (with-selected-frame frame
+      ;; Map certain keypad keys into ASCII characters
+      ;; that people usually expect.
+      (define-key local-function-key-map [backspace] [?\d])
+      (define-key local-function-key-map [delete] [?\d])
+      (define-key local-function-key-map [tab] [?\t])
+      (define-key local-function-key-map [linefeed] [?\n])
+      (define-key local-function-key-map [clear] [?\C-l])
+      (define-key local-function-key-map [return] [?\C-m])
+      (define-key local-function-key-map [escape] [?\e])
+      (define-key local-function-key-map [M-backspace] [?\M-\d])
+      (define-key local-function-key-map [M-delete] [?\M-\d])
+      (define-key local-function-key-map [M-tab] [?\M-\t])
+      (define-key local-function-key-map [M-linefeed] [?\M-\n])
+      (define-key local-function-key-map [M-clear] [?\M-\C-l])
+      (define-key local-function-key-map [M-return] [?\M-\C-m])
+      (define-key local-function-key-map [M-escape] [?\M-\e])
+      (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
+				 local-function-key-map global-map))
+    (set-terminal-parameter frame 'x-setup-function-keys t)))
 
 ;; These tell read-char how to convert
 ;; these special chars to ASCII.
@@ -1760,6 +1771,9 @@ if possible.  If there's no such frame, a new frame is created."
 	(save-buffers-kill-emacs)
       ;; Reaches here if the user has canceled the quit.
       (mac-resume-apple-event ae -128)))) ; userCanceledErr
+
+;; url-generic-parse-url is autoloaded from url-parse.
+(declare-function url-type "url-parse" t t) ; defstruct
 
 (defun mac-ae-get-url (event)
   "Open the URL specified by the Apple event EVENT.

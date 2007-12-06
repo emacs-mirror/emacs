@@ -83,8 +83,8 @@
 ;; to be installed somewhere on Emacs's path for executables.
 ;;
 ;; If your site uses the ChangeLog convention supported by Emacs, the
-;; function log-edit-comment-to-change-log could prove a useful checkin hook,
-;; although you might prefer to use C-c C-a (i.e. log-edit-insert-changelog)
+;; function `log-edit-comment-to-change-log' could prove a useful checkin hook,
+;; although you might prefer to use C-c C-a (i.e. `log-edit-insert-changelog')
 ;; from the commit buffer instead or to set `log-edit-setup-invert'.
 ;;
 ;; The vc code maintains some internal state in order to reduce expensive
@@ -774,6 +774,7 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
     (define-key m "N" 'vc-annotate-next-revision)
     (define-key m "P" 'vc-annotate-prev-revision)
     (define-key m "W" 'vc-annotate-working-revision)
+    (define-key m "V" 'vc-annotate-toggle-annotation-visibility)
     m)
   "Local keymap used for VC-Annotate mode.")
 
@@ -1267,7 +1268,9 @@ Otherwise, throw an error."
 	   marked))
 	((vc-backend buffer-file-name)
 	 (list buffer-file-name))
-	((and vc-parent-buffer (buffer-file-name vc-parent-buffer))
+	((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
+				   (with-current-buffer vc-parent-buffer
+				     vc-dired-mode)))
 	 (progn
 	   (set-buffer vc-parent-buffer)
 	   (vc-deduce-fileset)))
@@ -1286,7 +1289,7 @@ Otherwise, throw an error."
 	   (message "All version-controlled files below %s selected."
 		    default-directory)
 	   (list default-directory)))
-	((and allow-unregistered (not (vc-registered buffer-file-name))) 
+	((and allow-unregistered (not (vc-registered buffer-file-name)))
 	 (list buffer-file-name))
 	(t (error "No fileset is available here."))))
 
@@ -1535,8 +1538,9 @@ merge in the changes into your working copy."
   (vc-call-backend backend 'create-repo))
 
 ;;;###autoload
-(defun vc-register (&optional set-revision comment)
-  "Register the current file into a version control system.
+(defun vc-register (&optional fname set-revision comment)
+  "Register into a version control system.
+If FNAME is given register that file, otherwise register the current file.
 With prefix argument SET-REVISION, allow user to specify initial revision
 level.  If COMMENT is present, use that as an initial comment.
 
@@ -1547,40 +1551,44 @@ directory are already registered under that backend) will be used to
 register the file.  If no backend declares itself responsible, the
 first backend that could register the file is used."
   (interactive "P")
-  (unless buffer-file-name (error "No visited file"))
-  (when (vc-backend buffer-file-name)
-    (if (vc-registered buffer-file-name)
-	(error "This file is already registered")
-      (unless (y-or-n-p "Previous master file has vanished.  Make a new one? ")
-	(error "Aborted"))))
-  ;; Watch out for new buffers of size 0: the corresponding file
-  ;; does not exist yet, even though buffer-modified-p is nil.
-  (if (and (not (buffer-modified-p))
-	   (zerop (buffer-size))
-	   (not (file-exists-p buffer-file-name)))
-      (set-buffer-modified-p t))
-  (vc-buffer-sync)
+  (when (and (null fname) (null buffer-file-name)) (error "No visited file"))
 
-  (vc-start-entry (list buffer-file-name)
-                  (if set-revision
-                      (read-string (format "Initial revision level for %s: "
-					   (buffer-name)))
-		    (vc-call-backend (vc-responsible-backend buffer-file-name)
-				     'init-revision))
-                  (or comment (not vc-initial-comment))
-		  nil
-                  "Enter initial comment."
-		  (lambda (files rev comment)
-		    (dolist (file files)
-		      (message "Registering %s... " file)
-		      (let ((backend (vc-responsible-backend file t)))
-			(vc-file-clearprops file)
-			(vc-call-backend backend 'register (list file) rev comment)
-			(vc-file-setprop file 'vc-backend backend)
-			(unless vc-make-backup-files
-			  (make-local-variable 'backup-inhibited)
-			  (setq backup-inhibited t)))
-		      (message "Registering %s... done" file)))))
+  (let ((bname (if fname (get-file-buffer fname) buffer-file-name)))
+    (unless fname (setq fname buffer-file-name))
+    (when (vc-backend fname)
+      (if (vc-registered fname)
+	  (error "This file is already registered")
+	(unless (y-or-n-p "Previous master file has vanished.  Make a new one? ")
+	  (error "Aborted"))))
+    ;; Watch out for new buffers of size 0: the corresponding file
+    ;; does not exist yet, even though buffer-modified-p is nil.
+    (when bname
+      (with-current-buffer bname
+	(if (and (not (buffer-modified-p))
+		 (zerop (buffer-size))
+		 (not (file-exists-p buffer-file-name)))
+	    (set-buffer-modified-p t))
+	(vc-buffer-sync)))
+    (vc-start-entry (list fname)
+		    (if set-revision
+			(read-string (format "Initial revision level for %s: "
+					     fname))
+		      (vc-call-backend (vc-responsible-backend fname)
+				       'init-revision))
+		    (or comment (not vc-initial-comment))
+		    nil
+		    "Enter initial comment."
+		    (lambda (files rev comment)
+		      (dolist (file files)
+			(message "Registering %s... " file)
+			(let ((backend (vc-responsible-backend file t)))
+			  (vc-file-clearprops file)
+			  (vc-call-backend backend 'register (list file) rev comment)
+			  (vc-file-setprop file 'vc-backend backend)
+			  (unless vc-make-backup-files
+			    (make-local-variable 'backup-inhibited)
+			    (setq backup-inhibited t)))
+			(message "Registering %s... done" file))))))
 
 (defun vc-register-with (backend)
   "Register the current file with a specified back end."
@@ -1589,6 +1597,8 @@ first backend that could register the file is used."
       (error "Unknown back end."))
   (let ((vc-handled-backends (list backend)))
     (call-interactively 'vc-register)))
+
+(declare-function view-mode-exit "view" (&optional return-to-alist exit-action all-win))
 
 (defun vc-resynch-window (file &optional keep noquery)
   "If FILE is in the current buffer, either revert or unvisit it.
@@ -1637,14 +1647,18 @@ empty comment.  Remember the file's buffer in `vc-parent-buffer'
 \(current one if no file).  AFTER-HOOK specifies the local value
 for vc-log-operation-hook."
   (let ((parent
-	 (if (and files (equal (length files) 1))
-	     (get-file-buffer (car files))
-	   (current-buffer))))
-    (if vc-before-checkin-hook
-        (if files
-            (with-current-buffer parent
-              (run-hooks 'vc-before-checkin-hook))
-          (run-hooks 'vc-before-checkin-hook)))
+         (if (eq major-mode 'vc-dired-mode)
+             ;; If we are called from VC dired, the parent buffer is
+             ;; the current buffer.
+             (current-buffer)
+           (if (and files (equal (length files) 1))
+               (get-file-buffer (car files))
+             (current-buffer)))))
+    (when vc-before-checkin-hook
+      (if files
+	  (with-current-buffer parent
+	    (run-hooks 'vc-before-checkin-hook))
+	(run-hooks 'vc-before-checkin-hook)))
     (if (and comment (not initial-contents))
 	(set-buffer (get-buffer-create "*VC-log*"))
       (pop-to-buffer (get-buffer-create "*VC-log*")))
@@ -1654,8 +1668,8 @@ for vc-log-operation-hook."
     ;;(if file (vc-mode-line file))
     (vc-log-edit files)
     (make-local-variable 'vc-log-after-operation-hook)
-    (if after-hook
-	(setq vc-log-after-operation-hook after-hook))
+    (when after-hook
+      (setq vc-log-after-operation-hook after-hook))
     (setq vc-log-operation action)
     (setq vc-log-revision rev)
     (when comment
@@ -1929,11 +1943,14 @@ returns t if the buffer had changes, nil otherwise."
         (progn
           (message "No changes between %s and %s" rev1-name rev2-name)
           nil)
-      (pop-to-buffer (current-buffer))
-      ;; Gnus-5.8.5 sets up an autoload for diff-mode, even if it's
-      ;; not available.  Work around that.
-      (if (require 'diff-mode nil t) (diff-mode))
+      (diff-mode)
+      ;; Make the *vc-diff* buffer read only, the diff-mode key
+      ;; bindings are nicer for read only buffers. pcl-cvs does the
+      ;; same thing.
+      (setq buffer-read-only t)
       (vc-exec-after `(vc-diff-sentinel ,verbose ,rev1-name ,rev2-name))
+      ;; Display the buffer, but at the end because it can change point.
+      (pop-to-buffer (current-buffer))
       ;; In the async case, we return t even if there are no differences
       ;; because we don't know that yet.
       t)))
@@ -2057,11 +2074,16 @@ If `F.~REV~' already exists, use it instead of checking it out again."
 		      (with-current-buffer filebuf
 			(vc-call find-revision file revision outbuf))))
 		  (setq failed nil))
-	      (if (and failed (file-exists-p filename))
-		  (delete-file filename))))
+	      (when (and failed (file-exists-p filename))
+		(delete-file filename))))
 	  (vc-mode-line file))
 	(message "Checking out %s...done" filename)))
-    (find-file-noselect filename)))
+    (let ((result-buf (find-file-noselect filename)))
+      (with-current-buffer result-buf
+	;; Set the parent buffer so that things like
+	;; C-x v g, C-x v l, ... etc work.
+	(setq vc-parent-buffer filebuf))
+      result-buf)))
 
 ;; Header-insertion code
 
@@ -3132,10 +3154,23 @@ to provide the `find-revision' operation instead."
 You can use the mode-specific menu to alter the time-span of the used
 colors.  See variable `vc-annotate-menu-elements' for customizing the
 menu items."
+  ;; Frob buffer-invisibility-spec so that if it is originally a naked t,
+  ;; it will become a list, to avoid initial annotations being invisible.
+  (add-to-invisibility-spec 'foo)
+  (remove-from-invisibility-spec 'foo)
   (set (make-local-variable 'truncate-lines) t)
   (set (make-local-variable 'font-lock-defaults)
        '(vc-annotate-font-lock-keywords t))
   (view-mode 1))
+
+(defun vc-annotate-toggle-annotation-visibility ()
+  "Toggle whether or not the annotation is visible."
+  (interactive)
+  (funcall (if (memq 'vc-annotate-annotation buffer-invisibility-spec)
+               'remove-from-invisibility-spec
+             'add-to-invisibility-spec)
+           'vc-annotate-annotation)
+  (force-window-update (current-buffer)))
 
 (defun vc-annotate-display-default (ratio)
   "Display the output of \\[vc-annotate] using the default color range.
@@ -3150,6 +3185,13 @@ The current time is used as the offset."
   "Return the oldest time in the COLOR-MAP."
   ;; Since entries should be sorted, we can just use the last one.
   (caar (last color-map)))
+
+(defun vc-annotate-get-time-set-line-props ()
+  (let ((bol (point))
+        (date (vc-call-backend vc-annotate-backend 'annotate-time))
+        (inhibit-read-only t))
+    (put-text-property bol (point) 'invisible 'vc-annotate-annotation)
+    date))
 
 (defun vc-annotate-display-autoscale (&optional full)
   "Highlight the output of \\[vc-annotate] using an autoscaled color map.
@@ -3166,7 +3208,7 @@ cover the range from the oldest annotation to the newest."
     (save-excursion
       (goto-char (point-min))
       (while (not (eobp))
-        (when (setq date (vc-call-backend vc-annotate-backend 'annotate-time))
+        (when (setq date (vc-annotate-get-time-set-line-props))
           (if (> date newest)
               (setq newest date))
           (if (< date oldest)
@@ -3214,6 +3256,7 @@ cover the range from the oldest annotation to the newest."
      :style toggle :selected
      (eq vc-annotate-display-mode 'fullscale)]
     "--"
+    ["Toggle annotation visibility" vc-annotate-toggle-annotation-visibility]
     ["Annotate previous revision" vc-annotate-prev-revision]
     ["Annotate next revision" vc-annotate-next-revision]
     ["Annotate revision at line" vc-annotate-revision-at-line]
@@ -3324,7 +3367,7 @@ mode-specific menu.  `vc-annotate-color-map' and
           ;; of the user's cursor :-(
           (when ,current-line           ;(and (bobp))
             (goto-line ,current-line)
-            (setq vc-sentinel-movepoint))
+            (setq vc-sentinel-movepoint (point)))
           (unless (active-minibuffer-window)
             (message "Annotating... done")))))))
 
@@ -3478,7 +3521,7 @@ The argument TIME is a list as returned by `current-time' or
 This calls the backend function annotate-time, and returns the
 difference in days between the time returned and the current time,
 or OFFSET if present."
-   (let ((next-time (vc-call-backend vc-annotate-backend 'annotate-time)))
+   (let ((next-time (vc-annotate-get-time-set-line-props)))
      (if next-time
 	 (- (or offset
 		(vc-call-backend vc-annotate-backend 'annotate-current-time))
@@ -3534,7 +3577,10 @@ The annotations are relative to the current time, unless overridden by OFFSET."
   "Set up `log-edit' for use with VC on FILE."
   (setq default-directory
 	(with-current-buffer vc-parent-buffer default-directory))
-  (log-edit 'vc-finish-logentry nil `(lambda () ',fileset))
+  (log-edit 'vc-finish-logentry
+	    nil
+	    `((log-edit-listfun . (lambda () ',fileset))
+	      (log-edit-diff-function . (lambda () (vc-diff nil)))))
   (set (make-local-variable 'vc-log-fileset) fileset)
   (make-local-variable 'vc-log-revision)
   (set-buffer-modified-p nil)

@@ -75,7 +75,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 ;;;###autoload
 (defun describe-display-table (dt)
   "Describe the display table DT in a help buffer."
-  (with-output-to-temp-buffer "*Help*"
+  (with-help-window "*Help*"
     (princ "\nTruncation glyph: ")
     (prin1 (display-table-slot dt 'truncation))
     (princ "\nWrap glyph: ")
@@ -97,8 +97,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
 	  (aset vector i (aref dt i))
 	  (setq i (1+ i)))
 	(describe-vector vector))
-      (help-mode))
-    (print-help-return-message)))
+      (help-mode))))
 
 ;;;###autoload
 (defun describe-current-display-table ()

@@ -1370,7 +1370,7 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
     (goto-char (point-min))))
 
 (defun strokes-alphabetic-lessp (stroke1 stroke2)
-  "T if command name for STROKE1 is less than STROKE2's in lexicographic order."
+  "Return t if STROKE1's command name precedes STROKE2's in lexicographic order."
   (let ((command-name-1 (symbol-name (cdr stroke1)))
 	(command-name-2 (symbol-name (cdr stroke2))))
     (string-lessp command-name-1 command-name-2)))
@@ -1745,11 +1745,11 @@ Store XPM in buffer BUFNAME if supplied \(default is ` *strokes-xpm*'\)"
     ;; strokes-decode-buffer does a save-excursion.
     (forward-char)))
 
-(defun strokes-unload-hook ()
+(defun strokes-unload-function ()
+  "Unload the Strokes library."
   (strokes-mode -1)
-  (remove-hook 'kill-emacs-query-functions 'strokes-prompt-user-save-strokes))
-
-(add-hook 'strokes-unload-hook 'strokes-unload-hook)
+  ;; continue standard unloading
+  nil)
 
 (run-hooks 'strokes-load-hook)
 (provide 'strokes)

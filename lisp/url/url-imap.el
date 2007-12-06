@@ -32,7 +32,6 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
 (require 'url-util)
 (require 'url-parse)
 (require 'nnimap)
@@ -53,7 +52,8 @@
 			  (nnimap-authenticator ,authenticator)))))
 
 (defun url-imap (url)
-  (check-type url vector "Need a pre-parsed URL.")
+  (unless (vectorp url)
+    (signal 'wrong-type-error (list "Need a pre-parsed URL." url)))
   (save-excursion
     (set-buffer (generate-new-buffer " *url-imap*"))
     (mm-disable-multibyte)

@@ -1,4 +1,4 @@
-;;; dunnet.el --- text adventure for Emacs
+;;; dunnet.el --- text adventure for Emacs -*-  byte-compile-warnings: nil -*-
 
 ;; Copyright (C) 1992, 1993, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007 Free Software Foundation, Inc.
@@ -46,12 +46,6 @@
   :type 'file
   :group 'dunnet)
 
-(if nil
-    (eval-and-compile (setq byte-compile-warnings nil)))
-
-(eval-when-compile
- (require 'cl))
-
 ;;;; Mode definitions for interactive mode
 
 (define-derived-mode dun-mode text-mode "Dungeon"
@@ -63,18 +57,19 @@
   "Function called when return is pressed in interactive mode to parse line."
   (interactive "*p")
   (beginning-of-line)
-  (setq beg (+ (point) 1))
-  (end-of-line)
-  (if (and (not (= beg (point))) (not (< (point) beg))
-	   (string= ">" (buffer-substring (- beg 1) beg)))
-      (progn
-	(setq line (downcase (buffer-substring beg (point))))
-	(princ line)
-	(if (eq (dun-vparse dun-ignore dun-verblist line) -1)
-	    (dun-mprinc "I don't understand that.\n")))
+  (let ((beg (1+ (point)))
+        line)
+    (end-of-line)
+    (if (and (not (= beg (point))) (not (< (point) beg))
+             (string= ">" (buffer-substring (- beg 1) beg)))
+        (progn
+          (setq line (downcase (buffer-substring beg (point))))
+          (princ line)
+          (if (eq (dun-vparse dun-ignore dun-verblist line) -1)
+              (dun-mprinc "I don't understand that.\n")))
     (goto-char (point-max))
-    (dun-mprinc "\n"))
-    (dun-messages))
+    (dun-mprinc "\n")))
+  (dun-messages))
 
 (defun dun-messages ()
   (if dun-dead

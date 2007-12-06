@@ -26,14 +26,22 @@
 
 ;;; Code:
 
-(require 'mml-smime)
 (eval-when-compile (require 'cl))
+(or (require 'password-cache nil t)
+    (require 'password))
+
 (autoload 'mml2015-sign "mml2015")
 (autoload 'mml2015-encrypt "mml2015")
 (autoload 'mml1991-sign "mml1991")
 (autoload 'mml1991-encrypt "mml1991")
 (autoload 'message-goto-body "message")
 (autoload 'mml-insert-tag "mml")
+(autoload 'mml-smime-sign "mml-smime")
+(autoload 'mml-smime-encrypt "mml-smime")
+(autoload 'mml-smime-sign-query "mml-smime")
+(autoload 'mml-smime-encrypt-query "mml-smime")
+(autoload 'mml-smime-verify "mml-smime")
+(autoload 'mml-smime-verify-test "mml-smime")
 
 (defvar mml-sign-alist
   '(("smime"     mml-smime-sign-buffer     mml-smime-sign-query)
@@ -95,6 +103,23 @@ details."
 			       (string :tag "User defined"))
 		       (choice (const :tag "Separate" separate)
 			       (const :tag "Combined" combined)))))
+
+(defcustom mml-secure-verbose nil
+  "If non-nil, ask the user about the current operation more verbosely."
+  :group 'message
+  :type 'boolean)
+
+(defcustom mml-secure-cache-passphrase password-cache
+  "If t, cache passphrase."
+  :group 'message
+  :type 'boolean)
+
+(defcustom mml-secure-passphrase-cache-expiry password-cache-expiry
+  "How many seconds the passphrase is cached.
+Whether the passphrase is cached at all is controlled by
+`mml-secure-cache-passphrase'."
+  :group 'message
+  :type 'integer)
 
 ;;; Configuration/helper functions
 
@@ -249,6 +274,13 @@ Use METHOD if given.  Else use `mml-secure-method' or
 ;; defuns that add the proper <#secure ...> tag to the top of the message body
 (defun mml-secure-message (method &optional modesym)
   (let ((mode (prin1-to-string modesym))
+	(tags (append
+	       (if (or (eq modesym 'sign)
+		       (eq modesym 'signencrypt))
+		   (funcall (nth 2 (assoc method mml-sign-alist))))
+	       (if (or (eq modesym 'encrypt)
+		       (eq modesym 'signencrypt))
+		   (funcall (nth 2 (assoc method mml-encrypt-alist))))))
 	insert-loc)
     (mml-unsecure-message)
     (save-excursion
@@ -257,8 +289,8 @@ Use METHOD if given.  Else use `mml-secure-method' or
 	      (concat "^" (regexp-quote mail-header-separator) "\n") nil t)
 	     (goto-char (setq insert-loc (match-end 0)))
 	     (unless (looking-at "<#secure")
-	       (mml-insert-tag
-		'secure 'method method 'mode mode)))
+	       (apply 'mml-insert-tag
+		'secure 'method method 'mode mode tags)))
 	    (t (error
 		"The message is corrupted. No mail header separator"))))
     (when (eql insert-loc (point))

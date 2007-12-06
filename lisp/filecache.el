@@ -780,10 +780,6 @@ match REGEXP."
 ;; Keybindings
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;###autoload (define-key minibuffer-local-completion-map [C-tab] 'file-cache-minibuffer-complete)
-;;;###autoload (define-key minibuffer-local-map [C-tab] 'file-cache-minibuffer-complete)
-;;;###autoload (define-key minibuffer-local-must-match-map [C-tab] 'file-cache-minibuffer-complete)
-
 (provide 'filecache)
 
 ;;; arch-tag: 433d3ca4-4af2-47ce-b2cf-1f727460f538

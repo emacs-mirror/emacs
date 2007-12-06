@@ -1158,17 +1158,6 @@ Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
   src/s/sunos4-1.h to src/config.h.  This problem is due to obsolete
   software in the nonshared standard library.
 
-  If you want to use SunWindows, define HAVE_SUN_WINDOWS
-  in config.h to enable a special interface called `emacstool'.
-  The definition must *precede* the #include "machine.h".
-  System version 3.2 is required for this facility to work.
-
-  We recommend that you instead use the X window system, which
-  has technical advantages, is an industry standard, and is also
-  free software.  The FSF does not support the SunWindows code;
-  we installed it only on the understanding we would not let it
-  divert our efforts from what we think is important.
-
   If you are compiling for X windows, and the X window library was
   compiled to use the 68881, then you must edit config.h according
   the comments at the end of `src/m/sun3.h'.

@@ -22,9 +22,22 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'em-unix)
+;;; Commentary:
 
-(eval-when-compile (require 'esh-maint))
+;; This file contains implementations of several UNIX command in Emacs
+;; Lisp, for several reasons:
+;;
+;;   1) it makes them available on all platforms where the Lisp
+;;      functions used are available
+;;
+;;   2) it makes their functionality accessible and modified by the
+;;      Lisp programmer.
+;;
+;;   3) it allows Eshell to refrain from having to invoke external
+;;      processes for common operations.
+
+;;; Code:
+
 (require 'eshell)
 
 (defgroup eshell-unix nil
@@ -39,20 +52,6 @@ with Eshell makes them more versatile than their traditional cousins
 by name)."
   :tag "UNIX commands in Lisp"
   :group 'eshell-module)
-
-;;; Commentary:
-
-;; This file contains implementations of several UNIX command in Emacs
-;; Lisp, for several reasons:
-;;
-;;   1) it makes them available on all platforms where the Lisp
-;;      functions used are available
-;;
-;;   2) it makes their functionality accessible and modified by the
-;;      Lisp programmer.
-;;
-;;   3) it allows Eshell to refrain from having to invoke external
-;;      processes for common operations.
 
 (defcustom eshell-unix-load-hook '(eshell-unix-initialize)
   "*A list of functions to run when `eshell-unix' is loaded."
@@ -78,7 +77,7 @@ receiving side of a command pipeline."
   :type 'boolean
   :group 'eshell-unix)
 
-(defcustom eshell-plain-locate-behavior (eshell-under-xemacs-p)
+(defcustom eshell-plain-locate-behavior (featurep 'xemacs)
   "*If non-nil, standalone \"locate\" commands will behave normally.
 Standalone in this context means not redirected, and not on the
 receiving side of a command pipeline."
@@ -137,8 +136,6 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
   :type 'boolean
   :group 'eshell-unix)
 
-(require 'esh-opt)
-
 ;;; Functions:
 
 (defun eshell-unix-initialize ()
@@ -169,7 +166,7 @@ Otherwise, Emacs will attempt to use rsh to invoke du on the remote machine."
 (put 'eshell/man 'eshell-no-numeric-conversions t)
 
 (defun eshell/info (&rest args)
-  "Runs the info command in-frame with the same behaviour as command-line `info', ie:
+  "Run the info command in-frame with the same behavior as command-line `info', ie:
   'info'           => goes to top info window
   'info arg1'      => IF arg1 is a file, then visits arg1
   'info arg1'      => OTHERWISE goes to top info window and then menu item arg1
@@ -1050,7 +1047,7 @@ Show wall-clock time elapsed during execution of COMMAND.")
 
 (put 'eshell/occur 'eshell-no-numeric-conversions t)
 
-;;; Code:
+(provide 'em-unix)
 
 ;;; arch-tag: 2462edd2-a76a-4cf2-897d-92e9a82ac1c9
 ;;; em-unix.el ends here

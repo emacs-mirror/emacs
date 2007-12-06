@@ -595,8 +595,12 @@ Don't use that together with FILTER."
 	    (if (next-read-file-uses-dialog-p)
 		(read-directory-name (format "Dired %s(directory): " str)
 				     nil default-directory nil)
-	      (read-file-name (format "Dired %s(directory): " str)
-			      nil default-directory nil)))))
+	      (let ((default (and buffer-file-name
+				  (abbreviate-file-name buffer-file-name))))
+		(minibuffer-with-setup-hook
+		    (lambda () (setq minibuffer-default default))
+		  (read-file-name (format "Dired %s(directory): " str)
+				  nil default-directory nil)))))))
 
 ;;;###autoload (define-key ctl-x-map "d" 'dired)
 ;;;###autoload
@@ -3263,6 +3267,9 @@ Anything else means ask for each directory."
     (if action
 	(dired-dnd-handle-local-file uri action)
       nil)))
+
+(declare-function dired-relist-entry "dired-aux" (file))
+(declare-function make-symbolic-link "fileio.c")
 
 (defun dired-dnd-handle-local-file (uri action)
   "Copy, move or link a file to the dired directory.

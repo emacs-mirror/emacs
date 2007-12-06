@@ -209,20 +209,26 @@ Characters are in raw byte pairs in narrowed buffer."
 
 (defun utf7-encode (string &optional for-imap)
   "Encode UTF-7 STRING.  Use IMAP modification if FOR-IMAP is non-nil."
-  (let ((default-enable-multibyte-characters t))
-    (with-temp-buffer
-      (insert string)
-      (utf7-encode-internal for-imap)
-      (buffer-string))))
+  (if (and (coding-system-p 'utf-7) (coding-system-p 'utf-7-imap))
+      ;; Emacs 23 with proper support for IMAP
+      (encode-coding-string string (if for-imap 'utf-7-imap 'utf-7))
+    (let ((default-enable-multibyte-characters t))
+      (with-temp-buffer
+	(insert string)
+	(utf7-encode-internal for-imap)
+	(buffer-string)))))
 
 (defun utf7-decode (string &optional for-imap)
   "Decode UTF-7 STRING.  Use IMAP modification if FOR-IMAP is non-nil."
-  (let ((default-enable-multibyte-characters nil))
-    (with-temp-buffer
-      (insert string)
-      (utf7-decode-internal for-imap)
-      (mm-enable-multibyte)
-      (buffer-string))))
+  (if (and (coding-system-p 'utf-7) (coding-system-p 'utf-7-imap))
+      ;; Emacs 23 with proper support for IMAP
+      (decode-coding-string string (if for-imap 'utf-7-imap 'utf-7))
+    (let ((default-enable-multibyte-characters nil))
+      (with-temp-buffer
+	(insert string)
+	(utf7-decode-internal for-imap)
+	(mm-enable-multibyte)
+	(buffer-string)))))
 
 (provide 'utf7)
 

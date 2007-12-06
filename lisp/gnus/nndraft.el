@@ -42,6 +42,11 @@
   "Where nndraft will store its files."
   nnmh-directory)
 
+(defvar nndraft-required-headers '(Date)
+  "*Headers to be generated when saving a draft message.
+The headers in this variable and the ones in `message-required-headers'
+are generated if and only if they are also in `message-draft-headers'.")
+
 
 
 (defvoo nndraft-current-group "" nil nnmh-current-group)
@@ -156,7 +161,7 @@
   (save-excursion
     (message-generate-headers
      (message-headers-to-generate
-      message-required-headers message-draft-headers nil))))
+      nndraft-required-headers message-draft-headers nil))))
 
 (deffoo nndraft-request-associate-buffer (group)
   "Associate the current buffer with some article in the draft group."
@@ -199,8 +204,8 @@
 			'nnmh-request-group
 			(list group server dont-check)))
 
-(deffoo nndraft-request-move-article (article group server
-					      accept-form &optional last)
+(deffoo nndraft-request-move-article (article group server accept-form 
+				      &optional last move-is-internal)
   (nndraft-possibly-change-group group)
   (let ((buf (get-buffer-create " *nndraft move*"))
 	result)

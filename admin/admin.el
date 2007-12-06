@@ -29,23 +29,6 @@
 
 ;;; Code:
 
-(defun process-lines (program &rest args)
-  "Execute PROGRAM with ARGS, returning its output as a list of lines.
-Signal an error if the program returns with a non-zero exit status."
-  (with-temp-buffer
-    (let ((status (apply 'call-process program nil (current-buffer) nil args)))
-      (unless (eq status 0)
-	(error "%s exited with status %s" program status))
-      (goto-char (point-min))
-      (let (lines)
-	(while (not (eobp))
-	  (setq lines (cons (buffer-substring-no-properties
-			     (line-beginning-position)
-			     (line-end-position))
-			    lines))
-	  (forward-line 1))
-	(nreverse lines)))))
-
 (defun add-release-logs (root version)
   "Add \"Version VERSION released.\" change log entries in ROOT.
 Root must be the root of an Emacs source tree."
@@ -85,10 +68,14 @@ Root must be the root of an Emacs source tree."
   (set-version-in-file root "README" version
 		       (rx (and "version" (1+ space)
 				(submatch (1+ (in "0-9."))))))
-  (set-version-in-file root "man/emacs.texi" version
+  (set-version-in-file root "configure.in" version
+		       (rx (and "AC_INIT" (1+ (not (in ?,)))
+                                ?, (0+ space)
+                                (submatch (1+ (in "0-9."))))))
+  (set-version-in-file root "doc/emacs/emacs.texi" version
 		       (rx (and "EMACSVER" (1+ space)
 				(submatch (1+ (in "0-9."))))))
-  (set-version-in-file root "lispref/elisp.texi" version
+  (set-version-in-file root "doc/lispref/elisp.texi" version
 		       (rx (and "EMACSVER" (1+ space)
 				(submatch (1+ (in "0-9."))))))
   (set-version-in-file root "lib-src/makefile.w32-in" version

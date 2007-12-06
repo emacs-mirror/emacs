@@ -27,8 +27,6 @@
 
 ;;; Code:
 
-(provide 'cua-gmrk)
-
 (eval-when-compile
   (require 'cua-base)
   (require 'cua-rect)
@@ -385,6 +383,8 @@ With prefix argument, don't jump to global mark when cancelling it."
   (define-key cua--global-mark-keymap "\t"				'cua-indent-to-global-mark-column)
 
   (setq cua--global-mark-initialized t))
+
+(provide 'cua-gmrk)
 
 ;;; arch-tag: 553d8076-a91d-48ae-825d-6cb962a5f67f
 ;;; cua-gmrk.el ends here

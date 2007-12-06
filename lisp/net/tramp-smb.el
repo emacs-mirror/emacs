@@ -205,9 +205,10 @@ pass to the OPERATION."
 ;; File name primitives
 
 (defun tramp-smb-handle-copy-file
-  (filename newname &optional ok-if-already-exists keep-date)
+  (filename newname &optional ok-if-already-exists keep-date preserve-uid-gid)
   "Like `copy-file' for Tramp files.
-KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
+KEEP-DATE is not handled in case NEWNAME resides on an SMB server.
+PRESERVE-UID-GID is completely ignored."
   (setq filename (expand-file-name filename)
 	newname (expand-file-name newname))
 
@@ -562,7 +563,14 @@ KEEP-DATE is not handled in case NEWNAME resides on an SMB server."
 
 (defun tramp-smb-handle-substitute-in-file-name (filename)
   "Like `handle-substitute-in-file-name' for Tramp files.
-Catches errors for shares like \"C$/\", which are common in Microsoft Windows."
+\"//\" substitutes only in the local filename part.  Catches
+errors for shares like \"C$/\", which are common in Microsoft Windows."
+  (with-parsed-tramp-file-name filename nil
+    ;; Ignore in LOCALNAME everything before "//".
+    (when (and (stringp localname) (string-match ".+?/\\(/\\|~\\)" localname))
+      (setq filename
+	    (concat (file-remote-p filename)
+		    (replace-match "\\1" nil nil localname)))))
   (condition-case nil
       (tramp-run-real-handler 'substitute-in-file-name (list filename))
     (error filename)))
@@ -574,7 +582,7 @@ Catches errors for shares like \"C$/\", which are common in Microsoft Windows."
   (with-parsed-tramp-file-name filename nil
     (unless (eq append nil)
       (tramp-error
-	 v 'file-error "Cannot append to file using tramp (`%s')" filename))
+	 v 'file-error "Cannot append to file using Tramp (`%s')" filename))
     ;; XEmacs takes a coding system as the seventh argument, not `confirm'.
     (when (and (not (featurep 'xemacs))
 	       confirm (file-exists-p filename))
@@ -582,7 +590,7 @@ Catches errors for shares like \"C$/\", which are common in Microsoft Windows."
 				filename))
 	(tramp-error v 'file-error "File not overwritten")))
     ;; We must also flush the cache of the directory, because
-    ;; file-attributes reads the values from there.
+    ;; `file-attributes' reads the values from there.
     (tramp-flush-file-property v (file-name-directory localname))
     (tramp-flush-file-property v localname)
     (let ((file (tramp-smb-get-localname localname t))
@@ -1004,8 +1012,6 @@ Returns nil if an error message has appeared."
 ;; * Return more comprehensive file permission string.  Think whether it is
 ;;   possible to implement `set-file-modes'.
 ;; * Handle links (FILENAME.LNK).
-;; * Maybe local tmp files should have the same extension like the original
-;;   files.  Strange behaviour with jka-compr otherwise?
 ;; * Try to remove the inclusion of dummy "" directory.  Seems to be at
 ;;   several places, especially in `tramp-smb-handle-insert-directory'.
 ;; * (RMS) Use unwind-protect to clean up the state so as to make the state

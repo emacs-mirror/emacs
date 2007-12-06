@@ -2513,7 +2513,7 @@ unwind_create_frame (frame)
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
        doc: /* Make a new window, which is called a "frame" in Emacs terms.
-Returns an Emacs frame object.
+Return an Emacs frame object.
 PARAMETERS is an alist of frame parameters.
 If the parameters specify that the frame should not have a minibuffer,
 and do not specify a specific minibuffer window to use,
@@ -2547,11 +2547,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
-#ifdef MULTI_KBOARD
   kb = dpyinfo->terminal->kboard;
-#else
-  kb = &the_only_kboard;
-#endif
 
   name = mac_get_arg (parameters, Qname, "name", "Name", RES_TYPE_STRING);
   if (!STRINGP (name)
@@ -2615,9 +2611,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
-#ifdef MULTI_KBOARD
   FRAME_KBOARD (f) = kb;
-#endif
 
   /* Specify the parent under which to make this window.  */
 
@@ -2975,7 +2969,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
        0, 1, 0,
-       doc: /* Returns the width in pixels of DISPLAY.
+       doc: /* Return the width in pixels of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -2989,7 +2983,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
        Sx_display_pixel_height, 0, 1, 0,
-       doc: /* Returns the height in pixels of DISPLAY.
+       doc: /* Return the height in pixels of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -3003,7 +2997,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
        0, 1, 0,
-       doc: /* Returns the number of bitplanes of DISPLAY.
+       doc: /* Return the number of bitplanes of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -3017,7 +3011,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
        0, 1, 0,
-       doc: /* Returns the number of color cells of DISPLAY.
+       doc: /* Return the number of color cells of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -3033,7 +3027,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        Sx_server_max_request_size,
        0, 1, 0,
-       doc: /* Returns the maximum request size of the server of DISPLAY.
+       doc: /* Return the maximum request size of the server of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -3046,7 +3040,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
-       doc: /* Returns the "vendor ID" string of the Mac OS system (Apple).
+       doc: /* Return the "vendor ID" string of the Mac OS system (Apple).
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -3057,7 +3051,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
-       doc: /* Returns the version numbers of the Mac OS system.
+       doc: /* Return the version numbers of the Mac OS system.
 The value is a list of three integers: the major and minor
 version numbers, and the vendor-specific release
 number.  See also the function `x-server-vendor'.
@@ -3191,7 +3185,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
        Sx_display_backing_store, 0, 1, 0,
-       doc: /* Returns an indication of whether DISPLAY does backing store.
+       doc: /* Return an indication of whether DISPLAY does backing store.
 The value may be `always', `when-mapped', or `not-useful'.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
@@ -3204,7 +3198,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class,
        Sx_display_visual_class, 0, 1, 0,
-       doc: /* Returns the visual class of DISPLAY.
+       doc: /* Return the visual class of DISPLAY.
 The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'.
 
@@ -3235,7 +3229,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-save-under", Fx_display_save_under,
        Sx_display_save_under, 0, 1, 0,
-       doc: /* Returns t if DISPLAY supports the save-under feature.
+       doc: /* Return t if DISPLAY supports the save-under feature.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -3809,11 +3803,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   parms = Fcopy_alist (parms);
 
-#ifdef MULTI_KBOARD
   kb = dpyinfo->terminal->kboard;
-#else
-  kb = &the_only_kboard;
-#endif
 
   /* Get the name of the frame to use for resource lookup.  */
   name = mac_get_arg (parms, Qname, "name", "Name", RES_TYPE_STRING);
@@ -3859,9 +3849,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
-#ifdef MULTI_KBOARD
   FRAME_KBOARD (f) = kb;
-#endif
   f->output_data.mac->parent_desc = FRAME_MAC_DISPLAY_INFO (f)->root_window;
   f->output_data.mac->explicit_parent = 0;
 
@@ -4644,8 +4632,8 @@ ID is specified by either an integer or a float.  */)
   Lisp_Object result;
 
   check_mac ();
-  CHECK_NUMBER_OR_FLOAT(id);
-  font_id = NUMBERP (id) ? XINT (id) : (ATSUFontID) XFLOAT (id);
+  CHECK_NUMBER_OR_FLOAT (id);
+  font_id = INTEGERP (id) ? XINT (id) : XFLOAT_DATA (id);
   BLOCK_INPUT;
   result = mac_atsu_font_face_attributes (font_id);
   UNBLOCK_INPUT;

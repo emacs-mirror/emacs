@@ -846,8 +846,8 @@ input already in the buffer matches an element of @var{collection}.
 However, empty input is always permitted, regardless of the value of
 @var{require-match}; in that case, @code{completing-read} returns the
 first element of @var{default}, if it is a list; @code{""}, if
-@var{default} is @code{nil}; or @var{default}.  The string or strins
-in @var{default} aer also available to the user through the history
+@var{default} is @code{nil}; or @var{default}.  The string or strings
+in @var{default} are also available to the user through the history
 commands.
 
 The function @code{completing-read} uses
@@ -1188,7 +1188,7 @@ symbol.
 The argument @var{default} specifies the default value to return if
 the user enters null input.  It can be a symbol, a string, or a list
 of strings.  If it is a string, @code{read-variable} interns it to
-make the default value; If it is a list, @code{read-variable} interns
+make the default value.  If it is a list, @code{read-variable} interns
 the first element.  If @var{default} is @code{nil}, that means no
 default has been specified; then if the user enters null input, the
 return value is @code{(intern "")}.

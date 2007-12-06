@@ -31,6 +31,10 @@ these functions are called in a special way (they are passed arguments,
 or their values are used). The variables whose names end in
 @samp{-function} have single functions as their values.
 
+A special feature allows you to specify expressions to evaluate if and
+when a file is loaded (@pxref{Hooks for Loading}).  That feature is
+not exactly a hook, but does a similar job.
+
 @c We need to xref to where each hook is documented or else document
 @c it here.
 

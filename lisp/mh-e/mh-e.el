@@ -99,10 +99,6 @@
 (require 'mh-buffers)
 (require 'mh-compat)
 
-(eval-and-compile
-  (defvar mh-xemacs-flag (featurep 'xemacs)
-    "Non-nil means the current Emacs is XEmacs."))
-
 (mh-do-in-xemacs
   (require 'mh-xemacs))
 
@@ -3398,7 +3394,7 @@ consumed by `defface-mh'.")
 The :inherit keyword is available on all supported versions of
 GNU Emacs and XEmacs from at least 21.5.23 on.")
 
-(defvar mh-min-colors-defined-flag (and (not mh-xemacs-flag)
+(defvar mh-min-colors-defined-flag (and (not (featurep 'xemacs))
                                         (>= emacs-major-version 22))
   "Non-nil means `defface' supports min-colors display requirement.")
 

@@ -516,7 +516,7 @@ argument BUFFER-NAME is nil, it defaults to *Colors*."
       (let ((lc (nthcdr (1- (display-color-cells)) list)))
 	(if lc
 	    (setcdr lc nil)))))
-  (with-output-to-temp-buffer (or buffer-name "*Colors*")
+  (with-help-window (or buffer-name "*Colors*")
     (save-excursion
       (set-buffer standard-output)
       (setq truncate-lines t)

@@ -110,23 +110,20 @@ converted to the compressed format."
 	    (throw 'found-file-to-convert t))
 
           (erase-buffer)
-          (let ((compressed nil))
-            (mapcar (lambda (pair)
-                      (let* ((article-id (car pair))
-                             (day-of-download (cdr pair))
-                             (comp-list (assq day-of-download compressed)))
-                        (if comp-list
-                            (setcdr comp-list
-                                    (cons article-id (cdr comp-list)))
-                          (setq compressed
-                                (cons (list day-of-download article-id)
-                                      compressed)))
-                        nil)) alist)
-            (mapcar (lambda (comp-list)
-                      (setcdr comp-list
-                              (gnus-compress-sequence
-                               (nreverse (cdr comp-list)))))
-                    compressed)
+          (let (article-id day-of-download comp-list compressed)
+	    (while alist
+	      (setq article-id (caar alist)
+		    day-of-download (cdar alist)
+		    comp-list (assq day-of-download compressed)
+		    alist (cdr alist))
+	      (if comp-list
+		  (setcdr comp-list (cons article-id (cdr comp-list)))
+		(push (list day-of-download article-id) compressed)))
+	    (setq alist compressed)
+	    (while alist
+	      (setq comp-list (pop alist))
+	      (setcdr comp-list
+		      (gnus-compress-sequence (nreverse (cdr comp-list)))))
             (princ compressed (current-buffer)))
           (insert "\n2\n")
           (write-file file)

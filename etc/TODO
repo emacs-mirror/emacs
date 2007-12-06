@@ -29,10 +29,6 @@ I.e. mouse-set-font should use customize-face.
 the mouse is put to rest or after a delay or both, so that moving over
 a window doesn't select it.
 
-** In C-x d, the default if you type RET should be the directory name,
-but if you type M-n you should get the visited file name of the
-current buffer.
-
 ** Distribute a bar cursor of width > 1 evenly between the two glyphs
    on each side of the bar (what to do at the edges?).
 
@@ -112,6 +108,9 @@ HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Linkage\
 and
 HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\<device>\
 where <device> is the network device found under the first key.
+
+** Check for any included packages that define obsolete bug-reporting commands.
+Change them to use report-emacs-bug.
 
 * Important features:
 
@@ -322,9 +321,7 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   the whole menu bar.  In the mean time, it should process other messages.
 
 ** Get some major packages installed: W3 (development version needs
-  significant work), PSGML, nXML [Mark Hershberger is looking at this
-  http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01699.html],
-  _possibly_ Cedet and ECB.
+  significant work), PSGML, _possibly_ Cedet and ECB.
   http://lists.gnu.org/archive/html/emacs-devel/2007-05/msg01493.html
   Check the assignments file for other packages which might go in and
   have been missed.

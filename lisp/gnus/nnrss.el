@@ -50,6 +50,15 @@
 (defvoo nnrss-directory (nnheader-concat gnus-directory "rss/")
   "Where nnrss will save its files.")
 
+(defvoo nnrss-ignore-article-fields '(slash:comments)
+  "*List of fields that should be ignored when comparing RSS articles.
+Some RSS feeds update article fields during their lives, e.g. to
+indicate the number of comments or the number of times the
+articles have been seen.  However, if there is a difference
+between the local article and the distant one, the latter is
+considered to be new.  To avoid this and discard some fields, set
+this variable to the list of fields to be ignored.")
+
 ;; (group max rss-url)
 (defvoo nnrss-server-data nil)
 
@@ -58,7 +67,7 @@
 (defvoo nnrss-group-max 0)
 (defvoo nnrss-group-min 1)
 (defvoo nnrss-group nil)
-(defvoo nnrss-group-hashtb nil)
+(defvoo nnrss-group-hashtb (make-hash-table :test 'equal))
 (defvoo nnrss-status-string "")
 
 (defconst nnrss-version "nnrss 1.0")
@@ -83,7 +92,13 @@ ENTRY is the record of the current headline.  GROUP is the group name.
 ARTICLE is the article number of the current headline.")
 
 (defvar nnrss-file-coding-system mm-universal-coding-system
-  "Coding system used when reading and writing files.")
+  "*Coding system used when reading and writing files.
+If you run Gnus with various versions of Emacsen, the value of this
+variable should be the coding system that all those Emacsen support.
+Note that you have to regenerate all the nnrss groups if you change
+the value.  Moreover, you should be patient even if you are made to
+read the same articles twice, that arises for the difference of the
+versions of xml.el.")
 
 (defvar nnrss-compatible-encoding-alist
   (delq nil (mapcar (lambda (elem)
@@ -180,9 +195,8 @@ used to render text.  If it is nil, text will simply be folded.")
 (deffoo nnrss-close-group (group &optional server)
   t)
 
-(eval-when-compile
-  (defvar mm-text-html-renderer)
-  (defvar mm-text-html-washer-alist))
+(defvar mm-text-html-renderer)
+(defvar mm-text-html-washer-alist)
 
 (deffoo nnrss-request-article (article &optional group server buffer)
   (setq group (nnrss-decode-group-name group))
@@ -365,7 +379,8 @@ used to render text.  If it is nil, text will simply be folded.")
 	(delq (assoc group nnrss-server-data) nnrss-server-data))
   (nnrss-save-server-data server)
   (ignore-errors
-   (delete-file (nnrss-make-filename group server)))
+    (let ((file-name-coding-system nnmail-pathname-coding-system))
+      (delete-file (nnrss-make-filename group server))))
   t)
 
 (deffoo nnrss-request-list-newsgroups (&optional server)
@@ -391,10 +406,10 @@ return `utf-8' which is the default encoding for xml if it is available,
 otherwise return nil."
   (goto-char (point-min))
   (if (re-search-forward
-       "<\\?[^>]*encoding=\\(\"\\([^\">]+\\)\"\\|'\\([^'>]+\\)'\\)"
+       "<\\?[^>]*encoding=\\(?:\"\\([^\">]+\\)\"\\|'\\([^'>]+\\)'\\)"
        nil t)
-      (let ((encoding (intern (downcase (or (match-string 2)
-					    (match-string 3))))))
+      (let ((encoding (intern (downcase (or (match-string 1)
+					    (match-string 2))))))
 	(or
 	 (mm-coding-system-p (cdr (assq encoding
 					nnrss-compatible-encoding-alist)))
@@ -462,8 +477,7 @@ nnrss: %s: Not valid XML %s and w3-parse doesn't work %s"
 
 (defun nnrss-generate-active ()
   (when (y-or-n-p "Fetch extra categories? ")
-    (dolist (func nnrss-extra-categories)
-      (funcall func)))
+    (mapc 'funcall nnrss-extra-categories))
   (save-excursion
     (set-buffer nntp-server-buffer)
     (erase-buffer)
@@ -500,37 +514,37 @@ which RSS 2.0 allows."
 	      (concat
 	       ;; 1. year
 	       "\\(199[0-9]\\|20[0-9][0-9]\\)"
-	       "\\(-"
-	       ;; 3. month
+	       "\\(?:-"
+	       ;; 2. month
 	       "\\([01][0-9]\\)"
-	       "\\(-"
-	       ;; 5. day
+	       "\\(?:-"
+	       ;; 3. day
 	       "\\([0-3][0-9]\\)"
-	       "\\)?\\)?\\(T"
-	       ;; 7. hh:mm
+	       "\\)?\\)?\\(?:T"
+	       ;; 4. hh:mm
 	       "\\([012][0-9]:[0-5][0-9]\\)"
-	       "\\("
-	       ;; 9. :ss
+	       "\\(?:"
+	       ;; 5. :ss
 	       "\\(:[0-5][0-9]\\)"
-	       "\\(\\.[0-9]+\\)?\\)?\\)?"
-	       ;; 13+14,15,16. zone
-	       "\\(\\(\\([+-][012][0-9]\\):\\([0-5][0-9]\\)\\)"
+	       "\\(?:\\.[0-9]+\\)?\\)?\\)?"
+	       ;; 6+7,8,9. zone
+	       "\\(?:\\(?:\\([+-][012][0-9]\\):\\([0-5][0-9]\\)\\)"
 	       "\\|\\([+-][012][0-9][0-5][0-9]\\)"
 	       "\\|\\(Z\\)\\)?"))
 	    date)
 	   (setq year (string-to-number (match-string 1 date))
-		 month (string-to-number (or (match-string 3 date) "1"))
-		 day (string-to-number (or (match-string 5 date) "1"))
-		 time (if (match-beginning 9)
-			  (substring date (match-beginning 7) (match-end 9))
-			(concat (or (match-string 7 date) "00:00") ":00"))
-		 zone (cond ((match-beginning 13)
-			     (concat (match-string 13 date)
-				     (match-string 14 date)))
-			    ((match-beginning 16) ;; Z
+		 month (string-to-number (or (match-string 2 date) "1"))
+		 day (string-to-number (or (match-string 3 date) "1"))
+		 time (if (match-beginning 5)
+			  (substring date (match-beginning 4) (match-end 5))
+			(concat (or (match-string 4 date) "00:00") ":00"))
+		 zone (cond ((match-beginning 6)
+			     (concat (match-string 6 date)
+				     (match-string 7 date)))
+			    ((match-beginning 9) ;; Z
 			     "+0000")
 			    (t ;; nil if zone is not provided.
-			     (match-string 15 date))))))
+			     (match-string 8 date))))))
     (if month
 	(progn
 	  (setq cts (current-time-string (encode-time 0 0 0 day month year)))
@@ -545,13 +559,13 @@ which RSS 2.0 allows."
 
 (defun nnrss-read-server-data (server)
   (setq nnrss-server-data nil)
-  (let ((file (nnrss-make-filename "nnrss" server)))
+  (let ((file (nnrss-make-filename "nnrss" server))
+	(file-name-coding-system nnmail-pathname-coding-system))
     (when (file-exists-p file)
       ;; In Emacs 21.3 and earlier, `load' doesn't support non-ASCII
       ;; file names.  So, we use `insert-file-contents' instead.
       (mm-with-multibyte-buffer
-	(let ((coding-system-for-read nnrss-file-coding-system)
-	      (file-name-coding-system nnmail-pathname-coding-system))
+	(let ((coding-system-for-read nnrss-file-coding-system))
 	  (insert-file-contents file)
 	  (eval-region (point-min) (point-max)))))))
 
@@ -568,21 +582,23 @@ which RSS 2.0 allows."
 
 (defun nnrss-read-group-data (group server)
   (setq nnrss-group-data nil)
-  (setq nnrss-group-hashtb (gnus-make-hashtable))
+  (if (hash-table-p nnrss-group-hashtb)
+      (clrhash nnrss-group-hashtb)
+    (setq nnrss-group-hashtb (make-hash-table :test 'equal)))
   (let ((pair (assoc group nnrss-server-data)))
     (setq nnrss-group-max (or (cadr pair) 0))
     (setq nnrss-group-min (+ nnrss-group-max 1)))
-  (let ((file (nnrss-make-filename group server)))
+  (let ((file (nnrss-make-filename group server))
+	(file-name-coding-system nnmail-pathname-coding-system))
     (when (file-exists-p file)
       ;; In Emacs 21.3 and earlier, `load' doesn't support non-ASCII
       ;; file names.  So, we use `insert-file-contents' instead.
       (mm-with-multibyte-buffer
-	(let ((coding-system-for-read nnrss-file-coding-system)
-	      (file-name-coding-system nnmail-pathname-coding-system))
+	(let ((coding-system-for-read nnrss-file-coding-system))
 	  (insert-file-contents file)
 	  (eval-region (point-min) (point-max))))
       (dolist (e nnrss-group-data)
-	(gnus-sethash (or (nth 2 e) (nth 6 e)) t nnrss-group-hashtb)
+	(puthash (nth 9 e) t nnrss-group-hashtb)
 	(when (and (car e) (> nnrss-group-min (car e)))
 	  (setq nnrss-group-min (car e)))
 	(when (and (car e) (< nnrss-group-max (car e)))
@@ -662,9 +678,20 @@ which RSS 2.0 allows."
 
 ;;; Snarf functions
 
+(defun nnrss-make-hash-index (item)
+  (setq item (gnus-remove-if
+	      (lambda (field)
+		(when (listp field)
+		  (memq (car field) nnrss-ignore-article-fields)))
+	      item))
+  (md5 (gnus-prin1-to-string item)
+       nil nil
+       nnrss-file-coding-system))
+
 (defun nnrss-check-group (group server)
   (let (file xml subject url extra changed author date feed-subject
-	     enclosure comments rss-ns rdf-ns content-ns dc-ns)
+	     enclosure comments rss-ns rdf-ns content-ns dc-ns
+	     hash-index)
     (if (and nnrss-use-local
 	     (file-exists-p (setq file (expand-file-name
 					(nnrss-translate-file-chars
@@ -696,15 +723,12 @@ which RSS 2.0 allows."
     (dolist (item (nreverse (nnrss-find-el (intern (concat rss-ns "item")) xml)))
       (when (and (listp item)
 		 (string= (concat rss-ns "item") (car item))
-		 (if (setq url (nnrss-decode-entities-string
-				(nnrss-node-text rss-ns 'link (cddr item))))
-		     (not (gnus-gethash url nnrss-group-hashtb))
-		   (setq extra (or (nnrss-node-text content-ns 'encoded item)
-				   (nnrss-node-text rss-ns 'description item)))
-		   (not (gnus-gethash extra nnrss-group-hashtb))))
+		 (progn (setq hash-index (nnrss-make-hash-index item))
+			(not (gethash hash-index nnrss-group-hashtb))))
 	(setq subject (nnrss-node-text rss-ns 'title item))
-	(setq extra (or extra
-			(nnrss-node-text content-ns 'encoded item)
+	(setq url (nnrss-decode-entities-string
+		   (nnrss-node-text rss-ns 'link (cddr item))))
+	(setq extra (or (nnrss-node-text content-ns 'encoded item)
 			(nnrss-node-text rss-ns 'description item)))
 	(if (setq feed-subject (nnrss-node-text dc-ns 'subject item))
 	    (setq extra (concat feed-subject "<br /><br />" extra)))
@@ -746,9 +770,10 @@ which RSS 2.0 allows."
 	  date
 	  (and extra (nnrss-decode-entities-string extra))
 	  enclosure
-	  comments)
+	  comments
+	  hash-index)
 	 nnrss-group-data)
-	(gnus-sethash (or url extra) t nnrss-group-hashtb)
+	(puthash hash-index t nnrss-group-hashtb)
 	(setq changed t))
       (setq extra nil))
     (when changed
@@ -947,7 +972,7 @@ whether they are `offsite' or `onsite'."
   (let (rss-onsite-end  rdf-onsite-end  xml-onsite-end
 	rss-onsite-in   rdf-onsite-in   xml-onsite-in
 	rss-offsite-end rdf-offsite-end xml-offsite-end
-	rss-offsite-in  rdf-offsite-in  xml-offsite-in)
+	rss-offsite-in rdf-offsite-in xml-offsite-in)
     (dolist (href hrefs)
       (cond ((null href))
 	    ((string-match "\\.rss$" href)

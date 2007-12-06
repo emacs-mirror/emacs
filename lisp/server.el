@@ -239,7 +239,7 @@ ENV should be in the same format as `process-environment'."
        (progn ,@body))))
 
 (defun server-delete-client (proc &optional noframe)
-  "Delete CLIENT, including its buffers, terminals and frames.
+  "Delete PROC, including its buffers, terminals and frames.
 If NOFRAME is non-nil, let the frames live.  (To be used from
 `delete-frame-functions'.)"
   (server-log (concat "server-delete-client" (if noframe " noframe"))
@@ -294,8 +294,7 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
 
 (defun server-log (string &optional client)
   "If a *server* buffer exists, write STRING to it for logging purposes.
-If CLIENT is non-nil, add a description of it to the logged
-message."
+If CLIENT is non-nil, add a description of it to the logged message."
   (when (get-buffer "*server*")
     (with-current-buffer "*server*"
       (goto-char (point-max))
@@ -484,6 +483,7 @@ kill any existing server communications subprocess."
 	  (add-hook 'delete-frame-functions 'server-handle-delete-frame)
 	  (add-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
 	  (add-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
+	  (add-hook 'kill-emacs-hook (lambda () (server-mode -1))) ;Cleanup upon exit.
 	  (setq server-process
 		(apply #'make-network-process
 		       :name server-name
@@ -572,7 +572,7 @@ Server mode runs a process that accepts commands from the
                "BAUDRATE" "COLUMNS" "ESCDELAY" "HOME" "LINES"
                "NCURSES_ASSUMED_COLORS" "NCURSES_NO_PADDING"
                "NCURSES_NO_SETBUF" "TERM" "TERMCAP" "TERMINFO"
-               "TERMINFO_DIRS" "TERMPATH" 
+               "TERMINFO_DIRS" "TERMPATH"
                ;; rxvt wants these
                "COLORFGBG" "COLORTERM")
            (make-frame-on-tty tty type
@@ -590,7 +590,7 @@ Server mode runs a process that accepts commands from the
                                 ;; C functions `child_setup' and
                                 ;; `getenv_internal' accordingly.
                                 (environment . ,(process-get proc 'env)))))))
-  
+
     ;; ttys don't use the `display' parameter, but callproc.c does to set
     ;; the DISPLAY environment on subprocesses.
     (set-frame-parameter frame 'display
@@ -737,7 +737,7 @@ The following commands are accepted by the server:
   on this tty until it gets a -resume command.
 
 `-resume'
-  Resume this tty frame. The client sends this string when it
+  Resume this tty frame.  The client sends this string when it
   gets the SIGCONT signal and it is the foreground process on its
   controlling tty.
 
@@ -753,9 +753,8 @@ The following commands are accepted by the client:
   used to forward window change signals to it.
 
 `-window-system-unsupported'
-  Signals that the server does not
-  support creating X frames; the client must try again with a tty
-  frame.
+  Signals that the server does not support creating X frames;
+  the client must try again with a tty frame.
 
 `-print STRING'
   Print STRING on stdout.  Used to send values
@@ -765,8 +764,8 @@ The following commands are accepted by the client:
   Signal an error (but continue processing).
 
 `-suspend'
-  Suspend this terminal, i.e., stop the client process.  Sent
-  when the user presses C-z."
+  Suspend this terminal, i.e., stop the client process.
+  Sent when the user presses C-z."
   (server-log (concat "Received " string) proc)
   ;; First things first: let's check the authentication
   (unless (process-get proc :authenticated)
@@ -793,7 +792,7 @@ The following commands are accepted by the client:
             ;; Save for later any partial line that remains.
             (when (> (length string) 0)
               (process-put proc 'previous-string string))
-            
+
           ;; In earlier versions of server.el (where we used an `emacsserver'
           ;; process), there could be multiple lines.  Nowadays this is not
           ;; supported any more.
@@ -812,17 +811,18 @@ The following commands are accepted by the client:
                 tty-type             ;string.
 		(files nil)
 		(lineno 1)
-		(columnno 0))
+		(columnno 0)
+		command-line-args-left
+		arg)
 	    ;; Remove this line from STRING.
 	    (setq string (substring string (match-end 0)))
-	    (while (string-match " *[^ ]* " request)
-	      (let ((arg (substring request (match-beginning 0)
-                                    (1- (match-end 0)))))
-		(setq request (substring request (match-end 0)))
+	    (setq command-line-args-left
+		  (mapcar 'server-unquote-arg (split-string request " " t)))
+	    (while (setq arg (pop command-line-args-left))
 		(cond
 		 ;; -version CLIENT-VERSION: obsolete at birth.
-		 ((and (equal "-version" arg) (string-match "[^ ]+ " request))
-                  (setq request (substring request (match-end 0))))
+		 ((and (equal "-version" arg) command-line-args-left)
+		  (pop command-line-args-left))
 
 		 ;; -nowait:  Emacsclient won't wait for a result.
 		 ((equal "-nowait" arg) (setq nowait t))
@@ -832,10 +832,8 @@ The following commands are accepted by the client:
 
 		 ;; -display DISPLAY:
 		 ;; Open X frames on the given display instead of the default.
-		 ((and (equal "-display" arg)
-                       (string-match "\\([^ ]*\\) " request))
-                  (setq display (match-string 1 request))
-		  (setq request (substring request (match-end 0))))
+		 ((and (equal "-display" arg) command-line-args-left)
+		  (setq display (pop command-line-args-left)))
 
 		 ;; -window-system:  Open a new X frame.
 		 ((equal "-window-system" arg)
@@ -864,33 +862,32 @@ The following commands are accepted by the client:
 
 		 ;; -ignore COMMENT:  Noop; useful for debugging emacsclient.
 		 ;; (The given comment appears in the server log.)
-		 ((and (equal "-ignore" arg) (string-match "[^ ]* " request))
-		  (setq dontkill t
-			request (substring request (match-end 0))))
+		 ((and (equal "-ignore" arg) command-line-args-left
+		  (setq dontkill t)
+		  (pop command-line-args-left)))
 
 		 ;; -tty DEVICE-NAME TYPE:  Open a new tty frame at the client.
 		 ((and (equal "-tty" arg)
-                       (string-match "\\([^ ]*\\) \\([^ ]*\\) " request))
-                  (setq tty-name (match-string 1 request))
-                  (setq tty-type (match-string 2 request))
-                  (setq dontkill t)
-                  (setq request (substring request (match-end 0))))
+                       (cdr command-line-args-left))
+                  (setq tty-name (pop command-line-args-left)
+			tty-type (pop command-line-args-left)
+			dontkill t))
 
 		 ;; -position LINE[:COLUMN]:  Set point to the given
 		 ;;  position in the next file.
 		 ((and (equal "-position" arg)
-                       (string-match "\\+\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)? "
-                                     request))
-		  (setq lineno (string-to-number (match-string 1 request))
+		       command-line-args-left
+                       (string-match "\\+\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?"
+                                     (car command-line-args-left)))
+		  (setq arg (pop command-line-args-left))
+		  (setq lineno (string-to-number (match-string 1 arg))
 			columnno (if (null (match-end 2)) 0
-                                   (string-to-number (match-string 2 request)))
-			request (substring request (match-end 0))))
+                                   (string-to-number (match-string 2 arg)))))
 
 		 ;; -file FILENAME:  Load the given file.
 		 ((and (equal "-file" arg)
-                       (string-match "\\([^ ]+\\) " request))
-		  (let ((file (server-unquote-arg (match-string 1 request))))
-		    (setq request (substring request (match-end 0)))
+		       command-line-args-left)
+		  (let ((file (pop command-line-args-left)))
 		    (if coding-system
 			(setq file (decode-coding-string file coding-system)))
 		    (setq file (command-line-normalize-file-name file))
@@ -902,10 +899,8 @@ The following commands are accepted by the client:
 
 		 ;; -eval EXPR:  Evaluate a Lisp expression.
 		 ((and (equal "-eval" arg)
-                       (string-match "\\([^ ]+\\) " request))
-		  (lexical-let ((expr (server-unquote-arg
-                                       (match-string 1 request))))
-		    (setq request (substring request (match-end 0)))
+                       command-line-args-left)
+		  (lexical-let ((expr (pop command-line-args-left)))
 		    (if coding-system
 			(setq expr (decode-coding-string expr coding-system)))
                     (push (lambda () (server-eval-and-print expr proc))
@@ -914,24 +909,22 @@ The following commands are accepted by the client:
 			  columnno 0)))
 
 		 ;; -env NAME=VALUE:  An environment variable.
-		 ((and (equal "-env" arg) (string-match "\\([^ ]+\\) " request))
-		  (let ((var (server-unquote-arg (match-string 1 request))))
+		 ((and (equal "-env" arg) command-line-args-left)
+		  (let ((var (pop command-line-args-left)))
 		    ;; XXX Variables should be encoded as in getenv/setenv.
-		    (setq request (substring request (match-end 0)))
                     (process-put proc 'env
                                  (cons var (process-get proc 'env)))))
 
 		 ;; -dir DIRNAME:  The cwd of the emacsclient process.
-		 ((and (equal "-dir" arg) (string-match "\\([^ ]+\\) " request))
-		  (setq dir (server-unquote-arg (match-string 1 request)))
-		  (setq request (substring request (match-end 0)))
+		 ((and (equal "-dir" arg) command-line-args-left)
+		  (setq dir (pop command-line-args-left))
 		  (if coding-system
 		      (setq dir (decode-coding-string dir coding-system)))
 		  (setq dir (command-line-normalize-file-name dir)))
 
 		 ;; Unknown command.
-		 (t (error "Unknown command: %s" arg)))))
-            
+		 (t (error "Unknown command: %s" arg))))
+
             (setq frame
                   (case tty-name
                     ((nil) (if display (server-select-display display)))
@@ -967,7 +960,7 @@ The following commands are accepted by the client:
                   (run-hooks 'post-command-hook)))))
 
         (mapc 'funcall (nreverse commands))
-              
+
         ;; Delete the client if necessary.
         (cond
          (nowait
@@ -1008,8 +1001,8 @@ FILE-LINE-COL should be a three-element list as described in
 `server-visit-files'."
   (goto-line (nth 1 file-line-col))
   (let ((column-number (nth 2 file-line-col)))
-    (if (> column-number 0)
-	(move-to-column (1- column-number)))))
+    (when (> column-number 0)
+      (move-to-column (1- column-number)))))
 
 (defun server-visit-files (files proc &optional nowait)
   "Find FILES and return a list of buffers created.
@@ -1159,7 +1152,7 @@ specifically for the clients and did not exist before their request for it."
 			   (buffer-name (current-buffer))))))
 
 (defun server-kill-emacs-query-function ()
-  "Ask before exiting Emacs it has live clients."
+  "Ask before exiting Emacs if it has live clients."
   (or (not server-clients)
       (let (live-client)
 	(dolist (proc server-clients live-client)
@@ -1285,17 +1278,17 @@ only these files will be asked to be saved."
 
 (define-key ctl-x-map "#" 'server-edit)
 
-(defun server-unload-hook ()
+(defun server-unload-function ()
   "Unload the server library."
   (server-mode -1)
-  (remove-hook 'suspend-tty-functions 'server-handle-suspend-tty)
-  (remove-hook 'delete-frame-functions 'server-handle-delete-frame)
-  (remove-hook 'kill-buffer-query-functions 'server-kill-buffer-query-function)
-  (remove-hook 'kill-emacs-query-functions 'server-kill-emacs-query-function)
-  (remove-hook 'kill-buffer-hook 'server-kill-buffer))
+  (substitute-key-definition 'server-edit nil ctl-x-map)
+  (save-current-buffer
+    (dolist (buffer (buffer-list))
+      (set-buffer buffer)
+      (remove-hook 'kill-buffer-hook 'server-kill-buffer t)))
+  ;; continue standard unloading
+  nil)
 
-(add-hook 'kill-emacs-hook (lambda () (server-mode -1))) ;Cleanup upon exit.
-(add-hook 'server-unload-hook 'server-unload-hook)
 
 (provide 'server)
 

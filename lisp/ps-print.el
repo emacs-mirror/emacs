@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.7.6
+;; Version: 6.8.1
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "6.7.6"
-  "ps-print.el, v 6.7.6 <2007/10/10 vinicius>
+(defconst ps-print-version "6.8.1"
+  "ps-print.el, v 6.8.1 <2007/11/21 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1089,6 +1089,14 @@ Please send all bug fixes and enhancements to
 ;; You can also set `ps-print-color-p' to 'black-white to have a better looking
 ;; on black/white printers.  See also `ps-black-white-faces' for documentation.
 ;;
+;; ps-print also detects if the text foreground and background colors are
+;; equals when `ps-fg-validate-p' is non-nil.  In this case, if these colors
+;; are used, no text will appear.  You can use `ps-fg-list' to give a list of
+;; foreground colors to be used when text foreground and background colors are
+;; equals.  It'll be used the first foreground color in `ps-fg-list' which is
+;; different from the background color.  If `ps-fg-list' is nil, the default
+;; foreground color is used. 
+;;
 ;;
 ;; How Ps-Print Maps Faces
 ;; -----------------------
@@ -1212,85 +1220,88 @@ Please send all bug fixes and enhancements to
 ;;
 ;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
-;;    20040229
+;;    2007-10-27
+;;	 `ps-fg-validate-p', `ps-fg-list'
+;;
+;;    2004-02-29
 ;;	 `ps-time-stamp-yyyy-mm-dd', `ps-time-stamp-iso8601'
 ;;
-;;    20010619
+;;    2001-06-19
 ;;	 `ps-time-stamp-locale-default'
 ;;
-;;    20010530
+;;    2001-05-30
 ;;	 Handle before-string and after-string overlay properties.
 ;;
-;;    20010407
+;;    2001-04-07
 ;;	 `ps-line-number-color', `ps-print-footer', `ps-footer-offset',
 ;;	 `ps-print-footer-frame', `ps-footer-font-family',
 ;;	 `ps-footer-font-size', `ps-footer-line-pad', `ps-footer-lines',
 ;;	 `ps-left-footer', `ps-right-footer', `ps-footer-frame-alist' and
 ;;	 `ps-header-frame-alist'.
 ;;
-;;    20010328
+;;    2001-03-28
 ;;	 `ps-line-spacing', `ps-paragraph-spacing', `ps-paragraph-regexp',
 ;;	 `ps-begin-cut-regexp' and `ps-end-cut-regexp'.
 ;;
-;;    20001122
+;;    2000-11-22
 ;;	 `ps-line-number-font', `ps-line-number-font-size' and
 ;;	 `ps-end-with-control-d'.
 ;;
-;;    20000821
+;;    2000-08-21
 ;;	 `ps-even-or-odd-pages'
 ;;
-;;    20000617
+;;    2000-06-17
 ;;	 `ps-manual-feed', `ps-warn-paper-type', `ps-print-upside-down',
 ;;	 `ps-selected-pages', `ps-last-selected-pages',
 ;;	 `ps-restore-selected-pages', `ps-switch-header',
 ;;	 `ps-line-number-step', `ps-line-number-start',
 ;;	 `ps-zebra-stripe-follow' and `ps-use-face-background'.
 ;;
-;;    20000310
+;;    2000-03-10
 ;;	 PostScript error handler.
 ;;	 `ps-user-defined-prologue' and `ps-error-handler-message'.
 ;;
-;;    19991211
+;;    1999-12-11
 ;;	 `ps-print-customize'.
 ;;
-;;    19990703
+;;    1999-07-03
 ;;	 Better customization.
 ;;	 `ps-banner-page-when-duplexing' and `ps-zebra-color'.
 ;;
-;;    19990513
+;;    1999-05-13
 ;;	 N-up printing.
 ;;	 Hook: `ps-print-begin-sheet-hook'.
 ;;
-;; [kenichi] 19990509 Ken'ichi Handa <handa@m17n.org>
+;; [kenichi] 1999-05-09 Ken'ichi Handa <handa@m17n.org>
 ;;
 ;;    `ps-print-region-function'
 ;;
 ;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
-;;    19990301
+;;    1999-03-01
 ;;	 PostScript tumble and setpagedevice.
 ;;
-;;    19980922
+;;    1998-09-22
 ;;	 PostScript prologue header comment insertion.
 ;;	 Skip invisible text better.
 ;;
-;; [kenichi] 19980819 Ken'ichi Handa <handa@m17n.org>
+;; [kenichi] 1998-08-19 Ken'ichi Handa <handa@m17n.org>
 ;;
 ;;    Multi-byte buffer handling.
 ;;
 ;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
-;;    19980306
+;;    1998-03-06
 ;;	 Skip invisible text.
 ;;
-;;    19971130
+;;    1997-11-30
 ;;	 Hooks: `ps-print-hook', `ps-print-begin-page-hook' and
 ;;	 `ps-print-begin-column-hook'.
 ;;	 Put one header per page over the columns.
 ;;	 Better database font management.
 ;;	 Better control characters handling.
 ;;
-;;    19971121
+;;    1997-11-21
 ;;	 Dynamic evaluation at print time of `ps-lpr-switches'.
 ;;	 Handle control characters.
 ;;	 Face remapping.
@@ -1299,12 +1310,12 @@ Please send all bug fixes and enhancements to
 ;;	 Zebra stripes.
 ;;	 Text and/or image on background.
 ;;
-;; [jack] 19960517 Jacques Duthen <duthen@cegelec-red.fr>
+;; [jack] 1996-05-17 Jacques Duthen <duthen@cegelec-red.fr>
 ;;
-;; Font family and float size for text and header.
-;; Landscape mode.
-;; Multiple columns.
-;; Tools for page setup.
+;;    Font family and float size for text and header.
+;;    Landscape mode.
+;;    Multiple columns.
+;;    Tools for page setup.
 ;;
 ;;
 ;; Known bugs and limitations of ps-print
@@ -1343,8 +1354,11 @@ Please send all bug fixes and enhancements to
 ;; ----------------
 ;;
 ;; Avoid page break inside a paragraph.
+;;
 ;; Add `ps-non-bold-faces' and `ps-non-italic-faces' (should be easy).
+;;
 ;; Improve the memory management for big files (hard?).
+;;
 ;; `ps-nb-pages-buffer' and `ps-nb-pages-region' should take care of folding
 ;; lines.
 ;;
@@ -1448,16 +1462,11 @@ Please send all bug fixes and enhancements to
 (or (featurep 'lisp-float-type)
     (error "`ps-print' requires floating point support"))
 
-(let ((case-fold-search t))
-  (cond ((featurep 'xemacs))
-	((string-match "Lucid" emacs-version)
-	 (error "`ps-print' doesn't support Lucid"))
-	((string-match "Epoch" emacs-version)
-	 (error "`ps-print' doesn't support Epoch"))
-	(t
-	 (unless (and (boundp 'emacs-major-version)
-		      (>= emacs-major-version 22))
-	   (error "`ps-print' only supports Emacs 22 and higher")))))
+(if (featurep 'xemacs)
+    ()
+  (unless (and (boundp 'emacs-major-version)
+	       (>= emacs-major-version 22))
+    (error "`ps-print' only supports Emacs 22 and higher")))
 
 
 ;; GNU Emacs
@@ -1471,32 +1480,7 @@ Please send all bug fixes and enhancements to
 
 ;; to avoid compilation gripes
 
-;; XEmacs
-(defalias 'ps-x-color-instance-p              'color-instance-p)
-(defalias 'ps-x-color-instance-rgb-components 'color-instance-rgb-components)
-(defalias 'ps-x-color-name                    'color-name)
-(defalias 'ps-x-color-specifier-p             'color-specifier-p)
-(defalias 'ps-x-copy-coding-system            'copy-coding-system)
-(defalias 'ps-x-device-class                  'device-class)
-(defalias 'ps-x-extent-end-position           'extent-end-position)
-(defalias 'ps-x-extent-face                   'extent-face)
-(defalias 'ps-x-extent-priority               'extent-priority)
-(defalias 'ps-x-extent-start-position         'extent-start-position)
-(defalias 'ps-x-face-font-instance            'face-font-instance)
-(defalias 'ps-x-find-coding-system            'find-coding-system)
-(defalias 'ps-x-font-instance-properties      'font-instance-properties)
-(defalias 'ps-x-make-color-instance           'make-color-instance)
-(defalias 'ps-x-map-extents                   'map-extents)
-
 ;; GNU Emacs
-(defalias 'ps-e-face-bold-p         'face-bold-p)
-(defalias 'ps-e-face-italic-p       'face-italic-p)
-(defalias 'ps-e-next-overlay-change 'next-overlay-change)
-(defalias 'ps-e-overlays-at         'overlays-at)
-(defalias 'ps-e-overlay-get         'overlay-get)
-(defalias 'ps-e-overlay-end         'overlay-end)
-(defalias 'ps-e-x-color-values      'x-color-values)
-(defalias 'ps-e-color-values        'color-values)
 (defalias 'ps-e-find-composition (if (fboundp 'find-composition)
 				     'find-composition
 				   'ignore))
@@ -1509,9 +1493,10 @@ Please send all bug fixes and enhancements to
 
 
 (defun ps-xemacs-color-name (color)
-  (if (ps-x-color-specifier-p color)
-      (ps-x-color-name color)
-    color))
+  (when (featurep 'xemacs)
+    (if (color-specifier-p color)
+	(color-name color)
+      color)))
 
 (defalias 'ps-frame-parameter
   (if (fboundp 'frame-parameter) 'frame-parameter 'frame-property))
@@ -1522,19 +1507,15 @@ Please send all bug fixes and enhancements to
     (defvar mark-active)		; To shup up XEmacs's byte compiler.
     (lambda () mark-active)))		; Emacs
 
-(cond ((featurep 'xemacs)		; XEmacs
-       (defun ps-face-foreground-name (face)
-	 (ps-xemacs-color-name (face-foreground face)))
-       (defun ps-face-background-name (face)
-	 (ps-xemacs-color-name (face-background face)))
-       )
-      (t				; Emacs 22 or higher
-       (defun ps-face-foreground-name (face)
-	 (face-foreground face nil t))
-       (defun ps-face-background-name (face)
-	 (face-background face nil t))
-       ))
+(defun ps-face-foreground-name (face)
+  (if (featurep 'xemacs)
+      (ps-xemacs-color-name (face-foreground face))
+    (face-foreground face nil t)))
 
+(defun ps-face-background-name (face)
+  (if (featurep 'xemacs)
+      (ps-xemacs-color-name (face-background face))
+    (face-background face nil t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Variables:
@@ -1807,7 +1788,28 @@ an explicit filename is given as the last argument."
   :group 'ps-print-printer)
 
 (defcustom ps-lpr-switches lpr-switches
-  "*A list of extra switches to pass to `ps-lpr-command'."
+  "*List of extra switches to pass to `ps-lpr-command'.
+
+The list element can be:
+
+   string	it should be an option for `ps-lpr-command' (which see).
+		For example: \"-o Duplex=DuplexNoTumble\"
+
+   symbol	it can be a function or variable symbol.  If it's a function
+		symbol, it should be a function with no argument.  The result
+		of the function or the variable value should be a string or a
+		list of strings.
+
+   list		the header should be a symbol function and the tail is the
+		arguments for this function.  This function should return a
+		string or a list of strings.
+
+Any other value is silently ignored.
+
+It is recommended to set `ps-printer-name' (which see) instead of including an
+explicit switch on this list.
+
+See `ps-lpr-command'."
   :type '(repeat :tag "PostScript lpr Switches"
 		 (choice :menu-tag "PostScript lpr Switch"
 			 :tag "PostScript lpr Switch"
@@ -3014,7 +3016,7 @@ Valid values are:
    LIST		It's a list of RGB values, that is a list of three real values
 		of the form:
 
-		  (RED, GREEN, BLUE)
+		  (RED GREEN BLUE)
 
 		Where RED, GREEN and BLUE are reals between 0.0 (no color) and
 		1.0 (full color).
@@ -3058,7 +3060,7 @@ Valid values are:
    LIST		It's a list of RGB values, that is a list of three real values
 		of the form:
 
-		  (RED, GREEN, BLUE)
+		  (RED GREEN BLUE)
 
 		Where RED, GREEN and BLUE are reals between 0.0 (no color) and
 		1.0 (full color).
@@ -3080,6 +3082,58 @@ See also `ps-use-face-background'."
 		       (number :tag "Green")
 		       (number :tag "Blue")))
   :version "20"
+  :group 'ps-print-color)
+
+(defcustom ps-fg-list nil
+  "*Specify foreground color list.
+
+This list is used to chose a text foreground color which is different than the
+background color.  It'll be used the first foreground color in `ps-fg-list'
+which is different from the background color.
+
+If this list is nil, the default foreground color is used.  See
+`ps-default-fg'.
+
+The list element valid values are:
+
+   NUMBER	It's a real value between 0.0 (black) and 1.0 (white) that
+		indicate the gray color.
+
+   COLOR-NAME	It's a string which contains the color name.  For example:
+		\"yellow\".
+
+   LIST		It's a list of RGB values, that is a list of three real values
+		of the form:
+
+		  (RED GREEN BLUE)
+
+		Where RED, GREEN and BLUE are reals between 0.0 (no color) and
+		1.0 (full color).
+
+Any other value is ignored and black color will be used.
+
+This variable is used only when `ps-fg-validate-p' (which see) is non-nil and
+when `ps-print-color-p' (which see) is neither nil nor black-white."
+  :type '(repeat
+	  (choice :menu-tag "Foreground Gray/Color"
+		  :tag "Foreground Gray/Color"
+		  (number :tag "Gray Scale" :value 0.0)
+		  (string :tag "Color Name" :value "black")
+		  (list :tag "RGB Color" :value (0.0 0.0 0.0)
+			(number :tag "Red")
+			(number :tag "Green")
+			(number :tag "Blue"))))
+  :version "22"
+  :group 'ps-print-color)
+
+(defcustom ps-fg-validate-p t
+  "*Non-nil means validate if foreground color is different than background.
+
+If text foreground and background colors are equals, no text will appear.
+
+See also `ps-fg-list'."
+  :type 'boolean
+  :version "22"
   :group 'ps-print-color)
 
 (defcustom ps-auto-font-detect t
@@ -3346,9 +3400,9 @@ It's like the very first character of buffer (or region) is ^L (\\014)."
 (defcustom ps-postscript-code-directory
   (or (if (featurep 'xemacs)
 	  (cond ((fboundp 'locate-data-directory) ; XEmacs
-		 (locate-data-directory "ps-print"))
+		 (funcall 'locate-data-directory "ps-print"))
 		((boundp 'data-directory) ; XEmacs
-		 data-directory)
+		 (symbol-value 'data-directory))
 		(t			; don't know what to do
 		 nil))
 	data-directory)			; Emacs
@@ -3627,9 +3681,11 @@ The table depends on the current ps-print setup."
       '(23 . ps-line-number-step)
       '(23 . ps-line-number-start)
       nil
-      '(17 . ps-default-fg)
-      '(17 . ps-default-bg)
       '(17 . ps-razzle-dazzle)
+      '(17 . ps-default-bg)
+      '(17 . ps-default-fg)
+      '(17 . ps-fg-validate-p)
+      '(17 . ps-fg-list)
       nil
       '(23 . ps-use-face-background)
       nil
@@ -3709,9 +3765,9 @@ The table depends on the current ps-print setup."
       '(20 . ps-underlined-faces)
       '(20 . ps-black-white-faces)
       "      )\n
-;; The following customized variables have long lists and are seldom modified:
-;;    ps-page-dimensions-database
-;;    ps-font-info-database
+\;; The following customized variables have long lists and are seldom modified:
+\;;    ps-page-dimensions-database
+\;;    ps-font-info-database
 
 \;;; ps-print - end of settings\n")
      "\n")))
@@ -3861,90 +3917,84 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 		  (and (= emacs-major-version 19)
 		       (>= emacs-minor-version 12)))) ; XEmacs >= 19.12
 	 (lambda ()
-	   (eq (ps-x-device-class) 'color)))
+	   (eq (device-class) 'color)))
 
 	(t				; Emacs
 	 (lambda ()
 	   (if (fboundp 'color-values)
-	       (ps-e-color-values "Green")
+	       (color-values "Green")
 	     t)))))
 
 
-(defun ps-mapper (extent list)
-  (nconc list
-	 (list (list (ps-x-extent-start-position extent) 'push extent)
-	       (list (ps-x-extent-end-position extent) 'pull extent)))
+(defun ps-xemacs-mapper (extent list)
+  (when (featurep 'xemacs)
+    (nconc list
+	   (list (list (extent-start-position extent) 'push extent)
+		 (list (extent-end-position extent) 'pull extent))))
   nil)
 
-(defun ps-extent-sorter (a b)
-  (< (ps-x-extent-priority a) (ps-x-extent-priority b)))
+(defun ps-xemacs-extent-sorter (a b)
+  (when (featurep 'xemacs)
+    (< (extent-priority a) (extent-priority b))))
 
 (defun ps-xemacs-face-kind-p (face kind kind-regex)
-  (let* ((frame-font (or (ps-x-face-font-instance face)
-			 (ps-x-face-font-instance 'default)))
-	 (kind-cons
-	  (and frame-font
-	       (assq kind
-		     (ps-x-font-instance-properties frame-font))))
-	 (kind-spec (cdr-safe kind-cons))
-	 (case-fold-search t))
-    (and kind-spec (string-match kind-regex kind-spec))))
+  (when (featurep 'xemacs)
+    (let* ((frame-font (or (face-font-instance face)
+			   (face-font-instance 'default)))
+	   (kind-cons
+	    (and frame-font
+		 (assq kind
+		       (font-instance-properties frame-font))))
+	   (kind-spec (cdr-safe kind-cons))
+	   (case-fold-search t))
+      (and kind-spec (string-match kind-regex kind-spec)))))
 
-(cond ((featurep 'xemacs)		; XEmacs
+(when (featurep 'xemacs)
+  ;; to avoid XEmacs compilation gripes
+  (defvar coding-system-for-write)
+  (defvar coding-system-for-read)
+  (defvar buffer-file-coding-system)
+  
+  (and (fboundp 'find-coding-system)
+       (or (find-coding-system 'raw-text-unix)
+	   (copy-coding-system 'no-conversion-unix 'raw-text-unix))))
 
-       ;; to avoid XEmacs compilation gripes
-       (defvar coding-system-for-write)
-       (defvar coding-system-for-read)
-       (defvar buffer-file-coding-system)
+(defun ps-color-values (x-color)
+  (if (featurep 'xemacs)
+      (let ((color (ps-xemacs-color-name x-color)))
+	(cond
+	 ((fboundp 'x-color-values)
+	  (x-color-values color))
+	 ((and (fboundp 'color-instance-rgb-components)
+	       (ps-color-device))
+	  (color-instance-rgb-components
+	   (if (color-instance-p x-color)
+	       x-color
+	     (make-color-instance color))))
+	 (t
+	  (error "No available function to determine X color values"))))
+    (cond
+     ((fboundp 'color-values)
+      (color-values x-color))
+     ((fboundp 'x-color-values)
+      (x-color-values x-color))
+     (t
+      (error "No available function to determine X color values")))))
 
-       (and (fboundp 'find-coding-system)
-	    (or (ps-x-find-coding-system 'raw-text-unix)
-		(ps-x-copy-coding-system 'no-conversion-unix 'raw-text-unix)))
+(defun ps-face-bold-p (face)
+  (if (featurep 'xemacs)
+      (or (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold")
+	  (memq face ps-bold-faces))	; Kludge-compatible
+    (or (face-bold-p face)
+	(memq face ps-bold-faces))))
 
-       (defun ps-color-values (x-color)
-	 (let ((color (ps-xemacs-color-name x-color)))
-	   (cond
-	    ((fboundp 'x-color-values)
-	     (ps-e-x-color-values color))
-	    ((and (fboundp 'color-instance-rgb-components)
-		  (ps-color-device))
-	     (ps-x-color-instance-rgb-components
-	      (if (ps-x-color-instance-p x-color)
-		  x-color
-		(ps-x-make-color-instance color))))
-	    (t
-	     (error "No available function to determine X color values")))))
-
-       (defun ps-face-bold-p (face)
-	 (or (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold")
-	     (memq face ps-bold-faces))) ; Kludge-compatible
-
-       (defun ps-face-italic-p (face)
-	 (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o")
-	     (ps-xemacs-face-kind-p face 'SLANT "i\\|o")
-	     (memq face ps-italic-faces))) ; Kludge-compatible
-       )
-
-      (t				; Emacs
-
-       (defun ps-color-values (x-color)
-	 (cond
-	  ((fboundp 'color-values)
-	   (ps-e-color-values x-color))
-	  ((fboundp 'x-color-values)
-	   (ps-e-x-color-values x-color))
-	  (t
-	   (error "No available function to determine X color values"))))
-
-       (defun ps-face-bold-p (face)
-	 (or (ps-e-face-bold-p face)
-	     (memq face ps-bold-faces)))
-
-       (defun ps-face-italic-p (face)
-	 (or (ps-e-face-italic-p face)
-	     (memq face ps-italic-faces)))
-       ))
-
+(defun ps-face-italic-p (face)
+  (if (featurep 'xemacs)
+      (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o")
+	  (ps-xemacs-face-kind-p face 'SLANT "i\\|o")
+	  (memq face ps-italic-faces))	; Kludge-compatible
+    (or (face-italic-p face)
+	(memq face ps-italic-faces))))
 
 (defvar ps-print-color-scale 1.0)
 
@@ -4020,6 +4070,7 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 (defvar ps-default-color nil)
 (defvar ps-current-color nil)
 (defvar ps-current-bg nil)
+(defvar ps-foreground-list nil)
 
 (defvar ps-zebra-stripe-full-p nil)
 (defvar ps-razchunk 0)
@@ -4856,6 +4907,14 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
        (setq ps-lf-cache (ps-generate-string-list ps-left-footer)
 	     ps-rf-cache (ps-generate-string-list ps-right-footer)))
   (append ps-lh-cache ps-rh-cache ps-lf-cache ps-rf-cache))
+
+;; All autoloads.
+(declare-function ps-mule-encode-header-string "ps-mule")
+(declare-function ps-mule-begin-page           "ps-mule")
+(declare-function ps-mule-prepare-ascii-font   "ps-mule")
+(declare-function ps-mule-set-ascii-font       "ps-mule")
+(declare-function ps-mule-initialize           "ps-mule")
+(declare-function ps-mule-begin-job            "ps-mule")
 
 ;; These functions insert the arrays that define the contents of the headers.
 
@@ -5957,6 +6016,14 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				 ps-default-fg))
 			       "unspecified-fg"
 			       0.0)
+	ps-foreground-list    (mapcar
+			       #'(lambda (arg)
+				   (ps-rgb-color arg "unspecified-fg" 0.0))
+			       (append (and (not (member ps-print-color-p
+							 '(nil back-white)))
+					    ps-fg-list)
+				       (list ps-default-foreground
+					     "black")))
 	ps-default-color      (and (not (member ps-print-color-p
 						'(nil back-white)))
 				   ps-default-foreground)
@@ -5964,6 +6031,8 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   ;; initialize page dimensions
   (ps-get-page-dimensions)
   ;; final check
+  (unless (listp ps-lpr-switches)
+    (error "`ps-lpr-switches' value should be a list."))
   (and ps-color-p
        (equal ps-default-background ps-default-foreground)
        (error
@@ -6200,16 +6269,24 @@ to the equivalent Latin-1 characters.")
   (or (equal font ps-current-font)
       (ps-set-font font))
 
-  ;; Specify a foreground color only if one's specified and it's
-  ;; different than the current.
+  ;; Specify a foreground color only if:
+  ;;    one's specified,
+  ;;    it's different than the background (if `ps-fg-validate-p' is non-nil)
+  ;;    and it's different than the current.
   (let ((fg (or fg-color ps-default-foreground)))
+    (if ps-fg-validate-p
+	(let ((bg (or bg-color ps-default-background))
+	      (el ps-foreground-list))
+	  (while (and el (equal fg bg))
+	    (setq fg (car el)
+		  el (cdr el)))))
     (or (equal fg ps-current-color)
 	(ps-set-color fg)))
 
   (or (equal bg-color ps-current-bg)
       (ps-set-bg bg-color))
 
-  ;; Specify effects (underline, overline, box, etc)
+  ;; Specify effects (underline, overline, box, etc.)
   (cond
    ((not (integerp effects))
     (ps-output "0 EF\n")
@@ -6385,7 +6462,7 @@ If FACE is not a valid face name, use default face."
 
 
 (defun ps-face-background (face background)
-  (and (cond ((eq ps-use-face-background t))	; always
+  (and (cond ((eq ps-use-face-background t))	 ; always
 	     ((null ps-use-face-background) nil) ; never
 	     ;; ps-user-face-background is a symbol face list
 	     ((symbolp face)
@@ -6555,7 +6632,7 @@ If FACE is not a valid face name, use default face."
 	;; Build the list of extents...
 	(let ((a (cons 'dummy nil))
 	      record type extent extent-list)
-	  (ps-x-map-extents 'ps-mapper nil from to a)
+	  (map-extents 'ps-xemacs-mapper nil from to a)
 	  (setq a (sort (cdr a) 'car-less-than-car)
 		extent-list nil)
 
@@ -6581,16 +6658,16 @@ If FACE is not a valid face name, use default face."
 
 	    (cond
 	     ((eq type 'push)
-	      (and (ps-x-extent-face extent)
+	      (and (extent-face extent)
 		   (setq extent-list (sort (cons extent extent-list)
-					   'ps-extent-sorter))))
+					   'ps-xemacs-extent-sorter))))
 
 	     ((eq type 'pull)
 	      (setq extent-list (sort (delq extent extent-list)
-				      'ps-extent-sorter))))
+				      'ps-xemacs-extent-sorter))))
 
 	    (setq face (if extent-list
-			   (ps-x-extent-face (car extent-list))
+			   (extent-face (car extent-list))
 			 'default)
 		  from position
 		  a (cdr a)))))
@@ -6607,7 +6684,7 @@ If FACE is not a valid face name, use default face."
 		 (setq property-change (next-property-change from nil to)))
 	    (and (< overlay-change to)	; Don't search for overlay change
 					; unless previous search succeeded.
-		 (setq overlay-change (min (ps-e-next-overlay-change from)
+		 (setq overlay-change (min (next-overlay-change from)
 					   to)))
 	    (setq position (min property-change overlay-change)
 		  before-string nil
@@ -6628,22 +6705,22 @@ If FACE is not a valid face name, use default face."
 			 'emacs--invisible--face)
 			((get-text-property from 'face))
 			(t 'default)))
-	    (let ((overlays (ps-e-overlays-at from))
+	    (let ((overlays (overlays-at from))
 		  (face-priority -1))	; text-property
 	      (while (and overlays
 			  (not (eq face 'emacs--invisible--face)))
 		(let* ((overlay (car overlays))
 		       (overlay-invisible
-			(ps-e-overlay-get overlay 'invisible))
+			(overlay-get overlay 'invisible))
 		       (overlay-priority
-			(or (ps-e-overlay-get overlay 'priority) 0)))
+			(or (overlay-get overlay 'priority) 0)))
 		  (and (> overlay-priority face-priority)
 		       (setq before-string
-			     (or (ps-e-overlay-get overlay 'before-string)
+			     (or (overlay-get overlay 'before-string)
 				 before-string)
 			     after-string
-			     (or (and (<= (ps-e-overlay-end overlay) position)
-				      (ps-e-overlay-get overlay 'after-string))
+			     (or (and (<= (overlay-end overlay) position)
+				      (overlay-get overlay 'after-string))
 				 after-string)
 			     face-priority overlay-priority
 			     face
@@ -6655,7 +6732,7 @@ If FACE is not a valid face name, use default face."
 				     (assq overlay-invisible
 					   save-buffer-invisibility-spec)))
 			       'emacs--invisible--face)
-			      ((ps-e-overlay-get overlay 'face))
+			      ((overlay-get overlay 'face))
 			      (t face)
 			      ))))
 		(setq overlays (cdr overlays))))
@@ -6811,9 +6888,22 @@ If FACE is not a valid face name, use default face."
 		 (and (fboundp 'start-process) 0)
 		 nil
 		 (ps-flatten-list	; dynamic evaluation
-		  (mapcar 'ps-eval-switch ps-lpr-switches)))))
+		  (ps-string-list
+		   (mapcar 'ps-eval-switch ps-lpr-switches))))))
       (and ps-razzle-dazzle (message "Printing...done")))
     (kill-buffer ps-spool-buffer)))
+
+(defun ps-string-list (arg)
+  (let (lstr)
+    (dolist (elm arg)
+      (cond ((stringp elm)
+	     (setq lstr (cons elm lstr)))
+	    ((listp elm)
+	     (let ((s (ps-string-list elm)))
+	       (when s
+		 (setq lstr (cons s lstr)))))
+	    (t )))			; ignore any other value
+    (nreverse lstr)))
 
 ;; Dynamic evaluation
 (defun ps-eval-switch (arg)
@@ -7111,20 +7201,20 @@ Valid values are:
 
 Any other value is treated as nil.")
 
-(custom-autoload (quote ps-multibyte-buffer) "ps-mule" t)
+(custom-autoload 'ps-multibyte-buffer "ps-mule" t)
 
-(autoload (quote ps-mule-prepare-ascii-font) "ps-mule" "\
+(autoload 'ps-mule-prepare-ascii-font "ps-mule" "\
 Setup special ASCII font for STRING.
 STRING should contain only ASCII characters.
 
 \(fn STRING)" nil nil)
 
-(autoload (quote ps-mule-set-ascii-font) "ps-mule" "\
+(autoload 'ps-mule-set-ascii-font "ps-mule" "\
 Not documented
 
 \(fn)" nil nil)
 
-(autoload (quote ps-mule-plot-string) "ps-mule" "\
+(autoload 'ps-mule-plot-string "ps-mule" "\
 Generate PostScript code for plotting characters in the region FROM and TO.
 
 It is assumed that all characters in this region belong to the same charset.
@@ -7140,7 +7230,7 @@ the sequence.
 
 \(fn FROM TO &optional BG-COLOR)" nil nil)
 
-(autoload (quote ps-mule-plot-composition) "ps-mule" "\
+(autoload 'ps-mule-plot-composition "ps-mule" "\
 Generate PostScript code for plotting composition in the region FROM and TO.
 
 It is assumed that all characters in this region belong to the same
@@ -7157,24 +7247,24 @@ the sequence.
 
 \(fn FROM TO &optional BG-COLOR)" nil nil)
 
-(autoload (quote ps-mule-initialize) "ps-mule" "\
+(autoload 'ps-mule-initialize "ps-mule" "\
 Initialize global data for printing multi-byte characters.
 
 \(fn)" nil nil)
 
-(autoload (quote ps-mule-encode-header-string) "ps-mule" "\
+(autoload 'ps-mule-encode-header-string "ps-mule" "\
 Generate PostScript code for ploting STRING by font FONTTAG.
 FONTTAG should be a string \"/h0\" or \"/h1\".
 
 \(fn STRING FONTTAG)" nil nil)
 
-(autoload (quote ps-mule-begin-job) "ps-mule" "\
+(autoload 'ps-mule-begin-job "ps-mule" "\
 Start printing job for multi-byte chars between FROM and TO.
 It checks if all multi-byte characters in the region are printable or not.
 
 \(fn FROM TO)" nil nil)
 
-(autoload (quote ps-mule-begin-page) "ps-mule" "\
+(autoload 'ps-mule-begin-page "ps-mule" "\
 Not documented
 
 \(fn)" nil nil)

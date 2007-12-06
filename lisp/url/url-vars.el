@@ -398,11 +398,6 @@ Currently supported methods:
 This should be set, e.g. by mail user agents rendering HTML to avoid
 `bugs' which call home.")
 
-(defun url-vars-unload-hook ()
-  (remove-hook 'set-language-environment-hook 'url-set-mime-charset-string))
-
-(add-hook 'url-vars-unload-hook 'url-vars-unload-hook)
-
 (provide 'url-vars)
 
 ;;; arch-tag: 29205e5f-c5ce-433c-8d5d-38cbaed64b49

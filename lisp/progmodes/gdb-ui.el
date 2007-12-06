@@ -43,12 +43,22 @@
 ;; section in the GDB info manual.
 
 ;; GDB developers plan to make the annotation interface obsolete.  A new
-;; interface called GDB/MI (machine interface) has been designed to replace
-;; it.  Some GDB/MI commands are used in this file through the CLI command
-;; 'interpreter mi <mi-command>'.  A file called gdb-mi.el is included with
-;; GDB (6.2 onwards) that uses GDB/MI as the primary interface to GDB.  It is
-;; still under development and is part of a process to migrate Emacs from
-;; annotations to GDB/MI.
+;; interface called GDB/MI (machine interface) has been designed to replace it.
+;; Some GDB/MI commands are used in this file through the CLI command
+;; 'interpreter mi <mi-command>'.  To help with the process of fully migrating
+;; Emacs from annotations to GDB/MI, there is an experimental package called
+;; gdb-mi in the Emacs Lisp Package Archive ("http://tromey.com/elpa/").  It
+;; comprises of modified gud.el and a file called gdb-mi.el which replaces
+;; gdb-ui.el.  When installed, this overrides the current files and invoking
+;; M-x gdb will use GDB/MI directly (starts with "gdb -i=mi").  When deleted
+;; ('d' followed by 'x' in Package Menu mode), the files are deleted and old
+;; functionality restored.  This provides a convenient way to review the
+;; current status/contribute to its improvement.  For someone who just wants to
+;; use GDB, however, the current mode in Emacs 22 is a much better option.
+;; There is also a file, also called gdb-mi.el, a version of which is included
+;; the GDB distribution.  This will probably only work with versions
+;; distributed with GDB 6.5 or later.  Unlike the version in ELPA it works on
+;; top of gdb-ui.el and you can only start it with M-x gdbmi.
 
 ;; This mode SHOULD WORK WITH GDB 5.0 or later but you will NEED AT LEAST
 ;; GDB 6.0 to use watch expressions.  It works best with GDB 6.4 or later
@@ -69,24 +79,12 @@
 
 ;;; Known Bugs:
 
-;; 1) Strings that are watched don't update in the speedbar when their
-;;    contents change unless the first character changes.
-;; 2) Cannot handle multiple debug sessions.
-;; 3) M-x gdb doesn't work with "run" command in .gdbinit, use M-x gdba instead.
-;; 4) M-x gdb doesn't work if the corefile is specified in the command in the
-;;    minibuffer, use M-x gdba instead (or specify the core in the GUD buffer).
-;; 5) If you wish to call procedures from your program in GDB
+;; 1) Cannot handle multiple debug sessions.
+;; 2) If you wish to call procedures from your program in GDB
 ;;    e.g "call myproc ()", "p mysquare (5)" then use level 2 annotations
 ;;    "gdb --annotate=2 myprog" to keep source buffer/selected frame fixed.
-;; 6) After detaching from a process, clicking on the "GO" icon on toolbar
+;; 3) After detaching from a process, clicking on the "GO" icon on toolbar
 ;;    (gud-go) sends "continue" to GDB (should be "run").
-
-;;; Problems with watch expressions, GDB/MI:
-
-;; 1) They go out of scope when the inferior is re-run.
-;; 2) -stack-list-locals has a type field but also prints type in values field.
-;; 3) VARNUM increments even when variable object is not created
-;;    (maybe trivial).
 
 ;;; TODO:
 
@@ -138,6 +136,7 @@ Emacs can't find.")
 (defvar gdb-frame-begin nil
   "Non-nil when GDB generates frame-begin annotation.")
 (defvar gdb-printing t)
+(defvar gdb-parent-bptno-enabled nil)
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
@@ -221,7 +220,6 @@ handlers.")
   "Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working
 directory and source-file directory for your debugger.
-
 
 If `gdb-many-windows' is nil (the default value) then gdb just
 pops up the GUD buffer unless `gdb-show-main' is t.  In this case
@@ -946,6 +944,12 @@ Changed values are highlighted with the face `font-lock-warning-face'."
   :type 'integer
   :group 'gud
   :version "22.1")
+
+(defcustom gdb-delete-out-of-scope t
+  "If non-nil delete watch expressions automatically when they go out of scope."
+  :type 'boolean
+  :group 'gud
+  :version "22.2")
 
 (defun gdb-speedbar-expand-node (text token indent)
   "Expand the node the user clicked on.
@@ -1854,7 +1858,7 @@ static char *magick[] = {
   :group 'gud)
 
 (defconst gdb-breakpoint-regexp
-  "\\([0-9]+\\).*?\\(?:point\\|catch\\s-+\\S-+\\)\\s-+\\S-+\\s-+\\(.\\)\\s-+")
+  "\\(?:\\([0-9]+\\).*?\\(?:point\\|catch\\s-+\\S-+\\)\\s-+\\S-+\\|\\([0-9]+\\.[0-9]+\\)\\)\\s-+\\(.\\)\\s-+")
 
 ;; Put breakpoint icons in relevant margins (even those set in the GUD buffer).
 (defun gdb-info-breakpoints-custom ()
@@ -1873,10 +1877,12 @@ static char *magick[] = {
 	  (forward-line 1)
 	  (if (looking-at gdb-breakpoint-regexp)
 	      (progn
-		(setq bptno (match-string 1))
-		(setq flag (char-after (match-beginning 2)))
+		(setq bptno (or (match-string 1) (match-string 2)))
+		(setq flag (char-after (match-beginning 3)))
+		(if (match-string 1)
+		    (setq gdb-parent-bptno-enabled (eq flag ?y)))
 		(add-text-properties
-		 (match-beginning 2) (match-end 2)
+		 (match-beginning 3) (match-end 3)
 		 (if (eq flag ?y)
 		     '(face font-lock-warning-face)
 		   '(face font-lock-type-face)))
@@ -1932,6 +1938,9 @@ static char *magick[] = {
 	  (end-of-line))))))
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
+(declare-function gud-remove "gdb-ui" t t) ; gud-def
+(declare-function gud-break  "gdb-ui" t t) ; gud-def
+
 (defun gdb-mouse-set-clear-breakpoint (event)
   "Set/clear breakpoint in left fringe/margin with mouse click."
   (interactive "e")
@@ -1957,17 +1966,18 @@ static char *magick[] = {
 	  (save-excursion
 	    (goto-char (posn-point posn))
 	    (if	(posn-object posn)
-		(gdb-enqueue-input
-		 (list
-		  (let ((bptno (get-text-property
-				0 'gdb-bptno (car (posn-string posn)))))
+		(let* ((bptno (get-text-property
+			       0 'gdb-bptno (car (posn-string posn)))))
+		  (string-match "\\([0-9+]\\)*" bptno)
+		  (gdb-enqueue-input
+		   (list
 		    (concat gdb-server-prefix
 			    (if (get-text-property
 				 0 'gdb-enabled (car (posn-string posn)))
 				"disable "
 			      "enable ")
-			    bptno "\n"))
-		  'ignore))))))))
+			    (match-string 1 bptno) "\n")
+		   'ignore)))))))))
 
 (defun gdb-mouse-toggle-breakpoint-fringe (event)
   "Enable/disable breakpoint in left fringe with mouse click."
@@ -1985,14 +1995,16 @@ static char *magick[] = {
 	    (when (overlay-get overlay 'put-break)
 	      (setq obj (overlay-get overlay 'before-string))))
 	  (when (stringp obj)
-	    (gdb-enqueue-input
-	     (list
-	      (concat gdb-server-prefix
-	       (if (get-text-property 0 'gdb-enabled obj)
-		   "disable "
-		 "enable ")
-	       (get-text-property 0 'gdb-bptno obj) "\n")
-	      'ignore))))))))
+	    (let* ((bptno (get-text-property 0 'gdb-bptno obj)))
+	      (string-match "\\([0-9+]\\)*" bptno)
+	      (gdb-enqueue-input
+	       (list
+		(concat gdb-server-prefix
+			(if (get-text-property 0 'gdb-enabled obj)
+			    "disable "
+			  "enable ")
+			(match-string 1 bptno) "\n")
+		'ignore)))))))))
 
 (defun gdb-breakpoints-buffer-name ()
   (with-current-buffer gud-comint-buffer
@@ -2058,21 +2070,25 @@ static char *magick[] = {
 	(gdb-enqueue-input
 	 (list
 	  (concat gdb-server-prefix
-		  (if (eq ?y (char-after (match-beginning 2)))
+		  (if (eq ?y (char-after (match-beginning 3)))
 		      "disable "
 		    "enable ")
-		  (match-string 1) "\n") 'ignore))
+		  (or (match-string 1) (match-string 2)) "\n") 'ignore))
       (error "Not recognized as break/watchpoint line"))))
 
 (defun gdb-delete-breakpoint ()
   "Delete the breakpoint at current line."
   (interactive)
-  (beginning-of-line 1)
-  (if (looking-at gdb-breakpoint-regexp)
-      (gdb-enqueue-input
-       (list
-	(concat gdb-server-prefix "delete " (match-string 1) "\n") 'ignore))
-    (error "Not recognized as break/watchpoint line")))
+  (save-excursion
+    (beginning-of-line 1)
+    (if (looking-at gdb-breakpoint-regexp)
+	(if (match-string 1)
+	    (gdb-enqueue-input
+	     (list
+	      (concat gdb-server-prefix "delete " (match-string 1) "\n")
+	      'ignore))
+	  (message-box "This breakpoint cannot be deleted on its own."))
+      (error "Not recognized as break/watchpoint line"))))
 
 (defun gdb-goto-breakpoint (&optional event)
   "Display the breakpoint location specified at current line."
@@ -2080,7 +2096,7 @@ static char *magick[] = {
   (if event (posn-set-point (event-end event)))
   (save-excursion
     (beginning-of-line 1)
-    (if (looking-at "\\([0-9]+\\) .+ in .+ at\\s-+\\(\\S-+\\):\\([0-9]+\\)")
+    (if (looking-at "\\([0-9]+\\.?[0-9]*\\) .+ in .+ at\\s-+\\(\\S-+\\):\\([0-9]+\\)")
 	(let ((bptno (match-string 1))
 	      (file  (match-string 2))
 	      (line  (match-string 3)))
@@ -3150,6 +3166,8 @@ BUFFER nil or omitted means use the current buffer."
 	  (delete-overlay overlay))))
 
 (defun gdb-put-breakpoint-icon (enabled bptno)
+  (if (string-match "[0-9+]+\\." bptno)
+      (setq enabled gdb-parent-bptno-enabled))
   (let ((start (- (line-beginning-position) 1))
 	(end (+ (line-end-position) 1))
 	(putstring (if enabled "B" "b"))
@@ -3209,8 +3227,8 @@ BUFFER nil or omitted means use the current buffer."
 	  (setq left-margin-width 2)
 	  (let ((window (get-buffer-window (current-buffer) 0)))
 	    (if window
-	      (set-window-margins
-	       window left-margin-width right-margin-width)))))
+		(set-window-margins
+		 window left-margin-width right-margin-width)))))
       (gdb-put-string
        (propertize putstring
 		   'face (if enabled 'breakpoint-enabled 'breakpoint-disabled))
@@ -3280,18 +3298,16 @@ BUFFER nil or omitted means use the current buffer."
       (goto-char (point-min))
       (while (< (point) (- (point-max) 1))
 	(forward-line 1)
-	(if (looking-at "[^\t].*?breakpoint")
-	    (progn
-	      (looking-at
-	    "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\(.\\)\\s-+0x0*\\(\\S-+\\)")
-	      (setq bptno (match-string 1))
-	      (setq flag (char-after (match-beginning 2)))
-	      (setq address (match-string 3))
-	      (with-current-buffer buffer
-		(save-excursion
-		  (goto-char (point-min))
-		  (if (search-forward address nil t)
-		      (gdb-put-breakpoint-icon (eq flag ?y) bptno))))))))
+	(when (looking-at
+	       "\\([0-9]+\\.?[0-9]*\\).*?\\s-+\\(.\\)\\s-+0x0*\\(\\S-+\\)")
+	  (setq bptno (match-string 1))
+	  (setq flag (char-after (match-beginning 2)))
+	  (setq address (match-string 3))
+	  (with-current-buffer buffer
+	    (save-excursion
+	      (goto-char (point-min))
+	      (if (search-forward address nil t)
+		  (gdb-put-breakpoint-icon (eq flag ?y) bptno)))))))
     (if (not (equal gdb-pc-address "main"))
 	(with-current-buffer buffer
 	  (set-window-point (get-buffer-window buffer 0) pos)))))
@@ -3452,7 +3468,7 @@ is set in them."
   (gdb-force-mode-line-update
    (propertize "ready" 'face font-lock-variable-name-face)))
 
-; Uses "-var-list-children --all-values".  Needs GDB 6.1 onwards.
+; Uses "-var-list-children --all-values".  Needs GDB 6.4 onwards.
 (defun gdb-var-list-children-1 (varnum)
   (gdb-enqueue-input
    (list
@@ -3515,7 +3531,9 @@ in_scope=\"\\(.*?\\)\".*?}")
       (when var
 	(let ((match (match-string 3)))
 	  (cond ((string-equal match "false")
-		 (setcar (nthcdr 5 var) 'out-of-scope))
+		 (if gdb-delete-out-of-scope
+		     (gdb-var-delete-1 varnum)
+		   (setcar (nthcdr 5 var) 'out-of-scope)))
 		((string-equal match "true")
 		 (setcar (nthcdr 5 var) 'changed)
 		 (setcar (nthcdr 4 var)

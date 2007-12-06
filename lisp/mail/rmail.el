@@ -184,6 +184,10 @@ please report it with \\[report-emacs-bug].")
     :group 'rmail-retrieve
     :type '(repeat (directory)))
 
+(declare-function mail-position-on-field "sendmail" (field &optional soft))
+(declare-function mail-text-start "sendmail" ())
+(declare-function rmail-update-summary "rmailsum" (&rest ignore))
+
 (defun rmail-probe (prog)
   "Determine what flavor of movemail PROG is.
 We do this by executing it with `--version' and analyzing its output."
@@ -1514,6 +1518,15 @@ original copy."
 
 
 ;;;; *** Rmail input ***
+
+(declare-function rmail-spam-filter "rmail-spam-filter" (msg))
+(declare-function rmail-summary-goto-msg "rmailsum" (&optional n nowarn skip-rmail))
+(declare-function rmail-summary-mark-undeleted "rmailsum" (n))
+(declare-function rmail-summary-mark-deleted "rmailsum" (&optional n undel))
+(declare-function rfc822-addresses "rfc822" (header-text))
+(declare-function mail-abbrev-make-syntax-table "mailabbrev.el" ())
+(declare-function mail-sendmail-delimit-header "sendmail" ())
+(declare-function mail-header-end "sendmail" ())
 
 ;; RLK feature not added in this version:
 ;; argument specifies inbox file or files in various ways.
@@ -3282,7 +3295,9 @@ and more whitespace.  The returned regular expressions contains
     (setq subject (regexp-quote subject))
     (setq subject
 	  (replace-regexp-in-string "[ \t\n]+" "[ \t\n]+" subject t t))
-    (concat "^Subject: "
+    ;; Some mailers insert extra spaces after "Subject:", so allow any
+    ;; amount of them.
+    (concat "^Subject:[ \t]+"
 	    (if (string= "\\`" (substring rmail-reply-regexp 0 2))
 		(substring rmail-reply-regexp 2)
 	      rmail-reply-regexp)

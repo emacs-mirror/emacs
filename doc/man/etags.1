@@ -32,11 +32,10 @@ etags, ctags \- generate tag file for Emacs, vi
 [\|\-\-parse\-stdin=\fIfile\fP\|]
 .br
 [\|\-\-append\|] [\|\-\-backward\-search\|]
-[\|\-\-cxref\|] [\|\-\-defines\|] [\|\-\-forward\-search\|]
-[\|\-\-globals\|] [\|\-\-ignore\-indentation\|]
-[\|\-\-language=\fIlanguage\fP\|] [\|\-\-members\|]
+[\|\-\-cxref\|] [\|\-\-no\-defines\|] [\|\-\-forward\-search\|]
+[\|\-\-no\-globals\|] [\|\-\-ignore\-indentation\|]
+[\|\-\-language=\fIlanguage\fP\|] [\|\-\-no\-members\|]
 [\|\-\-output=\fItagfile\fP\|] [\|\-\-regex=\fIregexp\fP\|]
-[\|\-\-typedefs\|] [\|\-\-typedefs\-and\-c++\|]
 [\|\-\-update\|]
 [\|\-\-help\|] [\|\-\-version\|]
 \fIfile\fP .\|.\|.
@@ -59,9 +58,9 @@ table (defaults: \fBTAGS\fP for \fBetags\fP, \fBtags\fP for
 \fBctags\fP) in the current working directory.
 Files specified with relative file names will be recorded in the tag
 table with file names relative to the directory where the tag table
-resides.  If the tag table is in /dev, however, the file names are made
-relative to the working directory.  Files specified with absolute file
-names will be recorded
+resides.  If the tag table is in /dev or is the standard output,
+however, the file names are made relative to the working directory.
+Files specified with absolute file names will be recorded
 with absolute file names.  Files generated from a source file\-\-like
 a C file generated from a source Cweb file\-\-will be recorded with
 the name of the source file.
@@ -91,28 +90,14 @@ Only \fBctags\fP accepts this option.
 In C and derived languages, create tags for function declarations,
 and create tags for extern variables unless \-\-no\-globals is used.
 .TP
-.B \-d, \-\-defines
-Create tag entries for C preprocessor constant definitions
-and enum constants, too.  Since this is the default behavior of
-\fBetags\fP, only \fBctags\fP accepts this option.
-.TP
 .B \-D, \-\-no\-defines
 Do not create tag entries for C preprocessor constant definitions
 and enum constants.
 This may make the tags file much smaller if many header files are tagged.
-Since this is the default behavior of \fBctags\fP, only \fBetags\fP
-accepts this option.
-.TP
-.B \-\-globals
-Create tag entries for global variables in C, C++, Objective C, Java,
-and Perl.
-Since this is the default behavior of \fBetags\fP, only \fBctags\fP
-accepts this option.
 .TP
 .B \-\-no\-globals
 Do not tag global variables.  Typically this reduces the file size by
-one fourth.  Since this is the default behavior of \fBctags\fP, only
-\fBetags\fP accepts this option.
+one fourth.
 .TP
 \fB\-i\fP \fIfile\fP, \fB\-\-include=\fIfile\fP
 Include a note in the tag file indicating that, when searching for a
@@ -135,10 +120,10 @@ regexp matching is done in this case (see the \fB\-\-regex\fP option).
 .TP
 .B \-\-members
 Create tag entries for variables that are members of structure-like
-constructs in C++, Objective C, Java.  This is the default for etags.
+constructs in C++, Objective C, Java.  This is the default.
 .TP
 .B \-\-no\-members
-Do not tag member variables.  This is the default for ctags.
+Do not tag member variables.
 .TP
 .B \-\-packages\-only
 Only tag packages in Ada files.
@@ -149,8 +134,9 @@ May be used (only once) in place of a file name on the command line.
 as belonging to the file \fBFILE\fP.
 .TP
 \fB\-o\fP \fItagfile\fP, \fB\-\-output=\fItagfile\fP
-Explicit name of file for tag table; overrides default \fBTAGS\fP or
-\fBtags\fP.   (But ignored with \fB\-v\fP or \fB\-x\fP.)
+Explicit name of file for tag table; for \fBetags\fP only, a file name
+of \- means standard output; overrides default \fBTAGS\fP or \fBtags\fP.
+(But ignored with \fB\-v\fP or \fB\-x\fP.)
 .TP
 \fB\-r\fP \fIregexp\fP, \fB\-\-regex=\fIregexp\fP
 
@@ -240,15 +226,6 @@ reads the regexes contained in the file regex.file.
 .B \-R, \-\-no\-regex
 Don't do any more regexp matching on the following files.  May be
 freely intermixed with filenames and the \fB\-\-regex\fP option.
-.TP
-.B \-t, \-\-typedefs
-Record typedefs in C code as tags.  Since this is the default behavior
-of \fBetags\fP, only \fBctags\fP accepts this option.
-.TP
-.B \-T, \-\-typedefs\-and\-c++
-Generate tag entries for typedefs, struct, enum, and union tags, and
-C++ member functions.  Since this is the default behavior
-of \fBetags\fP, only \fBctags\fP accepts this option.
 .TP
 .B \-u, \-\-update
 Update tag entries for \fIfiles\fP specified on command line, leaving

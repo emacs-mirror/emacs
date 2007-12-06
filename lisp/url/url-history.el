@@ -28,7 +28,6 @@
 
 ;; This can get a recursive require.
 ;;(require 'url)
-(eval-when-compile (require 'cl))
 (require 'url-parse)
 (autoload 'url-do-setup "url")
 
@@ -83,8 +82,9 @@ to run the `url-history-setup-save-timer' function manually."
 (defun url-history-setup-save-timer ()
   "Reset the history list timer."
   (interactive)
-  (ignore-errors
-   (cancel-timer url-history-timer))
+  (condition-case nil
+      (cancel-timer url-history-timer)
+    (error nil))
   (setq url-history-timer nil)
   (if (and (eq url-history-track t) url-history-save-interval)
       (setq url-history-timer (run-at-time url-history-save-interval
@@ -120,7 +120,9 @@ user for what type to save as."
   (interactive)
   (or fname (setq fname (expand-file-name url-history-file)))
   (unless (file-directory-p (file-name-directory fname))
-    (ignore-errors (make-directory (file-name-directory fname))))
+    (condition-case nil
+        (make-directory (file-name-directory fname))
+      (error nil)))
   (cond
    ((not url-history-changed-since-last-save) nil)
    ((not (file-writable-p fname))

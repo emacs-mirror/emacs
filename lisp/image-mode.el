@@ -59,7 +59,7 @@ Stop if the right edge of the image is reached."
 	 (set-window-hscroll (selected-window)
 			     (max 0 (+ (window-hscroll) n))))
 	(t
-	 (let* ((image (get-text-property 1 'display))
+	 (let* ((image (get-char-property (point-min) 'display))
 		(edges (window-inside-edges))
 		(win-width (- (nth 2 edges) (nth 0 edges)))
 		(img-width (ceiling (car (image-size image)))))
@@ -82,7 +82,7 @@ Stop if the bottom edge of the image is reached."
 	 (set-window-vscroll (selected-window)
 			     (max 0 (+ (window-vscroll) n))))
 	(t
-	 (let* ((image (get-text-property 1 'display))
+	 (let* ((image (get-char-property (point-min) 'display))
 		(edges (window-inside-edges))
 		(win-height (- (nth 3 edges) (nth 1 edges)))
 		(img-height (ceiling (cdr (image-size image)))))
@@ -156,7 +156,7 @@ stopping if the top or bottom edge of the image is reached."
   (and arg
        (/= (setq arg (prefix-numeric-value arg)) 1)
        (image-next-line (- arg 1)))
-  (let* ((image (get-text-property 1 'display))
+  (let* ((image (get-char-property (point-min) 'display))
 	 (edges (window-inside-edges))
 	 (win-width (- (nth 2 edges) (nth 0 edges)))
 	 (img-width (ceiling (car (image-size image)))))
@@ -172,7 +172,7 @@ stopping if the top or bottom edge of the image is reached."
 (defun image-eob ()
   "Scroll to the bottom-right corner of the image in the current window."
   (interactive)
-  (let* ((image (get-text-property 1 'display))
+  (let* ((image (get-char-property (point-min) 'display))
 	 (edges (window-inside-edges))
 	 (win-width (- (nth 2 edges) (nth 0 edges)))
 	 (img-width (ceiling (car (image-size image))))
@@ -221,7 +221,7 @@ to toggle between display as an image and display as text."
   (setq major-mode 'image-mode)
   (add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
   (if (and (display-images-p)
-	   (not (get-text-property (point-min) 'display)))
+	   (not (get-char-property (point-min) 'display)))
       (image-toggle-display)
     ;; Set next vars when image is already displayed but local
     ;; variables were cleared by kill-all-local-variables
@@ -232,7 +232,7 @@ to toggle between display as an image and display as text."
       (message "%s" (concat
 		     (substitute-command-keys
 		      "Type \\[image-toggle-display] to view as ")
-		     (if (get-text-property (point-min) 'display)
+		     (if (get-char-property (point-min) 'display)
 			 "text" "an image") "."))))
 
 ;;;###autoload
@@ -245,13 +245,13 @@ See the command `image-mode' for more information on this mode."
   :version "22.1"
   (if (not image-minor-mode)
       (image-toggle-display-text)
-    (if (get-text-property (point-min) 'display)
+    (if (get-char-property (point-min) 'display)
 	(setq cursor-type nil truncate-lines t)
       (setq image-type "text"))
     (add-hook 'change-major-mode-hook (lambda () (image-minor-mode -1)) nil t)
     (message "%s" (concat (substitute-command-keys
 		      "Type \\[image-toggle-display] to view the image as ")
-		     (if (get-text-property (point-min) 'display)
+		     (if (get-char-property (point-min) 'display)
 			 "text" "an image") "."))))
 
 ;;;###autoload
@@ -281,7 +281,7 @@ information on these modes."
 
 (defun image-toggle-display-text ()
   "Showing the text of the image file."
-  (if (get-text-property (point-min) 'display)
+  (if (get-char-property (point-min) 'display)
       (image-toggle-display)))
 
 (defvar archive-superior-buffer)
@@ -292,7 +292,7 @@ information on these modes."
 This command toggles between showing the text of the image file
 and showing the image as an image."
   (interactive)
-  (if (get-text-property (point-min) 'display)
+  (if (get-char-property (point-min) 'display)
       (let ((inhibit-read-only t)
 	    (buffer-undo-list t)
 	    (modified (buffer-modified-p)))

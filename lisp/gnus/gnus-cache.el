@@ -30,11 +30,8 @@
 (eval-when-compile (require 'cl))
 
 (require 'gnus)
-(require 'gnus-int)
-(require 'gnus-range)
-(require 'gnus-start)
 (eval-when-compile
-  (if (not (fboundp 'gnus-agent-load-alist))
+  (unless (fboundp 'gnus-agent-load-alist)
       (defun gnus-agent-load-alist (group)))
   (require 'gnus-sum))
 
@@ -92,9 +89,10 @@ it's not cached."
 (defvar gnus-cache-buffer nil)
 (defvar gnus-cache-active-hashtb nil)
 (defvar gnus-cache-active-altered nil)
+(defvar gnus-cache-total-fetched-hashtb nil)
 
 (eval-and-compile
-  (autoload 'nnml-generate-nov-databases-1 "nnml")
+  (autoload 'nnml-generate-nov-databases-directory "nnml")
   (autoload 'nnvirtual-find-group-art "nnvirtual"))
 
 
@@ -133,16 +131,20 @@ it's not cached."
 	      (let ((coding-system-for-write
 		     gnus-cache-overview-coding-system))
 		(gnus-write-buffer overview-file))
-	    ;; Empty overview file, remove it
-	    (when (file-exists-p overview-file)
-	      (delete-file overview-file))
-	    ;; If possible, remove group's cache subdirectory.
-	    (condition-case nil
-		;; FIXME: we can detect the error type and warn the user
-		;; of any inconsistencies (articles w/o nov entries?).
-		;; for now, just be conservative...delete only if safe -- sj
-		(delete-directory (file-name-directory overview-file))
-	      (error nil)))))
+	    (let ((file-name-coding-system nnmail-pathname-coding-system))
+	      ;; Empty overview file, remove it
+	      (when (file-exists-p overview-file)
+		(delete-file overview-file))
+	      ;; If possible, remove group's cache subdirectory.
+	      (condition-case nil
+		  ;; FIXME: we can detect the error type and warn the user
+		  ;; of any inconsistencies (articles w/o nov entries?).
+		  ;; for now, just be conservative...delete only if safe -- sj
+		  (delete-directory (file-name-directory overview-file))
+		(error))))
+
+	  (gnus-cache-update-overview-total-fetched-for
+	   (car gnus-cache-buffer) overview-file)))
       ;; Kill the buffer -- it's either unmodified or saved.
       (gnus-kill-buffer buffer)
       (setq gnus-cache-buffer nil))))
@@ -152,7 +154,9 @@ it's not cached."
   (when (and (or force (not (eq gnus-use-cache 'passive)))
 	     (numberp article)
 	     (> article 0))		; This might be a dummy article.
-    (let ((number article) file headers)
+    (let ((number article)
+	  file headers lines-chars
+	  (file-name-coding-system nnmail-pathname-coding-system))
       ;; If this is a virtual group, we find the real group.
       (when (gnus-virtual-group-p group)
 	(let ((result (nnvirtual-find-group-art
@@ -180,10 +184,14 @@ it's not cached."
 	      (gnus-request-article-this-buffer number group))
 	    (when (> (buffer-size) 0)
 	      (let ((coding-system-for-write gnus-cache-coding-system))
-		(gnus-write-buffer file))
+		(gnus-write-buffer file)
+		(gnus-cache-update-file-total-fetched-for group file))
+	      (setq lines-chars (nnheader-get-lines-and-char))
 	      (nnheader-remove-body)
 	      (setq headers (nnheader-parse-naked-head))
 	      (mail-header-set-number headers number)
+	      (mail-header-set-lines headers (car lines-chars))
+	      (mail-header-set-chars headers (cadr lines-chars))
 	      (gnus-cache-change-buffer group)
 	      (set-buffer (cdr gnus-cache-buffer))
 	      (goto-char (point-max))
@@ -236,12 +244,10 @@ it's not cached."
 (defun gnus-cache-possibly-remove-articles-1 ()
   "Possibly remove some of the removable articles."
   (when (gnus-cache-fully-p gnus-newsgroup-name)
-    (let ((articles gnus-cache-removable-articles)
-	  (cache-articles gnus-newsgroup-cached)
-	  article)
+    (let ((cache-articles gnus-newsgroup-cached))
       (gnus-cache-change-buffer gnus-newsgroup-name)
-      (while articles
-	(when (memq (setq article (pop articles)) cache-articles)
+      (dolist (article gnus-cache-removable-articles)
+	(when (memq article cache-articles)
 	  ;; The article was in the cache, so we see whether we are
 	  ;; supposed to remove it from the cache.
 	  (gnus-cache-possibly-remove-article
@@ -256,7 +262,8 @@ it's not cached."
 (defun gnus-cache-request-article (article group)
   "Retrieve ARTICLE in GROUP from the cache."
   (let ((file (gnus-cache-file-name group article))
-	(buffer-read-only nil))
+	(buffer-read-only nil)
+	(file-name-coding-system nnmail-pathname-coding-system))
     (when (file-exists-p file)
       (erase-buffer)
       (gnus-kill-all-overlays)
@@ -285,7 +292,8 @@ it's not cached."
 	  (gnus-retrieve-headers articles group fetch-old))
       (let ((uncached-articles (gnus-sorted-difference articles cached))
 	    (cache-file (gnus-cache-file-name group ".overview"))
-	    type)
+	    type
+	    (file-name-coding-system nnmail-pathname-coding-system))
 	;; We first retrieve all the headers that we don't have in
 	;; the cache.
 	(let ((gnus-use-cache nil))
@@ -325,9 +333,8 @@ it's not cached."
 If not given a prefix, use the process marked articles instead.
 Returns the list of articles entered."
   (interactive "P")
-  (let ((articles (gnus-summary-work-articles n))
-	article out)
-    (while (setq article (pop articles))
+  (let (out)
+    (dolist (article (gnus-summary-work-articles n))
       (gnus-summary-remove-process-mark article)
       (if (natnump article)
 	  (when (gnus-cache-possibly-enter-article
@@ -348,10 +355,8 @@ If not given a prefix, use the process marked articles instead.
 Returns the list of articles removed."
   (interactive "P")
   (gnus-cache-change-buffer gnus-newsgroup-name)
-  (let ((articles (gnus-summary-work-articles n))
-	article out)
-    (while articles
-      (setq article (pop articles))
+  (let (out)
+    (dolist (article (gnus-summary-work-articles n))
       (gnus-summary-remove-process-mark article)
       (when (gnus-cache-possibly-remove-article article nil nil nil t)
         (when gnus-newsgroup-agentized
@@ -407,7 +412,8 @@ Returns the list of articles removed."
 			       " *gnus-cache-overview*"))))
       ;; Insert the contents of this group's cache overview.
       (erase-buffer)
-      (let ((file (gnus-cache-file-name group ".overview")))
+      (let ((file (gnus-cache-file-name group ".overview"))
+	    (file-name-coding-system nnmail-pathname-coding-system))
 	(when (file-exists-p file)
 	  (nnheader-insert-file-contents file)))
       ;; We have a fresh (empty/just loaded) buffer,
@@ -421,8 +427,43 @@ Returns the list of articles removed."
       (and unread (memq 'unread class))
       (and (not unread) (not ticked) (not dormant) (memq 'read class))))
 
+(defvar gnus-cache-decoded-group-names nil
+  "Alist of original group names and decoded group names.
+Decoding is done according to `gnus-group-name-charset-method-alist'
+or `gnus-group-name-charset-group-alist'.")
+
+(defvar gnus-cache-unified-group-names nil
+  "Alist of unified decoded group names and original group names.
+A group name is decoded according to
+`gnus-group-name-charset-method-alist' or
+`gnus-group-name-charset-group-alist' first, and is encoded and
+decoded again according to `nnmail-pathname-coding-system',
+`file-name-coding-system', or `default-file-name-coding-system'.
+
+It is used when asking for a original group name from a cache
+directory name, in which non-ASCII characters might have been unified
+into the ones of a certain charset particularly if the `utf-8' coding
+system for example was used.")
+
+(defun gnus-cache-decoded-group-name (group)
+  "Return a decoded group name of GROUP."
+  (or (cdr (assoc group gnus-cache-decoded-group-names))
+      (let ((decoded (gnus-group-decoded-name group))
+	    (coding (or nnmail-pathname-coding-system
+			(and (boundp 'file-name-coding-system)
+			     file-name-coding-system)
+			(and (boundp 'default-file-name-coding-system)
+			     default-file-name-coding-system))))
+	(push (cons group decoded) gnus-cache-decoded-group-names)
+	(push (cons (mm-decode-coding-string
+		     (mm-encode-coding-string decoded coding)
+		     coding)
+		    group)
+	      gnus-cache-unified-group-names)
+	decoded)))
+
 (defun gnus-cache-file-name (group article)
-  (setq group (gnus-group-decoded-name group))
+  (setq group (gnus-cache-decoded-group-name group))
   (expand-file-name
    (if (stringp article) article (int-to-string article))
    (file-name-as-directory
@@ -455,7 +496,8 @@ Returns the list of articles removed."
   "Possibly remove ARTICLE from the cache."
   (let ((group gnus-newsgroup-name)
 	(number article)
-	file)
+	file
+	(file-name-coding-system nnmail-pathname-coding-system))
     ;; If this is a virtual group, we find the real group.
     (when (gnus-virtual-group-p group)
       (let ((result (nnvirtual-find-group-art
@@ -468,13 +510,15 @@ Returns the list of articles removed."
 		   (gnus-cache-member-of-class
 		    gnus-cache-remove-articles ticked dormant unread)))
       (save-excursion
+	(gnus-cache-update-file-total-fetched-for group file t)
 	(delete-file file)
+
 	(set-buffer (cdr gnus-cache-buffer))
 	(goto-char (point-min))
 	(when (or (looking-at (concat (int-to-string number) "\t"))
 		  (search-forward (concat "\n" (int-to-string number) "\t")
 				  (point-max) t))
-	  (gnus-delete-line)))
+	    (gnus-delete-line)))
       (unless (setq gnus-newsgroup-cached
 		    (delq article gnus-newsgroup-cached))
 	(gnus-sethash gnus-newsgroup-name nil gnus-cache-active-hashtb)
@@ -485,7 +529,8 @@ Returns the list of articles removed."
 (defun gnus-cache-articles-in-group (group)
   "Return a sorted list of cached articles in GROUP."
   (let ((dir (file-name-directory (gnus-cache-file-name group 1)))
-	articles)
+	articles
+	(file-name-coding-system nnmail-pathname-coding-system))
     (when (file-exists-p dir)
       (setq articles
 	    (sort (mapcar (lambda (name) (string-to-number name))
@@ -508,8 +553,8 @@ Returns the list of articles removed."
     (save-excursion
       (set-buffer cache-buf)
       (erase-buffer)
-      (let ((coding-system-for-read
-	     gnus-cache-overview-coding-system))
+      (let ((coding-system-for-read gnus-cache-overview-coding-system)
+	    (file-name-coding-system nnmail-pathname-coding-system))
 	(insert-file-contents
 	 (or file (gnus-cache-file-name group ".overview"))))
       (goto-char (point-min))
@@ -525,7 +570,7 @@ Returns the list of articles removed."
       (set-buffer cache-buf)
       (if (search-forward (concat "\n" (int-to-string (car cached)) "\t")
 			  nil t)
-	  (setq beg (gnus-point-at-bol)
+	  (setq beg (point-at-bol)
 		end (progn (end-of-line) (point)))
 	(setq beg nil))
       (set-buffer nntp-server-buffer)
@@ -537,24 +582,23 @@ Returns the list of articles removed."
 
 (defun gnus-cache-braid-heads (group cached)
   (let ((cache-buf (gnus-get-buffer-create " *gnus-cache*")))
-    (save-excursion
-      (set-buffer cache-buf)
+    (with-current-buffer cache-buf
       (erase-buffer))
     (set-buffer nntp-server-buffer)
     (goto-char (point-min))
-    (while cached
+    (dolist (entry cached)
       (while (and (not (eobp))
 		  (looking-at "2.. +\\([0-9]+\\) ")
 		  (< (progn (goto-char (match-beginning 1))
 			    (read (current-buffer)))
-		     (car cached)))
+		     entry))
 	(search-forward "\n.\n" nil 'move))
       (beginning-of-line)
       (set-buffer cache-buf)
       (erase-buffer)
-      (let ((coding-system-for-read
-	     gnus-cache-coding-system))
-	(insert-file-contents (gnus-cache-file-name group (car cached))))
+      (let ((coding-system-for-read gnus-cache-coding-system)
+	    (file-name-coding-system nnmail-pathname-coding-system))
+	(insert-file-contents (gnus-cache-file-name group entry)))
       (goto-char (point-min))
       (insert "220 ")
       (princ (car cached) (current-buffer))
@@ -564,8 +608,7 @@ Returns the list of articles removed."
       (forward-char -1)
       (insert ".")
       (set-buffer nntp-server-buffer)
-      (insert-buffer-substring cache-buf)
-      (setq cached (cdr cached)))
+      (insert-buffer-substring cache-buf))
     (kill-buffer cache-buf)))
 
 ;;;###autoload
@@ -577,7 +620,6 @@ $ emacs -batch -l ~/.emacs -l gnus -f gnus-jog-cache"
   (interactive)
   (let ((gnus-mark-article-hook nil)
 	(gnus-expert-user t)
-	(nnmail-spool-file nil)
 	(mail-sources nil)
 	(gnus-use-dribble-file nil)
 	(gnus-novice-user nil)
@@ -661,6 +703,7 @@ If LOW, update the lower bound instead."
   (interactive)
   (let* ((top (null directory))
 	 (directory (expand-file-name (or directory gnus-cache-directory)))
+	 (file-name-coding-system nnmail-pathname-coding-system)
 	 (files (directory-files directory 'full))
 	 (group
 	  (if top
@@ -686,16 +729,21 @@ If LOW, update the lower bound instead."
 	(push (pop files) alphs)))
     ;; If we have nums, then this is probably a valid group.
     (when (setq nums (sort nums '<))
-      (gnus-sethash group (cons (car nums) (gnus-last-element nums))
+      ;; Use non-decoded group name.
+      ;; FIXME: this is kind of a workaround.  The active file should
+      ;; be updated at the time articles are cached.  It will make
+      ;; `gnus-cache-unified-group-names' needless.
+      (gnus-sethash (or (cdr (assoc group gnus-cache-unified-group-names))
+			group)
+		    (cons (car nums) (gnus-last-element nums))
 		    gnus-cache-active-hashtb))
     ;; Go through all the other files.
-    (while alphs
-      (when (and (file-directory-p (car alphs))
+    (dolist (file alphs)
+      (when (and (file-directory-p file)
 		 (not (string-match "^\\."
-				    (file-name-nondirectory (car alphs)))))
+				    (file-name-nondirectory file))))
 	;; We descend directories.
-	(gnus-cache-generate-active (car alphs)))
-      (setq alphs (cdr alphs)))
+	(gnus-cache-generate-active file)))
     ;; Write the new active file.
     (when top
       (gnus-cache-write-active t)
@@ -707,7 +755,10 @@ If LOW, update the lower bound instead."
   (interactive (list gnus-cache-directory))
   (gnus-cache-close)
   (let ((nnml-generate-active-function 'identity))
-    (nnml-generate-nov-databases-1 dir))
+    (nnml-generate-nov-databases-directory dir))
+
+  (setq gnus-cache-total-fetched-hashtb nil)
+
   (gnus-cache-open))
 
 (defun gnus-cache-move-cache (dir)
@@ -736,8 +787,11 @@ files would corrupt Gnus when the cache was next enabled.  It
 depends on the caller to determine whether group renaming is
 supported."
   (let ((old-dir (gnus-cache-file-name old-group ""))
-	(new-dir (gnus-cache-file-name new-group "")))
+	(new-dir (gnus-cache-file-name new-group ""))
+	(file-name-coding-system nnmail-pathname-coding-system))
     (gnus-rename-file old-dir new-dir t))
+
+  (gnus-cache-rename-group-total-fetched-for old-group new-group)
 
   (let ((no-save gnus-cache-active-hashtb))
     (unless gnus-cache-active-hashtb
@@ -762,8 +816,11 @@ Always updates the cache, even when disabled, as the old cache
 files would corrupt gnus when the cache was next enabled.
 Depends upon the caller to determine whether group deletion is
 supported."
-  (let ((dir (gnus-cache-file-name group "")))
+  (let ((dir (gnus-cache-file-name group ""))
+	(file-name-coding-system nnmail-pathname-coding-system))
     (gnus-delete-directory dir))
+
+  (gnus-cache-delete-group-total-fetched-for group)
 
   (let ((no-save gnus-cache-active-hashtb))
     (unless gnus-cache-active-hashtb
@@ -774,6 +831,85 @@ supported."
       (if no-save
 	  (setq gnus-cache-active-altered group-hash-value)
 	(gnus-cache-write-active group-hash-value)))))
+
+(defvar gnus-cache-inhibit-update-total-fetched-for nil)
+(defvar gnus-cache-need-update-total-fetched-for nil)
+
+(defmacro gnus-cache-with-refreshed-group (group &rest body)
+  `(prog1 (let ((gnus-cache-inhibit-update-total-fetched-for t))
+	    ,@body)
+     (when (and gnus-cache-need-update-total-fetched-for
+		(not gnus-cache-inhibit-update-total-fetched-for))
+	(save-excursion
+	  (set-buffer gnus-group-buffer)
+	  (setq gnus-cache-need-update-total-fetched-for nil)
+	  (gnus-group-update-group ,group t)))))
+
+(defun gnus-cache-update-file-total-fetched-for (group file &optional subtract)
+  (when gnus-cache-total-fetched-hashtb
+    (gnus-cache-with-refreshed-group
+     group
+     (let* ((entry (or (gnus-gethash group gnus-cache-total-fetched-hashtb)
+		       (gnus-sethash group (make-vector 2 0)
+				     gnus-cache-total-fetched-hashtb)))
+	    size)
+
+       (if file
+	   (setq size (or (nth 7 (file-attributes file)) 0))
+	 (let* ((file-name-coding-system nnmail-pathname-coding-system)
+		(files (directory-files (gnus-cache-file-name group "")
+					t nil t))
+		file attrs)
+	   (setq size 0.0)
+	   (while (setq file (pop files))
+	     (setq attrs (file-attributes file))
+	     (unless (nth 0 attrs)
+	       (incf size (float (nth 7 attrs)))))))	     
+
+       (setq gnus-cache-need-update-total-fetched-for t)
+
+       (incf (nth 1 entry) (if subtract (- size) size))))))
+
+(defun gnus-cache-update-overview-total-fetched-for (group file)
+  (when gnus-cache-total-fetched-hashtb
+    (gnus-cache-with-refreshed-group
+     group
+     (let* ((entry (or (gnus-gethash group gnus-cache-total-fetched-hashtb)
+		       (gnus-sethash group (make-list 2 0) 
+				     gnus-cache-total-fetched-hashtb)))
+	    (file-name-coding-system nnmail-pathname-coding-system)
+	    (size (or (nth 7 (file-attributes 
+			      (or file
+				  (gnus-cache-file-name group ".overview"))))
+		      0)))
+       (setq gnus-cache-need-update-total-fetched-for t)
+       (setf (nth 0 entry) size)))))
+
+(defun gnus-cache-rename-group-total-fetched-for (old-group new-group)
+  "Record of disk space used by OLD-GROUP now associated with NEW-GROUP."
+  (when gnus-cache-total-fetched-hashtb
+    (let ((entry (gnus-gethash old-group gnus-cache-total-fetched-hashtb)))
+      (gnus-sethash new-group entry gnus-cache-total-fetched-hashtb)
+      (gnus-sethash old-group nil gnus-cache-total-fetched-hashtb))))
+
+(defun gnus-cache-delete-group-total-fetched-for (group)
+  "Delete record of disk space used by GROUP being deleted."
+  (when gnus-cache-total-fetched-hashtb
+      (gnus-sethash group nil gnus-cache-total-fetched-hashtb)))
+
+(defun gnus-cache-total-fetched-for (group &optional no-inhibit)
+  "Get total disk space used by the cache for the specified GROUP."
+  (unless (equal group "dummy.group")
+    (unless gnus-cache-total-fetched-hashtb
+      (setq gnus-cache-total-fetched-hashtb (gnus-make-hashtable 1024)))
+
+    (let* ((entry (gnus-gethash group gnus-cache-total-fetched-hashtb)))
+      (if entry
+	  (apply '+ entry)
+	(let ((gnus-cache-inhibit-update-total-fetched-for (not no-inhibit)))
+	  (+ 
+	   (gnus-cache-update-overview-total-fetched-for group nil)
+	   (gnus-cache-update-file-total-fetched-for     group nil)))))))
 
 (provide 'gnus-cache)
 

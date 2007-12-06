@@ -65,7 +65,6 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
   (require 'compile)
   (require 'comint)
   (require 'hippie-exp))
@@ -1224,6 +1223,9 @@ local value.")
     ;; (modify-syntax-entry ?\" "." st)
     st))
 
+;; Autoloaded.
+(declare-function compilation-shell-minor-mode "compile" (&optional arg))
+
 ;; Fixme: This should inherit some stuff from `python-mode', but I'm
 ;; not sure how much: at least some keybindings, like C-c C-f;
 ;; syntax?; font-locking, e.g. for triple-quoted strings?
@@ -1656,6 +1658,8 @@ instance.  Assumes an inferior Python is running."
 
 ;;;; Info-look functionality.
 
+(declare-function info-lookup-maybe-add-help "info-look" (&rest arg))
+
 (defun python-after-info-look ()
   "Set up info-look for Python.
 Used with `eval-after-load'."
@@ -2036,10 +2040,11 @@ the if condition."
   "Alist of named skeletons for Python mode.
 Elements are of the form (NAME . EXPANDER-FUNCTION).")
 
-(defvar python-mode-abbrev-table nil
+(define-abbrev-table 'python-mode-abbrev-table ()
   "Abbrev table for Python mode.
-The default contents correspond to the elements of `python-skeletons'.")
-(define-abbrev-table 'python-mode-abbrev-table ())
+The default contents correspond to the elements of `python-skeletons'."
+  ;; Allow / in abbrevs.
+  :regexp "\\<\\([[:word:]/]+\\)\\W*")
 
 (eval-when-compile
   ;; Define a user-level skeleton and add it to `python-skeletons' and
@@ -2049,8 +2054,9 @@ The default contents correspond to the elements of `python-skeletons'.")
 	 (function (intern (concat "python-insert-" name))))
     `(progn
        (add-to-list 'python-skeletons ',(cons name function))
-       (if python-use-skeletons
-	   (define-abbrev python-mode-abbrev-table ,name "" ',function nil t))
+       (define-abbrev python-mode-abbrev-table ,name "" ',function
+         :system t :case-fixed t
+         :enable-function (lambda () python-use-skeletons))
        (define-skeleton ,function
 	 ,(format "Insert Python \"%s\" template." name)
 	 ,@elements)))))
@@ -2205,23 +2211,6 @@ without confirmation."
 
 (defvar outline-heading-end-regexp)
 (defvar eldoc-documentation-function)
-
-;; Stuff to allow expanding abbrevs with non-word constituents.
-(defun python-abbrev-pc-hook ()
-  "Set the syntax table before possibly expanding abbrevs."
-  (remove-hook 'post-command-hook 'python-abbrev-pc-hook t)
-  (set-syntax-table python-mode-syntax-table))
-
-(defvar python-abbrev-syntax-table
-  (copy-syntax-table python-mode-syntax-table)
-  "Syntax table used when expanding abbrevs.")
-
-(defun python-pea-hook ()
-  "Reset the syntax table after possibly expanding abbrevs."
-  (set-syntax-table python-abbrev-syntax-table)
-  (add-hook 'post-command-hook 'python-abbrev-pc-hook nil t))
-(modify-syntax-entry ?/ "w" python-abbrev-syntax-table)
-
 (defvar python-mode-running)            ;Dynamically scoped var.
 
 ;;;###autoload
@@ -2309,7 +2298,6 @@ with skeleton expansions for compound statement templates.
        '((< '(backward-delete-char-untabify (min python-indent
 						 (current-column))))
 	 (^ '(- (1+ (current-indentation))))))
-  (add-hook 'pre-abbrev-expand-hook 'python-pea-hook nil t)
   (if (featurep 'hippie-exp)
       (set (make-local-variable 'hippie-expand-try-functions-list)
 	   (cons 'python-try-complete hippie-expand-try-functions-list)))

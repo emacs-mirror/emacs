@@ -705,6 +705,9 @@ archive.
           ;; Note this regexp is also in archive-exe-p.
           ((looking-at "MZ\\(.\\|\n\\)\\{34\\}LH[aA]'s SFX ") 'lzh-exe)
           ((looking-at "Rar!") 'rar)
+          ((and (looking-at "MZ")
+                (re-search-forward "Rar!" (+ (point) 100000) t))
+           'rar-exe)
 	  (t (error "Buffer format not recognized")))))
 ;; -------------------------------------------------------------------------
 
@@ -1844,10 +1847,10 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 ;; -------------------------------------------------------------------------
 ;;; Section: Rar Archives
 
-(defun archive-rar-summarize ()
-  (let* ((file buffer-file-name)
-         (copy (file-local-copy file))
-         header footer
+(defun archive-rar-summarize (&optional file)
+  ;; File is used internally for `archive-rar-exe-summarize'.
+  (unless file (setq file buffer-file-name))
+  (let* ((copy (file-local-copy file))
          (maxname 10)
          (maxsize 5)
          (files ()))
@@ -1856,9 +1859,6 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (if copy (delete-file copy))
       (goto-char (point-min))
       (re-search-forward "^-+\n")
-      (setq header
-            (buffer-substring (save-excursion (re-search-backward "^[^ ]"))
-                              (point)))
       (while (looking-at (concat " \\(.*\\)\n" ;Name.
                                  ;; Size ; Packed.
                                  " +\\([0-9]+\\) +[0-9]+"
@@ -1878,8 +1878,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
                         size (match-string 3)
                         ;; Date, Time.
                         (match-string 4) (match-string 5))
-                files)))
-      (setq footer (buffer-substring (point) (point-max))))
+                files))))
     (setq files (nreverse files))
     (goto-char (point-min))
     (let* ((format (format " %%s %%s  %%%ds %%5s  %%s" maxsize))
@@ -1921,9 +1920,44 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
           (delete-directory (expand-file-name name dest)))
         (delete-directory dest)))))
 
+;;; Section: Rar self-extracting .exe archives.
+
+(defun archive-rar-exe-summarize ()
+  (let ((tmpfile (make-temp-file "rarexe")))
+    (unwind-protect
+        (progn
+          (goto-char (point-min))
+          (re-search-forward "Rar!")
+          (write-region (match-beginning 0) (point-max) tmpfile)
+          (archive-rar-summarize tmpfile))
+      (delete-file tmpfile))))
+
+(defun archive-rar-exe-extract (archive name)
+  (let* ((tmpfile (make-temp-file "rarexe"))
+         (buf (find-buffer-visiting archive))
+         (tmpbuf (unless buf (generate-new-buffer " *rar-exe*"))))
+    (unwind-protect
+        (progn
+          (with-current-buffer (or buf tmpbuf)
+            (save-excursion
+              (save-restriction
+                (if buf
+                    ;; point-max unwidened is assumed to be the end of the
+                    ;; summary text and the beginning of the actual file data.
+                    (progn (goto-char (point-max)) (widen))
+                  (insert-file-contents-literally archive)
+                  (goto-char (point-min)))
+                (re-search-forward "Rar!")
+                (write-region (match-beginning 0) (point-max) tmpfile))))
+          (archive-rar-extract tmpfile name))
+      (if tmpbuf (kill-buffer tmpbuf))
+      (delete-file tmpfile))))
+  
+
 ;; -------------------------------------------------------------------------
 ;; This line was a mistake; it is kept now for compatibility.
 ;; rms  15 Oct 98
+
 (provide 'archive-mode)
 
 (provide 'arc-mode)

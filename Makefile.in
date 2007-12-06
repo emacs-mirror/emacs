@@ -138,11 +138,11 @@ man1dir=$(mandir)/man1
 # since there are now many packages documented with the texinfo
 # system, it is inappropriate to imply that it is part of Emacs.
 infodir=@infodir@
-INFO_FILES=ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq \
-           elisp eintr emacs emacs-mime eshell eudc flymake \
-           forms gnus idlwave info message mh-e newsticker org pcl-cvs \
-           pgg reftex sc ses sieve speedbar tramp vip viper widget     \
-           woman smtpmail url rcirc erc
+INFO_FILES=ada-mode autotype calc ccmode cl dbus dired-x ebrowse ediff	\
+           efaq eintr elisp emacs emacs-mime erc eshell eudc flymake	\
+           forms gnus idlwave info message mh-e newsticker nxml-mode	\
+           org pcl-cvs pgg rcirc reftex remember sc ses sieve speedbar	\
+           tramp vip viper widget woman smtpmail url
 
 # Directory for local state files for all programs.
 localstatedir=@localstatedir@
@@ -423,6 +423,12 @@ install-arch-dep: mkdir
 
 ## Note that the Makefiles in the etc directory are potentially useful
 ## in an installed Emacs, so should not be excluded.
+
+## installuser:
+## http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01672.html
+## Nuisance because i) it needs to be the user running install, so
+## configure can't set it; ii) can't (?) use the result of rule
+## commands to set make variables.
 install-arch-indep: mkdir info
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
@@ -436,6 +442,10 @@ install-arch-indep: mkdir info
 	mkdir ${COPYDESTS} ; \
 	chmod ugo+rx ${COPYDESTS} ; \
 	unset CDPATH; \
+	for installuser in $${LOGNAME} $${USERNAME} $${USER} \
+	  `id -un 2> /dev/null`; do \
+	  [ -n "$${installuser}" ] && break ; \
+	done ; \
 	for dir in ${COPYDIR} ; do \
 	  dest=$$1 ; shift ; \
 	  [ -d $${dir} ] \
@@ -444,7 +454,7 @@ install-arch-indep: mkdir info
 	      (cd $${dir}; tar -chf - . ) \
 		| (cd $${dest}; umask 022; \
                    tar -xvf - && cat > /dev/null) || exit 1; \
-	      find $${dest} -exec chown $${LOGNAME:-$$USERNAME} {} ';' ;\
+	      find $${dest} -exec chown $${installuser} {} ';' ;\
 	      for subdir in `find $${dest} -type d ! -name RCS ! -name CVS -print` ; do \
 		chmod a+rx $${subdir} ; \
 		rm -rf $${subdir}/RCS ; \
@@ -492,7 +502,12 @@ install-arch-indep: mkdir info
 	   echo "Copying etc/$${docfile} to $(DESTDIR)${docdir} ..." ; \
 	   (cd ./etc; tar -chf - $${docfile}) \
 	     |(cd $(DESTDIR)${docdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
-	   (cd $(DESTDIR)$(docdir); chown $${LOGNAME:-$$USERNAME} DOC*; chmod a+r DOC*; \
+	   (cd $(DESTDIR)$(docdir); \
+	    for installuser in $${LOGNAME} $${USERNAME} $${USER} \
+	      `id -un 2> /dev/null`; do \
+	       [ -n "$${installuser}" ] && break ; \
+	    done ; \
+	    chown $${installuser} DOC*; chmod a+r DOC*; \
 	    if test "`echo DOC-*`" != "DOC-*"; then rm -f DOC; fi); \
 	else true; fi
 	-unset CDPATH; \
@@ -504,7 +519,12 @@ install-arch-indep: mkdir info
 	   echo "Copying lisp/*.el and lisp/*.elc to $(DESTDIR)${lispdir} ..." ; \
 	   (cd lisp; tar -chf - *.el *.elc) \
 	     |(cd $(DESTDIR)${lispdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
-	   (cd $(DESTDIR)${lispdir}; find . -exec chown $${LOGNAME:-$$USERNAME} {} ';') ; \
+	   (cd $(DESTDIR)${lispdir}; \
+	    for installuser in $${LOGNAME} $${USERNAME} $${USER} \
+	      `id -un 2> /dev/null`; do \
+	       [ -n "$${installuser}" ] && break ; \
+	    done ; \
+	    find . -exec chown $${installuser} {} ';') ; \
 	else true; fi
 	-unset CDPATH; \
 	if [ -n "${GZIP_PROG}" ]; \
@@ -791,3 +811,13 @@ bootstrap-clean-before-fast: FRC
 	-(cd doc/lispref &&   $(MAKE) $(MFLAGS) clean)
 	-(cd doc/lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
+
+.PHONY: check-declare
+
+check-declare:
+	@if [ ! -e $(srcdir)/src/emacs ]; then \
+	  echo "You must build Emacs to use this command"; \
+	  exit 1; \
+	fi
+	(cd leim; $(MAKE) $(MFLAGS) $@)
+	(cd lisp; $(MAKE) $(MFLAGS) $@)

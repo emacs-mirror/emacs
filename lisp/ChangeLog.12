@@ -6411,7 +6411,7 @@
 	* jit-lock.el (jit-lock-fontify-again): New function.
 	(jit-lock-fontify-now): Use it instead of lambda form.
 
-2006-09-13  Agustin Martin  <agustin.martin@hispalinux.es>
+2006-09-13  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-word, flyspell-correct-word)
 	(flyspell-auto-correct-word): Make ispell-filter local to these
@@ -11561,7 +11561,7 @@
 	* isearch.el (isearch-other-meta-char): Handle user bindings for
 	shifted control characters.
 
-2006-03-18  Agustin Martin  <agustin.martin@hispalinux.es>
+2006-03-18  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-skip-region-alist): Add "_+" to the
 	part that matches email addresses, file names, etc.
@@ -11856,7 +11856,7 @@
 	* progmodes/octave-mod.el (octave-indent-for-comment):
 	Behave according to do string.
 
-2006-03-11  Agustin Martin  <agustin.martin@hispalinux.es>
+2006-03-11  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-menu-map-needed) [ispell-message]:
 	Be visible only if major mode is Mail Mode.
@@ -12022,7 +12022,7 @@
 	(t-mouse-tty, t-mouse-make-event): Doc fix; use imperative.
 	(t-mouse-mode): Remove period from end of error message.
 
-2006-03-03  Agustin Martin  <agustin.martin@hispalinux.es>
+2006-03-03  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-process-localwords):
 	Be case-sensitive.
@@ -12813,7 +12813,7 @@
 	(remove-from-invisibility-spec, allout-hide-current-subtree):
 	Ditched unused variables.
 
-2006-02-17  Agustin Martin  <agustin.martin@hispalinux.es>
+2006-02-17  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-change-dictionary): Call
 	ispell-buffer-local-dict instead of
@@ -13558,7 +13558,7 @@
 	described in the docstring for `bs-attributes-list'.
 	(bs--get-name): Simplify.  Don't pad the buffer name.
 
-2006-01-27  Agustin Martin  <agustin.martin@hispalinux.es>
+2006-01-27  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-find-aspell-dictionaries): If no
 	English aspell dictionary is installed, use the first entry of
@@ -13849,7 +13849,7 @@
 
 	* mail/rmailout.el (rmail-output): Don't use content-type if it is nil.
 
-2006-01-21  Agustin Martin  <agustin.martin@hispalinux.es>
+2006-01-21  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-emacs-popup, flypell-xemacs-popup):
 	Default to disabling the "Save affix" question.
@@ -14005,7 +14005,7 @@
 
 	* files.el (auto-mode-alist): Add Imakefile.
 
-2006-01-17  Agustin Martin  <agustin.martin@hispalinux.es>
+2006-01-17  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (ispell-kill-ispell-hook): Add to the hook when
 	loading the file rather than when turning on flyspell-mode.
@@ -14152,7 +14152,7 @@
 	(org-get-time-of-day): Fix bug with times before 1am.
 	(org-agenda-menu): Add tags commands.
 
-2006-01-13  Agustin Martin  <agustin.martin@hispalinux.es>
+2006-01-13  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-init-process): Include the used
 	dictionary in ispell process start message.
@@ -14842,7 +14842,7 @@
 	Use local var buffer-scan-pos to advance scan for next misspelling.
 	Advance it only after we find the misspelling.
 
-2005-12-27  Agustin Martin  <agustin.martin@hispalinux.es>
+2005-12-27  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-external-point-words):
 	New criteria for finding the misspelling in the buffer.
@@ -17232,7 +17232,7 @@
 
 	* international/latexenc.el (latex-inputenc-coding-alist): Doc fix.
 
-2005-12-02  Agustin Martin  <agustin.martin@hispalinux.es>
+2005-12-02  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-external-point-words):
 	Consider a misspelling as found in the string search if: (a) misspelling
@@ -18221,7 +18221,7 @@
 	* textmodes/flyspell.el (flyspell-large-region):
 	Call flyspell-accept-buffer-local-defs.
 
-2005-11-13  Agustin Martin  <agustin.martin@hispalinux.es>
+2005-11-13  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-notify-misspell):
 	Fix misspelling of "Misspelling".

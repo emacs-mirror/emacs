@@ -37,6 +37,7 @@ Boston, MA 02110-1301, USA.  */
 #endif
 
 #include <signal.h>
+#include <stdarg.h>
 
 #include "lisp.h"
 #include "termchar.h"
@@ -3754,14 +3755,14 @@ maybe_fatal (must_succeed, buffer, terminal, str1, str2, arg1, arg2)
   abort ();
 }
 
-/* VARARGS 1 */
 void
-fatal (str, arg1, arg2)
-     char *str, *arg1, *arg2;
+fatal (const char *str, ...)
 {
+  va_list ap;
+  va_start (ap, str);
   fprintf (stderr, "emacs: ");
-  fprintf (stderr, str, arg1, arg2);
-  fprintf (stderr, "\n");
+  vfprintf (stderr, str, ap);
+  va_end (ap);
   fflush (stderr);
   exit (1);
 }

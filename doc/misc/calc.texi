@@ -9667,6 +9667,11 @@ is like @kbd{M-x} except that it enters the initial string @samp{calc-}
 for you.  For example, the following key sequences are equivalent:
 @kbd{S}, @kbd{M-x calc-sin @key{RET}}, @kbd{x sin @key{RET}}.
 
+Although Calc is designed to be used from the keyboard, some of
+Calc's more common commands are available from a menu.  In the menu, the
+arguments to the functions are given by referring to their stack level
+numbers.
+
 @cindex Extensions module
 @cindex @file{calc-ext} module
 The Calculator exists in many parts.  When you type @kbd{C-x * c}, the
@@ -11579,8 +11584,7 @@ with their equivalent function names, are:
 
 postfix @samp{%} [@code{percent}] (as in @samp{25% = 0.25});
 
-prefix @samp{+} and @samp{-} [@code{neg}] (as in @samp{-x})
-and prefix @samp{!} [@code{lnot}] (logical ``not,'' as in @samp{!x});
+prefix @samp{!} [@code{lnot}] (logical ``not,'' as in @samp{!x});
 
 @samp{+/-} [@code{sdev}] (the standard deviation symbol) and
 @samp{mod} [@code{makemod}] (the symbol for modulo forms);
@@ -11589,6 +11593,8 @@ postfix @samp{!} [@code{fact}] (factorial, as in @samp{n!})
 and postfix @samp{!!} [@code{dfact}] (double factorial);
 
 @samp{^} [@code{pow}] (raised-to-the-power-of);
+
+prefix @samp{+} and @samp{-} [@code{neg}] (as in @samp{-x});
 
 @samp{*} [@code{mul}];
 
@@ -14000,7 +14006,7 @@ mode may display it differently.
 Formulas are entered and displayed in the appropriate notation;
 @texline @math{\sin(a/b)}
 @infoline @expr{sin(a/b)}
-will appear as @samp{\sin\left( a \over b \right)} in @TeX{} mode and
+will appear as @samp{\sin\left( @{a \over b@} \right)} in @TeX{} mode and
 @samp{\sin\left(\frac@{a@}@{b@}\right)} in La@TeX{} mode.
 Math formulas are often enclosed by @samp{$ $} signs in @TeX{} and
 La@TeX{}; these should be omitted when interfacing with Calc.  To Calc,
@@ -14610,15 +14616,15 @@ The operator table used by normal and Big language modes has the
 following precedences:
 
 @example
-_     1200   @r{(subscripts)}
-%     1100   @r{(as in n}%@r{)}
--     1000   @r{(as in }-@r{n)}
-!     1000   @r{(as in }!@r{n)}
+_     1200    @r{(subscripts)}
+%     1100    @r{(as in n}%@r{)}
+!     1000    @r{(as in }!@r{n)}
 mod    400
 +/-    300
 !!     210    @r{(as in n}!!@r{)}
 !      210    @r{(as in n}!@r{)}
 ^      200
+-      197    @r{(as in }-@r{n)}
 *      195    @r{(or implicit multiplication)}
 / % \  190
 + -    180    @r{(as in a}+@r{b)}

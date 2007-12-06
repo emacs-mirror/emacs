@@ -181,7 +181,6 @@ Boston, MA 02110-1301, USA.  */
 
 /* X needs to talk on the network, so search the network library.  */
 
-#define LIBX10_SYSTEM -lnsl_s
 #define LIBX11_SYSTEM -lpt -lnls -lnsl_s -lc_s
 
 /* The docs for system V/386 suggest v.3 has sigpause,

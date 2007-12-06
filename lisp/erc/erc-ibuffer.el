@@ -71,7 +71,9 @@
 	 (string-match qualifier (or erc-server-announced-name
 				     erc-session-server)))))
 
-(defvar erc-modified-channels-alist)
+;; Silence the byte-compiler
+(eval-when-compile
+  (defvar erc-modified-channels-alist))
 
 (define-ibuffer-column erc-modified (:name "M")
   (if (and (boundp 'erc-track-mode)

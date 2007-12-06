@@ -169,7 +169,7 @@ This variable is buffer-local.")
 
 (defvar ielm-map nil)
 (if ielm-map nil
-  (if (string-match "Lucid" emacs-version)
+  (if (featurep 'xemacs)
       ;; Lemacs
       (progn
 	(setq ielm-map (make-sparse-keymap))

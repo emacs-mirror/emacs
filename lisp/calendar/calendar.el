@@ -1,7 +1,8 @@
 ;;; calendar.el --- calendar functions
 
 ;; Copyright (C) 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1997,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+;;   Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -818,7 +819,7 @@ diary buffer, set the variable `diary-list-include-blanks' to t."
 As the files are processed for diary entries, these functions are used
 to cull relevant entries.  You can use either or both of
 `list-hebrew-diary-entries', `list-islamic-diary-entries' and
-`list-bahai-diary-entries'.  The documentation for these functions
+`diary-bahai-list-entries'.  The documentation for these functions
 describes the style of such diary entries."
   :type 'hook
   :options '(list-hebrew-diary-entries
@@ -2443,6 +2444,11 @@ under the cursor:
   (save-selected-window
     (select-window (posn-window (event-start event)))
     (call-interactively 'calendar-other-month)))
+
+;; (require 'info) will define these.
+(declare-function Info-find-emacs-command-nodes "info" (command))
+(declare-function Info-find-node "info"
+                  (filename nodename &optional no-going-back))
 
 (defun calendar-goto-info-node ()
   "Go to the info node for the calendar."

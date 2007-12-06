@@ -263,7 +263,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 #ifdef HAVE_X_WINDOWS
 /* We need a little extra space, see ../../lisp/loadup.el */
 #define SYSTEM_PURESIZE_EXTRA 15000
-#define HAVE_X11R5
 #define LIBX11_SYSTEM -lxext -lsys
 #else
 /* We need a little extra space, see ../../lisp/loadup.el */

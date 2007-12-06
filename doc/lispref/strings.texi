@@ -259,7 +259,8 @@ returns an empty string.
 
 @noindent
 The @code{concat} function always constructs a new string that is
-not @code{eq} to any existing string.
+not @code{eq} to any existing string, except when the result is empty
+(since empty strings are canonicalized to save space).
 
 In Emacs versions before 21, when an argument was an integer (not a
 sequence of integers), it was converted to a string of digits making up

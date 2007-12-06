@@ -138,41 +138,28 @@ Remove also properties of all files in subdirectories."
 	  (remhash key tramp-cache-data)))
      tramp-cache-data)))
 
-(defun tramp-cache-print (table)
-  "Prints hash table TABLE."
-  (when (hash-table-p table)
-    (let (result)
-      (maphash
-       '(lambda (key value)
-	  (let ((tmp (format
-		      "(%s %s)"
-		      (if (processp key)
-			  (prin1-to-string (prin1-to-string key))
-			(prin1-to-string key))
-		      (if (hash-table-p value)
-			  (tramp-cache-print value)
-			(if (bufferp value)
-			    (prin1-to-string (prin1-to-string value))
-			  (prin1-to-string value))))))
-	    (setq result (if result (concat result " " tmp) tmp))))
-       table)
-      result)))
-
 ;; Reverting or killing a buffer should also flush file properties.
-;; They could have been changed outside Tramp.
+;; They could have been changed outside Tramp.  In eshell, "ls" would
+;; not show proper directory contents when a file has been copied or
+;; deleted before.
 (defun tramp-flush-file-function ()
   "Flush all Tramp cache properties from buffer-file-name."
-  (let ((bfn (buffer-file-name)))
-    (when (and (stringp bfn) (tramp-tramp-file-p bfn))
+  (let ((bfn (if (stringp (buffer-file-name))
+		 (buffer-file-name)
+	       default-directory)))
+    (when (tramp-tramp-file-p bfn)
       (let* ((v (tramp-dissect-file-name bfn))
 	     (localname (tramp-file-name-localname v)))
 	(tramp-flush-file-property v localname)))))
 
 (add-hook 'before-revert-hook 'tramp-flush-file-function)
+(add-hook 'eshell-pre-command-hook 'tramp-flush-file-function)
 (add-hook 'kill-buffer-hook 'tramp-flush-file-function)
 (add-hook 'tramp-cache-unload-hook
 	  '(lambda ()
 	     (remove-hook 'before-revert-hook
+			  'tramp-flush-file-function)
+	     (remove-hook 'eshell-pre-command-hook
 			  'tramp-flush-file-function)
 	     (remove-hook 'kill-buffer-hook
 			  'tramp-flush-file-function)))
@@ -229,9 +216,38 @@ function is intended to run also as process sentinel."
 ;  (tramp-message key 7 "%s" event)
   (remhash key tramp-cache-data))
 
+(defun tramp-cache-print (table)
+  "Print hash table TABLE."
+  (when (hash-table-p table)
+    (let (result)
+      (maphash
+       '(lambda (key value)
+	  (let ((tmp (format
+		      "(%s %s)"
+		      (if (processp key)
+			  (prin1-to-string (prin1-to-string key))
+			(prin1-to-string key))
+		      (if (hash-table-p value)
+			  (tramp-cache-print value)
+			(if (bufferp value)
+			    (prin1-to-string (prin1-to-string value))
+			  (prin1-to-string value))))))
+	    (setq result (if result (concat result " " tmp) tmp))))
+       table)
+      result)))
+
+(defun tramp-list-connections ()
+  "Return a list of all known connection vectors according to `tramp-cache'."
+    (let (result)
+      (maphash
+       '(lambda (key value)
+	  (when (and (vectorp key) (null (aref key 3)))
+	    (add-to-list 'result key)))
+       tramp-cache-data)
+      result))
+
 (defun tramp-dump-connection-properties ()
-"Writes persistent connection properties into file
-`tramp-persistency-file-name'."
+  "Write persistent connection properties into file `tramp-persistency-file-name'."
   ;; We shouldn't fail, otherwise (X)Emacs might not be able to be closed.
   (condition-case nil
       (when (and (hash-table-p tramp-cache-data)

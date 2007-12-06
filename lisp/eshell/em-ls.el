@@ -22,9 +22,16 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'em-ls)
+;;; Commentary:
 
-(eval-when-compile (require 'esh-maint))
+;; Most of the command switches recognized by GNU's ls utility are
+;; supported ([(fileutils)ls invocation]).
+
+;;; Code:
+
+(eval-when-compile (require 'eshell))
+(require 'esh-util)
+(require 'esh-opt)
 
 (defgroup eshell-ls nil
   "This module implements the \"ls\" utility fully in Lisp.  If it is
@@ -34,14 +41,6 @@ properties to colorize its output based on the setting of
 `eshell-ls-use-colors'."
   :tag "Implementation of `ls' in Lisp"
   :group 'eshell-module)
-
-;;; Commentary:
-
-;; Most of the command switches recognized by GNU's ls utility are
-;; supported ([(fileutils)ls invocation]).
-
-(require 'esh-util)
-(require 'esh-opt)
 
 ;;; User Variables:
 
@@ -922,7 +921,7 @@ to use, and each member of which is the width of that column
 				 (car file)))))
   (car file))
 
-;;; Code:
+(provide 'em-ls)
 
 ;;; arch-tag: 9295181c-0cb2-499c-999b-89f5359842cb
 ;;; em-ls.el ends here

@@ -142,19 +142,6 @@ extended to use the GUI features.  This means that your code using the
 widget library will also use the new graphic features automatically.
 @end enumerate
 
-In order to minimize the code that is loaded by users who do not
-create any widgets, the code has been split in two files:
-
-@cindex widget library, files
-@table @file
-@item widget.el
-This will declare the user variables, define the function
-@code{define-widget}, and autoload the function @code{widget-create}.
-@item wid-edit.el
-Everything else is here, there is no reason to load it explicitly, as
-it will be autoloaded when needed.
-@end table
-
 @node User Interface, Programming Example, Introduction, Top
 @comment  node-name,  next,  previous,  up
 @section User Interface

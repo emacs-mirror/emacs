@@ -874,7 +874,7 @@ is the name of the register for COM."
     (set-mark beg))
   (beginning-of-line)
   (exchange-point-and-mark)
-  (if (or (not (eobp)) (not (bolp))) (next-line 1))
+  (if (or (not (eobp)) (not (bolp))) (with-no-warnings (next-line 1)))
   (beginning-of-line)
   (if (> beg end) (exchange-point-and-mark)))
 
@@ -1050,7 +1050,7 @@ command was invoked with argument > 1."
 (defun vip-line (arg)
   (let ((val (car arg)) (com (cdr arg)))
     (move-marker vip-com-point (point))
-    (next-line (1- val))
+    (with-no-warnings (next-line (1- val)))
     (vip-execute-com 'vip-line val com)))
 
 (defun vip-yank-line (arg)
@@ -1263,7 +1263,7 @@ beginning of buffer, stop and signal error."
   (interactive "P")
   (let ((val (vip-p-val arg)) (com (vip-getCom arg)))
     (if com (move-marker vip-com-point (point)))
-    (next-line val)
+    (with-no-warnings (next-line val))
     (back-to-indentation)
     (if com (vip-execute-com 'vip-next-line-at-bol val com))))
 
@@ -1272,7 +1272,7 @@ beginning of buffer, stop and signal error."
   (interactive "P")
   (let ((val (vip-p-val arg)) (com (vip-getCom arg)))
     (if com (move-marker vip-com-point (point)))
-    (next-line (- val))
+    (with-no-warnings (next-line (- val)))
     (setq this-command 'previous-line)
     (if com (vip-execute-com 'vip-previous-line val com))))
 
@@ -1281,7 +1281,7 @@ beginning of buffer, stop and signal error."
   (interactive "P")
   (let ((val (vip-p-val arg)) (com (vip-getCom arg)))
     (if com (move-marker vip-com-point (point)))
-    (next-line (- val))
+    (with-no-warnings (next-line (- val)))
     (back-to-indentation)
     (if com (vip-execute-com 'vip-previous-line val com))))
 
@@ -1323,7 +1323,7 @@ after search."
 	     ;; forward search begins here
 	     (if (eolp) (error "") (point))
 	     ;; forward search ends here
-	     (progn (next-line 1) (beginning-of-line) (point)))
+	     (progn (with-no-warnings (next-line 1)) (beginning-of-line) (point)))
 	  (narrow-to-region
 	   ;; backward search begins from here
 	   (if (bolp) (error "") (point))
@@ -1803,7 +1803,7 @@ STRING.  Search will be forward if FORWARD, otherwise backward."
     (setq vip-use-register nil)
     (if (vip-end-with-a-newline-p text)
 	(progn
-	  (next-line 1)
+	  (with-no-warnings (next-line 1))
 	  (beginning-of-line))
       (if (and (not (eolp)) (not (eobp))) (forward-char)))
     (setq vip-d-com (list 'vip-put-back val nil vip-use-register))
@@ -2883,7 +2883,7 @@ a token has type \(command, address, end-mark\) and value."
   (let ((point (if (null ex-addresses) (point) (car ex-addresses)))
 	(variant nil) command file)
     (goto-char point)
-    (if (not (= point 0)) (next-line 1))
+    (if (not (= point 0)) (with-no-warnings (next-line 1)))
     (beginning-of-line)
     (save-window-excursion
       (set-buffer " *ex-working-space*")

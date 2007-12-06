@@ -28,7 +28,7 @@
 ;; This library perform S/MIME operations from within Emacs.
 ;;
 ;; Functions for fetching certificates from public repositories are
-;; provided, currently only from DNS.  LDAP support (via EUDC) is planned.
+;; provided, currently from DNS and LDAP.
 ;;
 ;; It uses OpenSSL (tested with version 0.9.5a and 0.9.6) for signing,
 ;; encryption and decryption.
@@ -117,11 +117,27 @@
 ;; 2000-06-05  initial version, committed to Gnus CVS contrib/
 ;; 2000-10-28  retrieve certificates via DNS CERT RRs
 ;; 2001-10-14  posted to gnu.emacs.sources
+;; 2005-02-13  retrieve certificates via LDAP
 
 ;;; Code:
 
 (require 'dig)
+(or (require 'password-cache nil t)
+    (require 'password))
 (eval-when-compile (require 'cl))
+
+(eval-and-compile
+  (cond
+   ((fboundp 'replace-in-string)
+    (defalias 'smime-replace-in-string 'replace-in-string))
+   ((fboundp 'replace-regexp-in-string)
+    (defun smime-replace-in-string  (string regexp newtext &optional literal)
+      "Replace all matches for REGEXP with NEWTEXT in STRING.
+If LITERAL is non-nil, insert NEWTEXT literally.  Return a new
+string containing the replacements.
+
+This is a compatibility function for different Emacsen."
+      (replace-regexp-in-string regexp newtext string nil literal)))))
 
 (defgroup smime nil
   "S/MIME configuration."
@@ -218,6 +234,14 @@ If nil, use system defaults."
 		 string)
   :group 'smime)
 
+(defcustom smime-ldap-host-list nil
+  "A list of LDAP hosts with S/MIME user certificates.
+If needed search base, binddn, passwd, etc. for the LDAP host
+must be set in `ldap-host-parameters-alist'."
+  :type '(repeat (string :tag "Host name"))
+  :version "23.0" ;; No Gnus
+  :group 'smime)
+
 (defvar smime-details-buffer "*OpenSSL output*")
 
 ;; Use mm-util?
@@ -234,11 +258,13 @@ If nil, use system defaults."
 
 ;; Password dialog function
 
-(defun smime-ask-passphrase ()
-  "Asks the passphrase to unlock the secret key."
+(defun smime-ask-passphrase (&optional cache-key)
+  "Asks the passphrase to unlock the secret key.
+If `cache-key' and `password-cache' is non-nil then cache the
+password under `cache-key'."
   (let ((passphrase
-	 (read-passwd
-	  "Passphrase for secret key (RET for no passphrase): ")))
+	 (password-read-and-add
+	  "Passphrase for secret key (RET for no passphrase): " cache-key)))
     (if (string= passphrase "")
 	nil
       passphrase)))
@@ -270,11 +296,11 @@ certificates to include in its caar.  If no additional certificates is
 included, KEYFILE may be the file containing the PEM encoded private
 key and certificate itself."
   (smime-new-details-buffer)
-  (let ((keyfile (or (car-safe keyfile) keyfile))
-	(certfiles (and (cdr-safe keyfile) (cadr keyfile)))
-	(buffer (generate-new-buffer (generate-new-buffer-name " *smime*")))
-	(passphrase (smime-ask-passphrase))
-	(tmpfile (smime-make-temp-file "smime")))
+  (let* ((certfiles (and (cdr-safe keyfile) (cadr keyfile)))
+	 (keyfile (or (car-safe keyfile) keyfile))
+	 (buffer (generate-new-buffer (generate-new-buffer-name " *smime*")))
+	 (passphrase (smime-ask-passphrase (expand-file-name keyfile)))
+	 (tmpfile (smime-make-temp-file "smime")))
     (if passphrase
 	(setenv "GNUS_SMIME_PASSPHRASE" passphrase))
     (prog1
@@ -398,8 +424,7 @@ Any details (stdout and stderr) are left in the buffer specified by
     (insert-buffer-substring smime-details-buffer)
     nil))
 
-(eval-when-compile
-  (defvar from))
+(defvar from)
 
 (defun smime-decrypt-region (b e keyfile)
   "Decrypt S/MIME message in region between B and E with key in KEYFILE.
@@ -408,7 +433,7 @@ Any details (stderr on success, stdout and stderr on error) are left
 in the buffer specified by `smime-details-buffer'."
   (smime-new-details-buffer)
   (let ((buffer (generate-new-buffer (generate-new-buffer-name " *smime*")))
-	CAs (passphrase (smime-ask-passphrase))
+	CAs (passphrase (smime-ask-passphrase (expand-file-name keyfile)))
 	(tmpfile (smime-make-temp-file "smime")))
     (if passphrase
 	(setenv "GNUS_SMIME_PASSPHRASE" passphrase))
@@ -521,20 +546,13 @@ A string or a list of strings is returned."
 	    (caddr curkey)
 	  (smime-get-certfiles keyfile otherkeys)))))
 
-;; Use mm-util?
-(eval-and-compile
-  (defalias 'smime-point-at-eol
-    (if (fboundp 'point-at-eol)
-	'point-at-eol
-      'line-end-position)))
-
 (defun smime-buffer-as-string-region (b e)
   "Return each line in region between B and E as a list of strings."
   (save-excursion
     (goto-char b)
     (let (res)
       (while (< (point) e)
-	(let ((str (buffer-substring (point) (smime-point-at-eol))))
+	(let ((str (buffer-substring (point) (point-at-eol))))
 	  (unless (string= "" str)
 	    (push str res)))
 	(forward-line))
@@ -548,6 +566,7 @@ A string or a list of strings is returned."
     mailaddr))
 
 (defun smime-cert-by-dns (mail)
+  "Find certificate via DNS for address MAIL."
   (let* ((dig-dns-server smime-dns-server)
 	 (digbuf (dig-invoke (smime-mail-to-domain mail) "cert" nil nil "+vc"))
 	 (retbuf (generate-new-buffer (format "*certificate for %s*" mail)))
@@ -567,6 +586,59 @@ A string or a list of strings is returned."
 	(setq retbuf nil))
       (kill-buffer digbuf)
       retbuf))
+
+(defun smime-cert-by-ldap-1 (mail host)
+  "Get cetificate for MAIL from the ldap server at HOST."
+  (let ((ldapresult
+	 (funcall
+	  (if (or (featurep 'xemacs)
+		  ;; For Emacs >= 22 we don't need smime-ldap.el
+		  (< emacs-major-version 22))
+	      (progn
+		(require 'smime-ldap)
+		'smime-ldap-search)
+	    'ldap-search)
+	  (concat "mail=" mail)
+	  host '("userCertificate") nil))
+	(retbuf (generate-new-buffer (format "*certificate for %s*" mail)))
+	cert)
+    (if (and (>= (length ldapresult) 1)
+             (> (length (cadaar ldapresult)) 0))
+	(with-current-buffer retbuf
+	  ;; Certificates on LDAP servers _should_ be in DER format,
+	  ;; but there are some servers out there that distributes the
+	  ;; certificates in PEM format (with or without
+	  ;; header/footer) so we try to handle them anyway.
+	  (if (or (string= (substring (cadaar ldapresult) 0 27)
+			   "-----BEGIN CERTIFICATE-----")
+		  (string= (substring (cadaar ldapresult) 0 3)
+			   "MII"))
+	      (setq cert
+		    (smime-replace-in-string
+		     (cadaar ldapresult)
+		     (concat "\\(\n\\|\r\\|-----BEGIN CERTIFICATE-----\\|"
+			     "-----END CERTIFICATE-----\\)")
+		     "" t))
+	    (setq cert (base64-encode-string (cadaar ldapresult) t)))
+	  (insert "-----BEGIN CERTIFICATE-----\n")
+	  (let ((i 0) (len (length cert)))
+	    (while (> (- len 64) i)
+	      (insert (substring cert i (+ i 64)) "\n")
+	      (setq i (+ i 64)))
+	    (insert (substring cert i len) "\n"))
+	  (insert "-----END CERTIFICATE-----\n"))
+      (kill-buffer retbuf)
+      (setq retbuf nil))
+    retbuf))
+
+(defun smime-cert-by-ldap (mail)
+  "Find certificate via LDAP for address MAIL."
+  (if smime-ldap-host-list
+      (catch 'certbuf
+	(dolist (host smime-ldap-host-list)
+	  (let ((retbuf (smime-cert-by-ldap-1 mail host)))
+	    (when retbuf
+	      (throw 'certbuf retbuf)))))))
 
 ;; User interface.
 

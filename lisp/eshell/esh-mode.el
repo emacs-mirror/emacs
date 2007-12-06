@@ -22,15 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'esh-mode)
-
-(eval-when-compile (require 'esh-maint))
-
-(defgroup eshell-mode nil
-  "This module contains code for handling input from the user."
-  :tag "User interface"
-  :group 'eshell)
-
 ;;; Commentary:
 
 ;; Basically, Eshell is used just like shell mode (<M-x shell>).  The
@@ -68,10 +59,18 @@
 ;;
 ;; @ <C-c C-b> will move backward a complete shell argument.
 
+(provide 'esh-mode)
+
+(eval-when-compile (require 'esh-util))
 (require 'esh-module)
 (require 'esh-cmd)
 (require 'esh-io)
 (require 'esh-var)
+
+(defgroup eshell-mode nil
+  "This module contains code for handling input from the user."
+  :tag "User interface"
+  :group 'eshell)
 
 ;;; User Variables:
 
@@ -222,11 +221,6 @@ This is used by `eshell-watch-for-password-prompt'."
 
 (define-abbrev-table 'eshell-mode-abbrev-table ())
 
-(eval-when-compile
-  (unless (eshell-under-xemacs-p)
-    (defalias 'characterp 'ignore)
-    (defalias 'char-int 'ignore)))
-
 (if (not eshell-mode-syntax-table)
     (let ((i 0))
       (setq eshell-mode-syntax-table (make-syntax-table))
@@ -269,7 +263,7 @@ This is used by `eshell-watch-for-password-prompt'."
       (modify-syntax-entry ?\[ "(]  " eshell-mode-syntax-table)
       (modify-syntax-entry ?\] ")[  " eshell-mode-syntax-table)
       ;; All non-word multibyte characters should be `symbol'.
-      (if (eshell-under-xemacs-p)
+      (if (featurep 'xemacs)
 	  (map-char-table
 	   (function
 	    (lambda (key val)
@@ -467,7 +461,7 @@ This is used by `eshell-watch-for-password-prompt'."
 
 (eshell-deftest mode command-running-p
   "Modeline shows no command running"
-  (or (eshell-under-xemacs-p)
+  (or (featurep 'xemacs)
       (not eshell-status-in-modeline)
       (and (memq 'eshell-command-running-string mode-line-format)
 	   (equal eshell-command-running-string "--"))))
@@ -775,38 +769,36 @@ This is done after all necessary filtering has been done."
 	(setq string (funcall (car functions) string))
 	(setq functions (cdr functions))))
     (if (and string oprocbuf (buffer-name oprocbuf))
-	(let ((obuf (current-buffer))
-	      opoint obeg oend)
-	  (set-buffer oprocbuf)
-	  (setq opoint (point))
-	  (setq obeg (point-min))
-	  (setq oend (point-max))
-	  (let ((buffer-read-only nil)
-		(nchars (length string))
-		(ostart nil))
-	    (widen)
-	    (goto-char eshell-last-output-end)
-	    (setq ostart (point))
-	    (if (<= (point) opoint)
-		(setq opoint (+ opoint nchars)))
-	    (if (< (point) obeg)
-		(setq obeg (+ obeg nchars)))
-	    (if (<= (point) oend)
-		(setq oend (+ oend nchars)))
-	    (insert-before-markers string)
-	    (if (= (window-start (selected-window)) (point))
-		(set-window-start (selected-window)
-				  (- (point) nchars)))
-	    (if (= (point) eshell-last-input-end)
-		(set-marker eshell-last-input-end
-			    (- eshell-last-input-end nchars)))
-	    (set-marker eshell-last-output-start ostart)
-	    (set-marker eshell-last-output-end (point))
-	    (force-mode-line-update))
-	  (narrow-to-region obeg oend)
-	  (goto-char opoint)
-	  (eshell-run-output-filters)
-	  (set-buffer obuf)))))
+	(let (opoint obeg oend)
+	  (with-current-buffer oprocbuf
+	    (setq opoint (point))
+	    (setq obeg (point-min))
+	    (setq oend (point-max))
+	    (let ((buffer-read-only nil)
+		  (nchars (length string))
+		  (ostart nil))
+	      (widen)
+	      (goto-char eshell-last-output-end)
+	      (setq ostart (point))
+	      (if (<= (point) opoint)
+		  (setq opoint (+ opoint nchars)))
+	      (if (< (point) obeg)
+		  (setq obeg (+ obeg nchars)))
+	      (if (<= (point) oend)
+		  (setq oend (+ oend nchars)))
+	      (insert-before-markers string)
+	      (if (= (window-start (selected-window)) (point))
+		  (set-window-start (selected-window)
+				    (- (point) nchars)))
+	      (if (= (point) eshell-last-input-end)
+		  (set-marker eshell-last-input-end
+			      (- eshell-last-input-end nchars)))
+	      (set-marker eshell-last-output-start ostart)
+	      (set-marker eshell-last-output-end (point))
+	      (force-mode-line-update))
+	    (narrow-to-region obeg oend)
+	    (goto-char opoint)
+	    (eshell-run-output-filters))))))
 
 (defun eshell-run-output-filters ()
   "Run the `eshell-output-filter-functions' on the current output."

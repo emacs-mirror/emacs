@@ -755,6 +755,11 @@ string, and the third a function.
 In the customization buffer, each element is displayed and edited
 separately, according to the type specified for it.
 
+@item (group @var{element-types}@dots{})
+This works like @code{list} except for the formatting
+of text in the Custom buffer.  @code{list} labels each
+element value with its tag; @code{group} does not.
+
 @item (vector @var{element-types}@dots{})
 Like @code{list} except that the value must be a vector instead of a
 list.  The elements work the same as in @code{list}.

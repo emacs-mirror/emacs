@@ -22,21 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'em-smart)
-
-(eval-when-compile (require 'esh-maint))
-
-(defgroup eshell-smart nil
-  "This module combines the facility of normal, modern shells with
-some of the edit/review concepts inherent in the design of Plan 9's
-9term.  See the docs for more details.
-
-Most likely you will have to turn this option on and play around with
-it to get a real sense of how it works."
-  :tag "Smart display of output"
-  ;; :link '(info-link "(eshell)Smart display of output")
-  :group 'eshell-module)
-
 ;;; Commentary:
 
 ;; The best way to get a sense of what this code is trying to do is by
@@ -83,6 +68,21 @@ it to get a real sense of how it works."
 ;; memory consumption by a factor of two or more.  With small commands
 ;; (such as pwd), where the screen is mostly full, consumption can
 ;; increase by orders of magnitude.
+
+;;; Code:
+
+(eval-when-compile (require 'eshell))
+
+(defgroup eshell-smart nil
+  "This module combines the facility of normal, modern shells with
+some of the edit/review concepts inherent in the design of Plan 9's
+9term.  See the docs for more details.
+
+Most likely you will have to turn this option on and play around with
+it to get a real sense of how it works."
+  :tag "Smart display of output"
+  ;; :link '(info-link "(eshell)Smart display of output")
+  :group 'eshell-module)
 
 ;;; User Variables:
 
@@ -322,7 +322,7 @@ and the end of the buffer are still visible."
     (if clear
 	(remove-hook 'pre-command-hook 'eshell-smart-display-move t))))
 
-;;; Code:
+(provide 'em-smart)
 
 ;;; arch-tag: 8c0112c7-379c-4d54-9a1c-204d68786a4b
 ;;; em-smart.el ends here

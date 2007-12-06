@@ -176,7 +176,7 @@ as unread by Gnus.")
 	(nnheader-re-read-dir pathname)
 	(setq dir
 	      (sort
-	       (mapcar (lambda (name) (string-to-number name))
+	       (mapcar 'string-to-number
 		       (directory-files pathname nil "^[0-9]+$" t))
 	       '<))
 	(cond
@@ -211,7 +211,6 @@ as unread by Gnus.")
   (setq dir (expand-file-name dir))
   ;; Recurse down all directories.
   (let ((dirs (and (file-readable-p dir)
-		   (> (nth 1 (file-attributes (file-chase-links dir))) 2)
 		   (nnheader-directory-files dir t nil t)))
 	rdir)
     ;; Recurse down directories.
@@ -223,9 +222,8 @@ as unread by Gnus.")
 	(nnmh-request-list-1 rdir))))
   ;; For each directory, generate an active file line.
   (unless (string= (expand-file-name nnmh-toplev) dir)
-    (let ((files (mapcar
-		  (lambda (name) (string-to-number name))
-		  (directory-files dir nil "^[0-9]+$" t))))
+    (let ((files (mapcar 'string-to-number
+			 (directory-files dir nil "^[0-9]+$" t))))
       (when files
 	(save-excursion
 	  (set-buffer nntp-server-buffer)
@@ -290,8 +288,8 @@ as unread by Gnus.")
 (deffoo nnmh-close-group (group &optional server)
   t)
 
-(deffoo nnmh-request-move-article (article group server
-					   accept-form &optional last)
+(deffoo nnmh-request-move-article (article group server accept-form 
+					   &optional last move-is-internal)
   (let ((buf (get-buffer-create " *nnmh move*"))
 	result)
     (and
@@ -356,11 +354,9 @@ as unread by Gnus.")
 	    nnmh-group-alist)
       (nnmh-possibly-create-directory group)
       (nnmh-possibly-change-directory group server)
-      (let ((articles (mapcar
-		       (lambda (file)
-			 (string-to-number file))
-		       (directory-files
-			nnmh-current-directory nil "^[0-9]+$"))))
+      (let ((articles (mapcar 'string-to-number
+			      (directory-files
+			       nnmh-current-directory nil "^[0-9]+$"))))
 	(when articles
 	  (setcar active (apply 'min articles))
 	  (setcdr active (apply 'max articles))))))
@@ -484,10 +480,8 @@ as unread by Gnus.")
 	(gnus-make-directory dir))
       ;; Find the highest number in the group.
       (let ((files (sort
-		    (mapcar
-		     (lambda (f)
-		       (string-to-number f))
-		     (directory-files dir nil "^[0-9]+$"))
+		    (mapcar 'string-to-number
+			    (directory-files dir nil "^[0-9]+$"))
 		    '>)))
 	(when files
 	  (setcdr active (car files)))))
@@ -509,7 +503,7 @@ as unread by Gnus.")
   ;; articles in this folder.  The articles that are "new" will be
   ;; marked as unread by Gnus.
   (let* ((dir nnmh-current-directory)
-	 (files (sort (mapcar (function (lambda (name) (string-to-number name)))
+	 (files (sort (mapcar 'string-to-number
 			      (directory-files nnmh-current-directory
 					       nil "^[0-9]+$" t))
 		      '<))

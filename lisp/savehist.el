@@ -308,7 +308,8 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 	       (current-buffer))
 	(insert ?\n)
 	(dolist (symbol savehist-minibuffer-history-variables)
-	  (when (boundp symbol)
+	  (when (and (boundp symbol)
+		     (not (memq symbol savehist-ignored-variables)))
 	    (let ((value (savehist-trim-history (symbol-value symbol)))
 		  excess-space)
 	      (when value		; Don't save empty histories.

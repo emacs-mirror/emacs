@@ -631,6 +631,7 @@ make_process (name)
   p->tick = 0;
   p->update_tick = 0;
   p->pid = 0;
+  p->pty_flag = 0;
   p->raw_status_new = 0;
   p->status = Qrun;
   p->mark = Fmake_marker ();
@@ -1375,8 +1376,10 @@ list_processes_1 (query_only)
   if (w_tty)
     {
       XSETFASTINT (i_tty, XFASTINT (i_buffer) + w_buffer + 1);
-      XSETFASTINT (i_command, XFASTINT (i_buffer) + w_tty + 1);
-    } else {
+      XSETFASTINT (i_command, XFASTINT (i_tty) + w_tty + 1);
+    }
+  else
+    {
       i_tty = Qnil;
       XSETFASTINT (i_command, XFASTINT (i_buffer) + w_buffer + 1);
     }

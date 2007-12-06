@@ -75,7 +75,7 @@
       ;; Set up the menu.
       (when (gnus-visual-p 'draft-menu 'menu)
 	(gnus-draft-make-menu-bar))
-      (gnus-add-minor-mode 'gnus-draft-mode " Draft" gnus-draft-mode-map)
+      (add-minor-mode 'gnus-draft-mode " Draft" gnus-draft-mode-map)
       (gnus-run-hooks 'gnus-draft-mode-hook))))
 
 ;;; Commands
@@ -105,7 +105,9 @@
       (save-restriction
 	(message-narrow-to-headers)
 	(message-remove-header "date")))
-    (save-buffer)
+    (let ((message-draft-headers
+	   (delq 'Date (copy-sequence message-draft-headers))))
+      (save-buffer))
     (let ((gnus-verbose-backends nil))
       (gnus-request-expire-articles (list article) group t))
     (push
@@ -160,7 +162,7 @@
 	     (concat "^" (regexp-quote gnus-agent-target-move-group-header)
 		     ":") nil t)
 	(skip-syntax-forward "-")
-	(setq move-to (buffer-substring (point) (gnus-point-at-eol)))
+	(setq move-to (buffer-substring (point) (point-at-eol)))
 	(message-remove-header gnus-agent-target-move-group-header))
       (goto-char (point-min))
       (when (re-search-forward
@@ -238,6 +240,12 @@
 		    (throw 'continue t)
 		  (error "Stop!"))))))))
 
+(defcustom gnus-draft-setup-hook nil
+  "Hook run after setting up a draft buffer."
+  :group 'gnus-message
+  :version "23.0" ;; No Gnus
+  :type 'hook)
+
 ;;; Utility functions
 
 ;;;!!!If this is byte-compiled, it fails miserably.
@@ -285,7 +293,8 @@
 		(gnus-add-mark ,(car ga) 'replied ,article)
 		(gnus-request-set-mark ,(car ga) (list (list (list ,article)
 							     'add '(reply)))))
-	     'send)))))))
+	     'send))))
+      (run-hooks 'gnus-draft-setup-hook))))
 
 (defun gnus-draft-article-sendable-p (article)
   "Say whether ARTICLE is sendable."

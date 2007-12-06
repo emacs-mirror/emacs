@@ -105,16 +105,16 @@ See Info node `(gnus)Formatting Variables'."
 
 (defun gnus-group-topic-name ()
   "The name of the topic on the current line."
-  (let ((topic (get-text-property (gnus-point-at-bol) 'gnus-topic)))
+  (let ((topic (get-text-property (point-at-bol) 'gnus-topic)))
     (and topic (symbol-name topic))))
 
 (defun gnus-group-topic-level ()
   "The level of the topic on the current line."
-  (get-text-property (gnus-point-at-bol) 'gnus-topic-level))
+  (get-text-property (point-at-bol) 'gnus-topic-level))
 
 (defun gnus-group-topic-unread ()
   "The number of unread articles in topic on the current line."
-  (get-text-property (gnus-point-at-bol) 'gnus-topic-unread))
+  (get-text-property (point-at-bol) 'gnus-topic-unread))
 
 (defun gnus-topic-unread (topic)
   "Return the number of unread articles in TOPIC."
@@ -127,7 +127,7 @@ See Info node `(gnus)Formatting Variables'."
 
 (defun gnus-topic-visible-p ()
   "Return non-nil if the current topic is visible."
-  (get-text-property (gnus-point-at-bol) 'gnus-topic-visible))
+  (get-text-property (point-at-bol) 'gnus-topic-visible))
 
 (defun gnus-topic-articles-in-topic (entries)
   (let ((total 0)
@@ -167,9 +167,11 @@ See Info node `(gnus)Formatting Variables'."
    (list (completing-read "Go to topic: "
 			  (mapcar 'list (gnus-topic-list))
 			  nil t)))
-  (dolist (topic (gnus-current-topics topic))
-    (gnus-topic-goto-topic topic)
-    (gnus-topic-fold t))
+  (let ((buffer-read-only nil))
+    (dolist (topic (gnus-current-topics topic))
+      (unless (gnus-topic-goto-topic topic)
+	(gnus-topic-goto-missing-topic topic)
+	(gnus-topic-display-missing-topic topic))))
   (gnus-topic-goto-topic topic))
 
 (defun gnus-current-topic ()
@@ -196,9 +198,7 @@ If TOPIC, start with that topic."
 
 (defun gnus-group-active-topic-p ()
   "Say whether the current topic comes from the active topics."
-  (save-excursion
-    (beginning-of-line)
-    (get-text-property (point) 'gnus-active)))
+  (get-text-property (point-at-bol) 'gnus-active))
 
 (defun gnus-topic-find-groups (topic &optional level all lowest recursive)
   "Return entries for all visible groups in TOPIC.
@@ -210,7 +210,7 @@ If RECURSIVE is t, return groups in its subtopics too."
     ;; We go through the newsrc to look for matches.
     (while groups
       (when (setq group (pop groups))
-	(setq entry (gnus-gethash group gnus-newsrc-hashtb)
+	(setq entry (gnus-group-entry group)
 	      info (nth 2 entry)
 	      params (gnus-info-params info)
 	      active (gnus-active group)
@@ -244,13 +244,12 @@ If RECURSIVE is t, return groups in its subtopics too."
     (when recursive
       (if (eq recursive t)
 	  (setq recursive (cdr (gnus-topic-find-topology topic))))
-      (mapcar (lambda (topic-topology)
-		(setq visible-groups
-		      (nconc visible-groups
-			     (gnus-topic-find-groups
-			      (caar topic-topology)
-			      level all lowest topic-topology))))
-	      (cdr recursive)))
+      (dolist (topic-topology (cdr recursive))
+	(setq visible-groups
+	      (nconc visible-groups
+		     (gnus-topic-find-groups
+		      (caar topic-topology)
+		      level all lowest topic-topology)))))
     visible-groups))
 
 (defun gnus-topic-goto-previous-topic (n)
@@ -351,7 +350,7 @@ If RECURSIVE is t, return groups in its subtopics too."
     (setq topology gnus-topic-topology
 	  gnus-tmp-topics nil))
   (push (caar topology) gnus-tmp-topics)
-  (mapcar 'gnus-topic-list (cdr topology))
+  (mapc 'gnus-topic-list (cdr topology))
   gnus-tmp-topics)
 
 ;;; Topic parameter jazz
@@ -378,39 +377,50 @@ If RECURSIVE is t, return groups in its subtopics too."
      (format "(gnus-topic-set-parameters %S '%S)" topic parameters))))
 
 (defun gnus-group-topic-parameters (group)
-  "Compute the group parameters for GROUP taking into account inheritance from topics."
+  "Compute the group parameters for GROUP in topic mode.
+Possibly inherit parameters from topics above GROUP."
   (let ((params-list (copy-sequence (gnus-group-get-parameter group))))
     (save-excursion
-      (nconc params-list
-	     (gnus-topic-hierarchical-parameters
-	      ;; First we try to go to the group within the group
-	      ;; buffer and find the topic for the group that way.
-	      ;; This hopefully copes well with groups that are in
-	      ;; more than one topic.  Failing that (i.e. when the
-	      ;; group isn't visible in the group buffer) we find a
-	      ;; topic for the group via gnus-group-topic.
-	      (or (and (gnus-group-goto-group group)
-		       (gnus-current-topic))
-		  (gnus-group-topic group)))))))
+      (gnus-topic-hierarchical-parameters
+       ;; First we try to go to the group within the group buffer and find the
+       ;; topic for the group that way. This hopefully copes well with groups
+       ;; that are in more than one topic. Failing that (i.e. when the group
+       ;; isn't visible in the group buffer) we find a topic for the group via
+       ;; gnus-group-topic.
+       (or (and (gnus-group-goto-group group)
+		(gnus-current-topic))
+	   (gnus-group-topic group))
+       params-list))))
 
-(defun gnus-topic-hierarchical-parameters (topic)
-  "Return a topic list computed for TOPIC."
-  (let ((topics (gnus-current-topics topic))
-	params-list param out params)
-    (while topics
-      (push (gnus-topic-parameters (pop topics)) params-list))
-    ;; We probably have lots of nil elements here, so
-    ;; we remove them.  Probably faster than doing this "properly".
-    (setq params-list (delq nil params-list))
+(defun gnus-topic-hierarchical-parameters (topic &optional group-params-list)
+  "Compute the topic parameters for TOPIC.
+Possibly inherit parameters from topics above TOPIC.
+If optional argument GROUP-PARAMS-LIST is non-nil, use it as the basis for
+inheritance."
+  (let ((params-list
+	 ;; We probably have lots of nil elements here, so we remove them.
+	 ;; Probably faster than doing this "properly".
+	 (delq nil (cons group-params-list
+			 (mapcar 'gnus-topic-parameters
+				 (gnus-current-topics topic)))))
+	param out params)
     ;; Now we have all the parameters, so we go through them
     ;; and do inheritance in the obvious way.
-    (while (setq params (pop params-list))
-      (while (setq param (pop params))
-	(when (atom param)
-	  (setq param (cons param t)))
-	;; Override any old versions of this param.
-	(gnus-pull (car param) out)
-	(push param out)))
+    (let (posting-style)
+      (while (setq params (pop params-list))
+	(while (setq param (pop params))
+	  (when (atom param)
+	    (setq param (cons param t)))
+	  (cond ((eq (car param) 'posting-style)
+		 (let ((param (cdr param))
+		       elt)
+		   (while (setq elt (pop param))
+		     (unless (assoc (car elt) posting-style)
+		       (push elt posting-style)))))
+		(t
+		 (unless (assq (car param) out)
+		   (push param out))))))
+      (and posting-style (push (cons 'posting-style posting-style) out)))
     ;; Return the resulting parameter list.
     out))
 
@@ -465,7 +475,7 @@ If LOWEST is non-nil, list all newsgroups of level LOWEST or higher."
 	  (gnus-make-hashtable-from-killed))
 	(gnus-group-prepare-flat-list-dead
 	 (gnus-remove-if (lambda (group)
-			   (or (gnus-gethash group gnus-newsrc-hashtb)
+			   (or (gnus-group-entry group)
 			       (gnus-gethash group gnus-killed-hashtb)))
 			 not-in-list)
 	 gnus-level-killed ?K regexp)))
@@ -727,6 +737,9 @@ articles in the topic and its subtopics."
 	       (not (gnus-topic-goto-missing-topic (caadr parent))))
       (gnus-topic-display-missing-topic (caadr parent))))
   (gnus-topic-goto-missing-topic topic)
+  ;; Skip past all groups in the topic we're in.
+  (while (gnus-group-group-name)
+    (forward-line 1))
   (let* ((top (gnus-topic-find-topology topic))
 	 (children (cddr top))
 	 (type (cadr top))
@@ -848,8 +861,7 @@ articles in the topic and its subtopics."
       (pop topics)))
   ;; Go through all living groups and make sure that
   ;; they belong to some topic.
-  (let* ((tgroups (apply 'append (mapcar (lambda (entry) (cdr entry))
-					 gnus-topic-alist)))
+  (let* ((tgroups (apply 'append (mapcar 'cdr gnus-topic-alist)))
 	 (entry (last (assoc (caar gnus-topic-topology) gnus-topic-alist)))
 	 (newsrc (cdr gnus-newsrc-alist))
 	 group)
@@ -863,7 +875,7 @@ articles in the topic and its subtopics."
     (while (setq topic (pop alist))
       (while (cdr topic)
 	(if (and (cadr topic)
-		 (gnus-gethash (cadr topic) gnus-newsrc-hashtb))
+		 (gnus-group-entry (cadr topic)))
 	    (setq topic (cdr topic))
 	  (setcdr topic (cddr topic)))))))
 
@@ -893,7 +905,7 @@ articles in the topic and its subtopics."
       (let ((topic-name (pop topic))
 	    group filtered-topic)
 	(while (setq group (pop topic))
-	  (when (and (or (gnus-gethash group gnus-active-hashtb)
+	  (when (and (or (gnus-active group)
 			 (gnus-info-method (gnus-get-info group)))
 		     (not (gnus-gethash group gnus-killed-hashtb)))
 	    (push group filtered-topic)))
@@ -1142,7 +1154,7 @@ articles in the topic and its subtopics."
       (when (gnus-visual-p 'topic-menu 'menu)
 	(gnus-topic-make-menu-bar))
       (gnus-set-format 'topic t)
-      (gnus-add-minor-mode 'gnus-topic-mode " Topic" gnus-topic-mode-map)
+      (add-minor-mode 'gnus-topic-mode " Topic" gnus-topic-mode-map)
       (add-hook 'gnus-group-catchup-group-hook 'gnus-topic-update-topic)
       (set (make-local-variable 'gnus-group-prepare-function)
 	   'gnus-group-prepare-topics)
@@ -1297,15 +1309,13 @@ If COPYP, copy the groups instead."
 	entry)
     (if (and (not groups) (not copyp) start-topic)
 	(gnus-topic-move start-topic topic)
-      (mapcar
-       (lambda (g)
-	 (gnus-group-remove-mark g use-marked)
-	 (when (and
-		(setq entry (assoc (gnus-current-topic) gnus-topic-alist))
-		(not copyp))
-	   (setcdr entry (gnus-delete-first g (cdr entry))))
-	 (nconc topicl (list g)))
-       groups)
+      (dolist (g groups)
+	(gnus-group-remove-mark g use-marked)
+	(when (and
+	       (setq entry (assoc (gnus-current-topic) gnus-topic-alist))
+	       (not copyp))
+	  (setcdr entry (gnus-delete-first g (cdr entry))))
+	(nconc topicl (list g)))
       (gnus-topic-enter-dribble)
       (if start-group
 	  (gnus-group-goto-group start-group)
@@ -1318,7 +1328,7 @@ If COPYP, copy the groups instead."
   (let ((use-marked (and (not n) (not (gnus-region-active-p))
 			 gnus-group-marked t))
 	(groups (gnus-group-process-prefix n)))
-    (mapcar
+    (mapc
      (lambda (group)
        (gnus-group-remove-mark group use-marked)
        (let ((topicl (assoc (gnus-current-topic) gnus-topic-alist))
@@ -1735,9 +1745,7 @@ If REVERSE, reverse the sorting order."
     (if (gnus-topic-find-topology to current-top 0);; Don't care the level
 	(error "Can't move `%s' to its sub-level" current))
     (gnus-topic-find-topology current nil nil 'delete)
-    (while (cdr to-top)
-      (setq to-top (cdr to-top)))
-    (setcdr to-top (list current-top))
+    (setcdr (last to-top) (list current-top))
     (gnus-topic-enter-dribble)
     (gnus-group-list-groups)
     (gnus-topic-goto-topic current)))

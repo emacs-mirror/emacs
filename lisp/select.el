@@ -125,6 +125,8 @@ prefix argument, it uses the text of the region as the selection value ."
 
 ;;; Cut Buffer support
 
+(declare-function x-get-cut-buffer-internal "xselect.c")
+
 (defun x-get-cut-buffer (&optional which-one)
   "Returns the value of one of the 8 X server cut-buffers.
 Optional arg WHICH-ONE should be a number from 0 to 7, defaulting to 0.
@@ -135,6 +137,9 @@ Cut buffers are considered obsolete; you should use selections instead."
 	      CUT_BUFFER4 CUT_BUFFER5 CUT_BUFFER6 CUT_BUFFER7]
 	     which-one)
      'CUT_BUFFER0)))
+
+(declare-function x-rotate-cut-buffers-internal "xselect.c")
+(declare-function x-store-cut-buffer-internal "xselect.c")
 
 (defun x-set-cut-buffer (string &optional push)
   "Store STRING into the X server's primary cut buffer.

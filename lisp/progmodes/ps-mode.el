@@ -480,6 +480,9 @@ If nil, the following are tried in turn, until success:
       (setq i (1+ i)))))
 
 
+
+(declare-function doc-view-minor-mode "doc-view")
+
 ;; PostScript mode.
 
 ;;;###autoload
@@ -529,7 +532,10 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
 	 t))
   (set (make-local-variable 'comment-start) "%")
   ;; NOTE: `\' has a special meaning in strings only
-  (set (make-local-variable 'comment-start-skip) "%+[ \t]*"))
+  (set (make-local-variable 'comment-start-skip) "%+[ \t]*")
+  ;; enable doc-view-minor-mode => C-c C-c starts viewing the current ps file
+  ;; with doc-view-mode.
+  (doc-view-minor-mode 1))
 
 (defun ps-mode-show-version ()
   "Show current version of PostScript mode."

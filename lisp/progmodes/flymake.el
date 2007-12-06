@@ -1268,10 +1268,9 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
 (defun flymake-goto-file-and-line (file line)
   "Try to get buffer for FILE and goto line LINE in it."
   (if (not (file-exists-p file))
-      (flymake-log 1 "file %s does not exists" file)
-    (progn
-      (find-file file)
-      (goto-line line))))
+      (flymake-log 1 "File %s does not exist" file)
+    (find-file file)
+    (goto-line line)))
 
 ;; flymake minor mode declarations
 (defvar flymake-mode-line nil)

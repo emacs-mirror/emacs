@@ -1,7 +1,10 @@
 ;;; nnnil.el --- empty backend for Gnus
-;; Public domain.
+
+;; This file is in the public domain.
 
 ;; Author: Paul Jarc <prj@po.cwru.edu>
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -32,8 +35,7 @@
 (defvar nnnil-status-string "")
 
 (defun nnnil-retrieve-headers (articles &optional group server fetch-old)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer))
   'nov)
 
@@ -69,8 +71,7 @@
   t)
 
 (defun nnnil-request-list (&optional server)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer))
   t)
 

@@ -86,6 +86,15 @@ Completion is performed over known labels when reading."
 	  rmail-last-label
 	(setq rmail-last-label (rmail-make-label result t))))))
 
+(declare-function rmail-maybe-set-message-counters "rmail" ())
+(declare-function rmail-display-labels "rmail" ())
+(declare-function rmail-msgbeg "rmail" (n))
+(declare-function rmail-set-message-deleted-p "rmail" (n state))
+(declare-function rmail-message-labels-p "rmail" (msg labels))
+(declare-function rmail-show-message "rmail" (&optional n no-summary))
+(declare-function mail-comma-list-regexp "mail-utils" (labels))
+(declare-function mail-parse-comma-list "mail-utils.el" ())
+
 (defun rmail-set-label (l state &optional n)
   (with-current-buffer rmail-buffer
     (rmail-maybe-set-message-counters)

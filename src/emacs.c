@@ -353,7 +353,7 @@ int fatal_error_in_progress;
 void (*fatal_error_signal_hook) P_ ((void));
 
 #ifdef HAVE_GTK_AND_PTHREAD
-/* When compiled with GTK and running under Gnome, multiple threads meay be
+/* When compiled with GTK and running under Gnome, multiple threads may be
    created.  Keep track of our main thread to make sure signals are delivered
    to it (see syssignal.h).  */
 
@@ -1543,7 +1543,6 @@ main (argc, argv
       syms_of_fns ();
       syms_of_floatfns ();
 
-      syms_of_abbrev ();
       syms_of_buffer ();
       syms_of_bytecode ();
       syms_of_callint ();
@@ -1640,6 +1639,10 @@ main (argc, argv
       syms_of_fontset ();
 #endif /* MAC_OSX && HAVE_CARBON */
 
+#ifdef HAVE_DBUS
+      syms_of_dbusbind ();
+#endif /* HAVE_DBUS */
+
 #ifdef SYMS_SYSTEM
       SYMS_SYSTEM;
 #endif
@@ -1667,6 +1670,7 @@ main (argc, argv
 #endif  /* HAVE_NTGUI */
     }
 
+  init_editfns (); /* init_process uses Voperating_system_release. */
   init_process (); /* init_display uses add_keyboard_wait_descriptor. */
 #ifndef MAC_OS8
   /* Called before init_window_once for Mac OS Classic.  */
@@ -1689,7 +1693,6 @@ main (argc, argv
   init_image ();
 #endif /* HAVE_WINDOW_SYSTEM */
   init_macros ();
-  init_editfns ();
   init_floatfns ();
 #ifdef VMS
   init_vmsfns ();
@@ -2511,8 +2514,9 @@ The value is nil if that directory's name is not known.  */);
 
   DEFVAR_LISP ("installation-directory", &Vinstallation_directory,
 	       doc: /* A directory within which to look for the `lib-src' and `etc' directories.
-This is non-nil when we can't find those directories in their standard installed
-locations, but we can find them near where the Emacs executable was found.  */);
+This is non-nil when we can't find those directories in their standard
+installed locations, but we can find them near where the Emacs executable
+was found.  */);
   Vinstallation_directory = Qnil;
 
   DEFVAR_LISP ("system-messages-locale", &Vsystem_messages_locale,

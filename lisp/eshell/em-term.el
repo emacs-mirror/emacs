@@ -22,19 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'em-term)
-
-(eval-when-compile (require 'esh-maint))
-
-(defgroup eshell-term nil
-  "This module causes visual commands (e.g., 'vi') to be executed by
-the `term' package, which comes with Emacs.  This package handles most
-of the ANSI control codes, allowing curses-based applications to run
-within an Emacs window.  The variable `eshell-visual-commands' defines
-which commands are considered visual in nature."
-  :tag "Running visual commands"
-  :group 'eshell-module)
-
 ;;; Commentary:
 
 ;; At the moment, eshell is stream-based in its interactive input and
@@ -45,7 +32,19 @@ which commands are considered visual in nature."
 ;; buffer, giving the illusion that Eshell itself is allowing these
 ;; visual processes to execute.
 
+;;; Code:
+
+(eval-when-compile (require 'eshell))
 (require 'term)
+
+(defgroup eshell-term nil
+  "This module causes visual commands (e.g., 'vi') to be executed by
+the `term' package, which comes with Emacs.  This package handles most
+of the ANSI control codes, allowing curses-based applications to run
+within an Emacs window.  The variable `eshell-visual-commands' defines
+which commands are considered visual in nature."
+  :tag "Running visual commands"
+  :group 'eshell-module)
 
 ;;; User Variables:
 
@@ -264,7 +263,7 @@ allowed."
 ;   "Switch to line (\"cooked\") sub-mode of eshell-term mode."
 ;  (use-local-map term-old-mode-map))
 
-;;; Code:
+(provide 'em-term)
 
 ;;; arch-tag: ab7c8fe4-3101-4257-925b-1354c6b2fe9d
 ;;; em-term.el ends here

@@ -514,7 +514,9 @@ Lisp_Object Qsave_session;
 #ifdef MAC_OS
 Lisp_Object Qmac_apple_event;
 #endif
-
+#ifdef HAVE_DBUS
+Lisp_Object Qdbus_event;
+#endif
 /* Lisp_Object Qmouse_movement; - also an event header */
 
 /* Properties of event headers.  */
@@ -1570,7 +1572,7 @@ command_loop_1 ()
 #ifdef MULTI_KBOARD
   int was_locked = single_kboard;
 #endif
-#endif  
+#endif
   int already_adjusted = 0;
 
   current_kboard->Vprefix_arg = Qnil;
@@ -2566,7 +2568,7 @@ do { if (polling_stopped_here) start_polling ();	\
    USED_MOUSE_MENU is null, we don't dereference it.
 
    Value is -2 when we find input on another keyboard.  A second call
-   to read_char will read it. 
+   to read_char will read it.
 
    If END_TIME is non-null, it is a pointer to an EMACS_TIME
    specifying the maximum time to wait until.  If no input arrives by
@@ -3181,7 +3183,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
       int count = SPECPDL_INDEX ();
       record_single_kboard_state ();
 #endif
-      
+
       last_input_char = c;
       Fcommand_execute (tem, Qnil, Fvector (1, &last_input_char), Qt);
 
@@ -4017,9 +4019,6 @@ discard_mouse_events ()
       if (sp->kind == MOUSE_CLICK_EVENT
 	  || sp->kind == WHEEL_EVENT
           || sp->kind == HORIZ_WHEEL_EVENT
-#ifdef WINDOWSNT
-	  || sp->kind == W32_SCROLL_BAR_CLICK_EVENT
-#endif
 #ifdef HAVE_GPM
 	  || sp->kind == GPM_CLICK_EVENT
 #endif
@@ -4100,7 +4099,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	 events.  */
       if (CONSP (Vunread_command_events))
 	break;
-      
+
       if (kbd_fetch_ptr != kbd_store_ptr)
 	break;
 #if defined (HAVE_MOUSE) || defined (HAVE_GPM)
@@ -4312,6 +4311,13 @@ kbd_buffer_get_event (kbp, used_mouse_menu, end_time)
 	  internal_last_event_frame = frame;
 	  kbd_fetch_ptr = event + 1;
 	}
+#ifdef HAVE_DBUS
+      else if (event->kind == DBUS_EVENT)
+	{
+	  obj = make_lispy_event (event);
+	  kbd_fetch_ptr = event + 1;
+	}
+#endif
       else
 	{
 	  /* If this event is on a different frame, return a switch-frame this
@@ -4913,13 +4919,17 @@ char *lispy_function_keys[] =
     0,                /* VK_MENU           0x12 */
     "pause",          /* VK_PAUSE          0x13 */
     "capslock",       /* VK_CAPITAL        0x14 */
-
-    0, 0, 0, 0, 0, 0, /*    0x15 .. 0x1A        */
-
+    "kana",           /* VK_KANA/VK_HANGUL 0x15 */
+    0,                /*    0x16                */
+    "junja",          /* VK_JUNJA          0x17 */
+    "final",          /* VK_FINAL          0x18 */
+    "kanji",          /* VK_KANJI/VK_HANJA 0x19 */
+    0,                /*    0x1A                */
     "escape",         /* VK_ESCAPE         0x1B */
-
-    0, 0, 0, 0,       /*    0x1C .. 0x1F        */
-
+    "convert",        /* VK_CONVERT        0x1C */
+    "non-convert",    /* VK_NONCONVERT     0x1D */
+    "accept",         /* VK_ACCEPT         0x1E */
+    "mode-change",    /* VK_MODECHANGE     0x1F */
     0,                /* VK_SPACE          0x20 */
     "prior",          /* VK_PRIOR          0x21 */
     "next",           /* VK_NEXT           0x22 */
@@ -4952,9 +4962,8 @@ char *lispy_function_keys[] =
     "lwindow",       /* VK_LWIN           0x5B */
     "rwindow",       /* VK_RWIN           0x5C */
     "apps",          /* VK_APPS           0x5D */
-
-    0, 0,            /*    0x5E .. 0x5F        */
-
+    0,               /*    0x5E                */
+    "sleep",
     "kp-0",          /* VK_NUMPAD0        0x60 */
     "kp-1",          /* VK_NUMPAD1        0x61 */
     "kp-2",          /* VK_NUMPAD2        0x62 */
@@ -5001,7 +5010,9 @@ char *lispy_function_keys[] =
 
     "kp-numlock",    /* VK_NUMLOCK        0x90 */
     "scroll",        /* VK_SCROLL         0x91 */
-
+    /* Not sure where the following block comes from.
+       Windows headers have NEC and Fujitsu specific keys in
+       this block, but nothing generic.  */
     "kp-space",	     /* VK_NUMPAD_CLEAR   0x92 */
     "kp-enter",	     /* VK_NUMPAD_ENTER   0x93 */
     "kp-prior",	     /* VK_NUMPAD_PRIOR   0x94 */
@@ -5021,19 +5032,47 @@ char *lispy_function_keys[] =
      * VK_L* & VK_R* - left and right Alt, Ctrl and Shift virtual keys.
      * Used only as parameters to GetAsyncKeyState and GetKeyState.
      * No other API or message will distinguish left and right keys this way.
+     * 0xA0 .. 0xA5
      */
-    /* 0xA0 .. 0xEF */
-
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-
-    /* 0xF0 .. 0xF5 */
-
     0, 0, 0, 0, 0, 0,
 
+    /* Multimedia keys. These are handled as WM_APPCOMMAND, which allows us
+       to enable them selectively, and gives access to a few more functions.
+       See lispy_multimedia_keys below.  */
+    0, 0, 0, 0, 0, 0, 0, /* 0xA6 .. 0xAC        Browser */
+    0, 0, 0,             /* 0xAD .. 0xAF         Volume */
+    0, 0, 0, 0,          /* 0xB0 .. 0xB3          Media */
+    0, 0, 0, 0,          /* 0xB4 .. 0xB7           Apps */
+
+    /* 0xB8 .. 0xC0 "OEM" keys - all seem to be punctuation.  */
+    0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+    /* 0xC1 - 0xDA unallocated, 0xDB-0xDF more OEM keys */
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+    0,               /* 0xE0                   */
+    "ax",            /* VK_OEM_AX         0xE1 */
+    0,               /* VK_OEM_102        0xE2 */
+    "ico-help",      /* VK_ICO_HELP       0xE3 */
+    "ico-00",        /* VK_ICO_00         0xE4 */
+    0,               /* VK_PROCESSKEY     0xE5 */
+    "ico-clear",     /* VK_ICO_CLEAR      0xE6 */
+    "packet",        /* VK_PACKET         0xE7 */
+    0,               /*                   0xE8 */
+    "reset",         /* VK_OEM_RESET      0xE9 */
+    "jump",          /* VK_OEM_JUMP       0xEA */
+    "oem-pa1",       /* VK_OEM_PA1        0xEB */
+    "oem-pa2",       /* VK_OEM_PA2        0xEC */
+    "oem-pa3",       /* VK_OEM_PA3        0xED */
+    "wsctrl",        /* VK_OEM_WSCTRL     0xEE */
+    "cusel",         /* VK_OEM_CUSEL      0xEF */
+    "oem-attn",      /* VK_OEM_ATTN       0xF0 */
+    "finish",        /* VK_OEM_FINISH     0xF1 */
+    "copy",          /* VK_OEM_COPY       0xF2 */
+    "auto",          /* VK_OEM_AUTO       0xF3 */
+    "enlw",          /* VK_OEM_ENLW       0xF4 */
+    "backtab",       /* VK_OEM_BACKTAB    0xF5 */
     "attn",          /* VK_ATTN           0xF6 */
     "crsel",         /* VK_CRSEL          0xF7 */
     "exsel",         /* VK_EXSEL          0xF8 */
@@ -5044,6 +5083,65 @@ char *lispy_function_keys[] =
     "pa1",           /* VK_PA1            0xFD */
     "oem_clear",     /* VK_OEM_CLEAR      0xFE */
     0 /* 0xFF */
+  };
+
+/* Some of these duplicate the "Media keys" on newer keyboards,
+   but they are delivered to the application in a different way.  */
+static char *lispy_multimedia_keys[] =
+  {
+    0,
+    "browser-back",
+    "browser-forward",
+    "browser-refresh",
+    "browser-stop",
+    "browser-search",
+    "browser-favorites",
+    "browser-home",
+    "volume-mute",
+    "volume-down",
+    "volume-up",
+    "media-next",
+    "media-previous",
+    "media-stop",
+    "media-play-pause",
+    "mail",
+    "media-select",
+    "app-1",
+    "app-2",
+    "bass-down",
+    "bass-boost",
+    "bass-up",
+    "treble-down",
+    "treble-up",
+    "mic-volume-mute",
+    "mic-volume-down",
+    "mic-volume-up",
+    "help",
+    "find",
+    "new",
+    "open",
+    "close",
+    "save",
+    "print",
+    "undo",
+    "redo",
+    "copy",
+    "cut",
+    "paste",
+    "mail-reply",
+    "mail-forward",
+    "mail-send",
+    "spell-check",
+    "toggle-dictate-command",
+    "mic-toggle",
+    "correction-list",
+    "media-play",
+    "media-pause",
+    "media-record",
+    "media-fast-forward",
+    "media-rewind",
+    "media-channel-up",
+    "media-channel-down"
   };
 
 #else /* not HAVE_NTGUI */
@@ -5563,6 +5661,21 @@ make_lispy_event (event)
 				  (sizeof (lispy_function_keys)
 				   / sizeof (lispy_function_keys[0])));
 
+#ifdef WINDOWSNT
+    case MULTIMEDIA_KEY_EVENT:
+      if (event->code < (sizeof (lispy_multimedia_keys)
+                         / sizeof (lispy_multimedia_keys[0]))
+          && event->code > 0 && lispy_multimedia_keys[event->code])
+        {
+          return modify_event_symbol (event->code, event->modifiers,
+                                      Qfunction_key, Qnil,
+                                      lispy_multimedia_keys, &func_key_syms,
+                                      (sizeof (lispy_multimedia_keys)
+                                       / sizeof (lispy_multimedia_keys[0])));
+        }
+      return Qnil;
+#endif
+
 #ifdef HAVE_MOUSE
       /* A mouse click.  Figure out where it is, decide whether it's
          a press, click or drag, and build the appropriate structure.  */
@@ -6003,52 +6116,6 @@ make_lispy_event (event)
 
 #endif /* USE_TOOLKIT_SCROLL_BARS */
 
-#ifdef WINDOWSNT
-    case W32_SCROLL_BAR_CLICK_EVENT:
-      {
-	int button = event->code;
-	int is_double;
-	Lisp_Object position;
-	Lisp_Object *start_pos_ptr;
-	Lisp_Object start_pos;
-
-	{
-	  Lisp_Object window;
-	  Lisp_Object portion_whole;
-	  Lisp_Object part;
-
-	  window = event->frame_or_window;
-	  portion_whole = Fcons (event->x, event->y);
-	  part = *scroll_bar_parts[(int) event->part];
-
-	  position
-	    = Fcons (window,
-		     Fcons (Qvertical_scroll_bar,
-			    Fcons (portion_whole,
-				   Fcons (make_number (event->timestamp),
-					  Fcons (part, Qnil)))));
-	}
-
-	/* Always treat W32 scroll bar events as clicks. */
-	event->modifiers |= click_modifier;
-
-	{
-	  /* Get the symbol we should use for the mouse click.  */
-	  Lisp_Object head;
-
-	  head = modify_event_symbol (button,
-				      event->modifiers,
-				      Qmouse_click,
-				      Vlispy_mouse_stem,
-				      NULL, &mouse_syms,
-				      XVECTOR (mouse_syms)->size);
-	  return Fcons (head,
-			Fcons (position,
-			       Qnil));
-	}
-      }
-#endif /* WINDOWSNT */
-
     case DRAG_N_DROP_EVENT:
       {
 	FRAME_PTR f;
@@ -6128,6 +6195,13 @@ make_lispy_event (event)
 			     Fcons (event->arg, Qnil)));
       }
 #endif
+
+#ifdef HAVE_DBUS
+    case DBUS_EVENT:
+      {
+	return Fcons (Qdbus_event, event->arg);
+      }
+#endif /* HAVE_DBUS */
 
 #ifdef HAVE_GPM
     case GPM_CLICK_EVENT:
@@ -6447,11 +6521,20 @@ lispy_modifier_list (modifiers)
    SYMBOL's Qevent_symbol_element_mask property, and maintains the
    Qevent_symbol_elements property.  */
 
+#define KEY_TO_CHAR(k) (XINT (k) & ((1 << CHARACTERBITS) - 1))
+
 Lisp_Object
 parse_modifiers (symbol)
      Lisp_Object symbol;
 {
   Lisp_Object elements;
+
+  if (INTEGERP (symbol))
+    return (Fcons (make_number (KEY_TO_CHAR (symbol)),
+		   Fcons (make_number (XINT (symbol) & CHAR_MODIFIER_MASK),
+			  Qnil)));
+  else if (!SYMBOLP (symbol))
+    return Qnil;
 
   elements = Fget (symbol, Qevent_symbol_element_mask);
   if (CONSP (elements))
@@ -6487,6 +6570,20 @@ parse_modifiers (symbol)
     }
 }
 
+DEFUN ("internal-event-symbol-parse-modifiers", Fevent_symbol_parse_modifiers,
+       Sevent_symbol_parse_modifiers, 1, 1, 0,
+       doc: /* Parse the event symbol.  For internal use.  */)
+     (symbol)
+     Lisp_Object symbol;
+{
+  /* Fill the cache if needed.  */
+  parse_modifiers (symbol);
+  /* Ignore the result (which is stored on Qevent_symbol_element_mask)
+     and use the Lispier representation stored on Qevent_symbol_elements
+     instead.  */
+  return Fget (symbol, Qevent_symbol_elements);
+}
+
 /* Apply the modifiers MODIFIERS to the symbol BASE.
    BASE must be unmodified.
 
@@ -6505,6 +6602,9 @@ apply_modifiers (modifiers, base)
 
   /* Mask out upper bits.  We don't know where this value's been.  */
   modifiers &= INTMASK;
+
+  if (INTEGERP (base))
+    return make_number (XINT (base) | modifiers);
 
   /* The click modifier never figures into cache indices.  */
   cache = Fget (base, Qmodifier_cache);
@@ -6917,6 +7017,11 @@ void
 gobble_input (expected)
      int expected;
 {
+#ifdef HAVE_DBUS
+  /* Check whether a D-Bus message has arrived.  */
+  xd_read_queued_messages ();
+#endif /* HAVE_DBUS */
+
 #ifndef VMS
 #ifdef SIGIO
   if (interrupt_input)
@@ -7036,7 +7141,7 @@ read_avail_input (expected)
               nread += nr;
               expected = 0;
             }
-          
+
           if (nr == -1)          /* Not OK to read input now. */
             {
               err = 1;
@@ -7044,7 +7149,7 @@ read_avail_input (expected)
           else if (nr == -2)          /* Non-transient error. */
             {
               /* The terminal device terminated; it should be closed. */
-              
+
               /* Kill Emacs if this was our last terminal. */
               if (!terminal_list->next_terminal)
                 /* Formerly simply reported no input, but that
@@ -7056,7 +7161,7 @@ read_avail_input (expected)
                    group?  Perhaps on systems with FIONREAD Emacs is
                    alone in its group.  */
                 kill (getpid (), SIGHUP);
-              
+
               /* XXX Is calling delete_terminal safe here?  It calls Fdelete_frame. */
               if (t->delete_terminal_hook)
                 (*t->delete_terminal_hook) (t);
@@ -7097,7 +7202,7 @@ tty_read_avail_input (struct terminal *terminal,
   int nread = 0;
 
   if (!terminal->name)		/* Don't read from a dead terminal. */
-    return;
+    return 0;
 
   if (terminal->type != output_termcap)
     abort ();
@@ -7229,14 +7334,14 @@ tty_read_avail_input (struct terminal *terminal,
         buf.modifiers = meta_modifier;
       if (tty->meta_key != 2)
         cbuf[i] &= ~0x80;
-      
+
       buf.code = cbuf[i];
       /* Set the frame corresponding to the active tty.  Note that the
          value of selected_frame is not reliable here, redisplay tends
          to temporarily change it. */
       buf.frame_or_window = tty->top_frame;
       buf.arg = Qnil;
-      
+
       kbd_buffer_store_event (&buf);
       /* Don't look at input that follows a C-g too closely.
          This reduces lossage due to autorepeat on C-g.  */
@@ -9152,7 +9257,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   last_nonmenu_event = Qnil;
 
   delayed_switch_frame = Qnil;
-  
+
   if (INTERACTIVE)
     {
       if (!NILP (prompt))
@@ -10011,66 +10116,47 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
       /* If KEY is not defined in any of the keymaps,
 	 and cannot be part of a function key or translation,
-	 and is an upper case letter
-	 use the corresponding lower-case letter instead.  */
+	 and is an upper case letter or shifted key,
+	 use the corresponding lower-case/unshifted key instead.  */
       if (first_binding >= nmaps
-	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t
-	  && INTEGERP (key)
-	  && ((((XINT (key) & 0x3ffff)
-		< XCHAR_TABLE (current_buffer->downcase_table)->size)
-	       && UPPERCASEP (XINT (key) & 0x3ffff))
-	      || (XINT (key) & shift_modifier)))
+	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t)
 	{
-	  Lisp_Object new_key;
+	  Lisp_Object breakdown = parse_modifiers (key);
+	  int modifiers
+	    = CONSP (breakdown) ? (XINT (XCAR (XCDR (breakdown)))) : 0;
 
-	  original_uppercase = key;
-	  original_uppercase_position = t - 1;
-
-	  if (XINT (key) & shift_modifier)
-	    XSETINT (new_key, XINT (key) & ~shift_modifier);
-	  else
-	    XSETINT (new_key, (DOWNCASE (XINT (key) & 0x3ffff)
-			       | (XINT (key) & ~0x3ffff)));
-
-	  /* We have to do this unconditionally, regardless of whether
-	     the lower-case char is defined in the keymaps, because they
-	     might get translated through function-key-map.  */
-	  keybuf[t - 1] = new_key;
-	  mock_input = max (t, mock_input);
-
-	  goto replay_sequence;
-	}
-      /* If KEY is not defined in any of the keymaps,
-	 and cannot be part of a function key or translation,
-	 and is a shifted function key,
-	 use the corresponding unshifted function key instead.  */
-      if (first_binding >= nmaps
-	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t
-	  && SYMBOLP (key))
-	{
-	  Lisp_Object breakdown;
-	  int modifiers;
-
-	  breakdown = parse_modifiers (key);
-	  modifiers = XINT (XCAR (XCDR (breakdown)));
-	  if (modifiers & shift_modifier)
+	  if (modifiers & shift_modifier
+	      /* Treat uppercase keys as shifted.  */
+	      || (INTEGERP (key)
+		  & (KEY_TO_CHAR (key)
+		     < XCHAR_TABLE (current_buffer->downcase_table)->size)
+		  && UPPERCASEP (KEY_TO_CHAR (key))))
 	    {
-	      Lisp_Object new_key;
+	      Lisp_Object new_key
+		= (modifiers & shift_modifier
+		   ? apply_modifiers (modifiers & ~shift_modifier,
+				      XCAR (breakdown))
+		   : make_number (DOWNCASE (KEY_TO_CHAR (key)) | modifiers));
 
 	      original_uppercase = key;
 	      original_uppercase_position = t - 1;
 
-	      modifiers &= ~shift_modifier;
-	      new_key = apply_modifiers (modifiers,
-					 XCAR (breakdown));
-
+	      /* We have to do this unconditionally, regardless of whether
+		 the lower-case char is defined in the keymaps, because they
+		 might get translated through function-key-map.  */
 	      keybuf[t - 1] = new_key;
 	      mock_input = max (t, mock_input);
+	      /* Reset fkey (and consequently keytran) to apply
+		 function-key-map on the result, so that S-backspace is
+		 correctly mapped to DEL (via backspace).  OTOH,
+		 input-decode-map doesn't need to go through it again.  */
+	      fkey.start = fkey.end = 0;
+	      keytran.start = keytran.end = 0;
+
 	      goto replay_sequence;
 	    }
 	}
     }
-
   if (!dummyflag)
     read_key_sequence_cmd = (first_binding < nmaps
 			     ? defs[first_binding]
@@ -11187,7 +11273,7 @@ See also `current-input-mode'.  */)
   new_interrupt_input = 1;
 #endif
 
-  if (new_interrupt_input != interrupt_input) 
+  if (new_interrupt_input != interrupt_input)
     {
 #ifdef POLL_FOR_INPUT
       stop_polling ();
@@ -11267,7 +11353,7 @@ See also `current-input-mode'.  */)
   struct terminal *t = get_terminal (terminal, 1);
   struct tty_display_info *tty;
   int new_meta;
-  
+
   if (t == NULL || t->type != output_termcap)
     return Qnil;
   tty = t->display_info.tty;
@@ -11279,7 +11365,7 @@ See also `current-input-mode'.  */)
   else
     new_meta = 2;
 
-  if (tty->meta_key != new_meta) 
+  if (tty->meta_key != new_meta)
     {
 #ifndef DOS_NT
       /* this causes startup screen to be restored and messes with the mouse */
@@ -11287,7 +11373,7 @@ See also `current-input-mode'.  */)
 #endif
 
       tty->meta_key = new_meta;
-  
+
 #ifndef DOS_NT
       init_sys_modes (tty);
 #endif
@@ -11319,7 +11405,7 @@ See also `current-input-mode'.  */)
   /* this causes startup screen to be restored and messes with the mouse */
   reset_sys_modes (tty);
 #endif
-  
+
   /* Don't let this value be out of range.  */
   quit_char = XINT (quit) & (tty->meta_key == 0 ? 0177 : 0377);
 
@@ -11329,7 +11415,7 @@ See also `current-input-mode'.  */)
 
   return Qnil;
 }
-       
+
 DEFUN ("set-input-mode", Fset_input_mode, Sset_input_mode, 3, 4, 0,
        doc: /* Set mode of reading keyboard input.
 First arg INTERRUPT non-nil means use input interrupts;
@@ -11572,9 +11658,12 @@ init_keyboard ()
 #ifdef MULTI_KBOARD
   current_kboard = initial_kboard;
 #endif
+  /* Re-initialize the keyboard again.  */
   wipe_kboard (current_kboard);
   init_kboard (current_kboard);
-  /* Leave Vwindow_system at its `t' default for now.  */
+  /* A value of nil for Vwindow_system normally means a tty, but we also use
+     it for the initial terminal since there is no window system there.  */
+  current_kboard->Vwindow_system = Qnil;
 
   if (!noninteractive)
     {
@@ -11723,6 +11812,11 @@ syms_of_keyboard ()
 #ifdef MAC_OS
   Qmac_apple_event = intern ("mac-apple-event");
   staticpro (&Qmac_apple_event);
+#endif
+
+#ifdef HAVE_DBUS
+  Qdbus_event = intern ("dbus-event");
+  staticpro (&Qdbus_event);
 #endif
 
   Qmenu_enable = intern ("menu-enable");
@@ -11885,6 +11979,7 @@ syms_of_keyboard ()
   staticpro (&help_form_saved_window_configs);
 
   defsubr (&Scurrent_idle_time);
+  defsubr (&Sevent_symbol_parse_modifiers);
   defsubr (&Sevent_convert_list);
   defsubr (&Sread_key_sequence);
   defsubr (&Sread_key_sequence_vector);
@@ -12286,7 +12381,7 @@ here.  If a mapping is defined in both the current
 `local-function-key-map' binding and this variable, then the local
 definition will take precendence.  */);
   Vfunction_key_map = Fmake_sparse_keymap (Qnil);
-                    
+
   DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
                doc: /* Keymap of key translations that can override keymaps.
 This keymap works like `function-key-map', but comes after that,
@@ -12400,6 +12495,15 @@ and the Lisp function within which the error was signaled.  */);
 Help functions bind this to allow help on disabled menu items
 and tool-bar buttons.  */);
   Venable_disabled_menus_and_buttons = Qnil;
+
+#ifdef MULTI_KBOARD
+  /* Create the initial keyboard. */
+  initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  init_kboard (initial_kboard);
+  /* Vwindow_system is left at t for now.  */
+  initial_kboard->next_kboard = all_kboards;
+  all_kboards = initial_kboard;
+#endif
 }
 
 void
@@ -12444,6 +12548,13 @@ keys_of_keyboard ()
    * 			    "handle-select-window"); */
   initial_define_lispy_key (Vspecial_event_map, "save-session",
 			    "handle-save-session");
+
+#ifdef HAVE_DBUS
+  /* Define a special event which is raised for dbus callback
+     functions.  */
+  initial_define_lispy_key (Vspecial_event_map, "dbus-event",
+			    "dbus-handle-event");
+#endif
 }
 
 /* Mark the pointers in the kboard objects.

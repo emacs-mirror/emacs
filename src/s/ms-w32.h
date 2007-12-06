@@ -292,6 +292,7 @@ Boston, MA 02110-1301, USA.  */
 #define HAVE_INET_SOCKETS 1
 
 #undef  HAVE_AIX_SMT_EXP
+#define USE_TOOLKIT_SCROLL_BARS 1
 
 /* Define if you have the ANSI `strerror' function.
    Otherwise you must have the variable `char *sys_errlist[]'.  */
@@ -476,9 +477,7 @@ extern char *get_emacs_configuration_options (void);
 #endif
 #include <string.h>
 
-/* We need a little extra space, see ../../lisp/loadup.el.
-   The number below comes from 23923 bytes worth (as of 2006-04)
-   of w32-specific files loaded by loadup.el, plus 1K spare.  */
+/* We need a little extra space, see ../../lisp/loadup.el.  */
 #define SYSTEM_PURESIZE_EXTRA 50000
 
 /* For unexec to work on Alpha systems, we need to put Emacs'
@@ -490,9 +489,9 @@ extern char *get_emacs_configuration_options (void);
    into its own section.  VC5 intermingles uninitialized data from the CRT
    between Emacs' static uninitialized data and its public uninitialized
    data.  A separate .bss section for Emacs groups both static and
-   public uninitalized together.
+   public uninitialized together.
 
-   Note that unexnt.c relies on this fact, and must be modified
+   Note that unexw32.c relies on this fact, and must be modified
    accordingly if this section name is changed, or if this pragma is
    removed.  Also, obviously, all files that define initialized data
    must include config.h to pick up this pragma.  */

@@ -260,6 +260,9 @@ box, one of the more common uses of the package.  This allows
 relatively secure access to machines, especially if @command{ftp}
 access is disabled.
 
+Under Windows, @value{tramp} is integrated with the PuTTY package,
+using the @command{plink} program.
+
 The majority of activity carried out by @value{tramp} requires only that
 the remote login is possible and is carried out at the terminal.  In
 order to access remote files @value{tramp} needs to transfer their content
@@ -269,24 +272,15 @@ to the local machine temporarily.
 The details are easy to select, depending on your needs and the
 machines in question.
 
-The fastest transfer methods (for large files) rely on a remote file
-transfer package such as @command{rcp}, @command{scp} or
-@command{rsync}.
+The fastest transfer methods for large files rely on a remote file
+transfer package such as @command{rcp}, @command{scp}, @command{rsync}
+or (under Windows) @command{pscp}.
 
 If the remote copy methods are not suitable for you, @value{tramp} also
 supports the use of encoded transfers directly through the shell.
 This requires that the @command{mimencode} or @command{uuencode} tools
 are available on the remote machine.  These methods are generally
 faster for small files.
-
-Within these limitations, @value{tramp} is quite powerful.  It is worth
-noting that, as of the time of writing, it is far from a polished
-end-user product.  For a while yet you should expect to run into rough
-edges and problems with the code now and then.
-
-It is finished enough that the developers use it for day to day work but
-the installation and setup can be a little difficult to master, as can
-the terminology.
 
 @value{tramp} is still under active development and any problems you encounter,
 trivial or major, should be reported to the @value{tramp} developers.
@@ -333,9 +327,10 @@ host, followed by a newline.
 @value{tramp} now waits for the shell prompt or for a message that the login
 failed.
 
-If @value{tramp} sees neither of them after a certain period of time (a minute,
-say), then it issues an error message saying that it couldn't find the
-remote shell prompt and shows you what the remote host has sent.
+If @value{tramp} sees neither of them after a certain period of time
+(a minute, say), then it issues an error message saying that it
+couldn't find the remote shell prompt and shows you what the remote
+host has sent.
 
 If @value{tramp} sees a @samp{login failed} message, it tells you so,
 aborts the login attempt and allows you to try again.
@@ -1594,6 +1589,33 @@ exiting @value{emacsname}.  You can simply remove this file if
 Using such persistent information can be disabled by setting
 @code{tramp-persistency-file-name} to @code{nil}.
 
+Once consequence of reusing connection related information is that
+@var{tramp} needs to distinguish hosts.  If you, for example, run a
+local @code{sshd} on port 3001, which tunnels @command{ssh} to another
+host, you could access both @file{@trampfn{ssh, , localhost,}} and
+@file{@trampfn{ssh, , localhost#3001,}}.  @var{tramp} would use the
+same host related information (like paths, Perl variants, etc) for
+both connections, although the information is valid only for one of
+them.
+
+In order to avoid trouble, you must use another host name for one of
+the connections, like introducing a @option{Host} section in
+@file{~/.ssh/config} (@pxref{Frequently Asked Questions}) or applying
+multiple hops (@pxref{Multi-hops}).
+
+When @value{tramp} detects a changed operating system version on a
+remote host (via the command @command{uname -sr}), it flushes all
+connection related information for this host, quits the execution, and
+displays a message like this:
+
+@example
+Quit: "Connection reset, because remote host changed from `Linux
+2.6.22-13-generic' to `Linux 2.6.22-14-generic'"
+@end example
+
+@noindent
+You can simply open the remote file again in such a case.
+
 
 @node Remote Programs
 @section How @value{tramp} finds and uses programs on the remote machine.
@@ -2245,27 +2267,49 @@ filename completion on the remote host.  This works pretty much like
 for files on the local host, with the exception that minibuffer
 killing via a double-slash works only on the filename part, except
 that filename part starts with @file{//}.
+@ifset emacs
+A triple-slash stands for the default behaviour.
+@end ifset
 @ifinfo
 @xref{Minibuffer File, , , @value{emacsdir}}.
 @end ifinfo
 
+@noindent
+Example:
+
+@example
 @ifset emacs
-As example, @kbd{@trampfn{telnet, , melancholia, /usr/local/bin//etc}
-@key{TAB}} would result in
-@file{@trampfn{telnet, , melancholia, /etc}}, whereas
-@kbd{@trampfn{telnet, , melancholia, //etc} @key{TAB}} reduces the
-minibuffer contents to @file{/etc}.  A triple-slash stands for the
-default behaviour,
-i.e. @kbd{@trampfn{telnet, , melancholia, /usr/local/bin///etc}
-@key{TAB}} expands directly to @file{/etc}.
+@kbd{C-x C-f @trampfn{telnet, , melancholia, /usr/local/bin//etc} @key{TAB}}
+     @print{} @trampfn{telnet, , melancholia, /etc}
+
+@kbd{C-x C-f @trampfn{telnet, , melancholia, //etc} @key{TAB}}
+     @print{} /etc
+
+@kbd{C-x C-f @trampfn{telnet, , melancholia, /usr/local/bin///etc} @key{TAB}}
+     @print{} /etc
 @end ifset
 
 @ifset xemacs
-As example, @kbd{@trampfn{telnet, , melancholia, /usr/local/bin//}}
-would result in @file{@trampfn{telnet, , melancholia, /}}, whereas
-@kbd{@trampfn{telnet, , melancholia, //}} expands the minibuffer
-contents to @file{/}.
+@kbd{C-x C-f @trampfn{telnet, , melancholia, /usr/local/bin//}}
+     @print{} @trampfn{telnet, , melancholia, /}
+
+@kbd{C-x C-f @trampfn{telnet, , melancholia, //}}
+     @print{} /
 @end ifset
+@end example
+
+A remote directory might have changed its contents out of
+@value{emacsname} control, for example by creation or deletion of
+files by other processes.  Therefore, during filename completion the
+remote directory contents is reread regularly in order to detect such
+changes, which would be invisible otherwise (@pxref{Connection caching}).
+
+@defopt tramp-completion-reread-directory-timeout
+This variable defines the number of seconds since last remote command
+before rereading a directory contents.  A value of 0 would require an
+immediate reread during filename completion, @code{nil} means to use
+always cached values for the directory contents.
+@end defopt
 
 
 @node Remote processes
@@ -2651,22 +2695,43 @@ remote host.
 @lisp
 (defadvice tramp-handle-write-region
   (after tramp-write-beep-advice activate)
- " make tramp beep after writing a file."
- (interactive)
- (beep))
+  "Make tramp beep after writing a file."
+  (interactive)
+  (beep))
 
 (defadvice tramp-handle-do-copy-or-rename-file
   (after tramp-copy-beep-advice activate)
- " make tramp beep after copying a file."
- (interactive)
- (beep))
+  "Make tramp beep after copying a file."
+  (interactive)
+  (beep))
 
 (defadvice tramp-handle-insert-file-contents
-  (after tramp-copy-beep-advice activate)
- " make tramp beep after copying a file."
- (interactive)
- (beep))
+  (after tramp-insert-beep-advice activate)
+  "Make tramp beep after inserting a file."
+  (interactive)
+  (beep))
 @end lisp
+
+
+@ifset emacs
+@item
+I'ld like to get a Visual Warning when working in a sudo:ed context
+
+When you are working with @samp{root} privileges, it might be useful
+to get an indication in the buffer's modeline.  The following code,
+tested with @value{emacsname} 22.1, does the job.  You should put it
+into your @file{~/.emacs}:
+
+@lisp
+(defun my-mode-line-function ()
+  (when (string-match "^/su\\(do\\)?:" default-directory)
+    (setq mode-line-format
+          (format-mode-line mode-line-format 'font-lock-warning-face))))
+
+(add-hook 'find-file-hooks 'my-mode-line-function)
+(add-hook 'dired-mode-hook 'my-mode-line-function)
+@end lisp
+@end ifset
 
 
 @ifset emacs
@@ -2800,7 +2865,7 @@ Host xy
 
 The file name left to type would be @kbd{C-x C-f @trampfn{ssh, , xy,
 /opt/news/etc}}.  Depending on files in your directories, it is even
-possible to complete the hostname with @kbd{C-x C-f
+possible to complete the host name with @kbd{C-x C-f
 @value{prefix}ssh@value{postfixhop}x @key{TAB}}.
 
 @item Use environment variables:

@@ -1,3 +1,72 @@
+2007-11-26  Richard Stallman  <rms@gnu.org>
+
+	* help.texi (Help Echo): Cleanups.
+
+2007-11-23  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* files.texi (Why Version Control?): Fix typo.
+	(VCS Concepts): Fix typos; small tense fix.
+	(Selecting a Fileset): Fix typos; small rewording.
+	(Log Buffer): Likewise.
+	(Old Revisions): Likewise.
+
+2007-11-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Communication Coding): Fix wording of last change.
+
+2007-11-16  Werner Lemberg <wl@gnu.org>
+
+	* custom.texi (Specifying File Variables), major.texi (Choosing
+	Modes): Mention '\" in man pages.
+
+2007-11-16  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* mule.texi (Communication Coding): Document x-select-request-type.
+
+	* frames.texi (Cut/Paste Other App): Mention x-select-request-type.
+
+2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* maintaining.texi (TEXTAGS): note that you can use "-" for stdout with
+	--output=file.
+
+2007-11-13  Martin Rudalics  <rudalics@gmx.at>
+
+	* help.texi (Help Summary, Apropos, Misc Help): Fix typos.
+	(Help Echo): Avoid mentioning the term "region" here and
+	consistently use the term "active text".
+
+2007-11-11  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi (Special Diary Entries): Fix Thanksgiving example.
+
+2007-11-10  Paul Pogonyshev  <pogonyshev@gmx.net>
+
+	* search.texi (Query Replace): Mention
+	`query-replace-show-replacement'.
+
+2007-11-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Watch Expressions): Remove obscure sentence.
+
+2007-11-06  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* mule.texi (Select Input Method): Describe how to activate an input
+	method in the text mode.
+
+2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* cmdargs.texi (Misc Variables): Remove Sun windows info.
+
+2007-10-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Watch Expressions): Describe gdb-delete-out-of-scope.
+
+2007-10-30  Glenn Morris  <rgm@gnu.org>
+
+	* misc.texi (Directory Tracking): Explain a bit more about
+	dirtrack-mode.
+
 2007-10-25  Glenn Morris  <rgm@gnu.org>
 
 	* fortran-xtra.texi (Fortran): F90 mode handles F2003.

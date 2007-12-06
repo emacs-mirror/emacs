@@ -296,14 +296,14 @@ a reflection."
 (defun bb-up (count)
   (interactive "p")
   (while (and (> count 0) (> bb-y -1))
-    (forward-line -1)
+    (with-no-warnings (previous-line))
     (setq bb-y (1- bb-y))
     (setq count (1- count))))
 
 (defun bb-down (count)
   (interactive "p")
   (while (and (> count 0) (< bb-y 8))
-    (forward-line 1)
+    (with-no-warnings (next-line))
     (setq bb-y (1+ bb-y))
     (setq count (1- count))))
 

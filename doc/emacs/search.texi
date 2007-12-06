@@ -1172,7 +1172,11 @@ like @code{query-replace}.
   These commands highlight the current match using the face
 @code{query-replace}.  They highlight other matches using
 @code{lazy-highlight} just like incremental search (@pxref{Incremental
-Search}).
+Search}).  By default, @code{query-replace-regexp} will show
+substituted replacement string for the current match in the
+minibuffer.  If you want to keep special sequences @samp{\&} and
+@samp{\@var{n}} unexpanded, customize
+@code{query-replace-show-replacement} variable.
 
   The characters you can type when you are shown a match for the string
 or regexp are:

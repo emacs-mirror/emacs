@@ -710,7 +710,8 @@ language you are using."
   ;; Override the global binding (which calls indent-relative via
   ;; indent-for-tab-command).  The alignment that indent-relative tries to
   ;; do doesn't make much sense here since the prompt messes it up.
-  (define-key map "\t"    'self-insert-command))
+  (define-key map "\t"    'self-insert-command)
+  (define-key minibuffer-local-map [C-tab] 'file-cache-minibuffer-complete))
 
 (define-key global-map "\C-u" 'universal-argument)
 (let ((i ?0))
@@ -1079,6 +1080,9 @@ language you are using."
 
 (define-key ctl-x-map "z" 'repeat)
 
+(define-key esc-map "\C-l" 'reposition-window)
+
+(define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
 (define-key ctl-x-4-map "c" 'clone-indirect-buffer-other-window)
 
 ;; Signal handlers

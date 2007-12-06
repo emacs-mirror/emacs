@@ -2970,10 +2970,9 @@ free_frame_menubar (f)
 
 int xg_ignore_gtk_scrollbar;
 
-/* SET_SCROLL_BAR_X_WINDOW assumes the second argument fits in
-   32 bits.  But we want to store pointers, and they may be larger
-   than 32 bits.  Keep a mapping from integer index to widget pointers
-   to get around the 32 bit limitation.  */
+/* Xlib's `Window' fits in 32 bits.  But we want to store pointers, and they
+   may be larger than 32 bits.  Keep a mapping from integer index to widget
+   pointers to get around the 32 bit limitation.  */
 
 static struct
 {
@@ -3183,7 +3182,7 @@ xg_create_scroll_bar (f, bar, scroll_callback, scroll_bar_name)
   /* Set the cursor to an arrow.  */
   xg_set_cursor (webox, FRAME_X_DISPLAY_INFO (f)->xg_cursor);
 
-  SET_SCROLL_BAR_X_WINDOW (bar, scroll_id);
+  bar->x_window = scroll_id;
 }
 
 /* Make the scroll bar represented by SCROLLBAR_ID visible.  */
@@ -3258,7 +3257,7 @@ xg_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
      struct scroll_bar *bar;
      int portion, position, whole;
 {
-  GtkWidget *wscroll = xg_get_widget_from_map (SCROLL_BAR_X_WINDOW (bar));
+  GtkWidget *wscroll = xg_get_widget_from_map (bar->x_window);
 
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
 
@@ -3460,6 +3459,7 @@ xg_tool_bar_menu_proxy (toolitem, user_data)
       GtkImage *wimage = GTK_IMAGE (gtk_bin_get_child (GTK_BIN (wbutton)));
       GtkSettings *settings = gtk_widget_get_settings (GTK_WIDGET (wbutton));
       GtkImageType store_type = gtk_image_get_storage_type (wimage);
+
       if (store_type == GTK_IMAGE_STOCK)
         {
           gchar *stock_id;
@@ -3489,6 +3489,25 @@ xg_tool_bar_menu_proxy (toolitem, user_data)
 
               wmenuimage = gtk_image_new_from_pixbuf (dest_pixbuf);
             }
+          else
+            {
+              fprintf (stderr, "internal error: GTK_IMAGE_PIXBUF failed\n");
+              abort ();
+            }
+        }
+      else if (store_type == GTK_IMAGE_ICON_NAME) 
+        {
+          const gchar *icon_name;
+          GtkIconSize icon_size;
+
+          gtk_image_get_icon_name (wimage, &icon_name, &icon_size);
+          wmenuimage = gtk_image_new_from_icon_name (icon_name,
+                                                     GTK_ICON_SIZE_MENU);
+        }
+      else
+        {
+          fprintf (stderr, "internal error: store_type is %d\n", store_type);
+          abort ();
         }
     }
   if (wmenuimage)
@@ -3802,6 +3821,7 @@ update_frame_tool_bar (f)
       GtkWidget *wbutton = NULL;
       GtkWidget *weventbox;
       Lisp_Object func = intern ("x-gtk-map-stock");
+      Lisp_Object specified_file;
 
       ti = gtk_toolbar_get_nth_item (GTK_TOOLBAR (x->toolbar_widget), i);
 
@@ -3820,8 +3840,9 @@ update_frame_tool_bar (f)
           continue;
         }
 
-      if (EQ (Qt, Ffboundp (func))) 
-        stock = call1 (func, file_for_image (image));
+      specified_file = file_for_image (image);
+      if (!NILP (specified_file) && EQ (Qt, Ffboundp (func)))
+        stock = call1 (func, specified_file);
 
       if (! NILP (stock) && STRINGP (stock))
         {

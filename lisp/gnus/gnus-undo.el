@@ -50,7 +50,6 @@
 
 (require 'gnus-util)
 (require 'gnus)
-(require 'custom)
 
 (defgroup gnus-undo nil
   "Undoing in Gnus buffers."
@@ -113,7 +112,7 @@
     ;; Set up the menu.
     (when (gnus-visual-p 'undo-menu 'menu)
       (gnus-undo-make-menu-bar))
-    (gnus-add-minor-mode 'gnus-undo-mode "" gnus-undo-mode-map)
+    (add-minor-mode 'gnus-undo-mode "" gnus-undo-mode-map)
     (gnus-make-local-hook 'post-command-hook)
     (add-hook 'post-command-hook 'gnus-undo-boundary nil t)
     (gnus-run-hooks 'gnus-undo-mode-hook)))
@@ -187,8 +186,7 @@ A numeric argument serves as a repeat count."
       (error "Nothing further to undo"))
     (setq gnus-undo-actions (delq action gnus-undo-actions))
     (setq gnus-undo-boundary t)
-    (while action
-      (funcall (pop action)))))
+    (mapc 'funcall action)))
 
 (provide 'gnus-undo)
 

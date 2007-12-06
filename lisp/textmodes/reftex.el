@@ -338,6 +338,169 @@
 (defvar reftex-toc-auto-recenter-timer nil
   "The idle timer used to recenter the toc window.")
 
+;;; =========================================================================
+;;;
+;;; Parser functions
+
+(autoload 'reftex-parse-one "reftex-parse"
+  "Re-parse this file." t)
+(autoload 'reftex-parse-all "reftex-parse"
+  "Re-parse entire document." t)
+(autoload 'reftex-do-parse "reftex-parse")
+(autoload 'reftex-where-am-I "reftex-parse")
+(autoload 'reftex-init-section-numbers "reftex-parse")
+(autoload 'reftex-section-info "reftex-parse")
+(autoload 'reftex-section-number "reftex-parse")
+(autoload 'reftex-what-macro "reftex-parse")
+(autoload 'reftex-what-macro-safe "reftex-parse")
+(autoload 'reftex-index-info "reftex-parse")
+(autoload 'reftex-index-info-safe "reftex-parse")
+(autoload 'reftex-short-context "reftex-parse")
+(autoload 'reftex-what-environment "reftex-parse")
+(autoload 'reftex-what-special-env "reftex-parse")
+(autoload 'reftex-move-over-touching-args "reftex-parse")
+(autoload 'reftex-notice-new "reftex-parse")
+(autoload 'reftex-nth-arg "reftex-parse")
+(autoload 'reftex-locate-bibliography-files "reftex-parse")
+(autoload 'reftex-ensure-index-support "reftex-parse")
+(autoload 'reftex-everything-regexp "reftex-parse")
+
+
+;;; =========================================================================
+;;;
+;;; Labels and References
+
+(autoload 'reftex-label-location "reftex-ref")
+(autoload 'reftex-label-info-update "reftex-ref")
+(autoload 'reftex-label-info "reftex-ref")
+(autoload 'reftex-label "reftex-ref"
+ "Insert a unique label." t)
+(autoload 'reftex-reference "reftex-ref"
+ "Make a LaTeX reference." t)
+(autoload 'reftex-varioref-vref "reftex-ref"
+  "Make a varioref reference." t)
+(autoload 'reftex-fancyref-fref "reftex-ref"
+  "Make a fancyref \\fref reference." t)
+(autoload 'reftex-fancyref-Fref "reftex-ref"
+  "Make a fancyref \\Fref reference." t)
+(autoload 'reftex-show-label-location "reftex-ref")
+(autoload 'reftex-query-label-type "reftex-ref")
+(autoload 'reftex-goto-label "reftex-ref"
+  "Prompt for label name and go to that location." t)
+
+;;; =========================================================================
+;;;
+;;; Table of contents
+
+(autoload 'reftex-toc "reftex-toc"
+  "Show the table of contents for the current document." t)
+(autoload 'reftex-toc-recenter "reftex-toc"
+  "Display the TOC window and highlight line corresponding to current position." t)
+(autoload 'reftex-toggle-auto-toc-recenter "reftex-toc" 
+  "Toggle automatic recentering of TOC window." t)
+
+;;; =========================================================================
+;;;
+;;; BibTeX citations.
+
+(autoload 'reftex-citep "reftex-cite")
+(autoload 'reftex-citet "reftex-cite")
+(autoload 'reftex-make-cite-echo-string "reftex-cite")
+(autoload 'reftex-get-bibfile-list "reftex-cite")
+(autoload 'reftex-pop-to-bibtex-entry "reftex-cite")
+(autoload 'reftex-end-of-bib-entry "reftex-cite")
+(autoload 'reftex-parse-bibtex-entry "reftex-cite")
+(autoload 'reftex-citation "reftex-cite"
+ "Make a citation using BibTeX database files." t)
+(autoload 'reftex-default-bibliography "reftex-cite")
+(autoload 'reftex-bib-or-thebib "reftex-cite")
+(autoload 'reftex-create-bibtex-file "reftex-cite")
+
+;;; =========================================================================
+;;;
+;;; Selection
+
+(autoload 'reftex-select-label-mode "reftex-sel")
+(autoload 'reftex-select-bib-mode "reftex-sel")
+(autoload 'reftex-find-start-point "reftex-sel")
+(autoload 'reftex-insert-docstruct "reftex-sel")
+(autoload 'reftex-get-offset "reftex-sel")
+(autoload 'reftex-select-item "reftex-sel")
+
+
+;;; =========================================================================
+;;;
+;;; Index support
+
+(autoload 'reftex-index "reftex-index"
+ "Query for an index macro and insert it along with its argments." t)
+(autoload 'reftex-index-selection-or-word "reftex-index"
+ "Put selection or the word near point into the default index macro." t)
+(autoload 'reftex-index-phrase-selection-or-word "reftex-index"
+ "Put selection or the word near point into Index Phrases File." t)
+(autoload 'reftex-display-index "reftex-index"
+ "Display a buffer with an index compiled from the current document." t)
+(autoload 'reftex-index-visit-phrases-buffer "reftex-index"
+ "Visit the Index Phrases File." t)
+(autoload 'reftex-index-phrases-mode "reftex-index"
+ "Major mode for managing the Index phrases of a LaTeX document." t)
+(autoload 'reftex-index-complete-tag "reftex-index")
+(autoload 'reftex-index-complete-key "reftex-index")
+(autoload 'reftex-index-show-entry "reftex-index")
+(autoload 'reftex-index-select-tag "reftex-index")
+
+
+;;; =========================================================================
+;;;
+;;; View cross references
+
+(autoload 'reftex-view-crossref "reftex-dcr"
+ "View cross reference of \\ref or \\cite macro at point." t)
+(autoload 'reftex-mouse-view-crossref "reftex-dcr"
+ "View cross reference of \\ref or \\cite macro where you click." t)
+(autoload 'reftex-toggle-auto-view-crossref "reftex-dcr")
+(autoload 'reftex-view-crossref-from-bibtex "reftex-dcr"
+ "View location in a LaTeX document which cites the BibTeX entry at point." t)
+
+
+;;; =========================================================================
+;;;
+;;; Operations on entire Multifile documents
+
+(autoload 'reftex-create-tags-file "reftex-global"
+ "Create TAGS file by running `etags' on the current document." t)
+(autoload 'reftex-grep-document "reftex-global"
+ "Run grep query through all files related to this document." t)
+(autoload 'reftex-search-document "reftex-global"
+ "Regexp search through all files of the current TeX document." t)
+(autoload 'reftex-query-replace-document "reftex-global"
+ "Run a query-replace-regexp of FROM with TO over the entire TeX document." t)
+(autoload 'reftex-find-duplicate-labels "reftex-global"
+ "Produce a list of all duplicate labels in the document." t)
+(autoload 'reftex-change-label "reftex-global"
+ "Query replace FROM with TO in all \\label and \\ref commands." t)
+(autoload 'reftex-renumber-simple-labels "reftex-global"
+ "Renumber all simple labels in the document to make them sequentially." t)
+(autoload 'reftex-save-all-document-buffers "reftex-global"
+ "Save all documents associated with the current document." t)
+
+
+;;; =========================================================================
+;;;
+;;; AUCTeX Interface
+
+(autoload 'reftex-arg-label "reftex-auc")
+(autoload 'reftex-arg-cite "reftex-auc")
+(autoload 'reftex-arg-index-tag "reftex-auc")
+(autoload 'reftex-arg-index "reftex-auc")
+(autoload 'reftex-plug-into-AUCTeX "reftex-auc")
+(autoload 'reftex-toggle-plug-into-AUCTeX "reftex-auc"
+ "Toggle Interface between AUCTeX and RefTeX on and off." t)
+(autoload 'reftex-add-label-environments "reftex-auc")
+(autoload 'reftex-add-to-label-alist "reftex-auc")
+(autoload 'reftex-add-section-levels "reftex-auc")
+(autoload 'reftex-notice-new-section "reftex-auc")
+
 ;;;###autoload
 (defun turn-on-reftex ()
   "Turn on RefTeX mode."
@@ -1608,169 +1771,6 @@ When DIE is non-nil, throw an error if file not found."
 
 ;;; =========================================================================
 ;;;
-;;; Parser functions
-
-(autoload 'reftex-parse-one "reftex-parse"
-  "Re-parse this file." t)
-(autoload 'reftex-parse-all "reftex-parse"
-  "Re-parse entire document." t)
-(autoload 'reftex-do-parse "reftex-parse")
-(autoload 'reftex-where-am-I "reftex-parse")
-(autoload 'reftex-init-section-numbers "reftex-parse")
-(autoload 'reftex-section-info "reftex-parse")
-(autoload 'reftex-section-number "reftex-parse")
-(autoload 'reftex-what-macro "reftex-parse")
-(autoload 'reftex-what-macro-safe "reftex-parse")
-(autoload 'reftex-index-info "reftex-parse")
-(autoload 'reftex-index-info-safe "reftex-parse")
-(autoload 'reftex-short-context "reftex-parse")
-(autoload 'reftex-what-environment "reftex-parse")
-(autoload 'reftex-what-special-env "reftex-parse")
-(autoload 'reftex-move-over-touching-args "reftex-parse")
-(autoload 'reftex-notice-new "reftex-parse")
-(autoload 'reftex-nth-arg "reftex-parse")
-(autoload 'reftex-locate-bibliography-files "reftex-parse")
-(autoload 'reftex-ensure-index-support "reftex-parse")
-(autoload 'reftex-everything-regexp "reftex-parse")
-
-
-;;; =========================================================================
-;;;
-;;; Labels and References
-
-(autoload 'reftex-label-location "reftex-ref")
-(autoload 'reftex-label-info-update "reftex-ref")
-(autoload 'reftex-label-info "reftex-ref")
-(autoload 'reftex-label "reftex-ref"
- "Insert a unique label." t)
-(autoload 'reftex-reference "reftex-ref"
- "Make a LaTeX reference." t)
-(autoload 'reftex-varioref-vref "reftex-ref"
-  "Make a varioref reference." t)
-(autoload 'reftex-fancyref-fref "reftex-ref"
-  "Make a fancyref \\fref reference." t)
-(autoload 'reftex-fancyref-Fref "reftex-ref"
-  "Make a fancyref \\Fref reference." t)
-(autoload 'reftex-show-label-location "reftex-ref")
-(autoload 'reftex-query-label-type "reftex-ref")
-(autoload 'reftex-goto-label "reftex-ref"
-  "Prompt for label name and go to that location." t)
-
-;;; =========================================================================
-;;;
-;;; Table of contents
-
-(autoload 'reftex-toc "reftex-toc"
-  "Show the table of contents for the current document." t)
-(autoload 'reftex-toc-recenter "reftex-toc"
-  "Display the TOC window and highlight line corresponding to current position." t)
-(autoload 'reftex-toggle-auto-toc-recenter "reftex-toc" 
-  "Toggle automatic recentering of TOC window." t)
-
-;;; =========================================================================
-;;;
-;;; BibTeX citations.
-
-(autoload 'reftex-citep "reftex-cite")
-(autoload 'reftex-citet "reftex-cite")
-(autoload 'reftex-make-cite-echo-string "reftex-cite")
-(autoload 'reftex-get-bibfile-list "reftex-cite")
-(autoload 'reftex-pop-to-bibtex-entry "reftex-cite")
-(autoload 'reftex-end-of-bib-entry "reftex-cite")
-(autoload 'reftex-parse-bibtex-entry "reftex-cite")
-(autoload 'reftex-citation "reftex-cite"
- "Make a citation using BibTeX database files." t)
-(autoload 'reftex-default-bibliography "reftex-cite")
-(autoload 'reftex-bib-or-thebib "reftex-cite")
-(autoload 'reftex-create-bibtex-file "reftex-cite")
-
-;;; =========================================================================
-;;;
-;;; Selection
-
-(autoload 'reftex-select-label-mode "reftex-sel")
-(autoload 'reftex-select-bib-mode "reftex-sel")
-(autoload 'reftex-find-start-point "reftex-sel")
-(autoload 'reftex-insert-docstruct "reftex-sel")
-(autoload 'reftex-get-offset "reftex-sel")
-(autoload 'reftex-select-item "reftex-sel")
-
-
-;;; =========================================================================
-;;;
-;;; Index support
-
-(autoload 'reftex-index "reftex-index"
- "Query for an index macro and insert it along with its argments." t)
-(autoload 'reftex-index-selection-or-word "reftex-index"
- "Put selection or the word near point into the default index macro." t)
-(autoload 'reftex-index-phrase-selection-or-word "reftex-index"
- "Put selection or the word near point into Index Phrases File." t)
-(autoload 'reftex-display-index "reftex-index"
- "Display a buffer with an index compiled from the current document." t)
-(autoload 'reftex-index-visit-phrases-buffer "reftex-index"
- "Visit the Index Phrases File." t)
-(autoload 'reftex-index-phrases-mode "reftex-index"
- "Major mode for managing the Index phrases of a LaTeX document." t)
-(autoload 'reftex-index-complete-tag "reftex-index")
-(autoload 'reftex-index-complete-key "reftex-index")
-(autoload 'reftex-index-show-entry "reftex-index")
-(autoload 'reftex-index-select-tag "reftex-index")
-
-
-;;; =========================================================================
-;;;
-;;; View cross references
-
-(autoload 'reftex-view-crossref "reftex-dcr"
- "View cross reference of \\ref or \\cite macro at point." t)
-(autoload 'reftex-mouse-view-crossref "reftex-dcr"
- "View cross reference of \\ref or \\cite macro where you click." t)
-(autoload 'reftex-toggle-auto-view-crossref "reftex-dcr")
-(autoload 'reftex-view-crossref-from-bibtex "reftex-dcr"
- "View location in a LaTeX document which cites the BibTeX entry at point." t)
-
-
-;;; =========================================================================
-;;;
-;;; Operations on entire Multifile documents
-
-(autoload 'reftex-create-tags-file "reftex-global"
- "Create TAGS file by running `etags' on the current document." t)
-(autoload 'reftex-grep-document "reftex-global"
- "Run grep query through all files related to this document." t)
-(autoload 'reftex-search-document "reftex-global"
- "Regexp search through all files of the current TeX document." t)
-(autoload 'reftex-query-replace-document "reftex-global"
- "Run a query-replace-regexp of FROM with TO over the entire TeX document." t)
-(autoload 'reftex-find-duplicate-labels "reftex-global"
- "Produce a list of all duplicate labels in the document." t)
-(autoload 'reftex-change-label "reftex-global"
- "Query replace FROM with TO in all \\label and \\ref commands." t)
-(autoload 'reftex-renumber-simple-labels "reftex-global"
- "Renumber all simple labels in the document to make them sequentially." t)
-(autoload 'reftex-save-all-document-buffers "reftex-global"
- "Save all documents associated with the current document." t)
-
-
-;;; =========================================================================
-;;;
-;;; AUCTeX Interface
-
-(autoload 'reftex-arg-label "reftex-auc")
-(autoload 'reftex-arg-cite "reftex-auc")
-(autoload 'reftex-arg-index-tag "reftex-auc")
-(autoload 'reftex-arg-index "reftex-auc")
-(autoload 'reftex-plug-into-AUCTeX "reftex-auc")
-(autoload 'reftex-toggle-plug-into-AUCTeX "reftex-auc"
- "Toggle Interface between AUCTeX and RefTeX on and off." t)
-(autoload 'reftex-add-label-environments "reftex-auc")
-(autoload 'reftex-add-to-label-alist "reftex-auc")
-(autoload 'reftex-add-section-levels "reftex-auc")
-(autoload 'reftex-notice-new-section "reftex-auc")
-
-;;; =========================================================================
-;;;
 ;;; Some generally useful functions
 
 (defun reftex-typekey-check (typekey conf-variable &optional n)
@@ -2334,16 +2334,14 @@ IGNORE-WORDS List of words which should be removed from the string."
           (if (facep face) (throw 'exit face)))))))
 
 ;; Highlighting uses overlays.  For XEmacs, we use extends.
-(if (featurep 'xemacs)
-    (progn
-      (defalias 'reftex-make-overlay 'make-extent)
-      (defalias 'reftex-overlay-put 'set-extent-property)
-      (defalias 'reftex-move-overlay 'set-extent-endpoints)
-      (defalias 'reftex-delete-overlay 'detach-extent))
-  (defalias 'reftex-make-overlay 'make-overlay)
-  (defalias 'reftex-overlay-put 'overlay-put)
-  (defalias 'reftex-move-overlay 'move-overlay)
-  (defalias 'reftex-delete-overlay 'delete-overlay))
+(defalias 'reftex-make-overlay
+  (if (featurep 'xemacs) 'make-extent 'make-overlay))
+(defalias 'reftex-overlay-put
+  (if (featurep 'xemacs) 'set-extent-property 'overlay-put))
+(defalias 'reftex-move-overlay
+  (if (featurep 'xemacs) 'set-extent-endpoints 'move-overlay))
+(defalias 'reftex-delete-overlay
+  (if (featurep 'xemacs) 'detach-extent 'delete-overlay))
 
 ;; We keep a vector with several different overlays to do our highlighting.
 (defvar reftex-highlight-overlays [nil nil nil])

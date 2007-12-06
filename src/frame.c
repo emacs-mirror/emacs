@@ -513,17 +513,7 @@ make_initial_frame (void)
   struct terminal *terminal;
   Lisp_Object frame;
 
-#ifdef MULTI_KBOARD
-  /* Create the initial keyboard. */
-  if (!initial_kboard)
-    {
-      initial_kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
-      init_kboard (initial_kboard);
-      /* Leave Vwindow_system at its `t' default for now.  */
-      initial_kboard->next_kboard = all_kboards;
-      all_kboards = initial_kboard;
-    }
-#endif
+  eassert (initial_kboard);
 
   /* The first call must initialize Vframe_list.  */
   if (! (NILP (Vframe_list) || CONSP (Vframe_list)))

@@ -687,6 +687,18 @@ This macro is used in the command @code{help-for-help} which is the
 binding of @kbd{C-h C-h}.
 @end defmac
 
+@defmac with-help-window buffer-name body@dots{}
+This macro evaluates the @var{body} forms, inserting any output they
+produce into a buffer named @var{buffer-name} like
+@code{with-output-to-temp-buffer} (@pxref{Temporary Displays}).  It
+also puts that buffer in Help mode, displays a message telling the
+user how to quit and scroll the help window, and does various other
+things that make a help window work better.
+
+Don't use @code{print-help-return-message} in the body of this macro;
+it would cause bad results.
+@end defmac
+
 @defopt three-step-help
 If this variable is non-@code{nil}, commands defined with
 @code{make-help-screen} display their @var{help-line} strings in the

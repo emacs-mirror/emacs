@@ -109,6 +109,8 @@ Set `rmail-default-file' to this name as well as returning it."
 	       (or read-file (file-name-nondirectory default-file))
 	       (file-name-directory default-file)))))))
 
+(declare-function rmail-update-summary "rmailsum" (&rest ignore))
+
 ;;; There are functions elsewhere in Emacs that use this function;
 ;;; look at them before you change the calling method.
 ;;;###autoload

@@ -6,68 +6,68 @@ Copyright (C) 2007 Free Software Foundation, Inc.
   -      -- as yet unknown
   n/a    -- not applicable (internal, uninteresting, etc)
   todo   -- not documented but should be
-  "NODE" -- documented in or under info node NODE
+  NODE   -- documented in or under info node NODE
 
 
 * Features
-  advice                  -
+  advice                  (elisp) Advising Functions
   advice-preload          n/a
   assoc                   -
   authors                 -
-  autoload                -
+  autoload                (elisp) Autoload
   avl-tree                -
   backquote               n/a
-  benchmark               -
-  bindat                  "(elisp) Byte Packing"
-  byte-compile            -
+  benchmark               n/a
+  bindat                  (elisp) Byte Packing
+  byte-compile            (elisp) Byte Compilation
   byte-opt                -
-  bytecomp                -
-  checkdoc                -
-  cl                      "(cl)"
+  bytecomp                (elisp) Compilation Functions
+  checkdoc                (elisp) Documentation Tips
+  cl                      (cl)
   cl-19                   n/a
   cl-compat               n/a
   cl-specs                n/a
   copyright               -
   crm                     -
-  cust-print              -
-  debug                   -
-  derived                 -
-  disass                  -
-  easy-mmode              -
+  cust-print              (elisp) Printing in Edebug
+  debug                   (elisp) Debugger
+  derived                 (elisp) Derived Modes
+  disass                  (elisp) Disassembly
+  easy-mmode              (elisp) Defining Minor Modes
   easymenu                -
-  edebug                  -
+  edebug                  (elisp) Edebug
   eldoc                   -
   elint                   -
-  elp                     -
-  ewoc                    "(elisp) Separated Rendering"
+  elp                     n/a
+  ewoc                    (elisp) Separated Rendering
   find-func               -
   find-gc                 -
-  generic                 -
+  generic                 (elisp) Generic Modes
   gulp                    n/a
   helper                  -
   levents                 -
   lisp-float-type         -
   lisp-mnt                -
-  lisp-mode               -
+  lisp-mode               n/a
   lmenu                   -
   lselect                 -
   lucid                   -
-  macroexp                -
-  pp                      -
+  macroexp                (elisp) Expansion
+  pp                      (emacs) Program Indent
   re-builder              -
-  regexp-opt              -
+  regexp-opt              (elisp) Regexp Functions
   regi                    -
-  ring                    "(elisp) Rings"
+  ring                    (elisp) Rings
   rx                      -
   shadow                  -
   sregex                  -
-  syntax                  -
+  syntax                  (elisp) Position Parse
   testcover               -
-  timer                   -
-  tq                      "(elisp) Transaction Queues"
+  timer                   (elisp) Timers
+  tq                      (elisp) Transaction Queues
   trace                   -
-  unsafep                 -
-  warnings                -
+  unsafep                 (elisp) Function Safety
+  warnings                (elisp) Warnings
 
 
 * Above list created using default directory lisp/emacs-lisp/ with

@@ -339,9 +339,9 @@ component group will show up when you enter the virtual group.")
     (let ((gnus-group-marked (copy-sequence nnvirtual-component-groups))
 	  (gnus-expert-user t))
       ;; Make sure all groups are activated.
-      (mapcar
+      (mapc
        (lambda (g)
-	 (when (not (numberp (car (gnus-gethash g gnus-newsrc-hashtb))))
+	 (when (not (numberp (gnus-group-unread g)))
 	   (gnus-activate-group g)))
        nnvirtual-component-groups)
       (save-excursion
@@ -384,14 +384,11 @@ component group will show up when you enter the virtual group.")
 
 (defun nnvirtual-convert-headers ()
   "Convert HEAD headers into NOV headers."
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (let* ((dependencies (make-vector 100 0))
-	   (headers (gnus-get-newsgroup-headers dependencies))
-	   header)
+	   (headers (gnus-get-newsgroup-headers dependencies)))
       (erase-buffer)
-      (while (setq header (pop headers))
-	(nnheader-insert-nov header)))))
+      (mapc 'nnheader-insert-nov headers))))
 
 
 (defun nnvirtual-update-xref-header (group article prefix system-name)
@@ -401,7 +398,7 @@ component group will show up when you enter the virtual group.")
   (looking-at
    "[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t[^\t]*\t")
   (goto-char (match-end 0))
-  (unless (search-forward "\t" (gnus-point-at-eol) 'move)
+  (unless (search-forward "\t" (point-at-eol) 'move)
     (insert "\t"))
 
   ;; Remove any spaces at the beginning of the Xref field.
@@ -417,8 +414,8 @@ component group will show up when you enter the virtual group.")
   ;; component server prefix.
   (save-restriction
     (narrow-to-region (point)
-		      (or (search-forward "\t" (gnus-point-at-eol) t)
-			  (gnus-point-at-eol)))
+		      (or (search-forward "\t" (point-at-eol) t)
+			  (point-at-eol)))
     (goto-char (point-min))
     (when (re-search-forward "Xref: *[^\n:0-9 ]+ *" nil t)
       (replace-match "" t t))
@@ -465,7 +462,7 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
 				   (nnvirtual-partition-sequence (cdr ml)))))
 			 (gnus-info-marks (gnus-get-info
 					   (nnvirtual-current-group))))))
-	  mark type groups carticles info entry)
+	  type groups info)
 
       ;; Ok, atomically move all of the (un)read info, clear any old
       ;; marks, and move all of the current marks.  This way if someone
@@ -474,13 +471,12 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
 	;; move (un)read
 	;; bind for workaround guns-update-read-articles
 	(let ((gnus-newsgroup-active nil))
-	  (while (setq entry (pop unreads))
+	  (dolist (entry unreads)
 	    (gnus-update-read-articles (car entry) (cdr entry))))
 
 	;; clear all existing marks on the component groups
-	(setq groups nnvirtual-component-groups)
-	(while groups
-	  (when (and (setq info (gnus-get-info (pop groups)))
+	(dolist (group nnvirtual-component-groups)
+	  (when (and (setq info (gnus-get-info group))
 		     (gnus-info-marks info))
 	    (gnus-info-set-marks
 	     info
@@ -491,18 +487,17 @@ If UPDATE-P is not nil, call gnus-group-update-group on the components."
 	;; Ok, currently type-marks is an assq list with keys of a mark type,
 	;; with data of an assq list with keys of component group names
 	;; and the articles which correspond to that key/group pair.
-	(while (setq mark (pop type-marks))
+	(dolist (mark type-marks)
 	  (setq type (car mark))
 	  (setq groups (cdr mark))
-	  (while (setq carticles (pop groups))
+	  (dolist (carticles groups)
 	    (gnus-add-marked-articles (car carticles) type (cdr carticles)
 				      nil t))))
 
       ;; possibly update the display, it is really slow
       (when update-p
-	(setq groups nnvirtual-component-groups)
-	(while groups
-	  (gnus-group-update-group (pop groups) t))))))
+	(dolist (group nnvirtual-component-groups)
+	  (gnus-group-update-group group t))))))
 
 
 (defun nnvirtual-current-group ()
@@ -664,8 +659,7 @@ numbers has no corresponding component article, then it is left out of
 the result."
   (when (numberp (cdr-safe articles))
     (setq articles (list articles)))
-  (let ((carticles (mapcar (lambda (g) (list g))
-			   nnvirtual-component-groups))
+  (let ((carticles (mapcar 'list nnvirtual-component-groups))
 	a i j article entry)
     (while (setq a (pop articles))
       (if (atom a)
@@ -678,8 +672,8 @@ the result."
 	  (setq entry (assoc (car article) carticles))
 	  (setcdr entry (cons (cdr article) (cdr entry))))
 	(setq i (1+ i))))
-    (mapcar (lambda (x) (setcdr x (nreverse (cdr x))))
-	    carticles)
+    (mapc (lambda (x) (setcdr x (nreverse (cdr x))))
+	  carticles)
     carticles))
 
 
@@ -701,29 +695,29 @@ based on the marks on the component groups."
     ;; Into all-unreads we put (g unreads).
     ;; Into all-marks we put (g marks).
     ;; We also increment cnt and tot here, and compute M (max of sizes).
-    (mapcar (lambda (g)
-	      (setq active (gnus-activate-group g)
-		    min (car active)
-		    max (cdr active))
-	      (when (and active (>= max min) (not (zerop max)))
-		;; store active information
-		(push (list g (- max min -1) max) actives)
-		;; collect unread/mark info for later
-		(setq unreads (gnus-list-of-unread-articles g))
-		(setq marks (gnus-info-marks (gnus-get-info g)))
-		(when gnus-use-cache
-		  (push (cons 'cache
-			      (gnus-cache-articles-in-group g))
-			marks))
-		(push (cons g unreads) all-unreads)
-		(push (cons g marks) all-marks)
-		;; count groups, total #articles, and max size
-		(setq size (- max min -1))
-		(setq cnt (1+ cnt)
-		      tot (+ tot size)
-		      M (max M size))))
-	    nnvirtual-component-groups)
-
+    (mapc (lambda (g)
+	    (setq active (gnus-activate-group g)
+		  min (car active)
+		  max (cdr active))
+	    (when (and active (>= max min) (not (zerop max)))
+	      ;; store active information
+	      (push (list g (- max min -1) max) actives)
+	      ;; collect unread/mark info for later
+	      (setq unreads (gnus-list-of-unread-articles g))
+	      (setq marks (gnus-info-marks (gnus-get-info g)))
+	      (when gnus-use-cache
+		(push (cons 'cache
+			    (gnus-cache-articles-in-group g))
+		      marks))
+	      (push (cons g unreads) all-unreads)
+	      (push (cons g marks) all-marks)
+	      ;; count groups, total #articles, and max size
+	      (setq size (- max min -1))
+	      (setq cnt (1+ cnt)
+		    tot (+ tot size)
+		    M (max M size))))
+	  nnvirtual-component-groups)
+    
     ;; Number of articles in the virtual group.
     (setq nnvirtual-mapping-len tot)
 
@@ -785,10 +779,9 @@ based on the marks on the component groups."
 
     ;; Remove any empty marks lists, and store.
     (setq nnvirtual-mapping-marks nil)
-    (while marks
-      (if (cdr (car marks))
-	  (push (car marks) nnvirtual-mapping-marks))
-      (setq marks (cdr marks)))
+    (dolist (mark marks)
+      (when (cdr mark)
+	(push mark nnvirtual-mapping-marks)))
 
     ;; We need to convert the unreads to reads.  We compress the
     ;; sequence as we go, otherwise it could be huge.

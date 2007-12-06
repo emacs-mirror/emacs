@@ -6893,8 +6893,12 @@ init_display ()
       exit (1);
     }
 
+#ifdef WINDOWSNT
+  terminal_type = "w32console";
+#else
   /* Look at the TERM variable.  */
   terminal_type = (char *) getenv ("TERM");
+#endif
   if (!terminal_type)
     {
 #ifdef VMS
@@ -7112,7 +7116,7 @@ The value is nil if the selected frame is on a text-only-terminal.  */);
 
   DEFVAR_LISP ("window-system-version", &Vwindow_system_version,
 	       doc: /* The version number of the window system in use.
-For X windows, this is 10 or 11.  */);
+For X windows, this is 11.  */);
 
   DEFVAR_BOOL ("cursor-in-echo-area", &cursor_in_echo_area,
 	       doc: /* Non-nil means put cursor in minibuffer, at end of any message there.  */);

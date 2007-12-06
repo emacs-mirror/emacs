@@ -262,6 +262,12 @@ TOOLKIT_DEFINES =
 #endif
 #endif
 
+#ifdef HAVE_DBUS
+DBUS_CFLAGS = @DBUS_CFLAGS@
+DBUS_LIBS = @DBUS_LIBS@
+DBUS_OBJ = dbusbind.o
+#endif
+
 /* DO NOT use -R.  There is a special hack described in lastfile.c
    which is used instead.  Some initialized data areas are modified
    at initial startup, then labeled as part of the text area when
@@ -275,20 +281,12 @@ TOOLKIT_DEFINES =
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${CFLAGS}
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${CFLAGS}
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 
-#ifndef LIBX10_MACHINE
-#define LIBX10_MACHINE
-#endif
-
 #ifndef LIBX11_MACHINE
 #define LIBX11_MACHINE
-#endif
-
-#ifndef LIBX10_SYSTEM
-#define LIBX10_SYSTEM
 #endif
 
 #ifndef LIBX11_SYSTEM
@@ -446,7 +444,7 @@ XFT_LIBS=@XFT_LIBS@
 X11_LDFLAGS = LD_SWITCH_X_SITE LD_SWITCH_X_DEFAULT
 LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIBTIFF LIBJPEG LIBPNG LIBGIF LIBXPM LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM $(XFT_LIBS)
 #else /* not HAVE_X11 */
-LIBX= $(LIBXMENU) LD_SWITCH_X_SITE -lX10 LIBX10_MACHINE LIBX10_SYSTEM
+LIBX= $(LIBXMENU) LD_SWITCH_X_SITE
 #endif /* not HAVE_X11 */
 #else /* not HAVE_X_WINDOWS */
 #endif /* not HAVE_X_WINDOWS */
@@ -596,14 +594,14 @@ emacsappsrc = ${srcdir}/../mac/Emacs.app/
    whose initialized data areas should be dumped as pure by dump-emacs.  */
 obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o \
-	cm.o term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ)\
+	cm.o term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o \
 	minibuf.o fileio.o dired.o filemode.o \
 	cmds.o casetab.o casefiddle.o indent.o search.o regex.o undo.o \
 	alloc.o data.o doc.o editfns.o callint.o \
 	eval.o floatfns.o fns.o print.o lread.o \
-	abbrev.o syntax.o UNEXEC bytecode.o \
+	syntax.o UNEXEC bytecode.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
@@ -612,7 +610,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
    in case they are needed there.  */
-SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o \
+SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o \
   w32.o w32bdf.o w32console.o w32fns.o w32heap.o w32inevt.o \
@@ -928,7 +926,7 @@ shortlisp= \
    for the sake of systems which can''t handle large ones.  */
 SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
   ${dotdot}/lisp/select.elc ${dotdot}/lisp/scroll-bar.elc \
-  ${dotdot}/lisp/vmsproc.elc ${dotdot}/lisp/vms-patch.elc \
+  VMS_SUPPORT \
   ${dotdot}/lisp/ls-lisp.elc ${dotdot}/lisp/dos-fns.elc \
   ${dotdot}/lisp/w32-fns.elc ${dotdot}/lisp/dos-w32.elc \
   ${dotdot}/lisp/disp-table.elc ${dotdot}/lisp/dos-vars.elc \
@@ -946,8 +944,8 @@ SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
    Note that SunOS needs -lm to come before -lc; otherwise, you get
    duplicated symbols.  If the standard libraries were compiled
    with GCC, we might need gnulib again after them.  */
-LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) LIBGPM \
-   LIBRESOLV LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
+LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
+   LIBGPM LIBRESOLV LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
    LIBS_DEBUG $(GETLOADAVG_LIBS) $(GNULIB_VAR) LIB_MATH LIB_STANDARD \
    $(GNULIB_VAR)
 
@@ -1094,8 +1092,6 @@ stamp-oldxmenu:
    it is so often changed in ways that do not require any recompilation
    and so rarely changed in ways that do require any.  */
 
-abbrev.o: abbrev.c buffer.h window.h dispextern.h commands.h charset.h \
-	syntax.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
    dispextern.h $(INTERVAL_SRC) blockinput.h atimer.h systime.h charset.h \
    $(config_h)
@@ -1238,9 +1234,10 @@ xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
 xrdb.o: xrdb.c $(config_h) epaths.h
 xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h xterm.h \
   lisp.h termopts.h
-gtkutil.o:  gtkutil.c gtkutil.h xterm.h lisp.h frame.h $(config_h) \
+gtkutil.o: gtkutil.c gtkutil.h xterm.h lisp.h frame.h $(config_h) \
   blockinput.h window.h atimer.h systime.h termhooks.h keyboard.h \
   charset.h coding.h
+dbusbind.o: dbusbind.c termhooks.h $(config_h)
 
 hftctl.o: hftctl.c $(config_h)
 sound.o: sound.c dispextern.h $(config_h)
@@ -1276,10 +1273,8 @@ composite.o: composite.c buffer.h  charset.h $(INTERVAL_SRC) $(config_h)
    OTHER_FILES and OBJECTS_MACHINE
    select which of these should be compiled.  */
 
-sunfns.o: sunfns.c buffer.h window.h dispextern.h termhooks.h $(config_h)
-
 #ifdef HAVE_CARBON
-abbrev.o buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
+buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
   fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
   scroll.o sysdep.o term.o terminal.o widget.o window.o xdisp.o xfaces.o xfns.o xmenu.o \
   xterm.o xselect.o sound.o: macgui.h

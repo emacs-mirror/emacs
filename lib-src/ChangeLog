@@ -1,3 +1,48 @@
+2007-11-28  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (VMS_SUPPORT): No longer byte-compiled.
+
+2007-11-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* pop.c (socket_connection): Remove AI_ADDRCONFIG.
+
+2007-11-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* pop.c (socket_connection): Move realhost out of #ifdefs.
+	Set realhost both for HAVE_GETADDRINFO and !HAVE_GETADDRINFO.
+
+2007-11-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* pop.c (socket_connection): Use getaddrinfo if available.
+
+2007-11-22  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c (default_C_help) [CTAGS]: differentiate the help string,
+	as the defaults in ctags are different from etags.
+
+2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c: Make prototypes for extern definitions, and add all
+	that are needed to quench warnings on 64-bit.
+	(main): Use the same defaults for ctags as for etags: find
+	typedefs, structure tags, macro constants, enum constants, struct
+	members and global variables.
+	(make_C_tag) [DEBUG]: Add debugging printout.
+	(C_entries): In case '}' decrement bracelev before testing it.
+
+2007-11-15  Masatake YAMATO  <jet@gyve.org>
+
+	* etags.c (C_entries): In case '}', set fvdef to fvnone
+	unconditioned to (!ignoreindent && lp == newlb.buffer + 1).
+
+2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* makefile.w32-in (obj): Remove sunfns.o.
+
+2007-10-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (obj): Remove abbrev.o.
+
 2007-10-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c: Add a wrapper for getenv so it also checks the

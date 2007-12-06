@@ -886,6 +886,13 @@ The value of this variable is used when Font Lock mode is turned on."
 (defvar lazy-lock-mode)
 (defvar jit-lock-mode)
 
+(declare-function fast-lock-after-fontify-buffer "fast-lock")
+(declare-function fast-lock-after-unfontify-buffer "fast-lock")
+(declare-function fast-lock-mode "fast-lock")
+(declare-function lazy-lock-after-fontify-buffer "lazy-lock")
+(declare-function lazy-lock-after-unfontify-buffer "lazy-lock")
+(declare-function lazy-lock-mode "lazy-lock")
+
 (defun font-lock-turn-on-thing-lock ()
   (let ((thing-mode (font-lock-value-in-major-mode font-lock-support-mode)))
     (cond ((eq thing-mode 'fast-lock-mode)

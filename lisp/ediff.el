@@ -113,22 +113,20 @@
 (defvar ediff-last-dir-patch)
 (defvar ediff-patch-default-directory)
 
-(and noninteractive
-     (eval-when-compile
-	 (load-library "dired")
-	 (load-library "info")
-	 (load "pcl-cvs" 'noerror)))
+
 (eval-when-compile
+  (and noninteractive
+       (load "dired" nil t))
   (let ((load-path (cons (expand-file-name ".") load-path)))
     (provide 'ediff) ; to break recursive load cycle
     (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil nil 'nosuffix))
+	(load "ediff-init.el" nil t 'nosuffix))
     (or (featurep 'ediff-mult)
-	(load "ediff-mult.el" nil nil 'nosuffix))
+	(load "ediff-mult.el" nil t 'nosuffix))
     (or (featurep 'ediff-ptch)
-	(load "ediff-ptch.el" nil nil 'nosuffix))
+	(load "ediff-ptch.el" nil t 'nosuffix))
     (or (featurep 'ediff-vers)
-	(load "ediff-vers.el" nil nil 'nosuffix))
+	(load "ediff-vers.el" nil t 'nosuffix))
     ))
 ;; end pacifier
 
@@ -363,6 +361,7 @@
 		 (list (cons 'ediff-job-name job-name))
 		 merge-buffer-file)))
 
+(declare-function diff-latest-backup-file "diff" (fn))
 
 ;;;###autoload
 (defalias 'ediff 'ediff-files)
@@ -1303,20 +1302,6 @@ buffer."
      (intern (format "ediff-%S-merge-internal" ediff-version-control-package))
      rev1 rev2 ancestor-rev startup-hooks merge-buffer-file)))
 
-;; MK: Check. This function doesn't seem to be used any more by pcvs or pcl-cvs
-;;;###autoload
-(defun run-ediff-from-cvs-buffer (pos)
-  "Run Ediff-merge on appropriate revisions of the selected file.
-First run after `M-x cvs-update'.  Then place the cursor on a line describing a
-file and then run `run-ediff-from-cvs-buffer'."
-  (interactive "d")
-  (ediff-load-version-control)
-  (let ((tin (tin-locate cvs-cookie-handle pos)))
-    (if tin
-	(cvs-run-ediff-on-file-descriptor tin)
-      (error "There is no file to merge"))))
-
-
 ;;; Apply patch
 
 ;;;###autoload
@@ -1438,9 +1423,11 @@ Uses `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
 When called interactively, displays the version."
   (interactive)
   (if (interactive-p)
-      (message (ediff-version))
+      (message "%s" (ediff-version))
     (format "Ediff %s of %s" ediff-version ediff-date)))
 
+;; info is run first, and will autoload info.el.
+(declare-function Info-goto-node "info" (nodename &optional fork))
 
 ;;;###autoload
 (defun ediff-documentation (&optional node)
@@ -1454,7 +1441,7 @@ With optional NODE, goes to that node."
     (condition-case nil
 	(progn
 	  (pop-to-buffer (get-buffer-create "*info*"))
-	  (info (if ediff-xemacs-p "ediff.info" "ediff"))
+	  (info (if (featurep 'xemacs) "ediff.info" "ediff"))
 	  (if node
 	      (Info-goto-node node)
 	    (message "Type `i' to search for a specific topic"))

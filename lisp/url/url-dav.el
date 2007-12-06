@@ -746,7 +746,7 @@ files in the collection as well."
 	     (setq status (plist-get (cdr result) 'DAV:status))
 	     (if (not (url-dav-http-success-p status))
 		 (signal 'file-error (list "Removing directory"
-					   "Errror removing"
+					   "Error removing"
 					   (car result) status))))
 	   props))
   nil)

@@ -84,6 +84,20 @@ extern void die P_((const char *, const char *, int)) NO_RETURN;
 
 #ifdef ENABLE_CHECKING
 
+/* The suppress_checking variable is initialized to 0 in alloc.c.  Set
+   it to 1 using a debugger to temporarily disable aborting on
+   detected internal inconsistencies or error conditions.
+
+   Testing suppress_checking after the supplied condition ensures that
+   the side effects produced by CHECK will be consistent, independent
+   of whether ENABLE_CHECKING is defined, or whether the checks are
+   suppressed at run time.
+
+   In some cases, a good compiler may be able to optimize away the
+   CHECK macro altogether, e.g., if XSTRING (x) uses CHECK to test
+   STRINGP (x), but a particular use of XSTRING is invoked only after
+   testing that STRINGP (x) is true, making the test redundant.  */
+
 #define CHECK(check,msg) (((check) || suppress_checking		\
 			   ? (void) 0				\
 			   : die ((msg), __FILE__, __LINE__)),	\
@@ -334,7 +348,8 @@ enum pvec_type
   PVEC_BUFFER = 0x20000,
   PVEC_HASH_TABLE = 0x40000,
   PVEC_TERMINAL = 0x80000,
-  PVEC_TYPE_MASK = 0xffe00
+  PVEC_OTHER = 0x100000,
+  PVEC_TYPE_MASK = 0x1ffe00
 
 #if 0 /* This is used to make the value of PSEUDOVECTOR_FLAG available to
 	 GDB.  It doesn't work on OS Alpha.  Moved to a variable in
@@ -1218,6 +1233,7 @@ struct Lisp_Buffer_Objfwd
     int type : 16;	/* = Lisp_Misc_Buffer_Objfwd */
     unsigned gcmarkbit : 1;
     int spacer : 15;
+    Lisp_Object slottype; /* Qnil, Lisp_Int, Lisp_Symbol, or Lisp_String.  */
     int offset;
   };
 
@@ -2620,7 +2636,11 @@ EXFUN (Fmake_char_table, 2);
 extern Lisp_Object make_sub_char_table P_ ((Lisp_Object));
 extern Lisp_Object Qchar_table_extra_slots;
 extern struct Lisp_Vector *allocate_vector P_ ((EMACS_INT));
-extern struct Lisp_Vector *allocate_other_vector P_ ((EMACS_INT));
+extern struct Lisp_Vector *allocate_pseudovector P_ ((int memlen, int lisplen, EMACS_INT tag));
+#define ALLOCATE_PSEUDOVECTOR(typ,field,tag)				\
+  ((typ*)								\
+   allocate_pseudovector						\
+       (VECSIZE (typ), PSEUDOVECSIZE (typ, field), tag))
 extern struct Lisp_Hash_Table *allocate_hash_table P_ ((void));
 extern struct window *allocate_window P_ ((void));
 extern struct frame *allocate_frame P_ ((void));
@@ -3271,7 +3291,7 @@ extern void syms_of_dired P_ ((void));
 
 /* Defined in term.c */
 extern void syms_of_term P_ ((void));
-extern void fatal () NO_RETURN;
+extern void fatal P_ ((const char *msgid, ...)) NO_RETURN;
 
 /* Defined in terminal.c */
 extern void syms_of_terminal P_ ((void));

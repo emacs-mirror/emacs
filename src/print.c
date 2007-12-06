@@ -1549,7 +1549,7 @@ print_object (obj, printcharfun, escapeflag)
     {
     case Lisp_Int:
       if (sizeof (int) == sizeof (EMACS_INT))
-	sprintf (buf, "%d", XINT (obj));
+	sprintf (buf, "%d", (int) XINT (obj));
       else if (sizeof (long) == sizeof (EMACS_INT))
 	sprintf (buf, "%ld", (long) XINT (obj));
       else

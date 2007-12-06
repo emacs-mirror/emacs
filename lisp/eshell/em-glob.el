@@ -22,19 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-;;; Code:
-
-(provide 'em-glob)
-
-(eval-when-compile (require 'esh-maint))
-(require 'esh-util)
-
-(defgroup eshell-glob nil
-  "This module provides extended globbing syntax, similar what is used
-by zsh for filename generation."
-  :tag "Extended filename globbing"
-  :group 'eshell-module)
-
 ;;; Commentary:
 
 ;; The globbing code used by Eshell closely follows the syntax used by
@@ -62,6 +49,17 @@ by zsh for filename generation."
 ;; The glob above matches all of the files beneath '/tmp' that are
 ;; owned by the user 'johnw'.  See [Value modifiers and predicates],
 ;; for more information about argument predication.
+
+;;; Code:
+
+(eval-when-compile (require 'eshell))
+(require 'esh-util)
+
+(defgroup eshell-glob nil
+  "This module provides extended globbing syntax, similar what is used
+by zsh for filename generation."
+  :tag "Extended filename globbing"
+  :group 'eshell-module)
 
 ;;; User Variables:
 
@@ -258,7 +256,7 @@ the form:
 	  (eshell-glob-entries (file-name-as-directory ".") paths))
       (if message-shown
 	  (message nil)))
-    (or (and matches (nreverse matches))
+    (or (and matches (sort matches #'string<))
 	(if eshell-error-if-no-glob
 	    (error "No matches found: %s" glob)
 	  glob))))
@@ -267,6 +265,7 @@ the form:
   (defvar matches)
   (defvar message-shown))
 
+;; FIXME does this really need to abuse matches, message-shown?
 (defun eshell-glob-entries (path globs &optional recurse-p)
   "Glob the entries in PATHS, possibly recursing if RECURSE-P is non-nil."
   (let* ((entries (ignore-errors
@@ -354,6 +353,8 @@ the form:
     (while rdirs
       (eshell-glob-entries (car rdirs) globs recurse-p)
       (setq rdirs (cdr rdirs)))))
+
+(provide 'em-glob)
 
 ;;; arch-tag: d0548f54-fb7c-4978-a88e-f7c26f7f68ca
 ;;; em-glob.el ends here

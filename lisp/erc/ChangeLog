@@ -1,3 +1,60 @@
+2007-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* erc-backend.el (erc-server-send-ping): Move after definition of
+	erc-server-send.
+
+	* erc.el (iswitchb-temp-buflist, iswitchb-read-buffer)
+	(erc-controls-strip): Declare for compiler.
+	(erc-iswitchb): Don't require iswitchb when compiling.  Test
+	iswitchb-mode is bound.
+
+2007-11-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* erc.el (open-ssl-stream, open-tls-stream, erc-network-name):
+	Declare as functions.
+
+2007-11-29  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* erc-backend.el, erc.el:
+	Parse 307 (nick has identified) responses.
+
+2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc.el (erc-open):
+	* erc-backend.el (define-erc-response-handler):
+	* erc-log.el (log):
+	* erc-match.el (erc-log-matches): Fix typos in docstrings.
+
+2007-11-11  Michael Olson  <mwolson@gnu.org>
+
+	* erc-autoaway.el (erc-autoaway-possibly-set-away):
+	* erc-netsplit.el (erc-netsplit-timer):
+	* erc-notify.el (erc-notify-timer):
+	* erc-track.el (erc-user-is-active): Only run if we have
+	successfully established a connection to the server and have
+	logged in.  I suspect that sending messages too soon may make some
+	IRC servers not respond well, particularly when the network
+	connection is iffy or subject to traffic-shaping.
+
+2007-11-01  Michael Olson  <mwolson@gnu.org>
+
+	* erc-compat.el (erc-set-write-file-functions): New compatibility
+	function to set the write hooks appropriately.
+
+	* erc-log.el (erc-log-setup-logging): Use
+	erc-set-write-file-functions.  This fixes a byte-compiler warning.
+
+	* erc-stamp.el: Silence byte-compiler warning about
+	erc-fill-column.
+
+	* erc.el (erc-with-all-buffers-of-server): Bind the result of
+	mapcar to a variable in order to silence a byte-compiler warning.
+
+2007-10-29  Michael Olson  <mwolson@gnu.org>
+
+	* erc-ibuffer.el (erc-modified-channels-alist): Use
+	eval-when-compile, and explain why we are doing this.
+
 2007-10-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* erc-ibuffer.el (erc-modified-channels-alist): Pacify
@@ -8,7 +65,27 @@
 	* erc-track.el (erc-modified-channels-update): Use mapc rather
 	than mapcar.
 
-2007-09-18  Exal de Jesus Garcia Carrillo  <exal@gmx.de>  (tiny change)
+2007-10-12  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc.el (erc-join-channel): Prompt for channel key if C-u or
+	another prefix-arg was typed.
+
+	* NEWS: Noted this change.
+
+2007-10-07  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-cmd-ME'S): New command that handles the case where
+	someone types "/me's".  It concatenates the text " 's" to the
+	beginning of the input and then sends the result like a normal
+	"/me" command.
+	(erc-command-regexp): Permit single-quote character.
+
+2007-09-30  Aidan Kehoe  <kehoea@parhasard.net>  (tiny change)
+
+	* erc-log.el (erc-save-buffer-in-logs): Prevent spurious warnings
+	when looking at a log file and concurrently saving to it.
+
+2007-09-18  Exal de Jesus Garcia Carrillo  <exal@gnu.org>  (tiny change)
 
 	* erc.texi (Special-Features): Fix small typo.
 

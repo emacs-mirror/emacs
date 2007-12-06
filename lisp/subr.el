@@ -36,6 +36,42 @@ Each element of this list holds the arguments to one call to `defcustom'.")
   (setq custom-declare-variable-list
 	(cons arguments custom-declare-variable-list)))
 
+(defmacro declare-function (fn file &optional arglist fileonly)
+  "Tell the byte-compiler that function FN is defined, in FILE.
+Optional ARGLIST is the argument list used by the function.  The
+FILE argument is not used by the byte-compiler, but by the
+`check-declare' package, which checks that FILE contains a
+definition for FN.  ARGLIST is used by both the byte-compiler and
+`check-declare' to check for consistency.
+
+FILE can be either a Lisp file (in which case the \".el\"
+extension is optional), or a C file.  C files are expanded
+relative to the Emacs \"src/\" directory.  Lisp files are
+searched for using `locate-library', and if that fails they are
+expanded relative to the location of the file containing the
+declaration.  A FILE with an \"ext:\" prefix is an external file.
+`check-declare' will check such files if they are found, and skip
+them without error if they are not.
+
+FILEONLY non-nil means that `check-declare' will only check that
+FILE exists, not that it defines FN.  This is intended for
+function-definitions that `check-declare' does not recognize, e.g.
+`defstruct'.
+
+To specify a value for FILEONLY without passing an argument list,
+set ARGLIST to `t'.  This is necessary because `nil' means an
+empty argument list, rather than an unspecified one.
+
+Note that for the purposes of `check-declare', this statement
+must be the first non-whitespace on a line, and everything up to
+the end of FILE must be all on the same line.  For example:
+
+\(declare-function c-end-of-defun \"progmodes/cc-cmds.el\"
+                  \(&optional arg))
+
+For more information, see Info node `elisp(Declaring Functions)'."
+  ;; Does nothing - byte-compile-declare-function does the work.
+  nil)
 
 ;;;; Basic Lisp macros.
 
@@ -729,7 +765,9 @@ even when EVENT actually has modifiers."
     (if (listp type)
 	(setq type (car type)))
     (if (symbolp type)
-	(cdr (get type 'event-symbol-elements))
+        ;; Don't read event-symbol-elements directly since we're not
+        ;; sure the symbol has already been parsed.
+	(cdr (internal-event-symbol-parse-modifiers type))
       (let ((list nil)
 	    (char (logand type (lognot (logior ?\M-\^@ ?\C-\^@ ?\S-\^@
 					       ?\H-\^@ ?\s-\^@ ?\A-\^@)))))
@@ -864,7 +902,8 @@ and `event-end' functions."
 	     (x (/ (car pair) (frame-char-width frame)))
 	     (y (/ (cdr pair) (+ (frame-char-height frame)
 				 (or (frame-parameter frame 'line-spacing)
-				     default-line-spacing
+                                     ;; FIXME: Why the `default'?
+				     (default-value 'line-spacing)
 				     0)))))
 	(cons x y))))))
 
@@ -951,7 +990,7 @@ is converted into a string by expressing it in decimal."
 (make-obsolete 'focus-frame "it does nothing." "22.1")
 (defalias 'unfocus-frame 'ignore "")
 (make-obsolete 'unfocus-frame "it does nothing." "22.1")
-(make-obsolete 'make-variable-frame-local "use a frame-parameter instead" "22.2")
+(make-obsolete 'make-variable-frame-local "use a frame-parameter instead." "22.2")
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
@@ -1543,6 +1582,23 @@ FILE should be the name of a library, with no directory name."
 
 ;;;; Process stuff.
 
+(defun process-lines (program &rest args)
+  "Execute PROGRAM with ARGS, returning its output as a list of lines.
+Signal an error if the program returns with a non-zero exit status."
+  (with-temp-buffer
+    (let ((status (apply 'call-process program nil (current-buffer) nil args)))
+      (unless (eq status 0)
+	(error "%s exited with status %s" program status))
+      (goto-char (point-min))
+      (let (lines)
+	(while (not (eobp))
+	  (setq lines (cons (buffer-substring-no-properties
+			     (line-beginning-position)
+			     (line-end-position))
+			    lines))
+	  (forward-line 1))
+	(nreverse lines)))))
+
 ;; open-network-stream is a wrapper around make-network-process.
 
 (when (featurep 'make-network-process)
@@ -2104,6 +2160,8 @@ a system-dependent default device name is used."
   (if (fboundp 'play-sound-internal)
       (play-sound-internal sound)
     (error "This Emacs binary lacks sound support")))
+
+(declare-function w32-shell-dos-semantics "w32-fns" nil)
 
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
@@ -2714,6 +2772,24 @@ STRING should be given if the last search was by `string-match' on STRING."
 				   (match-end num))
 	(buffer-substring-no-properties (match-beginning num)
 					(match-end num)))))
+
+
+(defun match-substitute-replacement (replacement
+				     &optional fixedcase literal string subexp)
+  "Return REPLACEMENT as it will be inserted by `replace-match'.
+In other words, all back-references in the form `\\&' and `\\N'
+are substituted with actual strings matched by the last search.
+Optional FIXEDCASE, LITERAL, STRING and SUBEXP have the same
+meaning as for `replace-match'."
+  (let ((match (match-string 0 string)))
+    (save-match-data
+      (set-match-data (mapcar (lambda (x)
+				(if (numberp x)
+				    (- x (match-beginning 0))
+				  x))
+			      (match-data t)))
+      (replace-match replacement fixedcase literal match subexp))))
+
 
 (defun looking-back (regexp &optional limit greedy)
   "Return non-nil if text before point matches regular expression REGEXP.

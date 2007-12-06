@@ -35,9 +35,9 @@
 (eval-and-compile
   (autoload 'message-make-message-id "message")
   (autoload 'gnus-setup-posting-charset "gnus-msg")
-  (autoload 'gnus-add-minor-mode "gnus-ems")
   (autoload 'gnus-make-local-hook "gnus-util")
   (autoload 'message-fetch-field "message")
+  (autoload 'message-mark-active-p "message")
   (autoload 'message-info "message")
   (autoload 'fill-flowed-encode "flow-fill")
   (autoload 'message-posting-charset "message")
@@ -53,6 +53,7 @@
 (defvar message-required-mail-headers)
 (defvar message-required-news-headers)
 (defvar dnd-protocol-alist)
+(defvar mml-dnd-protocol-alist)
 
 (defcustom mml-content-type-parameters
   '(name access-type expiration size permission format)
@@ -68,6 +69,46 @@ These parameters are generated in Content-Type header if exists."
 These parameters are generated in Content-Disposition header if exists."
   :version "22.1"
   :type '(repeat (symbol :tag "Parameter"))
+  :group 'message)
+
+(defcustom mml-content-disposition-alist
+  '((text (rtf . "attachment") (t . "inline"))
+    (t . "attachment"))
+  "Alist of MIME types or regexps matching file names and default dispositions.
+Each element should be one of the following three forms:
+
+  (REGEXP . DISPOSITION)
+  (SUPERTYPE (SUBTYPE . DISPOSITION) (SUBTYPE . DISPOSITION)...)
+  (TYPE . DISPOSITION)
+
+Where REGEXP is a string which matches the file name (if any) of an
+attachment, SUPERTYPE, SUBTYPE and TYPE should be symbols which are a
+MIME supertype (e.g., text), a MIME subtype (e.g., plain) and a MIME
+type (e.g., text/plain) respectively, and DISPOSITION should be either
+the string \"attachment\" or the string \"inline\".  The value t for
+SUPERTYPE, SUBTYPE or TYPE matches any of those types.  The first
+match found will be used."
+  :version "23.0" ;; No Gnus
+  :type (let ((dispositions '(radio :format "DISPOSITION: %v"
+				    :value "attachment"
+				    (const :format "%v " "attachment")
+				    (const :format "%v\n" "inline"))))
+	  `(repeat
+	    :offset 0
+	    (choice :format "%[Value Menu%]%v"
+		    (cons :tag "(REGEXP . DISPOSITION)" :extra-offset 4
+			  (regexp :tag "REGEXP" :value ".*")
+			  ,dispositions)
+		    (cons :tag "(SUPERTYPE (SUBTYPE . DISPOSITION)...)"
+			  :indent 0
+			  (symbol :tag "    SUPERTYPE" :value text)
+			  (repeat :format "%v%i\n" :offset 0 :extra-offset 4
+				  (cons :format "%v" :extra-offset 5
+					(symbol :tag "SUBTYPE" :value t)
+					,dispositions)))
+		    (cons :tag "(TYPE . DISPOSITION)" :extra-offset 4
+			  (symbol :tag "TYPE" :value t)
+			  ,dispositions))))
   :group 'message)
 
 (defcustom mml-insert-mime-headers-always nil
@@ -154,19 +195,15 @@ part.  This is for the internal use, you should never modify the value.")
 
 (defun mml-destroy-buffers ()
   (let (kill-buffer-hook)
-    (mapcar 'kill-buffer mml-buffer-list)
+    (mapc 'kill-buffer mml-buffer-list)
     (setq mml-buffer-list nil)))
 
 (defun mml-parse ()
   "Parse the current buffer as an MML document."
   (save-excursion
     (goto-char (point-min))
-    (let ((table (syntax-table)))
-      (unwind-protect
-	  (progn
-	    (set-syntax-table mml-syntax-table)
-	    (mml-parse-1))
-	(set-syntax-table table)))))
+    (with-syntax-table mml-syntax-table
+      (mml-parse-1))))
 
 (defun mml-parse-1 ()
   "Parse the current buffer as an MML document."
@@ -181,6 +218,8 @@ part.  This is for the internal use, you should never modify the value.")
 	;; included in the message
 	(let* (secure-mode
 	       (taginfo (mml-read-tag))
+	       (keyfile (cdr (assq 'keyfile taginfo)))
+	       (certfile (cdr (assq 'certfile taginfo)))
 	       (recipients (cdr (assq 'recipients taginfo)))
 	       (sender (cdr (assq 'sender taginfo)))
 	       (location (cdr (assq 'tag-location taginfo)))
@@ -188,9 +227,8 @@ part.  This is for the internal use, you should never modify the value.")
 	       (method (cdr (assq 'method taginfo)))
 	       tags)
 	  (save-excursion
-	    (if
-		(re-search-forward
-		 "<#\\(/\\)?\\(multipart\\|part\\|external\\|mml\\)." nil t)
+	    (if (re-search-forward
+		 "<#/?\\(multipart\\|part\\|external\\|mml\\)." nil t)
 		(setq secure-mode "multipart")
 	      (setq secure-mode "part")))
 	  (save-excursion
@@ -205,6 +243,10 @@ part.  This is for the internal use, you should never modify the value.")
 		 (setq tags (list "sign" method "encrypt" method))))
 	  (eval `(mml-insert-tag ,secure-mode
 				 ,@tags
+				 ,(if keyfile "keyfile")
+				 ,keyfile
+				 ,(if certfile "certfile")
+				 ,certfile
 				 ,(if recipients "recipients")
 				 ,recipients
 				 ,(if sender "sender")
@@ -427,21 +469,24 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 			     (or (mm-default-file-encoding filename)
 				 "application/octet-stream")
 			   "text/plain")))
-	       coded encoding charset flowed)
+	       (charset (cdr (assq 'charset cont)))
+	       (coding (mm-charset-to-coding-system charset))
+	       encoding flowed coded)
+	  (cond ((eq coding 'ascii)
+		 (setq charset nil
+		       coding nil))
+		(charset
+		 (setq charset (intern (downcase charset)))))
 	  (if (and (not raw)
 		   (member (car (split-string type "/")) '("text" "message")))
 	      (progn
 		(with-temp-buffer
-		  (setq charset (mm-charset-to-coding-system
-				 (cdr (assq 'charset cont))))
-		  (when (eq charset 'ascii)
-		    (setq charset nil))
 		  (cond
 		   ((cdr (assq 'buffer cont))
 		    (insert-buffer-substring (cdr (assq 'buffer cont))))
 		   ((and filename
 			 (not (equal (cdr (assq 'nofile cont)) "yes")))
-		    (let ((coding-system-for-read charset))
+		    (let ((coding-system-for-read coding))
 		      (mm-insert-file-contents filename)))
 		   ((eq 'mml (car cont))
 		    (insert (cdr (assq 'contents cont))))
@@ -491,7 +536,13 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 			;; insert a "; format=flowed" string unless the
 			;; user has already specified it.
 			(setq flowed (null (assq 'format cont)))))
-		    (setq charset (mm-encode-body charset))
+		    ;; Prefer `utf-8' for text/calendar parts.
+		    (if (or charset
+			    (not (string= type "text/calendar")))
+			(setq charset (mm-encode-body charset))
+		      (let ((mm-coding-system-priorities
+			     (cons 'utf-8 mm-coding-system-priorities)))
+			(setq charset (mm-encode-body))))
 		    (setq encoding (mm-body-encoding
 				    charset (cdr (assq 'encoding cont))))))
 		  (setq coded (buffer-string)))
@@ -507,7 +558,11 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	       ((and filename
 		     (not (equal (cdr (assq 'nofile cont)) "yes")))
 		(let ((coding-system-for-read mm-binary-coding-system))
-		  (mm-insert-file-contents filename nil nil nil nil t)))
+		  (mm-insert-file-contents filename nil nil nil nil t))
+		(unless charset
+		  (setq charset (mm-coding-system-to-mime-charset
+				 (mm-find-buffer-file-coding-system
+				  filename)))))
 	       (t
 		(let ((contents (cdr (assq 'contents cont))))
 		  (if (if (featurep 'xemacs)
@@ -517,7 +572,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 			(mm-enable-multibyte)
 			(insert contents)
 			(unless raw
-			  (setq charset (mm-encode-body))))
+			  (setq charset	(mm-encode-body charset))))
 		    (insert contents)))))
 	      (setq encoding (mm-encode-buffer type)
 		    coded (mm-string-as-multibyte (buffer-string))))
@@ -648,7 +703,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 				      (incf mml-multipart-number)))
 	  (throw 'not-unique nil))))
      ((eq (car cont) 'multipart)
-      (mapcar 'mml-compute-boundary-1 (cddr cont))))
+      (mapc 'mml-compute-boundary-1 (cddr cont))))
     t))
 
 (defun mml-make-boundary (number)
@@ -657,6 +712,30 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	      (format "%x" number)
 	    "")
 	  mml-base-boundary))
+
+(defun mml-content-disposition (type &optional filename)
+  "Return a default disposition name suitable to TYPE or FILENAME."
+  (let ((defs mml-content-disposition-alist)
+	disposition def types)
+    (while (and (not disposition) defs)
+      (setq def (pop defs))
+      (cond ((stringp (car def))
+	     (when (and filename
+			(string-match (car def) filename))
+	       (setq disposition (cdr def))))
+	    ((consp (cdr def))
+	     (when (string= (car (setq types (split-string type "/")))
+			    (car def))
+	       (setq type (cadr types)
+		     types (cdr def))
+	       (while (and (not disposition) types)
+		 (setq def (pop types))
+		 (when (or (eq (car def) t) (string= type (car def)))
+		   (setq disposition (cdr def))))))
+	    (t
+	     (when (or (eq (car def) t) (string= type (car def)))
+	       (setq disposition (cdr def))))))
+    (or disposition "attachment")))
 
 (defun mml-insert-mime-headers (cont type charset encoding flowed)
   (let (parameters id disposition description)
@@ -688,7 +767,9 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	   cont mml-content-disposition-parameters))
     (when (or (setq disposition (cdr (assq 'disposition cont)))
 	      parameters)
-      (insert "Content-Disposition: " (or disposition "inline"))
+      (insert "Content-Disposition: "
+	      (or disposition
+		  (mml-content-disposition type (cdr (assq 'filename cont)))))
       (when parameters
 	(mml-insert-parameter-string
 	 cont mml-content-disposition-parameters))
@@ -727,9 +808,9 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	 (mail-header-encode-parameter
 	  (symbol-name type) value))))))
 
-(eval-when-compile
-  (defvar ange-ftp-name-format)
-  (defvar efs-path-regexp))
+(defvar ange-ftp-name-format)
+(defvar efs-path-regexp)
+
 (defun mml-parse-file-name (path)
   (if (if (boundp 'efs-path-regexp)
 	  (string-match efs-path-regexp path)
@@ -809,7 +890,7 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
       (goto-char (point-max))
       (insert "<#/mml>\n"))
      ((stringp (car handle))
-      (mapcar 'mml-insert-mime (cdr handle))
+      (mapc 'mml-insert-mime (cdr handle))
       (insert "<#/multipart>\n"))
      (textp
       (let ((charset (mail-content-type-get
@@ -1004,9 +1085,18 @@ See Info node `(emacs-mime)Composing'.
 ;;; inserting stuff to the buffer.
 ;;;
 
+(defcustom mml-default-directory mm-default-directory
+  "The default directory where mml will find files.
+If not set, `default-directory' will be used."
+  :type '(choice directory (const :tag "Default" nil))
+  :version "23.0" ;; No Gnus
+  :group 'message)
+
 (defun mml-minibuffer-read-file (prompt)
   (let* ((completion-ignored-extensions nil)
-	 (file (read-file-name prompt nil nil t)))
+	 (file (read-file-name prompt
+			       (or mml-default-directory default-directory)
+			       nil t)))
     ;; Prevent some common errors.  This is inspired by similar code in
     ;; VM.
     (when (file-directory-p file)
@@ -1038,16 +1128,13 @@ See Info node `(emacs-mime)Composing'.
       (setq description nil))
     description))
 
-(defun mml-minibuffer-read-disposition (type &optional default)
-  (unless default (setq default
-                        (if (and (string-match "\\`text/" type)
-                                 (not (string-match "\\`text/rtf\\'" type)))
-                            "inline"
-                          "attachment")))
+(defun mml-minibuffer-read-disposition (type &optional default filename)
+  (unless default
+    (setq default (mml-content-disposition type filename)))
   (let ((disposition (completing-read
-                      (format "Disposition (default %s): " default)
-                      '(("attachment") ("inline") (""))
-                      nil t nil nil default)))
+		      (format "Disposition (default %s): " default)
+		      '(("attachment") ("inline") (""))
+		      nil t nil nil default)))
     (if (not (equal disposition ""))
 	disposition
       default)))
@@ -1139,7 +1226,7 @@ body) or \"attachment\" (separate from the body)."
    (let* ((file (mml-minibuffer-read-file "Attach file: "))
 	  (type (mml-minibuffer-read-type file))
 	  (description (mml-minibuffer-read-description))
-	  (disposition (mml-minibuffer-read-disposition type)))
+	  (disposition (mml-minibuffer-read-disposition type nil file)))
      (list file type description disposition)))
   (save-excursion
     (unless (message-in-body-p) (goto-char (point-max)))
@@ -1170,7 +1257,7 @@ Ask for type, description or disposition according to
 	(when (memq 'description mml-dnd-attach-options)
 	  (setq description (mml-minibuffer-read-description)))
 	(when (memq 'disposition mml-dnd-attach-options)
-	  (setq disposition (mml-minibuffer-read-disposition type)))
+	  (setq disposition (mml-minibuffer-read-disposition type nil file)))
 	(mml-attach-file file type description disposition)))))
 
 (defun mml-attach-buffer (buffer &optional type description)
@@ -1227,10 +1314,20 @@ Should be adopted if code in `message-send-mail' is changed."
     (message-position-on-field "Mail-Followup-To" "X-Draft-From")
     (insert (message-make-mail-followup-to))))
 
+(defvar mml-preview-buffer nil)
+
 (defun mml-preview (&optional raw)
   "Display current buffer with Gnus, in a new buffer.
-If RAW, display a raw encoded MIME message."
+If RAW, display a raw encoded MIME message.
+
+The window layout for the preview buffer is controled by the variables
+`special-display-buffer-names', `special-display-regexps', or
+`gnus-buffer-configuration' (the first match made will be used),
+or the `pop-to-buffer' function."
   (interactive "P")
+  (setq mml-preview-buffer (generate-new-buffer
+			    (concat (if raw "*Raw MIME preview of "
+				      "*MIME preview of ") (buffer-name))))
   (save-excursion
     (let* ((buf (current-buffer))
 	   (message-options message-options)
@@ -1242,13 +1339,13 @@ If RAW, display a raw encoded MIME message."
 					   (message-fetch-field "Newsgroups")))
 					message-posting-charset)))
       (message-options-set-recipient)
-      (pop-to-buffer (generate-new-buffer
-		      (concat (if raw "*Raw MIME preview of "
-				"*MIME preview of ") (buffer-name))))
       (when (boundp 'gnus-buffers)
-	(push (current-buffer) gnus-buffers))
-      (erase-buffer)
-      (insert-buffer-substring buf)
+	(push mml-preview-buffer gnus-buffers))
+      (save-restriction
+	(widen)
+	(set-buffer mml-preview-buffer)
+	(erase-buffer)
+	(insert-buffer-substring buf))
       (mml-preview-insert-mail-followup-to)
       (let ((message-deletable-headers (if (message-news-p)
 					   nil
@@ -1261,6 +1358,7 @@ If RAW, display a raw encoded MIME message."
 	   (concat "^" (regexp-quote mail-header-separator) "\n") nil t)
 	  (replace-match "\n"))
       (let ((mail-header-separator ""));; mail-header-separator is removed.
+	(message-sort-headers)
 	(mml-to-mime))
       (if raw
 	  (when (fboundp 'set-buffer-multibyte)
@@ -1293,7 +1391,15 @@ If RAW, display a raw encoded MIME message."
 		     (lambda (event)
 		       (interactive "@e")
 		       (widget-button-press (widget-event-point event) event)))
-      (goto-char (point-min)))))
+      ;; FIXME: Buffer is in article mode, but most tool bar commands won't
+      ;; work.  Maybe only keep the following icons: search, print, quit
+      (goto-char (point-min))))
+  (if (and (not (mm-special-display-p (buffer-name mml-preview-buffer)))
+	   (boundp 'gnus-buffer-configuration)
+	   (assq 'mml-preview gnus-buffer-configuration))
+      (let ((gnus-message-buffer (current-buffer)))
+	(gnus-configure-windows 'mml-preview))
+    (pop-to-buffer mml-preview-buffer)))
 
 (defun mml-validate ()
   "Validate the current MML document."

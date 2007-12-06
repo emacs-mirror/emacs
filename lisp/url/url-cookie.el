@@ -87,6 +87,8 @@ telling Microsoft that."
      ;; (message "Could not load cookie file %s" fname)
      )))
 
+(declare-function url-cookie-p "url-cookie" t t) ; defstruct
+
 (defun url-cookie-clean-up (&optional secure)
   (let* (
 	 (var (if secure 'url-cookie-secure-storage 'url-cookie-storage))

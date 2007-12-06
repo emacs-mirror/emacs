@@ -39,6 +39,9 @@
 (defvar transient-mark-mode)
 (defvar TeX-master)
 ;; END remove for XEmacs release
+
+(declare-function texmathp "ext:texmathp" ())
+
 (defun reftex-index-selection-or-word (&optional arg phrase)
   "Put selection or the word near point into the default index macro.
 This uses the information in `reftex-index-default-macro' to make an index
@@ -52,7 +55,7 @@ which is part of AUCTeX, the string is first processed with the
   (interactive "P")
   (let* ((use-default (not (equal arg '(16))))  ; check for double prefix
          ;; check if we have an active selection
-         (active (if (boundp 'zmacs-regions)
+         (active (if (featurep 'xemacs)
                      (and zmacs-regions (region-exists-p))  ; XEmacs
                    (and transient-mark-mode mark-active)))  ; Emacs
          (beg (if active 

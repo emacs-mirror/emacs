@@ -50,6 +50,9 @@ See `erc-encoding-coding-alist'."
 (defalias 'erc-delete-dups 'delete-dups)
 (defalias 'erc-replace-regexp-in-string 'replace-regexp-in-string)
 
+(defun erc-set-write-file-functions (new-val)
+  (set (make-local-variable 'write-file-functions) new-val))
+
 (defvar erc-emacs-build-time
   (if (stringp emacs-build-time)
       emacs-build-time

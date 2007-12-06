@@ -33,6 +33,18 @@
 (require 'reftex)
 ;;;
 
+(declare-function TeX-argument-insert "ext:tex" (name optional &optional prefix))
+(declare-function TeX-argument-prompt "ext:tex" (optional prompt default &optional complete))
+(declare-function multi-prompt "ext:multi-prompt" 
+		  (separator
+		   unique prompt table
+		   &optional mp-predicate require-match initial history))
+(declare-function LaTeX-add-index-entries "ext:tex" (&rest entries) t)
+(declare-function LaTeX-add-labels "ext:tex" (&rest entries) t)
+(declare-function LaTeX-bibitem-list "ext:tex" () t)
+(declare-function LaTeX-index-entry-list "ext:tex" () t)
+(declare-function LaTeX-label-list "ext:tex" () t)
+
 (defun reftex-plug-flag (which)
   ;; Tell if a certain flag is set in reftex-plug-into-AUCTeX
   (or (eq t reftex-plug-into-AUCTeX)

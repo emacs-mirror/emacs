@@ -38,11 +38,47 @@
 
 (defvar explicit-shell-file-name)
 
-;; Map delete and backspace
-(define-key function-key-map [backspace] "\177")
-(define-key function-key-map [delete] "\C-d")
-(define-key function-key-map [M-backspace] [?\M-\177])
-(define-key function-key-map [C-M-backspace] [\C-\M-delete])
+;;;; Function keys
+
+(defvar x-alternatives-map
+  (let ((map (make-sparse-keymap)))
+    ;; Map certain keypad keys into ASCII characters that people usually expect.
+    (define-key map [backspace] [127])
+    (define-key map [delete] [127])
+    (define-key map [tab] [?\t])
+    (define-key map [linefeed] [?\n])
+    (define-key map [clear] [?\C-l])
+    (define-key map [return] [?\C-m])
+    (define-key map [escape] [?\e])
+    (define-key map [M-backspace] [?\M-\d])
+    (define-key map [M-delete] [?\M-\d])
+    (define-key map [M-tab] [?\M-\t])
+    (define-key map [M-linefeed] [?\M-\n])
+    (define-key map [M-clear] [?\M-\C-l])
+    (define-key map [M-return] [?\M-\C-m])
+    (define-key map [M-escape] [?\M-\e])
+    (define-key map [iso-lefttab] [backtab])
+    (define-key map [S-iso-lefttab] [backtab])
+    map)
+  "Keymap of possible alternative meanings for some keys.")
+
+(defun x-setup-function-keys (frame)
+  "Set up `function-key-map' on FRAME for w32."
+  ;; Don't do this twice on the same display, or it would break
+  ;; normal-erase-is-backspace-mode.
+  (unless (terminal-parameter frame 'x-setup-function-keys)
+    ;; Map certain keypad keys into ASCII characters that people usually expect.
+    (with-selected-frame frame
+      (let ((map (copy-keymap x-alternatives-map)))
+        (set-keymap-parent map (keymap-parent local-function-key-map))
+        (set-keymap-parent local-function-key-map map)))
+    (set-terminal-parameter frame 'x-setup-function-keys t)))
+
+(declare-function set-message-beep "w32console.c")
+(declare-function w32-get-clipboard-data "w32select.c")
+(declare-function w32-get-locale-info "w32proc.c")
+(declare-function w32-get-valid-locale-ids "w32proc.c")
+(declare-function w32-set-clipboard-data "w32select.c")
 
 ;; Ignore case on file-name completion
 (setq completion-ignore-case t)
@@ -310,25 +346,6 @@ This function is provided for backward compatibility, since
 (global-set-key [lwindow] 'ignore)
 (global-set-key [rwindow] 'ignore)
 
-;; Map certain keypad keys into ASCII characters
-;; that people usually expect.
-(define-key function-key-map [tab] [?\t])
-(define-key function-key-map [linefeed] [?\n])
-(define-key function-key-map [clear] [11])
-(define-key function-key-map [return] [13])
-(define-key function-key-map [escape] [?\e])
-(define-key function-key-map [M-tab] [?\M-\t])
-(define-key function-key-map [M-linefeed] [?\M-\n])
-(define-key function-key-map [M-clear] [?\M-\013])
-(define-key function-key-map [M-return] [?\M-\015])
-(define-key function-key-map [M-escape] [?\M-\e])
-
-;; These don't do the right thing (voelker)
-;(define-key function-key-map [backspace] [127])
-;(define-key function-key-map [delete] [127])
-;(define-key function-key-map [M-backspace] [?\M-\d])
-;(define-key function-key-map [M-delete] [?\M-\d])
-
 ;; These tell read-char how to convert
 ;; these special chars to ASCII.
 (put 'tab 'ascii-character ?\t)
@@ -338,28 +355,6 @@ This function is provided for backward compatibility, since
 (put 'escape 'ascii-character ?\e)
 (put 'backspace 'ascii-character 127)
 (put 'delete 'ascii-character 127)
-
-;; W32 uses different color indexes than standard:
-
-(defvar w32-tty-standard-colors
-  '(("black"          0     0     0     0)
-    ("blue"           1     0     0 52480) ; MediumBlue
-    ("green"          2  8704 35584  8704) ; ForestGreen
-    ("cyan"           3     0 52736 53504) ; DarkTurquoise
-    ("red"            4 45568  8704  8704) ; FireBrick
-    ("magenta"        5 35584     0 35584) ; DarkMagenta
-    ("brown"          6 40960 20992 11520) ; Sienna
-    ("lightgray"      7 48640 48640 48640) ; Gray
-    ("darkgray"       8 26112 26112 26112) ; Gray40
-    ("lightblue"      9     0     0 65535) ; Blue
-    ("lightgreen"    10     0 65535     0) ; Green
-    ("lightcyan"     11     0 65535 65535) ; Cyan
-    ("lightred"      12 65535     0     0) ; Red
-    ("lightmagenta"  13 65535     0 65535) ; Magenta
-    ("yellow"        14 65535 65535     0) ; Yellow
-    ("white"         15 65535 65535 65535))
-"A list of VGA console colors, their indices and 16-bit RGB values.")
-
 
 (defun w32-add-charset-info (xlfd-charset windows-charset codepage)
   "Function to add character sets to display with Windows fonts.
@@ -382,9 +377,9 @@ bit output with no translation."
 (w32-add-charset-info "jisx0201-latin" 'w32-charset-shiftjis 932)
 (w32-add-charset-info "jisx0201-katakana" 'w32-charset-shiftjis 932)
 (w32-add-charset-info "jisx0208-sjis" 'w32-charset-shiftjis 932)
-(w32-add-charset-info "ksc5601.1987" 'w32-charset-hangeul 949)
-(w32-add-charset-info "big5" 'w32-charset-chinesebig5 950)
-(w32-add-charset-info "gb2312" 'w32-charset-gb2312 936)
+(w32-add-charset-info "ksc5601.1989-1" 'w32-charset-hangeul 949)
+(w32-add-charset-info "big5-1" 'w32-charset-chinesebig5 950)
+(w32-add-charset-info "gb2312.1980-1" 'w32-charset-gb2312 936)
 (w32-add-charset-info "ms-symbol" 'w32-charset-symbol nil)
 (w32-add-charset-info "ms-oem" 'w32-charset-oem 437)
 (w32-add-charset-info "ms-oemlatin" 'w32-charset-oem 850)
@@ -400,12 +395,11 @@ bit output with no translation."
       (w32-add-charset-info "iso8859-13" 'w32-charset-baltic 1257)
       (w32-add-charset-info "koi8-r" 'w32-charset-russian 20866)
       (w32-add-charset-info "iso8859-5" 'w32-charset-russian 28595)
-      (w32-add-charset-info "tis620" 'w32-charset-thai 874)
-      (w32-add-charset-info "ksc5601.1992" 'w32-charset-johab 1361)
-      (w32-add-charset-info "mac" 'w32-charset-mac nil)))
+      (w32-add-charset-info "tis620-1" 'w32-charset-thai 874)
+      (w32-add-charset-info "ksc5601.1992-1" 'w32-charset-johab 1361)
+      (w32-add-charset-info "mac-latin" 'w32-charset-mac nil)))
 (if (boundp 'w32-unicode-charset-defined)
     (progn
-      (w32-add-charset-info "unicode" 'w32-charset-unicode t)
       (w32-add-charset-info "iso10646-1" 'w32-charset-unicode t))
   ;; If unicode windows charset is not defined, use ansi fonts.
   (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))

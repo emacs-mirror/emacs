@@ -971,8 +971,9 @@ most common command syntax; it may not work for unusual shells.
 
 @findex dirtrack-mode
   You can also use @kbd{M-x dirtrack-mode} to enable (or disable) an
-alternative and more aggressive method of tracking changes in the
-current directory.
+alternative method of tracking changes in the current directory.  This
+method relies on your shell prompt containing the full current working
+directory at all times.
 
 @node Shell Options
 @subsection Shell Mode Options

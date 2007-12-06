@@ -35,15 +35,11 @@
 (require 'nntp)
 (require 'nnmail)
 (require 'gnus-util)
-(eval-and-compile
-  (if (featurep 'xemacs)
-      (require 'itimer)
-    (require 'timer)))
 
 (autoload 'parse-time-string "parse-time" nil nil)
 
 (defgroup gnus-demon nil
-  "Demonic behaviour."
+  "Demonic behavior."
   :group 'gnus)
 
 (defcustom gnus-demon-handlers nil
@@ -109,7 +105,7 @@ time Emacs has been idle for IDLE `gnus-demon-timestep's."
   (when gnus-demon-handlers
     ;; Set up the timer.
     (setq gnus-demon-timer
-	  (nnheader-run-at-time
+	  (run-at-time
 	   gnus-demon-timestep gnus-demon-timestep 'gnus-demon))
     ;; Reset control variables.
     (setq gnus-demon-handler-state

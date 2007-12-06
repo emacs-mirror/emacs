@@ -173,13 +173,14 @@ join from that split has been detected or not.")
 
 (defun erc-netsplit-timer (now)
   "Clean cruft from `erc-netsplit-list' older than 10 minutes."
-  (dolist (elt erc-netsplit-list)
-    (when (> (erc-time-diff (cadr elt) now) 600)
-      (when erc-netsplit-debug
-	(erc-display-message
-	 nil 'notice (current-buffer)
-	 (concat "Netsplit: Removing " (car elt))))
-      (setq erc-netsplit-list (delq elt erc-netsplit-list)))))
+  (when erc-server-connected
+    (dolist (elt erc-netsplit-list)
+      (when (> (erc-time-diff (cadr elt) now) 600)
+	(when erc-netsplit-debug
+	  (erc-display-message
+	   nil 'notice (current-buffer)
+	   (concat "Netsplit: Removing " (car elt))))
+	(setq erc-netsplit-list (delq elt erc-netsplit-list))))))
 
 ;;;###autoload
 (defun erc-cmd-WHOLEFT ()

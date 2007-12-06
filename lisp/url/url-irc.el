@@ -47,6 +47,10 @@ PASSWORD - What password to use"
 		 (function :tag "Other"))
   :group 'url)
 
+;; External.
+(declare-function zenirc "ext:zenirc" (&optional prefix))
+(declare-function zenirc-send-line "ext:zenirc" ())
+
 (defun url-irc-zenirc (host port channel user password)
   (let ((zenirc-buffer-name (if (and user host port)
 				(format "%s@%s:%d" user host port)

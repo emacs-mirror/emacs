@@ -91,6 +91,8 @@
 
 (require 'idlwave)
 
+(declare-function idlwave-shell-buffer "idlw-shell")
+
 ;; Some variables to identify the previously used structure
 (defvar idlwave-current-tags-var nil)
 (defvar idlwave-current-tags-buffer nil)
@@ -101,6 +103,7 @@
 (defvar idlwave-sint-structtags nil)
 
 ;; Create the sintern type for structure talks
+(declare-function idlwave-sintern-structtag "idlw-complete-structtag" t t)
 (idlwave-new-sintern-type 'structtag)
 
 ;; Hook the plugin into idlwave

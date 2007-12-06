@@ -215,8 +215,7 @@ to be counted) its minibuffer frame (if that's not the same frame).
 The optional arg MINIBUF non-nil means count the minibuffer
 even if it is inactive."
    (let ((count 0))
-     (walk-windows (function (lambda (w)
-			       (setq count (+ count 1))))
+     (walk-windows (lambda (w) (setq count (+ count 1)))
 		   minibuf)
      count))
 
@@ -379,8 +378,7 @@ subtree is balanced."
         (h)
         (tried-sizes)
         (last-sizes)
-        (windows (window-list nil 0))
-        (counter 0))
+        (windows (window-list nil 0)))
     (when wt
       (while (not (member last-sizes tried-sizes))
         (when last-sizes (setq tried-sizes (cons last-sizes tried-sizes)))
@@ -415,17 +413,16 @@ Arguments WINDOW, DELTA and HORIZONTAL are passed on to that function."
         (when w
           (let ((dw (- w (- (bw-r wt) (bw-l wt)))))
             (when (/= 0 dw)
-                (bw-adjust-window wt dw t))))
+              (bw-adjust-window wt dw t))))
         (when h
           (let ((dh (- h (- (bw-b wt) (bw-t wt)))))
             (when (/= 0 dh)
               (bw-adjust-window wt dh nil)))))
     (let* ((childs (cdr (assq 'childs wt)))
-           (lastchild (car (last childs)))
            (cw (when w (/ w (if (bw-eqdir 'hor wt) (length childs) 1))))
            (ch (when h (/ h (if (bw-eqdir 'ver wt) (length childs) 1)))))
       (dolist (c childs)
-          (bw-balance-sub c cw ch)))))
+        (bw-balance-sub c cw ch)))))
 
 ;;; A different solution to balance-windows
 
@@ -561,7 +558,7 @@ window."
 	(old-point (point))
 	(size (and arg (prefix-numeric-value arg)))
         (window-full-p nil)
-	new-w bottom switch moved)
+	new-w bottom moved)
     (and size (< size 0) (setq size (+ (window-height) size)))
     (setq new-w (split-window nil size))
     (or split-window-keep-point
@@ -879,6 +876,46 @@ and the buffer that is killed or buried is the one in that window."
     ;; Maybe get rid of the window.
     (and window (not window-handled) (not window-solitary)
 	 (delete-window window))))
+
+(defvar recenter-last-op nil
+  "Indicates the last recenter operation performed.
+Possible values: `top', `middle', `bottom'.")
+
+(defun recenter-top-bottom (&optional arg)
+  "Move current line to window center, top, and bottom, successively.
+With a prefix argument, this is the same as `recenter':
+ With numeric prefix ARG, move current line to window-line ARG.
+ With plain `C-u', move current line to window center.
+
+Otherwise move current line to window center on first call, and to
+top, middle, or bottom on successive calls.
+
+The starting position of the window determines the cycling order:
+ If initially in the top or middle third: top -> middle -> bottom.
+ If initially in the bottom third: bottom -> middle -> top.
+
+Top and bottom destinations are actually `scroll-conservatively' lines
+from true window top and bottom."
+  (interactive "P")
+  (cond
+   (arg (recenter arg))                 ; Always respect ARG.
+   ((not (eq this-command last-command))
+    ;; First time - save mode and recenter.
+    (setq recenter-last-op 'middle)
+    (recenter))
+   (t ;; repeat: loop through various options.
+    (setq recenter-last-op
+	  (cond ((eq recenter-last-op 'middle)
+		 (recenter scroll-conservatively)
+		 'top)
+		((eq recenter-last-op 'top)
+		 (recenter (1- (- scroll-conservatively)))
+		 'bottom)
+		((eq recenter-last-op 'bottom)
+		 (recenter)
+		 'middle))))))
+
+(define-key global-map [?\C-l] 'recenter-top-bottom)
 
 (defvar mouse-autoselect-window-timer nil
   "Timer used by delayed window autoselection.")

@@ -37,17 +37,16 @@ done
 if [ "x$subdirs" = x ]; then
   rm -f subdirs.el
 else
-
-  echo ";; -*- no-byte-compile: t -*-" > subdirs.el
-
-  echo ";; In load-path, after this directory should come
-;; certain of its subdirectories.  Here we specify them." >> subdirs.el
-
-  echo "(normal-top-level-add-to-load-path '($subdirs))
+  rm -f subdirs.el~
+  echo ";; -*- no-byte-compile: t -*-
+;; In load-path, after this directory should come
+;; certain of its subdirectories.  Here we specify them.
+(normal-top-level-add-to-load-path '($subdirs))
 ;; Local" "Variables:
 ;; version-control: never
 ;; no-byte-compile: t
-;; End:" >> subdirs.el
+;; End:" > subdirs.el~
+  mv subdirs.el~ subdirs.el
 fi
 
 # arch-tag: 56ebcf1b-5c30-4934-b0b4-72d374064704

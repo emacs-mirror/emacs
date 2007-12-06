@@ -28,13 +28,20 @@ so we will look at it and add it to the manual.
 
 ** The default X toolkit is now Gtk+, rather than Lucid.
 
+** The Mac Carbon port is no longer supported.
+Instead, use... [what?]
+
 ** configure now checks for libgif before libungif when searching for
 a GIF library.
 
 ** Support for systems without alloca has been removed.
 
+** Support for Sun windows has been removed.
+
 ** The `emacstool' utility has been removed.
 
+** The new configuration option "--with-dbus" enables D-Bus language
+bindings for Emacs.
 
 * Changes in Emacs 23.1
 
@@ -48,6 +55,7 @@ testing for the `multi-tty' feature.
 OS-X-style icons (an application icon and a relevant document icon)
 were contributed by Kentaro Ohkouchi.
 Source files for these icons can be found in Emacs.app/Contents/Resources.
+PNG versions are available as etc/images/icons/macemacs_*.png.
 
 ** Built-in functions (subr) can now have an interactive specification
 that is not a prompt string.  If the `intspec' parameter of a `DEFUN'
@@ -115,8 +123,18 @@ following arguments.
 
 * Incompatible Editing Changes in Emacs 23.1
 
++++
+** In Dired-x, all command guesses for ! are now added to the default
+list accessible by M-n instead of pushing all guesses temporarily into
+the history list.
+
 
 * Editing Changes in Emacs 23.1
+
++++
+** C-M-% now shows replacement as it would look in the buffer, with
+`\N' and `\&' substituted according to the match.  Old behavior can be
+restored by customizing `query-replace-show-replacement'.
 
 +++
 ** M-q now fills the region if the region is active and
@@ -142,6 +160,17 @@ strings on the kill ring.
 
 ** Minibuffer changes:
 
+*** In C-x d, if you type M-n you get the visited file name of the
+current buffer.
+
+*** In Dired, a list of commands for ! extracted from mailcap according to
+file extensions are added to the default list accessible by M-n.
+
+*** A list of regexp default values is available via M-n for `occur',
+`keep-lines', `flush-lines' and `how-many'.  This list includes the active
+region in transient-mark-mode, the word under the cursor, the last isearch
+regexp, the last isearch string and the last replacement regexp.
+
 *** isearch started in the minibuffer searches in the minibuffer history.
 Reverse isearch commands (C-r, C-M-r) search in previous minibuffer
 history elements, and forward isearch commands (C-s, C-M-s) search in
@@ -153,18 +182,57 @@ history element containing the search string becomes the current.
 
 * New Modes and Packages in Emacs 23.1
 
+** FIXME add details of new packages imported from lisp/gnus.
+
 ** The package doc-view.el has been added.  It supports viewing of PDF,
 PostScript and DVI documents inside an Emacs buffer by converting the
 document to a set of PNG images first.  One can also search for a
 regular expression in the document.  The commentary of the file explains
 its usage.
 
+** The nXML package has been added.
+[FIXME someone who uses this, please write a brief description.]
+
 ** A new game called `bubbles' has been added.
 
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
+** Remember Mode (remember.el) is now included with Emacs.  It is a
+mode for quickly jotting down things to remember.  Included with
+remember.el is a backend that can save notes to a Diary file.  Please
+consult the Remember Manual for usage details.
+
+** D-Bus language bindings for Elisp are provided by the package
+dbus.el and by extensions to the C modules of Emacs.  D-Bus is an
+inter-process communication mechanism for applications residing on the
+same host, based on messages.  See the manual for further details.
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
+
+** abbrev was rewritten in Elisp and extended with more flexibility.
+*** New functions: abbrev-get, abbrev-put, abbrev-table-get, abbrev-table-put,
+    abbrev-table-p.
+*** Special hook `abbrev-expand-functions' obsoletes `pre-abbrev-expand-hook'.
+*** `make-abbrev-table', `define-abbrev', `define-abbrev-table' all take
+    extra arguments for arbitrary properties.
+*** New variable `abbrev-minor-mode-table-alist'.
+*** `local-abbrev-table' can hold a list of abbrev-tables.
+*** Abbrevs have now the following special properties:
+    `:count', `:system', `:enable-function', `:case-fixed'.
+*** Abbrev-tables have now the following special properties:
+    `:parents', `:case-fixed', `:enable-function', `:regexp',
+    `abbrev-table-modiff'.
+
+** Help mode.
+*** New macro `with-help-window' should set up help windows better
+than `with-output-to-temp-buffer' with `print-help-return-message'.
+*** New option `help-window-select' permits to customize whether help
+window shall be automatically selected when invoking help.
+*** New variable `help-window-point-marker' permits to specify new
+position of point in help window (for example in `view-lossage').
+
+** view-remove-frame-by-deleting is now by default t
+since users found iconification of view-mode frames distracting.
 
 ** isearch can now search through multiple ChangeLog files.
 When running isearch in a ChangeLog file, if the search fails,
@@ -172,11 +240,6 @@ then another C-s tries searching the previous ChangeLog,
 if there is one (e.g. go from ChangeLog to ChangeLog.12).
 
 This is enabled if isearch-buffers-multi is non-nil.
-
-+++
-** In Dired-x, all command guesses for ! are now added to the default
-list accessible by M-n instead of pushing all guesses temporarily into
-the history list.
 
 ** smerge-refine highlights word-level details of changes in conflict.
 It's used automatically as you move through conflicts, see smerge-auto-refine.
@@ -202,6 +265,12 @@ with the face `eldoc-highlight-function-argument'.
 ** defcustom accepts new keyword arguments, `:safe' and `:risky', which
 set a variable's `safe-local-variable' and `risky-local-variable' property.
 
+** Etags changes.
+*** The --members option is now the default.
+
+Use --no-members if you want the old default behaviour of not tagging
+struct members in C, members variables in C++ and variables in PHP.
+
 ** VC
 *** Clicking on the VC mode-line entry now pops the VC menu.
 
@@ -213,6 +282,11 @@ This enables VC to work much more effectively with changeset-oriented
 version-control systems such as Subversion, GNU Arch, Mercurial, and
 Bzr. VC will now pass a multiple-file commit to these systems
 as a single changeset.
+
+*** In VC Annotate mode, you can type V to toggle the annotation visibility.
+
+** log-edit now has a command bound to C-c C-d to show the diff for
+the files involved.
 
 ** sgml-electric-tag-pair-mode lets you simultaneously edit matched tag pairs.
 
@@ -267,6 +341,9 @@ that either version can be used as inferior Python by python.el.
 
 *** The variable `fortran-line-length' can change the fixed-form line-length.
 
+*** In Fortran mode, M-; is now bound to the standard comment-dwim,
+rather than fortran-indent-comment.
+
 +++
 *** (The increasingly misnamed) F90 mode supports Fortran 2003 syntax.
 
@@ -292,14 +369,49 @@ of Windows with third party IPv6 stacks installed. Previously IPv6 was
 supported on other platforms, but not on Windows due to using the winsock
 1.1 header file, even though Emacs was linking to the winsock 2 library.
 
+** More keys available on MS-Windows.
+Keys normally associated with IMEs, and some exotic keys not normally found
+on standard keyboards have been given names so they can be bound to functions
+inside Emacs.  If there are keys on your keyboard that have not been exposed
+to Emacs in the past, try C-h k to see if they are available now.
+
+Emacs can now bind functions to the extra buttons for media player and
+browser control present on some keyboards.  These buttons are disabled
+by default, since enabling them prevents their system-wide use when
+Emacs has focus.  To enable them, set the variable
+w32-pass-multimedia-buttons to nil. See the doc string of that variable
+for the list of extra keys that are available.
 
 * Incompatible Lisp Changes in Emacs 23.1
 
 +++
 ** The function `dired-call-process' has been removed.
 
+** The variable `byte-compile-warnings' can now be a list starting with `not',
+meaning to disable the specified warnings. The meaning of this list
+may therefore be the reverse of what you expect (of course, this is
+only an issue if you make use of the new `not' syntax). Rather than
+checking/manipulating elements directly, use the new functions
+`byte-compile-warning-enabled-p', `byte-compile-disable-warning', and
+`byte-compile-enable-warning.'
+
+** shell.el no longer defines the aliases `dirtrack-toggle' and
+`dirtrack-mode' for `shell-dirtrack-mode'.  These names were removed
+because they clash with commands provided by dirtrack.el.  Use
+`shell-dirtrack-mode' instead.
+
 
 * Lisp Changes in Emacs 23.1
+
+** `beginning-of-defun-function' now takes one argument, the count
+   given to `beginning-of-defun'.
+
+** The variable `inhibit-changing-match-data', if non-nil, prevents the
+search and match primitives from changing the match data.
+
++++
+** New function `match-substitute-replacement' returns the result of
+`replace-match' without actually using it in the buffer.
 
 +++
 ** A list of default values can be specified for the DEFAULT argument of
@@ -318,6 +430,13 @@ the selected frame.
 applies before function-key-map.  Also it is terminal-local contrary to
 key-translation-map.  Terminal-specific key-sequences are generally added to
 this map rather than to function-key-map now.
+
+** The new macro `declare-function' suppresses compiler warnings about
+undefined functions.  The new `check-declare' package verifies that such
+statements are accurate (i.e. the functions are actually defined in
+the specified files).
+
+** The new function `read-color' reads a color name using the minibuffer.
 
 ** Changes related to multiple tty support.
 
@@ -411,6 +530,9 @@ but obeys file handlers.  The file handler is chosen based on
 `default-directory'.  The functions `start-file-process-shell-command'
 and `process-file-shell-command' are also new; they call internally
 `start-file-process' and `process-file', respectively.
+
+** The new function `process-lines' executes an external program and
+returns its output as a list of lines.
 
 +++
 ** `file-remote-p' has new optional parameters IDENTIFICATION and CONNECTED.

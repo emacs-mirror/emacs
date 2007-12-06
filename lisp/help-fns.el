@@ -55,13 +55,12 @@
       (message "You didn't specify a function")
     (help-setup-xref (list #'describe-function function) (interactive-p))
     (save-excursion
-      (with-output-to-temp-buffer (help-buffer)
+      (with-help-window (help-buffer)
 	(prin1 function)
 	;; Use " is " instead of a colon so that
 	;; it is easier to get out the function name using forward-sexp.
 	(princ " is ")
 	(describe-function-1 function)
-	(print-help-return-message)
 	(with-current-buffer standard-output
 	  ;; Return the text we displayed.
 	  (buffer-string))))))
@@ -250,6 +249,8 @@ face (according to `face-differs-from-default-p')."
     (if (and src-file (file-readable-p src-file))
 	src-file
       file-name)))
+
+(declare-function ad-get-advice-info "advice" (function))
 
 ;;;###autoload
 (defun describe-function-1 (function)
@@ -543,7 +544,7 @@ it is displayed along with the global value."
 		    locus (variable-binding-locus variable)))))
 	(help-setup-xref (list #'describe-variable variable buffer)
 			 (interactive-p))
-	(with-output-to-temp-buffer (help-buffer)
+	(with-help-window (help-buffer)
 	  (with-current-buffer buffer
 	    (prin1 variable)
 	    ;; Make a hyperlink to the library if appropriate.  (Don't
@@ -711,7 +712,6 @@ it is displayed along with the global value."
 		  (terpri)
 		  (princ output))))
 
-	    (print-help-return-message)
 	    (save-excursion
 	      (set-buffer standard-output)
 	      ;; Return the text we displayed.
@@ -726,7 +726,7 @@ BUFFER defaults to the current buffer."
   (interactive)
   (setq buffer (or buffer (current-buffer)))
   (help-setup-xref (list #'describe-syntax buffer) (interactive-p))
-  (with-output-to-temp-buffer (help-buffer)
+  (with-help-window (help-buffer)
     (let ((table (with-current-buffer buffer (syntax-table))))
       (with-current-buffer standard-output
 	(describe-vector table 'internal-describe-syntax-value)
@@ -751,7 +751,7 @@ BUFFER should be a buffer or a buffer name."
   (interactive)
   (setq buffer (or buffer (current-buffer)))
   (help-setup-xref (list #'describe-categories buffer) (interactive-p))
-  (with-output-to-temp-buffer (help-buffer)
+  (with-help-window (help-buffer)
     (let ((table (with-current-buffer buffer (category-table))))
       (with-current-buffer standard-output
 	(describe-vector table 'help-describe-category-set)

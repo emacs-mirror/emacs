@@ -70,9 +70,6 @@
 
 (defvoo nnbabyl-previous-buffer-mode nil)
 
-(eval-and-compile
-  (autoload 'gnus-set-text-properties "gnus-ems"))
-
 
 
 ;;; Interface functions
@@ -271,7 +268,7 @@
 
     (save-excursion
       (set-buffer nnbabyl-mbox-buffer)
-      (gnus-set-text-properties (point-min) (point-max) nil)
+      (set-text-properties (point-min) (point-max) nil)
       (while (and articles is-old)
 	(goto-char (point-min))
 	(when (search-forward (nnbabyl-article-string (car articles)) nil t)
@@ -308,7 +305,7 @@
       (nconc rest articles))))
 
 (deffoo nnbabyl-request-move-article
-    (article group server accept-form &optional last)
+    (article group server accept-form &optional last move-is-internal)
   (let ((buf (get-buffer-create " *nnbabyl move*"))
 	result)
     (and

@@ -99,17 +99,6 @@ DECL_ALIGN (struct buffer, buffer_local_symbols);
 /* A Lisp_Object pointer to the above, used for staticpro */
 static Lisp_Object Vbuffer_local_symbols;
 
-/* This structure holds the required types for the values in the
-   buffer-local slots.  If a slot contains Qnil, then the
-   corresponding buffer slot may contain a value of any type.  If a
-   slot contains an integer, then prospective values' tags must be
-   equal to that integer (except nil is always allowed).
-   When a tag does not match, the function
-   buffer_slot_type_mismatch will signal an error.
-
-   If a slot here contains -1, the corresponding variable is read-only.  */
-struct buffer buffer_local_types;
-
 /* Flags indicating which built-in buffer-local variables
    are permanent locals.  */
 static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
@@ -359,7 +348,7 @@ The value is never nil.  */)
   if (SCHARS (name) == 0)
     error ("Empty string for buffer name is not allowed");
 
-  b = (struct buffer *) allocate_buffer ();
+  b = allocate_buffer ();
 
   /* An ordinary buffer uses its own struct buffer_text.  */
   b->text = &b->own_text;
@@ -560,7 +549,7 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
   if (SCHARS (name) == 0)
     error ("Empty string for buffer name is not allowed");
 
-  b = (struct buffer *) allocate_buffer ();
+  b = allocate_buffer ();
 
   b->base_buffer = (XBUFFER (base_buffer)->base_buffer
 		    ? XBUFFER (base_buffer)->base_buffer
@@ -895,8 +884,7 @@ is the default binding of the variable. */)
   CHECK_BUFFER (buffer);
   buf = XBUFFER (buffer);
 
-  if (SYMBOLP (variable))
-    variable = indirect_variable (variable);
+  variable = indirect_variable (variable);
 
   /* Look in local_var_list */
   result = Fassoc (variable, buf->local_var_alist);
@@ -2518,26 +2506,11 @@ swap_out_buffer_local_variables (b)
 
       /* Need not do anything if some other buffer's binding is now encached.  */
       tem = XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->buffer;
-      if (BUFFERP (tem) && XBUFFER (tem) == current_buffer)
+      if (EQ (tem, buffer))
 	{
-	  /* Symbol is set up for this buffer's old local value.
-	     Set it up for the current buffer with the default value.  */
-
-	  tem = XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->cdr;
-	  /* Store the symbol's current value into the alist entry
-	     it is currently set up for.  This is so that, if the
-	     local is marked permanent, and we make it local again
-	     later in Fkill_all_local_variables, we don't lose the value.  */
-	  XSETCDR (XCAR (tem),
-		   do_symval_forwarding (XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->realvalue));
-	  /* Switch to the symbol's default-value alist entry.  */
-	  XSETCAR (tem, tem);
-	  /* Mark it as current for buffer B.  */
-	  XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->buffer = buffer;
-	  /* Store the current value into any forwarding in the symbol.  */
-	  store_symval_forwarding (sym,
-				   XBUFFER_LOCAL_VALUE (SYMBOL_VALUE (sym))->realvalue,
-				   XCDR (tem), NULL);
+	  /* Symbol is set up for this buffer's old local value:
+	     swap it out!  */
+	  swap_in_global_binding (sym);
 	}
     }
 }
@@ -4418,13 +4391,13 @@ evaporate_overlays (pos)
    in the slot with offset OFFSET.  */
 
 void
-buffer_slot_type_mismatch (offset)
-     int offset;
+buffer_slot_type_mismatch (sym, type)
+     Lisp_Object sym;
+     int type;
 {
-  Lisp_Object sym;
   char *type_name;
 
-  switch (XINT (PER_BUFFER_TYPE (offset)))
+  switch (type)
     {
     case Lisp_Int:
       type_name = "integers";
@@ -4442,7 +4415,6 @@ buffer_slot_type_mismatch (offset)
       abort ();
     }
 
-  sym = PER_BUFFER_SYMBOL (offset);
   error ("Only %s should be stored in the buffer-local variable %s",
 	 type_name, SDATA (SYMBOL_NAME (sym)));
 }
@@ -5290,9 +5262,9 @@ defvar_per_buffer (namestring, address, type, doc)
 
   XMISCTYPE (val) = Lisp_Misc_Buffer_Objfwd;
   XBUFFER_OBJFWD (val)->offset = offset;
+  XBUFFER_OBJFWD (val)->slottype = type;
   SET_SYMBOL_VALUE (sym, val);
   PER_BUFFER_SYMBOL (offset) = sym;
-  PER_BUFFER_TYPE (offset) = type;
 
   if (PER_BUFFER_IDX (offset) == 0)
     /* Did a DEFVAR_PER_BUFFER without initializing the corresponding

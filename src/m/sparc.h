@@ -64,18 +64,6 @@ NOTE-END  */
 
 #define SEGMENT_MASK (SEGSIZ - 1)
 
-/* Arrange to link with sun windows, if requested.  */
-/* For details on emacstool and sunfns, see etc/SUN-SUPPORT */
-/* These programs require Sun UNIX 4.2 Release 3.2 or greater */
-
-#ifdef HAVE_SUN_WINDOWS
-#define OTHER_FILES  ${etcdir}emacstool
-#define LIBS_MACHINE -lsuntool -lsunwindow -lpixrect
-#define OBJECTS_MACHINE sunfns.o
-#define SYMS_MACHINE syms_of_sunfns ()
-#define PURESIZE 130000
-#endif
-
 #if !defined (__NetBSD__) && !defined (__linux__) && !defined (__OpenBSD__)
 /* This really belongs in s/sun.h.  */
 

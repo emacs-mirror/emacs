@@ -1121,6 +1121,13 @@ changed and @code{shadow} face to make variables which have gone out of
 scope less noticeable.  When a variable goes out of scope you can't
 edit its value.
 
+@vindex gdb-delete-out-of-scope
+  If the variable @code{gdb-delete-out-of-scope} is non-@code{nil}
+(the default value), Emacs automatically deletes watch expressions
+which go out of scope.  Sometimes, when re-entering the same function,
+it may be useful to set this value to nil so that you don't need to
+recreate the watch expression.
+
 @vindex gdb-use-colon-colon-notation
   If the variable @code{gdb-use-colon-colon-notation} is
 non-@code{nil}, Emacs uses the @samp{@var{function}::@var{variable}}

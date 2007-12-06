@@ -53,8 +53,7 @@ must never cause a Lisp error."
     (let ((ttoken (ietf-drums-token-to-list ietf-drums-text-token))
 	  (stoken (ietf-drums-token-to-list ietf-drums-tspecials))
 	  (ntoken (ietf-drums-token-to-list "0-9"))
-	  c type attribute encoded number prev-attribute vals
-	  prev-encoded parameters value)
+	  c type attribute encoded number parameters value)
       (ietf-drums-init
        (condition-case nil
 	   (mail-header-remove-whitespace
@@ -81,8 +80,8 @@ must never cause a Lisp error."
 		;; Finally, attempt to extract only type.
 		(if (string-match
 		     (concat "\\`[\t\n ]*\\([^" ietf-drums-tspecials "\t\n ]+"
-			     "\\(/[^" ietf-drums-tspecials
-			     "\t\n ]+\\)?\\)\\([\t\n ;]\\|\\'\\)")
+			     "\\(?:/[^" ietf-drums-tspecials
+			     "\t\n ]+\\)?\\)\\(?:[\t\n ;]\\|\\'\\)")
 		     string)
 		    (match-string 1 string)
 		  ""))))))
@@ -142,19 +141,6 @@ must never cause a Lisp error."
 			    (setq c (char-after)))))
 		    (setq number nil
 			  encoded nil))
-		  ;; See if we have any previous continuations.
-		  (when (and prev-attribute
-			     (not (eq prev-attribute attribute)))
-		    (setq vals
-			  (mapconcat 'cdr (sort vals 'car-less-than-car) ""))
-		    (push (cons prev-attribute
-				(if prev-encoded
-				    (rfc2231-decode-encoded-string vals)
-				  vals))
-			  parameters)
-		    (setq prev-attribute nil
-			  vals nil
-			  prev-encoded nil))
 		  (unless (eq c ?=)
 		    (error "Invalid header: %s" string))
 		  (forward-char 1)
@@ -187,33 +173,33 @@ must never cause a Lisp error."
 			     (point)))))
 		   (t
 		    (error "Invalid header: %s" string)))
-		  (if number
-		      (progn
-			(push (cons number value) vals)
-			(setq prev-attribute attribute
-			      prev-encoded encoded))
-		    (push (cons attribute
-				(if encoded
-				    (rfc2231-decode-encoded-string value)
-				  value))
-			  parameters))))
-
-	      ;; Take care of any final continuations.
-	      (when prev-attribute
-		(setq vals (mapconcat 'cdr (sort vals 'car-less-than-car) ""))
-		(push (cons prev-attribute
-			    (if prev-encoded
-				(rfc2231-decode-encoded-string vals)
-			      vals))
-		      parameters)))
+		  (push (list attribute value number encoded)
+			parameters))))
 	  (error
 	   (setq parameters nil)
-	   (if signal-error
-	       (signal (car err) (cdr err))
-	     ;;(message "%s" (error-message-string err))
-	     )))
+	   (when signal-error
+	     (signal (car err) (cdr err)))))
 
-	(cons type (nreverse parameters))))))
+	;; Now collect and concatenate continuation parameters.
+	(let ((cparams nil)
+	      elem)
+	  (loop for (attribute value part encoded)
+		in (sort parameters (lambda (e1 e2)
+				      (< (or (caddr e1) 0)
+					 (or (caddr e2) 0))))
+		do (if (or (not (setq elem (assq attribute cparams)))
+			   (and (numberp part)
+				(zerop part)))
+		       (push (list attribute value encoded) cparams)
+		     (setcar (cdr elem) (concat (cadr elem) value))))
+	  ;; Finally decode encoded values.
+	  (cons type (mapcar
+		      (lambda (elem)
+			(cons (car elem)
+			      (if (nth 2 elem)
+				  (rfc2231-decode-encoded-string (nth 1 elem))
+				(nth 1 elem))))
+		      (nreverse cparams))))))))
 
 (defun rfc2231-decode-encoded-string (string)
   "Decode an RFC2231-encoded string.
@@ -223,10 +209,10 @@ These look like:
  \"'en-us'This%20is%20%2A%2A%2Afun%2A%2A%2A\",
  \"''This%20is%20%2A%2A%2Afun%2A%2A%2A\", or
  \"This is ***fun***\"."
-  (string-match "\\`\\(\\([^']+\\)?'\\([^']+\\)?'\\)?\\(.+\\)" string)
-  (let ((coding-system (mm-charset-to-coding-system (match-string 2 string)))
-	;;(language (match-string 3 string))
-	(value (match-string 4 string)))
+  (string-match "\\`\\(?:\\([^']+\\)?'\\([^']+\\)?'\\)?\\(.+\\)" string)
+  (let ((coding-system (mm-charset-to-coding-system (match-string 1 string)))
+	;;(language (match-string 2 string))
+	(value (match-string 3 string)))
     (mm-with-unibyte-buffer
       (insert value)
       (goto-char (point-min))

@@ -26,6 +26,8 @@
 
 ;;; Code:
 
+;; This cannot be moved to the end of the file without causing a
+;; recursive require during bootstrap.
 (provide 'esh-maint)
 
 (and (fboundp 'font-lock-add-keywords)
@@ -35,11 +37,7 @@
 	("(eshell-deftest\\>"        . font-lock-keyword-face)
 	("(eshell-condition-case\\>" . font-lock-keyword-face))))
 
-(if (file-directory-p "../pcomplete")
-    (add-to-list 'load-path "../pcomplete"))
-
-(if (locate-library "pcomplete")
-    (require 'pcomplete))
+(require 'pcomplete nil t)              ; why?
 
 (eval-when-compile
   (require 'cl)

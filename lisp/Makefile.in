@@ -35,6 +35,12 @@ EMACS = ../src/emacs
 
 EMACSOPT = -batch --no-site-file --multibyte
 
+# Extra flags to pass to the byte compiler
+BYTE_COMPILE_EXTRA_FLAGS = 
+# For example to not display the undefined function warnings you can use this:
+# BYTE_COMPILE_EXTRA_FLAGS = --eval '(setq byte-compile-warnings (quote (not unresolved)))'
+# The example above is just for developers, it should not be used by default.
+
 SOURCES = *.el COPYING Makefile
 lisptagsfiles1 = $(lisp)/[a-zA-Z]*.el
 lisptagsfiles2 = $(lisp)/[a-zA-Z]*/[a-zA-Z]*.el
@@ -147,7 +153,7 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 .SUFFIXES: .elc .el
 
 .el.elc: $(lisp)/subdirs.el
-	-$(emacs) -f batch-byte-compile $<
+	-$(emacs)  $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $<
 
 # Compile all Lisp files, but don't recompile those that are up to
 # date.  Some files don't actually get compiled because they set the
@@ -172,7 +178,7 @@ compile: $(lisp)/subdirs.el mh-autoloads doit
 	  if test -f $$el; \
 	  then \
 	    echo Compiling $$el; \
-	    $(emacs) \
+	    $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) \
 		--eval "(setq max-lisp-eval-depth $(COMPILE_FIRST_STACK_DEPTH))" \
 		-f batch-byte-compile-if-not-done $$el || exit 1; \
 	  fi \
@@ -193,7 +199,7 @@ compile-always: $(lisp)/subdirs.el mh-autoloads doit
 	  if test -f $$el; \
 	  then \
 	    echo Compiling $$el; \
-	    $(emacs) \
+	    $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) \
 		--eval "(setq max-lisp-eval-depth $(COMPILE_FIRST_STACK_DEPTH))" \
 		-f batch-byte-compile $$el || exit 1; \
 	  fi \
@@ -202,7 +208,7 @@ compile-always: $(lisp)/subdirs.el mh-autoloads doit
 compile-calc:
 	for el in `find $(lisp)/calc -name '*.el'`; do \
 	  echo Compiling $$el; \
-	  $(emacs) -f batch-byte-compile $$el || exit 1; \
+	  $(emacs)  $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $$el || exit 1; \
 	done
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already
@@ -229,7 +235,7 @@ $(lisp)/progmodes/cc-mode.elc: \
 	$(lisp)/progmodes/cc-mode.el \
 	$(lisp)/progmodes/cc-langs.el \
 	$(lisp)/progmodes/cc-defs.el
-	$(emacs) -f batch-byte-compile $(lisp)/progmodes/cc-mode.el
+	$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $(lisp)/progmodes/cc-mode.el
 
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in
@@ -299,9 +305,12 @@ bootstrap-prepare:
 	  $(lisp)/ps-print.el			\
 	  $(lisp)/emacs-lisp/cl-loaddefs.el
 
-maintainer-clean: distclean
-	cd $(lisp); rm -f *.elc */*.elc $(AUTOGENEL)
+maintainer-clean: distclean bootstrap-clean
+	cd $(lisp); rm -f $(AUTOGENEL)
 
+## NB note that this rules assume only one level of subdirs below lisp/.
+## If nested subdirs are added, it's probably time to switch to:
+## find $(lisp) -name "*.elc" -exec rm -f '{}' ';'
 bootstrap-clean:
 	cd $(lisp); rm -f *.elc */*.elc
 
@@ -316,5 +325,11 @@ bootstrap-after: finder-data custom-deps
 
 distclean:
 	-rm -f ./Makefile
+
+.PHONY: check-declare
+
+check-declare:
+	$(emacs) -l $(lisp)/emacs-lisp/check-declare \
+	  --eval '(check-declare-directory "$(lisp)")'
 
 # Makefile ends here.

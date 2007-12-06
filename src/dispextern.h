@@ -1803,6 +1803,9 @@ struct it_slice
   Lisp_Object height;
 };
 
+/* Input sources for fetching characters or data to display.
+   The input source is found in the `method' field.  */
+
 enum it_method {
   GET_FROM_BUFFER = 0,
   GET_FROM_DISPLAY_VECTOR,
@@ -1904,19 +1907,26 @@ struct it
      position in overlay strings etc.  */
   struct display_pos current;
 
+  /* Total number of overlay strings to process.  This can be >
+     OVERLAY_STRING_CHUNK_SIZE.  */
+  int n_overlay_strings;
+
   /* Vector of overlays to process.  Overlay strings are processed
      OVERLAY_STRING_CHUNK_SIZE at a time.  */
 #define OVERLAY_STRING_CHUNK_SIZE 16
   Lisp_Object overlay_strings[OVERLAY_STRING_CHUNK_SIZE];
 
-  /* Total number of overlay strings to process.  This can be >
-     OVERLAY_STRING_CHUNK_SIZE.  */
-  int n_overlay_strings;
+  /* For each overlay string, the overlay it came from.  */
+  Lisp_Object string_overlays[OVERLAY_STRING_CHUNK_SIZE];
 
   /* If non-nil, a Lisp string being processed.  If
      current.overlay_string_index >= 0, this is an overlay string from
      pos.  */
   Lisp_Object string;
+
+  /* If non-nil, we are processing a string that came
+     from a `display' property given by an overlay.  */
+  Lisp_Object from_overlay;
 
   /* Stack of saved values.  New entries are pushed when we begin to
      process an overlay string or a string from a `glyph' property.
@@ -1953,6 +1963,7 @@ struct it
     /* current text and display positions.  */
     struct text_pos position;
     struct display_pos current;
+    Lisp_Object from_overlay;
     enum glyph_row_area area;
     enum it_method method;
     unsigned multibyte_p : 1;
@@ -1969,13 +1980,6 @@ struct it
   /* Stack pointer.  */
   int sp;
 
-  /* Setting of buffer-local variable selective-display-ellipsis.  */
-  unsigned selective_display_ellipsis_p : 1;
-
-  /* 1 means control characters are translated into the form `^C'
-     where the `^' can be replaced by a display table entry.  */
-  unsigned ctl_arrow_p : 1;
-
   /* -1 means selective display hides everything between a \r and the
      next newline; > 0 means hide lines indented more than that value.  */
   int selective;
@@ -1986,6 +1990,16 @@ struct it
 
   /* Face to use.  */
   int face_id;
+
+  /* Setting of buffer-local variable selective-display-ellipsis.  */
+  unsigned selective_display_ellipsis_p : 1;
+
+  /* 1 means control characters are translated into the form `^C'
+     where the `^' can be replaced by a display table entry.  */
+  unsigned ctl_arrow_p : 1;
+
+  /* 1 means lines are truncated.  */
+  unsigned truncate_lines_p : 1;
 
   /* Non-zero means that the current face has a box.  */
   unsigned face_box_p : 1;
@@ -2065,9 +2079,6 @@ struct it
      during mode-line update.  Position is a position in object.  */
   Lisp_Object object;
   struct text_pos position;
-
-  /* 1 means lines are truncated.  */
-  unsigned truncate_lines_p : 1;
 
   /* Number of columns per \t.  */
   short tab_width;
@@ -2845,6 +2856,9 @@ void free_frame_faces P_ ((struct frame *));
 void recompute_basic_faces P_ ((struct frame *));
 int face_at_buffer_position P_ ((struct window *, int, int, int, int *,
 				 int, int));
+int face_for_overlay_string P_ ((struct window *, int, int,
+				 int, int *,
+				 int, int, Lisp_Object));
 int face_at_string_position P_ ((struct window *, Lisp_Object, int, int, int,
 				 int, int *, enum face_id, int));
 int merge_faces P_ ((struct frame *, Lisp_Object, int, int));

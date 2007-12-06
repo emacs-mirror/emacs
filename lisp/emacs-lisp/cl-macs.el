@@ -1,4 +1,4 @@
-;;; cl-macs.el --- Common Lisp macros -*-byte-compile-dynamic: t;-*-
+;;; cl-macs.el --- Common Lisp macros
 
 ;; Copyright (C) 1993, 2001, 2002, 2003, 2004, 2005, 2006, 2007
 ;;   Free Software Foundation, Inc.
@@ -1554,15 +1554,11 @@ values.  For compatibility, (values A B C) is a synonym for (list A B C).
 			    byte-compile-delete-errors (nth 1 safety)))))
 
 	((and (eq (car-safe spec) 'warn) (boundp 'byte-compile-warnings))
-	 (if (eq byte-compile-warnings t)
-	     (setq byte-compile-warnings byte-compile-warning-types))
 	 (while (setq spec (cdr spec))
 	   (if (consp (car spec))
 	       (if (eq (cadar spec) 0)
-		   (setq byte-compile-warnings
-			 (delq (caar spec) byte-compile-warnings))
-		 (setq byte-compile-warnings
-		       (adjoin (caar spec) byte-compile-warnings)))))))
+                   (byte-compile-disable-warning (caar spec))
+                 (byte-compile-enable-warning (caar spec)))))))
   nil)
 
 ;;; Process any proclamations made before cl-macs was loaded.
@@ -2728,7 +2724,8 @@ surrounded by (block NAME ...).
 (run-hooks 'cl-macs-load-hook)
 
 ;; Local variables:
-;; byte-compile-warnings: (redefine callargs free-vars unresolved obsolete noruntime)
+;; byte-compile-dynamic: t
+;; byte-compile-warnings: (not cl-functions)
 ;; generated-autoload-file: "cl-loaddefs.el"
 ;; End:
 

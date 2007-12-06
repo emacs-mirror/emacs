@@ -47,16 +47,13 @@ Update the .newsrc.eld file to reflect the change of nntp server."
 
   ;; First start Gnus.
   (let ((gnus-activate-level 0)
-	(mail-sources nil)
-	(nnmail-spool-file nil))
+	(mail-sources nil))
     (gnus))
 
   (save-excursion
     ;; Go through all groups and translate.
-    (let ((newsrc gnus-newsrc-alist)
-	  (nntp-nov-gap nil)
-	  info)
-      (while (setq info (pop newsrc))
+    (let ((nntp-nov-gap nil))
+      (dolist (info gnus-newsrc-alist)
 	(when (gnus-group-native-p (gnus-info-group info))
 	  (gnus-move-group-to-server info from-server to-server))))))
 
@@ -177,8 +174,7 @@ Update the .newsrc.eld file to reflect the change of nntp server."
 	   (new-name (gnus-group-prefixed-name
 		      (gnus-group-real-name group) to-server)))
       (gnus-info-set-group info new-name)
-      (gnus-sethash new-name (gnus-gethash group gnus-newsrc-hashtb)
-		    gnus-newsrc-hashtb)
+      (gnus-sethash new-name (gnus-group-entry group) gnus-newsrc-hashtb)
       (gnus-sethash group nil gnus-newsrc-hashtb))))
 
 (provide 'gnus-move)

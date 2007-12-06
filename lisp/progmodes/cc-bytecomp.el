@@ -395,8 +395,8 @@ Don't use within `eval-when-compile'."
 
 (defun cc-bytecomp-ignore-obsolete (form)
   ;; Wraps a call to `byte-compile-obsolete' that suppresses the warning.
-  (let ((byte-compile-warnings
-	 (delq 'obsolete (append byte-compile-warnings nil))))
+  (let ((byte-compile-warnings byte-compile-warnings))
+    (byte-compile-disable-warning 'obsolete)
     (byte-compile-obsolete form)))
 
 (defmacro cc-bytecomp-obsolete-fun (symbol)

@@ -335,6 +335,19 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
     )
   )
 
+(declare-function socks-original-open-network-stream "socks") ; fset
+
+(defvar socks-override-functions nil
+  "*Whether to overwrite the open-network-stream function with the SOCKSified
+version.")
+
+(if (fboundp 'socks-original-open-network-stream)
+    nil				; Do nothing, we've been here already
+  (defalias 'socks-original-open-network-stream
+    (symbol-function 'open-network-stream))
+  (if socks-override-functions
+      (defalias 'open-network-stream 'socks-open-network-stream)))
+
 (defun socks-open-connection (server-info)
   (interactive)
   (save-excursion
@@ -472,17 +485,6 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
 		  noproxy nil)))
       (setq noproxy (cdr noproxy)))
     route))
-
-(defvar socks-override-functions nil
-  "*Whether to overwrite the open-network-stream function with the SOCKSified
-version.")
-
-(if (fboundp 'socks-original-open-network-stream)
-    nil				; Do nothing, we've been here already
-  (defalias 'socks-original-open-network-stream
-    (symbol-function 'open-network-stream))
-  (if socks-override-functions
-      (defalias 'open-network-stream 'socks-open-network-stream)))
 
 (defvar socks-services-file "/etc/services")
 (defvar socks-tcp-services (make-hash-table :size 13 :test 'equal))

@@ -27,18 +27,19 @@
 
 ;;; Code:
 
+(require 'format-spec)
 (eval-when-compile
   (require 'cl)
-  (require 'imap)
-  (eval-when-compile (defvar display-time-mail-function)))
+  (require 'imap))
 (eval-and-compile
   (autoload 'pop3-movemail "pop3")
   (autoload 'pop3-get-message-count "pop3")
-  (autoload 'nnheader-cancel-timer "nnheader")
-  (autoload 'nnheader-run-at-time "nnheader"))
-(require 'format-spec)
+  (autoload 'nnheader-cancel-timer "nnheader"))
 (require 'mm-util)
 (require 'message) ;; for `message-directory'
+
+(defvar display-time-mail-function)
+
 
 (defgroup mail-source nil
   "The mail-fetching library."
@@ -57,15 +58,16 @@
 	      (list 'const (car a)))
      imap-stream-alist)))
 
-(defcustom mail-sources nil
-  "*Where the mail backends will look for incoming mail.
+(defcustom mail-sources '((file))
+  "Where the mail backends will look for incoming mail.
 This variable is a list of mail source specifiers.
 See Info node `(gnus)Mail Source Specifiers'."
   :group 'mail-source
+  :version "23.0" ;; No Gnus
   :link '(custom-manual "(gnus)Mail Source Specifiers")
   :type `(choice
-	  (const nil)
-	  (repeat
+	  (const :tag "None" nil)
+	  (repeat :tag "List"
 	   (choice :format "%[Value Menu%] %v"
 		   :value (file)
 		   (cons :tag "Spool file"
@@ -111,7 +113,7 @@ See Info node `(gnus)Mail Source Specifiers'."
 					   (const :format "" :value :port)
 					   (choice :tag "Port"
 						   :value "pop3"
-						   (number :format "%v")
+						   (integer :format "%v")
 						   (string :format "%v")))
 				    (group :inline t
 					   (const :format "" :value :user)
@@ -127,13 +129,15 @@ See Info node `(gnus)Mail Source Specifiers'."
 					   (choice :tag "Prescript"
 						   :value nil
 						   (string :format "%v")
-						   (function :format "%v")))
+						   (function :format "%v")
+						   (const :tag "None" nil)))
 				    (group :inline t
 					   (const :format "" :value :postscript)
 					   (choice :tag "Postscript"
 						   :value nil
 						   (string :format "%v")
-						   (function :format "%v")))
+						   (function :format "%v")
+						   (const :tag "None" nil)))
 				    (group :inline t
 					   (const :format "" :value :function)
 					   (function :tag "Function"))
@@ -146,7 +150,14 @@ See Info node `(gnus)Mail Source Specifiers'."
 						   (const apop)))
 				    (group :inline t
 					   (const :format "" :value :plugged)
-					   (boolean :tag "Plugged"))))
+					   (boolean :tag "Plugged"))
+				    (group :inline t
+					   (const :format "" :value :stream)
+					   (choice :tag "Stream"
+						   :value nil
+						   (const :tag "Clear" nil)
+						   (const starttls)
+						   (const :tag "SSL/TLS" ssl)))))
 		   (cons :tag "Maildir (qmail, postfix...)"
 			 (const :format "" maildir)
 			 (checklist :tag "Options" :greedy t
@@ -166,7 +177,7 @@ See Info node `(gnus)Mail Source Specifiers'."
 					   (const :format "" :value :port)
 					   (choice :tag "Port"
 						   :value 143
-						   number string))
+						   integer string))
 				    (group :inline t
 					   (const :format "" :value :user)
 					   (string :tag "User"))
@@ -210,17 +221,17 @@ See Info node `(gnus)Mail Source Specifiers'."
 			 (const :format "" webmail)
 			 (checklist :tag "Options" :greedy t
 				    (group :inline t
-					   (const :format "" :value :subtype)
-					   ;; Should be generated from
-					   ;; `webmail-type-definition', but we
-					   ;; can't require webmail without W3.
-					   (choice :tag "Subtype"
-						   :value hotmail
-						   (const hotmail)
-						   (const yahoo)
-						   (const netaddress)
-						   (const netscape)
-						   (const my-deja)))
+					  (const :format "" :value :subtype)
+					  ;; Should be generated from
+					  ;; `webmail-type-definition', but we
+					  ;; can't require webmail without W3.
+					  (choice :tag "Subtype"
+						  :value hotmail
+						  (const hotmail)
+						  (const yahoo)
+						  (const netaddress)
+						  (const netscape)
+						  (const my-deja)))
 				    (group :inline t
 					   (const :format "" :value :user)
 					   (string :tag "User"))
@@ -269,7 +280,7 @@ If non-nil, this maildrop will be checked periodically for new mail."
   :group 'mail-source
   :type 'integer)
 
-(defcustom mail-source-delete-incoming t
+(defcustom mail-source-delete-incoming nil
   "*If non-nil, delete incoming files after handling.
 If t, delete immediately, if nil, never delete.  If a positive number, delete
 files older than number of days."
@@ -350,7 +361,8 @@ Common keywords should be listed here.")
        (:program)
        (:function)
        (:password)
-       (:authentication password))
+       (:authentication password)
+       (:stream nil))
       (maildir
        (:path (or (getenv "MAILDIR") "~/Maildir/"))
        (:subdirs ("cur" "new"))
@@ -502,7 +514,8 @@ Return the number of files that were found."
 	    (when (file-exists-p mail-source-crash-box)
 	      (message "Processing mail from %s..." mail-source-crash-box)
 	      (setq found (mail-source-callback
-			   callback mail-source-crash-box)))
+			   callback mail-source-crash-box))
+	      (mail-source-delete-crash-box))
 	    (+ found
 	       (if (or debug-on-quit debug-on-error)
 		   (funcall function source callback)
@@ -552,33 +565,33 @@ If CONFIRM is non-nil, ask for confirmation before removing a file."
 	  (delete-file ffile))))))
 
 (defun mail-source-callback (callback info)
-  "Call CALLBACK on the mail file, and then remove the mail file.
-Pass INFO on to CALLBACK."
+  "Call CALLBACK on the mail file.  Pass INFO on to CALLBACK."
   (if (or (not (file-exists-p mail-source-crash-box))
 	  (zerop (nth 7 (file-attributes mail-source-crash-box))))
       (progn
 	(when (file-exists-p mail-source-crash-box)
 	  (delete-file mail-source-crash-box))
 	0)
-    (prog1
-	(funcall callback mail-source-crash-box info)
-      (when (file-exists-p mail-source-crash-box)
-	;; Delete or move the incoming mail out of the way.
-	(if (eq mail-source-delete-incoming t)
-	    (delete-file mail-source-crash-box)
-	  (let ((incoming
-		 (mm-make-temp-file
-		  (expand-file-name
-		   mail-source-incoming-file-prefix
-		   mail-source-directory))))
-	    (unless (file-exists-p (file-name-directory incoming))
-	      (make-directory (file-name-directory incoming) t))
-	    (rename-file mail-source-crash-box incoming t)
-	    ;; remove old incoming files?
-	    (when (natnump mail-source-delete-incoming)
-	      (mail-source-delete-old-incoming
-	       mail-source-delete-incoming
-	       mail-source-delete-old-incoming-confirm))))))))
+    (funcall callback mail-source-crash-box info)))
+
+(defun mail-source-delete-crash-box ()
+  (when (file-exists-p mail-source-crash-box)
+    ;; Delete or move the incoming mail out of the way.
+    (if (eq mail-source-delete-incoming t)
+	(delete-file mail-source-crash-box)
+      (let ((incoming
+	     (mm-make-temp-file
+	      (expand-file-name
+	       mail-source-incoming-file-prefix
+	       mail-source-directory))))
+	(unless (file-exists-p (file-name-directory incoming))
+	  (make-directory (file-name-directory incoming) t))
+	(rename-file mail-source-crash-box incoming t)
+	;; remove old incoming files?
+	(when (natnump mail-source-delete-incoming)
+	  (mail-source-delete-old-incoming
+	   mail-source-delete-incoming
+	   mail-source-delete-old-incoming-confirm))))))
 
 (defun mail-source-movemail (from to)
   "Move FROM to TO using movemail."
@@ -670,12 +683,20 @@ Pass INFO on to CALLBACK."
     (sleep-for delay)))
 
 (defun mail-source-call-script (script)
-  (let ((background nil))
+  (let ((background nil)
+	(stderr (get-buffer-create " *mail-source-stderr*"))
+	result)
     (when (string-match "& *$" script)
       (setq script (substring script 0 (match-beginning 0))
 	    background 0))
-    (call-process shell-file-name nil background nil
-		  shell-command-switch script)))
+    (setq result
+	  (call-process shell-file-name nil background nil
+			shell-command-switch script))
+    (when (and result
+	       (not (zerop result)))
+      (set-buffer stderr)
+      (message "Mail source error: %s" (buffer-string)))
+    (kill-buffer stderr)))
 
 ;;;
 ;;; Different fetchers
@@ -692,7 +713,8 @@ Pass INFO on to CALLBACK."
 	  (prog1
 	      (mail-source-callback callback path)
 	    (mail-source-run-script
-	     postscript (format-spec-make ?t mail-source-crash-box)))
+	     postscript (format-spec-make ?t mail-source-crash-box))
+	    (mail-source-delete-crash-box))
 	0))))
 
 (defun mail-source-fetch-directory (source callback)
@@ -707,13 +729,15 @@ Pass INFO on to CALLBACK."
 	(when (and (file-regular-p file)
 		   (funcall predicate file)
 		   (mail-source-movemail file mail-source-crash-box))
-	  (incf found (mail-source-callback callback file))))
-      (mail-source-run-script postscript (format-spec-make ?t path))
+	  (incf found (mail-source-callback callback file))
+	  (mail-source-run-script postscript (format-spec-make ?t path))
+	  (mail-source-delete-crash-box)))
       found)))
 
 (defun mail-source-fetch-pop (source callback)
   "Fetcher for single-file sources."
   (mail-source-bind (pop source)
+    ;; fixme: deal with stream type in format specs
     (mail-source-run-script
      prescript
      (format-spec-make ?p password ?t mail-source-crash-box
@@ -748,7 +772,8 @@ Pass INFO on to CALLBACK."
 		    (pop3-mailhost server)
 		    (pop3-port port)
 		    (pop3-authentication-scheme
-		     (if (eq authentication 'apop) 'apop 'pass)))
+		     (if (eq authentication 'apop) 'apop 'pass))
+		    (pop3-stream-type stream))
 		(if (or debug-on-quit debug-on-error)
 		    (save-excursion (pop3-movemail mail-source-crash-box))
 		  (condition-case err
@@ -773,7 +798,8 @@ Pass INFO on to CALLBACK."
 	      (mail-source-run-script
 	       postscript
 	       (format-spec-make ?p password ?t mail-source-crash-box
-				 ?s server ?P port ?u user))))
+				 ?s server ?P port ?u user))
+	      (mail-source-delete-crash-box)))
 	;; We nix out the password in case the error
 	;; was because of a wrong password being given.
 	(setq mail-source-password-cache
@@ -865,11 +891,6 @@ See the Gnus manual for details."
 (defvar mail-source-report-new-mail-timer nil)
 (defvar mail-source-report-new-mail-idle-timer nil)
 
-(eval-when-compile
-  (if (featurep 'xemacs)
-      (require 'timer-funcs)
-    (require 'timer)))
-
 (defun mail-source-start-idle-timer ()
   ;; Start our idle timer if necessary, so we delay the check until the
   ;; user isn't typing.
@@ -912,7 +933,7 @@ This only works when `display-time' is enabled."
 	  (setq display-time-mail-function #'mail-source-new-mail-p)
 	  ;; Set up the main timer.
 	  (setq mail-source-report-new-mail-timer
-		(nnheader-run-at-time
+		(run-at-time
 		 (* 60 mail-source-report-new-mail-interval)
 		 (* 60 mail-source-report-new-mail-interval)
 		 #'mail-source-start-idle-timer))
@@ -957,7 +978,8 @@ This only works when `display-time' is enabled."
 				  ;; MMDF mail format
 				  (insert "\001\001\001\001\n"))
 				(delete-file file)))))
-	      (incf found (mail-source-callback callback file))))))
+	      (incf found (mail-source-callback callback file))
+	      (mail-source-delete-crash-box)))))
       found)))
 
 (eval-and-compile
@@ -1018,11 +1040,13 @@ This only works when `display-time' is enabled."
 		  (insert "From imap " (current-time-string) "\n")
 		  (save-excursion
 		    (insert str "\n\n"))
-		  (while (re-search-forward "^From " nil t)
+		  (while (let ((case-fold-search nil))
+			   (re-search-forward "^From " nil t))
 		    (replace-match ">From "))
 		  (goto-char (point-max))))
 	      (nnheader-ms-strip-cr))
 	    (incf found (mail-source-callback callback server))
+	    (mail-source-delete-crash-box)
 	    (when (and remove fetchflag)
 	      (setq remove (nreverse remove))
 	      (imap-message-flags-add
@@ -1068,7 +1092,8 @@ This only works when `display-time' is enabled."
 	  (push (cons (format "webmail:%s:%s" subtype user) password)
 		mail-source-password-cache)))
       (webmail-fetch mail-source-crash-box subtype user password)
-      (mail-source-callback callback (symbol-name subtype)))))
+      (mail-source-callback callback (symbol-name subtype))
+      (mail-source-delete-crash-box))))
 
 (provide 'mail-source)
 

@@ -47,12 +47,8 @@
 (if noninteractive
     (eval-when-compile
       (let ((load-path (cons (expand-file-name ".") load-path)))
-	(or (featurep 'viper-util)
-	    (load "viper-util.el" nil nil 'nosuffix))
-	(or (featurep 'viper-keym)
-	    (load "viper-keym.el" nil nil 'nosuffix))
 	(or (featurep 'viper-cmd)
-	    (load "viper-cmd.el" nil nil 'nosuffix))
+	    (load "viper-cmd.el" nil t 'nosuffix))
 	)))
 ;; end pacifier
 
@@ -651,17 +647,19 @@ reversed."
 	(setq initial-str (format "%d,%d" reg-beg-line reg-end-line)))
 
     (setq com-str
-	  (or string (viper-read-string-with-history
-		      ":"
-		      initial-str
-		      'viper-ex-history
-		      ;; no default when working on region
-		      (if initial-str
-			  nil
-			(car viper-ex-history))
-		      map
-		      (if initial-str
-			  " [Type command to execute on current region]"))))
+	  (if string
+	      (concat initial-str string)
+	    (viper-read-string-with-history
+	     ":"
+	     initial-str
+	     'viper-ex-history
+	     ;; no default when working on region
+	     (if initial-str
+		 nil
+	       (car viper-ex-history))
+	     map
+	     (if initial-str
+		 " [Type command to execute on current region]"))))
     (save-window-excursion
       ;; just a precaution
       (setq viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
@@ -1101,7 +1099,7 @@ reversed."
 	 beg end cont val)
 
     (viper-add-keymap ex-read-filename-map
-		    (if viper-emacs-p
+		    (if (featurep 'emacs)
 			minibuffer-local-completion-map
 		      read-file-name-map))
 
@@ -1556,7 +1554,7 @@ reversed."
       ;; setup buffer
       (if (setq wind (viper-get-visible-buffer-window buf))
 	  ()
-	(setq wind (get-lru-window (if viper-xemacs-p nil 'visible)))
+	(setq wind (get-lru-window (if (featurep 'xemacs) nil 'visible)))
 	(set-window-buffer wind buf))
 
       (if (viper-window-display-p)
@@ -1876,7 +1874,7 @@ reversed."
   (condition-case nil
       (progn
 	(pop-to-buffer (get-buffer-create "*info*"))
-	(info (if viper-xemacs-p "viper.info" "viper"))
+	(info (if (featurep 'xemacs) "viper.info" "viper"))
 	(message "Type `i' to search for a specific topic"))
     (error (beep 1)
 	   (with-output-to-temp-buffer " *viper-info*"
@@ -1885,7 +1883,7 @@ The Info file for Viper does not seem to be installed.
 
 This file is part of the standard distribution of %sEmacs.
 Please contact your system administrator. "
-			    (if viper-xemacs-p "X" "")
+			    (if (featurep 'xemacs) "X" "")
 			    ))))))
 
 ;; Ex source command.  Loads the file specified as argument or `~/.viper'

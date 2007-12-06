@@ -166,28 +166,23 @@
 ;;;; VARIABLES and CONSTANTS
 ;;;;
 
-;; For backward compatibility to Emacs 19.
-(or (fboundp 'defgroup)
-    (defmacro defgroup (&rest rest)))
-
 (defgroup edt nil
   "Emacs emulating EDT."
   :prefix "edt-"
   :group 'emulations)
 
 ;; To silence the byte-compiler
-(eval-when-compile
-  (defvar *EDT-keys*)
-  (defvar edt-default-global-map)
-  (defvar edt-last-copied-word)
-  (defvar edt-learn-macro-count)
-  (defvar edt-orig-page-delimiter)
-  (defvar edt-orig-transient-mark-mode)
-  (defvar edt-rect-start-point)
-  (defvar edt-user-global-map)
-  (defvar rect-start-point)
-  (defvar time-string)
-  (defvar zmacs-region-stays))
+(defvar *EDT-keys*)
+(defvar edt-default-global-map)
+(defvar edt-last-copied-word)
+(defvar edt-learn-macro-count)
+(defvar edt-orig-page-delimiter)
+(defvar edt-orig-transient-mark-mode)
+(defvar edt-rect-start-point)
+(defvar edt-user-global-map)
+(defvar rect-start-point)
+(defvar time-string)
+(defvar zmacs-region-stays)
 
 ;;;
 ;;;  Version Information
@@ -197,11 +192,6 @@
 ;;;
 ;;;  User Configurable Variables
 ;;;
-
-;; For backward compatibility to Emacs 19.
-(or (fboundp 'defcustom)
-    (defmacro defcustom (var value doc &rest ignore)
-      `(defvar ,var ,value ,doc)))
 
 (defcustom edt-keep-current-page-delimiter nil
   "*Emacs MUST be restarted for a change in value to take effect!
@@ -321,24 +311,14 @@ This means that an edt-user.el file was found in the user's `load-path'.")
 ;;;
 ;;;     o edt-emulation-on      o edt-load-keys
 ;;;
-(defconst edt-emacs19-p (not (string-lessp emacs-version "19"))
-  "Non-nil if we are running GNU Emacs or XEmacs version 19, or higher.")
-
-(defconst edt-x-emacs19-p
-  (and edt-emacs19-p (string-match "XEmacs" emacs-version))
-  "Non-nil if we are running XEmacs version 19, or higher.")
-
-(defconst edt-gnu-emacs19-p (and edt-emacs19-p (not edt-x-emacs19-p))
-  "Non-nil if we are running GNU Emacs version 19, or higher.")
-
-(defconst edt-emacs-variant (if edt-gnu-emacs19-p "gnu" "xemacs")
+(defconst edt-emacs-variant (if (featurep 'emacs) "gnu" "xemacs")
   "Indicates Emacs variant:  GNU Emacs or XEmacs \(aka Lucid Emacs\).")
 
-(defconst edt-window-system (if edt-gnu-emacs19-p window-system (console-type))
+(defconst edt-window-system (if (featurep 'emacs) window-system (console-type))
   "Indicates window system \(in GNU Emacs\) or console type \(in XEmacs\).")
 
 (defconst edt-xserver (if (eq edt-window-system 'x)
-			  (if edt-x-emacs19-p
+			  (if (featurep 'xemacs)
 			      ;; The Cygwin window manager has a `/' in its
 			      ;; name, which breaks the generated file name of
 			      ;; the custom key map file.  Replace `/' with a
@@ -409,7 +389,7 @@ Argument NUM is the number of page delimiters to move."
 	(progn
 	  (backward-page num)
       (edt-line-to-top-of-window)
-	  (if edt-x-emacs19-p (setq zmacs-region-stays t)))))
+	  (if (featurep 'xemacs) (setq zmacs-region-stays t)))))
 
 (defun edt-page (num)
   "Move in current direction to next page delimiter.
@@ -470,7 +450,7 @@ Argument NUM is the number of BOL marks to move."
 	(setq num (1- num))
 	(forward-line (* -1 num))))
     (edt-top-check beg num))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 
 ;;;
@@ -486,7 +466,7 @@ Argument NUM is the number of EOL marks to move."
     (forward-char)
     (end-of-line num)
     (edt-bottom-check beg num))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 
 (defun edt-end-of-line-backward (num)
@@ -497,7 +477,7 @@ Argument NUM is the number of EOL marks to move."
   (let ((beg (edt-current-line)))
     (end-of-line (1- num))
     (edt-top-check beg num))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 
 (defun edt-end-of-line (num)
@@ -542,7 +522,7 @@ Argument NUM is the number of EOL marks to move."
 	      (eq ?\  (char-syntax (following-char)))
 	      (not (memq (following-char) edt-word-entities)))
 	(forward-char))))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-one-word-backward ()
   "Move backward to first character of previous word."
@@ -566,7 +546,7 @@ Argument NUM is the number of EOL marks to move."
 		  (not (eq ?\  (char-syntax (preceding-char))))
 		  (not (memq (preceding-char) edt-word-entities)))
 	    (backward-char)))))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-word-forward (num)
   "Move forward to first character of next word.
@@ -606,7 +586,7 @@ Argument NUM is the number of characters to move."
   (if (equal edt-direction-string edt-forward-string)
       (forward-char num)
     (backward-char num))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 ;;;
 ;;; LINE
@@ -629,7 +609,7 @@ Argument NUM is the number of BOL marks to move."
   (let ((beg (edt-current-line)))
     (forward-line num)
     (edt-bottom-check beg num))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-line (num)
   "Move in current direction to next beginning of line mark.
@@ -651,7 +631,7 @@ Argument NUM is the number of lines to move."
   (let ((beg (edt-current-line)))
     (forward-line num)
     (edt-bottom-check beg num))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-previous-line (num)
   "Move cursor up one line.
@@ -661,7 +641,7 @@ Argument NUM is the number of lines to move."
   (let ((beg (edt-current-line)))
     (forward-line (- num))
     (edt-top-check beg num))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 
 ;;;
@@ -672,7 +652,7 @@ Argument NUM is the number of lines to move."
   "Move cursor to the beginning of buffer."
   (interactive)
   (goto-char (point-min))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 ;;;
 ;;; BOTTOM
@@ -718,7 +698,7 @@ Optional argument FIND is t is this function is called from `edt-find'."
 		  (recenter (- left bottom-up-margin))))
 	       (t
 		(and (> (point) bottom) (recenter bottom-margin)))))))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-find-backward (&optional find)
   "Find first occurrence of a string in the backward direction and save it.
@@ -743,7 +723,7 @@ Optional argument FIND is t if this function is called from `edt-find'."
     (if (search-backward edt-find-last-text)
 	(edt-set-match))
     (and (< (point) top) (recenter (min beg top-margin))))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-find ()
   "Find first occurrence of string in current direction and save it."
@@ -789,7 +769,7 @@ Optional argument FIND is t if this function is called from `edt-find'."
       (progn
 	(backward-char 1)
 	(error "Search failed: \"%s\"" edt-find-last-text))))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-find-next-backward ()
   "Find next occurrence of a string in backward direction."
@@ -813,7 +793,7 @@ Optional argument FIND is t if this function is called from `edt-find'."
       (progn
 	(edt-set-match)
 	(and (< (point) top) (recenter (min beg top-margin))))))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-find-next ()
   "Find next occurrence of a string in current direction."
@@ -891,7 +871,7 @@ In select mode, selected text is highlighted."
 (defun edt-reset ()
   "Cancel text selection."
   (interactive)
-  (if edt-gnu-emacs19-p
+  (if (featurep 'emacs)
       (deactivate-mark)
     (zmacs-deactivate-region)))
 
@@ -1108,7 +1088,7 @@ Also, execute command specified if in Minibuffer."
   (if (string-equal " *Minibuf"
                     (substring (buffer-name) 0 (min (length (buffer-name)) 9)))
       (exit-minibuffer))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 
 ;;;
@@ -1124,7 +1104,7 @@ Also, execute command specified if in Minibuffer."
   (if (string-equal " *Minibuf"
                     (substring (buffer-name) 0 (min (length (buffer-name)) 9)))
       (exit-minibuffer))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 
 ;;;
@@ -1174,12 +1154,12 @@ Argument NUM is the numbers of consecutive characters to change."
 The current key definition is saved in `edt-last-replaced-key-definition'.
 Use `edt-restore-key' to restore last replaced key definition."
   (interactive)
-  (if edt-x-emacs19-p (setq zmacs-region-stays t))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t))
   (let (edt-function
 	edt-key-definition)
     (setq edt-key-definition
 	  (read-key-sequence "Press the key to be defined: "))
-    (if (if edt-gnu-emacs19-p
+    (if (if (featurep 'emacs)
 	    (string-equal "\C-m" edt-key-definition)
 	  (string-equal "\C-m" (events-to-keys edt-key-definition)))
         (message "Key not defined")
@@ -1259,7 +1239,7 @@ Argument LINES is the number of lines the cursor moved toward the bottom."
 		 ;; subtract 1 from height because it includes mode line
 		 (difference (- height margin 1)))
     (cond ((> beg difference) (recenter beg))
-		  ((and edt-x-emacs19-p (> (+ beg lines 1) difference))
+		  ((and (featurep 'xemacs) (> (+ beg lines 1) difference))
 		   (recenter (- margin)))
 		  ((> (+ beg lines) difference) (recenter (- margin))))))
 
@@ -1363,7 +1343,7 @@ Argument NUM is the positive number of sentences to move."
 	    (recenter (- left bottom-up-margin))))
 	 (t
 	  (and (> (point) bottom) (recenter bottom-margin)))))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-sentence-backward (num)
   "Move backward to next sentence beginning.
@@ -1389,7 +1369,7 @@ Argument NUM is the positive number of sentences to move."
 	  (error "End of buffer"))
       (backward-sentence num))
     (and (< (point) top) (recenter (min beg top-margin))))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-sentence (num)
   "Move in current direction to next sentence.
@@ -1434,7 +1414,7 @@ Argument NUM is the positive number of paragraphs to move."
 	    (recenter (- left bottom-up-margin))))
 	 (t
 	  (and (> (point) bottom) (recenter bottom-margin)))))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-paragraph-backward (num)
   "Move backward to beginning of paragraph.
@@ -1459,7 +1439,7 @@ Argument NUM is the positive number of paragraphs to move."
       (start-of-paragraph-text)
       (setq num (1- num)))
     (and (< (point) top) (recenter (min beg top-margin))))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-paragraph (num)
   "Move in current direction to next paragraph.
@@ -1477,20 +1457,20 @@ Argument NUM is the positive number of paragraphs to move."
   "Restore last replaced key definition.
 Definition is stored in `edt-last-replaced-key-definition'."
   (interactive)
-  (if edt-x-emacs19-p (setq zmacs-region-stays t))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t))
   (if edt-last-replaced-key-definition
       (progn
         (let (edt-key-definition)
           (set 'edt-key-definition
                (read-key-sequence "Press the key to be restored: "))
-	  (if (if edt-gnu-emacs19-p
+	  (if (if (featurep 'emacs)
 		  (string-equal "\C-m" edt-key-definition)
 		(string-equal "\C-m" (events-to-keys edt-key-definition)))
               (message "Key not restored")
 	    (progn
 	      (define-key (current-global-map)
 		edt-key-definition edt-last-replaced-key-definition)
-	      (if edt-gnu-emacs19-p
+	      (if (featurep 'emacs)
 		  (message "Key definition for %s has been restored."
 			   edt-key-definition)
 		(message "Key definition for %s has been restored."
@@ -1507,7 +1487,7 @@ Definition is stored in `edt-last-replaced-key-definition'."
   (let ((start-column (current-column)))
     (move-to-window-line 0)
     (move-to-column start-column))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 ;;;
 ;;; WINDOW BOTTOM
@@ -1519,7 +1499,7 @@ Definition is stored in `edt-last-replaced-key-definition'."
   (let ((start-column (current-column)))
     (move-to-window-line (- (window-height) 2))
     (move-to-column start-column))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 ;;;
 ;;; SCROLL WINDOW LINE
@@ -1529,13 +1509,13 @@ Definition is stored in `edt-last-replaced-key-definition'."
   "Move window forward one line leaving cursor at position in window."
   (interactive)
   (scroll-up 1)
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-scroll-window-backward-line ()
   "Move window backward one line leaving cursor at position in window."
   (interactive)
   (scroll-down 1)
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 (defun edt-scroll-line ()
   "Move window one line in current direction."
@@ -1582,7 +1562,7 @@ Argument NUM is the positive number of windows to move."
   "Move the current line to the bottom of the window."
   (interactive)
   (recenter -1)
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 ;;;
 ;;; LINE TO TOP OF WINDOW
@@ -1592,7 +1572,7 @@ Argument NUM is the positive number of windows to move."
   "Move the current line to the top of the window."
   (interactive)
   (recenter 0)
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 ;;;
 ;;; LINE TO MIDDLE OF WINDOW
@@ -1602,7 +1582,7 @@ Argument NUM is the positive number of windows to move."
   "Move window so line with cursor is in the middle of the window."
   (interactive)
   (recenter '(4))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 ;;;
 ;;; GOTO PERCENTAGE
@@ -1615,7 +1595,7 @@ Argument NUM is the percentage into the buffer to move."
   (if (or (> num 100) (< num 0))
       (error "Percentage %d out of range 0 < percent < 100" num)
     (goto-char (/ (* (point-max) num) 100)))
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 ;;;
 ;;; FILL REGION
@@ -1638,6 +1618,8 @@ Argument NUM is the percentage into the buffer to move."
       (indent-region (point) (mark) nil)
     (fill-region (point) (mark))))
 
+
+(declare-function c-mark-function "cc-cmds" ())
 ;;;
 ;;; MARK SECTION WISELY
 ;;;
@@ -1785,7 +1767,7 @@ Argument NUM is the number of times to duplicate the line."
 (defun edt-display-the-time ()
   "Display the current time."
   (interactive)
-  (if edt-x-emacs19-p (setq zmacs-region-stays t))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t))
   (message "%s" (current-time-string)))
 
 ;;;
@@ -1813,7 +1795,7 @@ Argument NUM is the number of times to duplicate the line."
       (let (edt-key-definition)
 	(set 'edt-key-definition
 	     (read-key-sequence "Enter key for binding: "))
-	(if (if edt-gnu-emacs19-p
+	(if (if (featurep 'emacs)
 		(string-equal "\C-m" edt-key-definition)
 	      (string-equal "\C-m" (events-to-keys edt-key-definition)))
 	    (message "Key sequence not remembered")
@@ -1866,7 +1848,7 @@ Warn user that modifications will be lost."
   (interactive)
   (split-window)
   (other-window 1)
-  (if edt-x-emacs19-p (setq zmacs-region-stays t)))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 ;;;
 ;;; COPY RECTANGLE
@@ -2152,7 +2134,7 @@ created."
 	    (setq edt-term term))))
     (edt-load-keys nil))
   ;; Make highlighting of selected text work properly for EDT commands.
-  (if edt-gnu-emacs19-p
+  (if (featurep 'emacs)
       (progn
 	(setq edt-orig-transient-mark-mode transient-mark-mode)
 	(add-hook 'activate-mark-hook
@@ -2188,7 +2170,7 @@ created."
   (setq edt-select-mode-current nil)
   (edt-reset)
   (force-mode-line-update t)
-  (if edt-gnu-emacs19-p
+  (if (featurep 'emacs)
     (setq transient-mark-mode edt-orig-transient-mark-mode))
   (message "Original key bindings restored; EDT Emulation disabled"))
 
@@ -2203,7 +2185,7 @@ Optional argument USER-SETUP non-nil means  called from function
   ;; disturbing the original bindings in global-map.
   (fset 'edt-default-ESC-prefix (copy-keymap 'ESC-prefix))
   (setq edt-default-global-map (copy-keymap (current-global-map)))
-  (if edt-gnu-emacs19-p
+  (if (featurep 'emacs)
       (define-key edt-default-global-map "\e" 'edt-default-ESC-prefix)
     (define-key edt-default-global-map [escape] 'edt-default-ESC-prefix))
   (define-prefix-command 'edt-default-gold-map)
@@ -2239,7 +2221,7 @@ Optional argument USER-SETUP non-nil means  called from function
   ;; Setup user EDT global map by copying default EDT global map bindings.
   (fset 'edt-user-ESC-prefix (copy-keymap 'edt-default-ESC-prefix))
   (setq edt-user-global-map (copy-keymap edt-default-global-map))
-  (if edt-gnu-emacs19-p
+  (if (featurep 'emacs)
       (define-key edt-user-global-map "\e" 'edt-user-ESC-prefix)
     (define-key edt-user-global-map [escape] 'edt-user-ESC-prefix))
   ;; If terminal has additional function keys, the user's initialization
@@ -2247,13 +2229,16 @@ Optional argument USER-SETUP non-nil means  called from function
   ;; function edt-setup-extra-default-bindings.
   (define-prefix-command 'edt-user-gold-map)
   (fset 'edt-user-gold-map (copy-keymap 'edt-default-gold-map))
-  (edt-setup-user-bindings)
+  ;; This is a function that the user can define for custom bindings.
+  ;; See etc/edt-user.doc.
+  (if (fboundp 'edt-setup-user-bindings)
+      (edt-setup-user-bindings))
   (edt-select-user-global-map))
 
 (defun edt-select-default-global-map()
   "Select default EDT emulation key bindings."
   (interactive)
-  (if edt-gnu-emacs19-p
+  (if (featurep 'emacs)
     (transient-mark-mode 1))
   (use-global-map edt-default-global-map)
   (if (not edt-keep-current-page-delimiter)
@@ -2271,7 +2256,7 @@ Optional argument USER-SETUP non-nil means  called from function
   (interactive)
   (if edt-user-map-configured
       (progn
-	(if edt-gnu-emacs19-p
+	(if (featurep 'emacs)
 	    (transient-mark-mode 1))
         (use-global-map edt-user-global-map)
         (if (not edt-keep-current-page-delimiter)

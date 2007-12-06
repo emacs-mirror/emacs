@@ -46,13 +46,14 @@
    (pre-write-conversion . utf-7-pre-write-conversion)
    (post-read-conversion . utf-7-post-read-conversion)))
 
-;; (make-coding-system
-;;  'utf-7-imap 0 ?u
-;;  "UTF-7 encoding of Unicode, IMAP version (RFC 2060)"
-;;  nil
-;;  `((safe-chars . ,(coding-system-get 'utf-16be 'safe-chars))
-;;    (pre-write-conversion . utf-7-imap-pre-write-conversion)
-;;    (post-read-conversion . utf-7-imap-post-read-conversion)))
+;;;###autoload(autoload-coding-system 'utf-7-imap '(require 'utf-7))
+(make-coding-system
+ 'utf-7-imap 0 ?u
+ "UTF-7 encoding of Unicode, IMAP version (RFC 2060)"
+ nil
+ `((safe-chars . ,(coding-system-get 'utf-16be 'safe-chars))
+   (pre-write-conversion . utf-7-imap-pre-write-conversion)
+   (post-read-conversion . utf-7-imap-post-read-conversion)))
 
 (defun utf-7-decode (len imap)
   "Decode LEN bytes of UTF-7 at point.
@@ -85,8 +86,8 @@ IMAP non-nil means use the IMAP version."
 (defun utf-7-post-read-conversion (len)
   (utf-7-decode len nil))
 
-;; (defun utf-7-imap-post-read-conversion (len)
-;;   (utf-7-decode len t))
+(defun utf-7-imap-post-read-conversion (len)
+  (utf-7-decode len t))
 
 (defun utf-7-encode (from to imap)
   "Encode bytes between FROM and TO to UTF-7.
@@ -133,8 +134,8 @@ ESC and SKIP-CHARS are adjusted for the normal and IMAP versions."
 (defun utf-7-pre-write-conversion (from to)
   (utf-7-encode from to nil))
 
-;; (defun utf-7-imap-pre-write-conversion (from to)
-;;   (utf-7-encode from to t))
+(defun utf-7-imap-pre-write-conversion (from to)
+  (utf-7-encode from to t))
 
 (provide 'utf-7)
 

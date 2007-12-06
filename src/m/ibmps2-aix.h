@@ -213,7 +213,6 @@ so disable it for them.  */
 #undef NOMULTIPLEJOBS
 #undef BROKEN_TIOCGETC
 #undef BROKEN_TIOCGWINSZ
-#undef LIBX10_SYSTEM
 #undef LIBX11_SYSTEM
 #undef LIB_X11_LIB
 #endif
