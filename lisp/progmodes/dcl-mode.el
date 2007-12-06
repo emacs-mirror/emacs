@@ -2201,7 +2201,7 @@ otherwise return nil."
           ()
         (equal start (match-end 0))))))
 
-(declare-function imenu-default-create-index-function "../imenu" ())
+(declare-function imenu-default-create-index-function "imenu" ())
 
 ;;;-------------------------------------------------------------------------
 (defun dcl-imenu-create-index-function ()
