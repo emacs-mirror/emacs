@@ -266,6 +266,7 @@
 
      (devanagari ,(font-spec :registry "iso10646-1" :otf '(deva nil (rphf)))
 		 (nil . "iso10646.indian-1"))
+     (malayalam ,(font-spec :registry "iso10646-1" :otf '(mlym nil (akhn))))
      (tamil ,(font-spec :registry "iso10646-1" :otf '(taml nil (akhn))))
 
      (lao  (nil . "MuleLao-1"))
@@ -273,7 +274,10 @@
      (tai-viet ("TaiViet" . "iso10646-1"))
 
      ;; both for script and charset.
-     (tibetan (nil . "muletibetan-2"))
+     (tibetan ,(font-spec :registry "iso10646-1"
+			  :otf '(tibt nil (ccmp blws abvs)))
+	      ,(font-spec :family "mtib" :registry "iso10646-1")
+	      (nil . "muletibetan-2"))
 
      ;; both for script and charset.
      (ethiopic (nil . "ethiopic-unicode"))
