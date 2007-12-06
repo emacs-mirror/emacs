@@ -160,8 +160,9 @@ compatible with ASCII, i.e. the first 128 code points map to ASCII.
 `:supplementary-p'
 
 VALUE must be nil or t.  If the VALUE is t, the charset is
-supplementary, which means it is used only as a parent of some other
-charset.
+supplementary, which means it is used only as a parent or a
+subset of some other charset, or it is provided just for backward
+compatibility.
 
 `:invalid-code'
 
