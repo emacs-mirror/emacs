@@ -3365,7 +3365,7 @@ for first matching file."
       (nconc ido-temp-list items)
     (setq ido-temp-list items)))
 
-(declare-function tramp-tramp-file-p "net/tramp" (name))
+(declare-function tramp-tramp-file-p "tramp" (name))
 
 (defun ido-file-name-all-completions-1 (dir)
   (cond
