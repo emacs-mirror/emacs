@@ -32,7 +32,7 @@
 
 (require 'info)
 
-(declare-function texinfo-format-refill "textmodes/texinfmt" ())
+(declare-function texinfo-format-refill "texinfmt" ())
 
 ;;;###autoload
 (defun Info-tagify (&optional input-buffer-name)
