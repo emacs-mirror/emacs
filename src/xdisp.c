@@ -4553,7 +4553,7 @@ handle_auto_composed_prop (it)
 
   if (FUNCTIONP (Vauto_composition_function))
     {
-      Lisp_Object val;
+      Lisp_Object val = Qnil;
       EMACS_INT pos, pos_byte, this_pos, start, end;
       int c;
 
@@ -4596,7 +4596,8 @@ handle_auto_composed_prop (it)
 	      if (! EQ (font_object,
 			font_at (c, pos, FACE_FROM_ID (it->f, it->face_id),
 				 it->w, it->string)))
-		/* We must re-compute the composition.  */
+		/* We must re-compute the composition for the
+		   different font.  */
 		val = Qnil;
 	    }
 #endif
@@ -4618,22 +4619,16 @@ handle_auto_composed_prop (it)
 		     auto-composed region.  There's a possiblity that
 		     the last characters in the region may be newly
 		     composed.  */
-		  int charpos = end - 1, bytepos, c;
-
-		  if (STRINGP (it->string))
+		  if (pos < end - 1)
 		    {
-		      bytepos = string_char_to_byte (it->string, charpos);
-		      c = SDATA (it->string)[bytepos];
+		      if (get_property_and_range (end - 1, Qcomposition,
+						  &cmp_prop, &cmp_start,
+						  &cmp_end, it->string))
+			pos = cmp_start;
+		      else
+			pos = end - 1;
 		    }
-		  else
-		    {
-		      bytepos = CHAR_TO_BYTE (charpos);
-		      c = FETCH_BYTE (bytepos);
-		    }
-		  if (c != '\n')
-		    /* If the last character is not newline, it may be
-		       composed with the following characters.  */
-		    val = Qnil, pos = charpos + 1;
+		  val = Qnil;
 		}
 	    }
 	}
