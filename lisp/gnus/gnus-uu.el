@@ -35,6 +35,7 @@
 (require 'message)
 (require 'gnus-msg)
 (require 'mm-decode)
+(require 'yenc)
 
 (defgroup gnus-extract nil
   "Extracting encoded files."
@@ -346,6 +347,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 (defvar gnus-uu-file-name nil)
 (defvar gnus-uu-uudecode-process nil)
 (defvar gnus-uu-binhex-article-name nil)
+(defvar gnus-uu-yenc-article-name nil)
 
 (defvar gnus-uu-work-dir nil)
 
@@ -411,6 +413,17 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   (setq gnus-uu-binhex-article-name
 	(mm-make-temp-file (expand-file-name "binhex" gnus-uu-work-dir)))
   (gnus-uu-decode-with-method 'gnus-uu-binhex-article n dir))
+
+(defun gnus-uu-decode-yenc (n dir)
+  "Decode the yEnc-encoded current article."
+  (interactive
+   (list current-prefix-arg
+	 (file-name-as-directory
+	  (read-file-name "yEnc decode and save in dir: "
+			  gnus-uu-default-dir
+			  gnus-uu-default-dir))))
+  (setq gnus-uu-yenc-article-name nil)
+  (gnus-uu-decode-with-method 'gnus-uu-yenc-article n dir nil t))
 
 (defun gnus-uu-decode-uu-view (&optional n)
   "Uudecodes and views the current article."
@@ -1015,6 +1028,39 @@ When called interactively, prompt for REGEXP."
     (if (memq 'begin state)
 	(cons gnus-uu-binhex-article-name state)
       state)))
+
+;; yEnc
+
+(defun gnus-uu-yenc-article (buffer in-state)
+  (save-excursion
+    (set-buffer gnus-original-article-buffer)
+    (widen)
+    (let ((file-name (yenc-extract-filename))
+	  state start-char)
+      (when (not file-name)
+	(setq state (list 'wrong-type)))
+
+      (if (memq 'wrong-type state)
+	  ()
+	(when (yenc-first-part-p)
+	  (setq gnus-uu-yenc-article-name
+		(expand-file-name file-name gnus-uu-work-dir))
+	  (push 'begin state))
+	(when (yenc-last-part-p)
+	  (push 'end state))
+	(unless state
+	  (push 'middle state))
+	(mm-with-unibyte-buffer
+	  (insert-buffer gnus-original-article-buffer)
+	  (yenc-decode-region (point-min) (point-max))
+	  (when (and (member 'begin state)
+		     (file-exists-p gnus-uu-yenc-article-name))
+	    (delete-file gnus-uu-yenc-article-name))
+	  (mm-append-to-file (point-min) (point-max)
+			     gnus-uu-yenc-article-name)))
+      (if (memq 'begin state)
+	  (cons file-name state)
+	state))))
 
 ;; PostScript
 

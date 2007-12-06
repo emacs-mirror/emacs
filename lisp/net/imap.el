@@ -1533,10 +1533,11 @@ or 'unseen.  The IMAP command tag is returned."
     (imap-send-command (list "STATUS \""
 			     (imap-utf7-encode mailbox)
 			     "\" "
-			     (format "%s"
-				     (if (listp items)
-					 items
-				       (list items)))))))
+			     (upcase
+			      (format "%s"
+				      (if (listp items)
+					  items
+					(list items))))))))
 
 (defun imap-mailbox-acl-get (&optional mailbox buffer)
   "Get ACL on mailbox from server in BUFFER."
@@ -2524,7 +2525,7 @@ Return nil if no complete line has arrived."
       (while (and (not (eq (char-after) ?\)))
 		  (or (forward-char) t)
 		  (looking-at "\\([A-Za-z]+\\) "))
-	(let ((token (match-string 1)))
+	(let ((token (upcase (match-string 1))))
 	  (goto-char (match-end 0))
 	  (cond ((string= token "MESSAGES")
 		 (imap-mailbox-put 'messages (read (current-buffer)) mailbox))

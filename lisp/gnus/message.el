@@ -273,7 +273,7 @@ included.  Organization and User-Agent are optional."
   :link '(custom-manual "(message)Mail Headers")
   :type 'regexp)
 
-(defcustom message-ignored-supersedes-headers "^Path:\\|^Date\\|^NNTP-Posting-Host:\\|^Xref:\\|^Lines:\\|^Received:\\|^X-From-Line:\\|^X-Trace:\\|^X-Complaints-To:\\|Return-Path:\\|^Supersedes:\\|^NNTP-Posting-Date:\\|^X-Trace:\\|^X-Complaints-To:\\|^Cancel-Lock:\\|^Cancel-Key:\\|^X-Hashcash:\\|^X-Payment:\\|^Approved:"
+(defcustom message-ignored-supersedes-headers "^Path:\\|^Date\\|^NNTP-Posting-Host:\\|^Xref:\\|^Lines:\\|^Received:\\|^X-From-Line:\\|^X-Trace:\\|^X-ID:\\|^X-Complaints-To:\\|Return-Path:\\|^Supersedes:\\|^NNTP-Posting-Date:\\|^X-Trace:\\|^X-Complaints-To:\\|^Cancel-Lock:\\|^Cancel-Key:\\|^X-Hashcash:\\|^X-Payment:\\|^Approved:"
   "*Header lines matching this regexp will be deleted before posting.
 It's best to delete old Path and Date headers before posting to avoid
 any confusion."
@@ -588,21 +588,21 @@ Done before generating the new subject of a forward."
   :type 'regexp)
 
 (defcustom message-cite-prefix-regexp
-  (if (string-match "[[:digit:]]" "1") ;; support POSIX?
-      "\\([ \t]*[-_.[:word:]]+>+\\|[ \t]*[]>|}+]\\)+"
+  (if (string-match "[[:digit:]]" "1")
+      ;; Support POSIX?  XEmacs 21.5.27 doesn't.
+      "\\([ \t]*[_.[:word:]]+>+\\|[ \t]*[]>|}]\\)+"
     ;; ?-, ?_ or ?. MUST NOT be in syntax entry w.
     (let (non-word-constituents)
       (with-syntax-table text-mode-syntax-table
 	(setq non-word-constituents
 	      (concat
-	       (if (string-match "\\w" "-")  "" "-")
 	       (if (string-match "\\w" "_")  "" "_")
 	       (if (string-match "\\w" ".")  "" "."))))
       (if (equal non-word-constituents "")
-	  "\\([ \t]*\\(\\w\\)+>+\\|[ \t]*[]>|}+]\\)+"
+	  "\\([ \t]*\\(\\w\\)+>+\\|[ \t]*[]>|}]\\)+"
 	(concat "\\([ \t]*\\(\\w\\|["
 		non-word-constituents
-		"]\\)+>+\\|[ \t]*[]>|}+]\\)+"))))
+		"]\\)+>+\\|[ \t]*[]>|}]\\)+"))))
   "*Regexp matching the longest possible citation prefix on a line."
   :version "22.1"
   :group 'message-insertion
@@ -5559,7 +5559,9 @@ subscribed address (and not the additional To and Cc header contents)."
 			(mapcar 'downcase
 				(mapcar
 				 'car (mail-header-parse-addresses field))))))
-	(setq ace (downcase (idna-to-ascii rhs)))
+	(setq ace (if (string-match "\\`[[:ascii:]]+\\'" rhs)
+		      rhs
+		    (downcase (idna-to-ascii rhs))))
 	(when (and (not (equal rhs ace))
 		   (or (not (eq message-use-idna 'ask))
 		       (y-or-n-p (format "Replace %s with %s in %s:? "

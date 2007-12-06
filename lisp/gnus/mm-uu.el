@@ -272,7 +272,7 @@ If PROPERTIES is non-nil, PROPERTIES are applied to the buffer,
 see `set-text-properties'.  If PROPERTIES equals t, this means to
 apply the face `mm-uu-extract'."
   (let ((obuf (current-buffer))
-        (coding-system
+	(coding-system
          ;; Might not exist in non-MULE XEmacs
          (when (boundp 'buffer-file-coding-system)
            buffer-file-coding-system)))
@@ -428,7 +428,12 @@ apply the face `mm-uu-extract'."
 			    (cons 'filename file-name)))))
 
 (defun mm-uu-yenc-extract ()
-  (mm-make-handle (mm-uu-copy-to-buffer start-point end-point)
+  ;; This might not be exactly correct, but we sure can't get the
+  ;; binary data from the article buffer, since that's already in a
+  ;; non-binary charset.  So get it from the original article buffer. 
+  (mm-make-handle (save-excursion
+		    (set-buffer gnus-original-article-buffer)
+		    (mm-uu-copy-to-buffer start-point end-point))
 		  (list (or (and file-name
 				 (string-match "\\.[^\\.]+$" file-name)
 				 (mailcap-extension-to-mime

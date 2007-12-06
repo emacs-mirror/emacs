@@ -1,3 +1,37 @@
+2007-12-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* net/tls.el (tls-hostmismatch, open-tls-stream): Checkdoc cleanup.
+
+2007-12-05  Elias Oltmanns  <eo@nebensachen.de>
+
+	* net/tls.el (open-tls-stream): Actually consult tls-checktrust to
+	see if certs should be verified and what is to be done in the
+	event of a verification failure.
+
+2007-12-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* net/tls.el (tls-program): Provide more custom choices from
+	`tls-checktrust'.  Refer to `tls-checktrust' in doc string.
+	(tls-process-connection-type, tls-success): Remove "*" in doc string.
+	(tls-checktrust, tls-hostmismatch, tls-untrusted): Add custom
+	version.  Minor improvement to doc strings.
+	(tls-program): Add comment.
+
+2007-12-05  Elias Oltmanns  <eo@nebensachen.de>
+
+	* net/tls.el (tls-certtool-program, tls-hostmismatch): New variables.
+	(tls-checktrust): New variable.  Check if GNU TLS complained about a
+	mismatch between the hostname provided in the certificate and the name
+	of the host connnecting to.
+	(open-tls-stream): Use them.  Check certificates against trusted root
+	certificates.
+
+2007-12-05  Nathan J. Williams  <nathanw@MIT.EDU>  (tiny change)
+
+	* net/imap.el (imap-mailbox-status-asynch): Upcase STATUS items.
+	(imap-parse-status): Upcase status-att for broken servers that sends
+	them lower-case (e.g., MS Exchange 2007).
+
 2007-12-05  D. Goel  <deego3@gmail.com>
 
 	* simple.el (undo): Ditto.

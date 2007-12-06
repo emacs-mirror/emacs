@@ -99,6 +99,40 @@ quoted-printable and base64 respectively.")
 (defvar rfc2047-encode-encoded-words t
   "Whether encoded words should be encoded again.")
 
+(defvar rfc2047-allow-irregular-q-encoded-words t
+  "*Whether to decode irregular Q-encoded words.")
+
+(eval-and-compile ;; Necessary to hard code them in `rfc2047-decode-region'.
+  (defconst rfc2047-encoded-word-regexp
+    "=\\?\\([^][\000-\040()<>@,\;:*\\\"/?.=]+\\)\\(?:\\*[^?]+\\)?\\?\
+\\(B\\?[+/0-9A-Za-z]*=*\
+\\|Q\\?[ ->@-~]*\
+\\)\\?="
+    "Regexp that matches encoded word."
+    ;; The patterns for the B encoding and the Q encoding, i.e. the ones
+    ;; beginning with "B" and "Q" respectively, are restricted into only
+    ;; the characters that those encodings may generally use.
+    )
+  (defconst rfc2047-encoded-word-regexp-loose
+    "=\\?\\([^][\000-\040()<>@,\;:*\\\"/?.=]+\\)\\(?:\\*[^?]+\\)?\\?\
+\\(B\\?[+/0-9A-Za-z]*=*\
+\\|Q\\?\\(?:\\?+[ -<>@-~]\\)?\\(?:[ ->@-~]+\\?+[ -<>@-~]\\)*[ ->@-~]*\\?*\
+\\)\\?="
+    "Regexp that matches encoded word allowing loose Q encoding."
+    ;; The pattern for the Q encoding, i.e. the one beginning with "Q",
+    ;; is similar to:
+    ;; "Q\\?\\(\\?+[^\n=?]\\)?\\([^\n?]+\\?+[^\n=?]\\)*[^\n?]*\\?*"
+    ;;      <--------1-------><----------2,3----------><--4--><-5->
+    ;; They mean:
+    ;; 1. After "Q?", allow "?"s that follow a character other than "=".
+    ;; 2. Allow "=" after "Q?"; it isn't regarded as the terminator.
+    ;; 3. In the middle of an encoded word, allow "?"s that follow a
+    ;;    character other than "=".
+    ;; 4. Allow any characters other than "?" in the middle of an
+    ;;    encoded word.
+    ;; 5. At the end, allow "?"s.
+    ))
+
 ;;;
 ;;; Functions for encoding RFC2047 messages
 ;;;
@@ -295,7 +329,7 @@ The buffer may be narrowed."
     (goto-char (point-min))
     (or (and rfc2047-encode-encoded-words
 	     (prog1
-		 (search-forward "=?" nil t)
+		 (re-search-forward rfc2047-encoded-word-regexp nil t)
 	       (goto-char (point-min))))
 	(and charsets
 	     (not (equal charsets (list (car message-posting-charset))))))))
@@ -530,10 +564,19 @@ By default, the string is treated as containing addresses (see
     (rfc2047-encode-region (point-min) (point-max))
     (buffer-string)))
 
+;; From RFC 2047:
+;; 2. Syntax of encoded-words
+;;    [...]
+;;    While there is no limit to the length of a multiple-line header
+;;    field, each line of a header field that contains one or more
+;;    'encoded-word's is limited to 76 characters.
+;;
+;; In `rfc2047-encode-parameter' it is bound to nil, so don't defconst it.
 (defvar rfc2047-encode-max-chars 76
   "Maximum characters of each header line that contain encoded-words.
-If it is nil, encoded-words will not be folded.  Too small value may
-cause an error.  Don't change this for no particular reason.")
+According to RFC 2047, it is 76.  If it is nil, encoded-words
+will not be folded.  Too small value may cause an error.  You
+should not change this value.")
 
 (defun rfc2047-encode-1 (column string cs encoder start crest tail
 				&optional eword)
@@ -824,11 +867,6 @@ it, put the following line in your ~/.gnus.el file:
 ;;; Functions for decoding RFC2047 messages
 ;;;
 
-(eval-and-compile
-  (defconst rfc2047-encoded-word-regexp
-    "=\\?\\([^][\000-\040()<>@,\;:*\\\"/?.=]+\\)\\(?:\\*[^?]+\\)?\
-\\?\\(B\\|Q\\)\\?\\([!->@-~ ]*\\)\\?="))
-
 (defvar rfc2047-quote-decoded-words-containing-tspecials nil
   "If non-nil, quote decoded words containing special characters.")
 
@@ -947,10 +985,12 @@ If ADDRESS-MIME is non-nil, strip backslashes which precede characters
 other than `\"' and `\\' in quoted strings."
   (interactive "r")
   (let ((case-fold-search t)
-	(eword-regexp (eval-when-compile
-			;; Ignore whitespace between encoded-words.
-			(concat "[\n\t ]*\\(" rfc2047-encoded-word-regexp
-				"\\)")))
+	(eword-regexp
+	 (if rfc2047-allow-irregular-q-encoded-words
+	     (eval-when-compile
+	       (concat "[\n\t ]*\\(" rfc2047-encoded-word-regexp-loose "\\)"))
+	   (eval-when-compile
+	     (concat "[\n\t ]*\\(" rfc2047-encoded-word-regexp "\\)"))))
 	b e match words)
     (save-excursion
       (save-restriction
@@ -966,7 +1006,7 @@ other than `\"' and `\\' in quoted strings."
 	  (while match
 	    (push (list (match-string 2) ;; charset
 			(char-after (match-beginning 3)) ;; encoding
-			(match-string 4) ;; encoded-text
+			(substring (match-string 3) 2) ;; encoded-text
 			(match-string 1)) ;; encoded-word
 		  words)
 	    ;; Look for the subsequent encoded-words.

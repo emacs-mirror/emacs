@@ -636,8 +636,7 @@ manipulated as follows:
                  (gnus-agent-make-mode-line-string " Plugged"
                                                    'mouse-2
                                                    'gnus-agent-toggle-plugged))
-         (gnus-agent-go-online gnus-agent-go-online)
-         (gnus-agent-possibly-synchronize-flags))
+         (gnus-agent-go-online gnus-agent-go-online))
         (t
          (gnus-agent-close-connections)
          (setq gnus-plugged set-to)
@@ -868,8 +867,7 @@ be a select method."
   (interactive)
   (save-excursion
     (dolist (gnus-command-method (gnus-agent-covered-methods))
-      (when (and (file-exists-p (gnus-agent-lib-file "flags"))
-		 (eq (gnus-server-status gnus-command-method) 'ok))
+      (when (eq (gnus-server-status gnus-command-method) 'ok)
 	(gnus-agent-possibly-synchronize-flags-server gnus-command-method)))))
 
 (defun gnus-agent-synchronize-flags-server (method)
@@ -905,11 +903,13 @@ be a select method."
 
 (defun gnus-agent-possibly-synchronize-flags-server (method)
   "Synchronize flags for server according to `gnus-agent-synchronize-flags'."
-  (when (or (and gnus-agent-synchronize-flags
-		 (not (eq gnus-agent-synchronize-flags 'ask)))
-	    (and (eq gnus-agent-synchronize-flags 'ask)
-		 (gnus-y-or-n-p (format "Synchronize flags on server `%s'? "
-					(cadr method)))))
+  (when (and (file-exists-p (gnus-agent-lib-file "flags"))
+	     (or (and gnus-agent-synchronize-flags
+		      (not (eq gnus-agent-synchronize-flags 'ask)))
+		 (and (eq gnus-agent-synchronize-flags 'ask)
+		      (gnus-y-or-n-p
+		       (format "Synchronize flags on server `%s'? "
+			       (cadr method))))))
     (gnus-agent-synchronize-flags-server method)))
 
 ;;;###autoload

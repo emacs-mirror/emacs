@@ -33,8 +33,14 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'mail-parse)
-(require 'mm-util)
+(autoload 'mail-header-parse-content-type "mail-parse")
+
+;; `mm-delete-duplicates' is an alias for `delete-dups' in Emacs 22.
+(defalias 'mailcap-delete-duplicates
+  (if (fboundp 'delete-dups)
+      'delete-dups
+    (autoload 'mm-delete-duplicates "mm-util")
+    'mm-delete-duplicates))
 
 (defgroup mailcap nil
   "Definition of viewers for MIME types."
@@ -722,7 +728,7 @@ If TEST is not given, it defaults to t."
       t)
      (t nil))))
 
-(defun mailcap-mime-info (string &optional request)
+(defun mailcap-mime-info (string &optional request no-decode)
   "Get the MIME viewer command for STRING, return nil if none found.
 Expects a complete content-type header line as its argument.
 
@@ -732,7 +738,11 @@ entry) will be returned.  If it is a string, then the mailcap field
 corresponding to that string will be returned (print, description,
 whatever).  If a number, then all the information for this specific
 viewer is returned.  If `all', then all possible viewers for
-this type is returned."
+this type is returned.
+
+If NO-DECODE is non-nil, don't decode STRING."
+  ;; NO-DECODE avoids calling `mail-header-parse-content-type' from
+  ;; `mail-parse.el'
   (let (
 	major				; Major encoding (text, etc)
 	minor				; Minor encoding (html, etc)
@@ -746,7 +756,10 @@ this type is returned."
 	viewer				; The one and only viewer
 	ctl)
     (save-excursion
-      (setq ctl (mail-header-parse-content-type (or string "text/plain")))
+      (setq ctl
+	    (if no-decode
+		(list (or string "text/plain"))
+	      (mail-header-parse-content-type (or string "text/plain"))))
       (setq major (split-string (car ctl) "/"))
       (setq minor (cadr major)
 	    major (car major))
@@ -766,7 +779,7 @@ this type is returned."
 	(setq viewer (car passed)))
       (cond
        ((and (null viewer) (not (equal major "default")) request)
-	(mailcap-mime-info "default" request))
+	(mailcap-mime-info "default" request no-decode))
        ((or (null request) (equal request ""))
 	(mailcap-unescape-mime-test (cdr (assq 'viewer viewer)) info))
        ((stringp request)
@@ -976,7 +989,7 @@ If FORCE, re-parse even if already parsed."
 (defun mailcap-mime-types ()
   "Return a list of MIME media types."
   (mailcap-parse-mimetypes)
-  (mm-delete-duplicates
+  (mailcap-delete-duplicates
    (nconc
     (mapcar 'cdr mailcap-mime-extensions)
     (apply

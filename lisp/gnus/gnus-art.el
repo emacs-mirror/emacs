@@ -2334,9 +2334,9 @@ long lines iff arg is positive."
 
 (defvar gnus-face-properties-alist)
 
-(defun article-display-face ()
+(defun article-display-face (&optional force)
   "Display any Face headers in the header."
-  (interactive)
+  (interactive (list 'force))
   (let ((wash-face-p buffer-read-only))
     (gnus-with-article-headers
       ;; When displaying parts, this function can be called several times on
@@ -2346,7 +2346,8 @@ long lines iff arg is positive."
       ;; read-only.
       (if (and wash-face-p (memq 'face gnus-article-wash-types))
 	  (gnus-delete-images 'face)
-	(let (face faces from)
+	(let ((from (message-fetch-field "from"))
+	      face faces)
 	  (save-current-buffer
 	    (when (and wash-face-p
 		       (gnus-buffer-live-p gnus-original-article-buffer)
@@ -2354,16 +2355,22 @@ long lines iff arg is positive."
 	      (set-buffer gnus-original-article-buffer))
 	    (save-restriction
 	      (mail-narrow-to-head)
-	      (while (gnus-article-goto-header "Face")
-		(push (mail-header-field-value) faces))))
+	      (when (or force
+			;; Check whether this face is censored.
+			(not (and gnus-article-x-face-too-ugly
+				  (or from
+				      (setq from (message-fetch-field "from")))
+				  (string-match gnus-article-x-face-too-ugly
+						from))))
+		(while (gnus-article-goto-header "Face")
+		  (push (mail-header-field-value) faces)))))
 	  (when faces
 	    (goto-char (point-min))
-	    (let ((from (gnus-article-goto-header "from"))
-		  png image)
-	      (unless from
+	    (let (png image)
+	      (unless (setq from (gnus-article-goto-header "from"))
 		(insert "From:")
 		(setq from (point))
-		(insert "[no `from' set]\n"))
+		(insert " [no `from' set]\n"))
 	      (while faces
 		(when (setq png (gnus-convert-face-to-png (pop faces)))
 		  (setq image
@@ -2388,7 +2395,8 @@ long lines iff arg is positive."
 	  ;; instead.
 	  (gnus-delete-images 'xface)
 	;; Display X-Faces.
-	(let (x-faces from face)
+	(let ((from (message-fetch-field "from"))
+	      x-faces face)
 	  (save-current-buffer
 	    (when (and wash-face-p
 		       (gnus-buffer-live-p gnus-original-article-buffer)
@@ -2399,43 +2407,41 @@ long lines iff arg is positive."
 	      (set-buffer gnus-original-article-buffer))
 	    (save-restriction
 	      (mail-narrow-to-head)
-	      (while (gnus-article-goto-header "X-Face")
-		(push (mail-header-field-value) x-faces))
-	      (setq from (message-fetch-field "from"))))
-	  ;; Sending multiple EOFs to xv doesn't work, so we only do a
-	  ;; single external face.
-	  (when (stringp gnus-article-x-face-command)
-	    (setq x-faces (list (car x-faces))))
-	  (when (and x-faces
-		     gnus-article-x-face-command
-		     (or force
-			 ;; Check whether this face is censored.
-			 (not gnus-article-x-face-too-ugly)
-			 (and from
-			      (not (string-match gnus-article-x-face-too-ugly
-						 from)))))
-	    (while (setq face (pop x-faces))
-	      ;; We display the face.
-	      (cond ((stringp gnus-article-x-face-command)
-		     ;; The command is a string, so we interpret the command
-		     ;; as a, well, command, and fork it off.
-		     (let ((process-connection-type nil))
-		       (gnus-set-process-query-on-exit-flag
-			(start-process
-			 "article-x-face" nil shell-file-name
-			 shell-command-switch gnus-article-x-face-command)
-			nil)
-		       (with-temp-buffer
-			 (insert face)
-			 (process-send-region "article-x-face"
-					      (point-min) (point-max)))
-		       (process-send-eof "article-x-face")))
-		    ((functionp gnus-article-x-face-command)
-		     ;; The command is a lisp function, so we call it.
-		     (funcall gnus-article-x-face-command face))
-		    (t
-		     (error "%s is not a function"
-			    gnus-article-x-face-command))))))))))
+	      (and gnus-article-x-face-command
+		   (or force
+		       ;; Check whether this face is censored.
+		       (not (and gnus-article-x-face-too-ugly
+				 (or from
+				     (setq from (message-fetch-field "from")))
+				 (string-match gnus-article-x-face-too-ugly
+					       from))))
+		   (while (gnus-article-goto-header "X-Face")
+		     (push (mail-header-field-value) x-faces)))))
+	  (when x-faces
+	    ;; We display the face.
+	    (cond ((functionp gnus-article-x-face-command)
+		   ;; The command is a lisp function, so we call it.
+		   (mapc gnus-article-x-face-command x-faces))
+		  ((stringp gnus-article-x-face-command)
+		   ;; The command is a string, so we interpret the command
+		   ;; as a, well, command, and fork it off.
+		   (let ((process-connection-type nil))
+		     (gnus-set-process-query-on-exit-flag
+		      (start-process
+		       "article-x-face" nil shell-file-name
+		       shell-command-switch gnus-article-x-face-command)
+		      nil)
+		     ;; Sending multiple EOFs to xv doesn't work,
+		     ;; so we only do a single external face.
+		     (with-temp-buffer
+		       (insert (car x-faces))
+		       (process-send-region "article-x-face"
+					    (point-min) (point-max)))
+		     (process-send-eof "article-x-face")))
+		  (t
+		   (error "`%s' set to `%s' is not a function"
+			  gnus-article-x-face-command
+			  'gnus-article-x-face-command)))))))))
 
 (defun article-decode-mime-words ()
   "Decode all MIME-encoded words in the article."
@@ -2823,7 +2829,10 @@ Warning: Spammers use links to images in HTML articles to verify
 whether you have read the message.  As
 `gnus-article-browse-html-article' passes the unmodified HTML
 content to the browser without eliminating these \"web bugs\" you
-should only use it for mails from trusted senders."
+should only use it for mails from trusted senders.
+
+If you alwasy want to display HTML part in the browser, set
+`mm-text-html-renderer' to nil."
   ;; Cf. `mm-w3m-safe-url-regexp'
   (interactive)
   (save-window-excursion

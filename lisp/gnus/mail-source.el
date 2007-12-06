@@ -58,15 +58,16 @@
 	      (list 'const (car a)))
      imap-stream-alist)))
 
-(defcustom mail-sources nil
-  "*Where the mail backends will look for incoming mail.
+(defcustom mail-sources '((file))
+  "Where the mail backends will look for incoming mail.
 This variable is a list of mail source specifiers.
 See Info node `(gnus)Mail Source Specifiers'."
   :group 'mail-source
+  :version "23.0" ;; No Gnus
   :link '(custom-manual "(gnus)Mail Source Specifiers")
   :type `(choice
-	  (const nil)
-	  (repeat
+	  (const :tag "None" nil)
+	  (repeat :tag "List"
 	   (choice :format "%[Value Menu%] %v"
 		   :value (file)
 		   (cons :tag "Spool file"

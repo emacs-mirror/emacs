@@ -42,25 +42,55 @@
 ;;; Code:
 
 (require 'dired)
-(require 'gnus-ems)
-(require 'gnus-msg)
-(require 'gnus-util)
-(require 'message)
-(require 'mm-encode)
-(require 'mml)
+(autoload 'mml-attach-file "mml")
+(autoload 'mm-default-file-encoding "mm-decode");; Shift this to `mailcap.el'?
+(autoload 'mailcap-extension-to-mime "mailcap")
+(autoload 'mailcap-mime-info "mailcap")
+
+;; Maybe shift this function to `mailcap.el'?
+(autoload 'mm-mailcap-command "mm-decode")
+
+(autoload 'ps-print-preprint "ps-print")
+
+;; Autoloads to avoid byte-compiler warnings.  These are used only if the user
+;; customizes `gnus-dired-mail-mode' to use Message and/or Gnus.
+(autoload 'message-buffers "message")
+(autoload 'gnus-setup-message "gnus-msg")
+(autoload 'gnus-print-buffer "gnus-sum")
 
 (defvar gnus-dired-mode nil
-  "Minor mode for intersections of gnus and dired.")
+  "Minor mode for intersections of MIME mail composition and dired.")
 
 (defvar gnus-dired-mode-map nil)
 
 (unless gnus-dired-mode-map
   (setq gnus-dired-mode-map (make-sparse-keymap))
 
-  (gnus-define-keys gnus-dired-mode-map
-    "\C-c\C-m\C-a" gnus-dired-attach
-    "\C-c\C-m\C-l" gnus-dired-find-file-mailcap
-    "\C-c\C-m\C-p" gnus-dired-print))
+  (define-key gnus-dired-mode-map "\C-c\C-m\C-a" 'gnus-dired-attach)
+  (define-key gnus-dired-mode-map "\C-c\C-m\C-l" 'gnus-dired-find-file-mailcap)
+  (define-key gnus-dired-mode-map "\C-c\C-m\C-p" 'gnus-dired-print))
+
+;; FIXME: Make it customizable, change the default to `mail-user-agent' when
+;; this file if renamed (e.g. to `dired-mime.el').
+
+(defcustom gnus-dired-mail-mode 'gnus-user-agent ;; mail-user-agent
+  "Your preference for a mail composition package.
+See `mail-user-agent' for more information."
+  :group 'mail ;; dired?
+  :version "23.0" ;; No Gnus
+  :type '(radio (function-item :tag "Default Emacs mail"
+			       :format "%t\n"
+			       sendmail-user-agent)
+		(function-item :tag "Emacs interface to MH"
+			       :format "%t\n"
+			       mh-e-user-agent)
+		(function-item :tag "Gnus Message package"
+			       :format "%t\n"
+			       message-user-agent)
+		(function-item :tag "Gnus Message with full Gnus features"
+			       :format "%t\n"
+			       gnus-user-agent)
+		(function :tag "Other")))
 
 (defun gnus-dired-mode (&optional arg)
   "Minor mode for intersections of gnus and dired.
@@ -73,14 +103,31 @@
 	   (> (prefix-numeric-value arg) 0)))
     (when gnus-dired-mode
       (add-minor-mode 'gnus-dired-mode "" gnus-dired-mode-map)
-      (gnus-run-hooks 'gnus-dired-mode-hook))))
+      (save-current-buffer
+	(run-hooks 'gnus-dired-mode-hook)))))
 
 ;;;###autoload
 (defun turn-on-gnus-dired-mode ()
   "Convenience method to turn on gnus-dired-mode."
+  (interactive)
   (gnus-dired-mode 1))
 
-;; Method to attach files to a gnus composition.
+(defun gnus-dired-mail-buffers ()
+  "Return a list of active mail composition buffers."
+  (if (and (memq gnus-dired-mail-mode '(message-user-agent gnus-user-agent))
+	   (require 'message)
+	   (fboundp 'message-buffers))
+      (message-buffers)
+    ;; Cf. `message-buffers' in `message.el':
+    (let (buffers)
+      (save-excursion
+	(dolist (buffer (buffer-list t))
+	  (set-buffer buffer)
+	  (when (eq major-mode 'mail-mode)
+	    (push (buffer-name buffer) buffers))))
+      (nreverse buffers))))
+
+;; Method to attach files to a mail composition.
 (defun gnus-dired-attach (files-to-attach)
   "Attach dired's marked files to a gnus message composition.
 If called non-interactively, FILES-TO-ATTACH should be a list of
@@ -102,22 +149,25 @@ filenames."
 	    (mapconcat
 	     (lambda (f) (file-name-nondirectory f))
 	     files-to-attach ", "))
-      (setq bufs (message-buffers))
+      (setq bufs (gnus-dired-mail-buffers))
 
-      ;; set up destination message buffer
+      ;; set up destination mail composition buffer
       (if (and bufs
-	       (y-or-n-p "Attach files to existing message buffer? "))
+	       (y-or-n-p "Attach files to existing mail composition buffer? "))
 	  (setq destination
 		(if (= (length bufs) 1)
 		    (get-buffer (car bufs))
-		  (completing-read "Attach to which message buffer: "
+		  (completing-read "Attach to which mail composition buffer: "
 				   (mapcar
 				    (lambda (b)
 				      (cons b (get-buffer b)))
 				    bufs)
 				   nil t)))
-	;; setup a new gnus message buffer
-	(gnus-setup-message 'message (message-mail))
+	;; setup a new mail composition buffer
+	(if (eq gnus-dired-mail-mode 'gnus-user-agent)
+	    (gnus-setup-message 'message (message-mail))
+	  ;; FIXME: Is this the right thing?
+	  (compose-mail))
 	(setq destination (current-buffer)))
 
       ;; set buffer to destination buffer, and attach files
@@ -151,7 +201,8 @@ If ARG is non-nil, open it in a new buffer."
 		  (setq method
 			(cdr (assoc 'viewer
 				    (car (mailcap-mime-info mime-type
-							    'all)))))))
+							    'all 
+							    'no-decode)))))))
 	    (let ((view-command (mm-mailcap-command method file-name nil)))
 	      (message "viewing via %s" view-command)
 	      (start-process "*display*"
@@ -186,7 +237,8 @@ file to save in."
 		     (mailcap-extension-to-mime
 		      (match-string 0 file-name)))
 	       (stringp
-		(setq method (mailcap-mime-info mime-type "print"))))
+		(setq method (mailcap-mime-info mime-type "print"
+						'no-decode))))
 	  (call-process shell-file-name nil
 			(generate-new-buffer " *mm*")
 			nil
@@ -194,7 +246,10 @@ file to save in."
 			(mm-mailcap-command method file-name mime-type))
 	(with-temp-buffer
 	  (insert-file-contents file-name)
-	  (gnus-print-buffer))
+	  (if (eq gnus-dired-mail-mode 'gnus-user-agent)
+	      (gnus-print-buffer)
+	    ;; FIXME:
+	    (error "MIME print only implemeted via Gnus")))
 	(ps-despool print-to))))
    ((file-symlink-p file-name)
      (error "File is a symlink to a nonexistent target"))

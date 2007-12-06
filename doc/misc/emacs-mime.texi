@@ -1417,10 +1417,23 @@ This is an alist of encoding / function pairs.  The encodings are
 @vindex rfc2047-encoded-word-regexp
 When decoding words, this library looks for matches to this regexp.
 
+@item rfc2047-encoded-word-regexp-loose
+@vindex rfc2047-encoded-word-regexp-loose
+This is a version from which the regexp for the Q encoding pattern of
+@code{rfc2047-encoded-word-regexp} is made loose.
+
 @item rfc2047-encode-encoded-words
 @vindex rfc2047-encode-encoded-words
 The boolean variable specifies whether encoded words
-(e.g. @samp{=?hello?=}) should be encoded again.
+(e.g. @samp{=?us-ascii?q?hello?=}) should be encoded again.
+@code{rfc2047-encoded-word-regexp} is used to look for such words.
+
+@item rfc2047-allow-irregular-q-encoded-words
+@vindex rfc2047-allow-irregular-q-encoded-words
+The boolean variable specifies whether irregular Q encoded words
+(e.g. @samp{=?us-ascii?q?hello??=}) should be decoded.  If it is
+non-@code{nil}, @code{rfc2047-encoded-word-regexp-loose} is used instead
+of @code{rfc2047-encoded-word-regexp} to look for encoded words.
 
 @end table
 

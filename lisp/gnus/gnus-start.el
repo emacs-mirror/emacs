@@ -1669,7 +1669,7 @@ If SCAN, request a scan of that group as well."
 (defun gnus-get-unread-articles (&optional level)
   (setq gnus-server-method-cache nil)
   (let* ((newsrc (cdr gnus-newsrc-alist))
-	 (level (or level gnus-activate-level (1+ gnus-level-subscribed)))
+	 (alevel (or level gnus-activate-level (1+ gnus-level-subscribed)))
 	 (foreign-level
 	  (min
 	   (cond ((and gnus-activate-foreign-newsgroups
@@ -1678,11 +1678,11 @@ If SCAN, request a scan of that group as well."
 		 ((numberp gnus-activate-foreign-newsgroups)
 		  gnus-activate-foreign-newsgroups)
 		 (t 0))
-	   level))
+	   alevel))
 	 (methods-cache nil)
 	 (type-cache nil)
 	 scanned-methods info group active method retrieve-groups cmethod
-	 method-type ignore)
+	 method-type)
     (gnus-message 6 "Checking new news...")
 
     (while newsrc
@@ -1719,7 +1719,6 @@ If SCAN, request a scan of that group as well."
 		'foreign)))
 	(push (cons method method-type) type-cache))
 
-      (setq ignore nil)
       (cond ((and method (eq method-type 'foreign))
 	     ;; These groups are foreign.  Check the level.
 	     (if (<= (gnus-info-level info) foreign-level)
@@ -1733,9 +1732,17 @@ If SCAN, request a scan of that group as well."
 		   (when (fboundp (intern (concat (symbol-name (car method))
 						  "-request-update-info")))
 		     (inline (gnus-request-update-info info method))))
-	       (setq ignore t)))
+	       (if (and level
+			;; If `active' is nil that means the group has
+			;; never been read, the group should be marked
+			;; as having never been checked (see below).
+			active
+			(> (gnus-info-level info) level))
+		   ;; Don't check groups of which levels are higher
+		   ;; than the one that a user specified.
+		   (setq active 'ignore))))
 	    ;; These groups are native or secondary.
-	    ((> (gnus-info-level info) level)
+	    ((> (gnus-info-level info) alevel)
 	     ;; We don't want these groups.
 	     (setq active 'ignore))
 	    ;; Activate groups.
@@ -1755,11 +1762,7 @@ If SCAN, request a scan of that group as well."
 	       ;; not required.
 	       (if (and
 		    (or nnmail-scan-directory-mail-source-once
-			(null (assq 'directory
-				    (or mail-sources
-					(if (listp nnmail-spool-file)
-					    nnmail-spool-file
-					  (list nnmail-spool-file))))))
+			(null (assq 'directory mail-sources)))
 		    (member method scanned-methods))
 		   (setq active (gnus-activate-group group))
 		 (setq active (gnus-activate-group group 'scan))
@@ -1771,10 +1774,6 @@ If SCAN, request a scan of that group as well."
       (cond
        ((eq active 'ignore)
 	;; Don't do anything.
-	)
-       ((and active ignore)
-	;; The level of the foreign group is higher than the specified
-	;; value.
 	)
        (active
 	(inline (gnus-get-unread-articles-in-group info active t)))

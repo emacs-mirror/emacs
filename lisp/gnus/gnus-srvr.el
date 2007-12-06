@@ -280,7 +280,7 @@ The following commands are available:
        ;; Insert the text.
        (eval gnus-server-line-format-spec))
      (list 'gnus-server (intern gnus-tmp-name)
-           'gnus-named-server (intern (gnus-method-to-server method))))))
+           'gnus-named-server (intern (gnus-method-to-server method t))))))
 
 (defun gnus-enter-server-buffer ()
   "Set up the server buffer."

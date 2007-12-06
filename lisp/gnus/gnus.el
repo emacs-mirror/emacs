@@ -3521,15 +3521,16 @@ that that variable is buffer-local to the summary buffers."
 				   (nth 1 method))))
       method)))
 
-(defsubst gnus-method-to-server (method)
+(defsubst gnus-method-to-server (method &optional nocache)
   (catch 'server-name
     (setq method (or method gnus-select-method))
 
     ;; Perhaps it is already in the cache.
-    (mapc (lambda (name-method)
-	    (if (equal (cdr name-method) method)
-		(throw 'server-name (car name-method))))
-	  gnus-server-method-cache)
+    (unless nocache
+      (mapc (lambda (name-method)
+	      (if (equal (cdr name-method) method)
+		  (throw 'server-name (car name-method))))
+	    gnus-server-method-cache))
 
     (mapc
      (lambda (server-alist)
@@ -4254,14 +4255,16 @@ Allow completion over sensible values."
 
 ;;; Agent functions
 
-(defun gnus-agent-method-p (method)
+(defun gnus-agent-method-p (method-or-server)
   "Say whether METHOD is covered by the agent."
-  (or (eq (car gnus-agent-method-p-cache) method)
-      (setq gnus-agent-method-p-cache
-	    (cons method
-		  (member (if (stringp method)
-			      method
-			    (gnus-method-to-server method)) gnus-agent-covered-methods))))
+  (or (eq (car gnus-agent-method-p-cache) method-or-server)
+      (let* ((method (if (stringp method-or-server)
+			 (gnus-server-to-method method-or-server)
+		       method-or-server))
+	     (server (gnus-method-to-server method t)))
+	(setq gnus-agent-method-p-cache
+	      (cons method-or-server
+		    (member server gnus-agent-covered-methods)))))
   (cdr gnus-agent-method-p-cache))
 
 (defun gnus-online (method)

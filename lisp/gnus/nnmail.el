@@ -240,16 +240,11 @@ If non-nil, also update the cache when copy or move articles."
   :group 'nnmail
   :type 'boolean)
 
-(defcustom nnmail-spool-file '((file))
-  "*Where the mail backends will look for incoming mail.
-This variable is a list of mail source specifiers.
-This variable is obsolete; `mail-sources' should be used instead."
-  :group 'nnmail-files
-  :type 'sexp)
 (make-obsolete-variable 'nnmail-spool-file
 			"This option is obsolete in Gnus 5.9.  \
 Use `mail-sources' instead.")
 ;; revision 5.29 / p0-85 / Gnus 5.9
+;; Variable removed in No Gnus v0.7
 
 (defcustom nnmail-resplit-incoming nil
   "*If non-nil, re-split incoming procmail sorted mail."
@@ -1765,10 +1760,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 (defun nnmail-get-new-mail (method exit-func temp
 				   &optional group spool-func)
   "Read new incoming mail."
-  (let* ((sources (or mail-sources
-		      (if (listp nnmail-spool-file)
-			  nnmail-spool-file
-			(list nnmail-spool-file))))
+  (let* ((sources mail-sources)
 	 fetching-sources
 	 (group-in group)
 	 (i 0)
@@ -1778,20 +1770,6 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
     (when (and (nnmail-get-value "%s-get-new-mail" method)
 	       sources)
       (while (setq source (pop sources))
-	;; Be compatible with old values.
-	(cond
-	 ((stringp source)
-	  (setq source
-		(cond
-		 ((string-match "^po:" source)
-		  (list 'pop :user (substring source (match-end 0))))
-		 ((file-directory-p source)
-		  (list 'directory :path source))
-		 (t
-		  (list 'file :path source)))))
-	 ((eq source 'procmail)
-	  (message "Invalid value for nnmail-spool-file: `procmail'")
-	  nil))
 	;; Hack to only fetch the contents of a single group's spool file.
 	(when (and (eq (car source) 'directory)
 		   (null nnmail-scan-directory-mail-source-once)

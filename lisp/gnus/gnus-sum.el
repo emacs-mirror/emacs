@@ -2195,6 +2195,7 @@ increase the score of each group you read."
   "O" gnus-uu-decode-save
   "b" gnus-uu-decode-binhex
   "B" gnus-uu-decode-binhex
+  "Y" gnus-uu-decode-yenc
   "p" gnus-uu-decode-postscript
   "P" gnus-uu-decode-postscript-and-save)
 
