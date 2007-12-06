@@ -22,17 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'esh-io)
-
-(eval-when-compile (require 'esh-maint))
-
-(defgroup eshell-io nil
-  "Eshell's I/O management code provides a scheme for treating many
-different kinds of objects -- symbols, files, buffers, etc. -- as
-though they were files."
-  :tag "I/O management"
-  :group 'eshell)
-
 ;;; Commentary:
 
 ;; At the moment, only output redirection is supported in Eshell.  To
@@ -67,6 +56,17 @@ though they were files."
 ;;
 ;;   (+ 1 2) > a > b > c   ; prints number to all three files
 ;;   (+ 1 2) > a | wc      ; prints to 'a', and pipes to 'wc'
+
+(provide 'esh-io)
+
+(eval-when-compile (require 'eshell))
+
+(defgroup eshell-io nil
+  "Eshell's I/O management code provides a scheme for treating many
+different kinds of objects -- symbols, files, buffers, etc. -- as
+though they were files."
+  :tag "I/O management"
+  :group 'eshell)
 
 ;;; User Variables:
 
@@ -417,6 +417,10 @@ it defaults to `insert'."
 (defvar eshell-print-queue nil)
 (defvar eshell-print-queue-count -1)
 
+(defsubst eshell-print (object)
+  "Output OBJECT to the standard output handle."
+  (eshell-output-object object eshell-output-handle))
+
 (defun eshell-flush (&optional reset-p)
   "Flush out any lines that have been queued for printing.
 Must be called before printing begins with -1 as its argument, and
@@ -444,10 +448,6 @@ after all printing is over with no argument."
     (setq eshell-print-queue
 	  (concat eshell-print-queue (apply 'concat strings))
 	  eshell-print-queue-count (1+ eshell-print-queue-count))))
-
-(defsubst eshell-print (object)
-  "Output OBJECT to the standard output handle."
-  (eshell-output-object object eshell-output-handle))
 
 (defsubst eshell-error (object)
   "Output OBJECT to the standard error handle."

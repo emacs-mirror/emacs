@@ -41,27 +41,23 @@
 
 (defvar ediff-after-quit-hook-internal nil)
 
-(and noninteractive
-     (eval-when-compile
-	 (load "reporter" 'noerror)))
-
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
     (provide 'ediff-util) ; to break recursive load cycle
     (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil nil 'nosuffix))
+	(load "ediff-init.el" nil t 'nosuffix))
     (or (featurep 'ediff-help)
-	(load "ediff-help.el" nil nil 'nosuffix))
+	(load "ediff-help.el" nil t 'nosuffix))
     (or (featurep 'ediff-mult)
-	(load "ediff-mult.el" nil nil 'nosuffix))
+	(load "ediff-mult.el" nil t 'nosuffix))
     (or (featurep 'ediff-wind)
-	(load "ediff-wind.el" nil nil 'nosuffix))
+	(load "ediff-wind.el" nil t 'nosuffix))
     (or (featurep 'ediff-diff)
-	(load "ediff-diff.el" nil nil 'nosuffix))
+	(load "ediff-diff.el" nil t 'nosuffix))
     (or (featurep 'ediff-merg)
-	(load "ediff-merg.el" nil nil 'nosuffix))
+	(load "ediff-merg.el" nil t 'nosuffix))
     (or (featurep 'ediff)
-	(load "ediff.el" nil nil 'nosuffix))
+	(load "ediff.el" nil t 'nosuffix))
     (or (featurep 'ediff-tbar)
 	(featurep 'emacs)
 	(load "ediff-tbar.el" 'noerror nil 'nosuffix))
@@ -399,6 +395,9 @@ to invocation.")
 
       (setq ediff-error-buffer
 	    (get-buffer-create (ediff-unique-buffer-name "*ediff-errors" "*")))
+
+      (with-current-buffer ediff-error-buffer
+	(setq buffer-undo-list t))
 
       (ediff-with-current-buffer buffer-A (ediff-strip-mode-line-format))
       (ediff-with-current-buffer buffer-B (ediff-strip-mode-line-format))
@@ -2817,6 +2816,9 @@ up an appropriate window config."
   (message
    "To resume, type M-x eregistry and select the desired Ediff session"))
 
+
+;; ediff-barf-if-not-control-buffer ensures only called from ediff.
+(declare-function ediff-version "ediff" ())
 
 (defun ediff-status-info ()
   "Show the names of the buffers or files being operated on by Ediff.

@@ -22,15 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'esh-test)
-
-(eval-when-compile (require 'esh-maint))
-
-(defgroup eshell-test nil
-  "This module is meant to ensure that Eshell is working correctly."
-  :tag "Eshell test suite"
-  :group 'eshell)
-
 ;;; Commentary:
 
 ;; The purpose of this module is to verify that Eshell works as
@@ -39,7 +30,15 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'eshell)
+  (require 'esh-util))
 (require 'esh-mode)
+
+(defgroup eshell-test nil
+  "This module is meant to ensure that Eshell is working correctly."
+  :tag "Eshell test suite"
+  :group 'eshell)
 
 ;;; User Variables:
 
@@ -235,6 +234,8 @@
 			eshell-metric-before-command))))
 		 "\n"))))
 	    nil t))
+
+(provide 'esh-test)
 
 ;;; arch-tag: 6e32275a-8285-4a4e-b7cf-819aa7c86b8e
 ;;; esh-test.el ends here

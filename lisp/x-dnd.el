@@ -117,7 +117,7 @@ any protocol specific data.")
 
 (defvar x-dnd-empty-state [nil nil nil nil nil nil nil])
 
-
+(declare-function x-register-dnd-atom "xselect.c")
 
 (defun x-dnd-init-frame (&optional frame)
   "Setup drag and drop for FRAME (i.e. create appropriate properties)."
@@ -421,6 +421,9 @@ otherwise return the frame coordinates."
 	   (+ frame-real-left (nth 0 edges))
 	   (+ frame-real-top (nth 1 edges))))
       (cons frame-real-left frame-real-top))))
+
+(declare-function x-get-atom-name "xselect.c")
+(declare-function x-send-client-message "xselect.c")
 
 (defun x-dnd-handle-xdnd (event frame window message format data)
   "Receive one XDND event (client message) and send the appropriate reply.

@@ -1,14 +1,12 @@
 ;;; dired-x.el --- extra Dired functionality -*-byte-compile-dynamic: t;-*-
 
+;; Copyright (C) 1993, 1994, 1997, 2001, 2002, 2003, 2004,
+;;   2005, 2006, 2007 Free Software Foundation, Inc.
+
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
 ;; Maintainer: Romain Francoise <rfrancoise@gnu.org>
-;; Version: 2.37+
-;; Date: 1994/08/18 19:27:42
 ;; Keywords: dired extensions files
-
-;; Copyright (C) 1993, 1994, 1997, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -652,6 +650,15 @@ Optional fourth argument LOCALP is as in `dired-get-filename'."
         (and fn (string-match regexp fn))))
      msg)))
 
+;; Compiler does not get fset.
+(declare-function dired-omit-old-add-entry "dired-x")
+
+;;; REDEFINE.
+;;; Redefine dired-aux.el's version of `dired-add-entry'
+;;; Save old defun if not already done:
+(or (fboundp 'dired-omit-old-add-entry)
+    (fset 'dired-omit-old-add-entry (symbol-function 'dired-add-entry)))
+
 ;;; REDEFINE.
 (defun dired-omit-new-add-entry (filename &optional marker-char relative)
   ;; This redefines dired-aux.el's dired-add-entry to avoid calling ls for
@@ -679,11 +686,6 @@ Optional fourth argument LOCALP is as in `dired-get-filename'."
     ;; omitting is not turned on at all
     (dired-omit-old-add-entry filename marker-char relative)))
 
-;;; REDEFINE.
-;;; Redefine dired-aux.el's version of `dired-add-entry'
-;;; Save old defun if not already done:
-(or (fboundp 'dired-omit-old-add-entry)
-    (fset 'dired-omit-old-add-entry (symbol-function 'dired-add-entry)))
 ;; Redefine it.
 (fset 'dired-add-entry 'dired-omit-new-add-entry)
 
@@ -746,7 +748,7 @@ you can relist single subdirs using \\[dired-do-redisplay]."
   ;; decent subdir headerline:
   (goto-char (point-min))
   (or (looking-at dired-subdir-regexp)
-      (insert "  " 
+      (insert "  "
 	      (directory-file-name (file-name-directory default-directory))
 	      ":\n"))
   (dired-mode dirname (or switches dired-listing-switches))
@@ -1211,6 +1213,8 @@ This is an extra function so that you can redefine it."
 
 ;;; RELATIVE SYMBOLIC LINKS.
 
+(declare-function make-symbolic-link "fileio.c")
+
 (defvar dired-keep-marker-relsymlink ?S
   "See variable `dired-keep-marker-move'.")
 
@@ -1436,6 +1440,8 @@ See also variable `dired-vm-read-only-folders'."
 
 
 ;;; MISCELLANEOUS INTERNAL FUNCTIONS.
+
+(declare-function dired-old-find-buffer-nocreate "dired-x")
 
 (or (fboundp 'dired-old-find-buffer-nocreate)
     (fset 'dired-old-find-buffer-nocreate

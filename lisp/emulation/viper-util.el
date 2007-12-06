@@ -44,12 +44,6 @@
 
 (require 'ring)
 
-(if noninteractive
-    (eval-when-compile
-      (let ((load-path (cons (expand-file-name ".") load-path)))
-	(or (featurep 'viper-init)
-	    (load "viper-init.el" nil nil 'nosuffix))
-	)))
 ;; end pacifier
 
 (require 'viper-init)
@@ -380,6 +374,8 @@
 
 
 
+(declare-function viper-forward-Word "viper-cmd" (arg))
+
 ;;; Support for :e, :r, :w file globbing
 
 ;; Glob the file spec.

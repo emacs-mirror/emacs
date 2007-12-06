@@ -513,15 +513,46 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
 
 (defun vc-cvs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using CVS between two revisions of FILE."
-    (let* ((async (and (not vc-disable-async-diff) 
-		       (vc-stay-local-p files)))
-	   (status (apply 'vc-cvs-command (or buffer "*vc-diff*")
+  (let* ((async (and (not vc-disable-async-diff)
+		     (vc-stay-local-p files)))
+	 (invoke-cvs-diff-list nil)
+	 status)
+    ;; Look through the file list and see if any files have backups
+    ;; that can be used to do a plain "diff" instead of "cvs diff".
+    (dolist (file files)
+      (let ((ov oldvers)
+	    (nv newvers))
+	(when (or (not ov) (string-equal ov ""))
+	  (setq ov (vc-working-revision file)))
+	(when (string-equal nv "")
+	  (setq nv nil))
+	(let ((file-oldvers (vc-version-backup-file file ov))
+	      (file-newvers (if (not nv)
+				file
+			      (vc-version-backup-file file nv)))
+	      (coding-system-for-read (vc-coding-system-for-diff file)))
+	  (if (and file-oldvers file-newvers)
+	      (progn
+		(apply 'vc-do-command (or buffer "*vc-diff*") 1 "diff" nil
+		       (append (if (listp diff-switches)
+				   diff-switches
+				 (list diff-switches))
+			       (if (listp vc-diff-switches)
+				   vc-diff-switches
+				 (list vc-diff-switches))
+			       (list (file-relative-name file-oldvers)
+				     (file-relative-name file-newvers))))
+		(setq status 0))
+	    (push file invoke-cvs-diff-list)))))
+    (when invoke-cvs-diff-list
+      (setq status (apply 'vc-cvs-command (or buffer "*vc-diff*")
 			  (if async 'async 1)
-			  files "diff"
+			  invoke-cvs-diff-list "diff"
 			  (and oldvers (concat "-r" oldvers))
 			  (and newvers (concat "-r" newvers))
 			  (vc-switches 'CVS 'diff))))
-      (if async 1 status)))		; async diff, pessimistic assumption
+    (if async 1 status))) ; async diff, pessimistic assumption
+
 
 (defun vc-cvs-diff-tree (dir &optional rev1 rev2)
   "Diff all files at and below DIR."

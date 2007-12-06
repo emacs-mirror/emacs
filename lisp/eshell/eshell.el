@@ -24,21 +24,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'eshell)
-
-(eval-when-compile (require 'esh-maint))
-
-(defgroup eshell nil
-  "Eshell is a command shell implemented entirely in Emacs Lisp.  It
-invokes no external processes beyond those requested by the user.  It
-is intended to be a functional replacement for command shells such as
-bash, zsh, rc, 4dos; since Emacs itself is capable of handling most of
-the tasks accomplished by such tools."
-  :tag "The Emacs shell"
-  :link '(info-link "(eshell)Top")
-  :version "21.1"
-  :group 'applications)
-
 ;;; Commentary:
 
 ;;;_* What does Eshell offer you?
@@ -73,33 +58,9 @@ the tasks accomplished by such tools."
 ;; @ Alias functions, both Lisp and Eshell-syntax
 ;; @ Piping, sequenced commands, background jobs, etc...
 ;;
-;;;_* Eshell is free software
-;;
-;; Eshell is free software; you can redistribute it and/or modify it
-;; under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
-;;
-;; This program is distributed in the hope that it will be useful, but
-;; WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;;
-;; You should have received a copy of the GNU General Public License
-;; along with Eshell; see the file COPYING.  If not, write to the Free
-;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-;; MA 02110-1301, USA.
-;;
 ;;;_* How to begin
 ;;
-;; To start using Eshell, add the following to your .emacs file:
-;;
-;;   (load "eshell-auto")
-;;
-;; This will define all of the necessary autoloads.
-;;
-;; Now type `M-x eshell'.  See the INSTALL file for full installation
-;; instructions.
+;; To start using Eshell, simply type `M-x eshell'.
 ;;
 ;;;_* Philosophy
 ;;
@@ -263,12 +224,28 @@ the tasks accomplished by such tools."
 ;; will only have to read in this one file, which will greatly speed
 ;; things up.
 
+(eval-when-compile
+  (require 'cl)
+  (require 'esh-util))
+(require 'esh-util)
+(require 'esh-mode)
+
+(defgroup eshell nil
+  "Eshell is a command shell implemented entirely in Emacs Lisp.  It
+invokes no external processes beyond those requested by the user.  It
+is intended to be a functional replacement for command shells such as
+bash, zsh, rc, 4dos; since Emacs itself is capable of handling most of
+the tasks accomplished by such tools."
+  :tag "The Emacs shell"
+  :link '(info-link "(eshell)Top")
+  :version "21.1"
+  :group 'applications)
+
+
 ;;;_* User Options
 ;;
 ;; The following user options modify the behavior of Eshell overall.
-
-(unless (featurep 'esh-util)
-  (load "esh-util" nil t))
+(defvar eshell-buffer-name)
 
 (defsubst eshell-add-to-window-buffer-names ()
   "Add `eshell-buffer-name' to `same-window-buffer-names'."
@@ -280,19 +257,19 @@ the tasks accomplished by such tools."
 	(delete eshell-buffer-name same-window-buffer-names)))
 
 (defcustom eshell-load-hook nil
-  "*A hook run once Eshell has been loaded."
+  "A hook run once Eshell has been loaded."
   :type 'hook
   :group 'eshell)
 
 (defcustom eshell-unload-hook
   '(eshell-remove-from-window-buffer-names
     eshell-unload-all-modules)
-  "*A hook run when Eshell is unloaded from memory."
+  "A hook run when Eshell is unloaded from memory."
   :type 'hook
   :group 'eshell)
 
 (defcustom eshell-buffer-name "*eshell*"
-  "*The basename used for Eshell buffers."
+  "The basename used for Eshell buffers."
   :set (lambda (symbol value)
 	 ;; remove the old value of `eshell-buffer-name', if present
 	 (if (boundp 'eshell-buffer-name)
@@ -309,7 +286,7 @@ the tasks accomplished by such tools."
   (member eshell-buffer-name same-window-buffer-names))
 
 (defcustom eshell-directory-name (convert-standard-filename "~/.eshell/")
-  "*The directory where Eshell control files should be kept."
+  "The directory where Eshell control files should be kept."
   :type 'directory
   :group 'eshell)
 
@@ -356,10 +333,8 @@ buffer selected (or created)."
     ;; `same-window-buffer-names', which is done when Eshell is loaded
     (assert (and buf (buffer-live-p buf)))
     (pop-to-buffer buf)
-    (if (fboundp 'eshell-mode)
-	(unless (eq major-mode 'eshell-mode)
-	  (eshell-mode))
-      (error "`eshell-auto' must be loaded before Eshell can be used"))
+    (unless (eq major-mode 'eshell-mode)
+      (eshell-mode))
     buf))
 
 (defun eshell-return-exits-minibuffer ()
@@ -406,7 +381,6 @@ With prefix ARG, insert output into the current buffer at point."
 		    (format " >>> #<buffer %s>"
 			    (buffer-name (current-buffer))))))
   (save-excursion
-    (require 'esh-mode)
     (let ((buf (set-buffer (generate-new-buffer " *eshell cmd*")))
 	  (eshell-non-interactive-p t))
       (eshell-mode)
@@ -465,7 +439,6 @@ corresponding to a successful execution."
        (if (and status-var (symbolp status-var))
 	   (set status-var 0)))
     (with-temp-buffer
-      (require 'esh-mode)
       (let ((eshell-non-interactive-p t))
 	(eshell-mode)
 	(let ((result (eshell-do-eval
@@ -483,40 +456,12 @@ corresponding to a successful execution."
 
 ;;;_* Reporting bugs
 ;;
-;; Since Eshell has not yet been in use by a wide audience, and since
-;; the number of possible configurations is quite large, it is certain
-;; that many bugs slipped past the rigors of testing it was put
-;; through.  If you do encounter a bug, on any system, please report
+;; If you do encounter a bug, on any system, please report
 ;; it -- in addition to any particular oddities in your configuration
 ;; -- so that the problem may be corrected for the benefit of others.
 
-(defconst eshell-report-bug-address "johnw@gnu.org"
-  "E-mail address to send Eshell bug reports to.")
-
 ;;;###autoload
-(defun eshell-report-bug (topic)
-  "Report a bug in Eshell.
-Prompts for the TOPIC.  Leaves you in a mail buffer.
-Please include any configuration details that might be involved."
-  (interactive "sBug Subject: ")
-  (compose-mail eshell-report-bug-address topic)
-  (goto-char (point-min))
-  (re-search-forward (concat "^" (regexp-quote mail-header-separator) "$"))
-  (forward-line 1)
-  (let ((signature (buffer-substring (point) (point-max))))
-    ;; Discourage users from writing non-English text.
-    (set-buffer-multibyte nil)
-    (delete-region (point) (point-max))
-    (insert signature)
-    (backward-char (length signature)))
-  (insert "emacs-version: " (emacs-version))
-  (insert "\n\nThere appears to be a bug in Eshell.\n\n"
-	  "Please describe exactly what actions "
-	  "triggered the bug and the precise\n"
-	  "symptoms of the bug:\n\n")
-  ;; This is so the user has to type something in order to send
-  ;; the report easily.
-  (use-local-map (nconc (make-sparse-keymap) (current-local-map))))
+(define-obsolete-function-alias 'eshell-report-bug 'report-emacs-bug "23.1")
 
 ;;; Code:
 
@@ -542,6 +487,8 @@ Emacs."
     (message "Unloading eshell...done")))
 
 (run-hooks 'eshell-load-hook)
+
+(provide 'eshell)
 
 ;;; arch-tag: 9d4d5214-0e4e-4e02-b349-39add640d63f
 ;;; eshell.el ends here

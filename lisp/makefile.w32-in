@@ -84,6 +84,7 @@ WINS_ALMOST=\
 	mail \
 	mh-e \
 	net \
+	nxml \
 	play \
 	progmodes \
 	term \

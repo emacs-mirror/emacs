@@ -349,7 +349,8 @@ enum pvec_type
   PVEC_HASH_TABLE = 0x40000,
   PVEC_TERMINAL = 0x80000,
   PVEC_SUB_CHAR_TABLE = 0x100000,
-  PVEC_TYPE_MASK = 0x1ffe00
+  PVEC_OTHER = 0x200000,
+  PVEC_TYPE_MASK = 0x2ffe00
 
 #if 0 /* This is used to make the value of PSEUDOVECTOR_FLAG available to
 	 GDB.  It doesn't work on OS Alpha.  Moved to a variable in
@@ -1209,6 +1210,7 @@ struct Lisp_Buffer_Objfwd
     int type : 16;	/* = Lisp_Misc_Buffer_Objfwd */
     unsigned gcmarkbit : 1;
     int spacer : 15;
+    Lisp_Object slottype; /* Qnil, Lisp_Int, Lisp_Symbol, or Lisp_String.  */
     int offset;
   };
 
@@ -2568,7 +2570,11 @@ EXFUN (Fmake_byte_code, MANY);
 EXFUN (Fmake_bool_vector, 2);
 extern Lisp_Object Qchar_table_extra_slots;
 extern struct Lisp_Vector *allocate_vector P_ ((EMACS_INT));
-extern struct Lisp_Vector *allocate_other_vector P_ ((EMACS_INT));
+extern struct Lisp_Vector *allocate_pseudovector P_ ((int memlen, int lisplen, EMACS_INT tag));
+#define ALLOCATE_PSEUDOVECTOR(typ,field,tag)				\
+  ((typ*)								\
+   allocate_pseudovector						\
+       (VECSIZE (typ), PSEUDOVECSIZE (typ, field), tag))
 extern struct Lisp_Hash_Table *allocate_hash_table P_ ((void));
 extern struct window *allocate_window P_ ((void));
 extern struct frame *allocate_frame P_ ((void));
@@ -3245,7 +3251,7 @@ extern void syms_of_dired P_ ((void));
 
 /* Defined in term.c */
 extern void syms_of_term P_ ((void));
-extern void fatal () NO_RETURN;
+extern void fatal P_ ((const char *msgid, ...)) NO_RETURN;
 
 /* Defined in terminal.c */
 extern void syms_of_terminal P_ ((void));

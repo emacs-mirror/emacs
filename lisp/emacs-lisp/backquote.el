@@ -92,7 +92,7 @@ For example (backquote-list* 'a 'b 'c) => (a b . c)"
   "Symbol used to represent a splice inside a backquote.")
 
 ;;;###autoload
-(defmacro backquote (arg)
+(defmacro backquote (structure)
   "Argument STRUCTURE describes a template to build.
 
 The whole structure acts as if it were quoted except for certain
@@ -106,7 +106,7 @@ b              => (ba bb bc)		; assume b has this value
 `(a ,@b c)     => (a ba bb bc c)	; splice in the value of b
 
 Vectors work just like lists.  Nested backquotes are permitted."
-  (cdr (backquote-process arg)))
+  (cdr (backquote-process structure)))
 
 ;; GNU Emacs has no reader macros
 

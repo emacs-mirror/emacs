@@ -79,14 +79,6 @@ extern int quit_char;
 
 extern char *lispy_function_keys[];
 
-/* The gray bitmap `bitmaps/gray'.  This is done because w32term.c uses
-   it, and including `bitmaps/gray' more than once is a problem when
-   config.h defines `static' as an empty replacement string.  */
-
-int gray_bitmap_width = gray_width;
-int gray_bitmap_height = gray_height;
-unsigned char *gray_bitmap_bits = gray_bits;
-
 /* The colormap for converting color names to RGB values */
 Lisp_Object Vw32_color_map;
 
@@ -149,10 +141,10 @@ int w32_mouse_button_tolerance;
 int w32_mouse_move_interval;
 
 /* Flag to indicate if XBUTTON events should be passed on to Windows.  */
-int w32_pass_extra_mouse_buttons_to_system;
+static int w32_pass_extra_mouse_buttons_to_system;
 
 /* Flag to indicate if media keys should be passed on to Windows.  */
-int w32_pass_multimedia_buttons_to_system;
+static int w32_pass_multimedia_buttons_to_system;
 
 /* Non nil if no window manager is in use.  */
 Lisp_Object Vx_no_window_manager;
@@ -191,14 +183,14 @@ Lisp_Object Vx_pixel_size_width_font_regexp;
 Lisp_Object Vw32_bdf_filename_alist;
 
 /* A flag to control whether fonts are matched strictly or not.  */
-int w32_strict_fontnames;
+static int w32_strict_fontnames;
 
 /* A flag to control whether we should only repaint if GetUpdateRect
    indicates there is an update region.  */
-int w32_strict_painting;
+static int w32_strict_painting;
 
 /* Associative list linking character set strings to Windows codepages. */
-Lisp_Object Vw32_charset_info_alist;
+static Lisp_Object Vw32_charset_info_alist;
 
 /* VIETNAMESE_CHARSET is not defined in some versions of MSVC.  */
 #ifndef VIETNAMESE_CHARSET
@@ -478,7 +470,7 @@ x_real_positions (f, xptr, yptr)
 DEFUN ("w32-define-rgb-color", Fw32_define_rgb_color,
        Sw32_define_rgb_color, 4, 4, 0,
        doc: /* Convert RGB numbers to a windows color reference and associate with NAME.
-This adds or updates a named color to w32-color-map, making it
+This adds or updates a named color to `w32-color-map', making it
 available for use.  The original entry's RGB ref is returned, or nil
 if the entry is new.  */)
     (red, green, blue, name)
@@ -493,7 +485,7 @@ if the entry is new.  */)
   CHECK_NUMBER (blue);
   CHECK_STRING (name);
 
-  XSETINT (rgb, RGB(XUINT (red), XUINT (green), XUINT (blue)));
+  XSETINT (rgb, RGB (XUINT (red), XUINT (green), XUINT (blue)));
 
   BLOCK_INPUT;
 
@@ -518,7 +510,7 @@ if the entry is new.  */)
 DEFUN ("w32-load-color-file", Fw32_load_color_file,
        Sw32_load_color_file, 1, 1, 0,
        doc: /* Create an alist of color entries from an external file.
-Assign this value to w32-color-map to replace the existing color map.
+Assign this value to `w32-color-map' to replace the existing color map.
 
 The file should define one named RGB color per line like so:
   R G B   name
@@ -836,7 +828,7 @@ DEFUN ("w32-default-color-map", Fw32_default_color_map, Sw32_default_color_map,
   return (cmap);
 }
 
-Lisp_Object
+static Lisp_Object
 w32_to_x_color (rgb)
      Lisp_Object rgb;
 {
@@ -953,7 +945,7 @@ x_to_w32_color (colorname)
       int size;
       color = colorname + 1;
 
-      size = strlen(color);
+      size = strlen (color);
       if (size == 3 || size == 6 || size == 9 || size == 12)
 	{
 	  UINT colorval;
@@ -971,11 +963,11 @@ x_to_w32_color (colorname)
 	      /* The check for 'x' in the following conditional takes into
 		 account the fact that strtol allows a "0x" in front of
 		 our numbers, and we don't.  */
-	      if (!isxdigit(color[0]) || color[1] == 'x')
+	      if (!isxdigit (color[0]) || color[1] == 'x')
 		break;
 	      t = color[size];
 	      color[size] = '\0';
-	      value = strtoul(color, &end, 16);
+	      value = strtoul (color, &end, 16);
 	      color[size] = t;
 	      if (errno == ERANGE || end - color != size)
 		break;
@@ -1005,7 +997,7 @@ x_to_w32_color (colorname)
 	    }
 	}
     }
-  else if (strnicmp(colorname, "rgb:", 4) == 0)
+  else if (strnicmp (colorname, "rgb:", 4) == 0)
     {
       char *color;
       UINT colorval;
@@ -1022,9 +1014,9 @@ x_to_w32_color (colorname)
 	  /* The check for 'x' in the following conditional takes into
 	     account the fact that strtol allows a "0x" in front of
 	     our numbers, and we don't.  */
-	  if (!isxdigit(color[0]) || color[1] == 'x')
+	  if (!isxdigit (color[0]) || color[1] == 'x')
 	    break;
-	  value = strtoul(color, &end, 16);
+	  value = strtoul (color, &end, 16);
 	  if (errno == ERANGE)
 	    break;
 	  switch (end - color)
@@ -1060,7 +1052,7 @@ x_to_w32_color (colorname)
 	  color = end + 1;
 	}
     }
-  else if (strnicmp(colorname, "rgbi:", 5) == 0)
+  else if (strnicmp (colorname, "rgbi:", 5) == 0)
     {
       /* This is an RGB Intensity specification.  */
       char *color;
@@ -1076,7 +1068,7 @@ x_to_w32_color (colorname)
 	  double value;
 	  UINT val;
 
-	  value = strtod(color, &end);
+	  value = strtod (color, &end);
 	  if (errno == ERANGE)
 	    break;
 	  if (value < 0.0 || value > 1.0)
@@ -1574,7 +1566,6 @@ x_set_mouse_color (f, arg, oldval)
 #endif /* TODO */
 }
 
-/* Defined in w32term.c. */
 void
 x_set_cursor_color (f, arg, oldval)
      struct frame *f;
@@ -1926,7 +1917,7 @@ x_set_name (f, name, explicit)
 	name = ENCODE_SYSTEM (name);
 
       BLOCK_INPUT;
-      SetWindowText(FRAME_W32_WINDOW (f), SDATA (name));
+      SetWindowText (FRAME_W32_WINDOW (f), SDATA (name));
       UNBLOCK_INPUT;
     }
 }
@@ -1978,7 +1969,7 @@ x_set_title (f, name, old_name)
 	name = ENCODE_SYSTEM (name);
 
       BLOCK_INPUT;
-      SetWindowText(FRAME_W32_WINDOW (f), SDATA (name));
+      SetWindowText (FRAME_W32_WINDOW (f), SDATA (name));
       UNBLOCK_INPUT;
     }
 }
@@ -2025,7 +2016,7 @@ Cursor
 w32_load_cursor (LPCTSTR name)
 {
   /* Try first to load cursor from application resource.  */
-  Cursor cursor = LoadImage ((HINSTANCE) GetModuleHandle(NULL),
+  Cursor cursor = LoadImage ((HINSTANCE) GetModuleHandle (NULL),
 			     name, IMAGE_CURSOR, 0, 0,
 			     LR_DEFAULTCOLOR | LR_DEFAULTSIZE | LR_SHARED);
   if (!cursor)
@@ -2039,7 +2030,7 @@ w32_load_cursor (LPCTSTR name)
 
 extern LRESULT CALLBACK w32_wnd_proc ();
 
-BOOL
+static BOOL
 w32_init_class (hinst)
      HINSTANCE hinst;
 {
@@ -2059,24 +2050,24 @@ w32_init_class (hinst)
   return (RegisterClass (&wc));
 }
 
-HWND
+static HWND
 w32_createscrollbar (f, bar)
      struct frame *f;
      struct scroll_bar * bar;
 {
   return (CreateWindow ("SCROLLBAR", "", SBS_VERT | WS_CHILD | WS_VISIBLE,
 			/* Position and size of scroll bar.  */
-			XINT(bar->left) + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
-                        XINT(bar->top),
-			XINT(bar->width) - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
-                        XINT(bar->height),
+			XINT (bar->left) + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
+                        XINT (bar->top),
+			XINT (bar->width) - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
+                        XINT (bar->height),
 			FRAME_W32_WINDOW (f),
 			NULL,
 			hinst,
 			NULL));
 }
 
-void
+static void
 w32_createwindow (f)
      struct frame *f;
 {
@@ -2146,7 +2137,7 @@ w32_createwindow (f)
     }
 }
 
-void
+static void
 my_post_msg (wmsg, hwnd, msg, wParam, lParam)
      W32Msg * wmsg;
      HWND hwnd;
@@ -2378,7 +2369,7 @@ w32_key_to_modifier (int key)
   return 0;
 }
 
-unsigned int
+static unsigned int
 w32_get_modifiers ()
 {
   return ((modifier_set (VK_SHIFT)   ? shift_modifier : 0) |
@@ -2449,12 +2440,12 @@ map_keypad_keys (unsigned int virt_key, unsigned int extended)
 }
 
 /* List of special key combinations which w32 would normally capture,
-   but emacs should grab instead.  Not directly visible to lisp, to
+   but Emacs should grab instead.  Not directly visible to lisp, to
    simplify synchronization.  Each item is an integer encoding a virtual
    key code and modifier combination to capture.  */
-Lisp_Object w32_grabbed_keys;
+static Lisp_Object w32_grabbed_keys;
 
-#define HOTKEY(vk,mods)       make_number (((vk) & 255) | ((mods) << 8))
+#define HOTKEY(vk, mods)      make_number (((vk) & 255) | ((mods) << 8))
 #define HOTKEY_ID(k)          (XFASTINT (k) & 0xbfff)
 #define HOTKEY_VK_CODE(k)     (XFASTINT (k) & 255)
 #define HOTKEY_MODIFIERS(k)   (XFASTINT (k) >> 8)
@@ -2680,7 +2671,7 @@ complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result)
   deferred_msg * msg_buf = find_deferred_msg (hwnd, msg);
 
   if (msg_buf == NULL)
-    /* Message may have been cancelled, so don't abort().  */
+    /* Message may have been cancelled, so don't abort.  */
     return;
 
   msg_buf->result = result;
@@ -2690,7 +2681,7 @@ complete_deferred_msg (HWND hwnd, UINT msg, LRESULT result)
   PostThreadMessage (dwWindowsThreadId, WM_NULL, 0, 0);
 }
 
-void
+static void
 cancel_all_deferred_msgs ()
 {
   deferred_msg * item;
@@ -2768,7 +2759,7 @@ post_character_message (hwnd, msg, wParam, lParam, modifiers)
 
   /* Detect quit_char and set quit-flag directly.  Note that we
      still need to post a message to ensure the main thread will be
-     woken up if blocked in sys_select(), but we do NOT want to post
+     woken up if blocked in sys_select, but we do NOT want to post
      the quit_char message itself (because it will usually be as if
      the user had typed quit_char twice).  Instead, we post a dummy
      message that has no particular effect. */
@@ -2923,7 +2914,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 
 	/* If GetUpdateRect returns 0 (meaning there is no update
            region), assume the whole window needs to be repainted.  */
-	GetClientRect(hwnd, &wmsg.rect);
+	GetClientRect (hwnd, &wmsg.rect);
 	my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
         return 0;
       }
@@ -3774,7 +3765,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	    DWORD scrollbar_extra;
 	    RECT wr;
 
-	    wp.length = sizeof(wp);
+	    wp.length = sizeof (wp);
 	    GetWindowRect (hwnd, &wr);
 
 	    enter_crit ();
@@ -4251,7 +4242,7 @@ x_default_font_parameter (f, parms)
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
        doc: /* Make a new window, which is called a \"frame\" in Emacs terms.
-Returns an Emacs frame object.
+Return an Emacs frame object.
 PARAMETERS is an alist of frame parameters.
 If the parameters specify that the frame should not have a minibuffer,
 and do not specify a specific minibuffer window to use,
@@ -4621,11 +4612,12 @@ DEFUN ("x-focus-frame", Fx_focus_frame, Sx_focus_frame, 1, 1, 0,
 
 
 /* Return the charset portion of a font name.  */
-char * xlfd_charset_of_font (char * fontname)
+char *
+xlfd_charset_of_font (char * fontname)
 {
   char *charset, *encoding;
 
-  encoding = strrchr(fontname, '-');
+  encoding = strrchr (fontname, '-');
   if (!encoding || encoding == fontname)
     return NULL;
 
@@ -4633,7 +4625,7 @@ char * xlfd_charset_of_font (char * fontname)
     if (*charset == '-')
       break;
 
-  if (charset == fontname || strcmp(charset, "-*-*") == 0)
+  if (charset == fontname || strcmp (charset, "-*-*") == 0)
     return NULL;
 
   return charset + 1;
@@ -4647,7 +4639,7 @@ static BOOL w32_to_x_font (LOGFONT * lplf, char * lpxstr, int len,
 static BOOL x_to_w32_font (char *lpxstr, LOGFONT *lplogfont);
 
 static struct font_info *
-w32_load_system_font (f,fontname,size)
+w32_load_system_font (f, fontname, size)
      struct frame *f;
      char * fontname;
      int size;
@@ -4750,7 +4742,7 @@ w32_load_system_font (f,fontname,size)
                GetFontLanguageInfo, we check the properties of the
                codepage directly, since that is ultimately what we are
                working from anyway.  */
-	    /* font->double_byte_p = GetFontLanguageInfo(hdc) & GCP_DBCS; */
+	    /* font->double_byte_p = GetFontLanguageInfo (hdc) & GCP_DBCS; */
 	    CPINFO cpi = {0};
 	    GetCPInfo (codepage, &cpi);
 	    font->double_byte_p = cpi.MaxCharSize > 1;
@@ -4887,10 +4879,10 @@ w32_load_system_font (f,fontname,size)
    pointer to the structure font_info while allocating it dynamically.
    If loading fails, return NULL. */
 struct font_info *
-w32_load_font (f,fontname,size)
-struct frame *f;
-char * fontname;
-int size;
+w32_load_font (f, fontname, size)
+     struct frame *f;
+     char * fontname;
+     int size;
 {
   Lisp_Object bdf_fonts;
   struct font_info *retval = NULL;
@@ -4926,7 +4918,7 @@ int size;
   if (retval)
     return retval;
 
-  return w32_load_system_font(f, fontname, size);
+  return w32_load_system_font (f, fontname, size);
 }
 
 
@@ -4940,7 +4932,7 @@ w32_unload_font (dpyinfo, font)
       if (font->per_char) xfree (font->per_char);
       if (font->bdf) w32_free_bdf_font (font->bdf);
 
-      if (font->hfont) DeleteObject(font->hfont);
+      if (font->hfont) DeleteObject (font->hfont);
       xfree (font);
     }
 }
@@ -4974,16 +4966,16 @@ x_to_w32_weight (lpw)
 {
   if (!lpw) return (FW_DONTCARE);
 
-  if (stricmp (lpw,"heavy") == 0)             return FW_HEAVY;
-  else if (stricmp (lpw,"extrabold") == 0)    return FW_EXTRABOLD;
-  else if (stricmp (lpw,"bold") == 0)         return FW_BOLD;
-  else if (stricmp (lpw,"demibold") == 0)     return FW_SEMIBOLD;
-  else if (stricmp (lpw,"semibold") == 0)     return FW_SEMIBOLD;
-  else if (stricmp (lpw,"medium") == 0)       return FW_MEDIUM;
-  else if (stricmp (lpw,"normal") == 0)       return FW_NORMAL;
-  else if (stricmp (lpw,"light") == 0)        return FW_LIGHT;
-  else if (stricmp (lpw,"extralight") == 0)   return FW_EXTRALIGHT;
-  else if (stricmp (lpw,"thin") == 0)         return FW_THIN;
+  if (stricmp (lpw, "heavy") == 0)             return FW_HEAVY;
+  else if (stricmp (lpw, "extrabold") == 0)    return FW_EXTRABOLD;
+  else if (stricmp (lpw, "bold") == 0)         return FW_BOLD;
+  else if (stricmp (lpw, "demibold") == 0)     return FW_SEMIBOLD;
+  else if (stricmp (lpw, "semibold") == 0)     return FW_SEMIBOLD;
+  else if (stricmp (lpw, "medium") == 0)       return FW_MEDIUM;
+  else if (stricmp (lpw, "normal") == 0)       return FW_NORMAL;
+  else if (stricmp (lpw, "light") == 0)        return FW_LIGHT;
+  else if (stricmp (lpw, "extralight") == 0)   return FW_EXTRALIGHT;
+  else if (stricmp (lpw, "thin") == 0)         return FW_THIN;
   else
     return FW_DONTCARE;
 }
@@ -5033,12 +5025,12 @@ x_to_w32_charset (lpcs)
      Format of each entry is
        (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE)).
   */
-  this_entry = Fassoc (build_string(charset), Vw32_charset_info_alist);
+  this_entry = Fassoc (build_string (charset), Vw32_charset_info_alist);
 
-  if (NILP(this_entry))
+  if (NILP (this_entry))
     {
       /* At startup, we want iso8859-1 fonts to come up properly. */
-      if (stricmp(charset, "iso8859-1") == 0)
+      if (stricmp (charset, "iso8859-1") == 0)
         return ANSI_CHARSET;
       else
         return DEFAULT_CHARSET;
@@ -5121,7 +5113,7 @@ w32_to_x_charset (fncharset, matching)
     case ANSI_CHARSET:
       /* Handle startup case of w32-charset-info-alist not
          being set up yet. */
-      if (NILP(Vw32_charset_info_alist))
+      if (NILP (Vw32_charset_info_alist))
         return "iso8859-1";
       charset_type = Qw32_charset_ansi;
       break;
@@ -5315,7 +5307,7 @@ w32_to_all_x_charsets (fncharset)
     case ANSI_CHARSET:
       /* Handle startup case of w32-charset-info-alist not
          being set up yet. */
-      if (NILP(Vw32_charset_info_alist))
+      if (NILP (Vw32_charset_info_alist))
         return Fcons (build_string ("iso8859-1"), Qnil);
 
       charset_type = Qw32_charset_ansi;
@@ -5543,6 +5535,9 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
 			  strlen(lplogfont->lfFaceName), Qnil);
   fontname = coding.destination;
 
+  fontname = alloca (sizeof (*fontname) * bufsz);
+  decode_coding (&coding, lplogfont->lfFaceName, fontname,
+                 strlen (lplogfont->lfFaceName), bufsz - 1);
   *(fontname + coding.produced) = '\0';
 
   /* Replace dashes with underscores so the dashes are not
@@ -5754,7 +5749,7 @@ x_to_w32_font (lpxstr, lplogfont)
 
       if (fields > 0)
         {
-	  strncpy (lplogfont->lfFaceName,name, LF_FACESIZE);
+	  strncpy (lplogfont->lfFaceName, name, LF_FACESIZE);
 	  lplogfont->lfFaceName[LF_FACESIZE-1] = 0;
 	}
       else
@@ -5953,7 +5948,7 @@ w32_font_match (fontname, pattern)
   }
 
   return (fast_string_match_ignore_case (build_string (regex),
-                                         build_string(font_name_copy)) >= 0);
+                                         build_string (font_name_copy)) >= 0);
 }
 
 /* Callback functions, and a structure holding info they need, for
@@ -6189,7 +6184,8 @@ enum_fontex_cb1 (lplf, lptm, font_type, lpef)
 /* Interface to fontset handler. (adapted from mw32font.c in Meadow
    and xterm.c in Emacs 20.3) */
 
-static Lisp_Object w32_list_bdf_fonts (Lisp_Object pattern, int max_names)
+static Lisp_Object
+w32_list_bdf_fonts (Lisp_Object pattern, int max_names)
 {
   char *fontname, *ptnstr;
   Lisp_Object list, tem, newlist = Qnil;
@@ -6260,7 +6256,7 @@ w32_list_fonts (f, pattern, size, maxnames)
       codepage = w32_codepage_for_font (SDATA (tpat));
       if (codepage != CP_8BIT && codepage != CP_UNICODE
           && codepage != CP_DEFAULT && codepage != CP_UNKNOWN
-	  && !IsValidCodePage(codepage))
+	  && !IsValidCodePage (codepage))
         continue;
 
       /* See if we cached the result for this particular query.
@@ -6371,7 +6367,7 @@ w32_list_fonts (f, pattern, size, maxnames)
                 XSETCDR (tem, make_number (0));
               SelectObject (hdc, oldobj);
               ReleaseDC (dpyinfo->root_window, hdc);
-              DeleteObject(thisinfo.hfont);
+              DeleteObject (thisinfo.hfont);
               UNBLOCK_INPUT;
             }
           found_size = XINT (XCDR (tem));
@@ -6420,7 +6416,7 @@ w32_list_fonts (f, pattern, size, maxnames)
     Lisp_Object combined[2];
     combined[0] = w32_list_bdf_fonts (pattern, maxnames - n_fonts);
     combined[1] = newlist;
-    newlist = Fnconc(2, combined);
+    newlist = Fnconc (2, combined);
   }
 
   return newlist;
@@ -6447,7 +6443,7 @@ w32_query_font (struct frame *f, char *fontname)
 
   for (i = 0; i < one_w32_display_info.n_fonts ;i++, pfi++)
     {
-      if (stricmp(pfi->name, fontname) == 0) return pfi;
+      if (stricmp (pfi->name, fontname) == 0) return pfi;
     }
 
   return NULL;
@@ -6484,7 +6480,7 @@ w32_find_ccl_program (fontp)
 }
 
 /* directory-files from dired.c.  */
-Lisp_Object Fdirectory_files P_((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object));
+Lisp_Object Fdirectory_files P_ ((Lisp_Object, Lisp_Object, Lisp_Object, Lisp_Object));
 
 
 /* Find BDF files in a specified directory.  (use GCPRO when calling,
@@ -6495,13 +6491,13 @@ w32_find_bdf_fonts_in_dir (Lisp_Object directory)
   Lisp_Object filelist, list = Qnil;
   char fontname[100];
 
-  if (!STRINGP(directory))
+  if (!STRINGP (directory))
     return Qnil;
 
   filelist = Fdirectory_files (directory, Qt,
 			       build_string (".*\\.[bB][dD][fF]"), Qt);
 
-  for ( ; CONSP(filelist); filelist = XCDR (filelist))
+  for ( ; CONSP (filelist); filelist = XCDR (filelist))
     {
       Lisp_Object filename = XCAR (filelist);
       if (w32_BDF_to_x_font (SDATA (filename), fontname, 100))
@@ -6531,8 +6527,8 @@ in the list.  DIRECTORY may be a list of directories.  */)
       pair[0] = list;
       pair[1] = Qnil;
       GCPRO2 (directory, list);
-      pair[1] = w32_find_bdf_fonts_in_dir( XCAR (directory) );
-      list = Fnconc( 2, pair );
+      pair[1] = w32_find_bdf_fonts_in_dir ( XCAR (directory) );
+      list = Fnconc ( 2, pair );
       UNGCPRO;
     }
   return list;
@@ -6609,7 +6605,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width,
        Sx_display_pixel_width, 0, 1, 0,
-       doc: /* Returns the width in pixels of DISPLAY.
+       doc: /* Return the width in pixels of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6623,7 +6619,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
        Sx_display_pixel_height, 0, 1, 0,
-       doc: /* Returns the height in pixels of DISPLAY.
+       doc: /* Return the height in pixels of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6637,7 +6633,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
        0, 1, 0,
-       doc: /* Returns the number of bitplanes of DISPLAY.
+       doc: /* Return the number of bitplanes of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6651,7 +6647,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
        0, 1, 0,
-       doc: /* Returns the number of color cells of DISPLAY.
+       doc: /* Return the number of color cells of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6671,7 +6667,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
   /* We force 24+ bit depths to 24-bit, both to prevent an overflow
      and because probably is more meaningful on Windows anyway */
   if (cap < 0)
-    cap = 1 << min(dpyinfo->n_planes * dpyinfo->n_cbits, 24);
+    cap = 1 << min (dpyinfo->n_planes * dpyinfo->n_cbits, 24);
 
   ReleaseDC (dpyinfo->root_window, hdc);
 
@@ -6681,7 +6677,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        Sx_server_max_request_size,
        0, 1, 0,
-       doc: /* Returns the maximum request size of the server of DISPLAY.
+       doc: /* Return the maximum request size of the server of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6694,7 +6690,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
-       doc: /* Returns the "vendor ID" string of the W32 system (Microsoft).
+       doc: /* Return the "vendor ID" string of the W32 system (Microsoft).
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6705,10 +6701,10 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
-       doc: /* Returns the version numbers of the server of DISPLAY.
+       doc: /* Return the version numbers of the server of DISPLAY.
 The value is a list of three integers: the major and minor
-version numbers of the X Protocol in use, and the distributor-specific release
-number.  See also the function `x-server-vendor'.
+version numbers of the X Protocol in use, and the distributor-specific
+release number.  See also the function `x-server-vendor'.
 
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
@@ -6722,7 +6718,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
-       doc: /* Returns the number of screens on the server of DISPLAY.
+       doc: /* Return the number of screens on the server of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6734,7 +6730,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-mm-height", Fx_display_mm_height,
        Sx_display_mm_height, 0, 1, 0,
-       doc: /* Returns the height in millimeters of DISPLAY.
+       doc: /* Return the height in millimeters of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6755,7 +6751,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
-       doc: /* Returns the width in millimeters of DISPLAY.
+       doc: /* Return the width in millimeters of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6778,7 +6774,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
        Sx_display_backing_store, 0, 1, 0,
-       doc: /* Returns an indication of whether DISPLAY does backing store.
+       doc: /* Return an indication of whether DISPLAY does backing store.
 The value may be `always', `when-mapped', or `not-useful'.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
@@ -6791,7 +6787,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class,
        Sx_display_visual_class, 0, 1, 0,
-       doc: /* Returns the visual class of DISPLAY.
+       doc: /* Return the visual class of DISPLAY.
 The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'.
 
@@ -6818,7 +6814,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-save-under", Fx_display_save_under,
        Sx_display_save_under, 0, 1, 0,
-       doc: /* Returns t if DISPLAY supports the save-under feature.
+       doc: /* Return t if DISPLAY supports the save-under feature.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
@@ -6934,7 +6930,7 @@ terminate Emacs if we can't open the connection.  */)
     Lisp_Object color_file;
     struct gcpro gcpro1;
 
-    color_file = build_string("~/rgb.txt");
+    color_file = build_string ("~/rgb.txt");
 
     GCPRO1 (color_file);
 
@@ -8192,7 +8188,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	    *last = '\0';
 	  }
 
-	file = DECODE_FILE(build_string (filename));
+	file = DECODE_FILE (build_string (filename));
       }
     /* User cancelled the dialog without making a selection.  */
     else if (!CommDlgExtendedError ())
@@ -8223,7 +8219,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
 DEFUN ("w32-select-font", Fw32_select_font, Sw32_select_font, 0, 2, 0,
        doc: /* Select a font for the named FRAME using the W32 font dialog.
-Returns an X-style font string corresponding to the selection.
+Return an X-style font string corresponding to the selection.
 
 If FRAME is omitted or nil, it defaults to the selected frame.
 If INCLUDE-PROPORTIONAL is non-nil, include proportional fonts
@@ -8327,13 +8323,13 @@ DOCUMENT is typically the name of a document file or a URL, but can
 also be a program executable to run, or a directory to open in the
 Windows Explorer.
 
-If DOCUMENT is a program executable, the optional arg PARAMETERS can
-be a string containing command line parameters that will be passed to
-the program; otherwise, PARAMETERS should be nil or unspecified.
+If DOCUMENT is a program executable, the optional third arg PARAMETERS
+can be a string containing command line parameters that will be passed
+to the program; otherwise, PARAMETERS should be nil or unspecified.
 
-Second optional argument SHOW-FLAG can be used to control how the
+Optional fourth argument SHOW-FLAG can be used to control how the
 application will be displayed when it is invoked.  If SHOW-FLAG is nil
-or unspceified, the application is displayed normally, otherwise it is
+or unspecified, the application is displayed normally, otherwise it is
 an integer representing a ShowWindow flag:
 
   0 - start hidden
@@ -8470,7 +8466,7 @@ The return value is the hotkey-id if registered, otherwise nil.  */)
 {
   key = w32_parse_hot_key (key);
 
-  if (NILP (Fmemq (key, w32_grabbed_keys)))
+  if (!NILP (key) && NILP (Fmemq (key, w32_grabbed_keys)))
     {
       /* Reuse an empty slot if possible.  */
       Lisp_Object item = Fmemq (Qnil, w32_grabbed_keys);
@@ -8518,7 +8514,6 @@ DEFUN ("w32-unregister-hot-key", Fw32_unregister_hot_key,
 #else
       if (PostThreadMessage (dwWindowsThreadId, WM_EMACS_UNREGISTER_HOT_KEY,
 			     (WPARAM) XINT (XCAR (item)), (LPARAM) item))
-
 #endif
 	{
 	  MSG msg;
@@ -8534,7 +8529,7 @@ DEFUN ("w32-registered-hot-keys", Fw32_registered_hot_keys,
        doc: /* Return list of registered hot-key IDs.  */)
   ()
 {
-  return Fcopy_sequence (w32_grabbed_keys);
+  return Fdelq (Qnil, Fcopy_sequence (w32_grabbed_keys));
 }
 
 DEFUN ("w32-reconstruct-hot-key", Fw32_reconstruct_hot_key,
@@ -8697,10 +8692,10 @@ If the underlying system call fails, value is nil.  */)
 	LARGE_INTEGER freebytes;
 	LARGE_INTEGER totalbytes;
 
-	if (pfn_GetDiskFreeSpaceEx(rootname,
-				   (ULARGE_INTEGER *)&availbytes,
-				   (ULARGE_INTEGER *)&totalbytes,
-				   (ULARGE_INTEGER *)&freebytes))
+	if (pfn_GetDiskFreeSpaceEx (rootname,
+				    (ULARGE_INTEGER *)&availbytes,
+				    (ULARGE_INTEGER *)&totalbytes,
+				    (ULARGE_INTEGER *)&freebytes))
 	  value = list3 (make_float ((double) totalbytes.QuadPart),
 			 make_float ((double) freebytes.QuadPart),
 			 make_float ((double) availbytes.QuadPart));
@@ -8712,11 +8707,11 @@ If the underlying system call fails, value is nil.  */)
 	DWORD free_clusters;
 	DWORD total_clusters;
 
-	if (GetDiskFreeSpace(rootname,
-			     &sectors_per_cluster,
-			     &bytes_per_sector,
-			     &free_clusters,
-			     &total_clusters))
+	if (GetDiskFreeSpace (rootname,
+			      &sectors_per_cluster,
+			      &bytes_per_sector,
+			      &free_clusters,
+			      &total_clusters))
 	  value = list3 (make_float ((double) total_clusters
 				     * sectors_per_cluster * bytes_per_sector),
 			 make_float ((double) free_clusters
@@ -8762,12 +8757,12 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
       ClosePrinter (hPrn);
       return Qnil;
     }
-  /* Call GetPrinter() again with big enouth memory block */
+  /* Call GetPrinter again with big enouth memory block */
   err = GetPrinter (hPrn, 2, (LPBYTE)ppi2, dwNeeded, &dwReturned);
   ClosePrinter (hPrn);
   if (!err)
     {
-      xfree(ppi2);
+      xfree (ppi2);
       return Qnil;
     }
 
@@ -8777,23 +8772,23 @@ DEFUN ("default-printer-name", Fdefault_printer_name, Sdefault_printer_name,
         {
 	  /* a remote printer */
 	  if (*ppi2->pServerName == '\\')
-	    _snprintf(pname_buf, sizeof (pname_buf), "%s\\%s", ppi2->pServerName,
-		      ppi2->pShareName);
+	    _snprintf (pname_buf, sizeof (pname_buf), "%s\\%s", ppi2->pServerName,
+		       ppi2->pShareName);
 	  else
-	    _snprintf(pname_buf, sizeof (pname_buf), "\\\\%s\\%s", ppi2->pServerName,
-		      ppi2->pShareName);
+	    _snprintf (pname_buf, sizeof (pname_buf), "\\\\%s\\%s", ppi2->pServerName,
+		       ppi2->pShareName);
 	  pname_buf[sizeof (pname_buf) - 1] = '\0';
 	}
       else
         {
 	  /* a local printer */
-	  strncpy(pname_buf, ppi2->pPortName, sizeof (pname_buf));
+	  strncpy (pname_buf, ppi2->pPortName, sizeof (pname_buf));
 	  pname_buf[sizeof (pname_buf) - 1] = '\0';
 	  /* `pPortName' can include several ports, delimited by ','.
 	   * we only use the first one. */
-	  strtok(pname_buf, ",");
+	  strtok (pname_buf, ",");
 	}
-      xfree(ppi2);
+      xfree (ppi2);
     }
 
   return build_string (pname_buf);
@@ -9023,7 +9018,7 @@ system to handle them.  */);
                &w32_pass_multimedia_buttons_to_system,
                doc: /* If non-nil, media buttons are passed to Windows.
 Some modern keyboards contain buttons for controlling media players, web
-browsers and other applications. Generally these buttons are handled on a
+browsers and other applications.  Generally these buttons are handled on a
 system wide basis, but by setting this to nil they are made available
 to Emacs for binding.  Depending on your keyboard, additional keys that
 may be available are:
@@ -9039,8 +9034,7 @@ media-play, media-pause, media-record, media-fast-forward, media-rewind,
 media-channel-up, media-channel-down,
 volume-mute, volume-up, volume-down,
 mic-volume-mute, mic-volume-down, mic-volume-up, mic-toggle,
-bass-down, bass-boost, bass-up, treble-down, treble-up
-  */);
+bass-down, bass-boost, bass-up, treble-down, treble-up  */);
   w32_pass_multimedia_buttons_to_system = 1;
 
   DEFVAR_LISP ("x-pointer-shape", &Vx_pointer_shape,
@@ -9069,14 +9063,14 @@ Value must be an integer or float.  */);
   Vhourglass_delay = make_number (DEFAULT_HOURGLASS_DELAY);
 
   DEFVAR_LISP ("x-sensitive-text-pointer-shape",
-	      &Vx_sensitive_text_pointer_shape,
+	       &Vx_sensitive_text_pointer_shape,
 	       doc: /* The shape of the pointer when over mouse-sensitive text.
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
   Vx_sensitive_text_pointer_shape = Qnil;
 
   DEFVAR_LISP ("x-window-horizontal-drag-cursor",
-	      &Vx_window_horizontal_drag_shape,
+	       &Vx_window_horizontal_drag_shape,
 	       doc: /* Pointer shape to use for indicating a window can be dragged horizontally.
 This variable takes effect when you create a new frame
 or when you set the mouse color.  */);
@@ -9282,7 +9276,8 @@ versions of Windows) characters.  */);
 	variable initialized is 0 and directly from main when initialized
 	is non zero.
  */
-void globals_of_w32fns ()
+void
+globals_of_w32fns ()
 {
   HMODULE user32_lib = GetModuleHandle ("user32.dll");
   /*
@@ -9313,7 +9308,7 @@ void globals_of_w32fns ()
 #undef abort
 
 void
-w32_abort()
+w32_abort ()
 {
   int button;
   button = MessageBox (NULL,
@@ -9341,7 +9336,7 @@ w32_abort()
 
 /* For convenience when debugging.  */
 int
-w32_last_error()
+w32_last_error ()
 {
   return GetLastError ();
 }

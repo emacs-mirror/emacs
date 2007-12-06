@@ -24,8 +24,6 @@
 
 ;;; Code:
 
-(autoload 'w3-fetch "w3")
-(autoload 'w3-open-local "w3")
 (autoload 'dired-get-filename "dired")
 
 (defvar url-dired-minor-mode-map
@@ -41,22 +39,19 @@
 (make-variable-buffer-local 'url-dired-minor-mode)
 
 (defun url-dired-find-file ()
-  "In dired, visit the file or directory named on this line, using Emacs-W3."
+  "In dired, visit the file or directory named on this line."
   (interactive)
   (let ((filename (dired-get-filename)))
-    (cond ((string-match "/\\(.*@.*\\):\\(/.*\\)" filename)
-	   (w3-fetch (concat "file://" (match-string 1 filename) (match-string 2 filename))))
-	  (t
-	   (w3-open-local filename)))))
+    (find-file filename)))
 
 (defun url-dired-find-file-mouse (event)
-  "In dired, visit the file or directory name you click on, using Emacs-W3."
+  "In dired, visit the file or directory name you click on."
   (interactive "@e")
   (mouse-set-point event)
   (url-dired-find-file))
 
 (defun url-dired-minor-mode (&optional arg)
-  "Minor mode for directory browsing with Emacs-W3."
+  "Minor mode for directory browsing."
   (interactive "P")
   (cond
    ((null arg)

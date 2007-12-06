@@ -1228,7 +1228,7 @@ reindenting the line.  This reindentation saves you from having to
 reindent a line manually after typing, say, a @samp{@}}.  A few
 keywords, such as @code{else}, also trigger electric action.
 
-You can inhibit the electric behaviour described here by disabling
+You can inhibit the electric behavior described here by disabling
 electric minor mode (@pxref{Minor Modes}).
 
 Common to all these keys is that they only behave electrically when
@@ -1281,7 +1281,7 @@ whitespace before it).
 Additionally, you can configure @ccmode{} so that typing a slash at
 the start of a line within a block comment will terminate the
 comment.  You don't need to have electric minor mode enabled to get
-this behaviour.  @xref{Clean-ups}.
+this behavior.  @xref{Clean-ups}.
 
 In AWK mode, @samp{*} and @samp{/} do not delimit comments and are not
 electric.
@@ -6458,7 +6458,7 @@ functions to this hook, not remove them.  @xref{Style Variables}.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 Normally, the lines in a multi-line macro are indented relative to
-each other as though they were code.  You can suppress this behaviour
+each other as though they were code.  You can suppress this behavior
 by setting the following user option:
 
 @defopt c-syntactic-indentation-in-macros

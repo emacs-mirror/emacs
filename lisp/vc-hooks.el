@@ -705,6 +705,8 @@ Before doing that, check if there are any old backups and get rid of them."
 	 (vc-call make-version-backups-p file)
          (vc-make-version-backup file))))
 
+(declare-function vc-dired-resynch-file "vc" (file))
+
 (defun vc-after-save ()
   "Function to be called by `basic-save-buffer' (in files.el)."
   ;; If the file in the current buffer is under version control,

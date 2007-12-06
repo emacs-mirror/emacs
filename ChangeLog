@@ -1,3 +1,68 @@
+2007-12-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Add AC_CONFIG_SRCDIR which was lost in the previous
+	change.
+
+2007-12-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in: Give package name and verision to AC_INIT.
+
+2007-12-03  Magnus Henoch  <mange@freemail.hu>
+
+	* configure.in: Use PKG_CHECK_MODULES to check for D-Bus.
+
+	* configure: Regenerate.
+
+2007-12-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.in: No need for DBUS_INFO anymore.
+
+	* configure: Regenerate.
+
+	* Makefile.in (INFO_FILES): Use dbus unconditionally.
+
+2007-12-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* configure.in: Add D-Bus checks.  D-Bus is disabled by default.
+
+	* configure: Regenerate.
+
+	* Makefile.in (INFO_FILES): Add dbus.
+
+2007-12-02  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Fix last change.
+
+2007-11-28  Petr Salinger  <Petr.Salinger@seznam.cz>  (tiny change)
+
+	* configure.in: Add support for gnu-kfreebsd.
+
+2007-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Add etc/nxml.
+
+2007-11-24  Romain Francoise  <romain@orebokech.com>
+
+	* Makefile.in (INFO_FILES): Add nxml-mode.
+
+2007-11-23  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Include nXML.  Don't try to copy FTP, it was removed on
+	2007/10/17.  Don't special-case alloca.c which is no longer in CVS.
+
+2007-11-20  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Always include <resolv.h> when checking for
+	res_init.
+
+2007-11-17  Andreas Schwab  <schwab@suse.de>
+
+	* update-subdirs: Atomically update subdirs.el.
+
+2007-11-17  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (check-declare): New target.
+
 2007-11-07  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Deprecate Mac Carbon port.

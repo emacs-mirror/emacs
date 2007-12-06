@@ -36,6 +36,7 @@
 (autoload 'gnus-agent-expire "gnus-agent")
 (autoload 'gnus-agent-regenerate-group "gnus-agent")
 (autoload 'gnus-agent-read-servers-validate-native "gnus-agent")
+(autoload 'gnus-agent-possibly-synchronize-flags-server "gnus-agent")
 
 (defcustom gnus-open-server-hook nil
   "Hook called just before opening connection to the news server."
@@ -278,6 +279,11 @@ If it is down, start it up (again)."
               ;; prompting with "go offline?".  This is only a concern
               ;; when the agent's backend fails to open the server.
               (gnus-open-server gnus-command-method))
+	  (when (and (eq (cadr elem) 'ok) gnus-agent
+		     (gnus-agent-method-p gnus-command-method))
+	    (save-excursion
+	      (gnus-agent-possibly-synchronize-flags-server
+	       gnus-command-method)))
           result)))))
 
 (defun gnus-close-server (gnus-command-method)

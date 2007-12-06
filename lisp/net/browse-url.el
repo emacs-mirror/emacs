@@ -825,6 +825,7 @@ to use."
 ;; --- Default MS-Windows browser ---
 
 (defvar dos-windows-version)
+(declare-function w32-shell-execute "w32fns.c")    ;; Defined in C.
 
 (defun browse-url-default-windows-browser (url &optional new-window)
   (interactive (browse-url-interactive-arg "URL: "))
@@ -1282,6 +1283,10 @@ used instead of `browse-url-new-window-flag'."
   (delete-process "browse-url"))
 
 ;; --- W3 ---
+
+;; External.
+(declare-function w3-fetch-other-window "ext:w3m" (&optional url))
+(declare-function w3-fetch              "ext:w3m" (&optional url target))
 
 ;;;###autoload
 (defun browse-url-w3 (url &optional new-window)

@@ -1,8 +1,124 @@
+2007-12-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus.texi (Other Files): Add the yenc command.
+
+2007-11-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (MIME Commands): Default of gnus-article-loose-mime is t
+	since 2004-08-06.
+
+2007-11-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Fancy Mail Splitting): Fix description of splitting based
+	on body.
+
+2007-11-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (rfc2047): Mention rfc2047-encoded-word-regexp-loose
+	and rfc2047-allow-irregular-q-encoded-words; fix description of
+	rfc2047-encode-encoded-words.
+
+2007-11-24  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Fetching Mail): Remove obsoleted `nnmail-spool-file'.
+
+2007-12-05  Michael Olson  <mwolson@gnu.org>
+
+	* remember.texi (Diary): Remove "require" line for remember-diary.el.
+	Update documentation for `remember-diary-file'.
+
+2007-12-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Signals): Precise `dbus-register-signal'.
+	(Errors and Events): Rework events part, the internal structure of
+	dbus-event has changed.
+
+2007-12-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add dbus.
+	($(infodir)/dbus, dbus.dvi): New targets.
+
+2007-12-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Apply dbus and dbus.dvi
+	unconditionally.
+
+	* dbus.texi (Synchronous Methods): Show the result of the "lshal"
+	emulation with @print{}.
+
+2007-12-02  Richard Stallman  <rms@gnu.org>
+
+	* dbus.texi (Overview): Minor cleanup.
+
+2007-12-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* Makefile.in (INFO_TARGETS): Add dbus.
+	(DVI_TARGETS): Add dbus.dvi.
+	(dbus, dbus.dvi): New targets.
+
+	* dbus.texi: New file.
+
+2007-11-24  Romain Francoise  <romain@orebokech.com>
+
+	* nxml-mode.texi: Add description in @direntry.
+	Fix file name to match @setfilename.
+
+2007-11-23  Mark A. Hershberger  <mah@everybody.org>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add nxml-mode.
+	($(infodir)/nxml-mode): New rule.
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS): Add nxml-mode.
+	($(infodir)/nxml-mode): New rule.
+	(clean): Add nxml-mode*.
+
+	* nxml-mode.texi: New file with nxml manual.
+
+2007-11-18  Richard Stallman  <rms@gnu.org>
+
+	* flymake.texi (Example -- Configuring a tool called directly):
+	Update example.
+
+2007-11-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Filename completion): Simplify explanation of
+	double-slash behaviour.  Explain directory contents flushing.
+
+2007-11-16  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (TeX and LaTeX Language Modes): Put in
+	missing braces.
+
+2007-11-15  Richard Stallman  <rms@gnu.org>
+
+	* cl.texi (Equality Predicates): Delete `eql'.
+	(Predicates, Naming Conventions, Top): Delete `eql'.
+	(Common Lisp Compatibility): Delete `eql'.
+	(Porting Common Lisp): Delete obsolete backquote info.
+	Minor clarification about character constants.
+	(Sequence Basics): Minor clarification.
+
+2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cc-mode.texi (Electric Keys, Custom Macros):
+	* tramp.texi (Filename completion): Fix typos.
+
+2007-11-15  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc.texi (Basic commands): Mention the menu.
+
+2007-11-12  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Connection caching): Tramp flushes connection
+	properties when remote operating system has been changed.
+
 2007-11-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-news.texi: Fix spelling.
 	`message-insert-formatted-citation-line', not
 	`message-insert-formated-citation-line'.
+
+	* gnus.texi, gnus-faq.texi, message.texi: Bump version to 5.10.9.
 
 2007-11-07  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -40,6 +156,11 @@
 	(Function Reference): Split Keystrokes into separate chapter.
 	(Keystrokes): Document C-c C-k.
 	(Introduction): Fix typographical issue with "---".
+
+2007-10-29  Richard Stallman  <rms@gnu.org>
+
+	* widget.texi (Introduction): Delete discussion of implementation
+	internals.
 
 2007-10-29  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -503,6 +624,14 @@
 2007-10-28  Simon Josefsson  <jas@extundo.com>
 
 	* gnus.texi (Top): Add SASL.
+
+2007-10-27  Emanuele Giaquinta  <e.giaquinta@glauco.it>  (tiny change)
+
+	* gnus-faq.texi ([5.12]): Remove reference to discontinued service.
+
+2007-10-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Troubleshooting): Adjust Gnus version number.
 
 2007-10-27  Jay Belanger  <jay.p.belanger@gmail.com>
 
@@ -1621,7 +1750,7 @@
 	(Custom Filling and Breaking, Custom Braces, Syntactic Symbols)
 	(Line-Up Functions, Custom Macros):
 	* ediff.texi (Window and Frame Configuration)
-	(Highlighting Difference Regions, Highlighting Difference Regions):
+	(Highlighting Difference Regions):
 	* emacs-mime.texi (Display Customization):
 	* erc.texi (History):
 	* eshell.texi (Known problems):
@@ -1629,7 +1758,7 @@
 	* gnus.texi (NNTP, IMAP, Advanced Scoring Examples)
 	(The problem of spam, SpamOracle, Extending the Spam package)
 	(Conformity, Terminology):
-	* idlwave.texi (Routine Info, Routine Info)
+	* idlwave.texi (Routine Info)
 	(Class and Keyword Inheritance, Padding Operators)
 	(Breakpoints and Stepping, Electric Debug Mode)
 	(Examining Variables, Troubleshooting):

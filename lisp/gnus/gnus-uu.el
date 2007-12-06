@@ -35,6 +35,7 @@
 (require 'message)
 (require 'gnus-msg)
 (require 'mm-decode)
+(require 'yenc)
 
 (defgroup gnus-extract nil
   "Extracting encoded files."
@@ -75,7 +76,7 @@
     ("\\.\\(tar\\|arj\\|zip\\|zoo\\|arc\\|gz\\|Z\\|lzh\\|ar\\|lha\\)$"
      "gnus-uu-archive"))
   "*Default actions to be taken when the user asks to view a file.
-To change the behaviour, you can either edit this variable or set
+To change the behavior, you can either edit this variable or set
 `gnus-uu-user-view-rules' to something useful.
 
 For example:
@@ -95,7 +96,7 @@ at that point in the command string.  If there's no \"%s\" in the
 command string, the file name will be appended to the command string
 before executing.
 
-There are several user variables to tailor the behaviour of gnus-uu to
+There are several user variables to tailor the behavior of gnus-uu to
 your needs.  First we have `gnus-uu-user-view-rules', which is the
 variable gnus-uu first consults when trying to decide how to view a
 file.  If this variable contains no matches, gnus-uu examines the
@@ -346,6 +347,7 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
 (defvar gnus-uu-file-name nil)
 (defvar gnus-uu-uudecode-process nil)
 (defvar gnus-uu-binhex-article-name nil)
+(defvar gnus-uu-yenc-article-name nil)
 
 (defvar gnus-uu-work-dir nil)
 
@@ -411,6 +413,17 @@ didn't work, and overwrite existing files.  Otherwise, ask each time."
   (setq gnus-uu-binhex-article-name
 	(mm-make-temp-file (expand-file-name "binhex" gnus-uu-work-dir)))
   (gnus-uu-decode-with-method 'gnus-uu-binhex-article n dir))
+
+(defun gnus-uu-decode-yenc (n dir)
+  "Decode the yEnc-encoded current article."
+  (interactive
+   (list current-prefix-arg
+	 (file-name-as-directory
+	  (read-file-name "yEnc decode and save in dir: "
+			  gnus-uu-default-dir
+			  gnus-uu-default-dir))))
+  (setq gnus-uu-yenc-article-name nil)
+  (gnus-uu-decode-with-method 'gnus-uu-yenc-article n dir nil t))
 
 (defun gnus-uu-decode-uu-view (&optional n)
   "Uudecodes and views the current article."
@@ -1015,6 +1028,39 @@ When called interactively, prompt for REGEXP."
     (if (memq 'begin state)
 	(cons gnus-uu-binhex-article-name state)
       state)))
+
+;; yEnc
+
+(defun gnus-uu-yenc-article (buffer in-state)
+  (save-excursion
+    (set-buffer gnus-original-article-buffer)
+    (widen)
+    (let ((file-name (yenc-extract-filename))
+	  state start-char)
+      (when (not file-name)
+	(setq state (list 'wrong-type)))
+
+      (if (memq 'wrong-type state)
+	  ()
+	(when (yenc-first-part-p)
+	  (setq gnus-uu-yenc-article-name
+		(expand-file-name file-name gnus-uu-work-dir))
+	  (push 'begin state))
+	(when (yenc-last-part-p)
+	  (push 'end state))
+	(unless state
+	  (push 'middle state))
+	(mm-with-unibyte-buffer
+	  (insert-buffer gnus-original-article-buffer)
+	  (yenc-decode-region (point-min) (point-max))
+	  (when (and (member 'begin state)
+		     (file-exists-p gnus-uu-yenc-article-name))
+	    (delete-file gnus-uu-yenc-article-name))
+	  (mm-append-to-file (point-min) (point-max)
+			     gnus-uu-yenc-article-name)))
+      (if (memq 'begin state)
+	  (cons file-name state)
+	state))))
 
 ;; PostScript
 

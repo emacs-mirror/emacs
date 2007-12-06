@@ -2600,6 +2600,9 @@ If URL is nil it is searched at point."
   (add-to-list 'newsticker-url-list (list name url nil nil nil) t)
   (customize-variable 'newsticker-url-list))
 
+;; External.
+(declare-function w3m-toggle-inline-image "ext:w3m" (&optional force no-cache))
+
 (defun newsticker-w3m-show-inline-images ()
   "Show inline images in visible text ranges.
 In-line images in invisible text ranges are hidden.  This function
@@ -4843,6 +4846,11 @@ The face is chosen according the values of NT-FACE and AGE."
 ;; ======================================================================
 ;;; HTML rendering
 ;; ======================================================================
+
+;; External.
+(declare-function htmlr-reset "ext:htmlr" ())
+(declare-function htmlr-step  "ext:htmlr" ())
+
 (defun newsticker-htmlr-render (pos1 pos2) ;
   "Replacement for `htmlr-render'.
 Renders the HTML code in the region POS1 to POS2 using htmlr."

@@ -30,6 +30,9 @@
 (defvar rmail-current-message)
 (defvar rmail-inbox-list)
 
+(declare-function rmail-parse-file-inboxes "rmail" ())
+(declare-function rmail-show-message "rmail" (&optional n no-summary))
+
 ;;;###autoload
 (defun set-rmail-inbox-list (file-name)
   "Set the inbox list of the current RMAIL file to FILE-NAME.

@@ -1693,6 +1693,11 @@ nil."
 (put 'erc-with-all-buffers-of-server 'lisp-indent-function 1)
 (put 'erc-with-all-buffers-of-server 'edebug-form-spec '(form form body))
 
+;; (iswitchb-mode) will autoload iswitchb.el
+(defvar iswitchb-temp-buflist)
+(declare-function iswitchb-read-buffer "iswitchb"
+		 (prompt &optional default require-match start matches-set))
+
 (defun erc-iswitchb (&optional arg)
   "Use `iswitchb-read-buffer' to prompt for a ERC buffer to switch to.
 When invoked with prefix argument, use all erc buffers.  Without prefix
@@ -1703,9 +1708,7 @@ If `erc-track-mode' is in enabled, put the last element of
 Due to some yet unresolved reason, global function `iswitchb-mode'
 needs to be active for this function to work."
   (interactive "P")
-  (eval-when-compile
-    (require 'iswitchb))
-  (let ((enabled iswitchb-mode))
+  (let ((enabled (bound-and-true-p iswitchb-mode)))
     (or enabled (iswitchb-mode 1))
     (unwind-protect
 	(let ((iswitchb-make-buflist-hook
@@ -1924,7 +1927,7 @@ already connected and just create a separate buffer for the new
 target CHANNEL.
 
 Use PASSWD as user password on the server.  If TGT-LIST is
-non-nil, use it to initialise `erc-default-recipients'.
+non-nil, use it to initialize `erc-default-recipients'.
 
 Returns the buffer for the given server or channel."
   (let ((server-announced-name (when (and (boundp 'erc-session-server)
@@ -2165,6 +2168,8 @@ Arguments are the same as for `erc'."
 
 (defalias 'erc-select-ssl 'erc-ssl)
 
+(declare-function open-ssl-stream "ext:ssl" (name buffer host service))
+
 (defun erc-open-ssl-stream (name buffer host port)
   "Open an SSL stream to an IRC server.
 The process will be given the name NAME, its target buffer will be
@@ -2188,6 +2193,8 @@ Arguments are the same as for `erc'."
   (interactive (erc-select-read-args))
   (let ((erc-server-connect-function 'erc-open-tls-stream))
     (apply 'erc r)))
+
+(declare-function open-tls-stream "tls" (name buffer host port))
 
 (defun erc-open-tls-stream (name buffer host port)
   "Open an TLS stream to an IRC server.
@@ -2224,6 +2231,8 @@ but you won't see it.
 
 WARNING: Do not set this variable directly!  Instead, use the
 function `erc-toggle-debug-irc-protocol' to toggle its value.")
+
+(declare-function erc-network-name "erc-networks" ())
 
 (defun erc-log-irc-protocol (string &optional outbound)
   "Append STRING to the buffer *erc-protocol*.
@@ -5955,6 +5964,9 @@ if `erc-away' is non-nil."
     (cond (lag (format "lag:%.0f" lag))
 	  (t ""))))
 
+;; erc-goodies is required at end of this file.
+(declare-function erc-controls-strip "erc-goodies" (str))
+
 (defun erc-update-mode-line-buffer (buffer)
   "Update the mode line in a single ERC buffer BUFFER."
   (with-current-buffer buffer
@@ -6205,6 +6217,7 @@ All windows are opened in the current frame."
    (s303   . "Is online: %n")
    (s305   . "%m")
    (s306   . "%m")
+   (s307   . "%n %m")
    (s311   . "%n is %f (%u@%h)")
    (s312   . "%n is/was on server %s (%c)")
    (s313   . "%n is an IRC operator")

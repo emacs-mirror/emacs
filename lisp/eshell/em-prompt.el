@@ -22,20 +22,20 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'em-prompt)
+;;; Commentary:
 
-(eval-when-compile (require 'esh-maint))
+;; Most of the prompt navigation commands of `comint-mode' are
+;; supported, such as C-c C-n, C-c C-p, etc.
+
+;;; Code:
+
+(eval-when-compile (require 'eshell))
 
 (defgroup eshell-prompt nil
   "This module provides command prompts, and navigation between them,
 as is common with most shells."
   :tag "Command prompts"
   :group 'eshell-module)
-
-;;; Commentary:
-
-;; Most of the prompt navigation commands of `comint-mode' are
-;; supported, such as C-c C-n, C-c C-p, etc.
 
 ;;; User Variables:
 
@@ -173,7 +173,7 @@ If this takes us past the end of the current line, don't skip at all."
 	     (<= (match-end 0) eol))
 	(goto-char (match-end 0)))))
 
-;;; Code:
+(provide 'em-prompt)
 
 ;;; arch-tag: 01c1574b-ce70-4e89-bc38-e6619f61e208
 ;;; em-prompt.el ends here

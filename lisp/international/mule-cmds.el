@@ -1459,6 +1459,9 @@ To deactivate it programmatically, use `inactivate-input-method'."
     (customize-mark-as-set 'default-input-method))
   default-input-method)
 
+(defvar toggle-input-method-active nil
+  "Non-nil inside `toggle-input-method'.")
+
 (defun toggle-input-method (&optional arg interactive)
   "Enable or disable multilingual text input method for the current buffer.
 Only one input method can be enabled at any time in a given buffer.
@@ -1478,9 +1481,12 @@ When called interactively, the optional arg INTERACTIVE is non-nil,
 which marks the variable `default-input-method' as set for Custom buffers."
 
   (interactive "P\np")
+  (if toggle-input-method-active
+      (error "Recursive use of `toggle-input-method'"))
   (if (and current-input-method (not arg))
       (inactivate-input-method)
-    (let ((default (or (car input-method-history) default-input-method)))
+    (let ((toggle-input-method-active t)
+	  (default (or (car input-method-history) default-input-method)))
       (if (and arg default (equal current-input-method default)
 	       (> (length input-method-history) 1))
 	  (setq default (nth 1 input-method-history)))
@@ -2590,14 +2596,24 @@ See also `locale-charset-language-names', `locale-language-names',
 system codeset `%s' for this locale." coding-system codeset))))))))
 
     ;; On Windows, override locale-coding-system,
-    ;; keyboard-coding-system with system codepage.  Note:
-    ;; selection-coding-system is already set in w32select.c.
+    ;; default-file-name-coding-system, keyboard-coding-system,
+    ;; terminal-coding-system with system codepage.
     (when (boundp 'w32-ansi-code-page)
       (let ((code-page-coding (intern (format "cp%d" w32-ansi-code-page))))
 	(when (coding-system-p code-page-coding)
 	  (unless frame (setq locale-coding-system code-page-coding))
 	  (set-keyboard-coding-system code-page-coding frame)
-	  (set-terminal-coding-system code-page-coding frame))))
+	  (set-terminal-coding-system code-page-coding frame)
+	  ;; Set default-file-name-coding-system last, so that Emacs
+	  ;; doesn't try to use cpNNNN when it defines keyboard and
+	  ;; terminal encoding.  That's because the above two lines
+	  ;; will want to load code-pages.el, where cpNNNN are
+	  ;; defined; if default-file-name-coding-system were set to
+	  ;; cpNNNN while these two lines run, Emacs will want to use
+	  ;; it for encoding the file name it wants to load.  And that
+	  ;; will fail, since cpNNNN is not yet usable until
+	  ;; code-pages.el finishes loading.
+	  (setq default-file-name-coding-system code-page-coding))))
 
     (when (eq system-type 'darwin)
       ;; On Darwin, file names are always encoded in utf-8, no matter

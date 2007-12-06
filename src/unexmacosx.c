@@ -819,7 +819,9 @@ copy_data_segment (struct load_command *lc)
 	       || strncmp (sectp->sectname, "__la_sym_ptr2", 16) == 0
 	       || strncmp (sectp->sectname, "__dyld", 16) == 0
 	       || strncmp (sectp->sectname, "__const", 16) == 0
-	       || strncmp (sectp->sectname, "__cfstring", 16) == 0)
+	       || strncmp (sectp->sectname, "__cfstring", 16) == 0
+	       || strncmp (sectp->sectname, "__gcc_except_tab", 16) == 0
+	       || strncmp (sectp->sectname, "__objc_", 7) == 0)
 	{
 	  if (!unexec_copy (sectp->offset, old_file_offset, sectp->size))
 	    unexec_error ("cannot copy section %s", sectp->sectname);
@@ -898,12 +900,13 @@ copy_symtab (struct load_command *lc, long delta)
 
 /* Fix up relocation entries. */
 static void
-unrelocate (const char *name, off_t reloff, int nrel)
+unrelocate (const char *name, off_t reloff, int nrel, vm_address_t base)
 {
   int i, unreloc_count;
   struct relocation_info reloc_info;
   struct scattered_relocation_info *sc_reloc_info
     = (struct scattered_relocation_info *) &reloc_info;
+  vm_address_t location;
 
   for (unreloc_count = 0, i = 0; i < nrel; i++)
     {
@@ -917,14 +920,15 @@ unrelocate (const char *name, off_t reloff, int nrel)
 	switch (reloc_info.r_type)
 	  {
 	  case GENERIC_RELOC_VANILLA:
-	    if (reloc_info.r_address >= data_segment_scp->vmaddr
-		&& reloc_info.r_address < (data_segment_scp->vmaddr
-					   + data_segment_scp->vmsize))
+	    location = base + reloc_info.r_address;
+	    if (location >= data_segment_scp->vmaddr
+		&& location < (data_segment_scp->vmaddr
+			       + data_segment_scp->vmsize))
 	      {
 		off_t src_off = data_segment_old_fileoff
-		  + reloc_info.r_address - data_segment_scp->vmaddr;
+		  + (location - data_segment_scp->vmaddr);
 		off_t dst_off = data_segment_scp->fileoff
-		  + reloc_info.r_address - data_segment_scp->vmaddr;
+		  + (location - data_segment_scp->vmaddr);
 
 		if (!unexec_copy (dst_off, src_off, 1 << reloc_info.r_length))
 		  unexec_error ("unrelocate: %s:%d cannot copy original value",
@@ -955,15 +959,73 @@ unrelocate (const char *name, off_t reloff, int nrel)
 	    unreloc_count, nrel, name);
 }
 
+#if __ppc64__
+/* Rebase r_address in the relocation table.  */
+static void
+rebase_reloc_address (off_t reloff, int nrel, long linkedit_delta, long diff)
+{
+  int i;
+  struct relocation_info reloc_info;
+  struct scattered_relocation_info *sc_reloc_info
+    = (struct scattered_relocation_info *) &reloc_info;
+
+  for (i = 0; i < nrel; i++, reloff += sizeof (reloc_info))
+    {
+      if (lseek (infd, reloff - linkedit_delta, L_SET)
+	  != reloff - linkedit_delta)
+	unexec_error ("rebase_reloc_table: cannot seek to reloc_info");
+      if (!unexec_read (&reloc_info, sizeof (reloc_info)))
+	unexec_error ("rebase_reloc_table: cannot read reloc_info");
+
+      if (sc_reloc_info->r_scattered == 0
+	  && reloc_info.r_type == GENERIC_RELOC_VANILLA)
+	{
+	  reloc_info.r_address -= diff;
+	  if (!unexec_write (reloff, &reloc_info, sizeof (reloc_info)))
+	    unexec_error ("rebase_reloc_table: cannot write reloc_info");
+	}
+    }
+}
+#endif
+
 /* Copy a LC_DYSYMTAB load command from the input file to the output
    file, adjusting the file offset fields.  */
 static void
 copy_dysymtab (struct load_command *lc, long delta)
 {
   struct dysymtab_command *dstp = (struct dysymtab_command *) lc;
+  vm_address_t base;
 
-  unrelocate ("local", dstp->locreloff, dstp->nlocrel);
-  unrelocate ("external", dstp->extreloff, dstp->nextrel);
+#ifdef _LP64
+#if __ppc64__
+  {
+    int i;
+
+    base = 0;
+    for (i = 0; i < nlc; i++)
+      if (lca[i]->cmd == LC_SEGMENT)
+	{
+	  struct segment_command *scp = (struct segment_command *) lca[i];
+
+	  if (scp->vmaddr + scp->vmsize > 0x100000000
+	      && (scp->initprot & VM_PROT_WRITE) != 0)
+	    {
+	      base = data_segment_scp->vmaddr;
+	      break;
+	    }
+	}
+  }
+#else
+  /* First writable segment address.  */
+  base = data_segment_scp->vmaddr;
+#endif
+#else
+  /* First segment address in the file (unless MH_SPLIT_SEGS set). */
+  base = 0;
+#endif
+
+  unrelocate ("local", dstp->locreloff, dstp->nlocrel, base);
+  unrelocate ("external", dstp->extreloff, dstp->nextrel, base);
 
   if (dstp->nextrel > 0) {
     dstp->extreloff += delta;
@@ -982,6 +1044,29 @@ copy_dysymtab (struct load_command *lc, long delta)
     unexec_error ("cannot write symtab command to header");
 
   curr_header_offset += lc->cmdsize;
+
+#if __ppc64__
+  /* Check if the relocation base needs to be changed.  */
+  if (base == 0)
+    {
+      vm_address_t newbase = 0;
+      int i;
+
+      for (i = 0; i < num_unexec_regions; i++)
+	if (unexec_regions[i].range.address + unexec_regions[i].range.size
+	    > 0x100000000)
+	  {
+	    newbase = data_segment_scp->vmaddr;
+	    break;
+	  }
+
+      if (newbase)
+	{
+	  rebase_reloc_address (dstp->locreloff, dstp->nlocrel, delta, newbase);
+	  rebase_reloc_address (dstp->extreloff, dstp->nextrel, delta, newbase);
+	}
+    }
+#endif
 }
 
 /* Copy a LC_TWOLEVEL_HINTS load command from the input file to the output

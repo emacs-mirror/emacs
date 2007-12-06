@@ -197,6 +197,10 @@ enum event_kind
   , GPM_CLICK_EVENT
 #endif
 
+#ifdef HAVE_DBUS
+  , DBUS_EVENT
+#endif
+
 #ifdef WINDOWSNT
   /* Generated when an APPCOMMAND event is received, in response to
      Multimedia or Internet buttons on some keyboards.
@@ -336,7 +340,7 @@ struct terminal
 
   /* All fields before `next_terminal' should be Lisp_Object and are traced
      by the GC.  All fields afterwards are ignored by the GC.  */
-  
+
   /* Chain of all terminal devices. */
   struct terminal *next_terminal;
 
@@ -382,12 +386,12 @@ struct terminal
 
   /* Terminal characteristics. */
   /* XXX Are these really used on non-termcap displays? */
-  
+
   int must_write_spaces;	/* Nonzero means spaces in the text must
 				   actually be output; can't just skip over
 				   some columns to leave them blank.  */
   int fast_clear_end_of_line;   /* Nonzero means terminal has a `ce' string */
-  
+
   int line_ins_del_ok;          /* Terminal can insert and delete lines */
   int char_ins_del_ok;          /* Terminal can insert and delete chars */
   int scroll_region_ok;         /* Terminal supports setting the scroll
@@ -410,24 +414,24 @@ struct terminal
   struct redisplay_interface *rif;
 
   /* Frame-based redisplay interface. */
-  
+
   /* Text display hooks.  */
 
   void (*cursor_to_hook) P_ ((struct frame *f, int vpos, int hpos));
   void (*raw_cursor_to_hook) P_ ((struct frame *, int, int));
-  
+
   void (*clear_to_end_hook) P_ ((struct frame *));
   void (*clear_frame_hook) P_ ((struct frame *));
   void (*clear_end_of_line_hook) P_ ((struct frame *, int));
-  
+
   void (*ins_del_lines_hook) P_ ((struct frame *f, int, int));
-  
+
   void (*insert_glyphs_hook) P_ ((struct frame *f, struct glyph *s, int n));
   void (*write_glyphs_hook) P_ ((struct frame *f, struct glyph *s, int n));
   void (*delete_glyphs_hook) P_ ((struct frame *, int));
-  
+
   void (*ring_bell_hook) P_ ((struct frame *f));
-  
+
   void (*reset_terminal_modes_hook) P_ ((struct terminal *));
   void (*set_terminal_modes_hook) P_ ((struct terminal *));
 
@@ -442,7 +446,7 @@ struct terminal
      Set *f to the frame the mouse is in, or zero if the mouse is in no
      Emacs frame.  If it is set to zero, all the other arguments are
      garbage.
-  
+
      If the motion started in a scroll bar, set *bar_window to the
      scroll bar's window, *part to the part the mouse is currently over,
      *x to the position of the mouse along the scroll bar, and *y to the
@@ -452,7 +456,7 @@ struct terminal
      row of the character cell the mouse is over.
 
      Set *time to the time the mouse was at the returned position.
-     
+
      This should clear mouse_moved until the next motion
      event arrives.  */
   void (*mouse_position_hook) P_ ((struct frame **f, int,
@@ -478,7 +482,7 @@ struct terminal
      hook is zero, that means the terminal we're displaying on doesn't
      support overlapping frames, so there's no need to raise or lower
      anything.
-     
+
      If RAISE is non-zero, F is brought to the front, before all other
      windows.  If RAISE is zero, F is sent to the back, behind all other
      windows.  */
@@ -488,7 +492,7 @@ struct terminal
      For example, if going from fullscreen to not fullscreen this hook
      may do something OS dependent, like extended window manager hints on X11.  */
   void (*fullscreen_hook) P_ ((struct frame *f));
-    
+
   
   /* Scroll bar hooks.  */
 
@@ -497,21 +501,21 @@ struct terminal
      lisp objects.  This allows us to place references to them in
      Lisp_Windows without worrying about those references becoming
      dangling references when the scroll bar is destroyed.
-     
+
      The window-system-independent portion of Emacs just refers to
      scroll bars via their windows, and never looks inside the scroll bar
      representation; it always uses hook functions to do all the
      scroll bar manipulation it needs.
-     
+
      The `vertical_scroll_bar' field of a Lisp_Window refers to that
      window's scroll bar, or is nil if the window doesn't have a
      scroll bar.
-     
+
      The `scroll_bars' and `condemned_scroll_bars' fields of a Lisp_Frame
      are free for use by the scroll bar implementation in any way it sees
      fit.  They are marked by the garbage collector.  */
-  
-  
+
+
   /* Set the vertical scroll bar for WINDOW to have its upper left corner
      at (TOP, LEFT), and be LENGTH rows high.  Set its handle to
      indicate that we are displaying PORTION characters out of a total
@@ -529,16 +533,16 @@ struct terminal
      Instead, we just assert at the beginning of redisplay that *all*
      scroll bars are to be removed, and then save scroll bars from the
      fiery pit when we actually redisplay their window.  */
-  
+
   /* Arrange for all scroll bars on FRAME to be removed at the next call
      to `*judge_scroll_bars_hook'.  A scroll bar may be spared if
      `*redeem_scroll_bar_hook' is applied to its window before the judgement.
-     
+
      This should be applied to each frame each time its window tree is
      redisplayed, even if it is not displaying scroll bars at the moment;
      if the HAS_SCROLL_BARS flag has just been turned off, only calling
      this and the judge_scroll_bars_hook will get rid of them.
-     
+
      If non-zero, this hook should be safe to apply to any frame,
      whether or not it can support scroll bars, and whether or not it is
      currently displaying them.  */
@@ -555,7 +559,7 @@ struct terminal
      tree is redisplayed, even if it is not displaying scroll bars at the
      moment; if the HAS_SCROLL_BARS flag has just been turned off, only
      calling this and condemn_scroll_bars_hook will get rid of them.
-     
+
      If non-zero, this hook should be safe to apply to any frame,
      whether or not it can support scroll bars, and whether or not it is
      currently displaying them.  */
@@ -595,7 +599,7 @@ struct terminal
 
   /* Called after the last frame on this terminal is deleted, or when
      the display device was closed (hangup).
-     
+
      If this is NULL, then the generic delete_terminal is called
      instead.  Otherwise the hook must call delete_terminal itself.
 

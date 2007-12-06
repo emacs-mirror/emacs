@@ -28,8 +28,10 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
-  (defvar tool-bar-mode))
+  (require 'cl))
+
+(defvar tool-bar-mode)
+(defvar gnus-tmp-header)
 
 (require 'gnus)
 (require 'gnus-group)
@@ -2193,6 +2195,7 @@ increase the score of each group you read."
   "O" gnus-uu-decode-save
   "b" gnus-uu-decode-binhex
   "B" gnus-uu-decode-binhex
+  "Y" gnus-uu-decode-yenc
   "p" gnus-uu-decode-postscript
   "P" gnus-uu-decode-postscript-and-save)
 
@@ -4954,7 +4957,6 @@ Unscored articles will be counted as having a score of zero."
 (defvar gnus-tmp-root-expunged nil)
 (defvar gnus-tmp-dummy-line nil)
 
-(eval-when-compile (defvar gnus-tmp-header))
 (defun gnus-extra-header (type &optional header)
   "Return the extra header of TYPE."
   (or (cdr (assq type (mail-header-extra (or header gnus-tmp-header))))
@@ -5592,8 +5594,7 @@ If SELECT-ARTICLES, only select those articles from GROUP."
     (gnus-get-predicate display)))
 
 ;; Uses the dynamically bound `number' variable.
-(eval-when-compile
-  (defvar number))
+(defvar number)
 (defun gnus-article-marked-p (type &optional article)
   (let ((article (or article number)))
     (cond

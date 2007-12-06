@@ -32,6 +32,9 @@
 (eval-when-compile (require 'cl))
 
 (defvar nnmail-extra-headers)
+(defvar gnus-newsgroup-name)
+(defvar nnheader-file-coding-system)
+(defvar jka-compr-compression-info-list)
 
 ;; Requiring `gnus-util' at compile time creates a circular
 ;; dependency between nnheader.el and gnus-util.el.
@@ -696,7 +699,6 @@ the line could be found."
     (erase-buffer))
   (current-buffer))
 
-(eval-when-compile (defvar jka-compr-compression-info-list))
 (defvar nnheader-numerical-files
   (if (boundp 'jka-compr-compression-info-list)
       (concat "\\([0-9]+\\)\\("
@@ -939,9 +941,8 @@ first.  Otherwise, find the newest one, though it may take a time."
 	(car results)
       (car (sort results 'file-newer-than-file-p)))))
 
-(eval-when-compile
-  (defvar ange-ftp-path-format)
-  (defvar efs-path-regexp))
+(defvar ange-ftp-path-format)
+(defvar efs-path-regexp)
 (defun nnheader-re-read-dir (path)
   "Re-read directory PATH if PATH is on a remote system."
   (if (and (fboundp 'efs-re-read-dir) (boundp 'efs-path-regexp))

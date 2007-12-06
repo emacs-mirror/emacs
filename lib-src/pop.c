@@ -1010,12 +1010,19 @@ socket_connection (host, flags)
      char *host;
      int flags;
 {
+#ifdef HAVE_GETADDRINFO
+  struct addrinfo *res, *it;
+  struct addrinfo hints;
+  int ret;
+#else /* !HAVE_GETADDRINFO */
   struct hostent *hostent;
+#endif
   struct servent *servent;
   struct sockaddr_in addr;
   char found_port = 0;
   char *service;
   int sock;
+  char *realhost;
 #ifdef KERBEROS
 #ifdef KERBEROS5
   krb5_error_code rem;
@@ -1031,11 +1038,11 @@ socket_connection (host, flags)
   CREDENTIALS cred;
   Key_schedule schedule;
   int rem;
-  char *realhost;
 #endif /* KERBEROS5 */
 #endif /* KERBEROS */
 
   int try_count = 0;
+  int connect_ok;
 
 #ifdef WINDOWSNT
   {
@@ -1097,6 +1104,46 @@ socket_connection (host, flags)
 
     }
 
+#ifdef HAVE_GETADDRINFO
+  memset (&hints, 0, sizeof(hints));
+  hints.ai_socktype = SOCK_STREAM;
+  hints.ai_flags = AI_CANONNAME;
+  hints.ai_family = AF_INET;
+  do
+    {
+      ret = getaddrinfo (host, service, &hints, &res);
+      try_count++;
+      if (ret != 0 && (ret != EAI_AGAIN || try_count == 5))
+	{
+	  strcpy (pop_error, "Could not determine POP server's address");
+	  return (-1);
+	}
+    } while (ret != 0);
+
+  if (ret == 0)
+    {
+      it = res;
+      while (it)
+        {
+          if (it->ai_addrlen == sizeof (addr))
+            {
+              struct sockaddr_in *in_a = (struct sockaddr_in *) it->ai_addr;
+              bcopy (&in_a->sin_addr, (char *) &addr.sin_addr,
+                     sizeof (addr.sin_addr));
+              if (! connect (sock, (struct sockaddr *) &addr, sizeof (addr)))
+                break;
+            }
+          it = it->ai_next;
+        }
+      connect_ok = it != NULL;
+      if (connect_ok)
+        {
+          realhost = alloca (strlen (it->ai_canonname) + 1);
+          strcpy (realhost, it->ai_canonname);
+        }
+      freeaddrinfo (res);
+    }
+#else /* !HAVE_GETADDRINFO */
   do
     {
       hostent = gethostbyname (host);
@@ -1116,10 +1163,18 @@ socket_connection (host, flags)
 	break;
       hostent->h_addr_list++;
     }
+  connect_ok = *hostent->h_addr_list != NULL;
+  if (! connect_ok)
+    {
+      realhost = alloca (strlen (hostent->h_name) + 1);
+      strcpy (realhost, hostent->h_name);
+    }
+
+#endif /* !HAVE_GETADDRINFO */
 
 #define CONNECT_ERROR "Could not connect to POP server: "
 
-  if (! *hostent->h_addr_list)
+  if (! connect_ok)
     {
       CLOSESOCKET (sock);
       strcpy (pop_error, CONNECT_ERROR);
@@ -1130,6 +1185,7 @@ socket_connection (host, flags)
     }
 
 #ifdef KERBEROS
+
 #define KRB_ERROR "Kerberos error connecting to POP server: "
   if (! (flags & POP_NO_KERBEROS))
     {
@@ -1157,7 +1213,7 @@ socket_connection (host, flags)
       if (rem = krb5_cc_get_principal (kcontext, ccdef, &client))
 	goto krb5error;
 
-      for (cp = hostent->h_name; *cp; cp++)
+      for (cp = realhost; *cp; cp++)
 	{
 	  if (isupper (*cp))
 	    {
@@ -1165,7 +1221,7 @@ socket_connection (host, flags)
 	    }
 	}
 
-      if (rem = krb5_sname_to_principal (kcontext, hostent->h_name,
+      if (rem = krb5_sname_to_principal (kcontext, realhost,
 					 POP_SERVICE, FALSE, &server))
 	goto krb5error;
 
@@ -1210,7 +1266,6 @@ socket_connection (host, flags)
 	}
 #else  /* ! KERBEROS5 */
       ticket = (KTEXT) malloc (sizeof (KTEXT_ST));
-      realhost = strdup (hostent->h_name);
       rem = krb_sendauth (0L, sock, ticket, "pop", realhost,
 			  (char *) krb_realmofhost (realhost),
 			  (unsigned long) 0, &msg_data, &cred, schedule,
@@ -1218,7 +1273,6 @@ socket_connection (host, flags)
 			  (struct sockaddr_in *) 0,
 			  "KPOPV0.1");
       free ((char *) ticket);
-      free (realhost);
       if (rem != KSUCCESS)
 	{
 	  strcpy (pop_error, KRB_ERROR);

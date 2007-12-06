@@ -461,27 +461,6 @@ Currently this is called by `erc-send-input'."
     (upcase-word 1)
     (buffer-string)))
 
-(defun erc-server-send-ping (buf)
-  "Send a ping to the IRC server buffer in BUF.
-Additionally, detect whether the IRC process has hung."
-  (if (buffer-live-p buf)
-      (with-current-buffer buf
-        (if (and erc-server-send-ping-timeout
-                 (>
-                  (erc-time-diff (erc-current-time)
-                                 erc-server-last-received-time)
-                  erc-server-send-ping-timeout))
-            (progn
-              ;; if the process is hung, kill it
-              (setq erc-server-timed-out t)
-              (delete-process erc-server-process))
-          (erc-server-send (format "PING %.0f" (erc-current-time)))))
-    ;; remove timer if the server buffer has been killed
-    (let ((timer (assq buf erc-server-ping-timer-alist)))
-      (when timer
-        (erc-cancel-timer (cdr timer))
-        (setcdr timer nil)))))
-
 (defun erc-server-setup-periodical-ping (buffer)
   "Set up a timer to periodically ping the current server.
 The current buffer is given by BUFFER."
@@ -775,6 +754,27 @@ protection algorithm."
       (message "ERC: No process running")
       nil)))
 
+(defun erc-server-send-ping (buf)
+  "Send a ping to the IRC server buffer in BUF.
+Additionally, detect whether the IRC process has hung."
+  (if (buffer-live-p buf)
+      (with-current-buffer buf
+        (if (and erc-server-send-ping-timeout
+                 (>
+                  (erc-time-diff (erc-current-time)
+                                 erc-server-last-received-time)
+                  erc-server-send-ping-timeout))
+            (progn
+              ;; if the process is hung, kill it
+              (setq erc-server-timed-out t)
+              (delete-process erc-server-process))
+          (erc-server-send (format "PING %.0f" (erc-current-time)))))
+    ;; remove timer if the server buffer has been killed
+    (let ((timer (assq buf erc-server-ping-timer-alist)))
+      (when timer
+        (erc-cancel-timer (cdr timer))
+        (setcdr timer nil)))))
+
 ;; From Circe
 (defun erc-server-send-queue (buffer)
   "Send messages in `erc-server-flood-queue'.
@@ -1018,13 +1018,13 @@ NAME is the response name as sent by the server (see the IRC RFC for
 meanings).
 
 This creates:
- - a hook variable `erc-server-NAME-functions' initialised to `erc-server-NAME'.
+ - a hook variable `erc-server-NAME-functions' initialized to `erc-server-NAME'.
  - a function `erc-server-NAME' with body FN-BODY.
 
 If ALIASES is non-nil, each alias in ALIASES is `defalias'ed to
 `erc-server-NAME'.
 Alias hook variables are created as `erc-server-ALIAS-functions' and
-initialised to the same default value as `erc-server-NAME-functions'.
+initialized to the same default value as `erc-server-NAME-functions'.
 
 FN-BODY is the body of `erc-server-NAME' it may refer to the two
 function arguments PROC and PARSED.
@@ -1563,6 +1563,16 @@ See `erc-display-server-message'." nil
   (erc-process-away proc t)
   (erc-display-message parsed 'notice 'active
                        's306 ?m (erc-response.contents parsed)))
+
+(define-erc-response-handler (307)
+  "Display nick-identified message." nil
+  (multiple-value-bind (nick user message)
+      (cdr (erc-response.command-args parsed))
+    (erc-display-message
+     parsed 'notice 'active 's307
+     ?n nick
+     ?m (mapconcat 'identity (cddr (erc-response.command-args parsed))
+                   " "))))
 
 (define-erc-response-handler (311 314)
   "WHOIS/WHOWAS notices." nil

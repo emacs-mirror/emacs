@@ -488,7 +488,7 @@ new value.")
 ;;; Widget Properties.
 
 (defsubst widget-type (widget)
-  "Return the type of WIDGET, a symbol."
+  "Return the type of WIDGET.  The type is a symbol."
   (car widget))
 
 ;;;###autoload
@@ -1450,7 +1450,7 @@ The value of the :type attribute should be an unconverted widget type."
 
 (defun widget-default-complete (widget)
   "Call the value of the :complete-function property of WIDGET.
-If that does not exists, call the value of `widget-complete-field'."
+If that does not exist, call the value of `widget-complete-field'."
   (call-interactively (or (widget-get widget :complete-function)
 			  widget-complete-field)))
 

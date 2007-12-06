@@ -687,7 +687,6 @@ Usage: emacs -batch -l ~/.emacs -l gnus -f gnus-batch-score"
 	   (concat "options -n "
 		   (mapconcat 'identity command-line-args-left " "))))
 	 (gnus-expert-user t)
-	 (nnmail-spool-file nil)
 	 (mail-sources nil)
 	 (gnus-use-dribble-file nil)
 	 (gnus-batch-mode t)

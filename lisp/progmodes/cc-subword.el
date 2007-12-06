@@ -123,6 +123,8 @@ telling us which (X)Emacs version you're using."
       map)
     "Keymap used in command `c-subword-mode' minor mode.")
 
+  ;; Produces compiler warning about make-variable-buffer-local not
+  ;; being called at toplevel (due to fboundp test).
   (define-minor-mode c-subword-mode
     "Mode enabling subword movement and editing keys.
 In spite of GNU Coding Standards, it is popular to name a symbol by

@@ -864,7 +864,6 @@ do_symval_forwarding (valcontents)
      register Lisp_Object valcontents;
 {
   register Lisp_Object val;
-  int offset;
   if (MISCP (valcontents))
     switch (XMISCTYPE (valcontents))
       {
@@ -879,11 +878,10 @@ do_symval_forwarding (valcontents)
 	return *XOBJFWD (valcontents)->objvar;
 
       case Lisp_Misc_Buffer_Objfwd:
-	offset = XBUFFER_OBJFWD (valcontents)->offset;
-	return PER_BUFFER_VALUE (current_buffer, offset);
+	return PER_BUFFER_VALUE (current_buffer,
+				 XBUFFER_OBJFWD (valcontents)->offset);
 
       case Lisp_Misc_Kboard_Objfwd:
-	offset = XKBOARD_OBJFWD (valcontents)->offset;
         /* We used to simply use current_kboard here, but from Lisp
            code, it's value is often unexpected.  It seems nicer to
            allow constructions like this to work as intuitively expected:
@@ -895,7 +893,8 @@ do_symval_forwarding (valcontents)
            last-command and real-last-command, and people may rely on
            that.  I took a quick look at the Lisp codebase, and I
            don't think anything will break.  --lorentey  */
-	return *(Lisp_Object *)(offset + (char *)FRAME_KBOARD (SELECTED_FRAME ()));
+	return *(Lisp_Object *)(XKBOARD_OBJFWD (valcontents)->offset
+				+ (char *)FRAME_KBOARD (SELECTED_FRAME ()));
       }
   return valcontents;
 }
@@ -922,13 +921,15 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 	case Lisp_Misc_Intfwd:
 	  CHECK_NUMBER (newval);
 	  *XINTFWD (valcontents)->intvar = XINT (newval);
-	  if (*XINTFWD (valcontents)->intvar != XINT (newval))
-	    error ("Value out of range for variable `%s'",
-		   SDATA (SYMBOL_NAME (symbol)));
+	  /* This can never happen since intvar points to an EMACS_INT
+	     which is at least large enough to hold a Lisp_Object.
+             if (*XINTFWD (valcontents)->intvar != XINT (newval))
+	       error ("Value out of range for variable `%s'",
+	   	   SDATA (SYMBOL_NAME (symbol))); */
 	  break;
 
 	case Lisp_Misc_Boolfwd:
-	  *XBOOLFWD (valcontents)->boolvar = NILP (newval) ? 0 : 1;
+	  *XBOOLFWD (valcontents)->boolvar = !NILP (newval);
 	  break;
 
 	case Lisp_Misc_Objfwd:
@@ -968,12 +969,11 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 	case Lisp_Misc_Buffer_Objfwd:
 	  {
 	    int offset = XBUFFER_OBJFWD (valcontents)->offset;
-	    Lisp_Object type;
+	    Lisp_Object type = XBUFFER_OBJFWD (valcontents)->slottype;
 
-	    type = PER_BUFFER_TYPE (offset);
 	    if (! NILP (type) && ! NILP (newval)
 		&& XTYPE (newval) != XINT (type))
-	      buffer_slot_type_mismatch (offset);
+	      buffer_slot_type_mismatch (symbol, XINT (type));
 
 	    if (buf == NULL)
 	      buf = current_buffer;
@@ -1011,26 +1011,23 @@ void
 swap_in_global_binding (symbol)
      Lisp_Object symbol;
 {
-  Lisp_Object valcontents, cdr;
-
-  valcontents = SYMBOL_VALUE (symbol);
-  if (!BUFFER_LOCAL_VALUEP (valcontents))
-    abort ();
-  cdr = XBUFFER_LOCAL_VALUE (valcontents)->cdr;
+  Lisp_Object valcontents = SYMBOL_VALUE (symbol);
+  struct Lisp_Buffer_Local_Value *blv = XBUFFER_LOCAL_VALUE (valcontents);
+  Lisp_Object cdr = blv->cdr;
 
   /* Unload the previously loaded binding.  */
   Fsetcdr (XCAR (cdr),
-	   do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
+	   do_symval_forwarding (blv->realvalue));
 
   /* Select the global binding in the symbol.  */
   XSETCAR (cdr, cdr);
-  store_symval_forwarding (symbol, valcontents, XCDR (cdr), NULL);
+  store_symval_forwarding (symbol, blv->realvalue, XCDR (cdr), NULL);
 
   /* Indicate that the global binding is set up now.  */
-  XBUFFER_LOCAL_VALUE (valcontents)->frame = Qnil;
-  XBUFFER_LOCAL_VALUE (valcontents)->buffer = Qnil;
-  XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame = 0;
-  XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 0;
+  blv->frame = Qnil;
+  blv->buffer = Qnil;
+  blv->found_for_frame = 0;
+  blv->found_for_buffer = 0;
 }
 
 /* Set up the buffer-local symbol SYMBOL for validity in the current buffer.
@@ -1106,31 +1103,7 @@ find_symbol_value (symbol)
   if (BUFFER_LOCAL_VALUEP (valcontents))
     valcontents = swap_in_symval_forwarding (symbol, valcontents);
 
-  if (MISCP (valcontents))
-    {
-      switch (XMISCTYPE (valcontents))
-	{
-	case Lisp_Misc_Intfwd:
-	  XSETINT (val, *XINTFWD (valcontents)->intvar);
-	  return val;
-
-	case Lisp_Misc_Boolfwd:
-	  return (*XBOOLFWD (valcontents)->boolvar ? Qt : Qnil);
-
-	case Lisp_Misc_Objfwd:
-	  return *XOBJFWD (valcontents)->objvar;
-
-	case Lisp_Misc_Buffer_Objfwd:
-	  return PER_BUFFER_VALUE (current_buffer,
-				     XBUFFER_OBJFWD (valcontents)->offset);
-
-	case Lisp_Misc_Kboard_Objfwd:
-	  return *(Lisp_Object *)(XKBOARD_OBJFWD (valcontents)->offset
-				  + (char *)FRAME_KBOARD (SELECTED_FRAME ()));
-	}
-    }
-
-  return valcontents;
+  return do_symval_forwarding (valcontents);
 }
 
 DEFUN ("symbol-value", Fsymbol_value, Ssymbol_value, 1, 1, 0,
@@ -1240,9 +1213,9 @@ set_internal (symbol, newval, buf, bindflag)
 	  || buf != XBUFFER (XBUFFER_LOCAL_VALUE (valcontents)->buffer)
 	  || (XBUFFER_LOCAL_VALUE (valcontents)->check_frame
 	      && !EQ (selected_frame, XBUFFER_LOCAL_VALUE (valcontents)->frame))
-	  || (BUFFER_LOCAL_VALUEP (valcontents)
-	      && EQ (XCAR (current_alist_element),
-		     current_alist_element)))
+	  /* Also unload a global binding (if the var is local_if_set). */
+	  || (EQ (XCAR (current_alist_element),
+		  current_alist_element)))
 	{
 	  /* The currently loaded binding is not necessarily valid.
 	     We need to unload it, and choose a new binding.  */
@@ -1260,7 +1233,7 @@ set_internal (symbol, newval, buf, bindflag)
 	    {
 	      /* This buffer still sees the default value.  */
 
-	      /* If the variable is a Lisp_Some_Buffer_Local_Value,
+	      /* If the variable is not local_if_set,
 		 or if this is `let' rather than `set',
 		 make CURRENT-ALIST-ELEMENT point to itself,
 		 indicating that we're seeing the default value.
@@ -1301,6 +1274,9 @@ set_internal (symbol, newval, buf, bindflag)
 	  XBUFFER_LOCAL_VALUE (valcontents)->frame = selected_frame;
 	}
       innercontents = XBUFFER_LOCAL_VALUE (valcontents)->realvalue;
+
+      /* Store the new value in the cons-cell.  */
+      XSETCDR (XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr), newval);
     }
 
   /* If storing void (making the symbol void), forward only through
@@ -1309,24 +1285,6 @@ set_internal (symbol, newval, buf, bindflag)
     store_symval_forwarding (symbol, Qnil, newval, buf);
   else
     store_symval_forwarding (symbol, innercontents, newval, buf);
-
-  /* If we just set a variable whose current binding is frame-local,
-     store the new value in the frame parameter too.  */
-
-  if (BUFFER_LOCAL_VALUEP (valcontents))
-    {
-      /* What binding is loaded right now?  */
-      current_alist_element
-	= XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
-
-      /* If the current buffer is not the buffer whose binding is
-	 loaded, or if there may be frame-local bindings and the frame
-	 isn't the right one, or if it's a Lisp_Buffer_Local_Value and
-	 the default binding is loaded, the loaded binding may be the
-	 wrong one.  */
-      if (XBUFFER_LOCAL_VALUE (valcontents)->found_for_frame)
-	XSETCDR (current_alist_element, newval);
-    }
 
   return newval;
 }
@@ -2320,7 +2278,7 @@ NUMBER may be an integer or a floating point number.  */)
     }
 
   if (sizeof (int) == sizeof (EMACS_INT))
-    sprintf (buffer, "%d", XINT (number));
+    sprintf (buffer, "%d", (int) XINT (number));
   else if (sizeof (long) == sizeof (EMACS_INT))
     sprintf (buffer, "%ld", (long) XINT (number));
   else

@@ -265,7 +265,7 @@ This can also be a function receiving the group name as the only
 parameter, which should return non-nil if a confirmation is needed; or
 a regexp, in which case a confirmation is asked for if the group name
 matches the regexp."
-  :version "22.1"
+  :version "23.0" ;; No Gnus (default changed)
   :group 'gnus-message
   :type '(choice (const :tag "No" nil)
 		 (const :tag "Yes" t)
@@ -1101,7 +1101,10 @@ If VERY-WIDE, make a very wide reply."
 		       ((functionp gnus-confirm-mail-reply-to-news)
 			(funcall gnus-confirm-mail-reply-to-news gnus-newsgroup-name))
 		       (t gnus-confirm-mail-reply-to-news)))
-	    (y-or-n-p "Really reply by mail to article author? "))
+	    (if (or wide very-wide)
+		t ;; Ignore gnus-confirm-mail-reply-to-news for wide and very
+		  ;; wide replies.
+	      (y-or-n-p "Really reply by mail to article author? ")))
     (let* ((article
 	    (if (listp (car yank))
 		(caar yank)

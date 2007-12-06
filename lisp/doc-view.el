@@ -97,15 +97,40 @@
 ;;
 ;; and modify them to your needs.
 
-;;; Code:
+;;; Todo:
 
-;; Todo:
 ;; - better menu.
 ;; - don't use `find-file'.
 ;; - Bind slicing to a drag event.
-;; - zoom (the whole document and/or just the region around the cursor).
+;; - doc-view-fit-doc-to-window and doc-view-fit-window-to-doc.
+;; - zoom a the region around the cursor (like xdvi).
 ;; - get rid of the silly arrow in the fringe.
 ;; - improve anti-aliasing (pdf-utils gets it better).
+
+;;;; About isearch support
+
+;; I tried implementing isearch by setting
+;; `isearch-search-fun-function' buffer-locally, but that didn't
+;; work too good.  The function doing the real search was called
+;; endlessly somehow.  But even if we'd get that working no real
+;; isearch feeling comes up due to the missing match highlighting.
+;; Currently I display all lines containing a match in a tooltip and
+;; each C-s or C-r jumps directly to the next/previous page with a
+;; match.  With isearch we could only display the current match.  So
+;; we had to decide if another C-s jumps to the next page with a
+;; match (thus only the first match in a page will be displayed in a
+;; tooltip) or to the next match, which would do nothing visible
+;; (except the tooltip) if the next match is on the same page.
+
+;; And it's much slower than the current search facility, because
+;; isearch really searches for each step forward or backward wheras
+;; the current approach searches once and then it knows to which
+;; pages to jump.
+
+;; Anyway, if someone with better isearch knowledge wants to give it a try,
+;; feel free to do it.  --Tassilo
+
+;;; Code:
 
 (require 'dired)
 (require 'image-mode)
@@ -130,9 +155,15 @@
   '("-dSAFER" ;; Avoid security problems when rendering files from untrusted
 	      ;; sources.
     "-dNOPAUSE" "-sDEVICE=png16m" "-dTextAlphaBits=4"
-    "-dBATCH" "-dGraphicsAlphaBits=4" "-dQUIET" "-r100")
+    "-dBATCH" "-dGraphicsAlphaBits=4" "-dQUIET")
   "A list of options to give to ghostscript."
   :type '(repeat string)
+  :group 'doc-view)
+
+(defcustom doc-view-resolution 100
+  "Dots per inch resolution used to render the documents.
+Higher values result in larger images."
+  :type 'number
   :group 'doc-view)
 
 (defcustom doc-view-dvipdfm-program (executable-find "dvipdfm")
@@ -203,8 +234,12 @@ has finished."
 
 (defvar doc-view-current-image nil
   "Only used internally.")
-(defvar doc-view-current-overlay)
-(defvar doc-view-pending-cache-flush nil)
+
+(defvar doc-view-current-overlay nil
+  "Only used internally.")
+
+(defvar doc-view-pending-cache-flush nil
+  "Only used internally.")
 
 (defvar doc-view-current-info nil
   "Only used internally.")
@@ -229,6 +264,9 @@ has finished."
     (define-key map (kbd "M-<")       'doc-view-first-page)
     (define-key map (kbd "M->")       'doc-view-last-page)
     (define-key map [remap goto-line] 'doc-view-goto-page)
+    ;; Zoom in/out.
+    (define-key map "+"               'doc-view-enlarge)
+    (define-key map "-"               'doc-view-shrink)
     ;; Killing/burying the buffer (and the process)
     (define-key map (kbd "q")         'bury-buffer)
     (define-key map (kbd "k")         'doc-view-kill-proc-and-buffer)
@@ -422,7 +460,39 @@ It's a subdirectory of `doc-view-cache-directory'."
       (when (not (funcall predicate item))
 	(setq new-list (cons item new-list))))))
 
+;;;###autoload
+(defun doc-view-mode-p (type)
+  "Return non-nil if image type TYPE is available for `doc-view'.
+Image types are symbols like `dvi', `postscript' or `pdf'."
+  (and (display-graphic-p)
+       (image-type-available-p 'png)
+       (cond
+	((eq type 'dvi)
+	 (and (doc-view-mode-p 'pdf)
+	      doc-view-dvipdfm-program
+	      (executable-find doc-view-dvipdfm-program)))
+	((or (eq type 'postscript) (eq type 'ps)
+	     (eq type 'pdf))
+	 (and doc-view-ghostscript-program
+	      (executable-find doc-view-ghostscript-program)))
+	(t ;; unknown image type
+	 nil))))
+
 ;;;; Conversion Functions
+
+(defvar doc-view-shrink-factor 1.125)
+
+(defun doc-view-enlarge (factor)
+  "Enlarge the document."
+  (interactive (list doc-view-shrink-factor))
+  (set (make-local-variable 'doc-view-resolution)
+       (* factor doc-view-resolution))
+  (doc-view-reconvert-doc))
+
+(defun doc-view-shrink (factor)
+  "Shrink the document."
+  (interactive (list doc-view-shrink-factor))
+  (doc-view-enlarge (/ 1.0 factor)))
 
 (defun doc-view-reconvert-doc ()
   "Reconvert the current document.
@@ -479,6 +549,7 @@ Should be invoked when the cached images aren't up-to-date."
 	       (append (list "pdf/ps->png" doc-view-conversion-buffer
 			     doc-view-ghostscript-program)
 		       doc-view-ghostscript-options
+                       (list (format "-r%d" (round doc-view-resolution)))
 		       (list (concat "-sOutputFile=" png))
 		       (list pdf-ps)))
 	mode-line-process (list (format ":%s" doc-view-current-converter-process)))
@@ -738,7 +809,7 @@ the pagenumber and CONTEXTS are all lines of text containing a match."
   "Call `doc-view-search' for backward search.
 If prefix NEW-QUERY is given, ask for a new regexp."
   (interactive "P")
-  (doc-view-search arg t))
+  (doc-view-search new-query t))
 
 (defun doc-view-search (new-query &optional backward)
   "Jump to the next match or initiate a new search if NEW-QUERY is given.
@@ -746,7 +817,7 @@ If the current document hasn't been transformed to plain text
 till now do that first.
 If BACKWARD is non-nil, jump to the previous match."
   (interactive "P")
-  (if (and (not arg)
+  (if (and (not new-query)
 	   doc-view-current-search-matches)
       (if backward
 	  (doc-view-search-previous-match 1)
@@ -820,8 +891,7 @@ If BACKWARD is non-nil, jump to the previous match."
 
 (defun doc-view-initiate-display ()
   ;; Switch to image display if possible
-  (if (and (display-images-p)
-	   (image-type-available-p 'png))
+  (if (doc-view-mode-p (intern (file-name-extension buffer-file-name)))
       (progn
 	(doc-view-buffer-message)
 	(setq doc-view-current-page (or doc-view-current-page 1))
@@ -838,8 +908,9 @@ If BACKWARD is non-nil, jump to the previous match."
     (message
      "%s"
      (substitute-command-keys
-      (concat "No image (png) support available.  Type \\[doc-view-toggle-display] "
-	      "to switch to an editing mode.")))))
+      (concat "No image (png) support available or some conversion utility for "
+	      (file-name-extension buffer-file-name)" files is missing.  "
+	      "Type \\[doc-view-toggle-display] to switch to an editing mode.")))))
 
 ;;;###autoload
 (defun doc-view-mode ()

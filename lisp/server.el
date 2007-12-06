@@ -811,17 +811,18 @@ The following commands are accepted by the client:
                 tty-type             ;string.
 		(files nil)
 		(lineno 1)
-		(columnno 0))
+		(columnno 0)
+		command-line-args-left
+		arg)
 	    ;; Remove this line from STRING.
 	    (setq string (substring string (match-end 0)))
-	    (while (string-match " *[^ ]* " request)
-	      (let ((arg (substring request (match-beginning 0)
-                                    (1- (match-end 0)))))
-		(setq request (substring request (match-end 0)))
+	    (setq command-line-args-left
+		  (mapcar 'server-unquote-arg (split-string request " " t)))
+	    (while (setq arg (pop command-line-args-left))
 		(cond
 		 ;; -version CLIENT-VERSION: obsolete at birth.
-		 ((and (equal "-version" arg) (string-match "[^ ]+ " request))
-                  (setq request (substring request (match-end 0))))
+		 ((and (equal "-version" arg) command-line-args-left)
+		  (pop command-line-args-left))
 
 		 ;; -nowait:  Emacsclient won't wait for a result.
 		 ((equal "-nowait" arg) (setq nowait t))
@@ -831,10 +832,8 @@ The following commands are accepted by the client:
 
 		 ;; -display DISPLAY:
 		 ;; Open X frames on the given display instead of the default.
-		 ((and (equal "-display" arg)
-                       (string-match "\\([^ ]*\\) " request))
-                  (setq display (match-string 1 request))
-		  (setq request (substring request (match-end 0))))
+		 ((and (equal "-display" arg) command-line-args-left)
+		  (setq display (pop command-line-args-left)))
 
 		 ;; -window-system:  Open a new X frame.
 		 ((equal "-window-system" arg)
@@ -863,33 +862,32 @@ The following commands are accepted by the client:
 
 		 ;; -ignore COMMENT:  Noop; useful for debugging emacsclient.
 		 ;; (The given comment appears in the server log.)
-		 ((and (equal "-ignore" arg) (string-match "[^ ]* " request))
-		  (setq dontkill t
-			request (substring request (match-end 0))))
+		 ((and (equal "-ignore" arg) command-line-args-left
+		  (setq dontkill t)
+		  (pop command-line-args-left)))
 
 		 ;; -tty DEVICE-NAME TYPE:  Open a new tty frame at the client.
 		 ((and (equal "-tty" arg)
-                       (string-match "\\([^ ]*\\) \\([^ ]*\\) " request))
-                  (setq tty-name (match-string 1 request))
-                  (setq tty-type (match-string 2 request))
-                  (setq dontkill t)
-                  (setq request (substring request (match-end 0))))
+                       (cdr command-line-args-left))
+                  (setq tty-name (pop command-line-args-left)
+			tty-type (pop command-line-args-left)
+			dontkill t))
 
 		 ;; -position LINE[:COLUMN]:  Set point to the given
 		 ;;  position in the next file.
 		 ((and (equal "-position" arg)
-                       (string-match "\\+\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)? "
-                                     request))
-		  (setq lineno (string-to-number (match-string 1 request))
+		       command-line-args-left
+                       (string-match "\\+\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?"
+                                     (car command-line-args-left)))
+		  (setq arg (pop command-line-args-left))
+		  (setq lineno (string-to-number (match-string 1 arg))
 			columnno (if (null (match-end 2)) 0
-                                   (string-to-number (match-string 2 request)))
-			request (substring request (match-end 0))))
+                                   (string-to-number (match-string 2 arg)))))
 
 		 ;; -file FILENAME:  Load the given file.
 		 ((and (equal "-file" arg)
-                       (string-match "\\([^ ]+\\) " request))
-		  (let ((file (server-unquote-arg (match-string 1 request))))
-		    (setq request (substring request (match-end 0)))
+		       command-line-args-left)
+		  (let ((file (pop command-line-args-left)))
 		    (if coding-system
 			(setq file (decode-coding-string file coding-system)))
 		    (setq file (command-line-normalize-file-name file))
@@ -901,10 +899,8 @@ The following commands are accepted by the client:
 
 		 ;; -eval EXPR:  Evaluate a Lisp expression.
 		 ((and (equal "-eval" arg)
-                       (string-match "\\([^ ]+\\) " request))
-		  (lexical-let ((expr (server-unquote-arg
-                                       (match-string 1 request))))
-		    (setq request (substring request (match-end 0)))
+                       command-line-args-left)
+		  (lexical-let ((expr (pop command-line-args-left)))
 		    (if coding-system
 			(setq expr (decode-coding-string expr coding-system)))
                     (push (lambda () (server-eval-and-print expr proc))
@@ -913,23 +909,21 @@ The following commands are accepted by the client:
 			  columnno 0)))
 
 		 ;; -env NAME=VALUE:  An environment variable.
-		 ((and (equal "-env" arg) (string-match "\\([^ ]+\\) " request))
-		  (let ((var (server-unquote-arg (match-string 1 request))))
+		 ((and (equal "-env" arg) command-line-args-left)
+		  (let ((var (pop command-line-args-left)))
 		    ;; XXX Variables should be encoded as in getenv/setenv.
-		    (setq request (substring request (match-end 0)))
                     (process-put proc 'env
                                  (cons var (process-get proc 'env)))))
 
 		 ;; -dir DIRNAME:  The cwd of the emacsclient process.
-		 ((and (equal "-dir" arg) (string-match "\\([^ ]+\\) " request))
-		  (setq dir (server-unquote-arg (match-string 1 request)))
-		  (setq request (substring request (match-end 0)))
+		 ((and (equal "-dir" arg) command-line-args-left)
+		  (setq dir (pop command-line-args-left))
 		  (if coding-system
 		      (setq dir (decode-coding-string dir coding-system)))
 		  (setq dir (command-line-normalize-file-name dir)))
 
 		 ;; Unknown command.
-		 (t (error "Unknown command: %s" arg)))))
+		 (t (error "Unknown command: %s" arg))))
 
             (setq frame
                   (case tty-name

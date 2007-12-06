@@ -1,3 +1,346 @@
+2007-12-05  Magnus Henoch  <mange@freemail.hu>
+
+	* process.c (make_process): Initialize pty_flag to 0.
+
+2007-12-05  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (xbm_load) [WINDOWSNT]: Shuffle the bits of directly
+	specified XBMs.
+
+2007-12-05  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (syms_of_xdisp) <scroll-conservatively>: Doc fix.
+
+2007-12-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (cfsockets_for_select) [MAC_OSX && SELECT_USE_CFSOCKET]:
+	New variable.
+	(mac_try_close_socket) [MAC_OSX]: New function.
+	[MAC_OSX] (sys_select) [SELECT_USE_CFSOCKET]:
+	Update cfsockets_for_select.  Replace invalid CFRunLoop source.
+
+	* sysdep.c (emacs_close) [MAC_OSX && HAVE_CARBON]:
+	Use mac_try_close_socket.
+
+2007-12-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (unrelocate): New argument BASE.  Use it instead of
+	reloc_base.
+	(copy_dysymtab): Compute relocation base here.
+	(rebase_reloc_address) [__ppc64__]: New function.
+	(copy_dysymtab) [__ppc64__]: Use it if relocation base needs to be
+	changed.
+
+2007-12-05  Jason Rumney  <jasonr@gnu.org>
+
+	* w32proc.c (sys_spawnve): Quote args with wildcards.
+
+2007-12-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* unexmacosx.c (copy_data_segment): Also copy __gcc_except_tab and
+	__objc_* sections.
+	(unrelocate) [_LP64]: Set relocation base to address of data segment.
+
+2007-12-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_read_message): Return value is a Lisp_Object.
+	Move check for Vdbus_registered_functions_table to
+	xd_read_queued_messages.
+	(xd_read_queued_messages): Protect xd_read_message calls by
+	internal_condition_case_1.
+
+2007-12-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (QCdbus_system_bus, QCdbus_session_bus): Renamed from
+	Qdbus_system_bus and Qdbus_session_bus, respectively.
+	(Vdbus_intern_symbols): Removed.
+	(Vdbus_registered_functions_table): New hash table.
+	(XD_SYMBOL_INTERN_SYMBOL): Removed.
+	(xd_read_message, Fdbus_register_signal, Fdbus_unregister_signal):
+	Rewritten in order to manage registered functions by hash table
+	Vdbus_registered_functions_table.
+
+2007-12-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c: Update URL to Window Manager Specification in comment.
+
+2007-12-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* config.in (HAVE_DBUS): Add.
+
+	* Makefile.in: (HAVE_DBUS): Add D-Bus definitions if defined.
+	(ALL_CFLAGS): Add ${DBUS_CFLAGS}.
+	(obj): Add $(DBUS_OBJ).
+	(LIBES): Add $(DBUS_LIBS).
+	(dbusbind.o): New target.
+
+	* dbusbind.c: New file.
+
+	* emacs.c (main): Call syms_of_dbusbind when HAVE_DBUS is defined.
+
+	* keyboard.c: All D-Bus related code is wrapped by "#ifdef HAVE_DBUS".
+	(Qdbus_event) New Lisp symbol.
+	(kbd_buffer_get_event, make_lispy_event): Handle DBUS_EVENT.
+	(gobble_input): Call xd_read_queued_messages, reading D-Bus
+	messages.
+	(keys_of_keyboard ): Define dbus-event.
+
+	* termhooks.h (event_kind): Add DBUS_EVENT when HAVE_DBUS is defined.
+
+2007-12-01  Richard Stallman  <rms@gnu.org>
+
+	* search.c (syms_of_search) <inhibit-changing-match-data>: Doc fix.
+
+2007-11-30  Jason Rumney  <jasonr@gnu.org>
+
+	* w32console.c (w32con_ins_del_lines, scroll_line): Clip to window.
+	(w32con_reset_terminal_modes): Clear screen buffer.
+	(w32_face_attributes): Don't use color indexes that are out of range.
+	Only reverse the default colors.
+
+	* xfaces.c (map_tty_color, tty_color_name): Remove special case for
+	WINDOWSNT.
+
+	* w32console.c, w32term.h (vga_stdcolor_name): Remove.
+
+2007-11-29  Jason Rumney  <jasonr@gnu.org>
+
+	* w32console.c: Leave HAVE_WINDOW_SYSTEM defined.
+	(w32_face_attributes): Use Vtty_defined_color_alist to determine
+	if the terminal colors are initialized.
+	(unspecified_fg, unspecified_bg): Remove unused declarations.
+
+2007-11-29  Andreas Schwab  <schwab@suse.de>
+
+	* keyboard.c (apply_modifiers): Fix typo.
+
+2007-11-29  Richard Stallman  <rms@gnu.org>
+
+	* keymap.c (Fcurrent_local_map): Doc fix.
+
+2007-11-28  Petr Salinger  <Petr.Salinger@seznam.cz>  (tiny change)
+
+	* s/gnu-kfreebsd.h: New file.
+
+2007-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Fget_buffer_create, Fmake_indirect_buffer):
+	Don't cast redundantly.
+
+	* keyboard.c (KEY_TO_CHAR): New macro.
+	(parse_modifiers, apply_modifiers): Accept integer arguments.
+	(read_key_sequence): Use them to unify the "shift->unshift" mapping
+	for chars and symbol keys.
+	After doing such remapping, apply function-key-map again.
+
+2007-11-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (SOME_MACHINE_LISP): Remove VMS files, they are not
+	compiled anymore.
+
+2007-11-26  Andreas Schwab  <schwab@suse.de>
+
+	* process.c (list_processes_1): Fix indentation level of the
+	command column.
+
+2007-11-23  Andreas Schwab  <schwab@suse.de>
+
+	* editfns.c (Fformat): Handle %c specially since it requires the
+	argument to be of type int.
+
+2007-11-23  Markus Triska  <markus.triska@gmx.at>
+
+	* emacs.c (main): Call init_editfns before init_process, since
+	init_process sets Vprocess_connection_type depending on OS release
+
+2007-11-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* data.c (do_symval_forwarding): Use same code as in find_symbol_value.
+	(find_symbol_value): Use do_symval_forwarding.
+
+	* data.c (set_internal): Set the value in the `cons-cell' (for
+	Buffer_Local_values) not only for frame-local variables.
+
+2007-11-22  Andreas Schwab  <schwab@suse.de>
+
+	* data.c (Fnumber_to_string): Add cast when passing EMACS_INT
+	values to sprintf.
+	* keymap.c (Fsingle_key_description): Likewise.
+	* print.c (print_object): Likewise.
+
+2007-11-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (update_frame_tool_bar): Don't call x-gtk-map-stock if
+	file for image is nil.
+
+2007-11-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c: Include stdarg.h.
+	(fatal): Implement using varargs.
+	* lisp.h (fatal): Add argument types. (Restore 2005-09-30 change).
+
+2007-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (struct Lisp_Buffer_Objfwd): Add a `slottype' field.
+	* data.c (store_symval_forwarding): Get type from buffer_objfwd.
+	Update call to buffer_slot_type_mismatch.
+	* buffer.h (buffer_local_types, PER_BUFFER_TYPE): Remove.
+	(buffer_slot_type_mismatch): Update.
+	* buffer.c (buffer_local_types): Remove.
+	(buffer_slot_type_mismatch): Get the symbol and type as arguments.
+	(defvar_per_buffer): Set the type in the buffer_objfwd.
+
+2007-11-21  Jason Rumney  <jasonr@gnu.org>
+
+	* w32bdf.c (w32_init_bdf_font, w32_BDF_to_x_font):
+	CreateFileMapping returns NULL on failure.
+
+2007-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* search.c (Fset_match_data): Remove the `evaporate' feature.
+	(unwind_set_match_data): Don't use the `evaporate' feature.
+
+2007-11-21  Jason Rumney  <jasonr@gnu.org>
+
+	* dispnew.c (init_display) [WINDOWSNT]: Hardcode terminal_type.
+
+	* w32console.c (w32con_write_glyphs): Remove unused variables.
+
+2007-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* macterm.c (mac_term_init): Call add_keyboard_wait_descriptor.
+
+	* s/darwin.h (MULTI_KBOARD): Remove.
+
+	* macfns.c (x_create_tip_frame, Fx_create_frame)
+	(x_create_tip_frame): Don't deal with MULTI_KBOARD.
+
+2007-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Fbuffer_local_value): Remove redundant test.
+	(swap_out_buffer_local_variables): Swap out binding in `buffer' rather
+	than in `current-buffer' to match the comment.
+	Do the swap using swap_in_global_binding.
+
+	* data.c (store_symval_forwarding, set_internal):
+	* eval.c (specbind): Remove dead code.
+
+	* coding.c (detect_coding, Fupdate_coding_systems_internal):
+	* fns.c (Fmd5): Use find_symbol_value rather than SYMBOL_VALUE
+	Since we do not want to see internal Lisp_*fwd objects here.
+
+2007-11-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* sysdep.c (init_system_name): Use getaddrinfo if available.
+
+	* xterm.c (x_scroll_bar_set_handle, x_scroll_bar_handle_click)
+	(x_scroll_bar_note_movement): start, end, with, height in struct
+	scroll_bar are integers and not Lisp_Object, so remove XINT for them.
+
+2007-11-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* puresize.h (BASE_PURESIZE): Increase to 1190000.
+
+2007-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.h (struct buffer): Move `undo_list' back to before `name'.
+	This undoes Richard's change of 14-Oct-2002.
+
+	* alloc.c (allocate_other_vector):
+	* lisp.h (allocate_other_vector): Remove.
+
+	* window.c (struct save_window_data): Move non-lisp data to the end
+	and make it `int' rather than Lisp_Object.
+	(Fcurrent_window_configuration): Use ALLOCATE_PSEUDOVECTOR.
+	Done wrap/unwrap integer values.
+	(Fset_window_configuration, compare_window_configurations):
+	Update use of fields to their new types.
+
+	* xterm.h (struct scroll_bar): Only use Lisp_Object for lisp data.
+	Turn integer fields into `int'.  Merge x_window_low and x_window_high.
+	(SCROLL_BAR_PACK, SCROLL_BAR_UNPACK, SCROLL_BAR_X_WINDOW)
+	(SET_SCROLL_BAR_X_WINDOW): Remove.
+	(SCROLL_BAR_X_WIDGET, SET_SCROLL_BAR_X_WIDGET):
+	Access the new x_window field directly.
+	* xterm.c (x_scroll_bar_create): Use a pseudovector.
+	Don't wrap/unwrap integers into Lisp_Objects.
+	(XTset_vertical_scroll_bar, x_scroll_bar_handle_click)
+	(x_scroll_bar_report_motion):
+	Don't wrap/unwrap integers into Lisp_Objects.
+	(x_term_init): Use SDATA.
+	(x_window_to_scroll_bar, x_create_toolkit_scroll_bar)
+	(x_scroll_bar_set_handle, x_scroll_bar_remove)
+	(XTset_vertical_scroll_bar, x_scroll_bar_expose)
+	(x_scroll_bar_report_motion, x_scroll_bar_clear):
+	* xfns.c (x_set_background_color):
+	* gtkutil.c (xg_create_scroll_bar, xg_set_toolkit_scroll_bar_thumb):
+	Access the new x_window field directly.
+
+	* alloc.c (ALLOCATE_PSEUDOVECTOR): Move to lisp.h.
+	(allocate_pseudovector): Make non-static.
+
+	* lisp.h (enum pvec_type): New tag PVEC_OTHER.
+	(allocate_pseudovector): Declare.
+	(ALLOCATE_PSEUDOVECTOR): Move from alloc.c
+
+2007-11-15  Andreas Schwab  <schwab@suse.de>
+
+	* editfns.c (Fformat): Correctly format EMACS_INT values.
+	Also take precision into account when formatting an integer.
+
+	* keyboard.c (Fevent_symbol_parse_modifiers): Fix declaration.
+
+2007-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (Fevent_symbol_parse_modifiers): New function.
+	(syms_of_keyboard): Defsubr it.
+
+	* data.c (swap_in_global_binding): Fix longstanding bug where
+	store_symval_forwarding was not called with the right second argument,
+	thus causing objfwd-ing from being dropped.
+
+2007-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* macfns.c (Fx_create_frame, Fx_display_pixel_width)
+	(Fx_display_pixel_height, Fx_display_planes)
+	(Fx_display_color_cells, Fx_server_max_request_size)
+	(Fx_server_vendor, Fx_server_version, Fx_display_backing_store)
+	(Fx_display_visual_class, Fx_display_save_under):
+	* w32fns.c (Fx_create_frame, Fx_display_pixel_width)
+	(Fx_display_pixel_height, Fx_display_planes)
+	(Fx_display_color_cells, Fx_server_max_request_size)
+	(Fx_server_vendor, Fx_server_version, Fx_display_screens)
+	(Fx_display_mm_height, Fx_display_mm_width)
+	(Fx_display_backing_store, Fx_display_visual_class)
+	(Fw32_select_font, Fx_display_save_under):
+	* xfns.c (Fx_create_frame, Fx_display_pixel_width)
+	(Fx_display_pixel_height, Fx_display_planes)
+	(Fx_display_color_cells, Fx_server_max_request_size)
+	(Fx_server_vendor, Fx_server_version, Fx_display_backing_store)
+	(Fx_display_save_under): Fix typos in docstrings.
+
+2007-11-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Fw32_registered_hot_keys): Don't return the nil values
+	corresponding to deleted entries; they are an implementation detail.
+	(gray_bitmap_width, gray_bitmap_height, gray_bitmap_bits):
+	Remove variables.
+	(w32_pass_extra_mouse_buttons_to_system, w32_strict_fontnames)
+	(w32_pass_multimedia_buttons_to_system, w32_strict_painting)
+	(Vw32_charset_info_alist, w32_to_x_color, w32_init_class)
+	(w32_createscrollbar, w32_createwindow, my_post_msg, w32_get_modifiers)
+	(w32_grabbed_keys, cancel_all_deferred_msgs): Make static.
+	(Fw32_define_rgb_color, Fw32_load_color_file)
+	(syms_of_w32fns) <w32-pass-multimedia-buttons-to-system>:
+	Fix typos in docstrings.
+	(Fx_server_version): Reflow docstring.
+	(Fw32_shell_execute): Doc fixes.
+
+2007-11-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (Fw32_register_hot_key): Don't try to register hot key
+	if w32_parse_hot_key returned nil.
+
 2007-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (load_overlay_strings): Fix copy&paste typo.
@@ -107,7 +450,7 @@
 2007-11-01  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
 
 	* macterm.c, w32term.c, xterm.c (x_draw_stretch_glyph_string):
-        Don't set s->stippled_p here, since it has already been set by
+	Don't set s->stippled_p here, since it has already been set by
 	x_set_glyph_string_gc from x_draw_glyph_string.
 
 2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>

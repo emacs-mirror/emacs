@@ -35,9 +35,9 @@
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
     (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil nil 'nosuffix))
+	(load "ediff-init.el" nil t 'nosuffix))
     (or (featurep 'ediff-util)
-	(load "ediff-util.el" nil nil 'nosuffix))
+	(load "ediff-util.el" nil t 'nosuffix))
     ))
 ;; end pacifier
 
@@ -343,6 +343,7 @@ one optional arguments, diff-number to refine.")
 	    (get-buffer-create (ediff-unique-buffer-name
 				"*ediff-errors" "*"))))
   (ediff-with-current-buffer ediff-error-buffer
+    (setq buffer-undo-list t)
     (erase-buffer)
     (insert (ediff-with-current-buffer diff-buff (buffer-string)))
     (goto-char (point-min))

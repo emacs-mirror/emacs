@@ -2967,7 +2967,7 @@ allocate_vector (nslots)
 
 /* Allocate other vector-like structures.  */
 
-static struct Lisp_Vector *
+struct Lisp_Vector *
 allocate_pseudovector (memlen, lisplen, tag)
      int memlen, lisplen;
      EMACS_INT tag;
@@ -2983,10 +2983,6 @@ allocate_pseudovector (memlen, lisplen, tag)
   XSETPVECTYPE (v, tag);	/* Add the appropriate tag.  */
   return v;
 }
-#define ALLOCATE_PSEUDOVECTOR(typ,field,tag)				\
-  ((typ*)								\
-   allocate_pseudovector						\
-       (VECSIZE (typ), PSEUDOVECSIZE (typ, field), tag))
 
 struct Lisp_Hash_Table *
 allocate_hash_table (void)
@@ -3030,22 +3026,6 @@ struct Lisp_Process *
 allocate_process ()
 {
   return ALLOCATE_PSEUDOVECTOR (struct Lisp_Process, pid, PVEC_PROCESS);
-}
-
-
-/* Only used for PVEC_WINDOW_CONFIGURATION. */
-struct Lisp_Vector *
-allocate_other_vector (len)
-     EMACS_INT len;
-{
-  struct Lisp_Vector *v = allocate_vectorlike (len);
-  EMACS_INT i;
-
-  for (i = 0; i < len; ++i)
-    v->contents[i] = Qnil;
-  v->size = len;
-
-  return v;
 }
 
 

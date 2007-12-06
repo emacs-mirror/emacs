@@ -34,6 +34,8 @@
 (require 'gnus-util)
 (require 'gnus)
 
+(defvar gnus-face-properties-alist)
+
 (defcustom gnus-x-face-directory (expand-file-name "x-faces" gnus-directory)
   "*Directory where X-Face PBM files are stored."
   :version "22.1"

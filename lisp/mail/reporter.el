@@ -168,6 +168,9 @@ composed.")
     (goto-char (1+ (nth 1 state)))
     (current-column)))
 
+(declare-function mail-position-on-field "sendmail" (field &optional soft))
+(declare-function mail-text "sendmail" ())
+
 (defun reporter-dump-variable (varsym mailbuf)
   "Pretty-print the value of the variable in symbol VARSYM.
 MAILBUF is the mail buffer being composed."

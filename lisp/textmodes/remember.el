@@ -153,6 +153,29 @@
 ;; Faridu'd-Din `Attar wrote: "Be occupied as little as possible with
 ;; things of the outer world but much with things of the inner world;
 ;; then right action will overcome inaction."
+;;
+;; * Diary integration
+;;
+;; To use, add the following to your .emacs:
+;;
+;;   ;; This should be before other entries that may return t
+;;   (add-to-list 'remember-handler-functions 'remember-diary-extract-entries)
+;;
+;; This module recognizes entries of the form
+;;
+;;   DIARY: ....
+;;
+;; and puts them in your ~/.diary (or remember-diary-file) together
+;; with an annotation.  Dates in the form YYYY.MM.DD are converted to
+;; YYYY-MM-DD so that diary can understand them.
+;;
+;; For example:
+;;
+;;   DIARY: 2003.08.12 Sacha's birthday
+;;
+;; is stored as
+;;
+;;   2003.08.12 Sacha's birthday
 
 ;;; History:
 
@@ -439,6 +462,46 @@ application."
   (when (equal remember-buffer (buffer-name))
     (kill-buffer (current-buffer))
     (jump-to-register remember-register)))
+
+;;; Diary integration
+
+(defcustom remember-diary-file nil
+  "*File for extracted diary entries.
+If this is nil, then `diary-file' will be used instead."
+  :type 'file
+  :group 'remember)
+
+(defun remember-diary-convert-entry (entry)
+  "Translate MSG to an entry readable by diary."
+  (save-match-data
+    (when remember-annotation
+        (setq entry (concat entry " " remember-annotation)))
+    (if (string-match "\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)" entry)
+        (replace-match
+         (if european-calendar-style
+             (concat (match-string 3 entry) "/"
+                     (match-string 2 entry) "/"
+                     (match-string 1 entry))
+           (concat (match-string 2 entry) "/"
+                   (match-string 3 entry) "/"
+                   (match-string 1 entry)))
+         t t entry)
+      entry)))
+
+(autoload 'make-diary-entry "diary-lib")
+
+;;;###autoload
+(defun remember-diary-extract-entries ()
+  "Extract diary entries from the region."
+  (save-excursion
+    (goto-char (point-min))
+    (let (list)
+      (while (re-search-forward "^DIARY:\\s-*\\(.+\\)" nil t)
+        (add-to-list 'list (remember-diary-convert-entry (match-string 1))))
+      (when list
+        (make-diary-entry (mapconcat 'identity list "\n")
+                          nil (or remember-diary-file diary-file)))
+      nil))) ;; Continue processing
 
 ;;; Internal Functions:
 

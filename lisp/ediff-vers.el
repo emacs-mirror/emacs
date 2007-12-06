@@ -41,7 +41,7 @@
 	 (load "rcs" 'noerror)
 	 ;; (load "vc" 'noerror) ; this sometimes causes compiler error
 	 (or (featurep 'ediff-init)
-	     (load "ediff-init.el" nil nil 'nosuffix))
+	     (load "ediff-init.el" nil t 'nosuffix))
 	 )))
 ;; end pacifier
 

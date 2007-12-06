@@ -205,13 +205,15 @@ may have changed\) back to `save-place-alist'."
       (setq save-place-alist (cdr save-place-alist)))))
 
 (defun save-place-alist-to-file ()
-  (let ((file (expand-file-name save-place-file)))
+  (let ((file (expand-file-name save-place-file))
+        (coding-system-for-write 'utf-8))
     (save-excursion
-      (message "Saving places to %s..." file)
       (set-buffer (get-buffer-create " *Saved Places*"))
       (delete-region (point-min) (point-max))
       (when save-place-forget-unreadable-files
 	(save-place-forget-unreadable-files))
+      (insert (format ";;; -*- coding: %s -*-\n"
+                      (symbol-name coding-system-for-write)))
       (let ((print-length nil)
             (print-level nil))
         (print save-place-alist (current-buffer)))
@@ -224,10 +226,9 @@ may have changed\) back to `save-place-alist'."
                t))))
 	(condition-case nil
 	    ;; Don't use write-file; we don't want this buffer to visit it.
-	    (write-region (point-min) (point-max) file)
-	  (file-error (message "Can't write %s" file)))
-        (kill-buffer (current-buffer))
-        (message "Saving places to %s...done" file)))))
+            (write-region (point-min) (point-max) file)
+	  (file-error (message "Saving places: can't write %s" file)))
+        (kill-buffer (current-buffer))))))
 
 (defun load-save-place-alist-from-file ()
   (if (not save-place-loaded)
@@ -238,7 +239,6 @@ may have changed\) back to `save-place-alist'."
           ;; load it if it exists:
           (if (file-readable-p file)
               (save-excursion
-                (message "Loading places from %s..." file)
                 ;; don't want to use find-file because we have been
                 ;; adding hooks to it.
                 (set-buffer (get-buffer-create " *Saved Places*"))
@@ -266,8 +266,7 @@ may have changed\) back to `save-place-alist'."
                             (setq count (1+ count)))
                           (setq s (cdr s))))))
 
-                (kill-buffer (current-buffer))
-                (message "Loading places from %s...done" file)))
+                (kill-buffer (current-buffer))))
           nil))))
 
 (defun save-places-to-alist ()

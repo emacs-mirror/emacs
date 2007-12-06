@@ -556,6 +556,7 @@ If OLD, return the old target.  If MOVE, move point before it."
 	  (if move (goto-char (1- beg)))))
     (and target (wdired-normalize-filename target))))
 
+(declare-function make-symbolic-link "fileio.c")
 
 ;; Perform the changes in the target of the changed links.
 (defun wdired-do-symlink-changes ()

@@ -111,7 +111,8 @@ changes."
 ;;;; Timer handler
 
 (defun erc-notify-timer (now)
-  (when (and erc-notify-list
+  (when (and erc-server-connected
+	     erc-notify-list
 	     (> (erc-time-diff
 		 erc-last-ison-time now)
 		erc-notify-interval))

@@ -1744,6 +1744,9 @@ The seventh argument ACTIONS is a list of actions to take
 	(message "Auto save file for draft message exists; consider M-x mail-recover"))
     initialized))
 
+(declare-function dired-view-file "dired" ())
+(declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
+
 (defun mail-recover-1 ()
   "Pop up a list of auto-saved draft messages so you can recover one of them."
   (interactive)
@@ -1814,6 +1817,10 @@ The seventh argument ACTIONS is a list of actions to take
 	      ;; encoding when they send the message.
 	      (setq buffer-file-coding-system
 		    default-buffer-file-coding-system))))))))
+
+(declare-function dired-move-to-filename "dired" (&optional raise-error eol))
+(declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
+(declare-function dired-view-file "dired" ())
 
 (defun mail-recover ()
   "Recover interrupted mail composition from auto-save files.

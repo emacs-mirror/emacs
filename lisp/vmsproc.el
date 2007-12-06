@@ -1,3 +1,4 @@
+;; -*- no-byte-compile: t -*-
 ;;; vmsproc.el --- run asynchronous VMS subprocesses under Emacs
 
 ;; Copyright (C) 1986, 2001, 2002, 2003, 2004, 2005,

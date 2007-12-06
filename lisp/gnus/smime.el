@@ -122,8 +122,8 @@
 ;;; Code:
 
 (require 'dig)
-(require 'smime-ldap)
-(require 'password)
+(or (require 'password-cache nil t)
+    (require 'password))
 (eval-when-compile (require 'cl))
 
 (eval-and-compile
@@ -424,8 +424,7 @@ Any details (stdout and stderr) are left in the buffer specified by
     (insert-buffer-substring smime-details-buffer)
     nil))
 
-(eval-when-compile
-  (defvar from))
+(defvar from)
 
 (defun smime-decrypt-region (b e keyfile)
   "Decrypt S/MIME message in region between B and E with key in KEYFILE.
@@ -590,8 +589,17 @@ A string or a list of strings is returned."
 
 (defun smime-cert-by-ldap-1 (mail host)
   "Get cetificate for MAIL from the ldap server at HOST."
-  (let ((ldapresult (smime-ldap-search (concat "mail=" mail)
-				       host '("userCertificate") nil))
+  (let ((ldapresult
+	 (funcall
+	  (if (or (featurep 'xemacs)
+		  ;; For Emacs >= 22 we don't need smime-ldap.el
+		  (< emacs-major-version 22))
+	      (progn
+		(require 'smime-ldap)
+		'smime-ldap-search)
+	    'ldap-search)
+	  (concat "mail=" mail)
+	  host '("userCertificate") nil))
 	(retbuf (generate-new-buffer (format "*certificate for %s*" mail)))
 	cert)
     (if (and (>= (length ldapresult) 1)

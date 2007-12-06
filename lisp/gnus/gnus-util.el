@@ -36,16 +36,16 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
-  ;; Fixme: this should be a gnus variable, not nnmail-.
-  (defvar nnmail-pathname-coding-system)
-  (defvar nnmail-active-file-coding-system)
+  (require 'cl))
+;; Fixme: this should be a gnus variable, not nnmail-.
+(defvar nnmail-pathname-coding-system)
+(defvar nnmail-active-file-coding-system)
 
-  ;; Inappropriate references to other parts of Gnus.
-  (defvar gnus-emphasize-whitespace-regexp)
-  (defvar gnus-original-article-buffer)
-  (defvar gnus-user-agent)
-  )
+;; Inappropriate references to other parts of Gnus.
+(defvar gnus-emphasize-whitespace-regexp)
+(defvar gnus-original-article-buffer)
+(defvar gnus-user-agent)
+
 (require 'time-date)
 (require 'netrc)
 
@@ -982,9 +982,10 @@ with potentially long computations."
      ;; version fails halfway, however it provides the rmail-select-summary
      ;; macro which uses the following functions:
      (autoload 'rmail-summary-displayed "rmail")
-     (autoload 'rmail-maybe-display-summary "rmail")))
-  (defvar rmail-default-rmail-file)
-  (defvar mm-text-coding-system))
+     (autoload 'rmail-maybe-display-summary "rmail"))))
+
+(defvar rmail-default-rmail-file)
+(defvar mm-text-coding-system)
 
 (defun gnus-output-to-rmail (filename &optional ask)
   "Append the current article to an Rmail file named FILENAME."
@@ -1551,8 +1552,7 @@ Return nil otherwise."
 				 display))
 	      display)))))
 
-(eval-when-compile
-  (defvar tool-bar-mode))
+(defvar tool-bar-mode)
 
 (defun gnus-tool-bar-update (&rest ignore)
   "Update the tool bar."
@@ -1621,10 +1621,9 @@ predicate on the elements."
 	  (push (pop list1) res)))
       (nconc (nreverse res) list1 list2))))
 
-(eval-when-compile
-  (defvar xemacs-codename)
-  (defvar sxemacs-codename)
-  (defvar emacs-program-version))
+(defvar xemacs-codename)
+(defvar sxemacs-codename)
+(defvar emacs-program-version)
 
 (defun gnus-emacs-version ()
   "Stringified Emacs version."

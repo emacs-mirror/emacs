@@ -72,6 +72,8 @@ opinions.
 Summary of changes to "Calc"
 ------- -- ------- --  ----
 
+* Added a menu.
+
 * Added logistic non-linear curves to curve-fitting.
 
 * Added option of plotting data points and curve when curve-fitting.

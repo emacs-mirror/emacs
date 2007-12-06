@@ -413,12 +413,9 @@ First, we write the @code{init-function}:
 (defun flymake-perl-init ()
   (let* ((temp-file (flymake-init-create-temp-buffer-copy
                      'flymake-create-temp-inplace))
-         (local-file  (concat (flymake-build-relative-filename
-                               (file-name-directory
-                                (buffer-file-name
-                                 (current-buffer)))
-                               (file-name-directory temp-file))
-                              (file-name-nondirectory temp-file))))
+	 (local-file (file-relative-name
+                      temp-file
+                      (file-name-directory buffer-file-name))))
     (list "perl" (list "-wc " local-file))))
 @end lisp
 

@@ -74,19 +74,18 @@
     (defvar gnus-mouse-face-prop 'mouse-face
       "Property used for highlighting mouse regions.")))
 
-(eval-when-compile
-  (defvar gnus-tmp-unread)
-  (defvar gnus-tmp-replied)
-  (defvar gnus-tmp-score-char)
-  (defvar gnus-tmp-indentation)
-  (defvar gnus-tmp-opening-bracket)
-  (defvar gnus-tmp-lines)
-  (defvar gnus-tmp-name)
-  (defvar gnus-tmp-closing-bracket)
-  (defvar gnus-tmp-subject-or-nil)
-  (defvar gnus-check-before-posting)
-  (defvar gnus-mouse-face)
-  (defvar gnus-group-buffer))
+(defvar gnus-tmp-unread)
+(defvar gnus-tmp-replied)
+(defvar gnus-tmp-score-char)
+(defvar gnus-tmp-indentation)
+(defvar gnus-tmp-opening-bracket)
+(defvar gnus-tmp-lines)
+(defvar gnus-tmp-name)
+(defvar gnus-tmp-closing-bracket)
+(defvar gnus-tmp-subject-or-nil)
+(defvar gnus-check-before-posting)
+(defvar gnus-mouse-face)
+(defvar gnus-group-buffer)
 
 (defun gnus-ems-redefine ()
   (cond

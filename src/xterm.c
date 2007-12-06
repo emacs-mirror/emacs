@@ -4209,7 +4209,7 @@ x_window_to_scroll_bar (display, window_id)
 			       condemned = Qnil,
 			       ! NILP (bar));
 	   bar = XSCROLL_BAR (bar)->next)
-	if (SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)) == window_id &&
+	if (XSCROLL_BAR (bar)->x_window == window_id &&
             FRAME_X_DISPLAY (XFRAME (frame)) == display)
 	  return XSCROLL_BAR (bar);
     }
@@ -4525,9 +4525,8 @@ xm_scroll_callback (widget, client_data, call_data)
     }
 }
 
+#elif defined USE_GTK
 
-#else /* !USE_MOTIF, i.e. Xaw or GTK */
-#ifdef USE_GTK
 /* Scroll bar callback for GTK scroll bars.  WIDGET is the scroll
    bar widget.  DATA is a pointer to the scroll_bar structure. */
 
@@ -4598,7 +4597,7 @@ xg_scroll_callback (widget, data)
     }
 }
 
-#else /* not USE_GTK */
+#else /* not USE_GTK and not USE_MOTIF */
 
 /* Xaw scroll bar callback.  Invoked when the thumb is dragged.
    WIDGET is the scroll bar widget.  CLIENT_DATA is a pointer to the
@@ -4681,8 +4680,7 @@ xaw_scroll_callback (widget, client_data, call_data)
   x_send_scroll_bar_event (bar->window, part, position, height);
 }
 
-#endif /* not USE_GTK */
-#endif /* not USE_MOTIF */
+#endif /* not USE_GTK and not USE_MOTIF */
 
 #define SCROLL_BAR_NAME "verticalScrollBar"
 
@@ -4888,7 +4886,7 @@ x_create_toolkit_scroll_bar (f, bar)
   /* Remember X window and widget in the scroll bar vector.  */
   SET_SCROLL_BAR_X_WIDGET (bar, widget);
   xwindow = XtWindow (widget);
-  SET_SCROLL_BAR_X_WINDOW (bar, xwindow);
+  bar->x_window = xwindow;
 
   UNBLOCK_INPUT;
 }
@@ -5032,7 +5030,7 @@ x_scroll_bar_create (w, top, left, width, height)
 {
   struct frame *f = XFRAME (w->frame);
   struct scroll_bar *bar
-    = XSCROLL_BAR (Fmake_vector (make_number (SCROLL_BAR_VEC_SIZE), Qnil));
+    = ALLOCATE_PSEUDOVECTOR (struct scroll_bar, x_window, PVEC_OTHER);
 
   BLOCK_INPUT;
 
@@ -5076,21 +5074,19 @@ x_scroll_bar_create (w, top, left, width, height)
 			    CopyFromParent,
 			     /* Attributes.  */
 			    mask, &a);
-    SET_SCROLL_BAR_X_WINDOW (bar, window);
+    bar->x_window = window;
   }
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 
   XSETWINDOW (bar->window, w);
-  XSETINT (bar->top, top);
-  XSETINT (bar->left, left);
-  XSETINT (bar->width, width);
-  XSETINT (bar->height, height);
-  XSETINT (bar->start, 0);
-  XSETINT (bar->end, 0);
+  bar->top = top;
+  bar->left = left;
+  bar->width = width;
+  bar->height = height;
+  bar->start = 0;
+  bar->end = 0;
   bar->dragging = Qnil;
-#ifdef USE_TOOLKIT_SCROLL_BARS
-  bar->fringe_extended_p = Qnil;
-#endif
+  bar->fringe_extended_p = 0;
 
   /* Add bar to its frame's list of scroll bars.  */
   bar->next = FRAME_SCROLL_BARS (f);
@@ -5104,12 +5100,12 @@ x_scroll_bar_create (w, top, left, width, height)
   {
 #ifdef USE_GTK
     xg_update_scrollbar_pos (f,
-                             SCROLL_BAR_X_WINDOW (bar),
+                             bar->x_window,
                              top,
                              left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
                              width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
                              max (height, 1));
-    xg_show_scroll_bar (SCROLL_BAR_X_WINDOW (bar));
+    xg_show_scroll_bar (bar->x_window);
 #else /* not USE_GTK */
     Widget scroll_bar = SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar);
     XtConfigureWidget (scroll_bar,
@@ -5121,13 +5117,15 @@ x_scroll_bar_create (w, top, left, width, height)
 #endif /* not USE_GTK */
     }
 #else /* not USE_TOOLKIT_SCROLL_BARS */
-  XMapRaised (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (bar));
+  XMapRaised (FRAME_X_DISPLAY (f), bar->x_window);
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 
   UNBLOCK_INPUT;
   return bar;
 }
 
+
+#ifndef USE_TOOLKIT_SCROLL_BARS
 
 /* Draw BAR's handle in the proper position.
 
@@ -5142,8 +5140,6 @@ x_scroll_bar_create (w, top, left, width, height)
    the bar's top is as far down as it goes; otherwise, there's no way
    to move to the very end of the buffer.  */
 
-#ifndef USE_TOOLKIT_SCROLL_BARS
-
 static void
 x_scroll_bar_set_handle (bar, start, end, rebuild)
      struct scroll_bar *bar;
@@ -5151,22 +5147,22 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
      int rebuild;
 {
   int dragging = ! NILP (bar->dragging);
-  Window w = SCROLL_BAR_X_WINDOW (bar);
+  Window w = bar->x_window;
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   GC gc = f->output_data.x->normal_gc;
 
   /* If the display is already accurate, do nothing.  */
   if (! rebuild
-      && start == XINT (bar->start)
-      && end == XINT (bar->end))
+      && start == bar->start
+      && end == bar->end)
     return;
 
   BLOCK_INPUT;
 
   {
-    int inside_width = VERTICAL_SCROLL_BAR_INSIDE_WIDTH (f, XINT (bar->width));
-    int inside_height = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, XINT (bar->height));
-    int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
+    int inside_width = VERTICAL_SCROLL_BAR_INSIDE_WIDTH (f, bar->width);
+    int inside_height = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, bar->height);
+    int top_range = VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height);
 
     /* Make sure the values are reasonable, and try to preserve
        the distance between start and end.  */
@@ -5186,8 +5182,8 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
     }
 
     /* Store the adjusted setting in the scroll bar.  */
-    XSETINT (bar->start, start);
-    XSETINT (bar->end, end);
+    bar->start = start;
+    bar->end = end;
 
     /* Clip the end position, just for display.  */
     if (end > top_range)
@@ -5254,12 +5250,12 @@ x_scroll_bar_remove (bar)
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
 #ifdef USE_GTK
-  xg_remove_scroll_bar (f, SCROLL_BAR_X_WINDOW (bar));
+  xg_remove_scroll_bar (f, bar->x_window);
 #else /* not USE_GTK */
   XtDestroyWidget (SCROLL_BAR_X_WIDGET (FRAME_X_DISPLAY (f), bar));
 #endif /* not USE_GTK */
 #else
-  XDestroyWindow (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (bar));
+  XDestroyWindow (FRAME_X_DISPLAY (f), bar->x_window);
 #endif
 
   /* Disassociate this scroll bar from its window.  */
@@ -5357,19 +5353,19 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
       BLOCK_INPUT;
 
-      if (sb_left != XINT (bar->left))
+      if (sb_left != bar->left)
 	mask |= CWX;
-      if (top != XINT (bar->top))
+      if (top != bar->top)
 	mask |= CWY;
-      if (sb_width != XINT (bar->width))
+      if (sb_width != bar->width)
 	mask |= CWWidth;
-      if (height != XINT (bar->height))
+      if (height != bar->height)
 	mask |= CWHeight;
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
 
       /* Move/size the scroll bar widget.  */
-      if (mask || !NILP (bar->fringe_extended_p) != fringe_extended_p)
+      if (mask || bar->fringe_extended_p != fringe_extended_p)
 	{
 	  /* Since toolkit scroll bars are smaller than the space reserved
 	     for them on the frame, we have to clear "under" them.  */
@@ -5384,7 +5380,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	    }
 #ifdef USE_GTK
           xg_update_scrollbar_pos (f,
-                                   SCROLL_BAR_X_WINDOW (bar),
+                                   bar->x_window,
                                    top,
                                    sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM,
                                    sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM *2,
@@ -5440,23 +5436,23 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	  wc.y = top;
 	  wc.width = sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2;
 	  wc.height = height;
-	  XConfigureWindow (FRAME_X_DISPLAY (f), SCROLL_BAR_X_WINDOW (bar),
+	  XConfigureWindow (FRAME_X_DISPLAY (f), bar->x_window,
 			    mask, &wc);
 	}
 
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 
       /* Remember new settings.  */
-      XSETINT (bar->left, sb_left);
-      XSETINT (bar->top, top);
-      XSETINT (bar->width, sb_width);
-      XSETINT (bar->height, height);
+      bar->left = sb_left;
+      bar->top = top;
+      bar->width = sb_width;
+      bar->height = height;
 
       UNBLOCK_INPUT;
     }
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
-  bar->fringe_extended_p = fringe_extended_p ? Qt : Qnil;
+  bar->fringe_extended_p = fringe_extended_p;
 
   x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole);
 #else /* not USE_TOOLKIT_SCROLL_BARS */
@@ -5600,14 +5596,14 @@ x_scroll_bar_expose (bar, event)
      struct scroll_bar *bar;
      XEvent *event;
 {
-  Window w = SCROLL_BAR_X_WINDOW (bar);
+  Window w = bar->x_window;
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   GC gc = f->output_data.x->normal_gc;
   int width_trim = VERTICAL_SCROLL_BAR_WIDTH_TRIM;
 
   BLOCK_INPUT;
 
-  x_scroll_bar_set_handle (bar, XINT (bar->start), XINT (bar->end), 1);
+  x_scroll_bar_set_handle (bar, bar->start, bar->end, 1);
 
   /* Switch to scroll bar foreground color.  */
   if (f->output_data.x->scroll_bar_foreground_pixel != -1)
@@ -5619,8 +5615,8 @@ x_scroll_bar_expose (bar, event)
 
 		  /* x, y, width, height */
 		  0, 0,
-		  XINT (bar->width) - 1 - width_trim - width_trim,
-		  XINT (bar->height) - 1);
+		  bar->width - 1 - width_trim - width_trim,
+		  bar->height - 1);
 
    /* Restore the foreground color of the GC if we changed it above.  */
    if (f->output_data.x->scroll_bar_foreground_pixel != -1)
@@ -5664,18 +5660,18 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
 #if 0
     FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
     int internal_height
-      = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, XINT (bar->height));
+      = VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, bar->height);
 #endif
     int top_range
-      = VERTICAL_SCROLL_BAR_TOP_RANGE (f, XINT (bar->height));
+      = VERTICAL_SCROLL_BAR_TOP_RANGE (f, bar->height);
     int y = event->xbutton.y - VERTICAL_SCROLL_BAR_TOP_BORDER;
 
     if (y < 0) y = 0;
     if (y > top_range) y = top_range;
 
-    if (y < XINT (bar->start))
+    if (y < bar->start)
       emacs_event->part = scroll_bar_above_handle;
-    else if (y < XINT (bar->end) + VERTICAL_SCROLL_BAR_MIN_HANDLE)
+    else if (y < bar->end + VERTICAL_SCROLL_BAR_MIN_HANDLE)
       emacs_event->part = scroll_bar_handle;
     else
       emacs_event->part = scroll_bar_below_handle;
@@ -5688,7 +5684,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
        holding it.  */
     if (event->type == ButtonPress
 	&& emacs_event->part == scroll_bar_handle)
-      XSETINT (bar->dragging, y - XINT (bar->start));
+      XSETINT (bar->dragging, y - bar->start);
 #endif
 
 #ifndef USE_TOOLKIT_SCROLL_BARS
@@ -5697,7 +5693,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
 	&& ! NILP (bar->dragging))
       {
 	int new_start = y - XINT (bar->dragging);
-	int new_end = new_start + (XINT (bar->end) - XINT (bar->start));
+	int new_end = new_start + bar->end - bar->start;
 
 	x_scroll_bar_set_handle (bar, new_start, new_end, 0);
 	bar->dragging = Qnil;
@@ -5745,9 +5741,9 @@ x_scroll_bar_note_movement (bar, event)
       /* Where should the handle be now?  */
       int new_start = event->xmotion.y - XINT (bar->dragging);
 
-      if (new_start != XINT (bar->start))
+      if (new_start != bar->start)
 	{
-	  int new_end = new_start + (XINT (bar->end) - XINT (bar->start));
+	  int new_end = new_start + bar->end - bar->start;
 
 	  x_scroll_bar_set_handle (bar, new_start, new_end, 0);
 	}
@@ -5768,7 +5764,7 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
      unsigned long *time;
 {
   struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
-  Window w = SCROLL_BAR_X_WINDOW (bar);
+  Window w = bar->x_window;
   FRAME_PTR f = XFRAME (WINDOW_FRAME (XWINDOW (bar->window)));
   int win_x, win_y;
   Window dummy_window;
@@ -5795,10 +5791,10 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
     {
 #if 0
       int inside_height
-	= VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, XINT (bar->height));
+	= VERTICAL_SCROLL_BAR_INSIDE_HEIGHT (f, bar->height);
 #endif
       int top_range
-	= VERTICAL_SCROLL_BAR_TOP_RANGE     (f, XINT (bar->height));
+	= VERTICAL_SCROLL_BAR_TOP_RANGE     (f, bar->height);
 
       win_y -= VERTICAL_SCROLL_BAR_TOP_BORDER;
 
@@ -5815,9 +5811,9 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
 
       if (! NILP (bar->dragging))
 	*part = scroll_bar_handle;
-      else if (win_y < XINT (bar->start))
+      else if (win_y < bar->start)
 	*part = scroll_bar_above_handle;
-      else if (win_y < XINT (bar->end) + VERTICAL_SCROLL_BAR_MIN_HANDLE)
+      else if (win_y < bar->end + VERTICAL_SCROLL_BAR_MIN_HANDLE)
 	*part = scroll_bar_handle;
       else
 	*part = scroll_bar_below_handle;
@@ -5854,7 +5850,7 @@ x_scroll_bar_clear (f)
     for (bar = FRAME_SCROLL_BARS (f); VECTORP (bar);
 	 bar = XSCROLL_BAR (bar)->next)
       XClearArea (FRAME_X_DISPLAY (f),
-		  SCROLL_BAR_X_WINDOW (XSCROLL_BAR (bar)),
+		  XSCROLL_BAR (bar)->x_window,
 		  0, 0, 0, 0, True);
 #endif /* not USE_TOOLKIT_SCROLL_BARS */
 }
@@ -7065,12 +7061,10 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
                 if (tool_bar_p && event.xbutton.button < 4)
                   {
-                    if (event.xbutton.type == ButtonPress)
-                      handle_tool_bar_click (f, x, y, 1, 0);
-                    else
-                      handle_tool_bar_click (f, x, y, 0,
-                                             x_x_to_emacs_modifiers (dpyinfo,
-								     event.xbutton.state));
+		    handle_tool_bar_click (f, x, y,
+					   event.xbutton.type == ButtonPress,
+					   x_x_to_emacs_modifiers (dpyinfo,
+								   event.xbutton.state));
                   }
               }
 
@@ -8072,7 +8066,7 @@ x_connection_closed (dpy, error_message)
 
      Closing the display is reported to lead to a bus error on
      OpenWindows in certain situations.  I suspect that is a bug
-     in OpenWindows.  I don't know how to cicumvent it here.  */
+     in OpenWindows.  I don't know how to circumvent it here.  */
 
 #ifdef USE_X_TOOLKIT
   /* If DPYINFO is null, this means we didn't open the display
@@ -8123,6 +8117,10 @@ x_connection_closed (dpy, error_message)
 
   unbind_to (index, Qnil);
   clear_waiting_for_input ();
+  /* FIXME: This is an asynchronous interrupt w.r.t elisp, so signalling an
+     error might not be the best thing to do.  I'd vote for creating an
+     elisp event and stuffing it in the queue so people can bind to it via
+     the global map.  --Stef  */
   error ("%s", error_msg);
 }
 
@@ -8726,7 +8724,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
    on the root window for frame F contains ATOMNAME.
    This is how a WM check shall be done according to the Window Manager
    Specification/Extended Window Manager Hints at
-   http://freedesktop.org/wiki/Standards_2fwm_2dspec.  */
+   http://freedesktop.org/wiki/Specifications/wm-spec.  */
 
 static int
 wm_supports (f, atomname)
@@ -9259,7 +9257,7 @@ x_ewmh_activate_frame (f)
      FRAME_PTR f;
 {
   /* See Window Manager Specification/Extended Window Manager Hints at
-     http://freedesktop.org/wiki/Standards_2fwm_2dspec  */
+     http://freedesktop.org/wiki/Specifications/wm-spec  */
 
   const char *atom = "_NET_ACTIVE_WINDOW";
   if (f->async_visible && wm_supports (f, atom))
@@ -11329,8 +11327,8 @@ x_term_init (display_name, xrm_option, resource_name)
     /* Mac OS X 10.3's Xserver sometimes reports 0.0mm.  */
     dpyinfo->resy = (mm < 1) ? 100 : pixels * 25.4 / mm;
     pixels = DisplayWidth (dpyinfo->display, screen_number);
-    /* Mac OS X 10.3's Xserver sometimes reports 0.0mm.  */
     mm = DisplayWidthMM (dpyinfo->display, screen_number);
+    /* Mac OS X 10.3's Xserver sometimes reports 0.0mm.  */
     dpyinfo->resx = (mm < 1) ? 100 : pixels * 25.4 / mm;
   }
 
@@ -11499,13 +11497,13 @@ x_term_init (display_name, xrm_option, resource_name)
 				    Qnil, Qnil);
 #ifdef USE_XIM
     if (STRINGP (value)
-	&& (!strcmp (XSTRING (value)->data, "false")
-	    || !strcmp (XSTRING (value)->data, "off")))
+	&& (!strcmp (SDATA (value), "false")
+	    || !strcmp (SDATA (value), "off")))
       use_xim = 0;
 #else
     if (STRINGP (value)
-	&& (!strcmp (XSTRING (value)->data, "true")
-	    || !strcmp (XSTRING (value)->data, "on")))
+	&& (!strcmp (SDATA (value), "true")
+	    || !strcmp (SDATA (value), "on")))
       use_xim = 1;
 #endif
   }

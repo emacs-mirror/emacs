@@ -22,15 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'esh-mode)
-
-(eval-when-compile (require 'esh-maint))
-
-(defgroup eshell-mode nil
-  "This module contains code for handling input from the user."
-  :tag "User interface"
-  :group 'eshell)
-
 ;;; Commentary:
 
 ;; Basically, Eshell is used just like shell mode (<M-x shell>).  The
@@ -68,10 +59,18 @@
 ;;
 ;; @ <C-c C-b> will move backward a complete shell argument.
 
+(provide 'esh-mode)
+
+(eval-when-compile (require 'esh-util))
 (require 'esh-module)
 (require 'esh-cmd)
 (require 'esh-io)
 (require 'esh-var)
+
+(defgroup eshell-mode nil
+  "This module contains code for handling input from the user."
+  :tag "User interface"
+  :group 'eshell)
 
 ;;; User Variables:
 
@@ -222,11 +221,6 @@ This is used by `eshell-watch-for-password-prompt'."
 
 (define-abbrev-table 'eshell-mode-abbrev-table ())
 
-(eval-when-compile
-  (unless (eshell-under-xemacs-p)
-    (defalias 'characterp 'ignore)
-    (defalias 'char-int 'ignore)))
-
 (if (not eshell-mode-syntax-table)
     (let ((i 0))
       (setq eshell-mode-syntax-table (make-syntax-table))
@@ -269,7 +263,7 @@ This is used by `eshell-watch-for-password-prompt'."
       (modify-syntax-entry ?\[ "(]  " eshell-mode-syntax-table)
       (modify-syntax-entry ?\] ")[  " eshell-mode-syntax-table)
       ;; All non-word multibyte characters should be `symbol'.
-      (if (eshell-under-xemacs-p)
+      (if (featurep 'xemacs)
 	  (map-char-table
 	   (function
 	    (lambda (key val)
@@ -470,7 +464,7 @@ This is used by `eshell-watch-for-password-prompt'."
 
 (eshell-deftest mode command-running-p
   "Modeline shows no command running"
-  (or (eshell-under-xemacs-p)
+  (or (featurep 'xemacs)
       (not eshell-status-in-modeline)
       (and (memq 'eshell-command-running-string mode-line-format)
 	   (equal eshell-command-running-string "--"))))

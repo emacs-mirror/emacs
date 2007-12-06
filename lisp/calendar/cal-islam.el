@@ -195,6 +195,10 @@ nil if it is not visible in the current calendar window."
             (if (calendar-date-is-visible-p date)
                 (list (list date string))))))))
 
+;; l-i-d-e should be called from diary code.
+(declare-function add-to-diary-list "diary-lib"
+                  (date string specifier &optional marker globcolor literal))
+
 (defun list-islamic-diary-entries ()
   "Add any Islamic date entries from the diary file to `diary-entries-list'.
 Islamic date diary entries must be prefaced by an `islamic-diary-entry-symbol'
@@ -280,6 +284,12 @@ not be marked in the calendar.  This function is provided for use with the
                  (1+ (calendar-absolute-from-gregorian gdate)))))
         (set-buffer-modified-p diary-modified))
     (goto-char (point-min))))
+
+(declare-function diary-name-pattern "diary-lib"
+                  (string-array &optional abbrev-array paren))
+
+(declare-function mark-calendar-days-named "diary-lib"
+                  (dayname &optional color))
 
 (defun mark-islamic-diary-entries ()
   "Mark days in the calendar window that have Islamic date diary entries.

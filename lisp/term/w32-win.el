@@ -87,6 +87,10 @@
 (defvar xlfd-regexp-registry-subnum)
 (defvar w32-color-map) ;; defined in w32fns.c
 
+(declare-function w32-send-sys-command "w32fns.c")
+(declare-function w32-select-font "w32fns.c")
+(declare-function set-message-beep "w32console.c")
+
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
     (require 'fontset))
@@ -1053,17 +1057,6 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
  If FRAME is nil or not given, use the selected frame."
    (interactive "i")
    (w32-send-sys-command ?\xf100 frame))
-
-(defun x-setup-function-keys (frame)
-  "Setup Function Keys for w32."
-  (with-selected-frame frame
-     (define-key local-function-key-map [f10] 'menu-bar-open)
-
-     (substitute-key-definition 'suspend-emacs 'iconify-or-deiconify-frame
-                                local-function-key-map global-map)
-
-     (define-key local-function-key-map [S-tab] [backtab]))
-  (set-terminal-parameter frame 'x-setup-function-keys t))
 
 
 ;; W32 systems have different fonts than commonly found on X, so

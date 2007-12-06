@@ -1269,6 +1269,8 @@ CBARGS as the arguments."
            nil nil nil)          ;whether gid would change ; inode ; device.
         (kill-buffer buffer)))))
 
+(declare-function url-dav-file-attributes (url &optional id-format))
+
 ;;;###autoload
 (defun url-http-file-attributes (url &optional id-format)
   (if (url-dav-supported-p url)

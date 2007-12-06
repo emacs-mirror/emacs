@@ -463,6 +463,56 @@ with a prefix argument."
 
 ;;; Shell commands
 
+(declare-function mailcap-parse-mailcaps "mailcap" (&optional path force))
+(declare-function mailcap-parse-mimetypes "mailcap" (&optional path force))
+(declare-function mailcap-extension-to-mime "mailcap" (extn))
+(declare-function mailcap-mime-info "mailcap"
+                  (string &optional request no-decode))
+
+(defun dired-read-shell-command-default (files)
+  "Return a list of default commands for `dired-read-shell-command'."
+  (require 'mailcap)
+  (mailcap-parse-mailcaps)
+  (mailcap-parse-mimetypes)
+  (let* ((all-mime-type
+	  ;; All unique MIME types from file extensions
+	  (delete-dups (mapcar (lambda (file)
+				 (mailcap-extension-to-mime
+				  (file-name-extension file t)))
+			       files)))
+	 (all-mime-info
+	  ;; All MIME info lists
+	  (delete-dups (mapcar (lambda (mime-type)
+				 (mailcap-mime-info mime-type 'all))
+			       all-mime-type)))
+	 (common-mime-info
+	  ;; Intersection of mime-infos from different mime-types;
+	  ;; or just the first MIME info for a single MIME type
+	  (if (cdr all-mime-info)
+	      (delq nil (mapcar (lambda (mi1)
+				  (unless (memq nil (mapcar
+						     (lambda (mi2)
+						       (member mi1 mi2))
+						     (cdr all-mime-info)))
+				    mi1))
+				(car all-mime-info)))
+	    (car all-mime-info)))
+	 (commands
+	  ;; Command strings from `viewer' field of the MIME info
+	  (delq nil (mapcar (lambda (mime-info)
+			      (let ((command (cdr (assoc 'viewer mime-info))))
+				(if (stringp command)
+				    (replace-regexp-in-string
+				     ;; Replace mailcap's `%s' placeholder
+				     ;; with dired's `?' placeholder
+				     "%s" "?"
+				     (replace-regexp-in-string
+				      ;; Remove the final filename placeholder
+				      "\s*\\('\\)?%s\\1?\s*\\'" "" command nil t)
+				     nil t))))
+			    common-mime-info))))
+    commands))
+
 (defun dired-read-shell-command (prompt arg files)
 ;;  "Read a dired shell command prompting with PROMPT (using read-string).
 ;;ARG is the prefix arg and may be used to indicate in the prompt which
@@ -472,7 +522,8 @@ with a prefix argument."
    nil 'shell files
    (function read-string)
    (format prompt (dired-mark-prompt arg files))
-   nil 'shell-command-history))
+   nil 'shell-command-history
+   (dired-read-shell-command-default files)))
 
 ;; The in-background argument is only needed in Emacs 18 where
 ;; shell-command doesn't understand an appended ampersand `&'.
@@ -1151,6 +1202,8 @@ Special value `always' suppresses confirmation."
   (dired-copy-file-recursive from to ok-flag dired-copy-preserve-time t
 			     dired-recursive-copies))
 
+(declare-function make-symbolic-link "fileio.c")
+
 (defun dired-copy-file-recursive (from to ok-flag &optional
 				       preserve-time top recursive)
   (let ((attrs (file-attributes from))
@@ -1533,10 +1586,16 @@ Optional arg HOW-TO is used to set the value of the into-dir variable
   "Create a directory called DIRECTORY."
   (interactive
    (list (read-file-name "Create directory: " (dired-current-directory))))
-  (let ((expanded (directory-file-name (expand-file-name directory))))
-    (make-directory expanded)
-    (dired-add-file expanded)
-    (dired-move-to-filename)))
+  (let* ((expanded (directory-file-name (expand-file-name directory)))
+	 (try expanded) new)
+    ;; Find the topmost nonexistent parent dir (variable `new')
+    (while (and try (not (file-exists-p try)) (not (equal new try)))
+      (setq new try
+	    try (directory-file-name (file-name-directory try))))
+    (make-directory expanded t)
+    (when new
+      (dired-add-file new)
+      (dired-move-to-filename))))
 
 (defun dired-into-dir-with-symlinks (target)
   (and (file-directory-p target)

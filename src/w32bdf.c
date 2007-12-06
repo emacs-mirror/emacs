@@ -261,7 +261,7 @@ w32_init_bdf_font(char *filename)
       error("Fail to open BDF file");
     }
   hfilemap = CreateFileMapping(hfile, NULL, PAGE_READONLY, 0, 0, NULL);
-  if (hfilemap == INVALID_HANDLE_VALUE)
+  if (!hfilemap)
     {
       CloseHandle(hfile);
       error("Can't map font");
@@ -828,7 +828,7 @@ int w32_BDF_to_x_font (char *file, char* xstr, int len)
   size = fileinfo.nFileSizeLow;
 
   hfilemap = CreateFileMapping (hfile, NULL, PAGE_READONLY, 0, 0, NULL);
-  if (hfilemap == INVALID_HANDLE_VALUE)
+  if (!hfilemap)
     {
       CloseHandle (hfile);
       return 0;

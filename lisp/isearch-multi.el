@@ -66,15 +66,16 @@ The value is nil when the search still is in the initial buffer.")
   "Function to call to get the next buffer to search.
 
 When this variable is set to a function that returns a buffer, then
-after typing another C-s or C-r at a failing search, the search goes
+after typing another \\[isearch-forward] or \\[isearch-backward] \
+at a failing search, the search goes
 to the next buffer in the series and continues searching for the
 next occurrence.
 
 The first argument of this function is the current buffer where the
 search is currently searching.  It defines the base buffer relative to
 which this function should find the next buffer.  When the isearch
-direction is backward (when isearch-forward is nil), this function
-should return the previous buffer to search. If the second argument of
+direction is backward (when `isearch-forward' is nil), this function
+should return the previous buffer to search.  If the second argument of
 this function WRAP is non-nil, then it should return the first buffer
 in the series; and for the backward search, it should return the last
 buffer in the series.")

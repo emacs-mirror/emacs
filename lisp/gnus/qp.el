@@ -31,7 +31,7 @@
 ;;; Code:
 
 (require 'mm-util)
-(eval-when-compile (defvar mm-use-ultra-safe-encoding))
+(defvar mm-use-ultra-safe-encoding)
 
 ;;;###autoload
 (defun quoted-printable-decode-region (from to &optional coding-system)

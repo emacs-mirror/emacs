@@ -350,7 +350,6 @@ The text used to begin each remember item.
 @subheading Insinuation
 
 @lisp
-(require 'remember-diary)
 (add-to-list 'remember-handler-functions 'remember-diary-extract-entries)
 @end lisp
 
@@ -358,6 +357,7 @@ The text used to begin each remember item.
 
 @defopt remember-diary-file
 File for extracted diary entries.
+If this is nil, then @code{diary-file} will be used instead."
 @end defopt
 
 @node Mailbox, Org, Diary, Backends

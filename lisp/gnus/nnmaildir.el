@@ -1,5 +1,6 @@
 ;;; nnmaildir.el --- maildir backend for Gnus
-;; Public domain.
+
+;; This file is in the public domain.
 
 ;; Author: Paul Jarc <prj@po.cwru.edu>
 

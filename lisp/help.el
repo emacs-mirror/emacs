@@ -1029,7 +1029,7 @@ scroll the \"other\" window."
 	   ".")
 	  (other ", \\[scroll-other-window] to scroll help.")
 	  (t ", \\[scroll-up] to scroll help."))))
-    (message
+    (message "%s"
      (substitute-command-keys (concat quit-part scroll-part)))))
 
 (defun help-window-setup-finish (window &optional reuse keep-frame)

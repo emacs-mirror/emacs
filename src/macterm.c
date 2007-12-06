@@ -12625,6 +12625,10 @@ mac_term_init (display_name, xrm_option, resource_name)
                                x_display_name_list);
   dpyinfo->name_list_element = XCAR (x_display_name_list);
 
+  /* FIXME: Untested.
+     Add the default keyboard. */
+  add_keyboard_wait_descriptor (0);
+
 #if USE_CG_DRAWING
   mac_init_fringe (terminal->rif);
 #endif
@@ -12844,7 +12848,6 @@ mac_create_terminal (struct mac_display_info *dpyinfo)
   /* FIXME: This keyboard setup is 100% untested, just copied from
      w32_create_terminal in order to set window-system now that it's
      a keyboard object.  */
-#ifdef MULTI_KBOARD
   /* We don't yet support separate terminals on Mac, so don't try to share
      keyboards between virtual terminals that are on the same physical
      terminal like X does.  */
@@ -12859,7 +12862,6 @@ mac_create_terminal (struct mac_display_info *dpyinfo)
   if (current_kboard == initial_kboard)
     current_kboard = terminal->kboard;
   terminal->kboard->reference_count++;
-#endif
 
   return terminal;
 }

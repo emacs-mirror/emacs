@@ -264,14 +264,17 @@ the associated section number."
 	    "(\\(" Man-section-regexp "\\))\\).*\\1"))
   "Regular expression describing the heading of a page.")
 
-(defvar Man-heading-regexp "^\\([A-Z][A-Z /-]+\\)$"
+(defvar Man-heading-regexp "^\\([A-Z][A-Z0-9 /-]+\\)$"
   "Regular expression describing a manpage heading entry.")
 
 (defvar Man-see-also-regexp "SEE ALSO"
   "Regular expression for SEE ALSO heading (or your equivalent).
 This regexp should not start with a `^' character.")
 
-(defvar Man-first-heading-regexp "^[ \t]*NAME$\\|^[ \t]*No manual entry fo.*$"
+;; This used to have leading space [ \t]*, but was removed because it
+;; causes false page splits on an occasional NAME with leading space
+;; inside a manpage.  And `Man-heading-regexp' doesn't have [ \t]* anyway.
+(defvar Man-first-heading-regexp "^NAME$\\|^[ \t]*No manual entry fo.*$"
   "Regular expression describing first heading on a manpage.
 This regular expression should start with a `^' character.")
 
@@ -763,17 +766,16 @@ all sections related to a subject, put something appropriate into the
 	;;               minal (using an ioctl(2) if available, the value of
 	;;               $COLUMNS,  or falling back to 80 characters if nei-
 	;;               ther is available).
-	(if window-system
-	    (unless (or (getenv "MANWIDTH") (getenv "COLUMNS"))
-	      ;; This isn't strictly correct, since we don't know how
-	      ;; the page will actually be displayed, but it seems
-	      ;; reasonable.
-	      (setenv "COLUMNS" (number-to-string
-				 (cond
-				  ((and (integerp Man-width) (> Man-width 0))
-				   Man-width)
-				  (Man-width (frame-width))
-				  ((window-width)))))))
+	(unless (or (getenv "MANWIDTH") (getenv "COLUMNS"))
+	  ;; This isn't strictly correct, since we don't know how
+	  ;; the page will actually be displayed, but it seems
+	  ;; reasonable.
+	  (setenv "COLUMNS" (number-to-string
+			     (cond
+			      ((and (integerp Man-width) (> Man-width 0))
+			       Man-width)
+			      (Man-width (frame-width))
+			      ((window-width))))))
 	(setenv "GROFF_NO_SGR" "1")
 	(if (fboundp 'start-process)
 	    (set-process-sentinel

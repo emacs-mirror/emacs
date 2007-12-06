@@ -25,8 +25,6 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl))
 (require 'url-util)
 (require 'url-parse)
 

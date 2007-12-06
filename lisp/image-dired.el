@@ -1184,7 +1184,7 @@ comment."
                     ", "))
             (comment (get-text-property (point) 'comment)))
         (if file-name
-            (message
+             (message "%s"
              (image-dired-format-properties-string
               dired-buf
               file-name
@@ -1208,7 +1208,7 @@ dired."
     (if (not (and dired-buf file-name))
         (message "No image, or image with correct properties, at point.")
     (with-current-buffer dired-buf
-        (message file-name)
+        (message "%s" file-name)
         (setq file-name (file-name-nondirectory file-name))
         (goto-char (point-min))
         (if (search-forward file-name nil t)
@@ -2239,7 +2239,7 @@ non-nil."
                  ", "))
          (comment (image-dired-get-comment file)))
     (if file-name
-        (message
+        (message "%s"
          (image-dired-format-properties-string
           dired-buf
           file-name

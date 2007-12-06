@@ -372,11 +372,9 @@ using `search-forward-regexp' and `replace-match' is preferred." "22.1")
 
 (defun map-query-replace-regexp (regexp to-strings &optional n start end)
   "Replace some matches for REGEXP with various strings, in rotation.
-The second argument TO-STRINGS contains the replacement strings,
-separated by spaces.  Third arg DELIMITED (prefix arg if interactive),
-if non-nil, means replace only matches surrounded by word boundaries.
-This command works like `query-replace-regexp' except that each
-successive replacement uses the next successive replacement string,
+The second argument TO-STRINGS contains the replacement strings, separated
+by spaces.  This command works like `query-replace-regexp' except that
+each successive replacement uses the next successive replacement string,
 wrapping around from the last such string to the first.
 
 In Transient Mark mode, if the mark is active, operate on the contents
@@ -533,9 +531,20 @@ which will run faster and will not set the mark or print anything."
   "Read arguments for `keep-lines' and friends.
 Prompt for a regexp with PROMPT.
 Value is a list, (REGEXP)."
-  (list (read-from-minibuffer prompt nil nil nil
-			      'regexp-history nil t)
-	nil nil t))
+  (let* ((default (list
+		   (regexp-quote
+		    (or (funcall (or find-tag-default-function
+				     (get major-mode 'find-tag-default-function)
+				     'find-tag-default))
+			""))
+		   (car regexp-search-ring)
+		   (regexp-quote (or (car search-ring) ""))
+		   (car (symbol-value
+			 query-replace-from-history-variable))))
+	 (default (delete-dups (delq nil (delete "" default)))))
+    (list (read-from-minibuffer prompt nil nil nil
+				'regexp-history default t)
+	  nil nil t)))
 
 (defun keep-lines (regexp &optional rstart rend interactive)
   "Delete all lines except those containing matches for REGEXP.
@@ -725,6 +734,35 @@ a previously found match."
     (define-key map "q" 'quit-window)
     (define-key map "z" 'kill-this-buffer)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
+    (define-key map [menu-bar] (make-sparse-keymap))
+    (define-key map [menu-bar occur]
+      (cons "Occur" map))
+    (define-key map [next-error-follow-minor-mode]
+      (menu-bar-make-mm-toggle next-error-follow-minor-mode
+			       "Auto Occurrence Display"
+			       "Display another occurrence when moving the cursor"))
+    (define-key map [separator-1] '("--"))
+    (define-key map [kill-this-buffer] 
+      '("Kill occur buffer" . kill-this-buffer))
+    (define-key map [quit-window] 
+      '("Quit occur window" . quit-window))
+    (define-key map [revert-buffer] 
+      '("Revert occur buffer" . revert-buffer))
+    (define-key map [clone-buffer] 
+      '("Clone occur buffer" . clone-buffer))
+    (define-key map [occur-rename-buffer] 
+      '("Rename occur buffer" . occur-rename-buffer))
+    (define-key map [separator-2] '("--"))
+    (define-key map [occur-mode-goto-occurrence-other-window]
+      '("Go To Occurrence Other Window" . occur-mode-goto-occurrence-other-window))
+    (define-key map [occur-mode-goto-occurrence]
+      '("Go To Occurrence" . occur-mode-goto-occurrence))
+    (define-key map [occur-mode-display-occurrence]
+      '("Display Occurrence" . occur-mode-display-occurrence))
+    (define-key map [occur-next] 
+      '("Move to next match" . occur-next))
+    (define-key map [occur-prev] 
+      '("Move to previous match" . occur-prev))
     map)
   "Keymap for `occur-mode'.")
 
@@ -938,23 +976,29 @@ which means to discard all text properties."
       (nreverse result))))
 
 (defun occur-read-primary-args ()
-  (list (let* ((default (car regexp-history))
-	       (input
-		(read-from-minibuffer
-		 (if default
-		     (format "List lines matching regexp (default %s): "
-			     (query-replace-descr default))
-		   "List lines matching regexp: ")
-		 nil
-		 nil
-		 nil
-		 'regexp-history
-		 default)))
-	  (if (equal input "")
-	      default
-	    input))
-	(when current-prefix-arg
-	  (prefix-numeric-value current-prefix-arg))))
+  (let* ((default
+	   (list (and transient-mark-mode mark-active
+		      (regexp-quote
+		       (buffer-substring-no-properties
+			(region-beginning) (region-end))))
+		 (regexp-quote
+		  (or (funcall
+		       (or find-tag-default-function
+			   (get major-mode 'find-tag-default-function)
+			   'find-tag-default))
+		      ""))
+		 (car regexp-search-ring)
+		 (regexp-quote (or (car search-ring) ""))
+		 (car (symbol-value
+		       query-replace-from-history-variable))))
+	 (default (delete-dups (delq nil (delete "" default))))
+	 (input
+	  (read-from-minibuffer
+	   "List lines matching regexp: "
+	   nil nil nil 'regexp-history default)))
+    (list input
+	  (when current-prefix-arg
+	    (prefix-numeric-value current-prefix-arg)))))
 
 (defun occur-rename-buffer (&optional unique-p interactive-p)
   "Rename the current *Occur* buffer to *Occur: original-buffer-name*.

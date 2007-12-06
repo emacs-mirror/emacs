@@ -3128,6 +3128,8 @@ convert_mono_to_color_image (f, img, foreground, background)
   release_frame_dc (f, hdc);
   old_prev = SelectObject (old_img_dc, img->pixmap);
   new_prev = SelectObject (new_img_dc, new_pixmap);
+  /* Windows convention for mono bitmaps is black = background,
+     white = foreground.  */
   SetTextColor (new_img_dc, background);
   SetBkColor (new_img_dc, foreground);
 
@@ -3523,6 +3525,19 @@ xbm_load (f, img)
 	  else
 	    bits = XBOOL_VECTOR (data)->data;
 
+#ifdef WINDOWSNT
+          {
+            char *invertedBits;
+            int nbytes, i;
+            /* Windows mono bitmaps are reversed compared with X.  */
+            invertedBits = bits;
+            nbytes = (img->width + BITS_PER_CHAR - 1) / BITS_PER_CHAR 
+              * img->height;
+            bits = (char *) alloca(nbytes);
+            for (i = 0; i < nbytes; i++)
+              bits[i] = XBM_BIT_SHUFFLE (invertedBits[i]);
+          }
+#endif
 	  /* Create the pixmap.  */
 
 	  Create_Pixmap_From_Bitmap_Data (f, img, bits,

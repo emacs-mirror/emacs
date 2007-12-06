@@ -41,7 +41,7 @@
 ;; Copy of function from gnus-util.el.
 (defun-mh mh-gnus-local-map-property gnus-local-map-property (map)
   "Return a list suitable for a text property list specifying keymap MAP."
-  (cond (mh-xemacs-flag (list 'keymap map))
+  (cond ((featurep 'xemacs) (list 'keymap map))
         ((>= emacs-major-version 21) (list 'keymap map))
         (t (list 'local-map map))))
 

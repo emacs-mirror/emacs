@@ -37,10 +37,6 @@
 (defvar ediff-multiframe)
 (defvar ediff-use-toolbar-p)
 (defvar mswindowsx-bitmap-file-path)
-
-(and noninteractive
-     (eval-when-compile
-	 (load "ange-ftp" 'noerror)))
 ;; end pacifier
 
 ;; This is used to avoid compilation warnings. When emacs/xemacs forms can

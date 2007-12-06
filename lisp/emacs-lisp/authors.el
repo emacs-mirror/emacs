@@ -418,24 +418,6 @@ author and what he did in hash table TABLE.  See the description of
 	  (nconc entry (list (cons action 1))))))))
 
 
-(defun authors-process-lines (program &rest args)
-  "Execute PROGRAM with ARGS, returning its output as a list of lines.
-Signal an error if the program returns with a non-zero exit status."
-  (with-temp-buffer
-    (let ((status (apply 'call-process program nil (current-buffer) nil args)))
-      (unless (eq status 0)
-	(error "%s exited with status %s" program status))
-      (goto-char (point-min))
-      (let (lines)
-	(while (not (eobp))
-	  (setq lines (cons (buffer-substring-no-properties
-			     (line-beginning-position)
-			     (line-end-position))
-			    lines))
-	  (forward-line 1))
-	(nreverse lines)))))
-
-
 (defun authors-canonical-author-name (author)
   "Return a canonicalized form of AUTHOR, an author name.
 If AUTHOR has an alias, use that.  Remove email addresses.  Capitalize
@@ -605,7 +587,7 @@ Result is a buffer *Authors* containing authorship information, and a
 buffer *Authors Errors* containing references to unknown files."
   (interactive "DEmacs source directory: ")
   (setq root (expand-file-name root))
-  (let ((logs (authors-process-lines "find" root "-name" "ChangeLog*"))
+  (let ((logs (process-lines "find" root "-name" "ChangeLog*"))
 	(table (make-hash-table :test 'equal))
 	(buffer-name "*Authors*")
 	authors-checked-files-alist
@@ -617,7 +599,7 @@ buffer *Authors Errors* containing references to unknown files."
       (when (string-match "ChangeLog\\(.[0-9]+\\)?$" log)
 	(message "Scanning %s..." log)
 	(authors-scan-change-log log table)))
-    (let ((els (authors-process-lines "find" root "-name" "*.el")))
+    (let ((els (process-lines "find" root "-name" "*.el")))
       (dolist (file els)
 	(message "Scanning %s..." file)
 	(authors-scan-el file table)))

@@ -224,8 +224,8 @@ format is defined through a formatting function on
 
 Since automatic logging is not always a Good Thing (especially if
 people say things in different coding systems), you can turn logging
-behaviour on and off with the variable `erc-enable-logging', which can
-also be a predicate function. To only log when you are not set away, use:
+behavior on and off with the variable `erc-enable-logging', which can
+also be a predicate function.  To only log when you are not set away, use:
 
 \(setq erc-enable-logging
       (lambda (buffer)

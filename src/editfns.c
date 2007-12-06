@@ -3673,8 +3673,10 @@ usage: (format STRING &rest OBJECTS)  */)
 	      precision[n+1] = 10 * precision[n+1] + *format - '0';
 	  }
 
-	if (format - this_format_start + 1 > longest_format)
-	  longest_format = format - this_format_start + 1;
+	/* Extra +1 for 'l' that we may need to insert into the
+	   format.  */
+	if (format - this_format_start + 2 > longest_format)
+	  longest_format = format - this_format_start + 2;
 
 	if (format == end)
 	  error ("Format string ends in middle of format specifier");
@@ -3735,7 +3737,7 @@ usage: (format STRING &rest OBJECTS)  */)
 		  && *format != 'i' && *format != 'X' && *format != 'c')
 		error ("Invalid format operation %%%c", *format);
 
-	    thissize = 30;
+	    thissize = 30 + (precision[n] > 0 ? precision[n] : 0);
 	    if (*format == 'c')
 	      {
 		if (! ASCII_CHAR_P (XINT (args[n]))
@@ -3933,23 +3935,40 @@ usage: (format STRING &rest OBJECTS)  */)
 		     format - this_format_start);
 	      this_format[format - this_format_start] = 0;
 
-	      if (INTEGERP (args[n]))
-		{
-		  if (format[-1] == 'd')
-		    sprintf (p, this_format, XINT (args[n]));
-		  /* Don't sign-extend for octal or hex printing.  */
-		  else
-		    sprintf (p, this_format, XUINT (args[n]));
-		}
-	      else if (format[-1] == 'e' || format[-1] == 'f' || format[-1] == 'g')
+	      if (format[-1] == 'e' || format[-1] == 'f' || format[-1] == 'g')
 		sprintf (p, this_format, XFLOAT_DATA (args[n]));
-	      else if (format[-1] == 'd')
-		/* Maybe we should use "%1.0f" instead so it also works
-		   for values larger than MAXINT.  */
-		sprintf (p, this_format, (EMACS_INT) XFLOAT_DATA (args[n]));
 	      else
-		/* Don't sign-extend for octal or hex printing.  */
-		sprintf (p, this_format, (EMACS_UINT) XFLOAT_DATA (args[n]));
+		{
+		  if (sizeof (EMACS_INT) > sizeof (int)
+		      && format[-1] != 'c')
+		    {
+		      /* Insert 'l' before format spec.  */
+		      this_format[format - this_format_start]
+			= this_format[format - this_format_start - 1];
+		      this_format[format - this_format_start - 1] = 'l';
+		      this_format[format - this_format_start + 1] = 0;
+		    }
+
+		  if (INTEGERP (args[n]))
+		    {
+		      if (format[-1] == 'c')
+			sprintf (p, this_format, (int) XINT (args[n]));
+		      else if (format[-1] == 'd')
+			sprintf (p, this_format, XINT (args[n]));
+		      /* Don't sign-extend for octal or hex printing.  */
+		      else
+			sprintf (p, this_format, XUINT (args[n]));
+		    }
+		  else if (format[-1] == 'c')
+		    sprintf (p, this_format, (int) XFLOAT_DATA (args[n]));
+		  else if (format[-1] == 'd')
+		    /* Maybe we should use "%1.0f" instead so it also works
+		       for values larger than MAXINT.  */
+		    sprintf (p, this_format, (EMACS_INT) XFLOAT_DATA (args[n]));
+		  else
+		    /* Don't sign-extend for octal or hex printing.  */
+		    sprintf (p, this_format, (EMACS_UINT) XFLOAT_DATA (args[n]));
+		}
 
 	      if (p > buf
 		  && multibyte

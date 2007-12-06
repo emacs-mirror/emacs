@@ -1309,6 +1309,7 @@ Value is an integer which is number of chars to right of prompt.")
       (unwind-protect
 	  (with-current-buffer buf
 	    (erase-buffer)
+	    (insert ";;; -*- coding: utf-8 -*-\n")
 	    (setq buffer-file-coding-system 'utf-8)
 	    (ido-pp 'ido-last-directory-list)
 	    (ido-pp 'ido-work-directory-list)
@@ -1317,7 +1318,7 @@ Value is an integer which is number of chars to right of prompt.")
 	    (if (listp ido-unc-hosts-cache)
 		(ido-pp 'ido-unc-hosts-cache)
 	      (insert "\n;; ----- ido-unc-hosts-cache -----\nt\n"))
-	    (insert "\n;; Local Variables:\n;; coding: utf-8\n;; End:\n")
+	    (insert "\n")
 	    (write-file ido-save-directory-list-file nil))
 	(kill-buffer buf)))))
 
@@ -2281,9 +2282,10 @@ If cursor is not at the end of the user input, move to end of input."
 		filename t))
 
 	 ((and ido-use-filename-at-point
-	       (setq fn (if (eq ido-use-filename-at-point 'guess)
-			    (with-no-warnings (ffap-guesser))
-			  (ffap-string-at-point)))
+	       (setq fn (with-no-warnings
+			  (if (eq ido-use-filename-at-point 'guess)
+			      (ffap-guesser)
+			    (ffap-string-at-point))))
 	       (not (string-match "^http:/" fn))
 	       (setq d (file-name-directory fn))
 	       (file-directory-p d))
@@ -3363,6 +3365,8 @@ for first matching file."
       (nconc ido-temp-list items)
     (setq ido-temp-list items)))
 
+(declare-function tramp-tramp-file-p "tramp" (name))
+
 (defun ido-file-name-all-completions-1 (dir)
   (cond
    ((ido-nonreadable-directory-p dir) '())
@@ -3370,24 +3374,25 @@ for first matching file."
    ;; Caller must have done that if necessary.
 
    ((and ido-enable-tramp-completion
-	 (or (fboundp 'tramp-completion-mode)
+	 (or (fboundp 'tramp-completion-mode-p)
 	     (require 'tramp nil t))
 	 (string-match "\\`/[^/]+[:@]\\'" dir))
     ;; Strip method:user@host: part of tramp completions.
     ;; Tramp completions do not include leading slash.
-    (let ((len (1- (length dir)))
-	  (compl
-	   (or (file-name-all-completions "" dir)
-	       ;; work around bug in ange-ftp.
-	       ;; /ftp:user@host: => nil
-	       ;; /ftp:user@host:./ => ok
-	       (and
-		(not (string= "/ftp:" dir))
-		(tramp-tramp-file-p dir)
-		(fboundp 'tramp-ftp-file-name-p)
-		(funcall 'tramp-ftp-file-name-p dir)
-		(string-match ":\\'" dir)
-		(file-name-all-completions "" (concat dir "./"))))))
+    (let* ((len (1- (length dir)))
+	   (tramp-completion-mode t)
+	   (compl
+	    (or (file-name-all-completions "" dir)
+		;; work around bug in ange-ftp.
+		;; /ftp:user@host: => nil
+		;; /ftp:user@host:./ => ok
+		(and
+		 (not (string= "/ftp:" dir))
+		 (tramp-tramp-file-p dir)
+		 (fboundp 'tramp-ftp-file-name-p)
+		 (funcall 'tramp-ftp-file-name-p dir)
+		 (string-match ":\\'" dir)
+		 (file-name-all-completions "" (concat dir "./"))))))
       (if (and compl
 	       (> (length (car compl)) len)
 	       (string= (substring (car compl) 0 len) (substring dir 1)))

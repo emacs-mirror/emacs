@@ -55,6 +55,25 @@
        191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207
        208 209 210 211 212 213])
 
+(defun yenc-first-part-p ()
+  "Say whether the buffer contains the first part of a yEnc file."
+  (save-excursion
+    (goto-char (point-min))
+    (re-search-forward "^=ybegin part=1 " nil t)))
+
+(defun yenc-last-part-p ()
+  "Say whether the buffer contains the last part of a yEnc file."
+  (save-excursion
+    (goto-char (point-min))
+    (let (total-size end-size)
+      (when (re-search-forward "^=ybegin.*size=\\([0-9]+\\)" nil t)
+	(setq total-size (match-string 1)))
+      (when (re-search-forward "^=ypart.*end=\\([0-9]+\\)" nil t)
+	(setq end-size (match-string 1)))
+      (and total-size
+	   end-size
+	   (string= total-size end-size)))))
+
 ;;;###autoload
 (defun yenc-decode-region (start end)
   "Yenc decode region between START and END using an internal decoder."

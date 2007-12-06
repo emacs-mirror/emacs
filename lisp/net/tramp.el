@@ -83,7 +83,8 @@
 ;; be mandatory
 (if (featurep 'xemacs)
     (load "password" 'noerror)
-  (require 'password nil 'noerror))     ;from No Gnus, also in tar ball
+  (or (require 'password-cache nil 'noerror)
+      (require 'password nil 'noerror))) ; from No Gnus, also in tar ball
 
 (require 'shell)
 (require 'advice)
@@ -912,14 +913,6 @@ directories for POSIX compatible commands."
 		  (const :tag "Default Directories" tramp-default-remote-path)
 		  (string :tag "Directory"))))
 
-(defcustom tramp-terminal-type "dumb"
-  "*Value of TERM environment variable for logging in to remote host.
-Because Tramp wants to parse the output of the remote shell, it is easily
-confused by ANSI color escape sequences and suchlike.  Often, shell init
-files conditionalize this setup based on the TERM environment variable."
-  :group 'tramp
-  :type 'string)
-
 (defcustom tramp-remote-process-environment
   `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "LC_TIME=C"
     ,(concat "TERM=" tramp-terminal-type)
@@ -1424,6 +1417,18 @@ Tramp binds process-connection-type to the value given here before
 opening a connection to a remote host."
   :group 'tramp
   :type '(choice (const nil) (const t) (const pty)))
+
+(defcustom tramp-completion-reread-directory-timeout 10
+  "Defines seconds since last remote command before rereading a directory.
+A remote directory might have changed its contents.  In order to
+make it visible during file name completion in the minibuffer,
+Tramp flushes its cache and rereads the directory contents when
+more than `tramp-completion-reread-directory-timeout' seconds
+have been gone since last remote command execution.  A value of 0
+would require an immediate reread during filename completion, nil
+means to use always cached values for the directory contents."
+  :group 'tramp
+  :type '(choice (const nil) integer))
 
 ;;; Internal Variables:
 
@@ -2807,6 +2812,16 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
   "Like `file-name-all-completions' for Tramp files."
   (unless (save-match-data (string-match "/" filename))
     (with-parsed-tramp-file-name (expand-file-name directory) nil
+      ;; Flush the directory cache.  There could be changed directory
+      ;; contents.
+      (when (and (integerp tramp-completion-reread-directory-timeout)
+		 (> (tramp-time-diff
+		     (current-time)
+		     (tramp-get-file-property
+		      v localname "last-completion" '(0 0 0)))
+		    tramp-completion-reread-directory-timeout))
+	(tramp-flush-file-property v localname))
+
       (all-completions
        filename
        (mapcar
@@ -2838,6 +2853,8 @@ and gid of the corresponding user is taken.  Both parameters must be integers."
 		      (point) (tramp-compat-line-end-position))
 		     result)))
 
+	   (tramp-set-file-property
+	    v localname "last-completion" (current-time))
 	   result)))))))
 
 ;; The following isn't needed for Emacs 20 but for 19.34?
@@ -4323,7 +4340,7 @@ ARGS are the arguments OPERATION has been called with."
    ; BUF
    ((member operation
 	    (list 'set-visited-file-modtime 'verify-visited-file-modtime
-                  ; Emacs 22 only
+                  ; since Emacs 22 only
 		  'make-auto-save-file-name
 	          ; XEmacs only
 		  'backup-buffer))
@@ -5603,30 +5620,49 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
   "Set up an interactive shell.
 Mainly sets the prompt and the echo correctly.  PROC is the shell
 process to set up.  VEC specifies the connection."
-  ;; It is useful to set the prompt in the following command because
-  ;; some people have a setting for $PS1 which /bin/sh doesn't know
-  ;; about and thus /bin/sh will display a strange prompt.  For
-  ;; example, if $PS1 has "${CWD}" in the value, then ksh will display
-  ;; the current working directory but /bin/sh will display a dollar
-  ;; sign.  The following command line sets $PS1 to a sane value, and
-  ;; works under Bourne-ish shells as well as csh-like shells.  Daniel
-  ;; Pittman reports that the unusual positioning of the single quotes
-  ;; makes it work under `rc', too.  We also unset the variable $ENV
-  ;; because that is read by some sh implementations (eg, bash when
-  ;; called as sh) on startup; this way, we avoid the startup file
-  ;; clobbering $PS1.  $PROMP_COMMAND is another way to set the prompt
-  ;; in /bin/bash, it must be discarded as well.
   (let ((tramp-end-of-output "$ "))
+    ;; It is useful to set the prompt in the following command because
+    ;; some people have a setting for $PS1 which /bin/sh doesn't know
+    ;; about and thus /bin/sh will display a strange prompt.  For
+    ;; example, if $PS1 has "${CWD}" in the value, then ksh will
+    ;; display the current working directory but /bin/sh will display
+    ;; a dollar sign.  The following command line sets $PS1 to a sane
+    ;; value, and works under Bourne-ish shells as well as csh-like
+    ;; shells.  Daniel Pittman reports that the unusual positioning of
+    ;; the single quotes makes it work under `rc', too.  We also unset
+    ;; the variable $ENV because that is read by some sh
+    ;; implementations (eg, bash when called as sh) on startup; this
+    ;; way, we avoid the startup file clobbering $PS1.  $PROMP_COMMAND
+    ;; is another way to set the prompt in /bin/bash, it must be
+    ;; discarded as well.
     (tramp-send-command
      vec
      (format
       "exec env 'ENV=' 'PROMPT_COMMAND=' 'PS1=$ ' PS2='' PS3='' %s"
       (tramp-get-method-parameter
        (tramp-file-name-method vec) 'tramp-remote-sh))
-     t))
+     t)
+
+    ;; Disable echo.
+    (tramp-message vec 5 "Setting up remote shell environment")
+    (tramp-send-command vec "stty -inlcr -echo kill '^U' erase '^H'" t)
+    ;; Check whether the echo has really been disabled.  Some
+    ;; implementations, like busybox of embedded GNU/Linux, don't
+    ;; support disabling.
+    (tramp-send-command vec "echo foo" t)
+    (with-current-buffer (process-buffer proc)
+      (goto-char (point-min))
+      (when (looking-at "echo foo")
+	(tramp-set-connection-property proc "remote-echo" t)
+	(tramp-message vec 5 "Remote echo still on. Ok.")
+	;; Make sure backspaces and their echo are enabled and no line
+	;; width magic interferes with them.
+	(tramp-send-command vec "stty icanon erase ^H cols 32767" t))))
+
   (tramp-message vec 5 "Setting shell prompt")
-  ;; Douglas Gray Stephens <DGrayStephens@slb.com> says that we must
-  ;; use "\n" here, not tramp-rsh-end-of-line.
+  ;; We can set $PS1 to `tramp-end-of-output' only when the echo has
+  ;; been disabled.  Otherwise, the echo of the command would be
+  ;; regarded as prompt already.
   (tramp-send-command
    vec
    (format "PROMPT_COMMAND=''; PS1='%s%s%s'; PS2=''; PS3=''"
@@ -5634,26 +5670,7 @@ process to set up.  VEC specifies the connection."
            tramp-end-of-output
 	   tramp-rsh-end-of-line)
    t)
-  ;; If the connection buffer is not empty, the remote shell is
-  ;; echoing, and the prompt has been detected through the echoed
-  ;; command.  We must reread for the real prompt.
-  (with-current-buffer (process-buffer proc)
-    (when (> (point-max) (point-min)) (tramp-wait-for-output proc)))
-  ;; Disable echo.
-  (tramp-message vec 5 "Setting up remote shell environment")
-  (tramp-send-command vec "stty -inlcr -echo kill '^U' erase '^H'" t)
-  ;; Check whether the echo has really been disabled.  Some
-  ;; implementations, like busybox of embedded GNU/Linux, don't
-  ;; support disabling.
-  (tramp-send-command vec "echo foo" t)
-  (with-current-buffer (process-buffer proc)
-    (goto-char (point-min))
-    (when (looking-at "echo foo")
-      (tramp-set-connection-property vec "remote-echo" t)
-      (tramp-message vec 5 "Remote echo still on. Ok.")
-      ;; Make sure backspaces and their echo are enabled and no line
-      ;; width magic interferes with them.
-      (tramp-send-command vec "stty icanon erase ^H cols 32767" t)))
+
   ;; Try to set up the coding system correctly.
   ;; CCC this can't be the right way to do it.  Hm.
   (tramp-message vec 5 "Determining coding system")
@@ -5685,11 +5702,30 @@ process to set up.  VEC specifies the connection."
 	;; stty, instead.
 	(tramp-send-command vec "stty -onlcr" t))))
   (tramp-send-command vec "set +o vi +o emacs" t)
-  ;; Check whether the remote host suffers from buggy `send-process-string'.
-  ;; This is known for FreeBSD (see comment in `send_process', file process.c).
-  ;; I've tested sending 624 bytes successfully, sending 625 bytes failed.
-  ;; Emacs makes a hack when this host type is detected locally.  It cannot
-  ;; handle remote hosts, though.
+
+  ;; Check whether the output of "uname -sr" has been changed.  If
+  ;; yes, this is a strong indication that we must expire all
+  ;; connection properties.
+  (tramp-message vec 5 "Checking system information")
+  (let ((old-uname (tramp-get-connection-property vec "uname" nil))
+	(new-uname
+	 (tramp-set-connection-property
+	  vec "uname"
+	  (tramp-send-command-and-read vec "echo \\\"`uname -sr`\\\""))))
+    (when (and (stringp old-uname) (not (string-equal old-uname new-uname)))
+      (funcall (symbol-function 'tramp-cleanup-connection) vec)
+      (signal
+       'quit
+       (list (format
+	      "Connection reset, because remote host changed from `%s' to `%s'"
+	      old-uname new-uname)))))
+
+  ;; Check whether the remote host suffers from buggy
+  ;; `send-process-string'.  This is known for FreeBSD (see comment in
+  ;; `send_process', file process.c).  I've tested sending 624 bytes
+  ;; successfully, sending 625 bytes failed.  Emacs makes a hack when
+  ;; this host type is detected locally.  It cannot handle remote
+  ;; hosts, though.
   (with-connection-property proc "chunksize"
     (cond
      ((and (integerp tramp-chunksize) (> tramp-chunksize 0))
@@ -5698,12 +5734,12 @@ process to set up.  VEC specifies the connection."
       (tramp-message
        vec 5 "Checking remote host type for `send-process-string' bug")
       (if (string-match
-	   "^FreeBSD"
-	   (with-connection-property vec "uname"
-	     (tramp-send-command-and-read vec "echo \\\"`uname -sr`\\\"")))
+	   "^FreeBSD" (tramp-get-connection-property vec "uname" ""))
 	  500 0))))
+
   ;; Set remote PATH variable.
   (tramp-set-remote-path vec)
+
   ;; Search for a good shell before searching for a command which
   ;; checks if a file exists. This is done because Tramp wants to use
   ;; "test foo; echo $?" to check if various conditions hold, and
@@ -5713,8 +5749,10 @@ process to set up.  VEC specifies the connection."
   ;; with buggy /bin/sh implementations will have a working bash or
   ;; ksh.  Whee...
   (tramp-find-shell vec)
+
   ;; Disable unexpected output.
   (tramp-send-command vec "mesg n; biff n" t)
+
   ;; Set the environment.
   (tramp-message vec 5 "Setting default environment")
   (let ((env (copy-sequence tramp-remote-process-environment))
@@ -6190,7 +6228,7 @@ is meant to be used from `tramp-maybe-open-connection' only.  The
 function waits for output unless NOOUTPUT is set."
   (unless neveropen (tramp-maybe-open-connection vec))
   (let ((p (tramp-get-connection-process vec)))
-    (when (tramp-get-connection-property vec "remote-echo" nil)
+    (when (tramp-get-connection-property p "remote-echo" nil)
       ;; We mark the command string that it can be erased in the output buffer.
       (tramp-set-connection-property p "check-remote-echo" t)
       (setq command (format "%s%s%s" tramp-echo-mark command tramp-echo-mark)))
@@ -6958,6 +6996,7 @@ If the `tramp-methods' entry does not exist, return NIL."
   (let ((bfn (buffer-file-name)))
     (when (and (stringp bfn)
 	       (tramp-tramp-file-p bfn)
+	       (buffer-modified-p)
 	       (stringp buffer-auto-save-file-name)
 	       (not (equal bfn buffer-auto-save-file-name)))
       (unless (file-exists-p buffer-auto-save-file-name)

@@ -272,7 +272,7 @@ If PROPERTIES is non-nil, PROPERTIES are applied to the buffer,
 see `set-text-properties'.  If PROPERTIES equals t, this means to
 apply the face `mm-uu-extract'."
   (let ((obuf (current-buffer))
-        (coding-system
+	(coding-system
          ;; Might not exist in non-MULE XEmacs
          (when (boundp 'buffer-file-coding-system)
            buffer-file-coding-system)))
@@ -305,11 +305,10 @@ apply the face `mm-uu-extract'."
 
 (mm-uu-configure)
 
-(eval-when-compile
-  (defvar file-name)
-  (defvar start-point)
-  (defvar end-point)
-  (defvar entry))
+(defvar file-name)
+(defvar start-point)
+(defvar end-point)
+(defvar entry)
 
 (defun mm-uu-uu-filename ()
   (if (looking-at ".+")
@@ -375,8 +374,7 @@ apply the face `mm-uu-extract'."
 		  (list mm-dissect-disposition
 			(cons 'filename file-name))))
 
-(eval-when-compile
-  (defvar gnus-newsgroup-name))
+(defvar gnus-newsgroup-name)
 
 (defun mm-uu-emacs-sources-test ()
   (setq file-name (match-string 1))
@@ -430,7 +428,12 @@ apply the face `mm-uu-extract'."
 			    (cons 'filename file-name)))))
 
 (defun mm-uu-yenc-extract ()
-  (mm-make-handle (mm-uu-copy-to-buffer start-point end-point)
+  ;; This might not be exactly correct, but we sure can't get the
+  ;; binary data from the article buffer, since that's already in a
+  ;; non-binary charset.  So get it from the original article buffer. 
+  (mm-make-handle (save-excursion
+		    (set-buffer gnus-original-article-buffer)
+		    (mm-uu-copy-to-buffer start-point end-point))
 		  (list (or (and file-name
 				 (string-match "\\.[^\\.]+$" file-name)
 				 (mailcap-extension-to-mime
@@ -465,8 +468,7 @@ apply the face `mm-uu-extract'."
 	   (y-or-n-p "Verify pgp signed part? ")
 	 (message ""))))))
 
-(eval-when-compile
-  (defvar gnus-newsgroup-charset))
+(defvar gnus-newsgroup-charset)
 
 (defun mm-uu-pgp-signed-extract-1 (handles ctl)
   (let ((buf (mm-uu-copy-to-buffer (point-min) (point-max))))

@@ -440,8 +440,8 @@ negative arg -N means kill forward to Nth end of paragraph."
 	      (end-of-paragraph-text))))))
 
 (defun forward-sentence (&optional arg)
-  "Move forward to next `sentence-end'.  With argument, repeat.
-With negative argument, move backward repeatedly to `sentence-beginning'.
+  "Move forward to next end of sentence.  With argument, repeat.
+With negative argument, move backward repeatedly to start of sentence.
 
 The variable `sentence-end' is a regular expression that matches ends of
 sentences.  Also, every paragraph boundary terminates sentences as well."

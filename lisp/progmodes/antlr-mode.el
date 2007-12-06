@@ -840,7 +840,8 @@ Do not change."
 (defface antlr-keyword
   (cond-emacs-xemacs
    '((((class color) (background light))
-      (:foreground "black" :EMACS :weight bold :XEMACS :bold t))))
+      (:foreground "black" :EMACS :weight bold :XEMACS :bold t))
+     (t :inherit font-lock-keyword-face)))
   "ANTLR keywords."
   :group 'antlr)
 ;; backward-compatibility alias
@@ -850,7 +851,8 @@ Do not change."
 (defface antlr-syntax
   (cond-emacs-xemacs
    '((((class color) (background light))
-      (:foreground "black" :EMACS :weight bold :XEMACS :bold t))))
+      (:foreground "black" :EMACS :weight bold :XEMACS :bold t))
+     (t :inherit font-lock-constant-face)))
   "ANTLR syntax symbols like :, |, (, ), ...."
   :group 'antlr)
 ;; backward-compatibility alias
@@ -860,7 +862,8 @@ Do not change."
 (defface antlr-ruledef
   (cond-emacs-xemacs
    '((((class color) (background light))
-      (:foreground "blue" :EMACS :weight bold :XEMACS :bold t))))
+      (:foreground "blue" :EMACS :weight bold :XEMACS :bold t))
+     (t :inherit font-lock-function-name-face)))
   "ANTLR rule references (definition)."
   :group 'antlr)
 ;; backward-compatibility alias
@@ -870,7 +873,8 @@ Do not change."
 (defface antlr-tokendef
   (cond-emacs-xemacs
    '((((class color) (background light))
-      (:foreground "blue" :EMACS :weight bold :XEMACS :bold t))))
+      (:foreground "blue" :EMACS :weight bold :XEMACS :bold t))
+     (t :inherit font-lock-function-name-face)))
   "ANTLR token references (definition)."
   :group 'antlr)
 ;; backward-compatibility alias
@@ -878,7 +882,8 @@ Do not change."
 
 (defvar antlr-ruleref-face 'antlr-ruleref)
 (defface antlr-ruleref
-  '((((class color) (background light)) (:foreground "blue4")))
+  '((((class color) (background light)) (:foreground "blue4"))
+    (t :inherit font-lock-type-face))
   "ANTLR rule references (usage)."
   :group 'antlr)
 ;; backward-compatibility alias
@@ -886,7 +891,8 @@ Do not change."
 
 (defvar antlr-tokenref-face 'antlr-tokenref)
 (defface antlr-tokenref
-  '((((class color) (background light)) (:foreground "orange4")))
+  '((((class color) (background light)) (:foreground "orange4"))
+    (t :inherit font-lock-type-face))
   "ANTLR token references (usage)."
   :group 'antlr)
 ;; backward-compatibility alias
@@ -896,7 +902,8 @@ Do not change."
 (defface antlr-literal
   (cond-emacs-xemacs
    '((((class color) (background light))
-      (:foreground "brown4" :EMACS :weight bold :XEMACS :bold t))))
+      (:foreground "brown4" :EMACS :weight bold :XEMACS :bold t))
+     (t :inherit font-lock-string-face)))
   "ANTLR special literal tokens.
 It is used to highlight strings matched by the first regexp group of
 `antlr-font-lock-literal-regexp'."

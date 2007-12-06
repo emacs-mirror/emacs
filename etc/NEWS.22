@@ -40,6 +40,8 @@ below.  Emacs tries to warn you about these through `bad-packages-alist'.
 
 ** Emacs is now licensed under the GNU GPL version 3 (or later).
 
+** Support for GNU/kFreeBSD (GNU userland and FreeBSD kernel) was added.
+
 * Changes in Emacs 22.2
 
 ** In Image mode, whenever the displayed image is wider and/or higher
@@ -3135,11 +3137,6 @@ This option is mostly useful when calling etags from programs.  It can
 be used (only once) in place of a file name on the command line.  Etags
 reads from standard input and marks the produced tags as belonging to
 the file FILE.
-
-*** The --members option is now the default.
-
-Use --no-members if you want the old default behaviour of not tagging
-struct members in C, members variables in C++ and variables in PHP.
 
 ** Ctags changes.
 

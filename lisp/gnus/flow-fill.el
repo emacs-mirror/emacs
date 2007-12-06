@@ -154,8 +154,7 @@ RFC 2646 suggests 66 characters for readability."
 
 ;; Test vectors.
 
-(eval-when-compile
-  (defvar show-trailing-whitespace))
+(defvar show-trailing-whitespace)
 
 (defvar fill-flowed-encode-tests
   `(

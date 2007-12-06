@@ -47,12 +47,8 @@
 (if noninteractive
     (eval-when-compile
       (let ((load-path (cons (expand-file-name ".") load-path)))
-	(or (featurep 'viper-util)
-	    (load "viper-util.el" nil nil 'nosuffix))
-	(or (featurep 'viper-keym)
-	    (load "viper-keym.el" nil nil 'nosuffix))
 	(or (featurep 'viper-cmd)
-	    (load "viper-cmd.el" nil nil 'nosuffix))
+	    (load "viper-cmd.el" nil t 'nosuffix))
 	)))
 ;; end pacifier
 

@@ -27,7 +27,6 @@
 ;;; Code:
 
 (provide 'viper-cmd)
-(require 'advice)
 
 ;; Compiler pacifier
 (defvar viper-minibuffer-current-face)
@@ -48,23 +47,6 @@
 (defvar initial)
 (defvar undo-beg-posn)
 (defvar undo-end-posn)
-
-;; loading happens only in non-interactive compilation
-;; in order to spare non-viperized emacs from being viperized
-(if noninteractive
-    (eval-when-compile
-      (let ((load-path (cons (expand-file-name ".") load-path)))
-	(or (featurep 'viper-util)
-	    (load "viper-util.el" nil nil 'nosuffix))
-	(or (featurep 'viper-keym)
-	    (load "viper-keym.el" nil nil 'nosuffix))
-	(or (featurep 'viper-mous)
-	    (load "viper-mous.el" nil nil 'nosuffix))
-	(or (featurep 'viper-macs)
-	    (load "viper-macs.el" nil nil 'nosuffix))
-	(or (featurep 'viper-ex)
-	    (load "viper-ex.el" nil nil 'nosuffix))
-	)))
 ;; end pacifier
 
 
@@ -3097,6 +3079,9 @@ On reaching beginning of line, stop and signal error."
     (setq this-command 'next-line)
     (if com (viper-execute-com 'viper-next-line val com))))
 
+(declare-function widget-type "wid-edit" (widget))
+(declare-function widget-button-press "wid-edit" (pos &optional event))
+(declare-function viper-set-hooks "viper" ())
 
 (defun viper-next-line-at-bol (arg)
   "Next line at beginning of line.

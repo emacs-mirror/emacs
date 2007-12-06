@@ -981,7 +981,7 @@ Assumes that value contains no whitespace."
 		"[^[:alpha:]]"
 		(regexp-opt otherchars)
 		t			     ; We can't tell, so set this to t
-		(list "-d" dict-name "--encoding=utf-8")
+		(list "-d" dict-name)
 		nil				; aspell doesn't support this
 		;; Here we specify the encoding to use while communicating with
 		;; aspell.  This doesn't apply to command line arguments, so
@@ -1161,12 +1161,13 @@ The variable `ispell-library-directory' defines the library location."
 	      (delete-menu-item '("Edit" "Spell")) ; in case already defined
 	      (add-menu '("Edit") "Spell" ispell-menu-xemacs))))))
 
-;;; Allow incrementing characters as integers in XEmacs 20
-(if (and (featurep 'xemacs)
-	 (fboundp 'int-char))
-    (fset 'ispell-int-char 'int-char)
-  ;; Emacs and XEmacs 19 or earlier
-  (fset 'ispell-int-char 'identity))
+(defalias 'ispell-int-char
+  ;; Allow incrementing characters as integers in XEmacs 20
+  (if (and (featurep 'xemacs)
+	   (fboundp 'int-char))
+      'int-char
+    ;; Emacs and XEmacs 19 or earlier
+    'identity))
 
 
 ;;; **********************************************************************
@@ -2480,6 +2481,13 @@ Keeps argument list for future ispell invocations for no async support."
 	      (append args
 		      (list "-p"
 			    (expand-file-name ispell-current-personal-dictionary)))))
+    (if (and ispell-really-aspell
+	     ispell-aspell-supports-utf8)
+	(setq args
+	      (append args
+		      (list
+		       (concat "--encoding="
+			       (symbol-name (ispell-get-coding-system)))))))
     (setq args (append args ispell-extra-args))
 
     ;; Initially we don't know any buffer's local words.
@@ -3503,9 +3511,9 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 	   (cite-regexp			;Prefix of quoted text
 	    (cond
 	     ((functionp 'sc-cite-regexp)	; sc 3.0
-	      (concat "\\(" (sc-cite-regexp) "\\)" "\\|"
-		      (with-no-warnings
-		       (ispell-non-empty-string sc-reference-tag-string))))
+	      (with-no-warnings
+		(concat "\\(" (sc-cite-regexp) "\\)" "\\|"
+			(ispell-non-empty-string sc-reference-tag-string))))
 	     ((boundp 'sc-cite-regexp)		; sc 2.3
 	      (concat "\\(" sc-cite-regexp "\\)" "\\|"
 		      (with-no-warnings

@@ -1457,7 +1457,9 @@ The POSTPROC specified there (typically `log-edit') is then called,
   (let ((buf (cvs-temp-buffer "message" 'normal 'nosetup))
 	(setupfun (or (nth 2 (cdr (assoc "message" cvs-buffer-name-alist)))
 		      'log-edit)))
-    (funcall setupfun 'cvs-do-commit setup 'cvs-commit-filelist buf)
+    (funcall setupfun 'cvs-do-commit setup 
+	     '((log-edit-listfun . cvs-commit-filelist)
+	       (log-edit-diff-function . cvs-mode-diff)) buf)
     (set (make-local-variable 'cvs-minor-wrap-function) 'cvs-commit-minor-wrap)
     (run-hooks 'cvs-mode-commit-hook)))
 
@@ -1520,7 +1522,10 @@ This is best called from a `log-view-mode' buffer."
       ;; Set the filename before, so log-edit can correctly setup its
       ;; log-edit-initial-files variable.
       (set (make-local-variable 'cvs-edit-log-files) (list file)))
-    (funcall setupfun 'cvs-do-edit-log nil 'cvs-edit-log-filelist buf)
+    (funcall setupfun 'cvs-do-edit-log nil 
+	     '((log-edit-listfun . cvs-edit-log-filelist)
+	       (log-edit-diff-function . cvs-mode-diff))
+	     buf)
     (when text (erase-buffer) (insert text))
     (set (make-local-variable 'cvs-edit-log-revision) rev)
     (set (make-local-variable 'cvs-minor-wrap-function)
@@ -1960,6 +1965,8 @@ This command ignores files that are not flagged as `Unknown'."
     (setf (cvs-fileinfo->type fi) 'DEAD))
   (cvs-cleanup-collection cvs-cookies nil nil nil))
 
+(declare-function vc-editable-p "vc" (file))
+(declare-function vc-checkout "vc" (file &optional writable rev))
 
 (defun cvs-append-to-ignore (dir str &optional old-dir)
   "Add STR to the .cvsignore file in DIR.
@@ -2291,7 +2298,7 @@ this file, or a list of arguments to send to the program."
 	   (buffer (find-buffer-visiting file)))
       ;; For a revert to happen the user must be editing the file...
       (unless (or (null buffer)
-		  (eq (cvs-fileinfo->type fileinfo) 'MESSAGE)
+		  (memq (cvs-fileinfo->type fileinfo) '(MESSAGE UNKNOWN))
 		  ;; FIXME: check whether revert is really needed.
 		  ;; `(verify-visited-file-modtime buffer)' doesn't cut it
 		  ;; because it only looks at the time stamp (it ignores

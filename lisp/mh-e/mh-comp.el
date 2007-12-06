@@ -928,8 +928,8 @@ The versions of MH-E, Emacs, and MH are shown."
     (setq mh-x-mailer-string
           (format "MH-E %s; %s; %sEmacs %s"
                   mh-version mh-variant-in-use
-                  (if mh-xemacs-flag "X" "GNU ")
-                  (cond ((not mh-xemacs-flag)
+                  (if (featurep 'xemacs) "X" "GNU ")
+                  (cond ((not (featurep 'xemacs))
                          (string-match "[0-9]+\\.[0-9]+\\(\\.[0-9]+\\)?"
                                        emacs-version)
                          (match-string 0 emacs-version))

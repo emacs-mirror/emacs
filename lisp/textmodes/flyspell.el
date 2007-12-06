@@ -1531,29 +1531,42 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
     (if flyspell-issue-message-flag (message "Checking region..."))
     (set-buffer curbuf)
     (ispell-check-version)
-    (let ((c (apply 'ispell-call-process-region beg
-		    end
-		    ispell-program-name
-		    nil
-		    buffer
-		    nil
-		    (if ispell-really-aspell "list" "-l")
-		    (let (args)
-		      ;; Local dictionary becomes the global dictionary in use.
-		      (if ispell-local-dictionary
-			  (setq ispell-dictionary ispell-local-dictionary))
-		      (setq args (ispell-get-ispell-args))
-		      (if ispell-dictionary ; use specified dictionary
-			  (setq args
-				(append (list "-d" ispell-dictionary) args)))
-		      (if ispell-personal-dictionary ; use specified pers dict
-			  (setq args
-				(append args
-					(list "-p"
-					      (expand-file-name
-					       ispell-personal-dictionary)))))
-		      (setq args (append args ispell-extra-args))
-		      args))))
+    ;; Local dictionary becomes the global dictionary in use.
+    (setq ispell-current-dictionary
+	  (or ispell-local-dictionary ispell-dictionary))
+    (setq ispell-current-personal-dictionary
+	  (or ispell-local-pdict ispell-personal-dictionary))
+    (let ((args (ispell-get-ispell-args))
+	  (encoding (ispell-get-coding-system))
+	  c)
+      (if (and ispell-current-dictionary  ; use specified dictionary
+	       (not (member "-d" args)))  ; only define if not overridden
+	  (setq args
+		(append (list "-d" ispell-current-dictionary) args)))
+      (if ispell-current-personal-dictionary ; use specified pers dict
+	  (setq args
+		(append args
+			(list "-p"
+			      (expand-file-name
+			       ispell-current-personal-dictionary)))))
+      (setq args (append args ispell-extra-args))
+      (if (and ispell-really-aspell
+	       ispell-aspell-supports-utf8)
+	  (setq args
+		(append args
+			(list
+			 (concat "--encoding="
+				 (symbol-name
+				  encoding))))))
+      (let ((process-coding-system-alist (list (cons "\\.*" encoding))))
+	(setq c (apply 'ispell-call-process-region beg
+		       end
+		       ispell-program-name
+		       nil
+		       buffer
+		       nil
+		       (if ispell-really-aspell "list" "-l")
+		       args)))
       (if (eq c 0)
 	  (progn
 	    (flyspell-process-localwords buffer)

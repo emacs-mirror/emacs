@@ -174,7 +174,10 @@ interpreter program names and major modes.
 systems) use the @samp{-*-} feature on the first line, because the
 system would get confused when running the interpreter.  So Emacs looks
 for @samp{-*-} on the second line in such files as well as on the
-first line.
+first line.  The same is true for man pages which start with the magic
+string @samp{'\"} to specify a list of troff preprocessors (not all do,
+however).
+
 
 @vindex default-major-mode
   When you visit a file that does not specify a major mode to use, or

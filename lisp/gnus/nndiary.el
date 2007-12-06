@@ -1085,7 +1085,7 @@ all.  This may very well take some time.")
 	(unless no-active
 	  (nnmail-save-active nndiary-group-alist nndiary-active-file))))))
 
-(eval-when-compile (defvar files))
+(defvar files)
 (defun nndiary-generate-active-info (dir)
   ;; Update the active info for this group.
   (let* ((group (nnheader-file-to-group

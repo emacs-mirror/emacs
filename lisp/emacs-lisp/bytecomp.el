@@ -1053,6 +1053,9 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 (defun byte-compile-warning-series (&rest ignore)
   nil)
 
+;; (compile-mode) will cause this to be loaded.
+(declare-function compilation-forget-errors "compile" ())
+
 ;; Log the start of a file in *Compile-Log*, and mark it as done.
 ;; Return the position of the start of the page in the log buffer.
 ;; But do nothing in batch mode.
@@ -1258,7 +1261,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
 		  (byte-compile-fdefinition (car form) t)))
 	 (sig (if (and def (not (eq def t)))
 		  (byte-compile-arglist-signature
-		   (if (eq 'lambda (car-safe def))
+		   (if (memq (car-safe def) '(declared lambda))
 		       (nth 1 def)
 		     (if (byte-code-function-p def)
 			 (aref def 0)
@@ -2274,18 +2277,17 @@ list that represents a doc string reference.
     (byte-compile-nogroup-warn form))
   (when (byte-compile-warning-enabled-p 'free-vars)
     (push (nth 1 (nth 1 form)) byte-compile-bound-variables))
+  ;; Don't compile the expression because it may be displayed to the user.
+  ;; (when (eq (car-safe (nth 2 form)) 'quote)
+  ;;   ;; (nth 2 form) is meant to evaluate to an expression, so if we have the
+  ;;   ;; final value already, we can byte-compile it.
+  ;;   (setcar (cdr (nth 2 form))
+  ;;           (byte-compile-top-level (cadr (nth 2 form)) nil 'file)))
   (let ((tail (nthcdr 4 form)))
     (while tail
-      ;; If there are any (function (lambda ...)) expressions, compile
-      ;; those functions.
-      (if (and (consp (car tail))
-	       (eq (car (car tail)) 'function)
-	       (consp (nth 1 (car tail))))
-	  (setcar tail (byte-compile-lambda (nth 1 (car tail))))
-	;; Likewise for a bare lambda.
-	(if (and (consp (car tail))
-		 (eq (car (car tail)) 'lambda))
-	    (setcar tail (byte-compile-lambda (car tail)))))
+      (unless (keywordp (car tail))      ;No point optimizing keywords.
+        ;; Compile the keyword arguments.
+        (setcar tail (byte-compile-top-level (car tail) nil 'file)))
       (setq tail (cdr tail))))
   form)
 
@@ -2817,6 +2819,20 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	 (cdr body))
 	(body
 	 (list body))))
+
+(put 'declare-function 'byte-hunk-handler 'byte-compile-declare-function)
+(defun byte-compile-declare-function (form)
+  (push (cons (nth 1 form)
+              (if (and (> (length form) 3)
+                       (listp (nth 3 form)))
+                  (list 'declared (nth 3 form))
+                t))                     ; arglist not specified
+        byte-compile-function-environment)
+  ;; We are stating that it _will_ be defined at runtime.
+  (setq byte-compile-noruntime-functions
+        (delq (nth 1 form) byte-compile-noruntime-functions))
+  nil)
+
 
 ;; This is the recursive entry point for compiling each subform of an
 ;; expression.
@@ -3496,12 +3512,12 @@ That command is designed for interactive use only" fn))
 
 ;; Return the list of items in CONDITION-PARAM that match PRED-LIST.
 ;; Only return items that are not in ONLY-IF-NOT-PRESENT.
-(defun byte-compile-find-bound-condition (condition-param 
-					  pred-list 
+(defun byte-compile-find-bound-condition (condition-param
+					  pred-list
 					  &optional only-if-not-present)
   (let ((result nil)
 	(nth-one nil)
-	(cond-list 
+	(cond-list
 	 (if (memq (car-safe condition-param) pred-list)
 	     ;; The condition appears by itself.
 	     (list condition-param)
@@ -3509,7 +3525,7 @@ That command is designed for interactive use only" fn))
 	   ;; `and' arguments.
 	   (when (eq 'and (car-safe condition-param))
 	     (cdr condition-param)))))
-    
+
     (dolist (crt cond-list)
       (when (and (memq (car-safe crt) pred-list)
 		 (eq 'quote (car-safe (setq nth-one (nth 1 crt))))
@@ -3531,10 +3547,10 @@ being undefined will be suppressed.
 If CONDITION's value is (not (featurep 'emacs)) or (featurep 'xemacs),
 that suppresses all warnings during execution of BODY."
   (declare (indent 1) (debug t))
-  `(let* ((fbound-list (byte-compile-find-bound-condition 
-			,condition (list 'fboundp) 
+  `(let* ((fbound-list (byte-compile-find-bound-condition
+			,condition (list 'fboundp)
 			byte-compile-unresolved-functions))
-	  (bound-list (byte-compile-find-bound-condition 
+	  (bound-list (byte-compile-find-bound-condition
 		       ,condition (list 'boundp 'default-boundp)))
 	  ;; Maybe add to the bound list.
 	  (byte-compile-bound-variables
@@ -4264,7 +4280,7 @@ Must be used only with `-batch', and kills Emacs on completion.
 For example, invoke `emacs -batch -f batch-byte-recompile-directory .'.
 
 Optional argument ARG is passed as second argument ARG to
-`batch-recompile-directory'; see there for its possible values
+`byte-recompile-directory'; see there for its possible values
 and corresponding effects."
   ;; command-line-args-left is what is left of the command line (startup.el)
   (defvar command-line-args-left)	;Avoid 'free variable' warning

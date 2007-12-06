@@ -3263,7 +3263,6 @@ void
 specbind (symbol, value)
      Lisp_Object symbol, value;
 {
-  Lisp_Object ovalue;
   Lisp_Object valcontents;
 
   CHECK_SYMBOL (symbol);
@@ -3283,9 +3282,7 @@ specbind (symbol, value)
     }
   else
     {
-      Lisp_Object valcontents;
-
-      ovalue = find_symbol_value (symbol);
+      Lisp_Object ovalue = find_symbol_value (symbol);
       specpdl_ptr->func = 0;
       specpdl_ptr->old_value = ovalue;
 
@@ -3330,10 +3327,14 @@ specbind (symbol, value)
 	specpdl_ptr->symbol = symbol;
 
       specpdl_ptr++;
-      if (BUFFER_OBJFWDP (ovalue) || KBOARD_OBJFWDP (ovalue))
-	store_symval_forwarding (symbol, ovalue, value, NULL);
-      else
-	set_internal (symbol, value, 0, 1);
+      /* We used to do
+            if (BUFFER_OBJFWDP (ovalue) || KBOARD_OBJFWDP (ovalue))
+	      store_symval_forwarding (symbol, ovalue, value, NULL);
+            else
+         but ovalue comes from find_symbol_value which should never return
+         such an internal value.  */
+      eassert (!(BUFFER_OBJFWDP (ovalue) || KBOARD_OBJFWDP (ovalue)));
+      set_internal (symbol, value, 0, 1);
     }
 }
 

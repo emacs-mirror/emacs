@@ -248,7 +248,8 @@ exceeds `erc-autoaway-idle-seconds'."
   ;; A test for (erc-server-process-alive) is not necessary, because
   ;; this function is called from `erc-timer-hook', which is called
   ;; whenever the server sends something to the client.
-  (when (and erc-auto-set-away
+  (when (and erc-server-connected
+	     erc-auto-set-away
 	     (not erc-autoaway-caused-away)
 	     (erc-autoaway-some-open-server-buffer))
     (let ((idle-time (erc-time-diff erc-autoaway-last-sent-time

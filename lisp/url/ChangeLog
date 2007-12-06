@@ -1,3 +1,68 @@
+2007-12-06  Glenn Morris  <rgm@gnu.org>
+
+	* url-file.el, url-mailto.el: Remove directory part from filenames
+	in function declarations.
+
+2007-12-02  Glenn Morris  <rgm@gnu.org>
+
+	* url-about.el, url-handlers.el: Don't require cl when compiling.
+
+	* url-dav.el (url-dav-delete-directory): Fix message typo.
+
+	* url-history.el (top-level): Don't require cl when compiling.
+	(url-history-setup-save-timer, url-history-save-history):
+	Use condition-case rather than ignore-errors.
+
+	* url-imap.el (top-level): Don't require cl when compiling.
+	(url-imap): Use signal rather than check-type.
+
+	* url-news.el (top-level): Don't require cl when compiling.
+	(gnus-group-buffer): Define for compiler.
+	(url-news-fetch-message-id): Don't use `declare'.
+	(nntp-open-tls-stream, nntp-open-ssl-stream):
+	No need to define for compiler.
+	(url-snews): Use nntp-open-tls-stream unless ssl is requested.
+	Correct quoting of nntp-open-connection-function value.
+
+2007-12-01  Glenn Morris  <rgm@gnu.org>
+
+	* url-handlers.el (top-level): Always require url-parse, not just
+	when compiling.
+
+2007-11-30  Glenn Morris  <rgm@gnu.org>
+
+	* url-cookie.el (url-cookie-p): Declare as a function.
+
+2007-11-29  Glenn Morris  <rgm@gnu.org>
+
+	* url-file.el (url-file-build-filename, url-file): Wrap uses of
+	efs in (featurep 'xemacs) test.
+
+	* url-irc.el (zenirc, zenirc-send-line): Declare as functions.
+
+2007-11-28  Diane Murray  <disumu@x3y2z1.net>
+
+	* url-dired.el: Don't require w3-fetch and w3-open-local.
+	(url-dired-find-file): Use `find-file'.	 Doc fix.
+	(url-dired-find-file-mouse, url-dired-minor-mode): Doc fix.
+
+2007-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* url-privacy.el (url-device-type): Fix typo.
+
+2007-11-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* url-mailto.el (mail-send-and-exit):
+	* url-http.el (url-dav-file-attributes):
+	* url-file.el (ange-ftp-set-passwd, ange-ftp-copy-file-internal)
+	(url-generate-unique-filename): Declare as functions.
+
+	* url-privacy.el (url-device-type): Define unconditionally.
+
+2007-11-15  Richard Stallman  <rms@gnu.org>
+
+	* url.el (url-retrieve-synchronously): Call delete-process.
+
 2007-10-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* url-vars.el (url-vars-unload-hook): Remove function and variable.

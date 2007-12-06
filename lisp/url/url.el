@@ -241,7 +241,9 @@ no further processing).  URL is either a string or a parsed URL."
 		;; XXX: The callback must always be called.  Any
 		;; exception is a bug that should be fixed, not worked
 		;; around.
-                (setq retrieval-done t))
+		(progn ;; Call delete-process so we run any sentinel now.
+		  (delete-process proc)
+		  (setq retrieval-done t)))
             ;; We used to use `sit-for' here, but in some cases it wouldn't
             ;; work because apparently pending keyboard input would always
             ;; interrupt it before it got a chance to handle process input.

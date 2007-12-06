@@ -207,33 +207,39 @@ major mode changes."
   "Make hard newlines visible by adding a face.
 With optional argument ARG, make the hard newlines invisible again."
   (interactive "P")
-  (let ((buffer-undo-list t)
-        (mod (buffer-modified-p)))
     (if arg
         (longlines-unshow-hard-newlines)
       (setq longlines-showing t)
-      (longlines-show-region (point-min) (point-max)))
-    (set-buffer-modified-p mod)))
+      (longlines-show-region (point-min) (point-max))))
 
 (defun longlines-show-region (beg end)
   "Make hard newlines between BEG and END visible."
   (let* ((pmin (min beg end))
          (pmax (max beg end))
          (pos (text-property-not-all pmin pmax 'hard nil))
-         (inhibit-read-only t))
+	 (mod (buffer-modified-p))
+	 (buffer-undo-list t)
+	 (inhibit-read-only t)
+	 (inhibit-modification-hooks t))
     (while pos
       (put-text-property pos (1+ pos) 'display
-                         (copy-sequence longlines-show-effect))
-      (setq pos (text-property-not-all (1+ pos) pmax 'hard nil)))))
+			 (copy-sequence longlines-show-effect))
+      (setq pos (text-property-not-all (1+ pos) pmax 'hard nil)))
+    (restore-buffer-modified-p mod)))
 
 (defun longlines-unshow-hard-newlines ()
   "Make hard newlines invisible again."
   (interactive)
   (setq longlines-showing nil)
-  (let ((pos (text-property-not-all (point-min) (point-max) 'hard nil)))
+  (let ((pos (text-property-not-all (point-min) (point-max) 'hard nil))
+	(mod (buffer-modified-p))
+	(buffer-undo-list t)
+	(inhibit-read-only t)
+	(inhibit-modification-hooks t))
     (while pos
       (remove-text-properties pos (1+ pos) '(display))
-      (setq pos (text-property-not-all (1+ pos) (point-max) 'hard nil)))))
+      (setq pos (text-property-not-all (1+ pos) (point-max) 'hard nil)))
+    (restore-buffer-modified-p mod)))
 
 ;; Wrapping the paragraphs.
 

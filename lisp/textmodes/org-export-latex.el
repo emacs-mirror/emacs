@@ -1077,9 +1077,8 @@ Valid parameters are
 	     (path (insert (format "\\href{%s}{%s}" path desc)))
 	     (t (insert "\\texttt{" desc "}")))))))
 
-(defun org-export-latex-cleaned-string 
+(defun org-export-latex-cleaned-string (&optional commentsp)
   ;; FIXME remove commentsp call in org.el and here
-  (&optional commentsp)
   "Clean stuff in the LaTeX export."
 
   ;; Preserve line breaks

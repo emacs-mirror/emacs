@@ -52,6 +52,8 @@
 (defvar inferior-octave-output-string nil)
 (defvar inferior-octave-receive-in-progress nil)
 
+(declare-function inferior-octave-send-list-and-digest "octave-inf" (list))
+
 (defconst octave-maintainer-address
   "Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>, bug-gnu-emacs@gnu.org"
   "Current maintainer of the Emacs Octave package.")

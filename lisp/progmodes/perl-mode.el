@@ -266,7 +266,9 @@ The expansion is entirely correct because it uses the C preprocessor."
     ;; format statements
     ("^[ \t]*format.*=[ \t]*\\(\n\\)" (1 '(7)))
     ;; Funny things in sub arg specifications like `sub myfunc ($$)'
-    ("\\<sub\\s-+\\S-+\\s-*(\\([^)]+\\))" 1 '(1))
+    ;; Be careful not to match "sub { (...) ... }".
+    ("\\<sub[[:space:]]+[^{}[:punct:][:space:]]+[[:space:]]*(\\([^)]+\\))"
+     1 '(1))
     ;; Regexp and funny quotes.
     ("\\(?:[?:.,;=!~({[]\\|\\(^\\)\\)[ \t\n]*\\(/\\)"
      (2 (if (and (match-end 1)

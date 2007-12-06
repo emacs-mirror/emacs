@@ -23,6 +23,7 @@ define them.
                             of a symbol.
 * Obsolete Functions::    Declaring functions obsolete.
 * Inline Functions::	  Defining functions that the compiler will open code.
+* Declaring Functions::   Telling the compiler that a function is defined.
 * Function Safety::       Determining whether a function is safe to call.
 * Related Topics::        Cross-references to specific Lisp primitives
                             that have a special bearing on how functions work.
@@ -1221,6 +1222,88 @@ do for macros.  (@xref{Argument Evaluation}.)
 
 Inline functions can be used and open-coded later on in the same file,
 following the definition, just like macros.
+
+@node Declaring Functions
+@section Telling the Compiler that a Function is Defined
+@cindex function declaration
+@cindex declaring functions
+@findex declare-function
+
+Byte-compiling a file often produces warnings about functions that the
+compiler doesn't know about (@pxref{Compiler Errors}).  Sometimes this
+indicates a real problem, but usually the functions in question are
+defined in other files which would be loaded if that code is run.  For
+example, byte-compiling @file{fortran.el} used to warn:
+
+@smallexample
+In end of data:
+fortran.el:2152:1:Warning: the function `gud-find-c-expr' is not known to be defined.
+@end smallexample
+
+In fact, @code{gud-find-c-expr} is only used in the function that
+Fortran mode uses for the local value of
+@code{gud-find-expr-function}, which is a callback from GUD; if it is
+called, the GUD functions will be loaded.  When you know that such a
+warning does not indicate a real problem, it is good to suppress the
+warning.  That makes new warnings which might mean real problems more
+visible.  You do that with @code{declare-function}.
+
+All you need to do is add a @code{declare-function} statement before the
+first use of the function in question:
+
+@smallexample
+(declare-function gud-find-c-expr "gud.el" nil)
+@end smallexample
+
+This says that @code{gud-find-c-expr} is defined in @file{gud.el} (the
+@samp{.el} can be omitted).  The compiler takes for granted that that file
+really defines the function, and does not check.
+
+  The optional third argument specifies the argument list of
+@code{gud-find-c-expr}.  In this case, it takes no arguments
+(@code{nil} is different from not specifying a value).  In other
+cases, this might be something like @code{(file &optional overwrite)}.
+You don't have to specify the argument list, but if you do the
+byte compiler can check that the calls match the declaration.
+
+@defmac declare-function function file &optional arglist fileonly
+Tell the byte compiler to assume that @var{function} is defined, with
+arguments @var{arglist}, and that the definition should come from
+the file @var{file}.  @var{fileonly} non-nil means only check that
+@var{file} exists, not that it actually defines @var{function}.
+@end defmac
+
+  To verify that these functions really are declared where
+@code{declare-function} says they are, use @code{check-declare-file}
+to check all @code{declare-function} calls in one source file, or use
+@code{check-declare-directory} check all the files in and under a
+certain directory.
+
+  These commands find the file that ought to contain a function's
+definition using @code{locate-library}; if that finds no file, they
+expand the definition file name relative to the directory of the file
+that contains the @code{declare-function} call.
+
+  You can also say that a function is defined by C code by specifying
+a file name ending in @samp{.c}.  @code{check-declare-file} looks for
+these files in the C source code directory.  This is useful only when
+you call a function that is defined only on certain systems.  Most
+of the primitive functions of Emacs are always defined so they will
+never give you a warning.
+
+  Sometimes a file will optionally use functions from an external package.
+If you prefix the filename in the @code{declare-function} statement with
+@samp{ext:}, then it will be checked if it is found, otherwise skipped
+without error.
+
+  There are some function definitions that @samp{check-declare} does not
+understand (e.g. @code{defstruct} and some other macros).  In such cases,
+you can pass a non-@code{nil} @var{fileonly} argument to
+@code{declare-function}, meaning to only check that the file exists, not
+that it actually defines the function.  Note that to do this without
+having to specify an argument list, you should set the @var{arglist}
+argument to @code{t} (because @code{nil} means an empty argument list, as
+opposed to an unspecified one).
 
 @node Function Safety
 @section Determining whether a Function is Safe to Call

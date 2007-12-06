@@ -665,8 +665,9 @@ only consider active buffers visible.")
 
 (defun erc-user-is-active (&rest ignore)
   "Set `erc-buffer-activity'."
-  (setq erc-buffer-activity (erc-current-time))
-  (erc-track-modified-channels))
+  (when erc-server-connected
+    (setq erc-buffer-activity (erc-current-time))
+    (erc-track-modified-channels)))
 
 (defun erc-track-get-buffer-window (buffer frame-param)
   (if (eq frame-param 'selected-visible)

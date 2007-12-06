@@ -60,6 +60,7 @@
 (autoload 'mail-decode-encoded-word-string "mail-parse")
 (autoload 'mail-header-parse-content-type "mail-parse")
 (autoload 'mail-header-strip "mail-parse")
+(autoload 'mail-strip-quoted-names "mail-utils")
 (autoload 'message-options-get "message")
 (autoload 'message-options-set "message")
 (autoload 'message-options-set-recipient "message")

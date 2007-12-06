@@ -22,18 +22,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'em-pred)
-
-(eval-when-compile (require 'esh-maint))
-
-(defgroup eshell-pred nil
-  "This module allows for predicates to be applied to globbing
-patterns (similar to zsh), in addition to string modifiers which can
-be applied either to globbing results, variable references, or just
-ordinary strings."
-  :tag "Value modifiers and predicates"
-  :group 'eshell-module)
-
 ;;; Commentary:
 
 ;; Argument predication is used to affect which members of a list are
@@ -60,6 +48,16 @@ ordinary strings."
 ;; Generation]).
 
 ;;; Code:
+
+(eval-when-compile (require 'eshell))
+
+(defgroup eshell-pred nil
+  "This module allows for predicates to be applied to globbing
+patterns (similar to zsh), in addition to string modifiers which can
+be applied either to globbing results, variable references, or just
+ordinary strings."
+  :tag "Value modifiers and predicates"
+  :group 'eshell-module)
 
 ;;; User Variables:
 
@@ -601,6 +599,8 @@ that 'ls -l' will show in the first column of its display. "
 	(function
 	 (lambda (str)
 	   (split-string str ,sep))) lst))))
+
+(provide 'em-pred)
 
 ;;; arch-tag: 8b5ce022-17f3-4c40-93c7-5faafaa63f31
 ;;; em-pred.el ends here

@@ -1,3 +1,40 @@
+2007-11-30  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
+
+	* images/icons/macemacs_16.png, images/icons/macemacs_24.png:
+	* images/icons/macemacs_32.png, images/icons/macemacs_48.png:
+	* images/icons/macemacs_256.png, images/icons/macemacs_512.png:
+	New files.
+
+2007-11-28  Glenn Morris  <rgm@gnu.org>
+
+	* nxml/: New directory, moved here from lisp/nxml/char-name/unicode.
+	* nxml/README: New file.
+
+2007-11-24  Glenn Morris  <rgm@gnu.org>
+
+	* images/gnus/mail_send.xpm: Rename to mail-send.xpm.
+
+2007-11-23  Mark A. Hershberger  <mah@everybody.org>
+
+	* NXML-NEWS: New File.
+
+	* schema: Initial merge of nxml.
+
+2007-11-22  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* NEWS: etags: the --members option is now the default.
+
+2007-11-22  Glenn Morris  <rgm@gnu.org>
+
+	* images/smilies/grayscale/README, images/smilies/medium/README:
+	New files.
+
+2007-11-12  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* compilation.txt: Add new entries: compilation-perl--Pod::Checker,
+	compilation-perl--Test, compilation-perl--Test::Harness and
+	compilation-weblint.
+
 2007-11-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* MACHINES: Remove Sun windows info.
@@ -10,6 +47,12 @@
 
 	* refcards/gnus-refcard.tex: Restore Feb 2007 copyright
 	clarifications lost in update to Gnus trunk.
+
+2007-10-28  Adam Sj,Ax(Bgren  <asjo@koldfront.dk>
+
+	* images/smilies/grayscale/*.xpm: New larger grayscale smileys.
+
+	* images/smilies/medium/*.xpm: New colorful smileys.
 
 2007-10-29  Michael Olson  <mwolson@gnu.org>
 

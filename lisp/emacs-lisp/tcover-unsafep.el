@@ -111,6 +111,7 @@
     )
   "A-list of (FORM . REASON)... that`unsafep' should decide are unsafe.")
 
+(declare-function unsafep-function "unsafep" (fun))
 
 ;;;#########################################################################
 (defun testcover-unsafep ()

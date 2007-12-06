@@ -22,9 +22,11 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'em-rebind)
+;;; Commentary:
 
-(eval-when-compile (require 'esh-maint))
+;;; Code:
+
+(eval-when-compile (require 'eshell))
 
 (defgroup eshell-rebind nil
   "This module allows for special keybindings that only take effect
@@ -38,8 +40,6 @@ commands to cause the point to leave the input area, such as
 the behavior of normal shells while the user editing new input text."
   :tag "Rebind keys at input"
   :group 'eshell-module)
-
-;;; Commentary:
 
 ;;; User Variables:
 
@@ -242,7 +242,7 @@ input."
 	  (eshell-life-is-too-much)))
       (eshell-delete-backward-char (- arg)))))
 
-;;; Code:
+(provide 'em-rebind)
 
 ;;; arch-tag: 76d84f12-cc56-4d67-9b7d-c6b44ad20530
 ;;; em-rebind.el ends here

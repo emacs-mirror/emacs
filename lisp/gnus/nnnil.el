@@ -1,7 +1,10 @@
 ;;; nnnil.el --- empty backend for Gnus
-;; Public domain.
+
+;; This file is in the public domain.
 
 ;; Author: Paul Jarc <prj@po.cwru.edu>
+
+;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

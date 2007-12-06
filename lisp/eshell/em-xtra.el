@@ -22,9 +22,14 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-(provide 'em-xtra)
+;;; Commentary:
 
-(eval-when-compile (require 'esh-maint))
+;;; Code:
+
+(eval-when-compile
+  (require 'eshell)
+  (require 'pcomplete))
+(require 'compile)
 
 (defgroup eshell-xtra nil
   "This module defines some extra alias functions which are entirely
@@ -33,10 +38,6 @@ functions, or as aliases which make some of Emacs' behavior more
 naturally accessible within Emacs."
   :tag "Extra alias functions"
   :group 'eshell-module)
-
-;;; Commentary:
-
-(require 'compile)
 
 ;;; Functions:
 
@@ -117,7 +118,7 @@ naturally accessible within Emacs."
 
 (defalias 'pcomplete/bcc 'pcomplete/bcc32)
 
-;;; Code:
+(provide 'em-xtra)
 
 ;;; arch-tag: f944cfda-a118-470c-a0d6-b41a3a5c99c7
 ;;; em-xtra.el ends here

@@ -6893,8 +6893,12 @@ init_display ()
       exit (1);
     }
 
+#ifdef WINDOWSNT
+  terminal_type = "w32console";
+#else
   /* Look at the TERM variable.  */
   terminal_type = (char *) getenv ("TERM");
+#endif
   if (!terminal_type)
     {
 #ifdef VMS

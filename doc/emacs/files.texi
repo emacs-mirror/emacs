@@ -1270,7 +1270,7 @@ you want to use.
 @subsubsection Understanding the problems it addresses
 
   Version control systems provide you with three important capabilities: 
-@dfn{reversibility}. @dfn{concurrency}, and @dfn{history}.
+@dfn{reversibility}, @dfn{concurrency}, and @dfn{history}.
 
   The most basic capability you get from a version-control system is
 reversibility, the ability to back up to a saved, known-good state when
@@ -1298,7 +1298,7 @@ git, and Mercurial.
 @cindex SCCS
   SCCS was the first version-control system ever built, and was long ago
 superseded by later and more advanced ones; Emacs supports it only for
-backward compatibility and historical reasons. VC compensates for
+backward compatibility and historical reasons.  VC compensates for
 certain features missing in SCCS (snapshots, for example) by
 implementing them itself, but some other VC features, such as multiple
 branches, are not available with SCCS.  Since SCCS is non-free you
@@ -1439,7 +1439,7 @@ happen when you check in a change to a file that conflicts with a change
 checked in by someone else after your checkout.  Both kinds of conflict
 have to be resolved by human judgment and communication.
 
-  SCCS always uses locking. RCS is lock-based by default but can be
+  SCCS always uses locking.  RCS is lock-based by default but can be
 told to operate in a merging style.  CVS and Subversion are
 merge-based by default but can be told to operate in a locking mode.
 Most later version-control systems, such as GNU Arch, git, and
@@ -1463,7 +1463,7 @@ between them as much as possible.
 and other operations are @dfn{file-based}; each file has its own
 @dfn{master file} with its own comment and revision history separate
 from that of all other files in the system.  Later systems, beginning
-with Subversion, became @dfn{changeset-based}; a checkin under these
+with Subversion, are @dfn{changeset-based}; a checkin under these
 may include changes to several files and that change set is treated as
 a unit by the system.  Any comment associated with the change belongs
 to no single file, but is attached to the changeset itself.
@@ -1489,7 +1489,7 @@ systems and a bit archaic; nowadays those operations are usually called
   Early version-control systems were designed around a @dfn{centralized}
 model in which each project has only one repository used by all
 developers.  SCCS, RCS, CVS, and Subversion share this kind of model.
-It has two important problems. One is that a single repository is a
+It has two important problems.  One is that a single repository is a
 single point of failure---if the repository server is down all work
 stops.  The other is that you need to be connected live to the server to
 do checkins and checkouts; if you're offline, you can't work.
@@ -1622,7 +1622,7 @@ your fileset is the marked files only.
 If they are not, VC mode will fail when you attempt to execute 
 a command on the fileset.
 
-   In VC, filesets, are, essentially, a way to pass multiple file
+   VC filesets are, essentially, a way to pass multiple file
 arguments as a group to underlying version-control commands.  For
 example, on Subversion a checkin with more than one file in its
 fileset will become a joint commit, as though you had typed
@@ -1640,7 +1640,7 @@ version-control systems.
 
    Emacs uses the concept of named filesets elsewhere
 (@pxref{Filesets}) to allow you to view and visit files in functional
-groups. Unlike those, VC filesets are not named and don't persist
+groups.  Unlike those, VC filesets are not named and don't persist
 across sessions.
 
 @node Doing The Right Thing
@@ -1803,8 +1803,8 @@ are set around the entire contents of the buffer so that it is easy to
 kill the contents of the buffer with @kbd{C-w}.
 
 @findex log-edit-insert-changelog
-  If you work by writing entries in the @file{ChangeLog}
-(@pxref{Change Log}) and then commit the change under revision
+  If you work by first writing entries in the @file{ChangeLog}
+(@pxref{Change Log}) and afterwards committing the change under revision
 control, you can generate the Log Edit text from the ChangeLog using
 @kbd{C-c C-a} (@kbd{log-edit-insert-changelog}).  This looks for
 entries for the file(s) concerned in the top entry in the ChangeLog
@@ -1845,7 +1845,7 @@ time to complete the check-in.
 convenient to specify the same log entry for many of the files.  (This
 is the normal way to do things on a changeset-oriented system, where
 comments are attached to changesets rather than the history of
-individual files.) The most convenient way to do this is to mark all the
+individual files.)  The most convenient way to do this is to mark all the
 files in VC-Dired mode and check in from there; the log buffer will
 carry the fileset information with it and do a group commit when you
 confirm it with @kbd{C-c C-c}.
@@ -1952,15 +1952,15 @@ revisions are not, in general, present as files on your disk.)
 @kindex C-x v g
   For some back ends, you can display the file @dfn{annotated} with
 per-line revision information and using colors to enhance the visual
-appearance, with the command @kbd{M-x vc-annotate}.  It creates a new
+appearance, with the command @kbd{M-x vc-annotate}.  This creates a new
 buffer (the ``annotate buffer'') displaying the file's text, with each
 part colored to show how old it is.  Text colored red is new, blue means
 old, and intermediate colors indicate intermediate ages.  By default,
 the color is scaled over the full range of ages, such that the oldest
 changes are blue, and the newest changes are red.
 
-  When you give a prefix argument to this command, it uses the
-minibuffer to read two arguments: the ID of which revision to display and
+  When you give a prefix argument to this command, Emacs reads two
+arguments using the minibuffer: the ID of which revision to display and
 annotate (instead of the current file contents), and the time span in
 days the color range should cover.  
 
@@ -2006,7 +2006,7 @@ return to your working revision.
 @node Secondary VC Commands
 @subsection The Secondary Commands of VC
 
-  This section explains the secondary commands of VC; those that you might
+  This section explains the secondary commands of VC, those that you might
 use once a day.
 
 @menu

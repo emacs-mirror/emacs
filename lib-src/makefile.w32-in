@@ -187,8 +187,8 @@ MSDOS_SUPPORT = \
 	$(lispsource)international/ccl.elc \
 	$(lispsource)international/codepage.elc
 VMS_SUPPORT = \
-	$(lispsource)vmsproc.elc \
-	$(lispsource)vms-patch.elc
+	$(lispsource)vmsproc.el \
+	$(lispsource)vms-patch.el
 TOOLTIP_SUPPORT = $(lispsource)tooltip.elc
 WINDOW_SUPPORT = \
 	$(lispsource)fringe.elc \

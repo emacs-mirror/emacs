@@ -367,7 +367,10 @@ etags @var{inputfiles}@dots{}
 
 @noindent
 The @code{etags} program reads the specified files, and writes a tags
-table named @file{TAGS} in the current working directory.
+table named @file{TAGS} in the current working directory.  You can
+optionally specify a different file name for the tags table by using the
+@samp{--output=@var{file}} option; specifying @file{-} as a file name
+prints the tags table to standard output.
 
   If the specified files don't exist, @code{etags} looks for
 compressed versions of them and uncompresses them to read them.  Under
@@ -406,7 +409,8 @@ well as the files it directly contains.
 directory where the tags file was initially written.  This way, you can
 move an entire directory tree containing both the tags file and the
 source files, and the tags file will still refer correctly to the source
-files.  If the tags file is in @file{/dev}, however, the file names are
+files.  If the tags file is @file{-} or is in the @file{/dev} directory,
+however, the file names are 
 made relative to the current working directory.  This is useful, for
 example, when writing the tags to @file{/dev/stdout}.
 

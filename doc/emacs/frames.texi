@@ -224,9 +224,12 @@ for text in the cut buffer.  If neither of those sources provides text
 to yank, the kill ring contents are used.
 
   The standard coding system for X Window System selections is
-@code{compound-text-with-extensions}.  To specify another coding
-system for selections, use @kbd{C-x @key{RET} x} or @kbd{C-x @key{RET}
-X}.  @xref{Communication Coding}.
+@code{compound-text-with-extensions}.  You may find that the pasted
+text is not what you expected.  In such a case, you can specify
+another coding system for selections by @kbd{C-x @key{RET} x} or
+@kbd{C-x @key{RET} X}, or can request the different data type by
+modifying the variable @code{x-select-request-type}.
+@xref{Communication Coding}.
 
 @node Word and Line Mouse
 @subsection Mouse Commands for Words and Lines

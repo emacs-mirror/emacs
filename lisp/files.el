@@ -213,6 +213,15 @@ have fast storage with limited space, such as a RAM disk."
 ;; The system null device. (Should reference NULL_DEVICE from C.)
 (defvar null-device "/dev/null" "The system null device.")
 
+(declare-function msdos-long-file-names "msdos.c")
+(declare-function w32-long-file-name "w32proc.c")
+(declare-function dired-get-filename "dired" (&optional localp no-error-if-not-filep))
+(declare-function dired-unmark "dired" (arg))
+(declare-function dired-do-flagged-delete "dired" (&optional nomessage))
+(declare-function dos-8+3-filename "dos-fns" (filename))
+(declare-function vms-read-directory "vms-patch" (dirname switches buffer))
+(declare-function view-mode-disable "view" ())
+
 (defvar file-name-invalid-regexp
   (cond ((and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
 	 (concat "^\\([^A-Z[-`a-z]\\|..+\\)?:\\|" ; colon except after drive
@@ -2428,7 +2437,11 @@ Otherwise, return nil; point may be changed."
                             ;; put them in the first line of
                             ;; such a file without screwing up
                             ;; the interpreter invocation.
-                            (and (looking-at "^#!") 2)) t)
+                            ;; The same holds for
+                            ;;   '\"
+                            ;; in man pages (preprocessor
+                            ;; magic for the `man' program).
+                            (and (looking-at "^\\(#!\\|'\\\\\"\\)") 2)) t)
      (progn
        (skip-chars-forward " \t")
        (setq beg (point))
@@ -2619,7 +2632,7 @@ n  -- to ignore the local variables list.")
 		 (if offer-save '(?! ?y ?n ?\s ?\C-g) '(?y ?n ?\s ?\C-g)))
 		done)
 	    (while (not done)
-	      (message prompt)
+	      (message "%s" prompt)
 	      (setq char (read-event))
 	      (if (numberp char)
 		  (cond ((eq char ?\C-v)
