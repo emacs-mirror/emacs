@@ -1,3 +1,8 @@
+2007-12-06  Richard Stallman  <rms@gnu.org>
+
+	* help-fns.el (describe-function-1): Call ad-get-advice-info
+	only on symbols.
+
 2007-12-06  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/antlr-mode.el (antlr-keyword, antlr-syntax)
