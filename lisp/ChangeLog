@@ -1,5 +1,11 @@
 2007-12-06  D. Goel  <deego3@gmail.com>
 
+	* textmodes/reftex.el (reftex-TeX-master-file): Ditto.
+
+	* textmodes/org.el (org-paste-subtree): Ditto.
+
+	* textmodes/ispell.el (ispell-process-line): Ditto.
+
 	* progmodes/vhdl-mode.el (vhdl-template-modify): Ditto.
 
 	* progmodes/idlw-shell.el (idlwave-shell-send-command): Ditto.

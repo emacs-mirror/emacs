@@ -6076,7 +6076,7 @@ If you want to insert the tree as is, just use \\[yank].
 If optional TREE is given, use this text instead of the kill ring."
   (interactive "P")
   (unless (org-kill-is-subtree-p tree)
-    (error
+    (error "%s"
      (substitute-command-keys
       "The kill is not a (set of) tree(s) - please use \\[yank] to yank anyway")))
   (let* ((txt (or tree (and kill-ring (current-kill 0))))
