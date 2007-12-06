@@ -1054,7 +1054,7 @@ Each function's symbol gets added to `byte-compile-noruntime-functions'."
   nil)
 
 ;; (compile-mode) will cause this to be loaded.
-(declare-function compilation-forget-errors "../progmodes/compile" nil)
+(declare-function compilation-forget-errors "compile" ())
 
 ;; Log the start of a file in *Compile-Log*, and mark it as done.
 ;; Return the position of the start of the page in the log buffer.
