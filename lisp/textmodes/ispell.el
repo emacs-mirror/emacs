@@ -3063,7 +3063,7 @@ Returns the sum SHIFT due to changes in word replacements."
 	    ;; `query-replace' makes multiple corrections on the starting line.
 	    (or (ispell-looking-at (car poss))
 		;; This occurs due to filter pipe problems
-		(error "%s" (concat "Ispell misalignment: word "
+		(error (concat "Ispell misalignment: word "
 			       "`%s' point %d; probably incompatible versions")
 		       (car poss) (marker-position word-start)))
 	    ;; ispell-cmd-loop can go recursive & change buffer

@@ -1,5 +1,6 @@
 2007-12-06  D. Goel  <deego3@gmail.com>
 
+	* textmodes/ispell.el (ispell-process-line)
 	* vc.el (vc-update) 
 	* ibuffer.el (ibuffer-current-buffer): Fix breakage from the
 	change below.
