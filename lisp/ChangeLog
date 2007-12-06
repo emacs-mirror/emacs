@@ -1,43 +1,41 @@
 2007-12-06  D. Goel  <deego3@gmail.com>
 
-	* textmodes/ispell.el (ispell-process-line)
-	* vc.el (vc-update) 
-	* ibuffer.el (ibuffer-current-buffer): Fix breakage from the
-	change below.
+	* textmodes/ispell.el (ispell-process-line):
+	* vc.el (vc-update):
+	* ibuffer.el (ibuffer-current-buffer):
+	Fix breakage from the change below.
 
-	* allout.el (allout-write-file-hook-handler) 
-	* textmodes/reftex.el (reftex-TeX-master-file) 
-	* textmodes/org.el (org-paste-subtree) 
-	* textmodes/ispell.el (ispell-process-line) 
-	* progmodes/vhdl-mode.el (vhdl-template-modify) 
-	* progmodes/idlw-shell.el (idlwave-shell-send-command, idlwave-shell-display-line) 
-	* progmodes/ada-xref.el (ada-find-file, ada-get-all-references, ada-xref-find-in-modified-ali) 
-	(ada-find-in-src-path) 
-	* net/trampver.el (x) 
-	* mail/uce.el (uce-reply-to-uce) 
-	* mail/rmailout.el (rmail-output) 
-	* mail/feedmail.el (feedmail-dump-message-to-queue) 
-	* whitespace.el (whitespace-write-file-hook) 
-	* wdired.el (wdired-check-kill-buffer) 
-	* vc.el (vc-update) 
-	* vc-mcvs.el (vc-mcvs-checkin) 
-	* vc-cvs.el (vc-cvs-checkin) 
-	* man.el (Man-bgproc-sentinel, Man-goto-see-also-section) 
-	* ibuffer.el (ibuffer-current-buffer) 
-	* dired.el (dired-move-to-end-of-filename) 
+	* allout.el (allout-write-file-hook-handler):
+	* textmodes/reftex.el (reftex-TeX-master-file):
+	* textmodes/org.el (org-paste-subtree):
+	* textmodes/ispell.el (ispell-process-line):
+	* progmodes/vhdl-mode.el (vhdl-template-modify):
+	* progmodes/idlw-shell.el (idlwave-shell-send-command)
+	(idlwave-shell-display-line)
+	* progmodes/ada-xref.el (ada-find-file, ada-get-all-references)
+	(ada-xref-find-in-modified-ali, ada-find-in-src-path):
+	* net/trampver.el (x):
+	* mail/uce.el (uce-reply-to-uce):
+	* mail/rmailout.el (rmail-output):
+	* mail/feedmail.el (feedmail-dump-message-to-queue):
+	* whitespace.el (whitespace-write-file-hook):
+	* wdired.el (wdired-check-kill-buffer):
+	* vc.el (vc-update):
+	* vc-mcvs.el (vc-mcvs-checkin):
+	* vc-cvs.el (vc-cvs-checkin):
+	* man.el (Man-bgproc-sentinel, Man-goto-see-also-section):
+	* ibuffer.el (ibuffer-current-buffer):
+	* dired.el (dired-move-to-end-of-filename):
 	* bindings.el (complete-symbol): Fix buggy calls to `error'.
-
 
 2007-12-06  D. Goel  <deego3@gmail.com>
 
-
-	* textmodes/org-publish.el (org-publish-file): Fix buggy call(s) to `error'.
+	* textmodes/org-publish.el (org-publish-file):
+	Fix buggy call(s) to `error'.
 	(org-publish-current-project): Ditto.
 	* textmodes/reftex-parse.el (reftex-short-context): Ditto.
 	(reftex-short-context): Ditto.
 	* textmodes/texinfmt.el: Ditto.
-
-
 
 2007-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
