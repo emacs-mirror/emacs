@@ -239,7 +239,7 @@ address, and postmaster of the mail relay used."
 	(full-header-p (and (eq uce-mail-reader 'rmail)
 			    (not (rmail-msg-is-pruned)))))
     (or (get-buffer message-buffer)
-	(error (concat "No buffer " message-buffer ", cannot find UCE")))
+	(error "%s" (concat "No buffer " message-buffer ", cannot find UCE")))
     (switch-to-buffer message-buffer)
     ;; We need the message with headers pruned.
     (if full-header-p

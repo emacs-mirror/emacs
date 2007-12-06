@@ -1922,7 +1922,7 @@ mapped to mostly alphanumerics for safety."
       ;; progn to get nil result no matter what
       (progn (make-directory queue-directory t) nil)
       (file-accessible-directory-p queue-directory)
-      (error (concat "FQM: Message not queued; trouble with directory " queue-directory)))
+      (error "%s" (concat "FQM: Message not queued; trouble with directory " queue-directory)))
   (let ((filename)
 	(is-fqm)
 	(is-in-this-dir)

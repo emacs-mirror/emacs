@@ -1,5 +1,11 @@
 2007-12-06  D. Goel  <deego3@gmail.com>
 
+	* mail/uce.el (uce-reply-to-uce): Ditto.
+
+	* mail/rmailout.el (rmail-output): Ditto.
+
+	* mail/feedmail.el (feedmail-dump-message-to-queue): Ditto.
+
 	* whitespace.el (whitespace-write-file-hook): Ditto.
 
 	* wdired.el (wdired-check-kill-buffer): Ditto.
