@@ -1,6 +1,7 @@
 ;;;; testcover-ses.el -- Example use of `testcover' to test "SES"
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+;;   Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@engineer.com>
 ;; Maintainer: Jonathan Yavner <jyavner@engineer.com>
@@ -26,15 +27,15 @@
 (defvar ses-initial-global-parameters)
 (defvar ses-mode-map)
 
-(declare-function ses-set-curcell "../ses")
-(declare-function ses-update-cells "../ses")
-(declare-function ses-load "../ses")
-(declare-function ses-vector-delete "../ses")
-(declare-function ses-create-header-string "../ses")
-(declare-function ses-read-cell "../ses")
-(declare-function ses-read-symbol "../ses")
-(declare-function ses-command-hook "../ses")
-(declare-function ses-jump "../ses")
+(declare-function ses-set-curcell "ses")
+(declare-function ses-update-cells "ses")
+(declare-function ses-load "ses")
+(declare-function ses-vector-delete "ses")
+(declare-function ses-create-header-string "ses")
+(declare-function ses-read-cell "ses")
+(declare-function ses-read-symbol "ses")
+(declare-function ses-command-hook "ses")
+(declare-function ses-jump "ses")
 
 
 ;;;Here are some macros that exercise SES.  Set `pause' to t if you want the
