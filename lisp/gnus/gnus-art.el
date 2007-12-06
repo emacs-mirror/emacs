@@ -2802,8 +2802,37 @@ Recurse into multiparts."
 		    (string-match "text/html" (car (mm-handle-type handle))))
 	       (let ((tmp-file (mm-make-temp-file
 				;; Do we need to care for 8.3 filenames?
-				"mm-" nil ".html")))
-		 (mm-save-part-to-file handle tmp-file)
+				"mm-" nil ".html"))
+		     (charset (mail-content-type-get (mm-handle-type handle)
+						     'charset)))
+		 (if charset
+		     ;; Add a meta html tag to specify charset.
+		     (mm-with-unibyte-buffer
+		       (insert (with-current-buffer (mm-handle-buffer handle)
+				 (if (eq charset 'gnus-decoded)
+				     (mm-encode-coding-string
+				      (buffer-string)
+				      (setq charset 'utf-8))
+				   (buffer-string))))
+		       (setq charset (format "\
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=%s\">"
+					     charset))
+		       (goto-char (point-min))
+		       (let ((case-fold-search t))
+			 (cond (;; Don't modify existing meta tag.
+				(re-search-forward "\
+<meta[\t\n\r ]+http-equiv=\"content-type\"[^>]+>"
+						   nil t))
+			       ((re-search-forward "<head>[\t\n\r ]*" nil t)
+				(insert charset "\n"))
+			       (t
+				(re-search-forward "\
+<html\\(?:[\t\n\r ]+[^>]+\\|[\t\n\r ]*\\)>[\t\n\r ]*"
+						   nil t)
+				(insert "<head>\n" charset "\n</head>\n"))))
+		       (mm-write-region (point-min) (point-max)
+					tmp-file nil nil nil 'binary t))
+		   (mm-save-part-to-file handle tmp-file))
 		 (add-to-list 'gnus-article-browse-html-temp-list tmp-file)
 		 (add-hook 'gnus-summary-prepare-exit-hook
 			   'gnus-article-browse-delete-temp-files)

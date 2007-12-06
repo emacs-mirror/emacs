@@ -1,3 +1,34 @@
+2007-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-use-idna)
+	* gnus-start.el (gnus-site-init-file)
+	* message.el (message-use-idna)
+	* mm-uu.el (mm-uu-hide-markers)
+	* smiley.el (smiley-style): Revert changes that suppress warnings.
+
+2007-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-html-parts): Add meta html tag to
+	specify charset to html source.  Reported by Christoph Conrad
+	<christoph.conrad@gmx.de>.
+
+2007-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-use-idna): Don't directly refer to the value of
+	idna-program in order to suppress byte compile warning issued by XEmacs
+	that came to byte compile the default value section of defcustom forms
+	recently.
+
+	* gnus-start.el (gnus-site-init-file): Don't directly refer to the
+	value of installation-directory.
+
+	* message.el (message-use-idna): Don't directly refer to the value of
+	idna-program.
+
+	* mm-uu.el (mm-uu-hide-markers): Don't directly call defined-colors.
+
+	* smiley.el (smiley-style): Don't directly call face-attribute.
+
 2007-12-04  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-group.el (gnus-group-highlight-line): Add FIXME.
