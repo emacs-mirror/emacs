@@ -449,7 +449,7 @@ while a list of strings is used as a word list."
 			  "command or function" "command"))
 		     current-prefix-arg))
   (apropos-parse-pattern pattern)
-  (let ((message "%s"
+  (let ((message
 	 (let ((standard-output (get-buffer-create "*Apropos*")))
 	   (print-help-return-message 'identity))))
     (or do-all (setq do-all apropos-do-all))
