@@ -2622,10 +2622,10 @@ changes from the current branch are merged into the working file."
 	      (error "%s"
 	       (substitute-command-keys
 		"File is locked--type \\[vc-revert] to discard changes"))
-	    (error "%s"
+	    (error "Unexpected file state (%s) -- type %s"
+	     (vc-state file)
 	     (substitute-command-keys
-	      "Unexpected file state (%s)--type \\[vc-next-action] to correct")
-	     (vc-state file)))
+	      "\\[vc-next-action] to correct"))
 	(if (not (vc-find-backend-function (vc-backend file) 'merge-news))
 	    (error "Sorry, merging news is not implemented for %s"
 		   (vc-backend file))
