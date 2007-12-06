@@ -1,3 +1,12 @@
+2007-11-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Fancy Mail Splitting): Fix description of splitting based
+	on body.
+
+2007-11-24  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Fetching Mail): Remove obsolete `nnmail-spool-file'.
+
 2007-11-22  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* maintaining.texi (Tag Syntax): Revert this change: "Now --members is

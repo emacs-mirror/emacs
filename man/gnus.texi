@@ -14123,14 +14123,12 @@ If non-@code{nil}, name of program for fetching new mail.  If
 @subsubsection Fetching Mail
 
 @vindex mail-sources
-@vindex nnmail-spool-file
 The way to actually tell Gnus where to get new mail from is to set
 @code{mail-sources} to a list of mail source specifiers
 (@pxref{Mail Source Specifiers}).
 
-If this variable (and the obsolescent @code{nnmail-spool-file}) is
-@code{nil}, the mail back ends will never attempt to fetch mail by
-themselves.
+If this variable is @code{nil}, the mail back ends will never attempt to
+fetch mail by themselves.
 
 If you want to fetch mail both from your local spool as well as a
 @acronym{POP} mail server, you'd say something like:
@@ -14339,9 +14337,9 @@ body of the messages:
         "string.group"))))
 @end lisp
 
-The buffer is narrowed to the message in question when @var{function}
-is run.  That's why @code{(widen)} needs to be called after
-@code{save-excursion} and @code{save-restriction} in the example
+The buffer is narrowed to the header of the message in question when
+@var{function} is run.  That's why @code{(widen)} needs to be called
+after @code{save-excursion} and @code{save-restriction} in the example
 above.  Also note that with the nnimap backend, message bodies will
 not be downloaded by default.  You need to set
 @code{nnimap-split-download-body} to @code{t} to do that

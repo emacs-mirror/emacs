@@ -1,3 +1,7 @@
+2007-12-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-ignored-supersedes-headers): Add "X-ID".
+
 2007-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (message-tool-bar-retro): Update for rename
