@@ -3402,7 +3402,7 @@ should replace the \"Date:\" one, or should be added below it."
 	     ":"
 	     (format "%02d" (nth 1 dtime)))))))
     (error
-     (format "Date: %s (from Gnus)" date))))
+     "Date: %s (from Gnus)" date)))
 
 (defun article-date-local (&optional highlight)
   "Convert the current article date to the local timezone."
