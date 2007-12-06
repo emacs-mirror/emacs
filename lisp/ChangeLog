@@ -1,3 +1,7 @@
+2007-12-06  Jason Rumney  <jasonr@gnu.org>
+
+	* mouse.el (mouse-buffer-menu-alist): Keep buffer names left aligned.
+
 2007-12-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-save-history): Use emacs-mule coding system
