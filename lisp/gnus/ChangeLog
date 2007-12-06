@@ -1,9 +1,8 @@
 2007-12-06  D. Goel  <deego3@gmail.com>
 
-	* pop3.el (pop3-read-response): Ditto.
-
 	* gnus-art.el (article-make-date-line): Fix buggy call to `error'.
 	* gnus-start.el (gnus-load): Ditto.
+	* pop3.el (pop3-read-response): Ditto.
 
 2007-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
