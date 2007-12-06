@@ -1,3 +1,22 @@
+2007-12-06  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* language/tibetan.el: Fix the range for recording
+	tibetan-composition-function in composition-function-table.
+
+	* language/tml-util.el (tamil-composition-function): Use
+	font-shape-text if auto-compose-current-font is non-nil.
+
+	* language/mlm-util.el (malayalam-composition-function): Use
+	font-shape-text if auto-compose-current-font is non-nil.
+
+	* international/mule-conf.el: Flag many charsets as supplementary.
+
+	* international/mule.el (define-charset): Update the docstring for
+	:supplementary-p.
+
+	* international/fontset.el (setup-default-fontset): Add OpenType
+	fonts for malayalam and tibetan.
+
 2007-12-03  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/fontset.el (x-complement-fontset-spec): Use
