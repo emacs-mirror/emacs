@@ -1,5 +1,7 @@
 2007-12-06  D. Goel  <deego3@gmail.com>
 
+	* net/trampver.el (x): Ditto.
+
 	* mail/uce.el (uce-reply-to-uce): Ditto.
 
 	* mail/rmailout.el (rmail-output): Ditto.
