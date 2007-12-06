@@ -1,3 +1,14 @@
+2007-12-06  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* charset.c (Fdefine_charset_internal): Record a supplementary
+	charset at the tail of Vcharset_order_list.
+
+	* font.c (Ffont_shape_text): Fix the return value.
+
+	* ftfont.c (OTF_SYM_TAG, OTF_TAG_STR): Fix argument names.
+
+	* xdisp.c (handle_auto_composed_prop): Fix previous change.
+
 2007-12-05  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* ftfont.c (struct OpenTypeSpec): New struct.
