@@ -329,18 +329,18 @@ struct OpenTypeSpec
   unsigned int *features[2];
 };
 
-#define OTF_SYM_TAG(sym, tag)					\
+#define OTF_SYM_TAG(SYM, TAG)					\
   do {								\
-    unsigned char *p = SDATA (SYMBOL_NAME (val));		\
-    tag = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];	\
+    unsigned char *p = SDATA (SYMBOL_NAME (SYM));		\
+    TAG = (p[0] << 24) | (p[1] << 16) | (p[2] << 8) | p[3];	\
   } while (0)
 
-#define OTF_TAG_STR(tag, p)			\
+#define OTF_TAG_STR(TAG, P)			\
   do {						\
-    (p)[0] = (char) (tag >> 24);		\
-    (p)[1] = (char) ((tag >> 16) & 0xFF);	\
-    (p)[2] = (char) ((tag >> 8) & 0xFF);	\
-    (p)[3] = (char) (tag & 0xFF);		\
+    (P)[0] = (char) (TAG >> 24);		\
+    (P)[1] = (char) ((TAG >> 16) & 0xFF);	\
+    (P)[2] = (char) ((TAG >> 8) & 0xFF);	\
+    (P)[3] = (char) (TAG & 0xFF);		\
   } while (0)
 
 static struct OpenTypeSpec *
