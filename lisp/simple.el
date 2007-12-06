@@ -1633,7 +1633,7 @@ as an argument limits undo to changes within the current region."
 	 (delete-auto-save-file-if-necessary recent-save))
     ;; Display a message announcing success.
     (if message
-	(message message))))
+	(message "%s" message))))
 
 (defun buffer-disable-undo (&optional buffer)
   "Make BUFFER stop keeping undo information.

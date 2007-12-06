@@ -1,5 +1,23 @@
 2007-12-05  D. Goel  <deego3@gmail.com>
 
+	* simple.el (undo): Ditto.
+
+	* image-dired.el (image-dired-display-thumb-properties): Ditto.
+	(image-dired-modify-mark-on-thumb-original-file): Ditto.
+	(image-dired-dired-display-properties): Ditto.
+
+	* help.el (help-window-display-message): Ditto.
+
+	* files.el (hack-local-variables-confirm): Ditto.
+
+	* ediff.el (ediff-version): Ditto.
+
+	* complete.el (pc-chunk-after): Ditto.
+	(PC-temp-minibuffer-message): Ditto.
+
+	* apropos.el (apropos-command): `message' and `error': Ensure that first arg is
+	a format string.
+
 	* emacs-lisp/find-func.el (find-library-name): Prefer files with
 	".el" suffix over "".
 

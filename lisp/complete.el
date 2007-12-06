@@ -381,9 +381,9 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 ;; Returns the sequence of non-delimiter characters that follow regexp in string.
 (defun PC-chunk-after (string regexp)
   (if (not (string-match regexp string))
-      (let ((message (format "String %s didn't match regexp %s" string regexp)))
-	(message message)
-	(error message)))
+      (let ((message "String %s didn't match regexp %s"))
+	(message message string regexp)
+	(error message string regexp)))
   (let ((result (substring string (match-end 0))))
     ;; result may contain multiple chunks
     (if (string-match PC-delim-regex result)
@@ -869,7 +869,7 @@ GOTO-END is non-nil, however, it instead replaces up to END."
 (defun PC-temp-minibuffer-message (message)
   "A Lisp version of `temp_minibuffer_message' from minibuf.c."
   (cond (PC-not-minibuffer
-	 (message message)
+	 (message "%s" message)
 	 (sit-for 2)
 	 (message ""))
 	((fboundp 'temp-minibuffer-message)

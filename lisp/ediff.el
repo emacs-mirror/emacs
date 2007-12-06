@@ -1423,7 +1423,7 @@ Uses `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
 When called interactively, displays the version."
   (interactive)
   (if (interactive-p)
-      (message (ediff-version))
+      (message "%s" (ediff-version))
     (format "Ediff %s of %s" ediff-version ediff-date)))
 
 ;; info is run first, and will autoload info.el.
