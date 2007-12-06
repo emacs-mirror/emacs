@@ -1,3 +1,8 @@
+2007-12-06  Glenn Morris  <rgm@gnu.org>
+
+	* url-file.el, url-mailto.el: Remove directory part from filenames
+	in function declarations.
+
 2007-12-02  Glenn Morris  <rgm@gnu.org>
 
 	* url-about.el, url-handlers.el: Don't require cl when compiling.
