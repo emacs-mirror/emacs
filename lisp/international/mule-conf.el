@@ -127,12 +127,14 @@
 (define-charset 'eight-bit-control
   "Raw bytes in the range 0x80..0x9F (usually produced from invalid encodings)"
   :short-name "Raw bytes 0x80..0x9F"
+  :supplementary-p t
   :code-space [128 159]
   :code-offset #x3FFF80)		; see character.h
 
 (define-charset 'eight-bit-graphic
   "Raw bytes in the range 0xA0..0xFF (usually produced from invalid encodings)"
   :short-name "Raw bytes 0xA0..0xFF"
+  :supplementary-p t
   :code-space [160 255]
   :code-offset #x3FFFA0)		; see character.h
 
@@ -157,6 +159,7 @@
 	   :long-name (format "RHP of %s (%s)" ,name ,nickname)
 	   :iso-final-char ,iso-final
 	   :emacs-mule-id ,emacs-mule-id
+	   :supplementary-p t
 	   :code-space [32 127]
 	   :subset (list ,symbol 160 255 -128)))))
 
@@ -240,6 +243,7 @@
   :long-name "Japanese Roman (JISX0201.1976)"
   :iso-final-char ?J
   :emacs-mule-id  138
+  :supplementary-p t
   :code-space [33 126]
   :subset '(jisx0201 33 126 0))
 
@@ -249,6 +253,7 @@
   :long-name "Japanese Katakana (JISX0201.1976)"
   :iso-final-char ?I
   :emacs-mule-id  137
+  :supplementary-p t
   :code-space [33 126]
   :subset '(jisx0201 161 254 -128))
 
@@ -357,6 +362,7 @@
   :long-name "Big5 (Level-1) A141-C67F"
   :iso-final-char ?0
   :emacs-mule-id 152
+  :supplementary-p t
   :code-space [#x21 #x7E #x21 #x7E]
   :code-offset #x135000
   :unify-map "BIG5-1")
@@ -367,6 +373,7 @@
   :long-name "Big5 (Level-2) C940-FEFE"
   :iso-final-char ?1
   :emacs-mule-id  153
+  :supplementary-p t
   :code-space [#x21 #x7E #x21 #x7E]
   :code-offset #x137800
   :unify-map "BIG5-2")
@@ -484,6 +491,7 @@
   :emacs-mule-id 160
   :code-space [33 126]
   :unify-map "MULE-sisheng"
+  :supplementary-p t
   :code-offset #x200000)
 
 ;; A subset of the 1989 version of IPA.  It consists of the consonant
@@ -496,6 +504,7 @@
   :emacs-mule-id  161
   :unify-map "MULE-ipa"
   :code-space [32 127]
+  :supplementary-p t
   :code-offset #x200080)
 
 (define-charset 'viscii
@@ -513,6 +522,7 @@
   :emacs-mule-id  162
   :code-space [32 127]
   :code-offset #x200200
+  :supplementary-p t
   :unify-map "MULE-lviscii")
 
 (define-charset 'vietnamese-viscii-upper
@@ -523,6 +533,7 @@
   :emacs-mule-id  163
   :code-space [32 127]
   :code-offset #x200280
+  :supplementary-p t
   :unify-map "MULE-uviscii")
 
 (define-charset 'vscii
@@ -812,6 +823,7 @@
   :short-name "Arabic digit"
   :iso-final-char ?2
   :emacs-mule-id 164
+  :supplementary-p t
   :code-space [34 42]
   :code-offset #x0600)
 
@@ -821,6 +833,7 @@
   :long-name "Arabic 1-column"
   :iso-final-char ?3
   :emacs-mule-id 165
+  :supplementary-p t
   :code-space [33 126]
   :code-offset #x200100)
 
@@ -830,6 +843,7 @@
   :long-name "Arabic 2-column"
   :iso-final-char ?4
   :emacs-mule-id 224
+  :supplementary-p t
   :code-space [33 126]
   :code-offset #x200180)
 
@@ -841,6 +855,7 @@
   :short-name "Lao"
   :iso-final-char ?1
   :emacs-mule-id 167
+  :supplementary-p t
   :code-space [33 126]
   :code-offset #x0E81)
 
@@ -848,6 +863,7 @@
   "Lao characters (ISO10646 0E81..0EDF)"
   :short-name "Lao"
   :code-space [0 255]
+  :supplementary-p t
   :superset '(ascii eight-bit-control (lao . 128)))
 
 
@@ -861,6 +877,7 @@
   :long-name "Indian IS 13194"
   :iso-final-char ?5
   :emacs-mule-id 225
+  :supplementary-p t
   :code-space [33 126]
   :code-offset #x180000)
 
@@ -871,6 +888,7 @@
       (format "Glyphs of %s script for CDAC font.  Subset of `indian-glyph'."
 	      (capitalize (symbol-name script)))
       :short-name (format "CDAC %s glyphs" (capitalize (symbol-name script)))
+      :supplementary-p t
       :code-space [0 255]
       :code-offset code-offset)
     (setq code-offset (+ code-offset #x100)))
@@ -881,6 +899,7 @@
       (format "Glyphs of %s script for AKRUTI font.  Subset of `indian-glyph'."
 	      (capitalize (symbol-name script)))
       :short-name (format "AKRUTI %s glyphs" (capitalize (symbol-name script)))
+      :supplementary-p t
       :code-space [0 255]
       :code-offset code-offset)
     (setq code-offset (+ code-offset #x100))))
@@ -890,6 +909,7 @@
   :short-name "Indian glyph"
   :iso-final-char ?4
   :emacs-mule-id 240
+  :supplementary-p t
   :code-space [32 127 32 127]
   :code-offset #x180100)
 
@@ -900,6 +920,7 @@
   :long-name "Indian 1 Column"
   :iso-final-char ?6
   :emacs-mule-id  251
+  :supplementary-p t
   :code-space [33 126 33 126]
   :code-offset #x184000)
 
@@ -910,6 +931,7 @@
   :long-name "Indian 2 Column"
   :iso-final-char ?5
   :emacs-mule-id  251
+  :supplementary-p t
   :code-space [33 126 33 126]
   :code-offset #x184000)
 
@@ -921,6 +943,7 @@
   :iso-final-char ?7
   :emacs-mule-id 252
   :unify-map "MULE-tibetan"
+  :supplementary-p t
   :code-space [33 126 33 37]
   :code-offset #x190000)
 
@@ -930,6 +953,7 @@
   :long-name "Tibetan 1 column"
   :iso-final-char ?8
   :emacs-mule-id 241
+  :supplementary-p t
   :code-space [33 126 33 37]
   :code-offset #x190000)
 
@@ -940,6 +964,7 @@
   :long-name "Unicode subset (U+2500..U+33FF)"
   :iso-final-char ?2
   :emacs-mule-id 242
+  :supplementary-p t
   :code-space [#x20 #x7f #x20 #x47]
   :code-offset #x2500)
 
@@ -949,6 +974,7 @@
   :long-name "Unicode subset (U+E000+FFFF)"
   :iso-final-char ?3
   :emacs-mule-id 243
+  :supplementary-p t
   :code-space [#x20 #x7F #x20 #x75]
   :code-offset #xE000
   :max-code 30015)			; U+FFFF
@@ -959,6 +985,7 @@
   :long-name "Unicode subset (U+0100..U+24FF)"
   :iso-final-char ?1
   :emacs-mule-id 244
+  :supplementary-p t
   :code-space [#x20 #x7F #x20 #x7F]
   :code-offset #x100)
 
@@ -992,6 +1019,7 @@
   :long-name "Ethiopic characters"
   :iso-final-char ?3
   :emacs-mule-id  245
+  :supplementary-p t
   :unify-map "MULE-ethiopic"
   :code-space [33 126 33 126]
   :code-offset #x1A0000)
