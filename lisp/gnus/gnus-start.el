@@ -2392,11 +2392,11 @@ If FORCE is non-nil, the .newsrc file is read."
 	    (eval form))
 	(error
 	 (unless (eq (car type) 'end-of-file)
-	   (let ((error (format "Error in %s line %d" file
-				(count-lines (point-min (point))))))
+	   (let ((errmsg (format "Error in %s line %d" file
+				 (count-lines (point-min (point))))))
 	     (ding)
-	     (unless (gnus-yes-or-no-p (concat error "; continue? "))
-	       (error "%s" error)))))))))
+	     (unless (gnus-yes-or-no-p (concat errmsg "; continue? "))
+	       (error "%s" errmsg)))))))))
 
 (defun gnus-read-newsrc-el-file (file)
   (let ((ding-file (concat file "d")))
