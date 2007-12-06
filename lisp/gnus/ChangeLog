@@ -1,4 +1,5 @@
 2007-12-06  D. Goel  <deego3@gmail.com>
+	* gnus-start.el (gnus-load): Fix breakage from last change.
 
 	* gnus-art.el (article-make-date-line): Fix buggy call to `error'.
 	* gnus-start.el (gnus-load): Ditto.

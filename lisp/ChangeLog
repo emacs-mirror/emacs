@@ -1,8 +1,7 @@
 2007-12-06  D. Goel  <deego3@gmail.com>
 
-	* vc.el: Fix breakage.
+	* vc.el (vc-update): Fix breakage.
 	* ibuffer.el (ibuffer-current-buffer): Ditto.
-	* gnus/gnus-start.el (gnus-load): Ditto.
 
 	* allout.el (allout-write-file-hook-handler): Fix buggy call(s) to `error'.
 	* textmodes/reftex.el (reftex-TeX-master-file): Ditto.
