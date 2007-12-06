@@ -1054,8 +1054,12 @@ usage: (define-charset-internal ...)  */)
   if (new_definition_p)
     {
       Vcharset_list = Fcons (args[charset_arg_name], Vcharset_list);
-      Vcharset_ordered_list = nconc2 (Vcharset_ordered_list,
-				      Fcons (make_number (id), Qnil));
+      if (charset.supplementary_p)
+	Vcharset_ordered_list = nconc2 (Vcharset_ordered_list,
+					Fcons (make_number (id), Qnil));
+      else
+	Vcharset_ordered_list = Fcons (make_number (id),
+				       Vcharset_ordered_list);
       charset_ordered_list_tick++;
     }
 
