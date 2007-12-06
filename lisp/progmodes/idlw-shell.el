@@ -1322,7 +1322,7 @@ message, independent of what HIDE is set to."
     (if (or (not (setq buf (get-buffer (idlwave-shell-buffer))))
 	    (not (setq proc (get-buffer-process buf))))
 	(if (not idlwave-shell-automatic-start)
-	    (error
+	    (error "%s"
 	     (substitute-command-keys
 	      "You need to first start an IDL shell with \\[idlwave-shell]"))
 	  (idlwave-shell-recenter-shell-window)
@@ -2375,7 +2375,7 @@ matter what the settings of that variable."
     (if (not (idlwave-shell-valid-frame frame))
 	;; fixme: errors are dangerous in shell filters.  but i think i
 	;; have never encountered this one.
-        (error (concat "invalid frame - unable to access file: " (car frame)))
+        (error "%s" (concat "invalid frame - unable to access file: " (car frame)))
 ;;;
 ;;; buffer : the buffer to display a line in.
 ;;; select-shell: current buffer is the shell.

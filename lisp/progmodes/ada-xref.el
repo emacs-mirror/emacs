@@ -564,7 +564,7 @@ Completion is available."
   (let ((file (ada-find-src-file-in-dir filename)))
     (if file
 	(find-file file)
-      (error (concat filename " not found in src_dir")))))
+      (error "%s" (concat filename " not found in src_dir")))))
 
 
 ;; ----- Utilities -------------------------------------------------
@@ -1722,7 +1722,7 @@ Information is extracted from the ali file."
 	  ;; No more idea to find the declaration.  Give up
 	  (progn
 	    (kill-buffer ali-buffer)
-	    (error (concat "No declaration of " (ada-name-of identlist)
+	    (error "%s" (concat "No declaration of " (ada-name-of identlist)
 			   " found."))
 	    )))
       )
@@ -1808,7 +1808,7 @@ This function is disabled for operators, and only works for identifiers."
 	   ;; none => error
 	   ((= len 0)
 	    (kill-buffer (current-buffer))
-	    (error (concat "No declaration of "
+	    (error "%s" (concat "No declaration of "
 			   (ada-name-of identlist)
 			   " recorded in .ali file")))
 
@@ -2011,7 +2011,7 @@ the declaration and documentation of the subprograms one is using."
 				  (string-to-number (nth 2 (car list)))
 				  identlist
 				  other-frame)
-	(error (concat (caar list) " not found in src_dir")))
+	(error "%s" (concat (caar list) " not found in src_dir")))
       (message "This is only a (good) guess at the cross-reference.")
       )
 

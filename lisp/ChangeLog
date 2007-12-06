@@ -1,5 +1,15 @@
 2007-12-06  D. Goel  <deego3@gmail.com>
 
+	* progmodes/vhdl-mode.el (vhdl-template-modify): Ditto.
+
+	* progmodes/idlw-shell.el (idlwave-shell-send-command): Ditto.
+	(idlwave-shell-display-line): Ditto.
+
+	* progmodes/ada-xref.el (ada-find-file): Ditto.
+	(ada-get-all-references): Ditto.
+	(ada-xref-find-in-modified-ali): Ditto.
+	(ada-find-in-src-path): Ditto.
+
 	* net/trampver.el (x): Ditto.
 
 	* mail/uce.el (uce-reply-to-uce): Ditto.
