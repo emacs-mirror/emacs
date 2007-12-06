@@ -3079,8 +3079,8 @@ On reaching beginning of line, stop and signal error."
     (setq this-command 'next-line)
     (if com (viper-execute-com 'viper-next-line val com))))
 
-(declare-function widget-type "../wid-edit" (widget))
-(declare-function widget-button-press "../wid-edit" (pos &optional event))
+(declare-function widget-type "wid-edit" (widget))
+(declare-function widget-button-press "wid-edit" (pos &optional event))
 (declare-function viper-set-hooks "viper" ())
 
 (defun viper-next-line-at-bol (arg)
