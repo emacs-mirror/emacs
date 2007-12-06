@@ -1,3 +1,25 @@
+2007-12-06  D. Goel  <deego3@gmail.com>
+
+	* whitespace.el (whitespace-write-file-hook): Ditto.
+
+	* wdired.el (wdired-check-kill-buffer): Ditto.
+
+	* vc.el (vc-update): Ditto.
+
+	* vc-mcvs.el (vc-mcvs-checkin): Ditto.
+
+	* vc-cvs.el (vc-cvs-checkin): Ditto.
+
+	* man.el (Man-bgproc-sentinel): Ditto.
+	(Man-goto-see-also-section): Ditto.
+
+	* ibuffer.el (ibuffer-current-buffer): Ditto.
+
+	* dired.el (dired-move-to-end-of-filename): Ditto.
+
+	* bindings.el (complete-symbol): Ditto.
+
+	* allout.el (allout-write-file-hook-handler): Fix buggy call(s) to `error'.
 
 2007-12-06  D. Goel  <deego3@gmail.com>
 

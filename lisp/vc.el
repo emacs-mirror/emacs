@@ -2619,10 +2619,10 @@ changes from the current branch are merged into the working file."
 	(vc-checkout file nil "")
       (if (eq (vc-checkout-model file) 'locking)
 	  (if (eq (vc-state file) 'edited)
-	      (error
+	      (error "%s"
 	       (substitute-command-keys
 		"File is locked--type \\[vc-revert] to discard changes"))
-	    (error
+	    (error "%s"
 	     (substitute-command-keys
 	      "Unexpected file state (%s)--type \\[vc-next-action] to correct")
 	     (vc-state file)))

@@ -616,7 +616,7 @@ language you are using."
     (if (fboundp 'complete-tag)
 	(complete-tag)
       ;; Don't autoload etags if we have no tags table.
-      (error (substitute-command-keys
+      (error "%s" (substitute-command-keys
 	      "No tags table loaded; use \\[visit-tags-table] to load one")))))
 
 ;; Reduce total amount of space we must allocate during this function

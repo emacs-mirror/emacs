@@ -1392,7 +1392,7 @@ If point is on a group name, this function operates on that group."
     (when must-be-live
       (if (bufferp buf)
 	  (unless (buffer-live-p buf)
-	    (error (substitute-command-keys "Buffer %s has been killed; use `\\[ibuffer-update]' to update") buf))
+	    (error "%s" (substitute-command-keys "Buffer %s has been killed; use `\\[ibuffer-update]' to update") buf))
 	(error "No buffer on this line")))
     buf))
 

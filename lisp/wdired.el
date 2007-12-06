@@ -492,7 +492,7 @@ Optional arguments are ignored."
   (if (and
        (buffer-modified-p)
        (not (y-or-n-p "Buffer changed. Discard changes and kill buffer? ")))
-      (error nil)))
+      (error "Error.")))
 
 (defun wdired-next-line (arg)
   "Move down lines then position at filename or the current column.
