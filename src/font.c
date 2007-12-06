@@ -3453,18 +3453,15 @@ The value is the end position of the shaped text.  */)
       LGSTRING_SET_DESCENT (gstr, metrics.descent);
       for (k = i; i < j; i++)
 	LGSTRING_SET_GLYPH (gstr, i - k, LGSTRING_GLYPH (gstring, i));
+      from = make_number (start + this_from);
+      to = make_number (start + this_to);
       if (NILP (string))
-	Fcompose_region_internal (make_number (start + this_from),
-				  make_number (start + this_to),
-				  gstr, Qnil);
+	Fcompose_region_internal (from, to, gstr, Qnil);
       else
-	Fcompose_string_internal (string,
-				  make_number (start + this_from),
-				  make_number (start + this_to),
-				  gstr, Qnil);
+	Fcompose_string_internal (string, from, to, gstr, Qnil);
     }
 
-  return make_number (start + XINT (n));
+  return to;
 }
 
 DEFUN ("font-drive-otf", Ffont_drive_otf, Sfont_drive_otf, 6, 6, 0,
