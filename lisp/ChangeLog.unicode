@@ -1,10 +1,10 @@
 2007-12-06  Kenichi Handa  <handa@ni.aist.go.jp>
 
+	* language/tibet-util.el (tibetan-composition-function): Use
+	font-shape-text if auto-compose-current-font is non-nil.
+
 	* language/tibetan.el: Fix the range for recording
 	tibetan-composition-function in composition-function-table.
-
-	* language/tml-util.el (tamil-composition-function): Use
-	font-shape-text if auto-compose-current-font is non-nil.
 
 	* language/mlm-util.el (malayalam-composition-function): Use
 	font-shape-text if auto-compose-current-font is non-nil.
