@@ -1,17 +1,16 @@
-2007-12-06  D. Goel  <deego3@gmail.com>
+2007-12-07  Glenn Morris  <rgm@gnu.org>
 
-	* gnus-start.el (gnus-load): Fix breakage from last change.
+	* gnus-art.el (article-make-date-line): Revert previous change.
 
 2007-12-06  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-start.el (gnus-load): Rename local variable to avoid confusion.
 
 2007-12-06  D. Goel  <deego3@gmail.com>
-	* gnus-start.el (gnus-load): Fix breakage from last change.
 
-	* gnus-art.el (article-make-date-line): Fix buggy call to `error'.
-	* gnus-start.el (gnus-load): Ditto.
-	* pop3.el (pop3-read-response): Ditto.
+	* gnus-art.el (article-make-date-line):
+	* gnus-start.el (gnus-load):
+	* pop3.el (pop3-read-response): Fix buggy call to `error'.
 
 2007-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
