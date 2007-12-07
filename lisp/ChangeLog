@@ -1,10 +1,5 @@
 2007-12-06  D. Goel  <deego3@gmail.com>
 
-	* textmodes/ispell.el (ispell-process-line):
-	* vc.el (vc-update):
-	* ibuffer.el (ibuffer-current-buffer):
-	Fix breakage from the change below.
-
 	* allout.el (allout-write-file-hook-handler):
 	* textmodes/reftex.el (reftex-TeX-master-file):
 	* textmodes/org.el (org-paste-subtree):
@@ -26,16 +21,11 @@
 	* man.el (Man-bgproc-sentinel, Man-goto-see-also-section):
 	* ibuffer.el (ibuffer-current-buffer):
 	* dired.el (dired-move-to-end-of-filename):
-	* bindings.el (complete-symbol): Fix buggy calls to `error'.
-
-2007-12-06  D. Goel  <deego3@gmail.com>
-
+	* bindings.el (complete-symbol):
 	* textmodes/org-publish.el (org-publish-file):
-	Fix buggy call(s) to `error'.
-	(org-publish-current-project): Ditto.
-	* textmodes/reftex-parse.el (reftex-short-context): Ditto.
-	(reftex-short-context): Ditto.
-	* textmodes/texinfmt.el: Ditto.
+	(org-publish-current-project):
+	* textmodes/reftex-parse.el (reftex-short-context):
+	* textmodes/texinfmt.el: Fix buggy calls to `error'.
 
 2007-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
