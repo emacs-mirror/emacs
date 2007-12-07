@@ -206,8 +206,9 @@ you need to re-load it to properly re-initialize related alists.")
 		lao-tone-key-alist
 		lao-other-key-alist)
     (svt-state (lao-semivowel-key-alist . v-state)
-	      (lao-vowel-key-alist . t-state)
-	      lao-voweltone-key-alist)
+	       (lao-vowel-key-alist . t-state)
+	       lao-voweltone-key-alist
+	       lao-tone-key-alist)
     (v-state (lao-vowel-key-alist . t-state))
     (t-state lao-tone-key-alist))))
 
