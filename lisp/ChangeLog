@@ -24,7 +24,6 @@
 	* allout.el (allout-write-file-hook-handler):
 	* textmodes/reftex.el (reftex-TeX-master-file):
 	* textmodes/org.el (org-paste-subtree):
-	* textmodes/ispell.el (ispell-process-line):
 	* progmodes/vhdl-mode.el (vhdl-template-modify):
 	* progmodes/idlw-shell.el (idlwave-shell-send-command)
 	(idlwave-shell-display-line):
