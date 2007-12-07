@@ -1501,7 +1501,7 @@ See `allout-encryption-ciphertext-rejection-regexps' for rejection reasons.")
             (condition-case failure
                 (setq allout-after-save-decrypt
                       (allout-encrypt-decrypted except-mark))
-              (error "%s" (progn
+              (error (progn
                        (message
                         "allout-write-file-hook-handler suppressing error %s"
                         failure)
