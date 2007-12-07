@@ -1,3 +1,17 @@
+2007-12-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-hash-table=): Fix for new hash table key
+	structure.
+	(dbus-list-hash-table, dbus-name-owner-changed-handler): New
+	defuns.
+	(dbus-check-event, dbus-handle-event, dbus-event-bus-name)
+	(dbus-event-service-name, dbus-event-path-name)
+	(dbus-event-interface-name, dbus-event-member-name): Fix for new
+	event structure.
+	(dbus-list-activatable-names, dbus-list-names)
+	(dbus-list-queued-owners, dbus-get-name-owner, dbus-introspect):
+	Reorder `dbus-call-method' arguments.
+
 2007-12-06  D. Goel  <deego3@gmail.com>
 
 	* allout.el (allout-write-file-hook-handler):
