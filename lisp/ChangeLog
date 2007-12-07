@@ -1,3 +1,10 @@
+2007-12-07  Glenn Morris  <rgm@gnu.org>
+
+	* allout.el (allout-write-file-hook-handler):
+	* textmodes/reftex.el (reftex-TeX-master-file):
+	* textmodes/reftex-parse.el (reftex-short-context):
+	Revert previous change.
+
 2007-12-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-hash-table=): Fix for new hash table key
