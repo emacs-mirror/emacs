@@ -1,4 +1,4 @@
-2007-12-06  Michael Albinus  <michael.albinus@gmx.de>
+2007-12-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (Fdbus_get_unique_name, xd_read_message)
 	(Fdbus_register_signal): Use DBUS_MAXIMUM_NAME_LENGTH and
