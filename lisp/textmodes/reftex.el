@@ -705,7 +705,7 @@ on the menu bar.
          ((fboundp 'TeX-master-file) ; AUCTeX is loaded.  Use its mechanism.
           (condition-case nil 
               (TeX-master-file t)
-            (error "%s" (buffer-file-name))))
+            (error (buffer-file-name))))
          ((fboundp 'tex-main-file) (tex-main-file)) ; Emacs LaTeX mode
          ((boundp 'TeX-master)       ; The variable is defined - lets use it.
           (cond
