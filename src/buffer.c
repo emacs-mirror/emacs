@@ -5264,6 +5264,7 @@ defvar_per_buffer (namestring, address, type, doc)
   XBUFFER_OBJFWD (val)->offset = offset;
   XBUFFER_OBJFWD (val)->slottype = type;
   SET_SYMBOL_VALUE (sym, val);
+  XSYMBOL (sym)->declared_special = 1;
   PER_BUFFER_SYMBOL (offset) = sym;
 
   if (PER_BUFFER_IDX (offset) == 0)

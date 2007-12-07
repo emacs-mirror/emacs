@@ -3906,37 +3906,6 @@ defvar_lisp (namestring, address)
   staticpro (address);
 }
 
-/* Similar but define a variable whose value is the Lisp Object stored in
-   the current buffer.  address is the address of the slot in the buffer
-   that is current now. */
-
-void
-defvar_per_buffer (namestring, address, type, doc)
-     char *namestring;
-     Lisp_Object *address;
-     Lisp_Object type;
-     char *doc;
-{
-  Lisp_Object sym, val;
-  int offset;
-
-  sym = intern (namestring);
-  val = allocate_misc ();
-  offset = (char *)address - (char *)current_buffer;
-
-  XMISCTYPE (val) = Lisp_Misc_Buffer_Objfwd;
-  XBUFFER_OBJFWD (val)->offset = offset;
-  SET_SYMBOL_VALUE (sym, val);
-  XSYMBOL (sym)->declared_special = 1;
-  PER_BUFFER_SYMBOL (offset) = sym;
-  PER_BUFFER_TYPE (offset) = type;
-
-  if (PER_BUFFER_IDX (offset) == 0)
-    /* Did a DEFVAR_PER_BUFFER without initializing the corresponding
-       slot of buffer_local_flags */
-    abort ();
-}
-
 
 /* Similar but define a variable whose value is the Lisp Object stored
    at a particular offset in the current kboard object.  */
