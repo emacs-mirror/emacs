@@ -1,3 +1,15 @@
+2007-12-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_get_unique_name, xd_read_message)
+	(Fdbus_register_signal): Use DBUS_MAXIMUM_NAME_LENGTH and
+	DBUS_MAXIMUM_MATCH_RULE_LENGTH for string lengths.
+	(Fdbus_call_method, Fdbus_send_signal, Fdbus_register_signal):
+	Unify argument lists.
+	(xd_read_message, Fdbus_register_signal) Reorder and extend event
+	arguments and hash table keys.  Use unique name for service.
+	(Fdbus_unregister_signal): Remove checks.
+	(Vdbus_registered_functions_table): Fix doc string.
+
 2007-12-05  Magnus Henoch  <mange@freemail.hu>
 
 	* process.c (make_process): Initialize pty_flag to 0.
