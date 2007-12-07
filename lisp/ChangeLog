@@ -6,7 +6,7 @@
 	* textmodes/ispell.el (ispell-process-line):
 	* progmodes/vhdl-mode.el (vhdl-template-modify):
 	* progmodes/idlw-shell.el (idlwave-shell-send-command)
-	(idlwave-shell-display-line)
+	(idlwave-shell-display-line):
 	* progmodes/ada-xref.el (ada-find-file, ada-get-all-references)
 	(ada-xref-find-in-modified-ali, ada-find-in-src-path):
 	* net/trampver.el (x):
@@ -87,7 +87,6 @@
 	event of a verification failure.
 
 2007-12-05  Reiner Steib  <Reiner.Steib@gmx.de>
->>>>>>> 1.12380
 
 	* net/tls.el (tls-program): Provide more custom choices from
 	`tls-checktrust'.  Refer to `tls-checktrust' in doc string.
