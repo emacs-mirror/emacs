@@ -1,5 +1,7 @@
 2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* files.el (auto-mode-alist): Recognize verilog files.
+
 	* progmodes/verilog-mode.el (verilog-string-replace-matches)
 	(verilog-string-remove-spaces, verilog-re-search-forward)
 	(verilog-re-search-backward, verilog-re-search-forward-quick)

@@ -1990,6 +1990,7 @@ since only a single case-insensitive search through the alist is made."
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
      ("\\.js\\'" . java-mode)		; javascript-mode would be better
      ("\\.x[bp]m\\'" . c-mode)
+     ("\\.d?v\\'" . verilog-mode)
      ;; .emacs or .gnus or .viper following a directory delimiter in
      ;; Unix, MSDOG or VMS syntax.
      ("[]>:/\\]\\..*\\(emacs\\|gnus\\|viper\\)\\'" . emacs-lisp-mode)
