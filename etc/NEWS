@@ -347,6 +347,14 @@ rather than fortran-indent-comment.
 +++
 *** (The increasingly misnamed) F90 mode supports Fortran 2003 syntax.
 
+** Gnus package
+
+*** The Gnus package has been updated
+
+*** There are many news features, bug fixes and improvements.
+
+See the file GNUS-NEWS or the node "No Gnus" in the Gnus manual for details.
+
 ** Miscellaneous
 
 *** comint-mode uses `start-file-process' now (see Lisp Changes).

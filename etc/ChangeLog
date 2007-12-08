@@ -1,3 +1,7 @@
+2007-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* NEWS: Add minimal Gnus item.
+
 2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs.desktop: New file.
