@@ -49,36 +49,9 @@
 
 ;;; Hash table of registered functions.
 
-(defun dbus-hash-table= (x y)
-  "Compares keys X and Y in the hash table of registered functions for D-Bus.
-See `dbus-registered-functions-table' for a description of the hash table."
-  (and
-   ;; Bus symbol, either :system or :session.
-   (equal (car x) (car y))
-   ;; Service.
-   (or
-    (null (nth 1 x)) (null (nth 1 y)) ; wildcard
-    (string-equal (nth 1 x) (nth 1 y)))
-   ;; Path.
-   (or
-    (null (nth 2 x)) (null (nth 2 y)) ; wildcard
-    (string-equal (nth 2 x) (nth 2 y)))
-   ;; Member.
-   (or
-    (null (nth 3 x)) (null (nth 3 y)) ; wildcard
-    (string-equal (nth 3 x) (nth 3 y)))
-   ;; Interface.
-   (or
-    (null (nth 4 x)) (null (nth 4 y)) ; wildcard
-    (string-equal (nth 4 x) (nth 4 y)))))
-
-(define-hash-table-test 'dbus-hash-table-test 'dbus-hash-table= 'sxhash)
-
-;; When we assume that service, path, interface and and member are
-;; always strings in the key, we could use `equal' as test function.
-;; But we want to have also `nil' there, being a wildcard.
-(setq dbus-registered-functions-table
-      (make-hash-table :test 'dbus-hash-table-test))
+;; We create it here.  So we have a simple test in dbusbind.c, whether
+;; the Lisp code has been loaded.
+(setq dbus-registered-functions-table (make-hash-table :test 'equal))
 
 (defun dbus-list-hash-table ()
   "Returns all registered signal registrations to D-Bus.
@@ -99,24 +72,29 @@ been changed.  OLD-OWNER is the previous owner of SERVICE, or the
 empty string if SERVICE was not owned yet.  NEW-OWNER is the new
 owner of SERVICE, or the empty string if SERVICE looses any name owner."
   (save-match-data
-    ;; Check whether SERVICE is a known name, and OLD-OWNER and
-    ;; NEW-OWNER are defined.
+    ;; Check whether SERVICE is a known name.
     (when (and (stringp service) (not (string-match "^:" service))
-	       (not (zerop (length old-owner)))
-	       (not (zerop (length new-owner))))
-      (let ((bus (dbus-event-bus-name last-input-event)))
-	(maphash
-	 '(lambda (key value)
-	    ;; Check for matching bus and service name.
-	    (when (and (equal bus (car key))
-		       (string-equal old-owner (nth 1 key)))
+	       (stringp old-owner) (stringp new-owner))
+      (maphash
+       '(lambda (key value)
+	  (dolist (elt value)
+	    ;; key has the structure (BUS INTERFACE SIGNAL).
+	    ;; elt has the structure (SERVICE UNAME PATH HANDLER).
+	    (when (string-equal old-owner (cadr elt))
 	      ;; Remove old key, and add new entry with changed name.
-	      (when dbus-debug (message "Remove rule for %s" key))
-	      (dbus-unregister-signal key)
-	      (setcar (nthcdr 1 key) new-owner)
-	      (when dbus-debug (message "Add rule for %s" key))
-	      (apply 'dbus-register-signal (append key (list value)))))
-	 (copy-hash-table dbus-registered-functions-table))))))
+	      (when dbus-debug (message "Remove rule for %s %s" key elt))
+	      ;(dbus-unregister-signal key)
+	      (setcar (cdr elt) new-owner)
+	      (when dbus-debug (message "Add rule for %s %s" key elt))
+	      ;; Maybe we could arrange the lists a little bit better
+	      ;; that we don't need to extract every single element?
+	      (when (not (zerop (length new-owner)))
+		(dbus-register-signal
+		 ;; BUS      SERVICE     PATH
+		 (nth 0 key) (nth 0 elt) (nth 2 elt)
+		 ;; INTERFACE SIGNAL     HANDLER
+		 (nth 1 key) (nth 2 key) (nth 3 elt))))))
+       (copy-hash-table dbus-registered-functions-table)))))
 
 ;; Register the handler.
 (condition-case nil

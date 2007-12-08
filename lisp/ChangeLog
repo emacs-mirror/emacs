@@ -1,3 +1,12 @@
+2007-12-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-hash-table=): Remove function.  We cannot
+	apply wildcards in a hash table key; there is no usable hash code
+	then.
+	(dbus-registered-functions-table): Use `equal' as test function.
+	(dbus-name-owner-changed-handler): Rewrite due to new hash table
+	structure.
+
 2007-12-08  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/cc-cmds.el (c-mask-paragraph): Avoid invalid search
