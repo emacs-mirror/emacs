@@ -1,3 +1,8 @@
+2007-12-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* progmodes/cc-cmds.el (c-mask-paragraph): Avoid invalid search
+	bound error in block comment branch.
+
 2007-12-08  David Kastrup  <dak@gnu.org>
 
 	* textmodes/reftex.el (reftex-select-with-char):
