@@ -140,6 +140,7 @@
 
 (eval-when-compile (require 'cl))
 (eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
   (autoload 'starttls-open-stream "starttls")
   (autoload 'starttls-negotiate "starttls")
   (autoload 'sasl-find-mechanism "sasl")

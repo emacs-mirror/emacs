@@ -1,7 +1,13 @@
+2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* mail/hashcash.el (declare-function):
+	* net/imap.el (declare-function): New no-op macro for backward
+	compatibility.
+
 2007-12-08  Eli Zaretskii  <eliz@gnu.org>
 
 	Sync makefile.w32-in with Makefile.in.
-	
+
 	* makefile.w32-in (check-declare): New target.
 	(BYTE_COMPILE_EXTRA_FLAGS): New variable.
 	(.el.elc, compile-CMD, compile-SH, compile-always-CMD)
