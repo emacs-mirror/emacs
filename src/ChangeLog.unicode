@@ -13,7 +13,9 @@
 	(w32font_list): Use it.
 	(w32font_match_internal): New function.
 	(w32font_match): Use it.
-	(w32font_get_cache, w32font_open, w32font_close, w32font_has_char)
+	(w32font_open_internal): New function.
+	(w32font_open): Use it.
+	(w32font_get_cache, w32font_close, w32font_has_char)
 	(w32font_encode_char, w32font_text_extents, w32font_draw):
 	Make non-static.
 
