@@ -9095,8 +9095,9 @@ otherwise."
 	 (progn (delete-region (point) (progn (end-of-line) (point)))
 		(vhdl-template-insert-date))
        (unless noerror
-	 (error "%s" (concat "ERROR:  Modification date prefix string \""
-			vhdl-modify-date-prefix-string "\" not found")))))))
+	 (error "ERROR:  Modification date prefix string \"%s\" not found"
+			vhdl-modify-date-prefix-string))))))
+
 
 (defun vhdl-template-modify-noerror ()
   "Call `vhdl-template-modify' with NOERROR non-nil."

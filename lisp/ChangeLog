@@ -1,3 +1,13 @@
+2007-12-07  D. Goel  <deego3@gmail.com>
+
+	* progmodes/idlw-shell.el (idlwave-shell-display-line)
+	* progmodes/ada-xref.el (ada-find-file, ada-get-all-references)
+	(ada-xref-find-in-modified-ali, ada-find-in-src-path)
+	* mail/uce.el (uce-reply-to-uce)
+	* progmodes/vhdl-mode.el (vhdl-template-modify)
+	* mail/feedmail.el (feedmail-dump-message-to-queue): Improve calls
+	to `error' (as suggested by RMS.)
+
 2007-12-07  Glenn Morris  <rgm@gnu.org>
 
 	* allout.el (allout-write-file-hook-handler):
