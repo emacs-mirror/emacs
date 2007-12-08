@@ -29,6 +29,7 @@ Boston, MA 02110-1301, USA.  */
 #include "charset.h"
 #include "fontset.h"
 #include "font.h"
+#include "w32font.h"
 
 /* Cleartype available on Windows XP, cleartype_natural from XP SP1.
    The latter does not try to fit cleartype smoothed fonts into the
@@ -40,13 +41,6 @@ Boston, MA 02110-1301, USA.  */
 #ifndef CLEARTYPE_NATURAL_QUALITY
 #define CLEARTYPE_NATURAL_QUALITY 6
 #endif
-
-/* The actual structure for a w32 font, that can be cast to struct font.  */
-struct w32font_info
-{
-  struct font font;
-  TEXTMETRIC metrics;
-};
 
 extern struct font_driver w32font_driver;
 
@@ -113,6 +107,8 @@ struct font_callback_data
   Lisp_Object frame;
   /* The list to add matches to.  */
   Lisp_Object list;
+  /* Whether to match only opentype fonts.  */
+  int opentype_only;
 };
 
 /* Handles the problem that EnumFontFamiliesEx will not return all
@@ -138,7 +134,7 @@ memq_no_quit (elt, list)
 /* w32 implementation of get_cache for font backend.
    Return a cache of font-entities on FRAME.  The cache must be a
    cons whose cdr part is the actual cache area.  */
-static Lisp_Object
+Lisp_Object
 w32font_get_cache (frame)
      Lisp_Object frame;
 {
@@ -155,33 +151,7 @@ static Lisp_Object
 w32font_list (frame, font_spec)
      Lisp_Object frame, font_spec;
 {
-  struct font_callback_data match_data;
-  HDC dc;
-  FRAME_PTR f = XFRAME (frame);
-
-  match_data.orig_font_spec = font_spec;
-  match_data.list = Qnil;
-  match_data.frame = frame;
-  bzero (&match_data.pattern, sizeof (LOGFONT));
-  fill_in_logfont (f, &match_data.pattern, font_spec);
-
-  if (match_data.pattern.lfFaceName[0] == '\0')
-    {
-      /* EnumFontFamiliesEx does not take other fields into account if
-         font name is blank, so need to use two passes.  */
-      list_all_matching_fonts (&match_data);
-    }
-  else
-    {
-      dc = get_frame_dc (f);
-
-      EnumFontFamiliesEx (dc, &match_data.pattern,
-                          (FONTENUMPROC) add_font_entity_to_list,
-                          (LPARAM) &match_data, 0);
-      release_frame_dc (f, dc);
-    }
-
-  return NILP (match_data.list) ? null_vector : Fvconcat (1, &match_data.list);
+  return w32font_list_internal (frame, font_spec, 0);
 }
 
 /* w32 implementation of match for font backend.
@@ -192,26 +162,8 @@ static Lisp_Object
 w32font_match (frame, font_spec)
      Lisp_Object frame, font_spec;
 {
-  struct font_callback_data match_data;
-  HDC dc;
-  FRAME_PTR f = XFRAME (frame);
-
-  match_data.orig_font_spec = font_spec;
-  match_data.frame = frame;
-  match_data.list = Qnil;
-  bzero (&match_data.pattern, sizeof (LOGFONT));
-  fill_in_logfont (f, &match_data.pattern, font_spec);
-
-  dc = get_frame_dc (f);
-
-  EnumFontFamiliesEx (dc, &match_data.pattern,
-                      (FONTENUMPROC) add_one_font_entity_to_list,
-                      (LPARAM) &match_data, 0);
-  release_frame_dc (f, dc);
-
-  return NILP (match_data.list) ? Qnil : XCAR (match_data.list);
+  return w32font_match_internal (frame, font_spec, 0);
 }
-
 
 /* w32 implementation of list_family for font backend.
    List available families.  The value is a list of family names
@@ -240,7 +192,7 @@ w32font_list_family (frame)
 /* w32 implementation of open for font backend.
    Open a font specified by FONT_ENTITY on frame F.
    If the font is scalable, open it with PIXEL_SIZE.  */
-static struct font *
+struct font *
 w32font_open (f, font_entity, pixel_size)
      FRAME_PTR f;
      Lisp_Object font_entity;
@@ -275,6 +227,8 @@ w32font_open (f, font_entity, pixel_size)
       xfree (w32_font);
       return NULL;
     }
+
+  w32_font->owning_frame = f;
 
   /* Get the metrics for this font.  */
   dc = get_frame_dc (f);
@@ -330,7 +284,7 @@ w32font_open (f, font_entity, pixel_size)
 
 /* w32 implementation of close for font_backend.
    Close FONT on frame F.  */
-static void
+void
 w32font_close (f, font)
      FRAME_PTR f;
      struct font *font;
@@ -353,7 +307,7 @@ w32font_close (f, font)
    If FONT_ENTITY has a glyph for character C (Unicode code point),
    return 1.  If not, return 0.  If a font must be opened to check
    it, return -1.  */
-static int
+int
 w32font_has_char (entity, c)
      Lisp_Object entity;
      int c;
@@ -379,7 +333,7 @@ w32font_has_char (entity, c)
 /* w32 implementation of encode_char for font backend.
    Return a glyph code of FONT for characer C (Unicode code point).
    If FONT doesn't have such a glyph, return FONT_INVALID_CODE.  */
-static unsigned
+unsigned
 w32font_encode_char (font, c)
      struct font *font;
      int c;
@@ -394,7 +348,7 @@ w32font_encode_char (font, c)
    of METRICS.  The glyphs are specified by their glyph codes in
    CODE (length NGLYPHS).  Apparently metrics can be NULL, in this
    case just return the overall width.  */
-static int
+int
 w32font_text_extents (font, code, nglyphs, metrics)
      struct font *font;
      unsigned *code;
@@ -403,13 +357,14 @@ w32font_text_extents (font, code, nglyphs, metrics)
 {
   int i;
   HFONT old_font;
-  /* FIXME: Be nice if we had a frame here, rather than getting the desktop's
-     device context to measure against... */
-  HDC dc = GetDC (NULL);
+  HDC dc;
+  struct frame * f;
   int total_width = 0;
   WORD *wcode = alloca(nglyphs * sizeof (WORD));
   SIZE size;
 
+  f = ((struct w32font_info *)font)->owning_frame;
+  dc = get_frame_dc (f);
   old_font = SelectObject (dc, ((W32FontStruct *)(font->font.font))->hfont);
 
   if (metrics)
@@ -452,7 +407,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
         {
           /* Restore state and release DC.  */
           SelectObject (dc, old_font);
-          ReleaseDC (NULL, dc);
+          release_frame_dc (f, dc);
 
           return metrics->width;
         }
@@ -495,7 +450,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
 
   /* Restore state and release DC.  */
   SelectObject (dc, old_font);
-  ReleaseDC (NULL, dc);
+  release_frame_dc (f, dc);
 
   return total_width;
 }
@@ -513,7 +468,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
    and fonts in here and set them explicitly
 */
 
-static int
+int
 w32font_draw (s, from, to, x, y, with_background)
      struct glyph_string *s;
      int from, to, x, y, with_background;
@@ -654,6 +609,81 @@ w32font_otf_drive (struct font *font, Lisp_Object features,
                    Lisp_Object gstring_out, int idx,
                    int alternate_subst);
   */
+
+/* Internal implementation of w32font_list.
+   Additional parameter opentype_only restricts the returned fonts to
+   opentype fonts, which can be used with the Uniscribe backend.  */
+Lisp_Object
+w32font_list_internal (frame, font_spec, opentype_only)
+     Lisp_Object frame, font_spec;
+     int opentype_only;
+{
+  struct font_callback_data match_data;
+  HDC dc;
+  FRAME_PTR f = XFRAME (frame);
+
+  match_data.orig_font_spec = font_spec;
+  match_data.list = Qnil;
+  match_data.frame = frame;
+
+  bzero (&match_data.pattern, sizeof (LOGFONT));
+  fill_in_logfont (f, &match_data.pattern, font_spec);
+
+  match_data.opentype_only = opentype_only;
+  if (opentype_only)
+    match_data.pattern.lfOutPrecision = OUT_OUTLINE_PRECIS;
+
+  if (match_data.pattern.lfFaceName[0] == '\0')
+    {
+      /* EnumFontFamiliesEx does not take other fields into account if
+         font name is blank, so need to use two passes.  */
+      list_all_matching_fonts (&match_data);
+    }
+  else
+    {
+      dc = get_frame_dc (f);
+
+      EnumFontFamiliesEx (dc, &match_data.pattern,
+                          (FONTENUMPROC) add_font_entity_to_list,
+                          (LPARAM) &match_data, 0);
+      release_frame_dc (f, dc);
+    }
+
+  return NILP (match_data.list) ? null_vector : Fvconcat (1, &match_data.list);
+}
+
+/* Internal implementation of w32font_match.
+   Additional parameter opentype_only restricts the returned fonts to
+   opentype fonts, which can be used with the Uniscribe backend.  */
+Lisp_Object
+w32font_match_internal (frame, font_spec, opentype_only)
+     Lisp_Object frame, font_spec;
+     int opentype_only;
+{
+  struct font_callback_data match_data;
+  HDC dc;
+  FRAME_PTR f = XFRAME (frame);
+
+  match_data.orig_font_spec = font_spec;
+  match_data.frame = frame;
+  match_data.list = Qnil;
+
+  bzero (&match_data.pattern, sizeof (LOGFONT));
+  fill_in_logfont (f, &match_data.pattern, font_spec);
+
+  match_data.opentype_only = opentype_only;
+  if (opentype_only)
+    match_data.pattern.lfOutPrecision = OUT_OUTLINE_PRECIS;
+
+  dc = get_frame_dc (f);
+
+  EnumFontFamiliesEx (dc, &match_data.pattern,
+                      (FONTENUMPROC) add_one_font_entity_to_list,
+                      (LPARAM) &match_data, 0);
+  release_frame_dc (f, dc);
+
+  return NILP (match_data.list) ? Qnil : XCAR (match_data.list);
+}
 
 /* Callback function for EnumFontFamiliesEx.
  * Adds the name of a font to a Lisp list (passed in as the lParam arg).  */
@@ -977,15 +1007,11 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
   struct font_callback_data *match_data
     = (struct font_callback_data *) lParam;
 
-  if (logfonts_match (&logical_font->elfLogFont, &match_data->pattern)
+  if ((!match_data->opentype_only
+       || (physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE))
+      && logfonts_match (&logical_font->elfLogFont, &match_data->pattern)
       && font_matches_spec (font_type, physical_font,
-                            match_data->orig_font_spec)
-      /* Avoid Windows substitution so we can control substitution with
-         alternate-fontname-alist.  Full name may have Bold and/or Italic
-         appended, so only compare the beginning of the name.  */
-      && !strnicmp ((char *)&logical_font->elfFullName,
-                    (char *)&match_data->pattern.lfFaceName,
-                    min (strlen(&match_data->pattern.lfFaceName), LF_FACESIZE)))
+                            match_data->orig_font_spec))
     {
       Lisp_Object entity
         = w32_enumfont_pattern_entity (match_data->frame, logical_font,
