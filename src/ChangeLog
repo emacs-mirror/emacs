@@ -1,3 +1,12 @@
+2007-12-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_read_message): Generate an event for every
+	registered handler.  There might be several handlers registered
+	for the same signal.
+	(Fdbus_register_signal): Don't overwrite a registration for the
+	same signal.  Add a new registration if handlers are different.
+	(Vdbus_registered_functions_table): Rework doc string.
+
 2007-12-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (Fdbus_get_unique_name, xd_read_message)

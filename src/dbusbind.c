@@ -543,14 +543,14 @@ Lisp_Object
 xd_read_message (bus)
      Lisp_Object bus;
 {
-  Lisp_Object key;
+  Lisp_Object args, key, value;
   struct gcpro gcpro1;
   static struct input_event event;
   DBusConnection *connection;
   DBusMessage *dmessage;
   DBusMessageIter iter;
   uint dtype;
-  char service[DBUS_MAXIMUM_NAME_LENGTH];
+  char uname[DBUS_MAXIMUM_NAME_LENGTH];
   char path[DBUS_MAXIMUM_MATCH_RULE_LENGTH]; /* Unlimited in D-Bus spec.  */
   char interface[DBUS_MAXIMUM_NAME_LENGTH];
   char member[DBUS_MAXIMUM_NAME_LENGTH];
@@ -566,16 +566,11 @@ xd_read_message (bus)
   if (dmessage == NULL)
     return;
 
-  /* There is a message in the queue.  Construct the D-Bus event.  */
   XD_DEBUG_MESSAGE ("Event received");
-  EVENT_INIT (event);
-
-  event.kind = DBUS_EVENT;
-  event.frame_or_window = Qnil;
 
   /* Collect the parameters.  */
-  event.arg = Qnil;
-  GCPRO1 (event.arg);
+  args = Qnil;
+  GCPRO1 (args);
 
   if (!dbus_message_iter_init (dmessage, &iter))
     {
@@ -587,44 +582,59 @@ xd_read_message (bus)
   /* Loop over the resulting parameters.  Construct a list.  */
   while ((dtype = dbus_message_iter_get_arg_type (&iter)) != DBUS_TYPE_INVALID)
     {
-      event.arg = Fcons (xd_retrieve_arg (dtype, &iter), event.arg);
+      args = Fcons (xd_retrieve_arg (dtype, &iter), args);
       dbus_message_iter_next (&iter);
     }
 
   /* The arguments are stored in reverse order.  Reorder them.  */
-  event.arg = Fnreverse (event.arg);
+  args = Fnreverse (args);
 
-  /* Read service, object path, interface and member from the message.
-     The service is always the unique name of the sending object.  */
-  strcpy (service,   dbus_message_get_sender (dmessage));
+  /* Read unique name, object path, interface and member from the
+     message.  */
+  strcpy (uname,     dbus_message_get_sender (dmessage));
   strcpy (path,      dbus_message_get_path (dmessage));
   strcpy (interface, dbus_message_get_interface (dmessage));
   strcpy (member,    dbus_message_get_member (dmessage));
 
-  /* Add the registered function of the message.  */
-  key = list5 (bus,
-	       (service == NULL ? Qnil : build_string (service)),
-	       (path == NULL ? Qnil : build_string (path)),
-	       (interface == NULL ? Qnil : build_string (interface)),
-	       (member == NULL ? Qnil : build_string (member)));
-  event.arg = Fcons (Fgethash (key, Vdbus_registered_functions_table, Qnil),
-		     event.arg);
+  /* Search for a registered function of the message.  */
+  key = list3 (bus, build_string (interface), build_string (member));
+  value = Fgethash (key, Vdbus_registered_functions_table, Qnil);
 
-  /* Add service, path, interface and member to the event.  */
-  event.arg = Fcons ((member == NULL ? Qnil : build_string (member)),
-		     event.arg);
-  event.arg = Fcons ((interface == NULL ? Qnil : build_string (interface)),
-		     event.arg);
-  event.arg = Fcons ((path == NULL ? Qnil : build_string (path)),
-		     event.arg);
-  event.arg = Fcons ((service == NULL ? Qnil : build_string (service)),
-		     event.arg);
+  /* Loop over the registered functions.  Construct an event.  */
+  while (!NILP (value))
+    {
+      key = XCAR (value);
+      /* key has the structure (SERVICE UNAME PATH HANDLER).  */
+      if (((uname == NULL) || (NILP (XCAR (XCDR (key)))) ||
+	   (strcmp (uname, SDATA (XCAR (XCDR (key)))) == 0)) &&
+	  ((path == NULL) || (NILP (XCAR (XCDR (XCDR (key))))) ||
+	   (strcmp (path, SDATA (XCAR (XCDR (XCDR (key))))) == 0)) &&
+	  (!NILP (XCAR (XCDR (XCDR (XCDR (key)))))))
+	{
+	  EVENT_INIT (event);
+	  event.kind = DBUS_EVENT;
+	  event.frame_or_window = Qnil;
+	  event.arg = Fcons (XCAR (XCDR (XCDR (XCDR (key)))), args);
 
-  /* Add the bus symbol to the event.  */
-  event.arg = Fcons (bus, event.arg);
+	  /* Add uname, path, interface and member to the event.  */
+	  event.arg = Fcons ((member == NULL ? Qnil : build_string (member)),
+			     event.arg);
+	  event.arg = Fcons ((interface == NULL
+			      ? Qnil : build_string (interface)),
+			     event.arg);
+	  event.arg = Fcons ((path == NULL ? Qnil : build_string (path)),
+			     event.arg);
+	  event.arg = Fcons ((uname == NULL ? Qnil : build_string (uname)),
+			     event.arg);
 
-  /* Store it into the input event queue.  */
-  kbd_buffer_store_event (&event);
+	  /* Add the bus symbol to the event.  */
+	  event.arg = Fcons (bus, event.arg);
+
+	  /* Store it into the input event queue.  */
+	  kbd_buffer_store_event (&event);
+	}
+     value = XCDR (value);
+    }
 
   /* Cleanup.  */
   dbus_message_unref (dmessage);
@@ -683,7 +693,7 @@ SIGNAL and HANDLER must not be nil.  Example:
      (bus, service, path, interface, signal, handler)
      Lisp_Object bus, service, path, interface, signal, handler;
 {
-  Lisp_Object unique_name, key;
+  Lisp_Object unique_name, key, value;
   DBusConnection *connection;
   char rule[DBUS_MAXIMUM_MATCH_RULE_LENGTH];
   DBusError derror;
@@ -701,6 +711,7 @@ SIGNAL and HANDLER must not be nil.  Example:
      are sent always with the unique name as sender.  Note: the unique
      name of "org.freedesktop.DBus" is that string itself.  */
   if ((!NILP (service)) &&
+      (strlen (SDATA (service)) > 0) &&
       (strcmp (SDATA (service), DBUS_SERVICE_DBUS) != 0) &&
       (strncmp (SDATA (service), ":", 1) != 0))
     unique_name = call2 (intern ("dbus-get-name-owner"), bus, service);
@@ -732,16 +743,22 @@ SIGNAL and HANDLER must not be nil.  Example:
   XD_DEBUG_MESSAGE ("Matching rule \"%s\" created", rule);
 
   /* Create a hash table entry.  */
-  key = list5 (bus, unique_name, path, interface, signal);
-  Fputhash (key, handler, Vdbus_registered_functions_table);
-  XD_DEBUG_MESSAGE ("\"%s\" registered with handler \"%s\"",
-		    SDATA (format2 ("%s", key, Qnil)),
-		    SDATA (format2 ("%s", handler, Qnil)));
+  key = list3 (bus, interface, signal);
+  value = Fgethash (key, Vdbus_registered_functions_table, Qnil);
+
+  if (NILP (Fmember (list4 (service, unique_name, path, handler), value)))
+    Fputhash (key,
+	      Fcons (list4 (service, unique_name, path, handler), value),
+	      Vdbus_registered_functions_table);
 
   /* Return key.  */
   return key;
 }
 
+/* The current implementation removes ALL registered functions for a
+   given signal.  Shouldn't be a problem in general, but there might
+   be cases it is not desired.  Maybe we can refine the
+   implementation.  */
 DEFUN ("dbus-unregister-signal", Fdbus_unregister_signal, Sdbus_unregister_signal,
        1, 1, 0,
        doc: /* Unregister OBJECT from the D-Bus.
@@ -797,15 +814,19 @@ syms_of_dbusbind ()
 
   DEFVAR_LISP ("dbus-registered-functions-table", &Vdbus_registered_functions_table,
     doc: /* Hash table of registered functions for D-Bus.
-The key in the hash table is the list (BUS SERVICE PATH MEMBER INTERFACE).
-BUS is either the symbol `:system' or the symbol `:session'.  SERVICE
-and PATH are the unique name and the object path of the sending object.
-INTERFACE is a string which denotes a D-Bus interface, and MEMBER,
-also a string, is either a method or a signal INTERFACE is offering.
-All arguments but BUS can be nil, which means a wild card then.
+The key in the hash table is the list (BUS MEMBER INTERFACE).  BUS is
+either the symbol `:system' or the symbol `:session'.  INTERFACE is a
+string which denotes a D-Bus interface, and MEMBER, also a string, is
+either a method or a signal INTERFACE is offering.  All arguments but
+BUS must not be nil.
 
-The value in the hash table a the function to be called when a D-Bus
-message, which matches the key criteria, arrives.  */);
+The value in the hash table is a list of triple lists
+\((SERVICE UNAME PATH HANDLER) (SERVICE UNAME PATH HANDLER) ...).
+SERVICE is the service name as registered, UNAME is the corresponding
+unique name.  PATH is the object path of the sending object.  All of
+them be nil, which means a wildcard then.  HANDLER is the function to
+be called when a D-Bus message, which matches the key criteria,
+arrives.  */);
   /* We initialize Vdbus_registered_functions_table in dbus.el,
      because we need to define a hash table function first.  */
   Vdbus_registered_functions_table = Qnil;
