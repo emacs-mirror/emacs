@@ -1,3 +1,7 @@
+2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.desktop: New file.
+
 2007-11-30  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
 
 	* images/icons/macemacs_16.png, images/icons/macemacs_24.png:
