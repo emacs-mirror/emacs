@@ -1,3 +1,8 @@
+2007-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* generic-x.el (etc-sudoers-generic-mode): New mode.
+	(generic-unix-modes): Add it.
+
 2007-12-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-hash-table=): Remove function.  We cannot

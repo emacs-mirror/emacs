@@ -221,6 +221,7 @@ This hook will be installed if the variable
     etc-modules-conf-generic-mode
     etc-passwd-generic-mode
     etc-services-generic-mode
+    etc-sudoers-generic-mode
     fvwm-generic-mode
     inetd-conf-generic-mode
     mailagent-rules-generic-mode
@@ -1735,6 +1736,21 @@ like an INI file.  You can add this hook to `find-file-hook'."
     (lambda ()
       (setq imenu-generic-expression
 	    '((nil "^\\([^# \t]+\\)\\s-+" 1))))))))
+
+;; /etc/sudoers
+(when (memq 'etc-sudoers-generic-mode generic-extras-enable-list)
+
+(define-generic-mode etc-sudoers-generic-mode
+  '(?#)
+  '("User_Alias" "Runas_Alias" "Host_Alias"  "Cmnd_Alias"
+    "NOPASSWD" "PASSWD" "NOEXEC" "EXEC"
+    "ALL")
+  '(("\\<\\(root\\|su\\)\\>" 1 font-lock-warning-face)
+    ("\\(\\*\\)" 1 font-lock-warning-face)
+    ("\\<\\(%[A-Za-z0-9_]+\\)\\>" 1 font-lock-variable-name-face))
+  '("/etc/sudoers\\'")
+  nil
+  "Generic mode for sudoers configuration files."))
 
 ;; From Jacques Duthen <jacques.duthen@sncf.fr>
 (when (memq 'show-tabs-generic-mode generic-extras-enable-list)
