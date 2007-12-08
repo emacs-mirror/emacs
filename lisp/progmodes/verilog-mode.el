@@ -909,7 +909,8 @@ If set will become buffer local.")
     (define-key map "\C-c\C-s" 'verilog-auto-save-compile)
     (define-key map "\C-c\C-z" 'verilog-inject-auto)
     (define-key map "\C-c\C-e" 'verilog-expand-vector)
-    (define-key map "\C-c\C-h" 'verilog-header))
+    (define-key map "\C-c\C-h" 'verilog-header)
+    map)
   "Keymap used in Verilog mode.")
 
 ;; menus
@@ -9746,7 +9747,8 @@ Wilson Snyder (wsnyder@wsnyder.org), and/or see http://www.veripool.com."
     (define-key map "=" 'verilog-sk-inout)
     (define-key map "W" 'verilog-sk-wire)
     (define-key map "R" 'verilog-sk-reg)
-    (define-key map "D" 'verilog-sk-define-signal))
+    (define-key map "D" 'verilog-sk-define-signal)
+    map)
   "Keymap used in Verilog mode for smart template operations.")
 
 
@@ -10119,16 +10121,10 @@ and the case items."
       (define-key map [mouse-2]     'verilog-load-file-at-mouse))
     (if (featurep 'xemacs)
 	(define-key map 'Sh-button2 'mouse-yank) ; you wanna paste don't you ?
-      (define-key map [S-mouse-2]   'mouse-yank-at-click)))
+      (define-key map [S-mouse-2]   'mouse-yank-at-click))
+    map)
   "Map containing mouse bindings for `verilog-mode'.")
 
-
-;; create set-extent-keymap procedure when it does not exist
-(eval-and-compile
-  (unless (fboundp 'set-extent-keymap)
-    (defun set-extent-keymap (extent keymap)
-      "fallback version of set-extent-keymap (for emacs 2[01])"
-      (set-extent-property extent 'local-map keymap))))
 
 (defun verilog-colorize-include-files (beg end old-len)
   "This function colorizes included files when the mouse passes over them.
@@ -10150,17 +10146,15 @@ Clicking on the middle-mouse button loads them in a buffer (as in dired)."
 	    (setq overlays (cdr overlays)))) ; let
 	;; make new ones, could reuse deleted one ?
 	(while (search-forward-regexp verilog-include-file-regexp end-point t)
-	  (let (extent)
+	  (let (ov)
 	    (goto-char (match-beginning 1))
-	    (or (extent-at (point) (buffer-name) 'mouse-face) ;; not yet extended
-		(progn
-		  (setq extent (make-extent (match-beginning 1) (match-end 1)))
-		  (set-extent-property extent 'start-closed 't)
-		  (set-extent-property extent 'end-closed 't)
-		  (set-extent-property extent 'detachable 't)
-		  (set-extent-property extent 'verilog-include-file 't)
-		  (set-extent-property extent 'mouse-face 'highlight)
-		  (set-extent-keymap extent verilog-mode-mouse-map)))))))))
+	    (setq ov (make-overlay (match-beginning 1) (match-end 1)))
+	    (overlay-put ov 'start-closed 't)
+	    (overlay-put ov 'end-closed 't)
+	    (overlay-put ov 'evaporate 't)
+	    (overlay-put ov 'verilog-include-file 't)
+	    (overlay-put ov 'mouse-face 'highlight)
+	    (overlay-put ov 'local-map verilog-mode-mouse-map)))))))
 
 
 (defun verilog-colorize-include-files-buffer ()
