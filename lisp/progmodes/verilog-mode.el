@@ -872,7 +872,7 @@ If set will become buffer local.")
   "*Default name of Project for verilog header.
 If set will become buffer local.")
 
-(defvar verilog-mode-map ()
+(defvar verilog-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map ";"        'electric-verilog-semi)
     (define-key map [(control 59)]    'electric-verilog-semi-with-comment)
