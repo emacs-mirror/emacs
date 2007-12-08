@@ -3295,12 +3295,12 @@ With prefix argument, make it a temporary breakpoint."
   (if (eq (1+ edebug-recursion-depth) (recursion-depth))
       (progn
 	(setq edebug-execution-mode mode)
-	(message shortmsg)
+	(message "%s" shortmsg)
 	;; Continue execution
 	(exit-recursive-edit))
     ;; This is not terribly useful!!
     (setq edebug-next-execution-mode mode)
-    (message msg)))
+    (message "%s" msg)))
 
 
 (defalias 'edebug-step-through-mode 'edebug-step-mode)

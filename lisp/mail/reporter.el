@@ -118,7 +118,7 @@ composed.")
   "Periodically output a status message."
   (if (zerop (% reporter-status-count 10))
       (progn
-	(message reporter-status-message)
+	(message "%s" reporter-status-message)
 	(setq reporter-status-message (concat reporter-status-message "."))))
   (setq reporter-status-count (1+ reporter-status-count)))
 

@@ -1228,7 +1228,7 @@ If nil, selections displayed but ignored.")
   (let ((prompt2 (format "%s " (key-description (this-command-keys))))
 	(glob (current-global-map))
 	(loc (current-local-map)))
-    (or (input-pending-p) (message prompt))
+    (or (input-pending-p) (message "%s" prompt))
     (let ((key (calc-read-key t)))
       (calc-unread-command (cdr key))
       (unwind-protect
@@ -1244,7 +1244,7 @@ If nil, selections displayed but ignored.")
 (defun calc-version ()
   "Return version of this version of Calc."
   (interactive)
-  (message (concat "Calc version " calc-version)))
+  (message "Calc version %s" calc-version))
 
 (defun calc-mode ()
   "Calculator major mode.

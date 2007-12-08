@@ -1,3 +1,9 @@
+2007-12-08  David Kastrup  <dak@gnu.org>
+
+	* gnus-sum.el (gnus-summary-simplify-subject-query):
+	* ecomplete.el (ecomplete-display-matches): Fix buggy call to
+	`message'.
+
 2007-12-07  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-art.el (article-make-date-line): Revert previous change.

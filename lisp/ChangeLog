@@ -1,3 +1,41 @@
+2007-12-08  David Kastrup  <dak@gnu.org>
+
+	* textmodes/reftex.el (reftex-select-with-char):
+	* textmodes/reftex-toc.el (reftex-toc-do-promote)
+	(reftex-toc-visit-location, reftex-toc-find-section):
+	* textmodes/reftex-index.el (reftex-index-show-entry):
+	* textmodes/org.el (org-cycle-hide-archived-subtrees)
+	(org-table-rotate-recalc-marks, org-mark-ring-push)
+	(org-follow-info-link, org-mhe-get-message-folder-from-index)
+	(org-auto-repeat-maybe, org-store-log-note, org-delete-property)
+	(org-evaluate-time-range, org-edit-agenda-file-list):
+	* textmodes/artist.el (artist-select-next-op-in-list)
+	(artist-select-prev-op-in-list):
+	* term/mac-win.el (mac-service-insert-text):
+	* startup.el (fancy-about-screen):
+	* progmodes/vhdl-mode.el (vhdl-decision-query):
+	* progmodes/idlwave.el (idlwave-template)
+	(idlwave-scroll-completions, idlwave-display-completion-list):
+	* progmodes/ebrowse.el (ebrowse-show-progress):
+	* progmodes/cperl-mode.el (cperl-find-pods-heres):
+	* progmodes/antlr-mode.el (antlr-insert-option-do):
+	* play/mpuz.el (mpuz-close-game):
+	* net/rcirc.el (rcirc-next-active-buffer):
+	* mail/reporter.el (reporter-update-status):
+	* kmacro.el (kmacro-display):
+	* international/ja-dic-cnv.el (skkdic-set-okuri-nasi):
+	* emulation/viper-util.el (viper-save-setting):
+	* emacs-lisp/lisp-mnt.el (lm-verify):
+	* emacs-lisp/edebug.el (edebug-set-mode):
+	* emacs-lisp/checkdoc.el (checkdoc-rogue-spaces, checkdoc-defun):
+	* calendar/calendar.el (calendar-print-day-of-year):
+	* calc/calcalg3.el (calc-curve-fit):
+	* calc/calcalg2.el (math-integral):
+	* calc/calc.el (calc-read-key-sequence, calc-version):
+	* calc/calc-mode.el (calc-set-simplify-mode):
+	* calc/calc-ext.el (calc-fancy-prefix): Fix buggy call to
+	`message'.
+
 2007-12-07  D. Goel  <deego3@gmail.com>
 
 	* progmodes/idlw-shell.el (idlwave-shell-display-line)

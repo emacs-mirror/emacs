@@ -7487,7 +7487,7 @@ When TAG is non-nil, don't move trees, but mark them with the ARCHIVE tag."
 	(org-hide-archived-subtrees beg end)
 	(goto-char beg)
 	(if (looking-at (concat ".*:" org-archive-tag ":"))
-	    (message (substitute-command-keys
+	    (message "%s" (substitute-command-keys
 		      "Subtree is archived and stays closed.  Use \\[org-force-cycle-archived] to cycle it anyway.")))))))
 
 (defun org-force-cycle-archived ()
@@ -9366,7 +9366,8 @@ of the new mark."
 	  (goto-line l1)))
     (if (not (= epos (point-at-eol))) (org-table-align))
     (goto-line l)
-    (and (interactive-p) (message (cdr (assoc new org-recalc-marks))))))
+    (and (interactive-p)
+	 (message "%s" (or (cdr (assoc new org-recalc-marks)) "")))))
 
 (defun org-table-maybe-recalculate-line ()
   "Recompute the current line if marked for it, and if we haven't just done it."
@@ -12347,7 +12348,7 @@ to read."
   (move-marker (car org-mark-ring)
 	       (or pos (point))
 	       (or buffer (current-buffer)))
-  (message
+  (message "%s"
    (substitute-command-keys
     "Position saved to mark ring, go back with \\[org-mark-ring-goto].")))
 
@@ -12429,7 +12430,7 @@ onto the ring."
         (if (match-string 2 name) ; If there isn't a node, choose "Top"
             (Info-find-node (match-string 1 name) (match-string 2 name))
           (Info-find-node (match-string 1 name) "Top")))
-    (message (concat "Could not open: " name))))
+    (message "Could not open: %s" name)))
 
 (defun org-follow-gnus-link (&optional group article)
   "Follow a Gnus link to GROUP and ARTICLE."
@@ -12553,7 +12554,7 @@ sequences, it will now work."
   (save-excursion
     (mh-index-previous-folder)
     (re-search-forward "^\\(+.*\\)$" nil t)
-    (message (match-string 1))))
+    (message "%s" (match-string 1))))
 
 (defun org-mhe-get-message-folder ()
   "Return the name of the current message folder.  Be careful if you
@@ -13759,7 +13760,7 @@ This function should be run in the `org-after-todo-state-change-hook'."
 	  (org-timestamp-change n (cdr (assoc what whata))))
 	(setq msg (concat msg type org-last-changed-timestamp " ")))
       (setq org-log-post-message msg)
-      (message msg))))
+      (message "%s" msg))))
 
 (defun org-show-todo-tree (arg)
   "Make a compact tree which shows all headlines marked with TODO.
@@ -13978,7 +13979,7 @@ The auto-repeater uses this.")
   (with-current-buffer (marker-buffer org-log-note-return-to)
     (goto-char org-log-note-return-to))
   (move-marker org-log-note-return-to nil)
-  (and org-log-post-message (message org-log-post-message)))
+  (and org-log-post-message (message "%s" org-log-post-message)))
 
 ;; FIXME: what else would be useful?
 ;; - priority
@@ -15216,10 +15217,10 @@ in the current file."
    (let* ((prop (completing-read
 		 "Property: " (org-entry-properties nil 'standard))))
      (list prop)))
-  (message (concat "Property " property
-		   (if (org-entry-delete nil property)
-		       " deleted"
-		     " was not present in the entry"))))
+  (message "Property %s %s" property
+	   (if (org-entry-delete nil property)
+	       "deleted"
+	     "was not present in the entry")))
 
 (defun org-delete-property-globally (property)
   "Remove PROPERTY globally, from all entries."
@@ -16863,7 +16864,7 @@ days in order to avoid rounding problems."
 	d (floor (+ (/ diff ds) 0.5))
 	h 0 m 0))
      (if (not to-buffer)
-	 (message (org-make-tdiff-string y d h m))
+	 (message "%s" (org-make-tdiff-string y d h m))
        (when (org-at-table-p)
 	 (goto-char match-end)
 	 (setq align t)
@@ -18806,7 +18807,7 @@ the buffer and restores the previous window configuration."
 			(org-install-agenda-files-menu)
 			(message "New agenda file list installed"))
 		      nil 'local)
-	(message (substitute-command-keys
+	(message "%s" (substitute-command-keys
 		  "Edit list and finish with \\[save-buffer]")))
     (customize-variable 'org-agenda-files)))
 

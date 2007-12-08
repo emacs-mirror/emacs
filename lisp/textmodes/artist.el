@@ -1151,14 +1151,14 @@ PREV-OP-ARG are used when invoked recursively during the build-up."
   (interactive)
   (let ((next-op (cdr (cdr (assoc artist-curr-go artist-prev-next-op-alist)))))
     (artist-select-operation next-op)
-    (message next-op)))
+    (message "%s" next-op)))
 
 (defun artist-select-prev-op-in-list ()
   "Cyclically select previous drawing mode operation."
   (interactive)
   (let ((prev-op (car (cdr (assoc artist-curr-go artist-prev-next-op-alist)))))
     (artist-select-operation prev-op)
-    (message prev-op)))
+    (message "%s" prev-op)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

@@ -505,7 +505,7 @@
 			     mode)
 		      (and (not (eq calc-simplify-mode mode))
 			   mode)))
-  (message (if (eq calc-simplify-mode mode)
+  (message "%s" (if (eq calc-simplify-mode mode)
 	       msg
 	     "Default simplifications enabled")))
 

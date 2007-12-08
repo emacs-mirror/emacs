@@ -562,7 +562,7 @@ copyright notice is allowed."
 	       (t
 		ret)))))
     (if verbose
-	(message ret))
+	(message "%s" ret))
     ret))
 
 (defun lm-synopsis (&optional file showall)

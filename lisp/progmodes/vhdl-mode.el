@@ -10433,7 +10433,7 @@ with double-quotes is to be inserted.  DEFAULT specifies a default string."
   "Query a decision from the user."
   (let ((start (point)))
     (when string (vhdl-insert-keyword (concat string " ")))
-    (message prompt)
+    (message "%s" (or prompt ""))
     (let ((char (read-char)))
       (delete-region start (point))
       (if (and optional (eq char ?\r))

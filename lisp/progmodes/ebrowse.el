@@ -896,10 +896,10 @@ this is the first progress message displayed."
   (let (message-log-max)
     (when start (setq ebrowse-n-boxes 0))
     (setq ebrowse-n-boxes (mod (1+ ebrowse-n-boxes) ebrowse-max-boxes))
-    (message (concat title ": "
-		     (propertize (make-string ebrowse-n-boxes
-					      (if (display-color-p) ?\  ?+))
-				 'face 'ebrowse-progress)))))
+    (message "%s: %s" title
+	     (propertize (make-string ebrowse-n-boxes
+				      (if (display-color-p) ?\  ?+))
+			 'face 'ebrowse-progress))))
 
 
 ;;; Reading a tree from disk

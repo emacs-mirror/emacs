@@ -1537,7 +1537,7 @@ splash screen in another window."
 	  (apply #'fancy-splash-insert text)
 	  (insert "\n"))
 	(unless (current-message)
-	  (message fancy-splash-help-echo))
+	  (message "%s" (or fancy-splash-help-echo "")))
 	(set-buffer-modified-p nil)
 	(goto-char (point-min))
 	(force-mode-line-update))

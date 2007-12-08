@@ -515,7 +515,7 @@ We will store server variables in the buffer given by BUFFER."
       (set-process-filter process 'erc-server-filter-function)
       (set-process-buffer process buffer)))
   (erc-log "\n\n\n********************************************\n")
-  (message (erc-format-message
+  (message "%s" (erc-format-message
             'login ?n
             (with-current-buffer buffer (erc-current-nick))))
   ;; wait with script loading until we receive a confirmation (first

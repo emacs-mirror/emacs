@@ -1,3 +1,9 @@
+2007-12-08  David Kastrup  <dak@gnu.org>
+
+	* erc-stamp.el (erc-echo-timestamp):
+	* erc-lang.el (language):
+	* erc-backend.el (erc-server-connect): Fix buggy call to `message'.
+
 2007-12-06  D. Goel  <deego3@gmail.com>
 
 	* erc-match.el (erc-add-entry-to-list): Fix buggy call to `error'.

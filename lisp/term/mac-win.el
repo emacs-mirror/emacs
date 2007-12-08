@@ -2178,7 +2178,7 @@ either in the current buffer or in the echo area."
     (if (not buffer-read-only)
 	(insert text)
       (kill-new text)
-      (message
+      (message "%s"
        (substitute-command-keys
 	"The text from the Services menu can be accessed with \\[yank]")))))
 

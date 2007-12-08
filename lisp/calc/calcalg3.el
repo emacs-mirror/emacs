@@ -416,7 +416,7 @@
              (calc-record (calc-normalize calc-fit-to-trail) "parm"))))
   (when plot
     (if (stringp plot)
-        (message plot)
+        (message "%s" plot)
       (let ((calc-graph-no-auto-view t))
         (calc-graph-delete t)
         (calc-graph-add-curve

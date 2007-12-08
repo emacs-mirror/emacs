@@ -978,7 +978,7 @@ Optional argument INTERACT permits more interactive fixing."
     (if (not (interactive-p))
 	e
       (if e
-	  (message (checkdoc-error-text e))
+	  (message "%s" (checkdoc-error-text e))
 	(checkdoc-show-diagnostics)
 	(message "Space Check: done.")))))
 
@@ -1038,15 +1038,15 @@ space at the end of each line."
 	     (end (save-excursion (end-of-defun) (point)))
 	     (msg (checkdoc-this-string-valid)))
 	(if msg (if no-error
-		    (message (checkdoc-error-text msg))
+		    (message "%s" (checkdoc-error-text msg))
 		  (error "%s" (checkdoc-error-text msg)))
 	  (setq msg (checkdoc-message-text-search beg end))
 	  (if msg (if no-error
-		      (message (checkdoc-error-text msg))
+		      (message "%s" (checkdoc-error-text msg))
 		    (error "%s" (checkdoc-error-text msg)))
 	    (setq msg (checkdoc-rogue-space-check-engine beg end))
 	    (if msg (if no-error
-			(message (checkdoc-error-text msg))
+			(message "%s" (checkdoc-error-text msg))
 		      (error "%s" (checkdoc-error-text msg))))))
 	(if (interactive-p) (message "Checkdoc: done."))))))
 
