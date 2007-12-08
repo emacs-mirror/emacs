@@ -1,3 +1,9 @@
+2007-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* FOR-RELEASE: Remove "window-system in face definition" [of
+	gnus-treat-emphasize].  Remove "Gnus archive groups".  Add comment
+	on gnus-dired.el.
+
 2007-12-05  Glenn Morris  <rgm@gnu.org>
 
 	* admin.el (set-version): Handle configure.in.  Adapt for doc/
