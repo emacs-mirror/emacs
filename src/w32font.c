@@ -192,94 +192,24 @@ w32font_list_family (frame)
 /* w32 implementation of open for font backend.
    Open a font specified by FONT_ENTITY on frame F.
    If the font is scalable, open it with PIXEL_SIZE.  */
-struct font *
+static struct font *
 w32font_open (f, font_entity, pixel_size)
      FRAME_PTR f;
      Lisp_Object font_entity;
      int pixel_size;
 {
-  int len, size;
-  LOGFONT logfont;
-  HDC dc;
-  HFONT hfont, old_font;
-  Lisp_Object val, extra;
-  /* For backwards compatibility.  */
-  W32FontStruct *compat_w32_font;
-
   struct w32font_info *w32_font = xmalloc (sizeof (struct w32font_info));
 
-  struct font * font = (struct font *) w32_font;
-  if (!font)
+  if (w32_font == NULL)
     return NULL;
 
-  bzero (&logfont, sizeof (logfont));
-  fill_in_logfont (f, &logfont, font_entity);
-
-  size = XINT (AREF (font_entity, FONT_SIZE_INDEX));
-  if (!size)
-    size = pixel_size;
-
-  logfont.lfHeight = -size;
-  hfont = CreateFontIndirect (&logfont);
-
-  if (hfont == NULL)
+  if (!w32font_open_internal (f, font_entity, pixel_size, w32_font))
     {
       xfree (w32_font);
       return NULL;
     }
 
-  w32_font->owning_frame = f;
-
-  /* Get the metrics for this font.  */
-  dc = get_frame_dc (f);
-  old_font = SelectObject (dc, hfont);
-
-  GetTextMetrics (dc, &w32_font->metrics);
-
-  SelectObject (dc, old_font);
-  release_frame_dc (f, dc);
-  /* W32FontStruct - we should get rid of this, and use the w32font_info
-     struct for any W32 specific fields. font->font.font can then be hfont.  */
-  font->font.font = xmalloc (sizeof (W32FontStruct));
-  compat_w32_font = (W32FontStruct *) font->font.font;
-  bzero (compat_w32_font, sizeof (W32FontStruct));
-  compat_w32_font->font_type = UNICODE_FONT;
-  /* Duplicate the text metrics.  */
-  bcopy (&w32_font->metrics,  &compat_w32_font->tm, sizeof (TEXTMETRIC));
-  compat_w32_font->hfont = hfont;
-
-  len = strlen (logfont.lfFaceName);
-  font->font.name = (char *) xmalloc (len + 1);
-  bcopy (logfont.lfFaceName, font->font.name, len);
-  font->font.name[len] = '\0';
-  font->font.full_name = font->font.name;
-  font->font.charset = 0;
-  font->font.codepage = 0;
-  font->font.size = w32_font->metrics.tmMaxCharWidth;
-  font->font.height = w32_font->metrics.tmHeight
-    + w32_font->metrics.tmExternalLeading;
-  font->font.space_width = font->font.average_width
-    = w32_font->metrics.tmAveCharWidth;
-
-  font->font.vertical_centering = 0;
-  font->font.encoding_type = 0;
-  font->font.baseline_offset = 0;
-  font->font.relative_compose = 0;
-  font->font.default_ascent = w32_font->metrics.tmAscent;
-  font->font.font_encoder = NULL;
-  font->entity = font_entity;
-  font->pixel_size = size;
-  font->driver = &w32font_driver;
-  font->format = Qgdi;
-  font->file_name = NULL;
-  font->encoding_charset = -1;
-  font->repertory_charset = -1;
-  font->min_width = 0;
-  font->ascent = w32_font->metrics.tmAscent;
-  font->descent = w32_font->metrics.tmDescent;
-  font->scalable = w32_font->metrics.tmPitchAndFamily & TMPF_VECTOR;
-
-  return font;
+  return (struct font *) w32_font;
 }
 
 /* w32 implementation of close for font_backend.
@@ -683,6 +613,92 @@ w32font_match_internal (frame, font_spec, opentype_only)
   release_frame_dc (f, dc);
 
   return NILP (match_data.list) ? Qnil : XCAR (match_data.list);
+}
+
+int
+w32font_open_internal (f, font_entity, pixel_size, w32_font)
+     FRAME_PTR f;
+     Lisp_Object font_entity;
+     int pixel_size;
+     struct w32font_info *w32_font;
+{
+  int len, size;
+  LOGFONT logfont;
+  HDC dc;
+  HFONT hfont, old_font;
+  Lisp_Object val, extra;
+  /* For backwards compatibility.  */
+  W32FontStruct *compat_w32_font;
+
+  struct font * font = (struct font *) w32_font;
+  if (!font)
+    return 0;
+
+  bzero (&logfont, sizeof (logfont));
+  fill_in_logfont (f, &logfont, font_entity);
+
+  size = XINT (AREF (font_entity, FONT_SIZE_INDEX));
+  if (!size)
+    size = pixel_size;
+
+  logfont.lfHeight = -size;
+  hfont = CreateFontIndirect (&logfont);
+
+  if (hfont == NULL)
+    return 0;
+
+  w32_font->owning_frame = f;
+
+  /* Get the metrics for this font.  */
+  dc = get_frame_dc (f);
+  old_font = SelectObject (dc, hfont);
+
+  GetTextMetrics (dc, &w32_font->metrics);
+
+  SelectObject (dc, old_font);
+  release_frame_dc (f, dc);
+  /* W32FontStruct - we should get rid of this, and use the w32font_info
+     struct for any W32 specific fields. font->font.font can then be hfont.  */
+  font->font.font = xmalloc (sizeof (W32FontStruct));
+  compat_w32_font = (W32FontStruct *) font->font.font;
+  bzero (compat_w32_font, sizeof (W32FontStruct));
+  compat_w32_font->font_type = UNICODE_FONT;
+  /* Duplicate the text metrics.  */
+  bcopy (&w32_font->metrics,  &compat_w32_font->tm, sizeof (TEXTMETRIC));
+  compat_w32_font->hfont = hfont;
+
+  len = strlen (logfont.lfFaceName);
+  font->font.name = (char *) xmalloc (len + 1);
+  bcopy (logfont.lfFaceName, font->font.name, len);
+  font->font.name[len] = '\0';
+  font->font.full_name = font->font.name;
+  font->font.charset = 0;
+  font->font.codepage = 0;
+  font->font.size = w32_font->metrics.tmMaxCharWidth;
+  font->font.height = w32_font->metrics.tmHeight
+    + w32_font->metrics.tmExternalLeading;
+  font->font.space_width = font->font.average_width
+    = w32_font->metrics.tmAveCharWidth;
+
+  font->font.vertical_centering = 0;
+  font->font.encoding_type = 0;
+  font->font.baseline_offset = 0;
+  font->font.relative_compose = 0;
+  font->font.default_ascent = w32_font->metrics.tmAscent;
+  font->font.font_encoder = NULL;
+  font->entity = font_entity;
+  font->pixel_size = size;
+  font->driver = &w32font_driver;
+  font->format = Qgdi;
+  font->file_name = NULL;
+  font->encoding_charset = -1;
+  font->repertory_charset = -1;
+  font->min_width = 0;
+  font->ascent = w32_font->metrics.tmAscent;
+  font->descent = w32_font->metrics.tmDescent;
+  font->scalable = w32_font->metrics.tmPitchAndFamily & TMPF_VECTOR;
+
+  return 1;
 }
 
 /* Callback function for EnumFontFamiliesEx.
