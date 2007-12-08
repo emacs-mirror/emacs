@@ -1,5 +1,7 @@
 2007-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* indent.el (tab-stop-list): Mark as safe-local-variable.
+
 	* generic-x.el (etc-sudoers-generic-mode): New mode.
 	(generic-unix-modes): Add it.
 
