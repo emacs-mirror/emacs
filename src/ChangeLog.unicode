@@ -1,3 +1,24 @@
+2007-12-08  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.h: New file.
+
+	* w32font.c: Include it.
+	(struct w32font_info): Add owning_frame field.  Move to w32font.h.
+	(w32font_open): Set owning_frame.
+	(w32font_text_extents): Use owning_frame.
+	(struct font_callback_data): Add opentype_only field.
+	(add_font_entity_to_list): Use it to filter fonts.
+	Don't check against full name.
+	(w32font_list_internal): New function.
+	(w32font_list): Use it.
+	(w32font_match_internal): New function.
+	(w32font_match): Use it.
+	(w32font_get_cache, w32font_open, w32font_close, w32font_has_char)
+	(w32font_encode_char, w32font_text_extents, w32font_draw):
+	Make non-static.
+
+	* makefile.w32-in (w32font.o): Depend on w32font.h.
+
 2007-12-06  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* charset.c (Fdefine_charset_internal): Record a supplementary
