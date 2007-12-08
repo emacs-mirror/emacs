@@ -1,5 +1,14 @@
 2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* progmodes/verilog-mode.el (verilog-string-replace-matches)
+	(verilog-string-remove-spaces, verilog-re-search-forward)
+	(verilog-re-search-backward, verilog-re-search-forward-quick)
+	(verilog-re-search-backward-quick, verilog-get-beg-of-line)
+	(verilog-get-end-of-line, verilog-within-string): Move definitions
+	before first use. No code changes.
+
+2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
 	* progmodes/verilog-mode.el (verilog-mode-version)
 	(verilog-mode-release-date): Don't use expanding keywords.
 	(provide): Move to the end of file.

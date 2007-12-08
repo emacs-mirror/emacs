@@ -1057,6 +1057,98 @@ If set will become buffer local.")
 
 (define-abbrev-table 'verilog-mode-abbrev-table ())
 
+;;
+;;  Macros
+;;
+
+(defsubst verilog-string-replace-matches (from-string to-string fixedcase literal string)
+  "Replace occurrences of FROM-STRING with TO-STRING.
+FIXEDCASE and LITERAL as in `replace-match`.  STRING is what to replace.
+The case (verilog-string-replace-matches \"o\" \"oo\" nil nil \"foobar\")
+will break, as the o's continuously replace.  xa -> x works ok though."
+  ;; Hopefully soon to a emacs built-in
+  (let ((start 0))
+    (while (string-match from-string string start)
+      (setq string (replace-match to-string fixedcase literal string)
+	    start (min (length string) (match-end 0))))
+    string))
+
+(defsubst verilog-string-remove-spaces (string)
+  "Remove spaces surrounding STRING."
+  (save-match-data
+    (setq string (verilog-string-replace-matches "^\\s-+" "" nil nil string))
+    (setq string (verilog-string-replace-matches "\\s-+$" "" nil nil string))
+    string))
+
+(defsubst verilog-re-search-forward (REGEXP BOUND NOERROR)
+  ; checkdoc-params: (REGEXP BOUND NOERROR)
+  "Like `re-search-forward', but skips over match in comments or strings."
+  (store-match-data '(nil nil))
+  (while (and
+	  (re-search-forward REGEXP BOUND NOERROR)
+	  (and (verilog-skip-forward-comment-or-string)
+	       (progn
+		 (store-match-data '(nil nil))
+		 (if BOUND
+		     (< (point) BOUND)
+		   t)
+		 ))))
+  (match-end 0))
+
+(defsubst verilog-re-search-backward (REGEXP BOUND NOERROR)
+  ; checkdoc-params: (REGEXP BOUND NOERROR)
+  "Like `re-search-backward', but skips over match in comments or strings."
+  (store-match-data '(nil nil))
+  (while (and
+	  (re-search-backward REGEXP BOUND NOERROR)
+	  (and (verilog-skip-backward-comment-or-string)
+	       (progn
+		 (store-match-data '(nil nil))
+		 (if BOUND
+		     (> (point) BOUND)
+		   t)
+		 ))))
+  (match-end 0))
+
+(defsubst verilog-re-search-forward-quick (regexp bound noerror)
+  "Like `verilog-re-search-forward', including use of REGEXP BOUND and NOERROR,
+but trashes match data and is faster for REGEXP that doesn't match often.
+This may at some point use text properties to ignore comments,
+so there may be a large up front penalty for the first search."
+  (let (pt)
+    (while (and (not pt)
+		(re-search-forward regexp bound noerror))
+      (if (not (verilog-inside-comment-p))
+	  (setq pt (match-end 0))))
+    pt))
+
+(defsubst verilog-re-search-backward-quick (regexp bound noerror)
+  ; checkdoc-params: (REGEXP BOUND NOERROR)
+  "Like `verilog-re-search-backward', including use of REGEXP BOUND and NOERROR,
+but trashes match data and is faster for REGEXP that doesn't match often.
+This may at some point use text properties to ignore comments,
+so there may be a large up front penalty for the first search."
+  (let (pt)
+    (while (and (not pt)
+		(re-search-backward regexp bound noerror))
+      (if (not (verilog-inside-comment-p))
+	  (setq pt (match-end 0))))
+    pt))
+
+(defsubst verilog-get-beg-of-line (&optional arg)
+  (save-excursion
+    (beginning-of-line arg)
+    (point)))
+
+(defsubst verilog-get-end-of-line (&optional arg)
+  (save-excursion
+    (end-of-line arg)
+    (point)))
+
+(defsubst verilog-within-string ()
+  (save-excursion
+    (nth 3 (parse-partial-sexp (verilog-get-beg-of-line) (point)))))
+
 ;; compilation program
 (defun verilog-set-compile-command ()
   "Function to compute shell command to compile verilog.
@@ -2146,98 +2238,6 @@ Use filename, if current buffer being edited shorten to just buffer name."
 
 (defun verilog-declaration-beg ()
   (verilog-re-search-backward verilog-declaration-re (bobp) t))
-
-;;
-;;  Macros
-;;
-
-(defsubst verilog-string-replace-matches (from-string to-string fixedcase literal string)
-  "Replace occurrences of FROM-STRING with TO-STRING.
-FIXEDCASE and LITERAL as in `replace-match`.  STRING is what to replace.
-The case (verilog-string-replace-matches \"o\" \"oo\" nil nil \"foobar\")
-will break, as the o's continuously replace.  xa -> x works ok though."
-  ;; Hopefully soon to a emacs built-in
-  (let ((start 0))
-    (while (string-match from-string string start)
-      (setq string (replace-match to-string fixedcase literal string)
-	    start (min (length string) (match-end 0))))
-    string))
-
-(defsubst verilog-string-remove-spaces (string)
-  "Remove spaces surrounding STRING."
-  (save-match-data
-    (setq string (verilog-string-replace-matches "^\\s-+" "" nil nil string))
-    (setq string (verilog-string-replace-matches "\\s-+$" "" nil nil string))
-    string))
-
-(defsubst verilog-re-search-forward (REGEXP BOUND NOERROR)
-  ; checkdoc-params: (REGEXP BOUND NOERROR)
-  "Like `re-search-forward', but skips over match in comments or strings."
-  (store-match-data '(nil nil))
-  (while (and
-	  (re-search-forward REGEXP BOUND NOERROR)
-	  (and (verilog-skip-forward-comment-or-string)
-	       (progn
-		 (store-match-data '(nil nil))
-		 (if BOUND
-		     (< (point) BOUND)
-		   t)
-		 ))))
-  (match-end 0))
-
-(defsubst verilog-re-search-backward (REGEXP BOUND NOERROR)
-  ; checkdoc-params: (REGEXP BOUND NOERROR)
-  "Like `re-search-backward', but skips over match in comments or strings."
-  (store-match-data '(nil nil))
-  (while (and
-	  (re-search-backward REGEXP BOUND NOERROR)
-	  (and (verilog-skip-backward-comment-or-string)
-	       (progn
-		 (store-match-data '(nil nil))
-		 (if BOUND
-		     (> (point) BOUND)
-		   t)
-		 ))))
-  (match-end 0))
-
-(defsubst verilog-re-search-forward-quick (regexp bound noerror)
-  "Like `verilog-re-search-forward', including use of REGEXP BOUND and NOERROR,
-but trashes match data and is faster for REGEXP that doesn't match often.
-This may at some point use text properties to ignore comments,
-so there may be a large up front penalty for the first search."
-  (let (pt)
-    (while (and (not pt)
-		(re-search-forward regexp bound noerror))
-      (if (not (verilog-inside-comment-p))
-	  (setq pt (match-end 0))))
-    pt))
-
-(defsubst verilog-re-search-backward-quick (regexp bound noerror)
-  ; checkdoc-params: (REGEXP BOUND NOERROR)
-  "Like `verilog-re-search-backward', including use of REGEXP BOUND and NOERROR,
-but trashes match data and is faster for REGEXP that doesn't match often.
-This may at some point use text properties to ignore comments,
-so there may be a large up front penalty for the first search."
-  (let (pt)
-    (while (and (not pt)
-		(re-search-backward regexp bound noerror))
-      (if (not (verilog-inside-comment-p))
-	  (setq pt (match-end 0))))
-    pt))
-
-(defsubst verilog-get-beg-of-line (&optional arg)
-  (save-excursion
-    (beginning-of-line arg)
-    (point)))
-
-(defsubst verilog-get-end-of-line (&optional arg)
-  (save-excursion
-    (end-of-line arg)
-    (point)))
-
-(defsubst verilog-within-string ()
-  (save-excursion
-    (nth 3 (parse-partial-sexp (verilog-get-beg-of-line) (point)))))
 
 (require 'font-lock)
 (defvar verilog-need-fld 1)
