@@ -1,4 +1,4 @@
-2007-12-08  Ulrich Mueller <ulm@gentoo.org>
+2007-12-08  Ulrich Mueller <ulm@gentoo.org>  (tiny change)
 
 	* emacs.desktop (Exec, Icon, Categories): Fix entries.
 
