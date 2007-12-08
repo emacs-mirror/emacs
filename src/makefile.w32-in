@@ -1621,6 +1621,7 @@ $(BLD)/w32font$(O): \
 	$(SRC)/font.h \
 	$(SRC)/fontset.h \
 	$(SRC)/frame.h \
+	$(SRC)/w32font.h \
 	$(SRC)/w32gui.h \
 	$(SRC)/w32term.h
 
