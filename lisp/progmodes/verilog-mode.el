@@ -1,6 +1,5 @@
 ;; verilog-mode.el --- major mode for editing verilog source in Emacs
 ;;
-;; $Id: verilog-mode.el 377 2007-12-07 17:21:25Z wsnyder $
 
 ;; Copyright (C) 1996-2007 Free Software Foundation, Inc.
 
@@ -104,12 +103,10 @@
 ;; 
 ;;; Code:
 
-(provide 'verilog-mode)
-
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version (substring "$$Revision: 377 $$" 12 -3)
+(defconst verilog-mode-version "377"
   "Version of this verilog mode.")
-(defconst verilog-mode-release-date (substring "$$Date: 2007-12-07 12:21:25 -0500 (Fri, 07 Dec 2007) $$" 8 -3)
+(defconst verilog-mode-release-date "2007-12-07"
   "Version of this verilog mode.")
 
 (defun verilog-version ()
@@ -118,137 +115,136 @@
   (message (concat "Using verilog-mode version " verilog-mode-version) ))
 
 ;; Insure we have certain packages, and deal with it if we don't
-(if (fboundp 'eval-when-compile)
-    (eval-when-compile
-      (require 'verilog-mode)
-      (condition-case nil
-          (require 'imenu)
-        (error nil))
-      (condition-case nil
-	  (require 'reporter)
-        (error nil))
-      (condition-case nil
-          (require 'easymenu)
-        (error nil))
-      (condition-case nil
-          (require 'regexp-opt)
-        (error nil))
-      (condition-case nil
-	  (load "skeleton") ;; bug in 19.28 through 19.30 skeleton.el, not provided.
-        (error nil))
-      (condition-case nil
-	  (require 'vc)
-        (error nil))
-      (condition-case nil
-          (if (fboundp 'when)
-	      nil ;; fab
-	    (defmacro when (var &rest body)
-	      (` (cond ( (, var) (,@ body))))))
-        (error nil))
-      (condition-case nil
-          (if (fboundp 'unless)
-	      nil ;; fab
-	    (defmacro unless (var &rest body)
-	      (` (if (, var) nil (,@ body)))))
-        (error nil))
-      (condition-case nil
-          (if (fboundp 'store-match-data)
-	      nil ;; fab
-	    (defmacro store-match-data (&rest args) nil))
-        (error nil))
-      (condition-case nil
-	  (if (boundp 'current-menubar)
-	      nil ;; great
-	    (progn
-	     (defmacro set-buffer-menubar (&rest args) nil)
-	     (defmacro add-submenu (&rest args) nil))
-	    )
-	(error nil))
-      (condition-case nil
-	  (if (fboundp 'zmacs-activate-region)
-	      nil ;; great
-	    (defmacro zmacs-activate-region (&rest args) nil))
-	(error nil))
-      (condition-case nil
-	  (if (fboundp 'char-before)
-	      nil ;; great
-	    (defmacro char-before (&rest body)
-	      (` (char-after (1- (point))))))
-	(error nil))
-      ;; Requires to define variables that would be "free" warnings
-      (condition-case nil
-	  (require 'font-lock)
-	(error nil))
-      (condition-case nil
-	  (require 'compile)
-	(error nil))
-      (condition-case nil
-	  (require 'custom)
-	(error nil))
-      (condition-case nil
-	  (require 'dinotrace)
-	(error nil))
-      (condition-case nil
-	  (if (fboundp 'dinotrace-unannotate-all)
-	      nil ;; great
-	    (defun dinotrace-unannotate-all (&rest args) nil))
-	(error nil))
-      (condition-case nil
-	  (if (fboundp 'customize-apropos)
-	      nil ;; great
-	    (defun customize-apropos (&rest args) nil))
-	(error nil))
-      (condition-case nil
-	  (if (fboundp 'match-string-no-properties)
-	      nil ;; great
-	    (defsubst match-string-no-properties (num &optional string)
-	      "Return string of text matched by last search, without text properties.
+(eval-when-compile
+  (condition-case nil
+      (require 'imenu)
+    (error nil))
+  (condition-case nil
+      (require 'reporter)
+    (error nil))
+  (condition-case nil
+      (require 'easymenu)
+    (error nil))
+  (condition-case nil
+      (require 'regexp-opt)
+    (error nil))
+  (condition-case nil
+      (load "skeleton") ;; bug in 19.28 through 19.30 skeleton.el, not provided.
+    (error nil))
+  (condition-case nil
+      (require 'vc)
+    (error nil))
+  (condition-case nil
+      (if (fboundp 'when)
+	  nil ;; fab
+	(defmacro when (cond &rest body)
+	  (list 'if cond (cons 'progn body))))
+    (error nil))
+  (condition-case nil
+      (if (fboundp 'unless)
+	  nil ;; fab
+	(defmacro unless (cond &rest body)
+	  (cons 'if (cons cond (cons nil body)))))
+    (error nil))
+  (condition-case nil
+      (if (fboundp 'store-match-data)
+	  nil ;; fab
+	(defmacro store-match-data (&rest args) nil))
+    (error nil))
+  (condition-case nil
+      (if (boundp 'current-menubar)
+	  nil ;; great
+	(progn
+	  (defmacro set-buffer-menubar (&rest args) nil)
+	  (defmacro add-submenu (&rest args) nil))
+	)
+    (error nil))
+  (condition-case nil
+      (if (fboundp 'zmacs-activate-region)
+	  nil ;; great
+	(defmacro zmacs-activate-region (&rest args) nil))
+    (error nil))
+  (condition-case nil
+      (if (fboundp 'char-before)
+	  nil ;; great
+	(defmacro char-before (&rest body)
+	  (char-after (1- (point)))))
+    (error nil))
+  ;; Requires to define variables that would be "free" warnings
+  (condition-case nil
+      (require 'font-lock)
+    (error nil))
+  (condition-case nil
+      (require 'compile)
+    (error nil))
+  (condition-case nil
+      (require 'custom)
+    (error nil))
+  (condition-case nil
+      (require 'dinotrace)
+    (error nil))
+  (condition-case nil
+      (if (fboundp 'dinotrace-unannotate-all)
+	  nil ;; great
+	(defun dinotrace-unannotate-all (&rest args) nil))
+    (error nil))
+  (condition-case nil
+      (if (fboundp 'customize-apropos)
+	  nil ;; great
+	(defun customize-apropos (&rest args) nil))
+    (error nil))
+  (condition-case nil
+      (if (fboundp 'match-string-no-properties)
+	  nil ;; great
+	(defsubst match-string-no-properties (num &optional string)
+	  "Return string of text matched by last search, without text properties.
 NUM specifies which parenthesized expression in the last regexp.
  Value is nil if NUMth pair didn't match, or there were less than NUM pairs.
 Zero means the entire text matched by the whole regexp or whole string.
 STRING should be given if the last search was by `string-match' on STRING."
-	      (if (match-beginning num)
-		  (if string
-		      (let ((result
-			     (substring string (match-beginning num) (match-end num))))
-			(set-text-properties 0 (length result) nil result)
-			result)
-		    (buffer-substring-no-properties (match-beginning num)
-						    (match-end num)
-						    (current-buffer)
-						    )))))
-	(error nil))
-      (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
-	  nil ;; We've got what we needed
-	;; We have the old custom-library, hack around it!
-	(defmacro defgroup (&rest args)  nil)
-	(defmacro customize (&rest args)
-	  (message "Sorry, Customize is not available with this version of emacs"))
-	(defmacro defcustom (var value doc &rest args)
-	  (` (defvar (, var) (, value) (, doc))))
-	)
-      (if (fboundp 'defface)
-	  nil ; great!
-	(defmacro defface (var value doc &rest args)
-	  (` (make-face (, var))))
-	)
+	  (if (match-beginning num)
+	      (if string
+		  (let ((result
+			 (substring string (match-beginning num) (match-end num))))
+		    (set-text-properties 0 (length result) nil result)
+		    result)
+		(buffer-substring-no-properties (match-beginning num)
+						(match-end num)
+						(current-buffer)
+						)))))
+    (error nil))
+  (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
+      nil ;; We've got what we needed
+    ;; We have the old custom-library, hack around it!
+    (defmacro defgroup (&rest args)  nil)
+    (defmacro customize (&rest args)
+      (message "Sorry, Customize is not available with this version of emacs"))
+    (defmacro defcustom (var value doc &rest args)
+      `(defvar ,var ,value ,doc))
+    )
+  (if (fboundp 'defface)
+      nil				; great!
+    (defmacro defface (var values doc &rest args)
+      `(make-face ,var))
+    )
 
-      (if (and (featurep 'custom) (fboundp 'customize-group))
-	  nil ;; We've got what we needed
-	;; We have an intermediate custom-library, hack around it!
-	(defmacro customize-group (var &rest args)
-	  (`(customize (, var) )))
-	)
+  (if (and (featurep 'custom) (fboundp 'customize-group))
+      nil ;; We've got what we needed
+    ;; We have an intermediate custom-library, hack around it!
+    (defmacro customize-group (var &rest args)
+      `(customize ,var))
+    )
 
-      ))
+  )
 ;; Provide a regular expression optimization routine, using regexp-opt
 ;; if provided by the user's elisp libraries
 (eval-and-compile
   (if (fboundp 'regexp-opt)
       ;; regexp-opt is defined, does it take 3 or 2 arguments?
       (if (fboundp 'function-max-args)
-	  (case (function-max-args `regexp-opt)
-	    ( 3 ;; It takes 3
+	  (let ((args (function-max-args `regexp-opt)))
+	    (cond 
+	     ((eq args 3) ;; It takes 3
 	      (condition-case nil	; Hide this defun from emacses
 					;with just a two input regexp
 		  (defun verilog-regexp-opt (a b)
@@ -258,12 +254,12 @@ STRING should be given if the last search was by `string-match' on STRING."
 		    )
 		(error nil))
 	      )
-	      ( 2 ;; It takes 2
+	      ((eq args 2) ;; It takes 2
 	      (defun verilog-regexp-opt (a b)
 		"Call 'regexp-opt' on A and B."
 		(regexp-opt a b))
 	      )
-	    ( t nil))
+	      (t nil)))
 	;; We can't tell; assume it takes 2
 	(defun verilog-regexp-opt (a b)
 	  "Call 'regexp-opt' on A and B."
@@ -274,11 +270,6 @@ STRING should be given if the last search was by `string-match' on STRING."
       (let ((open (if paren "\\(" "")) (close (if paren "\\)" "")))
 	(concat open (mapconcat 'regexp-quote strings "\\|") close)))
     ))
-
-(eval-when-compile
-  (defun verilog-regexp-words (a)
-    "Call 'regexp-opt' with word delimiters."
-    (concat "\\<" (verilog-regexp-opt a t) "\\>")))
 
 (defun verilog-regexp-words (a)
   "Call 'regexp-opt' with word delimiters for the words A."
@@ -881,50 +872,45 @@ If set will become buffer local.")
   "*Default name of Project for verilog header.
 If set will become buffer local.")
 
-(define-abbrev-table 'verilog-mode-abbrev-table ())
-
 (defvar verilog-mode-map ()
+  (let ((map (make-sparse-keymap)))
+    (define-key map ";"        'electric-verilog-semi)
+    (define-key map [(control 59)]    'electric-verilog-semi-with-comment)
+    (define-key map ":"        'electric-verilog-colon)
+    ;;(define-key map "="        'electric-verilog-equal)
+    (define-key map "\`"       'electric-verilog-tick)
+    (define-key map "\t"       'electric-verilog-tab)
+    (define-key map "\r"       'electric-verilog-terminate-line)
+    ;; backspace/delete key bindings
+    (define-key map [backspace]    'backward-delete-char-untabify)
+    (unless (boundp 'delete-key-deletes-forward) ; XEmacs variable
+      (define-key map [delete]       'delete-char)
+      (define-key map [(meta delete)] 'kill-word))
+    (define-key map "\M-\C-b"  'electric-verilog-backward-sexp)
+    (define-key map "\M-\C-f"  'electric-verilog-forward-sexp)
+    (define-key map "\M-\r"    `electric-verilog-terminate-and-indent)
+    (define-key map "\M-\t"    'verilog-complete-word)
+    (define-key map "\M-?"     'verilog-show-completions)
+    (define-key map [(meta control h)] 'verilog-mark-defun)
+    (define-key map "\C-c\`"   'verilog-lint-off)
+    (define-key map "\C-c\*"   'verilog-delete-auto-star-implicit)
+    (define-key map "\C-c\C-r" 'verilog-label-be)
+    (define-key map "\C-c\C-i" 'verilog-pretty-declarations)
+    (define-key map "\C-c="    'verilog-pretty-expr)
+    (define-key map "\C-c\C-b" 'verilog-submit-bug-report)
+    (define-key map "\M-*"     'verilog-star-comment)
+    (define-key map "\C-c\C-c" 'verilog-comment-region)
+    (define-key map "\C-c\C-u" 'verilog-uncomment-region)
+    (define-key map "\M-\C-a"  'verilog-beg-of-defun)
+    (define-key map "\M-\C-e"  'verilog-end-of-defun)
+    (define-key map "\C-c\C-d" 'verilog-goto-defun)
+    (define-key map "\C-c\C-k" 'verilog-delete-auto)
+    (define-key map "\C-c\C-a" 'verilog-auto)
+    (define-key map "\C-c\C-s" 'verilog-auto-save-compile)
+    (define-key map "\C-c\C-z" 'verilog-inject-auto)
+    (define-key map "\C-c\C-e" 'verilog-expand-vector)
+    (define-key map "\C-c\C-h" 'verilog-header))
   "Keymap used in Verilog mode.")
-(if verilog-mode-map
-    ()
-  (setq verilog-mode-map (make-sparse-keymap))
-  (define-key verilog-mode-map ";"        'electric-verilog-semi)
-  (define-key verilog-mode-map [(control 59)]    'electric-verilog-semi-with-comment)
-  (define-key verilog-mode-map ":"        'electric-verilog-colon)
-  ;;(define-key verilog-mode-map "="        'electric-verilog-equal)
-  (define-key verilog-mode-map "\`"       'electric-verilog-tick)
-  (define-key verilog-mode-map "\t"       'electric-verilog-tab)
-  (define-key verilog-mode-map "\r"       'electric-verilog-terminate-line)
-  ;; backspace/delete key bindings
-  (define-key verilog-mode-map [backspace]    'backward-delete-char-untabify)
-  (unless (boundp 'delete-key-deletes-forward) ; XEmacs variable
-    (define-key verilog-mode-map [delete]       'delete-char)
-    (define-key verilog-mode-map [(meta delete)] 'kill-word))
-  (define-key verilog-mode-map "\M-\C-b"  'electric-verilog-backward-sexp)
-  (define-key verilog-mode-map "\M-\C-f"  'electric-verilog-forward-sexp)
-  (define-key verilog-mode-map "\M-\r"    `electric-verilog-terminate-and-indent)
-  (define-key verilog-mode-map "\M-\t"    'verilog-complete-word)
-  (define-key verilog-mode-map "\M-?"     'verilog-show-completions)
-  (define-key verilog-mode-map [(meta control h)] 'verilog-mark-defun)
-  (define-key verilog-mode-map "\C-c\`"   'verilog-lint-off)
-  (define-key verilog-mode-map "\C-c\*"   'verilog-delete-auto-star-implicit)
-  (define-key verilog-mode-map "\C-c\C-r" 'verilog-label-be)
-  (define-key verilog-mode-map "\C-c\C-i" 'verilog-pretty-declarations)
-  (define-key verilog-mode-map "\C-c="    'verilog-pretty-expr)
-  (define-key verilog-mode-map "\C-c\C-b" 'verilog-submit-bug-report)
-  (define-key verilog-mode-map "\M-*"     'verilog-star-comment)
-  (define-key verilog-mode-map "\C-c\C-c" 'verilog-comment-region)
-  (define-key verilog-mode-map "\C-c\C-u" 'verilog-uncomment-region)
-  (define-key verilog-mode-map "\M-\C-a"  'verilog-beg-of-defun)
-  (define-key verilog-mode-map "\M-\C-e"  'verilog-end-of-defun)
-  (define-key verilog-mode-map "\C-c\C-d" 'verilog-goto-defun)
-  (define-key verilog-mode-map "\C-c\C-k" 'verilog-delete-auto)
-  (define-key verilog-mode-map "\C-c\C-a" 'verilog-auto)
-  (define-key verilog-mode-map "\C-c\C-s" 'verilog-auto-save-compile)
-  (define-key verilog-mode-map "\C-c\C-z" 'verilog-inject-auto)
-  (define-key verilog-mode-map "\C-c\C-e" 'verilog-expand-vector)
-  (define-key verilog-mode-map "\C-c\C-h" 'verilog-header)
-  )
 
 ;; menus
 (defvar verilog-xemacs-menu
@@ -1384,11 +1370,11 @@ Called by `compilation-mode-hook'.  This allows \\[next-error] to find the error
     (verilog-regexp-words
      `(
        ;; port direction
-       "inout" "input" "output" "ref" 
+       "inout" "input" "output" "ref"
        ;; changeableness
        "const" "static" "protected" "local"
        ;; parameters
-       "localparam" "parameter" "var" 
+       "localparam" "parameter" "var"
        ;; type creation
        "typedef"
        ))))
@@ -1408,9 +1394,9 @@ Called by `compilation-mode-hook'.  This allows \\[next-error] to find the error
        "string" "event" "chandle" "virtual" "enum" "genvar"
        "struct" "union"
        ;; builtin classes
-       "mailbox" "semaphore" 
+       "mailbox" "semaphore"
        ))))
-(defconst verilog-declaration-re 
+(defconst verilog-declaration-re
   (concat "\\(" verilog-declaration-prefix-re "\\s-*\\)?" verilog-declaration-core-re))
 (defconst verilog-range-re "\\(\\[[^]]*\\]\\s-*\\)+")
 (defconst verilog-optional-signed-re "\\s-*\\(signed\\)?")
@@ -1676,7 +1662,7 @@ fashion, but strange indentation errors could be encountered."
 	  (print (format
   "The version of Emacs 18 you are running, %s,
 has known deficiencies in its ability to handle the dual verilog
-(and C++) comments, (e.g. the // and /* */ comments). This will
+\(and C++) comments, (e.g. the // and /* */ comments). This will
 not be much of a problem for you if you only use the /* */ comments,
 but you really should strongly consider upgrading to one of the latest
 Emacs 19's.  In Emacs 18, you may also experience performance degradations.
@@ -2323,7 +2309,7 @@ so there may be a large up front penalty for the first search."
 ;;  Mode
 ;;
 (defvar verilog-which-tool 1)
-;;###autoload
+;;;###autoload
 (defun verilog-mode ()
   "Major mode for editing Verilog code.
 \\<verilog-mode-map>
@@ -2459,6 +2445,10 @@ Key bindings specific to `verilog-mode-map' are:
   (setq local-abbrev-table verilog-mode-abbrev-table)
   (setq verilog-mode-syntax-table (make-syntax-table))
   (verilog-populate-syntax-table verilog-mode-syntax-table)
+  (set (make-local-variable 'beginning-of-defun-function) 
+       'verilog-beg-of-defun)
+  (set (make-local-variable 'end-of-defun-function) 
+       'verilog-end-of-defun)
   ;; add extra comment syntax
   (verilog-setup-dual-comments verilog-mode-syntax-table)
   (set-syntax-table verilog-mode-syntax-table)
@@ -2483,17 +2473,13 @@ Key bindings specific to `verilog-mode-map' are:
     (add-hook 'hack-local-variables-hook 'verilog-modify-compile-command t))
 
   ;; Setting up menus
-  (if (featurep 'xemacs)
-      (progn
-        (if (and current-menubar
-                 (not (assoc "Verilog" current-menubar)))
-            (progn
-	      ;; (set-buffer-menubar (copy-sequence current-menubar))
-              (add-submenu nil verilog-xemacs-menu)
-              (add-submenu nil verilog-stmt-menu)
-	      )
-	  )
-	))
+  (when (featurep 'xemacs)
+    (when (and current-menubar
+	       (not (assoc "Verilog" current-menubar)))
+      ;; (set-buffer-menubar (copy-sequence current-menubar))
+      (add-submenu nil verilog-xemacs-menu)
+      (add-submenu nil verilog-stmt-menu)
+      ))
   ;; Stuff for GNU emacs
   (make-local-variable 'font-lock-defaults)
   ;;------------------------------------------------------------
@@ -2737,7 +2723,7 @@ To call this from the command line, see \\[verilog-batch-indent]."
 The upper left corner is defined by the current point.  Indices always
 begin with 0 and extend to the MAX - 1.  If no prefix arg is given, the
 user is prompted for a value.  The indices are surrounded by square brackets
-[].  For example, the following code with the point located after the first
+\[].  For example, the following code with the point located after the first
 'a' gives:
 
     a = b                           a[  0] = b
@@ -3007,7 +2993,7 @@ With ARG, first kill any existing labels."
 			     (goto-char (match-beginning 0))
 			     (throw 'found nil))
 			    ((looking-at "[ \t]*)")
-			     (throw 'found (point)))			     
+			     (throw 'found (point)))
 			    ((eobp)
 			     (throw 'found (point))))))))
     (if (not pos)
@@ -3831,11 +3817,11 @@ becomes:
 (defmacro verilog-batch-error-wrapper (&rest body)
   "Execute BODY and add error prefix to any errors found.
 This lets programs calling batch mode to easily extract error messages."
-  (` (condition-case err
-	 (progn (,@ body))
-       (error
-	(error "%%Error: %s%s" (error-message-string err)
-	       (if (featurep 'xemacs) "\n" ""))))))  ;; xemacs forgets to add a newline
+  `(condition-case err
+       (progn ,@body)
+     (error
+      (error "%%Error: %s%s" (error-message-string err)
+	     (if (featurep 'xemacs) "\n" "")))))  ;; xemacs forgets to add a newline
 
 (defun verilog-batch-execute-func (funref)
   "Internal processing of a batch command, running FUNREF on all command arguments."
@@ -5127,7 +5113,7 @@ BASEIND is the base indent to offset everything."
     ;; Use previous declaration (in this module) as template.
     (if (or (memq 'all verilog-auto-lineup)
 	    (memq 'declaration verilog-auto-lineup))
-	(if (verilog-re-search-backward 
+	(if (verilog-re-search-backward
 	     (or (and verilog-indent-declaration-macros
 		      verilog-declaration-re-1-macro)
 		 verilog-declaration-re-1-no-macro) lim t)
@@ -5186,7 +5172,7 @@ Region is defined by B and EDPOS."
       ;; Get rightmost position
       (while (progn (setq e (marker-position edpos))
 		    (< (point) e))
-	(if (verilog-re-search-forward 
+	(if (verilog-re-search-forward
 	     (or (and verilog-indent-declaration-macros
 		      verilog-declaration-re-1-macro)
 		 verilog-declaration-re-1-no-macro) e 'move)
@@ -9443,7 +9429,7 @@ This will allow trace viewers to show the ASCII name of states.
 
 First, parameters are built into a enumeration using the synopsys enum
 comment.  The comment must be between the keyword and the symbol.
-(Annoying, but that's what Synopsys's dc_shell FSM reader requires.)
+\(Annoying, but that's what Synopsys's dc_shell FSM reader requires.)
 
 Next, registers which that enum applies to are also tagged with the same
 enum.  Synopsys also suggests labeling state vectors, but `verilog-mode'
@@ -9731,39 +9717,38 @@ Wilson Snyder (wsnyder@wsnyder.org), and/or see http://www.veripool.com."
 ;;
 ;; Skeleton based code insertion
 ;;
-(defvar verilog-template-map nil
+(defvar verilog-template-map 
+  (let ((map (make-sparse-keymap)))
+    (define-key map "a" 'verilog-sk-always)
+    (define-key map "b" 'verilog-sk-begin)
+    (define-key map "c" 'verilog-sk-case)
+    (define-key map "f" 'verilog-sk-for)
+    (define-key map "g" 'verilog-sk-generate)
+    (define-key map "h" 'verilog-sk-header)
+    (define-key map "i" 'verilog-sk-initial)
+    (define-key map "j" 'verilog-sk-fork)
+    (define-key map "m" 'verilog-sk-module)
+    (define-key map "p" 'verilog-sk-primitive)
+    (define-key map "r" 'verilog-sk-repeat)
+    (define-key map "s" 'verilog-sk-specify)
+    (define-key map "t" 'verilog-sk-task)
+    (define-key map "w" 'verilog-sk-while)
+    (define-key map "x" 'verilog-sk-casex)
+    (define-key map "z" 'verilog-sk-casez)
+    (define-key map "?" 'verilog-sk-if)
+    (define-key map ":" 'verilog-sk-else-if)
+    (define-key map "/" 'verilog-sk-comment)
+    (define-key map "A" 'verilog-sk-assign)
+    (define-key map "F" 'verilog-sk-function)
+    (define-key map "I" 'verilog-sk-input)
+    (define-key map "O" 'verilog-sk-output)
+    (define-key map "S" 'verilog-sk-state-machine)
+    (define-key map "=" 'verilog-sk-inout)
+    (define-key map "W" 'verilog-sk-wire)
+    (define-key map "R" 'verilog-sk-reg)
+    (define-key map "D" 'verilog-sk-define-signal))
   "Keymap used in Verilog mode for smart template operations.")
 
-(let ((verilog-mp (make-sparse-keymap)))
-  (define-key verilog-mp "a" 'verilog-sk-always)
-  (define-key verilog-mp "b" 'verilog-sk-begin)
-  (define-key verilog-mp "c" 'verilog-sk-case)
-  (define-key verilog-mp "f" 'verilog-sk-for)
-  (define-key verilog-mp "g" 'verilog-sk-generate)
-  (define-key verilog-mp "h" 'verilog-sk-header)
-  (define-key verilog-mp "i" 'verilog-sk-initial)
-  (define-key verilog-mp "j" 'verilog-sk-fork)
-  (define-key verilog-mp "m" 'verilog-sk-module)
-  (define-key verilog-mp "p" 'verilog-sk-primitive)
-  (define-key verilog-mp "r" 'verilog-sk-repeat)
-  (define-key verilog-mp "s" 'verilog-sk-specify)
-  (define-key verilog-mp "t" 'verilog-sk-task)
-  (define-key verilog-mp "w" 'verilog-sk-while)
-  (define-key verilog-mp "x" 'verilog-sk-casex)
-  (define-key verilog-mp "z" 'verilog-sk-casez)
-  (define-key verilog-mp "?" 'verilog-sk-if)
-  (define-key verilog-mp ":" 'verilog-sk-else-if)
-  (define-key verilog-mp "/" 'verilog-sk-comment)
-  (define-key verilog-mp "A" 'verilog-sk-assign)
-  (define-key verilog-mp "F" 'verilog-sk-function)
-  (define-key verilog-mp "I" 'verilog-sk-input)
-  (define-key verilog-mp "O" 'verilog-sk-output)
-  (define-key verilog-mp "S" 'verilog-sk-state-machine)
-  (define-key verilog-mp "=" 'verilog-sk-inout)
-  (define-key verilog-mp "W" 'verilog-sk-wire)
-  (define-key verilog-mp "R" 'verilog-sk-reg)
-  (define-key verilog-mp "D" 'verilog-sk-define-signal)
-  (setq verilog-template-map verilog-mp))
 
 ;;
 ;; Place the templates into Verilog Mode.  They may be inserted under any key.
@@ -10124,11 +10109,7 @@ and the case items."
   "^`include\\s-+\"\\([^\n\"]*\\)\""
   "Regexp that matches the include file.")
 
-(defvar verilog-mode-mouse-map nil
-  "Map containing mouse bindings for `verilog-mode'.")
-
-(if verilog-mode-mouse-map
-    ()
+(defvar verilog-mode-mouse-map 
   (let ((map (make-sparse-keymap))) ; as described in info pages, make a map
     (set-keymap-parent map verilog-mode-map)
     ;; mouse button bindings
@@ -10138,8 +10119,9 @@ and the case items."
       (define-key map [mouse-2]     'verilog-load-file-at-mouse))
     (if (featurep 'xemacs)
 	(define-key map 'Sh-button2 'mouse-yank) ; you wanna paste don't you ?
-      (define-key map [S-mouse-2]   'mouse-yank-at-click))
-    (setq verilog-mode-mouse-map map))) ;; copy complete map now
+      (define-key map [S-mouse-2]   'mouse-yank-at-click)))
+  "Map containing mouse bindings for `verilog-mode'.")
+
 
 ;; create set-extent-keymap procedure when it does not exist
 (eval-and-compile
@@ -10326,6 +10308,8 @@ Given those lines, I expected [[Fill in here]] to happen;
 but instead, [[Fill in here]] happens!.
 
 == The code: =="))))
+
+(provide 'verilog-mode)
 
 ;; Local Variables:
 ;; checkdoc-permit-comma-termination-flag:t

@@ -1,3 +1,27 @@
+2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (verilog-mode-version)
+	(verilog-mode-release-date): Don't use expanding keywords.
+	(provide): Move to the end of file.
+	(fboundp): Don't check if eval-when-compile is bound, it is used
+	later in the file without checking.
+	(when, unless): Copy definitions from subr.el.
+	(char-before, defcustom, defface, customize-group)
+	(verilog-batch-error-wrapper): Don't use old style backquotes.
+	(verilog-regexp-opt): Avoid using the cl function case.
+	(verilog-regexp-words): Remove duplicated definition.
+	(verilog-mode-abbrev-table): Remove, duplicate.
+	(verilog-mode-map, verilog-template-map, verilog-mode-mouse-map):
+	Declare and initialize in one step.
+	(verilog-declaration-prefix-re, verilog-declaration-re)
+	(verilog-end-of-statement, verilog-indent-declaration)
+	(verilog-get-lineup-indent): Remove trailing whitespace.
+	(verilog-mode): Fix autoload cookie. Set
+	beginning-of-defun-function and end-of-defun-function. Use when
+	instead of if.
+	(verilog-emacs-features, verilog-auto-ascii-enum)
+	(verilog-insert-indices): Escape braces in doc strings.
+
 2007-12-08  Michael McNamara <mac@verilog.com>
 	    Wilson Snyder <wsnyder@wsnyder.org>
 
