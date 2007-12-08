@@ -1,3 +1,14 @@
+2007-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	Sync makefile.w32-in with Makefile.in.
+	
+	* makefile.w32-in (check-declare): New target.
+	(BYTE_COMPILE_EXTRA_FLAGS): New variable.
+	(.el.elc, compile-CMD, compile-SH, compile-always-CMD)
+	(compile-always-SH, compile-calc-CMD, compile-calc-SH)
+	($(lisp)/progmodes/cc-mode.elc): Use it.
+	($(lisp)/progmodes/cc-mode.elc): New rule.
+
 2007-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* indent.el (tab-stop-list): Mark as safe-local-variable.
