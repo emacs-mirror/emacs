@@ -1,3 +1,7 @@
+2007-12-08  Ulrich Mueller <ulm@gentoo.org>
+
+	* emacs.desktop (Exec, Icon, Categories): Fix entries.
+
 2007-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* NEWS: Add minimal Gnus item.
