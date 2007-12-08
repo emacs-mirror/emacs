@@ -1,3 +1,8 @@
+2007-12-08  Michael McNamara <mac@verilog.com>
+	    Wilson Snyder <wsnyder@wsnyder.org>
+
+	* progmodes/verilog-mode.el: New file.
+
 2007-12-08  Eli Zaretskii  <eliz@fencepost.gnu.org>
 
 	* international/latexenc.el (latexenc-find-file-coding-system): If
