@@ -1,16 +1,16 @@
 ;;; printing.el --- printing utilities
 
-;; Copyright (C) 2000, 2001, 2003, 2004, 2005,
-;;   2006, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2003, 2004, 2005, 2006, 2007
+;;   Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.9.2
+;; Version: 6.9.3
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst pr-version "6.9.2"
-  "printing.el, v 6.9.2 <2007/10/26 vinicius>
+(defconst pr-version "6.9.3"
+  "printing.el, v 6.9.3 <2007/12/09 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -1118,8 +1118,8 @@ If SUFFIX is non-nil, add that at the end of the file name."
   (defalias 'pr-region-active-p        'ignore)
   (defalias 'pr-do-update-menus        'ignore)
   (defalias 'pr-update-mode-line       'ignore)
-  (defalias 'pr-f-read-string          'ignore)
-  (defalias 'pr-f-set-keymap-parents   'ignore)
+  (defalias 'pr-read-string            'ignore)
+  (defalias 'pr-set-keymap-parents     'ignore)
   (defalias 'pr-keep-region-active     'ignore))
 
 
@@ -1154,11 +1154,11 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
 (cond
  ((featurep 'xemacs)			; XEmacs
   ;; XEmacs
-  (defalias 'pr-f-set-keymap-parents 'set-keymap-parents)
-  (defalias 'pr-f-set-keymap-name    'set-keymap-name)
+  (defalias 'pr-set-keymap-parents 'set-keymap-parents)
+  (defalias 'pr-set-keymap-name    'set-keymap-name)
 
   ;; XEmacs
-  (defun pr-f-read-string (prompt initial history default)
+  (defun pr-read-string (prompt initial history default)
     (let ((str (read-string prompt initial)))
       (if (and str (not (string= str "")))
 	  str
@@ -1353,9 +1353,9 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
   )
  (t					; GNU Emacs
   ;; GNU Emacs
-  (defalias 'pr-f-set-keymap-parents 'set-keymap-parent)
-  (defalias 'pr-f-set-keymap-name    'ignore)
-  (defalias 'pr-f-read-string        'read-string)
+  (defalias 'pr-set-keymap-parents 'set-keymap-parent)
+  (defalias 'pr-set-keymap-name    'ignore)
+  (defalias 'pr-read-string        'read-string)
 
   ;; GNU Emacs
   (defvar deactivate-mark)
@@ -1451,7 +1451,7 @@ Used by `pr-menu-bind' and `pr-update-menus'.")
       )))
 
   (defvar pr-menu-position nil)
-  (defvar pr-menu-state nil)
+  (defvar pr-menu-state    nil)
 
   ;; GNU Emacs
   (defun pr-menu-lookup (path)
@@ -5719,7 +5719,7 @@ If menu binding was not done, calls `pr-menu-bind'."
   (save-match-data
     (let* ((fmt-prompt "%s[%s] N-up printing (default 1): ")
 	   (prompt "")
-	   (str (pr-f-read-string (format fmt-prompt prompt mess) "1" nil "1"))
+	   (str (pr-read-string (format fmt-prompt prompt mess) "1" nil "1"))
 	   int)
       (while (if (string-match "^\\s *[0-9]+$" str)
 		 (setq int (string-to-number str)
@@ -5729,7 +5729,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 	       (setq prompt "Invalid integer syntax; "))
 	(ding)
 	(setq str
-	      (pr-f-read-string (format fmt-prompt prompt mess) str nil "1")))
+	      (pr-read-string (format fmt-prompt prompt mess) str nil "1")))
       int)))
 
 
@@ -5754,7 +5754,7 @@ If menu binding was not done, calls `pr-menu-bind'."
 
 
 (defun pr-interactive-regexp (mess)
-  (pr-f-read-string (format "[%s] File regexp to print: " mess) "" nil ""))
+  (pr-read-string (format "[%s] File regexp to print: " mess) "" nil ""))
 
 
 (defun pr-interactive-dir-args (mess)
@@ -6038,14 +6038,15 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   "Keymap for pr-interface.")
 
 (unless pr-interface-map
-  (setq pr-interface-map (make-sparse-keymap))
-  (cond ((featurep 'xemacs)		; XEmacs
-	 (pr-f-set-keymap-parents pr-interface-map (list widget-keymap))
-	 (pr-f-set-keymap-name pr-interface-map 'pr-interface-map))
-	(t				; GNU Emacs
-	 (pr-f-set-keymap-parents pr-interface-map widget-keymap)))
-  (define-key pr-interface-map "q" 'pr-interface-quit)
-  (define-key pr-interface-map "?" 'pr-interface-help))
+  (let ((map (make-sparse-keymap)))
+    (cond ((featurep 'xemacs)		; XEmacs
+	   (pr-set-keymap-parents map (list widget-keymap))
+	   (pr-set-keymap-name    map 'pr-interface-map))
+	  (t				; GNU Emacs
+	   (pr-set-keymap-parents map widget-keymap)))
+    (define-key map "q" 'pr-interface-quit)
+    (define-key map "?" 'pr-interface-help)
+    (setq pr-interface-map map)))
 
 
 (defmacro pr-interface-save (&rest body)

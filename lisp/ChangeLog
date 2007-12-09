@@ -1,3 +1,12 @@
+2007-12-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Fix pr-interface-map initialization.  Replace
+	pr-f-set-keymap-parents, pr-f-set-keymap-name and pr-f-read-string by
+	pr-set-keymap-parents, pr-set-keymap-name and pr-read-string,
+	respectively.
+	(pr-version): New version 6.9.3.
+	(pr-interactive-n-up, pr-interactive-regexp): Code fix.
+
 2007-12-09  Glenn Morris  <rgm@gnu.org>
 
 	* emulation/viper-init.el (top-level): Use dolist rather than mapc
