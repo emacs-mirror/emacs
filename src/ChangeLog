@@ -1,3 +1,8 @@
+2007-12-09  Juri Linkov  <juri@jurta.org>
+
+	* buffer.c (Frename_buffer): Change interactive spec from "s" to
+	Lisp code that uses `read-buffer' with current buffer as default.
+
 2007-12-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_read_message): Generate an event for every
