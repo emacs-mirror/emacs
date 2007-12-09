@@ -27,6 +27,9 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
 
@@ -5575,6 +5578,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
     (setq gnus-newsgroup-unseen
 	  (gnus-inverse-list-range-intersection
 	   gnus-newsgroup-articles gnus-newsgroup-seen))))
+
+(declare-function gnus-get-predicate "gnus-agent" (predicate))
 
 (defun gnus-summary-display-make-predicate (display)
   (require 'gnus-agent)
