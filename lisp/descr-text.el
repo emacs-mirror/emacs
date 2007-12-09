@@ -586,7 +586,10 @@ as well as widgets, buttons, overlays, and text properties."
 	  (if (and (vectorp (nth 2 composition))
 		   (vectorp (aref (nth 2 composition) 0)))
 	      (progn
-		(insert " by these glyphs:\n")
+		(insert " using this font:\n  "
+			(aref (query-font (aref (aref (nth 2 composition) 0) 0))
+			      0)
+			"\nby these glyphs:\n")
 		(mapc (lambda (x) (insert (format "  %S\n" x)))
 		      (nth 2 composition)))
 	    (insert " by the rule:\n\t("
