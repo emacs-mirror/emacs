@@ -31,9 +31,11 @@
 
 ;;; Code:
 
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
-  
+
 (require 'hashcash)
 (require 'canlock)
 (require 'mailheader)
@@ -7473,6 +7475,8 @@ If nil, the function bound in `text-mode-map' or `global-map' is executed."
   :link '(custom-manual "(message)Various Commands")
   :type '(choice (const nil)
 		 function))
+
+(declare-function mail-abbrev-in-expansion-header-p "mailabbrev" ())
 
 (defun message-tab ()
   "Complete names according to `message-completion-alist'.
