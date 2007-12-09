@@ -324,7 +324,8 @@ ftfont_get_cache (frame)
 
 struct OpenTypeSpec
 {
-  unsigned int script, langsys;
+  Lisp_Object script;
+  unsigned int script_tag, langsys_tag;
   int nfeatures[2];
   unsigned int *features[2];
 };
@@ -341,6 +342,7 @@ struct OpenTypeSpec
     (P)[1] = (char) ((TAG >> 16) & 0xFF);	\
     (P)[2] = (char) ((TAG >> 8) & 0xFF);	\
     (P)[3] = (char) (TAG & 0xFF);		\
+    (P)[4] = '\0';				\
   } while (0)
 
 static struct OpenTypeSpec *
@@ -352,17 +354,24 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
 
   if (! spec)
     return NULL;
-  val = XCAR (otf_spec);
+  spec->script = XCAR (otf_spec);
   if (! NILP (val))
-    OTF_SYM_TAG (val, spec->script);
+    {
+      OTF_SYM_TAG (spec->script, spec->script_tag);
+      val = assq_no_quit (spec->script, Votf_script_alist);
+      if (CONSP (val) && SYMBOLP (XCDR (val)))
+	spec->script = XCDR (val);
+      else
+	spec->script = Qnil;
+    }
   else
-    spec->script = 0x44464C54; 	/* "DFLT" */
+    spec->script_tag = 0x44464C54; 	/* "DFLT" */
   otf_spec = XCDR (otf_spec);
   val = XCAR (otf_spec);
   if (! NILP (val))
-    OTF_SYM_TAG (val, spec->langsys);
+    OTF_SYM_TAG (val, spec->langsys_tag);
   else
-    spec->langsys = 0;
+    spec->langsys_tag = 0;
   spec->nfeatures[0] = spec->nfeatures[1] = 0;
   for (i = 0; i < 2; i++)
     {
@@ -464,10 +473,11 @@ ftfont_list (frame, spec)
       if (EQ (key, QCotf))
 	{
 	  otspec = ftfont_get_open_type_spec (val);
-	  if (otspec)
+	  if (! otspec)
 	    return null_vector;
 	  strcat (otlayout, "otlayout:");
-	  OTF_TAG_STR (otspec->script, otlayout + 9);
+	  OTF_TAG_STR (otspec->script_tag, otlayout + 9);
+	  script = otspec->script;
 	}
       else if (EQ (key, QClanguage))
 	{
@@ -634,12 +644,12 @@ ftfont_list (frame, spec)
 	      otf = OTF_open ((char *) file);
 	      if (! otf)
 		continue;
-	      if (OTF_check_features (otf, 0,
-				      otspec->script, otspec->langsys,
+	      if (OTF_check_features (otf, 1,
+				      otspec->script_tag, otspec->langsys_tag,
 				      otspec->features[0],
 				      otspec->nfeatures[0]) != 1
-		  || OTF_check_features (otf, 1,
-					 otspec->script, otspec->langsys,
+		  || OTF_check_features (otf, 0,
+					 otspec->script_tag, otspec->langsys_tag,
 					 otspec->features[1],
 					 otspec->nfeatures[1]) != 1)
 		continue;
