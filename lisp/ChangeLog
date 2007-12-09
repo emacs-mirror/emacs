@@ -1,7 +1,7 @@
 2007-12-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* mail/hashcash.el, net/imap.el, pgg.el, pgg-parse.el
-	(declare-function): Add new no-op macro for backward compatibility.
+	* pgg.el, pgg-parse.el (declare-function): Add new no-op macro for
+	backward compatibility.
 
 	* net/imap.el (imap-string-to-integer): New function.
 
