@@ -1,3 +1,12 @@
+2007-12-09  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (struct OpenTypeSpec): Members script_tag renamed to
+	script, langsys_tag renamed to langsys, new member script.
+	(OTF_TAG_STR): Terminate by '\0'.
+	(ftfont_get_open_type_spec): If :otf prop is is spec, Limit the
+	listing to the script specified in that property.  Fix arg to
+	OTF_check_features.
+
 2007-12-08  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.h: New file.
