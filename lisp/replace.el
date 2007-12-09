@@ -552,8 +552,8 @@ A match split across lines preserves all the lines it lies in.
 When called from Lisp (and usually interactively as well, see below)
 applies to all lines starting after point.
 
-If REGEXP contains upper case characters (excluding those preceded by `\\'),
-the matching is case-sensitive.
+If REGEXP contains upper case characters (excluding those preceded by `\\')
+and `search-upper-case' is non-nil, the matching is case-sensitive.
 
 Second and third arg RSTART and REND specify the region to operate on.
 This command operates on (the accessible part of) all lines whose
@@ -597,8 +597,10 @@ a previously found match."
   (save-excursion
     (or (bolp) (forward-line 1))
     (let ((start (point))
-	  (case-fold-search  (and case-fold-search
-				  (isearch-no-upper-case-p regexp t))))
+	  (case-fold-search
+	   (if (and case-fold-search search-upper-case)
+	       (isearch-no-upper-case-p regexp t)
+	     case-fold-search)))
       (while (< (point) rend)
 	;; Start is first char not preserved by previous match.
 	(if (not (re-search-forward regexp rend 'move))
@@ -626,8 +628,8 @@ well, see below), applies to the part of the buffer after point.
 The line point is in is deleted if and only if it contains a
 match for regexp starting after point.
 
-If REGEXP contains upper case characters (excluding those preceded by `\\'),
-the matching is case-sensitive.
+If REGEXP contains upper case characters (excluding those preceded by `\\')
+and `search-upper-case' is non-nil, the matching is case-sensitive.
 
 Second and third arg RSTART and REND specify the region to operate on.
 Lines partially contained in this region are deleted if and only if
@@ -657,8 +659,10 @@ starting on the same line at which another match ended is ignored."
       (setq rstart (point)
 	    rend (point-max-marker)))
     (goto-char rstart))
-  (let ((case-fold-search (and case-fold-search
-			       (isearch-no-upper-case-p regexp t))))
+  (let ((case-fold-search
+	 (if (and case-fold-search search-upper-case)
+	     (isearch-no-upper-case-p regexp t)
+	   case-fold-search)))
     (save-excursion
       (while (and (< (point) rend)
 		  (re-search-forward regexp rend t))
@@ -676,8 +680,8 @@ When called from Lisp and INTERACTIVE is omitted or nil, just return
 the number, do not print it; if INTERACTIVE is t, the function behaves
 in all respects has if it had been called interactively.
 
-If REGEXP contains upper case characters (excluding those preceded by `\\'),
-the matching is case-sensitive.
+If REGEXP contains upper case characters (excluding those preceded by `\\')
+and `search-upper-case' is non-nil, the matching is case-sensitive.
 
 Second and third arg RSTART and REND specify the region to operate on.
 
@@ -704,8 +708,10 @@ a previously found match."
       (goto-char rstart))
     (let ((count 0)
 	  opoint
-	  (case-fold-search (and case-fold-search
-				 (isearch-no-upper-case-p regexp t))))
+	  (case-fold-search
+	   (if (and case-fold-search search-upper-case)
+	       (isearch-no-upper-case-p regexp t)
+	     case-fold-search)))
       (while (and (< (point) rend)
 		  (progn (setq opoint (point))
 			 (re-search-forward regexp rend t)))
@@ -1030,8 +1036,8 @@ The lines are shown in a buffer named `*Occur*'.
 It serves as a menu to find any of the occurrences in this buffer.
 \\<occur-mode-map>\\[describe-mode] in that buffer will explain how.
 
-If REGEXP contains upper case characters (excluding those preceded by `\\'),
-the matching is case-sensitive."
+If REGEXP contains upper case characters (excluding those preceded by `\\')
+and `search-upper-case' is non-nil, the matching is case-sensitive."
   (interactive (occur-read-primary-args))
   (occur-1 regexp nlines (list (current-buffer))))
 
@@ -1119,8 +1125,9 @@ See also `multi-occur'."
 	(let ((count (occur-engine
 		      regexp active-bufs occur-buf
 		      (or nlines list-matching-lines-default-context-lines)
-		      (and case-fold-search
-			   (isearch-no-upper-case-p regexp t))
+		      (if (and case-fold-search search-upper-case)
+			  (isearch-no-upper-case-p regexp t)
+			case-fold-search)
 		      list-matching-lines-buffer-name-face
 		      nil list-matching-lines-face
 		      (not (eq occur-excluded-properties t)))))
@@ -1459,8 +1466,9 @@ make, or the user didn't cancel the call."
   (and query-flag minibuffer-auto-raise
        (raise-frame (window-frame (minibuffer-window))))
   (let* ((case-fold-search
-          (and case-fold-search
-               (isearch-no-upper-case-p from-string regexp-flag)))
+	  (if (and case-fold-search search-upper-case)
+	      (isearch-no-upper-case-p from-string regexp-flag)
+	    case-fold-search))
          (nocasify (not (and case-replace case-fold-search)))
          (literal (or (not regexp-flag) (eq regexp-flag 'literal)))
          (search-function (if regexp-flag 're-search-forward 'search-forward))
