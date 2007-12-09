@@ -3169,7 +3169,7 @@ Limit search to point LIM."
 ;; Other functions
 ;;
 
-(defun kill-existing-comment ()
+(defun verilog-kill-existing-comment ()
   "Kill auto comment on this line."
   (save-excursion
     (let* (
@@ -3210,7 +3210,7 @@ Insert `// NAME ' if this line ends a function, task, module, primitive or inter
 	    )
 	(end-of-line)
 	(if kill-existing-comment
-	    (kill-existing-comment))
+	    (verilog-kill-existing-comment))
 	(delete-horizontal-space)
 	(save-excursion
 	  (backward-sexp 1)
@@ -3287,7 +3287,7 @@ Insert `// NAME ' if this line ends a function, task, module, primitive or inter
 					(verilog-get-expr))))))
 		  (end-of-line)
 		  (if kill-existing-comment
-		      (kill-existing-comment))
+		      (verilog-kill-existing-comment))
 		  (delete-horizontal-space)
 		  (insert (concat " // " str ))
 		  (if err (ding 't))
@@ -3309,7 +3309,7 @@ Insert `// NAME ' if this line ends a function, task, module, primitive or inter
 			  (goto-char here)
 			  (end-of-line)
 			  (if kill-existing-comment
-			      (kill-existing-comment))
+			      (verilog-kill-existing-comment))
 			  (delete-horizontal-space)
 			  (insert str)
 			  (ding 't)
@@ -3450,7 +3450,7 @@ Insert `// NAME ' if this line ends a function, task, module, primitive or inter
 		      (goto-char here)
 		      (end-of-line)
 		      (if kill-existing-comment
-			  (kill-existing-comment))
+			  (verilog-kill-existing-comment))
 		      (delete-horizontal-space)
 		      (if (or err
 			      (> (count-lines here there) verilog-minimum-comment-distance))
@@ -3503,7 +3503,7 @@ Insert `// NAME ' if this line ends a function, task, module, primitive or inter
 		  (end-of-line)
 		  (if kill-existing-comment
 		      (save-match-data
-		       (kill-existing-comment)))
+		       (verilog-kill-existing-comment)))
 		  (delete-horizontal-space)
 		  (backward-sexp)
 		  (cond
@@ -5846,13 +5846,13 @@ Bound search by LIMIT.  Adapted from
     (insert (user-full-name))
     (insert "  <" (user-login-name) "@" (system-name) ">")
     (search-forward "<credate>") (replace-match "" t t)
-    (insert-date)
+    (verilog-insert-date)
     (search-forward "<moddate>") (replace-match "" t t)
-    (insert-date)
+    (verilog-insert-date)
     (search-forward "<copydate>") (replace-match "" t t)
-    (insert-year)
+    (verilog-insert-year)
     (search-forward "<modhist>") (replace-match "" t t)
-    (insert-date)
+    (verilog-insert-date)
     (insert " : created")
     (goto-char start)
     (let (string)
@@ -5877,9 +5877,9 @@ Bound search by LIMIT.  Adapted from
       (replace-match "" t t)
       )))
 
-;; verilog-header Uses the insert-date function
+;; verilog-header Uses the verilog-insert-date function
 
-(defun insert-date ()
+(defun verilog-insert-date ()
   "Insert date from the system."
   (interactive)
   (let ((timpos))
@@ -5892,7 +5892,7 @@ Bound search by LIMIT.  Adapted from
     (end-of-line))
     (delete-char 1))
 
-(defun insert-year ()
+(defun verilog-insert-year ()
   "Insert year from the system."
   (interactive)
   (let ((timpos))
