@@ -1,3 +1,8 @@
+2007-12-09  David Kastrup  <dak@gnu.org>
+
+	* emacs-lisp/lisp-mnt.el (lm-verify): Make it work with
+	directories.  Not sure anybody uses this anymore, though.
+
 2007-12-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Fix pr-interface-map initialization.  Replace

@@ -511,18 +511,17 @@ copyright notice is allowed."
     (if (and file (file-directory-p file))
 	(setq ret
 	      (with-temp-buffer
-		(mapcar
-		 (lambda (f)
-		   (if (string-match ".*\\.el\\'" f)
-		       (let ((status (lm-verify f)))
-			 (insert f ":")
-			 (if status
-			     (lm-insert-at-column lm-comment-column status
-						  "\n")
-			   (if showok
-			       (lm-insert-at-column lm-comment-column
-						    "OK\n"))))))
-		 (directory-files file))))
+		(dolist (f (directory-files file nil "\\.el\\'")
+			   (buffer-string))
+		  (when (file-regular-p f)
+		    (let ((status (lm-verify f)))
+		      (insert f ":")
+		      (if status
+			  (lm-insert-at-column lm-comment-column status
+					       "\n")
+			(if showok
+			    (lm-insert-at-column lm-comment-column
+						 "OK\n"))))))))
       (lm-with-file file
 	(setq name (lm-get-package-name))
 	(setq ret
