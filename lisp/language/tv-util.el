@@ -27,7 +27,7 @@
 
 ;; Regexp matching with a sequence of Tai Viet characters.
 (defconst tai-viet-re
-  (format "[\xaa80-\xaac2\xaadb-\xaadf]+"))
+  (format "[\xaa80-\xaac2\xaadb-\xaadf-]+"))
 
 ;; Char-table of information about glyph type of Tai Viet characters.
 (defconst tai-viet-glyph-info
@@ -35,7 +35,8 @@
 	(specials '((right-overhang . "ꪊꪋꪌꪍꪏꪓꪖꪜꪞꪡꪤꪨ")
 		    (left-overhang . "ꫂ")
 		    (combining-vowel . "ꪴꪰꪲꪳꪷꪸꪾ")
-		    (combining-tone . "꪿꫁"))))
+		    (combining-tone . "꪿꫁")
+		    (misc . "-"))))
     ;; Set all TaiViet characters to `t'.
     (set-char-table-range table (cons #xaa80 #xaac2) t)
     (set-char-table-range table (cons #xaadb #xaadf) t)
