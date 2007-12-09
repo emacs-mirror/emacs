@@ -234,7 +234,12 @@ position of point in help window (for example in `view-lossage').
 ** view-remove-frame-by-deleting is now by default t
 since users found iconification of view-mode frames distracting.
 
-** isearch can now search through multiple ChangeLog files.
+** Isearch mode
+
+*** New command `isearch-occur' bound to `M-s o' in isearch mode
+runs `occur' with the current search string.
+
+*** isearch can now search through multiple ChangeLog files.
 When running isearch in a ChangeLog file, if the search fails,
 then another C-s tries searching the previous ChangeLog,
 if there is one (e.g. go from ChangeLog to ChangeLog.12).
