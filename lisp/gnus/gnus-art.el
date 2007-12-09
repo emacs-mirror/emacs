@@ -27,6 +27,9 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
 (defvar tool-bar-map)
@@ -2705,6 +2708,9 @@ charset defined in `gnus-summary-show-article-charset-alist' is used."
 	     (t
 	      (apply (car func) (cdr func))))))))))
 
+;; External.
+(declare-function w3-region "ext:w3-display" (st nd))
+
 (defun gnus-article-wash-html-with-w3 ()
   "Wash the current buffer with w3."
   (mm-setup-w3)
@@ -2715,6 +2721,9 @@ charset defined in `gnus-summary-show-article-charset-alist' is used."
     (condition-case ()
 	(w3-region (point-min) (point-max))
       (error))))
+
+;; External.
+(declare-function w3m-region "ext:w3m" (start end &optional url charset))
 
 (defun gnus-article-wash-html-with-w3m ()
   "Wash the current buffer with emacs-w3m."
@@ -7681,6 +7690,9 @@ url is put as the `gnus-button-url' overlay property on the button."
 (defun gnus-button-handle-info-url-kde (url)
   "Fetch KDE style info URL."
   (gnus-info-find-node (gnus-url-unhex-string url)))
+
+;; (info) will autoload info.el
+(declare-function Info-menu "info" (menu-item &optional fork))
 
 (defun gnus-button-handle-info-keystrokes (url)
   "Call `info' when pushing the corresponding URL button."
