@@ -36,7 +36,9 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
+  (require 'cl))
 
 (defgroup pgg-parse ()
   "OpenPGP packet parsing."

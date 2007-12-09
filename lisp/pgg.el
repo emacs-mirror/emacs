@@ -35,6 +35,7 @@
 
 ;; Don't merge these two `eval-when-compile's.
 (eval-when-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
   (require 'cl))
 
 ;;; @ utility functions

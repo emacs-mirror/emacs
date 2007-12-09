@@ -115,13 +115,15 @@ For example, you may want to set this to '(\"-Z2\") to reduce header length."
 (require 'mail-utils)
 
 (eval-and-compile
- (if (fboundp 'point-at-bol)
-     (defalias 'hashcash-point-at-bol 'point-at-bol)
-   (defalias 'hashcash-point-at-bol 'line-beginning-position))
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r)))
 
- (if (fboundp 'point-at-eol)
-     (defalias 'hashcash-point-at-eol 'point-at-eol)
-   (defalias 'hashcash-point-at-eol 'line-end-position)))
+  (if (fboundp 'point-at-bol)
+      (defalias 'hashcash-point-at-bol 'point-at-bol)
+    (defalias 'hashcash-point-at-bol 'line-beginning-position))
+
+  (if (fboundp 'point-at-eol)
+      (defalias 'hashcash-point-at-eol 'point-at-eol)
+    (defalias 'hashcash-point-at-eol 'line-end-position)))
 
 (defun hashcash-strip-quoted-names (addr)
   (setq addr (mail-strip-quoted-names addr))

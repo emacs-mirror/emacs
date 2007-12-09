@@ -31,6 +31,18 @@
 
 	* gnus-start.el (gnus-load): Rename local variable to avoid confusion.
 
+2007-12-06  Christian Plate  <cplate@web.de>  (tiny change)
+
+	* nnmaildir.el (nnmaildir-request-update-info): Improved performance.
+	Call gnus-add-to-range ranges only once with a prepared article-list.
+
+2007-12-06  Paul Jarc  <prj@po.cwru.edu>
+
+	* nnmaildir.el (nnmaildir-request-list, nnmaildir-retrieve-groups,
+	nnmaildir-request-group, nnmaildir-retrieve-headers): Escape spaces in
+	group names with backslashes.  Reported by Tassilo Horn
+	<tassilo@member.fsf.org>.
+
 2007-12-06  D. Goel  <deego3@gmail.com>
 
 	* gnus-art.el (article-make-date-line):

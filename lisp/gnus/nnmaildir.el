@@ -884,7 +884,9 @@ by nnmaildir-request-article.")
 			pgname (nnmaildir--pgname nnmaildir--cur-server pgname)
 			group (symbol-value group)
 			ro (nnmaildir--param pgname 'read-only))
-		  (insert (nnmaildir--grp-name group) " ")
+		  (insert (gnus-replace-in-string
+			   (nnmaildir--grp-name group) " " "\\ " t)
+			  " ")
                   (princ (nnmaildir--group-maxnum nnmaildir--cur-server group)
 			 nntp-server-buffer)
 		  (insert " ")
@@ -911,14 +913,17 @@ by nnmaildir-request-article.")
 	  (insert " ")
 	  (princ (nnmaildir--group-maxnum nnmaildir--cur-server group)
 		 nntp-server-buffer)
-	  (insert " " gname "\n")))))
+	  (insert " "
+		  (gnus-replace-in-string gname " " "\\ " t)
+		  "\n")))))
   'group)
 
 (defun nnmaildir-request-update-info (gname info &optional server)
   (let ((group (nnmaildir--prepare server gname))
 	pgname flist always-marks never-marks old-marks dotfile num dir
 	markdirs marks mark ranges markdir article read end new-marks ls
-	old-mmth new-mmth mtime mark-sym existing missing deactivate-mark)
+	old-mmth new-mmth mtime mark-sym existing missing deactivate-mark
+	article-list)
     (catch 'return
       (unless group
 	(setf (nnmaildir--srv-error nnmaildir--cur-server)
@@ -966,12 +971,13 @@ by nnmaildir-request-article.")
 	    (setq ranges (assq mark-sym old-marks))
 	    (if ranges (setq ranges (cdr ranges)))
 	    (throw 'got-ranges nil))
+	  (setq article-list nil)
 	  (dolist (prefix (funcall ls markdir nil "\\`[^.]" 'nosort))
 	    (setq article (nnmaildir--flist-art flist prefix))
 	    (if article
-		(setq ranges
-		      (gnus-add-to-range ranges
-					 `(,(nnmaildir--art-num article)))))))
+		(setq article-list
+		      (cons (nnmaildir--art-num article) article-list))))
+	  (setq ranges (gnus-add-to-range ranges (sort article-list '<))))
 	(if (eq mark-sym 'read) (setq read ranges)
 	  (if ranges (setq marks (cons (cons mark-sym ranges) marks)))))
       (gnus-info-set-read info (gnus-range-add read missing))
@@ -999,7 +1005,7 @@ by nnmaildir-request-article.")
 	(insert " ")
 	(princ (nnmaildir--group-maxnum nnmaildir--cur-server group)
 	       nntp-server-buffer)
-	(insert " " gname "\n")
+	(insert " " (gnus-replace-in-string gname " " "\\ " t) "\n")
 	t))))
 
 (defun nnmaildir-request-create-group (gname &optional server args)
@@ -1161,7 +1167,7 @@ by nnmaildir-request-article.")
 	      (insert "\t" (nnmaildir--nov-get-beg nov) "\t"
 		      (nnmaildir--art-msgid article) "\t"
 		      (nnmaildir--nov-get-mid nov) "\tXref: nnmaildir "
-		      gname ":")
+		      (gnus-replace-in-string gname " " "\\ " t) ":")
 	      (princ num nntp-server-buffer)
 	      (insert "\t" (nnmaildir--nov-get-end nov) "\n"))))
     (catch 'return
