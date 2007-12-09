@@ -24,7 +24,8 @@
 ;;; Commentary:
 
 ;;; Code:
-
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile (require 'cl))
 (require 'mail-parse)
 (require 'mailcap)
@@ -117,6 +118,11 @@
       (defalias 'mm-inline-image 'mm-inline-image-xemacs)
     (defalias 'mm-inline-image 'mm-inline-image-emacs)))
 
+;; External.
+(declare-function w3-do-setup       "ext:w3"         ())
+(declare-function w3-region         "ext:w3-display" (st nd))
+(declare-function w3-prepare-buffer "ext:w3-display" (&rest args))
+
 (defvar mm-w3-setup nil)
 (defun mm-setup-w3 ()
   (unless mm-w3-setup
@@ -200,6 +206,10 @@
 
 (defvar mm-w3m-setup nil
   "Whether gnus-article-mode has been setup to use emacs-w3m.")
+
+;; External.
+(declare-function w3m-detect-meta-charset "ext:w3m" ())
+(declare-function w3m-region "ext:w3m" (start end &optional url charset))
 
 (defun mm-setup-w3m ()
   "Setup gnus-article-mode to use emacs-w3m."
