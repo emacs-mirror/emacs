@@ -1,3 +1,19 @@
+2007-12-09  Kenichi Handa  <handa@m17n.org>
+
+	* language/tv-util.el (tai-viet-re): Include '-'.
+	(tai-viet-glyph-info): Handle '-'.
+
+	* descr-text.el (describe-char): Improve the previous change (show
+	font name).
+
+2007-12-04  Kenichi Handa  <handa@m17n.org>
+
+	* language/devan-util.el (devanagari-composition-function): Fix
+	previous change.
+
+	* descr-text.el (describe-char): Handle a composition of the new
+	format.
+
 2007-12-06  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* language/tibet-util.el (tibetan-composition-function): Use
