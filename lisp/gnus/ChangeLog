@@ -1,3 +1,19 @@
+2007-12-09  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-uu.el (gnus-uu-yenc-article): Use insert-buffer-substring.
+
+	* gnus-art.el, gnus-spec.el, gnus-sum.el, gnus-util.el:
+	* message.el, mm-view.el: Add declare-function compatibility
+	declaration.
+
+	* gnus-art.el (w3-region, w3m-region, Info-menu):
+	* gnus-spec.el (gnus-summary-from-or-to-or-newsgroups):
+	* gnus-sum.el (gnus-get-predicate):
+	* gnus-util.el (mm-append-to-file, w32-focus-frame):
+	* message.el (mail-abbrev-in-expansion-header-p):
+	* mm-view.el (w3-do-setup, w3-region, w3-prepare-buffer)
+	(w3m-detect-meta-charset, w3m-region): Declare as functions.
+
 2007-12-08  David Kastrup  <dak@gnu.org>
 
 	* gnus-sum.el (gnus-summary-simplify-subject-query):
