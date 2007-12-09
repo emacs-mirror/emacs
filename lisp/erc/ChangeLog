@@ -1,8 +1,32 @@
+2007-12-09  Michael Olson  <mwolson@gnu.org>
+
+	* erc-services.el (erc-nickserv-alist): Fix regexps for GRnet.
+
+2007-12-09  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
+
+	* erc-backend.el, erc.el:
+	Parse 275 (secure connection) responses.
+
+	* erc-services.el: Add identification hooks for GRnet, the Greek
+	IRC network <http://www.irc.gr>.
+
 2007-12-08  David Kastrup  <dak@gnu.org>
 
 	* erc-stamp.el (erc-echo-timestamp):
 	* erc-lang.el (language):
 	* erc-backend.el (erc-server-connect): Fix buggy call to `message'.
+
+2007-12-07  Edward O'Connor  <ted@oconnor.cx>
+
+	* erc-services.el: Provide a hook that runs when nickserv confirms
+	that the user has successfully identified.
+	(services, erc-nickserv-identify-mode): Add and remove
+	erc-nickserv-identification-autodetect from
+	erc-server-NOTICE-functions.
+	(erc-nickserv-alist): Add SUCCESS-REGEXP to each entry.
+	(erc-nickserv-alist-identified-regexp)
+	(erc-nickserv-identification-autodetect): New functions.
+	(erc-nickserv-identified-hook): New hook.
 
 2007-12-06  D. Goel  <deego3@gmail.com>
 

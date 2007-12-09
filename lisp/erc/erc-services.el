@@ -29,9 +29,10 @@
 ;; are made to test if NickServ is the real NickServ for a given network or
 ;; server.
 
-;; As a default, ERC has the data for the official nickname services on the
-;; networks Austnet, BrasNET, Dalnet, freenode, GalaxyNet, and Slashnet.
-;; You can add more by using M-x customize-variable RET erc-nickserv-alist.
+;; As a default, ERC has the data for the official nickname services on
+;; the networks Austnet, BrasNET, Dalnet, freenode, GalaxyNet, GRnet,
+;; and Slashnet.  You can add more by using M-x customize-variable RET
+;; erc-nickserv-alist.
 
 ;; Usage:
 ;;
@@ -109,7 +110,9 @@ You can also use M-x erc-nickserv-identify-mode to change modes."
    (remove-hook 'erc-after-connect
 		'erc-nickserv-identify-on-connect)
    (remove-hook 'erc-nick-changed-functions
-		'erc-nickserv-identify-on-nick-change)))
+		'erc-nickserv-identify-on-nick-change)
+   (remove-hook 'erc-server-NOTICE-functions
+		'erc-nickserv-identification-autodetect)))
 
 ;;;###autoload
 (defun erc-nickserv-identify-mode (mode)
@@ -118,6 +121,8 @@ You can also use M-x erc-nickserv-identify-mode to change modes."
    (list (intern (completing-read
 		  "Choose Nickserv identify mode (RET to disable): "
 		  '(("autodetect") ("nick-change") ("both")) nil t))))
+  (add-hook 'erc-server-NOTICE-functions
+	    'erc-nickserv-identification-autodetect)
   (cond ((eq mode 'autodetect)
 	 (setq erc-nickserv-identify-mode 'autodetect)
 	 (add-hook 'erc-server-NOTICE-functions
@@ -149,7 +154,9 @@ You can also use M-x erc-nickserv-identify-mode to change modes."
 	 (remove-hook 'erc-after-connect
 		      'erc-nickserv-identify-on-connect)
 	 (remove-hook 'erc-nick-changed-functions
-		      'erc-nickserv-identify-on-nick-change))))
+		      'erc-nickserv-identify-on-nick-change)
+	 (remove-hook 'erc-server-NOTICE-functions
+		      'erc-nickserv-identification-autodetect))))
 
 (defcustom erc-prompt-for-nickserv-password t
   "Ask for the password when identifying to NickServ."
@@ -176,6 +183,7 @@ Example of use:
 			(const DALnet)
 			(const freenode)
 			(const GalaxyNet)
+			(const GRnet)
 			(const iip)
 			(const OFTC)
 			(const QuakeNet)
@@ -192,63 +200,70 @@ Example of use:
   '((Ars
      nil nil
      "Census"
-     "IDENTIFY" nil nil)
+     "IDENTIFY" nil nil nil)
     (Austnet
      "NickOP!service@austnet.org"
      "/msg\\s-NickOP@austnet.org\\s-identify\\s-<password>"
      "nickop@austnet.org"
-     "identify" nil nil)
+     "identify" nil nil nil)
     (Azzurra
      "NickServ!service@azzurra.org"
      "/ns\\s-IDENTIFY\\s-password"
      "NickServ"
-     "IDENTIFY" nil nil)
+     "IDENTIFY" nil nil nil)
     (BitlBee
      nil nil
      "&bitlbee"
-     "identify" nil nil)
+     "identify" nil nil nil)
     (BRASnet
      "NickServ!services@brasnet.org"
      "/NickServ\\s-IDENTIFY\\s-senha"
      "NickServ"
-     "IDENTIFY" nil "")
+     "IDENTIFY" nil "" nil)
     (DALnet
      "NickServ!service@dal.net"
      "/msg\\s-NickServ@services.dal.net\\s-IDENTIFY\\s-<password>"
      "NickServ@services.dal.net"
-     "IDENTIFY" nil nil)
+     "IDENTIFY" nil nil nil)
     (freenode
      "NickServ!NickServ@services."
      "/msg\\s-NickServ\\s-IDENTIFY\\s-<password>"
      "NickServ"
-     "IDENTIFY" nil nil)
+     "IDENTIFY" nil nil
+     "Password\\s-accepted\\s--\\s-you\\s-are\\s-now\\s-recognized")
     (GalaxyNet
      "NS!nickserv@galaxynet.org"
      "Please\\s-change\\s-nicks\\s-or\\s-authenticate."
      "NS@services.galaxynet.org"
-     "AUTH" t nil)
+     "AUTH" t nil nil)
+    (GRnet
+     "NickServ!service@irc.gr"
+     "This\\s-nickname\\s-is\\s-registered\\s-and\\s-protected."
+     "NickServ"
+     "IDENTIFY" nil nil
+     "Password\\s-accepted\\s--\\s-you\\s-are\\s-now\\s-recognized.")
     (iip
      "Trent@anon.iip"
      "type\\s-/squery\\s-Trent\\s-identify\\s-<password>"
      "Trent@anon.iip"
-     "IDENTIFY" nil "SQUERY")
+     "IDENTIFY" nil "SQUERY" nil)
     (OFTC
      "NickServ!services@services.oftc.net"
      "type\\s-/msg\\s-NickServ\\s-IDENTIFY\\s-password."
      "NickServ"
-     "IDENTIFY" nil nil)
+     "IDENTIFY" nil nil nil)
     (QuakeNet
      nil nil
      "Q@CServe.quakenet.org"
-     "auth" t nil)
+     "auth" t nil nil)
     (SlashNET
      "NickServ!services@services.slashnet.org"
      "/msg\\s-NickServ\\s-IDENTIFY\\s-password"
      "NickServ@services.slashnet.org"
-     "IDENTIFY" nil nil))
+     "IDENTIFY" nil nil nil))
    "Alist of NickServer details, sorted by network.
 Every element in the list has the form
-  \(SYMBOL NICKSERV REGEXP NICK KEYWORD USE-CURRENT ANSWER)
+  \(SYMBOL NICKSERV REGEXP NICK KEYWORD USE-CURRENT ANSWER SUCCESS-REGEXP)
 
 SYMBOL is a network identifier, a symbol, as used in `erc-networks-alist'.
 NICKSERV is the description of the nickserv in the form nick!user@host.
@@ -258,7 +273,9 @@ KEYWORD is the keyword to use in the reply message to identify yourself.
 USE-CURRENT indicates whether the current nickname must be used when
   identifying.
 ANSWER is the command to use for the answer.  The default is 'privmsg.
-  This last element is optional."
+SUCCESS-REGEXP is a regular expression matching the message nickserv
+  sends when you've successfully identified.
+The last two elements are optional."
    :group 'erc-services
    :type '(repeat
 	   (list :tag "Nickserv data"
@@ -292,7 +309,35 @@ ANSWER is the command to use for the answer.  The default is 'privmsg.
 (defsubst erc-nickserv-alist-ident-command (network &optional entry)
   (nth 6 (or entry (assoc network erc-nickserv-alist))))
 
+(defsubst erc-nickserv-alist-identified-regexp (network &optional entry)
+  (nth 7 (or entry (assoc network erc-nickserv-alist))))
+
 ;; Functions:
+
+(defcustom erc-nickserv-identified-hook nil
+  "Run this hook when NickServ acknowledged successful identification.
+Hooks are called with arguments (NETWORK NICK)."
+  :group 'erc-services
+  :type 'hook)
+
+(defun erc-nickserv-identification-autodetect (proc parsed)
+  "Check for NickServ's successful identification notice.
+Make sure it is the real NickServ for this network and that it has
+specifically confirmed a successful identification attempt.
+If this is the case, run `erc-nickserv-identified-hook'."
+  (let* ((network (erc-network))
+	 (sender (erc-nickserv-alist-sender network))
+	 (success-regex (erc-nickserv-alist-identified-regexp network))
+	 (sspec (erc-response.sender parsed))
+	 (nick (car (erc-response.command-args parsed)))
+	 (msg (erc-response.contents parsed)))
+    ;; continue only if we're sure it's the real nickserv for this network
+    ;; and it's told us we've successfully identified
+    (when (and sender (equal sspec sender)
+	       (string-match success-regex msg))
+      (erc-log "NickServ IDENTIFY success notification detected")
+      (run-hook-with-args 'erc-nickserv-identified-hook network nick)
+      nil)))
 
 (defun erc-nickserv-identify-autodetect (proc parsed)
   "Check for a NickServ identify request everytime a notice is received.

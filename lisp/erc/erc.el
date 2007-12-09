@@ -6213,6 +6213,7 @@ All windows are opened in the current frame."
    (s252   . "%i operator(s) online")
    (s253   . "%i unknown connection(s)")
    (s254   . "%i channels formed")
+   (s275   . "%n %m")
    (s301   . "%n is AWAY: %r")
    (s303   . "Is online: %n")
    (s305   . "%m")

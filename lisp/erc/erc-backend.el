@@ -1538,6 +1538,16 @@ A server may send more than one 005 message."
 See `erc-display-server-message'." nil
   (erc-display-server-message proc parsed))
 
+(define-erc-response-handler (275)
+  "Display secure connection message." nil
+  (multiple-value-bind (nick user message)
+      (cdr (erc-response.command-args parsed))
+    (erc-display-message
+     parsed 'notice 'active 's275
+     ?n nick
+     ?m (mapconcat 'identity (cddr (erc-response.command-args parsed))
+                   " "))))
+
 (define-erc-response-handler (290)
   "Handle dancer-ircd CAPAB messages." nil nil)
 
