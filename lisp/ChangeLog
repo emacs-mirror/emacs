@@ -1,3 +1,8 @@
+2007-12-09  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/viper-init.el (top-level): Use dolist rather than mapc
+	in make-variable-frame-local call.
+
 2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* mail/hashcash.el (declare-function):
