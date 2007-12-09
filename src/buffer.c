@@ -1169,7 +1169,8 @@ buffer as BUFFER.  */)
 }
 
 DEFUN ("rename-buffer", Frename_buffer, Srename_buffer, 1, 2,
-       "sRename buffer (to new name): \nP",
+       "(list (read-buffer \"Rename buffer (to new name): \" \
+	      (current-buffer)) current-prefix-arg)",
        doc: /* Change current buffer's name to NEWNAME (a string).
 If second arg UNIQUE is nil or omitted, it is an error if a
 buffer named NEWNAME already exists.
