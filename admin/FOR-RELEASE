@@ -107,6 +107,10 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg02052.html
 ** Fix or document the shortcoming of easymenu and :suffix.
 http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01857.html
 
+** Fix problem with mode-name in SGML mode.
+If mode-name stays non-string, add NEWS entry and doc fix.
+http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg02048.html
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
