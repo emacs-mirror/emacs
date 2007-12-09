@@ -35,6 +35,9 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
 ;; Fixme: this should be a gnus variable, not nnmail-.
@@ -987,6 +990,9 @@ with potentially long computations."
 (defvar rmail-default-rmail-file)
 (defvar mm-text-coding-system)
 
+(declare-function mm-append-to-file "mm-util"
+                  (start end filename &optional codesys inhibit))
+
 (defun gnus-output-to-rmail (filename &optional ask)
   "Append the current article to an Rmail file named FILENAME."
   (require 'rmail)
@@ -1514,6 +1520,8 @@ CHOICE is a list of the choice char and help message at IDX."
     (if (buffer-live-p buf)
 	(kill-buffer buf))
     tchar))
+
+(declare-function w32-focus-frame "../term/w32-win" (frame))
 
 (defun gnus-select-frame-set-input-focus (frame)
   "Select FRAME, raise it, and set input focus, if possible."
