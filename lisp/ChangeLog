@@ -1,3 +1,14 @@
+2007-12-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/perl-mode.el (perl-continued-statement-offset)
+	(perl-continued-brace-offset, perl-brace-offset)
+	(perl-brace-imaginary-offset, perl-label-offset):
+	* progmodes/cperl-mode.el (cperl-brace-offset)
+	(cperl-continued-brace-offset, cperl-label-offset)
+	(cperl-continued-statement-offset)
+	(cperl-extra-newline-before-brace, cperl-merge-trailing-else): Add
+	safe-local-variable properties.
+
 2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/verilog-mode.el (verilog-mode-map)
@@ -5,6 +16,11 @@
 	(verilog-colorize-include-files): Use only overlay functions so
 	that it can work on both emacs and XEmacs.
 	(set-extent-keymap): Remove unused defun.
+	(verilog-kill-existing-comment, verilog-insert-date)
+	(verilog-insert-year): Rename in order not to pollute the global
+	namespace from kill-existing-comment, insert-date and
+	insert-year, respectively.
+	(verilog-set-auto-endcomments, verilog-header): Update callers.
 
 	* files.el (auto-mode-alist): Recognize verilog files.
 
