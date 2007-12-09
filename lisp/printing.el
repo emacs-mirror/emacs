@@ -70,7 +70,7 @@ Please send all bug fixes and enhancements to
 ;; `http://www.emacswiki.org/cgi-bin/wiki/PsPrintPackage'.
 ;; Please, see README file for ps-print installation instructions.
 ;;
-;; `printing' was inspired on:
+;; `printing' was inspired by:
 ;;
 ;;    print-nt.el	      Frederic Corne <frederic.corne@erli.fr>
 ;;	 Special printing functions for Windows NT
@@ -6008,7 +6008,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Printing Interface (inspired on ps-print-interface.el)
+;; Printing Interface (inspired by ps-print-interface.el)
 
 
 (eval-when-compile
