@@ -1,3 +1,18 @@
+2007-12-09  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (keep-lines, flush-lines, how-many): Doc fix.
+	Check search-upper-case before calling isearch-no-upper-case-p
+	to set case-fold-search.
+	(occur): Doc fix.
+	(occur-1, perform-replace): Check search-upper-case before calling
+	isearch-no-upper-case-p to set case-fold-search.
+
+	* isearch.el (search-upper-case): Doc fix.
+	(isearch-mode-map): Bind `M-s o' to isearch-occur.
+	(isearch-query-replace): Doc fix.  Let-bind search-upper-case to nil.
+	(isearch-query-replace-regexp): Doc fix.
+	(isearch-occur): New function.
+
 2007-12-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* pgg.el, pgg-parse.el (declare-function): Add new no-op macro for
