@@ -53,3 +53,6 @@ int w32font_draw P_ ((struct glyph_string *s, int from, int to,
                       int x, int y, int with_background));
 
 #endif
+
+/* arch-tag: ef9d9675-a2a5-4d01-9526-815e9a3da7cb
+   (do not change this comment) */
