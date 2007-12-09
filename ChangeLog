@@ -1,3 +1,7 @@
+2007-12-09  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: D-Bus is not enabled by default.
+
 2007-12-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in: Add AC_CONFIG_SRCDIR which was lost in the previous
