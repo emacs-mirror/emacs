@@ -1,3 +1,8 @@
+2007-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-select-display): Fix important typo.
+	(server-process-filter): Turn a "" display into nil.
+
 2007-12-09  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (keep-lines, flush-lines, how-many): Doc fix.
@@ -29,9 +34,9 @@
 
 	* printing.el: Fix pr-interface-map initialization code.
 	(pr-version): New version 6.9.3.
-	(pr-f-set-keymap-parents): Replaced by pr-set-keymap-parents.
-	(pr-f-set-keymap-name): Replaced by pr-set-keymap-name.
-	(pr-f-read-string): Replaced by pr-read-string.
+	(pr-f-set-keymap-parents): Replace by pr-set-keymap-parents.
+	(pr-f-set-keymap-name): Replace by pr-set-keymap-name.
+	(pr-f-read-string): Replace by pr-read-string.
 	(pr-set-keymap-parents, pr-set-keymap-name, pr-read-string): New fun
 	name.
 	(pr-interactive-n-up, pr-interactive-regexp): Code fix.
@@ -68,8 +73,7 @@
 2007-12-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-hash-table=): Remove function.  We cannot
-	apply wildcards in a hash table key; there is no usable hash code
-	then.
+	apply wildcards in a hash table key; there is no usable hash code then.
 	(dbus-registered-functions-table): Use `equal' as test function.
 	(dbus-name-owner-changed-handler): Rewrite due to new hash table
 	structure.
@@ -114,8 +118,7 @@
 	* calc/calcalg2.el (math-integral):
 	* calc/calc.el (calc-read-key-sequence, calc-version):
 	* calc/calc-mode.el (calc-set-simplify-mode):
-	* calc/calc-ext.el (calc-fancy-prefix): Fix buggy call to
-	`message'.
+	* calc/calc-ext.el (calc-fancy-prefix): Fix buggy call to `message'.
 
 2007-12-07  D. Goel  <deego3@gmail.com>
 
@@ -136,10 +139,8 @@
 
 2007-12-07  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/dbus.el (dbus-hash-table=): Fix for new hash table key
-	structure.
-	(dbus-list-hash-table, dbus-name-owner-changed-handler): New
-	defuns.
+	* net/dbus.el (dbus-hash-table=): Fix for new hash table key structure.
+	(dbus-list-hash-table, dbus-name-owner-changed-handler): New defuns.
 	(dbus-check-event, dbus-handle-event, dbus-event-bus-name)
 	(dbus-event-service-name, dbus-event-path-name)
 	(dbus-event-interface-name, dbus-event-member-name): Fix for new
@@ -291,8 +292,8 @@
 
 	* eshell/esh-module.el (eshell-load-defgroups): Eval and compile.
 
-	* eshell/esh-util.el (top-level): Don't require pp.  Use
-	condition-case rather than ignore-errors.
+	* eshell/esh-util.el (top-level): Don't require pp.
+	Use condition-case rather than ignore-errors.
 
 	* eshell/eshell.el (eshell-buffer-name): Define for compiler.
 
@@ -314,8 +315,8 @@
 	esh-maint.  Collect any require statements.  Leave provide at start.
 	Move any commentary to start.
 
-	* emacs-lisp/bytecomp.el (byte-compile-declare-function): Remove
-	declared function from byte-compile-noruntime-functions.
+	* emacs-lisp/bytecomp.el (byte-compile-declare-function):
+	Remove declared function from byte-compile-noruntime-functions.
 
 	* ediff-util.el (ediff-version):
 	* progmodes/python.el (compilation-shell-minor-mode):
@@ -417,16 +418,16 @@
 
 2007-12-03  Richard Stallman  <rms@gnu.org>
 
-	* subr.el (declare-function): Moved from byte-run.el.
+	* subr.el (declare-function): Move from byte-run.el.
 
-	* emacs-lisp/byte-run.el (declare-function): Moved to subr.el
+	* emacs-lisp/byte-run.el (declare-function): Move to subr.el
 
 	* window.el (recenter-top-bottom): Don't use `ecase'.
 
 2007-12-02  Karl Fogel  <kfogel@red-bean.com>
 
-	* saveplace.el (save-place-alist-to-file): Set
-	coding-system-for-write once and refer to it throughout.
+	* saveplace.el (save-place-alist-to-file):
+	Set coding-system-for-write once and refer to it throughout.
 	Suggested by David Reitter <dreitter{_AT_}inf.ed.ac.uk>.
 
 2007-12-02  Karl Fogel  <kfogel@red-bean.com>

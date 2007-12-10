@@ -242,8 +242,7 @@ ENV should be in the same format as `process-environment'."
   "Delete PROC, including its buffers, terminals and frames.
 If NOFRAME is non-nil, let the frames live.  (To be used from
 `delete-frame-functions'.)"
-  (server-log (concat "server-delete-client" (if noframe " noframe"))
-	      proc)
+  (server-log (concat "server-delete-client" (if noframe " noframe")) proc)
   ;; Force a new lookup of client (prevents infinite recursion).
   (when (memq proc server-clients)
     (let ((buffers (process-get proc 'buffers)))
@@ -339,7 +338,7 @@ If CLIENT is non-nil, add a description of it to the logged message."
                      display
                      ;; Make it display (and remember) some dummy buffer, so
                      ;; we can detect later if the frame is in use or not.
-                     `((server-dummmy-buffer . ,buffer)
+                     `((server-dummy-buffer . ,buffer)
                        ;; This frame may be deleted later (see
                        ;; server-unselect-display) so we want it to be as
                        ;; unobtrusive as possible.
@@ -833,7 +832,8 @@ The following commands are accepted by the client:
 		 ;; -display DISPLAY:
 		 ;; Open X frames on the given display instead of the default.
 		 ((and (equal "-display" arg) command-line-args-left)
-		  (setq display (pop command-line-args-left)))
+		  (setq display (pop command-line-args-left))
+                  (if (zerop (length display)) (setq display nil)))
 
 		 ;; -window-system:  Open a new X frame.
 		 ((equal "-window-system" arg)
