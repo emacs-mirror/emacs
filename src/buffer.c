@@ -107,12 +107,14 @@ static char buffer_permanent_local_flags[MAX_PER_BUFFER_VARS];
 
 int last_per_buffer_idx;
 
-Lisp_Object Fset_buffer ();
-void set_buffer_internal ();
-void set_buffer_internal_1 ();
-static void call_overlay_mod_hooks ();
-static void swap_out_buffer_local_variables ();
-static void reset_buffer_local_variables ();
+EXFUN (Fset_buffer, 1);
+void set_buffer_internal P_ ((struct buffer *b));
+void set_buffer_internal_1 P_ ((struct buffer *b));
+static void call_overlay_mod_hooks P_ ((Lisp_Object list, Lisp_Object overlay,
+					int after, Lisp_Object arg1,
+					Lisp_Object arg2, Lisp_Object arg3));
+static void swap_out_buffer_local_variables P_ ((struct buffer *b));
+static void reset_buffer_local_variables P_ ((struct buffer *b, int permanent_too));
 
 /* Alist of all buffer names vs the buffers. */
 /* This used to be a variable, but is no longer,
@@ -716,7 +718,7 @@ reset_buffer (b)
    it does not treat permanent locals consistently.
    Instead, use Fkill_all_local_variables.
 
-   If PERMANENT_TOO is 1, then we reset permanent built-in
+   If PERMANENT_TOO is 1, then we reset permanent
    buffer-local variables.  If PERMANENT_TOO is 0,
    we preserve those.  */
 
@@ -754,7 +756,23 @@ reset_buffer_local_variables (b, permanent_too)
 #endif
 
   /* Reset all (or most) per-buffer variables to their defaults.  */
-  b->local_var_alist = Qnil;
+  if (permanent_too)
+    b->local_var_alist = Qnil;
+  else
+    {
+      Lisp_Object tmp, last = Qnil;
+      for (tmp = b->local_var_alist; CONSP (tmp); tmp = XCDR (tmp))
+	if (CONSP (XCAR (tmp))
+	    && SYMBOLP (XCAR (XCAR (tmp)))
+	    && !NILP (Fget (XCAR (XCAR (tmp)), Qpermanent_local)))
+	  /* If permanent-local, keep it.  */
+	  last = tmp;
+	else if (NILP (last))
+	  b->local_var_alist = XCDR (tmp);
+	else
+	  XSETCDR (last, XCDR (tmp));
+    }
+
   for (i = 0; i < last_per_buffer_idx; ++i)
     if (permanent_too || buffer_permanent_local_flags[i] == 0)
       SET_PER_BUFFER_VALUE_P (b, i, 0);
@@ -2452,14 +2470,10 @@ The first thing this function does is run
 the normal hook `change-major-mode-hook'.  */)
      ()
 {
-  register Lisp_Object alist, sym, tem;
-  Lisp_Object oalist;
-
   if (!NILP (Vrun_hooks))
     call1 (Vrun_hooks, Qchange_major_mode_hook);
-  oalist = current_buffer->local_var_alist;
 
-  /* Make sure none of the bindings in oalist
+  /* Make sure none of the bindings in local_var_alist
      remain swapped in, in their symbols.  */
 
   swap_out_buffer_local_variables (current_buffer);
@@ -2467,20 +2481,6 @@ the normal hook `change-major-mode-hook'.  */)
   /* Actually eliminate all local bindings of this buffer.  */
 
   reset_buffer_local_variables (current_buffer, 0);
-
-  /* Any which are supposed to be permanent,
-     make local again, with the same values they had.  */
-
-  for (alist = oalist; CONSP (alist); alist = XCDR (alist))
-    {
-      sym = XCAR (XCAR (alist));
-      tem = Fget (sym, Qpermanent_local);
-      if (! NILP (tem))
-	{
-	  Fmake_local_variable (sym);
-	  Fset (sym, XCDR (XCAR (alist)));
-	}
-    }
 
   /* Force mode-line redisplay.  Useful here because all major mode
      commands call this function.  */

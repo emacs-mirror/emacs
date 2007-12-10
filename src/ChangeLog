@@ -1,3 +1,16 @@
+2007-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (Fcommand_execute): Call Qcall_interactively instead of
+	manipulating the backtrace manually.
+	(make_lispy_event): Merge the ASCII and MULTIBYTE cases.
+	(struct backtrace, backtrace_list): Remove.
+	(command_loop_1): Remove dead var `no_direct'.
+
+	* buffer.c (reset_buffer_local_variables): If permanent_too is 0, also
+	preserve non-built-in buffer-local variables.
+	(Fkill_all_local_variables): Don't re-create&re-set permanent
+	buffer-local variables.
+
 2007-12-09  Juri Linkov  <juri@jurta.org>
 
 	* buffer.c (Frename_buffer): Change interactive spec from "s" to
