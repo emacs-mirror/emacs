@@ -108,21 +108,6 @@ int interrupt_input_pending;
 #define KBD_BUFFER_SIZE 4096
 #endif	/* No X-windows */
 
-/* Following definition copied from eval.c */
-
-struct backtrace
-  {
-    struct backtrace *next;
-    Lisp_Object *function;
-    Lisp_Object *args;	/* Points to vector of args. */
-    int nargs;		/* length of vector.  If nargs is UNEVALLED,
-			   args points to slot holding list of
-			   unevalled args */
-    char evalargs;
-    /* Nonzero means call value of debugger when done with this operation. */
-    char debug_on_exit;
-  };
-
 #ifdef MULTI_KBOARD
 KBOARD *initial_kboard;
 KBOARD *current_kboard;
@@ -174,8 +159,6 @@ static int before_command_echo_length;
 extern int minbuf_level;
 
 extern int message_enable_multibyte;
-
-extern struct backtrace *backtrace_list;
 
 /* If non-nil, the function that implements the display of help.
    It's called with one argument, the help string to display.  */
@@ -1565,7 +1548,6 @@ command_loop_1 ()
   int nonundocount;
   Lisp_Object keybuf[30];
   int i;
-  int no_direct;
   int prev_modiff = 0;
   struct buffer *prev_buffer = NULL;
 #if 0 /* This shouldn't be necessary anymore.  --lorentey  */
@@ -1624,8 +1606,6 @@ command_loop_1 ()
 
       while (pending_malloc_warning)
 	display_malloc_warning ();
-
-      no_direct = 0;
 
       Vdeactivate_mark = Qnil;
 
@@ -1787,7 +1767,7 @@ command_loop_1 ()
 	}
       else
 	{
-	  if (NILP (current_kboard->Vprefix_arg) && ! no_direct)
+	  if (NILP (current_kboard->Vprefix_arg))
 	    {
 	      /* In case we jump to directly_done.  */
 	      Vcurrent_prefix_arg = current_kboard->Vprefix_arg;
@@ -5558,41 +5538,32 @@ make_lispy_event (event)
     {
       /* A simple keystroke.  */
     case ASCII_KEYSTROKE_EVENT:
-      {
-	Lisp_Object lispy_c;
-	int c = event->code & 0377;
-	/* Turn ASCII characters into control characters
-	   when proper.  */
-	if (event->modifiers & ctrl_modifier)
-	  c = make_ctrl_char (c);
-
-	/* Add in the other modifier bits.  We took care of ctrl_modifier
-	   just above, and the shift key was taken care of by the X code,
-	   and applied to control characters by make_ctrl_char.  */
-	c |= (event->modifiers
-	      & (meta_modifier | alt_modifier
-		 | hyper_modifier | super_modifier));
-	/* Distinguish Shift-SPC from SPC.  */
-	if ((event->code & 0377) == 040
-	    && event->modifiers & shift_modifier)
-	  c |= shift_modifier;
-	button_down_time = 0;
-	XSETFASTINT (lispy_c, c);
-	return lispy_c;
-      }
-
     case MULTIBYTE_CHAR_KEYSTROKE_EVENT:
       {
 	Lisp_Object lispy_c;
 	int c = event->code;
+	if (event->kind == ASCII_KEYSTROKE_EVENT)
+	  {
+	    c &= 0377;
+	    eassert (c == event->code);
+	    /* Turn ASCII characters into control characters
+	       when proper.  */
+	    if (event->modifiers & ctrl_modifier)
+	      {
+		c = make_ctrl_char (c);
+		event->modifiers &= ~ctrl_modifier;
+	      }
+	  }
 
-	/* Add in the other modifier bits.  We took care of ctrl_modifier
-	   just above, and the shift key was taken care of by the X code,
-	   and applied to control characters by make_ctrl_char.  */
+	/* Add in the other modifier bits.  The shift key was taken care
+	   of by the X code.  */
 	c |= (event->modifiers
 	      & (meta_modifier | alt_modifier
 		 | hyper_modifier | super_modifier | ctrl_modifier));
-	/* What about the `shift' modifier ?  */
+	/* Distinguish Shift-SPC from SPC.  */
+	if ((event->code) == 040
+	    && event->modifiers & shift_modifier)
+	  c |= shift_modifier;
 	button_down_time = 0;
 	XSETFASTINT (lispy_c, c);
 	return lispy_c;
@@ -9619,7 +9590,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    }
 
 	  GROW_RAW_KEYBUF;
-	  XVECTOR (raw_keybuf)->contents[raw_keybuf_count++] = key;
+	  ASET (raw_keybuf, raw_keybuf_count++, key);
 	}
 
       /* Clicks in non-text areas get prefixed by the symbol
@@ -10371,7 +10342,6 @@ a special event, so ignore the prefix argument and don't clear it.  */)
   register Lisp_Object final;
   register Lisp_Object tem;
   Lisp_Object prefixarg;
-  struct backtrace backtrace;
   extern int debug_on_next_call;
 
   debug_on_next_call = 0;
@@ -10437,20 +10407,11 @@ a special event, so ignore the prefix argument and don't clear it.  */)
     }
 
   if (CONSP (final) || SUBRP (final) || COMPILEDP (final))
-    {
-      backtrace.next = backtrace_list;
-      backtrace_list = &backtrace;
-      backtrace.function = &Qcall_interactively;
-      backtrace.args = &cmd;
-      backtrace.nargs = 1;
-      backtrace.evalargs = 0;
-      backtrace.debug_on_exit = 0;
+    /* Don't call Fcall_interactively directly because we want to make
+       sure the backtrace has an entry for `call-interactively'.
+       For the same reason, pass `cmd' rather than `final'.  */
+      return call3 (Qcall_interactively, cmd, record_flag, keys);
 
-      tem = Fcall_interactively (cmd, record_flag, keys);
-
-      backtrace_list = backtrace.next;
-      return tem;
-    }
   return Qnil;
 }
 
@@ -10561,7 +10522,7 @@ give to the command you invoke, if it asks for an argument.  */)
     bindings = Qnil;
 
   value = Qnil;
-  GCPRO2 (bindings, value);
+  GCPRO3 (bindings, value, function);
   value = Fcommand_execute (function, Qt, Qnil, Qnil);
 
   /* If the command has a key binding, print it now.  */
