@@ -1,3 +1,8 @@
+2007-12-10  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* composite.el (auto-compose-chars): Be sure to calculate
+	composition at least at POS.
+
 2007-12-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 
