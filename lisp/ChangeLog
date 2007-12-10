@@ -27,11 +27,13 @@
 
 2007-12-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* printing.el: Fix pr-interface-map initialization.  Replace
-	pr-f-set-keymap-parents, pr-f-set-keymap-name and pr-f-read-string by
-	pr-set-keymap-parents, pr-set-keymap-name and pr-read-string,
-	respectively.
+	* printing.el: Fix pr-interface-map initialization code.
 	(pr-version): New version 6.9.3.
+	(pr-f-set-keymap-parents): Replaced by pr-set-keymap-parents.
+	(pr-f-set-keymap-name): Replaced by pr-set-keymap-name.
+	(pr-f-read-string): Replaced by pr-read-string.
+	(pr-set-keymap-parents, pr-set-keymap-name, pr-read-string): New fun
+	name.
 	(pr-interactive-n-up, pr-interactive-regexp): Code fix.
 
 2007-12-09  Glenn Morris  <rgm@gnu.org>
