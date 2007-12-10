@@ -489,7 +489,8 @@ This function is the default value of `auto-composition-function' (which see)."
 		  auto-compose-current-font
 		  ch func newpos)
 	      (setq limit
-		    (or (text-property-any pos limit 'auto-composed t string)
+		    (or (text-property-any (1+ pos) limit 'auto-composed t
+					   string)
 			limit)
 		    pos 
 		    (catch 'tag
