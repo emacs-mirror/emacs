@@ -635,23 +635,30 @@ fontset_find_font (fontset, c, face, id, fallback)
 
   if (id < 0)
     i = 3;
-  else if (id == XFASTINT (AREF (vec, 1)))
-    i = 2;
   else
     {
-      ASET (vec, 1, make_number (id));
-      for (i = 3; i < ASIZE (vec); i++)
-	if (id == XFASTINT (AREF (AREF (AREF (vec, i), 2), 1)))
-	  break;
-      if (i < ASIZE (vec))
-	{
-	  ASET (vec, 2, AREF (vec, i));
-	  i = 2;
-	}
+      struct charset *charset = CHARSET_FROM_ID (id);
+
+      if (charset->supplementary_p)
+	i = 3;
+      else if (id == XFASTINT (AREF (vec, 1)))
+	i = 2;
       else
 	{
-	  ASET (vec, 2, Qnil);
-	  i = 3;
+	  ASET (vec, 1, make_number (id));
+	  for (i = 3; i < ASIZE (vec); i++)
+	    if (id == XFASTINT (AREF (AREF (AREF (vec, i), 2), 1)))
+	      break;
+	  if (i < ASIZE (vec))
+	    {
+	      ASET (vec, 2, AREF (vec, i));
+	      i = 2;
+	    }
+	  else
+	    {
+	      ASET (vec, 2, Qnil);
+	      i = 3;
+	    }
 	}
     }
 
