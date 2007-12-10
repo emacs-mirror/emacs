@@ -1,3 +1,7 @@
+2007-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* CPP-DEFINES: New file.
+
 2007-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* FOR-RELEASE: Remove "window-system in face definition" [of
