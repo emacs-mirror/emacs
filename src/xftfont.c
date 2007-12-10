@@ -50,7 +50,6 @@ struct xftfont_info
   Display *display;
   int screen;
   XftFont *xftfont;
-  FT_Face ft_face;    /* Set to the value of XftLockFace (xftfont). */
 #ifdef HAVE_LIBOTF
   int maybe_otf;	  /* Flag to tell if this may be OTF or not.  */
   OTF *otf;
@@ -230,6 +229,7 @@ xftfont_open (f, entity, pixel_size)
   char *name;
   int len;
   XGlyphInfo extents;
+  FT_Face ft_face;
 
   val = AREF (entity, FONT_EXTRA_INDEX);
   if (XTYPE (val) != Lisp_Misc
@@ -269,9 +269,10 @@ xftfont_open (f, entity, pixel_size)
   xftfont_info->display = display;
   xftfont_info->screen = FRAME_X_SCREEN_NUMBER (f);
   xftfont_info->xftfont = xftfont;
-  xftfont_info->ft_face = XftLockFace (xftfont);
 #ifdef HAVE_LIBOTF
-  xftfont_info->maybe_otf = xftfont_info->ft_face->face_flags & FT_FACE_FLAG_SFNT;
+  ft_face = XftLockFace (xftfont);
+  xftfont_info->maybe_otf = ft_face->face_flags & FT_FACE_FLAG_SFNT;
+  XftUnlockFace (xftfont);
   xftfont_info->otf = NULL;
 #endif	/* HAVE_LIBOTF */
 
@@ -394,7 +395,6 @@ xftfont_close (f, font)
   if (xftfont_info->otf)
     OTF_close (xftfont_info->otf);
 #endif
-  XftUnlockFace (xftfont_info->xftfont);
   XftFontClose (xftfont_info->display, xftfont_info->xftfont);
   if (font->font.name)
     free (font->font.name);
@@ -564,17 +564,22 @@ xftfont_anchor_point (font, code, index, x, y)
      int *x, *y;
 {
   struct xftfont_info *xftfont_info = (struct xftfont_info *) font;
-  FT_Face ft_face = xftfont_info->ft_face;
+  FT_Face ft_face = XftLockFace (xftfont_info->xftfont);
+  int result;
 
   if (FT_Load_Glyph (ft_face, code, FT_LOAD_DEFAULT) != 0)
-    return -1;
-  if (ft_face->glyph->format != FT_GLYPH_FORMAT_OUTLINE)
-    return -1;
-  if (index >= ft_face->glyph->outline.n_points)
-    return -1;
-  *x = ft_face->glyph->outline.points[index].x;
-  *y = ft_face->glyph->outline.points[index].y;
-  return 0;
+    result = -1;
+  else if (ft_face->glyph->format != FT_GLYPH_FORMAT_OUTLINE)
+    result = -1;
+  else if (index >= ft_face->glyph->outline.n_points)
+    result = -1;
+  else
+    {
+      *x = ft_face->glyph->outline.points[index].x;
+      *y = ft_face->glyph->outline.points[index].y;
+    }
+  XftUnlockFace (xftfont_info->xftfont);
+  return result;
 }
 
 static int
@@ -601,27 +606,32 @@ xftfont_shape (lgstring)
 {
   struct font *font;
   struct xftfont_info *xftfont_info;
+  int result;
+  FT_Face ft_face;
 
   CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring), font);
   xftfont_info = (struct xftfont_info *) font;
   if (! xftfont_info->maybe_otf)
     return Qnil;
+  ft_face = XftLockFace (xftfont_info->xftfont);
   if (! xftfont_info->otf)
     {
-      OTF *otf = OTF_open_ft_face (xftfont_info->ft_face);
+      OTF *otf = OTF_open_ft_face (ft_face);
 
       if (! otf || OTF_get_table (otf, "head") < 0)
 	{
 	  if (otf)
 	    OTF_close (otf);
 	  xftfont_info->maybe_otf = 0;
+	  XftUnlockFace (xftfont_info->xftfont);
 	  return 0;
 	}
       xftfont_info->otf = otf;
     }
 
-  return ftfont_shape_by_flt (lgstring, font, xftfont_info->ft_face,
-			      xftfont_info->otf);
+  result = ftfont_shape_by_flt (lgstring, font, ft_face, xftfont_info->otf);
+  XftUnlockFace (xftfont_info->xftfont);
+  return result;
 }
 #endif	/* HAVE_M17N_FLT */
 #endif	/* HAVE_LIBOTF */
