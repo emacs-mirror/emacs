@@ -1,3 +1,8 @@
+2007-12-10  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* fontset.c (fontset_find_font): Don't prefer a font of
+	supplementary charset.
+
 2007-12-09  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (struct OpenTypeSpec): Members script_tag renamed to
