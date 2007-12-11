@@ -40,16 +40,20 @@
 
 ;;{{{ compilation directives and autoloads/requires
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile (require 'cl))
-(eval-when-compile (require 'spam-report))
-(eval-when-compile (require 'hashcash))
 
+(require 'message)		;for the message-fetch-field functions
 (require 'gnus-sum)
-
 (require 'gnus-uu)			; because of key prefix issues
 ;;; for the definitions of group content classification and spam processors
 (require 'gnus)
-(require 'message)		;for the message-fetch-field functions
+
+(eval-when-compile (require 'spam-report))
+(eval-when-compile (require 'hashcash))
 
 ;; for nnimap-split-download-body-default
 (eval-when-compile (require 'nnimap))
@@ -2065,6 +2069,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
   (autoload 'bbdb-buffer "bbdb")
   (autoload 'bbdb-create-internal "bbdb")
   (autoload 'bbdb-search-simple "bbdb"))
+
+;; Autoloaded in message, which we require.
+(declare-function gnus-extract-address-components "gnus-util" (from))
 
 (eval-and-compile
   (when (condition-case nil
