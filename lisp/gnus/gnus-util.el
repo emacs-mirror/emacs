@@ -217,6 +217,13 @@ is slower."
 		   (search-forward ":" eol t)
 		   (point)))))
 
+(declare-function gnus-find-method-for-group "gnus" (group &optional info))
+(autoload 'gnus-group-name-decode "gnus-group")
+(declare-function gnus-group-name-charset "gnus-group" (method group))
+;; gnus-group requires gnus-int which requires message.
+(declare-function message-tokenize-header "message"
+                  (header &optional separator))
+
 (defun gnus-decode-newsgroups (newsgroups group &optional method)
   (let ((method (or method (gnus-find-method-for-group group))))
     (mapconcat (lambda (group)
@@ -657,6 +664,10 @@ If N, return the Nth ancestor instead."
 
 (defvar gnus-work-buffer " *gnus work*")
 
+(declare-function gnus-get-buffer-create "gnus" (name))
+;; gnus.el requires mm-util.
+(declare-function mm-enable-multibyte "mm-util")
+
 (defun gnus-set-work-buffer ()
   "Put point in the empty Gnus work buffer."
   (if (get-buffer gnus-work-buffer)
@@ -841,6 +852,9 @@ If there's no subdirectory, delete DIRECTORY as well."
     (setq string (replace-match "" t t string)))
   string)
 
+(declare-function gnus-put-text-property "gnus"
+                  (start end property value &optional object))
+
 (defsubst gnus-put-text-property-excluding-newlines (beg end prop val)
   "The same as `put-text-property', but don't put this prop on any newlines in the region."
   (save-match-data
@@ -851,6 +865,10 @@ If there's no subdirectory, delete DIRECTORY as well."
 	  (gnus-put-text-property beg (match-beginning 0) prop val)
 	  (setq beg (point)))
 	(gnus-put-text-property beg (point) prop val)))))
+
+(declare-function gnus-overlay-put  "gnus" (overlay prop value))
+(declare-function gnus-make-overlay "gnus"
+                  (beg end &optional buffer front-advance rear-advance))
 
 (defsubst gnus-put-overlay-excluding-newlines (beg end prop val)
   "The same as `put-text-property', but don't put this prop on any newlines in the region."
@@ -1205,6 +1223,9 @@ Return the modified alist."
 	(throw 'found nil)))
     t))
 
+;; gnus.el requires mm-util.
+(declare-function mm-disable-multibyte "mm-util")
+
 (defun gnus-write-active-file (file hashtb &optional full-names)
   ;; `coding-system-for-write' should be `raw-text' or equivalent.
   (let ((coding-system-for-write nnmail-active-file-coding-system))
@@ -1271,6 +1292,9 @@ Return the modified alist."
 		 (push (car l2) l1))
 	     (pop l2))
 	   l1))))
+
+(declare-function gnus-add-text-properties "gnus"
+                  (start end properties &optional object))
 
 (defun gnus-add-text-properties-when
   (property value start end properties &optional object)
