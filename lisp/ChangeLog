@@ -1,3 +1,11 @@
+2007-12-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (set-buffer-menubar): Remove unused
+	function.
+	(add-submenu): Only define for XEmacs.
+	(verilog-regexp-words): Revert previous change, keep the other
+	definition.
+
 2007-12-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/perl-mode.el (perl-continued-statement-offset)

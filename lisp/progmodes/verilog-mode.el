@@ -154,14 +154,14 @@
 	  nil ;; fab
 	(defmacro store-match-data (&rest args) nil))
     (error nil))
-  (condition-case nil
-      (if (boundp 'current-menubar)
-	  nil ;; great
-	(progn
-	  (defmacro set-buffer-menubar (&rest args) nil)
-	  (defmacro add-submenu (&rest args) nil))
-	)
-    (error nil))
+  (if (featurep 'xemacs)
+      (condition-case nil
+	  (if (boundp 'current-menubar)
+	      nil ;; great
+	    (progn
+	      (defmacro add-submenu (&rest args) nil))
+	    )
+	(error nil)))
   (condition-case nil
       (if (fboundp 'zmacs-activate-region)
 	  nil ;; great
@@ -274,9 +274,10 @@ STRING should be given if the last search was by `string-match' on STRING."
 	(concat open (mapconcat 'regexp-quote strings "\\|") close)))
     ))
 
-(defun verilog-regexp-words (a)
-  "Call 'regexp-opt' with word delimiters for the words A."
-  (concat "\\<" (verilog-regexp-opt a t) "\\>"))
+(eval-when-compile
+  (defun verilog-regexp-words (a)
+    "Call 'regexp-opt' with word delimiters for the words A."
+    (concat "\\<" (verilog-regexp-opt a t) "\\>")))
 
 (defun verilog-customize ()
   "Link to customize screen for Verilog."
