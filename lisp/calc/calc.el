@@ -1675,8 +1675,8 @@ See calc-keypad for details."
 			   (t (format "Radix%d " calc-number-radix)))
 		     (if calc-leading-zeros "Zero " "")
 		     (cond ((null calc-language) "")
-			   ((eq calc-language 'tex) "TeX ")
-			   ((eq calc-language 'latex) "LaTeX ")
+                           ((get calc-language 'math-lang-name)
+                            (concat (get calc-language 'math-lang-name) " "))
 			   (t (concat
 			       (capitalize (symbol-name calc-language))
 			       " ")))
