@@ -1,3 +1,10 @@
+2007-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* url-util.el (url-make-private-file): New function.
+	* url-cookie.el (url-cookie-write-file):
+	* url-history.el (url-history-save-history):
+	Use url-make-private-file and with-temp-buffer.
+
 2007-12-02  Glenn Morris  <rgm@gnu.org>
 
 	* url-news.el (nntp-open-tls-stream, nntp-open-ssl-stream):
