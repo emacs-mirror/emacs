@@ -1,3 +1,74 @@
+2007-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-cache.el: Require gnus-sum not just when compiling.
+
+	* gnus-fun.el (gnus-display-x-face-in-from): Require gnus-art.
+
+	* gnus-int.el (gnus-server-opened, gnus-status-message): Move
+	definitions before use.
+
+	* mm-decode.el: Require gnus-util.
+	(mm-remove-part): Only call delete-annotation on XEmacs.
+
+	* mm-uu.el (gnus-original-article-buffer): Define for compiler.
+
+	* nnmail.el: Require gnus-int.
+
+	* spam.el: Move `require's before `eval-when-compile's.
+
+	* gnus-ems.el (gnus-alive-p):
+	* gnus-fun.el (message-goto-eoh):
+	* mail-source.el (gnus-compress-sequence):
+	* message.el (Info-goto-node, format-spec):
+	* mm-bodies.el (message-options-get):
+	* mm-decode.el (mm-view-pkcs7):
+	* mm-util.el (gmm-write-region):
+	* mml-smime.el (mml-compute-boundary)
+	(gnus-completing-read-with-default):
+	* mml.el (widget-button-press, gnus-make-hashtable):
+	* mml1991.el (mm-decode-content-transfer-encoding)
+	(mm-encode-content-transfer-encoding)
+	(message-options-get, message-options-set):
+	* mml2015.el (gnus-buffer-live-p, gnus-get-buffer-create):
+	* nnfolder.el (gnus-request-group):
+	* nnheader.el (ietf-drums-unfold-fws):
+	* rfc1843.el (mail-header-parse-content-type, message-narrow-to-head):
+	* smime.el (gnus-run-mode-hooks):
+	* spam-stat.el (gnus-message): Autoload.
+
+	* gnus-cache.el, gnus-fun.el, gnus-group.el, gnus.el, mail-source.el:
+	* mm-bodies.el, mm-decode.el, mm-extern.el, mm-util.el:
+	* mml-smime.el, mml.el, mml1991.el, mml2015.el, nndb.el, nnfolder.el:
+	* nnmail.el, nnmaildir.el, nnrss.el, rfc1843.el, spam.el:
+	Add declare-function compatibility definition.
+
+	* gnus-cache.el (nnvirtual-find-group-art):
+	* gnus-fun.el (article-narrow-to-head, gnus-article-goto-header)
+	(gnus-add-image, gnus-add-wash-type):
+	* gnus-group.el (nnkiboze-score-file):
+	* gnus-sum.el (turn-on-gnus-mailing-list-mode)
+	(gnus-cache-write-active, mm-uu-dissect, idna-to-unicode):
+	* gnus.el (gnus-group-decoded-name):
+	* mail-source.el (imap-capability):
+	* mm-bodies.el (message-options-set):
+	* mm-decode.el (gnus-configure-windows):
+	* mm-extern.el (message-goto-body):
+	* mm-util.el (mm-delete-duplicates, mm-detect-coding-region):
+	* mml-smime.el (epg-key-sub-key-list, epg-sub-key-capability)
+	(epg-sub-key-validity, message-options-set):
+	* mml.el (widget-event-point, gnus-configure-windows):
+	* mml1991.el (mc-encrypt-generic, gpg-sign-encrypt, gpg-encrypt):
+	* mml2015.el (epg-check-configuration, epg-configuration)
+	(message-options-set):
+	* nndb.el (nndb-request-article):
+	* nnfolder.el (gnus-request-create-group):
+	* nnmail.el (gnus-activate-group, gnus-group-mark-article-read):
+	* nnmaildir.el (gnus-group-mark-article-read):
+	* nnrss.el (w3-parse-buffer, gnus-group-make-rss-group):
+	* rfc1843.el (message-fetch-field):
+	* spam.el (gnus-extract-address-components):
+	Declare as functions.
+
 2007-12-09  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-uu.el (gnus-uu-yenc-article): Use insert-buffer-substring.
