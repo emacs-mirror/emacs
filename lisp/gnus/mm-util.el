@@ -26,6 +26,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile (require 'cl))
 (require 'mail-prsvr)
 
@@ -960,6 +964,8 @@ But this is very much a corner case, so don't worry about it."
   (when (featurep 'xemacs)
     `(and (featurep 'mule) (mm-xemacs-find-mime-charset-1 ,begin ,end))))
 
+(declare-function mm-delete-duplicates "mm-util" (list))
+
 (defun mm-find-mime-charset-region (b e &optional hack-charsets)
   "Return the MIME charsets needed to encode the region between B and E.
 nil means ASCII, a single-element list represents an appropriate MIME
@@ -1210,6 +1216,8 @@ If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'."
 	   inhibit-file-name-handlers)))
     (write-region start end filename append visit lockname)))
 
+(autoload 'gmm-write-region "gmm-utils")
+
 ;; It is not a MIME function, but some MIME functions use it.
 (if (and (fboundp 'make-temp-file)
 	 (ignore-errors
@@ -1300,6 +1308,8 @@ If SUFFIX is non-nil, add that at the end of the file name."
       (prog1
 	  (if (eq (point) end) 'ascii (mm-guess-charset))
 	(goto-char point)))))
+
+(declare-function mm-detect-coding-region "mm-util" (start end))
 
 (if (fboundp 'coding-system-get)
     (defun mm-detect-mime-charset-region (start end)
