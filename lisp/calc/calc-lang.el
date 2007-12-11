@@ -408,6 +408,9 @@
           (message 
            "LaTeX language mode with \\func(\\text{var}) and multiline matrices")))))
 
+(put 'tex 'math-lang-name "TeX")
+(put 'latex 'math-lang-name "LaTeX")
+
 (put 'tex 'math-oper-table
   '( ( "\\hat"    calcFunc-hat     -1  950 )
      ( "\\check"  calcFunc-check   -1  950 )
