@@ -1,3 +1,10 @@
+2007-12-11  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-lang.el (math-lang-name): New property name.
+
+	* calc/calc.el (calc-set-mode-line): Use `math-lang-name'
+	to set language name.
+
 2007-12-10  Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
 
 	* file.el (revert-buffer): Eliminate overlays and the mark.
