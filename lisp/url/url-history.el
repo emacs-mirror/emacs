@@ -112,27 +112,28 @@ to run the `url-history-setup-save-timer' function manually."
   (puthash (if (vectorp url) (url-recreate-url url) url) time
            url-history-hash-table))
 
+(autoload 'url-make-private-file "url-util")
+
 (defun url-history-save-history (&optional fname)
   "Write the global history file into `url-history-file'.
 The type of data written is determined by what is in the file to begin
 with.  If the type of storage cannot be determined, then prompt the
 user for what type to save as."
   (interactive)
-  (or fname (setq fname (expand-file-name url-history-file)))
-  (unless (file-directory-p (file-name-directory fname))
-    (ignore-errors (make-directory (file-name-directory fname))))
-  (cond
-   ((not url-history-changed-since-last-save) nil)
-   ((not (file-writable-p fname))
-    (message "%s is unwritable." fname))
-   (t
-    (let ((make-backup-files nil)
-	  (version-control nil)
-	  (require-final-newline t))
-      (with-current-buffer (get-buffer-create " *url-tmp*")
-	(erase-buffer)
-	(let ((count 0))
-	  (maphash (lambda (key value)
+  (when url-history-changed-since-last-save
+    (or fname (setq fname (expand-file-name url-history-file)))
+    (if (condition-case nil
+            (progn
+              (url-make-private-file fname)
+              nil)
+          (error t))
+        (message "Error accessing history file `%s'" fname)
+      (let ((make-backup-files nil)
+            (version-control nil)
+            (require-final-newline t)
+            (count 0))
+        (with-temp-buffer
+          (maphash (lambda (key value)
                      (while (string-match "[\r\n]+" key)
                        (setq key (concat (substring key 0 (match-beginning 0))
                                          (substring key (match-end 0) nil))))
@@ -145,15 +146,14 @@ user for what type to save as."
           ;; We used to add this in the file, but it just makes the code
           ;; more complex with no benefit.  Worse: it makes it harder to
           ;; preserve preexisting history when loading the history file.
-	  ;; (goto-char (point-min))
-	  ;; (insert (format
-	  ;;          "(setq url-history-hash-table (make-hash-table :size %d :test 'equal))\n"
-	  ;;          (/ count 4)))
-	  ;; (goto-char (point-max))
-	  (insert "\n")
-	  (write-file fname))
-	(kill-buffer (current-buffer))))))
-  (setq url-history-changed-since-last-save nil))
+          ;; (goto-char (point-min))
+          ;; (insert (format
+          ;;          "(setq url-history-hash-table (make-hash-table :size %d :test 'equal))\n"
+          ;;          (/ count 4)))
+          ;; (goto-char (point-max))
+          (insert "\n")
+          (write-file fname)))
+      (setq url-history-changed-since-last-save nil))))
 
 (defun url-have-visited-url (url)
   (url-do-setup)
