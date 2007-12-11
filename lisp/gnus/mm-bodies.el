@@ -26,6 +26,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (require 'mm-util)
 (require 'rfc2047)
 (require 'mm-encode)
@@ -66,6 +70,9 @@ Valid encodings are `7bit', `8bit', `quoted-printable' and `base64'."
 			       (const quoted-printable)
 			       (const base64))))
   :group 'mime)
+
+(autoload 'message-options-get "message")
+(declare-function message-options-set "message" (symbol value))
 
 (defun mm-encode-body (&optional charset)
   "Encode a body.
