@@ -119,19 +119,17 @@ telling Microsoft that."
     (set var new)))
 
 (defun url-cookie-write-file (&optional fname)
-  (setq fname (or fname url-cookie-file))
-  (unless (file-directory-p (file-name-directory fname))
-    (ignore-errors (make-directory (file-name-directory fname))))
-  (cond
-   ((not url-cookies-changed-since-last-save) nil)
-   ((not (file-writable-p fname))
-    (message "Cookies file %s (see variable `url-cookie-file') is unwritable." fname))
-   (t
+  (when url-cookies-changed-since-last-save
+    (or fname (setq fname (expand-file-name url-cookie-file)))
+    (if (condition-case nil
+            (progn
+              (url-make-private-file fname)
+              nil)
+          (error t))
+        (message "Error accessing cookie file `%s'" fname)
     (url-cookie-clean-up)
     (url-cookie-clean-up t)
-    (with-current-buffer (get-buffer-create " *cookies*")
-      (erase-buffer)
-      (fundamental-mode)
+    (with-temp-buffer
       (insert ";; Emacs-W3 HTTP cookies file\n"
 	      ";; Automatically generated file!!! DO NOT EDIT!!!\n\n"
 	      "(setq url-cookie-storage\n '")
@@ -144,9 +142,8 @@ telling Microsoft that."
               ";; no-byte-compile: t\n"
               ";; End:\n")
       (set (make-local-variable 'version-control) 'never)
-      (write-file fname)
-      (setq url-cookies-changed-since-last-save nil)
-      (kill-buffer (current-buffer))))))
+      (write-file fname))
+    (setq url-cookies-changed-since-last-save nil))))
 
 (defun url-cookie-store (name value &optional expires domain localpart secure)
   "Store a netscape-style cookie."
