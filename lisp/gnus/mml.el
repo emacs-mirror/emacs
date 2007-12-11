@@ -25,6 +25,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (require 'mm-util)
 (require 'mm-bodies)
 (require 'mm-encode)
@@ -1315,6 +1319,12 @@ Should be adopted if code in `message-send-mail' is changed."
     (insert (message-make-mail-followup-to))))
 
 (defvar mml-preview-buffer nil)
+
+(autoload 'gnus-make-hashtable "gnus-util")
+(autoload 'widget-button-press "wid-edit" nil t)
+(declare-function widget-event-point "wid-edit" (event))
+;; If gnus-buffer-configuration is bound this is loaded.
+(declare-function gnus-configure-windows "gnus-win" (setting &optional force))
 
 (defun mml-preview (&optional raw)
   "Display current buffer with Gnus, in a new buffer.
