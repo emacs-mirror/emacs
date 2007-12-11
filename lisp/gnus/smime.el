@@ -658,6 +658,8 @@ A string or a list of strings is returned."
   (define-key smime-mode-map "q" 'smime-exit)
   (define-key smime-mode-map "f" 'smime-certificate-info))
 
+(autoload 'gnus-run-mode-hooks "gnus-util")
+
 (defun smime-mode ()
   "Major mode for browsing, viewing and fetching certificates.
 
