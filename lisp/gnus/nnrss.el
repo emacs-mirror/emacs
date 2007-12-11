@@ -27,6 +27,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile (require 'cl))
 
 (require 'gnus)
@@ -418,6 +422,8 @@ otherwise return nil."
 					 nnrss-compatible-encoding-alist)))))
     (mm-coding-system-p 'utf-8)))
 
+(declare-function w3-parse-buffer "ext:w3-parse" (&optional buff))
+
 (defun nnrss-fetch (url &optional local)
   "Fetch URL and put it in a the expected Lisp structure."
   (mm-with-unibyte-buffer
@@ -783,6 +789,8 @@ which RSS 2.0 allows."
 	    (setcar (cdr pair) nnrss-group-max)
 	  (push (list group nnrss-group-max) nnrss-server-data)))
       (nnrss-save-server-data server))))
+
+(declare-function gnus-group-make-rss-group "gnus-group" (&optional url))
 
 (defun nnrss-opml-import (opml-file)
   "OPML subscriptions import.
