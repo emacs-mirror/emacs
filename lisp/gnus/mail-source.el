@@ -27,6 +27,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (require 'format-spec)
 (eval-when-compile
   (require 'cl)
@@ -997,8 +1001,13 @@ This only works when `display-time' is enabled."
   (autoload 'imap-range-to-message-set "imap")
   (autoload 'nnheader-ms-strip-cr "nnheader"))
 
+(autoload 'gnus-compress-sequence "gnus-range")
+
 (defvar mail-source-imap-file-coding-system 'binary
   "Coding system for the crashbox made by `mail-source-fetch-imap'.")
+
+;; Autoloads will bring in imap before this is called.
+(declare-function imap-capability "imap" (&optional identifier buffer))
 
 (defun mail-source-fetch-imap (source callback)
   "Fetcher for imap sources."
