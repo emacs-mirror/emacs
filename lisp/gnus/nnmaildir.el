@@ -61,6 +61,10 @@
    )
 ]
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-and-compile
   (require 'nnheader)
   (require 'gnus)
@@ -1438,6 +1442,8 @@ by nnmaildir-request-article.")
 
 (defun nnmaildir-active-number (gname)
   0)
+
+(declare-function gnus-group-mark-article-read "gnus-group" (group article))
 
 (defun nnmaildir-request-expire-articles (ranges &optional gname server force)
   (let ((no-force (not force))
