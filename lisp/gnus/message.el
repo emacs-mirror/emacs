@@ -2471,6 +2471,8 @@ Point is left at the beginning of the narrowed-to region."
     (kill-region start (point))))
 
 
+(autoload 'Info-goto-node "info")
+
 (defun message-info (&optional arg)
   "Display the Message manual.
 
@@ -3697,6 +3699,8 @@ This function uses `mail-citation-hook' if that is non-nil."
   (message-cite-original-1 nil))
 
 (defvar gnus-extract-address-components)
+
+(autoload 'format-spec "format-spec")
 
 (defun message-insert-formatted-citation-line (&optional from date)
   "Function that inserts a formatted citation line.
