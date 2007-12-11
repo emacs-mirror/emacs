@@ -26,9 +26,14 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (require 'mail-parse)
 (require 'mailcap)
 (require 'mm-bodies)
+(require 'gnus-util)
 (eval-when-compile (require 'cl)
 		   (require 'term))
 
@@ -733,6 +738,8 @@ external if displayed external."
 		(mm-display-external
 		 handle 'mailcap-save-binary-file)))))))))
 
+(declare-function gnus-configure-windows "gnus-win" (setting &optional force))
+
 (defun mm-display-external (handle method)
   "Display HANDLE using METHOD."
   (let ((outbuf (current-buffer)))
@@ -990,7 +997,8 @@ external if displayed external."
 	(cond
 	 ;; Internally displayed part.
 	 ((mm-annotationp object)
-	  (delete-annotation object))
+          (if (featurep 'xemacs)
+              (delete-annotation object)))
 	 ((or (functionp object)
 	      (and (listp object)
 		   (eq (car object) 'lambda)))
@@ -1489,6 +1497,8 @@ If RECURSIVE, search recursively."
   (when handle
     (put-text-property 0 (length (car handle)) parameter value
 		       (car handle))))
+
+(autoload 'mm-view-pkcs7 "mm-view")
 
 (defun mm-possibly-verify-or-decrypt (parts ctl)
   (let ((type (car ctl))
