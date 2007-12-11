@@ -18,6 +18,7 @@
 
 	* gnus-ems.el (gnus-alive-p):
 	* gnus-fun.el (message-goto-eoh):
+	* gnus-util.el (gnus-group-name-decode):
 	* mail-source.el (gnus-compress-sequence):
 	* message.el (Info-goto-node, format-spec):
 	* mm-bodies.el (message-options-get):
@@ -48,6 +49,10 @@
 	* gnus-group.el (nnkiboze-score-file):
 	* gnus-sum.el (turn-on-gnus-mailing-list-mode)
 	(gnus-cache-write-active, mm-uu-dissect, idna-to-unicode):
+	* gnus-util.el (gnus-find-method-for-group, gnus-group-name-charset)
+	(message-tokenize-header, gnus-get-buffer-create)
+	(mm-enable-multibyte, gnus-put-text-property, gnus-overlay-put)
+	(gnus-make-overlay, mm-disable-multibyte, gnus-add-text-properties):
 	* gnus.el (gnus-group-decoded-name):
 	* mail-source.el (imap-capability):
 	* mm-bodies.el (message-options-set):
