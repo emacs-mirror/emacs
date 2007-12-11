@@ -161,6 +161,8 @@
   "Non-nil means the mark and region are currently active in this buffer."
   mark-active) ; aliased to region-exists-p in XEmacs.
 
+(autoload 'gnus-alive-p "gnus-util")
+
 (defun gnus-x-splash ()
   "Show a splash screen using a pixmap in the current buffer."
   (interactive)
