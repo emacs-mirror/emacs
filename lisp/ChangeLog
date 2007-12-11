@@ -1,3 +1,7 @@
+2007-12-10  Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
+
+	* file.el (revert-buffer): Eliminate overlays and the mark.
+
 2007-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-select-display): Fix important typo.
