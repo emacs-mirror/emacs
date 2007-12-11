@@ -2962,6 +2962,9 @@ When FORCE, rebuild the tool bar."
 	    (setq headers (cdr headers)))
 	  (list (nreverse outh))))))))
 
+
+(declare-function turn-on-gnus-mailing-list-mode "gnus-ml" ())
+
 
 
 (defun gnus-summary-mode (&optional group)
@@ -6951,6 +6954,8 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (gnus-save-newsrc-file)
     (gnus-dribble-save)))
 
+(declare-function gnus-cache-write-active "gnus-cache" (&optional force))
+
 (defun gnus-summary-exit (&optional temporary leave-hidden)
   "Exit reading current newsgroup, and then return to group selection mode.
 `gnus-exit-group-hook' is called with no arguments if that value is non-nil."
@@ -9442,6 +9447,8 @@ prefix specifies how many places to rotate each letter forward."
   ;; Create buttons and stuff...
   (gnus-treat-article nil))
 
+(declare-function idna-to-unicode "ext:idna" (str))
+
 (defun gnus-summary-idna-message (&optional arg)
   "Decode IDNA encoded domain names in the current articles.
 IDNA encoded domain names looks like `xn--bar'.  If a string
@@ -11797,6 +11804,7 @@ save those articles instead."
       encoded)))
 
 (defvar gnus-summary-save-parts-counter)
+(declare-function mm-uu-dissect "mm-uu" (&optional noheader mime-type))
 
 (defun gnus-summary-save-parts (type dir n &optional reverse)
   "Save parts matching TYPE to DIR.
