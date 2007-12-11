@@ -34,6 +34,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile (require 'cl))
 (require 'mm-util)
 
@@ -138,6 +142,10 @@ ftp://ftp.math.psu.edu/pub/simpson/chinese/hzp/hzp.doc"
 	  (setq v (% v 157))
 	  (aset s (incf i) (+ v (if (< v 63) 64 98))))))
     s))
+
+(autoload 'mail-header-parse-content-type "mail-parse")
+(autoload 'message-narrow-to-head "message")
+(declare-function message-fetch-field "message" (header &optional not-all))
 
 (defun rfc1843-decode-article-body ()
   "Decode HZ encoded text in the article body."
