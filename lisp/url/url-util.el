@@ -523,6 +523,28 @@ Has a preference for looking backward when not directly on a symbol."
       (set (make-local-variable 'url-current-mime-headers)
 	   (mail-header-extract)))))
 
+(defun url-make-private-file (file)
+  "Make FILE only readable and writable by the current user.
+Creates FILE and its parent directories if they do not exist."
+  (let ((dir (file-name-directory file)))
+    (when dir
+      ;; For historical reasons.
+      (make-directory dir t)))
+  ;; Based on doc-view-make-safe-dir.
+  (condition-case nil
+      (let ((umask (default-file-modes)))
+        (unwind-protect
+            (progn
+              (set-default-file-modes #o0600)
+              (with-temp-buffer
+                (write-region (point-min) (point-max)
+                              file nil 'silent nil 'excl)))
+          (set-default-file-modes umask)))
+    (file-already-exists
+     (if (file-symlink-p file)
+         (error "Danger: `%s' is a symbolic link" file))
+     (set-file-modes file #o0600))))
+
 (provide 'url-util)
 
 ;; arch-tag: 24352abc-5a5a-412e-90cd-313b26bed5c9
