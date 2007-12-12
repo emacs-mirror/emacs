@@ -176,7 +176,7 @@ it takes its value from the style system (see `c-default-style' and
 `c-style-alist') when a CC Mode buffer is initialized.  Otherwise,
 the value set here overrides the style system (there is a variable
 `c-old-style-variable-behavior' that changes this, though)."))
-         (typ (eval name (plist-get args :type)))
+         (typ (eval (plist-get args :type)))
          (type (if (consp typ) typ (list typ)))
          (head (car type))
          (tail (cdr type))
