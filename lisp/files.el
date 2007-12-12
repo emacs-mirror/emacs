@@ -4207,8 +4207,8 @@ that is more recent than the visited file.
 This command also implements an interface for special buffers
 that contain text which doesn't come from a file, but reflects
 some other data instead (e.g. Dired buffers, `buffer-list'
-buffers). This is done via the variable
-`revert-buffer-function'. In these cases, it should reconstruct
+buffers).  This is done via the variable
+`revert-buffer-function'.  In these cases, it should reconstruct
 the buffer contents from the appropriate data.
 
 When called from Lisp, the first argument is IGNORE-AUTO; only offer
