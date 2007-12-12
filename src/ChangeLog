@@ -1,3 +1,9 @@
+2007-12-12  Juri Linkov  <juri@jurta.org>
+
+	* buffer.c (Frename_buffer): In interactive spec replace
+	`read-buffer' with `read-string' that uses `buffer-name-history'
+	as history, and the current buffer's name as default.
+
 2007-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (Fcommand_execute): Call Qcall_interactively instead of
