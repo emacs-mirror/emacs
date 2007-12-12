@@ -1,3 +1,7 @@
+2007-12-12  Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
+
+	* files.el (revert-buffer): Docstring fix.
+
 2007-12-11  Glenn Morris  <rgm@gnu.org>
 
 	* emacs-lisp/check-declare.el (check-declare-verify): Handle deffoo.

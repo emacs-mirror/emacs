@@ -4204,10 +4204,12 @@ This undoes all changes since the file was visited or saved.
 With a prefix argument, offer to revert from latest auto-save file, if
 that is more recent than the visited file.
 
-This command also works for special buffers that contain text which
-doesn't come from a file, but reflects some other data base instead:
-for example, Dired buffers and `buffer-list' buffers.  In these cases,
-it reconstructs the buffer contents from the appropriate data base.
+This command also implements an interface for special buffers
+that contain text which doesn't come from a file, but reflects
+some other data instead (e.g. Dired buffers, `buffer-list'
+buffers). This is done via the variable
+`revert-buffer-function'. In these cases, it should reconstruct
+the buffer contents from the appropriate data.
 
 When called from Lisp, the first argument is IGNORE-AUTO; only offer
 to revert from the auto-save file when this is nil.  Note that the
