@@ -37,6 +37,8 @@ a window doesn't select it.
 
 ** buffer-offer-save should be a permanent local.
 
+** revert-buffer should eliminate overlays and the mark.
+
 ** erase-buffer should perhaps disregard read-only properties of text.
 
 ** Make occur correctly handle matches that span more than one line,
