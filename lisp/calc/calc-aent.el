@@ -1015,6 +1015,19 @@ in Calc algebraic input.")
        (concat (math-match-substring x 1) "-" (math-match-substring x 2)))
     x))
 
+(defun math-restore-underscores (x)
+  "Replace pound signs by underscores in the symbol x.
+If the current Calc language does not allow underscores, return nil."
+  (if (memq calc-language calc-lang-allow-underscores)
+      (intern-soft (math-string-restore-underscores (symbol-name x)))))
+
+(defun math-string-restore-underscores (x)
+  "Replace pound signs by underscores in the string x."
+  (if (string-match "\\`\\(.*\\)#\\(.*\\)\\'" x)
+      (math-string-restore-underscores
+       (concat (math-match-substring x 1) "_" (math-match-substring x 2)))
+    x))
+
 (defun math-read-if (cond op)
   (let ((then (math-read-expr-level 0)))
     (or (equal math-expr-data ":")
@@ -1116,7 +1129,10 @@ in Calc algebraic input.")
 				      sym
 				    (intern (concat "var-"
 						    (symbol-name sym)))))))
-		   (let ((v (assq (nth 1 val) math-expr-variable-mapping)))
+		   (let ((v (or
+                             (assq (nth 1 val) math-expr-variable-mapping)
+                             (assq (math-restore-underscores (nth 1 val))
+                                   math-expr-variable-mapping))))
 		     (and v (setq val (if (consp (cdr v))
 					  (funcall (car (cdr v)) v val)
 					(list 'var
