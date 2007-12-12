@@ -4,6 +4,11 @@
 
 2007-12-11  Jay Belanger  <jay.p.belanger@gmail.com>
 
+	* calc/calc-aent.el (math-restore-underscores)
+	(math-string-restore-underscores): New functions.
+	(math-read-factor): Properly check variable names with underscores
+	for entries in `math-expr-variable-mapping'.
+
 	* calc/calc-lang.el (math-lang-name): New property name.
 
 	* calc/calc.el (calc-set-mode-line): Use `math-lang-name'
