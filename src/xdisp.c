@@ -4554,7 +4554,7 @@ handle_auto_composed_prop (it)
   if (FUNCTIONP (Vauto_composition_function))
     {
       Lisp_Object val = Qnil;
-      EMACS_INT pos, pos_byte, this_pos, start, end;
+      EMACS_INT pos, pos_byte;
       int c;
 
       if (STRINGP (it->string))
@@ -4575,10 +4575,9 @@ handle_auto_composed_prop (it)
 	  pos_byte = IT_BYTEPOS (*it);
 	  c = FETCH_CHAR (pos_byte);
 	}
-      this_pos = pos;
 
-      if (get_property_and_range (pos, Qauto_composed, &val, &start, &end,
-				  it->string))
+      val = Fget_text_property (make_number (pos), Qauto_composed, it->string);
+      if (! NILP (val))
 	{
 	  Lisp_Object cmp_prop;
 	  EMACS_INT cmp_start, cmp_end;
@@ -4603,6 +4602,7 @@ handle_auto_composed_prop (it)
 #endif
 	  if (! NILP (val))
 	    {
+	      Lisp_Object end;
 	      EMACS_INT limit;
 
 	      /* As Fnext_single_char_property_change is very slow, we
@@ -4611,22 +4611,26 @@ handle_auto_composed_prop (it)
 		limit = SCHARS (it->string);
 	      else
 		limit = find_next_newline_no_quit (pos, 1);
+	      end = Fnext_single_char_property_change (make_number (pos),
+						       Qauto_composed,
+						       it->string,
+						       make_number (limit));
 
-	      if (end < limit)
+	      if (XINT (end) < limit)
 		{
 		  /* The current point is auto-composed, but there
 		     exist characters not yet composed beyond the
 		     auto-composed region.  There's a possiblity that
 		     the last characters in the region may be newly
 		     composed.  */
-		  if (pos < end - 1)
+		  if (pos < XINT (end) - 1)
 		    {
-		      if (get_property_and_range (end - 1, Qcomposition,
+		      if (get_property_and_range (XINT (end) - 1, Qcomposition,
 						  &cmp_prop, &cmp_start,
 						  &cmp_end, it->string))
 			pos = cmp_start;
 		      else
-			pos = end - 1;
+			pos = XINT (end) - 1;
 		    }
 		  val = Qnil;
 		}
