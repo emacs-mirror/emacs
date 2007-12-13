@@ -1,5 +1,12 @@
 2007-12-13  Kenichi Handa  <handa@ni.aist.go.jp>
 
+	* fontset.c (fontset_add): New args charset_id and famliy.  Caller
+	changed.
+	(load_font_get_repertory): Assume that font_spec is always a
+	font-spec object.
+	(fontset_find_font): Likewise.
+	(Fset_fontset_font): Always store a font-spec object in a fontset.
+
 	* xdisp.c (handle_auto_composed_prop): Use Fget_text_property
 	instead of get_property_and_range.
 
