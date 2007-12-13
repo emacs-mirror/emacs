@@ -1,4 +1,15 @@
+2007-12-13  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* xdisp.c (handle_auto_composed_prop): Use Fget_text_property
+	instead of get_property_and_range.
+
 2007-12-10  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* xftfont.c (struct xftfont_info): Delete the member ft_face.
+	(xftfont_open): Don't keep locking face.
+	(xftfont_close): Don't unlock face.
+	(xftfont_anchor_point): Lock and unlock face.
+	(xftfont_shape): Likewise.
 
 	* fontset.c (fontset_find_font): Don't prefer a font of
 	supplementary charset.
