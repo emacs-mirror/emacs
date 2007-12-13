@@ -1,3 +1,9 @@
+2007-12-13  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_wnd_proc, Fw32_reconstruct_hot_key): Range check
+	before dereferencing array.
+	(lookup_vk_code): Remove zero comparison.
+
 2007-12-02  Magnus Henoch  <mange@freemail.hu>
 
 	* process.c (make_process): Initialize pty_flag to 0.
