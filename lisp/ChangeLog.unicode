@@ -1,3 +1,8 @@
+2007-12-13  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (font-encoding-alist): Add the entry of
+	"unicode-bmp".
+
 2007-12-10  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* composite.el (auto-compose-chars): Be sure to calculate
