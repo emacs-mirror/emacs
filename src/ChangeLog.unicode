@@ -1,3 +1,18 @@
+2007-12-14  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* xterm.c (x_check_font) [USE_FONT_BACKEND]: Don't access
+	dpyinfo->font_table.
+	(x_delete_display) [USE_FONT_BACKEND]: Likewise.
+	(x_delete_terminal) [USE_FONT_BACKEND]: Likewise
+
+	* font.c (font_at): Handle the case that the arg C is negative.
+	Handle the unibyte case.
+	(Ffont_at): Call font_at with the arg C -1.
+
+	* xdisp.c (handle_auto_composed_prop): Don't get a character at
+	the position here, and call font_at with the arg C -1.  Don't
+	check the range of the existing composition at the point.
+
 2007-12-13  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* fontset.c (fontset_add): New args charset_id and famliy.  Caller
