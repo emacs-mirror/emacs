@@ -10349,6 +10349,11 @@ x_check_font (f, font)
 
   xassert (font != NULL);
 
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    /* Fixme: Perhaps we should check all cached fonts.  */
+    return;
+#endif
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name
 	&& font == dpyinfo->font_table[i].font)
@@ -11592,6 +11597,10 @@ x_delete_display (dpyinfo)
     xim_close_dpy (dpyinfo);
 #endif
 
+#ifdef USE_FONT_BACKEND
+  if (! enable_font_backend)
+    {
+#endif
   /* Free the font names in the font table.  */
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name)
@@ -11607,6 +11616,10 @@ x_delete_display (dpyinfo)
 	xfree (dpyinfo->font_table->font_encoder);
       xfree (dpyinfo->font_table);
     }
+#ifdef USE_FONT_BACKEND
+    }
+#endif
+
   if (dpyinfo->x_id_name)
     xfree (dpyinfo->x_id_name);
   if (dpyinfo->color_cells)
@@ -11716,6 +11729,9 @@ x_delete_terminal (struct terminal *terminal)
     return;
 
   BLOCK_INPUT;
+#ifdef USE_FONT_BACKEND
+  if (! enable_font_backend)
+#endif
   /* Free the fonts in the font table.  */
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name)
