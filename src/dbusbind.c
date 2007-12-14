@@ -112,7 +112,7 @@ Lisp_Object Vdbus_debug;
    message.  */
 char *
 xd_retrieve_value (dtype, object)
-     uint dtype;
+     unsigned int dtype;
      Lisp_Object object;
 {
 
@@ -146,7 +146,7 @@ xd_retrieve_value (dtype, object)
    partly supported; they result always in a Lisp list.  */
 Lisp_Object
 xd_retrieve_arg (dtype, iter)
-     uint dtype;
+     unsigned int dtype;
      DBusMessageIter *iter;
 {
 
@@ -316,7 +316,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &rest ARGS)  */)
   DBusMessage *reply;
   DBusMessageIter iter;
   DBusError derror;
-  uint dtype;
+  unsigned int dtype;
   int i;
   char *value;
 
@@ -459,7 +459,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   DBusConnection *connection;
   DBusMessage *dmessage;
-  uint dtype;
+  unsigned int dtype;
   int i;
   char *value;
 
@@ -549,7 +549,7 @@ xd_read_message (bus)
   DBusConnection *connection;
   DBusMessage *dmessage;
   DBusMessageIter iter;
-  uint dtype;
+  unsigned int dtype;
   char uname[DBUS_MAXIMUM_NAME_LENGTH];
   char path[DBUS_MAXIMUM_MATCH_RULE_LENGTH]; /* Unlimited in D-Bus spec.  */
   char interface[DBUS_MAXIMUM_NAME_LENGTH];
@@ -605,11 +605,13 @@ xd_read_message (bus)
     {
       key = XCAR (value);
       /* key has the structure (SERVICE UNAME PATH HANDLER).  */
-      if (((uname == NULL) || (NILP (XCAR (XCDR (key)))) ||
-	   (strcmp (uname, SDATA (XCAR (XCDR (key)))) == 0)) &&
-	  ((path == NULL) || (NILP (XCAR (XCDR (XCDR (key))))) ||
-	   (strcmp (path, SDATA (XCAR (XCDR (XCDR (key))))) == 0)) &&
-	  (!NILP (XCAR (XCDR (XCDR (XCDR (key)))))))
+      if (((uname == NULL)
+	   || (NILP (XCAR (XCDR (key))))
+	   || (strcmp (uname, SDATA (XCAR (XCDR (key)))) == 0))
+	  && ((path == NULL)
+	      || (NILP (XCAR (XCDR (XCDR (key)))))
+	      || (strcmp (path, SDATA (XCAR (XCDR (XCDR (key))))) == 0))
+	  && (!NILP (XCAR (XCDR (XCDR (XCDR (key)))))))
 	{
 	  EVENT_INIT (event);
 	  event.kind = DBUS_EVENT;
@@ -710,10 +712,10 @@ SIGNAL and HANDLER must not be nil.  Example:
      will register for the corresponding unique name, if any.  Signals
      are sent always with the unique name as sender.  Note: the unique
      name of "org.freedesktop.DBus" is that string itself.  */
-  if ((!NILP (service)) &&
-      (strlen (SDATA (service)) > 0) &&
-      (strcmp (SDATA (service), DBUS_SERVICE_DBUS) != 0) &&
-      (strncmp (SDATA (service), ":", 1) != 0))
+  if ((!NILP (service))
+      && (strlen (SDATA (service)) > 0)
+      && (strcmp (SDATA (service), DBUS_SERVICE_DBUS) != 0)
+      && (strncmp (SDATA (service), ":", 1) != 0))
     unique_name = call2 (intern ("dbus-get-name-owner"), bus, service);
   else
     unique_name = service;

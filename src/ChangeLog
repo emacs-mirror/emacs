@@ -1,3 +1,12 @@
+2007-12-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_retrieve_value, xd_retrieve_arg)
+	(Fdbus_call_method, Fdbus_send_signal, xd_read_message): Use
+	`unsigned int' instead of `uint'.
+	(xd_read_message, Fdbus_register_signal): Split expressions into
+	multiple lines before operators "&&" and "||", according to the
+	GNU Coding Standards.
+
 2007-12-12  Juri Linkov  <juri@jurta.org>
 
 	* buffer.c (Frename_buffer): In interactive spec replace
