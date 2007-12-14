@@ -2772,7 +2772,7 @@ int draw_window_fringes P_ ((struct window *, int));
 int update_window_fringes P_ ((struct window *, int));
 void compute_fringe_widths P_ ((struct frame *, int));
 
-#ifdef WINDOWS_NT
+#ifdef WINDOWSNT
 void w32_init_fringe P_ ((struct redisplay_interface *));
 void w32_reset_fringes P_ ((void));
 #endif
