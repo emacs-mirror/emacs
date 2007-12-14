@@ -2854,36 +2854,73 @@ font_get_frame_data (f, driver)
 
 
 /* Return the font used to draw character C by FACE at buffer position
-   POS in window W.  If OBJECT is non-nil, it is a string containing C
-   at index POS.  */
+   POS in window W.  If STRING is non-nil, it is a string containing C
+   at index POS.  If C is negative, get C from the current buffer or
+   STRING.  */
 
 Lisp_Object
-font_at (c, pos, face, w, object)
+font_at (c, pos, face, w, string)
      int c;
      EMACS_INT pos;
      struct face *face;
      struct window *w;
-     Lisp_Object object;
+     Lisp_Object string;
 {
   FRAME_PTR f;
-  int face_id;
-  int dummy;
+  int multibyte;
+
+  if (c < 0)
+    {
+      if (NILP (string))
+	{
+	  multibyte = ! NILP (current_buffer->enable_multibyte_characters);
+	  if (multibyte)
+	    {
+	      EMACS_INT pos_byte = CHAR_TO_BYTE (pos);
+
+	      c = FETCH_CHAR (pos_byte);
+	    }
+	  else
+	    c = FETCH_BYTE (pos);
+	}
+      else
+	{
+	  unsigned char *str;
+
+	  multibyte = STRING_MULTIBYTE (string);
+	  if (multibyte)
+	    {
+	      EMACS_INT pos_byte = string_char_to_byte (string, pos);
+
+	      str = SDATA (string) + pos_byte;
+	      c = STRING_CHAR (str, 0);
+	    }
+	  else
+	    c = SDATA (string)[pos];
+	}
+    }
 
   f = XFRAME (w->frame);
   if (! FRAME_WINDOW_P (f))
     return Qnil;
   if (! face)
     {
-      if (STRINGP (object))
-	face_id = face_at_string_position (w, object, pos, 0, -1, -1, &dummy,
+      int face_id;
+      int endptr;
+
+      if (STRINGP (string))
+	face_id = face_at_string_position (w, string, pos, 0, -1, -1, &endptr,
 					   DEFAULT_FACE_ID, 0);
       else
-	face_id = face_at_buffer_position (w, pos, -1, -1, &dummy,
+	face_id = face_at_buffer_position (w, pos, -1, -1, &endptr,
 					   pos + 100, 0);
       face = FACE_FROM_ID (f, face_id);
     }
-  face_id = FACE_FOR_CHAR (f, face, c, pos, object);
-  face = FACE_FROM_ID (f, face_id);
+  if (multibyte)
+    {
+      int face_id = FACE_FOR_CHAR (f, face, c, pos, string);
+      face = FACE_FROM_ID (f, face_id);
+    }
   if (! face->font_info)
     return Qnil;
   return font_find_object ((struct font *) face->font_info);
@@ -3759,8 +3796,7 @@ the current buffer.  It defaults to the currently selected window.  */)
      Lisp_Object position, window, string;
 {
   struct window *w;
-  EMACS_INT pos, pos_byte;
-  int c;
+  EMACS_INT pos;
 
   if (NILP (string))
     {
@@ -3768,8 +3804,6 @@ the current buffer.  It defaults to the currently selected window.  */)
       pos = XINT (position);
       if (pos < BEGV || pos >= ZV)
 	args_out_of_range_3 (position, make_number (BEGV), make_number (ZV));
-      pos_byte = CHAR_TO_BYTE (pos);
-      c = FETCH_CHAR (pos_byte);
     }
   else
     {
@@ -3781,17 +3815,13 @@ the current buffer.  It defaults to the currently selected window.  */)
       pos = XINT (position);
       if (pos < 0 || pos >= SCHARS (string))
 	args_out_of_range (string, position);
-      pos_byte = string_char_to_byte (string, pos);
-      str = SDATA (string) + pos_byte;
-      len = SBYTES (string) - pos_byte;
-      c = STRING_CHAR (str, eln);
     }
   if (NILP (window))
     window = selected_window;
   CHECK_LIVE_WINDOW (window);
   w = XWINDOW (selected_window);
 
-  return font_at (c, pos, NULL, w, Qnil);
+  return font_at (-1, pos, NULL, w, Qnil);
 }
 
 #if 0
