@@ -8,19 +8,39 @@ MAC_OS8		Compiling for Mac OS version 8.  Requires MAC_OS?
 MAC_OSX		Compiling for Mac OS X?  Is that also valid for Darwin?
 MAC_OS_X	??  Apparently only used once in mac.c.
 CYGWIN		Compiling the Cygwin port.
-MSDOS		Compiling the MSDOS port.
-DOS_NT		Compiling for either the MSDOS or W32 port.
-WINDOWSNT	Compiling the W32 port.
-WINDOWS_NT      ??  Only once in dispextern.h
+__CYGWIN__	Ditto
+MSDOS		Compiling the MS-DOS port.
+__MSDOS__	Ditto.
+__DJGPP__	Major version number of the DJGPP library for the DOS port.
+__DJGPP_MINOR__ Minor version number of the DJGPP library.
+__GO32__	Compiling the DOS port with DJGPP v1.x (obsolete).
+DOS_NT		Compiling for either the MS-DOS or native MS-Windows port.
+WINDOWSNT	Compiling the native MS-Windows (W32) port.
+__MINGW32__	Compiling the W32 port with the MinGW port of GCC.
+_MSC_VER	Compiling the W32 port with the Microsoft C compiler.
 
 ** Distinguishing GUIs **
 
-HAVE_NTGUI	Compile support for the W32 GUI.
+HAVE_NTGUI	Use the native W32 GUI for windows, frames, menus&scrollbars.
 HAVE_CARBON	Compile support for the Carbon GUI.  Requires MAC_OS?
 HAVE_X11	Compile support for the X11 GUI.
+HAVE_X_WINDOWS	Compile support for X Window system
 X11		??  Makefile.in suggests it's equivalent to HAVE_X11
 USE_LUCID	Use the Lucid toolkit for menus&scrollbars.  Requires HAVE_X11.
 USE_MOTIF	Use the Motif toolkit for menus&scrollbars.  Requires HAVE_X11.
 USE_GTK		Use the Gtk   toolkit for menus&scrollbars.  Requires HAVE_X11.
+
+** Frame types **
+
+FRAME_TERMCAP_P	A tty (character terminal) frame.
+FRAME_X_P	A frame on X Window system.
+FRAME_MSDOS_P	An MS-DOS frame (used only by the DOS port).
+FRAME_MAC_P	A Mac frame.
+FRAME_W32_P	A frame using native MS-Windows GUI.
+FRAME_WINDOW_P	A GUI frame (like X, w32, etc.)
+
+** Compile-time options **
+REL_ALLOC	Compile in the relocatable memory allocator ralloc.c.
+SYSTEM_MALLOC	Use the system library's malloc.
 
 # arch-tag: bc80061a-1168-4911-9766-46aaf2640250
