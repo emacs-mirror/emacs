@@ -1,5 +1,8 @@
 2007-12-14  Martin Rudalics  <rudalics@gmx.at>
 
+	* nonascii.texi (Encoding and I/O): Reword to avoid saying
+	"visit the current buffer".
+
 	* os.texi (System Interface): Fix typo.
 
 2007-12-04  Richard Stallman  <rms@gnu.org>
