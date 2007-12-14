@@ -1,3 +1,7 @@
+2007-12-14  Martin Rudalics  <rudalics@gmx.at>
+
+	* os.texi (System Interface): Fix typo.
+
 2007-12-04  Richard Stallman  <rms@gnu.org>
 
 	* objects.texi (Symbol Type): Fix typo.
