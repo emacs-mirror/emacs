@@ -4554,27 +4554,12 @@ handle_auto_composed_prop (it)
   if (FUNCTIONP (Vauto_composition_function))
     {
       Lisp_Object val = Qnil;
-      EMACS_INT pos, pos_byte;
-      int c;
+      EMACS_INT pos;
 
       if (STRINGP (it->string))
-	{
-	  const unsigned char *s;
-
-	  pos = IT_STRING_CHARPOS (*it);
-	  pos_byte = IT_STRING_BYTEPOS (*it);
-	  s = SDATA (it->string) + pos_byte;
-	  if (STRING_MULTIBYTE (it->string))
-	    c = STRING_CHAR (s, 0);
-	  else
-	    c = *s;
-	}
+	pos = IT_STRING_CHARPOS (*it);
       else
-	{
-	  pos = IT_CHARPOS (*it);
-	  pos_byte = IT_BYTEPOS (*it);
-	  c = FETCH_CHAR (pos_byte);
-	}
+	pos = IT_CHARPOS (*it);
 
       val = Fget_text_property (make_number (pos), Qauto_composed, it->string);
       if (! NILP (val))
@@ -4593,7 +4578,7 @@ handle_auto_composed_prop (it)
 	      Lisp_Object font_object = LGSTRING_FONT (gstring);
 
 	      if (! EQ (font_object,
-			font_at (c, pos, FACE_FROM_ID (it->f, it->face_id),
+			font_at (-1, pos, FACE_FROM_ID (it->f, it->face_id),
 				 it->w, it->string)))
 		/* We must re-compute the composition for the
 		   different font.  */
@@ -4617,23 +4602,12 @@ handle_auto_composed_prop (it)
 						       make_number (limit));
 
 	      if (XINT (end) < limit)
-		{
-		  /* The current point is auto-composed, but there
-		     exist characters not yet composed beyond the
-		     auto-composed region.  There's a possiblity that
-		     the last characters in the region may be newly
-		     composed.  */
-		  if (pos < XINT (end) - 1)
-		    {
-		      if (get_property_and_range (XINT (end) - 1, Qcomposition,
-						  &cmp_prop, &cmp_start,
-						  &cmp_end, it->string))
-			pos = cmp_start;
-		      else
-			pos = XINT (end) - 1;
-		    }
-		  val = Qnil;
-		}
+		/* The current point is auto-composed, but there exist
+		   characters not yet composed beyond the
+		   auto-composed region.  There's a possiblity that
+		   the last characters in the region may be newly
+		   composed.  */
+		val = Qnil;
 	    }
 	}
       if (NILP (val))
