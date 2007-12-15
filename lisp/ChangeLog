@@ -1,3 +1,16 @@
+2007-12-15  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/find-func.el (find-function-after-hook): Add :type.
+
+	* info.el (Info-clone-buffer): Renamed from Info-clone-buffer-hook.
+	Use changed.
+
+	* startup.el (fancy-splash-help-echo): Var deleted.
+	(fancy-splash-insert): Get help-echo from (startup-echo-area-message).
+	(fancy-about-screen): Don't display fancy-splash-help-echo.
+
+	* menu-bar.el (menu-bar-describe-menu): Remove dots from menu text.
+
 2007-12-12  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* progmodes/cc-vars.el (defcustom-c-stylevar): Rewrite.
