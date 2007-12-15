@@ -7,6 +7,10 @@
 	multiple lines before operators "&&" and "||", according to the
 	GNU Coding Standards.
 
+2007-12-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (WINDOWS_NT): Fix incorrect spelling of WINDOWSNT.
+
 2007-12-12  Juri Linkov  <juri@jurta.org>
 
 	* buffer.c (Frename_buffer): In interactive spec replace
