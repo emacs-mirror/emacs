@@ -1,3 +1,13 @@
+2007-12-15  Eli Zaretskii  <eliz@gnu.org>
+
+	* images/icons/macemacs_16.png, images/icons/macemacs_24.png:
+	* images/icons/macemacs_32.png, images/icons/macemacs_48.png:
+	* images/icons/macemacs_256.png, images/icons/macemacs_512.png:
+	Renamed to emacs16_mac.png, emacs24_mac.png, emacs32_mac.png,
+	emacs48_mac.png, emacs256_mac.png, and emacs512_mac.png,
+	respectively, to avoid file-name clashes in 8+3 (a.k.a. DOS)
+	namespace.
+
 2007-12-08  Ulrich Mueller <ulm@gentoo.org>  (tiny change)
 
 	* emacs.desktop (Exec, Icon, Categories): Fix entries.
