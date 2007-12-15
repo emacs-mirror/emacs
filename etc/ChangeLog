@@ -1,10 +1,18 @@
 2007-12-15  Eli Zaretskii  <eliz@gnu.org>
 
-	* schema/docbook-dyntbl.rnc, schema/docbook-dyntbl.rnc: Renamed to
-	docbk-dyntbl.rnc and docbk-soextbl.rnc, respectively.
-
 	The following files renamed to avoid file-name clashes in
 	8+3 (a.k.a. DOS) namespace:
+
+	* schema/xhtml-basic-form.rnc: Renamed to xhtml-bform.rnc.
+	* schema/xhtml-basic-table.rnc: Renamed to xhtml-btable.rnc.
+	* schema/xhtml-list.rnc: Renamed to xhtml-lst.rnc.
+	* schema/xhtml-target.rnc: Renamed to xhtml-tgt.rnc.
+	* schema/xhtml-style.rnc: Renamed to xhtml-xstyle.rnc.
+	* schema/xhtml-form.rnc, schema/xhtml-table.rnc, schema/xhtml.rnc:
+	Updated accordingly.
+
+	* schema/docbook-dyntbl.rnc, schema/docbook-dyntbl.rnc: Renamed to
+	docbk-dyntbl.rnc and docbk-soextbl.rnc, respectively.
 
 	* images/icons/macemacs_16.png, images/icons/macemacs_24.png:
 	* images/icons/macemacs_32.png, images/icons/macemacs_48.png:
