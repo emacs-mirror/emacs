@@ -3,7 +3,7 @@
 # This builds on the basic tables module, unlike with the DTD
 # implementation.
 
-include "xhtml-basic-table.rnc" {
+include "xhtml-btable.rnc" {
   table =
     element table {
       table.attlist,
