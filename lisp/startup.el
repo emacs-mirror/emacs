@@ -1288,8 +1288,6 @@ Each element in the list should be a list of strings or pairs
 
 ;; These are temporary storage areas for the splash screen display.
 
-(defvar fancy-splash-help-echo nil)
-
 (defun fancy-splash-insert (&rest args)
   "Insert text into the current buffer, with faces.
 Arguments from ARGS should be either strings; functions called
@@ -1323,7 +1321,7 @@ a face or button specification."
 					 (funcall it)
 				       it))
 				   'face current-face
-				   'help-echo fancy-splash-help-echo))))
+				   'help-echo (startup-echo-area-message)))))
       (setq args (cdr args)))))
 
 
@@ -1505,8 +1503,6 @@ splash screen in another window."
 	(dolist (text fancy-about-text)
 	  (apply #'fancy-splash-insert text)
 	  (insert "\n"))
-	(unless (current-message)
-	  (message fancy-splash-help-echo))
 	(set-buffer-modified-p nil)
 	(goto-char (point-min))
 	(force-mode-line-update))
