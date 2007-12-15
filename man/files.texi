@@ -997,10 +997,11 @@ visit files under version control.
 @cindex mode, Auto Save
 @cindex crashes
 
-  Emacs saves all the visited files from time to time (based on counting
-your keystrokes) without being asked.  This is called @dfn{auto-saving}.
-It prevents you from losing more than a limited amount of work if the
-system crashes.
+  Emacs saves all the visited files from time to time (based on
+counting your keystrokes) without being asked, in separate files so as
+not to alter the files you actually use.  This is called
+@dfn{auto-saving}.  It prevents you from losing more than a limited
+amount of work if the system crashes.
 
   When Emacs determines that it is time for auto-saving, it considers
 each buffer, and each is auto-saved if auto-saving is enabled for it
