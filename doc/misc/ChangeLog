@@ -1,3 +1,7 @@
+2007-12-14  Sven Joachim  <svenjoac@gmx.de>
+
+	* gnus.texi (Score Variables): Fix typo.
+
 2007-12-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Synchronous Methods): Adapt dbus-call-method.

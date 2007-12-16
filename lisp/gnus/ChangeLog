@@ -1,3 +1,38 @@
+2007-12-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (article-verify-x-pgp-sig): Add reference to X-PGP-Sig
+	format document.
+	(gnus-mime-delete-part): Don't write description line if empty.
+	(gnus-article-encrypt-body): Add confirmation for gnus-novice-user.
+
+2007-12-14  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
+
+	* gnus-sum.el (gnus-summary-mark-unread-as-read)
+	(gnus-summary-mark-read-and-unread-as-read)
+	(gnus-summary-mark-current-read-and-unread-as-read)
+	(gnus-summary-mark-unread-as-ticked): Doc fix.
+	`gnus-mark-article-hook', not `gnus-summary-mark-article-hook'.
+
+2007-12-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-summary-prev-article): Fix doc string.  Reported by
+	Christoph Conrad <christoph.conrad@gmx.de>.
+
+2007-12-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-util.el (gnus-y-or-n-p, gnus-yes-or-no-p): Alias to y-or-n-p and
+	yes-or-no-p.
+
+2007-12-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-add-meta-html-tag): New function.
+	(mm-save-part-to-file, mm-pipe-part): Use it
+
+	* gnus-art.el (gnus-article-browse-delete-temp-files): Use
+	gnus-y-or-n-p instead of y-or-n-p.
+	(gnus-article-browse-html-parts): Work with message/external-body; use
+	mm-add-meta-html-tag.
+
 2007-12-11  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-cache.el: Require gnus-sum not just when compiling.
@@ -73,6 +108,10 @@
 	* rfc1843.el (message-fetch-field):
 	* spam.el (gnus-extract-address-components):
 	Declare as functions.
+
+2007-12-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-html-parts): Decode CTE.
 
 2007-12-09  Glenn Morris  <rgm@gnu.org>
 

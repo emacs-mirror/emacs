@@ -7658,7 +7658,7 @@ If BACKWARD, the previous article is selected instead of the next."
 	(gnus-summary-article-subject))))
 
 (defun gnus-summary-prev-article (&optional unread subject)
-  "Select the article after the current one.
+  "Select the article before the current one.
 If UNREAD is non-nil, only unread articles are selected."
   (interactive "P")
   (gnus-summary-next-article unread subject t))
@@ -10830,12 +10830,12 @@ The difference between N and the number of marks cleared is returned."
   (gnus-summary-mark-forward (- n) gnus-unread-mark))
 
 (defun gnus-summary-mark-unread-as-read ()
-  "Intended to be used by `gnus-summary-mark-article-hook'."
+  "Intended to be used by `gnus-mark-article-hook'."
   (when (memq gnus-current-article gnus-newsgroup-unreads)
     (gnus-summary-mark-article gnus-current-article gnus-read-mark)))
 
 (defun gnus-summary-mark-read-and-unread-as-read (&optional new-mark)
-  "Intended to be used by `gnus-summary-mark-article-hook'."
+  "Intended to be used by `gnus-mark-article-hook'."
   (let ((mark (gnus-summary-article-mark)))
     (when (or (gnus-unread-mark-p mark)
 	      (gnus-read-mark-p mark))
@@ -10843,7 +10843,7 @@ The difference between N and the number of marks cleared is returned."
 				 (or new-mark gnus-read-mark)))))
 
 (defun gnus-summary-mark-current-read-and-unread-as-read (&optional new-mark)
-  "Intended to be used by `gnus-summary-mark-article-hook'."
+  "Intended to be used by `gnus-mark-article-hook'."
   (let ((mark (gnus-summary-article-mark)))
     (when (or (gnus-unread-mark-p mark)
 	      (gnus-read-mark-p mark))
@@ -10851,7 +10851,7 @@ The difference between N and the number of marks cleared is returned."
 				 (or new-mark gnus-read-mark)))))
 
 (defun gnus-summary-mark-unread-as-ticked ()
-  "Intended to be used by `gnus-summary-mark-article-hook'."
+  "Intended to be used by `gnus-mark-article-hook'."
   (when (memq gnus-current-article gnus-newsgroup-unreads)
     (gnus-summary-mark-article gnus-current-article gnus-ticked-mark)))
 

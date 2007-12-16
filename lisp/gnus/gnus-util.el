@@ -337,15 +337,23 @@ Symbols are also allowed; their print names are used instead."
 
 ;; Two silly functions to ensure that all `y-or-n-p' questions clear
 ;; the echo area.
-(defun gnus-y-or-n-p (prompt)
-  (prog1
-      (y-or-n-p prompt)
-    (message "")))
+;;
+;; Do we really need these aliases?  Workarounds for bugs in the corresponding
+;; Emacs functions?  Maybe these bug are no longer present in any supported
+;; (X)Emacs version?  Alias them to the original functions and see if anyone
+;; reports a problem.  If not, replace with original functions.  --rsteib
+;;
+;; (defun gnus-y-or-n-p (prompt)
+;;   (prog1
+;;       (y-or-n-p prompt)
+;;     (message "")))
+;; (defun gnus-yes-or-no-p (prompt)
+;;   (prog1
+;;       (yes-or-no-p prompt)
+;;     (message "")))
 
-(defun gnus-yes-or-no-p (prompt)
-  (prog1
-      (yes-or-no-p prompt)
-    (message "")))
+(defalias 'gnus-y-or-n-p 'y-or-n-p)
+(defalias 'gnus-yes-or-no-p 'yes-or-no-p)
 
 ;; By Frank Schmitt <ich@Frank-Schmitt.net>. Allows to have
 ;; age-depending date representations. (e.g. just the time if it's
