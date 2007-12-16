@@ -1,3 +1,87 @@
+2007-12-12  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* progmodes/cc-vars.el (defcustom-c-stylevar): Rewrite.
+
+2007-12-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (set-buffer-menubar): Remove unused
+	function.
+	(add-submenu): Only define for XEmacs.
+	(verilog-regexp-words): Revert previous change, keep the other
+	definition.
+
+2007-12-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/perl-mode.el (perl-continued-statement-offset)
+	(perl-continued-brace-offset, perl-brace-offset)
+	(perl-brace-imaginary-offset, perl-label-offset):
+	* progmodes/cperl-mode.el (cperl-brace-offset)
+	(cperl-continued-brace-offset, cperl-label-offset)
+	(cperl-continued-statement-offset)
+	(cperl-extra-newline-before-brace, cperl-merge-trailing-else): Add
+	safe-local-variable properties.
+
+2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (verilog-mode-map)
+	(verilog-template-map, verilog-mode-mouse-map): Fix typos.
+	(verilog-colorize-include-files): Use only overlay functions so
+	that it can work on both emacs and XEmacs.
+	(set-extent-keymap): Remove unused defun.
+	(verilog-kill-existing-comment, verilog-insert-date)
+	(verilog-insert-year): Rename in order not to pollute the global
+	namespace from kill-existing-comment, insert-date and
+	insert-year, respectively.
+	(verilog-set-auto-endcomments, verilog-header): Update callers.
+
+	* files.el (auto-mode-alist): Recognize verilog files.
+
+	* progmodes/verilog-mode.el (verilog-string-replace-matches)
+	(verilog-string-remove-spaces, verilog-re-search-forward)
+	(verilog-re-search-backward, verilog-re-search-forward-quick)
+	(verilog-re-search-backward-quick, verilog-get-beg-of-line)
+	(verilog-get-end-of-line, verilog-within-string): Move definitions
+	before first use. No code changes.
+
+2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (verilog-mode-version)
+	(verilog-mode-release-date): Don't use expanding keywords.
+	(provide): Move to the end of file.
+	(fboundp): Don't check if eval-when-compile is bound, it is used
+	later in the file without checking.
+	(when, unless): Copy definitions from subr.el.
+	(char-before, defcustom, defface, customize-group)
+	(verilog-batch-error-wrapper): Don't use old style backquotes.
+	(verilog-regexp-opt): Avoid using the cl function case.
+	(verilog-regexp-words): Remove duplicated definition.
+	(verilog-mode-abbrev-table): Remove, duplicate.
+	(verilog-mode-map, verilog-template-map, verilog-mode-mouse-map):
+	Declare and initialize in one step.
+	(verilog-declaration-prefix-re, verilog-declaration-re)
+	(verilog-end-of-statement, verilog-indent-declaration)
+	(verilog-get-lineup-indent): Remove trailing whitespace.
+	(verilog-mode): Fix autoload cookie. Set
+	beginning-of-defun-function and end-of-defun-function. Use when
+	instead of if.
+	(verilog-emacs-features, verilog-auto-ascii-enum)
+	(verilog-insert-indices): Escape braces in doc strings.
+
+2007-12-08  Michael McNamara <mac@verilog.com>
+	    Wilson Snyder <wsnyder@wsnyder.org>
+
+	* progmodes/verilog-mode.el: New file.
+
+2007-12-08  Eli Zaretskii  <eliz@fencepost.gnu.org>
+
+	* international/latexenc.el (latexenc-find-file-coding-system): If
+	both coding-system-for-write and buffer-file-coding-system of
+	latex-main-file are nil, use `undecided'.
+
+2007-12-06  Jason Rumney  <jasonr@gnu.org>
+
+	* mouse.el (mouse-buffer-menu-alist): Keep buffer names left aligned.
+
 2007-12-12  Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
 
 	* files.el (revert-buffer): Docstring fix.

@@ -1933,7 +1933,7 @@ and selects that window."
 		  (cons
 		   (cons
 		    (format
-		     (format "%%%ds  %%s%%s  %%s" maxlen)
+		     (format "%%-%ds  %%s%%s  %%s" maxlen)
 		     (buffer-name elt)
 		     (if (buffer-modified-p elt) "*" " ")
 		     (save-excursion

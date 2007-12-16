@@ -88,6 +88,8 @@ that the desktop being saved is not an update of the one on disk.
 
 ** The new package vera-mode.el provides a major mode for editing Vera files.
 
+** The new package verilog-mode.el provides a major mode for editing Verilog files.
+
 ** The new package socks.el implements the SOCKS v5 protocol.
 
 ** VC

@@ -2957,7 +2957,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	     they don't produce WM_CHAR messages).  This ensures that
 	     indicator lights are toggled promptly on Windows 9x, for
 	     example.  */
-	  if (lispy_function_keys[wParam] != 0)
+	  if (wParam < 256 && lispy_function_keys[wParam])
 	    {
 	      windows_translate = 1;
 	      goto translate;
@@ -3079,7 +3079,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 	  break;
 	default:
 	  /* If not defined as a function key, change it to a WM_CHAR message. */
-	  if (lispy_function_keys[wParam] == 0)
+	  if (wParam > 255 || !lispy_function_keys[wParam])
 	    {
 	      DWORD modifiers = construct_console_modifiers ();
 
@@ -8159,7 +8159,7 @@ lookup_vk_code (char *key)
   int i;
 
   for (i = 0; i < 256; i++)
-    if (lispy_function_keys[i] != 0
+    if (lispy_function_keys[i]
 	&& strcmp (lispy_function_keys[i], key) == 0)
       return i;
 
@@ -8337,7 +8337,7 @@ usage: (w32-reconstruct-hot-key ID)  */)
   vk_code = HOTKEY_VK_CODE (hotkeyid);
   w32_modifiers = HOTKEY_MODIFIERS (hotkeyid);
 
-  if (lispy_function_keys[vk_code])
+  if (vk_code < 256 && lispy_function_keys[vk_code])
     key = intern (lispy_function_keys[vk_code]);
   else
     key = make_number (vk_code);
