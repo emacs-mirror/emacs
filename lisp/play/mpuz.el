@@ -489,7 +489,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 			       ((< mpuz-nb-errors 10)	"bad!")
 			       ((< mpuz-nb-errors 15)	"awful.")
 			       (t			"not serious.")))))
-    (message message)
+    (message "%s" message)
     (sit-for 4)
     (if (y-or-n-p (concat message "  Start a new game? "))
 	(mpuz-start-new-game)

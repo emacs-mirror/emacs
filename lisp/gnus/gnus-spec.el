@@ -27,6 +27,9 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile (require 'cl))
 (defvar gnus-newsrc-file-version)
 
@@ -86,6 +89,9 @@ text properties. This is only needed on XEmacs, as FSF Emacs does this anyway."
 (defvar gnus-mouse-face-prop)
 (defvar gnus-tmp-header)
 (defvar gnus-tmp-from)
+
+(declare-function gnus-summary-from-or-to-or-newsgroups "gnus-sum"
+                  (header gnus-tmp-from))
 
 (defun gnus-summary-line-format-spec ()
   (insert gnus-tmp-unread gnus-tmp-replied

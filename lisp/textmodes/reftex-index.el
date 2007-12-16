@@ -367,7 +367,7 @@ _ ^        Add/Remove parent key (to make this item a subitem).
             (goto-char (or pos (point-min)))
             (or (looking-at re)
                 (reftex-nearest-match re (length literal))))
-           (t (message reftex-no-follow-message) nil))))
+           (t (message "%s" reftex-no-follow-message) nil))))
     (when match
       (goto-char (match-beginning 0))
       (recenter '(4))

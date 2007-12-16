@@ -1978,7 +1978,7 @@ Works on both Emacs and XEmacs."
   (let ((char ?\?))
     (save-window-excursion
       (catch 'exit
-        (message (concat prompt "   (?=Help)"))
+        (message "%s   (?=Help)" prompt)
         (when (or (sit-for (or delay-time 0))
                   (= ?\? (setq char (read-char-exclusive))))
           (reftex-kill-buffer "*RefTeX Select*")
@@ -1994,17 +1994,17 @@ Works on both Emacs and XEmacs."
                  (pos-visible-in-window-p (point-max)))
             nil
           (setq prompt (concat prompt (if scroll "   (SPC/DEL=Scroll)" ""))))
-        (message prompt)
+        (message "%s" prompt)
         (and (equal char ?\?) (setq char (read-char-exclusive)))
         (while t
           (cond ((equal char ?\C-g) (keyboard-quit))
                 ((equal char ?\?))
                 ((and scroll (equal char ?\ ))
                  (condition-case nil (scroll-up) (error nil))
-                 (message prompt))
+                 (message "%s" prompt))
                 ((and scroll (equal char ?\C-? ))
                  (condition-case nil (scroll-down) (error nil))
-                 (message prompt))
+                 (message "%s" prompt))
                 (t (message "") 
                    (throw 'exit char)))
           (setq char (read-char-exclusive)))))))

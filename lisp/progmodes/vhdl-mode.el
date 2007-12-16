@@ -9095,8 +9095,9 @@ otherwise."
 	 (progn (delete-region (point) (progn (end-of-line) (point)))
 		(vhdl-template-insert-date))
        (unless noerror
-	 (error (concat "ERROR:  Modification date prefix string \""
-			vhdl-modify-date-prefix-string "\" not found")))))))
+	 (error "ERROR:  Modification date prefix string \"%s\" not found"
+			vhdl-modify-date-prefix-string))))))
+
 
 (defun vhdl-template-modify-noerror ()
   "Call `vhdl-template-modify' with NOERROR non-nil."
@@ -10432,7 +10433,7 @@ with double-quotes is to be inserted.  DEFAULT specifies a default string."
   "Query a decision from the user."
   (let ((start (point)))
     (when string (vhdl-insert-keyword (concat string " ")))
-    (message prompt)
+    (message "%s" (or prompt ""))
     (let ((char (read-char)))
       (delete-region start (point))
       (if (and optional (eq char ?\r))

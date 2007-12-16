@@ -508,14 +508,14 @@ Should be invoked when the cached images aren't up-to-date."
   "If DVI->PDF conversion was successful, convert the PDF to PNG now."
   (if (not (string-match "finished" event))
       (message "DocView: dvi->pdf process changed status to %s." event)
-    (set-buffer (process-get proc 'buffer))
-    (setq doc-view-current-converter-process nil
-	  mode-line-process nil)
-    ;; Now go on converting this PDF to a set of PNG files.
-    (let* ((pdf (process-get proc 'pdf-file))
-	   (png (expand-file-name "page-%d.png"
-                                  (doc-view-current-cache-dir))))
-      (doc-view-pdf/ps->png pdf png))))
+    (with-current-buffer (process-get proc 'buffer)
+      (setq doc-view-current-converter-process nil
+            mode-line-process nil)
+      ;; Now go on converting this PDF to a set of PNG files.
+      (let* ((pdf (process-get proc 'pdf-file))
+             (png (expand-file-name "page-%d.png"
+                                    (doc-view-current-cache-dir))))
+        (doc-view-pdf/ps->png pdf png)))))
 
 (defun doc-view-dvi->pdf (dvi pdf)
   "Convert DVI to PDF asynchronously."
@@ -533,14 +533,14 @@ Should be invoked when the cached images aren't up-to-date."
   "If PDF/PS->PNG conversion was successful, update the display."
   (if (not (string-match "finished" event))
       (message "DocView: converter process changed status to %s." event)
-    (set-buffer (process-get proc 'buffer))
-    (setq doc-view-current-converter-process nil
-	  mode-line-process nil)
-    (when doc-view-current-timer
-      (cancel-timer doc-view-current-timer)
-      (setq doc-view-current-timer nil))
-    ;; Yippie, finished.  Update the display!
-    (doc-view-display buffer-file-name)))
+    (with-current-buffer (process-get proc 'buffer)
+      (setq doc-view-current-converter-process nil
+            mode-line-process nil)
+      (when doc-view-current-timer
+        (cancel-timer doc-view-current-timer)
+        (setq doc-view-current-timer nil))
+      ;; Yippie, finished.  Update the display!
+      (doc-view-display buffer-file-name 'force))))
 
 (defun doc-view-pdf/ps->png (pdf-ps png)
   "Convert PDF-PS to PNG asynchronously."
@@ -568,13 +568,13 @@ Should be invoked when the cached images aren't up-to-date."
       (message "DocView: converter process changed status to %s." event)
     (let ((current-buffer (current-buffer))
 	  (proc-buffer    (process-get proc 'buffer)))
-      (set-buffer proc-buffer)
-      (setq doc-view-current-converter-process nil
-	    mode-line-process nil)
-      ;; If the user looks at the DocView buffer where the conversion was
-      ;; performed, search anew.  This time it will be queried for a regexp.
-      (when (eq current-buffer proc-buffer)
-	(doc-view-search nil)))))
+      (with-current-buffer proc-buffer
+        (setq doc-view-current-converter-process nil
+              mode-line-process nil)
+        ;; If the user looks at the DocView buffer where the conversion was
+        ;; performed, search anew.  This time it will be queried for a regexp.
+        (when (eq current-buffer proc-buffer)
+          (doc-view-search nil))))))
 
 (defun doc-view-pdf->txt (pdf txt)
   "Convert PDF to TXT asynchronously."
@@ -590,13 +590,13 @@ Should be invoked when the cached images aren't up-to-date."
 (defun doc-view-ps->pdf-sentinel (proc event)
   (if (not (string-match "finished" event))
       (message "DocView: converter process changed status to %s." event)
-    (set-buffer (process-get proc 'buffer))
-    (setq doc-view-current-converter-process nil
-	  mode-line-process nil)
-    ;; Now we can transform to plain text.
-    (doc-view-pdf->txt (process-get proc 'pdf-file)
-		       (expand-file-name "doc.txt"
-                                         (doc-view-current-cache-dir)))))
+    (with-current-buffer (process-get proc 'buffer)
+      (setq doc-view-current-converter-process nil
+            mode-line-process nil)
+      ;; Now we can transform to plain text.
+      (doc-view-pdf->txt (process-get proc 'pdf-file)
+                         (expand-file-name "doc.txt"
+                                           (doc-view-current-cache-dir))))))
 
 (defun doc-view-ps->pdf (ps pdf)
   "Convert PS to PDF asynchronously."
@@ -707,15 +707,19 @@ Predicate for sorting `doc-view-current-files'."
       (and (= (length a) (length b))
            (string< a b))))
 
-(defun doc-view-display (doc)
-  "Start viewing the document DOC."
-  (set-buffer (get-file-buffer doc))
-  (setq doc-view-current-files
-	(sort (directory-files (doc-view-current-cache-dir) t
-			       "page-[0-9]+\\.png" t)
-	      'doc-view-sort))
-  (when (> (length doc-view-current-files) 0)
-    (doc-view-goto-page doc-view-current-page)))
+(defun doc-view-display (doc &optional force)
+  "Start viewing the document DOC.
+If FORCE is non-nil, start viewing even if the document does not
+have the page we want to view."
+  (with-current-buffer (get-file-buffer doc)
+    (setq doc-view-current-files
+          (sort (directory-files (doc-view-current-cache-dir) t
+                                 "page-[0-9]+\\.png" t)
+                'doc-view-sort))
+    (when (or force
+              (>= (length doc-view-current-files)
+                  (or doc-view-current-page 1)))
+      (doc-view-goto-page doc-view-current-page))))
 
 (defun doc-view-buffer-message ()
   ;; Only show this message initially, not when refreshing the buffer (in which
@@ -898,7 +902,7 @@ If BACKWARD is non-nil, jump to the previous match."
 	(if (file-exists-p (doc-view-current-cache-dir))
 	    (progn
 	      (message "DocView: using cached files!")
-	      (doc-view-display buffer-file-name))
+	      (doc-view-display buffer-file-name 'force))
 	  (doc-view-convert-current-doc))
 	(message
 	 "%s"

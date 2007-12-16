@@ -119,7 +119,7 @@
 	  nil)
       (if (not choose)
 	  (progn
-	    (message matches)
+	    (message "%s" matches)
 	    nil)
 	(setq highlight (ecomplete-highlight-match-line matches line))
 	(while (not (memq (setq command (read-event highlight)) '(? return)))

@@ -1708,13 +1708,13 @@ With prefix ARG, go to the next low priority buffer with activity."
 	    (recenter -1)))
       (if (eq major-mode 'rcirc-mode)
 	  (switch-to-buffer (rcirc-non-irc-buffer))
-	(message (concat
-		  "No IRC activity."
-		  (when lopri
-		    (concat
-		     "  Type C-u "
-		     (key-description (this-command-keys))
-		     " for low priority activity."))))))))
+	(message "%s" (concat
+		       "No IRC activity."
+		       (when lopri
+			 (concat
+			  "  Type C-u "
+			  (key-description (this-command-keys))
+			  " for low priority activity."))))))))
 
 (defvar rcirc-activity-hooks nil
   "Hook to be run when there is channel activity.

@@ -31,9 +31,11 @@
 
 ;;; Code:
 
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
-  
+
 (require 'hashcash)
 (require 'canlock)
 (require 'mailheader)
@@ -2469,6 +2471,8 @@ Point is left at the beginning of the narrowed-to region."
     (kill-region start (point))))
 
 
+(autoload 'Info-goto-node "info")
+
 (defun message-info (&optional arg)
   "Display the Message manual.
 
@@ -3695,6 +3699,8 @@ This function uses `mail-citation-hook' if that is non-nil."
   (message-cite-original-1 nil))
 
 (defvar gnus-extract-address-components)
+
+(autoload 'format-spec "format-spec")
 
 (defun message-insert-formatted-citation-line (&optional from date)
   "Function that inserts a formatted citation line.
@@ -7473,6 +7479,8 @@ If nil, the function bound in `text-mode-map' or `global-map' is executed."
   :link '(custom-manual "(message)Various Commands")
   :type '(choice (const nil)
 		 function))
+
+(declare-function mail-abbrev-in-expansion-header-p "mailabbrev" ())
 
 (defun message-tab ()
   "Complete names according to `message-completion-alist'.

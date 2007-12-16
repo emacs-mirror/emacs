@@ -4170,6 +4170,8 @@ x_scroll_bar_clear (f)
 static int temp_index;
 static short temp_buffer[100];
 
+/* Temporarily store lead byte of DBCS input sequences.  */
+static char dbcs_lead = 0;
 
 /* Read events coming from the W32 shell.
    This routine is called by the SIGIO handler.
@@ -4329,8 +4331,96 @@ w32_read_socket (sd, expected, hold_quit)
 	      if (temp_index == sizeof temp_buffer / sizeof (short))
 		temp_index = 0;
 	      temp_buffer[temp_index++] = msg.msg.wParam;
-	      inev.kind = ASCII_KEYSTROKE_EVENT;
-	      inev.code = msg.msg.wParam;
+
+              if (msg.msg.wParam < 128 && !dbcs_lead)
+                {
+                  inev.kind = ASCII_KEYSTROKE_EVENT;
+                  inev.code = msg.msg.wParam;
+                }
+              else if (msg.msg.wParam < 256)
+                {
+                  wchar_t code;
+
+                  inev.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+
+                  if (IsDBCSLeadByteEx(CP_ACP, (BYTE) msg.msg.wParam))
+                    {
+                      dbcs_lead = (char) msg.msg.wParam;
+                      inev.kind = NO_EVENT;
+                      break;
+                    }
+                  else if (dbcs_lead)
+                    {
+                      char dbcs[2];
+                      dbcs[0] = dbcs_lead;
+                      dbcs[1] = (char) msg.msg.wParam;
+                      dbcs_lead = 0;
+                      if (!MultiByteToWideChar(CP_ACP, 0, dbcs, 2, &code, 1))
+                        {
+                          /* Garbage */
+                          DebPrint (("Invalid DBCS sequence: %d %d\n",
+                                     dbcs[0], dbcs[1]));
+                          inev.kind = NO_EVENT;
+                          break;
+                        }
+                    }
+                  else
+                    {
+                      char single_byte = (char) msg.msg.wParam;
+                      if (!MultiByteToWideChar(CP_ACP, 0, &single_byte, 1,
+                                               &code, 1))
+                        {
+                          /* What to do with garbage? */
+                          DebPrint (("Invalid character: %d\n", single_byte));
+                          inev.kind = NO_EVENT;
+                          break;
+                        }
+                    }
+
+                  /* Now process unicode input as per xterm.c */
+                  if (code < 0x80)
+                    {
+                      inev.kind = ASCII_KEYSTROKE_EVENT;
+                      inev.code = code;
+                    }
+                  else if (code < 0xA0)
+                    inev.code = MAKE_CHAR (CHARSET_8_BIT_CONTROL, code, 0);
+                  else if (code < 0x100)
+                    inev.code = MAKE_CHAR (charset_latin_iso8859_1, code, 0);
+                  else
+                    {
+                      int c1, c2;
+                      int charset_id;
+
+                      if (code < 0x2500)
+                        {
+                          charset_id = charset_mule_unicode_0100_24ff;
+                          code -= 0x100;
+                        }
+                      else if (code < 0xE000)
+                        {
+                          charset_id = charset_mule_unicode_2500_33ff;
+                          code -= 0x2500;
+                        }
+                      else
+                        {
+                          charset_id = charset_mule_unicode_e000_ffff;
+                          code -= 0xE000;
+                        }
+
+                      c1 = (code / 96) + 32;
+                      c2 = (code % 96) + 32;
+                      inev.code = MAKE_CHAR (charset_id, c1, c2);
+                    }
+                }
+              else
+                {
+                  /* Windows shouldn't generate WM_CHAR events above 0xFF
+                     in non-Unicode message handlers.  */
+                  DebPrint (("Non-byte WM_CHAR: %d\n", msg.msg.wParam));
+                  inev.kind = NO_EVENT;
+                  break;
+                }
 	      inev.modifiers = msg.dwModifiers;
 	      XSETFRAME (inev.frame_or_window, f);
 	      inev.timestamp = msg.msg.time;

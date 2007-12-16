@@ -27,6 +27,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile (require 'cl))
 
 (require 'smime)
@@ -216,6 +220,8 @@ Whether the passphrase is cached at all is controlled by
       (quit))
     result))
 
+(autoload 'gnus-completing-read-with-default "gnus-util")
+
 (defun mml-smime-openssl-encrypt-query ()
   ;; todo: try dns/ldap automatically first, before prompting user
   (let (certs done)
@@ -346,6 +352,10 @@ Whether the passphrase is cached at all is controlled by
 	      (cons key-id mml-smime-epg-secret-key-id-list))
 	(copy-sequence passphrase)))))
 
+(declare-function epg-key-sub-key-list   "ext:epg" (key))
+(declare-function epg-sub-key-capability "ext:epg" (sub-key))
+(declare-function epg-sub-key-validity   "ext:epg" (sub-key))
+
 (defun mml-smime-epg-find-usable-key (keys usage)
   (catch 'found
     (while keys
@@ -357,6 +367,12 @@ Whether the passphrase is cached at all is controlled by
 	      (throw 'found (car keys)))
 	  (setq pointer (cdr pointer))))
       (setq keys (cdr keys)))))
+
+(autoload 'mml-compute-boundary "mml")
+
+;; We require mm-decode, which requires mm-bodies, which autoloads
+;; message-options-get (!).
+(declare-function message-options-set "message" (symbol value))
 
 (defun mml-smime-epg-sign (cont)
   (let* ((inhibit-redisplay t)

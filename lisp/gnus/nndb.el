@@ -48,14 +48,18 @@
 ;; * make the backend TOUCH an article when marked as expireable (will
 ;;   make article expire 'expiry' days after that moment).
 
+;;; Code:
+
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 ;;-
 ;; Register nndb with known select methods.
 
 (require 'gnus-start)
 (unless (assoc "nndb" gnus-valid-select-methods)
   (gnus-declare-backend "nndb" 'mail 'respool 'address 'prompt-address))
-
-;;; Code:
 
 (require 'nnmail)
 (require 'nnheader)
@@ -239,6 +243,9 @@ expiry mechanism."
   (if nndb-server-side-expiry
       (nndb-request-expire-articles-remote articles group server force)
     (nndb-request-expire-articles-local articles group server force)))
+
+;; _Something_ defines it...
+(declare-function nndb-request-article "nndb" t t)
 
 (deffoo nndb-request-move-article
     (article group server accept-form &optional last move-is-internal)

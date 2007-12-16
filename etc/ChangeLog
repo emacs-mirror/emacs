@@ -1,3 +1,38 @@
+2007-12-15  Eli Zaretskii  <eliz@gnu.org>
+
+	The following files renamed to avoid file-name clashes in
+	8+3 (a.k.a. DOS) namespace:
+
+	* schema/xhtml-basic-form.rnc: Renamed to xhtml-bform.rnc.
+	* schema/xhtml-basic-table.rnc: Renamed to xhtml-btable.rnc.
+	* schema/xhtml-list.rnc: Renamed to xhtml-lst.rnc.
+	* schema/xhtml-target.rnc: Renamed to xhtml-tgt.rnc.
+	* schema/xhtml-style.rnc: Renamed to xhtml-xstyle.rnc.
+	* schema/xhtml-form.rnc, schema/xhtml-table.rnc, schema/xhtml.rnc:
+	Updated accordingly.
+
+	* schema/docbook-dyntbl.rnc, schema/docbook-dyntbl.rnc: Renamed to
+	docbk-dyntbl.rnc and docbk-soextbl.rnc, respectively.
+
+	* images/icons/macemacs_16.png, images/icons/macemacs_24.png:
+	* images/icons/macemacs_32.png, images/icons/macemacs_48.png:
+	* images/icons/macemacs_256.png, images/icons/macemacs_512.png:
+	Renamed to emacs16_mac.png, emacs24_mac.png, emacs32_mac.png,
+	emacs48_mac.png, emacs256_mac.png, and emacs512_mac.png,
+	respectively.
+
+2007-12-08  Ulrich Mueller <ulm@gentoo.org>  (tiny change)
+
+	* emacs.desktop (Exec, Icon, Categories): Fix entries.
+
+2007-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* NEWS: Add minimal Gnus item.
+
+2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs.desktop: New file.
+
 2007-11-30  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
 
 	* images/icons/macemacs_16.png, images/icons/macemacs_24.png:

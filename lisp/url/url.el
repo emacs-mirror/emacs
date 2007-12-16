@@ -46,13 +46,16 @@
 (require 'url-parse)
 (require 'url-util)
 
-;; Fixme: customize? convert-standard-filename?
-(defvar url-configuration-directory
-  (cond
-   ((file-directory-p "~/.url") "~/.url")
-   ((file-directory-p user-emacs-directory)
-    (concat user-emacs-directory "url"))
-   (t "~/.url")))
+
+;; FIXME convert-standard-filename?
+(defcustom url-configuration-directory
+  (if (and (file-directory-p user-emacs-directory)
+           (not (file-directory-p "~/.url")))
+      (expand-file-name "url" user-emacs-directory)
+    "~/.url")
+  "Directory used by the URL package for cookies, history, etc."
+  :type 'directory
+  :group 'url)
 
 (defun url-do-setup ()
   "Setup the url package.

@@ -402,12 +402,17 @@ The expansion is entirely correct because it uses the C preprocessor."
   :type 'integer
   :group 'perl)
 
-;; Is is not unusual to put both perl-indent-level and
+;; Is is not unusual to put both things like perl-indent-level and
 ;; cperl-indent-level in the local variable section of a file. If only
 ;; one of perl-mode and cperl-mode is in use, a warning will be issued
-;; about the variable. Autoload this here, so that no warning is
+;; about the variable. Autoload these here, so that no warning is
 ;; issued when using either perl-mode or cperl-mode.
 ;;;###autoload(put 'perl-indent-level 'safe-local-variable 'integerp)
+;;;###autoload(put 'perl-continued-statement-offset 'safe-local-variable 'integerp)
+;;;###autoload(put 'perl-continued-brace-offset 'safe-local-variable 'integerp)
+;;;###autoload(put 'perl-brace-offset 'safe-local-variable 'integerp)
+;;;###autoload(put 'perl-brace-imaginary-offset 'safe-local-variable 'integerp)
+;;;###autoload(put 'perl-label-offset 'safe-local-variable 'integerp)
 
 (defcustom perl-continued-statement-offset 4
   "*Extra indent for lines not starting new statements."

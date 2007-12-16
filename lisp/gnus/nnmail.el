@@ -27,6 +27,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile (require 'cl))
 
 (require 'gnus)				; for macro gnus-kill-buffer, at least
@@ -35,6 +39,7 @@
 (require 'gnus-util)
 (require 'mail-source)
 (require 'mm-util)
+(require 'gnus-int)
 
 (eval-and-compile
   (autoload 'gnus-add-buffer "gnus")
@@ -1315,6 +1320,9 @@ Eudora has a broken References line, but an OK In-Reply-To."
 
 ;;; Utility functions
 
+(declare-function gnus-activate-group "gnus-start"
+                  (group &optional scan dont-check method))
+
 (defun nnmail-do-request-post (accept-func &optional server)
   "Utility function to directly post a message to an nnmail-derived group.
 Calls ACCEPT-FUNC (which should be `nnchoke-request-accept-article')
@@ -1853,6 +1861,8 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	     (setq days (days-to-time days))
 	     ;; Compare the time with the current time.
 	     (ignore-errors (time-less-p days (time-since time))))))))
+
+(declare-function gnus-group-mark-article-read "gnus-group" (group article))
 
 (defun nnmail-expiry-target-group (target group)
   ;; Do not invoke this from nntp-server-buffer!  At least nnfolder clears

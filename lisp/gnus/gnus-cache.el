@@ -27,13 +27,18 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile (require 'cl))
 
 (require 'gnus)
+(require 'gnus-sum)
+
 (eval-when-compile
   (unless (fboundp 'gnus-agent-load-alist)
-      (defun gnus-agent-load-alist (group)))
-  (require 'gnus-sum))
+    (defun gnus-agent-load-alist (group))))
 
 (defcustom gnus-cache-active-file
   (expand-file-name "active" gnus-cache-directory)
@@ -90,6 +95,8 @@ it's not cached."
 (defvar gnus-cache-active-hashtb nil)
 (defvar gnus-cache-active-altered nil)
 (defvar gnus-cache-total-fetched-hashtb nil)
+
+(declare-function nnvirtual-find-group-art "nnvirtual" (group article))
 
 (eval-and-compile
   (autoload 'nnml-generate-nov-databases-directory "nnml")

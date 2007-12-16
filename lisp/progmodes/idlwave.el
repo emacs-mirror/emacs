@@ -3799,7 +3799,7 @@ unless the optional second argument NOINDENT is non-nil."
       (if (not noindent)
 	  (indent-region beg end nil))
       (if (stringp prompt)
-	  (message prompt)))))
+	  (message "%s" prompt)))))
 
 (defun idlwave-rw-case (string)
   "Make STRING have the case required by `idlwave-reserved-word-upcase'."
@@ -7038,7 +7038,7 @@ sort the list before displaying"
 			 (select-window win)
 			 (eval idlwave-complete-after-success-form))
 		     (set-window-start cwin (point-min)))))
-	  (and message (message message)))
+	  (and message (message "%s" message)))
       (select-window win))))
 
 (defun idlwave-display-completion-list (list &optional message beg complete)
@@ -7069,7 +7069,7 @@ sort the list before displaying"
   (run-hooks 'idlwave-completion-setup-hook)
 
   ;; Display the message
-  (message (or message "Making completion list...done")))
+  (message "%s" (or message "Making completion list...done")))
 
 (defun idlwave-choose (function &rest args)
   "Call FUNCTION as a completion chooser and pass ARGS to it."

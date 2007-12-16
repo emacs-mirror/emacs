@@ -1077,7 +1077,7 @@ manpage command."
 	    (Man-notify-when-ready Man-buffer))
 
 	(if err-mess
-	    (error err-mess))
+	    (error "%s" err-mess))
 	))))
 
 
@@ -1338,7 +1338,7 @@ Returns t if section is found, nil otherwise."
 Actually the section moved to is described by `Man-see-also-regexp'."
   (interactive)
   (if (not (Man-find-section Man-see-also-regexp))
-      (error (concat "No " Man-see-also-regexp
+      (error "%s" (concat "No " Man-see-also-regexp
 		     " section found in the current manpage"))))
 
 (defun Man-possibly-hyphenated-word ()

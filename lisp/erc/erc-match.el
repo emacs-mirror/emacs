@@ -299,7 +299,7 @@ Completion is performed on the optional alist COMPLETIONS."
 		(lambda (x)
 		  (not (erc-member-ignore-case (car x) (symbol-value list)))))))
     (if (erc-member-ignore-case entry (symbol-value list))
-	(error (format "\"%s\" is already on the list" entry))
+	(error "\"%s\" is already on the list" entry)
       (set list (cons entry (symbol-value list))))))
 
 (defun erc-remove-entry-from-list (list prompt)

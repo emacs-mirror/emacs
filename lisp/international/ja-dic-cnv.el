@@ -558,7 +558,7 @@ To get complete usage, invoke:
 	 (while l
 	   (setq count (1+ count))
 	   (if (= (% count 10000) 0)
-	       (message (format "%d entries" count)))
+	       (message "%d entries" count))
 	   (setq entry (skkdic-extract-conversion-data (car l)))
 	   (set-nested-alist (car entry) (cdr entry) map)
 	   (setq l (cdr l)))

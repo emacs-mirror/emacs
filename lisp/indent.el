@@ -454,6 +454,7 @@ See also `indent-relative-maybe'."
 This should be a list of integers, ordered from smallest to largest."
   :group 'indent
   :type '(repeat integer))
+(put 'tab-stop-list 'safe-local-variable 'listp)
 
 (defvar edit-tab-stops-map
   (let ((map (make-sparse-keymap)))

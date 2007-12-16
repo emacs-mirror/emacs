@@ -27,6 +27,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile (require 'cl))
 
 (require 'mm-util)
@@ -89,6 +93,8 @@
 (defun mm-extern-ftp (handle)
   (let (mm-extern-anonymous)
     (mm-extern-anon-ftp handle)))
+
+(declare-function message-goto-body "message" (&optional interactivep))
 
 (defun mm-extern-mail-server (handle)
   (require 'message)

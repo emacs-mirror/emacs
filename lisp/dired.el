@@ -2009,7 +2009,7 @@ Return the position of the beginning of the filename, or nil if none found."
 	       (forward-char -1))))
       (or no-error
 	  (not (eq opoint (point)))
-	  (error (if hidden
+	  (error "%s" (if hidden
 		     (substitute-command-keys
 		      "File line is hidden, type \\[dired-hide-subdir] to unhide")
 		   "No file on this line")))

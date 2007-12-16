@@ -2,7 +2,7 @@
 
 # Unlike the DTD implementation, this builds on the basic-form module
 
-include "xhtml-basic-form.rnc" {
+include "xhtml-bform.rnc" {
   select = element select { select.attlist, (option | optgroup)+ }
 }
 form.attlist &=

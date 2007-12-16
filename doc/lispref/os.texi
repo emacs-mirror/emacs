@@ -21,8 +21,8 @@ pertaining to the terminal and the screen.
 * System Environment::  Distinguish the name and kind of system.
 * User Identification:: Finding the name and user id of the user.
 * Time of Day::		Getting the current time.
-* Time Conversion::     Converting a time from numeric form
-                          to calendrical data, and vice versa).
+* Time Conversion::     Converting a time from numeric form to 
+                          calendrical data and vice versa.
 * Time Parsing::        Converting a time from numeric form to text
                           and vice versa.
 * Processor Run Time::  Getting the run time used by Emacs.

@@ -26,6 +26,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile
   (require 'cl))
 
@@ -104,6 +108,8 @@ Output to the current buffer, replace text, and don't mingle error."
 	(gnus-shell-command-to-string
 	 (format gnus-convert-pbm-to-x-face-command
 		 (shell-quote-argument file)))))))
+
+(autoload 'message-goto-eoh "message" nil t)
 
 ;;;###autoload
 (defun gnus-insert-random-x-face-header ()
@@ -203,8 +209,14 @@ The colors from this face are used as the foreground and background
 colors of the displayed X-Faces."
   :group 'gnus-article-headers)
 
+(declare-function article-narrow-to-head   "gnus-art" ())
+(declare-function gnus-article-goto-header "gnus-art" (header))
+(declare-function gnus-add-image           "gnus-art" (category image))
+(declare-function gnus-add-wash-type       "gnus-art" (type))
+
 (defun gnus-display-x-face-in-from (data)
   "Display the X-Face DATA in the From header."
+  (require 'gnus-art)
   (let ((default-enable-multibyte-characters nil)
 	pbm)
     (when (or (gnus-image-type-available-p 'xface)

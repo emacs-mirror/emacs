@@ -28,6 +28,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile
   (require 'cl)
   (require 'mm-util))
@@ -38,6 +42,11 @@
 
 (autoload 'quoted-printable-decode-region "qp")
 (autoload 'quoted-printable-encode-region "qp")
+
+(autoload 'mm-decode-content-transfer-encoding "mm-bodies")
+(autoload 'mm-encode-content-transfer-encoding "mm-bodies")
+(autoload 'message-options-get "message")
+(autoload 'message-options-set "message")
 
 (defvar mml1991-use mml2015-use
   "The package used for PGP.")
@@ -111,6 +120,9 @@ Whether the passphrase is cached at all is controlled by
       (insert-buffer-substring signature)
       (goto-char (point-max)))))
 
+(declare-function mc-encrypt-generic "ext:mc-toplev"
+                  (&optional recipients scheme start end from sign))
+
 (defun mml1991-mailcrypt-encrypt (cont &optional sign)
   (let ((text (current-buffer))
 	(mc-pgp-always-sign
@@ -160,6 +172,13 @@ Whether the passphrase is cached at all is controlled by
 
 (eval-and-compile
   (autoload 'gpg-sign-cleartext "gpg"))
+
+(declare-function gpg-sign-encrypt "ext:gpg"
+                  (plaintext ciphertext result recipients &optional
+                             passphrase sign-with-key armor textmode))
+(declare-function gpg-encrypt "ext:gpg"
+                  (plaintext ciphertext result recipients &optional
+                             passphrase armor textmode))
 
 (defun mml1991-gpg-sign (cont)
   (let ((text (current-buffer))

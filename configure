@@ -1358,7 +1358,7 @@ Optional Packages:
   --without-xaw3d         don't use Xaw3d
   --without-xim           don't use X11 XIM
   --without-carbon        don't use Carbon GUI on Mac OS X
-  --without-dbus          don't use D-Bus
+  --with-dbus             use D-Bus
   --with-x                use the X Window System
 
 Some influential environment variables:

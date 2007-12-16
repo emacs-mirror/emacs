@@ -40,6 +40,12 @@ EMACS = $(THISDIR)/../bin/emacs.exe
 
 EMACSOPT = -batch --no-init-file --no-site-file --multibyte
 
+# Extra flags to pass to the byte compiler
+BYTE_COMPILE_EXTRA_FLAGS =
+# For example to not display the undefined function warnings you can use this:
+# BYTE_COMPILE_EXTRA_FLAGS = --eval '(setq byte-compile-warnings (quote (not unresolved)))'
+# The example above is just for developers, it should not be used by default.
+
 # Set EMACSLOADPATH correctly (already defined in environment).
 EMACSLOADPATH=$(lisp)
 
@@ -198,7 +204,7 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 .SUFFIXES: .elc .el
 
 .el.elc:
-	-$(emacs) -f batch-byte-compile $<
+	-$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $<
 
 # Compile all Lisp files, but don't recompile those that are up to
 # date.  Some files don't actually get compiled because they set the
@@ -218,22 +224,22 @@ compile: $(lisp)/subdirs.el mh-autoloads compile-$(SHELLTYPE) doit
 compile-CMD:
 #	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
 	for %%f in ($(COMPILE_FIRST)) do \
-	  $(emacs) -l loaddefs -f batch-byte-compile-if-not-done %%f
+	  $(emacs) -l loaddefs $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile-if-not-done %%f
 	for %%f in (. $(WINS)) do for %%g in (%%f/*.el) do \
-	  $(emacs) -l loaddefs -f batch-byte-compile-if-not-done %%f/%%g
+	  $(emacs) -l loaddefs $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile-if-not-done %%f/%%g
 
 compile-SH:
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
-	  $(emacs) -l loaddefs -f batch-byte-compile-if-not-done $$el; \
+	  $(emacs) -l loaddefs $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile-if-not-done $$el; \
 	done
 	for dir in $(lisp) $(WINS); do \
 	  for el in $$dir/*.el; do \
 	    if test -f $$el; \
 	    then \
 	      echo Compiling $$el; \
-	      $(emacs) -l loaddefs -f batch-byte-compile-if-not-done $$el; \
+	      $(emacs) -l loaddefs $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile-if-not-done $$el; \
 	    fi \
 	  done; \
 	done
@@ -246,31 +252,31 @@ compile-always: $(lisp)/subdirs.el compile-always-$(SHELLTYPE) doit
 
 compile-always-CMD:
 #	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
-	for %%f in ($(COMPILE_FIRST)) do $(emacs) -f batch-byte-compile %%f
-	for %%f in (. $(WINS)) do for %%g in (%%f/*.el) do $(emacs) -f batch-byte-compile %%f/%%g
+	for %%f in ($(COMPILE_FIRST)) do $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile %%f
+	for %%f in (. $(WINS)) do for %%g in (%%f/*.el) do $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile %%f/%%g
 
 compile-always-SH:
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
-	  $(emacs) -f batch-byte-compile $$el || exit 1; \
+	  $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $$el || exit 1; \
 	done
 	for dir in $(lisp) $(WINS); do \
 	  for el in $$dir/*.el; do \
 	    echo Compiling $$el; \
-	    $(emacs) -f batch-byte-compile $$el || exit 1; \
+	    $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $$el || exit 1; \
 	  done; \
 	done
 
 compile-calc: compile-calc-$(SHELLTYPE)
 
 compile-calc-CMD:
-	for %%f in ($(lisp)/calc/*.el) do $(emacs) -f batch-byte-compile %%f
+	for %%f in ($(lisp)/calc/*.el) do $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile %%f
 
 compile-calc-SH:
 	for el in $(lisp)/calc/*.el; do \
 	  echo Compiling $$el; \
-	  $(emacs) -f batch-byte-compile $$el || exit 1; \
+	  $(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $$el || exit 1; \
 	done
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already
@@ -291,6 +297,15 @@ compile-after-backup: backup-compiled-files compile-always
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
 recompile: mh-autoloads doit $(lisp)/progmodes/cc-mode.elc
 	$(emacs) --eval $(ARGQUOTE)(batch-byte-recompile-directory 0)$(ARGQUOTE) $(lisp)
+
+# CC Mode uses a compile time macro system which causes a compile time
+# dependency in cc-mode.elc on the macros in cc-langs.el and the
+# version string in cc-defs.el.
+$(lisp)/progmodes/cc-mode.elc: \
+	$(lisp)/progmodes/cc-mode.el \
+	$(lisp)/progmodes/cc-langs.el \
+	$(lisp)/progmodes/cc-defs.el
+	$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $(lisp)/progmodes/cc-mode.el
 
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in
@@ -439,6 +454,11 @@ install-lisp-CMD:
 	for %%f in ($(WINS)) do if not exist "$(INSTALL_DIR)/lisp/%%f" mkdir "$(INSTALL_DIR)/lisp/%%f"
 	for %%f in ($(WINS)) do cp -f %%f/*.el "$(INSTALL_DIR)/lisp/%%f"
 	for %%f in (. $(WINS)) do cp -f %%f/*.elc "$(INSTALL_DIR)/lisp/%%f"
+
+# WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
+#          this can break with GNU Make 3.81 and later if sh.exe is used.
+check-declare:
+	$(emacs) -l $(lisp)/emacs-lisp/check-declare --eval $(ARGQUOTE)(check-declare-directory $(DQUOTE)$(lisp)$(DQUOTE))$(ARGQUOTE)
 
 #
 # Maintenance

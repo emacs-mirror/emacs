@@ -27,6 +27,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile
   (require 'cl))
 (defvar tool-bar-mode)
@@ -3004,6 +3008,8 @@ mail messages or news articles in files that have numeric names."
      (list 'nndir (gnus-group-real-name group) (list 'nndir-directory dir)))))
 
 (defvar nnkiboze-score-file)
+(declare-function nnkiboze-score-file "nnkiboze" (group))
+
 (defun gnus-group-make-kiboze-group (group address scores)
   "Create an nnkiboze group.
 The user will be prompted for a name, a regexp to match groups, and

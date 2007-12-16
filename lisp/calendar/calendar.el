@@ -3154,7 +3154,7 @@ Defaults to today's date if DATE is not given."
 (defun calendar-print-day-of-year ()
   "Show day number in year/days remaining in year for date under the cursor."
   (interactive)
-  (message (calendar-day-of-year-string (calendar-cursor-to-date t))))
+  (message "%s" (calendar-day-of-year-string (calendar-cursor-to-date t))))
 
 (defun calendar-set-mode-line (str)
   "Set mode line to STR, centered, surrounded by dashes."

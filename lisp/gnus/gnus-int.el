@@ -58,6 +58,27 @@ server denied."
 (defvar gnus-internal-registry-spool-current-method nil
   "The current method, for the registry.")
 
+
+(defun gnus-server-opened (gnus-command-method)
+  "Check whether a connection to GNUS-COMMAND-METHOD has been opened."
+  (unless (eq (gnus-server-status gnus-command-method)
+	      'denied)
+    (when (stringp gnus-command-method)
+      (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
+    (funcall (inline (gnus-get-function gnus-command-method 'server-opened))
+	     (nth 1 gnus-command-method))))
+
+(defun gnus-status-message (gnus-command-method)
+  "Return the status message from GNUS-COMMAND-METHOD.
+If GNUS-COMMAND-METHOD is a string, it is interpreted as a group
+name.  The method this group uses will be queried."
+  (let ((gnus-command-method
+	 (if (stringp gnus-command-method)
+	     (gnus-find-method-for-group gnus-command-method)
+	   gnus-command-method)))
+    (funcall (gnus-get-function gnus-command-method 'status-message)
+	     (nth 1 gnus-command-method))))
+
 ;;;
 ;;; Server Communication
 ;;;
@@ -314,26 +335,6 @@ If it is down, start it up (again)."
   (let ((func (gnus-get-function gnus-command-method 'request-newgroups t)))
     (when func
       (funcall func date (nth 1 gnus-command-method)))))
-
-(defun gnus-server-opened (gnus-command-method)
-  "Check whether a connection to GNUS-COMMAND-METHOD has been opened."
-  (unless (eq (gnus-server-status gnus-command-method)
-	      'denied)
-    (when (stringp gnus-command-method)
-      (setq gnus-command-method (gnus-server-to-method gnus-command-method)))
-    (funcall (inline (gnus-get-function gnus-command-method 'server-opened))
-	     (nth 1 gnus-command-method))))
-
-(defun gnus-status-message (gnus-command-method)
-  "Return the status message from GNUS-COMMAND-METHOD.
-If GNUS-COMMAND-METHOD is a string, it is interpreted as a group
-name.  The method this group uses will be queried."
-  (let ((gnus-command-method
-	 (if (stringp gnus-command-method)
-	     (gnus-find-method-for-group gnus-command-method)
-	   gnus-command-method)))
-    (funcall (gnus-get-function gnus-command-method 'status-message)
-	     (nth 1 gnus-command-method))))
 
 (defun gnus-request-regenerate (gnus-command-method)
   "Request a data generation from GNUS-COMMAND-METHOD."

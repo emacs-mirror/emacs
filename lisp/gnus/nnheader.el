@@ -251,6 +251,8 @@ on your system, you could say something like:
   (skip-chars-forward " \t")
   (buffer-substring (point) (point-at-eol)))
 
+(autoload 'ietf-drums-unfold-fws "ietf-drums")
+
 (defun nnheader-parse-naked-head (&optional number)
   ;; This function unfolds continuation lines in this buffer
   ;; destructively.  When this side effect is unwanted, use

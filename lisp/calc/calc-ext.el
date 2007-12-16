@@ -1434,7 +1434,7 @@ calc-kill calc-kill-region calc-yank))))
      (calc-set-command-flag 'no-align)
      (setq prefix (set flag (not (symbol-value flag)))
 	   prefix-arg n)
-     (message (if prefix msg "")))
+     (message "%s" (if prefix msg "")))
     (and prefix
 	 (not calc-is-keypad-press)
 	 (if (boundp 'overriding-terminal-local-map)

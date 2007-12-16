@@ -38,7 +38,7 @@
 
 ;; Check for (X)Emacs version.
 (let ((x (if (or (< emacs-major-version 21)	(and (featurep 'xemacs)	     (< emacs-minor-version 4)))    (format "Tramp 2.1.12-pre is not fit for %s"	    (when (string-match "^.*$" (emacs-version))	      (match-string 0 (emacs-version))))    "ok")))
-  (unless (string-match "\\`ok\\'" x) (error x)))
+  (unless (string-match "\\`ok\\'" x) (error "%s" x)))
 
 (provide 'trampver)
 

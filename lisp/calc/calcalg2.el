@@ -746,7 +746,7 @@
 		      (setq math-integ-msg (format
 					    "Working... Integrating %s"
 					    (math-format-flat-expr expr 0)))
-		      (message math-integ-msg)))
+		      (message "%s" math-integ-msg)))
 		(if math-cur-record
 		    (setcar (cdr math-cur-record)
 			    (if same-as-above (vector simp) 'busy))
@@ -773,7 +773,7 @@
 						     "simplification...\n")
 			      (setq val (math-integral simp 'no t))))))))
 	      (if (eq calc-display-working-message 'lots)
-		  (message math-integ-msg)))
+		  (message "%s" math-integ-msg)))
 	  (setcar (cdr math-cur-record) (or val
 				       (if (or math-enable-subst
 					       (not math-any-substs))

@@ -96,7 +96,8 @@ that the search has reached."
 That is, upper and lower case chars must match exactly.
 This applies no matter where the chars come from, but does not
 apply to chars in regexps that are prefixed with `\\'.
-If this value is `not-yanks', yanked text is always downcased."
+If this value is `not-yanks', text yanked into the search string
+in Isearch mode is always downcased."
   :type '(choice (const :tag "off" nil)
 		 (const not-yanks)
 		 (other :tag "on" t))
@@ -411,6 +412,7 @@ A value of nil means highlight all matches."
 
     (define-key map [?\M-%] 'isearch-query-replace)
     (define-key map [?\C-\M-%] 'isearch-query-replace-regexp)
+    (define-key map "\M-so" 'isearch-occur)
 
     map)
   "Keymap for `isearch-mode'.")
@@ -1230,11 +1232,14 @@ Use `isearch-exit' to quit without signaling."
   (isearch-update))
 
 (defun isearch-query-replace (&optional regexp-flag)
-  "Start query-replace with string to replace from last search string."
+  "Start `query-replace' with string to replace from last search string."
   (interactive)
   (barf-if-buffer-read-only)
   (if regexp-flag (setq isearch-regexp t))
-  (let ((case-fold-search isearch-case-fold-search))
+  (let ((case-fold-search isearch-case-fold-search)
+	;; set `search-upper-case' to nil to not call
+	;; `isearch-no-upper-case-p' in `perform-replace'
+	(search-upper-case nil))
     (isearch-done)
     (isearch-clean-overlays)
     (if (and isearch-other-end
@@ -1256,9 +1261,23 @@ Use `isearch-exit' to quit without signaling."
      (if (and transient-mark-mode mark-active) (region-end)))))
 
 (defun isearch-query-replace-regexp ()
-  "Start query-replace-regexp with string to replace from last search string."
+  "Start `query-replace-regexp' with string to replace from last search string."
   (interactive)
   (isearch-query-replace t))
+
+(defun isearch-occur (regexp &optional nlines)
+  "Run `occur' with regexp to search from the current search string.
+Interactively, REGEXP is the current search regexp or a quoted search
+string.  NLINES has the same meaning as in `occur'."
+  (interactive
+   (list
+    (if isearch-regexp isearch-string (regexp-quote isearch-string))
+    (if current-prefix-arg (prefix-numeric-value current-prefix-arg))))
+  (let ((case-fold-search isearch-case-fold-search)
+	;; set `search-upper-case' to nil to not call
+	;; `isearch-no-upper-case-p' in `occur-1'
+	(search-upper-case nil))
+    (occur regexp nlines)))
 
 
 (defun isearch-delete-char ()

@@ -49,32 +49,63 @@
 
 ;;; Hash table of registered functions.
 
-(defun dbus-hash-table= (x y)
-  "Compares keys X and Y in the hash table of registered functions for D-Bus.
-See `dbus-registered-functions-table' for a description of the hash table."
-  (and
-   (listp x) (listp y)
-   ;; Bus symbol, either :system or :session.
-   (symbolp (car x)) (symbolp (car y)) (equal (car x) (car y))
-   ;; Interface.
-   (or
-    (null (cadr x)) (null (cadr y)) ; wildcard
-    (and
-     (stringp (cadr x)) (stringp (cadr y)) (string-equal (cadr x) (cadr y))))
-   ;; Member.
-   (or
-    (null (caddr x)) (null (caddr y)) ; wildcard
-    (and
-     (stringp (caddr x)) (stringp (caddr y))
-     (string-equal (caddr x) (caddr y))))))
+;; We create it here.  So we have a simple test in dbusbind.c, whether
+;; the Lisp code has been loaded.
+(setq dbus-registered-functions-table (make-hash-table :test 'equal))
 
-(define-hash-table-test 'dbus-hash-table-test 'dbus-hash-table= 'sxhash)
+(defun dbus-list-hash-table ()
+  "Returns all registered signal registrations to D-Bus.
+The return value is a list, with elements of kind (KEY . VALUE).
+See `dbus-registered-functions-table' for a description of the
+hash table."
+  (let (result)
+    (maphash
+     '(lambda (key value) (add-to-list 'result (cons key value) 'append))
+     dbus-registered-functions-table)
+    result))
 
-;; When we assume that interface and and member are always strings in
-;; the key, we could use `equal' as test function.  But we want to
-;; have also `nil' there, being a wildcard.
-(setq dbus-registered-functions-table
-      (make-hash-table :test 'dbus-hash-table-test))
+(defun dbus-name-owner-changed-handler (service old-owner new-owner)
+  "Reapplies all signal registrations to D-Bus.
+This handler is applied when a \"NameOwnerChanged\" signal has
+arrived.  SERVICE is the object name for which the name owner has
+been changed.  OLD-OWNER is the previous owner of SERVICE, or the
+empty string if SERVICE was not owned yet.  NEW-OWNER is the new
+owner of SERVICE, or the empty string if SERVICE looses any name owner."
+  (save-match-data
+    ;; Check whether SERVICE is a known name.
+    (when (and (stringp service) (not (string-match "^:" service))
+	       (stringp old-owner) (stringp new-owner))
+      (maphash
+       '(lambda (key value)
+	  (dolist (elt value)
+	    ;; key has the structure (BUS INTERFACE SIGNAL).
+	    ;; elt has the structure (SERVICE UNAME PATH HANDLER).
+	    (when (string-equal old-owner (cadr elt))
+	      ;; Remove old key, and add new entry with changed name.
+	      (when dbus-debug (message "Remove rule for %s %s" key elt))
+	      ;(dbus-unregister-signal key)
+	      (setcar (cdr elt) new-owner)
+	      (when dbus-debug (message "Add rule for %s %s" key elt))
+	      ;; Maybe we could arrange the lists a little bit better
+	      ;; that we don't need to extract every single element?
+	      (when (not (zerop (length new-owner)))
+		(dbus-register-signal
+		 ;; BUS      SERVICE     PATH
+		 (nth 0 key) (nth 0 elt) (nth 2 elt)
+		 ;; INTERFACE SIGNAL     HANDLER
+		 (nth 1 key) (nth 2 key) (nth 3 elt))))))
+       (copy-hash-table dbus-registered-functions-table)))))
+
+;; Register the handler.
+(condition-case nil
+    (progn
+      (dbus-register-signal
+       :system dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+       "NameOwnerChanged" 'dbus-name-owner-changed-handler)
+      (dbus-register-signal
+       :session dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+       "NameOwnerChanged" 'dbus-name-owner-changed-handler))
+  (dbus-error))
 
 
 ;;; D-Bus events.
@@ -83,33 +114,34 @@ See `dbus-registered-functions-table' for a description of the hash table."
   "Checks whether EVENT is a well formed D-Bus event.
 EVENT is a list which starts with symbol `dbus-event':
 
-     (dbus-event HANDLER BUS SERVICE PATH INTERFACE MEMBER &rest ARGS)
+     (dbus-event BUS SERVICE PATH INTERFACE MEMBER HANDLER &rest ARGS)
 
-HANDLER is the function which has been registered for this
-signal.  BUS identifies the D-Bus the signal is coming from.  It
-is either the symbol `:system' or the symbol `:session'.  SERVICE
-and PATH are the name and the object path of the D-Bus object
+BUS identifies the D-Bus the signal is coming from.  It is either
+the symbol `:system' or the symbol `:session'.  SERVICE and PATH
+are the unique name and the object path of the D-Bus object
 emitting the signal.  INTERFACE and MEMBER denote the signal
-which has been sent.  ARGS are the arguments passed to HANDLER,
-when it is called during event handling in `dbus-handle-event'.
+which has been sent.  HANDLER is the function which has been
+registered for this signal.  ARGS are the arguments passed to
+HANDLER, when it is called during event handling in
+`dbus-handle-event'.
 
 This function raises a `dbus-error' signal in case the event is
 not well formed."
   (when dbus-debug (message "DBus-Event %s" event))
   (unless (and (listp event)
 	       (eq (car event) 'dbus-event)
-	       ;; Handler.
-	       (functionp (nth 1 event))
 	       ;; Bus symbol.
-	       (symbolp (nth 2 event))
+	       (symbolp (nth 1 event))
 	       ;; Service.
-	       (stringp (nth 3 event))
+	       (stringp (nth 2 event))
 	       ;; Object path.
-	       (stringp (nth 4 event))
+	       (stringp (nth 3 event))
 	       ;; Interface.
-	       (stringp (nth 5 event))
+	       (stringp (nth 4 event))
 	       ;; Member.
-	       (stringp (nth 6 event)))
+	       (stringp (nth 5 event))
+	       ;; Handler.
+	       (functionp (nth 6 event)))
     (signal 'dbus-error (list "Not a valid D-Bus event" event))))
 
 ;;;###autoload
@@ -123,7 +155,7 @@ part of the event, is called with arguments ARGS."
   (condition-case nil
       (progn
 	(dbus-check-event event)
-	(apply (cadr event) (nthcdr 7 event)))
+	(apply (nth 6 event) (nthcdr 7 event)))
     (dbus-error)))
 
 (defun dbus-event-bus-name (event)
@@ -133,7 +165,7 @@ EVENT is a D-Bus event, see `dbus-check-event'.  This function
 raises a `dbus-error' signal in case the event is not well
 formed."
   (dbus-check-event event)
-  (nth 2 event))
+  (nth 1 event))
 
 (defun dbus-event-service-name (event)
   "Return the name of the D-Bus object the event is coming from.
@@ -141,7 +173,7 @@ The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
 This function raises a `dbus-error' signal in case the event is
 not well formed."
   (dbus-check-event event)
-  (nth 3 event))
+  (nth 2 event))
 
 (defun dbus-event-path-name (event)
   "Return the object path of the D-Bus object the event is coming from.
@@ -149,7 +181,7 @@ The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
 This function raises a `dbus-error' signal in case the event is
 not well formed."
   (dbus-check-event event)
-  (nth 4 event))
+  (nth 3 event))
 
 (defun dbus-event-interface-name (event)
   "Return the interface name of the D-Bus object the event is coming from.
@@ -157,7 +189,7 @@ The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
 This function raises a `dbus-error' signal in case the event is
 not well formed."
   (dbus-check-event event)
-  (nth 5 event))
+  (nth 4 event))
 
 (defun dbus-event-member-name (event)
   "Return the member name the event is coming from.
@@ -166,7 +198,7 @@ string.  EVENT is a D-Bus event, see `dbus-check-event'.  This
 function raises a `dbus-error' signal in case the event is not
 well formed."
   (dbus-check-event event)
-  (nth 6 event))
+  (nth 5 event))
 
 
 ;;; D-Bus registered names.
@@ -177,8 +209,8 @@ The result is a list of strings, which is nil when there are no
 activatable service names at all."
   (condition-case nil
       (dbus-call-method
-       :system "ListActivatableNames" dbus-service-dbus
-       dbus-path-dbus dbus-interface-dbus)
+       :system dbus-service-dbus
+       dbus-path-dbus dbus-interface-dbus "ListActivatableNames")
     (dbus-error)))
 
 (defun dbus-list-names (bus)
@@ -189,7 +221,7 @@ registered service names at all.  Well known names are strings like
 for services."
   (condition-case nil
       (dbus-call-method
-       bus "ListNames" dbus-service-dbus dbus-path-dbus dbus-interface-dbus)
+       bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus "ListNames")
     (dbus-error)))
 
 (defun dbus-list-known-names (bus)
@@ -206,8 +238,8 @@ The result is a list of strings, or nil when there are no queued name
 owners service names at all."
   (condition-case nil
       (dbus-call-method
-       bus "ListQueuedOwners" dbus-service-dbus
-       dbus-path-dbus dbus-interface-dbus service)
+       bus dbus-service-dbus dbus-path-dbus
+       dbus-interface-dbus "ListQueuedOwners" service)
     (dbus-error)))
 
 (defun dbus-get-name-owner (bus service)
@@ -215,8 +247,8 @@ owners service names at all."
 The result is either a string, or nil if there is no name owner."
   (condition-case nil
       (dbus-call-method
-       bus "GetNameOwner" dbus-service-dbus
-       dbus-path-dbus dbus-interface-dbus service)
+       bus dbus-service-dbus dbus-path-dbus
+       dbus-interface-dbus "GetNameOwner" service)
     (dbus-error)))
 
 (defun dbus-introspect (bus service path)
@@ -227,10 +259,10 @@ Example:
 
 \(dbus-introspect
   :system \"org.freedesktop.Hal\"
-  \"/org/freedesktop/Hal/devices/computer\"))"
+  \"/org/freedesktop/Hal/devices/computer\")"
   (condition-case nil
       (dbus-call-method
-       bus "Introspect" service path dbus-interface-introspectable)
+       bus service path dbus-interface-introspectable "Introspect")
     (dbus-error)))
 
 (if nil ;; Must be reworked.  Shall we offer D-Bus signatures at all?

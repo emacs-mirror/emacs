@@ -2061,9 +2061,8 @@ commands that are defined in texinfo.tex for printed output.
             (apply '+ texinfo-multitable-width-list))))
       (if (> desired-columns fill-column)
           (error
-           (format
-            "Multi-column table width, %d chars, is greater than page width, %d chars."
-            desired-columns fill-column))))
+           "Multi-column table width, %d chars, is greater than page width, %d chars."
+            desired-columns fill-column)))
     texinfo-multitable-width-list))
 
 ;; @item  A1  @tab  A2  @tab  A3

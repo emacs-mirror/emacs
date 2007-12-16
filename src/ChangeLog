@@ -1,3 +1,72 @@
+2007-12-14  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_read_socket): Use MULTIBYTE_CHAR_KEYSTROKE_EVENT
+	for characters above 127.
+
+2007-12-13  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_wnd_proc, Fw32_reconstruct_hot_key): Range check
+	before dereferencing array.
+	(lookup_vk_code): Remove zero comparison.
+
+2007-12-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_retrieve_value, xd_retrieve_arg)
+	(Fdbus_call_method, Fdbus_send_signal, xd_read_message): Use
+	`unsigned int' instead of `uint'.
+	(xd_read_message, Fdbus_register_signal): Split expressions into
+	multiple lines before operators "&&" and "||", according to the
+	GNU Coding Standards.
+
+2007-12-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* dispextern.h (WINDOWS_NT): Fix incorrect spelling of WINDOWSNT.
+
+2007-12-12  Juri Linkov  <juri@jurta.org>
+
+	* buffer.c (Frename_buffer): In interactive spec replace
+	`read-buffer' with `read-string' that uses `buffer-name-history'
+	as history, and the current buffer's name as default.
+
+2007-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (Fcommand_execute): Call Qcall_interactively instead of
+	manipulating the backtrace manually.
+	(make_lispy_event): Merge the ASCII and MULTIBYTE cases.
+	(struct backtrace, backtrace_list): Remove.
+	(command_loop_1): Remove dead var `no_direct'.
+
+	* buffer.c (reset_buffer_local_variables): If permanent_too is 0, also
+	preserve non-built-in buffer-local variables.
+	(Fkill_all_local_variables): Don't re-create&re-set permanent
+	buffer-local variables.
+
+2007-12-09  Juri Linkov  <juri@jurta.org>
+
+	* buffer.c (Frename_buffer): Change interactive spec from "s" to
+	Lisp code that uses `read-buffer' with current buffer as default.
+
+2007-12-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_read_message): Generate an event for every
+	registered handler.  There might be several handlers registered
+	for the same signal.
+	(Fdbus_register_signal): Don't overwrite a registration for the
+	same signal.  Add a new registration if handlers are different.
+	(Vdbus_registered_functions_table): Rework doc string.
+
+2007-12-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_get_unique_name, xd_read_message)
+	(Fdbus_register_signal): Use DBUS_MAXIMUM_NAME_LENGTH and
+	DBUS_MAXIMUM_MATCH_RULE_LENGTH for string lengths.
+	(Fdbus_call_method, Fdbus_send_signal, Fdbus_register_signal):
+	Unify argument lists.
+	(xd_read_message, Fdbus_register_signal) Reorder and extend event
+	arguments and hash table keys.  Use unique name for service.
+	(Fdbus_unregister_signal): Remove checks.
+	(Vdbus_registered_functions_table): Fix doc string.
+
 2007-12-05  Magnus Henoch  <mange@freemail.hu>
 
 	* process.c (make_process): Initialize pty_flag to 0.

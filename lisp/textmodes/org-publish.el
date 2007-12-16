@@ -481,7 +481,7 @@ FILENAME is the filename of the file to be published."
 	 (plist (org-publish-get-plist-from-filename filename))
 	 (publishing-function (or (plist-get plist :publishing-function) 'org-publish-org-to-html)))
     (if (not project-name)
-	(error (format "File %s is not part of any known project." filename)))
+	(error "File %s is not part of any known project." filename))
     (when (org-publish-needed-p filename)
       (if (listp publishing-function)
 	  ;; allow chain of publishing functions
@@ -575,7 +575,7 @@ With prefix argument, force publishing all files in project."
     (let* ((project-name (org-publish-get-project-from-filename (buffer-file-name)))
 	   (org-publish-use-timestamps-flag (if force nil t)))
       (if (not project-name)
-	  (error (format "File %s is not part of any known project." (buffer-file-name))))
+	  (error "File %s is not part of any known project." (buffer-file-name)))
       (org-publish project-name))))
 
 

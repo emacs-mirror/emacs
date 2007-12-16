@@ -318,7 +318,7 @@ which carries the input parameters to the object owning the method to
 be called, and a reply message returning the resulting output
 parameters from the object.
 
-@defun dbus-call-method bus method service path interface &rest args
+@defun dbus-call-method bus service path interface method &rest args
 This function calls @var{method} on the D-Bus @var{bus}.  @var{bus} is
 either the symbol @code{:system} or the symbol @code{:session}.
 
@@ -336,8 +336,8 @@ Lisp objects, according to the type conversion rules described in
 
 @example
 (dbus-call-method
-  :session "GetKeyField" "org.gnome.seahorse"
-  "/org/gnome/seahorse/keys/openpgp" "org.gnome.seahorse.Keys"
+  :session "org.gnome.seahorse" "/org/gnome/seahorse/keys/openpgp"
+  "org.gnome.seahorse.Keys" "GetKeyField"
   "openpgp:657984B8C7A966DD" "simple-name")
 
 @result{} (t ("Philip R. Zimmermann"))
@@ -349,8 +349,9 @@ object.  Example:
 
 @example
 (dbus-call-method
-  :system "GetPropertyString" "org.freedesktop.Hal"
-  "/org/freedesktop/Hal/devices/computer" "org.freedesktop.Hal.Device"
+  :system "org.freedesktop.Hal"
+  "/org/freedesktop/Hal/devices/computer"
+  "org.freedesktop.Hal.Device" "GetPropertyString"
   "system.kernel.machine")
 
 @result{} "i686"
@@ -368,14 +369,14 @@ emulate the @code{lshal} command on GNU/Linux systems:
 @example
 (dolist (device
           (dbus-call-method
-            :system "GetAllDevices" "org.freedesktop.Hal"
+            :system "org.freedesktop.Hal"
             "/org/freedesktop/Hal/Manager"
-            "org.freedesktop.Hal.Manager"))
+            "org.freedesktop.Hal.Manager" "GetAllDevices"))
   (message "\nudi = %s" device)
   (dolist (properties
             (dbus-call-method
-              :system "GetAllProperties" "org.freedesktop.Hal"
-              device "org.freedesktop.Hal.Device"))
+              :system "org.freedesktop.Hal" device
+              "org.freedesktop.Hal.Device" "GetAllProperties"))
     (message "  %s = %S"
              (car properties) (or (caar (cdr properties)) ""))))
 
@@ -406,7 +407,7 @@ emulate the @code{lshal} command on GNU/Linux systems:
 Signals are broadcast messages.  They carry input parameters, which
 are received by all objects which have registered for such a signal.
 
-@defun dbus-send-signal bus signal service path interface &rest args
+@defun dbus-send-signal bus service path interface signal &rest args
 This function is similar to @code{dbus-call-method}.  The difference
 is, that there are no returning output parameters.
 
@@ -425,12 +426,12 @@ Conversion}.  Example:
 
 @example
 (dbus-send-signal
-  :session "FileModified" "org.gnu.Emacs" "/org/gnu/Emacs"
-  "org.gnu.Emacs.FileManager" "/home/albinus/.emacs")
+  :session "org.gnu.Emacs" "/org/gnu/Emacs"
+  "org.gnu.Emacs.FileManager" "FileModified" "/home/albinus/.emacs")
 @end example
 @end defun
 
-@defun dbus-register-signal bus signal service path interface handler
+@defun dbus-register-signal bus service path interface signal handler
 With this function, an application registers for @var{signal} on the
 D-Bus @var{bus}.
 
@@ -461,13 +462,15 @@ received.  It must accept as arguments the output parameters
 (defun my-dbus-signal-handler (device)
   (message "Device %s added" device))
 
+@result{} my-dbus-signal-handler
+
 (dbus-register-signal
-  :system "DeviceAdded"
-  (dbus-get-name-owner :system "org.freedesktop.Hal")
-  "/org/freedesktop/Hal/Manager" "org.freedesktop.Hal.Manager"
+  :system "org.freedesktop.Hal" "/org/freedesktop/Hal/Manager"
+  "org.freedesktop.Hal.Manager" "DeviceAdded"
   'my-dbus-signal-handler)
 
-@result{} (:system "org.freedesktop.Hal.Manager" "DeviceAdded")
+@result{} (:system ":1.3" "/org/freedesktop/Hal/Manager"
+    "org.freedesktop.Hal.Manager" "DeviceAdded")
 @end example
 
 As we know from the inspection data of interface
@@ -503,12 +506,8 @@ Incoming D-Bus messages are handled as Emacs events (see @pxref{Misc
 Events, , , elisp}).  The generated event has this form:
 
 @example
-(dbus-event @var{handler} @var{bus} @var{service} @var{path} @var{interface} @var{member} &rest @var{args})
+(dbus-event @var{bus} @var{service} @var{path} @var{interface} @var{member} @var{handler} &rest @var{args})
 @end example
-
-@var{handler} is the callback function which has been registered for
-this signal (see @pxref{Signals}).  When a @code{dbus-event} event
-arrives, @var{handler} is called with @var{args} as arguments.
 
 @var{bus} identifies the D-Bus the signal is coming from.  It is
 either the symbol @code{:system} or the symbol @code{:session}.
@@ -516,6 +515,10 @@ either the symbol @code{:system} or the symbol @code{:session}.
 @var{service} and @var{path} are the unique name and the object path
 of the D-Bus object emitting the signal.  @var{interface} and
 @var{member} denote the signal which has been sent.
+
+@var{handler} is the callback function which has been registered for
+this signal (see @pxref{Signals}).  When a @code{dbus-event} event
+arrives, @var{handler} is called with @var{args} as arguments.
 
 In order to inspect the @code{dbus-event} data, you could extend the
 definition of the callback function in @ref{Signals}:

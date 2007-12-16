@@ -31,6 +31,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (require 'nnheader)
 (require 'message)
 (require 'nnmail)
@@ -428,6 +432,10 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 		(push newnum numbers))))
       ;; The article numbers are increasing, so this result is sorted.
 	(nreverse numbers)))))
+
+(autoload 'gnus-request-group "gnus-int")
+(declare-function gnus-request-create-group "gnus-int"
+                  (group &optional gnus-command-method args))
 
 (deffoo nnfolder-request-expire-articles (articles newsgroup
 						   &optional server force)

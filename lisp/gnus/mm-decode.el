@@ -26,9 +26,14 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (require 'mail-parse)
 (require 'mailcap)
 (require 'mm-bodies)
+(require 'gnus-util)
 (eval-when-compile (require 'cl)
 		   (require 'term))
 
@@ -733,6 +738,8 @@ external if displayed external."
 		(mm-display-external
 		 handle 'mailcap-save-binary-file)))))))))
 
+(declare-function gnus-configure-windows "gnus-win" (setting &optional force))
+
 (defun mm-display-external (handle method)
   "Display HANDLE using METHOD."
   (let ((outbuf (current-buffer)))
@@ -990,7 +997,8 @@ external if displayed external."
 	(cond
 	 ;; Internally displayed part.
 	 ((mm-annotationp object)
-	  (delete-annotation object))
+          (if (featurep 'xemacs)
+              (delete-annotation object)))
 	 ((or (functionp object)
 	      (and (listp object)
 		   (eq (car object) 'lambda)))
@@ -1231,9 +1239,39 @@ PROMPT overrides the default one used to ask user for a file name."
 	   (mm-save-part-to-file handle file)
 	   file))))
 
+(defun mm-add-meta-html-tag (handle &optional charset)
+  "Add meta html tag to specify CHARSET of HANDLE in the current buffer.
+CHARSET defaults to the one HANDLE specifies.  Existing meta tag that
+specifies charset will not be modified.  Return t if meta tag is added
+or replaced."
+  (when (equal (mm-handle-media-type handle) "text/html")
+    (when (or charset
+	      (setq charset (mail-content-type-get (mm-handle-type handle)
+						   'charset)))
+      (setq charset (format "\
+<meta http-equiv=\"Content-Type\" content=\"text/html; charset=%s\">" charset))
+      (let ((case-fold-search t))
+	(goto-char (point-min))
+	(if (re-search-forward "\
+<meta\\s-+http-equiv=[\"']?content-type[\"']?\\s-+content=[\"']\
+text/\\(\\sw+\\)\\(?:\;\\s-*charset=\\(.+?\\)\\)?[\"'][^>]*>" nil t)
+	    (if (and (match-beginning 2)
+		     (string-match "\\`html\\'" (match-string 1)))
+		;; Don't modify existing meta tag.
+		nil
+	      ;; Replace it with the one specifying charset.
+	      (replace-match charset)
+	      t)
+	  (if (re-search-forward "<head>\\s-*" nil t)
+	      (insert charset "\n")
+	    (re-search-forward "<html\\(?:\\s-+[^>]+\\|\\s-*\\)>\\s-*" nil t)
+	    (insert "<head>\n" charset "\n</head>\n"))
+	  t)))))
+
 (defun mm-save-part-to-file (handle file)
   (mm-with-unibyte-buffer
     (mm-insert-part handle)
+    (mm-add-meta-html-tag handle)
     (let ((current-file-modes (default-file-modes)))
       (set-default-file-modes mm-attachment-file-modes)
       (unwind-protect
@@ -1250,6 +1288,7 @@ PROMPT overrides the default one used to ask user for a file name."
 	  (read-string "Shell command on MIME part: " mm-last-shell-command)))
     (mm-with-unibyte-buffer
       (mm-insert-part handle)
+      (mm-add-meta-html-tag handle)
       (let ((coding-system-for-write 'binary))
 	(shell-command-on-region (point-min) (point-max) command nil)))))
 
@@ -1489,6 +1528,8 @@ If RECURSIVE, search recursively."
   (when handle
     (put-text-property 0 (length (car handle)) parameter value
 		       (car handle))))
+
+(autoload 'mm-view-pkcs7 "mm-view")
 
 (defun mm-possibly-verify-or-decrypt (parts ctl)
   (let ((type (car ctl))
