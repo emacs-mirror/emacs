@@ -1,3 +1,9 @@
+2007-12-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-name-owner-changed-handler): Use
+	`dbus-unregister-signal' for removing old rules.  Obey new
+	structure of `dbus-registered-functions-table'.
+
 2007-12-12  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* progmodes/cc-vars.el (defcustom-c-stylevar): Rewrite.
