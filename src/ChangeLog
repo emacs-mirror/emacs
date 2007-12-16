@@ -1,3 +1,17 @@
+2007-12-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (top): Include <stdio.h>.
+	(Fdbus_call_method, Fdbus_send_signal): Apply type cast in
+	dbus_message_new_method_call and dbus_message_new_signal.
+	(Fdbus_register_signal): Rename unique_name to uname.  Check
+	handler for FUNCTIONP instead of CHECK_SYMBOL.  Handle case of
+	non-existing unique name.  Fix typos in matching rule.  Return an
+	object which is useful in Fdbus_unregister_signal.
+	(Fdbus_unregister_signal): Reimplementation, in order to remove
+	only the corresponding entry.
+	(Vdbus_registered_functions_table): Change the order of entries.
+	Apply these changes in xd_read_message and Fdbus_register_signal.
+
 2007-12-16  Andreas Schwab  <schwab@suse.de>
 
 	* fileio.c (Finsert_file_contents): Fix overflow check to not
