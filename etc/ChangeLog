@@ -11,7 +11,7 @@
 	* schema/xhtml-form.rnc, schema/xhtml-table.rnc, schema/xhtml.rnc:
 	Updated accordingly.
 
-	* schema/docbook-dyntbl.rnc, schema/docbook-dyntbl.rnc: Renamed to
+	* schema/docbook-dyntbl.rnc, schema/docbook-soextbl.rnc: Renamed to
 	docbk-dyntbl.rnc and docbk-soextbl.rnc, respectively.
 
 	* images/icons/macemacs_16.png, images/icons/macemacs_24.png:
