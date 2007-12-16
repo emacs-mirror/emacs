@@ -21,6 +21,7 @@ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
+#include <limits.h>
 
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
@@ -3693,26 +3694,26 @@ read_non_regular_quit ()
 DEFUN ("insert-file-contents", Finsert_file_contents, Sinsert_file_contents,
        1, 5, 0,
        doc: /* Insert contents of file FILENAME after point.
-Returns list of absolute file name and number of characters inserted.
-If second argument VISIT is non-nil, the buffer's visited filename and
-last save file modtime are set, and it is marked unmodified.  If
-visiting and the file does not exist, visiting is completed before the
-error is signaled.
+	       Returns list of absolute file name and number of characters inserted.
+	       If second argument VISIT is non-nil, the buffer's visited filename and
+	       last save file modtime are set, and it is marked unmodified.  If
+	       visiting and the file does not exist, visiting is completed before the
+	       error is signaled.
 
-The optional third and fourth arguments BEG and END specify what portion
-of the file to insert.  These arguments count bytes in the file, not
-characters in the buffer.  If VISIT is non-nil, BEG and END must be nil.
+	       The optional third and fourth arguments BEG and END specify what portion
+	       of the file to insert.  These arguments count bytes in the file, not
+	       characters in the buffer.  If VISIT is non-nil, BEG and END must be nil.
 
-If optional fifth argument REPLACE is non-nil, replace the current
-buffer contents (in the accessible portion) with the file contents.
-This is better than simply deleting and inserting the whole thing
-because (1) it preserves some marker positions and (2) it puts less data
-in the undo list.  When REPLACE is non-nil, the second return value is
-the number of characters that replace previous buffer contents.
+	       If optional fifth argument REPLACE is non-nil, replace the current
+	       buffer contents (in the accessible portion) with the file contents.
+	       This is better than simply deleting and inserting the whole thing
+	       because (1) it preserves some marker positions and (2) it puts less data
+	       in the undo list.  When REPLACE is non-nil, the second return value is
+	       the number of characters that replace previous buffer contents.
 
-This function does code conversion according to the value of
-`coding-system-for-read' or `file-coding-system-alist', and sets the
-variable `last-coding-system-used' to the coding system actually used.  */)
+	       This function does code conversion according to the value of
+	       `coding-system-for-read' or `file-coding-system-alist', and sets the
+	       variable `last-coding-system-used' to the coding system actually used.  */)
      (filename, visit, beg, end, replace)
      Lisp_Object filename, visit, beg, end, replace;
 {
@@ -3863,7 +3864,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	     overflow.  The calculations below double the file size
 	     twice, so check that it can be multiplied by 4 safely.  */
 	  if (XINT (end) != st.st_size
-	      || ((int) st.st_size * 4) / 4 != st.st_size)
+	      || st.st_size > INT_MAX / 4)
 	    error ("Maximum buffer size exceeded");
 
 	  /* The file size returned from stat may be zero, but data
