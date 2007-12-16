@@ -377,6 +377,8 @@ Use `spam-stat-ngood', `spam-stat-nbad', `spam-stat-good',
    (spam-stat-buffer-words))
   (setq spam-stat-dirty t))
 
+(autoload 'gnus-message "gnus-util")
+
 (defun spam-stat-buffer-change-to-spam ()
   "Consider current buffer no longer normal mail but spam."
   (setq spam-stat-nbad (1+ spam-stat-nbad)

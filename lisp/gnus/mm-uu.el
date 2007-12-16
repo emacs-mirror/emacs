@@ -427,6 +427,8 @@ apply the face `mm-uu-extract'."
 		      (list mm-dissect-disposition
 			    (cons 'filename file-name)))))
 
+(defvar gnus-original-article-buffer)   ; gnus.el
+
 (defun mm-uu-yenc-extract ()
   ;; This might not be exactly correct, but we sure can't get the
   ;; binary data from the article buffer, since that's already in a

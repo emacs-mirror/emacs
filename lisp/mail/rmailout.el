@@ -380,7 +380,7 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 		  (rmail-toggle-header))
 	      (if (and (> count 0) (not next-message-p))
 		  (progn
-		    (error
+		    (error "%s"
 		     (save-excursion
 		       (set-buffer rmailbuf)
 		       (format "Only %d message%s appended" num-appended

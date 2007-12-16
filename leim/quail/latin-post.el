@@ -1256,7 +1256,7 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
 (quail-define-package
  "scandinavian-postfix" "Latin-1" "SC<" t
  "Scandinavian input method with postfix modifiers
-Supported languages are Swidish, Norwegian, Danish, and Finnish.
+Supported languages are Swedish, Norwegian, Danish, and Finnish.
 
 ae -> æ
 oe -> ø

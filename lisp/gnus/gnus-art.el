@@ -27,6 +27,9 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
 (defvar tool-bar-map)
@@ -2705,6 +2708,9 @@ charset defined in `gnus-summary-show-article-charset-alist' is used."
 	     (t
 	      (apply (car func) (cdr func))))))))))
 
+;; External.
+(declare-function w3-region "ext:w3-display" (st nd))
+
 (defun gnus-article-wash-html-with-w3 ()
   "Wash the current buffer with w3."
   (mm-setup-w3)
@@ -2715,6 +2721,9 @@ charset defined in `gnus-summary-show-article-charset-alist' is used."
     (condition-case ()
 	(w3-region (point-min) (point-max))
       (error))))
+
+;; External.
+(declare-function w3m-region "ext:w3m" (start end &optional url charset))
 
 (defun gnus-article-wash-html-with-w3m ()
   "Wash the current buffer with emacs-w3m."
@@ -2773,9 +2782,9 @@ summary buffer."
 	     (or how
 		 (setq how gnus-article-browse-delete-temp)))
     (when (and (eq how 'ask)
-	       (y-or-n-p (format
-			  "Delete all %s temporary HTML file(s)? "
-			  (length gnus-article-browse-html-temp-list)))
+	       (gnus-y-or-n-p (format
+			       "Delete all %s temporary HTML file(s)? "
+			       (length gnus-article-browse-html-temp-list)))
 	       (setq how t)))
     (dolist (file gnus-article-browse-html-temp-list)
       (when (and (file-exists-p file)
@@ -2793,61 +2802,63 @@ summary buffer."
   "View all \"text/html\" parts from LIST.
 Recurse into multiparts."
   ;; Internal function used by `gnus-article-browse-html-article'.
-  (let ((showed))
+  (let (type file charset tmp-file showed)
     ;; Find and show the html-parts.
     (dolist (handle list)
       ;; If HTML, show it:
-      (when (listp handle)
-	(cond ((and (bufferp (car handle))
-		    (string-match "text/html" (car (mm-handle-type handle))))
-	       (let ((tmp-file (mm-make-temp-file
-				;; Do we need to care for 8.3 filenames?
-				"mm-" nil ".html"))
-		     (charset (mail-content-type-get (mm-handle-type handle)
-						     'charset)))
-		 (if charset
-		     ;; Add a meta html tag to specify charset.
-		     (mm-with-unibyte-buffer
-		       (insert (with-current-buffer (mm-handle-buffer handle)
-				 (if (eq charset 'gnus-decoded)
-				     (mm-encode-coding-string
-				      (buffer-string)
-				      (setq charset 'utf-8))
-				   (buffer-string))))
-		       (setq charset (format "\
-<meta http-equiv=\"Content-Type\" content=\"text/html; charset=%s\">"
-					     charset))
-		       (goto-char (point-min))
-		       (let ((case-fold-search t))
-			 (cond (;; Don't modify existing meta tag.
-				(re-search-forward "\
-<meta[\t\n\r ]+http-equiv=\"content-type\"[^>]+>"
-						   nil t))
-			       ((re-search-forward "<head>[\t\n\r ]*" nil t)
-				(insert charset "\n"))
-			       (t
-				(re-search-forward "\
-<html\\(?:[\t\n\r ]+[^>]+\\|[\t\n\r ]*\\)>[\t\n\r ]*"
-						   nil t)
-				(insert "<head>\n" charset "\n</head>\n"))))
+      (cond ((not (listp handle)))
+	    ((or (equal (car (setq type (mm-handle-type handle))) "text/html")
+		 (and (equal (car type) "message/external-body")
+		      (setq file (or (mail-content-type-get type 'name)
+				     (mail-content-type-get
+				      (mm-handle-disposition handle)
+				      'filename)))
+		      (or (mm-handle-cache handle)
+			  (condition-case code
+			      (progn (mm-extern-cache-contents handle) t)
+			    (error
+			     (gnus-message 3 "%s" (error-message-string code))
+			     (when (>= gnus-verbose 3) (sit-for 2))
+			     nil)))
+		      (progn
+			(setq handle (mm-handle-cache handle)
+			      type (mm-handle-type handle))
+			(equal (car type) "text/html"))))
+	     (when (or (setq charset (mail-content-type-get type 'charset))
+		       (not file))
+	       (setq tmp-file (mm-make-temp-file
+			       ;; Do we need to care for 8.3 filenames?
+			       "mm-" nil ".html")))
+	     (if charset
+		 ;; Add a meta html tag to specify charset.
+		 (mm-with-unibyte-buffer
+		   (insert (if (eq charset 'gnus-decoded)
+			       (mm-encode-coding-string (mm-get-part handle)
+							(setq charset 'utf-8))
+			     (mm-get-part handle)))
+		   (if (or (mm-add-meta-html-tag handle charset)
+			   (not file))
 		       (mm-write-region (point-min) (point-max)
-					tmp-file nil nil nil 'binary t))
-		   (mm-save-part-to-file handle tmp-file))
-		 (add-to-list 'gnus-article-browse-html-temp-list tmp-file)
-		 (add-hook 'gnus-summary-prepare-exit-hook
-			   'gnus-article-browse-delete-temp-files)
-		 (add-hook 'gnus-exit-gnus-hook
-			   (lambda  ()
-			     (gnus-article-browse-delete-temp-files t)))
-		 ;; FIXME: Warn if there's an <img> tag?
-		 (browse-url-of-file tmp-file)
-		 (setq showed t)))
-	      ;; If multipart, recurse
-	      ((and (stringp (car handle))
-		    (string-match "^multipart/" (car handle))
-		    (setq showed
-			  (or showed
-			      (gnus-article-browse-html-parts handle))))))))
+					tmp-file nil nil nil 'binary t)
+		     (setq tmp-file nil)))
+	       (when tmp-file
+		 (mm-save-part-to-file handle tmp-file)))
+	     (when tmp-file
+	       (add-to-list 'gnus-article-browse-html-temp-list tmp-file))
+	     (add-hook 'gnus-summary-prepare-exit-hook
+		       'gnus-article-browse-delete-temp-files)
+	     (add-hook 'gnus-exit-gnus-hook
+		       (lambda  ()
+			 (gnus-article-browse-delete-temp-files t)))
+	     ;; FIXME: Warn if there's an <img> tag?
+	     (browse-url-of-file (or tmp-file (expand-file-name file)))
+	     (setq showed t))
+	    ;; If multipart, recurse
+	    ((and (stringp (car handle))
+		  (string-match "^multipart/" (car handle))
+		  (setq showed
+			(or showed
+			    (gnus-article-browse-html-parts handle)))))))
     showed))
 
 ;; FIXME: Documentation in texi/gnus.texi missing.
@@ -3907,6 +3918,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 
 (defun article-verify-x-pgp-sig ()
   "Verify X-PGP-Sig."
+  ;; <ftp://ftp.isc.org/pub/pgpcontrol/FORMAT>
   (interactive)
   (if (gnus-buffer-live-p gnus-original-article-buffer)
       (let ((sig (with-current-buffer gnus-original-article-buffer
@@ -4715,8 +4727,9 @@ Deleting parts may malfunction or destroy the article; continue? "))
 	   (handles gnus-article-mime-handles)
 	   (none "(none)")
 	   (description
-	    (mail-decode-encoded-word-string (or (mm-handle-description data)
-						 none)))
+	    (let ((desc (mm-handle-description data)))
+	      (when desc
+		(mail-decode-encoded-word-string desc))))
 	   (filename
 	    (or (mail-content-type-get (mm-handle-disposition data) 'filename)
 		none))
@@ -4734,7 +4747,8 @@ Deleting parts may malfunction or destroy the article; continue? "))
 	    "| Type:           " type "\n"
 	    "| Filename:       " filename "\n"
 	    "| Size (encoded): " bsize " Byte\n"
-	    "| Description:    " description "\n"
+	    (when description
+	      (concat    "| Description:    " description "\n"))
 	    "`----\n"))
 	  (setcdr data
 		  (cdr (mm-make-handle
@@ -7682,6 +7696,9 @@ url is put as the `gnus-button-url' overlay property on the button."
   "Fetch KDE style info URL."
   (gnus-info-find-node (gnus-url-unhex-string url)))
 
+;; (info) will autoload info.el
+(declare-function Info-menu "info" (menu-item &optional fork))
+
 (defun gnus-button-handle-info-keystrokes (url)
   "Call `info' when pushing the corresponding URL button."
   ;; For links like `C-h i d m gnus RET', `C-h i d m CC Mode RET'.
@@ -7991,6 +8008,11 @@ For example:
 			 gnus-article-encrypt-protocol-alist
 			 nil t))
     current-prefix-arg))
+  ;; User might hit `K E' instead of `K e', so prompt once.
+  (when (and gnus-article-encrypt-protocol
+	     gnus-novice-user)
+    (unless (gnus-y-or-n-p "Really encrypt article(s)? ")
+      (error "Encrypt aborted.")))
   (let ((func (cdr (assoc protocol gnus-article-encrypt-protocol-alist))))
     (unless func
       (error "Can't find the encrypt protocol %s" protocol))

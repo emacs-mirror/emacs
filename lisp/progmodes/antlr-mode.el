@@ -1875,7 +1875,7 @@ cell where the two values determine the area inside the braces."
 					(read initial)
 				      initial))
 			       (cdr value))))
-	(message (cadr value))
+	(message "%s" (or (cadr value) ""))
 	(setq value nil)))
     ;; insert value ----------------------------------------------------------
     (if (consp old)

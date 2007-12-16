@@ -76,6 +76,9 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (or (require 'password-cache nil t)
     (require 'password))
 (eval-when-compile
@@ -192,6 +195,10 @@ Valid states are `closed', `initial', `nonauth', and `auth'.")
   "Enable multibyte in the current buffer."
   (when (fboundp 'set-buffer-multibyte)
     (set-buffer-multibyte nil)))
+
+(declare-function password-read         "password-cache" (prompt &optional key))
+(declare-function password-cache-add    "password-cache" (key password))
+(declare-function password-cache-remove "password-cache" (key))
 
 ;; Uses the dynamically bound `reason' variable.
 (defvar reason)

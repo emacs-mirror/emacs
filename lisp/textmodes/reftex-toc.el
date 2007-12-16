@@ -626,7 +626,7 @@ point."
             (message "%d section%s %smoted" 
                      nsec (if (= 1 nsec) "" "s") pro-or-de)
             nil))
-    (if msg (progn (ding) (message msg)))))
+    (if msg (progn (ding) (message "%s" msg)))))
 
 
 (defun reftex-toc-restore-region (point-line &optional mark-line)
@@ -833,7 +833,7 @@ label prefix determines the wording of a reference."
                     (switch-to-buffer-other-window 
                      (reftex-get-file-buffer-force file nil))
                     (goto-char (if (eq where 'bof) (point-min) (point-max))))
-                (message reftex-no-follow-message) nil))))
+                (message "%s" reftex-no-follow-message) nil))))
 
      ((stringp (car toc))
       ;; a label
@@ -900,7 +900,7 @@ label prefix determines the wording of a reference."
                        (reftex-make-regexp-allow-for-ctrl-m literal) len)
                       (reftex-nearest-match
                        (reftex-make-desperate-section-regexp literal) len)))))
-           (t (message reftex-no-follow-message) nil))))
+           (t (message "%s" reftex-no-follow-message) nil))))
     (when match
       (goto-char (match-beginning 0))
       (if (not (= (point) (point-max))) (recenter 1))

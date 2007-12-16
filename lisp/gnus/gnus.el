@@ -30,6 +30,10 @@
 
 (eval '(run-hooks 'gnus-load-hook))
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile (require 'cl))
 (require 'wid-edit)
 (require 'mm-util)
@@ -3735,6 +3739,8 @@ server is native)."
 (defun gnus-group-prefixed-p (group)
   "Return the prefix of the current group name."
   (< 0 (length (gnus-group-real-prefix group))))
+
+(declare-function gnus-group-decoded-name "gnus-group" (string))
 
 (defun gnus-summary-buffer-name (group)
   "Return the summary buffer name of GROUP."

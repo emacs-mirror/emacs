@@ -1,3 +1,169 @@
+2007-12-15  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (article-verify-x-pgp-sig): Add reference to X-PGP-Sig
+	format document.
+	(gnus-mime-delete-part): Don't write description line if empty.
+	(gnus-article-encrypt-body): Add confirmation for gnus-novice-user.
+
+2007-12-14  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
+
+	* gnus-sum.el (gnus-summary-mark-unread-as-read)
+	(gnus-summary-mark-read-and-unread-as-read)
+	(gnus-summary-mark-current-read-and-unread-as-read)
+	(gnus-summary-mark-unread-as-ticked): Doc fix.
+	`gnus-mark-article-hook', not `gnus-summary-mark-article-hook'.
+
+2007-12-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-summary-prev-article): Fix doc string.  Reported by
+	Christoph Conrad <christoph.conrad@gmx.de>.
+
+2007-12-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-util.el (gnus-y-or-n-p, gnus-yes-or-no-p): Alias to y-or-n-p and
+	yes-or-no-p.
+
+2007-12-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-add-meta-html-tag): New function.
+	(mm-save-part-to-file, mm-pipe-part): Use it
+
+	* gnus-art.el (gnus-article-browse-delete-temp-files): Use
+	gnus-y-or-n-p instead of y-or-n-p.
+	(gnus-article-browse-html-parts): Work with message/external-body; use
+	mm-add-meta-html-tag.
+
+2007-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-cache.el: Require gnus-sum not just when compiling.
+
+	* gnus-fun.el (gnus-display-x-face-in-from): Require gnus-art.
+
+	* gnus-int.el (gnus-server-opened, gnus-status-message): Move
+	definitions before use.
+
+	* mm-decode.el: Require gnus-util.
+	(mm-remove-part): Only call delete-annotation on XEmacs.
+
+	* mm-uu.el (gnus-original-article-buffer): Define for compiler.
+
+	* nnmail.el: Require gnus-int.
+
+	* spam.el: Move `require's before `eval-when-compile's.
+
+	* gnus-ems.el (gnus-alive-p):
+	* gnus-fun.el (message-goto-eoh):
+	* gnus-util.el (gnus-group-name-decode):
+	* mail-source.el (gnus-compress-sequence):
+	* message.el (Info-goto-node, format-spec):
+	* mm-bodies.el (message-options-get):
+	* mm-decode.el (mm-view-pkcs7):
+	* mm-util.el (gmm-write-region):
+	* mml-smime.el (mml-compute-boundary)
+	(gnus-completing-read-with-default):
+	* mml.el (widget-button-press, gnus-make-hashtable):
+	* mml1991.el (mm-decode-content-transfer-encoding)
+	(mm-encode-content-transfer-encoding)
+	(message-options-get, message-options-set):
+	* mml2015.el (gnus-buffer-live-p, gnus-get-buffer-create):
+	* nnfolder.el (gnus-request-group):
+	* nnheader.el (ietf-drums-unfold-fws):
+	* rfc1843.el (mail-header-parse-content-type, message-narrow-to-head):
+	* smime.el (gnus-run-mode-hooks):
+	* spam-stat.el (gnus-message): Autoload.
+
+	* gnus-cache.el, gnus-fun.el, gnus-group.el, gnus.el, mail-source.el:
+	* mm-bodies.el, mm-decode.el, mm-extern.el, mm-util.el:
+	* mml-smime.el, mml.el, mml1991.el, mml2015.el, nndb.el, nnfolder.el:
+	* nnmail.el, nnmaildir.el, nnrss.el, rfc1843.el, spam.el:
+	Add declare-function compatibility definition.
+
+	* gnus-cache.el (nnvirtual-find-group-art):
+	* gnus-fun.el (article-narrow-to-head, gnus-article-goto-header)
+	(gnus-add-image, gnus-add-wash-type):
+	* gnus-group.el (nnkiboze-score-file):
+	* gnus-sum.el (turn-on-gnus-mailing-list-mode)
+	(gnus-cache-write-active, mm-uu-dissect, idna-to-unicode):
+	* gnus-util.el (gnus-find-method-for-group, gnus-group-name-charset)
+	(message-tokenize-header, gnus-get-buffer-create)
+	(mm-enable-multibyte, gnus-put-text-property, gnus-overlay-put)
+	(gnus-make-overlay, mm-disable-multibyte, gnus-add-text-properties):
+	* gnus.el (gnus-group-decoded-name):
+	* mail-source.el (imap-capability):
+	* mm-bodies.el (message-options-set):
+	* mm-decode.el (gnus-configure-windows):
+	* mm-extern.el (message-goto-body):
+	* mm-util.el (mm-delete-duplicates, mm-detect-coding-region):
+	* mml-smime.el (epg-key-sub-key-list, epg-sub-key-capability)
+	(epg-sub-key-validity, message-options-set):
+	* mml.el (widget-event-point, gnus-configure-windows):
+	* mml1991.el (mc-encrypt-generic, gpg-sign-encrypt, gpg-encrypt):
+	* mml2015.el (epg-check-configuration, epg-configuration)
+	(message-options-set):
+	* nndb.el (nndb-request-article):
+	* nnfolder.el (gnus-request-create-group):
+	* nnmail.el (gnus-activate-group, gnus-group-mark-article-read):
+	* nnmaildir.el (gnus-group-mark-article-read):
+	* nnrss.el (w3-parse-buffer, gnus-group-make-rss-group):
+	* rfc1843.el (message-fetch-field):
+	* spam.el (gnus-extract-address-components):
+	Declare as functions.
+
+2007-12-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-html-parts): Decode CTE.
+
+2007-12-09  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-uu.el (gnus-uu-yenc-article): Use insert-buffer-substring.
+
+	* gnus-art.el, gnus-spec.el, gnus-sum.el, gnus-util.el:
+	* message.el, mm-view.el, sieve-manage, smime.el:
+	Add declare-function compatibility definition.
+
+	* gnus-art.el (w3-region, w3m-region, Info-menu):
+	* gnus-spec.el (gnus-summary-from-or-to-or-newsgroups):
+	* gnus-sum.el (gnus-get-predicate):
+	* gnus-util.el (mm-append-to-file, w32-focus-frame):
+	* message.el (mail-abbrev-in-expansion-header-p):
+	* mm-view.el (w3-do-setup, w3-region, w3-prepare-buffer)
+	(w3m-detect-meta-charset, w3m-region):
+	* sieve-manage.el (password-read, password-cache-add)
+	(password-cache-remove):
+	* smime.el (password-read-and-add): Declare as functions.
+
+2007-12-08  David Kastrup  <dak@gnu.org>
+
+	* gnus-sum.el (gnus-summary-simplify-subject-query):
+	* ecomplete.el (ecomplete-display-matches): Fix buggy call to
+	`message'.
+
+2007-12-07  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-art.el (article-make-date-line): Revert previous change.
+
+2007-12-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-start.el (gnus-load): Rename local variable to avoid confusion.
+
+2007-12-06  Christian Plate  <cplate@web.de>  (tiny change)
+
+	* nnmaildir.el (nnmaildir-request-update-info): Improved performance.
+	Call gnus-add-to-range ranges only once with a prepared article-list.
+
+2007-12-06  Paul Jarc  <prj@po.cwru.edu>
+
+	* nnmaildir.el (nnmaildir-request-list, nnmaildir-retrieve-groups,
+	nnmaildir-request-group, nnmaildir-retrieve-headers): Escape spaces in
+	group names with backslashes.  Reported by Tassilo Horn
+	<tassilo@member.fsf.org>.
+
+2007-12-06  D. Goel  <deego3@gmail.com>
+
+	* gnus-art.el (article-make-date-line):
+	* gnus-start.el (gnus-load):
+	* pop3.el (pop3-read-response): Fix buggy call to `error'.
+
 2007-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-use-idna)

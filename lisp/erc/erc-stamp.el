@@ -412,8 +412,8 @@ NOW is position of point currently."
   (when erc-echo-timestamps
     (let ((stamp (get-text-property now 'timestamp)))
       (when stamp
-	(message (format-time-string erc-echo-timestamp-format
-				     stamp))))))
+	(message "%s" (format-time-string erc-echo-timestamp-format
+					  stamp))))))
 
 (provide 'erc-stamp)
 

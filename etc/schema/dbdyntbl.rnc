@@ -2,7 +2,7 @@
 # allows the table model to be selected dynamically based on the
 # definitions of cals.table.module and exchange.table.module.
 #
-# To use this copy, docbook.rnc to docbook-dyntbl.rnc replacing
+# To use this, copy docbook.rnc to docbook-dyntbl.rnc replacing
 # "dbcalstbl.rnc" by "dbdyntbl.rnc".  Then, you can override the
 # choice of table model by doing
 #

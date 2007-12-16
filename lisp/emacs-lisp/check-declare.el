@@ -34,6 +34,9 @@
 
 ;;; TODO:
 
+;; 1. Warn about functions marked as obsolete, eg
+;; password-read-and-add in smime.el.
+
 ;;; Code:
 
 (defconst check-declare-warning-buffer "*Check Declarations Warnings*"
@@ -141,7 +144,8 @@ is a string giving details of the error."
           ;; defsubst's don't _have_ to be known at compile time.
           (setq re (format (if cflag
                                "^[ \t]*\\(DEFUN\\)[ \t]*([ \t]*\"%s\""
-                             "^[ \t]*(\\(fset[ \t]+'\\|def\\(?:un\\|subst\\|\
+                             "^[ \t]*(\\(fset[ \t]+'\\|\
+def\\(?:un\\|subst\\|foo\\|\
 ine-\\(?:derived\\|generic\\|\\(?:global\\(?:ized\\)?-\\)?minor\\)-mode\
 \\|\\(?:ine-obsolete-function-\\)?alias[ \t]+'\\)\\)\
 \[ \t]*%s\\([ \t;]+\\|$\\)")

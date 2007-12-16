@@ -121,6 +121,9 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (require 'dig)
 (or (require 'password-cache nil t)
     (require 'password))
@@ -257,6 +260,7 @@ must be set in `ldap-host-parameters-alist'."
 	   temporary-file-directory))))))
 
 ;; Password dialog function
+(declare-function password-read-and-add "password-cache" (prompt &optional key))
 
 (defun smime-ask-passphrase (&optional cache-key)
   "Asks the passphrase to unlock the secret key.
@@ -653,6 +657,8 @@ A string or a list of strings is returned."
 
   (define-key smime-mode-map "q" 'smime-exit)
   (define-key smime-mode-map "f" 'smime-certificate-info))
+
+(autoload 'gnus-run-mode-hooks "gnus-util")
 
 (defun smime-mode ()
   "Major mode for browsing, viewing and fetching certificates.

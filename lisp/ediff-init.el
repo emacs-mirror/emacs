@@ -1576,7 +1576,7 @@ This default should work without changes."
 	 )
 	((ediff-key-press-event-p event)
 	 (point))
-	(t (error nil))))
+	(t (error "Error"))))
 
 (defun ediff-event-buffer (event)
   (cond ((ediff-mouse-event-p event)
@@ -1587,7 +1587,7 @@ This default should work without changes."
 	 )
 	((ediff-key-press-event-p event)
 	 (current-buffer))
-	(t (error nil))))
+	(t (error "Error"))))
 
 (defun ediff-event-key (event-or-key)
   (ediff-cond-compile-for-xemacs-or-emacs

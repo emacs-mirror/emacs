@@ -30,6 +30,10 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
 (eval-when-compile (require 'cl))
 (require 'mm-decode)
 (require 'mm-util)
@@ -37,6 +41,10 @@
 (require 'mml-sec)
 
 (defvar mc-pgp-always-sign)
+
+(declare-function epg-check-configuration "ext:epg-config"
+                  (config &optional minimum-version))
+(declare-function epg-configuration "ext:epg-config" ())
 
 (defvar mml2015-use (or
 		     (condition-case nil
@@ -395,6 +403,10 @@ Whether the passphrase is cached at all is controlled by
     (goto-char (point-max))
     (insert (format "--%s--\n" boundary))
     (goto-char (point-max))))
+
+;; We require mm-decode, which requires mm-bodies, which autoloads
+;; message-options-get (!).
+(declare-function message-options-set "message" (symbol value))
 
 (defun mml2015-mailcrypt-encrypt (cont &optional sign)
   (let ((mc-pgp-always-sign
@@ -1328,6 +1340,9 @@ If no one is selected, default secret key is used.  "
     (goto-char (point-max))))
 
 ;;; General wrapper
+
+(autoload 'gnus-buffer-live-p "gnus-util")
+(autoload 'gnus-get-buffer-create "gnus")
 
 (defun mml2015-clean-buffer ()
   (if (gnus-buffer-live-p mml2015-result-buffer)

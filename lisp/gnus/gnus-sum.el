@@ -27,6 +27,9 @@
 
 ;;; Code:
 
+;; For Emacs < 22.2.
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (eval-when-compile
   (require 'cl))
 
@@ -2959,6 +2962,9 @@ When FORCE, rebuild the tool bar."
 	    (setq headers (cdr headers)))
 	  (list (nreverse outh))))))))
 
+
+(declare-function turn-on-gnus-mailing-list-mode "gnus-ml" ())
+
 
 
 (defun gnus-summary-mode (&optional group)
@@ -4028,7 +4034,7 @@ If NO-DISPLAY, don't generate a summary buffer."
   "Query where the respool algorithm would put this article."
   (interactive)
   (gnus-summary-select-article)
-  (message (gnus-general-simplify-subject (gnus-summary-article-subject))))
+  (message "%s" (gnus-general-simplify-subject (gnus-summary-article-subject))))
 
 (defun gnus-gather-threads-by-subject (threads)
   "Gather threads by looking at Subject headers."
@@ -5576,6 +5582,8 @@ If SELECT-ARTICLES, only select those articles from GROUP."
 	  (gnus-inverse-list-range-intersection
 	   gnus-newsgroup-articles gnus-newsgroup-seen))))
 
+(declare-function gnus-get-predicate "gnus-agent" (predicate))
+
 (defun gnus-summary-display-make-predicate (display)
   (require 'gnus-agent)
   (when (= (length display) 1)
@@ -6946,6 +6954,8 @@ If FORCE (the prefix), also save the .newsrc file(s)."
       (gnus-save-newsrc-file)
     (gnus-dribble-save)))
 
+(declare-function gnus-cache-write-active "gnus-cache" (&optional force))
+
 (defun gnus-summary-exit (&optional temporary leave-hidden)
   "Exit reading current newsgroup, and then return to group selection mode.
 `gnus-exit-group-hook' is called with no arguments if that value is non-nil."
@@ -7648,7 +7658,7 @@ If BACKWARD, the previous article is selected instead of the next."
 	(gnus-summary-article-subject))))
 
 (defun gnus-summary-prev-article (&optional unread subject)
-  "Select the article after the current one.
+  "Select the article before the current one.
 If UNREAD is non-nil, only unread articles are selected."
   (interactive "P")
   (gnus-summary-next-article unread subject t))
@@ -9437,6 +9447,8 @@ prefix specifies how many places to rotate each letter forward."
   ;; Create buttons and stuff...
   (gnus-treat-article nil))
 
+(declare-function idna-to-unicode "ext:idna" (str))
+
 (defun gnus-summary-idna-message (&optional arg)
   "Decode IDNA encoded domain names in the current articles.
 IDNA encoded domain names looks like `xn--bar'.  If a string
@@ -10818,12 +10830,12 @@ The difference between N and the number of marks cleared is returned."
   (gnus-summary-mark-forward (- n) gnus-unread-mark))
 
 (defun gnus-summary-mark-unread-as-read ()
-  "Intended to be used by `gnus-summary-mark-article-hook'."
+  "Intended to be used by `gnus-mark-article-hook'."
   (when (memq gnus-current-article gnus-newsgroup-unreads)
     (gnus-summary-mark-article gnus-current-article gnus-read-mark)))
 
 (defun gnus-summary-mark-read-and-unread-as-read (&optional new-mark)
-  "Intended to be used by `gnus-summary-mark-article-hook'."
+  "Intended to be used by `gnus-mark-article-hook'."
   (let ((mark (gnus-summary-article-mark)))
     (when (or (gnus-unread-mark-p mark)
 	      (gnus-read-mark-p mark))
@@ -10831,7 +10843,7 @@ The difference between N and the number of marks cleared is returned."
 				 (or new-mark gnus-read-mark)))))
 
 (defun gnus-summary-mark-current-read-and-unread-as-read (&optional new-mark)
-  "Intended to be used by `gnus-summary-mark-article-hook'."
+  "Intended to be used by `gnus-mark-article-hook'."
   (let ((mark (gnus-summary-article-mark)))
     (when (or (gnus-unread-mark-p mark)
 	      (gnus-read-mark-p mark))
@@ -10839,7 +10851,7 @@ The difference between N and the number of marks cleared is returned."
 				 (or new-mark gnus-read-mark)))))
 
 (defun gnus-summary-mark-unread-as-ticked ()
-  "Intended to be used by `gnus-summary-mark-article-hook'."
+  "Intended to be used by `gnus-mark-article-hook'."
   (when (memq gnus-current-article gnus-newsgroup-unreads)
     (gnus-summary-mark-article gnus-current-article gnus-ticked-mark)))
 
@@ -11792,6 +11804,7 @@ save those articles instead."
       encoded)))
 
 (defvar gnus-summary-save-parts-counter)
+(declare-function mm-uu-dissect "mm-uu" (&optional noheader mime-type))
 
 (defun gnus-summary-save-parts (type dir n &optional reverse)
   "Save parts matching TYPE to DIR.

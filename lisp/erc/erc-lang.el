@@ -197,7 +197,7 @@ Normungsinstitut (ON), Postfach 130, A-1021 Vienna, Austria.")
   "Return the language name for the ISO CODE."
   (interactive (list (completing-read "ISO language code: "
 				      iso-638-languages)))
-  (message (cdr (assoc code iso-638-languages))))
+  (message "%s" (cdr (assoc code iso-638-languages))))
 
 (defun erc-cmd-LANG (language)
   "Display the language name for the language code given by LANGUAGE."

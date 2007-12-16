@@ -3864,7 +3864,12 @@ command to conveniently insert and align the necessary backslashes."
 		  (save-excursion
 		    (goto-char (cdr c-lit-limits))
 		    (beginning-of-line)
-		    (and (search-forward-regexp
+		    ;; The following conjunct was added to avoid an
+		    ;; "Invalid search bound (wrong side of point)"
+		    ;; error in the subsequent re-search.  Maybe
+		    ;; another fix would be needed (2007-12-08).
+		    (and (> (- (cdr c-lit-limits) 2) (point))
+			 (search-forward-regexp
 			  (concat "\\=[ \t]*\\(" c-current-comment-prefix "\\)")
 			  (- (cdr c-lit-limits) 2) t)
 			 (not (search-forward-regexp

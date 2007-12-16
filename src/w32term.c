@@ -4625,6 +4625,8 @@ x_scroll_bar_clear (f)
 static int temp_index;
 static short temp_buffer[100];
 
+/* Temporarily store lead byte of DBCS input sequences.  */
+static char dbcs_lead = 0;
 
 /* Read events coming from the W32 shell.
    This routine is called by the SIGIO handler.

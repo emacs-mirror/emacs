@@ -1051,7 +1051,7 @@ When called interactively, prompt for REGEXP."
 	(unless state
 	  (push 'middle state))
 	(mm-with-unibyte-buffer
-	  (insert-buffer gnus-original-article-buffer)
+	  (insert-buffer-substring gnus-original-article-buffer)
 	  (yenc-decode-region (point-min) (point-max))
 	  (when (and (member 'begin state)
 		     (file-exists-p gnus-uu-yenc-article-name))

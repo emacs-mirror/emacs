@@ -789,8 +789,8 @@ This is meant to be added buffer-locally to `write-file-functions'."
 	(whitespace-cleanup-internal)
       (setq werr (whitespace-buffer)))
     (if (and whitespace-abort-on-error werr)
-	(error (concat "Abort write due to whitespaces in "
-		       buffer-file-name))))
+	(error "Abort write due to whitespaces in %s"
+		       buffer-file-name)))
   nil)
 
 (defun whitespace-unload-function ()

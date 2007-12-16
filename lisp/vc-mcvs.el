@@ -294,7 +294,7 @@ This is only possible if Meta-CVS is responsible for FILE's directory.")
        ((re-search-forward "Up-to-date check failed" nil t)
 	(mapc (lambda (file) (vc-file-setprop file 'vc-state 'needs-merge))
 	      files)
-        (error (substitute-command-keys
+        (error "%s" (substitute-command-keys
                 (concat "Up-to-date check failed: "
                         "type \\[vc-next-action] to merge in changes"))))
        (t

@@ -252,7 +252,8 @@ face (according to `face-differs-from-default-p')."
 
 ;;;###autoload
 (defun describe-function-1 (function)
-  (let* ((advised (and (featurep 'advice) (ad-get-advice-info function)))
+  (let* ((advised (and (symbolp function) (featurep 'advice)
+		       (ad-get-advice-info function)))
 	 ;; If the function is advised, use the symbol that has the
 	 ;; real definition, if that symbol is already set up.
 	 (real-function

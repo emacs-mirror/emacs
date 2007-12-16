@@ -55,7 +55,7 @@ testing for the `multi-tty' feature.
 OS-X-style icons (an application icon and a relevant document icon)
 were contributed by Kentaro Ohkouchi.
 Source files for these icons can be found in Emacs.app/Contents/Resources.
-PNG versions are available as etc/images/icons/macemacs_*.png.
+PNG versions are available as etc/images/icons/emacs*_mac.png.
 
 ** Built-in functions (subr) can now have an interactive specification
 that is not a prompt string.  If the `intspec' parameter of a `DEFUN'
@@ -234,7 +234,12 @@ position of point in help window (for example in `view-lossage').
 ** view-remove-frame-by-deleting is now by default t
 since users found iconification of view-mode frames distracting.
 
-** isearch can now search through multiple ChangeLog files.
+** Isearch mode
+
+*** New command `isearch-occur' bound to `M-s o' in isearch mode
+runs `occur' with the current search string.
+
+*** isearch can now search through multiple ChangeLog files.
 When running isearch in a ChangeLog file, if the search fails,
 then another C-s tries searching the previous ChangeLog,
 if there is one (e.g. go from ChangeLog to ChangeLog.12).
@@ -346,6 +351,14 @@ rather than fortran-indent-comment.
 
 +++
 *** (The increasingly misnamed) F90 mode supports Fortran 2003 syntax.
+
+** Gnus package
+
+*** The Gnus package has been updated
+
+*** There are many news features, bug fixes and improvements.
+
+See the file GNUS-NEWS or the node "No Gnus" in the Gnus manual for details.
 
 ** Miscellaneous
 

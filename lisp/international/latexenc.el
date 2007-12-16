@@ -181,7 +181,8 @@ coding system names is determined from `latex-inputenc-coding-alist'."
                         (find-file-noselect latexenc-main-file t)))
                   (coding-system-base   ;Disregard the EOL part of the CS.
                    (with-current-buffer latexenc-main-buffer
-                     (or coding-system-for-write buffer-file-coding-system))))
+                     (or coding-system-for-write buffer-file-coding-system
+			 'undecided))))
               'undecided))))
     'undecided))
 

@@ -1,3 +1,13 @@
+2007-12-14  Sven Joachim  <svenjoac@gmx.de>
+
+	* gnus.texi (Score Variables): Fix typo.
+
+2007-12-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Synchronous Methods): Adapt dbus-call-method.
+	(Signals): Adapt dbus-send-signal and dbus-register-signal.
+	(Errors and Events): Adapt dbus-event.
+
 2007-12-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus.texi (Other Files): Add the yenc command.

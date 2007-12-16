@@ -515,7 +515,7 @@ We will store server variables in the buffer given by BUFFER."
       (set-process-filter process 'erc-server-filter-function)
       (set-process-buffer process buffer)))
   (erc-log "\n\n\n********************************************\n")
-  (message (erc-format-message
+  (message "%s" (erc-format-message
             'login ?n
             (with-current-buffer buffer (erc-current-nick))))
   ;; wait with script loading until we receive a confirmation (first
@@ -1537,6 +1537,16 @@ A server may send more than one 005 message."
 
 See `erc-display-server-message'." nil
   (erc-display-server-message proc parsed))
+
+(define-erc-response-handler (275)
+  "Display secure connection message." nil
+  (multiple-value-bind (nick user message)
+      (cdr (erc-response.command-args parsed))
+    (erc-display-message
+     parsed 'notice 'active 's275
+     ?n nick
+     ?m (mapconcat 'identity (cddr (erc-response.command-args parsed))
+                   " "))))
 
 (define-erc-response-handler (290)
   "Handle dancer-ircd CAPAB messages." nil nil)

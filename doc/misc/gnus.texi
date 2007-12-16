@@ -20529,7 +20529,7 @@ Suffix to add to the group name to arrive at the score file name
 @vindex gnus-score-uncacheable-files
 @cindex score cache
 All score files are normally cached to avoid excessive re-loading of
-score files.  However, if this might make your Emacs grow big and
+score files.  However, this might make your Emacs grow big and
 bloated, so this regexp can be used to weed out score files unlikely
 to be needed again.  It would be a bad idea to deny caching of
 @file{all.SCORE}, while it might be a good idea to not cache

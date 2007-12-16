@@ -404,7 +404,7 @@ Optional arg EMPTY is message to print if no macros are defined."
 		   (format " [%s]"
 			   (format kmacro-counter-format-start kmacro-counter)))
 		 (if z (substring m 0 (1- x)) m) (if z "..." "")))
-    (message (or empty "No keyboard macros defined"))))
+    (message "%s" (or empty "No keyboard macros defined"))))
 
 
 (defun kmacro-repeat-on-last-key (keys)

@@ -1,3 +1,306 @@
+2007-12-12  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* progmodes/cc-vars.el (defcustom-c-stylevar): Rewrite.
+
+2007-12-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (set-buffer-menubar): Remove unused
+	function.
+	(add-submenu): Only define for XEmacs.
+	(verilog-regexp-words): Revert previous change, keep the other
+	definition.
+
+2007-12-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/perl-mode.el (perl-continued-statement-offset)
+	(perl-continued-brace-offset, perl-brace-offset)
+	(perl-brace-imaginary-offset, perl-label-offset):
+	* progmodes/cperl-mode.el (cperl-brace-offset)
+	(cperl-continued-brace-offset, cperl-label-offset)
+	(cperl-continued-statement-offset)
+	(cperl-extra-newline-before-brace, cperl-merge-trailing-else): Add
+	safe-local-variable properties.
+
+2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (verilog-mode-map)
+	(verilog-template-map, verilog-mode-mouse-map): Fix typos.
+	(verilog-colorize-include-files): Use only overlay functions so
+	that it can work on both emacs and XEmacs.
+	(set-extent-keymap): Remove unused defun.
+	(verilog-kill-existing-comment, verilog-insert-date)
+	(verilog-insert-year): Rename in order not to pollute the global
+	namespace from kill-existing-comment, insert-date and
+	insert-year, respectively.
+	(verilog-set-auto-endcomments, verilog-header): Update callers.
+
+	* files.el (auto-mode-alist): Recognize verilog files.
+
+	* progmodes/verilog-mode.el (verilog-string-replace-matches)
+	(verilog-string-remove-spaces, verilog-re-search-forward)
+	(verilog-re-search-backward, verilog-re-search-forward-quick)
+	(verilog-re-search-backward-quick, verilog-get-beg-of-line)
+	(verilog-get-end-of-line, verilog-within-string): Move definitions
+	before first use. No code changes.
+
+2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (verilog-mode-version)
+	(verilog-mode-release-date): Don't use expanding keywords.
+	(provide): Move to the end of file.
+	(fboundp): Don't check if eval-when-compile is bound, it is used
+	later in the file without checking.
+	(when, unless): Copy definitions from subr.el.
+	(char-before, defcustom, defface, customize-group)
+	(verilog-batch-error-wrapper): Don't use old style backquotes.
+	(verilog-regexp-opt): Avoid using the cl function case.
+	(verilog-regexp-words): Remove duplicated definition.
+	(verilog-mode-abbrev-table): Remove, duplicate.
+	(verilog-mode-map, verilog-template-map, verilog-mode-mouse-map):
+	Declare and initialize in one step.
+	(verilog-declaration-prefix-re, verilog-declaration-re)
+	(verilog-end-of-statement, verilog-indent-declaration)
+	(verilog-get-lineup-indent): Remove trailing whitespace.
+	(verilog-mode): Fix autoload cookie. Set
+	beginning-of-defun-function and end-of-defun-function. Use when
+	instead of if.
+	(verilog-emacs-features, verilog-auto-ascii-enum)
+	(verilog-insert-indices): Escape braces in doc strings.
+
+2007-12-08  Michael McNamara <mac@verilog.com>
+	    Wilson Snyder <wsnyder@wsnyder.org>
+
+	* progmodes/verilog-mode.el: New file.
+
+2007-12-08  Eli Zaretskii  <eliz@fencepost.gnu.org>
+
+	* international/latexenc.el (latexenc-find-file-coding-system): If
+	both coding-system-for-write and buffer-file-coding-system of
+	latex-main-file are nil, use `undecided'.
+
+2007-12-06  Jason Rumney  <jasonr@gnu.org>
+
+	* mouse.el (mouse-buffer-menu-alist): Keep buffer names left aligned.
+
+2007-12-12  Yoni Rabkin Katzenell  <yoni-r@actcom.com>  (tiny change)
+
+	* files.el (revert-buffer): Docstring fix.
+
+2007-12-11  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/check-declare.el (check-declare-verify): Handle deffoo.
+
+2007-12-11  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-aent.el (math-restore-underscores)
+	(math-string-restore-underscores): New functions.
+	(math-read-factor): Properly check variable names with underscores
+	for entries in `math-expr-variable-mapping'.
+
+	* calc/calc-lang.el (math-lang-name): New property name.
+
+	* calc/calc.el (calc-set-mode-line): Use `math-lang-name'
+	to set language name.
+
+2007-12-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* pgg.el (pgg-run-at-time, pgg-cancel-timer): Use eval-and-compile.
+
+2007-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-select-display): Fix important typo.
+	(server-process-filter): Turn a "" display into nil.
+
+2007-12-09  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (keep-lines, flush-lines, how-many): Doc fix.
+	Check search-upper-case before calling isearch-no-upper-case-p
+	to set case-fold-search.
+	(occur): Doc fix.
+	(occur-1, perform-replace): Check search-upper-case before calling
+	isearch-no-upper-case-p to set case-fold-search.
+
+	* isearch.el (search-upper-case): Doc fix.
+	(isearch-mode-map): Bind `M-s o' to isearch-occur.
+	(isearch-query-replace): Doc fix.  Let-bind search-upper-case to nil.
+	(isearch-query-replace-regexp): Doc fix.
+	(isearch-occur): New function.
+
+2007-12-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pgg.el, pgg-parse.el (declare-function): Add new no-op macro for
+	backward compatibility.
+
+	* net/imap.el (imap-string-to-integer): New function.
+
+2007-12-09  David Kastrup  <dak@gnu.org>
+
+	* emacs-lisp/lisp-mnt.el (lm-verify): Make it work with
+	directories.  Not sure anybody uses this anymore, though.
+
+2007-12-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Fix pr-interface-map initialization code.
+	(pr-version): New version 6.9.3.
+	(pr-f-set-keymap-parents): Replace by pr-set-keymap-parents.
+	(pr-f-set-keymap-name): Replace by pr-set-keymap-name.
+	(pr-f-read-string): Replace by pr-read-string.
+	(pr-set-keymap-parents, pr-set-keymap-name, pr-read-string): New fun
+	name.
+	(pr-interactive-n-up, pr-interactive-regexp): Code fix.
+
+2007-12-09  Glenn Morris  <rgm@gnu.org>
+
+	* emulation/viper-init.el (top-level): Use dolist rather than mapc
+	in make-variable-frame-local call.
+
+2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* mail/hashcash.el (declare-function):
+	* net/imap.el (declare-function): New no-op macro for backward
+	compatibility.
+
+2007-12-08  Eli Zaretskii  <eliz@gnu.org>
+
+	Sync makefile.w32-in with Makefile.in.
+
+	* makefile.w32-in (check-declare): New target.
+	(BYTE_COMPILE_EXTRA_FLAGS): New variable.
+	(.el.elc, compile-CMD, compile-SH, compile-always-CMD)
+	(compile-always-SH, compile-calc-CMD, compile-calc-SH)
+	($(lisp)/progmodes/cc-mode.elc): Use it.
+	($(lisp)/progmodes/cc-mode.elc): New rule.
+
+2007-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* indent.el (tab-stop-list): Mark as safe-local-variable.
+
+	* generic-x.el (etc-sudoers-generic-mode): New mode.
+	(generic-unix-modes): Add it.
+
+2007-12-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-hash-table=): Remove function.  We cannot
+	apply wildcards in a hash table key; there is no usable hash code then.
+	(dbus-registered-functions-table): Use `equal' as test function.
+	(dbus-name-owner-changed-handler): Rewrite due to new hash table
+	structure.
+
+2007-12-08  Martin Rudalics  <rudalics@gmx.at>
+
+	* progmodes/cc-cmds.el (c-mask-paragraph): Avoid invalid search
+	bound error in block comment branch.
+
+2007-12-08  David Kastrup  <dak@gnu.org>
+
+	* textmodes/reftex.el (reftex-select-with-char):
+	* textmodes/reftex-toc.el (reftex-toc-do-promote)
+	(reftex-toc-visit-location, reftex-toc-find-section):
+	* textmodes/reftex-index.el (reftex-index-show-entry):
+	* textmodes/org.el (org-cycle-hide-archived-subtrees)
+	(org-table-rotate-recalc-marks, org-mark-ring-push)
+	(org-follow-info-link, org-mhe-get-message-folder-from-index)
+	(org-auto-repeat-maybe, org-store-log-note, org-delete-property)
+	(org-evaluate-time-range, org-edit-agenda-file-list):
+	* textmodes/artist.el (artist-select-next-op-in-list)
+	(artist-select-prev-op-in-list):
+	* term/mac-win.el (mac-service-insert-text):
+	* startup.el (fancy-about-screen):
+	* progmodes/vhdl-mode.el (vhdl-decision-query):
+	* progmodes/idlwave.el (idlwave-template)
+	(idlwave-scroll-completions, idlwave-display-completion-list):
+	* progmodes/ebrowse.el (ebrowse-show-progress):
+	* progmodes/cperl-mode.el (cperl-find-pods-heres):
+	* progmodes/antlr-mode.el (antlr-insert-option-do):
+	* play/mpuz.el (mpuz-close-game):
+	* net/rcirc.el (rcirc-next-active-buffer):
+	* mail/reporter.el (reporter-update-status):
+	* kmacro.el (kmacro-display):
+	* international/ja-dic-cnv.el (skkdic-set-okuri-nasi):
+	* emulation/viper-util.el (viper-save-setting):
+	* emacs-lisp/lisp-mnt.el (lm-verify):
+	* emacs-lisp/edebug.el (edebug-set-mode):
+	* emacs-lisp/checkdoc.el (checkdoc-rogue-spaces, checkdoc-defun):
+	* calendar/calendar.el (calendar-print-day-of-year):
+	* calc/calcalg3.el (calc-curve-fit):
+	* calc/calcalg2.el (math-integral):
+	* calc/calc.el (calc-read-key-sequence, calc-version):
+	* calc/calc-mode.el (calc-set-simplify-mode):
+	* calc/calc-ext.el (calc-fancy-prefix): Fix buggy call to `message'.
+
+2007-12-07  D. Goel  <deego3@gmail.com>
+
+	* progmodes/idlw-shell.el (idlwave-shell-display-line)
+	* progmodes/ada-xref.el (ada-find-file, ada-get-all-references)
+	(ada-xref-find-in-modified-ali, ada-find-in-src-path)
+	* mail/uce.el (uce-reply-to-uce)
+	* progmodes/vhdl-mode.el (vhdl-template-modify)
+	* mail/feedmail.el (feedmail-dump-message-to-queue): Improve calls
+	to `error' (as suggested by RMS.)
+
+2007-12-07  Glenn Morris  <rgm@gnu.org>
+
+	* allout.el (allout-write-file-hook-handler):
+	* textmodes/reftex.el (reftex-TeX-master-file):
+	* textmodes/reftex-parse.el (reftex-short-context):
+	Revert previous change.
+
+2007-12-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-hash-table=): Fix for new hash table key structure.
+	(dbus-list-hash-table, dbus-name-owner-changed-handler): New defuns.
+	(dbus-check-event, dbus-handle-event, dbus-event-bus-name)
+	(dbus-event-service-name, dbus-event-path-name)
+	(dbus-event-interface-name, dbus-event-member-name): Fix for new
+	event structure.
+	(dbus-list-activatable-names, dbus-list-names)
+	(dbus-list-queued-owners, dbus-get-name-owner, dbus-introspect):
+	Reorder `dbus-call-method' arguments.
+
+2007-12-06  D. Goel  <deego3@gmail.com>
+
+	* allout.el (allout-write-file-hook-handler):
+	* textmodes/reftex.el (reftex-TeX-master-file):
+	* textmodes/org.el (org-paste-subtree):
+	* progmodes/vhdl-mode.el (vhdl-template-modify):
+	* progmodes/idlw-shell.el (idlwave-shell-send-command)
+	(idlwave-shell-display-line):
+	* progmodes/ada-xref.el (ada-find-file, ada-get-all-references)
+	(ada-xref-find-in-modified-ali, ada-find-in-src-path):
+	* net/trampver.el (x):
+	* mail/uce.el (uce-reply-to-uce):
+	* mail/rmailout.el (rmail-output):
+	* mail/feedmail.el (feedmail-dump-message-to-queue):
+	* whitespace.el (whitespace-write-file-hook):
+	* wdired.el (wdired-check-kill-buffer):
+	* vc.el (vc-update):
+	* vc-mcvs.el (vc-mcvs-checkin):
+	* vc-cvs.el (vc-cvs-checkin):
+	* man.el (Man-bgproc-sentinel, Man-goto-see-also-section):
+	* ibuffer.el (ibuffer-current-buffer):
+	* dired.el (dired-move-to-end-of-filename):
+	* bindings.el (complete-symbol):
+	* textmodes/org-publish.el (org-publish-file):
+	(org-publish-current-project):
+	* textmodes/reftex-parse.el (reftex-short-context):
+	* textmodes/texinfmt.el: Fix buggy calls to `error'.
+
+2007-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-dvi->pdf-sentinel)
+	(doc-view-pdf/ps->png-sentinel, doc-view-pdf->txt-sentinel)
+	(doc-view-ps->pdf-sentinel, doc-view-display): Don't change buffer
+	within a sentinel or timer.
+	(doc-view-display): Don't try to display before the requested page
+	is available, unless told to do so explicitly.
+	(doc-view-pdf/ps->png-sentinel, doc-view-initiate-display):
+	Force display even if the requested page is not available.
+
+2007-12-06  Richard Stallman  <rms@gnu.org>
+
+	* help-fns.el (describe-function-1): Call ad-get-advice-info
+	only on symbols.
+
 2007-12-06  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/antlr-mode.el (antlr-keyword, antlr-syntax)
@@ -97,8 +400,8 @@
 
 	* eshell/esh-module.el (eshell-load-defgroups): Eval and compile.
 
-	* eshell/esh-util.el (top-level): Don't require pp.  Use
-	condition-case rather than ignore-errors.
+	* eshell/esh-util.el (top-level): Don't require pp.
+	Use condition-case rather than ignore-errors.
 
 	* eshell/eshell.el (eshell-buffer-name): Define for compiler.
 
@@ -120,8 +423,8 @@
 	esh-maint.  Collect any require statements.  Leave provide at start.
 	Move any commentary to start.
 
-	* emacs-lisp/bytecomp.el (byte-compile-declare-function): Remove
-	declared function from byte-compile-noruntime-functions.
+	* emacs-lisp/bytecomp.el (byte-compile-declare-function):
+	Remove declared function from byte-compile-noruntime-functions.
 
 	* ediff-util.el (ediff-version):
 	* progmodes/python.el (compilation-shell-minor-mode):
@@ -223,16 +526,16 @@
 
 2007-12-03  Richard Stallman  <rms@gnu.org>
 
-	* subr.el (declare-function): Moved from byte-run.el.
+	* subr.el (declare-function): Move from byte-run.el.
 
-	* emacs-lisp/byte-run.el (declare-function): Moved to subr.el
+	* emacs-lisp/byte-run.el (declare-function): Move to subr.el
 
 	* window.el (recenter-top-bottom): Don't use `ecase'.
 
 2007-12-02  Karl Fogel  <kfogel@red-bean.com>
 
-	* saveplace.el (save-place-alist-to-file): Set
-	coding-system-for-write once and refer to it throughout.
+	* saveplace.el (save-place-alist-to-file):
+	Set coding-system-for-write once and refer to it throughout.
 	Suggested by David Reitter <dreitter{_AT_}inf.ed.ac.uk>.
 
 2007-12-02  Karl Fogel  <kfogel@red-bean.com>

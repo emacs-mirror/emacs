@@ -445,12 +445,10 @@ delete the text being replaced, as in standard Vi."
 (defvar viper-vi-state-cursor-color nil)
 
 (if (fboundp 'make-variable-frame-local)
-    (mapc 'make-variable-frame-local
-          '(viper-replace-overlay-cursor-color
-            viper-insert-state-cursor-color
-            viper-emacs-state-cursor-color
-            viper-vi-state-cursor-color)))
-
+    (dolist (v '(viper-replace-overlay-cursor-color
+                 viper-insert-state-cursor-color viper-emacs-state-cursor-color
+                 viper-vi-state-cursor-color))
+      (make-variable-frame-local v)))
 
 (viper-deflocalvar viper-replace-overlay nil "")
 (put 'viper-replace-overlay 'permanent-local t)
