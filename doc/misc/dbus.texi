@@ -469,8 +469,9 @@ received.  It must accept as arguments the output parameters
   "org.freedesktop.Hal.Manager" "DeviceAdded"
   'my-dbus-signal-handler)
 
-@result{} (:system ":1.3" "/org/freedesktop/Hal/Manager"
-    "org.freedesktop.Hal.Manager" "DeviceAdded")
+@result{} ((:system "org.freedesktop.Hal.Manager" "DeviceAdded")
+    ("org.freedesktop.Hal" "/org/freedesktop/Hal/Manager"
+     my-signal-handler))
 @end example
 
 As we know from the inspection data of interface
