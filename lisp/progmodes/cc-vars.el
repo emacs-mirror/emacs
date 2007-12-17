@@ -188,7 +188,6 @@ the value set here overrides the style system (there is a variable
          (aggregate `'(radio
                        (const :tag "Use style settings" set-from-style)
                        ,(cons head newt))))
-    (message "aggregate: %S" aggregate)
     `(progn
        (c-set-stylevar-fallback ',name ,val)
        (custom-declare-variable
