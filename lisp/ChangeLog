@@ -1,7 +1,7 @@
 2007-12-17  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* progmodes/cc-vars.el (defcustom-c-stylevar):
-	Remove debugging message.  Reported by Eli Zaretskii.
+	Revert to pre-2007-12-12 version.
 
 2007-12-15  Richard Stallman  <rms@gnu.org>
 
