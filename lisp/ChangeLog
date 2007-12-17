@@ -1,3 +1,8 @@
+2007-12-17  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/sh-script.el (sh-font-lock-syntactic-keywords): Fix
+	comment typo.
+
 2007-12-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-name-owner-changed-handler): Use
