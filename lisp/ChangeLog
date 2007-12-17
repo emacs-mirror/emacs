@@ -1,3 +1,8 @@
+2007-12-17  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* progmodes/cc-vars.el (defcustom-c-stylevar):
+	Remove debugging message.  Reported by Eli Zaretskii.
+
 2007-12-15  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/find-func.el (find-function-after-hook): Add :type.
