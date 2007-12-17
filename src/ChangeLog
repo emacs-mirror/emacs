@@ -1,3 +1,8 @@
+2007-12-17  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) <WM_KEYDOWN>: Cast char to unsigned
+	before passing as wParam.
+
 2007-12-14  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_read_socket): Use MULTIBYTE_CHAR_KEYSTROKE_EVENT
