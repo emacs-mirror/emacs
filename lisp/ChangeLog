@@ -1,3 +1,10 @@
+2007-12-18  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-escape-string): New function.  Escape string using
+	xml-entity-alist.
+	(xml-debug-print-internal): Use xml-escape-string to escape
+	characters in attributes and in text children of elements.
+
 2007-12-18  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/cc-subword.el (c-subword-mode): Drop support for

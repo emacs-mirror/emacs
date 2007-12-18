@@ -844,6 +844,17 @@ The first line is indented with the optional INDENT-STRING."
 
 (defalias 'xml-print 'xml-debug-print)
 
+(defun xml-escape-string (string)
+  (mapconcat (lambda (byte)
+               (let ((char (char-to-string byte)))
+                 (if (rassoc char xml-entity-alist)
+                     (concat "&" (car (rassoc char xml-entity-alist)) ";")
+                   char)))
+             (if (multibyte-string-p string)
+                 (encode-coding-string string 'utf-8)
+               string)
+             ""))
+
 (defun xml-debug-print-internal (xml indent-string)
   "Outputs the XML tree in the current buffer.
 The first line is indented with INDENT-STRING."
@@ -854,7 +865,8 @@ The first line is indented with INDENT-STRING."
     ;;  output the attribute list
     (setq attlist (xml-node-attributes tree))
     (while attlist
-      (insert ?\  (symbol-name (caar attlist)) "=\"" (cdar attlist) ?\")
+      (insert ?\  (symbol-name (caar attlist)) "=\""
+              (xml-escape-string (cdar attlist)) ?\")
       (setq attlist (cdr attlist)))
 
     (setq tree (xml-node-children tree))
@@ -869,7 +881,8 @@ The first line is indented with INDENT-STRING."
 	 ((listp node)
 	  (insert ?\n)
 	  (xml-debug-print-internal node (concat indent-string "  ")))
-	 ((stringp node) (insert node))
+	 ((stringp node)
+          (insert (xml-escape-string node)))
 	 (t
 	  (error "Invalid XML tree"))))
 
