@@ -662,9 +662,10 @@ fontset_find_font (fontset, c, face, id, fallback)
   if (EQ (vec, Qt))
     return Qnil;
 
-  if (XINT (AREF (vec, 0)) != charset_ordered_list_tick
-      || XINT (AREF (vec, 1)) != id
-      || NILP (Fequal (AREF (vec, 2), face->lface[LFACE_FAMILY_INDEX])))
+  if (ASIZE (vec) > 4
+      && (XINT (AREF (vec, 0)) != charset_ordered_list_tick
+	  || XINT (AREF (vec, 1)) != id
+	  || NILP (Fequal (AREF (vec, 2), face->lface[LFACE_FAMILY_INDEX]))))
     /* We have just created VEC,
        or the charset priorities were changed,
        or the preferred charset was changed,
