@@ -183,7 +183,7 @@ the value set here overrides the style system (there is a variable
          (newt (append (unless (plist-get tail :tag)
                          '(:tag "Override style settings"))
                        (unless (plist-get tail :value)
-                         `(:value ,val))
+                         `(:value ,(eval val)))
                        tail))
          (aggregate `'(radio
                        (const :tag "Use style settings" set-from-style)
@@ -440,12 +440,13 @@ comment-only lines."
 ;; Although c-comment-continuation-stars is obsolete, we look at it in
 ;; some places in CC Mode anyway, so make the compiler ignore it
 ;; during our compilation.
-(cc-bytecomp-obsolete-var c-comment-continuation-stars)
-(cc-bytecomp-defvar c-comment-continuation-stars)
+;; [This is unclean; better to use `symbol-value'. --ttn]
+;;(cc-bytecomp-obsolete-var c-comment-continuation-stars)
+;;(cc-bytecomp-defvar c-comment-continuation-stars)
 
 (defcustom-c-stylevar c-block-comment-prefix
   (if (boundp 'c-comment-continuation-stars)
-      c-comment-continuation-stars
+      (symbol-value 'c-comment-continuation-stars)
     "* ")
   "*Specifies the line prefix of continued C-style block comments.
 You should set this variable to the literal string that gets inserted

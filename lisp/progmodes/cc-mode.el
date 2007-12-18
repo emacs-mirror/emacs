@@ -190,7 +190,8 @@ control).  See \"cc-mode.el\" for more info."
 	    (run-hooks 'c-initialization-hook)
 	    ;; Fix obsolete variables.
 	    (if (boundp 'c-comment-continuation-stars)
-		(setq c-block-comment-prefix c-comment-continuation-stars))
+		(setq c-block-comment-prefix
+		      (symbol-value 'c-comment-continuation-stars)))
 	    (add-hook 'change-major-mode-hook 'c-leave-cc-mode-mode)
 	    (setq c-initialization-ok t))
 	;; Will try initialization hooks again if they failed.
