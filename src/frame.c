@@ -3492,14 +3492,16 @@ x_set_font_backend (f, new_value, old_value)
     return;
 
   if (FRAME_FONT_OBJECT (f))
-    {
-      free_all_realized_faces (Qnil);
-      Fclear_font_cache ();
-    }
+    free_all_realized_faces (Qnil);
 
-  new_value = font_update_drivers (f, new_value);
+  new_value = font_update_drivers (f, NILP (new_value) ? Qt : new_value);
   if (NILP (new_value))
-    error ("No font backend available");
+    {
+      if (NILP (old_value))
+	error ("No font backend available");
+      font_update_drivers (f, old_value);
+      error ("None of specified font backends are available");
+    }
   store_frame_param (f, Qfont_backend, new_value);
 
   if (FRAME_FONT_OBJECT (f))
