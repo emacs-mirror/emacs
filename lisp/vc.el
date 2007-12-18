@@ -1553,7 +1553,7 @@ first backend that could register the file is used."
   (interactive "P")
   (when (and (null fname) (null buffer-file-name)) (error "No visited file"))
 
-  (let ((bname (if fname (get-file-buffer fname) buffer-file-name)))
+  (let ((bname (if fname (get-file-buffer fname) (current-buffer))))
     (unless fname (setq fname buffer-file-name))
     (when (vc-backend fname)
       (if (vc-registered fname)
