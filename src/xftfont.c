@@ -174,7 +174,6 @@ static int xftfont_draw P_ ((struct glyph_string *, int, int, int, int, int));
 
 static int xftfont_anchor_point P_ ((struct font *, unsigned, int,
 				     int *, int *));
-static int xftfont_start_for_frame P_ ((FRAME_PTR f));
 static int xftfont_end_for_frame P_ ((FRAME_PTR f));
 
 struct font_driver xftfont_driver;
