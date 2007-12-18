@@ -1,3 +1,13 @@
+2007-12-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* progmodes/cc-vars.el (defcustom-c-stylevar): Eval VAL.
+	(c-comment-continuation-stars): No longer declare with
+	cc-bytecomp-obsolete-var and cc-bytecomp-defvar.
+	(c-block-comment-prefix): Use symbol-value to
+	access c-comment-continuation-stars.
+	* progmodes/cc-mode.el (c-initialize-cc-mode):
+	Use symbol-value to access c-comment-continuation-stars.
+
 2007-12-18  Mark A. Hershberger  <mah@everybody.org>
 
 	* xml.el (xml-escape-string): New function.  Escape string using
