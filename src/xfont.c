@@ -154,7 +154,7 @@ xfont_get_pcm (xfont, char2b)
 	  ? NULL : pcm);
 }
 
-static Lisp_Object xfont_get_cache P_ ((Lisp_Object));
+static Lisp_Object xfont_get_cache P_ ((FRAME_PTR));
 static Lisp_Object xfont_list P_ ((Lisp_Object, Lisp_Object));
 static Lisp_Object xfont_match P_ ((Lisp_Object, Lisp_Object));
 static Lisp_Object xfont_list_family P_ ((Lisp_Object));
@@ -185,16 +185,16 @@ struct font_driver xfont_driver =
     xfont_has_char,
     xfont_encode_char,
     xfont_text_extents,
-    xfont_draw,
+    xfont_draw
   };
 
 extern Lisp_Object QCname;
 
 static Lisp_Object
-xfont_get_cache (frame)
-     Lisp_Object frame;
+xfont_get_cache (f)
+     FRAME_PTR f;
 {
-  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (frame));
+  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
   return (dpyinfo->name_list_element);
 }
@@ -814,7 +814,6 @@ xfont_draw (s, from, to, x, y, with_background)
 
   return len;
 }
-
 
 
 void
