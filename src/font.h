@@ -313,9 +313,9 @@ struct font_driver
   /* Symbol indicating the type of the font-driver.  */
   Lisp_Object type;
 
-  /* Return a cache of font-entities on FRAME.  The cache must be a
+  /* Return a cache of font-entities on frame F.  The cache must be a
      cons whose cdr part is the actual cache area.  */
-  Lisp_Object (*get_cache) P_ ((Lisp_Object frame));
+  Lisp_Object (*get_cache) P_ ((FRAME_PTR F));
 
   /* List fonts exactly matching with FONT_SPEC on FRAME.  The value
      is a vector of font-entities.  This is the sole API that
