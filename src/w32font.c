@@ -135,10 +135,10 @@ memq_no_quit (elt, list)
    Return a cache of font-entities on FRAME.  The cache must be a
    cons whose cdr part is the actual cache area.  */
 Lisp_Object
-w32font_get_cache (frame)
-     Lisp_Object frame;
+w32font_get_cache (f)
+     FRAME_PTR f;
 {
-  struct w32_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (XFRAME (frame));
+  struct w32_display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
 
   return (dpyinfo->name_list_element);
 }
