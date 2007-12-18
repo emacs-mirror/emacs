@@ -1,6 +1,27 @@
 2007-12-18  Kenichi Handa  <handa@ni.aist.go.jp>
 
+	* ftfont.c (ftfont_get_cache): Adjust the argument type.
+
+	* frame.c (x_set_font_backend): Don't call Fclear_font_cache.  If
+	none of the new drivers are available, call font_update_drviers
+	with the old drivers.
+
+	* w32font.c (w32font_get_cache): Adjust the argument type.
+
+	* xfont.c (xfont_get_cache): Adjust the argument type.
+
+	* font.h (struct font_driver): Change argument type of get_cache.
+
+	* xftfont.c (xftfont_start_for_frame): Delete prototype.
+
 	* font.c (Ffont_get): Fix arguments to Fassoc.
+	(font_prepare_cache, font_finish_cache, font_get_cache): New
+	functions.
+	(font_clear_cache): New function.
+	(font_list_entities): Use font_get_cache.
+	(font_matching_entity): Likewise.
+	(font_update_drivers): Call font_clear_cache when finishing a
+	driver.
 
 	* fontset.c (fontset_find_font): Fix previous change.
 
