@@ -1,3 +1,9 @@
+2007-12-18  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* font.c (Ffont_get): Fix arguments to Fassoc.
+
+	* fontset.c (fontset_find_font): Fix previous change.
+
 2007-12-14  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xterm.c (x_check_font) [USE_FONT_BACKEND]: Don't access
@@ -107,6 +113,9 @@
 	COMPOSITION_WITH_GLYPH_STRING.
 
 2007-12-04  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* xfont.c (Qx): Deleted.
+	(syms_of_xfont): Don't initialize Qx.
 
 	* composite.h (enum composition_method): Define
 	COMPOSITION_WITH_GLYPH_STRING unconditionally.
