@@ -1,3 +1,55 @@
+2007-12-18  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-subword.el (c-subword-mode): Drop support for
+	systems without define-minor-mode.
+
+	* progmodes/cc-vars.el (defcustom-c-stylevar): Remove debugging
+	message.
+
+	* progmodes/verilog-mode.el: Replace all instances of
+	string-to-int with string-to-number, insert-string with insert,
+	and read-input with read-string.
+	(top-level): No need to require imenu, reporter, dinotrace, vc,
+	font-lock when compiling.  Always require compile.  Relegate remaining
+	compatibility cruft to XEmacs.  Don't require font-lock.
+	(verilog-version): Remove superfluous concat.
+	(dinotrace-unannotate-all, zmacs-activate-region)
+	(customize-apropos): No need to define.
+	(verilog-regexp-opt): On Emacs, just make it an alias for regexp-opt.
+	(verilog-font-lock-keywords, verilog-font-lock-keywords-1)
+	(verilog-font-lock-keywords-2, verilog-font-lock-keywords-3)
+	(verilog-startup-message-displayed): These are variables, not constants.
+	(verilog-batch-execute-func, verilog-auto-inst)
+	(verilog-auto-inst-param): Use mapc rather than mapcar.
+	(sigs-in, sigs-inout, sigs-out): Define for compiler rather than
+	actually defining.
+	(verilog-modi-get-decls, verilog-modi-get-sub-decls)
+	(verilog-modi-get-outputs, verilog-modi-get-inouts)
+	(verilog-modi-get-inputs, verilog-modi-get-wires)
+	(verilog-modi-get-regs, verilog-modi-get-assigns)
+	(verilog-modi-get-consts, verilog-modi-get-gparams)
+	(verilog-modi-get-sub-outputs, verilog-modi-get-sub-inouts)
+	(verilog-modi-get-sub-inputs): Move inline functions earlier in
+	the file.
+	(sigs-in, sigs-out): Don't declare multiple times.
+	(got-sig, got-rvalue, uses-delayed): Define for compiler with just
+	`defvar'.
+	(verilog-auto): Call dinotrace-unannotate-all only if bound.
+	(verilog-module-inside-filename-p): No need to wrap fboundp test
+	in condition-case.
+	(reporter-submit-bug-report): Autoload it.
+	(verilog-mark-defun): Call zmacs-activate-region only if bound.
+	(verilog-font-customize): Call customize-apropos only if bound.
+	(verilog-getopt-flags, verilog-auto-reeval-locals): Use
+	make-local-variable rather than make-variable-buffer-local.
+	(verilog-company, verilog-project, verilog-modi-cache-list): Move
+	make-variable-buffer-local calls to top-level.
+	(font-lock-defaults-alist): Don't define it.
+	(verilog-need-fld): Remove.
+	(verilog-font-lock-init): Don't set font-lock-defaults-alist.
+	(verilog-mode): Only call make-local-hook on XEmacs.  Set
+	font-lock-defaults rather than using verilog-font-lock-init.
+
 2007-12-17  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/sh-script.el (sh-font-lock-syntactic-keywords): Fix
