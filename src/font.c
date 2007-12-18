@@ -3027,7 +3027,7 @@ FONT is a font-spec, a font-entity, or a font-object.  */)
     return AREF (font, idx);
   if (FONT_ENTITY_P (font))
     return Qnil;
-  return Fcdr (Fassoc (AREF (font, FONT_EXTRA_INDEX), key));
+  return Fcdr (Fassoc (key, AREF (font, FONT_EXTRA_INDEX)));
 }
 
 
