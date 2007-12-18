@@ -262,7 +262,7 @@ ftfont_list_generic_family (spec, frame, registry)
 }
 
 
-static Lisp_Object ftfont_get_cache P_ ((Lisp_Object));
+static Lisp_Object ftfont_get_cache P_ ((FRAME_PTR));
 static Lisp_Object ftfont_list P_ ((Lisp_Object, Lisp_Object));
 static Lisp_Object ftfont_match P_ ((Lisp_Object, Lisp_Object));
 static Lisp_Object ftfont_list_family P_ ((Lisp_Object));
@@ -316,8 +316,8 @@ struct font_driver ftfont_driver =
 extern Lisp_Object QCname;
 
 static Lisp_Object
-ftfont_get_cache (frame)
-     Lisp_Object frame;
+ftfont_get_cache (f)
+     FRAME_PTR f;
 {
   return freetype_font_cache;
 }
