@@ -845,6 +845,8 @@ The first line is indented with the optional INDENT-STRING."
 (defalias 'xml-print 'xml-debug-print)
 
 (defun xml-escape-string (string)
+  "Return the string with entity substitutions made from
+xml-entity-alist."
   (mapconcat (lambda (byte)
                (let ((char (char-to-string byte)))
                  (if (rassoc char xml-entity-alist)
