@@ -614,23 +614,17 @@ fontset_find_font (fontset, c, face, id, fallback)
 	      if (! NILP (script))
 		{
 		  Lisp_Object font_spec = Ffont_spec (0, NULL);
-	      
+		  Lisp_Object args[2], tmp;	      
+
 		  ASET (font_spec, FONT_REGISTRY_INDEX, Qiso10646_1);
 		  ASET (font_spec, FONT_EXTRA_INDEX,
 			Fcons (Fcons (QCscript, script), Qnil));
-		  if (NILP (elt))
-		    elt = Fvector (1, &font_spec);
-		  else
-		    {
-		      Lisp_Object args[2], tmp;
-
-		      args[0] = elt;
-		      tmp = Fmake_vector (make_number (3), Qnil);
-		      ASET (tmp, 0, font_spec);
-		      ASET (tmp, 1, CHARSET_SYMBOL_ID (Qunicode_bmp));
-		      args[1] = Fvector (1, &tmp);
-		      elt = Fvconcat (2, args);
-		    }
+		  args[0] = elt;
+		  tmp = Fmake_vector (make_number (3), Qnil);
+		  ASET (tmp, 0, font_spec);
+		  ASET (tmp, 1, CHARSET_SYMBOL_ID (Qunicode_bmp));
+		  args[1] = Fvector (1, &tmp);
+		  elt = Fvconcat (2, args);
 		}
 	    }
 	}
