@@ -1,3 +1,15 @@
+2007-12-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (cd-absolute): Set `list-buffers-directory' in order to
+	show correct path in buffer list.
+
+	* net/tramp.el (tramp-open-connection-setup-interactive-shell)
+	(tramp-find-shell): Send only single prompt setting commands, in
+	order to avoid double-prompt.
+
+	* net/tramp-compat.el (top): Require cl only when compiling.
+	Reported by Glenn Morris <rgm@gnu.org>.
+
 2007-12-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* progmodes/cc-vars.el (defcustom-c-stylevar): Eval VAL.

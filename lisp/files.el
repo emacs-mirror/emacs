@@ -633,7 +633,8 @@ Directories are separated by occurrences of `path-separator'
 	  (error "%s is not a directory" dir)
 	(error "%s: no such directory" dir))
     (if (file-executable-p dir)
-	(setq default-directory dir)
+	(setq default-directory dir
+	      list-buffers-directory dir)
       (error "Cannot cd to %s:  Permission denied" dir))))
 
 (defun cd (dir)

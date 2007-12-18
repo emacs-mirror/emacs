@@ -78,7 +78,7 @@
 	     (when (featurep 'tramp-compat)
 	       (unload-feature 'tramp-compat 'force))))
 
-(require 'format-spec)                  ;from Gnus 5.8, also in tar ball
+(require 'format-spec)                  ; from Gnus 5.8, also in tar ball
 ;; As long as password.el is not part of (X)Emacs, it shouldn't
 ;; be mandatory
 (if (featurep 'xemacs)
@@ -5365,11 +5365,14 @@ file exists and nonzero exit status otherwise."
 	  ;; as well.
 	  (tramp-send-command
 	   vec
-	   (format "PROMPT_COMMAND=''; PS1='%s%s%s'; PS2=''; PS3=''"
+	   (format "PS1='%s%s%s'"
 		   tramp-rsh-end-of-line
 		   tramp-end-of-output
 		   tramp-rsh-end-of-line)
 	   t)
+	  (tramp-send-command vec "PS2=''" t)
+	  (tramp-send-command vec "PS3=''" t)
+	  (tramp-send-command vec "PROMPT_COMMAND=''" t)
 	  (tramp-message vec 5 "Setting remote shell prompt...done"))
 	 (t (tramp-message
 	     vec 5 "Remote `%s' groks tilde expansion, good"
@@ -5638,7 +5641,7 @@ process to set up.  VEC specifies the connection."
     (tramp-send-command
      vec
      (format
-      "exec env 'ENV=' 'PROMPT_COMMAND=' 'PS1=$ ' PS2='' PS3='' %s"
+      "exec env ENV='' PROMPT_COMMAND='' PS1='$ ' PS2='' PS3='' %s"
       (tramp-get-method-parameter
        (tramp-file-name-method vec) 'tramp-remote-sh))
      t)
@@ -5665,11 +5668,14 @@ process to set up.  VEC specifies the connection."
   ;; regarded as prompt already.
   (tramp-send-command
    vec
-   (format "PROMPT_COMMAND=''; PS1='%s%s%s'; PS2=''; PS3=''"
+   (format "PS1='%s%s%s'"
 	   tramp-rsh-end-of-line
            tramp-end-of-output
 	   tramp-rsh-end-of-line)
    t)
+  (tramp-send-command vec "PS2=''" t)
+  (tramp-send-command vec "PS3=''" t)
+  (tramp-send-command vec "PROMPT_COMMAND=''" t)
 
   ;; Try to set up the coding system correctly.
   ;; CCC this can't be the right way to do it.  Hm.
