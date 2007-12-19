@@ -1297,7 +1297,10 @@ Otherwise, throw an error."
   "Make sure that the current buffer visits a version-controlled file."
   (if vc-dired-mode
       (set-buffer (find-file-noselect (dired-get-filename)))
-    (while vc-parent-buffer
+    (while (and vc-parent-buffer
+		;; Avoid infinite looping when vc-parent-buffer and
+		;; current buffer are the same buffer.
+ 		(not (eq vc-parent-buffer (current-buffer))))
       (set-buffer vc-parent-buffer))
     (if (not buffer-file-name)
 	(error "Buffer %s is not associated with a file" (buffer-name))
