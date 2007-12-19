@@ -1,3 +1,18 @@
+2007-12-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (QCdbus_type_byte, QCdbus_type_boolean)
+	(QCdbus_type_int16, QCdbus_type_uint16, QCdbus_type_int32)
+	(QCdbus_type_uint32, QCdbus_type_int64, QCdbus_type_uint64)
+	(QCdbus_type_double, QCdbus_type_string, QCdbus_type_object_path)
+	(QCdbus_type_signature, QCdbus_type_array, QCdbus_type_variant)
+	(QCdbus_type_struct, QCdbus_type_dict_entry): New D-Bus type
+	symbols.
+	(XD_LISP_SYMBOL_TO_DBUS_TYPE): New macro.
+	(XD_LISP_OBJECT_TO_DBUS_TYPE): Add compound types.
+	(xd_retrieve_value): Removed. Functionality included in ...
+	(xd_append_arg): New function.
+	(Fdbus_call_method, Fdbus_send_signal): Apply it.
+
 2007-12-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (top): Include <stdio.h>.
