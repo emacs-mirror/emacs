@@ -38,10 +38,12 @@
 Nil if using a vacuous schema.")
 (make-variable-buffer-local 'rng-current-schema-file-name)
 
-(defvar rng-schema-locating-files-default nil
+(defvar rng-schema-locating-files-default
+  (list (expand-file-name "schema/schemas.xml" data-directory))
   "Default value for variable `rng-schema-locating-files'.")
 
-(defvar rng-schema-locating-file-schema-file nil
+(defvar rng-schema-locating-file-schema-file
+  (list (expand-file-name "schema/locate.rnc" data-directory))
   "File containing schema for schema locating files.")
 
 (defvar rng-schema-locating-file-schema nil
@@ -52,7 +54,7 @@ Nil if using a vacuous schema.")
   :type '(repeat file)
   :group 'relax-ng)
 
-(defvar rng-schema-loader-alist nil
+(defvar rng-schema-loader-alist '(("rnc" . rng-c-load-schema))
   "Alist of schema extensions vs schema loader functions.")
 
 (defvar rng-cached-document-element nil)
