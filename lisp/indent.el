@@ -82,7 +82,7 @@ special; we don't actually use them here."
 Depending on `tab-always-indent', either insert a tab or indent.
 If initial point was within line's indentation, position after
 the indentation.  Else stay at same point in text.
-If `transient-mark-mode' is turned on the region is active,
+If `transient-mark-mode' is turned on and the region is active,
 indent the region.
 The function actually called to indent the line is determined by the value of
 `indent-line-function'."
