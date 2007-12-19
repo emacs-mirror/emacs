@@ -1,7 +1,8 @@
 2007-12-19  Jason Rumney  <jasonr@gnu.org>
 
-	* nxml/rng-maint.el (rng-update-autoloads, rng-byte-compile-load)
-	(rng-format-manual, rng-write-version): Do not autoload.
+	* nxml/rng-maint.el (rng-format-manual): Do not autoload.
+	(rng-autoload-modules, rng-update-autoloads, rng-compile-modules)
+	(rng-byte-compile-load, rng-write-version): Remove.
 
 	* nxml/rng-loc.el (rng-schema-locating-files-default)
 	(rng-schema-locating-file-schema-file): Use files in etc/schemas.
