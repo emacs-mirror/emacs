@@ -1,3 +1,19 @@
+2007-12-19  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/verilog-mode.el (top-level): Don't require compile.
+	(compilation-error-regexp-alist, compilation-last-buffer):
+	Define for compiler.
+	(verilog-insert-1): New function.
+	(verilog-insert-indices, verilog-generate-numbers): Doc fixes.
+	Use verilog-insert-1.
+	(verilog-surelint-off): Use next-error-last-buffer if bound.
+	Check compile buffer is live.
+
+2007-12-19  John J Foerch  <jjfoerch@earthlink.net>  (tiny change)
+
+	* progmodes/compile.el (compilation-start): Don't pass a FRAME
+	argument to display-buffer.
+
 2007-12-19  Jason Rumney  <jasonr@gnu.org>
 
 	* nxml/rng-maint.el (rng-format-manual): Do not autoload.
