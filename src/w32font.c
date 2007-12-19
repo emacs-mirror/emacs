@@ -203,8 +203,6 @@ w32font_open (f, font_entity, pixel_size)
   if (w32_font == NULL)
     return NULL;
 
-  safe_debug_print (font_entity);
-
   if (!w32font_open_internal (f, font_entity, pixel_size, w32_font))
     {
       xfree (w32_font);
@@ -610,10 +608,6 @@ w32font_match_internal (frame, font_spec, opentype_only)
   bzero (&match_data.pattern, sizeof (LOGFONT));
   fill_in_logfont (f, &match_data.pattern, font_spec);
 
-  /* If weight was not specified, try to get a normal weight font.  */
-  if (!match_data.pattern.lfWeight)
-    match_data.pattern.lfWeight = FW_NORMAL;
-
   match_data.opentype_only = opentype_only;
   if (opentype_only)
     match_data.pattern.lfOutPrecision = OUT_OUTLINE_PRECIS;
@@ -649,10 +643,6 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
 
   bzero (&logfont, sizeof (logfont));
   fill_in_logfont (f, &logfont, font_entity);
-
-  /* If weight was not specified, try to get a normal weight font.  */
-  if (!logfont.lfWeight)
-    logfont.lfWeight = FW_NORMAL;
 
   size = XINT (AREF (font_entity, FONT_SIZE_INDEX));
   if (!size)
