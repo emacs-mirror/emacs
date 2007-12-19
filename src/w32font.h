@@ -35,7 +35,7 @@ struct w32font_info
   struct frame *owning_frame;
 };
 
-Lisp_Object w32font_get_cache P_ ((Lisp_Object frame));
+Lisp_Object w32font_get_cache P_ ((FRAME_PTR fe));
 Lisp_Object w32font_list_internal P_ ((Lisp_Object frame,
                                        Lisp_Object font_spec,
                                        int opentype_only));
