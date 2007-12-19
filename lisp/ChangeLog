@@ -1,3 +1,12 @@
+2007-12-19  Jason Rumney  <jasonr@gnu.org>
+
+	* nxml/rng-maint.el (rng-update-autoloads, rng-byte-compile-load)
+	(rng-format-manual, rng-write-version): Do not autoload.
+
+	* nxml/rng-loc.el (rng-schema-locating-files-default)
+	(rng-schema-locating-file-schema-file): Use files in etc/schemas.
+	(rng-schema-loader-alist): Use rng-c-load-schema to load rnc files.
+
 2007-12-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (cd-absolute): Set `list-buffers-directory' in order to
