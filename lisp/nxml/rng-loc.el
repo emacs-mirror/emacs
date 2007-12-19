@@ -39,11 +39,11 @@ Nil if using a vacuous schema.")
 (make-variable-buffer-local 'rng-current-schema-file-name)
 
 (defvar rng-schema-locating-files-default
-  (list (expand-file-name "schema/schemas.xml" data-directory))
+  (list "schemas.xml" (expand-file-name "schema/schemas.xml" data-directory))
   "Default value for variable `rng-schema-locating-files'.")
 
 (defvar rng-schema-locating-file-schema-file
-  (list (expand-file-name "schema/locate.rnc" data-directory))
+  (expand-file-name "schema/locate.rnc" data-directory)
   "File containing schema for schema locating files.")
 
 (defvar rng-schema-locating-file-schema nil
