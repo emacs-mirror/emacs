@@ -43,7 +43,6 @@
     rng-xsd
     rng-nxml))
 
-;;;###autoload
 (defun rng-update-autoloads ()
   "Update the autoloads in rng-auto.el."
   (interactive)
@@ -81,7 +80,6 @@
     rng-nxml
     rng-maint))
 
-;;;###autoload
 (defun rng-byte-compile-load ()
   "Byte-compile and load all of the RELAX NG library in an appropriate order."
   (interactive)
@@ -101,7 +99,6 @@
 (defvar rng-manual-texi (concat rng-manual-base ".texi"))
 (defvar rng-manual-info (concat rng-manual-base ".info"))
 
-;;;###autoload
 (defun rng-format-manual ()
   "Create manual.texi from manual.xml."
   (interactive)
@@ -290,7 +287,6 @@
 
 ;;; Versioning
 
-;;;###autoload
 (defun rng-write-version ()
   (find-file "VERSION")
   (erase-buffer)
