@@ -68,8 +68,9 @@ struct font;
 enum font_property_index
   {
     /* FONT-TYPE is a symbol indicating a font backend; currently `x',
-       `xft', `ftx', `freetype' are available.  For windows, we need
-       `bdf' and `windows'.  For Mac OS X, we need `atm'.  */
+       `xft', `ftx', `freetype' are available on X and gdi on Windows.
+       For Windows, we `bdf' and `uniscribe' backends are in progress.
+       For Mac OS X, we need `atm'.  */
     FONT_TYPE_INDEX,
 
     /* FONT-FOUNDRY is a foundry name (symbol).  */
