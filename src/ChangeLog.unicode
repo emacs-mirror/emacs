@@ -1,3 +1,7 @@
+2007-12-19  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.h (w32font_get_cache): Update declaration. 
+
 2007-12-18  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* ftfont.c (ftfont_get_cache): Adjust the argument type.
