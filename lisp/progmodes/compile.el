@@ -1168,7 +1168,8 @@ Returns the compilation buffer created."
     (if (eq outbuf (current-buffer))
 	(goto-char (point-max)))
     ;; Pop up the compilation buffer.
-    (setq outwin (display-buffer outbuf nil t))
+    ;; http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01638.html
+    (setq outwin (display-buffer outbuf))
     (with-current-buffer outbuf
       (let ((process-environment
 	     (append
