@@ -1,3 +1,17 @@
+2007-12-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* man.el (Man-default-man-entry): When looking for default man
+	entry title search text preceding point.  Use when instead of if.
+
+	* indent.el (indent-for-tab-command): Fix doc-string typo.
+
+	* vc.el (vc-ensure-vc-buffer): Avoid infinite looping when
+	vc-parent-buffer is the current buffer.
+
+	* info-look.el (info-lookup, info-lookup-setup-mode)
+	(info-lookup-make-completions): Avoid clobbering Info-history and
+	Info-history-list.
+
 2007-12-19  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/verilog-mode.el (top-level): Don't require compile.
