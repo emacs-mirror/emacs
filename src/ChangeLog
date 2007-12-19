@@ -856,6 +856,12 @@
 	* msdos.c (dos_rawgetc): Undo last change (there's no ``leaving
 	selected frame'' on MSDOS).
 
+2007-10-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (Qexplicit_name): New variable.
+	(x_report_frame_params): Report it in parameter alist.
+	(syms_of_frame): Intern and staticpro it.
+
 2007-10-10  Patrick Mahan  <mahan@mahan.org>  (tiny change)
 
 	* macfns.c (x_create_tip_frame): Set terminal for frame.
@@ -882,6 +888,11 @@
 2007-10-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1170000.
+
+2007-10-09  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_set_window_size): Disable code that attempts to tell
+	Lisp code about a size change before it actually happens.
 
 2007-10-09  Richard Stallman  <rms@gnu.org>
 
