@@ -117,8 +117,6 @@
   (interactive)
   (message "Using verilog-mode version %s" verilog-mode-version))
 
-(require 'compile)
-
 ;; Insure we have certain packages, and deal with it if we don't
 (eval-when-compile
   (when (featurep 'xemacs)
@@ -1183,6 +1181,9 @@ without the directory portion, will be substituted."
 	  (verilog-string-replace-matches
 	   "\\b__FILE__\\b" (file-name-nondirectory (buffer-file-name))
 	   t t compile-command))))
+
+;; Following code only gets called from compilation-mode-hook.
+(defvar compilation-error-regexp-alist)
 
 (defun verilog-error-regexp-add ()
   "Add the messages to the `compilation-error-regexp-alist'.
@@ -2681,13 +2682,30 @@ To call this from the command line, see \\[verilog-batch-indent]."
   (newline)
   (insert " * "))
 
-(defun verilog-insert-indices (MAX)
-  "Insert a set of indices at into the rectangle.
-The upper left corner is defined by the current point.  Indices always
-begin with 0 and extend to the MAX - 1.  If no prefix arg is given, the
-user is prompted for a value.  The indices are surrounded by square brackets
-\[].  For example, the following code with the point located after the first
-'a' gives:
+(defun verilog-insert-1 (fmt max)
+  "Insert integers 0 to MAX-1 according to format string FMT.
+Inserts one integer per line, at the current column.  Stops early
+if it reaches the end of the buffer."
+  (let ((col (current-column))
+        (n 0))
+    (save-excursion
+      (while (< n max)
+        (insert (format fmt n))
+        (forward-line 1)
+        ;; Note that this function does not bother to check for lines
+        ;; shorter than col.
+        (if (eobp)
+            (setq n max)
+          (setq n (1+ n))
+          (move-to-column col))))))
+
+(defun verilog-insert-indices (max)
+  "Insert a set of indices into a rectangle.
+The upper left corner is defined by point.  Indices begin with 0
+and extend to the MAX - 1.  If no prefix arg is given, the user
+is prompted for a value.  The indices are surrounded by square
+brackets \[].  For example, the following code with the point
+located after the first 'a' gives:
 
     a = b                           a[  0] = b
     a = b                           a[  1] = b
@@ -2699,41 +2717,28 @@ user is prompted for a value.  The indices are surrounded by square brackets
     a = b                           a[  7] = b
     a = b                           a[  8] = b"
 
-  (interactive "NMAX?")
-  (save-excursion
-  (let ((n 0))
-    (while (< n MAX)
-      (save-excursion
-      (insert (format "[%3d]" n)))
-      (next-line 1)
-      (setq n (1+ n))))))
+  (interactive "NMAX? ")
+  (verilog-insert-1 "[%3d]" max))
 
-
-(defun verilog-generate-numbers (MAX)
+(defun verilog-generate-numbers (max)
   "Insert a set of generated numbers into a rectangle.
 The upper left corner is defined by point.  The numbers are padded to three
 digits, starting with 000 and extending to (MAX - 1).  If no prefix argument
-is supplied, then the user is prompted for the MAX number.  consider the
+is supplied, then the user is prompted for the MAX number.  Consider the
 following code fragment:
 
-    buf buf                           buf buf000
-    buf buf                           buf buf001
-    buf buf                           buf buf002
-    buf buf                           buf buf003
-    buf buf   ==> insert-indices ==>  buf buf004
-    buf buf                           buf buf005
-    buf buf                           buf buf006
-    buf buf                           buf buf007
-    buf buf                           buf buf008"
+    buf buf                             buf buf000
+    buf buf                             buf buf001
+    buf buf                             buf buf002
+    buf buf                             buf buf003
+    buf buf   ==> generate-numbers ==>  buf buf004
+    buf buf                             buf buf005
+    buf buf                             buf buf006
+    buf buf                             buf buf007
+    buf buf                             buf buf008"
 
-  (interactive "NMAX?")
-  (save-excursion
-  (let ((n 0))
-    (while (< n MAX)
-      (save-excursion
-      (insert (format "%3.3d" n)))
-      (next-line 1)
-      (setq n (1+ n))))))
+  (interactive "NMAX? ")
+  (verilog-insert-1 "%3.3d" max))
 
 (defun verilog-mark-defun ()
   "Mark the current verilog function (or procedure).
@@ -3686,6 +3691,8 @@ See \\[verilog-surelint-off] and \\[verilog-verilint-off]."
 	   (verilog-verilint-off))
 	  (t (error "Linter name not set")))))
 
+(defvar compilation-last-buffer)
+
 (defun verilog-surelint-off ()
   "Convert a SureLint warning line into a disable statement.
 Run from Verilog source window; assumes there is a *compile* buffer
@@ -3696,56 +3703,61 @@ For example:
 becomes:
 	// surefire lint_line_off UDDONX"
   (interactive)
-  (save-excursion
-    (switch-to-buffer compilation-last-buffer)
-    (beginning-of-line)
-    (when
-	(looking-at "\\(INFO\\|WARNING\\|ERROR\\) \\[[^-]+-\\([^]]+\\)\\]: \\([^,]+\\), line \\([0-9]+\\): \\(.*\\)$")
-      (let* ((code (match-string 2))
-	     (file (match-string 3))
-	     (line (match-string 4))
-	     (buffer (get-file-buffer file))
-	     dir filename)
-	(unless buffer
-	  (progn
-	    (setq buffer
-		  (and (file-exists-p file)
-		       (find-file-noselect file)))
-	    (or buffer
-		(let* ((pop-up-windows t))
-		  (let ((name (expand-file-name
-			       (read-file-name
-				(format "Find this error in: (default %s) "
-					file)
-				dir file t))))
-		    (if (file-directory-p name)
-			(setq name (expand-file-name filename name)))
-		    (setq buffer
-			  (and (file-exists-p name)
-			       (find-file-noselect name))))))))
-	(switch-to-buffer buffer)
-	(goto-line (string-to-number line))
-	(end-of-line)
-	(catch 'already
-	  (cond
-	   ((verilog-in-slash-comment-p)
-	    (re-search-backward "//")
-	    (cond
-	     ((looking-at "// surefire lint_off_line ")
-	      (goto-char (match-end 0))
-	      (let ((lim (save-excursion (end-of-line) (point))))
-		(if (re-search-forward code lim 'move)
-		    (throw 'already t)
-		  (insert (concat " " code)))))
-	     (t
-	      )))
-	   ((verilog-in-star-comment-p)
-	    (re-search-backward "/\*")
-	    (insert (format " // surefire lint_off_line %6s" code ))
-	    )
-	   (t
-	    (insert (format " // surefire lint_off_line %6s" code ))
-	    )))))))
+  (let ((buff (if (boundp 'next-error-last-buffer)
+                  next-error-last-buffer
+                compilation-last-buffer)))
+    (when (buffer-live-p buff)
+      ;; FIXME with-current-buffer?
+      (save-excursion
+        (switch-to-buffer buff)
+        (beginning-of-line)
+        (when
+            (looking-at "\\(INFO\\|WARNING\\|ERROR\\) \\[[^-]+-\\([^]]+\\)\\]: \\([^,]+\\), line \\([0-9]+\\): \\(.*\\)$")
+          (let* ((code (match-string 2))
+                 (file (match-string 3))
+                 (line (match-string 4))
+                 (buffer (get-file-buffer file))
+                 dir filename)
+            (unless buffer
+              (progn
+                (setq buffer
+                      (and (file-exists-p file)
+                           (find-file-noselect file)))
+                (or buffer
+                    (let* ((pop-up-windows t))
+                      (let ((name (expand-file-name
+                                   (read-file-name
+                                    (format "Find this error in: (default %s) "
+                                            file)
+                                    dir file t))))
+                        (if (file-directory-p name)
+                            (setq name (expand-file-name filename name)))
+                        (setq buffer
+                              (and (file-exists-p name)
+                                   (find-file-noselect name))))))))
+            (switch-to-buffer buffer)
+            (goto-line (string-to-number line))
+            (end-of-line)
+            (catch 'already
+              (cond
+               ((verilog-in-slash-comment-p)
+                (re-search-backward "//")
+                (cond
+                 ((looking-at "// surefire lint_off_line ")
+                  (goto-char (match-end 0))
+                  (let ((lim (save-excursion (end-of-line) (point))))
+                    (if (re-search-forward code lim 'move)
+                        (throw 'already t)
+                      (insert (concat " " code)))))
+                 (t
+                  )))
+               ((verilog-in-star-comment-p)
+                (re-search-backward "/\*")
+                (insert (format " // surefire lint_off_line %6s" code ))
+                )
+               (t
+                (insert (format " // surefire lint_off_line %6s" code ))
+                )))))))))
 
 (defun verilog-verilint-off ()
   "Convert a Verilint warning line into a disable statement.
