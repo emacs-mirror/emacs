@@ -1,5 +1,8 @@
 2007-12-19  Jason Rumney  <jasonr@gnu.org>
 
+	* w32font.c (w32font_text_extents): Don't use the frame stored in the
+	font, as it may have been deleted.
+
 	* w32font.h (w32font_get_cache): Update declaration.
 
 2007-12-18  Kenichi Handa  <handa@ni.aist.go.jp>
