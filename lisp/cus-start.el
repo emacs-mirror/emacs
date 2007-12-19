@@ -39,7 +39,7 @@
 	     (gc-cons-threshold alloc integer)
 	     (garbage-collection-messages alloc boolean)
 	     ;; buffer.c
-	     (mode-line-format modeline sexp) ;Hard to do right.
+	     (mode-line-format mode-line sexp) ;Hard to do right.
 	     (default-major-mode internal function)
 	     (enable-multibyte-characters mule boolean)
 	     (case-fold-search matching boolean)
@@ -364,8 +364,8 @@ since it could result in memory overflow and make Emacs crash."
 	     (hscroll-margin windows integer "22.1")
 	     (hscroll-step windows number "22.1")
 	     (truncate-partial-width-windows display boolean)
-	     (mode-line-inverse-video modeline boolean)
-	     (mode-line-in-non-selected-windows modeline boolean "22.1")
+	     (mode-line-inverse-video mode-line boolean)
+	     (mode-line-in-non-selected-windows mode-line boolean "22.1")
 	     (line-number-display-limit display
 					(choice integer
 						(const :tag "No limit" nil)))
