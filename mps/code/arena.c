@@ -333,8 +333,8 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
 
   res = WriteF(stream,
                "  commitLimit $W\n", (WriteFW)arena->commitLimit,
-	       "  spareCommitted $W\n", (WriteFW)arena->spareCommitted,
-	       "  spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
+               "  spareCommitted $W\n", (WriteFW)arena->spareCommitted,
+               "  spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
                "  zoneShift $U\n", (WriteFU)arena->zoneShift,
                "  alignment $W\n", (WriteFW)arena->alignment,
                NULL);
