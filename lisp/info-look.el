@@ -328,6 +328,14 @@ If optional argument QUERY is non-nil, query for the help mode."
                     (error "Not documented as a %s: %s" topic (or item ""))))
          (modes (info-lookup->all-modes topic mode))
          (window (selected-window))
+	 (new-Info-history
+	  ;; Avoid clobbering Info-history with nodes searched during
+	  ;; lookup.  If lookup succeeds set `Info-history' to
+	  ;; `new-Info-history'.
+	  (when (get-buffer "*info*")
+	    (with-current-buffer "*info*"
+	      (cons (list Info-current-file Info-current-node (point))
+		    Info-history))))
          found doc-spec node prefix suffix doc-found)
     (if (not (eq major-mode 'Info-mode))
 	(if (not info-lookup-other-window-flag)
@@ -355,7 +363,8 @@ If optional argument QUERY is non-nil, query for the help mode."
 		  (progn
 		    ;; Don't need Index menu fontifications here, and
 		    ;; they slow down the lookup.
-		    (let (Info-fontify-maximum-menu-size)
+		    (let (Info-fontify-maximum-menu-size
+			  Info-history-list)
 		      (Info-goto-node node)
 		      (setq doc-found t)))
 		(error
@@ -400,6 +409,8 @@ If optional argument QUERY is non-nil, query for the help mode."
     (unless (or ignore-case
                 (string-equal item (car entry)))
       (message "Found in different case: %s" (car entry)))
+    (when found
+      (setq Info-history new-Info-history))
     (or doc-found
 	(error "Info documentation for lookup was not found"))
     ;; Don't leave the Info buffer if the help item couldn't be looked up.
@@ -409,7 +420,8 @@ If optional argument QUERY is non-nil, query for the help mode."
 (defun info-lookup-setup-mode (topic mode)
   "Initialize the internal data structure."
   (or (info-lookup->initialized topic mode)
-      (let (cell data (initialized 0) completions refer-modes)
+      (let ((initialized 0)
+	    cell data completions refer-modes Info-history-list)
 	(if (not (info-lookup->mode-value topic mode))
 	    (message "No %s help available for `%s'" topic mode)
 	  ;; Recursively setup cross references.
@@ -444,7 +456,7 @@ If optional argument QUERY is non-nil, query for the help mode."
   (let ((doc-spec (info-lookup->doc-spec topic mode))
 	(regexp (concat "^\\(" (info-lookup->regexp topic mode)
 			"\\)\\([ \t].*\\)?$"))
-	Info-fontify-maximum-menu-size
+	Info-history-list Info-fontify-maximum-menu-size
 	node trans entry item prefix result doc-found
 	(buffer (get-buffer-create " temp-info-look")))
     (with-current-buffer buffer
