@@ -435,68 +435,98 @@ These are some variables you can change to configure @code{rcirc} to your
 liking.
 
 @table @code
-@item rcirc-default-server
-@vindex rcirc-default-server
-the default server to connect to.
+@item rcirc-server-alist
+@vindex rcirc-server-alist
+@cindex channels, configuration
+@cindex initial channels, configuration
+@cindex startup channels, configuration
+@cindex servers, configuration
+@cindex initial servers, configuration
+@cindex startup servers, configuration
+This variable contains an alist of servers to connect to by default and
+the keywords parameters to use. The keyword parameters are optional. If
+you don't provide any, the defaults as documented below will be used.
 
-@item rcirc-default-port
-@vindex rcirc-default-port
-the default port to connect to.
+The most important parameter is the @code{:channels} parameter. It
+controls which channels you will join by default as soon as you are
+connected to the server.
+
+Here's an example of how to set it:
+
+@example
+(add-to-list 'rcirc-server-alist
+             '("otherworlders.org"
+               :channels ("#FUDGE" "#game-design")))
+@end example
+
+By default you will be connected to the @code{rcirc} support channel:
+@code{#rcirc} on @code{irc.freenode.net}.
+
+@table @code
+@item :nick
+This overrides @code{rcirc-default-nick}.
+
+@item :port
+This overrides @code{rcirc-default-port}.
+
+@item :user-name
+This overrides @code{rcirc-default-user-name}.
+
+@item :full-name
+This overrides @code{rcirc-default-full-name}.
+
+@item :channels
+This describes which channels to join when connecting to the server. If
+absent, no channels will be connected to automatically.
+
+@end table
 
 @item rcirc-default-nick
 @vindex rcirc-default-nick
-the default nick to use.
-@end table
+This variable is used for the default nick. It defaults to the login
+name returned by @code{user-login-name}.
 
 @example
-(setq rcirc-default-server "irc.mozilla.org"
-      rcirc-default-port 6666
-      rcirc-default-nick "alx")
+(setq rcirc-default-nick "kensanata")
 @end example
 
+@item rcirc-default-port
+@vindex rcirc-default-port
+@cindex port
+This variable contains the default port to connect to. It is 6667 by
+default and rarely needs changing.
+
+@item rcirc-default-user-name
+@vindex rcirc-default-user-name
+@cindex user name
+This variable contains the default user name to report to the server. It
+defaults to the login name returned by @code{user-login-name}, just like
+@code{rcirc-default-nick}.
+
+@item rcirc-default-user-full-name
 @vindex rcirc-default-user-full-name
 @cindex full name
 @cindex real name
 @cindex surname
-@code{rcirc-default-user-full-name} is used to set your ``real name'' on
-IRC.  It defaults to @code{user-full-name}.  If you want to hide your
-full name, you might want to set it to some pseudonym.
+This variable is used to set your ``real name'' on
+IRC. It defaults to the name returned by @code{user-full-name}. If you
+want to hide your full name, you might want to set it to some pseudonym.
 
 @example
 (setq rcirc-default-user-full-name "Curious Minds Want To Know")
 @end example
 
-@vindex rcirc-startup-channels-alist
-@cindex channels, configuration
-@cindex initial channels, configuration
-@cindex startup channels, configuration
-@code{rcirc-startup-channels-alist} is the alist of channels to join
-when connecting to a particular network.  An alist is a list of lists.
-Each sublist starts with a regular expression that is compared to the
-server address you're connecting to.  The remaining sublist items are
-the channels to join.
-
-@example
-(setq rcirc-startup-channels-alist
-      '(("\\.freenode\\.net$" "#emacs" "#rcirc" "#wiki")))
-@end example
-
-Note the subtle problem, here --- IRC clients connect to servers, and
-there is no way of knowing which servers belong to a particular network.
-In the example above we're exploiting a naming convention used by within
-the Freenode network --- all servers within the network have a host in
-the @code{freenode.net} domain.
-
+@item rcirc-authinfo
 @vindex rcirc-authinfo
 @cindex authentification
 @cindex identification
 @cindex nickserv
 @cindex login
-@code{rcirc-authinfo} is an alist used to automatically identify
-yourself on networks.  Each sublist starts with a regular expression
-that is compared to the server address you're connecting to.  The second
-element in the list is a symbol representing the method to use, followed
-by the arguments this method requires.
+This variable is an alist used to automatically identify yourself on
+networks. Each sublist starts with a regular expression that is compared
+to the server address you're connecting to. The second element in the
+list is a symbol representing the method to use, followed by the
+arguments this method requires.
 
 Here is an example to illustrate how you would set it:
 
@@ -555,6 +585,8 @@ Later, you will tell Bitlbee about your accounts and passwords on all
 the other instant messaging services, and Bitlbee will log you in.  All
 @code{rcirc} needs to know, is the login to your Bitlbee account.  Don't
 confuse the Bitlbee account with all the other accounts.
+
+@end table
 
 @end table
 
