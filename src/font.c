@@ -1248,6 +1248,8 @@ font_parse_fcname (name, font)
   char *p0, *p1;
   int len = strlen (name);
   char *copy;
+  int weight_set = 0;
+  int slant_set = 0;
 
   if (len == 0)
     return -1;
@@ -1301,12 +1303,14 @@ font_parse_fcname (name, font)
 	      || memcmp (p0 + 1, "black", 5) == 0)
 	    {
 	      ASET (font, FONT_WEIGHT_INDEX, val);
+              weight_set = 1;
 	    }
 	  else if (memcmp (p0 + 1, "roman", 5) == 0
 		   || memcmp (p0 + 1, "italic", 6) == 0
 		   || memcmp (p0 + 1, "oblique", 7) == 0)
 	    {
 	      ASET (font, FONT_SLANT_INDEX, val);
+              slant_set = 1;
 	    }
 	  else if (memcmp (p0 + 1, "charcell", 8) == 0
 		   || memcmp (p0 + 1, "mono", 4) == 0
@@ -1338,6 +1342,11 @@ font_parse_fcname (name, font)
 	    {
 	      if (prop >= 0 && prop < FONT_EXTRA_INDEX)
 		{
+                  if (prop == FONT_WEIGHT_INDEX)
+                    weight_set = 1;
+                  else if (prop == FONT_SLANT_INDEX)
+                    slant_set = 1;
+
 		  ASET (font, prop, val);
 		}
 	      else
@@ -1346,6 +1355,11 @@ font_parse_fcname (name, font)
 	}
       p0 = p1;
     }
+
+  if (!weight_set)
+    ASET (font, FONT_WEIGHT_INDEX, build_string ("normal"));
+  if (!slant_set)
+    ASET (font, FONT_SLANT_INDEX, build_string ("normal"));
 
   return 0;
 }
@@ -1910,14 +1924,22 @@ font_score (entity, spec_prop)
   for (i = FONT_WEIGHT_INDEX; i <= FONT_SIZE_INDEX; i++)
     {
       Lisp_Object entity_val = AREF (entity, i);
+      Lisp_Object spec_val = spec_prop[i];
 
-      if (! NILP (spec_prop[i]) && ! EQ (spec_prop[i], entity_val))
+      /* If weight and slant are unspecified, score normal lower (low wins). */
+      if (NILP (spec_val))
+        {
+          if (i == FONT_WEIGHT_INDEX || i == FONT_SLANT_INDEX)
+            spec_val = prop_name_to_numeric (i, build_string ("normal"));
+        }
+
+      if (! NILP (spec_val) && ! EQ (spec_val, entity_val))
 	{
 	  if (! INTEGERP (entity_val))
 	    score |= 127 << sort_shift_bits[i];
 	  else
 	    {
-	      int diff = XINT (entity_val) - XINT (spec_prop[i]);
+	      int diff = XINT (entity_val) - XINT (spec_val);
 
 	      if (diff < 0)
 		diff = - diff;
@@ -1927,6 +1949,19 @@ font_score (entity, spec_prop)
 		      && diff > FONT_PIXEL_SIZE_QUANTUM)
 		    score |= min (diff, 127) << sort_shift_bits[i];
 		}
+#ifdef WINDOWSNT
+              else if (i == FONT_WEIGHT_INDEX)
+                {
+                  /* Windows uses a much wider range for weight (100-900)
+                     compared with freetype (0-210), so scale down the
+                     difference.  A more general way of doing this
+                     would be to look up the values of regular and bold
+                     and/or light and calculate the scale factor from them,
+                     but the lookup would be expensive, and if only Windows
+                     needs it, not worth the effort.  */
+                  score |= min (diff / 4, 127) << sort_shift_bits[i];
+                }
+#endif
 	      else
 		score |= min (diff, 127) << sort_shift_bits[i];
 	    }
