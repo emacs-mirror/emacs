@@ -314,6 +314,7 @@ void ControlFinish(Arena arena)
 Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
 {
   Res res;
+  Size reserved;
 
   if (!CHECKT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
@@ -331,9 +332,21 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
     if (res != ResOK) return res;
   }
 
+  /* Note: this Describe clause calls a function */
+  reserved = ArenaReserved(arena);
   res = WriteF(stream,
-               "  commitLimit $W\n", (WriteFW)arena->commitLimit,
-               "  spareCommitted $W\n", (WriteFW)arena->spareCommitted,
+               "  reserved         $W  <-- "
+               "total size of address-space reserved\n",
+               (WriteFW)reserved,
+               NULL);
+  if (res != ResOK) return res;
+
+  res = WriteF(stream,
+               "  committed        $W  <-- "
+               "total bytes currently stored (in RAM or swap)\n",
+               (WriteFW)arena->committed,
+               "  commitLimit      $W\n", (WriteFW)arena->commitLimit,
+               "  spareCommitted   $W\n", (WriteFW)arena->spareCommitted,
                "  spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
                "  zoneShift $U\n", (WriteFU)arena->zoneShift,
                "  alignment $W\n", (WriteFW)arena->alignment,
