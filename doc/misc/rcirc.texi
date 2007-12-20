@@ -54,6 +54,7 @@ just one other user.
 @menu
 * Basics::
 * Reference::
+* Fighting Information Overload::
 * Hacking and Tweaking::
 * GNU Free Documentation License::
 * Key Index::
@@ -73,6 +74,13 @@ Reference
 * rcirc commands::
 * Useful IRC commands::
 * Configuration::
+
+Fighting Information Overload
+
+* Channels::
+* People::
+* Keywords::
+* Notices::
 
 Hacking and Tweaking
 
@@ -225,7 +233,16 @@ C-c} to finish editing.  You still need to press @key{RET} to send it,
 though.  Generally, IRC users don't like people pasting more than around
 four lines of code, so use with care.
 
-@node Reference, Hacking and Tweaking, Basics, Top
+As soon as you have joined a channel, you probably want to be notified
+of any activity on the the channels you joined. All you need to do is
+switch channel tracking on using @kbd{M-x rcirc-track-minor-mode}.  To
+make this permanent, add the following to your init file:
+
+@example
+(rcirc-track-minor-mode 1)
+@end example
+
+@node Reference, Fighting Information Overload, Basics, Top
 @chapter Reference
 @cindex reference
 
@@ -380,24 +397,6 @@ This disconnects from the server and parts all channels.  You can
 optionally provide a reason for quitting.  When you kill the server
 buffer, you automatically quit the server and part all channels.  (Also
 @code{/quit ZZZzzz...}.)
-@end table
-
-Some commands may not have a key binding, but only be available as typed
-commands, such as:
-
-@table @code
-@item /ignore
-@cindex /ignore
-@cindex ignoring other people
-@cindex trolls, ignoring
-@cindex hide some posts
-@cindex idiots online
-This command toggles the ignore status of a nick, if you provide one.
-If you don't provide a nick, the command lists all the nicks you are
-ignoring.  All messages by ignored nicks are---you guessed it---ignored.
-Since only ``operators'' can kick people from channels, the
-ignore command is often the only way to deal with some of the more
-obnoxious fellows online.  Example: @code{/ignore xah}.
 @end table
 
 @node Useful IRC commands, Configuration, rcirc commands, Reference
@@ -556,7 +555,29 @@ Later, you will tell Bitlbee about your accounts and passwords on all
 the other instant messaging services, and Bitlbee will log you in.  All
 @code{rcirc} needs to know, is the login to your Bitlbee account.  Don't
 confuse the Bitlbee account with all the other accounts.
+
 @end table
+
+@node Fighting Information Overload, Hacking and Tweaking, Reference, Top
+@chapter Fighting Information Overload
+@cindex information overload
+
+This is the section of the manual that caters to the busy person
+online. There are support channels with several hundred people in
+them. Trying to follow a conversation in these channels can be a
+daunting task. This chapters tells you how @code{rcirc} can help.
+
+@menu
+* Channels::
+* People::
+* Keywords::
+* Notices::
+@end menu
+
+@node Channels, People, Fighting Information Overload, Fighting Information Overload
+@section Channels
+@cindex channels
+@cindex modeline
 
 @kindex C-c C-SPC
 @vindex rcirc-track-minor-mode
@@ -590,7 +611,137 @@ activation of this mode:
             (rcirc-track-minor-mode 1)))
 @end example
 
-@node Hacking and Tweaking, GNU Free Documentation License, Reference, Top
+@cindex busy channels
+If you've joined a very active support channel, tracking activity is
+no longer useful. The channel will be always active. Switching to
+active channels using @kbd{C-c C-@key{SPC}} no longer works as
+expected.
+
+@kindex C-c C-l
+@cindex low priority channels
+The solution is to mark this channel as as a low priority channel.
+Use @kbd{C-c C-l} to make the current channel a low-priority
+channel. Low priority channels have the modeline indicator ``LowPri''.
+@kbd{C-c C-@key{SPC}} will not switch to low priority channels unless
+you use the @kbd{C-u} prefix.
+
+@kindex C-c TAB
+@cindex ignored channels
+If you prefer a channel to never show up in the modeline, then you
+have to ignore it. Use @kbd{C-c @key{TAB}} to ignore the current
+channel.
+
+@node People, Keywords, Channels, Fighting Information Overload
+@section People
+@cindex people, how to ignore
+@cindex nicks, how to ignore
+@cindex friends
+@cindex buddies
+@cindex trolls
+
+The most important command available to the discerning IRC user is
+@code{/ignore}. It's the big equalizer online: If people aggravate
+you, just ignore them.
+
+This is of course a crude all-or-nothing solution.  Fear not,
+@code{rcirc} offers alternatives: You can ``brighten'' your buddies
+and ``dim'' certain other nicks that you don't want to ignore
+altogether.
+
+@table @code
+@item /ignore
+@cindex /ignore
+@cindex ignoring other people
+@cindex trolls, ignoring
+@cindex hide some posts
+@cindex idiots online
+This command toggles the ignore status of a nick, if you provide one.
+If you don't provide a nick, the command lists all the nicks you are
+ignoring.  All messages by ignored nicks are---you guessed it---ignored.
+Since only ``operators'' can kick people from channels, the
+ignore command is often the only way to deal with some of the more
+obnoxious fellows online.  Example: @code{/ignore xah}.
+
+@item /bright
+@cindex /bright
+@cindex highlight other people
+@cindex friends, highlight
+@cindex buddies, highlight
+@cindex nicks, highlight
+@cindex brighten nicks
+This command toggles the bright status of a nick, if you provide one.
+If you don't provide a nick, the command lists all the ``brightened''
+nicks.  All messages by brightened nicks are---you guessed
+it---brightened. Use this for your friends.  Example: @code{/bright
+rcy}.
+
+@item /dim
+@cindex /dim
+@cindex soft-ignore other people
+@cindex obnoxious people online
+@cindex rabble online
+This command toggles the dim status of a nick, if you provide one.  If
+you don't provide a nick, the command lists all the ``dimmed'' nicks.
+All messages by dimmed nicks are---you guessed it---dimmed.  Use this
+for boring people and bots. If you are tracking channel activity,
+messages by dimmed nicks will not register as activity. Example:
+@code{/dim fsbot}.
+@end table
+
+
+@node Keywords, Notices, People, Fighting Information Overload
+@section Keywords
+@cindex keywords
+
+On a busy channel, you might want to ignore all activity (using
+@kbd{C-c @key{TAB}}) and just watch for certain keywords. The
+following command allows you to highlight certain keywords:
+
+@table @code
+@item /keyword
+@cindex /keyword
+This command toggles the highlighting of a keyword, if you provide
+one. If you don't provide a keyword, the current keywords are
+listed. Example: @code{/keyword manual}.
+@end table
+
+A keyword is regular expression matching a word. Thus, if you add the
+keyword @code{wikis?} then this will match the words ``wiki'' and
+``wikis'' but not ``emacswiki''.
+
+@node Notices, , Keywords, Fighting Information Overload
+@section Notices
+@cindex part notices, how to omit 
+@cindex join notices, how to omit
+@cindex quit notices, how to omit
+@cindex nick notices, how to omit
+
+@kindex C-c C-o
+@cindex low priority channels
+In busy channels you might not be interested in all the joining,
+parting, quitting, and renaming that goes on. You can omit those
+notices using @kbd{C-c C-o}.
+
+@vindex rcirc-omit-responses
+@cindex away notices, how to omit
+You can control which notices get omitted via the
+@code{rcirc-omit-responses} variable. Here's an example of how to omit
+away messages:
+
+@example
+(setq rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK" "AWAY))
+@end example
+
+@vindex rcirc-omit-threshold
+Notice that these messages will not be omitted if the nick in question
+has recently been active. After all, you don't want to continue a
+conversation with somebody who just left. That's why @code{rcirc}
+checks recent lines in the buffer to figure out if a nick has been
+active and only omits a message if the nick has not been active. The
+window @code{rcirc} considers is controlled by the
+@code{rcirc-omit-threshold} variable.
+
+@node Hacking and Tweaking, GNU Free Documentation License, Fighting Information Overload, Top
 @chapter Hacking and Tweaking
 @cindex hacking and tweaking
 
