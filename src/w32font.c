@@ -853,10 +853,6 @@ logfonts_match (font, pattern)
           || font->lfWeight > (pattern->lfWeight + 150)))
       return 0;
 
-  if (pattern->lfPitchAndFamily & 0xF0 != FF_DONTCARE
-      && pattern->lfPitchAndFamily & 0xF0 != font->lfPitchAndFamily & 0xF0)
-    return 0;
-
   /* Charset and face should be OK.  Italic has to be checked
      against the original spec, in case we don't have any preference.  */
   return 1;
@@ -878,6 +874,16 @@ font_matches_spec (type, font, spec)
       int slant = XINT (val);
       if ((slant > 150 && !font->ntmTm.tmItalic)
           || (slant <= 150 && font->ntmTm.tmItalic))
+        return 0;
+    }
+
+  /* Check adstyle against generic family.  */
+  val = AREF (spec, FONT_ADSTYLE_INDEX);
+  if (!NILP (val))
+    {
+      BYTE family = w32_generic_family (val);
+      if (family != FF_DONTCARE
+          && family != (font->ntmTm.tmPitchAndFamily & 0xF0))
         return 0;
     }
 
@@ -1021,7 +1027,17 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
        || (physical_font->ntmTm.ntmFlags & NTMFLAGS_OPENTYPE))
       && logfonts_match (&logical_font->elfLogFont, &match_data->pattern)
       && font_matches_spec (font_type, physical_font,
-                            match_data->orig_font_spec))
+                            match_data->orig_font_spec)
+      /* Avoid substitutions involving raster fonts (eg Helv -> MS Sans Serif)
+         We limit this to raster fonts, because the test can catch some
+         genuine fonts (eg the full name of DejaVu Sans Mono Light is actually
+         DejaVu Sans Mono ExtraLight). Helvetica -> Arial substitution will
+         therefore get through this test.  Since full names can be prefixed
+         by a foundry, we accept raster fonts if the font name is found
+         anywhere within the full name.  */
+      && (logical_font->elfLogFont.lfOutPrecision != OUT_STRING_PRECIS
+          || strstr (logical_font->elfFullName,
+                     logical_font->elfLogFont.lfFaceName)))
     {
       Lisp_Object entity
         = w32_enumfont_pattern_entity (match_data->frame, logical_font,
