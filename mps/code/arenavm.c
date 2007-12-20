@@ -303,10 +303,19 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   BootBlock boot = &bootStruct;
   VMChunk vmChunk;
   void *p;
+  static int counter = 0;
 
   AVER(chunkReturn != NULL);
   AVERT(VMArena, vmArena);
   AVER(size > 0);
+  
+  counter += 1;
+  if((counter % 4 == 2) || (counter % 4 == 3)) {
+    DIAG_SINGLEF(( "VMChunkCreate",
+                   "DELIBERATELY FAILING REQUEST OF SIZE $W.\n", size, 
+                   NULL ));
+    return ResRESOURCE;
+  }
 
   res = VMCreate(&vm, size);
   if (res != ResOK)
@@ -1051,24 +1060,62 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
 {
   Chunk newChunk;
   Size chunkSize;
+  Size chunkOverhead;  /* for housekeeping tables etc */
   Res res;
 
+#if 0
   /* .improve.debug: @@@@ chunkSize (calculated below) won't */
   /* be big enough if the tables of the new chunk are */
   /* more than vmArena->extendBy (because there will be fewer than */
   /* size bytes free in the new chunk).  Fix this. */
   chunkSize = vmArena->extendBy + size;
-
-#if 0
-  /* diagnostic: report when VM arena is extended */
-  DIAG_WRITEF(( DIAG_STREAM, "\n** vmArenaExtend $U\n", chunkSize, 
-                NULL ));
-  DIAG( ArenaDescribe(VMArena2Arena(vmArena), DIAG_STREAM); );
 #endif
+  
+  chunkSize = vmArena->extendBy;
+  /* crude conservative estimate of chunkOverhead: 25% */
+  chunkOverhead = chunkSize / 4;
 
-  res = VMChunkCreate(&newChunk, vmArena, chunkSize);
+  /* will chunkSize accommodate size + overhead? */
+  if(chunkSize > size && (chunkSize - size) >= chunkOverhead) {
+    /* yes: chunkSize is enough */
+  } else {
+    /* no: chunkSize is too small for this size, so: */
+    /*  1. make it size + chunkOverhead if we can; */
+    /*  2. or SizeMAX (which will fail, but nicely). */
+    Size headroom;
+    /* headroom: if size is enormous, how much before overflow? */
+    headroom = SizeMAX - size;
+    if(chunkOverhead < headroom) {
+      chunkSize = size + chunkOverhead;
+    } else {
+      chunkSize = SizeMAX;
+    }
+  }
+
   /* .improve.chunk-create.fail: If we fail we could try again */
   /* (with a smaller size, say).  We don't do this. */
+  /* RHSK 2007-12-19: We do now, in a brain-dead fashion, without */
+  /* checking why VMChunkCreate failed, or a minimum request size. */
+  DIAG_SINGLEF(( "vmArenaExtend_Start", 
+                 "VMArenaReserved currently $W bytes\n", 
+                 VMArenaReserved(VMArena2Arena(vmArena)),
+                 NULL ));
+
+  for(;; chunkSize /= 2) {
+    res = VMChunkCreate(&newChunk, vmArena, chunkSize);
+    if(res == ResOK) {
+      break;
+    }
+    DIAG_SINGLEF(( "vmArenaExtend_Attempt",
+                   "Tried to reserve new chunk of VM $W bytes;", chunkSize,
+                   " result $U\n", res,
+                   NULL ));
+  }
+  DIAG_SINGLEF(( "vmArenaExtend_Done",
+                 "Reserved new chunk of VM $W bytes.\n", chunkSize,
+                 "VMArenaReserved now...... $W bytes\n", 
+                 VMArenaReserved(VMArena2Arena(vmArena)),
+                 NULL ));
   return res;
 }
 
