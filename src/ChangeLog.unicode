@@ -1,5 +1,9 @@
 2007-12-20  Jason Rumney  <jasonr@gnu.org>
 
+	* w32font.c (logfonts_match): Don't check adstyle here.
+	(font_matches_spec): Check here against physical font instead.
+	(add_font_entity_to_list): Avoid some substitutions.
+
 	* font.c (font_parse_fcname): Default weight and slant to normal.
 	(font_score): Prefer normal fonts if weight or slant unspecified.
 	(font_score) [WINDOWSNT]: Scale weight difference down to closer
