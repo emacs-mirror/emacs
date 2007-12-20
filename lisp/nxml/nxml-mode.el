@@ -52,10 +52,10 @@
   :group 'languages
   :group 'wp)
 
-(defgroup nxml-highlighting-faces nil
+(defgroup nxml-faces nil
   "Faces for XML syntax highlighting."
   :group 'nxml
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defcustom nxml-syntax-highlight-flag t
   "*Non-nil means nxml-mode should perform syntax highlighting."
@@ -64,7 +64,7 @@
 
 (defcustom nxml-char-ref-display-glyph-flag t
   "*Non-nil means display glyph following character reference.
-The glyph is displayed in `nxml-glyph-face'.  The hook
+The glyph is displayed in face `nxml-glyph'.  The hook
 `nxml-glyph-set-hook' can be used to customize for which characters
 glyphs are displayed."
   :group 'nxml
@@ -147,229 +147,201 @@ The XML declaration is inserted using `nxml-insert-xml-declaration'."
   :group 'nxml
   :type 'boolean)
 
-;; The following are the colors we use with a light background.
-;; The two blues have the same hue but contrasting saturation/value.
-;; The hue of the green is 120 degrees different from that of the
-;; blue.  The red used for highlighting errors is 120 degrees
-;; different again.  We use the light blue only for refs and
-;; delimiters, since these are short (long stretches in a light color
-;; would be too hard to read).  The dark blue is closest to black
-;; (which we use by default for text), so we use it for attribute
-;; values, which are similar to text.
-
-(defconst nxml-light-blue-color "#9292C9") ; hue 240
-(defconst nxml-dark-blue-color "#3A3A7B") ; hue 240
-(defconst nxml-green-color "#257A25") ; hue 120
-
-;; Similar principles apply with a dark background.  However,
-;; we switch green and blue, because darker blues are very hard to
-;; read (for me anyway) on a dark background.
-
-(defconst nxml-sky-blue-color "#ACACFC") ; hue 240
-(defconst nxml-dark-green-color "#00AD00") ; hue 120
-(defconst nxml-light-green-color "#70F170") ; hue 120
-
-(defface nxml-delimited-data-face
-  `((((class color) (background light)) (:foreground ,nxml-dark-blue-color))
-    (((class color) (background dark)) (:foreground ,nxml-light-green-color)))
+(defface nxml-delimited-data
+  '((t (:inherit font-lock-doc-face)))
   "Face used to highlight data enclosed between delimiters.
-By default, this is inherited by `nxml-attribute-value-face'
-and `nxml-processing-instruction-content-face'."
-  :group 'nxml-highlighting-faces)
+This is not used directly, but only via inheritance by other faces."
+  :group 'nxml-faces)
 
-(defface nxml-name-face
-  `((((class color) (background light)) (:foreground ,nxml-green-color))
-    (((class color) (background dark)) (:foreground ,nxml-sky-blue-color)))
+(defface nxml-name
+  '((t (:inherit font-lock-builtin-face)))
   "Face used to highlight various names.
 This includes element and attribute names, processing
 instruction targets and the CDATA keyword in a CDATA section.
 This is not used directly, but only via inheritance by other faces."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-ref-face
-  `((((class color) (background light)) (:foreground ,nxml-light-blue-color))
-    (((class color) (background dark)) (:foreground ,nxml-dark-green-color)))
+(defface nxml-ref
+  '((t (:inherit font-lock-constant-face)))
   "Face used to highlight character and entity references.
 This is not used directly, but only via inheritance by other faces."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-delimiter-face
-  `((((class color) (background light)) (:foreground ,nxml-light-blue-color))
-    (((class color) (background dark)) (:foreground ,nxml-dark-green-color))
-    (t (:bold t)))
+(defface nxml-delimiter
+  nil
   "Face used to highlight delimiters.
 This is not used directly, but only via inheritance by other faces."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-text-face
+(defface nxml-text
   nil
   "Face used to highlight text."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-comment-content-face
-  '((t (:italic t)))
+(defface nxml-comment-content
+  '((t (:inherit font-lock-comment-face)))
   "Face used to highlight the content of comments."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-comment-delimiter-face
-  '((t (:inherit nxml-delimiter-face)))
+(defface nxml-comment-delimiter
+  '((t (:inherit font-lock-comment-delimiter-face)))
   "Face used for the delimiters of comments, i.e <!-- and -->."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-processing-instruction-delimiter-face
-  '((t (:inherit nxml-delimiter-face)))
+(defface nxml-processing-instruction-delimiter
+  '((t (:inherit nxml-delimiter)))
   "Face used for the delimiters of processing instructions, i.e <? and ?>."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-processing-instruction-target-face
-  '((t (:inherit nxml-name-face)))
+(defface nxml-processing-instruction-target
+  '((t (:inherit font-lock-keyword-face)))
   "Face used for the target of processing instructions."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-processing-instruction-content-face
-  '((t (:inherit nxml-delimited-data-face)))
+(defface nxml-processing-instruction-content
+  '((t (:inherit nxml-delimited-data)))
   "Face used for the content of processing instructions."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-cdata-section-delimiter-face
-  '((t (:inherit nxml-delimiter-face)))
+(defface nxml-cdata-section-delimiter
+  '((t (:inherit nxml-delimiter)))
   "Face used for the delimiters of CDATA sections, i.e <![, [, and ]]>."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-cdata-section-CDATA-face
-  '((t (:inherit nxml-name-face)))
+(defface nxml-cdata-section-CDATA
+  '((t (:inherit nxml-name)))
   "Face used for the CDATA keyword in CDATA sections."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-cdata-section-content-face
-  '((t (:inherit nxml-text-face)))
+(defface nxml-cdata-section-content
+  '((t (:inherit nxml-text)))
   "Face used for the content of CDATA sections."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-char-ref-number-face
-  '((t (:inherit nxml-ref-face)))
+(defface nxml-char-ref-number
+  '((t (:inherit nxml-ref)))
   "Face used for the number in character references.
 This includes ths `x' in hex references."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-char-ref-delimiter-face
-  '((t (:inherit nxml-ref-face)))
+(defface nxml-char-ref-delimiter
+  '((t (:inherit nxml-ref)))
   "Face used for the delimiters of character references, i.e &# and ;."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-entity-ref-name-face
-  '((t (:inherit nxml-ref-face)))
+(defface nxml-entity-ref-name
+  '((t (:inherit nxml-ref)))
   "Face used for the entity name in general entity references."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-entity-ref-delimiter-face
-  '((t (:inherit nxml-ref-face)))
+(defface nxml-entity-ref-delimiter
+  '((t (:inherit nxml-ref)))
   "Face used for the delimiters of entity references, i.e & and ;."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-tag-delimiter-face
-  '((t (:inherit nxml-delimiter-face)))
+(defface nxml-tag-delimiter
+  '((t (:inherit nxml-delimiter)))
   "Face used for the angle brackets delimiting tags.
-`nxml-tag-slash-face' is used for slashes."
-  :group 'nxml-highlighting-faces)
+`nxml-tag-slash' is used for slashes."
+  :group 'nxml-faces)
 
-(defface nxml-tag-slash-face
-  '((t (:inherit nxml-name-face)))
+(defface nxml-tag-slash
+  '((t (:inherit nxml-tag-delimiter)))
   "Face used for slashes in tags, both in end-tags and empty-elements."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-element-prefix-face
-  '((t (:inherit nxml-name-face)))
+(defface nxml-element-prefix
+  '((t (:inherit nxml-name)))
   "Face used for the prefix of elements."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-element-colon-face
-  '((t (:inherit nxml-name-face)))
+(defface nxml-element-colon
+  nil
   "Face used for the colon in element names."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-element-local-name-face
-  '((t (:inherit nxml-name-face)))
+(defface nxml-element-local-name
+  '((t (:inherit font-lock-function-name-face)))
   "Face used for the local name of elements."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-attribute-prefix-face
-  '((t (:inherit nxml-name-face)))
+(defface nxml-attribute-prefix
+  '((t (:inherit nxml-name)))
   "Face used for the prefix of attributes."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-attribute-colon-face
-  '((t (:inherit nxml-name-face)))
+(defface nxml-attribute-colon
+  '((t (:inherit nxml-delimiter)))
   "Face used for the colon in attribute names."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
   
-(defface nxml-attribute-local-name-face
-  '((t (:inherit nxml-name-face)))
+(defface nxml-attribute-local-name
+  '((t (:inherit font-lock-variable-name-face)))
   "Face used for the local name of attributes."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-namespace-attribute-xmlns-face
-  '((t (:inherit nxml-name-face)))
+(defface nxml-namespace-attribute-xmlns
+  '((t (:inherit nxml-attribute-prefix)))
   "Face used for `xmlns' in namespace attributes."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-namespace-attribute-colon-face
-  '((t (:inherit nxml-name-face)))
+(defface nxml-namespace-attribute-colon
+  '((t (:inherit nxml-attribute-colon)))
   "Face used for the colon in namespace attributes."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-namespace-attribute-prefix-face
-  '((t (:inherit nxml-name-face)))
+(defface nxml-namespace-attribute-prefix
+  '((t (:inherit nxml-attribute-local-name)))
   "Face used for the prefix declared in namespace attributes."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-attribute-value-face
-  '((t (:inherit nxml-delimited-data-face)))
+(defface nxml-attribute-value
+  '((t (:inherit font-lock-string-face)))
   "Face used for the value of attributes."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-attribute-value-delimiter-face
-  '((t (:inherit nxml-delimiter-face)))
+(defface nxml-attribute-value-delimiter
+  '((t (:inherit nxml-attribute-value)))
   "Face used for the delimiters of attribute values."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-namespace-attribute-value-face
-  '((t (:inherit nxml-attribute-value-face)))
+(defface nxml-namespace-attribute-value
+  '((t (:inherit nxml-attribute-value)))
   "Face used for the value of namespace attributes."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-namespace-attribute-value-delimiter-face
-  '((t (:inherit nxml-attribute-value-delimiter-face)))
+(defface nxml-namespace-attribute-value-delimiter
+  '((t (:inherit nxml-attribute-value-delimiter)))
   "Face used for the delimiters of namespace attribute values."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-prolog-literal-delimiter-face
-  '((t (:inherit nxml-delimiter-face)))
+(defface nxml-prolog-literal-delimiter
+  '((t (:inherit nxml-delimited-data)))
   "Face used for the delimiters of literals in the prolog."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-prolog-literal-content-face
-  '((t (:inherit nxml-delimited-data-face)))
+(defface nxml-prolog-literal-content
+  '((t (:inherit nxml-delimited-data)))
   "Face used for the content of literals in the prolog."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-prolog-keyword-face
-  '((t (:inherit nxml-name-face)))
+(defface nxml-prolog-keyword
+  '((t (:inherit font-lock-keyword-face)))
   "Face used for keywords in the prolog."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-markup-declaration-delimiter-face
-  '((t (:inherit nxml-delimiter-face)))
+(defface nxml-markup-declaration-delimiter
+  '((t (:inherit nxml-delimiter)))
   "Face used for the delimiters of markup declarations in the prolog.
 The delimiters are <! and >."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-hash-face
-  '((t (:inherit nxml-name-face)))
+(defface nxml-hash
+  '((t (:inherit nxml-name)))
   "Face used for # before a name in the prolog."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-glyph-face
+(defface nxml-glyph
   '((((type x))
      (:family
       "misc-fixed"
@@ -391,13 +363,9 @@ The delimiters are <! and >."
       :slant
       normal)))
   "Face used for glyph for char references."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
 ;;; Global variables
-
-;; This is initialized in rng-auto.el.
-(defvar nxml-version nil
-  "*The version of nxml-mode that is being used.")
 
 (defvar nxml-prolog-regions nil
   "List of regions in the prolog to be fontified.
@@ -941,142 +909,142 @@ Leave point after last fontified position."
 
 (put 'start-tag
      'nxml-fontify-rule
-     '([nil 1 nxml-tag-delimiter-face]
-       [-1 nil nxml-tag-delimiter-face]
+     '([nil 1 nxml-tag-delimiter]
+       [-1 nil nxml-tag-delimiter]
        (element-qname . 1)
        attributes))
 
 (put 'partial-start-tag
      'nxml-fontify-rule
-     '([nil 1 nxml-tag-delimiter-face]
+     '([nil 1 nxml-tag-delimiter]
        (element-qname . 1)
        attributes))
 
 (put 'end-tag
      'nxml-fontify-rule
-     '([nil 1 nxml-tag-delimiter-face]
-       [1 2 nxml-tag-slash-face]
-       [-1 nil nxml-tag-delimiter-face]
+     '([nil 1 nxml-tag-delimiter]
+       [1 2 nxml-tag-slash]
+       [-1 nil nxml-tag-delimiter]
        (element-qname . 2)))
 
 (put 'partial-end-tag
      'nxml-fontify-rule
-     '([nil 1 nxml-tag-delimiter-face]
-       [1 2 nxml-tag-slash-face]
+     '([nil 1 nxml-tag-delimiter]
+       [1 2 nxml-tag-slash]
        (element-qname . 2)))
 
 (put 'empty-element
      'nxml-fontify-rule
-     '([nil 1 nxml-tag-delimiter-face]
-       [-2 -1 nxml-tag-slash-face]
-       [-1 nil nxml-tag-delimiter-face]
+     '([nil 1 nxml-tag-delimiter]
+       [-2 -1 nxml-tag-slash]
+       [-1 nil nxml-tag-delimiter]
        (element-qname . 1)
        attributes))
 
 (put 'partial-empty-element
      'nxml-fontify-rule
-     '([nil 1 nxml-tag-delimiter-face]
-       [-1 nil nxml-tag-slash-face]
+     '([nil 1 nxml-tag-delimiter]
+       [-1 nil nxml-tag-slash]
        (element-qname . 1)
        attributes))
 
 (put 'char-ref
      'nxml-fontify-rule
-     '([nil 2 nxml-char-ref-delimiter-face]
-       [2 -1 nxml-char-ref-number-face]
-       [-1 nil nxml-char-ref-delimiter-face]
+     '([nil 2 nxml-char-ref-delimiter]
+       [2 -1 nxml-char-ref-number]
+       [-1 nil nxml-char-ref-delimiter]
        char-ref))
 
 (put 'entity-ref
      'nxml-fontify-rule
-     '([nil 1 nxml-entity-ref-delimiter-face]
-       [1 -1 nxml-entity-ref-name-face]
-       [-1 nil nxml-entity-ref-delimiter-face]))
+     '([nil 1 nxml-entity-ref-delimiter]
+       [1 -1 nxml-entity-ref-name]
+       [-1 nil nxml-entity-ref-delimiter]))
 
 (put 'comment
      'nxml-fontify-rule
-     '([nil 4 nxml-comment-delimiter-face]
-       [4 -3 nxml-comment-content-face]
-       [-3 nil nxml-comment-delimiter-face]))
+     '([nil 4 nxml-comment-delimiter]
+       [4 -3 nxml-comment-content]
+       [-3 nil nxml-comment-delimiter]))
 
 (put 'processing-instruction
      'nxml-fontify-rule
-     '([nil 2 nxml-processing-instruction-delimiter-face]
-       [-2 nil nxml-processing-instruction-delimiter-face]
+     '([nil 2 nxml-processing-instruction-delimiter]
+       [-2 nil nxml-processing-instruction-delimiter]
        processing-instruction-content))
 
 (put 'cdata-section
      'nxml-fontify-rule
-     '([nil 3 nxml-cdata-section-delimiter-face] ; <![
-       [3 8 nxml-cdata-section-CDATA-face] ; CDATA
-       [8 9 nxml-cdata-section-delimiter-face] ; [
-       [9 -3 nxml-cdata-section-content-face] ; ]]>
-       [-3 nil nxml-cdata-section-delimiter-face]))
+     '([nil 3 nxml-cdata-section-delimiter] ; <![
+       [3 8 nxml-cdata-section-CDATA] ; CDATA
+       [8 9 nxml-cdata-section-delimiter] ; [
+       [9 -3 nxml-cdata-section-content] ; ]]>
+       [-3 nil nxml-cdata-section-delimiter]))
 
 (put 'data
      'nxml-fontify-rule
-     '([nil nil nxml-text-face]))
+     '([nil nil nxml-text]))
 
 ;; Prolog region types in list returned by xmltok-forward-prolog.
 
 (put 'xml-declaration
      'nxml-fontify-rule
-     '([nil 2 nxml-processing-instruction-delimiter-face]
-       [2 5 nxml-processing-instruction-target-face]
-       [-2 nil nxml-processing-instruction-delimiter-face]))
+     '([nil 2 nxml-processing-instruction-delimiter]
+       [2 5 nxml-processing-instruction-target]
+       [-2 nil nxml-processing-instruction-delimiter]))
 
 (put 'xml-declaration-attribute-name
      'nxml-fontify-rule
-     '([nil nil nxml-attribute-local-name-face]))
+     '([nil nil nxml-attribute-local-name]))
 
 (put 'xml-declaration-attribute-value
      'nxml-fontify-rule
-     '([nil 1 nxml-attribute-value-delimiter-face]
-       [1 -1 nxml-attribute-value-face]
-       [-1 nil nxml-attribute-value-delimiter-face]))
+     '([nil 1 nxml-attribute-value-delimiter]
+       [1 -1 nxml-attribute-value]
+       [-1 nil nxml-attribute-value-delimiter]))
 
 (put 'processing-instruction-left
      'nxml-fontify-rule
-     '([nil 2 nxml-processing-instruction-delimiter-face]
-       [2 nil nxml-processing-instruction-target-face]))
+     '([nil 2 nxml-processing-instruction-delimiter]
+       [2 nil nxml-processing-instruction-target]))
 
 (put 'processing-instruction-right
      'nxml-fontify-rule
-     '([nil -2 nxml-processing-instruction-content-face]
-       [-2 nil nxml-processing-instruction-delimiter-face]))
+     '([nil -2 nxml-processing-instruction-content]
+       [-2 nil nxml-processing-instruction-delimiter]))
 
 (put 'literal
      'nxml-fontify-rule
-     '([nil 1 nxml-prolog-literal-delimiter-face]
-       [1 -1 nxml-prolog-literal-content-face]
-       [-1 nil nxml-prolog-literal-delimiter-face]))
+     '([nil 1 nxml-prolog-literal-delimiter]
+       [1 -1 nxml-prolog-literal-content]
+       [-1 nil nxml-prolog-literal-delimiter]))
 
 (put 'keyword
      'nxml-fontify-rule
-     '([nil nil nxml-prolog-keyword-face]))
+     '([nil nil nxml-prolog-keyword]))
 
 (put 'markup-declaration-open
      'nxml-fontify-rule
-     '([0 2 nxml-markup-declaration-delimiter-face]
-       [2 nil nxml-prolog-keyword-face]))
+     '([0 2 nxml-markup-declaration-delimiter]
+       [2 nil nxml-prolog-keyword]))
 
 (put 'markup-declaration-close
      'nxml-fontify-rule
-     '([nil nil nxml-markup-declaration-delimiter-face]))
+     '([nil nil nxml-markup-declaration-delimiter]))
 
 (put 'internal-subset-open
      'nxml-fontify-rule
-     '([nil nil nxml-markup-declaration-delimiter-face]))
+     '([nil nil nxml-markup-declaration-delimiter]))
 
 (put 'internal-subset-close
      'nxml-fontify-rule
-     '([nil 1 nxml-markup-declaration-delimiter-face]
-       [-1 nil nxml-markup-declaration-delimiter-face]))
+     '([nil 1 nxml-markup-declaration-delimiter]
+       [-1 nil nxml-markup-declaration-delimiter]))
 
 (put 'hash-name
      'nxml-fontify-rule
-     '([nil 1 nxml-hash-face]
-       [1 nil nxml-prolog-keyword-face]))
+     '([nil 1 nxml-hash]
+       [1 nil nxml-prolog-keyword]))
 
 (defun nxml-apply-fontify-rule (&optional type start end)
   (let ((rule (get (or type xmltok-type) 'nxml-fontify-rule)))
@@ -1101,21 +1069,21 @@ Leave point after last fontified position."
 		 (nxml-fontify-qname (+ start (cdr action))
 				     xmltok-name-colon
 				     xmltok-name-end
-				     'nxml-element-prefix-face
-				     'nxml-element-colon-face
-				     'nxml-element-local-name-face)))
+				     'nxml-element-prefix
+				     'nxml-element-colon
+				     'nxml-element-local-name)))
 	      ((eq action 'attributes)
 	       (nxml-fontify-attributes))
 	      ((eq action 'processing-instruction-content)
 	       (nxml-set-face (+ start 2)
 			      xmltok-name-end
-			      'nxml-processing-instruction-target-face)
+			      'nxml-processing-instruction-target)
 	       (nxml-set-face (save-excursion
 				(goto-char xmltok-name-end)
 				(skip-chars-forward " \t\r\n")
 				(point))
 			      (- end 2)
-			      'nxml-processing-instruction-content-face))
+			      'nxml-processing-instruction-content))
 	      ((eq action 'char-ref)
 	       (nxml-char-ref-display-extra start
 					    end
@@ -1138,25 +1106,25 @@ Leave point after last fontified position."
       (nxml-fontify-qname (xmltok-attribute-name-start att)
 			  (xmltok-attribute-name-colon att)
 			  (xmltok-attribute-name-end att)
-			  'nxml-namespace-attribute-xmlns-face
-			  'nxml-namespace-attribute-colon-face
-			  'nxml-namespace-attribute-prefix-face
-			  'nxml-namespace-attribute-xmlns-face)
+			  'nxml-namespace-attribute-xmlns
+			  'nxml-namespace-attribute-colon
+			  'nxml-namespace-attribute-prefix
+			  'nxml-namespace-attribute-xmlns)
     (nxml-fontify-qname (xmltok-attribute-name-start att)
 			(xmltok-attribute-name-colon att)
 			(xmltok-attribute-name-end att)
-			'nxml-attribute-prefix-face
-			'nxml-attribute-colon-face
-			'nxml-attribute-local-name-face))
+			'nxml-attribute-prefix
+			'nxml-attribute-colon
+			'nxml-attribute-local-name))
   (let ((start (xmltok-attribute-value-start att))
 	(end (xmltok-attribute-value-end att))
 	(refs (xmltok-attribute-refs att))
 	(delimiter-face (if namespace-declaration
-			    'nxml-namespace-attribute-value-delimiter-face
-			  'nxml-attribute-value-delimiter-face))
+			    'nxml-namespace-attribute-value-delimiter
+			  'nxml-attribute-value-delimiter))
 	(value-face (if namespace-declaration
-			'nxml-namespace-attribute-value-face
-		      'nxml-attribute-value-face)))
+			'nxml-namespace-attribute-value
+		      'nxml-attribute-value)))
     (when start
       (nxml-set-face (1- start) start delimiter-face)
       (nxml-set-face end (1+ end) delimiter-face)
@@ -2598,7 +2566,7 @@ With a prefix argument, inserts the character directly."
   (when nxml-char-ref-extra-display
     (let ((name (nxml-get-char-name n))
 	  (glyph-string (and nxml-char-ref-display-glyph-flag
-			     (nxml-glyph-display-string n 'nxml-glyph-face)))
+			     (nxml-glyph-display-string n 'nxml-glyph)))
 	  ov)
     (when (or name glyph-string)
       (setq ov (make-overlay start end nil t))
@@ -2608,7 +2576,7 @@ With a prefix argument, inserts the character directly."
       (when glyph-string
 	(overlay-put ov
 		     'after-string
-		     (propertize glyph-string 'face 'nxml-glyph-face)))))))
+		     (propertize glyph-string 'face 'nxml-glyph)))))))
 
 (defun nxml-clear-char-ref-extra-display (start end)
   (let ((ov (overlays-in start end)))
@@ -2616,15 +2584,6 @@ With a prefix argument, inserts the character directly."
       (when (eq (overlay-get (car ov) 'category) 'nxml-char-ref)
 	(delete-overlay (car ov)))
       (setq ov (cdr ov)))))
-
-;;; Versioning
-
-(defun nxml-version ()
-  "Show the version of nXML mode that is being used."
-  (interactive)
-  (if nxml-version
-      (message "nXML mode version %s" nxml-version)
-    (message "nXML mode version unknown")))
 
 
 (defun nxml-start-delimiter-length (type)
