@@ -45,9 +45,9 @@ Boston, MA 02110-1301, USA.  */
 extern struct font_driver w32font_driver;
 
 Lisp_Object Qgdi;
-extern Lisp_Object QCfamily; /* reuse from xfaces.c  */
-static Lisp_Object Qmonospace, Qsans_serif, Qserif, Qmono, Qsans, Qsans__serif;
-static Lisp_Object Qscript, Qdecorative, Qraster, Qoutline, Qunknown;
+static Lisp_Object Qmonospace, Qsansserif, Qmono, Qsans, Qsans_serif;
+static Lisp_Object Qserif, Qscript, Qdecorative;
+static Lisp_Object Qraster, Qoutline, Qunknown;
 
 /* antialiasing  */
 extern Lisp_Object QCantialias; /* defined in font.c  */
@@ -298,7 +298,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
      particularly troublesome with tooltip frames, and causes crashes.  */
   f = ((struct w32font_info *)font)->owning_frame;
 #else
-  f = selected_frame;
+  f = XFRAME (selected_frame);
 #endif
 
   dc = get_frame_dc (f);
@@ -771,18 +771,17 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
   if (generic_type == FF_DECORATIVE)
     tem = Qdecorative;
   else if (generic_type == FF_MODERN)
-    tem = Qmonospace;
+    tem = Qmono;
   else if (generic_type == FF_ROMAN)
     tem = Qserif;
   else if (generic_type == FF_SCRIPT)
     tem = Qscript;
   else if (generic_type == FF_SWISS)
-    tem = Qsans_serif;
+    tem = Qsans;
   else
-    tem = Qnil;
-    
-  if (! NILP (tem))
-    font_put_extra (entity, QCfamily, tem);
+    tem = null_string;
+
+  ASET (entity, FONT_ADSTYLE_INDEX, tem);
 
   if (physical_font->ntmTm.tmPitchAndFamily & 0x01)
     font_put_extra (entity, QCspacing, make_number (FONT_SPACING_PROPORTIONAL));
@@ -827,8 +826,7 @@ w32_generic_family (Lisp_Object name)
   /* Generic families.  */
   if (EQ (name, Qmonospace) || EQ (name, Qmono))
     return FF_MODERN;
-  else if (EQ (name, Qsans_serif) || EQ (name, Qsans__serif)
-           || EQ (name, Qsans))
+  else if (EQ (name, Qsans) || EQ (name, Qsans_serif) || EQ (name, Qsansserif))
     return FF_SWISS;
   else if (EQ (name, Qserif))
     return FF_ROMAN;
@@ -854,6 +852,10 @@ logfonts_match (font, pattern)
       && ((font->lfWeight < (pattern->lfWeight - 150))
           || font->lfWeight > (pattern->lfWeight + 150)))
       return 0;
+
+  if (pattern->lfPitchAndFamily & 0xF0 != FF_DONTCARE
+      && pattern->lfPitchAndFamily & 0xF0 != font->lfPitchAndFamily & 0xF0)
+    return 0;
 
   /* Charset and face should be OK.  Italic has to be checked
      against the original spec, in case we don't have any preference.  */
@@ -889,22 +891,7 @@ font_matches_spec (type, font, spec)
         {
           Lisp_Object key = XCAR (extra_entry);
           val = XCDR (extra_entry);
-          if (EQ (key, QCfamily))
-            {
-              /* Generic family. Most useful when there is no font name
-                 specified. eg, if a script does not exist in the default
-                 font, we could look for a font with the same generic family
-                 that does support the script. Full PANOSE support would
-                 be better, but we need to open the font to get that.  */
-              BYTE w32_family = w32_generic_family (val);
-
-              /* Reject if FF_DONTCARE is returned, as it means the
-                 font spec is bad.  */
-              if (w32_family == FF_DONTCARE
-                  || w32_family != (font->ntmTm.tmPitchAndFamily & 0xF0))
-                return 0;
-            }
-          else if (EQ (key, QCspacing))
+          if (EQ (key, QCspacing))
             {
               int proportional;
               if (INTEGERP (val))
@@ -1176,6 +1163,15 @@ fill_in_logfont (f, logfont, font_spec)
         strncpy (logfont->lfFaceName, SDATA (tmp), LF_FACESIZE);
     }
 
+  tmp = AREF (font_spec, FONT_ADSTYLE_INDEX);
+  if (!NILP (tmp))
+    {
+      /* Override generic family.  */
+      BYTE family = w32_generic_family (tmp);
+      if (family != FF_DONTCARE)
+        logfont->lfPitchAndFamily = family | DEFAULT_PITCH;
+    }
+
   /* Process EXTRA info.  */
   for ( ; CONSP (extra); extra = XCDR (extra))
     {
@@ -1184,15 +1180,7 @@ fill_in_logfont (f, logfont, font_spec)
         {
           Lisp_Object key, val;
           key = XCAR (tmp), val = XCDR (tmp);
-          if (EQ (key, QCfamily))
-            {
-              /* Override generic family.  */
-              BYTE family = w32_generic_family (val);
-              if (family != FF_DONTCARE)
-                logfont->lfPitchAndFamily
-                  = logfont->lfPitchAndFamily & 0x0F | family;
-            }
-          else if (EQ (key, QCspacing))
+          if (EQ (key, QCspacing))
             {
               /* Set pitch based on the spacing property.  */
               if (INTEGERP (val))
@@ -1454,11 +1442,11 @@ syms_of_w32font ()
   /* Generic font families.  */
   DEFSYM (Qmonospace, "monospace");
   DEFSYM (Qserif, "serif");
-  DEFSYM (Qsans_serif, "sans-serif");
+  DEFSYM (Qsansserif, "sansserif");
   DEFSYM (Qscript, "script");
   DEFSYM (Qdecorative, "decorative");
   /* Aliases.  */
-  DEFSYM (Qsans__serif, "sans_serif");
+  DEFSYM (Qsans_serif, "sans_serif");
   DEFSYM (Qsans, "sans");
   DEFSYM (Qmono, "mono");
 
