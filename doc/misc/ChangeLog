@@ -1,3 +1,11 @@
+2007-12-20  Alex Schroeder  <alex@gnu.org>
+
+	* rcirc.texi (Top): Fighting Information Overload chapter added.
+	(Getting started with rcirc): Add notice of rcirc-track-minor-mode.
+	(rcirc commands): Moved /ignore command to the new chapter.
+	(Fighting Information Overload): New chapter documenting /keyword,
+	/bright, /dim, channel ignore, and low priority channels.
+
 2007-12-16  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Signals): Fix example in dbus-register-signal.
