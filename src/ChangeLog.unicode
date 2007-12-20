@@ -1,7 +1,19 @@
+2007-12-20  Jason Rumney  <jasonr@gnu.org>
+
+	* font.c (font_parse_fcname): Default weight and slant to normal.
+	(font_score): Prefer normal fonts if weight or slant unspecified.
+	(font_score) [WINDOWSNT]: Scale weight difference down to closer
+	match freetype scores.
+
 2007-12-19  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_text_extents): Don't use the frame stored in the
 	font, as it may have been deleted.
+	(w32_enumfont_pattern_entity): Map generic family to adstyle using
+	most common hyphenless variation.
+	(logfonts_match): Check generic family.
+	(font_matches_spec): Don't check generic family here.
+	(fill_in_logfont): Set generic family based on adstyle.
 
 	* w32font.h (w32font_get_cache): Update declaration.
 
