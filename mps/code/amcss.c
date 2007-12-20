@@ -20,7 +20,7 @@
 
 
 /* These values have been tuned in the hope of getting one dynamic collection. */
-#define testArenaSIZE     ((size_t)1000*1024)
+#define testArenaSIZE     ((size_t)1024*1024)
 #define gen1SIZE          ((size_t)150)
 #define gen2SIZE          ((size_t)170)
 #define avLEN             3
@@ -294,7 +294,8 @@ int main(int argc, char **argv)
 
   randomize(argc, argv);
 
-  die(mps_arena_create(&arena, mps_arena_class_vm(), 2*testArenaSIZE),
+  /* /4 => too-small arena, to test arena growth */
+  die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE/4),
       "arena_create");
   mps_message_type_enable(arena, mps_message_type_gc());
   mps_message_type_enable(arena, mps_message_type_gc_start());
