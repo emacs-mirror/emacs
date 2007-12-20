@@ -1,3 +1,46 @@
+2007-12-20  Jason Rumney  <jasonr@gnu.org>
+
+	* nxml/nxml-mode.el (nxml-faces): Rename from nxml-highlighting-faces.
+	Parent group is font-lock-faces.
+	(nxml-light-blue-color, nxml-dark-blue-color, nxml-green-color)
+	(nxml-sky-blue-color, nxml-dark-green-color, nxml-light-green-color):
+	(nxml-version): Remove.
+	(nxml-delimited-data, nxml-name, nxml-ref, nxml-delimiter)
+	(nxml-text, nxml-comment-content, nxml-comment-delimiter)
+	(nxml-processing-instruction-delimiter)
+	(nxml-processing-instruction-target)
+	(nxml-processing-instruction-content, nxml-cdata-section-delimiter)
+	(nxml-cdata-section-CDATA, nxml-cdata-section-content)
+	(nxml-char-ref-number, nxml-char-ref-delimiter, nxml-entity-ref-name)
+	(nxml-entity-ref-delimiter, nxml-tag-delimiter, nxml-tag-slash)
+	(nxml-element-prefix, nxml-element-colon, nxml-element-local-name)
+	(nxml-attribute-prefix, nxml-attribute-colon)
+	(nxml-attribute-local-name, nxml-namespace-attribute-xmlns)
+	(nxml-namespace-attribute-colon, nxml-namespace-attribute-prefix)
+	(nxml-attribute-value, nxml-attribute-value-delimiter)
+	(nxml-namespace-attibute-value)
+	(nxml-namespace-attribure-value-delimiter)
+	(nxml-prolog-literal-delimiter, nxml-prolog-literal-content)
+	(nxml-prolog-keyword, nxml-markup-declaration-delimiter, nxml-hash)
+	(nxml-glyph): Rename, removing -face suffix.
+	Inherit from existing font-lock faces.
+	(nxml-apply-fontify-rule, nxml-char-ref-display-extra):
+	Use new face names.
+
+	* nxml/nxml-outln.el (nxml-heading, nxml-outline-indicator)
+	(nxml-outline-active-indicator, nxml-outline-ellipsis):
+	Rename, removing -face suffix.
+	(nxml-highlighted-less-than, nxml-highlighted-greater-than)
+	(nxml-highlighted-colon, nxml-highlighted-slash)
+	(nxml-highlighted-ellipsis, nxml-highlighted-inactive-minus)
+	(nxml-highlighted-active-minus, nxml-highlighted-active-plus)
+	(nxml-highlighted-qname, nxml-outline-display-heading):
+	Use new face names.
+
+	* nxml/rng-valid.el (rng-error): Rename from rng-error-face.
+
+	* nxml/rng-nxml.el (rng-nxml-easy-menu): Remove nxml-version.
+
 2007-12-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* cus-start.el (all): Use correct group name for members of
