@@ -117,6 +117,29 @@
 	("muletibetan-2" . tibetan)
 	("muletibetan-1" . tibetan-1-column)))
 
+(setq font-encoding-charset-alist
+      '((latin-iso8859-1 . iso-8859-1)
+	(latin-iso8859-2 . iso-8859-2)
+	(latin-iso8859-3 . iso-8859-3)
+	(latin-iso8859-4 . iso-8859-4)
+	(latin-iso8859-9 . iso-8859-9)
+	(latin-iso8859-10 . iso-8859-10)
+	(latin-iso8859-13 . iso-8859-13)
+	(latin-iso8859-14 . iso-8859-14)
+	(latin-iso8859-15 . iso-8859-15)
+	(latin-iso8859-16 . iso-8859-16)
+	(cyrillic-iso8859-5 . iso-8859-5)
+	(greek-iso8859-7 . iso-8859-7)
+	(arabic-iso8859-6 . iso-8859-6)
+	(thai-tis620 . tis620-2533)
+	(latin-jisx0201 . jisx0201)
+	(katakana-jisx0201 . jisx0201)
+	(chinese-big5-1 . big5)
+	(chinese-big5-2 . big5)
+	(vietnamese-viscii-lower . viscii)
+	(vietnamese-viscii-upper . viscii)
+	(tibetan . unicode-bmp)))
+
 (setq script-representative-chars
       '((latin ?A ?Z ?a ?z)
 	(greek #x3A9)
@@ -169,7 +192,7 @@
 	(bugi . buginese)
 	(buhd . buhid)
 	(byzm . byzantine-musical-symbol)
-	(cans . canadian_aboliginal)
+	(cans . canadian-aboriginal)
 	(cher . cherokee)
 	(copt . coptic)
 	(xsux . cuneiform)
@@ -262,15 +285,24 @@
 	    (nil . "ISO8859-15")
 	    (nil . "VISCII1.1-1"))
 
-     (thai (nil . "TIS620*")
-	   (nil . "ISO8859-11"))
+     (thai  ,(font-spec :registry "iso10646-1" :otf '(thai nil nil (mark)))
+	    (nil . "TIS620*")
+	    (nil . "ISO8859-11"))
 
      (devanagari ,(font-spec :registry "iso10646-1" :otf '(deva nil (rphf)))
 		 (nil . "iso10646.indian-1"))
-     (malayalam ,(font-spec :registry "iso10646-1" :otf '(mlym nil (akhn))))
+     (bengali ,(font-spec :registry "iso10646-1" :otf '(beng nil (rphf))))
+     (gurmukhi ,(font-spec :registry "iso10646-1" :otf '(guru nil (blwf))))
+     (gujarati ,(font-spec :registry "iso10646-1" :otf '(gujr nil (rphf))))
+     (oriya ,(font-spec :registry "iso10646-1" :otf '(orya nil (rphf))))
      (tamil ,(font-spec :registry "iso10646-1" :otf '(taml nil (akhn))))
+     (telugu ,(font-spec :registry "iso10646-1" :otf '(telu nil (blwf))))
+     (kannada ,(font-spec :registry "iso10646-1" :otf '(knda nil (rphf))))
+     (sinhala ,(font-spec :registry "iso10646-1" :otf '(sinh nil (akhn))))
+     (malayalam ,(font-spec :registry "iso10646-1" :otf '(mlym nil (akhn))))
 
-     (lao  (nil . "MuleLao-1"))
+     (lao ,(font-spec :registry "iso10646-1" :otf '(mlym nil nil (mark)))
+	  (nil . "MuleLao-1"))
 
      (tai-viet ("TaiViet" . "iso10646-1"))
 
@@ -281,22 +313,50 @@
 	      (nil . "muletibetan-2"))
 
      ;; both for script and charset.
-     (ethiopic (nil . "ethiopic-unicode"))
+     (ethiopic ,(font-spec :registry "iso10646-1" :script 'ethiopic)
+	       (nil . "ethiopic-unicode"))
 
-     (greek (nil . "ISO8859-7"))
+     (greek ,(font-spec :registry "iso10646-1" :script 'greek)
+	    (nil . "ISO8859-7"))
 
-     (cyrillic (nil . "ISO8859-5")
+     (cyrillic ,(font-spec :registry "iso10646-1" :script 'cyrillic)
+	       (nil . "ISO8859-5")
 	       (nil . "microsoft-cp1251")
 	       (nil . "koi8-r"))
 
-     (arabic (nil . "MuleArabic-0")
+     (arabic ,(font-spec :registry "iso10646-1"
+			 :otf '(arab (init medi fini liga)))
+	     (nil . "MuleArabic-0")
 	     (nil . "MuleArabic-1")
 	     (nil . "MuleArabic-2")
 	     (nil . "ISO8859-6"))
 
-     (hebrew (nil . "ISO8859-8"))
+     (hebrew ,(font-spec :registry "iso10646-1" :script 'hebrew)
+	     (nil . "ISO8859-8"))
 
-     (kana (nil . "JISX0208*")
+     (syriac ,(font-spec :registry "iso10646-1" :script 'syriac))
+
+     (thaana ,(font-spec :registry "iso10646-1" :otf '(thaa nil nil)))
+
+     (myanmar ,(font-spec :registry "iso10646-1" :script 'myanmar))
+
+     (georgian ,(font-spec :registry "iso10646-1" :script 'georgian))
+
+     (cherokee ,(font-spec :registry "iso10646-1" :script 'cherokee))
+
+     (canadian-aboriginal ,(font-spec :registry "iso10646-1"
+				      :script 'canadian-aboriginal))
+
+     (ogham ,(font-spec :registry "iso10646-1" :script 'ogham))
+
+     (runic ,(font-spec :registry "iso10646-1" :script 'runic))
+
+     (khmer ,(font-spec :registry "iso10646-1" :otf '(khmr nil (pres))))
+
+     (yi ,(font-spec :registry "iso10646-1" :script 'yi))
+
+     (kana ,(font-spec :registry "iso10646-1" :script 'kana)
+	   (nil . "JISX0208*")
 	   (nil . "GB2312.1980-0")
 	   (nil . "KSC5601.1987*")
 	   (nil . "JISX0201*")
@@ -305,7 +365,9 @@
 
      (bopomofo (nil . "sisheng_cwnn-0"))
 
-     (han (nil . "GB2312.1980-0")
+     (han ,(font-spec :registry "iso10646-1" :language 'ja)
+	  ,(font-spec :registry "iso10646-1" :language 'zh)
+	  (nil . "GB2312.1980-0")
 	  (nil . "JISX0208*")
 	  (nil . "JISX0212*")
 	  (nil . "big5*")
@@ -340,7 +402,8 @@
 	       (nil . "JISX0213.2000-1")
 	       (nil . "JISX0213.2000-2"))
 
-     (hangul (nil . "KSC5601.1987-0"))
+     (hangul ,(font-spec :registry "iso10646-1" :language 'ko)
+	     (nil . "KSC5601.1987-0"))
 
      ;; for each charset
      (ascii (nil . "ISO8859-1"))
@@ -634,62 +697,21 @@ Value is name of that font."
     ascii-font))
 
 
-(defun x-complement-fontset-spec (xlfd-fields fontlist)
-  "Complement elements of FONTLIST based on XLFD-FIELDS.
-XLFD-FIELDS is a vector of XLFD (X Logical Font Description) fields.
+(defun x-complement-fontset-spec (default-spec fontlist)
+  "Complement elements of FONTLIST based on DEFAULT-SPEC.
+DEFAULT-SPEC is a font-spec object providing default font properties.
 FONTLIST is an alist of script names vs the corresponding font names.
 
-The font names are complemented as below.
-
-If a font name matches `xlfd-style-regexp', each field of wild card is
-replaced by the corresponding fields in XLFD-FIELDS."
-  (let ((family (aref xlfd-fields xlfd-regexp-family-subnum))
-	(weight (aref xlfd-fields xlfd-regexp-weight-subnum))
-	(slant (aref xlfd-fields xlfd-regexp-slant-subnum))
-	(width (aref xlfd-fields xlfd-regexp-swidth-subnum))
-	(adstyle (aref xlfd-fields xlfd-regexp-adstyle-subnum))
-	(registry (aref xlfd-fields xlfd-regexp-registry-subnum)))
-    (if weight (setq weight (intern weight)))
-    (if slant (setq slant (intern slant)))
-    (if width (setq width (intern width)))
-    (if adstyle (setq adstyle (intern adstyle)))
+The font names are parsed and unspecified font properties are
+given from DEFAULT-SPEC."
+  (let ((prop-list '(:foundry :family :weight :slant :width :adstyle)))
     (dolist (elt fontlist)
-      (let ((name (cadr elt))
-	    args)
-	(when (or (string-match xlfd-style-regexp name)
-		  (and (setq name (car (x-list-fonts name nil nil 1)))
-		       (string-match xlfd-style-regexp name)))
-	  (let ((fam (match-string (1+ xlfd-regexp-family-subnum) name))
-		(wei (match-string (1+ xlfd-regexp-weight-subnum) name))
-		(sla (match-string (1+ xlfd-regexp-slant-subnum) name))
-		(wid (match-string (1+ xlfd-regexp-swidth-subnum) name))
-		(ads (match-string (1+ xlfd-regexp-adstyle-subnum) name))
-		(reg (match-string (1+ xlfd-regexp-registry-subnum) name)))
-	    (if (or (and fam (setq fam (if (not (string-match "^[*?]*$" fam))
-					   fam)))
-		    family)
-		(setq args (list :family (or fam family))))
-	    (if (or (and wei (setq wei (if (not (string-match "^[*?]*$" wei))
-					   (intern wei))))
-		    weight)
-		(setq args (cons :weight (cons (or wei weight) args))))
-	    (if (or (and sla (setq sla (if (not (string-match "^[*?]*$" sla))
-					   (intern sla))))
-		    slant)
-		(setq args (cons :slant (cons (or sla slant) args))))
-	    (if (or (and wid (setq wid (if (not (string-match "^[*?]*$" wid))
-					   (intern wid))))
-		    width)
-		(setq args (cons :width (cons (or wid width) args))))
-	    (if (or (and ads (setq ads (if (not (string-match "^[*?]*$" ads))
-					   (intern ads))))
-		    adstyle)
-		(setq args (cons :adstyle (cons (or ads adstyle) args))))
-	    (if (or (and reg (setq reg (if (not (string-match "^[*?]*$" reg))
-					   reg)))
-		    registry)
-		(setq args (cons :registry (cons (or reg registry) args))))
-	    (setcar (cdr elt) (apply 'font-spec args))))))
+      (let ((spec (font-spec :name (cadr elt))))
+	(dolist (prop prop-list)
+	  (let ((val (font-get spec prop)))
+	    (or val
+		(font-put spec prop (font-get default-spec prop)))))
+	(setcar (cdr elt) spec)))
     fontlist))
 
 (defun fontset-name-p (fontset)
@@ -828,11 +850,10 @@ which case, the corresponding script is decided by the variable
       (error "Invalid fontset spec: %s" fontset-spec))
   (let ((idx (match-end 0))
 	(name (match-string 0 fontset-spec))
-	xlfd-fields target script fontlist)
-    (setq xlfd-fields (x-decompose-font-name name))
-    (or xlfd-fields
+	default-spec target script fontlist)
+    (or (string-match xlfd-tight-regexp name)
 	(error "Fontset name \"%s\" not conforming to XLFD" name))
-
+    (setq default-spec (font-spec :name name))
     ;; At first, extract pairs of charset and fontname from FONTSET-SPEC.
     (while (string-match "[, \t\n]*\\([^:]+\\):[ \t]*\\([^,]+\\)" 
 			 fontset-spec idx)
@@ -847,7 +868,7 @@ which case, the corresponding script is decided by the variable
 	     (push (list target (match-string 2 fontset-spec)) fontlist))))
 
     ;; Complement FONTLIST.
-    (setq fontlist (x-complement-fontset-spec xlfd-fields fontlist))
+    (setq fontlist (x-complement-fontset-spec default-spec fontlist))
 
     ;; Create a fontset.
     (new-fontset name (nreverse fontlist))))
