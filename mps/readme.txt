@@ -64,8 +64,52 @@ Other changes:
 
 ]
 
-This is release 1.108.0, made on 2007-07-05.
-Changes from release 1.107.0:
+This is release 1.108.1, made on 2007-12-21.
+Changes from release 1.108.0:
+
+Functional changes to MPS code:
+
+<http://www.ravenbrook.com/project/mps/issue/job001737/>
+Limitation:
+  - if a VM arena (of mps_arena_class_vm) needed to be extended, 
+    and the attempt to extend it was refused by the OS (usually 
+    because the requested address-space was not available), MPS 
+    would not try a smaller extension.
+Fixed: MPS now tries to extend the arena by successively smaller 
+    amounts, until the extension succeeds.
+
+<http://www.ravenbrook.com/project/mps/issue/job001706/>
+Defect discovered:
+  - internal memory-protection state in AMC pools (mps_class_amc) 
+    was incorrect for a brief period of time during a collection, 
+    which could (theoretically) have caused an assert and failure.
+However:
+  - during this brief period, the MPS protection cache masks the 
+    defect.  As a result, we believe this defect is unlikely to be 
+    observed in practice (and we have no evidence that it has 
+    ever occurred in practice).
+Fixed: maintain memory-protection state correctly in AMC pools.
+
+Other changes:
+
+<http://www.ravenbrook.com/project/mps/issue/job001714/>
+  - in the Mac OS X (PowerPC) build, remove outdated compiler flags.
+
+The MPS diagnostic system -- which produces diagnostic output for the 
+purpose of helping MPS programmers and client-code programmers -- is 
+undergoing improvement.  Some early documentation is at
+ <http://www.ravenbrook.com/project/mps/master/design/diag>
+There is a new build variety "di" that emits diagnostics.
+
+Note: for further details of this release (including a 'live' report 
+of defects found after these release-notes were written), and details 
+of earlier and later releases, please see:
+  <http://www.ravenbrook.com/project/mps/release/>
+
+
+
+[
+Historical: changes in release 1.108.0 (2007-07-05).
 
 Functional changes to MPS code:
 
@@ -119,12 +163,7 @@ Other changes:
 <http://www.ravenbrook.com/project/mps/issue/job001617/>
   - on Mac OS X (Intel) default "all" build works (fix broken 
     compile of amsss stress test).
-
-Note: for further details of this release (including a 'live' report 
-of defects found after these release-notes were written), and details 
-of earlier and later releases, please see:
-  <http://www.ravenbrook.com/project/mps/release/>
-
+]
 
 [
 Historical: changes in release 1.107.0 (2006-12-13):
