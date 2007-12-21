@@ -1,3 +1,13 @@
+2007-12-21  Jason Rumney  <jasonr@gnu.org>
+
+	* find-dired.el (find-name-arg): New custom variable.
+	(find-name-dired): Use it.
+	(find-dired-find-program): Remove.
+	(find-dired): Use find-program.
+	(find-grep-dired): Use grep-program.
+
+	* progmodes/grep.el (rgrep): Use find-name-arg.
+
 2007-12-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* autoinsert.el (auto-insert-alist): Remove nonsensical precision
