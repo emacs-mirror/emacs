@@ -120,8 +120,8 @@ communication.
 @cindex server
 @cindex network
 Contrary to most Instant Messenger (IM) systems, users usually don't
-connect to a central server.  Instead, users connect to a random server
-in a network, and the servers share information between them.
+connect to a central server.  Instead, users connect to a random
+server in a network, and servers relay messages from one to the next.
 
 Here's a typical example:
 
@@ -174,7 +174,7 @@ using a different nick.  This will prompt you for four things:
 @table @asis
 @cindex server, connecting
 @cindex Freenode network
-@item IRC server
+@item IRC Server
 What server do you want to connect to? All the servers in a particular
 network are equivalent.  Some networks use a round-robin system where a
 single server redirects new connections to a random server in the
@@ -185,7 +185,7 @@ communities and organizations.''
 
 @cindex port, connecting
 @cindex 6667, default IRC port
-@item IRC port
+@item IRC Port
 All network connections require a port.  Just as web servers and clients
 use port 80 per default, IRC uses port 6667 per default.  You rarely
 have to use a different port.
@@ -193,7 +193,7 @@ have to use a different port.
 @cindex nick, connecting
 @cindex changing nick
 @cindex name changes
-@item IRC nick
+@item IRC Nick
 @vindex user-login-name
 Every users needs a handle on-line.  You will automatically be assigned
 a slightly different nick if your chosen nick is already in use.  If
@@ -203,7 +203,7 @@ in use, you might for example get assigned the nick @code{alex`}.
 @cindex channels, connecting
 @cindex initial channels
 @cindex startup channels
-@item Channels
+@item IRC Channels
 A space separated list of channels you want to join when connecting.
 You don't need to join any channels, if you just want to have one-to-one
 conversations with friends on the same network.  If you're new to the
@@ -219,7 +219,7 @@ and a channel buffer for each of the channels you wanted to join.
 @kindex RET
 @cindex talking
 @cindex communicating
-To talk in a channel, just type in what you want to say in a channel
+To talk in a channel, just type what you want to say in a channel
 buffer, and press @key{RET}.
 
 @kindex C-c C-c
@@ -233,14 +233,19 @@ C-c} to finish editing.  You still need to press @key{RET} to send it,
 though.  Generally, IRC users don't like people pasting more than around
 four lines of code, so use with care.
 
-As soon as you have joined a channel, you probably want to be notified
-of any activity on the the channels you joined. All you need to do is
-switch channel tracking on using @kbd{M-x rcirc-track-minor-mode}.  To
-make this permanent, add the following to your init file:
+@comment This section copied from the Channels section.
+@comment All index markers should point to the original!
+Once you are connected to multiple channels, or once you've turned you
+attention to other buffers in Emacs, you probably want to be notified
+of any activity in channels not currently visible.  All you need to do
+is switch channel tracking on using @kbd{M-x rcirc-track-minor-mode}.
+To make this permanent, add the following to your init file:
 
 @example
 (rcirc-track-minor-mode 1)
 @end example
+
+Use @kbd{C-c C-@key{SPC}} to switch to these buffers.
 
 @node Reference, Fighting Information Overload, Basics, Top
 @chapter Reference
@@ -443,11 +448,12 @@ liking.
 @cindex servers, configuration
 @cindex initial servers, configuration
 @cindex startup servers, configuration
-This variable contains an alist of servers to connect to by default and
-the keywords parameters to use. The keyword parameters are optional. If
-you don't provide any, the defaults as documented below will be used.
+This variable contains an alist of servers to connect to by default
+and the keywords parameters to use.  The keyword parameters are
+optional.  If you don't provide any, the defaults as documented below
+will be used.
 
-The most important parameter is the @code{:channels} parameter. It
+The most important parameter is the @code{:channels} parameter.  It
 controls which channels you will join by default as soon as you are
 connected to the server.
 
@@ -476,14 +482,14 @@ This overrides @code{rcirc-default-user-name}.
 This overrides @code{rcirc-default-full-name}.
 
 @item :channels
-This describes which channels to join when connecting to the server. If
-absent, no channels will be connected to automatically.
+This describes which channels to join when connecting to the server.
+If absent, no channels will be connected to automatically.
 
 @end table
 
 @item rcirc-default-nick
 @vindex rcirc-default-nick
-This variable is used for the default nick. It defaults to the login
+This variable is used for the default nick.  It defaults to the login
 name returned by @code{user-login-name}.
 
 @example
@@ -493,24 +499,24 @@ name returned by @code{user-login-name}.
 @item rcirc-default-port
 @vindex rcirc-default-port
 @cindex port
-This variable contains the default port to connect to. It is 6667 by
+This variable contains the default port to connect to.  It is 6667 by
 default and rarely needs changing.
 
 @item rcirc-default-user-name
 @vindex rcirc-default-user-name
 @cindex user name
-This variable contains the default user name to report to the server. It
-defaults to the login name returned by @code{user-login-name}, just like
-@code{rcirc-default-nick}.
+This variable contains the default user name to report to the server.
+It defaults to the login name returned by @code{user-login-name}, just
+like @code{rcirc-default-nick}.
 
 @item rcirc-default-user-full-name
 @vindex rcirc-default-user-full-name
 @cindex full name
 @cindex real name
 @cindex surname
-This variable is used to set your ``real name'' on
-IRC. It defaults to the name returned by @code{user-full-name}. If you
-want to hide your full name, you might want to set it to some pseudonym.
+This variable is used to set your ``real name'' on IRC.  It defaults
+to the name returned by @code{user-full-name}.  If you want to hide
+your full name, you might want to set it to some pseudonym.
 
 @example
 (setq rcirc-default-user-full-name "Curious Minds Want To Know")
@@ -523,10 +529,10 @@ want to hide your full name, you might want to set it to some pseudonym.
 @cindex nickserv
 @cindex login
 This variable is an alist used to automatically identify yourself on
-networks. Each sublist starts with a regular expression that is compared
-to the server address you're connecting to. The second element in the
-list is a symbol representing the method to use, followed by the
-arguments this method requires.
+networks.  Each sublist starts with a regular expression that is
+compared to the server address you're connecting to.  The second
+element in the list is a symbol representing the method to use,
+followed by the arguments this method requires.
 
 Here is an example to illustrate how you would set it:
 
@@ -595,9 +601,9 @@ confuse the Bitlbee account with all the other accounts.
 @cindex information overload
 
 This is the section of the manual that caters to the busy person
-online. There are support channels with several hundred people in
-them. Trying to follow a conversation in these channels can be a
-daunting task. This chapters tells you how @code{rcirc} can help.
+online.  There are support channels with several hundred people in
+them.  Trying to follow a conversation in these channels can be a
+daunting task.  This chapters tells you how @code{rcirc} can help.
 
 @menu
 * Channels::
@@ -611,6 +617,7 @@ daunting task. This chapters tells you how @code{rcirc} can help.
 @cindex channels
 @cindex modeline
 
+@comment This section copied to the Getting started with rcirc section
 @kindex C-c C-SPC
 @vindex rcirc-track-minor-mode
 @cindex switching channels
@@ -645,22 +652,22 @@ activation of this mode:
 
 @cindex busy channels
 If you've joined a very active support channel, tracking activity is
-no longer useful. The channel will be always active. Switching to
+no longer useful.  The channel will be always active.  Switching to
 active channels using @kbd{C-c C-@key{SPC}} no longer works as
 expected.
 
 @kindex C-c C-l
 @cindex low priority channels
 The solution is to mark this channel as as a low priority channel.
-Use @kbd{C-c C-l} to make the current channel a low-priority
-channel. Low priority channels have the modeline indicator ``LowPri''.
+Use @kbd{C-c C-l} to make the current channel a low-priority channel.
+Low priority channels have the modeline indicator ``LowPri''.
 @kbd{C-c C-@key{SPC}} will not switch to low priority channels unless
 you use the @kbd{C-u} prefix.
 
 @kindex C-c TAB
 @cindex ignored channels
 If you prefer a channel to never show up in the modeline, then you
-have to ignore it. Use @kbd{C-c @key{TAB}} to ignore the current
+have to ignore it.  Use @kbd{C-c @key{TAB}} to ignore the current
 channel.
 
 @node People, Keywords, Channels, Fighting Information Overload
@@ -672,7 +679,7 @@ channel.
 @cindex trolls
 
 The most important command available to the discerning IRC user is
-@code{/ignore}. It's the big equalizer online: If people aggravate
+@code{/ignore}.  It's the big equalizer online: If people aggravate
 you, just ignore them.
 
 This is of course a crude all-or-nothing solution.  Fear not,
@@ -704,7 +711,7 @@ obnoxious fellows online.  Example: @code{/ignore xah}.
 This command toggles the bright status of a nick, if you provide one.
 If you don't provide a nick, the command lists all the ``brightened''
 nicks.  All messages by brightened nicks are---you guessed
-it---brightened. Use this for your friends.  Example: @code{/bright
+it---brightened.  Use this for your friends.  Example: @code{/bright
 rcy}.
 
 @item /dim
@@ -715,8 +722,8 @@ rcy}.
 This command toggles the dim status of a nick, if you provide one.  If
 you don't provide a nick, the command lists all the ``dimmed'' nicks.
 All messages by dimmed nicks are---you guessed it---dimmed.  Use this
-for boring people and bots. If you are tracking channel activity,
-messages by dimmed nicks will not register as activity. Example:
+for boring people and bots.  If you are tracking channel activity,
+messages by dimmed nicks will not register as activity.  Example:
 @code{/dim fsbot}.
 @end table
 
@@ -726,18 +733,18 @@ messages by dimmed nicks will not register as activity. Example:
 @cindex keywords
 
 On a busy channel, you might want to ignore all activity (using
-@kbd{C-c @key{TAB}}) and just watch for certain keywords. The
+@kbd{C-c @key{TAB}}) and just watch for certain keywords.  The
 following command allows you to highlight certain keywords:
 
 @table @code
 @item /keyword
 @cindex /keyword
 This command toggles the highlighting of a keyword, if you provide
-one. If you don't provide a keyword, the current keywords are
-listed. Example: @code{/keyword manual}.
+one.  If you don't provide a keyword, the current keywords are
+listed.  Example: @code{/keyword manual}.
 @end table
 
-A keyword is regular expression matching a word. Thus, if you add the
+A keyword is regular expression matching a word.  Thus, if you add the
 keyword @code{wikis?} then this will match the words ``wiki'' and
 ``wikis'' but not ``emacswiki''.
 
@@ -751,14 +758,14 @@ keyword @code{wikis?} then this will match the words ``wiki'' and
 @kindex C-c C-o
 @cindex low priority channels
 In busy channels you might not be interested in all the joining,
-parting, quitting, and renaming that goes on. You can omit those
+parting, quitting, and renaming that goes on.  You can omit those
 notices using @kbd{C-c C-o}.
 
 @vindex rcirc-omit-responses
 @cindex away notices, how to omit
 You can control which notices get omitted via the
-@code{rcirc-omit-responses} variable. Here's an example of how to omit
-away messages:
+@code{rcirc-omit-responses} variable.  Here's an example of how to
+omit away messages:
 
 @example
 (setq rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK" "AWAY))
@@ -766,10 +773,10 @@ away messages:
 
 @vindex rcirc-omit-threshold
 Notice that these messages will not be omitted if the nick in question
-has recently been active. After all, you don't want to continue a
-conversation with somebody who just left. That's why @code{rcirc}
+has recently been active.  After all, you don't want to continue a
+conversation with somebody who just left.  That's why @code{rcirc}
 checks recent lines in the buffer to figure out if a nick has been
-active and only omits a message if the nick has not been active. The
+active and only omits a message if the nick has not been active.  The
 window @code{rcirc} considers is controlled by the
 @code{rcirc-omit-threshold} variable.
 
