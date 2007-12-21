@@ -744,10 +744,6 @@ one.  If you don't provide a keyword, the current keywords are
 listed.  Example: @code{/keyword manual}.
 @end table
 
-A keyword is regular expression matching a word.  Thus, if you add the
-keyword @code{wikis?} then this will match the words ``wiki'' and
-``wikis'' but not ``emacswiki''.
-
 @node Notices, , Keywords, Fighting Information Overload
 @section Notices
 @cindex part notices, how to omit 
