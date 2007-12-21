@@ -103,44 +103,218 @@ Lisp_Object Vdbus_debug;
 #define XD_DEBUG_VALID_LISP_OBJECT_P(object)
 #endif
 
+/* Check whether TYPE is a basic DBusType.  */
+#define XD_BASIC_DBUS_TYPE(type)					\
+  ((type ==  DBUS_TYPE_BYTE)						\
+   || (type ==  DBUS_TYPE_BOOLEAN)					\
+   || (type ==  DBUS_TYPE_INT16)					\
+   || (type ==  DBUS_TYPE_UINT16)					\
+   || (type ==  DBUS_TYPE_INT32)					\
+   || (type ==  DBUS_TYPE_UINT32)					\
+   || (type ==  DBUS_TYPE_INT64)					\
+   || (type ==  DBUS_TYPE_UINT64)					\
+   || (type ==  DBUS_TYPE_DOUBLE)					\
+   || (type ==  DBUS_TYPE_STRING)					\
+   || (type ==  DBUS_TYPE_OBJECT_PATH)					\
+   || (type ==  DBUS_TYPE_SIGNATURE))
+
 /* Determine the DBusType of a given Lisp symbol.  OBJECT must be one
    of the predefined D-Bus type symbols.  */
-#define XD_LISP_SYMBOL_TO_DBUS_TYPE(object)				\
-  (EQ (object, QCdbus_type_byte)) ? DBUS_TYPE_BYTE			\
-  : (EQ (object, QCdbus_type_boolean)) ? DBUS_TYPE_BOOLEAN		\
-  : (EQ (object, QCdbus_type_int16)) ? DBUS_TYPE_INT16			\
-  : (EQ (object, QCdbus_type_uint16)) ? DBUS_TYPE_UINT16		\
-  : (EQ (object, QCdbus_type_int32)) ? DBUS_TYPE_INT32			\
-  : (EQ (object, QCdbus_type_uint32)) ? DBUS_TYPE_UINT32		\
-  : (EQ (object, QCdbus_type_int64)) ? DBUS_TYPE_INT64			\
-  : (EQ (object, QCdbus_type_uint64)) ? DBUS_TYPE_UINT64		\
-  : (EQ (object, QCdbus_type_double)) ? DBUS_TYPE_DOUBLE		\
-  : (EQ (object, QCdbus_type_string)) ? DBUS_TYPE_STRING		\
-  : (EQ (object, QCdbus_type_object_path)) ? DBUS_TYPE_OBJECT_PATH	\
-  : (EQ (object, QCdbus_type_signature)) ? DBUS_TYPE_SIGNATURE		\
-  : (EQ (object, QCdbus_type_array)) ? DBUS_TYPE_ARRAY			\
-  : (EQ (object, QCdbus_type_variant)) ? DBUS_TYPE_VARIANT		\
-  : (EQ (object, QCdbus_type_struct)) ? DBUS_TYPE_STRUCT		\
-  : (EQ (object, QCdbus_type_dict_entry)) ? DBUS_TYPE_DICT_ENTRY	\
-  : DBUS_TYPE_INVALID
+#define XD_SYMBOL_TO_DBUS_TYPE(object)					\
+  ((EQ (object, QCdbus_type_byte)) ? DBUS_TYPE_BYTE			\
+   : (EQ (object, QCdbus_type_boolean)) ? DBUS_TYPE_BOOLEAN		\
+   : (EQ (object, QCdbus_type_int16)) ? DBUS_TYPE_INT16			\
+   : (EQ (object, QCdbus_type_uint16)) ? DBUS_TYPE_UINT16		\
+   : (EQ (object, QCdbus_type_int32)) ? DBUS_TYPE_INT32			\
+   : (EQ (object, QCdbus_type_uint32)) ? DBUS_TYPE_UINT32		\
+   : (EQ (object, QCdbus_type_int64)) ? DBUS_TYPE_INT64			\
+   : (EQ (object, QCdbus_type_uint64)) ? DBUS_TYPE_UINT64		\
+   : (EQ (object, QCdbus_type_double)) ? DBUS_TYPE_DOUBLE		\
+   : (EQ (object, QCdbus_type_string)) ? DBUS_TYPE_STRING		\
+   : (EQ (object, QCdbus_type_object_path)) ? DBUS_TYPE_OBJECT_PATH	\
+   : (EQ (object, QCdbus_type_signature)) ? DBUS_TYPE_SIGNATURE		\
+   : (EQ (object, QCdbus_type_array)) ? DBUS_TYPE_ARRAY			\
+   : (EQ (object, QCdbus_type_variant)) ? DBUS_TYPE_VARIANT		\
+   : (EQ (object, QCdbus_type_struct)) ? DBUS_TYPE_STRUCT		\
+   : (EQ (object, QCdbus_type_dict_entry)) ? DBUS_TYPE_DICT_ENTRY	\
+   : DBUS_TYPE_INVALID)
+
+/* Check whether a Lisp symbol is a predefined D-Bus type symbol.  */
+#define XD_DBUS_TYPE_P(object)						\
+  (SYMBOLP (object) && ((XD_SYMBOL_TO_DBUS_TYPE (object) != DBUS_TYPE_INVALID)))
 
 /* Determine the DBusType of a given Lisp OBJECT.  It is used to
    convert Lisp objects, being arguments of `dbus-call-method' or
    `dbus-send-signal', into corresponding C values appended as
    arguments to a D-Bus message.  */
-#define XD_LISP_OBJECT_TO_DBUS_TYPE(object)				\
-  (EQ (object, Qt) || EQ (object, Qnil)) ? DBUS_TYPE_BOOLEAN		\
-  : (SYMBOLP (object)) ? XD_LISP_SYMBOL_TO_DBUS_TYPE (object)		\
-  : (CONSP (object)) ? ((SYMBOLP (XCAR (object))			\
-			 && !EQ (XCAR (object), Qt)			\
-			 && !EQ (XCAR (object), Qnil))			\
-			? XD_LISP_SYMBOL_TO_DBUS_TYPE (XCAR (object))	\
-			: DBUS_TYPE_ARRAY)				\
-  : (NATNUMP (object)) ? DBUS_TYPE_UINT32				\
-  : (INTEGERP (object)) ? DBUS_TYPE_INT32				\
-  : (FLOATP (object)) ? DBUS_TYPE_DOUBLE				\
-  : (STRINGP (object)) ? DBUS_TYPE_STRING				\
-  : DBUS_TYPE_INVALID
+#define XD_OBJECT_TO_DBUS_TYPE(object)					\
+  ((EQ (object, Qt) || EQ (object, Qnil)) ? DBUS_TYPE_BOOLEAN		\
+   : (NATNUMP (object)) ? DBUS_TYPE_UINT32				\
+   : (INTEGERP (object)) ? DBUS_TYPE_INT32				\
+   : (FLOATP (object)) ? DBUS_TYPE_DOUBLE				\
+   : (STRINGP (object)) ? DBUS_TYPE_STRING				\
+   : (XD_DBUS_TYPE_P (object)) ? XD_SYMBOL_TO_DBUS_TYPE (object)	\
+   : (CONSP (object)) ? ((XD_DBUS_TYPE_P (XCAR (object)))		\
+			 ? XD_SYMBOL_TO_DBUS_TYPE (XCAR (object))	\
+			 : DBUS_TYPE_ARRAY)				\
+   : DBUS_TYPE_INVALID)
+
+/* Return a list pointer which does not have a Lisp symbol as car.  */
+#define XD_NEXT_VALUE(object)					\
+  ((XD_DBUS_TYPE_P (XCAR (object))) ? XCDR (object) : object)
+
+/* Compute SIGNATURE of OBJECT.  It must have a form that it can be
+   used in dbus_message_iter_open_container.  DTYPE is the DBusType
+   the object is related to.  It is passed as argument, because it
+   cannot be detected in basic type objects, when they are preceded by
+   a type symbol.  PARENT_TYPE is the DBusType of a container this
+   signature is embedded, or DBUS_TYPE_INVALID.  It is needed for the
+   check that DBUS_TYPE_DICT_ENTRY occurs only as array element.  */
+void
+xd_signature(signature, dtype, parent_type, object)
+     char *signature;
+     unsigned int dtype, parent_type;
+     Lisp_Object object;
+{
+  unsigned int subtype;
+  Lisp_Object elt;
+  char x[DBUS_MAXIMUM_SIGNATURE_LENGTH];
+
+  elt = object;
+
+  switch (dtype)
+    {
+    case DBUS_TYPE_BYTE:
+    case DBUS_TYPE_UINT16:
+    case DBUS_TYPE_UINT32:
+    case DBUS_TYPE_UINT64:
+      CHECK_NATNUM (object);
+      sprintf (signature, "%c", dtype);
+      break;
+
+    case DBUS_TYPE_BOOLEAN:
+      if (!EQ (object, Qt) && !EQ (object, Qnil))
+	wrong_type_argument (intern ("booleanp"), object);
+      sprintf (signature, "%c", dtype);
+      break;
+
+    case DBUS_TYPE_INT16:
+    case DBUS_TYPE_INT32:
+    case DBUS_TYPE_INT64:
+      CHECK_NUMBER (object);
+      sprintf (signature, "%c", dtype);
+      break;
+
+    case DBUS_TYPE_DOUBLE:
+      CHECK_FLOAT (object);
+      sprintf (signature, "%c", dtype);
+      break;
+
+    case DBUS_TYPE_STRING:
+    case DBUS_TYPE_OBJECT_PATH:
+    case DBUS_TYPE_SIGNATURE:
+      CHECK_STRING (object);
+      sprintf (signature, "%c", dtype);
+      break;
+
+    case DBUS_TYPE_ARRAY:
+      /* Check that all elements have the same D-Bus type.  For
+	 complex element types, we just check the container type, not
+	 the whole element's signature.  */
+      CHECK_CONS (object);
+
+      if (EQ (QCdbus_type_array, XCAR (elt))) /* Type symbol is optional.  */
+	elt = XD_NEXT_VALUE (elt);
+      subtype = XD_OBJECT_TO_DBUS_TYPE (XCAR (elt));
+      xd_signature (x, subtype, dtype, XCAR (XD_NEXT_VALUE (elt)));
+
+      while (!NILP (elt))
+	{
+	  if (subtype != XD_OBJECT_TO_DBUS_TYPE (XCAR (elt)))
+	    wrong_type_argument (intern ("D-Bus"), XCAR (elt));
+	  elt = XCDR (XD_NEXT_VALUE (elt));
+	}
+
+      sprintf (signature, "%c%s", dtype, x);
+      break;
+
+    case DBUS_TYPE_VARIANT:
+      /* Check that there is exactly one element.  */
+      CHECK_CONS (object);
+
+      elt = XD_NEXT_VALUE (elt);
+      subtype = XD_OBJECT_TO_DBUS_TYPE (XCAR (elt));
+      xd_signature (x, subtype, dtype, XCAR (XD_NEXT_VALUE (elt)));
+
+      if (!NILP (XCDR (XD_NEXT_VALUE (elt))))
+	wrong_type_argument (intern ("D-Bus"),
+			     XCAR (XCDR (XD_NEXT_VALUE (elt))));
+
+      sprintf (signature, "%c%s", dtype, x);
+      break;
+
+    case DBUS_TYPE_STRUCT:
+      /* A struct might contain any number of objects with different
+	 types.  No further check needed.  */
+      CHECK_CONS (object);
+
+      elt = XD_NEXT_VALUE (elt);
+
+      /* Compose the signature from the elements.  It is enclosed by
+	 parentheses.  */
+      sprintf (signature, "%c", DBUS_STRUCT_BEGIN_CHAR );
+      while (!NILP (elt))
+	{
+	  subtype = XD_OBJECT_TO_DBUS_TYPE (XCAR (elt));
+	  xd_signature (x, subtype, dtype, XCAR (XD_NEXT_VALUE (elt)));
+	  strcat (signature, x);
+	  elt = XCDR (XD_NEXT_VALUE (elt));
+	}
+      sprintf (signature, "%s%c", signature, DBUS_STRUCT_END_CHAR);
+      break;
+
+    case DBUS_TYPE_DICT_ENTRY:
+      /* Check that there are exactly two elements, and the first one
+	 is of basic type.  It must also be an element of an
+	 array.  */
+      CHECK_CONS (object);
+
+      if (parent_type != DBUS_TYPE_ARRAY)
+	wrong_type_argument (intern ("D-Bus"), object);
+
+      /* Compose the signature from the elements.  It is enclosed by
+	 curly braces.  */
+      sprintf (signature, "%c", DBUS_DICT_ENTRY_BEGIN_CHAR);
+
+      /* First element.  */
+      elt = XD_NEXT_VALUE (elt);
+      subtype = XD_OBJECT_TO_DBUS_TYPE (XCAR (elt));
+      xd_signature (x, subtype, dtype, XCAR (XD_NEXT_VALUE (elt)));
+      strcat (signature, x);
+
+      if (!XD_BASIC_DBUS_TYPE (subtype))
+	wrong_type_argument (intern ("D-Bus"), XCAR (XD_NEXT_VALUE (elt)));
+
+      /* Second element.  */
+      elt = XCDR (XD_NEXT_VALUE (elt));
+      subtype = XD_OBJECT_TO_DBUS_TYPE (XCAR (elt));
+      xd_signature (x, subtype, dtype, XCAR (XD_NEXT_VALUE (elt)));
+      strcat (signature, x);
+
+      if (!NILP (XCDR (XD_NEXT_VALUE (elt))))
+	wrong_type_argument (intern ("D-Bus"),
+			     XCAR (XCDR (XD_NEXT_VALUE (elt))));
+
+      /* Closing signature.  */
+      sprintf (signature, "%s%c", signature, DBUS_DICT_ENTRY_END_CHAR);
+      break;
+
+    default:
+      wrong_type_argument (intern ("D-Bus"), object);
+    }
+
+  XD_DEBUG_MESSAGE ("%s", signature);
+}
 
 /* Append C value, extracted from Lisp OBJECT, to iteration ITER.
    DTYPE must be a valid DBusType.  It is used to convert Lisp
@@ -150,157 +324,133 @@ Lisp_Object Vdbus_debug;
 void
 xd_append_arg (dtype, object, iter)
      unsigned int dtype;
-     DBusMessageIter *iter;
      Lisp_Object object;
+     DBusMessageIter *iter;
 {
+  Lisp_Object elt;
+  char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
+  DBusMessageIter subiter;
   char *value;
 
-  /* Check type of object.  If this has been detected implicitely, it
-     is OK already, but there might be cases the type symbol and the
-     corresponding object do'nt match.  */
-  switch (dtype)
+  XD_DEBUG_MESSAGE ("%c %s", dtype, SDATA (format2 ("%s", object, Qnil)));
+
+  if (XD_BASIC_DBUS_TYPE (dtype))
     {
-    case DBUS_TYPE_BYTE:
-    case DBUS_TYPE_UINT16:
-    case DBUS_TYPE_UINT32:
-    case DBUS_TYPE_UINT64:
-      CHECK_NATNUM (object);
-      break;
-    case DBUS_TYPE_BOOLEAN:
-      if (!EQ (object, Qt) && !EQ (object, Qnil))
-	wrong_type_argument (intern ("booleanp"), object);
-      break;
-    case DBUS_TYPE_INT16:
-    case DBUS_TYPE_INT32:
-    case DBUS_TYPE_INT64:
-      CHECK_NUMBER (object);
-      break;
-    case DBUS_TYPE_DOUBLE:
-      CHECK_FLOAT (object);
-      break;
-    case DBUS_TYPE_STRING:
-    case DBUS_TYPE_OBJECT_PATH:
-    case DBUS_TYPE_SIGNATURE:
-      CHECK_STRING (object);
-      break;
-    case DBUS_TYPE_ARRAY:
-      CHECK_CONS (object);
-      /* ToDo: Check that all list elements have the same type.  */
-      break;
-    case DBUS_TYPE_VARIANT:
-      CHECK_CONS (object);
-      /* ToDo: Check that there is exactly one element of basic type.  */
-      break;
-    case DBUS_TYPE_STRUCT:
-     CHECK_CONS (object);
-      break;
-    case DBUS_TYPE_DICT_ENTRY:
-      /* ToDo: Check that there are exactly two elements, and the
-	 first one is of basic type.  */
-       CHECK_CONS (object);
-      break;
-    default:
-      xsignal1 (Qdbus_error, build_string ("Unknown D-Bus type"));
+      switch (dtype)
+	{
+	case DBUS_TYPE_BYTE:
+	  XD_DEBUG_MESSAGE ("%c %u", dtype, XUINT (object));
+	  value = (unsigned char *) XUINT (object);
+	  break;
+
+	case DBUS_TYPE_BOOLEAN:
+	  XD_DEBUG_MESSAGE ("%c %s", dtype, (NILP (object)) ? "false" : "true");
+	  value = (NILP (object))
+	    ? (unsigned char *) FALSE : (unsigned char *) TRUE;
+	  break;
+
+	case DBUS_TYPE_INT16:
+	  XD_DEBUG_MESSAGE ("%c %d", dtype, XINT (object));
+	  value = (char *) (dbus_int16_t *) XINT (object);
+	  break;
+
+	case DBUS_TYPE_UINT16:
+	  XD_DEBUG_MESSAGE ("%c %u", dtype, XUINT (object));
+	  value = (char *) (dbus_uint16_t *) XUINT (object);
+	  break;
+
+	case DBUS_TYPE_INT32:
+	  XD_DEBUG_MESSAGE ("%c %d", dtype, XINT (object));
+	  value = (char *) (dbus_int32_t *) XINT (object);
+	  break;
+
+	case DBUS_TYPE_UINT32:
+	  XD_DEBUG_MESSAGE ("%c %u", dtype, XUINT (object));
+	  value = (char *) (dbus_uint32_t *) XUINT (object);
+	  break;
+
+	case DBUS_TYPE_INT64:
+	  XD_DEBUG_MESSAGE ("%c %d", dtype, XINT (object));
+	  value = (char *) (dbus_int64_t *) XINT (object);
+	  break;
+
+	case DBUS_TYPE_UINT64:
+	  XD_DEBUG_MESSAGE ("%c %u", dtype, XUINT (object));
+	  value = (char *) (dbus_int64_t *) XUINT (object);
+	  break;
+
+	case DBUS_TYPE_DOUBLE:
+	  XD_DEBUG_MESSAGE ("%c %f", dtype, XFLOAT (object));
+	  value = (char *) (float *) XFLOAT (object);
+	  break;
+
+	case DBUS_TYPE_STRING:
+	case DBUS_TYPE_OBJECT_PATH:
+	case DBUS_TYPE_SIGNATURE:
+	  XD_DEBUG_MESSAGE ("%c %s", dtype, SDATA (object));
+	  value = SDATA (object);
+	  break;
+	}
+
+      if (!dbus_message_iter_append_basic (iter, dtype, &value))
+	xsignal2 (Qdbus_error,
+		  build_string ("Unable to append argument"), object);
     }
 
-  if (CONSP (object))
-
-    /* Compound types.  */
+  else /* Compound types.  */
     {
-      DBusMessageIter subiter;
-      char subtype;
 
-      if (SYMBOLP (XCAR (object))
-	  && (strncmp (SDATA (XSYMBOL (XCAR (object))->xname), ":", 1) == 0))
-	object = XCDR (object);
+      /* All compound types except array have a type symbol.  For
+	 array, it is optional.  Skip it.  */
+      if (!XD_BASIC_DBUS_TYPE (XD_OBJECT_TO_DBUS_TYPE (XCAR (object))))
+	object = XD_NEXT_VALUE (object);
 
       /* Open new subiteration.  */
       switch (dtype)
 	{
 	case DBUS_TYPE_ARRAY:
 	case DBUS_TYPE_VARIANT:
-	  subtype = (char) XD_LISP_OBJECT_TO_DBUS_TYPE (XCAR (object));
-	  dbus_message_iter_open_container (iter, dtype, &subtype, &subiter);
+	  /* A variant has just one element.  An array has elements of
+	     the same type.  Both have been checked already, it is
+	     sufficient to retrieve just the signature of the first
+	     element.  */
+	  xd_signature (signature, XD_OBJECT_TO_DBUS_TYPE (XCAR (object)),
+			dtype, XCAR (XD_NEXT_VALUE (object)));
+	  XD_DEBUG_MESSAGE ("%c %s %s", dtype, signature,
+			    SDATA (format2 ("%s", object, Qnil)));
+	  if (!dbus_message_iter_open_container (iter, dtype,
+						 signature, &subiter))
+	    xsignal3 (Qdbus_error,
+		      build_string ("Cannot open container"),
+		      make_number (dtype), build_string (signature));
 	  break;
+
 	case DBUS_TYPE_STRUCT:
 	case DBUS_TYPE_DICT_ENTRY:
-	  dbus_message_iter_open_container (iter, dtype, NULL, &subiter);
+	  XD_DEBUG_MESSAGE ("%c %s", dtype,
+			    SDATA (format2 ("%s", object, Qnil)));
+	  if (!dbus_message_iter_open_container (iter, dtype, NULL, &subiter))
+	    xsignal2 (Qdbus_error,
+		      build_string ("Cannot open container"),
+		      make_number (dtype));
+	  break;
 	}
 
       /* Loop over list elements.  */
       while (!NILP (object))
 	{
-	  dtype = XD_LISP_OBJECT_TO_DBUS_TYPE (XCAR (object));
-	  if (dtype == DBUS_TYPE_INVALID)
-	    xsignal2 (Qdbus_error,
-		      build_string ("Not a valid argument"), XCAR (object));
-
-	  if (SYMBOLP (XCAR (object))
-	      && (strncmp (SDATA (XSYMBOL (XCAR (object))->xname), ":", 1)
-		  == 0))
-	    object = XCDR (object);
+	  dtype = XD_OBJECT_TO_DBUS_TYPE (XCAR (object));
+	  object = XD_NEXT_VALUE (object);
 
 	  xd_append_arg (dtype, XCAR (object), &subiter);
 
 	  object = XCDR (object);
 	}
 
-      dbus_message_iter_close_container (iter, &subiter);
-    }
-
-  else
-
-    /* Basic type.  */
-    {
-      switch (dtype)
-	{
-	case DBUS_TYPE_BYTE:
-	  XD_DEBUG_MESSAGE ("%d %u", dtype, XUINT (object));
-	  value = (unsigned char *) XUINT (object);
-	  break;
-	case DBUS_TYPE_BOOLEAN:
-	  XD_DEBUG_MESSAGE ("%d %s", dtype, (NILP (object)) ? "false" : "true");
-	  value = (NILP (object))
-	    ? (unsigned char *) FALSE : (unsigned char *) TRUE;
-	  break;
-	case DBUS_TYPE_INT16:
-	  XD_DEBUG_MESSAGE ("%d %d", dtype, XINT (object));
-	  value = (char *) (dbus_int16_t *) XINT (object);
-	  break;
-	case DBUS_TYPE_UINT16:
-	  XD_DEBUG_MESSAGE ("%d %u", dtype, XUINT (object));
-	  value = (char *) (dbus_uint16_t *) XUINT (object);
-	  break;
-	case DBUS_TYPE_INT32:
-	  XD_DEBUG_MESSAGE ("%d %d", dtype, XINT (object));
-	  value = (char *) (dbus_int32_t *) XINT (object);
-	  break;
-	case DBUS_TYPE_UINT32:
-	  XD_DEBUG_MESSAGE ("%d %u", dtype, XUINT (object));
-	  value = (char *) (dbus_uint32_t *) XUINT (object);
-	  break;
-	case DBUS_TYPE_INT64:
-	  XD_DEBUG_MESSAGE ("%d %d", dtype, XINT (object));
-	  value = (char *) (dbus_int64_t *) XINT (object);
-	  break;
-	case DBUS_TYPE_UINT64:
-	  XD_DEBUG_MESSAGE ("%d %u", dtype, XUINT (object));
-	  value = (char *) (dbus_int64_t *) XUINT (object);
-	  break;
-	case DBUS_TYPE_DOUBLE:
-	  XD_DEBUG_MESSAGE ("%d %f", dtype, XFLOAT (object));
-	  value = (char *) (float *) XFLOAT (object);
-	  break;
-	case DBUS_TYPE_STRING:
-	case DBUS_TYPE_OBJECT_PATH:
-	case DBUS_TYPE_SIGNATURE:
-	  XD_DEBUG_MESSAGE ("%d %s", dtype, SDATA (object));
-	  value = SDATA (object);
-	  break;
-	}
-      if (!dbus_message_iter_append_basic (iter, dtype, &value))
+      if (!dbus_message_iter_close_container (iter, &subiter))
 	xsignal2 (Qdbus_error,
-		  build_string ("Unable to append argument"), object);
+		  build_string ("Cannot close container"),
+		  make_number (dtype));
     }
 }
 
@@ -320,25 +470,28 @@ xd_retrieve_arg (dtype, iter)
       {
 	dbus_bool_t val;
 	dbus_message_iter_get_basic (iter, &val);
-	XD_DEBUG_MESSAGE ("%d %s", dtype, (val == FALSE) ? "false" : "true");
+	XD_DEBUG_MESSAGE ("%c %s", dtype, (val == FALSE) ? "false" : "true");
 	return (val == FALSE) ? Qnil : Qt;
       }
+
     case DBUS_TYPE_INT32:
     case DBUS_TYPE_UINT32:
       {
 	dbus_uint32_t val;
 	dbus_message_iter_get_basic (iter, &val);
-	XD_DEBUG_MESSAGE ("%d %d", dtype, val);
+	XD_DEBUG_MESSAGE ("%c %d", dtype, val);
 	return make_number (val);
       }
+
     case DBUS_TYPE_STRING:
     case DBUS_TYPE_OBJECT_PATH:
       {
 	char *val;
 	dbus_message_iter_get_basic (iter, &val);
-	XD_DEBUG_MESSAGE ("%d %s", dtype, val);
+	XD_DEBUG_MESSAGE ("%c %s", dtype, val);
 	return build_string (val);
       }
+
     case DBUS_TYPE_ARRAY:
     case DBUS_TYPE_VARIANT:
     case DBUS_TYPE_STRUCT:
@@ -359,8 +512,9 @@ xd_retrieve_arg (dtype, iter)
 	  }
 	RETURN_UNGCPRO (Fnreverse (result));
       }
+
     default:
-      XD_DEBUG_MESSAGE ("DBusType %d not supported", dtype);
+      XD_DEBUG_MESSAGE ("DBusType '%c' not supported", dtype);
       return Qnil;
     }
 }
@@ -439,16 +593,33 @@ converted into D-Bus types via the following rules:
   integer   => DBUS_TYPE_INT32
   float     => DBUS_TYPE_DOUBLE
   string    => DBUS_TYPE_STRING
+  list      => DBUS_TYPE_ARRAY
 
-Other Lisp objects are not supported as input arguments of METHOD.
+All arguments can be preceded by a type symbol.  For details about
+type symbols, see Info node `(dbus)Type Conversion'.
 
 `dbus-call-method' returns the resulting values of METHOD as a list of
 Lisp objects.  The type conversion happens the other direction as for
-input arguments.  Additionally to the types supported for input
-arguments, the D-Bus compound types DBUS_TYPE_ARRAY, DBUS_TYPE_VARIANT,
-DBUS_TYPE_STRUCT and DBUS_TYPE_DICT_ENTRY are accepted.  All of them
-are converted into a list of Lisp objects which correspond to the
-elements of the D-Bus container.  Example:
+input arguments.  It follows the mapping rules:
+
+  DBUS_TYPE_BOOLEAN     => t or nil
+  DBUS_TYPE_BYTE        => number
+  DBUS_TYPE_UINT16      => number
+  DBUS_TYPE_INT16       => integer
+  DBUS_TYPE_UINT32      => number
+  DBUS_TYPE_INT32       => integer
+  DBUS_TYPE_UINT64      => number
+  DBUS_TYPE_INT64       => integer
+  DBUS_TYPE_DOUBLE      => float
+  DBUS_TYPE_STRING      => string
+  DBUS_TYPE_OBJECT_PATH => string
+  DBUS_TYPE_SIGNATURE   => string
+  DBUS_TYPE_ARRAY       => list
+  DBUS_TYPE_VARIANT     => list
+  DBUS_TYPE_STRUCT      => list
+  DBUS_TYPE_DICT_ENTRY  => list
+
+Example:
 
 \(dbus-call-method
   :session "org.gnome.seahorse" "/org/gnome/seahorse/keys/openpgp"
@@ -482,7 +653,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &rest ARGS)  */)
   DBusError derror;
   unsigned int dtype;
   int i;
-  char *value;
+  char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
   bus = args[0];
@@ -529,16 +700,15 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &rest ARGS)  */)
 
       XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
       XD_DEBUG_MESSAGE ("Parameter%d %s",
-			i-4,
-			SDATA (format2 ("%s", args[i], Qnil)));
+			i-4, SDATA (format2 ("%s", args[i], Qnil)));
 
-      dtype = XD_LISP_OBJECT_TO_DBUS_TYPE (args[i]);
-      if (dtype == DBUS_TYPE_INVALID)
-	xsignal2 (Qdbus_error, build_string ("Not a valid argument"), args[i]);
-
-      if (SYMBOLP (args[i])
-	  && (strncmp (SDATA (XSYMBOL (args[i])->xname), ":", 1) == 0))
+      dtype = XD_OBJECT_TO_DBUS_TYPE (args[i]);
+      if (XD_DBUS_TYPE_P (args[i]))
 	++i;
+
+      /* Check for valid signature.  We use DBUS_TYPE_INVALID is
+	 indication that there is no parent type.  */
+      xd_signature (signature, dtype, DBUS_TYPE_INVALID, args[i]);
 
       xd_append_arg (dtype, args[i], &iter);
     }
@@ -605,8 +775,10 @@ converted into D-Bus types via the following rules:
   integer   => DBUS_TYPE_INT32
   float     => DBUS_TYPE_DOUBLE
   string    => DBUS_TYPE_STRING
+  list      => DBUS_TYPE_ARRAY
 
-Other Lisp objects are not supported as arguments of SIGNAL.
+All arguments can be preceded by a type symbol.  For details about
+type symbols, see Info node `(dbus)Type Conversion'.
 
 Example:
 
@@ -626,7 +798,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
   DBusMessageIter iter;
   unsigned int dtype;
   int i;
-  char *value;
+  char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
 
   /* Check parameters.  */
   bus = args[0];
@@ -671,16 +843,15 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
     {
       XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
       XD_DEBUG_MESSAGE ("Parameter%d %s",
-			i-4,
-			SDATA (format2 ("%s", args[i], Qnil)));
+			i-4, SDATA (format2 ("%s", args[i], Qnil)));
 
-      dtype = XD_LISP_OBJECT_TO_DBUS_TYPE (args[i]);
-      if (dtype == DBUS_TYPE_INVALID)
-	xsignal2 (Qdbus_error, build_string ("Not a valid argument"), args[i]);
-
-      if (SYMBOLP (args[i])
-	  && (strncmp (SDATA (XSYMBOL (args[i])->xname), ":", 1) == 0))
+      dtype = XD_OBJECT_TO_DBUS_TYPE (args[i]);
+      if (XD_DBUS_TYPE_P (args[i]))
 	++i;
+
+      /* Check for valid signature.  We use DBUS_TYPE_INVALID is
+	 indication that there is no parent type.  */
+      xd_signature (signature, dtype, DBUS_TYPE_INVALID, args[i]);
 
       xd_append_arg (dtype, args[i], &iter);
     }

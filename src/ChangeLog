@@ -1,3 +1,17 @@
+2007-12-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (XD_BASIC_DBUS_TYPE, XD_DBUS_TYPE_P, XD_NEXT_VALUE):
+	New macros.
+	(XD_SYMBOL_TO_DBUS_TYPE): Renamed from
+	XD_LISP_SYMBOL_TO_DBUS_TYPE.
+	(XD_OBJECT_TO_DBUS_TYPE): Renamed from
+	XD_LISP_OBJECT_TO_DBUS_TYPE. Simplify.
+	(xd_signature): New function.
+	(xd_append_arg): Compute also signatures.  Major rewrite.
+	(xd_retrieve_arg): Make debug messages friendly.
+	(Fdbus_call_method, Fdbus_send_signal): Extend docstring.  Check
+	for signatures of arguments.
+
 2007-12-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (QCdbus_type_byte, QCdbus_type_boolean)
