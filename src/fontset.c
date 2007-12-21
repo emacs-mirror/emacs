@@ -214,6 +214,7 @@ static int next_fontset_id;
 static Lisp_Object Vdefault_fontset;
 
 Lisp_Object Vfont_encoding_alist;
+Lisp_Object Vfont_encoding_charset_alist;
 Lisp_Object Vuse_default_ascent;
 Lisp_Object Vignore_relative_composition;
 Lisp_Object Valternate_fontname_alist;
@@ -450,13 +451,7 @@ reorder_font_vector (font_group, charset_id, family)
   int i, idx;
   Lisp_Object preferred_by_charset, preferred_by_family;
 
-  ASET (font_group, 0, make_number (charset_ordered_list_tick));
-  ASET (font_group, 1, make_number (charset_id));
-  ASET (font_group, 2, family);
   size = ASIZE (font_group) - 3;
-  if (size <= 1)
-    /* No need to reorder VEC.  */
-    return;
   charset_id_table = (int *) alloca (sizeof (int) * size);
   new_vec = (Lisp_Object *) alloca (sizeof (Lisp_Object) * size);
 
@@ -492,6 +487,15 @@ reorder_font_vector (font_group, charset_id, family)
       else if (! charset->supplementary_p)
 	charset_id_table[i] = id;
     }
+
+  if (idx == 0
+      && (XINT (AREF (font_group, 0)) == charset_ordered_list_tick))
+    /* No need of reordering.  */
+    return;
+
+  ASET (font_group, 0, make_number (charset_ordered_list_tick));
+  ASET (font_group, 1, make_number (charset_id));
+  ASET (font_group, 2, family);
 
   /* Then, store the remaining RFONT-DEFs in NEW_VEC in the correct
      order.  */
@@ -664,7 +668,7 @@ fontset_find_font (fontset, c, face, id, fallback)
 
   if (ASIZE (vec) > 4
       && (XINT (AREF (vec, 0)) != charset_ordered_list_tick
-	  || XINT (AREF (vec, 1)) != id
+	  || (id >= 0 && XINT (AREF (vec, 1)) != id)
 	  || NILP (Fequal (AREF (vec, 2), face->lface[LFACE_FAMILY_INDEX]))))
     /* We have just created VEC,
        or the charset priorities were changed,
@@ -1032,7 +1036,14 @@ face_for_char (f, face, c, pos, object)
       if (NILP (charset))
 	id = -1;
       else if (CHARSETP (charset))
-	id = XINT (CHARSET_SYMBOL_ID (charset));
+	{
+	  Lisp_Object val;
+
+	  val = assoc_no_quit (charset, Vfont_encoding_charset_alist);
+	  if (CONSP (val) && CHARSETP (XCDR (val)))
+	    charset = XCDR (val);
+	  id = XINT (CHARSET_SYMBOL_ID (charset));
+	}
     }
   rfont_def = fontset_font (fontset, c, face, id);
   if (VECTORP (rfont_def))
@@ -2465,6 +2476,9 @@ Each element looks like (REGEXP . (ENCODING . REPERTORY)),
 where ENCODING is a charset or a char-table,
 and REPERTORY is a charset, a char-table, or nil.
 
+If ENCDING and REPERTORY are the same, the element can have the form
+\(REGEXP . ENCODING).
+
 ENCODING is for converting a character to a glyph code of the font.
 If ENCODING is a charset, encoding a character by the charset gives
 the corresponding glyph code.  If ENCODING is a char-table, looking up
@@ -2476,6 +2490,17 @@ supported.  If REPERTORY is a char-table, all characters who have a
 non-nil value in the table are supported.  It REPERTORY is nil, Emacs
 gets the repertory information by an opened font and ENCODING.  */);
   Vfont_encoding_alist = Qnil;
+
+  DEFVAR_LISP ("font-encoding-charset-alist", &Vfont_encoding_charset_alist,
+	       doc: /*
+Alist of charsets vs the charsets to determine the preferred font encoding.
+Each element looks like (CHARSET . ENCDOING-CHARSET),
+where ENCODING-CHARSET is a charset registered in the variable
+`font-encoding-alist' as ENCODING.
+
+When a text has a property `charset' and the value is CHARSET, a font
+whose encoding corresponds to ENCODING-CHARSET is preferred.  */);
+  Vfont_encoding_charset_alist = Qnil;
 
   DEFVAR_LISP ("use-default-ascent", &Vuse_default_ascent,
 	       doc: /*
