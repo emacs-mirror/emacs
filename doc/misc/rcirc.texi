@@ -699,7 +699,7 @@ If you don't provide a nick, the command lists all the nicks you are
 ignoring.  All messages by ignored nicks are---you guessed it---ignored.
 Since only ``operators'' can kick people from channels, the
 ignore command is often the only way to deal with some of the more
-obnoxious fellows online.  Example: @code{/ignore xah}.
+obnoxious fellows online.  Example: @code{/ignore rudybot}.
 
 @item /bright
 @cindex /bright
