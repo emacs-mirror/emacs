@@ -1,3 +1,12 @@
+2007-12-21  Alex Schroeder  <alex@gnu.org>
+
+	* rcirc.texi: Changed single spaces after sentence end to double
+	spaces. Fixed some typos.
+	(Internet Relay Chat): Explain relay.
+	(Getting started with rcirc): Change items to reflect prompts.
+	Add more explanation to rcirc-track-minor-mode and added a comment to
+	warn future maintainers that this section is a copy.
+
 2007-12-20  Alex Schroeder  <alex@gnu.org>
 
 	* rcirc.texi (Top): Fighting Information Overload chapter added.
