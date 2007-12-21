@@ -145,6 +145,14 @@ See <http://www.ravenbrook.com/project/mps/issue/job000602/>
 Intel Macs.  It's now possible to use xci3gc.gmk to build on Intel
 architectures.  Threads not supported.
 
+2007-12-21
+Building on early releases of Mac OS X (DP3? 10.1?) required various 
+(now unnecessary) compiler flags to suppress warnings from Mac OS X 
+header files.  These warnings are no loner suppressed.
+Additionally, an obsolete flag for GDB (debugging) output is beleived 
+no longer necessary, and has been reverted.
+See <http://www.ravenbrook.com/project/mps/issue/job001714/>
+
 
 4. WINDOWS
 
@@ -165,11 +173,12 @@ B. DOCUMENT HISTORY
 2005-02-02  RHSK  Created based on mps kit readme.txt.
 2006-10-10  DRJ   Note re Intel Macs.
 2007-07-18  DRJ   Added platform support section.
+2007-12-21  RHSK  Note re PPC Mac compiler flags.
 
 
 C. COPYRIGHT AND LICENSE
 
-Copyright (C) 2005,2006 Ravenbrook Limited <http://www.ravenbrook.com/>.
+Copyright (C) 2005,2006,2007 Ravenbrook Limited <http://www.ravenbrook.com/>.
 All rights reserved.  This is an open source license.  Contact
 Ravenbrook for commercial licensing options.
 
