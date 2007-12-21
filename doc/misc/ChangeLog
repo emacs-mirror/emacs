@@ -6,6 +6,7 @@
 	(Getting started with rcirc): Change items to reflect prompts.
 	Add more explanation to rcirc-track-minor-mode and added a comment to
 	warn future maintainers that this section is a copy.
+	(People): Changed /ignore example.
 
 2007-12-20  Alex Schroeder  <alex@gnu.org>
 
