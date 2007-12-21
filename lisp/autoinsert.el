@@ -179,7 +179,7 @@ If this contains a %s, that will be replaced by the matching rule."
  ;;'(setq v1 (apply 'vector (mapcar 'car finder-known-keywords)))
  '(setq v1 (mapcar (lambda (x) (list (symbol-name (car x))))
 		   finder-known-keywords)
-	v2 (mapconcat (lambda (x) (format "%10.0s:  %s" (car x) (cdr x)))
+	v2 (mapconcat (lambda (x) (format "%12s:  %s" (car x) (cdr x)))
 	   finder-known-keywords
 	   "\n"))
  ((let ((minibuffer-help-form v2))
