@@ -303,19 +303,10 @@ static Res VMChunkCreate(Chunk *chunkReturn, VMArena vmArena, Size size)
   BootBlock boot = &bootStruct;
   VMChunk vmChunk;
   void *p;
-  static int counter = 0;
 
   AVER(chunkReturn != NULL);
   AVERT(VMArena, vmArena);
   AVER(size > 0);
-  
-  counter += 1;
-  if((counter % 4 == 2) || (counter % 4 == 3)) {
-    DIAG_SINGLEF(( "VMChunkCreate",
-                   "DELIBERATELY FAILING REQUEST OF SIZE $W.\n", size, 
-                   NULL ));
-    return ResRESOURCE;
-  }
 
   res = VMCreate(&vm, size);
   if (res != ResOK)
@@ -1097,14 +1088,15 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
   /* .chunk-create.fail: If we fail, try again with a smaller size */
   for(;; chunkSize /= 2) {
     res = VMChunkCreate(&newChunk, vmArena, chunkSize);
-    if(res == ResOK) {
+    if(res == ResOK)
       break;
-    }
   }
+
   DIAG_SINGLEF(( "vmArenaExtend_Done",
     "Reserved new chunk of VM $W bytes", chunkSize,
     " (VMArenaReserved now $W bytes)\n", 
     VMArenaReserved(VMArena2Arena(vmArena)), NULL ));
+
   return res;
 }
 
