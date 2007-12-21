@@ -3581,13 +3581,18 @@ The value is the end position of the shaped text.  */)
       EMACS_INT this_from = LGLYPH_FROM (g);
       EMACS_INT this_to = LGLYPH_TO (g) + 1;
       int j, k;
+      int need_composition = 0;
 
       metrics.lbearing = LGLYPH_LBEARING (g);
       metrics.rbearing = LGLYPH_RBEARING (g);
       metrics.ascent = LGLYPH_ASCENT (g);
       metrics.descent = LGLYPH_DESCENT (g);
       if (NILP (LGLYPH_ADJUSTMENT (g)))
-	metrics.width = LGLYPH_WIDTH (g);
+	{
+	  metrics.width = LGLYPH_WIDTH (g);
+	  if (XINT (LGLYPH_CHAR (g)) == 0 || metrics.width == 0)
+	    need_composition = 1;
+	}
       else
 	{
 	  metrics.width = LGLYPH_WADJUST (g);
@@ -3595,6 +3600,7 @@ The value is the end position of the shaped text.  */)
 	  metrics.rbearing += LGLYPH_XOFF (g);
 	  metrics.ascent -= LGLYPH_YOFF (g);
 	  metrics.descent += LGLYPH_YOFF (g);
+	  need_composition = 1;
 	}
       for (j = i + 1; j < XINT (n); j++)
 	{
@@ -3603,6 +3609,7 @@ The value is the end position of the shaped text.  */)
 	  g = LGSTRING_GLYPH (gstring, j);
 	  if (this_from != LGLYPH_FROM (g))
 	    break;
+	  need_composition = 1;
 	  x = metrics.width + LGLYPH_LBEARING (g) + LGLYPH_XOFF (g);
 	  if (metrics.lbearing > x)
 	    metrics.lbearing = x;
@@ -3621,20 +3628,25 @@ The value is the end position of the shaped text.  */)
 	    metrics.width += LGLYPH_WADJUST (g);
 	}
 
-      gstr = Ffont_make_gstring (font_object, make_number (j - i));
-      LGSTRING_SET_WIDTH (gstr, metrics.width);
-      LGSTRING_SET_LBEARING (gstr, metrics.lbearing);
-      LGSTRING_SET_RBEARING (gstr, metrics.rbearing);
-      LGSTRING_SET_ASCENT (gstr, metrics.ascent);
-      LGSTRING_SET_DESCENT (gstr, metrics.descent);
-      for (k = i; i < j; i++)
-	LGSTRING_SET_GLYPH (gstr, i - k, LGSTRING_GLYPH (gstring, i));
-      from = make_number (start + this_from);
-      to = make_number (start + this_to);
-      if (NILP (string))
-	Fcompose_region_internal (from, to, gstr, Qnil);
+      if (need_composition)
+	{
+	  gstr = Ffont_make_gstring (font_object, make_number (j - i));
+	  LGSTRING_SET_WIDTH (gstr, metrics.width);
+	  LGSTRING_SET_LBEARING (gstr, metrics.lbearing);
+	  LGSTRING_SET_RBEARING (gstr, metrics.rbearing);
+	  LGSTRING_SET_ASCENT (gstr, metrics.ascent);
+	  LGSTRING_SET_DESCENT (gstr, metrics.descent);
+	  for (k = i; i < j; i++)
+	    LGSTRING_SET_GLYPH (gstr, i - k, LGSTRING_GLYPH (gstring, i));
+	  from = make_number (start + this_from);
+	  to = make_number (start + this_to);
+	  if (NILP (string))
+	    Fcompose_region_internal (from, to, gstr, Qnil);
+	  else
+	    Fcompose_string_internal (string, from, to, gstr, Qnil);
+	}
       else
-	Fcompose_string_internal (string, from, to, gstr, Qnil);
+	i = j;
     }
 
   return to;
