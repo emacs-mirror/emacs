@@ -1053,22 +1053,50 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
   Size chunkSize;
   Res res;
 
-  /* .improve.debug: @@@@ chunkSize (calculated below) won't */
-  /* be big enough if the tables of the new chunk are */
-  /* more than vmArena->extendBy (because there will be fewer than */
-  /* size bytes free in the new chunk).  Fix this. */
-  chunkSize = vmArena->extendBy + size;
+  /* Choose chunk size. */
+  /* .vmchunk.overhead: This code still lacks a proper estimate of */
+  /* the overhead required by a vmChunk for chunkStruct, page tables */
+  /* etc.  For now, estimate it as 10%.  RHSK 2007-12-21 */
+  do {
+    Size fraction = 10;  /* 10% -- see .vmchunk.overhead */
+    Size chunkOverhead;
+    
+    /* 1: use extendBy, if it is big enough for size + overhead */
+    chunkSize = vmArena->extendBy;
+    chunkOverhead = chunkSize / fraction;
+    if(chunkSize > size && (chunkSize - size) >= chunkOverhead)
+      break;
+    
+    /* 2: use size + overhead (unless it overflows SizeMAX) */
+    chunkOverhead = size / (fraction - 1);
+    if((SizeMAX - size) >= chunkOverhead) {
+      chunkSize = size + chunkOverhead;
+      break;
+    }
+    
+    /* 3: use SizeMAX */
+    chunkSize = SizeMAX;
+    break;
+  } while(0);
 
-#if 0
-  /* diagnostic: report when VM arena is extended */
-  DIAG_WRITEF(( DIAG_STREAM, "\n** vmArenaExtend $U\n", chunkSize, 
-                NULL ));
-  DIAG( ArenaDescribe(VMArena2Arena(vmArena), DIAG_STREAM); );
-#endif
 
-  res = VMChunkCreate(&newChunk, vmArena, chunkSize);
-  /* .improve.chunk-create.fail: If we fail we could try again */
-  /* (with a smaller size, say).  We don't do this. */
+  DIAG_SINGLEF(( "vmArenaExtend_Start", 
+    "to accommodate size $W, try chunkSize $W", size, chunkSize,
+    " (VMArenaReserved currently $W bytes)\n",
+    VMArenaReserved(VMArena2Arena(vmArena)), NULL ));
+
+  /* .chunk-create.fail: If we fail, try again with a smaller size */
+  for(;; chunkSize /= 2) {
+    res = VMChunkCreate(&newChunk, vmArena, chunkSize);
+    if(res == ResOK)
+      break;
+  }
+
+  DIAG_SINGLEF(( "vmArenaExtend_Done",
+    "Reserved new chunk of VM $W bytes", chunkSize,
+    " (VMArenaReserved now $W bytes)\n", 
+    VMArenaReserved(VMArena2Arena(vmArena)), NULL ));
+
   return res;
 }
 
