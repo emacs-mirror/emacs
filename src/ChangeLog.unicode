@@ -1,3 +1,15 @@
+2007-12-21  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* font.c (Ffont_shape_text): Avoid unnecessary composition.
+
+	* fontset.c (Vfont_encoding_charset_alist): New variable.
+	(syms_of_fontset): DEFVAR it.
+	(reorder_font_vector): Optimize for the case of no need of
+	reordring.
+	(fontset_find_font): Likewise.
+	(face_for_char): Map the charset property by
+	Vfont_encoding_charset_alist.
+
 2007-12-20  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (logfonts_match): Don't check adstyle here.
