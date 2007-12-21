@@ -36,11 +36,6 @@
   :group 'dired
   :prefix "find-")
 
-(defcustom find-dired-find-program "find"
-  "Program used to find files."
-  :group 'dired
-  :type 'file)
-
 ;; find's -ls corresponds to these switches.
 ;; Note -b, at least GNU find quotes spaces etc. in filenames
 ;;;###autoload
@@ -76,6 +71,18 @@ On Berkeley systems, this is `-s'; on Posix, and with GNU grep, `-q' does it.
 On other systems, the closest you can come is to use `-l'."
   :type 'string
   :group 'find-dired)
+
+;;;###autoload
+(defcustom find-name-arg
+  (if read-file-name-completion-ignore-case
+      "-iname"
+    "-name")
+  "*Argument used to specify file name pattern.
+If `read-file-name-completion-ignore-case' is non-nil, -iname is used so that
+find also ignores case. Otherwise, -name is used."
+  :type 'string
+  :group 'find-dired
+  :version "22.2")
 
 (defvar find-args nil
   "Last arguments given to `find' by \\[find-dired].")
@@ -126,7 +133,7 @@ as the final argument."
     (erase-buffer)
     (setq default-directory dir
 	  find-args args	      ; save for next interactive call
-	  args (concat find-dired-find-program " . "
+	  args (concat find-program " . "
 		       (if (string= args "")
 			   ""
 			 (concat
@@ -198,7 +205,7 @@ The command run (after changing into DIR) is
     find . -name 'PATTERN' -ls"
   (interactive
    "DFind-name (directory): \nsFind-name (filename wildcard): ")
-  (find-dired dir (concat "-name " (shell-quote-argument pattern))))
+  (find-dired dir (concat find-name-arg " " (shell-quote-argument pattern))))
 
 ;; This functionality suggested by
 ;; From: oblanc@watcgl.waterloo.edu (Olivier Blanc)
@@ -222,7 +229,7 @@ Thus ARG can also contain additional grep options."
   ;; by FIFOs and devices.  I'm not sure what's best to do
   ;; about symlinks, so as far as I know this is not wrong.
   (find-dired dir
-	      (concat "-type f -exec grep " find-grep-options " -e "
+	      (concat "-type f -exec " grep-program " " find-grep-options " -e "
 		      (shell-quote-argument regexp)
 		      " "
 		      (shell-quote-argument "{}")
