@@ -238,7 +238,7 @@ D-Bus method calls and signals accept usually several arguments as
 parameters, either as input parameter, or as output parameter.  Every
 argument belongs to a D-Bus type.
 
-Such arguments must be mapped between the the value encoded as a D-Bus
+Such arguments must be mapped between the value encoded as a D-Bus
 type, and the corresponding type of Lisp objects.  The mapping is
 applied Lisp object @expansion{} D-Bus type for input parameters, and
 D-Bus type @expansion{} Lisp object for output parameters.
@@ -247,8 +247,7 @@ D-Bus type @expansion{} Lisp object for output parameters.
 @section Input parameters.
 
 Input parameters for D-Bus methods and signals occur as arguments of a
-Lisp function call.  Only some primitive Lisp types are supported in
-the current implementation.  The following mapping to D-Bus types is
+Lisp function call.  The following mapping to D-Bus types is
 applied, when the corresponding D-Bus message is created:
 
 @example
@@ -260,30 +259,90 @@ applied, when the corresponding D-Bus message is created:
 @item integer                 @tab @expansion{} @tab DBUS_TYPE_INT32
 @item float                   @tab @expansion{} @tab DBUS_TYPE_DOUBLE
 @item string                  @tab @expansion{} @tab DBUS_TYPE_STRING
+@item list                    @tab @expansion{} @tab DBUS_TYPE_ARRAY
 @end multitable
 @end example
 
+Other Lisp objects, like symbols or hash tables, are not accepted as
+input parameter.
+
+If it is necessary to use another D-Bus type, a corresponding type
+symbol can be preceeded to the corresponding Lisp object. Basic D-Bus
+types are represented by the type symbols `:byte', `:boolean',
+`:int16', `:uint16', `:int32', `:uint32', `:int64', `:uint64',
+`:double', `:string', `:object-path' and `:signature'.
+
 @noindent
-Other Lisp types, especially lists, are not supported (yet).
+Example:
+
+@lisp
+(dbus-call-method ... @var{NUMBER} @var{STRING})
+@end lisp
+
+is equivalent to
+
+@lisp
+(dbus-call-method ... :uint32 @var{NUMBER} :string @var{STRING})
+@end lisp
+
+but different to
+
+@lisp
+(dbus-call-method ... :int32 @var{NUMBER} :signature @var{STRING})
+@end lisp
+
+A D-Bus compound type is always represented as list.  The car of this
+list can be the type symbol `:array', `:variant', `:struct' or
+`:dict-entry', which would result in a corresponding D-Bus container.
+`:array' is optional, because this is the default compoud type for a
+list.
+
+The objects being elements of the list are checked according to the
+D-Bus compound type rules.
+
+@itemize
+@item An array must contain only elements of the same D-Bus type.
+@item A variant must contain only one single element.
+@item A dictionary entry must be element of an array, and it must
+contain only a key-value pair of two element, with a basic type key.
+@item There is no restriction for structs.
+@end itemize
+
+@noindent
+Example:
+
+@lisp
+(dbus-send-signal ...
+  :object-path STRING '(:variant :boolean BOOL)
+  '(:array NUMBER NUMBER) '(:array BOOL :boolean BOOL)
+  '(:struct BOOL :boolean BOOL BOOL
+    (:array NUMBER NUMBER) (:array BOOL BOOL))
+  '(:struct NUMBER NUMBER) '((:dict-entry NUMBER (NUMBER)))
+  '(:array (:dict-entry NUMBER :int32 NUMBER)))
+@end lisp
 
 
 @section Output parameters.
 
 Output parameters of D-Bus methods and signals are mapped to Lisp
-objects.  This mapping is more powerful than the one for input
-parameters, i.e., more D-Bus types are supported by the current
-implementation.
+objects.
 
 @example
 @multitable {DBUS_TYPE_OBJECT_PATH} {@expansion{}} {@code{t} or @code{nil}}
 @item D-Bus type            @tab              @tab Lisp type
 @item
 @item DBUS_TYPE_BOOLEAN     @tab @expansion{} @tab @code{t} or @code{nil}
+@item DBUS_TYPE_BYTE        @tab @expansion{} @tab
+@item DBUS_TYPE_UINT16      @tab @expansion{} @tab number
+@item DBUS_TYPE_INT32       @tab @expansion{} @tab number
 @item DBUS_TYPE_UINT32      @tab @expansion{} @tab number
 @item DBUS_TYPE_INT32       @tab @expansion{} @tab number
+@item DBUS_TYPE_UINT64      @tab @expansion{} @tab number
+@item DBUS_TYPE_INT64       @tab @expansion{} @tab number
 @item DBUS_TYPE_DOUBLE      @tab @expansion{} @tab float
 @item DBUS_TYPE_STRING      @tab @expansion{} @tab string
 @item DBUS_TYPE_OBJECT_PATH @tab @expansion{} @tab string
+@item DBUS_TYPE_SIGNATURE   @tab @expansion{} @tab string
 @item DBUS_TYPE_ARRAY       @tab @expansion{} @tab list
 @item DBUS_TYPE_VARIANT     @tab @expansion{} @tab list
 @item DBUS_TYPE_STRUCT      @tab @expansion{} @tab list
@@ -497,6 +556,11 @@ result of a preceding @code{dbus-register-signal} call.
 @chapter Errors and events.
 @cindex errors
 @cindex events
+
+Input parameters of @code{dbus-call-method} and
+@code{dbus-register-signal} are checked for correct D-Bus types. If
+there is a type mismatch, the Lisp error @code{wrong-type-argument}
+@code{D-Bus ARG} is raised.
 
 All errors raised by D-Bus are signaled with the error symbol
 @code{dbus-error}.  As usual, such an error can be trapped with a

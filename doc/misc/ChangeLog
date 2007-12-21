@@ -1,3 +1,8 @@
+2007-12-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Type Conversion): Extend for D-Bus compound types.
+	(Errors and Events): Mention wrong-type-argument error.
+
 2007-12-21  Alex Schroeder  <alex@gnu.org>
 
 	* rcirc.texi: Changed single spaces after sentence end to double
