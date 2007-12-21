@@ -1,3 +1,8 @@
+2007-12-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* autoinsert.el (auto-insert-alist): Remove nonsensical precision
+	specifier from format-string.  Reported by Ye Wenbin.
+
 2007-12-20  Jason Rumney  <jasonr@gnu.org>
 
 	* nxml/nxml-mode.el (nxml-faces): Rename from nxml-highlighting-faces.
