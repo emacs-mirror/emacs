@@ -1,3 +1,8 @@
+2007-12-22  Richard Stallman  <rms@gnu.org>
+
+	* newcomment.el (comment-region-default): Don't triple the
+	comment starter if the first region line isn't indented enough.
+
 2007-12-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* autoinsert.el (auto-insert-alist): Remove nonsensical precision
