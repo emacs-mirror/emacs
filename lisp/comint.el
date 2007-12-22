@@ -336,8 +336,9 @@ This variable is buffer-local."
 ;; plink prints a prompt like `Passphrase for key "root@GNU.ORG": '.
 ;; Ubuntu's sudo prompts like `[sudo] password for user:'
 ;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
+;; Something called "perforce" uses "Enter password:".
 (defcustom comint-password-prompt-regexp
-  "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|\
+  "\\(\\(Enter \\|[Oo]ld \\|[Nn]ew \\|'s \\|login \\|\
 Kerberos \\|CVS \\|UNIX \\| SMB \\|LDAP \\|\\[sudo] \\|^\\)\
 \[Pp]assword\\( (again)\\)?\\|\
 pass phrase\\|\\(Enter \\|Repeat \\|Bad \\)?[Pp]assphrase\\)\
