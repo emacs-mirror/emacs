@@ -382,7 +382,7 @@ xd_append_arg (dtype, object, iter)
 
 	case DBUS_TYPE_DOUBLE:
 	  XD_DEBUG_MESSAGE ("%c %f", dtype, XFLOAT (object));
-	  value = (char *) (double *) XFLOAT (object);
+	  value = (char *) (float *) XFLOAT (object);
 	  break;
 
 	case DBUS_TYPE_STRING:
