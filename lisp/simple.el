@@ -4782,7 +4782,10 @@ Each action has the form (FUNCTION . ARGS)."
 		'switch-to-buffer-other-frame yank-action send-actions))
 
 (defvar set-variable-value-history nil
-  "History of values entered with `set-variable'.")
+  "History of values entered with `set-variable'.
+
+Maximum length of the history list is determined by the value
+of `history-length', which see.")
 
 (defun set-variable (variable value &optional make-local)
   "Set VARIABLE to VALUE.  VALUE is a Lisp object.
