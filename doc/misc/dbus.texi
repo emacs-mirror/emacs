@@ -268,9 +268,10 @@ input parameter.
 
 If it is necessary to use another D-Bus type, a corresponding type
 symbol can be preceeded to the corresponding Lisp object. Basic D-Bus
-types are represented by the type symbols `:byte', `:boolean',
-`:int16', `:uint16', `:int32', `:uint32', `:int64', `:uint64',
-`:double', `:string', `:object-path' and `:signature'.
+types are represented by the type symbols @code{:byte},
+@code{:boolean}, @code{:int16}, @code{:uint16}, @code{:int32},
+@code{:uint32}, @code{:int64}, @code{:uint64}, @code{:double},
+@code{:string}, @code{:object-path} and @code{:signature}.
 
 @noindent
 Example:
@@ -292,10 +293,10 @@ but different to
 @end lisp
 
 A D-Bus compound type is always represented as list.  The car of this
-list can be the type symbol `:array', `:variant', `:struct' or
-`:dict-entry', which would result in a corresponding D-Bus container.
-`:array' is optional, because this is the default compoud type for a
-list.
+list can be the type symbol @code{:array}, @code{:variant},
+@code{:struct} or @code{:dict-entry}, which would result in a
+corresponding D-Bus container.  @code{:array} is optional, because
+this is the default compoud type for a list.
 
 The objects being elements of the list are checked according to the
 D-Bus compound type rules.
@@ -332,13 +333,13 @@ objects.
 @item D-Bus type            @tab              @tab Lisp type
 @item
 @item DBUS_TYPE_BOOLEAN     @tab @expansion{} @tab @code{t} or @code{nil}
-@item DBUS_TYPE_BYTE        @tab @expansion{} @tab
+@item DBUS_TYPE_BYTE        @tab @expansion{} @tab number
 @item DBUS_TYPE_UINT16      @tab @expansion{} @tab number
-@item DBUS_TYPE_INT32       @tab @expansion{} @tab number
-@item DBUS_TYPE_UINT32      @tab @expansion{} @tab number
-@item DBUS_TYPE_INT32       @tab @expansion{} @tab number
-@item DBUS_TYPE_UINT64      @tab @expansion{} @tab number
-@item DBUS_TYPE_INT64       @tab @expansion{} @tab number
+@item DBUS_TYPE_INT16       @tab @expansion{} @tab number
+@item DBUS_TYPE_UINT32      @tab @expansion{} @tab number or float
+@item DBUS_TYPE_INT32       @tab @expansion{} @tab number or float
+@item DBUS_TYPE_UINT64      @tab @expansion{} @tab number or float
+@item DBUS_TYPE_INT64       @tab @expansion{} @tab number or float
 @item DBUS_TYPE_DOUBLE      @tab @expansion{} @tab float
 @item DBUS_TYPE_STRING      @tab @expansion{} @tab string
 @item DBUS_TYPE_OBJECT_PATH @tab @expansion{} @tab string
@@ -349,6 +350,11 @@ objects.
 @item DBUS_TYPE_DICT_ENTRY  @tab @expansion{} @tab list
 @end multitable
 @end example
+
+A float object in case of @code{DBUS_TYPE_UINT32},
+@code{DBUS_TYPE_INT32}, @code{DBUS_TYPE_UINT64} and
+@code{DBUS_TYPE_INT6432} is returned, when the C value exceeds the
+Emacs number size range.
 
 The resulting list of the last 4 D-Bus compound types contains as
 elements the elements of the D-Bus container, mapped according to the

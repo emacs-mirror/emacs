@@ -1,3 +1,7 @@
+2007-12-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Type Conversion): Correct input parameters mapping.
+
 2007-12-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Type Conversion): Extend for D-Bus compound types.
