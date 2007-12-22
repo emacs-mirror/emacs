@@ -218,7 +218,7 @@ xd_signature(signature, dtype, parent_type, object)
       break;
 
     case DBUS_TYPE_ARRAY:
-      /* Check that all elements have the same D-Bus type.  For
+      /* Check that all list elements have the same D-Bus type.  For
 	 complex element types, we just check the container type, not
 	 the whole element's signature.  */
       CHECK_CONS (object);
@@ -239,7 +239,7 @@ xd_signature(signature, dtype, parent_type, object)
       break;
 
     case DBUS_TYPE_VARIANT:
-      /* Check that there is exactly one element.  */
+      /* Check that there is exactly one list element.  */
       CHECK_CONS (object);
 
       elt = XD_NEXT_VALUE (elt);
@@ -254,8 +254,8 @@ xd_signature(signature, dtype, parent_type, object)
       break;
 
     case DBUS_TYPE_STRUCT:
-      /* A struct might contain any number of objects with different
-	 types.  No further check needed.  */
+      /* A struct list might contain any number of elements with
+	 different types.  No further check needed.  */
       CHECK_CONS (object);
 
       elt = XD_NEXT_VALUE (elt);
@@ -274,11 +274,12 @@ xd_signature(signature, dtype, parent_type, object)
       break;
 
     case DBUS_TYPE_DICT_ENTRY:
-      /* Check that there are exactly two elements, and the first one
-	 is of basic type.  It must also be an element of an
-	 array.  */
+      /* Check that there are exactly two list elements, and the first
+	 one is of basic type.  The dictionary entry itself must be an
+	 element of an array.  */
       CHECK_CONS (object);
 
+      /* Check the parent object type.  */
       if (parent_type != DBUS_TYPE_ARRAY)
 	wrong_type_argument (intern ("D-Bus"), object);
 
@@ -381,7 +382,7 @@ xd_append_arg (dtype, object, iter)
 
 	case DBUS_TYPE_DOUBLE:
 	  XD_DEBUG_MESSAGE ("%c %f", dtype, XFLOAT (object));
-	  value = (char *) (float *) XFLOAT (object);
+	  value = (char *) (double *) XFLOAT (object);
 	  break;
 
 	case DBUS_TYPE_STRING:
@@ -411,9 +412,9 @@ xd_append_arg (dtype, object, iter)
 	case DBUS_TYPE_ARRAY:
 	case DBUS_TYPE_VARIANT:
 	  /* A variant has just one element.  An array has elements of
-	     the same type.  Both have been checked already, it is
-	     sufficient to retrieve just the signature of the first
-	     element.  */
+	     the same type.  Both have been checked already for
+	     correct types, it is sufficient to retrieve just the
+	     signature of the first element.  */
 	  xd_signature (signature, XD_OBJECT_TO_DBUS_TYPE (XCAR (object)),
 			dtype, XCAR (XD_NEXT_VALUE (object)));
 	  XD_DEBUG_MESSAGE ("%c %s %s", dtype, signature,
@@ -427,6 +428,7 @@ xd_append_arg (dtype, object, iter)
 
 	case DBUS_TYPE_STRUCT:
 	case DBUS_TYPE_DICT_ENTRY:
+	  /* These containers do not require a signature.  */
 	  XD_DEBUG_MESSAGE ("%c %s", dtype,
 			    SDATA (format2 ("%s", object, Qnil)));
 	  if (!dbus_message_iter_open_container (iter, dtype, NULL, &subiter))
@@ -447,6 +449,7 @@ xd_append_arg (dtype, object, iter)
 	  object = XCDR (object);
 	}
 
+      /* Close the subiteration.  */
       if (!dbus_message_iter_close_container (iter, &subiter))
 	xsignal2 (Qdbus_error,
 		  build_string ("Cannot close container"),
@@ -456,8 +459,8 @@ xd_append_arg (dtype, object, iter)
 
 /* Retrieve C value from a DBusMessageIter structure ITER, and return
    a converted Lisp object.  The type DTYPE of the argument of the
-   D-Bus message must be a valid DBusType.  Compound D-Bus types are
-   partly supported; they result always in a Lisp list.  */
+   D-Bus message must be a valid DBusType.  Compound D-Bus types
+   result always in a Lisp list.  */
 Lisp_Object
 xd_retrieve_arg (dtype, iter)
      unsigned int dtype;
@@ -466,6 +469,16 @@ xd_retrieve_arg (dtype, iter)
 
   switch (dtype)
     {
+    case DBUS_TYPE_BYTE:
+    case DBUS_TYPE_INT16:
+    case DBUS_TYPE_UINT16:
+      {
+	dbus_uint16_t val;
+	dbus_message_iter_get_basic (iter, &val);
+	XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	return make_number (val);
+      }
+
     case DBUS_TYPE_BOOLEAN:
       {
 	dbus_bool_t val;
@@ -479,12 +492,36 @@ xd_retrieve_arg (dtype, iter)
       {
 	dbus_uint32_t val;
 	dbus_message_iter_get_basic (iter, &val);
-	XD_DEBUG_MESSAGE ("%c %d", dtype, val);
-	return make_number (val);
+	if (FIXNUM_OVERFLOW_P (val))
+	  XD_DEBUG_MESSAGE ("%c %f", dtype, val)
+	else
+	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	return make_fixnum_or_float (val);
+      }
+
+    case DBUS_TYPE_INT64:
+    case DBUS_TYPE_UINT64:
+      {
+	dbus_uint64_t val;
+	dbus_message_iter_get_basic (iter, &val);
+	if (FIXNUM_OVERFLOW_P (val))
+	  XD_DEBUG_MESSAGE ("%c %f", dtype, val)
+	else
+	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	return make_fixnum_or_float (val);
+      }
+
+    case DBUS_TYPE_DOUBLE:
+      {
+	double val;
+	dbus_message_iter_get_basic (iter, &val);
+	XD_DEBUG_MESSAGE ("%c %f", dtype, val);
+	return make_float (val);
       }
 
     case DBUS_TYPE_STRING:
     case DBUS_TYPE_OBJECT_PATH:
+    case DBUS_TYPE_SIGNATURE:
       {
 	char *val;
 	dbus_message_iter_get_basic (iter, &val);
@@ -606,10 +643,10 @@ input arguments.  It follows the mapping rules:
   DBUS_TYPE_BYTE        => number
   DBUS_TYPE_UINT16      => number
   DBUS_TYPE_INT16       => integer
-  DBUS_TYPE_UINT32      => number
-  DBUS_TYPE_INT32       => integer
-  DBUS_TYPE_UINT64      => number
-  DBUS_TYPE_INT64       => integer
+  DBUS_TYPE_UINT32      => number or float
+  DBUS_TYPE_INT32       => integer or float
+  DBUS_TYPE_UINT64      => number or float
+  DBUS_TYPE_INT64       => integer or float
   DBUS_TYPE_DOUBLE      => float
   DBUS_TYPE_STRING      => string
   DBUS_TYPE_OBJECT_PATH => string

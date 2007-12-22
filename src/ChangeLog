@@ -1,3 +1,12 @@
+2007-12-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_retrieve_arg): Handle DBUS_TYPE_BYTE,
+	DBUS_TYPE_INT16, DBUS_TYPE_UINT16, DBUS_TYPE_INT64,
+	DBUS_TYPE_UINT64, DBUS_TYPE_DOUBLE and DBUS_TYPE_SIGNATURE.
+	Return float when DBUS_TYPE_INT32 or DBUS_TYPE_UINT32 do not fit
+	as number.
+	(Fdbus_call_method): Fix docstring.
+
 2007-12-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (XD_BASIC_DBUS_TYPE, XD_DBUS_TYPE_P, XD_NEXT_VALUE):
