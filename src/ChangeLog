@@ -1,3 +1,8 @@
+2007-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* callint.c (syms_of_callint) <command-history>: Add reference to
+	history-length in the doc string.
+
 2007-12-17  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_wnd_proc) <WM_KEYDOWN>: Cast char to unsigned
