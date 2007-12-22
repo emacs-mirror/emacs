@@ -516,7 +516,10 @@ using \\[toggle-read-only]."
   :group 'view)
 
 (defvar file-name-history nil
-  "History list of file names entered in the minibuffer.")
+  "History list of file names entered in the minibuffer.
+
+Maximum length of the history list is determined by the value
+of `history-length', which see.")
 
 (put 'ange-ftp-completion-hook-function 'safe-magic t)
 (defun ange-ftp-completion-hook-function (op &rest args)
