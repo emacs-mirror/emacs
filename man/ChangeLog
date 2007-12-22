@@ -1,3 +1,10 @@
+2007-12-22  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Query Replace): Make exp of query-replace more
+	self-contained, and clarify.
+ 
+	* cc-mode.texi (Getting Started): Change @ref to @pxref.
+
 2007-12-14  Sven Joachim  <svenjoac@gmx.de>
 
 	* gnus.texi (Score Variables): Fix typo.
