@@ -44,6 +44,11 @@ below.  Emacs tries to warn you about these through `bad-packages-alist'.
 
 * Changes in Emacs 22.2
 
+** `find-name-dired' now uses -iname rather than -name
+for case-insensitive filesystems.  The default behavior is determined
+by the value of `read-file-name-completion-ignore-case'; if you don't
+like that, customize the value of the new option `find-name-arg'.
+
 ** In Image mode, whenever the displayed image is wider and/or higher
 than the window, the usual keys for moving the cursor cause the image
 to be scrolled horizontally or vertically instead.
