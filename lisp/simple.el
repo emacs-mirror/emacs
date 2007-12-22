@@ -1156,7 +1156,10 @@ to get different commands to edit and resubmit."
 (defvar minibuffer-history nil
   "Default minibuffer history list.
 This is used for all minibuffer input
-except when an alternate history list is specified.")
+except when an alternate history list is specified.
+
+Maximum length of the history list is determined by the value
+of `history-length', which see.")
 (defvar minibuffer-history-sexp-flag nil
   "Control whether history list elements are expressions or strings.
 If the value of this variable equals current minibuffer depth,
@@ -1748,7 +1751,10 @@ You can disable the popping up of this buffer by adding the entry
     t))
 
 (defvar shell-command-history nil
-  "History list for some commands that read shell commands.")
+  "History list for some commands that read shell commands.
+
+Maximum length of the history list is determined by the value
+of `history-length', which see.")
 
 (defvar shell-command-switch "-c"
   "Switch used to have the shell execute its command line argument.")
