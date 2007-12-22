@@ -1,3 +1,11 @@
+2007-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* replace.el (regexp-history): 
+	* simple.el (minibuffer-history): 
+	* international/mule-cmds.el (input-method-history): 
+	* files.el (file-name-history): Add reference to history-length in
+	the doc string.
+
 2007-12-22  Richard Stallman  <rms@gnu.org>
 
 	* comint.el (comint-password-prompt-regexp): Match `Enter Password'.
