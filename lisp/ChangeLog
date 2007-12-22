@@ -1,7 +1,8 @@
 2007-12-22  Eli Zaretskii  <eliz@gnu.org>
 
+	* simple.el (minibuffer-history, shell-command-history)
+	(set-variable-value-history): 
 	* replace.el (regexp-history): 
-	* simple.el (minibuffer-history): 
 	* international/mule-cmds.el (input-method-history): 
 	* files.el (file-name-history): Add reference to history-length in
 	the doc string.
