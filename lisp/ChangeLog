@@ -1,3 +1,7 @@
+2007-12-22  Richard Stallman  <rms@gnu.org>
+
+	* comint.el (comint-password-prompt-regexp): Match `Enter Password'.
+
 2007-12-21  Jason Rumney  <jasonr@gnu.org>
 
 	* find-dired.el (find-name-arg): New custom variable.
@@ -15,8 +19,7 @@
 
 2007-12-19  Martin Rudalics  <rudalics@gmx.at>
 
-	* cus-start.el (all): Use correct group name for members of
-	mode-line group.
+	* cus-start.el: Use correct group name for members of mode-line group.
 
 2007-12-17  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
