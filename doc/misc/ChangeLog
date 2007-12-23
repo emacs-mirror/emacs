@@ -1,3 +1,9 @@
+2007-12-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.12.
+
+	* trampver.texi: Update release number.
+
 2007-12-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Type Conversion): Correct input parameters mapping.
