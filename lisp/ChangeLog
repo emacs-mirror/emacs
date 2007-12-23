@@ -1,5 +1,8 @@
 2007-12-23  Richard Stallman  <rms@gnu.org>
 
+	* simple.el (region-active-p): New function.
+	(use-empty-active-region): New variable.
+
 	* dired-aux.el (dired): Load dired.el at run time too.
 
 2007-12-23  Juri Linkov  <juri@jurta.org>
