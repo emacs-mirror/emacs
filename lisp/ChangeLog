@@ -1,3 +1,8 @@
+2007-12-23  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (switch-to-buffer-other-frame): Return the buffer
+	switched to.
+
 2007-12-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.12.
