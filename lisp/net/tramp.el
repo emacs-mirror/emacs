@@ -7338,6 +7338,8 @@ Only works for Bourne-like shells."
 ;; * Reconnect directly to a compliant shell without first going
 ;;   through the user's default shell. (Pete Forman)
 ;; * Make `tramp-default-user' obsolete.
+;; * Tramp shall reconnect automatically to its ssh connection when it
+;;   detects that the process "has died". (David Reitter)
 
 ;; Functions for file-name-handler-alist:
 ;; diff-latest-backup-file -- in diff.el

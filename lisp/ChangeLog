@@ -1,3 +1,14 @@
+2007-12-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.12.
+
+	* net/tramp.el: New todo item.
+
+	* net/tramp-smb.el (tramp-smb-handle-insert-directory): Handle "-F"
+	switch.  Reported by Mark T. Kennedy <mkennedy@diamondbackcap.com>.
+
+	* net/trampver.el: Update release number.
+
 2007-12-22  Richard Stallman  <rms@gnu.org>
 
 	* newcomment.el (comment-region-default): Don't triple the
