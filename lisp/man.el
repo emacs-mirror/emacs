@@ -1380,25 +1380,32 @@ Specify which REFERENCE to use; default is based on word at point."
   (interactive
    (if (not Man-refpages-alist)
        (error "There are no references in the current man page")
-     (list (let* ((default (or
-			    (car (all-completions
-				  (let ((word
-					 (or (Man-possibly-hyphenated-word)
-					     "")))
-				    ;; strip a trailing '-':
-				    (if (string-match "-$" word)
-					(substring word 0
-						   (match-beginning 0))
-				      word))
-				  Man-refpages-alist))
-			    (aheadsym Man-refpages-alist)))
-		   chosen
-		   (prompt (concat "Refer to (default " default "): ")))
-	      (setq chosen (completing-read prompt Man-refpages-alist))
-	      (if (or (not chosen)
-		      (string= chosen ""))
-		  default
-		chosen)))))
+     (list
+      (let* ((default (or
+		       (car (all-completions
+			     (let ((word
+				    (or (Man-possibly-hyphenated-word)
+					"")))
+			       ;; strip a trailing '-':
+			       (if (string-match "-$" word)
+				   (substring word 0
+					      (match-beginning 0))
+				 word))
+			     Man-refpages-alist))
+		       (aheadsym Man-refpages-alist)))
+	     (defaults
+	       (mapcar 'substring-no-properties
+		       (delete-dups
+			(delq nil (cons default
+					(mapcar 'car Man-refpages-alist))))))
+	     chosen
+	     (prompt (concat "Refer to (default " default "): ")))
+	(setq chosen (completing-read prompt Man-refpages-alist
+				      nil nil nil nil defaults))
+	(if (or (not chosen)
+		(string= chosen ""))
+	    default
+	  chosen)))))
   (if (not Man-refpages-alist)
       (error "Can't find any references in the current manpage")
     (aput 'Man-refpages-alist reference)
