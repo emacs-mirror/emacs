@@ -1050,14 +1050,16 @@ documentation for additional customization information."
   "Switch to buffer BUFFER in another frame.
 Optional second arg NORECORD non-nil means
 do not put this buffer at the front of the list of recently selected ones.
+This function returns the buffer it switched to.
 
 This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."
   (interactive "BSwitch to buffer in other frame: ")
   (let ((pop-up-frames t)
 	same-window-buffer-names same-window-regexps)
-    (pop-to-buffer buffer t norecord)
-    (raise-frame (window-frame (selected-window)))))
+    (prog1
+	(pop-to-buffer buffer t norecord)
+      (raise-frame (window-frame (selected-window))))))
 
 (defun display-buffer-other-frame (buffer)
   "Switch to buffer BUFFER in another frame.
