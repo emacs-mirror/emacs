@@ -1,3 +1,8 @@
+2007-12-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (fill_menubar) [MAC_OSX]: Add workaround for Mac OS X 10.5
+	about not changing Help menu title.
+
 2007-12-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* callint.c (syms_of_callint) <command-history>: Add reference to
