@@ -3329,6 +3329,28 @@ store it in a Lisp variable.  Example:
     (run-hooks 'deactivate-mark-hook)
     (set-marker (mark-marker) nil)))
 
+(defcustom use-empty-active-region nil
+  "If non-nil, an active region takes control even if empty.
+This applies to certain commands which, in Transient Mark mode,
+apply to the active region if there is one.  If the setting is t,
+these commands apply to an empty active region if there is one.
+If the setting is nil, these commands treat an empty active
+region as if it were not active."
+  :type 'boolean
+  :version "23.1"
+  :group 'editing-basics)
+
+(defun region-active-p ()
+  "Return t if certain commands should apply to the region.
+Certain commands normally apply to text near point,
+but in Transient Mark mode when the mark is active they apply
+to the region instead.  Such commands should use this subroutine to
+test whether to do that.
+
+This function also obeys `use-empty-active-region'."
+  (and transient-mark-mode mark-active
+       (or use-empty-active-region (> (region-end) (region-beginning)))))
+
 (defvar mark-ring nil
   "The list of former marks of the current buffer, most recent first.")
 (make-variable-buffer-local 'mark-ring)
