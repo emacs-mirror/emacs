@@ -1,5 +1,7 @@
 2007-12-23  Richard Stallman  <rms@gnu.org>
 
+	* dired-aux.el: Load dired.el at run time too.
+
 	* faces.el (copy-face): Create the new face explicitly if it
 	does not exist already.
 
