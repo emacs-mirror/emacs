@@ -1,3 +1,8 @@
+2007-12-23  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (switch-to-buffer-other-frame): Return the buffer
+	switched to.
+
 2007-12-23  Juri Linkov  <juri@jurta.org>
 
 	* term/mac-win.el (mac-apple-event-map): Bind About Emacs menu
