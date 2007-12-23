@@ -1,7 +1,7 @@
-2007-12-23  David Reitter  <david.reitter@gmail.com>
+2007-12-23  Juri Linkov  <juri@jurta.org>
 
-        * term/mac-win.el (mac-apple-event-map): Bind kHICommandAbout event to
-	`about-emacs' instead of `display-splash-screen'.
+	* term/mac-win.el (mac-apple-event-map): Bind About Emacs menu
+	item to about-emacs instead of display-splash-screen.
 
 2007-12-22  Eli Zaretskii  <eliz@gnu.org>
 
