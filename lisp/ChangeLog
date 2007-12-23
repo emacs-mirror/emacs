@@ -1,3 +1,8 @@
+2007-12-23  David Reitter  <david.reitter@gmail.com>
+
+        * term/mac-win.el (mac-apple-event-map): Bind kHICommandAbout event to
+	`about-emacs' instead of `display-splash-screen'.
+
 2007-12-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (minibuffer-history, shell-command-history)
