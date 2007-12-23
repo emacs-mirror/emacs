@@ -1260,21 +1260,25 @@ done that."
 
 ;;;###autoload
 (defun server-save-buffers-kill-terminal (proc &optional arg)
+  ;; Called from save-buffers-kill-terminal in files.el.
   "Offer to save each buffer, then kill PROC.
 
 With prefix arg, silently save all file-visiting buffers, then kill.
 
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."
-  (let ((buffers (process-get proc 'buffers)))
-    ;; If client is bufferless, emulate a normal Emacs session
-    ;; exit and offer to save all buffers.  Otherwise, offer to
-    ;; save only the buffers belonging to the client.
-    (save-some-buffers arg
-		       (if buffers
-			   (lambda () (memq (current-buffer) buffers))
-			 t))
-    (server-delete-client proc)))
+  ;; save-buffers-kill-terminal occasionally calls us with proc set
+  ;; to `nowait' (comes from the value of the `client' frame parameter).
+  (when (processp proc)
+    (let ((buffers (process-get proc 'buffers)))
+      ;; If client is bufferless, emulate a normal Emacs session
+      ;; exit and offer to save all buffers.  Otherwise, offer to
+      ;; save only the buffers belonging to the client.
+      (save-some-buffers arg
+                         (if buffers
+                             (lambda () (memq (current-buffer) buffers))
+                           t))
+      (server-delete-client proc))))
 
 (define-key ctl-x-map "#" 'server-edit)
 

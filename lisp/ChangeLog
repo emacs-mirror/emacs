@@ -1,3 +1,8 @@
+2007-12-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-save-buffers-kill-terminal): Check the `proc' is
+	indeed a process.
+
 2007-12-23  Richard Stallman  <rms@gnu.org>
 
 	* simple.el (region-active-p): New function.
