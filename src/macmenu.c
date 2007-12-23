@@ -3174,7 +3174,22 @@ fill_menubar (wv, deep_p)
 
 	  GetMenuTitle (menu, old_title);
 	  if (!EqualString (title, old_title, false, false))
-	    SetMenuTitle (menu, title);
+	    {
+#ifdef MAC_OSX
+	      if (id + 1 == min_menu_id[MAC_MENU_MENU_BAR + 1]
+		  || GetMenuRef (id + 1) == NULL)
+		{
+		  /* This is a workaround for Mac OS X 10.5 where just
+		     calling SetMenuTitle fails to change the title of
+		     the last (Help) menu in the menu bar.  */
+		  DeleteMenu (id);
+		  DisposeMenu (menu);
+		  menu = NULL;
+		}
+	      else
+#endif	/* MAC_OSX */
+		SetMenuTitle (menu, title);
+	    }
 #else  /* !TARGET_API_MAC_CARBON */
 	  if (!EqualString (title, (*menu)->menuData, false, false))
 	    {
@@ -3186,7 +3201,8 @@ fill_menubar (wv, deep_p)
 	    }
 #endif  /* !TARGET_API_MAC_CARBON */
 	}
-      else
+
+      if (!menu)
 	{
 	  menu = NewMenu (id, title);
 	  InsertMenu (menu, 0);
