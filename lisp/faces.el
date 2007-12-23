@@ -158,13 +158,18 @@ and for each existing frame.
 
 If the optional fourth argument NEW-FRAME is given,
 copy the information from face OLD-FACE on frame FRAME
-to NEW-FACE on frame NEW-FRAME."
+to NEW-FACE on frame NEW-FRAME.  In this case, FRAME may not be nil."
   (let ((inhibit-quit t))
     (if (null frame)
 	(progn
+	  (when new-frame
+	    (error "Copying face %s from all frames to one frame"
+		   old-face))
+	  (make-empty-face new-face)
 	  (dolist (frame (frame-list))
 	    (copy-face old-face new-face frame))
 	  (copy-face old-face new-face t))
+      (make-empty-face new-face)
       (internal-copy-lisp-face old-face new-face frame new-frame))
     new-face))
 
