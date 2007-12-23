@@ -1,3 +1,10 @@
+2007-12-23  Juri Linkov  <juri@jurta.org>
+
+	* man.el (Man-follow-manual-reference): Fill the minibuffer's
+	default list with a full list of references.
+
+	* files.el (auto-mode-alist): Add \\' to doc-view files regexp.
+
 2007-12-23  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (switch-to-buffer-other-frame): Return the buffer
