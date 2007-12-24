@@ -1,3 +1,7 @@
+2007-12-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (phys_cursor_in_rect_p): Check if cursor is in fringe area.
+
 2007-12-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macmenu.c (fill_menubar) [MAC_OSX]: Add workaround for Mac OS X 10.5
