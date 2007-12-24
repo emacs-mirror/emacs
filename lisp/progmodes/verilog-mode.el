@@ -175,7 +175,8 @@ STRING should be given if the last search was by `string-match' on STRING."
             (if (match-beginning num)
                 (if string
                     (let ((result
-                           (substring string (match-beginning num) (match-end num))))
+                           (substring string
+				      (match-beginning num) (match-end num))))
                       (set-text-properties 0 (length result) nil result)
                       result)
                   (buffer-substring-no-properties (match-beginning num)
@@ -188,7 +189,8 @@ STRING should be given if the last search was by `string-match' on STRING."
       ;; We have the old custom-library, hack around it!
       (defmacro defgroup (&rest args)  nil)
       (defmacro customize (&rest args)
-        (message "Sorry, Customize is not available with this version of emacs"))
+        (message
+	 "Sorry, Customize is not available with this version of emacs"))
       (defmacro defcustom (var value doc &rest args)
         `(defvar ,var ,value ,doc))
       )
@@ -1187,7 +1189,8 @@ without the directory portion, will be substituted."
 
 (defun verilog-error-regexp-add ()
   "Add the messages to the `compilation-error-regexp-alist'.
-Called by `compilation-mode-hook'.  This allows \\[next-error] to find the errors."
+Called by `compilation-mode-hook'.  This allows \\[next-error] to
+find the errors."
   (if (not verilog-error-regexp-add-didit)
       (progn
 	(setq verilog-error-regexp-add-didit t)
@@ -1195,7 +1198,8 @@ Called by `compilation-mode-hook'.  This allows \\[next-error] to find the error
 		      (append verilog-error-regexp
 			      (default-value 'compilation-error-regexp-alist)))
 	;; Could be buffer local at this point; maybe also in let; change all three
-	(setq compilation-error-regexp-alist (default-value 'compilation-error-regexp-alist))
+	(setq compilation-error-regexp-alist
+	      (default-value 'compilation-error-regexp-alist))
 	(set (make-local-variable 'compilation-error-regexp-alist)
 	     (default-value 'compilation-error-regexp-alist))
 	)))
@@ -2006,10 +2010,9 @@ See also `verilog-font-lock-extra-types'.")
 		(when verilog-highlight-translate-off
 		  (list
 		   ;; Fontify things in translate off regions
-		   '(verilog-match-translate-off (0 'verilog-font-lock-translate-off-face prepend))
-		   )))
-  )
-  )
+		   '(verilog-match-translate-off
+		     (0 'verilog-font-lock-translate-off-face prepend))
+		   )))))
 
 
 
@@ -2019,9 +2022,13 @@ See also `verilog-font-lock-extra-types'.")
     (let ((st-point (point)) hitbeg)
       (or (search-backward "//" (verilog-get-beg-of-line) t)
 	  (if (progn
-		;; This is for tricky case //*, we keep searching if /* is proceeded by // on same line
-		(while (and (setq hitbeg (search-backward "/*" nil t))
-			    (progn (forward-char 1) (search-backward "//" (verilog-get-beg-of-line) t))))
+		;; This is for tricky case //*, we keep searching if /* is
+		;; proceeded by // on same line.
+		(while
+		    (and (setq hitbeg (search-backward "/*" nil t))
+			 (progn
+			   (forward-char 1)
+			   (search-backward "//" (verilog-get-beg-of-line) t))))
 		hitbeg)
 	      (not (search-forward "*/" st-point t)))))))
 
@@ -3236,8 +3243,7 @@ Insert `// NAME ' if this line ends a function, task, module, primitive or inter
 		    (cond
 		     ((looking-at "\\<randcase\\>")
 		      (setq str "randcase")
-		      (setq err nil)
-		      )
+		      (setq err nil))
 		     ((match-end 0)
 		      (goto-char (match-end 1))
 		      (if nil
@@ -3255,8 +3261,7 @@ Insert `// NAME ' if this line ends a function, task, module, primitive or inter
 		      (verilog-kill-existing-comment))
 		  (delete-horizontal-space)
 		  (insert (concat " // " str ))
-		  (if err (ding 't))
-		  ))
+		  (if err (ding 't))))
 
 	       (;- This is a begin..end block
 		(match-end 2) ;; of verilog-end-block-ordered-re
@@ -3592,19 +3597,25 @@ Useful for creating tri's and other expanded fields."
     (let ((signal-string (buffer-substring (point)
 					   (progn
 					     (end-of-line) (point)))))
-      (if (string-match (concat "\\(.*\\)"
-				(regexp-quote bra)
-				"\\([0-9]*\\)\\(:[0-9]*\\|\\)\\(::[0-9---]*\\|\\)"
+      (if (string-match
+	   (concat "\\(.*\\)"
+		   (regexp-quote bra)
+		   "\\([0-9]*\\)\\(:[0-9]*\\|\\)\\(::[0-9---]*\\|\\)"
 				(regexp-quote ket)
 				"\\(.*\\)$") signal-string)
 	  (let* ((sig-head (match-string 1 signal-string))
 		 (vec-start (string-to-number (match-string 2 signal-string)))
 		 (vec-end (if (= (match-beginning 3) (match-end 3))
 			      vec-start
-			    (string-to-number (substring signal-string (1+ (match-beginning 3)) (match-end 3)))))
-		 (vec-range (if (= (match-beginning 4) (match-end 4))
-				1
-			      (string-to-number (substring signal-string (+ 2 (match-beginning 4)) (match-end 4)))))
+			    (string-to-number
+			     (substring signal-string (1+ (match-beginning 3))
+					(match-end 3)))))
+		 (vec-range
+		  (if (= (match-beginning 4) (match-end 4))
+		      1
+		    (string-to-number
+		     (substring signal-string (+ 2 (match-beginning 4))
+				(match-end 4)))))
 		 (sig-tail (match-string 5 signal-string))
 		 vec)
 	    ;; Decode vectors
@@ -3627,7 +3638,8 @@ Useful for creating tri's and other expanded fields."
 	    ;;
 	    ;; Expand vector
 	    (while vec
-	      (insert (concat sig-head bra (int-to-string (car vec)) ket sig-tail "\n"))
+	      (insert (concat sig-head bra
+			      (int-to-string (car vec)) ket sig-tail "\n"))
 	      (setq vec (cdr vec)))
 	    (delete-char -1)
 	    ;;
@@ -3821,7 +3833,8 @@ This lets programs calling batch mode to easily extract error messages."
 	      (when (buffer-file-name buf)
 		(save-excursion
 		  (if (not (file-exists-p (buffer-file-name buf)))
-		      (error (concat "File not found: " (buffer-file-name buf))))
+		      (error
+		       (concat "File not found: " (buffer-file-name buf))))
 		  (message (concat "Processing " (buffer-file-name buf)))
 		  (set-buffer buf)
 		  (funcall funref)
@@ -4092,8 +4105,7 @@ type.  Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 	    (save-excursion
 	      (verilog-beg-of-statement)
 	      (if (= (point) here)
-		  (throw 'nesting 'block))
-	      )))
+		  (throw 'nesting 'block)))))
 	 (t              (throw 'nesting 'block))))
 
        ((looking-at verilog-end-block-re)
@@ -4113,11 +4125,8 @@ type.  Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 	(throw 'nesting 'cpp))
 
        ((bobp)
-	(throw 'nesting 'cpp))
-       ))
-    (throw 'nesting 'cpp)
-    )
-  )
+	(throw 'nesting 'cpp))))
+    (throw 'nesting 'cpp)))
 
 (defun verilog-calculate-indent-directive ()
   "Return indentation level for directive.
@@ -4639,8 +4648,10 @@ Only look at a few lines to determine indent level."
 	 ((verilog-continued-line)
 	  (let ((sp1 (point)))
 	    (if (verilog-continued-line)
-		(progn (goto-char sp)
-		       (setq indent-str (list 'statement (verilog-current-indent-level))))
+		(progn
+		  (goto-char sp)
+		  (setq
+		   indent-str (list 'statement (verilog-current-indent-level))))
 	      (goto-char sp1)
 	      (setq indent-str (list 'block (verilog-current-indent-level)))))
 	  (goto-char sp))
@@ -4998,7 +5009,8 @@ ARG is ignored, for `comment-indent-function' compatibility."
 		  (setq e (point))	;Might be on last line
 		  (verilog-forward-syntactic-ws)
 		  (beginning-of-line)
-		  (while (and (not(looking-at (concat "^\\s-*" verilog-complete-reg)))
+		  (while (and (not (looking-at
+				    (concat "^\\s-*" verilog-complete-reg)))
 			      (looking-at myre))
 		    (end-of-line)
 		    (setq e (point))
@@ -5083,7 +5095,8 @@ BASEIND is the base indent to offset everything."
 	(val)
 	(m1 (make-marker))
 	)
-    (setq val (+ baseind (eval (cdr (assoc 'declaration verilog-indent-alist)))))
+    (setq val
+	  (+ baseind (eval (cdr (assoc 'declaration verilog-indent-alist)))))
     (indent-line-to val)
 
     ;; Use previous declaration (in this module) as template.
@@ -5098,7 +5111,9 @@ BASEIND is the base indent to offset everything."
 	      (skip-chars-forward " \t")
 	      (setq ind (current-column))
 	      (goto-char pos)
-	      (setq val (+ baseind (eval (cdr (assoc 'declaration verilog-indent-alist)))))
+	      (setq val
+		    (+ baseind
+		       (eval (cdr (assoc 'declaration verilog-indent-alist)))))
 	      (indent-line-to val)
 	      (if (and verilog-indent-declaration-macros
 		       (looking-at verilog-declaration-re-2-macro))
@@ -5130,14 +5145,8 @@ BASEIND is the base indent to offset everything."
 			(if (/= (current-column) ind)
 			    (progn
 			      (just-one-space)
-			      (indent-to ind))
-			  )))
-		  )))
-	  )
-      )
-    (goto-char pos)
-    )
-  )
+			      (indent-to ind))))))))))
+    (goto-char pos)))
 
 (defun verilog-get-lineup-indent (b edpos)
   "Return the indent level that will line up several lines within the region.
@@ -5648,7 +5657,8 @@ If search fails, other files are checked based on
 	(progn
 	  (save-excursion
 	    (goto-char (point-min))
-	    (setq pt (re-search-forward (verilog-build-defun-re label t) nil t)))
+	    (setq pt
+		  (re-search-forward (verilog-build-defun-re label t) nil t)))
 	  (when pt
 	    (goto-char pt)
 	    (beginning-of-line))
@@ -5991,7 +6001,8 @@ Duplicate signals are also removed.  For example A[2] and A[1] become A[2:1]."
       (cond ((and bus
 		  (or (and (string-match "\\[\\([0-9]+\\):\\([0-9]+\\)\\]" bus)
 			   (setq highbit (string-to-number (match-string 1 bus))
-				 lowbit  (string-to-number (match-string 2 bus))))
+				 lowbit  (string-to-number
+					  (match-string 2 bus))))
 		      (and (string-match "\\[\\([0-9]+\\)\\]" bus)
 			   (setq highbit (string-to-number (match-string 1 bus))
 				 lowbit  highbit))))
@@ -6009,7 +6020,8 @@ Duplicate signals are also removed.  For example A[2] and A[1] become A[2:1]."
       (setq sig (car in-list))
       (cond ((and sig (equal sv-name (verilog-sig-name sig)))
 	     ;; Combine with this signal
-	     (when (and sv-busstring (not (equal sv-busstring (verilog-sig-bits sig))))
+	     (when (and sv-busstring
+			(not (equal sv-busstring (verilog-sig-bits sig))))
 	       (when nil  ;; Debugging
 		 (message (concat "Warning, can't merge into single bus "
 				  sv-name bus
@@ -6025,10 +6037,12 @@ Duplicate signals are also removed.  For example A[2] and A[1] become A[2:1]."
 	    ;; Note sig may also be nil for the last signal in the list
 	    (t
 	     (setq out-list
-		   (cons (list sv-name
-			       (or sv-busstring
-				   (if sv-highbit
-				       (concat "[" (int-to-string sv-highbit) ":" (int-to-string sv-lowbit) "]")))
+		   (cons
+		    (list sv-name
+			  (or sv-busstring
+			      (if sv-highbit
+				  (concat "[" (int-to-string sv-highbit) ":"
+					  (int-to-string sv-lowbit) "]")))
 			       (concat sv-comment combo buswarn)
 			       sv-memory sv-enum sv-signed sv-type sv-multidim)
 			 out-list)
@@ -7573,13 +7587,15 @@ This repairs those mis-inserted by a AUTOARG."
 	     (setq range-exp (match-string 1 range-exp)))
 	 (cond ((not range-exp)
 		"1")
-	       ((string-match "^\\s *\\([0-9]+\\)\\s *:\\s *\\([0-9]+\\)\\s *$" range-exp)
-		(int-to-string (1+ (abs (- (string-to-number (match-string 1 range-exp))
-					   (string-to-number (match-string 2 range-exp)))))))
+	       ((string-match "^\\s *\\([0-9]+\\)\\s *:\\s *\\([0-9]+\\)\\s *$"
+			      range-exp)
+		(int-to-string
+		 (1+ (abs (- (string-to-number (match-string 1 range-exp))
+			     (string-to-number (match-string 2 range-exp)))))))
 	       ((string-match "^\\(.*\\)\\s *:\\s *\\(.*\\)\\s *$" range-exp)
-		(concat "(1+(" (match-string 1 range-exp)
-			")"
-			(if (equal "0" (match-string 2 range-exp))  ;; Don't bother with -(0)
+		(concat "(1+(" (match-string 1 range-exp) ")"
+			(if (equal "0" (match-string 2 range-exp)) 
+			    ;; Don't bother with -(0)
 			    ""
 			  (concat "-(" (match-string 2 range-exp) ")"))
 			")"))
@@ -9539,16 +9555,18 @@ being different from the final output's line numbering."
     (goto-char (point-min))
     (while (search-forward "AUTO_TEMPLATE" nil t)
       (setq templateno (1+ templateno))
-      (setq template-line (cons (count-lines (point-min) (point)) template-line)))
+      (setq template-line
+	    (cons (count-lines (point-min) (point)) template-line)))
     (setq template-line (nreverse template-line))
     ;; Replace T# L# with absolute line number
     (goto-char (point-min))
     (while (re-search-forward " Templated T\\([0-9]+\\) L\\([0-9]+\\)" nil t)
-      (replace-match (concat " Templated "
-			     (int-to-string (+ (nth (string-to-number (match-string 1))
-						    template-line)
-					       (string-to-number (match-string 2)))))
-		     t t))))
+      (replace-match
+       (concat " Templated "
+	       (int-to-string (+ (nth (string-to-number (match-string 1))
+				      template-line)
+				 (string-to-number (match-string 2)))))
+       t t))))
 
 
 ;;
