@@ -273,9 +273,7 @@ is based on the current syntax table."
 
 (defmacro tooltip-region-active-p ()
   "Value is non-nil if the region is currently active."
-  (if (not (featurep 'xemacs))
-      `(and transient-mark-mode mark-active)
-    `(region-active-p)))
+  `(use-region-p))
 
 (defun tooltip-expr-to-print (event)
   "Return an expression that should be printed for EVENT.
