@@ -2659,13 +2659,26 @@ If `interprogram-cut-function' is set, pass the resulting kill to it."
 		  (equal yank-handler (get-text-property 0 'yank-handler cur)))
 	      yank-handler)))
 
+(defcustom yank-pop-change-selection nil
+  "If non-nil, rotating the kill ring changes the window system selection."
+  :type 'boolean
+  :group 'killing
+  :version "23.1")
+
 (defun current-kill (n &optional do-not-move)
   "Rotate the yanking point by N places, and then return that kill.
 If N is zero, `interprogram-paste-function' is set, and calling it returns a
 string or list of strings, then that string (or list) is added to the front
 of the kill ring and the string (or first string in the list) is returned as
-the latest kill.  If optional arg DO-NOT-MOVE is non-nil, then don't
-actually move the yanking point; just return the Nth kill forward."
+the latest kill.
+
+If N is not zero, and if `yank-pop-change-selection' is
+non-nil, use `interprogram-cut-function' to transfer the
+kill at the new yank point into the window system selection.
+
+If optional arg DO-NOT-MOVE is non-nil, then don't actually
+move the yanking point; just return the Nth kill forward."
+
   (let ((interprogram-paste (and (= n 0)
 				 interprogram-paste-function
 				 (funcall interprogram-paste-function))))
@@ -2684,8 +2697,12 @@ actually move the yanking point; just return the Nth kill forward."
 	     (nthcdr (mod (- n (length kill-ring-yank-pointer))
 			  (length kill-ring))
 		     kill-ring)))
-	(or do-not-move
-	    (setq kill-ring-yank-pointer ARGth-kill-element))
+	(unless do-not-move
+	  (setq kill-ring-yank-pointer ARGth-kill-element)
+	  (when (and yank-pop-change-selection
+		     (> n 0)
+		     interprogram-cut-function)
+	    (funcall interprogram-cut-function (car ARGth-kill-element))))
 	(car ARGth-kill-element)))))
 
 
