@@ -272,7 +272,7 @@ is based on the current syntax table."
 	  (buffer-substring start (point)))))))
 
 (defmacro tooltip-region-active-p ()
-  "Value is non-nil if the region is currently active."
+  "Value is non-nil if the region should override command actions."
   `(use-region-p))
 
 (defun tooltip-expr-to-print (event)
