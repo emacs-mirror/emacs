@@ -461,7 +461,7 @@ xftfont_encode_char (font, c)
   unsigned code = XftCharIndex (xftfont_info->display, xftfont_info->xftfont,
 				(FcChar32) c);
   
-  return (code ? code : 0xFFFFFFFF);
+  return (code ? code : FONT_INVALID_CODE);
 }
 
 static int
