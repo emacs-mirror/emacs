@@ -229,7 +229,7 @@ positions (integers or markers) specifying the region."
   (thai-compose-region (point-min) (point-max)))
 
 ;;;###autoload
-(defun thai-composition-function (pos &optional string)
+(defun thai-composition-function (pos to font-object string)
   (setq pos (1- pos))
   (with-category-table thai-category-table
     (if string
