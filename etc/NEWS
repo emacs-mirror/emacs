@@ -165,6 +165,10 @@ makes the new region into the primary selection (for interaction with
 other window applications).  If you enable this, you might want to bind
 `mouse-yank-primary' to Mouse-2.
 
+** If `yank-pop-change-selection' is t, rotating the kill ring
+also updates the selection or clipboard to the current yank,
+just as M-w would do so with the text it copies to the kill ring.
+
 ** Minibuffer changes:
 
 *** In C-x d, if you type M-n you get the visited file name of the
