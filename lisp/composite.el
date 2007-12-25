@@ -394,15 +394,26 @@ For each character that has to be composed automatically with
 preceding and/or following characters, this char table contains
 a function to call to compose that character.
 
-Each function is called with two arguments, POS and STRING.
+An element, if non-nil, is FUNC or an alist of PATTERNs vs FUNCs,
+where PATTERNs are regular expressions and FUNCs are functions.
+If the element is FUNC, FUNC itself determines the region to
+compose.
 
-If STRING is nil, POS is a position in the current buffer, and the
-function has to compose a character at POS with surrounding characters
-in the current buffer.
+Each function is called with 5 arguments, FROM, TO, FONT-OBJECT,
+and STRING.
 
-Otherwise, STRING is a string, and POS is an index into the string.  In
-this case, the function has to compose a character at POS with
-surrounding characters in the string.
+If STRING is nil, FROM and TO are positions specifying the region
+maching with PATTERN in the current buffer, and the function has
+to compose character in that region (possibly with characters
+preceding FROM).  The return value of the function is the end
+position where characters are composed.
+
+Otherwise, STRING is a string, and FROM and TO are indices into
+the string.  In this case, the function has to compose a
+character in the string.
+
+FONT-OBJECT may be nil if not available (e.g. for the case of
+terminal).
 
 See also the command `toggle-auto-composition'.")
 
@@ -432,28 +443,29 @@ See also the command `toggle-auto-composition'.")
 (defun terminal-composition-modification (from to)
   (terminal-composition-function from))
 
-(defun terminal-composition-function (pos &optional string)
+(defun terminal-composition-function (from to pattern font-object string)
   "General composition function used on terminal.
 Non-spacing characters are composed with the preceding spacing
 character.  All non-spacing characters has this function in
 `terminal-composition-function-table'."
-  (let ((from (1- pos))
-	ch)
+  (let ((pos (1+ from)))
     (if string
-	(length string)
-      (setq pos (1+ pos))
-      (while (and (< pos (point-max))
+	(progn
+	  (while (and (< pos to)
+		      (= (aref char-width-table (aref string pos)) 0))
+	    (setq pos (1+ pos)))
+	  (if (> from 0)
+	      (compose-string string (1- from) pos)
+	    (compose-string string from pos
+			    (concat " " (buffer-substring from pos)))))
+      (while (and (< pos to)
 		  (= (aref char-width-table (char-after pos)) 0))
 	(setq pos (1+ pos)))
-      (if (and (>= from (point-min))
-	       (= (aref (symbol-name (get-char-code-property
-				      (char-after from)
-				      'general-category)) 0) ?L))
-	  (compose-region from pos (buffer-substring from pos))
-	(compose-region (1+ from) pos
-			(concat " " (buffer-substring (1+ from) pos))
-			'terminal-composition-modification))
-      pos)))
+      (if (> from (point-min))
+	  (compose-region (1- from) pos (buffer-substring from pos))
+	(compose-region from pos
+			(concat " " (buffer-substring from pos)))))
+    pos))
 
 (defvar terminal-composition-function-table
   (let ((table (make-char-table nil)))
@@ -467,62 +479,68 @@ character.  All non-spacing characters has this function in
 This is like `composition-function-table' but used when Emacs is running
 on a terminal.")
 
-(defvar auto-compose-current-font nil
-  "The current font-object used for characters being composed automatically.")
-
-(defun auto-compose-chars (pos string window)
-  "Compose characters after the buffer position POS.
-If STRING is non-nil, it is a string, and POS is an index into the string.
-In that case, compose characters in the string.
+(defun auto-compose-chars (from to window string)
+  "Compose characters in the region between FROM and TO.
 WINDOW is a window displaying the current buffer.
+If STRING is non-nil, it is a string, and FROM and TO are indices
+into the string.  In that case, compose characters in the string.
 
 This function is the default value of `auto-composition-function' (which see)."
   (save-buffer-state nil
     (save-excursion
-      (save-match-data
-	(condition-case nil
-	    (let ((start pos)
-		  (limit (if string (length string) (point-max)))
-		  (table (if (display-graphic-p)
-			     composition-function-table
-			   terminal-composition-function-table))
-		  auto-compose-current-font
-		  ch func newpos)
-	      (setq limit
-		    (or (text-property-any (1+ pos) limit 'auto-composed t
-					   string)
-			limit)
-		    pos 
-		    (catch 'tag
-		      (if string
-			  (while (< pos limit)
-			    (setq ch (aref string pos))
-			    (if (= ch ?\n)
-				(throw 'tag (1+ pos)))
-			    (setq func (aref table ch))
-			    (if (and (functionp func)
-				     (setq auto-compose-current-font
-					   (and window
-						(font-at pos window string)))
-				     (setq newpos (funcall func pos string))
-				     (> newpos pos))
-				(setq pos newpos)
-			      (setq pos (1+ pos))))
-			(while (< pos limit)
-			  (setq ch (char-after pos))
-			  (if (= ch ?\n)
-			      (throw 'tag (1+ pos)))
-			  (setq func (aref table ch))
-			  (if (and (functionp func)
-				   (setq auto-compose-current-font
-					 (and window (font-at pos window)))
-				   (setq newpos (funcall func pos string))
-				   (> newpos pos))
-			      (setq pos newpos)
-			    (setq pos (1+ pos)))))
-		      limit))
-	      (put-text-property start pos 'auto-composed t string))
-	  (error nil))))))
+      (save-restriction
+	(save-match-data
+	  (let ((table (if (display-graphic-p)
+			   composition-function-table
+			 terminal-composition-function-table))
+		(start from))
+	    (setq to (or (text-property-any (1+ from) to 'auto-composed t
+					    string)
+			 to))
+	    (if string
+		(while (< from to)
+		  (let* ((ch (aref string from))
+			 (elt (aref table ch))
+			 font-obj newpos)
+		    (when elt
+		      (if window
+			  (setq font-obj (font-at from window string)))
+		      (if (functionp elt)
+			  (setq newpos (funcall elt from to font-obj string))
+			(while (and elt
+				    (or (not (eq (string-match (caar elt) string
+							       from)
+						 from))
+					(not (setq newpos
+						   (funcall (cdar elt) from
+							    (match-end 0)
+							    font-obj string)))))
+			  (setq elt (cdr elt)))))
+		    (if (and newpos (> newpos from))
+			(setq from newpos)
+		      (setq from (1+ from)))))
+	      (narrow-to-region from to)
+	      (while (< from to)
+		  (let* ((ch (char-after from))
+			 (elt (aref table ch))
+			 func pattern font-obj newpos)
+		    (when elt
+		      (if window
+			  (setq font-obj (font-at from window)))
+		      (if (functionp elt)
+			  (setq newpos (funcall elt from to font-obj nil))
+			(goto-char from)
+			(while (and elt
+				    (or (not (looking-at (caar elt)))
+					(not (setq newpos
+						   (funcall (cdar elt) from
+							    (match-end 0)
+							    font-obj nil)))))
+			  (setq elt (cdr elt)))))
+		    (if (and newpos (> newpos from))
+			(setq from newpos)
+		      (setq from (1+ from))))))
+	    (put-text-property start to 'auto-composed t string)))))))
 
 (make-variable-buffer-local 'auto-composition-function)
 
