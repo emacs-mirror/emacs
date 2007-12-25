@@ -2,6 +2,8 @@
 
 	* simple.el (select-active-regions): New option.
 	(set-mark): Obey it.
+	(yank-pop-change-selection): New option.
+	(current-kill): Obey it.
 
 2007-12-25  David Golden  <david.delaharpe.golden@gmail.com>  (tiny change)
 
