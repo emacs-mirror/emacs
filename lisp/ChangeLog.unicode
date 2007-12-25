@@ -1,3 +1,37 @@
+2007-12-25  Kenichi Handa  <handa@m17n.org>
+
+	* language/tibetan.el: Register font-shape-text in
+	composition-function-table.
+
+	* language/thai-util.el (thai-composition-function): Fix arguments.
+
+	* language/tamil.el: Register font-shape-text in
+	composition-function-table.
+
+	* language/malayalam.el: Register font-shape-text in
+	composition-function-table.
+
+	* language/lao.el: Register font-shape-text in
+	composition-function-table.
+
+	* language/kannada.el: Register font-shape-text in
+	composition-function-table.
+
+	* language/european.el (diacritic-composition-function): Fix
+	arguments.
+
+	* language/ethio-util.el (ethio-composition-function): Fix
+	arguments.
+
+	* language/tv-util.el (tai-viet-composition-function): Fix
+	arguments.
+
+	* composite.el (composition-function-table): Fix docstring.
+	(terminal-composition-function): Fix arguments.
+	(auto-compose-current-font): Delete it.
+	(auto-compose-chars): Adjusted for the change of
+	composition-function-table.
+
 2007-12-13  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/fontset.el (font-encoding-alist): Add the entry of
