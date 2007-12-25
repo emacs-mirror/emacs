@@ -708,7 +708,7 @@ positions (integers or markers) specifying the region."
   (interactive)
   (diacritic-compose-region (point-min) (point-max)))
 
-(defun diacritic-composition-function (pos &optional string)
+(defun diacritic-composition-function (pos to font-object string)
   "Compose diacritic text around POS.
 Optional 2nd argument STRING, if non-nil, is a string containing text
 to compose.
