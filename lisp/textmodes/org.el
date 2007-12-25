@@ -4495,8 +4495,8 @@ Works on both Emacs and XEmacs."
   (if org-ignore-region
       nil
     (if (featurep 'xemacs)
-	(and zmacs-regions (region-active-p))
-      (and transient-mark-mode mark-active))))
+	(region-active-p)
+      (use-region-p))))
 
 ;; Invisibility compatibility
 
