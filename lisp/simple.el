@@ -3366,7 +3366,7 @@ region as if it were not active."
   :version "23.1"
   :group 'editing-basics)
 
-(defun region-active-p ()
+(defun use-region-p ()
   "Return t if certain commands should apply to the region.
 Certain commands normally apply to text near point,
 but in Transient Mark mode when the mark is active they apply
