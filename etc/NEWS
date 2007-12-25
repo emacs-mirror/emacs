@@ -157,9 +157,13 @@ in Transient Mark mode should make commands operate on that empty region.
 
 ** New command kill-matching-buffers kills buffers whose name matches a regexp.
 
-** `interprogram-paste-function' can now return one string or a list
-of strings.  In the latter case, Emacs puts the second and following
-strings on the kill ring.
+** You can disable kill ring commands from accessing the primary selection
+by setting `x-select-enable-primary' to nil.
+
+** If `select-active-regions' is t, setting the mark automatically
+makes the new region into the primary selection (for interaction with
+other window applications).  If you enable this, you might want to bind
+`mouse-yank-primary' to Mouse-2.
 
 ** Minibuffer changes:
 
@@ -456,6 +460,10 @@ statements are accurate (i.e. the functions are actually defined in
 the specified files).
 
 ** The new function `read-color' reads a color name using the minibuffer.
+
+** `interprogram-paste-function' can now return one string or a list
+of strings.  In the latter case, Emacs puts the second and following
+strings on the kill ring.
 
 ** Changes related to multiple tty support.
 
