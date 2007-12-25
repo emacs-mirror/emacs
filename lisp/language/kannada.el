@@ -46,7 +46,7 @@ environment."))
 
 ;; For automatic composition.
 (set-char-table-range composition-function-table '(#x0c80 . #x0cff)
-		      'kannada-composition-function)
+		      '(("[\x0c80-\x0CFF]+" . font-shape-text)))
 
 (provide 'kannada)
 
