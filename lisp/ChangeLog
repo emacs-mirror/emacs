@@ -1,3 +1,14 @@
+2007-12-25  Miles Bader  <miles@gnu.org>
+
+	* indent.el (indent-for-tab-command): Rigidly indent the following
+	sexp along with the current line when a prefix arg is given in the
+	non-active-region case.  Specify raw prefix in interactive spec.
+	Simplify main indentation logic to get rid of the conditional call
+	to `indent-according-to-mode' (it just ended up calling
+	`indent-line-function' in all cases anyway, which can be done more
+	simply here).  Remove unnecessary test of ARG in active region
+	case.
+
 2007-12-25  Richard Stallman  <rms@gnu.org>
 
 	* simple.el (select-active-regions): New option.

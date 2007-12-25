@@ -82,14 +82,20 @@ special; we don't actually use them here."
 Depending on `tab-always-indent', either insert a tab or indent.
 If initial point was within line's indentation, position after
 the indentation.  Else stay at same point in text.
+
+If a prefix argument is given, also rigidly indent the entire
+balanced expression which starts at the beginning the current
+line to reflect the current line's change in indentation.
+
 If `transient-mark-mode' is turned on and the region is active,
-indent the region.
+indent the region (in this case, any prefix argument is ignored).
+
 The function actually called to indent the line is determined by the value of
 `indent-line-function'."
-  (interactive "p")
+  (interactive "P")
   (cond
    ;; The region is active, indent it.
-   ((and arg transient-mark-mode mark-active
+   ((and transient-mark-mode mark-active
 	 (not (eq (region-beginning) (region-end))))
     (indent-region (region-beginning) (region-end)))
    ((or ;; indent-to-left-margin is only meant for indenting,
@@ -99,13 +105,27 @@ The function actually called to indent the line is determined by the value of
 	     (or (> (current-column) (current-indentation))
 		 (eq this-command last-command))))
     (insert-tab arg))
-   ;; Those functions are meant specifically for tabbing and not for
-   ;; indenting, so we can't pass them to indent-according-to-mode.
-   ((memq indent-line-function '(indent-relative indent-relative-maybe))
-    (funcall indent-line-function))
-   ;; Indent the line.
    (t
-    (indent-according-to-mode))))
+    (let ((end-marker
+	   (and arg
+		(save-excursion
+		  (forward-line 0) (forward-sexp) (point-marker))))
+	  (old-indent
+	   (current-indentation)))
+
+      ;; Indent the line.
+      (funcall indent-line-function)
+
+      ;; If a prefix argument was given, rigidly indent the following
+      ;; sexp to match the change in the current line's indentation.
+      ;;
+      (when arg
+	(let ((indentation-change (- (current-indentation) old-indent)))
+	  (unless (zerop indentation-change)
+	    (save-excursion
+	      (forward-line 1)
+	      (when (< (point) end-marker)
+		(indent-rigidly (point) end-marker indentation-change))))))))))
 
 (defun insert-tab (&optional arg)
   (let ((count (prefix-numeric-value arg)))
