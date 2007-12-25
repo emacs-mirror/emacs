@@ -450,8 +450,13 @@ variable as having been made within Custom.
 ** `frame-inherited-parameters' lets new frames inherit parameters from
 the selected frame.
 
-** Commands should use `region-active-p' to test whether there is
+** Commands should use `use-region-p' to test whether there is
 an active region that they should operate on.
+
+** `region-active-p' returns non-nil when Transient Mark mode
+is enabled and there is an active region.  This is NOT the best function
+to use to test whether a command should operate on the region instead
+of the usual behavior -- for that, use `use-region-p'.
 
 ** New keymap `input-decode-map' overrides like key-translation-map, but
 applies before function-key-map.  Also it is terminal-local contrary to
