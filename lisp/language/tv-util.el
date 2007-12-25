@@ -131,17 +131,13 @@
 
 
 ;;;###autoload
-(defun tai-viet-composition-function (pos &optional string)
-  (let (to)
-    (if string
-	(progn
-	  (if (string-match tai-viet-re string pos)
-	      (tai-viet-compose-string pos (match-end 0) string)
-	    (1+ pos)))
-      (goto-char pos)
-      (if (looking-at tai-viet-re)
-	  (tai-viet-compose-region pos (match-end 0))
-	(1+ pos)))))
+(defun tai-viet-composition-function (from to font-object string)
+  (if string
+      (if (string-match tai-viet-re string from)
+	  (tai-viet-compose-string from (match-end 0) string))
+    (goto-char from)
+    (if (looking-at tai-viet-re)
+	(tai-viet-compose-region from (match-end 0)))))
 
 ;;
 (provide 'tai-viet-util)
