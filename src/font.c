@@ -3496,8 +3496,8 @@ FONT-OBJECT may be nil if GSTRING already already contains one.  */)
 
 	  c = STRING_CHAR_ADVANCE (p);
 	  code = font->driver->encode_char (font, c);
-	  if (code > MOST_POSITIVE_FIXNUM)
-	    error ("Glyph code 0x%X is too large", code);
+	  if (code > MOST_POSITIVE_FIXNUM || code == FONT_INVALID_CODE)
+	    break;
 	  LGLYPH_SET_FROM (g, i);
 	  LGLYPH_SET_TO (g, i);
 	  LGLYPH_SET_CHAR (g, c);
@@ -3522,15 +3522,15 @@ FONT-OBJECT may be nil if GSTRING already already contains one.  */)
 
 	  FETCH_CHAR_ADVANCE (c, pos, pos_byte);
 	  code = font->driver->encode_char (font, c);
-	  if (code > MOST_POSITIVE_FIXNUM)
-	    error ("Glyph code 0x%X is too large", code);
+	  if (code > MOST_POSITIVE_FIXNUM || code == FONT_INVALID_CODE)
+	    break;
 	  LGLYPH_SET_FROM (g, i);
 	  LGLYPH_SET_TO (g, i);
 	  LGLYPH_SET_CHAR (g, c);
 	  LGLYPH_SET_CODE (g, code);
 	}
     }
-  for (i = LGSTRING_LENGTH (gstring) - 1; i >= len; i--)
+  for (; i < LGSTRING_LENGTH (gstring); i++)
     LGSTRING_SET_GLYPH (gstring, i, Qnil);    
   return Qnil;
 }
@@ -3539,7 +3539,8 @@ DEFUN ("font-shape-text", Ffont_shape_text, Sfont_shape_text, 3, 4, 0,
        doc: /* Shape text between FROM and TO by FONT-OBJECT.
 If optional 4th argument STRING is non-nil, it is a string to shape,
 and FROM and TO are indices to the string.
-The value is the end position of the shaped text.  */)
+The value is the end position of the text that can be shaped by
+FONT-OBJECT.  */)
      (from, to, font_object, string)
      Lisp_Object from, to, font_object, string;
 {
@@ -3547,7 +3548,7 @@ The value is the end position of the shaped text.  */)
   struct font_metrics metrics;
   EMACS_INT start, end;
   Lisp_Object gstring, n;
-  int i;
+  int len, i, j;
 
   if (NILP (string))
     {
@@ -3569,12 +3570,27 @@ The value is the end position of the shaped text.  */)
   if (! font->driver->shape)
     return from;
 
-  gstring = Ffont_make_gstring (font_object, make_number (end - start));
+  len = end - start;
+  gstring = Ffont_make_gstring (font_object, make_number (len));
   Ffont_fill_gstring (gstring, font_object, from, to, string);
-  n = font->driver->shape (gstring);
-  if (NILP (n))
+  
+  /* Try at most three times with larger gstring each time.  */
+  for (i = 0; i < 3; i++)
+    {
+      Lisp_Object args[2];
+
+      n = font->driver->shape (gstring);
+      if (INTEGERP (n))
+	break;
+      args[0] = gstring;
+      args[1] = Fmake_vector (make_number (len), Qnil);
+      gstring = Fvconcat (2, args);
+    }
+  if (! INTEGERP (n) || XINT (n) == 0)
     return Qnil;
-  for (i = 0; i < XINT (n);)
+  len = XINT (n);
+
+  for (i = 0; i < len;)
     {
       Lisp_Object gstr;
       Lisp_Object g = LGSTRING_GLYPH (gstring, i);
@@ -3602,7 +3618,7 @@ The value is the end position of the shaped text.  */)
 	  metrics.descent += LGLYPH_YOFF (g);
 	  need_composition = 1;
 	}
-      for (j = i + 1; j < XINT (n); j++)
+      for (j = i + 1; j < len; j++)
 	{
 	  int x;
 
@@ -3970,9 +3986,9 @@ the current buffer.  It defaults to the currently selected window.  */)
   if (NILP (window))
     window = selected_window;
   CHECK_LIVE_WINDOW (window);
-  w = XWINDOW (selected_window);
+  w = XWINDOW (window);
 
-  return font_at (-1, pos, NULL, w, Qnil);
+  return font_at (-1, pos, NULL, w, string);
 }
 
 #if 0
