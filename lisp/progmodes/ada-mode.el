@@ -1396,13 +1396,11 @@ If you use ada-xref.el:
        (progn (goto-char (symbol-value 'beg)) (forward-word -1) (point))
        (goto-char aa-end)))))
 
-;;  transient-mark-mode and mark-active are not defined in XEmacs
 (defun ada-region-selected ()
-  "Return t if a region has been selected by the user and is still active."
-  (if (featurep 'xemacs)
-      (region-active-p)
-    (and transient-mark-mode mark-active)))
-
+  "Should we operate on an active region?"
+  (if (fboundp 'use-region-p)
+      (use-region-p)
+    (region-active-p)))
 
 ;;-----------------------------------------------------------------
 ;;                      auto-casing
