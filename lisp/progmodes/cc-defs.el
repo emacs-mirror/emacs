@@ -337,11 +337,11 @@ to it is returned.  This function does not modify the point or the mark."
 (defmacro c-region-is-active-p ()
   ;; Return t when the region is active.  The determination of region
   ;; activeness is different in both Emacs and XEmacs.
-  (if (cc-bytecomp-fboundp 'region-active-p)
-      ;; XEmacs.
-      '(region-active-p)
-    ;; Emacs.
-    'mark-active))
+  (if (cc-bytecomp-boundp 'mark-active)
+      ;; Emacs.
+      'mark-active
+    ;; XEmacs.
+    '(region-active-p)))
 
 (defmacro c-set-region-active (activate)
   ;; Activate the region if ACTIVE is non-nil, deactivate it
