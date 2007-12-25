@@ -48,7 +48,7 @@ are supported in this language environment."))
 		 (#x0905 . #x0939)
 		 (#x0958 . #x0961)))
   (set-char-table-range composition-function-table range
-			'devanagari-composition-function))
+			'(("[\x0900-\x097F]+" . font-shape-text))))
 
 (provide 'devanagari)
 
