@@ -1,3 +1,16 @@
+2007-12-25  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (select-active-regions): New option.
+	(set-mark): Obey it.
+
+2007-12-25  David Golden  <david.delaharpe.golden@gmail.com>  (tiny change)
+
+	* term/x-win.el (x-select-enable-primary): New option.
+	(x-select-text, x-cut-buffer-or-selection-value): Obey it.
+
+	* mouse.el (mouse-yank-primary): New function (almost same
+	as mouse-yank-secondary).
+
 2007-12-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* calculator.el:
