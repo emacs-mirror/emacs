@@ -66,29 +66,6 @@
 
 (provide 'delphi)
 
-(eval-and-compile
-  ;; Allow execution on pre Emacs 20 versions.
-  (or (fboundp 'when)
-      (defmacro when (test &rest body)
-        `(if ,test (progn ,@body))))
-  (or (fboundp 'unless)
-      (defmacro unless (test &rest body)
-        `(if (not ,test) (progn ,@body))))
-  (or (fboundp 'defgroup)
-      (defmacro defgroup (group val docs &rest group-attributes)
-        `(defvar ,group ,val ,docs)))
-  (or (fboundp 'defcustom)
-      (defmacro defcustom (val-name val docs &rest custom-attributes)
-        `(defvar ,val-name ,val ,docs)))
-  (or (fboundp 'cadr)
-      (defmacro cadr (list) `(car (cdr ,list))))
-  (or (fboundp 'cddr)
-      (defmacro cddr (list) `(cdr (cdr ,list))))
-  (or (fboundp 'with-current-buffer)
-      (defmacro with-current-buffer (buf &rest forms)
-        `(save-excursion (set-buffer ,buf) ,@forms)))
-  )
-
 (defgroup delphi nil
   "Major mode for editing Delphi source in Emacs."
   :version "21.1"

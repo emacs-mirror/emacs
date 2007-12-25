@@ -172,16 +172,6 @@
 	(require 'timer)
       (error nil)))
 
-(eval-and-compile
-  ;; Kludge to allow `defcustom' for Emacs 19.
-  (condition-case () (require 'custom) (error nil))
-  (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
-      nil ;; We've got what we needed
-    ;; We have the old or no custom-library, hack around it!
-    (defmacro defgroup (&rest args) nil)
-    (defmacro defcustom (var value doc &rest args)
-      `(defvar ,var ,value ,doc))))
-
 (declare-function idlwave-shell-get-path-info "idlw-shell")
 (declare-function idlwave-shell-temp-file "idlw-shell")
 (declare-function idlwave-shell-is-running "idlw-shell")

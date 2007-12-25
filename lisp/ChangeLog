@@ -1,3 +1,25 @@
+2007-12-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* calculator.el:
+	* dframe.el:
+	* iswitchb.el:
+	* whitespace.el:
+	* winner.el:
+	* emacs-lisp/checkdoc.el:
+	* mail/feedmail.el:
+	* net/quickurl.el:
+	* obsolete/fast-lock.el:
+	* play/5x5.el:
+	* progmodes/delphi.el:
+	* progmodes/idlw-shell.el:
+	* progmodes/idlwave.el:
+	* textmodes/artist.el:
+	* textmodes/ispell.el:
+	* textmodes/texinfmt.el:
+	* textmodes/texinfo.el: Remove obsolete definitions of backward
+	compatibility macros for defcustom, defgroup, defface, when,
+	unless, with-current-buffer and with-temp-message.
+
 2007-12-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/verilog-mode.el: Fit parts to 80 columns.

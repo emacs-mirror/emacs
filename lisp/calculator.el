@@ -48,10 +48,6 @@
 ;; I hate history.
 
 (eval-when-compile (require 'cl))
-(eval-and-compile
-  (if (fboundp 'defgroup) nil
-    (defmacro defgroup (&rest forms) nil)
-    (defmacro defcustom (s v d &rest r) (list 'defvar s v d))))
 
 ;;;=====================================================================
 ;;; Customization:

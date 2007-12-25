@@ -203,19 +203,6 @@
 
 (defvar mail-yank-prefix)
 
-;;; Custom.el macros require recompiling this when they are not present.
-;;; Add in backward compatible custom support.
-(eval-when-compile
-  (if (not (fboundp 'defcustom))
-      (defmacro defcustom (symbol value doc &rest args)
-	"Empty replacement for defcustom when not supplied."
-	`(defvar ,symbol ,value ,doc))))
-
-(eval-when-compile
-  (if (not (fboundp 'defgroup))
-      (defmacro defgroup (&rest args)
-	"Empty replacement for defgroup when not supplied.")))
-
 (defgroup ispell nil
   "User variables for Emacs ispell interface."
   :group 'applications)
