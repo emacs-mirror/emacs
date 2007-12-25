@@ -3377,6 +3377,10 @@ This function also obeys `use-empty-active-region'."
   (and transient-mark-mode mark-active
        (or use-empty-active-region (> (region-end) (region-beginning)))))
 
+(defun region-active-p ()
+  "Return t if Transient Mark mode is enabled and the mark is active."
+  (and transient-mark-mode mark-active))
+
 (defvar mark-ring nil
   "The list of former marks of the current buffer, most recent first.")
 (make-variable-buffer-local 'mark-ring)
