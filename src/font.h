@@ -277,6 +277,8 @@ struct composition;
 #define LGSTRING_GLYPH(lgs, idx) AREF ((lgs), (idx) + 1)
 #define LGSTRING_SET_GLYPH(lgs, idx, val) ASET ((lgs), (idx) + 1, (val))
 
+/* Vector size of Lispy glyph.  */
+#define LGLYPH_SIZE 10
 #define LGLYPH_FROM(g) XINT (AREF ((g), 0))
 #define LGLYPH_TO(g) XINT (AREF ((g), 1))
 #define LGLYPH_CHAR(g) XINT (AREF ((g), 2))
