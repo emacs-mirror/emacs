@@ -968,7 +968,7 @@ ftfont_encode_char (font, c)
   FT_ULong charcode = c;
   FT_UInt code = FT_Get_Char_Index (ft_face, charcode);
 
-  return (code > 0 ? code : 0xFFFFFFFF);
+  return (code > 0 ? code : FONT_INVALID_CODE);
 }
 
 static int
@@ -1552,6 +1552,11 @@ ftfont_shape_by_flt (lgstring, font, ft_face, otf)
       Lisp_Object lglyph = LGSTRING_GLYPH (lgstring, i);
       MFLTGlyph *g = gstring.glyphs + i;
 
+      if (NILP (lglyph))
+	{
+	  lglyph = Fmake_vector (make_number (LGLYPH_SIZE), Qnil);
+	  LGSTRING_SET_GLYPH (lgstring, i, lglyph);
+	}
       LGLYPH_SET_FROM (lglyph, g->from);
       LGLYPH_SET_TO (lglyph, g->to);
       LGLYPH_SET_CHAR (lglyph, g->c);
