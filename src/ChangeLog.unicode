@@ -1,3 +1,25 @@
+2007-12-25  Kenichi Handa  <handa@m17n.org>
+
+	* font.h (LGLYPH_SIZE): New macro.
+
+	* font.c (Ffont_fill_gstring): Stop filling when a character not
+	supported by the font is found.
+	(Ffont_shape_text): When a shape callback function returns nil,
+	try at most two more times with larger gstring.
+	(Ffont_at): Fix getting of w.  Call font_at with correct 5th
+	argument.
+
+	* xdisp.c (handle_auto_composed_prop): Change the argument to
+	auto-composition-function.
+
+	* ftfont.c (ftfont_encode_char): Use the macro FONT_INVALID_CODE.
+	(ftfont_shape_by_flt): If an element of lgstring is nil, make a
+	Lispy glyph and store it in the lgstring.
+
+	* xfont.c (xfont_encode_char): Use the macro FONT_INVALID_CODE.
+
+	* xftfont.c (xftfont_encode_char): Use the macro FONT_INVALID_CODE.
+
 2007-12-21  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* font.c (Ffont_shape_text): Avoid unnecessary composition.
