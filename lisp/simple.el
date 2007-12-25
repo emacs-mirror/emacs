@@ -3300,6 +3300,12 @@ Also runs the hook `deactivate-mark-hook'."
     (setq mark-active nil)
     (run-hooks 'deactivate-mark-hook))))
 
+(defcustom select-active-regions nil
+  "If non-nil, an active region automatically becomes the window selection."
+  :type 'boolean
+  :group 'killing
+  :version "23.1")
+
 (defun set-mark (pos)
   "Set this buffer's mark to POS.  Don't use this function!
 That is to say, don't use this function unless you want
@@ -3321,6 +3327,9 @@ store it in a Lisp variable.  Example:
       (progn
 	(setq mark-active t)
 	(run-hooks 'activate-mark-hook)
+	(and select-active-regions
+	     (x-set-selection
+	      nil (buffer-substring (region-beginning) (region-end))))
 	(set-marker (mark-marker) pos (current-buffer)))
     ;; Normally we never clear mark-active except in Transient Mark mode.
     ;; But when we actually clear out the mark value too,
