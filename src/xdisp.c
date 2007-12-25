@@ -4554,7 +4554,7 @@ handle_auto_composed_prop (it)
   if (FUNCTIONP (Vauto_composition_function))
     {
       Lisp_Object val = Qnil;
-      EMACS_INT pos;
+      EMACS_INT pos, limit = -1;
 
       if (STRINGP (it->string))
 	pos = IT_STRING_CHARPOS (*it);
@@ -4588,7 +4588,6 @@ handle_auto_composed_prop (it)
 	  if (! NILP (val))
 	    {
 	      Lisp_Object end;
-	      EMACS_INT limit;
 
 	      /* As Fnext_single_char_property_change is very slow, we
 		 limit the search to the current line.  */
@@ -4612,21 +4611,28 @@ handle_auto_composed_prop (it)
 	}
       if (NILP (val))
 	{
-	  int count = SPECPDL_INDEX ();
-	  Lisp_Object args[4];
+	  if (limit < 0)
+	    limit = (STRINGP (it->string) ? SCHARS (it->string)
+		     : find_next_newline_no_quit (pos, 1));
+	  if (pos < limit)
+	    {
+	      int count = SPECPDL_INDEX ();
+	      Lisp_Object args[5];
 
-	  args[0] = Vauto_composition_function;
-	  specbind (Qauto_composition_function, Qnil);
-	  args[1] = make_number (pos);
-	  args[2] = it->string;
+	      args[0] = Vauto_composition_function;
+	      specbind (Qauto_composition_function, Qnil);
+	      args[1] = make_number (pos);
+	      args[2] = make_number (limit);
 #ifdef USE_FONT_BACKEND
-	  if (enable_font_backend)
-	    args[3] = it->window;
-	  else
+	      if (enable_font_backend)
+		args[3] = it->window;
+	      else
 #endif	/* USE_FONT_BACKEND */
-	    args[3] = Qnil;
-	  safe_call (4, args);
-	  unbind_to (count, Qnil);
+		args[3] = Qnil;
+	      args[4] = it->string;
+	      safe_call (5, args);
+	      unbind_to (count, Qnil);
+	    }
 	}
     }
 
