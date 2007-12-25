@@ -717,16 +717,16 @@ xfont_encode_char (font, c)
   charset = CHARSET_FROM_ID (font->encoding_charset);
   code = ENCODE_CHAR (charset, c);
   if (code == CHARSET_INVALID_CODE (charset))
-    return 0xFFFFFFFF;
+    return FONT_INVALID_CODE;
   if (font->repertory_charset >= 0)
     {
       charset = CHARSET_FROM_ID (font->repertory_charset);
       return (ENCODE_CHAR (charset, c) != CHARSET_INVALID_CODE (charset)
-	      ? code : 0xFFFFFFFF);
+	      ? code : FONT_INVALID_CODE);
     }
   char2b.byte1 = code >> 8;
   char2b.byte2 = code & 0xFF;
-  return (xfont_get_pcm (font->font.font, &char2b) ? code : 0xFFFFFFFF);
+  return (xfont_get_pcm (font->font.font, &char2b) ? code : FONT_INVALID_CODE);
 }
 
 static int
