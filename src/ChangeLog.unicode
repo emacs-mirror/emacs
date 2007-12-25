@@ -1,5 +1,8 @@
 2007-12-25  Kenichi Handa  <handa@m17n.org>
 
+	* composite.c (syms_of_composite): Fix docstring of
+	auto-composition-function.
+
 	* font.h (LGLYPH_SIZE): New macro.
 
 	* font.c (Ffont_fill_gstring): Stop filling when a character not
