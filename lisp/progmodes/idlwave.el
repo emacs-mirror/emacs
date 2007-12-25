@@ -2112,15 +2112,11 @@ Returns point if comment found and nil otherwise."
            (backward-char 1)
            (point)))))
 
-(defvar transient-mark-mode)
-(defvar zmacs-regions)
-(defvar mark-active)
 (defun idlwave-region-active-p ()
-  "Is transient-mark-mode on and the region active?
-Works on both Emacs and XEmacs."
-  (if (featurep 'xemacs)
-      (and zmacs-regions (region-active-p))
-    (and transient-mark-mode mark-active)))
+  "Should we operate on an active region?"
+  (if (fboundp 'use-region-p)
+      (use-region-p)
+    (region-active-p)))
 
 (defun idlwave-show-matching-quote ()
   "Insert quote and show matching quote if this is end of a string."
