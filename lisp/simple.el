@@ -3378,7 +3378,10 @@ This function also obeys `use-empty-active-region'."
        (or use-empty-active-region (> (region-end) (region-beginning)))))
 
 (defun region-active-p ()
-  "Return t if Transient Mark mode is enabled and the mark is active."
+  "Return t if Transient Mark mode is enabled and the mark is active.
+This is NOT the best function to use to test whether a command should
+operate on the region instead of the usual behavior -- for that,
+use `use-region-p'."
   (and transient-mark-mode mark-active))
 
 (defvar mark-ring nil
