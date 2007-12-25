@@ -11,10 +11,38 @@
 
 2007-12-25  Richard Stallman  <rms@gnu.org>
 
+	* allout.el (allout-region-active-p): Renamed from my-region-active-p.
+	Use `use-region-p'.
+	(allout-write-file-hook-handler): Simplify code.
+
+	* ps-print.el (ps-mark-active-p): Function deleted.
+	(ps-print-preprint-region): Use (mark) for the error check.
+
+	* tooltip.el (tooltip-region-active-p): Use `use-region-p'.
+
+	* winner.el (winner-active-region): Use `mark-active' if it's defined.
+
+	* progmodes/ada-mode.el (ada-region-selected): Use `use-region-p'.
+
+	* textmodes/org.el (org-region-active-p): Use `use-region-p'.
+
+	* progmodes/idlwave.el (idlwave-region-active-p): Use `use-region-p'.
+
+	* textmodes/reftex.el (reftex-region-active-p): Use `use-region-p'.
+
+	* progmodes/cc-defs.el (c-region-is-active-p):
+	Use `mark-active' if it's defined.
+
+	* progmodes/cc-cmds.el (c-indent-line-or-region):
+	Pass prefix arg to `c-indent-command'.  Use `use-region-p'.
+
 	* simple.el (select-active-regions): New option.
 	(set-mark): Obey it.
 	(yank-pop-change-selection): New option.
 	(current-kill): Obey it.
+
+	* simple.el (use-region-p): Renamed from `region-active-p'.
+	(region-active-p): New function.
 
 2007-12-25  David Golden  <david.delaharpe.golden@gmail.com>  (tiny change)
 
