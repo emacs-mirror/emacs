@@ -1,3 +1,8 @@
+2007-12-25  Richard Stallman  <rms@gnu.org>
+
+	* comint.el (comint-mode-map): Explicitly bind `delete' and `kp-delete'
+	so they never do EOF.
+
 2007-12-23  Richard Stallman  <rms@gnu.org>
 
 	* dired-aux.el: Load dired.el at run time too.
