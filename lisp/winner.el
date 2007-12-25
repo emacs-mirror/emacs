@@ -46,9 +46,9 @@
 
 
 (defmacro winner-active-region ()
-  (if (fboundp 'region-active-p)
-      '(region-active-p)
-    'mark-active))
+  (if (boundp 'mark-active)
+      'mark-active
+    '(region-active-p)))
 
 (defsetf winner-active-region () (store)
   (if (fboundp 'zmacs-activate-region)
