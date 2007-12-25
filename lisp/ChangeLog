@@ -1,3 +1,7 @@
+2007-12-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/asm-mode.el (asm-mode-map): Add a major mode menu.
+
 2007-12-25  Richard Stallman  <rms@gnu.org>
 
 	* comint.el (comint-mode-map): Explicitly bind `delete' and `kp-delete'
