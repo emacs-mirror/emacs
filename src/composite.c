@@ -838,15 +838,15 @@ The default value is the function `compose-chars-after'.  */);
 
   DEFVAR_LISP ("auto-composition-function", &Vauto_composition_function,
 	       doc: /* Function to call to compose characters automatically.
-The function is called from the display routine with two arguments,
-POS and STRING.
+The function is called from the display routine with four arguments,
+FROM, TO, WINDOW, and STRING.
 
-If STRING is nil, the function must compose characters following POS
-in the current buffer.
+If STRING is nil, the function must compose characters in the region
+between FROM and TO in the current buffer.
 
-Otherwise, STRING is a string, and POS is an index to the string.  In
-this case, the function must compose characters following POS in
-the string.  */);
+Otherwise, STRING is a string, and FROM and TO are indices into the
+string.  In this case, the function must compose characters in the
+string.  */);
   Vauto_composition_function = Qnil;
 
   defsubr (&Scompose_region_internal);
