@@ -160,9 +160,11 @@
 ;; - dir-state (dir)
 ;;
 ;;   If provided, this function is used to find the version control state
-;;   of all files in DIR in a fast way.  The function should not return
-;;   anything, but rather store the files' states into the corresponding
-;;   `vc-state' properties.
+;;   of all files in DIR, and all subdirecties of DIR, in a fast way.  
+;;   The function should not return anything, but rather store the files' 
+;;   states into the corresponding `vc-state' properties.  (Note: in
+;;   older versions this method was not required to recurse into 
+;;   subdirectories.)
 ;;
 ;; * working-revision (file)
 ;;
@@ -2311,19 +2313,19 @@ This code, like dired, assumes UNIX -l format."
   "Reformat the listing according to version control.
 Called by dired after any portion of a vc-dired buffer has been read in."
   (message "Getting version information... ")
-  (let (subdir filename (inhibit-read-only t))
+  ;; if the backend supports it, get the state
+  ;; of all files in this directory at once
+  (let ((backend (vc-responsible-backend default-directory)))
+    ;; check `backend' can really handle `default-directory'.
+    (if (and (vc-call-backend backend 'responsible-p default-directory)
+	     (vc-find-backend-function backend 'dir-state))
+	(vc-call-backend backend 'dir-state default-directory)))
+  (let (filename (inhibit-read-only t))
     (goto-char (point-min))
     (while (not (eobp))
       (cond
        ;; subdir header line
-       ((setq subdir (dired-get-subdir))
-	;; if the backend supports it, get the state
-	;; of all files in this directory at once
-	(let ((backend (vc-responsible-backend subdir)))
-	  ;; check `backend' can really handle `subdir'.
-	  (if (and (vc-call-backend backend 'responsible-p subdir)
-		   (vc-find-backend-function backend 'dir-state))
-	      (vc-call-backend backend 'dir-state subdir)))
+       ((dired-get-subdir)
         (forward-line 1)
         ;; erase (but don't remove) the "total" line
 	(delete-region (point) (line-end-position))

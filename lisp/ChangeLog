@@ -1,6 +1,15 @@
 2007-12-26  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* log-view.el: Add Subversion and Mercurial log format samples.
+	* vc-bzr.el, vc-cvs.el, vc.el, vc-mcvs.el, vc-svn.el: Significantly
+	speed up (vc-dired-hook) by arranging for it to call the backend
+	dir-state hook (if it exists) exactly *once*, rather than once per
+	each subdirectory (with dired-state-info calls on all toplevel files
+	slowing it down even further).  For this to work, backend dir-state
+	methods have to recurse to subdirectories.  Most of them already
+	did anyway; a few needed *non*-recursion switches removed.  This
+	change mostly removed code that was perversely bad and should have
+	been shot through the head years ago.
 
 2007-12-26  Andreas Schwab  <schwab@suse.de>
 

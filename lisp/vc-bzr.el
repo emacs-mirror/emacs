@@ -485,7 +485,7 @@ stream.  Standard error output is discarded."
 ;; and implement a command to run ediff and `bzr resolve' once the 
 ;; changes have been merged.
 (defun vc-bzr-dir-state (dir &optional localp)
-  "Find the VC state of all files in DIR.
+  "Find the VC state of all files in DIR and its subdirectories.
 Optional argument LOCALP is always ignored."
   (let ((bzr-root-directory (vc-bzr-root dir))
         (at-start t)
@@ -498,7 +498,7 @@ Optional argument LOCALP is always ignored."
     ;; evidence of the contrary.
     (setq at-start t)
     (with-temp-buffer
-      (vc-bzr-command "ls" t 0 nil "--versioned" "--non-recursive")
+      (vc-bzr-command "ls" t 0 nil "--versioned")
       (goto-char (point-min))
       (while (or at-start
                  (eq 0 (forward-line)))

@@ -27,10 +27,6 @@
 ;; Sync'd with Subversion's vc-svn.el as of revision 5801. but this version
 ;; has been extensively modified since to handle filesets.
 
-;;; Bugs:
-
-;; - VC-dired is (really) slow.
-
 ;;; Code:
 
 (eval-when-compile
@@ -151,7 +147,7 @@ If you want to force an empty list of arguments, use t."
   (vc-svn-state file 'local))
 
 (defun vc-svn-dir-state (dir &optional localp)
-  "Find the SVN state of all files in DIR."
+  "Find the SVN state of all files in DIR and its subdirectories."
   (setq localp (or localp (vc-stay-local-p dir)))
   (let ((default-directory dir))
     ;; Don't specify DIR in this command, the default-directory is

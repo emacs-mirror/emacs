@@ -212,7 +212,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
       'edited)))
 
 (defun vc-cvs-dir-state (dir)
-  "Find the CVS state of all files in DIR."
+  "Find the CVS state of all files in DIR and subdirectories."
   ;; if DIR is not under CVS control, don't do anything.
   (when (file-readable-p (expand-file-name "CVS/Entries" dir))
     (if (vc-stay-local-p dir)
@@ -221,7 +221,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
 	;; Don't specify DIR in this command, the default-directory is
 	;; enough.  Otherwise it might fail with remote repositories.
 	(with-temp-buffer
-	  (vc-cvs-command t 0 nil "status" "-l")
+	  (vc-cvs-command t 0 nil "status")
 	  (goto-char (point-min))
 	  (while (re-search-forward "^=+\n\\([^=\n].*\n\\|\n\\)+" nil t)
 	    (narrow-to-region (match-beginning 0) (match-end 0))
