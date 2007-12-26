@@ -1,3 +1,8 @@
+2007-12-26  Andreas Schwab  <schwab@suse.de>
+
+	* font-lock.el (save-buffer-state): Make sure the state of the
+	buffer is always restored.
+
 2007-12-26  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el (calc-lang-allow-percentsigns): New variable.
