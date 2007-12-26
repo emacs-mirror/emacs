@@ -1,3 +1,21 @@
+2007-12-26  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-lang-allow-percentsigns): New variable.
+
+	* calc/calc-lang.el (calc-lang-allow-percentsigns): Declare as
+	a variable.
+
+	* calc/calccomp.el (math-to-percentsigns): New function.
+	(math-compose-var): Handle variables with percent signs.
+	(math-compose-expr): Handle function names with percent signs.
+
+	* calc/calc-aent.el (math-to-percentsigns): Declare as function.
+	(math-read-exprs): Handle percent signs in languages that
+	allow them.
+	(math-restore-underscores): Remove function.
+	(math-remove-percentsigns, math-restore-placeholders):
+	New functions.
+
 2007-12-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-print-preprint-region): Use `region-active-p' instead
