@@ -71,7 +71,7 @@
 (defvar math-comp-comma)
 
 (defun math-compose-var (a)
-  (let (v)
+  (let (v sn)
     (if (and math-compose-hash-args
              (let ((p calc-arg-values))
                (setq v 1)
@@ -82,9 +82,12 @@
         (if (eq math-compose-hash-args 1)
             "#"
           (format "#%d" v))
+      (setq sn (symbol-name (nth 1 a)))
+      (if (memq calc-language calc-lang-allow-percentsigns)
+          (setq sn (math-to-percentsigns sn)))
       (if (memq calc-language calc-lang-allow-underscores)
-          (math-to-underscores (symbol-name (nth 1 a)))
-        (symbol-name (nth 1 a))))))
+          (setq sn (math-to-underscores sn)))
+      sn)))
 
 (defun math-compose-expr (a prec)
   (let ((math-compose-level (1+ math-compose-level))
@@ -805,6 +808,8 @@
 				  (symbol-name func))
 				 (math-match-substring (symbol-name func) 1)
 			       (symbol-name func))))
+		 (if (memq calc-language calc-lang-allow-percentsigns)
+		     (setq func (math-to-percentsigns func)))
 		 (if (memq calc-language calc-lang-allow-underscores)
 		     (setq func (math-to-underscores func)))
                  (if (setq spfn (get calc-language 'math-func-formatter))
@@ -937,6 +942,14 @@
   (if (string-match "\\`\\(.*\\)#\\(.*\\)\\'" x)
       (math-to-underscores
        (concat (math-match-substring x 1) "_" (math-match-substring x 2)))
+    x))
+
+(defun math-to-percentsigns (x)
+  (if (string-match "^I#'" x)
+      (setq x (concat "%" (substring x 3))))
+  (if (string-match "\\`\\(.*\\)'\\(.*\\)\\'" x)
+      (math-to-percentsigns
+       (concat (math-match-substring x 1) "%" (math-match-substring x 2)))
     x))
 
 (defun math-tex-expr-is-flat (a)
