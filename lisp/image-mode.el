@@ -219,6 +219,9 @@ to toggle between display as an image and display as text."
   (kill-all-local-variables)
   (setq mode-name "Image[text]")
   (setq major-mode 'image-mode)
+  ;; Use our own bookmarking function for images.
+  (set (make-local-variable 'bookmark-make-cell-function)
+       'image-bookmark-make-cell)
   (add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
   (if (and (display-images-p)
 	   (not (get-char-property (point-min) 'display)))
@@ -351,6 +354,37 @@ and showing the image as an image."
 	  (setq mode-name (format "Image[%s]" type)))
       (if (called-interactively-p)
 	  (message "Repeat this command to go back to displaying the file as text")))))
+
+;;; Support for bookmark.el
+
+(defun image-bookmark-make-cell (annotation &rest args)
+  (let ((the-record
+         `((filename   . ,(buffer-file-name))
+	   (image-type . ,image-type)
+	   (position   . ,(point))
+	   (handler    . image-bookmark-jump))))
+
+    ;; Take no chances with text properties
+    (set-text-properties 0 (length annotation) nil annotation)
+
+    (when annotation
+      (nconc the-record (list (cons 'annotation annotation))))
+
+    ;; Finally, return the completed record.
+    the-record))
+
+;;;###autoload
+(defun image-bookmark-jump (bmk)
+  (save-window-excursion
+    (let ((filename (bookmark-get-filename bmk))
+	  (type (cdr (assq 'image-type (bookmark-get-bookmark-record bmk))))
+	  (pos  (bookmark-get-position bmk)))
+      (find-file filename)
+      (when (not (string= image-type type))
+	(image-toggle-display))
+      (when (string= image-type "text")
+	(goto-char pos))
+      (cons (current-buffer) pos))))
 
 (provide 'image-mode)
 

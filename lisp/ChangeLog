@@ -1,5 +1,12 @@
 2007-12-26  Tassilo Horn  <tassilo@member.fsf.org>
 
+	* image-mode.el (image-bookmark-make-cell, image-bookmark-jump):
+	New functions.
+	(image-mode): Set bookmark-make-cell-function appropriately.
+
+	* doc-view.el (doc-view-bookmark-jump): Correct misspelled arg
+	name.
+
 	* bookmark.el (bookmark-make-cell-function): New variable.
 	(bookmark-make): Call bookmark-make-cell-function's function
 	instead of bookmark-make-cell.

@@ -1019,7 +1019,7 @@ See the command `doc-view-mode' for more information on this mode."
 (defun doc-view-bookmark-jump (bmk)
   (save-window-excursion
     (let ((filename (bookmark-get-filename bmk))
-	  (page (cdr (assq 'page (bookmark-get-bookmark-record bookmark)))))
+	  (page (cdr (assq 'page (bookmark-get-bookmark-record bmk)))))
       (find-file filename)
       (when (not (eq major-mode 'doc-view-mode))
 	(doc-view-toggle-display))
