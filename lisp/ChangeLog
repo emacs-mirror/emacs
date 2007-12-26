@@ -1,6 +1,6 @@
 2007-12-26  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* Add Subversion and Mercurial log format samples
+	* log-view.el: Add Subversion and Mercurial log format samples.
 
 2007-12-26  Andreas Schwab  <schwab@suse.de>
 
