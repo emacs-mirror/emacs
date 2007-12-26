@@ -971,6 +971,8 @@ If nil, selections displayed but ignored.")
   "A list of languages in which / might represent integer division.")
 (defvar calc-lang-allow-underscores nil
   "A list of languages which allow underscores in variable names.")
+(defvar calc-lang-allow-percentsigns nil
+  "A list of languages which allow percent signs in variable names.")
 (defvar calc-lang-c-type-hex nil
   "Languages in which octal and hex numbers are written with leading 0 and 0x,")
 (defvar calc-lang-brackets-are-subscripts nil
