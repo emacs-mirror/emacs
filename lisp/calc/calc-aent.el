@@ -49,7 +49,7 @@
 (declare-function math-read-string "calc-ext" ())
 (declare-function math-read-brackets "calc-vec" (space-sep math-rb-close))
 (declare-function math-read-angle-brackets "calc-forms" ())
-
+(declare-function math-to-percentsigns "calccomp" (x))
 
 (defvar calc-quick-calc-history nil
   "The history list for quick-calc.")
@@ -595,10 +595,14 @@ in Calc algebraic input.")
 	(math-exp-keep-spaces nil)
 	math-exp-token math-expr-data)
     (setq math-exp-str (math-read-preprocess-string math-exp-str))
+    (if (memq calc-language calc-lang-allow-percentsigns)
+        (setq math-exp-str (math-remove-percentsigns math-exp-str)))
     (if calc-language-input-filter
 	(setq math-exp-str (funcall calc-language-input-filter math-exp-str)))
-    (while (setq math-exp-token (string-match "\\.\\.\\([^.]\\|.[^.]\\)" math-exp-str))
-      (setq math-exp-str (concat (substring math-exp-str 0 math-exp-token) "\\dots"
+    (while (setq math-exp-token 
+                 (string-match "\\.\\.\\([^.]\\|.[^.]\\)" math-exp-str))
+      (setq math-exp-str 
+            (concat (substring math-exp-str 0 math-exp-token) "\\dots"
 			    (substring math-exp-str (+ math-exp-token 2)))))
     (math-build-parse-table)
     (math-read-token)
@@ -694,17 +698,23 @@ in Calc algebraic input.")
 	       (math-read-token)))
 	    ((and (memq ch calc-user-token-chars)
 		  (let ((case-fold-search nil))
-		    (eq (string-match calc-user-tokens math-exp-str math-exp-pos)
+		    (eq (string-match 
+                         calc-user-tokens math-exp-str math-exp-pos)
 			math-exp-pos)))
 	     (setq math-exp-token 'punc
 		   math-expr-data (math-match-substring math-exp-str 0)
 		   math-exp-pos (match-end 0)))
 	    ((or (and (>= ch ?a) (<= ch ?z))
 		 (and (>= ch ?A) (<= ch ?Z)))
-	     (string-match (if (memq calc-language calc-lang-allow-underscores)
-			       "[a-zA-Z0-9_#]*"
-			     "[a-zA-Z0-9'#]*")
-			   math-exp-str math-exp-pos)
+	     (string-match 
+              (cond
+               ((and (memq calc-language calc-lang-allow-underscores)
+                     (memq calc-language calc-lang-allow-percentsigns))
+                "[a-zA-Z0-9_'#]*")
+               ((memq calc-language calc-lang-allow-underscores)
+			       "[a-zA-Z0-9_#]*")
+               (t "[a-zA-Z0-9'#]*"))
+              math-exp-str math-exp-pos)
 	     (setq math-exp-token 'symbol
 		   math-exp-pos (match-end 0)
 		   math-expr-data (math-restore-dashes
@@ -1009,17 +1019,33 @@ in Calc algebraic input.")
        (concat (math-match-substring x 1) "#" (math-match-substring x 2)))
     x))
 
+(defun math-remove-percentsigns (x)
+  (if (string-match "^%" x)
+      (setq x (concat "I#'" (substring x 1))))
+  (if (string-match "\\`\\(.*\\)%\\(.*\\)\\'" x)
+      (math-remove-percentsigns
+       (concat (math-match-substring x 1) "'" (math-match-substring x 2)))
+    x))
+
 (defun math-restore-dashes (x)
   (if (string-match "\\`\\(.*\\)[#_]\\(.*\\)\\'" x)
       (math-restore-dashes
        (concat (math-match-substring x 1) "-" (math-match-substring x 2)))
     x))
 
-(defun math-restore-underscores (x)
-  "Replace pound signs by underscores in the symbol x.
-If the current Calc language does not allow underscores, return nil."
-  (if (memq calc-language calc-lang-allow-underscores)
-      (intern-soft (math-string-restore-underscores (symbol-name x)))))
+(defun math-restore-placeholders (x)
+  "Replace placeholders by the proper characters in the symbol x.
+This includes `#' for `_' and `'' for `%'.
+If the current Calc language does not use placeholders, return nil."
+  (if (or (memq calc-language calc-lang-allow-underscores)
+          (memq calc-language calc-lang-allow-percentsigns))
+      (let ((sx (symbol-name x)))
+        (when (memq calc-language calc-lang-allow-percentsigns)
+          (require 'calccomp)
+          (setq sx (math-to-percentsigns sx)))
+        (if (memq calc-language calc-lang-allow-underscores)
+            (setq sx (math-string-restore-underscores sx)))
+        (intern-soft sx))))
 
 (defun math-string-restore-underscores (x)
   "Replace pound signs by underscores in the string x."
@@ -1131,7 +1157,7 @@ If the current Calc language does not allow underscores, return nil."
 						    (symbol-name sym)))))))
 		   (let ((v (or
                              (assq (nth 1 val) math-expr-variable-mapping)
-                             (assq (math-restore-underscores (nth 1 val))
+                             (assq (math-restore-placeholders (nth 1 val))
                                    math-expr-variable-mapping))))
 		     (and v (setq val (if (consp (cdr v))
 					  (funcall (car (cdr v)) v val)
