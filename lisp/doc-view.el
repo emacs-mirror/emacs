@@ -958,6 +958,8 @@ toggle between displaying the document or editing it as text."
     (set (make-local-variable 'cursor-type) nil)
     (use-local-map doc-view-mode-map)
     (set (make-local-variable 'after-revert-hook) 'doc-view-reconvert-doc)
+    (set (make-local-variable 'bookmark-make-cell-function)
+			      'doc-view-bookmark-make-cell)
     (setq mode-name "DocView"
 	  buffer-read-only t
 	  major-mode 'doc-view-mode)
@@ -996,4 +998,32 @@ See the command `doc-view-mode' for more information on this mode."
 ;; End:
 
 ;; arch-tag: 5d6e5c5e-095f-489e-b4e4-1ca90a7d79be
+;;;; Bookmark integration
+
+(defun doc-view-bookmark-make-cell (annotation &rest args)
+  (let ((the-record
+         `((filename . ,(buffer-file-name))
+           (page     . ,doc-view-current-page)
+           (handler  . doc-view-bookmark-jump))))
+
+    ;; Take no chances with text properties
+    (set-text-properties 0 (length annotation) nil annotation)
+
+    (when annotation
+      (nconc the-record (list (cons 'annotation annotation))))
+
+    ;; Finally, return the completed record.
+    the-record))
+
+;;;###autoload
+(defun doc-view-bookmark-jump (bmk)
+  (save-window-excursion
+    (let ((filename (bookmark-get-filename bmk))
+	  (page (cdr (assq 'page (bookmark-get-bookmark-record bookmark)))))
+      (find-file filename)
+      (when (not (eq major-mode 'doc-view-mode))
+	(doc-view-toggle-display))
+      (doc-view-goto-page page)
+      (cons (current-buffer) 1))))
+
 ;;; doc-view.el ends here

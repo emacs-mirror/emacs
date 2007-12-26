@@ -1,3 +1,19 @@
+2007-12-26  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* bookmark.el (bookmark-make-cell-function): New variable.
+	(bookmark-make): Call bookmark-make-cell-function's function
+	instead of bookmark-make-cell.
+	(bookmark-get-handler, bookmark-jump-internal): New functions.
+	(bookmark-jump, bookmark-jump-other-window, bookmark-insert)
+	(bookmark-bmenu-2-window, bookmark-bmenu-other-window): Use
+	bookmark-jump-internal.
+	(bookmark-make-cell-for-text-file): Renamed from
+	bookmark-make-cell.
+
+	* doc-view.el (doc-view-bookmark-make-cell)
+	(doc-view-bookmark-jump): New functions.
+	(doc-view-mode): Set bookmark-make-cell-function buffer-locally.
+
 2007-12-25  Miles Bader  <miles@gnu.org>
 
 	* indent.el (indent-for-tab-command): Rigidly indent the following
