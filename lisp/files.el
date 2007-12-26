@@ -2029,7 +2029,7 @@ since only a single case-insensitive search through the alist is made."
      ("java.+\\.conf\\'" . conf-javaprop-mode)
      ("\\.properties\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-javaprop-mode)
      ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
-     ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode)
+     ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode-maybe)
      ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|pam\\.d/.*\\|permissions\\(?:\\.d/.+\\)?\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
      ("\\`/etc/\\(?:acpid?/.+\\|aliases\\(?:\\.d/.+\\)?\\|default/.+\\|group-?\\|hosts\\..+\\|inittab\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\|sysconfig/.+\\)\\'" . conf-mode)
      ;; ChangeLog.old etc.  Other change-log-mode entries are above;
@@ -2075,6 +2075,16 @@ appear in `auto-coding-alist' with `no-conversion' coding system.
 See also `interpreter-mode-alist', which detects executable script modes
 based on the interpreters they specify to run,
 and `magic-mode-alist', which determines modes based on file contents.")
+
+(defun conf-mode-maybe ()
+  "Select Conf mode or XML mode according to start of file."
+  (if (save-excursion
+	(save-restriction
+	  (widen)
+	  (goto-char (point-min))
+	  (looking-at "<\\?xml \\|<!-- \\|<!DOCTYPE ")))
+      (xml-mode)
+    (conf-mode)))
 
 (defvar interpreter-mode-alist
   ;; Note: The entries for the modes defined in cc-mode.el (awk-mode
