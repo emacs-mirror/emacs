@@ -1,3 +1,8 @@
+2007-12-26  Richard Stallman  <rms@gnu.org>
+
+	* files.el (conf-mode-maybe): New function.
+	(auto-mode-alist): Use conf-mode-maybe for .conf etc.
+
 2007-12-26  Martin Rudalics  <rudalics@gmx.at>
 
 	* textmodes/fill.el (fill-find-break-point): Fix doc-string typo.
