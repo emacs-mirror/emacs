@@ -316,12 +316,12 @@ after an opening paren or just before a closing paren or a punctuation
 mark such as `?' or `:'.  It is common in French writing to put a space
 at such places, which would normally allow breaking the line at those
 places."
-  (or (looking-at "[ \t]*[])},A;;(B?!;:-]")
+  (or (looking-at "[ \t]*[])},A;,b;(B?!;:-]")
       (save-excursion
 	(skip-chars-backward " \t")
 	(unless (bolp)
 	  (backward-char 1)
-	  (or (looking-at "[([{,A++(B]")
+	  (or (looking-at "[([{,A+,b+(B]")
 	      ;; Don't cut right after a single-letter word.
 	      (and (memq (preceding-char) '(?\t ?\s))
 		   (eq (char-syntax (following-char)) ?w)))))))
