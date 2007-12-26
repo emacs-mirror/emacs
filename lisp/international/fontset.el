@@ -704,7 +704,7 @@ FONTLIST is an alist of script names vs the corresponding font names.
 
 The font names are parsed and unspecified font properties are
 given from DEFAULT-SPEC."
-  (let ((prop-list '(:foundry :family :weight :slant :width :adstyle)))
+  (let ((prop-list '(:foundry :family :weight :slant :width :adstyle :size)))
     (dolist (elt fontlist)
       (let ((spec (font-spec :name (cadr elt))))
 	(dolist (prop prop-list)
