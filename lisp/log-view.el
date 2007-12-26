@@ -50,6 +50,26 @@
 
 ;;;; Subversion:
 
+;; ------------------------------------------------------------------------
+;; r4622 | ckuethe | 2007-12-23 18:18:01 -0500 (Sun, 23 Dec 2007) | 2 lines
+;; 
+;; uBlox AEK-4T in binary mode. Added to unstable because it breaks gpsfake
+;; 
+;; ------------------------------------------------------------------------
+;; r4621 | ckuethe | 2007-12-23 16:48:11 -0500 (Sun, 23 Dec 2007) | 3 lines
+;; 
+;; Add a note about requiring usbfs to use the garmin gps18 (usb)
+;; Mention firmware testing the AC12 with firmware BQ00 and BQ04
+;; 
+;; ------------------------------------------------------------------------
+;; r4620 | ckuethe | 2007-12-23 15:52:34 -0500 (Sun, 23 Dec 2007) | 1 line
+;; 
+;; add link to latest hardware reference
+;; ------------------------------------------------------------------------
+;; r4619 | ckuethe | 2007-12-23 14:37:31 -0500 (Sun, 23 Dec 2007) | 1 line
+;; 
+;; there is now a regression test for AC12 without raw data output
+
 ;;;; Darcs:
 
 ;; Changes to darcsum.el:
@@ -65,6 +85,24 @@
 ;;   Use mode-class 'special.  Add :group.
 ;;   Add trailing-whitespace option to mode hook and fix
 ;;   darcsum-display-changeset not to use trailing whitespace.
+
+;;;; Mercurial
+
+;; changeset:   11:8ff1a4166444
+;; tag:         tip
+;; user:        Eric S. Raymond <esr@thyrsus.com>
+;; date:        Wed Dec 26 12:18:58 2007 -0500
+;; summary:     Explain keywords.  Add markup fixes.
+;; 
+;; changeset:   10:20abc7ab09c3
+;; user:        Eric S. Raymond <esr@thyrsus.com>
+;; date:        Wed Dec 26 11:37:28 2007 -0500
+;; summary:     Typo fixes.
+;; 
+;; changeset:   9:ada9f4da88aa
+;; user:        Eric S. Raymond <esr@thyrsus.com>
+;; date:        Wed Dec 26 11:23:00 2007 -0500
+;; summary:     Add RCS example session.
 
 ;;; Todo:
 
@@ -265,7 +303,7 @@ log entries."
 	    (if found
 		(delete-overlay found)
 	      ;; Create an overlay that covers this entry and change
-	      ;; it's color.
+	      ;; its color.
 	      (setq tag (log-view-current-tag (point)))
 	      (forward-line 1)
 	      (setq end
