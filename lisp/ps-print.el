@@ -4695,7 +4695,7 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 
 (defun ps-print-preprint-region (prefix-arg)
-  (or (mark)
+  (or (region-active-p)
       (error "The mark is not set now"))
   (list (point) (mark) (ps-print-preprint prefix-arg)))
 
