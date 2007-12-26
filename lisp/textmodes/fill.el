@@ -316,12 +316,12 @@ after an opening paren or just before a closing paren or a punctuation
 mark such as `?' or `:'.  It is common in French writing to put a space
 at such places, which would normally allow breaking the line at those
 places."
-  (or (looking-at "[ \t]*[])},A;,b;(B?!;:-]")
+  (or (looking-at "[ \t]*[])},A;;(B?!;:-]")
       (save-excursion
 	(skip-chars-backward " \t")
 	(unless (bolp)
 	  (backward-char 1)
-	  (or (looking-at "[([{,A+,b+(B]")
+	  (or (looking-at "[([{,A++(B]")
 	      ;; Don't cut right after a single-letter word.
 	      (and (memq (preceding-char) '(?\t ?\s))
 		   (eq (char-syntax (following-char)) ?w)))))))
@@ -391,7 +391,7 @@ Don't move back past the buffer position LIMIT.
 This function is called when we are going to break the current line
 after or before a non-ASCII character.  If the charset of the
 character has the property `fill-find-break-point-function', this
-function calls the property value as a function with one arg LINEBEG.
+function calls the property value as a function with one arg LIMIT.
 If the charset has no such property, do nothing."
   (let* ((ch (following-char))
 	 (charset (char-charset ch))
