@@ -152,7 +152,7 @@
 
 2007-12-24  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/verilog-mode.el: Fit parts to 80 columns.
+	* progmodes/verilog-mode.el: Reformat parts to 80 columns.
 
 2007-12-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
