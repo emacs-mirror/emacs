@@ -5,7 +5,10 @@
 	ignorted in VC-Dired listings, heading off lots of expensive calls
 	to (vc-state).
 
-	* vc.el (vc-dired-hook): Refactoring step.  
+	* vc.el (vc-dired-hook): Show unregistered file status as "?" in
+	non-terse mode.
+	(vc-dired-ignorable-p): Ignore Makefile when it has a peer named
+	Makefile.in or Makefile.am
 
 2007-12-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 

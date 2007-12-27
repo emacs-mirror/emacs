@@ -2330,11 +2330,18 @@ This code, like dired, assumes UNIX -l format."
 (defun vc-dired-ignorable-p (filename)
   "Should FILENAME be ignored in VC-Dired listings?"
   (catch t 
+    ;; Ignore anything that wouldn't be found by completion (.o, .la, etc.)
     (dolist (ignorable completion-ignored-extensions)
       (let ((ext (substring filename 
 			      (- (length filename)
 				 (length ignorable)))))
 	(if (string= ignorable ext) (throw t t))))
+    ;; Ignore Makefiles derived from something else
+    (when (string= (file-name-nondirectory filename) "Makefile")
+      (let* ((dir (file-name-directory filename))
+	    (peers (directory-files (or dir default-directory))))
+	(if (or (member "Makefile.in" peers) (member "Makefile.am" peers))
+	   (throw t t))))
     nil))
 
 (defun vc-dired-hook ()
@@ -2390,12 +2397,18 @@ Called by dired after any portion of a vc-dired buffer has been read in."
          (t
 	  (let ((backend (vc-backend filename)))
 	    (cond
-	     ((and backend
-		   (not (and vc-dired-terse-mode
-			     (vc-up-to-date-p filename))))
+	     ;; Not registered
+	     ((not backend)
+	      (if vc-dired-terse-mode
+		  (dired-kill-line)
+		(vc-dired-reformat-line "?")
+		(forward-line 1)))
+	     ;; Either we're in non-terse mode or it's out of date 
+	     ((not (and vc-dired-terse-mode (vc-up-to-date-p filename)))
 	      (vc-dired-reformat-line (vc-call dired-state-info filename))
 	      (forward-line 1))
-	     (t
+	     ;; Remaining cases are under version control but uninteresting 
+	     (t	
 	      (dired-kill-line)))))))
        ;; any other line
        (t (forward-line 1))))
@@ -2405,7 +2418,7 @@ Called by dired after any portion of a vc-dired buffer has been read in."
     (widen)
     (cond ((eq (count-lines (point-min) (point-max)) 1)
            (goto-char (point-min))
-           (message "No files locked under %s" default-directory)))))
+           (message "No changes pending under %s" default-directory)))))
 
 (defun vc-dired-purge ()
   "Remove empty subdirs."
