@@ -1307,25 +1307,52 @@ ftfont_drive_otf (font, spec, in, from, to, out, adjustment)
 	goto simple_copy;
       if (out->allocated < out->used + otf_gstring.used)
 	return -2;
-      for (i = 0, otfg = otf_gstring.glyphs; i < otf_gstring.used; i++, otfg++)
+      for (i = 0, otfg = otf_gstring.glyphs; i < otf_gstring.used; )
 	{
-	  MFLTGlyph *g = out->glyphs + out->used;
+	  OTF_Glyph *endg;
+	  MFLTGlyph *g;
+	  int min_from, max_to;
 	  int j;
 
+	  g = out->glyphs + out->used;
 	  *g = in->glyphs[from + otfg->f.index.from];
-	  g->c = 0;
-	  for (j = from + otfg->f.index.from; j <= from + otfg->f.index.to; j++)
-	    if (in->glyphs[j].code == otfg->glyph_id)
-	      {
-		g->c = in->glyphs[j].c;
-		break;
-	      }
 	  if (g->code != otfg->glyph_id)
 	    {
+	      g->c = 0;
 	      g->code = otfg->glyph_id;
 	      g->measured = 0;
 	    }
 	  out->used++;
+	  min_from = g->from;
+	  max_to = g->to;
+	  if (otfg->f.index.from < otfg->f.index.to)
+	    {
+	      /* OTFG substitutes multiple glyphs in IN.  */
+	      for (j = from + otfg->f.index.from + 1;
+		   j <= from + otfg->f.index.to; j++)
+		{
+		  if (min_from > in->glyphs[j].from)
+		    min_from = in->glyphs[j].from;
+		  if (max_to < in->glyphs[j].to)
+		    max_to = in->glyphs[j].to;
+		}
+	      g->from = min_from;
+	      g->to = max_to;
+	    }
+	  for (i++, otfg++; (i < otf_gstring.used
+			     && otfg->f.index.from == otfg[-1].f.index.from);
+	       i++, otfg++)
+	    {
+	      g = out->glyphs + out->used;
+	      *g = in->glyphs[from + otfg->f.index.to];
+	      if (g->code != otfg->glyph_id)
+		{
+		  g->c = 0;
+		  g->code = otfg->glyph_id;
+		  g->measured = 0;
+		}
+	      out->used++;
+	    }
 	}
     }
   else
