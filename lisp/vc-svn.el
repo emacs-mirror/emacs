@@ -374,25 +374,22 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
     (vc-setup-buffer buffer)
     (let ((inhibit-read-only t))
       (goto-char (point-min))
-      ;; Add a line to tell log-view-mode what file this is.
-      ;; FIXME if there are multiple files, log-view-current-file
-      ;; breaks.  It's trivial to adapt log-view-file-re for the
-      ;; changed prefix, but less trivial to make
-      ;; log-view-current-file actually do the right thing in the
-      ;; multiple file case.
-      (insert (format "Working file%s: "
-		      (if (= (length files) 1)
-			  ""
-			"s"))
-		      (vc-delistify (mapcar 'file-relative-name files)) "\n"))
-    (vc-svn-command
-     buffer
-     (if (and (= (length files) 1) (vc-stay-local-p (car files))) 'async 0)
-     files "log"
-     ;; By default Subversion only shows the log upto the working revision,
-     ;; whereas we also want the log of the subsequent commits.  At least
-     ;; that's what the vc-cvs.el code does.
-     "-rHEAD:0")))
+      (if files
+	  (dolist (file files)
+		  (insert "Working file: " file "\n")
+		  (vc-svn-command
+		   buffer
+		   'async
+		   ;; (if (and (= (length files) 1) (vc-stay-local-p file)) 'async 0)
+		   (list file)
+		   "log"
+		   ;; By default Subversion only shows the log up to the
+		   ;; working revision, whereas we also want the log of the
+		   ;; subsequent commits.  At least that's what the
+		   ;; vc-cvs.el code does.
+		   "-rHEAD:0"))
+	;; Dump log for the entire directory.
+	(vc-svn-command buffer 0 nil "log" "-rHEAD:0")))))
 
 (defun vc-svn-wash-log ()
   "Remove all non-comment information from log output."

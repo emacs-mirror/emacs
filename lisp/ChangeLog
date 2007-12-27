@@ -17,6 +17,9 @@
 	* vc-mcvs.el (vc-mcvs-dir-state):
 	* vc-svn.el (vc-svn-dir-state): Recurse in subdirectories.
 
+	* vc-svn.el (vc-svn-print-log): svn log doesn't actually accept
+	multiple arguments, so generate logs sequentially when we get them.
+
 2007-12-26  Andreas Schwab  <schwab@suse.de>
 
 	* font-lock.el (save-buffer-state): Make sure the state of the
