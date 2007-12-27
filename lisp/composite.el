@@ -443,7 +443,7 @@ See also the command `toggle-auto-composition'.")
 (defun terminal-composition-modification (from to)
   (terminal-composition-function from))
 
-(defun terminal-composition-function (from to pattern font-object string)
+(defun terminal-composition-function (from to font-object string)
   "General composition function used on terminal.
 Non-spacing characters are composed with the preceding spacing
 character.  All non-spacing characters has this function in
