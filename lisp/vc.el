@@ -2327,6 +2327,16 @@ This code, like dired, assumes UNIX -l format."
       (replace-match (substring (concat vc-info "          ") 0 10)
                      t t nil 1)))
 
+(defun vc-dired-ignorable-p (filename)
+  "Should FILENAME be ignored in VC-Dired listings?"
+  (catch t 
+    (dolist (ignorable completion-ignored-extensions)
+      (let ((ext (substring filename 
+			      (- (length filename)
+				 (length ignorable)))))
+	(if (string= ignorable ext) (throw t t))))
+    nil))
+
 (defun vc-dired-hook ()
   "Reformat the listing according to version control.
 Called by dired after any portion of a vc-dired buffer has been read in."
@@ -2372,7 +2382,11 @@ Called by dired after any portion of a vc-dired buffer has been read in."
            (t
             (vc-dired-reformat-line nil)
             (forward-line 1))))
-         ;; ordinary file
+	 ;; try to head off calling the expensive state query -
+	 ;; ignore object files, TeX intermediate files, and so forth.
+	 ((vc-dired-ignorable-p filename)
+	  (dired-kill-line))
+         ;; ordinary file -- call the (possibly expensive) state query
          ((and (vc-backend filename)
 	       (not (and vc-dired-terse-mode
 			 (vc-up-to-date-p filename))))
