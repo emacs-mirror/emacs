@@ -1,3 +1,11 @@
+2007-12-27  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* ftfont.c (ftfont_drive_otf): Fix setting of FROM and TO slots of
+	glyphs.
+
+	* font.h (struct font_driver): Docstring of member `shape' is
+	improved.
+
 2007-12-25  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (syms_of_composite): Fix docstring of
