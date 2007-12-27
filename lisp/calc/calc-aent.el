@@ -1020,11 +1020,9 @@ in Calc algebraic input.")
     x))
 
 (defun math-remove-percentsigns (x)
-  (if (string-match "^%" x)
-      (setq x (concat "I#'" (substring x 1))))
   (if (string-match "\\`\\(.*\\)%\\(.*\\)\\'" x)
       (math-remove-percentsigns
-       (concat (math-match-substring x 1) "'" (math-match-substring x 2)))
+       (concat (math-match-substring x 1) "o'o" (math-match-substring x 2)))
     x))
 
 (defun math-restore-dashes (x)
