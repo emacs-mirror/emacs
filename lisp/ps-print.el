@@ -1501,6 +1501,12 @@ Please send all bug fixes and enhancements to
 (defalias 'ps-frame-parameter
   (if (fboundp 'frame-parameter) 'frame-parameter 'frame-property))
 
+(defalias 'ps-mark-active-p
+  (if (featurep 'xemacs)
+      'region-active-p			; XEmacs
+    (defvar mark-active)		; To shup up XEmacs's byte compiler.
+    (lambda () mark-active)))		; Emacs
+
 (defun ps-face-foreground-name (face)
   (if (featurep 'xemacs)
       (ps-xemacs-color-name (face-foreground face))
@@ -4695,7 +4701,7 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 
 (defun ps-print-preprint-region (prefix-arg)
-  (or (region-active-p)
+  (or (ps-mark-active-p)
       (error "The mark is not set now"))
   (list (point) (mark) (ps-print-preprint prefix-arg)))
 
