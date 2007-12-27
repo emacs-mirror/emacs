@@ -945,10 +945,8 @@
     x))
 
 (defun math-to-percentsigns (x)
-  (if (string-match "^I#'" x)
-      (setq x (concat "%" (substring x 3))))
-  (if (string-match "\\`\\(.*\\)'\\(.*\\)\\'" x)
-      (math-to-percentsigns
+  (if (string-match "\\`\\(.*\\)o'o\\(.*\\)\\'" x)
+      (math-to-underscores
        (concat (math-match-substring x 1) "%" (math-match-substring x 2)))
     x))
 
