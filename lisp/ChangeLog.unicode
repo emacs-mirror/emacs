@@ -1,3 +1,7 @@
+2007-12-27  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* composite.el (terminal-composition-function): Fix previous change.
+
 2007-12-26  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/fontset.el (x-complement-fontset-spec): Complement
