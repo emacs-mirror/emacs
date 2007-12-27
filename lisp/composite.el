@@ -438,11 +438,6 @@ See also the command `toggle-auto-composition'.")
 
 (put 'save-buffer-state 'lisp-indent-function 1)
 
-;; This function is called when a composition created by
-;; terminal-composition-function is partially modified.
-(defun terminal-composition-modification (from to)
-  (terminal-composition-function from))
-
 (defun terminal-composition-function (from to font-object string)
   "General composition function used on terminal.
 Non-spacing characters are composed with the preceding spacing
