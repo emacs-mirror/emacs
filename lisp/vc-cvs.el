@@ -500,7 +500,8 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
 ;;;
 
 (defun vc-cvs-print-log (files &optional buffer)
-  "Get change log associated with FILE."
+  "Get change logs associated with FILES."
+  ;; It's just the catenation of the individual logs.
   (vc-cvs-command
    buffer
    (if (vc-stay-local-p files) 'async 0)

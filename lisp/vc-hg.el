@@ -230,9 +230,9 @@
 
 ;;; History functions
 
-(defun vc-hg-print-log(files &optional buffer)
+(defun vc-hg-print-log (files &optional buffer)
   "Get change log associated with FILES."
-  ;; `log-view-mode' needs to have the file name in order to function
+  ;; `log-view-mode' needs to have the file names in order to function
   ;; correctly. "hg log" does not print it, so we insert it here by
   ;; hand.
 
@@ -244,11 +244,12 @@
   (let ((inhibit-read-only t))
     ;; We need to loop and call "hg log" on each file separately. 
     ;; "hg log" with multiple file arguments mashes all the logs
-    ;; together.
+    ;; together.  Ironically enough, this puts us back near CVS
+    ;; which can't generate proper fileset logs either.
     (dolist (file files)
       (with-current-buffer
 	  buffer
-	(insert "File:        " (file-name-nondirectory file) "\n"))
+	(insert "Working file: " file "\n"))	;; Like RCS/CVS.
       (vc-hg-command buffer 0 file "log"))))
 
 (defvar log-view-message-re)

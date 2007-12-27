@@ -19,6 +19,9 @@
 
 	* vc-svn.el (vc-svn-print-log): svn log doesn't actually accept
 	multiple arguments, so generate logs sequentially when we get them.
+	* vc-hg.el (vc-hg-print-log): Gives this CVS-like "Working file:"
+	headers so the various log bindings can do the right thing.
+	* vc-cvs.el (vc-cvs-print-log): Fix a misleading comment.
 
 2007-12-26  Andreas Schwab  <schwab@suse.de>
 
