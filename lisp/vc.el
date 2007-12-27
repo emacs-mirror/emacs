@@ -318,6 +318,11 @@
 ;;   used for files under this backend, and if files can indeed be
 ;;   locked by other users.
 ;;
+;; - modify-change-comment (files rev comment)
+;;
+;;   Modify the change comments associated with the files at the 
+;;   given revision.  This is optional, many backends do not support it.
+;;
 ;; HISTORY FUNCTIONS
 ;;
 ;; * print-log (files &optional buffer)
@@ -2136,6 +2141,19 @@ The headers are reset to their non-expanded form."
 	  (set-buffer (find-file-noselect filename))
 	  (vc-call-backend backend 'clear-headers)
 	  (kill-buffer filename)))))
+
+(defun vc-modify-change-comment (files rev oldcomment)
+  "Edit the comment associated with the given files and revision."
+  (vc-start-entry
+   files rev oldcomment t
+   "Enter a replacement change comment."
+   (lambda (files rev comment)
+     (vc-call-backend 
+      ;; Less of a kluge than it looks like; log-view mode only passes
+      ;; this function a singleton list.  Arguments left in this form in
+      ;; case the more general operation ever becomes meaningful. 
+      (vc-responsible-backend (car files)) 
+      'modify-change-comment files rev comment))))
 
 ;;;###autoload
 (defun vc-merge ()

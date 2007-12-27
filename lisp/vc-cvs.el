@@ -494,6 +494,10 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
             (error "Couldn't analyze cvs update result")))
       (message "Merging changes into %s...done" file))))
 
+(defun vc-cvs-modify-change-comment (files rev comment)
+  "Modify the change comments for FILES on a specified REV. 
+Will fail unless you have administrative privileges on the repo."
+  (vc-cvs-command nil 0 files "rcs" (concat "-m" comment ":" rev)))
 
 ;;;
 ;;; History functions

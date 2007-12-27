@@ -1,3 +1,12 @@
+2007-12-27  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* (vc.el, vc-sccs.el, vc-rcs.el, vc-cs.el, vc-mcvs.el): Put
+	machinery in place to support editing of change comments
+	with 'e' in a log-view buffer.  Not documented yet as this
+	only works for SCCS, RCS, and maybe CVS if you have admin
+	privileges.  When we have backend support for Subversion and
+	more modern systems it will ve time to write this up.
+
 2007-12-27  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/mule-cmds.el (select-safe-coding-system): When a

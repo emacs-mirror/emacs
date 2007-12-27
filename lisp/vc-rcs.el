@@ -510,6 +510,11 @@ Needs RCS 5.6.2 or later for -M."
   ;; expanded headers.
   (vc-do-command nil 0 "co" (vc-name file) "-f" (concat "-l" rev)))
 
+(defun vc-rcs-modify-change-comment (files rev comment)
+  "Modify the change comments change on FILES on a specified REV."
+  (dolist (file files)
+    (vc-do-command nil 0 "rcs" (vc-name file) 
+		   (concat "-m" comment ":" rev))))
 
 
 ;;;

@@ -128,7 +128,7 @@
   '(("q" . quit-window)
     ("z" . kill-this-buffer)
     ("m" . log-view-toggle-mark-entry)
-    ;; ("e" . cvs-mode-edit-log)
+    ("e" . log-view-modify-change-comment)
     ("d" . log-view-diff)
     ("a" . log-view-annotate-version)
     ("f" . log-view-find-revision)
@@ -410,6 +410,31 @@ log entries."
     (goto-char pos)
     (switch-to-buffer (vc-find-revision (log-view-current-file)
                                        (log-view-current-tag)))))
+
+
+(defun log-view-extract-comment ()
+  "Parse comment from around the current point in the log."
+  (save-excursion
+    (let (st en (backend (vc-backend (log-view-current-file))))
+      (log-view-end-of-defun)
+      (cond ((eq backend 'SVN)
+	     (forward-line -1)))
+      (setq en (point))
+      (log-view-beginning-of-defun)
+      (cond ((memq backend '(SCCS RCS CVS MCVS SVN))
+	     (forward-line 2))
+	    ((eq backend 'Hg)
+	     (forward-line 4)
+	     (re-search-forward "summary: *" nil t)))      
+      (setq st (point))
+      (buffer-substring st en))))
+
+(defun log-view-modify-change-comment ()
+  "Edit the change comment displayed at point."
+  (interactive)
+  (vc-modify-change-comment (list (log-view-current-file))
+			  (log-view-current-tag)
+			  (log-view-extract-comment)))
 
 (defun log-view-annotate-version (pos)
   "Annotate the version at point."
