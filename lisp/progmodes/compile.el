@@ -1055,10 +1055,6 @@ Returns the compilation buffer created."
 		command "\n")
 	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
-    ;; If we're already in the compilation buffer, go to the end
-    ;; of the buffer, so point will track the compilation output.
-    (if (eq outbuf (current-buffer))
-	(goto-char (point-max)))
     ;; Pop up the compilation buffer.
     (setq outwin (display-buffer outbuf nil t))
     (with-current-buffer outbuf
@@ -1083,10 +1079,18 @@ Returns the compilation buffer created."
 	(set (make-local-variable 'revert-buffer-function)
 	     'compilation-revert-buffer)
 	(set-window-start outwin (point-min))
-	(or (eq outwin (selected-window))
-	    (set-window-point outwin (if compilation-scroll-output
-					 (point)
-				       (point-min))))
+
+	;; Position point as the user will see it.
+	(let ((desired-visible-point
+	       ;; Put it at the end if `compilation-scroll-output' is set.
+	       (if compilation-scroll-output
+		   (point-max)
+		 ;; Normally put it at the top.
+		 (point-min))))
+	  (if (eq outwin (selected-window))
+	      (goto-char desired-visible-point)
+	    (set-window-point outwin desired-visible-point)))
+
 	;; The setup function is called before compilation-set-window-height
 	;; so it can set the compilation-window-height buffer locally.
 	(if compilation-process-setup-function
@@ -1105,7 +1109,10 @@ Returns the compilation buffer created."
 	      (setq mode-line-process '(":%s"))
 	      (set-process-sentinel proc 'compilation-sentinel)
 	      (set-process-filter proc 'compilation-filter)
-	      (set-marker (process-mark proc) (point) outbuf)
+	      ;; Use (point-max) here so that output comes in
+	      ;; after the initial text,
+	      ;; regardless of where the user sees point.
+	      (set-marker (process-mark proc) (point-max) outbuf)
 	      (when compilation-disable-input
                 (condition-case nil
                     (process-send-eof proc)
@@ -1119,21 +1126,25 @@ Returns the compilation buffer created."
 	  (setq mode-line-process ":run")
 	  (force-mode-line-update)
 	  (sit-for 0)			; Force redisplay
-	  (let* ((buffer-read-only nil)	; call-process needs to modify outbuf
-		 (status (call-process shell-file-name nil outbuf nil "-c"
-				       command)))
-	    (cond ((numberp status)
-		   (compilation-handle-exit 'exit status
-					    (if (zerop status)
-						"finished\n"
-					      (format "\
+	  (save-excursion
+	    ;; Insert the output at the end, after the initial text,
+	    ;; regardless of where the user sees point.
+	    (goto-char (point-max))
+	    (let* ((buffer-read-only nil) ; call-process needs to modify outbuf
+		   (status (call-process shell-file-name nil outbuf nil "-c"
+					 command)))
+	      (cond ((numberp status)
+		     (compilation-handle-exit 'exit status
+					      (if (zerop status)
+						  "finished\n"
+						(format "\
 exited abnormally with code %d\n"
-						      status))))
-		  ((stringp status)
-		   (compilation-handle-exit 'signal status
-					    (concat status "\n")))
-		  (t
-		   (compilation-handle-exit 'bizarre status status))))
+							status))))
+		    ((stringp status)
+		     (compilation-handle-exit 'signal status
+					      (concat status "\n")))
+		    (t
+		     (compilation-handle-exit 'bizarre status status)))))
 	  ;; Without async subprocesses, the buffer is not yet
 	  ;; fontified, so fontify it now.
 	  (let ((font-lock-verbose nil)) ; shut up font-lock messages
