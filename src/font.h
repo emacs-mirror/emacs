@@ -446,7 +446,18 @@ struct font_driver
   int (*end_for_frame) P_ ((FRAME_PTR f));
 
   /* Optional.
-     Shape text in LGSTRING.  */
+
+     Shape text in LGSTRING.  See the docstring of `font-make-gstring'
+     for the format of LGSTRING.  If the (N+1)th element of LGSTRING
+     is nil, input of shaping is from the 1st to (N)th elements.  In
+     each input glyph, FROM, TO, CHAR, and CODE are already set.
+
+     This function updates all fields of the input glyphs.  If the
+     output glyphs (M) are more than the input glyphs (N), (N+1)th
+     through (M)th elements of LGSTRING are updated possibly by making
+     a new glyph object and storing it in LGSTRING.  If (M) is greater
+     than the length of LGSTRING, nil should be return.  In that case,
+     this function is called again with the larger LGSTRING.  */
   Lisp_Object (*shape) P_ ((Lisp_Object lgstring));
 };
 
