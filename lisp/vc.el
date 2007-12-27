@@ -2387,13 +2387,16 @@ Called by dired after any portion of a vc-dired buffer has been read in."
 	 ((vc-dired-ignorable-p filename)
 	  (dired-kill-line))
          ;; ordinary file -- call the (possibly expensive) state query
-         ((and (vc-backend filename)
-	       (not (and vc-dired-terse-mode
-			 (vc-up-to-date-p filename))))
-          (vc-dired-reformat-line (vc-call dired-state-info filename))
-          (forward-line 1))
          (t
-          (dired-kill-line))))
+	  (let ((backend (vc-backend filename)))
+	    (cond
+	     ((and backend
+		   (not (and vc-dired-terse-mode
+			     (vc-up-to-date-p filename))))
+	      (vc-dired-reformat-line (vc-call dired-state-info filename))
+	      (forward-line 1))
+	     (t
+	      (dired-kill-line)))))))
        ;; any other line
        (t (forward-line 1))))
     (vc-dired-purge))
