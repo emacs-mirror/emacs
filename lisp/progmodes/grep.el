@@ -753,7 +753,7 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 			      " " find-name-arg " "
 			      (mapconcat #'shell-quote-argument
 					 (split-string files)
-					 " -o " find-name-arg " ")
+					 (concat " -o " find-name-arg " "))
 			      " "
 			      (shell-quote-argument ")"))
 		       dir
