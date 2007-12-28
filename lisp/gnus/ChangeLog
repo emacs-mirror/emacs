@@ -1,3 +1,38 @@
+2007-12-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-send-mail-function): Increase custom version.
+
+	* mml-sec.el, sieve-manage.el, smime.el: Simplify loading of
+	password-cache or password.  Suggested by Glenn Morris <rgm@gnu.org>.
+
+2007-12-21  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* imap.el (imap-authenticate): Use current-buffer instead of buffer,
+	for the cases where imap-authenticate is called with a nil buffer
+	parameter.
+
+2007-12-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-html-parts): Work for two or more
+	html parts correctly; support forwarded messages.
+	(gnus-article-browse-html-article): Remove work buffers.
+
+	* netrc.el: Bind encrypt-file-alist for Emacs 21 and XEmacs when
+	compiling.
+	(netrc-bound-and-true-p): New macro.
+	(netrc-parse): Use it instead of bound-and-true-p that is not available
+	in XEmacs 21.4.
+
+2007-12-19  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-mark-article)
+	(gnus-registry-article-marks): Add functionality to mark articles
+	through the Gnus registry.
+
+	* netrc.el: Autoload encrypt when encrypt-file-alist is set.
+	(netrc-parse): Use encrypt-file-alist to determine if
+	encrypt-find-model or encrypt-insert-file-contents should be used.
+
 2007-12-19  Glenn Morris  <rgm@gnu.org>
 
 	* mml.el (message-options-set, message-narrow-to-head)
@@ -8,6 +43,24 @@
 	(message-position-on-field, message-news-p)
 	(message-options-set-recipient, message-generate-headers)
 	(message-sort-headers): Declare as functions.
+
+2007-12-18  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-draft.el (gnus-draft-send-message): Mention process/prefix
+	convention in doc string.
+
+2007-12-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-browse-html-parts): Add message header and
+	title to html parts.
+	(gnus-article-browse-html-article): Pass message header to it.
+
+	* mm-decode.el (mm-display-external): Use mm-add-meta-html-tag.
+
+2007-12-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mml-sec.el, sieve-manage.el, smime.el: Make loading of password-cache
+	or password compatible with XEmacs.
 
 2007-12-15  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -260,6 +313,12 @@
 	(mailcap-mime-types): Use mailcap-delete-duplicates.
 
 	* message.el (message-ignored-supersedes-headers): Add "X-ID".
+
+2007-12-03  Nathan J. Williams  <nathanw@MIT.EDU>  (tiny change)
+
+	* imap.el (imap-mailbox-status-asynch): Upcase STATUS items.
+	(imap-parse-status): Upcase status-att for servers that sends them
+	lower-case (e.g., MS Exchange 2007).
 
 2007-12-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

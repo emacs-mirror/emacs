@@ -1,3 +1,12 @@
+2007-12-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Group Parameters): Reorder the text and add a note about
+	`gnus-parameters' near the beginning of the node.
+
+2007-12-29  IRIE Tetsuya  <irie@t.email.ne.jp>  (tiny change)
+
+	* gnus.texi (Score File Editing): Fix function name.
+
 2007-12-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.12.
