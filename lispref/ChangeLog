@@ -1,3 +1,7 @@
+2007-12-28  Richard Stallman  <rms@gnu.org>
+
+	* frames.texi (Size Parameters): Fix typo.
+
 2007-12-23  Richard Stallman  <rms@gnu.org>
 
 	* customize.texi (Type Keywords): Uncomment :validate and clarify it.
