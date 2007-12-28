@@ -2987,7 +2987,7 @@ Automatically recognizes all VCs supported by VC mode.  You can
 optimize this function by overriding it and only doing those checks
 that will occur on your system."
   (or
-   (vc-backend (concat directory "/" name)
+   (vc-backend (concat directory "/" name))
    ;; User extension
    (run-hook-with-args 'speedbar-vc-in-control-hook directory name)
    ))
