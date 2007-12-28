@@ -800,8 +800,14 @@ of the frame is normally the same as the size of the terminal screen.
 
 @defun frame-pixel-height &optional frame
 @defunx frame-pixel-width &optional frame
-These functions return the height and width of @var{frame}, measured in
-pixels.  If you don't supply @var{frame}, they use the selected frame.
+These functions return the height and width of the main display area
+of @var{frame}, measured in pixels.  If you don't supply @var{frame},
+they use the selected frame.
+
+These values include the internal borders, and windows' scroll bars
+and fringes (which belong to individual windows, not to the frame
+itself), but do not include menu bars or tool bars (except when using
+X without an X toolkit).
 @end defun
 
 @defun frame-char-height &optional frame
