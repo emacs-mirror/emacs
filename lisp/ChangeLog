@@ -18,7 +18,7 @@
 
 	* vc-cvs.el, vc-svn.el: Simplify backend dired-state-info
 	functions so they don't do work that the default one can do
-	instead.  Also, give the default useful behavior on 'added.
+	instead.
 
 	* vc-hooks.el (vc-state): Document new 'ignored and 'unregistered
 	states. and the new return-value convention.  These are not
@@ -32,7 +32,7 @@
 
 	* vc-git.el: Document that we don't set the new states yet.
 
-	* vc.el (vc-dired-state-info): Display 'unregistered and
+	* vc.el (vc-dired-state-info): Display 'added, 'unregistered and
 	'ignored states.
 
 	* vc-cvs.el (vc-cvs-parse-status): Set the 'ignored state when
