@@ -455,7 +455,7 @@ The height of the frame contents, in characters.  (To get the height in
 pixels, call @code{frame-pixel-height}; see @ref{Size and Position}.)
 
 @item width
-The width of the frame contents, in characters.  (To get the height in
+The width of the frame contents, in characters.  (To get the width in
 pixels, call @code{frame-pixel-width}; see @ref{Size and Position}.)
 
 @item user-size
