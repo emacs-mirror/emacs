@@ -1,3 +1,24 @@
+2007-12-27  Richard Stallman  <rms@gnu.org>
+
+	* text.texi (Formatted Text): Improve menu tag.
+	(Editing Format Info): In Info, add duplicate menu of nodes
+	about the submenus.
+	(Format Faces): Say where Faces menu is found.  Mention Other.
+	(Format Colors): Say where these submenus are found.
+	(Format Indentation, Format Justification): Likewise.
+	(Format Properties): Likewise.
+
+2007-12-22  Richard Stallman  <rms@gnu.org>
+
+	* search.texi (Query Replace): Make exp of query-replace more
+	self-contained, and clarify.
+ 
+	* cc-mode.texi (Getting Started): Change @ref to @pxref.
+
+2007-12-15  Richard Stallman  <rms@gnu.org>
+
+	* files.texi (Auto Save): Clarify definition of auto-saving.
+
 2007-11-26  Richard Stallman  <rms@gnu.org>
 
 	* help.texi (Help Echo): Cleanups.

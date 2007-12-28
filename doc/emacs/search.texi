@@ -1152,13 +1152,12 @@ Replace some matches for @var{regexp} with @var{newstring}.
 @kindex M-%
 @findex query-replace
   If you want to change only some of the occurrences of @samp{foo} to
-@samp{bar}, not all of them, then you cannot use an ordinary
-@code{replace-string}.  Instead, use @kbd{M-%} (@code{query-replace}).
+@samp{bar}, not all of them, use @kbd{M-%} (@code{query-replace}).
 This command finds occurrences of @samp{foo} one by one, displays each
 occurrence and asks you whether to replace it.  Aside from querying,
-@code{query-replace} works just like @code{replace-string}.  It
-preserves case, like @code{replace-string}, provided
-@code{case-replace} is non-@code{nil}, as it normally is
+@code{query-replace} works just like @code{replace-string}
+(@pxref{Unconditional Replace}).  In particular, it preserves case
+provided @code{case-replace} is non-@code{nil}, as it normally is
 (@pxref{Replacement and Case}).  A numeric argument means consider
 only occurrences that are bounded by word-delimiter characters.
 

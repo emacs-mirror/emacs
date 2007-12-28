@@ -1,3 +1,72 @@
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compilation-start): Set initial visible
+	point properly even when compilation buffer already current.
+
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* files.el (conf-mode-maybe): New function.
+	(auto-mode-alist): Use conf-mode-maybe for .conf etc.
+
+2007-12-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* textmodes/fill.el (fill-find-break-point): Fix doc-string typo.
+
+2007-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/asm-mode.el (asm-mode-map): Add a major mode menu.
+
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* comint.el (comint-mode-map): Explicitly bind `delete' and `kp-delete'
+	so they never do EOF.
+
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* faces.el (copy-face): Create the new face explicitly if it
+	does not exist already.
+
+2007-12-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (minibuffer-history, shell-command-history)
+	(set-variable-value-history):
+	* replace.el (regexp-history):
+	* international/mule-cmds.el (input-method-history):
+	* files.el (file-name-history): Add reference to history-length in
+	the doc string.
+
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* comint.el (comint-password-prompt-regexp): Match `Enter Password'.
+
+2007-12-29  Jason Rumney  <jasonr@gnu.org>
+
+	* find-dired.el (find-name-arg): New custom variable.
+	(find-name-dired): Use it.
+	(find-dired-find-program): Remove.
+	(find-dired): Use find-program.
+	(find-grep-dired): Use grep-program.
+
+	* progmodes/grep.el (rgrep): Use find-name-arg.
+
+2007-12-29  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* progmodes/cc-vars.el (defcustom-c-stylevar):
+	Revert to pre-2007-12-12 version.
+
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/find-func.el (find-function-after-hook): Add :type.
+
+	* info.el (Info-clone-buffer): Renamed from Info-clone-buffer-hook.
+	Use changed.
+
+	* startup.el (fancy-splash-help-echo): Var deleted.
+	(fancy-splash-insert): Get help-echo from (startup-echo-area-message).
+	(fancy-about-screen): Don't display fancy-splash-help-echo.
+
+	* menu-bar.el (menu-bar-describe-menu): Remove dots from menu text.
+
 2007-12-28  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc-hooks.el, vc.el: Move vc-directory-exclusion-list from vc.el

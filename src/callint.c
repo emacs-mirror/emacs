@@ -941,7 +941,10 @@ This is what `(interactive \"P\")' returns.  */);
 
   DEFVAR_LISP ("command-history", &Vcommand_history,
 	       doc: /* List of recent commands that read arguments from terminal.
-Each command is represented as a form to evaluate.  */);
+Each command is represented as a form to evaluate.
+
+Maximum length of the history list is determined by the value
+of `history-length', which see.  */);
   Vcommand_history = Qnil;
 
   DEFVAR_LISP ("command-debug-status", &Vcommand_debug_status,

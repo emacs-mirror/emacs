@@ -1216,7 +1216,7 @@ mail status in mode line"))
 	      :visible default-enable-multibyte-characters
 	      :help "Display multilingual environment settings"))
 (define-key menu-bar-describe-menu [describe-coding-system-briefly]
-  '(menu-item "Describe Coding System (Briefly)..."
+  '(menu-item "Describe Coding System (Briefly)"
               describe-current-coding-system-briefly
               :visible default-enable-multibyte-characters))
 (define-key menu-bar-describe-menu [describe-coding-system]

@@ -1339,7 +1339,10 @@ This is the input method activated automatically by the command
 (put 'input-method-function 'permanent-local t)
 
 (defvar input-method-history nil
-  "History list for some commands that read input methods.")
+  "History list of input methods read from the minibuffer.
+
+Maximum length of the history list is determined by the value
+of `history-length', which see.")
 (make-variable-buffer-local 'input-method-history)
 (put 'input-method-history 'permanent-local t)
 

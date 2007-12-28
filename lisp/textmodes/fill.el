@@ -391,7 +391,7 @@ Don't move back past the buffer position LIMIT.
 This function is called when we are going to break the current line
 after or before a non-ASCII character.  If the charset of the
 character has the property `fill-find-break-point-function', this
-function calls the property value as a function with one arg LINEBEG.
+function calls the property value as a function with one arg LIMIT.
 If the charset has no such property, do nothing."
   (let* ((ch (following-char))
 	 (charset (char-charset ch))

@@ -3272,7 +3272,8 @@ fill_menubar (wv, deep_p)
 	    }
 #endif  /* !TARGET_API_MAC_CARBON */
 	}
-      else
+
+      if (!menu)
 	{
 #if TARGET_API_MAC_CARBON
 	  err = CreateNewMenu (id, 0, &menu);

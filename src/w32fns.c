@@ -3130,7 +3130,8 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 			{
 			  /* Forward asciified character sequence.  */
 			  post_character_message
-			    (hwnd, WM_CHAR, key.uChar.AsciiChar, lParam,
+			    (hwnd, WM_CHAR,
+                             (unsigned char) key.uChar.AsciiChar, lParam,
 			     w32_get_key_modifiers (wParam, lParam));
 			  w32_kbd_patch_key (&key);
 			}

@@ -1,3 +1,20 @@
+2007-12-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* process.c (make_process): Initialize pty_flag to Qnil instead of 0
+	as it is not a bit field on Emacs 22 yet.
+
+	* xdisp.c (phys_cursor_in_rect_p): Check if cursor is in fringe area.
+
+2007-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* callint.c (syms_of_callint) <command-history>: Add reference to
+	history-length in the doc string.
+
+2007-12-17  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) <WM_KEYDOWN>: Cast char to unsigned
+	before passing as wParam.
+
 2007-12-22  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_retrieve_arg): Handle DBUS_TYPE_BYTE,

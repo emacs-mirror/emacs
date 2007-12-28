@@ -519,7 +519,10 @@ which will run faster and will not set the mark or print anything."
 
 
 (defvar regexp-history nil
-  "History list for some commands that read regular expressions.")
+  "History list for some commands that read regular expressions.
+
+Maximum length of the history list is determined by the value
+of `history-length', which see.")
 
 
 (defalias 'delete-non-matching-lines 'keep-lines)
