@@ -8,27 +8,26 @@
 	version-control systems.  Instead, make it use logic from
 	vc-hooks.el so it will become smarter whenever VC mode does.
 
-	* vc-hooks.el: 'added is a real state, not a future hypothetical
-	one. Fix the documentation.
+	* vc-hooks.el: 'added is a real state, not a future hypothetical one.
+	Fix the documentation.
 
 	* vc-bzr.el, vc-cvs.el, vc-git.el, vc-hg.el, vc-mcvs.el, vc-svn.el:
 	Modify all instances of the dir-state back-end method to suppress
 	keeping undo lists on the buffers holding status output, which
 	can get extremely large.
 
-	* vc-cvs.el, vc-svn.el: Simplify backend dired-state-info
-	functions so they don't do work that the default one can do
-	instead.
+	* vc-cvs.el, vc-svn.el: Simplify backend dired-state-info functions
+	so they don't do work that the default one can do instead.
 
 	* vc-hooks.el (vc-state): Document new 'ignored and 'unregistered
-	states. and the new return-value convention.  These are not
+	states, and the new return-value convention.  These are not
 	actually used yet, just set.
 
 	* vc-svn.el (vc-svn-parse-status): Set 'ignored and 'unregistered
 	states when appropriate.
 
-	* vc-hg.el (vc-hg-state,vc-hg-dir-state): Set 'ignored and
-	'unregistered' when appropriate.
+	* vc-hg.el (vc-hg-state, vc-hg-dir-state): Set 'ignored and
+	'unregistered when appropriate.
 
 	* vc-git.el: Document that we don't set the new states yet.
 
@@ -38,9 +37,8 @@
 	* vc-cvs.el (vc-cvs-parse-status): Set the 'ignored state when
 	appropriate.
 
-	* vc-bzr.el (vc-bzr-dir-state): Set 'ignored and
-	'unregistered' when appropriate.
-
+	* vc-bzr.el (vc-bzr-dir-state): Set 'ignored and 'unregistered
+	when appropriate.
 
 2007-12-28  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -83,8 +81,8 @@
 
 2007-12-27  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* international/mule-cmds.el (select-safe-coding-system): When a
-	buffer is modified, cancel the writing.
+	* international/mule-cmds.el (select-safe-coding-system):
+	When a buffer is modified, cancel the writing.
 
 2007-12-26  Eric S. Raymond  <esr@snark.thyrsus.com>
 
@@ -137,7 +135,7 @@
 2007-12-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-print-preprint-region): Use `region-active-p' instead
-	`mark' for error checking.
+	of `mark' for error checking.
 
 2007-12-26  Tassilo Horn  <tassilo@member.fsf.org>
 
@@ -145,18 +143,16 @@
 	New functions.
 	(image-mode): Set bookmark-make-cell-function appropriately.
 
-	* doc-view.el (doc-view-bookmark-jump): Correct misspelled arg
-	name.
+	* doc-view.el (doc-view-bookmark-jump): Correct misspelled arg name.
 
 	* bookmark.el (bookmark-make-cell-function): New variable.
 	(bookmark-make): Call bookmark-make-cell-function's function
 	instead of bookmark-make-cell.
 	(bookmark-get-handler, bookmark-jump-internal): New functions.
 	(bookmark-jump, bookmark-jump-other-window, bookmark-insert)
-	(bookmark-bmenu-2-window, bookmark-bmenu-other-window): Use
-	bookmark-jump-internal.
-	(bookmark-make-cell-for-text-file): Renamed from
-	bookmark-make-cell.
+	(bookmark-bmenu-2-window, bookmark-bmenu-other-window):
+	Use bookmark-jump-internal.
+	(bookmark-make-cell-for-text-file): Renamed from bookmark-make-cell.
 
 	* doc-view.el (doc-view-bookmark-make-cell)
 	(doc-view-bookmark-jump): New functions.
@@ -170,12 +166,11 @@
 	Simplify main indentation logic to get rid of the conditional call
 	to `indent-according-to-mode' (it just ended up calling
 	`indent-line-function' in all cases anyway, which can be done more
-	simply here).  Remove unnecessary test of ARG in active region
-	case.
+	simply here).  Remove unnecessary test of ARG in active region case.
 
 2007-12-25  Richard Stallman  <rms@gnu.org>
 
-	* allout.el (allout-region-active-p): Renamed from my-region-active-p.
+	* allout.el (allout-region-active-p): Rename from my-region-active-p.
 	Use `use-region-p'.
 	(allout-write-file-hook-handler): Simplify code.
 
@@ -407,8 +402,7 @@
 	* progmodes/cc-subword.el (c-subword-mode): Drop support for
 	systems without define-minor-mode.
 
-	* progmodes/cc-vars.el (defcustom-c-stylevar): Remove debugging
-	message.
+	* progmodes/cc-vars.el (defcustom-c-stylevar): Remove debugging message.
 
 	* progmodes/verilog-mode.el: Replace all instances of
 	string-to-int with string-to-number, insert-string with insert,
@@ -446,8 +440,8 @@
 	(verilog-font-customize): Call customize-apropos only if bound.
 	(verilog-getopt-flags, verilog-auto-reeval-locals): Use
 	make-local-variable rather than make-variable-buffer-local.
-	(verilog-company, verilog-project, verilog-modi-cache-list): Move
-	make-variable-buffer-local calls to top-level.
+	(verilog-company, verilog-project, verilog-modi-cache-list):
+	Move make-variable-buffer-local calls to top-level.
 	(font-lock-defaults-alist): Don't define it.
 	(verilog-need-fld): Remove.
 	(verilog-font-lock-init): Don't set font-lock-defaults-alist.
@@ -456,14 +450,14 @@
 
 2007-12-17  Andreas Schwab  <schwab@suse.de>
 
-	* progmodes/sh-script.el (sh-font-lock-syntactic-keywords): Fix
-	comment typo.
+	* progmodes/sh-script.el (sh-font-lock-syntactic-keywords):
+	Fix comment typo.
 
 2007-12-16  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/dbus.el (dbus-name-owner-changed-handler): Use
-	`dbus-unregister-signal' for removing old rules.  Obey new
-	structure of `dbus-registered-functions-table'.
+	* net/dbus.el (dbus-name-owner-changed-handler):
+	Use `dbus-unregister-signal' for removing old rules.
+	Obey new structure of `dbus-registered-functions-table'.
 
 2007-12-12  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
@@ -485,8 +479,8 @@
 	* progmodes/cperl-mode.el (cperl-brace-offset)
 	(cperl-continued-brace-offset, cperl-label-offset)
 	(cperl-continued-statement-offset)
-	(cperl-extra-newline-before-brace, cperl-merge-trailing-else): Add
-	safe-local-variable properties.
+	(cperl-extra-newline-before-brace, cperl-merge-trailing-else):
+	Add safe-local-variable properties.
 
 2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -529,7 +523,7 @@
 	(verilog-end-of-statement, verilog-indent-declaration)
 	(verilog-get-lineup-indent): Remove trailing whitespace.
 	(verilog-mode): Fix autoload cookie. Set
-	beginning-of-defun-function and end-of-defun-function. Use when
+	beginning-of-defun-function and end-of-defun-function.  Use when
 	instead of if.
 	(verilog-emacs-features, verilog-auto-ascii-enum)
 	(verilog-insert-indices): Escape braces in doc strings.
@@ -1108,14 +1102,14 @@
 	(math-comp-comma, math-comp-vector-prec): Declare as variables.
 	(math-var-formatter, math-matrix-formatter)
 	(math-lang-adjust-words, math-lang-read-symbol, math-land-read)
-	(math-punc-table, math-compose-subscr,math-dots)
+	(math-punc-table, math-compose-subscr, math-dots)
 	(math-func-formatter): New property names to store language
 	specific information.
 	(math-compose-tex-var, math-compose-tex-intv)
 	(math-compose-maple-intv, math-compose-eqn-intv)
 	(math-compose-tex-sum, math-compose-tex-func)
 	(math-compose-tex-intv): New functions.
-	(math-eqn-ignore-words,math-tex-ignore-words)
+	(math-eqn-ignore-words, math-tex-ignore-words)
 	(math-latex-ignore-words): Move from calc.el.
 	(math-special-function-table): Add entries for tex.
 	(calc-lang-slash-idiv, calc-lang-allows-underscores):
@@ -1617,7 +1611,7 @@
 	Replace `mapcar*' by `math-map-binop'.
 	(math-nlfit-make-matrix): Replace `copy-list' with `copy-sequence'.
 
-	* calc/calc-prog.el (edmacro-format-keys,edmacro-parse-keys)
+	* calc/calc-prog.el (edmacro-format-keys, edmacro-parse-keys)
 	(math-read-expr-level): Declare as functions.
 
 	* calc/calc-vec.el (math-read-expr-level): Declare as a function.
