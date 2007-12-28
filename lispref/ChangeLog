@@ -2,6 +2,7 @@
 
 	* frames.texi (Size Parameters): Fix typo.
 	(Basic Parameters): For `title', refer to title bar.
+	(Size and Position): Explain meaning of frame pixel width and height.
 
 2007-12-23  Richard Stallman  <rms@gnu.org>
 
