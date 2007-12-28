@@ -1,3 +1,9 @@
+2007-12-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* thumbs.el (thumbs-call-convert): Use call-process directly
+	with thumbs-conversion-program instead of through shell-file-name
+	for better error reporting when program is missing.
+
 2007-12-27  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-aent.el (math-remove-percentsigns):
