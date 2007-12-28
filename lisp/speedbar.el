@@ -657,10 +657,11 @@ before speedbar has been loaded."
 	       speedbar-ignored-directory-regexp
 	       (speedbar-extension-list-to-regex val))))
 
-(defcustom speedbar-directory-unshown-regexp "^\\(CVS\\|RCS\\|SCCS\\|\\..*\\)\\'"
+(defcustom speedbar-directory-unshown-regexp "^\\(\\..*\\)\\'"
   "*Regular expression matching directories not to show in speedbar.
 They should include commonly existing directories which are not
-useful, such as version control."
+useful.  It is no longer necessary to include include version-control
+directories here; see \\[vc-directory-exclusion-list\\]."
   :group 'speedbar
   :type 'string)
 
@@ -1917,6 +1918,7 @@ the file-system."
 	(while dir
 	  (if (not
 	       (or (string-match speedbar-file-unshown-regexp (car dir))
+		   (member (car dir) vc-directory-exclusion-list)
 		   (string-match speedbar-directory-unshown-regexp (car dir))))
 	      (if (file-directory-p (car dir))
 		  (setq dirs (cons (car dir) dirs))
@@ -2972,18 +2974,8 @@ the file being checked."
   "Return t if we should bother checking DIRECTORY for version control files.
 This can be overloaded to add new types of version control systems."
   (or
-   ;; Local CVS available in Emacs 21
-   (and (fboundp 'vc-state)
-	(file-exists-p (concat directory "CVS/")))
-   ;; Local RCS
-   (file-exists-p (concat directory "RCS/"))
-   ;; Local SCCS
-   (file-exists-p (concat directory "SCCS/"))
-   ;; Remote SCCS project
-   (let ((proj-dir (getenv "PROJECTDIR")))
-     (if proj-dir
-	 (file-exists-p (concat proj-dir "/SCCS"))
-       nil))
+   (catch t (dolist (vcd vc-directory-exclusion-list)
+	      (if (file-exists-p (concat directory vcd)) (throw t t))) nil)
    ;; User extension
    (run-hook-with-args-until-success 'speedbar-vc-directory-enable-hook
                                      directory)
@@ -2991,29 +2983,11 @@ This can be overloaded to add new types of version control systems."
 
 (defun speedbar-this-file-in-vc (directory name)
   "Check to see if the file in DIRECTORY with NAME is in a version control system.
-You can add new VC systems by overriding this function.  You can
+Automatically recognizes all VCs supported by VC mode.  You can
 optimize this function by overriding it and only doing those checks
 that will occur on your system."
   (or
-   (if (fboundp 'vc-state)
-       ;; Emacs 21 handles VC state in a nice way.
-       (condition-case nil
-	   (let ((state  (vc-state (concat directory name))))
-	     (not (or (eq 'up-to-date state)
-		      (null state))))
-	 ;; An error means not in a VC system
-	 (error nil))
-     (or
-      ;; RCS file name
-      (file-exists-p (concat directory "RCS/" name ",v"))
-      (file-exists-p (concat directory "RCS/" name))
-      ;; Local SCCS file name
-      (file-exists-p (concat directory "SCCS/s." name))
-      ;; Remote SCCS file name
-      (let ((proj-dir (getenv "PROJECTDIR")))
-	(if proj-dir
-	    (file-exists-p (concat proj-dir "/SCCS/s." name))
-	  nil))))
+   (vc-backend (concat directory "/" name)
    ;; User extension
    (run-hook-with-args 'speedbar-vc-in-control-hook directory name)
    ))

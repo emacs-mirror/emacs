@@ -76,6 +76,13 @@ An empty list disables VC altogether."
   :version "23.1"
   :group 'vc)
 
+(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" 
+					 ".svn" ".git" ".hg" ".bzr" 
+					 "_MTN" "{arch}")
+  "List of directory names to be ignored when walking directory trees."
+  :type '(repeat string)
+  :group 'vc)
+
 (defcustom vc-path
   (if (file-directory-p "/usr/sccs")
       '("/usr/sccs")

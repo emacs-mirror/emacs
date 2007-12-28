@@ -620,12 +620,6 @@ These are passed to the checkin program by \\[vc-register]."
   :group 'vc
   :version "20.3")
 
-(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" ".svn"
-					 ".git" ".hg" ".bzr" "{arch}")
-  "List of directory names to be ignored when walking directory trees."
-  :type '(repeat string)
-  :group 'vc)
-
 (defcustom vc-diff-switches nil
   "A string or list of strings specifying switches for diff under VC.
 When running diff under a given BACKEND, VC concatenates the values of
