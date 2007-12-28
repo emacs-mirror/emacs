@@ -533,8 +533,11 @@ Optional argument LOCALP is always ignored."
          ((looking-at "^renamed") 
           (setq current-vc-state 'edited)
           (setq current-bzr-state 'renamed))
-         ((looking-at "^\\(unknown\\|ignored\\)")
-          (setq current-vc-state nil)
+         ((looking-at "^ignored")
+          (setq current-vc-state 'ignored)
+          (setq current-bzr-state 'not-versioned))
+         ((looking-at "^unknown")
+          (setq current-vc-state 'unregistered)
           (setq current-bzr-state 'not-versioned))
          ((looking-at "  ")
           ;; file names are indented by two spaces

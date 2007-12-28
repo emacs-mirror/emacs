@@ -818,9 +818,14 @@ For an empty string, nil is returned (invalid CVS root)."
 (defun vc-cvs-parse-status (&optional full)
   "Parse output of \"cvs status\" command in the current buffer.
 Set file properties accordingly.  Unless FULL is t, parse only
-essential information."
+essential information. Note that this can never set the 'ignored
+state."
   (let (file status)
     (goto-char (point-min))
+    (while (looking-at "? \\(.*\\)")
+      (setq file (expand-file-name (match-string 1)))
+      (vc-file-setprop file 'vc-state 'unregistered)
+      (forward-line 1))
     (if (re-search-forward "^File: " nil t)
         (cond
          ((looking-at "no file") nil)

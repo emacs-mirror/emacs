@@ -143,6 +143,7 @@
 
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
+  ;; FIXME: This can't set 'ignored yet
   (vc-git--call nil "add" "--refresh" "--" (file-relative-name file))
   (let ((diff (vc-git--run-command-string file "diff-index" "-z" "HEAD" "--")))
     (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} [ADMU]\0[^\0]+\0"
@@ -151,6 +152,8 @@
       'up-to-date)))
 
 (defun vc-git-dir-state (dir)
+  "Git-specific version of `dir-state'."
+  ;; FIXME: This can't set 'ignored yet
   (with-temp-buffer
     (buffer-disable-undo)		;; Because these buffers can get huge
     (vc-git-command (current-buffer) nil nil "ls-files" "-t" "-c" "-m" "-o")

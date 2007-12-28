@@ -501,7 +501,27 @@ For registered files, the value returned is one of:
 
   'added             Scheduled to go into the repository on the next commit.
                      Often represented by vc-working-revision = \"0\" in VCSes
-                     with monotonic IDs like Subversion and Mercxurial."
+                     with monotonic IDs like Subversion and Mercurial.
+
+   'ignored          The file showed up in a dir-state listing with a flag 
+                     indicating the version-control system is ignoring it,
+                     Note: This property is not set reliably (some VCSes 
+                     don't have useful directory-status commands) so assume 
+                     that any file with vc-state nil might be ignorable
+                     without VC knowing it. 
+
+   'unregistered     The file showed up in a dir-state listing with a flag 
+                     indicating that it is not under version control.
+                     Note: This property is not set reliably (some VCSes 
+                     don't have useful directory-status commands) so assume 
+                     that any file with vc-state nil might be unregistered
+                     without VC knowing it. 
+
+A return of nil from this function means we have no information on the 
+status of this file.
+"
+  ;; Note: in Emacs 22 and older, return of nil meant the file was unregistered.
+  ;; This is potentially a source of backward-compatibility bugs.
 
   ;; FIXME: New (sub)states needed (?):
   ;; - `conflict' (i.e. `edited' with conflict markers)

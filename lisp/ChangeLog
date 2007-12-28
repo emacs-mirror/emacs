@@ -17,7 +17,30 @@
 	can get extremely large.
 
 	* vc-cvs.el, vc-svn.el: Simplify backend dired-state-info
-	functions so they don't do work that the default one can do instead
+	functions so they don't do work that the default one can do
+	instead.  Also, give the default useful behavior on 'added.
+
+	* vc-hooks.el (vc-state): Document new 'ignored and 'unregistered
+	states. and the new return-value convention.  These are not
+	actually used yet, just set.
+
+	* vc-svn.el (vc-svn-parse-status): Set 'ignored and 'unregistered
+	states when appropriate.
+
+	* vc-hg.el (vc-hg-state,vc-hg-dir-state): Set 'ignored and
+	'unregistered' when appropriate.
+
+	* vc-git.el: Document that we don't set the new states yet.
+
+	* vc.el (vc-dired-state-info): Display 'unregistered and
+	'ignored states.
+
+	* vc-cvs.el (vc-cvs-parse-status): Set the 'ignored state when
+	appropriate.
+
+	* vc-bzr.el (vc-bzr-dir-state): Set 'ignored and
+	'unregistered' when appropriate.
+
 
 2007-12-28  Nick Roberts  <nickrob@snap.net.nz>
 

@@ -3076,7 +3076,10 @@ to provide the `find-revision' operation instead."
 	  ((eq state 'needs-merge) "(merge)")
 	  ((eq state 'needs-patch) "(patch)")
 	  ((eq state 'added) "(added)")
-	  ((eq state 'unlocked-changes) "(stale)")))
+          ((eq state 'ignored) "(ignored)")     ;; dired-hook filters this out
+          ((eq state 'unregistered) "?")
+	  ((eq state 'unlocked-changes) "(stale)")
+	  ((not state) "(unknown)")))
 	(buffer
 	 (get-file-buffer file))
 	(modflag

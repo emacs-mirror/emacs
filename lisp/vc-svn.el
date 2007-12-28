@@ -578,6 +578,10 @@ information about FILENAME and return its status."
 	   (if (eq (char-after (match-beginning 1)) ?*)
 	       'needs-merge
 	     'edited))
+	  ((eq status ?I)
+	   (vc-file-setprop file 'vc-state 'ignored))
+	  ((eq status ??)
+	   (vc-file-setprop file 'vc-state 'unregistered))
 	  (t 'edited)))))
     (if filename (vc-file-getprop filename 'vc-state))))
 
