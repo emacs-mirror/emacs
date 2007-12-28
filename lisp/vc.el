@@ -3075,6 +3075,7 @@ to provide the `find-revision' operation instead."
 	  ((eq state 'edited) (concat "(" (vc-user-login-name file) ")"))
 	  ((eq state 'needs-merge) "(merge)")
 	  ((eq state 'needs-patch) "(patch)")
+	  ((eq state 'added) "(added)")
 	  ((eq state 'unlocked-changes) "(stale)")))
 	(buffer
 	 (get-file-buffer file))

@@ -179,8 +179,10 @@ If you want to force an empty list of arguments, use t."
     (cond ((eq svn-state 'edited)
 	   (if (equal (vc-working-revision file) "0")
 	       "(added)" "(modified)"))
-	  ((eq svn-state 'needs-patch) "(patch)")
-	  ((eq svn-state 'needs-merge) "(merge)"))))
+	  (t
+	   ;; fall back to the default VC representation
+	   (vc-default-dired-state-info 'SVN file)))))
+
 
 (defun vc-svn-previous-revision (file rev)
   (let ((newrev (1- (string-to-number rev))))

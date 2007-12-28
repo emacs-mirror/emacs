@@ -285,9 +285,8 @@ committed and support display of sticky tags."
     (cond ((eq cvs-state 'edited)
 	   (if (equal (vc-working-revision file) "0")
 	       "(added)" "(modified)"))
-	  ((eq cvs-state 'needs-patch) "(patch)")
-	  ((eq cvs-state 'needs-merge) "(merge)"))))
-
+	  (t
+	   (vc-default-dired-state-info 'CVS file)))))
 
 ;;;
 ;;; State-changing functions

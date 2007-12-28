@@ -16,6 +16,9 @@
 	keeping undo lists on the buffers holding status output, which
 	can get extremely large.
 
+	* vc-cvs.el, vc-svn.el: Simplify backend dired-state-info
+	functions so they don't do work that the default one can do instead
+
 2007-12-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* thumbs.el (thumbs-call-convert): Use call-process directly
