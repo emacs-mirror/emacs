@@ -179,6 +179,7 @@
 
 (defun vc-hg-dir-state (dir)
   (with-temp-buffer
+    (buffer-disable-undo)		;; Because these buffers can get huge
     (vc-hg-command (current-buffer) nil nil "status")
     (goto-char (point-min))
     (let ((status-char nil)

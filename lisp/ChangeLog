@@ -1,3 +1,10 @@
+2007-12-28  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-bzr.el, vc-cvs.el, vc-git.el, vc-hg.el, vc-mcvs.el, vc-svn.el:
+	Modify all instances of the dir-state back-end method to suppress
+	keeping undo lists on the buffers holding astatus output, which
+	csn get extremely large.
+
 2007-12-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* thumbs.el (thumbs-call-convert): Use call-process directly

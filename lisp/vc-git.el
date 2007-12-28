@@ -152,6 +152,7 @@
 
 (defun vc-git-dir-state (dir)
   (with-temp-buffer
+    (buffer-disable-undo)		;; Because these buffers can get huge
     (vc-git-command (current-buffer) nil nil "ls-files" "-t" "-c" "-m" "-o")
     (goto-char (point-min))
     (let ((status-char nil)

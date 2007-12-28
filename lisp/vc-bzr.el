@@ -498,6 +498,7 @@ Optional argument LOCALP is always ignored."
     ;; evidence of the contrary.
     (setq at-start t)
     (with-temp-buffer
+      (buffer-disable-undo)		;; Because these buffers can get huge
       (vc-bzr-command "ls" t 0 nil "--versioned")
       (goto-char (point-min))
       (while (or at-start

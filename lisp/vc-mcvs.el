@@ -187,6 +187,7 @@ This is only meaningful if you don't use the implicit checkout model
 	;; Don't specify DIR in this command, the default-directory is
 	;; enough.  Otherwise it might fail with remote repositories.
 	(with-temp-buffer
+	  (buffer-disable-undo)		;; Because these buffers can get huge
 	  (setq default-directory (vc-mcvs-root dir))
 	  (vc-mcvs-command t 0 nil "status")
 	  (goto-char (point-min))

@@ -153,6 +153,7 @@ If you want to force an empty list of arguments, use t."
     ;; Don't specify DIR in this command, the default-directory is
     ;; enough.  Otherwise it might fail with remote repositories.
     (with-temp-buffer
+      (buffer-disable-undo)		;; Because these buffers can get huge
       (vc-svn-command t 0 nil "status" (if localp "-v" "-u"))
       (vc-svn-parse-status))))
 

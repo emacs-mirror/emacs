@@ -221,6 +221,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
 	;; Don't specify DIR in this command, the default-directory is
 	;; enough.  Otherwise it might fail with remote repositories.
 	(with-temp-buffer
+	  (buffer-disable-undo)		;; Because these buffers can get huge
 	  (vc-cvs-command t 0 nil "status")
 	  (goto-char (point-min))
 	  (while (re-search-forward "^=+\n\\([^=\n].*\n\\|\n\\)+" nil t)
