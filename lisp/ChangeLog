@@ -1,3 +1,11 @@
+2007-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-registered): Return the false when vc-hg-state
+	returns 'ignored or 'unregistered.
+	(vc-hg-state): Pass "-A" to the status command and deal with the
+	output.
+	(vc-hg-dir-state): Pass "-A" to the status command.
+
 2007-12-29  Richard Stallman  <rms@gnu.org>
 
 	* progmodes/compile.el (compilation-start): Set initial visible
