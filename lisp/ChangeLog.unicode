@@ -1,3 +1,8 @@
+2007-12-28  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (setup-default-fontset): Fix lao OTF
+	script name.
+
 2007-12-27  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* composite.el (terminal-composition-function): Fix previous change.
