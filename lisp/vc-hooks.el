@@ -485,15 +485,18 @@ For registered files, the value returned is one of:
                      the master file.  This state can only occur if locking
                      is not used for the file.
 
-  'unlocked-changes  The current version of the working file is not locked,
+  'unlocked-changes  The working version of the file is not locked,
                      but the working file has been changed with respect
                      to that version.  This state can only occur for files
                      with locking; it represents an erroneous condition that
                      should be resolved by the user (vc-next-action will
-                     prompt the user to do it)."
+                     prompt the user to do it).
+
+  'added             Scheduled to go into the repository on the next commit.
+                     Often represented by vc-working-revision = "0" in VCSes
+                     with monotonic IDs like Subversion and Mercxurial."
+
   ;; FIXME: New (sub)states needed (?):
-  ;; - `added' (i.e. `edited' but with no base version yet,
-  ;;            typically represented by vc-working-revision = "0")
   ;; - `conflict' (i.e. `edited' with conflict markers)
   ;; - `removed'
   ;; - `copied' and `moved' (might be handled by `removed' and `added')
