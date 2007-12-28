@@ -301,7 +301,7 @@
      (sinhala ,(font-spec :registry "iso10646-1" :otf '(sinh nil (akhn))))
      (malayalam ,(font-spec :registry "iso10646-1" :otf '(mlym nil (akhn))))
 
-     (lao ,(font-spec :registry "iso10646-1" :otf '(mlym nil nil (mark)))
+     (lao ,(font-spec :registry "iso10646-1" :otf '(lao\  nil nil (mark)))
 	  (nil . "MuleLao-1"))
 
      (tai-viet ("TaiViet" . "iso10646-1"))
