@@ -493,7 +493,7 @@ For registered files, the value returned is one of:
                      prompt the user to do it).
 
   'added             Scheduled to go into the repository on the next commit.
-                     Often represented by vc-working-revision = "0" in VCSes
+                     Often represented by vc-working-revision = \"0\" in VCSes
                      with monotonic IDs like Subversion and Mercxurial."
 
   ;; FIXME: New (sub)states needed (?):
