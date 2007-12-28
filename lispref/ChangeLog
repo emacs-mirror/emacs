@@ -1,6 +1,7 @@
 2007-12-28  Richard Stallman  <rms@gnu.org>
 
 	* frames.texi (Size Parameters): Fix typo.
+	(Basic Parameters): For `title', refer to title bar.
 
 2007-12-23  Richard Stallman  <rms@gnu.org>
 
