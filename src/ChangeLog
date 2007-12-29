@@ -1,3 +1,8 @@
+2007-12-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32fns.c (Fx_create_frame): Make copy of frame parameters
+	because the original parameters are in pure storage now.
+
 2007-12-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (phys_cursor_in_rect_p): Check if cursor is in fringe area.
