@@ -1,5 +1,9 @@
 2007-12-29  Richard Stallman  <rms@gnu.org>
 
+	* font-lock.el (font-lock-prepend-text-property)
+	(font-lock-append-text-property): Canonicalize the face and
+	font-lock-face properties.
+
 	* faces.el (facep): Doc fix.
 
 	* startup.el (fancy-startup-tail, fancy-about-text)
