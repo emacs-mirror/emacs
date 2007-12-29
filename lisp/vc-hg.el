@@ -194,8 +194,8 @@
 	       (buffer-substring-no-properties (+ (point) 2) 
 					       (line-end-position))))
 	(cond
+	 ;; State flag for a clean file is now C, might change to =.
 	 ;; The rest of the possible states in "hg status" output:
-	 ;; 	 R = removed
 	 ;; 	 ! = deleted, but still tracked
 	 ;; should not show up in vc-dired, so don't deal with them
 	 ;; here.
@@ -203,14 +203,20 @@
  	  (vc-file-setprop file 'vc-state 'up-to-date))
 	 ((eq status-char ?A)
 	  (vc-file-setprop file 'vc-working-revision "0")
-	  (vc-file-setprop file 'vc-state 'edited))
+	  (vc-file-setprop file 'vc-state 'added))
+	 ((eq status-char ?R)
+	  (vc-file-setprop file 'vc-state 'removed))
 	 ((eq status-char ?M)
 	  (vc-file-setprop file 'vc-state 'edited))
 	 ((eq status-char ?I)
 	  (vc-file-setprop file 'vc-state 'ignored))
 	 ((eq status-char ??)
 	  (vc-file-setprop file 'vc-backend 'none)
-	  (vc-file-setprop file 'vc-state 'unregistered)))
+	  (vc-file-setprop file 'vc-state 'unregistered))
+	 ((eq status-char ?!)
+	  nil)
+	 (t	;; Presently C, might change to = in 0.9.6
+	  (vc-file-setprop file 'vc-state 'up-to-date)))
 	(forward-line)))))
 
 (defun vc-hg-working-revision (file)

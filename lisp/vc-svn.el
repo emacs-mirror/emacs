@@ -543,15 +543,16 @@ information about FILENAME and return its status."
   (let (file status)
     (goto-char (point-min))
     (while (re-search-forward
-            ;; Ignore the files with status in [IX?].
-	    "^[ ACDGMR!~][ MC][ L][ +][ S]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\) +" nil t)
+            ;; Ignore the files with status X.
+	    "^[ ACDGIMR!?~][ MC][ L][ +][ S]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\) +" nil t)
       ;; If the username contains spaces, the output format is ambiguous,
       ;; so don't trust the output's filename unless we have to.
       (setq file (or filename
                      (expand-file-name
                       (buffer-substring (point) (line-end-position)))))
       (setq status (char-after (line-beginning-position)))
-      (unless (eq status ??)
+      (if (eq status ??)
+	  (vc-file-setprop file 'vc-state 'unregistered)
 	;; `vc-BACKEND-registered' must not set vc-backend,
 	;; which is instead set in vc-registered.
 	(unless filename (vc-file-setprop file 'vc-backend 'SVN))
@@ -573,15 +574,15 @@ information about FILENAME and return its status."
 	   ;; If the file was actually copied, (match-string 2) is "-".
 	   (vc-file-setprop file 'vc-working-revision "0")
 	   (vc-file-setprop file 'vc-checkout-time 0)
-	   'edited)
+	   'added)
 	  ((memq status '(?M ?C))
 	   (if (eq (char-after (match-beginning 1)) ?*)
 	       'needs-merge
 	     'edited))
 	  ((eq status ?I)
 	   (vc-file-setprop file 'vc-state 'ignored))
-	  ((eq status ??)
-	   (vc-file-setprop file 'vc-state 'unregistered))
+	  ((eq status ?R)
+	   (vc-file-setprop file 'vc-state 'removed))
 	  (t 'edited)))))
     (if filename (vc-file-getprop filename 'vc-state))))
 

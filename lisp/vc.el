@@ -159,12 +159,13 @@
 ;;
 ;; - dir-state (dir)
 ;;
-;;   If provided, this function is used to find the version control state
-;;   of all files in DIR, and all subdirecties of DIR, in a fast way.  
-;;   The function should not return anything, but rather store the files' 
-;;   states into the corresponding `vc-state' properties.  (Note: in
-;;   older versions this method was not required to recurse into 
-;;   subdirectories.)
+;;   If provided, this function is used to find the version control
+;;   state of as many files as possible in DIR, and all subdirecties
+;;   of DIR, in a fast way; it is used to avoid expensive indivitual
+;;   vc-state calls.  The function should not return anything, but
+;;   rather store the files' states into the corresponding `vc-state'
+;;   properties.  (Note: in older versions this method was not
+;;   required to recurse into subdirectories.)
 ;;
 ;; * working-revision (file)
 ;;
@@ -1346,6 +1347,12 @@ NOT-URGENT means it is ok to continue if the user says not to save."
 
 (defvar vc-dired-window-configuration)
 
+(defun vc-compatible-state (p q)
+  "Controls which states can be in the same commit."
+  (or
+   (eq p q)
+   (and (member p '(edited added removed)) (member q '(edited added removed)))))
+
 ;; Here's the major entry point.
 
 ;;;###autoload
@@ -1386,7 +1393,7 @@ merge in the changes into your working copy."
 	 revision)
     ;; Verify that the fileset is homogenous
     (dolist (file (cdr files))
-      (if (not (eq (vc-state file) state))
+      (if (not (vc-compatible-state (vc-state file) state))
 	  (error "Fileset is in a mixed-up state"))
       (if (not (eq (vc-checkout-model file) model))
 	  (error "Fileset has mixed checkout models")))
@@ -1436,7 +1443,7 @@ merge in the changes into your working copy."
         ;; do nothing
         (message "Fileset is up-to-date"))))
      ;; Files have local changes
-     ((eq state 'edited)
+     ((vc-compatible-state state 'edited)
       (let ((ready-for-commit files))
 	;; If files are edited but read-only, give user a chance to correct
 	(dolist (file files)
@@ -2349,7 +2356,9 @@ Called by dired after any portion of a vc-dired buffer has been read in."
     (if (and (vc-call-backend backend 'responsible-p default-directory)
 	     (vc-find-backend-function backend 'dir-state))
 	(vc-call-backend backend 'dir-state default-directory)))
-  (let (filename (inhibit-read-only t))
+  (let (filename 
+	(inhibit-read-only t)
+	(buffer-undo-list t))
     (goto-char (point-min))
     (while (not (eobp))
       (cond
@@ -3076,6 +3085,7 @@ to provide the `find-revision' operation instead."
 	  ((eq state 'needs-merge) "(merge)")
 	  ((eq state 'needs-patch) "(patch)")
 	  ((eq state 'added) "(added)")
+	  ((eq state 'removed) "(removed)")
           ((eq state 'ignored) "(ignored)")     ;; dired-hook filters this out
           ((eq state 'unregistered) "?")
 	  ((eq state 'unlocked-changes) "(stale)")

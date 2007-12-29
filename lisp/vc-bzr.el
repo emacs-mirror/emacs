@@ -522,7 +522,7 @@ Optional argument LOCALP is always ignored."
         (setq at-start nil)
         (cond 
          ((looking-at "^added") 
-          (setq current-vc-state 'edited)
+          (setq current-vc-state 'added)
           (setq current-bzr-state 'added))
          ((looking-at "^kind changed") 
           (setq current-vc-state 'edited)

@@ -1,3 +1,23 @@
+2007-12-29  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-svn.el (vc-svn-parse-status): Recognize 'unregistered,
+	'added, 'removed.
+
+	* vc.el (header coment): Better description of dir-state.
+	(vc-compatible-state): New function.  Checks whether two states
+	can be in the same changeset; used with 'edited it can test whether
+	the next action for a state should be commit.
+	(vc-default-dired-format0info): Display 'added state.
+	(vc-dired-hook): Turn off undo, this is a speed tweak.
+
+	* vc-bzr.el (vc-bzr-dir-state): Recognize 'added.
+
+	* vc-hg.el (vc-bzr-hg-state): Recognize 'added and 'removed.
+	Cope with the possibility that the 'C' status flag might change
+	in 0.9,6.
+
+	* vc-git.el (vc-bzr-dir-state): Recognize 'removed.
+
 2007-12-29  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* files.el (cd-absolute): Fix omission bug:
