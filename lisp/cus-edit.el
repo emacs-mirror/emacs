@@ -1412,7 +1412,7 @@ that are not customizable options, as well as faces and groups
 (defun customize-apropos-options (regexp &optional arg)
   "Customize all loaded customizable options matching REGEXP.
 With prefix arg, include variables that are not customizable options
-\(but we recommend using `apropos-variable' instead)."
+\(but it is better to use `apropos-variable' if you want to find those)."
   (interactive "sCustomize options (regexp): \nP")
   (customize-apropos regexp (or arg 'options)))
 
@@ -2341,6 +2341,8 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 					 (get (car parents) 'custom-links))))
                 (many (> (length links) 2)))
            (when links
+             (let ((pt (point))
+                   (left-margin (+ left-margin 2)))
              (insert "\nParent documentation: ")
              (while links
                (push (widget-create-child-and-convert
@@ -2357,7 +2359,9 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
                           (insert ", and ")
                         (insert " and ")))
                      (t
-                      (insert ", ")))))))
+                        (insert ", "))))
+               (fill-region-as-paragraph pt (point))
+               (delete-to-left-margin (1+ pt) (+ pt 2))))))
     (if parents
         (insert "\n")
       (delete-region start (point)))
