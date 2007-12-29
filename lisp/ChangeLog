@@ -24,7 +24,7 @@
 	* calc/calc.el (calc-language): Add languages to docstring.
 
 	* calc/calc-ext.el (calc-init-extensions): Add keybindings
-	for new languages.
+	for new languages.  Autoload commands to change languages.
 
 	* calc/calc-help.el (calc-d-prefix-help): Add new languages.
 
