@@ -12,6 +12,11 @@
 	* facemenu.el (list-colors-print): Use :background and :foreground
 	instead of background-color and foreground-color.
 
+2007-12-29  Drew Adams  <drew.adams@oracle.com>
+
+	* cus-edit.el (custom-add-parent-links):
+	Fill the "Parent documentation" text.
+ 
 2007-12-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* textmodes/ispell.el (ispell-grep-command): Use "grep" on
