@@ -25,9 +25,17 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-;; Author: TAKAHASHI Naoto <ntakahas@etl.go.jp>
+;; Author (of latin-post.el): TAKAHASHI Naoto <ntakahas@etl.go.jp>
 
 ;;; Commentary:
+
+;; These input methods differ from those in latin-post.el
+;; in that comma is not special (use / instead),
+;; and // is not special either (so you can enter a slash
+;; by typing //).
+
+;; At least, that's what I could see by comparing the first few
+;; of these with latin-post.el.
 
 ;;; Code:
 
@@ -36,6 +44,9 @@
 (quail-define-package
  "latin-1-alt-postfix" "Latin-1" "1<" t
  "Latin-1 character input method with postfix modifiers
+This input method differs from `latin-1-postfix' in that
+comma is not special (use slash instead), and `//' is not
+special (so you can use that to enter a slash).
 
              | postfix | examples
  ------------+---------+----------
@@ -49,9 +60,9 @@
   others     |   /<>   | s/ -> ß   ?/ -> ¿   !/ -> ¡
              | various | << -> «   >> -> »   o_ -> º   a_ -> ª
 
-It would be natural to use comma for cedillas, but that would be
-inconvenient in practice because commas are needed very often after a
-letter.
+It seems natural to use comma for cedillas, but that is
+inconvenient in practice because commas are needed very
+often after a letter.
 
 Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
@@ -199,6 +210,8 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 (quail-define-package
  "latin-2-alt-postfix" "Latin-2" "2<" t
  "Latin-2 character input method with postfix modifiers
+This input method differs from `latin-2-postfix' in that
+comma and period are not special (use ` instead).
 
              | postfix | examples
  ------------+---------+----------
@@ -215,8 +228,8 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
   stroke     |    /    | d/ -> đ
   others     |    /    | s/ -> ß
 
-It would be natural to use period and comma for dots/rings and
-cedillas/ogoneks, but that would inconvenient in practice, because
+It seems natural to use period and comma for dots/rings and
+cedillas/ogoneks, but that is inconvenient in practice, because
 periods and commas are needed very often after a letter.
 
 Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
@@ -391,6 +404,9 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 (quail-define-package
  "latin-3-alt-postfix" "Latin-3" "3<" t
  "Latin-3 character input method with postfix modifiers
+This input method differs from `latin-3-postfix' in that
+comma is not special (use ` instead), and period is not
+special (use slash instead).
 
              | postfix | examples
  ------------+---------+----------
@@ -561,6 +577,9 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 (quail-define-package
  "latin-4-alt-postfix" "Latin-4" "4<" t
  "Latin-4 characters input method with postfix modifiers
+This input method differs from `latin-4-postfix' in that
+comma is not special (use ` instead), and period is not
+special (use ~ instead).
 
              | postfix | examples
  ------------+---------+----------
@@ -577,8 +596,8 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
   nordic     |    /    | a/ -> å   e/ -> æ   o/ -> ø
   others     |    /    | s/ -> ß   n/ -> ŋ   k/ -> ĸ
 
-It would be natural to use period and comma for dots and
-cedillas/ogoneks, but that would inconvenient in practice, because
+It seems natural to use period and comma for dots and
+cedillas/ogoneks, but that is inconvenient in practice, because
 periods and commas are needed very often after a letter.
 
 Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
@@ -755,6 +774,9 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 (quail-define-package
  "latin-5-alt-postfix" "Latin-5" "5<" t
  "Latin-5 characters input method with postfix modifiers
+This input method differs from `latin-5-postfix' in that
+comma is not special (use ` instead), and period is not
+special (use / instead).
 
              | postfix | examples
  ------------+---------+----------
@@ -769,8 +791,8 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
   nordic     |    /    | a/ -> å   e/ -> æ   o/ -> ø
   others     |    /    | s/ -> ß
 
-It would be natural to use period and comma for dots and cedillas, but
-that would inconvenient in practice, because periods and commas are
+It seems natural to use period and comma for dots and cedillas, but
+that is inconvenient in practice, because periods and commas are
 needed very often after a letter.
 
 Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
@@ -904,119 +926,7 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("y\"\"" ["y\""])
  )
 
-(quail-define-package
- "danish-alt-postfix" "Latin-1" "DA<" t
- "Danish input method (rule: AE -> Æ, OE -> Ø, AA -> Å, E' -> É)
 
-Doubling the postfix separates the letter and postfix: e.g. aee -> ae
-"
- nil t nil nil nil nil nil nil nil nil t)
-
-(quail-define-rules
- ("AE" ?Æ)
- ("ae" ?æ)
- ("OE" ?Ø)
- ("oe" ?ø)
- ("AA" ?Å)
- ("aa" ?å)
- ("E'" ?É)
- ("e'" ?é)
-
- ("AEE" ["AE"])
- ("aee" ["ae"])
- ("OEE" ["OE"])
- ("oee" ["oe"])
- ("AAA" ["AA"])
- ("aaa" ["aa"])
- ("E''" ["E'"])
- ("e''" ["e'"])
- )
-
-(quail-define-package
- "esperanto-alt-postfix" "Latin-3" "EO<" t
- "Esperanto input method with postfix modifiers
-
-A following ^ or x will produce an accented character,
-e.g. c^ -> ĉ   gx -> ĝ   u^ -> ŭ.
-
-Doubling the postfix separates the letter and postfix,
-e.g. a'' -> a'.
-" nil t nil nil nil nil nil nil nil nil t)
-
-(quail-define-rules
- ("Cx" ?Ĉ)
- ("C^" ?Ĉ)
- ("cx" ?ĉ)
- ("c^" ?ĉ)
- ("Gx" ?Ĝ)
- ("G^" ?Ĝ)
- ("gx" ?ĝ)
- ("g^" ?ĝ)
- ("Hx" ?Ĥ)
- ("H^" ?Ĥ)
- ("hx" ?ĥ)
- ("h^" ?ĥ)
- ("Jx" ?Ĵ)
- ("J^" ?Ĵ)
- ("jx" ?ĵ)
- ("j^" ?ĵ)
- ("Sx" ?Ŝ)
- ("S^" ?Ŝ)
- ("sx" ?ŝ)
- ("s^" ?ŝ)
- ("Ux" ?Ŭ)
- ("U^" ?Ŭ)
- ("ux" ?ŭ)
- ("u^" ?ŭ)
-
- ("Cxx" ["Cx"])
- ("C^^" ["C^"])
- ("cxx" ["cx"])
- ("c^^" ["c^"])
- ("Gxx" ["Gx"])
- ("G^^" ["G^"])
- ("gxx" ["gx"])
- ("g^^" ["g^"])
- ("Hxx" ["Hx"])
- ("H^^" ["H^"])
- ("hxx" ["hx"])
- ("h^^" ["h^"])
- ("Jxx" ["Jx"])
- ("J^^" ["J^"])
- ("jxx" ["jx"])
- ("j^^" ["j^"])
- ("Sxx" ["Sx"])
- ("S^^" ["S^"])
- ("sxx" ["sx"])
- ("s^^" ["s^"])
- ("Uxx" ["Ux"])
- ("U^^" ["U^"])
- ("uxx" ["ux"])
- ("u^^" ["u^"])
- )
-
-(quail-define-package
- "finnish-alt-postfix" "Latin-1" "FI<" t
- "Finnish (Suomi) input method
-
-AE  -> Ä
-AEE -> AE
-OE  -> Ö
-OEE -> OE
-"
- nil t nil nil nil nil nil nil nil nil t)
-
-(quail-define-rules
- ("AE" ?Ä)
- ("ae" ?ä)
- ("OE" ?Ö)
- ("oe" ?ö)
-
- ("AEE" ["AE"])
- ("aee" ["ae"])
- ("OEE" ["OE"])
- ("oee" ["oe"])
- )
 
 (quail-define-package
  "french-alt-postfix" "French" "FR<" t
@@ -1093,100 +1003,7 @@ Par exemple: e'' -> e'
  (">>>" [">>"])
  )
 
-(quail-define-package
- "german-alt-postfix" "German" "DE<" t
- "German (Deutsch) input method
 
-ae  -> ä
-aee -> ae
-oe  -> ö
-oee -> oe
-ue  -> ü
-uee -> ue
-sz  -> ß
-szz -> sz
-"
- nil t nil nil nil nil nil nil nil nil t)
-
-(quail-define-rules
- ("AE" ?Ä)
- ("ae" ?ä)
- ("OE" ?Ö)
- ("oe" ?ö)
- ("UE" ?Ü)
- ("ue" ?ü)
- ("sz" ?ß)
-
- ("AEE" ["AE"])
- ("aee" ["ae"])
- ("OEE" ["OE"])
- ("oee" ["oe"])
- ("UEE" ["UE"])
- ("uee" ["ue"])
- ("szz" ["sz"])
- )
-
-(quail-define-package
- "icelandic-alt-postfix" "Latin-1" "IS<" t
- "Icelandic (Íslenska) input method with postfix modifiers
-
-A' -> Á
-E' -> É
-I' -> Í
-O' -> Ó
-U' -> Ú
-Y' -> Ý
-AE -> Æ
-OE -> Ö
-D/ -> Ð (eth)
-T/ -> Þ (thorn)
-
-Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
-" nil t nil nil nil nil nil nil nil nil t)
-
-(quail-define-rules
- ("A'" ?Á)
- ("a'" ?á)
- ("E'" ?É)
- ("e'" ?é)
- ("I'" ?Í)
- ("i'" ?í)
- ("O'" ?Ó)
- ("o'" ?ó)
- ("U'" ?Ú)
- ("u'" ?ú)
- ("Y'" ?Ý)
- ("y'" ?ý)
- ("AE" ?Æ)
- ("ae" ?æ)
- ("OE" ?Ö)
- ("oe" ?ö)
- ("D/" ?Ð)
- ("d/" ?ð)
- ("T/" ?Þ)
- ("t/" ?þ)
-
- ("A''" ["A'"])
- ("a''" ["a'"])
- ("E''" ["E'"])
- ("e''" ["e'"])
- ("I''" ["I'"])
- ("i''" ["i'"])
- ("O''" ["O'"])
- ("o''" ["o'"])
- ("U''" ["U'"])
- ("u''" ["u'"])
- ("Y''" ["Y'"])
- ("y''" ["y'"])
- ("AEE" ["AE"])
- ("aee" ["ae"])
- ("OEE" ["OE"])
- ("oee" ["oe"])
- ("D//" ["D/"])
- ("d//" ["d/"])
- ("T//" ["T/"])
- ("t//" ["t/"])
- )
 
 (quail-define-package
  "italian-alt-postfix" "Latin-1" "IT<" t
@@ -1259,157 +1076,12 @@ Doubling the postfix separates the letter and postfix: e.g. a`` -> a`
  ("a__" ["a_"])
  )
 
-(quail-define-package
- "norwegian-alt-postfix" "Latin-1" "NO<" t
- "Norwegian (Norsk) input method (rule: AE->Æ, OE->Ø, AA->Å, E'->É)
-
-Doubling the postfix separates the letter and postfix: e.g. aee -> ae
-"
- nil t nil nil nil nil nil nil nil nil t)
-
-(quail-define-rules
- ("AE" ?Æ)
- ("ae" ?æ)
- ("OE" ?Ø)
- ("oe" ?ø)
- ("AA" ?Å)
- ("aa" ?å)
- ("E'" ?É)
- ("e'" ?é)
-
- ("AEE" ["AE"])
- ("aee" ["ae"])
- ("OEE" ["OE"])
- ("oee" ["oe"])
- ("AAA" ["AA"])
- ("aaa" ["aa"])
- ("E''" ["E'"])
- ("e''" ["e'"])
- )
-
-(quail-define-package
- "scandinavian-alt-postfix" "Latin-1" "SC<" t
- "Scandinavian input method with postfix modifiers
-Supported languages are Swedish, Norwegian, Danish, and Finnish.
-
-ae -> æ
-oe -> ø
-aa -> å
-a\" -> ä
-o\" -> ö
-e' -> é
-
-Doubling the postfix separates the letter and postfix:
-aee -> ae   o\"\" -> o\"   etc.
-" nil t nil nil nil nil nil nil nil nil t)
-
-(quail-define-rules
- ("AE" ?Æ)
- ("ae" ?æ)
- ("OE" ?Ø)
- ("oe" ?ø)
- ("AA" ?Å)
- ("aa" ?å)
- ("A\"" ?Ä)
- ("a\"" ?ä)
- ("O\"" ?Ö)
- ("o\"" ?ö)
- ("E'" ?É)
- ("e'" ?é)
-
- ("AEE" ["AE"])
- ("aee" ["ae"])
- ("OEE" ["OE"])
- ("oee" ["oe"])
- ("AAA" ["AA"])
- ("aaa" ["aa"])
- ("A\"\"" ["A\""])
- ("a\"\"" ["a\""])
- ("O\"\"" ["O\""])
- ("o\"\"" ["o\""])
- ("E''" ["E'"])
- ("e''" ["e'"])
- )
-
-(quail-define-package
- "spanish-alt-postfix" "Spanish" "ES<" t
- "Spanish (Español) input method with postfix modifiers
-
-A' -> Á
-E' -> É
-I' -> Í
-O' -> Ó
-U' -> Ú
-N~ -> Ñ
-!/ -> ¡
-?/ -> ¿
-
-Doubling the postfix separates the letter and postfix:
-a'' -> a'   n~~ -> n~, etc.
-" nil t nil nil nil nil nil nil nil nil t)
-
-(quail-define-rules
- ("A'" ?Á)
- ("a'" ?á)
- ("E'" ?É)
- ("e'" ?é)
- ("I'" ?Í)
- ("i'" ?í)
- ("O'" ?Ó)
- ("o'" ?ó)
- ("U'" ?Ú)
- ("u'" ?ú)
- ("N~" ?Ñ)
- ("n~" ?ñ)
- ("?/" ?¿)
- ("!/" ?¡)
-
- ("A''" ["A'"])
- ("a''" ["a'"])
- ("E''" ["E'"])
- ("e''" ["e'"])
- ("I''" ["I'"])
- ("i''" ["i'"])
- ("O''" ["O'"])
- ("o''" ["o'"])
- ("U''" ["U'"])
- ("u''" ["u'"])
- ("N~~" ["N~"])
- ("n~~" ["n~"])
- ("?//" ["?/"])
- ("!//" ["!/"])
- )
-
-(quail-define-package
- "swedish-alt-postfix" "Latin-1" "SV<" t
- "Swedish (Svenska) input method (rule: AA -> Å, AE -> Ä, OE -> Ö, E' -> É)
-
-Doubling the postfix separates the letter and postfix: e.g. aee -> ae
-" nil t nil nil nil nil nil nil nil nil t)
-
-(quail-define-rules
- ("AA" ?Å)
- ("aa" ?å)
- ("AE" ?Ä)
- ("ae" ?ä)
- ("OE" ?Ö)
- ("oe" ?ö)
- ("E'" ?É)
- ("e'" ?é)
-
- ("AAA" ["AA"])
- ("aaa" ["aa"])
- ("AEE" ["AE"])
- ("aee" ["ae"])
- ("OEE" ["OE"])
- ("oee" ["oe"])
- ("E''" ["E'"])
- ("e''" ["e'"])
- )
 
 (quail-define-package
  "turkish-alt-postfix" "Turkish" "TR«" t
  "Turkish (Türkçe) input method with postfix modifiers.
+This input method differs from `turkish-postfix' in that
+comma is not special (use ` instead).
 
 turkish-latin-3-alt-postfix is an obsolete alias for turkish-alt-postfix.
 

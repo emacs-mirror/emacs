@@ -29,10 +29,13 @@
 
 ;;; Code:
 
-(eval-and-compile
+(eval-when-compile
 
   ;; Pacify byte-compiler.
-  (require 'cl)
+  (require 'cl))
+
+(eval-and-compile
+
   (require 'custom)
 
   ;; Load the appropriate timer package.

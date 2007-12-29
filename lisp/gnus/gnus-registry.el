@@ -586,6 +586,54 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 		     (string-match word x))
 		   list)))))
 
+(defun gnus-registry-mark-article (article &optional mark remove)
+  "Mark ARTICLE with MARK in the Gnus registry or remove MARK.
+MARK can be any symbol.  If ARTICLE is nil, then the
+`gnus-current-article' will be marked.  If MARK is nil,
+`gnus-registry-flag-default' will be used."
+  (interactive "nArticle number: ")
+  (let ((article (or article gnus-current-article))
+	(mark (or mark 'gnus-registry-flag-default))
+	article-id)
+    (unless article
+      (error "No article on current line"))
+    (setq article-id 
+	  (gnus-registry-fetch-message-id-fast gnus-current-article))
+    (unless article-id
+      (error "No article ID could be retrieved"))
+    (let* (
+	   ;; all the marks for this article
+	   (marks (gnus-registry-fetch-extra-flags article-id))
+	   ;; the marks without the mark of interest
+	   (cleaned-marks (delq mark marks))
+	   ;; the new marks we want to use
+	   (new-marks (if remove
+			  cleaned-marks
+			(cons mark cleaned-marks))))
+    (apply 'gnus-registry-store-extra-flags ; set the extra flags
+     article-id				    ; for the message ID
+     new-marks)
+    (gnus-registry-fetch-extra-flags article-id))))
+
+(defun gnus-registry-article-marks (article)
+  "Get the Gnus registry marks for ARTICLE.
+If ARTICLE is nil, then the `gnus-current-article' will be
+used."
+  (interactive "nArticle number: ")
+  (let ((article (or article gnus-current-article))
+	article-id)
+    (unless article
+      (error "No article on current line"))
+    (setq article-id 
+	  (gnus-registry-fetch-message-id-fast gnus-current-article))
+    (unless article-id
+      (error "No article ID could be retrieved"))
+    (gnus-message 1 
+		  "Message ID %s, Registry flags: %s" 
+		  article-id 
+		  (concat (gnus-registry-fetch-extra-flags article-id)))))
+    
+
 ;;; if this extends to more than 'flags, it should be improved to be more generic.
 (defun gnus-registry-fetch-extra-flags (id)
   "Get the flags of a message, based on the message ID.

@@ -111,6 +111,8 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01857.html
 If mode-name stays non-string, add NEWS entry and doc fix.
 http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg02048.html
 
+** pot@gnu.org, 17 Dec: strange From line maker rmail-reply loop
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.

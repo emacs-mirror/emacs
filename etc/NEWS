@@ -149,14 +149,25 @@ word at point.
 ** TAB now indents the region if the region is active and
 `transient-mark-mode' is turned on.
 
+** `use-empty-active-region' controls whether an empty active region
+in Transient Mark mode should make commands operate on that empty region.
+
 ** C-z now invokes `suspend-frame', C-x C-c now invokes
 `save-buffers-kill-terminal'.
 
 ** New command kill-matching-buffers kills buffers whose name matches a regexp.
 
-** `interprogram-paste-function' can now return one string or a list
-of strings.  In the latter case, Emacs puts the second and following
-strings on the kill ring.
+** You can disable kill ring commands from accessing the primary selection
+by setting `x-select-enable-primary' to nil.
+
+** If `select-active-regions' is t, setting the mark automatically
+makes the new region into the primary selection (for interaction with
+other window applications).  If you enable this, you might want to bind
+`mouse-yank-primary' to Mouse-2.
+
+** If `yank-pop-change-selection' is t, rotating the kill ring
+also updates the selection or clipboard to the current yank,
+just as M-w would do so with the text it copies to the kill ring.
 
 ** Minibuffer changes:
 
@@ -439,6 +450,14 @@ variable as having been made within Custom.
 ** `frame-inherited-parameters' lets new frames inherit parameters from
 the selected frame.
 
+** Commands should use `use-region-p' to test whether there is
+an active region that they should operate on.
+
+** `region-active-p' returns non-nil when Transient Mark mode
+is enabled and there is an active region.  This is NOT the best function
+to use to test whether a command should operate on the region instead
+of the usual behavior -- for that, use `use-region-p'.
+
 ** New keymap `input-decode-map' overrides like key-translation-map, but
 applies before function-key-map.  Also it is terminal-local contrary to
 key-translation-map.  Terminal-specific key-sequences are generally added to
@@ -450,6 +469,10 @@ statements are accurate (i.e. the functions are actually defined in
 the specified files).
 
 ** The new function `read-color' reads a color name using the minibuffer.
+
+** `interprogram-paste-function' can now return one string or a list
+of strings.  In the latter case, Emacs puts the second and following
+strings on the kill ring.
 
 ** Changes related to multiple tty support.
 

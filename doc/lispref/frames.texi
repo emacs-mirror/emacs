@@ -362,12 +362,12 @@ in this frame.  Its value is @code{color}, @code{grayscale} or
 @code{mono}.
 
 @item title
-If a frame has a non-@code{nil} title, it appears in the window system's
-border for the frame, and also in the mode line of windows in that frame
-if @code{mode-line-frame-identification} uses @samp{%F}
-(@pxref{%-Constructs}).  This is normally the case when Emacs is not
-using a window system, and can only display one frame at a time.
-@xref{Frame Titles}.
+If a frame has a non-@code{nil} title, it appears in the window
+system's title bar at the top of the frame, and also in the mode line
+of windows in that frame if @code{mode-line-frame-identification} uses
+@samp{%F} (@pxref{%-Constructs}).  This is normally the case when
+Emacs is not using a window system, and can only display one frame at
+a time.  @xref{Frame Titles}.
 
 @item name
 The name of the frame.  The frame name serves as a default for the frame
@@ -463,7 +463,7 @@ The height of the frame contents, in characters.  (To get the height in
 pixels, call @code{frame-pixel-height}; see @ref{Size and Position}.)
 
 @item width
-The width of the frame contents, in characters.  (To get the height in
+The width of the frame contents, in characters.  (To get the width in
 pixels, call @code{frame-pixel-width}; see @ref{Size and Position}.)
 
 @item user-size
@@ -808,8 +808,14 @@ of the frame is normally the same as the size of the terminal screen.
 
 @defun frame-pixel-height &optional frame
 @defunx frame-pixel-width &optional frame
-These functions return the height and width of @var{frame}, measured in
-pixels.  If you don't supply @var{frame}, they use the selected frame.
+These functions return the height and width of the main display area
+of @var{frame}, measured in pixels.  If you don't supply @var{frame},
+they use the selected frame.
+
+These values include the internal borders, and windows' scroll bars
+and fringes (which belong to individual windows, not to the frame
+itself), but do not include menu bars or tool bars (except when using
+X without an X toolkit).
 @end defun
 
 @defun frame-char-height &optional frame

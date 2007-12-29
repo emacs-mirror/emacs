@@ -114,35 +114,6 @@
 (defvar x-pointer-top-left-arrow)
 
 ;;; Code:
-
-;; From custom web page for compatibility between versions of custom
-;; with help from ptype@dera.gov.uk (Proto Type)
-(eval-and-compile
-  (condition-case ()
-      (require 'custom)
-    (error nil))
-  (if (and (featurep 'custom) (fboundp 'custom-declare-variable)
-	   ;; Some XEmacsen w/ custom don't have :set keyword.
-	   ;; This protects them against custom.
-	   (fboundp 'custom-initialize-set))
-      nil ;; We've got what we needed
-    ;; We have the old custom-library, hack around it!
-    (if (boundp 'defgroup)
-	nil
-      (defmacro defgroup (&rest args)
-	nil))
-    (if (boundp 'defface)
-	nil
-      (defmacro defface (var values doc &rest args)
-        ;; To make colors for your faces you need to set your .Xdefaults
-        ;; or set them up ahead of time in your .emacs file.
-        `(make-face ,var)
-        ))
-    (if (boundp 'defcustom)
-	nil
-      (defmacro defcustom (var value doc &rest args)
-	`(defvar ,var ,value ,doc)))))
-
 
 ;;; Compatibility functions
 ;;

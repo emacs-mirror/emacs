@@ -2798,9 +2798,10 @@ summary buffer."
     (setq gnus-article-browse-html-temp-list nil))
   gnus-article-browse-html-temp-list)
 
-(defun gnus-article-browse-html-parts (list)
+(defun gnus-article-browse-html-parts (list &optional header)
   "View all \"text/html\" parts from LIST.
-Recurse into multiparts."
+Recurse into multiparts.  The optional HEADER that should be a decoded
+message header will be added to the bodies of the \"text/html\" parts."
   ;; Internal function used by `gnus-article-browse-html-article'.
   (let (type file charset tmp-file showed)
     ;; Find and show the html-parts.
@@ -2809,10 +2810,11 @@ Recurse into multiparts."
       (cond ((not (listp handle)))
 	    ((or (equal (car (setq type (mm-handle-type handle))) "text/html")
 		 (and (equal (car type) "message/external-body")
-		      (setq file (or (mail-content-type-get type 'name)
-				     (mail-content-type-get
-				      (mm-handle-disposition handle)
-				      'filename)))
+		      (or header
+			  (setq file (or (mail-content-type-get type 'name)
+					 (mail-content-type-get
+					  (mm-handle-disposition handle)
+					  'filename))))
 		      (or (mm-handle-cache handle)
 			  (condition-case code
 			      (progn (mm-extern-cache-contents handle) t)
@@ -2825,24 +2827,111 @@ Recurse into multiparts."
 			      type (mm-handle-type handle))
 			(equal (car type) "text/html"))))
 	     (when (or (setq charset (mail-content-type-get type 'charset))
+		       header
 		       (not file))
 	       (setq tmp-file (mm-make-temp-file
 			       ;; Do we need to care for 8.3 filenames?
 			       "mm-" nil ".html")))
-	     (if charset
-		 ;; Add a meta html tag to specify charset.
-		 (mm-with-unibyte-buffer
-		   (insert (if (eq charset 'gnus-decoded)
-			       (mm-encode-coding-string (mm-get-part handle)
-							(setq charset 'utf-8))
-			     (mm-get-part handle)))
-		   (if (or (mm-add-meta-html-tag handle charset)
-			   (not file))
-		       (mm-write-region (point-min) (point-max)
-					tmp-file nil nil nil 'binary t)
-		     (setq tmp-file nil)))
-	       (when tmp-file
-		 (mm-save-part-to-file handle tmp-file)))
+	     ;; Add a meta html tag to specify charset and a header.
+	     (cond
+	      (header
+	       (let (title eheader body hcharset coding)
+		 (with-temp-buffer
+		   (mm-enable-multibyte)
+		   (setq case-fold-search t)
+		   (insert header "\n")
+		   (setq title (message-fetch-field "subject"))
+		   (goto-char (point-min))
+		   (while (re-search-forward "\\(<\\)\\|\\(>\\)\\|&" nil t)
+		     (replace-match (cond ((match-beginning 1) "&lt;")
+					  ((match-beginning 2) "&gt;")
+					  (t "&amp;"))))
+		   (goto-char (point-min))
+		   (insert "<pre>\n")
+		   (goto-char (point-max))
+		   (insert "</pre>\n<hr>\n")
+		   ;; We have to examine charset one by one since
+		   ;; charset specified in parts might be different.
+		   (if (eq charset 'gnus-decoded)
+		       (setq charset 'utf-8
+			     eheader (mm-encode-coding-string (buffer-string)
+							      charset)
+			     title (when title
+				     (mm-encode-coding-string title charset))
+			     body (mm-encode-coding-string (mm-get-part handle)
+							   charset))
+		     (setq hcharset (mm-find-mime-charset-region (point-min)
+								 (point-max)))
+		     (cond ((= (length hcharset) 1)
+			    (setq hcharset (car hcharset)
+				  coding (mm-charset-to-coding-system
+					  hcharset)))
+			   ((> (length hcharset) 1)
+			    (setq hcharset 'utf-8
+				  coding hcharset)))
+		     (if coding
+			 (if charset
+			     (progn
+			       (setq body
+				     (mm-charset-to-coding-system charset))
+			       (if (eq coding body)
+				   (setq eheader (mm-encode-coding-string
+						  (buffer-string) coding)
+					 title (when title
+						 (mm-encode-coding-string
+						  title coding))
+					 body (mm-get-part handle))
+				 (setq charset 'utf-8
+				       eheader (mm-encode-coding-string
+						(buffer-string) charset)
+				       title (when title
+					       (mm-encode-coding-string
+						title charset))
+				       body (mm-encode-coding-string
+					     (mm-decode-coding-string
+					      (mm-get-part handle) body)
+					     charset))))
+			   (setq charset hcharset
+				 eheader (mm-encode-coding-string
+					  (buffer-string) coding)
+				 title (when title
+					 (mm-encode-coding-string
+					  title coding))
+				 body (mm-get-part handle)))
+		       (setq eheader (mm-string-as-unibyte (buffer-string))
+			     body (mm-get-part handle))))
+		   (erase-buffer)
+		   (mm-disable-multibyte)
+		   (insert body)
+		   (when charset
+		     (mm-add-meta-html-tag handle charset))
+		   (when title
+		     (goto-char (point-min))
+		     (unless (search-forward "<title>" nil t)
+		       (re-search-forward "<head>\\s-*" nil t)
+		       (insert "<title>" title "</title>\n")))
+		   (goto-char (point-min))
+		   (or (re-search-forward
+			"<body\\(?:\\s-+[^>]+\\|\\s-*\\)>\\s-*" nil t)
+		       (re-search-forward
+			"</head\\(?:\\s-+[^>]+\\|\\s-*\\)>\\s-*" nil t))
+		   (insert eheader)
+		   (mm-write-region (point-min) (point-max)
+				    tmp-file nil nil nil 'binary t))))
+	      (charset
+	       (mm-with-unibyte-buffer
+		 (insert (if (eq charset 'gnus-decoded)
+			     (mm-encode-coding-string
+			      (mm-get-part handle)
+			      (setq charset 'utf-8))
+			   (mm-get-part handle)))
+		 (if (or (mm-add-meta-html-tag handle charset)
+			 (not file))
+		     (mm-write-region (point-min) (point-max)
+				      tmp-file nil nil nil 'binary t)
+		   (setq tmp-file nil))))
+	      (tmp-file
+	       (mm-save-part-to-file handle tmp-file)))
 	     (when tmp-file
 	       (add-to-list 'gnus-article-browse-html-temp-list tmp-file))
 	     (add-hook 'gnus-summary-prepare-exit-hook
@@ -2854,16 +2943,37 @@ Recurse into multiparts."
 	     (browse-url-of-file (or tmp-file (expand-file-name file)))
 	     (setq showed t))
 	    ;; If multipart, recurse
-	    ((and (stringp (car handle))
-		  (string-match "^multipart/" (car handle))
-		  (setq showed
-			(or showed
-			    (gnus-article-browse-html-parts handle)))))))
+	    ((equal (mm-handle-media-supertype handle) "multipart")
+	     (when (gnus-article-browse-html-parts handle header)
+	       (setq showed t)))
+	    ((equal (mm-handle-media-type handle) "message/rfc822")
+	     (mm-with-multibyte-buffer
+	       (mm-insert-part handle)
+	       (setq handle (mm-dissect-buffer t t))
+	       (when (and (bufferp (car handle))
+			  (stringp (car (mm-handle-type handle))))
+		 (setq handle (list handle)))
+	       (when header
+		 (article-decode-encoded-words)
+		 (let ((gnus-visible-headers
+			(or (get 'gnus-visible-headers 'standard-value)
+			    gnus-visible-headers)))
+		   (article-hide-headers))
+		 (goto-char (point-min))
+		 (search-forward "\n\n" nil 'move)
+		 (skip-chars-backward "\t\n ")
+		 (setq header (buffer-substring (point-min) (point)))))
+	     (when (prog1
+		       (gnus-article-browse-html-parts handle header)
+		     (mm-destroy-parts handle))
+	       (setq showed t)))))
     showed))
 
 ;; FIXME: Documentation in texi/gnus.texi missing.
-(defun gnus-article-browse-html-article ()
+(defun gnus-article-browse-html-article (&optional arg)
   "View \"text/html\" parts of the current article with a WWW browser.
+The message header is added to the beginning of every html part unless
+the prefix argument ARG is given.
 
 Warning: Spammers use links to images in HTML articles to verify
 whether you have read the message.  As
@@ -2874,20 +2984,36 @@ should only use it for mails from trusted senders.
 If you alwasy want to display HTML part in the browser, set
 `mm-text-html-renderer' to nil."
   ;; Cf. `mm-w3m-safe-url-regexp'
-  (interactive)
-  (save-window-excursion
-    ;; Open raw article and select the buffer
-    (gnus-summary-show-article t)
-    (gnus-summary-select-article-buffer)
-    (let ((parts (mm-dissect-buffer t t)))
+  (interactive "P")
+  (if arg
+      (gnus-summary-show-article)
+    (let ((gnus-visible-headers (or (get 'gnus-visible-headers 'standard-value)
+				    gnus-visible-headers)))
+      (gnus-summary-show-article)))
+  (with-current-buffer gnus-article-buffer
+    (let ((header (unless arg
+		    (save-restriction
+		      (widen)
+		      (buffer-substring-no-properties
+		       (goto-char (point-min))
+		       (if (search-forward "\n\n" nil t)
+			   (match-beginning 0)
+			 (goto-char (point-max))
+			 (skip-chars-backward "\t\n ")
+			 (point))))))
+	  parts)
+      (set-buffer gnus-original-article-buffer)
+      (setq parts (mm-dissect-buffer t t))
       ;; If singlepart, enforce a list.
       (when (and (bufferp (car parts))
 		 (stringp (car (mm-handle-type parts))))
 	(setq parts (list parts)))
       ;; Process the list
-      (unless (gnus-article-browse-html-parts parts)
+      (unless (gnus-article-browse-html-parts parts header)
 	(gnus-error 3 "Mail doesn't contain a \"text/html\" part!"))
-      (gnus-summary-show-article))))
+      (mm-destroy-parts parts)
+      (unless arg
+	(gnus-summary-show-article)))))
 
 (defun article-hide-list-identifiers ()
   "Remove list identifies from the Subject header.

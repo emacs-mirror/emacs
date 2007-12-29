@@ -285,6 +285,12 @@ locked.  REV is the revision to check out."
   (vc-do-command nil 0 "unget" (vc-name file) "-n" (if rev (concat "-r" rev)))
   (vc-do-command nil 0 "get" (vc-name file) "-g" (if rev (concat "-r" rev))))
 
+(defun vc-sccs-modify-change-comment (files rev comment)
+  "Modify (actually, append to) the change comments for FILES on a specified REV."
+  (dolist (file files)
+    (vc-do-command nil 0 "cdc" (vc-name file) 
+		   (concat "-y" comment) (concat "-r" rev))))
+
 
 ;;;
 ;;; History functions

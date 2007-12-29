@@ -616,10 +616,11 @@ Major/minor modes can set this variable if they know which option applies.")
 			deactivate-mark
 			buffer-file-name
 			buffer-file-truename))
-	 (progn
-	   ,@body)
-	 (unless ,modified
-	   (restore-buffer-modified-p nil)))))
+	 (unwind-protect
+	     (progn
+	       ,@body)
+	   (unless ,modified
+	     (restore-buffer-modified-p nil))))))
   ;;
   ;; Shut up the byte compiler.
   (defvar font-lock-face-attributes))	; Obsolete but respected if set.

@@ -131,18 +131,6 @@ visited by the buffers.")
   "The variable to store the extent to highlight.")
 (make-variable-buffer-local 'whitespace-highlighted-space)
 
-;; For flavors of Emacs which don't define `defgroup' and `defcustom'.
-(eval-when-compile
-  (if (not (fboundp 'defgroup))
-      (defmacro defgroup (sym memb doc &rest args)
-	"Null macro for `defgroup' in all versions of Emacs that don't define it."
-	t))
-  (if (not (fboundp 'defcustom))
-      (defmacro defcustom (sym val doc &rest args)
-	"Macro to alias `defcustom' to `defvar' in all versions of Emacs that
-don't define it."
-	`(defvar ,sym ,val ,doc))))
-
 (defalias 'whitespace-make-overlay
   (if (featurep 'xemacs) 'make-extent 'make-overlay))
 (defalias 'whitespace-overlay-put

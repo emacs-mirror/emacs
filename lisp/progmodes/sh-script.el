@@ -1097,7 +1097,7 @@ subshells can nest."
     ;; change the syntax, so we have to tell syntax-ppss that the states it
     ;; has just computed will need to be recomputed.
     (sh-font-lock-flush-syntax-ppss-cache)
-    ;; Make sure $@ and @? are correctly recognized as sexps.
+    ;; Make sure $@ and $? are correctly recognized as sexps.
     ("\\$\\([?@]\\)" 1 ,sh-st-symbol)
     ;; Find HEREDOC starters and add a corresponding rule for the ender.
     (sh-font-lock-here-doc

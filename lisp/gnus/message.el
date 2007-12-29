@@ -666,6 +666,7 @@ See also `send-mail-function'."
 			       :tag "Use Mailclient package")
  		(function :tag "Other"))
   :group 'message-sending
+  :version "23.0" ;; No Gnus
   :initialize 'custom-initialize-default
   :link '(custom-manual "(message)Mail Variables")
   :group 'message-mail)

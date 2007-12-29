@@ -485,7 +485,7 @@ stream.  Standard error output is discarded."
 ;; and implement a command to run ediff and `bzr resolve' once the 
 ;; changes have been merged.
 (defun vc-bzr-dir-state (dir &optional localp)
-  "Find the VC state of all files in DIR.
+  "Find the VC state of all files in DIR and its subdirectories.
 Optional argument LOCALP is always ignored."
   (let ((bzr-root-directory (vc-bzr-root dir))
         (at-start t)
@@ -498,7 +498,8 @@ Optional argument LOCALP is always ignored."
     ;; evidence of the contrary.
     (setq at-start t)
     (with-temp-buffer
-      (vc-bzr-command "ls" t 0 nil "--versioned" "--non-recursive")
+      (buffer-disable-undo)		;; Because these buffers can get huge
+      (vc-bzr-command "ls" t 0 nil "--versioned")
       (goto-char (point-min))
       (while (or at-start
                  (eq 0 (forward-line)))
@@ -532,8 +533,11 @@ Optional argument LOCALP is always ignored."
          ((looking-at "^renamed") 
           (setq current-vc-state 'edited)
           (setq current-bzr-state 'renamed))
-         ((looking-at "^\\(unknown\\|ignored\\)")
-          (setq current-vc-state nil)
+         ((looking-at "^ignored")
+          (setq current-vc-state 'ignored)
+          (setq current-bzr-state 'not-versioned))
+         ((looking-at "^unknown")
+          (setq current-vc-state 'unregistered)
           (setq current-bzr-state 'not-versioned))
          ((looking-at "  ")
           ;; file names are indented by two spaces

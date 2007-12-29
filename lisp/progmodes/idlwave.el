@@ -172,16 +172,6 @@
 	(require 'timer)
       (error nil)))
 
-(eval-and-compile
-  ;; Kludge to allow `defcustom' for Emacs 19.
-  (condition-case () (require 'custom) (error nil))
-  (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
-      nil ;; We've got what we needed
-    ;; We have the old or no custom-library, hack around it!
-    (defmacro defgroup (&rest args) nil)
-    (defmacro defcustom (var value doc &rest args)
-      `(defvar ,var ,value ,doc))))
-
 (declare-function idlwave-shell-get-path-info "idlw-shell")
 (declare-function idlwave-shell-temp-file "idlw-shell")
 (declare-function idlwave-shell-is-running "idlw-shell")
@@ -2122,15 +2112,11 @@ Returns point if comment found and nil otherwise."
            (backward-char 1)
            (point)))))
 
-(defvar transient-mark-mode)
-(defvar zmacs-regions)
-(defvar mark-active)
 (defun idlwave-region-active-p ()
-  "Is transient-mark-mode on and the region active?
-Works on both Emacs and XEmacs."
-  (if (featurep 'xemacs)
-      (and zmacs-regions (region-active-p))
-    (and transient-mark-mode mark-active)))
+  "Should we operate on an active region?"
+  (if (fboundp 'use-region-p)
+      (use-region-p)
+    (region-active-p)))
 
 (defun idlwave-show-matching-quote ()
   "Insert quote and show matching quote if this is end of a string."

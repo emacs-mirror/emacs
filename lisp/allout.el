@@ -1501,11 +1501,11 @@ See `allout-encryption-ciphertext-rejection-regexps' for rejection reasons.")
             (condition-case failure
                 (setq allout-after-save-decrypt
                       (allout-encrypt-decrypted except-mark))
-              (error (progn
-                       (message
-                        "allout-write-file-hook-handler suppressing error %s"
-                        failure)
-                       (sit-for 2))))))
+	      (message "allout-write-file-hook-handler suppressing error %s"
+		       failure)
+	      (sit-for 2)
+	      (error "allout-write-file-hook-handler suppressing error %s"
+		     failure))))
       ))
     nil)
 ;;;_   > allout-auto-save-hook-handler ()
@@ -5457,11 +5457,11 @@ header and body.  The elements of that list are:
 				 (cdr format)))))))
       ;; Put the list with first at front, to last at back:
       (nreverse result))))
-;;;_   > my-region-active-p ()
-(defmacro my-region-active-p ()
-  (if (fboundp 'region-active-p)
-      '(region-active-p)
-    'mark-active))
+;;;_   > allout-region-active-p ()
+(defmacro allout-region-active-p ()
+  (if (fboundp 'use-region-p)
+      '(use-region-p)
+    '(region-active-p)))
 ;;;_   > allout-process-exposed (&optional func from to frombuf
 ;;;					    tobuf format)
 (defun allout-process-exposed (&optional func from to frombuf tobuf
@@ -5494,7 +5494,7 @@ Defaults:
 					; defaulting if necessary:
   (if (not func) (setq func 'allout-insert-listified))
   (if (not (and from to))
-      (if (my-region-active-p)
+      (if (allout-region-active-p)
 	  (setq from (region-beginning) to (region-end))
 	(setq from (point-min) to (point-max))))
   (if frombuf

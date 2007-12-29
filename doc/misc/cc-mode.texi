@@ -487,8 +487,8 @@ work just fine right out of the box.  Note however that you might not
 have the latest @ccmode{} release and might want to upgrade your copy
 (see below).
 
-You should probably start by skimming through the entire chapter
-@ref{Commands} to get an overview of @ccmode{}'s capabilities.
+You should probably start by skimming through the entire Commands chapter
+(@pxref{Commands}) to get an overview of @ccmode{}'s capabilities.
 
 After trying out some commands, you may dislike some aspects of
 @ccmode{}'s default configuration.  Here is an outline of how to

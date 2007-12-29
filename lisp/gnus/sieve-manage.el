@@ -79,8 +79,11 @@
 ;; For Emacs < 22.2.
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
-(or (require 'password-cache nil t)
-    (require 'password))
+
+(if (locate-library "password-cache")
+    (require 'password-cache)
+  (require 'password))
+
 (eval-when-compile
   (require 'sasl)
   (require 'starttls))

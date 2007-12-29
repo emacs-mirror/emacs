@@ -1358,6 +1358,20 @@ regardless of where you click."
   (setq mouse-selection-click-count 0)
   (yank arg))
 
+(defun mouse-yank-primary (click)
+  "Insert the primary selection at the position clicked on.
+Move point to the end of the inserted text.
+If `mouse-yank-at-point' is non-nil, insert at point
+regardless of where you click."
+  (interactive "e")
+  ;; Give temporary modes such as isearch a chance to turn off.
+  (run-hooks 'mouse-leave-buffer-hook)
+  (or mouse-yank-at-point (mouse-set-point click))
+  (let ((primary (x-get-selection 'PRIMARY)))
+    (if primary
+        (insert (x-get-selection 'PRIMARY))
+      (error "No primary selection"))))
+
 (defun mouse-kill-ring-save (click)
   "Copy the region between point and the mouse click in the kill ring.
 This does not delete the region; it acts like \\[kill-ring-save]."

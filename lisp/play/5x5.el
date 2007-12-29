@@ -53,13 +53,6 @@
 (eval-when-compile
   (require 'cl))
 
-;; If customize isn't available just use defvar instead.
-(eval-and-compile
-  (unless (fboundp 'defgroup)
-    (defmacro defgroup  (&rest rest) nil)
-    (defmacro defcustom (symbol init docstring &rest rest)
-      `(defvar ,symbol ,init ,docstring))))
-
 ;; Customize options.
 
 (defgroup 5x5 nil

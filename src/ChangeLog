@@ -1,3 +1,77 @@
+2007-12-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* process.c (make_process): Initialize pty_flag to Qnil instead of 0
+	as it is not a bit field on Emacs 22 yet.
+
+	* xdisp.c (phys_cursor_in_rect_p): Check if cursor is in fringe area.
+
+2007-12-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* callint.c (syms_of_callint) <command-history>: Add reference to
+	history-length in the doc string.
+
+2007-12-17  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_wnd_proc) <WM_KEYDOWN>: Cast char to unsigned
+	before passing as wParam.
+
+2007-12-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_retrieve_arg): Handle DBUS_TYPE_BYTE,
+	DBUS_TYPE_INT16, DBUS_TYPE_UINT16, DBUS_TYPE_INT64,
+	DBUS_TYPE_UINT64, DBUS_TYPE_DOUBLE and DBUS_TYPE_SIGNATURE.
+	Return float when DBUS_TYPE_INT32 or DBUS_TYPE_UINT32 do not fit
+	as number.
+	(Fdbus_call_method): Fix docstring.
+
+2007-12-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (XD_BASIC_DBUS_TYPE, XD_DBUS_TYPE_P, XD_NEXT_VALUE):
+	New macros.
+	(XD_SYMBOL_TO_DBUS_TYPE): Renamed from
+	XD_LISP_SYMBOL_TO_DBUS_TYPE.
+	(XD_OBJECT_TO_DBUS_TYPE): Renamed from
+	XD_LISP_OBJECT_TO_DBUS_TYPE. Simplify.
+	(xd_signature): New function.
+	(xd_append_arg): Compute also signatures.  Major rewrite.
+	(xd_retrieve_arg): Make debug messages friendly.
+	(Fdbus_call_method, Fdbus_send_signal): Extend docstring.  Check
+	for signatures of arguments.
+
+2007-12-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (QCdbus_type_byte, QCdbus_type_boolean)
+	(QCdbus_type_int16, QCdbus_type_uint16, QCdbus_type_int32)
+	(QCdbus_type_uint32, QCdbus_type_int64, QCdbus_type_uint64)
+	(QCdbus_type_double, QCdbus_type_string, QCdbus_type_object_path)
+	(QCdbus_type_signature, QCdbus_type_array, QCdbus_type_variant)
+	(QCdbus_type_struct, QCdbus_type_dict_entry): New D-Bus type
+	symbols.
+	(XD_LISP_SYMBOL_TO_DBUS_TYPE): New macro.
+	(XD_LISP_OBJECT_TO_DBUS_TYPE): Add compound types.
+	(xd_retrieve_value): Removed. Functionality included in ...
+	(xd_append_arg): New function.
+	(Fdbus_call_method, Fdbus_send_signal): Apply it.
+
+2007-12-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (top): Include <stdio.h>.
+	(Fdbus_call_method, Fdbus_send_signal): Apply type cast in
+	dbus_message_new_method_call and dbus_message_new_signal.
+	(Fdbus_register_signal): Rename unique_name to uname.  Check
+	handler for FUNCTIONP instead of CHECK_SYMBOL.  Handle case of
+	non-existing unique name.  Fix typos in matching rule.  Return an
+	object which is useful in Fdbus_unregister_signal.
+	(Fdbus_unregister_signal): Reimplementation, in order to remove
+	only the corresponding entry.
+	(Vdbus_registered_functions_table): Change the order of entries.
+	Apply these changes in xd_read_message and Fdbus_register_signal.
+
+2007-12-16  Andreas Schwab  <schwab@suse.de>
+
+	* fileio.c (Finsert_file_contents): Fix overflow check to not
+	depend on undefined integer overflow.
+
 2007-12-14  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_read_socket): Use MULTIBYTE_CHAR_KEYSTROKE_EVENT
@@ -837,6 +911,12 @@
 	* msdos.c (dos_rawgetc): Undo last change (there's no ``leaving
 	selected frame'' on MSDOS).
 
+2007-10-12  Martin Rudalics  <rudalics@gmx.at>
+
+	* frame.c (Qexplicit_name): New variable.
+	(x_report_frame_params): Report it in parameter alist.
+	(syms_of_frame): Intern and staticpro it.
+
 2007-10-10  Patrick Mahan  <mahan@mahan.org>  (tiny change)
 
 	* macfns.c (x_create_tip_frame): Set terminal for frame.
@@ -863,6 +943,11 @@
 2007-10-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* puresize.h (BASE_PURESIZE): Increase to 1170000.
+
+2007-10-09  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_set_window_size): Disable code that attempts to tell
+	Lisp code about a size change before it actually happens.
 
 2007-10-09  Richard Stallman  <rms@gnu.org>
 

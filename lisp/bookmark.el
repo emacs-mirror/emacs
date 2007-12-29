@@ -443,6 +443,8 @@ That is, all information but the name."
   (message "%S" (assq 'info-node (bookmark-get-bookmark-record bookmark)))
   (sit-for 4))
 
+(defun bookmark-get-handler (bookmark)
+  (cdr (assq 'handler (bookmark-get-bookmark-record bookmark))))
 
 (defvar bookmark-history nil
   "The history list for bookmark functions.")
@@ -480,6 +482,22 @@ menus, so `completing-read' never gets a chance to set `bookmark-history'."
     (interactive-p)
     (setq bookmark-history (cons ,string bookmark-history))))
 
+(defvar bookmark-make-cell-function 'bookmark-make-cell-for-text-file
+  "A function that should be called to create the bookmark
+record.  Modes may set this variable buffer-locally to enable
+bookmarking of non-text files like images or pdf documents.
+
+The function will be called with two arguments: ANNOTATION and
+INFO-NODE.  See `bookmark-make-cell-for-text-file' for a
+description.
+
+The returned record may contain a special cons (handler
+. some-function) which sets the handler function that should be
+used to open this bookmark instead of `bookmark-jump-noselect'.
+It should return a cons (BUFFER . POINT) indicating buffer
+showing the bookmarked location and the value of point in that
+buffer.  Like `bookmark-jump-noselect' the buffer shouldn't be
+selected by the handler.")
 
 (defun bookmark-make (name &optional annotation overwrite info-node)
   "Make a bookmark named NAME.
@@ -498,7 +516,7 @@ INFO-NODE, so record this fact in the bookmark's entry."
         ;; already existing bookmark under that name and
         ;; no prefix arg means just overwrite old bookmark
         (setcdr (bookmark-get-bookmark stripped-name)
-                (list (bookmark-make-cell annotation info-node)))
+                (list (funcall bookmark-make-cell-function annotation info-node)))
 
       ;; otherwise just cons it onto the front (either the bookmark
       ;; doesn't exist already, or there is no prefix arg.  In either
@@ -507,7 +525,7 @@ INFO-NODE, so record this fact in the bookmark's entry."
       (setq bookmark-alist
             (cons
              (list stripped-name
-                   (bookmark-make-cell annotation info-node))
+                   (funcall bookmark-make-cell-function annotation info-node))
              bookmark-alist)))
 
     ;; Added by db
@@ -518,7 +536,7 @@ INFO-NODE, so record this fact in the bookmark's entry."
         (bookmark-save))))
 
 
-(defun bookmark-make-cell (annotation &optional info-node)
+(defun bookmark-make-cell-for-text-file (annotation &optional info-node)
   "Return the record part of a new bookmark, given ANNOTATION.
 Must be at the correct position in the buffer in which the bookmark is
 being set.  This might change someday.
@@ -780,7 +798,7 @@ the list of bookmarks.\)"
 
 
 (defun bookmark-info-current-node ()
-  "If in Info-mode, return current node name (a string), else nil."
+  "If in `Info-mode', return current node name (a string), else nil."
   (if (eq major-mode 'Info-mode)
       Info-current-node))
 
@@ -855,8 +873,7 @@ Wants BUF, POINT, PARG, and BOOKMARK.
 When you have finished composing, type \\[bookmark-send-annotation] to send
 the annotation.
 
-\\{bookmark-read-annotation-mode-map}
-"
+\\{bookmark-read-annotation-mode-map}"
   (interactive)
   (kill-all-local-variables)
   (make-local-variable 'bookmark-annotation-paragraph)
@@ -896,8 +913,7 @@ Text surrounding the bookmark is PARG; the bookmark name is BOOKMARK."
   "Mode for editing the annotation of bookmark BOOKMARK.
 When you have finished composing, type \\[bookmark-send-annotation].
 
-\\{bookmark-edit-annotation-mode-map}
-"
+\\{bookmark-edit-annotation-mode-map}"
   (interactive)
   (kill-all-local-variables)
   (make-local-variable 'bookmark-annotation-name)
@@ -1068,7 +1084,7 @@ of the old one in the permanent bookmark record."
   (unless bookmark
     (error "No bookmark specified"))
   (bookmark-maybe-historicize-string bookmark)
-  (let ((cell (bookmark-jump-noselect bookmark)))
+  (let ((cell (bookmark-jump-internal bookmark)))
     (and cell
          (switch-to-buffer (car cell))
          (goto-char (cdr cell))
@@ -1090,7 +1106,7 @@ See `bookmark-jump'."
          (list bkm) bkm)))
   (when bookmark
     (bookmark-maybe-historicize-string bookmark)
-    (let ((cell (bookmark-jump-noselect bookmark)))
+    (let ((cell (bookmark-jump-internal bookmark)))
       (and cell
            (switch-to-buffer-other-window (car cell))
            (goto-char (cdr cell))
@@ -1120,6 +1136,11 @@ be retrieved from a VC backend, else return nil."
      ;; Last possibility: try VC
      (if (vc-backend file) file))))
 
+(defun bookmark-jump-internal (bookmark)
+  "Call BOOKMARK's handler or `bookmark-jump-noselect' if it has none."
+  (funcall (or (bookmark-get-handler bookmark)
+	       'bookmark-jump-noselect)
+	   bookmark))
 
 (defun bookmark-jump-noselect (str)
   ;; a leetle helper for bookmark-jump :-)
@@ -1273,10 +1294,10 @@ this."
   (bookmark-maybe-historicize-string bookmark)
   (bookmark-maybe-load-default-file)
   (let ((orig-point (point))
-        (str-to-insert
-         (save-excursion
-           (set-buffer (car (bookmark-jump-noselect bookmark)))
-           (buffer-string))))
+	(str-to-insert
+	 (save-excursion
+	   (set-buffer (car (bookmark-jump-internal bookmark)))
+	   (buffer-string))))
     (insert str-to-insert)
     (push-mark)
     (goto-char orig-point)))
@@ -1904,7 +1925,7 @@ With a prefix arg, prompts for a file to save them in."
             (pop-up-windows t))
         (delete-other-windows)
         (switch-to-buffer (other-buffer))
-	(let* ((pair (bookmark-jump-noselect bmrk))
+	(let* ((pair (bookmark-jump-internal bmrk))
                (buff (car pair))
                (pos  (cdr pair)))
           (pop-to-buffer buff)
@@ -1924,7 +1945,7 @@ With a prefix arg, prompts for a file to save them in."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
     (if (bookmark-bmenu-check-position)
-	(let* ((pair (bookmark-jump-noselect bookmark))
+	(let* ((pair (bookmark-jump-internal bookmark))
                (buff (car pair))
                (pos  (cdr pair)))
 	  (switch-to-buffer-other-window buff)
@@ -1942,7 +1963,7 @@ The current window remains selected."
         same-window-buffer-names
         same-window-regexps)
     (if (bookmark-bmenu-check-position)
-	(let* ((pair (bookmark-jump-noselect bookmark))
+	(let* ((pair (bookmark-jump-internal bookmark))
                (buff (car pair))
                (pos  (cdr pair)))
 	  (display-buffer buff)

@@ -459,7 +459,7 @@ PRESERVE-UID-GID is completely ignored."
 		 ;; We just need the only and only entry FILENAME.
 		 (list (assoc base entries)))))
 
-	;; Sort entries
+	;; Sort entries.
 	(setq entries
 	      (sort
 	       entries
@@ -469,6 +469,18 @@ PRESERVE-UID-GID is completely ignored."
 		     (tramp-time-less-p (nth 3 y) (nth 3 x))
 		   ;; Sort by name.
 		   (string-lessp (nth 0 x) (nth 0 y))))))
+
+	;; Handle "-F" switch.
+	(when (string-match "F" switches)
+	  (mapcar
+	   (lambda (x)
+	     (when (not (zerop (length (car x))))
+	       (cond
+		((char-equal ?d (string-to-char (nth 1 x)))
+		 (setcar x (concat (car x) "/")))
+		((char-equal ?x (string-to-char (nth 1 x)))
+		 (setcar x (concat (car x) "*"))))))
+	   entries))
 
 	;; Print entries.
 	(mapcar

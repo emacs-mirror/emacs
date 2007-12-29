@@ -27,8 +27,10 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(or (require 'password-cache nil t)
-    (require 'password))
+
+(if (locate-library "password-cache")
+    (require 'password-cache)
+  (require 'password))
 
 (autoload 'mml2015-sign "mml2015")
 (autoload 'mml2015-encrypt "mml2015")

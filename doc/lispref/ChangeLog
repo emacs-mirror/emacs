@@ -1,3 +1,14 @@
+2007-12-28  Richard Stallman  <rms@gnu.org>
+
+	* frames.texi (Size Parameters): Fix typo.
+	(Basic Parameters): For `title', refer to title bar.
+	(Size and Position): Explain meaning of frame pixel width and height.
+
+2007-12-23  Richard Stallman  <rms@gnu.org>
+
+	* customize.texi (Type Keywords): Uncomment :validate and clarify it.
+	Improve some of the commented-out keywords' text too.
+
 2007-12-14  Martin Rudalics  <rudalics@gmx.at>
 
 	* nonascii.texi (Encoding and I/O): Reword to avoid saying

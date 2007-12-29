@@ -82,9 +82,7 @@ Complete on start-tag names regardless.")
     ["First Error" rng-first-error :active rng-validate-mode]
     ["Next Error" rng-next-error :active rng-validate-mode]
     "---"
-    ["Customize nXML" (customize-group 'nxml)]
-    "---"
-    ["Show nXML Version" nxml-version]))
+    ["Customize nXML" (customize-group 'nxml)]))
 
 ;;;###autoload
 (defun rng-nxml-mode-init ()

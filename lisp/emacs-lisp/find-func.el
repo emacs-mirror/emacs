@@ -133,6 +133,7 @@ See `find-function' and `find-variable'."
   "Hook run after finding symbol definition.
 
 See the functions `find-function' and `find-variable'."
+  :type 'hook
   :group 'find-function
   :version "20.3")
 

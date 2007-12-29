@@ -173,12 +173,14 @@
 	    (cond
 	     ((eq state ?A) 'edited)
 	     ((eq state ?M) 'edited)
-	     ((eq state ?R) nil)
-	     ((eq state ??) nil)
+	     ((eq state ?I) 'ignored)
+	     ((eq state ?R) 'unregistered)
+	     ((eq state ??) 'unregistered)
 	     (t 'up-to-date))))))))
 
 (defun vc-hg-dir-state (dir)
   (with-temp-buffer
+    (buffer-disable-undo)		;; Because these buffers can get huge
     (vc-hg-command (current-buffer) nil nil "status")
     (goto-char (point-min))
     (let ((status-char nil)
@@ -193,7 +195,6 @@
 	 ;; The rest of the possible states in "hg status" output:
 	 ;; 	 R = removed
 	 ;; 	 ! = deleted, but still tracked
-	 ;; 	 ? = not tracked
 	 ;; should not show up in vc-dired, so don't deal with them
 	 ;; here.
 	 ((eq status-char ?A)
@@ -201,9 +202,11 @@
 	  (vc-file-setprop file 'vc-state 'edited))
 	 ((eq status-char ?M)
 	  (vc-file-setprop file 'vc-state 'edited))
+	 ((eq status-char ?I)
+	  (vc-file-setprop file 'vc-state 'ignored))
 	 ((eq status-char ??)
 	  (vc-file-setprop file 'vc-backend 'none)
-	  (vc-file-setprop file 'vc-state 'nil)))
+	  (vc-file-setprop file 'vc-state 'unregistered)))
 	(forward-line)))))
 
 (defun vc-hg-working-revision (file)
@@ -230,9 +233,9 @@
 
 ;;; History functions
 
-(defun vc-hg-print-log(files &optional buffer)
+(defun vc-hg-print-log (files &optional buffer)
   "Get change log associated with FILES."
-  ;; `log-view-mode' needs to have the file name in order to function
+  ;; `log-view-mode' needs to have the file names in order to function
   ;; correctly. "hg log" does not print it, so we insert it here by
   ;; hand.
 
@@ -244,11 +247,12 @@
   (let ((inhibit-read-only t))
     ;; We need to loop and call "hg log" on each file separately. 
     ;; "hg log" with multiple file arguments mashes all the logs
-    ;; together.
+    ;; together.  Ironically enough, this puts us back near CVS
+    ;; which can't generate proper fileset logs either.
     (dolist (file files)
       (with-current-buffer
 	  buffer
-	(insert "File:        " (file-name-nondirectory file) "\n"))
+	(insert "Working file: " file "\n"))	;; Like RCS/CVS.
       (vc-hg-command buffer 0 file "log"))))
 
 (defvar log-view-message-re)
@@ -257,7 +261,7 @@
 
 (define-derived-mode vc-hg-log-view-mode log-view-mode "Hg-Log-View"
   (require 'add-log) ;; we need the add-log faces
-  (set (make-local-variable 'log-view-file-re) "^File:[ \t]+\\(.+\\)")
+  (set (make-local-variable 'log-view-file-re) "^Working file:[ \t]+\\(.+\\)")
   (set (make-local-variable 'log-view-message-re)
        "^changeset:[ \t]*\\([0-9]+\\):\\(.+\\)")
   (set (make-local-variable 'log-view-font-lock-keywords)

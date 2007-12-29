@@ -946,6 +946,7 @@ It is highly recommended to fix it before writing to a file."
 
     (let ((codings (find-coding-systems-region from to))
 	  (coding-system nil)
+	  (tick (if (not (stringp from)) (buffer-modified-tick)))
 	  safe rejected unsafe)
       (if (eq (car codings) 'undecided)
 	  ;; Any coding system is ok.
@@ -1011,6 +1012,8 @@ It is highly recommended to fix it before writing to a file."
 %s specified by file contents.  Really save (else edit coding cookies \
 and try again)? " coding-system auto-cs))
 	      (error "Save aborted"))))
+      (when (and tick (/= tick (buffer-modified-tick)))
+	(error "Cancelled because the buffer was modified"))
       coding-system)))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
@@ -1302,7 +1305,10 @@ This is the input method activated automatically by the command
 (put 'input-method-function 'permanent-local t)
 
 (defvar input-method-history nil
-  "History list for some commands that read input methods.")
+  "History list of input methods read from the minibuffer.
+
+Maximum length of the history list is determined by the value
+of `history-length', which see.")
 (make-variable-buffer-local 'input-method-history)
 (put 'input-method-history 'permanent-local t)
 

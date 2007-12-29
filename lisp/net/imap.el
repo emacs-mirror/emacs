@@ -1177,18 +1177,18 @@ password is remembered in the buffer."
       (if passwd (setq imap-password passwd))
       (if imap-auth
 	  (and (funcall (nth 2 (assq imap-auth
-				     imap-authenticator-alist)) buffer)
+				     imap-authenticator-alist)) (current-buffer))
 	       (setq imap-state 'auth))
 	;; Choose authenticator.
 	(let ((auths imap-authenticators)
 	      auth)
 	  (while (setq auth (pop auths))
 	    ;; OK to use authenticator?
-	    (when (funcall (nth 1 (assq auth imap-authenticator-alist)) buffer)
+	    (when (funcall (nth 1 (assq auth imap-authenticator-alist)) (current-buffer))
 	      (message "imap: Authenticating to `%s' using `%s'..."
 		       imap-server auth)
 	      (setq imap-auth auth)
-	      (if (funcall (nth 2 (assq auth imap-authenticator-alist)) buffer)
+	      (if (funcall (nth 2 (assq auth imap-authenticator-alist)) (current-buffer))
 		  (progn
 		    (message "imap: Authenticating to `%s' using `%s'...done"
 			     imap-server auth)
