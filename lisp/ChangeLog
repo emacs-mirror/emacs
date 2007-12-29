@@ -1,3 +1,11 @@
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* startup.el (fancy-startup-tail, fancy-about-text)
+	(fancy-startup-text): Regularize format of face property.
+
+	* facemenu.el (list-colors-print): Use :background and :foreground
+	instead of background-color and foreground-color.
+
 2007-12-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* textmodes/ispell.el (ispell-grep-command): Use "grep" on
