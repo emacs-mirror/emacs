@@ -13965,13 +13965,13 @@ entered this way or using square brackets.  Since FORTRAN uses round
 parentheses for both function calls and array subscripts, Calc displays
 both in the same way; @samp{a(i)} is interpreted as a function call
 upon reading, and subscripts must be entered as @samp{subscr(a, i)}.
-Also, if the variable @code{a} has been declared to have type
-@code{vector} or @code{matrix} then @samp{a(i)} will be parsed as a
-subscript.  (@xref{Declarations}.)  Usually it doesn't matter, though;
-if you enter the subscript expression @samp{a(i)} and Calc interprets
-it as a function call, you'll never know the difference unless you
-switch to another language mode or replace @code{a} with an actual
-vector (or unless @code{a} happens to be the name of a built-in
+If the variable @code{a} has been declared to have type
+@code{vector} or @code{matrix}, however,  then @samp{a(i)} will be
+parsed as a subscript.  (@xref{Declarations}.)  Usually it doesn't
+matter, though; if you enter the subscript expression @samp{a(i)} and
+Calc interprets it as a function call, you'll never know the difference
+unless you switch to another language mode or replace @code{a} with an
+actual vector (or unless @code{a} happens to be the name of a built-in
 function!).
 
 Underscores are allowed in variable and function names in all of these
@@ -14404,7 +14404,7 @@ $$ \pmatrix{ {a \over b} & 0 \cr 0 & 2^{(x + 1)} } $$
 @sp 2
 @end iftex
 
-@node Eqn Language Mode, Mathematica Language Mode, TeX and LaTeX Language Modes, Language Modes
+@node Eqn Language Mode, Yacas Language Mode, TeX and LaTeX Language Modes, Language Modes
 @subsection Eqn Language Mode
 
 @noindent
@@ -14480,7 +14480,87 @@ The words @code{lcol} and @code{rcol} are recognized as synonyms
 for @code{ccol} during input, and are generated instead of @code{ccol}
 if the matrix justification mode so specifies.
 
-@node Mathematica Language Mode, Maple Language Mode, Eqn Language Mode, Language Modes
+@node Yacas Language Mode, Maxima Language Mode, Eqn Language Mode, Language Modes
+@subsection Yacas Language Mode
+
+@noindent
+@kindex d Y
+@pindex calc-yacas-language
+@cindex Yacas language
+The @kbd{d Y} (@code{calc-yacas-language}) command selects the
+conventions of Yacas, a free computer algebra system.  While the
+operators and functions in Yacas are similar to those of Calc, the names
+of built-in functions in Yacas are capitalized.  The Calc formula 
+@samp{sin(2 x)}, for example, is entered and displayed @samp{Sin(2 x)}
+in Yacas mode,  and `@samp{arcsin(x^2)} is @samp{ArcSin(x^2)} in Yacas
+mode.  Complex numbers are written  are written @samp{3 + 4 I}.
+The standard special constants are written @code{Pi}, @code{E},
+@code{I}, @code{GoldenRatio} and @code{Gamma}.  @code{Infinity}
+represents both @code{inf} and @code{uinf}, and @code{Undefined}
+represents @code{nan}.
+
+Certain operators on functions, such as @code{D} for differentiation 
+and @code{Integrate} for integration, take a prefix form in Yacas.  For
+example, the derivative of @w{@samp{e^x sin(x)}} can be computed with 
+@w{@samp{D(x) Exp(x)*Sin(x)}}.
+
+Other notable differences between Yacas and standard Calc expressions
+are that vectors and matrices use curly braces in Yacas, and subscripts
+use square brackets.  If, for example, @samp{A} represents the list
+@samp{@{a,2,c,4@}}, then @samp{A[3]} would equal @samp{c}.
+
+
+@node Maxima Language Mode, Giac Language Mode, Yacas Language Mode, Language Modes
+@subsection Maxima Language Mode
+
+@noindent
+@kindex d X
+@pindex calc-maxima-language
+@cindex Maxima language
+The @kbd{d X} (@code{calc-maxima-language}) command selects the
+conventions of Maxima, another free computer algebra system.  The
+function names in Maxima are similar, but not always identical, to Calc.
+For example, instead of @samp{arcsin(x)}, Maxima will use 
+@samp{asin(x)}.  Complex numbers are written @samp{3 + 4 %i}.  The
+standard special constants are written @code{%pi},  @code{%e},
+@code{%i}, @code{%phi} and @code{%gamma}.  In Maxima,  @code{inf} means
+the same as in Calc, but @code{infinity} represents Calc's @code{uinf}.
+
+Underscores as well as percent signs are allowed in function and
+variable names in Maxima mode.  The underscore again is equivalent to
+the @samp{#} in Normal mode, and the percent sign is equivalent to 
+@samp{o'o}.  
+
+Maxima uses square brackets for lists and vectors, and matrices are
+written as calls to the function @code{matrix}, given the row vectors of
+the matrix as arguments.  Square brackets are also used as subscripts.
+
+@node Giac Language Mode, Mathematica Language Mode, Maxima Language Mode, Language Modes
+@subsection Giac Language Mode
+
+@noindent
+@kindex d A
+@pindex calc-giac-language
+@cindex Giac language
+The @kbd{d A} (@code{calc-giac-language}) command selects the
+conventions of Giac, another free computer algebra system.  The function
+names in Giac are similar to Maxima.  Complex numbers are written
+@samp{3 + 4 i}.  The standard special constants in Giac are the same as
+in Calc, except that @code{infinity} represents both Calc's @code{inf}
+and @code{uinf}. 
+
+Underscores are allowed in function and variable names in Giac mode.
+Brackets are used for subscripts.  In Giac, indexing of lists begins at
+0, instead of 1 as in Calc.  So if  @samp{A} represents the list
+@samp{[a,2,c,4]}, then @samp{A[2]} would equal @samp{c}.  In general,
+@samp{A[n]} in Giac mode corresponds to @samp{A_(n+1)} in Normal mode.
+
+The Giac interval notation @samp{2 .. 3} has no surrounding brackets;
+Calc reads @samp{2 .. 3} as the closed interval @samp{[2 .. 3]} and
+writes any kind of interval as @samp{2 .. 3}.  This means you cannot see
+the difference between an open and a closed interval while in Giac mode.
+
+@node Mathematica Language Mode, Maple Language Mode, Giac Language Mode, Language Modes
 @subsection Mathematica Language Mode
 
 @noindent
@@ -14525,11 +14605,8 @@ pass through Calc.  As a special case, matrices are written as calls
 to the function @code{matrix}, given a list of lists as the argument,
 and can be read in this form or with all-capitals @code{MATRIX}.
 
-The Maple interval notation @samp{2 .. 3} has no surrounding brackets;
-Calc reads @samp{2 .. 3} as the closed interval @samp{[2 .. 3]}, and
-writes any kind of interval as @samp{2 .. 3}.  This means you cannot
-see the difference between an open and a closed interval while in
-Maple display mode.
+The Maple interval notation @samp{2 .. 3} is like Giac's interval
+notation, and is handled the same by Calc.
 
 Maple writes complex numbers as @samp{3 + 4*I}.  Its special constants
 are @code{Pi}, @code{E}, @code{I}, and @code{infinity} (all three of
