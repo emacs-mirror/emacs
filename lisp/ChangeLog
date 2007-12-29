@@ -29,6 +29,10 @@
 	* calc/calc-help.el (calc-d-prefix-help): Add new languages.
 
 	* calc/calc-menu.el (calc-modes-menu): Add new languages.
+	(calc-arithmetic-menu, calc-scientific-function-menu)
+	(calc-algebra-menu, calc-graphics-menu, calc-vectors-menu)
+	(calc-units-menu, calc-variables-menu, calc-stack-menu):
+	Add :active keywords.
 
 2007-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
