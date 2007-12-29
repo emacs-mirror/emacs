@@ -1157,7 +1157,28 @@
                  (call-interactively 'calc-eqn-language))
                :keys "d E"
                :style radio
-               :selected (eq calc-language 'eqn)])
+               :selected (eq calc-language 'eqn)]
+              ["Yacas"
+               (progn
+                 (require 'calc-lang)
+                 (call-interactively 'calc-yacas-language))
+               :keys "d Y"
+               :style radio
+               :selected (eq calc-language 'yacas)]
+              ["Maxima"
+               (progn
+                 (require 'calc-lang)
+                 (call-interactively 'calc-maxima-language))
+               :keys "d X"
+               :style radio
+               :selected (eq calc-language 'maxima)]
+              ["Giac"
+               (progn
+                 (require 'calc-lang)
+                 (call-interactively 'calc-giac-language))
+               :keys "d A"
+               :style radio
+               :selected (eq calc-language 'giac)])
         "----"
         ["Save mode settings" calc-save-modes :keys "m m"]
         "----"
