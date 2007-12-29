@@ -1,3 +1,8 @@
+2007-12-29  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* files.el (cd-absolute): Fix omission bug:
+	Make `list-buffers-directory' buffer-local.
+
 2007-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-dir-state): Deal with the up-to-date state.
