@@ -1136,7 +1136,7 @@ regardless of the value of this variable."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar fancy-startup-text
-  '((:face (variable-pitch :foreground "red")
+  '((:face (variable-pitch (:foreground "red"))
      "Welcome to "
      :link ("GNU Emacs"
 	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/"))
@@ -1182,7 +1182,7 @@ regardless of the value of this variable."
      "\tView the Emacs manual using Info\n"
      :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
      "\tGNU Emacs comes with "
-     :face (variable-pitch :slant oblique)
+     :face (variable-pitch (:slant oblique))
      "ABSOLUTELY NO WARRANTY\n"
      :face variable-pitch
      :link ("Copying Conditions" (lambda (button) (describe-copying)))
@@ -1195,7 +1195,7 @@ Each element in the list should be a list of strings or pairs
 `:face FACE', like `fancy-splash-insert' accepts them.")
 
 (defvar fancy-about-text
-  '((:face (variable-pitch :foreground "red")
+  '((:face (variable-pitch (:foreground "red"))
      "This is "
      :link ("GNU Emacs"
 	    (lambda (button) (browse-url "http://www.gnu.org/software/emacs/"))
@@ -1211,13 +1211,14 @@ Each element in the list should be a list of strings or pairs
 	   "Display info on the GNU project.")))
      " operating system.\n"
      :face (lambda ()
-	     (list 'variable-pitch :foreground
-		   (if (eq (frame-parameter nil 'background-mode) 'dark)
-		       "cyan" "darkblue")))
+	     (list 'variable-pitch
+		   (list :foreground
+			 (if (eq (frame-parameter nil 'background-mode) 'dark)
+			     "cyan" "darkblue"))))
      "\n"
      (lambda () (emacs-version))
      "\n"
-     :face (variable-pitch :height 0.5)
+     :face (variable-pitch (:height 0.5))
      (lambda () emacs-copyright)
      "\n\n"
      :face variable-pitch
@@ -1225,7 +1226,7 @@ Each element in the list should be a list of strings or pairs
      "\tWhy we developed GNU Emacs, and the GNU operating system\n"
      :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
      "\tGNU Emacs comes with "
-     :face (variable-pitch :slant oblique)
+     :face (variable-pitch (:slant oblique))
      "ABSOLUTELY NO WARRANTY\n"
      :face variable-pitch
      :link ("Copying Conditions" (lambda (button) (describe-copying)))
@@ -1379,11 +1380,11 @@ a face or button specification."
 	       (lambda (button) (customize-group 'initialization))
 	       "Change initialization settings including this screen")
        "\n"))
-    (fancy-splash-insert :face `(variable-pitch :foreground ,fg)
+    (fancy-splash-insert :face `(variable-pitch (:foreground ,fg))
 			 "\nThis is "
 			 (emacs-version)
 			 "\n"
-			 :face '(variable-pitch :height 0.5)
+			 :face '(variable-pitch (:height 0.5))
 			 emacs-copyright
 			 "\n")
     (and auto-save-list-file-prefix
@@ -1399,12 +1400,12 @@ a face or button specification."
 		  (regexp-quote (file-name-nondirectory
 				 auto-save-list-file-prefix)))
 	  t)
-	 (fancy-splash-insert :face '(variable-pitch :foreground "red")
+	 (fancy-splash-insert :face '(variable-pitch (:foreground "red"))
 			      "\nIf an Emacs session crashed recently, "
 			      "type "
 			      :face '(fixed-pitch :foreground "red")
 			      "Meta-x recover-session RET"
-			      :face '(variable-pitch :foreground "red")
+			      :face '(variable-pitch (:foreground "red"))
 			      "\nto recover"
 			      " the files you were editing."))
 
@@ -1439,7 +1440,7 @@ a face or button specification."
 		       (overlay-put button 'checked t)
 		       (overlay-put button 'display (overlay-get button :on-glyph))
 		       (setq startup-screen-inhibit-startup-screen t)))))
-	(fancy-splash-insert :face '(variable-pitch :height 0.9)
+	(fancy-splash-insert :face '(variable-pitch (:height 0.9))
 			     " Never show it again.")))))
 
 (defun exit-splash-screen ()
