@@ -1,3 +1,7 @@
+2007-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-dir-state): Deal with the up-to-date state.
+
 2007-12-29  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-aent.el (math-read-token): Fix misplaced

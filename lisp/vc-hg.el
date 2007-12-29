@@ -199,6 +199,8 @@
 	 ;; 	 ! = deleted, but still tracked
 	 ;; should not show up in vc-dired, so don't deal with them
 	 ;; here.
+ 	 ((eq status-char ?C)
+ 	  (vc-file-setprop file 'vc-state 'up-to-date))
 	 ((eq status-char ?A)
 	  (vc-file-setprop file 'vc-working-revision "0")
 	  (vc-file-setprop file 'vc-state 'edited))
