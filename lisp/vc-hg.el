@@ -200,15 +200,20 @@
 	 ;; should not show up in vc-dired, so don't deal with them
 	 ;; here.
  	 ((eq status-char ?C)
+	  (vc-file-setprop file 'vc-backend 'Hg)
  	  (vc-file-setprop file 'vc-state 'up-to-date))
 	 ((eq status-char ?A)
+	  (vc-file-setprop file 'vc-backend 'Hg)
 	  (vc-file-setprop file 'vc-working-revision "0")
 	  (vc-file-setprop file 'vc-state 'added))
 	 ((eq status-char ?R)
+	  (vc-file-setprop file 'vc-backend 'Hg)
 	  (vc-file-setprop file 'vc-state 'removed))
 	 ((eq status-char ?M)
+	  (vc-file-setprop file 'vc-backend 'Hg)
 	  (vc-file-setprop file 'vc-state 'edited))
 	 ((eq status-char ?I)
+	  (vc-file-setprop file 'vc-backend 'Hg)
 	  (vc-file-setprop file 'vc-state 'ignored))
 	 ((eq status-char ??)
 	  (vc-file-setprop file 'vc-backend 'none)
@@ -216,6 +221,7 @@
 	 ((eq status-char ?!)
 	  nil)
 	 (t	;; Presently C, might change to = in 0.9.6
+	  (vc-file-setprop file 'vc-backend 'Hg)
 	  (vc-file-setprop file 'vc-state 'up-to-date)))
 	(forward-line)))))
 
