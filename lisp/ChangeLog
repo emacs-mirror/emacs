@@ -1,5 +1,7 @@
 2007-12-29  Richard Stallman  <rms@gnu.org>
 
+	* faces.el (facep): Doc fix.
+
 	* startup.el (fancy-startup-tail, fancy-about-text)
 	(fancy-startup-text): Regularize format of face property.
 
