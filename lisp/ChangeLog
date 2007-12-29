@@ -1,3 +1,35 @@
+2007-12-29  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-aent.el (math-read-token): Fix misplaced
+	parentheses.
+
+	* calc/calc-lang.el (calc-yacas-language, calc-maxima-language)
+	(calc-giac-language, math-yacas-parse-Sum, math-yacas-compose-sum)
+	(math-yacas-compose-deriv, math-yacas-compose-taylor)
+	(math-maxima-parse-subst, math-maxima-parse-taylor)
+	(math-maxima-compose-taylor, math-maxima-compose-subst)
+	(math-maxima-compose-if, math-lang-switch-args)
+	(math-lang-compose-switch-args, math-read-giac-subscr):
+	New functions.
+	(calc-lang-allow-underscores, calc-lang-allow-percentsigns)
+	(calc-lang-brackets-are-subscripts, calc-lang-c-type-hex):
+	Add languages.
+	(math-vector-brackets, math-complex-format, math-variable-table)
+	(math-parse-table, math-oper-table, math-function-table)
+	(math-special-function-table, math-compose-subscr):
+	Add values for new languages.
+
+	* calc/calccomp.el (math-compose-expr): Add new languages.
+
+	* calc/calc.el (calc-language): Add languages to docstring.
+
+	* calc/calc-ext.el (calc-init-extensions): Add keybindings
+	for new languages.
+
+	* calc/calc-help.el (calc-d-prefix-help): Add new languages.
+
+	* calc/calc-menu.el (calc-modes-menu): Add new languages.
+
 2007-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-registered): Return the false when vc-hg-state
