@@ -206,10 +206,8 @@ The optional argument FRAME is ignored."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun facep (face)
-  "Return non-nil if FACE is a face name or internal face object.
-Return nil otherwise.  A face name can be a string or a symbol.
-An internal face object is a vector of the kind used internally
-to record face data."
+  "Return non-nil if FACE is a face name; nil otherwise.
+A face name can be a string or a symbol."
   (internal-lisp-face-p face))
 
 
