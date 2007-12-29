@@ -1164,6 +1164,624 @@
         (if (memq (nth 1 a) '(0 2)) ")" "]")))
 
 
+;;; Yacas
+
+(defun calc-yacas-language ()
+  "Change the Calc language to be Yacas-like."
+  (interactive)
+  (calc-wrapper
+   (calc-set-language 'yacas)
+   (message "`Yacas' language mode")))
+
+(put 'yacas 'math-vector-brackets "{}")
+
+(put 'yacas 'math-complex-format 'I)
+
+(add-to-list 'calc-lang-brackets-are-subscripts 'yacas)
+
+(put 'yacas 'math-variable-table
+     '(( Infinity    . var-inf)
+       ( Infinity    . var-uinf)
+       ( Undefined   . var-nan)
+       ( Pi          . var-pi)
+       ( E           . var-e) ;; Not really in Yacas
+       ( GoldenRatio . var-phi)
+       ( Gamma       . var-gamma)))
+
+(put 'yacas 'math-parse-table
+     '((("Deriv(" 0 ")" 0) 
+        calcFunc-deriv (var ArgB var-ArgB) (var ArgA var-ArgA))
+       (("D(" 0 ")" 0) 
+        calcFunc-deriv (var ArgB var-ArgB) (var ArgA var-ArgA))
+       (("Integrate(" 0 ")" 0) 
+        calcFunc-integ (var ArgB var-ArgB)(var ArgA var-ArgA))
+       (("Integrate(" 0 "," 0 "," 0 ")" 0) 
+        calcFunc-integ (var ArgD var-ArgD) (var ArgA var-ArgA) 
+        (var ArgB var-ArgB) (var ArgC var-ArgC))
+       (("Subst(" 0 "," 0 ")" 0) 
+        calcFunc-subst (var ArgC var-ArgC) (var ArgA var-ArgA) 
+        (var ArgB var-ArgB))
+       (("Taylor(" 0 "," 0 "," 0 ")" 0) 
+        calcFunc-taylor (var ArgD var-ArgD) 
+        (calcFunc-eq (var ArgA var-ArgA) (var ArgB var-ArgB)) 
+        (var ArgC var-ArgC))))
+
+(put 'yacas 'math-oper-table
+     '(("+"    +               30  30)
+       ("-"    -               30  60)
+       ("*"    *               60  60)
+       ("/"    /               70  70)
+       ("u-"   neg             -1  60)
+       ("^"    ^               80  80)
+       ("u+"   ident           -1  30)
+       ("<<"   calcFunc-lsh    80  80)
+       (">>"   calcFunc-rsh    80  80)
+       ("!"    calcFunc-fact   80  -1)
+       ("!!"   calcFunc-dfact  80  -1)
+       ("X"    calcFunc-cross  70  70)
+       ("="    calcFunc-eq     10  10)
+       ("!="   calcFunc-neq    10  10)
+       ("<"    calcFunc-lt     10  10)
+       (">"    calcFunc-gt     10  10)
+       ("<="   calcFunc-leq    10  10)
+       (">="   calcFunc-geq    10  10)
+       ("And"  calcFunc-land    5   5)
+       ("Or"   calcFunc-or      4   4)
+       ("Not"  calcFunc-lnot   -1   3)
+       (":="   calcFunc-assign  1   1)))
+
+(put 'yacas 'math-function-table
+     '(( Div   .  calcFunc-idiv)
+       ( Mod   .  calcFunc-mod)
+       ( Abs   .  calcFunc-abs)
+       ( Sign  .  calcFunc-sign)
+       ( Sqrt  .  calcFunc-sqrt)
+       ( Max   .  calcFunc-max)
+       ( Min   .  calcFunc-min)
+       ( Floor .  calcFunc-floor)
+       ( Ceil  .  calcFunc-ceil)
+       ( Round .  calcFunc-round)
+       ( Conjugate . calcFunc-conj)
+       ( Arg   .  calcFunc-arg)
+       ( Re    .  calcFunc-re)
+       ( Im    .  calcFunc-im)
+       ( Rationalize . calcFunc-pfrac)
+       ( Sin   .  calcFunc-sin)
+       ( Cos   .  calcFunc-cos)
+       ( Tan   .  calcFunc-tan)
+       ( Sec   .  calcFunc-sec)
+       ( Csc   .  calcFunc-csc)
+       ( Cot   .  calcFunc-cot)
+       ( ArcSin . calcFunc-arcsin)
+       ( ArcCos . calcFunc-arccos)
+       ( ArcTan . calcFunc-arctan)
+       ( Sinh   .  calcFunc-sinh)
+       ( Cosh   .  calcFunc-cosh)
+       ( Tanh   .  calcFunc-tanh)
+       ( Sech   .  calcFunc-sech)
+       ( Csch   .  calcFunc-csch)
+       ( Coth   .  calcFunc-coth)
+       ( ArcSinh . calcFunc-arcsinh)
+       ( ArcCosh . calcFunc-arccosh)
+       ( ArcTanh . calcFunc-arctanh)
+       ( Ln     .  calcFunc-ln)
+       ( Exp    .  calcFunc-exp)
+       ( Gamma  .  calcFunc-gamma)
+       ( Gcd    .  calcFunc-gcd)
+       ( Lcm    .  calcFunc-lcm)
+       ( Bin    .  calcFunc-choose)
+       ( Bernoulli . calcFunc-bern)
+       ( Euler  .  calcFunc-euler)
+       ( StirlingNumber1 . calcFunc-stir1)
+       ( StirlingNumber2 . calcFunc-stir2)
+       ( IsPrime .  calcFunc-prime)
+       ( Factors . calcFunc-prfac)
+       ( NextPrime . calcFunc-nextprime)
+       ( Moebius . calcFunc-moebius)
+       ( Random  . calcFunc-random)
+       ( Concat  . calcFunc-vconcat)
+       ( Head    . calcFunc-head)
+       ( Tail    . calcFunc-tail)
+       ( Length  . calcFunc-vlen)
+       ( Reverse . calcFunc-rev)
+       ( CrossProduct . calcFunc-cross)
+       ( Dot . calcFunc-mul)
+       ( DiagonalMatrix . calcFunc-diag)
+       ( Transpose . calcFunc-trn)
+       ( Inverse . calcFunc-inv)
+       ( Determinant . calcFunc-det)
+       ( Trace . calcFunc-tr)
+       ( RemoveDuplicates . calcFunc-rdup)
+       ( Union . calcFunc-vunion)
+       ( Intersection . calcFunc-vint)
+       ( Difference . calcFunc-vdiff)
+       ( Apply . calcFunc-apply)
+       ( Map . calcFunc-map)
+       ( Simplify . calcFunc-simplify)
+       ( ExpandBrackets . calcFunc-expand)
+       ( Solve . calcFunc-solve)
+       ( Degree . calcFunc-pdeg)
+       ( If     . calcFunc-if)
+       ( Contains . (math-lang-switch-args calcFunc-in))
+       ( Sum . (math-yacas-parse-Sum calcFunc-sum))
+       ( Factorize . (math-yacas-parse-Sum calcFunc-prod))))
+
+(put 'yacas 'math-special-function-table
+     '(( calcFunc-sum  . (math-yacas-compose-sum "Sum"))
+       ( calcFunc-prod . (math-yacas-compose-sum "Factorize"))
+       ( calcFunc-deriv . (math-yacas-compose-deriv "Deriv"))
+       ( calcFunc-integ . (math-yacas-compose-deriv "Integrate"))
+       ( calcFunc-taylor . math-yacas-compose-taylor)
+       ( calcFunc-in    .  (math-lang-compose-switch-args "Contains"))))
+
+(put 'yacas 'math-compose-subscr
+     (function
+      (lambda (a)
+        (let ((args (cdr (cdr a))))
+          (list 'horiz
+                (math-compose-expr (nth 1 a) 1000)
+                "["
+                (math-compose-vector args ", " 0)
+                "]")))))
+
+(defun math-yacas-parse-Sum (f val)
+  "Read in the arguments to \"Sum\" in Calc's Yacas mode."
+  (let ((args (math-read-expr-list)))
+    (math-read-token)
+    (list (nth 2 f)
+          (nth 3 args)
+          (nth 0 args)
+          (nth 1 args)
+          (nth 2 args))))
+
+(defun math-yacas-compose-sum (a fn)
+  "Compose the \"Sum\" function in Calc's Yacas mode."
+  (list 'horiz
+        (nth 1 fn)
+        "("
+        (math-compose-expr (nth 2 a) -1)
+        ","
+        (math-compose-expr (nth 3 a) -1)
+        ","
+        (math-compose-expr (nth 4 a) -1)
+        ","
+        (math-compose-expr (nth 1 a) -1)
+        ")"))
+
+(defun math-yacas-compose-deriv (a fn)
+  "Compose the \"Deriv\" function in Calc's Yacas mode."
+  (list 'horiz
+        (nth 1 fn)
+        "("
+        (math-compose-expr (nth 2 a) -1)
+        (if (not (nth 3 a))
+            ")"
+          (concat 
+           ","
+           (math-compose-expr (nth 3 a) -1)
+           ","
+           (math-compose-expr (nth 4 a) -1)
+           ")"))
+        " "
+        (math-compose-expr (nth 1 a) -1)))
+
+(defun math-yacas-compose-taylor (a)
+  "Compose the \"Taylor\" function in Calc's Yacas mode."
+  (list 'horiz
+        "Taylor("
+        (if (eq (car-safe (nth 2 a)) 'calcFunc-eq)
+            (concat (math-compose-expr (nth 1 (nth 2 a)) -1)
+                    ","
+                    (math-compose-expr (nth 2 (nth 2 a)) -1))
+          (concat (math-compose-expr (nth 2 a) -1) ",0"))
+        ","
+        (math-compose-expr (nth 3 a) -1)
+        ") "
+        (math-compose-expr (nth 1 a) -1)))
+
+
+;;; Maxima
+
+(defun calc-maxima-language ()
+  "Change the Calc language to be Maxima-like."
+  (interactive)
+  (calc-wrapper
+   (calc-set-language 'maxima)
+   (message "`Maxima' language mode")))
+
+(put 'maxima 'math-oper-table
+     '(("+"    +               100  100)
+       ("-"    -               100  134)
+       ("*"    *               120  120)
+       ("."    *               130  129)       
+       ("/"    /               120  120)
+       ("u-"   neg              -1  180)
+       ("u+"   ident            -1  180)
+       ("^"    ^               140  139)
+       ("**"   ^               140  139)
+       ("!"    calcFunc-fact   160   -1)
+       ("!!"   calcFunc-dfact  160   -1)
+       ("="    calcFunc-eq      80   80)
+       ("#"    calcFunc-neq     80   80)
+       ("<"    calcFunc-lt      80   80)
+       (">"    calcFunc-gt      80   80)
+       ("<="   calcFunc-leq     80   80)
+       (">="   calcFunc-geq     80   80)
+       ("and"  calcFunc-land    65   65)
+       ("or"   calcFunc-or      60   60)
+       ("not"  calcFunc-lnot    -1   70)
+       (":"    calcFunc-assign 180   20)))
+
+
+(put 'maxima 'math-function-table
+     '(( matrix .  vec)
+       ( abs    .  calcFunc-abs)
+       ( cabs   .  calcFunc-abs)
+       ( signum .  calcFunc-sign)
+       ( floor  .  calcFunc-floor)
+       ( entier .  calcFunc-floor)
+       ( fix    .  calcFunc-floor)
+       ( conjugate . calcFunc-conj )
+       ( carg   .  calcFunc-arg)
+       ( realpart . calcFunc-re)
+       ( imagpart . calcFunc-im)
+       ( rationalize . calcFunc-pfrac)
+       ( asin   .  calcFunc-arcsin)
+       ( acos   .  calcFunc-arccos)
+       ( atan   .  calcFunc-arctan)
+       ( atan2  .  calcFunc-arctan2)
+       ( asinh  .  calcFunc-arcsinh)
+       ( acosh  .  calcFunc-arccosh)
+       ( atanh  .  calcFunc-arctanh)
+       ( log    .  calcFunc-ln)
+       ( plog    .  calcFunc-ln)
+       ( bessel_j . calcFunc-besJ)
+       ( bessel_y . calcFunc-besY)
+       ( factorial . calcFunc-fact)
+       ( binomial . calcFunc-choose)
+       ( primep  . calcFunc-prime)
+       ( next_prime . calcFunc-nextprime)
+       ( prev_prime . calcFunc-prevprime)
+       ( append  .  calcFunc-vconcat)
+       ( rest  .  calcFunc-tail)
+       ( reverse . calcFunc-rev)
+       ( innerproduct . calcFunc-mul)
+       ( inprod . calcFunc-mul)
+       ( row . calcFunc-mrow)
+       ( columnvector . calcFunc-mcol)
+       ( covect . calcFunc-mcol)
+       ( transpose . calcFunc-trn)
+       ( invert . calcFunc-inv)
+       ( determinant . calcFunc-det)
+       ( mattrace . calcFunc-tr)
+       ( member . calcFunc-in)
+       ( lmax . calcFunc-vmax)
+       ( lmin . calcFunc-vmin)
+       ( distrib . calcFunc-expand)
+       ( partfrac . calcFunc-apart)
+       ( rat . calcFunc-nrat)
+       ( product . calcFunc-prod)
+       ( diff . calcFunc-deriv)
+       ( integrate . calcFunc-integ)
+       ( quotient . calcFunc-pdiv)
+       ( remainder . calcFunc-prem)
+       ( divide . calcFunc-pdivrem)
+       ( equal  . calcFunc-eq)
+       ( notequal . calcFunc-neq)
+       ( rhs  . calcFunc-rmeq)
+       ( subst . (math-maxima-parse-subst))
+       ( substitute . (math-maxima-parse-subst))
+       ( taylor . (math-maxima-parse-taylor))))
+
+(defun math-maxima-parse-subst (f val)
+  "Read in the arguments to \"subst\" in Calc's Maxima mode."
+  (let ((args (math-read-expr-list)))
+    (math-read-token)
+    (list 'calcFunc-subst
+          (nth 1 args)
+          (nth 2 args)
+          (nth 0 args))))
+
+(defun math-maxima-parse-taylor (f val)
+  "Read in the arguments to \"taylor\" in Calc's Maxima mode."
+  (let ((args (math-read-expr-list)))
+    (math-read-token)
+    (list 'calcFunc-taylor
+          (nth 0 args)
+          (list 'calcFunc-eq
+                (nth 1 args)
+                (nth 2 args))
+          (nth 3 args))))
+
+(put 'maxima 'math-parse-table
+     '((("if" 0 "then" 0 "else" 0) 
+        calcFunc-if 
+        (var ArgA var-ArgA) 
+        (var ArgB var-ArgB)
+        (var ArgC var-ArgC))))
+
+(put 'maxima 'math-special-function-table
+     '(( calcFunc-taylor . math-maxima-compose-taylor)
+       ( calcFunc-subst .  math-maxima-compose-subst)
+       ( calcFunc-if    .  math-maxima-compose-if)))
+
+(defun math-maxima-compose-taylor (a)
+  "Compose the \"taylor\" function in Calc's Maxima mode."
+  (list 'horiz
+        "taylor("
+        (math-compose-expr (nth 1 a) -1)
+        ","
+        (if (eq (car-safe (nth 2 a)) 'calcFunc-eq)
+            (concat (math-compose-expr (nth 1 (nth 2 a)) -1)
+                    ","
+                    (math-compose-expr (nth 2 (nth 2 a)) -1))
+          (concat (math-compose-expr (nth 2 a) -1) ",0"))
+        ","
+        (math-compose-expr (nth 3 a) -1)
+        ")"))
+
+(defun math-maxima-compose-subst (a)
+  "Compose the \"subst\" function in Calc's Maxima mode."
+  (list 'horiz
+        "substitute("
+        (math-compose-expr (nth 2 a) -1)
+        ","
+        (math-compose-expr (nth 3 a) -1)
+        ","
+        (math-compose-expr (nth 1 a) -1)
+        ")"))
+
+(defun math-maxima-compose-if (a)
+  "Compose the \"if\" function in Calc's Maxima mode."
+  (list 'horiz
+        "if "
+        (math-compose-expr (nth 1 a) -1)
+        " then "
+        (math-compose-expr (nth 2 a) -1)
+        " else "
+        (math-compose-expr (nth 3 a) -1)))
+
+(put 'maxima 'math-variable-table
+     '(( infinity    . var-uinf)
+       ( %pi         . var-pi)
+       ( %e          . var-e)
+       ( %i          . var-i)
+       ( %phi        . var-phi)
+       ( %gamma      . var-gamma)))
+
+(put 'maxima 'math-complex-format '%i)
+
+(add-to-list 'calc-lang-allow-underscores 'maxima)
+
+(add-to-list 'calc-lang-allow-percentsigns 'maxima)
+
+(add-to-list 'calc-lang-brackets-are-subscripts 'maxima)
+
+(put 'maxima 'math-compose-subscr
+     (function
+      (lambda (a)
+        (let ((args (cdr (cdr a))))
+          (list 'horiz
+                (math-compose-expr (nth 1 a) 1000)
+                "["
+                (math-compose-vector args ", " 0)
+                "]")))))
+
+(put 'maxima 'math-matrix-formatter
+     (function
+      (lambda (a)
+        (list 'horiz
+              "matrix("
+              (math-compose-vector (cdr a) 
+                                   (concat math-comp-comma " ")
+                                   math-comp-vector-prec)
+              ")"))))
+
+
+;;; Giac
+
+(defun calc-giac-language ()
+  "Change the Calc language to be Giac-like."
+  (interactive)
+  (calc-wrapper
+   (calc-set-language 'giac)
+   (message "`Giac' language mode")))
+
+(put 'giac 'math-oper-table
+  '( ( "["    (math-read-giac-subscr) 250 -1 )
+     ( "+"     +	     180 181 )
+     ( "-"     -	     180 181 )
+     ( "/"     /	     191 192 )
+     ( "*"     *	     191 192 )
+     ( "^"     ^	     201 200 )
+     ( "u+"    ident	     -1  197 )
+     ( "u-"    neg	     -1  197 )
+     ( "!"     calcFunc-fact  210 -1 )
+     ( ".."    (math-read-maple-dots) 165 165 )
+     ( "\\dots" (math-read-maple-dots) 165 165 )
+     ( "intersect" calcFunc-vint 191 192 )
+     ( "union" calcFunc-vunion 180 181 )
+     ( "minus" calcFunc-vdiff 180 181 )
+     ( "<"     calcFunc-lt   160 160 )
+     ( ">"     calcFunc-gt   160 160 )
+     ( "<="    calcFunc-leq  160 160 )
+     ( ">="    calcFunc-geq  160 160 )
+     ( "="     calcFunc-eq   160 160 )
+     ( "=="    calcFunc-eq   160 160 )
+     ( "!="    calcFunc-neq  160 160 )
+     ( "and"   calcFunc-land 110 111 )
+     ( "or"    calcFunc-lor  100 101 )
+     ( "&&"    calcFunc-land 110 111 )
+     ( "||"    calcFunc-lor  100 101 )
+     ( "not"   calcFunc-lnot -1  121 )
+     ( ":="    calcFunc-assign 51 50 )))
+
+
+(put 'giac 'math-function-table
+     '(( rdiv   .  calcFunc-div)
+       ( iquo   .  calcFunc-idiv)
+       ( irem   .  calcFunc-mod)
+       ( remain .  calcFunc-mod)
+       ( floor  .  calcFunc-floor)
+       ( iPart  .  calcFunc-floor)
+       ( ceil   .  calcFunc-ceil)
+       ( ceiling .  calcFunc-ceil)
+       ( re     .  calcFunc-re)
+       ( real   .  calcFunc-re)
+       ( im     .  calcFunc-im)
+       ( imag   .  calcFunc-im)
+       ( float2rational . calcFunc-pfrac)
+       ( exact  .  calcFunc-pfrac)
+       ( evalf  .  calcFunc-pfloat)
+       ( bitand .  calcFunc-and)
+       ( bitor  .  calcFunc-or)
+       ( bitxor .  calcFunc-xor)
+       ( asin   .  calcFunc-arcsin)
+       ( acos   .  calcFunc-arccos)
+       ( atan   .  calcFunc-arctan)
+       ( asinh  .  calcFunc-arcsinh)
+       ( acosh  .  calcFunc-arccosh)
+       ( atanh  .  calcFunc-arctanh)
+       ( log    .  calcFunc-ln)
+       ( logb   .  calcFunc-log)
+       ( factorial . calcFunc-fact)
+       ( comb   .  calcFunc-choose)
+       ( binomial . calcFunc-choose)
+       ( nCr    .  calcFunc-choose)
+       ( perm   .  calcFunc-perm)
+       ( nPr    .  calcFunc-perm)
+       ( bernoulli . calcFunc-bern)
+       ( is_prime . calcFunc-prime)
+       ( isprime  . calcFunc-prime)
+       ( isPrime  . calcFunc-prime)
+       ( ifactors . calcFunc-prfac)
+       ( euler    . calcFunc-totient)
+       ( phi      . calcFunc-totient)
+       ( rand     . calcFunc-random)
+       ( concat   . calcFunc-vconcat)
+       ( augment  . calcFunc-vconcat)
+       ( mid      . calcFunc-subvec)
+       ( length   . calcFunc-length)
+       ( size     . calcFunc-length)
+       ( nops     . calcFunc-length)
+       ( SortA    . calcFunc-sort)
+       ( SortB    . calcFunc-rsort)
+       ( revlist  . calcFunc-rev)
+       ( cross    . calcFunc-cross)
+       ( crossP   . calcFunc-cross)
+       ( crossproduct . calcFunc-cross)
+       ( mul      . calcFunc-mul)
+       ( dot      . calcFunc-mul)
+       ( dotprod  . calcFunc-mul)
+       ( dotP     . calcFunc-mul)
+       ( scalar_product . calcFunc-mul)
+       ( scalar_Product . calcFunc-mul)
+       ( row      . calcFunc-mrow)
+       ( col      . calcFunc-mcol)
+       ( dim      . calcFunc-mdims)
+       ( tran     . calcFunc-trn)
+       ( transpose . calcFunc-trn)
+       ( lu       . calcFunc-lud)
+       ( trace    . calcFunc-tr)
+       ( member   . calcFunc-in)
+       ( sum      . calcFunc-vsum)
+       ( add      . calcFunc-vsum)
+       ( product  . calcFunc-vprod)
+       ( mean     . calcFunc-vmean)
+       ( median   . calcFunc-vmedian)
+       ( stddev   . calcFunc-vsdev)
+       ( stddevp  . calcFunc-vpsdev)
+       ( variance . calcFunc-vpvar)
+       ( map      . calcFunc-map)
+       ( apply    . calcFunc-map)
+       ( of       . calcFunc-map)
+       ( zip      . calcFunc-map)
+       ( expand   . calcFunc-expand)
+       ( fdistrib . calcFunc-expand)
+       ( partfrac . calcFunc-apart)
+       ( ratnormal . calcFunc-nrat)
+       ( diff     . calcFunc-deriv)
+       ( derive   . calcFunc-deriv)
+       ( integrate . calcFunc-integ)
+       ( int      . calcFunc-integ)
+       ( Int      . calcFunc-integ)
+       ( romberg  . calcFunc-ninteg)
+       ( nInt     . calcFunc-ninteg)
+       ( lcoeff   . calcFunc-plead)
+       ( content  . calcFunc-pcont)
+       ( primpart . calcFunc-pprim)
+       ( quo      . calcFunc-pdiv)
+       ( rem      . calcFunc-prem)
+       ( quorem   . calcFunc-pdivrem)
+       ( divide   . calcFunc-pdivrem)
+       ( equal    . calcFunc-eq)
+       ( ifte     . calcFunc-if)
+       ( not      . calcFunc-lnot)
+       ( rhs      . calcFunc-rmeq)
+       ( right    . calcFunc-rmeq)
+       ( prepend  . (math-lang-switch-args calcFunc-cons))
+       ( contains . (math-lang-switch-args calcFunc-in))
+       ( has      . (math-lang-switch-args calcFunc-refers))))
+
+(defun math-lang-switch-args (f val)
+  "Read the arguments to a Calc function in reverse order.
+This is used for various language modes which have functions in reverse
+order to Calc's."
+  (let ((args (math-read-expr-list)))
+    (math-read-token)
+    (list (nth 2 f)
+          (nth 1 args)
+          (nth 0 args))))
+
+(put 'giac 'math-parse-table
+     '((("set" 0) 
+        calcFunc-rdup
+        (var ArgA var-ArgA))))
+
+(put 'giac 'math-special-function-table
+     '((calcFunc-cons . (math-lang-compose-switch-args "prepend"))
+       (calcFunc-in   . (math-lang-compose-switch-args "contains"))
+       (calcFunc-refers . (math-lang-compose-switch-args "has"))
+       (intv . math-compose-maple-intv)))
+
+(defun math-lang-compose-switch-args (a fn)
+  "Compose the arguments to a Calc function in reverse order.
+This is used for various language modes which have functions in reverse
+order to Calc's."
+  (list 'horiz (nth 1 fn) 
+        "("
+        (math-compose-expr (nth 2 a) 0)
+        ","
+        (math-compose-expr (nth 1 a) 0)
+        ")"))
+
+(put 'giac 'math-variable-table
+     '(( infinity    . var-inf)
+       ( infinity    . var-uinf)))
+
+(add-to-list 'calc-lang-allow-underscores 'giac)
+
+(put 'giac 'math-compose-subscr
+     (function
+      (lambda (a)
+        (let ((args (cdr (cdr a))))
+          (list 'horiz
+                (math-compose-expr (nth 1 a) 1000)
+                "["
+                (math-compose-expr 
+                 (calc-normalize (list '- (nth 2 a) 1)) 0)
+                "]")))))
+
+(defun math-read-giac-subscr (x op)
+  (let ((idx (math-read-expr-level 0)))
+    (or (equal math-expr-data "]")
+	(throw 'syntax "Expected ']'"))
+    (math-read-token)
+    (list 'calcFunc-subscr x (calc-normalize (list '+ idx 1)))))
+
+(add-to-list 'calc-lang-c-type-hex 'giac)
+
+
 (defun calc-mathematica-language ()
   (interactive)
   (calc-wrapper

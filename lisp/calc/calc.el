@@ -685,6 +685,9 @@ If `C' is present, display outer brackets for matrices (centered).")
   tex		Use TeX notation.
   latex         Use LaTeX notation.
   eqn		Use eqn notation.
+  yacas         Use Yacas notation.
+  maxima        Use Maxima notation.
+  giac          Use Giac notation.
   math		Use Mathematica(tm) notation.
   maple		Use Maple notation.")
 

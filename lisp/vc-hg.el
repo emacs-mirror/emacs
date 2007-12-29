@@ -147,7 +147,9 @@
 (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
   (when (vc-hg-root file)           ; short cut
-    (vc-file-setprop file 'vc-state (vc-hg-state file)))) ; expensive
+    (let ((state (vc-hg-state file)))  ; expensive
+      (vc-file-setprop file 'vc-state state)
+      (not (memq state '(ignored unregistered))))))
 
 (defun vc-hg-state (file)
   "Hg-specific version of `vc-state'."
@@ -162,26 +164,26 @@
 		      ;; Ignore all errors.
 		      (call-process
 		       "hg" nil t nil "--cwd" (file-name-directory file)
-		       "status" (file-name-nondirectory file))
+		       "status" "-A" (file-name-nondirectory file))
 		    ;; Some problem happened.  E.g. We can't find an `hg'
 		    ;; executable.
 		    (error nil)))))))
     (when (eq 0 status)
-      (if (eq 0 (length out)) 'up-to-date
 	(when (null (string-match ".*: No such file or directory$" out))
 	  (let ((state (aref out 0)))
 	    (cond
+	     ((eq state ?C) 'up-to-date)
 	     ((eq state ?A) 'edited)
 	     ((eq state ?M) 'edited)
 	     ((eq state ?I) 'ignored)
 	     ((eq state ?R) 'unregistered)
 	     ((eq state ??) 'unregistered)
-	     (t 'up-to-date))))))))
+	     (t 'up-to-date)))))))
 
 (defun vc-hg-dir-state (dir)
   (with-temp-buffer
     (buffer-disable-undo)		;; Because these buffers can get huge
-    (vc-hg-command (current-buffer) nil nil "status")
+    (vc-hg-command (current-buffer) nil nil "status" "-A")
     (goto-char (point-min))
     (let ((status-char nil)
 	  (file nil))
