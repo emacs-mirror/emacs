@@ -1759,6 +1759,8 @@ order to Calc's."
      '(( infinity    . var-inf)
        ( infinity    . var-uinf)))
 
+(put 'giac 'math-complex-format 'i)
+
 (add-to-list 'calc-lang-allow-underscores 'giac)
 
 (put 'giac 'math-compose-subscr
