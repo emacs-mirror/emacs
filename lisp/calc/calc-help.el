@@ -601,6 +601,7 @@ C-w  Describe how there is no warranty for Calc."
      "\" (strings); Truncate, [, ]; SPC (refresh), RET, @"
      "SHIFT + language: Normal, One-line, Big, Unformatted"
      "SHIFT + language: C, Pascal, Fortran; TeX, LaTeX, Eqn"
+     "SHIFT + language: Yacas, X=Maxima, A=Giac"
      "SHIFT + language: Mathematica, W=Maple")
    "display" ?d))
 
