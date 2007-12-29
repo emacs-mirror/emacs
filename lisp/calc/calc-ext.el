@@ -1056,6 +1056,7 @@ calc-keypad-press)
 
  ("calc-lang" calc-big-language calc-c-language calc-eqn-language
 calc-flat-language calc-fortran-language calc-maple-language
+calc-yacas-language calc-maxima-language calc-giac-language
 calc-mathematica-language calc-normal-language calc-pascal-language
 calc-tex-language calc-latex-language calc-unformatted-language)
 
