@@ -248,15 +248,12 @@ ARG any arguments to the ACTION command,
 OUTPUT-FORMAT is the file format to output (default is jpeg),
 ACTION-PREFIX is the symbol to place before the ACTION command
               (defaults to '-' but can sometimes be '+')."
-  (let ((command (format "%s %s%s %s \"%s\" \"%s:%s\""
-			 thumbs-conversion-program
-			 (or action-prefix "-")
-			 action
-			 (or arg "")
-			 filein
-			 (or output-format "jpeg")
-			 fileout)))
-    (call-process shell-file-name nil nil nil shell-command-switch command)))
+  (call-process thumbs-conversion-program nil nil nil
+		(or action-prefix "-")
+		action
+		(or arg "")
+		filein
+		(format "%s:%s"	(or output-format "jpeg") fileout)))
 
 (defun thumbs-new-image-size (s increment)
   "New image (a cons of width x height)."

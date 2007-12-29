@@ -43,6 +43,7 @@
 ;; Declare variables which are defined elsewhere.
 (defvar calc-lang-slash-idiv)
 (defvar calc-lang-allow-underscores)
+(defvar calc-lang-allow-percentsigns)
 (defvar math-comp-left-bracket)
 (defvar math-comp-right-bracket)
 (defvar math-comp-comma)

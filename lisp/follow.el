@@ -1524,6 +1524,8 @@ non-first windows in Follow mode."
 	      ;; If the region is visible, make it look good when spanning
 	      ;; multiple windows.
 	      (if (or (and (boundp 'mark-active) (symbol-value 'mark-active))
+		      ;; The following isn't used in Emacs,
+		      ;; since `mark-active' is bound.
 		      (and (fboundp 'region-active-p)
 			   (funcall (symbol-function 'region-active-p))))
 		  (follow-maximize-region

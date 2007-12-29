@@ -647,26 +647,39 @@ a new value."
 (defsubst Man-default-man-entry (&optional pos)
   "Make a guess at a default manual entry based on the text at POS.
 If POS is nil, the current point is used."
-  (let (word)
+  (let (word start original-pos distance)
     (save-excursion
       (if pos (goto-char pos))
       ;; Default man entry title is any word the cursor is on, or if
-      ;; cursor not on a word, then nearest preceding word.
-      (skip-chars-backward "-a-zA-Z0-9._+:")
-      (let ((start (point)))
-	(skip-chars-forward "-a-zA-Z0-9._+:")
-	;; If there is a continuation at the end of line, check the
-	;; following line too, eg:
-	;;     see this-
-	;;     command-here(1)
-	(setq word (buffer-substring-no-properties start (point)))
-	(if (looking-at "[ \t\r\n]+\\([-a-zA-Z0-9._+:]+\\)([0-9])")
-	    (setq word (concat word (match-string 1)))))
-      (if (string-match "[._]+$" word)
-	  (setq word (substring word 0 (match-beginning 0))))
+      ;; cursor not on a word, nearest preceding or next word-like
+      ;; object on this line.
+      (if (not (zerop (skip-chars-backward "-a-zA-Z0-9._+:")))
+	  (setq start (point))
+	(setq original-pos (point))
+	(setq distance (abs (skip-chars-backward ",; \t")))
+	(if (not (zerop (skip-chars-backward "-a-zA-Z0-9._+:")))
+	    (progn
+	      (setq start (point))
+	      (goto-char original-pos)
+	      (if (and (< (skip-chars-forward ",; \t") distance)
+		       (looking-at "[-a-zA-Z0-9._+:]"))
+		  (setq start (point))
+		(goto-char start)))
+	  (skip-chars-forward ",; \t")
+	  (setq start (point))))
+      (skip-chars-forward "-a-zA-Z0-9._+:")
+      (setq word (buffer-substring-no-properties start (point)))
+      ;; If there is a continuation at the end of line, check the
+      ;; following line too, eg:
+      ;;     see this-
+      ;;     command-here(1)
+      (when (looking-at "[ \t\r\n]+\\([-a-zA-Z0-9._+:]+\\)([0-9])")
+	(setq word (concat word (match-string-no-properties 1))))
+      (when (string-match "[._]+$" word)
+	(setq word (substring word 0 (match-beginning 0))))
       ;; If looking at something like *strcat(... , remove the '*'
-      (if (string-match "^*" word)
-	  (setq word (substring word 1)))
+      (when (string-match "^*" word)
+	(setq word (substring word 1)))
       ;; If looking at something like ioctl(2) or brc(1M), include the
       ;; section number in the returned value.  Remove text properties.
       (concat word
@@ -1367,25 +1380,32 @@ Specify which REFERENCE to use; default is based on word at point."
   (interactive
    (if (not Man-refpages-alist)
        (error "There are no references in the current man page")
-     (list (let* ((default (or
-			    (car (all-completions
-				  (let ((word
-					 (or (Man-possibly-hyphenated-word)
-					     "")))
-				    ;; strip a trailing '-':
-				    (if (string-match "-$" word)
-					(substring word 0
-						   (match-beginning 0))
-				      word))
-				  Man-refpages-alist))
-			    (aheadsym Man-refpages-alist)))
-		   chosen
-		   (prompt (concat "Refer to (default " default "): ")))
-	      (setq chosen (completing-read prompt Man-refpages-alist))
-	      (if (or (not chosen)
-		      (string= chosen ""))
-		  default
-		chosen)))))
+     (list
+      (let* ((default (or
+		       (car (all-completions
+			     (let ((word
+				    (or (Man-possibly-hyphenated-word)
+					"")))
+			       ;; strip a trailing '-':
+			       (if (string-match "-$" word)
+				   (substring word 0
+					      (match-beginning 0))
+				 word))
+			     Man-refpages-alist))
+		       (aheadsym Man-refpages-alist)))
+	     (defaults
+	       (mapcar 'substring-no-properties
+		       (delete-dups
+			(delq nil (cons default
+					(mapcar 'car Man-refpages-alist))))))
+	     chosen
+	     (prompt (concat "Refer to (default " default "): ")))
+	(setq chosen (completing-read prompt Man-refpages-alist
+				      nil nil nil nil defaults))
+	(if (or (not chosen)
+		(string= chosen ""))
+	    default
+	  chosen)))))
   (if (not Man-refpages-alist)
       (error "Can't find any references in the current manpage")
     (aput 'Man-refpages-alist reference)

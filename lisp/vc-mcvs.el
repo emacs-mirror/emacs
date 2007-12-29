@@ -178,7 +178,7 @@ This is only meaningful if you don't use the implicit checkout model
 (defalias 'vc-mcvs-state-heuristic 'vc-cvs-state-heuristic)
 
 (defun vc-mcvs-dir-state (dir)
-  "Find the Meta-CVS state of all files in DIR."
+  "Find the Meta-CVS state of all files in DIR and subdirectories."
   ;; if DIR is not under Meta-CVS control, don't do anything.
   (when (file-readable-p (expand-file-name "MCVS/CVS/Entries" dir))
     (if (vc-stay-local-p dir)
@@ -187,8 +187,9 @@ This is only meaningful if you don't use the implicit checkout model
 	;; Don't specify DIR in this command, the default-directory is
 	;; enough.  Otherwise it might fail with remote repositories.
 	(with-temp-buffer
+	  (buffer-disable-undo)		;; Because these buffers can get huge
 	  (setq default-directory (vc-mcvs-root dir))
-	  (vc-mcvs-command t 0 nil "status" "-l")
+	  (vc-mcvs-command t 0 nil "status")
 	  (goto-char (point-min))
 	  (while (re-search-forward "^=+\n\\([^=\n].*\n\\|\n\\)+" nil t)
 	    (narrow-to-region (match-beginning 0) (match-end 0))
@@ -431,6 +432,12 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
             (pop-to-buffer "*vc*")
             (error "Couldn't analyze mcvs update result")))
       (message "Merging changes into %s...done" file))))
+
+(defun vc-mcvs-modify-change-comment (files rev comment)
+  "Modify the change comments for FILES on a specified REV. 
+Will fail unless you have administrative privileges on the repo."
+  (vc-mcvs-command nil 0 files "rcs" (concat "-m" comment ":" rev)))
+
 
 ;;;
 ;;; History functions

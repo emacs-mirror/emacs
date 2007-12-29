@@ -218,25 +218,7 @@
          (let ((faces ,face))
            (while (unless (memq (car faces) fast-lock-save-faces)
                     (setq faces (cdr faces))))
-           faces))))
- ;;
- ;; We use this for compatibility with a future Emacs.
- (or (fboundp 'with-temp-message)
-     (defmacro with-temp-message (message &rest body)
-       `(let ((temp-message ,message) current-message)
-         (unwind-protect
-              (progn
-                (when temp-message
-                  (setq current-message (current-message))
-                  (message "%s" temp-message))
-                ,@body)
-           (when temp-message
-             (message "%s" current-message))))))
- ;;
- ;; We use this for compatibility with a future Emacs.
- (or (fboundp 'defcustom)
-     (defmacro defcustom (symbol value doc &rest args)
-       `(defvar ,symbol ,value ,doc))))
+           faces)))))
 
 ;;(defun fast-lock-submit-bug-report ()
 ;;  "Submit via mail a bug report on fast-lock.el."

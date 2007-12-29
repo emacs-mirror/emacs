@@ -1121,6 +1121,16 @@ corresponding value, @var{function}, should be a function that accepts
 two arguments, a widget and a value; it should return non-@code{nil} if
 the value is acceptable.
 
+@item :validate @var{function}
+Specify a validation function for input.  @var{function} takes a
+widget as an argument, and should return @code{nil} if the widget's
+current value is valid for the widget.  Otherwise, it should return
+the widget containing the invalid data, and set that widget's
+@code{:error} property to a string explaining the error.
+
+In many cases you can use the function @code{widget-children-validate}
+for this job; it tests that all children of @var{widget} are valid.
+
 @ignore
 @item :indent @var{columns}
 Indent this item by @var{columns} columns.  The indentation is used for
@@ -1128,38 +1138,30 @@ Indent this item by @var{columns} columns.  The indentation is used for
 buttons, and for editable lists.  It affects the whole of the
 item except for the first line.
 
-@item :offset @var{columns}
-An integer indicating how many extra spaces to indent the subitems of
-this item.  By default, subitems are indented the same as their parent.
+@item :offset @var{extra}
+Indent the subitems of this item @var{extra} columns more than this
+item itself.  By default, subitems are indented the same as their
+parent.
 
-@item :extra-offset
-An integer indicating how many extra spaces to add to this item's
-indentation, compared to its parent.
+@item :extra-offset @var{n}
+Add @var{n} extra spaces to this item's indentation, compared to its
+parent's indentation.
 
-@item :notify
-A function called each time the item or a subitem is changed.  The
-function is called with two or three arguments.  The first argument is
-the item itself, the second argument is the item that was changed, and
-the third argument is the event leading to the change, if any.
+@item :notify @var{function}
+Call @var{function} each time the item or a subitem is changed.  The
+function gets two or three arguments.  The first argument is the item
+itself, the second argument is the item that was changed, and the
+third argument is the event leading to the change, if any.
 
-@item :menu-tag
-A tag used in the menu when the widget is used as an option in a
-@code{menu-choice} widget.
+@item :menu-tag @var{tag-string}
+Use @var{tag-string} in the menu when the widget is used as an option
+in a @code{menu-choice} widget.
 
 @item :menu-tag-get
 A function used for finding the tag when the widget is used as an option
 in a @code{menu-choice} widget.  By default, the tag used will be either the
 @code{:menu-tag} or @code{:tag} property if present, or the @code{princ}
 representation of the @code{:value} property if not.
-
-@item :validate
-A function which takes a widget as an argument, and return @code{nil}
-if the widget's current value is valid for the widget.  Otherwise, it
-should return the widget containing the invalid data, and set that
-widget's @code{:error} property to a string explaining the error.
-
-You can use the function @code{widget-children-validate} for this job;
-it tests that all children of @var{widget} are valid.
 
 @item :tab-order
 Specify the order in which widgets are traversed with

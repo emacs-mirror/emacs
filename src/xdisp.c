@@ -23534,6 +23534,24 @@ phys_cursor_in_rect_p (w, r)
 {
   XRectangle cr, result;
   struct glyph *cursor_glyph;
+  struct glyph_row *row;
+
+  if (w->phys_cursor.vpos >= 0
+      && w->phys_cursor.vpos < w->current_matrix->nrows
+      && (row = MATRIX_ROW (w->current_matrix, w->phys_cursor.vpos),
+	  row->enabled_p)
+      && row->cursor_in_fringe_p)
+    {
+      /* Cursor is in the fringe.  */
+      cr.x = window_box_right_offset (w,
+				      (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+				       ? RIGHT_MARGIN_AREA
+				       : TEXT_AREA));
+      cr.y = row->y;
+      cr.width = WINDOW_RIGHT_FRINGE_WIDTH (w);
+      cr.height = row->height;
+      return x_intersect_rectangles (&cr, r, &result);
+    }
 
   cursor_glyph = get_phys_cursor_glyph (w);
   if (cursor_glyph)

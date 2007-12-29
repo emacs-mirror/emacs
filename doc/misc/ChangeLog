@@ -1,3 +1,52 @@
+2007-12-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Group Parameters): Reorder the text and add a note about
+	`gnus-parameters' near the beginning of the node.
+
+2007-12-29  IRIE Tetsuya  <irie@t.email.ne.jp>  (tiny change)
+
+	* gnus.texi (Score File Editing): Fix function name.
+
+2007-12-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.12.
+
+	* trampver.texi: Update release number.
+
+2007-12-22  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Type Conversion): Correct input parameters mapping.
+
+2007-12-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Type Conversion): Extend for D-Bus compound types.
+	(Errors and Events): Mention wrong-type-argument error.
+
+2007-12-21  Alex Schroeder  <alex@gnu.org>
+
+	* rcirc.texi: Changed single spaces after sentence end to double
+	spaces. Fixed some typos.
+	(Internet Relay Chat): Explain relay.
+	(Getting started with rcirc): Change items to reflect prompts.
+	Add more explanation to rcirc-track-minor-mode and added a comment to
+	warn future maintainers that this section is a copy.
+	(People): Changed /ignore example.
+	(Keywords): Not keywords.
+
+2007-12-20  Alex Schroeder  <alex@gnu.org>
+
+	* rcirc.texi (Top): Fighting Information Overload chapter added.
+	(Getting started with rcirc): Add notice of rcirc-track-minor-mode.
+	(rcirc commands): Moved /ignore command to the new chapter.
+	(Fighting Information Overload): New chapter documenting /keyword,
+	/bright, /dim, channel ignore, and low priority channels.
+	(Configuration): Document rcirc-server-alist, remove
+	rcirc-startup-channels-alist and rcirc-default-server.
+
+2007-12-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Signals): Fix example in dbus-register-signal.
+
 2007-12-14  Sven Joachim  <svenjoac@gmx.de>
 
 	* gnus.texi (Score Variables): Fix typo.

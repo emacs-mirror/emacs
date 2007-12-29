@@ -36,8 +36,9 @@
 
 ;;; Code:
 
-;; We need macros in dired.el to compile properly.
-(eval-when-compile (require 'dired))
+;; We need macros in dired.el to compile properly,
+;; and we call subroutines in it too.
+(require 'dired)
 
 (defvar dired-create-files-failures nil
   "Variable where `dired-create-files' records failing file names.

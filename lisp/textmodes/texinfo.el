@@ -34,13 +34,6 @@
 
 ;;; Code:
 
-(or (fboundp 'defgroup)
-    (defmacro defgroup (&rest ignore) nil))
-
-(or (fboundp 'defcustom)
-    (defmacro defcustom (var value doc &rest ignore)
-      `(defvar ,var ,value ,doc)))
-
 (eval-when-compile (require 'tex-mode) (require 'cl))
 (defvar outline-heading-alist)
 

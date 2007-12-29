@@ -3472,7 +3472,7 @@ Advanced commands:
   (setq widen-automatically nil)
   (setq desktop-save-buffer 'Info-desktop-buffer-misc-data)
   (add-hook 'kill-buffer-hook 'Info-kill-buffer nil t)
-  (add-hook 'clone-buffer-hook 'Info-clone-buffer-hook nil t)
+  (add-hook 'clone-buffer-hook 'Info-clone-buffer nil t)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (add-hook 'isearch-mode-hook 'Info-isearch-start nil t)
   (set (make-local-variable 'isearch-search-fun-function)
@@ -3495,7 +3495,8 @@ Advanced commands:
        Info-tag-table-buffer
        (kill-buffer Info-tag-table-buffer)))
 
-(defun Info-clone-buffer-hook ()
+;; Placed on `clone-buffer-hook'.
+(defun Info-clone-buffer ()
   (when (bufferp Info-tag-table-buffer)
     (setq Info-tag-table-buffer
 	  (with-current-buffer Info-tag-table-buffer (clone-buffer))))

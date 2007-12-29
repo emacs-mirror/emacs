@@ -76,6 +76,13 @@ An empty list disables VC altogether."
   :version "23.1"
   :group 'vc)
 
+(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" 
+					 ".svn" ".git" ".hg" ".bzr" 
+					 "_MTN" "{arch}")
+  "List of directory names to be ignored when walking directory trees."
+  :type '(repeat string)
+  :group 'vc)
+
 (defcustom vc-path
   (if (file-directory-p "/usr/sccs")
       '("/usr/sccs")
@@ -485,15 +492,38 @@ For registered files, the value returned is one of:
                      the master file.  This state can only occur if locking
                      is not used for the file.
 
-  'unlocked-changes  The current version of the working file is not locked,
+  'unlocked-changes  The working version of the file is not locked,
                      but the working file has been changed with respect
                      to that version.  This state can only occur for files
                      with locking; it represents an erroneous condition that
                      should be resolved by the user (vc-next-action will
-                     prompt the user to do it)."
+                     prompt the user to do it).
+
+  'added             Scheduled to go into the repository on the next commit.
+                     Often represented by vc-working-revision = \"0\" in VCSes
+                     with monotonic IDs like Subversion and Mercurial.
+
+   'ignored          The file showed up in a dir-state listing with a flag 
+                     indicating the version-control system is ignoring it,
+                     Note: This property is not set reliably (some VCSes 
+                     don't have useful directory-status commands) so assume 
+                     that any file with vc-state nil might be ignorable
+                     without VC knowing it. 
+
+   'unregistered     The file showed up in a dir-state listing with a flag 
+                     indicating that it is not under version control.
+                     Note: This property is not set reliably (some VCSes 
+                     don't have useful directory-status commands) so assume 
+                     that any file with vc-state nil might be unregistered
+                     without VC knowing it. 
+
+A return of nil from this function means we have no information on the 
+status of this file.
+"
+  ;; Note: in Emacs 22 and older, return of nil meant the file was unregistered.
+  ;; This is potentially a source of backward-compatibility bugs.
+
   ;; FIXME: New (sub)states needed (?):
-  ;; - `added' (i.e. `edited' but with no base version yet,
-  ;;            typically represented by vc-working-revision = "0")
   ;; - `conflict' (i.e. `edited' with conflict markers)
   ;; - `removed'
   ;; - `copied' and `moved' (might be handled by `removed' and `added')

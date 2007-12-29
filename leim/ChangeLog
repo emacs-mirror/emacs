@@ -1,3 +1,15 @@
+2007-12-15  Richard Stallman  <rms@gnu.org>
+
+	* quail/latin-post.el ("scandinavian-postfix"): Doc fix.
+
+	* quail/latin-alt.el: Many doc fixes.
+	("danish-alt-postfix")
+	("esperanto-alt-postfix", "finnish-alt-postfix")
+	("german-alt-postfix", "icelandic-alt-postfix")
+	("norwegian-alt-postfix", "scandinavian-alt-postfix")
+	("spanish-alt-postfix", "swedish-alt-postfix"):
+	Deleted; they were identical to the non-alt versions.
+
 2007-12-07  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* quail/lao.el (quail-map-from-table): Allow a tone just after a

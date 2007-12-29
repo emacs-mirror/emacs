@@ -839,10 +839,10 @@ This command shares argument histories with \\[lgrep] and \\[grep-find]."
 		      grep-find-template
 		      regexp
 		      (concat (shell-quote-argument "(")
-			      " -name "
+			      " " find-name-arg " "
 			      (mapconcat #'shell-quote-argument
 					 (split-string files)
-					 " -o -name ")
+					 (concat " -o " find-name-arg " "))
 			      " "
 			      (shell-quote-argument ")"))
 		       dir

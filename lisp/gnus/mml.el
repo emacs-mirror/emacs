@@ -47,6 +47,11 @@
   (autoload 'message-posting-charset "message")
   (autoload 'dnd-get-local-file-name "dnd"))
 
+(autoload 'message-options-set    "message")
+(autoload 'message-narrow-to-head "message")
+(autoload 'message-in-body-p      "message")
+(autoload 'message-mail-p         "message")
+
 (defvar gnus-article-mime-handles)
 (defvar gnus-mouse-2)
 (defvar gnus-newsrc-hashtb)
@@ -836,6 +841,10 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 ;;; Transforming MIME to MML
 ;;;
 
+;; message-narrow-to-head autoloads message.
+(declare-function message-remove-header "message"
+                  (header &optional is-regexp first reverse))
+
 (defun mime-to-mml (&optional handles)
   "Translate the current buffer (which should be a message) into MML.
 If HANDLES is non-nil, use it instead reparsing the buffer."
@@ -860,6 +869,9 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     (message-remove-header "MIME-Version")
     (message-remove-header "Content-Disposition")
     (message-remove-header "Content-Transfer-Encoding")))
+
+(autoload 'message-encode-message-body "message")
+(declare-function message-narrow-to-headers-or-head "message" ())
 
 (defun mml-to-mime ()
   "Translate the current buffer from MML to MIME."
@@ -1308,6 +1320,11 @@ TYPE is the MIME type to use."
   (mml-insert-tag 'part 'type type 'disposition "inline")
   (forward-line -1))
 
+(declare-function message-subscribed-p "message" ())
+(declare-function message-make-mail-followup-to "message"
+                  (&optional only-show-subscribed))
+(declare-function message-position-on-field "message" (header &rest afters))
+
 (defun mml-preview-insert-mail-followup-to ()
   "Insert a Mail-Followup-To header before previewing an article.
 Should be adopted if code in `message-send-mail' is changed."
@@ -1325,6 +1342,11 @@ Should be adopted if code in `message-send-mail' is changed."
 (declare-function widget-event-point "wid-edit" (event))
 ;; If gnus-buffer-configuration is bound this is loaded.
 (declare-function gnus-configure-windows "gnus-win" (setting &optional force))
+;; Called after message-mail-p, which autoloads message.
+(declare-function message-news-p                "message" ())
+(declare-function message-options-set-recipient "message" ())
+(declare-function message-generate-headers      "message" (headers))
+(declare-function message-sort-headers          "message" ())
 
 (defun mml-preview (&optional raw)
   "Display current buffer with Gnus, in a new buffer.

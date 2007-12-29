@@ -111,25 +111,25 @@ See the variable `nxml-section-element-name-regexp' for more details."
   :group 'nxml
   :type 'integer)
 
-(defface nxml-heading-face
+(defface nxml-heading
   '((t (:weight bold)))
   "Face used for the contents of abbreviated heading elements."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-outline-indicator-face
+(defface nxml-outline-indicator
   '((t (:inherit default)))
   "Face used for `+' or `-' before element names in outlines."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-outline-active-indicator-face
-  '((t (:box t :inherit nxml-outline-indicator-face)))
+(defface nxml-outline-active-indicator
+  '((t (:box t :inherit nxml-outline-indicator)))
   "Face used for clickable `+' or `-' before element names in outlines."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
-(defface nxml-outline-ellipsis-face
+(defface nxml-outline-ellipsis
   '((t (:bold t :inherit default)))
   "Face used for `...' in outlines."
-  :group 'nxml-highlighting-faces)
+  :group 'nxml-faces)
 
 (defvar nxml-heading-scan-distance 1000
   "Maximum distance from section to scan for heading.")
@@ -514,19 +514,19 @@ non-transparent child section."
     had-children))
 
 (defconst nxml-highlighted-less-than
-  (propertize "<" 'face 'nxml-tag-delimiter-face))
+  (propertize "<" 'face 'nxml-tag-delimiter))
 
 (defconst nxml-highlighted-greater-than
-  (propertize ">" 'face 'nxml-tag-delimiter-face))
+  (propertize ">" 'face 'nxml-tag-delimiter))
 
 (defconst nxml-highlighted-colon
-  (propertize ":" 'face 'nxml-element-colon-face))
+  (propertize ":" 'face 'nxml-element-colon))
 
 (defconst nxml-highlighted-slash
-  (propertize "/" 'face 'nxml-tag-slash-face))
+  (propertize "/" 'face 'nxml-tag-slash))
 
 (defconst nxml-highlighted-ellipsis
-  (propertize "..." 'face 'nxml-outline-ellipsis-face))
+  (propertize "..." 'face 'nxml-outline-ellipsis))
 
 (defconst nxml-highlighted-empty-end-tag
   (concat nxml-highlighted-ellipsis
@@ -535,13 +535,13 @@ non-transparent child section."
 	  nxml-highlighted-greater-than))
 
 (defconst nxml-highlighted-inactive-minus
-  (propertize "-" 'face 'nxml-outline-indicator-face))
+  (propertize "-" 'face 'nxml-outline-indicator))
 
 (defconst nxml-highlighted-active-minus
-  (propertize "-" 'face 'nxml-outline-active-indicator-face))
+  (propertize "-" 'face 'nxml-outline-active-indicator))
 
 (defconst nxml-highlighted-active-plus
-  (propertize "+" 'face 'nxml-outline-active-indicator-face))
+  (propertize "+" 'face 'nxml-outline-active-indicator))
 
 (defun nxml-display-section (last-pos
 			     section-start-pos
@@ -642,14 +642,14 @@ non-transparent child section."
     (if colon
 	(concat (propertize (substring qname 0 colon)
 			    'face
-			    'nxml-element-prefix-face)
+			    'nxml-element-prefix)
 		nxml-highlighted-colon
 		(propertize (substring qname (1+ colon))
 			    'face
-			    'nxml-element-local-name-face))
+			    'nxml-element-local-name))
       (propertize qname
 		  'face
-		  'nxml-element-local-name-face))))
+		  'nxml-element-local-name))))
 
 (defun nxml-outline-display-single-line-end-tag (last-pos)
   (nxml-outline-set-overlay 'nxml-outline-display-hide
@@ -727,7 +727,7 @@ non-transparent child section."
 (put 'nxml-outline-display-heading 'help-echo nxml-outline-show-help)
 (put 'nxml-outline-display-heading 'nxml-outline-display t)
 (put 'nxml-outline-display-heading 'evaporate t)
-(put 'nxml-outline-display-heading 'face 'nxml-heading-face)
+(put 'nxml-outline-display-heading 'face 'nxml-heading)
 
 (defvar nxml-outline-hiding-tag-map
   (let ((map (make-sparse-keymap)))

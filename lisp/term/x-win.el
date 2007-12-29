@@ -2173,6 +2173,11 @@ This is in addition to, but in preference to, the primary selection."
   :type 'boolean
   :group 'killing)
 
+(defcustom x-select-enable-primary t
+  "Non-nil means cutting and pasting uses the primary selection."
+  :type 'boolean
+  :group 'killing)
+
 (defun x-select-text (text &optional push)
   "Make TEXT, a string, the primary X selection.
 Also, set the value of X cut buffer 0, for backward compatibility
@@ -2194,8 +2199,9 @@ in the clipboard."
                  ;; ICCCM says cut buffer always contain ISO-Latin-1
                  (encode-coding-string text 'iso-latin-1))
            (x-set-cut-buffer x-last-selected-text-cut-encoded push)))
-    (x-set-selection 'PRIMARY text)
-    (setq x-last-selected-text-primary text)
+    (when x-select-enable-primary
+      (x-set-selection 'PRIMARY text)
+      (setq x-last-selected-text-primary text))
     (when x-select-enable-clipboard
       (x-set-selection 'CLIPBOARD text)
       (setq x-last-selected-text-clipboard text))))
@@ -2341,22 +2347,23 @@ order until succeed.")
                 nil)
                (t (setq x-last-selected-text-clipboard clip-text)))))
 
-      (setq primary-text (x-selection-value 'PRIMARY))
-      ;; Check the PRIMARY selection for 'newness', is it different
-      ;; from what we remebered them to be last time we did a
-      ;; cut/paste operation.
-      (setq primary-text
-            (cond ;; check primary selection
-             ((or (not primary-text) (string= primary-text ""))
-              (setq x-last-selected-text-primary nil))
-             ((eq      primary-text x-last-selected-text-primary) nil)
-             ((string= primary-text x-last-selected-text-primary)
-              ;; Record the newer string,
-              ;; so subsequent calls can use the `eq' test.
-              (setq x-last-selected-text-primary primary-text)
-              nil)
-             (t
-              (setq x-last-selected-text-primary primary-text))))
+      (when x-select-enable-primary
+	(setq primary-text (x-selection-value 'PRIMARY))
+	;; Check the PRIMARY selection for 'newness', is it different
+	;; from what we remebered them to be last time we did a
+	;; cut/paste operation.
+	(setq primary-text
+	      (cond ;; check primary selection
+	       ((or (not primary-text) (string= primary-text ""))
+		(setq x-last-selected-text-primary nil))
+	       ((eq      primary-text x-last-selected-text-primary) nil)
+	       ((string= primary-text x-last-selected-text-primary)
+		;; Record the newer string,
+		;; so subsequent calls can use the `eq' test.
+		(setq x-last-selected-text-primary primary-text)
+		nil)
+	       (t
+		(setq x-last-selected-text-primary primary-text)))))
 
       (setq cut-text (x-get-cut-buffer 0))
 

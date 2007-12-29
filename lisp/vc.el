@@ -160,9 +160,11 @@
 ;; - dir-state (dir)
 ;;
 ;;   If provided, this function is used to find the version control state
-;;   of all files in DIR in a fast way.  The function should not return
-;;   anything, but rather store the files' states into the corresponding
-;;   `vc-state' properties.
+;;   of all files in DIR, and all subdirecties of DIR, in a fast way.  
+;;   The function should not return anything, but rather store the files' 
+;;   states into the corresponding `vc-state' properties.  (Note: in
+;;   older versions this method was not required to recurse into 
+;;   subdirectories.)
 ;;
 ;; * working-revision (file)
 ;;
@@ -315,6 +317,11 @@
 ;;   that is provided.  This function is only needed if locking is
 ;;   used for files under this backend, and if files can indeed be
 ;;   locked by other users.
+;;
+;; - modify-change-comment (files rev comment)
+;;
+;;   Modify the change comments associated with the files at the 
+;;   given revision.  This is optional, many backends do not support it.
 ;;
 ;; HISTORY FUNCTIONS
 ;;
@@ -612,12 +619,6 @@ These are passed to the checkin program by \\[vc-register]."
   :type 'boolean
   :group 'vc
   :version "20.3")
-
-(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" ".svn"
-					 ".git" ".hg" ".bzr" "{arch}")
-  "List of directory names to be ignored when walking directory trees."
-  :type '(repeat string)
-  :group 'vc)
 
 (defcustom vc-diff-switches nil
   "A string or list of strings specifying switches for diff under VC.
@@ -1297,7 +1298,10 @@ Otherwise, throw an error."
   "Make sure that the current buffer visits a version-controlled file."
   (if vc-dired-mode
       (set-buffer (find-file-noselect (dired-get-filename)))
-    (while vc-parent-buffer
+    (while (and vc-parent-buffer
+		;; Avoid infinite looping when vc-parent-buffer and
+		;; current buffer are the same buffer.
+ 		(not (eq vc-parent-buffer (current-buffer))))
       (set-buffer vc-parent-buffer))
     (if (not buffer-file-name)
 	(error "Buffer %s is not associated with a file" (buffer-name))
@@ -1553,7 +1557,7 @@ first backend that could register the file is used."
   (interactive "P")
   (when (and (null fname) (null buffer-file-name)) (error "No visited file"))
 
-  (let ((bname (if fname (get-file-buffer fname) buffer-file-name)))
+  (let ((bname (if fname (get-file-buffer fname) (current-buffer))))
     (unless fname (setq fname buffer-file-name))
     (when (vc-backend fname)
       (if (vc-registered fname)
@@ -2132,6 +2136,19 @@ The headers are reset to their non-expanded form."
 	  (vc-call-backend backend 'clear-headers)
 	  (kill-buffer filename)))))
 
+(defun vc-modify-change-comment (files rev oldcomment)
+  "Edit the comment associated with the given files and revision."
+  (vc-start-entry
+   files rev oldcomment t
+   "Enter a replacement change comment."
+   (lambda (files rev comment)
+     (vc-call-backend 
+      ;; Less of a kluge than it looks like; log-view mode only passes
+      ;; this function a singleton list.  Arguments left in this form in
+      ;; case the more general operation ever becomes meaningful. 
+      (vc-responsible-backend (car files)) 
+      'modify-change-comment files rev comment))))
+
 ;;;###autoload
 (defun vc-merge ()
   "Merge changes between two revisions into the current buffer's file.
@@ -2304,23 +2321,40 @@ This code, like dired, assumes UNIX -l format."
       (replace-match (substring (concat vc-info "          ") 0 10)
                      t t nil 1)))
 
+(defun vc-dired-ignorable-p (filename)
+  "Should FILENAME be ignored in VC-Dired listings?"
+  (catch t 
+    ;; Ignore anything that wouldn't be found by completion (.o, .la, etc.)
+    (dolist (ignorable completion-ignored-extensions)
+      (let ((ext (substring filename 
+			      (- (length filename)
+				 (length ignorable)))))
+	(if (string= ignorable ext) (throw t t))))
+    ;; Ignore Makefiles derived from something else
+    (when (string= (file-name-nondirectory filename) "Makefile")
+      (let* ((dir (file-name-directory filename))
+	    (peers (directory-files (or dir default-directory))))
+	(if (or (member "Makefile.in" peers) (member "Makefile.am" peers))
+	   (throw t t))))
+    nil))
+
 (defun vc-dired-hook ()
   "Reformat the listing according to version control.
 Called by dired after any portion of a vc-dired buffer has been read in."
   (message "Getting version information... ")
-  (let (subdir filename (inhibit-read-only t))
+  ;; if the backend supports it, get the state
+  ;; of all files in this directory at once
+  (let ((backend (vc-responsible-backend default-directory)))
+    ;; check `backend' can really handle `default-directory'.
+    (if (and (vc-call-backend backend 'responsible-p default-directory)
+	     (vc-find-backend-function backend 'dir-state))
+	(vc-call-backend backend 'dir-state default-directory)))
+  (let (filename (inhibit-read-only t))
     (goto-char (point-min))
     (while (not (eobp))
       (cond
        ;; subdir header line
-       ((setq subdir (dired-get-subdir))
-	;; if the backend supports it, get the state
-	;; of all files in this directory at once
-	(let ((backend (vc-responsible-backend subdir)))
-	  ;; check `backend' can really handle `subdir'.
-	  (if (and (vc-call-backend backend 'responsible-p subdir)
-		   (vc-find-backend-function backend 'dir-state))
-	      (vc-call-backend backend 'dir-state subdir)))
+       ((dired-get-subdir)
         (forward-line 1)
         ;; erase (but don't remove) the "total" line
 	(delete-region (point) (line-end-position))
@@ -2349,14 +2383,27 @@ Called by dired after any portion of a vc-dired buffer has been read in."
            (t
             (vc-dired-reformat-line nil)
             (forward-line 1))))
-         ;; ordinary file
-         ((and (vc-backend filename)
-	       (not (and vc-dired-terse-mode
-			 (vc-up-to-date-p filename))))
-          (vc-dired-reformat-line (vc-call dired-state-info filename))
-          (forward-line 1))
+	 ;; try to head off calling the expensive state query -
+	 ;; ignore object files, TeX intermediate files, and so forth.
+	 ((vc-dired-ignorable-p filename)
+	  (dired-kill-line))
+         ;; ordinary file -- call the (possibly expensive) state query
          (t
-          (dired-kill-line))))
+	  (let ((backend (vc-backend filename)))
+	    (cond
+	     ;; Not registered
+	     ((not backend)
+	      (if vc-dired-terse-mode
+		  (dired-kill-line)
+		(vc-dired-reformat-line "?")
+		(forward-line 1)))
+	     ;; Either we're in non-terse mode or it's out of date 
+	     ((not (and vc-dired-terse-mode (vc-up-to-date-p filename)))
+	      (vc-dired-reformat-line (vc-call dired-state-info filename))
+	      (forward-line 1))
+	     ;; Remaining cases are under version control but uninteresting 
+	     (t	
+	      (dired-kill-line)))))))
        ;; any other line
        (t (forward-line 1))))
     (vc-dired-purge))
@@ -2365,7 +2412,7 @@ Called by dired after any portion of a vc-dired buffer has been read in."
     (widen)
     (cond ((eq (count-lines (point-min) (point-max)) 1)
            (goto-char (point-min))
-           (message "No files locked under %s" default-directory)))))
+           (message "No changes pending under %s" default-directory)))))
 
 (defun vc-dired-purge ()
   "Remove empty subdirs."
@@ -3028,7 +3075,11 @@ to provide the `find-revision' operation instead."
 	  ((eq state 'edited) (concat "(" (vc-user-login-name file) ")"))
 	  ((eq state 'needs-merge) "(merge)")
 	  ((eq state 'needs-patch) "(patch)")
-	  ((eq state 'unlocked-changes) "(stale)")))
+	  ((eq state 'added) "(added)")
+          ((eq state 'ignored) "(ignored)")     ;; dired-hook filters this out
+          ((eq state 'unregistered) "?")
+	  ((eq state 'unlocked-changes) "(stale)")
+	  ((not state) "(unknown)")))
 	(buffer
 	 (get-file-buffer file))
 	(modflag

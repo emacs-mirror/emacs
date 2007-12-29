@@ -125,8 +125,11 @@
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
 (require 'dig)
-(or (require 'password-cache nil t)
-    (require 'password))
+
+(if (locate-library "password-cache")
+    (require 'password-cache)
+  (require 'password))
+
 (eval-when-compile (require 'cl))
 
 (eval-and-compile

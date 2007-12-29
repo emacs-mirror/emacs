@@ -1,3 +1,533 @@
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compilation-start): Set initial visible
+	point properly even when compilation buffer already current.
+
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* files.el (conf-mode-maybe): New function.
+	(auto-mode-alist): Use conf-mode-maybe for .conf etc.
+
+2007-12-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* textmodes/fill.el (fill-find-break-point): Fix doc-string typo.
+
+2007-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/asm-mode.el (asm-mode-map): Add a major mode menu.
+
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* comint.el (comint-mode-map): Explicitly bind `delete' and `kp-delete'
+	so they never do EOF.
+
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* faces.el (copy-face): Create the new face explicitly if it
+	does not exist already.
+
+2007-12-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (minibuffer-history, shell-command-history)
+	(set-variable-value-history):
+	* replace.el (regexp-history):
+	* international/mule-cmds.el (input-method-history):
+	* files.el (file-name-history): Add reference to history-length in
+	the doc string.
+
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* comint.el (comint-password-prompt-regexp): Match `Enter Password'.
+
+2007-12-29  Jason Rumney  <jasonr@gnu.org>
+
+	* find-dired.el (find-name-arg): New custom variable.
+	(find-name-dired): Use it.
+	(find-dired-find-program): Remove.
+	(find-dired): Use find-program.
+	(find-grep-dired): Use grep-program.
+
+	* progmodes/grep.el (rgrep): Use find-name-arg.
+
+2007-12-29  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* progmodes/cc-vars.el (defcustom-c-stylevar):
+	Revert to pre-2007-12-12 version.
+
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/find-func.el (find-function-after-hook): Add :type.
+
+	* info.el (Info-clone-buffer): Renamed from Info-clone-buffer-hook.
+	Use changed.
+
+	* startup.el (fancy-splash-help-echo): Var deleted.
+	(fancy-splash-insert): Get help-echo from (startup-echo-area-message).
+	(fancy-about-screen): Don't display fancy-splash-help-echo.
+
+	* menu-bar.el (menu-bar-describe-menu): Remove dots from menu text.
+
+2007-12-28  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-hooks.el, vc.el: Move vc-directory-exclusion-list from vc.el
+	to vc-hooks.el so it will be available to other modes, such as
+	speedbar.el.  Also, teach it to recognize monotone state directories.
+
+	* speedbar.el: Remove this mode's fragile assumptions about
+	version-control systems.  Instead, make it use logic from
+	vc-hooks.el so it will become smarter whenever VC mode does.
+
+	* vc-hooks.el: 'added is a real state, not a future hypothetical one.
+	Fix the documentation.
+
+	* vc-bzr.el, vc-cvs.el, vc-git.el, vc-hg.el, vc-mcvs.el, vc-svn.el:
+	Modify all instances of the dir-state back-end method to suppress
+	keeping undo lists on the buffers holding status output, which
+	can get extremely large.
+
+	* vc-cvs.el, vc-svn.el: Simplify backend dired-state-info functions
+	so they don't do work that the default one can do instead.
+
+	* vc-hooks.el (vc-state): Document new 'ignored and 'unregistered
+	states, and the new return-value convention.  These are not
+	actually used yet, just set.
+
+	* vc-svn.el (vc-svn-parse-status): Set 'ignored and 'unregistered
+	states when appropriate.
+
+	* vc-hg.el (vc-hg-state, vc-hg-dir-state): Set 'ignored and
+	'unregistered when appropriate.
+
+	* vc-git.el: Document that we don't set the new states yet.
+
+	* vc.el (vc-dired-state-info): Display 'added, 'unregistered and
+	'ignored states.
+
+	* vc-cvs.el (vc-cvs-parse-status): Set the 'ignored state when
+	appropriate.
+
+	* vc-bzr.el (vc-bzr-dir-state): Set 'ignored and 'unregistered
+	when appropriate.
+
+2007-12-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* thumbs.el (thumbs-call-convert): Use call-process directly
+	with thumbs-conversion-program instead of through shell-file-name
+	for better error reporting.
+
+2007-12-27  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-aent.el (math-remove-percentsigns):
+	* calc/calccomp.el (math-to-percentsigns): Change placeholder
+	for percent signs.
+
+2007-12-27  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el (vc-dired-ignorable-p, vc-dired-hook): Speed optimization;
+	use completion-ignored-extensions to detect files that should be
+	ignorted in VC-Dired listings, heading off lots of expensive calls
+	to (vc-state).
+
+	* vc.el (vc-dired-hook): Show unregistered file status as "?" in
+	non-terse mode.
+	(vc-dired-ignorable-p): Ignore Makefile when it has a peer named
+	Makefile.in or Makefile.am
+
+2007-12-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-mark-active-p): Fun returned back.
+	(ps-print-preprint-region): Use `ps-mark-active-p' instead of
+	`region-active-p' for error checking.
+
+2007-12-27  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc.el, vc-sccs.el, vc-rcs.el, vc-cs.el, vc-mcvs.el: Put
+	new machinery in place to support editing of change comments
+	with 'e' in a log-view buffer.  Not documented yet as this
+	only works for SCCS, RCS, and maybe CVS if you have admin
+	privileges.  When we have backend support for Subversion and
+	more modern systems it will be time to write this up.
+
+2007-12-27  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/mule-cmds.el (select-safe-coding-system):
+	When a buffer is modified, cancel the writing.
+
+2007-12-26  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* log-view.el: Add Subversion and Mercurial log format samples.
+
+	* vc.el (vc-dired-hook): Significantly speed up by arranging for
+	it to call the backend dir-state hook (if it exists)
+	exactly *once*, rather than once per each subdirectory (with
+	dired-state-info calls on all toplevel files slowing it down even
+	further).  For this to work, backend dir-state methods have to
+	recurse to subdirectories.  Most of them already did anyway; a few
+	needed *non*-recursion switches removed.  This change mostly
+	removed code that was perversely bad and should have been shot
+	through the head years ago.
+
+	* vc-bzr.el (vc-bzr-dir-state):
+	* vc-cvs.el (vc-cvs-dir-state):
+	* vc-mcvs.el (vc-mcvs-dir-state):
+	* vc-svn.el (vc-svn-dir-state): Recurse in subdirectories.
+
+	* vc-svn.el (vc-svn-print-log): svn log doesn't actually accept
+	multiple arguments, so generate logs sequentially when we get them.
+	* vc-hg.el (vc-hg-print-log): Gives this CVS-like "Working file:"
+	headers so the various log bindings can do the right thing.
+	* vc-cvs.el (vc-cvs-print-log): Fix a misleading comment.
+
+2007-12-26  Andreas Schwab  <schwab@suse.de>
+
+	* font-lock.el (save-buffer-state): Make sure the state of the
+	buffer is always restored.
+
+2007-12-26  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-lang-allow-percentsigns): New variable.
+
+	* calc/calc-lang.el (calc-lang-allow-percentsigns): Declare as
+	a variable.
+
+	* calc/calccomp.el (math-to-percentsigns): New function.
+	(math-compose-var): Handle variables with percent signs.
+	(math-compose-expr): Handle function names with percent signs.
+
+	* calc/calc-aent.el (math-to-percentsigns): Declare as function.
+	(math-read-exprs): Handle percent signs in languages that
+	allow them.
+	(math-restore-underscores): Remove function.
+	(math-remove-percentsigns, math-restore-placeholders):
+	New functions.
+
+2007-12-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-print-preprint-region): Use `region-active-p' instead
+	of `mark' for error checking.
+
+2007-12-26  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* image-mode.el (image-bookmark-make-cell, image-bookmark-jump):
+	New functions.
+	(image-mode): Set bookmark-make-cell-function appropriately.
+
+	* doc-view.el (doc-view-bookmark-jump): Correct misspelled arg name.
+
+	* bookmark.el (bookmark-make-cell-function): New variable.
+	(bookmark-make): Call bookmark-make-cell-function's function
+	instead of bookmark-make-cell.
+	(bookmark-get-handler, bookmark-jump-internal): New functions.
+	(bookmark-jump, bookmark-jump-other-window, bookmark-insert)
+	(bookmark-bmenu-2-window, bookmark-bmenu-other-window):
+	Use bookmark-jump-internal.
+	(bookmark-make-cell-for-text-file): Renamed from bookmark-make-cell.
+
+	* doc-view.el (doc-view-bookmark-make-cell)
+	(doc-view-bookmark-jump): New functions.
+	(doc-view-mode): Set bookmark-make-cell-function buffer-locally.
+
+2007-12-25  Miles Bader  <miles@gnu.org>
+
+	* indent.el (indent-for-tab-command): Rigidly indent the following
+	sexp along with the current line when a prefix arg is given in the
+	non-active-region case.  Specify raw prefix in interactive spec.
+	Simplify main indentation logic to get rid of the conditional call
+	to `indent-according-to-mode' (it just ended up calling
+	`indent-line-function' in all cases anyway, which can be done more
+	simply here).  Remove unnecessary test of ARG in active region case.
+
+2007-12-25  Richard Stallman  <rms@gnu.org>
+
+	* allout.el (allout-region-active-p): Rename from my-region-active-p.
+	Use `use-region-p'.
+	(allout-write-file-hook-handler): Simplify code.
+
+	* ps-print.el (ps-mark-active-p): Function deleted.
+	(ps-print-preprint-region): Use (mark) for the error check.
+
+	* tooltip.el (tooltip-region-active-p): Use `use-region-p'.
+
+	* winner.el (winner-active-region): Use `mark-active' if it's defined.
+
+	* progmodes/ada-mode.el (ada-region-selected): Use `use-region-p'.
+
+	* textmodes/org.el (org-region-active-p): Use `use-region-p'.
+
+	* progmodes/idlwave.el (idlwave-region-active-p): Use `use-region-p'.
+
+	* textmodes/reftex.el (reftex-region-active-p): Use `use-region-p'.
+
+	* progmodes/cc-defs.el (c-region-is-active-p):
+	Use `mark-active' if it's defined.
+
+	* progmodes/cc-cmds.el (c-indent-line-or-region):
+	Pass prefix arg to `c-indent-command'.  Use `use-region-p'.
+
+	* simple.el (select-active-regions): New option.
+	(set-mark): Obey it.
+	(yank-pop-change-selection): New option.
+	(current-kill): Obey it.
+
+	* simple.el (use-region-p): Renamed from `region-active-p'.
+	(region-active-p): New function.
+
+2007-12-25  David Golden  <david.delaharpe.golden@gmail.com>  (tiny change)
+
+	* term/x-win.el (x-select-enable-primary): New option.
+	(x-select-text, x-cut-buffer-or-selection-value): Obey it.
+
+	* mouse.el (mouse-yank-primary): New function (almost same
+	as mouse-yank-secondary).
+
+2007-12-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* calculator.el:
+	* dframe.el:
+	* iswitchb.el:
+	* whitespace.el:
+	* winner.el:
+	* emacs-lisp/checkdoc.el:
+	* mail/feedmail.el:
+	* net/quickurl.el:
+	* obsolete/fast-lock.el:
+	* play/5x5.el:
+	* progmodes/delphi.el:
+	* progmodes/idlw-shell.el:
+	* progmodes/idlwave.el:
+	* textmodes/artist.el:
+	* textmodes/ispell.el:
+	* textmodes/texinfmt.el:
+	* textmodes/texinfo.el: Remove obsolete definitions of backward
+	compatibility macros for defcustom, defgroup, defface, when,
+	unless, with-current-buffer and with-temp-message.
+
+2007-12-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/verilog-mode.el: Reformat parts to 80 columns.
+
+2007-12-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-save-buffers-kill-terminal): Check the `proc' is
+	indeed a process.
+
+2007-12-23  Richard Stallman  <rms@gnu.org>
+
+	* simple.el (region-active-p): New function.
+	(use-empty-active-region): New variable.
+
+	* dired-aux.el (dired): Load dired.el at run time too.
+
+2007-12-23  Juri Linkov  <juri@jurta.org>
+
+	* man.el (Man-follow-manual-reference): Fill the minibuffer's
+	default list with a full list of references.
+
+	* files.el (auto-mode-alist): Add \\' to doc-view files regexp.
+
+2007-12-23  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (switch-to-buffer-other-frame): Return the buffer
+	switched to.
+
+2007-12-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.12.
+
+	* net/tramp.el: New todo item.
+
+	* net/tramp-smb.el (tramp-smb-handle-insert-directory): Handle "-F"
+	switch.  Reported by Mark T. Kennedy <mkennedy@diamondbackcap.com>.
+
+	* net/trampver.el: Update release number.
+
+2007-12-22  Richard Stallman  <rms@gnu.org>
+
+	* newcomment.el (comment-region-default): Don't triple the
+	comment starter if the first region line isn't indented enough.
+
+2007-12-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* autoinsert.el (auto-insert-alist): Remove nonsensical precision
+	specifier from format-string.  Reported by Ye Wenbin.
+
+2007-12-20  Jason Rumney  <jasonr@gnu.org>
+
+	* nxml/nxml-mode.el (nxml-faces): Rename from nxml-highlighting-faces.
+	Parent group is font-lock-faces.
+	(nxml-light-blue-color, nxml-dark-blue-color, nxml-green-color)
+	(nxml-sky-blue-color, nxml-dark-green-color, nxml-light-green-color):
+	(nxml-version): Remove.
+	(nxml-delimited-data, nxml-name, nxml-ref, nxml-delimiter)
+	(nxml-text, nxml-comment-content, nxml-comment-delimiter)
+	(nxml-processing-instruction-delimiter)
+	(nxml-processing-instruction-target)
+	(nxml-processing-instruction-content, nxml-cdata-section-delimiter)
+	(nxml-cdata-section-CDATA, nxml-cdata-section-content)
+	(nxml-char-ref-number, nxml-char-ref-delimiter, nxml-entity-ref-name)
+	(nxml-entity-ref-delimiter, nxml-tag-delimiter, nxml-tag-slash)
+	(nxml-element-prefix, nxml-element-colon, nxml-element-local-name)
+	(nxml-attribute-prefix, nxml-attribute-colon)
+	(nxml-attribute-local-name, nxml-namespace-attribute-xmlns)
+	(nxml-namespace-attribute-colon, nxml-namespace-attribute-prefix)
+	(nxml-attribute-value, nxml-attribute-value-delimiter)
+	(nxml-namespace-attibute-value)
+	(nxml-namespace-attribure-value-delimiter)
+	(nxml-prolog-literal-delimiter, nxml-prolog-literal-content)
+	(nxml-prolog-keyword, nxml-markup-declaration-delimiter, nxml-hash)
+	(nxml-glyph): Rename, removing -face suffix.
+	Inherit from existing font-lock faces.
+	(nxml-apply-fontify-rule, nxml-char-ref-display-extra):
+	Use new face names.
+
+	* nxml/nxml-outln.el (nxml-heading, nxml-outline-indicator)
+	(nxml-outline-active-indicator, nxml-outline-ellipsis):
+	Rename, removing -face suffix.
+	(nxml-highlighted-less-than, nxml-highlighted-greater-than)
+	(nxml-highlighted-colon, nxml-highlighted-slash)
+	(nxml-highlighted-ellipsis, nxml-highlighted-inactive-minus)
+	(nxml-highlighted-active-minus, nxml-highlighted-active-plus)
+	(nxml-highlighted-qname, nxml-outline-display-heading):
+	Use new face names.
+
+	* nxml/rng-valid.el (rng-error): Rename from rng-error-face.
+
+	* nxml/rng-nxml.el (rng-nxml-easy-menu): Remove nxml-version.
+
+2007-12-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-start.el (all): Use correct group name for members of
+	mode-line group.
+
+	* man.el (Man-default-man-entry): When looking for default man
+	entry title search text preceding point.  Use when instead of if.
+
+	* indent.el (indent-for-tab-command): Fix doc-string typo.
+
+	* vc.el (vc-ensure-vc-buffer): Avoid infinite looping when
+	vc-parent-buffer is the current buffer.
+
+	* info-look.el (info-lookup, info-lookup-setup-mode)
+	(info-lookup-make-completions): Avoid clobbering Info-history and
+	Info-history-list.
+
+2007-12-19  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/verilog-mode.el (top-level): Don't require compile.
+	(compilation-error-regexp-alist, compilation-last-buffer):
+	Define for compiler.
+	(verilog-insert-1): New function.
+	(verilog-insert-indices, verilog-generate-numbers): Doc fixes.
+	Use verilog-insert-1.
+	(verilog-surelint-off): Use next-error-last-buffer if bound.
+	Check compile buffer is live.
+
+2007-12-19  John J Foerch  <jjfoerch@earthlink.net>  (tiny change)
+
+	* progmodes/compile.el (compilation-start): Don't pass a FRAME
+	argument to display-buffer.
+
+2007-12-19  Jason Rumney  <jasonr@gnu.org>
+
+	* nxml/rng-maint.el (rng-format-manual): Do not autoload.
+	(rng-autoload-modules, rng-update-autoloads, rng-compile-modules)
+	(rng-byte-compile-load, rng-write-version): Remove.
+
+	* nxml/rng-loc.el (rng-schema-locating-files-default)
+	(rng-schema-locating-file-schema-file): Use files in etc/schemas.
+	(rng-schema-loader-alist): Use rng-c-load-schema to load rnc files.
+
+2007-12-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (cd-absolute): Set `list-buffers-directory' in order to
+	show correct path in buffer list.
+
+	* net/tramp.el (tramp-open-connection-setup-interactive-shell)
+	(tramp-find-shell): Send only single prompt setting commands, in
+	order to avoid double-prompt.
+
+	* net/tramp-compat.el (top): Require cl only when compiling.
+	Reported by Glenn Morris <rgm@gnu.org>.
+
+2007-12-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* progmodes/cc-vars.el (defcustom-c-stylevar): Eval VAL.
+	(c-comment-continuation-stars): No longer declare with
+	cc-bytecomp-obsolete-var and cc-bytecomp-defvar.
+	(c-block-comment-prefix): Use symbol-value to
+	access c-comment-continuation-stars.
+	* progmodes/cc-mode.el (c-initialize-cc-mode):
+	Use symbol-value to access c-comment-continuation-stars.
+
+2007-12-18  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-escape-string): New function.  Escape string using
+	xml-entity-alist.
+	(xml-debug-print-internal): Use xml-escape-string to escape
+	characters in attributes and in text children of elements.
+
+2007-12-18  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/cc-subword.el (c-subword-mode): Drop support for
+	systems without define-minor-mode.
+
+	* progmodes/cc-vars.el (defcustom-c-stylevar): Remove debugging message.
+
+	* progmodes/verilog-mode.el: Replace all instances of
+	string-to-int with string-to-number, insert-string with insert,
+	and read-input with read-string.
+	(top-level): No need to require imenu, reporter, dinotrace, vc,
+	font-lock when compiling.  Always require compile.  Relegate remaining
+	compatibility cruft to XEmacs.  Don't require font-lock.
+	(verilog-version): Remove superfluous concat.
+	(dinotrace-unannotate-all, zmacs-activate-region)
+	(customize-apropos): No need to define.
+	(verilog-regexp-opt): On Emacs, just make it an alias for regexp-opt.
+	(verilog-font-lock-keywords, verilog-font-lock-keywords-1)
+	(verilog-font-lock-keywords-2, verilog-font-lock-keywords-3)
+	(verilog-startup-message-displayed): These are variables, not constants.
+	(verilog-batch-execute-func, verilog-auto-inst)
+	(verilog-auto-inst-param): Use mapc rather than mapcar.
+	(sigs-in, sigs-inout, sigs-out): Define for compiler rather than
+	actually defining.
+	(verilog-modi-get-decls, verilog-modi-get-sub-decls)
+	(verilog-modi-get-outputs, verilog-modi-get-inouts)
+	(verilog-modi-get-inputs, verilog-modi-get-wires)
+	(verilog-modi-get-regs, verilog-modi-get-assigns)
+	(verilog-modi-get-consts, verilog-modi-get-gparams)
+	(verilog-modi-get-sub-outputs, verilog-modi-get-sub-inouts)
+	(verilog-modi-get-sub-inputs): Move inline functions earlier in
+	the file.
+	(sigs-in, sigs-out): Don't declare multiple times.
+	(got-sig, got-rvalue, uses-delayed): Define for compiler with just
+	`defvar'.
+	(verilog-auto): Call dinotrace-unannotate-all only if bound.
+	(verilog-module-inside-filename-p): No need to wrap fboundp test
+	in condition-case.
+	(reporter-submit-bug-report): Autoload it.
+	(verilog-mark-defun): Call zmacs-activate-region only if bound.
+	(verilog-font-customize): Call customize-apropos only if bound.
+	(verilog-getopt-flags, verilog-auto-reeval-locals): Use
+	make-local-variable rather than make-variable-buffer-local.
+	(verilog-company, verilog-project, verilog-modi-cache-list):
+	Move make-variable-buffer-local calls to top-level.
+	(font-lock-defaults-alist): Don't define it.
+	(verilog-need-fld): Remove.
+	(verilog-font-lock-init): Don't set font-lock-defaults-alist.
+	(verilog-mode): Only call make-local-hook on XEmacs.  Set
+	font-lock-defaults rather than using verilog-font-lock-init.
+
+2007-12-17  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/sh-script.el (sh-font-lock-syntactic-keywords):
+	Fix comment typo.
+
+2007-12-16  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-name-owner-changed-handler):
+	Use `dbus-unregister-signal' for removing old rules.
+	Obey new structure of `dbus-registered-functions-table'.
+
 2007-12-12  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* progmodes/cc-vars.el (defcustom-c-stylevar): Rewrite.
@@ -18,8 +548,8 @@
 	* progmodes/cperl-mode.el (cperl-brace-offset)
 	(cperl-continued-brace-offset, cperl-label-offset)
 	(cperl-continued-statement-offset)
-	(cperl-extra-newline-before-brace, cperl-merge-trailing-else): Add
-	safe-local-variable properties.
+	(cperl-extra-newline-before-brace, cperl-merge-trailing-else):
+	Add safe-local-variable properties.
 
 2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -62,7 +592,7 @@
 	(verilog-end-of-statement, verilog-indent-declaration)
 	(verilog-get-lineup-indent): Remove trailing whitespace.
 	(verilog-mode): Fix autoload cookie. Set
-	beginning-of-defun-function and end-of-defun-function. Use when
+	beginning-of-defun-function and end-of-defun-function.  Use when
 	instead of if.
 	(verilog-emacs-features, verilog-auto-ascii-enum)
 	(verilog-insert-indices): Escape braces in doc strings.
@@ -641,14 +1171,14 @@
 	(math-comp-comma, math-comp-vector-prec): Declare as variables.
 	(math-var-formatter, math-matrix-formatter)
 	(math-lang-adjust-words, math-lang-read-symbol, math-land-read)
-	(math-punc-table, math-compose-subscr,math-dots)
+	(math-punc-table, math-compose-subscr, math-dots)
 	(math-func-formatter): New property names to store language
 	specific information.
 	(math-compose-tex-var, math-compose-tex-intv)
 	(math-compose-maple-intv, math-compose-eqn-intv)
 	(math-compose-tex-sum, math-compose-tex-func)
 	(math-compose-tex-intv): New functions.
-	(math-eqn-ignore-words,math-tex-ignore-words)
+	(math-eqn-ignore-words, math-tex-ignore-words)
 	(math-latex-ignore-words): Move from calc.el.
 	(math-special-function-table): Add entries for tex.
 	(calc-lang-slash-idiv, calc-lang-allows-underscores):
@@ -1150,7 +1680,7 @@
 	Replace `mapcar*' by `math-map-binop'.
 	(math-nlfit-make-matrix): Replace `copy-list' with `copy-sequence'.
 
-	* calc/calc-prog.el (edmacro-format-keys,edmacro-parse-keys)
+	* calc/calc-prog.el (edmacro-format-keys, edmacro-parse-keys)
 	(math-read-expr-level): Declare as functions.
 
 	* calc/calc-vec.el (math-read-expr-level): Declare as a function.

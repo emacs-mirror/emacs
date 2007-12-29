@@ -107,7 +107,7 @@
   :group 'nxml
   :group 'languages)
 
-(defface rng-error-face '((t (:underline "red")))
+(defface rng-error '((t (:inherit font-lock-warning-face)))
   "Face for highlighting XML errors."
   :group 'relax-ng)
 
@@ -224,7 +224,7 @@ Checks whether the buffer is a well-formed XML 1.0 document,
 conforming to the XML Namespaces Recommendation and valid against a
 RELAX NG schema. The mode-line indicates whether it is or not.  Any
 parts of the buffer that cause it not to be are considered errors and
-are highlighted with `rng-error-face'. A description of each error is
+are highlighted with face `rng-error'. A description of each error is
 available as a tooltip.  \\[rng-next-error] goes to the next error
 after point. Clicking mouse-1 on the word `Invalid' in the mode-line
 goes to the first error in the buffer. If the buffer changes, then it
@@ -768,7 +768,7 @@ Return t if there is work to do, nil otherwise."
 	  (overlay-put overlay 'category 'rng-error)
 	  (overlay-put overlay 'help-echo message))))))
 
-(put 'rng-error 'face 'rng-error-face)
+(put 'rng-error 'face 'rng-error)
 (put 'rng-error 'modification-hooks '(rng-error-modified))
 
 ;; If we don't do this, then the front delimiter can move

@@ -751,6 +751,7 @@ external if displayed external."
 		  (set-buffer (generate-new-buffer " *mm*"))
 		  (setq method nil))
 	      (mm-insert-part handle)
+	      (mm-add-meta-html-tag handle)
 	      (let ((win (get-buffer-window cur t)))
 		(when win
 		  (select-window win)))
@@ -774,6 +775,7 @@ external if displayed external."
 		  (mm-handle-set-undisplayer handle mm)))))
 	;; The function is a string to be executed.
 	(mm-insert-part handle)
+	(mm-add-meta-html-tag handle)
 	(let* ((dir (mm-make-temp-file
 		     (expand-file-name "emm." mm-tmp-directory) 'dir))
 	       (filename (or

@@ -1502,7 +1502,7 @@ Please send all bug fixes and enhancements to
   (if (fboundp 'frame-parameter) 'frame-parameter 'frame-property))
 
 (defalias 'ps-mark-active-p
-  (if (fboundp 'region-active-p)
+  (if (featurep 'xemacs)
       'region-active-p			; XEmacs
     (defvar mark-active)		; To shup up XEmacs's byte compiler.
     (lambda () mark-active)))		; Emacs

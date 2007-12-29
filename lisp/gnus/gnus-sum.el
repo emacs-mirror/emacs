@@ -1563,7 +1563,9 @@ For example:
 	 \"^From:\\\\|^Newsgroups:\\\\|^Subject:\\\\|^Date:\\\\|^To:\")))
 ")
 
-;; Byte-compiler warning.
+;; Byte-compiler warning.  Specifically, this is responsible for:
+;; "Warning: the following functions might not be defined at runtime:
+;; gnus-build-sparse-threads, gnus-dead-summary-mode, gnus-summary-mark-below".
 (eval-when-compile
   ;; Bind features so that require will believe that gnus-sum has
   ;; already been loaded (avoids infinite recursion)

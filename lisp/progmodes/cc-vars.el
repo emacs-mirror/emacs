@@ -156,45 +156,34 @@ Useful as last item in a `choice' widget."
   (setq c-fallback-style (cons (cons name val) c-fallback-style)))
 
 (defmacro defcustom-c-stylevar (name val doc &rest args)
-  "Define a style variable NAME with VAL and DOC.
-More precisely, convert the given `:type FOO', mined out of ARGS,
-to an aggregate `:type (radio STYLE (PREAMBLE FOO))', append some
-some boilerplate documentation to DOC, arrange for the fallback
-value of NAME to be VAL, and call `custom-declare-variable' to
-do the rest of the work.
-
-STYLE stands for the choice where the value is taken from some
-style setting.  PREAMBLE is optionally prepended to FOO; that is,
-if FOO contains :tag or :value, the respective two-element list
-component is ignored."
-  (declare (debug (symbolp form stringp &rest)))
-  (let* ((expanded-doc (concat doc "
+  "Defines a style variable."
+  `(let ((-value- ,val))
+     (c-set-stylevar-fallback ',name -value-)
+     (custom-declare-variable
+      ',name ''set-from-style
+      ,(concat doc "
 
 This is a style variable.  Apart from the valid values described
-above, it can be set to the symbol `set-from-style'.  In that case,
-it takes its value from the style system (see `c-default-style' and
+above, it can be set to the symbol `set-from-style'.  In that case, it
+takes its value from the style system (see `c-default-style' and
 `c-style-alist') when a CC Mode buffer is initialized.  Otherwise,
 the value set here overrides the style system (there is a variable
-`c-old-style-variable-behavior' that changes this, though)."))
-         (typ (eval (plist-get args :type)))
-         (type (if (consp typ) typ (list typ)))
-         (head (car type))
-         (tail (cdr type))
-         (newt (append (unless (plist-get tail :tag)
-                         '(:tag "Override style settings"))
-                       (unless (plist-get tail :value)
-                         `(:value ,val))
-                       tail))
-         (aggregate `'(radio
-                       (const :tag "Use style settings" set-from-style)
-                       ,(cons head newt))))
-    (message "aggregate: %S" aggregate)
-    `(progn
-       (c-set-stylevar-fallback ',name ,val)
-       (custom-declare-variable
-        ',name ''set-from-style
-        ,expanded-doc
-        ,@(plist-put args :type aggregate)))))
+`c-old-style-variable-behavior' that changes this, though).")
+      ,@(plist-put
+	 args ':type
+	 `(` (radio
+	      (const :tag "Use style settings"
+		     set-from-style)
+	      ,(, (let ((type (eval (plist-get args ':type))))
+		    (unless (consp type)
+		      (setq type (list type)))
+		    (unless (c-safe (plist-get (cdr type) ':value))
+		      (setcdr type (append '(:value (, -value-))
+					   (cdr type))))
+		    (unless (c-safe (plist-get (cdr type) ':tag))
+		      (setcdr type (append '(:tag "Override style settings")
+					   (cdr type))))
+		    (bq-process type)))))))))
 
 (defun c-valid-offset (offset)
   "Return non-nil if OFFSET is a valid offset for a syntactic symbol.
@@ -441,12 +430,13 @@ comment-only lines."
 ;; Although c-comment-continuation-stars is obsolete, we look at it in
 ;; some places in CC Mode anyway, so make the compiler ignore it
 ;; during our compilation.
-(cc-bytecomp-obsolete-var c-comment-continuation-stars)
-(cc-bytecomp-defvar c-comment-continuation-stars)
+;; [This is unclean; better to use `symbol-value'. --ttn]
+;;(cc-bytecomp-obsolete-var c-comment-continuation-stars)
+;;(cc-bytecomp-defvar c-comment-continuation-stars)
 
 (defcustom-c-stylevar c-block-comment-prefix
   (if (boundp 'c-comment-continuation-stars)
-      c-comment-continuation-stars
+      (symbol-value 'c-comment-continuation-stars)
     "* ")
   "*Specifies the line prefix of continued C-style block comments.
 You should set this variable to the literal string that gets inserted

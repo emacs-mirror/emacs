@@ -212,7 +212,7 @@ See also variable `vc-cvs-sticky-date-format-string'."
       'edited)))
 
 (defun vc-cvs-dir-state (dir)
-  "Find the CVS state of all files in DIR."
+  "Find the CVS state of all files in DIR and subdirectories."
   ;; if DIR is not under CVS control, don't do anything.
   (when (file-readable-p (expand-file-name "CVS/Entries" dir))
     (if (vc-stay-local-p dir)
@@ -221,7 +221,8 @@ See also variable `vc-cvs-sticky-date-format-string'."
 	;; Don't specify DIR in this command, the default-directory is
 	;; enough.  Otherwise it might fail with remote repositories.
 	(with-temp-buffer
-	  (vc-cvs-command t 0 nil "status" "-l")
+	  (buffer-disable-undo)		;; Because these buffers can get huge
+	  (vc-cvs-command t 0 nil "status")
 	  (goto-char (point-min))
 	  (while (re-search-forward "^=+\n\\([^=\n].*\n\\|\n\\)+" nil t)
 	    (narrow-to-region (match-beginning 0) (match-end 0))
@@ -284,9 +285,8 @@ committed and support display of sticky tags."
     (cond ((eq cvs-state 'edited)
 	   (if (equal (vc-working-revision file) "0")
 	       "(added)" "(modified)"))
-	  ((eq cvs-state 'needs-patch) "(patch)")
-	  ((eq cvs-state 'needs-merge) "(merge)"))))
-
+	  (t
+	   (vc-default-dired-state-info 'CVS file)))))
 
 ;;;
 ;;; State-changing functions
@@ -494,13 +494,18 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
             (error "Couldn't analyze cvs update result")))
       (message "Merging changes into %s...done" file))))
 
+(defun vc-cvs-modify-change-comment (files rev comment)
+  "Modify the change comments for FILES on a specified REV. 
+Will fail unless you have administrative privileges on the repo."
+  (vc-cvs-command nil 0 files "rcs" (concat "-m" comment ":" rev)))
 
 ;;;
 ;;; History functions
 ;;;
 
 (defun vc-cvs-print-log (files &optional buffer)
-  "Get change log associated with FILE."
+  "Get change logs associated with FILES."
+  ;; It's just the catenation of the individual logs.
   (vc-cvs-command
    buffer
    (if (vc-stay-local-p files) 'async 0)
@@ -813,9 +818,14 @@ For an empty string, nil is returned (invalid CVS root)."
 (defun vc-cvs-parse-status (&optional full)
   "Parse output of \"cvs status\" command in the current buffer.
 Set file properties accordingly.  Unless FULL is t, parse only
-essential information."
+essential information. Note that this can never set the 'ignored
+state."
   (let (file status)
     (goto-char (point-min))
+    (while (looking-at "? \\(.*\\)")
+      (setq file (expand-file-name (match-string 1)))
+      (vc-file-setprop file 'vc-state 'unregistered)
+      (forward-line 1))
     (if (re-search-forward "^File: " nil t)
         (cond
          ((looking-at "no file") nil)

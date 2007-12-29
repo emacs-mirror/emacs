@@ -30,13 +30,6 @@
 
 ;;; Emacs lisp functions to convert Texinfo files to Info files.
 
-(or (fboundp 'defgroup)
-    (defmacro defgroup (&rest ignore) nil))
-
-(or (fboundp 'defcustom)
-    (defmacro defcustom (var value doc &rest ignore)
-      `(defvar ,var ,value ,doc)))
-
 (defvar texinfmt-version "2.42 of  7 Jul 2006")
 
 (defun texinfmt-version (&optional here)

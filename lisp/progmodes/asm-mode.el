@@ -79,6 +79,14 @@
     (define-key map "\C-c;"	'comment-region)
     (define-key map "\C-j"	'newline-and-indent)
     (define-key map "\C-m"	'newline-and-indent)
+    (define-key map [menu-bar] (make-sparse-keymap))
+    (define-key map [menu-bar asm-mode] (cons "Asm" map))
+    (define-key map [asm-colon]
+      '("Insert Colon" . asm-colon))
+    (define-key map [comment-region]
+      '("Comment Region" . comment-region))
+    (define-key map [newline-and-indent]
+      '("Insert Newline and Indent" . newline-and-indent))
     map)
   "Keymap for Asm mode.")
 

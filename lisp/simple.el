@@ -1166,7 +1166,10 @@ to get different commands to edit and resubmit."
 (defvar minibuffer-history nil
   "Default minibuffer history list.
 This is used for all minibuffer input
-except when an alternate history list is specified.")
+except when an alternate history list is specified.
+
+Maximum length of the history list is determined by the value
+of `history-length', which see.")
 (defvar minibuffer-history-sexp-flag nil
   "Control whether history list elements are expressions or strings.
 If the value of this variable equals current minibuffer depth,
@@ -1901,7 +1904,10 @@ You can disable the popping up of this buffer by adding the entry
     t))
 
 (defvar shell-command-history nil
-  "History list for some commands that read shell commands.")
+  "History list for some commands that read shell commands.
+
+Maximum length of the history list is determined by the value
+of `history-length', which see.")
 
 (defvar shell-command-switch "-c"
   "Switch used to have the shell execute its command line argument.")
@@ -2659,13 +2665,26 @@ If `interprogram-cut-function' is set, pass the resulting kill to it."
 		  (equal yank-handler (get-text-property 0 'yank-handler cur)))
 	      yank-handler)))
 
+(defcustom yank-pop-change-selection nil
+  "If non-nil, rotating the kill ring changes the window system selection."
+  :type 'boolean
+  :group 'killing
+  :version "23.1")
+
 (defun current-kill (n &optional do-not-move)
   "Rotate the yanking point by N places, and then return that kill.
 If N is zero, `interprogram-paste-function' is set, and calling it returns a
 string or list of strings, then that string (or list) is added to the front
 of the kill ring and the string (or first string in the list) is returned as
-the latest kill.  If optional arg DO-NOT-MOVE is non-nil, then don't
-actually move the yanking point; just return the Nth kill forward."
+the latest kill.
+
+If N is not zero, and if `yank-pop-change-selection' is
+non-nil, use `interprogram-cut-function' to transfer the
+kill at the new yank point into the window system selection.
+
+If optional arg DO-NOT-MOVE is non-nil, then don't actually
+move the yanking point; just return the Nth kill forward."
+
   (let ((interprogram-paste (and (= n 0)
 				 interprogram-paste-function
 				 (funcall interprogram-paste-function))))
@@ -2684,8 +2703,12 @@ actually move the yanking point; just return the Nth kill forward."
 	     (nthcdr (mod (- n (length kill-ring-yank-pointer))
 			  (length kill-ring))
 		     kill-ring)))
-	(or do-not-move
-	    (setq kill-ring-yank-pointer ARGth-kill-element))
+	(unless do-not-move
+	  (setq kill-ring-yank-pointer ARGth-kill-element)
+	  (when (and yank-pop-change-selection
+		     (> n 0)
+		     interprogram-cut-function)
+	    (funcall interprogram-cut-function (car ARGth-kill-element))))
 	(car ARGth-kill-element)))))
 
 
@@ -3300,6 +3323,12 @@ Also runs the hook `deactivate-mark-hook'."
     (setq mark-active nil)
     (run-hooks 'deactivate-mark-hook))))
 
+(defcustom select-active-regions nil
+  "If non-nil, an active region automatically becomes the window selection."
+  :type 'boolean
+  :group 'killing
+  :version "23.1")
+
 (defun set-mark (pos)
   "Set this buffer's mark to POS.  Don't use this function!
 That is to say, don't use this function unless you want
@@ -3321,6 +3350,9 @@ store it in a Lisp variable.  Example:
       (progn
 	(setq mark-active t)
 	(run-hooks 'activate-mark-hook)
+	(and select-active-regions
+	     (x-set-selection
+	      nil (buffer-substring (region-beginning) (region-end))))
 	(set-marker (mark-marker) pos (current-buffer)))
     ;; Normally we never clear mark-active except in Transient Mark mode.
     ;; But when we actually clear out the mark value too,
@@ -3328,6 +3360,35 @@ store it in a Lisp variable.  Example:
     (setq mark-active nil)
     (run-hooks 'deactivate-mark-hook)
     (set-marker (mark-marker) nil)))
+
+(defcustom use-empty-active-region nil
+  "If non-nil, an active region takes control even if empty.
+This applies to certain commands which, in Transient Mark mode,
+apply to the active region if there is one.  If the setting is t,
+these commands apply to an empty active region if there is one.
+If the setting is nil, these commands treat an empty active
+region as if it were not active."
+  :type 'boolean
+  :version "23.1"
+  :group 'editing-basics)
+
+(defun use-region-p ()
+  "Return t if certain commands should apply to the region.
+Certain commands normally apply to text near point,
+but in Transient Mark mode when the mark is active they apply
+to the region instead.  Such commands should use this subroutine to
+test whether to do that.
+
+This function also obeys `use-empty-active-region'."
+  (and transient-mark-mode mark-active
+       (or use-empty-active-region (> (region-end) (region-beginning)))))
+
+(defun region-active-p ()
+  "Return t if Transient Mark mode is enabled and the mark is active.
+This is NOT the best function to use to test whether a command should
+operate on the region instead of the usual behavior -- for that,
+use `use-region-p'."
+  (and transient-mark-mode mark-active))
 
 (defvar mark-ring nil
   "The list of former marks of the current buffer, most recent first.")
@@ -4960,7 +5021,10 @@ Each action has the form (FUNCTION . ARGS)."
 		'switch-to-buffer-other-frame yank-action send-actions))
 
 (defvar set-variable-value-history nil
-  "History of values entered with `set-variable'.")
+  "History of values entered with `set-variable'.
+
+Maximum length of the history list is determined by the value
+of `history-length', which see.")
 
 (defun set-variable (variable value &optional make-local)
   "Set VARIABLE to VALUE.  VALUE is a Lisp object.

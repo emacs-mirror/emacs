@@ -3069,16 +3069,17 @@ non-nil."
   ;; compiled, e.g. in the menus.
   (c-region-is-active-p))
 
-(defun c-indent-line-or-region ()
-  "When the region is active, indent it syntactically.  Otherwise
-indent the current line syntactically."
-  ;; Emacs has a variable called mark-active, XEmacs uses region-active-p
-  (interactive)
-  (if (and transient-mark-mode mark-active
-	   (not (eq (region-beginning) (region-end))))
+(defun c-indent-line-or-region (&optional arg region)
+  "Indent active region, current line, or block starting on this line.
+In Transient Mark mode, when the region is active, reindent the region.
+Othewise, with a prefix argument, rigidly reindent the expression
+starting on the current line.
+Otherwise reindent just the current line."
+  (interactive
+   (list current-prefix-arg (use-region-p)))
+  (if region
       (c-indent-region (region-beginning) (region-end))
-    (c-indent-line)))
-
+    (c-indent-command arg)))
 
 ;; for progress reporting
 (defvar c-progress-info nil)

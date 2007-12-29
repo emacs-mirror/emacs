@@ -525,7 +525,10 @@ using \\[toggle-read-only]."
   :group 'view)
 
 (defvar file-name-history nil
-  "History list of file names entered in the minibuffer.")
+  "History list of file names entered in the minibuffer.
+
+Maximum length of the history list is determined by the value
+of `history-length', which see.")
 
 (put 'ange-ftp-completion-hook-function 'safe-magic t)
 (defun ange-ftp-completion-hook-function (op &rest args)
@@ -633,7 +636,8 @@ Directories are separated by occurrences of `path-separator'
 	  (error "%s is not a directory" dir)
 	(error "%s: no such directory" dir))
     (if (file-executable-p dir)
-	(setq default-directory dir)
+	(setq default-directory dir
+	      list-buffers-directory dir)
       (error "Cannot cd to %s:  Permission denied" dir))))
 
 (defun cd (dir)
@@ -1049,14 +1053,16 @@ documentation for additional customization information."
   "Switch to buffer BUFFER in another frame.
 Optional second arg NORECORD non-nil means
 do not put this buffer at the front of the list of recently selected ones.
+This function returns the buffer it switched to.
 
 This uses the function `display-buffer' as a subroutine; see its
 documentation for additional customization information."
   (interactive "BSwitch to buffer in other frame: ")
   (let ((pop-up-frames t)
 	same-window-buffer-names same-window-regexps)
-    (pop-to-buffer buffer t norecord)
-    (raise-frame (window-frame (selected-window)))))
+    (prog1
+	(pop-to-buffer buffer t norecord)
+      (raise-frame (window-frame (selected-window))))))
 
 (defun display-buffer-other-frame (buffer)
   "Switch to buffer BUFFER in another frame.
@@ -2054,7 +2060,6 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
      ("\\.js\\'" . java-mode)		; javascript-mode would be better
-     ("\\.x[bp]m\\'" . c-mode)
      ("\\.d?v\\'" . verilog-mode)
      ;; .emacs or .gnus or .viper following a directory delimiter in
      ;; Unix, MSDOG or VMS syntax.
@@ -2072,7 +2077,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
      ("\\.\\(diffs?\\|patch\\|rej\\)\\'" . diff-mode)
      ("\\.\\(dif\\|pat\\)\\'" . diff-mode) ; for MSDOG
      ("\\.[eE]?[pP][sS]\\'" . ps-mode)
-     ("\\.\\(?:PDF\\|DVI\\|pdf\\|dvi\\)" . doc-view-mode)
+     ("\\.\\(?:PDF\\|DVI\\|pdf\\|dvi\\)\\'" . doc-view-mode)
      ("configure\\.\\(ac\\|in\\)\\'" . autoconf-mode)
      ("BROWSE\\'" . ebrowse-tree-mode)
      ("\\.ebrowse\\'" . ebrowse-tree-mode)
@@ -2090,7 +2095,7 @@ ARC\\|ZIP\\|LZH\\|LHA\\|ZOO\\|[JEW]AR\\|XPI\\|RAR\\)\\'" . archive-mode)
      ("java.+\\.conf\\'" . conf-javaprop-mode)
      ("\\.properties\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-javaprop-mode)
      ;; *.cf, *.cfg, *.conf, *.config[.local|.de_DE.UTF8|...], */config
-     ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode)
+     ("[/.]c\\(?:on\\)?f\\(?:i?g\\)?\\(?:\\.[a-zA-Z0-9._-]+\\)?\\'" . conf-mode-maybe)
      ("\\`/etc/\\(?:DIR_COLORS\\|ethers\\|.?fstab\\|.*hosts\\|lesskey\\|login\\.?de\\(?:fs\\|vperm\\)\\|magic\\|mtab\\|pam\\.d/.*\\|permissions\\(?:\\.d/.+\\)?\\|protocols\\|rpc\\|services\\)\\'" . conf-space-mode)
      ("\\`/etc/\\(?:acpid?/.+\\|aliases\\(?:\\.d/.+\\)?\\|default/.+\\|group-?\\|hosts\\..+\\|inittab\\|ksysguarddrc\\|opera6rc\\|passwd-?\\|shadow-?\\|sysconfig/.+\\)\\'" . conf-mode)
      ;; ChangeLog.old etc.  Other change-log-mode entries are above;
@@ -2136,6 +2141,16 @@ appear in `auto-coding-alist' with `no-conversion' coding system.
 See also `interpreter-mode-alist', which detects executable script modes
 based on the interpreters they specify to run,
 and `magic-mode-alist', which determines modes based on file contents.")
+
+(defun conf-mode-maybe ()
+  "Select Conf mode or XML mode according to start of file."
+  (if (save-excursion
+	(save-restriction
+	  (widen)
+	  (goto-char (point-min))
+	  (looking-at "<\\?xml \\|<!-- \\|<!DOCTYPE ")))
+      (xml-mode)
+    (conf-mode)))
 
 (defvar interpreter-mode-alist
   ;; Note: The entries for the modes defined in cc-mode.el (awk-mode

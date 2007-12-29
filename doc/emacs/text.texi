@@ -1951,7 +1951,7 @@ contains a list of ideas for future enhancements.
 * Justification: Format Justification.
                                 Centering, setting text flush with the
                                   left or right margin, etc.
-* Other: Format Properties.     The "special" text properties submenu.
+* Special: Format Properties.   The "special" text properties submenu.
 * Forcing Enriched Mode::       How to force use of Enriched mode.
 @end menu
 
@@ -2037,9 +2037,7 @@ or with @kbd{C-Mouse-2} (hold the @key{CTRL} key and press the middle
 mouse button).  There are also keyboard commands described in the
 following section.
 
-  Most of the items in the Text Properties menu lead to other submenus.
-These are described in the sections that follow.  Some items run
-commands directly:
+  These items in the Text Properties menu run commands directly:
 
 @table @code
 @findex facemenu-remove-face-props
@@ -2068,14 +2066,35 @@ Display a list of all the defined faces (@code{list-faces-display}).
 Display a list of all the defined colors (@code{list-colors-display}).
 @end table
 
+@ifinfo
+  Other items in the Text Properties menu lead to submenus:
+
+@menu
+* Faces: Format Faces.          Bold, italic, underline, etc.
+* Color: Format Colors.         Changing the color of text.
+* Indent: Format Indentation.   Changing the left and right margins.
+* Justification: Format Justification.
+                                Centering, setting text flush with the
+                                  left or right margin, etc.
+* Special: Format Properties.   The "special" text properties submenu.
+@end menu
+@end ifinfo
+@ifnotinfo
+  The rest lead to submenus which are described in the following sections.
+@end ifnotinfo
+
 @node Format Faces
 @subsection Faces in Formatted Text
 
-  The Faces submenu lists various Emacs faces including @code{bold},
-@code{italic}, and @code{underline} (@pxref{Faces}).  These menu items
-operate on the region if it is active and nonempty.  Otherwise, they
-specify to use that face for an immediately following self-inserting
-character.  Instead of the menu, you can use these keyboard commands:
+  The Faces submenu under Text Properties lists various Emacs faces
+including @code{bold}, @code{italic}, and @code{underline}
+(@pxref{Faces}).  These menu items operate on the region if it is
+active and nonempty.  Otherwise, they specify to use that face for an
+immediately following self-inserting character.  There is also an item
+@samp{Other} with which you can enter a face name through the
+minibuffer (@pxref{Standard Faces}).
+
+  Instead of the Faces submenu, you can use these keyboard commands:
 
 @table @kbd
 @kindex M-o d @r{(Enriched mode)}
@@ -2158,20 +2177,22 @@ them.
 @subsection Colors in Formatted Text
 
   You can specify foreground and background colors for portions of the
-text.  There is a menu for specifying the foreground color and a menu
-for specifying the background color.  Each color menu lists all the
-colors that you have used in Enriched mode in the current Emacs session.
+text.  Under Text Properties there is a submenu for specifying the
+foreground color, and a submenu for specifying the background color.
+Each one lists all the colors that you have used in Enriched mode in
+the current Emacs session.
 
   If you specify a color with a prefix argument---or, in Transient
 Mark mode, if the region is not active---then it applies to any
 immediately following self-inserting input.  Otherwise, the command
 applies to the region.
 
-  Each color menu contains one additional item: @samp{Other}.  You can use
-this item to specify a color that is not listed in the menu; it reads
-the color name with the minibuffer.  To display a list of available colors
-and their names, use the @samp{Display Colors} menu item in the Text
-Properties menu (@pxref{Editing Format Info}).
+  Each of the two color submenus contains one additional item:
+@samp{Other}.  You can use this item to specify a color that is not
+listed in the menu; it reads the color name with the minibuffer.  To
+display a list of available colors and their names, use the
+@samp{Display Colors} menu item in the Text Properties menu
+(@pxref{Editing Format Info}).
 
   Any color that you specify in this way, or that is mentioned in a
 formatted text file that you read in, is added to the corresponding
@@ -2192,8 +2213,9 @@ indentation for the right or left margin of an entire paragraph or a
 part of a paragraph.  The margins you specify automatically affect the
 Emacs fill commands (@pxref{Filling}) and line-breaking commands.
 
-  The Indentation submenu provides a convenient interface for specifying
-these properties.  The submenu contains four items:
+  The Indentation submenu of Text Properties provides a convenient
+interface for specifying these properties.  The submenu contains four
+items:
 
 @table @code
 @kindex C-x TAB @r{(Enriched mode)}
@@ -2266,8 +2288,8 @@ Prefix}.
 justification for a paragraph.  The style you specify automatically
 affects the Emacs fill commands.
 
-  The Justification submenu provides a convenient interface for specifying
-the style.  The submenu contains five items:
+  The Justification submenu of Text Properties provides a convenient
+interface for specifying the style.  The submenu contains five items:
 
 @table @code
 @item Left
@@ -2341,11 +2363,12 @@ sets (as always) the default value for buffers that do not override it.
 @node Format Properties
 @subsection Setting Other Text Properties
 
-  The Special Properties menu lets you add or remove three other useful text
-properties: @code{read-only}, @code{invisible} and @code{intangible}.
-The @code{intangible} property disallows moving point within the text,
-the @code{invisible} text property hides text from display, and the
-@code{read-only} property disallows alteration of the text.
+  The Special Properties submenu of Text Properties can add or remove
+three other useful text properties: @code{read-only}, @code{invisible}
+and @code{intangible}.  The @code{intangible} property disallows
+moving point within the text, the @code{invisible} text property hides
+text from display, and the @code{read-only} property disallows
+alteration of the text.
 
   Each of these special properties has a menu item to add it to the
 region.  The last menu item, @samp{Remove Special}, removes all of these

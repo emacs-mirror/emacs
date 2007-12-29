@@ -79,21 +79,17 @@ owner of SERVICE, or the empty string if SERVICE looses any name owner."
        '(lambda (key value)
 	  (dolist (elt value)
 	    ;; key has the structure (BUS INTERFACE SIGNAL).
-	    ;; elt has the structure (SERVICE UNAME PATH HANDLER).
-	    (when (string-equal old-owner (cadr elt))
+	    ;; elt has the structure (UNAME SERVICE PATH HANDLER).
+	    (when (string-equal old-owner (car elt))
 	      ;; Remove old key, and add new entry with changed name.
-	      (when dbus-debug (message "Remove rule for %s %s" key elt))
-	      ;(dbus-unregister-signal key)
-	      (setcar (cdr elt) new-owner)
-	      (when dbus-debug (message "Add rule for %s %s" key elt))
+	      (dbus-unregister-signal (list key (cdr elt)))
 	      ;; Maybe we could arrange the lists a little bit better
 	      ;; that we don't need to extract every single element?
-	      (when (not (zerop (length new-owner)))
-		(dbus-register-signal
-		 ;; BUS      SERVICE     PATH
-		 (nth 0 key) (nth 0 elt) (nth 2 elt)
-		 ;; INTERFACE SIGNAL     HANDLER
-		 (nth 1 key) (nth 2 key) (nth 3 elt))))))
+	      (dbus-register-signal
+	       ;; BUS      SERVICE     PATH
+	       (nth 0 key) (nth 1 elt) (nth 2 elt)
+	       ;; INTERFACE SIGNAL     HANDLER
+	       (nth 1 key) (nth 2 key) (nth 3 elt)))))
        (copy-hash-table dbus-registered-functions-table)))))
 
 ;; Register the handler.

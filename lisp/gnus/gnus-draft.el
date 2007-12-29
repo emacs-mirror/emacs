@@ -119,7 +119,8 @@
      message-send-actions)))
 
 (defun gnus-draft-send-message (&optional n)
-  "Send the current draft."
+  "Send the current draft(s).
+Obeys the standard process/prefix convention."
   (interactive "P")
   (let* ((articles (gnus-summary-work-articles n))
 	 (total (length articles))

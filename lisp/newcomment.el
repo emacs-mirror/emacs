@@ -1095,16 +1095,22 @@ The strings used as comment starts are built from
      ((< numarg 0) (uncomment-region beg end (- numarg)))
      (t
       (let ((multi-char (/= (string-match "[ \t]*\\'" comment-start) 1))
-	    indent)
+	    indent triple)
 	(if (eq (nth 3 style) 'multi-char)
-	    (setq indent multi-char)
+	    (save-excursion
+	      (goto-char beg)
+	      (setq indent multi-char
+		    ;; Triple if we will put the comment starter at the margin
+		    ;; and the first line of the region isn't indented
+		    ;; at least two spaces.
+		    triple (and (not multi-char) (looking-at "\t\\|  "))))
 	  (setq indent (nth 3 style)))
 
 	;; In Lisp and similar modes with one-character comment starters,
 	;; double it by default if `comment-add' says so.
 	;; If it isn't indented, triple it.
 	(if (and (null arg) (not multi-char))
-	    (setq numarg (* comment-add (if indent 1 2)))
+	    (setq numarg (* comment-add (if triple 2 1)))
 	  (setq numarg (1- (prefix-numeric-value arg))))
 
 	(comment-region-internal

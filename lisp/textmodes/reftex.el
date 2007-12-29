@@ -1805,11 +1805,11 @@ When DIE is non-nil, throw an error if file not found."
     (buffer-substring-no-properties (match-beginning n) (match-end n))))
 
 (defun reftex-region-active-p ()
-  "Is transient-mark-mode on and the region active?
-Works on both Emacs and XEmacs."
-  (if (featurep 'xemacs)
-      (and zmacs-regions (region-active-p))
-    (and transient-mark-mode mark-active)))
+  "Should we operate on an active region?"
+  (if (fboundp 'use-region-p)
+      (use-region-p)
+    ;; For XEmacs.
+    (region-active-p)))
 
 (defun reftex-kill-buffer (buffer)
   ;; Kill buffer if it exists.

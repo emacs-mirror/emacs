@@ -890,9 +890,7 @@ With a prefix argument, this is the same as `recenter':
 Otherwise move current line to window center on first call, and to
 top, middle, or bottom on successive calls.
 
-The starting position of the window determines the cycling order:
- If initially in the top or middle third: top -> middle -> bottom.
- If initially in the bottom third: bottom -> middle -> top.
+The cycling order is: middle -> top -> bottom.
 
 Top and bottom destinations are actually `scroll-conservatively' lines
 from true window top and bottom."

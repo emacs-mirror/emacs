@@ -27,10 +27,6 @@
 ;; Sync'd with Subversion's vc-svn.el as of revision 5801. but this version
 ;; has been extensively modified since to handle filesets.
 
-;;; Bugs:
-
-;; - VC-dired is (really) slow.
-
 ;;; Code:
 
 (eval-when-compile
@@ -151,12 +147,13 @@ If you want to force an empty list of arguments, use t."
   (vc-svn-state file 'local))
 
 (defun vc-svn-dir-state (dir &optional localp)
-  "Find the SVN state of all files in DIR."
+  "Find the SVN state of all files in DIR and its subdirectories."
   (setq localp (or localp (vc-stay-local-p dir)))
   (let ((default-directory dir))
     ;; Don't specify DIR in this command, the default-directory is
     ;; enough.  Otherwise it might fail with remote repositories.
     (with-temp-buffer
+      (buffer-disable-undo)		;; Because these buffers can get huge
       (vc-svn-command t 0 nil "status" (if localp "-v" "-u"))
       (vc-svn-parse-status))))
 
@@ -182,8 +179,10 @@ If you want to force an empty list of arguments, use t."
     (cond ((eq svn-state 'edited)
 	   (if (equal (vc-working-revision file) "0")
 	       "(added)" "(modified)"))
-	  ((eq svn-state 'needs-patch) "(patch)")
-	  ((eq svn-state 'needs-merge) "(merge)"))))
+	  (t
+	   ;; fall back to the default VC representation
+	   (vc-default-dired-state-info 'SVN file)))))
+
 
 (defun vc-svn-previous-revision (file rev)
   (let ((newrev (1- (string-to-number rev))))
@@ -378,25 +377,22 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
     (vc-setup-buffer buffer)
     (let ((inhibit-read-only t))
       (goto-char (point-min))
-      ;; Add a line to tell log-view-mode what file this is.
-      ;; FIXME if there are multiple files, log-view-current-file
-      ;; breaks.  It's trivial to adapt log-view-file-re for the
-      ;; changed prefix, but less trivial to make
-      ;; log-view-current-file actually do the right thing in the
-      ;; multiple file case.
-      (insert (format "Working file%s: "
-		      (if (= (length files) 1)
-			  ""
-			"s"))
-		      (vc-delistify (mapcar 'file-relative-name files)) "\n"))
-    (vc-svn-command
-     buffer
-     (if (and (= (length files) 1) (vc-stay-local-p (car files))) 'async 0)
-     files "log"
-     ;; By default Subversion only shows the log upto the working revision,
-     ;; whereas we also want the log of the subsequent commits.  At least
-     ;; that's what the vc-cvs.el code does.
-     "-rHEAD:0")))
+      (if files
+	  (dolist (file files)
+		  (insert "Working file: " file "\n")
+		  (vc-svn-command
+		   buffer
+		   'async
+		   ;; (if (and (= (length files) 1) (vc-stay-local-p file)) 'async 0)
+		   (list file)
+		   "log"
+		   ;; By default Subversion only shows the log up to the
+		   ;; working revision, whereas we also want the log of the
+		   ;; subsequent commits.  At least that's what the
+		   ;; vc-cvs.el code does.
+		   "-rHEAD:0"))
+	;; Dump log for the entire directory.
+	(vc-svn-command buffer 0 nil "log" "-rHEAD:0")))))
 
 (defun vc-svn-wash-log ()
   "Remove all non-comment information from log output."
@@ -582,6 +578,10 @@ information about FILENAME and return its status."
 	   (if (eq (char-after (match-beginning 1)) ?*)
 	       'needs-merge
 	     'edited))
+	  ((eq status ?I)
+	   (vc-file-setprop file 'vc-state 'ignored))
+	  ((eq status ??)
+	   (vc-file-setprop file 'vc-state 'unregistered))
 	  (t 'edited)))))
     (if filename (vc-file-getprop filename 'vc-state))))
 

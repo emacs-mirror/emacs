@@ -32,66 +32,6 @@
 
 (defvar rng-dir (file-name-directory load-file-name))
 
-(defconst rng-autoload-modules
-  '(xmltok
-    nxml-mode
-    nxml-uchnm
-    nxml-glyph
-    rng-cmpct
-    rng-maint
-    rng-valid
-    rng-xsd
-    rng-nxml))
-
-;;;###autoload
-(defun rng-update-autoloads ()
-  "Update the autoloads in rng-auto.el."
-  (interactive)
-  (let* ((generated-autoload-file (expand-file-name "rng-auto.el"
-						    rng-dir)))
-    (mapcar (lambda (x)
-	      (update-file-autoloads
-	       (expand-file-name (concat (symbol-name x) ".el") rng-dir)))
-	    rng-autoload-modules)))
-
-
-(defconst rng-compile-modules
-  '(xmltok
-    nxml-util
-    nxml-enc
-    nxml-glyph
-    nxml-rap
-    nxml-outln
-    nxml-mode
-    nxml-uchnm
-    nxml-ns
-    nxml-parse
-    nxml-maint
-    xsd-regexp
-    rng-util
-    rng-dt
-    rng-xsd
-    rng-uri
-    rng-pttrn
-    rng-cmpct
-    rng-match
-    rng-parse
-    rng-loc
-    rng-valid
-    rng-nxml
-    rng-maint))
-
-;;;###autoload
-(defun rng-byte-compile-load ()
-  "Byte-compile and load all of the RELAX NG library in an appropriate order."
-  (interactive)
-  (mapcar (lambda (x)
-	    (byte-compile-file (expand-file-name (concat (symbol-name x) ".el")
-						 rng-dir)
-			       t))
-	  rng-compile-modules))
-
-
 ;;; Conversion from XML to texinfo.
 ;; This is all a hack and is just enough to make the conversion work.
 ;; It's not intended for public use.
@@ -101,7 +41,6 @@
 (defvar rng-manual-texi (concat rng-manual-base ".texi"))
 (defvar rng-manual-info (concat rng-manual-base ".info"))
 
-;;;###autoload
 (defun rng-format-manual ()
   "Create manual.texi from manual.xml."
   (interactive)
@@ -287,15 +226,6 @@
 	(unless (eq (char-before (1- (point))) ?\n)
 	  (insert ?\n))
       (insert "\n\n"))))
-
-;;; Versioning
-
-;;;###autoload
-(defun rng-write-version ()
-  (find-file "VERSION")
-  (erase-buffer)
-  (insert nxml-version "\n")
-  (save-buffer))
 
 ;;; Timing
 

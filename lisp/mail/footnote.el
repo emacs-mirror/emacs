@@ -327,7 +327,8 @@ Conversion is done based upon the current selected style."
 (defun Footnote-current-regexp ()
   "Return the regexp of the index of the current style."
   (concat (nth 2 (or (assq footnote-style footnote-style-alist)
-		     (nth 0 footnote-style-alist))) "*"))
+		     (nth 0 footnote-style-alist)))
+	  "*"))
 
 (defun Footnote-refresh-footnotes (&optional index-regexp)
   "Redraw all footnotes.
@@ -345,7 +346,7 @@ styles."
 	  (search-backward footnote-start-tag nil t)
 	  (when (looking-at (concat
 			     (regexp-quote footnote-start-tag)
-			     "\\(" index-regexp "\\)"
+			     "\\(" index-regexp "+\\)"
 			     (regexp-quote footnote-end-tag)))
 	    (replace-match (concat
 			    footnote-start-tag
@@ -361,7 +362,7 @@ styles."
 	(goto-char (cdr alist))
 	(when (looking-at (concat
 			   (regexp-quote footnote-start-tag)
-			   "\\(" index-regexp "\\)"
+			   "\\(" index-regexp "+\\)"
 			   (regexp-quote footnote-end-tag)))
 	  (replace-match (concat
 			  footnote-start-tag

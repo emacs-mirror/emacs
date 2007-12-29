@@ -2741,6 +2741,15 @@ newsgroups.
 @cindex group parameters
 
 The group parameters store information local to a particular group.
+
+Use the @kbd{G p} or the @kbd{G c} command to edit group parameters of a
+group.  (@kbd{G p} presents you with a Lisp-based interface, @kbd{G c}
+presents you with a Customize-like interface.  The latter helps avoid
+silly Lisp errors.)  You might also be interested in reading about topic
+parameters (@pxref{Topic Parameters}).
+Additionally, you can set group parameters via the
+@code{gnus-parameters} variable, see below.
+
 Here's an example group parameter list:
 
 @example
@@ -3129,12 +3138,6 @@ when the group is entered, the 'd' key will not mark the article as
 expired.
 
 @end table
-
-Use the @kbd{G p} or the @kbd{G c} command to edit group parameters of a
-group.  (@kbd{G p} presents you with a Lisp-based interface, @kbd{G c}
-presents you with a Customize-like interface.  The latter helps avoid
-silly Lisp errors.)  You might also be interested in reading about topic
-parameters (@pxref{Topic Parameters}).
 
 @vindex gnus-parameters
 Group parameters can be set via the @code{gnus-parameters} variable too.
@@ -20962,9 +20965,9 @@ additional commands:
 
 @item C-c C-c
 @kindex C-c C-c (Score)
-@findex gnus-score-edit-done
+@findex gnus-score-edit-exit
 Save the changes you have made and return to the summary buffer
-(@code{gnus-score-edit-done}).
+(@code{gnus-score-edit-exit}).
 
 @item C-c C-d
 @kindex C-c C-d (Score)
