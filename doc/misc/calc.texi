@@ -13802,6 +13802,9 @@ shifted letter key.
 * C FORTRAN Pascal::
 * TeX and LaTeX Language Modes::
 * Eqn Language Mode::
+* Yacas Language Mode::
+* Maxima Language Mode::
+* Giac Language Mode::
 * Mathematica Language Mode::
 * Maple Language Mode::
 * Compositions::
