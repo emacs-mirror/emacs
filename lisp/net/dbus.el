@@ -64,33 +64,50 @@ hash table."
      dbus-registered-functions-table)
     result))
 
-(defun dbus-name-owner-changed-handler (service old-owner new-owner)
+(defun dbus-name-owner-changed-handler (&rest args)
   "Reapplies all signal registrations to D-Bus.
 This handler is applied when a \"NameOwnerChanged\" signal has
 arrived.  SERVICE is the object name for which the name owner has
 been changed.  OLD-OWNER is the previous owner of SERVICE, or the
 empty string if SERVICE was not owned yet.  NEW-OWNER is the new
-owner of SERVICE, or the empty string if SERVICE looses any name owner."
+owner of SERVICE, or the empty string if SERVICE looses any name owner.
+
+usage: (dbus-name-owner-changed-handler service old-owner new-owner)"
   (save-match-data
-    ;; Check whether SERVICE is a known name.
-    (when (and (stringp service) (not (string-match "^:" service))
-	       (stringp old-owner) (stringp new-owner))
-      (maphash
-       '(lambda (key value)
-	  (dolist (elt value)
-	    ;; key has the structure (BUS INTERFACE SIGNAL).
-	    ;; elt has the structure (UNAME SERVICE PATH HANDLER).
-	    (when (string-equal old-owner (car elt))
-	      ;; Remove old key, and add new entry with changed name.
-	      (dbus-unregister-signal (list key (cdr elt)))
-	      ;; Maybe we could arrange the lists a little bit better
-	      ;; that we don't need to extract every single element?
-	      (dbus-register-signal
-	       ;; BUS      SERVICE     PATH
-	       (nth 0 key) (nth 1 elt) (nth 2 elt)
-	       ;; INTERFACE SIGNAL     HANDLER
-	       (nth 1 key) (nth 2 key) (nth 3 elt)))))
-       (copy-hash-table dbus-registered-functions-table)))))
+    ;; Check the arguments.  We should silently ignore it when they
+    ;; are wrong.
+    (if (and (= (length args) 3)
+	     (stringp (car args))
+	     (stringp (cadr args))
+	     (stringp (caddr args)))
+	(let ((service (car args))
+	      (old-owner (cadr args))
+	      (new-owner (caddr args)))
+	  ;; Check whether SERVICE is a known name.
+	  (when (not (string-match "^:" service))
+	    (maphash
+	     '(lambda (key value)
+		(dolist (elt value)
+		  ;; key has the structure (BUS INTERFACE SIGNAL).
+		  ;; elt has the structure (UNAME SERVICE PATH HANDLER).
+		  (when (string-equal old-owner (car elt))
+		    ;; Remove old key, and add new entry with changed name.
+		    (dbus-unregister-signal (list key (cdr elt)))
+		    ;; Maybe we could arrange the lists a little bit better
+		    ;; that we don't need to extract every single element?
+		    (dbus-register-signal
+		     ;; BUS      SERVICE     PATH
+		     (nth 0 key) (nth 1 elt) (nth 2 elt)
+		     ;; INTERFACE SIGNAL     HANDLER
+		     (nth 1 key) (nth 2 key) (nth 3 elt)))))
+	     (copy-hash-table dbus-registered-functions-table))))
+      ;; The error is reported only in debug mode.
+      (when  dbus-debug
+	(signal
+	 'dbus-error
+	 (cons
+	  (format "Wrong arguments of %s.NameOwnerChanged" dbus-interface-dbus)
+	  args))))))
 
 ;; Register the handler.
 (condition-case nil
@@ -148,11 +165,11 @@ part of the event, is called with arguments ARGS."
   (interactive "e")
   ;; We don't want to raise an error, because this function is called
   ;; in the event handling loop.
-  (condition-case nil
+  (condition-case err
       (progn
 	(dbus-check-event event)
 	(apply (nth 6 event) (nthcdr 7 event)))
-    (dbus-error)))
+    (dbus-error (when dbus-debug (signal (car err) (cdr err))))))
 
 (defun dbus-event-bus-name (event)
   "Return the bus name the event is coming from.

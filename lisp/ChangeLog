@@ -1,3 +1,9 @@
+2007-12-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-name-owner-changed-handler): Make the function
+	resistent towards wrong parameters.
+	(dbus-handle-event): Propagate D-Bus errors only in the debug case.
+
 2007-12-30  Richard Stallman  <rms@gnu.org>
 
 	* cus-edit.el (custom-face-set): Call `face-spec-set' with FOR-DEFFACE.
