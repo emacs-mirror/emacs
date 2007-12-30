@@ -470,6 +470,9 @@ the specified files).
 
 ** The new function `read-color' reads a color name using the minibuffer.
 
+** The new function `face-all-attributes' returns an alist
+describing all the basic attributes of a given face.
+
 ** `interprogram-paste-function' can now return one string or a list
 of strings.  In the latter case, Emacs puts the second and following
 strings on the kill ring.
