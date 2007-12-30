@@ -3496,10 +3496,10 @@ Optional EVENT is the location for the menu."
     (put symbol 'customized-face value)
     (custom-push-theme 'theme-face symbol 'user 'set value)
     (if (face-spec-choose value)
-	(face-spec-set symbol value)
+	(face-spec-set symbol value t)
       ;; face-set-spec ignores empty attribute lists, so just give it
       ;; something harmless instead.
-      (face-spec-set symbol '((t :foreground unspecified))))
+      (face-spec-set symbol '((t :foreground unspecified)) t))
     (put symbol 'customized-face-comment comment)
     (put symbol 'face-comment comment)
     (custom-face-state-set widget)
@@ -3518,10 +3518,10 @@ Optional EVENT is the location for the menu."
       (custom-comment-hide comment-widget))
     (custom-push-theme 'theme-face symbol 'user 'set value)
     (if (face-spec-choose value)
-	(face-spec-set symbol value)
+	(face-spec-set symbol value t)
       ;; face-set-spec ignores empty attribute lists, so just give it
       ;; something harmless instead.
-      (face-spec-set symbol '((t :foreground unspecified))))
+      (face-spec-set symbol '((t :foreground unspecified)) t))
     (unless (eq (widget-get widget :custom-state) 'standard)
       (put symbol 'saved-face value))
     (put symbol 'customized-face nil)
@@ -3548,7 +3548,7 @@ Optional EVENT is the location for the menu."
     (put symbol 'customized-face nil)
     (put symbol 'customized-face-comment nil)
     (custom-push-theme 'theme-face symbol 'user 'set value)
-    (face-spec-set symbol value)
+    (face-spec-set symbol value t)
     (put symbol 'face-comment comment)
     (widget-value-set child value)
     ;; This call manages the comment visibility
@@ -3572,7 +3572,7 @@ restoring it to the state of a face that has never been customized."
     (put symbol 'customized-face nil)
     (put symbol 'customized-face-comment nil)
     (custom-push-theme 'theme-face symbol 'user 'reset)
-    (face-spec-set symbol value)
+    (face-spec-set symbol value t)
     (custom-theme-recalc-face symbol)
     (when (or (get symbol 'saved-face) (get symbol 'saved-face-comment))
       (put symbol 'saved-face nil)
