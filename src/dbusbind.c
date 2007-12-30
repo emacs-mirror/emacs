@@ -103,7 +103,7 @@ Lisp_Object Vdbus_debug;
 	char s[1024];							\
 	sprintf (s, __VA_ARGS__);					\
 	message ("%s: %s", __func__, s);				\
-      }
+      }									\
   } while (0)
 #define XD_DEBUG_VALID_LISP_OBJECT_P(object)
 #endif
