@@ -249,9 +249,7 @@ If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (let ((attrs
-	 '(:family :width :height :weight :slant :foreground
-	   :background :underline :overline :strike-through
-	   :box :inverse-video))
+	 (delq :inherit (mapcar 'car face-attribute-name-alist)))
 	(differs nil))
     (while (and attrs (not differs))
       (let* ((attr (pop attrs))
@@ -352,6 +350,16 @@ FRAME nil or not specified means do it for all frames."
   "Return the name of face FACE."
   (symbol-name (check-face face)))
 
+
+(defun face-all-attributes (face &optional frame)
+  "Return an alist stating the attributes of FACE.
+Each element of the result has the form (ATTR-NAME . ATTR-VALUE).
+Normally the value describes the default attributes,
+but if you specify FRAME, the value describes the attributes
+of FACE on FRAME."
+  (mapcar (lambda (pair) (let ((attr (car pair)))
+  	  	  	   (cons attr (face-attribute face attr frame))))
+  	  face-attribute-name-alist))
 
 (defun face-attribute (face attribute &optional frame inherit)
   "Return the value of FACE's ATTRIBUTE on FRAME.
