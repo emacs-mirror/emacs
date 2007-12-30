@@ -197,13 +197,13 @@ format. Example:
         <method name=\"GetAllProperties\">
           <arg name=\"properties\" direction=\"out\" type=\"a@{sv@}\"/>
         </method>
-        ...
+        @dots{}
         <signal name=\"PropertyModified\">
           <arg name=\"num_updates\" type=\"i\"/>
           <arg name=\"updates\" type=\"a(sbb)\"/>
         </signal>
       </interface>
-      ...
+      @dots{}
     </node>"
 @end example
 
@@ -277,20 +277,26 @@ types are represented by the type symbols @code{:byte},
 Example:
 
 @lisp
-(dbus-call-method ... @var{NUMBER} @var{STRING})
+(dbus-call-method @dots{} @var{NUMBER} @var{STRING})
 @end lisp
 
 is equivalent to
 
 @lisp
-(dbus-call-method ... :uint32 @var{NUMBER} :string @var{STRING})
+(dbus-call-method @dots{} :uint32 @var{NUMBER} :string @var{STRING})
 @end lisp
 
 but different to
 
 @lisp
-(dbus-call-method ... :int32 @var{NUMBER} :signature @var{STRING})
+(dbus-call-method @dots{} :int32 @var{NUMBER} :signature @var{STRING})
 @end lisp
+
+The value for a byte type can be any integer in the range 0 through
+255.  If a character is used as argument, modifiers represented
+outside this range are stripped of.  For example, @code{:byte ?x} is
+equal to @code{:byte ?\M-x}, but it is not equal to @code{:byte
+?\C-x} or @code{:byte ?\M-\C-x}.
 
 A D-Bus compound type is always represented as list.  The car of this
 list can be the type symbol @code{:array}, @code{:variant},
@@ -313,7 +319,7 @@ contain only a key-value pair of two element, with a basic type key.
 Example:
 
 @lisp
-(dbus-send-signal ...
+(dbus-send-signal @dots{}
   :object-path STRING '(:variant :boolean BOOL)
   '(:array NUMBER NUMBER) '(:array BOOL :boolean BOOL)
   '(:struct BOOL :boolean BOOL BOOL
@@ -365,7 +371,7 @@ The signal @code{PropertyModified}, discussed as example in
 (@var{BOOL} stands here for either @code{nil} or @code{t}):
 
 @lisp
-(@var{NUMBER} ((@var{STRING} @var{BOOL} @var{BOOL}) (@var{STRING} @var{BOOL} @var{BOOL}) ...))
+(@var{NUMBER} ((@var{STRING} @var{BOOL} @var{BOOL}) (@var{STRING} @var{BOOL} @var{BOOL}) @dots{}))
 @end lisp
 
 
@@ -460,7 +466,7 @@ emulate the @code{lshal} command on GNU/Linux systems:
       system.chassis.manufacturer = \"COMPAL\"
       system.chassis.type = \"Notebook\"
       system.firmware.release_date = \"03/19/2005\"
-      ..."
+      @dots{}"
 @end example
 @end defun
 
@@ -548,13 +554,15 @@ machine, when registered for signal @code{DeviceAdded}, will show you
 which objects the GNU/Linux @code{hal} daemon adds.
 
 @code{dbus-register-signal} returns a Lisp symbol, which can be used
-as argument in @code{dbus-unregister-signal} for removing the
+as argument in @code{dbus-unregister-object} for removing the
 registration for @var{signal}.
 @end defun
 
-@defun dbus-unregister-signal object
+@defun dbus-unregister-object object
 Unregister @var{object} from the the D-Bus.  @var{object} must be the
-result of a preceding @code{dbus-register-signal} call.
+result of a preceding @code{dbus-register-signal} or
+@code{dbus-register-method} call.  It returns @code{t} if @var{object}
+has been unregistered, @code{nil} otherwise.
 @end defun
 
 
@@ -623,6 +631,10 @@ Returns the interface name of of the D-Bus object @var{event} is coming from.
 Returns the member name of of the D-Bus object @var{event} is coming
 from.  It is either a signal name or a method name.
 @end defun
+
+D-Bus errors are not propagated during event handling, because it is
+usually not desired.  D-Bus errors in events can be made visible by
+setting the variable @code{dbus-debug} to @code{t}.
 
 
 @node GNU Free Documentation License
