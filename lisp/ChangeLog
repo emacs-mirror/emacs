@@ -1,3 +1,25 @@
+2007-12-30  Richard Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-face-set): Call `face-spec-set' with FOR-DEFFACE.
+	(custom-face-save): Likewise.
+	(custom-face-reset-saved, custom-face-reset-standard): Likewise.
+
+	* cus-face.el (custom-declare-face): Per frame, use `face-spec-set-2'.
+	(custom-theme-set-faces): Clear `face-override-spec' property.
+	Call `face-spec-set' with FOR-DEFFACE.
+
+	* custom.el (custom-theme-recalc-face):
+	Simply call `face-spec-recalc'.
+
+	* faces.el (face-spec-set): Third arg is now FOR-DEFFACE.
+	Use of frame as third arg is deprecated.
+	Handle `face-override-spec' property.
+	(face-spec-recalc): New function.
+	(face-spec-set-2): New function.
+	(frame-set-background-mode): Handle `face-override-spec' property.
+	Use `face-spec-recalc'.
+	(face-set-after-frame-default): Use `face-spec-recalc'.
+
 2007-12-29  Nick Roberts  <nickrob@snap.net.nz>
 
 	* thumbs.el (thumbs-conversion-program): Add comment for Windows XP.
