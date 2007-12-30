@@ -6,6 +6,11 @@
 
 2007-12-30  Richard Stallman  <rms@gnu.org>
 
+	* faces.el (face-all-attributes): New function.
+
+	* faces.el (face-differs-from-default-p): Compute list of attr names
+	from face-attribute-name-alist.
+
 	* cus-edit.el (custom-face-set): Call `face-spec-set' with FOR-DEFFACE.
 	(custom-face-save): Likewise.
 	(custom-face-reset-saved, custom-face-reset-standard): Likewise.
