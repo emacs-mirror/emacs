@@ -1,3 +1,8 @@
+2007-12-30  Richard Stallman  <rms@gnu.org>
+
+	* textprop.c (get_char_property_and_overlay):
+	Signal error if POSITION is out of range in a buffer.
+
 2007-12-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* w32fns.c (Fx_create_frame): Make copy of frame parameters
