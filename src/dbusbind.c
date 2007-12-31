@@ -255,7 +255,7 @@ xd_signature(signature, dtype, parent_type, object)
 	wrong_type_argument (intern ("D-Bus"),
 			     XCAR (XCDR (XD_NEXT_VALUE (elt))));
 
-      sprintf (signature, "%c%s", dtype, x);
+      sprintf (signature, "%c", dtype);
       break;
 
     case DBUS_TYPE_STRUCT:
