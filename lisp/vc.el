@@ -163,9 +163,10 @@
 ;;   state of as many files as possible in DIR, and all subdirecties
 ;;   of DIR, in a fast way; it is used to avoid expensive indivitual
 ;;   vc-state calls.  The function should not return anything, but
-;;   rather store the files' states into the corresponding `vc-state'
-;;   properties.  (Note: in older versions this method was not
-;;   required to recurse into subdirectories.)
+;;   rather store the files' states into the corresponding properties.
+;;   Two properties are required: `vc-backend' and `vc-state'.  (Note:
+;;   in older versions this method was not required to recurse into
+;;   subdirectories.)
 ;;
 ;; * working-revision (file)
 ;;
