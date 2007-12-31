@@ -2344,22 +2344,22 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
            (when links
              (let ((pt (point))
                    (left-margin (+ left-margin 2)))
-	     (insert "\n" (or doc-initial-string "Group documentation:") " ")
-             (while links
-               (push (widget-create-child-and-convert
-		      widget (car links)
-		      :button-face 'custom-link
-		      :mouse-face 'highlight
-		      :pressed-face 'highlight)
-                     buttons)
-               (setq links (cdr links))
-               (cond ((null links)
-                      (insert ".\n"))
-                     ((null (cdr links))
-                      (if many
-                          (insert ", and ")
-                        (insert " and ")))
-                     (t
+	       (insert "\n" (or doc-initial-string "Group documentation:") " ")
+	       (while links
+		 (push (widget-create-child-and-convert
+			widget (car links)
+			:button-face 'custom-link
+			:mouse-face 'highlight
+			:pressed-face 'highlight)
+		       buttons)
+		 (setq links (cdr links))
+		 (cond ((null links)
+			(insert ".\n"))
+		       ((null (cdr links))
+			(if many
+			    (insert ", and ")
+			  (insert " and ")))
+		       (t
                         (insert ", "))))
                (fill-region-as-paragraph pt (point))
                (delete-to-left-margin (1+ pt) (+ pt 2))))))
