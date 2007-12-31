@@ -1,3 +1,8 @@
+2007-12-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* man.el (Man-default-man-entry): Make this a defun.  Improve
+	guessing mechanism and handling of section numbers.
+
 2007-12-31  Richard Stallman  <rms@gnu.org>
 
 	* faces.el (face-all-attributes): If FRAME is nil, return defaults.
