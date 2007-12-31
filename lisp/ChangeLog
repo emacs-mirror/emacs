@@ -1,3 +1,7 @@
+2007-12-31  Richard Stallman  <rms@gnu.org>
+
+	* faces.el (face-all-attributes): If FRAME is nil, return defaults.
+
 2007-12-31  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-units.el (calc-convert-temperature): Ensure that units
