@@ -1,5 +1,7 @@
 2007-12-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-cvs.el (vc-cvs-parse-entry): Set the vc-backend property.
+
 	* vc.el: State that dir-state is required to set the vc-state and
 	vc-backend properties.
 
