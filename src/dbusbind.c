@@ -962,7 +962,7 @@ xd_read_message (bus)
 {
   Lisp_Object args, key, value;
   struct gcpro gcpro1;
-  static struct input_event event;
+  struct input_event event;
   DBusConnection *connection;
   DBusMessage *dmessage;
   DBusMessageIter iter;

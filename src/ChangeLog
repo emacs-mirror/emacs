@@ -1,3 +1,7 @@
+2007-12-31  Tom Tromey <tromey@redhat.com>  (tiny change)
+
+	* dbusbind.c (xd_read_message): Use non-static input_event struct.
+
 2007-12-31  Magnus Henoch  <mange@freemail.hu>
 
 	* dbusbind.c (xd_signature): Signature of variant is just "v".
