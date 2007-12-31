@@ -1,3 +1,7 @@
+2007-12-31  Magnus Henoch  <mange@freemail.hu>
+
+	* dbusbind.c (xd_signature): Signature of variant is just "v".
+
 2007-12-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c: Fix several errors and compiler warnings.  Reported
