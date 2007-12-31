@@ -1,3 +1,7 @@
+2007-12-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* glossary.texi (Glossary): Fix typo.
+
 2007-12-27  Richard Stallman  <rms@gnu.org>
 
 	* text.texi (Formatted Text): Improve menu tag.
@@ -12,7 +16,7 @@
 
 	* search.texi (Query Replace): Make exp of query-replace more
 	self-contained, and clarify.
- 
+
 	* cc-mode.texi (Getting Started): Change @ref to @pxref.
 
 2007-12-15  Richard Stallman  <rms@gnu.org>
