@@ -1082,7 +1082,7 @@ The selected frame is the one your input currently operates on.
 @xref{Frames}.
 
 @item Selected Window
-The selected frame is the one your input currently operates on.
+The selected window is the one your input currently operates on.
 @xref{Basic Window}.
 
 @item Selecting a Buffer
