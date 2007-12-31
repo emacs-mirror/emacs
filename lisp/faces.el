@@ -357,8 +357,9 @@ Each element of the result has the form (ATTR-NAME . ATTR-VALUE).
 Normally the value describes the default attributes,
 but if you specify FRAME, the value describes the attributes
 of FACE on FRAME."
-  (mapcar (lambda (pair) (let ((attr (car pair)))
-  	  	  	   (cons attr (face-attribute face attr frame))))
+  (mapcar (lambda (pair)
+	    (let ((attr (car pair)))
+	      (cons attr (face-attribute face attr (or frame t)))))
   	  face-attribute-name-alist))
 
 (defun face-attribute (face attribute &optional frame inherit)
