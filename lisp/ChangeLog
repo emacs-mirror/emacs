@@ -12,7 +12,7 @@
 	with vc-state.
 	(vc-next-action): Fix vc-transfer-file call.
 
-2007-12-31  Tom Tromey  <address@hidden>
+2007-12-31  Tom Tromey  <tromey@redhat.com>
 
         * emacs-lisp/elp.el (elp-results): Use header-line-format for
         header.  Move point to the start of the buffer.
