@@ -155,7 +155,6 @@
   "Git-specific version of `dir-state'."
   ;; FIXME: This can't set 'ignored yet
   (with-temp-buffer
-    (buffer-disable-undo)		;; Because these buffers can get huge
     (vc-git-command (current-buffer) nil nil "ls-files" "-t" "-c" "-m" "-o")
     (goto-char (point-min))
     (let ((status-char nil)
@@ -172,12 +171,16 @@
 	 ;; should not show up in vc-dired, so don't deal with them
 	 ;; here.
 	 ((eq status-char ?H)
+	  (vc-file-setprop file 'vc-backend 'Git)
 	  (vc-file-setprop file 'vc-state 'up-to-date))
 	 ((eq status-char ?R)
+	  (vc-file-setprop file 'vc-backend 'Git)
 	  (vc-file-setprop file 'vc-state 'removed))
 	 ((eq status-char ?M)
+	  (vc-file-setprop file 'vc-backend 'Git)
 	  (vc-file-setprop file 'vc-state 'edited))
 	 ((eq status-char ?C)
+	  (vc-file-setprop file 'vc-backend 'Git)
 	  (vc-file-setprop file 'vc-state 'edited))
 	 ((eq status-char ??)
 	  (vc-file-setprop file 'vc-backend 'none)
