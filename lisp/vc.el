@@ -2393,27 +2393,25 @@ Called by dired after any portion of a vc-dired buffer has been read in."
            (t
             (vc-dired-reformat-line nil)
             (forward-line 1))))
-	 ;; try to head off calling the expensive state query -
+	 ;; Try to head off calling the expensive state query -
 	 ;; ignore object files, TeX intermediate files, and so forth.
 	 ((vc-dired-ignorable-p filename)
 	  (dired-kill-line))
-         ;; ordinary file -- call the (possibly expensive) state query
-         (t
-	  (let ((backend (vc-backend filename)))
-	    (cond
-	     ;; Not registered
-	     ((not backend)
-	      (if vc-dired-terse-mode
-		  (dired-kill-line)
-		(vc-dired-reformat-line "?")
-		(forward-line 1)))
-	     ;; Either we're in non-terse mode or it's out of date 
-	     ((not (and vc-dired-terse-mode (vc-up-to-date-p filename)))
-	      (vc-dired-reformat-line (vc-call dired-state-info filename))
-	      (forward-line 1))
-	     ;; Remaining cases are under version control but uninteresting 
-	     (t	
-	      (dired-kill-line)))))))
+         ;; Ordinary file -- call the (possibly expensive) state query
+	 ;;
+	 ;; First case: unregistered or unknown. (Unknown shouldn't happen here)
+	 ((member (vc-state filename) '(nil unregistered))
+	  (if vc-dired-terse-mode
+	      (dired-kill-line)
+	    (vc-dired-reformat-line "?")
+	    (forward-line 1)))
+	 ;; Either we're in non-terse mode or it's out of date 
+	 ((not (and vc-dired-terse-mode (vc-up-to-date-p filename)))
+	  (vc-dired-reformat-line (vc-call dired-state-info filename))
+	  (forward-line 1))
+	 ;; Remaining cases are under version control but uninteresting 
+	 (t	
+	  (dired-kill-line))))
        ;; any other line
        (t (forward-line 1))))
     (vc-dired-purge))

@@ -536,6 +536,10 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
       nil)
     (message "There are unresolved conflicts in this file")))
 
+(defun vc-file-setprop2 (f p v)
+  (message (format "On file %s. setting property %s to %s" f p v))
+  (sit-for 2))
+
 (defun vc-svn-parse-status (&optional filename)
   "Parse output of \"svn status\" command in the current buffer.
 Set file properties accordingly.  Unless FILENAME is non-nil, parse only
@@ -544,7 +548,7 @@ information about FILENAME and return its status."
     (goto-char (point-min))
     (while (re-search-forward
             ;; Ignore the files with status X.
-	    "^[ ACDGIMR!?~][ MC][ L][ +][ S]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\) +" nil t)
+	    "^\\? +|^[ ACDGIMR!~][ MC][ L][ +][ S]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\) +" nil t)
       ;; If the username contains spaces, the output format is ambiguous,
       ;; so don't trust the output's filename unless we have to.
       (setq file (or filename
@@ -552,37 +556,37 @@ information about FILENAME and return its status."
                       (buffer-substring (point) (line-end-position)))))
       (setq status (char-after (line-beginning-position)))
       (if (eq status ??)
-	  (vc-file-setprop file 'vc-state 'unregistered)
+	  (vc-file-setprop2 file 'vc-state 'unregistered)
 	;; `vc-BACKEND-registered' must not set vc-backend,
 	;; which is instead set in vc-registered.
-	(unless filename (vc-file-setprop file 'vc-backend 'SVN))
+	(unless filename (vc-file-setprop2 file 'vc-backend 'SVN))
 	;; Use the last-modified revision, so that searching in vc-print-log
 	;; output works.
-	(vc-file-setprop file 'vc-working-revision (match-string 3))
+	(vc-file-setprop2 file 'vc-working-revision (match-string 3))
         ;; Remember Svn's own status.
-        (vc-file-setprop file 'vc-svn-status status)
-	(vc-file-setprop
+        (vc-file-setprop2 file 'vc-svn-status status)
+	(vc-file-setprop2
 	 file 'vc-state
 	 (cond
 	  ((eq status ?\ )
 	   (if (eq (char-after (match-beginning 1)) ?*)
 	       'needs-patch
-             (vc-file-setprop file 'vc-checkout-time
+             (vc-file-setprop2 file 'vc-checkout-time
                               (nth 5 (file-attributes file)))
 	     'up-to-date))
 	  ((eq status ?A)
 	   ;; If the file was actually copied, (match-string 2) is "-".
-	   (vc-file-setprop file 'vc-working-revision "0")
-	   (vc-file-setprop file 'vc-checkout-time 0)
+	   (vc-file-setprop2 file 'vc-working-revision "0")
+	   (vc-file-setprop2 file 'vc-checkout-time 0)
 	   'added)
 	  ((memq status '(?M ?C))
 	   (if (eq (char-after (match-beginning 1)) ?*)
 	       'needs-merge
 	     'edited))
 	  ((eq status ?I)
-	   (vc-file-setprop file 'vc-state 'ignored))
+	   (vc-file-setprop2 file 'vc-state 'ignored))
 	  ((eq status ?R)
-	   (vc-file-setprop file 'vc-state 'removed))
+	   (vc-file-setprop2 file 'vc-state 'removed))
 	  (t 'edited)))))
     (if filename (vc-file-getprop filename 'vc-state))))
 
