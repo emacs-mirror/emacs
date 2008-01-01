@@ -1,10 +1,11 @@
 2008-01-01  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc-svn.el (vc-svn-parse-status): Set the 'unregisted property 
+	* vc-svn.el (vc-svn-parse-status): Set the 'unregisted property
 	correctly.
 
 	* vc.el (vc-dired-hook):  Speed tuning.  Replace a vc-backend call
 	with vc-state.
+	(vc-next-action): Fix vc-transfer-file call.
 
 2007-12-31  Tom Tromey  <address@hidden>
 
