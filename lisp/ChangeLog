@@ -1,3 +1,13 @@
+2008-01-02  Miles Bader  <Miles Bader <miles@gnu.org>>
+
+	* net/rcirc.el (rcirc-log-filename-function): New variable.
+	(rcirc-log): Use `rcirc-log-filename-function' to generate the
+	log-file name.  Don't log anything if it returns nil.
+	(rcirc-log-write): Use `expand-file-name' when merging the
+	log-file name from the alist with rcirc-log-directory; this does
+	the right thing if the name in the alist already an absolute
+	filename.  Make the log-file directory if necessary.
+
 2007-12-29  Richard Stallman  <rms@gnu.org>
 
 	* font-lock.el (font-lock-prepend-text-property)
