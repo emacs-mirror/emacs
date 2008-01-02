@@ -4269,6 +4269,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
 
   check_w32 ();
 
+  /* Make copy of frame parameters because the original is in pure
+     storage now. */
+  parameters = Fcopy_alist (parameters);
+
   /* Use this general default value to start with
      until we know if this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;

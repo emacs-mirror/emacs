@@ -1,3 +1,41 @@
+2007-12-31  Tom Tromey <tromey@redhat.com>  (tiny change)
+
+	* dbusbind.c (xd_read_message): Use non-static input_event struct.
+
+2007-12-31  Magnus Henoch  <mange@freemail.hu>
+
+	* dbusbind.c (xd_signature): Signature of variant is just "v".
+
+2007-12-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c: Fix several errors and compiler warnings.  Reported
+	by Tom Tromey <tromey@redhat.com>
+	(XD_ERROR, XD_DEBUG_MESSAGE)
+	(XD_DEBUG_VALID_LISP_OBJECT_P): Wrap code with "do ... while (0)".
+	(xd_append_arg): Part for basic D-Bus types rewitten.
+	(xd_retrieve_arg): Split implementation of DBUS_TYPE_BYTE and
+	DBUS_TYPE_(U)INT16.  Don't call XD_DEBUG_MESSAGE with "%f" if not
+	appropriate.
+	(xd_read_message): Return Qnil.  Don't signal an error; it is not
+	useful during event reading.
+	(Fdbus_register_signal): Signal an error if the check for
+	FUNCTIONP fails.
+	(Fdbus_register_method): New function.  The implementation is not
+	complete, the call of the function signals an error therefore.
+	(Fdbus_unregister_object): New function, renamed from
+	Fdbus_unregister_signal.  The initial check signals an error, if
+	it the objct is not well formed.
+
+2007-12-30  Richard Stallman  <rms@gnu.org>
+
+	* textprop.c (get_char_property_and_overlay):
+	Signal error if POSITION is out of range in a buffer.
+
+2007-12-29  Martin Rudalics  <rudalics@gmx.at>
+
+	* w32fns.c (Fx_create_frame): Make copy of frame parameters
+	because the original parameters are in pure storage now.
+
 2007-12-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (phys_cursor_in_rect_p): Check if cursor is in fringe area.

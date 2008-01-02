@@ -541,14 +541,14 @@ argument BUFFER-NAME is nil, it defaults to *Colors*."
        (insert (car color))
        (indent-to 22))
      (point)
-     'face (cons 'background-color (car color)))
+     'face (list ':background (car color)))
     (put-text-property
      (prog1 (point)
        (insert " " (if (cdr color)
 		       (mapconcat 'identity (cdr color) ", ")
 		     (car color))))
      (point)
-     'face (cons 'foreground-color (car color)))
+     'face (list ':foreground (car color)))
     (indent-to (max (- (window-width) 8) 44))
     (insert (apply 'format "#%02x%02x%02x"
 		   (mapcar (lambda (c) (lsh c -8))

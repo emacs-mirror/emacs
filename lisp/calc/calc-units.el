@@ -491,9 +491,14 @@ If EXPR is nil, return nil."
      (when (eq (car-safe unew) 'error)
        (error "Bad format in units expression: %s" (nth 2 unew)))
      (math-put-default-units unew)
-     (calc-enter-result 1 "cvtm" (math-simplify-units
-				  (math-convert-temperature expr uold unew
-							    uoldname))))))
+     (let ((ntemp (calc-normalize
+                   (math-simplify-units
+                    (math-convert-temperature expr uold unew
+                                              uoldname)))))
+       (if (Math-zerop ntemp)
+           (setq ntemp (list '* ntemp unew)))
+       (let ((calc-simplify-mode 'none))
+         (calc-enter-result 1 "cvtm" ntemp))))))
 
 (defun calc-remove-units ()
   (interactive)

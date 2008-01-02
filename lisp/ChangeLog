@@ -1,3 +1,152 @@
+2008-01-02  Miles Bader  <Miles Bader <miles@gnu.org>>
+
+	* net/rcirc.el (rcirc-log-filename-function): New variable.
+	(rcirc-log): Use `rcirc-log-filename-function' to generate the
+	log-file name.  Don't log anything if it returns nil.
+	(rcirc-log-write): Use `expand-file-name' when merging the
+	log-file name from the alist with rcirc-log-directory; this does
+	the right thing if the name in the alist already an absolute
+	filename.  Make the log-file directory if necessary.
+
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* font-lock.el (font-lock-prepend-text-property)
+	(font-lock-append-text-property): Canonicalize the face and
+	font-lock-face properties.
+
+	* faces.el (facep): Doc fix.
+
+	* startup.el (fancy-startup-tail, fancy-about-text)
+	(fancy-startup-text): Regularize format of face property.
+
+	* facemenu.el (list-colors-print): Use :background and :foreground
+	instead of background-color and foreground-color.
+
+2007-12-29  Drew Adams  <drew.adams@oracle.com>
+
+	* cus-edit.el (custom-add-parent-links):
+	Fill the "Parent documentation" text.
+
+2007-12-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/ispell.el (ispell-grep-command): Use "grep" on
+	MS-Windows and MS-DOS.
+	(ispell-grep-options): Use "-Ei" on MS-Windows and MS-DOS.
+
+2008-01-02  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-svn.el (vc-svn-modify-change comment): New function.
+
+2008-01-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el (vc-git-dir-state): Set the vc-backend property.  Do
+	not disable undo, with-temp-buffer does it by default.
+
+2008-01-01  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-svn.el (vc-svn-parse-status): Set the 'unregisted property
+	correctly.
+
+	* vc.el (vc-dired-hook):  Speed tuning.  Replace a vc-backend call
+	with vc-state.
+	(vc-next-action): Fix vc-transfer-file call.
+
+2007-12-31  Tom Tromey  <tromey@redhat.com>
+
+        * emacs-lisp/elp.el (elp-results): Use header-line-format for
+        header.  Move point to the start of the buffer.
+
+2007-12-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-cvs.el (vc-cvs-parse-entry): Set the vc-backend property.
+
+	* vc.el: State that dir-state is required to set the vc-state and
+	vc-backend properties.
+
+2007-12-31  Martin Rudalics  <rudalics@gmx.at>
+
+	* man.el (Man-default-man-entry): Make this a defun.  Improve
+	guessing mechanism and handling of section numbers.
+
+2007-12-31  Richard Stallman  <rms@gnu.org>
+
+	* faces.el (face-all-attributes): If FRAME is nil, return defaults.
+
+2007-12-31  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-units.el (calc-convert-temperature): Ensure that units
+	are on the result even when the result is zero.
+
+2007-12-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-name-owner-changed-handler): Make the function
+	resistent towards wrong parameters.
+	(dbus-handle-event): Propagate D-Bus errors only in the debug case.
+
+2007-12-30  Richard Stallman  <rms@gnu.org>
+
+	* faces.el (face-all-attributes): New function.
+
+	* faces.el (face-differs-from-default-p): Compute list of attr names
+	from face-attribute-name-alist.
+
+	* cus-edit.el (custom-face-set): Call `face-spec-set' with FOR-DEFFACE.
+	(custom-face-save): Likewise.
+	(custom-face-reset-saved, custom-face-reset-standard): Likewise.
+
+	* cus-face.el (custom-declare-face): Per frame, use `face-spec-set-2'.
+	(custom-theme-set-faces): Clear `face-override-spec' property.
+	Call `face-spec-set' with FOR-DEFFACE.
+
+	* custom.el (custom-theme-recalc-face):
+	Simply call `face-spec-recalc'.
+
+	* faces.el (face-spec-set): Third arg is now FOR-DEFFACE.
+	Use of frame as third arg is deprecated.
+	Handle `face-override-spec' property.
+	(face-spec-recalc): New function.
+	(face-spec-set-2): New function.
+	(frame-set-background-mode): Handle `face-override-spec' property.
+	Use `face-spec-recalc'.
+	(face-set-after-frame-default): Use `face-spec-recalc'.
+
+2007-12-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* thumbs.el (thumbs-conversion-program): Add comment for Windows XP.
+
+2007-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-dir-state): Set the vc-backend property.
+
+2007-12-29  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* vc-svn.el (vc-svn-parse-status): Recognize 'unregistered,
+	'added, 'removed.
+
+	* vc.el (header coment): Better description of dir-state.
+	(vc-compatible-state): New function.  Checks whether two states
+	can be in the same changeset; used with 'edited it can test whether
+	the next action for a state should be commit.
+	(vc-default-dired-format0info): Display 'added state.
+	(vc-dired-hook): Turn off undo, this is a speed tweak.
+
+	* vc-bzr.el (vc-bzr-dir-state): Recognize 'added.
+
+	* vc-hg.el (vc-bzr-hg-state): Recognize 'added and 'removed.
+	Cope with the possibility that the 'C' status flag might change
+	in 0.9,6.
+
+	* vc-git.el (vc-bzr-dir-state): Recognize 'removed.
+
+2007-12-29  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* files.el (cd-absolute): Fix omission bug:
+	Make `list-buffers-directory' buffer-local.
+
+2007-12-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-dir-state): Deal with the up-to-date state.
+
 2007-12-29  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-aent.el (math-read-token): Fix misplaced
@@ -29,6 +178,10 @@
 	* calc/calc-help.el (calc-d-prefix-help): Add new languages.
 
 	* calc/calc-menu.el (calc-modes-menu): Add new languages.
+	(calc-arithmetic-menu, calc-scientific-function-menu)
+	(calc-algebra-menu, calc-graphics-menu, calc-vectors-menu)
+	(calc-units-menu, calc-variables-menu, calc-stack-menu):
+	Add :active keywords.
 
 2007-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
 

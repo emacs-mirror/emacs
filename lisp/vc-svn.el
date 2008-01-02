@@ -366,6 +366,30 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
             (error "Couldn't analyze svn update result")))
       (message "Merging changes into %s...done" file))))
 
+(defun vc-svn-modify-change-comment (files rev comment)
+  "Modify the change comments for a specified REV.
+You must have ssh access to the repository host, and the directory Emacs
+uses locally for temp files must also be writeable by you on that host."
+  (vc-do-command nil 0 "svn" nil "info")
+  (set-buffer "*vc*")
+  (goto-char (point-min))
+  (unless (re-search-forward "Repository Root: svn\\+ssh://\\([^/]+\\)\\(/.*\\)" nil t)
+    (error "Repository information is unavailable."))
+  (let* ((tempfile (make-temp-file user-mail-address)) 
+	(host (match-string 1))
+	(directory (match-string 2))
+	(remotefile (concat host ":" tempfile)))
+    (with-temp-buffer
+      (insert comment)
+      (write-region (point-min) (point-max) tempfile))
+    (unless (vc-do-command nil 0 "scp" nil "-q" tempfile remotefile)
+      (error "Copy of comment to %s failed" remotefile))
+    (unless (vc-do-command nil 0 "ssh" nil 
+			   "-q" host 
+			   (format "svnadmin setlog --bypass-hooks %s -r %s %s; rm %s" 
+				   directory rev tempfile tempfile))
+      (error "Log edit failed"))
+  ))
 
 ;;;
 ;;; History functions
@@ -543,15 +567,16 @@ information about FILENAME and return its status."
   (let (file status)
     (goto-char (point-min))
     (while (re-search-forward
-            ;; Ignore the files with status in [IX?].
-	    "^[ ACDGMR!~][ MC][ L][ +][ S]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\) +" nil t)
+            ;; Ignore the files with status X.
+	    "^\\(\\?\\|[ ACDGIMR!~][ MC][ L][ +][ S]..\\([ *]\\) +\\([-0-9]+\\) +\\([0-9?]+\\) +\\([^ ]+\\)\\) +" nil t)
       ;; If the username contains spaces, the output format is ambiguous,
       ;; so don't trust the output's filename unless we have to.
       (setq file (or filename
                      (expand-file-name
                       (buffer-substring (point) (line-end-position)))))
       (setq status (char-after (line-beginning-position)))
-      (unless (eq status ??)
+      (if (eq status ??)
+	  (vc-file-setprop file 'vc-state 'unregistered)
 	;; `vc-BACKEND-registered' must not set vc-backend,
 	;; which is instead set in vc-registered.
 	(unless filename (vc-file-setprop file 'vc-backend 'SVN))
@@ -573,15 +598,15 @@ information about FILENAME and return its status."
 	   ;; If the file was actually copied, (match-string 2) is "-".
 	   (vc-file-setprop file 'vc-working-revision "0")
 	   (vc-file-setprop file 'vc-checkout-time 0)
-	   'edited)
+	   'added)
 	  ((memq status '(?M ?C))
 	   (if (eq (char-after (match-beginning 1)) ?*)
 	       'needs-merge
 	     'edited))
 	  ((eq status ?I)
 	   (vc-file-setprop file 'vc-state 'ignored))
-	  ((eq status ??)
-	   (vc-file-setprop file 'vc-state 'unregistered))
+	  ((eq status ?R)
+	   (vc-file-setprop file 'vc-state 'removed))
 	  (t 'edited)))))
     (if filename (vc-file-getprop filename 'vc-state))))
 

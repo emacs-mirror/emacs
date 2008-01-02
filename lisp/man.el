@@ -642,50 +642,91 @@ a new value."
 
 
 ;; ======================================================================
-;; default man entry: get word under point
+;; default man entry: get word near point
 
-(defsubst Man-default-man-entry (&optional pos)
-  "Make a guess at a default manual entry based on the text at POS.
-If POS is nil, the current point is used."
-  (let (word start original-pos distance)
+(defun Man-default-man-entry (&optional pos)
+  "Guess default manual entry based on the text near position POS.
+POS defaults to `point'."
+  (let (word start pos column distance)
     (save-excursion
-      (if pos (goto-char pos))
-      ;; Default man entry title is any word the cursor is on, or if
-      ;; cursor not on a word, nearest preceding or next word-like
-      ;; object on this line.
-      (if (not (zerop (skip-chars-backward "-a-zA-Z0-9._+:")))
+      (when pos (goto-char pos))
+      (setq pos (point))
+      ;; The default title is the nearest entry-like object before or
+      ;; after POS.
+      (if (and (skip-chars-backward " \ta-zA-Z0-9+")
+	       (not (zerop (skip-chars-backward "(")))
+	       ;; Try to handle the special case where POS is on a
+	       ;; section number.
+	       (looking-at
+		(concat "([ \t]*\\(" Man-section-regexp "\\)[ \t]*)"))
+	       ;; We skipped a valid section number backwards, look at
+	       ;; preceding text.
+	       (or (and (skip-chars-backward ",; \t")
+			(not (zerop (skip-chars-backward "-a-zA-Z0-9._+:"))))
+		   ;; Not a valid entry, move POS after closing paren.
+		   (not (setq pos (match-end 0)))))
+	  ;; We have a candidate, make `start' record its starting
+	  ;; position.
 	  (setq start (point))
-	(setq original-pos (point))
-	(setq distance (abs (skip-chars-backward ",; \t")))
+	;; Otherwise look at char before POS.
+	(goto-char pos)
 	(if (not (zerop (skip-chars-backward "-a-zA-Z0-9._+:")))
-	    (progn
-	      (setq start (point))
-	      (goto-char original-pos)
-	      (if (and (< (skip-chars-forward ",; \t") distance)
-		       (looking-at "[-a-zA-Z0-9._+:]"))
-		  (setq start (point))
-		(goto-char start)))
-	  (skip-chars-forward ",; \t")
-	  (setq start (point))))
+	    ;; Our candidate is just before or around POS.
+	    (setq start (point))
+	  ;; Otherwise record the current column and look backwards.
+	  (setq column (current-column))
+	  (skip-chars-backward ",; \t")
+	  ;; Record the distance travelled.
+	  (setq distance (- column (current-column)))
+	  (when (looking-back
+		 (concat "([ \t]*\\(?:" Man-section-regexp "\\)[ \t]*)"))
+	    ;; Skip section number backwards.
+	    (goto-char (match-beginning 0))
+	    (skip-chars-backward " \t"))
+	  (if (not (zerop (skip-chars-backward "-a-zA-Z0-9._+:")))
+	      (progn
+		;; We have a candidate before POS ...
+		(setq start (point))
+		(goto-char pos)
+		(if (and (skip-chars-forward ",; \t")
+			 (< (- (current-column) column) distance)
+			 (looking-at "[-a-zA-Z0-9._+:]"))
+		    ;; ... but the one after POS is better.
+		    (setq start (point))
+		  ;; ... and anything after POS is worse.
+		  (goto-char start)))
+	    ;; No candidate before POS.
+	    (goto-char pos)
+	    (skip-chars-forward ",; \t")
+	    (setq start (point)))))
+      ;; We have found a suitable starting point, try to skip at least
+      ;; one character.
       (skip-chars-forward "-a-zA-Z0-9._+:")
       (setq word (buffer-substring-no-properties start (point)))
       ;; If there is a continuation at the end of line, check the
       ;; following line too, eg:
       ;;     see this-
       ;;     command-here(1)
+      ;; Note: This code gets executed iff our entry is after POS.
       (when (looking-at "[ \t\r\n]+\\([-a-zA-Z0-9._+:]+\\)([0-9])")
-	(setq word (concat word (match-string-no-properties 1))))
+	(setq word (concat word (match-string-no-properties 1)))
+	;; Make sure the section number gets included by the code below.
+	(goto-char (match-end 1)))
       (when (string-match "[._]+$" word)
 	(setq word (substring word 0 (match-beginning 0))))
-      ;; If looking at something like *strcat(... , remove the '*'
-      (when (string-match "^*" word)
-	(setq word (substring word 1)))
-      ;; If looking at something like ioctl(2) or brc(1M), include the
-      ;; section number in the returned value.  Remove text properties.
-      (concat word
-	      (if (looking-at
-		   (concat "[ \t]*([ \t]*\\(" Man-section-regexp "\\)[ \t]*)"))
-		  (format "(%s)" (match-string-no-properties 1)))))))
+      ;; The following was commented out since the preceding code
+      ;; should not produce a leading "*" in the first place.
+;;;       ;; If looking at something like *strcat(... , remove the '*'
+;;;       (when (string-match "^*" word)
+;;; 	(setq word (substring word 1)))
+	(concat
+	 word
+	 (and (not (string-equal word ""))
+	      ;; If looking at something like ioctl(2) or brc(1M),
+	      ;; include the section number in the returned value.
+	      (looking-at
+	       (concat "[ \t]*([ \t]*\\(" Man-section-regexp "\\)[ \t]*)"))
+	      (format "(%s)" (match-string-no-properties 1)))))))
 
 
 ;; ======================================================================

@@ -1480,32 +1480,47 @@ record activity."
 	(run-hook-with-args 'rcirc-print-hooks
 			    process sender response target text)))))
 
+(defcustom rcirc-log-filename-function 'rcirc-generate-new-buffer-name
+  "A function to generate the filename used by rcirc's logging facility.
+
+It is called with two arguments, PROCESS and TARGET (see
+`rcirc-generate-new-buffer-name' for their meaning), and should
+return the filename, or nil if no logging is desired for this
+session.
+
+If the returned filename is absolute (`file-name-absolute-p'
+returns true), then it is used as-is, otherwise the resulting
+file is put into `rcirc-log-directory'."
+  :group 'rcirc
+  :type 'function)
+
 (defun rcirc-log (process sender response target text)
   "Record line in `rcirc-log', to be later written to disk."
-  (let* ((filename (rcirc-generate-new-buffer-name process target))
-	 (cell (assoc-string filename rcirc-log-alist))
-	 (line (concat (format-time-string rcirc-time-format)
-		       (substring-no-properties
-			(rcirc-format-response-string process sender
-						      response target text))
-		       "\n")))
-    (if cell
-	(setcdr cell (concat (cdr cell) line))
-      (setq rcirc-log-alist
-	    (cons (cons filename line) rcirc-log-alist)))))
+  (let ((filename (funcall rcirc-log-filename-function process target)))
+    (unless (null filename)
+      (let ((cell (assoc-string filename rcirc-log-alist))
+	    (line (concat (format-time-string rcirc-time-format)
+			  (substring-no-properties
+			   (rcirc-format-response-string process sender
+							 response target text))
+			  "\n")))
+	(if cell
+	    (setcdr cell (concat (cdr cell) line))
+	  (setq rcirc-log-alist
+		(cons (cons filename line) rcirc-log-alist)))))))
 
 (defun rcirc-log-write ()
   "Flush `rcirc-log-alist' data to disk.
 
-Log data is written to `rcirc-log-directory'."
-  (make-directory rcirc-log-directory t)
+Log data is written to `rcirc-log-directory', except for
+log-files with absolute names (see `rcirc-log-filename-function')."
   (dolist (cell rcirc-log-alist)
-    (with-temp-buffer
-      (insert (cdr cell))
-      (let ((coding-system-for-write 'utf-8))
-	(write-region (point-min) (point-max)
-		      (concat rcirc-log-directory "/" (car cell))
-		      t 'quiet))))
+    (let ((filename (expand-file-name (car cell) rcirc-log-directory))
+	  (coding-system-for-write 'utf-8))
+      (make-directory (file-name-directory filename) t)
+      (with-temp-buffer
+	(insert (cdr cell))
+	(write-region (point-min) (point-max) filename t 'quiet))))
   (setq rcirc-log-alist nil))
 
 (defun rcirc-join-channels (process channels)
