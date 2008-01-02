@@ -366,6 +366,30 @@ The changes are between FIRST-VERSION and SECOND-VERSION."
             (error "Couldn't analyze svn update result")))
       (message "Merging changes into %s...done" file))))
 
+(defun vc-svn-modify-change-comment (files rev comment)
+  "Modify the change comments for a specified REV.
+You must have ssh access to the repository host, and the directory Emacs
+uses locally for temp files must also be writeable by you on that host."
+  (vc-do-command nil 0 "svn" nil "info")
+  (set-buffer "*vc*")
+  (goto-char (point-min))
+  (unless (re-search-forward "Repository Root: svn\\+ssh://\\([^/]+\\)\\(/.*\\)" nil t)
+    (error "Repository information is unavailable."))
+  (let* ((tempfile (make-temp-file user-mail-address)) 
+	(host (match-string 1))
+	(directory (match-string 2))
+	(remotefile (concat host ":" tempfile)))
+    (with-temp-buffer
+      (insert comment)
+      (write-region (point-min) (point-max) tempfile))
+    (unless (vc-do-command nil 0 "scp" nil "-q" tempfile remotefile)
+      (error "Copy of comment to %s failed" remotefile))
+    (unless (vc-do-command nil 0 "ssh" nil 
+			   "-q" host 
+			   (format "svnadmin setlog --bypass-hooks %s -r %s %s; rm %s" 
+				   directory rev tempfile tempfile))
+      (error "Log edit failed"))
+  ))
 
 ;;;
 ;;; History functions
