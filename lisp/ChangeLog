@@ -1,3 +1,22 @@
+2008-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	Change a return type, for greater extensibility.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2007-12/msg01077.html
+	and its thread for discussion leading to this change.
+
+	* emacs-cvs/lisp/bookmark.el:
+	(bookmark-jump-noselect): Return an alist instead of a dotted pair.
+	(bookmark-jump, bookmark-jump-other-window, bookmark-insert)
+	(bookmark-bmenu-2-window, bookmark-bmenu-other-window)
+	(bookmark-bmenu-switch-other-window): Adjust accordingly.
+	(bookmark-make-cell-function): Adjust documentation accordingly.
+
+	* emacs-cvs/lisp/image-mode.el
+	(image-bookmark-jump): Adjust return type accordingly; document.
+
+	* emacs-cvs/lisp/doc-view.el
+	(doc-view-bookmark-jump): Adjust return type accordingly; document.
+
 2008-01-02  Miles Bader  <Miles Bader <miles@gnu.org>>
 
 	* net/rcirc.el (rcirc-log-filename-function): New variable.

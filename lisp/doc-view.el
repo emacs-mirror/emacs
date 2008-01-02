@@ -1017,6 +1017,8 @@ See the command `doc-view-mode' for more information on this mode."
 
 ;;;###autoload
 (defun doc-view-bookmark-jump (bmk)
+  ;; This implements the `handler' function interface for record type
+  ;; returned by `bookmark-make-cell-function', which see.
   (save-window-excursion
     (let ((filename (bookmark-get-filename bmk))
 	  (page (cdr (assq 'page (bookmark-get-bookmark-record bmk)))))
@@ -1024,6 +1026,6 @@ See the command `doc-view-mode' for more information on this mode."
       (when (not (eq major-mode 'doc-view-mode))
 	(doc-view-toggle-display))
       (doc-view-goto-page page)
-      (cons (current-buffer) 1))))
+      `((buffer ,(current-buffer)) (position ,1)))))
 
 ;;; doc-view.el ends here

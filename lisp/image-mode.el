@@ -375,6 +375,8 @@ and showing the image as an image."
 
 ;;;###autoload
 (defun image-bookmark-jump (bmk)
+  ;; This implements the `handler' function interface for record type
+  ;; returned by `bookmark-make-cell-function', which see.
   (save-window-excursion
     (let ((filename (bookmark-get-filename bmk))
 	  (type (cdr (assq 'image-type (bookmark-get-bookmark-record bmk))))
@@ -384,7 +386,7 @@ and showing the image as an image."
 	(image-toggle-display))
       (when (string= image-type "text")
 	(goto-char pos))
-      (cons (current-buffer) pos))))
+      `((buffer ,(current-buffer)) (position ,(point))))))
 
 (provide 'image-mode)
 
