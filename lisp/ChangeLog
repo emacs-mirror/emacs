@@ -1,3 +1,11 @@
+2008-01-02  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* progmodes/grep.el (grep-find-ignored-directories): Initialize
+	from the value of vc-directory-exclusion-list.
+
+	* vc-hooks (vc-directory-exclusion-list):  Include "_darcs",
+	even though we don't have a back end for darcs yet.
+
 2008-01-02  Karl Fogel  <kfogel@red-bean.com>
 
 	Change a return type, for greater extensibility.  See
