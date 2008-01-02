@@ -1028,4 +1028,5 @@ See the command `doc-view-mode' for more information on this mode."
       (doc-view-goto-page page)
       `((buffer ,(current-buffer)) (position ,1)))))
 
+;; arch-tag: 5d6e5c5e-095f-489e-b4e4-1ca90a7d79be
 ;;; doc-view.el ends here
