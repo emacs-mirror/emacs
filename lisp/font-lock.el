@@ -1303,6 +1303,12 @@ Optional argument OBJECT is the string or buffer containing the text."
     (while (/= start end)
       (setq next (next-single-property-change start prop object end)
 	    prev (get-text-property start prop object))
+      ;; Canonicalize old forms of face property.
+      (and (memq prop '(face font-lock-face))
+	   (listp prev)
+	   (or (keywordp (car prev))
+	       (memq (car prev) '(foreground-color background-color)))
+	   (setq prev (list prev)))
       (put-text-property start next prop
 			 (append val (if (listp prev) prev (list prev)))
 			 object)
@@ -1317,6 +1323,12 @@ Optional argument OBJECT is the string or buffer containing the text."
     (while (/= start end)
       (setq next (next-single-property-change start prop object end)
 	    prev (get-text-property start prop object))
+      ;; Canonicalize old forms of face property.
+      (and (memq prop '(face font-lock-face))
+	   (listp prev)
+	   (or (keywordp (car prev))
+	       (memq (car prev) '(foreground-color background-color)))
+	   (setq prev (list prev)))
       (put-text-property start next prop
 			 (append (if (listp prev) prev (list prev)) val)
 			 object)

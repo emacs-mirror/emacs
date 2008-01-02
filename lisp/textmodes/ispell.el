@@ -336,12 +336,17 @@ Always stores Fcc copy of message when nil."
   :group 'ispell)
 
 
-(defcustom ispell-grep-command "egrep"
+(defcustom ispell-grep-command
+  ;; MS-Windows/MS-DOS have `egrep' as a Unix shell script, so they
+  ;; cannot invoke it.  Use "grep -E" instead (see ispell-grep-options
+  ;; below).
+  (if (memq system-type '(windows-nt ms-dos)) "grep" "egrep")
   "Name of the grep command for search processes."
   :type 'string
   :group 'ispell)
 
-(defcustom ispell-grep-options "-i"
+(defcustom ispell-grep-options
+  (if (memq system-type '(windows-nt ms-dos)) "-Ei" "-i")
   "String of options to use when running the program in `ispell-grep-command'.
 Should probably be \"-i\" or \"-e\".
 Some machines (like the NeXT) don't support \"-i\""

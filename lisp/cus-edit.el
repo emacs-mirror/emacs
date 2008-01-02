@@ -1395,7 +1395,7 @@ that are not customizable options, as well as faces and groups
 (defun customize-apropos-options (regexp &optional arg)
   "Customize all loaded customizable options matching REGEXP.
 With prefix arg, include variables that are not customizable options
-\(but we recommend using `apropos-variable' instead)."
+\(but it is better to use `apropos-variable' if you want to find those)."
   (interactive "sCustomize options (regexp): \nP")
   (customize-apropos regexp (or arg 'options)))
 
@@ -2258,7 +2258,8 @@ Insert PREFIX first if non-nil."
 	       (insert ", "))))
       (widget-put widget :buttons buttons))))
 
-(defun custom-add-parent-links (widget &optional initial-string)
+(defun custom-add-parent-links (widget &optional initial-string
+				       doc-initial-string)
   "Add \"Parent groups: ...\" to WIDGET if the group has parents.
 The value is non-nil if any parents were found.
 If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
@@ -2267,7 +2268,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 	(buttons (widget-get widget :buttons))
 	(start (point))
 	(parents nil))
-    (insert (or initial-string "Parent groups:"))
+    (insert (or initial-string "Groups:"))
     (mapatoms (lambda (symbol)
 		(when (member (list name type) (get symbol 'custom-group))
 		  (insert " ")
@@ -2286,23 +2287,27 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 					 (get (car parents) 'custom-links))))
                 (many (> (length links) 2)))
            (when links
-             (insert "\nParent documentation: ")
-             (while links
-               (push (widget-create-child-and-convert
-		      widget (car links)
-		      :button-face 'custom-link
-		      :mouse-face 'highlight
-		      :pressed-face 'highlight)
-                     buttons)
-               (setq links (cdr links))
-               (cond ((null links)
-                      (insert ".\n"))
-                     ((null (cdr links))
-                      (if many
-                          (insert ", and ")
-                        (insert " and ")))
-                     (t
-                      (insert ", ")))))))
+             (let ((pt (point))
+                   (left-margin (+ left-margin 2)))
+	       (insert "\n" (or doc-initial-string "Group documentation:") " ")
+	       (while links
+		 (push (widget-create-child-and-convert
+			widget (car links)
+			:button-face 'custom-link
+			:mouse-face 'highlight
+			:pressed-face 'highlight)
+		       buttons)
+		 (setq links (cdr links))
+		 (cond ((null links)
+			(insert ".\n"))
+		       ((null (cdr links))
+			(if many
+			    (insert ", and ")
+			  (insert " and ")))
+		       (t
+                        (insert ", "))))
+               (fill-region-as-paragraph pt (point))
+               (delete-to-left-margin (1+ pt) (+ pt 2))))))
     (if parents
         (insert "\n")
       (delete-region start (point)))
@@ -3894,7 +3899,8 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 		    ;;; was made to display a group.
 	       (when (eq level 1)
 		 (if (custom-add-parent-links widget
-					      "Parent groups:")
+					      "Parent groups:"
+					      "Parent group documentation:")
 		     (insert "\n"))))
 	   ;; Create level indicator.
 	   (insert-char ?\  (* custom-buffer-indent (1- level)))

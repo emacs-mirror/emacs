@@ -1,3 +1,28 @@
+2007-12-29  Richard Stallman  <rms@gnu.org>
+
+	* font-lock.el (font-lock-prepend-text-property)
+	(font-lock-append-text-property): Canonicalize the face and
+	font-lock-face properties.
+
+	* faces.el (facep): Doc fix.
+
+	* startup.el (fancy-startup-tail, fancy-about-text)
+	(fancy-startup-text): Regularize format of face property.
+
+	* facemenu.el (list-colors-print): Use :background and :foreground
+	instead of background-color and foreground-color.
+
+2007-12-29  Drew Adams  <drew.adams@oracle.com>
+
+	* cus-edit.el (custom-add-parent-links):
+	Fill the "Parent documentation" text.
+
+2007-12-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/ispell.el (ispell-grep-command): Use "grep" on
+	MS-Windows and MS-DOS.
+	(ispell-grep-options): Use "-Ei" on MS-Windows and MS-DOS.
+
 2008-01-02  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* vc-svn.el (vc-svn-modify-change comment): New function.
