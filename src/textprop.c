@@ -646,6 +646,10 @@ get_char_property_and_overlay (position, prop, object, overlay)
       Lisp_Object *overlay_vec;
       struct buffer *obuf = current_buffer;
 
+      if (XINT (position) < BUF_BEGV (XBUFFER (object))
+	  || XINT (position) > BUF_ZV (XBUFFER (object)))
+	xsignal1 (Qargs_out_of_range, position);
+
       set_buffer_temp (XBUFFER (object));
 
       GET_OVERLAYS_AT (XINT (position), overlay_vec, noverlays, NULL, 0);

@@ -1395,7 +1395,7 @@ that are not customizable options, as well as faces and groups
 (defun customize-apropos-options (regexp &optional arg)
   "Customize all loaded customizable options matching REGEXP.
 With prefix arg, include variables that are not customizable options
-\(but we recommend using `apropos-variable' instead)."
+\(but it is better to use `apropos-variable' if you want to find those)."
   (interactive "sCustomize options (regexp): \nP")
   (customize-apropos regexp (or arg 'options)))
 
@@ -2258,7 +2258,8 @@ Insert PREFIX first if non-nil."
 	       (insert ", "))))
       (widget-put widget :buttons buttons))))
 
-(defun custom-add-parent-links (widget &optional initial-string)
+(defun custom-add-parent-links (widget &optional initial-string
+				       doc-initial-string)
   "Add \"Parent groups: ...\" to WIDGET if the group has parents.
 The value is non-nil if any parents were found.
 If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
@@ -2267,7 +2268,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 	(buttons (widget-get widget :buttons))
 	(start (point))
 	(parents nil))
-    (insert (or initial-string "Parent groups:"))
+    (insert (or initial-string "Groups:"))
     (mapatoms (lambda (symbol)
 		(when (member (list name type) (get symbol 'custom-group))
 		  (insert " ")
@@ -2286,23 +2287,27 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 					 (get (car parents) 'custom-links))))
                 (many (> (length links) 2)))
            (when links
-             (insert "\nParent documentation: ")
-             (while links
-               (push (widget-create-child-and-convert
-		      widget (car links)
-		      :button-face 'custom-link
-		      :mouse-face 'highlight
-		      :pressed-face 'highlight)
-                     buttons)
-               (setq links (cdr links))
-               (cond ((null links)
-                      (insert ".\n"))
-                     ((null (cdr links))
-                      (if many
-                          (insert ", and ")
-                        (insert " and ")))
-                     (t
-                      (insert ", ")))))))
+             (let ((pt (point))
+                   (left-margin (+ left-margin 2)))
+	       (insert "\n" (or doc-initial-string "Group documentation:") " ")
+	       (while links
+		 (push (widget-create-child-and-convert
+			widget (car links)
+			:button-face 'custom-link
+			:mouse-face 'highlight
+			:pressed-face 'highlight)
+		       buttons)
+		 (setq links (cdr links))
+		 (cond ((null links)
+			(insert ".\n"))
+		       ((null (cdr links))
+			(if many
+			    (insert ", and ")
+			  (insert " and ")))
+		       (t
+                        (insert ", "))))
+               (fill-region-as-paragraph pt (point))
+               (delete-to-left-margin (1+ pt) (+ pt 2))))))
     (if parents
         (insert "\n")
       (delete-region start (point)))
@@ -3496,10 +3501,10 @@ Optional EVENT is the location for the menu."
     (put symbol 'customized-face value)
     (custom-push-theme 'theme-face symbol 'user 'set value)
     (if (face-spec-choose value)
-	(face-spec-set symbol value)
+	(face-spec-set symbol value t)
       ;; face-set-spec ignores empty attribute lists, so just give it
       ;; something harmless instead.
-      (face-spec-set symbol '((t :foreground unspecified))))
+      (face-spec-set symbol '((t :foreground unspecified)) t))
     (put symbol 'customized-face-comment comment)
     (put symbol 'face-comment comment)
     (custom-face-state-set widget)
@@ -3518,10 +3523,10 @@ Optional EVENT is the location for the menu."
       (custom-comment-hide comment-widget))
     (custom-push-theme 'theme-face symbol 'user 'set value)
     (if (face-spec-choose value)
-	(face-spec-set symbol value)
+	(face-spec-set symbol value t)
       ;; face-set-spec ignores empty attribute lists, so just give it
       ;; something harmless instead.
-      (face-spec-set symbol '((t :foreground unspecified))))
+      (face-spec-set symbol '((t :foreground unspecified)) t))
     (unless (eq (widget-get widget :custom-state) 'standard)
       (put symbol 'saved-face value))
     (put symbol 'customized-face nil)
@@ -3548,7 +3553,7 @@ Optional EVENT is the location for the menu."
     (put symbol 'customized-face nil)
     (put symbol 'customized-face-comment nil)
     (custom-push-theme 'theme-face symbol 'user 'set value)
-    (face-spec-set symbol value)
+    (face-spec-set symbol value t)
     (put symbol 'face-comment comment)
     (widget-value-set child value)
     ;; This call manages the comment visibility
@@ -3572,7 +3577,7 @@ restoring it to the state of a face that has never been customized."
     (put symbol 'customized-face nil)
     (put symbol 'customized-face-comment nil)
     (custom-push-theme 'theme-face symbol 'user 'reset)
-    (face-spec-set symbol value)
+    (face-spec-set symbol value t)
     (custom-theme-recalc-face symbol)
     (when (or (get symbol 'saved-face) (get symbol 'saved-face-comment))
       (put symbol 'saved-face nil)
@@ -3894,7 +3899,8 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 		    ;;; was made to display a group.
 	       (when (eq level 1)
 		 (if (custom-add-parent-links widget
-					      "Parent groups:")
+					      "Parent groups:"
+					      "Parent group documentation:")
 		     (insert "\n"))))
 	   ;; Create level indicator.
 	   (insert-char ?\  (* custom-buffer-indent (1- level)))

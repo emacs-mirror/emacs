@@ -596,20 +596,39 @@ displayed."
 			    symname)))))
 	     elp-all-instrumented-list))
 	   )				; end let*
-      (insert title)
-      (if (> longest titlelen)
-	  (progn
-	    (insert-char 32 (- longest titlelen))
-	    (setq elp-field-len longest)))
-      (insert "  " cc-header "  " et-header "  " at-header "\n")
-      (insert-char ?= elp-field-len)
-      (insert "  ")
-      (insert-char ?= elp-cc-len)
-      (insert "  ")
-      (insert-char ?= elp-et-len)
-      (insert "  ")
-      (insert-char ?= elp-at-len)
-      (insert "\n")
+      ;; If printing to stdout, insert the header so it will print.
+      ;; Otherwise use header-line-format.
+      (setq elp-field-len (max titlelen longest))
+      (if (or elp-use-standard-output noninteractive)
+         (progn
+           (insert title)
+           (if (> longest titlelen)
+               (progn
+                 (insert-char 32 (- longest titlelen))))
+           (insert "  " cc-header "  " et-header "  " at-header "\n")
+           (insert-char ?= elp-field-len)
+           (insert "  ")
+           (insert-char ?= elp-cc-len)
+           (insert "  ")
+           (insert-char ?= elp-et-len)
+           (insert "  ")
+           (insert-char ?= elp-at-len)
+           (insert "\n"))
+       (let ((column 0))
+         (setq header-line-format
+               (mapconcat
+                (lambda (title)
+                  (prog1
+                      (concat
+                       (propertize " "
+                                   'display (list 'space :align-to column)
+                                   'face 'fixed-pitch)
+                       title)
+                    (setq column (+ column 1
+                                    (if (= column 0)
+                                        elp-field-len
+                                      (length title))))))
+                (list title cc-header et-header at-header) ""))))
       ;; if sorting is enabled, then sort the results list. in either
       ;; case, call elp-output-result to output the result in the
       ;; buffer
@@ -621,7 +640,8 @@ displayed."
     (pop-to-buffer resultsbuf)
     ;; copy results to standard-output?
     (if (or elp-use-standard-output noninteractive)
-	(princ (buffer-substring (point-min) (point-max))))
+       (princ (buffer-substring (point-min) (point-max)))
+      (goto-char (point-min)))
     ;; reset profiling info if desired
     (and elp-reset-after-results
 	 (elp-reset-all))))

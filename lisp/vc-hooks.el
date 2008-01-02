@@ -503,14 +503,16 @@ For registered files, the value returned is one of:
                      Often represented by vc-working-revision = \"0\" in VCSes
                      with monotonic IDs like Subversion and Mercurial.
 
-   'ignored          The file showed up in a dir-state listing with a flag 
+  'removed           Scheduled to be deleted from the repository on next commit.
+ 
+  'ignored           The file showed up in a dir-state listing with a flag 
                      indicating the version-control system is ignoring it,
                      Note: This property is not set reliably (some VCSes 
                      don't have useful directory-status commands) so assume 
                      that any file with vc-state nil might be ignorable
                      without VC knowing it. 
 
-   'unregistered     The file showed up in a dir-state listing with a flag 
+  'unregistered      The file showed up in a dir-state listing with a flag 
                      indicating that it is not under version control.
                      Note: This property is not set reliably (some VCSes 
                      don't have useful directory-status commands) so assume 

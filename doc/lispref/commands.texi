@@ -954,7 +954,8 @@ the current Emacs session.  If a symbol has not yet been so used,
 * Event Examples::		Examples of the lists for mouse events.
 * Classifying Events::		Finding the modifier keys in an event symbol.
 				Event types.
-* Accessing Events::		Functions to extract info from events.
+* Accessing Mouse::		Functions to extract info from mouse events.
+* Accessing Scroll::		Functions to get info from scroll bar events.
 * Strings of Events::           Special considerations for putting
 				  keyboard character events in a string.
 @end menu
@@ -1810,8 +1811,8 @@ must be the last element of the list.  For example,
 @end example
 @end defun
 
-@node Accessing Events
-@subsection Accessing Events
+@node Accessing Mouse
+@subsection Accessing Mouse Events
 @cindex mouse events, data in
 
   This section describes convenient functions for accessing the data in
@@ -1956,6 +1957,10 @@ If @var{whole} is @code{nil}, the coordinates are relative
 to the window text area, otherwise they are relative to
 the entire window area including scroll bars, margins and fringes.
 @end defun
+
+@node Accessing Scroll
+@subsection Accessing Scroll Bar Events
+@cindex scroll bar events, data in
 
   These functions are useful for decoding scroll bar events.
 

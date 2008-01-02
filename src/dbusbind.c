@@ -35,7 +35,8 @@ Lisp_Object Qdbus_get_unique_name;
 Lisp_Object Qdbus_call_method;
 Lisp_Object Qdbus_send_signal;
 Lisp_Object Qdbus_register_signal;
-Lisp_Object Qdbus_unregister_signal;
+Lisp_Object Qdbus_register_method;
+Lisp_Object Qdbus_unregister_object;
 
 /* D-Bus error symbol.  */
 Lisp_Object Qdbus_error;
@@ -65,7 +66,7 @@ Lisp_Object Vdbus_debug;
 
 /* Raise a Lisp error from a D-Bus ERROR.  */
 #define XD_ERROR(error)							\
-  {									\
+  do {									\
     char s[1024];							\
     strcpy (s, error.message);						\
     dbus_error_free (&error);						\
@@ -73,33 +74,37 @@ Lisp_Object Vdbus_debug;
     if (strchr (s, '\n') != NULL)					\
       s[strlen (s) - 1] = '\0';						\
     xsignal1 (Qdbus_error, build_string (s));				\
-  }
+  } while (0)
 
 /* Macros for debugging.  In order to enable them, build with
-   "make MYCPPFLAGS='-DDBUS_DEBUG'".  */
+   "make MYCPPFLAGS='-DDBUS_DEBUG -Wall'".  */
 #ifdef DBUS_DEBUG
 #define XD_DEBUG_MESSAGE(...)		\
-  {					\
+  do {					\
     char s[1024];			\
     sprintf (s, __VA_ARGS__);		\
     printf ("%s: %s\n", __func__, s);	\
     message ("%s: %s", __func__, s);	\
-  }
+  } while (0)
 #define XD_DEBUG_VALID_LISP_OBJECT_P(object)				\
-  if (!valid_lisp_object_p (object))					\
-    {									\
-      XD_DEBUG_MESSAGE ("%s Assertion failure", __LINE__);		\
-      xsignal1 (Qdbus_error, build_string ("Assertion failure"));	\
-    }
+  do {									\
+    if (!valid_lisp_object_p (object))					\
+      {									\
+	XD_DEBUG_MESSAGE ("%d Assertion failure", __LINE__);		\
+	xsignal1 (Qdbus_error, build_string ("Assertion failure"));	\
+      }									\
+  } while (0)
 
 #else /* !DBUS_DEBUG */
-#define XD_DEBUG_MESSAGE(...)		\
-  if (!NILP (Vdbus_debug))		\
-    {					\
-      char s[1024];			\
-      sprintf (s, __VA_ARGS__);		\
-      message ("%s: %s", __func__, s);	\
-    }
+#define XD_DEBUG_MESSAGE(...)						\
+  do {									\
+    if (!NILP (Vdbus_debug))						\
+      {									\
+	char s[1024];							\
+	sprintf (s, __VA_ARGS__);					\
+	message ("%s: %s", __func__, s);				\
+      }									\
+  } while (0)
 #define XD_DEBUG_VALID_LISP_OBJECT_P(object)
 #endif
 
@@ -250,7 +255,7 @@ xd_signature(signature, dtype, parent_type, object)
 	wrong_type_argument (intern ("D-Bus"),
 			     XCAR (XCDR (XD_NEXT_VALUE (elt))));
 
-      sprintf (signature, "%c%s", dtype, x);
+      sprintf (signature, "%c", dtype);
       break;
 
     case DBUS_TYPE_STRUCT:
@@ -328,75 +333,112 @@ xd_append_arg (dtype, object, iter)
      Lisp_Object object;
      DBusMessageIter *iter;
 {
-  Lisp_Object elt;
   char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
   DBusMessageIter subiter;
-  char *value;
-
-  XD_DEBUG_MESSAGE ("%c %s", dtype, SDATA (format2 ("%s", object, Qnil)));
 
   if (XD_BASIC_DBUS_TYPE (dtype))
-    {
-      switch (dtype)
+    switch (dtype)
+      {
+      case DBUS_TYPE_BYTE:
 	{
-	case DBUS_TYPE_BYTE:
-	  XD_DEBUG_MESSAGE ("%c %u", dtype, XUINT (object));
-	  value = (unsigned char *) XUINT (object);
-	  break;
-
-	case DBUS_TYPE_BOOLEAN:
-	  XD_DEBUG_MESSAGE ("%c %s", dtype, (NILP (object)) ? "false" : "true");
-	  value = (NILP (object))
-	    ? (unsigned char *) FALSE : (unsigned char *) TRUE;
-	  break;
-
-	case DBUS_TYPE_INT16:
-	  XD_DEBUG_MESSAGE ("%c %d", dtype, XINT (object));
-	  value = (char *) (dbus_int16_t *) XINT (object);
-	  break;
-
-	case DBUS_TYPE_UINT16:
-	  XD_DEBUG_MESSAGE ("%c %u", dtype, XUINT (object));
-	  value = (char *) (dbus_uint16_t *) XUINT (object);
-	  break;
-
-	case DBUS_TYPE_INT32:
-	  XD_DEBUG_MESSAGE ("%c %d", dtype, XINT (object));
-	  value = (char *) (dbus_int32_t *) XINT (object);
-	  break;
-
-	case DBUS_TYPE_UINT32:
-	  XD_DEBUG_MESSAGE ("%c %u", dtype, XUINT (object));
-	  value = (char *) (dbus_uint32_t *) XUINT (object);
-	  break;
-
-	case DBUS_TYPE_INT64:
-	  XD_DEBUG_MESSAGE ("%c %d", dtype, XINT (object));
-	  value = (char *) (dbus_int64_t *) XINT (object);
-	  break;
-
-	case DBUS_TYPE_UINT64:
-	  XD_DEBUG_MESSAGE ("%c %u", dtype, XUINT (object));
-	  value = (char *) (dbus_int64_t *) XUINT (object);
-	  break;
-
-	case DBUS_TYPE_DOUBLE:
-	  XD_DEBUG_MESSAGE ("%c %f", dtype, XFLOAT (object));
-	  value = (char *) (float *) XFLOAT (object);
-	  break;
-
-	case DBUS_TYPE_STRING:
-	case DBUS_TYPE_OBJECT_PATH:
-	case DBUS_TYPE_SIGNATURE:
-	  XD_DEBUG_MESSAGE ("%c %s", dtype, SDATA (object));
-	  value = SDATA (object);
-	  break;
+	  unsigned int val = XUINT (object) & 0xFF;
+	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
+	    xsignal2 (Qdbus_error,
+		      build_string ("Unable to append argument"), object);
+	  return;
 	}
 
-      if (!dbus_message_iter_append_basic (iter, dtype, &value))
-	xsignal2 (Qdbus_error,
-		  build_string ("Unable to append argument"), object);
-    }
+      case DBUS_TYPE_BOOLEAN:
+	{
+	  dbus_bool_t val = (NILP (object)) ? FALSE : TRUE;
+	  XD_DEBUG_MESSAGE ("%c %s", dtype, (val == FALSE) ? "false" : "true");
+	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
+	    xsignal2 (Qdbus_error,
+		      build_string ("Unable to append argument"), object);
+	  return;
+	}
+
+      case DBUS_TYPE_INT16:
+	{
+	  dbus_int16_t val = XINT (object);
+	  XD_DEBUG_MESSAGE ("%c %d", dtype, (int) val);
+	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
+	    xsignal2 (Qdbus_error,
+		      build_string ("Unable to append argument"), object);
+	  return;
+	}
+
+      case DBUS_TYPE_UINT16:
+	{
+	  dbus_uint16_t val = XUINT (object);
+	  XD_DEBUG_MESSAGE ("%c %u", dtype, (unsigned int) val);
+	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
+	    xsignal2 (Qdbus_error,
+		      build_string ("Unable to append argument"), object);
+	  return;
+	}
+
+      case DBUS_TYPE_INT32:
+	{
+	  dbus_int32_t val = XINT (object);
+	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
+	    xsignal2 (Qdbus_error,
+		      build_string ("Unable to append argument"), object);
+	  return;
+	}
+
+      case DBUS_TYPE_UINT32:
+	{
+	  dbus_uint32_t val = XUINT (object);
+	  XD_DEBUG_MESSAGE ("%c %u", dtype, val);
+	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
+	    xsignal2 (Qdbus_error,
+		      build_string ("Unable to append argument"), object);
+	  return;
+	}
+
+      case DBUS_TYPE_INT64:
+	{
+	  dbus_int64_t val = XINT (object);
+	  XD_DEBUG_MESSAGE ("%c %d", dtype, (int) val);
+	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
+	    xsignal2 (Qdbus_error,
+		      build_string ("Unable to append argument"), object);
+	  return;
+	}
+
+      case DBUS_TYPE_UINT64:
+	{
+	  dbus_uint64_t val = XUINT (object);
+	  XD_DEBUG_MESSAGE ("%c %u", dtype, (unsigned int) val);
+	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
+	    xsignal2 (Qdbus_error,
+		      build_string ("Unable to append argument"), object);
+	  return;
+	}
+
+      case DBUS_TYPE_DOUBLE:
+	XD_DEBUG_MESSAGE ("%c %f", dtype, XFLOAT_DATA (object));
+	if (!dbus_message_iter_append_basic (iter, dtype,
+					     &XFLOAT_DATA (object)))
+	  xsignal2 (Qdbus_error,
+		    build_string ("Unable to append argument"), object);
+	return;
+
+      case DBUS_TYPE_STRING:
+      case DBUS_TYPE_OBJECT_PATH:
+      case DBUS_TYPE_SIGNATURE:
+	{
+	  char *val = SDATA (object);
+	  XD_DEBUG_MESSAGE ("%c %s", dtype, val);
+	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
+	    xsignal2 (Qdbus_error,
+		      build_string ("Unable to append argument"), object);
+	  return;
+	}
+      }
 
   else /* Compound types.  */
     {
@@ -470,11 +512,10 @@ xd_retrieve_arg (dtype, iter)
   switch (dtype)
     {
     case DBUS_TYPE_BYTE:
-    case DBUS_TYPE_INT16:
-    case DBUS_TYPE_UINT16:
       {
-	dbus_uint16_t val;
+	unsigned int val;
 	dbus_message_iter_get_basic (iter, &val);
+	val = val & 0xFF;
 	XD_DEBUG_MESSAGE ("%c %d", dtype, val);
 	return make_number (val);
       }
@@ -487,15 +528,21 @@ xd_retrieve_arg (dtype, iter)
 	return (val == FALSE) ? Qnil : Qt;
       }
 
+    case DBUS_TYPE_INT16:
+    case DBUS_TYPE_UINT16:
+      {
+	dbus_uint16_t val;
+	dbus_message_iter_get_basic (iter, &val);
+	XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	return make_number (val);
+      }
+
     case DBUS_TYPE_INT32:
     case DBUS_TYPE_UINT32:
       {
 	dbus_uint32_t val;
 	dbus_message_iter_get_basic (iter, &val);
-	if (FIXNUM_OVERFLOW_P (val))
-	  XD_DEBUG_MESSAGE ("%c %f", dtype, val)
-	else
-	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	XD_DEBUG_MESSAGE ("%c %d", dtype, val);
 	return make_fixnum_or_float (val);
       }
 
@@ -504,10 +551,7 @@ xd_retrieve_arg (dtype, iter)
       {
 	dbus_uint64_t val;
 	dbus_message_iter_get_basic (iter, &val);
-	if (FIXNUM_OVERFLOW_P (val))
-	  XD_DEBUG_MESSAGE ("%c %f", dtype, val)
-	else
-	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
+	XD_DEBUG_MESSAGE ("%c %d", dtype, (int) val);
 	return make_fixnum_or_float (val);
       }
 
@@ -918,11 +962,12 @@ xd_read_message (bus)
 {
   Lisp_Object args, key, value;
   struct gcpro gcpro1;
-  static struct input_event event;
+  struct input_event event;
   DBusConnection *connection;
   DBusMessage *dmessage;
   DBusMessageIter iter;
   unsigned int dtype;
+  int mtype;
   char uname[DBUS_MAXIMUM_NAME_LENGTH];
   char path[DBUS_MAXIMUM_MATCH_RULE_LENGTH]; /* Unlimited in D-Bus spec.  */
   char interface[DBUS_MAXIMUM_NAME_LENGTH];
@@ -937,37 +982,36 @@ xd_read_message (bus)
 
   /* Return if there is no queued message.  */
   if (dmessage == NULL)
-    return;
-
-  XD_DEBUG_MESSAGE ("Event received");
+    return Qnil;
 
   /* Collect the parameters.  */
   args = Qnil;
   GCPRO1 (args);
 
-  if (!dbus_message_iter_init (dmessage, &iter))
-    {
-      UNGCPRO;
-      XD_DEBUG_MESSAGE ("Cannot read event");
-      return;
-    }
-
   /* Loop over the resulting parameters.  Construct a list.  */
-  while ((dtype = dbus_message_iter_get_arg_type (&iter)) != DBUS_TYPE_INVALID)
+  if (dbus_message_iter_init (dmessage, &iter))
     {
-      args = Fcons (xd_retrieve_arg (dtype, &iter), args);
-      dbus_message_iter_next (&iter);
+      while ((dtype = dbus_message_iter_get_arg_type (&iter))
+	     != DBUS_TYPE_INVALID)
+	{
+	  args = Fcons (xd_retrieve_arg (dtype, &iter), args);
+	  dbus_message_iter_next (&iter);
+	}
+      /* The arguments are stored in reverse order.  Reorder them.  */
+      args = Fnreverse (args);
     }
 
-  /* The arguments are stored in reverse order.  Reorder them.  */
-  args = Fnreverse (args);
-
-  /* Read unique name, object path, interface and member from the
-     message.  */
+  /* Read message type, unique name, object path, interface and member
+     from the message.  */
+  mtype =            dbus_message_get_type (dmessage);
   strcpy (uname,     dbus_message_get_sender (dmessage));
   strcpy (path,      dbus_message_get_path (dmessage));
   strcpy (interface, dbus_message_get_interface (dmessage));
   strcpy (member,    dbus_message_get_member (dmessage));
+
+  XD_DEBUG_MESSAGE ("Event received: %d %s %s %s %s %s",
+		    mtype, uname, path, interface, member,
+		    SDATA (format2 ("%s", args, Qnil)));
 
   /* Search for a registered function of the message.  */
   key = list3 (bus, build_string (interface), build_string (member));
@@ -1013,7 +1057,7 @@ xd_read_message (bus)
 
   /* Cleanup.  */
   dbus_message_unref (dmessage);
-  UNGCPRO;
+  RETURN_UNGCPRO (Qnil);
 }
 
 /* Read queued incoming messages from the system and session buses.  */
@@ -1064,11 +1108,11 @@ SIGNAL and HANDLER must not be nil.  Example:
       ("org.freedesktop.Hal" "/org/freedesktop/Hal/Manager" my-signal-handler))
 
 `dbus-register-signal' returns an object, which can be used in
-`dbus-unregister-signal' for removing the registration.  */)
+`dbus-unregister-object' for removing the registration.  */)
      (bus, service, path, interface, signal, handler)
      Lisp_Object bus, service, path, interface, signal, handler;
 {
-  Lisp_Object uname, key, value;
+  Lisp_Object uname, key, key1, value;
   DBusConnection *connection;
   char rule[DBUS_MAXIMUM_MATCH_RULE_LENGTH];
   DBusError derror;
@@ -1079,7 +1123,8 @@ SIGNAL and HANDLER must not be nil.  Example:
   if (!NILP (path)) CHECK_STRING (path);
   CHECK_STRING (interface);
   CHECK_STRING (signal);
-  FUNCTIONP (handler);
+  if (!FUNCTIONP (handler))
+    wrong_type_argument (intern ("functionp"), handler);
 
   /* Retrieve unique name of service.  If service is a known name, we
      will register for the corresponding unique name, if any.  Signals
@@ -1130,21 +1175,84 @@ SIGNAL and HANDLER must not be nil.  Example:
 
   /* Create a hash table entry.  */
   key = list3 (bus, interface, signal);
+  key1 = list4 (uname, service, path, handler);
   value = Fgethash (key, Vdbus_registered_functions_table, Qnil);
 
-  if (NILP (Fmember (list4 (uname, service, path, handler), value)))
-    Fputhash (key,
-	      Fcons (list4 (uname, service, path, handler), value),
-	      Vdbus_registered_functions_table);
+  if (NILP (Fmember (key1, value)))
+    Fputhash (key, Fcons (key1, value), Vdbus_registered_functions_table);
 
   /* Return object.  */
   return list2 (key, list3 (service, path, handler));
 }
 
-DEFUN ("dbus-unregister-signal", Fdbus_unregister_signal, Sdbus_unregister_signal,
+DEFUN ("dbus-register-method", Fdbus_register_method, Sdbus_register_method,
+       6, 6, 0,
+       doc: /* Register for method METHOD on the D-Bus BUS.
+
+BUS is either the symbol `:system' or the symbol `:session'.
+
+SERVICE is the D-Bus service name of the D-Bus object METHOD is
+registered for.  It must be a known name.
+
+PATH is the D-Bus object path SERVICE is registered.  INTERFACE is the
+interface offered by SERVICE.  It must provide METHOD.  HANDLER is a
+Lisp function to be called when a method call is received.  It must
+accept the input arguments of METHOD.  The return value of HANDLER is
+used for composing the returning D-Bus message.
+
+The function is not fully implemented and documented.  Don't use it.  */)
+     (bus, service, path, interface, method, handler)
+     Lisp_Object bus, service, path, interface, method, handler;
+{
+  Lisp_Object key, key1, value;
+  DBusConnection *connection;
+  int result;
+  DBusError derror;
+
+  if (NILP (Vdbus_debug))
+    xsignal1 (Qdbus_error, build_string ("Not implemented yet"));
+
+  /* Check parameters.  */
+  CHECK_SYMBOL (bus);
+  CHECK_STRING (service);
+  CHECK_STRING (path);
+  CHECK_STRING (interface);
+  CHECK_STRING (method);
+  if (!FUNCTIONP (handler))
+    wrong_type_argument (intern ("functionp"), handler);
+  /* TODO: We must check for a valid service name, otherwise there is
+     a segmentation fault.  */
+
+  /* Open a connection to the bus.  */
+  connection = xd_initialize (bus);
+
+  /* Request the known name from the bus.  We can ignore the result,
+     it is set to -1 if there is an error - kind of redundancy.  */
+  dbus_error_init (&derror);
+  result = dbus_bus_request_name (connection, SDATA (service), 0, &derror);
+  if (dbus_error_is_set (&derror))
+    XD_ERROR (derror);
+
+  /* Create a hash table entry.  */
+  key = list3 (bus, interface, method);
+  key1 = list4 (Qnil, service, path, handler);
+  value = Fgethash (key, Vdbus_registered_functions_table, Qnil);
+
+  /* We use nil for the unique name, because the method might be
+     called from everybody.  */
+  if (NILP (Fmember (key1, value)))
+    Fputhash (key, Fcons (key1, value), Vdbus_registered_functions_table);
+
+  /* Return object.  */
+  return list2 (key, list3 (service, path, handler));
+}
+
+DEFUN ("dbus-unregister-object", Fdbus_unregister_object, Sdbus_unregister_object,
        1, 1, 0,
        doc: /* Unregister OBJECT from the D-Bus.
-OBJECT must be the result of a preceding `dbus-register-signal' call.  */)
+OBJECT must be the result of a preceding `dbus-register-signal' or
+`dbus-register-method' call.  It returns t if OBJECT has been
+unregistered, nil otherwise.  */)
      (object)
      Lisp_Object object;
 {
@@ -1152,7 +1260,8 @@ OBJECT must be the result of a preceding `dbus-register-signal' call.  */)
   struct gcpro gcpro1;
 
   /* Check parameter.  */
-  CONSP (object) && (!NILP (XCAR (object))) && CONSP (XCDR (object));
+  if (!(CONSP (object) && (!NILP (XCAR (object))) && CONSP (XCDR (object))))
+    wrong_type_argument (intern ("D-Bus"), object);
 
   /* Find the corresponding entry in the hash table.  */
   value = Fgethash (XCAR (object), Vdbus_registered_functions_table, Qnil);
@@ -1205,9 +1314,13 @@ syms_of_dbusbind ()
   staticpro (&Qdbus_register_signal);
   defsubr (&Sdbus_register_signal);
 
-  Qdbus_unregister_signal = intern ("dbus-unregister-signal");
-  staticpro (&Qdbus_unregister_signal);
-  defsubr (&Sdbus_unregister_signal);
+  Qdbus_register_method = intern ("dbus-register-method");
+  staticpro (&Qdbus_register_method);
+  defsubr (&Sdbus_register_method);
+
+  Qdbus_unregister_object = intern ("dbus-unregister-object");
+  staticpro (&Qdbus_unregister_object);
+  defsubr (&Sdbus_unregister_object);
 
   Qdbus_error = intern ("dbus-error");
   staticpro (&Qdbus_error);

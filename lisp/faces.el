@@ -206,10 +206,8 @@ The optional argument FRAME is ignored."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun facep (face)
-  "Return non-nil if FACE is a face name or internal face object.
-Return nil otherwise.  A face name can be a string or a symbol.
-An internal face object is a vector of the kind used internally
-to record face data."
+  "Return non-nil if FACE is a face name; nil otherwise.
+A face name can be a string or a symbol."
   (internal-lisp-face-p face))
 
 
@@ -249,9 +247,7 @@ If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (let ((attrs
-	 '(:family :width :height :weight :slant :foreground
-	   :background :underline :overline :strike-through
-	   :box :inverse-video))
+	 (delq :inherit (mapcar 'car face-attribute-name-alist)))
 	(differs nil))
     (while (and attrs (not differs))
       (let* ((attr (pop attrs))
@@ -352,6 +348,17 @@ FRAME nil or not specified means do it for all frames."
   "Return the name of face FACE."
   (symbol-name (check-face face)))
 
+
+(defun face-all-attributes (face &optional frame)
+  "Return an alist stating the attributes of FACE.
+Each element of the result has the form (ATTR-NAME . ATTR-VALUE).
+Normally the value describes the default attributes,
+but if you specify FRAME, the value describes the attributes
+of FACE on FRAME."
+  (mapcar (lambda (pair)
+	    (let ((attr (car pair)))
+	      (cons attr (face-attribute face attr (or frame t)))))
+  	  face-attribute-name-alist))
 
 (defun face-attribute (face attribute &optional frame inherit)
   "Return the value of FACE's ATTRIBUTE on FRAME.
@@ -1445,46 +1452,79 @@ If SPEC is nil, return nil."
       (setq attrs (cdr attrs)))))
 
 
-(defun face-spec-set (face spec &optional frame)
-  "Set FACE's attributes according to the first matching entry in SPEC.
-FRAME is the frame whose frame-local face is set.  FRAME nil means
-do it on all frames (and change the default for new frames).
-See `defface' for information about SPEC.  If SPEC is nil, do nothing."
-  (let ((attrs (face-spec-choose spec frame)))
-    (when spec
-      (face-spec-reset-face face (or frame t)))
-    (while attrs
-      (let ((attribute (car attrs))
-	    (value (car (cdr attrs))))
-	;; Support some old-style attribute names and values.
-	(case attribute
-	      (:bold (setq attribute :weight value (if value 'bold 'normal)))
-	      (:italic (setq attribute :slant value (if value 'italic 'normal)))
-	      ((:foreground :background)
-	       ;; Compatibility with 20.x.  Some bogus face specs seem to
-	       ;; exist containing things like `:foreground nil'.
-	       (if (null value) (setq value 'unspecified)))
-	      (t (unless (assq attribute face-x-resources)
-		   (setq attribute nil))))
-	(when attribute
-	  ;; If frame is nil, set the default for new frames.
-	  ;; Existing frames are handled below.
-	  (set-face-attribute face (or frame t) attribute value)))
-      (setq attrs (cdr (cdr attrs)))))
-  (unless frame
-    ;; When we reset the face based on its spec, then it is unmodified
-    ;; as far as Custom is concerned.
-    (put (or (get face 'face-alias) face) 'face-modified nil)
-;;;     ;; Clear all the new-frame defaults for this face.
+(defun face-spec-set (face spec &optional for-defface)
+  "Set FACE's face spec, which controls its appearance, to SPEC>
+If FOR-DEFFACE is t, set the base spec, the one that `defface'
+  and Custom set.  (In that case, the caller must put it in the
+  appropriate property, because that depends on the caller.)
+If FOR-DEFFACE is nil, set the overriding spec (and store it
+  in the `face-override-spec' property of FACE).
+
+The appearance of FACE is controlled by the base spec,
+by any custom theme specs on top of that, and by the
+the overriding spec on top of all the rest.
+
+FOR-DEFFACE can also be a frame, in which case we set the
+frame-specific attributes of FACE for that frame based on SPEC.
+That usage is deprecated.
+
+See `defface' for information about the format and meaning of SPEC."
+  (if (framep for-defface)
+      ;; Handle the deprecated case where third arg is a frame.
+      (face-spec-set-2 face for-defface spec)
+    (if for-defface
+	;; When we reset the face based on its custom spec, then it is
+	;; unmodified as far as Custom is concerned.
+	(put (or (get face 'face-alias) face) 'face-modified nil)
+      ;; When we change a face based on a spec from outside custom,
+      ;; record it for future frames.
+      (put (or (get face 'face-alias) face) 'face-override-spec spec))
+;;; RMS 29 dec 2007: Perhaps this code should be reinstated.
+;;; That depends on whether the overriding spec
+;;; or the default face attributes
+;;; should take priority.
+;;;     ;; Clear all the new-frame default attributes for this face.
 ;;;     ;; face-spec-reset-face won't do it right.
 ;;;     (let ((facevec (cdr (assq face face-new-frame-defaults))))
 ;;;       (dotimes (i (length facevec))
 ;;; 	(unless (= i 0)
 ;;; 	  (aset facevec i 'unspecified))))
-    ;; Set each frame according to the rules implied by SPEC.
+    ;; Reset each frame according to the rules implied by all its specs.
     (dolist (frame (frame-list))
-      (face-spec-set face spec frame))))
+      (face-spec-recalc face frame))))
 
+(defun face-spec-recalc (face frame)
+  "Reset the face attributes of FACE on FRAME according to its specs.
+This applies the defface/custom spec first, then the custom theme specs,
+then the override spec."
+  (face-spec-reset-face face frame)
+  (let ((face-sym (or (get face 'face-alias) face)))
+    (face-spec-set-2 face frame
+		     (face-user-default-spec face))
+    (let ((theme-faces (reverse (get face-sym 'theme-face))))
+      (dolist (spec theme-faces)
+	(face-spec-set-2 face frame (cadr spec))))
+    (face-spec-set-2 face frame (get face-sym 'face-override-spec))))
+
+(defun face-spec-set-2 (face frame spec)
+  "Set the face attributes of FACE on FRAME according to SPEC."
+  (let* ((attrs (face-spec-choose spec frame)))
+    (while attrs
+      (let ((attribute (car attrs))
+	    (value (car (cdr attrs))))
+	;; Support some old-style attribute names and values.
+	(case attribute
+	  (:bold (setq attribute :weight value (if value 'bold 'normal)))
+	  (:italic (setq attribute :slant value (if value 'italic 'normal)))
+	  ((:foreground :background)
+	   ;; Compatibility with 20.x.  Some bogus face specs seem to
+	   ;; exist containing things like `:foreground nil'.
+	   (if (null value) (setq value 'unspecified)))
+	  (t (unless (assq attribute face-x-resources)
+	       (setq attribute nil))))
+	(when attribute
+	  (set-face-attribute face frame attribute value)))
+      (setq attrs (cdr (cdr attrs))))))
 
 (defun face-attr-match-p (face attrs &optional frame)
   "Return t if attributes of FACE match values in plist ATTRS.
@@ -1797,14 +1837,16 @@ according to the `background-mode' and `display-type' frame parameters."
       (let ((locally-modified-faces nil))
 	;; Before modifying the frame parameters, we collect a list of
 	;; faces that don't match what their face-spec says they should
-	;; look like; we then avoid changing these faces below.  A
-	;; negative list is used on the assumption that most faces will
+	;; look like; we then avoid changing these faces below.
+	;; These are the faces whose attributes were modified on FRAME.
+	;; We use a negative list on the assumption that most faces will
 	;; be unmodified, so we can avoid consing in the common case.
 	(dolist (face (face-list))
-	  (when (not (face-spec-match-p face
-					(face-user-default-spec face)
-					(selected-frame)))
-	    (push face locally-modified-faces)))
+	  (and (not (get face 'face-override-spec))
+	       (not (face-spec-match-p face
+				       (face-user-default-spec face)
+				       (selected-frame)))
+	       (push face locally-modified-faces)))
 	;; Now change to the new frame parameters
 	(modify-frame-parameters frame
 				 (list (cons 'background-mode bg-mode)
@@ -1813,7 +1855,7 @@ according to the `background-mode' and `display-type' frame parameters."
 	;; parameters, unless they have been locally modified.
 	(dolist (face (face-list))
 	  (unless (memq face locally-modified-faces)
-	    (face-spec-set face (face-user-default-spec face) frame)))))))
+	    (face-spec-recalc face frame)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1947,7 +1989,7 @@ Initialize colors of certain faces from frame parameters."
     (dolist (face (delq 'default (face-list)))
       (condition-case ()
 	  (progn
-	    (face-spec-set face (face-user-default-spec face) frame)
+	    (face-spec-recalc face frame)
 	    (if (memq (window-system frame) '(x w32 mac))
 		(make-face-x-resource-internal face frame))
 	    (internal-merge-in-global-face face frame))

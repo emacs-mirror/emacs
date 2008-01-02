@@ -93,6 +93,10 @@ When it reaches that size (in bytes), a warning is sent."
   :type 'integer
   :group 'thumbs)
 
+;; Unfortunately Windows XP has a program called CONVERT.EXE in
+;; C:/WINDOWS/SYSTEM32/ for partioning NTFS system.  So Emacs
+;; can find the one in your ImageMagick directory, you need to
+;; customize this value to the absolute filename.
 (defcustom thumbs-conversion-program
   (if (eq system-type 'windows-nt)
       "convert.exe"

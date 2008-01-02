@@ -46,7 +46,7 @@
 	  (make-empty-face face)
 	  ;; Create frame-local faces
 	  (dolist (frame (frame-list))
-	    (face-spec-set face value frame)
+	    (face-spec-set-2 face frame value)
 	    (when (memq (window-system frame) '(x w32 mac))
 	      (setq have-window-system t)))
 	  ;; When making a face after frames already exist
@@ -342,7 +342,8 @@ FACE's list property `theme-face' \(using `custom-push-theme')."
 		(unless (facep face)
 		  (make-empty-face face))
 		(put face 'face-comment comment)
-		(face-spec-set face spec nil))
+		(put face 'face-override-spec nil)
+		(face-spec-set face spec t))
 	      (setq args (cdr args)))
 	  ;; Old format, a plist of FACE SPEC pairs.
 	  (let ((face (nth 0 args))
