@@ -1246,16 +1246,9 @@ See also `multi-occur'."
 			    (if (= nlines 0)
 				;; The simple display style
 				out-line
-			      ;; The complex multi-line display
-			      ;; style.  Generate a list of lines,
-			      ;; concatenate them all together.
-			      (apply #'concat
-				     (nconc
-				      (occur-engine-add-prefix (nreverse (cdr (occur-accumulate-lines (- (1+ (abs nlines))) keep-props))))
-				      (list out-line)
-				      (if (> nlines 0)
-					  (occur-engine-add-prefix
-					   (cdr (occur-accumulate-lines (1+ nlines) keep-props)))))))))
+			      ;; The complex multi-line display style.
+			      (occur-context-lines out-line nlines keep-props)
+			      )))
 		      ;; Actually insert the match display data
 		      (with-current-buffer out-buf
 			(let ((beg (point))
@@ -1293,6 +1286,21 @@ See also `multi-occur'."
       ;; Return the number of matches
       globalcount)))
 
+;; Generate context display for occur.
+;; OUT-LINE is the line where the match is.
+;; NLINES and KEEP-PROPS are args to occur-engine.
+;; Generate a list of lines, add prefixes to all but OUT-LINE,
+;; then concatenate them all together.
+(defun occur-context-lines (out-line nlines keep-props)
+  (apply #'concat
+	 (nconc
+	  (occur-engine-add-prefix
+	   (nreverse (cdr (occur-accumulate-lines
+			   (- (1+ (abs nlines))) keep-props))))
+	  (list out-line)
+	  (if (> nlines 0)
+	      (occur-engine-add-prefix
+	       (cdr (occur-accumulate-lines (1+ nlines) keep-props)))))))
 
 ;; It would be nice to use \\[...], but there is no reasonable way
 ;; to make that display both SPC and Y.
