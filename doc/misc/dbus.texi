@@ -6,7 +6,7 @@
 @c %**end of header
 
 @copying
-Copyright @copyright{} 2007 Free Software Foundation, Inc.
+Copyright @copyright{} 2007, 2008 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -292,40 +292,56 @@ but different to
 (dbus-call-method @dots{} :int32 @var{NUMBER} :signature @var{STRING})
 @end lisp
 
-The value for a byte type can be any integer in the range 0 through
-255.  If a character is used as argument, modifiers represented
-outside this range are stripped of.  For example, @code{:byte ?x} is
-equal to @code{:byte ?\M-x}, but it is not equal to @code{:byte
-?\C-x} or @code{:byte ?\M-\C-x}.
+The value for a byte D-Bus type can be any integer in the range 0
+through 255.  If a character is used as argument, modifiers
+represented outside this range are stripped of.  For example,
+@code{:byte ?x} is equal to @code{:byte ?\M-x}, but it is not equal to
+@code{:byte ?\C-x} or @code{:byte ?\M-\C-x}.
 
-A D-Bus compound type is always represented as list.  The car of this
-list can be the type symbol @code{:array}, @code{:variant},
+A D-Bus compound type is always represented as a list.  The @sc{car}
+of this list can be the type symbol @code{:array}, @code{:variant},
 @code{:struct} or @code{:dict-entry}, which would result in a
 corresponding D-Bus container.  @code{:array} is optional, because
-this is the default compoud type for a list.
+this is the default compound D-Bus type for a list.
 
 The objects being elements of the list are checked according to the
 D-Bus compound type rules.
 
 @itemize
-@item An array must contain only elements of the same D-Bus type.
+@item An array must contain only elements of the same D-Bus type.  It
+can be empty.
+
 @item A variant must contain only one single element.
+
 @item A dictionary entry must be element of an array, and it must
-contain only a key-value pair of two element, with a basic type key.
+contain only a key-value pair of two elements, with a basic D-Bus type
+key.
+
 @item There is no restriction for structs.
 @end itemize
 
-@noindent
-Example:
+If an empty array needs an element D-Bus type other than string, it
+can contain exactly one element of D-Bus type @code{:signature}.  The
+value of this element (a string) is used as the signature of the
+elements of this array.  Example:
 
 @lisp
-(dbus-send-signal @dots{}
-  :object-path STRING '(:variant :boolean BOOL)
-  '(:array NUMBER NUMBER) '(:array BOOL :boolean BOOL)
-  '(:struct BOOL :boolean BOOL BOOL
-    (:array NUMBER NUMBER) (:array BOOL BOOL))
-  '(:struct NUMBER NUMBER) '((:dict-entry NUMBER (NUMBER)))
-  '(:array (:dict-entry NUMBER :int32 NUMBER)))
+(dbus-call-method
+  :session "org.freedesktop.Notifications"
+  "/org/freedesktop/Notifications"
+  "org.freedesktop.Notifications" "Notify"
+  "GNU Emacs"                 ;; Application name.
+  0                           ;; No replacement of other notifications.
+  ""                          ;; No icon.
+  "Notification summary"      ;; Summary.
+  (format                     ;; Body.
+    "This is a test notification, raised from %s" (emacs-version))
+  '(:array)                   ;; No actions (empty array of strings).
+  '(:array :signature "@{sv@}") ;; No hints
+                              ;; (empty array of dictionary entries).
+  ':int32 -1)                 ;; Default timeout.
+
+@result{} 3
 @end lisp
 
 

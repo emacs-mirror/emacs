@@ -1,3 +1,8 @@
+2008-01-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Type Conversion): Explain the type specification for empty
+	arrays.  Use another example.
+
 2007-12-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (all): Replace "..." by @dots{}.
