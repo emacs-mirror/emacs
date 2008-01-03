@@ -1,7 +1,7 @@
 ;;; -*- no-byte-compile: t; -*-
 ;;; dbus.el --- Elisp bindings for D-Bus.
 
-;; Copyright (C) 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, hardware
@@ -92,7 +92,7 @@ usage: (dbus-name-owner-changed-handler service old-owner new-owner)"
 		  ;; elt has the structure (UNAME SERVICE PATH HANDLER).
 		  (when (string-equal old-owner (car elt))
 		    ;; Remove old key, and add new entry with changed name.
-		    (dbus-unregister-signal (list key (cdr elt)))
+		    (dbus-unregister-object (list key (cdr elt)))
 		    ;; Maybe we could arrange the lists a little bit better
 		    ;; that we don't need to extract every single element?
 		    (dbus-register-signal
