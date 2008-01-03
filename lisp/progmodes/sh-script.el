@@ -543,7 +543,7 @@ sign.  See `sh-feature'."
   "The width for further indentation in Shell-Script mode."
   :type 'integer
   :group 'sh-script)
-
+(put 'sh-indentation 'safe-local-variable 'integerp)
 
 (defcustom sh-remember-variable-min 3
   "*Don't remember variables less than this length for completing reads."
