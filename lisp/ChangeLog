@@ -1,3 +1,8 @@
+2008-01-03  Magnus Henoch  <magnus@zemdatav>
+
+	* net/dbus.el (dbus-name-owner-changed-handler): Use
+	dbus-unregister-object instead of dbus-unregister-signal.
+
 2008-01-03  Drew Adams  <drew.adams@oracle.com>
 
 	* frame.el (frame-geom-value-cons, frame-geom-spec-cons): New fns.
