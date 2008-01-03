@@ -1722,7 +1722,7 @@ If point is on a group name, this function operates on that group."
    ('mouse-face 'highlight
 		'keymap ibuffer-mode-name-map
 		'help-echo "mouse-2: filter by this mode"))
-  (format "%s" mode-name))
+  (format-mode-line mode-name))
 
 (define-ibuffer-column process
   (:summarizer

@@ -1,5 +1,8 @@
 2008-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* ibuf-ext.el (mode-name sorter, ibuffer-mark-by-mode-regexp):
+	* ibuffer.el (mode column): Use format-mode-line.
+
 	* server.el (server-create-window-system-frame): Remove workaround for
 	a bug that has been fixed.
 
