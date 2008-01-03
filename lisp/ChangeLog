@@ -25,7 +25,7 @@
 	* emacs-cvs/lisp/doc-view.el
 	(doc-view-bookmark-jump): Adjust return type accordingly; document.
 
-2008-01-02  Miles Bader  <Miles Bader <miles@gnu.org>>
+2008-01-02  Miles Bader  <miles@gnu.org>
 
 	* net/rcirc.el (rcirc-log-filename-function): New variable.
 	(rcirc-log): Use `rcirc-log-filename-function' to generate the
