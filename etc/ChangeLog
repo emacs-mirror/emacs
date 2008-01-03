@@ -1,3 +1,14 @@
+2008-01-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* images/icons/emacs_16.png, images/icons/emacs_24.png
+	* images/icons/emacs_32.png, images/icons/emacs_48.png: Rename to
+	hicolor/16x16/apps/emacs.png hicolor/24x24/apps/emacs.png
+	hicolor/32x32/apps/emacs.png and hicolor/48x48/apps/emacs.png.
+
+	* images/icons/README (Author): Update for renaming.
+
+	* emacs.desktop (Icon): Update icon name.
+
 2007-12-15  Eli Zaretskii  <eliz@gnu.org>
 
 	The following files renamed to avoid file-name clashes in
