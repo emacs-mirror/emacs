@@ -1,3 +1,12 @@
+2008-01-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-def): Do nothing if gud-running is t.
+	(gud-speedbar-menu-items): Add item for gdb-var-set-format
+	below.
+
+	* progmodes/gdb-ui.el (gdb-var-set-format): Set the output format
+	of watch expressions (only works fully with GDB 6.7 or later).
+
 2008-01-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* time-stamp.el (time-stamp-time-zone):
