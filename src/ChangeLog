@@ -1,3 +1,7 @@
+2008-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_key_sequence): Fix typo.
+
 2008-01-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (all): Replace XCAR by CAR_SAFE and XCDR by CDR_SAFE.
@@ -23,8 +27,8 @@
 
 2007-12-30  Michael Albinus  <michael.albinus@gmx.de>
 
-	* dbusbind.c: Fix several errors and compiler warnings.  Reported
-	by Tom Tromey <tromey@redhat.com>
+	* dbusbind.c: Fix several errors and compiler warnings.
+	Reported by Tom Tromey <tromey@redhat.com>
 	(XD_ERROR, XD_DEBUG_MESSAGE)
 	(XD_DEBUG_VALID_LISP_OBJECT_P): Wrap code with "do ... while (0)".
 	(xd_append_arg): Part for basic D-Bus types rewitten.
@@ -78,15 +82,14 @@
 
 	* dbusbind.c (XD_BASIC_DBUS_TYPE, XD_DBUS_TYPE_P, XD_NEXT_VALUE):
 	New macros.
-	(XD_SYMBOL_TO_DBUS_TYPE): Renamed from
-	XD_LISP_SYMBOL_TO_DBUS_TYPE.
-	(XD_OBJECT_TO_DBUS_TYPE): Renamed from
+	(XD_SYMBOL_TO_DBUS_TYPE): Rename from XD_LISP_SYMBOL_TO_DBUS_TYPE.
+	(XD_OBJECT_TO_DBUS_TYPE): Rename from
 	XD_LISP_OBJECT_TO_DBUS_TYPE. Simplify.
 	(xd_signature): New function.
 	(xd_append_arg): Compute also signatures.  Major rewrite.
 	(xd_retrieve_arg): Make debug messages friendly.
-	(Fdbus_call_method, Fdbus_send_signal): Extend docstring.  Check
-	for signatures of arguments.
+	(Fdbus_call_method, Fdbus_send_signal): Extend docstring.
+	Check for signatures of arguments.
 
 2007-12-19  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -95,11 +98,10 @@
 	(QCdbus_type_uint32, QCdbus_type_int64, QCdbus_type_uint64)
 	(QCdbus_type_double, QCdbus_type_string, QCdbus_type_object_path)
 	(QCdbus_type_signature, QCdbus_type_array, QCdbus_type_variant)
-	(QCdbus_type_struct, QCdbus_type_dict_entry): New D-Bus type
-	symbols.
+	(QCdbus_type_struct, QCdbus_type_dict_entry): New D-Bus type symbols.
 	(XD_LISP_SYMBOL_TO_DBUS_TYPE): New macro.
 	(XD_LISP_OBJECT_TO_DBUS_TYPE): Add compound types.
-	(xd_retrieve_value): Removed. Functionality included in ...
+	(xd_retrieve_value): Remove.  Functionality included in ...
 	(xd_append_arg): New function.
 	(Fdbus_call_method, Fdbus_send_signal): Apply it.
 
@@ -108,8 +110,8 @@
 	* dbusbind.c (top): Include <stdio.h>.
 	(Fdbus_call_method, Fdbus_send_signal): Apply type cast in
 	dbus_message_new_method_call and dbus_message_new_signal.
-	(Fdbus_register_signal): Rename unique_name to uname.  Check
-	handler for FUNCTIONP instead of CHECK_SYMBOL.  Handle case of
+	(Fdbus_register_signal): Rename unique_name to uname.
+	Check handler for FUNCTIONP instead of CHECK_SYMBOL.  Handle case of
 	non-existing unique name.  Fix typos in matching rule.  Return an
 	object which is useful in Fdbus_unregister_signal.
 	(Fdbus_unregister_signal): Reimplementation, in order to remove
@@ -136,8 +138,8 @@
 2007-12-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_retrieve_value, xd_retrieve_arg)
-	(Fdbus_call_method, Fdbus_send_signal, xd_read_message): Use
-	`unsigned int' instead of `uint'.
+	(Fdbus_call_method, Fdbus_send_signal, xd_read_message):
+	Use `unsigned int' instead of `uint'.
 	(xd_read_message, Fdbus_register_signal): Split expressions into
 	multiple lines before operators "&&" and "||", according to the
 	GNU Coding Standards.
@@ -244,13 +246,13 @@
 
 2007-12-04  Michael Albinus  <michael.albinus@gmx.de>
 
-	* dbusbind.c (QCdbus_system_bus, QCdbus_session_bus): Renamed from
+	* dbusbind.c (QCdbus_system_bus, QCdbus_session_bus): Rename from
 	Qdbus_system_bus and Qdbus_session_bus, respectively.
-	(Vdbus_intern_symbols): Removed.
+	(Vdbus_intern_symbols): Remove.
 	(Vdbus_registered_functions_table): New hash table.
-	(XD_SYMBOL_INTERN_SYMBOL): Removed.
+	(XD_SYMBOL_INTERN_SYMBOL): Remove.
 	(xd_read_message, Fdbus_register_signal, Fdbus_unregister_signal):
-	Rewritten in order to manage registered functions by hash table
+	Rewrite in order to manage registered functions by hash table
 	Vdbus_registered_functions_table.
 
 2007-12-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
@@ -274,8 +276,7 @@
 	* keyboard.c: All D-Bus related code is wrapped by "#ifdef HAVE_DBUS".
 	(Qdbus_event) New Lisp symbol.
 	(kbd_buffer_get_event, make_lispy_event): Handle DBUS_EVENT.
-	(gobble_input): Call xd_read_queued_messages, reading D-Bus
-	messages.
+	(gobble_input): Call xd_read_queued_messages, reading D-Bus messages.
 	(keys_of_keyboard ): Define dbus-event.
 
 	* termhooks.h (event_kind): Add DBUS_EVENT when HAVE_DBUS is defined.

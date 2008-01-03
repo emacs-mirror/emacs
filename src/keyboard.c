@@ -1,7 +1,7 @@
 /* Keyboard and mouse input; editor command loop.
    Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995,
                  1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007 Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -10099,8 +10099,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	  if (modifiers & shift_modifier
 	      /* Treat uppercase keys as shifted.  */
 	      || (INTEGERP (key)
-		  & (KEY_TO_CHAR (key)
-		     < XCHAR_TABLE (current_buffer->downcase_table)->size)
+		  && (KEY_TO_CHAR (key)
+		      < XCHAR_TABLE (current_buffer->downcase_table)->size)
 		  && UPPERCASEP (KEY_TO_CHAR (key))))
 	    {
 	      Lisp_Object new_key
