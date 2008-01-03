@@ -1,7 +1,12 @@
+2008-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-create-window-system-frame): Remove workaround for
+	a bug that has been fixed.
+
 2008-01-03  Magnus Henoch  <magnus@zemdatav>
 
-	* net/dbus.el (dbus-name-owner-changed-handler): Use
-	dbus-unregister-object instead of dbus-unregister-signal.
+	* net/dbus.el (dbus-name-owner-changed-handler):
+	Use dbus-unregister-object instead of dbus-unregister-signal.
 
 2008-01-03  Drew Adams  <drew.adams@oracle.com>
 
@@ -21,8 +26,8 @@
 
 2008-01-02  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* progmodes/grep.el (grep-find-ignored-directories): Initialize
-	from the value of vc-directory-exclusion-list.
+	* progmodes/grep.el (grep-find-ignored-directories):
+	Initialize from the value of vc-directory-exclusion-list.
 
 	* vc-hooks (vc-directory-exclusion-list):  Include "_darcs",
 	even though we don't have a back end for darcs yet.
@@ -87,8 +92,8 @@
 
 2008-01-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-git.el (vc-git-dir-state): Set the vc-backend property.  Do
-	not disable undo, with-temp-buffer does it by default.
+	* vc-git.el (vc-git-dir-state): Set the vc-backend property.
+	Do not disable undo, with-temp-buffer does it by default.
 
 2008-01-01  Eric S. Raymond  <esr@snark.thyrsus.com>
 
@@ -101,8 +106,8 @@
 
 2007-12-31  Tom Tromey  <tromey@redhat.com>
 
-        * emacs-lisp/elp.el (elp-results): Use header-line-format for
-        header.  Move point to the start of the buffer.
+	* emacs-lisp/elp.el (elp-results): Use header-line-format for header.
+	Move point to the start of the buffer.
 
 2007-12-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -113,8 +118,8 @@
 
 2007-12-31  Martin Rudalics  <rudalics@gmx.at>
 
-	* man.el (Man-default-man-entry): Make this a defun.  Improve
-	guessing mechanism and handling of section numbers.
+	* man.el (Man-default-man-entry): Make this a defun.
+	Improve guessing mechanism and handling of section numbers.
 
 2007-12-31  Richard Stallman  <rms@gnu.org>
 
@@ -146,8 +151,7 @@
 	(custom-theme-set-faces): Clear `face-override-spec' property.
 	Call `face-spec-set' with FOR-DEFFACE.
 
-	* custom.el (custom-theme-recalc-face):
-	Simply call `face-spec-recalc'.
+	* custom.el (custom-theme-recalc-face): Simply call `face-spec-recalc'.
 
 	* faces.el (face-spec-set): Third arg is now FOR-DEFFACE.
 	Use of frame as third arg is deprecated.
@@ -197,8 +201,7 @@
 
 2007-12-29  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-aent.el (math-read-token): Fix misplaced
-	parentheses.
+	* calc/calc-aent.el (math-read-token): Fix misplaced parentheses.
 
 	* calc/calc-lang.el (calc-yacas-language, calc-maxima-language)
 	(calc-giac-language, math-yacas-parse-Sum, math-yacas-compose-sum)
@@ -299,7 +302,7 @@
 
 	* emacs-lisp/find-func.el (find-function-after-hook): Add :type.
 
-	* info.el (Info-clone-buffer): Renamed from Info-clone-buffer-hook.
+	* info.el (Info-clone-buffer): Rename from Info-clone-buffer-hook.
 	Use changed.
 
 	* startup.el (fancy-splash-help-echo): Var deleted.
@@ -382,8 +385,8 @@
 
 2007-12-27  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el, vc-sccs.el, vc-rcs.el, vc-cs.el, vc-mcvs.el: Put
-	new machinery in place to support editing of change comments
+	* vc.el, vc-sccs.el, vc-rcs.el, vc-cs.el, vc-mcvs.el:
+	Put new machinery in place to support editing of change comments
 	with 'e' in a log-view buffer.  Not documented yet as this
 	only works for SCCS, RCS, and maybe CVS if you have admin
 	privileges.  When we have backend support for Subversion and
@@ -462,7 +465,7 @@
 	(bookmark-jump, bookmark-jump-other-window, bookmark-insert)
 	(bookmark-bmenu-2-window, bookmark-bmenu-other-window):
 	Use bookmark-jump-internal.
-	(bookmark-make-cell-for-text-file): Renamed from bookmark-make-cell.
+	(bookmark-make-cell-for-text-file): Rename from bookmark-make-cell.
 
 	* doc-view.el (doc-view-bookmark-make-cell)
 	(doc-view-bookmark-jump): New functions.
@@ -510,7 +513,7 @@
 	(yank-pop-change-selection): New option.
 	(current-kill): Obey it.
 
-	* simple.el (use-region-p): Renamed from `region-active-p'.
+	* simple.el (use-region-p): Rename from `region-active-p'.
 	(region-active-p): New function.
 
 2007-12-25  David Golden  <david.delaharpe.golden@gmail.com>  (tiny change)
@@ -721,8 +724,8 @@
 	font-lock when compiling.  Always require compile.  Relegate remaining
 	compatibility cruft to XEmacs.  Don't require font-lock.
 	(verilog-version): Remove superfluous concat.
-	(dinotrace-unannotate-all, zmacs-activate-region)
-	(customize-apropos): No need to define.
+	(dinotrace-unannotate-all, zmacs-activate-region, customize-apropos):
+	No need to define.
 	(verilog-regexp-opt): On Emacs, just make it an alias for regexp-opt.
 	(verilog-font-lock-keywords, verilog-font-lock-keywords-1)
 	(verilog-font-lock-keywords-2, verilog-font-lock-keywords-3)
@@ -748,15 +751,15 @@
 	(reporter-submit-bug-report): Autoload it.
 	(verilog-mark-defun): Call zmacs-activate-region only if bound.
 	(verilog-font-customize): Call customize-apropos only if bound.
-	(verilog-getopt-flags, verilog-auto-reeval-locals): Use
-	make-local-variable rather than make-variable-buffer-local.
+	(verilog-getopt-flags, verilog-auto-reeval-locals):
+	Use make-local-variable rather than make-variable-buffer-local.
 	(verilog-company, verilog-project, verilog-modi-cache-list):
 	Move make-variable-buffer-local calls to top-level.
 	(font-lock-defaults-alist): Don't define it.
 	(verilog-need-fld): Remove.
 	(verilog-font-lock-init): Don't set font-lock-defaults-alist.
-	(verilog-mode): Only call make-local-hook on XEmacs.  Set
-	font-lock-defaults rather than using verilog-font-lock-init.
+	(verilog-mode): Only call make-local-hook on XEmacs.
+	Set font-lock-defaults rather than using verilog-font-lock-init.
 
 2007-12-17  Andreas Schwab  <schwab@suse.de>
 
@@ -832,8 +835,8 @@
 	(verilog-declaration-prefix-re, verilog-declaration-re)
 	(verilog-end-of-statement, verilog-indent-declaration)
 	(verilog-get-lineup-indent): Remove trailing whitespace.
-	(verilog-mode): Fix autoload cookie. Set
-	beginning-of-defun-function and end-of-defun-function.  Use when
+	(verilog-mode): Fix autoload cookie.
+	Set beginning-of-defun-function and end-of-defun-function.  Use when
 	instead of if.
 	(verilog-emacs-features, verilog-auto-ascii-enum)
 	(verilog-insert-indices): Escape braces in doc strings.
@@ -845,8 +848,8 @@
 
 2007-12-08  Eli Zaretskii  <eliz@fencepost.gnu.org>
 
-	* international/latexenc.el (latexenc-find-file-coding-system): If
-	both coding-system-for-write and buffer-file-coding-system of
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	If both coding-system-for-write and buffer-file-coding-system of
 	latex-main-file are nil, use `undecided'.
 
 2007-12-06  Jason Rumney  <jasonr@gnu.org>
