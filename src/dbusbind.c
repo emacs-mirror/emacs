@@ -1,5 +1,5 @@
 /* Elisp bindings for D-Bus.
-   Copyright (C) 2007 Free Software Foundation, Inc.
+   Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -341,7 +341,7 @@ xd_append_arg (dtype, object, iter)
       {
       case DBUS_TYPE_BYTE:
 	{
-	  unsigned int val = XUINT (object) & 0xFF;
+	  unsigned char val = XUINT (object) & 0xFF;
 	  XD_DEBUG_MESSAGE ("%c %d", dtype, val);
 	  if (!dbus_message_iter_append_basic (iter, dtype, &val))
 	    xsignal2 (Qdbus_error,
