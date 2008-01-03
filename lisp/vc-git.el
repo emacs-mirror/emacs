@@ -151,41 +151,26 @@
         'edited
       'up-to-date)))
 
+(defun vc-git--ls-files-state (state &rest args)
+  "Set state to STATE on all files found with git-ls-files ARGS."
+  (with-temp-buffer
+    (apply 'vc-git-command (current-buffer) nil nil "ls-files" "-z" args)
+    (goto-char (point-min))
+    (let ((start (point)))
+      (while (search-forward "\0" nil t)
+	(let ((file (expand-file-name
+		     (buffer-substring-no-properties start (1- (point))))))
+	  (vc-file-setprop file 'vc-backend (if state 'Git 'none))
+	  (vc-file-setprop file 'vc-state state))
+	(setq start (point))))))
+
 (defun vc-git-dir-state (dir)
   "Git-specific version of `dir-state'."
-  ;; FIXME: This can't set 'ignored yet
-  (with-temp-buffer
-    (vc-git-command (current-buffer) nil nil "ls-files" "-t" "-c" "-m" "-o")
-    (goto-char (point-min))
-    (let ((status-char nil)
-	  (file nil))
-      (while (not (eobp))
-	(setq status-char (char-after))
-	(setq file
-	      (expand-file-name
-	       (buffer-substring-no-properties (+ (point) 2)
-                                               (line-end-position))))
-	(cond
-	 ;; The rest of the possible states in "git ls-files -t" output:
-	 ;;      K              to be killed
-	 ;; should not show up in vc-dired, so don't deal with them
-	 ;; here.
-	 ((eq status-char ?H)
-	  (vc-file-setprop file 'vc-backend 'Git)
-	  (vc-file-setprop file 'vc-state 'up-to-date))
-	 ((eq status-char ?R)
-	  (vc-file-setprop file 'vc-backend 'Git)
-	  (vc-file-setprop file 'vc-state 'removed))
-	 ((eq status-char ?M)
-	  (vc-file-setprop file 'vc-backend 'Git)
-	  (vc-file-setprop file 'vc-state 'edited))
-	 ((eq status-char ?C)
-	  (vc-file-setprop file 'vc-backend 'Git)
-	  (vc-file-setprop file 'vc-state 'edited))
-	 ((eq status-char ??)
-	  (vc-file-setprop file 'vc-backend 'none)
-	  (vc-file-setprop file 'vc-state nil)))
-	(forward-line)))))
+  (vc-git--ls-files-state 'up-to-date "-c")
+  (vc-git--ls-files-state 'edited "-m")
+  (vc-git--ls-files-state 'removed "-d")
+  (vc-git--ls-files-state 'ignored "-o" "-i" "--exclude-standard")
+  (vc-git--ls-files-state nil "-o" "--exclude-standard"))
 
 (defun vc-git-working-revision (file)
   "Git-specific version of `vc-working-revision'."

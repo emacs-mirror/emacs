@@ -1,3 +1,9 @@
+2008-01-03  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git--ls-files-state): New function.
+	(vc-git-dir-state): Use it instead of processing the status
+	results here.
+
 2008-01-02  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* progmodes/grep.el (grep-find-ignored-directories): Initialize
