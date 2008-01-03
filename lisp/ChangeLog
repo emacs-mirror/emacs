@@ -1,3 +1,7 @@
+2008-01-03  Drew Adams  <drew.adams@oracle.com>
+
+	* frame.el (frame-geom-value-cons, frame-geom-spec-cons): New fns.
+
 2008-01-03  Richard Stallman  <rms@gnu.org>
 
 	* replace.el (occur-context-lines): New subroutine,
