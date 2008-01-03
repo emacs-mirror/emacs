@@ -813,18 +813,19 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &rest ARGS)  */)
   result = Qnil;
   GCPRO1 (result);
 
-  if (!dbus_message_iter_init (reply, &iter))
+  if (dbus_message_iter_init (reply, &iter))
     {
-      UNGCPRO;
-      xsignal1 (Qdbus_error, build_string ("Cannot read reply"));
+      /* Loop over the parameters of the D-Bus reply message.  Construct a
+	 Lisp list, which is returned by `dbus-call-method'.  */
+      while ((dtype = dbus_message_iter_get_arg_type (&iter)) != DBUS_TYPE_INVALID)
+	{
+	  result = Fcons (xd_retrieve_arg (dtype, &iter), result);
+	  dbus_message_iter_next (&iter);
+	}
     }
-
-  /* Loop over the parameters of the D-Bus reply message.  Construct a
-     Lisp list, which is returned by `dbus-call-method'.  */
-  while ((dtype = dbus_message_iter_get_arg_type (&iter)) != DBUS_TYPE_INVALID)
+  else
     {
-      result = Fcons (xd_retrieve_arg (dtype, &iter), result);
-      dbus_message_iter_next (&iter);
+      /* No arguments: just return nil. */
     }
 
   /* Cleanup.  */
