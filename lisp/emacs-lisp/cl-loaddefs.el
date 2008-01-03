@@ -283,7 +283,7 @@ Not documented
 ;;;;;;  do* do loop return-from return block etypecase typecase ecase
 ;;;;;;  case load-time-value eval-when destructuring-bind function*
 ;;;;;;  defmacro* defun* gentemp gensym cl-compile-time-init) "cl-macs"
-;;;;;;  "cl-macs.el" "6ebe05f6ba95a14ea35d74ef52c17882")
+;;;;;;  "cl-macs.el" "24c5d69dcac117dea68e32a91fec9f67")
 ;;; Generated autoloads from cl-macs.el
 
 (autoload 'cl-compile-time-init "cl-macs" "\
