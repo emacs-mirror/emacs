@@ -1,3 +1,8 @@
+2008-01-03  Magnus Henoch  <magnus@zemdatav>
+
+	* dbusbind.c (xd_append_arg): Use unsigned char instead of
+	unsigned int for byte values (necessary for big-endian platform).
+
 2007-12-31  Tom Tromey <tromey@redhat.com>  (tiny change)
 
 	* dbusbind.c (xd_read_message): Use non-static input_event struct.
