@@ -1,3 +1,9 @@
+2008-01-03  Richard Stallman  <rms@gnu.org>
+
+	* replace.el (occur-context-lines): New subroutine,
+	broken out of occur-engine.
+	(occur-engine): Call it.
+
 2008-01-03  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git--ls-files-state): New function.
