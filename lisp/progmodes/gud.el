@@ -364,9 +364,10 @@ we're in the GUD buffer)."
      (defun ,func (arg)
        ,@(if doc (list doc))
        (interactive "p")
-       ,(if (stringp cmd)
-	    `(gud-call ,cmd arg)
-	  cmd))
+       (if (not gud-running)
+	 ,(if (stringp cmd)
+	      `(gud-call ,cmd arg)
+	    cmd)))
      ,(if key `(local-set-key ,(concat "\C-c" key) ',func))
      ,(if key `(global-set-key (vconcat gud-key-prefix ,key) ',func))))
 
@@ -458,7 +459,13 @@ t means that there is no stack, and we are in display-file mode.")
     ["Auto raise frame" gdb-speedbar-auto-raise
      :style toggle :selected gdb-speedbar-auto-raise
      :visible (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-		    '(gdbmi gdba))])
+		    '(gdbmi gdba))]
+    ("Output Format"
+     :visible (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    '(gdbmi gdba))
+     ["Binary" (gdb-var-set-format "binary") t]
+     ["Natural" (gdb-var-set-format  "natural") t]
+     ["Hexadecimal" (gdb-var-set-format "hexadecimal") t]))
   "Additional menu items to add to the speedbar frame.")
 
 ;; Make sure our special speedbar mode is loaded
