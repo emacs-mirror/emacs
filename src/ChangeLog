@@ -1,3 +1,12 @@
+2008-01-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (all): Replace XCAR by CAR_SAFE and XCDR by CDR_SAFE.
+	(xd_signature, xd_append_arg): Handle element type detection for
+	empty arrays.
+	(Fdbus_call_method, Fdbus_send_signal): Undo type casting for
+	SDATA () calls; this must be solved more general.
+	(Fdbus_register_signal): Use SBYTES instead of strlen.
+
 2008-01-03  Magnus Henoch  <magnus@zemdatav>
 
 	* dbusbind.c (xd_append_arg): Use unsigned char instead of
@@ -30,7 +39,7 @@
 	complete, the call of the function signals an error therefore.
 	(Fdbus_unregister_object): New function, renamed from
 	Fdbus_unregister_signal.  The initial check signals an error, if
-	it the objct is not well formed.
+	the object is not well formed.
 
 2007-12-30  Richard Stallman  <rms@gnu.org>
 
