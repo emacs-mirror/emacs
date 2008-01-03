@@ -128,7 +128,7 @@ Format is the same as that used by the environment variable TZ on your system."
   :type '(choice (const nil) string)
   :group 'time-stamp
   :version "20.1")
-
+;;;###autoload(put 'time-stamp-time-zone 'safe-local-variable 'string-or-null-p)
 
 ;;; Do not change time-stamp-line-limit, time-stamp-start,
 ;;; time-stamp-end, time-stamp-pattern, time-stamp-inserts-lines,
