@@ -1,3 +1,15 @@
+2008-01-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* time-stamp.el (time-stamp-time-zone):
+	* whitespace.el (whitespace-check-buffer-leading)
+	(whitespace-check-buffer-trailing)
+	(whitespace-check-buffer-indent)
+	(whitespace-check-buffer-spacetab)
+	(whitespace-check-buffer-ateol):
+	* progmodes/sh-script.el (sh-indentation):
+	* textmodes/ispell.el (ispell-local-pdict): Add
+	safe-local-variable properties.
+
 2007-12-29  Richard Stallman  <rms@gnu.org>
 
 	* font-lock.el (font-lock-prepend-text-property)
@@ -16,7 +28,7 @@
 
 	* cus-edit.el (custom-add-parent-links):
 	Fill the "Parent documentation" text.
- 
+
 2007-12-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* textmodes/ispell.el (ispell-grep-command): Use "grep" on
