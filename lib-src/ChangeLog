@@ -1,3 +1,11 @@
+2008-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* ebrowse.c (version) <emacs_copyright>: New variable.  Just use
+	current year for copyright.
+
+	* etags.c (print_version):
+	* rcs2log (Copyright): Update to 2008.
+
 2007-11-28  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (VMS_SUPPORT): No longer byte-compiled.
