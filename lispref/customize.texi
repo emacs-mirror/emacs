@@ -1120,9 +1120,6 @@ current value is valid for the widget.  Otherwise, it should return
 the widget containing the invalid data, and set that widget's
 @code{:error} property to a string explaining the error.
 
-In many cases you can use the function @code{widget-children-validate}
-for this job; it tests that all children of @var{widget} are valid.
-
 @ignore
 @item :indent @var{columns}
 Indent this item by @var{columns} columns.  The indentation is used for
