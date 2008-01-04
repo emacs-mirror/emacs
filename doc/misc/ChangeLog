@@ -1,3 +1,9 @@
+2008-01-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Receiving Method Calls): New chapter.
+	(Errors and Events): Add serial number to events.  Replace "signal" by
+	"message".  Introduce dbus-event-serial-number.
+
 2008-01-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Type Conversion): Explain the type specification for empty

@@ -50,6 +50,7 @@ be found at @uref{http://dbus.freedesktop.org/}.
 * Inspection::                  Inspection of the bus names.
 * Type Conversion::             Mapping Lisp types and D-Bus types.
 * Synchronous Methods::         Calling methods in a blocking way.
+* Receiving Method Calls::      Offering own methods.
 * Signals::                     Sending and receiving signals.
 * Errors and Events::           Errors and events.
 * GNU Free Documentation License:: The license for this documentation.
@@ -487,6 +488,86 @@ emulate the @code{lshal} command on GNU/Linux systems:
 @end defun
 
 
+@node Receiving Method Calls
+@chapter Offering own methods.
+@cindex method calls, returning
+@cindex returning method calls
+
+Emacs can also offer own methods, which can be called by other
+applications.  These methods could be an implementation of an
+interface of a well known service, like @code{org.freedesktop.TextEditor}.
+
+It could be also an implementation of an own interface.  In this case,
+the service name must be @code{org.gnu.Emacs}.  The object path shall
+begin with @code{/org/gnu/Emacs/@strong{Application}/}, and the
+interface name shall be @code{org.gnu.Emacs.@strong{Application}}.
+@code{@strong{Application}} is the name of the application which
+provides the interface.
+
+@defun dbus-register-method bus service path interface method handler
+With this function, an application registers @var{method} on the D-Bus
+@var{bus}.
+
+@var{bus} is either the symbol @code{:system} or the symbol
+@code{:session}.
+
+@var{service} is the D-Bus service name of the D-Bus object
+@var{method} is registered for.  It must be a known name.
+
+@var{path} is the D-Bus object path @var{service} is
+registered.
+
+@var{interface} is the interface offered by @var{service}.  It must
+provide @var{method}.
+
+@var{handler} is a Lisp function to be called when when a @var{method}
+call is is received.  It must accept as arguments the input arguments
+of @var{method}.  @var{handler} must return a list, which elements are
+used as arguments for the reply message of @var{method}.  This list
+can be composed like the input parameters in @ref{Type Conversion}.
+
+@code{dbus-register-method} returns a Lisp symbol, which can be used
+as argument in @code{dbus-unregister-object} for removing the
+registration for @var{method}.  Example:
+
+@example
+(defun my-dbus-method-handler (filename)
+  (let (result)
+    (if (find-file filename)
+        (setq result '(:boolean t))
+      (setq result '(:boolean nil)))
+    result))
+
+@result{} my-dbus-method-handler
+
+(dbus-register-method
+  :session "org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"
+  "org.freedesktop.TextEditor" "OpenFile"
+  'my-dbus-method-handler)
+
+@result{} ((:system "org.freedesktop.TextEditor" "OpenFile")
+    ("org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"
+     my-method-handler))
+@end example
+
+If you invoke the method @code{org.freedesktop.TextEditor.OpenFile}
+from another D-Bus application with a filename as parameter, the file
+is opened in Emacs, and the method returns either @var{true} or
+@var{false}, indicating the success if the method.  As test tool one
+could use the command line tool @code{dbus-send} in a shell:
+
+@example
+# dbus-send --session --print-reply \
+    --dest="org.freedesktop.TextEditor" \
+    "/org/freedesktop/TextEditor" \
+    "org.freedesktop.TextEditor.OpenFile" string:"/etc/hosts"
+
+@print{} method return sender=:1.22 -> dest=:1.23 reply_serial=2
+     boolean true
+@end example
+@end defun
+
+
 @node Signals
 @chapter Sending and receiving signals.
 @cindex signals
@@ -601,18 +682,21 @@ Incoming D-Bus messages are handled as Emacs events (see @pxref{Misc
 Events, , , elisp}).  The generated event has this form:
 
 @example
-(dbus-event @var{bus} @var{service} @var{path} @var{interface} @var{member} @var{handler} &rest @var{args})
+(dbus-event @var{bus} @var{serial} @var{service} @var{path} @var{interface} @var{member} @var{handler} &rest @var{args})
 @end example
 
 @var{bus} identifies the D-Bus the signal is coming from.  It is
 either the symbol @code{:system} or the symbol @code{:session}.
 
+@var{serial} is the serial number of the received D-Bus message if it
+is a method call, or @code{nil}.
+
 @var{service} and @var{path} are the unique name and the object path
-of the D-Bus object emitting the signal.  @var{interface} and
-@var{member} denote the signal which has been sent.
+of the D-Bus object emitting the message.  @var{interface} and
+@var{member} denote the message which has been sent.
 
 @var{handler} is the callback function which has been registered for
-this signal (see @pxref{Signals}).  When a @code{dbus-event} event
+this message (see @pxref{Signals}).  When a @code{dbus-event} event
 arrives, @var{handler} is called with @var{args} as arguments.
 
 In order to inspect the @code{dbus-event} data, you could extend the
@@ -629,6 +713,12 @@ callback function in order to retrieve the information from the event.
 @defun dbus-event-bus-name event
 Returns the bus name @var{event} is coming from.
 The result is either the symbol @code{:system} or the symbol @code{:session}.
+@end defun
+
+@defun dbus-event-serial-number event
+Returns the serial number of the corresponding D-Bus message.
+The result is a number in case the D-Bus message is a method
+call, or @code{nil} for all other mesage types.
 @end defun
 
 @defun dbus-event-service-name event
