@@ -377,17 +377,16 @@ has finished."
 (defun doc-view-scroll-up-or-next-page ()
   "Scroll page up if possible, else goto next page."
   (interactive)
-  (condition-case nil
-      (scroll-up)
-    (error (doc-view-next-page))))
+  (when (= (window-vscroll) (image-scroll-up nil))
+    (doc-view-next-page)
+    (set-window-vscroll nil 0)))
 
 (defun doc-view-scroll-down-or-previous-page ()
   "Scroll page down if possible, else goto previous page."
   (interactive)
-  (condition-case nil
-      (scroll-down)
-    (error (doc-view-previous-page)
-	   (goto-char (point-max)))))
+  (when (= (window-vscroll) (image-scroll-down nil))
+    (doc-view-previous-page)
+    (image-scroll-up nil)))
 
 ;;;; Utility Functions
 
