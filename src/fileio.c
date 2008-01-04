@@ -410,7 +410,7 @@ DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory,
        1, 1, 0,
        doc: /* Return the directory component in file name FILENAME.
 Return nil if FILENAME does not include a directory.
-Otherwise return a directory spec.
+Otherwise return a directory name.
 Given a Unix syntax file name, returns a string ending in slash;
 on VMS, perhaps instead a string ending in `:', `]' or `>'.  */)
      (filename)
@@ -1029,7 +1029,7 @@ probably use `make-temp-file' instead, except in three circumstances:
 DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
        doc: /* Convert filename NAME to absolute, and canonicalize it.
 Second arg DEFAULT-DIRECTORY is directory to start with if NAME is relative
-\(does not start with slash); if DEFAULT-DIRECTORY is nil or missing,
+\(does not start with slash or tilde); if DEFAULT-DIRECTORY is nil or missing,
 the current buffer's value of `default-directory' is used.
 File name components that are `.' are removed, and
 so are file name components followed by `..', along with the `..' itself;
