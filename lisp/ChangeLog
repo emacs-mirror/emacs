@@ -1,3 +1,8 @@
+2008-01-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* savehist.el (savehist-coding-system): Default to a variant coding
+	system with explicit unix end-of-line conversion, which is safer.
+
 2008-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ibuf-ext.el (mode-name sorter, ibuffer-mark-by-mode-regexp):
@@ -844,8 +849,8 @@
 	(verilog-emacs-features, verilog-auto-ascii-enum)
 	(verilog-insert-indices): Escape braces in doc strings.
 
-2007-12-08  Michael McNamara <mac@verilog.com>
-	    Wilson Snyder <wsnyder@wsnyder.org>
+2007-12-08  Michael McNamara  <mac@verilog.com>
+	    Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el: New file.
 
