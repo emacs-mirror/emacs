@@ -54,7 +54,7 @@
 (setq dbus-registered-functions-table (make-hash-table :test 'equal))
 
 (defun dbus-list-hash-table ()
-  "Returns all registered signal registrations to D-Bus.
+  "Returns all registered member registrations to D-Bus.
 The return value is a list, with elements of kind (KEY . VALUE).
 See `dbus-registered-functions-table' for a description of the
 hash table."
@@ -65,7 +65,7 @@ hash table."
     result))
 
 (defun dbus-name-owner-changed-handler (&rest args)
-  "Reapplies all signal registrations to D-Bus.
+  "Reapplies all member registrations to D-Bus.
 This handler is applied when a \"NameOwnerChanged\" signal has
 arrived.  SERVICE is the object name for which the name owner has
 been changed.  OLD-OWNER is the previous owner of SERVICE, or the
@@ -88,7 +88,7 @@ usage: (dbus-name-owner-changed-handler service old-owner new-owner)"
 	    (maphash
 	     '(lambda (key value)
 		(dolist (elt value)
-		  ;; key has the structure (BUS INTERFACE SIGNAL).
+		  ;; key has the structure (BUS INTERFACE MEMBER).
 		  ;; elt has the structure (UNAME SERVICE PATH HANDLER).
 		  (when (string-equal old-owner (car elt))
 		    ;; Remove old key, and add new entry with changed name.
@@ -98,7 +98,7 @@ usage: (dbus-name-owner-changed-handler service old-owner new-owner)"
 		    (dbus-register-signal
 		     ;; BUS      SERVICE     PATH
 		     (nth 0 key) (nth 1 elt) (nth 2 elt)
-		     ;; INTERFACE SIGNAL     HANDLER
+		     ;; INTERFACE MEMBER     HANDLER
 		     (nth 1 key) (nth 2 key) (nth 3 elt)))))
 	     (copy-hash-table dbus-registered-functions-table))))
       ;; The error is reported only in debug mode.
@@ -127,16 +127,17 @@ usage: (dbus-name-owner-changed-handler service old-owner new-owner)"
   "Checks whether EVENT is a well formed D-Bus event.
 EVENT is a list which starts with symbol `dbus-event':
 
-     (dbus-event BUS SERVICE PATH INTERFACE MEMBER HANDLER &rest ARGS)
+     (dbus-event BUS SERIAL SERVICE PATH INTERFACE MEMBER HANDLER &rest ARGS)
 
-BUS identifies the D-Bus the signal is coming from.  It is either
-the symbol `:system' or the symbol `:session'.  SERVICE and PATH
-are the unique name and the object path of the D-Bus object
-emitting the signal.  INTERFACE and MEMBER denote the signal
-which has been sent.  HANDLER is the function which has been
-registered for this signal.  ARGS are the arguments passed to
-HANDLER, when it is called during event handling in
-`dbus-handle-event'.
+BUS identifies the D-Bus the message is coming from.  It is
+either the symbol `:system' or the symbol `:session'.  SERIAL is
+the serial number of the received D-Bus message if it is a method
+call, or nil.  SERVICE and PATH are the unique name and the
+object path of the D-Bus object emitting the message.  INTERFACE
+and MEMBER denote the message which has been sent.  HANDLER is
+the function which has been registered for this message.  ARGS
+are the arguments passed to HANDLER, when it is called during
+event handling in `dbus-handle-event'.
 
 This function raises a `dbus-error' signal in case the event is
 not well formed."
@@ -145,16 +146,18 @@ not well formed."
 	       (eq (car event) 'dbus-event)
 	       ;; Bus symbol.
 	       (symbolp (nth 1 event))
+	       ;; Serial.
+	       (or (natnump (nth 2 event)) (null (nth 2 event)))
 	       ;; Service.
-	       (stringp (nth 2 event))
-	       ;; Object path.
 	       (stringp (nth 3 event))
-	       ;; Interface.
+	       ;; Object path.
 	       (stringp (nth 4 event))
-	       ;; Member.
+	       ;; Interface.
 	       (stringp (nth 5 event))
+	       ;; Member.
+	       (stringp (nth 6 event))
 	       ;; Handler.
-	       (functionp (nth 6 event)))
+	       (functionp (nth 7 event)))
     (signal 'dbus-error (list "Not a valid D-Bus event" event))))
 
 ;;;###autoload
@@ -166,9 +169,14 @@ part of the event, is called with arguments ARGS."
   ;; We don't want to raise an error, because this function is called
   ;; in the event handling loop.
   (condition-case err
-      (progn
+      (let (result)
 	(dbus-check-event event)
-	(apply (nth 6 event) (nthcdr 7 event)))
+	(setq result (apply (nth 7 event) (nthcdr 8 event)))
+	(unless (consp result) (setq result (cons result nil)))
+	;; Return a message when serial is not nil.
+	(when (not (null (nth 2 event)))
+	  (apply 'dbus-method-return
+		 (nth 1 event) (nth 2 event) (nth 3 event) result)))
     (dbus-error (when dbus-debug (signal (car err) (cdr err))))))
 
 (defun dbus-event-bus-name (event)
@@ -180,13 +188,23 @@ formed."
   (dbus-check-event event)
   (nth 1 event))
 
+(defun dbus-event-serial-number (event)
+  "Return the serial number of the corresponding D-Bus message.
+The result is a number in case the D-Bus message is a method
+call, or nil for all other mesage types.  The serial number is
+needed for generating a reply message.  EVENT is a D-Bus event,
+see `dbus-check-event'.  This function raises a `dbus-error'
+signal in case the event is not well formed."
+  (dbus-check-event event)
+  (nth 2 event))
+
 (defun dbus-event-service-name (event)
   "Return the name of the D-Bus object the event is coming from.
 The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
 This function raises a `dbus-error' signal in case the event is
 not well formed."
   (dbus-check-event event)
-  (nth 2 event))
+  (nth 3 event))
 
 (defun dbus-event-path-name (event)
   "Return the object path of the D-Bus object the event is coming from.
@@ -194,7 +212,7 @@ The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
 This function raises a `dbus-error' signal in case the event is
 not well formed."
   (dbus-check-event event)
-  (nth 3 event))
+  (nth 4 event))
 
 (defun dbus-event-interface-name (event)
   "Return the interface name of the D-Bus object the event is coming from.
@@ -202,7 +220,7 @@ The result is a string.  EVENT is a D-Bus event, see `dbus-check-event'.
 This function raises a `dbus-error' signal in case the event is
 not well formed."
   (dbus-check-event event)
-  (nth 4 event))
+  (nth 5 event))
 
 (defun dbus-event-member-name (event)
   "Return the member name the event is coming from.
@@ -211,7 +229,7 @@ string.  EVENT is a D-Bus event, see `dbus-check-event'.  This
 function raises a `dbus-error' signal in case the event is not
 well formed."
   (dbus-check-event event)
-  (nth 5 event))
+  (nth 6 event))
 
 
 ;;; D-Bus registered names.

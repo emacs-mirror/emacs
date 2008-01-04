@@ -1,3 +1,14 @@
+2008-01-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-list-hash-table)
+	(dbus-name-owner-changed-handler): Replace "signal" by "member".
+	(dbus-check-event): Add serial number to event.
+	(dbus-handle-event): Apply return message if needed.
+	(dbus-event-serial-number): New defun.
+	(dbus-event-service-name, dbus-event-path-name)
+	(dbus-event-interface-name, dbus-event-member-name): Adapt
+	implementation to serial number.
+
 2008-01-04  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-scroll-up-or-next-page)
