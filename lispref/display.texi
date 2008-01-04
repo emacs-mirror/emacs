@@ -1736,8 +1736,7 @@ faces in Lisp programs by the symbols that name them.
 
 @defun facep object
 This function returns @code{t} if @var{object} is a face name string
-or symbol (or if it is a vector of the kind used internally to record
-face data).  It returns @code{nil} otherwise.
+or symbol.  It returns @code{nil} otherwise.
 @end defun
 
 Each face name is meaningful for all frames, and by default it has the
