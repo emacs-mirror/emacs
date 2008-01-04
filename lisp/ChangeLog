@@ -1,3 +1,26 @@
+2008-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (fancy-about-screen): Remove reference to deleted
+	`fancy-splash-help-echo' variable.
+
+	* version.el (emacs-copyright): Update to 2008.
+
+	* net/tramp-smb.el (tramp-smb-handle-insert-directory): Use mapc
+	rather than mapcar.
+
+	* progmodes/cc-vars.el (defcustom-c-stylevar): Revert previous
+	change (merge mistake).
+
+	* doc-view.el (doc-view-search-internal): Don't use `incf'.
+
+	* doc-view.el (bookmark-make-cell-function, bookmark-get-filename)
+	(bookmark-get-bookmark-record):
+	* image-mode.el (bookmark-make-cell-function)
+	(bookmark-get-filename, bookmark-get-bookmark-record)
+	(bookmark-get-position):
+	* log-view.el (vc-modify-change-comment):
+	* progmodes/grep.el (find-name-arg): Declare for compiler.
+
 2008-01-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* savehist.el (savehist-coding-system): Default to a variant coding
