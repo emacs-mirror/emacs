@@ -380,15 +380,19 @@ has finished."
   "Scroll page up if possible, else goto next page."
   (interactive)
   (when (= (window-vscroll) (image-scroll-up nil))
-    (doc-view-next-page)
-    (set-window-vscroll nil 0)))
+    (let ((cur-page doc-view-current-page))
+      (doc-view-next-page)
+      (when (/= cur-page doc-view-current-page)
+	(set-window-vscroll nil 0)))))
 
 (defun doc-view-scroll-down-or-previous-page ()
   "Scroll page down if possible, else goto previous page."
   (interactive)
   (when (= (window-vscroll) (image-scroll-down nil))
-    (doc-view-previous-page)
-    (image-scroll-up nil)))
+    (let ((cur-page doc-view-current-page))
+      (doc-view-previous-page)
+      (when (/= cur-page doc-view-current-page)
+	(image-scroll-up nil)))))
 
 ;;;; Utility Functions
 
