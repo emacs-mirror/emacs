@@ -25,6 +25,8 @@
 	image-scroll-down instead of the non-image equivalents.  Don't
 	rely on a signalled condition but switch pages when scrolling
 	doesn't change the vertical position anymore.
+	(doc-view-mode-map): Remap scroll-{up,down} to
+	image-scroll-{up,down}.
 
 2008-01-04  Rob Riepel  <riepel@networking.Stanford.EDU>
 
