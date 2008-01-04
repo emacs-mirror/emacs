@@ -1,3 +1,11 @@
+2008-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* ebrowse.c (version): Just use current year for short copyright;
+	update to 2008.
+
+	* etags.c (print_version):
+	* rcs2log (Copyright): Update copyright to 2008.
+
 2007-11-22  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.c (default_C_help) [CTAGS]: differentiate the help string,
@@ -7,7 +15,8 @@
 
 2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* etags.c: (C_entries): In case '}' decrement bracelev before testing it.
+	* etags.c: (C_entries): In case '}' decrement bracelev before
+	testing it.
 
 2007-11-15  Masatake YAMATO  <jet@gyve.org>
 
