@@ -167,10 +167,13 @@
 	 ;; should not show up in vc-dired, so don't deal with them
 	 ;; here.
 	 ((eq status-char ?H)
+	  (vc-file-setprop file 'vc-backend 'Git)
 	  (vc-file-setprop file 'vc-state 'up-to-date))
 	 ((eq status-char ?M)
+	  (vc-file-setprop file 'vc-backend 'Git)
 	  (vc-file-setprop file 'vc-state 'edited))
 	 ((eq status-char ?C)
+	  (vc-file-setprop file 'vc-backend 'Git)
 	  (vc-file-setprop file 'vc-state 'edited))
 	 ((eq status-char ??)
 	  (vc-file-setprop file 'vc-backend 'none)

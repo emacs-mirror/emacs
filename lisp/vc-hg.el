@@ -188,9 +188,11 @@
 	 ;; should not show up in vc-dired, so don't deal with them
 	 ;; here.
 	 ((eq status-char ?A)
+	  (vc-file-setprop file 'vc-backend 'Hg)
 	  (vc-file-setprop file 'vc-workfile-version "0")
 	  (vc-file-setprop file 'vc-state 'edited))
 	 ((eq status-char ?M)
+	  (vc-file-setprop file 'vc-backend 'Hg)
 	  (vc-file-setprop file 'vc-state 'edited))
 	 ((eq status-char ??)
 	  (vc-file-setprop file 'vc-backend 'none)
