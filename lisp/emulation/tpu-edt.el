@@ -1,7 +1,7 @@
 ;;; tpu-edt.el --- Emacs emulating TPU emulating EDT
 
 ;; Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -66,11 +66,10 @@
 ;;    style keyboards.  VT terminal emulators, including xterm with the
 ;;    appropriate key translations, work just fine too.
 
-;;    TPU-edt works with X-windows.  This is accomplished through a TPU-edt X
-;;    key map.  The TPU-edt module tpu-mapper creates this map and stores it
-;;    in a file.  Tpu-mapper will be run automatically the first time you
-;;    invoke the X-windows version of emacs, or you can run it by hand.  See
-;;    the commentary in tpu-mapper.el for details.
+;;    TPU-edt works with X-windows.  This is accomplished through a TPU-edt
+;;    X key map.  The tpu-mapper command creates this map and stores it in a
+;;    file.  See the tpu-mapper command help for more information, or just
+;;    run it and follow the directions.
 
 
 ;; %% Differences Between TPU-edt and DEC TPU/edt
@@ -2347,10 +2346,10 @@ If FILE is nil, try to load a default file.  The default file names are
   (cond ((file-readable-p file)
 	 (load-file file))
 	(t
-         ;; FIXME: This used to force the user to build `file'.  With the
-         ;; new code, such a file is not even necessary, but we'll keep
-         ;; a warning message.
-         (message "%s not found: use tpu-mapper.el to create it"
+         ;; This used to force the user to build `file'.  With the
+         ;; new code, such a file may not be necessary.  In case it
+         ;; is, issue a message giving a hint as to how to build it.
+         (message "%s not found: use M-x tpu-mapper to create it"
                   (abbreviate-file-name file)))))
 
 (defun tpu-copy-keyfile (oldname newname)
