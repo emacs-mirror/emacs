@@ -1,3 +1,11 @@
+2008-01-04  Rob Riepel  <riepel@networking.Stanford.EDU>
+
+	* emulation/tpu-edt.el (tpu-load-xkeys): Recommend to run the
+	tpu-mapper command rather than load the tpu-mapper package.
+
+	* emulation/tpu-mapper.el (tpu-mapper): New command.
+	Contains all the code previously at top-level.
+
 2008-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bs.el (bs--sort-by-mode, bs--get-mode-name):
