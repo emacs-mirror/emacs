@@ -1,3 +1,9 @@
+2008-01-04  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-scroll-up-or-next-page)
+	(doc-view-scroll-down-or-previous-page): Don't scroll to the
+	top/bottom again when on the first/last page.
+
 2008-01-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs--get-mode-name): Fix typo in previous change.
