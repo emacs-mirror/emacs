@@ -1,3 +1,10 @@
+2008-01-04  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer):
+	Call byte-compile-warn-about-unresolved-functions outside
+	the with-current-buffer.
+	(byte-compile-insert-header): Use with-current-buffer.
+
 2008-01-04  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (fancy-about-screen): Remove reference to deleted
