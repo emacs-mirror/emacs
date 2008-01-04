@@ -1,3 +1,23 @@
+2008-01-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* mouse.el (mouse-popup-menubar): Fix typo.
+
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Move one more
+	form inside with-current-buffer.
+
+	* progmodes/antlr-mode.el (provide): Move to the end of file.
+	(require): Don't require font-lock and compile.
+	(outline-level, imenu-use-markers, imenu-create-index-function):
+	Move declarations to top level.
+	(cond-emacs-xemacs-macfn): Declare for compiler.
+
+	* vc-bzr.el (vc-bzr-root):
+	* vc-arch.el (vc-arch-root): Only set a property if the file is
+	managed by this backend.
+
+	* vc-hg.el (vc-hg-state): Support the new status code for
+	up-to-date.
+
 2008-01-04  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-scroll-up-or-next-page)

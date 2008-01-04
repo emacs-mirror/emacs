@@ -118,9 +118,8 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' to the environment."
   "Return the root directory of the bzr repository containing FILE."
   ;; Cache technique copied from vc-arch.el.
   (or (vc-file-getprop file 'bzr-root)
-      (vc-file-setprop
-       file 'bzr-root
-       (vc-find-root file vc-bzr-admin-checkout-format-file))))
+      (let ((root (vc-find-root file vc-bzr-admin-checkout-format-file)))
+	(when root (vc-file-setprop file 'bzr-root root)))))
 
 (defun vc-bzr-registered (file)
   "Return non-nil if FILE is registered with bzr.

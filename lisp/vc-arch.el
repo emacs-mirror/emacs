@@ -193,10 +193,12 @@ Only the value `maybe' can be trusted :-(."
 (defun vc-arch-root (file)
   "Return the root directory of a Arch project, if any."
   (or (vc-file-getprop file 'arch-root)
-      (vc-file-setprop
-       ;; Check the =tagging-method, in case someone naively manually
-       ;; creates a {arch} directory somewhere.
-       file 'arch-root (vc-find-root file "{arch}/=tagging-method"))))
+      ;; Check the =tagging-method, in case someone naively manually
+      ;; creates a {arch} directory somewhere.
+      (let ((root (vc-find-root file "{arch}/=tagging-method")))
+	(when root
+	  (vc-file-setprop
+	   file 'arch-root root)))))
 
 (defun vc-arch-register (files &optional rev comment)
   (if rev (error "Explicit initial revision not supported for Arch"))

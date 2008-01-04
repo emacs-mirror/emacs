@@ -172,12 +172,13 @@
 	(when (null (string-match ".*: No such file or directory$" out))
 	  (let ((state (aref out 0)))
 	    (cond
-	     ((eq state ?C) 'up-to-date)
+	     ((eq state ?=) 'up-to-date)
 	     ((eq state ?A) 'edited)
 	     ((eq state ?M) 'edited)
 	     ((eq state ?I) 'ignored)
 	     ((eq state ?R) 'unregistered)
 	     ((eq state ??) 'unregistered)
+	     ((eq state ?C) 'up-to-date) ;; Older mercurials use this
 	     (t 'up-to-date)))))))
 
 (defun vc-hg-dir-state (dir)
@@ -199,7 +200,9 @@
 	 ;; 	 ! = deleted, but still tracked
 	 ;; should not show up in vc-dired, so don't deal with them
 	 ;; here.
- 	 ((eq status-char ?C)
+
+	 ;; Mercurial up to 0.9.5 used C, = is used now.
+ 	 ((or (eq status-char ?=) (eq status-char ?C))
 	  (vc-file-setprop file 'vc-backend 'Hg)
  	  (vc-file-setprop file 'vc-state 'up-to-date))
 	 ((eq status-char ?A)

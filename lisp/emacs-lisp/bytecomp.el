@@ -1920,8 +1920,8 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
 	(byte-compile-flush-pending)
 	;; Make warnings about unresolved functions
 	;; give the end of the file as their position.
-	(setq byte-compile-last-position (point-max)))
-      (byte-compile-warn-about-unresolved-functions)
+	(setq byte-compile-last-position (point-max))
+	(byte-compile-warn-about-unresolved-functions))
       ;; Fix up the header at the front of the output
       ;; if the buffer contains multibyte characters.
       (and filename (byte-compile-fix-header filename inbuffer outbuffer))))

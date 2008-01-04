@@ -273,7 +273,7 @@ not it is actually displayed."
     (or (null local-menu)
 	(stringp local-title-or-map)
 	(setq local-menu (cons 'keymap
-			       (cons (concat (formal-mode-line mode-name)
+			       (cons (concat (format-mode-line mode-name)
                                              " Mode Menu")
 				     (cdr local-menu)))))
     (or (stringp global-title-or-map)
