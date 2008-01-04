@@ -2,4 +2,4 @@
 
 CFBundleName = "Emacs";
 CFBundleShortVersionString = "22.1.50";
-CFBundleGetInfoString = "22.1.50, Copyright (C) 2007 Free Software Foundation, Inc.";
+CFBundleGetInfoString = "22.1.50, Copyright (C) 2008 Free Software Foundation, Inc.";
