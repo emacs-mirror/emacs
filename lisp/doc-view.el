@@ -1,6 +1,6 @@
 ;;; doc-view.el --- View PDF/PostScript/DVI files in Emacs
 
-;; Copyright (C) 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 ;;
 ;; Author: Tassilo Horn <tassilo@member.fsf.org>
 ;; Maintainer: Tassilo Horn <tassilo@member.fsf.org>
@@ -780,7 +780,7 @@ the pagenumber and CONTEXTS are all lines of text containing a match."
 	  matches)
       (while (re-search-forward (concat "\\(?:\\([]\\)\\|\\("
 					regexp "\\)\\)") nil t)
-	(when (match-string 1) (incf page))
+	(when (match-string 1) (setq page (1+ page)))
 	(when (match-string 2)
 	  (if (/= page lastpage)
 	      (push (cons page
@@ -916,6 +916,8 @@ If BACKWARD is non-nil, jump to the previous match."
 	      (file-name-extension buffer-file-name)" files is missing.  "
 	      "Type \\[doc-view-toggle-display] to switch to an editing mode.")))))
 
+(defvar bookmark-make-cell-function)
+
 ;;;###autoload
 (defun doc-view-mode ()
   "Major mode in DocView buffers.
@@ -991,13 +993,7 @@ See the command `doc-view-mode' for more information on this mode."
   (interactive)
   (dired doc-view-cache-directory))
 
-(provide 'doc-view)
 
-;; Local Variables:
-;; mode: outline-minor
-;; End:
-
-;; arch-tag: 5d6e5c5e-095f-489e-b4e4-1ca90a7d79be
 ;;;; Bookmark integration
 
 (defun doc-view-bookmark-make-cell (annotation &rest args)
@@ -1015,6 +1011,10 @@ See the command `doc-view-mode' for more information on this mode."
     ;; Finally, return the completed record.
     the-record))
 
+
+(declare-function bookmark-get-filename        "bookmark" (bookmark))
+(declare-function bookmark-get-bookmark-record "bookmark" (bookmark))
+
 ;;;###autoload
 (defun doc-view-bookmark-jump (bmk)
   ;; This implements the `handler' function interface for record type
@@ -1027,6 +1027,13 @@ See the command `doc-view-mode' for more information on this mode."
 	(doc-view-toggle-display))
       (doc-view-goto-page page)
       `((buffer ,(current-buffer)) (position ,1)))))
+
+
+(provide 'doc-view)
+
+;; Local Variables:
+;; mode: outline-minor
+;; End:
 
 ;; arch-tag: 5d6e5c5e-095f-489e-b4e4-1ca90a7d79be
 ;;; doc-view.el ends here
