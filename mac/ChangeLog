@@ -1,3 +1,8 @@
+2008-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings:
+	* src/Emacs.r: Update copyright to 2008.
+
 2007-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* INSTALL: Also build and run on Mac OS X 10.5.
