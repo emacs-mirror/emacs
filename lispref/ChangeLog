@@ -1,3 +1,13 @@
+2008-01-04  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Faces): Don't talk about internal face vector as arg
+	to facep.
+
+	* customize.texi (Type Keywords): Fix previous change.
+
+	* text.texi (Links and Mouse-1): Fix xref for commands.texi change.
+	* elisp.texi (Top): Fix menu for commands.texi change.
+
 2007-12-30  Richard Stallman  <rms@gnu.org>
 
 	* commands.texi (Accessing Mouse): Renamed from Accessing Events.
