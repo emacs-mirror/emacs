@@ -1,3 +1,8 @@
+2008-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* erc-ibuffer.el (erc-channel-modes):
+	Pass mode-name through format-mode-line
+
 2007-12-09  Michael Olson  <mwolson@gnu.org>
 
 	* erc-services.el (erc-nickserv-alist): Fix regexps for GRnet.

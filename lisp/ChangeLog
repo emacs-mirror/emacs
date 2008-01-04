@@ -1,5 +1,20 @@
 2008-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* bs.el (bs--sort-by-mode, bs--get-mode-name):
+	* imenu.el (imenu-add-to-menubar):
+	* makesum.el (make-command-summary):
+	* mouse.el (mouse-major-mode-menu, mouse-popup-menubar, mouse-buffer-menu):
+	* msb.el (msb--mode-menu-cond):
+	* calc/calc-embed.el (calc-do-embedded):
+	* emacs-lisp/helper.el (Helper-describe-mode):
+	* mail/emacsbug.el (report-emacs-bug):
+	* progmodes/hideshow.el (hs-grok-mode-type):
+	* textmodes/sgml-mode.el (sgml-mode-facemenu-add-face-function):
+	* textmodes/table.el (*table--cell-describe-mode):
+	Pass mode-name through format-mode-line.
+
+2008-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* progmodes/ada-xref.el (ada-prj-find-prj-file):
 	* progmodes/ada-mode.el (comment-region):
 	* calendar/todo-mode.el (todo-insert-item):

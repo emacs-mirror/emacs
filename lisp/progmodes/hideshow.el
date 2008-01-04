@@ -1,7 +1,7 @@
 ;;; hideshow.el --- minor mode cmds to selectively display code/comment blocks
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
-;;               2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+;;               2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@ics.uci.edu>
@@ -632,7 +632,8 @@ function; and adjust-block-beginning function."
               hs-forward-sexp-func (or (nth 4 lookup) 'forward-sexp)
               hs-adjust-block-beginning (nth 5 lookup)))
     (setq hs-minor-mode nil)
-    (error "%s Mode doesn't support Hideshow Minor Mode" mode-name)))
+    (error "%s Mode doesn't support Hideshow Minor Mode"
+           (format-mode-line mode-name))))
 
 (defun hs-find-block-beginning ()
   "Reposition point at block-start.
@@ -965,5 +966,5 @@ Key bindings:
 
 (provide 'hideshow)
 
-;;; arch-tag: 378b6852-e82a-466a-aee8-d9c73859a65e
+;; arch-tag: 378b6852-e82a-466a-aee8-d9c73859a65e
 ;;; hideshow.el ends here

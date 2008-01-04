@@ -1,6 +1,6 @@
 ;;; erc-ibuffer.el --- ibuffer integration with ERC
 
-;; Copyright (C) 2002, 2004, 2006, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2004, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Mario Lang <mlang@delysid.org>
 ;; Keywords: comm
@@ -158,8 +158,8 @@
 		  (format "l %d" erc-channel-user-limit)
 		"")
 	      ")")
-    (if (not (eq major-mode 'erc-mode))
-	mode-name
+    (if (not (derived-mode-p 'erc-mode))
+	(format-mode-line mode-name nil nil (current-buffer))
       "")))
 
 (define-ibuffer-column erc-nick (:name "Nick")

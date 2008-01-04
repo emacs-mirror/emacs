@@ -1,7 +1,7 @@
 ;;; mouse.el --- window system-independent mouse support
 
 ;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: hardware, mouse
@@ -192,7 +192,8 @@ Default to the Edit menu if the major mode doesn't define a menu."
 	 ;; Make a keymap in which our last command leads to a menu or
 	 ;; default to the edit menu.
 	 (newmap (if ancestor
-		     (make-sparse-keymap (concat mode-name " Mode"))
+		     (make-sparse-keymap (concat (format-mode-line mode-name)
+                                                 " Mode"))
 		   menu-bar-edit-menu)))
     (if ancestor
 	;; Make our menu inherit from the desired keymap which we want
@@ -272,7 +273,8 @@ not it is actually displayed."
     (or (null local-menu)
 	(stringp local-title-or-map)
 	(setq local-menu (cons 'keymap
-			       (cons (concat mode-name " Mode Menu")
+			       (cons (concat (formal-mode-line mode-name)
+                                             " Mode Menu")
 				     (cdr local-menu)))))
     (or (stringp global-title-or-map)
 	(setq global-menu (cons 'keymap
@@ -1861,7 +1863,7 @@ and selects that window."
             (setq elt (list adjusted-major-mode
                             (if (stringp adjusted-major-mode)
                                 adjusted-major-mode
-                                mode-name))
+                              (format-mode-line mode-name nil nil buf)))
                   split-by-major-mode (cons elt split-by-major-mode)))
           (or (memq buf (cdr (cdr elt)))
               (setcdr (cdr elt) (cons buf (cdr (cdr elt))))))))
