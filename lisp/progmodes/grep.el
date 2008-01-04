@@ -1,7 +1,8 @@
 ;;; grep.el --- run Grep as inferior of Emacs, parse match messages
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF
@@ -788,6 +789,7 @@ This command shares argument histories with \\[rgrep] and \\[grep]."
 	    (setq default-directory dir))))))
 
 
+(defvar find-name-arg)                  ; autoloaded
 
 ;;;###autoload
 (defun rgrep (regexp &optional files dir)
