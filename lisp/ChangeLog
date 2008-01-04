@@ -1,3 +1,10 @@
+2008-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ada-xref.el (ada-prj-find-prj-file):
+	* progmodes/ada-mode.el (comment-region):
+	* calendar/todo-mode.el (todo-insert-item):
+	* bookmark.el (bookmark-buffer-name): Test major-mode rather than mode-name.
+
 2008-01-04  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-from-buffer):

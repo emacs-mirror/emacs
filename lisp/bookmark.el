@@ -1,7 +1,7 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -978,7 +978,7 @@ The directory part of the file name is not used."
 In Info, return the current node."
   (cond
    ;; Are we in Info?
-   ((string-equal mode-name "Info") Info-current-node)
+   ((derived-mode-p 'Info-mode) Info-current-node)
    ;; Or are we a file?
    (buffer-file-name (file-name-nondirectory buffer-file-name))
    ;; Or are we a directory?
@@ -2227,5 +2227,5 @@ This also runs `bookmark-exit-hook'."
 
 (provide 'bookmark)
 
-;;; arch-tag: 139f519a-dd0c-4b8d-8b5d-f9fcf53ca8f6
+;; arch-tag: 139f519a-dd0c-4b8d-8b5d-f9fcf53ca8f6
 ;;; bookmark.el ends here

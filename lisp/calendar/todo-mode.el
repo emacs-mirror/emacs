@@ -1,6 +1,6 @@
 ;;; todo-mode.el --- major mode for editing TODO list files
 
-;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Oliver Seidel <os10000@seidel-space.de>
@@ -592,7 +592,7 @@ With a prefix argument solicit the category, otherwise use the current
 category."
   (interactive "P")
   (save-excursion
-    (if (not (string-equal mode-name "TODO")) (todo-show))
+    (if (not (derived-mode-p 'todo-mode)) (todo-show))
     (let* ((new-item (concat todo-prefix " "
 			     (read-from-minibuffer
 			      "New TODO entry: "
@@ -615,7 +615,7 @@ category."
   "Insert new TODO list entry under the cursor."
   (interactive "")
   (save-excursion
-    (if (not (string-equal mode-name "TODO")) (todo-show))
+    (if (not (derived-mode-p 'todo-mode)) (todo-show))
     (let* ((new-item (concat todo-prefix " "
 			     (read-from-minibuffer
 			      "New TODO entry: "
@@ -959,5 +959,5 @@ Number of entries for each category is given by `todo-print-priorities'."
 
 (provide 'todo-mode)
 
-;;; arch-tag: 6fd91be5-776e-4464-a109-da4ea0e4e497
+;; arch-tag: 6fd91be5-776e-4464-a109-da4ea0e4e497
 ;;; todo-mode.el ends here
