@@ -1,3 +1,7 @@
+2008-01-04  Richard Stallman  <rms@gnu.org>
+
+	* fileio.c (Ffile_name_directory, Fexpand_file_name): Doc fixes.
+
 2007-12-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* process.c (make_process): Initialize pty_flag to Qnil instead of 0
