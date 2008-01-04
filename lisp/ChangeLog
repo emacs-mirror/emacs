@@ -1,3 +1,7 @@
+2008-01-04  Richard Stallman  <rms@gnu.org>
+
+	* delsel.el (delete-selection-mode): Doc fix.
+
 2008-01-04  Glenn Morris  <rgm@gnu.org>
 
 	* version.el (emacs-copyright): Update to 2008.
@@ -22,6 +26,13 @@
 	* progmodes/sh-script.el (sh-indentation):
 	* textmodes/ispell.el (ispell-local-pdict): Add
 	safe-local-variable properties.
+
+2007-12-31  Richard Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-add-parent-links): New arg DOC-INITIAL-STRING.
+	Defaults for INITIAL-STRING and DOC-INITIAL-STRING do not include
+	`parent'.
+	(custom-group-value-create): Pass two args to custom-add-parent-links.
 
 2007-12-29  Richard Stallman  <rms@gnu.org>
 
