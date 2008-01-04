@@ -1,6 +1,6 @@
 ;;; admin.el --- utilities for Emacs administration
 
-;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -161,6 +161,9 @@ Root must be the root of an Emacs source tree."
     (error "%s doesn't seem to be the root of an Emacs source tree" root))
   (set-version-in-file root "lisp/version.el" copyright
 		       (rx (and "emacs-copyright" (0+ space)
+				?\" (submatch (1+ (not (in ?\")))) ?\")))
+  (set-version-in-file root "lib-src/ebrowse.c" copyright
+                       (rx (and "emacs_copyright" (0+ (not (in ?\")))
 				?\" (submatch (1+ (not (in ?\")))) ?\")))
   (set-version-in-file root "lib-src/etags.c" copyright
                        (rx (and "emacs_copyright" (0+ (not (in ?\")))
