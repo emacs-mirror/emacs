@@ -1,3 +1,9 @@
+2008-01-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_method_return): New function.
+	(xd_read_message): Add the serial number to the event.
+	(Fdbus_register_method): Activate the function.
+
 2008-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (read_key_sequence): Fix typo.

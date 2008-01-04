@@ -33,6 +33,7 @@ Boston, MA 02110-1301, USA.  */
 /* Subroutines.  */
 Lisp_Object Qdbus_get_unique_name;
 Lisp_Object Qdbus_call_method;
+Lisp_Object Qdbus_method_return;
 Lisp_Object Qdbus_send_signal;
 Lisp_Object Qdbus_register_signal;
 Lisp_Object Qdbus_register_method;
@@ -841,7 +842,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &rest ARGS)  */)
       if (XD_DBUS_TYPE_P (args[i]))
 	++i;
 
-      /* Check for valid signature.  We use DBUS_TYPE_INVALID is
+      /* Check for valid signature.  We use DBUS_TYPE_INVALID as
 	 indication that there is no parent type.  */
       xd_signature (signature, dtype, DBUS_TYPE_INVALID, args[i]);
 
@@ -892,6 +893,92 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &rest ARGS)  */)
     RETURN_UNGCPRO (CAR_SAFE (result));
   else
     RETURN_UNGCPRO (Fnreverse (result));
+}
+
+DEFUN ("dbus-method-return", Fdbus_method_return, Sdbus_method_return,
+       3, MANY, 0,
+       doc: /* Return to method SERIAL on the D-Bus BUS.
+This is an internal function, it shall not be used outside dbus.el.
+
+usage: (dbus-method-return BUS SERIAL SERVICE &rest ARGS)  */)
+     (nargs, args)
+     int nargs;
+     register Lisp_Object *args;
+{
+  Lisp_Object bus, serial, service;
+  struct gcpro gcpro1, gcpro2, gcpro3;
+  DBusConnection *connection;
+  DBusMessage *dmessage;
+  DBusMessageIter iter;
+  unsigned int dtype;
+  int i;
+  char signature[DBUS_MAXIMUM_SIGNATURE_LENGTH];
+
+  /* Check parameters.  */
+  bus = args[0];
+  serial = args[1];
+  service = args[2];
+
+  CHECK_SYMBOL (bus);
+  CHECK_NUMBER (serial);
+  CHECK_STRING (service);
+  GCPRO3 (bus, serial, service);
+
+  XD_DEBUG_MESSAGE ("%d %s ", XUINT (serial), SDATA (service));
+
+  /* Open a connection to the bus.  */
+  connection = xd_initialize (bus);
+
+  /* Create the message.  */
+  dmessage = dbus_message_new (DBUS_MESSAGE_TYPE_METHOD_RETURN);
+  if ((dmessage == NULL)
+      || (!dbus_message_set_reply_serial (dmessage, XUINT (serial)))
+      || (!dbus_message_set_destination (dmessage, SDATA (service))))
+    {
+      UNGCPRO;
+      xsignal1 (Qdbus_error,
+		build_string ("Unable to create a return message"));
+    }
+
+  UNGCPRO;
+
+  /* Initialize parameter list of message.  */
+  dbus_message_iter_init_append (dmessage, &iter);
+
+  /* Append parameters to the message.  */
+  for (i = 3; i < nargs; ++i)
+    {
+
+      XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
+      XD_DEBUG_MESSAGE ("Parameter%d %s",
+			i-2, SDATA (format2 ("%s", args[i], Qnil)));
+
+      dtype = XD_OBJECT_TO_DBUS_TYPE (args[i]);
+      if (XD_DBUS_TYPE_P (args[i]))
+	++i;
+
+      /* Check for valid signature.  We use DBUS_TYPE_INVALID as
+	 indication that there is no parent type.  */
+      xd_signature (signature, dtype, DBUS_TYPE_INVALID, args[i]);
+
+      xd_append_arg (dtype, args[i], &iter);
+    }
+
+  /* Send the message.  The message is just added to the outgoing
+     message queue.  */
+  if (!dbus_connection_send (connection, dmessage, NULL))
+    xsignal1 (Qdbus_error, build_string ("Cannot send message"));
+
+  /* Flush connection to ensure the message is handled.  */
+  dbus_connection_flush (connection);
+
+  XD_DEBUG_MESSAGE ("Message sent");
+
+  /* Cleanup.  */
+  dbus_message_unref (dmessage);
+
+  /* Return.  */
+  return Qt;
 }
 
 DEFUN ("dbus-send-signal", Fdbus_send_signal, Sdbus_send_signal, 5, MANY, 0,
@@ -985,7 +1072,7 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
       if (XD_DBUS_TYPE_P (args[i]))
 	++i;
 
-      /* Check for valid signature.  We use DBUS_TYPE_INVALID is
+      /* Check for valid signature.  We use DBUS_TYPE_INVALID as
 	 indication that there is no parent type.  */
       xd_signature (signature, dtype, DBUS_TYPE_INVALID, args[i]);
 
@@ -1101,6 +1188,12 @@ xd_read_message (bus)
 	  event.arg = Fcons ((path == NULL ? Qnil : build_string (path)),
 			     event.arg);
 	  event.arg = Fcons ((uname == NULL ? Qnil : build_string (uname)),
+			     event.arg);
+
+	  /* Add the message serial if needed, or nil.  */
+	  event.arg = Fcons ((mtype == DBUS_MESSAGE_TYPE_METHOD_CALL
+			      ? make_number (dbus_message_get_serial (dmessage))
+			      : Qnil),
 			     event.arg);
 
 	  /* Add the bus symbol to the event.  */
@@ -1255,9 +1348,7 @@ PATH is the D-Bus object path SERVICE is registered.  INTERFACE is the
 interface offered by SERVICE.  It must provide METHOD.  HANDLER is a
 Lisp function to be called when a method call is received.  It must
 accept the input arguments of METHOD.  The return value of HANDLER is
-used for composing the returning D-Bus message.
-
-The function is not fully implemented and documented.  Don't use it.  */)
+used for composing the returning D-Bus message.  */)
      (bus, service, path, interface, method, handler)
      Lisp_Object bus, service, path, interface, method, handler;
 {
@@ -1265,9 +1356,6 @@ The function is not fully implemented and documented.  Don't use it.  */)
   DBusConnection *connection;
   int result;
   DBusError derror;
-
-  if (NILP (Vdbus_debug))
-    xsignal1 (Qdbus_error, build_string ("Not implemented yet"));
 
   /* Check parameters.  */
   CHECK_SYMBOL (bus);
@@ -1366,6 +1454,10 @@ syms_of_dbusbind ()
   Qdbus_call_method = intern ("dbus-call-method");
   staticpro (&Qdbus_call_method);
   defsubr (&Sdbus_call_method);
+
+  Qdbus_method_return = intern ("dbus-method-return");
+  staticpro (&Qdbus_method_return);
+  defsubr (&Sdbus_method_return);
 
   Qdbus_send_signal = intern ("dbus-send-signal");
   staticpro (&Qdbus_send_signal);
