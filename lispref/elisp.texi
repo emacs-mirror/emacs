@@ -674,7 +674,8 @@ Input Events
 * Misc Events::             Other events the system can generate.
 * Event Examples::          Examples of the lists for mouse events.
 * Classifying Events::      Finding the modifier keys in an event symbol.
-* Accessing Events::        Functions to extract info from events.
+* Accessing Mouse::	    Functions to extract info from mouse events.
+* Accessing Scroll::        Functions to get info from scroll bar events.
 * Strings of Events::       Special considerations for putting
                               keyboard character events in a string.
 
