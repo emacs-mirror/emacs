@@ -1,3 +1,7 @@
+2008-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-copyright): Add lib-src/ebrowse.c.
+
 2007-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* CPP-DEFINES: New file.
