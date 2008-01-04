@@ -59,8 +59,8 @@
 ;;;###autoload
 (define-minor-mode delete-selection-mode
   "Toggle Delete Selection mode.
-With prefix ARG, turn Delete Selection mode on if and only if ARG is
-positive.
+With prefix ARG, turn Delete Selection mode on if ARG is
+positive, off if ARG is not positive.
 
 When Delete Selection mode is enabled, Transient Mark mode is also
 enabled and typed text replaces the selection if the selection is
