@@ -1,3 +1,7 @@
+2008-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* os.texi (System Environment): Remove mention for Masscomp.
+
 2007-12-30  Richard Stallman  <rms@gnu.org>
 
 	* commands.texi (Accessing Mouse): Renamed from Accessing Events.

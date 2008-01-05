@@ -670,9 +670,6 @@ MS-Windows.
 @item next-mach
 NeXT Mach-based system.
 
-@item rtu
-Masscomp RTU, UCB universe.
-
 @item unisoft-unix
 UniSoft UniPlus.
 

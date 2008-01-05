@@ -774,25 +774,6 @@ Iris 4D (mips-sgi-irix[456].*)
   could also try reinstalling the same version of GCC, and telling us
   whether that fixes the problem.
 
-Masscomp (m68k-masscomp-rtu)
-
-  18.36 worked on a 5500DP running RTU v3.1a and compiler version 3.2
-  with minor fixes that are included in 18.37.  However, bizarre behavior
-  was reported for 18.36 on a Masscomp (model and version unknown but probably
-  a 68020 system).  The report sounds like a compiler bug.
-
-  A compiler bug affecting statements like
-    unsigned char k; unsigned char *p;... x = p[k];
-  has been reported for "C version 1.2 under RTU 3.1".  We do not wish
-  to take the time to install the numerous workarounds required to
-  compensate for this bug.
-
-  For RTU version 3.1, define FIRST_PTY_LETTER to be 'p' in `src/s/rtu.h'
-  (or #undef and redefine it in config.h) so that ptys will be used.
-
-  GNU Emacs is said to have no chance of compiling on RTU versions
-  prior to v3.0.
-
 Megatest (m68k-megatest-bsd)
 
   Emacs 15 worked; do not have any reports about Emacs 16 or 17

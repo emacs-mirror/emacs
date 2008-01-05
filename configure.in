@@ -815,11 +815,6 @@ dnl see the `changequote' comment above.
     machine=macppc opsys=gnu-linux
   ;;
 
-  ## Masscomp machines
-  m68*-masscomp-rtu* )
-    machine=masscomp opsys=rtu
-  ;;
-
   ## Megatest machines
   m68*-megatest-bsd* )
     machine=mega68 opsys=bsd4-2

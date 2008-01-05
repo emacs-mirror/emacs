@@ -1,3 +1,7 @@
+2008-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* MACHINES: Remove Masscomp.
+
 2008-01-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* images/icons/emacs_16.png, images/icons/emacs_24.png

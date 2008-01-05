@@ -1,3 +1,8 @@
+2008-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/rtu.h:
+	* m/masscomp.h: Remove files. Platform is obsolete.
+
 2008-01-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (Fdbus_method_return): New function.
