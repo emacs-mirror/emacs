@@ -7,7 +7,7 @@
 #### you should make sure that this script will include it.
 
 # Copyright (C) 1995, 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
-#   2006, 2007  Free Software Foundation, Inc.
+#   2006, 2007, 2008  Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
 #
@@ -81,6 +81,10 @@ while [ $# -gt 0 ]; do
     "--compress")
       default_gzip="compress"
     ;;
+    ## Same with bzip2.
+    "--bzip2")
+      default_gzip="bzip2"
+    ;;
 
     "--snapshot")
       clean_up=yes
@@ -92,6 +96,7 @@ while [ $# -gt 0 ]; do
     "--help")
       echo "Usage: ${progname} [options]"
       echo ""
+      echo "  --bzip2		use bzip2 instead of gzip"
       echo "  --clean-up	delete staging directories when done"
       echo "  --compress	use compress instead of gzip"
       echo "  --newer=TIME	don't include files older than TIME"
@@ -743,6 +748,7 @@ if [ "${make_tar}" = yes ]; then
     )`
   fi
   case "${default_gzip}" in
+    bzip2)      gzip_extension=.bz2 ;;
     compress* ) gzip_extension=.Z ;;
     * )         gzip_extension=.gz ;;
   esac

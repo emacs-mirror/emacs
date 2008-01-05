@@ -1,3 +1,7 @@
+2008-01-05  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Add --bzip2.  Update copyright.
+
 2008-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Remove support for Masscomp.
