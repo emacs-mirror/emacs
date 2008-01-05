@@ -9,12 +9,6 @@
 	(dbus-event-interface-name, dbus-event-member-name): Adapt
 	implementation to serial number.
 
-2008-01-04  Tassilo Horn  <tassilo@member.fsf.org>
-
-	* doc-view.el (doc-view-scroll-up-or-next-page)
-	(doc-view-scroll-down-or-previous-page): Don't scroll to the
-	top/bottom again when on the first/last page.
-
 2008-01-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs--get-mode-name): Fix typo in previous change.
@@ -40,6 +34,10 @@
 	up-to-date.
 
 2008-01-04  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-scroll-up-or-next-page)
+	(doc-view-scroll-down-or-previous-page): Don't scroll to the
+	top/bottom again when on the first/last page.
 
 	* doc-view.el (doc-view-scroll-up-or-next-page)
 	(doc-view-scroll-down-or-previous-page): Use image-scroll-up and
@@ -298,7 +296,7 @@
 	(vc-compatible-state): New function.  Checks whether two states
 	can be in the same changeset; used with 'edited it can test whether
 	the next action for a state should be commit.
-	(vc-default-dired-format0info): Display 'added state.
+	(vc-default-dired-state-info): Display 'removed state.
 	(vc-dired-hook): Turn off undo, this is a speed tweak.
 
 	* vc-bzr.el (vc-bzr-dir-state): Recognize 'added.
