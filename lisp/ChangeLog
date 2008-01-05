@@ -1,4 +1,4 @@
-2008-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+2008-01-04  Riccardo Murri  <riccardo.murri@gmail.com>
 
 	* vc-bzr.el: Copyright and version headers update.
 	Remove some outdated comments through the whole file.
@@ -40,8 +40,7 @@
 2008-01-03  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-def): Do nothing if gud-running is t.
-	(gud-speedbar-menu-items): Add item for gdb-var-set-format
-	below.
+	(gud-speedbar-menu-items): Add item for gdb-var-set-format below.
 
 	* progmodes/gdb-ui.el (gdb-var-set-format): Set the output format
 	of watch expressions (only works fully with GDB 6.7 or later).
@@ -55,8 +54,8 @@
 	(whitespace-check-buffer-spacetab)
 	(whitespace-check-buffer-ateol):
 	* progmodes/sh-script.el (sh-indentation):
-	* textmodes/ispell.el (ispell-local-pdict): Add
-	safe-local-variable properties.
+	* textmodes/ispell.el (ispell-local-pdict):
+	Add safe-local-variable properties.
 
 2007-12-31  Richard Stallman  <rms@gnu.org>
 
@@ -175,7 +174,7 @@
 
 	* emacs-lisp/find-func.el (find-function-after-hook): Add :type.
 
-	* info.el (Info-clone-buffer): Renamed from Info-clone-buffer-hook.
+	* info.el (Info-clone-buffer): Rename from Info-clone-buffer-hook.
 	Use changed.
 
 	* startup.el (fancy-splash-help-echo): Var deleted.
@@ -204,8 +203,8 @@
 	* progmodes/cperl-mode.el (cperl-brace-offset)
 	(cperl-continued-brace-offset, cperl-label-offset)
 	(cperl-continued-statement-offset)
-	(cperl-extra-newline-before-brace, cperl-merge-trailing-else): Add
-	safe-local-variable properties.
+	(cperl-extra-newline-before-brace, cperl-merge-trailing-else):
+	Add safe-local-variable properties.
 
 2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -247,9 +246,9 @@
 	(verilog-declaration-prefix-re, verilog-declaration-re)
 	(verilog-end-of-statement, verilog-indent-declaration)
 	(verilog-get-lineup-indent): Remove trailing whitespace.
-	(verilog-mode): Fix autoload cookie. Set
-	beginning-of-defun-function and end-of-defun-function. Use when
-	instead of if.
+	(verilog-mode): Fix autoload cookie.
+	Set beginning-of-defun-function and end-of-defun-function.
+	Use when instead of if.
 	(verilog-emacs-features, verilog-auto-ascii-enum)
 	(verilog-insert-indices): Escape braces in doc strings.
 
@@ -260,8 +259,8 @@
 
 2007-12-08  Eli Zaretskii  <eliz@fencepost.gnu.org>
 
-	* international/latexenc.el (latexenc-find-file-coding-system): If
-	both coding-system-for-write and buffer-file-coding-system of
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	If both coding-system-for-write and buffer-file-coding-system of
 	latex-main-file are nil, use `undecided'.
 
 2007-12-06  Jason Rumney  <jasonr@gnu.org>
