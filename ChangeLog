@@ -1,3 +1,10 @@
+2008-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (desktopdir, icondir): New variables.
+	(install-arch-indep): Also depend on `install-etc'.
+	(install-etc): New target.
+	(mkdir): Also create the `applications' and `icons' directories.
+
 2008-01-04  Glenn Morris  <rgm@gnu.org>
 
 	* make-dist: Update for new etc/images/icons/hicolor directory.
