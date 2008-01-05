@@ -87,12 +87,16 @@ doit:
 
 $(lisp)/cus-load.el:
 	touch $@
-custom-deps: $(lisp)/subdirs.el $(lisp)/loaddefs.el $(lisp)/cus-load.el doit
+# Note that custom-deps and finder-data depend on autoloads rather
+# than on loaddefs.el, so that autoloads does not run in parallel with
+# them under "make -j", because that could delete loaddefs.el from
+# under their feet.
+custom-deps: $(lisp)/subdirs.el autoloads $(lisp)/cus-load.el doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
 
-finder-data: $(lisp)/subdirs.el $(lisp)/loaddefs.el doit
+finder-data: $(lisp)/subdirs.el autoloads doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
