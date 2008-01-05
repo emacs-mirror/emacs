@@ -1,7 +1,7 @@
 ;;; vc-cvs.el --- non-resident support for CVS version-control
 
 ;; Copyright (C) 1995, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Andre Spiegel <spiegel@gnu.org>
@@ -629,11 +629,14 @@ systime, or nil if there is none."
          bol (1+ bol) 'vc-cvs-annotate-time
          (setq cache (cons
                       ;; Position at end makes for nicer overlay result.
-                      (match-end 0)
+                      ;; Don't put actual buffer pos here, but only relative
+                      ;; distance, so we don't ever move backward in the
+                      ;; goto-char below, even if the text is moved.
+                      (- (match-end 0) (match-beginning 0))
                       (vc-annotate-convert-time
                        (encode-time 0 0 0 day month year))))))))
     (when cache
-      (goto-char (car cache))           ; fontify from here to eol
+      (goto-char (+ bol (car cache)))   ; Fontify from here to eol.
       (cdr cache))))                    ; days (float)
 
 (defun vc-cvs-annotate-extract-revision-at-line ()

@@ -1,3 +1,8 @@
+2008-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-cvs.el (vc-cvs-annotate-time): Don't move backward when text
+	gets inserted out-of-order.
+
 2008-01-04  Riccardo Murri  <riccardo.murri@gmail.com>
 
 	* vc-bzr.el: Copyright and version headers update.
