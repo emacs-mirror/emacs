@@ -1,4 +1,9 @@
-2007-01-05  Glenn Morris  <rgm@gnu.org>
+2008-01-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (custom-deps, finder-data): Depend on autoloads
+	instead of loaddefs.el.
+
+2008-01-05  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/verilog-mode.el: Replace all instances of
 	string-to-int with string-to-number, insert-string with insert,
