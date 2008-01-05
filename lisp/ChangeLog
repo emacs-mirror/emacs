@@ -1,3 +1,10 @@
+2008-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-process-sentinel): Fix apparent typo.
+	(vc-do-command): Forcefully kill any left over process.
+	Use start-file-process.
+	(vc-annotate-get-time-set-line-props): Check we don't move backward.
+
 2008-01-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-list-hash-table)
@@ -6,8 +13,8 @@
 	(dbus-handle-event): Apply return message if needed.
 	(dbus-event-serial-number): New defun.
 	(dbus-event-service-name, dbus-event-path-name)
-	(dbus-event-interface-name, dbus-event-member-name): Adapt
-	implementation to serial number.
+	(dbus-event-interface-name, dbus-event-member-name):
+	Adapt implementation to serial number.
 
 2008-01-04  Juanma Barranquero  <lekktu@gmail.com>
 

@@ -1,7 +1,7 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -942,7 +942,7 @@ BUF defaults to \"*vc*\", can be a string and will be created if necessary."
         (save-excursion
           (goto-char (process-mark p))
           (let ((cmds (process-get p 'vc-sentinel-commands)))
-            (process-put p 'vc-postprocess nil)
+            (process-put p 'vc-sentinel-commands nil)
             (dolist (cmd cmds)
               ;; Each sentinel may move point and the next one should be run
               ;; at that new point.  We could get the same result by having
@@ -1032,6 +1032,13 @@ that is inserted into the command line before the filename."
 		       (string= (buffer-name) buffer))
 		  (eq buffer (current-buffer)))
 	(vc-setup-buffer buffer))
+      ;; If there's some previous async process still running, just kill it.
+      (let ((oldproc (get-buffer-process (current-buffer))))
+        ;; If we wanted to wait for oldproc to finish before doing
+        ;; something, we'd have used vc-eval-after.
+        ;; Use `delete-process' rather than `kill-process' because we don't
+        ;; want any of its output to appear from now on.
+        (if oldproc (delete-process oldproc)))
       (let ((squeezed (remq nil flags))
 	    (inhibit-read-only t)
 	    (status 0))
@@ -1049,11 +1056,11 @@ that is inserted into the command line before the filename."
 	      ;; start-process does not support remote execution
 	      (setq okstatus nil))
 	  (if (eq okstatus 'async)
-	      ;; Run asynchronously
+	      ;; Run asynchronously.
 	      (let ((proc
 		     (let ((process-connection-type nil))
-		       (apply 'start-process command (current-buffer) command
-			      squeezed))))
+		       (apply 'start-file-process command (current-buffer)
+                              command squeezed))))
 		(if vc-command-messages
 		    (message "Running %s in background..." full-command))
 		;;(set-process-sentinel proc (lambda (p msg) (delete-process p)))
@@ -3250,6 +3257,7 @@ The current time is used as the offset."
   (let ((bol (point))
         (date (vc-call-backend vc-annotate-backend 'annotate-time))
         (inhibit-read-only t))
+    (assert (>= (point) bol))
     (put-text-property bol (point) 'invisible 'vc-annotate-annotation)
     date))
 
