@@ -1,3 +1,8 @@
+2008-01-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* keyboard.c (parse_menu_item):  Don't enclose key bindings on
+	menu bar in parentheses.
+
 2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* m/7300.h:
