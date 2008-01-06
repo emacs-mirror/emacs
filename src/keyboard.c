@@ -8110,7 +8110,8 @@ parse_menu_item (item, notreal, inmenubar)
   tem = XCDR (cachelist);
   if (newcache && !NILP (tem))
     {
-      tem = concat3 (build_string ("  ("), tem, build_string (")"));
+      tem = concat2 (build_string ("  "), tem);
+      // tem = concat3 (build_string ("  ("), tem, build_string (")"));
       XSETCDR (cachelist, tem);
     }
 
