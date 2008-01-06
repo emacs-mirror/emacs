@@ -1310,6 +1310,7 @@ Otherwise, throw an error."
   (if vc-dired-mode
       (set-buffer (find-file-noselect (dired-get-filename)))
     (while (and vc-parent-buffer
+                (buffer-live-p vc-parent-buffer)
 		;; Avoid infinite looping when vc-parent-buffer and
 		;; current buffer are the same buffer.
  		(not (eq vc-parent-buffer (current-buffer))))
