@@ -1,3 +1,9 @@
+2008-01-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-edit.el (custom-tool-bar-map): Move initialization of this
+	keymap from here ...
+	(custom-mode): ... to here.  Reported by Reiner Steib.
+
 2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* obsolete/x-apollo.el: Remove file for unsupported system.
