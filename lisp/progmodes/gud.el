@@ -1233,10 +1233,6 @@ a better solution in 6.1 upwards.")
 	  (setq result (substring result 0 (match-beginning 0))))))
     (or result "")))
 
-(defvar gud-dgux-p (string-match "-dgux" system-configuration)
-  "Non-nil means to assume the interface approriate for DG/UX dbx.
-This was tested using R4.11.")
-
 ;; There are a couple of differences between DG's dbx output and normal
 ;; dbx output which make it nontrivial to integrate this into the
 ;; standard dbx-marker-filter (mainly, there are a different number of
@@ -1295,9 +1291,6 @@ and source-file directory for your debugger."
    (gud-irix-p
     (gud-common-init command-line 'gud-dbx-massage-args
 		     'gud-irixdbx-marker-filter))
-   (gud-dgux-p
-    (gud-common-init command-line 'gud-dbx-massage-args
-		     'gud-dguxdbx-marker-filter))
    (t
     (gud-common-init command-line 'gud-dbx-massage-args
 		     'gud-dbx-marker-filter)))

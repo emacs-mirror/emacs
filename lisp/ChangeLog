@@ -1,3 +1,20 @@
+2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* obsolete/x-apollo.el: Remove file for unsupported system.
+
+	* term/x-win.el (vendor-specific-keysyms): Remove reference to
+	Apollo.
+
+	* progmodes/gud.el (gud-dgux-p): Remove.
+	(dbx): Remove reference to dgux.
+
+	* progmodes/ps-mode.el (ps-mode-print-function):
+	* ps-print.el (ps-lp-system):
+	* paths.el (rmail-spool-directory):
+	* ls-lisp.el (ls-lisp-emulation):
+	* lpr.el (lpr-lp-system):
+	* dired.el (dired-chown-program): Remove references to dgux.
+
 2008-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-process-sentinel): Fix apparent typo.

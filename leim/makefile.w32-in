@@ -27,7 +27,7 @@ srcdir=.
 # Where to install LEIM files.
 INSTALLDIR=$(INSTALL_DIR)/leim
 
-# On Xenix and the IBM RS6000, double-dot gets screwed up.
+# On IBM RS6000, double-dot gets screwed up.
 dot = .
 
 # Which Emacs to use to convert TIT files to Emacs Lisp files,

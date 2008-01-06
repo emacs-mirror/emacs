@@ -1,3 +1,118 @@
+2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/7300.h:
+	* m/acorn.h:
+	* m/alliant-2800.h:
+	* m/alliant.h:
+	* m/alliant1.h:
+	* m/alliant4.h:
+	* m/altos.h:
+	* m/amdahl.h:
+	* m/apollo.h:
+	* m/att3b.h:
+	* m/aviion-intel.h:
+	* m/aviion.h:
+	* m/celerity.h:
+	* m/clipper.h:
+	* m/cnvrgnt.h:
+	* m/convex.h:
+	* m/cydra5.h:
+	* m/delta88k.h:
+	* m/dpx2.h:
+	* m/dual.h:
+	* m/elxsi.h:
+	* m/f301.h:
+	* m/gould-np1.h:
+	* m/gould.h:
+	* m/i860.h:
+	* m/ibmps2-aix.h:
+	* m/ibmrt-aix.h:
+	* m/ibmrt.h:
+	* m/irist.h:
+	* m/is386.h:
+	* m/isi-ov.h:
+	* m/mega68.h:
+	* m/mg1.h:
+	* m/news-r6.h:
+	* m/news-risc.h:
+	* m/news.h:
+	* m/nh3000.h:
+	* m/nh4000.h:
+	* m/ns16000.h:
+	* m/ns32000.h:
+	* m/nu.h:
+	* m/orion.h:
+	* m/orion105.h:
+	* m/paragon.h:
+	* m/pfa50.h:
+	* m/plexus.h:
+	* m/pyramid.h:
+	* m/pyrmips.h:
+	* m/sh3el.h:
+	* m/sps7.h:
+	* m/sr2k.h:
+	* m/stride.h:
+	* m/sun1.h:
+	* m/sun2.h:
+	* m/sun3-68881.h:
+	* m/sun3-fpa.h:
+	* m/sun3-soft.h:
+	* m/sun3.h:
+	* m/sun386.h:
+	* m/symmetry.h:
+	* m/tad68k.h:
+	* m/tahoe.h:
+	* m/targon31.h:
+	* m/tek4300.h:
+	* m/tekxd88.h:
+	* m/tower32.h:
+	* m/tower32v3.h:
+	* m/ustation.h:
+	* m/wicat.h:
+	* m/xps100.h:
+	* s/cxux.h:
+	* s/cxux7.h:
+	* s/dgux.h:
+	* s/dgux4.h:
+	* s/dgux5-4-3.h:
+	* s/dgux5-4r2.h:
+	* s/esix.h:
+	* s/esix5r4.h:
+	* s/hiuxmpp.h:
+	* s/hiuxwe2.h:
+	* s/iris3-5.h:
+	* s/iris3-6.h:
+	* s/isc2-2.h:
+	* s/isc3-0.h:
+	* s/isc4-0.h:
+	* s/isc4-1.h:
+	* s/newsos5.h:
+	* s/newsos6.h:
+	* s/osf1.h:
+	* s/osf5-0.h:
+	* s/riscix1-1.h:
+	* s/riscix12.h:
+	* s/sco4.h:
+	* s/sco5.h:
+	* s/sunos4-0.h:
+	* s/sunos4-1.h:
+	* s/sunos413.h:
+	* s/sunos4shr.h:
+	* s/umax.h:
+	* s/unipl5-2.h:
+	* s/xenix.h:
+	* cxux-crt0.s:
+	* unexapollo.c:
+	* unexconvex.c:
+	* unexenix.c:
+	* unexsni.c: Remove files for systems no longer supported.
+
+	* m/intel386.h: Remove references to unsupported systems.
+
+	* w32.c (get_emacs_configuration): Remove reference to i860.
+
+	* sysdep.c: Remove dead code.
+
 2008-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/rtu.h:

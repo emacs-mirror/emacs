@@ -70,7 +70,7 @@ If nil, `dired-listing-switches' is used.")
 
 ;;;###autoload
 (defvar dired-chown-program
-  (if (memq system-type '(hpux dgux usg-unix-v irix linux gnu/linux cygwin))
+  (if (memq system-type '(hpux usg-unix-v irix linux gnu/linux cygwin))
       "chown"
     (if (file-exists-p "/usr/sbin/chown")
 	"/usr/sbin/chown"

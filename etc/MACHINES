@@ -31,55 +31,7 @@ to operating system names (i.e. sunos4.1) or architecture names (i.e.
 hppa1.1).  If you leave out the version number, the `configure' script
 will configure Emacs for the latest version it knows about.
 
-Acorn RISCiX (arm-acorn-riscix1.2)
-
-  Emacs 19.29 has changes that ought to support RISCiX 1.2.
-
-  Due to a bug in the RISCiX C compiler (3.4.5), emacs must
-  be built with gcc (versions 2.5.8 onwards).
-
-  In addition, you will need GNU sed and GNU make, as the RISCiX release
-  versions of these utilities cannot cope with building emacs-19!
-
-    GNU sed should be configured with:
-
-    env 'DEFS=-Dgetopt=gnu_getopt -Dopterr=gnu_opterr -Doptind=gnu_optind \
-            -Doptarg=gnu_optarg' ./configure
-
-    GNU make (3.72+) should be configured with:
-
-    env 'CFLAGS=-Dgetopt=gnu_getopt -Dopterr=gnu_opterr -Doptind=gnu_optind \
-              -Doptarg=gnu_optarg' ./configure
-
-  Emacs may be configured to use the X toolkit, by adding --with-x-toolkit
-  to the configure command.  If you do this, you will need to edit the line
-  in src/Makefile which defines LIBW (about line 59) to read:
-
-  LIBW= -lXaw_n
-
-  This ensures that the non-shared widget library is used.
-
-  It is unlikely that this version of emacs will work with RISCiX 1.1.
-
-Alliant (fx80-alliant-bsd):
-
-  18.52 worked on system version 4.  Previous Emacs versions were
-  known to work on previous system versions.
-
-  If you are using older versions of their operating system, you may
-  need to edit `src/config.h' to use `m/alliant1.h' (on version 1) or
-  `m/alliant.h' (on versions 2 and 3).
-
-Alliant FX/2800 (i860-alliant-bsd)
-
-  Known to work with 19.26 and OS version 2.2, compiler version 1.3.
-
-Alpha (DEC) running OSF/1 or GNU/Linux (alpha-dec-osf1, alpha-dec-linux-gnu)
-
-  For OSF/1 (aka Digital Unix) version 4.0, update 386,
-  it is reported that you need to run configure this way:
-
-      configure --x-includes=/usr/include --x-libraries=/usr/shlib
+Alpha (DEC) running GNU/Linux (alpha-dec-linux-gnu)
 
   DEC C compiler version 5.9 (DEC C V5.9-005 on Digital UNIX V4.0f)
   is reported to produce bogus binaries of Emacs 21.2 when the
@@ -95,23 +47,6 @@ Alpha (DEC) running OSF/1 or GNU/Linux (alpha-dec-osf1, alpha-dec-linux-gnu)
   Note that the X11 libraries on GNU/Linux systems for the Alpha are
   said to have bugs that prevent Emacs from working with X (as of
   November 1995).  Recent releases work (July 2000).
-
-Altos 3068 (m68k-altos-sysv)
-
-  18.52 was said to work, provided you don't compile unexec.c with -O.
-
-Amdahl UTS (580-amdahl-sysv)
-
-  Small changes for 18.38 were merged in 18.39.  It is mostly
-  working, but at last report a bug sometimes causes Emacs to
-  grab very large amounts of memory.  No fix or explanation
-  has yet been reported.  It may be possible to find this bug
-  if you find which Emacs command it happens within and then
-  run that command with a breakpoint set at malloc.
-
-  The 5.2u370 compiler is so brain damaged that it is not
-  even worth trying to use it.  Success was obtained with the
-  uts native C compiler on uts version 5.2.5.
 
 Apple Macintosh running Mac OS X
 
@@ -141,150 +76,10 @@ Apple PowerPC Macintosh running GNU/Linux
   After that, reconfigure and rebuild Emacs.  It should now build
   successfully.
 
-Apollo running X Windows (m68k-apollo-bsd)
-
-  Apollo version now supports dumping.  It has been tested on SR10.3 and
-  SR10.4.  It certainly requires at least SR10.0, and maybe SR10.2.  Be sure
-  to build in the BSD environment.
-
-  By default, everything is compiled with the switch "-W0,-opt,2".  Don't try
-  to change this to full optimization (-O).  The full optimizer (in Domain CC
-  6.7, 6.8 and 6.9) generates some bad code in several modules which causes
-  the emacs window, under X, to be refreshed with each keystroke.
-
-  The configuration stuff should work for the most part.  However, some Domain
-  installations may have to edit src/Makefile manually after it is created.
-  There are too many versions of both cc and X to automate this easily.
-
-  In `lib-src/Makefile', emacsclient compiles and works fine under CC 6.9.
-  It now probably works under other versions of the compiler, as well.
-
-  The Apollo Domain CC compiler will issue quite a few warning messages,
-  mostly complaining about incompatible pointers.  In general, these are
-  harmless and can be ignored.  If you discover otherwise, please submit a bug
-  report identifying the problem in detail.
-
-  When you try to dump emacs, you may get the message ".rwdi section needs
-  relocation."  This means you are linking with some code that has compressed
-  data sections.  In some cases this comes from linking with X libraries.  Try
-  using shared X libraries instead.  With some versions of Domain/OS this is
-  as simple as removing the "-lX11" from the LIBX line in src/Makefile.
-
-  When running the configure script, use the configuration name
-  "m68k-apollo-bsd".  You will also need to use the "-with-gcc=no" and
-  "-with-x" options.  Depending upon your site configuration, you may have to
-  use other configure options, as well.  Examine the INSTALL file for other
-  configure options.
-
-  Check out the file 'lisp/x-apollo.el'.  To use it, add
-
-        (load "x-apollo")
-
-  to your .emacs file.  It provides useful default Apollo function key
-  bindings.
-
-AT&T 3b2, 3b5, 3b15, 3b20 (we32k-att-sysv)
-
-  Emacs will probably not work with certain kernel constants too small.
-
-  In param.h CDLIMIT should be at least (1L << 12) in order to allow
-  processes to write up to 2 Mbyte files.  This parameter is configurable
-  by normal means in /etc/master.d/kernel; examine that file for the
-  symbol CDLIMIT or ULIMIT, and raise it by several powers of 2.  Then
-  do normal kernel rebuild things via "cd /boot; mkboot -k KERNEL" and so
-  forth.
-
-  In seg.h NSEGP and STACKSEG should be at least 16 and 4 respectively
-  to allow processes with total size of up to 2Mbytes.
-  However, I'm told it is unlikely this would fail to be true.
-
-  The MAXMEM may also prevent Emacs from running.  The file
-  3B-MAXMEM in this directory explains how to increase MAXMEM.
-
-  On some of these machines, you may need to define IN_SCCS_ID
-  in config.h to make Emacs work.  Supposedly you can tell whether
-  this is necessary by checking something in /usr/include/sys/time.h;
-  we do not know precisely what.
-
-AT&T 7300 or 3b1 (m68k-att-sysv)
-
-  18.52 worked.  If you have strange troubles with dumping
-  Emacs, delete the last few lines from `src/m/7300.h' and recompile.
-  These lines are supposed to produce a sharable executable.
-
-  `src/m/7300.h' defines SHORTNAMES because operating system versions
-  older than 3.5 did not support long symbol names.  Version 3.5 does
-  support them, so you can remove the #define SHORTNAMES in that
-  version.
-
-Bull DPX/2 models 2nn or 3nn (m68k-bull-sysv3)
-
-  Minor fixes merged into 19.19, which should work with CC or GCC.
-
-  You should compile with all the POSIX stuff: undef _SYSV and define
-  _POSIX_SOURCE, _XOPEN_SOURCE and _BULL_SOURCE.
-
-  On bos2.00.45 there is a bug that makes the F_SETOWN fcntl
-  call enters in an infinite loop. F_SETOWN_BUG has been defined to avoid
-  calling it.
-
-Bull DPX/20 (rs6000-bull-bosx)
-
-  Version 19 works.
-
-Bull sps7 (m68k-bull-sysv2)
-
-  Changes partially merged in version 19, but some fixes are probably required.
-
-CCI 5/32, 6/32
-
-  See "Tahoe".
-
-Celerity (celerity-celerity-bsd4.2)
-
-  Version 18.49 worked.  This configuration name is a hack, because we
-  don't know the processor used by Celerities.  If someone
-  who uses a Celerity could get in touch with us, we can teach
-  config.sub a better name for the configuration.
-
-Clipper (clipper-???)
-
-  Version 19 has support for some brand of clipper system.  If you
-  have successfully built Emacs 19 on some sort of clipper system, let
-  us know so we can flesh out this entry.
-
-  Note that the Orion 105 is also a clipper, but some system-related
-  parameters are different.
-
-Convex (c1-convex-bsd, c2-convex-bsd, c32-convex-bsd, c34-convex-bsd,
-        c38-convex-bsd)
-
-  Support updated and residual bugs fixed in 19.26.
-
 Cubix QBx/386 (i386-cubix-sysv)
 
   Changes merged in 19.1.  Systems before 2/A/0 may fail to compile etags.c
   due to a compiler bug.
-
-Cydra 5 (cydra-cydrome-sysv)
-
-  18.51 worked in one version of their operating system but stopped
-  working in a newer version.  This has not been fixed.
-
-Data General Aviion (m88k-dg-dgux)
-
-  19.23 works; however, the GCC provided with DGUX 5.4R3.00 fails to
-  compile src/emacs.c.  GCC 2.5.8 does work.
-  The 19.26 pretest was reported to work; no word on which compiler.
-  System versions other than DGUX 5.4R3.00 have not been tested.
-
-  DGUX 5.4R3.10 works with 19.29 and 19.30.
-
-  DGUX R4.11 contains changes to the stdio internals and it doesn't work
-  with versions before 20.2 without patches.  20.2 works in interactive
-  mode but usually fails in batch mode.  The problem is that using
-  stderr in the dumped emacs usually leads to a segmentation fault.
-  Only m88k has been tested.
 
 DECstation (mips-dec-ultrix or mips-dec-osf)
 
@@ -319,45 +114,6 @@ Motorola Delta 147 (m68k-motorola-sysv)
   The installation script chooses the compiler itself.  gnucc is
   preferred.
 
-Motorola Delta 187 (m88k-motorola-sysv,
-		    m88k-motorola-sysvr4, or
-		    m88k-motorola-m88kbcs)
-
-  The 19.26 pretest was reported to run on SVR3.  However, if you
-  use --with-x-toolkit on svr3, you will have problems compiling some
-  files because time.h and sys/time.h get included twice.
-  One fix is to edit those files to protect against multiple inclusion.
-
-  As of version 19.13, Emacs was reported to run under SYSVr3 and SYSVr4.
-
-Dual running System V (m68k-dual-sysv)
-
-  As of 17.46, this worked except for a few changes
-  needed in unexec.c.
-
-Dual running Uniplus (m68k-dual-uniplus)
-
-  Worked, as of 17.51.
-
-Elxsi 6400 (elxsi-elxsi-sysv)
-
-  Changes for 12.0 release are in 19.1.
-  Dumping should work now.
-
-Encore machine (ns16k-encore-bsd)
-
-  This machine bizarrely uses 4.2BSD modified to use the COFF format
-  for object files.  Works (as of 18.40).  For the APC processor you
-  must enable two lines at the end of `src/s/umax.h', which are commented
-  out in the file as distributed.
-
-  WARNING: If you compile Emacs with the "-O" compiler switch, you
-  must also use the "-q enter_exits" switch so that all functions have
-  stack frames.  Otherwise routines that call `alloca' all lose.
-
-  A kernel bug in some system versions causes input characters to be lost
-  occasionally.
-
 Fujitsu DS/90 (sparc-fujitsu-sysv4)
 
   Changes merged in 20.3.
@@ -368,49 +124,9 @@ GEC 63 (local-gec63-usg5.2)
   more work.  Let us know if you get this working, and we'll give it a
   real configuration name.
 
-Gould Power Node (pn-gould-bsd4.2 or pn-gould-bsd4.3)
-
-  18.36 worked on versions 1.2 and 2.0 of the operating system.
-
-  On UTX/32 2.0, use pn-gould-bsd4.3.
-
-  On UTX/32 1.2 and UTX/32S 1.0, use pn-gould-bsd4.2 and note that
-  compiling `lib-src/sorted-doc' tickles a compiler bug: remove the -g
-  flag to cc in the makefile.
-
-  UTX/32 1.3 has a bug in the bcopy library routine.  Fix it by
-  #undef BSTRING in `src/m/gould.h'.
-
-  Version 19 incorporates support for releases 2.1 and later of UTX/32.
-  A site running a pre-release of 2.1 should #define RELEASE2_1 in config.h.
-
-Gould NP1 (np1-gould-bsd)
-
-  Version 19 supposedly works.
-
-Harris Night Hawk (m68k-harris-cxux or m88k-harris-cxux)
-
-  This port was added in 19.23.  The configuration actually tested was
-  a Night Hawk 4800 running CX/UX 7.0.
-
-  If you have GCC ported and want to build with it, you probably need to
-  change things (like compiler switches) defined in the s/cxux.h file.
-
-  If you have X11R6 installed in /usr/lib, configure will fail to find
-  it and may find X11R5 instead.  To work around this problem, use
-  --x-libraries=/usr/lib when you run configure.
-
-  With CX/UX 7.0 and later releases, you need to build after setting the
-  SDE_TARGET environment variable to COFF (a port using ELF and shared
-  libraries has not yet been done).
-
 Harris Power PC (powerpc-harris-powerunix)
 
   Patches have been merged in 19.31.
-
-Honeywell XPS100 (xps100-honeywell-sysv)
-
-  Config file added in version 19.
 
 Hewlett-Packard 9000 series 200 or 300 (m68k-hp-bsd or m68k-hp-hpux
 				        or m68k-hp-netbsd)
@@ -532,35 +248,6 @@ HP 9000 series 700 or 800 (Spectrum) (hppa1.0-hp-hpux or hppa1.1-hp-hpux
   do not require any special software).  If the file "/etc/filesets/C"
   exists on your machine, you have this software, otherwise you do not.
 
-High Level Hardware Orion (orion-highlevel-bsd)
-
-  This is the original microprogrammed hardware.
-  Machine description file ought to work.
-
-High Level Hardware Orion 1/05 (clipper-highlevel-bsd)
-
-  Changes merged in 18.52.  This is the one with the Clipper cpu.
-  Note that systems which lack NFS need LOAD_AVE_TYPE changed to `double'.
-
-  C compiler has a bug; it loops compiling eval.c.
-  Compile it by hand without optimization.
-
-HITACHI SR2001/SR2201 series (hppa1.1-hitachi-hiuxwe2)
-
-  These machines are based on PA architecture running HI-UX/MPP
-  (based on OSF1. `MPP' stands for `Massively Parallel Processor').
-
-  Emacs 19.34 is believed to work; its pretest was tested
-  both on SR2001 (output of `uname -rv' is `00-01-BB 0') and
-  SR2201 (`02-00 0').
-
-  Emacs 20.7 was reported to build on a system whose `uname -rs'
-  output is `HI-UX/MPP 03-04'.
-
-  The machine description file is `src/m/sr2k.h' is based on
-  `src/m/hp800.h'. The system description file is `src/s/hiuxwe2.h'
-  based on `src/s/osf1.h'. Note that this system doesn't use COFF.
-
 IBM PS/2 (i386-ibm-aix1.1 or i386-ibm-aix1.2)
 
   Changes merged in version 19.  You may need to copy
@@ -604,19 +291,6 @@ IBM RS/6000 (rs6000-ibm-aix*)
   If anyone can fix the above problems, or confirm that they don't happen
   with certain versions of various programs, we would appreciate it.
 
-IBM RT/PC (romp-ibm-bsd or romp-ibm-aix)
-
-  Use romp-ibm-bsd for the 4.2-like system and romp-ibm-aix for AIX.
-  19.22 is reported to work under bsd.  We don't know about AIX.
-
-  On BSD, if you have trouble, try compiling with a different compiler.
-
-  On AIX, the file /usr/lib/samples/hft/hftctl.c must be compiled into
-  hftctl.o, with this result left in the src directory (hftctl.c is
-  part of the standard AIX distribution).
-
-  window.c must not be compiled with -O on AIX.
-
 IBM System/390 running GNU/Linux (s390-*-linux-gnu)
 
   As of Emacs 21.2, a 31-bit only version is supported on this
@@ -638,12 +312,11 @@ Integrated Solutions `Optimum V' (m68k-isi-bsd4.2 or -bsd4.3)
   in a system header file, which confuses Emacs (which thinks that UMAX
   indicates the Umax operating system).
 
-Intel 386 (i386-*-isc, 		i386-*-esix,	 i386-*-bsdi2,
-	   i386-*-xenix,	i386-*-freebsd,  i386-*-linux-gnu,
+Intel 386 (i386-*-bsdi2,        i386-*-freebsd,  i386-*-linux-gnu,
 	   i386-*-sol2.4,	i386-*-sysv3,    i386-intsys-sysv,
 	   i386-*-sysv4,	i386-*-sysv4.2,
 	   i386-*-sysv5.3,	i386-*-bsd4.2,   i386-*-cygwin,
-	   i386-*-sco3.2v4,	i386-*-bsd386,   i386-*-386bsd,
+	   i386-*-bsd386,   i386-*-386bsd,
 	   i386-*-msdos,	i386-*-windowsnt.
 	   i386... can be replaced with i486... or i586...)
 
@@ -654,13 +327,11 @@ Intel 386 (i386-*-isc, 		i386-*-esix,	 i386-*-bsdi2,
   When using the ISC configurations, be sure to specify the isc
 	version number - for example, if you're running ISC 3.0, use
 	i386-unknown-isc3.0 as your configuration name.
-  Use i386-*-esix for Esix; Emacs runs as of version 19.6.
   Use i386-*-linux-gnu for GNU/Linux systems; Emacs runs as of version 19.26.
   Use i386-*-cygwin for Cygwin; Emacs builds as of version 22.1, in both X11
   and non-X11 modes.  (The Cygwin site has source and binaries for 21.2.)
   Use i386-intsys-sysv for Integrated Solutions 386 machines.
   It may also be correct for Microport systems.
-  Use i386-*-sco3.2v4 for SCO 3.2v4; Emacs runs as of version 19.26.
 
   On GNU/Linux systems, Emacs 19.23 was said to work properly with libc
   version 4.5.21, but not with 4.5.19.  If your system uses QMAGIC
@@ -692,8 +363,6 @@ Intel 386 (i386-*-isc, 		i386-*-esix,	 i386-*-bsdi2,
   For System V release 4, use i386-*-sysv4.
   For System V release 4.2, use i386-*-sysv4.2.
 
-  If you are using Xenix, see notes at end under Xenix.
-  If you are using Esix, see notes at end under Esix.
   If you are using SCO Unix, see notes at end under SCO.
 
   On 386bsd, NetBSD and FreeBSD, at one time, it was necessary to use
@@ -774,11 +443,6 @@ Iris 4D (mips-sgi-irix[456].*)
   could also try reinstalling the same version of GCC, and telling us
   whether that fixes the problem.
 
-Megatest (m68k-megatest-bsd)
-
-  Emacs 15 worked; do not have any reports about Emacs 16 or 17
-  but any new bugs are probably not difficult.
-
 Mips (mips-mips-riscos, mips-mips-riscos4.0, or mips-mips-bsd)
 
   The C compiler on Riscos 4.51 dumps core trying to optimize
@@ -818,24 +482,6 @@ Mips (mips-mips-riscos, mips-mips-riscos4.0, or mips-mips-bsd)
   on a riscos4bsd site.  But it is not clear whether this is needed in
   general or only because of quirks on a particular site.
 
-National Semiconductor 32000 (ns32k-ns-genix)
-
-  This is for a complete machine from National Semiconductor,
-  running Genix.  Changes merged in version 19.
-
-NCR Tower 32 (m68k-ncr-sysv2 or m68k-ncr-sysv3)
-
-  If you are running System V release 2, use m68k-ncr-sysv2.
-  If you are running System V release 3, use m68k-ncr-sysv3.
-
-  These both worked as of 18.56.  If you change `src/ymakefile' so that
-  CFLAGS includes C_OPTIMIZE_SWITCH rather than C_DEBUG_SWITCH, check
-  out the comments in `src/m/tower32.h' (for System V release 2) or
-  `src/m/tower32v3.h' (for System V release 3) about this.
-
-  There is a report that compilation with -O did not work with 18.54
-  under System V release 2.
-
 NCR Intel system (i386-ncr-sysv4.2)
 
   This system works in 19.31, but if you don't link it with GNU ld,
@@ -860,30 +506,6 @@ NeXT (m68k-next-nextstep)
 
   Thanks to Thorsten Ohl for working on the NeXT port of Emacs 19.
 
-Nixdorf Targon 31 (m68k-nixdorf-sysv)
-
-  Machine description file for version 17 is included in 18
-  but whether it works is not known.
-  `src/unexec.c' bombs if compiled with -O.
-  Note that the "Targon 35" is really a Pyramid.
-
-Nu (TI or LMI) (m68k-nu-sysv)
-
-  Version 18 is believed to work.
-
-Paragon OSF/1 (i860-intel-osf1)
-
-  Changes merged in 19.29.
-
-  There is a bug in OSF/1 make which claims there is a syntax error
-  in the src/xmakefile.  You can successfully build emacs with:
-
-        pmake MAKE=pmake
-
-Plexus (m68k-plexus-sysv)
-
-  Worked as of 17.56.
-
 Pmax (DEC Mips)  (mips-dec-ultrix or mips-dec-osf1)
 
   See under DECstation, above.
@@ -891,39 +513,6 @@ Pmax (DEC Mips)  (mips-dec-ultrix or mips-dec-osf1)
 Prime EXL (i386-prime-sysv)
 
   Minor changes merged in 19.1.
-
-Pyramid (pyramid-pyramid-bsd)
-
-  The 19.26 pretest was observed to work on OSx 5.0, but it is necessary
-  to edit gmalloc.c.  You must add #include <sys/types.h> at the top,
-  and delete the #define for size_t.
-
-  You need to build Emacs in the Berkeley universe with
-  the `ucb' command, as in `ucb make' or `ucb build-install'.
-
-  In OSx 4.0, it seems necessary to add the following two lines
-  to `src/m/pyramid.h':
-     #define _longjmp longjmp
-     #define _setjmp setjmp
-
-  In Pyramid system 2.5 there has been a compiler bug making
-  Emacs crash just after screen-splitting with Qnil containing 0.
-  A compiler that fixes this is Pyramid customer number 8494,
-  internal number 1923.
-
-  Some versions of the pyramid compiler get fatal
-  errors when the -gx compiler switch is used; if this
-  happens to you, change `src/m/pyramid.h' to define
-  C_DEBUG_SWITCH with an empty definition.
-
-  Some old system versions may require you to define PYRAMID_OLD
-  in when alloca.s is preprocessed, in order to define _longjmp and _setjmp.
-
-Sequent Balance (ns32k-sequent-bsd4.2 or ns32k-sequent-bsd4.3)
-
-  Emacs 18.51 worked on system version 3.0.  18.52 is said to work.
-  Delete some lines at the end of `src/m/sequent.h' for earlier system
-  versions.
 
 Sequent Symmetry (i386-sequent-bsd, i386-sequent-ptx, i386-sequent-ptx4)
 
@@ -949,8 +538,7 @@ Sequent Symmetry (i386-sequent-bsd, i386-sequent-ptx, i386-sequent-ptx4)
 
 Siemens Nixdorf RM600 and RM400 (mips-siemens-sysv4)
 
-  Changes merged in 19.29.  This configuration should also work for
-  Pyramid MIS Server running DC-OSX 1.x.  The version configured with
+  Changes merged in 19.29.  The version configured with
   `--with-x' works without any modifications, but `--with-x-toolkit'
   works only if the Athena library and the Toolkit library are linked
   statically.  For this, edit `src/Makefile' after the `configure' run
@@ -982,23 +570,7 @@ SONY News 3000 series (RISC NEWS) (mips-sony-bsd)
   Emacs from working under any debugger.  But you can change init_data
   in data.c if you wish.
 
-Stardent i860 (i860-stardent-sysv4.0)
-
-  19.26 pretest reported to work.
-
-Stardent 1500 or 3000
-
-  See Titan.
-
-Stride (m68k-stride-sysv)
-
-  Works (most recent news for 18.30) on their release 2.0.
-  For release 2.2, see the end of `src/m/stride.h'.
-  It may be possible to run on their V.1 system but changes
-  in the s- file would be needed.
-
-Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
-			       sparc-sun-sunos4.1.3noshr, sparc-sun-solaris2.*,
+Sun 3, Sun 4 (sparc), Sun 386 (sparc-sun-solaris2.*,
 			       i386-sun-solaris2.*, sparc*-*-linux-gnu)
 
   To build a 32-bit Emacs (i.e. if you are having any sort of problem
@@ -1074,13 +646,6 @@ Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
   for transferring text between clients.  The Cut, Paste and Copy items
   in the menu bar Edit menu work with the clipboard.
 
-  It's important to include the SunOS version number in the
-  configuration name.  For example, for SunOS release 4.0 on a Sun 3,
-  use `m68k-sun-sunos4.0'; for SunOS release 4.1 on a Sparc, use
-  `sparc-sun-sunos4.1'.  For SunOS release 4.1.3 on a Sparc, use
-  `sparc-sun-sunos4.1.3'.  Note that shared libraries are now
-  used by default on SunOS 4.1.
-
   A user reported irreproducible segmentation faults when using 19.29
   on Solaris 2.3 and 2.4 after compiling it with the Sun compiler.
   The problem went away when GCC 2.7.0 was used instead.  We do not know
@@ -1093,25 +658,12 @@ Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
     #define SeparateSharedCompile YES
   in site.def (after #ifdef AfterVendorCF).
 
-  Use `m68k' for the 68000-based Sun boxes, `sparc' for Sparcstations,
-  and `i386' for Sun Roadrunners.  i386 calls for Sunos4.0.
-
   If you compile with Sun's ANSI compiler acc, you need additional options
   when linking temacs, such as
      /usr/lang/SC2.0.1/values-Xt.o -L/usr/lang/SC2.0.1/cg87 -L/usr/lang/SC2.0.1
   (those should be added just before the libraries) and you need to
   add -lansi just before -lc.  The precise file names depend on the
   compiler version, so we cannot easily arrange to supply them.
-
-  On SunOS 4.1.1, do not use /usr/5bin/cc.  You can use gcc or/usr/bin/cc.
-  Make sure the environment variable LD_LIBRARY_PATH is not defined.
-
-  Some people report crashes on SunOS 4.1.3 if SYSTEM_MALLOC is defined.
-  Others have reported that Emacs works if SYSTEM_MALLOC is defined, and not
-  if it is undefined.  So far we do not know why results vary in this way.
-  The sources are set up so that SYSTEM_MALLOC is defined; if that crashes,
-  or if you want the benefit of the relocating memory allocator, you can
-  try enabling the #undef SYSTEM_MALLOC in src/s/sunos4-1-3.h.
 
   On Solaris 2, you need to install patch 100947-02 to fix a system bug.
   Presumably this patch comes from Sun.  You must alter the definition of
@@ -1138,10 +690,6 @@ Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
   with -lresolv, by copying the #definition of LIBS_SYSTEM in
   src/s/sunos4-1.h to src/config.h.  This problem is due to obsolete
   software in the nonshared standard library.
-
-  If you are compiling for X windows, and the X window library was
-  compiled to use the 68881, then you must edit config.h according
-  the comments at the end of `src/m/sun3.h'.
 
   Note that Emacs on a Sun is not really as big as it looks.
   As dumped, it includes around 200k of zeros between the
@@ -1175,42 +723,12 @@ Tadpole 68K (m68k-tadpole-sysv)
 
     chmod 2755 etc/movemail; chgrp mail etc/movemail
 
-Tahoe (tahoe-tahoe-bsd4.2 or tahoe-tahoe-bsd4.3)
-
-  18.52 was known to work on some Tahoes, but a compiler bug intervenes
-  on others.  Some Emacs versions have worked in Unisys 1r4
-  (not in 1r3) and CCI I.21.
-
-  If you have trouble compiling `lib-src/loadst.c', turn off the definition
-  of DKSTAT_HEADER_FILE in `src/m/tahoe.h'.
-
 Tandem Integrity S2 (mips-tandem-sysv)
 
   Changes merged in 18.56 but subprocess support is turned off.
   You will probably want to see if you can make subprocesses work.
 
   You must edit `lib-src/Makefile' to define LOADLIBES = -mld.
-
-Tektronix XD88 (m88k-tektronix-sysv3*)
-
-  The 19.26 pretest was reported to work.
-  Minor changes merged in 19.19.
-
-Tektronix 16000 box (6130?) (ns16k-tektronix-bsd)
-
-  Emacs 17.61 worked.
-
-Tektronix 4300 (m68k-tektronix-bsd)
-
-  Emacs 19.26 pretest reported to work.
-
-Titan P2 or P3 (titan-titan-sysv)
-
-  Changes probably merged in version 19.
-
-Ustation E30 (SS5E) (m68k-unisys-unipl)
-
-  Changes merged in 18.52; don't know whether they work.
 
 Vaxen running Berkeley Unix (vax-dec-bsd4.1, vax-dec-bsd4.2, vax-dec-bsd4.3),
 	      Ultrix (vax-dec-ultrix),
@@ -1230,16 +748,6 @@ Vaxen running Berkeley Unix (vax-dec-bsd4.1, vax-dec-bsd4.2, vax-dec-bsd4.3),
   won't work very well, or even compile.  Levitte is working on a
   port, so these problems should be fixed in the near future.
 
-Whitechapel MG1 (ns16k-whitechapel-?)
-
-  May work.  Supposedly no changes were needed except in `src/m/mg1.h'
-  file.  I do not know what Unix version runs on them.
-
-Wicat (m68k-wicat-sysv)
-
-  Changes merged as of 18.6; whether they work is unknown.
-  See comments in `src/m/wicat.h' for things you should change
-  depending on the system and compiler version you have.
 
 Here are notes about some of the systems supported:
 
@@ -1254,25 +762,6 @@ Berkeley 4.2 (bsd4.2)
 Berkeley 4.3 (bsd4.3)
 
   Works, on Vaxes at least.
-
-Esix
-
-  The following was written for Emacs 18.59 and has been
-  slightly adapted for Emacs 19.  It may need more change to be correct.
-
-  Use s/usg5-4.h for Esix System V 4.0.[34] systems if you also have
-  XFree86.  If you insist on using the Esix X Window libraries, good
-  luck.  s/esix5r4.h provides a starting point, but doesn't seem to
-  work consistently.  The basic problems involve the need to load
-  -lX11 *last* in the link command, and even then some things break.
-  You get best results by installing XFree86 and forgetting about the
-  Esix stuff unless you want to run IXI xdt3, which really only needs
-  the Esix X11 shared libraries.
-
-  To compile with XFree86, make sure that your LD_LIBRARY_PATH
-  contains /usr/X386/lib.  Be careful if you also have the Esix X
-  Window libraries that /usr/X386/lib appears *first* in the
-  LD_LIBRARY_PATH.  Then define C_SWITCH_X_SYSTEM -I/usr/X386/include.
 
 Linux (actually GNU/Linux)
 
@@ -1304,8 +793,6 @@ MSDOS
   for information about using Emacs on MSDOS.
 
 SCO Unix
-  If you have TCP but not X, you need to edit src/s/sco4.h
-  to define HAVE_SOCKETS.
 
   If you are using MMDF instead of sendmail, you need to remove
   /usr/lib/sendmail or modify lisp/paths.el before compiling.
@@ -1423,10 +910,6 @@ Ultrix (bsd4.3)
 
   The problem is said to be gone in UWS version 2.1.
 
-Uniplus 5.2 (unipl5.2)
-
-  Works, on Dual machines at least.
-
 VMS (vmsM.N)
 
   Richard Levitte <levitte@e.kth.se> distributes a set of patches to
@@ -1454,18 +937,6 @@ X86_64 GNU/Linux
 
   (using the location of the 32-bit X libraries on your system).
 
-Xenix (xenix)
-
-  Should work in 18.50, but you will need to edit the files
-  `lib-src/Makefile' and `src/ymakefile'
-  (see the comments that mention "Xenix" for what to change.)
-  Compiling Emacs with -O is said not to work.
-
-  If you want Emacs to work with Smail (installed as /usr/bin/smail)
-  then add the line   #define SMAIL  to config.h.
-
-  The file etc/XENIX suggests some useful things to do to Xenix
-  to make the Emacs meta key work.
 
 Local variables:
 mode: text

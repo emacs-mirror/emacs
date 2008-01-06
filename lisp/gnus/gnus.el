@@ -1522,7 +1522,7 @@ If it is nil, no confirmation is required."
   :type '(choice (const :tag "No limit" nil)
 		 integer))
 
-(defcustom gnus-use-long-file-name (not (memq system-type '(usg-unix-v xenix)))
+(defcustom gnus-use-long-file-name (not (memq system-type '(usg-unix-v)))
   "*Non-nil means that the default name of a file to save articles in is the group name.
 If it's nil, the directory form of the group name is used instead.
 

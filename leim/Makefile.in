@@ -38,7 +38,7 @@ INSTALLDIR=$(DESTDIR)${datadir}/emacs/${version}/leim
 
 GZIP_PROG = @GZIP_PROG@
 
-# On Xenix and the IBM RS6000, double-dot gets screwed up.
+# On IBM RS6000, double-dot gets screwed up.
 dot = .
 
 # Which Emacs to use to convert TIT files to Emacs Lisp files,

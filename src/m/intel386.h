@@ -25,15 +25,14 @@ Boston, MA 02110-1301, USA.  */
    USUAL-OPSYS="note"
 
 NOTE-START
-Intel 386 (-machine=intel386 or -machine=is386.h)
+Intel 386 (-machine=intel386)
 
   The possibilities for -opsystem are: bsd4-2, usg5-2-2, usg5-3,
-  isc2-2, 386-ix, esix, linux, sco3.2v4, and xenix.
+  isc2-2, 386-ix, and linux.
 
   18.58 should support a wide variety of operating systems.
   Use isc2-2 for Interactive 386/ix version 2.2.
   Use 386ix for prior versions.
-  Use esix for Esix.
   Use linux for Linux.
   It isn't clear what to do on an SCO system.
 

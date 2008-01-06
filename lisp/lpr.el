@@ -37,7 +37,7 @@
 
 ;;;###autoload
 (defvar lpr-lp-system
-  (memq system-type '(usg-unix-v dgux hpux irix)))
+  (memq system-type '(usg-unix-v hpux irix)))
 
 
 (defgroup lpr nil

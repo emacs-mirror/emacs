@@ -75,7 +75,7 @@
   (cond ((eq system-type 'macos) 'MacOS)
 	;; ((eq system-type 'windows-nt) 'MS-Windows)
 	((memq system-type
-	       '(hpux dgux usg-unix-v unisoft-unix rtu irix berkeley-unix))
+	       '(hpux usg-unix-v unisoft-unix irix berkeley-unix))
 	 'UNIX))			; very similar to GNU
   ;; Anything else defaults to nil, meaning GNU.
   "*Platform to emulate: GNU (default), MacOS, MS-Windows, UNIX.

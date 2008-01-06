@@ -1269,12 +1269,6 @@ get_emacs_configuration (void)
       break;
 #endif
 
-#ifdef PROCESSOR_INTEL_860
-    case PROCESSOR_INTEL_860:
-      arch = "i860";
-      break;
-#endif
-
 #ifdef PROCESSOR_MIPS_R2000
     case PROCESSOR_MIPS_R2000:
     case PROCESSOR_MIPS_R3000:

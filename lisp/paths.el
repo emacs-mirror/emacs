@@ -153,7 +153,7 @@ The `ORGANIZATION' environment variable is used instead if defined.")
 	;; Many GNU/Linux systems use this name.
 	((file-exists-p "/var/spool/mail")
 	 "/var/spool/mail/")
-	((memq system-type '(dgux hpux usg-unix-v unisoft-unix rtu irix))
+	((memq system-type '(hpux usg-unix-v unisoft-unix irix))
 	 "/usr/mail/")
 	(t "/usr/spool/mail/"))
   "Name of directory used by system mailer for delivering new mail.

@@ -1,3 +1,7 @@
+2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* gnus.el (gnus-use-long-file-name): Remove reference to xenix.
+
 2007-12-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-send-mail-function): Increase custom version.

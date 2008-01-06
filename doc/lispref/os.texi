@@ -645,9 +645,6 @@ Berkeley BSD.
 @item cygwin
 Cygwin.
 
-@item dgux
-Data General DGUX operating system.
-
 @item gnu
 the GNU system (using the GNU kernel, which consists of the HURD and Mach).
 
@@ -670,9 +667,6 @@ MS-Windows.
 @item next-mach
 NeXT Mach-based system.
 
-@item unisoft-unix
-UniSoft UniPlus.
-
 @item usg-unix-v
 AT&T System V.
 
@@ -683,8 +677,6 @@ VAX VMS.
 Microsoft windows NT.  The same executable supports Windows 9X, but the
 value of @code{system-type} is @code{windows-nt} in either case.
 
-@item xenix
-SCO Xenix 386.
 @end table
 
 We do not wish to add new symbols to make finer distinctions unless it
