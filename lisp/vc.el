@@ -160,7 +160,7 @@
 ;; - dir-state (dir)
 ;;
 ;;   If provided, this function is used to find the version control
-;;   state of as many files as possible in DIR, and all subdirecties
+;;   state of as many files as possible in DIR, and all subdirectories
 ;;   of DIR, in a fast way; it is used to avoid expensive indivitual
 ;;   vc-state calls.  The function should not return anything, but
 ;;   rather store the files' states into the corresponding properties.
@@ -322,7 +322,7 @@
 ;;
 ;; - modify-change-comment (files rev comment)
 ;;
-;;   Modify the change comments associated with the files at the 
+;;   Modify the change comments associated with the files at the
 ;;   given revision.  This is optional, many backends do not support it.
 ;;
 ;; HISTORY FUNCTIONS
@@ -2157,11 +2157,11 @@ The headers are reset to their non-expanded form."
    files rev oldcomment t
    "Enter a replacement change comment."
    (lambda (files rev comment)
-     (vc-call-backend 
+     (vc-call-backend
       ;; Less of a kluge than it looks like; log-view mode only passes
       ;; this function a singleton list.  Arguments left in this form in
-      ;; case the more general operation ever becomes meaningful. 
-      (vc-responsible-backend (car files)) 
+      ;; case the more general operation ever becomes meaningful.
+      (vc-responsible-backend (car files))
       'modify-change-comment files rev comment))))
 
 ;;;###autoload
@@ -2338,10 +2338,10 @@ This code, like dired, assumes UNIX -l format."
 
 (defun vc-dired-ignorable-p (filename)
   "Should FILENAME be ignored in VC-Dired listings?"
-  (catch t 
+  (catch t
     ;; Ignore anything that wouldn't be found by completion (.o, .la, etc.)
     (dolist (ignorable completion-ignored-extensions)
-      (let ((ext (substring filename 
+      (let ((ext (substring filename
 			      (- (length filename)
 				 (length ignorable)))))
 	(if (string= ignorable ext) (throw t t))))
@@ -2364,7 +2364,7 @@ Called by dired after any portion of a vc-dired buffer has been read in."
     (if (and (vc-call-backend backend 'responsible-p default-directory)
 	     (vc-find-backend-function backend 'dir-state))
 	(vc-call-backend backend 'dir-state default-directory)))
-  (let (filename 
+  (let (filename
 	(inhibit-read-only t)
 	(buffer-undo-list t))
     (goto-char (point-min))
@@ -2412,12 +2412,12 @@ Called by dired after any portion of a vc-dired buffer has been read in."
 	      (dired-kill-line)
 	    (vc-dired-reformat-line "?")
 	    (forward-line 1)))
-	 ;; Either we're in non-terse mode or it's out of date 
+	 ;; Either we're in non-terse mode or it's out of date
 	 ((not (and vc-dired-terse-mode (vc-up-to-date-p filename)))
 	  (vc-dired-reformat-line (vc-call dired-state-info filename))
 	  (forward-line 1))
-	 ;; Remaining cases are under version control but uninteresting 
-	 (t	
+	 ;; Remaining cases are under version control but uninteresting
+	 (t
 	  (dired-kill-line))))
        ;; any other line
        (t (forward-line 1))))
