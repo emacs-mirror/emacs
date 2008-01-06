@@ -477,6 +477,36 @@ REV is the revision to check out into WORKFILE."
 
 (define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming")
 
+
+;; XXX Experimental function for the vc-dired replacement.
+(defun vc-hg-dir-status (dir)
+  "Return a list of conses (file . state) for DIR."
+  (with-temp-buffer
+    (vc-hg-command (current-buffer) nil nil "status" "-A")
+    (goto-char (point-min))
+    (let ((status-char nil)
+	  (file nil)
+	  (translation '((?= . up-to-date)
+			 (?C . up-to-date)
+			 (?A . added)
+			 (?R . removed)
+			 (?M . edited)
+			 (?I . ignored)
+			 (?! . deleted)
+			 (?? . unregistered)))
+	  (translated nil)
+	  (result nil))
+      (while (not (eobp))
+	(setq status-char (char-after))
+	(setq file 
+	      (buffer-substring-no-properties (+ (point) 2) 
+					       (line-end-position)))
+	(setq translated (assoc status-char translation))
+	(when (and translated (not (eq (cdr translated) 'up-to-date)))
+	  (push (cons file (cdr translated)) result))
+	(forward-line))
+      result)))
+
 ;; XXX this adds another top level menu, instead figure out how to
 ;; replace the Log-View menu.
 (easy-menu-define log-view-mode-menu vc-hg-outgoing-mode-map

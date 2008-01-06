@@ -1276,6 +1276,8 @@ Otherwise, throw an error."
                (unless (eq (vc-backend f) firstbackend)
                  (error "All members of a fileset must be under the same version-control system."))))
 	   marked))
+	((eq major-mode 'vc-status-mode)
+	 (vc-status-marked-files))
 	((vc-backend buffer-file-name)
 	 (list buffer-file-name))
 	((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
@@ -2496,6 +2498,94 @@ With prefix arg READ-SWITCHES, specify a value to override
                               vc-dired-switches
                               'vc-dired-mode))))
 
+;;; Experimental code for the vc-dired replacement
+(require 'ewoc)
+
+(defstruct (vc-status-fileinfo
+            (:copier nil)
+            (:constructor vc-status-create-fileinfo (state name &optional marked))
+            (:conc-name vc-status-fileinfo->))
+  marked
+  state
+  name)
+
+(defvar vc-status nil)
+
+(defun vc-status-insert-headers (backend dir)
+  (insert (format "VC backend :%s\n" backend))
+  (insert "Repository : The repository goes here\n")
+  (insert (format "Working dir: %s\n\n\n" dir)))
+
+(defun vc-status-printer (fileentry)
+  "Pretty print FILEENTRY."
+  (insert
+   (format "%c   %-20s %s"
+	   (if (vc-status-fileinfo->marked fileentry) ?* ? )
+	   (vc-status-fileinfo->state fileentry)
+	   (vc-status-fileinfo->name fileentry))))
+
+(defun vc-status (dir)
+  "Show the VC status for DIR."
+  (interactive "DVC status for directory: ")
+  (vc-setup-buffer "*vc-status*")
+  (switch-to-buffer "*vc-status*")
+  (cd dir)
+  (vc-status-mode))
+
+(defvar vc-status-mode-map 
+  (let ((map (make-sparse-keymap)))
+    (define-key map "m" 'vc-status-mark-file)
+    (define-key map "u" 'vc-status-unmark-file)
+    map)
+  "Keymap for VC status")
+
+(defun vc-status-mode ()
+  "Major mode for VC status.
+\\{vc-status-mode-map}"
+  (setq mode-name "*VC Status*")
+  (setq major-mode 'vc-status-mode)
+  (setq buffer-read-only t)
+  (use-local-map vc-status-mode-map)
+  (let ((buffer-read-only nil)
+	(backend (vc-responsible-backend default-directory))
+	entries)
+    (erase-buffer)
+    (set (make-local-variable 'vc-status)
+	 (ewoc-create #'vc-status-printer))
+    (vc-status-insert-headers backend default-directory)
+    (setq entries (vc-call-backend backend 'dir-status default-directory))
+    (dolist (entry entries)
+      (ewoc-enter-last 
+       vc-status (vc-status-create-fileinfo (cdr entry) (car entry))))))
+
+(defun vc-status-mark-file ()
+  "Mark the current file."
+  (interactive)
+  (let* ((crt (ewoc-locate vc-status))
+         (file (ewoc-data crt)))
+    (setf (vc-status-fileinfo->marked file) t)
+    (ewoc-invalidate vc-status crt)
+    (ewoc-goto-next vc-status 1)))
+
+(defun vc-status-unmark-file ()
+  "Mark the current file."
+  (interactive)
+  (let* ((crt (ewoc-locate vc-status))
+         (file (ewoc-data crt)))
+    (setf (vc-status-fileinfo->marked file) nil)
+    (ewoc-invalidate vc-status crt)
+    (ewoc-goto-next vc-status 1)))
+
+(defun vc-status-marked-files ()
+  "Return the list of marked files"
+  (mapcar 
+   (lambda (elem)
+     (expand-file-name (vc-status-fileinfo->name elem)))
+   (ewoc-collect
+    vc-status 
+    (lambda (crt) (vc-status-fileinfo->marked crt)))))
+
+;;; End experimental code.
 
 ;; Named-configuration entry points
 
