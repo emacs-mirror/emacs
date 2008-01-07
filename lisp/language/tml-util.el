@@ -1,6 +1,7 @@
 ;;; tml-util.el --- support for composing tamil characters  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: KAWABATA, Taichi <kawabata@m17n.org>
 ;; Keywords: multilingual, Indian, Tamil
