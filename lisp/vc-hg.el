@@ -286,15 +286,18 @@
   (set (make-local-variable 'log-view-font-lock-keywords)
        (append
 	log-view-font-lock-keywords
-	;; Handle the case:
-	;; user: foo@bar
-	'(("^user:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
-	   (1 'change-log-email))
+	'(
 	  ;; Handle the case:
 	  ;; user: FirstName LastName <foo@bar>
 	  ("^user:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
 	   (1 'change-log-name)
 	   (2 'change-log-email))
+	  ;; Handle the cases:
+	  ;; user: foo@bar 
+	  ;; and 
+	  ;; user: foo
+	  ("^user:[ \t]+\\([A-Za-z0-9_.+-]+\\(?:@[A-Za-z0-9_.-]+\\)?\\)"
+	   (1 'change-log-email))
 	  ("^date: \\(.+\\)" (1 'change-log-date))
 	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
 

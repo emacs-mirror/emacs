@@ -2,6 +2,7 @@
 
 	* vc-hg.el (vc-hg-dir-state, vc-hg-dir-status): Pass the dir
 	argument to vc-hg-command.
+	(vc-hg-log-view-mode): Handle the user field better.
 
 2008-01-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
