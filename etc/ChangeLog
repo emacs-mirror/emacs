@@ -41,7 +41,7 @@
 	emacs48_mac.png, emacs256_mac.png, and emacs512_mac.png,
 	respectively.
 
-2007-12-08  Ulrich Mueller <ulm@gentoo.org>  (tiny change)
+2007-12-08  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
 
 	* emacs.desktop (Exec, Icon, Categories): Fix entries.
 
@@ -3278,13 +3278,13 @@
 
 1993-03-22  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 
-	* spook.lines:	Alpha-sorted this, and added some new hot buttons
+	* spook.lines: Alpha-sorted this, and added some new hot buttons
 	for the 1990s.
 
 1993-03-19  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 
 	* MACHINES: Deleted some VMS caveats.  If the src and lisp
-	ChangeLogs are correct,	dired and mail and process control are now
+	ChangeLogs are correct, dired and mail and process control are now
 	fully supported.
 
 	* NEWS: Added finder news.
@@ -3509,7 +3509,7 @@
 
 1992-01-09  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* emacsclient.c: #include <sys/stat.h>
+	* emacsclient.c: #include <sys/stat.h>.
 	(main): Do declare statbfr.
 
 1991-12-21  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
