@@ -1,3 +1,7 @@
+2008-01-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* url-handlers.el (url-file-handler): Autoload.
+
 2007-12-11  Glenn Morris  <rgm@gnu.org>
 
 	* url-util.el (url-make-private-file): New function.
@@ -916,7 +920,7 @@
 	* texi/url.txi: Start making it vaguely useful.
 
 	* texi/Makefile.in (install): Cope with Debian install-info.
-	From Kai.Grossjohann@CS.Uni-Dortmund.DE (Kai Gro√üjohann).
+	From Kai.Grossjohann@CS.Uni-Dortmund.DE (Kai Groﬂjohann).
 
 2002-04-22  Dave Love  <fx@gnu.org>
 

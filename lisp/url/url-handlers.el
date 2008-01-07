@@ -125,6 +125,7 @@ particularly bad at this\).")
 	(inhibit-file-name-operation operation))
     (apply operation args)))
 
+;;;###autoload
 (defun url-file-handler (operation &rest args)
   "Function called from the `file-name-handler-alist' routines.
 OPERATION is what needs to be done (`file-exists-p', etc).  ARGS are
