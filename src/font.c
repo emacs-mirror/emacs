@@ -3687,7 +3687,7 @@ FONT-OBJECT.  */)
 	      Lisp_Object g = LGSTRING_GLYPH (gstring, i);
 
 	      LGLYPH_SET_FROM (g, LGLYPH_FROM (g) - this_from);
-	      LGLYPH_SET_TO (g, LGLYPH_TO (g) - this_to);
+	      LGLYPH_SET_TO (g, LGLYPH_TO (g) - this_from);
 	      LGSTRING_SET_GLYPH (gstr, i - k, LGSTRING_GLYPH (gstring, i));
 	    }
 	  from = make_number (start + this_from);
