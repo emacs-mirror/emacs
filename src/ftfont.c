@@ -306,11 +306,11 @@ struct font_driver ftfont_driver =
     NULL,
     NULL,
     NULL,
-#ifdef HAVE_M17N_FLT
+#if defined (HAVE_M17N_FLT) && defined (HAVE_LIBOTF)
     ftfont_shape
-#else  /* not HAVE_M17N_FLT */
+#else  /* not (HAVE_M17N_FLT && HAVE_LIBOTF) */
     NULL
-#endif	/* not HAVE_M17N_FLT */
+#endif	/* not (HAVE_M17N_FLT && HAVE_LIBOTF) */
   };
 
 extern Lisp_Object QCname;
