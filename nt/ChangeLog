@@ -32,10 +32,9 @@
 2007-09-06  Glenn Morris  <rgm@gnu.org>
 
 	* configure.bat:
-	* makefile.w32-in (info-nmake, info-gmake)
-	(clean-other-dirs-nmake): Change from ../man to ../doc/emacs and
-	../doc/misc; and from ../lispref, ../lispintro to ../doc/lispref,
-	../doc/lispintro.
+	* makefile.w32-in (info-nmake, info-gmake, clean-other-dirs-nmake):
+	Change from ../man to ../doc/emacs and ../doc/misc; and from
+	../lispref, ../lispintro to ../doc/lispref, ../doc/lispintro.
 
 2007-08-29  Glenn Morris  <rgm@gnu.org>
 
@@ -1001,7 +1000,7 @@
 
 1999-01-31  Andrew Innes  <andrewi@gnu.org>
 
-	* addsection.c: (ROUND_UP_DST_AND_ZERO): Renamed from
+	* addsection.c (ROUND_UP_DST_AND_ZERO): Renamed from
 	ROUND_UP_DST.  Zeroes the alignment slop.
 	(copy_executable_and_add_section): Update the
 	SizeOfHeaders field properly.
@@ -1027,7 +1026,7 @@
 
 1999-01-17  Andrew Innes  <andrewi@gnu.org>
 
-	* makefile.nt: (ALL): List top-level targets.
+	* makefile.nt (ALL): List top-level targets.
 	(addsection): New top-level target.
 	(install): Copy fns-*.el to bin directory.
 
@@ -1190,7 +1189,7 @@
 
 1997-07-10  Geoff Voelker  <voelker@cs.washington.edu>
 
-	* inc/sys/socket.h: (shutdown): Define.
+	* inc/sys/socket.h (shutdown): Define.
 	(sys_shutdown): Export.
 
 1997-07-08  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
@@ -1347,13 +1346,13 @@
 	Definition removed.
 
 	* addpm.c: New file.
-	* makefile.nt (ALL,addpm,addpm.exe,addpm.obj): Defined.
+	* makefile.nt (ALL, addpm, addpm.exe, addpm.obj): Defined.
 	(all): Depend upon $(BLD) and $(ALL).
 	(install): Depend upon emacs.bat.
 	Create program item for Emacs.
 	(clean): Delete obj.
 	(emacs.bat): Defined.
-	* makefile.def (EMACS_ICON_PATH,ADDPM): Defined.
+	* makefile.def (EMACS_ICON_PATH, ADDPM): Defined.
 
 1995-05-27  Geoff Voelker  <voelker@cs.washington.edu>
 
@@ -1366,22 +1365,22 @@
 	* config.h: Changed to config.nt.
 
 	* makefile.nt (SUBDIRS): Commented out.
-	(all,install,clean): Expand for-loops.
-	(BUILD_CMD,INSTALL_CMD,CLEAN_CMD): Defined.
+	(all, install, clean): Expand for-loops.
+	(BUILD_CMD, INSTALL_CMD, CLEAN_CMD): Defined.
 
-	* makefile.def (SYS_LIB_DIR,SYS_INC_DIR): Undefined.
+	* makefile.def (SYS_LIB_DIR, SYS_INC_DIR): Undefined.
 	(ARCH): New definition.
-	(CPU,CONFIG_H,OS_TYPE): Defined.
-	(INCLUDE,LIB): Checked if valid.
+	(CPU, CONFIG_H, OS_TYPE): Defined.
+	(INCLUDE, LIB): Checked if valid.
 	(ntwin32.mak): Included.
-	(AR,CC,LINK): New definition.
-	(ADVAPI32,libc,BASE_LIBS): Defined.
+	(AR, CC, LINK): New definition.
+	(ADVAPI32, libc, BASE_LIBS): Defined.
 	(SYS_LDFLAGS): New definition.
 	Update comments and preprocessor conditionals.
 
 	* emacs.bat (SHELL): Conditionally defined.
 	(HOME): Conditionally defined.
-	(emacs_path,HOME): Update comments.
+	(emacs_path, HOME): Update comments.
 	Turn off all echo.
 
 1995-05-09  Geoff Voelker  <voelker@cs.washington.edu>
