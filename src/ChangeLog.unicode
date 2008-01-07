@@ -1,5 +1,8 @@
 2008-01-07  Kenichi Handa  <handa@ni.aist.go.jp>
 
+	* Makefile.in (lisp): Add kherm.el and myanmar.el.
+	(shortlisp): Likewise.
+
 	* ftfont.c (ftfont_driver): Set ftfont_shape in ftfont_driver only
 	when both HAVE_M17N_FLT and HAVE_LIBOTF are defined.
 
