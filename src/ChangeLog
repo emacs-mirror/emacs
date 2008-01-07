@@ -1,6 +1,6 @@
 2008-01-06  Nick Roberts  <nickrob@snap.net.nz>
 
-	* keyboard.c (parse_menu_item):  Don't enclose key bindings on
+	* keyboard.c (parse_menu_item): Don't enclose key bindings on
 	menu bar in parentheses.
 
 2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -121,7 +121,7 @@
 2008-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/rtu.h:
-	* m/masscomp.h: Remove files. Platform is obsolete.
+	* m/masscomp.h: Remove files.  Platform is obsolete.
 
 2008-01-04  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -148,7 +148,7 @@
 	unsigned int for byte values (necessary for big-endian platform).
 	(Fdbus_call_method): Handle the case of no returned arguments.
 
-2007-12-31  Tom Tromey <tromey@redhat.com>  (tiny change)
+2007-12-31  Tom Tromey  <tromey@redhat.com>  (tiny change)
 
 	* dbusbind.c (xd_read_message): Use non-static input_event struct.
 
@@ -214,8 +214,8 @@
 	* dbusbind.c (XD_BASIC_DBUS_TYPE, XD_DBUS_TYPE_P, XD_NEXT_VALUE):
 	New macros.
 	(XD_SYMBOL_TO_DBUS_TYPE): Rename from XD_LISP_SYMBOL_TO_DBUS_TYPE.
-	(XD_OBJECT_TO_DBUS_TYPE): Rename from
-	XD_LISP_OBJECT_TO_DBUS_TYPE. Simplify.
+	(XD_OBJECT_TO_DBUS_TYPE): Rename from XD_LISP_OBJECT_TO_DBUS_TYPE.
+	Simplify.
 	(xd_signature): New function.
 	(xd_append_arg): Compute also signatures.  Major rewrite.
 	(xd_retrieve_arg): Make debug messages friendly.
@@ -319,7 +319,7 @@
 	DBUS_MAXIMUM_MATCH_RULE_LENGTH for string lengths.
 	(Fdbus_call_method, Fdbus_send_signal, Fdbus_register_signal):
 	Unify argument lists.
-	(xd_read_message, Fdbus_register_signal) Reorder and extend event
+	(xd_read_message, Fdbus_register_signal): Reorder and extend event
 	arguments and hash table keys.  Use unique name for service.
 	(Fdbus_unregister_signal): Remove checks.
 	(Vdbus_registered_functions_table): Fix doc string.
@@ -394,7 +394,7 @@
 
 	* config.in (HAVE_DBUS): Add.
 
-	* Makefile.in: (HAVE_DBUS): Add D-Bus definitions if defined.
+	* Makefile.in (HAVE_DBUS): Add D-Bus definitions if defined.
 	(ALL_CFLAGS): Add ${DBUS_CFLAGS}.
 	(obj): Add $(DBUS_OBJ).
 	(LIBES): Add $(DBUS_LIBS).
@@ -405,7 +405,7 @@
 	* emacs.c (main): Call syms_of_dbusbind when HAVE_DBUS is defined.
 
 	* keyboard.c: All D-Bus related code is wrapped by "#ifdef HAVE_DBUS".
-	(Qdbus_event) New Lisp symbol.
+	(Qdbus_event): New Lisp symbol.
 	(kbd_buffer_get_event, make_lispy_event): Handle DBUS_EVENT.
 	(gobble_input): Call xd_read_queued_messages, reading D-Bus messages.
 	(keys_of_keyboard ): Define dbus-event.
@@ -502,7 +502,7 @@
 
 	* term.c: Include stdarg.h.
 	(fatal): Implement using varargs.
-	* lisp.h (fatal): Add argument types. (Restore 2005-09-30 change).
+	* lisp.h (fatal): Add argument types.  (Restore 2005-09-30 change).
 
 2007-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
