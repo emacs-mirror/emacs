@@ -947,8 +947,8 @@
 	(gnus-registry-fetch-extra-flags, gnus-registry-has-extra-flag)
 	(gnus-registry-store-extra-flags, gnus-registry-delete-extra-flags)
 	(gnus-registry-delete-all-extra-flags): Allow for arbitrary flag symbol
-	 storage through the gnus-registry, and provide an appropriate API for
-	 it.
+	storage through the gnus-registry, and provide an appropriate API for
+	it.
 
 2007-09-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -10239,7 +10239,7 @@
 	* gnus-int.el (gnus-request-delete-group): Use
 	gnus-cache-delete-group and gnus-agent-delete-group to keep the
 	local disk in sync with the server.
-	 (gnus-request-rename-group): Use
+	(gnus-request-rename-group): Use
 	gnus-cache-rename-group and gnus-agent-rename-group to keep the
 	local disk in sync with the server.
 
