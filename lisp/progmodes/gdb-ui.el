@@ -1256,7 +1256,9 @@ This filter may simply queue input for a later time."
 ;;
 
 (defcustom gud-gdb-command-name "gdb --annotate=3"
-  "Default command to execute an executable under the GDB debugger."
+  "Default command to execute an executable under the GDB debugger.
+The option \"--annotate=3\" must be included in this value if you
+want the GDB Graphical Interface."
   :type 'string
   :group 'gud
   :version "22.1")
