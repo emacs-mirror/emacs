@@ -186,8 +186,7 @@
 	(erc-modified-channels-display): If erc-track-switch-direction is
 	'importance, call erc-track-sort-by-importance.
 	(erc-track-face-priority): New function that returns a number
-	indicating the position of a face in
-	erc-track-faces-priority-list.
+	indicating the position of a face in erc-track-faces-priority-list.
 	(erc-track-sort-by-importance): New function that sorts
 	erc-modified-channels-list according to erc-track-face-priority.
 	(erc-track-get-active-buffer): Make 'oldest a rough opposite of
@@ -227,8 +226,7 @@
 	(erc-buffer-visible): Use erc-track-get-buffer-window.
 	(erc-modified-channels-update): Take
 	erc-track-remove-disconnected-buffers into account.
-	(erc-modified-channels-display): Run
-	`erc-track-list-changed-hook'.
+	(erc-modified-channels-display): Run `erc-track-list-changed-hook'.
 
 	* erc.el (erc-reuse-frames): New option that determines whether
 	new frames are always created.  Defaults to t.  This only has an
@@ -350,8 +348,7 @@
 
 2007-06-17  Michael Olson  <mwolson@gnu.org>
 
-	* erc-pkg.el: Update description to match what is currently in
-	ELPA.
+	* erc-pkg.el: Update description to match what is currently in ELPA.
 
 2007-06-14  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -411,7 +408,7 @@
 	(debclean): New rule to clean old Debian packages of ERC.
 	(debprepare): Don't modify the released tarball, but copy it as
 	the .orig.tar.gz file.
-	(debrelease. debrevision): Remove.
+	(debrelease, debrevision): Remove.
 	(debinstall): New target that copies the generated Debian file to
 	a distro-specific location.
 	(deb): New rule that chains together the stages in building a
