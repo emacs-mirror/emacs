@@ -1,3 +1,8 @@
+2008-01-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.c (Fmake_terminal_frame): Use #ifdef MAC_OS8 instead of
+	#ifdef MAC_OS.
+
 2008-01-04  Richard Stallman  <rms@gnu.org>
 
 	* fileio.c (Ffile_name_directory, Fexpand_file_name): Doc fixes.
