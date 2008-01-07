@@ -3567,12 +3567,42 @@ FONT-OBJECT.  */)
     }
 
   CHECK_FONT_GET_OBJECT (font_object, font);
-  if (! font->driver->shape)
-    return from;
-
   len = end - start;
   gstring = Ffont_make_gstring (font_object, make_number (len));
   Ffont_fill_gstring (gstring, font_object, from, to, string);
+  if (! font->driver->shape)
+    {
+      /* Make zero-width glyphs to have one pixel width to make the
+	 display routine not lose the cursor.  */
+      for (i = 0; i < len; i++)
+	{
+	  Lisp_Object g = LGSTRING_GLYPH (gstring, i);
+	  unsigned code = LGLYPH_CODE (g);
+	  struct font_metrics metrics;
+
+	  if (font->driver->text_extents (font, &code, 1, &metrics) == 0)
+	    {
+	      Lisp_Object gstr = Ffont_make_gstring (font_object,
+						     make_number (1));
+	      LGSTRING_SET_WIDTH (gstr, 1);
+	      LGSTRING_SET_LBEARING (gstr, metrics.lbearing);
+	      LGSTRING_SET_RBEARING (gstr, metrics.rbearing + 1);
+	      LGSTRING_SET_ASCENT (gstr, metrics.ascent);
+	      LGSTRING_SET_DESCENT (gstr, metrics.descent);
+	      LGLYPH_SET_FROM (g, 0);
+	      LGLYPH_SET_TO (g, 1);
+	      LGSTRING_SET_GLYPH (gstr, 0, g);
+	      from = make_number (start + i);
+	      to = make_number (start + i + 1);
+	      if (NILP (string))
+		Fcompose_region_internal (from, to, gstr, Qnil);
+	      else
+		Fcompose_region_internal (string, from, to, gstr, Qnil);
+	    }
+	}
+      return make_number (end);
+    }
+
   
   /* Try at most three times with larger gstring each time.  */
   for (i = 0; i < 3; i++)
@@ -3653,7 +3683,13 @@ FONT-OBJECT.  */)
 	  LGSTRING_SET_ASCENT (gstr, metrics.ascent);
 	  LGSTRING_SET_DESCENT (gstr, metrics.descent);
 	  for (k = i; i < j; i++)
-	    LGSTRING_SET_GLYPH (gstr, i - k, LGSTRING_GLYPH (gstring, i));
+	    {
+	      Lisp_Object g = LGSTRING_GLYPH (gstring, i);
+
+	      LGLYPH_SET_FROM (g, LGLYPH_FROM (g) - this_from);
+	      LGLYPH_SET_TO (g, LGLYPH_TO (g) - this_to);
+	      LGSTRING_SET_GLYPH (gstr, i - k, LGSTRING_GLYPH (gstring, i));
+	    }
 	  from = make_number (start + this_from);
 	  to = make_number (start + this_to);
 	  if (NILP (string))
