@@ -582,7 +582,7 @@ Note that changing the size of one terminal frame automatically affects all.  */
     abort ();
 #else /* not MSDOS */
 
-#ifdef MAC_OS
+#ifdef MAC_OS8
   if (sf->output_method != output_mac)
     error ("Not running on a Macintosh screen; cannot make a new Macintosh frame");
 #else
