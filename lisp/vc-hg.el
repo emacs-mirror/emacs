@@ -170,7 +170,7 @@
 
 (defun vc-hg-dir-state (dir)
   (with-temp-buffer
-    (vc-hg-command (current-buffer) nil nil "status")
+    (vc-hg-command (current-buffer) nil dir "status")
     (goto-char (point-min))
     (let ((status-char nil)
 	  (file nil))
