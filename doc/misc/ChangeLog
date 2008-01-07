@@ -50,7 +50,7 @@
 2007-12-21  Alex Schroeder  <alex@gnu.org>
 
 	* rcirc.texi: Changed single spaces after sentence end to double
-	spaces. Fixed some typos.
+	spaces.  Fixed some typos.
 	(Internet Relay Chat): Explain relay.
 	(Getting started with rcirc): Change items to reflect prompts.
 	Add more explanation to rcirc-track-minor-mode and added a comment to
@@ -372,9 +372,8 @@
 
 2007-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus.texi
-	(SpamAssassin back end): Rename spam-spamassassin-path to
-	spam-spamassassin-program.
+	* gnus.texi (SpamAssassin back end): Rename spam-spamassassin-path
+	to spam-spamassassin-program.
 
 2007-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -447,9 +446,9 @@
 
 2007-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus.texi (Gmane Spam Reporting): Fix
-	spam-report-gmane-use-article-number.  Add
-	spam-report-user-mail-address.
+	* gnus.texi (Gmane Spam Reporting):
+	Fix spam-report-gmane-use-article-number.
+	Add spam-report-user-mail-address.
 
 2007-10-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -471,7 +470,7 @@
 	(Agent and flags): New section providing a generalized discussion
 	of flag handling.
 	(Agent and IMAP): Removed flag discussion.
-	(Agent Variables): Added 'gnus-agent-synchronize-flags'
+	(Agent Variables): Added 'gnus-agent-synchronize-flags'.
 
 2007-10-28  Romain Francoise  <romain@orebokech.com>
 
@@ -501,8 +500,7 @@
 
 2007-10-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* gnus.texi (Blacklists and Whitelists)
-	(Blacklists and Whitelists, BBDB Whitelists)
+	* gnus.texi (Blacklists and Whitelists, BBDB Whitelists)
 	(Gmane Spam Reporting, Bogofilter, spam-stat spam filtering)
 	(spam-stat spam filtering, SpamOracle)
 	(Extending the Spam ELisp package): Removed extra quote symbol for
@@ -544,7 +542,7 @@
 2007-10-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus.texi (Spam ELisp Package Configuration Examples):
-	"training.ham" should be "training.spam"
+	"training.ham" should be "training.spam".
 
 2007-10-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -598,26 +596,25 @@
 
 2007-10-28  Jesper Harder  <harder@ifa.au.dk>
 
-	* gnus.texi, gnus-news.texi, pgg.texi, sasl.texi: backend -> back
-	end.
+	* gnus.texi, gnus-news.texi, pgg.texi, sasl.texi: backend -> back end.
 
 	* gnus.texi (MIME Commands, Hashcash): Markup fix.
 
 2007-10-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* gnus.texi: replaced @file{spam.el} with @code{spam.el}
+	* gnus.texi: Replaced @file{spam.el} with @code{spam.el}
 	everywhere for consistency.
-	(Filtering Spam Using The Spam ELisp Package): admonish again.
-	(Spam ELisp Package Sequence of Events): this is Gnus, say so.
+	(Filtering Spam Using The Spam ELisp Package): Admonish again.
+	(Spam ELisp Package Sequence of Events): This is Gnus, say so.
 	Say "regular expression" instead of "regex."  Admonish.  Pick
 	other words to sound better (s/so/thus/).
-	(Spam ELisp Package Filtering of Incoming Mail): mention
+	(Spam ELisp Package Filtering of Incoming Mail): Mention
 	statistical filters.  Remove old TODO.
 	(Spam ELisp Package Sorting and Score Display in Summary Buffer):
-	new section on sorting and displaying the spam score
-	(BBDB Whitelists): mention spam-use-BBDB-exclusive is not a
-	backend but an alias to spam-use-BBDB
-	(Extending the Spam ELisp package): rewrite the example using the
+	New section on sorting and displaying the spam score.
+	(BBDB Whitelists): Mention spam-use-BBDB-exclusive is not a
+	backend but an alias to spam-use-BBDB.
+	(Extending the Spam ELisp package): Rewrite the example using the
 	new backend functionality.
 
 2007-10-28  Simon Josefsson  <jas@extundo.com>
@@ -652,14 +649,13 @@
 
 2007-10-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* gnus.texi (Hashcash): changed location of library, also mention
+	* gnus.texi (Hashcash): Changed location of library, also mention
 	that payments can be verified and fix the name of the
-	hashcash-path variable
+	hashcash-path variable.
 
 2007-10-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus.texi
-	(Article Display): Add `gnus-picon-style'.
+	* gnus.texi (Article Display): Add `gnus-picon-style'.
 
 2007-10-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -668,13 +664,13 @@
 2007-10-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus.texi (Blacklists and Whitelists, BBDB Whitelists)
-	(Bogofilter, spam-stat spam filtering, SpamOracle): old incorrect
-	warning about ham processors in spam groups removed
+	(Bogofilter, spam-stat spam filtering, SpamOracle): Old incorrect
+	warning about ham processors in spam groups removed.
 
 2007-10-28  Teodor Zlatanov  <tzz@lifelogs.com>
-	From Hubert Chan <hubert@uhoreg.ca>
 
-	* gnus.texi (SpamAssassin backend): added new node about SpamAssassin
+	* gnus.texi (SpamAssassin backend): Added new node about SpamAssassin.
+	From Hubert Chan <hubert@uhoreg.ca>.
 
 2007-10-28  Jesper Harder  <harder@ifa.au.dk>
 
@@ -953,7 +949,7 @@
 	(trampfnmhl, trampfnuhl, trampfnhl): Remove macros.  Replace all
 	occurencies by trampfn.
 	(Frequently Asked Questions): Extend example code for host
-	identification in the modeline. Add bbdb to approaches shortening Tramp
+	identification in the modeline.  Add bbdb to approaches shortening Tramp
 	file names to be typed.
 
 	* trampver.texi: Update release number.
@@ -3600,10 +3596,9 @@
 	* gnus.texi (Batching Agents): Fixed typo in example.  Reported
 	by Hiroshi Fujishima <pooh@nature.tsukuba.ac.jp>.
 
-2004-09-20  Andre Srinivasan  <andre@e2open.com>
+2004-09-20  Andre Srinivasan  <andre@e2open.com>  (tiny change)
 
-	* gnus.texi (Group Parameters): Added more on hooks.  (Small
-	change.)
+	* gnus.texi (Group Parameters): Added more on hooks.
 
 2004-09-20  Florian Weimer  <fw@deneb.enyo.de>
 
@@ -3631,7 +3626,8 @@
 
 2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* gnus.texi (Spam ELisp Package Sequence of Events): Some clarifications.
+	* gnus.texi (Spam ELisp Package Sequence of Events):
+	Some clarifications.
 	(Spam ELisp Package Global Variables): More clarifications.
 
 2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
