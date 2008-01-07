@@ -1,3 +1,8 @@
+2008-01-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gud-gdb-command-name): Explain
+	"--annotate=3" option is necessary for the Graphical Interface.
+
 2008-01-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-dir-state): Pass the dir argument to
