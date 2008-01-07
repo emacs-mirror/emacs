@@ -159,6 +159,26 @@ The default value is `devanagari'.")
   (make-char-table nil)
   "Char table of regexps for composable Indian character sequence.")
 
+(let ((script-regexp-alist
+       '((devanagari . "[\x900-\x9FF\x200C\x200D]+")
+	 (bengali . "[\x980-\x9FF\x200C\x200D]+")
+	 (gurmukhi . "[\xA00-\xA7F\x200C\x200D]+")
+	 (gujarati . "[\xA80-\xAFF\x200C\x200D]+")
+	 (oriya . "[\xB00-\xB7F\x200C\x200D]+")
+	 (tamil . "[\xB80-\xBFF\x200C\x200D]+")
+	 (telugu . "[\xC00-\xC7F\x200C\x200D]+")
+	 (kannada . "[\xC80-\xCFF\x200C\x200D]+")
+	 (malayalam . "[\xD00-\xD7F\x200C\x200D]+")
+	 (sinhala . "[\xD80-\xDFF\x200C\x200D]+"))))
+  (map-char-table #'(lambda (key val) 
+		      (let ((slot (assq val script-regexp-alist)))
+			(if slot
+			    (set-char-table-range 
+			     composition-function-table key
+			     (list (cons (cdr slot) 'font-shape-text))))))
+		  char-script-table))
+					      
+
 (provide 'indian)
 
 ;;; arch-tag: 83aa8fc7-7ee2-4364-a6e5-498f5e3b8c2f
