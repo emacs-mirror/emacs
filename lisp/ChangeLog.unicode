@@ -1,5 +1,8 @@
 2008-01-07  Kenichi Handa  <handa@ni.aist.go.jp>
 
+	* language/indian.el: Set font-shape-text for all Indic characters
+	in composition-function-table.
+
 	* language/khmer.el: New file.
 
 	* language/myanmar.el: New file.
