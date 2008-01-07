@@ -547,15 +547,16 @@
 	* quail/hanja3.el ("kf"): Add a few composing rules
 	from "Taik-kyun Lim" <mongmong@milab.yonsei.ac.kr>
 
-	* quail/hangul3.el: buggy alternative second character
+	* quail/hangul3.el: Buggy alternative second character
 	sequence fixed ('/' for 'v' pair).
 	added a few more third character composing rule.
 
 2002-03-03  Werner Lemberg  <wl@gnu.org>
 
 	* quail/vntelex.el: New file.
-	* Makefile.in (VIETNAMESE), makefile.nt (VIETNAMESE),
-	makefile.w32-in (VIETNAMESE): Add it.
+	* Makefile.in (VIETNAMESE):
+	* makefile.nt (VIETNAMESE):
+	* makefile.w32-in (VIETNAMESE): Add it.
 
 2002-02-10  Andrew Innes  <andrewi@gnu.org>
 
@@ -868,7 +869,7 @@
 	* CXTERM-DIC/PY.tit, CXTERM-DIC/ZIRANMA.tit: Delete them.
 
 	* quail/tsang-b5.el, quail/tsang-cns.el, quail/quick-b5.el,
-	quail/quick-cns.el: Delete them.
+	* quail/quick-cns.el: Delete them.
 
 2001-03-30  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -1396,7 +1397,7 @@
 
 1998-03-18  Kenichi Handa  <handa@etl.go.jp>
 
-	* quail/latin-pre.el ("latin-1-prefix"):  Fix the translation of
+	* quail/latin-pre.el ("latin-1-prefix"): Fix the translation of
 	"/ " to "/" (instead of " ").
 
 1998-03-17  Richard Stallman  <rms@psilocin.gnu.org>
@@ -1726,13 +1727,11 @@
 	(CHINEGE-GB): Include quail/py-punct.elc.
 	(CHINEGE-BIG5): Include quail/py-punct-b5.elc.
 
-
 1997-07-10  Kenichi Handa  <handa@etl.go.jp>
 
 	* quail/latin-pre.el: Change titles of quail packages.
 
 	* quail/latin-post.el: Likewise.
-
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
