@@ -83,8 +83,7 @@
 
 2007-11-20  Andreas Schwab  <schwab@suse.de>
 
-	* configure.in: Always include <resolv.h> when checking for
-	res_init.
+	* configure.in: Always include <resolv.h> when checking for res_init.
 
 2007-11-17  Andreas Schwab  <schwab@suse.de>
 
@@ -313,8 +312,7 @@
 
 2007-05-22  Andreas Schwab  <schwab@suse.de>
 
-	* configure.in: Prefer build_alias over host when host_alias is
-	not set.
+	* configure.in: Prefer build_alias over host when host_alias is not set.
 	* configure: Regenerate.
 
 2007-05-20  Andreas Schwab  <schwab@suse.de>
@@ -330,7 +328,7 @@
 
 2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
 
-	* configure.in (AC_CHECK_HEADERS) Add gpm.h.
+	* configure.in (AC_CHECK_HEADERS): Add gpm.h.
 	(AC_CHECK_LIB): Add -lgpm.
 	* configure: Regenerate.
 
@@ -340,8 +338,7 @@
 
 2007-04-27  Andreas Schwab  <schwab@suse.de>
 
-	* Makefile.in (config.status): Depend on
-	${srcdir}/lisp/version.el.
+	* Makefile.in (config.status): Depend on ${srcdir}/lisp/version.el.
 
 2007-04-26  Glenn Morris  <rgm@gnu.org>
 
@@ -4019,7 +4016,7 @@
 	Use bsd4-3.  Don't set NON_GNU_CPP.
 
 	* make-dist: Don't copy in src/s/*.inp.  Don't copy nt/src.
-	In nt. copy various different things, but not *.cmd.
+	In nt, copy various different things, but not *.cmd.
 	Fix the ln commands for the subdirs of nt.
 
 1995-04-29  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
