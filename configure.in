@@ -122,6 +122,8 @@ EMACS_ARG_N([xaw3d],[don't use Xaw3d])
 EMACS_ARG_N([xim],[don't use X11 XIM])
 EMACS_ARG_N([carbon],[don't use Carbon GUI on Mac OS X])
 EMACS_ARG_Y([dbus],[use D-Bus])
+EMACS_ARG_N([libotf],[don't use libotf for OpenType font support])
+EMACS_ARG_N([m17n-flt],[don't use m17n-flt for text shaping])
 
 AC_ARG_ENABLE(carbon-app,
 [AS_HELP_STRING([--enable-carbon-app@<:@=DIR@:>@],
@@ -2483,7 +2485,7 @@ either XPointer or XPointer*.])dnl
   CFLAGS=$late_CFLAGS
 fi
 
-### For font-backend
+#### For font-backend
 if test "${USE_FONT_BACKEND}" = "yes"; then
 
 AC_DEFINE(USE_FONT_BACKEND, 1,
@@ -2518,7 +2520,7 @@ if test "${HAVE_X11}" = "yes"; then
  	AC_SUBST(XFT_LIBS)
         C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
       else
-        CFLAGS="$OLD_CPPFLAGS"
+        CPPFLAGS="$OLD_CPPFLAGS"
         CFLAGS="$OLD_CFLAGS"
         LIBS="$OLD_LIBS"
       fi
@@ -2547,45 +2549,51 @@ elif test "x${with_freetype}" != "xno"; then
     fi
   fi
 fi
+
+HAVE_LIBOTF=no
 if test "${HAVE_FREETYPE}" = "yes"; then
   AC_DEFINE(HAVE_FREETYPE, 1,
-           [Define to 1 if you have freetype and fontconfig libraries.])
-  AC_CHECK_PROG(HAVE_LIBOTF, libotf-config, yes, no)
-  if test "${HAVE_LIBOTF}" = "yes"; then
-    AC_CHECK_LIB(otf, OTF_get_features, , HAVE_LIBOTF=no)
-    if test "${HAVE_LIBOTF}" = "yes"; then
+            [Define to 1 if you have freetype and fontconfig libraries.])
+  if test "${with_libotf}" != "no"; then
+    dnl Check if --with-pkg-config-prog has been given.
+    if test "X${with_pkg_config_prog}" != X; then
+      PKG_CONFIG="${with_pkg_config_prog}"
+    fi
+    PKG_CHECK_MODULES(LIBOTF, libotf, pkg_check_libotf=yes, 
+                      pkg_check_libotf=no)
+    if test "$pkg_check_libotf" = "yes"; then
       AC_DEFINE(HAVE_LIBOTF, 1,
-               [Define to 1 if you have libotf library.])
-      LIBOTF_CFLAGS=`libotf-config --cflags`
-      LIBOTF_LIBS=`libotf-config --libs`
+                [Define to 1 if you have libotf library.])
     fi
   fi
 fi
+
+HAVE_M17N_FLT=no
+if test "${with_m17n_flt}" != "no"; then
+  dnl Check if --with-pkg-config-prog has been given.
+  if test "X${with_pkg_config_prog}" != X; then
+    PKG_CONFIG="${with_pkg_config_prog}"
+  fi
+  dnl Checks for libraries.
+  PKG_CHECK_MODULES(M17N_FLT, m17n-flt, pkg_check_m17n_flt=yes, 
+                    pkg_check_m17n_flt=no)
+  if test "$pkg_check_m17n_flt" = "yes"; then
+    AC_DEFINE(HAVE_M17N_FLT, 1,
+              [Define to 1 if you have m17n-flt library.])
+  fi
+fi
+
 AC_SUBST(FREETYPE_CFLAGS)
 AC_SUBST(FREETYPE_LIBS)
 AC_SUBST(FONTCONFIG_CFLAGS)
 AC_SUBST(FONTCONFIG_LIBS)
 AC_SUBST(LIBOTF_CFLAGS)
 AC_SUBST(LIBOTF_LIBS)
-
-dnl Check if --with-pkg-config-prog has been given.
-if test "X${with_pkg_config_prog}" != X; then
-  PKG_CONFIG="${with_pkg_config_prog}"
-fi
-dnl Checks for libraries.
-PKG_CHECK_MODULES(M17N_FLT, m17n-flt, pkg_check_m17n_flt=yes, 
-		  pkg_check_m17n_flt=no)
-if test "$pkg_check_m17n_flt" = "yes"; then
-  AC_DEFINE(HAVE_M17N_FLT, 1,
-            [Define to 1 if you have m17n-flt library.])
-  AC_SUBST(M17N_FLT_CFLAGS)
-  AC_SUBST(M17N_FLT_LIBS)
-  C_SWITCH_X_SITE="$C_SWITCH_X_SITE $M17N_FLT_CFLAGS"
-  CFLAGS="$CFLAGS $M17N_FLT_CFLAGS"
-  LIBS="$LIBS $M17N_FLT_LIBS"
-fi
+AC_SUBST(M17N_FLT_CFLAGS)
+AC_SUBST(M17N_FLT_LIBS)
 
 fi
+#### End for font-backend
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
 HAVE_XPM=no
