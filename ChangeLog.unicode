@@ -1,3 +1,12 @@
+2008-01-07  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* configure: Re-generated.
+
+	* configure.in: Add EMACS_ARG_N([libotf]...), and
+	EMACS_ARG_N([m17n-flt].  Set back OLD_CPPFLAGS to CPPFLAGS (not
+	CFLAGS) in XFT checking part.  Don't alter C_SWITCH_X_SITE,
+	CFLAGS, and LIBS in checking of m17n-flt.
+
 2007-12-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* configure: Re-generated.
