@@ -123,6 +123,8 @@
 (load "language/misc-lang")
 (load "language/utf-8-lang")
 (load "language/georgian")
+(load "language/khmer")
+(load "language/myanmar")
 
 (load "indent")
 (load "window")
