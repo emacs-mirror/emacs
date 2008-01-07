@@ -982,7 +982,7 @@
 	(verilog-re-search-backward, verilog-re-search-forward-quick)
 	(verilog-re-search-backward-quick, verilog-get-beg-of-line)
 	(verilog-get-end-of-line, verilog-within-string): Move definitions
-	before first use. No code changes.
+	before first use.  No code changes.
 
 2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -1396,7 +1396,7 @@
 2007-12-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-hash-table=): New defun.
-	(dbus-hash-table-test) New hash table test function, used in
+	(dbus-hash-table-test): New hash table test function, used in
 	`dbus-registered-functions-table'.
 	(dbus-check-event, dbus-handle-event, dbus-event-bus-name)
 	(dbus-event-service-name, dbus-event-path-name)
@@ -5843,7 +5843,7 @@
 
 2007-10-08  Jason Rumney  <jasonr@gnu.org>
 
-	* frame.el (focus-follows-mouse): Doc-fix. Change default on w32.
+	* frame.el (focus-follows-mouse): Doc-fix.  Change default on w32.
 
 2007-10-08  Richard Stallman  <rms@gnu.org>
 
@@ -7332,7 +7332,7 @@
 	* server.el (server-start, server-unload-hook):
 	suspend-tty-functions has been renamed to suspend-tty-hook.
 
-	* xt-mouse.el: Likewise. resume-tty-functions has been renamed to
+	* xt-mouse.el: Likewise.  resume-tty-functions has been renamed to
 	resume-tty-hook.
 
 2007-09-03  Emanuele Giaquinta  <e.giaquinta@glauco.it>  (tiny change)
@@ -9880,9 +9880,9 @@
 
 	* vc.el (revision-granularity, create-repo): Document new vc
 	backend properties.
-	(vc-rollback): Renamed from vc-cancel-version. Update
-	references. Pass a list instead of a file.
-	(vc-revert): Renamed from vc-revert-buffer. Update references.
+	(vc-rollback): Renamed from vc-cancel-version.  Update references.
+	Pass a list instead of a file.
+	(vc-revert): Renamed from vc-revert-buffer.  Update references.
 	(vc-delistify, vc-expand-dirs): New functions.
 	(vc-do-command): Rename FILE to FILE-OR-LIST and deal with a list
 	of files instead of a single file.
@@ -9895,7 +9895,7 @@
 	(vc-workfile-version): Update docstring.
 	(vc-menu-map): Use vc-rollback instead of vc-cancel-version and
 	vc-revert instead of vc-revert-buffer.
-	(vc-prefix-map): Likewise. Bind vc-update.
+	(vc-prefix-map): Likewise.  Bind vc-update.
 
 	* vc-svn.el (vc-svn-revision-granularity, vc-svn-create-repo)
 	(vc-svn-wash-log): New functions.
@@ -9906,7 +9906,7 @@
 	(vc-rcs-wash-log): New functions.
 	(vc-rcs-register, vc-rcs-checkin, vc-rcs-diff, vc-rcs-print-log):
 	Deal with a list of files, not a single file.
-	(vc-rcs-rollback): Likewise. Rename from vc-rcs-cancel-version.
+	(vc-rcs-rollback): Likewise.  Rename from vc-rcs-cancel-version.
 
 	* vc-sccs.el (vc-sccs-revision-granularity, vc-sccs-wash-log): New
 	functions.
@@ -9931,7 +9931,7 @@
 	a single file.
 	(vc-cvs-print-log, vc-cvs-command): Rename FILE to FILES to denote
 	that it is a file list, not a single file.
-	(vc-cvs-diff): Likewise. Simplify.
+	(vc-cvs-diff): Likewise.  Simplify.
 
 	* vc-arch.el (vc-arch-register, vc-arch-checkin, vc-arch-diff):
 	Deal with a list of files, not a single file.
@@ -9939,7 +9939,7 @@
 	* vc-bzr.el (vc-bzr-register, vc-bzr-command, vc-bzr-checkin)
 	(vc-bzr-print-log): Update FILE parameter name to denote that it
 	is a file list, not a single file.
-	(vc-bzr-diff): Likewise. Use the car of files.
+	(vc-bzr-diff): Likewise.  Use the car of files.
 
 2007-07-18  Juanma Barranquero  <lekktu@gmail.com>
 
