@@ -35,3 +35,5 @@
 (let ((val '(("[\x1780-\x17FF\x19E0-\x19FF\x200C\x200D]+" . font-shape-text))))
   (set-char-table-range composition-function-table '(#x1780 . #x17FF) val)
   (set-char-table-range composition-function-table '(#x19E0 . #x19FF) val))
+
+;; arch-tag: 032890e4-a936-4584-ad44-79eb5f8bc98e
