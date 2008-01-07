@@ -40,7 +40,7 @@
 2007-10-12  Diane Murray  <disumu@x3y2z1.net>
 
 	* url-auth.el (url-basic-auth): Set path to "/" when URL has an
-        empty string filename.
+	empty string filename.
 
 2007-10-09  Richard Stallman  <rms@gnu.org>
 
@@ -53,7 +53,7 @@
 2007-09-22  Diane Murray  <disumu@x3y2z1.net>
 
 	* url-misc.el (url-generic-emulator-loader): Send the port as a
-        string to `url-do-terminal-emulator'.
+	string to `url-do-terminal-emulator'.
 
 2007-09-21  Diane Murray  <disumu@x3y2z1.net>
 
@@ -66,7 +66,7 @@
 
 2007-09-03  Diane Murray  <disumu@x3y2z1.net>
 
-	* url-http.el: (url-http-parse-headers): Bind the current buffer
+	* url-http.el (url-http-parse-headers): Bind the current buffer
 	rather than calling `url-mark-buffer-as-dead' with
 	`current-buffer', so that the correct buffer is killed if
 	`url-retrieve-synchronously' gets redirected to a new URL.
@@ -920,7 +920,7 @@
 	* texi/url.txi: Start making it vaguely useful.
 
 	* texi/Makefile.in (install): Cope with Debian install-info.
-	From Kai.Grossjohann@CS.Uni-Dortmund.DE (Kai Groﬂjohann).
+	From Kai.Grossjohann@CS.Uni-Dortmund.DE (Kai Grossjohann).
 
 2002-04-22  Dave Love  <fx@gnu.org>
 
