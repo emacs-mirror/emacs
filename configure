@@ -700,7 +700,6 @@ FREETYPE_CFLAGS
 FREETYPE_LIBS
 FONTCONFIG_CFLAGS
 FONTCONFIG_LIBS
-HAVE_LIBOTF
 LIBOTF_CFLAGS
 LIBOTF_LIBS
 M17N_FLT_CFLAGS
@@ -1371,6 +1370,8 @@ Optional Packages:
   --without-xim           don't use X11 XIM
   --without-carbon        don't use Carbon GUI on Mac OS X
   --with-dbus             use D-Bus
+  --without-libotf        don't use libotf for OpenType font support
+  --without-m17n-flt      don't use m17n-flt for text shaping
   --with-x                use the X Window System
 
 Some influential environment variables:
@@ -2045,6 +2046,18 @@ fi
 # Check whether --with-dbus was given.
 if test "${with_dbus+set}" = set; then
   withval=$with_dbus;
+fi
+
+
+# Check whether --with-libotf was given.
+if test "${with_libotf+set}" = set; then
+  withval=$with_libotf;
+fi
+
+
+# Check whether --with-m17n-flt was given.
+if test "${with_m17n_flt+set}" = set; then
+  withval=$with_m17n_flt;
 fi
 
 
@@ -12893,7 +12906,7 @@ _ACEOF
   CFLAGS=$late_CFLAGS
 fi
 
-### For font-backend
+#### For font-backend
 if test "${USE_FONT_BACKEND}" = "yes"; then
 
 
@@ -13221,7 +13234,7 @@ _ACEOF
 
         C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
       else
-        CFLAGS="$OLD_CPPFLAGS"
+        CPPFLAGS="$OLD_CPPFLAGS"
         CFLAGS="$OLD_CFLAGS"
         LIBS="$OLD_LIBS"
       fi
@@ -13237,7 +13250,6 @@ elif test "x${with_freetype}" != "xno"; then
     if test "X${with_pkg_config_prog}" != X; then
     PKG_CONFIG="${with_pkg_config_prog}"
   fi
-
 
   succeeded=no
 
@@ -13436,30 +13448,42 @@ echo "${ECHO_T}no" >&6; }
     fi
   fi
 fi
+
+HAVE_LIBOTF=no
 if test "${HAVE_FREETYPE}" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_FREETYPE 1
 _ACEOF
 
-  # Extract the first word of "libotf-config", so it can be a program name with args.
-set dummy libotf-config; ac_word=$2
+  if test "${with_libotf}" != "no"; then
+        if test "X${with_pkg_config_prog}" != X; then
+      PKG_CONFIG="${with_pkg_config_prog}"
+    fi
+
+  succeeded=no
+
+  if test -z "$PKG_CONFIG"; then
+    # Extract the first word of "pkg-config", so it can be a program name with args.
+set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-if test "${ac_cv_prog_HAVE_LIBOTF+set}" = set; then
+if test "${ac_cv_path_PKG_CONFIG+set}" = set; then
   echo $ECHO_N "(cached) $ECHO_C" >&6
 else
-  if test -n "$HAVE_LIBOTF"; then
-  ac_cv_prog_HAVE_LIBOTF="$HAVE_LIBOTF" # Let the user override the test.
-else
-as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+  case $PKG_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_PKG_CONFIG="$PKG_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
 for as_dir in $PATH
 do
   IFS=$as_save_IFS
   test -z "$as_dir" && as_dir=.
   for ac_exec_ext in '' $ac_executable_extensions; do
   if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-    ac_cv_prog_HAVE_LIBOTF="yes"
+    ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
     echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -13467,114 +13491,86 @@ done
 done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_prog_HAVE_LIBOTF" && ac_cv_prog_HAVE_LIBOTF="no"
+  test -z "$ac_cv_path_PKG_CONFIG" && ac_cv_path_PKG_CONFIG="no"
+  ;;
+esac
 fi
-fi
-HAVE_LIBOTF=$ac_cv_prog_HAVE_LIBOTF
-if test -n "$HAVE_LIBOTF"; then
-  { echo "$as_me:$LINENO: result: $HAVE_LIBOTF" >&5
-echo "${ECHO_T}$HAVE_LIBOTF" >&6; }
+PKG_CONFIG=$ac_cv_path_PKG_CONFIG
+if test -n "$PKG_CONFIG"; then
+  { echo "$as_me:$LINENO: result: $PKG_CONFIG" >&5
+echo "${ECHO_T}$PKG_CONFIG" >&6; }
 else
   { echo "$as_me:$LINENO: result: no" >&5
 echo "${ECHO_T}no" >&6; }
 fi
 
 
-  if test "${HAVE_LIBOTF}" = "yes"; then
+  fi
 
-{ echo "$as_me:$LINENO: checking for OTF_get_features in -lotf" >&5
-echo $ECHO_N "checking for OTF_get_features in -lotf... $ECHO_C" >&6; }
-if test "${ac_cv_lib_otf_OTF_get_features+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lotf  $LIBS"
-cat >conftest.$ac_ext <<_ACEOF
-/* confdefs.h.  */
-_ACEOF
-cat confdefs.h >>conftest.$ac_ext
-cat >>conftest.$ac_ext <<_ACEOF
-/* end confdefs.h.  */
+  if test "$PKG_CONFIG" = "no" ; then
+     pkg_check_libotf=no
+  else
+     PKG_CONFIG_MIN_VERSION=0.9.0
+     if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
+        { echo "$as_me:$LINENO: checking for libotf" >&5
+echo $ECHO_N "checking for libotf... $ECHO_C" >&6; }
 
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char OTF_get_features ();
-int
-main ()
-{
-return OTF_get_features ();
-  ;
-  return 0;
-}
-_ACEOF
-rm -f conftest.$ac_objext conftest$ac_exeext
-if { (ac_try="$ac_link"
-case "(($ac_try" in
-  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-  *) ac_try_echo=$ac_try;;
-esac
-eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-  (eval "$ac_link") 2>conftest.er1
-  ac_status=$?
-  grep -v '^ *+' conftest.er1 >conftest.err
-  rm -f conftest.er1
-  cat conftest.err >&5
-  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-  (exit $ac_status); } && {
-	 test -z "$ac_c_werror_flag" ||
-	 test ! -s conftest.err
-       } && test -s conftest$ac_exeext &&
-       $as_test_x conftest$ac_exeext; then
-  ac_cv_lib_otf_OTF_get_features=yes
-else
-  echo "$as_me: failed program was:" >&5
-sed 's/^/| /' conftest.$ac_ext >&5
+        if $PKG_CONFIG --exists "libotf" 2>&5; then
+            { echo "$as_me:$LINENO: result: yes" >&5
+echo "${ECHO_T}yes" >&6; }
+            succeeded=yes
 
-	ac_cv_lib_otf_OTF_get_features=no
-fi
+            { echo "$as_me:$LINENO: checking LIBOTF_CFLAGS" >&5
+echo $ECHO_N "checking LIBOTF_CFLAGS... $ECHO_C" >&6; }
+            LIBOTF_CFLAGS=`$PKG_CONFIG --cflags "libotf"|sed -e 's,///*,/,g'`
+            { echo "$as_me:$LINENO: result: $LIBOTF_CFLAGS" >&5
+echo "${ECHO_T}$LIBOTF_CFLAGS" >&6; }
 
-rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-      conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ echo "$as_me:$LINENO: result: $ac_cv_lib_otf_OTF_get_features" >&5
-echo "${ECHO_T}$ac_cv_lib_otf_OTF_get_features" >&6; }
-if test $ac_cv_lib_otf_OTF_get_features = yes; then
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBOTF 1
-_ACEOF
+            { echo "$as_me:$LINENO: checking LIBOTF_LIBS" >&5
+echo $ECHO_N "checking LIBOTF_LIBS... $ECHO_C" >&6; }
+            LIBOTF_LIBS=`$PKG_CONFIG --libs "libotf"|sed -e 's,///*,/,g'`
+            { echo "$as_me:$LINENO: result: $LIBOTF_LIBS" >&5
+echo "${ECHO_T}$LIBOTF_LIBS" >&6; }
+        else
+            { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+            LIBOTF_CFLAGS=""
+            LIBOTF_LIBS=""
+            ## If we have a custom action on failure, don't print errors, but
+            ## do set a variable so people can do so.
+            LIBOTF_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "libotf"`
 
-  LIBS="-lotf $LIBS"
+        fi
 
-else
-  HAVE_LIBOTF=no
-fi
 
-    if test "${HAVE_LIBOTF}" = "yes"; then
+
+     else
+        echo "*** Your version of pkg-config is too old. You need version $PKG_CONFIG_MIN_VERSION or newer."
+        echo "*** See http://www.freedesktop.org/software/pkgconfig"
+     fi
+  fi
+
+  if test $succeeded = yes; then
+     pkg_check_libotf=yes
+  else
+     pkg_check_libotf=no
+  fi
+
+    if test "$pkg_check_libotf" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBOTF 1
 _ACEOF
 
-      LIBOTF_CFLAGS=`libotf-config --cflags`
-      LIBOTF_LIBS=`libotf-config --libs`
     fi
   fi
 fi
 
-
-
-
-
-
-
-if test "X${with_pkg_config_prog}" != X; then
-  PKG_CONFIG="${with_pkg_config_prog}"
-fi
+HAVE_M17N_FLT=no
+if test "${with_m17n_flt}" != "no"; then
+    if test "X${with_pkg_config_prog}" != X; then
+    PKG_CONFIG="${with_pkg_config_prog}"
+  fi
 
   succeeded=no
 
@@ -13671,20 +13667,26 @@ echo "${ECHO_T}no" >&6; }
      pkg_check_m17n_flt=no
   fi
 
-if test "$pkg_check_m17n_flt" = "yes"; then
+  if test "$pkg_check_m17n_flt" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_M17N_FLT 1
 _ACEOF
 
-
-
-  C_SWITCH_X_SITE="$C_SWITCH_X_SITE $M17N_FLT_CFLAGS"
-  CFLAGS="$CFLAGS $M17N_FLT_CFLAGS"
-  LIBS="$LIBS $M17N_FLT_LIBS"
+  fi
 fi
 
+
+
+
+
+
+
+
+
+
 fi
+#### End for font-backend
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
 HAVE_XPM=no
@@ -19102,11 +19104,13 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
@@ -19146,11 +19150,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
@@ -25209,7 +25215,6 @@ FREETYPE_CFLAGS!$FREETYPE_CFLAGS$ac_delim
 FREETYPE_LIBS!$FREETYPE_LIBS$ac_delim
 FONTCONFIG_CFLAGS!$FONTCONFIG_CFLAGS$ac_delim
 FONTCONFIG_LIBS!$FONTCONFIG_LIBS$ac_delim
-HAVE_LIBOTF!$HAVE_LIBOTF$ac_delim
 LIBOTF_CFLAGS!$LIBOTF_CFLAGS$ac_delim
 LIBOTF_LIBS!$LIBOTF_LIBS$ac_delim
 M17N_FLT_CFLAGS!$M17N_FLT_CFLAGS$ac_delim
@@ -25222,6 +25227,7 @@ KMEM_GROUP!$KMEM_GROUP$ac_delim
 GETLOADAVG_LIBS!$GETLOADAVG_LIBS$ac_delim
 GETOPT_H!$GETOPT_H$ac_delim
 GETOPTOBJS!$GETOPTOBJS$ac_delim
+version!$version$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -25263,7 +25269,6 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
-version!$version$ac_delim
 configuration!$configuration$ac_delim
 canonical!$canonical$ac_delim
 srcdir!$srcdir$ac_delim
@@ -25288,7 +25293,7 @@ carbon_appdir!$carbon_appdir$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 23; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 22; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
