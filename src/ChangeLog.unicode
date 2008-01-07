@@ -1,3 +1,12 @@
+2008-01-07  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* ftfont.c (ftfont_driver): Set ftfont_shape in ftfont_driver only
+	when both HAVE_M17N_FLT and HAVE_LIBOTF are defined.
+
+	* font.c (Ffont_shape_text): If the font driver doesn't have a
+	shaper function, make zero-width glyphs to have at least one-pixel
+	width.  Fix setting of `to' field of glyphs.
+
 2007-12-27  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* ftfont.c (ftfont_drive_otf): Fix setting of FROM and TO slots of
