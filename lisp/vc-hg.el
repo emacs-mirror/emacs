@@ -184,7 +184,7 @@
 (defun vc-hg-dir-state (dir)
   (with-temp-buffer
     (buffer-disable-undo)		;; Because these buffers can get huge
-    (vc-hg-command (current-buffer) nil nil "status" "-A")
+    (vc-hg-command (current-buffer) nil dir "status" "-A")
     (goto-char (point-min))
     (let ((status-char nil)
 	  (file nil))
@@ -482,7 +482,7 @@ REV is the revision to check out into WORKFILE."
 (defun vc-hg-dir-status (dir)
   "Return a list of conses (file . state) for DIR."
   (with-temp-buffer
-    (vc-hg-command (current-buffer) nil nil "status" "-A")
+    (vc-hg-command (current-buffer) nil dir "status" "-A")
     (goto-char (point-min))
     (let ((status-char nil)
 	  (file nil)
