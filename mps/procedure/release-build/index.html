@@ -189,9 +189,10 @@ add the release to the list of releases for VERSION, in a manner
 consistent with previous releases. </p></li>
 
 <li><p> Edit the
-<code>//info.ravenbrook.com/infosys/cgi/issue.cgi</code> script to add
+<code>//info.ravenbrook.com/infosys/cgi/data.py</code> script to add
 the release changelevel to the <code>releases</code> table, so that the
-correct set of known and fixed issues can be derived. </p></li>
+correct set of known and fixed issues can be derived and shown on the 
+project's <code>issues</code> page. </p></li>
 
 <li><p> Submit these changes with the comment "MPS: registered release
 RELEASE."  </p></li>
@@ -310,12 +311,18 @@ RELEASE."  </p></li>
   <td>Releasename now also in w3build.bat.</td>
 </tr>
 
+<tr valign="top">
+  <td>2008-01-07</td>
+  <td><a href="mailto:rhsk@ravenbrook.com">RHSK</a></td>
+  <td>Release changelevel was in issue.cgi, now in data.py.</td>
+</tr>
+
 </table>
 
 
 <h2><a id="section-C" name="section-C">C. Copyright and License</a></h2>
 
-<p> This document is copyright &copy; 2002, 2005-2007 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
+<p> This document is copyright &copy; 2002, 2005-2008 <a href="http://www.ravenbrook.com/">Ravenbrook Limited</a>.  All rights reserved.  This is an open source license.  Contact Ravenbrook for commercial licensing options. </p>
 
 <p> Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met: </p>
 
