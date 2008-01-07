@@ -1313,7 +1313,7 @@
 	* lisp/url-about.el (url-about): New loader scheme to handle
 	about:foo URLs.  Automatically tries to find a `url-about-foo'
 	function to display the actual data.
-	(url-about-protocols): Implement about:protocols
+	(url-about-protocols): Implement about:protocols.
 
 	* lisp/url-http.el (url-http): Make sure that we signal an error
 	when we cannot open a network connection for whatever reason.
@@ -1660,11 +1660,11 @@
 2001-01-03  Sam Steingold  <sds@gnu.org>
 
 	* lisp/url-http.el (url-http-wait-for-headers-change-function):
-	set `url-http-end-of-headers' to 0 for HTTP 0.9
+	set `url-http-end-of-headers' to 0 for HTTP 0.9.
 
 2001-01-02  Sam Steingold  <sds@gnu.org>
 
-	* lisp/url-auth.el (provide): `url-auth', not `urlauth'
+	* lisp/url-auth.el (provide): `url-auth', not `urlauth'.
 
 2000-12-22  Dave Love  <fx@gnu.org>
 
@@ -1752,7 +1752,7 @@
 	IRC URL so people don't think I'm crazy.
 
 	* configure.in: Checks to make sure that Gnus was found, since we
-	HAVE to have it now.  Removed conditional compilation of url-cid.el
+	HAVE to have it now.  Removed conditional compilation of url-cid.el.
 
 1999-12-16  Eric Marsden  <emarsden@mail.dotcom.fr>
 
@@ -1836,7 +1836,7 @@
 1999-12-06  William M. Perry  <wmperry@aventail.com>
 
 	* lisp/mule-sysdp.el (mule-code-convert-region): Deal with Mule
-	4.1 gracefully
+	4.1 gracefully.
 
 	* lisp/url-news.el: Reimplemented news and nntp URL support.
 	No longer bothers to check for outdated Gnus versions, since this
@@ -1862,7 +1862,7 @@
 	as well as efs.
 	(url-file): Add default content-type of application/octet-stream if
 	none known.
-	(url-file): Correct bad call to url-host-is-local-p
+	(url-file): Correct bad call to url-host-is-local-p.
 
 	* lisp/url-handlers.el (url-insert-file-contents): Emacs doesn't
 	like buffer-substring with nil arguments.
@@ -1878,7 +1878,7 @@
 	(url-scheme-get-property): Use it when we load a URL scheme for
 	the first time.
 
-	* lisp/url-util.el (url-get-url-at-point): Re-integrated
+	* lisp/url-util.el (url-get-url-at-point): Re-integrated.
 
 1999-12-04  William M. Perry  <wmperry@aventail.com>
 
