@@ -1,3 +1,8 @@
+2008-01-05  Ralf Angeli  <angeli@caeruleus.net>
+
+	* textmodes/reftex-toc.el (reftex-make-separate-toc-frame):
+	Simplify selection of frame focusing function.
+
 2008-01-08  Michael Olson  <mwolson@gnu.org>
 
 	* textmodes/remember.el (remember-region): Fix typo in docstring.
