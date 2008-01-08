@@ -1,3 +1,16 @@
+2008-01-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* vc-git.el (vc-git--call): Apply `process-file' instead of
+	`call-process'.
+
+	* net/tramp.el (tramp-remote-process-environment): Add "LC_CTYPE=C".
+	Reported by Pete Forman <pete.forman@westerngeco.com>.
+	(tramp-perl-encode, tramp-perl-decode): Update copyrights.
+	(tramp-handle-process-file): Handle the case where DESTINATION is
+	a consp with t as car.
+	(tramp-wait-for-output): We shall remove exactly what has been
+	find by the search.
+
 2008-01-08  Kevin Ryde  <user42@zip.com.au>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):

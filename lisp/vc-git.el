@@ -444,7 +444,10 @@ The difference to vc-do-command is that this function always invokes `git'."
   (apply 'vc-do-command buffer okstatus "git" file-or-list flags))
 
 (defun vc-git--call (buffer command &rest args)
-  (apply 'call-process "git" nil buffer nil command args))
+  ;; We don't need to care the arguments.  If there is a file name, it
+  ;; is always a relative one.  This works also for remote
+  ;; directories.
+  (apply 'process-file "git" nil buffer nil command args))
 
 (defun vc-git--out-ok (command &rest args)
   (zerop (apply 'vc-git--call '(t nil) command args)))
