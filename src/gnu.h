@@ -1,7 +1,7 @@
 /* XPM */
 /* Emacs "E" icon
 
-Copyright (C) 2005, 2006, 2007  Free Software Foundation, Inc.
+Copyright (C) 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
 Author: Andrew Zhilin <andrew_zhilin@yahoo.com>
 
