@@ -1,3 +1,8 @@
+2008-01-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-list-children-1): Put varnum in
+	quotes in case of spaces, e.g. STL containers (not pretty).
+
 2008-01-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-log-view-mode): Handle the user field better.
