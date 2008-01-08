@@ -273,10 +273,12 @@ called."
 INITIAL is the text to initially place in the *Remember* buffer,
 or nil to bring up a blank *Remember* buffer.
 
-With a prefix, use the region as INITIAL."
+With a prefix or a visible region, use the region as INITIAL."
   (interactive
-   (list (when current-prefix-arg
-           (buffer-substring (point) (mark)))))
+   (list (when (or current-prefix-arg
+                   (and mark-active
+                        transient-mark-mode))
+           (buffer-substring (region-beginning) (region-end)))))
   (funcall (if remember-in-new-frame
                #'frame-configuration-to-register
              #'window-configuration-to-register) remember-register)
@@ -422,7 +424,7 @@ Subject: %s\n\n"
 (defun remember-region (&optional beg end)
   "Remember the data from BEG to END.
 It is called from within the *Remember* buffer to save the text
-that was entered,
+that was entered.
 
 If BEG and END are nil, the entire buffer will be remembered.
 

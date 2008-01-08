@@ -1,3 +1,15 @@
+2008-01-08  Michael Olson  <mwolson@gnu.org>
+
+	* textmodes/remember.el (remember-region): Fix typo in docstring.
+
+2008-01-08  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* textmodes/remember.el (remember): If there is a visible region
+	[that is, the mark is active and transient mark mode is enabled]
+	then use this region for the initial contents of the *Remember*
+	buffer.  Use `region-beginning' and `region-end' instead of
+	`point' and `mark'.
+
 2008-01-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-dir-state, vc-hg-dir-status): Pass the dir
