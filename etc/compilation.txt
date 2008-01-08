@@ -289,6 +289,7 @@ Died at test.pl line 27.
 store::odrecall('File_A', 'x2') called at store.pm line 90
 	(in cleanup) something bad at foo.pl line 3 during global destruction.
 
+
 * RXP
 
 symbol: rxp
