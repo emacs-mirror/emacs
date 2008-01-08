@@ -1,7 +1,8 @@
 2008-01-08  Kevin Ryde  <user42@zip.com.au>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
-	For perl, allow "during global destruction" at end.
+	For perl, allow "during global destruction" at end.  Add entry for
+	two-arg form of the Test module ok() func.
 
 2008-01-08  Glenn Morris  <rgm@gnu.org>
 
