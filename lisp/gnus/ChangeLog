@@ -1,3 +1,13 @@
+2008-01-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-bookmark.el (gnus-bookmark-mouse-available-p): Don't test for
+	display-color-p.  Reported by Reiner Steib <Reiner.Steib@gmx.de>.
+
+2008-01-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-group.el (gnus-group-gmane-group-download-format): New variable.
+	(gnus-group-read-ephemeral-gmane-group): New command.
+
 2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* gnus.el (gnus-use-long-file-name): Remove reference to xenix.

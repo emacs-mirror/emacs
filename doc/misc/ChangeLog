@@ -1,3 +1,11 @@
+2008-01-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.texi (Mail Variables): Add some text from "(gnus)Posting
+	Server".  Add `message-send-mail-with-mailclient'.
+
+	* gnus.texi (Posting Server): Move some text to "(message)Mail
+	Variables" and add a reference here.
+
 2008-01-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Receiving Method Calls): New chapter.
