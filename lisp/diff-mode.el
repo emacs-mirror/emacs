@@ -1,7 +1,7 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: convenience patch diff
@@ -401,9 +401,13 @@ when editing big diffs)."
 (defun diff-end-of-hunk (&optional style)
   ;; Especially important for unified (because headers are ambiguous).
   (setq style (diff-hunk-style style))
+  ;; Some versions of diff replace all-blank context lines in unified
+  ;; format with empty lines. The use of \n below avoids matching such
+  ;; lines as headers.
+  ;; http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html
   (let ((end (and (re-search-forward (case style
 				       ;; A `unified' header is ambiguous.
-				       (unified (concat "^[^-+# \\]\\|"
+				       (unified (concat "^[^-+# \\\n]\\|"
 							diff-file-header-re))
 				       (context "^[^-+#! \\]")
 				       (normal "^[^<>#\\]")
