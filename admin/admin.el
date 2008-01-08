@@ -152,6 +152,7 @@ Root must be the root of an Emacs source tree."
 		"/* development, alpha, beta, or final (release) */"))))))
 
 ;; Note this makes some assumptions about form of short copyright.
+;; FIXME add the \year in the refcards/*.tex files.
 (defun set-copyright (root copyright)
   "Set Emacs short copyright to COPYRIGHT in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
