@@ -3484,9 +3484,9 @@ is set in them."
   (gdb-enqueue-input
    (list
     (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
-	(concat "server interpreter mi \"-var-list-children --all-values "
-		varnum "\"\n")
-      (concat "-var-list-children --all-values " varnum "\n"))
+	(concat "server interpreter mi \"-var-list-children --all-values \\\""
+		varnum "\\\"\"\n")
+      (concat "-var-list-children --all-values \"" varnum "\"\n"))
     `(lambda () (gdb-var-list-children-handler-1 ,varnum)))))
 
 (defconst gdb-var-list-children-regexp-1
