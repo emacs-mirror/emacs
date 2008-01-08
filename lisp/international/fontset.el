@@ -52,7 +52,7 @@
 	("iso8859-15$" . iso-8859-15)
 	("gb2312.1980" . chinese-gb2312)
 	("gbk" . chinese-gbk)
-	("gb18030" . gb18030)
+	("gb18030" . (unicode . nil))
 	("jisx0208.1978" . japanese-jisx0208-1978)
 	("jisx0208" . japanese-jisx0208)
 	("jisx0201" . jisx0201)
