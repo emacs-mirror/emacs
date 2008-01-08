@@ -1,3 +1,12 @@
+2008-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* calccard.tex, cs-dired-ref.tex, cs-refcard.tex, cs-survival.tex:
+	* de-refcard.tex, dired-ref.tex, fr-drdref.tex, fr-refcard.tex:
+	* fr-survival.tex, gnus-refcard.tex, orgcard.tex, pl-refcard.tex:
+	* pt-br-refcard.tex, refcard.tex, ru-refcard.tex, sk-dired-ref.tex:
+	* sk-refcard.tex, sk-survival.tex, survival.tex, vipcard.tex:
+	* viperCard.tex: Update printed copyright year to 2008.
+
 2007-11-24  Glenn Morris  <rgm@gnu.org>
 
 	* images/gnus/mail-send.xpm: Copy here from trunk.
