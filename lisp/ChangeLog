@@ -1,4 +1,8 @@
-2008-01-05  Ralf Angeli  <angeli@caeruleus.net>
+2008-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* mouse.el (mouse-major-mode-menu): Suppress duplicate menus.
+
+2008-01-08  Ralf Angeli  <angeli@caeruleus.net>
 
 	* textmodes/reftex-toc.el (reftex-make-separate-toc-frame):
 	Simplify selection of frame focusing function.
