@@ -1,5 +1,8 @@
 2008-01-08  Glenn Morris  <rgm@gnu.org>
 
+	* diff-mode.el (diff-end-of-hunk): Don't match empty lines in
+	unified format.
+
 	* mouse.el (mouse-major-mode-menu): Suppress duplicate menus.
 
 2008-01-08  Ralf Angeli  <angeli@caeruleus.net>
