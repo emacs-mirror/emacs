@@ -50,21 +50,15 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
 * BUGS
 
-** Stephen.Berman@gmx.net: minibuffer and current-local-map
-http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg00469.html
-
 ** bojohan+news@dd.chalmers.se, 19 Nov: appointment display during isearch replaces buffer contents with history element.
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-01/msg00005.html
 (patch)
 
 ** eric@openbsd.org, 24 Nov: c-mode syntactic analysis regression in emacs-22.1
-http://lists.gnu.org/archive/html/emacs-devel/2007-12/msg00049.html
-
-** diff mode change for missing spaces in -u format.
-http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html
+http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00589.html
 
 ** pot@gnu.org, 17 Dec: strange From line maker rmail-reply loop
-http://lists.gnu.org/archive/html/emacs-devel/2007-12/msg00827.html
+http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00460.html
 
 * DOCUMENTATION
 
