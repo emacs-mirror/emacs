@@ -1,3 +1,7 @@
+2008-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (main): Set copyright year to 2008.
+
 2008-01-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* frame.c (Fmake_terminal_frame): Use #ifdef MAC_OS8 instead of
@@ -28802,7 +28806,7 @@ See ChangeLog.9 for earlier changes.
 ;; End:
 
     Copyright (C) 2001, 2002, 2003, 2004, 2005,
-	2006, 2007 Free Software Foundation, Inc.
+	2006, 2007, 2008 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
