@@ -370,6 +370,17 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      ;;
      "^# Failed test [0-9]+ in \\([^ \t\r\n]+\\) at line \\([0-9]+\\)"
      1 2)
+    (compilation-perl--Test2
+     ;; Or when comparing got/want values,
+     ;; # Test 2 got: "xx" (t-compilation-perl-2.t at line 10)
+     ;;
+     ;; And under Test::Harness they're preceded by progress stuff with
+     ;; \r and "NOK",
+     ;; ... NOK 1# Test 1 got: "1234" (t/foo.t at line 46)
+     ;;
+     "^\\(.*NOK.*\\)?# Test [0-9]+ got:.* (\\([^ \t\r\n]+\\) at line \
+\\([0-9]+\\))"
+     2 3)
     (compilation-perl--Test::Harness
      ;; perl Test::Harness output, eg.
      ;; NOK 1# Test 1 got: "1234" (t/foo.t at line 46)
