@@ -1,3 +1,12 @@
+2008-01-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.c (Fmake_terminal_frame): Use #ifdef MAC_OS8 instead of
+	#ifdef MAC_OS.
+
+2008-01-08  Richard Stallman  <rms@gnu.org>
+
+	* fileio.c (Ffile_name_directory, Fexpand_file_name): Doc fixes.
+
 2008-01-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* keyboard.c (parse_menu_item): Don't enclose key bindings on
@@ -3565,7 +3574,7 @@ See ChangeLog.10 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2007 Free Software Foundation, Inc.
+    Copyright (C) 2007, 2008  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

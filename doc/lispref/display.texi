@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/display
 @node Display, System Interface, Processes, Top
@@ -1744,8 +1744,7 @@ faces in Lisp programs by the symbols that name them.
 
 @defun facep object
 This function returns @code{t} if @var{object} is a face name string
-or symbol (or if it is a vector of the kind used internally to record
-face data).  It returns @code{nil} otherwise.
+or symbol.  It returns @code{nil} otherwise.
 @end defun
 
 Each face name is meaningful for all frames, and by default it has the

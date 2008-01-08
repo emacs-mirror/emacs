@@ -7,6 +7,16 @@
 
 	* os.texi (System Environment): Remove mention for Masscomp.
 
+2008-01-04  Richard Stallman  <rms@gnu.org>
+
+	* display.texi (Faces): Don't talk about internal face vector as arg
+	to facep.
+
+	* customize.texi (Type Keywords): Fix previous change.
+
+	* text.texi (Links and Mouse-1): Fix xref for commands.texi change.
+	* elisp.texi (Top): Fix menu for commands.texi change.
+
 2007-12-30  Richard Stallman  <rms@gnu.org>
 
 	* commands.texi (Accessing Mouse): Renamed from Accessing Events.
@@ -6489,7 +6499,7 @@
 ;; End:
 
     Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-      2005, 2006, 2007 Free Software Foundation, Inc.
+      2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

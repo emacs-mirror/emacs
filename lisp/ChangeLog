@@ -1,3 +1,87 @@
+2008-01-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-list-children-1): Put varnum in
+	quotes in case of spaces, e.g. STL containers (not pretty).
+
+2008-01-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gud-gdb-command-name): Explain
+	"--annotate=3" option is necessary for the Graphical Interface.
+
+2008-01-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/hideif.el (hide-ifdef-mode-menu): Put hide-ifdef commands
+	on menu bar.
+
+2008-01-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* ffap.el (ffap-read-file-or-url): Let-bind
+	`file-name-handler-alist' due to `rfn-eshadow-update-overlay'.
+
+2008-01-08  Sven Joachim  <svenjoac@gmx.de>
+
+	* vc-bzr.el: Fix typo in header.
+
+2008-01-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (custom-deps, finder-data): Depend on autoloads
+	instead of loaddefs.el.
+
+2008-01-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-cvs.el (vc-cvs-annotate-time): Don't move backward when text
+	gets inserted out-of-order.
+
+2008-01-08  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el: Copyright and version headers update.
+	Remove some outdated comments through the whole file.
+	(vc-bzr-program-args): Remove because unused.
+	(vc-bzr-log-switches): New customization option.
+	(vc-bzr-command): Use LC_MESSAGES=C instead of LC_ALL=C.  No longer
+	use `vc-bzr-program-args'.
+	(vc-bzr-register): Fix for working with both 22.1 and CVS version of
+	`vc-find-root' (patch by Andreas Hoenen).
+	(vc-bzr-status): Update regex to match latest Bzr output.
+	Remove redundant test.
+	(vc-bzr-init-version): New function.
+	(vc-bzr-unregister): Must not delete file.
+	(vc-bzr-find-version): New function.
+	(vc-bzr-checkout): Argument `rev' is explicit revision only if it's
+	a non-empty string, otherwise take head revision.
+	(vc-bzr-print-log): Pass `vc-bzr-log-switches' to "bzr log".
+	(vc-bzr-diff): Simpler build of the revision spec string.
+	(vc-annotate-convert-time, vc-bzr-annotate-difference):
+	Remove: compatibility hacks for Emacs21, not needed in Emacs 22.
+	(vc-bzr-dir-state): Add code comments.  Removed redundant statement.
+	(vc-bzr-dired-state-info): Only provide custom strings for
+	overloaded VC state 'edited; otherwise fallback to
+	`vc-default-dired-state-info'.
+
+2008-01-08  Richard Stallman  <rms@gnu.org>
+
+	* delsel.el (delete-selection-mode): Doc fix.
+
+2008-01-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-def): Do nothing if gud-running is t.
+	(gud-speedbar-menu-items): Add item for gdb-var-set-format below.
+
+	* progmodes/gdb-ui.el (gdb-var-set-format): Set the output format
+	of watch expressions (only works fully with GDB 6.7 or later).
+
+2008-01-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* time-stamp.el (time-stamp-time-zone):
+	* whitespace.el (whitespace-check-buffer-leading)
+	(whitespace-check-buffer-trailing)
+	(whitespace-check-buffer-indent)
+	(whitespace-check-buffer-spacetab)
+	(whitespace-check-buffer-ateol):
+	* progmodes/sh-script.el (sh-indentation):
+	* textmodes/ispell.el (ispell-local-pdict):
+	Add safe-local-variable properties.
+
 2008-01-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	* vc-git.el (vc-git--call): Apply `process-file' instead of
@@ -12412,7 +12496,7 @@ See ChangeLog.12 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2007 Free Software Foundation, Inc.
+    Copyright (C) 2007, 2008  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

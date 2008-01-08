@@ -1,3 +1,12 @@
+2008-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* calccard.tex, cs-dired-ref.tex, cs-refcard.tex, cs-survival.tex:
+	* de-refcard.tex, dired-ref.tex, fr-drdref.tex, fr-refcard.tex:
+	* fr-survival.tex, gnus-refcard.tex, orgcard.tex, pl-refcard.tex:
+	* pt-br-refcard.tex, refcard.tex, ru-refcard.tex, sk-dired-ref.tex:
+	* sk-refcard.tex, sk-survival.tex, survival.tex, vipcard.tex:
+	* viperCard.tex: Update printed copyright year to 2008.
+
 2008-01-08  Kevin Ryde  <user42@zip.com.au>
 
 	* compilation.txt (perl): Add a "during global destruction" sample.
@@ -4005,7 +4014,8 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001
-	2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+	2002, 2003, 2004, 2005, 2006, 2007, 2008
+	Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

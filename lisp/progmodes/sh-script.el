@@ -1,7 +1,7 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1999, 2001, 2002,
-;;  2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+;;  2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Version: 2.0f
@@ -542,7 +542,7 @@ sign.  See `sh-feature'."
   "The width for further indentation in Shell-Script mode."
   :type 'integer
   :group 'sh-script)
-
+(put 'sh-indentation 'safe-local-variable 'integerp)
 
 (defcustom sh-remember-variable-min 3
   "Don't remember variables less than this length for completing reads."
