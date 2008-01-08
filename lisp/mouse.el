@@ -173,11 +173,22 @@ Default to the Edit menu if the major mode doesn't define a menu."
 	 ;; default to the edit menu.
 	 (newmap (if ancestor
 		     (make-sparse-keymap (concat mode-name " Mode"))
-		   menu-bar-edit-menu)))
+		   menu-bar-edit-menu))
+	 uniq)
     (if ancestor
 	;; Make our menu inherit from the desired keymap which we want
 	;; to display as the menu now.
-	(set-keymap-parent newmap ancestor))
+	;; Sometimes keymaps contain duplicate menu code, leading to
+	;; duplicates in the popped-up menu. Avoid this by simply
+	;; taking the first of any identically-named menus.
+	;; http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg00469.html
+	(set-keymap-parent newmap
+			   (progn
+			     (dolist (e ancestor)
+			       (unless (and (listp e)
+					    (assoc (car e) uniq))
+				 (setq uniq (append uniq (list e)))))
+			     uniq)))
     (popup-menu newmap event prefix)))
 
 
