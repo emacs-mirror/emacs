@@ -1,6 +1,6 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode
 ;; Copyright (C) 1997, 1998, 1999, 2000, 2003, 2004, 2005,
-;;   2006, 2007 Free Software Foundation, Inc.
+;;   2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Maintainer: auctex-devel@gnu.org
@@ -995,10 +995,11 @@ always show the current section in connection with the option
       (select-frame current-toc-frame)
       (switch-to-buffer "*toc*")
       (select-frame current-frame)
-      (if (fboundp 'x-focus-frame) (x-focus-frame current-frame)
-        ;; focus-frame has done nothing in Emacs since at least v21.
-        (if (featurep 'xemacs)
-            (if (fboundp 'focus-frame) (focus-frame current-frame))))
+      (cond ((fboundp 'x-focus-frame)
+             (x-focus-frame current-frame))
+            ((and (featurep 'xemacs) ; `focus-frame' is a nop in Emacs.
+                  (fboundp 'focus-frame))
+             (focus-frame current-frame)))
       (select-window current-window)
       (when (eq reftex-auto-recenter-toc 'frame)
         (unless reftex-toc-auto-recenter-timer
