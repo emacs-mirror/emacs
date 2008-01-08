@@ -406,7 +406,7 @@ Compilation exited abnormally with code 1 at Wed Jul 20 12:21:12
 Compilation finished at Thu Jul 21 15:02:15
 
 
-Copyright (C) 2004, 2005, 2006, 2007
+Copyright (C) 2004, 2005, 2006, 2007, 2008
 Free Software Foundation, Inc.
 
 COPYING PERMISSIONS:
