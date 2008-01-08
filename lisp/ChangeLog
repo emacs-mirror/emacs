@@ -1,3 +1,8 @@
+2008-01-08  Kevin Ryde  <user42@zip.com.au>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	For perl, allow "during global destruction" at end.
+
 2008-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* diff-mode.el (diff-end-of-hunk): Don't match empty lines in
