@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.3.1
+;; Version: 7.3.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "7.3.1"
-  "ps-print.el, v 7.3.1 <2007/11/21 vinicius>
+(defconst ps-print-version "7.3.2"
+  "ps-print.el, v 7.3.2 <2008/01/09 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -6361,9 +6361,12 @@ If FACE is not a valid face name, use default face."
 
 (defun ps-screen-to-bit-face (face)
   (cons face
-	(vector (logior (if (ps-face-bold-p face) 1 0) ; bold
-			(if (ps-face-italic-p face) 2 0) ; italic
-			(if (ps-face-underlined-p face) 4 0)) ; underline
+	(vector (logior (if (ps-face-bold-p face)       1 0)  ; bold
+			(if (ps-face-italic-p face)     2 0)  ; italic
+			(if (ps-face-underlined-p face) 4 0)  ; underline
+			(if (ps-face-strikeout-p face)  8 0)  ; strikeout
+			(if (ps-face-overline-p face)  16 0)  ; overline
+			(if (ps-face-box-p face)       64 0)) ; box
 		(ps-face-foreground-name face)
 		(ps-face-background-name face))))
 

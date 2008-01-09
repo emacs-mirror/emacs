@@ -1,13 +1,12 @@
 ;;; ps-def.el --- XEmacs and Emacs definitions for ps-print
 
-;; Copyright (C) 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;	Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 7.2.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -241,6 +240,15 @@
 	(memq face ps-italic-faces)))	; Kludge-compatible
 
 
+  (defalias 'ps-face-strikeout-p 'ignore)
+
+
+  (defalias 'ps-face-overline-p 'ignore)
+
+
+  (defalias 'ps-face-box-p 'ignore)
+
+
   ;; XEmacs will have to make do with %s (princ) for floats.
   (defvar ps-color-format "%s %s %s")
   (defvar ps-float-format "%s ")
@@ -360,6 +368,18 @@
   (defun ps-face-italic-p (face)
     (or (face-italic-p face)
 	(memq face ps-italic-faces)))
+
+
+  (defun ps-face-strikeout-p (face)
+    (eq (face-attribute face :strike-through) t))
+
+
+  (defun ps-face-overline-p (face)
+    (eq (face-attribute face :overline) t))
+
+
+  (defun ps-face-box-p (face)
+    (not (memq (face-attribute face :box) '(nil unspecified))))
 
 
   ;; Emacs understands the %f format; we'll use it to limit color RGB values
