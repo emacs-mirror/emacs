@@ -286,8 +286,7 @@
 	    (if oldvers
 		(if newvers
 		    (list "-r" oldvers "-r" newvers)
-		  (list "-r" oldvers))
-	      (list ""))))))
+		  (list "-r" oldvers)))))))
 
 (defun vc-hg-revision-table (file)
   (let ((default-directory (file-name-directory file)))
