@@ -1,3 +1,8 @@
+2008-01-09  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-mode): Support tramp, compressed files and
+	files inside archives uniformly.
+
 2008-01-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
 	* testmodes/sgml-mode.el (sgml-tag-syntax-table):  Initialize this
