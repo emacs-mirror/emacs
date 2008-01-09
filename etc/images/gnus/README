@@ -30,7 +30,7 @@ but distributed and used by Emacs.
   Tor Lillqvist, Garrett LeSage, Dennis Cranston, Jody Goldberg, Luca
   Ferretti, Mark Finlay, Lapo Calamandrei, Andreas Nilsson and Marco
   Pesenti Gritti
-  License: GNU General Public License version 2
+  License: GNU General Public License version 2 or later
 
 toggle-subscription.xpm       (GNOME stock/document/stock_task-recurring)
 kill-group.pbm and kill-group.xpm are converted from close.xpm
