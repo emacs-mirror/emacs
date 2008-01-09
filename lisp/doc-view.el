@@ -476,7 +476,7 @@ Image types are symbols like `dvi', `postscript' or `pdf'."
 	 (and (doc-view-mode-p 'pdf)
 	      doc-view-dvipdfm-program
 	      (executable-find doc-view-dvipdfm-program)))
-	((or (eq type 'postscript) (eq type 'ps)
+	((or (eq type 'postscript) (eq type 'ps) (eq type 'eps)
 	     (eq type 'pdf))
 	 (and doc-view-ghostscript-program
 	      (executable-find doc-view-ghostscript-program)))
@@ -930,6 +930,7 @@ You can use \\<doc-view-mode-map>\\[doc-view-toggle-display] to
 toggle between displaying the document or editing it as text."
   (interactive)
   (if jka-compr-really-do-compress
+
       ;; This is a compressed file uncompressed by auto-compression-mode.
       (when (y-or-n-p (concat "DocView: Cannot convert compressed file.  "
 			      "Save it uncompressed first? "))
@@ -940,11 +941,21 @@ toggle between displaying the document or editing it as text."
 	  (kill-buffer nil)
 	  (find-file file)
 	  (doc-view-mode)))
+
+    ;; When opening a pdf/ps/dvi that's inside an archive (tar, zip, ...) the
+    ;; file buffer-file-name doesn't exist, so create the directory and save
+    ;; the file.
+    (when (not (file-exists-p (file-name-directory buffer-file-name)))
+      (dired-create-directory (file-name-directory buffer-file-name)))
+    (when (not (file-exists-p buffer-file-name))
+      (write-file buffer-file-name))
+
     (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
 				doc-view-previous-major-mode
 			      major-mode)))
       (kill-all-local-variables)
       (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
+
     (make-local-variable 'doc-view-current-files)
     (make-local-variable 'doc-view-current-image)
     (make-local-variable 'doc-view-current-page)
