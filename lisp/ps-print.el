@@ -3923,6 +3923,12 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 	 (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o")
 	     (ps-xemacs-face-kind-p face 'SLANT "i\\|o")
 	     (memq face ps-italic-faces))) ; Kludge-compatible
+
+       (defalias 'ps-face-strikeout-p 'ignore)
+
+       (defalias 'ps-face-overline-p 'ignore)
+
+       (defalias 'ps-face-box-p 'ignore)
        )
 
       (t				; Emacs
@@ -3943,6 +3949,15 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
        (defun ps-face-italic-p (face)
 	 (or (ps-e-face-italic-p face)
 	     (memq face ps-italic-faces)))
+
+       (defun ps-face-strikeout-p (face)
+	 (eq (face-attribute face :strike-through) t))
+
+       (defun ps-face-overline-p (face)
+	 (eq (face-attribute face :overline) t))
+
+       (defun ps-face-box-p (face)
+	 (not (memq (face-attribute face :box) '(nil unspecified))))
        ))
 
 
@@ -6508,9 +6523,12 @@ If FACE is not a valid face name, use default face."
 
 (defun ps-screen-to-bit-face (face)
   (cons face
-	(vector (logior (if (ps-face-bold-p face) 1 0) ; bold
-			(if (ps-face-italic-p face) 2 0) ; italic
-			(if (ps-face-underlined-p face) 4 0)) ; underline
+	(vector (logior (if (ps-face-bold-p face)       1 0)  ; bold
+			(if (ps-face-italic-p face)     2 0)  ; italic
+			(if (ps-face-underlined-p face) 4 0)  ; underline
+			(if (ps-face-strikeout-p face)  8 0)  ; strikeout
+			(if (ps-face-overline-p face)  16 0)  ; overline
+			(if (ps-face-box-p face)       64 0)) ; box
 		(ps-face-foreground-name face)
 		(ps-face-background-name face))))
 

@@ -1,3 +1,10 @@
+2008-01-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Some face attributes (like :strike-through) was not
+	being recognised.  Reported by Leo <sdl.web@gmail.com>.
+	(ps-face-strikout-p, ps-face-overline-p, ps-face-box-p): New funs.
+	(ps-screen-to-bit-face): Fix code.
+
 2008-01-08  Kevin Ryde  <user42@zip.com.au>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
