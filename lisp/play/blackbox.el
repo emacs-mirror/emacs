@@ -106,7 +106,9 @@
     (blackbox-redefine-key map 'move-end-of-line 'bb-eol)
     (blackbox-redefine-key map 'move-beginning-of-line 'bb-bol)
     (define-key map " " 'bb-romp)
+    (define-key map "q" 'bury-buffer)
     (define-key map [insert] 'bb-romp)
+    (define-key map [return] 'bb-done)
     (blackbox-redefine-key map 'newline 'bb-done)
     map))
 
