@@ -1266,7 +1266,7 @@ set_socket ()
       s = set_local_socket ();
       if ((s != INVALID_SOCKET) || alternate_editor)
 	return s;
-      message (TRUE, "%s: error accessing socket \"%s\"",
+      message (TRUE, "%s: error accessing socket \"%s\"\n",
 	       progname, socket_name);
       exit (EXIT_FAILURE);
     }
