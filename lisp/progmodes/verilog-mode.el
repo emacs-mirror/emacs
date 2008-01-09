@@ -275,6 +275,12 @@ STRING should be given if the last search was by `string-match' on STRING."
   (if (fboundp 'customize-apropos)
       (customize-apropos "font-lock-*" 'faces)))
 
+(defun verilog-booleanp (value)
+  "Return t if VALUE is boolean.
+ This implements GNU Emacs 22.1's `booleanp' function in earlier Emacs.
+ This function may be removed when Emacs 21 is no longer supported."
+  (or (equal value t) (equal value nil)))
+
 (defgroup verilog-mode nil
   "Facilitates easy editing of Verilog source text"
   :group 'languages)
@@ -355,7 +361,7 @@ entry \"Fontify Buffer\").  XEmacs: turn off and on font locking."
   :type 'boolean
   :group 'verilog-mode-indent)
 ;; Note we don't use :safe, as that would break on Emacsen before 22.0.
-(put 'verilog-highlight-translate-off 'safe-local-variable 'booleanp)
+(put 'verilog-highlight-translate-off 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-indent-level 3
   "*Indentation of Verilog statements with respect to containing block."
@@ -390,7 +396,7 @@ If non nil, treat as:
 	output       c;"
   :group 'verilog-mode-indent
   :type 'boolean)
-(put 'verilog-indent-declaration-macros 'safe-local-variable 'booleanp)
+(put 'verilog-indent-declaration-macros 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-indent-lists t
   "*How to treat indenting items in a list.
@@ -403,7 +409,7 @@ If nil, treat as:
 	   reset ) begin"
   :group 'verilog-mode-indent
   :type 'boolean)
-(put 'verilog-indent-lists 'safe-local-variable 'booleanp)
+(put 'verilog-indent-lists 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-indent-level-behavioral 3
   "*Absolute indentation of first begin in a task or function block.
@@ -435,33 +441,33 @@ Set to 0 to have all directives start at the left side of the screen."
   "*True means automatically newline after semicolons."
   :group 'verilog-mode-indent
   :type 'boolean)
-(put 'verilog-auto-newline 'safe-local-variable 'booleanp)
+(put 'verilog-auto-newline 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-auto-indent-on-newline t
   "*True means automatically indent line after newline."
   :group 'verilog-mode-indent
   :type 'boolean)
-(put 'verilog-auto-indent-on-newline 'safe-local-variable 'booleanp)
+(put 'verilog-auto-indent-on-newline 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-tab-always-indent t
   "*True means TAB should always re-indent the current line.
 Nil means TAB will only reindent when at the beginning of the line."
   :group 'verilog-mode-indent
   :type 'boolean)
-(put 'verilog-tab-always-indent 'safe-local-variable 'booleanp)
+(put 'verilog-tab-always-indent 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-tab-to-comment nil
   "*True means TAB moves to the right hand column in preparation for a comment."
   :group 'verilog-mode-actions
   :type 'boolean)
-(put 'verilog-tab-to-comment 'safe-local-variable 'booleanp)
+(put 'verilog-tab-to-comment 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-indent-begin-after-if t
   "*If true, indent begin statements following if, else, while, for and repeat.
 Otherwise, line them up."
   :group 'verilog-mode-indent
   :type 'boolean)
-(put 'verilog-indent-begin-after-if 'safe-local-variable 'booleanp)
+(put 'verilog-indent-begin-after-if 'safe-local-variable 'verilog-booleanp)
 
 
 (defcustom verilog-align-ifelse nil
@@ -469,7 +475,7 @@ Otherwise, line them up."
 Otherwise else is lined up with first character on line holding matching if."
   :group 'verilog-mode-indent
   :type 'boolean)
-(put 'verilog-align-ifelse 'safe-local-variable 'booleanp)
+(put 'verilog-align-ifelse 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-minimum-comment-distance 10
   "*Minimum distance (in lines) between begin and end required before a comment.
@@ -529,14 +535,14 @@ IEEE-1800 standard.  Note that changing this will require restarting Emacs
 to see the effect as font color choices are cached by Emacs"
   :group 'verilog-mode-indent
   :type 'boolean)
-(put 'verilog-highlight-p1800-keywords 'safe-local-variable 'booleanp)
+(put 'verilog-highlight-p1800-keywords 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-auto-endcomments t
   "*True means insert a comment /* ... */ after 'end's.
 The name of the function or case will be set between the braces."
   :group 'verilog-mode-actions
   :type 'boolean)
-(put 'verilog-auto-endcomments 'safe-local-variable 'booleanp)
+(put 'verilog-auto-endcomments 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-auto-read-includes nil
   "*True means to automatically read includes before AUTOs.
@@ -546,7 +552,7 @@ but can result in very slow reading times if there are many or large
 include files."
   :group 'verilog-mode-actions
   :type 'boolean)
-(put 'verilog-auto-read-includes 'safe-local-variable 'booleanp)
+(put 'verilog-auto-read-includes 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-auto-save-policy nil
   "*Non-nil indicates action to take when saving a Verilog buffer with AUTOs.
@@ -567,7 +573,7 @@ They will be expanded in the same way as if there was a AUTOINST in the
 instantiation.  See also `verilog-auto-star' and `verilog-auto-star-save'."
   :group 'verilog-mode-actions
   :type 'boolean)
-(put 'verilog-auto-star-expand 'safe-local-variable 'booleanp)
+(put 'verilog-auto-star-expand 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-auto-star-save nil
   "*Non-nil indicates to save to disk SystemVerilog .* instance expansions.
@@ -578,7 +584,7 @@ Instead of setting this, you may want to use /*AUTOINST*/, which will
 always be saved."
   :group 'verilog-mode-actions
   :type 'boolean)
-(put 'verilog-auto-star-save 'safe-local-variable 'booleanp)
+(put 'verilog-auto-star-save 'safe-local-variable 'verilog-booleanp)
 
 (defvar verilog-auto-update-tick nil
   "Modification tick at which autos were last performed.")
@@ -765,7 +771,7 @@ If nil, only inputs that are NOT output signals in the same block are
 included."
   :group 'verilog-mode-auto
   :type 'boolean)
-(put 'verilog-auto-sense-include-inputs 'safe-local-variable 'booleanp)
+(put 'verilog-auto-sense-include-inputs 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-auto-sense-defines-constant nil
   "*If true, AUTOSENSE should assume all defines represent constants.
@@ -774,7 +780,7 @@ maintain compatibility with other sites, this should be set at the bottom
 of each verilog file that requires it, rather than being set globally."
   :group 'verilog-mode-auto
   :type 'boolean)
-(put 'verilog-auto-sense-defines-constant 'safe-local-variable 'booleanp)
+(put 'verilog-auto-sense-defines-constant 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-auto-reset-widths t
   "*If true, AUTORESET should determine the width of signals.
@@ -784,7 +790,7 @@ the constant zero.  This may result in ugly code when parameters determine
 the MSB or LSB of a signal inside a AUTORESET."
   :type 'boolean
   :group 'verilog-mode-auto)
-(put 'verilog-auto-reset-widths 'safe-local-variable 'booleanp)
+(put 'verilog-auto-reset-widths 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-assignment-delay ""
   "*Text used for delays in delayed assignments.  Add a trailing space if set."
@@ -800,7 +806,7 @@ declare the wire to have the subscripts removed.)  Nil may speed up some
 simulators, but is less general and harder to read, so avoid."
   :group 'verilog-mode-auto
   :type 'boolean)
-(put 'verilog-auto-inst-vector 'safe-local-variable 'booleanp)
+(put 'verilog-auto-inst-vector 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-auto-inst-template-numbers nil
   "*If true, when creating templated ports with AUTOINST, add a comment.
@@ -809,7 +815,7 @@ port declaration.  Setting this aids in debugging, but nil is suggested for
 regular use to prevent large numbers of merge conflicts."
   :group 'verilog-mode-auto
   :type 'boolean)
-(put 'verilog-auto-inst-template-numbers 'safe-local-variable 'booleanp)
+(put 'verilog-auto-inst-template-numbers 'safe-local-variable 'verilog-booleanp)
 
 (defvar verilog-auto-inst-column 40
   "Column number for first part of auto-inst.")
