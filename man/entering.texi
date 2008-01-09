@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 2001, 2002, 2003,
-@c   2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+@c   2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Entering Emacs, Exiting, Text Characters, Top
 @chapter Entering and Exiting Emacs

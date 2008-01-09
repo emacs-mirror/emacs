@@ -10,7 +10,7 @@
 @copying
 This manual describes specialized features of Emacs.
 
-Copyright @copyright{} 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+Copyright @copyright{} 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
