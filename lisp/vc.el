@@ -1276,9 +1276,12 @@ Otherwise, throw an error."
                (unless (eq (vc-backend f) firstbackend)
                  (error "All members of a fileset must be under the same version-control system."))))
 	   marked))
-	((eq major-mode 'vc-status-mode)
-	 (vc-status-marked-files))
-	((vc-backend buffer-file-name)
+        ((eq major-mode 'vc-status-mode)
+         (let ((marked (vc-status-marked-files)))
+           (if marked
+               marked
+             (list (vc-status-current-file)))))
+ 	((vc-backend buffer-file-name)
 	 (list buffer-file-name))
 	((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
 				   (with-current-buffer vc-parent-buffer
