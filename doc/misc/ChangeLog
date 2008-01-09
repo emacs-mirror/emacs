@@ -1,3 +1,7 @@
+2008-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* nxml-mode.texi: Add @copying section.
+
 2008-01-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.texi (Mail Variables): Add some text from "(gnus)Posting
@@ -4673,7 +4677,7 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-      2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+      2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 
