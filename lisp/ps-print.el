@@ -3997,13 +3997,19 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 	(memq face ps-italic-faces))))
 
 (defun ps-face-strikeout-p (face)
-  (eq (face-attribute face :strike-through) t))
+  (if (featurep 'xemacs)
+      nil
+    (eq (face-attribute face :strike-through) t)))
 
 (defun ps-face-overline-p (face)
-  (eq (face-attribute face :overline) t))
+  (if (featurep 'xemacs)
+      nil
+    (eq (face-attribute face :overline) t)))
 
 (defun ps-face-box-p (face)
-  (not (memq (face-attribute face :box) '(nil unspecified))))
+  (if (featurep 'xemacs)
+      nil
+    (not (memq (face-attribute face :box) '(nil unspecified)))))
 
 (defvar ps-print-color-scale 1.0)
 
