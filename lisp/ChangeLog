@@ -1,3 +1,11 @@
+2008-01-09  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* testmodes/sgml-mode.el (sgml-tag-syntax-table):  Initialize this
+	constant with a computation on sgml-specials rather than a literal
+	list.  Without this change the syntax table is generated
+	incorrectly, and the mode will think it's in a comment following
+	any instance of the string "--".
+
 2008-01-09  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-mode-p): Add EPS as supported type.
