@@ -1,7 +1,7 @@
 ;;; iswitchb.el --- switch between buffers using substrings
 
 ;; Copyright (C) 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -311,15 +311,14 @@ window with completion alternatives, or `iswitchb-next-match' or
   :type 'hook
   :group 'iswitchb)
 
-;;; Examples for setting the value of iswitchb-buffer-ignore
-;(defun iswitchb-ignore-c-mode (name)
-;  "Ignore all c mode buffers -- example function for iswitchb."
-;  (save-excursion
-;    (set-buffer name)
-;    (string-match "^C$" mode-name)))
+;; Examples for setting the value of iswitchb-buffer-ignore
+;;(defun iswitchb-ignore-c-mode (name)
+;;  "Ignore all c mode buffers -- example function for iswitchb."
+;;  (with-current-buffer name
+;;    (derived-mode-p 'c-mode)))
 
-;(setq iswitchb-buffer-ignore '("^ " iswitchb-ignore-c-mode))
-;(setq iswitchb-buffer-ignore '("^ " "\\.c$" "\\.h$"))
+;;(setq iswitchb-buffer-ignore '("^ " iswitchb-ignore-c-mode))
+;;(setq iswitchb-buffer-ignore '("^ " "\\.c\\'" "\\.h\\'"))
 
 (defcustom iswitchb-default-method  'always-frame
     "*How to switch to new buffer when using `iswitchb-buffer'.

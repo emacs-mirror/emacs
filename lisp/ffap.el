@@ -1,7 +1,7 @@
 ;;; ffap.el --- find file (or url) at point
 
 ;; Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Michelangelo Grigni <mic@mathcs.emory.edu>
 ;; Maintainer: FSF
@@ -1262,7 +1262,11 @@ which may actually result in an url rather than a filename."
 		    ))
 	  (setq dir (file-name-directory guess))))
     (let ((minibuffer-completing-file-name t)
-	  (completion-ignore-case read-file-name-completion-ignore-case))
+	  (completion-ignore-case read-file-name-completion-ignore-case)
+	  ;; because of `rfn-eshadow-update-overlay'.
+	  (file-name-handler-alist
+	   (cons (cons ffap-url-regexp 'url-file-handler)
+		 file-name-handler-alist)))
       (setq guess
 	    (completing-read
 	     prompt

@@ -1,3 +1,17 @@
+2008-01-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-bookmark.el (gnus-bookmark-mouse-available-p): Don't test for
+	display-color-p.  Reported by Reiner Steib <Reiner.Steib@gmx.de>.
+
+2008-01-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-group.el (gnus-group-gmane-group-download-format): New variable.
+	(gnus-group-read-ephemeral-gmane-group): New command.
+
+2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* gnus.el (gnus-use-long-file-name): Remove reference to xenix.
+
 2007-12-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-send-mail-function): Increase custom version.
@@ -90,7 +104,7 @@
 2007-12-11  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-decode.el (mm-add-meta-html-tag): New function.
-	(mm-save-part-to-file, mm-pipe-part): Use it
+	(mm-save-part-to-file, mm-pipe-part): Use it.
 
 	* gnus-art.el (gnus-article-browse-delete-temp-files): Use
 	gnus-y-or-n-p instead of y-or-n-p.
@@ -943,8 +957,8 @@
 	(gnus-registry-fetch-extra-flags, gnus-registry-has-extra-flag)
 	(gnus-registry-store-extra-flags, gnus-registry-delete-extra-flags)
 	(gnus-registry-delete-all-extra-flags): Allow for arbitrary flag symbol
-	 storage through the gnus-registry, and provide an appropriate API for
-	 it.
+	storage through the gnus-registry, and provide an appropriate API for
+	it.
 
 2007-09-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -991,7 +1005,7 @@
 	* hmac-def.el (define-hmac-function): Switch from old-style to
 	new-style backquotes.
 
-	* md4.el (md4-make-step): likewise.
+	* md4.el (md4-make-step): Likewise.
 
 2007-09-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -1712,7 +1726,7 @@
 2007-04-16  Didier Verna  <didier@xemacs.org>
 
 	* gnus-msg.el (gnus-configure-posting-styles): Handle
-	message-signature-directory properly with :file syntax. Reported by
+	message-signature-directory properly with :file syntax.  Reported by
 	"Leo".
 
 2007-04-11  Didier Verna  <didier@xemacs.org>
@@ -2891,7 +2905,7 @@
 
 	* pgg-def.el (pgg-truncate-key-identifier): Truncate the key ID to 8
 	letters from the end.  Thanks to "David Smith" <davidsmith@acm.org> and
-	andreas@altroot.de (Andreas V,Av(Bgele)
+	andreas@altroot.de (Andreas V,Av(Bgele).
 
 	FIXME: Use `tiny change'?
 
@@ -3119,7 +3133,7 @@
 
 2006-05-29  Kevin Greiner  <kevin.greiner@compsol.cc>
 
-	* gnus-agent.el (Added gnus-agent-flush*) to purge agent info.
+	* gnus-agent.el: Added gnus-agent-flush* to purge agent info.
 	(gnus-agent-read-agentview): Fixed handling of end-of-file error.
 	(gnus-agent-read-local): All symbols allocated in my-obarray
 	(gnus-agent-set-local): Skip invalid entries (min and/or max is nil).
@@ -3463,7 +3477,7 @@
 
 	* gnus-util.el (gnus-byte-compile): Use it.
 
-2006-04-22  xyblor  <fake@invalid.email>  (Tiny change.)
+2006-04-22  xyblor  <fake@invalid.email>  (tiny change)
 
 	* gnus-util.el (kill-empty-logs): New function.
 
@@ -5068,7 +5082,7 @@
 	(starttls-open-stream-gnutls, starttls-open-stream): Rename arg
 	SERVICE to PORT.
 
-	* pop3.el (pop3-open-server) <ssl>:  Clarify a loop.  Deal with
+	* pop3.el (pop3-open-server) <ssl>: Clarify a loop.  Deal with
 	port null or service name.
 	(starttls-negotiate): Autoload.
 
@@ -5204,7 +5218,6 @@
 	* gnus-agent.el (gnus-agent-rename-group)
 	(gnus-agent-delete-group): Wrap doc strings.
 
-
 2005-11-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
 	* gnus-start.el (gnus-1): Add "native" to
@@ -5336,9 +5349,9 @@
 
 2005-10-26  Didier Verna  <didier@xemacs.org>
 
-	* gnus-group.el (gnus-group-compact-group): invalidate original
+	* gnus-group.el (gnus-group-compact-group): Invalidate original
 	article buffer.
-	* gnus-srvr.el (gnus-server-compact-server): ditto.
+	* gnus-srvr.el (gnus-server-compact-server): Ditto.
 	* nnml.el (nnml-request-compact-group): handle self Xref: field in
 	NOV database and in article itself.
 	Invalidate article backlog.
@@ -5769,7 +5782,7 @@
 
 2005-09-11  Jari Aalto  <jari.aalto@cante.net>
 
-	* html2text.el: (html2text-replace-list): Add new entities.
+	* html2text.el (html2text-replace-list): Add new entities.
 
 2005-09-11  Romain Francoise  <romain@orebokech.com>
 
@@ -6482,7 +6495,7 @@
 	* smime-ldap.el (smime-ldap-search): Add compatibility for XEmacs.
 
 	* smime.el (smime-cert-by-ldap-1): Handle certificates distributed
-	in PEM format. Adjust to the XEmacs compability.
+	in PEM format.  Adjust to the XEmacs compability.
 
 2005-05-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -6781,11 +6794,11 @@
 	user-function allow user modifications of the scores.
 	(spam-stat-score-buffer-user): New function, to allow
 	user-computed modifications to the score.
-	(spam-stat-score-buffer-user-functions): list of additional
-	scoring functions
-	(spam-stat-error-holder): global temporary error holder
-	(spam-stat-split-fancy): use the new `spam-stat-error-holder'
-	variable
+	(spam-stat-score-buffer-user-functions): List of additional
+	scoring functions.
+	(spam-stat-error-holder): Global temporary error holder.
+	(spam-stat-split-fancy): Use the new `spam-stat-error-holder'
+	variable.
 
 2005-04-06  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -6824,7 +6837,7 @@
 2005-04-04  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* nnimap.el (nnimap-date-days-ago): Add defvars in order to
-	silence the byte compiler inside the defun
+	silence the byte compiler inside the defun.
 
 	* gnus-demon.el (parse-time-string): Add autoload.
 
@@ -8075,9 +8088,9 @@
 	* netrc.el (autoload, netrc-parse): Use encrypt.el instead of
 	gnus-encrypt.el.
 
-	* encrypt.el: copied from gnus-encrypt.el
+	* encrypt.el: Copied from gnus-encrypt.el.
 
-	* gnus-encrypt.el: commented that it's obsolete
+	* gnus-encrypt.el: Commented that it's obsolete.
 
 2004-10-15  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -8732,12 +8745,12 @@
 
 2004-09-09  Kevin Greiner  <kgreiner@compsol.cc>
 
-	* gnus-agent.el (gnus-agent-cat-groups): rewrote avoiding defsetf
+	* gnus-agent.el (gnus-agent-cat-groups): Rewrote avoiding defsetf
 	to avoid run-time CL dependencies.
 	(gnus-agent-unfetch-articles): New function.
 	(gnus-agent-fetch-headers): Use gnus-agent-braid-nov to validate
 	article numbers even when local .overview file is missing.
-	(gnus-agent-read-article-number): New function. Only accepts
+	(gnus-agent-read-article-number): New function.  Only accepts
 	27-bit article numbers.
 	(gnus-agent-copy-nov-line, gnus-agent-uncached-articles): Use
 	gnus-agent-read-article-number.
@@ -8756,7 +8769,7 @@
 	(gnus-convert-mark-converter-prompt,
 	gnus-convert-converter-needs-prompt): Fixed use of property list.
 	* legacy-gnus-agent.el (gnus-agent-convert-to-compressed-agentview-prompt):
-	New function. Used internally to only display 'gnus converting
+	New function.  Used internally to only display 'gnus converting
 	files' message when actually necessary.
 
 	* gnus-sum.el (): Removed (require 'gnus-agent) as required
@@ -9495,7 +9508,7 @@
 
 2004-05-25  Anand Mitra  <mitramc@yahoo.com>  (tiny change)
 
-	* gnus-sum.el (gnus-summary-delete-article): invoke hook with
+	* gnus-sum.el (gnus-summary-delete-article): Invoke hook with
 	correct data.
 
 2004-05-24  Teodor Zlatanov  <tzz@lifelogs.com>
@@ -9859,7 +9872,7 @@
 
 2004-05-14  Nelson Ferreira  <nelson.ferreira@verizon.net>  (tiny change)
 
-	* gnus-dup.el (gnus-dup-unsuppress-article): don't assume the mail
+	* gnus-dup.el (gnus-dup-unsuppress-article): Don't assume the mail
 	header is not nil.
 
 2004-05-14  Kai Grossjohann  <kgrossjo@eu.uu.net>
@@ -10236,7 +10249,7 @@
 	* gnus-int.el (gnus-request-delete-group): Use
 	gnus-cache-delete-group and gnus-agent-delete-group to keep the
 	local disk in sync with the server.
-	 (gnus-request-rename-group): Use
+	(gnus-request-rename-group): Use
 	gnus-cache-rename-group and gnus-agent-rename-group to keep the
 	local disk in sync with the server.
 
@@ -10430,7 +10443,7 @@
 	should be protected from potentially irreversable changes by the
 	function.
 
-	* legacy-gnus-agent.el (): New. Provides converters that are only
+	* legacy-gnus-agent.el: New.  Provides converters that are only
 	loaded when gnus-convert-old-newsrc needs to call them.
 
 2004-03-08  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -10689,7 +10702,7 @@
 
 	* nnrss.el (nnrss-request-article, nnrss-find-el): Cleanup.
 
-	* html2text.el (html2text-get-attr, html2text-fix-paragraph): do
+	* html2text.el (html2text-get-attr, html2text-fix-paragraph): do.
 
 	* gnus-sum.el (gnus-summary-limit-to-age)
 	(gnus-summary-limit-children): do.
@@ -11007,11 +11020,11 @@
 	evaled.
 	(gnus-agent-save-active, gnus-agent-save-active-1): Merged to
 	delete gnus-agent-save-active-1.
-	(gnus-agent-save-groups): Deleted. Identical to
+	(gnus-agent-save-groups): Deleted.  Identical to
 	gnus-agent-save-active.
 	(gnus-agent-write-active): No longer adjust agent's copy of active
 	file as agent's adjustments are now stored in their own
-	file. Removed optional parameter.
+	file.  Removed optional parameter.
 	(gnus-agent-possibly-alter-active): Ignore groups of unagentized
 	servers.  Add use of min/max range limits from server's local
 	file.
@@ -11085,8 +11098,8 @@
 	(spam-spamassassin-register-spam-routine)
 	(spam-spamassassin-register-ham-routine)
 	(spam-assassin-register-spam-routine)
-	(spam-assassin-register-ham-routine): add SpamAssassin support
-	(spam-bogofilter-score): fix to show article before scoring
+	(spam-assassin-register-ham-routine): Add SpamAssassin support.
+	(spam-bogofilter-score): Fix to show article before scoring.
 
 2004-01-20  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -11804,7 +11817,7 @@
 
 See ChangeLog.2 for earlier changes.
 
-    Copyright (C) 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+    Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

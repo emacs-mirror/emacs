@@ -1,7 +1,7 @@
 ;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2
 
 ;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
 ;; Maintainer:       Ken Stevens <k.stevens@ieee.org>
@@ -1385,6 +1385,7 @@ set when defined in the file with either `ispell-pdict-keyword' or the
 local variable syntax.")
 
 (make-variable-buffer-local 'ispell-local-pdict)
+;;;###autoload(put 'ispell-local-pdict 'safe-local-variable 'stringp)
 
 (defvar ispell-buffer-local-name nil
   "Contains the buffer name if local word definitions were used.

@@ -1,7 +1,7 @@
 ;;; time-stamp.el --- Maintain last change time stamps in files edited by Emacs
 
 ;; Copyright (C) 1989, 1993, 1994, 1995, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -128,7 +128,7 @@ Format is the same as that used by the environment variable TZ on your system."
   :type '(choice (const nil) string)
   :group 'time-stamp
   :version "20.1")
-
+;;;###autoload(put 'time-stamp-time-zone 'safe-local-variable 'string-or-null-p)
 
 ;;; Do not change time-stamp-line-limit, time-stamp-start,
 ;;; time-stamp-end, time-stamp-pattern, time-stamp-inserts-lines,

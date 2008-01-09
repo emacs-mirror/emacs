@@ -1,6 +1,6 @@
 ;;; hideif.el --- hides selected code within ifdef
 
-;; Copyright (C) 1988, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+;; Copyright (C) 1988, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;; Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
@@ -142,6 +142,20 @@
     (define-key map hide-ifdef-mode-prefix-key hide-ifdef-mode-submap)
     map)
   "Keymap used with `hide-ifdef-mode'.")
+
+(easy-menu-define hide-ifdef-mode-menu hide-ifdef-mode-map
+  "Menu for `hide-ifdef-mode'."
+  '("Hide-Ifdef"
+    ["Hide some ifdefs" hide-ifdefs t]
+    ["Show all ifdefs" show-ifdefs t]
+    ["Hide ifdef block" hide-ifdef-block t]
+    ["Show ifdef block" show-ifdef-block t]
+    ["Define a variable" hide-ifdef-define t]
+    ["Define an alist" hide-ifdef-set-define-alist t]
+    ["Use an alist" hide-ifdef-use-define-alist t]
+    ["Undefine a variable" hide-ifdef-undef t]
+    ["Toggle read only" hide-ifdef-toggle-read-only
+              :style toggle :selected hide-ifdef-read-only]))
 
 (defvar hide-ifdef-hiding nil
   "Non-nil when text may be hidden.")

@@ -1,7 +1,7 @@
 ;;; bs.el --- menu for selecting and displaying buffers
 
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Keywords: convenience
@@ -369,9 +369,9 @@ A value of `always' means to show buffer regardless of the configuration.")
 
 (defun bs--sort-by-mode (b1 b2)
   "Compare buffers B1 and B2 by mode name."
-  (save-excursion
-    (string< (progn (set-buffer b1) (format "%s" mode-name))
-	     (progn (set-buffer b2) (format "%s" mode-name)))))
+  (save-current-buffer
+    (string< (progn (set-buffer b1) (format-mode-line mode-name nil nil b1))
+	     (progn (set-buffer b2) (format-mode-line mode-name nil nil b2)))))
 
 (defun bs--sort-by-size (b1 b2)
   "Compare buffers B1 and B2 by buffer size."
@@ -1331,7 +1331,7 @@ ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
   "Return the name of mode of current buffer for Buffer Selection Menu.
 START-BUFFER is the buffer where we started buffer selection.
 ALL-BUFFERS is the list of buffers appearing in Buffer Selection Menu."
-  mode-name)
+  (format-mode-line mode-name nil nil start-buffer))
 
 (defun bs--get-file-name (start-buffer all-buffers)
   "Return string for column 'File' in Buffer Selection Menu.
@@ -1480,5 +1480,5 @@ name of buffer configuration."
 ;; Now provide feature bs
 (provide 'bs)
 
-;;; arch-tag: c0d9ab34-bf06-4368-ae9d-af88878e6802
+;; arch-tag: c0d9ab34-bf06-4368-ae9d-af88878e6802
 ;;; bs.el ends here

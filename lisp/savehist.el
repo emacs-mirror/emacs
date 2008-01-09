@@ -1,6 +1,6 @@
 ;;; savehist.el --- Save minibuffer history.
 
-;; Copyright (C) 1997, 2005, 2006, 2007  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Hrvoje Niksic <hniksic@xemacs.org>
 ;; Keywords: minibuffer
@@ -152,7 +152,7 @@ save."
 (defvar savehist-coding-system (if (and (featurep 'xemacs)
 					(<= emacs-major-version 21)
 					(< emacs-minor-version 5))
-				   'iso-2022-8 'utf-8)
+				   'iso-2022-8 'utf-8-unix)
   "The coding system savehist uses for saving the minibuffer history.
 Changing this value while Emacs is running is supported, but considered
 unwise, unless you know what you are doing.")

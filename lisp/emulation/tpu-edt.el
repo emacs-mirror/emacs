@@ -1,7 +1,7 @@
 ;;; tpu-edt.el --- Emacs emulating TPU emulating EDT
 
 ;; Copyright (C) 1993, 1994, 1995, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Rob Riepel <riepel@networking.stanford.edu>
 ;; Maintainer: Rob Riepel <riepel@networking.stanford.edu>
@@ -66,11 +66,10 @@
 ;;    style keyboards.  VT terminal emulators, including xterm with the
 ;;    appropriate key translations, work just fine too.
 
-;;    TPU-edt works with X-windows.  This is accomplished through a TPU-edt X
-;;    key map.  The TPU-edt module tpu-mapper creates this map and stores it
-;;    in a file.  Tpu-mapper will be run automatically the first time you
-;;    invoke the X-windows version of emacs, or you can run it by hand.  See
-;;    the commentary in tpu-mapper.el for details.
+;;    TPU-edt works with X-windows.  This is accomplished through a TPU-edt
+;;    X key map.  The tpu-mapper command creates this map and stores it in a
+;;    file.  See the tpu-mapper command help for more information, or just
+;;    run it and follow the directions.
 
 
 ;; %% Differences Between TPU-edt and DEC TPU/edt
@@ -80,7 +79,7 @@
 ;;    mark".  The mark is set at one end of a selected region; the cursor is
 ;;    at the other.  In cases where the selected region cannot be shown in
 ;;    inverse video an at sign (@) appears in the mode line when mark is set.
-;;    The native emacs command ^X^X (Control-X twice) exchanges the cursor
+;;    The native Emacs command ^X^X (Control-X twice) exchanges the cursor
 ;;    with the mark; this provides a handy way to find the location of the
 ;;    mark.
 
@@ -92,8 +91,8 @@
 ;;    approximation of free mode, see the commentary in tpu-extras.el for
 ;;    details.
 
-;;    Like TPU, emacs uses multiple buffers.  Some buffers are used to hold
-;;    files you are editing; other "internal" buffers are used for emacs' own
+;;    Like TPU, Emacs uses multiple buffers.  Some buffers are used to hold
+;;    files you are editing; other "internal" buffers are used for Emacs' own
 ;;    purposes (like showing you help).  Here are some commands for dealing
 ;;    with buffers.
 
@@ -115,9 +114,9 @@
 ;;    Note that the buffers associated with deleted windows still exist!
 
 ;;    Like TPU, TPU-edt has a "command" function, invoked with Gold-KP7 or
-;;    Do.  Most of the commands available are emacs commands.  Some TPU
+;;    Do.  Most of the commands available are Emacs commands.  Some TPU
 ;;    commands are available, they are: replace, exit, quit, include, and
-;;    Get (unfortunately, "get" is an internal emacs function, so we are
+;;    Get (unfortunately, "get" is an internal Emacs function, so we are
 ;;    stuck with "Get" - to make life easier, Get is available as Gold-g).
 
 ;;    TPU-edt supports the recall of commands, file names, and search
@@ -128,10 +127,10 @@
 ;;    a small help file showing the default keypad layout, control key
 ;;    functions, and Gold key functions.  Pressing any key inside of help
 ;;    splits the screen and prints a description of the function of the
-;;    pressed key.  Gold-PF2 invokes the native emacs help, with its
+;;    pressed key.  Gold-PF2 invokes the native Emacs help, with its
 ;;    zillions of options.
 
-;;    Thanks to emacs, TPU-edt has some extensions that may make your life
+;;    Thanks to Emacs, TPU-edt has some extensions that may make your life
 ;;    easier, or at least more interesting.  For example, Gold-r toggles
 ;;    TPU-edt rectangular mode.  In rectangular mode, Remove and Insert work
 ;;    on rectangles.  Likewise, Gold-* toggles TPU-edt regular expression
@@ -147,27 +146,27 @@
 ;;    twice) on a particular line moves you back to the original window
 ;;    at that line.  Occur is on Gold-o.
 
-;;    Finally, as you edit, remember that all the power of emacs is at
+;;    Finally, as you edit, remember that all the power of Emacs is at
 ;;    your disposal.  It really is a fantastic tool.  You may even want to
-;;    take some time and read the emacs tutorial; perhaps not to learn the
-;;    native emacs key bindings, but to get a feel for all the things
-;;    emacs can do for you.  The emacs tutorial is available from the
-;;    emacs help function: "Gold-PF2 t"
+;;    take some time and read the Emacs tutorial; perhaps not to learn the
+;;    native Emacs key bindings, but to get a feel for all the things
+;;    Emacs can do for you.  The Emacs tutorial is available from the
+;;    Emacs help function: "Gold-PF2 t"
 
 
 ;; %% Starting TPU-edt
 
 ;;    All you have to do to start TPU-edt, is turn it on.  This can be
-;;    done from the command line when running emacs.
+;;    done from the command line when running Emacs.
 
 ;;        prompt> emacs -f tpu-edt
 
-;;    If you've already started emacs, turn on TPU-edt using the tpu-edt
+;;    If you've already started Emacs, turn on TPU-edt using the tpu-edt
 ;;    command.  First press `M-x' (that's usually `ESC' followed by `x')
 ;;    and type `tpu-edt' followed by a carriage return.
 
 ;;    If you like TPU-edt and want to use it all the time, you can start
-;;    TPU-edt using the emacs initialization file, .emacs.  Simply create
+;;    TPU-edt using the Emacs initialization file, .emacs.  Simply create
 ;;    a .emacs file in your home directory containing the line:
 
 ;;        (tpu-edt)
@@ -177,10 +176,10 @@
 
 ;; %% Customizing TPU-edt using the Emacs Initialization File
 
-;;    The following is a sample emacs initialization file.  It shows how to
+;;    The following is a sample Emacs initialization file.  It shows how to
 ;;    invoke TPU-edt, and how to customize it.
 
-;;    ; .emacs - a sample emacs initialization file
+;;    ; .emacs - a sample Emacs initialization file
 
 ;;    ; Turn on TPU-edt
 ;;    (tpu-edt)
@@ -200,12 +199,12 @@
 ;;    (setq require-final-newline t)
 
 ;;    ; Emacs uses Control-s and Control-q.  Problems can occur when using
-;;    ; emacs on terminals that use these codes for flow control (Xon/Xoff
-;;    ; flow control).  These lines disable emacs' use of these characters.
+;;    ; Emacs on terminals that use these codes for flow control (Xon/Xoff
+;;    ; flow control).  These lines disable Emacs' use of these characters.
 ;;    (global-unset-key "\C-s")
 ;;    (global-unset-key "\C-q")
 
-;;    ; The emacs universal-argument function is very useful.
+;;    ; The Emacs universal-argument function is very useful.
 ;;    ; This line maps universal-argument to Gold-PF1.
 ;;    (define-key tpu-gold-map [kp_f1] 'universal-argument)      ; Gold-PF1
 
@@ -225,9 +224,9 @@
 ;; %% Regular Expressions in TPU-edt
 
 ;;    Gold-* toggles TPU-edt regular expression mode.  In regular expression
-;;    mode, find, find next, replace, and substitute accept emacs regular
-;;    expressions.  A complete list of emacs regular expressions can be found
-;;    using the emacs "info" command (it's somewhat like the VMS help
+;;    mode, find, find next, replace, and substitute accept Emacs regular
+;;    expressions.  A complete list of Emacs regular expressions can be found
+;;    using the Emacs "info" command (it's somewhat like the VMS help
 ;;    command).  Try the following sequence of commands:
 
 ;;        DO info             <enter info mode>
@@ -256,13 +255,13 @@
 ;;        Gold-^  Add a string at BOL in region or buffer
 ;;        Gold-$  Add a string at EOL in region or buffer
 
-;;    There is also a TPU-edt interface to the native emacs string replacement
+;;    There is also a TPU-edt interface to the native Emacs string replacement
 ;;    commands.  Gold-/ invokes this command.  It accepts regular expressions
 ;;    if TPU-edt is in regular expression mode.  Given a repeat count, it will
 ;;    perform the replacement without prompting for confirmation.
 
 ;;    This command replaces empty strings correctly, however, it has its
-;;    drawbacks.  As a native emacs command, it has a different interface
+;;    drawbacks.  As a native Emacs command, it has a different interface
 ;;    than the emulated TPU commands.  Also, it works only in the forward
 ;;    direction, regardless of the current TPU-edt direction.
 
@@ -292,7 +291,7 @@
 ;;;  User Configurable Variables
 ;;;
 (defcustom tpu-have-ispell t
-  "If non-nil (default), TPU-edt uses ispell for spell checking."
+  "If non-nil (default), TPU-edt uses Ispell for spell checking."
   :type 'boolean
   :group 'tpu)
 
@@ -695,15 +694,15 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
   (set-marker tpu-match-end-mark nil))
 
 (defun tpu-match-beginning nil
-  "Returns the location of the last match beginning."
+  "Return the location of the last match beginning."
   (marker-position tpu-match-beginning-mark))
 
 (defun tpu-match-end nil
-  "Returns the location of the last match end."
+  "Return the location of the last match end."
   (marker-position tpu-match-end-mark))
 
 (defun tpu-check-match nil
-  "Returns t if point is between tpu-match markers.
+  "Return t if point is between tpu-match markers.
 Otherwise sets the tpu-match markers to nil and returns nil."
   ;; make sure 1- marker is in this buffer
   ;;           2- point is at or after beginning marker
@@ -814,7 +813,7 @@ Top line is 0.  Counts each text line only once, even if it wraps."
   (message "Mark %d set." num))
 
 (defun tpu-goto-breadcrumb (num)
-  "Returns to a breadcrumb set with drop-breadcrumb."
+  "Return to a breadcrumb set with drop-breadcrumb."
   (interactive "p")
   (cond ((get tpu-breadcrumb-plist num)
 	 (switch-to-buffer (car (get tpu-breadcrumb-plist num)))
@@ -873,7 +872,7 @@ With argument, fill and justify."
    tpu-version))
 
 (defun tpu-reset-screen-size (height width)
-  "Sets the screen size."
+  "Set the screen size."
   (interactive "nnew screen height: \nnnew screen width: ")
   (set-frame-height (selected-frame) height)
   (set-frame-width (selected-frame) width))
@@ -895,8 +894,8 @@ With argument, fill and justify."
 		(if tpu-newline-and-indent-p " and indents." "."))))
 
 (defun tpu-spell-check nil
-  "Checks the spelling of the region, or of the entire buffer if no
- region is selected."
+  "Check the spelling of the region, or of the entire buffer,
+if no region is selected."
   (interactive)
   (cond (tpu-have-ispell
 	 (if (tpu-mark) (ispell-region (tpu-mark) (point)) (ispell-buffer)))
@@ -905,7 +904,7 @@ With argument, fill and justify."
   (if (tpu-mark) (tpu-unselect t)))
 
 (defun tpu-toggle-overwrite-mode nil
-  "Switches in and out of overwrite mode"
+  "Switch in and out of overwrite mode."
   (interactive)
   (cond (overwrite-mode
 	 (tpu-local-set-key "\177" tpu-saved-delete-func)
@@ -916,8 +915,7 @@ With argument, fill and justify."
 	 (overwrite-mode 1))))
 
 (defun tpu-special-insert (num)
-  "Insert a character or control code according to
-its ASCII decimal value."
+  "Insert a character or control code according to its ASCII decimal value."
   (interactive "P")
   (if overwrite-mode (delete-char 1))
   (insert (if num num 0)))
@@ -935,19 +933,19 @@ This is useful for inserting control characters."
 ;;;  TPU line-mode commands
 ;;;
 (defun tpu-include (file)
-  "TPU-like include file"
+  "TPU-like include file."
   (interactive "fInclude file: ")
   (insert-file-contents file)
   (message ""))
 
 (defun tpu-get (file)
-  "TPU-like get file"
+  "TPU-like get file."
   (interactive "FFile to get: ")
   (find-file file find-file-wildcards))
 
 (defun tpu-what-line nil
-  "Tells what line the point is on,
- and the total number of lines in the buffer."
+  "Tell what line the point is on,
+and the total number of lines in the buffer."
   (interactive)
   (if (eobp)
       (message "You are at the End of Buffer.  The last line is %d."
@@ -1216,12 +1214,12 @@ This is useful for inserting control characters."
 ;;;  Auto-insert
 ;;;
 (defun tpu-insert-escape nil
-  "Inserts an escape character, and so becomes the escape-key alias."
+  "Insert an escape character, and so becomes the escape-key alias."
   (interactive)
   (insert "\e"))
 
 (defun tpu-insert-formfeed nil
-  "Inserts a formfeed character."
+  "Insert a formfeed character."
   (interactive)
   (insert "\C-L"))
 
@@ -1232,7 +1230,7 @@ This is useful for inserting control characters."
 (defvar tpu-saved-control-r nil "Saved value of Control-r.")
 
 (defun tpu-end-define-macro-key (key)
-  "Ends the current macro definition"
+  "End the current macro definition."
   (interactive "kPress the key you want to use to do what was just learned: ")
   (end-kbd-macro nil)
   (global-set-key key last-kbd-macro)
@@ -1250,7 +1248,7 @@ This is useful for inserting control characters."
 ;;;  Buffers and Windows
 ;;;
 (defun tpu-kill-buffer nil
-  "Kills the current buffer.  If tpu-kill-buffers-silently is non-nil,
+  "Kill the current buffer.  If tpu-kill-buffers-silently is non-nil,
 kills modified buffers without asking."
   (interactive)
   (if tpu-kill-buffers-silently (set-buffer-modified-p nil))
@@ -1281,7 +1279,7 @@ kills modified buffers without asking."
     (switch-to-buffer (car (reverse list)))))
 
 (defun tpu-make-file-buffer-list (buffer-list)
-  "Returns names from BUFFER-LIST excluding those beginning with a space or star."
+  "Return names from BUFFER-LIST excluding those beginning with a space or star."
   (delq nil (mapcar '(lambda (b)
                        (if (or (= (aref (buffer-name b) 0) ? )
                                (= (aref (buffer-name b) 0) ?*)) nil b))
@@ -1304,7 +1302,7 @@ kills modified buffers without asking."
 ;;;  Search
 ;;;
 (defun tpu-toggle-regexp nil
-  "Switches in and out of regular expression search and replace mode."
+  "Switch in and out of regular expression search and replace mode."
   (interactive)
   (setq tpu-regexp-p (not tpu-regexp-p))
   (tpu-set-search)
@@ -1370,8 +1368,8 @@ The search is performed in the current direction."
 (declare-function tpu-emacs-rev-search "tpu-edt")
 
 (defun tpu-set-search (&optional arg)
-  "Set the search functions and set the search direction to the current
-direction.  If an argument is specified, don't set the search direction."
+  "Set the search functions and set the search direction to the current direction.
+If an argument is specified, don't set the search direction."
   (if (not arg) (setq tpu-searching-forward tpu-advance))
   (cond (tpu-searching-forward
 	 (cond (tpu-regexp-p
@@ -1428,7 +1426,7 @@ direction.  If an argument is specified, don't set the search direction."
 (defalias 'tpu-search-internal-core (symbol-function 'tpu-search-internal))
 
 (defun tpu-check-search-case (string)
-  "Returns t if string contains upper case."
+  "Return t if string contains upper case."
   ;; if using regexp, eliminate upper case forms (\B \W \S.)
   (if tpu-regexp-p
       (let ((pat (copy-sequence string)) (case-fold-search nil) (pos 0))
@@ -1476,7 +1474,7 @@ Used for reversing a search in progress."
 ;;;  Select / Unselect
 ;;;
 (defun tpu-select (&optional quiet)
-  "Sets the mark to define one end of a region."
+  "Set the mark to define one end of a region."
   (interactive "P")
   (cond ((tpu-mark)
 	 (tpu-unselect quiet))
@@ -1486,7 +1484,7 @@ Used for reversing a search in progress."
 	 (if (not quiet) (message "Move the text cursor to select text.")))))
 
 (defun tpu-unselect (&optional quiet)
-  "Removes the mark to unselect the current region."
+  "Remove the mark to unselect the current region."
   (interactive "P")
   (deactivate-mark)
   (setq mark-ring nil)
@@ -1509,8 +1507,7 @@ Used for reversing a search in progress."
 		(if tpu-rectangular-p "en" "dis"))))
 
 (defun tpu-arrange-rectangle nil
-  "Adjust point and mark to mark upper left and lower right
-corners of a rectangle."
+  "Adjust point and mark to upper left and lower right corners of a rectangle."
   (let ((mc (current-column))
 	(pc (progn (exchange-point-and-mark) (current-column))))
 
@@ -1575,14 +1572,14 @@ The text is saved for the tpu-paste command."
 	 (tpu-error "No selection active."))))
 
 (defun tpu-cut (arg)
-  "Copy selected region to the cut buffer.  In the absence of an
-argument, delete the selected region too."
+  "Copy selected region to the cut buffer.
+In the absence of an argument, delete the selected region too."
   (interactive "P")
   (if arg (tpu-store-text) (tpu-cut-text)))
 
 (defun tpu-append-region (arg)
-  "Append selected region to the tpu-cut buffer.  In the absence of an
-argument, delete the selected region too."
+  "Append selected region to the tpu-cut buffer.
+In the absence of an argument, delete the selected region too."
   (interactive "P")
   (cond ((tpu-mark)
 	 (let ((beg (region-beginning)) (end (region-end)))
@@ -1658,8 +1655,8 @@ They are saved for the TPU-edt undelete-words command."
     (delete-region beg (point))))
 
 (defun tpu-delete-current-char (num)
-  "Delete one or specified number of characters after point.  The last
-character deleted is saved for the TPU-edt undelete-char command."
+  "Delete one or specified number of characters after point.
+The last character deleted is saved for the TPU-edt undelete-char command."
   (interactive "p")
   (while (and (> num 0) (not (eobp)))
     (setq tpu-last-deleted-char (char-after (point)))
@@ -1742,8 +1739,8 @@ With argument reinserts the character that many times."
 	 (tpu-error "No selection active."))))
 
 (defun tpu-substitute (num)
-  "Replace the selected region with the contents of the cut buffer, and
-repeat most recent search.  A numeric argument serves as a repeat count.
+  "Replace the selected region with the contents of the cut buffer,
+and repeat most recent search.  A numeric argument serves as a repeat count.
 A negative argument means replace all occurrences of the search string."
   (interactive "p")
   (cond ((or (tpu-mark) (tpu-check-match))
@@ -1820,10 +1817,10 @@ A negative argument means replace all occurrences of the search string."
     (message "Replaced %s occurrence%s." strings (if (not (= 1 strings)) "s" ""))))
 
 (defun tpu-emacs-replace (&optional dont-ask)
-  "A TPU-edt interface to the Emacs replace functions.  If TPU-edt is
-currently in regular expression mode, the Emacs regular expression
-replace functions are used.  If an argument is supplied, replacements
-are performed without asking.  Only works in forward direction."
+  "A TPU-edt interface to the Emacs replace functions.
+If TPU-edt is currently in regular expression mode, the Emacs regular
+expression replace functions are used.  If an argument is supplied,
+replacements are performed without asking.  Only works in forward direction."
   (interactive "P")
   (cond (dont-ask
 	 (setq current-prefix-arg nil)
@@ -1872,7 +1869,7 @@ or each line of the entire buffer if no region is selected."
 	     (end-of-line) (insert text) (forward-line))))))
 
 (defun tpu-trim-line-ends nil
-  "Removes trailing whitespace from every line in the buffer."
+  "Remove trailing whitespace from every line in the buffer."
   (interactive)
   (save-match-data
     (save-excursion
@@ -2274,7 +2271,7 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
     (setq tpu-control-keys tpu-style)))
 
 (defun tpu-toggle-control-keys nil
-  "Toggles control key bindings between TPU-edt and Emacs."
+  "Toggle control key bindings between TPU-edt and Emacs."
   (interactive)
   (tpu-reset-control-keys (not tpu-control-keys))
   (and (interactive-p)
@@ -2325,7 +2322,7 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
 (defun tpu-load-xkeys (file)
   "Load the TPU-edt X-windows key definitions FILE.
 If FILE is nil, try to load a default file.  The default file names are
-`~/.tpu-lucid-keys' for Lucid emacs, and `~/.tpu-keys' for Emacs."
+`~/.tpu-lucid-keys' for XEmacs, and `~/.tpu-keys' for Emacs."
   (interactive "fX key definition file: ")
   (cond (file
 	 (setq file (expand-file-name file)))
@@ -2347,10 +2344,10 @@ If FILE is nil, try to load a default file.  The default file names are
   (cond ((file-readable-p file)
 	 (load-file file))
 	(t
-         ;; FIXME: This used to force the user to build `file'.  With the
-         ;; new code, such a file is not even necessary, but we'll keep
-         ;; a warning message.
-         (message "%s not found: use tpu-mapper.el to create it"
+         ;; This used to force the user to build `file'.  With the
+         ;; new code, such a file may not be necessary.  In case it
+         ;; is, issue a message giving a hint as to how to build it.
+         (message "%s not found: use M-x tpu-mapper to create it"
                   (abbreviate-file-name file)))))
 
 (defun tpu-copy-keyfile (oldname newname)

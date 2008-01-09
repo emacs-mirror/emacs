@@ -1,7 +1,7 @@
 ;;; emacsbug.el --- command to report Emacs bugs to appropriate mailing list
 
 ;; Copyright (C) 1985, 1994, 1997, 1998, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -168,7 +168,9 @@ usually do not have translators to read other languages for them.\n\n")
 		    default-enable-multibyte-characters))
     (insert "\n")
     (insert (format "Major mode: %s\n"
-		    (buffer-local-value 'mode-name from-buffer)))
+		    (format-mode-line
+                     (buffer-local-value 'mode-name from-buffer)
+                     nil nil from-buffer)))
     (insert "\n")
     (insert "Minor modes in effect:\n")
     (dolist (mode minor-mode-list)

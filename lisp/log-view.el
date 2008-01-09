@@ -1,7 +1,7 @@
 ;;; log-view.el --- Major mode for browsing RCS/CVS/SCCS log output
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007 Free Software Foundation, Inc.
+;;   2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: rcs sccs cvs log version-control
@@ -428,6 +428,8 @@ log entries."
 	     (re-search-forward "summary: *" nil t)))      
       (setq st (point))
       (buffer-substring st en))))
+
+(declare-function vc-modify-change-comment "vc" (files rev oldcomment))
 
 (defun log-view-modify-change-comment ()
   "Edit the change comment displayed at point."

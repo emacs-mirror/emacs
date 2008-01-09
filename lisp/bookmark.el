@@ -1,7 +1,7 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -491,13 +491,11 @@ The function will be called with two arguments: ANNOTATION and
 INFO-NODE.  See `bookmark-make-cell-for-text-file' for a
 description.
 
-The returned record may contain a special cons (handler
-. some-function) which sets the handler function that should be
-used to open this bookmark instead of `bookmark-jump-noselect'.
-It should return a cons (BUFFER . POINT) indicating buffer
-showing the bookmarked location and the value of point in that
-buffer.  Like `bookmark-jump-noselect' the buffer shouldn't be
-selected by the handler.")
+The returned record may contain a special cons (handler . SOME-FUNCTION)
+which sets the handler function that should be used to open this
+bookmark instead of `bookmark-jump-noselect'.  The handler should
+return an alist like the one that function returns, and (of course)
+should likewise not select the buffer.")
 
 (defun bookmark-make (name &optional annotation overwrite info-node)
   "Make a bookmark named NAME.
@@ -980,7 +978,7 @@ The directory part of the file name is not used."
 In Info, return the current node."
   (cond
    ;; Are we in Info?
-   ((string-equal mode-name "Info") Info-current-node)
+   ((derived-mode-p 'Info-mode) Info-current-node)
    ;; Or are we a file?
    (buffer-file-name (file-name-nondirectory buffer-file-name))
    ;; Or are we a directory?
@@ -1084,10 +1082,10 @@ of the old one in the permanent bookmark record."
   (unless bookmark
     (error "No bookmark specified"))
   (bookmark-maybe-historicize-string bookmark)
-  (let ((cell (bookmark-jump-internal bookmark)))
-    (and cell
-         (switch-to-buffer (car cell))
-         (goto-char (cdr cell))
+  (let ((alist (bookmark-jump-internal bookmark)))
+    (and alist
+         (switch-to-buffer (cadr (assq 'buffer alist)))
+         (goto-char (cadr (assq 'position alist)))
 	 (progn (run-hooks 'bookmark-after-jump-hook) t)
 	 (if bookmark-automatically-show-annotations
              ;; if there is an annotation for this bookmark,
@@ -1106,10 +1104,10 @@ See `bookmark-jump'."
          (list bkm) bkm)))
   (when bookmark
     (bookmark-maybe-historicize-string bookmark)
-    (let ((cell (bookmark-jump-internal bookmark)))
-      (and cell
-           (switch-to-buffer-other-window (car cell))
-           (goto-char (cdr cell))
+    (let ((alist (bookmark-jump-internal bookmark)))
+      (and alist
+           (switch-to-buffer-other-window (cadr (assq 'buffer alist)))
+           (goto-char (cadr (assq 'position alist)))
            (if bookmark-automatically-show-annotations
                ;; if there is an annotation for this bookmark,
                ;; show it in a buffer.
@@ -1143,8 +1141,12 @@ be retrieved from a VC backend, else return nil."
 	   bookmark))
 
 (defun bookmark-jump-noselect (str)
-  ;; a leetle helper for bookmark-jump :-)
-  ;; returns (BUFFER . POINT)
+  ;; Helper for bookmark-jump.  STR is a bookmark name, of the sort
+  ;; accepted by `bookmark-get-bookmark'.
+  ;;
+  ;; Return an alist '((buffer BUFFER) (position POSITION) ...)
+  ;; indicating the bookmarked point within the specied buffer.  Any
+  ;; elements not documented here should be ignored.
   (bookmark-maybe-load-default-file)
   (let* ((file (expand-file-name (bookmark-get-filename str)))
          (forward-str            (bookmark-get-front-context-string str))
@@ -1179,7 +1181,7 @@ be retrieved from a VC backend, else return nil."
                     (goto-char (match-end 0))))
             ;; added by db
             (setq bookmark-current-bookmark str)
-            (cons (current-buffer) (point))))
+            `((buffer ,(current-buffer)) (position ,(point)))))
 
       ;; Else unable to find the marked file, so ask if user wants to
       ;; relocate the bookmark, else remind them to consider deletion.
@@ -1296,7 +1298,7 @@ this."
   (let ((orig-point (point))
 	(str-to-insert
 	 (save-excursion
-	   (set-buffer (car (bookmark-jump-internal bookmark)))
+	   (set-buffer (cadr (assq 'buffer (bookmark-jump-internal bookmark))))
 	   (buffer-string))))
     (insert str-to-insert)
     (push-mark)
@@ -1925,9 +1927,9 @@ With a prefix arg, prompts for a file to save them in."
             (pop-up-windows t))
         (delete-other-windows)
         (switch-to-buffer (other-buffer))
-	(let* ((pair (bookmark-jump-internal bmrk))
-               (buff (car pair))
-               (pos  (cdr pair)))
+	(let* ((alist (bookmark-jump-internal bmrk))
+               (buff (cadr (assq 'buffer alist)))
+               (pos  (cadr (assq 'position alist))))
           (pop-to-buffer buff)
           (goto-char pos))
         (bury-buffer menu))))
@@ -1945,9 +1947,9 @@ With a prefix arg, prompts for a file to save them in."
   (interactive)
   (let ((bookmark (bookmark-bmenu-bookmark)))
     (if (bookmark-bmenu-check-position)
-	(let* ((pair (bookmark-jump-internal bookmark))
-               (buff (car pair))
-               (pos  (cdr pair)))
+	(let* ((alist (bookmark-jump-internal bookmark))
+               (buff (cadr (assq 'buffer alist)))
+               (pos  (cadr (assq 'position alist))))
 	  (switch-to-buffer-other-window buff)
           (goto-char pos)
           (set-window-point (get-buffer-window buff) pos)
@@ -1963,9 +1965,9 @@ The current window remains selected."
         same-window-buffer-names
         same-window-regexps)
     (if (bookmark-bmenu-check-position)
-	(let* ((pair (bookmark-jump-internal bookmark))
-               (buff (car pair))
-               (pos  (cdr pair)))
+	(let* ((alist (bookmark-jump-internal bookmark))
+               (buff (cadr (assq 'buffer alist)))
+               (pos  (cadr (assq 'position alist))))
 	  (display-buffer buff)
           (let ((o-buffer (current-buffer)))
             ;; save-excursion won't do
@@ -2225,5 +2227,5 @@ This also runs `bookmark-exit-hook'."
 
 (provide 'bookmark)
 
-;;; arch-tag: 139f519a-dd0c-4b8d-8b5d-f9fcf53ca8f6
+;; arch-tag: 139f519a-dd0c-4b8d-8b5d-f9fcf53ca8f6
 ;;; bookmark.el ends here

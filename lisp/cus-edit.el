@@ -1,7 +1,7 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
 ;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -4465,15 +4465,12 @@ The format is suitable for use with `easy-menu-define'."
 		 custom-commands)))
 
 (defvar tool-bar-map)
-(defvar custom-tool-bar-map
-  (if (display-graphic-p)
-      (let ((map (make-sparse-keymap)))
-	(mapc
-	 (lambda (arg)
-	   (tool-bar-local-item-from-menu
-	    (nth 1 arg) (nth 4 arg) map custom-mode-map))
-	 custom-commands)
-	map)))
+
+;;; `custom-tool-bar-map' used to be set up here.  This will fail to
+;;; DTRT when `display-graphic-p' returns nil during compilation.  Hence
+;;; we set this up lazily in `custom-mode'.
+(defvar custom-tool-bar-map nil
+  "Keymap for toolbar in Custom mode.")
 
 ;;; The Custom Mode.
 
@@ -4534,7 +4531,17 @@ Entry to this mode calls the value of `custom-mode-hook'
 if that value is non-nil."
   (use-local-map custom-mode-map)
   (easy-menu-add Custom-mode-menu)
-  (set (make-local-variable 'tool-bar-map) custom-tool-bar-map)
+  (when (display-graphic-p)
+    (set (make-local-variable 'tool-bar-map)
+	 (or custom-tool-bar-map
+	     ;; Set up `custom-tool-bar-map'.
+	     (let ((map (make-sparse-keymap)))
+	       (mapc
+		(lambda (arg)
+		  (tool-bar-local-item-from-menu
+		   (nth 1 arg) (nth 4 arg) map custom-mode-map))
+		custom-commands)
+	       (setq custom-tool-bar-map map)))))
   (make-local-variable 'custom-options)
   (make-local-variable 'custom-local-buffer)
   (make-local-variable 'widget-documentation-face)

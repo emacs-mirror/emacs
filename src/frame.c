@@ -1,6 +1,6 @@
 /* Generic frame functions.
    Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2001, 2002, 2003,
-                 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+                 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -698,7 +698,7 @@ affects all frames on the same terminal device.  */)
     abort ();
 #else /* not MSDOS */
 
-#if 0 /* #ifdef MAC_OS */
+#if 0 /* #ifdef MAC_OS8 */
   /* This can happen for multi-tty when using both terminal frames and
      Carbon frames. */
   if (sf->output_method != output_mac)

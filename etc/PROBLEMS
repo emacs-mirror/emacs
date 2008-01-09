@@ -1,5 +1,5 @@
 Copyright (C) 1987, 1988, 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-  2001, 2002, 2003, 2004, 2005, 2006, 2007
+  2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
   Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
@@ -382,8 +382,6 @@ the nameserver, but Emacs does not.
 
 The fix is to install an unshared library that corresponds to what you
 installed in the shared library, and then relink Emacs.
-
-On SunOS 4.1, simply define HAVE_RES_INIT.
 
 If you have already installed the name resolver in the file libresolv.a,
 then you need to compile Emacs to use that library.  The easiest way to
@@ -2988,105 +2986,12 @@ the same problem.  Display-time seems to be far the worst.
 
 The only known fix: Don't run display-time.
 
-*** SunOS
-
-SunOS 4.1.4 stopped shipping on Sep 30 1998.
-
-**** SunOS: You get linker errors
-   ld: Undefined symbol
-      _get_wmShellWidgetClass
-      _get_applicationShellWidgetClass
-
-**** Sun 4.0.x: M-x shell persistently reports "Process shell exited abnormally with code 1".
-
-This happened on Suns as a result of what is said to be a bug in Sunos
-version 4.0.x.  The only fix was to reboot the machine.
-
-**** SunOS4.1.1 and SunOS4.1.3: Mail is lost when sent to local aliases.
-
-Many emacs mail user agents (VM and rmail, for instance) use the
-sendmail.el library.  This library can arrange for mail to be
-delivered by passing messages to the /usr/lib/sendmail (usually)
-program .  In doing so, it passes the '-t' flag to sendmail, which
-means that the name of the recipient of the message is not on the
-command line and, therefore, that sendmail must parse the message to
-obtain the destination address.
-
-There is a bug in the SunOS4.1.1 and SunOS4.1.3 versions of sendmail.
-In short, when given the -t flag, the SunOS sendmail won't recognize
-non-local (i.e. NIS) aliases.  It has been reported that the Solaris
-2.x versions of sendmail do not have this bug.  For those using SunOS
-4.1, the best fix is to install sendmail V8 or IDA sendmail (which
-have other advantages over the regular sendmail as well).  At the time
-of this writing, these official versions are available:
-
- Sendmail V8 on ftp.cs.berkeley.edu in /ucb/sendmail:
-   sendmail.8.6.9.base.tar.Z (the base system source & documentation)
-   sendmail.8.6.9.cf.tar.Z   (configuration files)
-   sendmail.8.6.9.misc.tar.Z (miscellaneous support programs)
-   sendmail.8.6.9.xdoc.tar.Z (extended documentation, with postscript)
-
- IDA sendmail on vixen.cso.uiuc.edu in /pub:
-   sendmail-5.67b+IDA-1.5.tar.gz
-
-**** Sunos 4: You get the error ld: Undefined symbol __lib_version.
-
-This is the result of using cc or gcc with the shared library meant
-for acc (the Sunpro compiler).  Check your LD_LIBRARY_PATH and delete
-/usr/lang/SC2.0.1 or some similar directory.
-
-**** SunOS 4.1.3: Emacs unpredictably crashes in _yp_dobind_soft.
-
-This happens if you configure Emacs specifying just `sparc-sun-sunos4'
-on a system that is version 4.1.3.  You must specify the precise
-version number (or let configure figure out the configuration, which
-it can do perfectly well for SunOS).
-
-**** Sunos 4.1.3: Emacs gets hung shortly after startup.
-
-We think this is due to a bug in Sunos.  The word is that
-one of these Sunos patches fixes the bug:
-
-100075-11  100224-06  100347-03  100482-05  100557-02  100623-03  100804-03  101080-01
-100103-12  100249-09             100496-02  100564-07  100630-02  100891-10  101134-01
-100170-09  100296-04  100377-09  100507-04  100567-04  100650-02  101070-01  101145-01
-100173-10  100305-15  100383-06  100513-04  100570-05  100689-01  101071-03  101200-02
-100178-09  100338-05  100421-03  100536-02  100584-05  100784-01  101072-01  101207-01
-
-We don't know which of these patches really matter.  If you find out
-which ones, please inform bug-gnu-emacs@gnu.org.
-
-**** SunOS 4: Emacs processes keep going after you kill the X server
-(or log out, if you logged in using X).
-
-Someone reported that recompiling with GCC 2.7.0 fixed this problem.
-
-The fix to this is to install patch 100573 for OpenWindows 3.0
-or link libXmu statically.
-
 **** Sunos 5.3: Subprocesses remain, hanging but not zombies.
 
 A bug in Sunos 5.3 causes Emacs subprocesses to remain after Emacs
 exits.  Sun patch # 101415-02 is part of the fix for this, but it only
 applies to ptys, and doesn't fix the problem with subprocesses
 communicating through pipes.
-
-*** Apollo Domain
-
-**** Shell mode ignores interrupts on Apollo Domain.
-
-You may find that M-x shell prints the following message:
-
-   Warning: no access to tty; thus no job control in this shell...
-
-This can happen if there are not enough ptys on your system.
-Here is how to make more of them.
-
-    % cd /dev
-    % ls pty*
-    # shows how many pty's you have. I had 8, named pty0 to pty7)
-    % /etc/crpty 8
-    # creates eight new pty's
 
 *** Irix
 
@@ -3774,27 +3679,6 @@ It's not terribly hard to make this work with small changes in
 crt0.c together with linking with Fcrt1.o, Wcrt1.o or Mcrt1.o.
 However, the easiest approach is to build Xlib with the default
 floating point option: -fsoft.
-
-** SunOS: Undefined symbols _dlopen, _dlsym and/or _dlclose.
-
-If you see undefined symbols _dlopen, _dlsym, or _dlclose when linking
-with -lX11, compile and link against the file mit/util/misc/dlsym.c in
-the MIT X11R5 distribution.  Alternatively, link temacs using shared
-libraries with s/sunos4shr.h.  (This doesn't work if you use the X
-toolkit.)
-
-If you get the additional error that the linker could not find
-lib_version.o, try extracting it from X11/usr/lib/X11/libvim.a in
-X11R4, then use it in the link.
-
-** SunOS4, DGUX 5.4.2: --with-x-toolkit version crashes when used with shared libraries.
-
-On some systems, including Sunos 4 and DGUX 5.4.2 and perhaps others,
-unexec doesn't work properly with the shared library for the X
-toolkit.  You might be able to work around this by using a nonshared
-libXt.a library.  The real fix is to upgrade the various versions of
-unexec and/or ralloc.  We think this has been fixed on Sunos 4
-and Solaris in version 19.29.
 
 ** HPUX 10.20: Emacs crashes during dumping on the HPPA machine.
 

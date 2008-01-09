@@ -1,6 +1,6 @@
 Emacs TODO List                                                   -*-outline-*-
 
-Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007
+Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
   Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
@@ -109,6 +109,8 @@ where <device> is the network device found under the first key.
 
 ** Check for any included packages that define obsolete bug-reporting commands.
 Change them to use report-emacs-bug.
+
+** Allow fringe indicators to display a tooltip (provide a help-echo property?)
 
 * Important features:
 

@@ -1,3 +1,30 @@
+2008-01-06  Romain Francoise  <romain@orebokech.com>
+
+	* configure.in: Delete extra semicolons.
+
+2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove references to unsupported systems.
+
+2008-01-05  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Add --bzip2.  Update copyright.
+
+2008-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove support for Masscomp.
+
+2008-01-05  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (desktopdir, icondir): New variables.
+	(install-arch-indep): Also depend on `install-etc'.
+	(install-etc): New target.
+	(mkdir): Also create the `applications' and `icons' directories.
+
+2008-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Update for new etc/images/icons/hicolor directory.
+
 2007-12-09  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: D-Bus is not enabled by default.
@@ -56,8 +83,7 @@
 
 2007-11-20  Andreas Schwab  <schwab@suse.de>
 
-	* configure.in: Always include <resolv.h> when checking for
-	res_init.
+	* configure.in: Always include <resolv.h> when checking for res_init.
 
 2007-11-17  Andreas Schwab  <schwab@suse.de>
 
@@ -286,8 +312,7 @@
 
 2007-05-22  Andreas Schwab  <schwab@suse.de>
 
-	* configure.in: Prefer build_alias over host when host_alias is
-	not set.
+	* configure.in: Prefer build_alias over host when host_alias is not set.
 	* configure: Regenerate.
 
 2007-05-20  Andreas Schwab  <schwab@suse.de>
@@ -303,7 +328,7 @@
 
 2007-05-20  Nick Roberts  <nickrob@snap.net.nz>
 
-	* configure.in (AC_CHECK_HEADERS) Add gpm.h.
+	* configure.in (AC_CHECK_HEADERS): Add gpm.h.
 	(AC_CHECK_LIB): Add -lgpm.
 	* configure: Regenerate.
 
@@ -313,8 +338,7 @@
 
 2007-04-27  Andreas Schwab  <schwab@suse.de>
 
-	* Makefile.in (config.status): Depend on
-	${srcdir}/lisp/version.el.
+	* Makefile.in (config.status): Depend on ${srcdir}/lisp/version.el.
 
 2007-04-26  Glenn Morris  <rgm@gnu.org>
 
@@ -3992,7 +4016,7 @@
 	Use bsd4-3.  Don't set NON_GNU_CPP.
 
 	* make-dist: Don't copy in src/s/*.inp.  Don't copy nt/src.
-	In nt. copy various different things, but not *.cmd.
+	In nt, copy various different things, but not *.cmd.
 	Fix the ln commands for the subdirs of nt.
 
 1995-04-29  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -6786,7 +6810,7 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-	2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+	2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

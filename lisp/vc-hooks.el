@@ -1,7 +1,7 @@
 ;;; vc-hooks.el --- resident support for version-control
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -76,9 +76,10 @@ An empty list disables VC altogether."
   :version "23.1"
   :group 'vc)
 
+;; Note: we don't actually have a darcs back end yet.
 (defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" 
 					 ".svn" ".git" ".hg" ".bzr" 
-					 "_MTN" "{arch}")
+					 "_MTN" "_darcs" "{arch}")
   "List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
   :group 'vc)

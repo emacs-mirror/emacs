@@ -1,7 +1,7 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes -*- coding: iso-2022-7bit -*-
 
 ;; Copyright (C) 1992, 1995, 1996, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Maintainer: FSF
@@ -395,7 +395,7 @@ a DOCTYPE or an XML declaration."
 	(setq face (funcall skeleton-transformation-function face))
 	(setq facemenu-end-add-face (concat "</" face ">"))
 	(concat "<" face ">"))
-    (error "Face not configured for %s mode" mode-name)))
+    (error "Face not configured for %s mode" (format-mode-line mode-name))))
 
 (defun sgml-fill-nobreak ()
   ;; Don't break between a tag name and its first argument.

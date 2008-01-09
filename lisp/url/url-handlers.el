@@ -1,7 +1,7 @@
 ;;; url-handlers.el --- file-name-handler stuff for URL loading
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005, 2006, 2007  Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -122,6 +122,7 @@ particularly bad at this\).")
 	(inhibit-file-name-operation operation))
     (apply operation args)))
 
+;;;###autoload
 (defun url-file-handler (operation &rest args)
   "Function called from the `file-name-handler-alist' routines.
 OPERATION is what needs to be done (`file-exists-p', etc).  ARGS are

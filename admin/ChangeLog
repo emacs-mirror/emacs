@@ -1,3 +1,16 @@
+2008-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-version): Add doc/man/emacs.1.
+
+2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* notes/copyright:
+	* MAINTAINERS: Remove references to files that have been removed.
+
+2008-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* admin.el (set-copyright): Add lib-src/ebrowse.c.
+
 2007-12-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* CPP-DEFINES: New file.
@@ -15,9 +28,8 @@
 
 2007-12-01  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* FOR-RELEASE: Remove Gnus send mail problem.  Other Gnus bugs
-	have been fixed in Gnus CVS but have not yet been synched to
-	Emacs.
+	* FOR-RELEASE: Remove Gnus send mail problem.  Other Gnus bugs have
+	been fixed in Gnus CVS but have not yet been synched to Emacs.
 
 2007-11-17  Glenn Morris  <rgm@gnu.org>
 
@@ -213,7 +225,7 @@
 
 2005-08-31  Romain Francoise  <romain@orebokech.com>
 
-	* FOR-RELEASE: (New features): Remove vhdl-mode.el update
+	* FOR-RELEASE (New features): Remove vhdl-mode.el update
 	item (Done).
 
 2005-08-27  Romain Francoise  <romain@orebokech.com>
@@ -369,7 +381,7 @@
 	* admin.el (add-release-logs): Expand the directory name before
 	calling find(1).
 	(add-release-logs): Use the same methods as add-log.el for writing
-	the date and the user's name and address
+	the date and the user's name and address.
 
 2003-01-07  Miles Bader  <miles@gnu.org>
 
@@ -472,7 +484,7 @@
 ;; End:
 
     Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006,
-      2007  Free Software Foundation, Inc.
+      2007, 2008  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

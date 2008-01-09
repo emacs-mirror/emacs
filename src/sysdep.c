@@ -1,6 +1,7 @@
 /* Interfaces to system-dependent kernel and library entries.
    Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+                 2002, 2003, 2004, 2005, 2006, 2007, 2008
+                 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -33,12 +34,6 @@ Boston, MA 02110-1301, USA.  */
 /* Including stdlib.h isn't necessarily enough to get srandom
    declared, e.g. without __USE_XOPEN_EXTENDED with glibc 2.  */
 #ifdef HAVE_RANDOM
-#if 0 /* It turns out that defining _OSF_SOURCE in osf5-0.h gets
-	 random prototyped as returning `int'.  It looks to me as
-	 though the best way to DTRT is to prefer the rand48 functions
-	 (per libc.info).  -- fx */
-extern long int random P_ ((void));
-#endif
 #if 0 /* Don't prototype srandom; it takes an unsigned argument on
 	 some systems, and an unsigned long on others, like FreeBSD
 	 4.1.  */

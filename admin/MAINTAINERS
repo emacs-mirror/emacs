@@ -143,7 +143,6 @@ src/cmds.c
 src/coding.c
 src/composite.c
 src/config.in
-src/cxux-crt0.s
 src/data.c
 src/dispnew.c
 src/doc.c
@@ -196,15 +195,11 @@ src/tparam.c
 src/undo.c
 src/unexaix.c
 src/unexalpha.c
-src/unexapollo.c
-src/unexconvex.c
 src/unexec.c
 src/unexelf.c
-src/unexenix.c
 src/unexhp9k800.c
 src/unexmips.c
 src/unexnext.c
-src/unexsni.c
 src/unexsunos4.c
 src/unexw32.c
 src/vm-limit.c

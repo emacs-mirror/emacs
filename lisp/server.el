@@ -1,7 +1,7 @@
 ;;; server.el --- Lisp code for GNU Emacs running as server process
 
 ;; Copyright (C) 1986, 1987, 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: William Sommerfeld <wesommer@athena.mit.edu>
 ;; Maintainer: FSF
@@ -629,10 +629,6 @@ Server mode runs a process that accepts commands from the
                        (error "Please specify display"))
                    params)))
       (server-log (format "%s created" frame) proc)
-      ;; XXX We need to ensure the parameters are really set because Emacs
-      ;; forgets unhandled initialization parameters for X frames at
-      ;; the moment.
-      (modify-frame-parameters frame params)
       (select-frame frame)
       (process-put proc 'frame frame)
       (process-put proc 'terminal (frame-terminal frame))

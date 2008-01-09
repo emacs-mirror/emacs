@@ -1,6 +1,6 @@
 /* Utility and Unix shadow routines for GNU Emacs on the Microsoft W32 API.
    Copyright (C) 1994, 1995, 2000, 2001, 2002, 2003, 2004,
-                 2005, 2006, 2007 Free Software Foundation, Inc.
+                 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1266,12 +1266,6 @@ get_emacs_configuration (void)
     case PROCESSOR_INTEL_486:
     case PROCESSOR_INTEL_PENTIUM:
       arch = "i386";
-      break;
-#endif
-
-#ifdef PROCESSOR_INTEL_860
-    case PROCESSOR_INTEL_860:
-      arch = "i860";
       break;
 #endif
 

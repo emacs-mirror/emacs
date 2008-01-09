@@ -5,7 +5,7 @@
 ;; Keywords: unix, tools
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 2000, 2001, 2002, 2003,
-;;  2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;  2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -379,9 +379,10 @@ we're in the GUD buffer)."
      (defun ,func (arg)
        ,@(if doc (list doc))
        (interactive "p")
-       ,(if (stringp cmd)
-	    `(gud-call ,cmd arg)
-	  cmd))
+       (if (not gud-running)
+	 ,(if (stringp cmd)
+	      `(gud-call ,cmd arg)
+	    cmd)))
      ,(if key `(local-set-key ,(concat "\C-c" key) ',func))
      ,(if key `(global-set-key (vconcat gud-key-prefix ,key) ',func))))
 
@@ -473,7 +474,13 @@ t means that there is no stack, and we are in display-file mode.")
     ["Auto raise frame" gdb-speedbar-auto-raise
      :style toggle :selected gdb-speedbar-auto-raise
      :visible (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-		    '(gdbmi gdba))])
+		    '(gdbmi gdba))]
+    ("Output Format"
+     :visible (memq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    '(gdbmi gdba))
+     ["Binary" (gdb-var-set-format "binary") t]
+     ["Natural" (gdb-var-set-format  "natural") t]
+     ["Hexadecimal" (gdb-var-set-format "hexadecimal") t]))
   "Additional menu items to add to the speedbar frame.")
 
 ;; Make sure our special speedbar mode is loaded
@@ -1233,10 +1240,6 @@ a better solution in 6.1 upwards.")
 	  (setq result (substring result 0 (match-beginning 0))))))
     (or result "")))
 
-(defvar gud-dgux-p (string-match "-dgux" system-configuration)
-  "Non-nil means to assume the interface approriate for DG/UX dbx.
-This was tested using R4.11.")
-
 ;; There are a couple of differences between DG's dbx output and normal
 ;; dbx output which make it nontrivial to integrate this into the
 ;; standard dbx-marker-filter (mainly, there are a different number of
@@ -1295,9 +1298,6 @@ and source-file directory for your debugger."
    (gud-irix-p
     (gud-common-init command-line 'gud-dbx-massage-args
 		     'gud-irixdbx-marker-filter))
-   (gud-dgux-p
-    (gud-common-init command-line 'gud-dbx-massage-args
-		     'gud-dguxdbx-marker-filter))
    (t
     (gud-common-init command-line 'gud-dbx-massage-args
 		     'gud-dbx-marker-filter)))

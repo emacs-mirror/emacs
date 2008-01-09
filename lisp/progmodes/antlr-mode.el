@@ -1,6 +1,6 @@
 ;;; antlr-mode.el --- major mode for ANTLR grammar files
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;; Free Software Foundation, Inc.
 ;;
 ;; Author: Christoph.Wedler@sap.com
@@ -85,12 +85,17 @@
 
 ;;; Code:
 
-(provide 'antlr-mode)
+(eval-when-compile 
+  (require 'cl))
+
 (require 'easymenu)
 
+;; Just to get the rid of the byte compiler warning.  The code for
+;; this function and its friends are too complex for their own good.
+(declare-function cond-emacs-xemacs-macfn "antlr-mode" (args &optional msg))
+
 ;; General Emacs/XEmacs-compatibility compile-time macros
-(eval-when-compile
-  (require 'cl)
+(eval-when-compile 
   (defmacro cond-emacs-xemacs (&rest args)
     (cond-emacs-xemacs-macfn
      args "`cond-emacs-xemacs' must return exactly one element"))
@@ -176,15 +181,12 @@
 (put 'save-buffer-state-x 'lisp-indent-function 0)
 
 ;; get rid of byte-compile warnings
-(eval-when-compile			; required and optional libraries
-  (require 'cc-mode)
-  (ignore-errors (require 'font-lock))
-  (ignore-errors (require 'compile))
-  ;;(ignore-errors (defun c-init-language-vars))) dangerous on Emacs!
-  ;;(ignore-errors (defun c-init-c-language-vars))) dangerous on Emacs!
-  ;;(ignore-errors (defun c-basic-common-init))   dangerous on Emacs!
-  (defvar outline-level) (defvar imenu-use-markers)
-  (defvar imenu-create-index-function))
+(eval-when-compile
+  (require 'cc-mode))
+
+(defvar outline-level)
+(defvar imenu-use-markers)
+(defvar imenu-create-index-function)
 
 ;; We cannot use `c-forward-syntactic-ws' directly since it is a macro since
 ;; cc-mode-5.30 => antlr-mode compiled with older cc-mode would fail (macro
@@ -2668,6 +2670,8 @@ Used in `antlr-mode'.  Also a useful function in `java-mode-hook'."
 	       (setq tab-width (caddr elem)
 		     indent-tabs-mode (cadddr elem)
 		     alist nil))))))
+
+(provide 'antlr-mode)
 
 ;;; Local IspellPersDict: .ispell_antlr
 

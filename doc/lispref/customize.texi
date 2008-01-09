@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-@c   2005, 2006, 2007  Free Software Foundation, Inc.
+@c   2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../../info/customize
 @node Customization, Loading, Macros, Top
@@ -1127,9 +1127,6 @@ widget as an argument, and should return @code{nil} if the widget's
 current value is valid for the widget.  Otherwise, it should return
 the widget containing the invalid data, and set that widget's
 @code{:error} property to a string explaining the error.
-
-In many cases you can use the function @code{widget-children-validate}
-for this job; it tests that all children of @var{widget} are valid.
 
 @ignore
 @item :indent @var{columns}

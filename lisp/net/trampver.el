@@ -2,7 +2,7 @@
 ;;; -*- mode: Emacs-Lisp; coding: utf-8; -*-
 ;;; lisp/trampver.el.  Generated from trampver.el.in by configure.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Kai Groﬂjohann <kai.grossjohann@gmx.net>
 ;; Keywords: comm, processes

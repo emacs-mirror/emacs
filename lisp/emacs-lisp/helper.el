@@ -1,7 +1,7 @@
 ;;; helper.el --- utility help package supporting help in electric modes
 
 ;; Copyright (C) 1985, 2001, 2002, 2003, 2004, 2005,
-;;   2006, 2007 Free Software Foundation, Inc.
+;;   2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -120,10 +120,9 @@
 (defun Helper-describe-mode ()
   "Describe the current mode."
   (interactive)
-  (let ((name mode-name)
+  (let ((name (format-mode-line mode-name))
 	(documentation (documentation major-mode)))
-    (save-excursion
-      (set-buffer (get-buffer-create "*Help*"))
+    (with-current-buffer (get-buffer-create "*Help*")
       (setq buffer-read-only nil)
       (erase-buffer)
       (insert name " Mode\n" documentation)
@@ -158,5 +157,5 @@
 
 (provide 'helper)
 
-;;; arch-tag: a0984577-d3e9-4124-ae0d-c46fe740f6a9
+;; arch-tag: a0984577-d3e9-4124-ae0d-c46fe740f6a9
 ;;; helper.el ends here
