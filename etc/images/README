@@ -25,28 +25,31 @@ Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
 License: GNU General Public License version 3 or later (see COPYING)
 
 
-The following icons are from GTK+ 2.x and GNOME 2.x.  They are not
-part of Emacs, but distributed and used by Emacs.
+The following icons are from GTK+ 2.x. They are not part of Emacs, but
+distributed and used by Emacs.
+
+  Copyright (C) 1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald
+  License: GNU Library General Public License version 2 or later.
+
+  close.xpm copy.xpm cut.xpm help.xpm home.xpm index.xpm info.pbm
+  info.xpm jump-to.xpm left-arrow.xpm new.xpm open.xpm paste.xpm
+  preferences.xpm print.xpm refresh.xpm right-arrow.xpm save.xpm
+  saveas.xpm search.xpm sort-ascending.xpm sort-descending.xpm
+  spell.xpm undo.xpm up-arrow.xpm
+
+  back-arrow.xpm and fwd-arrow.xpm are slightly modified undo and redo.
+  diropen.xpm is file-manager.png from Gnome hicolor theme.
+
+
+The following icons are from GNOME 2.x. They are not part of Emacs,
+but distributed and used by Emacs.
 
   Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
   Tuomas Kuosmanen, Rodney Dawes, Jakub Steiner, Alexander Larsson,
   Tor Lillqvist, Garrett LeSage, Dennis Cranston, Jody Goldberg, Luca
   Ferretti, Mark Finlay, Lapo Calamandrei, Andreas Nilsson and Marco
   Pesenti Gritti
-  License: GNU General Public License version 2
-
-* From GTK+ 2.x:
-
-    close.xpm copy.xpm cut.xpm help.xpm home.xpm index.xpm info.pbm
-    info.xpm jump-to.xpm left-arrow.xpm new.xpm open.xpm paste.xpm
-    preferences.xpm print.xpm refresh.xpm right-arrow.xpm save.xpm
-    saveas.xpm search.xpm sort-ascending.xpm sort-descending.xpm
-    spell.xpm undo.xpm up-arrow.xpm
-
-    back-arrow.xpm and fwd-arrow.xpm are slightly modified undo and redo.
-    diropen.xpm is file-manager.png from Gnome hicolor theme.
-
-* From GNOME 2.x:
+  License: GNU General Public License version 2 or later.
 
   Emacs images and their source in the GNOME icons stock/ directory:
 
