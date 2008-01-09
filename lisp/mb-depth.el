@@ -1,6 +1,6 @@
 ;;; mb-depth.el --- Indicate minibuffer-depth in prompt
 ;;
-;; Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2006, 2007, 2008  Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: convenience

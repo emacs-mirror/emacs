@@ -1,6 +1,6 @@
 ;;; isearch-multi.el --- isearch extensions for multi-buffer search
 
-;; Copyright (C) 2007  Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Juri Linkov <juri@jurta.org>
 ;; Keywords: matching
