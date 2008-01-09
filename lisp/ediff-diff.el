@@ -948,7 +948,7 @@ delimiter regions"))
       )))
 
 
-(defsubst ediff-convert-fine-diffs-to-overlays (diff-list region-num)
+(defun ediff-convert-fine-diffs-to-overlays (diff-list region-num)
   (ediff-set-fine-overlays-in-one-buffer 'A diff-list region-num)
   (ediff-set-fine-overlays-in-one-buffer 'B diff-list region-num)
   (if ediff-3way-job

@@ -2406,7 +2406,9 @@ If it is t, they will be preserved unconditionally.  A prefix argument,
 temporarily reverses the meaning of this variable."
   (interactive "P")
   (ediff-barf-if-not-control-buffer)
-  (let ((ctl-buf (current-buffer)))
+  (let ((ctl-buf (current-buffer))
+	(ctl-frm (selected-frame))
+	(minibuffer-auto-raise t))
     (if (y-or-n-p (format "Quit this Ediff session%s? "
 			  (if (ediff-buffer-live-p ediff-meta-buffer)
 			      " & show containing session group" "")))
@@ -2414,6 +2416,8 @@ temporarily reverses the meaning of this variable."
 	  (message "")
 	  (set-buffer ctl-buf)
 	  (ediff-really-quit reverse-default-keep-variants))
+      (select-frame ctl-frm)
+      (raise-frame ctl-frm)
       (message ""))))
 
 
@@ -2818,7 +2822,8 @@ up an appropriate window config."
 
 
 ;; ediff-barf-if-not-control-buffer ensures only called from ediff.
-(declare-function ediff-version "ediff" ())
+;; declare-function does not exist in XEmacs
+;;(declare-function ediff-version "ediff" ()))
 
 (defun ediff-status-info ()
   "Show the names of the buffers or files being operated on by Ediff.

@@ -374,7 +374,8 @@
 
 
 
-(declare-function viper-forward-Word "viper-cmd" (arg))
+;; declare-function is not defined in XEmacs
+;;(declare-function viper-forward-Word "viper-cmd" (arg))
 
 ;;; Support for :e, :r, :w file globbing
 
@@ -713,7 +714,7 @@
 	     (not (memq (vc-state file) '(edited needs-merge)))
 	     (not (stringp (vc-state file))))
 	 ;; XEmacs has no vc-state
-	 (if (featurep 'xemacs)(not (vc-locking-user file))))
+	 (if (featurep 'xemacs) (not (vc-locking-user file))))
        ))
 
 ;; checkout if visited file is checked in

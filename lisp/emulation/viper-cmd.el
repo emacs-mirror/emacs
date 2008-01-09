@@ -2773,7 +2773,9 @@ On reaching beginning of line, stop and signal error."
 (defun viper-next-line-carefully (arg)
   (condition-case nil
       ;; do not use forward-line! need to keep column
-      (with-no-warnings (next-line arg))
+      (if (featurep 'emacs)
+	  (with-no-warnings (next-line arg))
+	(next-line arg))
     (error nil)))
 
 
@@ -3073,15 +3075,18 @@ On reaching beginning of line, stop and signal error."
 	(com (viper-getCom arg)))
     (if com (viper-move-marker-locally 'viper-com-point (point)))
     ;; do not use forward-line! need to keep column
-    (with-no-warnings (next-line val))
+    (if (featurep 'emacs)
+	(with-no-warnings (next-line val))
+      (next-line val))
     (if viper-ex-style-motion
 	(if (and (eolp) (not (bolp))) (backward-char 1)))
     (setq this-command 'next-line)
     (if com (viper-execute-com 'viper-next-line val com))))
 
-(declare-function widget-type "wid-edit" (widget))
-(declare-function widget-button-press "wid-edit" (pos &optional event))
-(declare-function viper-set-hooks "viper" ())
+;; declare-function is not defined in XEmacs
+;;(declare-function widget-type "wid-edit" (widget))
+;;(declare-function widget-button-press "wid-edit" (pos &optional event))
+;;(declare-function viper-set-hooks "viper" ())
 
 (defun viper-next-line-at-bol (arg)
   "Next line at beginning of line.
@@ -3120,7 +3125,9 @@ If point is on a widget or a button, simulate clicking on that widget/button."
 	(com (viper-getCom arg)))
     (if com (viper-move-marker-locally 'viper-com-point (point)))
     ;; do not use forward-line! need to keep column
-    (with-no-warnings (previous-line val))
+    (if (featurep 'emacs)
+	(with-no-warnings (previous-line val))
+      (previous-line val))
     (if viper-ex-style-motion
 	(if (and (eolp) (not (bolp))) (backward-char 1)))
     (setq this-command 'previous-line)

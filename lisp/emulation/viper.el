@@ -9,7 +9,7 @@
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
 
-(defconst viper-version "3.14 of August 18, 2007"
+(defconst viper-version "3.14 of January 09, 2008"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -857,7 +857,9 @@ It also can't undo some Viper settings."
 	       (modify-frame-parameters
 		(selected-frame)
 		(list (cons 'viper-vi-state-cursor-color
-			    (viper-get-cursor-color))))))
+			    (viper-get-cursor-color))))
+	       (setq viper-vi-state-cursor-color (viper-get-cursor-color))
+	       ))
 
   ;; Tell vc-diff to put *vc* in Vi mode
   (if (featurep 'vc)
@@ -900,6 +902,7 @@ It also can't undo some Viper settings."
     (modify-frame-parameters
 	(selected-frame)
 	(list (cons 'viper-vi-state-cursor-color (ad-get-arg 0))))
+    (setq viper-vi-state-cursor-color (ad-get-arg 0))
     )
 
   (when (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))

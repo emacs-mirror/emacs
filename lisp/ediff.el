@@ -8,7 +8,7 @@
 ;; Keywords: comparing, merging, patching, tools, unix
 
 (defconst ediff-version "2.81.2" "The current version of Ediff")
-(defconst ediff-date "August 18, 2007" "Date of last update")
+(defconst ediff-date "January 09, 2008" "Date of last update")
 
 
 ;; This file is part of GNU Emacs.
@@ -361,7 +361,8 @@
 		 (list (cons 'ediff-job-name job-name))
 		 merge-buffer-file)))
 
-(declare-function diff-latest-backup-file "diff" (fn))
+;; declare-function does not exist in XEmacs
+;;(declare-function diff-latest-backup-file "diff" (fn)))
 
 ;;;###autoload
 (defalias 'ediff 'ediff-files)
@@ -1427,7 +1428,7 @@ When called interactively, displays the version."
     (format "Ediff %s of %s" ediff-version ediff-date)))
 
 ;; info is run first, and will autoload info.el.
-(declare-function Info-goto-node "info" (nodename &optional fork))
+;;(declare-function Info-goto-node "info" (nodename &optional fork))
 
 ;;;###autoload
 (defun ediff-documentation (&optional node)

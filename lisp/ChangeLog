@@ -1,3 +1,19 @@
+2008-01-09  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* ediff*.el: commented out declare-function. "make bootstrap"
+	stops with an error and emacs does not compile with those things in.
+	Besides, declare-function is not defined in XEmacs.
+	
+	* ediff-util (eqiff-quit): autoraise minibuffer.
+	
+	* ediff-diff (ediff-convert-fine-diffs-to-overlays): make it a defin
+	
+	* viper*.el: commented out declare-function -- not defined in XEmacs.
+	
+	* viper-ex.el (viper-info-on-file): take care of indiret buffers.
+	
+	* viper.el (viper-set-hooks, set-cursor-color): set viper-vi-state-cursor-color.
+	
 2008-01-09  Tom Tromey  <tromey@redhat.com>
 
 	* vc.el (vc-status-headers): Rename from

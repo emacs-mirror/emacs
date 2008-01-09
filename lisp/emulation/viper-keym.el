@@ -37,9 +37,10 @@
 
 (require 'viper-util)
 
-(declare-function viper-ex "viper-ex" (arg &optional string))
-(declare-function viper-normalize-minor-mode-map-alist "viper-cmd" ())
-(declare-function viper-set-mode-vars-for "viper-cmd" (state))
+;; declare-function is not defined in XEmacs
+;;(declare-function viper-ex "viper-ex" (arg &optional string))
+;;(declare-function viper-normalize-minor-mode-map-alist "viper-cmd" ())
+;;(declare-function viper-set-mode-vars-for "viper-cmd" (state))
 
 ;;; Variables
 
