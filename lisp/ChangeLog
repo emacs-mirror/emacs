@@ -1,3 +1,7 @@
+2008-01-09  Tom Tromey  <tromey@redhat.com>
+
+        * vc-hg.el (vc-hg-dir-status): Don't pass -A to "hg status".
+
 2008-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* ffap.el (ffap-string-at-point-mode-alist): Add `\' to file
