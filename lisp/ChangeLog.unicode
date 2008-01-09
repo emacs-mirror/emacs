@@ -1,3 +1,9 @@
+2008-01-09  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* descr-text.el (describe-char-display): Convert a GLYPH-CODE to a
+	hexadigit string.
+	(describe-char): Adjusted for the above change.
+
 2008-01-08  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/fontset.el (font-encoding-alist): Don't set the
