@@ -1,20 +1,22 @@
+2008-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ffap.el (ffap-read-file-or-url): Don't use let-binding to temporarily
+	add a file-name handler.
+
 2008-01-08  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
-	* textmodes/bibtex.el (bibtex-initialize): New autoloaded
-	command. Rename from function bibtex-files-expand. New optional
-	arg select.
+	* textmodes/bibtex.el (bibtex-initialize): New autoloaded command.
+	Rename from function bibtex-files-expand.  New optional arg select.
 	(bibtex-flash-head): Allow blink-matching-delay being zero.
 	(bibtex-clean-entry): Use atomic-change-group.
 	(bibtex-format-entry): Check presence of required fields only
 	after formatting of fields.  Use member-ignore-case.  Do not use
-	bibtex-parse-entry.  Do not use booktitle field to set a missing
-	title.
+	bibtex-parse-entry.  Do not use booktitle field to set a missing title.
 	(bibtex-autofill-entry): Do not call undo-boundary.
-	(bibtex-lessp): Handle crossref keys that point to another bibtex
-	file.
+	(bibtex-lessp): Handle crossref keys that point to another bibtex file.
 	(bibtex-sort-buffer, bibtex-prepare-new-entry, bibtex-validate):
 	Parse keys if necessary.
-	
+
 2008-01-08  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-list-children-1): Put varnum in
@@ -22,8 +24,8 @@
 
 2008-01-08  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gud-gdb-command-name): Explain
-	"--annotate=3" option is necessary for the Graphical Interface.
+	* progmodes/gdb-ui.el (gud-gdb-command-name):
+	Explain "--annotate=3" option is necessary for the Graphical Interface.
 
 2008-01-08  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -91,10 +93,8 @@
 
 	* time-stamp.el (time-stamp-time-zone):
 	* whitespace.el (whitespace-check-buffer-leading)
-	(whitespace-check-buffer-trailing)
-	(whitespace-check-buffer-indent)
-	(whitespace-check-buffer-spacetab)
-	(whitespace-check-buffer-ateol):
+	(whitespace-check-buffer-trailing, whitespace-check-buffer-indent)
+	(whitespace-check-buffer-spacetab, whitespace-check-buffer-ateol):
 	* progmodes/sh-script.el (sh-indentation):
 	* textmodes/ispell.el (ispell-local-pdict):
 	Add safe-local-variable properties.

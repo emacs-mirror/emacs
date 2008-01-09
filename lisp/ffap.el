@@ -1263,20 +1263,25 @@ which may actually result in an url rather than a filename."
 	  (setq dir (file-name-directory guess))))
     (let ((minibuffer-completing-file-name t)
 	  (completion-ignore-case read-file-name-completion-ignore-case)
-	  ;; because of `rfn-eshadow-update-overlay'.
-	  (file-name-handler-alist
-	   (cons (cons ffap-url-regexp 'url-file-handler)
-		 file-name-handler-alist)))
-      (setq guess
-	    (completing-read
-	     prompt
-	     'ffap-read-file-or-url-internal
-	     dir
-	     nil
-	     (if dir (cons guess (length dir)) guess)
-	     (list 'file-name-history)
-	     (and buffer-file-name
-		  (abbreviate-file-name buffer-file-name)))))
+          (fnh-elem (cons ffap-url-regexp 'url-file-handler)))
+      ;; Explain to `rfn-eshadow' that we can use URLs here.
+      (push fnh-elem file-name-handler-alist)
+      (unwind-protect
+          (setq guess
+                (completing-read
+                 prompt
+                 'ffap-read-file-or-url-internal
+                 dir
+                 nil
+                 (if dir (cons guess (length dir)) guess)
+                 (list 'file-name-history)
+                 (and buffer-file-name
+                      (abbreviate-file-name buffer-file-name))))
+        ;; Remove the special handler manually.  We used to just let-bind
+        ;; file-name-handler-alist to preserve its value, but that caused
+        ;; other modifications to be lost (e.g. when Tramp gets loaded
+        ;; during the completing-read call).
+        (setq file-name-handler-alist (delq fnh-elem file-name-handler-alist))))
     ;; Do file substitution like (interactive "F"), suggested by MCOOK.
     (or (ffap-url-p guess) (setq guess (substitute-in-file-name guess)))
     ;; Should not do it on url's, where $ is a common (VMS?) character.
