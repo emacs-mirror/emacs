@@ -330,11 +330,18 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 
 ;; Return information about how CHAR is displayed at the buffer
 ;; position POS.  If the selected frame is on a graphic display,
-;; return a cons (FONTNAME . GLYPH-CODE).  Otherwise, return a string
-;; describing the terminal codes for the character.
+;; return a cons (FONTNAME . GLYPH-CODE) where GLYPH-CODE is a
+;; hexadigit string representing the glyph-ID.  Otherwise, return a
+;; string describing the terminal codes for the character.
 (defun describe-char-display (pos char)
   (if (display-graphic-p (selected-frame))
-      (internal-char-font pos char)
+      (let ((char-font-info (internal-char-font pos char)))
+	(if (integerp (cdr char-font-info))
+	    (setcdr char-font-info (format "%02X" (cdr char-font-info)))
+	  (setcdr char-font-info
+		  (format "%04X%04X"
+			  (cadr char-font-info) (cddr char-font-info))))
+	char-font-info)
     (let* ((coding (terminal-coding-system))
 	   (encoded (encode-coding-char char coding)))
       (if encoded
@@ -482,7 +489,7 @@ as well as widgets, buttons, overlays, and text properties."
 		      (if display
 			  (concat
 			   "by this font (glyph code)\n"
-			   (format "     %s (#x%02X)"
+			   (format "     %s (#x%s)"
 				   (car display) (cdr display)))
 			"no font available")
 		    (if display
@@ -554,7 +561,7 @@ as well as widgets, buttons, overlays, and text properties."
 		  (insert (glyph-char (car (aref disp-vector i))) ?:
 			  (propertize " " 'display '(space :align-to 5))
 			  (if (cdr (aref disp-vector i))
-			      (format "%s (#x%02X)" (cadr (aref disp-vector i))
+			      (format "%s (#x%s)" (cadr (aref disp-vector i))
 				      (cddr (aref disp-vector i)))
 			    "-- no font --")
 			  "\n")
@@ -610,7 +617,7 @@ as well as widgets, buttons, overlays, and text properties."
 			(insert "\n " (car elt) ?:
 				(propertize " " 'display '(space :align-to 5))
 				(if (cdr elt)
-				    (format "%s (#x%02X)" (cadr elt) (cddr elt))
+				    (format "%s (#x%s)" (cadr elt) (cddr elt))
 				  "-- no font --")))))
 	      (insert "these terminal codes:")
 	      (dolist (elt component-chars)
