@@ -50,6 +50,7 @@
 	("iso8859-13$" . iso-8859-13)
 	("iso8859-14$" . iso-8859-14)
 	("iso8859-15$" . iso-8859-15)
+	("iso8859-16$" . iso-8859-16)
 	("gb2312.1980" . chinese-gb2312)
 	("gbk" . chinese-gbk)
 	("gb18030" . (unicode . nil))
@@ -283,6 +284,7 @@
 	    (nil . "ISO8859-13")
 	    (nil . "ISO8859-14")
 	    (nil . "ISO8859-15")
+	    (nil . "ISO8859-16")
 	    (nil . "VISCII1.1-1"))
 
      (thai  ,(font-spec :registry "iso10646-1" :otf '(thai nil nil (mark)))
