@@ -1,4 +1,351 @@
-2008-01-02  Miles Bader  <Miles Bader <miles@gnu.org>>
+2008-01-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-list-children-1): Put varnum in
+	quotes in case of spaces, e.g. STL containers (not pretty).
+
+2008-01-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gud-gdb-command-name): Explain
+	"--annotate=3" option is necessary for the Graphical Interface.
+
+2008-01-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/hideif.el (hide-ifdef-mode-menu): Put hide-ifdef commands
+	on menu bar.
+
+2008-01-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* ffap.el (ffap-read-file-or-url): Let-bind
+	`file-name-handler-alist' due to `rfn-eshadow-update-overlay'.
+
+2008-01-08  Sven Joachim  <svenjoac@gmx.de>
+
+	* vc-bzr.el: Fix typo in header.
+
+2008-01-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (custom-deps, finder-data): Depend on autoloads
+	instead of loaddefs.el.
+
+2008-01-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-cvs.el (vc-cvs-annotate-time): Don't move backward when text
+	gets inserted out-of-order.
+
+2008-01-08  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el: Copyright and version headers update.
+	Remove some outdated comments through the whole file.
+	(vc-bzr-program-args): Remove because unused.
+	(vc-bzr-log-switches): New customization option.
+	(vc-bzr-command): Use LC_MESSAGES=C instead of LC_ALL=C.  No longer
+	use `vc-bzr-program-args'.
+	(vc-bzr-register): Fix for working with both 22.1 and CVS version of
+	`vc-find-root' (patch by Andreas Hoenen).
+	(vc-bzr-status): Update regex to match latest Bzr output.
+	Remove redundant test.
+	(vc-bzr-init-version): New function.
+	(vc-bzr-unregister): Must not delete file.
+	(vc-bzr-find-version): New function.
+	(vc-bzr-checkout): Argument `rev' is explicit revision only if it's
+	a non-empty string, otherwise take head revision.
+	(vc-bzr-print-log): Pass `vc-bzr-log-switches' to "bzr log".
+	(vc-bzr-diff): Simpler build of the revision spec string.
+	(vc-annotate-convert-time, vc-bzr-annotate-difference):
+	Remove: compatibility hacks for Emacs21, not needed in Emacs 22.
+	(vc-bzr-dir-state): Add code comments.  Removed redundant statement.
+	(vc-bzr-dired-state-info): Only provide custom strings for
+	overloaded VC state 'edited; otherwise fallback to
+	`vc-default-dired-state-info'.
+
+2008-01-08  Richard Stallman  <rms@gnu.org>
+
+	* delsel.el (delete-selection-mode): Doc fix.
+
+2008-01-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-def): Do nothing if gud-running is t.
+	(gud-speedbar-menu-items): Add item for gdb-var-set-format below.
+
+	* progmodes/gdb-ui.el (gdb-var-set-format): Set the output format
+	of watch expressions (only works fully with GDB 6.7 or later).
+
+2008-01-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* time-stamp.el (time-stamp-time-zone):
+	* whitespace.el (whitespace-check-buffer-leading)
+	(whitespace-check-buffer-trailing)
+	(whitespace-check-buffer-indent)
+	(whitespace-check-buffer-spacetab)
+	(whitespace-check-buffer-ateol):
+	* progmodes/sh-script.el (sh-indentation):
+	* textmodes/ispell.el (ispell-local-pdict):
+	Add safe-local-variable properties.
+
+2008-01-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	* vc-git.el (vc-git--call): Apply `process-file' instead of
+	`call-process'.
+
+	* net/tramp.el (tramp-remote-process-environment): Add "LC_CTYPE=C".
+	Reported by Pete Forman <pete.forman@westerngeco.com>.
+	(tramp-perl-encode, tramp-perl-decode): Update copyrights.
+	(tramp-handle-process-file): Handle the case where DESTINATION is
+	a consp with t as car.
+	(tramp-wait-for-output): We shall remove exactly what has been
+	find by the search.
+
+2008-01-08  Kevin Ryde  <user42@zip.com.au>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	For perl, allow "during global destruction" at end.  Add entry for
+	two-arg form of the Test module ok() func.
+
+2008-01-08  Glenn Morris  <rgm@gnu.org>
+
+	* diff-mode.el (diff-end-of-hunk): Don't match empty lines in
+	unified format.
+
+	* mouse.el (mouse-major-mode-menu): Suppress duplicate menus.
+
+2008-01-08  Ralf Angeli  <angeli@caeruleus.net>
+
+	* textmodes/reftex-toc.el (reftex-make-separate-toc-frame):
+	Simplify selection of frame focusing function.
+
+2008-01-08  Michael Olson  <mwolson@gnu.org>
+
+	* textmodes/remember.el (remember-region): Fix typo in docstring.
+
+2008-01-08  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* textmodes/remember.el (remember): If there is a visible region
+	[that is, the mark is active and transient mark mode is enabled]
+	then use this region for the initial contents of the *Remember*
+	buffer.  Use `region-beginning' and `region-end' instead of
+	`point' and `mark'.
+
+2008-01-07  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-dir-state, vc-hg-dir-status): Pass the dir
+	argument to vc-hg-command.
+	(vc-hg-log-view-mode): Handle the user field better.
+
+2008-01-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-ensure-vc-buffer): Check liveness of vc-parent-buffer.
+
+2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-status-fileinfo): New defstruct.
+	(vc-status): New defvar
+	(vc-status-insert-headers, vc-status-printer, vc-status)
+	(vc-status-mode-map, vc-status-mode, vc-status-mark-file)
+	(vc-status-unmark-file, vc-status-marked-files): New functions.
+
+	* vc-hg.el (vc-hg-dir-status): New function.
+
+2008-01-06  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-edit.el (custom-tool-bar-map): Move initialization of this
+	keymap from here ...
+	(custom-mode): ... to here.  Reported by Reiner Steib.
+
+2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* obsolete/x-apollo.el: Remove file for unsupported system.
+
+	* term/x-win.el (vendor-specific-keysyms): Remove reference to
+	Apollo.
+
+	* progmodes/gud.el (gud-dgux-p): Remove.
+	(dbx): Remove reference to dgux.
+
+	* progmodes/ps-mode.el (ps-mode-print-function):
+	* ps-print.el (ps-lp-system):
+	* paths.el (rmail-spool-directory):
+	* ls-lisp.el (ls-lisp-emulation):
+	* lpr.el (lpr-lp-system):
+	* dired.el (dired-chown-program): Remove references to dgux.
+
+2008-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-process-sentinel): Fix apparent typo.
+	(vc-do-command): Forcefully kill any left over process.
+	Use start-file-process.
+	(vc-annotate-get-time-set-line-props): Check we don't move backward.
+
+2008-01-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-list-hash-table)
+	(dbus-name-owner-changed-handler): Replace "signal" by "member".
+	(dbus-check-event): Add serial number to event.
+	(dbus-handle-event): Apply return message if needed.
+	(dbus-event-serial-number): New defun.
+	(dbus-event-service-name, dbus-event-path-name)
+	(dbus-event-interface-name, dbus-event-member-name):
+	Adapt implementation to serial number.
+
+2008-01-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs--get-mode-name): Fix typo in previous change.
+
+2008-01-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* mouse.el (mouse-popup-menubar): Fix typo.
+
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Move one more
+	form inside with-current-buffer.
+
+	* progmodes/antlr-mode.el (provide): Move to the end of file.
+	(require): Don't require font-lock and compile.
+	(outline-level, imenu-use-markers, imenu-create-index-function):
+	Move declarations to top level.
+	(cond-emacs-xemacs-macfn): Declare for compiler.
+
+	* vc-bzr.el (vc-bzr-root):
+	* vc-arch.el (vc-arch-root): Only set a property if the file is
+	managed by this backend.
+
+	* vc-hg.el (vc-hg-state): Support the new status code for
+	up-to-date.
+
+2008-01-04  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-scroll-up-or-next-page)
+	(doc-view-scroll-down-or-previous-page): Don't scroll to the
+	top/bottom again when on the first/last page.
+
+	* doc-view.el (doc-view-scroll-up-or-next-page)
+	(doc-view-scroll-down-or-previous-page): Use image-scroll-up and
+	image-scroll-down instead of the non-image equivalents.  Don't
+	rely on a signalled condition but switch pages when scrolling
+	doesn't change the vertical position anymore.
+	(doc-view-mode-map): Remap scroll-{up,down} to
+	image-scroll-{up,down}.
+
+2008-01-04  Rob Riepel  <riepel@networking.Stanford.EDU>
+
+	* emulation/tpu-edt.el (tpu-load-xkeys): Recommend to run the
+	tpu-mapper command rather than load the tpu-mapper package.
+
+	* emulation/tpu-mapper.el (tpu-mapper): New command.
+	Contains all the code previously at top-level.
+
+2008-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bs.el (bs--sort-by-mode, bs--get-mode-name):
+	* imenu.el (imenu-add-to-menubar):
+	* makesum.el (make-command-summary):
+	* mouse.el (mouse-major-mode-menu, mouse-popup-menubar, mouse-buffer-menu):
+	* msb.el (msb--mode-menu-cond):
+	* calc/calc-embed.el (calc-do-embedded):
+	* emacs-lisp/helper.el (Helper-describe-mode):
+	* mail/emacsbug.el (report-emacs-bug):
+	* progmodes/hideshow.el (hs-grok-mode-type):
+	* textmodes/sgml-mode.el (sgml-mode-facemenu-add-face-function):
+	* textmodes/table.el (*table--cell-describe-mode):
+	Pass mode-name through format-mode-line.
+
+2008-01-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ada-xref.el (ada-prj-find-prj-file):
+	* progmodes/ada-mode.el (comment-region):
+	* calendar/todo-mode.el (todo-insert-item):
+	* bookmark.el (bookmark-buffer-name): Test major-mode rather than mode-name.
+
+2008-01-04  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer):
+	Call byte-compile-warn-about-unresolved-functions outside
+	the with-current-buffer.
+	(byte-compile-insert-header): Use with-current-buffer.
+
+2008-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (fancy-about-screen): Remove reference to deleted
+	`fancy-splash-help-echo' variable.
+
+	* version.el (emacs-copyright): Update to 2008.
+
+	* net/tramp-smb.el (tramp-smb-handle-insert-directory): Use mapc
+	rather than mapcar.
+
+	* progmodes/cc-vars.el (defcustom-c-stylevar): Revert previous
+	change (merge mistake).
+
+	* doc-view.el (doc-view-search-internal): Don't use `incf'.
+
+	* doc-view.el (bookmark-make-cell-function, bookmark-get-filename)
+	(bookmark-get-bookmark-record):
+	* image-mode.el (bookmark-make-cell-function)
+	(bookmark-get-filename, bookmark-get-bookmark-record)
+	(bookmark-get-position):
+	* log-view.el (vc-modify-change-comment):
+	* progmodes/grep.el (find-name-arg): Declare for compiler.
+
+2008-01-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* savehist.el (savehist-coding-system): Default to a variant coding
+	system with explicit unix end-of-line conversion, which is safer.
+
+2008-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ibuf-ext.el (mode-name sorter, ibuffer-mark-by-mode-regexp):
+	* ibuffer.el (mode column): Use format-mode-line.
+
+	* server.el (server-create-window-system-frame): Remove workaround for
+	a bug that has been fixed.
+
+2008-01-03  Magnus Henoch  <magnus@zemdatav>
+
+	* net/dbus.el (dbus-name-owner-changed-handler):
+	Use dbus-unregister-object instead of dbus-unregister-signal.
+
+2008-01-03  Drew Adams  <drew.adams@oracle.com>
+
+	* frame.el (frame-geom-value-cons, frame-geom-spec-cons): New fns.
+
+2008-01-03  Richard Stallman  <rms@gnu.org>
+
+	* replace.el (occur-context-lines): New subroutine,
+	broken out of occur-engine.
+	(occur-engine): Call it.
+
+2008-01-03  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git--ls-files-state): New function.
+	(vc-git-dir-state): Use it instead of processing the status
+	results here.
+
+2008-01-02  Eric S. Raymond  <esr@snark.thyrsus.com>
+
+	* progmodes/grep.el (grep-find-ignored-directories):
+	Initialize from the value of vc-directory-exclusion-list.
+
+	* vc-hooks (vc-directory-exclusion-list):  Include "_darcs",
+	even though we don't have a back end for darcs yet.
+
+2008-01-02  Karl Fogel  <kfogel@red-bean.com>
+
+	Change a return type, for greater extensibility.  See
+	http://lists.gnu.org/archive/html/emacs-devel/2007-12/msg01077.html
+	and its thread for discussion leading to this change.
+
+	* emacs-cvs/lisp/bookmark.el:
+	(bookmark-jump-noselect): Return an alist instead of a dotted pair.
+	(bookmark-jump, bookmark-jump-other-window, bookmark-insert)
+	(bookmark-bmenu-2-window, bookmark-bmenu-other-window)
+	(bookmark-bmenu-switch-other-window): Adjust accordingly.
+	(bookmark-make-cell-function): Adjust documentation accordingly.
+
+	* emacs-cvs/lisp/image-mode.el
+	(image-bookmark-jump): Adjust return type accordingly; document.
+
+	* emacs-cvs/lisp/doc-view.el
+	(doc-view-bookmark-jump): Adjust return type accordingly; document.
+
+2008-01-02  Miles Bader  <miles@gnu.org>
 
 	* net/rcirc.el (rcirc-log-filename-function): New variable.
 	(rcirc-log): Use `rcirc-log-filename-function' to generate the
@@ -39,8 +386,8 @@
 
 2008-01-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-git.el (vc-git-dir-state): Set the vc-backend property.  Do
-	not disable undo, with-temp-buffer does it by default.
+	* vc-git.el (vc-git-dir-state): Set the vc-backend property.
+	Do not disable undo, with-temp-buffer does it by default.
 
 2008-01-01  Eric S. Raymond  <esr@snark.thyrsus.com>
 
@@ -53,8 +400,8 @@
 
 2007-12-31  Tom Tromey  <tromey@redhat.com>
 
-        * emacs-lisp/elp.el (elp-results): Use header-line-format for
-        header.  Move point to the start of the buffer.
+	* emacs-lisp/elp.el (elp-results): Use header-line-format for header.
+	Move point to the start of the buffer.
 
 2007-12-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -65,8 +412,8 @@
 
 2007-12-31  Martin Rudalics  <rudalics@gmx.at>
 
-	* man.el (Man-default-man-entry): Make this a defun.  Improve
-	guessing mechanism and handling of section numbers.
+	* man.el (Man-default-man-entry): Make this a defun.
+	Improve guessing mechanism and handling of section numbers.
 
 2007-12-31  Richard Stallman  <rms@gnu.org>
 
@@ -98,8 +445,7 @@
 	(custom-theme-set-faces): Clear `face-override-spec' property.
 	Call `face-spec-set' with FOR-DEFFACE.
 
-	* custom.el (custom-theme-recalc-face):
-	Simply call `face-spec-recalc'.
+	* custom.el (custom-theme-recalc-face): Simply call `face-spec-recalc'.
 
 	* faces.el (face-spec-set): Third arg is now FOR-DEFFACE.
 	Use of frame as third arg is deprecated.
@@ -127,7 +473,7 @@
 	(vc-compatible-state): New function.  Checks whether two states
 	can be in the same changeset; used with 'edited it can test whether
 	the next action for a state should be commit.
-	(vc-default-dired-format0info): Display 'added state.
+	(vc-default-dired-state-info): Display 'removed state.
 	(vc-dired-hook): Turn off undo, this is a speed tweak.
 
 	* vc-bzr.el (vc-bzr-dir-state): Recognize 'added.
@@ -149,8 +495,7 @@
 
 2007-12-29  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-aent.el (math-read-token): Fix misplaced
-	parentheses.
+	* calc/calc-aent.el (math-read-token): Fix misplaced parentheses.
 
 	* calc/calc-lang.el (calc-yacas-language, calc-maxima-language)
 	(calc-giac-language, math-yacas-parse-Sum, math-yacas-compose-sum)
@@ -251,7 +596,7 @@
 
 	* emacs-lisp/find-func.el (find-function-after-hook): Add :type.
 
-	* info.el (Info-clone-buffer): Renamed from Info-clone-buffer-hook.
+	* info.el (Info-clone-buffer): Rename from Info-clone-buffer-hook.
 	Use changed.
 
 	* startup.el (fancy-splash-help-echo): Var deleted.
@@ -334,8 +679,8 @@
 
 2007-12-27  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el, vc-sccs.el, vc-rcs.el, vc-cs.el, vc-mcvs.el: Put
-	new machinery in place to support editing of change comments
+	* vc.el, vc-sccs.el, vc-rcs.el, vc-cs.el, vc-mcvs.el:
+	Put new machinery in place to support editing of change comments
 	with 'e' in a log-view buffer.  Not documented yet as this
 	only works for SCCS, RCS, and maybe CVS if you have admin
 	privileges.  When we have backend support for Subversion and
@@ -414,7 +759,7 @@
 	(bookmark-jump, bookmark-jump-other-window, bookmark-insert)
 	(bookmark-bmenu-2-window, bookmark-bmenu-other-window):
 	Use bookmark-jump-internal.
-	(bookmark-make-cell-for-text-file): Renamed from bookmark-make-cell.
+	(bookmark-make-cell-for-text-file): Rename from bookmark-make-cell.
 
 	* doc-view.el (doc-view-bookmark-make-cell)
 	(doc-view-bookmark-jump): New functions.
@@ -462,7 +807,7 @@
 	(yank-pop-change-selection): New option.
 	(current-kill): Obey it.
 
-	* simple.el (use-region-p): Renamed from `region-active-p'.
+	* simple.el (use-region-p): Rename from `region-active-p'.
 	(region-active-p): New function.
 
 2007-12-25  David Golden  <david.delaharpe.golden@gmail.com>  (tiny change)
@@ -673,8 +1018,8 @@
 	font-lock when compiling.  Always require compile.  Relegate remaining
 	compatibility cruft to XEmacs.  Don't require font-lock.
 	(verilog-version): Remove superfluous concat.
-	(dinotrace-unannotate-all, zmacs-activate-region)
-	(customize-apropos): No need to define.
+	(dinotrace-unannotate-all, zmacs-activate-region, customize-apropos):
+	No need to define.
 	(verilog-regexp-opt): On Emacs, just make it an alias for regexp-opt.
 	(verilog-font-lock-keywords, verilog-font-lock-keywords-1)
 	(verilog-font-lock-keywords-2, verilog-font-lock-keywords-3)
@@ -700,15 +1045,15 @@
 	(reporter-submit-bug-report): Autoload it.
 	(verilog-mark-defun): Call zmacs-activate-region only if bound.
 	(verilog-font-customize): Call customize-apropos only if bound.
-	(verilog-getopt-flags, verilog-auto-reeval-locals): Use
-	make-local-variable rather than make-variable-buffer-local.
+	(verilog-getopt-flags, verilog-auto-reeval-locals):
+	Use make-local-variable rather than make-variable-buffer-local.
 	(verilog-company, verilog-project, verilog-modi-cache-list):
 	Move make-variable-buffer-local calls to top-level.
 	(font-lock-defaults-alist): Don't define it.
 	(verilog-need-fld): Remove.
 	(verilog-font-lock-init): Don't set font-lock-defaults-alist.
-	(verilog-mode): Only call make-local-hook on XEmacs.  Set
-	font-lock-defaults rather than using verilog-font-lock-init.
+	(verilog-mode): Only call make-local-hook on XEmacs.
+	Set font-lock-defaults rather than using verilog-font-lock-init.
 
 2007-12-17  Andreas Schwab  <schwab@suse.de>
 
@@ -764,7 +1109,7 @@
 	(verilog-re-search-backward, verilog-re-search-forward-quick)
 	(verilog-re-search-backward-quick, verilog-get-beg-of-line)
 	(verilog-get-end-of-line, verilog-within-string): Move definitions
-	before first use. No code changes.
+	before first use.  No code changes.
 
 2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -784,21 +1129,21 @@
 	(verilog-declaration-prefix-re, verilog-declaration-re)
 	(verilog-end-of-statement, verilog-indent-declaration)
 	(verilog-get-lineup-indent): Remove trailing whitespace.
-	(verilog-mode): Fix autoload cookie. Set
-	beginning-of-defun-function and end-of-defun-function.  Use when
+	(verilog-mode): Fix autoload cookie.
+	Set beginning-of-defun-function and end-of-defun-function.  Use when
 	instead of if.
 	(verilog-emacs-features, verilog-auto-ascii-enum)
 	(verilog-insert-indices): Escape braces in doc strings.
 
-2007-12-08  Michael McNamara <mac@verilog.com>
-	    Wilson Snyder <wsnyder@wsnyder.org>
+2007-12-08  Michael McNamara  <mac@verilog.com>
+	    Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el: New file.
 
 2007-12-08  Eli Zaretskii  <eliz@fencepost.gnu.org>
 
-	* international/latexenc.el (latexenc-find-file-coding-system): If
-	both coding-system-for-write and buffer-file-coding-system of
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	If both coding-system-for-write and buffer-file-coding-system of
 	latex-main-file are nil, use `undecided'.
 
 2007-12-06  Jason Rumney  <jasonr@gnu.org>
@@ -1178,7 +1523,7 @@
 2007-12-04  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-hash-table=): New defun.
-	(dbus-hash-table-test) New hash table test function, used in
+	(dbus-hash-table-test): New hash table test function, used in
 	`dbus-registered-functions-table'.
 	(dbus-check-event, dbus-handle-event, dbus-event-bus-name)
 	(dbus-event-service-name, dbus-event-path-name)
@@ -5625,7 +5970,7 @@
 
 2007-10-08  Jason Rumney  <jasonr@gnu.org>
 
-	* frame.el (focus-follows-mouse): Doc-fix. Change default on w32.
+	* frame.el (focus-follows-mouse): Doc-fix.  Change default on w32.
 
 2007-10-08  Richard Stallman  <rms@gnu.org>
 
@@ -7114,7 +7459,7 @@
 	* server.el (server-start, server-unload-hook):
 	suspend-tty-functions has been renamed to suspend-tty-hook.
 
-	* xt-mouse.el: Likewise. resume-tty-functions has been renamed to
+	* xt-mouse.el: Likewise.  resume-tty-functions has been renamed to
 	resume-tty-hook.
 
 2007-09-03  Emanuele Giaquinta  <e.giaquinta@glauco.it>  (tiny change)
@@ -9662,9 +10007,9 @@
 
 	* vc.el (revision-granularity, create-repo): Document new vc
 	backend properties.
-	(vc-rollback): Renamed from vc-cancel-version. Update
-	references. Pass a list instead of a file.
-	(vc-revert): Renamed from vc-revert-buffer. Update references.
+	(vc-rollback): Renamed from vc-cancel-version.  Update references.
+	Pass a list instead of a file.
+	(vc-revert): Renamed from vc-revert-buffer.  Update references.
 	(vc-delistify, vc-expand-dirs): New functions.
 	(vc-do-command): Rename FILE to FILE-OR-LIST and deal with a list
 	of files instead of a single file.
@@ -9677,7 +10022,7 @@
 	(vc-workfile-version): Update docstring.
 	(vc-menu-map): Use vc-rollback instead of vc-cancel-version and
 	vc-revert instead of vc-revert-buffer.
-	(vc-prefix-map): Likewise. Bind vc-update.
+	(vc-prefix-map): Likewise.  Bind vc-update.
 
 	* vc-svn.el (vc-svn-revision-granularity, vc-svn-create-repo)
 	(vc-svn-wash-log): New functions.
@@ -9688,7 +10033,7 @@
 	(vc-rcs-wash-log): New functions.
 	(vc-rcs-register, vc-rcs-checkin, vc-rcs-diff, vc-rcs-print-log):
 	Deal with a list of files, not a single file.
-	(vc-rcs-rollback): Likewise. Rename from vc-rcs-cancel-version.
+	(vc-rcs-rollback): Likewise.  Rename from vc-rcs-cancel-version.
 
 	* vc-sccs.el (vc-sccs-revision-granularity, vc-sccs-wash-log): New
 	functions.
@@ -9713,7 +10058,7 @@
 	a single file.
 	(vc-cvs-print-log, vc-cvs-command): Rename FILE to FILES to denote
 	that it is a file list, not a single file.
-	(vc-cvs-diff): Likewise. Simplify.
+	(vc-cvs-diff): Likewise.  Simplify.
 
 	* vc-arch.el (vc-arch-register, vc-arch-checkin, vc-arch-diff):
 	Deal with a list of files, not a single file.
@@ -9721,7 +10066,7 @@
 	* vc-bzr.el (vc-bzr-register, vc-bzr-command, vc-bzr-checkin)
 	(vc-bzr-print-log): Update FILE parameter name to denote that it
 	is a file list, not a single file.
-	(vc-bzr-diff): Likewise. Use the car of files.
+	(vc-bzr-diff): Likewise.  Use the car of files.
 
 2007-07-18  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -12151,7 +12496,7 @@ See ChangeLog.12 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2007 Free Software Foundation, Inc.
+    Copyright (C) 2007, 2008  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

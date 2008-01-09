@@ -41,8 +41,8 @@
 
 2007-11-16  Werner Lemberg <wl@gnu.org>
 
-	* custom.texi (Specifying File Variables), major.texi (Choosing
-	Modes): Mention '\" in man pages.
+	* custom.texi (Specifying File Variables):
+	* major.texi (Choosing Modes): Mention '\" in man pages.
 
 2007-11-16  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -52,7 +52,7 @@
 
 2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* maintaining.texi (TEXTAGS): note that you can use "-" for stdout with
+	* maintaining.texi (TEXTAGS): Note that you can use "-" for stdout with
 	--output=file.
 
 2007-11-13  Martin Rudalics  <rudalics@gmx.at>
@@ -4775,7 +4775,7 @@
 2002-10-02  Karl Berry  <karl@gnu.org>
 
 	* emacs.texi: Per rms, update all manuals to use @copying instead of
-	@ifinfo. Also use @ifnottex instead of @ifinfo around the top node,
+	@ifinfo.  Also use @ifnottex instead of @ifinfo around the top node,
 	where needed for the sake of the HTML output.
 
 2001-12-20  Eli Zaretskii  <eliz@is.elta.co.il>

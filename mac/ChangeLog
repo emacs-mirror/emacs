@@ -1,3 +1,8 @@
+2008-01-04  Glenn Morris  <rgm@gnu.org>
+
+	* Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings:
+	* src/Emacs.r: Update copyright to 2008.
+
 2007-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* INSTALL: Also build and run on Mac OS X 10.5.
@@ -161,7 +166,7 @@
 2005-10-20  Bryan D. O'Connor  <bryan@lunch.org>  (tiny change)
 
 	* make-package: Add a --compressed-dist option to compress info
-	files and .el files that have been byte-compiled. It defaults to "no".
+	files and .el files that have been byte-compiled.  It defaults to "no".
 
 2005-09-24  Eli Zaretskii  <eliz@gnu.org>
 
@@ -351,15 +356,15 @@
 2003-01-07  Steven Tamm  <steventamm@mac.com>
 
 	* INSTALL: Added documentation about --enable-carbon-app and
-	changed documentation concerning Emacs.app location
+	changed documentation concerning Emacs.app location.
 	Removed some of the documentation about make-package that isn't
-	needed
+	needed.
 	Changed comment about requiring root permission to install to
-	saying that it might be necessary depending on where you install
-	Refered to /usr caveat in more places
+	saying that it might be necessary depending on where you install.
+	Refered to /usr caveat in more places.
 	* make-package (make_options): Use new carbon_appdir option to
 	specify directory to install Application and lets the makefile
-	install
+	install.
 
 2003-01-01  Steven Tamm  <steventamm@mac.com>
 
@@ -453,7 +458,7 @@
 2002-07-31  Andrew Choi  <akochoi@shaw.ca>
 
 	* Emacs.app/Contents/PkgInfo, Emacs.app/Contents/Info.plist:
-	change creator code from ???? to EMAx.
+	Change creator code from ???? to EMAx.
 
 	* INSTALL: Add instructions for building X Window version.
 
@@ -512,7 +517,7 @@
 	* README: Add information for Mac OS X.
 
 	* src/mac.c, inc/macgui.h, src/macfns.c, src/macmenu.c,
-	src/macterm.c, inc/macterm.h: Remove from here and move to src.
+	* src/macterm.c, inc/macterm.h: Remove from here and move to src.
 
 2002-04-12  Andrew Choi  <akochoi@shaw.ca>
 
@@ -654,13 +659,13 @@
 
 	* src/macfns.c: Use renamed symbols.
 
-	* src/macterm.c: Comment fixes. Use renamed symbols.
+	* src/macterm.c: Comment fixes.  Use renamed symbols.
 	(fringe_bitmap_type): Renamed from bitmap_type.
 	(NO_FRINGE_BITMAP): Renamed from NO_BITMAP.
 	(x_draw_fringe_bitmap): Renamed from x_draw_bitmap.
 	(x_draw_row_fringe_bitmaps): Renamed from x_draw_row_bitmaps.
 
-	* inc/macterm.h: Comment fixes. Use renamed symbols.
+	* inc/macterm.h: Comment fixes.  Use renamed symbols.
 	(fringes_extra): Renamed from flags_areas_extra.
 	(FRAME_FRINGE_BITMAP_WIDTH): Renamed from FRAME_FLAGS_BITMAP_WIDTH.
 	(FRAME_FRINGE_BITMAP_HEIGHT): Renamed from FRAME_FLAGS_BITMAP_HEIGHT.
@@ -838,35 +843,34 @@
 
 2000-12-12  Andrew Choi  <akochoi@i-cable.com>
 
-	* cw5-mcp.xml: add md5.c to project.
+	* cw5-mcp.xml: Add md5.c to project.
 
-	* cw6-mcp.xml: add md5.c to project.
+	* cw6-mcp.xml: Add md5.c to project.
 
-	* src/macfns.c (x_create_tip_frame, Fx_hide_tip): change to handle
+	* src/macfns.c (x_create_tip_frame, Fx_hide_tip): Change to handle
 	Lisp_Object type tip_frame (was struct frame *) as in xfns.c.
 
 2000-11-26  Andrew Choi  <akochoi@i-cable.com>
 
-	* src/macterm.c (x_handle_tool_bar_click):
-	(note_tool_bar_highlight): change references to members deleted
-	from struct frame as in xterm.c.
+	* src/macterm.c (x_handle_tool_bar_click, note_tool_bar_highlight):
+	Change references to members deleted from struct frame as in xterm.c.
 
-	* inc/epaths.h: set PATH_EXEC to ~emacs/mac instead of
+	* inc/epaths.h: Set PATH_EXEC to ~emacs/mac instead of
 	~emacs/mac/bin.
 
 2000-10-25  Andrew Choi  <akochoi@i-cable.com>
 
-	* cw5-mcp.xml: renamed from emacs-cw5.mcp.xml.
+	* cw5-mcp.xml: Renamed from emacs-cw5.mcp.xml.
 
-	* cw6-mcp.xml: renamed from emacs-cw6.mcp.xml.
+	* cw6-mcp.xml: Renamed from emacs-cw6.mcp.xml.
 
-	* inc/defs-cw5.h: renamed from inc/cmdline-defs-cw5.h.
+	* inc/defs-cw5.h: Renamed from inc/cmdline-defs-cw5.h.
 
-	* inc/defs-cw6.h: renamed from inc/cmdline-defs-cw6.h.
+	* inc/defs-cw6.h: Renamed from inc/cmdline-defs-cw6.h.
 
 2000-10-24  Andrew Choi  <akochoi@i-cable.com>
 
-	* src/macterm.c (XTread_socket): check whether Lisp variable
+	* src/macterm.c (XTread_socket): Check whether Lisp variable
 	mac-ready-for-drag-n-drop is bound rather than non-nil value.
 
 2000-10-20  Andrew Choi  <akochoi@users.sourceforge.net>
@@ -943,7 +947,7 @@
 ;; End:
 
     Copyright (C) 2001, 2002, 2003, 2004, 2005,
-	2006, 2007 Free Software Foundation, Inc.
+	2006, 2007, 2008 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

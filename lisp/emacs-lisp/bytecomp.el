@@ -1,7 +1,7 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -2044,88 +2044,88 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
 	(delete-char delta)))))
 
 (defun byte-compile-insert-header (filename inbuffer outbuffer)
-  (set-buffer inbuffer)
-  (let ((dynamic-docstrings byte-compile-dynamic-docstrings)
-	(dynamic byte-compile-dynamic))
-    (set-buffer outbuffer)
-    (goto-char (point-min))
-    ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After
-    ;; that is the file-format version number (18, 19 or 20) as a
-    ;; byte, followed by some nulls.  The primary motivation for doing
-    ;; this is to get some binary characters up in the first line of
-    ;; the file so that `diff' will simply say "Binary files differ"
-    ;; instead of actually doing a diff of two .elc files.  An extra
-    ;; benefit is that you can add this to /etc/magic:
+  (with-current-buffer inbuffer
+    (let ((dynamic-docstrings byte-compile-dynamic-docstrings)
+	  (dynamic byte-compile-dynamic))
+      (set-buffer outbuffer)
+      (goto-char (point-min))
+      ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After
+      ;; that is the file-format version number (18, 19 or 20) as a
+      ;; byte, followed by some nulls.  The primary motivation for doing
+      ;; this is to get some binary characters up in the first line of
+      ;; the file so that `diff' will simply say "Binary files differ"
+      ;; instead of actually doing a diff of two .elc files.  An extra
+      ;; benefit is that you can add this to /etc/magic:
 
-    ;; 0	string		;ELC		GNU Emacs Lisp compiled file,
-    ;; >4	byte		x		version %d
+      ;; 0	string		;ELC		GNU Emacs Lisp compiled file,
+      ;; >4	byte		x		version %d
 
-    (insert
-     ";ELC"
-     (if (byte-compile-version-cond byte-compile-compatibility) 18 20)
-     "\000\000\000\n"
-     )
-    (insert ";;; Compiled by "
-	    (or (and (boundp 'user-mail-address) user-mail-address)
-		(concat (user-login-name) "@" (system-name)))
-	    " on "
-	    (current-time-string) "\n;;; from file " filename "\n")
-    (insert ";;; in Emacs version " emacs-version "\n")
-    (insert ";;; "
-	    (cond
-	     ((eq byte-optimize 'source) "with source-level optimization only")
-	     ((eq byte-optimize 'byte) "with byte-level optimization only")
-	     (byte-optimize "with all optimizations")
-	     (t "without optimization"))
-	    (if (byte-compile-version-cond byte-compile-compatibility)
-		"; compiled with Emacs 18 compatibility.\n"
-	      ".\n"))
-    (if dynamic
-	(insert ";;; Function definitions are lazy-loaded.\n"))
-    (if (not (byte-compile-version-cond byte-compile-compatibility))
-	(let (intro-string minimum-version)
-	  ;; Figure out which Emacs version to require,
-	  ;; and what comment to use to explain why.
-	  ;; Note that this fails to take account of whether
-	  ;; the buffer contains multibyte characters.  We may have to
-	  ;; compensate at the end in byte-compile-fix-header.
-	  (if dynamic-docstrings
+      (insert
+       ";ELC"
+       (if (byte-compile-version-cond byte-compile-compatibility) 18 20)
+       "\000\000\000\n"
+       )
+      (insert ";;; Compiled by "
+	      (or (and (boundp 'user-mail-address) user-mail-address)
+		  (concat (user-login-name) "@" (system-name)))
+	      " on "
+	      (current-time-string) "\n;;; from file " filename "\n")
+      (insert ";;; in Emacs version " emacs-version "\n")
+      (insert ";;; "
+	      (cond
+	       ((eq byte-optimize 'source) "with source-level optimization only")
+	       ((eq byte-optimize 'byte) "with byte-level optimization only")
+	       (byte-optimize "with all optimizations")
+	       (t "without optimization"))
+	      (if (byte-compile-version-cond byte-compile-compatibility)
+		  "; compiled with Emacs 18 compatibility.\n"
+		".\n"))
+      (if dynamic
+	  (insert ";;; Function definitions are lazy-loaded.\n"))
+      (if (not (byte-compile-version-cond byte-compile-compatibility))
+	  (let (intro-string minimum-version)
+	    ;; Figure out which Emacs version to require,
+	    ;; and what comment to use to explain why.
+	    ;; Note that this fails to take account of whether
+	    ;; the buffer contains multibyte characters.  We may have to
+	    ;; compensate at the end in byte-compile-fix-header.
+	    (if dynamic-docstrings
+		(setq intro-string
+		      ";;; This file uses dynamic docstrings, first added in Emacs 19.29.\n"
+		      minimum-version "19.29")
 	      (setq intro-string
-		    ";;; This file uses dynamic docstrings, first added in Emacs 19.29.\n"
-		    minimum-version "19.29")
-	    (setq intro-string
-		  ";;; This file uses opcodes which do not exist in Emacs 18.\n"
-		  minimum-version "19"))
-	  ;; Now insert the comment and the error check.
-	  (insert
-	   "\n"
-	   intro-string
-	   ;; Have to check if emacs-version is bound so that this works
-	   ;; in files loaded early in loadup.el.
-	   "(if (and (boundp 'emacs-version)\n"
-	   ;; If there is a name at the end of emacs-version,
-	   ;; don't try to check the version number.
-	   "\t (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
-	   "\t (or (and (boundp 'epoch::version) epoch::version)\n"
-	   (format "\t     (string-lessp emacs-version \"%s\")))\n"
-		   minimum-version)
-	   "    (error \"`"
-	   ;; prin1-to-string is used to quote backslashes.
-	   (substring (prin1-to-string (file-name-nondirectory filename))
-		      1 -1)
-	   (format "' was compiled for Emacs %s or later\"))\n\n"
-		   minimum-version)
-	   ;; Insert semicolons as ballast, so that byte-compile-fix-header
-	   ;; can delete them so as to keep the buffer positions
-	   ;; constant for the actual compiled code.
-	   ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"))
-      ;; Here if we want Emacs 18 compatibility.
-      (when dynamic-docstrings
-	(error "Version-18 compatibility doesn't support dynamic doc strings"))
-      (when byte-compile-dynamic
-	(error "Version-18 compatibility doesn't support dynamic byte code"))
-      (insert "(or (boundp 'current-load-list) (setq current-load-list nil))\n"
-	      "\n"))))
+		    ";;; This file uses opcodes which do not exist in Emacs 18.\n"
+		    minimum-version "19"))
+	    ;; Now insert the comment and the error check.
+	    (insert
+	     "\n"
+	     intro-string
+	     ;; Have to check if emacs-version is bound so that this works
+	     ;; in files loaded early in loadup.el.
+	     "(if (and (boundp 'emacs-version)\n"
+	     ;; If there is a name at the end of emacs-version,
+	     ;; don't try to check the version number.
+	     "\t (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
+	     "\t (or (and (boundp 'epoch::version) epoch::version)\n"
+	     (format "\t     (string-lessp emacs-version \"%s\")))\n"
+		     minimum-version)
+	     "    (error \"`"
+	     ;; prin1-to-string is used to quote backslashes.
+	     (substring (prin1-to-string (file-name-nondirectory filename))
+			1 -1)
+	     (format "' was compiled for Emacs %s or later\"))\n\n"
+		     minimum-version)
+	     ;; Insert semicolons as ballast, so that byte-compile-fix-header
+	     ;; can delete them so as to keep the buffer positions
+	     ;; constant for the actual compiled code.
+	     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"))
+	;; Here if we want Emacs 18 compatibility.
+	(when dynamic-docstrings
+	  (error "Version-18 compatibility doesn't support dynamic doc strings"))
+	(when byte-compile-dynamic
+	  (error "Version-18 compatibility doesn't support dynamic byte code"))
+	(insert "(or (boundp 'current-load-list) (setq current-load-list nil))\n"
+		"\n")))))
 
 (defun byte-compile-output-file-form (form)
   ;; writes the given form to the output buffer, being careful of docstrings

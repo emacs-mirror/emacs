@@ -1,7 +1,7 @@
 ;; ada-xref.el --- for lookup and completion in Ada mode
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;               2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;               2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Rolf Ebert <ebert@inf.enst.fr>
@@ -648,8 +648,8 @@ is non-nil, prompt the user to select one.  If none are found, return
 
   (let (selected)
 
-    (if (or (not (string= mode-name "Ada"))
-	    (not (buffer-file-name)))
+    (if (not (and (derived-mode-p 'ada-mode)
+                  buffer-file-name))
 
 	;;  Not in an Ada buffer, or current buffer not associated
 	;;  with a file (for instance an emerge buffer)
@@ -2310,5 +2310,5 @@ For instance, it creates the gnat-specific menus, sets some hooks for
 
 (provide 'ada-xref)
 
-;;; arch-tag: 415a39fe-577b-4676-b3b1-6ff6db7ca24e
+;; arch-tag: 415a39fe-577b-4676-b3b1-6ff6db7ca24e
 ;;; ada-xref.el ends here

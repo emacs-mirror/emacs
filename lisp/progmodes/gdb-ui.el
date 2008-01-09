@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;; Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
@@ -881,11 +881,23 @@ type_changed=\".*?\".*?}")
   (setq gdb-pending-triggers
 	(delq 'gdb-var-update gdb-pending-triggers)))
 
+(defun gdb-var-set-format (format)
+  "Set the output format for a variable displayed in the speedbar."
+  (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
+	 (varnum (car var)))
+    (gdb-enqueue-input
+     (list 
+      (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
+	  (concat "server interpreter mi \"-var-set-format "
+		  varnum " " format "\"\n")
+	(concat "-var-set-format " varnum " " format "\n"))
+      'ignore))
+    (gdb-var-update-1)))
+
 (defun gdb-var-delete-1 (varnum)
   (gdb-enqueue-input
    (list
-    (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-	    'gdba)
+    (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
 	(concat "server interpreter mi \"-var-delete " varnum "\"\n")
       (concat "-var-delete " varnum "\n"))
     'ignore))
@@ -1244,7 +1256,9 @@ This filter may simply queue input for a later time."
 ;;
 
 (defcustom gud-gdb-command-name "gdb --annotate=3"
-  "Default command to execute an executable under the GDB debugger."
+  "Default command to execute an executable under the GDB debugger.
+The option \"--annotate=3\" must be included in this value if you
+want the GDB Graphical Interface."
   :type 'string
   :group 'gud
   :version "22.1")
@@ -3473,9 +3487,9 @@ is set in them."
   (gdb-enqueue-input
    (list
     (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
-	(concat "server interpreter mi \"-var-list-children --all-values "
-		varnum "\"\n")
-      (concat "-var-list-children --all-values " varnum "\n"))
+	(concat "server interpreter mi \"-var-list-children --all-values \\\""
+		varnum "\\\"\"\n")
+      (concat "-var-list-children --all-values \"" varnum "\"\n"))
     `(lambda () (gdb-var-list-children-handler-1 ,varnum)))))
 
 (defconst gdb-var-list-children-regexp-1

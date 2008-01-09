@@ -1,7 +1,7 @@
 ;;; gnus-group.el --- group mode commands for Gnus
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -2319,6 +2319,44 @@ Return the name of the group if selection was successful."
 	(quit
 	 (message "Quit reading the ephemeral group")
 	 nil)))))
+
+(defvar gnus-group-gmane-group-download-format
+  "http://download.gmane.org/%s/%s/%s")
+(autoload 'url-insert-file-contents "url-handlers")
+
+;; FIXME: Make gnus-group-gmane-group-download-format customizable.  Add
+;; documentation, menu, key bindings...
+
+(defun gnus-group-read-ephemeral-gmane-group (group start end)
+  "Read articles from Gmane group GROUP as an ephemeral group.
+START and END specify the articles range.  The articles are
+downloaded via HTTP using the URL specified by
+`gnus-group-gmane-group-download-format'."
+  ;; See <http://gmane.org/export.php> for more information.
+  (interactive
+   (list
+    (gnus-group-completing-read "Gmane group: ")
+    (read-number "Start article number: ")
+    (read-number "End article number: ")))
+  (when (< (- end start) 0)
+    (error "Invalid range."))
+  (when (> (- end start)
+	   (min (or gnus-large-ephemeral-newsgroup 100) 100))
+    (unless (y-or-n-p
+	     (format "Large range (%s to %s), continue anyway? "
+		     start end))
+      (error "Range too large.  Aborted.")))
+  (let ((tmpfile (make-temp-file "gmane.gnus-temp-group-")))
+    (with-temp-file tmpfile
+      (url-insert-file-contents
+       (format gnus-group-gmane-group-download-format
+	       group start end))
+      (write-region (point-min) (point-max) tmpfile)
+      (gnus-group-read-ephemeral-group
+       "rs-gnus-read-gmane"
+       `(nndoc ,tmpfile
+	       (nndoc-article-type guess))))
+    (delete-file tmpfile)))
 
 (defun gnus-group-jump-to-group (group &optional prompt)
   "Jump to newsgroup GROUP.

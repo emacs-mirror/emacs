@@ -1,7 +1,7 @@
 ;;; whitespace.el --- warn about and clean bogus whitespaces in the file
 
 ;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
@@ -110,22 +110,27 @@ visited by the buffers.")
 (defvar whitespace-check-buffer-leading nil
   "Test leading whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-leading)
+;;;###autoload(put 'whitespace-check-buffer-leading 'safe-local-variable 'booleanp)
 
 (defvar whitespace-check-buffer-trailing nil
   "Test trailing whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-trailing)
+;;;###autoload(put 'whitespace-check-buffer-trailing 'safe-local-variable 'booleanp)
 
 (defvar whitespace-check-buffer-indent nil
   "Test indentation whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-indent)
+;;;###autoload(put 'whitespace-check-buffer-indent 'safe-local-variable 'booleanp)
 
 (defvar whitespace-check-buffer-spacetab nil
   "Test Space-followed-by-TABS whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-spacetab)
+;;;###autoload(put 'whitespace-check-buffer-spacetab 'safe-local-variable 'booleanp)
 
 (defvar whitespace-check-buffer-ateol nil
   "Test end-of-line whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-ateol)
+;;;###autoload(put 'whitespace-check-buffer-ateol 'safe-local-variable 'booleanp)
 
 (defvar whitespace-highlighted-space nil
   "The variable to store the extent to highlight.")

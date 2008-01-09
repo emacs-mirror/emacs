@@ -174,8 +174,8 @@ So the cdr of each bookmark is an alist too.")
 (defmacro gnus-bookmark-mouse-available-p ()
   "Return non-nil if a mouse is available."
   (if (featurep 'xemacs)
-      '(and (eq (device-class) 'color) (device-on-window-system-p))
-    '(and (display-color-p) (display-mouse-p))))
+      '(device-on-window-system-p)
+    '(display-mouse-p)))
 
 (defun gnus-bookmark-remove-properties (string)
   "Remove all text properties from STRING."

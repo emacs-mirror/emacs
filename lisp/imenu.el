@@ -1,7 +1,7 @@
 ;;; imenu.el --- framework for mode-specific buffer indexes
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Ake Stenhoff <etxaksf@aom.ericsson.se>
 ;;         Lars Lindberg <lli@sypro.cap.se>
@@ -954,7 +954,8 @@ See the command `imenu' for more information."
 	  `(menu-item ,name ,(make-sparse-keymap "Imenu")))
 	(use-local-map newmap)
 	(add-hook 'menu-bar-update-hook 'imenu-update-menubar))
-    (error "The mode `%s' does not support Imenu" mode-name)))
+    (error "The mode `%s' does not support Imenu"
+           (format-mode-line mode-name))))
 
 ;;;###autoload
 (defun imenu-add-menubar-index ()

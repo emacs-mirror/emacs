@@ -1,6 +1,6 @@
 ;;; vc-hg.el --- VC backend for the mercurial version control system
 
-;; Copyright (C) 2006, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Ivan Kanis
 ;; Keywords: tools
@@ -172,18 +172,19 @@
 	(when (null (string-match ".*: No such file or directory$" out))
 	  (let ((state (aref out 0)))
 	    (cond
-	     ((eq state ?C) 'up-to-date)
+	     ((eq state ?=) 'up-to-date)
 	     ((eq state ?A) 'edited)
 	     ((eq state ?M) 'edited)
 	     ((eq state ?I) 'ignored)
 	     ((eq state ?R) 'unregistered)
 	     ((eq state ??) 'unregistered)
+	     ((eq state ?C) 'up-to-date) ;; Older mercurials use this
 	     (t 'up-to-date)))))))
 
 (defun vc-hg-dir-state (dir)
   (with-temp-buffer
     (buffer-disable-undo)		;; Because these buffers can get huge
-    (vc-hg-command (current-buffer) nil nil "status" "-A")
+    (vc-hg-command (current-buffer) nil dir "status" "-A")
     (goto-char (point-min))
     (let ((status-char nil)
 	  (file nil))
@@ -199,7 +200,9 @@
 	 ;; 	 ! = deleted, but still tracked
 	 ;; should not show up in vc-dired, so don't deal with them
 	 ;; here.
- 	 ((eq status-char ?C)
+
+	 ;; Mercurial up to 0.9.5 used C, = is used now.
+ 	 ((or (eq status-char ?=) (eq status-char ?C))
 	  (vc-file-setprop file 'vc-backend 'Hg)
  	  (vc-file-setprop file 'vc-state 'up-to-date))
 	 ((eq status-char ?A)
@@ -283,15 +286,18 @@
   (set (make-local-variable 'log-view-font-lock-keywords)
        (append
 	log-view-font-lock-keywords
-	;; Handle the case:
-	;; user: foo@bar
-	'(("^user:[ \t]+\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)"
-	   (1 'change-log-email))
+	'(
 	  ;; Handle the case:
 	  ;; user: FirstName LastName <foo@bar>
 	  ("^user:[ \t]+\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]"
 	   (1 'change-log-name)
 	   (2 'change-log-email))
+	  ;; Handle the cases:
+	  ;; user: foo@bar 
+	  ;; and 
+	  ;; user: foo
+	  ("^user:[ \t]+\\([A-Za-z0-9_.+-]+\\(?:@[A-Za-z0-9_.-]+\\)?\\)"
+	   (1 'change-log-email))
 	  ("^date: \\(.+\\)" (1 'change-log-date))
 	  ("^summary:[ \t]+\\(.+\\)" (1 'log-view-message))))))
 
@@ -473,6 +479,36 @@ REV is the revision to check out into WORKFILE."
 (define-derived-mode vc-hg-outgoing-mode vc-hg-log-view-mode "Hg-Outgoing")
 
 (define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming")
+
+
+;; XXX Experimental function for the vc-dired replacement.
+(defun vc-hg-dir-status (dir)
+  "Return a list of conses (file . state) for DIR."
+  (with-temp-buffer
+    (vc-hg-command (current-buffer) nil dir "status" "-A")
+    (goto-char (point-min))
+    (let ((status-char nil)
+	  (file nil)
+	  (translation '((?= . up-to-date)
+			 (?C . up-to-date)
+			 (?A . added)
+			 (?R . removed)
+			 (?M . edited)
+			 (?I . ignored)
+			 (?! . deleted)
+			 (?? . unregistered)))
+	  (translated nil)
+	  (result nil))
+      (while (not (eobp))
+	(setq status-char (char-after))
+	(setq file 
+	      (buffer-substring-no-properties (+ (point) 2) 
+					       (line-end-position)))
+	(setq translated (assoc status-char translation))
+	(when (and translated (not (eq (cdr translated) 'up-to-date)))
+	  (push (cons file (cdr translated)) result))
+	(forward-line))
+      result)))
 
 ;; XXX this adds another top level menu, instead figure out how to
 ;; replace the Log-View menu.

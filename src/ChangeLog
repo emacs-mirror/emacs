@@ -1,4 +1,163 @@
-2007-12-31  Tom Tromey <tromey@redhat.com>  (tiny change)
+2008-01-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.c (Fmake_terminal_frame): Use #ifdef MAC_OS8 instead of
+	#ifdef MAC_OS.
+
+2008-01-08  Richard Stallman  <rms@gnu.org>
+
+	* fileio.c (Ffile_name_directory, Fexpand_file_name): Doc fixes.
+
+2008-01-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* keyboard.c (parse_menu_item): Don't enclose key bindings on
+	menu bar in parentheses.
+
+2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/7300.h:
+	* m/acorn.h:
+	* m/alliant-2800.h:
+	* m/alliant.h:
+	* m/alliant1.h:
+	* m/alliant4.h:
+	* m/altos.h:
+	* m/amdahl.h:
+	* m/apollo.h:
+	* m/att3b.h:
+	* m/aviion-intel.h:
+	* m/aviion.h:
+	* m/celerity.h:
+	* m/clipper.h:
+	* m/cnvrgnt.h:
+	* m/convex.h:
+	* m/cydra5.h:
+	* m/delta88k.h:
+	* m/dpx2.h:
+	* m/dual.h:
+	* m/elxsi.h:
+	* m/f301.h:
+	* m/gould-np1.h:
+	* m/gould.h:
+	* m/i860.h:
+	* m/ibmps2-aix.h:
+	* m/ibmrt-aix.h:
+	* m/ibmrt.h:
+	* m/irist.h:
+	* m/is386.h:
+	* m/isi-ov.h:
+	* m/mega68.h:
+	* m/mg1.h:
+	* m/news-r6.h:
+	* m/news-risc.h:
+	* m/news.h:
+	* m/nh3000.h:
+	* m/nh4000.h:
+	* m/ns16000.h:
+	* m/ns32000.h:
+	* m/nu.h:
+	* m/orion.h:
+	* m/orion105.h:
+	* m/paragon.h:
+	* m/pfa50.h:
+	* m/plexus.h:
+	* m/pyramid.h:
+	* m/pyrmips.h:
+	* m/sh3el.h:
+	* m/sps7.h:
+	* m/sr2k.h:
+	* m/stride.h:
+	* m/sun1.h:
+	* m/sun2.h:
+	* m/sun3-68881.h:
+	* m/sun3-fpa.h:
+	* m/sun3-soft.h:
+	* m/sun3.h:
+	* m/sun386.h:
+	* m/symmetry.h:
+	* m/tad68k.h:
+	* m/tahoe.h:
+	* m/targon31.h:
+	* m/tek4300.h:
+	* m/tekxd88.h:
+	* m/tower32.h:
+	* m/tower32v3.h:
+	* m/ustation.h:
+	* m/wicat.h:
+	* m/xps100.h:
+	* s/cxux.h:
+	* s/cxux7.h:
+	* s/dgux.h:
+	* s/dgux4.h:
+	* s/dgux5-4-3.h:
+	* s/dgux5-4r2.h:
+	* s/esix.h:
+	* s/esix5r4.h:
+	* s/hiuxmpp.h:
+	* s/hiuxwe2.h:
+	* s/iris3-5.h:
+	* s/iris3-6.h:
+	* s/isc2-2.h:
+	* s/isc3-0.h:
+	* s/isc4-0.h:
+	* s/isc4-1.h:
+	* s/newsos5.h:
+	* s/newsos6.h:
+	* s/osf1.h:
+	* s/osf5-0.h:
+	* s/riscix1-1.h:
+	* s/riscix12.h:
+	* s/sco4.h:
+	* s/sco5.h:
+	* s/sunos4-0.h:
+	* s/sunos4-1.h:
+	* s/sunos413.h:
+	* s/sunos4shr.h:
+	* s/umax.h:
+	* s/unipl5-2.h:
+	* s/xenix.h:
+	* cxux-crt0.s:
+	* unexapollo.c:
+	* unexconvex.c:
+	* unexenix.c:
+	* unexsni.c: Remove files for systems no longer supported.
+
+	* m/intel386.h: Remove references to unsupported systems.
+
+	* w32.c (get_emacs_configuration): Remove reference to i860.
+
+	* sysdep.c: Remove dead code.
+
+2008-01-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/rtu.h:
+	* m/masscomp.h: Remove files.  Platform is obsolete.
+
+2008-01-04  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_method_return): New function.
+	(xd_read_message): Add the serial number to the event.
+	(Fdbus_register_method): Activate the function.
+
+2008-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_key_sequence): Fix typo.
+
+2008-01-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (all): Replace XCAR by CAR_SAFE and XCDR by CDR_SAFE.
+	(xd_signature, xd_append_arg): Handle element type detection for
+	empty arrays.
+	(Fdbus_call_method, Fdbus_send_signal): Undo type casting for
+	SDATA () calls; this must be solved more general.
+	(Fdbus_register_signal): Use SBYTES instead of strlen.
+
+2008-01-03  Magnus Henoch  <magnus@zemdatav>
+
+	* dbusbind.c (xd_append_arg): Use unsigned char instead of
+	unsigned int for byte values (necessary for big-endian platform).
+	(Fdbus_call_method): Handle the case of no returned arguments.
+
+2007-12-31  Tom Tromey  <tromey@redhat.com>  (tiny change)
 
 	* dbusbind.c (xd_read_message): Use non-static input_event struct.
 
@@ -8,8 +167,8 @@
 
 2007-12-30  Michael Albinus  <michael.albinus@gmx.de>
 
-	* dbusbind.c: Fix several errors and compiler warnings.  Reported
-	by Tom Tromey <tromey@redhat.com>
+	* dbusbind.c: Fix several errors and compiler warnings.
+	Reported by Tom Tromey <tromey@redhat.com>
 	(XD_ERROR, XD_DEBUG_MESSAGE)
 	(XD_DEBUG_VALID_LISP_OBJECT_P): Wrap code with "do ... while (0)".
 	(xd_append_arg): Part for basic D-Bus types rewitten.
@@ -24,7 +183,7 @@
 	complete, the call of the function signals an error therefore.
 	(Fdbus_unregister_object): New function, renamed from
 	Fdbus_unregister_signal.  The initial check signals an error, if
-	it the objct is not well formed.
+	the object is not well formed.
 
 2007-12-30  Richard Stallman  <rms@gnu.org>
 
@@ -63,15 +222,14 @@
 
 	* dbusbind.c (XD_BASIC_DBUS_TYPE, XD_DBUS_TYPE_P, XD_NEXT_VALUE):
 	New macros.
-	(XD_SYMBOL_TO_DBUS_TYPE): Renamed from
-	XD_LISP_SYMBOL_TO_DBUS_TYPE.
-	(XD_OBJECT_TO_DBUS_TYPE): Renamed from
-	XD_LISP_OBJECT_TO_DBUS_TYPE. Simplify.
+	(XD_SYMBOL_TO_DBUS_TYPE): Rename from XD_LISP_SYMBOL_TO_DBUS_TYPE.
+	(XD_OBJECT_TO_DBUS_TYPE): Rename from XD_LISP_OBJECT_TO_DBUS_TYPE.
+	Simplify.
 	(xd_signature): New function.
 	(xd_append_arg): Compute also signatures.  Major rewrite.
 	(xd_retrieve_arg): Make debug messages friendly.
-	(Fdbus_call_method, Fdbus_send_signal): Extend docstring.  Check
-	for signatures of arguments.
+	(Fdbus_call_method, Fdbus_send_signal): Extend docstring.
+	Check for signatures of arguments.
 
 2007-12-19  Michael Albinus  <michael.albinus@gmx.de>
 
@@ -80,11 +238,10 @@
 	(QCdbus_type_uint32, QCdbus_type_int64, QCdbus_type_uint64)
 	(QCdbus_type_double, QCdbus_type_string, QCdbus_type_object_path)
 	(QCdbus_type_signature, QCdbus_type_array, QCdbus_type_variant)
-	(QCdbus_type_struct, QCdbus_type_dict_entry): New D-Bus type
-	symbols.
+	(QCdbus_type_struct, QCdbus_type_dict_entry): New D-Bus type symbols.
 	(XD_LISP_SYMBOL_TO_DBUS_TYPE): New macro.
 	(XD_LISP_OBJECT_TO_DBUS_TYPE): Add compound types.
-	(xd_retrieve_value): Removed. Functionality included in ...
+	(xd_retrieve_value): Remove.  Functionality included in ...
 	(xd_append_arg): New function.
 	(Fdbus_call_method, Fdbus_send_signal): Apply it.
 
@@ -93,8 +250,8 @@
 	* dbusbind.c (top): Include <stdio.h>.
 	(Fdbus_call_method, Fdbus_send_signal): Apply type cast in
 	dbus_message_new_method_call and dbus_message_new_signal.
-	(Fdbus_register_signal): Rename unique_name to uname.  Check
-	handler for FUNCTIONP instead of CHECK_SYMBOL.  Handle case of
+	(Fdbus_register_signal): Rename unique_name to uname.
+	Check handler for FUNCTIONP instead of CHECK_SYMBOL.  Handle case of
 	non-existing unique name.  Fix typos in matching rule.  Return an
 	object which is useful in Fdbus_unregister_signal.
 	(Fdbus_unregister_signal): Reimplementation, in order to remove
@@ -121,8 +278,8 @@
 2007-12-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_retrieve_value, xd_retrieve_arg)
-	(Fdbus_call_method, Fdbus_send_signal, xd_read_message): Use
-	`unsigned int' instead of `uint'.
+	(Fdbus_call_method, Fdbus_send_signal, xd_read_message):
+	Use `unsigned int' instead of `uint'.
 	(xd_read_message, Fdbus_register_signal): Split expressions into
 	multiple lines before operators "&&" and "||", according to the
 	GNU Coding Standards.
@@ -171,7 +328,7 @@
 	DBUS_MAXIMUM_MATCH_RULE_LENGTH for string lengths.
 	(Fdbus_call_method, Fdbus_send_signal, Fdbus_register_signal):
 	Unify argument lists.
-	(xd_read_message, Fdbus_register_signal) Reorder and extend event
+	(xd_read_message, Fdbus_register_signal): Reorder and extend event
 	arguments and hash table keys.  Use unique name for service.
 	(Fdbus_unregister_signal): Remove checks.
 	(Vdbus_registered_functions_table): Fix doc string.
@@ -229,13 +386,13 @@
 
 2007-12-04  Michael Albinus  <michael.albinus@gmx.de>
 
-	* dbusbind.c (QCdbus_system_bus, QCdbus_session_bus): Renamed from
+	* dbusbind.c (QCdbus_system_bus, QCdbus_session_bus): Rename from
 	Qdbus_system_bus and Qdbus_session_bus, respectively.
-	(Vdbus_intern_symbols): Removed.
+	(Vdbus_intern_symbols): Remove.
 	(Vdbus_registered_functions_table): New hash table.
-	(XD_SYMBOL_INTERN_SYMBOL): Removed.
+	(XD_SYMBOL_INTERN_SYMBOL): Remove.
 	(xd_read_message, Fdbus_register_signal, Fdbus_unregister_signal):
-	Rewritten in order to manage registered functions by hash table
+	Rewrite in order to manage registered functions by hash table
 	Vdbus_registered_functions_table.
 
 2007-12-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
@@ -246,7 +403,7 @@
 
 	* config.in (HAVE_DBUS): Add.
 
-	* Makefile.in: (HAVE_DBUS): Add D-Bus definitions if defined.
+	* Makefile.in (HAVE_DBUS): Add D-Bus definitions if defined.
 	(ALL_CFLAGS): Add ${DBUS_CFLAGS}.
 	(obj): Add $(DBUS_OBJ).
 	(LIBES): Add $(DBUS_LIBS).
@@ -257,10 +414,9 @@
 	* emacs.c (main): Call syms_of_dbusbind when HAVE_DBUS is defined.
 
 	* keyboard.c: All D-Bus related code is wrapped by "#ifdef HAVE_DBUS".
-	(Qdbus_event) New Lisp symbol.
+	(Qdbus_event): New Lisp symbol.
 	(kbd_buffer_get_event, make_lispy_event): Handle DBUS_EVENT.
-	(gobble_input): Call xd_read_queued_messages, reading D-Bus
-	messages.
+	(gobble_input): Call xd_read_queued_messages, reading D-Bus messages.
 	(keys_of_keyboard ): Define dbus-event.
 
 	* termhooks.h (event_kind): Add DBUS_EVENT when HAVE_DBUS is defined.
@@ -355,7 +511,7 @@
 
 	* term.c: Include stdarg.h.
 	(fatal): Implement using varargs.
-	* lisp.h (fatal): Add argument types. (Restore 2005-09-30 change).
+	* lisp.h (fatal): Add argument types.  (Restore 2005-09-30 change).
 
 2007-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -3418,7 +3574,7 @@ See ChangeLog.10 for earlier changes.
 ;; add-log-time-zone-rule: t
 ;; End:
 
-    Copyright (C) 2007 Free Software Foundation, Inc.
+    Copyright (C) 2007, 2008  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

@@ -1,7 +1,7 @@
 ;;; ibuffer.el --- operate on buffers like dired
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -1722,7 +1722,7 @@ If point is on a group name, this function operates on that group."
    ('mouse-face 'highlight
 		'keymap ibuffer-mode-name-map
 		'help-echo "mouse-2: filter by this mode"))
-  (format "%s" mode-name))
+  (format-mode-line mode-name))
 
 (define-ibuffer-column process
   (:summarizer

@@ -1,7 +1,7 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
 ;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1328,6 +1328,68 @@ The value is one of the symbols `static-gray', `gray-scale',
      (t
       'static-gray))))
 
+
+;;;; Frame geometry values
+
+(defun frame-geom-value-cons (type value &optional frame)
+  "Return equivalent geometry value for FRAME as a cons with car `+'.
+A geometry value equivalent to VALUE for FRAME is returned,
+where the value is a cons with car `+', not numeric.
+TYPE is the car of the original geometry spec (TYPE . VALUE).
+   It is `top' or `left', depending on which edge VALUE is related to.
+VALUE is the cdr of a frame geometry spec: (left/top . VALUE).
+If VALUE is a number, then it is converted to a cons value, perhaps
+   relative to the opposite frame edge from that in the original spec.
+FRAME defaults to the selected frame.
+
+Examples (measures in pixels) -
+ Assuming display height/width=1024, frame height/width=600:
+ 300 inside display edge:                   300  => (+  300)
+                                        (+  300) => (+  300)
+ 300 inside opposite display edge:      (-  300) => (+  124)
+                                           -300  => (+  124)
+ 300 beyond display edge
+  (= 724 inside opposite display edge): (+ -300) => (+ -300)
+ 300 beyond display edge
+  (= 724 inside opposite display edge): (- -300) => (+  724)
+
+In the 3rd, 4th, and 6th examples, the returned value is relative to
+the opposite frame edge from the edge indicated in the input spec."
+  (cond ((and (consp value) (eq '+ (car value))) ; e.g. (+ 300), (+ -300)
+         value)
+        ((natnump value) (list '+ value)) ; e.g. 300 => (+ 300)
+        (t                              ; e.g. -300, (- 300), (- -300)
+         (list '+ (- (if (eq 'left type) ; => (+ 124), (+ 124), (+ 724)
+                         (x-display-pixel-width)
+                       (x-display-pixel-height))
+                     (if (integerp value) (- value) (cadr value))
+                     (if (eq 'left type)
+                         (frame-pixel-width frame)
+                       (frame-pixel-height frame)))))))
+
+(defun frame-geom-spec-cons (spec &optional frame)
+  "Return equivalent geometry spec for FRAME as a cons with car `+'.
+A geometry specification equivalent to SPEC for FRAME is returned,
+where the value is a cons with car `+', not numeric.
+SPEC is a frame geometry spec: (left . VALUE) or (top . VALUE).
+If VALUE is a number, then it is converted to a cons value, perhaps
+   relative to the opposite frame edge from that in the original spec.
+FRAME defaults to the selected frame.
+
+Examples (measures in pixels) -
+ Assuming display height=1024, frame height=600:
+ top 300 below display top:               (top .  300) => (top +  300)
+                                          (top +  300) => (top +  300)
+ bottom 300 above display bottom:         (top -  300) => (top +  124)
+                                          (top . -300) => (top +  124)
+ top 300 above display top
+  (= bottom 724 above display bottom):    (top + -300) => (top + -300)
+ bottom 300 below display bottom
+  (= top 724 below display top):          (top - -300) => (top +  724)
+
+In the 3rd, 4th, and 6th examples, the returned value is relative to
+the opposite frame edge from the edge indicated in the input spec."
+  (cons (car spec) (frame-geom-value-cons (car spec) (cdr spec))))
 
 ;;;; Aliases for backward compatibility with Emacs 18.
 (define-obsolete-function-alias 'screen-height 'frame-height) ;before 19.15

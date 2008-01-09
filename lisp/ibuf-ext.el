@@ -1,7 +1,7 @@
 ;;; ibuf-ext.el --- extensions for ibuffer
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -1134,11 +1134,11 @@ Ordering is lexicographic."
   (string-lessp (downcase
 		  (with-current-buffer
 		      (car a)
-		    mode-name))
+		    (format-mode-line mode-name)))
 		(downcase
 		 (with-current-buffer
 		     (car b)
-		   mode-name))))
+		   (format-mode-line mode-name)))))
 
 ;;;###autoload (autoload 'ibuffer-do-sort-by-alphabetic "ibuf-ext")
 (define-ibuffer-sorter alphabetic
@@ -1386,7 +1386,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
   (ibuffer-mark-on-buffer
    #'(lambda (buf)
        (with-current-buffer buf
-	 (string-match regexp mode-name)))))
+	 (string-match regexp (format-mode-line mode-name))))))
 
 ;;;###autoload
 (defun ibuffer-mark-by-file-name-regexp (regexp)

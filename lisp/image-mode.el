@@ -1,6 +1,6 @@
 ;;; image-mode.el --- support for visiting image files
 ;;
-;; Copyright (C) 2005, 2006, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 ;;
 ;; Author: Richard Stallman <rms@gnu.org>
 ;; Keywords: multimedia
@@ -210,6 +210,8 @@ This variable is used to display the current image type in the mode line.")
     map)
   "Major mode keymap for viewing images as text in Image mode.")
 
+(defvar bookmark-make-cell-function)
+
 ;;;###autoload
 (defun image-mode ()
   "Major mode for image files.
@@ -373,8 +375,14 @@ and showing the image as an image."
     ;; Finally, return the completed record.
     the-record))
 
+(declare-function bookmark-get-filename        "bookmark" (bookmark))
+(declare-function bookmark-get-bookmark-record "bookmark" (bookmark))
+(declare-function bookmark-get-position        "bookmark" (bookmark))
+
 ;;;###autoload
 (defun image-bookmark-jump (bmk)
+  ;; This implements the `handler' function interface for record type
+  ;; returned by `bookmark-make-cell-function', which see.
   (save-window-excursion
     (let ((filename (bookmark-get-filename bmk))
 	  (type (cdr (assq 'image-type (bookmark-get-bookmark-record bmk))))
@@ -384,7 +392,7 @@ and showing the image as an image."
 	(image-toggle-display))
       (when (string= image-type "text")
 	(goto-char pos))
-      (cons (current-buffer) pos))))
+      `((buffer ,(current-buffer)) (position ,(point))))))
 
 (provide 'image-mode)
 

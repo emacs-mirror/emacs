@@ -1,7 +1,7 @@
 ;;; ido.el --- interactively do things with buffers and files.
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Based on: iswitchb by Stephen Eglen <stephen@cns.ed.ac.uk>
@@ -436,17 +436,16 @@ in merged file and directory lists."
   :type '(repeat (choice regexp function))
   :group 'ido)
 
-;;; Examples for setting the value of ido-ignore-buffers
-;(defun ido-ignore-c-mode (name)
-;  "Ignore all c mode buffers -- example function for ido."
-;  (save-excursion
-;    (set-buffer name)
-;    (string-match "^C$" mode-name)))
-;
-;(setq ido-ignore-buffers '("^ " ido-ignore-c-mode))
+;; Examples for setting the value of ido-ignore-buffers
+;;(defun ido-ignore-c-mode (name)
+;;  "Ignore all c mode buffers -- example function for ido."
+;;  (with-current-buffer name
+;;    (derived-mode-p 'c-mode)))
+;;
+;;(setq ido-ignore-buffers '("^ " ido-ignore-c-mode))
 
-;;; Examples for setting the value of ido-ignore-files
-;(setq ido-ignore-files '("^ " "\\.c$" "\\.h$"))
+;; Examples for setting the value of ido-ignore-files
+;;(setq ido-ignore-files '("^ " "\\.c\\'" "\\.h\\'"))
 
 (defcustom ido-default-file-method  'raise-frame
   "*How to visit a new file when using `ido-find-file'.
@@ -4655,5 +4654,5 @@ DEF, if non-nil, is the default value."
     (ido-read-internal 'list prompt hist def require-match initial-input)))
 
 
-;;; arch-tag: b63a3500-1735-41bd-8a01-05373f0864da
+;; arch-tag: b63a3500-1735-41bd-8a01-05373f0864da
 ;;; ido.el ends here

@@ -1,7 +1,8 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
 ;;	    Daniel Pfeiffer <occitan@esperanto.org>
@@ -280,8 +281,12 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 \\(?:,\\| in\\| of\\)? file \\(.*?\\):?$"
      3 1 2)
 
+    ;; "during global destruction": This comes out under "use
+    ;; warnings" in recent perl when breaking circular references
+    ;; during program or thread exit.
     (perl
-     " at \\([^ \n]+\\) line \\([0-9]+\\)\\(?:[,.]\\|$\\)" 1 2)
+     " at \\([^ \n]+\\) line \\([0-9]+\\)\\(?:[,.]\\|$\\| \
+during global destruction\\.$\\)" 1 2)
 
     (rxp
      "^\\(?:Error\\|Warnin\\(g\\)\\):.*\n.* line \\([0-9]+\\) char\
@@ -365,6 +370,17 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      ;;
      "^# Failed test [0-9]+ in \\([^ \t\r\n]+\\) at line \\([0-9]+\\)"
      1 2)
+    (compilation-perl--Test2
+     ;; Or when comparing got/want values,
+     ;; # Test 2 got: "xx" (t-compilation-perl-2.t at line 10)
+     ;;
+     ;; And under Test::Harness they're preceded by progress stuff with
+     ;; \r and "NOK",
+     ;; ... NOK 1# Test 1 got: "1234" (t/foo.t at line 46)
+     ;;
+     "^\\(.*NOK.*\\)?# Test [0-9]+ got:.* (\\([^ \t\r\n]+\\) at line \
+\\([0-9]+\\))"
+     2 3)
     (compilation-perl--Test::Harness
      ;; perl Test::Harness output, eg.
      ;; NOK 1# Test 1 got: "1234" (t/foo.t at line 46)

@@ -9,7 +9,7 @@
 This file documents Message, the Emacs message composition mode.
 
 Copyright @copyright{} 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1564,17 +1564,38 @@ when it doesn't lead to the user having to wait.
 @table @code
 @item message-send-mail-function
 @vindex message-send-mail-function
+@findex message-send-mail-function
 @findex message-send-mail-with-sendmail
 @findex message-send-mail-with-mh
 @findex message-send-mail-with-qmail
 @findex message-smtpmail-send-it
 @findex smtpmail-send-it
 @findex feedmail-send-it
+@findex message-send-mail-with-mailclient
 Function used to send the current buffer as mail.  The default is
 @code{message-send-mail-with-sendmail}, or @code{smtpmail-send-it}
 according to the system.  Other valid values include
+@code{message-send-mail-with-mailclient},
 @code{message-send-mail-with-mh}, @code{message-send-mail-with-qmail},
 @code{message-smtpmail-send-it} and @code{feedmail-send-it}.
+
+The function
+@code{message-send-mail-with-sendmail} pipes your article to the
+@code{sendmail} binary for further queuing and sending.  When your local
+system is not configured for sending mail using @code{sendmail}, and you
+have access to a remote @acronym{SMTP} server, you can set
+@code{message-send-mail-function} to @code{smtpmail-send-it} and make
+sure to setup the @code{smtpmail} package correctly.  An example:
+
+@lisp
+(setq message-send-mail-function 'smtpmail-send-it
+      smtpmail-default-smtp-server "YOUR SMTP HOST")
+@end lisp
+
+To the thing similar to this, there is
+@code{message-smtpmail-send-it}.  It is useful if your @acronym{ISP}
+requires the @acronym{POP}-before-@acronym{SMTP} authentication.
+@xref{POP before SMTP, , POP before SMTP, gnus, The Gnus Manual}.
 
 @item message-mh-deletable-headers
 @vindex message-mh-deletable-headers

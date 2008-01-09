@@ -1,7 +1,7 @@
 ;;; ps-print.el --- print text from the buffer as PostScript
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -1489,7 +1489,7 @@ Please send all bug fixes and enhancements to
 (defconst ps-windows-system
   (memq system-type '(emx win32 w32 mswindows ms-dos windows-nt)))
 (defconst ps-lp-system
-  (memq system-type '(usg-unix-v dgux hpux irix)))
+  (memq system-type '(usg-unix-v hpux irix)))
 
 
 (defun ps-xemacs-color-name (color)

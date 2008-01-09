@@ -196,7 +196,7 @@
 
 	* mh-search.el (mh-index-new-folder): Use -2 suffix instead of <2>
 	suffix for folder names, as <> are illegal filename characters on
-	Windows	(closes SF #1507002).
+	Windows (closes SF #1507002).
 
 2006-06-05  Jacob Morzinski  <morzinski@MIT.EDU>  (tiny change)
 
@@ -931,7 +931,7 @@
 2006-02-03  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-tool-bar.el: Add conditional require of 'tool-bar or 'toolbar
-	for gnu-emacs or xemacs to avoid void-variable tool-bar-map lisp
+	for GNU Emacs or XEmacs to avoid void-variable tool-bar-map lisp
 	errors if describe-bindings is called before tool-bar-mode is used.
 
 2006-02-03  Peter S Galbraith  <psg@debian.org>
@@ -2964,7 +2964,7 @@
 	* ChangeLog.1: New file.  Contains old ChangeLog.
 
 
-  Copyright (C) 2005, 2006, 2007  Free Software Foundation, Inc.
+  Copyright (C) 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

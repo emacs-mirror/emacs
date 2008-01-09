@@ -1,7 +1,7 @@
 ;;; delsel.el --- delete selection if you insert
 
 ;; Copyright (C) 1992, 1997, 1998, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>
 ;; Maintainer: FSF
@@ -59,8 +59,8 @@
 ;;;###autoload
 (define-minor-mode delete-selection-mode
   "Toggle Delete Selection mode.
-With prefix ARG, turn Delete Selection mode on if and only if ARG is
-positive.
+With prefix ARG, turn Delete Selection mode on if ARG is
+positive, off if ARG is not positive.
 
 When Delete Selection mode is enabled, Transient Mark mode is also
 enabled and typed text replaces the selection if the selection is

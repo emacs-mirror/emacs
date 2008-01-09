@@ -1,7 +1,7 @@
 ;;; paths.el --- define pathnames for use by various Emacs commands -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1986, 1988, 1994, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -153,7 +153,7 @@ The `ORGANIZATION' environment variable is used instead if defined.")
 	;; Many GNU/Linux systems use this name.
 	((file-exists-p "/var/spool/mail")
 	 "/var/spool/mail/")
-	((memq system-type '(dgux hpux usg-unix-v unisoft-unix rtu irix))
+	((memq system-type '(hpux usg-unix-v unisoft-unix irix))
 	 "/usr/mail/")
 	(t "/usr/spool/mail/"))
   "Name of directory used by system mailer for delivering new mail.

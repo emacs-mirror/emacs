@@ -1,7 +1,7 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers
 
 ;; Copyright (C) 2002, 2003, 2004, 2005, 2006,
-;;   2007 Free Software Foundation, Inc.
+;;   2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -472,7 +472,7 @@ PRESERVE-UID-GID is completely ignored."
 
 	;; Handle "-F" switch.
 	(when (string-match "F" switches)
-	  (mapcar
+	  (mapc
 	   (lambda (x)
 	     (when (not (zerop (length (car x))))
 	       (cond

@@ -423,7 +423,7 @@
 
 1997-08-13  Eli Zaretskii  <eliz@psilocin.gnu.ai.mit.edu>
 
-	* sed2.inp: (EMACS_CONFIGURATION): Set to i386-pc-msdosdjgpp.
+	* sed2.inp (EMACS_CONFIGURATION): Set to i386-pc-msdosdjgpp.
 
 1997-08-10  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -549,7 +549,6 @@
 
 	* sed1x.inp, sed2x.inp, sed5x.inp: New files for X configuration.
 
-
 1994-07-14  Morten Welinder  (terra@diku.dk)
 
 	* sed2.inp (HAVE_STRERROR): Define.
@@ -636,16 +635,16 @@
 	Windows.  (This file contains non-printable characters.)
 
 	* emacs.ico: New file, icon for Emacs under Windows.  It's so ugly
-	that someone is bound to create a better.  Mail uuencoded icons
+	that someone is bound to create a better one.  Mail uuencoded icons
 	to terra@diku.dk, but be prepared to sign a copyright disclaimer.
 	(This file contains non-printable characters.)
 
 	* sed3.inp: New file for changing lib-src/makefile.in into
 	lib-src/makefile.
 
-	* sed2.inp: New file for changing src/config.h-in into src/config.h
+	* sed2.inp: New file for changing src/config.h-in into src/config.h.
 
-	* sed1.inp: New file for changing src/makefile.in.in into src/makefile
+	* sed1.inp: New file for changing src/makefile.in.in into src/makefile.
 
 ;; Local Variables:
 ;; coding: iso-2022-7bit
@@ -653,7 +652,7 @@
 ;; End:
 
     Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003,
-       2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+       2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

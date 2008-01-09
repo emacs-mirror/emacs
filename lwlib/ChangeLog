@@ -1,4 +1,4 @@
-2007-08-29  Karoly Lorentey  <lorentey@elte.hu>
+2007-08-29  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* xlwmenu.c (XlwMenuRealize): Ignore X errors while setting up
 	cursor shape.
@@ -34,7 +34,7 @@
 	* xlwmenuP.h (_XlwMenu_part): Add enter/leave callbacks and
 	inside_entry.
 
-	* lwlib-Xlw.c (enter_hook, leave_hook): New functions
+	* lwlib-Xlw.c (enter_hook, leave_hook): New functions.
 	(xlw_create_menubar, xlw_create_popup_menu): Connect XtNenter/leave
 	to enter/leave_hook.
 
@@ -59,9 +59,8 @@
 
 2005-09-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* xlwmenu.c (find_next_selectable):
-	(find_prev_selectable): Add missing parameter
-	declarations.
+	* xlwmenu.c (find_next_selectable, find_prev_selectable):
+	Add missing parameter declarations.
 
 2005-09-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -86,7 +85,7 @@
 	* xlwmenu.c (string_width):
 	(MENU_FONT_HEIGHT, MENU_FONT_ASCENT): Ditto.
 	(display_menu_item, make_drawing_gcs, XlwMenuInitialize)
-	(XlwMenuSetValues):  Use font if fontSet is NULL, use only
+	(XlwMenuSetValues): Use font if fontSet is NULL, use only
 	font for !HAVE_X_I18N.
 	(xlwMenuResources): Add fontSet resource.
 
@@ -172,8 +171,7 @@
 	* lwlib-Xlw.c (xlw_popup_menu): Replace call to pop_up_menu with
 	XtCallActionProc ("start").  Use a full XEvent since "start" copies it.
 
-	* lwlib-Xaw.c (make_dialog): Add override so dialog pops down
-	on ESC.
+	* lwlib-Xaw.c (make_dialog): Add override so dialog pops down on ESC.
 	(wm_delete_window): If widget isn't a shell, use the parent.
 
 2003-05-22  Dave Love  <fx@gnu.org>
@@ -589,7 +587,7 @@
 	Add support for large files, plus some locale improvements.
 
 	* dispatch.c, lwlib-Xaw.c, lwlib-Xlw.c, lwlib-Xm.c, lwlib.c, xlwmenu.c,
-	xrdb-cpp.c, xrdb.c:
+	* xrdb-cpp.c, xrdb.c:
 	Include <config.h> before any system include files.
 
 	* lwlib-Xm.c, lwlib.c:
@@ -684,7 +682,7 @@
 
 1999-07-12  Gerd Moellmann  <gerd@gnu.org>
 
-	* xlwmenu.c (make_shadow_gcs) ]emacs]: Use x_alloc_nearest_color.
+	* xlwmenu.c (make_shadow_gcs) [emacs]: Use x_alloc_nearest_color.
 
 	* lwlib.c (merge_widget_value): Handle button_type.
 	(copy_widget_value_tree): Copy button_type.
@@ -977,7 +975,7 @@
 
 	* lwlib-Xm.c: Remove function prototypes.
 	(xm_pop_down_callback): Call the deactivation callback only when
-	popping	down the top level submenu.
+	popping down the top level submenu.
 
 1995-04-07  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -1006,7 +1004,7 @@
 
 1994-11-08  Paul Reilly  <pmr@duality.gnu.ai.mit.edu>
 
-	* lwlib-Xm.c (make_menu_in_widget):  Differentiate a separator
+	* lwlib-Xm.c (make_menu_in_widget): Differentiate a separator
 	entry ("--") from a title.
 	(xm_pop_down_callback): Filter all but the last pop down callbacks.
 
@@ -1057,7 +1055,7 @@
 
 	* lwlib-Xm.h: Declare xm_set_main_areas, xm_manage_resizing.
 
-	* lwlib-Xm.c: (make_menu_in_widget): Add support for displaying a
+	* lwlib-Xm.c (make_menu_in_widget): Add support for displaying a
 	title in pop up menus.
 	(make_main, xm_set_main_areas, xm_manage_resizing): New functions to
 	create and manage a Motif Main Window widget.
@@ -1359,7 +1357,7 @@
 ;; End:
 
     Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
-	2005, 2006, 2007  Free Software Foundation, Inc.
+	2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

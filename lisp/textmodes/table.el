@@ -1,7 +1,7 @@
 ;;; table.el --- create and edit WYSIWYG text based embedded tables
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007  Free Software Foundation, Inc.
+;;   2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Keywords: wp, convenience
 ;; Author: Takaaki Ota <Takaaki.Ota@am.sony.com>
@@ -4061,7 +4061,7 @@ converts a table into plain text without frames.  It is a companion to
       (call-interactively 'describe-mode)
     (with-output-to-temp-buffer "*Help*"
       (princ "Table mode: (in ")
-      (princ mode-name)
+      (princ (format-mode-line mode-name nil nil (current-buffer)))
       (princ " mode)
 
 Table is not a mode technically.  You can regard it as a pseudo mode

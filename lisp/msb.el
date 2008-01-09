@@ -1,7 +1,7 @@
 ;;; msb.el --- customizable buffer-selection with multiple menus
 
 ;; Copyright (C) 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002,
-;;   2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+;;   2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Lars Lindberg <lars.lindberg@home.se>
 ;; Maintainer: FSF
@@ -829,7 +829,8 @@ results in
 		 (with-current-buffer buffer
 		   (when (and (not (msb-invisible-buffer-p))
 			      (not (assq major-mode mode-list)))
-		     (push (cons major-mode mode-name)
+		     (push (cons major-mode
+                                 (format-mode-line mode-name nil nil buffer))
 			   mode-list))))
 	       mode-list)
 	     (lambda (item1 item2)

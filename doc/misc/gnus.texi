@@ -10,7 +10,7 @@
 
 @copying
 Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -12139,28 +12139,12 @@ for posting.
 Finally, if you want to always post using the native select method,
 you can set this variable to @code{native}.
 
-When sending mail, Message invokes @code{message-send-mail-function}.
-The default function, @code{message-send-mail-with-sendmail}, pipes
-your article to the @code{sendmail} binary for further queuing and
-sending.  When your local system is not configured for sending mail
-using @code{sendmail}, and you have access to a remote @acronym{SMTP}
-server, you can set @code{message-send-mail-function} to
-@code{smtpmail-send-it} and make sure to setup the @code{smtpmail}
-package correctly.  An example:
-
-@lisp
-(setq message-send-mail-function 'smtpmail-send-it
-      smtpmail-default-smtp-server "YOUR SMTP HOST")
-@end lisp
-
-To the thing similar to this, there is
-@code{message-smtpmail-send-it}.  It is useful if your @acronym{ISP}
-requires the @acronym{POP}-before-@acronym{SMTP} authentication.
-@xref{POP before SMTP}.
-
-Other possible choices for @code{message-send-mail-function} includes
-@code{message-send-mail-with-mh}, @code{message-send-mail-with-qmail},
-and @code{feedmail-send-it}.
+@vindex message-send-mail-function
+When sending mail, Message invokes the function specified by the
+variable @code{message-send-mail-function}.  Gnus tries to set it to a
+value suitable for your system.
+@xref{Mail Variables, ,Mail Variables,message,Message manual}, for more
+information.
 
 @node POP before SMTP
 @section POP before SMTP

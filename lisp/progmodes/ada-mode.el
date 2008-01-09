@@ -1,7 +1,7 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
 ;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-;;               2005, 2006, 2007  Free Software Foundation, Inc.
+;;               2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
@@ -4811,10 +4811,9 @@ Moves to 'begin' if in a declarative part."
 ;; -------------------------------------------------------
 
 (defadvice comment-region (before ada-uncomment-anywhere disable)
-  (if (and arg
-	   (listp arg)  ;;  a prefix with \C-u is of the form '(4), whereas
+  (if (and (consp arg)  ;;  a prefix with \C-u is of the form '(4), whereas
 		       ;;  \C-u 2  sets arg to '2'  (fixed by S.Leake)
-	   (string= mode-name "Ada"))
+	   (derived-mode-p 'ada-mode))
       (save-excursion
 	(let ((cs (concat "^[ \t]*" (regexp-quote comment-start))))
 	  (goto-char beg)

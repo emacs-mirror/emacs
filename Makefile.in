@@ -3,7 +3,8 @@
 # DIST: that first.
 
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-#   2001, 2002, 2003, 2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+#   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+#   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -169,6 +170,12 @@ x_default_search_path=@x_default_search_path@
 
 # Location to install Emacs.app on Mac OS X
 carbon_appdir=@carbon_appdir@
+
+# Where the etc/emacs.desktop file is to be installed.
+desktopdir=$(datarootdir)/applications
+
+# Where the etc/images/icons/hicolor directory is to be installed.
+icondir=$(datarootdir)/icons
 
 # ==================== Emacs-specific directories ====================
 
@@ -429,7 +436,7 @@ install-arch-dep: mkdir
 ## Nuisance because i) it needs to be the user running install, so
 ## configure can't set it; ii) can't (?) use the result of rule
 ## commands to set make variables.
-install-arch-indep: mkdir info
+install-arch-indep: mkdir info install-etc
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
 	for dir in ${COPYDIR} ; do \
@@ -571,6 +578,17 @@ install-arch-indep: mkdir info
 	   chmod a+r $(DESTDIR)${man1dir}/$${page}${manext}); \
 	done
 
+## Install those items from etc/ that need to end up elsewhere.
+install-etc: mkdir
+	${INSTALL_DATA} ${srcdir}/etc/emacs.desktop \
+	  $(DESTDIR)${desktopdir}/emacs.desktop
+	for icon in $(srcdir)/etc/images/icons/*/*x*/apps/*.*; do \
+	  if [ -r $${icon} ]; then \
+	    iicon=`echo "$${icon}" | sed 's,$(srcdir)/etc/images/icons,$(DESTDIR)${icondir},'` ; \
+	    ${INSTALL_DATA} $${icon} $${iicon} ; \
+	  fi ; \
+	done
+
 ### Install LEIM files.  Although they are machine-independent, we
 ### have separate target here instead of including it in
 ### `install-arch-indep'.  People who extracted LEIM files after they
@@ -591,11 +609,19 @@ mkdir: FRC
 	  $(srcdir)/mkinstalldirs $(DESTDIR)${datadir}; \
 	  chmod a+r $(DESTDIR)${datadir};\
 	fi
+	icondirs= ; \
+	for dir in $(srcdir)/etc/images/icons/*/*x*/apps; do \
+	  if [ -d $${dir} ]; then \
+	    icondirs="$${icondirs} $${dir}" ; \
+	  fi ; \
+	done ; \
+	icondirs=`echo "$${icondirs}" | sed 's,$(srcdir)/etc/images/icons,$(DESTDIR)${icondir},g'` ; \
 	$(srcdir)/mkinstalldirs ${COPYDESTS} $(DESTDIR)${infodir} $(DESTDIR)${man1dir} \
 	  $(DESTDIR)${bindir} $(DESTDIR)${docdir} $(DESTDIR)${libexecdir} \
 	  $(DESTDIR)${datadir}/emacs/site-lisp \
 	  $(DESTDIR)${datadir}/emacs/${version}/site-lisp \
-	  $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'`
+	  $(DESTDIR)`echo ${locallisppath} | sed 's,:, $(DESTDIR),g'` \
+	  $(DESTDIR)${desktopdir} $${icondirs}
 
 ### Delete all the installed files that the `install' target would
 ### create (but not the noninstalled files such as `make all' would
