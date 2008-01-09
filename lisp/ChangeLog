@@ -1,3 +1,12 @@
+2008-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* ffap.el (ffap-string-at-point-mode-alist): Add `\' to file
+	entry, for Windows.
+
+2008-01-09  Tom Tromey  <tromey@redhat.com>
+
+	* play/blackbox.el (blackbox-mode-map): Add `q' and [return] bindings.
+
 2008-01-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Some face attributes (like :strike-through) was not
