@@ -1307,8 +1307,12 @@ Otherwise, throw an error."
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
-  (if vc-dired-mode
-      (set-buffer (find-file-noselect (dired-get-filename)))
+  (cond
+   (vc-dired-mode
+    (set-buffer (find-file-noselect (dired-get-filename))))
+   ((eq major-mode 'vc-status-mode)
+    (set-buffer (find-file-noselect (vc-status-current-file))))
+   (t
     (while (and vc-parent-buffer
                 (buffer-live-p vc-parent-buffer)
 		;; Avoid infinite looping when vc-parent-buffer and
@@ -1318,7 +1322,7 @@ Otherwise, throw an error."
     (if (not buffer-file-name)
 	(error "Buffer %s is not associated with a file" (buffer-name))
       (if (not (vc-backend buffer-file-name))
-	  (error "File %s is not under version control" buffer-file-name)))))
+	  (error "File %s is not under version control" buffer-file-name))))))
 
 ;;; Support for the C-x v v command.  This is where all the single-file-oriented
 ;;; code from before the fileset rewrite lives.
@@ -2512,18 +2516,25 @@ With prefix arg READ-SWITCHES, specify a value to override
 
 (defvar vc-status nil)
 
-(defun vc-status-insert-headers (backend dir)
-  (insert (format "VC backend :%s\n" backend))
-  (insert "Repository : The repository goes here\n")
-  (insert (format "Working dir: %s\n\n\n" dir)))
+(defun vc-status-headers (backend dir)
+  (concat
+   (format "VC backend : %s\n" backend)
+   "Repository : The repository goes here\n"
+   (format "Working dir: %s\n" dir)))
 
 (defun vc-status-printer (fileentry)
   "Pretty print FILEENTRY."
   (insert
+   ;; If you change this, change vc-status-move-to-goal-column.
    (format "%c   %-20s %s"
 	   (if (vc-status-fileinfo->marked fileentry) ?* ? )
 	   (vc-status-fileinfo->state fileentry)
 	   (vc-status-fileinfo->name fileentry))))
+
+(defun vc-status-move-to-goal-column ()
+  (beginning-of-line)
+  ;; Must be in sync with vc-status-printer.
+  (forward-char 25))
 
 (defun vc-status (dir)
   "Show the VC status for DIR."
@@ -2534,9 +2545,30 @@ With prefix arg READ-SWITCHES, specify a value to override
   (vc-status-mode))
 
 (defvar vc-status-mode-map 
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    ;; Marking.
     (define-key map "m" 'vc-status-mark-file)
     (define-key map "u" 'vc-status-unmark-file)
+    (define-key map "\C-?" 'vc-status-unmark-file-up)
+    ;; Movement.
+    (define-key map "n" 'vc-status-next-line)
+    (define-key map " " 'vc-status-next-line)
+    (define-key map "\t" 'vc-status-next-line)
+    (define-key map "p" 'vc-status-previous-line)
+    (define-key map [backtab] 'vc-status-previous-line)
+    ;; VC commands.
+    (define-key map "=" 'vc-diff)
+    (define-key map "a" 'vc-status-register)
+    ;; Can't be "g" (as in vc map), so "A" for "Annotate".
+    (define-key map "A" 'vc-annotate)
+    ;; vc-print-log uses the current buffer, not a file.
+    ;; (define-key map "l" 'vc-status-print-log)
+    ;; The remainder.
+    (define-key map "f" 'vc-status-find-file)
+    (define-key map "o" 'vc-status-find-file-other-window)
+    (define-key map "q" 'bury-buffer)
+    (define-key map "g" 'vc-status-refresh)
     map)
   "Keymap for VC status")
 
@@ -2552,30 +2584,90 @@ With prefix arg READ-SWITCHES, specify a value to override
 	entries)
     (erase-buffer)
     (set (make-local-variable 'vc-status)
-	 (ewoc-create #'vc-status-printer))
-    (vc-status-insert-headers backend default-directory)
-    (setq entries (vc-call-backend backend 'dir-status default-directory))
-    (dolist (entry entries)
-      (ewoc-enter-last 
-       vc-status (vc-status-create-fileinfo (cdr entry) (car entry))))))
+	 (ewoc-create #'vc-status-printer
+		      (vc-status-headers backend default-directory)))
+    (vc-status-refresh)))
+
+(put 'vc-status-mode 'mode-class 'special)
+
+(defun vc-status-refresh ()
+  "Refresh the contents of the VC status buffer."
+  (interactive)
+  ;; This is not very efficient; ewoc could use a new function here.
+  (ewoc-filter vc-status (lambda (node) nil))
+  (let ((backend (vc-responsible-backend default-directory)))
+    (dolist (entry (vc-call-backend backend 'dir-status default-directory))
+      (ewoc-enter-last vc-status
+		       (vc-status-create-fileinfo (cdr entry) (car entry)))))
+  (ewoc-goto-node vc-status (ewoc-nth vc-status 0)))
+
+(defun vc-status-next-line (arg)
+  "Go to the next line.
+If a prefix argument is given, move by that many lines."
+  (interactive "p")
+  (ewoc-goto-next vc-status arg)
+  (vc-status-move-to-goal-column))
+
+(defun vc-status-previous-line (arg)
+  "Go to the previous line.
+If a prefix argument is given, move by that many lines."
+  (interactive "p")
+  (ewoc-goto-prev vc-status arg)
+  (vc-status-move-to-goal-column))
 
 (defun vc-status-mark-file ()
-  "Mark the current file."
+  "Mark the current file and move to the next line."
   (interactive)
   (let* ((crt (ewoc-locate vc-status))
          (file (ewoc-data crt)))
     (setf (vc-status-fileinfo->marked file) t)
     (ewoc-invalidate vc-status crt)
-    (ewoc-goto-next vc-status 1)))
+    (vc-status-next-line 1)))
 
 (defun vc-status-unmark-file ()
-  "Mark the current file."
+  "Unmark the current file and move to the next line."
   (interactive)
   (let* ((crt (ewoc-locate vc-status))
          (file (ewoc-data crt)))
     (setf (vc-status-fileinfo->marked file) nil)
     (ewoc-invalidate vc-status crt)
-    (ewoc-goto-next vc-status 1)))
+    (vc-status-next-line 1)))
+
+(defun vc-status-unmark-file-up ()
+  "Move to the previous line and unmark the file."
+  (interactive)
+  ;; If we're on the first line, we won't move up, but we will still
+  ;; remove the mark.  This seems a bit odd but it is what buffer-menu
+  ;; does.
+  (let* ((prev (ewoc-goto-prev vc-status 1))
+	 (file (ewoc-data prev)))
+    (setf (vc-status-fileinfo->marked file) nil)
+    (ewoc-invalidate vc-status prev)
+    (vc-status-move-to-goal-column)))
+
+(defun vc-status-register ()
+  "Register the marked files, or the current file if no marks."
+  (interactive)
+  (let ((files (or (vc-status-marked-files)
+		   (list (vc-status-current-file)))))
+    (dolist (file files)
+      (vc-register file))))
+
+(defun vc-status-find-file ()
+  "Find the file on the current line."
+  (interactive)
+  (find-file (vc-status-current-file)))
+
+(defun vc-status-find-file-other-window ()
+  "Find the file on the current line, in another window."
+  (interactive)
+  (find-file-other-window (vc-status-current-file)))
+
+(defun vc-status-current-file ()
+  (let ((node (ewoc-locate vc-status)))
+    (unless node
+      (error "No file available."))
+    (expand-file-name (vc-status-fileinfo->name (ewoc-data node)))))
 
 (defun vc-status-marked-files ()
   "Return the list of marked files"

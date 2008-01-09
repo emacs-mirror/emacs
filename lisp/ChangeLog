@@ -1,5 +1,22 @@
 2008-01-09  Tom Tromey  <tromey@redhat.com>
 
+	* vc.el (vc-status-headers): Rename from
+	vc-status-insert-headers.  Just return header.
+	(vc-status-move-to-goal-column): New function.
+	(vc-status-mode-map): Define more keys.
+	(vc-status-mode): Use vc-status-refresh.  Now 'special.
+	(vc-status-refresh): New function.
+	(vc-status-next-line): Likewise.
+	(vc-status-previous-line): Likewise.
+	(vc-status-mark-file): Use vc-status-next-line.
+	(vc-status-unmark-file): Use vc-status-previous-line.
+	(vc-status-unmark-file-up): New function.
+	(vc-status-register): Likewise.
+	(vc-status-find-file): Likewise.
+	(vc-status-find-file-other-window): Likewise.
+	(vc-status-current-file): Likewise.
+	(vc-ensure-vc-buffer): Understand vc-status mode.
+
         * vc-hg.el (vc-hg-dir-status): Don't pass -A to "hg status".
 
 2008-01-09  Glenn Morris  <rgm@gnu.org>
