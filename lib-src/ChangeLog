@@ -1,3 +1,11 @@
+2008-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* emacsclient.c: Add missing final newlines to message calls.
+
+2008-01-09  Daniel Hackney <dan@haxney.org>  (tiny change)
+
+	* emacsclient.c (set_socket): Add final newline to socket error message.
+
 2008-01-04  Glenn Morris  <rgm@gnu.org>
 
 	* ebrowse.c (version) <emacs_copyright>: New variable.
