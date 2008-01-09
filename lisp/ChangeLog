@@ -1,3 +1,20 @@
+2008-01-08  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-initialize): New autoloaded
+	command. Rename from function bibtex-files-expand. New optional
+	arg select.
+	(bibtex-flash-head): Allow blink-matching-delay being zero.
+	(bibtex-clean-entry): Use atomic-change-group.
+	(bibtex-format-entry): Check presence of required fields only
+	after formatting of fields.  Use member-ignore-case.  Do not use
+	bibtex-parse-entry.  Do not use booktitle field to set a missing
+	title.
+	(bibtex-autofill-entry): Do not call undo-boundary.
+	(bibtex-lessp): Handle crossref keys that point to another bibtex
+	file.
+	(bibtex-sort-buffer, bibtex-prepare-new-entry, bibtex-validate):
+	Parse keys if necessary.
+	
 2008-01-08  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-list-children-1): Put varnum in
