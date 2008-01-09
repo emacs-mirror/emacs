@@ -1,3 +1,13 @@
+2008-01-09  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* coding.c (detect_coding_iso2022): New arg
+	latin_extra_code_state.  Allow Latin extra codes only
+	when *latin_extra_code_state is nonzero.
+	(detect_coding_mask): If there is a NULL byte, detect the encoding
+	as UTF-16 or binary.  If Latin extra codes exist, detect the
+	encoding as ISO-2022 only when there's no other proper encoding is
+	found.
+
 2008-01-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* frame.c (Fmake_terminal_frame): Use #ifdef MAC_OS8 instead of
