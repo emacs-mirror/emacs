@@ -969,7 +969,7 @@ If t, `ffap-tex-init' will initialize this when needed.")
     ;; Slightly controversial decisions:
     ;; * strip trailing "@" and ":"
     ;; * no commas (good for latex)
-    (file "--:$+<>@-Z_[:lower:]~*?" "<@" "@>;.,!:")
+    (file "--:\\\\$+<>@-Z_[:lower:]~*?" "<@" "@>;.,!:")
     ;; An url, or maybe a email/news message-id:
     (url "--:=&?$+@-Z_[:lower:]~#,%;*" "^[:alnum:]" ":;.,!?")
     ;; Find a string that does *not* contain a colon:
