@@ -929,60 +929,57 @@ If BACKWARD is non-nil, jump to the previous match."
 You can use \\<doc-view-mode-map>\\[doc-view-toggle-display] to
 toggle between displaying the document or editing it as text."
   (interactive)
-  (if jka-compr-really-do-compress
+  ;; Handle compressed files, TRAMP files, files inside archives
+  (cond
+   (jka-compr-really-do-compress
+    (let ((file (expand-file-name
+		 (file-name-nondirectory
+		  (file-name-sans-extension buffer-file-name))
+		 doc-view-cache-directory)))
+      (write-region nil nil file)
+      (setq buffer-file-name file)))
+   ((or
+     (not (file-exists-p buffer-file-name))
+     (tramp-tramp-file-p buffer-file-name))
+    (let ((file (expand-file-name
+		 (file-name-nondirectory buffer-file-name)
+		 doc-view-cache-directory)))
+      (write-region nil nil file)
+      (setq buffer-file-name file))))
 
-      ;; This is a compressed file uncompressed by auto-compression-mode.
-      (when (y-or-n-p (concat "DocView: Cannot convert compressed file.  "
-			      "Save it uncompressed first? "))
-	(let ((file (read-file-name
-		     "File: "
-		     (file-name-directory buffer-file-name))))
-	  (write-region (point-min) (point-max) file)
-	  (kill-buffer nil)
-	  (find-file file)
-	  (doc-view-mode)))
+  (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
+			      doc-view-previous-major-mode
+			    major-mode)))
+    (kill-all-local-variables)
+    (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
 
-    ;; When opening a pdf/ps/dvi that's inside an archive (tar, zip, ...) the
-    ;; file buffer-file-name doesn't exist, so create the directory and save
-    ;; the file.
-    (when (not (file-exists-p (file-name-directory buffer-file-name)))
-      (dired-create-directory (file-name-directory buffer-file-name)))
-    (when (not (file-exists-p buffer-file-name))
-      (write-file buffer-file-name))
-
-    (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
-				doc-view-previous-major-mode
-			      major-mode)))
-      (kill-all-local-variables)
-      (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
-
-    (make-local-variable 'doc-view-current-files)
-    (make-local-variable 'doc-view-current-image)
-    (make-local-variable 'doc-view-current-page)
-    (make-local-variable 'doc-view-current-converter-process)
-    (make-local-variable 'doc-view-current-timer)
-    (make-local-variable 'doc-view-current-slice)
-    (make-local-variable 'doc-view-current-cache-dir)
-    (make-local-variable 'doc-view-current-info)
-    (make-local-variable 'doc-view-current-search-matches)
-    (set (make-local-variable 'doc-view-current-overlay)
-	 (make-overlay (point-min) (point-max) nil t))
-    (add-hook 'change-major-mode-hook
-	      (lambda () (delete-overlay doc-view-current-overlay))
-	      nil t)
-    (set (make-local-variable 'mode-line-position)
-	 '(" P" (:eval (number-to-string doc-view-current-page))
-	   "/" (:eval (number-to-string (length doc-view-current-files)))))
-    (set (make-local-variable 'cursor-type) nil)
-    (use-local-map doc-view-mode-map)
-    (set (make-local-variable 'after-revert-hook) 'doc-view-reconvert-doc)
-    (set (make-local-variable 'bookmark-make-cell-function)
-			      'doc-view-bookmark-make-cell)
-    (setq mode-name "DocView"
-	  buffer-read-only t
-	  major-mode 'doc-view-mode)
-    (doc-view-initiate-display)
-    (run-mode-hooks 'doc-view-mode-hook)))
+  (make-local-variable 'doc-view-current-files)
+  (make-local-variable 'doc-view-current-image)
+  (make-local-variable 'doc-view-current-page)
+  (make-local-variable 'doc-view-current-converter-process)
+  (make-local-variable 'doc-view-current-timer)
+  (make-local-variable 'doc-view-current-slice)
+  (make-local-variable 'doc-view-current-cache-dir)
+  (make-local-variable 'doc-view-current-info)
+  (make-local-variable 'doc-view-current-search-matches)
+  (set (make-local-variable 'doc-view-current-overlay)
+       (make-overlay (point-min) (point-max) nil t))
+  (add-hook 'change-major-mode-hook
+	    (lambda () (delete-overlay doc-view-current-overlay))
+	    nil t)
+  (set (make-local-variable 'mode-line-position)
+       '(" P" (:eval (number-to-string doc-view-current-page))
+	 "/" (:eval (number-to-string (length doc-view-current-files)))))
+  (set (make-local-variable 'cursor-type) nil)
+  (use-local-map doc-view-mode-map)
+  (set (make-local-variable 'after-revert-hook) 'doc-view-reconvert-doc)
+  (set (make-local-variable 'bookmark-make-cell-function)
+       'doc-view-bookmark-make-cell)
+  (setq mode-name "DocView"
+	buffer-read-only t
+	major-mode 'doc-view-mode)
+  (doc-view-initiate-display)
+  (run-mode-hooks 'doc-view-mode-hook))
 
 ;;;###autoload
 (define-minor-mode doc-view-minor-mode
