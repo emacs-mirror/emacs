@@ -882,7 +882,7 @@ initialize_sockets ()
 
   if (WSAStartup (MAKEWORD (2, 0), &wsaData))
     {
-      message (TRUE, "%s: error initializing WinSock2", progname);
+      message (TRUE, "%s: error initializing WinSock2\n", progname);
       exit (EXIT_FAILURE);
     }
 
@@ -939,7 +939,7 @@ get_server_config (server, authentication)
     }
   else
     {
-      message (TRUE, "%s: invalid configuration info", progname);
+      message (TRUE, "%s: invalid configuration info\n", progname);
       exit (EXIT_FAILURE);
     }
 
@@ -949,7 +949,7 @@ get_server_config (server, authentication)
 
   if (! fread (authentication, AUTH_KEY_LENGTH, 1, config))
     {
-      message (TRUE, "%s: cannot read authentication info", progname);
+      message (TRUE, "%s: cannot read authentication info\n", progname);
       exit (EXIT_FAILURE);
     }
 
@@ -1167,7 +1167,7 @@ set_local_socket ()
       strcpy (server.sun_path, socket_name);
     else
       {
-        message (TRUE, "%s: socket-name %s too long",
+        message (TRUE, "%s: socket-name %s too long\n",
                  progname, socket_name);
         fail ();
       }
@@ -1202,7 +1202,7 @@ set_local_socket ()
 		  strcpy (server.sun_path, socket_name);
 		else
 		  {
-		    message (TRUE, "%s: socket-name %s too long",
+		    message (TRUE, "%s: socket-name %s too long\n",
 			     progname, socket_name);
 		    exit (EXIT_FAILURE);
 		  }
@@ -1282,7 +1282,7 @@ set_socket ()
       if ((s != INVALID_SOCKET) || alternate_editor)
 	return s;
 
-      message (TRUE, "%s: error accessing server file \"%s\"",
+      message (TRUE, "%s: error accessing server file \"%s\"\n",
 	       progname, server_file);
       exit (EXIT_FAILURE);
     }
