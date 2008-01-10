@@ -966,6 +966,7 @@ It is highly recommended to fix it before writing to a file."
 
     (let ((codings (find-coding-systems-region from to))
 	  (coding-system nil)
+	  (tick (if (not (stringp from)) (buffer-modified-tick)))
 	  safe rejected unsafe)
       (if (eq (car codings) 'undecided)
 	  ;; Any coding system is ok.
@@ -1030,6 +1031,8 @@ It is highly recommended to fix it before writing to a file."
 %s specified by file contents.  Really save (else edit coding cookies \
 and try again)? " coding-system auto-cs))
 	      (error "Save aborted"))))
+      (when (and tick (/= tick (buffer-modified-tick)))
+	(error "Cancelled because the buffer was modified"))
       coding-system)))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
