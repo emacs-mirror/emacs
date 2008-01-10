@@ -1,3 +1,12 @@
+2008-01-10  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-buffer-file-name): New variable.
+	(doc-view-convert-current-doc, doc-view-search)
+	(doc-view-current-cache-dir, doc-view-initiate-display)
+	(doc-view-mode): Use it.
+	(doc-view-bookmark-make-cell): Use variable buffer-file-name
+	instead of function.
+
 2008-01-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-svn.el (vc-svn-registered): Return the correct value for
