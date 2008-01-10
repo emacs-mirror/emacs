@@ -50,13 +50,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
 * BUGS
 
-** schierlm@gmx.de, 25 Dec: Crash when buffer is edited while save-buffer asks for coding system
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00134.html
-
-** bojohan+news@dd.chalmers.se, 19 Nov: appointment display during isearch replaces buffer contents with history element.
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-01/msg00005.html
-(patch)
-
 ** eric@openbsd.org, 24 Nov: c-mode syntactic analysis regression in emacs-22.1
 http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00589.html
 
@@ -65,7 +58,7 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00460.html
 reproducible?
 
 ** nico@ngolde.de, 7 Jan: some code issues
-some unsafe code in pop.c
+some unsafe code in pop.c, etags.c
 http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00654.html
 
 * DOCUMENTATION
