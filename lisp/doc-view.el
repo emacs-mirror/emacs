@@ -135,7 +135,6 @@
 (require 'dired)
 (require 'image-mode)
 (require 'jka-compr)
-(require 'tramp) ;; would be better to make tramp-tramp-file-p autoloaded
 
 ;;;; Customization Options
 
@@ -247,6 +246,14 @@ has finished."
 
 (defvar doc-view-previous-major-mode nil
   "Only used internally.")
+
+(defvar doc-view-buffer-file-name nil
+  "Only used internally.
+The file name used for conversion.  Normally it's the same as
+`buffer-file-name', but for remote files, compressed files and
+files inside an archive it is a temporary copy of
+the (uncompressed, extracted) file residing in
+`doc-view-cache-directory'.")
 
 ;;;; DocView Keymaps
 
@@ -451,12 +458,12 @@ It's a subdirectory of `doc-view-cache-directory'."
     (setq doc-view-current-cache-dir
 	  (file-name-as-directory
 	   (expand-file-name
-            (let ((doc buffer-file-name))
-              (concat (file-name-nondirectory doc)
-                      "-"
-                      (with-temp-buffer
-                        (insert-file-contents-literally doc)
-                        (md5 (current-buffer)))))
+	    (concat (file-name-nondirectory buffer-file-name)
+		    "-"
+		    (let ((file doc-view-buffer-file-name))
+		      (with-temp-buffer
+			(insert-file-contents-literally file)
+			(md5 (current-buffer)))))
             doc-view-cache-directory)))))
 
 (defun doc-view-remove-if (predicate list)
@@ -621,7 +628,7 @@ Should be invoked when the cached images aren't up-to-date."
   (process-put doc-view-current-converter-process 'pdf-file pdf))
 
 (defun doc-view-convert-current-doc ()
-  "Convert `buffer-file-name' to a set of png files, one file per page.
+  "Convert `doc-view-buffer-file-name' to a set of png files, one file per page.
 Those files are saved in the directory given by the function
 `doc-view-current-cache-dir'."
   ;; Let stale files still display while we recompute the new ones, so only
@@ -633,12 +640,12 @@ Those files are saved in the directory given by the function
   (let ((png-file (expand-file-name "page-%d.png"
                                     (doc-view-current-cache-dir))))
     (make-directory (doc-view-current-cache-dir))
-    (if (not (string= (file-name-extension buffer-file-name) "dvi"))
+    (if (not (string= (file-name-extension doc-view-buffer-file-name) "dvi"))
 	;; Convert to PNG images.
-	(doc-view-pdf/ps->png buffer-file-name png-file)
+	(doc-view-pdf/ps->png doc-view-buffer-file-name png-file)
       ;; DVI files have to be converted to PDF before Ghostscript can process
       ;; it.
-      (doc-view-dvi->pdf buffer-file-name
+      (doc-view-dvi->pdf doc-view-buffer-file-name
 			 (expand-file-name "doc.pdf"
                                            doc-view-current-cache-dir)))))
 
@@ -848,15 +855,15 @@ If BACKWARD is non-nil, jump to the previous match."
 	;; We must convert to TXT first!
 	(if doc-view-current-converter-process
 	    (message "DocView: please wait till conversion finished.")
-	  (let ((ext (file-name-extension buffer-file-name)))
+	  (let ((ext (file-name-extension doc-view-buffer-file-name)))
 	    (cond
 	     ((string= ext "pdf")
 	      ;; Doc is a PDF, so convert it to TXT
-	      (doc-view-pdf->txt buffer-file-name txt))
+	      (doc-view-pdf->txt doc-view-buffer-file-name txt))
 	     ((string= ext "ps")
 	      ;; Doc is a PS, so convert it to PDF (which will be converted to
 	      ;; TXT thereafter).
-	      (doc-view-ps->pdf buffer-file-name
+	      (doc-view-ps->pdf doc-view-buffer-file-name
 				(expand-file-name "doc.pdf"
 						  (doc-view-current-cache-dir))))
 	     ((string= ext "dvi")
@@ -901,7 +908,7 @@ If BACKWARD is non-nil, jump to the previous match."
 
 (defun doc-view-initiate-display ()
   ;; Switch to image display if possible
-  (if (doc-view-mode-p (intern (file-name-extension buffer-file-name)))
+  (if (doc-view-mode-p (intern (file-name-extension doc-view-buffer-file-name)))
       (progn
 	(doc-view-buffer-message)
 	(setq doc-view-current-page (or doc-view-current-page 1))
@@ -919,7 +926,7 @@ If BACKWARD is non-nil, jump to the previous match."
      "%s"
      (substitute-command-keys
       (concat "No image (png) support available or some conversion utility for "
-	      (file-name-extension buffer-file-name)" files is missing.  "
+	      (file-name-extension doc-view-buffer-file-name)" files is missing.  "
 	      "Type \\[doc-view-toggle-display] to switch to an editing mode.")))))
 
 (defvar bookmark-make-cell-function)
@@ -930,29 +937,30 @@ If BACKWARD is non-nil, jump to the previous match."
 You can use \\<doc-view-mode-map>\\[doc-view-toggle-display] to
 toggle between displaying the document or editing it as text."
   (interactive)
-  ;; Handle compressed files, TRAMP files, files inside archives
-  (cond
-   (jka-compr-really-do-compress
-    (let ((file (expand-file-name
-		 (file-name-nondirectory
-		  (file-name-sans-extension buffer-file-name))
-		 doc-view-cache-directory)))
-      (write-region nil nil file)
-      (setq buffer-file-name file)))
-   ((or
-     (not (file-exists-p buffer-file-name))
-     (tramp-tramp-file-p buffer-file-name))
-    (let ((file (expand-file-name
-		 (file-name-nondirectory buffer-file-name)
-		 doc-view-cache-directory)))
-      (write-region nil nil file)
-      (setq buffer-file-name file))))
 
   (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
 			      doc-view-previous-major-mode
 			    major-mode)))
     (kill-all-local-variables)
     (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
+
+  ;; Handle compressed files, remote files, files inside archives
+  (set (make-local-variable 'doc-view-buffer-file-name)
+       (cond
+	(jka-compr-really-do-compress
+	 (expand-file-name
+	  (file-name-nondirectory
+	   (file-name-sans-extension buffer-file-name))
+	  doc-view-cache-directory))
+	((or
+	  (not (file-exists-p buffer-file-name))
+	  (file-remote-p buffer-file-name))
+	 (expand-file-name
+	  (file-name-nondirectory buffer-file-name)
+	  doc-view-cache-directory))
+	(t buffer-file-name)))
+  (when (not (string= doc-view-buffer-file-name buffer-file-name))
+    (write-region nil nil doc-view-buffer-file-name))
 
   (make-local-variable 'doc-view-current-files)
   (make-local-variable 'doc-view-current-image)
@@ -1012,7 +1020,7 @@ See the command `doc-view-mode' for more information on this mode."
 
 (defun doc-view-bookmark-make-cell (annotation &rest args)
   (let ((the-record
-         `((filename . ,(buffer-file-name))
+         `((filename . ,buffer-file-name)
            (page     . ,doc-view-current-page)
            (handler  . doc-view-bookmark-jump))))
 
