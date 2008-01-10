@@ -4718,6 +4718,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	{
 	  int old_timers_run = timers_run;
 	  struct buffer *old_buffer = current_buffer;
+	  Lisp_Object old_window = selected_window;
 	  int leave = 0;
 
 	  if (detect_input_pending_run_timers (do_display))
@@ -4731,7 +4732,8 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	     an alike.  Make read_key_sequence aware of that.  */
 	  if (timers_run != old_timers_run
 	      && waiting_for_user_input_p == -1
-	      && old_buffer != current_buffer)
+	      && (old_buffer != current_buffer
+	      || !EQ (old_window, selected_window)))
 	    record_asynch_buffer_change ();
 
 	  if (leave)
