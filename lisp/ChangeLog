@@ -1,5 +1,7 @@
 2008-01-10  Nick Roberts  <nickrob@snap.net.nz>
 
+	* comint.el (comint-insert-input): Set point first.
+
 	* progmodes/gdb-ui.el (gdb-dequeue-input): Make doubly sure
 	session doesn't hang because gdb-pending-triggers is non-nil.
 	(gdb-frame-handler): Use buffer-file-name instead of 
