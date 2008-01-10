@@ -1,3 +1,8 @@
+2008-01-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pop.c (pop_stat, pop_last): Check validity of string-to-integer
+	conversion.  Mistakes spotted by Nico Golde.
+
 2008-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* emacsclient.c: Add missing final newlines to message calls.
