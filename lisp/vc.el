@@ -2552,8 +2552,10 @@ With prefix arg READ-SWITCHES, specify a value to override
     (suppress-keymap map)
     ;; Marking.
     (define-key map "m" 'vc-status-mark-file)
+    (define-key map "M" 'vc-status-mark-all-files)
     (define-key map "u" 'vc-status-unmark-file)
     (define-key map "\C-?" 'vc-status-unmark-file-up)
+    (define-key map "\M-\C-?" 'vc-status-unmark-all-files)
     ;; Movement.
     (define-key map "n" 'vc-status-next-line)
     (define-key map " " 'vc-status-next-line)
@@ -2627,6 +2629,16 @@ If a prefix argument is given, move by that many lines."
     (ewoc-invalidate vc-status crt)
     (vc-status-next-line 1)))
 
+(defun vc-status-mark-all-files ()
+  "Mark all files."
+  (interactive)
+   (ewoc-map
+    (lambda (file)
+      (unless (vc-status-fileinfo->marked file)
+	(setf (vc-status-fileinfo->marked file) t)
+	t))
+    vc-status))
+
 (defun vc-status-unmark-file ()
   "Unmark the current file and move to the next line."
   (interactive)
@@ -2647,6 +2659,16 @@ If a prefix argument is given, move by that many lines."
     (setf (vc-status-fileinfo->marked file) nil)
     (ewoc-invalidate vc-status prev)
     (vc-status-move-to-goal-column)))
+
+(defun vc-status-unmark-all-files ()
+  "Unmark all files."
+  (interactive)
+   (ewoc-map
+    (lambda (file)
+      (when (vc-status-fileinfo->marked file)
+	(setf (vc-status-fileinfo->marked file) nil)
+	t))
+    vc-status))
 
 (defun vc-status-register ()
   "Register the marked files, or the current file if no marks."

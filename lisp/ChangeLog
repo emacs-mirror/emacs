@@ -1,9 +1,15 @@
+2008-01-10  Tom Tromey  <tromey@redhat.com>
+
+	* vc.el (vc-status-unmark-all-files): New function.
+	(vc-status-unmark-all-files): Likewise.
+	(vc-status-mode-map): Add bindings.
+
 2008-01-10  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* ediff*.el: uncommented declare-function.
-	
+
 	* viper*.el: uncommented declare-function.
-	
+
 2008-01-09  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-mode): Support tramp, compressed files and
