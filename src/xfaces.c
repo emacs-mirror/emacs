@@ -4540,6 +4540,7 @@ FRAME 0 means change the face on all frames, and change the default
 
 #ifdef USE_FONT_BACKEND
 	  if (enable_font_backend
+	      && FRAME_WINDOW_P (XFRAME (frame))
 	      && !UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	    {
 	      int fontset;
