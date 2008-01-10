@@ -1,3 +1,10 @@
+2008-01-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Article Keymap): Add
+	gnus-article-wide-reply-with-original; fix descriptions of
+	gnus-article-reply-with-original and
+	gnus-article-followup-with-original.
+
 2008-01-09  Glenn Morris  <rgm@gnu.org>
 
 	* nxml-mode.texi: Add @copying section.

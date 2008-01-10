@@ -1,3 +1,39 @@
+2008-01-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-read-summary-keys): Work for `C-h' on
+	XEmacs.
+	(gnus-article-describe-key, gnus-article-describe-key-briefly): Protect
+	against non-character events.
+
+	* lpath.el: Fbind map-keymap for Emacs 21.
+
+2008-01-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-group.el (gnus-group-read-ephemeral-gmane-group-url): New
+	command.
+	(gnus-group-read-ephemeral-gmane-group): Use optional argument RANGE
+	instead of END.  Change name of the temp file.
+	(gnus-group-gmane-group-download-format): Add doc string.  Make it
+	customizable.
+
+2008-01-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-send-map): New keymap for `S' prefix keys;
+	bind `S W' to gnus-article-wide-reply-with-original; set default
+	binding to gnus-article-read-summary-send-keys.
+	(gnus-article-read-summary-keys): Fix the order of keys; display
+	continuation keys correctly in the echo area; describe bindings
+	correctly when keys end with `C-h'.
+	(gnus-article-read-summary-send-keys): New function.
+	(gnus-article-describe-key, gnus-article-describe-key-briefly): Work
+	for gnus-article-read-summary-send-keys; display continuation keys
+	correctly in the echo area.
+	(gnus-article-reply-with-original): Ignore prefix argument.
+	(gnus-article-wide-reply-with-original): New function.
+
+	* lpath.el: Fbind character-to-event and set-keymap-default-binding for
+	Emacs 21.
+
 2008-01-08  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-bookmark.el (gnus-bookmark-mouse-available-p): Don't test for

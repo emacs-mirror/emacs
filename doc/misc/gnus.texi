@@ -11900,17 +11900,22 @@ Go to the previous button, if any (@code{gnus-article-prev-button}).
 @kindex R (Article)
 @findex gnus-article-reply-with-original
 Send a reply to the current article and yank the current article
-(@code{gnus-article-reply-with-original}).  If given a prefix, make a
-wide reply.  If the region is active, only yank the text in the
-region.
+(@code{gnus-article-reply-with-original}).  If the region is active,
+only yank the text in the region.
+
+@item S W
+@kindex S W (Article)
+@findex gnus-article-wide-reply-with-original
+Send a wide reply to the current article and yank the current article
+(@code{gnus-article-wide-reply-with-original}).  If the region is
+active, only yank the text in the region.
 
 @item F
 @kindex F (Article)
 @findex gnus-article-followup-with-original
 Send a followup to the current article and yank the current article
-(@code{gnus-article-followup-with-original}).  If given a prefix, make
-a wide reply.  If the region is active, only yank the text in the
-region.
+(@code{gnus-article-followup-with-original}).  If the region is active,
+only yank the text in the region.
 
 
 @end table
