@@ -1,3 +1,8 @@
+2008-01-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c (wait_reading_process_output): Check for window
+	changes caused by timers.
+
 2008-01-09  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* coding.c (detect_coding_iso2022): New arg
