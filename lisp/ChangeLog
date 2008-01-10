@@ -14,8 +14,7 @@
 
 2008-01-10  Tassilo Horn  <tassilo@member.fsf.org>
 
-	* doc-view.el (tramp): Require tramp because we use
-	tramp-tramp-file-p.
+	* doc-view.el (tramp): Require tramp because we use tramp-tramp-file-p.
 
 2008-01-10  Tom Tromey  <tromey@redhat.com>
 
@@ -25,9 +24,9 @@
 
 2008-01-10  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff*.el: uncommented declare-function.
+	* ediff*.el: Uncomment declare-function.
 
-	* viper*.el: uncommented declare-function.
+	* viper*.el: Uncomment declare-function.
 
 2008-01-09  Tassilo Horn  <tassilo@member.fsf.org>
 
@@ -36,7 +35,7 @@
 
 2008-01-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* testmodes/sgml-mode.el (sgml-tag-syntax-table):  Initialize this
+	* testmodes/sgml-mode.el (sgml-tag-syntax-table): Initialize this
 	constant with a computation on sgml-specials rather than a literal
 	list.  Without this change the syntax table is generated
 	incorrectly, and the mode will think it's in a comment following
@@ -54,24 +53,25 @@
 
 2008-01-09  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff*.el: commented out declare-function. "make bootstrap"
-	stops with an error and emacs does not compile with those things in.
+	* ediff*.el: Comment out declare-function.  "make bootstrap"
+	stops with an error and Emacs does not compile with those things in.
 	Besides, declare-function is not defined in XEmacs.
 
-	* ediff-util (eqiff-quit): autoraise minibuffer.
+	* ediff-util (eqiff-quit): Autoraise minibuffer.
 
-	* ediff-diff (ediff-convert-fine-diffs-to-overlays): make it a defin
+	* ediff-diff (ediff-convert-fine-diffs-to-overlays): Make it a defun.
 
-	* viper*.el: commented out declare-function -- not defined in XEmacs.
+	* viper*.el: Comment out declare-function -- not defined in XEmacs.
 
-	* viper-ex.el (viper-info-on-file): take care of indiret buffers.
+	* viper-ex.el (viper-info-on-file): Take care of indirect buffers.
 
-	* viper.el (viper-set-hooks, set-cursor-color): set viper-vi-state-cursor-color.
+	* viper.el (viper-set-hooks, set-cursor-color):
+	Set viper-vi-state-cursor-color.
 
 2008-01-09  Tom Tromey  <tromey@redhat.com>
 
-	* vc.el (vc-status-headers): Rename from
-	vc-status-insert-headers.  Just return header.
+	* vc.el (vc-status-headers): Rename from vc-status-insert-headers.
+	Just return header.
 	(vc-status-move-to-goal-column): New function.
 	(vc-status-mode-map): Define more keys.
 	(vc-status-mode): Use vc-status-refresh.  Now 'special.
@@ -100,7 +100,7 @@
 
 2008-01-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.el: Some face attributes (like :strike-through) was not
+	* ps-print.el: Some face attributes (like :strike-through) were not
 	being recognised.  Reported by Leo <sdl.web@gmail.com>.
 	(ps-print-version): New version 6.8.2.
 	(ps-face-strikout-p, ps-face-overline-p, ps-face-box-p): New funs.
@@ -7246,18 +7246,6 @@
 
 	* net/browse-url.el (browse-url-encode-url): Use copy-sequence.
 	Reported by Jan Dj,Ad(Brv <jan.h.d@swipnet.se>.
-
-2007-09-10  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* progmodes/python.el: Merge changes from Dave Love's v2007-Sep-10.
-	(python-font-lock-keywords): Update to the 2.5 version of the language.
-	(python-quote-syntax): Let-bind font-lock-syntactic-keywords to nil.
-	(python-backspace): Only behave funny in code.
-	(python-compilation-regexp-alist): Add PDB stack trace regexp.
-	(inferior-python-mode): Add PDB prompt regexp.
-	(python-fill-paragraph): Refine the fenced-string regexp.
-	(python-find-imports): Handle imports spanning several lines.
-	(python-mode): Add `class' to hideshow support.
 
 2007-09-10  Dave Love  <fx@gnu.org>
 
