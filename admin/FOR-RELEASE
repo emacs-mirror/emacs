@@ -57,10 +57,6 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00589.html
 http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00460.html
 reproducible?
 
-** nico@ngolde.de, 7 Jan: some code issues
-some unsafe code in pop.c, etags.c
-http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00654.html
-
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
