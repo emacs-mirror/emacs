@@ -1,7 +1,12 @@
-2008-01-09  Wilson Snyder <wsnyder@wsnyder.org>
+2008-01-10  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/mule-cmds.el (select-safe-coding-system):
+	When a buffer is modified, cancel the writing.
+
+2008-01-09  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el (verilog-booleanp): New function for
-	backward compatibility. Replace all uses of booleanp with
+	backward compatibility.  Replace all uses of booleanp with
 	verilog-booleanp.
 
 2008-01-09  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -1641,7 +1646,7 @@
 
 2007-09-05  Jason Rumney  <jasonr@gnu.org>
 
-	* frame.el (focus-follows-mouse): Doc-fix. Change default on w32.
+	* frame.el (focus-follows-mouse): Doc-fix.  Change default on w32.
 
 2007-09-02  Richard Stallman  <rms@gnu.org>
 
@@ -3536,7 +3541,7 @@
 2007-04-15  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-field-list): Use functionp.
-	(bibtex-make-field): Check that INIT is a string. Use functionp.
+	(bibtex-make-field): Check that INIT is a string.  Use functionp.
 
 2007-04-14  Glenn Morris  <rgm@gnu.org>
 
@@ -4500,7 +4505,7 @@
 	* progmodes/idlw-help.el (idlwave-do-context-help1): Don't visit
 	special help topics for keywords.
 	(idlwave-help-assistant-command): Include ".exe" for ms-dos
-	etc. Assistant command.
+	etc.  Assistant command.
 
 2007-03-08  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -5419,7 +5424,7 @@
 	(newsticker--decode-iso8601-date): Bugfix for datestrings without
 	days.
 	(newsticker--buffer-do-insert-text): Fix.
-	(newsticker--buffer-insert-enclosure): Fix. length might be missing.
+	(newsticker--buffer-insert-enclosure): Fix.  Length might be missing.
 	(newsticker--buffer-make-item-completely-visible):
 	`switch-to-buffer' not necessary.
 
@@ -8651,7 +8656,7 @@
 	After 5.3, 5.4:
 	(cperl-facemenu-add-face-function): Add docs, fix U<>.
 	Copyright message updated.
-	(cperl-init-faces): Work around a bug in `font-lock'. May slow
+	(cperl-init-faces): Work around a bug in `font-lock'.  May slow
 			facification down a bit.
 		Misprint for my|our|local for old `font-lock'
 			"our" was not fontified same as "my|local".
@@ -9167,7 +9172,7 @@
 
 2006-09-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* progmodes/ebnf2ps.el: Doc fix. Implement arrow spacing and scaling.
+	* progmodes/ebnf2ps.el: Doc fix.  Implement arrow spacing and scaling.
 	(ebnf-version): New version 4.3.
 	(ebnf-arrow-extra-width, ebnf-arrow-scale): New options.
 	(ebnf-prologue): Adjust PostScript programming.
