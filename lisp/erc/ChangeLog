@@ -3,6 +3,21 @@
 	* erc-ibuffer.el (erc-channel-modes):
 	Pass mode-name through format-mode-line
 
+2007-12-16  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc-services.el (erc-nickserv-alist): Removed autodetect regexp,
+	added identified regexp for OFTC.
+	(erc-nickserv-identification-autodetect): Make sure success-regex
+	is non-nil.
+	(erc-nickserv-identify-autodetect): Make sure identify-regex is
+	non-nil.  Doc fix.
+
+2007-12-13  Diane Murray  <disumu@x3y2z1.net>
+
+	* erc-backend.el (PRIVMSG, QUIT, TOPIC, WALLOPS, 376, 004, 221)
+	(312, 315, 319, 330, 331, 333, 367, 368, 391, 405, 406, 412)
+	(421, 432, 433, 437, 442, 461, 474, 477, 482, 431): Doc fix.
+
 2007-12-09  Michael Olson  <mwolson@gnu.org>
 
 	* erc-services.el (erc-nickserv-alist): Fix regexps for GRnet.

@@ -227,6 +227,8 @@ Example of use:
      "IDENTIFY" nil nil nil)
     (freenode
      "NickServ!NickServ@services."
+     ;; freenode also accepts a password at login, see the `erc'
+     ;; :password argument.
      "/msg\\s-NickServ\\s-IDENTIFY\\s-<password>"
      "NickServ"
      "IDENTIFY" nil nil
@@ -249,9 +251,11 @@ Example of use:
      "IDENTIFY" nil "SQUERY" nil)
     (OFTC
      "NickServ!services@services.oftc.net"
-     "type\\s-/msg\\s-NickServ\\s-IDENTIFY\\s-password."
+     ;; OFTC's NickServ doesn't ask you to identify anymore.
+     nil
      "NickServ"
-     "IDENTIFY" nil nil nil)
+     "IDENTIFY" nil nil
+     "You\\s-are\\s-successfully\\s-identified\\s-as\\s-")
     (QuakeNet
      nil nil
      "Q@CServe.quakenet.org"
@@ -334,15 +338,15 @@ If this is the case, run `erc-nickserv-identified-hook'."
     ;; continue only if we're sure it's the real nickserv for this network
     ;; and it's told us we've successfully identified
     (when (and sender (equal sspec sender)
+	       success-regex
 	       (string-match success-regex msg))
       (erc-log "NickServ IDENTIFY success notification detected")
       (run-hook-with-args 'erc-nickserv-identified-hook network nick)
       nil)))
 
 (defun erc-nickserv-identify-autodetect (proc parsed)
-  "Check for a NickServ identify request everytime a notice is received.
-Make sure it is the real NickServ for this network and that it has
-specifically asked the user to IDENTIFY.
+  "Identify to NickServ when an identify request is received.
+Make sure it is the real NickServ for this network.
 If `erc-prompt-for-nickserv-password' is non-nil, prompt the user for the
 password for this nickname, otherwise try to send it automatically."
   (unless (and (null erc-nickserv-passwords)
@@ -356,6 +360,7 @@ password for this nickname, otherwise try to send it automatically."
       ;; continue only if we're sure it's the real nickserv for this network
       ;; and it's asked us to identify
       (when (and sender (equal sspec sender)
+		 identify-regex
 		 (string-match identify-regex msg))
 	(erc-log "NickServ IDENTIFY request detected")
 	(erc-nickserv-call-identify-function nick)
