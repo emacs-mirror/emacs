@@ -421,11 +421,6 @@ checking/manipulating elements directly, use the new functions
 `byte-compile-warning-enabled-p', `byte-compile-disable-warning', and
 `byte-compile-enable-warning.'
 
-** shell.el no longer defines the aliases `dirtrack-toggle' and
-`dirtrack-mode' for `shell-dirtrack-mode'.  These names were removed
-because they clash with commands provided by dirtrack.el.  Use
-`shell-dirtrack-mode' instead.
-
 
 * Lisp Changes in Emacs 23.1
 
