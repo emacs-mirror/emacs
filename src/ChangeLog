@@ -1,3 +1,8 @@
+2008-01-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c (wait_reading_process_output): Check for window
+	changes caused by timers.
+
 2008-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.c (main): Set copyright year to 2008.
