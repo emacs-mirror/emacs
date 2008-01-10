@@ -1,3 +1,8 @@
+2008-01-10  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (tramp): Require tramp because we use
+	tramp-tramp-file-p.
+
 2008-01-10  Tom Tromey  <tromey@redhat.com>
 
 	* vc.el (vc-status-unmark-all-files): New function.
