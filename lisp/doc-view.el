@@ -135,6 +135,7 @@
 (require 'dired)
 (require 'image-mode)
 (require 'jka-compr)
+(require 'tramp) ;; would be better to make tramp-tramp-file-p autoloaded
 
 ;;;; Customization Options
 
