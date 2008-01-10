@@ -1,3 +1,12 @@
+2008-01-10  Martin Rudalics  <rudalics@gmx.at>
+
+	* progmodes/ada-mode.el (ada-set-syntax-table-properties):
+	Bind buffer-file-name and buffer-file-truename.
+
+	* fringe.el (fringe-mode-explicit): New variable.
+	(set-fringe-mode): Don't alter default-frame-alist when just
+	loading this file.
+
 2008-01-10  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-buffer-file-name): New variable.
