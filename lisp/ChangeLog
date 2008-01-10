@@ -1,3 +1,10 @@
+2008-01-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-dequeue-input): Make doubly sure
+	session doesn't hang because gdb-pending-triggers is non-nil.
+	(gdb-frame-handler): Use buffer-file-name instead of 
+	buffer-name in case of duplicate file names.
+
 2008-01-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/verilog-mode.el (verilog-mode-map): Don't bind C-M-a,
