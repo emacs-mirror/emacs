@@ -930,7 +930,8 @@ are treated as numbers instead of gnatprep comments."
 	(buffer-undo-list t)
 	(inhibit-read-only t)
 	(inhibit-point-motion-hooks t)
-	(inhibit-modification-hooks t))
+	(inhibit-modification-hooks t)
+	buffer-file-name buffer-file-truename)
     (remove-text-properties (point-min) (point-max) '(syntax-table nil))
     (goto-char (point-min))
     (while (re-search-forward
