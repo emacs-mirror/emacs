@@ -1,3 +1,15 @@
+2008-01-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (verilog-mode-map): Don't bind C-M-a,
+	C-M-e and C-M-h for emacs, they work by default.
+	(verilog-emacs-features): Remove.
+	(verilog-setup-dual-comments, verilog-populate-syntax-table):
+	Remove.  Move syntax table initialization ...
+	(verilog-mode-syntax-table): ... here.
+	(verilog-mode): Don't initialize the syntax table here.
+	(verilog-mark-defun): Only do something useful for XEmacs, emacs
+	does not need it.
+
 2008-01-10  Glenn Morris  <rgm@gnu.org>
 
 	* shell.el (shell-dirtrack-verbose, shell-mode)

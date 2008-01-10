@@ -933,7 +933,6 @@ If set will become buffer local.")
     (define-key map "\M-\r"    `electric-verilog-terminate-and-indent)
     (define-key map "\M-\t"    'verilog-complete-word)
     (define-key map "\M-?"     'verilog-show-completions)
-    (define-key map [(meta control h)] 'verilog-mark-defun)
     (define-key map "\C-c\`"   'verilog-lint-off)
     (define-key map "\C-c\*"   'verilog-delete-auto-star-implicit)
     (define-key map "\C-c\C-r" 'verilog-label-be)
@@ -943,8 +942,10 @@ If set will become buffer local.")
     (define-key map "\M-*"     'verilog-star-comment)
     (define-key map "\C-c\C-c" 'verilog-comment-region)
     (define-key map "\C-c\C-u" 'verilog-uncomment-region)
-    (define-key map "\M-\C-a"  'verilog-beg-of-defun)
-    (define-key map "\M-\C-e"  'verilog-end-of-defun)
+    (when (featurep 'xemacs)
+      (define-key map [(meta control h)] 'verilog-mark-defun)
+      (define-key map "\M-\C-a"  'verilog-beg-of-defun)
+      (define-key map "\M-\C-e"  'verilog-end-of-defun))
     (define-key map "\C-c\C-d" 'verilog-goto-defun)
     (define-key map "\C-c\C-k" 'verilog-delete-auto)
     (define-key map "\C-c\C-a" 'verilog-auto)
@@ -957,7 +958,7 @@ If set will become buffer local.")
 
 ;; menus
 (defvar verilog-xemacs-menu
-  '("Verilog"
+  `("Verilog"
     ("Choose Compilation Action"
      ["None"
       (progn
@@ -991,9 +992,15 @@ If set will become buffer local.")
       :selected (equal verilog-tool `verilog-compiler)]
      )
     ("Move"
-     ["Beginning of function"		verilog-beg-of-defun t]
-     ["End of function"			verilog-end-of-defun t]
-     ["Mark function"			verilog-mark-defun t]
+     ,(if (featurep 'xemacs)
+	  (progn 
+	    ["Beginning of function"		verilog-beg-of-defun t]
+	    ["End of function"			verilog-end-of-defun t]
+	    ["Mark function"			verilog-mark-defun t])
+	["Beginning of function"		beginning-of-defun t]
+	["End of function"			end-of-defun t]
+	["Mark function"			mark-defun t])
+	
      ["Goto function/module"		verilog-goto-defun t]
      ["Move to beginning of block"	electric-verilog-backward-sexp t]
      ["Move to end of block"		electric-verilog-forward-sexp t]
@@ -1714,151 +1721,37 @@ find the errors."
  )
  "List of Verilog keywords.")
 
-
-(defconst verilog-emacs-features
-  ;; Documentation at the bottom
-  (let ((major (and (boundp 'emacs-major-version)
-		    emacs-major-version))
-	(minor (and (boundp 'emacs-minor-version)
-		    emacs-minor-version))
-	flavor comments flock-syntax)
-    ;; figure out version numbers if not already discovered
-    (and (or (not major) (not minor))
-	 (string-match "\\([0-9]+\\).\\([0-9]+\\)" emacs-version)
-	 (setq major (string-to-number (substring emacs-version
-						  (match-beginning 1)
-						  (match-end 1)))
-	       minor (string-to-number (substring emacs-version
-						  (match-beginning 2)
-						  (match-end 2)))))
-    (if (not (and major minor))
-	(error "Cannot figure out the major and minor version numbers"))
-    ;; calculate the major version
-    (cond
-     ((= major 4)  (setq major 'v18))	;Epoch 4
-     ((= major 18) (setq major 'v18))	;Emacs 18
-     ((= major 19) (setq major 'v19	;Emacs 19
-			 flavor (if (or (string-match "Lucid" emacs-version)
-					(string-match "XEmacs" emacs-version))
-				    'XEmacs 'FSF)))
-     ((> major 19) (setq major 'v20
-			 flavor (if (or (string-match "Lucid" emacs-version)
-					(string-match "XEmacs" emacs-version))
-				    'XEmacs 'FSF)))
-     ;; I don't know
-     (t (error "Cannot recognize major version number: %s" major)))
-    ;; XEmacs 19 uses 8-bit modify-syntax-entry flags, as do all
-    ;; patched Emacs 19, Emacs 18, Epoch 4's.  Only Emacs 19 uses a
-    ;; 1-bit flag.  Let's be as smart as we can about figuring this
-    ;; out.
-    (if (or (eq major 'v20) (eq major 'v19))
-	(let ((table (copy-syntax-table)))
-	  (modify-syntax-entry ?a ". 12345678" table)
-	  (cond
-	   ;; XEmacs pre 20 and Emacs pre 19.30 use vectors for syntax tables.
-	   ((vectorp table)
-	    (if (= (logand (lsh (aref table ?a) -16) 255) 255)
-		(setq comments '8-bit)
-	      (setq comments '1-bit)))
-	   ;; XEmacs 20 is known to be 8-bit
-	   ((eq flavor 'XEmacs) (setq comments '8-bit))
-	   ;; Emacs 19.30 and beyond are known to be 1-bit
-	   ((eq flavor 'FSF) (setq comments '1-bit))
-	   ;; Don't know what this is
-	   (t (error "Couldn't figure out syntax table format"))))
-      ;; Emacs 18 has no support for dual comments
-      (setq comments 'no-dual-comments))
-    ;; determine whether to use old or new font lock syntax
-    ;; We can assume 8-bit syntax table emacsen support new syntax, otherwise
-    ;; look for version > 19.30
-    (setq flock-syntax
-        (if (or (equal comments '8-bit)
-                (equal major 'v20)
-                (and (equal major 'v19) (> minor 30)))
-            'flock-syntax-after-1930
-          'flock-syntax-before-1930))
-    ;; lets do some minimal sanity checking.
-    (if (or
-	 ;; Emacs before 19.6 had bugs
-	 (and (eq major 'v19) (eq flavor 'XEmacs) (< minor 6))
-	 ;; Emacs 19 before 19.21 has known bugs
-	 (and (eq major 'v19) (eq flavor 'FSF) (< minor 21)))
-	(with-output-to-temp-buffer "*verilog-mode warnings*"
-	  (print (format
-  "The version of Emacs that you are running, %s,
-has known bugs in its syntax parsing routines which will affect the
-performance of verilog-mode. You should strongly consider upgrading to the
-latest available version.  verilog-mode may continue to work, after a
-fashion, but strange indentation errors could be encountered."
-		     emacs-version))))
-    ;; Emacs 18, with no patch is not too good
-    (if (and (eq major 'v18) (eq comments 'no-dual-comments))
-	(with-output-to-temp-buffer "*verilog-mode warnings*"
-	  (print (format
-  "The version of Emacs 18 you are running, %s,
-has known deficiencies in its ability to handle the dual verilog
-\(and C++) comments, (e.g. the // and /* */ comments). This will
-not be much of a problem for you if you only use the /* */ comments,
-but you really should strongly consider upgrading to one of the latest
-Emacs 19's.  In Emacs 18, you may also experience performance degradations.
-Emacs 19 has some new built-in routines which will speed things up for you.
-Because of these inherent problems, verilog-mode is not supported
-on emacs-18."
-			    emacs-version))))
-    ;; Emacs 18 with the syntax patches are no longer supported
-    (if (and (eq major 'v18) (not (eq comments 'no-dual-comments)))
-	(with-output-to-temp-buffer "*verilog-mode warnings*"
-	  (print (format
-  "You are running a syntax patched Emacs 18 variant.  While this should
-work for you, you may want to consider upgrading to Emacs 19.
-The syntax patches are no longer supported either for verilog-mode."))))
-    (list major comments flock-syntax))
-  "A list of features extant in the Emacs you are using.
-There are many flavors of Emacs out there, each with different
-features supporting those needed by `verilog-mode'.  Here's the current
-supported list, along with the values for this variable:
-
- Vanilla Emacs 18/Epoch 4:   (v18 no-dual-comments flock-syntax-before-1930)
- Emacs 18/Epoch 4 (patch2):  (v18 8-bit flock-syntax-after-1930)
- XEmacs (formerly Lucid) 19: (v19 8-bit flock-syntax-after-1930)
- XEmacs 20:                  (v20 8-bit flock-syntax-after-1930)
- Emacs 19.1-19.30:           (v19 8-bit flock-syntax-before-1930)
- Emacs 19.31-19.xx:          (v19 8-bit flock-syntax-after-1930)
- Emacs20        :            (v20 1-bit flock-syntax-after-1930).")
-
 (defconst verilog-comment-start-regexp "//\\|/\\*"
   "Dual comment value for `comment-start-regexp'.")
 
-(defun verilog-populate-syntax-table (table)
-  "Populate the syntax TABLE."
-  (modify-syntax-entry ?\\ "\\" table)
-  (modify-syntax-entry ?+ "." table)
-  (modify-syntax-entry ?- "." table)
-  (modify-syntax-entry ?= "." table)
-  (modify-syntax-entry ?% "." table)
-  (modify-syntax-entry ?< "." table)
-  (modify-syntax-entry ?> "." table)
-  (modify-syntax-entry ?& "." table)
-  (modify-syntax-entry ?| "." table)
-  (modify-syntax-entry ?` "w" table)
-  (modify-syntax-entry ?_ "w" table)
-  (modify-syntax-entry ?\' "." table))
+(defvar verilog-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    ;; Populate the syntax TABLE.
+    (modify-syntax-entry ?\\ "\\" table)
+    (modify-syntax-entry ?+ "." table)
+    (modify-syntax-entry ?- "." table)
+    (modify-syntax-entry ?= "." table)
+    (modify-syntax-entry ?% "." table)
+    (modify-syntax-entry ?< "." table)
+    (modify-syntax-entry ?> "." table)
+    (modify-syntax-entry ?& "." table)
+    (modify-syntax-entry ?| "." table)
+    (modify-syntax-entry ?` "w" table)
+    (modify-syntax-entry ?_ "w" table)
+    (modify-syntax-entry ?\' "." table)
 
-(defun verilog-setup-dual-comments (table)
-  "Set up TABLE to handle block and line style comments."
-  (cond
-   ((memq '8-bit verilog-emacs-features)
-    ;; XEmacs (formerly Lucid) has the best implementation
-    (modify-syntax-entry ?/  ". 1456" table)
-    (modify-syntax-entry ?*  ". 23"   table)
-    (modify-syntax-entry ?\n "> b"    table))
-   ((memq '1-bit verilog-emacs-features)
-    ;; Emacs 19 does things differently, but we can work with it
-    (modify-syntax-entry ?/  ". 124b" table)
-    (modify-syntax-entry ?*  ". 23"   table)
-    (modify-syntax-entry ?\n "> b"    table))))
-
-(defvar verilog-mode-syntax-table nil
+    ;; Set up TABLE to handle block and line style comments.
+    (if (featurep 'xemacs)
+	(progn
+	  ;; XEmacs (formerly Lucid) has the best implementation
+	  (modify-syntax-entry ?/  ". 1456" table)
+	  (modify-syntax-entry ?*  ". 23"   table)
+	  (modify-syntax-entry ?\n "> b"    table))
+      ;; Emacs 19 does things differently, but we can work with it
+      (modify-syntax-entry ?/  ". 124b" table)
+      (modify-syntax-entry ?*  ". 23"   table)
+      (modify-syntax-entry ?\n "> b"    table))
+    table)
   "Syntax table used in `verilog-mode' buffers.")
 
 (defvar verilog-font-lock-keywords nil
@@ -2422,14 +2315,10 @@ Key bindings specific to `verilog-mode-map' are:
   (setq major-mode 'verilog-mode)
   (setq mode-name "Verilog")
   (setq local-abbrev-table verilog-mode-abbrev-table)
-  (setq verilog-mode-syntax-table (make-syntax-table))
-  (verilog-populate-syntax-table verilog-mode-syntax-table)
   (set (make-local-variable 'beginning-of-defun-function)
        'verilog-beg-of-defun)
   (set (make-local-variable 'end-of-defun-function)
        'verilog-end-of-defun)
-  ;; add extra comment syntax
-  (verilog-setup-dual-comments verilog-mode-syntax-table)
   (set-syntax-table verilog-mode-syntax-table)
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'verilog-indent-line-relative)
@@ -2751,12 +2640,13 @@ following code fragment:
   "Mark the current verilog function (or procedure).
 This puts the mark at the end, and point at the beginning."
   (interactive)
-  (push-mark (point))
-  (verilog-end-of-defun)
-  (push-mark (point))
-  (verilog-beg-of-defun)
-  (if (fboundp 'zmacs-activate-region)
-      (zmacs-activate-region)))
+  (when (featurep 'xemacs)
+    (push-mark (point))
+    (verilog-end-of-defun)
+    (push-mark (point))
+    (verilog-beg-of-defun)
+    (if (fboundp 'zmacs-activate-region)
+	(zmacs-activate-region))))
 
 (defun verilog-comment-region (start end)
   ; checkdoc-params: (start end)
