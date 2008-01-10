@@ -33,14 +33,16 @@
 (defvar viper-expert-level)
 (defvar viper-ex-style-editing)
 (defvar viper-ex-style-motion)
+
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
 ;; end pacifier
 
 (require 'viper-util)
 
-;; declare-function is not defined in XEmacs
-;;(declare-function viper-ex "viper-ex" (arg &optional string))
-;;(declare-function viper-normalize-minor-mode-map-alist "viper-cmd" ())
-;;(declare-function viper-set-mode-vars-for "viper-cmd" (state))
+(declare-function viper-ex "viper-ex" (arg &optional string))
+(declare-function viper-normalize-minor-mode-map-alist "viper-cmd" ())
+(declare-function viper-set-mode-vars-for "viper-cmd" (state))
 
 ;;; Variables
 

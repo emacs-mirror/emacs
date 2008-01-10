@@ -1,3 +1,9 @@
+2008-01-10  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* ediff*.el: uncommented declare-function.
+	
+	* viper*.el: uncommented declare-function.
+	
 2008-01-09  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-mode): Support tramp, compressed files and

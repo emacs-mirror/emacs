@@ -113,6 +113,9 @@
 (defvar ediff-last-dir-patch)
 (defvar ediff-patch-default-directory)
 
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
+
 
 (eval-when-compile
   (and noninteractive
@@ -361,8 +364,7 @@
 		 (list (cons 'ediff-job-name job-name))
 		 merge-buffer-file)))
 
-;; declare-function does not exist in XEmacs
-;;(declare-function diff-latest-backup-file "diff" (fn)))
+(declare-function diff-latest-backup-file "diff" (fn))
 
 ;;;###autoload
 (defalias 'ediff 'ediff-files)
@@ -1428,7 +1430,7 @@ When called interactively, displays the version."
     (format "Ediff %s of %s" ediff-version ediff-date)))
 
 ;; info is run first, and will autoload info.el.
-;;(declare-function Info-goto-node "info" (nodename &optional fork))
+(declare-function Info-goto-node "info" (nodename &optional fork))
 
 ;;;###autoload
 (defun ediff-documentation (&optional node)

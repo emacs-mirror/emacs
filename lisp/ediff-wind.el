@@ -40,6 +40,11 @@
 (defvar frame-icon-title-format)
 (defvar ediff-diff-status)
 
+;; declare-function does not exist in XEmacs
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
+
+
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
     (or (featurep 'ediff-init)
@@ -147,10 +152,9 @@ In this case, Ediff will use those frames to display these buffers."
   :type 'function
   :group 'ediff-window)
 
-;; declare-function does not exist in XEmacs
 ;; Definitions hidden from the compiler by compat wrappers.
-;;(declare-function ediff-display-pixel-width "ediff-init")
-;;(declare-function ediff-display-pixel-height "ediff-init")
+(declare-function ediff-display-pixel-width "ediff-init")
+(declare-function ediff-display-pixel-height "ediff-init")
 
 (defconst ediff-control-frame-parameters
   (list

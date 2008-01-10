@@ -41,6 +41,9 @@
 
 (defvar ediff-after-quit-hook-internal nil)
 
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
+
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
     (provide 'ediff-util) ; to break recursive load cycle
@@ -2820,10 +2823,8 @@ up an appropriate window config."
   (message
    "To resume, type M-x eregistry and select the desired Ediff session"))
 
-
 ;; ediff-barf-if-not-control-buffer ensures only called from ediff.
-;; declare-function does not exist in XEmacs
-;;(declare-function ediff-version "ediff" ()))
+(declare-function ediff-version "ediff" ())
 
 (defun ediff-status-info ()
   "Show the names of the buffers or files being operated on by Ediff.

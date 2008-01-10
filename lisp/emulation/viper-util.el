@@ -44,6 +44,9 @@
 
 (require 'ring)
 
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
+
 ;; end pacifier
 
 (require 'viper-init)
@@ -374,8 +377,7 @@
 
 
 
-;; declare-function is not defined in XEmacs
-;;(declare-function viper-forward-Word "viper-cmd" (arg))
+(declare-function viper-forward-Word "viper-cmd" (arg))
 
 ;;; Support for :e, :r, :w file globbing
 
