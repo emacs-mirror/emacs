@@ -1,7 +1,16 @@
 2008-01-11  Jason Rumney  <jasonr@gnu.org>
 
+	* nxml/nxml-uchnm.el (nxml-internal-unicode-char-name-sets-enabled):
+	Rename from nxml-enable-unicode-char-name-sets-flag.
+	(nxml-enable-unicode-char-name-sets-1): Merge into
+	nxml-enable-unicode-char-name-sets.
+	(nxml-enable-unicode-char-name-sets): Don't unconditionally set
+	nxml-char-name-ignore-case here.
+
 	* nxml/nxml-mode.el (nxml-mode): Call rng-nxml-mode-init directly.
 	Update doc string and commentary.
+	(nxml-char-name-ignore-case): Change default value.
+	(nxml-mode): Call nxml-enable-unicode-char-name-sets directly.
 
 2008-01-11  Martin Rudalics  <rudalics@gmx.at>
 
