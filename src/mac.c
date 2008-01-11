@@ -5013,6 +5013,9 @@ extern int noninteractive;
    sys_select.  */
 static CFMutableDictionaryRef cfsockets_for_select;
 
+/* Process ID of Emacs.  */
+static pid_t mac_emacs_pid;
+
 static void
 socket_callback (s, type, address, data, info)
      CFSocketRef s;
@@ -5092,7 +5095,7 @@ mac_try_close_socket (fd)
      int fd;
 {
 #if SELECT_USE_CFSOCKET
-  if (cfsockets_for_select)
+  if (getpid () == mac_emacs_pid && cfsockets_for_select)
     {
       void *key = (void *) fd;
       CFSocketRef socket =
@@ -5328,6 +5331,8 @@ init_mac_osx_environment ()
   char *app_bundle_pathname;
   char *p, *q;
   struct stat st;
+
+  mac_emacs_pid = getpid ();
 
   /* Initialize locale related variables.  */
   mac_system_script_code =
