@@ -1089,14 +1089,84 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
     VMArenaReserved(VMArena2Arena(vmArena)), NULL ));
 
   /* .chunk-create.fail: If we fail, try again with a smaller size */
-  for(;; chunkSize /= 2) {
-    res = VMChunkCreate(&newChunk, vmArena, chunkSize);
-    if(res == ResOK)
-      break;
+  {
+    int fidelity = 8;  /* max fraction of addr-space we may 'waste' */
+    Size chunkHalf;
+    Size chunkMin = 4 * 1024;  /* typical single page */
+    Size sliceSize;
+    
+    if (vmArena->extendMin > chunkMin)
+      chunkMin = vmArena->extendMin;
+    if (chunkSize < chunkMin)
+      chunkSize = chunkMin;
+    
+    DIAG_SINGLEF(( "vmArenaExtend_START", 
+      "chunkMin: $W\n", chunkMin,
+      NULL ));
+
+    for(;; chunkSize = chunkHalf) {
+      chunkHalf = chunkSize / 2;
+      sliceSize = chunkHalf / fidelity;
+
+      DIAG_SINGLEF(( "vmArenaExtend_OUTER", 
+        "chunkSize: $W; ", chunkSize,
+        "chunkHalf: $W; ", chunkHalf,
+        "sliceSize: $W\n", sliceSize,
+        NULL ));
+
+      if(sliceSize == 0) {
+        DIAG_SINGLEF(( "vmArenaExtend_NOSLICE", 
+          "chunkSize: $W; ", chunkSize,
+          "chunkHalf: $W\n", chunkHalf,
+          NULL ));
+      }
+      AVER(sliceSize > 0);
+      
+      /* remove slices, down to chunkHalf but no further */
+      for(; chunkSize > chunkHalf; chunkSize -= sliceSize) {
+        static Size lastSize = -1;
+        
+        DIAG_SINGLEF(( "vmArenaExtend_inner", 
+          "chunkSize: $W; ", chunkSize,
+          "chunkHalf: $W; ", chunkHalf,
+          "sliceSize: $W\n", sliceSize,
+          NULL ));
+
+        if(chunkSize < chunkMin) {
+          DIAG_SINGLEF(( "vmArenaExtend_FailMin", 
+            "no remaining address-space chunk >= min($W)", chunkMin,
+            " (so VMArenaReserved remains $W bytes)\n",
+            VMArenaReserved(VMArena2Arena(vmArena)), NULL ));
+          return ResRESOURCE;
+        }
+
+        if(chunkSize >= lastSize) {
+          DIAG_SINGLEF(( "vmArenaExtend_TESTFAIL",
+            "DELIBERATELY FAILING REQUEST OF SIZE $W.\n", chunkSize,
+            "chunkSize: $W; ", chunkSize,
+            "chunkHalf: $W.\n", chunkHalf,
+            NULL ));
+          res = ResRESOURCE;
+        }
+        else {
+          lastSize = chunkSize;
+          res = VMChunkCreate(&newChunk, vmArena, chunkSize);
+          DIAG_SINGLEF(( "vmArenaExtend_ChunkCreate",
+            "chunkSize: $W; ", chunkSize,
+            "res: $W.\n", res,
+          NULL ));
+        }
+
+        if(res == ResOK)
+          goto vmArenaExtend_Done;
+      }
+    }
   }
 
+vmArenaExtend_Done:
+
   DIAG_SINGLEF(( "vmArenaExtend_Done",
-    "Reserved new chunk of VM $W bytes", chunkSize,
+    "Request for new chunk of VM $W bytes succeeded", chunkSize,
     " (VMArenaReserved now $W bytes)\n", 
     VMArenaReserved(VMArena2Arena(vmArena)), NULL ));
 
