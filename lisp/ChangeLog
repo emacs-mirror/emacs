@@ -1,3 +1,7 @@
+2008-01-11  Martin Rudalics  <rudalics@gmx.at>
+
+	* cus-start.el (all): Add missing version entries.
+
 2008-01-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* files.el (safe-local-eval-forms): Mark
