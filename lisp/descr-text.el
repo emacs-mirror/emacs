@@ -336,11 +336,12 @@ This function is semi-obsolete.  Use `get-char-code-property'."
 (defun describe-char-display (pos char)
   (if (display-graphic-p (selected-frame))
       (let ((char-font-info (internal-char-font pos char)))
-	(if (integerp (cdr char-font-info))
-	    (setcdr char-font-info (format "%02X" (cdr char-font-info)))
-	  (setcdr char-font-info
-		  (format "%04X%04X"
-			  (cadr char-font-info) (cddr char-font-info))))
+	(if char-font-info
+	    (if (integerp (cdr char-font-info))
+		(setcdr char-font-info (format "%02X" (cdr char-font-info)))
+	      (setcdr char-font-info
+		      (format "%04X%04X"
+			      (cadr char-font-info) (cddr char-font-info)))))
 	char-font-info)
     (let* ((coding (terminal-coding-system))
 	   (encoded (encode-coding-char char coding)))
