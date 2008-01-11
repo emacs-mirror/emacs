@@ -175,6 +175,13 @@ Return the length of resulting text."
 ;; Many kudos to Himi!  The used code has been adapted from his
 ;; mule-ucs package.
 
+;; Silence the compiler, which otherwise warns that these functions
+;; might not be defined at runtime. They are only used when compiling.
+(declare-function big5-to-flat-code "china-util" (num))
+(declare-function flat-code-to-big5 "china-util" (num))
+(declare-function euc-to-flat-code  "china-util" (num))
+(declare-function flat-code-to-euc  "china-util" (num))
+
 (eval-when-compile
 (defun big5-to-flat-code (num)
   "Convert NUM in Big 5 encoding to a `flat code'.
