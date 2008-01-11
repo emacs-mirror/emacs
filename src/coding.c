@@ -4153,12 +4153,16 @@ detect_coding_mask (source, src_bytes, priorities, skip, multibytep)
 
  label_loop_detect_coding:
   null_byte_found = 0;
-  while (src < src_end && ascii_skip_code[*src])
+  /* We stop this loop before the last byte because it may be a NULL
+     anchor byte.  */
+  while (src < src_end - 1 && ascii_skip_code[*src])
     null_byte_found |= (! *src++);
-  if (! null_byte_found)
+  if (ascii_skip_code[*src])
+    src++;
+  else if (! null_byte_found)
     {
       unsigned char *p = src + 1;
-      while (p < src_end)
+      while (p < src_end - 1)
 	null_byte_found |= (! *p++);
     }
   *skip = src - source;
