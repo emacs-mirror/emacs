@@ -554,6 +554,7 @@ Many aspects this mode can be customized using
     (when nxml-auto-insert-xml-declaration-flag
       (nxml-insert-xml-declaration)))
   (rng-nxml-mode-init)
+  (nxml-enable-unicode-char-name-sets)
   (run-hooks 'nxml-mode-hook))
 
 (defun nxml-degrade (context err)
@@ -2432,7 +2433,7 @@ and attempts to find another possible way to do the markup."
 
 ;;; Character names
 
-(defvar nxml-char-name-ignore-case nil)
+(defvar nxml-char-name-ignore-case t)
 
 (defvar nxml-char-name-alist nil
   "Alist of character names.
