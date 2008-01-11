@@ -3944,6 +3944,9 @@ If it is less than 8, the level-1 face gets re-used for level N+1 etc."
 (declare-function elmo-folder-exists-p "ext:elmo" (folder) t)
 (declare-function elmo-message-entity-field "ext:elmo-msgdb" (entity field &optional type))
 (declare-function elmo-message-field "ext:elmo" (folder number field &optional type) t)
+;; In old (2003) versions of Wanderlust without elmo-message-entity.
+(declare-function elmo-msgdb-overview-get-entity "ext:elmo-msgdb")
+(declare-function wl-summary-buffer-msgdb "ext:wl-summary")
 (declare-function vm-beginning-of-message "ext:vm-page" ())
 (declare-function vm-follow-summary-cursor "ext:vm-motion" ())
 (declare-function vm-get-header-contents "ext:vm-summary" (message header-name-regexp &optional clump-sep))
