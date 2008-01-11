@@ -1,3 +1,10 @@
+2008-01-11  Glenn Morris  <rgm@gnu.org>
+
+	* language/china-util.el (big5-to-flat-code, flat-code-to-big5)
+	(euc-to-flat-code, flat-code-to-euc):
+	* textmodes/org.el (elmo-msgdb-overview-get-entity)
+	(wl-summary-buffer-msgdb): Declare as funtions.
+
 2008-01-10  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/ada-mode.el (ada-set-syntax-table-properties):
