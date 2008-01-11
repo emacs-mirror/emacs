@@ -24,8 +24,6 @@
 
 ;;; Commentary:
 
-;; To use this include rng-auto.el in your .emacs.
-
 ;; See nxml-rap.el for description of parsing strategy.
 
 ;; The font locking here is independent of font-lock.el.  We want to
@@ -479,9 +477,9 @@ instead of C-c.
 Validation is provided by the related minor-mode `rng-validate-mode'.
 This also makes completion schema- and context- sensitive.  Element
 names, attribute names, attribute values and namespace URIs can all be
-completed. By default, `rng-validate-mode' is automatically enabled by
-`rng-nxml-mode-init' which is normally added to `nxml-mode-hook'. You
-can toggle it using \\[rng-validate-mode].
+completed. By default, `rng-validate-mode' is automatically enabled. You
+can toggle it using \\[rng-validate-mode] or change the default by
+customizing `rng-nxml-auto-validate-flag'.
 
 \\[indent-for-tab-command] indents the current line appropriately.
 This can be customized using the variable `nxml-child-indent'
@@ -555,6 +553,7 @@ Many aspects this mode can be customized using
       (setq buffer-file-coding-system nxml-default-buffer-file-coding-system))
     (when nxml-auto-insert-xml-declaration-flag
       (nxml-insert-xml-declaration)))
+  (rng-nxml-mode-init)
   (run-hooks 'nxml-mode-hook))
 
 (defun nxml-degrade (context err)
