@@ -1100,38 +1100,13 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
     if (chunkSize < chunkMin)
       chunkSize = chunkMin;
     
-    DIAG_SINGLEF(( "vmArenaExtend_START", 
-      "chunkMin: $W\n", chunkMin,
-      NULL ));
-
     for(;; chunkSize = chunkHalf) {
       chunkHalf = chunkSize / 2;
       sliceSize = chunkHalf / fidelity;
-
-      DIAG_SINGLEF(( "vmArenaExtend_OUTER", 
-        "chunkSize: $W; ", chunkSize,
-        "chunkHalf: $W; ", chunkHalf,
-        "sliceSize: $W\n", sliceSize,
-        NULL ));
-
-      if(sliceSize == 0) {
-        DIAG_SINGLEF(( "vmArenaExtend_NOSLICE", 
-          "chunkSize: $W; ", chunkSize,
-          "chunkHalf: $W\n", chunkHalf,
-          NULL ));
-      }
       AVER(sliceSize > 0);
       
       /* remove slices, down to chunkHalf but no further */
       for(; chunkSize > chunkHalf; chunkSize -= sliceSize) {
-        static Size lastSize = -1;
-        
-        DIAG_SINGLEF(( "vmArenaExtend_inner", 
-          "chunkSize: $W; ", chunkSize,
-          "chunkHalf: $W; ", chunkHalf,
-          "sliceSize: $W\n", sliceSize,
-          NULL ));
-
         if(chunkSize < chunkMin) {
           DIAG_SINGLEF(( "vmArenaExtend_FailMin", 
             "no remaining address-space chunk >= min($W)", chunkMin,
@@ -1139,24 +1114,7 @@ static Res vmArenaExtend(VMArena vmArena, Size size)
             VMArenaReserved(VMArena2Arena(vmArena)), NULL ));
           return ResRESOURCE;
         }
-
-        if(chunkSize >= lastSize) {
-          DIAG_SINGLEF(( "vmArenaExtend_TESTFAIL",
-            "DELIBERATELY FAILING REQUEST OF SIZE $W.\n", chunkSize,
-            "chunkSize: $W; ", chunkSize,
-            "chunkHalf: $W.\n", chunkHalf,
-            NULL ));
-          res = ResRESOURCE;
-        }
-        else {
-          lastSize = chunkSize;
-          res = VMChunkCreate(&newChunk, vmArena, chunkSize);
-          DIAG_SINGLEF(( "vmArenaExtend_ChunkCreate",
-            "chunkSize: $W; ", chunkSize,
-            "res: $W.\n", res,
-          NULL ));
-        }
-
+        res = VMChunkCreate(&newChunk, vmArena, chunkSize);
         if(res == ResOK)
           goto vmArenaExtend_Done;
       }
