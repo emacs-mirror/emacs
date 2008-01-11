@@ -1,3 +1,7 @@
+2008-01-11  Richard Stallman  <rms@gnu.org>
+
+	* subr.el (atomic-change-group): Prevent undo list truncation.
+
 2008-01-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* cus-start.el (all): Add missing version entries.
