@@ -1,5 +1,8 @@
 2008-01-11  Jason Rumney  <jasonr@gnu.org>
 
+	* nxml/rng-nxml.el (rng-preferred-prefix-alist): Add some defaults.
+	(rng-preferred-prefix-alist-default): Remove.
+
 	* nxml/nxml-uchnm.el (nxml-internal-unicode-char-name-sets-enabled):
 	Rename from nxml-enable-unicode-char-name-sets-flag.
 	(nxml-enable-unicode-char-name-sets-1): Merge into
