@@ -29,7 +29,7 @@ SRCID(version, "$Id$");
  * (Note: before 2006-02-01 the style was "release.epcore.chub")
  */
 
-#define MPS_RELEASE "exp-163669"
+#define MPS_RELEASE "exp-163759"
 
 
 /* MPSCopyrightNotice -- copyright notice for the binary
