@@ -297,6 +297,9 @@ int main(int argc, char **argv)
   /* /4 => too-small arena, to test arena growth */
   die(mps_arena_create(&arena, mps_arena_class_vm(), testArenaSIZE/4),
       "arena_create");
+  die(mps_arena_vm_growth(arena, -1, 0),
+      "arena_vm_growth");
+  
   mps_message_type_enable(arena, mps_message_type_gc());
   mps_message_type_enable(arena, mps_message_type_gc_start());
   die(mps_arena_commit_limit_set(arena, testArenaSIZE), "set limit");
