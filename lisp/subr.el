@@ -1802,6 +1802,10 @@ user can undo the change normally."
   (let ((handle (make-symbol "--change-group-handle--"))
 	(success (make-symbol "--change-group-success--")))
     `(let ((,handle (prepare-change-group))
+	   ;; Don't truncate any undo data in the middle of this.
+	   (undo-outer-limit nil)
+	   (undo-limit most-positive-fixnum)
+	   (undo-strong-limit most-positive-fixnum)
 	   (,success nil))
        (unwind-protect
 	   (progn
