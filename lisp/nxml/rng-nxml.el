@@ -41,10 +41,12 @@
   :type 'boolean
   :group 'relax-ng)
 
-(defvar rng-preferred-prefix-alist-default nil
-  "Default value for variable `rng-preferred-prefix-alist'.")
-
-(defcustom rng-preferred-prefix-alist rng-preferred-prefix-alist-default
+(defcustom rng-preferred-prefix-alist
+  '(("http://www.w3.org/1999/XSL/Transform" . "xsl")
+    ("http://www.w3.org/1999/02/22-rdf-syntax-ns#" . "rdf")
+    ("http://www.w3.org/1999/xlink" . "xlink")
+    ("http://www.w3.org/2001/XmlSchema" . "xsd")
+    ("http://www.w3.org/2001/XMLSchema-instance" . "xsi"))
   "*Alist of namespaces vs preferred prefixes."
   :type '(repeat (cons :tag "With"
 		       (string :tag "this namespace URI")
