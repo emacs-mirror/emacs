@@ -98,7 +98,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (scroll-down-aggressively windows
 				       (choice (const :tag "off" nil) number)
 				       "21.1")
-	     (line-spacing display (choice (const :tag "none" nil) integer))
+	     (line-spacing display (choice (const :tag "none" nil) integer)
+			   "22.1")
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
@@ -128,7 +129,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			     :match (lambda (widget value)
 				      (and value (not (functionp value)))))
 			    (function :value ignore))))
-	     (selection-coding-system mule coding-system)
+	     (selection-coding-system mule coding-system "22.1")
 	     ;; dired.c
 	     (completion-ignored-extensions dired
 					    (repeat (string :format "%v")))
@@ -175,7 +176,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			     (sexp :tag "Value"))))
 	     (mouse-highlight mouse (choice (const :tag "disabled" nil)
 					    (const :tag "always shown" t)
-					    (other :tag "hidden by keypress" 1)))
+					    (other :tag "hidden by keypress" 1))
+			      "22.1")
 	     ;; fringe.c
 	     (overflow-newline-into-fringe fringe boolean)
 	     ;; indent.c
@@ -189,7 +191,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (polling-period keyboard integer)
 	     (double-click-time mouse (restricted-sexp
 				       :match-alternatives (integerp 'nil 't)))
-	     (double-click-fuzz mouse integer)
+	     (double-click-fuzz mouse integer "22.1")
 	     (inhibit-local-menu-bar-menus menu boolean)
 	     (help-char keyboard character)
 	     (help-event-list keyboard (repeat (sexp :format "%v")))
@@ -247,9 +249,9 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (completion-auto-help minibuffer boolean)
 	     (enable-recursive-minibuffers minibuffer boolean)
 	     (history-length minibuffer
-			     (choice (const :tag "Infinite" t)
-				     integer))
-	     (history-delete-duplicates minibuffer boolean)
+			     (choice (const :tag "Infinite" t) integer)
+			     "22.1")
+	     (history-delete-duplicates minibuffer boolean "22.1")
 	     (minibuffer-prompt-properties
 	      minibuffer
 	      (list
@@ -346,7 +348,7 @@ since it could result in memory overflow and make Emacs crash."
  	      windows (choice
  		       (const :tag "Off (nil)" :value nil)
  		       (const :tag "Full screen (t)" :value t)
- 		       (other :tag "Always" 1)))
+ 		       (other :tag "Always" 1)) "22.1")
 	     (display-buffer-reuse-frames windows boolean "21.1")
 	     ;; xdisp.c
 	     (scroll-step windows integer)
@@ -360,7 +362,7 @@ since it could result in memory overflow and make Emacs crash."
 	     (line-number-display-limit display
 					(choice integer
 						(const :tag "No limit" nil)))
-	     (line-number-display-limit-width display integer)
+	     (line-number-display-limit-width display integer "22.1")
 	     (highlight-nonselected-windows display boolean)
 	     (message-log-max debug (choice (const :tag "Disable" nil)
 					    (integer :menu-tag "lines"
@@ -375,7 +377,7 @@ since it could result in memory overflow and make Emacs crash."
 		       (const :tag "Immediate" :value t)
 		       (number :tag "Delay by secs" :value 0.5)) "22.1")
 	     ;; xfaces.c
-	     (scalable-fonts-allowed display boolean)
+	     (scalable-fonts-allowed display boolean "22.1")
 	     ;; xfns.c
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))
@@ -466,5 +468,5 @@ since it could result in memory overflow and make Emacs crash."
 (unless purify-flag
   (provide 'cus-start))
 
-;;; arch-tag: 4502730d-bcb3-4f5e-99a3-a86f2d54af60
+;; arch-tag: 4502730d-bcb3-4f5e-99a3-a86f2d54af60
 ;;; cus-start.el ends here
