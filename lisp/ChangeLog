@@ -1,3 +1,8 @@
+2008-01-11  Jason Rumney  <jasonr@gnu.org>
+
+	* nxml/nxml-mode.el (nxml-mode): Call rng-nxml-mode-init directly.
+	Update doc string and commentary.
+
 2008-01-11  Martin Rudalics  <rudalics@gmx.at>
 
 	* cus-start.el (all): Add missing version entries.
