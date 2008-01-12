@@ -170,7 +170,9 @@ struct option longopts[] =
   { "socket-name",	required_argument, NULL, 's' },
 #endif
   { "server-file",	required_argument, NULL, 'f' },
+#ifndef WINDOWSNT
   { "display",	required_argument, NULL, 'd' },
+#endif
   { 0, 0, 0, 0 }
 };
 
@@ -477,9 +479,11 @@ decode_options (argc, argv)
      char **argv;
 {
   alternate_editor = egetenv ("ALTERNATE_EDITOR");
+#ifndef WINDOWSNT
   display = egetenv ("DISPLAY");
   if (display && strlen (display) == 0)
     display = NULL;
+#endif
 
   while (1)
     {
@@ -515,9 +519,11 @@ decode_options (argc, argv)
 	  server_file = optarg;
 	  break;
 
+#ifndef WINDOWSNT
 	case 'd':
 	  display = optarg;
 	  break;
+#endif
 
 	case 'n':
 	  nowait = 1;
@@ -594,8 +600,10 @@ The following OPTIONS are accepted:\n\
 -c, --create-frame    	Create a new frame instead of trying to\n\
 			use the current Emacs frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
--n, --no-wait		Don't wait for the server to return\n\
--d, --display=DISPLAY	Visit the file in the given display\n"
+-n, --no-wait		Don't wait for the server to return\n"
+#ifndef WINDOWSNT
+"-d, --display=DISPLAY	Visit the file in the given display\n"
+#endif
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 "-s, --socket-name=FILENAME\n\
 			Set filename of the UNIX socket for communication\n"
