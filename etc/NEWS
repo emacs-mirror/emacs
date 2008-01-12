@@ -38,6 +38,9 @@ a GIF library.
 
 ** Support for Sun windows has been removed.
 
+** Support for many obsolete platforms has been removed.
+See the list at the end of etc/MACHINES for details.
+
 ** The `emacstool' utility has been removed.
 
 ** The new configuration option "--with-dbus" enables D-Bus language
