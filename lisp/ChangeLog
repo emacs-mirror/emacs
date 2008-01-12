@@ -1,3 +1,8 @@
+2008-01-12  Jason Rumney  <jasonr@gnu.org>
+
+	* nxml/nxml-mode.el (nxml-enable-unicode-char-name-sets)
+	(rng-nxml-mode-init): Declare.
+
 2008-01-11  Jason Rumney  <jasonr@gnu.org>
 
 	* nxml/rng-nxml.el (rng-preferred-prefix-alist): Add some defaults.
