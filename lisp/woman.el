@@ -3540,8 +3540,10 @@ The expression may be an argument in quotes."
 	     (setq value (funcall op value (woman-parse-numeric-value))))
 	    ((looking-at "[<=>]=?")	; relational operators
 	     (goto-char (match-end 0))
-	     (setq op (or (intern-soft (match-string 0))
-			 (intern-soft "=")))
+	     (setq op (intern-soft
+                       (if (string-equal (match-string 0) "==")
+                           "="
+                         (match-string 0))))
 	     (setq value (if (funcall op value (woman-parse-numeric-value))
 			     1 0)))
 	    ((memq (setq op (following-char)) '(?& ?:)) ; Boolean and / or
