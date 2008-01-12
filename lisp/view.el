@@ -263,7 +263,9 @@ This command runs the normal hook `view-mode-hook'."
 ;;;###autoload
 (defun view-file-other-window (file)
   "View FILE in View mode in another window.
-Return that window to its previous buffer when done.
+When done, return that window to its previous buffer, and kill the
+buffer visiting FILE if unmodified and if it wasn't visited before.
+
 Emacs commands editing the buffer contents are not available; instead,
 a special set of commands (mostly letters and punctuation)
 are defined for moving around in the buffer.
@@ -273,14 +275,20 @@ For list of all View commands, type H or h while viewing.
 This command runs the normal hook `view-mode-hook'."
   (interactive "fIn other window view file: ")
   (unless (file-exists-p file) (error "%s does not exist" file))
-  (let ((had-a-buf (get-file-buffer file)))
-    (view-buffer-other-window (find-file-noselect file) nil
-			      (and (not had-a-buf) 'kill-buffer))))
+  (let ((had-a-buf (get-file-buffer file))
+	(buf-to-view (find-file-noselect file)))
+    (view-buffer-other-window buf-to-view nil
+			      (and (not had-a-buf)
+				   (not (buffer-modified-p buf-to-view))
+				   'kill-buffer))))
 
 ;;;###autoload
 (defun view-file-other-frame (file)
   "View FILE in View mode in another frame.
-Maybe delete other frame and/or return to previous buffer when done.
+When done, kill the buffer visiting FILE if unmodified and if it wasn't
+visited before; also, maybe delete other frame and/or return to previous
+buffer.
+
 Emacs commands editing the buffer contents are not available; instead,
 a special set of commands (mostly letters and punctuation)
 are defined for moving around in the buffer.
@@ -290,9 +298,12 @@ For list of all View commands, type H or h while viewing.
 This command runs the normal hook `view-mode-hook'."
   (interactive "fIn other frame view file: ")
   (unless (file-exists-p file) (error "%s does not exist" file))
-  (let ((had-a-buf (get-file-buffer file)))
-    (view-buffer-other-frame (find-file-noselect file) nil
-			     (and (not had-a-buf) 'kill-buffer))))
+  (let ((had-a-buf (get-file-buffer file))
+	(buf-to-view (find-file-noselect file)))
+    (view-buffer-other-frame buf-to-view nil
+			     (and (not had-a-buf)
+				  (not (buffer-modified-p buf-to-view))
+				  'kill-buffer))))
 
 
 ;;;###autoload
