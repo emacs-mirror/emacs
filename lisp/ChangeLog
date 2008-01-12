@@ -1,3 +1,13 @@
+2008-01-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/ebrowse.el (ebrowse-view-file-other-window): Delete
+	function.
+	(ebrowse-view/find-file-and-search-pattern): Call
+	view-file-other-window instead of ebrowse-view-file-other-window.
+	(ebrowse-view-file-other-frame): Don't call
+	current-window-configuration.  Fix second argument in the call to
+	view-mode-enter.  Doc fix.
+
 2008-01-11  Richard Stallman  <rms@gnu.org>
 
 	* subr.el (atomic-change-group): Prevent undo list truncation.
