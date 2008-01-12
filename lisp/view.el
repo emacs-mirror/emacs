@@ -238,6 +238,12 @@ This is local in each buffer, once it is used.")
 
 ;;; Commands that enter or exit view mode.
 
+(defun kill-buffer-if-not-modified (buf)
+  "Like `kill-buffer', but does nothing if the buffer is modified."
+  (let ((buf (or (bufferp buf) (get-buffer buf))))
+    (and buf (not (buffer-modified-p buf))
+	 (kill-buffer buf))))
+
 ;;;###autoload
 (defun view-file (file)
   "View FILE in View mode, returning to previous buffer when done.
@@ -258,7 +264,7 @@ This command runs the normal hook `view-mode-hook'."
 	(progn
 	  (switch-to-buffer buffer)
 	  (message "Not using View mode because the major mode is special"))
-      (view-buffer buffer (and (not had-a-buf) 'kill-buffer)))))
+      (view-buffer buffer (and (not had-a-buf) 'kill-buffer-if-not-modified)))))
 
 ;;;###autoload
 (defun view-file-other-window (file)
@@ -279,8 +285,7 @@ This command runs the normal hook `view-mode-hook'."
 	(buf-to-view (find-file-noselect file)))
     (view-buffer-other-window buf-to-view nil
 			      (and (not had-a-buf)
-				   (not (buffer-modified-p buf-to-view))
-				   'kill-buffer))))
+				   'kill-buffer-if-not-modified))))
 
 ;;;###autoload
 (defun view-file-other-frame (file)
@@ -302,8 +307,7 @@ This command runs the normal hook `view-mode-hook'."
 	(buf-to-view (find-file-noselect file)))
     (view-buffer-other-frame buf-to-view nil
 			     (and (not had-a-buf)
-				  (not (buffer-modified-p buf-to-view))
-				  'kill-buffer))))
+				  'kill-buffer-if-not-modified))))
 
 
 ;;;###autoload
