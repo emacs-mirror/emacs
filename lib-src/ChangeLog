@@ -1,3 +1,10 @@
+2008-01-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacsclient.c (decode_options) [WINDOWSNT]: Don't use the value
+	of DISPLAY in the environment.  Don't support -d.
+	(print_help_and_exit) [WINDOWSNT]: Don't show the --display option.
+	(longopts) [WINDOWSNT]: Remove --display.
+
 2008-01-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pop.c (pop_stat, pop_last): Check validity of string-to-integer
