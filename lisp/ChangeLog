@@ -2,6 +2,8 @@
 
 	* view.el (view-file-other-window, view-file-other-frame): Don't
 	kill the buffer if it is modified.  Doc fixes.
+	(kill-buffer-if-not-modified): New function.
+	(view-file): Don't kill the buffer if it is modified.
 
 	* progmodes/ebrowse.el (ebrowse-view-file-other-window): Delete
 	function.
