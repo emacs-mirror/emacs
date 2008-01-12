@@ -1,3 +1,9 @@
+2008-01-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* MACHINES: Add an explicit list of platforms that are no longer
+	supported.
+	* NEWS: Refer to this list.
+
 2008-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* calccard.tex, cs-dired-ref.tex, cs-refcard.tex, cs-survival.tex:
