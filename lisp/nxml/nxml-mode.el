@@ -43,6 +43,9 @@
 (require 'nxml-rap)
 (require 'nxml-outln)
 
+(declare-function rng-nxml-mode-init "rng-nxml")
+(declare-function nxml-enable-unicode-char-name-sets "nxml-uchnm")
+
 ;;; Customization
 
 (defgroup nxml nil
