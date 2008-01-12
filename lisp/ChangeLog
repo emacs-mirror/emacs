@@ -1,5 +1,8 @@
 2008-01-12  Eli Zaretskii  <eliz@gnu.org>
 
+	* view.el (view-file-other-window, view-file-other-frame): Don't
+	kill the buffer if it is modified.  Doc fixes.
+
 	* progmodes/ebrowse.el (ebrowse-view-file-other-window): Delete
 	function.
 	(ebrowse-view/find-file-and-search-pattern): Call
