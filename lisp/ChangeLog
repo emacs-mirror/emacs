@@ -1,3 +1,8 @@
+2008-01-12  Glenn Morris  <rgm@gnu.org>
+
+	* woman.el (woman-parse-numeric-arg): Change handling of `==':
+	can be interned without a function definition.
+
 2008-01-12  Jason Rumney  <jasonr@gnu.org>
 
 	* nxml/nxml-mode.el (nxml-enable-unicode-char-name-sets)
