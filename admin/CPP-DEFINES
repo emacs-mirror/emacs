@@ -44,25 +44,10 @@ REL_ALLOC	Compile in the relocatable memory allocator ralloc.c.
 SYSTEM_MALLOC	Use the system library's malloc.
 
 ** All references to these symbols should be removed, all their definitions are gone **
-ALLIANT
-ALLIANT_2800
-ALTOS
-APOLLO
-APOLLO_SR10
-RTU
-STRIDE
-UNIPLUS
-GOULD
+101:#if defined(orion)
+
 NU
-pyramid
-sps7
-tahoe
-tek4300
-__DGUX
-DGUX
 romp
-ibmrt 
-NEWSOS5
 
 ** Temporarily put defines from removed files here, check if these macros need to be documented or removed because they are not used anymore.  ** 
 
@@ -166,8 +151,6 @@ IRIS
 IRIS_4D
 IRIX6_5
 IRIX_FORCE_32_BITS
-ISC4_0
-ISI68K
 KEEP_OLD_PADDR
 KEEP_OLD_TEXT_SCNPTR
 KERNEL_FILE
@@ -202,7 +185,6 @@ MKDIR_PROTOTYPE
 MOTIF
 M_TERMINFO
 NARROWPROTO
-NBPC
 NEED_ERRNO
 NEED_NET_ERRNO_H
 NEED_PTEM_H
@@ -247,8 +229,6 @@ PTY_TTY_NAME_SPRINTF
 PURESIZE
 READ
 REL_ALLOC
-RISCiX
-RISCiX_1_1
 RUN_TIME_REMAP
 SECTION_ALIGNMENT
 SEEK
@@ -266,7 +246,6 @@ SKTPAIR
 SMAIL
 START_FILES
 SUNOS4
-SUNOS4_SHARED_LIBRARIES
 SUNOS_LOCALTIME_BUG
 SVR4
 SWITCH_ENUM_BUG
@@ -290,8 +269,6 @@ TEXT_START_ADDR
 THIS_IS_MAKEFILE
 TPIX
 ULIMIT_BREAK_VALUE
-UMAX
-UMAX4_2
 UNEXEC
 USE_DL_STUBS
 USE_GETOBAUD
@@ -303,13 +280,11 @@ USG5_3
 USG5_4
 USG_JOBCTRL
 USG_SHARED_LIBRARIES
-V3x
 VIRT_ADDR_VARIES
 WORDS_BIG_ENDIAN
 WORD_MACHINE
 WRITE
 X11R4
-XENIX
 XICCC
 XINT
 XSET
@@ -325,15 +300,10 @@ _setjmp
 _sobuf
 aix386
 alloca
-amdahl_uts
 aouthdr
-celerity
-clipper
-convex
 data_start
 drem
 dsize
-elxsi
 emacs
 entry
 etext
@@ -348,17 +318,12 @@ jmp_buf
 longjmp
 m68000
 m68k
-m88k
 magic
 mc68000
 mips
-orion
 sel
 subprocesses
 sun
-sun_68881
-sun_fpa
-sun_soft
 text_start
 
 # arch-tag: bc80061a-1168-4911-9766-46aaf2640250
