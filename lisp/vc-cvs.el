@@ -453,7 +453,7 @@ The changes are between FIRST-REVISION and SECOND-REVISION."
   (message "Merging changes into %s..." file)
   ;; (vc-file-setprop file 'vc-working-revision nil)
   (vc-file-setprop file 'vc-checkout-time 0)
-  (vc-cvs-command nil 0 file "update")
+  (vc-cvs-command nil nil file "update")
   ;; Analyze the merge result reported by CVS, and set
   ;; file properties accordingly.
   (with-current-buffer (get-buffer "*vc*")

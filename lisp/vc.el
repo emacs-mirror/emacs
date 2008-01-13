@@ -2899,8 +2899,7 @@ changes from the current branch are merged into the working file."
 	(if (not (vc-find-backend-function (vc-backend file) 'merge-news))
 	    (error "Sorry, merging news is not implemented for %s"
 		   (vc-backend file))
-	  (vc-call merge-news file)
-	  (vc-resynch-buffer file t t))))))
+	  (vc-maybe-resolve-conflicts file (vc-call merge-news file)))))))
 
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.

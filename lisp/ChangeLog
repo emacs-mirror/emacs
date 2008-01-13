@@ -1,3 +1,11 @@
+2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-update): Resolve conflicts if necessary instead of
+	just updating the buffer.
+
+	* vc-cvs.el (vc-cvs-merge-news): Ignore the error status of the
+	update command so that we can parse the output.
+
 2008-01-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Remove
