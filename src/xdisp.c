@@ -8785,8 +8785,6 @@ echo_area_display (update_frame_p)
   if (!FRAME_VISIBLE_P (f) || !f->glyphs_initialized_p)
     return 0;
 
-/* The terminal frame is used as the first Emacs frame on the Mac OS.  */
-#ifndef MAC_OS8
 #ifdef HAVE_WINDOW_SYSTEM
   /* When Emacs starts, selected_frame may be the initial terminal
      frame.  If we let this through, a message would be displayed on
@@ -8794,7 +8792,6 @@ echo_area_display (update_frame_p)
   if (FRAME_INITIAL_P (XFRAME (selected_frame)))
     return 0;
 #endif /* HAVE_WINDOW_SYSTEM */
-#endif
 
   /* Redraw garbaged frames.  */
   if (frame_garbaged)

@@ -1,3 +1,9 @@
+2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* movemail.c:
+	* make-docfile.c: Remove reference to symbols defined by systems
+	not supported anymore: MAC_OS8, XENIX and STRIDE.
+
 2008-01-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacsclient.c (decode_options) [WINDOWSNT]: Don't use the value

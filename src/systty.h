@@ -26,9 +26,6 @@ Boston, MA 02110-1301, USA.  */
 
 /* Include the proper files.  */
 #ifdef HAVE_TERMIO
-#ifdef __DGUX
-#include <sys/ioctl.h>
-#endif
 #ifndef NO_TERMIO
 #include <termio.h>
 #endif /* not NO_TERMIO */
@@ -130,40 +127,16 @@ static struct sensemode {
 #ifdef SYSV_PTYS
 #include <sys/types.h>
 #include <sys/tty.h>
-#ifdef titan
-#include <sys/ttyhw.h>
-#include <sys/stream.h>
-#endif
 #ifndef NO_PTY_H
 #include <sys/pty.h>
 #endif
 #endif
 
-/* saka@pfu.fujitsu.co.JP writes:
-   FASYNC defined in this file. But, FASYNC don't working.
-   so no problem, because unrequest_sigio only need. */
-#if defined (pfa)
-#include <sys/file.h>
-#endif
-
 
 /* Special cases - inhibiting the use of certain features.  */
 
-#ifdef APOLLO
-#undef TIOCSTART
-#endif
-
-#ifdef XENIX
-#undef TIOCGETC  /* Avoid confusing some conditionals that test this.  */
-#endif
-
 #ifdef BROKEN_TIOCGETC
 #undef TIOCGETC  /* Avoid confusing some conditionals that test this.  */
-#endif
-
-/* UNIPLUS systems may have FIONREAD.  */
-#ifdef UNIPLUS
-#include <sys.ioctl.h>
 #endif
 
 /* Allow m- file to inhibit use of FIONREAD.  */

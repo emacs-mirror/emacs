@@ -62,11 +62,7 @@ Boston, MA 02110-1301, USA.  */
 #endif /* not DOS_NT */
 
 #ifndef DIRECTORY_SEP
-#ifdef MAC_OS8
-#define DIRECTORY_SEP ':'
-#else  /* not MAC_OS8 */
 #define DIRECTORY_SEP '/'
-#endif	/* not MAC_OS8 */
 #endif
 
 #ifndef IS_DIRECTORY_SEP

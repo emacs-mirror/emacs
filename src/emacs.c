@@ -1307,29 +1307,6 @@ main (argc, argv
 	 CANNOT_DUMP is defined.  */
       syms_of_keyboard ();
 
-#ifdef MAC_OS8
-      /* init_window_once calls make_terminal_frame which on Mac OS
-         creates a full-fledge output_mac type frame.  This does not
-         work correctly before syms_of_textprop, syms_of_macfns,
-         syms_of_ccl, syms_of_fontset, syms_of_xterm, syms_of_search,
-         syms_of_frame, mac_term_init, and init_keyboard have already
-         been called.  */
-      syms_of_textprop ();
-      syms_of_macfns ();
-      syms_of_ccl ();
-      syms_of_fontset ();
-      syms_of_macterm ();
-      syms_of_macmenu ();
-      syms_of_macselect ();
-      syms_of_data ();
-      syms_of_search ();
-      syms_of_frame ();
-
-      init_atimer ();
-      mac_term_init (build_string ("Mac"), NULL, NULL);
-      init_keyboard ();
-#endif
-
       init_window_once ();	/* Init the window system.  */
       init_fileio_once ();	/* Must precede any path manipulation.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -1351,9 +1328,7 @@ main (argc, argv
 #ifdef CLASH_DETECTION
   init_filelock ();
 #endif
-#ifndef MAC_OS8
   init_atimer ();
-#endif
   running_asynch_code = 0;
 
   /* Handle --unibyte and the EMACS_UNIBYTE envvar,
@@ -1533,10 +1508,8 @@ main (argc, argv
       /* The basic levels of Lisp must come first.  */
       /* And data must come first of all
 	 for the sake of symbols like error-message.  */
-#ifndef MAC_OS8
       /* Called before init_window_once for Mac OS Classic.  */
       syms_of_data ();
-#endif
       syms_of_alloc ();
       syms_of_lread ();
       syms_of_print ();
@@ -1551,10 +1524,7 @@ main (argc, argv
       syms_of_casetab ();
       syms_of_callproc ();
       syms_of_category ();
-#ifndef MAC_OS8
-      /* Called before init_window_once for Mac OS Classic.  */
       syms_of_ccl ();
-#endif
       syms_of_charset ();
       syms_of_cmds ();
 #ifndef NO_DIR_LIBRARY
@@ -1576,11 +1546,8 @@ main (argc, argv
       syms_of_marker ();
       syms_of_minibuf ();
       syms_of_process ();
-#ifndef MAC_OS8
-      /* Called before init_window_once for Mac OS Classic.  */
       syms_of_search ();
       syms_of_frame ();
-#endif
       syms_of_syntax ();
       syms_of_terminal ();
       syms_of_term ();
@@ -1588,10 +1555,7 @@ main (argc, argv
 #ifdef HAVE_SOUND
       syms_of_sound ();
 #endif
-#ifndef MAC_OS8
-      /* Called before init_window_once for Mac OS Classic.  */
       syms_of_textprop ();
-#endif
       syms_of_composite ();
 #ifdef VMS
       syms_of_vmsproc ();
@@ -1673,10 +1637,7 @@ main (argc, argv
 
   init_editfns (); /* init_process uses Voperating_system_release. */
   init_process (); /* init_display uses add_keyboard_wait_descriptor. */
-#ifndef MAC_OS8
-  /* Called before init_window_once for Mac OS Classic.  */
   init_keyboard ();	/* This too must precede init_sys_modes.  */
-#endif
 #ifdef VMS
   init_vmsproc ();	/* And this too.  */
 #endif /* VMS */

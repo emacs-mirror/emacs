@@ -503,13 +503,7 @@ main (argc, argv)
 #ifdef MAIL_USE_SYSTEM_LOCK
       if (! preserve_mail)
 	{
-#if defined (STRIDE) || defined (XENIX)
-	  /* Stride, xenix have file locking, but no ftruncate.
-	     This mess will do. */
-	  close (open (inname, O_CREAT | O_TRUNC | O_RDWR, 0666));
-#else
 	  ftruncate (indesc, 0L);
-#endif /* STRIDE or XENIX */
 	}
 #endif /* MAIL_USE_SYSTEM_LOCK */
 

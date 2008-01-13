@@ -78,7 +78,7 @@ Boston, MA 02110-1301, USA.  */
 #include <client.h>
 #endif
 
-/* On some systems, e.g. DGUX, inet_addr returns a 'struct in_addr'. */
+/* On some systems, inet_addr returns a 'struct in_addr'. */
 #ifdef HAVE_BROKEN_INET_ADDR
 #define IN_ADDR struct in_addr
 #define NUMERIC_ADDR_ERROR (numeric_addr.s_addr == -1)
@@ -87,12 +87,12 @@ Boston, MA 02110-1301, USA.  */
 #define NUMERIC_ADDR_ERROR (numeric_addr == -1)
 #endif
 
-#if defined(BSD_SYSTEM) || defined(STRIDE)
+#if defined(BSD_SYSTEM)
 #include <sys/ioctl.h>
 #if !defined (O_NDELAY) && defined (HAVE_PTYS) && !defined(USG5)
 #include <fcntl.h>
 #endif /* HAVE_PTYS and no O_NDELAY */
-#endif /* BSD_SYSTEM || STRIDE */
+#endif /* BSD_SYSTEM */
 
 #ifdef BROKEN_O_NONBLOCK
 #undef O_NONBLOCK
@@ -596,7 +596,6 @@ allocate_pty ()
 #else
             sprintf (pty_name, "/dev/tty%c%x", c, i);
 #endif /* no PTY_TTY_NAME_SPRINTF */
-#ifndef UNIPLUS
 	    if (access (pty_name, 6) != 0)
 	      {
 		emacs_close (fd);
@@ -606,7 +605,6 @@ allocate_pty ()
 		return -1;
 # endif /* IRIS */
 	      }
-#endif /* not UNIPLUS */
 	    setup_pty (fd);
 	    return fd;
 	  }
@@ -1889,12 +1887,12 @@ create_process (process, new_argv, current_dir)
 #endif
       if (forkin < 0)
 	report_file_error ("Opening pty", Qnil);
-#if defined (RTU) || defined (UNIPLUS) || defined (DONT_REOPEN_PTY)
+#if defined (DONT_REOPEN_PTY)
       /* In the case that vfork is defined as fork, the parent process
 	 (Emacs) may send some data before the child process completes
 	 tty options setup.  So we setup tty before forking.  */
       child_setup_tty (forkout);
-#endif /* RTU or UNIPLUS or DONT_REOPEN_PTY */
+#endif /* DONT_REOPEN_PTY */
 #else
       forkin = forkout = -1;
 #endif /* not USG, or USG_SUBTTY_WORKS */
@@ -1933,15 +1931,6 @@ create_process (process, new_argv, current_dir)
   /* Replaced by close_process_descs */
   set_exclusive_use (inchannel);
   set_exclusive_use (outchannel);
-#endif
-
-/* Stride people say it's a mystery why this is needed
-   as well as the O_NDELAY, but that it fails without this.  */
-#if defined (STRIDE) || (defined (pfa) && defined (HAVE_PTYS))
-  {
-    int one = 1;
-    ioctl (inchannel, FIONBIO, &one);
-  }
 #endif
 
 #ifdef O_NONBLOCK
@@ -1993,7 +1982,7 @@ create_process (process, new_argv, current_dir)
 #ifdef BSD4_1
   sighold (SIGCHLD);
 #else /* not BSD4_1 */
-#if defined (BSD_SYSTEM) || defined (UNIPLUS) || defined (HPUX)
+#if defined (BSD_SYSTEM) || defined (HPUX)
   sigsetmask (sigmask (SIGCHLD));
 #else /* ordinary USG */
 #if 0
@@ -2107,7 +2096,7 @@ create_process (process, new_argv, current_dir)
 	  }
 #endif /* TIOCNOTTY */
 
-#if !defined (RTU) && !defined (UNIPLUS) && !defined (DONT_REOPEN_PTY)
+#if !defined (DONT_REOPEN_PTY)
 /*** There is a suggestion that this ought to be a
      conditional on TIOCSPGRP,
      or !(defined (HAVE_SETSID) && defined (TIOCSCTTY)).
@@ -2141,7 +2130,7 @@ create_process (process, new_argv, current_dir)
 	    ioctl (xforkout, TIOCSPGRP, &pgrp);
 #endif
 	  }
-#endif /* not UNIPLUS and not RTU and not DONT_REOPEN_PTY */
+#endif /* not DONT_REOPEN_PTY */
 
 #ifdef SETUP_SLAVE_PTY
 	if (pty_flag)
@@ -2168,7 +2157,7 @@ create_process (process, new_argv, current_dir)
 #ifdef BSD4_1
 	sigrelse (SIGCHLD);
 #else /* not BSD4_1 */
-#if defined (BSD_SYSTEM) || defined (UNIPLUS) || defined (HPUX)
+#if defined (BSD_SYSTEM) || defined (HPUX)
 	sigsetmask (SIGEMPTYMASK);
 #else /* ordinary USG */
 #if 0
@@ -2179,10 +2168,10 @@ create_process (process, new_argv, current_dir)
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
-#if !defined (RTU) && !defined (UNIPLUS) && !defined (DONT_REOPEN_PTY)
+#if !defined (DONT_REOPEN_PTY)
 	if (pty_flag)
 	  child_setup_tty (xforkout);
-#endif /* not RTU and not UNIPLUS and not DONT_REOPEN_PTY */
+#endif /* not DONT_REOPEN_PTY */
 #ifdef WINDOWSNT
 	pid = child_setup (xforkin, xforkout, xforkout,
 			   new_argv, 1, current_dir);
@@ -2260,7 +2249,7 @@ create_process (process, new_argv, current_dir)
 #ifdef BSD4_1
   sigrelse (SIGCHLD);
 #else /* not BSD4_1 */
-#if defined (BSD_SYSTEM) || defined (UNIPLUS) || defined (HPUX)
+#if defined (BSD_SYSTEM) || defined (HPUX)
   sigsetmask (SIGEMPTYMASK);
 #else /* ordinary USG */
 #if 0
@@ -4649,12 +4638,6 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	     "__ultrix__"; the latter is only defined under GCC, but
 	     not by DEC's bundled CC.  -JimB  */
 	  else if (xerrno == ENOMEM)
-	    no_avail = 1;
-#endif
-#ifdef ALLIANT
-	  /* This happens for no known reason on ALLIANT.
-	     I am guessing that this is the right response. -- RMS.  */
-	  else if (xerrno == EFAULT)
 	    no_avail = 1;
 #endif
 	  else if (xerrno == EBADF)

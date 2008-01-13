@@ -1,3 +1,28 @@
+2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* (unexsunos4): Remove file, system not supported anymore.
+
+	* (src/m/mips.h):
+	* (src/m/intel386.h):
+	* callproc.c:
+	* config.in:
+	* ecrt0.c:
+	* emacs.c:
+	* fileio.c:
+	* frame.c:
+	* getpagesize.h:
+	* keyboard.c:
+	* lread.c:
+	* process.c:
+	* puresize.h:
+	* sysdep.c:
+	* systty.h:
+	* syswait.h:
+	* unexec.c:
+	* xdisp.c:
+	* alloc.c: Remove code containing references to symbols defined by
+	unsupported systems.
+
 2008-01-11  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* coding.c (detect_coding_mask): Fix previous change.
