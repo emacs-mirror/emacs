@@ -1,3 +1,7 @@
+2008-01-13  Tom Tromey  <tromey@redhat.com>
+
+	* lisp.h: Fix typo.
+
 2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* m/sequent-ptx.h:
