@@ -1,7 +1,8 @@
 2008-01-13  Martin Rudalics  <rudalics@gmx.at>
 
 	* mail/rmail.el (rmail-convert-to-babyl-format): Remove
-	save-excursion to avoid infinite looping.  Reported by: dnz@bk.ru.
+	save-excursion to avoid infinite looping.  Reported by: dnz
+	<dnz@bk.ru>.
 
 2008-01-12  Glenn Morris  <rgm@gnu.org>
 
