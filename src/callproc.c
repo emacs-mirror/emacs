@@ -471,6 +471,12 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   else
     {
 #ifndef MSDOS
+      errno = 0;
+      if (pipe (fd) == -1)
+	{
+	  emacs_close (filefd);
+	  report_file_error ("Creating process pipe", Qnil);
+	}
 #endif
 #if 0
       /* Replaced by close_process_descs */

@@ -1,5 +1,9 @@
 2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* callproc.c: (Fcall_process): Fix previous change.
+
+2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
 	* (unexsunos4): Remove file, system not supported anymore.
 
 	* (src/m/mips.h):
