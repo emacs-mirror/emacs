@@ -504,19 +504,6 @@ dnl see the `changequote' comment above.
     machine=i386 opsys=usg5-3
   ;;
 
-  ## Sequent Symmetry running ptx 4, which is a modified SVR4.
-  i[3456]86-sequent-ptx4* | i[3456]86-sequent-sysv4* )
-    machine=sequent-ptx opsys=ptx4
-    NON_GNU_CPP=/lib/cpp
-  ;;
-
-  ## Sequent Symmetry running DYNIX/ptx
-  ## Use the old cpp rather than the newer ANSI one.
-  i[3456]86-sequent-ptx* )
-    machine=sequent-ptx opsys=ptx
-    NON_GNU_CPP="/lib/cpp"
-  ;;
-
   ## ncr machine running svr4.3.
   i[3456]86-ncr-sysv4.3 )
     machine=ncr386 opsys=usg5-4-3

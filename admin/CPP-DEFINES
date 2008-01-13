@@ -44,7 +44,6 @@ REL_ALLOC	Compile in the relocatable memory allocator ralloc.c.
 SYSTEM_MALLOC	Use the system library's malloc.
 
 ** All references to these symbols should be removed, all their definitions are gone **
-101:#if defined(orion)
 
 NU
 romp
@@ -107,6 +106,7 @@ FIRST_PTY_LETTER
 FREE_RETURN_TYPE
 FSCALE
 F_SETOWN_BUG
+F_SETOWN_SOCK_NEG
 GC_MARK_STACK
 GC_SETJMP_WORKS
 GETPGRP_NO_ARG
@@ -203,7 +203,9 @@ NO_PTY_H
 NO_REMAP
 NO_SIOCTL_H
 NO_SOCKETS_IN_FILE_SYSTEM
+NO_SOCK_SIGIO
 NO_TERMIO
+NO_UNION_TYPE
 NO_UNION_TYPE
 NSIG
 NSIG_MINIMUM
@@ -260,7 +262,6 @@ S_IFLNK
 S_IFMT
 S_IREAD
 S_IWRITE
-TAHOE_REGISTER_BUG
 TERMCAP
 TERMINFO
 TEXT_END

@@ -1,5 +1,11 @@
 2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* m/sequent-ptx.h:
+	* m/sequent.h:
+	* s/ptx.h:
+	* s/ptx4-2.h:
+	* s/ptx4.h: Remove files for systems no longer supported.
+
 	* callproc.c (Fcall_process): Fix previous change.
 
 2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>

@@ -1,3 +1,7 @@
+2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove more references to unsupported systems.
+
 2008-01-06  Romain Francoise  <romain@orebokech.com>
 
 	* configure.in: Delete extra semicolons.
