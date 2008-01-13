@@ -1,13 +1,13 @@
 2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* callproc.c: (Fcall_process): Fix previous change.
+	* callproc.c (Fcall_process): Fix previous change.
 
 2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* (unexsunos4): Remove file, system not supported anymore.
+	* unexsunos4: Remove file, system not supported anymore.
 
-	* (src/m/mips.h):
-	* (src/m/intel386.h):
+	* src/m/mips.h:
+	* src/m/intel386.h:
 	* callproc.c:
 	* config.in:
 	* ecrt0.c:
@@ -1884,8 +1884,7 @@
 2007-08-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* callproc.c (child_setup, getenv_internal): Use the
-	display-environment-variable and term-environment-variable frame
-	params.
+	display-environment-variable and term-environment-variable frame params.
 	(set_initial_environment): Initialise Vprocess_environment.
 
 	* config.in: Disable multi-keyboard support on a mac.
