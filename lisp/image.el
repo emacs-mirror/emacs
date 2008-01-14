@@ -313,22 +313,14 @@ use its file extension as image type.
 Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data."
   (when (and (not data-p) (not (stringp file-or-data)))
     (error "Invalid image file name `%s'" file-or-data))
-  (cond ((null data-p)
-	 ;; FILE-OR-DATA is a file name.
-	 (unless (or type
-		     (setq type (image-type-from-file-header file-or-data)))
-	   (let ((extension (file-name-extension file-or-data)))
-	     (unless extension
-	       (error "Cannot determine image type"))
-	     (setq type (intern extension)))))
-	(t
-	 ;; FILE-OR-DATA contains image data.
-	 (unless type
-	   (setq type (image-type-from-data file-or-data)))))
   (unless type
-    (error "Cannot determine image type"))
-  (unless (symbolp type)
-    (error "Invalid image type `%s'" type))
+    (setq type (if data-p 
+                   (image-type-from-data file-or-data)
+                 (or (image-type-from-file-header file-or-data)
+                     (image-type-from-file-name file-or-data))))
+    (or type(error "Cannot determine image type")))
+  (or (memq type (and (boundp 'image-types) image-types))
+      (error "Invalid image type `%s'" type))
   type)
 
 
