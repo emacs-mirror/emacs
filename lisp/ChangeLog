@@ -1,3 +1,14 @@
+2008-01-14  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-vars.el (c-constant-symbol): New function which
+	supersedes c-const-symbol.  During a customize-.. call it enables
+	an element of (e.g.) c-hanging-braces alist to have its name
+	displayed, even when the default value of c-h-b etc. doesn't
+	include the elemnt.  Replace uses of the old function by the new.
+
+	* progmodes/cc-vars.el (c-hanging-braces-alist): Remove the
+	obscure non-working fragment ":value c-".
+	
 2008-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* abbrev.el (clear-abbrev-table): Can't pass a symbol to intern.
