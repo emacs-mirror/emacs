@@ -1,3 +1,8 @@
+2008-01-14  acm  <acm@localhost.localdomain>
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax): prevent a macro
+	call inside a struct being recognised as a K&R argument.
+
 2008-01-14  Jason Rumney  <jasonr@gnu.org>
 
 	* image.el (image-type): Use image-type-from-file-name (from trunk
