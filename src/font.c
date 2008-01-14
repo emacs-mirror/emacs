@@ -2699,7 +2699,7 @@ font_find_for_lface (f, lface, spec, c)
 
       if (result > 0)
 	return AREF (entities, i);
-      if (result <= 0)
+      if (result == 0)
 	continue;
       font_object = font_open_for_lface (f, AREF (entities, i), lface, spec);
       if (NILP (font_object))
@@ -3577,9 +3577,12 @@ FONT-OBJECT.  */)
       for (i = 0; i < len; i++)
 	{
 	  Lisp_Object g = LGSTRING_GLYPH (gstring, i);
-	  unsigned code = LGLYPH_CODE (g);
+	  unsigned code;
 	  struct font_metrics metrics;
 
+	  if (NILP (g))
+	    break;
+	  code = LGLYPH_CODE (g);
 	  if (font->driver->text_extents (font, &code, 1, &metrics) == 0)
 	    {
 	      Lisp_Object gstr = Ffont_make_gstring (font_object,
