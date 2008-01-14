@@ -1,3 +1,8 @@
+2008-01-14  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax): prevent a macro
+	call inside a struct being recognised as a K&R argument.
+
 2008-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
