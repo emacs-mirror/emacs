@@ -1021,6 +1021,14 @@ buffer names."
   (unless smerge-mode
     (smerge-remove-props (point-min) (point-max))))
 
+;;;###autoload
+(defun smerge-auto ()
+  "Turn on `smerge-mode' and move point to first conflict marker.
+If no conflict maker is found, turn off `smerge-mode'."
+  (smerge-mode 1)
+  (condition-case nil
+      (smerge-next)
+    (error (smerge-auto-leave))))
 
 (provide 'smerge-mode)
 

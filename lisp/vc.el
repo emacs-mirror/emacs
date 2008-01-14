@@ -7,8 +7,6 @@
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
 
-;; $Id$
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -521,6 +519,31 @@
 ;;   you can provide menu entries for functionality that is specific
 ;;   to your backend and which does not map to any of the VC generic
 ;;   concepts.
+
+;;; Todo:
+
+;; - Make vc-checkin avoid reverting the buffer if has not changed
+;;   after the checkin.  Comparing (md5 BUFFER) to (md5 FILE) should
+;;   be enough.
+;;
+;; - vc-update/vc-merge should deal with VC systems that don't
+;;   update/merge on a file basis, but on a whole repository basis.
+;;
+;; - vc-register should register multiple files at a time. The
+;;  `register' backend function already supports that.
+;;
+;; - the *VC-log* buffer needs font-locking.
+;;
+;; - make it easier to write logs, maybe C-x 4 a should add to the log
+;;   buffer if there's one instead of the ChangeLog.
+;;
+;; - deal with push/pull operations.
+;;
+;; - decide if vc-status should replace vc-dired.
+;;
+;; - vc-status should be made asynchronous.
+;;
+;; - vc-status needs a menu, mouse bindings and some color bling.
 
 ;;; Code:
 
@@ -2222,7 +2245,7 @@ See Info node `Merging'."
 (defun vc-maybe-resolve-conflicts (file status &optional name-A name-B)
   (vc-resynch-buffer file t (not (buffer-modified-p)))
   (if (zerop status) (message "Merge successful")
-    (smerge-mode 1)
+    (smerge-auto)
     (message "File contains conflicts.")))
 
 ;;;###autoload

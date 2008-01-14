@@ -1,3 +1,12 @@
+2008-01-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* smerge-mode.el (smerge-auto): New function.
+	* vc-svn.el (vc-svn-find-file-hook):
+	* vc-arch.el (vc-arch-find-file-hook):
+	* pcvs.el (cvs-revert-if-needed):
+	* vc.el (vc-maybe-resolve-conflicts): Use it instead of vc-mode.
+	(top-level): Add a Todo list.
+
 2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-update): Resolve conflicts if necessary instead of
