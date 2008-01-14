@@ -1,4 +1,4 @@
-2008-01-14  acm  <acm@localhost.localdomain>
+2008-01-14  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax): prevent a macro
 	call inside a struct being recognised as a K&R argument.
