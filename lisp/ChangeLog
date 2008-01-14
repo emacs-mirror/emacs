@@ -1,3 +1,7 @@
+2008-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* abbrev.el (clear-abbrev-table): Can't pass a symbol to intern.
+
 2008-01-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-local-host-p): Use `tramp-file-name-host'
@@ -7,7 +11,7 @@
 
 2008-01-14  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-engine.el (c-guess-basic-syntax): prevent a macro
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Prevent a macro
 	call inside a struct being recognised as a K&R argument.
 
 2008-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
