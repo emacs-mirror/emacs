@@ -6731,7 +6731,9 @@ necessary only.  This function will be used in file name completion."
 
 (defun tramp-local-host-p (vec)
   "Return t if this points to the local host, nil otherwise."
-  (let ((host (tramp-file-name-real-host vec)))
+  ;; We cannot use `tramp-file-name-real-host'.  A port is an
+  ;; indication for an ssh tunnel or alike.
+  (let ((host (tramp-file-name-host vec)))
     (and
      (stringp host)
      (string-match
