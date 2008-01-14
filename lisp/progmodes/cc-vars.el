@@ -73,8 +73,27 @@ Useful as last item in a `choice' widget."
       :format "%t%n"
       :value 'other))
 
+;; The next defun will supersede c-const-symbol.
+(defun c-constant-symbol (sym len)
+  "Create an uneditable symbol for customization buffers.
+SYM is the name of the symbol, LEN the length of the field (in
+characters) the symbol will be displayed in.  LEN must be big
+enough.
+
+This returns a (const ....) structure, suitable for embedding
+within a customization type."
+  (or (symbolp sym) (error "c-constant-symbol: %s is not a symbol" sym))
+  (let* ((name (symbol-name sym))
+	 (l (length name))
+	 (disp (concat name ":" (make-string (- len l 1) ?\ ))))
+    `(const
+      :size ,len
+      :format ,disp
+      :value ,sym)))
+
 (define-widget 'c-const-symbol 'item
-  "An uneditable lisp symbol."
+  "An uneditable lisp symbol.  This is obsolete -
+use c-constant-symbol instead."
   :value nil
   :tag "Symbol"
   :format "%t: %v\n%d"
@@ -395,9 +414,7 @@ in that case, i.e. as if \\[c-indent-command] was used instead."
     `(set ,@(mapcar
 	     (lambda (elt)
 	       `(cons :format "%v"
-		      (c-const-symbol :format "%v: "
-				      :size 20
-				      :value ,elt)
+		      ,(c-constant-symbol elt 20)
 		      (choice
 		       :format "%[Choice%] %v"
 		       :value (column . nil)
@@ -732,18 +749,15 @@ syntactic context for the brace line."
   `(set ,@(mapcar
 	   (lambda (elt)
 	     `(cons :format "%v"
-		    (c-const-symbol :format "%v: "
-				    :size 20
-				    :value ,elt)
+		    ,(c-constant-symbol elt 24)
 		    (choice :format "%[Choice%] %v"
 			    :value (before after)
 			    (set :menu-tag "Before/after"
-				 :format "Newline %v brace\n"
-				 (const :format "%v, " before)
-				 (const :format "%v" after))
+				 :format "Newline  %v brace\n"
+				 (const :format "%v,  " before)
+				 (const :format "%v " after))
 			    (function :menu-tag "Function"
-				      :format "Run function: %v"
-				      :value c-))))
+				      :format "Run function: %v"))))
 	   '(defun-open defun-close
 	      class-open class-close
 	      inline-open inline-close
@@ -779,11 +793,9 @@ currently not supported for this variable."
   `(set ,@(mapcar
 	   (lambda (elt)
 	     `(cons :format "%v"
-		    (c-const-symbol :format "%v: "
-				    :size 20
-				    :value ,elt)
-		    (set :format "Newline %v brace\n"
-			 (const :format "%v, " before)
+		    ,(c-constant-symbol elt 20)
+		    (set :format "Newline  %v  colon\n"
+			 (const :format "%v,  " before)
 			 (const :format "%v" after))))
 	   '(case-label label access-label member-init-intro inher-intro)))
   :group 'c)
@@ -1296,8 +1308,7 @@ Here is the current list of valid syntactic element symbols:
 	   (lambda (elt)
 	     `(cons :format "%v"
 		    :value ,elt
-		    (c-const-symbol :format "%v: "
-				    :size 25)
+		    ,(c-constant-symbol (car elt) 25)
 		    (sexp :format "%v"
 			  :validate
 			  (lambda (widget)
