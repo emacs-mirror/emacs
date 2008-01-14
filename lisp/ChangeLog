@@ -1,3 +1,8 @@
+2008-01-14  Jason Rumney  <jasonr@gnu.org>
+
+	* image.el (image-type): Use image-type-from-file-name (from trunk
+	2007-05-21  Chong Yidong  <cyd@stupidchicken.com>).
+
 2008-01-12  Glenn Morris  <rgm@gnu.org>
 
 	* woman.el (woman-parse-numeric-arg): Change handling of `==':
