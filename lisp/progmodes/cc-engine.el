@@ -8293,6 +8293,7 @@ comment at the start of cc-engine.el for more info."
 
 	   ;; CASE 5H: we could be looking at subsequent knr-argdecls
 	   ((and c-recognize-knr-p
+		 (not containing-sexp)	; can't be knr inside braces.
 		 (not (eq char-before-ip ?}))
 		 (save-excursion
 		   (setq placeholder (cdr (c-beginning-of-decl-1 lim)))
