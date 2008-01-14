@@ -1,3 +1,10 @@
+2008-01-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-local-host-p): Use `tramp-file-name-host'
+	instead of `tramp-file-name-real-host'.
+
+	* net/trampver.el: Update release number.
+
 2008-01-14  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax): prevent a macro
