@@ -338,43 +338,6 @@ fontset_ref (fontset, c)
   return elt;
 }
 
-
-/* Return the element of FONTSET for the character C, set FROM and TO
-   to the range of characters around C that have the same value as C.
-   If FONTSET is a base fontset other then the default fontset and
-   FONTSET doesn't contain information for C, return the information
-   in the default fontset.  */
-
-#define FONTSET_REF_AND_RANGE(fontset, c, form, to)	\
-  (EQ (fontset, Vdefault_fontset)			\
-   ? char_table_ref_and_range (fontset, c, &from, &to)	\
-   : fontset_ref_and_range (fontset, c, &from, &to))
-
-static Lisp_Object
-fontset_ref_and_range (fontset, c, from, to)
-     Lisp_Object fontset;
-     int c;
-     int *from, *to;
-{
-  Lisp_Object elt;
-
-  elt = char_table_ref_and_range (fontset, c, from, to);
-  if (NILP (elt) && ! EQ (fontset, Vdefault_fontset)
-      /* Don't check Vdefault_fontset for a realized fontset.  */
-      && NILP (FONTSET_BASE (fontset)))
-    {
-      int from1, to1;
-
-      elt = char_table_ref_and_range (Vdefault_fontset, c, &from1, &to1);
-      if (*from < from1)
-	*from = from1;
-      if (*to > to1)
-	*to = to1;
-    }
-  return elt;
-}
-
-
 /* Set elements of FONTSET for characters in RANGE to the value ELT.
    RANGE is a cons (FROM . TO), where FROM and TO are character codes
    specifying a range.  */
@@ -609,7 +572,7 @@ fontset_find_font (fontset, c, face, id, fallback)
 	return Qnil;
       if (! fallback)
 	{
-	  elt = FONTSET_REF_AND_RANGE (base_fontset, c, from, to);
+	  elt = char_table_ref_and_range (base_fontset, c, &from, &to);
 	  range = Fcons (make_number (from), make_number (to));
 	  if (EQ (base_fontset, Vdefault_fontset))
 	    {
@@ -1098,7 +1061,6 @@ make_fontset_for_ascii_face (f, base_fontset_id, face)
       base_fontset = FONTSET_FROM_ID (base_fontset_id);
       if (!BASE_FONTSET_P (base_fontset))
 	base_fontset = FONTSET_BASE (base_fontset);
-      xassert (BASE_FONTSET_P (base_fontset));
       if (! BASE_FONTSET_P (base_fontset))
 	abort ();
     }
@@ -1106,39 +1068,6 @@ make_fontset_for_ascii_face (f, base_fontset_id, face)
     base_fontset = Vdefault_fontset;
 
   fontset = make_fontset (frame, Qnil, base_fontset);
-  {
-    Lisp_Object elt, rfont_def, val;
-
-    elt = FONTSET_REF (base_fontset, 0);
-    xassert (VECTORP (elt) && ASIZE (elt) > 0);
-    rfont_def = Fmake_vector (make_number (4), Qnil);
-#ifdef USE_FONT_BACKEND
-    if (enable_font_backend && face->font_info)
-      {
-	struct font *font = (struct font *) face->font_info;
-
-	ASET (rfont_def, 3, Fcons (font->entity, Qnil));
-      }
-    else
-#endif  /* USE_FONT_BACKEND */
-    {
-      ASET (rfont_def, 3, build_string (face->font_name));
-    }
-    ASET (rfont_def, 1, make_number (face->font_info_id));
-    ASET (rfont_def, 2, AREF (elt, 0));
-    elt = Fmake_vector (make_number (4), Qnil);
-    ASET (elt, 0, make_number (charset_ordered_list_tick));
-    ASET (elt, 1, make_number (charset_ascii));
-    ASET (elt, 2, rfont_def);
-    ASET (elt, 3, rfont_def);
-
-    val = Fcons (Qlatin, Qnil);
-    map_char_table (accumulate_script_ranges, Qnil, Vchar_script_table, val);
-    for (val = XCDR (val); CONSP (val); val = XCDR (val))
-      char_table_set_range (fontset, XINT (XCAR (XCAR (val))),
-			    XINT (XCDR (XCAR (val))), elt);
-    FONTSET_FALLBACK (fontset) = elt;
-  }
   return XINT (FONTSET_ID (fontset));
 }
 
@@ -1715,7 +1644,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	  map_char_table (accumulate_script_ranges, Qnil, Vchar_script_table,
 			  val);
 	  range_list = XCDR (val);
-	  if (EQ (target, Qlatin))
+	  if (EQ (target, Qlatin) && NILP (FONTSET_ASCII (fontset)))
 	    {
 	      if (VECTORP (font_spec))
 		val = generate_ascii_font_name (FONTSET_NAME (fontset),
@@ -1727,7 +1656,7 @@ appended.  By default, FONT-SPEC overrides the previous settings.  */)
 	}
       if (CHARSETP (target))
 	{
-	  if (EQ (target, Qascii))
+	  if (EQ (target, Qascii) && NILP (FONTSET_ASCII (fontset)))
 	    {
 	      if (VECTORP (font_spec))
 		font_spec = generate_ascii_font_name (FONTSET_NAME (fontset),
@@ -1925,6 +1854,8 @@ new_fontset_from_font (font_object)
   font_spec = Fcons (SYMBOL_NAME (AREF (font_spec, FONT_FAMILY_INDEX)),
 		     SYMBOL_NAME (AREF (font_spec, FONT_REGISTRY_INDEX)));
   Fset_fontset_font (name, Qlatin, font_spec, Qnil, Qnil);
+  XSETCDR (font_spec, build_string ("iso10646-1"));
+  Fset_fontset_font (name, Qlatin, font_spec, Qnil, Qappend);
   Fset_fontset_font (name, Qnil, font_spec, Qnil, Qnil);
   return XINT (FONTSET_ID (fontset));
 }
