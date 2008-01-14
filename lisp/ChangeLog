@@ -1,3 +1,9 @@
+2008-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Accept "fatal error" from MSFT.
+	Reported by Jared Finder <jfinder@crypticstudios.com>.
+
 2008-01-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* smerge-mode.el (smerge-auto): New function.
@@ -17,9 +23,9 @@
 
 2008-01-13  Martin Rudalics  <rudalics@gmx.at>
 
-	* mail/rmail.el (rmail-convert-to-babyl-format): Remove
-	save-excursion to avoid infinite looping.  Reported by: dnz
-	<dnz@bk.ru>.
+	* mail/rmail.el (rmail-convert-to-babyl-format):
+	Remove save-excursion to avoid infinite looping.
+	Reported by: dnz <dnz@bk.ru>.
 
 2008-01-12  Glenn Morris  <rgm@gnu.org>
 
@@ -157,7 +163,7 @@
 	(vc-status-current-file): Likewise.
 	(vc-ensure-vc-buffer): Understand vc-status mode.
 
-        * vc-hg.el (vc-hg-dir-status): Don't pass -A to "hg status".
+	* vc-hg.el (vc-hg-dir-status): Don't pass -A to "hg status".
 
 2008-01-09  Glenn Morris  <rgm@gnu.org>
 
@@ -402,8 +408,7 @@
 	* vc-arch.el (vc-arch-root): Only set a property if the file is
 	managed by this backend.
 
-	* vc-hg.el (vc-hg-state): Support the new status code for
-	up-to-date.
+	* vc-hg.el (vc-hg-state): Support the new status code for up-to-date.
 
 2008-01-04  Tassilo Horn  <tassilo@member.fsf.org>
 
@@ -413,8 +418,8 @@
 
 	* doc-view.el (doc-view-scroll-up-or-next-page)
 	(doc-view-scroll-down-or-previous-page): Use image-scroll-up and
-	image-scroll-down instead of the non-image equivalents.  Don't
-	rely on a signalled condition but switch pages when scrolling
+	image-scroll-down instead of the non-image equivalents.
+	Don't rely on a signalled condition but switch pages when scrolling
 	doesn't change the vertical position anymore.
 	(doc-view-mode-map): Remap scroll-{up,down} to
 	image-scroll-{up,down}.
@@ -432,7 +437,8 @@
 	* bs.el (bs--sort-by-mode, bs--get-mode-name):
 	* imenu.el (imenu-add-to-menubar):
 	* makesum.el (make-command-summary):
-	* mouse.el (mouse-major-mode-menu, mouse-popup-menubar, mouse-buffer-menu):
+	* mouse.el (mouse-major-mode-menu, mouse-popup-menubar)
+	(mouse-buffer-menu):
 	* msb.el (msb--mode-menu-cond):
 	* calc/calc-embed.el (calc-do-embedded):
 	* emacs-lisp/helper.el (Helper-describe-mode):
@@ -447,7 +453,8 @@
 	* progmodes/ada-xref.el (ada-prj-find-prj-file):
 	* progmodes/ada-mode.el (comment-region):
 	* calendar/todo-mode.el (todo-insert-item):
-	* bookmark.el (bookmark-buffer-name): Test major-mode rather than mode-name.
+	* bookmark.el (bookmark-buffer-name):
+	Test major-mode rather than mode-name.
 
 2008-01-04  Richard Stallman  <rms@gnu.org>
 
@@ -523,8 +530,8 @@
 
 2008-01-02  Karl Fogel  <kfogel@red-bean.com>
 
-	Change a return type, for greater extensibility.  See
-	http://lists.gnu.org/archive/html/emacs-devel/2007-12/msg01077.html
+	Change a return type, for greater extensibility.
+	See http://lists.gnu.org/archive/html/emacs-devel/2007-12/msg01077.html
 	and its thread for discussion leading to this change.
 
 	* emacs-cvs/lisp/bookmark.el:
@@ -586,7 +593,7 @@
 
 2008-01-01  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc-svn.el (vc-svn-parse-status): Set the 'unregisted property
+	* vc-svn.el (vc-svn-parse-status): Set the `unregisted' property
 	correctly.
 
 	* vc.el (vc-dired-hook):  Speed tuning.  Replace a vc-backend call
