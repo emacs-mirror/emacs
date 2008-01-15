@@ -1,14 +1,9 @@
 COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
 
 The following icons are from GNOME 2.x. They are not part of Emacs,
-but distributed and used by Emacs.
-
-  Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
-  Tuomas Kuosmanen, Rodney Dawes, Jakub Steiner, Alexander Larsson,
-  Tor Lillqvist, Garrett LeSage, Dennis Cranston, Jody Goldberg, Luca
-  Ferretti, Mark Finlay, Lapo Calamandrei, Andreas Nilsson and Marco
-  Pesenti Gritti
-  License: GNU General Public License version 2 or later
+but distributed and used by Emacs.  They are licensed under the
+GNU General Public License version 2 or later.  See the source of the
+gnome-icons-theme package for more information.
 
 Emacs images and their GNOME source (GNOME icons are from stock/net/
 directory unless otherwise stated):
