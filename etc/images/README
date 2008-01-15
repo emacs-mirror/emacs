@@ -26,10 +26,9 @@ License: GNU General Public License version 3 or later (see COPYING)
 
 
 The following icons are from GTK+ 2.x. They are not part of Emacs, but
-distributed and used by Emacs.
-
-  Copyright (C) 1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald
-  License: GNU Library General Public License version 2 or later.
+are distributed and used by Emacs.  They are licensed under the
+GNU Library General Public License version 2 or later.  See the source
+of the gtk+ package for more information.
 
   close.xpm copy.xpm cut.xpm help.xpm home.xpm index.xpm info.pbm
   info.xpm jump-to.xpm left-arrow.xpm new.xpm open.xpm paste.xpm
@@ -42,49 +41,44 @@ distributed and used by Emacs.
 
 
 The following icons are from GNOME 2.x. They are not part of Emacs,
-but distributed and used by Emacs.
+but are distributed and used by Emacs.  They are licensed under the
+GNU General Public License version 2 or later.  See the source of
+the gnome-icons-theme package for more information.
 
-  Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007
-  Tuomas Kuosmanen, Rodney Dawes, Jakub Steiner, Alexander Larsson,
-  Tor Lillqvist, Garrett LeSage, Dennis Cranston, Jody Goldberg, Luca
-  Ferretti, Mark Finlay, Lapo Calamandrei, Andreas Nilsson and Marco
-  Pesenti Gritti
-  License: GNU General Public License version 2 or later.
+Emacs images and their source in the GNOME icons stock/ directory:
 
-  Emacs images and their source in the GNOME icons stock/ directory:
+  attach.xpm                document/stock_attach
+  cancel.xpm                slightly modified generic/stock_stop
+  connect.xpm               net/stock_connect
+  contact.xpm               net/stock_contact
+  data-save.xpm             data/stock_data-save
+  delete.xpm                generic/stock_delete
+  describe.xpm              generic/stock_properties
+  disconnect.xpm            net/stock_disconnect
+  exit.xpm                  generic/stock_exit
+  lock-broken.xpm           data/stock_lock-broken
+  lock-ok.xpm               data/stock_lock-ok
+  lock.xpm                  data/stock_lock
+  redo.xpm                  generic/stock_redo
+  search-replace.xpm        slightly modified generic/stock_search-and-replace
+  next-page.xpm             navigation/stock_next-page
+  refresh.xpm               generic/stock_refresh
+  separator.xpm             ?
+  show.xpm                  slightly modified document/stock_new
+  sort-ascending.xpm        slightly modified data/stock_sort-ascending
+  sort-column-ascending.xpm data/stock_sort-column-ascending
+  sort-criteria.xpm         data/stock_sort-criteria
+  sort-descending.xpm       slightly modified data/stock_sort-descending
+  sort-row-ascending.xpm    data/stock_sort-row-ascending
+  zoom-in.xpm               navigation/stock_zoom-in
+  zoom-out.xpm              navigation/stock_zoom-out
 
-    attach.xpm                document/stock_attach
-    cancel.xpm                slightly modified generic/stock_stop
-    connect.xpm               net/stock_connect
-    contact.xpm               net/stock_contact
-    data-save.xpm             data/stock_data-save
-    delete.xpm                generic/stock_delete
-    describe.xpm              generic/stock_properties
-    disconnect.xpm            net/stock_disconnect
-    exit.xpm                  generic/stock_exit
-    lock-broken.xpm           data/stock_lock-broken
-    lock-ok.xpm               data/stock_lock-ok
-    lock.xpm                  data/stock_lock
-    redo.xpm                  generic/stock_redo
-    search-replace.xpm        slightly modified generic/stock_search-and-replace
-    next-page.xpm             navigation/stock_next-page
-    refresh.xpm               generic/stock_refresh
-    separator.xpm             ?
-    show.xpm                  slightly modified document/stock_new
-    sort-ascending.xpm        slightly modified data/stock_sort-ascending
-    sort-column-ascending.xpm data/stock_sort-column-ascending
-    sort-criteria.xpm         data/stock_sort-criteria
-    sort-descending.xpm       slightly modified data/stock_sort-descending
-    sort-row-ascending.xpm    data/stock_sort-row-ascending
-    zoom-in.xpm               navigation/stock_zoom-in
-    zoom-out.xpm              navigation/stock_zoom-out
+  next-node.xpm and prev-node.xpm are from gthumb version 2.0 (part of
+  GNOME 2.x) where they are called next-image-24.png and prev-image-24.png.
+  up-node.xpm is just next-node.xpm rotated 90 degrees.
 
-    next-node.xpm and prev-node.xpm are from gthumb version 2.0 (part of
-    GNOME 2.x) where they are called next-image-24.png and prev-image-24.png.
-    up-node.xpm is just next-node.xpm rotated 90 degrees.
-
-    Some icons in the mail/ and gnus/ subdirectories are also taken
-    from this source (see their separate README files).
+  Some icons in the mail/ and gnus/ subdirectories are also taken
+  from this source (see their separate README files).
 
 The images in the low-color/ subdirectory are low-color versions of
 the files of the same name in this directory, and are subject to the
