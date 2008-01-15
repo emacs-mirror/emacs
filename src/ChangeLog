@@ -1,3 +1,7 @@
+2008-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* config.in: Revert 2008-01-13 change: this is a generated file.
+
 2008-01-13  Tom Tromey  <tromey@redhat.com>
 
 	* lisp.h: Fix typo.
