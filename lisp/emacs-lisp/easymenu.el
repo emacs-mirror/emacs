@@ -216,12 +216,18 @@ If NAME is provided, it is used for the keymap."
    (setq menu (cdr (easy-menu-convert-item menu)))))
  menu)
 
+(defvar easy-menu-avoid-duplicate-keys t
+  "Dynamically scoped var to register already used keys in a menu.
+If it holds a list, this is expected to be a list of keys already seen in the
+menu we're processing.  Else it means we're not processing a menu.")
+
 ;;;###autoload
 (defun easy-menu-create-menu (menu-name menu-items)
   "Create a menu called MENU-NAME with items described in MENU-ITEMS.
 MENU-NAME is a string, the name of the menu.  MENU-ITEMS is a list of items
 possibly preceded by keyword pairs as described in `easy-menu-define'."
   (let ((menu (make-sparse-keymap menu-name))
+        (easy-menu-avoid-duplicate-keys nil)
 	prop keyword arg label enable filter visible help)
     ;; Look for keywords.
     (while (and menu-items
@@ -341,22 +347,22 @@ ITEM defines an item as in `easy-menu-define'."
 		(setq prop (cons :button
 				 (cons (cons (cdr style) selected) prop)))))
 	      (when (stringp keys)
-		 (if (string-match "^[^\\]*\\(\\\\\\[\\([^]]+\\)]\\)[^\\]*$"
-				   keys)
-		     (let ((prefix
-			    (if (< (match-beginning 0) (match-beginning 1))
-				(substring keys 0 (match-beginning 1))))
-			   (postfix
-			    (if (< (match-end 1) (match-end 0))
-				(substring keys (match-end 1))))
-			   (cmd (intern (match-string 2 keys))))
-		       (setq keys (and (or prefix postfix)
-				       (cons prefix postfix)))
-		       (setq keys
-			     (and (or keys (not (eq command cmd)))
-				  (cons cmd keys))))
-		   (setq cache-specified nil))
-		 (if keys (setq prop (cons :keys (cons keys prop)))))
+                (if (string-match "^[^\\]*\\(\\\\\\[\\([^]]+\\)]\\)[^\\]*$"
+                                  keys)
+                    (let ((prefix
+                           (if (< (match-beginning 0) (match-beginning 1))
+                               (substring keys 0 (match-beginning 1))))
+                          (postfix
+                           (if (< (match-end 1) (match-end 0))
+                               (substring keys (match-end 1))))
+                          (cmd (intern (match-string 2 keys))))
+                      (setq keys (and (or prefix postfix)
+                                      (cons prefix postfix)))
+                      (setq keys
+                            (and (or keys (not (eq command cmd)))
+                                 (cons cmd keys))))
+                  (setq cache-specified nil))
+                (if keys (setq prop (cons :keys (cons keys prop)))))
 	      (if (and visible (not (easy-menu-always-true-p visible)))
 		  (if (equal visible ''nil)
 		      ;; Invisible menu item. Don't insert into keymap.
@@ -371,12 +377,27 @@ ITEM defines an item as in `easy-menu-define'."
     ;; `intern' the name so as to merge multiple entries with the same name.
     ;; It also makes it easier/possible to lookup/change menu bindings
     ;; via keymap functions.
-    (cons (easy-menu-intern name)
-	  (and (not remove)
-	       (cons 'menu-item
-		     (cons label
-			   (and name
-				(cons command prop))))))))
+    (let ((key (easy-menu-intern name)))
+      (when (listp easy-menu-avoid-duplicate-keys)
+        ;; Merging multiple entries with the same name is sometimes what we
+        ;; want, but not when the entries are actually different (e.g. same
+        ;; name but different :suffix as seen in cal-menu.el) and appear in
+        ;; the same menu.  So we try to detect and resolve conflicts.
+        (while (and (stringp name)
+                    (memq key easy-menu-avoid-duplicate-keys))
+          ;; We need to use some distinct object, ideally a symbol, ideally
+          ;; related to the `name'.  Uninterned symbols do not work (they
+          ;; are apparently turned into strings and re-interned later on).
+          (setq key (intern (format "%s (%d)" (symbol-name key)
+                                    (length easy-menu-avoid-duplicate-keys)))))
+        (push key easy-menu-avoid-duplicate-keys))
+
+      (cons key
+            (and (not remove)
+                 (cons 'menu-item
+                       (cons label
+                             (and name
+                                  (cons command prop)))))))))
 
 (defun easy-menu-define-key (menu key item &optional before)
   "Add binding in MENU for KEY => ITEM.  Similar to `define-key-after'.

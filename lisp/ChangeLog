@@ -1,5 +1,9 @@
 2008-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/easymenu.el (easy-menu-avoid-duplicate-keys): New var.
+	(easy-menu-create-menu, easy-menu-convert-item-1): Use it to avoid
+	using the same key for different menu entries.
+
 	* smerge-mode.el (smerge-refine): Also work on "same change conflicts".
 	(smerge-makeup-conflict): New command.
 
