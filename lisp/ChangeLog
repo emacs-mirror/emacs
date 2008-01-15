@@ -1,3 +1,8 @@
+2008-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-refine): Also work on "same change conflicts".
+	(smerge-makeup-conflict): New command.
+
 2008-01-15  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* log-edit.el (log-edit): Doc fix.
