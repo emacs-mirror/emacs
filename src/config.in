@@ -837,6 +837,13 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 #undef TM_IN_SYS_TIME
 
+/* Define to 1 for Encore UMAX. */
+#undef UMAX
+
+/* Define to 1 for Encore UMAX 4.3 that has <inq_status/cpustats.h> instead of
+   <sys/cpustats.h>. */
+#undef UMAX4_3
+
 /* Define to the unexec source file name. */
 #undef UNEXEC_SRC
 
