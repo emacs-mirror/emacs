@@ -50,10 +50,13 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
 * BUGS
 
-** eric@openbsd.org, 24 Nov: c-mode syntactic analysis regression in emacs-22.1
-http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00589.html
-
 ** david.reitter@gmail.com, 27 dec: pos-visible-in-window-p at ellipsis
+http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00945.html
+
+** diff mode change for missing spaces in -u format.
+Installed 2008-01-08 fix does not work right.
+http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html
+http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01114.html
 
 * DOCUMENTATION
 
