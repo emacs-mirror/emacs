@@ -1,3 +1,9 @@
+2008-01-16  acm  <acm@localhost.localdomain>
+
+	* progmodes/cc-vars.el (c-constant-symbol): Put this defun inside
+	an eval-and-compile, so as to permit byte-compiling (e.g. in
+	bootstrap).
+
 2008-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easymenu.el (easy-menu-avoid-duplicate-keys): New var.
