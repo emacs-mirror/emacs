@@ -391,13 +391,9 @@ when editing big diffs)."
       ;; Especially important for unified (because headers are ambiguous).
       (setq style (cdr (assq (char-after) '((?@ . unified) (?* . context))))))
     (goto-char (match-end 0)))
-  ;; Some versions of diff replace all-blank context lines in unified
-  ;; format with empty lines. The use of \n below avoids matching such
-  ;; lines as headers.
-  ;; http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html
   (let ((end (and (re-search-forward (case style
 				       ;; A `unified' header is ambiguous.
-				       (unified (concat "^[^-+# \\\n]\\|"
+				       (unified (concat "^[^-+# \\]\\|"
 							diff-file-header-re))
 				       (context "^[^-+#! \\]")
 				       (normal "^[^<>#\\]")
