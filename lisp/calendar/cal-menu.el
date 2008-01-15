@@ -141,7 +141,10 @@
     "--"
     ,@(let ((l ()))
         ;; Show 11 years--5 before, 5 after year of middle month.
+        ;; We used to use :suffix rather than :label and bumped into
+        ;; an easymenu bug:
         ;; http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01813.html
+        ;; The bug has since been fixed.
         (dotimes (i 11)
           (push (vector (format "hol-year-%d" i)
                         `(lambda ()
