@@ -341,9 +341,11 @@ Return non-nil if FILE is unchanged."
   (save-excursion
     (let ((rej (concat buffer-file-name ".rej")))
       (when (and buffer-file-name (vc-arch-diff3-rej-p rej))
-	(if (not (re-search-forward "^<<<<<<< " nil t))
-	    ;; The .rej file is obsolete.
-	    (condition-case nil (delete-file rej) (error nil)))))))
+	(unless (re-search-forward "^<<<<<<< " nil t)
+	  ;; The .rej file is obsolete.
+	  (condition-case nil (delete-file rej) (error nil))
+	  ;; Remove the hook so that it is not called multiple times.
+	  (remove-hook 'after-save-hook 'vc-arch-delete-rej-if-obsolete t))))))
 
 (defun vc-arch-find-file-hook ()
   (let ((rej (concat buffer-file-name ".rej")))
