@@ -74,7 +74,8 @@ Useful as last item in a `choice' widget."
       :value 'other))
 
 ;; The next defun will supersede c-const-symbol.
-(defun c-constant-symbol (sym len)
+(eval-and-compile
+  (defun c-constant-symbol (sym len)
   "Create an uneditable symbol for customization buffers.
 SYM is the name of the symbol, LEN the length of the field (in
 characters) the symbol will be displayed in.  LEN must be big
@@ -89,7 +90,7 @@ within a customization type."
     `(const
       :size ,len
       :format ,disp
-      :value ,sym)))
+      :value ,sym))))
 
 (define-widget 'c-const-symbol 'item
   "An uneditable lisp symbol.  This is obsolete -
