@@ -1013,7 +1013,7 @@ Support for the following obsolete platforms was removed in Emacs 23.1
   SCO 3.2v5 (s/sco5.h)
   Sun's 386-based RoadRunner (m/sun386.h)
   Sun3 machines (m/sun3*)
-   Integrated Solutions 386 machine (m/is386.h)
+  Integrated Solutions 386 machine (m/is386.h)
 
 
 Local variables:
