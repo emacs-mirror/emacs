@@ -1,3 +1,40 @@
+2008-01-16  Martin Rudalics  <rudalics@gmx.at>
+
+	* longlines.el (longlines-mode, longlines-show-region)
+	(longlines-unshow-hard-newlines): Bind buffer-file-name and
+	buffer-file-truename to nil while modifying buffer.
+
+	* cus-edit.el (custom-reset-standard-variables-list)
+	(custom-reset-standard-faces-list): New variables.
+	(custom-reset-standard-save-and-update): New function.
+	(Custom-save): Apply custom-mark-to-save before and
+	custom-state-set-and-redraw after saving options.
+	(Custom-reset-standard): Apply custom-mark-to-reset-standard to
+	options and call custom-reset-standard-save-and-update.
+	(custom-variable, custom-face, custom-group): Provide new
+	entries for custom-mark-to-save, custom-mark-to-reset-standard,
+	and custom-state-set-and-redraw.
+	(custom-variable-mark-to-save)
+	(custom-variable-state-set-and-redraw)
+	(custom-variable-mark-to-reset-standard)
+	(custom-face-mark-to-save, custom-face-state-set-and-redraw)
+	(custom-face-mark-to-reset-standard)
+	(custom-group-mark-to-save, custom-group-state-set-and-redraw)
+	(custom-group-mark-to-reset-standard): New functions.
+	(custom-variable-save): Move save, state-set, and redraw
+	functionality to custom-variable-mark-to-save.
+	(custom-face-save): Move save, state-set, and redraw
+	functionality to custom-face-mark-to-save.
+	(custom-group-save): Move save, state-set, and redraw
+	functionality to custom-group-mark-to-save.
+	(custom-variable-reset-standard, custom-face-reset-standard)
+	(custom-group-reset-standard): Move save, state-set, and redraw
+	functionality to custom-reset-standard-save-and-update.
+
+	(custom-buffer-create-internal): Fix text in verbose help.
+	(custom-face-value-create): Indent doc-strings of faces like
+	those of variables.
+
 2008-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* server.el (server-process-filter): Replace lineno and columnnno
