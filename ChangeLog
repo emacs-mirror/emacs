@@ -1,3 +1,7 @@
+2008-01-16  Sven Joachim  <svenjoac@gmx.de>
+
+	* make-dist: Add --lzma.
+
 2008-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (maybe_bootstrap): Remove texinfo message, since
