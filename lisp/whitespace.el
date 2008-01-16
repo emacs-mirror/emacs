@@ -171,21 +171,21 @@ don't define it."
 
 (defcustom whitespace-check-leading-whitespace t
   "Flag to check leading whitespace.  This is the global for the system.
-It can be overriden by setting a buffer local variable
+It can be overridden by setting a buffer local variable
 `whitespace-check-buffer-leading'."
   :type 'boolean
   :group 'whitespace)
 
 (defcustom whitespace-check-trailing-whitespace t
   "Flag to check trailing whitespace.  This is the global for the system.
-It can be overriden by setting a buffer local variable
+It can be overridden by setting a buffer local variable
 `whitespace-check-buffer-trailing'."
   :type 'boolean
   :group 'whitespace)
 
 (defcustom whitespace-check-spacetab-whitespace t
   "Flag to check space followed by a TAB.  This is the global for the system.
-It can be overriden by setting a buffer local variable
+It can be overridden by setting a buffer local variable
 `whitespace-check-buffer-spacetab'."
   :type 'boolean
   :group 'whitespace)
@@ -197,7 +197,7 @@ It can be overriden by setting a buffer local variable
 
 (defcustom whitespace-check-indent-whitespace indent-tabs-mode
   "Flag to check indentation whitespace.  This is the global for the system.
-It can be overriden by setting a buffer local variable
+It can be overridden by setting a buffer local variable
 `whitespace-check-buffer-indent'."
   :type 'boolean
   :group 'whitespace)
@@ -210,7 +210,7 @@ The default value ignores leading TABs."
 
 (defcustom whitespace-check-ateol-whitespace t
   "Flag to check end-of-line whitespace.  This is the global for the system.
-It can be overriden by setting a buffer local variable
+It can be overridden by setting a buffer local variable
 `whitespace-check-buffer-ateol'."
   :type 'boolean
   :group 'whitespace)
