@@ -21,8 +21,8 @@ For each step, check for possible errors.
 
 5.   rm configure; make bootstrap
 
-6.  Commit configure, README, etc/AUTHORS, lisp/finder-inf.el,
-    lisp/version.el, man/emacs.texi, lispref/elisp.texi,
+6.  Commit configure, README, doc/emacs/emacs.texi,
+    doc/lispref/elisp.texi, etc/AUTHORS, lisp/version.el,    
     mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings,
     mac/src/Emacs.r, nt/emacs.rc.  Copy lisp/loaddefs.el to
     lisp/ldefs-boot.el and commit lisp/ldefs-boot.el.  For a release,
