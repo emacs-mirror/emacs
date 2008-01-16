@@ -840,7 +840,6 @@ Returns new end position."
 (defun in-is13194-post-read-conversion (len)
   (let ((pos (point)) endpos)
     (setq endpos (iscii-to-ucs-region pos (+ pos len)))
-    (indian-compose-region pos endpos)
     (- endpos pos)))
 
 ;;;###autoload
