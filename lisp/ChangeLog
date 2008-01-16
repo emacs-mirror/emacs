@@ -1,5 +1,12 @@
 2008-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* server.el (server-process-filter): Replace lineno and columnnno
+	which defaulted to 1&0 with filepos which defaults to nil.
+	(server-goto-line-column): Only receive the filepos.
+	Only move if filepos is non-nil.
+	(server-visit-files): Slight restructure to consolidate two calls to
+	server-goto-line-column into just one.
+
 	* nxml/nxml-mode.el (nxml-mode): Use mode-line-process to indicate
 	the use of degraded mode.
 	(nxml-degrade): Don't change mode-name.
