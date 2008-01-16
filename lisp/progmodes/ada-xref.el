@@ -617,7 +617,7 @@ If NO-USER-QUESTION, don't prompt user for file.  Call
 
 (defun ada-convert-file-name (name)
   "Convert from NAME to a name that can be used by the compilation commands.
-This is overriden on VMS to convert from VMS filenames to Unix filenames."
+This is overridden on VMS to convert from VMS filenames to Unix filenames."
   name)
 ;; FIXME: use convert-standard-filename instead
 
