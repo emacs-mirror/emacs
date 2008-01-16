@@ -1,3 +1,9 @@
+2008-01-16  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-vars.el (c-constant-symbol): Put this defun inside
+	an eval-and-compile, so as to permit byte-compiling (e.g. in
+	bootstrap).
+
 2008-01-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frame.el (display-mm-height, display-mm-width):
