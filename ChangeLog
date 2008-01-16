@@ -1,3 +1,7 @@
+2008-01-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove more references to unsupported systems.
+
 2008-01-16  Sven Joachim  <svenjoac@gmx.de>
 
 	* make-dist: Add --lzma.

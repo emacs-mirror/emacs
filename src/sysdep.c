@@ -3205,16 +3205,6 @@ get_random ()
   return val & ((1L << VALBITS) - 1);
 }
 
-#ifdef WRONG_NAME_INSQUE
-
-insque (q,p)
-     caddr_t q,p;
-{
-  _insque (q,p);
-}
-
-#endif
-
 #ifdef VMS
 
 #ifdef getenv

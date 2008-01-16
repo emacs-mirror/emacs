@@ -1,3 +1,15 @@
+2008-01-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/irix3-3.h:
+	* s/irix4-0.h:
+	* s/386-ix.h:
+	* s/domain.h:
+	* s/hpux9-x11r4.h:
+	* s/hpux9shxr4.h: Remove files for systems no longer supported.
+
+	* sysdep.c: Remove code containing references to symbols defined
+	by unsupported systems.
+
 2008-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* coding.c (select-safe-coding-system-function): Doc fix.

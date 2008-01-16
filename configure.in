@@ -571,12 +571,6 @@ dnl see the `changequote' comment above.
 
   ## Silicon Graphics machines
   ## Iris 4D
-  mips-sgi-irix3* )
-    machine=iris4d opsys=irix3-3
-  ;;
-  mips-sgi-irix4* )
-    machine=iris4d opsys=irix4-0
-  ;;
   mips-sgi-irix6.5 )
     machine=iris4d opsys=irix6-5
     # Without defining _LANGUAGE_C, things get masked out in the headers
@@ -1466,22 +1460,6 @@ HAVE_MENUS=no
 case ${HAVE_X11} in
   yes ) HAVE_MENUS=yes ;;
 esac
-
-if test "${opsys}" = "hpux9"; then
-  case "${x_libraries}" in
-    *X11R4* )
-      opsysfile="s/hpux9-x11r4.h"
-      ;;
-  esac
-fi
-
-if test "${opsys}" = "hpux9shr"; then
-  case "${x_libraries}" in
-    *X11R4* )
-      opsysfile="s/hpux9shxr4.h"
-      ;;
-  esac
-fi
 
 ### Compute the unexec source name from the object name.
 UNEXEC_SRC="`echo ${unexec} | sed 's/\.o/.c/'`"
