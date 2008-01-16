@@ -136,7 +136,8 @@ are indicated with a symbol."
         (let ((buffer-undo-list t)
               (inhibit-read-only t)
 	      (after-change-functions nil)
-              (mod (buffer-modified-p)))
+              (mod (buffer-modified-p))
+	      buffer-file-name buffer-file-truename)
           ;; Turning off undo is OK since (spaces + newlines) is
           ;; conserved, except for a corner case in
           ;; longlines-wrap-lines that we'll never encounter from here
@@ -176,7 +177,8 @@ are indicated with a symbol."
         (longlines-unshow-hard-newlines))
     (let ((buffer-undo-list t)
 	  (after-change-functions nil)
-          (inhibit-read-only t))
+          (inhibit-read-only t)
+	  buffer-file-name buffer-file-truename)
       (if longlines-decoded
 	  (save-restriction
 	    (widen)
@@ -220,7 +222,8 @@ With optional argument ARG, make the hard newlines invisible again."
 	 (mod (buffer-modified-p))
 	 (buffer-undo-list t)
 	 (inhibit-read-only t)
-	 (inhibit-modification-hooks t))
+	 (inhibit-modification-hooks t)
+	 buffer-file-name buffer-file-truename)
     (while pos
       (put-text-property pos (1+ pos) 'display
 			 (copy-sequence longlines-show-effect))
@@ -235,7 +238,8 @@ With optional argument ARG, make the hard newlines invisible again."
 	(mod (buffer-modified-p))
 	(buffer-undo-list t)
 	(inhibit-read-only t)
-	(inhibit-modification-hooks t))
+	(inhibit-modification-hooks t)
+	buffer-file-name buffer-file-truename)
     (while pos
       (remove-text-properties pos (1+ pos) '(display))
       (setq pos (text-property-not-all (1+ pos) (point-max) 'hard nil)))
