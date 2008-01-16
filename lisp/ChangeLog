@@ -1,5 +1,10 @@
 2008-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* ibuffer.el (mode): Pass the buffer to format-mode-line.
+	(ibuffer-update-mode-name): Remove.
+	(ibuffer-redisplay, ibuffer-update, ibuffer-mode): Don't call it.
+	(ibuffer-mode): Use mode-line-process instead.
+
 	* ibuf-ext.el (ibuffer-auto-update-changed, ibuffer-auto-mode):
 	Use derived-mode-p.
 	(ibuffer-mark-by-mode-regexp): Pass the buffer to format-mode-line.
