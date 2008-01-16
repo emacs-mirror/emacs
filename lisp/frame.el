@@ -1099,7 +1099,7 @@ displays not explicitely specified."
 
 (defun display-mm-height (&optional display)
   "Return the height of DISPLAY's screen in millimeters.
-System values can be overriden by `display-mm-dimensions-alist'.
+System values can be overridden by `display-mm-dimensions-alist'.
 If the information is unavailable, value is nil."
   (and (memq (framep-on-display display) '(x w32 mac))
        (or (cddr (assoc (or display (frame-parameter nil 'display))
@@ -1109,7 +1109,7 @@ If the information is unavailable, value is nil."
 
 (defun display-mm-width (&optional display)
   "Return the width of DISPLAY's screen in millimeters.
-System values can be overriden by `display-mm-dimensions-alist'.
+System values can be overridden by `display-mm-dimensions-alist'.
 If the information is unavailable, value is nil."
   (and (memq (framep-on-display display) '(x w32 mac))
        (or (cadr (assoc (or display (frame-parameter nil 'display))
