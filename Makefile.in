@@ -802,7 +802,6 @@ maybe_bootstrap:
 	if [ \( "$$bar" = '$(srcdir)/lisp/*.elc' \) -o \( "$$bar" = '' \) ]; then \
 	  echo "Your tree does not include the compiled Lisp files."; \
 	  echo "You need to do \`make bootstrap' to build Emacs."; \
-	  echo "Emacs now requires Texinfo version 4.2."; \
 	  exit 1;\
 	fi
 
