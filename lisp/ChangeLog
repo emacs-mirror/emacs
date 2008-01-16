@@ -1,3 +1,7 @@
+2008-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* comint.el (comint-regexp-arg): Fix no-input case.
+
 2008-01-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* smerge-mode.el (smerge-start-session): Rename from smerge-auto.
