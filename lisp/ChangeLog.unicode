@@ -1,3 +1,8 @@
+2008-01-16  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* language/ind-util.el (in-is13194-post-read-conversion): Delete
+	unnecessary call of indian-compose-region.
+
 2008-01-11  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* descr-text.el (describe-char-display): Fix previous change.
