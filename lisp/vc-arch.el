@@ -360,7 +360,7 @@ Return non-nil if FILE is unchanged."
 	    (if (not (re-search-forward "^<<<<<<< " nil t))
 		;; The .rej file is obsolete.
 		(condition-case nil (delete-file rej) (error nil))
-	      (smerge-auto)
+	      (smerge-mode 1)
 	      (add-hook 'after-save-hook
 			'vc-arch-delete-rej-if-obsolete nil t)
 	      (message "There are unresolved conflicts in this file")))

@@ -1050,7 +1050,7 @@ with a \\[universal-argument] prefix, makes up a 3-way conflict."
     (smerge-remove-props (point-min) (point-max))))
 
 ;;;###autoload
-(defun smerge-auto ()
+(defun smerge-start-session ()
   "Turn on `smerge-mode' and move point to first conflict marker.
 If no conflict maker is found, turn off `smerge-mode'."
   (smerge-mode 1)

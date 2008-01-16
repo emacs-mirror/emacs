@@ -2311,7 +2311,7 @@ this file, or a list of arguments to send to the program."
 	    ;; do want to reset the mode for VC, so we do it explicitly.
 	    (vc-find-file-hook)
 	    (when (eq (cvs-fileinfo->type fileinfo) 'CONFLICT)
-	      (smerge-auto))))))))
+	      (smerge-start-session))))))))
 
 
 (defun cvs-change-cvsroot (newroot)

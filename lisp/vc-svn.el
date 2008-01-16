@@ -551,7 +551,7 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
           (re-search-forward "^<<<<<<< " nil t))
         ;; There are conflict markers.
         (progn
-          (smerge-auto)
+          (smerge-start-session)
           (add-hook 'after-save-hook 'vc-svn-resolve-when-done nil t))
       ;; There are no conflict markers.  This is problematic: maybe it means
       ;; the conflict has been resolved and we should immediately call "svn

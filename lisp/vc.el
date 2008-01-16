@@ -2245,7 +2245,7 @@ See Info node `Merging'."
 (defun vc-maybe-resolve-conflicts (file status &optional name-A name-B)
   (vc-resynch-buffer file t (not (buffer-modified-p)))
   (if (zerop status) (message "Merge successful")
-    (smerge-auto)
+    (smerge-mode 1)
     (message "File contains conflicts.")))
 
 ;;;###autoload

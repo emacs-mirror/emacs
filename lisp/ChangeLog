@@ -1,3 +1,12 @@
+2008-01-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* smerge-mode.el (smerge-start-session): Rename from smerge-auto.
+	* pcvs.el (cvs-revert-if-needed):
+	* vc.el (vc-maybe-resolve-conflicts): Rename callers.
+
+	* vc-svn.el (vc-svn-find-file-hook):
+	* vc-arch.el (vc-arch-find-file-hook): Undo previous change.
+
 2008-01-16  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar-version): Increase to 0.16.
