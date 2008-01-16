@@ -1,3 +1,9 @@
+2008-01-16  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-export-file)
+	(icalendar-import-file): Restore significant trailing whitespace
+	in `interactive' prompts.
+
 2008-01-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-arch.el (vc-arch-delete-rej-if-obsolete): Remove the
@@ -19,8 +25,6 @@
 
 	* progmodes/cc-vars.el (c-hanging-braces-alist): Remove the
 	obscure non-working fragment ":value c-".
-
-2008-01-14  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-engine.el (c-guess-basic-syntax): prevent a macro
 	call inside a struct being recognised as a K&R argument.
