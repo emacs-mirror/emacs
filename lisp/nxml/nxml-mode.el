@@ -510,6 +510,7 @@ Many aspects this mode can be customized using
   (kill-all-local-variables)
   (setq major-mode 'nxml-mode)
   (setq mode-name "nXML")
+  (set (make-local-variable 'mode-line-process) '((nxml-degraded "/degraded")))
   ;; We'll determine the fill prefix ourselves
   (make-local-variable 'adaptive-fill-mode)
   (setq adaptive-fill-mode nil)
@@ -573,8 +574,7 @@ Many aspects this mode can be customized using
       (nxml-with-unmodifying-text-property-changes
 	(nxml-clear-face (point-min) (point-max))
 	(nxml-set-fontified (point-min) (point-max))
-	(nxml-clear-inside (point-min) (point-max)))
-      (setq mode-name "nXML/degraded"))))
+	(nxml-clear-inside (point-min) (point-max))))))
 
 ;;; Change management
 

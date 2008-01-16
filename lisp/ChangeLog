@@ -1,5 +1,9 @@
 2008-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* nxml/nxml-mode.el (nxml-mode): Use mode-line-process to indicate
+	the use of degraded mode.
+	(nxml-degrade): Don't change mode-name.
+
 	* nxml/rng-nxml.el (rng-nxml-mode-init):
 	Don't overwrite mode-line-process.
 
