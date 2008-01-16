@@ -1,5 +1,9 @@
 2008-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* ibuf-ext.el (ibuffer-auto-update-changed, ibuffer-auto-mode):
+	Use derived-mode-p.
+	(ibuffer-mark-by-mode-regexp): Pass the buffer to format-mode-line.
+
 	* help.el (describe-mode): Pass the right buffer to format-mode-line.
 
 2008-01-16  Glenn Morris  <rgm@gnu.org>

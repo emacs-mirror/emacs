@@ -228,7 +228,7 @@ Currently, this only applies to `ibuffer-saved-filters' and
       (ignore-errors
 	(with-current-buffer buf
 	  (when (and ibuffer-auto-mode
-		     (eq major-mode 'ibuffer-mode))
+		     (derived-mode-p 'ibuffer-mode))
 	    (ibuffer-update nil t)))))))
 
 ;;;###autoload
@@ -236,7 +236,7 @@ Currently, this only applies to `ibuffer-saved-filters' and
   "Toggle use of Ibuffer's auto-update facility.
 With numeric ARG, enable auto-update if and only if ARG is positive."
   (interactive)
-  (unless (eq major-mode 'ibuffer-mode)
+  (unless (derived-mode-p 'ibuffer-mode)
     (error "This buffer is not in Ibuffer mode"))
   (set (make-local-variable 'ibuffer-auto-mode)
        (if arg
@@ -1386,7 +1386,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
   (ibuffer-mark-on-buffer
    #'(lambda (buf)
        (with-current-buffer buf
-	 (string-match regexp (format-mode-line mode-name))))))
+	 (string-match regexp (format-mode-line mode-name nil nil buf))))))
 
 ;;;###autoload
 (defun ibuffer-mark-by-file-name-regexp (regexp)
@@ -1539,5 +1539,5 @@ defaults to one."
 
 (provide 'ibuf-ext)
 
-;;; arch-tag: 9af21953-deda-4c30-b76d-f81d9128e76d
+;; arch-tag: 9af21953-deda-4c30-b76d-f81d9128e76d
 ;;; ibuf-ext.el ends here
