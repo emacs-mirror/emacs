@@ -8157,7 +8157,9 @@ Only 128th through 159th elements has a meaning.  */);
 
 If set, this function is called to force a user to select a proper
 coding system which can encode the text in the case that a default
-coding system used in each operation can't encode the text.
+coding system used in each operation can't encode the text.  The
+function should take care that the buffer is not modified while
+the coding system is being selected.
 
 The default value is `select-safe-coding-system' (which see).  */);
   Vselect_safe_coding_system_function = Qnil;
