@@ -860,7 +860,7 @@ whose documentation describes the minor mode."
 	(let ((mode mode-name))
 	  (with-current-buffer standard-output
             (let ((start (point)))
-              (insert (format-mode-line mode))
+              (insert (format-mode-line mode nil nil buffer))
               (add-text-properties start (point) '(face bold)))))
 	(princ " mode:\n")
 	(princ (documentation major-mode))))))

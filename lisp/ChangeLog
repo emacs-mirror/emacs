@@ -1,3 +1,7 @@
+2008-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help.el (describe-mode): Pass the right buffer to format-mode-line.
+
 2008-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* comint.el (comint-regexp-arg): Fix no-input case.
@@ -14,8 +18,8 @@
 2008-01-16  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar-version): Increase to 0.16.
-	(icalendar-export-file, icalendar-import-file): Restore
-	significant trailing whitespace in `interactive' prompts.
+	(icalendar-export-file, icalendar-import-file):
+	Restore significant trailing whitespace in `interactive' prompts.
 
 2008-01-16  Tom Tromey  <tromey@redhat.com>
 
@@ -24,8 +28,8 @@
 	(icalendar--find-time-zone): New functions.
 	(icalendar--decode-isodatetime): Add `zone' argument, passed to
 	`decode-time'.  Doc fix.
-	(icalendar--convert-ical-to-diary): Compute zone-map.  Pass
-	timezone to icalendar--decode-isodatetime.
+	(icalendar--convert-ical-to-diary): Compute zone-map.
+	Pass timezone to icalendar--decode-isodatetime.
 
 2008-01-16  Alan Mackenzie  <acm@muc.de>
 
