@@ -102,8 +102,8 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
   (easy-menu-define rng-nxml-menu nxml-mode-map
     "Menu for nxml-mode used with rng-validate-mode."
     rng-nxml-easy-menu)
-  (setq mode-line-process
-	'(rng-validate-mode (:eval (rng-compute-mode-line-string))))
+  (add-to-list 'mode-line-process
+               '(rng-validate-mode (:eval (rng-compute-mode-line-string))))
   (cond (rng-nxml-auto-validate-flag
 	 (rng-validate-mode 1)
 	 (add-hook 'nxml-completion-hook 'rng-complete nil t)

@@ -1,5 +1,8 @@
 2008-01-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* nxml/rng-nxml.el (rng-nxml-mode-init):
+	Don't overwrite mode-line-process.
+
 	* ibuffer.el (mode): Pass the buffer to format-mode-line.
 	(ibuffer-update-mode-name): Remove.
 	(ibuffer-redisplay, ibuffer-update, ibuffer-mode): Don't call it.
