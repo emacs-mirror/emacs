@@ -1,4 +1,20 @@
-2008-01-16  acm  <acm@localhost.localdomain>
+2008-01-16  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-version): Increase to 0.16.
+	(icalendar-export-file, icalendar-import-file): Restore
+	significant trailing whitespace in `interactive' prompts.
+
+2008-01-16  Tom Tromey  <tromey@redhat.com>
+
+	* calendar/icalendar.el (icalendar--convert-tz-offset)
+	(icalendar--parse-vtimezone, icalendar--convert-all-timezones)
+	(icalendar--find-time-zone): New functions.
+	(icalendar--decode-isodatetime): Add `zone' argument, passed to
+	`decode-time'.  Doc fix.
+	(icalendar--convert-ical-to-diary): Compute zone-map.  Pass
+	timezone to icalendar--decode-isodatetime.
+
+2008-01-16  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-vars.el (c-constant-symbol): Put this defun inside
 	an eval-and-compile, so as to permit byte-compiling (e.g. in
