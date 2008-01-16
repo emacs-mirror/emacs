@@ -1,3 +1,7 @@
+2008-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* comint.el (comint-regexp-arg): Fix no-input case.
+
 2008-01-16  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar-export-file)
