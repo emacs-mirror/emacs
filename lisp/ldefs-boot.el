@@ -4571,7 +4571,7 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal.
 ;;;### (autoloads (comint-redirect-results-list-from-process comint-redirect-results-list
 ;;;;;;  comint-redirect-send-command-to-process comint-redirect-send-command
 ;;;;;;  comint-run make-comint make-comint-in-buffer) "comint" "comint.el"
-;;;;;;  (18316 9691))
+;;;;;;  (18317 49783))
 ;;; Generated autoloads from comint.el
 
 (defvar comint-output-filter-functions '(comint-postoutput-scroll-to-bottom comint-watch-for-password-prompt) "\
@@ -14645,7 +14645,7 @@ FORMATS is the value to use for `ibuffer-formats'.
 
 ;;;### (autoloads (icalendar-import-buffer icalendar-import-file
 ;;;;;;  icalendar-export-region icalendar-export-file) "icalendar"
-;;;;;;  "calendar/icalendar.el" (18317 7567))
+;;;;;;  "calendar/icalendar.el" (18317 33926))
 ;;; Generated autoloads from calendar/icalendar.el
 
 (autoload 'icalendar-export-file "icalendar" "\
@@ -20771,7 +20771,7 @@ Setup shell-mode to use pcomplete.
 
 ;;;### (autoloads (cvs-dired-use-hook cvs-dired-action cvs-status
 ;;;;;;  cvs-update cvs-examine cvs-quickdir cvs-checkout) "pcvs"
-;;;;;;  "pcvs.el" (18317 25035))
+;;;;;;  "pcvs.el" (18317 49783))
 ;;; Generated autoloads from pcvs.el
 
 (autoload 'cvs-checkout "pcvs" "\
@@ -25096,8 +25096,8 @@ symmetrical ones, and the same character twice for the others.
 
 ;;;***
 
-;;;### (autoloads (smerge-auto smerge-mode smerge-ediff) "smerge-mode"
-;;;;;;  "smerge-mode.el" (18317 11736))
+;;;### (autoloads (smerge-start-session smerge-mode smerge-ediff)
+;;;;;;  "smerge-mode" "smerge-mode.el" (18317 49783))
 ;;; Generated autoloads from smerge-mode.el
 
 (autoload 'smerge-ediff "smerge-mode" "\
@@ -25113,7 +25113,7 @@ Minor mode to simplify editing output from the diff3 program.
 
 \(fn &optional ARG)" t nil)
 
-(autoload 'smerge-auto "smerge-mode" "\
+(autoload 'smerge-start-session "smerge-mode" "\
 Turn on `smerge-mode' and move point to first conflict marker.
 If no conflict maker is found, turn off `smerge-mode'.
 
@@ -29622,7 +29622,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME.
 ;;;;;;  vc-directory vc-merge vc-insert-headers vc-revision-other-window
 ;;;;;;  vc-diff vc-version-diff vc-register vc-next-action vc-do-command
 ;;;;;;  edit-vc-file with-vc-file vc-before-checkin-hook vc-checkin-hook
-;;;;;;  vc-checkout-hook) "vc" "vc.el" (18317 26672))
+;;;;;;  vc-checkout-hook) "vc" "vc.el" (18317 49783))
 ;;; Generated autoloads from vc.el
 
 (defvar vc-checkout-hook nil "\
@@ -29913,7 +29913,7 @@ mode-specific menu.  `vc-annotate-color-map' and
 
 ;;;***
 
-;;;### (autoloads nil "vc-arch" "vc-arch.el" (18315 16863))
+;;;### (autoloads nil "vc-arch" "vc-arch.el" (18317 49783))
 ;;; Generated autoloads from vc-arch.el
  (defun vc-arch-registered (file)
   (if (vc-find-root file "{arch}/=tagging-method")
@@ -30025,7 +30025,7 @@ find any project directory." (let ((project-dir (getenv "PROJECTDIR")) dirs dir)
 
 ;;;***
 
-;;;### (autoloads nil "vc-svn" "vc-svn.el" (18315 16863))
+;;;### (autoloads nil "vc-svn" "vc-svn.el" (18317 49783))
 ;;; Generated autoloads from vc-svn.el
  (defun vc-svn-registered (f)
   (let ((admin-dir (cond ((and (eq system-type 'windows-nt)
@@ -31957,7 +31957,7 @@ Zone out, completely.
 ;;;;;;  "url/url-nfs.el" "url/url-proxy.el" "url/url-vars.el" "url/vc-dav.el"
 ;;;;;;  "vc-hooks.el" "vcursor.el" "version.el" "vms-patch.el" "vmsproc.el"
 ;;;;;;  "vt-control.el" "vt100-led.el" "w32-fns.el" "w32-vars.el"
-;;;;;;  "widget.el" "window.el" "x-dnd.el") (18317 32734 645076))
+;;;;;;  "widget.el" "window.el" "x-dnd.el") (18317 50564 111773))
 
 ;;;***
 
