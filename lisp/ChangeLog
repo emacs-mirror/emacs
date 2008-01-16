@@ -1,3 +1,13 @@
+2008-01-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frame.el (display-mm-height, display-mm-width):
+	* whitespace.el (whitespace-check-leading-whitespace)
+	(whitespace-check-trailing-whitespace)
+	(whitespace-check-spacetab-whitespace)
+	(whitespace-check-indent-whitespace)
+	(whitespace-check-ateol-whitespace):
+	* progmodes/ada-xref.el (ada-convert-file-name): Fix typo in docstring.
+
 2008-01-16  Glenn Morris  <rgm@gnu.org>
 
 	* comint.el (comint-regexp-arg): Fix no-input case.
@@ -555,7 +565,7 @@
 	(verilog-re-search-backward, verilog-re-search-forward-quick)
 	(verilog-re-search-backward-quick, verilog-get-beg-of-line)
 	(verilog-get-end-of-line, verilog-within-string): Move definitions
-	before first use. No code changes.
+	before first use.  No code changes.
 
 2007-12-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -5988,7 +5998,7 @@
 	path.  Rewrite function in `cond' style for readability.
 
 	Suggested by: Stephen Eglen <S.J.Eglen{_AT_}damtp.cam.ac.uk>.
-	(The path shortening, that is, not the rearrarangement.)
+	(The path shortening, that is, not the rearrangement.)
 
 2007-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
