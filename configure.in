@@ -1532,7 +1532,7 @@ AC_SYS_LARGEFILE
 ### The standard library on x86-64 GNU/Linux distributions can 
 ### be located in either /usr/lib64 or /usr/lib.
 case "${canonical}" in
-  x86_64-*-linux-gnu* )
+  x86_64-*-linux-gnu* | s390x-*-linux-gnu* )
     if test -d /usr/lib64; then
       AC_DEFINE(HAVE_X86_64_LIB64_DIR, 1,
         [Define to 1 if the file /usr/lib64 exists.])
