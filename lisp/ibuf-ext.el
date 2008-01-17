@@ -730,8 +730,7 @@ prompt for NAME, and use the current filters."
   (ibuffer-aif (assoc name ibuffer-saved-filter-groups)
       (setcdr it groups)
     (push (cons name groups) ibuffer-saved-filter-groups))
-  (ibuffer-maybe-save-stuff)
-  (ibuffer-update-mode-name))
+  (ibuffer-maybe-save-stuff))
 
 ;;;###autoload
 (defun ibuffer-delete-saved-filter-groups (name)
@@ -896,8 +895,7 @@ Interactively, prompt for NAME, and use the current filters."
   (ibuffer-aif (assoc name ibuffer-saved-filters)
       (setcdr it filters)
     (push (list name filters) ibuffer-saved-filters))
-  (ibuffer-maybe-save-stuff)
-  (ibuffer-update-mode-name))
+  (ibuffer-maybe-save-stuff))
 
 ;;;###autoload
 (defun ibuffer-delete-saved-filters (name)
