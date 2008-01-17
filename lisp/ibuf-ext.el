@@ -243,8 +243,7 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
 	   (plusp arg)
 	 (not ibuffer-auto-mode)))
   (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed) ; Initialize state vector
-  (add-hook 'post-command-hook 'ibuffer-auto-update-changed)
-  (ibuffer-update-mode-name))
+  (add-hook 'post-command-hook 'ibuffer-auto-update-changed))
 
 ;;;###autoload
 (defun ibuffer-mouse-filter-by-mode (event)
