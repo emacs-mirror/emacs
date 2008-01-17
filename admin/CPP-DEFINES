@@ -3,10 +3,9 @@ of their use.  Feel free to add more macros and more categories.
 
 ** Distinguishing OSes **
 
-MAC_OS		Compiling for some version of Mac OS?
-MAC_OS8		Compiling for Mac OS version 8.  Requires MAC_OS?
-MAC_OSX		Compiling for Mac OS X?  Is that also valid for Darwin?
-MAC_OS_X	??  Apparently only used once in mac.c.
+MAC_OS		Compiling for the `mac' window-system.
+MAC_OS8		Compiling for Mac OS Classic (v8 or v9).
+MAC_OSX		Compiling for Mac OS X.  Not bare Darwin.
 CYGWIN		Compiling the Cygwin port.
 __CYGWIN__	Ditto
 MSDOS		Compiling the MS-DOS port.
