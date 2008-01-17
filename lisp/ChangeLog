@@ -1,3 +1,11 @@
+2008-01-17 Vinicius Jose Latorre <viniciusjl@ig.com.br>
+2008-01-17 Miles Bader <miles@gnu.org>
+
+	* blank-mode.el: New file.  Minor mode to visualise TAB,
+	(HARD) SPACE, NEWLINE.  Miles Bader <miles@gnu.org> wrote the original
+	code for handling display table (via visws.el package), his code was
+	modified, but the main idea was kept.
+
 2008-01-17  Glenn Morris  <rgm@gnu.org>
 
 	* ibuf-ext.el (ibuffer-auto-mode, ibuffer-save-filter-groups)
