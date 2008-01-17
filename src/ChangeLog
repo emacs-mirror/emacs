@@ -1,3 +1,8 @@
+2008-01-17  Glenn Morris  <rgm@gnu.org>
+
+	* m/ibms390x.h (START_FILES, LIB_STANDARD): Adjust value according
+	to HAVE_X86_64_LIB64_DIR.
+
 2008-01-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (mac_emacs_pid) [MAC_OSX]: New variable.
