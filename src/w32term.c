@@ -4290,6 +4290,10 @@ w32_read_socket (sd, expected, hold_quit)
 		temp_index = 0;
 	      temp_buffer[temp_index++] = msg.msg.wParam;
 
+              inev.modifiers = msg.dwModifiers;
+              XSETFRAME (inev.frame_or_window, f);
+              inev.timestamp = msg.msg.time;
+
               if (msg.msg.wParam < 128 && !dbcs_lead)
                 {
                   inev.kind = ASCII_KEYSTROKE_EVENT;
@@ -4298,20 +4302,14 @@ w32_read_socket (sd, expected, hold_quit)
               else if (msg.msg.wParam < 256)
                 {
                   wchar_t code;
-
+                  char dbcs[2];
                   inev.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+                  dbcs[0] = 0;
+                  dbcs[1] = (char) msg.msg.wParam;
 
-                  if (IsDBCSLeadByteEx(CP_ACP, (BYTE) msg.msg.wParam))
+                  if (dbcs_lead)
                     {
-                      dbcs_lead = (char) msg.msg.wParam;
-                      inev.kind = NO_EVENT;
-                      break;
-                    }
-                  else if (dbcs_lead)
-                    {
-                      char dbcs[2];
                       dbcs[0] = dbcs_lead;
-                      dbcs[1] = (char) msg.msg.wParam;
                       dbcs_lead = 0;
                       if (!MultiByteToWideChar(CP_ACP, 0, dbcs, 2, &code, 1))
                         {
@@ -4322,14 +4320,19 @@ w32_read_socket (sd, expected, hold_quit)
                           break;
                         }
                     }
+                  else if (IsDBCSLeadByteEx(CP_ACP, (BYTE) msg.msg.wParam))
+                    {
+                      dbcs_lead = (char) msg.msg.wParam;
+                      inev.kind = NO_EVENT;
+                      break;
+                    }
                   else
                     {
-                      char single_byte = (char) msg.msg.wParam;
-                      if (!MultiByteToWideChar(CP_ACP, 0, &single_byte, 1,
+                      if (!MultiByteToWideChar(CP_ACP, 0, &dbcs[1], 1,
                                                &code, 1))
                         {
                           /* What to do with garbage? */
-                          DebPrint (("Invalid character: %d\n", single_byte));
+                          DebPrint (("Invalid character: %d\n", dbcs[1]));
                           inev.kind = NO_EVENT;
                           break;
                         }
@@ -4355,17 +4358,67 @@ w32_read_socket (sd, expected, hold_quit)
                           charset_id = charset_mule_unicode_0100_24ff;
                           code -= 0x100;
                         }
-                      else if (code < 0xE000)
+                      else if (code < 0x3400)
                         {
                           charset_id = charset_mule_unicode_2500_33ff;
                           code -= 0x2500;
                         }
-                      else
+                      else if (code >= 0xE000)
                         {
                           charset_id = charset_mule_unicode_e000_ffff;
                           code -= 0xE000;
                         }
+                      else
+                        {
+                          /* Not in the unicode range that we can handle in
+                             Emacs-22, so decode the original character
+                             using the locale  */
+                          int nbytes, nchars, require, i, len;
+                          unsigned char *dest;
+                          struct coding_system coding;
 
+                          if (dbcs[0] == 0)
+                            {
+                              nbytes = 1;
+                              dbcs[0] = dbcs[1];
+                            }
+                          else
+                            nbytes = 2;
+
+                          setup_coding_system (Vlocale_coding_system, &coding);
+                          coding.src_multibyte = 0;
+                          coding.dst_multibyte = 1;
+                          coding.composing = COMPOSITION_DISABLED;
+                          require = decoding_buffer_size (&coding, nbytes);
+                          dest = (unsigned char *) alloca (require);
+                          coding.mode |= CODING_MODE_LAST_BLOCK;
+
+                          decode_coding (&coding, dbcs, dest, nbytes, require);
+                          nbytes = coding.produced;
+                          nchars = coding.produced_char;
+
+                          for (i = 0; i < nbytes; i += len)
+                            {
+                              if (nchars == nbytes)
+                                {
+                                  inev.code = dest[i];
+                                  len = 1;
+                                }
+                              else
+                                inev.code = STRING_CHAR_AND_LENGTH (dest + i,
+                                                                    nbytes - 1,
+                                                                    len);
+                              inev.kind = (SINGLE_BYTE_CHAR_P (inev.code)
+                                           ? ASCII_KEYSTROKE_EVENT
+                                           : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+                              kbd_buffer_store_event_hold (&inev, hold_quit);
+                              count++;
+                            }
+                          inev.kind = NO_EVENT; /* Already handled */
+                          break;
+                        }
+
+                      /* Unicode characters from above.  */
                       c1 = (code / 96) + 32;
                       c2 = (code % 96) + 32;
                       inev.code = MAKE_CHAR (charset_id, c1, c2);
@@ -4379,9 +4432,6 @@ w32_read_socket (sd, expected, hold_quit)
                   inev.kind = NO_EVENT;
                   break;
                 }
-	      inev.modifiers = msg.dwModifiers;
-	      XSETFRAME (inev.frame_or_window, f);
-	      inev.timestamp = msg.msg.time;
 	    }
 	  break;
 
