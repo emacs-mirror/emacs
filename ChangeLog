@@ -1,3 +1,7 @@
+2008-01-17  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_X86_64_LIB64_DIR): Also set on s390x systems.
+
 2007-11-28  Petr Salinger  <Petr.Salinger@seznam.cz>  (tiny change)
 
 	* configure.in: Add support for gnu-kfreebsd.
