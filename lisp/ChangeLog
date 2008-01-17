@@ -1,6 +1,7 @@
 2008-01-17  Glenn Morris  <rgm@gnu.org>
 
-	* ibuf-ext.el (ibuffer-auto-mode): Remove call to deleted
+	* ibuf-ext.el (ibuffer-auto-mode, ibuffer-save-filter-groups)
+	(ibuffer-save-filters): Remove calls to deleted
 	ibuffer-update-mode-name.
 
 2008-01-16  Martin Rudalics  <rudalics@gmx.at>
