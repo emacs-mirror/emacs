@@ -5828,7 +5828,7 @@ fi
 ### The standard library on x86-64 GNU/Linux distributions can
 ### be located in either /usr/lib64 or /usr/lib.
 case "${canonical}" in
-  x86_64-*-linux-gnu* )
+  x86_64-*-linux-gnu* | s390x-*-linux-gnu* )
     if test -d /usr/lib64; then
 
 cat >>confdefs.h <<\_ACEOF
