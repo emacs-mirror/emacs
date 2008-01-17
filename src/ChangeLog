@@ -1,3 +1,9 @@
+2008-01-17  Andreas Schwab  <schwab@suse.de>
+
+	* m/amdx86-64.h (START_FILES, LIB_STANDARD): Use HAVE_LIB64_DIR
+	instead of HAVE_X86_64_LIB64_DIR.
+	* m/ibms390x.h (START_FILES, LIB_STANDARD): Likewise.
+
 2008-01-17  Glenn Morris  <rgm@gnu.org>
 
 	* m/ibms390x.h (START_FILES, LIB_STANDARD): Adjust value according
