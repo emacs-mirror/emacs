@@ -1,3 +1,7 @@
+2008-01-18  Glenn Morris  <rgm@gnu.org>
+
+	* ffap.el (ffap-alist): Remove space from RFC regexp.
+
 2008-01-18  Richard Stallman  <rms@gnu.org>
 
 	* custom.el (custom-theme-recalc-face): Use face-spec-set rather
