@@ -1278,4 +1278,5 @@ options are valid."
 (run-hooks 'blank-load-hook)
 
 
+;; arch-tag: 1b1e2500-dbd4-4a26-8f7a-5a5edfd3c97e
 ;;; blank-mode.el ends here
