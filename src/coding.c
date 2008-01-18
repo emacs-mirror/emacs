@@ -6851,6 +6851,7 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
   Lisp_Object attrs;
   Lisp_Object buffer;
   int saved_pt = -1, saved_pt_byte;
+  int need_marker_adjustment = 0;
 
   buffer = Fcurrent_buffer ();
 
@@ -6877,6 +6878,14 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 	move_gap_both (from, from_byte);
       if (EQ (src_object, dst_object))
 	{
+	  struct Lisp_Marker *tail;
+
+	  for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
+	    {
+	      tail->need_adjustment
+		= tail->charpos == (tail->insertion_type ? from : to);
+	      need_marker_adjustment |= tail->need_adjustment;
+	    }
 	  saved_pt = PT, saved_pt_byte = PT_BYTE;
 	  TEMP_SET_PT_BOTH (from, from_byte);
 	  del_range_both (from, from_byte, to, to_byte, 1);
@@ -6982,6 +6991,29 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
       else
 	TEMP_SET_PT_BOTH (saved_pt + (coding->produced - bytes),
 			  saved_pt_byte + (coding->produced - bytes));
+
+      if (need_marker_adjustment)
+	{
+	  struct Lisp_Marker *tail;
+
+	  for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
+	    if (tail->need_adjustment)
+	      {
+		tail->need_adjustment = 0;
+		if (tail->insertion_type)
+		  {
+		    tail->bytepos = from_byte;
+		    tail->charpos = from;
+		  }
+		else
+		  {
+		    tail->bytepos = from_byte + coding->produced;
+		    tail->charpos
+		      = (NILP (current_buffer->enable_multibyte_characters)
+			 ? tail->bytepos : from + coding->produced_char);
+		  }
+	      }
+	}
     }
 
   unbind_to (count, coding->dst_object);
@@ -7002,6 +7034,7 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
   Lisp_Object attrs;
   Lisp_Object buffer;
   int saved_pt = -1, saved_pt_byte;
+  int need_marker_adjustment = 0;
   int kill_src_buffer = 0;
 
   buffer = Fcurrent_buffer ();
@@ -7012,6 +7045,18 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
   coding->src_multibyte = chars < bytes;
 
   attrs = CODING_ID_ATTRS (coding->id);
+
+  if (EQ (src_object, dst_object))
+    {
+      struct Lisp_Marker *tail;
+
+      for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
+	{
+	  tail->need_adjustment
+	    = tail->charpos == (tail->insertion_type ? from : to);
+	  need_marker_adjustment |= tail->need_adjustment;
+	}
+    }
 
   if (! NILP (CODING_ATTR_PRE_WRITE (attrs)))
     {
@@ -7142,6 +7187,29 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
       else
 	TEMP_SET_PT_BOTH (saved_pt + (coding->produced - bytes),
 			  saved_pt_byte + (coding->produced - bytes));
+
+      if (need_marker_adjustment)
+	{
+	  struct Lisp_Marker *tail;
+
+	  for (tail = BUF_MARKERS (current_buffer); tail; tail = tail->next)
+	    if (tail->need_adjustment)
+	      {
+		tail->need_adjustment = 0;
+		if (tail->insertion_type)
+		  {
+		    tail->bytepos = from_byte;
+		    tail->charpos = from;
+		  }
+		else
+		  {
+		    tail->bytepos = from_byte + coding->produced;
+		    tail->charpos
+		      = (NILP (current_buffer->enable_multibyte_characters)
+			 ? tail->bytepos : from + coding->produced_char);
+		  }
+	      }
+	}
     }
 
   if (kill_src_buffer)
