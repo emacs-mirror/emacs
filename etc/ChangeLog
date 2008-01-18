@@ -1,3 +1,7 @@
+2008-01-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* refcards/orgcard.tex: Update to Org-mode version 5.19.
+
 2008-01-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* MACHINES: Add an explicit list of platforms that are no longer
