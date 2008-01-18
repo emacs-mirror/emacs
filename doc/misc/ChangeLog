@@ -1,3 +1,24 @@
+2008-01-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Property inheritance): New section
+	(Conventions): New section.
+	(Structure editing): Document C-RET, the prefix arg to the cut/cpy
+	commands, and the new bindings for refiling.
+	(Sparse trees): Document the new special command for sparse trees.
+	(References): Be more clear about the counting of hilines.
+	(Handling links): Document M-p/n for accessing links.
+	(Fast access to TODO states): New section.
+	(Per file keywords): New section.
+	(Property inheritance): New section.
+	(Column attributes): New summary types.
+	(Capturing Column View): New section.
+	(The date/time prompt): Cover the new features in the date/time prompt.
+	Compactify the table of keys for the calendar remote control.
+	(Clocking work time): Document the new :scope parameter.
+	(Remember): Promoted to chapter.
+	(Quoted examples): New section.
+	(Enhancing text): New verbatim environments.
+
 2008-01-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	* trampver.texi: Update release number.
