@@ -1,28 +1,33 @@
+2008-01-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-pdf/ps->png): Make sure we a have a valid cwd.
+	(doc-view-insert-image): Do something if the image is missing.
+	(doc-view-mode): Don't use file-remote-p.
+
 2008-01-18  Bastien Guerry  <Bastien.Guerry@ens.fr>
 
-	* textmodes/org-export-latex.el (org-export-latex-cleaned-string):
-	Fixed.
-        (org-export-latex-special-chars): Convert "..." in \ldots
+	* textmodes/org-export-latex.el (org-export-latex-cleaned-string): Fix.
+	(org-export-latex-special-chars): Convert "..." in \ldots
 	and skip tables.
-        (org-export-latex-fontify-headline): Changed parameter name.
-        (org-export-as-latex): Handle export of subtrees.
+	(org-export-latex-fontify-headline): Change parameter name.
+	(org-export-as-latex): Handle export of subtrees.
 	(org-export-latex-make-header): New argument TITLE.
 	(org-export-latex-content): New argument EXCLUDE-LIST.
 	(org-list-parse-list): New name for org-export-latex-parse-list.
-        (org-export-latex-make-header): New name for
+	(org-export-latex-make-header): New name for
 	org-export-latex-make-preamble.
 	(org-list-to-generic): New name of org-export-list-to-generic.
 	(org-list-to-latex): New name of org-export-list-to-latex.
 	(org-list-item-begin, org-list-end, org-list-insert-radio-list)
 	(org-list-send-list, org-list-to-texinfo)
 	(org-list-to-html): New functions.
-        (org-export-latex-tables-column-borders)
+	(org-export-latex-tables-column-borders)
 	(org-export-latex-default-class, org-export-latex-classes)
 	(org-export-latex-classes-sectioning)
 	(org-list-radio-list-templates): New options.
-        (org-export-latex-header): New variable.
+	(org-export-latex-header): New variable.
 	(org-latex-entities): New constant.
-        (org-export-latex-default-sectioning, org-export-latex-preamble)
+	(org-export-latex-default-sectioning, org-export-latex-preamble)
 	(org-export-latex-prepare-text-option)
 	(org-export-latex-get-sectioning): Remove.
 
@@ -35,14 +40,14 @@
 	(org-export-html-convert-special-strings): New function.
 	(org-html-do-expand): `org-export-html-convert-special-strings'
 	added to the list of conversion.
-	(org-infile-export-plist, org-get-current-options): Added support
+	(org-infile-export-plist, org-get-current-options): Add support
 	for "-" in the #+OPTION line to let user switch on/off special
 	strings conversion.
 	(org-export-plist-vars): New :html-table-tag property.
 	(org-export-as-html, org-format-org-table-html)
 	(org-format-table-table-html) Use the :html-table-tag property
 	instead of the `org-export-html-table-tag' global value.
-	(org-additional-option-like-keywords): Added "TBLFM".
+	(org-additional-option-like-keywords): Add "TBLFM".
 	(org-entry-properties): Include the CLOCKSUM special property.
 	(org-columns-edit-value): Do not allow to edit the special
 	CLOCKSUM property.
@@ -88,7 +93,7 @@
 	(org-agenda-restriction-lock): New face.
 	(org-agenda-restriction-lock-overlay)
 	(org-speedbar-restriction-lock-overlay): New variables.
-	(org-open-at-point): Removed obsolete way to do redirection in
+	(org-open-at-point): Remove obsolete way to do redirection in
 	shell links.
 	(org-imenu-and-speedbar): New customization group.
 	(org-entry-properties): Return keyword-less time strings.
@@ -114,7 +119,7 @@
 	(org-verbatim-re): New variable.
 	(org-hide-emphasis-markers): New option.
 	(org-additional-option-like-keywords): Add new keywords.
-	(org-get-entry): Renamed from `org-get-cleaned-entry'.
+	(org-get-entry): Rename from `org-get-cleaned-entry'.
 	(org-icalendar-cleanup-string): New function for quoting icalendar text.
 	(org-agenda-skip-scheduled-if-done): New option.
 	(org-agenda-get-scheduled, org-agenda-get-blocks):
@@ -123,7 +128,7 @@
 	(org-entry-properties): Add CATEGORY as a special property.
 	(org-use-property-inheritance): Allow a list of properties as a value.
 	(org-eval-in-calendar): No longer update the prompt.
-	(org-read-date-popup-calendar): Renamed from
+	(org-read-date-popup-calendar): Rename from
 	`org-popup-calendar-for-date-prompt'.
 	(org-read-date-display-live): New variable.
 	(org-read-date-display): New function.

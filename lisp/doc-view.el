@@ -100,10 +100,9 @@
 ;;; Todo:
 
 ;; - better menu.
-;; - don't use `find-file'.
 ;; - Bind slicing to a drag event.
 ;; - doc-view-fit-doc-to-window and doc-view-fit-window-to-doc.
-;; - zoom a the region around the cursor (like xdvi).
+;; - zoom the region around the cursor (like xdvi).
 ;; - get rid of the silly arrow in the fringe.
 ;; - improve anti-aliasing (pdf-utils gets it better).
 
@@ -558,13 +557,16 @@ Should be invoked when the cached images aren't up-to-date."
 (defun doc-view-pdf/ps->png (pdf-ps png)
   "Convert PDF-PS to PNG asynchronously."
   (setq doc-view-current-converter-process
-	(apply 'start-process
-	       (append (list "pdf/ps->png" doc-view-conversion-buffer
-			     doc-view-ghostscript-program)
-		       doc-view-ghostscript-options
-                       (list (format "-r%d" (round doc-view-resolution)))
-		       (list (concat "-sOutputFile=" png))
-		       (list pdf-ps)))
+        ;; Make sure the process is started in an existing directory,
+        ;; (rather than some file-name-handler-managed dir, for example).
+        (let ((default-directory (file-name-directory pdf-ps)))
+          (apply 'start-process
+                 (append (list "pdf/ps->png" doc-view-conversion-buffer
+                               doc-view-ghostscript-program)
+                         doc-view-ghostscript-options
+                         (list (format "-r%d" (round doc-view-resolution)))
+                         (list (concat "-sOutputFile=" png))
+                         (list pdf-ps))))
 	mode-line-process (list (format ":%s" doc-view-current-converter-process)))
   (process-put doc-view-current-converter-process
 	       'buffer (current-buffer))
@@ -705,13 +707,23 @@ ARGS is a list of image descriptors."
   (when doc-view-pending-cache-flush
     (clear-image-cache)
     (setq doc-view-pending-cache-flush nil))
-  (let ((image (apply 'create-image file 'png nil args)))
-    (setq doc-view-current-image image)
-    (move-overlay doc-view-current-overlay (point-min) (point-max))
-    (overlay-put doc-view-current-overlay 'display
-                 (if doc-view-current-slice
-                     (list (cons 'slice doc-view-current-slice) image)
-                   image))))
+  (if (null file)
+      ;; We're trying to display a page that doesn't exist.  Typically happens
+      ;; if the conversion process somehow failed.  Better not signal an
+      ;; error here because it could prevent a subsequent reconversion from
+      ;; fixing the problem.
+      (progn
+        (setq doc-view-current-image nil)
+        (move-overlay doc-view-current-overlay (point-min) (point-max))
+        (overlay-put doc-view-current-overlay 'display
+                     "Cannot display this page!  Probably a conversion failure!"))
+    (let ((image (apply 'create-image file 'png nil args)))
+      (setq doc-view-current-image image)
+      (move-overlay doc-view-current-overlay (point-min) (point-max))
+      (overlay-put doc-view-current-overlay 'display
+                   (if doc-view-current-slice
+                       (list (cons 'slice doc-view-current-slice) image)
+                     image)))))
 
 (defun doc-view-sort (a b)
   "Return non-nil if A should be sorted before B.
@@ -952,9 +964,12 @@ toggle between displaying the document or editing it as text."
 	  (file-name-nondirectory
 	   (file-name-sans-extension buffer-file-name))
 	  doc-view-cache-directory))
-	((or
-	  (not (file-exists-p buffer-file-name))
-	  (file-remote-p buffer-file-name))
+        ;; Is the file readable by local processes?
+        ;; We used to use `file-remote-p' but it's unclear what it's
+        ;; supposed to return nil for things like local files accessed via
+        ;; `su' or via file://...
+	((let ((file-name-handler-alist nil))
+           (not (file-readable-p buffer-file-name)))
 	 (expand-file-name
 	  (file-name-nondirectory buffer-file-name)
 	  doc-view-cache-directory))
