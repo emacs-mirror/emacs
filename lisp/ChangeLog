@@ -1,5 +1,32 @@
-2008-01-18  Carsten Dominik  <dominik@science.uva.nl>
+2008-01-18 Bastien Guerry  <Bastien.Guerry@ens.fr>
 
+	* textmodes/org-export-latex.el (org-export-latex-cleaned-string):
+	Fixed.
+        (org-export-latex-special-chars): Convert "..." in \ldots and skip
+	tables
+        (org-export-latex-fontify-headline): Changed parameter name
+        (org-export-as-latex): Handle export of subtrees
+	(org-export-latex-make-header): New argument TITLE
+	(org-export-latex-content): New argument EXCLUDE-LIST
+	(org-list-parse-list): New name for org-export-latex-parse-list
+        (org-export-latex-make-header): New name for
+	org-export-latex-make-preamble
+	(org-list-to-generic): New name of org-export-list-to-generic
+	(org-list-to-latex): New name of org-export-list-to-latex
+	(org-list-item-begin, org-list-end, org-list-insert-radio-list)
+	(org-list-send-list, org-list-to-texinfo)
+	(org-list-to-html): New functions
+        (org-export-latex-tables-column-borders)
+	(org-export-latex-default-class, org-export-latex-classes)
+	(org-export-latex-classes-sectioning)
+	(org-list-radio-list-templates): New options
+        (org-export-latex-header): New variable
+	(org-latex-entities): New constant
+        (org-export-latex-default-sectioning, org-export-latex-preamble)
+	(org-export-latex-prepare-text-option)
+	(org-export-latex-get-sectioning): Removed
+
+2008-01-18 Carsten Dominik  <dominik@science.uva.nl>
 	* textmodes/org-publish.el (org-publish-current-project): Fix bug
 	with forcing publication.
 
