@@ -1138,7 +1138,11 @@ struct Lisp_Marker
 {
   int type : 16;		/* = Lisp_Misc_Marker */
   unsigned gcmarkbit : 1;
-  int spacer : 14;
+  int spacer : 13;
+  /* This flag is temporarily used in the functions
+     decode/encode_coding_object to record that the marker position
+     must be adjusted after the conversion.  */
+  unsigned int need_adjustment : 1;
   /* 1 means normal insertion at the marker's position
      leaves the marker after the inserted text.  */
   unsigned int insertion_type : 1;
