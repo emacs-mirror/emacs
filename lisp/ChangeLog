@@ -1,3 +1,8 @@
+2008-01-18  Richard Stallman  <rms@gnu.org>
+
+	* custom.el (custom-theme-recalc-face): Use face-spec-set rather
+	than face-spec-recalc.
+
 2008-01-18  Glenn Morris  <rgm@gnu.org>
 
 	* ibuffer.el (ibuffer-mode): Fix typo in previous change.
