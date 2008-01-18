@@ -142,28 +142,6 @@ NOTE-END */
 
 /* #define VIRT_ADDR_VARIES */
 
-#ifdef XENIX
-/* Define NO_REMAP if memory segmentation makes it not work well
-   to change the boundary between the text section and data section
-   when Emacs is dumped.  If you define this, the preloaded Lisp
-   code will not be sharable; but that's better than failing completely.  */
-
-#define NO_REMAP
-
-/* Since cannot purify, use standard Xenix 386 startup code. */
-
-#define START_FILES	/lib/386/Sseg.o pre-crt0.o /lib/386/Scrt0.o
-
-/* These really use terminfo.  */
-
-#define LIBS_TERMCAP /lib/386/Slibcurses.a  \
-   /lib/386/Slibtinfo.a /lib/386/Slibx.a
-
-/* Standard libraries for this machine.  Since `-l' doesn't work in `ld'.  */
-/* '__fltused' is unresolved w/o Slibcfp.a */
-#define LIB_STANDARD /lib/386/Slibcfp.a /lib/386/Slibc.a
-#else /* not XENIX */
-
 /* this brings in alloca() if we're using cc */
 #ifdef USG
 #ifndef LIB_STANDARD
@@ -177,7 +155,6 @@ NOTE-END */
 #define NO_REMAP
 #define TEXT_START 0
 #endif /* USG */
-#endif /* not XENIX */
 
 #ifdef USG5_4
 #define DATA_SEG_BITS 0x08000000

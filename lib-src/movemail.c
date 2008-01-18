@@ -113,7 +113,7 @@ Boston, MA 02110-1301, USA.  */
 #define R_OK 4
 #endif
 
-#if defined (XENIX) || defined (WINDOWSNT)
+#ifdef WINDOWSNT
 #include <sys/locking.h>
 #endif
 
@@ -388,13 +388,13 @@ main (argc, argv)
       if (indesc < 0)
 	pfatal_with_name (inname);
 
-#if defined (BSD_SYSTEM) || defined (XENIX)
+#ifdef BSD_SYSTEM
       /* In case movemail is setuid to root, make sure the user can
 	 read the output file.  */
       /* This is desirable for all systems
 	 but I don't want to assume all have the umask system call */
       umask (umask (0) & 0333);
-#endif /* BSD_SYSTEM || XENIX */
+#endif /* BSD_SYSTEM */
       outdesc = open (outname, O_WRONLY | O_CREAT | O_EXCL, 0666);
       if (outdesc < 0)
 	pfatal_with_name (outname);
@@ -422,14 +422,10 @@ main (argc, argv)
 #ifdef MAIL_USE_LOCKF
 	  status = lockf (indesc, F_LOCK, 0);
 #else /* not MAIL_USE_LOCKF */
-#ifdef XENIX
-	  status = locking (indesc, LK_RLCK, 0L);
-#else
 #ifdef WINDOWSNT
 	  status = locking (indesc, LK_RLCK, -1L);
 #else
 	  status = flock (indesc, LOCK_EX);
-#endif
 #endif
 #endif /* not MAIL_USE_LOCKF */
 #endif /* MAIL_USE_SYSTEM_LOCK */

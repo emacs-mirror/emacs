@@ -1,3 +1,7 @@
+2008-01-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* movemail.c: Remove references to XENIX.
+
 2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* movemail.c:
