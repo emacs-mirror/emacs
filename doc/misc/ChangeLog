@@ -1,8 +1,8 @@
 2008-01-18  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Property inheritance): New section
+	* org.texi (Property inheritance): New section.
 	(Conventions): New section.
-	(Structure editing): Document C-RET, the prefix arg to the cut/cpy
+	(Structure editing): Document C-RET, the prefix arg to the cut/copy
 	commands, and the new bindings for refiling.
 	(Sparse trees): Document the new special command for sparse trees.
 	(References): Be more clear about the counting of hilines.
