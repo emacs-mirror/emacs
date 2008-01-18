@@ -1,34 +1,35 @@
-2008-01-18 Bastien Guerry  <Bastien.Guerry@ens.fr>
+2008-01-18  Bastien Guerry  <Bastien.Guerry@ens.fr>
 
 	* textmodes/org-export-latex.el (org-export-latex-cleaned-string):
 	Fixed.
-        (org-export-latex-special-chars): Convert "..." in \ldots and skip
-	tables
-        (org-export-latex-fontify-headline): Changed parameter name
-        (org-export-as-latex): Handle export of subtrees
-	(org-export-latex-make-header): New argument TITLE
-	(org-export-latex-content): New argument EXCLUDE-LIST
-	(org-list-parse-list): New name for org-export-latex-parse-list
+        (org-export-latex-special-chars): Convert "..." in \ldots
+	and skip tables.
+        (org-export-latex-fontify-headline): Changed parameter name.
+        (org-export-as-latex): Handle export of subtrees.
+	(org-export-latex-make-header): New argument TITLE.
+	(org-export-latex-content): New argument EXCLUDE-LIST.
+	(org-list-parse-list): New name for org-export-latex-parse-list.
         (org-export-latex-make-header): New name for
-	org-export-latex-make-preamble
-	(org-list-to-generic): New name of org-export-list-to-generic
-	(org-list-to-latex): New name of org-export-list-to-latex
+	org-export-latex-make-preamble.
+	(org-list-to-generic): New name of org-export-list-to-generic.
+	(org-list-to-latex): New name of org-export-list-to-latex.
 	(org-list-item-begin, org-list-end, org-list-insert-radio-list)
 	(org-list-send-list, org-list-to-texinfo)
-	(org-list-to-html): New functions
+	(org-list-to-html): New functions.
         (org-export-latex-tables-column-borders)
 	(org-export-latex-default-class, org-export-latex-classes)
 	(org-export-latex-classes-sectioning)
-	(org-list-radio-list-templates): New options
-        (org-export-latex-header): New variable
-	(org-latex-entities): New constant
+	(org-list-radio-list-templates): New options.
+        (org-export-latex-header): New variable.
+	(org-latex-entities): New constant.
         (org-export-latex-default-sectioning, org-export-latex-preamble)
 	(org-export-latex-prepare-text-option)
-	(org-export-latex-get-sectioning): Removed
+	(org-export-latex-get-sectioning): Remove.
 
-2008-01-18 Carsten Dominik  <dominik@science.uva.nl>
-	* textmodes/org-publish.el (org-publish-current-project): Fix bug
-	with forcing publication.
+2008-01-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org-publish.el (org-publish-current-project):
+	Fix bug with forcing publication.
 
 	* textmodes/org.el (org-export-with-special-strings): New option.
 	(org-export-html-convert-special-strings): New function.
@@ -42,18 +43,15 @@
 	(org-format-table-table-html) Use the :html-table-tag property
 	instead of the `org-export-html-table-tag' global value.
 	(org-additional-option-like-keywords): Added "TBLFM".
-	(org-entry-properties): Include the CLOCKSUM
-	special property.
+	(org-entry-properties): Include the CLOCKSUM special property.
 	(org-columns-edit-value): Do not allow to edit the special
 	CLOCKSUM property.
 	(org-flag-drawer): Use the original value of `outline-regexp'.
 	(org-remember-handler): Add invisible-ok flag to call to
-	`org-end-of-subtree'
-	(org-agenda-highlight-todo): Respect
-	`org-agenda-todo-keyword-format'.
+	`org-end-of-subtree'.
+	(org-agenda-highlight-todo): Respect `org-agenda-todo-keyword-format'.
 	(org-agenda-todo-keyword-format): New option.
-	(org-infile-export-plist): No restriction while searching for
-	options.
+	(org-infile-export-plist): No restriction while searching for options.
 	(org-remember-handler): Remove comments at the end of the buffer.
 	(org-remember-use-refile-when-interactive): New option.
 	(org-table-sort-lines): Make sure sorting works on link
@@ -64,8 +62,7 @@
 	`full-file-path'.
 	(org-get-refile-targets): Respect new values for
 	`org-refile-use-outline-path'.
-	(org-agenda-get-restriction-and-command): DEL goes back to initial
-	list.
+	(org-agenda-get-restriction-and-command): DEL goes back to initial list.
 	(org-export-as-xoxo): Restore point when done.
 	(org-open-file): Allow multiple %s in command.
 	(org-clock-in-switch-to-state): New option.
@@ -73,8 +70,7 @@
 	(org-last-remember-storage-locations): New variable.
 	(org-get-refile-targets): Interpret the new maxlevel setting.
 	(org-refile-targets): New option `:maxlevel'.
-	(org-copy-subtree): Include empty lines before but not after
-	subtree.
+	(org-copy-subtree): Include empty lines before but not after subtree.
 	(org-back-over-empty-lines, org-skip-whitespace): New functions.
 	(org-move-item-down, org-move-item-up): Include empty lines before
 	but not after item.
@@ -87,9 +83,8 @@
 	(org-imenu-markers): New variable.
 	(org-imenu-new-marker, org-imenu-get-tree)
 	(org-speedbar-set-agenda-restriction): New functions.
-	(org-agenda-set-restriction-lock)
-	(org-agenda-remove-restriction-lock, org-agenda-maybe-redo): New
-	functions.
+	(org-agenda-set-restriction-lock, org-agenda-remove-restriction-lock)
+	(org-agenda-maybe-redo): New functions.
 	(org-agenda-restriction-lock): New face.
 	(org-agenda-restriction-lock-overlay)
 	(org-speedbar-restriction-lock-overlay): New variables.
@@ -110,8 +105,8 @@
 	(org-link-escape-chars): Use characters instead of strings.
 	(org-link-escape-chars-browser, org-link-escape)
 	(org-link-unescape): Use characters instead of strings.
-	(org-export-html-convert-sub-super, org-html-do-expand): Check for
-	protected text.
+	(org-export-html-convert-sub-super, org-html-do-expand):
+	Check for protected text.
 	(org-emphasis-alist): Additional `verbatim' flag.
 	(org-set-emph-re): Handle the verbatim flag and compute
 	`org-verbatim-re'.
@@ -120,15 +115,13 @@
 	(org-hide-emphasis-markers): New option.
 	(org-additional-option-like-keywords): Add new keywords.
 	(org-get-entry): Renamed from `org-get-cleaned-entry'.
-	(org-icalendar-cleanup-string): New function for quoting icalendar
-	text.
+	(org-icalendar-cleanup-string): New function for quoting icalendar text.
 	(org-agenda-skip-scheduled-if-done): New option.
-	(org-agenda-get-scheduled, org-agenda-get-blocks): Use
-	`org-agenda-skip-scheduled-if-done'.
+	(org-agenda-get-scheduled, org-agenda-get-blocks):
+	Use `org-agenda-skip-scheduled-if-done'.
 	(org-prepare-agenda-buffers): Allow buffers as arguments.
 	(org-entry-properties): Add CATEGORY as a special property.
-	(org-use-property-inheritance): Allow a list of properties as a
-	value.
+	(org-use-property-inheritance): Allow a list of properties as a value.
 	(org-eval-in-calendar): No longer update the prompt.
 	(org-read-date-popup-calendar): Renamed from
 	`org-popup-calendar-for-date-prompt'.
@@ -139,8 +132,8 @@
 	not yet defined.
 	(org-remember-insinuate): New function.
 	(org-read-date-prefer-future): New option.
-	(org-read-date): Respect the setting of
-	`org-read-date-prefer-future'.  Use `org-read-date-analyze'.
+	(org-read-date): Respect the setting of `org-read-date-prefer-future'.
+	Use `org-read-date-analyze'.
 	(org-set-font-lock-defaults): Use `org-archive-tag' instead of a
 	hardcoded string.
 	(org-remember-apply-template): Use `remember-finalize' instead of
@@ -167,8 +160,8 @@
 2008-01-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el: Add a TODO note about vc-state.
-	(vc-next-action): Register 'unregistered and 'ignored files.  Use
-	when and unless instead of if where appropriate.
+	(vc-next-action): Register 'unregistered and 'ignored files.
+	Use when and unless instead of if where appropriate.
 	(vc-start-entry): Fix typo.
 	(vc-status): Autoload it.
 
@@ -185,8 +178,8 @@
 
 	* ibuffer.el (ibuffer-mode): Fix typo in previous change.
 
-2008-01-17 Vinicius Jose Latorre <viniciusjl@ig.com.br>
-	   Miles Bader <miles@gnu.org>
+2008-01-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+	    Miles Bader  <miles@gnu.org>
 
 	* blank-mode.el: New file.  Minor mode to visualise (HARD) SPACE,
 	TAB, NEWLINE.  Miles Bader <miles@gnu.org> wrote the original code
@@ -869,7 +862,7 @@
 	* progmodes/grep.el (grep-find-ignored-directories):
 	Initialize from the value of vc-directory-exclusion-list.
 
-	* vc-hooks (vc-directory-exclusion-list):  Include "_darcs",
+	* vc-hooks (vc-directory-exclusion-list): Include "_darcs",
 	even though we don't have a back end for darcs yet.
 
 2008-01-02  Karl Fogel  <kfogel@red-bean.com>
@@ -940,7 +933,7 @@
 	* vc-svn.el (vc-svn-parse-status): Set the `unregisted' property
 	correctly.
 
-	* vc.el (vc-dired-hook):  Speed tuning.  Replace a vc-backend call
+	* vc.el (vc-dired-hook): Speed tuning.  Replace a vc-backend call
 	with vc-state.
 	(vc-next-action): Fix vc-transfer-file call.
 
