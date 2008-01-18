@@ -544,8 +544,6 @@
 ;;
 ;; - decide if vc-status should replace vc-dired.
 ;;
-;; - vc-status should be made asynchronous.
-;;
 ;; - vc-status needs a menu, mouse bindings and some color bling.
 
 ;;; Code:
@@ -2622,16 +2620,26 @@ With prefix arg READ-SWITCHES, specify a value to override
 
 (put 'vc-status-mode 'mode-class 'special)
 
+(defun vc-update-vc-status-buffer (entries buffer)
+  (with-current-buffer buffer
+    (dolist (entry entries)
+      (ewoc-enter-last vc-status
+		       (vc-status-create-fileinfo (cdr entry) (car entry))))
+    (ewoc-goto-node vc-status (ewoc-nth vc-status 0))))
+
 (defun vc-status-refresh ()
   "Refresh the contents of the VC status buffer."
   (interactive)
   ;; This is not very efficient; ewoc could use a new function here.
   (ewoc-filter vc-status (lambda (node) nil))
   (let ((backend (vc-responsible-backend default-directory)))
-    (dolist (entry (vc-call-backend backend 'dir-status default-directory))
-      (ewoc-enter-last vc-status
-		       (vc-status-create-fileinfo (cdr entry) (car entry)))))
-  (ewoc-goto-node vc-status (ewoc-nth vc-status 0)))
+    ;; Call the dir-status backend function. dir-status is supposed to
+    ;; be asynchronous.  It should compute the results and call the
+    ;; function passed as a an arg to update the vc-status buffer with
+    ;; the results.
+    (vc-call-backend 
+     backend 'dir-status default-directory 
+     #'vc-update-vc-status-buffer (current-buffer))))
 
 (defun vc-status-next-line (arg)
   "Go to the next line.

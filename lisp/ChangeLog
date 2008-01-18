@@ -1,3 +1,15 @@
+2008-01-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Make vc-status asynchronous.
+	(vc-update-vc-status-buffer): New function broken out of ...
+	(vc-status-refresh): ... here. Pass vc-update-vc-status-buffer to
+	the dir-status backend function.
+
+	* vc-hg.el (vc-hg-dir-status): Compute the status asynchronously.
+	Move the output processing to ...
+	(vc-hg-after-dir-status): ... here.  Call the function passed as
+	an argument with the results.
+
 2008-01-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-pdf/ps->png): Make sure we a have a valid cwd.
