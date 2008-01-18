@@ -537,6 +537,9 @@
 ;; - make it easier to write logs, maybe C-x 4 a should add to the log
 ;;   buffer if there's one instead of the ChangeLog.
 ;;
+;; - make vc-state for all backends return 'unregistered instead of
+;;   nil for unregistered files, then update vc-next-action.
+;;
 ;; - deal with push/pull operations.
 ;;
 ;; - decide if vc-status should replace vc-dired.
@@ -1434,9 +1437,9 @@ merge in the changes into your working copy."
 	 revision)
     ;; Verify that the fileset is homogenous
     (dolist (file (cdr files))
-      (if (not (vc-compatible-state (vc-state file) state))
-	  (error "Fileset is in a mixed-up state"))
-      (if (not (eq (vc-checkout-model file) model))
+      (unless (vc-compatible-state (vc-state file) state)
+	(error "Fileset is in a mixed-up state"))
+      (unless (eq (vc-checkout-model file) model)
 	  (error "Fileset has mixed checkout models")))
     ;; Check for buffers in the fileset not matching the on-disk contents.
     (dolist (file files)
@@ -1458,13 +1461,15 @@ merge in the changes into your working copy."
 		(error "Aborted"))
 	    ;; Now, check if we have unsaved changes.
 	    (vc-buffer-sync t)
-	    (if (buffer-modified-p)
-		(or (y-or-n-p (message "Use %s on disk, keeping modified buffer? " file))
-		    (error "Aborted")))))))
+	    (when (buffer-modified-p)
+	      (or (y-or-n-p (message "Use %s on disk, keeping modified buffer? " file))
+		  (error "Aborted")))))))
     ;; Do the right thing
     (cond
      ;; Files aren't registered
-     ((not state)
+     ((or (not state)  ;; RCS uses nil for unregistered files.
+	  (eq state 'unregistered)
+	  (eq state 'ignored))
       (mapc 'vc-register files))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-patch)))
@@ -1488,32 +1493,30 @@ merge in the changes into your working copy."
       (let ((ready-for-commit files))
 	;; If files are edited but read-only, give user a chance to correct
 	(dolist (file files)
-	  (if (not (file-writable-p file))
-	      (progn
-		;; Make the file+buffer read-write.
-		(unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue?" file))
-		  (error "Aborted"))
-		(set-file-modes file (logior (file-modes file) 128))
-		(let ((visited (get-file-buffer file)))
-		  (if visited
-		      (with-current-buffer visited
-			(toggle-read-only -1)))))))
+	  (unless (file-writable-p file)
+	    ;; Make the file+buffer read-write.
+	    (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue?" file))
+	      (error "Aborted"))
+	    (set-file-modes file (logior (file-modes file) 128))
+	    (let ((visited (get-file-buffer file)))
+	      (when visited
+		(with-current-buffer visited
+		  (toggle-read-only -1))))))
 	;; Allow user to revert files with no changes
 	(save-excursion
           (dolist (file files)
             (let ((visited (get-file-buffer file)))
               ;; For files with locking, if the file does not contain
               ;; any changes, just let go of the lock, i.e. revert.
-              (if (and (not (eq model 'implicit))
-                       (vc-workfile-unchanged-p file)
-                       ;; If buffer is modified, that means the user just
-                       ;; said no to saving it; in that case, don't revert,
-                       ;; because the user might intend to save after
-                       ;; finishing the log entry and committing.
-                       (not (and visited (buffer-modified-p))))
-                  (progn
-                    (vc-revert-file file)
-                    (delete file ready-for-commit))))))
+              (when (and (not (eq model 'implicit))
+			 (vc-workfile-unchanged-p file)
+			 ;; If buffer is modified, that means the user just
+			 ;; said no to saving it; in that case, don't revert,
+			 ;; because the user might intend to save after
+			 ;; finishing the log entry and committing.
+			 (not (and visited (buffer-modified-p))))
+		(vc-revert-file file)
+		(delete file ready-for-commit)))))
 	;; Remaining files need to be committed
 	(if (not ready-for-commit)
 	    (message "No files remain to be committed")
@@ -1539,16 +1542,16 @@ merge in the changes into your working copy."
 			  "%s is not up-to-date.  Get latest revision? "
 			  (file-name-nondirectory file)))
 	    (vc-checkout file (eq model 'implicit) t)
-	  (if (and (not (eq model 'implicit))
-		   (yes-or-no-p "Lock this revision? "))
-	      (vc-checkout file t)))))
+	  (when (and (not (eq model 'implicit))
+		     (yes-or-no-p "Lock this revision? "))
+	    (vc-checkout file t)))))
      ;; needs-merge
      ((eq state 'needs-merge)
       (dolist (file files)
-	(if (yes-or-no-p (format
+	(when (yes-or-no-p (format
 			  "%s is not up-to-date.  Merge in changes now? "
 			  (file-name-nondirectory file)))
-	    (vc-maybe-resolve-conflicts file (vc-call merge-news file)))))
+	  (vc-maybe-resolve-conflicts file (vc-call merge-news file)))))
 
      ;; unlocked-changes
      ((eq state 'unlocked-changes)
@@ -1697,7 +1700,7 @@ INITIAL-CONTENTS is nil, do action immediately as if the user had
 entered COMMENT.  If COMMENT is t, also do action immediately with an
 empty comment.  Remember the file's buffer in `vc-parent-buffer'
 \(current one if no file).  AFTER-HOOK specifies the local value
-for vc-log-operation-hook."
+for `vc-log-after-operation-hook'."
   (let ((parent
          (if (eq major-mode 'vc-dired-mode)
              ;; If we are called from VC dired, the parent buffer is
@@ -2562,6 +2565,7 @@ With prefix arg READ-SWITCHES, specify a value to override
   ;; Must be in sync with vc-status-printer.
   (forward-char 25))
 
+;;;###autoload
 (defun vc-status (dir)
   "Show the VC status for DIR."
   (interactive "DVC status for directory: ")
