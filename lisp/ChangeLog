@@ -1,3 +1,127 @@
+2008-01-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-entry-properties) Include the CLOCKSUM
+	special property.
+	(org-columns-edit-value): Do not allow to edit the special
+	CLOCKSUM property.
+	(org-flag-drawer): Use the original value of `outline-regexp'.
+	(org-remember-handler): Add invisible-ok flag to call to
+	`org-end-of-subtree'
+	(org-agenda-highlight-todo): Respect
+	`org-agenda-todo-keyword-format'.
+	(org-agenda-todo-keyword-format): New option.
+	(org-infile-export-plist): No restriction while searching for
+	options.
+	(org-remember-handler): Remove comments at the end of the buffer.
+	(org-remember-use-refile-when-interactive): New option.
+	(org-table-sort-lines): Make sure sorting works on link
+	descritions only, and ignores the link.
+	(org-sort-entries-or-items): Make sure the end of the subtree is
+	included.
+	(org-refile-use-outline-path): New allowed values `file' and
+	`full-file-path'.
+	(org-get-refile-targets): Respect new values for
+	`org-refile-use-outline-path'.
+	(org-agenda-get-restriction-and-command): DEL goes back to initial
+	list.
+	(org-export-as-xoxo): Restore point when done.
+	(org-open-file): Allow multiple %s in command.
+	(org-clock-in-switch-to-state): New option.
+	(org-first-list-item-p): New function.
+	(org-last-remember-storage-locations): New variable.
+	(org-get-refile-targets): Interpret the new maxlevel setting.
+	(org-refile-targets): New option `:maxlevel'.
+	(org-copy-subtree): Include empty lines before but not after
+	subtree.
+	(org-back-over-empty-lines, org-skip-whitespace): New functions.
+	(org-move-item-down, org-move-item-up): Include empty lines before
+	but not after item.
+	(org-first-sibling-p): New function.
+	(org-remember-apply-template): Defaults, completions and history
+	for template prompts.  Also, interpret new `%!' escape.
+	(org-context-choices): New constant.
+	(org-bound-and-true-p): New macro.
+	(org-imenu-depth): New option.
+	(org-imenu-markers): New variable.
+	(org-imenu-new-marker, org-imenu-get-tree)
+	(org-speedbar-set-agenda-restriction): New functions.
+	(org-agenda-set-restriction-lock)
+	(org-agenda-remove-restriction-lock, org-agenda-maybe-redo): New
+	functions.
+	(org-agenda-restriction-lock): New face.
+	(org-agenda-restriction-lock-overlay)
+	(org-speedbar-restriction-lock-overlay): New variables.
+	(org-open-at-point): Removed obsolete way to do redirection in
+	shell links.
+	(org-imenu-and-speedbar): New customization group.
+	(org-entry-properties): Return keyword-less time strings.
+	(org-clock-heading-function): New option.
+	(org-clock-in): Use `org-clock-heading-function'.
+	(org-calendar-holiday): Try to use `calendar-check-holidays'
+	instead of the obsolete `check-calendar-holidays'.
+	(org-export-html-special-string-regexps): New constant.
+	(org-massive-special-regexp): New variable.
+	(org-compute-latex-and-specials-regexp)
+	(org-do-latex-and-special-faces): New functions.
+	(org-latex-and-export-specials): New face.
+	(org-highlight-latex-fragments-and-specials): New option.
+	(org-link-escape-chars): Use characters instead of strings.
+	(org-link-escape-chars-browser, org-link-escape)
+	(org-link-unescape): Use characters instead of strings.
+	(org-export-html-convert-sub-super, org-html-do-expand): Check for
+	protected text.
+	(org-emphasis-alist): Additional `verbatim' flag.
+	(org-set-emph-re): Handle the verbatim flag and compute
+	`org-verbatim-re'.
+	(org-cleaned-string-for-export): Protect verbatim elements.
+	(org-verbatim-re): New variable.
+	(org-hide-emphasis-markers): New option.
+	(org-additional-option-like-keywords): Add new keywords.
+	(org-get-entry): Renamed from `org-get-cleaned-entry'.
+	(org-icalendar-cleanup-string): New function for quoting icalendar
+	text.
+	(org-agenda-skip-scheduled-if-done): New option.
+	(org-agenda-get-scheduled, org-agenda-get-blocks): Use
+	`org-agenda-skip-scheduled-if-done'.
+	(org-prepare-agenda-buffers): Allow buffers as arguments.
+	(org-entry-properties): Add CATEGORY as a special property.
+	(org-use-property-inheritance): Allow a list of properties as a
+	value.
+	(org-eval-in-calendar): No longer update the prompt.
+	(org-read-date-popup-calendar): Renamed from
+	`org-popup-calendar-for-date-prompt'.
+	(org-read-date-display-live): New variable.
+	(org-read-date-display): New function.
+	(org-read-date-analyze): New function.
+	(org-remember-apply-template): Define `remember-finalize' if it is
+	not yet defined.
+	(org-remember-insinuate): New function.
+	(org-read-date-prefer-future): New option.
+	(org-read-date): Respect the setting of
+	`org-read-date-prefer-future'.  Use `org-read-date-analyze'.
+	(org-set-font-lock-defaults): Use `org-archive-tag' instead of a
+	hardcoded string.
+	(org-remember-apply-template): Use `remember-finalize' instead of
+	`remember-buffer'.
+	(org-columns-compute, org-column-number-to-string)
+	(org-columns-uncompile-format, org-columns-compile-format)
+	(org-columns-compile-format): Handle printf format specifier.
+	(org-columns-new, org-column-number-to-string)
+	(org-columns-uncompile-format, org-columns-compile-format):
+	Support for new currency summary type.
+	(org-tree-to-indirect-buffer): Do not kill old buffer when
+	`org-indirect-buffer-display' is `new-frame'.
+	(org-indirect-buffer-display): Document that `new-frame' leads to
+	indiret buffer proliferation.
+	(org-agenda-list): Use `org-extend-today-until'.
+	(org-extend-today-until): New option.
+	(org-format-org-table-html): Use lower-case for <col> tag.
+	(org-agenda-execute): New command.
+	(org-agenda-mode-map): Keybindings of "g" "G", "e" modified.
+	(org-select-remember-template): New function.
+	(org-remember-apply-template): Use `org-select-remember-template'.
+	(org-go-to-remember-target): New function.
+
 2008-01-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el: Add a TODO note about vc-state.
