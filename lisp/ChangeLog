@@ -1,3 +1,8 @@
+2008-01-18  Richard Stallman  <rms@gnu.org>
+
+	* icomplete.el (icomplete-get-keys):
+	Look up KEYS using all maps in proper buffer.
+
 2008-01-17 Vinicius Jose Latorre <viniciusjl@ig.com.br>
 2008-01-17 Miles Bader <miles@gnu.org>
 
