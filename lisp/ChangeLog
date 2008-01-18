@@ -1,3 +1,7 @@
+2008-01-18  Tom Tromey  <tromey@redhat.com>
+
+        * vc-svn.el (vc-svn-dir-status): New function.
+
 2008-01-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el: Make vc-status asynchronous.

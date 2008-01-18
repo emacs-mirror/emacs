@@ -158,6 +158,29 @@ If you want to force an empty list of arguments, use t."
       (vc-svn-command t 0 nil "status" (if localp "-v" "-u"))
       (vc-svn-parse-status))))
 
+(defun vc-svn-dir-status (dir)
+  "Return a list of conses (FILE . STATE) for DIR."
+  (with-temp-buffer
+    (let ((default-directory (file-name-as-directory dir))
+	  (state-map '((?A . added)
+		       (?C . edited)
+		       (?D . removed)
+		       (?I . ignored)
+		       (?M . edited)
+		       (?R . removed)
+		       (?? . unregistered)
+		       ;; This is what vc-svn-parse-status does.
+		       (?~ . edited)))
+	  result)
+      (vc-svn-command t 0 nil "status")
+      (goto-char (point-min))
+      (while (re-search-forward "^\\(.\\)..... \\(.*\\)$" nil t)
+	(let ((state (cdr (assq (aref (match-string 1) 0) state-map)))
+	      (filename (match-string 2)))
+	  (when state
+	    (setq result (cons (cons filename state) result)))))
+      result)))
+
 (defun vc-svn-working-revision (file)
   "SVN-specific version of `vc-working-revision'."
   ;; There is no need to consult RCS headers under SVN, because we
