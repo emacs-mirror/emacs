@@ -1,6 +1,21 @@
 2008-01-18  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-entry-properties) Include the CLOCKSUM
+	* textmodes/org-publish.el (org-publish-current-project): Fix bug
+	with forcing publication.
+
+	* textmodes/org.el (org-export-with-special-strings): New option.
+	(org-export-html-convert-special-strings): New function.
+	(org-html-do-expand): `org-export-html-convert-special-strings'
+	added to the list of conversion.
+	(org-infile-export-plist, org-get-current-options): Added support
+	for "-" in the #+OPTION line to let user switch on/off special
+	strings conversion.
+	(org-export-plist-vars): New :html-table-tag property.
+	(org-export-as-html, org-format-org-table-html)
+	(org-format-table-table-html) Use the :html-table-tag property
+	instead of the `org-export-html-table-tag' global value.
+	(org-additional-option-like-keywords): Added "TBLFM".
+	(org-entry-properties): Include the CLOCKSUM
 	special property.
 	(org-columns-edit-value): Do not allow to edit the special
 	CLOCKSUM property.
