@@ -1,3 +1,11 @@
+2008-01-18  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* coding.c (decode_coding_object): Adjuste marker positions after
+	conversion.
+	(encode_coding_object): Likewise.
+
+	* lisp.h (struct Lisp_Marker): New member need_adjustment.
+
 2008-01-14  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* font.c (font_find_for_lface): Fix the handling of the return
