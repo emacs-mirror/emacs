@@ -1,4 +1,4 @@
-;;; blank-mode.el --- minor mode to visualise TAB, (HARD) SPACE, NEWLINE
+;;; blank-mode.el --- minor mode to visualize TAB, (HARD) SPACE, NEWLINE
 
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
@@ -33,10 +33,10 @@
 ;; Introduction
 ;; ------------
 ;;
-;; This package is a minor mode to visualise blanks (TAB, (HARD) SPACE
+;; This package is a minor mode to visualize blanks (TAB, (HARD) SPACE
 ;; and NEWLINE).
 ;;
-;; blank-mode uses two ways to visualise blanks: faces and display
+;; blank-mode uses two ways to visualize blanks: faces and display
 ;; table.
 ;;
 ;; * Faces are used to highlight the background with a color.
@@ -47,7 +47,7 @@
 ;;   of line (?\xB6), at SPACEs (?\xB7) and at TABs (?\xBB).
 ;;
 ;; The `blank-style' and `blank-chars' variables are used to select
-;; which way should be used to visualise blanks.
+;; which way should be used to visualize blanks.
 ;;
 ;; Note that when blank-mode is turned on, blank-mode saves the
 ;; font-lock state, that is, if font-lock is on or off.  And
@@ -94,7 +94,7 @@
 ;; `global-blank-toggle-options'.  For example:
 ;;
 ;;    (autoload 'blank-mode                  "blank-mode"
-;;      "Toggle blank visualisation."          t)
+;;      "Toggle blank visualization."          t)
 ;;    (autoload 'blank-toggle-options        "blank-mode"
 ;;      "Toggle local `blank-mode' options."   t)
 ;;
@@ -175,26 +175,26 @@
 ;; Below it's shown a brief description of blank-mode options, please,
 ;; see the options declaration in the code for a long documentation.
 ;;
-;; `blank-style'		Specify the visualisation style.
+;; `blank-style'		Specify the visualization style.
 ;;
 ;; `blank-chars'		Specify which kind of blank is
-;;				visualised.
+;;				visualized.
 ;;
-;; `blank-space-face'		Face used to visualise SPACE.
+;; `blank-space-face'		Face used to visualize SPACE.
 ;;
-;; `blank-hspace-face'		Face used to visualise HARD SPACE.
+;; `blank-hspace-face'		Face used to visualize HARD SPACE.
 ;;
-;; `blank-tab-face'		Face used to visualise TAB.
+;; `blank-tab-face'		Face used to visualize TAB.
 ;;
-;; `blank-newline-face'		Face used to visualise NEWLINE char
+;; `blank-newline-face'		Face used to visualize NEWLINE char
 ;;				mapping.
 ;;
-;; `blank-trailing-face'	Face used to visualise trailing
+;; `blank-trailing-face'	Face used to visualize trailing
 ;;				blanks.
 ;;
-;; `blank-line-face'		Face used to visualise "long" lines.
+;; `blank-line-face'		Face used to visualize "long" lines.
 ;;
-;; `blank-space-before-tab-face'	Face used to visualise SPACEs
+;; `blank-space-before-tab-face'	Face used to visualize SPACEs
 ;;					before TAB.
 ;;
 ;; `blank-space-regexp'		Specify SPACE characters regexp.
@@ -268,7 +268,7 @@
 
 
 (defgroup blank nil
-  "Visualise blanks (TAB, (HARD) SPACE and NEWLINE)."
+  "Visualize blanks (TAB, (HARD) SPACE and NEWLINE)."
   :link '(emacs-library-link :tag "Source Lisp File" "blank-mode.el")
   :version "22.2"
   :group 'wp
@@ -276,17 +276,17 @@
 
 
 (defcustom blank-style '(mark color)
-  "*Specify the visualisation style.
+  "*Specify the visualization style.
 
 It's a list which element value can be:
 
-   mark		display mappings are visualised.
+   mark		display mappings are visualized.
 
-   color	faces are visualised.
+   color	faces are visualized.
 
 Any other value is ignored.
 
-If it's nil, don't visualise TABs, (HARD) SPACEs and NEWLINEs.
+If nil, don't visualize TABs, (HARD) SPACEs and NEWLINEs.
 
 See also `blank-display-mappings' for documentation."
   :type '(repeat :tag "Style of Blank"
@@ -298,26 +298,26 @@ See also `blank-display-mappings' for documentation."
 
 (defcustom blank-chars
   '(tabs spaces trailing lines space-before-tab newline)
-  "*Specify which kind of blank is visualised.
+  "*Specify which kind of blank is visualized.
 
 It's a list which element value can be:
 
-   trailing		trailing blanks are visualised.
+   trailing		trailing blanks are visualized.
 
-   tabs			TABs are visualised.
+   tabs			TABs are visualized.
 
-   spaces		SPACEs and HARD SPACEs are visualised.
+   spaces		SPACEs and HARD SPACEs are visualized.
 
    lines		lines whose length is greater than
 			`blank-line-length' are highlighted.
 
-   space-before-tab	SPACEs before TAB are visualised.
+   space-before-tab	SPACEs before TAB are visualized.
 
-   newline		NEWLINEs are visualised.
+   newline		NEWLINEs are visualized.
 
-Any other element value is ignored.
+Any other value is ignored.
 
-If it's nil, don't visualise TABs, (HARD) SPACEs and NEWLINEs.
+If nil, don't visualize TABs, (HARD) SPACEs and NEWLINEs.
 
 Used when `blank-style' has `color' as an element.
 If `blank-chars' has `newline' as an element, used when `blank-style'
@@ -336,7 +336,7 @@ has `mark' as an element."
 
 
 (defcustom blank-space-face 'blank-space-face
-  "*Symbol face used to visualise SPACE.
+  "*Symbol face used to visualize SPACE.
 
 Used when `blank-style' has `color' as an element."
   :type 'face
@@ -349,12 +349,12 @@ Used when `blank-style' has `color' as an element."
     (((class color) (background light))
      (:background "LightYellow" :foreground "aquamarine3"))
     (t (:inverse-video t)))
-  "Face used to visualise SPACE."
+  "Face used to visualize SPACE."
   :group 'blank)
 
 
 (defcustom blank-hspace-face 'blank-hspace-face
-  "*Symbol face used to visualise HARD SPACE.
+  "*Symbol face used to visualize HARD SPACE.
 
 Used when `blank-style' has `color' as an element."
   :type 'face
@@ -367,12 +367,12 @@ Used when `blank-style' has `color' as an element."
     (((class color) (background light))
      (:background "LemonChiffon3" :foreground "aquamarine3"))
     (t (:inverse-video t)))
-  "Face used to visualise HARD SPACE."
+  "Face used to visualize HARD SPACE."
   :group 'blank)
 
 
 (defcustom blank-tab-face 'blank-tab-face
-  "*Symbol face used to visualise TAB.
+  "*Symbol face used to visualize TAB.
 
 Used when `blank-style' has `color' as an element."
   :type 'face
@@ -385,12 +385,12 @@ Used when `blank-style' has `color' as an element."
     (((class color) (background light))
      (:background "beige"  :foreground "aquamarine3"))
     (t (:inverse-video t)))
-  "Face used to visualise TAB."
+  "Face used to visualize TAB."
   :group 'blank)
 
 
 (defcustom blank-newline-face 'blank-newline-face
-  "*Symbol face used to visualise NEWLINE char mapping.
+  "*Symbol face used to visualize NEWLINE char mapping.
 
 See `blank-display-mappings'.
 
@@ -406,14 +406,14 @@ and `blank-chars' has `newline' as an element."
     (((class color) (background light))
      (:background "linen"  :foreground "aquamarine3" :bold t))
     (t (:bold t :underline t)))
-  "Face used to visualise NEWLINE char mapping.
+  "Face used to visualize NEWLINE char mapping.
 
 See `blank-display-mappings'."
   :group 'blank)
 
 
 (defcustom blank-trailing-face 'blank-trailing-face
-  "*Symbol face used to visualise traling blanks.
+  "*Symbol face used to visualize traling blanks.
 
 Used when `blank-style' has `color' as an element."
   :type 'face
@@ -423,14 +423,14 @@ Used when `blank-style' has `color' as an element."
 (defface blank-trailing-face		; 'trailing-whitespace
   '((((class mono)) (:inverse-video t :bold t :underline t))
     (t (:background "red1" :foreground "yellow" :bold t)))
-  "Face used to visualise trailing blanks."
+  "Face used to visualize trailing blanks."
   :group 'blank)
 
 
 (defcustom blank-line-face 'blank-line-face
-  "*Symbol face used to visualise \"long\" lines.
+  "*Symbol face used to visualize \"long\" lines.
 
-See `blank-line-legnth'.
+See `blank-line-length'.
 
 Used when `blank-style' has `color' as an element."
   :type 'face
@@ -440,14 +440,14 @@ Used when `blank-style' has `color' as an element."
 (defface blank-line-face
   '((((class mono)) (:inverse-video t :bold t :underline t))
     (t (:background "gray20" :foreground "violet")))
-  "Face used to visualise \"long\" lines.
+  "Face used to visualize \"long\" lines.
 
 See `blank-line-length'."
   :group 'blank)
 
 
 (defcustom blank-space-before-tab-face 'blank-space-before-tab-face
-  "*Symbol face used to visualise SPACEs before TAB.
+  "*Symbol face used to visualize SPACEs before TAB.
 
 Used when `blank-style' has `color' as an element."
   :type 'face
@@ -457,7 +457,7 @@ Used when `blank-style' has `color' as an element."
 (defface blank-space-before-tab-face
   '((((class mono)) (:inverse-video t :bold t :underline t))
     (t (:background "DarkOrange" :foreground "firebrick")))
-  "Face used to visualise SPACEs before TAB."
+  "Face used to visualize SPACEs before TAB."
   :group 'blank)
 
 
@@ -469,18 +469,18 @@ If you're using `mule' package, it may exist other characters besides:
 
    \"\\xA0\"   \"\\x8A0\"   \"\\x920\"   \"\\xE20\"   \"\\xF20\"
 
-that it should be considered HARD SPACE.
+that should be considered HARD SPACE.
 
 Here are some examples:
 
    \"\\\\(^\\xA0+\\\\)\"		\
-visualise only leading HARD SPACEs.
+visualize only leading HARD SPACEs.
    \"\\\\(\\xA0+$\\\\)\"		\
-visualise only trailing HARD SPACEs.
+visualize only trailing HARD SPACEs.
    \"\\\\(^\\xA0+\\\\|\\xA0+$\\\\)\"	\
-visualise leading and/or trailing HARD SPACEs.
+visualize leading and/or trailing HARD SPACEs.
    \"\\t\\\\(\\xA0+\\\\)\\t\"		\
-visualise only HARD SPACEs between TABs.
+visualize only HARD SPACEs between TABs.
 
 NOTE: Enclose always by \\\\( and \\\\) the elements to highlight.
       Use exactly one pair of enclosing \\\\( and \\\\).
@@ -495,15 +495,15 @@ Used when `blank-style' has `color' as an element, and
   "*Specify SPACE characters regexp.
 
 If you're using `mule' package, it may exist other characters
-besides \" \" that it should be considered SPACE.
+besides \" \" that should be considered SPACE.
 
 Here are some examples:
 
-   \"\\\\(^ +\\\\)\"		visualise only leading SPACEs.
-   \"\\\\( +$\\\\)\"		visualise only trailing SPACEs.
+   \"\\\\(^ +\\\\)\"		visualize only leading SPACEs.
+   \"\\\\( +$\\\\)\"		visualize only trailing SPACEs.
    \"\\\\(^ +\\\\| +$\\\\)\"	\
-visualise leading and/or trailing SPACEs.
-   \"\\t\\\\( +\\\\)\\t\"	visualise only SPACEs between TABs.
+visualize leading and/or trailing SPACEs.
+   \"\\t\\\\( +\\\\)\\t\"	visualize only SPACEs between TABs.
 
 NOTE: Enclose always by \\\\( and \\\\) the elements to highlight.
       Use exactly one pair of enclosing \\\\( and \\\\).
@@ -518,15 +518,15 @@ Used when `blank-style' has `color' as an element, and
   "*Specify TAB characters regexp.
 
 If you're using `mule' package, it may exist other characters
-besides \"\\t\" that it should be considered TAB.
+besides \"\\t\" that should be considered TAB.
 
 Here are some examples:
 
-   \"\\\\(^\\t+\\\\)\"		visualise only leading TABs.
-   \"\\\\(\\t+$\\\\)\"		visualise only trailing TABs.
+   \"\\\\(^\\t+\\\\)\"		visualize only leading TABs.
+   \"\\\\(\\t+$\\\\)\"		visualize only trailing TABs.
    \"\\\\(^\\t+\\\\|\\t+$\\\\)\"	\
-visualise leading and/or trailing TABs.
-   \" \\\\(\\t+\\\\) \"	visualise only TABs between SPACEs.
+visualize leading and/or trailing TABs.
+   \" \\\\(\\t+\\\\) \"	visualize only TABs between SPACEs.
 
 NOTE: Enclose always by \\\\( and \\\\) the elements to highlight.
       Use exactly one pair of enclosing \\\\( and \\\\).
@@ -546,9 +546,9 @@ If you're using `mule' package, it may exist other characters besides:
    \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
 \"\\xF20\"
 
-that it should be considered blank.
+that should be considered blank.
 
-NOTE: DOES NOT enclose by \\\\( and \\\\) the elements to highlight.
+NOTE: DO NOT enclose by \\\\( and \\\\) the elements to highlight.
       `blank-mode' surrounds this regexp by \"\\\\(\\\\(\" and
       \"\\\\)+\\\\)$\".
 
@@ -566,7 +566,7 @@ If you're using `mule' package, it may exist other characters besides:
    \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
 \"\\xF20\"
 
-that it should be considered blank.
+that should be considered blank.
 
 Used when `blank-style' has `color' as an element, and
 `blank-chars' has `space-before-tab' as an element."
@@ -627,7 +627,7 @@ VECTOR	is a vector of characters to be displayed in place of CHAR.
 
 The NEWLINE character is displayed using the face given by
 `blank-newline-face' variable.  The characters in the vector to be
-displayed will not have applied this face if the character code is
+displayed will not have this face applied if the character code is
 above #x1FFFF.
 
 Used when `blank-style' has `mark' as an element."
@@ -650,7 +650,7 @@ Global `blank-mode' is controlled by the command `global-blank-mode'.
 If nil, means no modes have `blank-mode' automatically turned on.
 If t, all modes that support `blank-mode' have it automatically
 turned on.
-If a list, it should be a list of `major-mode' symbol names for
+Else it should be a list of `major-mode' symbol names for
 which `blank-mode' should be automatically turned on.  The sense
 of the list is negated if it begins with `not'.  For example:
 
@@ -674,11 +674,11 @@ modes only."
 
 ;;;###autoload
 (define-minor-mode blank-mode
-  "Toggle blank minor mode visualisation (bl on modeline).
+  "Toggle blank minor mode visualization (\"bl\" on modeline).
 
-If ARG is null, toggle blank visualisation.
-If ARG is a number and is greater than zero, turn on
-visualisation; otherwise, turn off visualisation.
+If ARG is null, toggle blank visualization.
+If ARG is a number greater than zero, turn on visualization;
+otherwise, turn off visualization.
 Only useful with a windowing system."
   :lighter    " bl"
   :init-value nil
@@ -698,11 +698,11 @@ Only useful with a windowing system."
 
 
 (define-minor-mode global-blank-mode
-  "Toggle blank global minor mode visualisation (BL on modeline).
+  "Toggle blank global minor mode visualization (\"BL\" on modeline).
 
-If ARG is null, toggle blank visualisation.
-If ARG is a number and is greater than zero, turn on
-visualisation; otherwise, turn off visualisation.
+If ARG is null, toggle blank visualization.
+If ARG is a number greater than zero, turn on visualization;
+otherwise, turn off visualization.
 Only useful with a windowing system."
   :lighter    " BL"
   :init-value nil
@@ -766,14 +766,14 @@ Only useful with a windowing system."
     lines
     newline
     )
-  "List of valid `blank-chars' value.")
+  "List of valid `blank-chars' values.")
 
 
 (defconst blank-style-value-list
   '(color
     mark
     )
-  "List of valid `blank-style' value.")
+  "List of valid `blank-style' values.")
 
 
 (defconst blank-toggle-option-alist
@@ -824,27 +824,27 @@ restart local blank-mode.
 Interactively, it reads one of the following chars:
 
   CHAR	MEANING
-   t	toggle TAB visualisation
-   s	toggle SPACE and HARD SPACE visualisation
-   r	toggle trailing blanks visualisation
-   b	toggle SPACEs before TAB visualisation
-   l	toggle \"long lines\" visualisation
-   n	toggle NEWLINE visualisation
+   t	toggle TAB visualization
+   s	toggle SPACE and HARD SPACE visualization
+   r	toggle trailing blanks visualization
+   b	toggle SPACEs before TAB visualization
+   l	toggle \"long lines\" visualization
+   n	toggle NEWLINE visualization
    c	toggle color faces
    m	toggle visual mark
    x	restore `blank-chars' value
    z	restore `blank-style' value
    ?	display brief help
 
-Non-interactively, ARG should be a symbol or a list of symbol.
+Non-interactively, ARG should be a symbol or a list of symbols.
 The valid symbols are:
 
-   tabs			toggle TAB visualisation
-   spaces		toggle SPACE and HARD SPACE visualisation
-   trailing		toggle trailing blanks visualisation
-   space-before-tab	toggle SPACEs before TAB visualisation
-   lines		toggle \"long lines\" visualisation
-   newline		toggle NEWLINE visualisation
+   tabs			toggle TAB visualization
+   spaces		toggle SPACE and HARD SPACE visualization
+   trailing		toggle trailing blanks visualization
+   space-before-tab	toggle SPACEs before TAB visualization
+   lines		toggle \"long lines\" visualization
+   newline		toggle NEWLINE visualization
    color		toggle color faces
    mark			toggle visual mark
    blank-chars		restore `blank-chars' value
@@ -881,27 +881,27 @@ restart global blank-mode.
 Interactively, it reads one of the following chars:
 
   CHAR	MEANING
-   t	toggle TAB visualisation
-   s	toggle SPACE and HARD SPACE visualisation
-   r	toggle trailing blanks visualisation
-   b	toggle SPACEs before TAB visualisation
-   l	toggle \"long lines\" visualisation
-   n	toggle NEWLINE visualisation
+   t	toggle TAB visualization
+   s	toggle SPACE and HARD SPACE visualization
+   r	toggle trailing blanks visualization
+   b	toggle SPACEs before TAB visualization
+   l	toggle \"long lines\" visualization
+   n	toggle NEWLINE visualization
    c	toggle color faces
    m	toggle visual mark
    x	restore `blank-chars' value
    z	restore `blank-style' value
    ?	display brief help
 
-Non-interactively, ARG should be a symbol or a list of symbol.
+Non-interactively, ARG should be a symbol or a list of symbols.
 The valid symbols are:
 
-   tabs			toggle TAB visualisation
-   spaces		toggle SPACE and HARD SPACE visualisation
-   trailing		toggle trailing blanks visualisation
-   space-before-tab	toggle SPACEs before TAB visualisation
-   lines		toggle \"long lines\" visualisation
-   newline		toggle NEWLINE visualisation
+   tabs			toggle TAB visualization
+   spaces		toggle SPACE and HARD SPACE visualization
+   trailing		toggle trailing blanks visualization
+   space-before-tab	toggle SPACEs before TAB visualization
+   lines		toggle \"long lines\" visualization
+   newline		toggle NEWLINE visualization
    color		toggle color faces
    mark			toggle visual mark
    blank-chars		restore `blank-chars' value
@@ -942,12 +942,12 @@ Only useful with a windowing system."
   "\
       blank-mode toggle options:
 
- []  t - toggle TAB visualisation
- []  s - toggle SPACE and HARD SPACE visualisation
- []  r - toggle trailing blanks visualisation
- []  b - toggle SPACEs before TAB visualisation
- []  l - toggle \"long lines\" visualisation
- []  n - toggle NEWLINE visualisation
+ []  t - toggle TAB visualization
+ []  s - toggle SPACE and HARD SPACE visualization
+ []  r - toggle trailing blanks visualization
+ []  b - toggle SPACEs before TAB visualization
+ []  l - toggle \"long lines\" visualization
+ []  n - toggle NEWLINE visualization
 
  []  c - toggle color faces
  []  m - toggle visual mark
@@ -1013,12 +1013,12 @@ uses a global context.
 It reads one of the following chars:
 
   CHAR	MEANING
-   t	toggle TAB visualisation
-   s	toggle SPACE and HARD SPACE visualisation
-   r	toggle trailing blanks visualisation
-   b	toggle SPACEs before TAB visualisation
-   l	toggle \"long lines\" visualisation
-   n	toggle NEWLINE visualisation
+   t	toggle TAB visualization
+   s	toggle SPACE and HARD SPACE visualization
+   r	toggle trailing blanks visualization
+   b	toggle SPACEs before TAB visualization
+   l	toggle \"long lines\" visualization
+   n	toggle NEWLINE visualization
    c	toggle color faces
    m	toggle visual mark
    x	restore `blank-chars' value
@@ -1098,7 +1098,7 @@ options are valid."
 
 
 (defun blank-turn-on ()
-  "Turn on blank visualisation."
+  "Turn on blank visualization."
   (setq blank-active-style (if (listp blank-style)
 			       blank-style
 			     (list blank-style)))
@@ -1112,7 +1112,7 @@ options are valid."
 
 
 (defun blank-turn-off ()
-  "Turn off blank visualisation."
+  "Turn off blank visualization."
   (and (memq 'color blank-active-style)
        (blank-color-off))
   (and (memq 'mark  blank-active-style)
@@ -1120,7 +1120,7 @@ options are valid."
 
 
 (defun blank-color-on ()
-  "Turn on color visualisation."
+  "Turn on color visualization."
   (when blank-active-chars
     (unless blank-font-lock
       (setq blank-font-lock t
@@ -1176,7 +1176,7 @@ options are valid."
 
 
 (defun blank-color-off ()
-  "Turn off color visualisation."
+  "Turn off color visualization."
   (when blank-active-chars
     (when blank-font-lock
       (setq blank-font-lock nil
