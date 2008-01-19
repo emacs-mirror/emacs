@@ -128,6 +128,7 @@
     (define-key map "\C-s" 'show-ifdef-block)
 
     (define-key map "\C-q" 'hide-ifdef-toggle-read-only)
+    (define-key map "\C-w" 'hide-ifdef-toggle-shadowing)
     (substitute-key-definition
      'toggle-read-only 'hide-ifdef-toggle-outside-read-only map)
     map)
@@ -155,7 +156,9 @@
     ["Use an alist" hide-ifdef-use-define-alist t]
     ["Undefine a variable" hide-ifdef-undef t]
     ["Toggle read only" hide-ifdef-toggle-read-only
-              :style toggle :selected hide-ifdef-read-only]))
+     :style toggle :selected hide-ifdef-read-only]
+    ["Toggle shadowing" hide-ifdef-toggle-shadowing
+     :style toggle :selected hide-ifdef-shadow]))
 
 (defvar hide-ifdef-hiding nil
   "Non-nil when text may be hidden.")
@@ -256,9 +259,12 @@ how the hiding is done:
     (end-of-line 2)))
 
 (defun hide-ifdef-region-internal (start end)
-  (remove-overlays start end 'invisible 'hide-ifdef)
+  (remove-overlays start end 'hide-ifdef t)
   (let ((o (make-overlay start end)))
-    (overlay-put o 'invisible 'hide-ifdef)))
+    (overlay-put o 'hide-ifdef t)
+    (if hide-ifdef-shadow
+	(overlay-put o 'face 'hide-ifdef-shadow)
+      (overlay-put o 'invisible 'hide-ifdef))))
 
 (defun hide-ifdef-region (start end)
   "START is the start of a #if or #else form.  END is the ending part.
@@ -270,7 +276,7 @@ Everything including these lines is made invisible."
 
 (defun hif-show-ifdef-region (start end)
   "Everything between START and END is made visible."
-  (remove-overlays start end 'invisible 'hide-ifdef))
+  (remove-overlays start end 'hide-ifdef t))
 
 
 ;;===%%SF%% evaluation (Start)  ===
@@ -740,11 +746,11 @@ Point is left unchanged."
 
 (defun hif-hide-line (point)
   "Hide the line containing point.  Does nothing if `hide-ifdef-lines' is nil."
-  (if hide-ifdef-lines
-      (save-excursion
-	(goto-char point)
-	(hide-ifdef-region-internal (line-beginning-position)
-				    (progn (hif-end-of-line) (point))))))
+  (when hide-ifdef-lines
+    (save-excursion
+      (goto-char point)
+      (hide-ifdef-region-internal
+       (line-beginning-position) (progn (hif-end-of-line) (point))))))
 
 
 ;;;  Hif-Possibly-Hide
@@ -829,20 +835,31 @@ It does not do the work that's pointless to redo on a recursive entry."
 
 ;;;###autoload
 (defcustom hide-ifdef-initially nil
-  "*Non-nil means call `hide-ifdefs' when Hide-Ifdef mode is first activated."
+  "Non-nil means call `hide-ifdefs' when Hide-Ifdef mode is first activated."
   :type 'boolean
   :group 'hide-ifdef)
 
 ;;;###autoload
 (defcustom hide-ifdef-read-only nil
-  "*Set to non-nil if you want buffer to be read-only while hiding text."
+  "Set to non-nil if you want buffer to be read-only while hiding text."
   :type 'boolean
   :group 'hide-ifdef)
 
 ;;;###autoload
 (defcustom hide-ifdef-lines nil
-  "*Non-nil means hide the #ifX, #else, and #endif lines."
+  "Non-nil means hide the #ifX, #else, and #endif lines."
   :type 'boolean
+  :group 'hide-ifdef)
+
+;;;###autoload
+(defcustom hide-ifdef-shadow nil
+  "Non-nil means shadow text instead of hiding it."
+  :type 'boolean
+  :group 'hide-ifdef)
+
+;;;###autoload
+(defface hide-ifdef-shadow '((t (:inherit shadow)))
+  "Face for shadowing ifdef blocks."
   :group 'hide-ifdef)
 
 (defun hide-ifdef-toggle-read-only ()
@@ -866,6 +883,21 @@ It does not do the work that's pointless to redo on a recursive entry."
 	    hif-outside-read-only))
   (force-mode-line-update))
 
+(defun hide-ifdef-toggle-shadowing ()
+  "Toggle shadowing."
+  (interactive)
+  (set (make-local-variable 'hide-ifdef-shadow) (not hide-ifdef-shadow))
+  (message "Shadowing %s" (if hide-ifdef-shadow "ON" "OFF"))
+  (save-restriction
+    (widen)
+    (dolist (overlay (overlays-in (point-min) (point-max)))
+      (when (overlay-get overlay 'hide-ifdef)
+	(if hide-ifdef-shadow
+	    (progn
+	      (overlay-put overlay 'invisible nil)
+	      (overlay-put overlay 'face 'hide-ifdef-shadow))
+	  (overlay-put overlay 'face nil)
+	  (overlay-put overlay 'invisible 'hide-ifdef))))))
 
 (defun hide-ifdef-define (var)
   "Define a VAR so that #ifdef VAR would be included."
