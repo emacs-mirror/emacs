@@ -280,6 +280,9 @@ considered for update.
 ** eldoc highlights the function argument under point
 with the face `eldoc-highlight-function-argument'.
 
+** hide-ifdef-mode permits to shadow ifdef-blocks instead of hiding them.
+See option `hide-ifdef-shadow' and function `hide-ifdef-toggle-shadowing'.
+
 +++
 ** defcustom accepts new keyword arguments, `:safe' and `:risky', which
 set a variable's `safe-local-variable' and `risky-local-variable' property.
