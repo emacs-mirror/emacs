@@ -1,10 +1,24 @@
+2008-01-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* blank-mode.el (blank-style, blank-chars, blank-hspace-regexp)
+	(blank-space-regexp, blank-tab-regexp, blank-trailing-regexp)
+	(blank-space-before-tab-regexp, blank-global-modes, blank-mode)
+	(global-blank-mode): Doc fixes.
+	(blank, blank-space-face, blank-hspace-face, blank-tab-face)
+	(blank-newline-face, blank-trailing-face, blank-line-face)
+	(blank-space-before-tab-face, blank-display-mappings)
+	(blank-chars-value-list, blank-style-value-list, blank-toggle-options)
+	(global-blank-toggle-options, blank-help-text, blank-interactive-char)
+	(blank-turn-on, blank-turn-off, blank-color-on, blank-color-off):
+	Fix typos in docstrings.
+
 2008-01-18  Richard Stallman  <rms@gnu.org>
 
 	* icomplete.el (icomplete-get-keys):
 	Look up KEYS using all maps in proper buffer.
 
-2008-01-17 Vinicius Jose Latorre <viniciusjl@ig.com.br>
-2008-01-17 Miles Bader <miles@gnu.org>
+2008-01-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+	    Miles Bader  <miles@gnu.org>
 
 	* blank-mode.el: New file.  Minor mode to visualise TAB,
 	(HARD) SPACE, NEWLINE.  Miles Bader <miles@gnu.org> wrote the original
@@ -143,7 +157,7 @@
 
 	* vc-hg.el (vc-hg-diff): Don't pass an empty string.
 
-2008-01-09  Wilson Snyder <wsnyder@wsnyder.org>
+2008-01-09  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el (top-level): Fix spacing.
 	(verilog-mode-version, verilog-mode-release-date): Update version
@@ -610,8 +624,8 @@
 	(verilog-emacs-features, verilog-auto-ascii-enum)
 	(verilog-insert-indices): Escape braces in doc strings.
 
-2007-12-08  Michael McNamara <mac@verilog.com>
-	    Wilson Snyder <wsnyder@wsnyder.org>
+2007-12-08  Michael McNamara  <mac@verilog.com>
+	    Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el: New file.
 
