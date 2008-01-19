@@ -689,6 +689,7 @@ int trace_move;
    point visible.  */
 
 int automatic_hscrolling_p;
+Lisp_Object Qauto_hscroll_mode;
 
 /* How close to the margin can point get before the window is scrolled
    horizontally.  */
@@ -10381,11 +10382,12 @@ hscroll_window_tree (window)
 	  /* Scroll when cursor is inside this scroll margin.  */
 	  h_margin = hscroll_margin * WINDOW_FRAME_COLUMN_WIDTH (w);
 
-	  if ((XFASTINT (w->hscroll)
-	       && w->cursor.x <= h_margin)
-	      || (cursor_row->enabled_p
-		  && cursor_row->truncated_on_right_p
-		  && (w->cursor.x >= text_area_width - h_margin)))
+	  if (!NILP (Fbuffer_local_value (Qauto_hscroll_mode, w->buffer))
+	      && ((XFASTINT (w->hscroll)
+		   && w->cursor.x <= h_margin)
+		  || (cursor_row->enabled_p
+		      && cursor_row->truncated_on_right_p
+		      && (w->cursor.x >= text_area_width - h_margin))))
 	    {
 	      struct it it;
 	      int hscroll;
@@ -10475,16 +10477,9 @@ static int
 hscroll_windows (window)
      Lisp_Object window;
 {
-  int hscrolled_p;
-
-  if (automatic_hscrolling_p)
-    {
-      hscrolled_p = hscroll_window_tree (window);
-      if (hscrolled_p)
-	clear_desired_matrices (XFRAME (WINDOW_FRAME (XWINDOW (window))));
-    }
-  else
-    hscrolled_p = 0;
+  int hscrolled_p = hscroll_window_tree (window);
+  if (hscrolled_p)
+    clear_desired_matrices (XFRAME (WINDOW_FRAME (XWINDOW (window))));
   return hscrolled_p;
 }
 
@@ -24387,6 +24382,8 @@ the frame's other specifications determine how to blink the cursor off.  */);
   DEFVAR_BOOL ("auto-hscroll-mode", &automatic_hscrolling_p,
     doc: /* *Non-nil means scroll the display automatically to make point visible.  */);
   automatic_hscrolling_p = 1;
+  Qauto_hscroll_mode = intern ("auto-hscroll-mode");
+  staticpro (&Qauto_hscroll_mode);
 
   DEFVAR_INT ("hscroll-margin", &hscroll_margin,
     doc: /* *How many columns away from the window edge point is allowed to get

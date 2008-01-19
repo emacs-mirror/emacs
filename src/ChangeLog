@@ -1,5 +1,11 @@
 2008-01-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* xdisp.c (Qauto_hscroll_mode): New var.
+	(syms_of_xdisp): Initialize it.
+	(hscroll_window_tree): Use it to lookup `auto-hscroll-mode' in each
+	window's buffer.
+	(hscroll_windows): Don't check automatic_hscrolling_p here.
+
 	* window.c (set_window_buffer): Don't unnecessarily reset hscroll and
 	vscroll if we're setting window-buffer to the value it already has.
 
