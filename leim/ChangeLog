@@ -1,3 +1,8 @@
+2008-01-14  Aidan Kehoe  <kehoea@parhasard.net>
+
+        * quail/latin-ltx.el ("TeX"): Correct the mappings for \v{k} and
+	\vk.
+
 2007-12-15  Richard Stallman  <rms@gnu.org>
 
 	* quail/latin-post.el ("scandinavian-postfix"): Doc fix.
