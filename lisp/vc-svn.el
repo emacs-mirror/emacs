@@ -158,28 +158,34 @@ If you want to force an empty list of arguments, use t."
       (vc-svn-command t 0 nil "status" (if localp "-v" "-u"))
       (vc-svn-parse-status))))
 
-(defun vc-svn-dir-status (dir)
-  "Return a list of conses (FILE . STATE) for DIR."
-  (with-temp-buffer
-    (let ((default-directory (file-name-as-directory dir))
-	  (state-map '((?A . added)
-		       (?C . edited)
-		       (?D . removed)
-		       (?I . ignored)
-		       (?M . edited)
-		       (?R . removed)
-		       (?? . unregistered)
-		       ;; This is what vc-svn-parse-status does.
-		       (?~ . edited)))
-	  result)
-      (vc-svn-command t 0 nil "status")
-      (goto-char (point-min))
-      (while (re-search-forward "^\\(.\\)..... \\(.*\\)$" nil t)
-	(let ((state (cdr (assq (aref (match-string 1) 0) state-map)))
-	      (filename (match-string 2)))
-	  (when state
-	    (setq result (cons (cons filename state) result)))))
-      result)))
+(defun vc-svn-after-dir-status (callback buffer)
+  (let ((state-map '((?A . added)
+                    (?C . edited)
+                    (?D . removed)
+                    (?I . ignored)
+                    (?M . edited)
+                    (?R . removed)
+                    (?? . unregistered)
+                    ;; This is what vc-svn-parse-status does.
+                    (?~ . edited)))
+       result)
+    (goto-char (point-min))
+    (while (re-search-forward "^\\(.\\)..... \\(.*\\)$" nil t)
+      (let ((state (cdr (assq (aref (match-string 1) 0) state-map)))
+           (filename (match-string 2)))
+       (when state
+         (setq result (cons (cons filename state) result)))))
+    (funcall callback result buffer)))
+
+(defun vc-svn-dir-status (dir callback buffer)
+  "Run 'svn status' for DIR and update BUFFER via CALLBACK.
+CALLBACK is called as (CALLBACK RESULT BUFFER), where
+RESULT is a list of conses (FILE . STATE) for directory DIR."
+  (with-current-buffer (get-buffer-create
+                       (generate-new-buffer-name " *vc svn status*"))
+    (vc-svn-command (current-buffer) 'async nil "status")
+    (vc-exec-after
+     `(vc-svn-after-dir-status (quote ,callback) ,buffer))))
 
 (defun vc-svn-working-revision (file)
   "SVN-specific version of `vc-working-revision'."

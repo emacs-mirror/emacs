@@ -1,3 +1,8 @@
+2008-01-19  Tom Tromey  <tromey@redhat.com>
+
+        * vc-svn.el (vc-svn-after-dir-status): New function.
+        (vc-svn-dir-status): Run svn asynchronously.
+
 2008-01-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/hideif.el (hide-ifdef-shadow): New option.
