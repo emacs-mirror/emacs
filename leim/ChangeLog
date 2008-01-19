@@ -1,4 +1,4 @@
-2008-01-14  Aidan Kehoe  <kehoea@parhasard.net>
+2008-01-14  Aidan Kehoe  <kehoea@parhasard.net>  (tiny change)
 
         * quail/latin-ltx.el ("TeX"): Correct the mappings for \v{k} and
 	\vk.
