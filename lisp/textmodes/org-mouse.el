@@ -1106,3 +1106,5 @@ SCHEDULED: or DEADLINE: or ANYTHINGLIKETHIS:"
 	    (:right (org-agenda-later 1)))))))
 
 (provide 'org-mouse)
+
+;; arch-tag: ff1ae557-3529-41a3-95c6-baaebdcc280f
