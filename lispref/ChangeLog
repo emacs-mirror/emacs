@@ -1,3 +1,7 @@
+2008-01-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffers.texi (Buffer Modification): Fix typo.
+
 2008-01-04  Richard Stallman  <rms@gnu.org>
 
 	* display.texi (Faces): Don't talk about internal face vector as arg
@@ -38,7 +42,7 @@
 
 2007-11-24  Richard Stallman  <rms@gnu.org>
 
-	* display.texi (Refresh Screen, Forcing Redisplay): 
+	* display.texi (Refresh Screen, Forcing Redisplay):
 	Clarify the text and move items around.
 
 2007-11-15  Martin Rudalics  <rudalics@gmx.at>
