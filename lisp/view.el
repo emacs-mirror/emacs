@@ -238,6 +238,10 @@ This is local in each buffer, once it is used.")
 
 ;;; Commands that enter or exit view mode.
 
+;; This is used when view mode is exited, to make sure we don't try to
+;; kill a buffer modified by the user.  A buffer in view mode can
+;; become modified if the user types C-x C-q, edits the buffer, then
+;; types C-x C-q again to return to view mode.
 (defun kill-buffer-if-not-modified (buf)
   "Like `kill-buffer', but does nothing if the buffer is modified."
   (let ((buf (or (bufferp buf) (get-buffer buf))))
