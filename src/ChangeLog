@@ -1,3 +1,13 @@
+2008-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (detect_coding_iso2022): New arg
+	latin_extra_code_state.  Allow Latin extra codes only
+	when *latin_extra_code_state is nonzero.
+	(detect_coding_mask): If there is a NULL byte, detect the encoding
+	as UTF-16 or binary.  If Latin extra codes exist, detect the
+	encoding as ISO-2022 only when there's no other proper encoding is
+	found.
+
 2008-01-17  Jason Rumney  <jasonr@gnu.org>
 
 	* xterm.c (handle_one_xevent): Revert to counting chars not bytes.
