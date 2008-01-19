@@ -1,6 +1,12 @@
+2008-01-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-goto-page): Don't move point any more, now that
+	the hscroll behavior was fixed.
+	(doc-view-mode): Disable auto-hscroll-mode.
+
 2008-01-18  Tom Tromey  <tromey@redhat.com>
 
-        * vc-svn.el (vc-svn-dir-status): New function.
+	* vc-svn.el (vc-svn-dir-status): New function.
 
 2008-01-18  Dan Nicolaescu  <dann@ics.uci.edu>
 

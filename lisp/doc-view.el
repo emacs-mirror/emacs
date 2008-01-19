@@ -99,6 +99,7 @@
 
 ;;; Todo:
 
+;; - share more code with image-mode again.
 ;; - better menu.
 ;; - Bind slicing to a drag event.
 ;; - doc-view-fit-doc-to-window and doc-view-fit-window-to-doc.
@@ -356,12 +357,7 @@ the (uncompressed, extracted) file residing in
     ;; Update the buffer
     (doc-view-insert-image (nth (1- page) doc-view-current-files)
                            :pointer 'arrow)
-    (overlay-put doc-view-current-overlay 'help-echo doc-view-current-info)
-    (goto-char (point-min))
-    ;; This seems to be needed for set-window-hscroll (in
-    ;; image-forward-hscroll) to do something useful, I don't have time to
-    ;; debug this now.  :-(  --Stef
-    (forward-char)))
+    (overlay-put doc-view-current-overlay 'help-echo doc-view-current-info)))
 
 (defun doc-view-next-page (&optional arg)
   "Browse ARG pages forward."
@@ -994,6 +990,8 @@ toggle between displaying the document or editing it as text."
   (set (make-local-variable 'mode-line-position)
        '(" P" (:eval (number-to-string doc-view-current-page))
 	 "/" (:eval (number-to-string (length doc-view-current-files)))))
+  ;; Don't scroll unless the user specifically asked for it.
+  (set (make-local-variable 'auto-hscroll-mode) nil)
   (set (make-local-variable 'cursor-type) nil)
   (use-local-map doc-view-mode-map)
   (set (make-local-variable 'after-revert-hook) 'doc-view-reconvert-doc)
