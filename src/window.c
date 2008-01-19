@@ -3321,6 +3321,7 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
   struct window *w = XWINDOW (window);
   struct buffer *b = XBUFFER (buffer);
   int count = SPECPDL_INDEX ();
+  int samebuf = EQ (buffer, w->buffer);
 
   w->buffer = buffer;
 
@@ -3339,16 +3340,28 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
   XSETFASTINT (w->window_end_vpos, 0);
   bzero (&w->last_cursor, sizeof w->last_cursor);
   w->window_end_valid = Qnil;
-  w->hscroll = w->min_hscroll = make_number (0);
-  w->vscroll = 0;
-  set_marker_both (w->pointm, buffer, BUF_PT (b), BUF_PT_BYTE (b));
-  set_marker_restricted (w->start,
-			 make_number (b->last_window_start),
-			 buffer);
-  w->start_at_line_beg = Qnil;
-  w->force_start = Qnil;
-  XSETFASTINT (w->last_modified, 0);
-  XSETFASTINT (w->last_overlay_modified, 0);
+  if (!(keep_margins_p && samebuf))
+    { /* If we're not actually changing the buffer, Don't reset hscroll and
+	 vscroll.  This case happens for example when called from
+	 change_frame_size_1, where we use a dummy call to
+	 Fset_window_buffer on the frame's selected window (and no other)
+	 just in order to run window-configuration-change-hook.
+	 Resetting hscroll and vscroll here is problematic for things like
+	 image-mode and doc-view-mode since it resets the image's position
+	 whenever we resize the frame.  */
+      w->hscroll = w->min_hscroll = make_number (0);
+      w->vscroll = 0;
+      set_marker_both (w->pointm, buffer, BUF_PT (b), BUF_PT_BYTE (b));
+      set_marker_restricted (w->start,
+			     make_number (b->last_window_start),
+			     buffer);
+      w->start_at_line_beg = Qnil;
+      w->force_start = Qnil;
+      XSETFASTINT (w->last_modified, 0);
+      XSETFASTINT (w->last_overlay_modified, 0);
+    }
+  /* Maybe we could move this into the `if' but it's not obviously safe and
+     I doubt it's worth the trouble.  */
   windows_or_buffers_changed++;
 
   /* We must select BUFFER for running the window-scroll-functions.

@@ -1,3 +1,8 @@
+2008-01-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (set_window_buffer): Don't unnecessarily reset hscroll and
+	vscroll if we're setting window-buffer to the value it already has.
+
 2008-01-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* m/intel386.h: Remove references to XENIX.
