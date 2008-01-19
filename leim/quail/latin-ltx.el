@@ -263,7 +263,7 @@ system, including many technical ones.  Examples:
  ("\\v{G}" ?Ǧ) ("\\vG" ?Ǧ)
  ("\\v{g}" ?ǧ) ("\\vg" ?ǧ)
  ("\\v{K}" ?Ǩ) ("\\vK" ?Ǩ)
- ("\\v{k}" ?k) ("\\vk" ?k)
+ ("\\v{k}" ?ǩ) ("\\vk" ?ǩ)
 
  ("\\v{\\j}" ?ǰ) ("\\vj" ?ǰ)
  ("\\'{G}" ?Ǵ) ("\\'G" ?Ǵ)
