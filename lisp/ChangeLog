@@ -1,3 +1,21 @@
+2008-01-19  Martin Rudalics  <rudalics@gmx.at>
+
+	* progmodes/hideif.el (hide-ifdef-shadow): New option.
+	(hide-ifdef-shadow): New face.
+	(hide-ifdef-toggle-shadowing): New function to toggle between
+	shadowing and making code invisible.
+	(hide-ifdef-mode-submap): Add binding for
+	hide-ifdef-toggle-shadowing.
+	(hide-ifdef-mode-menu): Add entry for
+	hide-ifdef-toggle-shadowing.
+	(hide-ifdef-region-internal): Give new overlay hide-ifdef
+	property.  Shadow text when hide-ifdef-shadow is non-nil.
+	(hif-show-ifdef-region): Remove overlays with hide-ifdef
+	property set.
+	(hif-hide-line): Use when instead of if.
+	(hide-ifdef-initially, hide-ifdef-read-only, hide-ifdef-lines):
+	Remove unneeded * from doc-strings.
+
 2008-01-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-goto-page): Don't move point any more, now that
