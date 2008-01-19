@@ -315,6 +315,7 @@ e.g. `c-special-indent-hook'."
   :type 'boolean
   :group 'c)
 (make-variable-buffer-local 'c-syntactic-indentation)
+(put 'c-syntactic-indentation 'safe-local-variable 'booleanp)
 
 (defcustom c-syntactic-indentation-in-macros t
   "*Enable syntactic analysis inside macros.
@@ -333,6 +334,7 @@ countered easily by surrounding the statements by a block \(or even
 better with the \"do { ... } while \(0)\" trick)."
   :type 'boolean
   :group 'c)
+(put 'c-syntactic-indentation-in-macros 'safe-local-variable 'booleanp)
 
 (defcustom-c-stylevar c-comment-only-line-offset 0
   "*Extra offset for line which contains only the start of a comment.

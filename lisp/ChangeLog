@@ -1,3 +1,9 @@
+2008-01-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/sh-script.el (sh-basic-offset):
+	* progmodes/cc-vars.el (c-syntactic-indentation)
+	(c-syntactic-indentation-in-macros): Mark as safe.
+
 2008-01-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* blank-mode.el (blank-style, blank-chars, blank-hspace-regexp)
