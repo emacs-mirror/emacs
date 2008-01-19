@@ -1359,8 +1359,11 @@ list_processes_1 (query_only)
 	w_proc = i;
       if (!NILP (p->buffer))
 	{
-	  if (NILP (XBUFFER (p->buffer)->name) && w_buffer < 8)
-	    w_buffer = 8;  /* (Killed) */
+	  if (NILP (XBUFFER (p->buffer)->name))
+	    {
+	      if (w_buffer < 8)
+		w_buffer = 8;  /* (Killed) */
+	    }
 	  else if ((i = SCHARS (XBUFFER (p->buffer)->name), (i > w_buffer)))
 	    w_buffer = i;
 	}

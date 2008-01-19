@@ -1,5 +1,7 @@
 2008-01-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* process.c (list_processes_1): Don't use SCHARS on a nil buffer name.
+
 	* xdisp.c (Qauto_hscroll_mode): New var.
 	(syms_of_xdisp): Initialize it.
 	(hscroll_window_tree): Use it to lookup `auto-hscroll-mode' in each
