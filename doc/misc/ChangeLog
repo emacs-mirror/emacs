@@ -1,3 +1,11 @@
+2008-01-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-news.texi: Mention gnus-article-describe-bindings.
+
+2008-01-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-news.texi: Mention gnus-article-wide-reply-with-original.
+
 2008-01-18  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Property inheritance): New section.

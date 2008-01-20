@@ -1,11 +1,60 @@
+2008-01-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-describe-bindings): Make it possible to use
+	xrefs, i.e. [back] and [forward] buttons, in *Help* buffer.
+
+2008-01-18  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-trim): Use append, not concat.
+
+2008-01-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-read-summary-keys): Work for some `A'
+	prefix keys.
+	(gnus-article-read-summary-send-keys): Use gnus-character-to-event.
+	(gnus-article-describe-bindings): Simplify; move XEmacs stuff to
+	gnus-xmas.el.
+
+2008-01-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-marks, gnus-registry-default-mark):
+	Add new variables for article mark management.
+	(gnus-registry-extra-entries-precious, gnus-registry-trim): Define a
+	list of extra data entries which, when present, will indicate that the
+	article ID should not be trimmed from the registry.
+	(gnus-registry-mark-article, gnus-registry-article-marks): Remove these
+	functions.
+	(gnus-registry-read-mark): New function to read a mark name from the
+	user.
+	(gnus-registry-set-article-mark, gnus-registry-remove-article-mark)
+	(gnus-registry-set-article-mark-internal): New functions to add and
+	remove marks.
+	(gnus-registry-get-article-marks): New function to show the marks for
+	an article, or retrieve them for further use.
+
+2008-01-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-describe-bindings): Show all `S' prefix
+	keys when no argument is given.
+
+2008-01-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-article-sort-by-random)
+	(gnus-thread-sort-by-random): Fix doc strings.  Reported by
+	jidanni@jidanni.org.
+
+2008-01-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-describe-bindings): New function.
+	(gnus-article-read-summary-keys): Use it.
+	(gnus-article-mode-map): Bind `C-h b' to it.
+
 2008-01-10  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-read-summary-keys): Work for `C-h' on
 	XEmacs.
 	(gnus-article-describe-key, gnus-article-describe-key-briefly): Protect
 	against non-character events.
-
-	* lpath.el: Fbind map-keymap for Emacs 21.
 
 2008-01-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -31,9 +80,6 @@
 	(gnus-article-reply-with-original): Ignore prefix argument.
 	(gnus-article-wide-reply-with-original): New function.
 
-	* lpath.el: Fbind character-to-event and set-keymap-default-binding for
-	Emacs 21.
-
 2008-01-08  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-bookmark.el (gnus-bookmark-mouse-available-p): Don't test for
@@ -54,12 +100,6 @@
 
 	* mml-sec.el, sieve-manage.el, smime.el: Simplify loading of
 	password-cache or password.  Suggested by Glenn Morris <rgm@gnu.org>.
-
-2007-12-21  Teodor Zlatanov  <tzz@lifelogs.com>
-
-	* imap.el (imap-authenticate): Use current-buffer instead of buffer,
-	for the cases where imap-authenticate is called with a nil buffer
-	parameter.
 
 2007-12-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -363,12 +403,6 @@
 	(mailcap-mime-types): Use mailcap-delete-duplicates.
 
 	* message.el (message-ignored-supersedes-headers): Add "X-ID".
-
-2007-12-03  Nathan J. Williams  <nathanw@MIT.EDU>  (tiny change)
-
-	* imap.el (imap-mailbox-status-asynch): Upcase STATUS items.
-	(imap-parse-status): Upcase status-att for servers that sends them
-	lower-case (e.g., MS Exchange 2007).
 
 2007-12-03  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 
@@ -836,9 +870,6 @@
 
 	* webmail.el (webmail-debug): Replace mapcar called for effect with
 	dolist.
-
-	* gnus-xmas.el (gnus-group-add-icon): Replace mapcar called for effect
-	with mapc.
 
 2007-10-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
