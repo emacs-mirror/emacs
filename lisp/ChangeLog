@@ -1,3 +1,10 @@
+2008-01-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* repeat.el (repeat-undo-count): New variable.
+	(repeat): For self-insertions make undo boundary only after 20
+	repetitions.  Inhibit point recording when repeat-repeat-char is
+	non-nil.
+
 2008-01-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* net/imap.el (imap-ping-server): New variable.
