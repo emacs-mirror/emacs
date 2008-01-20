@@ -1,3 +1,7 @@
+2008-01-20  Martin Svenson <phromo@gmail.com>  (tiny change)
+
+	* progmodes/python.el (python-imports): Default to "None".
+
 2008-01-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/sh-script.el (sh-basic-offset):
