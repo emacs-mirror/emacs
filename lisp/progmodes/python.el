@@ -1889,7 +1889,8 @@ Uses `python-beginning-of-block', `python-end-of-block'."
 
 ;;;; Completion.
 
-(defvar python-imports nil
+;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-01/msg00076.html
+(defvar python-imports "None"
   "String of top-level import statements updated by `python-find-imports'.")
 (make-variable-buffer-local 'python-imports)
 
