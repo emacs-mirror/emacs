@@ -2077,7 +2077,7 @@ The default contents correspond to the elements of `python-skeletons'."
    <			; Avoid wrong indentation after block opening.
    "elif " str ":" \n
    > _ \n nil)
-  (python-else) | ^)
+  '(python-else) | ^)
 
 (define-skeleton python-else
   "Auxiliary skeleton."
@@ -2091,24 +2091,24 @@ The default contents correspond to the elements of `python-skeletons'."
   "Condition: "
   "while " str ":" \n
   > _ \n
-  (python-else) | ^)
+  '(python-else) | ^)
 
 (def-python-skeleton for
   "Target, %s: "
   "for " str " in " (skeleton-read "Expression, %s: ") ":" \n
   > _ \n
-  (python-else) | ^)
+  '(python-else) | ^)
 
 (def-python-skeleton try/except
   nil
   "try:" \n
   > _ \n
   ("Exception, %s: "
-   < "except " str (python-target) ":" \n
+   < "except " str '(python-target) ":" \n
    > _ \n nil)
   < "except:" \n
   > _ \n
-  (python-else) | ^)
+  '(python-else) | ^)
 
 (define-skeleton python-target
   "Auxiliary skeleton."
