@@ -1,3 +1,10 @@
+2008-01-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* undo.c (undo_inhibit_record_point): New variable.
+	(syms_of_undo): Initialize it.
+	(record_point): Don't record point when undo_inhibit_record_point
+	is set.
+
 2008-01-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.c (list_processes_1): Don't use SCHARS on a nil buffer name.
