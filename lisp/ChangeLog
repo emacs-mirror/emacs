@@ -1,3 +1,8 @@
+2008-01-20  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc.el (vc-process-sentinel): Set mode-line-process.
+	(vc-exec-after): Likewise, for the `run' process status.
+
 2008-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ibuffer.el (ibuffer-mode): Fix last change.
