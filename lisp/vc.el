@@ -958,13 +958,14 @@ BUF defaults to \"*vc*\", can be a string and will be created if necessary."
 (defvar vc-sentinel-movepoint)          ;Dynamically scoped.
 
 (defun vc-process-sentinel (p s)
-  (let ((previous (process-get p 'vc-previous-sentinel)))
+  (with-current-buffer (process-buffer p)
     (setq mode-line-process
           (let ((status (process-status p)))
             ;; Leave mode-line uncluttered, normally.
             ;; (Let known any weirdness in-form-ally. ;-)  --ttn
             (unless (eq 'exit status)
-              (format " (%s)" status))))
+              (format " (%s)" status)))))
+  (let ((previous (process-get p 'vc-previous-sentinel)))
     (if previous (funcall previous p s))
     (with-current-buffer (process-buffer p)
       (let (vc-sentinel-movepoint)
