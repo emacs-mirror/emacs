@@ -1,3 +1,9 @@
+2008-01-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-article-sort-by-random)
+	(gnus-thread-sort-by-random): Fix doc strings.  Reported by
+	jidanni@jidanni.org.
+
 2007-12-18  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-draft.el (gnus-draft-send-message): Mention process/prefix
