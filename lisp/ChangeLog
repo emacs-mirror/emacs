@@ -1,3 +1,8 @@
+2008-01-20  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/python.el: Quote all calls to "auxiliary skeleton"s to
+	prevent infloops.
+
 2008-01-20  Martin Svenson <phromo@gmail.com>  (tiny change)
 
 	* progmodes/python.el (python-imports): Default to "None".
