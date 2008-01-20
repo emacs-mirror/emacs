@@ -149,7 +149,7 @@
   (when (vc-hg-root file)           ; short cut
     (let ((state (vc-hg-state file)))  ; expensive
       (vc-file-setprop file 'vc-state state)
-      (not (memq state '(ignored unregistered))))))
+      (and state (not (memq state '(ignored unregistered)))))))
 
 (defun vc-hg-state (file)
   "Hg-specific version of `vc-state'."

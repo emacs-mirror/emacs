@@ -1,5 +1,6 @@
 2008-01-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-hg.el (vc-hg-registered):
 	* vc-svn.el (vc-svn-registered): Make it work for non-existent
 	files.
 
