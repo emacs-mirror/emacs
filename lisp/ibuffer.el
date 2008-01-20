@@ -2531,9 +2531,11 @@ will be inserted before the group at point."
   (setq header-line-format
         (if ibuffer-use-header-line
             ;; Display the part that won't be in the mode-line.
-            (mapcar (lambda (elem) (if (eq (car-safe elem) 'header-line-format)
-                                  (nth 2 elem) elem))
-                    mode-line-process)))
+            (list* "" mode-name
+                   (mapcar (lambda (elem)
+                             (if (eq (car-safe elem) 'header-line-format)
+                                 (nth 2 elem) elem))
+                           mode-line-process))))
 
   (setq buffer-read-only t)
   (buffer-disable-undo)
