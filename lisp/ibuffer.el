@@ -2517,7 +2517,8 @@ will be inserted before the group at point."
   (setq mode-name "Ibuffer")
   ;; Include state info next to the mode name.
   (set (make-local-variable 'mode-line-process)
-        '((ibuffer-sorting-mode (:eval (symbol-name ibuffer-sorting-mode))
+        '(" by "
+          (ibuffer-sorting-mode (:eval (symbol-name ibuffer-sorting-mode))
                                 "view time")
           (ibuffer-sorting-reversep " [rev]")
           (ibuffer-auto-mode " (Auto)")

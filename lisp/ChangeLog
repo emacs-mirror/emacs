@@ -1,8 +1,11 @@
+2008-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ibuffer.el (ibuffer-mode): Fix last change.
+
 2008-01-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-registered):
-	* vc-svn.el (vc-svn-registered): Make it work for non-existent
-	files.
+	* vc-svn.el (vc-svn-registered): Make it work for non-existent files.
 
 2008-01-20  Martin Rudalics  <rudalics@gmx.at>
 
@@ -33,8 +36,8 @@
 
 2008-01-19  Tom Tromey  <tromey@redhat.com>
 
-        * vc-svn.el (vc-svn-after-dir-status): New function.
-        (vc-svn-dir-status): Run svn asynchronously.
+	* vc-svn.el (vc-svn-after-dir-status): New function.
+	(vc-svn-dir-status): Run svn asynchronously.
 
 2008-01-19  Martin Rudalics  <rudalics@gmx.at>
 
@@ -42,10 +45,8 @@
 	(hide-ifdef-shadow): New face.
 	(hide-ifdef-toggle-shadowing): New function to toggle between
 	shadowing and making code invisible.
-	(hide-ifdef-mode-submap): Add binding for
-	hide-ifdef-toggle-shadowing.
-	(hide-ifdef-mode-menu): Add entry for
-	hide-ifdef-toggle-shadowing.
+	(hide-ifdef-mode-submap): Add binding for hide-ifdef-toggle-shadowing.
+	(hide-ifdef-mode-menu): Add entry for hide-ifdef-toggle-shadowing.
 	(hide-ifdef-region-internal): Give new overlay hide-ifdef
 	property.  Shadow text when hide-ifdef-shadow is non-nil.
 	(hif-show-ifdef-region): Remove overlays with hide-ifdef
