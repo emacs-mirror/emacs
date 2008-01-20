@@ -1,3 +1,8 @@
+2008-01-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-svn.el (vc-svn-registered): Make it work for non-existent
+	files.
+
 2008-01-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* repeat.el (repeat-undo-count): New variable.

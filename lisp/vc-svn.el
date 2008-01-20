@@ -132,8 +132,8 @@ If you want to force an empty list of arguments, use t."
                ;; an `error' by vc-do-command.
                (error nil))))
         (when (eq 0 status)
-	  (not (memq (vc-svn-parse-status file) 
-		     '(ignored unregistered))))))))
+	  (let ((parsed (vc-svn-parse-status file)))
+	    (and parsed (not (memq parsed '(ignored unregistered))))))))))
 
 (defun vc-svn-state (file &optional localp)
   "SVN-specific version of `vc-state'."
