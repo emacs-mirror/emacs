@@ -959,6 +959,12 @@ BUF defaults to \"*vc*\", can be a string and will be created if necessary."
 
 (defun vc-process-sentinel (p s)
   (let ((previous (process-get p 'vc-previous-sentinel)))
+    (setq mode-line-process
+          (let ((status (process-status p)))
+            ;; Leave mode-line uncluttered, normally.
+            ;; (Let known any weirdness in-form-ally. ;-)  --ttn
+            (unless (eq 'exit status)
+              (format " (%s)" status))))
     (if previous (funcall previous p s))
     (with-current-buffer (process-buffer p)
       (let (vc-sentinel-movepoint)
@@ -999,6 +1005,11 @@ Else, add CODE to the process' sentinel."
       (eval code))
      ;; If a process is running, add CODE to the sentinel
      ((eq (process-status proc) 'run)
+      (setq mode-line-process
+            ;; Deliberate overstatement, but power law respected.
+            ;; (The message is ephemeral, so we make it loud.)  --ttn
+            (propertize " (incomplete / in progress)"
+                        'face 'compilation-warning))
       (let ((previous (process-sentinel proc)))
         (unless (eq previous 'vc-process-sentinel)
           (process-put proc 'vc-previous-sentinel previous))
@@ -2572,7 +2583,7 @@ With prefix arg READ-SWITCHES, specify a value to override
   (cd dir)
   (vc-status-mode))
 
-(defvar vc-status-mode-map 
+(defvar vc-status-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map)
     ;; Marking.
@@ -2637,8 +2648,8 @@ With prefix arg READ-SWITCHES, specify a value to override
     ;; be asynchronous.  It should compute the results and call the
     ;; function passed as a an arg to update the vc-status buffer with
     ;; the results.
-    (vc-call-backend 
-     backend 'dir-status default-directory 
+    (vc-call-backend
+     backend 'dir-status default-directory
      #'vc-update-vc-status-buffer (current-buffer))))
 
 (defun vc-status-next-line (arg)
@@ -2731,11 +2742,11 @@ If a prefix argument is given, move by that many lines."
 
 (defun vc-status-marked-files ()
   "Return the list of marked files"
-  (mapcar 
+  (mapcar
    (lambda (elem)
      (expand-file-name (vc-status-fileinfo->name elem)))
    (ewoc-collect
-    vc-status 
+    vc-status
     (lambda (crt) (vc-status-fileinfo->marked crt)))))
 
 ;;; End experimental code.
