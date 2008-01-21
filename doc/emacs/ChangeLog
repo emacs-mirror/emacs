@@ -1,3 +1,8 @@
+2008-01-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* entering.texi (Exiting): Fix typo.
+	Reported by D. E. Evans <sinuhe@gnu.org>.
+
 2007-12-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* glossary.texi (Glossary): Fix typo.
