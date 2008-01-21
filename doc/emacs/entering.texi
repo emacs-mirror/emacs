@@ -122,7 +122,7 @@ systems, you can only get back to the shell from which Emacs was run
 
 @vindex cannot-suspend
   Suspending can fail if you run Emacs under a shell that doesn't
-support suspendion of its subjobs, even if the system itself does
+support suspension of its subjobs, even if the system itself does
 support it.  In such a case, you can set the variable
 @code{cannot-suspend} to a non-@code{nil} value to force @kbd{C-z} to
 start an inferior shell.
