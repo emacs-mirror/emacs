@@ -15725,7 +15725,7 @@ If WHICH is nil or `all', get all properties.  If WHICH is
   (org-with-point-at pom
     (let ((clockstr (substring org-clock-string 0 -1))
 	  (excluded '("TODO" "TAGS" "ALLTAGS" "PRIORITY"))
-	  beg end range props sum-props key value string)
+	  beg end range props sum-props key value string clocksum)
       (save-excursion
 	(when (condition-case nil (org-back-to-heading t) (error nil))
 	  (setq beg (point))
