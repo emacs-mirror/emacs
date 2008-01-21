@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 8.0
+;; Version: 8.1
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -180,22 +180,22 @@
 ;; `blank-chars'		Specify which kind of blank is
 ;;				visualized.
 ;;
-;; `blank-space-face'		Face used to visualize SPACE.
+;; `blank-space'		Face used to visualize SPACE.
 ;;
-;; `blank-hspace-face'		Face used to visualize HARD SPACE.
+;; `blank-hspace'		Face used to visualize HARD SPACE.
 ;;
-;; `blank-tab-face'		Face used to visualize TAB.
+;; `blank-tab'			Face used to visualize TAB.
 ;;
-;; `blank-newline-face'		Face used to visualize NEWLINE char
+;; `blank-newline'		Face used to visualize NEWLINE char
 ;;				mapping.
 ;;
-;; `blank-trailing-face'	Face used to visualize trailing
+;; `blank-trailing'		Face used to visualize trailing
 ;;				blanks.
 ;;
-;; `blank-line-face'		Face used to visualize "long" lines.
+;; `blank-line'			Face used to visualize "long" lines.
 ;;
-;; `blank-space-before-tab-face'	Face used to visualize SPACEs
-;;					before TAB.
+;; `blank-space-before-tab'	Face used to visualize SPACEs before
+;;				TAB.
 ;;
 ;; `blank-space-regexp'		Specify SPACE characters regexp.
 ;;
@@ -335,7 +335,7 @@ has `mark' as an element."
   :group 'blank)
 
 
-(defcustom blank-space-face 'blank-space-face
+(defcustom blank-space 'blank-space
   "*Symbol face used to visualize SPACE.
 
 Used when `blank-style' has `color' as an element."
@@ -343,7 +343,7 @@ Used when `blank-style' has `color' as an element."
   :group 'blank)
 
 
-(defface blank-space-face
+(defface blank-space
   '((((class color) (background dark))
      (:background "grey20"      :foreground "aquamarine3"))
     (((class color) (background light))
@@ -353,7 +353,7 @@ Used when `blank-style' has `color' as an element."
   :group 'blank)
 
 
-(defcustom blank-hspace-face 'blank-hspace-face
+(defcustom blank-hspace 'blank-hspace
   "*Symbol face used to visualize HARD SPACE.
 
 Used when `blank-style' has `color' as an element."
@@ -361,7 +361,7 @@ Used when `blank-style' has `color' as an element."
   :group 'blank)
 
 
-(defface blank-hspace-face		; 'nobreak-space
+(defface blank-hspace			; 'nobreak-space
   '((((class color) (background dark))
      (:background "grey24"        :foreground "aquamarine3"))
     (((class color) (background light))
@@ -371,7 +371,7 @@ Used when `blank-style' has `color' as an element."
   :group 'blank)
 
 
-(defcustom blank-tab-face 'blank-tab-face
+(defcustom blank-tab 'blank-tab
   "*Symbol face used to visualize TAB.
 
 Used when `blank-style' has `color' as an element."
@@ -379,7 +379,7 @@ Used when `blank-style' has `color' as an element."
   :group 'blank)
 
 
-(defface blank-tab-face
+(defface blank-tab
   '((((class color) (background dark))
      (:background "grey22" :foreground "aquamarine3"))
     (((class color) (background light))
@@ -389,7 +389,7 @@ Used when `blank-style' has `color' as an element."
   :group 'blank)
 
 
-(defcustom blank-newline-face 'blank-newline-face
+(defcustom blank-newline 'blank-newline
   "*Symbol face used to visualize NEWLINE char mapping.
 
 See `blank-display-mappings'.
@@ -400,7 +400,7 @@ and `blank-chars' has `newline' as an element."
   :group 'blank)
 
 
-(defface blank-newline-face
+(defface blank-newline
   '((((class color) (background dark))
      (:background "grey26" :foreground "aquamarine3" :bold t))
     (((class color) (background light))
@@ -412,7 +412,7 @@ See `blank-display-mappings'."
   :group 'blank)
 
 
-(defcustom blank-trailing-face 'blank-trailing-face
+(defcustom blank-trailing 'blank-trailing
   "*Symbol face used to visualize traling blanks.
 
 Used when `blank-style' has `color' as an element."
@@ -420,14 +420,14 @@ Used when `blank-style' has `color' as an element."
   :group 'blank)
 
 
-(defface blank-trailing-face		; 'trailing-whitespace
+(defface blank-trailing			; 'trailing-whitespace
   '((((class mono)) (:inverse-video t :bold t :underline t))
     (t (:background "red1" :foreground "yellow" :bold t)))
   "Face used to visualize trailing blanks."
   :group 'blank)
 
 
-(defcustom blank-line-face 'blank-line-face
+(defcustom blank-line 'blank-line
   "*Symbol face used to visualize \"long\" lines.
 
 See `blank-line-length'.
@@ -437,7 +437,7 @@ Used when `blank-style' has `color' as an element."
   :group 'blank)
 
 
-(defface blank-line-face
+(defface blank-line
   '((((class mono)) (:inverse-video t :bold t :underline t))
     (t (:background "gray20" :foreground "violet")))
   "Face used to visualize \"long\" lines.
@@ -446,7 +446,7 @@ See `blank-line-length'."
   :group 'blank)
 
 
-(defcustom blank-space-before-tab-face 'blank-space-before-tab-face
+(defcustom blank-space-before-tab 'blank-space-before-tab
   "*Symbol face used to visualize SPACEs before TAB.
 
 Used when `blank-style' has `color' as an element."
@@ -454,7 +454,7 @@ Used when `blank-style' has `color' as an element."
   :group 'blank)
 
 
-(defface blank-space-before-tab-face
+(defface blank-space-before-tab
   '((((class mono)) (:inverse-video t :bold t :underline t))
     (t (:background "DarkOrange" :foreground "firebrick")))
   "Face used to visualize SPACEs before TAB."
@@ -595,7 +595,7 @@ Used when `blank-style' has `color' as an element, and
     (?\x920 [?\x924]      [?_])		; hard space - currency
     (?\xE20 [?\xE24]      [?_])		; hard space - currency
     (?\xF20 [?\xF24]      [?_])		; hard space - currency
-    ;; NEWLINE is displayed using the face `blank-newline-face'
+    ;; NEWLINE is displayed using the face `blank-newline'
     (?\n    [?$ ?\n])			; end-of-line - dollar sign
     ;; (?\n    [?\u21B5 ?\n] [?$ ?\n])	; end-of-line - downwards arrow
     ;; (?\n    [?\xB6 ?\n]   [?$ ?\n])	; end-of-line - pilcrow
@@ -626,9 +626,9 @@ VECTOR	is a vector of characters to be displayed in place of CHAR.
 	that character is displayed unmodified.
 
 The NEWLINE character is displayed using the face given by
-`blank-newline-face' variable.  The characters in the vector to be
-displayed will not have this face applied if the character code is
-above #x1FFFF.
+`blank-newline' variable.  The characters in the vector to be
+displayed will not have this face applied if the character code
+is above #x1FFFF.
 
 Used when `blank-style' has `mark' as an element."
   :type '(repeat
@@ -1105,18 +1105,18 @@ options are valid."
   (setq blank-active-chars (if (listp blank-chars)
 			       blank-chars
 			     (list blank-chars)))
-  (and (memq 'color blank-active-style)
-       (blank-color-on))
-  (and (memq 'mark  blank-active-style)
-       (blank-display-char-on)))
+  (when (memq 'color blank-active-style)
+    (blank-color-on))
+  (when (memq 'mark  blank-active-style)
+    (blank-display-char-on)))
 
 
 (defun blank-turn-off ()
   "Turn off blank visualization."
-  (and (memq 'color blank-active-style)
-       (blank-color-off))
-  (and (memq 'mark  blank-active-style)
-       (blank-display-char-off)))
+  (when (memq 'color blank-active-style)
+    (blank-color-off))
+  (when (memq 'mark  blank-active-style)
+    (blank-display-char-off)))
 
 
 (defun blank-color-on ()
@@ -1135,16 +1135,16 @@ options are valid."
        nil
        (list
 	;; Show SPACEs
-	(list blank-space-regexp  1 blank-space-face  t)
+	(list blank-space-regexp  1 blank-space  t)
 	;; Show HARD SPACEs
-	(list blank-hspace-regexp 1 blank-hspace-face t))
+	(list blank-hspace-regexp 1 blank-hspace t))
        t))
     (when (memq 'tabs blank-active-chars)
       (font-lock-add-keywords
        nil
        (list
 	;; Show TABs
-	(list blank-tab-regexp 1 blank-tab-face t))
+	(list blank-tab-regexp 1 blank-tab t))
        t))
     (when (memq 'trailing blank-active-chars)
       (font-lock-add-keywords
@@ -1152,7 +1152,7 @@ options are valid."
        (list
 	;; Show trailing blanks
 	(list (concat "\\(\\(" blank-trailing-regexp "\\)+\\)$")
-	      1 blank-trailing-face t))
+	      1 blank-trailing t))
        t))
     (when (memq 'lines blank-active-chars)
       (font-lock-add-keywords
@@ -1161,7 +1161,7 @@ options are valid."
 	;; Show "long" lines
 	(list (concat "^\\(.\\{" (int-to-string blank-line-length)
 		      ",\\}\\)$")
-	      1 blank-line-face t))
+	      1 blank-line t))
        t))
     (when (memq 'space-before-tab blank-active-chars)
       (font-lock-add-keywords
@@ -1169,7 +1169,7 @@ options are valid."
        (list
 	;; Show SPACEs before TAB
 	(list blank-space-before-tab-regexp
-	      1 blank-space-before-tab-face t))
+	      1 blank-space-before-tab t))
        t))
     ;; now turn on font lock and highlight blanks
     (font-lock-mode 1)))
@@ -1178,11 +1178,11 @@ options are valid."
 (defun blank-color-off ()
   "Turn off color visualization."
   (when blank-active-chars
+    ;; turn off font lock
+    (font-lock-mode 0)
     (when blank-font-lock
       (setq blank-font-lock nil
 	    font-lock-keywords blank-font-lock-keywords))
-    ;; turn off font lock
-    (font-lock-mode 0)
     ;; restore original font lock state
     (font-lock-mode blank-font-lock-mode)))
 
@@ -1252,7 +1252,7 @@ options are valid."
 		(or (eq (aref vec i) ?\n)
 		    (> (aref vec i) #x1FFFF)
 		    (aset vec i (make-glyph-code (aref vec i)
-						 blank-newline-face)))))
+						 blank-newline)))))
 	    ;; Display mapping
 	    (aset buffer-display-table (car entry) vec))
 	   ;; Newline char - don't display it
