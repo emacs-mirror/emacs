@@ -103,7 +103,7 @@
   `(and (boundp (quote ,var)) ,var))
 
 (defmacro org-unmodified (&rest body)
-  "Execute body without changing buffer-modified-p."
+  "Execute body without changing `buffer-modified-p'."
   `(set-buffer-modified-p
     (prog1 (buffer-modified-p) ,@body)))
 
@@ -454,7 +454,7 @@ of the buffer."
   "Where should `org-cycle' emulate TAB.
 nil         Never
 white       Only in completely white lines
-whitestart  Only at the beginning of lines, before the first non-white char.
+whitestart  Only at the beginning of lines, before the first non-white char
 t           Everywhere except in headlines
 exc-hl-bol  Everywhere except at the start of a headline
 If TAB is used in a place where it does not emulate TAB, the current subtree
@@ -1046,7 +1046,7 @@ See the manual for examples."
 
 (defcustom org-descriptive-links t
   "Non-nil means, hide link part and only show description of bracket links.
-Bracket links are like [[link][descritpion]]. This variable sets the initial
+Bracket links are like [[link][descritpion]].  This variable sets the initial
 state in new org-mode buffers.  The setting can then be toggled on a
 per-buffer basis from the Org->Hyperlinks menu."
   :group 'org-link
@@ -1056,10 +1056,10 @@ per-buffer basis from the Org->Hyperlinks menu."
   "How the path name in file links should be stored.
 Valid values are:
 
-relative  relative to the current directory, i.e. the directory of the file
+relative  Relative to the current directory, i.e. the directory of the file
           into which the link is being inserted.
-absolute  absolute path, if possible with ~ for home directory.
-noabbrev  absolute path, no abbreviation of home directory.
+absolute  Absolute path, if possible with ~ for home directory.
+noabbrev  Absolute path, no abbreviation of home directory.
 adaptive  Use relative path for files in the current directory and sub-
           directories of it.  For other files, use an absolute path."
   :group 'org-link
@@ -1413,7 +1413,7 @@ When this variable is nil, `C-c C-c' give you the prompts, and
 
 (defcustom org-remember-use-refile-when-interactive t
   "Non-nil means, use refile to file a remember note.
-This is only used when the the interactive mode for selecting a filing
+This is only used when the interactive mode for selecting a filing
 location is used (see the variable `org-remember-store-without-prompt').
 When nil, the `org-goto' interface is used."
   :group 'org-remember
@@ -2452,7 +2452,7 @@ deadlines are always turned off when the item is DONE."
   :type 'boolean)
 
 (defcustom org-agenda-skip-timestamp-if-done nil
-  "Non-nil means don't don't select item by timestamp or -range if it is DONE."
+  "Non-nil means don't select item by timestamp or -range if it is DONE."
   :group 'org-agenda-skip
   :type 'boolean)
 
@@ -2827,7 +2827,7 @@ to occupy a fixed space in the agenda display."
 
 (defcustom org-agenda-scheduled-leaders '("Scheduled: " "Sched.%2dx: ")
   "Text preceeding scheduled items in the agenda view.
-THis is a list with two strings.  The first applies when the item is
+This is a list with two strings.  The first applies when the item is
 scheduled on the current day.  The second applies when it has been scheduled
 previously, it may contain a %d to capture how many days ago the item was
 scheduled."
@@ -3304,7 +3304,7 @@ In the given sequence, these characters will be used for level 1, 2, ..."
 
 (defcustom org-export-ascii-bullets '(?* ?+ ?-)
   "Bullet characters for headlines converted to lists in ASCII export.
-The first character is is used for the first lest level generated in this
+The first character is used for the first lest level generated in this
 way, and so on.  If there are more levels than characters given here,
 the list will be repeated.
 Note that plain lists will keep the same bullets as the have in the
@@ -4031,8 +4031,8 @@ list of attributes, like (:foreground \"blue\" :weight bold :underline t)."
     (0.5 . org-upcoming-deadline)
     (0.0 . default))
   "Faces for showing deadlines in the agenda.
-This is a list of cons cells.  The cdr of each cess is a face to be used,
-and it can also just be a like like '(:foreground \"yellow\").
+This is a list of cons cells.  The cdr of each cell is a face to be used,
+and it can also just be like '(:foreground \"yellow\").
 Each car is a fraction of the head-warning time that must have passed for
 this the face in the cdr to be used for display.  The numbers must be
 given in descending order.  The head-warning time is normally taken
@@ -7205,7 +7205,7 @@ so this really moves item trees."
 	      (let ((kill-whole-line t))
 		(kill-line (- ne-ins ne-beg)) (point)))
 	    (insert (make-string (- ne-ins ne-beg) ?\n)))
-	  
+
 	  (org-maybe-renumber-ordered-list))
       (goto-char pos)
       (error "Cannot move this item further up"))))
@@ -7528,7 +7528,7 @@ C-c C-c     Set tags / toggle checkbox"
   "Unconditionally turn on `orgstruct-mode', and force org-mode indentations.
 In addition to setting orgstruct-mode, this also exports all indentation and
 autofilling variables from org-mode into the buffer.  Note that turning
-off orgstruct-mode will *not* remove these additonal settings."
+off orgstruct-mode will *not* remove these additional settings."
   (orgstruct-mode 1)
   (let (var val)
     (mapc
@@ -11659,9 +11659,9 @@ TeXInfo are:
                    %s for the original field value.  For example, to wrap
                    everything in @kbd{}, you could use :fmt \"@kbd{%s}\".
                    This may also be a property list with column numbers and
-                   formats. for example :fmt (2 \"@kbd{%s}\" 4 \"@code{%s}\").
+                   formats. For example :fmt (2 \"@kbd{%s}\" 4 \"@code{%s}\").
 
-:cf \"f1 f2..\"    The column fractions for the table.  Bye default these
+:cf \"f1 f2..\"    The column fractions for the table.  By default these
                    are computed automatically from the width of the columns
                    under org-mode.
 
@@ -13040,8 +13040,8 @@ use sequences."
       (mh-show-buffer-message-number))))
 
 (defun org-mhe-get-header (header)
-  "Return a header of the message in folder mode. This will create a
-show buffer for the corresponding message. If you have a more clever
+  "Return a header of the message in folder mode.  This will create a
+show buffer for the corresponding message.  If you have a more clever
 idea..."
   (let* ((folder (org-mhe-get-message-folder))
          (num (org-mhe-get-message-num))
@@ -13745,7 +13745,7 @@ See also the variable `org-reverse-note-order'."
 	    (when remember-save-after-remembering
 	      (save-buffer)
 	      (if (not visiting) (kill-buffer (current-buffer)))))))))
-  
+
   t)    ;; return t to indicate that we took care of this note.
 
 (defun org-get-org-file ()
@@ -13847,7 +13847,7 @@ See also the variable `org-reverse-note-order'."
 		  (goto-char (point-at-eol))))))))
       (org-release-buffers org-agenda-new-buffers)
       (nreverse targets))))
-  
+
 (defun org-get-outline-path ()
   (let (rtn)
     (save-excursion
@@ -15776,7 +15776,7 @@ If WHICH is nil or `all', get all properties.  If WHICH is
 		(unless (member key excluded)
 		  (push (cons key (or value "")) props)))))
 	  (if clocksum
-	      (push (cons "CLOCKSUM" 
+	      (push (cons "CLOCKSUM"
 			  (org-column-number-to-string (/ (float clocksum) 60.)
 						       'add_times))
 		    props))
@@ -17501,8 +17501,8 @@ user."
   "Check string S for special relative date string.
 TODAY and DEFAULT are internal times, for today and for a default.
 Return shift list (N what def-flag)
-WHAT       is \"d\", \"w\", \"m\", or \"y\" for day. week, month, year.
-N          is the number if WHATs to shift
+WHAT       is \"d\", \"w\", \"m\", or \"y\" for day, week, month, year.
+N          is the number of WHATs to shift.
 DEF-FLAG   is t when a double ++ or -- indicates shift relative to
            the DEFAULT date rather than TODAY."
   (when (string-match
@@ -19471,7 +19471,7 @@ L   Timeline for current buffer         #   List stuck projects (!=configure)
            ((and (> (length selstring) 0) (eq c ?\d))
             (delete-window)
             (org-agenda-get-restriction-and-command prefix-descriptions))
-  
+
 	   ((equal c ?q) (error "Abort"))
 	   (t (error "Invalid key %c" c))))))))
 
@@ -19518,7 +19518,7 @@ L   Timeline for current buffer         #   List stuck projects (!=configure)
   "Run an agenda command in batch mode and send the result to STDOUT.
 If CMD-KEY is a string of length 1, it is used as a key in
 `org-agenda-custom-commands' and triggers this command.  If it is a
-longer string is is used as a tags/todo match string.
+longer string it is used as a tags/todo match string.
 Paramters are alternating variable names and values that will be bound
 before running the agenda command."
   (let (pars)
@@ -19543,7 +19543,7 @@ before running the agenda command."
   "Run an agenda command in batch mode and send the result to STDOUT.
 If CMD-KEY is a string of length 1, it is used as a key in
 `org-agenda-custom-commands' and triggers this command.  If it is a
-longer string is is used as a tags/todo match string.
+longer string it is used as a tags/todo match string.
 Paramters are alternating variable names and values that will be bound
 before running the agenda command.
 
@@ -19600,7 +19600,7 @@ agenda-day   The day in the agenda where this is listed"
 
 (defun org-fix-agenda-info (props)
   "Make sure all properties on an agenda item have a canonical form,
-so the the export commands caneasily use it."
+so the export commands can easily use it."
   (let (tmp re)
     (when (setq tmp (plist-get props 'tags))
       (setq props (plist-put props 'tags (mapconcat 'identity tmp ":"))))
@@ -26695,7 +26695,7 @@ Also updates the keyword regular expressions."
   (message "Org-mode restarted to refresh keyword and special line setup"))
 
 (defun org-kill-note-or-show-branches ()
-  "If this is a Note buffer, abort storing the note. Else call `show-branches'."
+  "If this is a Note buffer, abort storing the note.  Else call `show-branches'."
   (interactive)
   (if (not org-finish-function)
       (call-interactively 'show-branches)
