@@ -1,3 +1,7 @@
+2008-01-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Errors and Events): New macro dbus-ignore-errors.
+
 2008-01-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-news.texi: Mention gnus-article-describe-bindings.
