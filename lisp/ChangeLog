@@ -1,3 +1,8 @@
+2008-01-21  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc.el (vc-process-sentinel): After calling the previous
+	sentinel, do nothing if the process' buffer is not live.
+
 2008-01-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* blank-mode.el: Fix a problem of cleaning blank faces when turning off
