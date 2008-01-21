@@ -1,3 +1,8 @@
+2008-01-21  Martin Rudalics  <rudalics@gmx.at>
+
+	* outline.el (outline-up-heading): Fix check for top level to
+	avoid infinite looping in hide-other.
+
 2008-01-21  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* vc.el (vc-process-sentinel): After calling the previous
