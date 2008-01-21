@@ -1,3 +1,11 @@
+2008-01-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-ignore-errors): New macro.
+	(dbus-unregister-object): New defun.  Moved from dbusbind.c.
+	(dbus-handle-event, dbus-list-activatable-names, dbus-list-names)
+	(dbus-list-queued-owners, dbus-get-name-owner, dbus-introspect)
+	(dbus-get-signatures): Apply `dbus-ignore-errors'.
+
 2008-01-21  Martin Rudalics  <rudalics@gmx.at>
 
 	* outline.el (outline-up-heading): Fix check for top level to
