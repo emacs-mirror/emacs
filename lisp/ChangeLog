@@ -1,3 +1,9 @@
+2008-01-21  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pcvs-defs.el (cvs-menu): Improve cvs-mode-find-file,
+	cvs-mode-find-file-other-window.  Add cvs-mode-diff-yesterday and
+	manual entry.
+
 2008-01-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el (dbus-ignore-errors): New macro.
