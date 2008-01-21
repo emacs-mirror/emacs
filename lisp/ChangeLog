@@ -1,3 +1,35 @@
+2008-01-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* blank-mode.el: Fix a problem of cleaning blank faces when turning off
+	blank-mode in some buffers (like *info* buffers).  Reported by Juanma
+	Barranquero <lekktu@gmail.com>.  Eliminate `-face' suffix of all
+	blank-mode faces.  Doc fix.  New version 8.1.
+	(blank-turn-on, blank-turn-off): Replace (and CONDITION BODY) by (when
+	CONDITION BODY).
+	(blank-space-face): Face/option name replaced by blank-space.
+	(blank-hspace-face): Face/option name replaced by blank-hspace.
+	(blank-tab-face): Face/option name replaced by blank-tab.
+	(blank-newline-face): Face/option name replaced by blank-newline.
+	(blank-trailing-face): Face/option name replaced by blank-trailing.
+	(blank-line-face): Face/option name replaced by blank-line.
+	(blank-space-before-tab-face): Face/option name replaced by
+	blank-space-before-tab.
+	(blank-color-on, blank-color-off, blank-display-char-on): Fix code.
+
+	* blank-mode.el: Install all patches done by Juanma Barranquero
+	<lekktu@gmail.com> in emacs-22 branch.
+	(blank-style, blank-chars, blank-hspace-regexp)
+	(blank-space-regexp, blank-tab-regexp, blank-trailing-regexp)
+	(blank-space-before-tab-regexp, blank-global-modes, blank-mode)
+	(global-blank-mode): Doc fixes.
+	(blank, blank-space-face, blank-hspace-face, blank-tab-face)
+	(blank-newline-face, blank-trailing-face, blank-line-face)
+	(blank-space-before-tab-face, blank-display-mappings)
+	(blank-chars-value-list, blank-style-value-list, blank-toggle-options)
+	(global-blank-toggle-options, blank-help-text, blank-interactive-char)
+	(blank-turn-on, blank-turn-off, blank-color-on, blank-color-off):
+	Fix typos in docstrings.
+
 2008-01-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-log-time-function): New function.
