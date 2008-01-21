@@ -34,9 +34,9 @@
 	blank-space-before-tab.
 	(blank-color-on, blank-color-off, blank-display-char-on): Fix code.
 
-	* blank-mode.el: Install all patches done by Juanma Barranquero
-	<lekktu@gmail.com> in emacs-22 branch.
-	(blank-style, blank-chars, blank-hspace-regexp)
+2008-01-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* blank-mode.el (blank-style, blank-chars, blank-hspace-regexp)
 	(blank-space-regexp, blank-tab-regexp, blank-trailing-regexp)
 	(blank-space-before-tab-regexp, blank-global-modes, blank-mode)
 	(global-blank-mode): Doc fixes.
