@@ -1,3 +1,12 @@
+2008-01-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_scroll_bar_create): Initialize bar->redraw_needed_p.
+	(XTset_vertical_scroll_bar): Redraw scroll bar if bar->redraw_needed_p
+	is set even without positional changes.
+	(x_scroll_bar_clear): Set bar->redraw_needed_p.
+
+	* macterm.h (struct scroll_bar): New member `redraw_needed_p'.
+
 2008-01-19  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_iso2022): New arg latin_extra_code_state.
