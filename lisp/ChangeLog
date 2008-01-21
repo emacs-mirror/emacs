@@ -1,3 +1,9 @@
+2008-01-21  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/hideif.el: Move defcustoms and defface to start of file.
+
+	* textmodes/org.el (org-entry-properties): Let-bind `clocksum'.
+
 2008-01-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/org.el (org-unmodified, org-cycle-emulate-tab)
