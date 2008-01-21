@@ -1,3 +1,11 @@
+2008-01-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.el (Fdbus_method_return_internal): Renamed from
+	Fdbus_method_return.
+	(Fdbus_unregister_object): Moved to dbus.el.
+	(Fdbus_call_method, Fdbus_method_return_internal)
+	(Fdbus_send_signal): Debug messages improved.
+
 2008-01-20  Martin Rudalics  <rudalics@gmx.at>
 
 	* undo.c (undo_inhibit_record_point): New variable.
