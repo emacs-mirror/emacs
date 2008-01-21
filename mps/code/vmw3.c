@@ -96,6 +96,88 @@ Bool VMCheck(VM vm)
 }
 
 
+/* AddrSpaceDescribe -- describe what is in the address-space
+ *
+ * Windows function VirtualQuery takes a Query-address.
+ * (And rounds this down to the start of a page).
+ *
+ * It finds the corresponding Region, defined as the range of pages 
+ * starting at the query address and including all subsequent 
+ * pages with identical Attributes (see MSDN documentation).
+ *
+ * It returns Info about the region, in the caller-provided 
+ * info buffer, and the length (bytes) of info returned.
+ */
+
+void AddrSpaceDescribe(void)
+{
+  Index i = 0;
+  LPCVOID queryAddress;  /* query-address */
+  MEMORY_BASIC_INFORMATION infoBuffer;  /* info buffer */
+  SIZE_T bufferSize;  /* bytes of info buffer */
+  SIZE_T retSize;  /* bytes of info returned */
+
+  bufferSize = sizeof infoBuffer;
+  queryAddress = 0;
+
+  DIAG_FIRSTF(( "VirtualQuery", "\n", NULL ));
+
+  for(i = 0; i < 1000; i++) {
+    retSize = VirtualQuery(queryAddress, &infoBuffer, bufferSize);
+    if(retSize != bufferSize) {
+      DIAG_MOREF(( "retSize $W; bufferSize $W.\n",
+        retSize, bufferSize,
+        NULL ));
+      break;
+    }
+    AVER(retSize == bufferSize);
+    AVER(queryAddress == infoBuffer.BaseAddress);
+
+    DIAG_MOREF(( 
+      ( infoBuffer.State == MEM_FREE ? " "
+      : infoBuffer.State == MEM_RESERVE ? "r"
+      : infoBuffer.State == MEM_COMMIT ? "C"
+      : "?" ), " ",
+      "[$W..<$W>..$W) ($U)  ", 
+      infoBuffer.BaseAddress, infoBuffer.RegionSize,
+        (char*)infoBuffer.BaseAddress + infoBuffer.RegionSize,
+        i,
+      ( infoBuffer.Protect == PAGE_EXECUTE ? "__x"
+      : infoBuffer.Protect == PAGE_EXECUTE_READ ? "r_x"
+      : infoBuffer.Protect == PAGE_EXECUTE_READWRITE ? "rwx"
+      : infoBuffer.Protect == PAGE_EXECUTE_WRITECOPY ? "rCx"
+      : infoBuffer.Protect == PAGE_NOACCESS ? "___"
+      : infoBuffer.Protect == PAGE_READONLY ? "r__"
+      : infoBuffer.Protect == PAGE_READWRITE ? "rw_"
+      : infoBuffer.Protect == PAGE_WRITECOPY ? "rC_"
+      : infoBuffer.State != MEM_COMMIT && infoBuffer.Protect == 0 ? "   "
+      : "???" ), "  ",
+      "Protect $W ", infoBuffer.Protect,
+      "Type $W ", infoBuffer.Type,
+      "State $W\n", infoBuffer.State,
+      NULL ));
+
+    queryAddress = (char*)infoBuffer.BaseAddress + infoBuffer.RegionSize;
+    if(queryAddress == 0)
+      break;
+  }
+
+  DIAG_END("VirtualQuery");
+
+#if 0
+  DIAG_SINGLEF(( "VirtualQuery", "\n"
+    "BaseAddress     $W\n", infoBuffer.BaseAddress,
+    "AllocationBase  $W\n", infoBuffer.AllocationBase,
+    "AllocationProt  $W\n", infoBuffer.AllocationProtect,
+    "RegionSize      $W\n", infoBuffer.RegionSize,
+    "State           $W\n", infoBuffer.State,
+    "Protect         $W\n", infoBuffer.Protect,
+    "Type            $W\n", infoBuffer.Type,
+    NULL ));
+#endif
+}
+
+
 /* VMCreate -- reserve some virtual address space, and create a VM structure */
 
 Res VMCreate(VM *vmReturn, Size size)
@@ -119,6 +201,9 @@ Res VMCreate(VM *vmReturn, Size size)
   size = SizeAlignUp(size, align);
   if ((size == 0) || (size > (Size)(DWORD)-1))
     return ResRESOURCE;
+
+  DIAG_SINGLEF(( "VMCreate", "dwPageSize = $W", align, NULL ));
+  AddrSpaceDescribe();
 
   /* Allocate the vm descriptor.  This is likely to be wasteful. */
   vbase = VirtualAlloc(NULL, SizeAlignUp(sizeof(VMStruct), align),
