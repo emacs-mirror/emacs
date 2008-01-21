@@ -1,7 +1,7 @@
 ;;; hideif.el --- hides selected code within ifdef
 
-;; Copyright (C) 1988, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Maintainer: FSF
@@ -113,6 +113,36 @@
 (defgroup hide-ifdef nil
   "Hide selected code within `ifdef'."
   :group 'c)
+
+;;;###autoload
+(defcustom hide-ifdef-initially nil
+  "Non-nil means call `hide-ifdefs' when Hide-Ifdef mode is first activated."
+  :type 'boolean
+  :group 'hide-ifdef)
+
+;;;###autoload
+(defcustom hide-ifdef-read-only nil
+  "Set to non-nil if you want buffer to be read-only while hiding text."
+  :type 'boolean
+  :group 'hide-ifdef)
+
+;;;###autoload
+(defcustom hide-ifdef-lines nil
+  "Non-nil means hide the #ifX, #else, and #endif lines."
+  :type 'boolean
+  :group 'hide-ifdef)
+
+;;;###autoload
+(defcustom hide-ifdef-shadow nil
+  "Non-nil means shadow text instead of hiding it."
+  :type 'boolean
+  :group 'hide-ifdef)
+
+;;;###autoload
+(defface hide-ifdef-shadow '((t (:inherit shadow)))
+  "Face for shadowing ifdef blocks."
+  :group 'hide-ifdef)
+
 
 (defvar hide-ifdef-mode-submap
   ;; Set up the submap that goes after the prefix key.
@@ -832,35 +862,6 @@ It does not do the work that's pointless to redo on a recursive entry."
 
 
 ;;===%%SF%% exports (Start)  ===
-
-;;;###autoload
-(defcustom hide-ifdef-initially nil
-  "Non-nil means call `hide-ifdefs' when Hide-Ifdef mode is first activated."
-  :type 'boolean
-  :group 'hide-ifdef)
-
-;;;###autoload
-(defcustom hide-ifdef-read-only nil
-  "Set to non-nil if you want buffer to be read-only while hiding text."
-  :type 'boolean
-  :group 'hide-ifdef)
-
-;;;###autoload
-(defcustom hide-ifdef-lines nil
-  "Non-nil means hide the #ifX, #else, and #endif lines."
-  :type 'boolean
-  :group 'hide-ifdef)
-
-;;;###autoload
-(defcustom hide-ifdef-shadow nil
-  "Non-nil means shadow text instead of hiding it."
-  :type 'boolean
-  :group 'hide-ifdef)
-
-;;;###autoload
-(defface hide-ifdef-shadow '((t (:inherit shadow)))
-  "Face for shadowing ifdef blocks."
-  :group 'hide-ifdef)
 
 (defun hide-ifdef-toggle-read-only ()
   "Toggle `hide-ifdef-read-only'."
