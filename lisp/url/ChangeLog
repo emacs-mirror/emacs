@@ -1,3 +1,8 @@
+2008-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (unhandled-file-name-directory): Add handler.
+	(url-handler-unhandled-file-name-directory): New fun.
+
 2008-01-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* url-handlers.el (url-file-handler): Autoload.
