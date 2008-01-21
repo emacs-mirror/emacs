@@ -1,3 +1,14 @@
+2008-01-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/org.el (org-unmodified, org-cycle-emulate-tab)
+	(org-descriptive-links, org-link-file-path-type)
+	(org-remember-use-refile-when-interactive)
+	(org-agenda-skip-timestamp-if-done, org-agenda-scheduled-leaders)
+	(org-export-ascii-bullets, org-agenda-deadline-faces)
+	(turn-on-orgstruct++, orgtbl-to-texinfo, org-mhe-get-header)
+	(org-batch-agenda, org-batch-agenda-csv, org-fix-agenda-info)
+	(org-kill-note-or-show-branches): Fix typos in docstrings.
+
 2008-01-20  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* vc.el (vc-process-sentinel): Set mode-line-process.
@@ -35,7 +46,7 @@
 	* progmodes/python.el: Quote all calls to "auxiliary skeleton"s to
 	prevent infloops.
 
-2008-01-20  Martin Svenson <phromo@gmail.com>  (tiny change)
+2008-01-20  Martin Svenson  <phromo@gmail.com>  (tiny change)
 
 	* progmodes/python.el (python-imports): Default to "None".
 
@@ -54,8 +65,7 @@
 	(hide-ifdef-mode-menu): Add entry for hide-ifdef-toggle-shadowing.
 	(hide-ifdef-region-internal): Give new overlay hide-ifdef
 	property.  Shadow text when hide-ifdef-shadow is non-nil.
-	(hif-show-ifdef-region): Remove overlays with hide-ifdef
-	property set.
+	(hif-show-ifdef-region): Remove overlays with hide-ifdef property set.
 	(hif-hide-line): Use when instead of if.
 	(hide-ifdef-initially, hide-ifdef-read-only, hide-ifdef-lines):
 	Remove unneeded * from doc-strings.
@@ -141,8 +151,7 @@
 	(org-agenda-highlight-todo): Respect
 	`org-agenda-todo-keyword-format'.
 	(org-agenda-todo-keyword-format): New option.
-	(org-infile-export-plist): No restriction while searching for
-	options.
+	(org-infile-export-plist): No restriction while searching for options.
 	(org-remember-handler): Remove comments at the end of the buffer.
 	(org-remember-use-refile-when-interactive): New option.
 	(org-table-sort-lines): Make sure sorting works on link
@@ -153,8 +162,7 @@
 	`full-file-path'.
 	(org-get-refile-targets): Respect new values for
 	`org-refile-use-outline-path'.
-	(org-agenda-get-restriction-and-command): DEL goes back to initial
-	list.
+	(org-agenda-get-restriction-and-command): DEL goes back to initial list.
 	(org-export-as-xoxo): Restore point when done.
 	(org-open-file): Allow multiple %s in command.
 	(org-clock-in-switch-to-state): New option.
@@ -162,8 +170,7 @@
 	(org-last-remember-storage-locations): New variable.
 	(org-get-refile-targets): Interpret the new maxlevel setting.
 	(org-refile-targets): New option `:maxlevel'.
-	(org-copy-subtree): Include empty lines before but not after
-	subtree.
+	(org-copy-subtree): Include empty lines before but not after subtree.
 	(org-back-over-empty-lines, org-skip-whitespace): New functions.
 	(org-move-item-down, org-move-item-up): Include empty lines before
 	but not after item.
@@ -209,15 +216,13 @@
 	(org-hide-emphasis-markers): New option.
 	(org-additional-option-like-keywords): Add new keywords.
 	(org-get-entry): Rename from `org-get-cleaned-entry'.
-	(org-icalendar-cleanup-string): New function for quoting icalendar
-	text.
+	(org-icalendar-cleanup-string): New function for quoting icalendar text.
 	(org-agenda-skip-scheduled-if-done): New option.
 	(org-agenda-get-scheduled, org-agenda-get-blocks): Use
 	`org-agenda-skip-scheduled-if-done'.
 	(org-prepare-agenda-buffers): Allow buffers as arguments.
 	(org-entry-properties): Add CATEGORY as a special property.
-	(org-use-property-inheritance): Allow a list of properties as a
-	value.
+	(org-use-property-inheritance): Allow a list of properties as a value.
 	(org-eval-in-calendar): No longer update the prompt.
 	(org-read-date-popup-calendar): Rename from
 	`org-popup-calendar-for-date-prompt'.
