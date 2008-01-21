@@ -958,36 +958,39 @@ BUF defaults to \"*vc*\", can be a string and will be created if necessary."
 (defvar vc-sentinel-movepoint)          ;Dynamically scoped.
 
 (defun vc-process-sentinel (p s)
-  (with-current-buffer (process-buffer p)
-    (setq mode-line-process
-          (let ((status (process-status p)))
-            ;; Leave mode-line uncluttered, normally.
-            ;; (Let known any weirdness in-form-ally. ;-)  --ttn
-            (unless (eq 'exit status)
-              (format " (%s)" status)))))
-  (let ((previous (process-get p 'vc-previous-sentinel)))
+  (let ((previous (process-get p 'vc-previous-sentinel))
+        (buf (process-buffer p)))
     (if previous (funcall previous p s))
-    (with-current-buffer (process-buffer p)
-      (let (vc-sentinel-movepoint)
-        ;; Normally, we want async code such as sentinels to not move point.
-        (save-excursion
-          (goto-char (process-mark p))
-          (let ((cmds (process-get p 'vc-sentinel-commands)))
-            (process-put p 'vc-sentinel-commands nil)
-            (dolist (cmd cmds)
-              ;; Each sentinel may move point and the next one should be run
-              ;; at that new point.  We could get the same result by having
-              ;; each sentinel read&set process-mark, but since `cmd' needs
-              ;; to work both for async and sync processes, this would be
-              ;; difficult to achieve.
-              (vc-exec-after cmd))))
-        ;; But sometimes the sentinels really want to move point.
-        (if vc-sentinel-movepoint
-            (let ((win (get-buffer-window (current-buffer) 0)))
-              (if (not win)
-                  (goto-char vc-sentinel-movepoint)
-                (with-selected-window win
-                  (goto-char vc-sentinel-movepoint)))))))))
+    ;; Impatient users sometime kill "slow" buffers; check liveness
+    ;; to avoid "error in process sentinel: Selecting deleted buffer".
+    (when (buffer-live-p buf)
+      (with-current-buffer buf
+        (setq mode-line-process
+              (let ((status (process-status p)))
+                ;; Leave mode-line uncluttered, normally.
+                ;; (Let known any weirdness in-form-ally. ;-)  --ttn
+                (unless (eq 'exit status)
+                  (format " (%s)" status))))
+        (let (vc-sentinel-movepoint)
+          ;; Normally, we want async code such as sentinels to not move point.
+          (save-excursion
+            (goto-char (process-mark p))
+            (let ((cmds (process-get p 'vc-sentinel-commands)))
+              (process-put p 'vc-sentinel-commands nil)
+              (dolist (cmd cmds)
+                ;; Each sentinel may move point and the next one should be run
+                ;; at that new point.  We could get the same result by having
+                ;; each sentinel read&set process-mark, but since `cmd' needs
+                ;; to work both for async and sync processes, this would be
+                ;; difficult to achieve.
+                (vc-exec-after cmd))))
+          ;; But sometimes the sentinels really want to move point.
+          (if vc-sentinel-movepoint
+              (let ((win (get-buffer-window (current-buffer) 0)))
+                (if (not win)
+                    (goto-char vc-sentinel-movepoint)
+                  (with-selected-window win
+                    (goto-char vc-sentinel-movepoint))))))))))
 
 (defun vc-exec-after (code)
   "Eval CODE when the current buffer's process is done.
