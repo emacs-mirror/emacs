@@ -291,17 +291,20 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
 
       (server-log "Deleted" proc))))
 
+(defvar server-log-time-function 'current-time-string
+  "Function to generate timestamps for the *server* buffer.")
+
 (defun server-log (string &optional client)
   "If a *server* buffer exists, write STRING to it for logging purposes.
 If CLIENT is non-nil, add a description of it to the logged message."
   (when (get-buffer "*server*")
     (with-current-buffer "*server*"
       (goto-char (point-max))
-      (insert (current-time-string)
+      (insert (funcall server-log-time-function)
 	      (cond
-	       ((null client) " ")
-	       ((listp client) (format " %s: " (car client)))
-	       (t (format " %s: " client)))
+		((null client) " ")
+		((listp client) (format " %s: " (car client)))
+		(t (format " %s: " client)))
 	      string)
       (or (bolp) (newline)))))
 
