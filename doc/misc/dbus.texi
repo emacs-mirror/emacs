@@ -674,9 +674,15 @@ there is a type mismatch, the Lisp error @code{wrong-type-argument}
 @code{D-Bus ARG} is raised.
 
 All errors raised by D-Bus are signaled with the error symbol
-@code{dbus-error}.  As usual, such an error can be trapped with a
-@code{condition-case} form.  If possible, error messages from D-Bus
-are appended to the @code{dbus-error}.
+@code{dbus-error}.  If possible, error messages from D-Bus are
+appended to the @code{dbus-error}.
+
+@defspec dbus-ignore-errors forms@dots{}
+This executes @var{forms} exactly like a @code{progn}, except that
+@code{dbus-error} errors are ignored during the @var{forms}.  These
+errors can be made visible when variable @code{dbus-debug} is set to
+@code{t}.
+@end defspec
 
 Incoming D-Bus messages are handled as Emacs events (see @pxref{Misc
 Events, , , elisp}).  The generated event has this form:
