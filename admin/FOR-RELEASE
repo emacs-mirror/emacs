@@ -34,6 +34,11 @@ to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
 
+** lennart.borgman@gmail.com 09 Jan 2008: ps-print-buffer-with-faces hangs
+If no printer is connected to the printer port that Emacs is printing
+to, I/O to that port hangs in the system calls. Emacs should avoid
+defaulting to a printer port that is not in use.
+
 * BUGS WAITING FOR MORE USER INPUT
 
 ** undefined reference getopt_long
