@@ -1,15 +1,15 @@
-2008-01-19  Dan Nicolaescu  <dann@ics.uci.edu>
+2008-01-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/sh-script.el (sh-basic-offset):
 	* progmodes/cc-vars.el (c-syntactic-indentation)
 	(c-syntactic-indentation-in-macros): Mark as safe.
 
-2008-01-18  Richard Stallman  <rms@gnu.org>
+2008-01-23  Richard Stallman  <rms@gnu.org>
 
 	* icomplete.el (icomplete-get-keys):
 	Look up KEYS using all maps in proper buffer.
 
-2008-01-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+2008-01-23  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 	    Miles Bader  <miles@gnu.org>
 
 	* blank-mode.el: New file.  Minor mode to visualise TAB,
@@ -17,13 +17,13 @@
 	code for handling display table (via visws.el package), his code was
 	modified, but the main idea was kept.
 
-2008-01-16  Alan Mackenzie  <acm@muc.de>
+2008-01-23  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-vars.el (c-constant-symbol): Put this defun inside
 	an eval-and-compile, so as to permit byte-compiling (e.g. in
 	bootstrap).
 
-2008-01-16  Juanma Barranquero  <lekktu@gmail.com>
+2008-01-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frame.el (display-mm-height, display-mm-width):
 	* whitespace.el (whitespace-check-leading-whitespace)
@@ -33,14 +33,14 @@
 	(whitespace-check-ateol-whitespace):
 	* progmodes/ada-xref.el (ada-convert-file-name): Fix typo in docstring.
 
-2008-01-15  Dan Nicolaescu  <dann@ics.uci.edu>
+2008-01-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-arch.el (vc-arch-delete-rej-if-obsolete): Remove the
 	after-save-hook so that it is not called multiple times.
 
 	* vc-svn.el (vc-svn-resolve-when-done): Likewise.
 
-2008-01-12  Eli Zaretskii  <eliz@gnu.org>
+2008-01-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* view.el (view-file-other-window, view-file-other-frame): Don't
 	kill the buffer if it is modified.  Doc fixes.
@@ -55,16 +55,16 @@
 	current-window-configuration.  Fix second argument in the call to
 	view-mode-enter.  Doc fix.
 
-2008-01-11  Richard Stallman  <rms@gnu.org>
+2008-01-23  Richard Stallman  <rms@gnu.org>
 
 	* subr.el (atomic-change-group): Prevent undo list truncation.
 
-2008-01-10  Dan Nicolaescu  <dann@ics.uci.edu>
+2008-01-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* files.el (safe-local-eval-forms): Mark
 	(add-hook 'write-file-hooks 'time-stamp) as safe.
 
-2008-01-10  Nick Roberts  <nickrob@snap.net.nz>
+2008-01-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* comint.el (comint-insert-input): Set point first.
 
@@ -73,7 +73,7 @@
 	(gdb-frame-handler): Use buffer-file-name instead of
 	buffer-name in case of duplicate file names.
 
-2008-01-10  Dan Nicolaescu  <dann@ics.uci.edu>
+2008-01-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/verilog-mode.el (verilog-mode-map): Don't bind C-M-a,
 	C-M-e and C-M-h for emacs, they work by default.
@@ -85,17 +85,17 @@
 	(verilog-mark-defun): Only do something useful for XEmacs, emacs
 	does not need it.
 
-2008-01-09  Wilson Snyder  <wsnyder@wsnyder.org>
+2008-01-23  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el (verilog-booleanp): New function for
 	backward compatibility.  Replace all uses of booleanp with
 	verilog-booleanp.
 
-2008-01-09  Dan Nicolaescu  <dann@ics.uci.edu>
+2008-01-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-diff): Don't pass an empty string.
 
-2008-01-09  Wilson Snyder  <wsnyder@wsnyder.org>
+2008-01-23  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el (top-level): Fix spacing.
 	(verilog-mode-version, verilog-mode-release-date): Update version
