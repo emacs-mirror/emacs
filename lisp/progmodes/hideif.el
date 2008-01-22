@@ -114,31 +114,26 @@
   "Hide selected code within `ifdef'."
   :group 'c)
 
-;;;###autoload
 (defcustom hide-ifdef-initially nil
   "Non-nil means call `hide-ifdefs' when Hide-Ifdef mode is first activated."
   :type 'boolean
   :group 'hide-ifdef)
 
-;;;###autoload
 (defcustom hide-ifdef-read-only nil
   "Set to non-nil if you want buffer to be read-only while hiding text."
   :type 'boolean
   :group 'hide-ifdef)
 
-;;;###autoload
 (defcustom hide-ifdef-lines nil
   "Non-nil means hide the #ifX, #else, and #endif lines."
   :type 'boolean
   :group 'hide-ifdef)
 
-;;;###autoload
 (defcustom hide-ifdef-shadow nil
   "Non-nil means shadow text instead of hiding it."
   :type 'boolean
   :group 'hide-ifdef)
 
-;;;###autoload
 (defface hide-ifdef-shadow '((t (:inherit shadow)))
   "Face for shadowing ifdef blocks."
   :group 'hide-ifdef)
