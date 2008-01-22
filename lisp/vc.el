@@ -1,7 +1,8 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
@@ -1951,11 +1952,10 @@ the buffer contents as a comment."
   ;; possibility of an empty output is for an async process, in which case
   ;; it's important to insert the "diffs end here" message in the buffer
   ;; since the user may miss a message in the echo area.
-  (when verbose
-    (let ((inhibit-read-only t))
-      (if (eq (buffer-size) 0)
-          (insert "No differences found.\n")
-        (insert (format "\n\nDiffs between %s and %s end here." rev1-name rev2-name)))))
+  (and verbose
+       (zerop (buffer-size))
+       (let ((inhibit-read-only t))
+         (insert "No differences found.\n")))
   (goto-char (point-min))
   (shrink-window-if-larger-than-buffer))
 
