@@ -243,6 +243,16 @@ This is local in each buffer, once it is used.")
 
 ;;; Commands that enter or exit view mode.
 
+;; This is used when view mode is exited, to make sure we don't try to
+;; kill a buffer modified by the user.  A buffer in view mode can
+;; become modified if the user types C-x C-q, edits the buffer, then
+;; types C-x C-q again to return to view mode.
+(defun kill-buffer-if-not-modified (buf)
+  "Like `kill-buffer', but does nothing if the buffer is modified."
+  (let ((buf (or (bufferp buf) (get-buffer buf))))
+    (and buf (not (buffer-modified-p buf))
+	 (kill-buffer buf))))
+
 ;;;###autoload
 (defun view-file (file)
   "View FILE in View mode, returning to previous buffer when done.
@@ -263,41 +273,50 @@ This command runs the normal hook `view-mode-hook'."
 	(progn
 	  (switch-to-buffer buffer)
 	  (message "Not using View mode because the major mode is special"))
-      (view-buffer buffer (and (not had-a-buf) 'kill-buffer)))))
+      (view-buffer buffer (and (not had-a-buf) 'kill-buffer-if-not-modified)))))
 
 ;;;###autoload
 (defun view-file-other-window (file)
   "View FILE in View mode in another window.
-Return that window to its previous buffer when done.  Emacs commands
-editing the buffer contents are not available; instead, a special set of
-commands (mostly letters and punctuation) are defined for moving around
-in the buffer.
+When done, return that window to its previous buffer, and kill the
+buffer visiting FILE if unmodified and if it wasn't visited before.
+
+Emacs commands editing the buffer contents are not available; instead,
+a special set of commands (mostly letters and punctuation)
+are defined for moving around in the buffer.
 Space scrolls forward, Delete scrolls backward.
 For a list of all View commands, type H or h while viewing.
 
 This command runs the normal hook `view-mode-hook'."
   (interactive "fIn other window view file: ")
   (unless (file-exists-p file) (error "%s does not exist" file))
-  (let ((had-a-buf (get-file-buffer file)))
-    (view-buffer-other-window (find-file-noselect file) nil
-			      (and (not had-a-buf) 'kill-buffer))))
+  (let ((had-a-buf (get-file-buffer file))
+	(buf-to-view (find-file-noselect file)))
+    (view-buffer-other-window buf-to-view nil
+			      (and (not had-a-buf)
+				   'kill-buffer-if-not-modified))))
 
 ;;;###autoload
 (defun view-file-other-frame (file)
   "View FILE in View mode in another frame.
-Maybe delete other frame and/or return to previous buffer when done.
-Emacs commands editing the buffer contents are not available; instead, a
-special set of commands (mostly letters and punctuation) are defined for
-moving around in the buffer.
+When done, kill the buffer visiting FILE if unmodified and if it wasn't
+visited before; also, maybe delete other frame and/or return to previous
+buffer.
+
+Emacs commands editing the buffer contents are not available; instead,
+a special set of commands (mostly letters and punctuation)
+are defined for moving around in the buffer.
 Space scrolls forward, Delete scrolls backward.
 For a list of all View commands, type H or h while viewing.
 
 This command runs the normal hook `view-mode-hook'."
   (interactive "fIn other frame view file: ")
   (unless (file-exists-p file) (error "%s does not exist" file))
-  (let ((had-a-buf (get-file-buffer file)))
-    (view-buffer-other-frame (find-file-noselect file) nil
-			     (and (not had-a-buf) 'kill-buffer))))
+  (let ((had-a-buf (get-file-buffer file))
+	(buf-to-view (find-file-noselect file)))
+    (view-buffer-other-frame buf-to-view nil
+			     (and (not had-a-buf)
+				  'kill-buffer-if-not-modified))))
 
 
 ;;;###autoload

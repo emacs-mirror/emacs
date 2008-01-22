@@ -822,6 +822,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 If there is no previous input at point, run the command specified
 by the global keymap (usually `mouse-yank-at-point')."
   (interactive "e")
+  (mouse-set-point event)
   (let ((pos (posn-point (event-end event)))
 	field input)
     (with-selected-window (posn-window (event-end event))

@@ -567,8 +567,10 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
   "Call \"svn resolved\" if the conflict markers have been removed."
   (save-excursion
     (goto-char (point-min))
-    (if (not (re-search-forward "^<<<<<<< " nil t))
-        (vc-svn-command nil 0 buffer-file-name "resolved"))))
+    (unless (re-search-forward "^<<<<<<< " nil t)
+      (vc-svn-command nil 0 buffer-file-name "resolved")
+      ;; Remove the hook so that it is not called multiple times.
+      (remove-hook 'after-save-hook 'vc-svn-resolve-when-done t))))
 
 ;; Inspired by vc-arch-find-file-hook.
 (defun vc-svn-find-file-hook ()

@@ -6558,9 +6558,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 		  }
 	      }
 
-	    /* Previous code updated count by nchars rather than nbytes,
-	       but that seems bogus to me.  ++kfs  */
-	    count += nbytes;
+	    count += nchars;
 
 	    inev.ie.kind = NO_EVENT;  /* Already stored above.  */
 
@@ -7057,7 +7055,9 @@ x_dispatch_event (event, display)
    We return as soon as there are no more events to be read.
 
    We return the number of characters stored into the buffer,
-   thus pretending to be `read'.
+   thus pretending to be `read' (except the characters we store
+   in the keyboard buffer can be multibyte, so are not necessarily
+   C chars).
 
    EXPECTED is nonzero if the caller knows input is available.  */
 

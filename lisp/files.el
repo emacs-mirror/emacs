@@ -2488,13 +2488,13 @@ symbol and VAL is a value that is considered safe."
   :group 'find-file
   :type  'alist)
 
-(defcustom safe-local-eval-forms nil
+(defcustom safe-local-eval-forms '((add-hook 'write-file-hooks 'time-stamp))
   "Expressions that are considered safe in an `eval:' local variable.
 Add expressions to this list if you want Emacs to evaluate them, when
 they appear in an `eval' local variable specification, without first
 asking you for confirmation."
   :group 'find-file
-  :version "22.1"
+  :version "22.2"
   :type '(repeat sexp))
 
 ;; Risky local variables:

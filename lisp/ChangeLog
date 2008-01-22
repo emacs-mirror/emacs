@@ -1,3 +1,187 @@
+2008-01-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/sh-script.el (sh-basic-offset):
+	* progmodes/cc-vars.el (c-syntactic-indentation)
+	(c-syntactic-indentation-in-macros): Mark as safe.
+
+2008-01-18  Richard Stallman  <rms@gnu.org>
+
+	* icomplete.el (icomplete-get-keys):
+	Look up KEYS using all maps in proper buffer.
+
+2008-01-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+	    Miles Bader  <miles@gnu.org>
+
+	* blank-mode.el: New file.  Minor mode to visualise TAB,
+	(HARD) SPACE, NEWLINE.  Miles Bader <miles@gnu.org> wrote the original
+	code for handling display table (via visws.el package), his code was
+	modified, but the main idea was kept.
+
+2008-01-16  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-vars.el (c-constant-symbol): Put this defun inside
+	an eval-and-compile, so as to permit byte-compiling (e.g. in
+	bootstrap).
+
+2008-01-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frame.el (display-mm-height, display-mm-width):
+	* whitespace.el (whitespace-check-leading-whitespace)
+	(whitespace-check-trailing-whitespace)
+	(whitespace-check-spacetab-whitespace)
+	(whitespace-check-indent-whitespace)
+	(whitespace-check-ateol-whitespace):
+	* progmodes/ada-xref.el (ada-convert-file-name): Fix typo in docstring.
+
+2008-01-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-arch.el (vc-arch-delete-rej-if-obsolete): Remove the
+	after-save-hook so that it is not called multiple times.
+
+	* vc-svn.el (vc-svn-resolve-when-done): Likewise.
+
+2008-01-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* view.el (view-file-other-window, view-file-other-frame): Don't
+	kill the buffer if it is modified.  Doc fixes.
+	(kill-buffer-if-not-modified): New function.
+	(view-file): Don't kill the buffer if it is modified.
+
+	* progmodes/ebrowse.el (ebrowse-view-file-other-window): Delete
+	function.
+	(ebrowse-view/find-file-and-search-pattern): Call
+	view-file-other-window instead of ebrowse-view-file-other-window.
+	(ebrowse-view-file-other-frame): Don't call
+	current-window-configuration.  Fix second argument in the call to
+	view-mode-enter.  Doc fix.
+
+2008-01-11  Richard Stallman  <rms@gnu.org>
+
+	* subr.el (atomic-change-group): Prevent undo list truncation.
+
+2008-01-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* files.el (safe-local-eval-forms): Mark
+	(add-hook 'write-file-hooks 'time-stamp) as safe.
+
+2008-01-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* comint.el (comint-insert-input): Set point first.
+
+	* progmodes/gdb-ui.el (gdb-dequeue-input): Make doubly sure
+	session doesn't hang because gdb-pending-triggers is non-nil.
+	(gdb-frame-handler): Use buffer-file-name instead of
+	buffer-name in case of duplicate file names.
+
+2008-01-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (verilog-mode-map): Don't bind C-M-a,
+	C-M-e and C-M-h for emacs, they work by default.
+	(verilog-emacs-features): Remove.
+	(verilog-setup-dual-comments, verilog-populate-syntax-table):
+	Remove.  Move syntax table initialization ...
+	(verilog-mode-syntax-table): ... here.
+	(verilog-mode): Don't initialize the syntax table here.
+	(verilog-mark-defun): Only do something useful for XEmacs, emacs
+	does not need it.
+
+2008-01-09  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* progmodes/verilog-mode.el (verilog-booleanp): New function for
+	backward compatibility.  Replace all uses of booleanp with
+	verilog-booleanp.
+
+2008-01-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-diff): Don't pass an empty string.
+
+2008-01-09  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* progmodes/verilog-mode.el (top-level): Fix spacing.
+	(verilog-mode-version, verilog-mode-release-date): Update version
+	number.
+	(verilog-mode-release-emacs): New variable.
+	(compile-command, reporter-prompt-for-summary-p): Define for byte
+	compiler.
+	(verilog-startup-message-lines)
+	(verilog-startup-message-displayed)
+	(verilog-display-startup-message): Remove.
+	(verilog-highlight-p1800-keywords): Improve docstring.
+	(sigs-in, sigs-out, got-sig, got-rvalue, uses-delayed)
+	(vector-skip-list): Only defvar at compile time.
+	(verilog-highlight-translate-off, verilog-indent-level)
+	(verilog-indent-level-module, verilog-indent-level-declaration)
+	(verilog-indent-declaration-macros, verilog-indent-lists)
+	(verilog-indent-level-behavioral)
+	(verilog-indent-level-directive, verilog-cexp-indent)
+	(verilog-case-indent, verilog-auto-newline)
+	(verilog-auto-indent-on-newline, verilog-tab-always-indent)
+	(verilog-tab-to-comment, verilog-indent-begin-after-if)
+	(verilog-align-ifelse, verilog-minimum-comment-distance)
+	(verilog-auto-lineup, verilog-highlight-p1800-keywords)
+	(verilog-auto-endcomments, verilog-auto-read-includes)
+	(verilog-auto-star-expand, verilog-auto-star-save)
+	(verilog-library-flags, verilog-library-directories)
+	(verilog-library-files, verilog-library-extensions)
+	(verilog-active-low-regexp, verilog-auto-sense-include-inputs)
+	(verilog-auto-sense-defines-constant, verilog-auto-reset-widths)
+	(verilog-assignment-delay, verilog-auto-inst-vector)
+	(verilog-auto-inst-template-numbers)
+	(verilog-auto-input-ignore-regexp)
+	(verilog-auto-inout-ignore-regexp)
+	(verilog-auto-output-ignore-regexp)
+	(verilog-auto-unused-ignore-regexp, verilog-typedef-regexp): Add
+	safe-local-variable properties.
+	(verilog-statement-menu, verilog-company)
+	(verilog-re-search-forward, verilog-re-search-backward)
+	(verilog-error-regexp-add, verilog-end-block-re)
+	(verilog-emacs-features, verilog-populate-syntax-table)
+	(verilog-setup-dual-comments, verilog-type-font-keywords)
+	(verilog-inside-comment-p, electric-verilog-backward-sexp)
+	(verilog-backward-sexp, verilog-forward-sexp)
+	(verilog-font-lock-init, verilog-mode)
+	(electric-verilog-terminate-line, electric-verilog-semi)
+	(electric-verilog-tab, verilog-insert-1, )
+	(verilog-insert-indices, verilog-generate-numbers)
+	(verilog-comment-region, verilog-label-be)
+	(verilog-beg-of-statement, verilog-in-case-region-p)
+	(verilog-in-struct-region-p, verilog-in-generate-region-p)
+	(verilog-in-fork-region-p, verilog-backward-case-item)
+	(verilog-set-auto-endcomments, verilog-get-expr)
+	(verilog-expand-vector-internal, verilog-surelint-off)
+	(verilog-batch-execute-func, verilog-calculate-indent)
+	(verilog-calc-1, verilog-calculate-indent-directive)
+	(verilog-leap-to-head, verilog-continued-line)
+	(verilog-backward-token, verilog-backward-syntactic-ws)
+	(verilog-forward-syntactic-ws, verilog-backward-ws&directives)
+	(verilog-forward-ws&directives, verilog-at-constraint-p)
+	(verilog-skip-backward-comments, verilog-indent-line-relative)
+	(verilog-do-indent, verilog-indent-comment)
+	(verilog-more-comment, verilog-pretty-declarations)
+	(verilog-pretty-expr, verilog-just-one-space)
+	(verilog-indent-declaration, verilog-get-completion-decl)
+	(verilog-goto-defun, verilog-showscopes, verilog-header)
+	(verilog-signals-combine-bus, verilog-read-decls)
+	(verilog-read-always-signals-recurse, verilog-read-instants)
+	(verilog-read-auto-template, verilog-set-define)
+	(verilog-read-defines, verilog-read-signals, verilog-getopt)
+	(verilog-is-number, verilog-expand-dirnames)
+	(verilog-modi-lookup, verilog-modi-cache-results)
+	(verilog-insert-one-definition, verilog-make-width-expression)
+	(verilog-delete-autos-lined, verilog-auto-save-check)
+	(verilog-auto-arg, verilog-auto-inst-port, verilog-auto-inst)
+	(verilog-auto-inst-param, verilog-auto-reg)
+	(verilog-auto-reg-input, verilog-auto-wire, )
+	(verilog-auto-output, verilog-auto-output-every)
+	(verilog-auto-input, verilog-auto-inout)
+	(verilog-auto-inout-module, verilog-auto-sense)
+	(verilog-auto-reset, verilog-auto-tieoff, verilog-auto-unused)
+	(verilog-auto-ascii-enum, verilog-auto)
+	(verilog-sk-define-signal, verilog-mode-mouse-map)
+	(verilog-load-file-at-mouse, verilog-load-file-at-point)
+	(verilog-library-files): Cleanup spacing of )'s they should not be
+	on unique lines.  Fix checkdoc warnings.
+
 2008-01-22  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/hideif.el (hide-ifdef-initially, hide-ifdef-read-only)

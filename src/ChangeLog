@@ -1,3 +1,28 @@
+2008-01-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_scroll_bar_create): Initialize bar->redraw_needed_p.
+	(XTset_vertical_scroll_bar): Redraw scroll bar if bar->redraw_needed_p
+	is set even without positional changes.
+	(x_scroll_bar_clear): Set bar->redraw_needed_p.
+
+	* macterm.h (struct scroll_bar): New member `redraw_needed_p'.
+
+2008-01-17  Jason Rumney  <jasonr@gnu.org>
+
+	* xterm.c (handle_one_xevent): Revert to counting chars not bytes.
+
+	* w32term.c (w32_read_socket) <WM_CHAR>: Decode characters outside
+	the unicode range available in MULE by locale-coding-system.
+	Improve dbcs lead byte detection.  Set event timestamp and modifiers
+	earlier.
+
+2008-01-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (mac_emacs_pid) [MAC_OSX]: New variable.
+	[MAC_OSX] (init_mac_osx_environment): Initialize it.
+	[MAC_OSX] (mac_try_close_socket) [SELECT_USE_CFSOCKET]:	Return 0
+	when used on child processes.
+
 2008-01-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.el (Fdbus_method_return_internal): Renamed from
