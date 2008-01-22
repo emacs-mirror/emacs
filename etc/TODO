@@ -175,6 +175,10 @@ specified filters, specified timers, and specified hooks.
 
 * Other features we would like:
 
+** Make longlines-mode wrap lines based on screen position instead
+   of character position, so that variable-width fonts can be handled
+   properly.
+
 ** Remove the default toggling behavior of minor modes when called from elisp
 rather than interactively.  This a trivial one-liner in easy-mode.el.
 ** Create a category of errors called `user-error' for errors which are
