@@ -4540,41 +4540,32 @@ FRAME 0 means change the face on all frames, and change the default
 
 #ifdef USE_FONT_BACKEND
 	  if (enable_font_backend
-	      && FRAME_WINDOW_P (XFRAME (frame))
 	      && !UNSPECIFIEDP (value) && !IGNORE_DEFFACE_P (value))
 	    {
-	      int fontset;
-
+	      tmp = Fquery_fontset (value, Qnil);
 	      if (EQ (attr, QCfontset))
 		{
-		  Lisp_Object fontset_name = Fquery_fontset (value, Qnil);
-
-		  if (NILP (fontset_name))
+		  if (NILP (tmp))
 		    signal_error ("Invalid fontset name", value);
-		  LFACE_FONTSET (lface) = value;
+		  LFACE_FONTSET (lface) = tmp;
 		}
 	      else
 		{
+		  int fontset;
 		  Lisp_Object font_object;
 
-		  if (FONT_OBJECT_P (value))
+		  if (! NILP (tmp))
 		    {
-		      font_object = value;
-		      fontset = FRAME_FONTSET (f);
+		      fontset = fs_query_fontset (tmp, 0);
+		      value = fontset_ascii (fontset);
 		    }
 		  else
 		    {
-		      CHECK_STRING (value);
-
-		      fontset = fs_query_fontset (value, 0);
-		      if (fontset >= 0)
-			value = fontset_ascii (fontset);
-		      else
-			fontset = FRAME_FONTSET (f);
-		      font_object = font_open_by_name (f, SDATA (value));
-		      if (NILP (font_object))
-			signal_error ("Invalid font", value);
+		      fontset = FRAME_FONTSET (f);
 		    }
+		  font_object = font_open_by_name (f, SDATA (value));
+		  if (NILP (font_object))
+		    signal_error ("Invalid font", value);
 		  set_lface_from_font_and_fontset (f, lface, font_object,
 						   fontset, 1);
 		}
