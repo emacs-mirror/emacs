@@ -1,5 +1,9 @@
 2008-01-22  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/hideif.el (hide-ifdef-initially, hide-ifdef-read-only)
+	(hide-ifdef-lines, hide-ifdef-shadow, hide-ifdef-shadow):
+	Remove autoload cookies.
+
 	* vc.el (vc-diff-sentinel): Do not write a footer if there were
 	differences.
 
