@@ -194,6 +194,10 @@ specified filters, specified timers, and specified hooks.
 
 * Other features we would like:
 
+** Make longlines-mode wrap lines based on screen position instead
+   of character position, so that variable-width fonts can be handled
+   properly.
+
 ** Allow frames(terminals) created by emacsclient to inherit their environment
 from the emacsclient process.
 ** Remove the default toggling behavior of minor modes when called from elisp
