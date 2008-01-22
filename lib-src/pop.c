@@ -381,25 +381,18 @@ pop_stat (server, count, size)
   errno = 0;
   *count = strtol (&fromserver[4], &end_ptr, 10);
   /* Check validity of string-to-integer conversion. */
-  if (fromserver[4] == 0 || *end_ptr != 0 || errno)
+  if (fromserver + 4 == end_ptr || *end_ptr != ' ' || errno)
     {
       strcpy (pop_error, "Unexpected response from POP server in pop_stat");
       pop_trash (server);
       return (-1);
     }
 
-  fromserver = index (&fromserver[4], ' ');
-  if (! fromserver)
-    {
-      strcpy (pop_error,
-	      "Badly formatted response from server in pop_stat");
-      pop_trash (server);
-      return (-1);
-    }
+  fromserver = end_ptr;
 
   errno = 0;
   *size = strtol (fromserver + 1, &end_ptr, 10);
-  if (*(fromserver + 1) == 0 || *end_ptr != 0 || errno)
+  if (fromserver + 1 == end_ptr || errno)
     {
       strcpy (pop_error, "Unexpected response from POP server in pop_stat");
       pop_trash (server);
@@ -933,7 +926,7 @@ pop_last (server)
       int count;
       errno = 0;
       count = strtol (&fromserver[4], &end_ptr, 10);
-      if (fromserver[4] == 0 || *end_ptr != 0 || errno)
+      if (fromserver + 4 == end_ptr || errno)
 	{
 	  strcpy (pop_error, "Unexpected response from server in pop_last");
 	  pop_trash (server);
