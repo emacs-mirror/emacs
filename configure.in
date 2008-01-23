@@ -43,47 +43,63 @@ gamedir='${localstatedir}/games/emacs'
 
 gameuser=games
 
-dnl Autoconf is so much less fun under VMS, maybe
-dnl because everything is less fun under VMS. --ttn
-AC_DEFUN([EMACS_ARG_Y],[dnl
-AC_ARG_WITH([$1],[AS_HELP_STRING([--with-$1],[$2])],[$3],[$4])dnl
-])dnl
-AC_DEFUN([EMACS_ARG_N],[dnl
-AC_ARG_WITH([$1],[AS_HELP_STRING([--without-$1],[$2])],[$3],[$4])dnl
+dnl OPTION_DEFAULT_OFF(NAME, HELP-STRING)
+dnl Create a new --with option that defaults to being disabled.
+dnl NAME is the base name of the option.  The shell variable with_NAME
+dnl   will be set to either the user's value (if the option is
+dnl   specified; 'yes' for a plain --with-NAME) or to 'no' (if the
+dnl   option is not specified).  Note that the shell variable name is
+dnl   constructed as autoconf does, by replacing non-alphanumeric
+dnl   characters with "_".
+dnl HELP-STRING is the help text for the option.
+AC_DEFUN([OPTION_DEFAULT_OFF], [dnl
+  AC_ARG_WITH([$1],[AS_HELP_STRING([--with-$1],[$2])],[],[dnl
+    m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=no])dnl
 ])dnl
 
-EMACS_ARG_N([gcc],[don't use GCC to compile Emacs if GCC is found])
+dnl OPTION_DEFAULT_ON(NAME, HELP-STRING)
+dnl Create a new --with option that defaults to being enabled.  NAME
+dnl   is the base name of the option.  The shell variable with_NAME
+dnl   will be set either to 'no' (for a plain --without-NAME) or to
+dnl   'yes' (if the option is not specified).  Note that the shell
+dnl   variable name is constructed as autoconf does, by replacing
+dnl   non-alphanumeric characters with "_".
+dnl HELP-STRING is the help text for the option.
+AC_DEFUN([OPTION_DEFAULT_ON], [dnl
+  AC_ARG_WITH([$1],[AS_HELP_STRING([--without-$1],[$2])],[],[dnl
+   m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=yes])dnl
+])dnl
 
-EMACS_ARG_N([pop],[don't support POP mail retrieval with movemail],
-[if test "$withval" = yes; then
+OPTION_DEFAULT_ON([gcc],[don't use GCC to compile Emacs if GCC is found])
+
+OPTION_DEFAULT_ON([pop],[don't support POP mail retrieval with movemail])
+if test "$with_pop" = yes; then
    AC_DEFINE(MAIL_USE_POP)
-else :
-fi],
-AC_DEFINE(MAIL_USE_POP))
+fi
 AH_TEMPLATE(MAIL_USE_POP, [Define to support POP mail retrieval.])dnl
 
-EMACS_ARG_Y([kerberos],[support Kerberos-authenticated POP],
-[if test "$withval" = yes; then
+OPTION_DEFAULT_OFF([kerberos],[support Kerberos-authenticated POP])
+if test "$with_kerberos" = yes; then
    AC_DEFINE(KERBEROS)
-fi])
+fi
 AH_TEMPLATE(KERBEROS,
 	    [Define to support Kerberos-authenticated POP mail retrieval.])dnl
 
-EMACS_ARG_Y([kerberos5],[support Kerberos version 5 authenticated POP],
-[if test "${with_kerberos5+set}" = set; then
-  if test "${with_kerberos+set}" != set; then
+OPTION_DEFAULT_OFF([kerberos5],[support Kerberos version 5 authenticated POP])
+if test "${with_kerberos5}" = yes; then
+  if test "${with_kerberos}" != yes; then
     with_kerberos=yes
     AC_DEFINE(KERBEROS)
   fi
   AC_DEFINE(KERBEROS5, 1, [Define to use Kerberos 5 instead of Kerberos 4.])
-fi])
+fi
 
-EMACS_ARG_Y([hesiod],[support Hesiod to get the POP server host],
-[if test "$withval" = yes; then
+OPTION_DEFAULT_OFF([hesiod],[support Hesiod to get the POP server host])
+if test "$with_hesiod" = yes; then
   AC_DEFINE(HESIOD, 1, [Define to support using a Hesiod database to find the POP server.])
-fi])
+fi
 
-EMACS_ARG_N([sound],[don't compile with sound support])
+OPTION_DEFAULT_ON([sound],[don't compile with sound support])
 
 dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the path of X, and it's best to
@@ -106,20 +122,28 @@ this option's value should be `yes', `no', `lucid', `athena', `motif' or `gtk'.
 	  with_x_toolkit=$val
 ])
 
-EMACS_ARG_Y([xpm],[use -lXpm for displaying XPM images])
-EMACS_ARG_Y([jpeg],[use -ljpeg for displaying JPEG images])
-EMACS_ARG_Y([tiff],[use -ltiff for displaying TIFF images])
-EMACS_ARG_Y([gif],[use -lgif (or -lungif) for displaying GIF images])
-EMACS_ARG_Y([png],[use -lpng for displaying PNG images])
-EMACS_ARG_Y([gpm],[use -lgpm for mouse support on a GNU/Linux console])
-EMACS_ARG_Y([rsvg],[use -lrsvg-2 for displaying SVG images])
-EMACS_ARG_Y([gtk],[use GTK (same as --with-x-toolkit=gtk)])
-EMACS_ARG_Y([pkg-config-prog],[Path to pkg-config for finding GTK and librsvg])
-EMACS_ARG_N([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
-EMACS_ARG_N([xaw3d],[don't use Xaw3d])
-EMACS_ARG_N([xim],[don't use X11 XIM])
-EMACS_ARG_N([carbon],[don't use Carbon GUI on Mac OS X])
-EMACS_ARG_Y([dbus],[use D-Bus])
+OPTION_DEFAULT_OFF([xpm],[use -lXpm for displaying XPM images])
+OPTION_DEFAULT_OFF([jpeg],[use -ljpeg for displaying JPEG images])
+OPTION_DEFAULT_OFF([tiff],[use -ltiff for displaying TIFF images])
+OPTION_DEFAULT_OFF([gif],[use -lgif (or -lungif) for displaying GIF images])
+OPTION_DEFAULT_OFF([png],[use -lpng for displaying PNG images])
+OPTION_DEFAULT_OFF([gpm],[use -lgpm for mouse support on a GNU/Linux console])
+OPTION_DEFAULT_OFF([rsvg],[use -lrsvg-2 for displaying SVG images])
+OPTION_DEFAULT_OFF([gtk],[use GTK (same as --with-x-toolkit=gtk)])
+OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
+OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
+OPTION_DEFAULT_ON([xim],[don't use X11 XIM])
+OPTION_DEFAULT_ON([carbon],[don't use Carbon GUI on Mac OS X])
+OPTION_DEFAULT_ON([dbus],[use D-Bus])
+
+AC_ARG_WITH([pkg-config-prog],dnl
+  [AS_HELP_STRING([--with-pkg-config-prog=PATH],
+                  [Path to pkg-config for finding GTK and librsvg])])
+if test "X${with_pkg_config_prog}" != X; then
+   if test "${with_pkg_config_prog}" != yes; then
+      PKG_CONFIG="${with_pkg_config_prog}"
+   fi
+fi
 
 AC_ARG_ENABLE(carbon-app,
 [AS_HELP_STRING([--enable-carbon-app@<:@=DIR@:>@],
@@ -1089,9 +1113,7 @@ dnl also defines GSTUFF_PKG_ERRORS on error
 AC_DEFUN([PKG_CHECK_MODULES], [
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
-  fi
+  AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 
   if test "$PKG_CONFIG" = "no" ; then
      ifelse([$4], , [AC_MSG_ERROR([
@@ -1147,10 +1169,6 @@ if test "${with_sound}" != "no"; then
 
   ALSA_REQUIRED=1.0.0
   ALSA_MODULES="alsa >= $ALSA_REQUIRED"
-  dnl Check if --with-pkg-config-prog has been given.
-  if test "X${with_pkg_config_prog}" != X; then
-    PKG_CONFIG="${with_pkg_config_prog}"
-  fi
   PKG_CHECK_MODULES(ALSA, $ALSA_MODULES, HAVE_ALSA=yes, HAVE_ALSA=no)
   if test $HAVE_ALSA = yes; then
     SAVE_CFLAGS="$CFLAGS"
@@ -1639,11 +1657,6 @@ fi
 HAVE_RSVG=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_CARBON}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
-    dnl Check if `--with-pkg-config-prog' has been given.
-    if test "X${with_pkg_config_prog}" != X; then
-      PKG_CONFIG="${with_pkg_config_prog}"
-    fi
-
     RSVG_REQUIRED=2.0.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
 
@@ -1674,10 +1687,6 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk" || \
   GTK_REQUIRED=2.6
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
-  dnl Check if --with-pkg-config-prog has been given.
-  if test "X${with_pkg_config_prog}" != X; then
-    PKG_CONFIG="${with_pkg_config_prog}"
-  fi
   dnl Checks for libraries.
   PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
   if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
@@ -1765,21 +1774,20 @@ dnl D-Bus has been tested under GNU/Linux only.  Must be adapted for
 dnl other platforms.  Support for higher D-Bus versions but 1.0 is
 dnl also not configured.
 HAVE_DBUS=no
+AC_MSG_CHECKING([maybe dbus])
 if test "${with_dbus}" = "yes"; then
    PKG_CHECK_MODULES(DBUS, dbus-1 >= 1.0, HAVE_DBUS=yes, HAVE_DBUS=no)
    if test "$HAVE_DBUS" = yes; then
       AC_DEFINE(HAVE_DBUS, 1, [Define to 1 if using D-Bus.])
    fi
+   AC_MSG_RESULT($HAVE_DBUS)
+else
+   AC_MSG_RESULT(no bub)
 fi
 
 ### Link with -lXft if available to work around a bug.
 HAVE_XFT=maybe
 if test "${HAVE_GTK}" = "yes"; then
-  dnl Check if --with-pkg-config-prog has been given.
-  if test "X${with_pkg_config_prog}" != X; then
-    PKG_CONFIG="${with_pkg_config_prog}"
-  fi
-
   PKG_CHECK_MODULES(XFT, xft >= 0.13.0, , HAVE_XFT=no)
   if test "$HAVE_XFT" != no; then
     OLD_CFLAGS="$CPPFLAGS"
