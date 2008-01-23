@@ -412,10 +412,10 @@ else
 fi
 
 test \$exitcode = 0") || {
-  echo Please tell bug-autoconf@gnu.org about your system,
-  echo including any error possibly output before this message.
-  echo This can help us improve future autoconf versions.
-  echo Configuration will now proceed without shell functions.
+  echo No shell found that supports shell functions.
+  echo Please tell autoconf@gnu.org about your system,
+  echo including any error possibly output before this
+  echo message
 }
 
 
@@ -3174,7 +3174,7 @@ _ACEOF
   ;;
 
   ## Tensilica Xtensa Linux-based GNU system
-  xtensa-*-linux-gnu* )
+  xtensa*-*-linux-* )
     machine=xtensa opsys=gnu-linux
     ;;
 
