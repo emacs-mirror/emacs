@@ -4171,7 +4171,7 @@ If it is less than 8, the level-1 face gets re-used for level N+1 etc."
 (defvar mh-show-folder-buffer)
 (defvar mh-index-folder)
 (defvar mh-searcher)
-(declare-function org-export-latex-cleaned-string "org-export-latex" (&optional commentsp))
+(declare-function org-export-latex-cleaned-string "org-export-latex" ())
 (declare-function parse-time-string "parse-time" (string))
 (declare-function remember "remember" (&optional initial))
 (declare-function remember-buffer-desc "remember" ())
