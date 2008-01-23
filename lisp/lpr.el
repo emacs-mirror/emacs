@@ -47,7 +47,7 @@
 
 ;;;###autoload
 (defcustom printer-name
-  (and lpr-windows-system "PRN")
+  (and (memq system-type '(emx ms-dos)) "PRN")
   "*The name of a local printer to which data is sent for printing.
 \(Note that PostScript files are sent to `ps-printer-name', which see.\)
 
