@@ -1881,7 +1881,7 @@ twice.
 types; clicks beyond the third generate additional triple-click events.
 However, the full number of clicks is recorded in the event list, so
 if you know Emacs Lisp you can distinguish if you really want to
-(@pxref{Accessing Events,,, elisp, The Emacs Lisp Reference Manual}).
+(@pxref{Click Events,,, elisp, The Emacs Lisp Reference Manual}).
 We don't recommend distinct meanings for more than three clicks, but
 sometimes it is useful for subsequent clicks to cycle through the same
 set of three meanings, so that four clicks are equivalent to one
