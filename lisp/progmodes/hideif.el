@@ -132,11 +132,13 @@
 (defcustom hide-ifdef-shadow nil
   "Non-nil means shadow text instead of hiding it."
   :type 'boolean
-  :group 'hide-ifdef)
+  :group 'hide-ifdef
+  :version "23.1")
 
 (defface hide-ifdef-shadow '((t (:inherit shadow)))
   "Face for shadowing ifdef blocks."
-  :group 'hide-ifdef)
+  :group 'hide-ifdef
+  :version "23.1")
 
 
 (defvar hide-ifdef-mode-submap
