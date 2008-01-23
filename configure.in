@@ -137,7 +137,7 @@ OPTION_DEFAULT_ON([carbon],[don't use Carbon GUI on Mac OS X])
 OPTION_DEFAULT_ON([dbus],[use D-Bus])
 
 AC_ARG_WITH([pkg-config-prog],dnl
-  [AS_HELP_STRING([--with-pkg-config-prog=PATH],
+[AS_HELP_STRING([--with-pkg-config-prog=PATH],
                   [Path to pkg-config for finding GTK and librsvg])])
 if test "X${with_pkg_config_prog}" != X; then
    if test "${with_pkg_config_prog}" != yes; then
