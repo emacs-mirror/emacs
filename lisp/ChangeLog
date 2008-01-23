@@ -1,3 +1,7 @@
+2008-01-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Add TODO items.
+
 2008-01-23  Carsten Dominik  <dominik@science.uva.nl>
 
 	* replace.el (occur-mode-find-occurrence-hook): New hook that can

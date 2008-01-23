@@ -530,8 +530,10 @@
 ;; - vc-update/vc-merge should deal with VC systems that don't
 ;;   update/merge on a file basis, but on a whole repository basis.
 ;;
-;; - vc-register should register multiple files at a time. The
-;;  `register' backend function already supports that.
+;; - the backend sometimes knows when a file it opens has been marked
+;;   by the VCS as having a "conflict". Find a way to pass this info -
+;;   to VC so that it can turn on smerge-mode when opening such a
+;;   file.
 ;;
 ;; - the *VC-log* buffer needs font-locking.
 ;;
@@ -541,11 +543,24 @@
 ;; - make vc-state for all backends return 'unregistered instead of
 ;;   nil for unregistered files, then update vc-next-action.
 ;;
+;; - add a generic mechanism for remembering the current branch names,
+;;   display the branch name in the mode-line. Replace
+;;   vc-cvs-sticky-tag with that.
+;;
+;; - vc-register should register a fileset at a time. The backends
+;;   already support this, only the front-end needs to be change to
+;;   handle multiple files at a time.
+;;
+;; - add a mechanism to for ignoring files.
+;;
 ;; - deal with push/pull operations.
 ;;
 ;; - decide if vc-status should replace vc-dired.
 ;;
 ;; - vc-status needs a menu, mouse bindings and some color bling.
+;;
+;; - "snapshots" should be renamed to "branches", and thoroughly reworked.
+;;
 
 ;;; Code:
 
