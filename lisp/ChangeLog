@@ -1,3 +1,7 @@
+2008-01-23  Jason Rumney  <jasonr@gnu.org>
+
+	* lpr.el (printer-name): Do not set on MS Windows.
+
 2008-01-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* blank-mode.el: Fix a problem of cleaning blank faces when turning off
