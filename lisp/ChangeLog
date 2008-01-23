@@ -1,3 +1,12 @@
+2008-01-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* replace.el (occur-mode-find-occurrence-hook): New hook that can
+	be used to reveal or highlight the location of a match.
+	(occur-mode-goto-occurrence)
+	(occur-mode-goto-occurrence-other-window)
+	(occur-mode-display-occurrence): Run
+	`occur-mode-find-occurrence-hook'.
+
 2008-01-23  Martin Rudalics  <rudalics@gmx.at>
 
 	* progmodes/hideif.el (hide-ifdef-shadow): Add version number
