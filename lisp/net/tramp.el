@@ -914,7 +914,7 @@ directories for POSIX compatible commands."
 		  (string :tag "Directory"))))
 
 (defcustom tramp-remote-process-environment
-  `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "LC_CTYPE=C" "LC_TIME=C"
+  `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "LC_ALL=C"
     ,(concat "TERM=" tramp-terminal-type)
     "CDPATH=" "HISTORY=" "MAIL=" "MAILCHECK=" "MAILPATH="
     "autocorrect=" "correct=")
@@ -1433,9 +1433,11 @@ means to use always cached values for the directory contents."
 ;;; Internal Variables:
 
 (defvar tramp-end-of-output
-  (concat
-   "///" (md5 (concat
-	       (prin1-to-string process-environment) (current-time-string))))
+  (format
+   "%s///%s%s"
+   tramp-rsh-end-of-line
+   (md5 (concat (prin1-to-string process-environment) (current-time-string)))
+   tramp-rsh-end-of-line)
   "String used to recognize end of output.")
 
 (defvar tramp-current-method nil
@@ -5360,22 +5362,14 @@ file exists and nonzero exit status otherwise."
 	     vec
 	     (format "PROMPT_COMMAND='' PS1='$ ' PS2='' PS3='' exec %s" shell)
 	     t))
+	  ;; Setting prompts.
 	  (tramp-message vec 5 "Setting remote shell prompt...")
-	  ;; Douglas Gray Stephens <DGrayStephens@slb.com> says that we
-	  ;; must use "\n" here, not tramp-rsh-end-of-line.  Kai left the
-	  ;; last tramp-rsh-end-of-line, Douglas wanted to replace that,
-	  ;; as well.
-	  (tramp-send-command
-	   vec
-	   (format "PS1='%s%s%s'"
-		   tramp-rsh-end-of-line
-		   tramp-end-of-output
-		   tramp-rsh-end-of-line)
-	   t)
+	  (tramp-send-command vec (format "PS1='%s'" tramp-end-of-output) t)
 	  (tramp-send-command vec "PS2=''" t)
 	  (tramp-send-command vec "PS3=''" t)
 	  (tramp-send-command vec "PROMPT_COMMAND=''" t)
 	  (tramp-message vec 5 "Setting remote shell prompt...done"))
+
 	 (t (tramp-message
 	     vec 5 "Remote `%s' groks tilde expansion, good"
 	     (tramp-get-method-parameter
@@ -5668,13 +5662,7 @@ process to set up.  VEC specifies the connection."
   ;; We can set $PS1 to `tramp-end-of-output' only when the echo has
   ;; been disabled.  Otherwise, the echo of the command would be
   ;; regarded as prompt already.
-  (tramp-send-command
-   vec
-   (format "PS1='%s%s%s'"
-	   tramp-rsh-end-of-line
-           tramp-end-of-output
-	   tramp-rsh-end-of-line)
-   t)
+  (tramp-send-command vec (format "PS1='%s'" tramp-end-of-output) t)
   (tramp-send-command vec "PS2=''" t)
   (tramp-send-command vec "PS3=''" t)
   (tramp-send-command vec "PROMPT_COMMAND=''" t)
@@ -6249,7 +6237,11 @@ function waits for output unless NOOUTPUT is set."
   (with-current-buffer (process-buffer proc)
     ;; Initially, `tramp-end-of-output' is "$ ".  There might be
     ;; leading escape sequences, which must be ignored.
-    (let* ((regexp (format "^[^$\n]*%s\r?$" (regexp-quote tramp-end-of-output)))
+    (let* ((regexp
+	    (if (string-match (regexp-quote "\n") tramp-end-of-output)
+		(mapconcat
+		 'identity (split-string tramp-end-of-output "\n") "\r?\n")
+	      (format "^[^$\n]*%s\r?$" (regexp-quote tramp-end-of-output))))
 	   (found (tramp-wait-for-regexp proc timeout regexp)))
       (if found
 	  (let (buffer-read-only)
@@ -6737,7 +6729,14 @@ necessary only.  This function will be used in file name completion."
     (and
      (stringp host)
      (string-match
-      (concat "^" (regexp-opt (list "localhost" (system-name)) t) "$") host))))
+      (concat "^" (regexp-opt (list "localhost" (system-name)) t) "$") host)
+     ;; The local temp directory must be writable for the other user.
+     (file-writable-p
+      (tramp-make-tramp-file-name
+       (tramp-file-name-method vec)
+       (tramp-file-name-user vec)
+       host
+       (tramp-compat-temporary-file-directory))))))
 
 ;; Variables local to connection.
 
@@ -6833,8 +6832,7 @@ necessary only.  This function will be used in file name completion."
 	vec (format "( %s / -nt / )" (tramp-get-test-command vec)))
        (with-current-buffer (tramp-get-buffer vec)
 	 (goto-char (point-min))
-	 (when (looking-at
-		(format "\n%s\r?\n" (regexp-quote tramp-end-of-output)))
+	 (when (looking-at (regexp-quote tramp-end-of-output))
 	   (format "%s %%s -nt %%s" (tramp-get-test-command vec)))))
      (progn
        (tramp-send-command
