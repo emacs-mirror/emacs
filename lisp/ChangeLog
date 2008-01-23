@@ -1,4 +1,16 @@
-2008-01-23  Dan Nicolaescu  <dann@ics.uci.edu>
+2008-01-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-remote-process-environment): Set "LC_ALL=C".
+	(tramp-end-of-output): Add `tramp-rsh-end-of-line' into the
+	regexp.
+	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
+	Don't send `tramp-rsh-end-of-line' additionally, when setting the
+	prompt.
+	(tramp-wait-for-output): Distinguish different prompt formats.
+	(tramp-get-test-nt-command): Don't check for "\n" in the prompt.
+	(tramp-local-host-p): Check whether temp directory is writable.
+
+22008-01-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el: Add TODO items.
 
