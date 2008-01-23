@@ -1,3 +1,7 @@
+2008-01-23  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/org.el (org-export-latex-cleaned-string): Fix declaration.
+
 2008-01-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/sh-script.el (sh-basic-offset):
