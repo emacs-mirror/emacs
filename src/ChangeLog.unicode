@@ -1,3 +1,8 @@
+2008-01-23  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* xfaces.c (set_lface_from_font_and_fontset): Set the fontname in
+	lface.
+
 2008-01-22  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xfaces.c (Finternal_set_lisp_face_attribute) [USE_FONT_BACKEND]:
