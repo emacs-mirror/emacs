@@ -3694,7 +3694,8 @@ set_lface_from_font_and_fontset (f, lface, font_object, fontset, force_p)
       LFACE_SWIDTH (lface) = ! NILP (val) ? val : width;
     }
 
-  LFACE_FONT (lface) = font_object;
+  LFACE_FONT (lface) = make_unibyte_string (font->font.full_name,
+					    strlen (font->font.full_name));
   LFACE_FONTSET (lface) = fontset_name (fontset);
 }
 #endif	/* USE_FONT_BACKEND */
