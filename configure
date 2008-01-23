@@ -1352,13 +1352,14 @@ Optional Packages:
   --with-gpm              use -lgpm for mouse support on a GNU/Linux console
   --with-rsvg             use -lrsvg-2 for displaying SVG images
   --with-gtk              use GTK (same as --with-x-toolkit=gtk)
-  --with-pkg-config-prog  Path to pkg-config for finding GTK and librsvg
   --without-toolkit-scroll-bars
                           don't use Motif or Xaw3d scroll bars
   --without-xaw3d         don't use Xaw3d
   --without-xim           don't use X11 XIM
   --without-carbon        don't use Carbon GUI on Mac OS X
-  --with-dbus             use D-Bus
+  --without-dbus          use D-Bus
+  --with-pkg-config-prog=PATH
+                          Path to pkg-config for finding GTK and librsvg
   --with-x                use the X Window System
 
 Some influential environment variables:
@@ -1836,49 +1837,57 @@ gameuser=games
 
 
 
+
 # Check whether --with-gcc was given.
 if test "${with_gcc+set}" = set; then
   withval=$with_gcc;
+else
+     with_gcc=yes
 fi
 
 
 
 # Check whether --with-pop was given.
 if test "${with_pop+set}" = set; then
-  withval=$with_pop; if test "$withval" = yes; then
+  withval=$with_pop;
+else
+     with_pop=yes
+fi
+
+if test "$with_pop" = yes; then
    cat >>confdefs.h <<\_ACEOF
 #define MAIL_USE_POP 1
 _ACEOF
 
-else :
 fi
-else
-  cat >>confdefs.h <<\_ACEOF
-#define MAIL_USE_POP 1
-_ACEOF
-
-fi
-
 
 
 
 # Check whether --with-kerberos was given.
 if test "${with_kerberos+set}" = set; then
-  withval=$with_kerberos; if test "$withval" = yes; then
+  withval=$with_kerberos;
+else
+      with_kerberos=no
+fi
+
+if test "$with_kerberos" = yes; then
    cat >>confdefs.h <<\_ACEOF
 #define KERBEROS 1
 _ACEOF
 
 fi
-fi
-
 
 
 
 # Check whether --with-kerberos5 was given.
 if test "${with_kerberos5+set}" = set; then
-  withval=$with_kerberos5; if test "${with_kerberos5+set}" = set; then
-  if test "${with_kerberos+set}" != set; then
+  withval=$with_kerberos5;
+else
+      with_kerberos5=no
+fi
+
+if test "${with_kerberos5}" = yes; then
+  if test "${with_kerberos}" != yes; then
     with_kerberos=yes
     cat >>confdefs.h <<\_ACEOF
 #define KERBEROS 1
@@ -1891,26 +1900,29 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
 fi
-fi
-
 
 
 # Check whether --with-hesiod was given.
 if test "${with_hesiod+set}" = set; then
-  withval=$with_hesiod; if test "$withval" = yes; then
+  withval=$with_hesiod;
+else
+      with_hesiod=no
+fi
+
+if test "$with_hesiod" = yes; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HESIOD 1
 _ACEOF
 
 fi
-fi
-
 
 
 # Check whether --with-sound was given.
 if test "${with_sound+set}" = set; then
   withval=$with_sound;
+else
+     with_sound=yes
 fi
 
 
@@ -1943,49 +1955,106 @@ fi
 # Check whether --with-xpm was given.
 if test "${with_xpm+set}" = set; then
   withval=$with_xpm;
+else
+      with_xpm=no
 fi
 
 
 # Check whether --with-jpeg was given.
 if test "${with_jpeg+set}" = set; then
   withval=$with_jpeg;
+else
+      with_jpeg=no
 fi
 
 
 # Check whether --with-tiff was given.
 if test "${with_tiff+set}" = set; then
   withval=$with_tiff;
+else
+      with_tiff=no
 fi
 
 
 # Check whether --with-gif was given.
 if test "${with_gif+set}" = set; then
   withval=$with_gif;
+else
+      with_gif=no
 fi
 
 
 # Check whether --with-png was given.
 if test "${with_png+set}" = set; then
   withval=$with_png;
+else
+      with_png=no
 fi
 
 
 # Check whether --with-gpm was given.
 if test "${with_gpm+set}" = set; then
   withval=$with_gpm;
+else
+      with_gpm=no
 fi
 
 
 # Check whether --with-rsvg was given.
 if test "${with_rsvg+set}" = set; then
   withval=$with_rsvg;
+else
+      with_rsvg=no
 fi
 
 
 # Check whether --with-gtk was given.
 if test "${with_gtk+set}" = set; then
   withval=$with_gtk;
+else
+      with_gtk=no
 fi
+
+
+# Check whether --with-toolkit-scroll-bars was given.
+if test "${with_toolkit_scroll_bars+set}" = set; then
+  withval=$with_toolkit_scroll_bars;
+else
+     with_toolkit_scroll_bars=yes
+fi
+
+
+# Check whether --with-xaw3d was given.
+if test "${with_xaw3d+set}" = set; then
+  withval=$with_xaw3d;
+else
+     with_xaw3d=yes
+fi
+
+
+# Check whether --with-xim was given.
+if test "${with_xim+set}" = set; then
+  withval=$with_xim;
+else
+     with_xim=yes
+fi
+
+
+# Check whether --with-carbon was given.
+if test "${with_carbon+set}" = set; then
+  withval=$with_carbon;
+else
+     with_carbon=yes
+fi
+
+
+# Check whether --with-dbus was given.
+if test "${with_dbus+set}" = set; then
+  withval=$with_dbus;
+else
+     with_dbus=yes
+fi
+
 
 
 # Check whether --with-pkg-config-prog was given.
@@ -1993,36 +2062,11 @@ if test "${with_pkg_config_prog+set}" = set; then
   withval=$with_pkg_config_prog;
 fi
 
-
-# Check whether --with-toolkit-scroll-bars was given.
-if test "${with_toolkit_scroll_bars+set}" = set; then
-  withval=$with_toolkit_scroll_bars;
+if test "X${with_pkg_config_prog}" != X; then
+   if test "${with_pkg_config_prog}" != yes; then
+      PKG_CONFIG="${with_pkg_config_prog}"
+   fi
 fi
-
-
-# Check whether --with-xaw3d was given.
-if test "${with_xaw3d+set}" = set; then
-  withval=$with_xaw3d;
-fi
-
-
-# Check whether --with-xim was given.
-if test "${with_xim+set}" = set; then
-  withval=$with_xim;
-fi
-
-
-# Check whether --with-carbon was given.
-if test "${with_carbon+set}" = set; then
-  withval=$with_carbon;
-fi
-
-
-# Check whether --with-dbus was given.
-if test "${with_dbus+set}" = set; then
-  withval=$with_dbus;
-fi
-
 
 # Check whether --enable-carbon-app was given.
 if test "${enable_carbon_app+set}" = set; then
@@ -5985,14 +6029,10 @@ fi
 
   ALSA_REQUIRED=1.0.0
   ALSA_MODULES="alsa >= $ALSA_REQUIRED"
-    if test "X${with_pkg_config_prog}" != X; then
-    PKG_CONFIG="${with_pkg_config_prog}"
-  fi
 
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    # Extract the first word of "pkg-config", so it can be a program name with args.
+  # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -6033,7 +6073,6 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  fi
 
   if test "$PKG_CONFIG" = "no" ; then
      HAVE_ALSA=no
@@ -10618,18 +10657,13 @@ fi
 HAVE_RSVG=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_CARBON}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
-        if test "X${with_pkg_config_prog}" != X; then
-      PKG_CONFIG="${with_pkg_config_prog}"
-    fi
-
     RSVG_REQUIRED=2.0.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
 
 
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    # Extract the first word of "pkg-config", so it can be a program name with args.
+  # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -10670,7 +10704,6 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  fi
 
   if test "$PKG_CONFIG" = "no" ; then
      :
@@ -10753,14 +10786,10 @@ echo "$as_me: error: Conflicting options, --with-gtk is incompatible with --with
   GTK_REQUIRED=2.6
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
-    if test "X${with_pkg_config_prog}" != X; then
-    PKG_CONFIG="${with_pkg_config_prog}"
-  fi
 
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    # Extract the first word of "pkg-config", so it can be a program name with args.
+  # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -10801,7 +10830,6 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  fi
 
   if test "$PKG_CONFIG" = "no" ; then
      pkg_check_gtk=no
@@ -11515,12 +11543,13 @@ _ACEOF
 fi
 
 HAVE_DBUS=no
+{ echo "$as_me:$LINENO: checking maybe dbus" >&5
+echo $ECHO_N "checking maybe dbus... $ECHO_C" >&6; }
 if test "${with_dbus}" = "yes"; then
 
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    # Extract the first word of "pkg-config", so it can be a program name with args.
+  # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -11561,7 +11590,6 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  fi
 
   if test "$PKG_CONFIG" = "no" ; then
      HAVE_DBUS=no
@@ -11619,20 +11647,20 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
    fi
+   { echo "$as_me:$LINENO: result: $HAVE_DBUS" >&5
+echo "${ECHO_T}$HAVE_DBUS" >&6; }
+else
+   { echo "$as_me:$LINENO: result: no bub" >&5
+echo "${ECHO_T}no bub" >&6; }
 fi
 
 ### Link with -lXft if available to work around a bug.
 HAVE_XFT=maybe
 if test "${HAVE_GTK}" = "yes"; then
-    if test "X${with_pkg_config_prog}" != X; then
-    PKG_CONFIG="${with_pkg_config_prog}"
-  fi
-
 
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    # Extract the first word of "pkg-config", so it can be a program name with args.
+  # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -11673,7 +11701,6 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  fi
 
   if test "$PKG_CONFIG" = "no" ; then
      HAVE_XFT=no
@@ -18099,11 +18126,13 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
@@ -18143,11 +18172,13 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <stdio.h>
+#include <sys/types.h> /* for off_t */
+     #include <stdio.h>
 int
 main ()
 {
-return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
+int (*fp) (FILE *, off_t, int) = fseeko;
+     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
   ;
   return 0;
 }
