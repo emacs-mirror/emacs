@@ -305,7 +305,7 @@
 
 2008-01-21  Juanma Barranquero  <lekktu@gmail.com>
 
-	* server.el (server-log-time-function): New function.
+	* server.el (server-log-time-function): New variable.
 	(server-log): Use it.
 
 2008-01-21  Glenn Morris  <rgm@gnu.org>
