@@ -952,13 +952,15 @@ However, before executing BODY, find FILE, and after BODY, save buffer."
   "An alternative output filter for async process P.
 One difference with the default filter is that this inserts S after markers.
 Another is that undo information is not kept."
-  (with-current-buffer (process-buffer p)
-    (save-excursion
-      (let ((buffer-undo-list t)
-            (inhibit-read-only t))
-	(goto-char (process-mark p))
-	(insert s)
-	(set-marker (process-mark p) (point))))))
+  (let ((buffer (process-buffer p)))
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+        (save-excursion
+          (let ((buffer-undo-list t)
+                (inhibit-read-only t))
+            (goto-char (process-mark p))
+            (insert s)
+            (set-marker (process-mark p) (point))))))))
 
 (defun vc-setup-buffer (&optional buf)
   "Prepare BUF for executing a VC command and make it current.
@@ -981,10 +983,10 @@ BUF defaults to \"*vc*\", can be a string and will be created if necessary."
 (defun vc-process-sentinel (p s)
   (let ((previous (process-get p 'vc-previous-sentinel))
         (buf (process-buffer p)))
-    (if previous (funcall previous p s))
     ;; Impatient users sometime kill "slow" buffers; check liveness
     ;; to avoid "error in process sentinel: Selecting deleted buffer".
     (when (buffer-live-p buf)
+      (if previous (funcall previous p s))
       (with-current-buffer buf
         (setq mode-line-process
               (let ((status (process-status p)))
@@ -1969,17 +1971,19 @@ the buffer contents as a comment."
 (defmacro vc-diff-switches-list (backend) `(vc-switches ',backend 'diff))
 (make-obsolete 'vc-diff-switches-list 'vc-switches "22.1")
 
-(defun vc-diff-sentinel (verbose rev1-name rev2-name)
+(defun vc-diff-finish (buffer-name verbose)
   ;; The empty sync output case has already been handled, so the only
-  ;; possibility of an empty output is for an async process, in which case
-  ;; it's important to insert the "diffs end here" message in the buffer
-  ;; since the user may miss a message in the echo area.
-  (and verbose
-       (zerop (buffer-size))
-       (let ((inhibit-read-only t))
-         (insert "No differences found.\n")))
-  (goto-char (point-min))
-  (shrink-window-if-larger-than-buffer))
+  ;; possibility of an empty output is for an async process.
+  (when (buffer-live-p buffer-name)
+    (with-current-buffer (get-buffer buffer-name)
+      (and verbose
+           (zerop (buffer-size))
+           (let ((inhibit-read-only t))
+             (insert "No differences found.\n")))
+      (goto-char (point-min))
+      (let ((window (get-buffer-window (current-buffer))))
+        (when window
+          (shrink-window-if-larger-than-buffer window))))))
 
 (defvar vc-diff-added-files nil
   "If non-nil, diff added files by comparing them to /dev/null.")
@@ -2038,7 +2042,7 @@ returns t if the buffer had changes, nil otherwise."
       ;; bindings are nicer for read only buffers. pcl-cvs does the
       ;; same thing.
       (setq buffer-read-only t)
-      (vc-exec-after `(vc-diff-sentinel ,verbose ,rev1-name ,rev2-name))
+      (vc-exec-after `(vc-diff-finish ,(buffer-name) ,verbose))
       ;; Display the buffer, but at the end because it can change point.
       (pop-to-buffer (current-buffer))
       ;; In the async case, we return t even if there are no differences
