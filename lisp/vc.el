@@ -1035,7 +1035,7 @@ Else, add CODE to the process' sentinel."
             ;; (The message is ephemeral, so we make it loud.)  --ttn
             (propertize " (incomplete/in progress)"
                         'face 'compilation-warning
-			'help-echo 
+			'help-echo
 			"A VC command is in progress in this buffer"))
       (let ((previous (process-sentinel proc)))
         (unless (eq previous 'vc-process-sentinel)
