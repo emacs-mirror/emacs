@@ -1,3 +1,33 @@
+2008-01-24  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el (allout-keybindings-list): In initial setting, express
+	meta-prefixed allout keys as vectors instead of strings, since the
+	string form is interpreted in some cases as composed key
+	modifiers, eg, accented keys.
+
+	(allout-line-boundary-regexp): Clarify description.
+
+	(set-allout-regexp): Repair the expressions so that the formfeed
+	part is identified as one of the top-level groups, and is
+	included in all the forms, not just the -line-boundary-regexp one.
+
+	(allout-prefix-data): Incorporate information from the various
+	allout regexp's formfeed alternative group, when present.
+
+	(allout-write-file-hook-handler): Rectify mangling of the error
+	handling.  It was broken in version 1.100, where an `error'
+	condition-case handler was apparently reformatted as if it was a
+	call to the error function.  An apparent repair attempt in version
+	1.101 situated the original body of the error handling code as
+	bogus condition-case handlers.  I've returned to just about the
+	working code that was originally there, removing an unnecessary -
+	but benign - enclosing 'progn'.  \(Automated or cursory code fixes
+	often aren't.)
+
+	(allout-region-active-p): Fallback to value of mark-active if
+	neither use-region-p nor region-active-p are present, for
+	compatability with current and recent emacs major releases.
+
 2008-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* textmodes/reftex-toc.el (reftex-toc-next, reftex-toc-previous)
