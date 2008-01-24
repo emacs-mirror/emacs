@@ -155,11 +155,11 @@ unless optional third, non-nil element is present.")
         ("*" allout-rebullet-current-heading)
         ("#" allout-number-siblings)
         ("\C-k" allout-kill-line t)
-        ("\M-k" allout-copy-line-as-kill t)
+        ([?\M-k] allout-copy-line-as-kill t)
         ("\C-y" allout-yank t)
-        ("\M-y" allout-yank-pop t)
+        ([?\M-y] allout-yank-pop t)
         ("\C-k" allout-kill-topic)
-        ("\M-k" allout-copy-topic-as-kill)
+        ([?\M-k] allout-copy-topic-as-kill)
                                         ; Miscellaneous commands:
 	;([?\C-\ ] allout-mark-topic)
         ("@" allout-resolve-xref)
@@ -886,7 +886,7 @@ topic prefix to be matched.")
 (make-variable-buffer-local 'allout-depth-one-regexp)
 ;;;_   = allout-line-boundary-regexp
 (defvar allout-line-boundary-regexp ()
-  "`allout-regexp' with outline style beginning-of-line anchor.
+  "`allout-regexp' prepended with a newline for the search target.
 
 This is properly set by `set-allout-regexp'.")
 (make-variable-buffer-local 'allout-line-boundary-regexp)
@@ -1058,7 +1058,7 @@ Also refresh various data structures that hinge on the regexp."
   (setq allout-plain-bullets-string-len (length allout-plain-bullets-string))
   (setq allout-header-subtraction (1- (length allout-header-prefix)))
 
-  (let (new-part old-part)
+  (let (new-part old-part formfeed-part)
     (setq new-part (concat "\\("
                            (regexp-quote allout-header-prefix)
                            "[ \t]*"
@@ -1072,18 +1072,26 @@ Also refresh various data structures that hinge on the regexp."
                            "\\)"
                            "+"
                            " ?[^" allout-primary-bullet "]")
+          formfeed-part "\\(\^L\\)"
+
           allout-regexp (concat new-part
                                 "\\|"
                                 old-part
-                                "\\|\^l")
+                                "\\|"
+                                formfeed-part)
 
           allout-line-boundary-regexp (concat "\n" new-part
                                               "\\|"
-                                              "\n" old-part)
+                                              "\n" old-part
+                                              "\\|"
+                                              "\n" formfeed-part)
 
           allout-bob-regexp (concat "\\`" new-part
                                     "\\|"
-                                    "\\`" old-part))
+                                    "\\`" old-part
+                                    "\\|"
+                                    "\\`" formfeed-part
+                                    ))
 
     (setq allout-depth-specific-regexp
           (concat "\\(^\\|\\`\\)"
@@ -1501,13 +1509,12 @@ See `allout-encryption-ciphertext-rejection-regexps' for rejection reasons.")
             (condition-case failure
                 (setq allout-after-save-decrypt
                       (allout-encrypt-decrypted except-mark))
-	      (message "allout-write-file-hook-handler suppressing error %s"
-		       failure)
-	      (sit-for 2)
-	      (error "allout-write-file-hook-handler suppressing error %s"
-		     failure))))
+              (error (message
+                      "allout-write-file-hook-handler suppressing error %s"
+                      failure)
+                     (sit-for 2)))))
       ))
-    nil)
+  nil)
 ;;;_   > allout-auto-save-hook-handler ()
 (defun allout-auto-save-hook-handler ()
   "Implement `allout-encrypt-unencrypted-on-saves' policy for auto save."
@@ -2253,9 +2260,10 @@ function can also be used as an `isearch-mode-end-hook'."
   "Register allout-prefix state data.
 
 For reference by `allout-recent' funcs.  Returns BEGINNING."
-  (setq allout-recent-prefix-end (or (match-end 1) (match-end 2))
+  (setq allout-recent-prefix-end (or (match-end 1) (match-end 2) (match-end 3))
         allout-recent-prefix-beginning (or (match-beginning 1)
-                                           (match-beginning 2))
+                                           (match-beginning 2)
+                                           (match-beginning 3))
         allout-recent-depth (max 1 (- allout-recent-prefix-end
                                       allout-recent-prefix-beginning
                                       allout-header-subtraction)))
@@ -2383,6 +2391,8 @@ Actually, returns prefix beginning point."
 ;;;_    > allout-depth ()
 (defun allout-depth ()
   "Return depth of topic most immediately containing point.
+
+Does not do doublecheck for aberrant topic header.
 
 Return zero if point is not within any topic.
 
@@ -2572,10 +2582,14 @@ We skip anomolous low-level topics, a la `allout-aberrant-container-p'."
 
     (when (re-search-forward allout-line-boundary-regexp nil 0)
       (allout-prefix-data)
+      (goto-char allout-recent-prefix-beginning)
+      (while (not (bolp))
+        (forward-char -1))
       (and (allout-do-doublecheck)
            ;; this will set allout-recent-* on the first non-aberrant topic,
            ;; whether it's the current one or one that disqualifies it:
            (allout-aberrant-container-p))
+      ;; this may or may not be the same as above depending on doublecheck:
       (goto-char allout-recent-prefix-beginning))))
 ;;;_   > allout-this-or-next-heading
 (defun allout-this-or-next-heading ()
@@ -5459,10 +5473,10 @@ header and body.  The elements of that list are:
       (nreverse result))))
 ;;;_   > allout-region-active-p ()
 (defmacro allout-region-active-p ()
-  (if (fboundp 'use-region-p)
-      '(use-region-p)
-    '(region-active-p)))
-;;;_   > allout-process-exposed (&optional func from to frombuf
+  (cond ((fboundp 'use-region-p) '(use-region-p))
+        ((fboundp 'region-active-p) '(region-active-p))
+        (t 'mark-active)))
+;;_   > allout-process-exposed (&optional func from to frombuf
 ;;;					    tobuf format)
 (defun allout-process-exposed (&optional func from to frombuf tobuf
 					  format start-num)
