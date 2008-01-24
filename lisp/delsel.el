@@ -173,7 +173,7 @@ then it takes a second \\[keyboard-quit] to abort the minibuffer."
   (dolist (sym '(self-insert-command self-insert-iso yank clipboard-yank
 		 insert-register delete-backward-char backward-delete-char-untabify
 		 delete-char newline-and-indent newline open-line))
-    (remprop sym 'delete-selection))
+    (put sym 'delete-selection nil))
   ;; continue standard unloading
   nil)
 
