@@ -1,3 +1,9 @@
+2008-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* sieve.el (sieve-make-overlay, sieve-overlay-put, sieve-overlays-at):
+	* message.el (message-beginning-of-line): Use featurep instead of bound
+	tests in order to resolve conditionals at compile time.
+
 2008-01-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-insert-mime-button): Don't decode description.

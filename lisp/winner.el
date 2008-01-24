@@ -51,7 +51,7 @@
     '(region-active-p)))
 
 (defsetf winner-active-region () (store)
-  (if (fboundp 'zmacs-activate-region)
+  (if (featurep 'xemacs)
       `(if ,store (zmacs-activate-region)
 	 (zmacs-deactivate-region))
     `(setq mark-active ,store)))

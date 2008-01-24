@@ -751,9 +751,7 @@ version of Emacs."
 Sets the mark at POS and activates the region according to the
 current version of Emacs."
   (set-mark pos)
-  ;; We use a separate `if' for the fboundp so the byte-compiler notices it
-  ;; and doesn't complain about the subsequent call.
-  (if (fboundp 'zmacs-activate-region) (if pos (zmacs-activate-region))))
+  (when (featurep 'xemacs) (when pos (zmacs-activate-region))))
 
 (defun tpu-string-prompt (prompt history-symbol)
   "Read a string with PROMPT."

@@ -1627,7 +1627,7 @@ quit          spell session exited."
 	     (or quietly
 		 (message "%s is correct"
 			  (funcall ispell-format-word-function word)))
-	     (and (fboundp 'extent-at)
+	     (and (featurep 'xemacs)
 		  (extent-at start)
 		  (and (fboundp 'delete-extent)
 		       (delete-extent (extent-at start)))))
@@ -1636,7 +1636,7 @@ quit          spell session exited."
 		 (message "%s is correct because of root %s"
 			  (funcall ispell-format-word-function word)
 			  (funcall ispell-format-word-function poss)))
-	     (and (fboundp 'extent-at)
+	     (and (featurep 'xemacs)
 		  (extent-at start)
 		  (and (fboundp 'delete-extent)
 		       (delete-extent (extent-at start)))))

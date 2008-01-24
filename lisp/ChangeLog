@@ -1,3 +1,20 @@
+2008-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/reftex-toc.el (reftex-toc-next, reftex-toc-previous)
+	(reftex-toc-restore-region):
+	* textmodes/reftex-index.el (reftex-index-initialize-phrases-buffer)
+	(reftex-index-phrases-apply-to-region):
+	* textmodes/ispell.el (ispell-word):
+	* progmodes/vhdl-mode.el (vhdl-keep-region-active):
+	* progmodes/pascal.el (pascal-mark-defun):
+	* progmodes/f90.el (f90-mark-subprogram, f90-indent-region)
+	(f90-fill-region):
+	* emulation/tpu-edt.el (tpu-set-mark):
+	* emulation/crisp.el (crisp-region-active):
+	* winner.el (winner-active-region):
+	* ansi-color.el (ansi-color-set-extent-face): Use featurep instead
+	of bound tests in order to resolve conditionals at compile time.
+
 2008-01-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* delsel.el (delsel-unload-function): Don't use `remprop'; it is
