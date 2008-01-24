@@ -113,7 +113,23 @@ any selection."
 	 ;; stop safe_run_hooks from clearing out pre-command-hook.
 	 (and (eq inhibit-quit 'pre-command-hook)
 	      (setq inhibit-quit 'delete-selection-dummy))
-	 (signal 'file-supersession (cdr data)))))))
+	 (signal 'file-supersession (cdr data)))
+	(text-read-only
+	 ;; This signal may come either from `delete-active-region' or
+	 ;; `self-insert-command' (when `overwrite-mode' is non-nil).
+	 ;; To avoid clearing out `pre-command-hook' we handle this case
+	 ;; by issuing a simple message.  Note, however, that we do not
+	 ;; handle all related problems: When read-only text ends before
+	 ;; the end of the region, the latter is not deleted but any
+	 ;; subsequent insertion will succeed.  We could avoid this case
+	 ;; by doing a (setq this-command 'ignore) here.  This would,
+	 ;; however, still not handle the case where read-only text ends
+	 ;; precisely where the region starts: In that case the deletion
+	 ;; would succeed but the subsequent insertion would fail with a
+	 ;; text-read-only error.  To handle that case we would have to
+	 ;; investigate text properties at both ends of the region and
+	 ;; skip the deletion when inserting text is forbidden there.
+	 (message "Text is read-only") (ding))))))
 
 (put 'self-insert-command 'delete-selection t)
 (put 'self-insert-iso 'delete-selection t)
