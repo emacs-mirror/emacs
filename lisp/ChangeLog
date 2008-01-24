@@ -1,8 +1,16 @@
+2008-01-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc.el (vc-process-filter): Do nothing if buffer not live.
+	(vc-diff-finish): Rename from vc-diff-sentinel.
+	No longer take REV1-NAME and REV2-NAME.
+	Instead, take BUFFER-NAME.  Do nothing if buffer not live.
+	Don't do window resize if no window displays buffer.
+	(vc-diff-internal): Use vc-diff-finish.
+
 2008-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el: Add a TODO item about missing files.
 	(vc-exec-after): Add a tooltip to the new mode-line item.
-
 
 2008-01-24  Glenn Morris  <rgm@gnu.org>
 
