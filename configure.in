@@ -1771,18 +1771,14 @@ if test "${HAVE_GTK}" = "yes"; then
 fi
 
 dnl D-Bus has been tested under GNU/Linux only.  Must be adapted for
-dnl other platforms.  Support for higher D-Bus versions but 1.0 is
+dnl other platforms.  Support for higher D-Bus versions than 1.0 is
 dnl also not configured.
 HAVE_DBUS=no
-AC_MSG_CHECKING([maybe dbus])
 if test "${with_dbus}" = "yes"; then
    PKG_CHECK_MODULES(DBUS, dbus-1 >= 1.0, HAVE_DBUS=yes, HAVE_DBUS=no)
    if test "$HAVE_DBUS" = yes; then
       AC_DEFINE(HAVE_DBUS, 1, [Define to 1 if using D-Bus.])
    fi
-   AC_MSG_RESULT($HAVE_DBUS)
-else
-   AC_MSG_RESULT(no bub)
 fi
 
 ### Link with -lXft if available to work around a bug.
@@ -2971,6 +2967,7 @@ echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $ac_
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
+echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 
