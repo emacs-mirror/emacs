@@ -1,3 +1,9 @@
+2008-01-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* delsel.el (delsel-unload-function): Don't use `remprop'; it is
+	not autoloaded, and we wouldn't want to load CL just to unload
+	delsel.el anyway.  Suggested by Martin Rudalics <rudalics@gmx.at>.
+
 2008-01-24  Martin Rudalics  <rudalics@gmx.at>
 
 	* delsel.el (delete-selection-pre-hook): Avoid clearing out
