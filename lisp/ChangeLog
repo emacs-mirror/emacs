@@ -1,8 +1,11 @@
+2008-01-24  Glenn Morris  <rgm@gnu.org>
+
+	* t-mouse.el (gpm-mouse-start): Declare as a function.
+
 2008-01-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-remote-process-environment): Set "LC_ALL=C".
-	(tramp-end-of-output): Add `tramp-rsh-end-of-line' into the
-	regexp.
+	(tramp-end-of-output): Add `tramp-rsh-end-of-line' into the regexp.
 	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
 	Don't send `tramp-rsh-end-of-line' additionally, when setting the
 	prompt.
@@ -10,7 +13,7 @@
 	(tramp-get-test-nt-command): Don't check for "\n" in the prompt.
 	(tramp-local-host-p): Check whether temp directory is writable.
 
-22008-01-23  Dan Nicolaescu  <dann@ics.uci.edu>
+2008-01-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el: Add TODO items.
 
@@ -20,8 +23,7 @@
 	be used to reveal or highlight the location of a match.
 	(occur-mode-goto-occurrence)
 	(occur-mode-goto-occurrence-other-window)
-	(occur-mode-display-occurrence): Run
-	`occur-mode-find-occurrence-hook'.
+	(occur-mode-display-occurrence): Run `occur-mode-find-occurrence-hook'.
 
 2008-01-23  Martin Rudalics  <rudalics@gmx.at>
 
