@@ -3034,6 +3034,11 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
 	  ;; One of them must be a Tramp file.
 	  (error "Tramp implementation says this cannot happen")))
 
+      ;; In case of `rename', we must flush the cache of the source file.
+      (when (and t1 (eq op 'rename))
+	(with-parsed-tramp-file-name filename nil
+	  (tramp-flush-file-property v localname)))
+
       ;; When newname did exist, we have wrong cached values.
       (when t2
 	(with-parsed-tramp-file-name newname nil
