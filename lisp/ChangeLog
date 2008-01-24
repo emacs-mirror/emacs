@@ -1,3 +1,8 @@
+2008-01-24  Martin Rudalics  <rudalics@gmx.at>
+
+	* delsel.el (delete-selection-pre-hook): Avoid clearing out
+	pre-command-hook when text is read-only.
+
 2008-01-24  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* vc.el (vc-process-filter): Do nothing if buffer not live.
