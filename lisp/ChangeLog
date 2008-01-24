@@ -274,7 +274,7 @@
 	* progmodes/hideif.el (hide-ifdef-initially, hide-ifdef-read-only)
 	(hide-ifdef-lines, hide-ifdef-shadow): Remove autoload cookies
 	from defcustoms.
-	(hide-ifdef-shadow): Remove autoload cookies from defface.
+	(hide-ifdef-shadow): Remove autoload cookie from defface.
 
 	* vc.el (vc-diff-sentinel): Do not write a footer if there were
 	differences.
