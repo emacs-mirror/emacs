@@ -559,6 +559,11 @@
 ;;
 ;; - vc-status needs a menu, mouse bindings and some color bling.
 ;;
+;; - vc-status needs to show missing files. It probably needs to have
+;;   another state for those files. The user might want to restore
+;;   them, or remove them from the VCS. C-x v v might also need
+;;   adjustments.
+;;
 ;; - "snapshots" should be renamed to "branches", and thoroughly reworked.
 ;;
 
@@ -1028,8 +1033,10 @@ Else, add CODE to the process' sentinel."
       (setq mode-line-process
             ;; Deliberate overstatement, but power law respected.
             ;; (The message is ephemeral, so we make it loud.)  --ttn
-            (propertize " (incomplete / in progress)"
-                        'face 'compilation-warning))
+            (propertize " (incomplete/in progress)"
+                        'face 'compilation-warning
+			'help-echo 
+			"A VC command is in progress in this buffer"))
       (let ((previous (process-sentinel proc)))
         (unless (eq previous 'vc-process-sentinel)
           (process-put proc 'vc-previous-sentinel previous))

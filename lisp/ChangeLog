@@ -1,3 +1,9 @@
+2008-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Add a TODO item about missing files.
+	(vc-exec-after): Add a tooltip to the new mode-line item.
+
+
 2008-01-24  Glenn Morris  <rgm@gnu.org>
 
 	* t-mouse.el (gpm-mouse-start): Declare as a function.
