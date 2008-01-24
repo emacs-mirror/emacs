@@ -1564,15 +1564,28 @@ merge in the changes into your working copy."
 	      (setq revision (read-string "New revision or backend: "))
 	      (let ((vsym (intern (upcase revision))))
 		(if (member vsym vc-handled-backends)
-		    (vc-transfer-file file vsym)
+		    (dolist (file files) (vc-transfer-file file vsym))
 		  (vc-checkin ready-for-commit revision))))))))
      ;; locked by somebody else (locking VCSes only)
      ((stringp state)
-      (let ((revision
-	     (if verbose
-		 (read-string "Revision to steal: ")
-	       (vc-working-revision file))))
-	(dolist (file files) (vc-steal-lock file revision state))))
+      ;; In the old days, we computed the revision once and used it on
+      ;; the single file.  Then, for the 2007-2008 fileset rewrite, we
+      ;; computed the revision once (incorrectly, using a free var) and
+      ;; used it on all files.  To fix the free var bug, we can either
+      ;; use `(car files)' or do what we do here: distribute the
+      ;; revision computation among `files'.  Although this may be
+      ;; tedious for those backends where a "revision" is a trans-file
+      ;; concept, it is nonetheless correct for both those and (more
+      ;; importantly) for those where "revision" is a per-file concept.
+      ;; If the intersection of the former group and "locking VCSes" is
+      ;; non-empty [I vaguely doubt it --ttn], we can reinstate the
+      ;; pre-computation approach of yore.
+      (dolist (file files)
+        (vc-steal-lock
+         file (if verbose
+                  (read-string (format "%s revision to steal: " file))
+                (vc-working-revision file))
+         state)))
      ;; needs-patch
      ((eq state 'needs-patch)
       (dolist (file files)
