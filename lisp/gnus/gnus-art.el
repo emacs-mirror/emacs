@@ -5455,9 +5455,7 @@ N is the numerical prefix."
 	     (mail-content-type-get (mm-handle-type handle) 'url)
 	     ""))
 	(gnus-tmp-type (mm-handle-media-type handle))
-	(gnus-tmp-description
-	 (mail-decode-encoded-word-string (or (mm-handle-description handle)
-					      "")))
+	(gnus-tmp-description (or (mm-handle-description handle) ""))
 	(gnus-tmp-dots
 	 (if (if displayed (car displayed)
 	       (mm-handle-displayed-p handle))

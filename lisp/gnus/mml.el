@@ -875,14 +875,19 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
 
 (defun mml-to-mime ()
   "Translate the current buffer from MML to MIME."
-  (message-encode-message-body)
+  ;; `message-encode-message-body' will insert an encoded Content-Description
+  ;; header in the message header if the body contains a single part
+  ;; that is specified by a user with a MML tag containing a description
+  ;; token.  So, we encode the message header first to prevent the encoded
+  ;; Content-Description header from being encoded again.
   (save-restriction
     (message-narrow-to-headers-or-head)
     ;; Skip past any From_ headers.
     (while (looking-at "From ")
       (forward-line 1))
     (let ((mail-parse-charset message-default-charset))
-      (mail-encode-encoded-word-buffer))))
+      (mail-encode-encoded-word-buffer)))
+  (message-encode-message-body))
 
 (defun mml-insert-mime (handle &optional no-markup)
   (let (textp buffer mmlp)

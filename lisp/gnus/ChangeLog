@@ -1,3 +1,11 @@
+2008-01-23  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-insert-mime-button): Don't decode description.
+
+	* mm-decode.el (mm-dissect-buffer): Decode description.
+
+	* mml.el (mml-to-mime): Encode message header first.
+
 2008-01-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-describe-bindings): Make it possible to use
