@@ -1853,7 +1853,8 @@ versions of all registered files in or below it."
 		      (if (eq (buffer-size) 0)
 			  (insert "No differences found.\n"))
 		      (goto-char (point-min))
-		      (shrink-window-if-larger-than-buffer)))
+                      (let ((win (get-buffer-window (current-buffer) t)))
+                        (if win (shrink-window-if-larger-than-buffer win)))))
     t))
 
 (defun vc-diff-label (file file-rev rev)
