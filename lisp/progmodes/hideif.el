@@ -99,12 +99,6 @@
 ;;
 ;; Written by Brian Marick, at Gould, Computer Systems Division, Urbana IL.
 ;; Extensively modified by Daniel LaLiberte (while at Gould).
-;;
-;; You may freely modify and distribute this, but keep a record
-;; of modifications and send comments to:
-;; 	 liberte@a.cs.uiuc.edu  or  ihnp4!uiucdcs!liberte
-;; I will continue to upgrade hide-ifdef-mode
-;; with your contributions.
 
 ;;; Code:
 
