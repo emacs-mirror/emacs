@@ -40,8 +40,7 @@
 
 	* replace.el (occur-mode-find-occurrence-hook): New hook that can
 	be used to reveal or highlight the location of a match.
-	(occur-mode-goto-occurrence)
-	(occur-mode-goto-occurrence-other-window)
+	(occur-mode-goto-occurrence, occur-mode-goto-occurrence-other-window)
 	(occur-mode-display-occurrence): Run `occur-mode-find-occurrence-hook'.
 
 2008-01-23  Martin Rudalics  <rudalics@gmx.at>
@@ -84,13 +83,13 @@
 
 2008-01-23  Eli Zaretskii  <eliz@gnu.org>
 
-	* view.el (view-file-other-window, view-file-other-frame): Don't
-	kill the buffer if it is modified.  Doc fixes.
+	* view.el (view-file-other-window, view-file-other-frame):
+	Don't kill the buffer if it is modified.  Doc fixes.
 	(kill-buffer-if-not-modified): New function.
 	(view-file): Don't kill the buffer if it is modified.
 
-	* progmodes/ebrowse.el (ebrowse-view-file-other-window): Delete
-	function.
+	* progmodes/ebrowse.el (ebrowse-view-file-other-window):
+	Delete function.
 	(ebrowse-view/find-file-and-search-pattern): Call
 	view-file-other-window instead of ebrowse-view-file-other-window.
 	(ebrowse-view-file-other-frame): Don't call
@@ -124,7 +123,7 @@
 	Remove.  Move syntax table initialization ...
 	(verilog-mode-syntax-table): ... here.
 	(verilog-mode): Don't initialize the syntax table here.
-	(verilog-mark-defun): Only do something useful for XEmacs, emacs
+	(verilog-mark-defun): Only do something useful for XEmacs, Emacs
 	does not need it.
 
 2008-01-23  Wilson Snyder  <wsnyder@wsnyder.org>
@@ -140,13 +139,12 @@
 2008-01-23  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el (top-level): Fix spacing.
-	(verilog-mode-version, verilog-mode-release-date): Update version
-	number.
+	(verilog-mode-version, verilog-mode-release-date):
+	Update version number.
 	(verilog-mode-release-emacs): New variable.
-	(compile-command, reporter-prompt-for-summary-p): Define for byte
-	compiler.
-	(verilog-startup-message-lines)
-	(verilog-startup-message-displayed)
+	(compile-command, reporter-prompt-for-summary-p):
+	Define for byte compiler.
+	(verilog-startup-message-lines, verilog-startup-message-displayed)
 	(verilog-display-startup-message): Remove.
 	(verilog-highlight-p1800-keywords): Improve docstring.
 	(sigs-in, sigs-out, got-sig, got-rvalue, uses-delayed)
@@ -154,9 +152,8 @@
 	(verilog-highlight-translate-off, verilog-indent-level)
 	(verilog-indent-level-module, verilog-indent-level-declaration)
 	(verilog-indent-declaration-macros, verilog-indent-lists)
-	(verilog-indent-level-behavioral)
-	(verilog-indent-level-directive, verilog-cexp-indent)
-	(verilog-case-indent, verilog-auto-newline)
+	(verilog-indent-level-behavioral, verilog-indent-level-directive)
+	(verilog-cexp-indent, verilog-case-indent, verilog-auto-newline)
 	(verilog-auto-indent-on-newline, verilog-tab-always-indent)
 	(verilog-tab-to-comment, verilog-indent-begin-after-if)
 	(verilog-align-ifelse, verilog-minimum-comment-distance)
@@ -168,24 +165,20 @@
 	(verilog-active-low-regexp, verilog-auto-sense-include-inputs)
 	(verilog-auto-sense-defines-constant, verilog-auto-reset-widths)
 	(verilog-assignment-delay, verilog-auto-inst-vector)
-	(verilog-auto-inst-template-numbers)
-	(verilog-auto-input-ignore-regexp)
-	(verilog-auto-inout-ignore-regexp)
-	(verilog-auto-output-ignore-regexp)
-	(verilog-auto-unused-ignore-regexp, verilog-typedef-regexp): Add
-	safe-local-variable properties.
-	(verilog-statement-menu, verilog-company)
-	(verilog-re-search-forward, verilog-re-search-backward)
-	(verilog-error-regexp-add, verilog-end-block-re)
-	(verilog-emacs-features, verilog-populate-syntax-table)
-	(verilog-setup-dual-comments, verilog-type-font-keywords)
-	(verilog-inside-comment-p, electric-verilog-backward-sexp)
-	(verilog-backward-sexp, verilog-forward-sexp)
-	(verilog-font-lock-init, verilog-mode)
+	(verilog-auto-inst-template-numbers, verilog-auto-input-ignore-regexp)
+	(verilog-auto-inout-ignore-regexp, verilog-auto-output-ignore-regexp)
+	(verilog-auto-unused-ignore-regexp, verilog-typedef-regexp):
+	Add safe-local-variable properties.
+	(verilog-statement-menu, verilog-company, verilog-re-search-forward)
+	(verilog-re-search-backward, verilog-error-regexp-add)
+	(verilog-end-block-re, verilog-emacs-features)
+	(verilog-populate-syntax-table, verilog-setup-dual-comments)
+	(verilog-type-font-keywords, verilog-inside-comment-p)
+	(electric-verilog-backward-sexp, verilog-backward-sexp)
+	(verilog-forward-sexp, verilog-font-lock-init, verilog-mode)
 	(electric-verilog-terminate-line, electric-verilog-semi)
-	(electric-verilog-tab, verilog-insert-1, )
-	(verilog-insert-indices, verilog-generate-numbers)
-	(verilog-comment-region, verilog-label-be)
+	(electric-verilog-tab, verilog-insert-1, verilog-insert-indices)
+	(verilog-generate-numbers, verilog-comment-region, verilog-label-be)
 	(verilog-beg-of-statement, verilog-in-case-region-p)
 	(verilog-in-struct-region-p, verilog-in-generate-region-p)
 	(verilog-in-fork-region-p, verilog-backward-case-item)
@@ -198,28 +191,24 @@
 	(verilog-forward-syntactic-ws, verilog-backward-ws&directives)
 	(verilog-forward-ws&directives, verilog-at-constraint-p)
 	(verilog-skip-backward-comments, verilog-indent-line-relative)
-	(verilog-do-indent, verilog-indent-comment)
-	(verilog-more-comment, verilog-pretty-declarations)
-	(verilog-pretty-expr, verilog-just-one-space)
-	(verilog-indent-declaration, verilog-get-completion-decl)
-	(verilog-goto-defun, verilog-showscopes, verilog-header)
-	(verilog-signals-combine-bus, verilog-read-decls)
+	(verilog-do-indent, verilog-indent-comment, verilog-more-comment)
+	(verilog-pretty-declarations, verilog-pretty-expr)
+	(verilog-just-one-space, verilog-indent-declaration)
+	(verilog-get-completion-decl, verilog-goto-defun, verilog-showscopes)
+	(verilog-header, verilog-signals-combine-bus, verilog-read-decls)
 	(verilog-read-always-signals-recurse, verilog-read-instants)
 	(verilog-read-auto-template, verilog-set-define)
 	(verilog-read-defines, verilog-read-signals, verilog-getopt)
-	(verilog-is-number, verilog-expand-dirnames)
-	(verilog-modi-lookup, verilog-modi-cache-results)
-	(verilog-insert-one-definition, verilog-make-width-expression)
-	(verilog-delete-autos-lined, verilog-auto-save-check)
-	(verilog-auto-arg, verilog-auto-inst-port, verilog-auto-inst)
-	(verilog-auto-inst-param, verilog-auto-reg)
-	(verilog-auto-reg-input, verilog-auto-wire, )
-	(verilog-auto-output, verilog-auto-output-every)
-	(verilog-auto-input, verilog-auto-inout)
-	(verilog-auto-inout-module, verilog-auto-sense)
-	(verilog-auto-reset, verilog-auto-tieoff, verilog-auto-unused)
-	(verilog-auto-ascii-enum, verilog-auto)
-	(verilog-sk-define-signal, verilog-mode-mouse-map)
+	(verilog-is-number, verilog-expand-dirnames, verilog-modi-lookup)
+	(verilog-modi-cache-results, verilog-insert-one-definition)
+	(verilog-make-width-expression, verilog-delete-autos-lined)
+	(verilog-auto-save-check, verilog-auto-arg, verilog-auto-inst-port)
+	(verilog-auto-inst, verilog-auto-inst-param, verilog-auto-reg)
+	(verilog-auto-reg-input, verilog-auto-wire, verilog-auto-output)
+	(verilog-auto-output-every, verilog-auto-input, verilog-auto-inout)
+	(verilog-auto-inout-module, verilog-auto-sense, verilog-auto-reset)
+	(verilog-auto-tieoff, verilog-auto-unused, verilog-auto-ascii-enum)
+	(verilog-auto, verilog-sk-define-signal, verilog-mode-mouse-map)
 	(verilog-load-file-at-mouse, verilog-load-file-at-point)
 	(verilog-library-files): Cleanup spacing of )'s they should not be
 	on unique lines.  Fix checkdoc warnings.
@@ -227,8 +216,7 @@
 2008-01-22  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/hideif.el (hide-ifdef-initially, hide-ifdef-read-only)
-	(hide-ifdef-lines, hide-ifdef-shadow, hide-ifdef-shadow):
-	Remove autoload cookies.
+	(hide-ifdef-lines, hide-ifdef-shadow): Remove autoload cookies.
 
 	* vc.el (vc-diff-sentinel): Do not write a footer if there were
 	differences.
@@ -386,7 +374,7 @@
 
 	* vc.el: Make vc-status asynchronous.
 	(vc-update-vc-status-buffer): New function broken out of ...
-	(vc-status-refresh): ... here. Pass vc-update-vc-status-buffer to
+	(vc-status-refresh): ... here.  Pass vc-update-vc-status-buffer to
 	the dir-status backend function.
 
 	* vc-hg.el (vc-hg-dir-status): Compute the status asynchronously.
