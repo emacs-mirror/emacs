@@ -501,10 +501,10 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   arena->primary = chunk;
 
   /* .zoneshift: Set the zone shift to divide the chunk into the same */
-  /* number of stripes as will fit into a reference set (the number of */
-  /* bits in a word).  Fail if the chunk is so small stripes are smaller */
-  /* than pages.  Note that some zones are discontiguous in the chunk if */
-  /* the size is not a power of 2.  See <design/arena/#class.fields>. */
+  /* number of stripes as will fit into a reference set (the number */
+  /* of bits in a word).  Note that some zones are discontiguous in */
+  /* the chunk if the size is not a power of 2.  */
+  /* See <design/arena/#class.fields>. */
   chunkSize = AddrOffset(chunk->base, chunk->limit);
   arena->zoneShift = SizeFloorLog2(chunkSize >> MPS_WORD_SHIFT);
 

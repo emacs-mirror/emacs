@@ -215,7 +215,9 @@ Res ArenaCreateV(Arena *arenaReturn, ArenaClass class, va_list args)
 
   arena->alignment = ChunkPageSize(arena->primary);
   if (arena->alignment > ((Size)1 << arena->zoneShift)) {
-    res = ResMEMORY; /* size was too small */
+    /* Fail if the chunk is so small that stripes are smaller */
+    /* than pages.  */
+    res = ResMEMORY;
     goto failStripeSize;
   }
 
@@ -348,6 +350,7 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
                "  commitLimit      $W\n", (WriteFW)arena->commitLimit,
                "  spareCommitted   $W\n", (WriteFW)arena->spareCommitted,
                "  spareCommitLimit $W\n", (WriteFW)arena->spareCommitLimit,
+               "  (zoneSize $W)", (WriteFW)(1 << arena->zoneShift),
                "  zoneShift $U\n", (WriteFU)arena->zoneShift,
                "  alignment $W\n", (WriteFW)arena->alignment,
                NULL);
