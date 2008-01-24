@@ -1,13 +1,14 @@
+2008-01-24  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Standardize dbus-related messages.
+
 2008-01-23  Michael Olson  <mwolson@gnu.org>
 
 	* configure.in (pkg-config-prog): Remove initial whitespace.
 
-	* configure: Regenerate.
-
 2008-01-23  Tom Tromey  <tromey@redhat.com>
 
-	* configure.in (OPTION_DEFAULT_ON, OPTION_DEFAULT_OFF): New
-	macros.
+	* configure.in (OPTION_DEFAULT_ON, OPTION_DEFAULT_OFF): New macros.
 	(EMACS_ARG_Y, EMACS_ARG_N): Remove.
 	Update all users.
 
