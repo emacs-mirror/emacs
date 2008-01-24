@@ -1994,7 +1994,7 @@ the buffer contents as a comment."
            (let ((inhibit-read-only t))
              (insert "No differences found.\n")))
       (goto-char (point-min))
-      (let ((window (get-buffer-window (current-buffer))))
+      (let ((window (get-buffer-window (current-buffer) t)))
         (when window
           (shrink-window-if-larger-than-buffer window))))))
 
