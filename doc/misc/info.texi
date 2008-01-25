@@ -970,7 +970,7 @@ an actual @samp{?} character, the simplest way is to insert it using
 
 @node Search Text, Search Index,  , Advanced
 @comment  node-name,  next,  previous,  up
-@section How to search Info documents
+@section @kbd{s} searches Info documents
 
 @cindex searching Info documents
 @cindex Info document as a reference
@@ -1018,7 +1018,7 @@ by setting the variable @code{Info-isearch-search} to @code{nil}
 
 @node Search Index, Go to node, Search Text, Advanced
 @comment  node-name,  next,  previous,  up
-@section How to search the indices for specific subjects
+@section @kbd{i} searches the indices for specific subjects
 
 @cindex searching Info indices
 @kindex i @r{(Info mode)}
