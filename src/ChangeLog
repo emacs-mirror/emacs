@@ -1,3 +1,7 @@
+2008-01-25  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* fns.c (Fclrhash): Return TABLE.
+
 2008-01-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (x_scroll_bar_create): Initialize bar->redraw_needed_p.
