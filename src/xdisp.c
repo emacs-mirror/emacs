@@ -232,6 +232,7 @@ extern Lisp_Object Qhelp_echo;
 
 Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
+Lisp_Object Qwindow_text_change_functions, Vwindow_text_change_functions;
 Lisp_Object Qredisplay_end_trigger_functions, Vredisplay_end_trigger_functions;
 Lisp_Object Qinhibit_point_motion_hooks;
 Lisp_Object QCeval, QCfile, QCdata, QCpropertize;
@@ -12884,8 +12885,7 @@ redisplay_window (window, just_this_one_p)
   *w->desired_matrix->method = 0;
 #endif
 
-  specbind (Qinhibit_point_motion_hooks, Qt);
-
+ restart:
   reconsider_clip_changes (w, buffer);
 
   /* Has the mode line to be updated?  */
@@ -12936,10 +12936,6 @@ redisplay_window (window, just_this_one_p)
   /* Really select the buffer, for the sake of buffer-local
      variables.  */
   set_buffer_internal_1 (XBUFFER (w->buffer));
-  SET_TEXT_POS (opoint, PT, PT_BYTE);
-
-  beg_unchanged = BEG_UNCHANGED;
-  end_unchanged = END_UNCHANGED;
 
   current_matrix_up_to_date_p
     = (!NILP (w->window_end_valid)
@@ -12947,6 +12943,23 @@ redisplay_window (window, just_this_one_p)
        && !current_buffer->prevent_redisplay_optimizations_p
        && XFASTINT (w->last_modified) >= MODIFF
        && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF);
+
+  /* Run the window-bottom-change-functions
+     if it is possible that the text on the screen has changed
+     (either due to modification of the text, or any other reason).  */
+  if (!current_matrix_up_to_date_p
+      && !NILP (Vwindow_text_change_functions))
+    {
+      safe_run_hooks (Qwindow_text_change_functions);
+      goto restart;
+    }
+
+  beg_unchanged = BEG_UNCHANGED;
+  end_unchanged = END_UNCHANGED;
+
+  SET_TEXT_POS (opoint, PT, PT_BYTE);
+
+  specbind (Qinhibit_point_motion_hooks, Qt);
 
   buffer_unchanged_p
     = (!NILP (w->window_end_valid)
@@ -23962,6 +23975,9 @@ syms_of_xdisp ()
   staticpro (&Qwindow_scroll_functions);
   Qwindow_scroll_functions = intern ("window-scroll-functions");
 
+  staticpro (&Qwindow_text_change_functions);
+  Qwindow_text_change_functions = intern ("window-text-change-functions");
+
   staticpro (&Qredisplay_end_trigger_functions);
   Qredisplay_end_trigger_functions = intern ("redisplay-end-trigger-functions");
 
@@ -24272,6 +24288,11 @@ Each function is called with two arguments, the window
 and its new display-start position.  Note that the value of `window-end'
 is not valid when these functions are called.  */);
   Vwindow_scroll_functions = Qnil;
+
+  DEFVAR_LISP ("window-text-change-functions",
+	       &Vwindow_text_change_functions,
+    doc: /* Functions to call in redisplay when text in the window might change.  */);
+  Vwindow_text_change_functions = Qnil;
 
   DEFVAR_LISP ("redisplay-end-trigger-functions", &Vredisplay_end_trigger_functions,
     doc: /* Functions called when redisplay of a window reaches the end trigger.
