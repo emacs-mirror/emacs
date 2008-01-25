@@ -1,3 +1,14 @@
+2008-01-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* ibuffer.el (ibuffer-default-sorting-mode): Add option to sort by
+	file name.
+	(ibuffer-mode-map): Add binding to sort by file name.
+	(ibuffer-filename/process-header-map): New variable.
+	(filename-and-process): Add a header that sorts by file name.
+	(ibuffer-mode): Mention sorting by file name.
+
+	* ibuf-ext.el (filename/process): New sorter.
+
 2008-01-25  Sven Joachim  <svenjoac@gmx.de>
 
 	* view.el (kill-buffer-if-not-modified): Don't pass t to

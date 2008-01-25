@@ -1155,6 +1155,20 @@ Ordering is lexicographic."
      (with-current-buffer (car b)
        (buffer-size))))
 
+;;;###autoload (autoload 'ibuffer-do-sort-by-filename/process "ibuf-ext")
+(define-ibuffer-sorter filename/process
+ "Sort the buffers by their file name/process name."
+  (:description "file name")
+  (string-lessp
+   ;; FIXME: For now just compare the file name and the process name
+   ;; (if it exists).  Is there a better way to do this?
+   (or (buffer-file-name (car a)) 
+       (let ((pr-a (get-buffer-process (car a))))
+	 (and (processp pr-a) (process-name pr-a))))
+   (or (buffer-file-name (car b)) 
+       (let ((pr-b (get-buffer-process (car b))))
+	 (and (processp pr-b) (process-name pr-b))))))
+
 ;;; Functions to emulate bs.el
 
 ;;;###autoload

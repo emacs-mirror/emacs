@@ -209,6 +209,7 @@ view of the buffers."
   :type '(choice (const :tag "Last view time" :value recency)
 		 (const :tag "Lexicographic" :value alphabetic)
 		 (const :tag "Buffer size" :value size)
+		 (const :tag "File name" :value filename/process)
 		 (const :tag "Major mode" :value major-mode))
   :group 'ibuffer)
 (defvar ibuffer-sorting-mode nil)
@@ -447,6 +448,7 @@ directory, like `default-directory'."
     (define-key map (kbd "s a") 'ibuffer-do-sort-by-alphabetic)
     (define-key map (kbd "s v") 'ibuffer-do-sort-by-recency)
     (define-key map (kbd "s s") 'ibuffer-do-sort-by-size)
+    (define-key map (kbd "s f") 'ibuffer-do-sort-by-filename/process)
     (define-key map (kbd "s m") 'ibuffer-do-sort-by-major-mode)
 
     (define-key map (kbd "/ m") 'ibuffer-filter-by-mode)
@@ -826,6 +828,11 @@ directory, like `default-directory'."
     (define-key map [(mouse-1)] 'ibuffer-mouse-toggle-mark)
     (define-key map [(mouse-2)] 'ibuffer-mouse-visit-buffer)
     (define-key map [down-mouse-3] 'ibuffer-mouse-popup-menu)
+    map))
+
+(defvar ibuffer-filename/process-header-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(mouse-1)] 'ibuffer-do-sort-by-filename/process)
     map))
 
 (defvar ibuffer-mode-name-map
@@ -1753,6 +1760,7 @@ If point is on a group name, this function operates on that group."
 
 (define-ibuffer-column filename-and-process
   (:name "Filename/Process"
+   :header-mouse-map ibuffer-filename/process-header-map
    :summarizer
    (lambda (strings)
      (setq strings (delete "" strings))
@@ -2433,6 +2441,7 @@ Sorting commands:
   '\\[ibuffer-toggle-sorting-mode]' - Rotate between the various sorting modes.
   '\\[ibuffer-invert-sorting]' - Reverse the current sorting order.
   '\\[ibuffer-do-sort-by-alphabetic]' - Sort the buffers lexicographically.
+  '\\[ibuffer-do-sort-by-filename/process]' - Sort the buffers by the file name.
   '\\[ibuffer-do-sort-by-recency]' - Sort the buffers by last viewing time.
   '\\[ibuffer-do-sort-by-size]' - Sort the buffers by size.
   '\\[ibuffer-do-sort-by-major-mode]' - Sort the buffers by major mode.
