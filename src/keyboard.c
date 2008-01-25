@@ -2704,6 +2704,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
   /* if redisplay was requested */
   if (commandflag >= 0)
     {
+      int echo_current = echo_message_buffer == echo_area_buffer[0];
+
 	/* If there is pending input, process any events which are not
 	   user-visible, such as X selection_request events.  */
       if (input_pending
@@ -2727,6 +2729,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	  swallow_events (0);
 	  /* If that cleared input_pending, try again to redisplay.  */
 	}
+
+      /* Prevent the redisplay we just did
+	 from messing up echoing of the input after the prompt.  */
+      if (commandflag == 0 && echo_current)
+	echo_message_buffer = echo_area_buffer[0];
+
     }
 
   /* Message turns off echoing unless more keystrokes turn it on again.
