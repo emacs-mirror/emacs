@@ -1,3 +1,7 @@
+2008-01-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_retrieve_arg): Pacify GCC on x86_64 GNU/Linux.
+
 2008-01-25  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* fns.c (Fclrhash): Return TABLE.
