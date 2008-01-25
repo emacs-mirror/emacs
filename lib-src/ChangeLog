@@ -33,7 +33,7 @@
 
 	* emacsclient.c: Add missing final newlines to message calls.
 
-2008-01-09  Daniel Hackney <dan@haxney.org>  (tiny change)
+2008-01-09  Daniel Hackney  <dan@haxney.org>  (tiny change)
 
 	* emacsclient.c (set_socket): Add final newline to socket error message.
 
