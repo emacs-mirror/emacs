@@ -1,3 +1,7 @@
+2008-01-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-unload-function): New function.
+
 2008-01-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* blank-mode.el: New version 9.0.  New commands to clean up some blank
@@ -8,8 +12,7 @@
 	(blank-indentation, blank-empty, blank-space-after-tab): New faces.
 	(blank-indentation, blank-empty, blank-space-after-tab)
 	(blank-indentation-regexp, blank-empty-at-bob-regexp)
-	(blank-empty-at-eob-regexp, blank-space-after-tab-regexp): New
-	options.
+	(blank-empty-at-eob-regexp, blank-space-after-tab-regexp): New options.
 	(blank-cleanup, blank-cleanup-region): New commands.
 	(blank-color-on): Code fix.
 
