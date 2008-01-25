@@ -594,10 +594,14 @@ xd_retrieve_arg (dtype, iter)
     case DBUS_TYPE_INT32:
     case DBUS_TYPE_UINT32:
       {
+	/* Assignment to EMACS_INT stops GCC whining about limited
+	   range of data type.  */
 	dbus_uint32_t val;
+	EMACS_INT val1;
 	dbus_message_iter_get_basic (iter, &val);
 	XD_DEBUG_MESSAGE ("%c %d", dtype, val);
-	return make_fixnum_or_float (val);
+	val1 = val;
+	return make_fixnum_or_float (val1);
       }
 
     case DBUS_TYPE_INT64:
