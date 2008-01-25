@@ -2753,6 +2753,10 @@ font_load_for_face (f, face)
       if (! NILP (entity))
 	font_object = font_open_for_lface (f, entity, face->lface, Qnil);
     }
+  else if (STRINGP (font_object))
+    {
+      font_object = font_open_by_name (f, SDATA (font_object));
+    }
 
   if (! NILP (font_object))
     {
