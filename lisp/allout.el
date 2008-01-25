@@ -2120,6 +2120,16 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
 ;;;_  > allout-minor-mode
 (defalias 'allout-minor-mode 'allout-mode)
 
+;;;_  > allout-unload-function
+(defun allout-unload-function ()
+  "Unload the allout outline library."
+  (save-current-buffer
+    (dolist (buffer (buffer-list))
+      (set-buffer buffer)
+      (when allout-mode (allout-mode -1))))
+  ;; continue standard unloading
+  nil)
+
 ;;;_  - Position Assessment
 ;;;_   > allout-hidden-p (&optional pos)
 (defsubst allout-hidden-p (&optional pos)
