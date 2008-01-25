@@ -74,7 +74,7 @@ A library name is equivalent to the file name that `load-library' would load."
   (let (provides)
     (dolist (x (file-loadhist-lookup file) provides)
       (when (eq (car-safe x) 'provide)
-	(push x provides)))))
+	(push (cdr x) provides)))))
 
 (defun file-requires (file)
   "Return the list of features required by FILE as it was loaded.
@@ -83,7 +83,7 @@ A library name is equivalent to the file name that `load-library' would load."
   (let (requires)
     (dolist (x (file-loadhist-lookup file) requires)
       (when (eq (car-safe x) 'require)
-	(push x requires)))))
+	(push (cdr x) requires)))))
 
 (defsubst file-set-intersect (p q)
   "Return the set intersection of two lists."
