@@ -412,10 +412,10 @@ else
 fi
 
 test \$exitcode = 0") || {
-  echo No shell found that supports shell functions.
-  echo Please tell autoconf@gnu.org about your system,
-  echo including any error possibly output before this
-  echo message
+  echo Please tell bug-autoconf@gnu.org about your system,
+  echo including any error possibly output before this message.
+  echo This can help us improve future autoconf versions.
+  echo Configuration will now proceed without shell functions.
 }
 
 
@@ -1344,20 +1344,21 @@ Optional Packages:
   --without-sound         don't compile with sound support
   --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes, lucid, athena,
                           motif, gtk, no)
-  --with-xpm              use -lXpm for displaying XPM images
-  --with-jpeg             use -ljpeg for displaying JPEG images
-  --with-tiff             use -ltiff for displaying TIFF images
-  --with-gif              use -lgif (or -lungif) for displaying GIF images
-  --with-png              use -lpng for displaying PNG images
-  --with-gpm              use -lgpm for mouse support on a GNU/Linux console
-  --with-rsvg             use -lrsvg-2 for displaying SVG images
-  --with-gtk              use GTK (same as --with-x-toolkit=gtk)
+  --without-xpm           don't compile with XPM image support
+  --without-jpeg          don't compile with JPEG image support
+  --without-tiff          don't compile with TIFF image support
+  --without-gif           don't compile with GIF image support
+  --without-png           don't compile with PNG image support
+  --without-rsvg          don't compile with SVG image support
+  --with-gtk              use GTK toolkit
   --without-toolkit-scroll-bars
                           don't use Motif or Xaw3d scroll bars
   --without-xaw3d         don't use Xaw3d
   --without-xim           don't use X11 XIM
-  --without-carbon        don't use Carbon GUI on Mac OS X
-  --without-dbus          use D-Bus
+  --with-carbon           use Carbon GUI on Mac OS X. **UNSUPPORTED!**
+  --without-gpm           don't use -lgpm for mouse support on a GNU/Linux
+                          console
+  --with-dbus             compile with D-Bus support
   --with-pkg-config-prog=PATH
                           Path to pkg-config for finding GTK and librsvg
   --with-x                use the X Window System
@@ -1956,7 +1957,7 @@ fi
 if test "${with_xpm+set}" = set; then
   withval=$with_xpm;
 else
-      with_xpm=no
+     with_xpm=yes
 fi
 
 
@@ -1964,7 +1965,7 @@ fi
 if test "${with_jpeg+set}" = set; then
   withval=$with_jpeg;
 else
-      with_jpeg=no
+     with_jpeg=yes
 fi
 
 
@@ -1972,7 +1973,7 @@ fi
 if test "${with_tiff+set}" = set; then
   withval=$with_tiff;
 else
-      with_tiff=no
+     with_tiff=yes
 fi
 
 
@@ -1980,7 +1981,7 @@ fi
 if test "${with_gif+set}" = set; then
   withval=$with_gif;
 else
-      with_gif=no
+     with_gif=yes
 fi
 
 
@@ -1988,15 +1989,7 @@ fi
 if test "${with_png+set}" = set; then
   withval=$with_png;
 else
-      with_png=no
-fi
-
-
-# Check whether --with-gpm was given.
-if test "${with_gpm+set}" = set; then
-  withval=$with_gpm;
-else
-      with_gpm=no
+     with_png=yes
 fi
 
 
@@ -2004,8 +1997,9 @@ fi
 if test "${with_rsvg+set}" = set; then
   withval=$with_rsvg;
 else
-      with_rsvg=no
+     with_rsvg=yes
 fi
+
 
 
 # Check whether --with-gtk was given.
@@ -2044,7 +2038,16 @@ fi
 if test "${with_carbon+set}" = set; then
   withval=$with_carbon;
 else
-     with_carbon=yes
+      with_carbon=no
+fi
+
+
+
+# Check whether --with-gpm was given.
+if test "${with_gpm+set}" = set; then
+  withval=$with_gpm;
+else
+     with_gpm=yes
 fi
 
 
@@ -2052,8 +2055,9 @@ fi
 if test "${with_dbus+set}" = set; then
   withval=$with_dbus;
 else
-     with_dbus=yes
+      with_dbus=no
 fi
+
 
 
 
@@ -18119,13 +18123,11 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
@@ -18165,13 +18167,11 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
