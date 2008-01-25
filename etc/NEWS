@@ -440,6 +440,11 @@ search and match primitives from changing the match data.
 ** New function `match-substitute-replacement' returns the result of
 `replace-match' without actually using it in the buffer.
 
+** If a local hook function has a non-nil `permanent-local-hook'
+property, then `kill-all-local-variables' does not remove it from
+the local value of the hook variable.  This means it remains
+even if you change major modes.
+
 +++
 ** A list of default values can be specified for the DEFAULT argument of
 functions `read-from-minibuffer', `read-string', `read-command',
