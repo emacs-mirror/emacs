@@ -153,6 +153,7 @@ Lisp_Object Qucs_set_table_for_input;
 int inhibit_modification_hooks;
 
 Lisp_Object Qfundamental_mode, Qmode_class, Qpermanent_local;
+Lisp_Object Qpermanent_local_hook;
 
 Lisp_Object Qprotected_field;
 
@@ -761,13 +762,38 @@ reset_buffer_local_variables (b, permanent_too)
     b->local_var_alist = Qnil;
   else
     {
-      Lisp_Object tmp, last = Qnil;
+      Lisp_Object tmp, prop, last = Qnil;
       for (tmp = b->local_var_alist; CONSP (tmp); tmp = XCDR (tmp))
 	if (CONSP (XCAR (tmp))
 	    && SYMBOLP (XCAR (XCAR (tmp)))
-	    && !NILP (Fget (XCAR (XCAR (tmp)), Qpermanent_local)))
-	  /* If permanent-local, keep it.  */
-	  last = tmp;
+	    && !NILP (prop = Fget (XCAR (XCAR (tmp)), Qpermanent_local)))
+	  {
+	    /* If permanent-local, keep it.  */
+	    last = tmp;
+	    if (EQ (prop, Qpermanent_local_hook))
+	      {
+		/* This is a partially permanent hook variable.
+		   Preserve only the elements that want to be preserved.  */
+		Lisp_Object list, newlist;
+		list = XCDR (XCAR (tmp));
+		if (!CONSP (list))
+		  newlist = list;
+		else
+		  for (newlist = Qnil; CONSP (list); list = XCDR (list))
+		    {
+		      Lisp_Object elt = XCAR (list);
+		      /* Preserve element ELT if it's t,
+			 if it is a function with a `permanent-local-hook' property,
+			 or if it's not a symbol.  */
+		      if (! SYMBOLP (elt)
+			  || EQ (elt, Qt)
+			  || !NILP (Fget (elt, Qpermanent_local_hook)))
+			newlist = Fcons (elt, newlist);
+		    }
+		XSETCDR (XCAR (tmp), Fnreverse (newlist));
+	      }
+	  }
+	/* Delete this local variable.  */
 	else if (NILP (last))
 	  b->local_var_alist = XCDR (tmp);
 	else
@@ -5292,6 +5318,8 @@ syms_of_buffer ()
   staticpro (&Vbuffer_alist);
   staticpro (&Qprotected_field);
   staticpro (&Qpermanent_local);
+  Qpermanent_local_hook = intern ("permanent-local-hook");
+  staticpro (&Qpermanent_local_hook);
   staticpro (&Qkill_buffer_hook);
   Qoverlayp = intern ("overlayp");
   staticpro (&Qoverlayp);
@@ -5319,6 +5347,7 @@ syms_of_buffer ()
   staticpro (&Qbefore_change_functions);
   Qafter_change_functions = intern ("after-change-functions");
   staticpro (&Qafter_change_functions);
+  /* The next one is initialized in init_buffer_once.  */
   staticpro (&Qucs_set_table_for_input);
 
   Qkill_buffer_query_functions = intern ("kill-buffer-query-functions");
