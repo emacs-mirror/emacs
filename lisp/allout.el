@@ -395,7 +395,7 @@ comment-start strings that do not end in spaces are tripled in
 the header-prefix, and an `_' underscore is tacked on the end, to
 distinguish them from regular comment strings.  comment-start
 strings that do end in spaces are not tripled, but an underscore
-is substituted for the space. [This presumes that the space is
+is substituted for the space.  [This presumes that the space is
 for appearance, not comment syntax.  You can use
 `allout-mode-leaders' to override this behavior, when
 undesired.]"
@@ -747,7 +747,7 @@ else allout's special hanging-indent maintaining auto-fill function,
 (defcustom allout-use-hanging-indents t
   "*If non-nil, topic body text auto-indent defaults to indent of the header.
 Ie, it is indented to be just past the header prefix.  This is
-relevant mostly for use with indented-text-mode, or other situations
+relevant mostly for use with `indented-text-mode', or other situations
 where auto-fill occurs."
   :type 'boolean
   :group 'allout)
@@ -1124,10 +1124,10 @@ Also refresh various data structures that hinge on the regexp."
 (defvar allout-mode-map nil "Keybindings for (allout) outline minor mode.")
 ;;;_   > produce-allout-mode-map (keymap-alist &optional base-map)
 (defun produce-allout-mode-map (keymap-list &optional base-map)
-  "Produce keymap for use as allout-mode-map, from KEYMAP-LIST.
+  "Produce keymap for use as `allout-mode-map', from KEYMAP-LIST.
 
 Built on top of optional BASE-MAP, or empty sparse map if none specified.
-See doc string for allout-keybindings-list for format of binding list."
+See doc string for `allout-keybindings-list' for format of binding list."
   (let ((map (or base-map (make-sparse-keymap)))
 	(pref (list allout-command-prefix)))
     (mapcar (function
@@ -2140,10 +2140,10 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
   "Get confirmation before making arbitrary changes to invisible text.
 
 We expose the invisible text and ask for confirmation.  Refusal or
-keyboard-quit abandons the changes, with keyboard-quit additionally
+`keyboard-quit' abandons the changes, with keyboard-quit additionally
 reclosing the opened text.
 
-No confirmation is necessary when inhibit-read-only is set - eg, allout
+No confirmation is necessary when `inhibit-read-only' is set - eg, allout
 internal functions use this feature cohesively bunch changes."
 
   (when (and (not inhibit-read-only) (not after))
@@ -2234,7 +2234,8 @@ function can also be used as an `isearch-mode-end-hook'."
 (defsubst allout-prefix-data ()
   "Register allout-prefix state data.
 
-For reference by `allout-recent' funcs.  Returns BEGINNING."
+For reference by `allout-recent' funcs.  Return
+the new value of `allout-recent-prefix-beginning'."
   (setq allout-recent-prefix-end (or (match-end 1) (match-end 2))
         allout-recent-prefix-beginning (or (match-beginning 1)
                                            (match-beginning 2))
@@ -2535,7 +2536,7 @@ Outermost is first."
 
 Returns the location of the heading, or nil if none found.
 
-We skip anomolous low-level topics, a la `allout-aberrant-container-p'."
+We skip anomalous low-level topics, a la `allout-aberrant-container-p'."
   (if (looking-at allout-regexp)
       (forward-char 1))
 
@@ -2558,7 +2559,7 @@ We skip anomolous low-level topics, a la `allout-aberrant-container-p'."
 
 Return the location of the beginning of the heading, or nil if not found.
 
-We skip anomolous low-level topics, a la `allout-aberrant-container-p'."
+We skip anomalous low-level topics, a la `allout-aberrant-container-p'."
 
   (if (bobp)
       nil
@@ -3924,9 +3925,9 @@ Third arg NUMBER-CONTROL can force the prefix to or away from
 numbered form.  It has effect only if `allout-numbered-bullet' is
 non-nil and soliciting was not explicitly invoked (via first arg).
 Its effect, numbering or denumbering, then depends on the setting
-of the forth arg, INDEX.
+of the fourth arg, INDEX.
 
-If NUMBER-CONTROL is non-nil and forth arg INDEX is nil, then the
+If NUMBER-CONTROL is non-nil and fourth arg INDEX is nil, then the
 prefix of the topic is forced to be non-numbered.  Null index and
 non-nil NUMBER-CONTROL forces denumbering.  Non-nil INDEX (and
 non-nil NUMBER-CONTROL) forces a numbered-prefix form.  If non-nil
@@ -4010,7 +4011,7 @@ this function."
 
 Descends into invisible as well as visible topics, however.
 
-When optional sans-offspring is non-nil, subtopics are not
+When optional SANS-OFFSPRING is non-nil, subtopics are not
 shifted.  (Shifting a topic outwards without shifting its
 offspring is disallowed, since this would create a \"containment
 discontinuity\", where the depth difference between a topic and
@@ -4055,7 +4056,7 @@ Finally, if optional SANS-OFFSPRING is non-nil then the offspring
 are not shifted.  (Shifting a topic outwards without shifting
 its offspring is disallowed, since this would create a
 \"containment discontinuity\", where the depth difference between
-a topic and its immediate offspring is greater than one..)"
+a topic and its immediate offspring is greater than one.)"
 
   ;; XXX the recursion here is peculiar, and in general the routine may
   ;; need simplification with refactoring.
@@ -4341,7 +4342,7 @@ Trailing whitespace is killed with a topic if that whitespace:
    previous one.
 
 Topic exposure is marked with text-properties, to be used by
-allout-yank-processing for exposure recovery."
+`allout-yank-processing' for exposure recovery."
 
   (interactive)
   (let* ((inhibit-field-text-motion t)
@@ -4372,7 +4373,7 @@ allout-yank-processing for exposure recovery."
     (run-hook-with-args 'allout-structure-deleted-hook depth (point))))
 ;;;_    > allout-copy-topic-as-kill ()
 (defun allout-copy-topic-as-kill ()
-  "Like allout-kill-topic, but save to kill ring instead of deleting."
+  "Like `allout-kill-topic', but save to kill ring instead of deleting."
   (interactive)
   (let ((buffer-read-only t))
     (condition-case nil
@@ -4874,8 +4875,8 @@ Useful for coherently exposing to a random point in a hidden region."
       )))
 ;;;_   > allout-show-current-subtree (&optional arg)
 (defun allout-show-current-subtree (&optional arg)
-  "Show everything within the current topic.  With a repeat-count,
-expose this topic and its siblings."
+  "Show everything within the current topic.
+With a repeat-count, expose this topic and its siblings."
   (interactive "P")
   (save-excursion
     (if (<= (allout-current-depth) 0)
@@ -5288,7 +5289,7 @@ the subject region.
 
 Optional START and END indicate bounds of region.
 
-optional arg, FORMAT, designates an alternate presentation form for
+Optional arg, FORMAT, designates an alternate presentation form for
 the prefix:
 
  list - Present prefix as numeric section.subsection..., starting with
@@ -5418,7 +5419,7 @@ FROMBUF to buffer TOBUF.  Sixth optional arg, FORMAT, designates an
 alternate presentation form:
 
  `flat' - Present prefix as numeric section.subsection..., starting with
-	 section indicated by the start-num, innermost nesting first.
+	 section indicated by the START-NUM, innermost nesting first.
  X`flat-indented' - Prefix is like `flat' for first topic at each
  X		   level, but subsequent topics have only leaf topic
  X		   number, padded with blanks to line up with first.
@@ -6292,8 +6293,8 @@ of the availability of a cached copy."
 
 The key type is one of 'symmetric or 'keypair.
 
-if 'keypair, and some of the user's secret keys are among those for which
-the message was encoded, return the identity of the first.  otherwise,
+If 'keypair, and some of the user's secret keys are among those for which
+the message was encoded, return the identity of the first.  Otherwise,
 return nil for the second item of the pair.
 
 An error is raised if the text is not encrypted."
@@ -6338,7 +6339,7 @@ An error is raised if the text is not encrypted."
 See `allout-passphrase-verifier-string' and `allout-passphrase-hint-string'
 settings.
 
-PASSPHRASE is the passphrase being mnemonicized
+PASSPHRASE is the passphrase being mnemonicized.
 
 OUTLINE-BUFFER is the buffer of the outline being adjusted.
 
@@ -6416,7 +6417,7 @@ EXCEPT-MARK identifies a point whose containing topics should be excluded
 from encryption.  This supports 'except-current mode of
 `allout-encrypt-unencrypted-on-saves'.
 
-Such a topic has the allout-topic-encryption-bullet without an
+Such a topic has the `allout-topic-encryption-bullet' without an
 immediately following '*' that would mark the topic as being encrypted.  It
 must also have content."
   (let (done got content-beg)
@@ -6746,7 +6747,7 @@ If BEG is bigger than END we return 0."
   (cond ((null list) nil)
         ((atom (car list)) (cons (car list) (allout-flatten (cdr list))))
         (t (append (allout-flatten (car list)) (allout-flatten (cdr list))))))
-;;;_  : Compatability:
+;;;_  : Compatibility:
 ;;;_   > allout-mark-marker to accommodate divergent emacsen:
 (defun allout-mark-marker (&optional force buffer)
   "Accommodate the different signature for `mark-marker' across Emacsen.
@@ -6938,7 +6939,7 @@ To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
 (defvar allout-tests-globally-unbound nil
   "Fodder for allout resumptions tests - defvar just for byte compiler.")
 (defvar allout-tests-globally-true nil
-  "Fodder for allout resumptions tests - defvar just just for byte compiler.")
+  "Fodder for allout resumptions tests - defvar just for byte compiler.")
 (defvar allout-tests-locally-true nil
   "Fodder for allout resumptions tests - defvar just for byte compiler.")
 (defun allout-test-resumptions ()
