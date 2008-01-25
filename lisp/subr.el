@@ -1103,7 +1103,17 @@ function, it is changed to a list of functions."
 		(append hook-value (list function))
 	      (cons function hook-value))))
     ;; Set the actual variable
-    (if local (set hook hook-value) (set-default hook hook-value))))
+    (if local
+	(progn
+	  ;; If HOOK isn't a permanent local,
+	  ;; but FUNCTION wants to survive a change of modes,
+	  ;; mark HOOK as partially permanent.
+	  (and (symbolp function)
+	       (get function 'permanent-local-hook)
+	       (not (get hook 'permanent-local))
+	       (put hook 'permanent-local 'permanent-local-hook))
+	  (set hook hook-value))
+      (set-default hook hook-value))))
 
 (defun remove-hook (hook function &optional local)
   "Remove from the value of HOOK the function FUNCTION.
