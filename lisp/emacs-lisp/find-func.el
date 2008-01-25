@@ -200,11 +200,17 @@ TYPE should be nil to find a function, or `defvar' to find a variable."
    (let* ((path (cons (or find-function-source-path load-path)
 		      (find-library-suffixes)))
 	  (def (if (eq (function-called-at-point) 'require)
-		   (save-excursion
-		     (backward-up-list)
-		     (forward-char)
-		     (backward-sexp -2)
-		     (thing-at-point 'symbol))
+		   ;; `function-called-at-point' may return 'require
+		   ;; with `point' anywhere on this line.  So wrap the
+		   ;; `save-excursion' below in a `condition-case' to
+		   ;; avoid reporting a scan-error here.
+		   (condition-case nil
+		       (save-excursion
+			 (backward-up-list)
+			 (forward-char)
+			 (forward-sexp 2)
+			 (thing-at-point 'symbol))
+		     (error nil))
 		 (thing-at-point 'symbol))))
      (when def
        (setq def (and (locate-file-completion def path 'test) def)))
