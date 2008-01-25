@@ -123,6 +123,10 @@ You can also use M-x erc-nickserv-identify-mode to change modes."
 		  '(("autodetect") ("nick-change") ("both")) nil t))))
   (add-hook 'erc-server-NOTICE-functions
 	    'erc-nickserv-identification-autodetect)
+  (unless erc-networks-mode
+    ;; Force-enable networks module, because we need it to set
+    ;; erc-network for us.
+    (erc-networks-enable))
   (cond ((eq mode 'autodetect)
 	 (setq erc-nickserv-identify-mode 'autodetect)
 	 (add-hook 'erc-server-NOTICE-functions
@@ -187,6 +191,7 @@ Example of use:
 			(const iip)
 			(const OFTC)
 			(const QuakeNet)
+			(const Rizon)
 			(const SlashNET)
 			(symbol :tag "Network name"))
 		(repeat :tag "Nickname and password"
@@ -256,6 +261,12 @@ Example of use:
      "NickServ"
      "IDENTIFY" nil nil
      "You\\s-are\\s-successfully\\s-identified\\s-as\\s-")
+    (Rizon
+     "NickServ!service@rizon.net"
+     "This\\s-nickname\\s-is\\s-registered\\s-and\\s-protected."
+     "NickServ"
+     "IDENTIFY" nil nil
+     "Password\\s-accepted\\s--\\s-you\\s-are\\s-now\\s-recognized.")
     (QuakeNet
      nil nil
      "Q@CServe.quakenet.org"

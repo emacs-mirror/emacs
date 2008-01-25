@@ -66,7 +66,7 @@
 
 ;;; Code:
 
-(defconst erc-version-string "Version 5.3 (devel)"
+(defconst erc-version-string "Version 5.3 (RC 1)"
   "ERC version.  This is used by function `erc-version'.")
 
 (eval-when-compile (require 'cl))
@@ -1167,7 +1167,12 @@ This will only be used if `erc-header-line-face-method' is non-nil."
 See the variable `erc-command-indicator'."
   :group 'erc-faces)
 
-(defface erc-notice-face '((t (:bold t :foreground "SlateBlue")))
+(defface erc-notice-face
+  (if (featurep 'xemacs)
+      '((t (:bold t :foreground "blue")))
+    '((((class color) (min-colors 88))
+       (:bold t :foreground "SlateBlue"))
+      (t (:bold t :foreground "blue"))))
   "ERC face for notices."
   :group 'erc-faces)
 
@@ -1465,18 +1470,23 @@ Turning on `erc-mode' runs the hook `erc-mode-hook'."
   "IRC port to use if it cannot be detected otherwise.")
 
 (defcustom erc-join-buffer 'buffer
-  "Determines how to display the newly created IRC buffer.
-'window - in another window,
-'window-noselect - in another window, but don't select that one,
-'frame - in another frame,
-'bury - bury it in a new buffer,
-any other value - in place of the current buffer."
+  "Determines how to display a newly created IRC buffer.
+
+The available choices are:
+
+  'window          - in another window,
+  'window-noselect - in another window, but don't select that one,
+  'frame           - in another frame,
+  'bury            - bury it in a new buffer,
+  'buffer          - in place of the current buffer,
+  any other value  - in place of the current buffer."
   :group 'erc-buffers
-  :type '(choice (const window)
-		 (const window-noselect)
-		 (const frame)
-		 (const bury)
-		 (const buffer)))
+  :type '(choice (const :tag "Split window and select" window)
+		 (const :tag "Split window, don't select" window-noselect)
+		 (const :tag "New frame" frame)
+		 (const :tag "Bury in new buffer" bury)
+		 (const :tag "Use current buffer" buffer)
+		 (const :tag "Use current buffer" t)))
 
 (defcustom erc-frame-alist nil
   "*Alist of frame parameters for creating erc frames.
@@ -1804,8 +1814,8 @@ buffer rather than a server buffer.")
 	     mods))))
 
 (defcustom erc-modules '(netsplit fill button match track completion readonly
-				  ring autojoin noncommands irccontrols
-				  stamp menu)
+			 networks ring autojoin noncommands irccontrols
+			 move-to-prompt stamp menu list)
   "A list of modules which ERC should enable.
 If you set the value of this without using `customize' remember to call
 \(erc-update-modules) after you change it.  When using `customize', modules
@@ -1837,14 +1847,20 @@ removed from the list will be disabled."
     (const :tag "completion: Complete nicknames and commands (programmable)"
 	   completion)
     (const :tag "hecomplete: Complete nicknames and commands (old)" hecomplete)
+    (const :tag "dcc: Provide Direct Client-to-Client support" dcc)
     (const :tag "fill: Wrap long lines" fill)
     (const :tag "identd: Launch an identd server on port 8113" identd)
     (const :tag "irccontrols: Highlight or remove IRC control characters"
 	   irccontrols)
+    (const :tag "keep-place: Leave point above un-viewed text" keep-place)
+    (const :tag "list: List channels in a separate buffer" list)
     (const :tag "log: Save buffers in logs" log)
     (const :tag "match: Highlight pals, fools, and other keywords" match)
     (const :tag "menu: Display a menu in ERC buffers" menu)
+    (const :tag "move-to-prompt: Move to the prompt when typing text"
+	   move-to-prompt)
     (const :tag "netsplit: Detect netsplits" netsplit)
+    (const :tag "networks: Provide data about IRC networks" networks)
     (const :tag "noncommands: Don't display non-IRC commands after evaluation"
 	   noncommands)
     (const :tag
@@ -1866,6 +1882,7 @@ removed from the list will be disabled."
     (const :tag "track: Track channel activity in the mode-line" track)
     (const :tag "truncate: Truncate buffers to a certain size" truncate)
     (const :tag "unmorse: Translate morse code in messages" unmorse)
+    (const :tag "xdcc: Act as an XDCC file-server" xdcc)
     (repeat :tag "Others" :inline t symbol))
   :group 'erc)
 
@@ -2324,6 +2341,15 @@ If ARG is non-nil, show the *erc-protocol* buffer."
 I.e. any char in it has the `invisible' property set."
   (text-property-any 0 (length string) 'invisible t string))
 
+(defcustom erc-remove-parsed-property t
+  "Whether to remove the erc-parsed text property after displaying a message.
+
+The default is to remove it, since it causes ERC to take up extra
+memory.  If you have code that relies on this property, then set
+this option to nil."
+  :type 'boolean
+  :group 'erc)
+
 (defun erc-display-line-1 (string buffer)
   "Display STRING in `erc-mode' BUFFER.
 Auxiliary function used in `erc-display-line'.  The line gets filtered to
@@ -2364,7 +2390,10 @@ If STRING is nil, the function does nothing."
 		(save-restriction
 		  (narrow-to-region insert-position (point))
 		  (run-hooks 'erc-insert-modify-hook)
-		  (run-hooks 'erc-insert-post-hook))))))
+		  (run-hooks 'erc-insert-post-hook)
+		  (when erc-remove-parsed-property
+		    (remove-text-properties (point-min) (point-max)
+					    '(erc-parsed nil))))))))
 	(erc-update-undo-list (- (or (marker-position erc-insert-marker)
 				     (point-max))
 				 insert-position))))))
@@ -3161,14 +3190,35 @@ just as you provided it.  Use this command with care!"
    (t nil)))
 (put 'erc-cmd-QUOTE 'do-not-parse-args t)
 
+(defcustom erc-query-display 'window
+  "Indicates how to display query buffers when using the /QUERY
+command to talk to someone.
+
+The default behavior is to display the message in a new window
+and bring it to the front.  See the documentation for
+`erc-join-buffer' for a description of the available choices.
+
+See also `erc-auto-query' to decide how private messages from
+other people should be displayed."
+  :group 'erc-query
+  :type '(choice (const :tag "Split window and select" window)
+		 (const :tag "Split window, don't select" window-noselect)
+		 (const :tag "New frame" frame)
+		 (const :tag "Bury in new buffer" bury)
+		 (const :tag "Use current buffer" buffer)
+		 (const :tag "Use current buffer" t)))
+
 (defun erc-cmd-QUERY (&optional user)
   "Open a query with USER.
 The type of query window/frame/etc will depend on the value of
-`erc-join-buffer'.  If USER is omitted, close the current query buffer if one
-exists - except this is broken now ;-)"
+`erc-query-display'.
+
+If USER is omitted, close the current query buffer if one exists
+- except this is broken now ;-)"
   (interactive
    (list (read-from-minibuffer "Start a query with: " nil)))
-  (let ((session-buffer (erc-server-buffer)))
+  (let ((session-buffer (erc-server-buffer))
+	(erc-join-buffer erc-query-display))
     (if user
 	(erc-query user session-buffer)
       ;; currently broken, evil hack to display help anyway
@@ -3707,8 +3757,9 @@ If `point' is at the beginning of a channel name, use that as default."
     (read-from-minibuffer
      (concat "Set topic of " (erc-default-target) ": ")
      (when erc-channel-topic
-       (cons (apply 'concat (butlast (split-string erc-channel-topic "\C-o")))
-	     0)))))
+       (let ((ss (split-string erc-channel-topic "\C-o")))
+	 (cons (apply 'concat (if (cdr ss) (butlast ss) ss))
+	       0))))))
   (let ((topic-list (split-string topic "\C-o"))) ; strip off the topic setter
     (erc-cmd-TOPIC (concat (erc-default-target) " " (car topic-list)))))
 
@@ -3841,20 +3892,22 @@ To change how this query window is displayed, use `let' to bind
     (erc-update-mode-line)
     buf))
 
-(defcustom erc-auto-query 'bury
+(defcustom erc-auto-query 'window-noselect
   "If non-nil, create a query buffer each time you receive a private message.
+If the buffer doesn't already exist, it is created.
 
-If the buffer doesn't already exist it is created.  This can be
-set to a symbol, to control how the new query window should
-appear.  See the documentation for `erc-join-buffer' for
-available choices."
+This can be set to a symbol, to control how the new query window
+should appear.  The default behavior is to display the buffer in
+a new window, but not to select it.  See the documentation for
+`erc-join-buffer' for a description of the available choices."
   :group 'erc-query
-  :type '(choice (const nil)
-		 (const buffer)
-		 (const window)
-		 (const window-noselect)
-		 (const bury)
-		 (const frame)))
+  :type '(choice (const :tag "Don't create query window" nil)
+		 (const :tag "Split window and select" window)
+		 (const :tag "Split window, don't select" window-noselect)
+		 (const :tag "New frame" frame)
+		 (const :tag "Bury in new buffer" bury)
+		 (const :tag "Use current buffer" buffer)
+		 (const :tag "Use current buffer" t)))
 
 (defcustom erc-query-on-unjoined-chan-privmsg t
   "If non-nil create query buffer on receiving any PRIVMSG at all.
@@ -5822,7 +5875,7 @@ See `current-time' for details on the time format."
 
 ;; Mode line handling
 
-(defcustom erc-mode-line-format "%s %a"
+(defcustom erc-mode-line-format "%S %a"
   "A string to be formatted and shown in the mode-line in `erc-mode'.
 
 The string is formatted using `format-spec' and the result is set as the value
@@ -5833,12 +5886,16 @@ The following characters are replaced:
 %l: The estimated lag time to the server
 %m: The modes of the channel
 %n: The current nick name
+%N: The name of the network
 %o: The topic of the channel
 %p: The session port
 %t: The name of the target (channel, nickname, or servername:port)
 %s: In the server-buffer, this gets filled with the value of
     `erc-server-announced-name', in a channel, the value of
-    (erc-default-target) also get concatenated."
+    (erc-default-target) also get concatenated.
+%S: In the server-buffer, this gets filled with the value of
+    `erc-network', in a channel, the value of (erc-default-target)
+    also get concatenated."
   :group 'erc-mode-line-and-header
   :type 'string)
 
@@ -5932,6 +5989,29 @@ This should be a string with substitution variables recognized by
 	  (server-name server-name)
 	  (t (buffer-name (current-buffer))))))
 
+(defun erc-format-network ()
+  "Return the name of the network we are currently on."
+  (let ((network (and (fboundp 'erc-network-name) (erc-network-name))))
+    (if (and network (symbolp network))
+	(symbol-name network)
+      "")))
+
+(defun erc-format-target-and/or-network ()
+  "Return the network or the current target and network combined.
+If the name of the network is not available, then use the
+shortened server name instead."
+  (let ((network-name (or (and (fboundp 'erc-network-name) (erc-network-name))
+			  (erc-shorten-server-name
+			   (or erc-server-announced-name
+			       erc-session-server)))))
+    (when (and network-name (symbolp network-name))
+      (setq network-name (symbol-name network-name)))
+    (cond ((erc-default-target)
+	   (concat (erc-string-no-properties (erc-default-target))
+		   "@" network-name))
+	  (network-name network-name)
+	  (t (buffer-name (current-buffer))))))
+
 (defun erc-format-away-status ()
   "Return a formatted `erc-mode-line-away-status-format'
 if `erc-away' is non-nil."
@@ -5975,9 +6055,11 @@ if `erc-away' is non-nil."
 		 ?l (erc-format-lag-time)
 		 ?m (erc-format-channel-modes)
 		 ?n (or (erc-current-nick) "")
+		 ?N (erc-format-network)
 		 ?o (erc-controls-strip erc-channel-topic)
 		 ?p (erc-port-to-string erc-session-port)
 		 ?s (erc-format-target-and/or-server)
+		 ?S (erc-format-target-and/or-network)
 		 ?t (erc-format-target)))
 	  (process-status (cond ((and (erc-server-process-alive)
 				      (not erc-server-connected))

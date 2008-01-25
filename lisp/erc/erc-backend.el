@@ -332,11 +332,10 @@ This is either a coding system, a cons, a function, or nil.
 
 If a cons, the encoding system for outgoing text is in the car
 and the decoding system for incoming text is in the cdr. The most
-interesting use for this is to put `undecided' in the cdr. If a
-function, it is called with no arguments and should return a
-coding system or a cons as described above. Note that you can use
-the dynamically bound variable `target' to get the current
-target. See `erc-coding-system-for-target'.
+interesting use for this is to put `undecided' in the cdr.
+
+If a function, it is called with the argument `target' and should
+return a coding system or a cons as described above.
 
 If you need to send non-ASCII text to people not using a client that
 does decoding on its own, you must tell ERC what encoding to use.
@@ -491,6 +490,8 @@ We will store server variables in the buffer given by BUFFER."
     (let ((process (funcall erc-server-connect-function
                             (format "erc-%s-%s" server port)
                             nil server port)))
+      (unless (processp process)
+        (error "Connection attempt failed"))
       (message "%s...done" msg)
       ;; Misc server variables
       (with-current-buffer buffer
@@ -686,7 +687,7 @@ This is determined via `erc-encoding-coding-alist' or
               (when (string-match (car pat) target)
                 (throw 'match (cdr pat)))))))
       (and (functionp erc-server-coding-system)
-           (funcall erc-server-coding-system))
+           (funcall erc-server-coding-system target))
       erc-server-coding-system))
 
 (defun erc-decode-string-from-target (str target)
@@ -1649,8 +1650,13 @@ See `erc-display-server-message'." nil
 
 (define-erc-response-handler (321)
   "LIST header." nil
-  (setq erc-channel-list nil)
-  (erc-display-message parsed 'notice proc 's321))
+  (setq erc-channel-list nil))
+
+(defun erc-server-321-message (proc parsed)
+  "Display a message for the 321 event."
+  (erc-display-message parsed 'notice proc 's321)
+  nil)
+(add-hook 'erc-server-321-functions 'erc-server-321-message t)
 
 (define-erc-response-handler (322)
   "LIST notice." nil
@@ -1658,10 +1664,17 @@ See `erc-display-server-message'." nil
     (multiple-value-bind (channel num-users)
         (cdr (erc-response.command-args parsed))
       (add-to-list 'erc-channel-list (list channel))
-      (erc-update-channel-topic channel topic)
+      (erc-update-channel-topic channel topic))))
+
+(defun erc-server-322-message (proc parsed)
+  "Display a message for the 322 event."
+  (let ((topic (erc-response.contents parsed)))
+    (multiple-value-bind (channel num-users)
+        (cdr (erc-response.command-args parsed))
       (erc-display-message
        parsed 'notice proc 's322
        ?c channel ?u num-users ?t (or topic "")))))
+(add-hook 'erc-server-322-functions 'erc-server-322-message t)
 
 (define-erc-response-handler (324)
   "Channel or nick modes." nil
