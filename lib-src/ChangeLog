@@ -1,3 +1,8 @@
+2008-01-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (set_tcp_socket): Don't send "\n" after
+	the authentication string; there's no need to haste.
+
 2008-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pop.c (pop_stat, pop_last): Fix last fix.
