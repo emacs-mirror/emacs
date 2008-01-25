@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 8.1
+;; Version: 9.0
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -100,6 +100,10 @@
 ;;
 ;; blank-mode was inspired by:
 ;;
+;;    whitespace.el            Rajesh Vaidheeswarran <rv@gnu.org>
+;;	Warn about and clean bogus whitespaces in the file
+;;	(inspired the idea to warn and clean some blanks)
+;;
 ;;    show-whitespace-mode.el  Aurelien Tisne <aurelien.tisne@free.fr>
 ;;       Simple mode to highlight whitespaces
 ;;       (inspired the idea to use font-lock)
@@ -153,6 +157,37 @@
 ;;
 ;;         M-x global-blank-mode RET
 ;;
+;; There are also the following useful commands:
+;;
+;; `blank-cleanup'
+;;    Cleanup some blank problems in all buffer or at region.
+;;
+;; `blank-cleanup-region'
+;;    Cleanup some blank problems at region.
+;;
+;; The problems, which are cleaned up, are:
+;;
+;; 1. empty lines at beginning of buffer.
+;; 2. empty lines at end of buffer.
+;;    If `blank-chars' has `empty' as an element, remove all empty
+;;    lines at beginning and/or end of buffer.
+;;
+;; 3. 8 or more SPACEs at beginning of line.
+;;    If `blank-chars' has `indentation' as an element, replace 8 or
+;;    more SPACEs at beginning of line by TABs.
+;;
+;; 4. SPACEs before TAB.
+;;    If `blank-chars' has `space-before-tab' as an element, replace
+;;    SPACEs by TABs.
+;;
+;; 5. SPACEs or TABs at end of line.
+;;    If `blank-chars' has `trailing' as an element, remove all
+;;    SPACEs or TABs at end of line."
+;;
+;; 6. 8 or more SPACEs after TAB.
+;;    If `blank-chars' has `space-after-tab' as an element, replace
+;;    SPACEs by TABs.
+;;
 ;;
 ;; Hooks
 ;; -----
@@ -197,6 +232,15 @@
 ;; `blank-space-before-tab'	Face used to visualize SPACEs before
 ;;				TAB.
 ;;
+;; `blank-indentation'		Face used to visualize 8 or more
+;;				SPACEs at beginning of line.
+;;
+;; `blank-empty'		Face used to visualize empty lines at
+;;				beginning and/or end of buffer.
+;;
+;; `blank-space-after-tab'	Face used to visualize 8 or more
+;;				SPACEs after TAB.
+;;
 ;; `blank-space-regexp'		Specify SPACE characters regexp.
 ;;
 ;; `blank-hspace-regexp'	Specify HARD SPACE characters regexp.
@@ -207,6 +251,18 @@
 ;;
 ;; `blank-space-before-tab-regexp'	Specify SPACEs before TAB
 ;;					regexp.
+;;
+;; `blank-indentation-regexp'	Specify regexp for 8 or more SPACEs at
+;;				beginning of line.
+;;
+;; `blank-empty-at-bob-regexp'	Specify regexp for empty lines at
+;;				beginning of buffer.
+;;
+;; `blank-empty-at-eob-regexp'	Specify regexp for empty lines at end
+;;				of buffer.
+;;
+;; `blank-space-after-tab-regexp'	Specify regexp for 8 or more
+;;					SPACEs after TAB.
 ;;
 ;; `blank-line-length'		Specify length beyond which the line
 ;;				is highlighted.
@@ -249,6 +305,7 @@
 ;; visws.el (his code was modified, but the main idea was kept).
 ;;
 ;; Thanks to:
+;;    Rajesh Vaidheeswarran <rv@gnu.org>	whitespace.el
 ;;    Aurelien Tisne <aurelien.tisne@free.fr>	show-whitespace-mode.el
 ;;    Lawrence Mitchell <wence@gmx.li>		whitespace-mode.el
 ;;    Miles Bader <miles@gnu.org>		visws.el
@@ -297,7 +354,8 @@ See also `blank-display-mappings' for documentation."
 
 
 (defcustom blank-chars
-  '(tabs spaces trailing lines space-before-tab newline)
+  '(tabs spaces trailing lines space-before-tab newline
+	 indentation empty space-after-tab)
   "*Specify which kind of blank is visualized.
 
 It's a list which element value can be:
@@ -315,6 +373,14 @@ It's a list which element value can be:
 
    newline		NEWLINEs are visualized.
 
+   indentation		8 or more SPACEs at beginning of line are
+			visualized.
+
+   empty		empty lines at beginning and/or end of buffer
+			are visualized.
+
+   space-after-tab	8 or more SPACEs after a TAB are visualized.
+
 Any other value is ignored.
 
 If nil, don't visualize TABs, (HARD) SPACEs and NEWLINEs.
@@ -331,7 +397,12 @@ has `mark' as an element."
 			 (const :tag "Lines" lines)
 			 (const :tag "SPACEs before TAB"
 				space-before-tab)
-			 (const :tag "NEWLINEs" newline)))
+			 (const :tag "NEWLINEs" newline)
+			 (const :tag "Indentation SPACEs" indentation)
+			 (const :tag "Empty Lines At BOB And/Or EOB"
+				empty)
+			 (const :tag "SPACEs after TAB"
+				space-after-tab)))
   :group 'blank)
 
 
@@ -461,6 +532,51 @@ Used when `blank-style' has `color' as an element."
   :group 'blank)
 
 
+(defcustom blank-indentation 'blank-indentation
+  "*Symbol face used to visualize 8 or more SPACEs at beginning of line.
+
+Used when `blank-style' has `color' as an element."
+  :type 'face
+  :group 'blank)
+
+
+(defface blank-indentation
+  '((((class mono)) (:inverse-video t :bold t :underline t))
+    (t (:background "yellow" :foreground "firebrick")))
+  "Face used to visualize 8 or more SPACEs at beginning of line."
+  :group 'blank)
+
+
+(defcustom blank-empty 'blank-empty
+  "*Symbol face used to visualize empty lines at beginning and/or end of buffer.
+
+Used when `blank-style' has `color' as an element."
+  :type 'face
+  :group 'blank)
+
+
+(defface blank-empty
+  '((((class mono)) (:inverse-video t :bold t :underline t))
+    (t (:background "yellow" :foreground "firebrick")))
+  "Face used to visualize empty lines at beginning and/or end of buffer."
+  :group 'blank)
+
+
+(defcustom blank-space-after-tab 'blank-space-after-tab
+  "*Symbol face used to visualize 8 or more SPACEs after TAB.
+
+Used when `blank-style' has `color' as an element."
+  :type 'face
+  :group 'blank)
+
+
+(defface blank-space-after-tab
+  '((((class mono)) (:inverse-video t :bold t :underline t))
+    (t (:background "yellow" :foreground "firebrick")))
+  "Face used to visualize 8 or more SPACEs after TAB."
+  :group 'blank)
+
+
 (defcustom blank-hspace-regexp
   "\\(\\(\xA0\\|\x8A0\\|\x920\\|\xE20\\|\xF20\\)+\\)"
   "*Specify HARD SPACE characters regexp.
@@ -574,6 +690,70 @@ Used when `blank-style' has `color' as an element, and
   :group 'blank)
 
 
+(defcustom blank-indentation-regexp "^\t*\\(\\( \\{8\\}\\)+\\)[^\n\t]"
+  "*Specify regexp for 8 or more SPACEs at beginning of line.
+
+If you're using `mule' package, it may exist other characters besides:
+
+   \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
+\"\\xF20\"
+
+that should be considered blank.
+
+Used when `blank-style' has `color' as an element, and
+`blank-chars' has `indentation' as an element."
+  :type '(regexp :tag "Indentation SPACEs")
+  :group 'blank)
+
+
+(defcustom blank-empty-at-bob-regexp "\\`\\(\\([ \t]*\n\\)+\\)"
+  "*Specify regexp for empty lines at beginning of buffer.
+
+If you're using `mule' package, it may exist other characters besides:
+
+   \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
+\"\\xF20\"
+
+that should be considered blank.
+
+Used when `blank-style' has `color' as an element, and
+`blank-chars' has `empty' as an element."
+  :type '(regexp :tag "Empty Lines At Beginning Of Buffer")
+  :group 'blank)
+
+
+(defcustom blank-empty-at-eob-regexp "^\\([ \t\n]+\\)\\'"
+  "*Specify regexp for empty lines at end of buffer.
+
+If you're using `mule' package, it may exist other characters besides:
+
+   \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
+\"\\xF20\"
+
+that should be considered blank.
+
+Used when `blank-style' has `color' as an element, and
+`blank-chars' has `empty' as an element."
+  :type '(regexp :tag "Empty Lines At End Of Buffer")
+  :group 'blank)
+
+
+(defcustom blank-space-after-tab-regexp "\t\\(\\( \\{8\\}\\)+\\)"
+  "*Specify regexp for 8 or more SPACEs after TAB.
+
+If you're using `mule' package, it may exist other characters besides:
+
+   \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
+\"\\xF20\"
+
+that should be considered blank.
+
+Used when `blank-style' has `color' as an element, and
+`blank-chars' has `space-after-tab' as an element."
+  :type '(regexp :tag "SPACEs After TAB")
+  :group 'blank)
+
+
 (defcustom blank-line-length 80
   "*Specify length beyond which the line is highlighted.
 
@@ -658,13 +838,13 @@ of the list is negated if it begins with `not'.  For example:
 
 means that `blank-mode' is turned on for buffers in C and C++
 modes only."
-  :type '(choice (const :tag "none" nil)
-		 (const :tag "all" t)
-		 (set :menu-tag "mode specific" :tag "modes"
+  :type '(choice (const :tag "None" nil)
+		 (const :tag "All" t)
+		 (set :menu-tag "Mode Specific" :tag "Modes"
 		      :value (not)
 		      (const :tag "Except" not)
 		      (repeat :inline t
-			      (symbol :tag "mode"))))
+			      (symbol :tag "Mode"))))
   :group 'blank)
 
 
@@ -765,6 +945,9 @@ Only useful with a windowing system."
     space-before-tab
     lines
     newline
+    indentation
+    empty
+    space-after-tab
     )
   "List of valid `blank-chars' values.")
 
@@ -783,6 +966,9 @@ Only useful with a windowing system."
     (?b . space-before-tab)
     (?l . lines)
     (?n . newline)
+    (?i . indentation)
+    (?e . empty)
+    (?a . space-after-tab)
     (?c . color)
     (?m . mark)
     (?x . blank-chars)
@@ -830,6 +1016,9 @@ Interactively, it reads one of the following chars:
    b	toggle SPACEs before TAB visualization
    l	toggle \"long lines\" visualization
    n	toggle NEWLINE visualization
+   i	toggle indentation SPACEs visualization
+   e	toggle empty line at bob and/or eob visualization
+   a	toggle SPACEs after TAB visualization
    c	toggle color faces
    m	toggle visual mark
    x	restore `blank-chars' value
@@ -845,6 +1034,9 @@ The valid symbols are:
    space-before-tab	toggle SPACEs before TAB visualization
    lines		toggle \"long lines\" visualization
    newline		toggle NEWLINE visualization
+   indentation		toggle indentation SPACEs visualization
+   empty		toggle empty line at bob and/or eob visualization
+   space-after-tab	toggle SPACEs after TAB visualization
    color		toggle color faces
    mark			toggle visual mark
    blank-chars		restore `blank-chars' value
@@ -887,6 +1079,9 @@ Interactively, it reads one of the following chars:
    b	toggle SPACEs before TAB visualization
    l	toggle \"long lines\" visualization
    n	toggle NEWLINE visualization
+   i	toggle indentation SPACEs visualization
+   e	toggle empty line at bob and/or eob visualization
+   a	toggle SPACEs after TAB visualization
    c	toggle color faces
    m	toggle visual mark
    x	restore `blank-chars' value
@@ -902,6 +1097,9 @@ The valid symbols are:
    space-before-tab	toggle SPACEs before TAB visualization
    lines		toggle \"long lines\" visualization
    newline		toggle NEWLINE visualization
+   indentation		toggle indentation SPACEs visualization
+   empty		toggle empty line at bob and/or eob visualization
+   space-after-tab	toggle SPACEs after TAB visualization
    color		toggle color faces
    mark			toggle visual mark
    blank-chars		restore `blank-chars' value
@@ -919,6 +1117,152 @@ Only useful with a windowing system."
 	  blank-toggle-style blank-style)
     (global-blank-mode 0)
     (global-blank-mode 1)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; User commands - Cleanup
+
+
+;;;###autoload
+(defun blank-cleanup ()
+  "Cleanup some blank problems in all buffer or at region.
+
+It usually applies to the whole buffer, but in transient mark
+mode when the mark is active, it applies to the region.  It also
+applies to the region when it is not in transiente mark mode, the
+mark is active and it was pressed `C-u' just before calling
+`blank-cleanup' interactively.
+
+See also `blank-cleanup-region'.
+
+The problems, which are cleaned up, are:
+
+1. empty lines at beginning of buffer.
+2. empty lines at end of buffer.
+   If `blank-chars' has `empty' as an element, remove all empty
+   lines at beginning and/or end of buffer.
+
+3. 8 or more SPACEs at beginning of line.
+   If `blank-chars' has `indentation' as an element, replace 8 or
+   more SPACEs at beginning of line by TABs.
+
+4. SPACEs before TAB.
+   If `blank-chars' has `space-before-tab' as an element, replace
+   SPACEs by TABs.
+
+5. SPACEs or TABs at end of line.
+   If `blank-chars' has `trailing' as an element, remove all
+   SPACEs or TABs at end of line.
+
+6. 8 or more SPACEs after TAB.
+   If `blank-chars' has `space-after-tab' as an element, replace
+   SPACEs by TABs."
+  (interactive "@*")
+  (if (and (or transient-mark-mode
+	       current-prefix-arg)
+	   mark-active)
+      ;; region active
+      ;; problems 1 and 2 are not handled in region
+      ;; problem 3: 8 or more SPACEs at bol
+      ;; problem 4: SPACEs before TAB
+      ;; problem 5: SPACEs or TABs at eol
+      ;; problem 6: 8 or more SPACEs after TAB
+      (blank-cleanup-region (region-beginning) (region-end))
+    ;; whole buffer
+    (save-excursion
+      ;; problem 1: empty lines at bob
+      ;; problem 2: empty lines at eob
+      ;; action: remove all empty lines at bob and/or eob
+      (when (memq 'empty blank-chars)
+	(let (overwrite-mode)		; enforce no overwrite
+	  (goto-char (point-min))
+	  (when (re-search-forward blank-empty-at-bob-regexp nil t)
+	    (delete-region (match-beginning 1) (match-end 1)))
+	  (when (re-search-forward blank-empty-at-eob-regexp nil t)
+	    (delete-region (match-beginning 1) (match-end 1)))))
+      ;; problem 3: 8 or more SPACEs at bol
+      ;; problem 4: SPACEs before TAB
+      ;; problem 5: SPACEs or TABs at eol
+      ;; problem 6: 8 or more SPACEs after TAB
+      (blank-cleanup-region (point-min) (point-max)))))
+
+
+;;;###autoload
+(defun blank-cleanup-region (start end)
+  "Cleanup some blank problems at region.
+
+The problems, which are cleaned up, are:
+
+1. 8 or more SPACEs at beginning of line.
+   If `blank-chars' has `indentation' as an element, replace 8 or
+   more SPACEs at beginning of line by TABs.
+
+2. SPACEs before TAB.
+   If `blank-chars' has `space-before-tab' as an element, replace
+   SPACEs by TABs.
+
+3. SPACEs or TABs at end of line.
+   If `blank-chars' has `trailing' as an element, remove all
+   SPACEs or TABs at end of line.
+
+4. 8 or more SPACEs after TAB.
+   If `blank-chars' has `space-after-tab' as an element, replace
+   SPACEs by TABs."
+  (interactive "@*r")
+  (let ((rstart           (min start end))
+	(rend             (copy-marker (max start end)))
+	(tab-width        8)		; assure TAB width
+	(indent-tabs-mode t)		; always insert TABs
+	overwrite-mode			; enforce no overwrite
+	tmp)
+    (save-excursion
+      ;; problem 1: 8 or more SPACEs at bol
+      ;; action: replace 8 or more SPACEs at bol by TABs
+      (when (memq 'indentation blank-chars)
+	(goto-char rstart)
+	(while (re-search-forward blank-indentation-regexp rend t)
+	  (setq tmp (current-indentation))
+	  (delete-horizontal-space)
+	  (unless (eolp)
+	    (indent-to tmp))))
+      ;; problem 3: SPACEs or TABs at eol
+      ;; action: remove all SPACEs or TABs at eol
+      (when (memq 'trailing blank-chars)
+	(let ((regexp
+	       (concat "\\(\\(" blank-trailing-regexp "\\)+\\)$")))
+	  (goto-char rstart)
+	  (while (re-search-forward regexp rend t)
+	    (delete-region (match-beginning 1) (match-end 1)))))
+      ;; problem 4: 8 or more SPACEs after TAB
+      ;; action: replace 8 or more SPACEs by TABs
+      (when (memq 'space-after-tab blank-chars)
+	(goto-char rstart)
+	(while (re-search-forward blank-space-after-tab-regexp rend t)
+	  (goto-char (match-beginning 1))
+	  (let ((scol (current-column))
+		(ecol (save-excursion
+			(goto-char (match-end 1))
+			(current-column))))
+	    (delete-region (match-beginning 1) (match-end 1))
+	    (insert-char ?\t (/ (- ecol scol) 8)))))
+      ;; problem 2: SPACEs before TAB
+      ;; action: replace SPACEs before TAB by TABs
+      (when (memq 'space-before-tab blank-chars)
+	(goto-char rstart)
+	(while (re-search-forward blank-space-before-tab-regexp rend t)
+	  (goto-char (match-beginning 1))
+	  (let* ((scol         (current-column))
+		 (ecol         (save-excursion
+				 (goto-char (match-end 1))
+				 (current-column)))
+		 (next-tab-col (* (/ (+ scol 8) 8) 8)))
+	    (delete-region (match-beginning 1) (match-end 1))
+	    (when (<= next-tab-col ecol)
+	      (insert-char ?\t
+			   (/ (- (- ecol (% ecol 8))  ; prev end col
+				 (- scol (% scol 8))) ; prev start col
+			      8)))))))
+    (set-marker rend nil)))		; point marker to nowhere
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -948,6 +1292,9 @@ Only useful with a windowing system."
  []  b - toggle SPACEs before TAB visualization
  []  l - toggle \"long lines\" visualization
  []  n - toggle NEWLINE visualization
+ []  i - toggle indentation SPACEs visualization
+ []  e - toggle empty line at bob and/or eob visualization
+ []  a - toggle SPACEs after TAB visualization
 
  []  c - toggle color faces
  []  m - toggle visual mark
@@ -1019,6 +1366,9 @@ It reads one of the following chars:
    b	toggle SPACEs before TAB visualization
    l	toggle \"long lines\" visualization
    n	toggle NEWLINE visualization
+   i	toggle indentation SPACEs visualization
+   e	toggle empty line at bob and/or eob visualization
+   a	toggle SPACEs after TAB visualization
    c	toggle color faces
    m	toggle visual mark
    x	restore `blank-chars' value
@@ -1170,6 +1520,37 @@ options are valid."
 	;; Show SPACEs before TAB
 	(list blank-space-before-tab-regexp
 	      1 blank-space-before-tab t))
+       t))
+    (when (memq 'indentation blank-active-chars)
+      (font-lock-add-keywords
+       nil
+       (list
+	;; Show indentation SPACEs
+	(list blank-indentation-regexp
+	      1 blank-indentation t))
+       t))
+    (when (memq 'empty blank-active-chars)
+      (font-lock-add-keywords
+       nil
+       (list
+	;; Show empty lines at beginning of buffer
+	(list blank-empty-at-bob-regexp
+	      1 blank-empty t))
+       t)
+      (font-lock-add-keywords
+       nil
+       (list
+	;; Show empty lines at end of buffer
+	(list blank-empty-at-eob-regexp
+	      1 blank-empty t))
+       t))
+    (when (memq 'space-after-tab blank-active-chars)
+      (font-lock-add-keywords
+       nil
+       (list
+	;; Show SPACEs after TAB
+	(list blank-space-after-tab-regexp
+	      1 blank-space-after-tab t))
        t))
     ;; now turn on font lock and highlight blanks
     (font-lock-mode 1)))
