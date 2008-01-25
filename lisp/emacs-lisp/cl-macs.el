@@ -2508,11 +2508,12 @@ They are not evaluated unless the assertion fails.  If STRING is
 omitted, a default message listing FORM itself is used."
   (and (or (not (cl-compiling-file))
 	   (< cl-optimize-speed 3) (= cl-optimize-safety 3))
-       (let ((sargs (and show-args (delq nil (mapcar
-					      (function
-					       (lambda (x)
-						 (and (not (cl-const-expr-p x))
-						      x))) (cdr form))))))
+       (let ((sargs (and show-args
+			 (delq nil (mapcar
+				     (lambda (x)
+				       (unless (cl-const-expr-p x)
+					 x))
+				    (cdr form))))))
 	 (list 'progn
 	       (list 'or form
 		     (if string
