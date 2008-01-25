@@ -1,3 +1,8 @@
+2008-01-25  Sven Joachim  <svenjoac@gmx.de>
+
+	* view.el (kill-buffer-if-not-modified): Don't pass t to
+	buffer-modified-p.
+
 2008-01-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-copy-or-rename-file): Flush the cache of
