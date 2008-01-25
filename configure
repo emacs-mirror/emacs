@@ -11543,8 +11543,6 @@ _ACEOF
 fi
 
 HAVE_DBUS=no
-{ echo "$as_me:$LINENO: checking maybe dbus" >&5
-echo $ECHO_N "checking maybe dbus... $ECHO_C" >&6; }
 if test "${with_dbus}" = "yes"; then
 
   succeeded=no
@@ -11647,11 +11645,6 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
    fi
-   { echo "$as_me:$LINENO: result: $HAVE_DBUS" >&5
-echo "${ECHO_T}$HAVE_DBUS" >&6; }
-else
-   { echo "$as_me:$LINENO: result: no bub" >&5
-echo "${ECHO_T}no bub" >&6; }
 fi
 
 ### Link with -lXft if available to work around a bug.
@@ -23450,6 +23443,7 @@ echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $ac_
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
+echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 
