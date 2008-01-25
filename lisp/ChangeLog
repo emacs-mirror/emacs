@@ -1,3 +1,17 @@
+2008-01-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-prefix-data): Doc fix.
+	(allout-show-current-subtree): Reflow docstring.
+	(allout-use-mode-specific-leader, allout-use-hanging-indents)
+	(produce-allout-mode-map, allout-overlay-interior-modification-handler)
+	(allout-next-heading, allout-previous-heading, allout-rebullet-heading)
+	(allout-rebullet-topic, allout-rebullet-topic-grunt, allout-kill-topic)
+	(allout-copy-topic-as-kill, allout-listify-exposed)
+	(allout-process-exposed, allout-encrypted-key-info)
+	(allout-update-passphrase-mnemonic-aids)
+	(allout-next-topic-pending-encryption)
+	(allout-tests-globally-true): Fix typos in docstrings.
+
 2008-01-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-version-diff): Make sure we shrink the right window.
@@ -29,7 +43,7 @@
 	* progmodes/python.el: Quote all calls to "auxiliary skeleton"s to
 	prevent infloops.
 
-2008-01-20  Martin Svenson <phromo@gmail.com>  (tiny change)
+2008-01-20  Martin Svenson  <phromo@gmail.com>  (tiny change)
 
 	* progmodes/python.el (python-imports): Default to "None".
 
