@@ -1,3 +1,18 @@
+2008-01-25  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (redisplay_window): Run Qwindow_text_change_functions and
+	jump back to beginning.  Move some other initializations after that.
+	(Qwindow_text_change_functions, Vwindow_text_change_functions):
+	New variables.
+	(syms_of_xdisp): Init them.
+
+	* keyboard.c (read_char): Restore echo_message_buffer after redisplay.
+
+	* buffer.c (reset_buffer_local_variables): Implement
+	`permanent-local-hook'.
+	(Qpermanent_local_hook): New variable.
+	(syms_of_buffer): init and staticpro it.
+
 2008-01-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (xd_retrieve_arg): Pacify GCC on x86_64 GNU/Linux.
