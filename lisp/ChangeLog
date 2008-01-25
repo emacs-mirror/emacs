@@ -1,3 +1,8 @@
+2008-01-25  Sven Joachim  <svenjoac@gmx.de>
+
+	* view.el (kill-buffer-if-not-modified): Don't pass t to
+	buffer-modified-p.
+
 2008-01-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout.el (allout-prefix-data): Doc fix.
