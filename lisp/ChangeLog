@@ -1,3 +1,9 @@
+2008-01-25  Richard Stallman  <rms@gnu.org>
+
+	* subr.el (add-hook): Implement `permanent-local-hook' property.
+
+	* loadhist.el (file-provides, file-requires): Push the filename right.
+
 2008-01-25  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/find-func.el (find-library): Wrap search for
