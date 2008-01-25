@@ -1,3 +1,8 @@
+2008-01-25  Martin Rudalics  <rudalics@gmx.at>
+
+	* emacs-lisp/find-func.el (find-library): Wrap search for
+	library name in condition-case to avoid reporting a scan-error.
+
 2008-01-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-process-filter): Don't force
