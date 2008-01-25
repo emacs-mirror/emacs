@@ -1,3 +1,9 @@
+2008-01-25  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Correct usage of OPTION_DEFAULT_ON,
+	OPTION_DEFAULT_OFF so that the defaults are as they used to be.
+	Default `Carbon' to off (it's unsupported).
+
 2008-01-24  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Standardize dbus-related messages.
