@@ -1,3 +1,8 @@
+2008-01-25  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* font.c (font_load_for_face): Handle the case that the font in
+	face->lface is a string.
+
 2008-01-23  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xfaces.c (set_lface_from_font_and_fontset): Set the fontname in
