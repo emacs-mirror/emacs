@@ -229,7 +229,7 @@ xstrdup (const char *s)
 
 
 /* Return the current working directory.  Returns NULL on errors.
-   Any other returned value must be freed with free. This is used
+   Any other returned value must be freed with free.  This is used
    only when get_current_dir_name is not defined on the system.  */
 char*
 get_current_dir_name ()
@@ -1010,7 +1010,7 @@ set_tcp_socket ()
 
   send_to_emacs (s, "-auth ");
   send_to_emacs (s, auth_string);
-  send_to_emacs (s, "\n");
+  send_to_emacs (s, " ");
 
   return s;
 }
@@ -1100,7 +1100,7 @@ handle_sigtstp (int signalnum)
   if (emacs_socket)
     send_to_emacs (emacs_socket, "-suspend \n");
 
-  /* Unblock this signal and call the default handler by temprarily
+  /* Unblock this signal and call the default handler by temporarily
      changing the handler and resignalling. */
   sigprocmask (SIG_BLOCK, NULL, &set);
   sigdelset (&set, signalnum);
