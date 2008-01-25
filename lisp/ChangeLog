@@ -1,3 +1,18 @@
+2008-01-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* blank-mode.el: New version 9.0.  New commands to clean up some blank
+	problems like trailing blanks.  New faces and regexp for visualizing
+	the blank problems.  Doc fix.
+	(blank-chars, blank-global-modes, blank-chars-value-list)
+	(blank-toggle-option-alist, blank-help-text): Initialization fix.
+	(blank-indentation, blank-empty, blank-space-after-tab): New faces.
+	(blank-indentation, blank-empty, blank-space-after-tab)
+	(blank-indentation-regexp, blank-empty-at-bob-regexp)
+	(blank-empty-at-eob-regexp, blank-space-after-tab-regexp): New
+	options.
+	(blank-cleanup, blank-cleanup-region): New commands.
+	(blank-color-on): Code fix.
+
 2008-01-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* ibuffer.el (ibuffer-default-sorting-mode): Add option to sort by
