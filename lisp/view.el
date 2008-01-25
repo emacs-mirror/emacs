@@ -244,7 +244,7 @@ This is local in each buffer, once it is used.")
 ;; types C-x C-q again to return to view mode.
 (defun kill-buffer-if-not-modified (buf)
   "Like `kill-buffer', but does nothing if the buffer is modified."
-  (let ((buf (or (bufferp buf) (get-buffer buf))))
+  (let ((buf (get-buffer buf)))
     (and buf (not (buffer-modified-p buf))
 	 (kill-buffer buf))))
 
