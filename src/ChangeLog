@@ -25,11 +25,11 @@
 
 2008-01-21  Michael Albinus  <michael.albinus@gmx.de>
 
-	* dbusbind.el (Fdbus_method_return_internal): Renamed from
+	* dbusbind.c (Fdbus_method_return_internal): Rename from
 	Fdbus_method_return.
-	(Fdbus_unregister_object): Moved to dbus.el.
+	(Fdbus_unregister_object): Move to dbus.el.
 	(Fdbus_call_method, Fdbus_method_return_internal)
-	(Fdbus_send_signal): Debug messages improved.
+	(Fdbus_send_signal): Improve debug messages.
 
 2008-01-20  Martin Rudalics  <rudalics@gmx.at>
 
