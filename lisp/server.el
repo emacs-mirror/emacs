@@ -767,7 +767,7 @@ The following commands are accepted by the client:
   (server-log (concat "Received " string) proc)
   ;; First things first: let's check the authentication
   (unless (process-get proc :authenticated)
-    (if (and (string-match "-auth \\(.*?\\)\n" string)
+    (if (and (string-match "-auth \\([!-~]+\\)\n?" string)
 	     (equal (match-string 1 string) (process-get proc :auth-key)))
 	(progn
 	  (setq string (substring string (match-end 0)))
