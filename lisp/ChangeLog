@@ -1,3 +1,9 @@
+2008-01-26  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-defs.el (c-save-buffer-state): Bind
+	buffer-file-name and buffer-file-truename to nil, to prevent
+	primitives generating "buffer is read only" messages.
+
 2008-01-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/etags.el (tags-query-replace): Doc fix.
