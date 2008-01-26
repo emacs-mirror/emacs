@@ -2127,26 +2127,29 @@ Note that this should end with a directory separator.")
 (defun find-tag-default ()
   "Determine default tag to search for, based on text at point.
 If there is no plausible default, return nil."
-  (save-excursion
-    (while (looking-at "\\sw\\|\\s_")
-      (forward-char 1))
-    (if (or (re-search-backward "\\sw\\|\\s_"
-				(save-excursion (beginning-of-line) (point))
-				t)
-	    (re-search-forward "\\(\\sw\\|\\s_\\)+"
-			       (save-excursion (end-of-line) (point))
-			       t))
-	(progn
-	  (goto-char (match-end 0))
-	  (condition-case nil
-	      (buffer-substring-no-properties
-	       (point)
-	       (progn (forward-sexp -1)
-		      (while (looking-at "\\s'")
-			(forward-char 1))
-		      (point)))
-	    (error nil)))
-      nil)))
+  (let (from to bound)
+    (when (or (progn
+		;; Look at text around `point'.
+		(save-excursion
+		  (skip-syntax-backward "w_") (setq from (point)))
+		(save-excursion
+		  (skip-syntax-forward "w_") (setq to (point)))
+		(> to from))
+	      ;; Look between `line-beginning-position' and `point'.
+	      (save-excursion
+		(and (setq bound (line-beginning-position))
+		     (skip-syntax-backward "^w_" bound)
+		     (> (setq to (point)) bound)
+		     (skip-syntax-backward "w_")
+		     (setq from (point))))
+	      ;; Look between `point' and `line-end-position'.
+	      (save-excursion
+		(and (setq bound (line-end-position))
+		     (skip-syntax-forward "^w_" bound)
+		     (< (setq from (point)) bound)
+		     (skip-syntax-forward "w_")
+		     (setq to (point)))))
+      (buffer-substring-no-properties from to))))
 
 (defun play-sound (sound)
   "SOUND is a list of the form `(sound KEYWORD VALUE...)'.
