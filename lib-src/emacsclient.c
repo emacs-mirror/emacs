@@ -479,10 +479,14 @@ decode_options (argc, argv)
      char **argv;
 {
   alternate_editor = egetenv ("ALTERNATE_EDITOR");
-#ifndef WINDOWSNT
+
+  /* We used to set `display' to $DISPLAY by default, but this changed the
+     default behavior and is sometimes inconvenient.  So instead of forcing
+     users to say "--display ''" when they want to use Emacs's existing tty
+     or display connection, we force them to use "--display $DISPLAY" if
+     they want Emacs to connect to their current display.  */
+#if 0
   display = egetenv ("DISPLAY");
-  if (display && strlen (display) == 0)
-    display = NULL;
 #endif
 
   while (1)
@@ -519,7 +523,11 @@ decode_options (argc, argv)
 	  server_file = optarg;
 	  break;
 
-#ifndef WINDOWSNT
+	  /* We used to disallow this argument in w32, but it seems better
+	     to allow it, for the occasional case where the user is
+	     connecting with a w32 client to a server compiled with X11
+	     support.  */
+#if 1 /* !defined WINDOWS */
 	case 'd':
 	  display = optarg;
 	  break;
@@ -557,6 +565,9 @@ decode_options (argc, argv)
 	  break;
 	}
     }
+
+  if (display && strlen (display) == 0)
+    display = NULL;
 
   if (!tty && display)
     window_system = 1;

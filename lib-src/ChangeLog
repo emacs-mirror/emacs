@@ -1,3 +1,9 @@
+2008-01-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacsclient.c (decode_options): Default to a NULL display, as Emacs-22.
+	Allow the -d option under w32 again, for those rare cases where it
+	actually does make sense.
+
 2008-01-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (set_tcp_socket): Don't send "\n" after
