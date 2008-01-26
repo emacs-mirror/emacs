@@ -1,3 +1,8 @@
+2008-01-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (logon_network_drive): New function.
+	(stat): Use it.
+
 2008-01-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (pos_visible_p): Handle the case where charpos falls on
