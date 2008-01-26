@@ -5406,12 +5406,13 @@ DEFUN ("hash-table-p", Fhash_table_p, Shash_table_p, 1, 1, 0,
 
 
 DEFUN ("clrhash", Fclrhash, Sclrhash, 1, 1, 0,
-       doc: /* Clear hash table TABLE.  */)
+       doc: /* Clear hash table TABLE and return it.  */)
      (table)
      Lisp_Object table;
 {
   hash_clear (check_hash_table (table));
-  return Qnil;
+  /* Be compatible with XEmacs.  */
+  return table;
 }
 
 
