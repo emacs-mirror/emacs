@@ -1,3 +1,7 @@
+2008-01-26  Richard Stallman  <rms@gnu.org>
+
+	* maintaining.texi (Tags): Delete redundant index entry.
+
 2008-01-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* programs.texi (Imenu): Move "@cindex tags" from here...
