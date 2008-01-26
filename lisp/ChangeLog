@@ -1,5 +1,17 @@
 2008-01-26  Alan Mackenzie  <acm@muc.de>
 
+	* progmodes/cc-vars.el (c-hanging-braces-alist): new element for
+	arglist-cont-nonempty.
+
+	* progmodes/cc-cmds.el (c-brace-newlines): Determine the newlines
+	for a brace with syntax arglist-cont-nonempty.
+	
+	* progmodes/cc-styles.el (c-style-alist): Add elements for
+	arglist-cont-nonempty into 5 styles (gnu, ellemtel, linux, python,
+	awk).
+
+2008-01-26  Alan Mackenzie  <acm@muc.de>
+
 	* progmodes/cc-defs.el (c-save-buffer-state): Bind
 	buffer-file-name and buffer-file-truename to nil, to prevent
 	primitives generating "buffer is read only" messages.
