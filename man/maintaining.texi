@@ -130,7 +130,8 @@ Of course, you should substitute the proper years and copyright holder.
 
 @node Tags
 @section Tags Tables
-@cindex tags table
+@cindex tags
+@cindex tag tables
 
   A @dfn{tags table} is a description of how a multi-file program is
 broken up into files.  It lists the names of the component files and the
