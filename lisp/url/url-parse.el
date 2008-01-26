@@ -77,9 +77,9 @@
 
 ;;;###autoload
 (defun url-generic-parse-url (url)
-  "Return a vector of the parts of URL.
-Format is:
-\[TYPE USER PASSWORD HOST PORT FILE TARGET ATTRIBUTES FULL\]"
+  "Return an URL-struct of the parts of URL.
+The CL-style struct contains the following fields:
+TYPE USER PASSWORD HOST PORTSPEC FILENAME TARGET ATTRIBUTES FULLNESS."
   ;; See RFC 3986.
   (cond
    ((null url)
