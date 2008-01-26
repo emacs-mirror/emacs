@@ -7,6 +7,8 @@
 	(init_user_info): Use the above two new functions to retrieve uid
 	and gid.  Use 500/513, the Windows defaults, as Administrator's
 	uid/gid.
+	(fstat): Use pw_uid and pw_gid from the_passwd structure for
+	st_uid and st_gid of the file.
 
 2008-01-26  Jason Rumney  <jasonr@gnu.org>
 
