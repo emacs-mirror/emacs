@@ -1,3 +1,8 @@
+2008-01-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (pos_visible_p): Handle the case where charpos falls on
+	invisible text covered with an ellipsis.
+
 2008-01-25  Richard Stallman  <rms@gnu.org>
 
 	* xdisp.c (redisplay_window): Run Qwindow_text_change_functions and
