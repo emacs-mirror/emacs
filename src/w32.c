@@ -1938,6 +1938,36 @@ unc_volume_file_attributes (const char *path)
   return attrs;
 }
 
+/* Ensure a network connection is authenticated.  */
+static void
+logon_network_drive (const char *path)
+{
+  NETRESOURCE resource;
+  char share[MAX_PATH];
+  int i, n_slashes;
+
+  /* Only logon to networked drives.  */
+  if (!IS_DIRECTORY_SEP (path[0]) || !IS_DIRECTORY_SEP (path[1]))
+    return;
+  n_slashes = 2;
+  strncpy (share, path, MAX_PATH);
+  /* Truncate to just server and share name.  */
+  for (i = 2; i < MAX_PATH; i++)
+    {
+      if (IS_DIRECTORY_SEP (share[i]) && ++n_slashes > 3)
+        {
+          share[i] = '\0';
+          break;
+        }
+    }
+
+  resource.dwType = RESOURCETYPE_DISK;
+  resource.lpLocalName = NULL;
+  resource.lpRemoteName = share;
+  resource.lpProvider = NULL;
+
+  WNetAddConnection2 (&resource, NULL, NULL, CONNECT_INTERACTIVE);
+}
 
 /* Shadow some MSVC runtime functions to map requests for long filenames
    to reasonable short names if necessary.  This was originally added to
@@ -2495,6 +2525,9 @@ stat (const char * path, struct stat * buf)
 	}
       else
 	{
+          if (IS_DIRECTORY_SEP (name[0]) && IS_DIRECTORY_SEP (name[1]))
+            logon_network_drive (name);
+
 	  fh = FindFirstFile (name, &wfd);
 	  if (fh == INVALID_HANDLE_VALUE)
 	    {
