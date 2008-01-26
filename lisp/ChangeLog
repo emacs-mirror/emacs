@@ -1,3 +1,13 @@
+2008-01-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* blank-mode.el: New version 9.1.  Handle "long" line tail
+	visualization.  Doc fix.
+	(blank-line-length): Renamed to blank-line-column.
+	(blank-chars-value-list, blank-toggle-option-alist, blank-help-text):
+	Initialization fix.
+	(blank-replace-spaces-by-tabs): New fun.
+	(blank-cleanup, blank-cleanup-region, blank-color-on): Code fix.
+
 2008-01-25  Richard Stallman  <rms@gnu.org>
 
 	* subr.el (add-hook): Implement `permanent-local-hook' property.

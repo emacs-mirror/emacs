@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 9.0
+;; Version: 9.1
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -264,7 +264,7 @@
 ;; `blank-space-after-tab-regexp'	Specify regexp for 8 or more
 ;;					SPACEs after TAB.
 ;;
-;; `blank-line-length'		Specify length beyond which the line
+;; `blank-line-column'		Specify column beyond which the line
 ;;				is highlighted.
 ;;
 ;; `blank-display-mappings'	Specify an alist of mappings for
@@ -276,6 +276,9 @@
 ;;
 ;; Acknowledgements
 ;; ----------------
+;;
+;; Thanks to nschum (EmacsWiki) for the idea about highlight "long"
+;; lines tail.  See EightyColumnRule (EmacsWiki).
 ;;
 ;; Thanks to Juri Linkov <juri@jurta.org> for suggesting:
 ;;    * `define-minor-mode'.
@@ -293,7 +296,7 @@
 ;; indicating defface byte-compilation warnings.
 ;;
 ;; Thanks to TimOCallaghan (EmacsWiki) for the idea about highlight
-;; "long" lines. See EightyColumnRule (EmacsWiki).
+;; "long" lines.  See EightyColumnRule (EmacsWiki).
 ;;
 ;; Thanks to Yanghui Bian <yanghuibian@gmail.com> for indicating a new
 ;; newline character mapping.
@@ -366,8 +369,18 @@ It's a list which element value can be:
 
    spaces		SPACEs and HARD SPACEs are visualized.
 
-   lines		lines whose length is greater than
-			`blank-line-length' are highlighted.
+   lines		lines whose have columns beyond
+			`blank-line-column' are highlighted.
+			Whole line is highlighted.
+			It has precedence over
+			`lines-tail' (see below).
+
+   lines-tail		lines whose have columns beyond
+			`blank-line-column' are highlighted.
+			But only the part of line which goes
+			beyond `blank-line-column' column.
+			It has effect only if `lines' (see above)
+			is not present in `blank-chars'.
 
    space-before-tab	SPACEs before TAB are visualized.
 
@@ -501,7 +514,7 @@ Used when `blank-style' has `color' as an element."
 (defcustom blank-line 'blank-line
   "*Symbol face used to visualize \"long\" lines.
 
-See `blank-line-length'.
+See `blank-line-column'.
 
 Used when `blank-style' has `color' as an element."
   :type 'face
@@ -513,7 +526,7 @@ Used when `blank-style' has `color' as an element."
     (t (:background "gray20" :foreground "violet")))
   "Face used to visualize \"long\" lines.
 
-See `blank-line-length'."
+See `blank-line-column'."
   :group 'blank)
 
 
@@ -754,11 +767,11 @@ Used when `blank-style' has `color' as an element, and
   :group 'blank)
 
 
-(defcustom blank-line-length 80
-  "*Specify length beyond which the line is highlighted.
+(defcustom blank-line-column 80
+  "*Specify column beyond which the line is highlighted.
 
 Used when `blank-style' has `color' as an element, and
-`blank-chars' has `lines' as an element."
+`blank-chars' has `lines' or `lines-tail' as an element."
   :type '(integer :tag "Line Length")
   :group 'blank)
 
@@ -944,6 +957,7 @@ Only useful with a windowing system."
     trailing
     space-before-tab
     lines
+    lines-tail
     newline
     indentation
     empty
@@ -965,6 +979,7 @@ Only useful with a windowing system."
     (?r . trailing)
     (?b . space-before-tab)
     (?l . lines)
+    (?L . lines-tail)
     (?n . newline)
     (?i . indentation)
     (?e . empty)
@@ -1015,6 +1030,7 @@ Interactively, it reads one of the following chars:
    r	toggle trailing blanks visualization
    b	toggle SPACEs before TAB visualization
    l	toggle \"long lines\" visualization
+   L	toggle \"long lines\" tail visualization
    n	toggle NEWLINE visualization
    i	toggle indentation SPACEs visualization
    e	toggle empty line at bob and/or eob visualization
@@ -1033,6 +1049,7 @@ The valid symbols are:
    trailing		toggle trailing blanks visualization
    space-before-tab	toggle SPACEs before TAB visualization
    lines		toggle \"long lines\" visualization
+   lines-tail		toggle \"long lines\" tail visualization
    newline		toggle NEWLINE visualization
    indentation		toggle indentation SPACEs visualization
    empty		toggle empty line at bob and/or eob visualization
@@ -1078,6 +1095,7 @@ Interactively, it reads one of the following chars:
    r	toggle trailing blanks visualization
    b	toggle SPACEs before TAB visualization
    l	toggle \"long lines\" visualization
+   L	toggle \"long lines\" tail visualization
    n	toggle NEWLINE visualization
    i	toggle indentation SPACEs visualization
    e	toggle empty line at bob and/or eob visualization
@@ -1096,6 +1114,7 @@ The valid symbols are:
    trailing		toggle trailing blanks visualization
    space-before-tab	toggle SPACEs before TAB visualization
    lines		toggle \"long lines\" visualization
+   lines-tail		toggle \"long lines\" tail visualization
    newline		toggle NEWLINE visualization
    indentation		toggle indentation SPACEs visualization
    empty		toggle empty line at bob and/or eob visualization
@@ -1170,21 +1189,22 @@ The problems, which are cleaned up, are:
       (blank-cleanup-region (region-beginning) (region-end))
     ;; whole buffer
     (save-excursion
-      ;; problem 1: empty lines at bob
-      ;; problem 2: empty lines at eob
-      ;; action: remove all empty lines at bob and/or eob
-      (when (memq 'empty blank-chars)
-	(let (overwrite-mode)		; enforce no overwrite
-	  (goto-char (point-min))
-	  (when (re-search-forward blank-empty-at-bob-regexp nil t)
-	    (delete-region (match-beginning 1) (match-end 1)))
-	  (when (re-search-forward blank-empty-at-eob-regexp nil t)
-	    (delete-region (match-beginning 1) (match-end 1)))))
-      ;; problem 3: 8 or more SPACEs at bol
-      ;; problem 4: SPACEs before TAB
-      ;; problem 5: SPACEs or TABs at eol
-      ;; problem 6: 8 or more SPACEs after TAB
-      (blank-cleanup-region (point-min) (point-max)))))
+      (save-match-data
+	;; problem 1: empty lines at bob
+	;; problem 2: empty lines at eob
+	;; action: remove all empty lines at bob and/or eob
+	(when (memq 'empty blank-chars)
+	  (let (overwrite-mode)		; enforce no overwrite
+	    (goto-char (point-min))
+	    (when (re-search-forward blank-empty-at-bob-regexp nil t)
+	      (delete-region (match-beginning 1) (match-end 1)))
+	    (when (re-search-forward blank-empty-at-eob-regexp nil t)
+	      (delete-region (match-beginning 1) (match-end 1)))))))
+    ;; problem 3: 8 or more SPACEs at bol
+    ;; problem 4: SPACEs before TAB
+    ;; problem 5: SPACEs or TABs at eol
+    ;; problem 6: 8 or more SPACEs after TAB
+    (blank-cleanup-region (point-min) (point-max))))
 
 
 ;;;###autoload
@@ -1216,53 +1236,51 @@ The problems, which are cleaned up, are:
 	overwrite-mode			; enforce no overwrite
 	tmp)
     (save-excursion
-      ;; problem 1: 8 or more SPACEs at bol
-      ;; action: replace 8 or more SPACEs at bol by TABs
-      (when (memq 'indentation blank-chars)
-	(goto-char rstart)
-	(while (re-search-forward blank-indentation-regexp rend t)
-	  (setq tmp (current-indentation))
-	  (delete-horizontal-space)
-	  (unless (eolp)
-	    (indent-to tmp))))
-      ;; problem 3: SPACEs or TABs at eol
-      ;; action: remove all SPACEs or TABs at eol
-      (when (memq 'trailing blank-chars)
-	(let ((regexp
-	       (concat "\\(\\(" blank-trailing-regexp "\\)+\\)$")))
+      (save-match-data
+	;; problem 1: 8 or more SPACEs at bol
+	;; action: replace 8 or more SPACEs at bol by TABs
+	(when (memq 'indentation blank-chars)
 	  (goto-char rstart)
-	  (while (re-search-forward regexp rend t)
-	    (delete-region (match-beginning 1) (match-end 1)))))
-      ;; problem 4: 8 or more SPACEs after TAB
-      ;; action: replace 8 or more SPACEs by TABs
-      (when (memq 'space-after-tab blank-chars)
-	(goto-char rstart)
-	(while (re-search-forward blank-space-after-tab-regexp rend t)
-	  (goto-char (match-beginning 1))
-	  (let ((scol (current-column))
-		(ecol (save-excursion
-			(goto-char (match-end 1))
-			(current-column))))
-	    (delete-region (match-beginning 1) (match-end 1))
-	    (insert-char ?\t (/ (- ecol scol) 8)))))
-      ;; problem 2: SPACEs before TAB
-      ;; action: replace SPACEs before TAB by TABs
-      (when (memq 'space-before-tab blank-chars)
-	(goto-char rstart)
-	(while (re-search-forward blank-space-before-tab-regexp rend t)
-	  (goto-char (match-beginning 1))
-	  (let* ((scol         (current-column))
-		 (ecol         (save-excursion
-				 (goto-char (match-end 1))
-				 (current-column)))
-		 (next-tab-col (* (/ (+ scol 8) 8) 8)))
-	    (delete-region (match-beginning 1) (match-end 1))
-	    (when (<= next-tab-col ecol)
-	      (insert-char ?\t
-			   (/ (- (- ecol (% ecol 8))  ; prev end col
-				 (- scol (% scol 8))) ; prev start col
-			      8)))))))
+	  (while (re-search-forward blank-indentation-regexp rend t)
+	    (setq tmp (current-indentation))
+	    (delete-horizontal-space)
+	    (unless (eolp)
+	      (indent-to tmp))))
+	;; problem 3: SPACEs or TABs at eol
+	;; action: remove all SPACEs or TABs at eol
+	(when (memq 'trailing blank-chars)
+	  (let ((regexp (concat "\\(\\(" blank-trailing-regexp
+				"\\)+\\)$")))
+	    (goto-char rstart)
+	    (while (re-search-forward regexp rend t)
+	      (delete-region (match-beginning 1) (match-end 1)))))
+	;; problem 4: 8 or more SPACEs after TAB
+	;; action: replace 8 or more SPACEs by TABs
+	(when (memq 'space-after-tab blank-chars)
+	  (blank-replace-spaces-by-tabs
+	   rstart rend blank-space-after-tab-regexp))
+	;; problem 2: SPACEs before TAB
+	;; action: replace SPACEs before TAB by TABs
+	(when (memq 'space-before-tab blank-chars)
+	  (blank-replace-spaces-by-tabs
+	   rstart rend blank-space-before-tab-regexp))))
     (set-marker rend nil)))		; point marker to nowhere
+
+
+(defun blank-replace-spaces-by-tabs (rstart rend regexp)
+  "Replace all SPACEs by TABs matched by REGEXP between RSTART and REND."
+  (goto-char rstart)
+  (while (re-search-forward regexp rend t)
+    (goto-char (match-beginning 1))
+    (let* ((scol (current-column))
+	   (ecol (save-excursion
+		   (goto-char (match-end 1))
+		   (current-column))))
+      (delete-region (match-beginning 1) (match-end 1))
+      (insert-char ?\t
+		   (/ (- (- ecol (% ecol 8))	    ; prev end col
+			 (- scol (% scol 8)))	    ; prev start col
+		      8)))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1291,6 +1309,7 @@ The problems, which are cleaned up, are:
  []  r - toggle trailing blanks visualization
  []  b - toggle SPACEs before TAB visualization
  []  l - toggle \"long lines\" visualization
+ []  L - toggle \"long lines\" tail visualization
  []  n - toggle NEWLINE visualization
  []  i - toggle indentation SPACEs visualization
  []  e - toggle empty line at bob and/or eob visualization
@@ -1365,6 +1384,7 @@ It reads one of the following chars:
    r	toggle trailing blanks visualization
    b	toggle SPACEs before TAB visualization
    l	toggle \"long lines\" visualization
+   L	toggle \"long lines\" tail visualization
    n	toggle NEWLINE visualization
    i	toggle indentation SPACEs visualization
    e	toggle empty line at bob and/or eob visualization
@@ -1504,14 +1524,25 @@ options are valid."
 	(list (concat "\\(\\(" blank-trailing-regexp "\\)+\\)$")
 	      1 blank-trailing t))
        t))
-    (when (memq 'lines blank-active-chars)
+    (when (or (memq 'lines      blank-active-chars)
+	      (memq 'lines-tail blank-active-chars))
       (font-lock-add-keywords
        nil
        (list
 	;; Show "long" lines
-	(list (concat "^\\(.\\{" (int-to-string blank-line-length)
-		      ",\\}\\)$")
-	      1 blank-line t))
+	(list
+	 (format
+	  "^\\([^\t\n]\\{%s\\}\\|[^\t\n]\\{0,%s\\}\t\\)\\{%d\\}%s\\(.+\\)$"
+	  tab-width (1- tab-width)
+	  (/ blank-line-column tab-width)
+	  (let ((rem (% blank-line-column tab-width)))
+	    (if (zerop rem)
+		""
+	      (format ".\\{%d\\}" rem))))
+	 (if (memq 'lines blank-active-chars)
+	     0				; whole line
+	   2)				; line tail
+	 blank-line t))
        t))
     (when (memq 'space-before-tab blank-active-chars)
       (font-lock-add-keywords
