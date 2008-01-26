@@ -1,3 +1,11 @@
+2008-01-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* ls-lisp.el (ls-lisp-insert-directory): If -n switch is used,
+	invoke directory-files-and-attributes with last argument `integer'
+	instead of `string'.
+	(insert-directory): Add -n to the list of supported switches
+	mentioned in the doc string.
+
 2008-01-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* blank-mode.el: New version 9.1.  Handle "long" line tail
