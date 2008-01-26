@@ -1,3 +1,14 @@
+2008-01-20  Ulf Jasper  <ulf.jasper@web.de>
+
+	* icalendar.el (icalendar-version): Increase to "0.17".
+	(icalendar-import-format): Doc fix.  Allow function type.
+	(icalendar--read-element): Doc fix.
+	(icalendar--parse-summary-and-rest): Doc fix.  Handle function
+	type icalendar-import-format.  Make regexps non-greedy.
+	(icalendar--format-ical-event): Handle function type
+	icalendar-import-format.
+	(icalendar-import-format-sample): New function.
+
 2008-01-26  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* vc.el (vc-exec-after): For mode-line-process highlighting, if
