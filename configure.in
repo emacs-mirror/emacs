@@ -70,7 +70,10 @@ AC_DEFUN([OPTION_DEFAULT_ON], [dnl
    m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=yes])dnl
 ])dnl
 
-OPTION_DEFAULT_ON([gcc],[don't use GCC to compile Emacs if GCC is found])
+dnl By default, neither off nor on.
+AC_ARG_WITH([gcc],
+[AS_HELP_STRING([--without-gcc],
+    [don't use GCC to compile Emacs even if GCC is found])])
 
 OPTION_DEFAULT_ON([pop],[don't support POP mail retrieval with movemail])
 if test "$with_pop" = yes; then
