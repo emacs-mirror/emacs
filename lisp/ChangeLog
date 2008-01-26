@@ -1,4 +1,9 @@
-2008-01-26  Phil Sung <psung@mit.edu> (tiny change)
+2008-01-26  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc.el (vc-exec-after): For mode-line-process highlighting, if
+	`compile' is not available, fall back to font-lock-warning-face.
+
+2008-01-26  Phil Sung  <psung@mit.edu> (tiny change)
 
 	* wdired.el (wdired-get-filename): Change `(1+ beg)' to `beg' so
 	that the filename end is found even when the filename is empty.
