@@ -1,6 +1,7 @@
 2008-01-26  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (--without-gcc): By default, neither off nor on.
+	(--with-carbon): Tone down rhetoric in help text.
 
 2008-01-25  Glenn Morris  <rgm@gnu.org>
 
