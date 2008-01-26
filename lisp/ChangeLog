@@ -1,3 +1,7 @@
+2008-01-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/etags.el (tags-query-replace): Doc fix.
+
 2008-01-26  Phil Sung <psung@mit.edu> (tiny change)
 
 	* wdired.el (wdired-get-filename): Change `(1+ beg)' to `beg' so
