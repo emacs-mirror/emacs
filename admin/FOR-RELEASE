@@ -50,9 +50,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
 * BUGS
 
-** david.reitter@gmail.com, 27 dec: pos-visible-in-window-p at ellipsis
-http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00945.html
-
 ** diff mode change for missing spaces in -u format.
 Installed 2008-01-08 fix does not work right.
 http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html
