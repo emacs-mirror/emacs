@@ -1820,8 +1820,11 @@ See documentation of variable `tags-file-name'."
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue].
+Fourth arg FILE-LIST-FORM non-nil means initialize the replacement loop.
+Fifth and sixth arguments START and END are accepted, for compatibility
+with `query-replace-regexp', and ignored.
 
-See documentation of variable `tags-file-name'."
+See also documentation of the variable `tags-file-name'."
   (interactive (query-replace-read-args "Tags query replace (regexp)" t t))
   (setq tags-loop-scan `(let ,(unless (equal from (downcase from))
 				'((case-fold-search nil)))
