@@ -2768,8 +2768,8 @@ fstat (int desc, struct stat * buf)
     buf->st_ino = fake_inode;
 
   /* consider files to belong to current user */
-  buf->st_uid = 0;
-  buf->st_gid = 0;
+  buf->st_uid = the_passwd.pw_uid;
+  buf->st_gid = the_passwd.pw_gid;
 
   buf->st_dev = info.dwVolumeSerialNumber;
   buf->st_rdev = info.dwVolumeSerialNumber;
