@@ -1036,7 +1036,11 @@ Else, add CODE to the process' sentinel."
             ;; Deliberate overstatement, but power law respected.
             ;; (The message is ephemeral, so we make it loud.)  --ttn
             (propertize " (incomplete/in progress)"
-                        'face 'compilation-warning
+                        'face (if (featurep 'compile)
+                                  ;; ttn's preferred loudness
+                                  'compilation-warning
+                                ;; suitably available fallback
+                                font-lock-warning-face)
 			'help-echo
 			"A VC command is in progress in this buffer"))
       (let ((previous (process-sentinel proc)))
