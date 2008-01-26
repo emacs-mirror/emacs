@@ -1321,6 +1321,28 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
 	  visible_p = 1;
       if (visible_p)
 	{
+	  Lisp_Object window, prop;
+
+	  XSETWINDOW (window, w);
+	  prop = Fget_char_property (make_number (it.position.charpos),
+				     Qinvisible, window);
+
+	  /* If charpos coincides with invisible text covered with an
+	     ellipsis, use the first glyph of the ellipsis to compute
+	     the pixel positions.  */
+	  if (TEXT_PROP_MEANS_INVISIBLE (prop) == 2)
+	    {
+	      struct glyph_row *row = it.glyph_row;
+	      struct glyph *glyph = row->glyphs[TEXT_AREA];
+	      struct glyph *end = glyph + row->used[TEXT_AREA];
+	      int x = row->x;
+
+	      for (; glyph < end && glyph->charpos < charpos; glyph++)
+		x += glyph->pixel_width;
+
+	      top_x = x;
+	    }
+
 	  *x = top_x;
 	  *y = max (top_y + max (0, it.max_ascent - it.ascent), window_top_y);
 	  *rtop = max (0, window_top_y - top_y);
