@@ -362,10 +362,11 @@ PDWORD WINAPI get_sid_sub_authority (
     DWORD n)
 {
   static GetSidSubAuthority_Proc s_pfn_Get_Sid_Sub_Authority = NULL;
+  static DWORD zero = 0U;
   HMODULE hm_advapi32 = NULL;
   if (is_windows_9x () == TRUE)
     {
-      return NULL;
+      return &zero;
     }
   if (g_b_init_get_sid_sub_authority == 0)
     {
@@ -377,7 +378,7 @@ PDWORD WINAPI get_sid_sub_authority (
     }
   if (s_pfn_Get_Sid_Sub_Authority == NULL)
     {
-      return NULL;
+      return &zero;
     }
   return (s_pfn_Get_Sid_Sub_Authority (pSid, n));
 }
@@ -386,10 +387,11 @@ PUCHAR WINAPI get_sid_sub_authority_count (
     PSID pSid)
 {
   static GetSidSubAuthorityCount_Proc s_pfn_Get_Sid_Sub_Authority_Count = NULL;
+  static UCHAR zero = 0U;
   HMODULE hm_advapi32 = NULL;
   if (is_windows_9x () == TRUE)
     {
-      return NULL;
+      return &zero;
     }
   if (g_b_init_get_sid_sub_authority_count == 0)
     {
@@ -401,7 +403,7 @@ PUCHAR WINAPI get_sid_sub_authority_count (
     }
   if (s_pfn_Get_Sid_Sub_Authority_Count == NULL)
     {
-      return NULL;
+      return &zero;
     }
   return (s_pfn_Get_Sid_Sub_Authority_Count (pSid));
 }
