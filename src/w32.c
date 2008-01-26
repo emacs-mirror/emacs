@@ -120,6 +120,8 @@ static BOOL g_b_init_open_process_token;
 static BOOL g_b_init_get_token_information;
 static BOOL g_b_init_lookup_account_sid;
 static BOOL g_b_init_get_sid_identifier_authority;
+static BOOL g_b_init_get_sid_sub_authority;
+static BOOL g_b_init_get_sid_sub_authority_count;
 
 /*
   BEGIN: Wrapper functions around OpenProcessToken
@@ -161,6 +163,12 @@ typedef BOOL (WINAPI * LookupAccountSid_Proc) (
     PSID_NAME_USE peUse);
 typedef PSID_IDENTIFIER_AUTHORITY (WINAPI * GetSidIdentifierAuthority_Proc) (
     PSID pSid);
+typedef PDWORD (WINAPI * GetSidSubAuthority_Proc) (
+    PSID pSid,
+    DWORD n);
+typedef PUCHAR (WINAPI * GetSidSubAuthorityCount_Proc) (
+    PSID pSid);
+
 
   /* ** A utility function ** */
 static BOOL
@@ -347,6 +355,55 @@ PSID_IDENTIFIER_AUTHORITY WINAPI get_sid_identifier_authority (
       return NULL;
     }
   return (s_pfn_Get_Sid_Identifier_Authority (pSid));
+}
+
+PDWORD WINAPI get_sid_sub_authority (
+    PSID pSid,
+    DWORD n)
+{
+  static GetSidSubAuthority_Proc s_pfn_Get_Sid_Sub_Authority = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return NULL;
+    }
+  if (g_b_init_get_sid_sub_authority == 0)
+    {
+      g_b_init_get_sid_sub_authority = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Get_Sid_Sub_Authority =
+        (GetSidSubAuthority_Proc) GetProcAddress (
+            hm_advapi32, "GetSidSubAuthority");
+    }
+  if (s_pfn_Get_Sid_Sub_Authority == NULL)
+    {
+      return NULL;
+    }
+  return (s_pfn_Get_Sid_Sub_Authority (pSid, n));
+}
+
+PUCHAR WINAPI get_sid_sub_authority_count (
+    PSID pSid)
+{
+  static GetSidSubAuthorityCount_Proc s_pfn_Get_Sid_Sub_Authority_Count = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return NULL;
+    }
+  if (g_b_init_get_sid_sub_authority_count == 0)
+    {
+      g_b_init_get_sid_sub_authority_count = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Get_Sid_Sub_Authority_Count =
+        (GetSidSubAuthorityCount_Proc) GetProcAddress (
+            hm_advapi32, "GetSidSubAuthorityCount");
+    }
+  if (s_pfn_Get_Sid_Sub_Authority_Count == NULL)
+    {
+      return NULL;
+    }
+  return (s_pfn_Get_Sid_Sub_Authority_Count (pSid));
 }
 
 /*
@@ -547,39 +604,47 @@ init_user_info ()
 			     domain, &dlength, &user_type))
     {
       strcpy (the_passwd.pw_name, name);
-      /* Determine a reasonable uid value. */
+      /* Determine a reasonable uid value.  */
       if (stricmp ("administrator", name) == 0)
 	{
-	  the_passwd.pw_uid = 0;
-	  the_passwd.pw_gid = 0;
+	  the_passwd.pw_uid = 500; /* well-known Administrator uid */
+	  the_passwd.pw_gid = 513; /* well-known None gid */
 	}
       else
 	{
-	  SID_IDENTIFIER_AUTHORITY * pSIA;
+	  /* Use RID, the relative portion of the SID, that is the last
+	     sub-authority value of the SID. */
+	  DWORD n_subauthorities =
+	    *get_sid_sub_authority_count (*((PSID *) user_sid));
 
-	  pSIA = get_sid_identifier_authority (*((PSID *) user_sid));
-	  /* I believe the relative portion is the last 4 bytes (of 6)
-	     with msb first. */
-	  the_passwd.pw_uid = ((pSIA->Value[2] << 24) +
-			       (pSIA->Value[3] << 16) +
-			       (pSIA->Value[4] << 8)  +
-			       (pSIA->Value[5] << 0));
-	  /* restrict to conventional uid range for normal users */
-	  the_passwd.pw_uid = the_passwd.pw_uid % 60001;
+	  if (n_subauthorities < 1)
+	    the_passwd.pw_uid = 0;	/* the "World" RID */
+	  else
+	    {
+	      the_passwd.pw_uid =
+		*get_sid_sub_authority (*((PSID *) user_sid),
+					n_subauthorities - 1);
+	      /* Restrict to conventional uid range for normal users.  */
+	      the_passwd.pw_uid %= 60001;
+	    }
 
 	  /* Get group id */
 	  if (get_token_information (token, TokenPrimaryGroup,
 				     (PVOID) user_sid, sizeof (user_sid), &trash))
 	    {
-	      SID_IDENTIFIER_AUTHORITY * pSIA;
+	      n_subauthorities =
+		*get_sid_sub_authority_count (*((PSID *) user_sid));
 
-	      pSIA = get_sid_identifier_authority (*((PSID *) user_sid));
-	      the_passwd.pw_gid = ((pSIA->Value[2] << 24) +
-				   (pSIA->Value[3] << 16) +
-				   (pSIA->Value[4] << 8)  +
-				   (pSIA->Value[5] << 0));
-	      /* I don't know if this is necessary, but for safety... */
-	      the_passwd.pw_gid = the_passwd.pw_gid % 60001;
+	      if (n_subauthorities < 1)
+		the_passwd.pw_gid = 0;	/* the "World" RID */
+	      else
+		{
+		  the_passwd.pw_gid =
+		    *get_sid_sub_authority (*((PSID *) user_sid),
+					    n_subauthorities - 1);
+		  /* I don't know if this is necessary, but for safety...  */
+		  the_passwd.pw_gid %= 60001;
+		}
 	    }
 	  else
 	    the_passwd.pw_gid = the_passwd.pw_uid;
