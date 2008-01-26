@@ -294,11 +294,20 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
 (defvar server-log-time-function 'current-time-string
   "Function to generate timestamps for the *server* buffer.")
 
+(defconst server-buffer " *server*"
+  "Buffer used internally by Emacs's server.
+One use is to log the I/O for debugging purposes (see `server-log'),
+the other is to provide a current buffer in which the process filter can
+safely let-bind buffer-local variables like default-directory.")
+
+(defvar server-log nil
+  "If non-nil, log the server's inputs and outputs in the `server-buffer'.")
+
 (defun server-log (string &optional client)
-  "If a *server* buffer exists, write STRING to it for logging purposes.
+  "If `server-log' is non-nil, log STRING to `server-buffer'.
 If CLIENT is non-nil, add a description of it to the logged message."
-  (when (get-buffer "*server*")
-    (with-current-buffer "*server*"
+  (when server-log
+    (with-current-buffer (get-buffer-create server-buffer)
       (goto-char (point-max))
       (insert (funcall server-log-time-function)
 	      (cond
@@ -497,7 +506,7 @@ kill any existing server communications subprocess."
 		       ;; Those are decoded by server-process-filter according
 		       ;; to file-name-coding-system.
 		       :coding 'raw-text
-		       ;; The rest of the args depends on the kind of socket used.
+		       ;; The other args depend on the kind of socket used.
 		       (if server-use-tcp
 			   (list :family nil
 				 :service t
@@ -928,17 +937,24 @@ The following commands are accepted by the client:
                      (server-create-window-system-frame display nowait proc))
                     (t (server-create-tty-frame tty-name tty-type proc))))
 
-            (process-put proc 'continuation
-                         (lexical-let ((proc proc)
-                                       (files files)
-                                       (nowait nowait)
-                                       (commands commands)
-                                       (dontkill dontkill)
-                                       (frame frame)
-                                       (tty-name tty-name))
-                           (lambda ()
-                             (server-execute proc files nowait commands
-                                             dontkill frame tty-name))))
+            (process-put
+             proc 'continuation
+             (lexical-let ((proc proc)
+                           (files files)
+                           (nowait nowait)
+                           (commands commands)
+                           (dontkill dontkill)
+                           (frame frame)
+                           (dir dir)
+                           (tty-name tty-name))
+               (lambda ()
+                 (with-current-buffer (get-buffer-create server-buffer)
+                   ;; Use the same cwd as the emacsclient, if possible, so
+                   ;; relative file names work correctly, even in `eval'.
+                   (let ((default-directory
+                           (if (file-directory-p dir) dir default-directory)))
+                     (server-execute proc files nowait commands
+                                     dontkill frame tty-name))))))
 
             (when (or frame files)
               (server-goto-toplevel proc))

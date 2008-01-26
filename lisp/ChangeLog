@@ -1,7 +1,15 @@
+2008-01-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* server.el (server-buffer): New const.
+	(server-log): New var.
+	(server-log): Use them.
+	(server-process-filter): (Try to) run the continuation in the same cwd
+	as the client's.
+
 2008-01-26  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-defs.el (c-save-buffer-state): Bind
-	buffer-file-name and buffer-file-truename to nil, to prevent
+	* progmodes/cc-defs.el (c-save-buffer-state):
+	Bind buffer-file-name and buffer-file-truename to nil, to prevent
 	primitives generating "buffer is read only" messages.
 
 2008-01-20  Ulf Jasper  <ulf.jasper@web.de>
@@ -38,8 +46,8 @@
 	(`vc-directory').  Maybe the implementation can be optimized.
 
 	* net/tramp.el (tramp-dissect-file-name): Raise an error when
-	Tramp 2.0 syntax is used.  Suggested by Trent W. Buck
-	<trentbuck@gmail.com>.
+	Tramp 2.0 syntax is used.
+	Suggested by Trent W. Buck <trentbuck@gmail.com>.
 
 2008-01-26  Eli Zaretskii  <eliz@gnu.org>
 
@@ -53,7 +61,7 @@
 
 	* blank-mode.el: New version 9.1.  Handle "long" line tail
 	visualization.  Doc fix.
-	(blank-line-length): Renamed to blank-line-column.
+	(blank-line-length): Rename to blank-line-column.
 	(blank-chars-value-list, blank-toggle-option-alist, blank-help-text):
 	Initialization fix.
 	(blank-replace-spaces-by-tabs): New fun.
@@ -108,8 +116,8 @@
 2008-01-24  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-do-copy-or-rename-file): Flush the cache of
-	the source file in case of `rename'.  Reported by Pete Forman
-	<pete.forman@westerngeco.com>.
+	the source file in case of `rename'.
+	Reported by Pete Forman <pete.forman@westerngeco.com>.
 
 2008-01-24  Ken Manheimer  <ken.manheimer@gmail.com>
 
@@ -257,10 +265,9 @@
 	(kill-buffer-if-not-modified): New function.
 	(view-file): Don't kill the buffer if it is modified.
 
-	* progmodes/ebrowse.el (ebrowse-view-file-other-window):
-	Delete function.
-	(ebrowse-view/find-file-and-search-pattern): Call
-	view-file-other-window instead of ebrowse-view-file-other-window.
+	* progmodes/ebrowse.el (ebrowse-view-file-other-window): Delete.
+	(ebrowse-view/find-file-and-search-pattern):
+	Call view-file-other-window instead of ebrowse-view-file-other-window.
 	(ebrowse-view-file-other-frame): Don't call
 	current-window-configuration.  Fix second argument in the call to
 	view-mode-enter.  Doc fix.
@@ -271,8 +278,8 @@
 
 2008-01-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* files.el (safe-local-eval-forms): Mark
-	(add-hook 'write-file-hooks 'time-stamp) as safe.
+	* files.el (safe-local-eval-forms):
+	Mark (add-hook 'write-file-hooks 'time-stamp) as safe.
 
 2008-01-23  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -488,8 +495,7 @@
 
 	* repeat.el (repeat-undo-count): New variable.
 	(repeat): For self-insertions make undo boundary only after 20
-	repetitions.  Inhibit point recording when repeat-repeat-char is
-	non-nil.
+	repetitions.  Inhibit point recording unless repeat-repeat-char is nil.
 
 2008-01-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
