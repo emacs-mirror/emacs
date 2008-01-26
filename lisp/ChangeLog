@@ -1,3 +1,13 @@
+2008-01-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* vc.el (vc-directory, vc-update-change-log): Remove check for
+	Tramp.  Both functions work for it, though pretty slow
+	(`vc-directory').  Maybe the implementation can be optimized.
+
+	* net/tramp.el (tramp-dissect-file-name): Raise an error when
+	Tramp 2.0 syntax is used.  Suggested by Trent W. Buck
+	<trentbuck@gmail.com>.
+
 2008-01-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* ls-lisp.el (ls-lisp-insert-directory): If -n switch is used,
