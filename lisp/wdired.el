@@ -323,7 +323,11 @@ non-nil means return old filename."
       (unless (eq beg end)
 	(if old
 	    (setq file (get-text-property beg 'old-name))
-	  (setq end (next-single-property-change (1+ beg) 'end-name))
+	  ;; In the following form changed `(1+ beg)' to `beg' so that
+	  ;; the filename end is found even when the filename is empty.
+	  ;; Fixes error and spurious newlines when marking files for
+	  ;; deletion.
+	  (setq end (next-single-property-change beg 'end-name))
 	  (setq file (buffer-substring-no-properties (1+ beg) end)))
 	(and file (setq file (wdired-normalize-filename file))))
       (if (or no-dir old)
