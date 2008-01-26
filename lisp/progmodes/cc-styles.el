@@ -58,7 +58,8 @@
   '(("gnu"
      (c-basic-offset . 2)
      (c-comment-only-line-offset . (0 . 0))
-     (c-hanging-braces-alist     . ((substatement-open before after)))
+     (c-hanging-braces-alist     . ((substatement-open before after)
+				    (arglist-cont-nonempty)))
      (c-offsets-alist . ((statement-block-intro . +)
 			 (knr-argdecl-intro . 5)
 			 (substatement-open . +)
@@ -170,7 +171,8 @@
                          (case-label           . +)
                          (access-label         . -)
                          (inclass              . ++)
-			 (inline-open          . 0))))
+			 (inline-open          . 0)
+			 (arglist-cont-nonempty))))
 
     ("linux"
      (c-basic-offset  . 8)
@@ -178,7 +180,8 @@
      (c-hanging-braces-alist . ((brace-list-open)
 				(brace-entry-open)
 				(substatement-open after)
-				(block-close . c-snug-do-while)))
+				(block-close . c-snug-do-while)
+				(arglist-cont-nonempty)))
      (c-cleanup-list . (brace-else-brace))
      (c-offsets-alist . ((statement-block-intro . +)
 			 (knr-argdecl-intro     . 0)
@@ -200,7 +203,8 @@
 				(brace-list-close)
 				(brace-entry-open)
 				(substatement-open after)
-				(block-close . c-snug-do-while)))
+				(block-close . c-snug-do-while)
+				(arglist-cont-nonempty)))
      (c-block-comment-prefix . ""))
 
     ("java"
@@ -230,7 +234,8 @@
      (c-hanging-braces-alist . ((defun-open after)
 				(defun-close . c-snug-1line-defun-close)
 				(substatement-open after)
-				(block-close . c-snug-do-while)))
+				(block-close . c-snug-do-while)
+				(arglist-cont-nonempty)))
      (c-hanging-semi&comma-criteria . nil)
      (c-cleanup-list . nil)		; You might want one-liner-defun here.
      (c-offsets-alist . ((statement-block-intro . +)
