@@ -612,8 +612,8 @@ init_user_info ()
 	}
       else
 	{
-	  /* Use RID, the relative portion of the SID, that is the last
-	     sub-authority value of the SID. */
+	  /* Use the last sub-authority value of the RID, the relative
+	     portion of the SID, as user/group ID. */
 	  DWORD n_subauthorities =
 	    *get_sid_sub_authority_count (*((PSID *) user_sid));
 
