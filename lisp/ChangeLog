@@ -1,3 +1,8 @@
+2008-01-26  Martin Rudalics  <rudalics@gmx.at>
+
+	* subr.el (find-tag-default): Simplify using exclusively
+	skip-syntax-backward/-forward.
+
 2008-01-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* vc.el (vc-directory, vc-update-change-log): Remove check for
