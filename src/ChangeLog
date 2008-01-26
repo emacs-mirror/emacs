@@ -1,3 +1,13 @@
+2008-01-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (g_b_init_get_sid_sub_authority)
+	(g_b_init_get_sid_sub_authority_count): New static variables.
+	(GetSidSubAuthority_Proc, GetSidSubAuthorityCount_Proc): New typedefs.
+	(get_sid_sub_authority, get_sid_sub_authority_count): New functions.
+	(init_user_info): Use the above two new functions to retrieve uid
+	and gid.  Use 500/513, the Windows defaults, as Administrator's
+	uid/gid.
+
 2008-01-26  Jason Rumney  <jasonr@gnu.org>
 
 	* w32.c (logon_network_drive): New function.
