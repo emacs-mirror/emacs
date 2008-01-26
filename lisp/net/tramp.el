@@ -6663,6 +6663,10 @@ values."
 	    (user      (match-string (nth 2 tramp-file-name-structure) name))
 	    (host      (match-string (nth 3 tramp-file-name-structure) name))
 	    (localname (match-string (nth 4 tramp-file-name-structure) name)))
+	(when (member method '("multi" "multiu"))
+	  (error
+	   "`%s' method is no longer supported, see (info \"(tramp)Multi-hops\")"
+	   method))
 	(if nodefault
 	    (vector method user host localname)
 	  (vector
