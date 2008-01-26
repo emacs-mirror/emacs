@@ -209,7 +209,7 @@ The Lisp emulation does not run any external programs or shells.  It
 supports ordinary shell wildcards if `ls-lisp-support-shell-wildcards'
 is non-nil; otherwise, it interprets wildcards as regular expressions
 to match file names.  It does not support all `ls' switches -- those
-that work are: A a c i r S s t u U X g G B C R and F partly."
+that work are: A a c i r S s t u U X g G B C R n and F partly."
   (if ls-lisp-use-insert-directory-program
       (funcall original-insert-directory
 	       file switches wildcard full-directory-p)
@@ -286,7 +286,10 @@ not contain `d', so that a full listing is expected."
       (let* ((dir (file-name-as-directory file))
 	     (default-directory dir)	; so that file-attributes works
 	     (file-alist
-	      (directory-files-and-attributes dir nil wildcard-regexp t 'string))
+	      (directory-files-and-attributes dir nil wildcard-regexp t
+					      (if (memq ?n switches)
+						  'integer
+						'string)))
 	     (now (current-time))
 	     (sum 0)
 	     ;; do all bindings here for speed
