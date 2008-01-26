@@ -1,3 +1,10 @@
+2008-01-26  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi: Update version for ERC 5.3 release.
+	(Obtaining ERC): Update extras URLs for 5.3.
+	(Development): Write instructions for git, and remove those for Arch.
+	(History): Mention the switch to git.
+
 2008-01-24  Karl Berry  <karl@gnu.org>
 
 	* info.texi (Search Index),

@@ -1,3 +1,20 @@
+2008-01-26  Michael Olson  <mwolson@gnu.org>
+
+	* erc.el (erc-version-string): Release ERC 5.3.
+
+	* Makefile (VERSION): Update.
+	(EXTRAS): Remove erc-list.el after all, because this is mainly for
+	users of the version that comes with Emacs, and they will have
+	erc-list.el by Emacs 23.
+	(MISC): Add ChangeLog.07.
+
+	* README.extras: Mention Emacs 23.
+
+	* erc.texi (Obtaining ERC): Update extras URLs for 5.3.
+	(Development): Write instructions for git, and remove those for
+	Arch.
+	(History): Mention the switch to git.
+
 2008-01-25  Michael Olson  <mwolson@gnu.org>
 
 	* NEWS: Update.

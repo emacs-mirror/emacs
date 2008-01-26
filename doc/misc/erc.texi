@@ -12,7 +12,7 @@
 @syncodeindex fn cp
 
 @copying
-This manual is for ERC version 5.2.
+This manual is for ERC version 5.3.
 
 Copyright @copyright{} 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
@@ -72,7 +72,7 @@ and modified without restriction.
                                   permission to redistribute ERC on
                                   certain terms; it also explains that
                                   there is no warranty.
-* GNU Free Documentation License:: The license for this documentation.
+* GNU Free Documentation License::  The license for this documentation.
 * Concept Index::               Search for terms.
 
 @detailmenu
@@ -135,8 +135,8 @@ dependency issues.  If desired, they may be found at the following
 locations, or from your local GNU mirror.
 
 @itemize @bullet
-@item @uref{http://ftp.gnu.org/gnu/erc/erc-5.2-extras.tar.gz}
-@item @uref{http://ftp.gnu.org/gnu/erc/erc-5.2-extras.zip}
+@item @uref{http://ftp.gnu.org/gnu/erc/erc-5.3-extras.tar.gz}
+@item @uref{http://ftp.gnu.org/gnu/erc/erc-5.3-extras.zip}
 @end itemize
 
 The rest of this chapter may be skipped if you are using the version of
@@ -169,67 +169,100 @@ Alternatively, you can download the latest release from
 Choose the development version if you want to live on the bleeding edge
 of ERC development or try out new features before release.
 
-@subheading GNU Arch
+@cindex git version control system, using
+The git version control system allows you to keep up-to-date with the
+latest changes to the development version of ERC.  It also allows you
+to contribute changes (via commits, if you are have developer access to
+the repository, or via patches, otherwise).  If you would like to
+contribute to ERC development, it is highly recommended that you use
+git.
 
-ERC is developed using GNU Arch.  Downloading ERC with Arch and staying
-up-to-date involves the following steps.
+If you are new to git, you might find this tutorial helpful:
+@uref{http://www.kernel.org/pub/software/scm/git/docs/tutorial.html}.
+
+Downloading ERC with git and staying up-to-date involves the following
+steps.
 
 @enumerate
-@cindex GNU Arch, installing
-@item Install arch
+@item Install git.
 
 @itemize @bullet
-@item Debian: @kbd{apt-get install tla}.
-@item Other distributions: see @uref{ftp://ftp.gnu.org/gnu/gnu-arch/}.
+@item Debian and Ubuntu: @kbd{apt-get install git-core}.
+@item Windows: @uref{http://git.or.cz/gitwiki/WindowsInstall}.
+@item Other operating systems: download, compile, and install the source
+from @uref{http://www.kernel.org/pub/software/scm/git/}, or find a git
+package for your operating system.
 @end itemize
 
-@cindex GNU Arch, downloading ERC
-@item Register the archive.
+@item Download the ERC development branch.
+
+If you have developer access to ERC, do:
+
 @example
-tla register-archive -f http://arch.sv.gnu.org/archives/erc/erc
+git clone ssh://loginname@@git.sv.gnu.org/srv/git/erc.git
 @end example
 
-@item Download the ERC source code.
+otherwise, do:
+
 @example
-# Download ERC into the @file{erc} directory.
-tla get erc@@sv.gnu.org/erc--main--0 erc
+git clone git://git.sv.gnu.org/erc.git
+@end example
+
+If you are behind a restrictive firewall, and do not have developer
+access, then do the following instead:
+
+@example
+git clone http://git.sv.gnu.org/r/erc.git
 @end example
 
 @item List upstream changes that are missing from your local copy.
 Do this whenever you want to see whether new changes have been committed
-to ERC.
+to ERC.  If you wish, you may skip this step and proceed directly to
+the ``update'' step.
 
 @example
 # Change to the source directory you are interested in.
-cd erc/
+cd erc
 
-# Display the summary of changes
-tla missing --summary
+# Fetch new changes from the repository, but don't apply them yet
+git fetch origin
+
+# Display log messages for the new changes
+git log HEAD..origin
 @end example
 
-@cindex GNU Arch, updating ERC
-@item Update to the latest version by replaying missing changes.
+``origin'' is git's name for the location where you originally got ERC
+from.  You can change this location at any time by editing the
+@file{.git/config} file in the directory where the ERC source was
+placed.
+
+@cindex updating ERC with git
+@item Update to the latest version by pulling in any missing changes.
+
 @example
 cd erc
-tla update
+git pull origin
 @end example
+
+git will show how many files changed, and will provide a visual display
+for how many lines were changed in each file.
 
 @end enumerate
 
-If you are new to Arch and want to learn more about developing ERC with
-it, visit @uref{http://emacswiki.org/cgi-bin/wiki/ErcDevelopment} for
-full instructions.
+There are other ways to interact with the ERC repository.
 
-@subheading Development snapshots
-
-@cindex development snapshot
-Alternatively, the latest development snapshot may be downloaded in both
-``.tar.gz'' and ``.zip'' forms.
-
-@itemize @bullet
-@item @uref{http://www.mwolson.org/static/dist/erc-latest.tar.gz}
-@item @uref{http://www.mwolson.org/static/dist/erc-latest.zip}
+@itemize
+@item Browse git repo: @uref{http://git.sv.gnu.org/gitweb/?p=erc.git}
+@item Latest development snapshot: @uref{http://mwolson.org/static/dist/erc-latest.tar.gz}
+@item Latest development snapshot (zip file): @uref{http://mwolson.org/static/dist/erc-latest.zip}
 @end itemize
+
+The latest development snapshot can lag behind the git repo by as much
+as 20 minutes, but never more than that.
+
+For further information on committing changes to ERC and performing
+development, please consult
+@uref{http://emacswiki.org/cgi-bin/wiki/ErcDevelopment}.
 
 
 @node Installation, Getting Started, Obtaining ERC, Top
@@ -1008,6 +1041,10 @@ ERC 5.1 was released.  It was subsequently included in Emacs 22.
 ERC became an official GNU project, and development moved to
 @uref{http://sv.gnu.org/projects/erc}.  We switched to using GNU Arch as
 our revision control system.  Our mailing list address changed as well.
+
+@item 2007
+
+We switched to using git for our version control system.
 
 @end itemize
 
