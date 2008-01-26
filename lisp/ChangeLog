@@ -1,3 +1,9 @@
+2008-01-26  Phil Sung <psung@mit.edu> (tiny change)
+
+	* wdired.el (wdired-get-filename): Change `(1+ beg)' to `beg' so
+	that the filename end is found even when the filename is empty.
+	Fixes error and spurious newlines when marking files for deletion.
+
 2008-01-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* blank-mode.el: New version 9.1.  Handle "long" line tail
