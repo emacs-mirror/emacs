@@ -412,10 +412,10 @@ else
 fi
 
 test \$exitcode = 0") || {
-  echo Please tell bug-autoconf@gnu.org about your system,
-  echo including any error possibly output before this message.
-  echo This can help us improve future autoconf versions.
-  echo Configuration will now proceed without shell functions.
+  echo No shell found that supports shell functions.
+  echo Please tell autoconf@gnu.org about your system,
+  echo including any error possibly output before this
+  echo message
 }
 
 
@@ -1336,7 +1336,7 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --without-gcc           don't use GCC to compile Emacs if GCC is found
+  --without-gcc           don't use GCC to compile Emacs even if GCC is found
   --without-pop           don't support POP mail retrieval with movemail
   --with-kerberos         support Kerberos-authenticated POP
   --with-kerberos5        support Kerberos version 5 authenticated POP
@@ -1355,7 +1355,7 @@ Optional Packages:
                           don't use Motif or Xaw3d scroll bars
   --without-xaw3d         don't use Xaw3d
   --without-xim           don't use X11 XIM
-  --with-carbon           use Carbon GUI on Mac OS X. **UNSUPPORTED!**
+  --with-carbon           use Carbon GUI on Mac OS X. This is unsupported!
   --without-gpm           don't use -lgpm for mouse support on a GNU/Linux
                           console
   --with-dbus             compile with D-Bus support
@@ -1842,8 +1842,6 @@ gameuser=games
 # Check whether --with-gcc was given.
 if test "${with_gcc+set}" = set; then
   withval=$with_gcc;
-else
-     with_gcc=yes
 fi
 
 
