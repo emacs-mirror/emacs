@@ -332,7 +332,12 @@ This command runs the normal hook `view-mode-hook'.
 
 Optional argument EXIT-ACTION is either nil or a function with buffer as
 argument.  This function is called when finished viewing buffer.  Use
-this argument instead of explicitly setting `view-exit-action'."
+this argument instead of explicitly setting `view-exit-action'.
+
+Do not set EXIT-ACTION to `kill-buffer' when BUFFER visits a
+file: Users may suspend viewing in order to modify the buffer.
+Exiting View mode will then discard the user's edits.  Setting
+EXIT-ACTION to `kill-buffer-if-not-modified' avoids this."
   (interactive "bView buffer: ")
   (let ((undo-window (list (window-buffer) (window-start) (window-point))))
     (switch-to-buffer buffer)
