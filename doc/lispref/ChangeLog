@@ -1,3 +1,8 @@
+2008-01-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* display.texi (Button Types):
+	For define-button-type, clarify type of NAME.
+
 2008-01-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffers.texi (Buffer Modification): Fix typo.
