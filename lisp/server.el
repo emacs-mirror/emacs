@@ -292,13 +292,13 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
       (server-log "Deleted" proc))))
 
 (defvar server-log-time-function 'current-time-string
-  "Function to generate timestamps for the *server* buffer.")
+  "Function to generate timestamps for `server-buffer'.")
 
 (defconst server-buffer " *server*"
   "Buffer used internally by Emacs's server.
 One use is to log the I/O for debugging purposes (see `server-log'),
 the other is to provide a current buffer in which the process filter can
-safely let-bind buffer-local variables like default-directory.")
+safely let-bind buffer-local variables like `default-directory'.")
 
 (defvar server-log nil
   "If non-nil, log the server's inputs and outputs in the `server-buffer'.")
@@ -952,8 +952,8 @@ The following commands are accepted by the client:
                    ;; Use the same cwd as the emacsclient, if possible, so
                    ;; relative file names work correctly, even in `eval'.
                    (let ((default-directory
-                           (if (and dir (file-directory-p dir))
-			       dir default-directory)))
+			  (if (and dir (file-directory-p dir))
+			      dir default-directory)))
                      (server-execute proc files nowait commands
                                      dontkill frame tty-name))))))
 
