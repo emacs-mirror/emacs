@@ -478,7 +478,7 @@
 
 (defun c-awk-get-NL-prop-prev-line (&optional do-lim)
   ;; Get the c-awk-NL-prop text-property from the previous line, calculating
-  ;; it if necessary.  Return nil if we're at BOB.
+  ;; it if necessary.  Return nil if we're already at BOB.
   ;; See c-awk-after-if-for-while-condition-p for a description of DO-LIM.
   ;;
   ;; This function might do hidden buffer changes.

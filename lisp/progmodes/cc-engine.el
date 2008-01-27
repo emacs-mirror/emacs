@@ -5091,7 +5091,8 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;;   The point is left at the first token after the first complete
   ;;   declarator, if there is one.  The return value is a cons where
-  ;;   the car is the position of the first token in the declarator.
+  ;;   the car is the position of the first token in the declarator.  (See
+  ;;   below for the cdr.)
   ;;   Some examples:
   ;;
   ;; 	 void foo (int a, char *b) stuff ...
@@ -5115,9 +5116,9 @@ comment at the start of cc-engine.el for more info."
   ;;     Foo::Foo (int b) : Base (b) {}
   ;; car ^                ^ point
   ;;
-  ;;   The cdr of the return value is non-nil if a
-  ;;   `c-typedef-decl-kwds' specifier is found in the declaration,
-  ;;   i.e. the declared identifier(s) are types.
+  ;;   The cdr of the return value is non-nil iff a `c-typedef-decl-kwds'
+  ;;   specifier (e.g. class, struct, enum, typedef) is found in the
+  ;;   declaration, i.e. the declared identifier(s) are types.
   ;;
   ;; If a cast is parsed:
   ;;
@@ -5132,7 +5133,7 @@ comment at the start of cc-engine.el for more info."
   ;; the first token in (the visible part of) the buffer.
   ;;
   ;; CONTEXT is a symbol that describes the context at the point:
-  ;; 'decl     In a comma-separatded declaration context (typically
+  ;; 'decl     In a comma-separated declaration context (typically
   ;;           inside a function declaration arglist).
   ;; '<>       In an angle bracket arglist.
   ;; 'arglist  Some other type of arglist.
@@ -5873,7 +5874,7 @@ comment at the start of cc-engine.el for more info."
       (setq c-record-type-identifiers save-rec-type-ids
 	    c-record-ref-identifiers save-rec-ref-ids)
       nil))))
-
+
 (defun c-forward-label (&optional assume-markup preceding-token-end limit)
   ;; Assuming that point is at the beginning of a token, check if it starts a
   ;; label and if so move over it and return non-nil (t in default situations,
