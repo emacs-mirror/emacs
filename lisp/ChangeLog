@@ -1,3 +1,8 @@
+2008-01-27  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-awk.el, progmodes/cc-engine.el: Correct typos,
+	enhance comments.
+
 2008-01-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-compute-multi-hops): In case of su(do)?
