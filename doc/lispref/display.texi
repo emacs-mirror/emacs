@@ -4499,7 +4499,8 @@ so that it's easy to define special-purpose types of buttons for
 specific tasks.
 
 @defun define-button-type name &rest properties
-Define a `button type' called @var{name}.  The remaining arguments
+Define a `button type' called @var{name} (a symbol).
+The remaining arguments
 form a sequence of @var{property value} pairs, specifying default
 property values for buttons with this type (a button's type may be set
 by giving it a @code{type} property when creating the button, using
