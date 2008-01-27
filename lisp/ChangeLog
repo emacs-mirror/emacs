@@ -1,3 +1,8 @@
+2008-01-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-compute-multi-hops): In case of su(do)?
+	methods, the host name must be a local host.
+
 2008-01-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* server.el (server-process-filter): Check for non-nil before
