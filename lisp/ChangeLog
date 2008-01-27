@@ -1,3 +1,8 @@
+2008-01-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* server.el (server-process-filter): Check for non-nil before
+	calling file-directory-p.
+
 2008-01-27  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-vars.el (c-hanging-braces-alist): new element for
@@ -5,7 +10,7 @@
 
 	* progmodes/cc-cmds.el (c-brace-newlines): Determine the newlines
 	for a brace with syntax arglist-cont-nonempty.
-	
+
 	* progmodes/cc-styles.el (c-style-alist): Add elements for
 	arglist-cont-nonempty into 5 styles (gnu, ellemtel, linux, python,
 	awk).

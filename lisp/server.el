@@ -952,7 +952,8 @@ The following commands are accepted by the client:
                    ;; Use the same cwd as the emacsclient, if possible, so
                    ;; relative file names work correctly, even in `eval'.
                    (let ((default-directory
-                           (if (file-directory-p dir) dir default-directory)))
+                           (if (and dir (file-directory-p dir))
+			       dir default-directory)))
                      (server-execute proc files nowait commands
                                      dontkill frame tty-name))))))
 
