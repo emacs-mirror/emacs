@@ -1,3 +1,8 @@
+2008-01-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* server.el (server-log-time-function): Doc fix.
+	(server-buffer): Fix typo in docstring.
+
 2008-01-27  Martin Rudalics  <rudalics@gmx.at>
 
 	* view.el (view-buffer): Explain in doc-string why exit-action
@@ -16,11 +21,11 @@
 
 2007-01-27  Jan Nieuwenhuizen  <janneke@gnu.org>
 
-        * add-log.el (change-log-search-file-name, change-log-find-file):
-        New function.
+	* add-log.el (change-log-search-file-name, change-log-find-file):
+	New function.
 	(change-log-font-lock-keywords): Move file name matching ...
 	(change-log-file-names-re): ... here.  New defconst.
-        (change-log-mode-map): New binding C-c C-f to change-log-find-file.
+	(change-log-mode-map): New binding C-c C-f to change-log-find-file.
 
 2008-01-27  Alan Mackenzie  <acm@muc.de>
 
@@ -41,7 +46,7 @@
 
 2008-01-27  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-vars.el (c-hanging-braces-alist): new element for
+	* progmodes/cc-vars.el (c-hanging-braces-alist): New element for
 	arglist-cont-nonempty.
 
 	* progmodes/cc-cmds.el (c-brace-newlines): Determine the newlines
