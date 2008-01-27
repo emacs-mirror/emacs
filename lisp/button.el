@@ -116,7 +116,7 @@ Buttons inherit them by setting their `category' property to that symbol."
 
 ;;;###autoload
 (defun define-button-type (name &rest properties)
-  "Define a `button type' called NAME.
+  "Define a `button type' called NAME (a symbol).
 The remaining arguments form a sequence of PROPERTY VALUE pairs,
 specifying properties to use as defaults for buttons with this type
 \(a button's type may be set by giving it a `type' property when
