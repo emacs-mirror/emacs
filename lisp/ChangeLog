@@ -1,3 +1,9 @@
+2008-01-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-create-define-alist): Don't call
+	gdb-cpp-define-alist-program if file is nil (currently only
+	" *partial-output-...").
+
 2008-01-27  Richard Stallman  <rms@gnu.org>
 
 	* allout.el: Many doc fixes.
