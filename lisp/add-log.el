@@ -241,6 +241,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
 (put 'change-log-acknowledgement-face 'face-alias 'change-log-acknowledgement)
 
 (defconst change-log-file-names-re "^\\( +\\|\t\\)\\* \\([^ ,:([\n]+\\)")
+(defconst change-log-start-entry-re "^\\sw.........[0-9:+ ]*")
 
 (defvar change-log-font-lock-keywords
   `(;;
@@ -294,8 +295,30 @@ Note: The search is conducted only within 10%, at the beginning of the file."
   (save-excursion
     (goto-char where)
     (beginning-of-line 1)
-    (re-search-forward change-log-file-names-re)
-    (match-string 2)))
+    (if (looking-at change-log-start-entry-re)
+	;; We are at the start of an entry, search forward for a file
+	;; name.
+	(progn
+	  (re-search-forward change-log-file-names-re nil t)
+	  (match-string 2))
+      (if (looking-at change-log-file-names-re)
+	  ;; We found a file name.
+	  (match-string 2)
+	;; Look backwards for either a file name or the log entry start.
+	(if (re-search-backward
+	     (concat "\\(" change-log-start-entry-re 
+		     "\\)\\|\\("
+		     change-log-file-names-re "\\)") nil t)
+	    (if (match-beginning 1)
+		;; We got the start of the entry, look forward for a
+		;; file name.
+		(progn
+		  (re-search-forward change-log-file-names-re nil t)
+		  (match-string 2))
+	      (match-string 4))
+	  ;; We must be before any file name, look forward.
+	  (re-search-forward change-log-file-names-re nil t)
+	  (match-string 2))))))
 
 (defun change-log-find-file ()
   "Visit the file for the change under point."
@@ -303,7 +326,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
   (let ((file (change-log-search-file-name (point))))
     (if (and file (file-exists-p file))
 	(find-file file)
-      (message "No such file or directory: ~s" file))))
+      (message "No such file or directory: %s" file))))
 
 (defvar change-log-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1120,8 +1143,6 @@ Has a preference of looking backwards."
 	  (change-log-get-method-definition-1 ""))
 	(concat change-log-get-method-definition-md "]"))))))
 
-(defconst change-log-start-entry-re "^\\sw.........[0-9:+ ]*")
-
 (defun change-log-sortable-date-at ()
   "Return date of log entry in a consistent form for sorting.
 Point is assumed to be at the start of the entry."
