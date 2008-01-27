@@ -982,7 +982,7 @@ invoking it directly."
 	nil
       (setq allout-header-prefix leader)
       (if (not allout-old-style-prefixes)
-          ;; setting allout-primary-bullet makes the top level topics use -
+          ;; setting allout-primary-bullet makes the top level topics use --
           ;; actually, be -- the special prefix:
           (setq allout-primary-bullet leader))
       allout-header-prefix)))
@@ -1444,7 +1444,7 @@ substition is used against the regexp matches, a la `replace-match'.")
   "Variable for regexps matching plaintext to remove before encryption.
 
 This is for the sake of redoing encryption in cases where the ciphertext
-incidentally contains strings that would disrupt mode operation -
+incidentally contains strings that would disrupt mode operation --
 for example, a line that happens to look like an allout-mode topic prefix.
 
 Entries must be symbols that are bound to the desired regexp values.
@@ -1637,7 +1637,7 @@ the following two lines in your Emacs init file:
   (put 'allout-exposure-category 'invisible 'allout)
   (put 'allout-exposure-category 'evaporate t)
   ;; XXX We use isearch-open-invisible *and* isearch-mode-end-hook.  The
-  ;; latter would be sufficient, but it seems that a separate behavior -
+  ;; latter would be sufficient, but it seems that a separate behavior --
   ;; the _transient_ opening of invisible text during isearch -- is keyed to
   ;; presence of the isearch-open-invisible property -- even though this
   ;; property controls the isearch _arrival_ behavior.  This is the case at
@@ -1734,7 +1734,7 @@ This is described further in the HOT-SPOT Operation section.
 \\[allout-rebullet-topic] `allout-rebullet-topic'   Reconcile bullets of topic and
             its' offspring -- distinctive bullets are not changed, others
             are alternated according to nesting depth.
-\\[allout-number-siblings] `allout-number-siblings'  Number bullets of topic and siblings -
+\\[allout-number-siblings] `allout-number-siblings'  Number bullets of topic and siblings --
            the offspring are not affected.
            With repeat count, revoke numbering.
 
@@ -1940,7 +1940,7 @@ OPEN:	A TOPIC that is not CLOSED, though its OFFSPRING or BODY may be."
 
     (cond
 
-     ;; Provision for v19.18, 19.19 bug -
+     ;; Provision for v19.18, 19.19 bug --
      ;; Emacs v 19.18, 19.19 file-var code invokes prop-line-designated
      ;; modes twice when file is visited.  We have to avoid toggling mode
      ;; off on second invocation, so we detect it as best we can, and
@@ -2480,7 +2480,7 @@ Outermost is first."
 ;;;_   > allout-end-of-current-line ()
 (defun allout-end-of-current-line ()
   "Move to the end of line, past concealed text if any."
-  ;; XXX This is for symmetry with `allout-beginning-of-current-line' -
+  ;; XXX This is for symmetry with `allout-beginning-of-current-line' --
   ;; `move-end-of-line' doesn't suffer the same problem as
   ;; `move-beginning-of-line'.
   (let ((inhibit-field-text-motion t))
@@ -3874,7 +3874,7 @@ Note that refill of indented paragraphs is not done."
                                     old-margin)))
 	       ;; Text starts left of old margin -- don't adjust:
 	       nil
-	     ;; Text was hanging at or right of old left margin -
+	     ;; Text was hanging at or right of old left margin --
 	     ;; reindent it, preserving its existing indentation
 	     ;; beyond the old margin:
 	     (delete-region old-indent-begin old-indent-end)
@@ -6087,7 +6087,7 @@ Returns the resulting string, or nil if the transformation fails."
                        (if decrypt "de" "en")
                        "try again with different passphrase"))))
 
-           ;; encrypt 'keypair:
+           ;; encrypt `keypair':
            ((not decrypt)
 
             (setq status
@@ -6100,7 +6100,7 @@ Returns the resulting string, or nil if the transformation fails."
               (error (pgg-remove-passphrase-from-cache target-cache-id t)
                      (error "encryption failed"))))
 
-           ;; decrypt 'keypair:
+           ;; decrypt `keypair':
            (t
 
             (setq status
