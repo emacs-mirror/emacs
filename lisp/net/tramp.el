@@ -6052,6 +6052,27 @@ Gateway hops are already opened."
 	   "Method `%s' is not supported for multi-hops."
 	   (tramp-file-name-method item)))))
 
+    ;; In case the host name is not used for the remote shell
+    ;; command, the user could be misguided by applying a random
+    ;; hostname.
+    (let* ((v (car target-alist))
+	   (method (tramp-file-name-method v))
+	   (host (tramp-file-name-host v)))
+      (unless
+	  (or
+	   ;; There are multi-hops.
+	   (cdr target-alist)
+	   ;; The host name is used for the remote shell command.
+	   (member
+	    '("%h") (tramp-get-method-parameter method 'tramp-login-args))
+	   ;; The host is local.  We cannot use `tramp-local-host-p'
+	   ;; here, because it opens a connection as well.
+	   (string-match
+	    (concat "^" (regexp-opt (list "localhost" (system-name)) t) "$")
+	    host))
+	(tramp-error
+	 v 'file-error "Wrong hostname `%s' for method `%s'" host method)))
+
     ;; Result.
     target-alist))
 
