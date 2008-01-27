@@ -1,3 +1,8 @@
+2008-01-27  Richard Stallman  <rms@gnu.org>
+
+	* allout.el: Many doc fixes.
+	(allout-encrypt-string): Fix error message.
+
 2008-01-26  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-vars.el (c-hanging-braces-alist): new element for
