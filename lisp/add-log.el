@@ -240,8 +240,10 @@ Note: The search is conducted only within 10%, at the beginning of the file."
 ;; backward-compatibility alias
 (put 'change-log-acknowledgement-face 'face-alias 'change-log-acknowledgement)
 
+(defconst change-log-file-names-re "^\\( +\\|\t\\)\\* \\([^ ,:([\n]+\\)")
+
 (defvar change-log-font-lock-keywords
-  '(;;
+  `(;;
     ;; Date lines, new (2000-01-01) and old (Sat Jan  1 00:00:00 2000) styles.
     ;; Fixme: this regepx is just an approximate one and may match
     ;; wrongly with a non-date line existing as a random note.  In
@@ -255,7 +257,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
       (2 'change-log-email)))
     ;;
     ;; File names.
-    ("^\\( +\\|\t\\)\\* \\([^ ,:([\n]+\\)"
+    (,change-log-file-names-re
      (2 'change-log-file)
      ;; Possibly further names in a list:
      ("\\=, \\([^ ,:([\n]+\\)" nil nil (1 'change-log-file))
@@ -287,10 +289,27 @@ Note: The search is conducted only within 10%, at the beginning of the file."
      3 'change-log-acknowledgement))
   "Additional expressions to highlight in Change Log mode.")
 
+(defun change-log-search-file-name (where)
+  "Return the file-name for the change under point."
+  (save-excursion
+    (goto-char where)
+    (beginning-of-line 1)
+    (re-search-forward change-log-file-names-re)
+    (match-string 2)))
+
+(defun change-log-find-file ()
+  "Visit the file for the change under point."
+  (interactive)
+  (let ((file (change-log-search-file-name (point))))
+    (if (and file (file-exists-p file))
+	(find-file file)
+      (message "No such file or directory: ~s" file))))
+
 (defvar change-log-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?\C-c ?\C-p] 'add-log-edit-prev-comment)
     (define-key map [?\C-c ?\C-n] 'add-log-edit-next-comment)
+    (define-key map [?\C-c ?\C-f] 'change-log-find-file)
     map)
   "Keymap for Change Log major mode.")
 

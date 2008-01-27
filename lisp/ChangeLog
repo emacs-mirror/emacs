@@ -1,3 +1,11 @@
+2007-01-27  Jan Nieuwenhuizen  <janneke@gnu.org>
+
+        * add-log.el (change-log-search-file-name, change-log-find-file):
+        New function.
+	(change-log-font-lock-keywords): Move file name matching ...
+	(change-log-file-names-re): ... here.  New defconst.
+        (change-log-mode-map): New binding C-c C-f to change-log-find-file.
+
 2008-01-27  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-awk.el, progmodes/cc-engine.el: Correct typos,
