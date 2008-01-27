@@ -1,3 +1,8 @@
+2008-01-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods): The hostname of the su(do)? methods
+	must be a local host.
+
 2008-01-26  Michael Olson  <mwolson@gnu.org>
 
 	* erc.texi: Update version for ERC 5.3 release.
@@ -8,7 +13,7 @@
 2008-01-24  Karl Berry  <karl@gnu.org>
 
 	* info.texi (Search Index),
-	 (Search Text): mention the command character in the section name, 
+	 (Search Text): mention the command character in the section name,
 	 a la the (Go to node) node.
 
 2008-01-21  Michael Albinus  <michael.albinus@gmx.de>
