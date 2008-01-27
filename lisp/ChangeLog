@@ -1,3 +1,12 @@
+2008-01-27  Martin Rudalics  <rudalics@gmx.at>
+
+	* view.el (view-buffer): Explain in doc-string why exit-action
+	should not be set to kill-buffer.
+
+	* arc-mode.el (archive-extract):
+	* tar-mode.el (tar-extract): Use kill-buffer-if-not-modified as
+	exit-action when viewing the buffer.
+
 2008-01-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* add-log.el (change-log-search-file-name): Work harder to find
