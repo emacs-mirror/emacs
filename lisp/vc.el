@@ -566,6 +566,9 @@
 ;;
 ;; - "snapshots" should be renamed to "branches", and thoroughly reworked.
 ;;
+;; - do not default to RCS anymore when the current directory is not
+;;   controlled by any VCS and the user does C-x v v
+;;
 
 ;;; Code:
 

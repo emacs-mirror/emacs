@@ -5,6 +5,8 @@
 
 2008-01-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el: Add TODO item about not defaulting to RCS.
+
 	* server.el (server-process-filter): Check for non-nil before
 	calling file-directory-p.
 
