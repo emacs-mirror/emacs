@@ -223,6 +223,9 @@ same host, based on messages.  See the manual for further details.
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
+** ChangeLog now has function bound to C-c C-f that finds the file in
+the current log entry.
+
 ** abbrev was rewritten in Elisp and extended with more flexibility.
 *** New functions: abbrev-get, abbrev-put, abbrev-table-get, abbrev-table-put,
     abbrev-table-p.
