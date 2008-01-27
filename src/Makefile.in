@@ -993,12 +993,7 @@ ${etc}DOC: ${libsrc}make-docfile${EXEEXT} ${obj} ${shortlisp} ${SOME_MACHINE_LIS
 ${libsrc}make-docfile${EXEEXT}:
 	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile${EXEEXT}
 
-/* Some systems define this to cause parallel Make-ing.  */
-#ifndef MAKE_PARALLEL
-#define MAKE_PARALLEL
-#endif
-
-temacs${EXEEXT}: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
+temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
 	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
@@ -1009,11 +1004,6 @@ temacs${EXEEXT}: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} $
    which are only good with temacs.  */
 prefix-args${EXEEXT}: prefix-args.c $(config_h)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) ${srcdir}/prefix-args.c -o prefix-args
-
-/* Do not lose if this was not defined.  */
-#ifndef OLDXMENU_OPTIONS
-#define OLDXMENU_OPTIONS
-#endif
 
 #if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS) && ! defined (HAVE_GTK)
 
@@ -1060,7 +1050,7 @@ C_SWITCH_X_SITE_1 = C_SWITCH_X_SITE
 C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
 C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
 really-oldXMenu:
-	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} OLDXMENU_OPTIONS \
+	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
     "C_SWITCH_X_SITE=$(C_SWITCH_X_SITE_1)" \
     "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \

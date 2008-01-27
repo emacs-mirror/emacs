@@ -1,3 +1,7 @@
+2008-01-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in: Remove references to unused macros.
+
 2008-01-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (g_b_init_get_sid_sub_authority)

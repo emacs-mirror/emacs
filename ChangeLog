@@ -1,3 +1,7 @@
+2008-01-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Update comment.
+
 2008-01-26  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (--without-gcc): By default, neither off nor on.
