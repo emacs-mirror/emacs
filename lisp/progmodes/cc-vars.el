@@ -729,7 +729,8 @@ involve auto-newline inserted newlines:
 					       (module-open after)
 					       (composition-open after)
 					       (inexpr-class-open after)
-					       (inexpr-class-close before))
+					       (inexpr-class-close before)
+					       (arglist-cont-nonempty))
   "*Controls the insertion of newlines before and after braces
 when the auto-newline feature is active.  This variable contains an
 association list with elements of the following form:
@@ -783,7 +784,8 @@ syntactic context for the brace line."
 	      namespace-open namespace-close
 	      module-open module-close
 	      composition-open composition-close
-	      inexpr-class-open inexpr-class-close)))
+	      inexpr-class-open inexpr-class-close
+	      arglist-cont-nonempty)))
     :group 'c)
 
 (defcustom c-max-one-liner-length 80

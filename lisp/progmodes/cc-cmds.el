@@ -524,7 +524,11 @@ inside a literal or a macro, nothing special happens."
 	;; This is the list of brace syntactic symbols that can hang.
 	;; If any new ones are added to c-offsets-alist, they should be
 	;; added here as well.
-	'(class-open class-close defun-open defun-close
+	;; 
+	;; The order of this list is important; if SYNTAX has several
+	;; elements, the element that "wins" is the earliest in SYMS.
+	'(arglist-cont-nonempty		; e.g. an array literal.
+		     class-open class-close defun-open defun-close
 		     inline-open inline-close
 		     brace-list-open brace-list-close
 		     brace-list-intro brace-entry-open
