@@ -2703,6 +2703,7 @@ font_find_for_lface (f, lface, spec, c)
   if (NILP (val))
     return Qnil;
   result = font_has_char (f, val, c);
+  font_close_object (f, val);
   if (result > 0)
     return val;
   return Qnil;
@@ -3565,6 +3566,9 @@ FONT-OBJECT.  */)
       if (start < 0 || start > end || end > SCHARS (string))
 	args_out_of_range_3 (string, from, to);
     }
+
+  if (! FONT_OBJECT_P (font_object))
+    return to;
 
   CHECK_FONT_GET_OBJECT (font_object, font);
   len = end - start;
