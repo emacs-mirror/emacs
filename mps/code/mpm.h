@@ -455,6 +455,8 @@ extern void GlobalsPrepareToDestroy(Globals arenaGlobals);
 extern Res GlobalsDescribe(Globals arena, mps_lib_FILE *stream);
 extern Ring GlobalsRememberedSummaryRing(Globals);
 
+extern Res ChunkDescribe(Chunk chunk, mps_lib_FILE *stream);
+
 #define ArenaGlobals(arena) (&(arena)->globals)
 #define GlobalsArena(glob) PARENT(ArenaStruct, globals, glob)
 
