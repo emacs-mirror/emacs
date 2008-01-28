@@ -3781,7 +3781,9 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
   (command &optional output-buffer error-buffer)
   "Like `shell-command' for Tramp files."
   (let* ((asynchronous (string-match "[ \t]*&[ \t]*\\'" command))
-	 (args (split-string (substring command 0 asynchronous) " "))
+	 ;; We cannot use `shell-file-name' and `shell-command-switch',
+	 ;; they are variables of the local host.
+	 (args (list "/bin/sh" "-c" (substring command 0 asynchronous)))
 	 (output-buffer
 	  (cond
 	   ((bufferp output-buffer) output-buffer)
