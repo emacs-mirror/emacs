@@ -2603,8 +2603,8 @@ font_find_for_lface (f, lface, spec, c)
      Lisp_Object spec;
      int c;
 {
-  Lisp_Object frame, entities;
-  int i;
+  Lisp_Object frame, entities, val;
+  int i, result;
 
   XSETFRAME (frame, f);
 
@@ -2646,9 +2646,9 @@ font_find_for_lface (f, lface, spec, c)
 
       if (c >= 0)
 	{
-	  struct charset *repertory;
+	  struct charset *encoding, *repertory;
 
-	  if (font_registry_charsets (registry, NULL, &repertory) < 0)
+	  if (font_registry_charsets (registry, &encoding, &repertory) < 0)
 	    return Qnil;
 	  if (repertory)
 	    {
@@ -2659,7 +2659,7 @@ font_find_for_lface (f, lface, spec, c)
 		 suppress the further checking.  */
 	      c = -1;
 	    }
-	  else if (c > MAX_UNICODE_CHAR)
+	  else if (c > encoding->max_char)
 	    return Qnil;
 	}
       for (i = 0; i < FONT_SPEC_MAX; i++)
@@ -2692,23 +2692,19 @@ font_find_for_lface (f, lface, spec, c)
 
   if (c < 0)
     return AREF (entities, 0);
-  for (i = 0; i < ASIZE (entities); i++)
-    {
-      int result = font_has_char (f, AREF (entities, i), c);
-      Lisp_Object font_object;
 
-      if (result > 0)
-	return AREF (entities, i);
-      if (result == 0)
-	continue;
-      font_object = font_open_for_lface (f, AREF (entities, i), lface, spec);
-      if (NILP (font_object))
-	continue;
-      result = font_has_char (f, font_object, c);
-      font_close_object (f, font_object);
-      if (result > 0)
-	return AREF (entities, i);
-    }      
+  val = AREF (entities, 0);
+  result = font_has_char (f, val, c);
+  if (result > 0)
+    return val;
+  if (result == 0)
+    return Qnil;
+  val = font_open_for_lface (f, val, lface, spec);
+  if (NILP (val))
+    return Qnil;
+  result = font_has_char (f, val, c);
+  if (result > 0)
+    return val;
   return Qnil;
 }
 
@@ -3101,7 +3097,7 @@ font_at (c, pos, face, w, string)
 /* Lisp API */
 
 DEFUN ("fontp", Ffontp, Sfontp, 1, 1, 0,
-       doc: /* Return t if OBJECT is a font-spec or font-entity.
+       doc: /* Return t if OBJECT is a font-spec, font-entity, or font-object.
 Return nil otherwise.  */)
      (object)
      Lisp_Object object;
