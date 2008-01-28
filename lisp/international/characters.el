@@ -1066,6 +1066,7 @@
 	 (#x31A0 #x31BF bopomofo)
 	 (#x3400 #x9FAF han)
 	 (#xA000 #xA4CF yi)
+	 (#xAA00 #xAA5F cham)
 	 (#xAA80 #xAADF tai-viet)
 	 (#xAC00 #xD7AF hangul)
 	 (#xF900 #xFAFF han)
