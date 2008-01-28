@@ -212,14 +212,16 @@ struct font_bitmap
 
 /* Predicates to check various font-related objects.  */
 
-#define FONTP(x)	\
-  (VECTORP (x) && (ASIZE (x) == FONT_SPEC_MAX || ASIZE (x) == FONT_ENTITY_MAX))
 #define FONT_SPEC_P(x)	\
   (VECTORP (x) && ASIZE (x) == FONT_SPEC_MAX)
 #define FONT_ENTITY_P(x)	\
   (VECTORP (x) && ASIZE (x) == FONT_ENTITY_MAX)
 #define FONT_OBJECT_P(x)	\
   (XTYPE (x) == Lisp_Misc && XMISCTYPE (x) == Lisp_Misc_Save_Value)
+#define FONTP(x)					\
+  ((VECTORP (x) && (ASIZE (x) == FONT_SPEC_MAX		\
+		    || ASIZE (x) == FONT_ENTITY_MAX))	\
+   || FONT_OBJECT_P (x))
 
 #define FONT_ENTITY_NOT_LOADABLE(entity)	\
   EQ (AREF (entity, FONT_OBJLIST_INDEX), Qt)
