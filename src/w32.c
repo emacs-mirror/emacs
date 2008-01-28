@@ -2592,8 +2592,7 @@ stat (const char * path, struct stat * buf)
 	}
       else
 	{
-          if (IS_DIRECTORY_SEP (name[0]) && IS_DIRECTORY_SEP (name[1]))
-            logon_network_drive (name);
+          logon_network_drive (name);
 
 	  fh = FindFirstFile (name, &wfd);
 	  if (fh == INVALID_HANDLE_VALUE)
