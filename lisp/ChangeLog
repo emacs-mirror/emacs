@@ -1,3 +1,8 @@
+2008-01-28  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-shell-command): Use "/bin/sh -c" for
+	the command.
+
 2008-01-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: Moved to obsolete dir.
