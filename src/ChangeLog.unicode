@@ -1,3 +1,24 @@
+2008-01-28  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* font.h (FONTP): Make it return 1 also for a font-object.
+
+	* .gdbinit (xfontset): New function.
+
+	* font.c (font_find_for_lface): Check if the character C is
+	supported or not only for the first font.
+
+	* fontset.c (reorder_font_vector): Fix typo.
+	(fontset_find_font): Don't add a font-spec specifying a script.
+	Use 0 (not Qt) for the indication of empty font-group.  Change the
+	format of RFONT-DEF.  Return Qt if no font in the font-group
+	support the character.
+	(fontset_font): Adjusted for the above change.  If no font was
+	found the character, remember that.
+	(face_for_char): Adjusted for the change of RFONT-DEF.
+	(Fset_fontset_font): Allow nil for FONT-SPEC to explicitly specify
+	no font for the target.
+	(Finternal_char_font): Adjusted for the change of RFONT-DEF.
+
 2008-01-25  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* font.c (font_load_for_face): Handle the case that the font in
@@ -25,7 +46,7 @@
 2008-01-14  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* font.c (font_find_for_lface): Fix the handling of the return
-	value of  font_has_char.
+	value of font_has_char.
 	(Ffont_shape_text): Fix previous change.
 
 	* fontset.c (FONTSET_REF_AND_RANGE): Delete it.
