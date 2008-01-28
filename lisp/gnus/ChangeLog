@@ -1,4 +1,4 @@
-2008-01-24    Michael Sperber  <sperber@deinprogramm.de>
+2008-01-24  Michael Sperber  <sperber@deinprogramm.de>
 
 	* mail-source.el (mail-sources): Add `group' choice.
 
