@@ -181,6 +181,8 @@
 	(kanbun #x319D)
 	(han #x5B57)
 	(yi #xA288)
+	(cham #xAA00)
+	(tai-viet #xAA80)
 	(hangul #xAC00)))
 
 (setq otf-script-alist
@@ -285,7 +287,8 @@
 	    (nil . "ISO8859-14")
 	    (nil . "ISO8859-15")
 	    (nil . "ISO8859-16")
-	    (nil . "VISCII1.1-1"))
+	    (nil . "VISCII1.1-1")
+	    (nil . "ISO10646-1"))
 
      (thai  ,(font-spec :registry "iso10646-1" :otf '(thai nil nil (mark)))
 	    (nil . "TIS620*")
@@ -387,7 +390,9 @@
 	  (nil . "JISX0213.2000-2")
 	  (nil . "JISX0213.2004-1"))
 
-     (cjk-misc (nil . "GB2312.1980-0")
+     (cjk-misc ,(font-spec :registry "iso10646-1" :language 'ja)
+	       ,(font-spec :registry "iso10646-1" :language 'zh)
+	       (nil . "GB2312.1980-0")
 	       (nil . "JISX0208*")
 	       (nil . "JISX0212*")
 	       (nil . "big5*")
@@ -438,7 +443,8 @@
      (malayalam-akruti (nil . "Malayalam-Akruti"))
      ;;(devanagari-glyph ("altsys-dv_ttsurekh" . "devanagari-cdac"))
      ;;(malayalam-glyph ("altsys-ml_ttkarthika" . "malayalam-cdac"))
-     (ipa (nil . "MuleIPA-1"))
+     (ipa (nil . "MuleIPA-1")
+	  (nil . "iso10646-1"))
 
      ;; Fallback fonts
      (nil (nil . "gb2312.1980")
@@ -469,7 +475,9 @@
   (set-fontset-font "fontset-default" nil
 		    '("gnu-unifont" . "iso10646-1") nil 'append)
   (set-fontset-font "fontset-default" nil
-		    '("mutt-clearlyu" . "iso10646-1") nil 'append))
+		    '("mutt-clearlyu" . "iso10646-1") nil 'append)
+
+  (set-fontset-font "fontset-default" '(#xE000 . #xF8FF) nil))
 
 ;; These are the registered registries/encodings from
 ;; ftp://ftp.x.org/pub/DOCS/registry 2001/06/01
