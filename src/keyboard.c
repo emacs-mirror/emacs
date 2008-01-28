@@ -2704,7 +2704,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
   /* if redisplay was requested */
   if (commandflag >= 0)
     {
-      int echo_current = echo_message_buffer == echo_area_buffer[0];
+      int echo_current = EQ (echo_message_buffer, echo_area_buffer[0]);
 
 	/* If there is pending input, process any events which are not
 	   user-visible, such as X selection_request events.  */

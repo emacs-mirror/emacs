@@ -1,3 +1,7 @@
+2008-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (read_char): Yet another int/Lisp_Object mixup (YAILOM).
+
 2008-01-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in: Remove references to unused macros.
@@ -8,9 +12,8 @@
 	(g_b_init_get_sid_sub_authority_count): New static variables.
 	(GetSidSubAuthority_Proc, GetSidSubAuthorityCount_Proc): New typedefs.
 	(get_sid_sub_authority, get_sid_sub_authority_count): New functions.
-	(init_user_info): Use the above two new functions to retrieve uid
-	and gid.  Use 500/513, the Windows defaults, as Administrator's
-	uid/gid.
+	(init_user_info): Use them to retrieve uid and gid.
+	Use 500/513, the Windows defaults, as Administrator's uid/gid.
 	(fstat): Use pw_uid and pw_gid from the_passwd structure for
 	st_uid and st_gid of the file.
 
@@ -34,10 +37,10 @@
 
 	* keyboard.c (read_char): Restore echo_message_buffer after redisplay.
 
-	* buffer.c (reset_buffer_local_variables): Implement
-	`permanent-local-hook'.
+	* buffer.c (reset_buffer_local_variables):
+	Implement `permanent-local-hook'.
 	(Qpermanent_local_hook): New variable.
-	(syms_of_buffer): init and staticpro it.
+	(syms_of_buffer): Init and staticpro it.
 
 2008-01-25  Michael Albinus  <michael.albinus@gmx.de>
 
