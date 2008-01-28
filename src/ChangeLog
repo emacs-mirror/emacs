@@ -1,3 +1,7 @@
+2008-01-28  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (stat): Don't double check for networked drive.
+
 2008-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (run_window_configuration_change_hook): New function.
