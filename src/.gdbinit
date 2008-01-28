@@ -1015,6 +1015,29 @@ document xcharset
   Print the name of charset that has ID (argument).
 end
 
+define xfontset
+  xgetptr $
+  set $tbl = (struct Lisp_Char_Table *) $ptr
+  print $tbl
+  xgetint $tbl->extras[0]
+  printf " ID:%d", $int
+  xgettype $tbl->extras[1]
+  xgetptr $tbl->extras[1]
+  if $type == Lisp_String
+    set $ptr = (struct Lisp_String *) $ptr
+    printf " Name:"
+    xprintstr $ptr
+  else
+    xgetptr $tbl->extras[2]
+    set $ptr = (struct Lisp_Char_Table *) $ptr
+    xgetptr $ptr->extras[1]
+    set $ptr = (struct Lisp_String *) $ptr
+    printf " Realized from:"
+    xprintstr $ptr
+  end
+  echo \n
+end
+
 define xbacktrace
   set $bt = backtrace_list
   while $bt
