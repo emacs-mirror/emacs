@@ -1,3 +1,13 @@
+2008-01-28  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (script-representative-chars): Add cham
+	and tai-viet.
+	(setup-default-fontset): Add iso10646-1 font for latin and ipa.
+	Add fontconfig spec for cjk-misc.  Explicitly specify font font
+	for U+E000..U+F8FF.
+
+	* international/characters.el (script-list): Add cham.
+
 2008-01-16  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* language/ind-util.el (in-is13194-post-read-conversion): Delete
