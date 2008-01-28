@@ -1,3 +1,11 @@
+2008-01-24    Michael Sperber  <sperber@deinprogramm.de>
+
+	* mail-source.el (mail-sources): Add `group' choice.
+
+	* nnmail.el (nnmail-get-new-mail-1): Abstract this out to add another
+	parameter `in-group' to control into which group the articles go.
+	Add treatment of `group' mail-source.
+
 2008-01-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* sieve.el (sieve-make-overlay, sieve-overlay-put, sieve-overlays-at):

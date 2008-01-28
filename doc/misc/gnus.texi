@@ -3035,6 +3035,12 @@ to.
 If it is set, the value is used as the method for posting message
 instead of @code{gnus-post-method}.
 
+@item mail-source
+@cindex mail-source
+If it is set, and the setting of @code{mail-sources} includes a
+@code{group} mail source (@pxref{Mail Sources}), the value is a
+mail source for this group.
+
 @item banner
 @cindex banner
 An item like @code{(banner . @var{regexp})} causes any part of an article
@@ -14145,6 +14151,21 @@ element is a @dfn{mail source type}, followed by an arbitrary number of
 @dfn{keywords}.  Keywords that are not explicitly specified are given
 default values.
 
+The @code{mail-sources} is global for all mail groups.  You can specify
+an additional mail source for a particular group by including the
+@code{group} mail specifier in @code{mail-sources}, and setting a
+@code{mail-source} group parameter (@pxref{Group Parameters}) specifying
+a single mail source.  When this is used, @code{mail-sources} is
+typically just @code{(group)}; the @code{mail-source} parameter for a
+group might look like this:
+
+@lisp
+(mail-source . (file :path "home/user/spools/foo.spool"))
+@end lisp
+
+This means that the group's (and only this group's) messages will be
+fetched from the spool file @samp{/user/spools/foo.spool}.
+
 The following mail source types are available:
 
 @table @code
@@ -14535,6 +14556,11 @@ An example webmail source:
          :user "user-name"
          :password "secret")
 @end lisp
+
+@item group
+Get the actual mail source from the @code{mail-source} group parameter,
+@xref{Group Parameters}.
+
 @end table
 
 @table @dfn

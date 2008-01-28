@@ -1,3 +1,8 @@
+2008-01-28  Michael Sperber  <sperber@deinprogramm.de>
+
+	* gnus.texi (Mail Source Specifiers): Document `group' specifier.
+	(Group Parameters): Document `mail-source' parameter.
+
 2008-01-27  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Inline methods): The hostname of the su(do)? methods
