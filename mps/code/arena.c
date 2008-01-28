@@ -359,6 +359,17 @@ Res ArenaDescribe(Arena arena, mps_lib_FILE *stream)
   res = (*arena->class->describe)(arena, stream);
   if (res != ResOK) return res;
 
+  {
+    Ring node, next;
+    RING_FOR(node, &arena->chunkRing, next) {
+      Chunk chunk = RING_ELT(Chunk, chunkRing, node);
+      res = ChunkDescribe(chunk, stream);
+      if (res != ResOK)
+        return res;
+    }
+  }
+
+
   /* Do not call GlobalsDescribe: it makes too much output, thanks.
    * RHSK 2007-04-27
    */

@@ -151,6 +151,105 @@ Bool ChunkCheck(Chunk chunk)
 }
 
 
+/* ChunkDescribe -- describe a chunk 
+ */
+
+Res ChunkDescribe(Chunk chunk, mps_lib_FILE *stream)
+{
+  Res res;
+  Size grainSize;  /* size of an arena grain */
+  Size chunkSize;
+  Size zoneSize;
+  Count zones;
+  Index zone;
+  Size lapSize;
+  Addr zoneLoBase, zoneHiLimit;
+  Count laps;
+  Count zoneGrains;
+  
+  if(!CHECKT(Chunk, chunk))
+    return ResFAIL;
+  if(stream == NULL)
+    return ResFAIL;
+  
+  grainSize = chunk->arena->alignment;
+
+  chunkSize = AddrOffset(chunk->base, chunk->limit);
+  res = WriteF(stream,
+    "Chunk [$W..<$W>..$W) ($U) $U arena grains: ", 
+    chunk->base, chunkSize, chunk->limit,
+      chunk->serial, chunkSize / grainSize,
+    NULL);
+  if(res != ResOK)
+    return res;
+
+
+  /* Grains per zone
+   *
+   * o -- -- -- -< XX XX XX XX |
+   * | XX XX XX XX XX XX XX XX |
+   * | XX >- -- -- -- -- -- -- o
+   *
+   * o -- -- -- -- -- -< >- -- o
+   *
+   * If the chunk started at zone 0, and did complete 'laps' ending 
+   * at zone 31, it would go from zoneLoBase ("o") to zoneHiLimit("o").
+   * In fact, some grains are lost at the beginning and end ("--").
+   */
+  
+  zoneSize = (Size)1 << chunk->arena->zoneShift;
+  zones = MPS_WORD_WIDTH;
+  lapSize = zoneSize * zones;
+  zoneLoBase = AddrAlignDown(chunk->base, lapSize);
+  zoneHiLimit = AddrAlignUp(chunk->limit, lapSize);
+  /* @@@@ zoneHiLimit may wraparound to 0 :-(  Need code to cope with this. */
+  laps = AddrOffset(zoneLoBase, zoneHiLimit) / lapSize;
+  AVER(laps >= 1);
+  zoneGrains = zoneSize / grainSize;
+  AVER(AddrIsAligned(chunk->base, grainSize));
+  AVER(AddrIsAligned(chunk->limit, grainSize));
+  
+  for(zone = 0; zone < zones; zone += 1) {
+    Count grains = zoneGrains * laps;
+    Addr zoneBase;
+    Addr zoneLimit0, zoneLimit;
+    
+    zoneBase = AddrAdd(zoneLoBase, (zone * zoneSize));
+    if(zoneBase < chunk->base) {
+      Count lost = AddrOffset(zoneBase, chunk->base) / grainSize;
+      if(lost > zoneGrains)
+        lost = zoneGrains;
+      grains -= lost;
+    }
+
+    zoneLimit0 = AddrAdd(AddrSub(zoneHiLimit, lapSize), zoneSize);
+    zoneLimit = AddrAdd(zoneLimit0, zone * zoneSize);
+    if(chunk->limit < zoneLimit) {
+      Count lost = AddrOffset(chunk->limit, zoneLimit) / grainSize;
+      if(lost > zoneGrains)
+        lost = zoneGrains;
+      grains -= lost;
+    }
+
+    res = WriteF(stream,
+      "$U ", grains,
+      NULL);
+    if(res != ResOK)
+      return res;
+  }
+
+  res = WriteF(stream,
+    "\n",
+    NULL);
+  if(res != ResOK)
+    return res;
+
+  /* (incomplete: some fields are not Described) */
+
+  return ResOK;
+}
+
+
 /* ChunkInit -- initialize generic part of chunk */
 
 Res ChunkInit(Chunk chunk, Arena arena,
