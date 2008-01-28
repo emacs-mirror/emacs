@@ -1,5 +1,11 @@
 2008-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* window.c (run_window_configuration_change_hook): New function.
+	Code extracted from set_window_buffer.  Set the selected frame.
+	(set_window_buffer): Use it.
+	* window.h (run_window_configuration_change_hook): Declare.
+	* dispnew.c (change_frame_size_1): Use it instead of set-window-buffer.
+
 	* keyboard.c (read_char): Yet another int/Lisp_Object mixup (YAILOM).
 
 2008-01-27  Dan Nicolaescu  <dann@ics.uci.edu>

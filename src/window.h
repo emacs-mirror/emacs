@@ -790,6 +790,7 @@ extern void foreach_window P_ ((struct frame *,
 extern void grow_mini_window P_ ((struct window *, int));
 extern void shrink_mini_window P_ ((struct window *));
 
+void run_window_configuration_change_hook (struct frame *f);
 
 /* Make WINDOW display BUFFER as its contents.  RUN_HOOKS_P non-zero
    means it's allowed to run hooks.  See make_frame for a case where

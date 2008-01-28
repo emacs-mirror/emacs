@@ -3307,6 +3307,25 @@ Fset_window_buffer_unwind (obuf)
 EXFUN (Fset_window_fringes, 4);
 EXFUN (Fset_window_scroll_bars, 4);
 
+void
+run_window_configuration_change_hook (struct frame *f)
+{
+  if (! NILP (Vwindow_configuration_change_hook)
+      && ! NILP (Vrun_hooks))
+    {
+      int count = SPECPDL_INDEX ();
+      if (SELECTED_FRAME () != f)
+	{
+	  Lisp_Object frame;
+	  XSETFRAME (frame, f);
+	  record_unwind_protect (Fselect_frame, Fselected_frame ());
+	  Fselect_frame (frame);
+	}
+      call1 (Vrun_hooks, Qwindow_configuration_change_hook);
+      unbind_to (count, Qnil);
+    }
+}
+
 /* Make WINDOW display BUFFER as its contents.  RUN_HOOKS_P non-zero
    means it's allowed to run hooks.  See make_frame for a case where
    it's not allowed.  KEEP_MARGINS_P non-zero means that the current
@@ -3408,10 +3427,7 @@ set_window_buffer (window, buffer, run_hooks_p, keep_margins_p)
       if (! NILP (Vwindow_scroll_functions))
 	run_hook_with_args_2 (Qwindow_scroll_functions, window,
 			      Fmarker_position (w->start));
-
-      if (! NILP (Vwindow_configuration_change_hook)
-	  && ! NILP (Vrun_hooks))
-	call1 (Vrun_hooks, Qwindow_configuration_change_hook);
+      run_window_configuration_change_hook (XFRAME (WINDOW_FRAME (w)));
     }
 
   unbind_to (count, Qnil);
