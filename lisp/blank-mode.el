@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 9.1
+;; Version: 9.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -1679,6 +1679,38 @@ options are valid."
        blank-display-table-was-local
        (setq blank-display-table-was-local nil
 	     buffer-display-table          blank-display-table)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Aliases for whitespace compatibility
+
+
+;;;###autoload
+(defun whitespace-buffer ()
+  (interactive)
+  (blank-mode 0)			; assure is off
+  ;; keep original values
+  (let ((blank-style (copy-sequence blank-style))
+	(blank-chars (copy-sequence blank-chars)))
+    ;; adjust options for whitespace bogus blanks
+    (add-to-list 'blank-style 'color)
+    (mapc #'(lambda (option)
+	      (add-to-list 'blank-chars option))
+	  '(trailing
+	    indentation
+	    space-before-tab
+	    empty
+	    space-after-tab))
+    (blank-mode 1)))
+
+;;;###autoload
+(defalias 'whitespace-region 'whitespace-buffer) ; there is no `blank-region'
+
+;;;###autoload
+(defalias 'whitespace-cleanup 'blank-cleanup)
+
+;;;###autoload
+(defalias 'whitespace-cleanup-region 'blank-cleanup-region)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

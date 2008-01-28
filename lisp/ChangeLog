@@ -1,3 +1,15 @@
+2008-01-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: Moved to obsolete dir.
+
+	* blank-mode.el: New version 9.2.  Replace whitespace funs by aliases
+	in blank-mode.
+	(whitespace-buffer): New fun.
+	(whitespace-region): Alias for whitespace-buffer, because there is no
+	blank-region fun.
+	(whitespace-cleanup): Alias for blank-cleanup.
+	(whitespace-cleanup-region): Alias for blank-cleanup-region.
+
 2008-01-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* server.el (server-log-time-function): Doc fix.
