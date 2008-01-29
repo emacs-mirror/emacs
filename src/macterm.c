@@ -5300,7 +5300,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 #if USE_CG_DRAWING
 	      mac_prepare_for_quickdraw (f);
 #endif
-	      Draw1Control (SCROLL_BAR_CONTROL_HANDLE (bar));
+	      Draw1Control (SCROLL_BAR_CONTROL_REF (bar));
 	    }
 	}
       else
