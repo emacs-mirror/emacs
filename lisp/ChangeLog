@@ -1,3 +1,14 @@
+2008-01-29  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-mode): Adapt to i-m-current-[vh]scroll
+	being an alist now.
+
+	* image-mode.el (image-mode-current-vscroll)
+	(image-mode-current-hscroll): Add doc strings.
+	(image-set-window-vscroll, image-set-window-hscroll)
+	(image-reset-current-vhscroll, image-mode): Adapt to
+	i-m-current-[vh]scroll being an alist now.
+
 2008-01-29  Martin Rudalics  <rudalics@gmx.at>
 
 	* emacs-lisp/find-func.el (find-function-search-for-symbol):
