@@ -1,5 +1,9 @@
 2008-01-29  Alan Mackenzie  <acm@muc.de>
 
+	* progmodes/cc-engine.el (c-guess-basic-syntax, CASE 5A.5): Anchor
+	the "{" of a template function correctly on "template", not the
+	following "<".
+
 	* progmodes/cc-defs.el (c-version): increase to 5.31.5.
 
 2008-01-29  Tassilo Horn  <tassilo@member.fsf.org>
