@@ -50,22 +50,37 @@
 
 ;;; Image scrolling functions
 
+(defvar image-mode-current-vscroll nil)
+(defvar image-mode-current-hscroll nil)
+
+(defun image-set-window-vscroll (window vscroll &optional pixels-p)
+  (setq image-mode-current-vscroll vscroll)
+  (set-window-vscroll window vscroll pixels-p))
+
+(defun image-set-window-hscroll (window ncol)
+  (setq image-mode-current-hscroll ncol)
+  (set-window-hscroll window ncol))
+
+(defun image-reset-current-vhscroll ()
+  (set-window-hscroll (selected-window) image-mode-current-hscroll)
+  (set-window-vscroll (selected-window) image-mode-current-vscroll))
+
 (defun image-forward-hscroll (&optional n)
   "Scroll image in current window to the left by N character widths.
 Stop if the right edge of the image is reached."
   (interactive "p")
   (cond ((= n 0) nil)
 	((< n 0)
-	 (set-window-hscroll (selected-window)
-			     (max 0 (+ (window-hscroll) n))))
+	 (image-set-window-hscroll (selected-window)
+				   (max 0 (+ (window-hscroll) n))))
 	(t
 	 (let* ((image (get-char-property (point-min) 'display))
 		(edges (window-inside-edges))
 		(win-width (- (nth 2 edges) (nth 0 edges)))
 		(img-width (ceiling (car (image-size image)))))
-	   (set-window-hscroll (selected-window)
-			       (min (max 0 (- img-width win-width))
-				    (+ n (window-hscroll))))))))
+	   (image-set-window-hscroll (selected-window)
+				     (min (max 0 (- img-width win-width))
+					  (+ n (window-hscroll))))))))
 
 (defun image-backward-hscroll (&optional n)
   "Scroll image in current window to the right by N character widths.
@@ -79,16 +94,16 @@ Stop if the bottom edge of the image is reached."
   (interactive "p")
   (cond ((= n 0) nil)
 	((< n 0)
-	 (set-window-vscroll (selected-window)
-			     (max 0 (+ (window-vscroll) n))))
+	 (image-set-window-vscroll (selected-window)
+				   (max 0 (+ (window-vscroll) n))))
 	(t
 	 (let* ((image (get-char-property (point-min) 'display))
 		(edges (window-inside-edges))
 		(win-height (- (nth 3 edges) (nth 1 edges)))
 		(img-height (ceiling (cdr (image-size image)))))
-	   (set-window-vscroll (selected-window)
-			       (min (max 0 (- img-height win-height))
-				    (+ n (window-vscroll))))))))
+	   (image-set-window-vscroll (selected-window)
+				     (min (max 0 (- img-height win-height))
+					  (+ n (window-vscroll))))))))
 
 (defun image-previous-line (&optional n)
   "Scroll image in current window downward by N lines.
@@ -146,7 +161,7 @@ stopping if the top or bottom edge of the image is reached."
   (and arg
        (/= (setq arg (prefix-numeric-value arg)) 1)
        (image-next-line (- arg 1)))
-  (set-window-hscroll (selected-window) 0))
+  (image-set-window-hscroll (selected-window) 0))
 
 (defun image-eol (arg)
   "Scroll horizontally to the right edge of the image in the current window.
@@ -160,14 +175,14 @@ stopping if the top or bottom edge of the image is reached."
 	 (edges (window-inside-edges))
 	 (win-width (- (nth 2 edges) (nth 0 edges)))
 	 (img-width (ceiling (car (image-size image)))))
-    (set-window-hscroll (selected-window)
-			(max 0 (- img-width win-width)))))
+    (image-set-window-hscroll (selected-window)
+			      (max 0 (- img-width win-width)))))
 
 (defun image-bob ()
   "Scroll to the top-left corner of the image in the current window."
   (interactive)
-  (set-window-hscroll (selected-window) 0)
-  (set-window-vscroll (selected-window) 0))
+  (image-set-window-hscroll (selected-window) 0)
+  (image-set-window-vscroll (selected-window) 0))
 
 (defun image-eob ()
   "Scroll to the bottom-right corner of the image in the current window."
@@ -178,8 +193,8 @@ stopping if the top or bottom edge of the image is reached."
 	 (img-width (ceiling (car (image-size image))))
 	 (win-height (- (nth 3 edges) (nth 1 edges)))
 	 (img-height (ceiling (cdr (image-size image)))))
-    (set-window-hscroll (selected-window) (max 0 (- img-width win-width)))
-    (set-window-vscroll (selected-window) (max 0 (- img-height win-height)))))
+    (image-set-window-hscroll (selected-window) (max 0 (- img-width win-width)))
+    (image-set-window-vscroll (selected-window) (max 0 (- img-height win-height)))))
 
 ;;; Image Mode setup
 
@@ -224,6 +239,15 @@ to toggle between display as an image and display as text."
   ;; Use our own bookmarking function for images.
   (set (make-local-variable 'bookmark-make-cell-function)
        'image-bookmark-make-cell)
+
+  ;; Keep track of [vh]scroll when switching buffers
+  (set (make-local-variable 'image-mode-current-hscroll)
+       (window-hscroll (selected-window)))
+  (set (make-local-variable 'image-mode-current-vscroll)
+       (window-vscroll (selected-window)))
+  (add-hook 'window-configuration-change-hook
+	    'image-reset-current-vhscroll nil t)
+
   (add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
   (if (and (display-images-p)
 	   (not (get-char-property (point-min) 'display)))
@@ -255,9 +279,9 @@ See the command `image-mode' for more information on this mode."
       (setq image-type "text"))
     (add-hook 'change-major-mode-hook (lambda () (image-minor-mode -1)) nil t)
     (message "%s" (concat (substitute-command-keys
-		      "Type \\[image-toggle-display] to view the image as ")
-		     (if (get-char-property (point-min) 'display)
-			 "text" "an image") "."))))
+			   "Type \\[image-toggle-display] to view the image as ")
+			  (if (get-char-property (point-min) 'display)
+			      "text" "an image") "."))))
 
 ;;;###autoload
 (defun image-mode-maybe ()
@@ -333,9 +357,9 @@ and showing the image as an image."
 	   (image (create-image file-or-data type data-p))
 	   (props
 	    `(display ,image
-	      intangible ,image
-	      rear-nonsticky (display intangible)
-	      read-only t front-sticky (read-only)))
+		      intangible ,image
+		      rear-nonsticky (display intangible)
+		      read-only t front-sticky (read-only)))
 	   (inhibit-read-only t)
 	   (buffer-undo-list t)
 	   (modified (buffer-modified-p)))
