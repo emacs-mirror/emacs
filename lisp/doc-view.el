@@ -987,6 +987,15 @@ toggle between displaying the document or editing it as text."
   (add-hook 'change-major-mode-hook
 	    (lambda () (delete-overlay doc-view-current-overlay))
 	    nil t)
+
+  ;; Keep track of [vh]scroll when switching buffers
+  (set (make-local-variable 'image-mode-current-hscroll)
+       (window-hscroll (selected-window)))
+  (set (make-local-variable 'image-mode-current-vscroll)
+       (window-vscroll (selected-window)))
+  (add-hook 'window-configuration-change-hook
+	    'image-reset-current-vhscroll nil t)
+
   (set (make-local-variable 'mode-line-position)
        '(" P" (:eval (number-to-string doc-view-current-page))
 	 "/" (:eval (number-to-string (length doc-view-current-files)))))
