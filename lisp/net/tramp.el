@@ -441,7 +441,7 @@ files conditionalize this setup based on the TERM environment variable."
 	     (tramp-password-end-of-line nil))
     ("sudo"  (tramp-login-program        "sudo")
              (tramp-login-args           (("-u" "%u")
-					  ("-s" "-p" "Password:")))
+					  ("-s") ("-H") ("-p" "Password:")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
 	     (tramp-copy-args            nil)
@@ -519,7 +519,9 @@ files conditionalize this setup based on the TERM environment variable."
 	     (tramp-default-port         22))
     ("plinkx"
              (tramp-login-program        "plink")
-	     (tramp-login-args           (("-load" "%h") ("-t")
+	     ;; ("%h") must be a single element, see
+	     ;; `tramp-compute-multi-hops'.
+	     (tramp-login-args           (("-load") ("%h") ("-t")
 					  (,(format
 					     "env 'TERM=%s' 'PROMPT_COMMAND=' 'PS1=$ '"
 					     tramp-terminal-type))
@@ -3789,7 +3791,7 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 	   ((bufferp output-buffer) output-buffer)
 	   ((stringp output-buffer) (get-buffer-create output-buffer))
 	   (output-buffer (current-buffer))
-	   (t (generate-new-buffer
+	   (t (get-buffer-create
 	       (if asynchronous
 		   "*Async Shell Command*"
 		 "*Shell Command Output*")))))
@@ -3801,22 +3803,42 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 	  (if (and (not asynchronous) error-buffer)
 	      (with-parsed-tramp-file-name default-directory nil
 		(list output-buffer (tramp-make-tramp-temp-file v)))
-	    output-buffer)))
+	    output-buffer))
+	 (proc (get-buffer-process output-buffer)))
 
-    (prog1
-	;; Run the process.
-	(if (integerp asynchronous)
+    ;; Check whether there is another process running.  Tramp does not
+    ;; support 2 (asynchronous) processes in parallel.
+    (when proc
+      (if (yes-or-no-p "A command is running.  Kill it? ")
+	  (ignore-errors (kill-process proc))
+	(error "Shell command in progress")))
+
+    (with-current-buffer output-buffer
+      (setq buffer-read-only nil
+	    buffer-undo-list t)
+      (erase-buffer))
+
+    (if (integerp asynchronous)
+	(prog1
+	    ;; Run the process.
 	    (apply 'start-file-process "*Async Shell*" buffer args)
-	  (apply 'process-file (car args) nil buffer nil (cdr args)))
-      ;; Insert error messages if they were separated.
-      (when (listp buffer)
-	(with-current-buffer error-buffer (insert-file-contents (cadr buffer)))
-	(delete-file (cadr buffer)))
-      ;; There's some output, display it.
-      (when (with-current-buffer output-buffer (> (point-max) (point-min)))
-	(if (functionp 'display-message-or-buffer)
-	    (funcall (symbol-function 'display-message-or-buffer) output-buffer)
-	  (pop-to-buffer output-buffer))))))
+	  ;; Display output.
+	  (pop-to-buffer output-buffer))
+
+      (prog1
+	  ;; Run the process.
+	  (apply 'process-file (car args) nil buffer nil (cdr args))
+	;; Insert error messages if they were separated.
+	(when (listp buffer)
+	  (with-current-buffer error-buffer
+	    (insert-file-contents (cadr buffer)))
+	  (delete-file (cadr buffer)))
+	;; There's some output, display it.
+	(when (with-current-buffer output-buffer (> (point-max) (point-min)))
+	  (if (functionp 'display-message-or-buffer)
+	      (funcall (symbol-function 'display-message-or-buffer)
+		       output-buffer)
+	    (pop-to-buffer output-buffer)))))))
 
 ;; File Editing.
 
@@ -6073,7 +6095,9 @@ Gateway hops are already opened."
 	    (concat "^" (regexp-opt (list "localhost" (system-name)) t) "$")
 	    host))
 	(tramp-error
-	 v 'file-error "Wrong hostname `%s' for method `%s'" host method)))
+	 v 'file-error
+	 "Host `%s' looks like a remote host, `%s' can only use the local host"
+	 host method)))
 
     ;; Result.
     target-alist))
