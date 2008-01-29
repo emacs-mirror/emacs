@@ -8033,12 +8033,15 @@ comment at the start of cc-engine.el for more info."
 
 	     ;; CASE 5A.5: ordinary defun open
 	     (t
-	      (goto-char placeholder)
-	      (if (or containing-decl-open macro-start)
-		  (c-add-syntax 'defun-open (c-point 'boi))
-		;; Bogus to use bol here, but it's the legacy.
-		(c-add-syntax 'defun-open (c-point 'bol)))
-	      )))
+	      (save-excursion
+		(c-beginning-of-decl-1 lim)
+		(while (looking-at c-specifier-key)
+		  (goto-char (match-end 1))
+		  (c-forward-syntactic-ws indent-point))
+		(c-add-syntax 'defun-open (c-point 'boi))
+		;; Bogus to use bol here, but it's the legacy.  (Resolved,
+		;; 2007-11-09)
+		))))
 
 	   ;; CASE 5B: After a function header but before the body (or
 	   ;; the ending semicolon if there's no body).
