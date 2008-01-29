@@ -1,5 +1,8 @@
 2008-01-29  Alan Mackenzie  <acm@muc.de>
 
+	* progmodes/cc-engine.el (c-specifier-key): Exclude "template"
+	from this regexp; part of same fix as next change to cc-engine.el.
+
 	* progmodes/cc-engine.el (c-guess-basic-syntax, CASE 5A.5): Anchor
 	the "{" of a template function correctly on "template", not the
 	following "<".
