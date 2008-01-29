@@ -50,20 +50,32 @@
 
 ;;; Image scrolling functions
 
-(defvar image-mode-current-vscroll nil)
-(defvar image-mode-current-hscroll nil)
+(defvar image-mode-current-vscroll nil
+  "An alist with elements (WINDOW . VSCROLL).")
+
+(defvar image-mode-current-hscroll nil
+  "An alist with elements (WINDOW . HSCROLL).")
 
 (defun image-set-window-vscroll (window vscroll &optional pixels-p)
-  (setq image-mode-current-vscroll vscroll)
+  (setq image-mode-current-vscroll
+	(append (list (cons window vscroll))
+		(delete (assoc window image-mode-current-vscroll)
+			image-mode-current-vscroll)))
   (set-window-vscroll window vscroll pixels-p))
 
 (defun image-set-window-hscroll (window ncol)
-  (setq image-mode-current-hscroll ncol)
+  (setq image-mode-current-hscroll
+	(append (list (cons window ncol))
+		(delete (assoc window image-mode-current-hscroll)
+			image-mode-current-hscroll)))
   (set-window-hscroll window ncol))
 
 (defun image-reset-current-vhscroll ()
-  (set-window-hscroll (selected-window) image-mode-current-hscroll)
-  (set-window-vscroll (selected-window) image-mode-current-vscroll))
+  (let ((win (selected-window)))
+    (when (assoc win image-mode-current-hscroll)
+      (set-window-hscroll win (cdr (assoc win image-mode-current-hscroll))))
+    (when (assoc win image-mode-current-vscroll)
+      (set-window-vscroll win (cdr (assoc win image-mode-current-vscroll))))))
 
 (defun image-forward-hscroll (&optional n)
   "Scroll image in current window to the left by N character widths.
@@ -241,10 +253,10 @@ to toggle between display as an image and display as text."
        'image-bookmark-make-cell)
 
   ;; Keep track of [vh]scroll when switching buffers
-  (set (make-local-variable 'image-mode-current-hscroll)
-       (window-hscroll (selected-window)))
-  (set (make-local-variable 'image-mode-current-vscroll)
-       (window-vscroll (selected-window)))
+  (make-local-variable 'image-mode-current-hscroll)
+  (make-local-variable 'image-mode-current-vscroll)
+  (image-set-window-hscroll (selected-window) (window-hscroll))
+  (image-set-window-vscroll (selected-window) (window-vscroll))
   (add-hook 'window-configuration-change-hook
 	    'image-reset-current-vhscroll nil t)
 
