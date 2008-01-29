@@ -1,3 +1,17 @@
+2008-01-26  Richard Stallman  <rms@gnu.org>
+
+	* maintaining.texi (Tags): Delete redundant index entry.
+
+2008-01-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* programs.texi (Imenu): Move "@cindex tags" from here...
+	* maintaining.texi (Tags): ...to here.
+
+2008-01-23  Kevin Ryde  <user42@zip.com.au>
+
+	* custom.texi (Mouse Buttons): Update elisp xref to "Click Events" on
+	click count.
+
 2008-01-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* entering.texi (Exiting): Fix typo.

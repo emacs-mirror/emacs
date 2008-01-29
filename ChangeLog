@@ -1,3 +1,9 @@
+2008-01-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (xtensa): Match more configurations.
+
+	* configure: Regenerate.
+
 2008-01-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Update comment.

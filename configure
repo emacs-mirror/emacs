@@ -2785,7 +2785,7 @@ _ACEOF
   ;;
 
   ## Tensilica Xtensa Linux-based GNU system
-  xtensa-*-linux-gnu* )
+  xtensa*-*-linux-gnu* )
     machine=xtensa opsys=gnu-linux
     ;;
 

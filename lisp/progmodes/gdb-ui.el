@@ -435,11 +435,11 @@ otherwise do not."
 	 (output
 	  (with-output-to-string
 	    (with-current-buffer standard-output
-	      (call-process shell-file-name
-			    (if (file-exists-p file) file nil)
+	      (and file (file-exists-p file)
+	      (call-process shell-file-name file
 			    (list t nil) nil "-c"
 			    (concat gdb-cpp-define-alist-program " "
-				    gdb-cpp-define-alist-flags)))))
+				    gdb-cpp-define-alist-flags))))))
 	(define-list (split-string output "\n" t)) (name))
     (setq gdb-define-alist nil)
     (dolist (define define-list)

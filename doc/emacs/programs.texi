@@ -279,7 +279,6 @@ bindings for that purpose.
 @subsection Imenu
 @cindex index of buffer definitions
 @cindex buffer definitions index
-@cindex tags
 
   The Imenu facility offers a way to find the major definitions in
 a file by name.  It is also useful in text formatter major modes,
