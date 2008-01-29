@@ -1972,6 +1972,7 @@ identifiers that follows the type in a normal declaration."
   "Statement keywords followed directly by a substatement."
   t    '("do" "else")
   c++  '("do" "else" "try")
+  objc '("do" "else" "@finally" "@try")
   java '("do" "else" "finally" "try")
   idl  nil)
 
@@ -1985,6 +1986,7 @@ identifiers that follows the type in a normal declaration."
   "Statement keywords followed by a paren sexp and then by a substatement."
   t    '("for" "if" "switch" "while")
   c++  '("for" "if" "switch" "while" "catch")
+  objc '("for" "if" "switch" "while" "@catch" "@synchronized")
   java '("for" "if" "switch" "while" "catch" "synchronized")
   idl  nil
   pike '("for" "if" "switch" "while" "foreach")
@@ -2016,6 +2018,7 @@ identifiers that follows the type in a normal declaration."
 (c-lang-defconst c-simple-stmt-kwds
   "Statement keywords followed by an expression or nothing."
   t    '("break" "continue" "goto" "return")
+  objc '("break" "continue" "goto" "return" "@throw")
   ;; Note: `goto' is not valid in Java, but the keyword is still reserved.
   java '("break" "continue" "goto" "return" "throw")
   idl  nil
