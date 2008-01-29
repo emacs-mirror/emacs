@@ -11,12 +11,12 @@
 
 2008-01-26  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-vars.el (c-hanging-braces-alist): new element for
+	* progmodes/cc-vars.el (c-hanging-braces-alist): New element for
 	arglist-cont-nonempty.
 
 	* progmodes/cc-cmds.el (c-brace-newlines): Determine the newlines
 	for a brace with syntax arglist-cont-nonempty.
-	
+
 	* progmodes/cc-styles.el (c-style-alist): Add elements for
 	arglist-cont-nonempty into 5 styles (gnu, ellemtel, linux, python,
 	awk).
@@ -31,7 +31,7 @@
 
 	* progmodes/etags.el (tags-query-replace): Doc fix.
 
-2008-01-26  Phil Sung <psung@mit.edu> (tiny change)
+2008-01-26  Phil Sung  <psung@mit.edu>  (tiny change)
 
 	* wdired.el (wdired-get-filename): Change `(1+ beg)' to `beg' so
 	that the filename end is found even when the filename is empty.
