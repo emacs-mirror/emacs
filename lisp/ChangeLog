@@ -1,3 +1,18 @@
+2008-01-29  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-mode): Use facilities below to
+	restore [vh]scroll when switching buffers.
+
+	* image-mode.el (image-mode-current-vscroll)
+	(image-mode-current-hscroll): New variables.
+	(image-set-window-hscroll, image-set-window-vscroll): New
+	functions.
+	(image-forward-hscroll, image-next-line, image-bol, image-eol)
+	(image-bob, image-eob): Use them.
+	(image-reset-current-vhscroll): New function.
+	(image-mode): Make new variables buffer-local and reset [vh]scroll
+	on window configuration changes.
+
 2008-01-27  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-create-define-alist): Don't call
