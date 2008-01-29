@@ -1,3 +1,11 @@
+2008-01-29  John Wiegley  <johnw@newartisans.com>
+
+	* url-auth.el (url-digest-auth): If the 'opaque' argument is not
+	being used, don't add it to the response text.  Also, changed an
+	if so that the interaction between the PROMPT and OVERWRITE
+	arguments can no longer result in the user being queried twice for
+	the same login and password information.
+
 2008-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-handlers.el (unhandled-file-name-directory): Add handler.
