@@ -239,8 +239,12 @@ The search is done in the source for library LIBRARY."
     (setq symbol (get symbol 'definition-name)))
   (if (string-match "\\`src/\\(.*\\.c\\)\\'" library)
       (find-function-C-source symbol (match-string 1 library) type)
-    (if (string-match "\\.el\\(c\\)\\'" library)
-	(setq library (substring library 0 (match-beginning 1))))
+    (when (string-match "\\.el\\(c\\)\\'" library)
+      (setq library (substring library 0 (match-beginning 1))))
+    ;; Strip extension from .emacs.el to make sure symbol is searched in
+    ;; .emacs too.
+    (when (string-match "\\.emacs\\(.el\\)" library)
+      (setq library (substring library 0 (match-beginning 1))))
     (let* ((filename (find-library-name library))
 	   (regexp-symbol (cdr (assq type find-function-regexp-alist))))
       (with-current-buffer (find-file-noselect filename)
