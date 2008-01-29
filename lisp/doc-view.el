@@ -989,10 +989,10 @@ toggle between displaying the document or editing it as text."
 	    nil t)
 
   ;; Keep track of [vh]scroll when switching buffers
-  (set (make-local-variable 'image-mode-current-hscroll)
-       (window-hscroll (selected-window)))
-  (set (make-local-variable 'image-mode-current-vscroll)
-       (window-vscroll (selected-window)))
+  (make-local-variable 'image-mode-current-hscroll)
+  (make-local-variable 'image-mode-current-vscroll)
+  (image-set-window-hscroll (selected-window) (window-hscroll))
+  (image-set-window-vscroll (selected-window) (window-vscroll))
   (add-hook 'window-configuration-change-hook
 	    'image-reset-current-vhscroll nil t)
 
