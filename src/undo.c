@@ -53,8 +53,12 @@ Lisp_Object Qapply;
    an undo-boundary.  */
 Lisp_Object pending_boundary;
 
+/* Nonzero means do not record point in record_point.  */
+
+int undo_inhibit_record_point;
+
 /* Record point as it was at beginning of this command (if necessary)
-   And prepare the undo info for recording a change.
+   and prepare the undo info for recording a change.
    PT is the position of point that will naturally occur as a result of the
    undo record that will be added just after this command terminates.  */
 
@@ -63,6 +67,14 @@ record_point (pt)
      int pt;
 {
   int at_boundary;
+
+  /* Don't record position of pt when undo_inhibit_record_point holds.
+     Needed to avoid inserting a position record in buffer-undo-list
+     when last_point_position has not been set up correctly by
+     command_loop_1, for example, when running a repeat-repeat-char
+     event.  */
+  if (undo_inhibit_record_point)
+    return;
 
   /* Allocate a cons cell to be the undo boundary after this command.  */
   if (NILP (pending_boundary))
@@ -719,6 +731,10 @@ If it returns nil, the other forms of truncation are done.
 Garbage collection is inhibited around the call to this function,
 so it must make sure not to do a lot of consing.  */);
   Vundo_outer_limit_function = Qnil;
+
+  DEFVAR_BOOL ("undo-inhibit-record-point", &undo_inhibit_record_point,
+	       doc: /* Non-nil means do not record `point' in `buffer-undo-list'.  */);
+  undo_inhibit_record_point = 0;
 }
 
 /* arch-tag: d546ee01-4aed-4ffb-bb8b-eefaae50d38a

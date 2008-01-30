@@ -1766,11 +1766,15 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
       (symbol-value sym))))
 
 (defun nnmail-get-new-mail (method exit-func temp
-				   &optional group spool-func)
+			    &optional group spool-func)
   "Read new incoming mail."
+  (nnmail-get-new-mail-1 method exit-func temp group nil spool-func))
+
+(defun nnmail-get-new-mail-1 (method exit-func temp
+			      group in-group spool-func)
+
   (let* ((sources mail-sources)
 	 fetching-sources
-	 (group-in group)
 	 (i 0)
 	 (new 0)
 	 (total 0)
@@ -1778,6 +1782,18 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
     (when (and (nnmail-get-value "%s-get-new-mail" method)
 	       sources)
       (while (setq source (pop sources))
+
+	;; Use group's parameter
+	(when (eq (car source) 'group)
+	  (let ((mail-sources
+		 (list
+		  (gnus-group-find-parameter
+		   (concat (symbol-name method) ":" group)
+		   'mail-source t))))
+	    (nnmail-get-new-mail-1 method exit-func temp
+				   group group spool-func))
+	  (setq source nil))
+	  
 	;; Hack to only fetch the contents of a single group's spool file.
 	(when (and (eq (car source) 'directory)
 		   (null nnmail-scan-directory-mail-source-once)
@@ -1816,9 +1832,10 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 			 (nnmail-split-incoming
 			  file ',(intern (format "%s-save-mail" method))
 			  ',spool-func
-			  (if (equal file orig-file)
-			      nil
-			    (nnmail-get-split-group orig-file ',source))
+			  (or in-group
+			      (if (equal file orig-file)
+				  nil
+				(nnmail-get-split-group orig-file ',source)))
 			  ',(intern (format "%s-active-number" method)))))))
 	  (incf total new)
 	  (incf i)))

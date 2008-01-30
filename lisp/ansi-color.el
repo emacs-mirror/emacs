@@ -513,7 +513,7 @@ property."
 (defun ansi-color-set-extent-face (extent face)
   "Set the `face' property of EXTENT to FACE.
 XEmacs uses `set-extent-face', Emacs  uses `overlay-put'."
-  (if (fboundp 'set-extent-face)
+  (if (featurep 'xemacs)
       (set-extent-face extent face)
     (overlay-put extent 'face face)))
 

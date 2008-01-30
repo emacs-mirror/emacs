@@ -1,6 +1,6 @@
 ;;; rng-nxml.el --- make nxml-mode take advantage of rng-validate-mode
 
-;; Copyright (C) 2003, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG
@@ -41,10 +41,12 @@
   :type 'boolean
   :group 'relax-ng)
 
-(defvar rng-preferred-prefix-alist-default nil
-  "Default value for variable `rng-preferred-prefix-alist'.")
-
-(defcustom rng-preferred-prefix-alist rng-preferred-prefix-alist-default
+(defcustom rng-preferred-prefix-alist
+  '(("http://www.w3.org/1999/XSL/Transform" . "xsl")
+    ("http://www.w3.org/1999/02/22-rdf-syntax-ns#" . "rdf")
+    ("http://www.w3.org/1999/xlink" . "xlink")
+    ("http://www.w3.org/2001/XmlSchema" . "xsd")
+    ("http://www.w3.org/2001/XMLSchema-instance" . "xsi"))
   "*Alist of namespaces vs preferred prefixes."
   :type '(repeat (cons :tag "With"
 		       (string :tag "this namespace URI")
@@ -100,8 +102,9 @@ Validation will be enabled if `rng-nxml-auto-validate-flag' is non-nil."
   (easy-menu-define rng-nxml-menu nxml-mode-map
     "Menu for nxml-mode used with rng-validate-mode."
     rng-nxml-easy-menu)
-  (setq mode-line-process
-	'(rng-validate-mode (:eval (rng-compute-mode-line-string))))
+  (add-to-list 'mode-line-process
+               '(rng-validate-mode (:eval (rng-compute-mode-line-string)))
+               'append)
   (cond (rng-nxml-auto-validate-flag
 	 (rng-validate-mode 1)
 	 (add-hook 'nxml-completion-hook 'rng-complete nil t)

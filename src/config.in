@@ -301,6 +301,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
 #undef HAVE_LANGINFO_CODESET
 
+/* Define to 1 if the directory /usr/lib64 exists. */
+#undef HAVE_LIB64_DIR
+
 /* Define to 1 if you have the `com_err' library (-lcom_err). */
 #undef HAVE_LIBCOM_ERR
 
@@ -719,9 +722,6 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to 1 if you have the X11R6 or newer version of Xt. */
 #undef HAVE_X11XTR6
-
-/* Define to 1 if the file /usr/lib64 exists. */
-#undef HAVE_X86_64_LIB64_DIR
 
 /* Define to 1 if you have the Xaw3d library (-lXaw3d). */
 #undef HAVE_XAW3D

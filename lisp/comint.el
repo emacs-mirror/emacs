@@ -822,6 +822,7 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 If there is no previous input at point, run the command specified
 by the global keymap (usually `mouse-yank-at-point')."
   (interactive "e")
+  (mouse-set-point event)
   (let ((pos (posn-point (event-end event)))
 	field input)
     (with-selected-window (posn-window (event-end event))
@@ -1022,9 +1023,11 @@ See also `comint-read-input-ring'."
 	 (last-command last-command)
 	 (regexp (read-from-minibuffer prompt nil nil nil
 				       'minibuffer-history-search-history)))
+    ;; If the user didn't enter anything, nothing is added to m-h-s-h.
+    ;; Use the previous search regexp, if there is one.
     (list (if (string-equal regexp "")
-	      (setcar minibuffer-history-search-history
-		      (nth 1 minibuffer-history-search-history))
+              (or (car minibuffer-history-search-history)
+                  regexp)
 	    regexp)
 	  (prefix-numeric-value current-prefix-arg))))
 

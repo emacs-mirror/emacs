@@ -1,6 +1,7 @@
 ;;; icalendar.el --- iCalendar implementation -*-coding: utf-8 -*-
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author:         Ulf Jasper <ulf.jasper@web.de>
 ;; Created:        August 2002
@@ -40,33 +41,36 @@
 
 ;;  0.07 onwards: see lisp/ChangeLog
 
-;;  0.06: Bugfixes regarding icalendar-import-format-*.
-;;        Fix in icalendar-convert-diary-to-ical -- thanks to Philipp
-;;        Grau.
+;;  0.06:  (2004-10-06)
+;;  - Bugfixes regarding icalendar-import-format-*.
+;;  - Fix in icalendar-convert-diary-to-ical -- thanks to Philipp Grau.
 
-;;  0.05: New import format scheme: Replaced icalendar-import-prefix-*,
-;;        icalendar-import-ignored-properties, and
-;;        icalendar-import-separator with icalendar-import-format(-*).
-;;        icalendar-import-file and icalendar-convert-diary-to-ical
-;;        have an extra parameter which should prevent them from
-;;        erasing their target files (untested!).
-;;        Tested with Emacs 21.3.2
+;;  0.05: (2003-06-19)
+;;  - New import format scheme: Replaced icalendar-import-prefix-*,
+;;    icalendar-import-ignored-properties, and
+;;    icalendar-import-separator with icalendar-import-format(-*).
+;;  - icalendar-import-file and icalendar-convert-diary-to-ical
+;;    have an extra parameter which should prevent them from
+;;    erasing their target files (untested!).
+;;  - Tested with Emacs 21.3.2
 
-;;  0.04: Bugfix: import: double quoted param values did not work
-;;        Read DURATION property when importing.
-;;        Added parameter icalendar-duration-correction.
+;;  0.04:
+;;  - Bugfix: import: double quoted param values did not work
+;;  - Read DURATION property when importing.
+;;  - Added parameter icalendar-duration-correction.
 
-;;  0.03: Export takes care of european-calendar-style.
-;;        Tested with Emacs 21.3.2 and XEmacs 21.4.12
+;;  0.03: (2003-05-07)
+;;  - Export takes care of european-calendar-style.
+;;  - Tested with Emacs 21.3.2 and XEmacs 21.4.12
 
-;;  0.02: Should work in XEmacs now.  Thanks to Len Trigg for the
-;;        XEmacs patches!
-;;        Added exporting from Emacs diary to ical.
-;;        Some bugfixes, after testing with calendars from
-;;        http://icalshare.com.
-;;        Tested with Emacs 21.3.2 and XEmacs 21.4.12
+;;  0.02:
+;;  - Should work in XEmacs now.  Thanks to Len Trigg for the XEmacs patches!
+;;  - Added exporting from Emacs diary to ical.
+;;  - Some bugfixes, after testing with calendars from http://icalshare.com.
+;;  - Tested with Emacs 21.3.2 and XEmacs 21.4.12
 
-;;  0.01: First published version.  Trial version.  Alpha version.
+;;  0.01: (2003-03-21)
+;;  - First published version.  Trial version.  Alpha version.
 
 ;; ======================================================================
 ;; To Do:
@@ -86,7 +90,7 @@
 ;;    + the parser is too soft
 ;;    + error log is incomplete
 ;;    + nice to have: #include "webcal://foo.com/some-calendar.ics"
-;;    + timezones, currently all times are local!
+;;    + timezones probably still need some improvements.
 
 ;;  * Export from diary to ical
 ;;    + diary-date, diary-float, and self-made sexp entries are not
@@ -101,7 +105,7 @@
 
 ;;; Code:
 
-(defconst icalendar-version "0.15"
+(defconst icalendar-version "0.17"
   "Version number of icalendar.el.")
 
 ;; ======================================================================
@@ -114,17 +118,25 @@
 
 (defcustom icalendar-import-format
   "%s%d%l%o"
-  "Format string for importing events from iCalendar into Emacs diary.
-This string defines how iCalendar events are inserted into diary
-file.  Meaning of the specifiers:
+  "Format for importing events from iCalendar into Emacs diary.
+It defines how iCalendar events are inserted into diary file.
+This may either be a string or a function.
+
+In case of a formatting STRING the following specifiers can be used:
 %c Class, see `icalendar-import-format-class'
 %d Description, see `icalendar-import-format-description'
 %l Location, see `icalendar-import-format-location'
 %o Organizer, see `icalendar-import-format-organizer'
 %s Summary, see `icalendar-import-format-summary'
 %t Status, see `icalendar-import-format-status'
-%u URL, see `icalendar-import-format-url'"
-  :type 'string
+%u URL, see `icalendar-import-format-url'
+
+A formatting FUNCTION will be called with a VEVENT as its only
+argument.  It must return a string.  See
+`icalendar-import-format-sample' for an example."
+  :type '(choice
+          (string :tag "String")
+          (function :tag "Function"))
   :group 'icalendar)
 
 (defcustom icalendar-import-format-summary
@@ -243,7 +255,7 @@ Pass arguments REGEXP REP STRING FIXEDCASE LITERAL to
 INVALUE gives the current iCalendar element we are reading.
 INPARAMS gives the current parameters.....
 This function calls itself recursively for each nested calendar element
-it finds"
+it finds."
   (let (element children line name params param param-name param-value
                 value
                 (continue t))
@@ -390,15 +402,90 @@ children."
                 (append result (list (list param-name param-value)))))))
     result))
 
-(defun icalendar--decode-isodatetime (isodatetimestring &optional day-shift)
+(defun icalendar--convert-tz-offset (alist dst-p)
+  "Return a cons of two strings representing a timezone start.
+ALIST is an alist entry from a VTIMEZONE, like STANDARD.
+DST-P is non-nil if this is for daylight savings time.
+The strings are suitable for assembling into a TZ variable."
+  (let ((offset (car (cddr (assq 'TZOFFSETTO alist))))
+	(rrule-value (car (cddr (assq 'RRULE alist))))
+	(dtstart (car (cddr (assq 'DTSTART alist)))))
+    ;; FIXME: for now we only handle RRULE and not RDATE here.
+    (when (and offset rrule-value dtstart)
+      (let* ((rrule (icalendar--split-value rrule-value))
+	     (freq (cadr (assq 'FREQ rrule)))
+	     (bymonth (cadr (assq 'BYMONTH rrule)))
+	     (byday (cadr (assq 'BYDAY rrule))))
+	;; FIXME: we don't correctly handle WKST here.
+	(if (and (string= freq "YEARLY") bymonth)
+	    (cons
+	     (concat
+	      ;; Fake a name.
+	      (if dst-p "(DST?)" "(STD?)")
+	      ;; For TZ, OFFSET is added to the local time.  So,
+	      ;; invert the values.
+	      (if (eq (aref offset 0) ?-) "+" "-")
+	      (substring offset 1 3)
+	      ":"
+	      (substring offset 3 5))
+	     ;; The start time.
+	     (let* ((day (icalendar--get-weekday-number (substring byday -2)))
+		    (week (if (eq day -1)
+			      byday
+			    (substring byday 0 -2))))
+	       (concat "M" bymonth "." week "." (if (eq day -1) "0"
+						  (int-to-string day))
+		       ;; Start time.
+		       "/"
+		       (substring dtstart -6 -4)
+		       ":"
+		       (substring dtstart -4 -2)
+		       ":"
+		       (substring dtstart -2)))))))))
+
+(defun icalendar--parse-vtimezone (alist)
+  "Turn a VTIMEZONE ALIST into a cons (ID . TZ-STRING).
+Return nil if timezone cannot be parsed."
+  (let* ((tz-id (icalendar--get-event-property alist 'TZID))
+	 (daylight (cadr (cdar (icalendar--get-children alist 'DAYLIGHT))))
+	 (day (and daylight (icalendar--convert-tz-offset daylight t)))
+	 (standard (cadr (cdar (icalendar--get-children alist 'STANDARD))))
+	 (std (and standard (icalendar--convert-tz-offset standard nil))))
+    (if (and tz-id std)
+	(cons tz-id
+	      (if day
+		  (concat (car std) (car day)
+			  "," (cdr day) "," (cdr std))
+		(car std))))))
+
+(defun icalendar--convert-all-timezones (icalendar)
+  "Convert all timezones in the ICALENDAR into an alist.
+Each element of the alist is a cons (ID . TZ-STRING),
+like `icalendar--parse-vtimezone'."
+  (let (result)
+    (dolist (zone (icalendar--get-children (car icalendar) 'VTIMEZONE))
+      (setq zone (icalendar--parse-vtimezone zone))
+      (if zone
+	  (setq result (cons zone result))))
+    result))
+
+(defun icalendar--find-time-zone (prop-list zone-map)
+  "Return a timezone string for the time zone in PROP-LIST, or nil if none.
+ZONE-MAP is a timezone alist as returned by `icalendar--convert-all-timezones'."
+  (let ((id (plist-get prop-list 'TZID)))
+    (if id
+	(cdr (assoc id zone-map)))))
+
+(defun icalendar--decode-isodatetime (isodatetimestring &optional day-shift
+                                                        zone)
   "Return ISODATETIMESTRING in format like `decode-time'.
 Converts from ISO-8601 to Emacs representation.  If
 ISODATETIMESTRING specifies UTC time (trailing letter Z) the
 decoded time is given in the local time zone!  If optional
 parameter DAY-SHIFT is non-nil the result is shifted by DAY-SHIFT
 days.
+ZONE, if provided, is the timezone, in any format understood by `encode-time'.
 
-FIXME: TZID-attributes are ignored....!
 FIXME: multiple comma-separated values should be allowed!"
   (icalendar--dmsg isodatetimestring)
   (if isodatetimestring
@@ -433,7 +520,7 @@ FIXME: multiple comma-separated values should be allowed!"
         ;; create the decoded date-time
         ;; FIXME!?!
         (condition-case nil
-            (decode-time (encode-time second minute hour day month year))
+            (decode-time (encode-time second minute hour day month year zone))
           (error
            (message "Cannot decode \"%s\"" isodatetimestring)
            ;; hope for the best...
@@ -710,7 +797,7 @@ would be \"pm\"."
   "Export diary file to iCalendar format.
 All diary entries in the file DIARY-FILENAME are converted to iCalendar
 format.  The result is appended to the file ICAL-FILENAME."
-  (interactive "FExport diary data from file:
+  (interactive "FExport diary data from file: 
 Finto iCalendar file: ")
   (save-current-buffer
     (set-buffer (find-file diary-filename))
@@ -844,89 +931,95 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
    (error "Could not parse entry")))
 
 (defun icalendar--parse-summary-and-rest (summary-and-rest)
-  "Parse SUMMARY-AND-REST from a diary to fill iCalendar properties."
+  "Parse SUMMARY-AND-REST from a diary to fill iCalendar properties.
+Returns an alist."
   (save-match-data
-    (let* ((s icalendar-import-format)
-           (p-cla (or (string-match "%c" icalendar-import-format) -1))
-           (p-des (or (string-match "%d" icalendar-import-format) -1))
-           (p-loc (or (string-match "%l" icalendar-import-format) -1))
-           (p-org (or (string-match "%o" icalendar-import-format) -1))
-           (p-sum (or (string-match "%s" icalendar-import-format) -1))
-           (p-sta (or (string-match "%t" icalendar-import-format) -1))
-           (p-url (or (string-match "%u" icalendar-import-format) -1))
-           (p-list (sort (list p-cla p-des p-loc p-org p-sta p-sum p-url) '<))
-           pos-cla pos-des pos-loc pos-org pos-sta pos-sum pos-url)
-      (dotimes (i (length p-list))
-        (cond ((and (>= p-cla 0) (= (nth i p-list) p-cla))
-               (setq pos-cla (+ 2 (* 2 i))))
-              ((and (>= p-des 0) (= (nth i p-list) p-des))
-               (setq pos-des (+ 2 (* 2 i))))
-              ((and (>= p-loc 0) (= (nth i p-list) p-loc))
-               (setq pos-loc (+ 2 (* 2 i))))
-              ((and (>= p-org 0) (= (nth i p-list) p-org))
-               (setq pos-org (+ 2 (* 2 i))))
-              ((and (>= p-sta 0) (= (nth i p-list) p-sta))
-               (setq pos-sta (+ 2 (* 2 i))))
-              ((and (>= p-sum 0) (= (nth i p-list) p-sum))
-               (setq pos-sum (+ 2 (* 2 i))))
-              ((and (>= p-url 0) (= (nth i p-list) p-url))
-               (setq pos-url (+ 2 (* 2 i))))))
-      (mapc (lambda (ij)
-              (setq s (icalendar--rris (car ij) (cadr ij) s t t)))
-            (list
-             ;; summary must be first! because of %s
-             (list "%s"
-                   (concat "\\(" icalendar-import-format-summary "\\)?"))
-             (list "%c"
-                   (concat "\\(" icalendar-import-format-class "\\)?"))
-             (list "%d"
-                   (concat "\\(" icalendar-import-format-description "\\)?"))
-             (list "%l"
-                   (concat "\\(" icalendar-import-format-location "\\)?"))
-             (list "%o"
-                   (concat "\\(" icalendar-import-format-organizer "\\)?"))
-             (list "%t"
-                   (concat "\\(" icalendar-import-format-status "\\)?"))
-             (list "%u"
-                   (concat "\\(" icalendar-import-format-url "\\)?"))))
-      (setq s (concat (icalendar--rris "%s" "\\(.*\\)" s nil t) " "))
-      (if (string-match s summary-and-rest)
-          (let (cla des loc org sta sum url)
-            (if (and pos-sum (match-beginning pos-sum))
-                (setq sum (substring summary-and-rest
-                                     (match-beginning pos-sum)
-                                     (match-end pos-sum))))
-            (if (and pos-cla (match-beginning pos-cla))
-                (setq cla (substring summary-and-rest
-                                     (match-beginning pos-cla)
-                                     (match-end pos-cla))))
-            (if (and pos-des (match-beginning pos-des))
-                (setq des (substring summary-and-rest
-                                     (match-beginning pos-des)
-                                     (match-end pos-des))))
-            (if (and pos-loc (match-beginning pos-loc))
-                (setq loc (substring summary-and-rest
-                                     (match-beginning pos-loc)
-                                     (match-end pos-loc))))
-            (if (and pos-org (match-beginning pos-org))
-                (setq org (substring summary-and-rest
-                                     (match-beginning pos-org)
-                                     (match-end pos-org))))
-            (if (and pos-sta (match-beginning pos-sta))
-                (setq sta (substring summary-and-rest
-                                     (match-beginning pos-sta)
-                                     (match-end pos-sta))))
-            (if (and pos-url (match-beginning pos-url))
-                (setq url (substring summary-and-rest
-                                     (match-beginning pos-url)
-                                     (match-end pos-url))))
-            (list (if cla (cons 'cla cla) nil)
-                  (if des (cons 'des des) nil)
-                  (if loc (cons 'loc loc) nil)
-                  (if org (cons 'org org) nil)
-                  (if sta (cons 'sta sta) nil)
-                  ;;(if sum (cons 'sum sum) nil)
-                  (if url (cons 'url url) nil)))))))
+    (if (functionp icalendar-import-format)
+        ;; can't do anything
+        nil
+      ;; split summary-and-rest
+      (let* ((s icalendar-import-format)
+             (p-cla (or (string-match "%c" icalendar-import-format) -1))
+             (p-des (or (string-match "%d" icalendar-import-format) -1))
+             (p-loc (or (string-match "%l" icalendar-import-format) -1))
+             (p-org (or (string-match "%o" icalendar-import-format) -1))
+             (p-sum (or (string-match "%s" icalendar-import-format) -1))
+             (p-sta (or (string-match "%t" icalendar-import-format) -1))
+             (p-url (or (string-match "%u" icalendar-import-format) -1))
+             (p-list (sort (list p-cla p-des p-loc p-org p-sta p-sum p-url) '<))
+             pos-cla pos-des pos-loc pos-org pos-sta pos-sum pos-url)
+        (dotimes (i (length p-list))
+          (cond ((and (>= p-cla 0) (= (nth i p-list) p-cla))
+                 (setq pos-cla (+ 2 (* 2 i))))
+                ((and (>= p-des 0) (= (nth i p-list) p-des))
+                 (setq pos-des (+ 2 (* 2 i))))
+                ((and (>= p-loc 0) (= (nth i p-list) p-loc))
+                 (setq pos-loc (+ 2 (* 2 i))))
+                ((and (>= p-org 0) (= (nth i p-list) p-org))
+                 (setq pos-org (+ 2 (* 2 i))))
+                ((and (>= p-sta 0) (= (nth i p-list) p-sta))
+                 (setq pos-sta (+ 2 (* 2 i))))
+                ((and (>= p-sum 0) (= (nth i p-list) p-sum))
+                 (setq pos-sum (+ 2 (* 2 i))))
+                ((and (>= p-url 0) (= (nth i p-list) p-url))
+                 (setq pos-url (+ 2 (* 2 i))))))
+        (mapc (lambda (ij)
+                (setq s (icalendar--rris (car ij) (cadr ij) s t t)))
+              (list
+               ;; summary must be first! because of %s
+               (list "%s"
+                     (concat "\\(" icalendar-import-format-summary "\\)??"))
+               (list "%c"
+                     (concat "\\(" icalendar-import-format-class "\\)??"))
+               (list "%d"
+                     (concat "\\(" icalendar-import-format-description "\\)??"))
+               (list "%l"
+                     (concat "\\(" icalendar-import-format-location "\\)??"))
+               (list "%o"
+                     (concat "\\(" icalendar-import-format-organizer "\\)??"))
+               (list "%t"
+                     (concat "\\(" icalendar-import-format-status "\\)??"))
+               (list "%u"
+                     (concat "\\(" icalendar-import-format-url "\\)??"))))
+        (setq s (concat "^" (icalendar--rris "%s" "\\(.*?\\)" s nil t)
+                        " $"))
+        (if (string-match s summary-and-rest)
+            (let (cla des loc org sta sum url)
+              (if (and pos-sum (match-beginning pos-sum))
+                  (setq sum (substring summary-and-rest
+                                       (match-beginning pos-sum)
+                                       (match-end pos-sum))))
+              (if (and pos-cla (match-beginning pos-cla))
+                  (setq cla (substring summary-and-rest
+                                       (match-beginning pos-cla)
+                                       (match-end pos-cla))))
+              (if (and pos-des (match-beginning pos-des))
+                  (setq des (substring summary-and-rest
+                                       (match-beginning pos-des)
+                                       (match-end pos-des))))
+              (if (and pos-loc (match-beginning pos-loc))
+                  (setq loc (substring summary-and-rest
+                                       (match-beginning pos-loc)
+                                       (match-end pos-loc))))
+              (if (and pos-org (match-beginning pos-org))
+                  (setq org (substring summary-and-rest
+                                       (match-beginning pos-org)
+                                       (match-end pos-org))))
+              (if (and pos-sta (match-beginning pos-sta))
+                  (setq sta (substring summary-and-rest
+                                       (match-beginning pos-sta)
+                                       (match-end pos-sta))))
+              (if (and pos-url (match-beginning pos-url))
+                  (setq url (substring summary-and-rest
+                                       (match-beginning pos-url)
+                                       (match-end pos-url))))
+              (list (if cla (cons 'cla cla) nil)
+                    (if des (cons 'des des) nil)
+                    (if loc (cons 'loc loc) nil)
+                    (if org (cons 'org org) nil)
+                    (if sta (cons 'sta sta) nil)
+                    ;;(if sum (cons 'sum sum) nil)
+                    (if url (cons 'url url) nil))))))))
 
 ;; subroutines for icalendar-export-region
 (defun icalendar--convert-ordinary-to-ical (nonmarker entry-main)
@@ -1454,8 +1547,8 @@ Argument ICAL-FILENAME output iCalendar file.
 Argument DIARY-FILENAME input `diary-file'.
 Optional argument NON-MARKING determines whether events are created as
 non-marking or not."
-  (interactive "fImport iCalendar data from file:
-Finto diary file:
+  (interactive "fImport iCalendar data from file: 
+Finto diary file: 
 p")
   ;; clean up the diary file
   (save-current-buffer
@@ -1521,7 +1614,9 @@ buffer `*icalendar-errors*'."
 
 (defun icalendar--format-ical-event (event)
   "Create a string representation of an iCalendar EVENT."
-  (let ((string icalendar-import-format)
+  (if (functionp icalendar-import-format)
+      (funcall icalendar-import-format event)
+    (let ((string icalendar-import-format)
         (conversion-list
          '(("%c" CLASS       icalendar-import-format-class)
            ("%d" DESCRIPTION icalendar-import-format-description)
@@ -1549,7 +1644,7 @@ buffer `*icalendar-errors*'."
 					    string
 					    t t))))
 	  conversion-list)
-    string))
+    string)))
 
 (defun icalendar--convert-ical-to-diary (ical-list diary-file
                                                    &optional do-not-ask
@@ -1566,6 +1661,7 @@ written into the buffer `*icalendar-errors*'."
          (error-string "")
          (event-ok t)
          (found-error nil)
+         (zone-map (icalendar--convert-all-timezones ical-list))
          e diary-string)
     ;; step through all events/appointments
     (while ev
@@ -1574,13 +1670,24 @@ written into the buffer `*icalendar-errors*'."
       (setq event-ok nil)
       (condition-case error-val
           (let* ((dtstart (icalendar--get-event-property e 'DTSTART))
-                 (dtstart-dec (icalendar--decode-isodatetime dtstart))
+                 (dtstart-zone (icalendar--find-time-zone
+ 				(icalendar--get-event-property-attributes
+ 				 e 'DTSTART)
+ 				zone-map))
+                 (dtstart-dec (icalendar--decode-isodatetime dtstart nil
+                                                             dtstart-zone))
                  (start-d (icalendar--datetime-to-diary-date
                            dtstart-dec))
                  (start-t (icalendar--datetime-to-colontime dtstart-dec))
                  (dtend (icalendar--get-event-property e 'DTEND))
-                 (dtend-dec (icalendar--decode-isodatetime dtend))
-                 (dtend-1-dec (icalendar--decode-isodatetime dtend -1))
+                 (dtend-zone (icalendar--find-time-zone
+ 			      (icalendar--get-event-property-attributes
+ 			       e 'DTEND)
+ 			      zone-map))
+                 (dtend-dec (icalendar--decode-isodatetime dtend
+                                                           nil dtend-zone))
+                 (dtend-1-dec (icalendar--decode-isodatetime dtend -1
+                                                             dtend-zone))
                  end-d
                  end-1-d
                  end-t
@@ -1952,6 +2059,21 @@ the entry."
       (make-diary-entry string non-marking diary-file)))
   ;; return diary-file in case it has been changed interactively
   diary-file)
+
+;; ======================================================================
+;; Examples
+;; ======================================================================
+(defun icalendar-import-format-sample (event)
+  "Example function for formatting an icalendar EVENT."
+  (format (concat "SUMMARY=`%s' DESCRIPTION=`%s' LOCATION=`%s' ORGANIZER=`%s' "
+                  "STATUS=`%s' URL=`%s' CLASS=`%s'")
+          (or (icalendar--get-event-property event 'SUMMARY) "")
+          (or (icalendar--get-event-property event 'DESCRIPTION) "")
+          (or (icalendar--get-event-property event 'LOCATION) "")
+          (or (icalendar--get-event-property event 'ORGANIZER) "")
+          (or (icalendar--get-event-property event 'STATUS) "")
+          (or (icalendar--get-event-property event 'URL) "")
+          (or (icalendar--get-event-property event 'CLASS) "")))
 
 (provide 'icalendar)
 

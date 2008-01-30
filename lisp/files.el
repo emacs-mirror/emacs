@@ -2488,13 +2488,13 @@ symbol and VAL is a value that is considered safe."
   :group 'find-file
   :type  'alist)
 
-(defcustom safe-local-eval-forms nil
+(defcustom safe-local-eval-forms '((add-hook 'write-file-hooks 'time-stamp))
   "Expressions that are considered safe in an `eval:' local variable.
 Add expressions to this list if you want Emacs to evaluate them, when
 they appear in an `eval' local variable specification, without first
 asking you for confirmation."
   :group 'find-file
-  :version "22.1"
+  :version "22.2"
   :type '(repeat sexp))
 
 ;; Risky local variables:
@@ -2839,7 +2839,8 @@ is specified, returning t if it is specified."
 	    (dolist (elt result)
 	      (let ((var (car elt))
 		    (val (cdr elt)))
-		(or (eq var 'mode)
+		;; Don't query about the fake variables.
+		(or (memq var '(mode unibyte coding))
 		    (and (eq var 'eval)
 			 (or (eq enable-local-eval t)
 			     (hack-one-local-variable-eval-safep

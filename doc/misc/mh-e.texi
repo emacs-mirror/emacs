@@ -24,7 +24,7 @@
 This is version @value{VERSION}@value{EDITION} of @cite{The MH-E
 Manual}, last updated @value{UPDATED}.
 
-Copyright @copyright{} 1995, 2001, 2002, 2003, 2005, 2006, 2007 Free
+Copyright @copyright{} 1995, 2001, 2002, 2003, 2005, 2006, 2007, 2008 Free
 Software Foundation, Inc.
 
 @quotation

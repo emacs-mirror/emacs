@@ -1103,7 +1103,17 @@ function, it is changed to a list of functions."
 		(append hook-value (list function))
 	      (cons function hook-value))))
     ;; Set the actual variable
-    (if local (set hook hook-value) (set-default hook hook-value))))
+    (if local
+	(progn
+	  ;; If HOOK isn't a permanent local,
+	  ;; but FUNCTION wants to survive a change of modes,
+	  ;; mark HOOK as partially permanent.
+	  (and (symbolp function)
+	       (get function 'permanent-local-hook)
+	       (not (get hook 'permanent-local))
+	       (put hook 'permanent-local 'permanent-local-hook))
+	  (set hook hook-value))
+      (set-default hook hook-value))))
 
 (defun remove-hook (hook function &optional local)
   "Remove from the value of HOOK the function FUNCTION.
@@ -1860,6 +1870,10 @@ user can undo the change normally."
   (let ((handle (make-symbol "--change-group-handle--"))
 	(success (make-symbol "--change-group-success--")))
     `(let ((,handle (prepare-change-group))
+	   ;; Don't truncate any undo data in the middle of this.
+	   (undo-outer-limit nil)
+	   (undo-limit most-positive-fixnum)
+	   (undo-strong-limit most-positive-fixnum)
 	   (,success nil))
        (unwind-protect
 	   (progn
@@ -2113,26 +2127,29 @@ Note that this should end with a directory separator.")
 (defun find-tag-default ()
   "Determine default tag to search for, based on text at point.
 If there is no plausible default, return nil."
-  (save-excursion
-    (while (looking-at "\\sw\\|\\s_")
-      (forward-char 1))
-    (if (or (re-search-backward "\\sw\\|\\s_"
-				(save-excursion (beginning-of-line) (point))
-				t)
-	    (re-search-forward "\\(\\sw\\|\\s_\\)+"
-			       (save-excursion (end-of-line) (point))
-			       t))
-	(progn
-	  (goto-char (match-end 0))
-	  (condition-case nil
-	      (buffer-substring-no-properties
-	       (point)
-	       (progn (forward-sexp -1)
-		      (while (looking-at "\\s'")
-			(forward-char 1))
-		      (point)))
-	    (error nil)))
-      nil)))
+  (let (from to bound)
+    (when (or (progn
+		;; Look at text around `point'.
+		(save-excursion
+		  (skip-syntax-backward "w_") (setq from (point)))
+		(save-excursion
+		  (skip-syntax-forward "w_") (setq to (point)))
+		(> to from))
+	      ;; Look between `line-beginning-position' and `point'.
+	      (save-excursion
+		(and (setq bound (line-beginning-position))
+		     (skip-syntax-backward "^w_" bound)
+		     (> (setq to (point)) bound)
+		     (skip-syntax-backward "w_")
+		     (setq from (point))))
+	      ;; Look between `point' and `line-end-position'.
+	      (save-excursion
+		(and (setq bound (line-end-position))
+		     (skip-syntax-forward "^w_" bound)
+		     (< (setq from (point)) bound)
+		     (skip-syntax-forward "w_")
+		     (setq to (point)))))
+      (buffer-substring-no-properties from to))))
 
 (defun play-sound (sound)
   "SOUND is a list of the form `(sound KEYWORD VALUE...)'.

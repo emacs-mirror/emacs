@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
-@c   2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization, Quitting, Amusements, Top
 @chapter Customization
@@ -1885,7 +1885,7 @@ twice.
 types; clicks beyond the third generate additional triple-click events.
 However, the full number of clicks is recorded in the event list, so
 if you know Emacs Lisp you can distinguish if you really want to
-(@pxref{Accessing Events,,, elisp, The Emacs Lisp Reference Manual}).
+(@pxref{Click Events,,, elisp, The Emacs Lisp Reference Manual}).
 We don't recommend distinct meanings for more than three clicks, but
 sometimes it is useful for subsequent clicks to cycle through the same
 set of three meanings, so that four clicks are equivalent to one

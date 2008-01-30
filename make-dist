@@ -85,6 +85,10 @@ while [ $# -gt 0 ]; do
     "--bzip2")
       default_gzip="bzip2"
     ;;
+    ## Same with lzma.
+    "--lzma")
+      default_gzip="lzma"
+    ;;
 
     "--snapshot")
       clean_up=yes
@@ -96,9 +100,10 @@ while [ $# -gt 0 ]; do
     "--help")
       echo "Usage: ${progname} [options]"
       echo ""
-      echo "  --bzip2		use bzip2 instead of gzip"
+      echo "  --bzip2	use bzip2 instead of gzip"
       echo "  --clean-up	delete staging directories when done"
       echo "  --compress	use compress instead of gzip"
+      echo "  --lzma	use lzma instead of gzip"
       echo "  --newer=TIME	don't include files older than TIME"
       echo "  --no-check	don't check for bad file names etc."
       echo "  --no-update	don't recompile or do analogous things"
@@ -750,6 +755,7 @@ if [ "${make_tar}" = yes ]; then
   case "${default_gzip}" in
     bzip2)      gzip_extension=.bz2 ;;
     compress* ) gzip_extension=.Z ;;
+    lzma)       gzip_extension=.lzma ;;
     * )         gzip_extension=.gz ;;
   esac
   echo "Creating tar file"

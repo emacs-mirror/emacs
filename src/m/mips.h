@@ -130,7 +130,7 @@ NOTE-END  */
 
 /* Alter some of the options used when linking.  */
 
-#if !defined(NEWSOS5) && !defined(__linux__)
+#if !defined(__linux__)
 #ifdef BSD_SYSTEM
 
 /* DECstations don't have this library.
@@ -161,7 +161,7 @@ NOTE-END  */
 #endif
 
 #endif /* not BSD_SYSTEM */
-#endif /* not NEWSOS5 && not __linux__ */
+#endif /* not __linux__ */
 
 /* The standard definitions of these macros would work ok,
    but these are faster because the constants are short.  */
@@ -173,7 +173,7 @@ NOTE-END  */
    ((int)(type) << VALBITS)						\
    + (((unsigned) (ptr) << (BITS_PER_INT-VALBITS)) >> (BITS_PER_INT-VALBITS)))
 
-#if !defined (NEWSOS5) && !defined (__linux__)
+#if !defined (__linux__)
 #ifdef USG
 
 /* Cancel certain parts of standard sysV support.  */
@@ -213,7 +213,7 @@ NOTE-END  */
 #undef HAVE_UNION_WAIT
 #endif /* BSD_SYSTEM */
 
-#endif /* not NEWSOS5 && not __linux__ */
+#endif /* not __linux__ */
 
 /* arch-tag: 8fd020ee-78a7-4d87-96ce-6129f52f7bee
    (do not change this comment) */

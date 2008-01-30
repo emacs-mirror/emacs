@@ -239,6 +239,7 @@ extern Lisp_Object Qhelp_echo;
 
 Lisp_Object Qoverriding_local_map, Qoverriding_terminal_local_map;
 Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
+Lisp_Object Qwindow_text_change_functions, Vwindow_text_change_functions;
 Lisp_Object Qredisplay_end_trigger_functions, Vredisplay_end_trigger_functions;
 Lisp_Object Qinhibit_point_motion_hooks;
 Lisp_Object QCeval, QCfile, QCdata, QCpropertize;
@@ -696,6 +697,7 @@ int trace_move;
    point visible.  */
 
 int automatic_hscrolling_p;
+Lisp_Object Qauto_hscroll_mode;
 
 /* How close to the margin can point get before the window is scrolled
    horizontally.  */
@@ -1328,6 +1330,28 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, rowh, vpos)
 	  visible_p = 1;
       if (visible_p)
 	{
+	  Lisp_Object window, prop;
+
+	  XSETWINDOW (window, w);
+	  prop = Fget_char_property (make_number (it.position.charpos),
+				     Qinvisible, window);
+
+	  /* If charpos coincides with invisible text covered with an
+	     ellipsis, use the first glyph of the ellipsis to compute
+	     the pixel positions.  */
+	  if (TEXT_PROP_MEANS_INVISIBLE (prop) == 2)
+	    {
+	      struct glyph_row *row = it.glyph_row;
+	      struct glyph *glyph = row->glyphs[TEXT_AREA];
+	      struct glyph *end = glyph + row->used[TEXT_AREA];
+	      int x = row->x;
+
+	      for (; glyph < end && glyph->charpos < charpos; glyph++)
+		x += glyph->pixel_width;
+
+	      top_x = x;
+	    }
+
 	  *x = top_x;
 	  *y = max (top_y + max (0, it.max_ascent - it.ascent), window_top_y);
 	  *rtop = max (0, window_top_y - top_y);
@@ -8936,8 +8960,6 @@ echo_area_display (update_frame_p)
   if (!FRAME_VISIBLE_P (f) || !f->glyphs_initialized_p)
     return 0;
 
-/* The terminal frame is used as the first Emacs frame on the Mac OS.  */
-#ifndef MAC_OS8
 #ifdef HAVE_WINDOW_SYSTEM
   /* When Emacs starts, selected_frame may be the initial terminal
      frame.  If we let this through, a message would be displayed on
@@ -8945,7 +8967,6 @@ echo_area_display (update_frame_p)
   if (FRAME_INITIAL_P (XFRAME (selected_frame)))
     return 0;
 #endif /* HAVE_WINDOW_SYSTEM */
-#endif
 
   /* Redraw garbaged frames.  */
   if (frame_garbaged)
@@ -10535,11 +10556,12 @@ hscroll_window_tree (window)
 	  /* Scroll when cursor is inside this scroll margin.  */
 	  h_margin = hscroll_margin * WINDOW_FRAME_COLUMN_WIDTH (w);
 
-	  if ((XFASTINT (w->hscroll)
-	       && w->cursor.x <= h_margin)
-	      || (cursor_row->enabled_p
-		  && cursor_row->truncated_on_right_p
-		  && (w->cursor.x >= text_area_width - h_margin)))
+	  if (!NILP (Fbuffer_local_value (Qauto_hscroll_mode, w->buffer))
+	      && ((XFASTINT (w->hscroll)
+		   && w->cursor.x <= h_margin)
+		  || (cursor_row->enabled_p
+		      && cursor_row->truncated_on_right_p
+		      && (w->cursor.x >= text_area_width - h_margin))))
 	    {
 	      struct it it;
 	      int hscroll;
@@ -10629,16 +10651,9 @@ static int
 hscroll_windows (window)
      Lisp_Object window;
 {
-  int hscrolled_p;
-
-  if (automatic_hscrolling_p)
-    {
-      hscrolled_p = hscroll_window_tree (window);
-      if (hscrolled_p)
-	clear_desired_matrices (XFRAME (WINDOW_FRAME (XWINDOW (window))));
-    }
-  else
-    hscrolled_p = 0;
+  int hscrolled_p = hscroll_window_tree (window);
+  if (hscrolled_p)
+    clear_desired_matrices (XFRAME (WINDOW_FRAME (XWINDOW (window))));
   return hscrolled_p;
 }
 
@@ -13032,8 +13047,7 @@ redisplay_window (window, just_this_one_p)
   *w->desired_matrix->method = 0;
 #endif
 
-  specbind (Qinhibit_point_motion_hooks, Qt);
-
+ restart:
   reconsider_clip_changes (w, buffer);
 
   /* Has the mode line to be updated?  */
@@ -13084,10 +13098,6 @@ redisplay_window (window, just_this_one_p)
   /* Really select the buffer, for the sake of buffer-local
      variables.  */
   set_buffer_internal_1 (XBUFFER (w->buffer));
-  SET_TEXT_POS (opoint, PT, PT_BYTE);
-
-  beg_unchanged = BEG_UNCHANGED;
-  end_unchanged = END_UNCHANGED;
 
   current_matrix_up_to_date_p
     = (!NILP (w->window_end_valid)
@@ -13095,6 +13105,23 @@ redisplay_window (window, just_this_one_p)
        && !current_buffer->prevent_redisplay_optimizations_p
        && XFASTINT (w->last_modified) >= MODIFF
        && XFASTINT (w->last_overlay_modified) >= OVERLAY_MODIFF);
+
+  /* Run the window-bottom-change-functions
+     if it is possible that the text on the screen has changed
+     (either due to modification of the text, or any other reason).  */
+  if (!current_matrix_up_to_date_p
+      && !NILP (Vwindow_text_change_functions))
+    {
+      safe_run_hooks (Qwindow_text_change_functions);
+      goto restart;
+    }
+
+  beg_unchanged = BEG_UNCHANGED;
+  end_unchanged = END_UNCHANGED;
+
+  SET_TEXT_POS (opoint, PT, PT_BYTE);
+
+  specbind (Qinhibit_point_motion_hooks, Qt);
 
   buffer_unchanged_p
     = (!NILP (w->window_end_valid)
@@ -24288,6 +24315,9 @@ syms_of_xdisp ()
   staticpro (&Qwindow_scroll_functions);
   Qwindow_scroll_functions = intern ("window-scroll-functions");
 
+  staticpro (&Qwindow_text_change_functions);
+  Qwindow_text_change_functions = intern ("window-text-change-functions");
+
   staticpro (&Qredisplay_end_trigger_functions);
   Qredisplay_end_trigger_functions = intern ("redisplay-end-trigger-functions");
 
@@ -24599,6 +24629,11 @@ and its new display-start position.  Note that the value of `window-end'
 is not valid when these functions are called.  */);
   Vwindow_scroll_functions = Qnil;
 
+  DEFVAR_LISP ("window-text-change-functions",
+	       &Vwindow_text_change_functions,
+    doc: /* Functions to call in redisplay when text in the window might change.  */);
+  Vwindow_text_change_functions = Qnil;
+
   DEFVAR_LISP ("redisplay-end-trigger-functions", &Vredisplay_end_trigger_functions,
     doc: /* Functions called when redisplay of a window reaches the end trigger.
 Each function is called with two arguments, the window and the end trigger value.
@@ -24708,6 +24743,8 @@ the frame's other specifications determine how to blink the cursor off.  */);
   DEFVAR_BOOL ("auto-hscroll-mode", &automatic_hscrolling_p,
     doc: /* *Non-nil means scroll the display automatically to make point visible.  */);
   automatic_hscrolling_p = 1;
+  Qauto_hscroll_mode = intern ("auto-hscroll-mode");
+  staticpro (&Qauto_hscroll_mode);
 
   DEFVAR_INT ("hscroll-margin", &hscroll_margin,
     doc: /* *How many columns away from the window edge point is allowed to get

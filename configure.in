@@ -43,48 +43,68 @@ gamedir='${localstatedir}/games/emacs'
 
 gameuser=games
 
-dnl Autoconf is so much less fun under VMS, maybe
-dnl because everything is less fun under VMS. --ttn
-AC_DEFUN([EMACS_ARG_Y],[dnl
-AC_ARG_WITH([$1],[AS_HELP_STRING([--with-$1],[$2])],[$3],[$4])dnl
-])dnl
-AC_DEFUN([EMACS_ARG_N],[dnl
-AC_ARG_WITH([$1],[AS_HELP_STRING([--without-$1],[$2])],[$3],[$4])dnl
+dnl OPTION_DEFAULT_OFF(NAME, HELP-STRING)
+dnl Create a new --with option that defaults to being disabled.
+dnl NAME is the base name of the option.  The shell variable with_NAME
+dnl   will be set to either the user's value (if the option is
+dnl   specified; 'yes' for a plain --with-NAME) or to 'no' (if the
+dnl   option is not specified).  Note that the shell variable name is
+dnl   constructed as autoconf does, by replacing non-alphanumeric
+dnl   characters with "_".
+dnl HELP-STRING is the help text for the option.
+AC_DEFUN([OPTION_DEFAULT_OFF], [dnl
+  AC_ARG_WITH([$1],[AS_HELP_STRING([--with-$1],[$2])],[],[dnl
+    m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=no])dnl
 ])dnl
 
-EMACS_ARG_N([gcc],[don't use GCC to compile Emacs if GCC is found])
+dnl OPTION_DEFAULT_ON(NAME, HELP-STRING)
+dnl Create a new --with option that defaults to being enabled.  NAME
+dnl   is the base name of the option.  The shell variable with_NAME
+dnl   will be set either to 'no' (for a plain --without-NAME) or to
+dnl   'yes' (if the option is not specified).  Note that the shell
+dnl   variable name is constructed as autoconf does, by replacing
+dnl   non-alphanumeric characters with "_".
+dnl HELP-STRING is the help text for the option.
+AC_DEFUN([OPTION_DEFAULT_ON], [dnl
+  AC_ARG_WITH([$1],[AS_HELP_STRING([--without-$1],[$2])],[],[dnl
+   m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=yes])dnl
+])dnl
 
-EMACS_ARG_N([pop],[don't support POP mail retrieval with movemail],
-[if test "$withval" = yes; then
+dnl By default, neither off nor on.
+AC_ARG_WITH([gcc],
+[AS_HELP_STRING([--without-gcc],
+    [don't use GCC to compile Emacs even if GCC is found])])
+
+OPTION_DEFAULT_ON([pop],[don't support POP mail retrieval with movemail])
+if test "$with_pop" = yes; then
    AC_DEFINE(MAIL_USE_POP)
-else :
-fi],
-AC_DEFINE(MAIL_USE_POP))
+fi
 AH_TEMPLATE(MAIL_USE_POP, [Define to support POP mail retrieval.])dnl
 
-EMACS_ARG_Y([kerberos],[support Kerberos-authenticated POP],
-[if test "$withval" = yes; then
+OPTION_DEFAULT_OFF([kerberos],[support Kerberos-authenticated POP])
+if test "$with_kerberos" = yes; then
    AC_DEFINE(KERBEROS)
-fi])
+fi
 AH_TEMPLATE(KERBEROS,
 	    [Define to support Kerberos-authenticated POP mail retrieval.])dnl
 
-EMACS_ARG_Y([kerberos5],[support Kerberos version 5 authenticated POP],
-[if test "${with_kerberos5+set}" = set; then
-  if test "${with_kerberos+set}" != set; then
+OPTION_DEFAULT_OFF([kerberos5],[support Kerberos version 5 authenticated POP])
+if test "${with_kerberos5}" = yes; then
+  if test "${with_kerberos}" != yes; then
     with_kerberos=yes
     AC_DEFINE(KERBEROS)
   fi
   AC_DEFINE(KERBEROS5, 1, [Define to use Kerberos 5 instead of Kerberos 4.])
-fi])
+fi
 
-EMACS_ARG_Y([hesiod],[support Hesiod to get the POP server host],
-[if test "$withval" = yes; then
+OPTION_DEFAULT_OFF([hesiod],[support Hesiod to get the POP server host])
+if test "$with_hesiod" = yes; then
   AC_DEFINE(HESIOD, 1, [Define to support using a Hesiod database to find the POP server.])
-fi])
+fi
 
-EMACS_ARG_N([sound],[don't compile with sound support])
+OPTION_DEFAULT_ON([sound],[don't compile with sound support])
 
+dnl FIXME currently it is not the last.
 dnl This should be the last --with option, because --with-x is
 dnl added later on when we find the path of X, and it's best to
 dnl keep them together visually.
@@ -106,24 +126,37 @@ this option's value should be `yes', `no', `lucid', `athena', `motif' or `gtk'.
 	  with_x_toolkit=$val
 ])
 
-EMACS_ARG_Y([xpm],[use -lXpm for displaying XPM images])
-EMACS_ARG_Y([jpeg],[use -ljpeg for displaying JPEG images])
-EMACS_ARG_Y([tiff],[use -ltiff for displaying TIFF images])
-EMACS_ARG_Y([gif],[use -lgif (or -lungif) for displaying GIF images])
-EMACS_ARG_Y([png],[use -lpng for displaying PNG images])
-EMACS_ARG_Y([freetype],[use -lfreetype for local fonts support])
-EMACS_ARG_Y([xft],[use -lXft for anti aliased fonts])
-EMACS_ARG_Y([gpm],[use -lgpm for mouse support on a GNU/Linux console])
-EMACS_ARG_Y([rsvg],[use -lrsvg-2 for displaying SVG images])
-EMACS_ARG_Y([gtk],[use GTK (same as --with-x-toolkit=gtk)])
-EMACS_ARG_Y([pkg-config-prog],[Path to pkg-config for finding GTK and librsvg])
-EMACS_ARG_N([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
-EMACS_ARG_N([xaw3d],[don't use Xaw3d])
-EMACS_ARG_N([xim],[don't use X11 XIM])
-EMACS_ARG_N([carbon],[don't use Carbon GUI on Mac OS X])
-EMACS_ARG_Y([dbus],[use D-Bus])
-EMACS_ARG_N([libotf],[don't use libotf for OpenType font support])
-EMACS_ARG_N([m17n-flt],[don't use m17n-flt for text shaping])
+dnl _ON results in a '--without' option in the --help output, so
+dnl the help text should refer to "don't compile", etc.
+OPTION_DEFAULT_ON([xpm],[don't compile with XPM image support])
+OPTION_DEFAULT_ON([jpeg],[don't compile with JPEG image support])
+OPTION_DEFAULT_ON([tiff],[don't compile with TIFF image support])
+OPTION_DEFAULT_ON([gif],[don't compile with GIF image support])
+OPTION_DEFAULT_ON([png],[don't compile with PNG image support])
+OPTION_DEFAULT_ON([rsvg],[don't compile with SVG image support])
+
+OPTION_DEFAULT_OFF([freetype],[use -lfreetype for local fonts support])
+OPTION_DEFAULT_OFF([xft],[use -lXft for anti aliased fonts])
+OPTION_DEFAULT_ON([libotf],[don't use libotf for OpenType font support])
+OPTION_DEFAULT_ON([m17n-flt],[don't use m17n-flt for text shaping])
+
+OPTION_DEFAULT_OFF([gtk],[use GTK toolkit])
+OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
+OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
+OPTION_DEFAULT_ON([xim],[don't use X11 XIM])
+OPTION_DEFAULT_OFF([carbon],[use Carbon GUI on Mac OS X.  This is unsupported!])
+
+OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
+OPTION_DEFAULT_OFF([dbus],[compile with D-Bus support])
+
+AC_ARG_WITH([pkg-config-prog],dnl
+[AS_HELP_STRING([--with-pkg-config-prog=PATH],
+                  [Path to pkg-config for finding GTK and librsvg])])
+if test "X${with_pkg_config_prog}" != X; then
+   if test "${with_pkg_config_prog}" != yes; then
+      PKG_CONFIG="${with_pkg_config_prog}"
+   fi
+fi
 
 AC_ARG_ENABLE(carbon-app,
 [AS_HELP_STRING([--enable-carbon-app@<:@=DIR@:>@],
@@ -513,19 +546,6 @@ dnl see the `changequote' comment above.
     machine=i386 opsys=usg5-3
   ;;
 
-  ## Sequent Symmetry running ptx 4, which is a modified SVR4.
-  i[3456]86-sequent-ptx4* | i[3456]86-sequent-sysv4* )
-    machine=sequent-ptx opsys=ptx4
-    NON_GNU_CPP=/lib/cpp
-  ;;
-
-  ## Sequent Symmetry running DYNIX/ptx
-  ## Use the old cpp rather than the newer ANSI one.
-  i[3456]86-sequent-ptx* )
-    machine=sequent-ptx opsys=ptx
-    NON_GNU_CPP="/lib/cpp"
-  ;;
-
   ## ncr machine running svr4.3.
   i[3456]86-ncr-sysv4.3 )
     machine=ncr386 opsys=usg5-4-3
@@ -593,12 +613,6 @@ dnl see the `changequote' comment above.
 
   ## Silicon Graphics machines
   ## Iris 4D
-  mips-sgi-irix3* )
-    machine=iris4d opsys=irix3-3
-  ;;
-  mips-sgi-irix4* )
-    machine=iris4d opsys=irix4-0
-  ;;
   mips-sgi-irix6.5 )
     machine=iris4d opsys=irix6-5
     # Without defining _LANGUAGE_C, things get masked out in the headers
@@ -747,7 +761,7 @@ dnl see the `changequote' comment above.
   ;;
 
   ## Tensilica Xtensa Linux-based GNU system
-  xtensa-*-linux-gnu* )
+  xtensa*-*-linux-gnu* )
     machine=xtensa opsys=gnu-linux
     ;;
 
@@ -1100,13 +1114,13 @@ dnl Do this early because it can frob feature test macros for Unix-98 &c.
 AC_SYS_LARGEFILE
 
 
-### The standard library on x86-64 GNU/Linux distributions can
+### The standard library on x86-64 and s390x GNU/Linux distributions can
 ### be located in either /usr/lib64 or /usr/lib.
 case "${canonical}" in
-  x86_64-*-linux-gnu* )
+  x86_64-*-linux-gnu* | s390x-*-linux-gnu* )
     if test -d /usr/lib64; then
-      AC_DEFINE(HAVE_X86_64_LIB64_DIR, 1,
-        [Define to 1 if the file /usr/lib64 exists.])
+      AC_DEFINE(HAVE_LIB64_DIR, 1,
+        [Define to 1 if the directory /usr/lib64 exists.])
 fi
 esac
 
@@ -1117,9 +1131,7 @@ dnl also defines GSTUFF_PKG_ERRORS on error
 AC_DEFUN([PKG_CHECK_MODULES], [
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
-  fi
+  AC_PATH_PROG(PKG_CONFIG, pkg-config, no)
 
   if test "$PKG_CONFIG" = "no" ; then
      ifelse([$4], , [AC_MSG_ERROR([
@@ -1175,10 +1187,6 @@ if test "${with_sound}" != "no"; then
 
   ALSA_REQUIRED=1.0.0
   ALSA_MODULES="alsa >= $ALSA_REQUIRED"
-  dnl Check if --with-pkg-config-prog has been given.
-  if test "X${with_pkg_config_prog}" != X; then
-    PKG_CONFIG="${with_pkg_config_prog}"
-  fi
   PKG_CHECK_MODULES(ALSA, $ALSA_MODULES, HAVE_ALSA=yes, HAVE_ALSA=no)
   if test $HAVE_ALSA = yes; then
     SAVE_CFLAGS="$CFLAGS"
@@ -1489,22 +1497,6 @@ case ${HAVE_X11} in
   yes ) HAVE_MENUS=yes ;;
 esac
 
-if test "${opsys}" = "hpux9"; then
-  case "${x_libraries}" in
-    *X11R4* )
-      opsysfile="s/hpux9-x11r4.h"
-      ;;
-  esac
-fi
-
-if test "${opsys}" = "hpux9shr"; then
-  case "${x_libraries}" in
-    *X11R4* )
-      opsysfile="s/hpux9shxr4.h"
-      ;;
-  esac
-fi
-
 ### Compute the unexec source name from the object name.
 UNEXEC_SRC="`echo ${unexec} | sed 's/\.o/.c/'`"
 
@@ -1683,11 +1675,6 @@ fi
 HAVE_RSVG=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_CARBON}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
-    dnl Check if `--with-pkg-config-prog' has been given.
-    if test "X${with_pkg_config_prog}" != X; then
-      PKG_CONFIG="${with_pkg_config_prog}"
-    fi
-
     RSVG_REQUIRED=2.0.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
 
@@ -1718,10 +1705,6 @@ if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk" || \
   GTK_REQUIRED=2.6
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
-  dnl Check if --with-pkg-config-prog has been given.
-  if test "X${with_pkg_config_prog}" != X; then
-    PKG_CONFIG="${with_pkg_config_prog}"
-  fi
   dnl Checks for libraries.
   PKG_CHECK_MODULES(GTK, $GTK_MODULES, pkg_check_gtk=yes, pkg_check_gtk=no)
   if test "$pkg_check_gtk" = "no" && test "$USE_X_TOOLKIT" != "maybe"; then
@@ -1806,7 +1789,7 @@ if test "${HAVE_GTK}" = "yes"; then
 fi
 
 dnl D-Bus has been tested under GNU/Linux only.  Must be adapted for
-dnl other platforms.  Support for higher D-Bus versions but 1.0 is
+dnl other platforms.  Support for higher D-Bus versions than 1.0 is
 dnl also not configured.
 HAVE_DBUS=no
 if test "${with_dbus}" = "yes"; then
@@ -2786,8 +2769,7 @@ AH_BOTTOM([
 #endif
 
 /* Multi-tty support relies on MULTI_KBOARD.  It seems safe to turn it
-   on unconditionally.  Note that src/s/darwin.h disables this at
-   present.  */
+   on unconditionally. */
 #ifndef MULTI_KBOARD
 #define MULTI_KBOARD
 #endif
@@ -3086,6 +3068,7 @@ echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $ac_
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
+echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 

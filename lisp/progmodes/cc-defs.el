@@ -96,7 +96,7 @@
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.31.4"
+(defconst c-version "5.31.5"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -425,6 +425,8 @@ The return value is the value of the last form in BODY."
 	  (inhibit-read-only t) (inhibit-point-motion-hooks t)
 	  before-change-functions after-change-functions
 	  deactivate-mark
+	  buffer-file-name buffer-file-truename ; Prevent primitives checking
+						; for file modification
 	  ,@varlist)
      (unwind-protect
 	 (progn ,@body)

@@ -930,7 +930,8 @@ are treated as numbers instead of gnatprep comments."
 	(buffer-undo-list t)
 	(inhibit-read-only t)
 	(inhibit-point-motion-hooks t)
-	(inhibit-modification-hooks t))
+	(inhibit-modification-hooks t)
+	buffer-file-name buffer-file-truename)
     (remove-text-properties (point-min) (point-max) '(syntax-table nil))
     (goto-char (point-min))
     (while (re-search-forward
@@ -4954,11 +4955,11 @@ The paragraph is indented on the first line."
 ;; cursor at the correct position.
 ;; Standard Ada does not force any relation between unit names and file names,
 ;; so some of these functions can only be a good approximation. However, they
-;; are also overriden in `ada-xref'.el when we know that the user is using
+;; are also overridden in `ada-xref'.el when we know that the user is using
 ;; GNAT.
 ;; ---------------------------------------------------
 
-;; Overriden when we work with GNAT, to use gnatkrunch
+;; Overridden when we work with GNAT, to use gnatkrunch
 (defun ada-make-filename-from-adaname (adaname)
   "Determine the filename in which ADANAME is found.
 This matches the GNAT default naming convention, except for

@@ -604,9 +604,6 @@ make_terminal_frame (struct terminal *terminal)
   else
     f->output_method = output_termcap;
 #else
-#ifdef MAC_OS8
-  make_mac_terminal_frame (f);
-#else
   {
     f->output_method = output_termcap;
     f->terminal = terminal;
@@ -631,7 +628,6 @@ make_terminal_frame (struct terminal *terminal)
   FRAME_FOREGROUND_PIXEL(f) = FACE_TTY_DEFAULT_FG_COLOR;
   FRAME_BACKGROUND_PIXEL(f) = FACE_TTY_DEFAULT_BG_COLOR;
 #endif
-#endif /* MAC_OS8 */
 #endif /* MSDOS */
 
   if (!noninteractive)
@@ -698,7 +694,7 @@ affects all frames on the same terminal device.  */)
     abort ();
 #else /* not MSDOS */
 
-#if 0 /* #ifdef MAC_OS8 */
+#if 0
   /* This can happen for multi-tty when using both terminal frames and
      Carbon frames. */
   if (sf->output_method != output_mac)
@@ -1370,13 +1366,7 @@ The functions are run with one arg, the frame to be deleted.  */)
   if (! FRAME_LIVE_P (f))
     return Qnil;
 
-  if (NILP (force) && !other_visible_frames (f)
-#ifdef MAC_OS8
-      /* Terminal frame deleted before any other visible frames are
-	 created.  */
-      && strcmp (SDATA (f->name), "F1") != 0
-#endif
-     )
+  if (NILP (force) && !other_visible_frames (f))
     error ("Attempt to delete the sole visible or iconified frame");
 
 #if 0

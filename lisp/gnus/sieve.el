@@ -290,15 +290,15 @@ Server  : " server ":" (or port "2000") "
   (get-char-property (or pos (point)) 'script-name))
 
 (eval-and-compile
-  (defalias 'sieve-make-overlay (if (fboundp 'make-overlay)
-				    'make-overlay
-				  'make-extent))
-  (defalias 'sieve-overlay-put (if (fboundp 'overlay-put)
-				   'overlay-put
-				 'set-extent-property))
-  (defalias 'sieve-overlays-at (if (fboundp 'overlays-at)
-				   'overlays-at
-				 'extents-at)))
+  (defalias 'sieve-make-overlay (if (featurep 'xemacs)
+				    'make-extent
+				  'make-overlay))
+  (defalias 'sieve-overlay-put (if (featurep 'xemacs)
+				   'set-extent-property
+				 'overlay-put))
+  (defalias 'sieve-overlays-at (if  (featurep 'xemacs)
+				   'extents-at
+				 'overlays-at)))
 
 (defun sieve-highlight (on)
   "Turn ON or off highlighting on the current language overlay."

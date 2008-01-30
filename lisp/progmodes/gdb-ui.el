@@ -435,11 +435,11 @@ otherwise do not."
 	 (output
 	  (with-output-to-string
 	    (with-current-buffer standard-output
-	      (call-process shell-file-name
-			    (if (file-exists-p file) file nil)
+	      (and file (file-exists-p file)
+	      (call-process shell-file-name file
 			    (list t nil) nil "-c"
 			    (concat gdb-cpp-define-alist-program " "
-				    gdb-cpp-define-alist-flags)))))
+				    gdb-cpp-define-alist-flags))))))
 	(define-list (split-string output "\n" t)) (name))
     (setq gdb-define-alist nil)
     (dolist (define define-list)
@@ -1214,10 +1214,12 @@ This filter may simply queue input for a later time."
 
 (defun gdb-dequeue-input ()
   (let ((queue gdb-input-queue))
-    (and queue
-	 (let ((last (car (last queue))))
-	   (unless (nbutlast queue) (setq gdb-input-queue '()))
-	   last))))
+    (if queue
+	(let ((last (car (last queue))))
+	  (unless (nbutlast queue) (setq gdb-input-queue '()))
+	  last)
+      ;; This should be nil here anyway but set it just to make sure.
+      (setq gdb-pending-triggers nil))))
 
 (defun gdb-send-item (item)
   (setq gdb-flush-pending-output nil)
@@ -3445,7 +3447,8 @@ BUFFER nil or omitted means use the current buffer."
       (let ((buffer (marker-buffer gud-overlay-arrow-position))
 	    (position (marker-position gud-overlay-arrow-position)))
 	(when (and buffer
-		   (string-equal (buffer-name buffer)
+		   (string-equal (file-name-nondirectory
+				  (buffer-file-name buffer))
 				 (file-name-nondirectory (match-string 3))))
 	  (with-current-buffer buffer
 	    (setq fringe-indicator-alist

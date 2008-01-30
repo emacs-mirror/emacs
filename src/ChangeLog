@@ -1,3 +1,215 @@
+2008-01-29  Miles Bader  <miles@gnu.org>
+
+	* macterm.c (XTset_vertical_scroll_bar): Fix merge mistake.
+
+2008-01-28  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (stat): Don't double check for networked drive.
+
+2008-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (run_window_configuration_change_hook): New function.
+	Code extracted from set_window_buffer.  Set the selected frame.
+	(set_window_buffer): Use it.
+	* window.h (run_window_configuration_change_hook): Declare.
+	* dispnew.c (change_frame_size_1): Use it instead of set-window-buffer.
+
+	* keyboard.c (read_char): Yet another int/Lisp_Object mixup (YAILOM).
+
+2008-01-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in: Remove references to unused macros.
+
+2008-01-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (g_b_init_get_sid_sub_authority)
+	(g_b_init_get_sid_sub_authority_count): New static variables.
+	(GetSidSubAuthority_Proc, GetSidSubAuthorityCount_Proc): New typedefs.
+	(get_sid_sub_authority, get_sid_sub_authority_count): New functions.
+	(init_user_info): Use them to retrieve uid and gid.
+	Use 500/513, the Windows defaults, as Administrator's uid/gid.
+	(fstat): Use pw_uid and pw_gid from the_passwd structure for
+	st_uid and st_gid of the file.
+
+2008-01-26  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (logon_network_drive): New function.
+	(stat): Use it.
+
+2008-01-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (pos_visible_p): Handle the case where charpos falls on
+	invisible text covered with an ellipsis.
+
+2008-01-25  Richard Stallman  <rms@gnu.org>
+
+	* xdisp.c (redisplay_window): Run Qwindow_text_change_functions and
+	jump back to beginning.  Move some other initializations after that.
+	(Qwindow_text_change_functions, Vwindow_text_change_functions):
+	New variables.
+	(syms_of_xdisp): Init them.
+
+	* keyboard.c (read_char): Restore echo_message_buffer after redisplay.
+
+	* buffer.c (reset_buffer_local_variables):
+	Implement `permanent-local-hook'.
+	(Qpermanent_local_hook): New variable.
+	(syms_of_buffer): Init and staticpro it.
+
+2008-01-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (xd_retrieve_arg): Pacify GCC on x86_64 GNU/Linux.
+
+2008-01-25  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* fns.c (Fclrhash): Return TABLE.
+
+2008-01-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_scroll_bar_create): Initialize bar->redraw_needed_p.
+	(XTset_vertical_scroll_bar): Redraw scroll bar if bar->redraw_needed_p
+	is set even without positional changes.
+	(x_scroll_bar_clear): Set bar->redraw_needed_p.
+
+	* macterm.h (struct scroll_bar): New member `redraw_needed_p'.
+
+2008-01-23  Jason Rumney  <jasonr@gnu.org>
+
+	* xterm.c (handle_one_xevent): Revert to counting chars not bytes.
+
+	* w32term.c (w32_read_socket) <WM_CHAR>: Decode characters outside
+	the unicode range available in MULE by locale-coding-system.
+	Improve dbcs lead byte detection.  Set event timestamp and modifiers
+	earlier.
+
+2008-01-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (mac_emacs_pid) [MAC_OSX]: New variable.
+	[MAC_OSX] (init_mac_osx_environment): Initialize it.
+	[MAC_OSX] (mac_try_close_socket) [SELECT_USE_CFSOCKET]:	Return 0
+	when used on child processes.
+
+2008-01-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (Fdbus_method_return_internal): Rename from
+	Fdbus_method_return.
+	(Fdbus_unregister_object): Move to dbus.el.
+	(Fdbus_call_method, Fdbus_method_return_internal)
+	(Fdbus_send_signal): Improve debug messages.
+
+2008-01-20  Martin Rudalics  <rudalics@gmx.at>
+
+	* undo.c (undo_inhibit_record_point): New variable.
+	(syms_of_undo): Initialize it.
+	(record_point): Don't record point when undo_inhibit_record_point
+	is set.
+
+2008-01-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (list_processes_1): Don't use SCHARS on a nil buffer name.
+
+	* xdisp.c (Qauto_hscroll_mode): New var.
+	(syms_of_xdisp): Initialize it.
+	(hscroll_window_tree): Use it to lookup `auto-hscroll-mode' in each
+	window's buffer.
+	(hscroll_windows): Don't check automatic_hscrolling_p here.
+
+	* window.c (set_window_buffer): Don't unnecessarily reset hscroll and
+	vscroll if we're setting window-buffer to the value it already has.
+
+2008-01-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/intel386.h: Remove references to XENIX.
+
+2008-01-17  Andreas Schwab  <schwab@suse.de>
+
+	* m/amdx86-64.h (START_FILES, LIB_STANDARD): Use HAVE_LIB64_DIR
+	instead of HAVE_X86_64_LIB64_DIR.
+	* m/ibms390x.h (START_FILES, LIB_STANDARD): Likewise.
+
+2008-01-17  Glenn Morris  <rgm@gnu.org>
+
+	* m/ibms390x.h (START_FILES, LIB_STANDARD): Adjust value according
+	to HAVE_X86_64_LIB64_DIR.
+
+2008-01-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/irix3-3.h:
+	* s/irix4-0.h:
+	* s/386-ix.h:
+	* s/domain.h:
+	* s/hpux9-x11r4.h:
+	* s/hpux9shxr4.h: Remove files for systems no longer supported.
+
+	* sysdep.c: Remove code containing references to symbols defined
+	by unsupported systems.
+
+2008-01-16  Glenn Morris  <rgm@gnu.org>
+
+	* coding.c (select-safe-coding-system-function): Doc fix.
+
+2008-01-15  Glenn Morris  <rgm@gnu.org>
+
+	* config.in: Revert 2008-01-13 change: this is a generated file.
+
+2008-01-13  Tom Tromey  <tromey@redhat.com>
+
+	* lisp.h: Fix typo.
+
+2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* m/sequent-ptx.h:
+	* m/sequent.h:
+	* s/ptx.h:
+	* s/ptx4-2.h:
+	* s/ptx4.h: Remove files for systems no longer supported.
+
+	* callproc.c (Fcall_process): Fix previous change.
+
+2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* unexsunos4.c: Remove file, system not supported anymore.
+
+	* src/m/mips.h:
+	* src/m/intel386.h:
+	* callproc.c:
+	* config.in:
+	* ecrt0.c:
+	* emacs.c:
+	* fileio.c:
+	* frame.c:
+	* getpagesize.h:
+	* keyboard.c:
+	* lread.c:
+	* process.c:
+	* puresize.h:
+	* sysdep.c:
+	* systty.h:
+	* syswait.h:
+	* unexec.c:
+	* xdisp.c:
+	* alloc.c: Remove code containing references to symbols defined by
+	unsupported systems.
+
+2008-01-11  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* coding.c (detect_coding_mask): Fix previous change.
+
+2008-01-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c (wait_reading_process_output): Check for window
+	changes caused by timers.
+
+2008-01-09  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* coding.c (detect_coding_iso2022): New arg
+	latin_extra_code_state.  Allow Latin extra codes only
+	when *latin_extra_code_state is nonzero.
+	(detect_coding_mask): If there is a NULL byte, detect the encoding
+	as UTF-16 or binary.  If Latin extra codes exist, detect the
+	encoding as ISO-2022 only when there's no other proper encoding is
+	found.
+
 2008-01-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* frame.c (Fmake_terminal_frame): Use #ifdef MAC_OS8 instead of
@@ -1836,8 +2048,7 @@
 2007-08-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* callproc.c (child_setup, getenv_internal): Use the
-	display-environment-variable and term-environment-variable frame
-	params.
+	display-environment-variable and term-environment-variable frame params.
 	(set_initial_environment): Initialise Vprocess_environment.
 
 	* config.in: Disable multi-keyboard support on a mac.

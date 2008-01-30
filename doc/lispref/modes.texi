@@ -77,15 +77,16 @@ convention.
 @samp{-hooks}.  If the variable's name ends in @samp{-function}, then
 its value is just a single function, not a list of functions.
 
-  Here's an example that uses a mode hook to turn on Auto Fill mode when
-in Lisp Interaction mode:
+@menu
+* Running Hooks::      How to run a hook.
+* Setting Hooks::      How to put functions on a hook, or remove them.
+@end menu
 
-@example
-(add-hook 'lisp-interaction-mode-hook 'turn-on-auto-fill)
-@end example
+@node Running Hooks
+@subsection Running Hooks
 
-  At the appropriate time, Emacs uses the @code{run-hooks} function to
-run particular hooks.
+  At the appropriate times, Emacs uses the @code{run-hooks} function
+and the other functions below to run particular hooks.
 
 @defun run-hooks &rest hookvars
 This function takes one or more normal hook variable names as
@@ -125,6 +126,16 @@ the last hook function that was called.  If all hook functions return
 @code{nil}, it returns @code{nil} as well.
 @end defun
 
+@node Setting Hooks
+@subsection Setting Hooks
+
+  Here's an example that uses a mode hook to turn on Auto Fill mode when
+in Lisp Interaction mode:
+
+@example
+(add-hook 'lisp-interaction-mode-hook 'turn-on-auto-fill)
+@end example
+
 @defun add-hook hook function &optional append local
 This function is the handy way to add function @var{function} to hook
 variable @var{hook}.  You can use it for abnormal hooks as well as for
@@ -140,6 +151,11 @@ adds @code{my-text-hook-function} to the hook called @code{text-mode-hook}.
 
 If @var{function} is already present in @var{hook} (comparing using
 @code{equal}), then @code{add-hook} does not add it a second time.
+
+If @var{function} has a non-@code{nil} property
+@code{permanent-local-hook}, then @code{kill-all-local-variables} (or
+changing major modes) won't delete it from the hook variable's local
+value.
 
 It is best to design your hook functions so that the order in which they
 are executed does not matter.  Any dependence on the order is ``asking

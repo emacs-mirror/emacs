@@ -24,6 +24,9 @@ file, and then edit the `configure' script to tell it which
 configuration name(s) should select your new machine description and
 system description files.
 
+Some obsolete platforms are unsupported beginning with Emacs 23.1, see
+the full list at the end of this file.
+
 
 Here are the configurations Emacs is intended to work with, with the
 corresponding configuration names.  You can postpend version numbers
@@ -936,6 +939,81 @@ X86_64 GNU/Linux
       --x-libraries=/usr/X11R6/lib
 
   (using the location of the 32-bit X libraries on your system).
+
+Support for the following obsolete platforms was removed in Emacs 23.1
+(the names in parentheses state the files in src/ that were removed):
+
+  Apollo SR10.x (unexapollo.c)
+  Convex (unexconvex.c and m/convex.c)
+  Xenix (unexenix.c and s/xenix.h)
+  Iris  (unexmips.c m/iris4d.h m/irist.h s/iris3-5.h s/iris3-6.h)
+  Gould (m/gould*)
+  Siemens machines running Sinix (unexsni.c)
+  Harris CXUX (s/cxux*)
+  ESIX, a variant of v.5.3 for the 386 (s/esix*)
+  Interactive (ISC) Unix (s/isc*)
+  Sony News (s/newsos*)
+  RTU 3.0, ucb universe (s/rtu.h)
+  UniSoft's UniPlus 5.2 (s/uniplus.h)
+  UMAX (s/umax.h)
+  AT&T UNIX PC model 7300 (m/7300.h)
+  Acorn
+  Alliant (m/alliant*)
+  Amdahl (m/amdahl*)
+  Altos 3068 Unix System V Release 2 (m/altos.h)
+  Apollo (m/apollo.h)
+  AT&T 3b (m/att3b.h)
+  Aviion (m/aviion*)
+  Celerity (m/celerity.h)
+  clipper (m/clipper.h)
+  convergent S series (m/cnvrgnt.h)
+  cydra (m/cydra5.h)
+  Motorola System V/88 machines (m/delta88k.h)
+  Bull DPX/2 range (m/dpx2.h)
+  Dual machines using unisoft port (m/dual.h)
+  Elxsi machine (running enix) (m/elxsi.h)
+  Fujitsu F301 machine (m/f301.h)
+  i860 (m/i860.h)
+  ibm ps/2 aix386 (m/ibmps2-aix.h)
+  ISI 68000's (m/is*)
+  Masscomp 5000 series running RTU, ucb universe (m/masscomp.h)
+  Megatest 68000's (m/mega68.h)
+  Whitechapel Computer Works MG1 (ns16000 based) (m/mg1.h)
+  Harris Night Hawk Series 1200 and Series 3000 (m/nh3000.h m/nh4000.h)
+  ns16000 (m/ns16000.h)
+  National Semiconductor 32000, running Genix (m/ns32000.h)
+  TI Nu machines using system V (m/nu.h)
+  HLH Orion (m/orion.h m/orion105.h)
+  Paragon i860 (m/paragon.h)
+  PFU A-series (m/pfa50.h)
+  Plexus running System V.2 (m/plexus.h)
+  pyramid. (m/pyramid.h)
+  sh3el (m/sh3el.h)
+  Bull SPS-7 (m/sps7.h)
+  Hitachi SR2001/SR2201 (m/sr2k.h)
+  Stride (m/stride.h)
+  Sun 1 (m/sun1.h)
+  Sun 2 (m/sun2.h)
+  SEQUENT SYMMETRY  (m/symmetry.h)
+  Tadpole 68k machines (m/tad68k.h)
+  tahoe (m/tahoe.h)
+  targon31 (m/targon31.h)
+  Tektronix* (m/tek4300.h m/tekxd88.h)
+  NCR Tower 32 running System V.2 (m/tower32.h)
+  NCR Tower 32 running System V.3 (m/tower32v3.h)
+  U-station (Nihon Unisys, SS5E; Sumitomo Denkoh, U-Station E30) (m/ustation.h)
+  Wicat (m/wicat.h)
+  Honeywell XPS100 running UNIX System V.2 (m/xps100.h)
+  Data General's DG/UX  (s/dgux*)
+  Irix before version 6
+  osf1 (s/osf*)
+  SunOS4 (s/sunos*)
+  RISCiX (s/riscix*)
+  SCO 3.2v4 (s/sco4.h)
+  SCO 3.2v5 (s/sco5.h)
+  Sun's 386-based RoadRunner (m/sun386.h)
+  Sun3 machines (m/sun3*)
+  Integrated Solutions 386 machine (m/is386.h)
 
 
 Local variables:

@@ -39,7 +39,7 @@
 
 @copying
 Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-2007 Free Software Foundation, Inc.
+2007, 2008 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -672,8 +672,10 @@ as the @option{rsh} method.
 
 This method does not connect to a remote host at all, rather it uses
 the @command{su} program to allow you to edit files as another user.
-With other words, a specified host name in the file name is silently
-ignored.
+That means, the specified host name in the file name must be either
+@samp{localhost} or the host name as returned by the function
+@command{(system-name)}.  For an exception of this rule see
+@ref{Multi-hops}.
 
 
 @item @option{sudo}

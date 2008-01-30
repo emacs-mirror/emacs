@@ -1336,9 +1336,6 @@ complete_filename_p (pathname)
   return (IS_DIRECTORY_SEP (s[0])
 	  || (SCHARS (pathname) > 2
 	      && IS_DEVICE_SEP (s[1]) && IS_DIRECTORY_SEP (s[2]))
-#ifdef ALTOS
-	  || *s == '@'
-#endif
 #ifdef VMS
 	  || index (s, ':')
 #endif /* VMS */

@@ -43,13 +43,9 @@ Boston, MA 02110-1301, USA.  */
 #      define CLSIZE 1
 #     endif /* no CLSIZE */
 #    else /* no NBPG */
-#     ifdef NBPC
-#      define getpagesize() NBPC
-#     else /* no NBPC */
 #      ifdef PAGESIZE
 #       define getpagesize() PAGESIZE
 #      endif /* PAGESIZE */
-#     endif /* no NBPC */
 #    endif /* no NBPG */
 #   endif /* no EXEC_PAGESIZE */
 #  else /* no HAVE_SYS_PARAM_H */

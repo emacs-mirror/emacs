@@ -1,6 +1,6 @@
 ;;; nxml-uchnm.el --- support for Unicode standard cha names in nxml-mode
 
-;; Copyright (C) 2003, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -28,9 +28,6 @@
 ;; Standard.  The use of the names can be controlled on a per-block
 ;; basis, so as both to reduce memory usage and loading time,
 ;; and to make completion work better.
-;; The main entry point is `nxml-enable-unicode-char-name-sets'.  Typically,
-;; this is added to `nxml-mode-hook' (rng-auto.el does this already).
-;; To customize the blocks for which names are used
 
 ;;; Code:
 
@@ -213,7 +210,9 @@ by a hyphen."
           data-directory)))
       nxml-unicode-blocks)
 
-(defvar nxml-enable-unicode-char-name-sets-flag nil)
+;; Internal flag to control whether customize reloads the character tables.
+;; Should be set the first time the 
+(defvar nxml-internal-unicode-char-name-sets-enabled nil)
 
 (defcustom nxml-enabled-unicode-blocks nxml-enabled-unicode-blocks-default
   "List of Unicode blocks for which Unicode character names are enabled.
@@ -222,8 +221,8 @@ of the block by downcasing and replacing each space by a hyphen."
   :group 'nxml
   :set (lambda (sym value)
 	 (set-default 'nxml-enabled-unicode-blocks value)
-	 (when nxml-enable-unicode-char-name-sets-flag
-	   (nxml-enable-unicode-char-name-sets-1)))
+	 (when nxml-internal-unicode-char-name-sets-enabled
+	   (nxml-enable-unicode-char-name-sets)))
   :type (cons 'set
 	      (mapcar (lambda (block)
 			`(const :tag ,(format "%s (%04X-%04X)"
@@ -240,11 +239,7 @@ of the block by downcasing and replacing each space by a hyphen."
 The Unicode blocks for which names are enabled is controlled by
 the variable `nxml-enabled-unicode-blocks'."
   (interactive)
-  (setq nxml-char-name-ignore-case t)
-  (setq nxml-enable-unicode-char-name-sets-flag t)
-  (nxml-enable-unicode-char-name-sets-1))
-
-(defun nxml-enable-unicode-char-name-sets-1 ()
+  (setq nxml-internal-unicode-char-name-sets-enabled t)
   (mapc (lambda (block)
           (nxml-disable-char-name-set
            (nxml-unicode-block-char-name-set (car block))))

@@ -3,10 +3,9 @@ of their use.  Feel free to add more macros and more categories.
 
 ** Distinguishing OSes **
 
-MAC_OS		Compiling for some version of Mac OS?
-MAC_OS8		Compiling for Mac OS version 8.  Requires MAC_OS?
-MAC_OSX		Compiling for Mac OS X?  Is that also valid for Darwin?
-MAC_OS_X	??  Apparently only used once in mac.c.
+MAC_OS		Compiling for the `mac' window-system.
+MAC_OS8		Compiling for Mac OS Classic (v8 or v9).
+MAC_OSX		Compiling for Mac OS X.  Not bare Darwin.
 CYGWIN		Compiling the Cygwin port.
 __CYGWIN__	Ditto
 MSDOS		Compiling the MS-DOS port.
@@ -44,25 +43,9 @@ REL_ALLOC	Compile in the relocatable memory allocator ralloc.c.
 SYSTEM_MALLOC	Use the system library's malloc.
 
 ** All references to these symbols should be removed, all their definitions are gone **
-ALLIANT
-ALLIANT_2800
-ALTOS
-APOLLO
-APOLLO_SR10
-RTU
-STRIDE
-UNIPLUS
-GOULD
+
 NU
-pyramid
-sps7
-tahoe
-tek4300
-__DGUX
-DGUX
 romp
-ibmrt 
-NEWSOS5
 
 ** Temporarily put defines from removed files here, check if these macros need to be documented or removed because they are not used anymore.  ** 
 
@@ -77,7 +60,6 @@ BAUD_CONVERT
 BROKEN_FIONREAD
 BROKEN_SELECT_NON_X
 BROKEN_SIGIO
-BROKEN_START
 BROKEN_TIOCGETC
 BROKEN_TIOCGWINSZ
 BSD4_2
@@ -110,9 +92,6 @@ DOT_GLOBAL_START
 DUMMIES
 EEOF
 ELF
-ERROR0
-ERROR1
-ERROR2
 EXEC_HDR_TYPE
 EXEC_MAGIC
 EXEC_PAGESIZE
@@ -122,6 +101,7 @@ FIRST_PTY_LETTER
 FREE_RETURN_TYPE
 FSCALE
 F_SETOWN_BUG
+F_SETOWN_SOCK_NEG
 GC_MARK_STACK
 GC_SETJMP_WORKS
 GETPGRP_NO_ARG
@@ -166,8 +146,6 @@ IRIS
 IRIS_4D
 IRIX6_5
 IRIX_FORCE_32_BITS
-ISC4_0
-ISI68K
 KEEP_OLD_PADDR
 KEEP_OLD_TEXT_SCNPTR
 KERNEL_FILE
@@ -190,19 +168,15 @@ LIB_X11_LIB
 LINKER
 LOAD_AVE_CVT
 LOAD_AVE_TYPE
-LONG_ALIGN
 L_SET
 MAIL_PROGRAM_NAME
 MAIL_USE_FLOCK
-MAKE_PARALLEL
 MAXNAMLEN
 MEMMOVE_MISSING
 MEMORY_IN_STRING_H
 MKDIR_PROTOTYPE
 MOTIF
-M_TERMINFO
 NARROWPROTO
-NBPC
 NEED_ERRNO
 NEED_NET_ERRNO_H
 NEED_PTEM_H
@@ -221,14 +195,13 @@ NO_PTY_H
 NO_REMAP
 NO_SIOCTL_H
 NO_SOCKETS_IN_FILE_SYSTEM
+NO_SOCK_SIGIO
 NO_TERMIO
+NO_UNION_TYPE
 NO_UNION_TYPE
 NSIG
 NSIG_MINIMUM
 OBJECTS_MACHINE
-OLDXMENU_OPTIONS
-OLD_PROGRAM_H
-OLD_SECTION_H
 ORDINARY_LINK
 OSF1
 O_NDELAY
@@ -239,16 +212,12 @@ PNTR_COMPARISON_TYPE
 POSIX_SIGNALS
 PREFER_VSUSP
 PTY_ITERATION
-PTY_MAJOR
-PTY_MINOR
 PTY_NAME_SPRINTF
 PTY_OPEN
 PTY_TTY_NAME_SPRINTF
 PURESIZE
 READ
 REL_ALLOC
-RISCiX
-RISCiX_1_1
 RUN_TIME_REMAP
 SECTION_ALIGNMENT
 SEEK
@@ -266,7 +235,6 @@ SKTPAIR
 SMAIL
 START_FILES
 SUNOS4
-SUNOS4_SHARED_LIBRARIES
 SUNOS_LOCALTIME_BUG
 SVR4
 SWITCH_ENUM_BUG
@@ -281,7 +249,6 @@ S_IFLNK
 S_IFMT
 S_IREAD
 S_IWRITE
-TAHOE_REGISTER_BUG
 TERMCAP
 TERMINFO
 TEXT_END
@@ -290,8 +257,6 @@ TEXT_START_ADDR
 THIS_IS_MAKEFILE
 TPIX
 ULIMIT_BREAK_VALUE
-UMAX
-UMAX4_2
 UNEXEC
 USE_DL_STUBS
 USE_GETOBAUD
@@ -303,20 +268,17 @@ USG5_3
 USG5_4
 USG_JOBCTRL
 USG_SHARED_LIBRARIES
-V3x
 VIRT_ADDR_VARIES
 WORDS_BIG_ENDIAN
 WORD_MACHINE
 WRITE
 X11R4
-XENIX
 XICCC
 XINT
 XSET
 XUINT
 X_DEFAULT_FONT
 _ABIN32
-_CX_UX
 _MIPS_SZLONG
 _POSIX_SOURCE
 __main
@@ -325,15 +287,10 @@ _setjmp
 _sobuf
 aix386
 alloca
-amdahl_uts
 aouthdr
-celerity
-clipper
-convex
 data_start
 drem
 dsize
-elxsi
 emacs
 entry
 etext
@@ -348,17 +305,12 @@ jmp_buf
 longjmp
 m68000
 m68k
-m88k
 magic
 mc68000
 mips
-orion
 sel
 subprocesses
 sun
-sun_68881
-sun_fpa
-sun_soft
 text_start
 
 # arch-tag: bc80061a-1168-4911-9766-46aaf2640250

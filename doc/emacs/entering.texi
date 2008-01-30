@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 2001, 2002, 2003,
-@c   2004, 2005, 2006, 2007  Free Software Foundation, Inc.
+@c   2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Entering Emacs, Exiting, Text Characters, Top
 @chapter Entering and Exiting Emacs
@@ -122,7 +122,7 @@ systems, you can only get back to the shell from which Emacs was run
 
 @vindex cannot-suspend
   Suspending can fail if you run Emacs under a shell that doesn't
-support suspendion of its subjobs, even if the system itself does
+support suspension of its subjobs, even if the system itself does
 support it.  In such a case, you can set the variable
 @code{cannot-suspend} to a non-@code{nil} value to force @kbd{C-z} to
 start an inferior shell.

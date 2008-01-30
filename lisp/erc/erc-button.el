@@ -57,16 +57,15 @@
   ((add-hook 'erc-insert-modify-hook 'erc-button-add-buttons 'append)
    (add-hook 'erc-send-modify-hook 'erc-button-add-buttons 'append)
    (add-hook 'erc-complete-functions 'erc-button-next)
-   (add-hook 'erc-mode-hook 'erc-button-add-keys))
+   (add-hook 'erc-mode-hook 'erc-button-setup))
   ((remove-hook 'erc-insert-modify-hook 'erc-button-add-buttons)
    (remove-hook 'erc-send-modify-hook 'erc-button-add-buttons)
    (remove-hook 'erc-complete-functions 'erc-button-next)
-   (remove-hook 'erc-mode-hook 'erc-button-add-keys)))
-
-;; Make XEmacs use `erc-button-face'.
-(when (featurep 'xemacs)
-  (add-hook 'erc-mode-hook
-            (lambda () (set (make-local-variable 'widget-button-face) nil))))
+   (remove-hook 'erc-mode-hook 'erc-button-setup)
+   (when (featurep 'xemacs)
+     (dolist (buffer (erc-buffer-list))
+       (with-current-buffer buffer
+         (kill-local-variable 'widget-button-face))))))
 
 ;;; Variables
 
@@ -247,8 +246,12 @@ constituents.")
   "Internal variable used to keep track of whether we've added the
 global-level ERC button keys yet.")
 
-(defun erc-button-add-keys ()
+(defun erc-button-setup ()
   "Add ERC mode-level button movement keys.  This is only done once."
+  ;; Make XEmacs use `erc-button-face'.
+  (when (featurep 'xemacs)
+    (set (make-local-variable 'widget-button-face) nil))
+  ;; Add keys.
   (unless erc-button-keys-added
     (define-key erc-mode-map (kbd "<backtab>") 'erc-button-previous)
     (setq erc-button-keys-added t)))
@@ -299,9 +302,10 @@ specified by `erc-button-alist'."
         (setq bounds (bounds-of-thing-at-point 'word))
         (setq word (buffer-substring-no-properties
                     (car bounds) (cdr bounds)))
-        (if (erc-get-server-user word)
-            (erc-button-add-button (car bounds) (cdr bounds)
-                                   fun t (list word)))))))
+        (when (or (and (erc-server-buffer-p) (erc-get-server-user word))
+                  (and erc-channel-users (erc-get-channel-user word)))
+          (erc-button-add-button (car bounds) (cdr bounds)
+                                 fun t (list word)))))))
 
 (defun erc-button-add-buttons-1 (regexp entry)
   "Search through the buffer for matches to ENTRY and add buttons."

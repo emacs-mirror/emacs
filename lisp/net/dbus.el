@@ -46,6 +46,17 @@
 (defconst dbus-interface-introspectable "org.freedesktop.DBus.Introspectable"
   "The interface supported by introspectable objects.")
 
+(defmacro dbus-ignore-errors (&rest body)
+  "Execute BODY; signal D-Bus error when `dbus-debug' is non-nil.
+Otherwise, return result of last form in BODY, or all other errors."
+  `(condition-case err
+       (progn ,@body)
+     (dbus-error (when dbus-debug (signal (car err) (cdr err))))))
+
+(put 'dbus-ignore-errors 'lisp-indent-function 0)
+(put 'dbus-ignore-errors 'edebug-form-spec '(form symbolp body))
+(font-lock-add-keywords 'emacs-lisp-mode '("\\<dbus-ignore-errors\\>"))
+
 
 ;;; Hash table of registered functions.
 
@@ -63,6 +74,35 @@ hash table."
      '(lambda (key value) (add-to-list 'result (cons key value) 'append))
      dbus-registered-functions-table)
     result))
+
+(defun dbus-unregister-object (object)
+  "Unregister OBJECT from D-Bus.
+OBJECT must be the result of a preceding `dbus-register-method'
+or `dbus-register-signal' call.  It returns t if OBJECT has been
+unregistered, nil otherwise."
+  ;; Check parameter.
+  (unless (and (consp object) (not (null (car object))) (consp (cdr object)))
+    (signal 'wrong-type-argument (list 'D-Bus object)))
+
+  ;; Find the corresponding entry in the hash table.
+  (let* ((key (car object))
+	 (value (gethash key dbus-registered-functions-table)))
+    ;; Loop over the registered functions.
+    (while (consp value)
+      ;; (car value) has the structure (UNAME SERVICE PATH HANDLER).
+      ;; (cdr object) has the structure ((SERVICE PATH HANDLER) ...).
+      (if (not (equal (cdr (car value)) (car (cdr object))))
+	  (setq value (cdr value))
+	;; Compute new hash value.  If it is empty, remove it from
+	;; hash table.
+	(unless
+	    (puthash
+	     key
+	     (delete (car value) (gethash key dbus-registered-functions-table))
+	     dbus-registered-functions-table)
+	  (remhash key dbus-registered-functions-table))
+	(setq value t)))
+    value))
 
 (defun dbus-name-owner-changed-handler (&rest args)
   "Reapplies all member registrations to D-Bus.
@@ -110,15 +150,13 @@ usage: (dbus-name-owner-changed-handler service old-owner new-owner)"
 	  args))))))
 
 ;; Register the handler.
-(condition-case nil
-    (progn
-      (dbus-register-signal
-       :system dbus-service-dbus dbus-path-dbus dbus-interface-dbus
-       "NameOwnerChanged" 'dbus-name-owner-changed-handler)
-      (dbus-register-signal
-       :session dbus-service-dbus dbus-path-dbus dbus-interface-dbus
-       "NameOwnerChanged" 'dbus-name-owner-changed-handler))
-  (dbus-error))
+(dbus-ignore-errors
+  (dbus-register-signal
+   :system dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+   "NameOwnerChanged" 'dbus-name-owner-changed-handler)
+  (dbus-register-signal
+   :session dbus-service-dbus dbus-path-dbus dbus-interface-dbus
+   "NameOwnerChanged" 'dbus-name-owner-changed-handler))
 
 
 ;;; D-Bus events.
@@ -168,16 +206,15 @@ part of the event, is called with arguments ARGS."
   (interactive "e")
   ;; We don't want to raise an error, because this function is called
   ;; in the event handling loop.
-  (condition-case err
-      (let (result)
-	(dbus-check-event event)
-	(setq result (apply (nth 7 event) (nthcdr 8 event)))
-	(unless (consp result) (setq result (cons result nil)))
-	;; Return a message when serial is not nil.
-	(when (not (null (nth 2 event)))
-	  (apply 'dbus-method-return
-		 (nth 1 event) (nth 2 event) (nth 3 event) result)))
-    (dbus-error (when dbus-debug (signal (car err) (cdr err))))))
+  (dbus-ignore-errors
+    (let (result)
+      (dbus-check-event event)
+      (setq result (apply (nth 7 event) (nthcdr 8 event)))
+      (unless (consp result) (setq result (cons result nil)))
+      ;; Return a message when serial is not nil.
+      (when (not (null (nth 2 event)))
+	(apply 'dbus-method-return-internal
+	       (nth 1 event) (nth 2 event) (nth 3 event) result)))))
 
 (defun dbus-event-bus-name (event)
   "Return the bus name the event is coming from.
@@ -238,11 +275,10 @@ well formed."
   "Return the D-Bus service names which can be activated as list.
 The result is a list of strings, which is nil when there are no
 activatable service names at all."
-  (condition-case nil
-      (dbus-call-method
-       :system dbus-service-dbus
-       dbus-path-dbus dbus-interface-dbus "ListActivatableNames")
-    (dbus-error)))
+  (dbus-ignore-errors
+    (dbus-call-method
+     :system dbus-service-dbus
+     dbus-path-dbus dbus-interface-dbus "ListActivatableNames")))
 
 (defun dbus-list-names (bus)
   "Return the service names registered at D-Bus BUS.
@@ -250,10 +286,9 @@ The result is a list of strings, which is nil when there are no
 registered service names at all.  Well known names are strings like
 \"org.freedesktop.DBus\".  Names starting with \":\" are unique names
 for services."
-  (condition-case nil
-      (dbus-call-method
-       bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus "ListNames")
-    (dbus-error)))
+  (dbus-ignore-errors
+    (dbus-call-method
+     bus dbus-service-dbus dbus-path-dbus dbus-interface-dbus "ListNames")))
 
 (defun dbus-list-known-names (bus)
   "Retrieve all services which correspond to a known name in BUS.
@@ -267,20 +302,18 @@ A service has a known name if it doesn't start with \":\"."
 "Return the unique names registered at D-Bus BUS and queued for SERVICE.
 The result is a list of strings, or nil when there are no queued name
 owners service names at all."
-  (condition-case nil
-      (dbus-call-method
-       bus dbus-service-dbus dbus-path-dbus
-       dbus-interface-dbus "ListQueuedOwners" service)
-    (dbus-error)))
+  (dbus-ignore-errors
+    (dbus-call-method
+     bus dbus-service-dbus dbus-path-dbus
+     dbus-interface-dbus "ListQueuedOwners" service)))
 
 (defun dbus-get-name-owner (bus service)
   "Return the name owner of SERVICE registered at D-Bus BUS.
 The result is either a string, or nil if there is no name owner."
-  (condition-case nil
-      (dbus-call-method
-       bus dbus-service-dbus dbus-path-dbus
-       dbus-interface-dbus "GetNameOwner" service)
-    (dbus-error)))
+  (dbus-ignore-errors
+    (dbus-call-method
+     bus dbus-service-dbus dbus-path-dbus
+     dbus-interface-dbus "GetNameOwner" service)))
 
 (defun dbus-introspect (bus service path)
   "Return the introspection data of SERVICE in D-Bus BUS at object path PATH.
@@ -291,10 +324,9 @@ Example:
 \(dbus-introspect
   :system \"org.freedesktop.Hal\"
   \"/org/freedesktop/Hal/devices/computer\")"
-  (condition-case nil
-      (dbus-call-method
-       bus service path dbus-interface-introspectable "Introspect")
-    (dbus-error)))
+  (dbus-ignore-errors
+    (dbus-call-method
+     bus service path dbus-interface-introspectable "Introspect")))
 
 (if nil ;; Must be reworked.  Shall we offer D-Bus signatures at all?
 (defun dbus-get-signatures (bus interface signal)
@@ -310,42 +342,39 @@ the third parameter is of type array of integer.
 If INTERFACE or SIGNAL do not exist, or if they do not support
 the D-Bus method org.freedesktop.DBus.Introspectable.Introspect,
 the function returns nil."
-  (condition-case nil
-      (let ((introspect-xml
-	     (with-temp-buffer
-	       (insert (dbus-introspect bus interface))
-	       (xml-parse-region (point-min) (point-max))))
-	    node interfaces signals args result)
-	;; Get the root node.
-	(setq node (xml-node-name introspect-xml))
-	;; Get all interfaces.
-	(setq interfaces (xml-get-children node 'interface))
-	(while interfaces
-	  (when (string-equal (xml-get-attribute (car interfaces) 'name)
-			      interface)
-	    ;; That's the requested interface.  Check for signals.
-	    (setq signals (xml-get-children (car interfaces) 'signal))
-	    (while signals
-	      (when (string-equal (xml-get-attribute (car signals) 'name)
-				  signal)
-		;; The signal we are looking for.
-		(setq args (xml-get-children (car signals) 'arg))
-		(while args
-		  (unless (xml-get-attribute (car args) 'type)
-		    ;; This shouldn't happen, let's escape.
-		    (signal 'dbus-error ""))
-		  ;; We append the signature.
-		  (setq
-		   result (append result
-				  (list (xml-get-attribute (car args) 'type))))
-		  (setq args (cdr args)))
-		(setq signals nil))
-	      (setq signals (cdr signals)))
-	    (setq interfaces nil))
-	  (setq interfaces (cdr interfaces)))
-	result)
-    ;; We ignore `dbus-error'.  There might be no introspectable interface.
-    (dbus-error nil)))
+  (dbus-ignore-errors
+    (let ((introspect-xml
+	   (with-temp-buffer
+	     (insert (dbus-introspect bus interface))
+	     (xml-parse-region (point-min) (point-max))))
+	  node interfaces signals args result)
+      ;; Get the root node.
+      (setq node (xml-node-name introspect-xml))
+      ;; Get all interfaces.
+      (setq interfaces (xml-get-children node 'interface))
+      (while interfaces
+	(when (string-equal (xml-get-attribute (car interfaces) 'name)
+			    interface)
+	  ;; That's the requested interface.  Check for signals.
+	  (setq signals (xml-get-children (car interfaces) 'signal))
+	  (while signals
+	    (when (string-equal (xml-get-attribute (car signals) 'name) signal)
+	      ;; The signal we are looking for.
+	      (setq args (xml-get-children (car signals) 'arg))
+	      (while args
+		(unless (xml-get-attribute (car args) 'type)
+		  ;; This shouldn't happen, let's escape.
+		  (signal 'dbus-error nil))
+		;; We append the signature.
+		(setq
+		 result (append result
+				(list (xml-get-attribute (car args) 'type))))
+		(setq args (cdr args)))
+	      (setq signals nil))
+	    (setq signals (cdr signals)))
+	  (setq interfaces nil))
+	(setq interfaces (cdr interfaces)))
+      result)))
 ) ;; (if nil ...
 
 (provide 'dbus)

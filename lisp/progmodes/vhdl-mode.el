@@ -2047,7 +2047,7 @@ your style, only those that are different from the default.")
 (defun vhdl-keep-region-active ()
   "Do whatever is necessary to keep the region active in XEmacs.
 Ignore byte-compiler warnings you might see."
-  (and (boundp 'zmacs-region-stays)
+  (and (featurep 'xemacs)
        (setq zmacs-region-stays t)))
 
 ;; `wildcard-to-regexp' is included only in XEmacs 21

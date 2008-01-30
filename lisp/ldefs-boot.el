@@ -249,7 +249,6 @@ This is just like `add-change-log-entry' except that it displays
 the change log file in another window.
 
 \(fn &optional WHOAMI FILE-NAME)" t nil)
- (define-key ctl-x-4-map "a" 'add-change-log-entry-other-window)
 
 (autoload 'change-log-mode "add-log" "\
 Major mode for editing change logs; like Indented Text Mode.
@@ -945,48 +944,48 @@ Used in `antlr-mode'.  Also a useful function in `java-mode-hook'.
 ;;; Generated autoloads from calendar/appt.el
 
 (defvar appt-issue-message t "\
-*Non-nil means check for appointments in the diary buffer.
+Non-nil means check for appointments in the diary buffer.
 To be detected, the diary entry must have the format described in the
 documentation of the function `appt-check'.")
 
 (custom-autoload 'appt-issue-message "appt" t)
 
 (defvar appt-message-warning-time 12 "\
-*Time in minutes before an appointment that the warning begins.")
+Time in minutes before an appointment that the warning begins.")
 
 (custom-autoload 'appt-message-warning-time "appt" t)
 
 (defvar appt-audible t "\
-*Non-nil means beep to indicate appointment.")
+Non-nil means beep to indicate appointment.")
 
 (custom-autoload 'appt-audible "appt" t)
 
 (defvar appt-visible t "\
-*Non-nil means display appointment message in echo area.
+Non-nil means display appointment message in echo area.
 This variable is only relevant if `appt-msg-window' is nil.")
 
 (custom-autoload 'appt-visible "appt" t)
 
 (defvar appt-msg-window t "\
-*Non-nil means display appointment message in another window.
+Non-nil means display appointment message in another window.
 If non-nil, this variable overrides `appt-visible'.")
 
 (custom-autoload 'appt-msg-window "appt" t)
 
 (defvar appt-display-mode-line t "\
-*Non-nil means display minutes to appointment and time on the mode line.
+Non-nil means display minutes to appointment and time on the mode line.
 This is in addition to any other display of appointment messages.")
 
 (custom-autoload 'appt-display-mode-line "appt" t)
 
 (defvar appt-display-duration 10 "\
-*The number of seconds an appointment message is displayed.
+The number of seconds an appointment message is displayed.
 Only relevant if reminders are to be displayed in their own window.")
 
 (custom-autoload 'appt-display-duration "appt" t)
 
 (defvar appt-display-diary t "\
-*Non-nil displays the diary when the appointment list is first initialized.
+Non-nil displays the diary when the appointment list is first initialized.
 This will occur at midnight when the appointment list is updated.")
 
 (custom-autoload 'appt-display-diary "appt" t)
@@ -1732,7 +1731,7 @@ b              => (ba bb bc)		; assume b has this value
 
 Vectors work just like lists.  Nested backquotes are permitted.
 
-\(fn ARG)" nil (quote macro))
+\(fn STRUCTURE)" nil (quote macro))
 
 (defalias '\` (symbol-function 'backquote))
 
@@ -1806,6 +1805,19 @@ non-interactive use see also `benchmark-run' and
 ;;;### (autoloads (bibtex-mode) "bibtex" "textmodes/bibtex.el" (18177
 ;;;;;;  875))
 ;;; Generated autoloads from textmodes/bibtex.el
+
+(autoload 'bibtex-initialize "bibtex" "\
+(Re)Initialize BibTeX buffers.
+Visit the BibTeX files defined by `bibtex-files' and return a list
+of corresponding buffers.
+Initialize in these buffers `bibtex-reference-keys' if not yet set.
+List of BibTeX buffers includes current buffer if CURRENT is non-nil.
+If FORCE is non-nil, (re)initialize `bibtex-reference-keys' even if
+already set.  If SELECT is non-nil interactively select a BibTeX buffer.
+When called interactively, FORCE is t, CURRENT is t if current buffer uses
+`bibtex-mode', and SELECT is t if current buffer does not use `bibtex-mode',
+
+\(fn &optional CURRENT FORCE SELECT)" t nil)
 
 (autoload 'bibtex-mode "bibtex" "\
 Major mode for editing BibTeX files.
@@ -2828,7 +2840,7 @@ Must be used only with `-batch', and kills Emacs on completion.
 For example, invoke `emacs -batch -f batch-byte-recompile-directory .'.
 
 Optional argument ARG is passed as second argument ARG to
-`batch-recompile-directory'; see there for its possible values
+`byte-recompile-directory'; see there for its possible values
 and corresponding effects.
 
 \(fn &optional ARG)" nil nil)
@@ -3371,7 +3383,7 @@ List of functions called for listing diary file and included files.
 As the files are processed for diary entries, these functions are used
 to cull relevant entries.  You can use either or both of
 `list-hebrew-diary-entries', `list-islamic-diary-entries' and
-`list-bahai-diary-entries'.  The documentation for these functions
+`diary-bahai-list-entries'.  The documentation for these functions
 describes the style of such diary entries.")
 
 (custom-autoload 'nongregorian-diary-listing-hook "calendar" t)
@@ -3825,7 +3837,29 @@ and exists only for compatibility reasons.
 ;;;### (autoloads nil "cc-subword" "progmodes/cc-subword.el" (18177
 ;;;;;;  872))
 ;;; Generated autoloads from progmodes/cc-subword.el
- (autoload 'c-subword-mode "cc-subword" "Mode enabling subword movement and editing keys." t)
+
+(autoload 'c-subword-mode "cc-subword" "\
+Mode enabling subword movement and editing keys.
+In spite of GNU Coding Standards, it is popular to name a symbol by
+mixing uppercase and lowercase letters, e.g. \"GtkWidget\",
+\"EmacsFrameClass\", \"NSGraphicsContext\", etc.  Here we call these
+mixed case symbols `nomenclatures'. Also, each capitalized (or
+completely uppercase) part of a nomenclature is called a `subword'.
+Here are some examples:
+
+  Nomenclature           Subwords
+  ===========================================================
+  GtkWindow          =>  \"Gtk\" and \"Window\"
+  EmacsFrameClass    =>  \"Emacs\", \"Frame\" and \"Class\"
+  NSGraphicsContext  =>  \"NS\", \"Graphics\" and \"Context\"
+
+The subword oriented commands activated in this minor mode recognize
+subwords in a nomenclature to move between subwords and to edit them
+as words.
+
+\\{c-subword-mode-map}
+
+\(fn &optional ARG)" t nil)
 
 ;;;***
 
@@ -4109,6 +4143,26 @@ Action blocks are treated as defuns, i.e. \\[beginning-of-defun] moves
 to the action header.
 
 \(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads (check-declare-directory check-declare-file) "check-declare"
+;;;;;;  "emacs-lisp/check-declare.el" (18308 19808))
+;;; Generated autoloads from emacs-lisp/check-declare.el
+
+(autoload 'check-declare-file "check-declare" "\
+Check veracity of all `declare-function' statements in FILE.
+See `check-declare-directory' for more information.
+
+\(fn FILE)" t nil)
+
+(autoload 'check-declare-directory "check-declare" "\
+Check veracity of all `declare-function' statements under directory ROOT.
+Returns non-nil if any false statements are found.  For this to
+work correctly, the statements must adhere to the format
+described in the documentation of `declare-function'.
+
+\(fn ROOT)" t nil)
 
 ;;;***
 
@@ -5091,6 +5145,12 @@ Insert a copyright by $ORGANIZATION notice at cursor.
 ;;;;;;  "cperl-mode" "progmodes/cperl-mode.el" (18231 31069))
 ;;; Generated autoloads from progmodes/cperl-mode.el
 (put 'cperl-indent-level 'safe-local-variable 'integerp)
+(put 'cperl-brace-offset 'safe-local-variable 'integerp)
+(put 'cperl-continued-brace-offset 'safe-local-variable 'integerp)
+(put 'cperl-label-offset 'safe-local-variable 'integerp)
+(put 'cperl-continued-statement-offset 'safe-local-variable 'integerp)
+(put 'cperl-extra-newline-before-brace 'safe-local-variable 'booleanp)
+(put 'cperl-merge-trailing-else 'safe-local-variable 'booleanp)
 
 (autoload 'cperl-mode "cperl-mode" "\
 Major mode for editing Perl code.
@@ -5628,7 +5688,7 @@ that are not customizable options, as well as faces and groups
 (autoload 'customize-apropos-options "cus-edit" "\
 Customize all loaded customizable options matching REGEXP.
 With prefix arg, include variables that are not customizable options
-\(but we recommend using `apropos-variable' instead).
+\(but it is better to use `apropos-variable' if you want to find those).
 
 \(fn REGEXP &optional ARG)" t nil)
 
@@ -6230,8 +6290,8 @@ or call the function `delete-selection-mode'.")
 
 (autoload 'delete-selection-mode "delsel" "\
 Toggle Delete Selection mode.
-With prefix ARG, turn Delete Selection mode on if and only if ARG is
-positive.
+With prefix ARG, turn Delete Selection mode on if ARG is
+positive, off if ARG is not positive.
 
 When Delete Selection mode is enabled, Transient Mark mode is also
 enabled and typed text replaces the selection if the selection is
@@ -6701,7 +6761,7 @@ some of the `ls' switches are not supported; see the doc string of
 
 (custom-autoload 'dired-listing-switches "dired" t)
 
-(defvar dired-chown-program (if (memq system-type '(hpux dgux usg-unix-v irix linux gnu/linux cygwin)) "chown" (if (file-exists-p "/usr/sbin/chown") "/usr/sbin/chown" "/etc/chown")) "\
+(defvar dired-chown-program (if (memq system-type '(hpux usg-unix-v irix linux gnu/linux cygwin)) "chown" (if (file-exists-p "/usr/sbin/chown") "/usr/sbin/chown" "/etc/chown")) "\
 Name of chown command (usually `chown' or `/etc/chown').")
 
 (defvar dired-ls-F-marks-symlinks nil "\
@@ -7564,6 +7624,12 @@ Locate SOA record and increment the serial field.
 ;;;;;;  "doc-view.el" (18231 31060))
 ;;; Generated autoloads from doc-view.el
 
+(autoload 'doc-view-mode-p "doc-view" "\
+Return non-nil if image type TYPE is available for `doc-view'.
+Image types are symbols like `dvi', `postscript' or `pdf'.
+
+\(fn TYPE)" nil nil)
+
 (autoload 'doc-view-mode "doc-view" "\
 Major mode in DocView buffers.
 You can use \\<doc-view-mode-map>\\[doc-view-toggle-display] to
@@ -7796,10 +7862,15 @@ whenever this expression's value is non-nil.
 INCLUDE is an expression; this item is only visible if this
 expression has a non-nil value.  `:included' is an alias for `:visible'.
 
+   :label FORM
+
+FORM is an expression that will be dynamically evaluated and whose
+value will be used for the menu entry's text label (the default is NAME).
+
    :suffix FORM
 
 FORM is an expression that will be dynamically evaluated and whose
-value will be concatenated to the menu entry's NAME.
+value will be concatenated to the menu entry's label.
 
    :style STYLE
 
@@ -9602,12 +9673,7 @@ corresponding to a successful execution.
 
 \(fn COMMAND &optional STATUS-VAR)" nil nil)
 
-(autoload 'eshell-report-bug "eshell" "\
-Report a bug in Eshell.
-Prompts for the TOPIC.  Leaves you in a mail buffer.
-Please include any configuration details that might be involved.
-
-\(fn TOPIC)" t nil)
+(define-obsolete-function-alias 'eshell-report-bug 'report-emacs-bug "23.1")
 
 ;;;***
 
@@ -10773,9 +10839,6 @@ the name is considered already unique; only the second substitution
 \(directories) is done.
 
 \(fn ARG)" t nil)
- (define-key minibuffer-local-completion-map [C-tab] 'file-cache-minibuffer-complete)
- (define-key minibuffer-local-map [C-tab] 'file-cache-minibuffer-complete)
- (define-key minibuffer-local-must-match-map [C-tab] 'file-cache-minibuffer-complete)
 
 ;;;***
 
@@ -10824,6 +10887,13 @@ On Berkeley systems, this is `-s'; on Posix, and with GNU grep, `-q' does it.
 On other systems, the closest you can come is to use `-l'.")
 
 (custom-autoload 'find-grep-options "find-dired" t)
+
+(defvar find-name-arg (if read-file-name-completion-ignore-case "-iname" "-name") "\
+*Argument used to specify file name pattern.
+If `read-file-name-completion-ignore-case' is non-nil, -iname is used so that
+find also ignores case. Otherwise, -name is used.")
+
+(custom-autoload 'find-name-arg "find-dired" t)
 
 (autoload 'find-dired "find-dired" "\
 Run `find' and go into Dired mode on a buffer of the output.
@@ -11551,7 +11621,6 @@ Run gdb on program FILE in buffer *gud-FILE*.
 The directory containing FILE becomes the initial working
 directory and source-file directory for your debugger.
 
-
 If `gdb-many-windows' is nil (the default value) then gdb just
 pops up the GUD buffer unless `gdb-show-main' is t.  In this case
 it starts with two windows: one displaying the GUD buffer and the
@@ -12049,7 +12118,7 @@ Not documented
 (autoload 'turn-on-gnus-dired-mode "gnus-dired" "\
 Convenience method to turn on gnus-dired-mode.
 
-\(fn)" nil nil)
+\(fn)" t nil)
 
 ;;;***
 
@@ -12622,6 +12691,11 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 The default find program for `grep-find-command'.
 This variable's value takes effect when `grep-compute-defaults' is called.")
 
+(defvar xargs-program "xargs" "\
+The default xargs program for `grep-find-command'.
+See `grep-find-use-xargs'.
+This variable's value takes effect when `grep-compute-defaults' is called.")
+
 (defvar grep-find-use-xargs nil "\
 Non-nil means that `grep-find' uses the `xargs' utility by default.
 If `exec', use `find -exec'.
@@ -12653,19 +12727,19 @@ Sets `grep-last-buffer' and `compilation-window-height'.
 (autoload 'grep "grep" "\
 Run grep, with user-specified args, and collect output in a buffer.
 While grep runs asynchronously, you can use \\[next-error] (M-x next-error),
-or \\<grep-mode-map>\\[compile-goto-error] in the grep output buffer, to go to the lines
-where grep found matches.
+or \\<grep-mode-map>\\[compile-goto-error] in the grep output buffer, to go to the lines where grep
+found matches.
 
 For doing a recursive `grep', see the `rgrep' command.  For running
 `grep' in a specific directory, see `lgrep'.
 
-This command uses a special history list for its COMMAND-ARGS, so you can
-easily repeat a grep command.
+This command uses a special history list for its COMMAND-ARGS, so you
+can easily repeat a grep command.
 
 A prefix argument says to default the argument based upon the current
 tag the cursor is over, substituting it into the last grep command
-in the grep command history (or into `grep-command'
-if that history list is empty).
+in the grep command history (or into `grep-command' if that history
+list is empty).
 
 \(fn COMMAND-ARGS)" t nil)
 
@@ -12693,8 +12767,8 @@ before it is executed.
 With two \\[universal-argument] prefixes, directly edit and run `grep-command'.
 
 Collect output in a buffer.  While grep runs asynchronously, you
-can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error]
-in the grep output buffer, to go to the lines where grep found matches.
+can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error] in the grep output buffer,
+to go to the lines where grep found matches.
 
 This command shares argument histories with \\[rgrep] and \\[grep].
 
@@ -12711,8 +12785,8 @@ before it is executed.
 With two \\[universal-argument] prefixes, directly edit and run `grep-find-command'.
 
 Collect output in a buffer.  While find runs asynchronously, you
-can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error]
-in the grep output buffer, to go to the lines where grep found matches.
+can use \\[next-error] (M-x next-error), or \\<grep-mode-map>\\[compile-goto-error] in the grep output buffer,
+to go to the lines where grep found matches.
 
 This command shares argument histories with \\[lgrep] and \\[grep-find].
 
@@ -13832,6 +13906,8 @@ of a holiday list.
 The optional LABEL is used to label the buffer created.
 
 \(fn Y1 Y2 &optional L LABEL)" t nil)
+
+(defalias 'holiday-list 'list-holidays)
 
 ;;;***
 
@@ -15348,6 +15424,11 @@ information on these modes.
 
 \(fn)" t nil)
 
+(autoload 'image-bookmark-jump "image-mode" "\
+Not documented
+
+\(fn BMK)" nil nil)
+
 ;;;***
 
 ;;;### (autoloads (imenu imenu-add-menubar-index imenu-add-to-menubar
@@ -15857,15 +15938,15 @@ The value is nil when the search still is in the initial buffer.")
 Function to call to get the next buffer to search.
 
 When this variable is set to a function that returns a buffer, then
-after typing another C-s or C-r at a failing search, the search goes
+after typing another \\[isearch-forward] or \\[isearch-backward] at a failing search, the search goes
 to the next buffer in the series and continues searching for the
 next occurrence.
 
 The first argument of this function is the current buffer where the
 search is currently searching.  It defines the base buffer relative to
 which this function should find the next buffer.  When the isearch
-direction is backward (when isearch-forward is nil), this function
-should return the previous buffer to search. If the second argument of
+direction is backward (when `isearch-forward' is nil), this function
+should return the previous buffer to search.  If the second argument of
 this function WRAP is non-nil, then it should return the first buffer
 in the series; and for the backward search, it should return the last
 buffer in the series.")
@@ -16009,14 +16090,14 @@ Optional arg BUFFER is ignored (for use in `format-alist').
 
 (autoload 'iso-iso2sgml "iso-cvt" "\
 Translate ISO 8859-1 characters in the region to SGML entities.
-The entities used are from \"ISO 8879:1986//ENTITIES Added Latin 1//EN\".
+Use entities from \"ISO 8879:1986//ENTITIES Added Latin 1//EN\".
 Optional arg BUFFER is ignored (for use in `format-alist').
 
 \(fn FROM TO &optional BUFFER)" t nil)
 
 (autoload 'iso-sgml2iso "iso-cvt" "\
 Translate SGML entities in the region to ISO 8859-1 characters.
-The entities used are from \"ISO 8879:1986//ENTITIES Added Latin 1//EN\".
+Use entities from \"ISO 8879:1986//ENTITIES Added Latin 1//EN\".
 Optional arg BUFFER is ignored (for use in `format-alist').
 
 \(fn FROM TO &optional BUFFER)" t nil)
@@ -16177,6 +16258,7 @@ for skipping in latex mode.")
 Same format as `ispell-skip-region-alist'
 Note - substrings of other matches must come last
  (e.g. \"<[tT][tT]/\" and \"<[^ \\t\\n>]\").")
+(put 'ispell-local-pdict 'safe-local-variable 'stringp)
  (define-key esc-map "$" 'ispell-word)
 
 (autoload 'ispell-word "ispell" "\
@@ -17098,17 +17180,22 @@ except that FILTER is not optional.
 Setup a buffer to enter a log message.
 \\<log-edit-mode-map>The buffer will be put in `log-edit-mode'.
 If SETUP is non-nil, the buffer is then erased and `log-edit-hook' is run.
-Mark and point will be set around the entire contents of the
-buffer so that it is easy to kill the contents of the buffer with \\[kill-region].
+Mark and point will be set around the entire contents of the buffer so
+that it is easy to kill the contents of the buffer with \\[kill-region].
 Once you're done editing the message, pressing \\[log-edit-done] will call
 `log-edit-done' which will end up calling CALLBACK to do the actual commit.
-LISTFUN if non-nil is a function of no arguments returning the list of files
-  that are concerned by the current operation (using relative names).
-If BUFFER is non-nil `log-edit' will jump to that buffer, use it to edit the
-  log message and go back to the current buffer when done.  Otherwise, it
-  uses the current buffer.
 
-\(fn CALLBACK &optional SETUP LISTFUN BUFFER &rest IGNORE)" nil nil)
+PARAMS if non-nil is an alist.  Possible keys and associated values:
+ `log-edit-listfun' -- function taking no arguments that returns the list of
+ files that are concerned by the current operation (using relative names);
+ `log-edit-diff-function' -- function taking no arguments that
+ displays a diff of the files concerned by the current operation.
+
+If BUFFER is non-nil `log-edit' will jump to that buffer, use it to edit the
+log message and go back to the current buffer when done.  Otherwise, it
+uses the current buffer.
+
+\(fn CALLBACK &optional SETUP PARAMS BUFFER &rest IGNORE)" nil nil)
 
 ;;;***
 
@@ -17151,7 +17238,7 @@ are indicated with a symbol.
 
 (defvar lpr-windows-system (memq system-type '(emx win32 w32 mswindows ms-dos windows-nt)))
 
-(defvar lpr-lp-system (memq system-type '(usg-unix-v dgux hpux irix)))
+(defvar lpr-lp-system (memq system-type '(usg-unix-v hpux irix)))
 
 (defvar printer-name (and lpr-windows-system "PRN") "\
 *The name of a local printer to which data is sent for printing.
@@ -19388,6 +19475,95 @@ closing requests for requests that are used in matched pairs.
 
 ;;;***
 
+;;;### (autoloads (nxml-glyph-display-string) "nxml-glyph" "nxml/nxml-glyph.el"
+;;;;;;  (18308 19808))
+;;; Generated autoloads from nxml/nxml-glyph.el
+
+(autoload 'nxml-glyph-display-string "nxml-glyph" "\
+Return a string that can display a glyph for Unicode code-point N.
+FACE gives the face that will be used for displaying the string.
+Return nil if the face cannot display a glyph for N.
+
+\(fn N FACE)" nil nil)
+
+;;;***
+
+;;;### (autoloads (nxml-mode) "nxml-mode" "nxml/nxml-mode.el" (18313
+;;;;;;  19474))
+;;; Generated autoloads from nxml/nxml-mode.el
+
+(autoload 'nxml-mode "nxml-mode" "\
+Major mode for editing XML.
+
+Syntax highlighting is performed unless the variable
+`nxml-syntax-highlight-flag' is nil.
+
+\\[nxml-finish-element] finishes the current element by inserting an end-tag.
+C-c C-i closes a start-tag with `>' and then inserts a balancing end-tag
+leaving point between the start-tag and end-tag. 
+\\[nxml-balanced-close-start-tag-block] is similar but for block rather than inline elements:
+the start-tag, point, and end-tag are all left on separate lines.
+If `nxml-slash-auto-complete-flag' is non-nil, then inserting a `</'
+automatically inserts the rest of the end-tag.
+
+\\[nxml-complete] performs completion on the symbol preceding point.
+
+\\[nxml-dynamic-markup-word] uses the contents of the current buffer
+to choose a tag to put around the word preceding point.
+
+Sections of the document can be displayed in outline form.  The
+variable `nxml-section-element-name-regexp' controls when an element
+is recognized as a section.  The same key sequences that change
+visibility in outline mode are used except that they start with C-c C-o
+instead of C-c.
+
+Validation is provided by the related minor-mode `rng-validate-mode'.
+This also makes completion schema- and context- sensitive.  Element
+names, attribute names, attribute values and namespace URIs can all be
+completed. By default, `rng-validate-mode' is automatically enabled. You
+can toggle it using \\[rng-validate-mode] or change the default by
+customizing `rng-nxml-auto-validate-flag'.
+
+\\[indent-for-tab-command] indents the current line appropriately.
+This can be customized using the variable `nxml-child-indent'
+and the variable `nxml-attribute-indent'.
+
+\\[nxml-insert-named-char] inserts a character reference using
+the character's name (by default, the Unicode name). \\[universal-argument] \\[nxml-insert-named-char]
+inserts the character directly.
+
+The Emacs commands that normally operate on balanced expressions will
+operate on XML markup items.  Thus \\[forward-sexp] will move forward
+across one markup item; \\[backward-sexp] will move backward across
+one markup item; \\[kill-sexp] will kill the following markup item;
+\\[mark-sexp] will mark the following markup item.  By default, each
+tag each treated as a single markup item; to make the complete element
+be treated as a single markup item, set the variable
+`nxml-sexp-element-flag' to t.  For more details, see the function
+`nxml-forward-balanced-item'.
+
+\\[nxml-backward-up-element] and \\[nxml-down-element] move up and down the element structure.
+
+Many aspects this mode can be customized using
+\\[customize-group] nxml RET.
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads (nxml-enable-unicode-char-name-sets) "nxml-uchnm"
+;;;;;;  "nxml/nxml-uchnm.el" (18312 40673))
+;;; Generated autoloads from nxml/nxml-uchnm.el
+
+(autoload 'nxml-enable-unicode-char-name-sets "nxml-uchnm" "\
+Enable the use of Unicode standard names for characters.
+The Unicode blocks for which names are enabled is controlled by
+the variable `nxml-enabled-unicode-blocks'.
+
+\(fn)" t nil)
+
+;;;***
+
 ;;;### (autoloads (octave-help) "octave-hlp" "progmodes/octave-hlp.el"
 ;;;;;;  (18177 873))
 ;;; Generated autoloads from progmodes/octave-hlp.el
@@ -20286,16 +20462,6 @@ but before calling PC Selection mode):
 
 \(fn &optional ARG)" t nil)
 
-(defvar pc-selection-mode nil "\
-Toggle PC Selection mode.
-Change mark behavior to emulate Motif, MAC or MS-Windows cut and paste style,
-and cursor movement commands.
-This mode enables Delete Selection mode and Transient Mark mode.
-Setting this variable directly does not take effect;
-you must modify it using \\[customize] or \\[pc-selection-mode].")
-
-(custom-autoload 'pc-selection-mode "pc-select" nil)
-
 ;;;***
 
 ;;;### (autoloads (pcomplete/cvs) "pcmpl-cvs" "pcmpl-cvs.el" (18177
@@ -20569,6 +20735,11 @@ The exact behavior is determined also by `cvs-dired-use-hook'." (when (stringp d
 ;;;;;;  (18177 873))
 ;;; Generated autoloads from progmodes/perl-mode.el
 (put 'perl-indent-level 'safe-local-variable 'integerp)
+(put 'perl-continued-statement-offset 'safe-local-variable 'integerp)
+(put 'perl-continued-brace-offset 'safe-local-variable 'integerp)
+(put 'perl-brace-offset 'safe-local-variable 'integerp)
+(put 'perl-brace-imaginary-offset 'safe-local-variable 'integerp)
+(put 'perl-label-offset 'safe-local-variable 'integerp)
 
 (autoload 'perl-mode "perl-mode" "\
 Major mode for editing Perl code.
@@ -22736,7 +22907,6 @@ comments, including the first comment line, are visible), or to make the
 first comment line visible (if point is in a comment).
 
 \(fn &optional ARG)" t nil)
- (define-key esc-map "\C-l" 'reposition-window)
 
 ;;;***
 
@@ -24812,6 +24982,12 @@ Minor mode to simplify editing output from the diff3 program.
 
 \(fn &optional ARG)" t nil)
 
+(autoload 'smerge-start-session "smerge-mode" "\
+Turn on `smerge-mode' and move point to first conflict marker.
+If no conflict maker is found, turn off `smerge-mode'.
+
+\(fn)" nil nil)
+
 ;;;***
 
 ;;;### (autoloads (smiley-buffer smiley-region) "smiley" "gnus/smiley.el"
@@ -25203,9 +25379,9 @@ From a program takes two point or marker arguments, BEG and END.
 (autoload 'spam-initialize "spam" "\
 Install the spam.el hooks and do other initialization.
 When SYMBOLS is given, set those variables to t.  This is so you
-can call spam-initialize before you set spam-use-* variables on
+can call `spam-initialize' before you set spam-use-* variables on
 explicitly, and matters only if you need the extra headers
-installed through spam-necessary-extra-headers.
+installed through `spam-necessary-extra-headers'.
 
 \(fn &rest SYMBOLS)" t nil)
 
@@ -27624,6 +27800,7 @@ If DATE is malformed, return a time value of zeros.
 ;;;;;;  "time-stamp.el" (18177 876))
 ;;; Generated autoloads from time-stamp.el
 (put 'time-stamp-format 'safe-local-variable 'stringp)
+(put 'time-stamp-time-zone 'safe-local-variable 'string-or-null-p)
 (put 'time-stamp-line-limit 'safe-local-variable 'integerp)
 (put 'time-stamp-start 'safe-local-variable 'stringp)
 (put 'time-stamp-end 'safe-local-variable 'stringp)
@@ -28809,6 +28986,13 @@ Use URL to handle URL-like file names.
 
 \(fn &optional ARG)" t nil)
 
+(autoload 'url-file-handler "url-handlers" "\
+Function called from the `file-name-handler-alist' routines.
+OPERATION is what needs to be done (`file-exists-p', etc).  ARGS are
+the arguments that would have been passed to OPERATION.
+
+\(fn OPERATION &rest ARGS)" nil nil)
+
 (autoload 'url-copy-file "url-handlers" "\
 Copy URL to NEWNAME.  Both args must be strings.
 Signals a `file-already-exists' error if file NEWNAME already exists,
@@ -29364,7 +29548,8 @@ merge in the changes into your working copy.
 \(fn VERBOSE)" t nil)
 
 (autoload 'vc-register "vc" "\
-Register the current file into a version control system.
+Register into a version control system.
+If FNAME is given register that file, otherwise register the current file.
 With prefix argument SET-REVISION, allow user to specify initial revision
 level.  If COMMENT is present, use that as an initial comment.
 
@@ -29375,7 +29560,7 @@ directory are already registered under that backend) will be used to
 register the file.  If no backend declares itself responsible, the
 first backend that could register the file is used.
 
-\(fn &optional SET-REVISION COMMENT)" t nil)
+\(fn &optional FNAME SET-REVISION COMMENT)" t nil)
 
 (autoload 'vc-version-diff "vc" "\
 Report diffs between revisions of the fileset in the repository history.
@@ -29748,6 +29933,142 @@ Key bindings:
 -------------
 
 \\{vera-mode-map}
+
+\(fn)" t nil)
+
+;;;***
+
+;;;### (autoloads (verilog-mode) "verilog-mode" "progmodes/verilog-mode.el"
+;;;;;;  (18307 57872))
+;;; Generated autoloads from progmodes/verilog-mode.el
+
+(autoload 'verilog-mode "verilog-mode" "\
+Major mode for editing Verilog code.
+\\<verilog-mode-map>
+See \\[describe-function] verilog-auto (\\[verilog-auto]) for details on how
+AUTOs can improve coding efficiency.
+
+Use \\[verilog-faq] for a pointer to frequently asked questions.
+
+NEWLINE, TAB indents for Verilog code.
+Delete converts tabs to spaces as it moves back.
+
+Supports highlighting.
+
+Turning on Verilog mode calls the value of the variable `verilog-mode-hook'
+with no args, if that value is non-nil.
+
+Variables controlling indentation/edit style:
+
+ variable `verilog-indent-level'      (default 3)
+   Indentation of Verilog statements with respect to containing block.
+ `verilog-indent-level-module'        (default 3)
+   Absolute indentation of Module level Verilog statements.
+   Set to 0 to get initial and always statements lined up
+   on the left side of your screen.
+ `verilog-indent-level-declaration'   (default 3)
+   Indentation of declarations with respect to containing block.
+   Set to 0 to get them list right under containing block.
+ `verilog-indent-level-behavioral'    (default 3)
+   Indentation of first begin in a task or function block
+   Set to 0 to get such code to lined up underneath the task or function keyword
+ `verilog-indent-level-directive'     (default 1)
+   Indentation of `ifdef/`endif blocks
+ `verilog-cexp-indent'              (default 1)
+   Indentation of Verilog statements broken across lines i.e.:
+      if (a)
+        begin
+ `verilog-case-indent'              (default 2)
+   Indentation for case statements.
+ `verilog-auto-newline'             (default nil)
+   Non-nil means automatically newline after semicolons and the punctuation
+   mark after an end.
+ `verilog-auto-indent-on-newline'   (default t)
+   Non-nil means automatically indent line after newline
+ `verilog-tab-always-indent'        (default t)
+   Non-nil means TAB in Verilog mode should always reindent the current line,
+   regardless of where in the line point is when the TAB command is used.
+ `verilog-indent-begin-after-if'    (default t)
+   Non-nil means to indent begin statements following a preceding
+   if, else, while, for and repeat statements, if any.  otherwise,
+   the begin is lined up with the preceding token.  If t, you get:
+      if (a)
+         begin // amount of indent based on `verilog-cexp-indent'
+   otherwise you get:
+      if (a)
+      begin
+ `verilog-auto-endcomments'         (default t)
+   Non-nil means a comment /* ... */ is set after the ends which ends
+   cases, tasks, functions and modules.
+   The type and name of the object will be set between the braces.
+ `verilog-minimum-comment-distance' (default 10)
+   Minimum distance (in lines) between begin and end required before a comment
+   will be inserted.  Setting this variable to zero results in every
+   end acquiring a comment; the default avoids too many redundant
+   comments in tight quarters.
+ `verilog-auto-lineup'              (default `(all))
+   List of contexts where auto lineup of code should be done.
+
+Variables controlling other actions:
+
+ `verilog-linter'                   (default surelint)
+   Unix program to call to run the lint checker.  This is the default
+   command for \\[compile-command] and \\[verilog-auto-save-compile].
+
+See \\[customize] for the complete list of variables.
+
+AUTO expansion functions are, in part:
+
+    \\[verilog-auto]  Expand AUTO statements.
+    \\[verilog-delete-auto]  Remove the AUTOs.
+    \\[verilog-inject-auto]  Insert AUTOs for the first time.
+
+Some other functions are:
+
+    \\[verilog-complete-word]    Complete word with appropriate possibilities.
+    \\[verilog-mark-defun]  Mark function.
+    \\[verilog-beg-of-defun]  Move to beginning of current function.
+    \\[verilog-end-of-defun]  Move to end of current function.
+    \\[verilog-label-be]  Label matching begin ... end, fork ... join, etc statements.
+
+    \\[verilog-comment-region]  Put marked area in a comment.
+    \\[verilog-uncomment-region]  Uncomment an area commented with \\[verilog-comment-region].
+    \\[verilog-insert-block]  Insert begin ... end;.
+    \\[verilog-star-comment]    Insert /* ... */.
+
+    \\[verilog-sk-always]  Insert a always @(AS) begin .. end block.
+    \\[verilog-sk-begin]  Insert a begin .. end block.
+    \\[verilog-sk-case]  Insert a case block, prompting for details.
+    \\[verilog-sk-for]  Insert a for (...) begin .. end block, prompting for details.
+    \\[verilog-sk-generate]  Insert a generate .. endgenerate block.
+    \\[verilog-sk-header]  Insert a nice header block at the top of file.
+    \\[verilog-sk-initial]  Insert an initial begin .. end block.
+    \\[verilog-sk-fork]  Insert a fork begin .. end .. join block.
+    \\[verilog-sk-module]  Insert a module .. (/*AUTOARG*/);.. endmodule block.
+    \\[verilog-sk-primitive]  Insert a primitive .. (.. );.. endprimitive block.
+    \\[verilog-sk-repeat]  Insert a repeat (..) begin .. end block.
+    \\[verilog-sk-specify]  Insert a specify .. endspecify block.
+    \\[verilog-sk-task]  Insert a task .. begin .. end endtask block.
+    \\[verilog-sk-while]  Insert a while (...) begin .. end block, prompting for details.
+    \\[verilog-sk-casex]  Insert a casex (...) item: begin.. end endcase block, prompting for details.
+    \\[verilog-sk-casez]  Insert a casez (...) item: begin.. end endcase block, prompting for details.
+    \\[verilog-sk-if]  Insert an if (..) begin .. end block.
+    \\[verilog-sk-else-if]  Insert an else if (..) begin .. end block.
+    \\[verilog-sk-comment]  Insert a comment block.
+    \\[verilog-sk-assign]  Insert an assign .. = ..; statement.
+    \\[verilog-sk-function]  Insert a function .. begin .. end endfunction block.
+    \\[verilog-sk-input]  Insert an input declaration, prompting for details.
+    \\[verilog-sk-output]  Insert an output declaration, prompting for details.
+    \\[verilog-sk-state-machine]  Insert a state machine definition, prompting for details.
+    \\[verilog-sk-inout]  Insert an inout declaration, prompting for details.
+    \\[verilog-sk-wire]  Insert a wire declaration, prompting for details.
+    \\[verilog-sk-reg]  Insert a register declaration, prompting for details.
+    \\[verilog-sk-define-signal]  Define signal under point as a register at the top of the module.
+
+All key bindings can be seen in a Verilog-buffer with \\[describe-bindings].
+Key bindings specific to `verilog-mode-map' are:
+
+\\{verilog-mode-map}
 
 \(fn)" t nil)
 
@@ -30821,6 +31142,11 @@ and off otherwise.
 ;;;;;;  whitespace-toggle-leading-check) "whitespace" "whitespace.el"
 ;;;;;;  (18231 31064))
 ;;; Generated autoloads from whitespace.el
+(put 'whitespace-check-buffer-leading 'safe-local-variable 'booleanp)
+(put 'whitespace-check-buffer-trailing 'safe-local-variable 'booleanp)
+(put 'whitespace-check-buffer-indent 'safe-local-variable 'booleanp)
+(put 'whitespace-check-buffer-spacetab 'safe-local-variable 'booleanp)
+(put 'whitespace-check-buffer-ateol 'safe-local-variable 'booleanp)
 
 (autoload 'whitespace-toggle-leading-check "whitespace" "\
 Toggle the check for leading space in the local buffer.
@@ -31371,7 +31697,7 @@ Zone out, completely.
 ;;;;;;  "gnus/gnus-uu.el" "gnus/gnus-vm.el" "gnus/hex-util.el" "gnus/hmac-def.el"
 ;;;;;;  "gnus/hmac-md5.el" "gnus/ietf-drums.el" "gnus/imap.el" "gnus/legacy-gnus-agent.el"
 ;;;;;;  "gnus/mail-parse.el" "gnus/mail-prsvr.el" "gnus/mail-source.el"
-;;;;;;  "gnus/mailcap.el" "gnus/md4.el" "gnus/messcompat.el" "gnus/mm-bodies.el"
+;;;;;;  "gnus/mailcap.el" "gnus/messcompat.el" "gnus/mm-bodies.el"
 ;;;;;;  "gnus/mm-decode.el" "gnus/mm-encode.el" "gnus/mm-util.el"
 ;;;;;;  "gnus/mm-view.el" "gnus/mml-sec.el" "gnus/mml-smime.el" "gnus/mml.el"
 ;;;;;;  "gnus/nnagent.el" "gnus/nnbabyl.el" "gnus/nndb.el" "gnus/nndir.el"
@@ -31380,11 +31706,9 @@ Zone out, completely.
 ;;;;;;  "gnus/nnmail.el" "gnus/nnmaildir.el" "gnus/nnmbox.el" "gnus/nnmh.el"
 ;;;;;;  "gnus/nnnil.el" "gnus/nnoo.el" "gnus/nnrss.el" "gnus/nnslashdot.el"
 ;;;;;;  "gnus/nnspool.el" "gnus/nntp.el" "gnus/nnultimate.el" "gnus/nnvirtual.el"
-;;;;;;  "gnus/nnwarchive.el" "gnus/nnweb.el" "gnus/nnwfm.el" "gnus/ntlm.el"
-;;;;;;  "gnus/password.el" "gnus/pop3.el" "gnus/rfc1843.el" "gnus/rfc2045.el"
-;;;;;;  "gnus/rfc2047.el" "gnus/rfc2104.el" "gnus/rfc2231.el" "gnus/sasl-cram.el"
-;;;;;;  "gnus/sasl-digest.el" "gnus/sasl-ntlm.el" "gnus/sasl.el"
-;;;;;;  "gnus/sieve-manage.el" "gnus/smime-ldap.el" "gnus/smime.el"
+;;;;;;  "gnus/nnwarchive.el" "gnus/nnweb.el" "gnus/nnwfm.el" "gnus/pop3.el"
+;;;;;;  "gnus/rfc1843.el" "gnus/rfc2045.el" "gnus/rfc2047.el" "gnus/rfc2104.el"
+;;;;;;  "gnus/rfc2231.el" "gnus/sieve-manage.el" "gnus/smime.el"
 ;;;;;;  "gnus/spam-stat.el" "gnus/spam-wash.el" "gnus/starttls.el"
 ;;;;;;  "gnus/utf7.el" "gnus/webmail.el" "help.el" "indent.el" "international/characters.el"
 ;;;;;;  "international/charprop.el" "international/cp51932.el" "international/eucjp-ms.el"

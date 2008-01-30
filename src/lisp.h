@@ -1413,7 +1413,7 @@ typedef unsigned char UCHAR;
    All callers should assure that at least this size of memory is
    allocated at the place pointed by the second argument.
 
-   Thers are 6 modifiers, each consumes 2 chars.
+   There are 6 modifiers, each consumes 2 chars.
    The octal form of a character code consumes
    (1 + CHARACTERBITS / 3 + 1) chars (including backslash at the head).
    We need one more byte for string terminator `\0'.  */

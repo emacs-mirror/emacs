@@ -157,7 +157,7 @@ This takes effect when first loading the `sgml-mode' library.")
   "Syntax table used in SGML mode.  See also `sgml-specials'.")
 
 (defconst sgml-tag-syntax-table
-  (let ((table (sgml-make-syntax-table '(?- ?\" ?\'))))
+  (let ((table (sgml-make-syntax-table sgml-specials)))
     (dolist (char '(?\( ?\) ?\{ ?\} ?\[ ?\] ?$ ?% ?& ?* ?+ ?/))
       (modify-syntax-entry char "." table))
     table)

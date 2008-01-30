@@ -160,14 +160,14 @@ Lisp_Object
 call_process_cleanup (fdpid)
      Lisp_Object fdpid;
 {
-#if defined (MSDOS) || defined (MAC_OS8)
+#if defined (MSDOS)
   /* for MSDOS fdpid is really (fd . tempfile)  */
   register Lisp_Object file;
   file = Fcdr (fdpid);
   emacs_close (XFASTINT (Fcar (fdpid)));
   if (strcmp (SDATA (file), NULL_DEVICE) != 0)
     unlink (SDATA (file));
-#else /* not MSDOS and not MAC_OS8 */
+#else /* not MSDOS */
   register int pid = XFASTINT (Fcdr (fdpid));
 
   if (call_process_exited)
@@ -242,10 +242,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   Lisp_Object error_file;
 #ifdef MSDOS	/* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
   char *outf, *tempfile;
-  int outfilefd;
-#endif
-#ifdef MAC_OS8
-  char *tempfile;
   int outfilefd;
 #endif
 #if 0
@@ -471,39 +467,17 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   fd[1] = outfilefd;
 #endif /* MSDOS */
 
-#ifdef MAC_OS8
-  /* Since we don't have pipes on the Mac, create a temporary file to
-     hold the output of the subprocess.  */
-  tempfile = (char *) alloca (SBYTES (Vtemp_file_name_pattern) + 1);
-  bcopy (SDATA (Vtemp_file_name_pattern), tempfile,
-	 SBYTES (Vtemp_file_name_pattern) + 1);
-
-  mktemp (tempfile);
-
-  outfilefd = creat (tempfile, S_IREAD | S_IWRITE);
-  if (outfilefd < 0)
-    {
-      close (filefd);
-      report_file_error ("Opening process output file",
-			 Fcons (build_string (tempfile), Qnil));
-    }
-  fd[0] = filefd;
-  fd[1] = outfilefd;
-#endif /* MAC_OS8 */
-
   if (INTEGERP (buffer))
     fd[1] = emacs_open (NULL_DEVICE, O_WRONLY, 0), fd[0] = -1;
   else
     {
 #ifndef MSDOS
-#ifndef MAC_OS8
       errno = 0;
       if (pipe (fd) == -1)
 	{
 	  emacs_close (filefd);
 	  report_file_error ("Creating process pipe", Qnil);
 	}
-#endif
 #endif
 #if 0
       /* Replaced by close_process_descs */
@@ -562,52 +536,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	report_file_error ("Cannot redirect stderr", Fcons (error_file, Qnil));
       }
 
-#ifdef MAC_OS8
-    {
-      /* Call run_mac_command in sysdep.c here directly instead of doing
-         a child_setup as for MSDOS and other platforms.  Note that this
-         code does not handle passing the environment to the synchronous
-         Mac subprocess.  */
-      char *infn, *outfn, *errfn, *currdn;
-
-      /* close these files so subprocess can write to them */
-      close (outfilefd);
-      if (fd_error != outfilefd)
-        close (fd_error);
-      fd1 = -1; /* No harm in closing that one! */
-
-      infn = SDATA (infile);
-      outfn = tempfile;
-      if (NILP (error_file))
-        errfn = NULL_DEVICE;
-      else if (EQ (Qt, error_file))
-        errfn = outfn;
-      else
-        errfn = SDATA (error_file);
-      currdn = SDATA (current_dir);
-      pid = run_mac_command (new_argv, currdn, infn, outfn, errfn);
-
-      /* Record that the synchronous process exited and note its
-         termination status.  */
-      synch_process_alive = 0;
-      synch_process_retcode = pid;
-      if (synch_process_retcode < 0)  /* means it couldn't be exec'ed */
-	{
-	  synchronize_system_messages_locale ();
-	  synch_process_death = strerror (errno);
-	}
-
-      /* Since CRLF is converted to LF within `decode_coding', we can
-         always open a file with binary mode.  */
-      fd[0] = open (tempfile, O_BINARY);
-      if (fd[0] < 0)
-	{
-	  unlink (tempfile);
-	  close (filefd);
-	  report_file_error ("Cannot re-open temporary file", Qnil);
-	}
-    }
-#else /* not MAC_OS8 */
 #ifdef MSDOS /* MW, July 1993 */
     /* Note that on MSDOS `child_setup' actually returns the child process
        exit status, not its PID, so we assign it to `synch_process_retcode'
@@ -670,7 +598,6 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
     if (fd_error >= 0)
       emacs_close (fd_error);
 #endif /* not MSDOS */
-#endif /* not MAC_OS8 */
 
     environ = save_environ;
 
@@ -704,14 +631,14 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   /* Enable sending signal if user quits below.  */
   call_process_exited = 0;
 
-#if defined(MSDOS) || defined(MAC_OS8)
+#if defined(MSDOS)
   /* MSDOS needs different cleanup information.  */
   record_unwind_protect (call_process_cleanup,
 			 Fcons (make_number (fd[0]), build_string (tempfile)));
 #else
   record_unwind_protect (call_process_cleanup,
 			 Fcons (make_number (fd[0]), make_number (pid)));
-#endif /* not MSDOS and not MAC_OS8 */
+#endif /* not MSDOS */
 
 
   if (BUFFERP (buffer))

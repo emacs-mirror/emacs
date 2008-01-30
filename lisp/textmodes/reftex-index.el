@@ -1243,8 +1243,9 @@ If the buffer is non-empty, delete the old header first."
           (beginning-of-line 2))
       (while (looking-at "^[ \t]*$")
           (beginning-of-line 2))          
-      (cond ((fboundp 'zmacs-activate-region) (zmacs-activate-region))
-            ((boundp 'make-active) (setq mark-active t)))
+      (if (featurep 'xemacs) 
+	  (zmacs-activate-region)
+	(setq mark-active t))
       (if (yes-or-no-p "Delete and rebuild header? ")
           (delete-region (point-min) (point))))
 
@@ -1495,8 +1496,9 @@ index the new part without having to go over the unchanged parts again."
       (unwind-protect
           (progn
             ;; Hide the region highlighting
-            (cond ((fboundp 'zmacs-deactivate-region) (zmacs-deactivate-region))
-                  ((fboundp 'deactivate-mark) (deactivate-mark)))
+            (if (featurep 'xemacs)
+		(zmacs-deactivate-region)
+	      (deactivate-mark))
             (delete-other-windows)
             (reftex-index-visit-phrases-buffer)
             (reftex-index-all-phrases))

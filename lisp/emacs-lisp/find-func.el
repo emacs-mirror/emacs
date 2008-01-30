@@ -200,11 +200,17 @@ TYPE should be nil to find a function, or `defvar' to find a variable."
    (let* ((path (cons (or find-function-source-path load-path)
 		      (find-library-suffixes)))
 	  (def (if (eq (function-called-at-point) 'require)
-		   (save-excursion
-		     (backward-up-list)
-		     (forward-char)
-		     (backward-sexp -2)
-		     (thing-at-point 'symbol))
+		   ;; `function-called-at-point' may return 'require
+		   ;; with `point' anywhere on this line.  So wrap the
+		   ;; `save-excursion' below in a `condition-case' to
+		   ;; avoid reporting a scan-error here.
+		   (condition-case nil
+		       (save-excursion
+			 (backward-up-list)
+			 (forward-char)
+			 (forward-sexp 2)
+			 (thing-at-point 'symbol))
+		     (error nil))
 		 (thing-at-point 'symbol))))
      (when def
        (setq def (and (locate-file-completion def path 'test) def)))
@@ -233,8 +239,12 @@ The search is done in the source for library LIBRARY."
     (setq symbol (get symbol 'definition-name)))
   (if (string-match "\\`src/\\(.*\\.c\\)\\'" library)
       (find-function-C-source symbol (match-string 1 library) type)
-    (if (string-match "\\.el\\(c\\)\\'" library)
-	(setq library (substring library 0 (match-beginning 1))))
+    (when (string-match "\\.el\\(c\\)\\'" library)
+      (setq library (substring library 0 (match-beginning 1))))
+    ;; Strip extension from .emacs.el to make sure symbol is searched in
+    ;; .emacs too.
+    (when (string-match "\\.emacs\\(.el\\)" library)
+      (setq library (substring library 0 (match-beginning 1))))
     (let* ((filename (find-library-name library))
 	   (regexp-symbol (cdr (assq type find-function-regexp-alist))))
       (with-current-buffer (find-file-noselect filename)

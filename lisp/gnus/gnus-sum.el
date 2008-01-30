@@ -4797,11 +4797,11 @@ using some other form will lead to serious barfage."
    (gnus-thread-header h1) (gnus-thread-header h2)))
 
 (defsubst gnus-article-sort-by-random (h1 h2)
-  "Sort articles by article number."
+  "Sort articles randomly."
   (zerop (random 2)))
 
 (defun gnus-thread-sort-by-random (h1 h2)
-  "Sort threads by root article number."
+  "Sort threads randomly."
   (gnus-article-sort-by-random
    (gnus-thread-header h1) (gnus-thread-header h2)))
 

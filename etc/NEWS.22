@@ -112,6 +112,13 @@ This can be used to add menu entries for backend specific functions.
 
 *** VC has some support for Git.
 
+* Incompatible Lisp Changes in Emacs 22.2
+
+** shell.el no longer defines the aliases `dirtrack-toggle' and
+`dirtrack-mode' for `shell-dirtrack-mode'.  These names were removed
+because they clash with commands provided by dirtrack.el.  Use
+`shell-dirtrack-mode' instead.
+
 * Lisp Changes in Emacs 22.2.
 
 ** Frame-local variables are deprecated and are slated for removal.

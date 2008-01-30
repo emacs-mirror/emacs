@@ -1,6 +1,6 @@
 ;;; nxml-mode.el --- a new XML mode
 
-;; Copyright (C) 2003, 2004, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML
@@ -24,8 +24,6 @@
 
 ;;; Commentary:
 
-;; To use this include rng-auto.el in your .emacs.
-
 ;; See nxml-rap.el for description of parsing strategy.
 
 ;; The font locking here is independent of font-lock.el.  We want to
@@ -44,6 +42,9 @@
 (require 'nxml-util)
 (require 'nxml-rap)
 (require 'nxml-outln)
+
+(declare-function rng-nxml-mode-init "rng-nxml")
+(declare-function nxml-enable-unicode-char-name-sets "nxml-uchnm")
 
 ;;; Customization
 
@@ -479,9 +480,9 @@ instead of C-c.
 Validation is provided by the related minor-mode `rng-validate-mode'.
 This also makes completion schema- and context- sensitive.  Element
 names, attribute names, attribute values and namespace URIs can all be
-completed. By default, `rng-validate-mode' is automatically enabled by
-`rng-nxml-mode-init' which is normally added to `nxml-mode-hook'. You
-can toggle it using \\[rng-validate-mode].
+completed. By default, `rng-validate-mode' is automatically enabled. You
+can toggle it using \\[rng-validate-mode] or change the default by
+customizing `rng-nxml-auto-validate-flag'.
 
 \\[indent-for-tab-command] indents the current line appropriately.
 This can be customized using the variable `nxml-child-indent'
@@ -509,6 +510,7 @@ Many aspects this mode can be customized using
   (kill-all-local-variables)
   (setq major-mode 'nxml-mode)
   (setq mode-name "nXML")
+  (set (make-local-variable 'mode-line-process) '((nxml-degraded "/degraded")))
   ;; We'll determine the fill prefix ourselves
   (make-local-variable 'adaptive-fill-mode)
   (setq adaptive-fill-mode nil)
@@ -555,6 +557,8 @@ Many aspects this mode can be customized using
       (setq buffer-file-coding-system nxml-default-buffer-file-coding-system))
     (when nxml-auto-insert-xml-declaration-flag
       (nxml-insert-xml-declaration)))
+  (rng-nxml-mode-init)
+  (nxml-enable-unicode-char-name-sets)
   (run-hooks 'nxml-mode-hook))
 
 (defun nxml-degrade (context err)
@@ -570,8 +574,7 @@ Many aspects this mode can be customized using
       (nxml-with-unmodifying-text-property-changes
 	(nxml-clear-face (point-min) (point-max))
 	(nxml-set-fontified (point-min) (point-max))
-	(nxml-clear-inside (point-min) (point-max)))
-      (setq mode-name "nXML/degraded"))))
+	(nxml-clear-inside (point-min) (point-max))))))
 
 ;;; Change management
 
@@ -2433,7 +2436,7 @@ and attempts to find another possible way to do the markup."
 
 ;;; Character names
 
-(defvar nxml-char-name-ignore-case nil)
+(defvar nxml-char-name-ignore-case t)
 
 (defvar nxml-char-name-alist nil
   "Alist of character names.

@@ -49,15 +49,6 @@ extern void srandom P_ ((unsigned int));
 
 #include "blockinput.h"
 
-#ifdef MAC_OS8
-#include <sys/param.h>
-
-#ifndef subprocesses
-/* Nonzero means delete a process right away if it exits (process.c).  */
-static int delete_exited_processes;
-#endif
-#endif  /* MAC_OS8 */
-
 #ifdef WINDOWSNT
 #define read sys_read
 #define write sys_write
@@ -151,12 +142,12 @@ extern int errno;
 #undef TIOCSWINSZ
 #endif
 
-#if defined (USG) || defined (DGUX)
+#if defined (USG)
 #include <sys/utsname.h>
 #ifndef MEMORY_IN_STRING_H
 #include <memory.h>
 #endif
-#if defined (TIOCGWINSZ) || defined (ISC4_0)
+#if defined (TIOCGWINSZ)
 #ifdef NEED_SIOCTL
 #include <sys/sioctl.h>
 #endif
@@ -164,8 +155,8 @@ extern int errno;
 #include <sys/stream.h>
 #include <sys/ptem.h>
 #endif
-#endif /* TIOCGWINSZ or ISC4_0 */
-#endif /* USG or DGUX */
+#endif /* TIOCGWINSZ */
+#endif /* USG */
 
 extern int quit_char;
 
@@ -345,17 +336,6 @@ discard_tty_input ()
 	    &buf.main, 0, 0, terminator_mask, 0, 0);
   queue_kbd_input ();
 #else /* not VMS */
-#ifdef APOLLO
-  {
-    struct tty_display_info *tty;
-    for (tty = tty_list; tty; tty = tty->next)
-      {
-        int zero = 0;
-        if (tty->input)
-          ioctl (fileno (tty->input), TIOCFLUSH, &zero);
-      }
-  }
-#else /* not Apollo */
 #ifdef MSDOS    /* Demacs 1.1.1 91/10/16 HIRANO Satoshi */
   while (dos_keyread () != -1)
     ;
@@ -372,7 +352,6 @@ discard_tty_input ()
       }
   }
 #endif /* not MSDOS */
-#endif /* not Apollo */
 #endif /* not VMS */
 #endif /* not WINDOWSNT */
 }
@@ -532,11 +511,6 @@ wait_for_termination (pid)
       else
 	sigpause (SIGEMPTYMASK);
 #else /* not BSD_SYSTEM, and not HPUX version >= 6 */
-#if defined (UNIPLUS)
-      if (0 > kill (pid, 0))
-	break;
-      wait (0);
-#else /* neither BSD_SYSTEM nor UNIPLUS: random sysV */
 #ifdef POSIX_SIGNALS    /* would this work for GNU/Linux as well? */
       sigblock (sigmask (SIGCHLD));
       errno = 0;
@@ -570,7 +544,6 @@ wait_for_termination (pid)
 #endif /* not WINDOWSNT */
 #endif /* not HAVE_SYSV_SIGPAUSE */
 #endif /* not POSIX_SIGNALS */
-#endif /* not UNIPLUS */
 #endif /* not BSD_SYSTEM, and not HPUX version >= 6 */
 #endif /* not VMS */
 #else /* not subprocesses */
@@ -727,12 +700,6 @@ child_setup_tty (out)
   if (interrupt_input)
     reset_sigio (0);
 #endif /* BSD4_1 */
-#ifdef RTU
-  {
-    int zero = 0;
-    ioctl (out, FIOASYNC, &zero);
-  }
-#endif /* RTU */
 #endif /* not DOS_NT */
 }
 #endif /* not VMS */
@@ -821,7 +788,6 @@ sys_suspend ()
 
 /* Fork a subshell.  */
 
-#ifndef MAC_OS8
 void
 sys_subshell ()
 {
@@ -957,7 +923,6 @@ sys_subshell ()
   synch_process_alive = 0;
 #endif /* !VMS */
 }
-#endif /* !MAC_OS8 */
 
 static void
 save_signal_handlers (saved_handlers)
@@ -1066,69 +1031,6 @@ unrequest_sigio (void)
 }
 
 #else /* no FASYNC */
-#ifdef STRIDE		/* Stride doesn't have FASYNC - use FIOASYNC */
-
-void
-request_sigio ()
-{
-  int on = 1;
-
-  if (noninteractive || read_socket_hook)
-    return;
-
-  /* XXX CURTTY() is bogus here. */
-  ioctl (fileno (CURTTY ()->input), FIOASYNC, &on);
-  interrupts_deferred = 0;
-}
-
-void
-unrequest_sigio ()
-{
-  int off = 0;
-
-  if (noninteractive || read_socket_hook)
-    return;
-
-  /* XXX CURTTY() is bogus here. */
-  ioctl (fileno (CURTTY ()->input), FIOASYNC, &off);
-  interrupts_deferred = 1;
-}
-
-#else /* not FASYNC, not STRIDE */
-
-#ifdef _CX_UX
-
-#include <termios.h>
-
-void
-request_sigio ()
-{
-  int on = 1;
-  sigset_t st;
-
-  if (noninteractive || read_socket_hook)
-    return;
-
-  sigemptyset (&st);
-  sigaddset (&st, SIGIO);
-  ioctl (0, FIOASYNC, &on);     /* XXX This fails for multiple ttys. */
-  interrupts_deferred = 0;
-  sigprocmask (SIG_UNBLOCK, &st, (sigset_t *)0);
-}
-
-void
-unrequest_sigio ()
-{
-  int off = 0;
-
-  if (noninteractive || read_socket_hook)
-    return;
-
-  ioctl (0, FIOASYNC, &off);  /* XXX This fails for multiple ttys. */
-  interrupts_deferred = 1;
-}
-
-#else /* ! _CX_UX */
 #ifndef MSDOS
 
 void
@@ -1150,8 +1052,6 @@ unrequest_sigio ()
 }
 
 #endif /* MSDOS */
-#endif /* _CX_UX */
-#endif /* STRIDE */
 #endif /* FASYNC */
 #endif /* F_SETFL */
 #endif /* SIGIO */
@@ -1486,10 +1386,6 @@ init_sys_modes (tty_out)
 #if defined (HAVE_TERMIO) || defined (HAVE_TERMIOS)
   XSETINT (Vtty_erase_char, tty.main.c_cc[VERASE]);
 
-#ifdef DGUX
-  /* This allows meta to be sent on 8th bit.  */
-  tty.main.c_iflag &= ~INPCK;	/* don't check input for parity */
-#endif
   tty.main.c_iflag |= (IGNBRK);	/* Ignore break condition */
   tty.main.c_iflag &= ~ICRNL;	/* Disable map of CR to NL on input */
 #ifdef INLCR  /* I'm just being cautious,
@@ -1703,10 +1599,8 @@ init_sys_modes (tty_out)
 #ifdef TCXONC
   if (!tty_out->flow_control) ioctl (fileno (tty_out->input), TCXONC, 1);
 #endif
-#ifndef APOLLO
 #ifdef TIOCSTART
   if (!tty_out->flow_control) ioctl (fileno (tty_out->input), TIOCSTART, 0);
-#endif
 #endif
 
 #if defined (HAVE_TERMIOS) || defined (HPUX9)
@@ -2085,14 +1979,6 @@ setup_pty (fd)
   }
 #endif
 #endif
-#ifdef IBMRTAIX
-  /* On AIX, the parent gets SIGHUP when a pty attached child dies.  So, we */
-  /* ignore SIGHUP once we've started a child on a pty.  Note that this may */
-  /* cause EMACS not to die when it should, i.e., when its own controlling  */
-  /* tty goes away.  I've complained to the AIX developers, and they may    */
-  /* change this behavior, but I'm not going to hold my breath.             */
-  signal (SIGHUP, SIG_IGN);
-#endif
 }
 #endif /* HAVE_PTYS */
 
@@ -2377,13 +2263,8 @@ start_of_text ()
 #ifdef TEXT_START
   return ((char *) TEXT_START);
 #else
-#ifdef GOULD
-  extern csrt ();
-  return ((char *) csrt);
-#else /* not GOULD */
   extern int _start ();
   return ((char *) _start);
-#endif /* GOULD */
 #endif /* TEXT_START */
 }
 #endif /* not HAVE_TEXT_START */
@@ -3323,16 +3204,6 @@ get_random ()
 #endif /* need at least 2 */
   return val & ((1L << VALBITS) - 1);
 }
-
-#ifdef WRONG_NAME_INSQUE
-
-insque (q,p)
-     caddr_t q,p;
-{
-  _insque (q,p);
-}
-
-#endif
 
 #ifdef VMS
 

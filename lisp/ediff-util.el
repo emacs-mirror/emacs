@@ -41,6 +41,9 @@
 
 (defvar ediff-after-quit-hook-internal nil)
 
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
+
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))
     (provide 'ediff-util) ; to break recursive load cycle
@@ -2406,7 +2409,9 @@ If it is t, they will be preserved unconditionally.  A prefix argument,
 temporarily reverses the meaning of this variable."
   (interactive "P")
   (ediff-barf-if-not-control-buffer)
-  (let ((ctl-buf (current-buffer)))
+  (let ((ctl-buf (current-buffer))
+	(ctl-frm (selected-frame))
+	(minibuffer-auto-raise t))
     (if (y-or-n-p (format "Quit this Ediff session%s? "
 			  (if (ediff-buffer-live-p ediff-meta-buffer)
 			      " & show containing session group" "")))
@@ -2414,6 +2419,8 @@ temporarily reverses the meaning of this variable."
 	  (message "")
 	  (set-buffer ctl-buf)
 	  (ediff-really-quit reverse-default-keep-variants))
+      (select-frame ctl-frm)
+      (raise-frame ctl-frm)
       (message ""))))
 
 
@@ -2815,7 +2822,6 @@ up an appropriate window config."
   (run-hooks 'ediff-suspend-hook)
   (message
    "To resume, type M-x eregistry and select the desired Ediff session"))
-
 
 ;; ediff-barf-if-not-control-buffer ensures only called from ediff.
 (declare-function ediff-version "ediff" ())

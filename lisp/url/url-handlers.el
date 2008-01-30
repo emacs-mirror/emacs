@@ -150,6 +150,7 @@ the arguments that would have been passed to OPERATION."
 (put 'file-name-absolute-p 'url-file-handlers (lambda (&rest ignored) t))
 (put 'expand-file-name 'url-file-handlers 'url-handler-expand-file-name)
 (put 'directory-file-name 'url-file-handlers 'url-handler-directory-file-name)
+(put 'unhandled-file-name-directory 'url-file-handlers 'url-handler-unhandled-file-name-directory)
 ;; (put 'file-name-as-directory 'url-file-handlers 'url-handler-file-name-as-directory)
 
 ;; These are operations that we do not support yet (DAV!!!)
@@ -180,6 +181,13 @@ the arguments that would have been passed to OPERATION."
   ;; When there's more than a single /, just don't touch the slashes at all.
   (if (string-match "//\\'" dir) dir
     (url-run-real-handler 'directory-file-name (list dir))))
+
+(defun url-handler-unhandled-file-name-directory (filename)
+  ;; Copied from tramp.el.  This is used as the cwd for subprocesses:
+  ;; without it running call-process or start-process in a URL directory
+  ;; signals an error.
+  ;; FIXME: we can do better if `filename' is a "file://" URL.
+  (expand-file-name "~/"))
 
 ;; The actual implementation
 ;;;###autoload

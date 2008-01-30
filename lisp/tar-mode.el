@@ -785,7 +785,8 @@ appear on disk when you save the tar-file's buffer."
 	  (narrow-to-region (point-min) tar-header-offset)
 	  (goto-char pos)))
       (if view-p
-	  (view-buffer buffer (and just-created 'kill-buffer))
+	  (view-buffer
+	   buffer (and just-created 'kill-buffer-if-not-modified))
 	(if (eq other-window-p 'display)
 	    (display-buffer buffer)
 	  (if other-window-p

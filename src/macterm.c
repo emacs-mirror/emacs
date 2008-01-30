@@ -5071,6 +5071,7 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
 #ifdef MAC_OSX
   bar->fringe_extended_p = Qnil;
 #endif
+  bar->redraw_needed_p = Qnil;
 #ifdef USE_TOOLKIT_SCROLL_BARS
   bar->track_top = Qnil;
   bar->track_height = Qnil;
@@ -5287,14 +5288,24 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
       BLOCK_INPUT;
 
       /* If already correctly positioned, do nothing.  */
-      if (!(XINT (bar->left) == sb_left
-	    && XINT (bar->top) == top
-	    && XINT (bar->width) == sb_width
-	    && XINT (bar->height) == height
+      if (XINT (bar->left) == sb_left
+	  && XINT (bar->top) == top
+	  && XINT (bar->width) == sb_width
+	  && XINT (bar->height) == height
 #ifdef MAC_OSX
-	    && !NILP (bar->fringe_extended_p) == fringe_extended_p
+	  && !NILP (bar->fringe_extended_p) == fringe_extended_p
 #endif
-	    ))
+	  )
+	{
+	  if (!NILP (bar->redraw_needed_p))
+	    {
+#if USE_CG_DRAWING
+	      mac_prepare_for_quickdraw (f);
+#endif
+	      Draw1Control (SCROLL_BAR_CONTROL_REF (bar));
+	    }
+	}
+      else
 	{
 	  /* Since toolkit scroll bars are smaller than the space reserved
 	     for them on the frame, we have to clear "under" them.  */
@@ -5335,6 +5346,8 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 #ifdef MAC_OSX
   bar->fringe_extended_p = fringe_extended_p ? Qt : Qnil;
 #endif
+
+  bar->redraw_needed_p = Qnil;
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
   if (NILP (bar->track_top))
@@ -5693,8 +5706,15 @@ void
 x_scroll_bar_clear (f)
      FRAME_PTR f;
 {
-  XTcondemn_scroll_bars (f);
-  XTjudge_scroll_bars (f);
+  Lisp_Object bar;
+
+  /* We can have scroll bars even if this is 0,
+     if we just turned off scroll bar mode.
+     But in that case we should not clear them.  */
+  if (FRAME_HAS_VERTICAL_SCROLL_BARS (f))
+    for (bar = FRAME_SCROLL_BARS (f); VECTORP (bar);
+	 bar = XSCROLL_BAR (bar)->next)
+      XSCROLL_BAR (bar)->redraw_needed_p = Qt;
 }
 
 

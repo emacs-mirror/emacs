@@ -4,7 +4,8 @@
 ;; Maintainer: FSF
 ;; Keywords: mouse gpm linux
 
-;; Copyright (C) 1994, 1995, 1998, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1998, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -38,6 +39,9 @@
 ;; 
 
 ;;; Code:
+
+;; Prevent warning when compiling in an Emacs without gpm support.
+(declare-function gpm-mouse-start "term.c" ())
 
 ;;;###autoload
 (define-obsolete-function-alias 't-mouse-mode 'gpm-mouse-mode "23.1")

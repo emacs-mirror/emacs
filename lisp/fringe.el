@@ -93,6 +93,10 @@
 
 (defvar fringe-mode)
 
+(defvar fringe-mode-explicit nil
+  "Non-nil means `set-fringe-mode' should really do something.
+This is nil while loading `fringe.el', and t afterward.")
+
 (defun set-fringe-mode-1 (ignore value)
   "Call `set-fringe-mode' with VALUE.
 See `fringe-mode' for valid values and their effect.
@@ -104,13 +108,14 @@ This is usually invoked when setting `fringe-mode' via customize."
 See `fringe-mode' for possible values and their effect."
   (setq fringe-mode value)
 
-  (modify-all-frames-parameters
-   (list (cons 'left-fringe (if (consp fringe-mode)
-				(car fringe-mode)
-			      fringe-mode))
-	 (cons 'right-fringe (if (consp fringe-mode)
-				 (cdr fringe-mode)
-			       fringe-mode)))))
+  (when fringe-mode-explicit
+    (modify-all-frames-parameters
+     (list (cons 'left-fringe (if (consp fringe-mode)
+				  (car fringe-mode)
+				fringe-mode))
+	   (cons 'right-fringe (if (consp fringe-mode)
+				   (cdr fringe-mode)
+				 fringe-mode))))))
 
 ;; For initialization of fringe-mode, take account of changes
 ;; made explicitly to default-frame-alist.
@@ -158,6 +163,10 @@ you can use the interactive function `set-fringe-style'."
   :require 'fringe
   :initialize 'fringe-mode-initialize
   :set 'set-fringe-mode-1)
+
+;; We just set fringe-mode, but that was the default.
+;; If it is set again, that is for real.
+(setq fringe-mode-explicit t)
 
 (defun fringe-query-style (&optional all-frames)
   "Query user for fringe style.

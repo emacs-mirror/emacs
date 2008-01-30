@@ -1681,7 +1681,7 @@ A block is a subroutine, if-endif, etc."
     (push-mark)
     (goto-char pos)
     (setq program (f90-beginning-of-subprogram))
-    (if (fboundp 'zmacs-activate-region)
+    (if (featurep 'xemacs)
         (zmacs-activate-region)
       (setq mark-active t
             deactivate-mark nil))
@@ -1866,7 +1866,7 @@ If run in the middle of a line, the line is not broken."
     (goto-char save-point)
     (set-marker end-region-mark nil)
     (set-marker save-point nil)
-    (if (fboundp 'zmacs-deactivate-region)
+    (if (featurep 'xemacs)
         (zmacs-deactivate-region)
       (deactivate-mark))))
 
@@ -1976,7 +1976,7 @@ Like `join-line', but handles F90 syntax."
             f90-cache-position (point)))
     (setq f90-cache-position nil)
     (set-marker end-region-mark nil)
-    (if (fboundp 'zmacs-deactivate-region)
+    (if (featurep 'xemacs)
         (zmacs-deactivate-region)
       (deactivate-mark))))
 

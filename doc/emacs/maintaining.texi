@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
-@c   2001, 2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+@c   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Maintaining, Abbrevs, Building, Top
 @chapter Maintaining Large Programs
@@ -130,7 +130,7 @@ Of course, you should substitute the proper years and copyright holder.
 
 @node Tags
 @section Tags Tables
-@cindex tags table
+@cindex tag tables
 
   A @dfn{tags table} is a description of how a multi-file program is
 broken up into files.  It lists the names of the component files and the
@@ -796,9 +796,10 @@ default is to use the same setting as the value of
   It is possible to get through all the files in the tags table with a
 single invocation of @kbd{M-x tags-query-replace}.  But often it is
 useful to exit temporarily, which you can do with any input event that
-has no special query replace meaning.  You can resume the query replace
-subsequently by typing @kbd{M-,}; this command resumes the last tags
-search or replace command that you did.
+has no special query replace meaning.  You can resume the query
+replace subsequently by typing @kbd{M-,}; this command resumes the
+last tags search or replace command that you did.  For instance, to
+skip the rest of the current file, you can type @kbd{M-> M-,}.
 
   The commands in this section carry out much broader searches than the
 @code{find-tag} family.  The @code{find-tag} commands search only for

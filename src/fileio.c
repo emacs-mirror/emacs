@@ -68,10 +68,6 @@ extern int errno;
 #endif
 #endif
 
-#ifdef APOLLO
-#include <sys/time.h>
-#endif
-
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -814,12 +810,6 @@ directory_file_name (src, dst)
   /* Process as Unix format: just remove any final slash.
      But leave "/" unchanged; do not change it to "".  */
   strcpy (dst, src);
-#ifdef APOLLO
-  /* Handle // as root for apollo's.  */
-  if ((slen > 2 && dst[slen - 1] == '/')
-      || (slen > 1 && dst[0] != '/' && dst[slen - 1] == '/'))
-    dst[slen - 1] = 0;
-#else
   if (slen > 1
       && IS_DIRECTORY_SEP (dst[slen - 1])
 #ifdef DOS_NT
@@ -827,7 +817,6 @@ directory_file_name (src, dst)
 #endif
       )
     dst[slen - 1] = 0;
-#endif
 #ifdef DOS_NT
   CORRECT_DIR_SEPS (dst);
 #endif
@@ -1802,10 +1791,6 @@ See also the function `substitute-in-file-name'.")
       while (*p)
 	{
 	  if (p[0] == '/' && p[1] == '/'
-#ifdef APOLLO
-	      /* // at start of filename is meaningful on Apollo system.  */
-	      && nm != p
-#endif /* APOLLO */
 	      )
 	    nm = p + 1;
 	  if (p[0] == '/' && p[1] == '~')
@@ -2037,10 +2022,6 @@ See also the function `substitute-in-file-name'.")
 	  *o++ = *p++;
 	}
       else if (!strncmp (p, "//", 2)
-#ifdef APOLLO
-	       /* // at start of filename is meaningful in Apollo system.  */
-	       && o != target
-#endif /* APOLLO */
 	       )
 	{
 	  o = target;
@@ -2056,11 +2037,6 @@ See also the function `substitute-in-file-name'.")
 	{
 	  while (o != target && *--o != '/')
 	    ;
-#ifdef APOLLO
-	  if (o == target + 1 && o[-1] == '/' && o[0] == '/')
-	    ++o;
-	  else
-#endif /* APOLLO */
 	  if (o == target && *o == '/')
 	    ++o;
 	  p += 3;
@@ -2111,11 +2087,11 @@ search_embedded_absfilename (nm, endp)
 #endif /* VMS */
 	   || IS_DIRECTORY_SEP (p[-1]))
 	  && file_name_absolute_p (p)
-#if defined (APOLLO) || defined (WINDOWSNT) || defined(CYGWIN)
+#if defined (WINDOWSNT) || defined(CYGWIN)
 	  /* // at start of file name is meaningful in Apollo,
 	     WindowsNT and Cygwin systems.  */
 	  && !(IS_DIRECTORY_SEP (p[0]) && p - 1 == nm)
-#endif /* not (APOLLO || WINDOWSNT || CYGWIN) */
+#endif /* not (WINDOWSNT || CYGWIN) */
 	      )
 	{
 	  for (s = p; *s && (!IS_DIRECTORY_SEP (*s)
@@ -3801,12 +3777,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   }
   if (total < 0)
 #else
-#ifndef APOLLO
   if (stat (SDATA (filename), &st) < 0)
-#else
-  if ((fd = emacs_open (SDATA (filename), O_RDONLY, 0)) < 0
-      || fstat (fd, &st) < 0)
-#endif /* not APOLLO */
 #endif /* WINDOWSNT */
     {
       if (fd >= 0) emacs_close (fd);
@@ -4652,9 +4623,6 @@ variable `last-coding-system-used' to the coding system actually used.  */)
     {
       if (!EQ (current_buffer->undo_list, Qt))
 	current_buffer->undo_list = Qnil;
-#ifdef APOLLO
-      stat (SDATA (filename), &st);
-#endif
 
       if (NILP (handler))
 	{
@@ -5330,14 +5298,12 @@ This does code conversion according to the value of
      but who knows about all the other machines with NFS?)  */
 #if 0
 
-  /* On VMS and APOLLO, must do the stat after the close
+  /* On VMS, must do the stat after the close
      since closing changes the modtime.  */
 #ifndef VMS
-#ifndef APOLLO
   /* Recall that #if defined does not work on VMS.  */
 #define FOO
   fstat (desc, &st);
-#endif
 #endif
 #endif
 

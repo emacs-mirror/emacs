@@ -975,92 +975,9 @@ copy_text_and_data (new, a_out)
   lseek (new, (long) N_TXTOFF (hdr), 0);
 #endif /* no A_TEXT_SEEK */
 
-#ifdef RISCiX
-
-  /* Acorn's RISC-iX has a wacky way of initialising the position of the heap.
-   * There is a little table in crt0.o that is filled at link time with
-   * the min and current brk positions, among other things.  When start
-   * runs, it copies the table to where these parameters live during
-   * execution.  This data is in text space, so it cannot be modified here
-   * before saving the executable, so the data is written manually.  In
-   * addition, the table does not have a label, and the nearest accessible
-   * label (mcount) is not prefixed with a '_', thus making it inaccessible
-   * from within C programs.  To overcome this, emacs's executable is passed
-   * through the command 'nm %s | fgrep mcount' into a pipe, and the
-   * resultant output is then used to find the address of 'mcount'.  As far as
-   * is possible to determine, in RISC-iX releases prior to 1.2, the negative
-   * offset of the table from mcount is 0x2c, whereas from 1.2 onwards it is
-   * 0x30.  bss_end has been rounded up to page boundary.  This solution is
-   * based on suggestions made by Kevin Welton and Steve Hunt of Acorn, and
-   * avoids the need for a custom version of crt0.o for emacs which has its
-   * table in data space.
-   */
-
-  {
-    char command[1024];
-    char errbuf[1024];
-    char address_text[32];
-    int  proforma[4];
-    FILE *pfile;
-    char *temp_ptr;
-    char c;
-    int mcount_address, mcount_offset, count;
-    extern char *_execname;
-
-
-    /* The use of _execname is incompatible with RISCiX 1.1 */
-    sprintf (command, "nm %s | fgrep mcount", _execname);
-
-    if ( (pfile = popen(command, "r")) == NULL)
-    {
-      sprintf (errbuf, "Could not open pipe");
-      PERROR (errbuf);
-    }
-
-    count=0;
-    while ( ((c=getc(pfile)) != EOF) && (c != ' ') && (count < 31))
-      address_text[count++]=c;
-    address_text[count]=0;
-
-    if ((count == 0) || pclose(pfile) != NULL)
-    {
-      sprintf (errbuf, "Failed to execute the command '%s'\n", command);
-      PERROR (errbuf);
-    }
-
-    sscanf(address_text, "%x", &mcount_address);
-    ptr = (char *) unexec_text_start;
-    mcount_offset = (char *)mcount_address - ptr;
-
-#ifdef RISCiX_1_1
-#define EDATA_OFFSET 0x2c
-#else
-#define EDATA_OFFSET 0x30
-#endif
-
-    end = ptr + mcount_offset - EDATA_OFFSET;
-
-    write_segment (new, ptr, end);
-
-    proforma[0] = bss_end;	/* becomes _edata */
-    proforma[1] = bss_end;	/* becomes _end */
-    proforma[2] = bss_end;	/* becomes _minbrk */
-    proforma[3] = bss_end;	/* becomes _curbrk */
-
-    write (new, proforma, 16);
-
-    temp_ptr = ptr;
-    ptr = end + 16;
-    end = temp_ptr + hdr.a_text;
-
-    write_segment (new, ptr, end);
-  }
-
-#else /* !RISCiX */
   ptr = (char *) unexec_text_start;
   end = ptr + hdr.a_text;
   write_segment (new, ptr, end);
-#endif /* RISCiX */
 
   ptr = (char *) unexec_data_start;
   end = ptr + hdr.a_data;
@@ -1175,13 +1092,8 @@ adjust_lnnoptrs (writedesc, readdesc, new_name)
 {
   register int nsyms;
   register int new;
-#if defined (amdahl_uts) || defined (pfa)
-  SYMENT symentry;
-  AUXENT auxentry;
-#else
   struct syment symentry;
   union auxent auxentry;
-#endif
 
   if (!lnnoptr || !f_hdr.f_symptr)
     return 0;

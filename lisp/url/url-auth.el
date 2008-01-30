@@ -188,31 +188,40 @@ instead of hostname:portnum."
 			 (string= data (substring file 0 (length data)))))
 		    (setq retval (cdr (car byserv))))
 		(setq byserv (cdr byserv))))
-	  (if (or (and (not retval) prompt) overwrite)
-	      (progn
-		(setq user (read-string (url-auth-user-prompt url realm)
-					(user-real-login-name))
-		      pass (read-passwd "Password: ")
-		      retval (setq retval
-				   (cons user
-					 (url-digest-auth-create-key
-					  user pass realm
-					  (or url-request-method "GET")
-					  url)))
-		      byserv (assoc server url-digest-auth-storage))
+	  (if overwrite
+	      (if (and (not retval) prompt)
+		  (setq user (read-string (url-auth-user-prompt url realm)
+					  (user-real-login-name))
+			pass (read-passwd "Password: ")
+			retval (setq retval
+				     (cons user
+					   (url-digest-auth-create-key
+					    user pass realm
+					    (or url-request-method "GET")
+					    url)))
+			byserv (assoc server url-digest-auth-storage))
 		(setcdr byserv
 			(cons (cons file retval) (cdr byserv))))))
 	 (t (setq retval nil)))
 	(if retval
-	    (let ((nonce (or (cdr-safe (assoc "nonce" args)) "nonegiven"))
-		  (opaque (or (cdr-safe (assoc "opaque" args)) "nonegiven")))
-	      (format
-	       (concat "Digest username=\"%s\", realm=\"%s\","
-		       "nonce=\"%s\", uri=\"%s\","
-		       "response=\"%s\", opaque=\"%s\"")
-	       (nth 0 retval) realm nonce (url-filename href)
-	       (md5 (concat (nth 1 retval) ":" nonce ":"
-			    (nth 2 retval))) opaque))))))
+	    (if (cdr-safe (assoc "opaque" args))
+		(let ((nonce (or (cdr-safe (assoc "nonce" args)) "nonegiven"))
+		      (opaque (cdr-safe (assoc "opaque" args))))
+		  (format
+		   (concat "Digest username=\"%s\", realm=\"%s\","
+			   "nonce=\"%s\", uri=\"%s\","
+			   "response=\"%s\", opaque=\"%s\"")
+		   (nth 0 retval) realm nonce (url-filename href)
+		   (md5 (concat (nth 1 retval) ":" nonce ":"
+				(nth 2 retval))) opaque))
+	      (let ((nonce (or (cdr-safe (assoc "nonce" args)) "nonegiven")))
+		(format
+		 (concat "Digest username=\"%s\", realm=\"%s\","
+			 "nonce=\"%s\", uri=\"%s\","
+			 "response=\"%s\"")
+		 (nth 0 retval) realm nonce (url-filename href)
+		 (md5 (concat (nth 1 retval) ":" nonce ":"
+			      (nth 2 retval))))))))))
 
 (defvar url-registered-auth-schemes nil
   "A list of the registered authorization schemes and various and sundry

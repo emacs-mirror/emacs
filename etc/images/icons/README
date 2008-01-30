@@ -1,6 +1,7 @@
 COPYRIGHT AND LICENSE INFORMATION FOR IMAGE FILES
 
-Files: hicolor/16x16/apps/emacs.png hicolor/24x24/apps/emacs.png hicolor/32x32/apps/emacs.png hicolor/48x48/apps/emacs.png
+Files: hicolor/16x16/apps/emacs.png hicolor/24x24/apps/emacs.png
+       hicolor/32x32/apps/emacs.png hicolor/48x48/apps/emacs.png
 Author: Andrew Zhilin <andrew_zhilin@yahoo.com>
 Copyright (C) 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 License: GNU General Public License version 3 or later (see COPYING)
@@ -8,5 +9,5 @@ License: GNU General Public License version 3 or later (see COPYING)
 Files: emacs16_mac.png emacs24_mac.png emacs32_mac.png emacs48_mac.png
        emacs256_mac.png emacs512_mac.png
 Author: Kentaro Ohkouchi <nanasess@fsm.ne.jp>
-Copyright (C) 2007  Free Software Foundation, Inc.
+Copyright (C) 2007, 2008  Free Software Foundation, Inc.
 License: GNU General Public License version 3 or later (see COPYING)

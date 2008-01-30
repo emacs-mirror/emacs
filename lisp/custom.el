@@ -1176,7 +1176,9 @@ This function returns nil if no custom theme specifies a value for VARIABLE."
 (defun custom-theme-recalc-face (face)
   "Set FACE according to currently enabled custom themes."
   (if (facep face)
-      (face-spec-recalc face)))
+      (face-spec-set face
+                     (get (or (get face 'face-alias) face)
+                          'face-override-spec))))
 
 ;;; XEmacs compability functions
 

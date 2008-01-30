@@ -1,6 +1,6 @@
 GNU Emacs NEWS -- history of user-visible changes.
 
-Copyright (C) 2007 Free Software Foundation, Inc.
+Copyright (C) 2007, 2008 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Emacs bug reports to emacs-pretest-bug@gnu.org.
@@ -37,6 +37,9 @@ a GIF library.
 ** Support for systems without alloca has been removed.
 
 ** Support for Sun windows has been removed.
+
+** Support for many obsolete platforms has been removed.
+See the list at the end of etc/MACHINES for details.
 
 ** The `emacstool' utility has been removed.
 
@@ -220,6 +223,9 @@ same host, based on messages.  See the manual for further details.
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
+** ChangeLog now has function bound to C-c C-f that finds the file in
+the current log entry.
+
 ** abbrev was rewritten in Elisp and extended with more flexibility.
 *** New functions: abbrev-get, abbrev-put, abbrev-table-get, abbrev-table-put,
     abbrev-table-p.
@@ -277,6 +283,9 @@ considered for update.
 ** eldoc highlights the function argument under point
 with the face `eldoc-highlight-function-argument'.
 
+** hide-ifdef-mode permits to shadow ifdef-blocks instead of hiding them.
+See option `hide-ifdef-shadow' and function `hide-ifdef-toggle-shadowing'.
+
 +++
 ** defcustom accepts new keyword arguments, `:safe' and `:risky', which
 set a variable's `safe-local-variable' and `risky-local-variable' property.
@@ -313,13 +322,15 @@ tex-suscript-height-minimum.
 
 ** BibTeX mode:
 
+*** New command `bibtex-initialize' (re)initializes BibTeX buffers. 
+
 *** New `bibtex-entry-format' options `whitespace', `braces', and
 `string', disabled by default.
 
 *** New variable `bibtex-cite-matcher-alist' contains rules to
 identify cited keys in BibTeX entries, used by `bibtex-find-crossref'.
 
-*** Command `bibtex-url' now allows multiple URLs per entry.
+*** Command `bibtex-url' allows multiple URLs per entry.
 
 +++
 ** Tramp
@@ -419,11 +430,6 @@ checking/manipulating elements directly, use the new functions
 `byte-compile-warning-enabled-p', `byte-compile-disable-warning', and
 `byte-compile-enable-warning.'
 
-** shell.el no longer defines the aliases `dirtrack-toggle' and
-`dirtrack-mode' for `shell-dirtrack-mode'.  These names were removed
-because they clash with commands provided by dirtrack.el.  Use
-`shell-dirtrack-mode' instead.
-
 
 * Lisp Changes in Emacs 23.1
 
@@ -436,6 +442,11 @@ search and match primitives from changing the match data.
 +++
 ** New function `match-substitute-replacement' returns the result of
 `replace-match' without actually using it in the buffer.
+
+** If a local hook function has a non-nil `permanent-local-hook'
+property, then `kill-all-local-variables' does not remove it from
+the local value of the hook variable.  This means it remains
+even if you change major modes.
 
 +++
 ** A list of default values can be specified for the DEFAULT argument of

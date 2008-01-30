@@ -200,6 +200,14 @@ this function is always whether the value of `this-command' would've been
 (defvar repeat-previous-repeated-command nil
   "The previous repeated command.")
 
+;; The following variable counts repeated self-insertions.  The idea is
+;; that repeating a self-insertion command and subsequently undoing it
+;; should have almost the same effect as if the characters were inserted
+;; manually.  The basic difference is that we leave in one undo-boundary
+;; between the original insertion and its first repetition.
+(defvar repeat-undo-count nil
+  "Number of self-insertions since last `undo-boundary'.")
+
 ;;;###autoload
 (defun repeat (repeat-arg)
   "Repeat most recently executed command.
@@ -246,12 +254,6 @@ recently executed command not bound to an input event\"."
   ;; needs to be saved.
   (let ((repeat-repeat-char
          (if (eq repeat-on-final-keystroke t)
-	     ;; The following commented out since it's equivalent to
-	     ;; last-comment-char (martin 2007-08-29).
-;;;              ;; allow any final input event that was a character
-;;;              (when (eq last-command-char
-;;;                        last-command-event)
-;;;                last-command-char)
 	     last-command-char
            ;; allow only specified final keystrokes
            (car (memq last-command-char
@@ -293,11 +295,22 @@ recently executed command not bound to an input event\"."
 		  (i 0))
 	      ;; Run pre- and post-command hooks for self-insertion too.
 	      (run-hooks 'pre-command-hook)
+	      (cond
+	       ((not repeat-undo-count))
+	       ((< repeat-undo-count 20)
+		;; Don't make an undo-boundary here.
+		(setq repeat-undo-count (1+ repeat-undo-count)))
+	       (t
+		;; Make an undo-boundary after 20 repetitions only.
+		(undo-boundary)
+		(setq repeat-undo-count 1)))
 	      (while (< i count)
 		(repeat-self-insert insertion)
 		(setq i (1+ i)))
 	      (run-hooks 'post-command-hook)))
 	(let ((indirect (indirect-function last-repeatable-command)))
+	  ;; Make each repetition undo separately.
+	  (undo-boundary)
 	  (if (or (stringp indirect)
 		  (vectorp indirect))
 	      ;; Bind real-last-command so that executing the macro does
@@ -314,12 +327,20 @@ recently executed command not bound to an input event\"."
       ;; (only 32 repetitions are possible given the default value of 200 for
       ;; max-lisp-eval-depth), but if I now locally disable the repeat char I
       ;; can iterate indefinitely here around a single level of recursion.
-      (let (repeat-on-final-keystroke)
+      (let (repeat-on-final-keystroke
+	    ;; Bind `undo-inhibit-record-point' to t in order to avoid
+	    ;; recording point in `buffer-undo-list' here.  We have to
+	    ;; do this since the command loop does not set the last
+	    ;; position of point thus confusing the point recording
+	    ;; mechanism when inserting or deleting text.
+	    (undo-inhibit-record-point t))
 	(setq real-last-command 'repeat)
-        (while (eq (read-event) repeat-repeat-char)
-	  ;; Make each repetition undo separately.
-	  (undo-boundary)
-          (repeat repeat-arg))
+	(setq repeat-undo-count 1)
+	(unwind-protect
+	    (while (eq (read-event) repeat-repeat-char)
+	      (repeat repeat-arg))
+	  ;; Make sure `repeat-undo-count' is reset.
+	  (setq repeat-undo-count nil))
         (setq unread-command-events (list last-input-event))))))
 
 (defun repeat-self-insert (string)

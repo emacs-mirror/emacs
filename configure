@@ -1345,7 +1345,7 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --without-gcc           don't use GCC to compile Emacs if GCC is found
+  --without-gcc           don't use GCC to compile Emacs even if GCC is found
   --without-pop           don't support POP mail retrieval with movemail
   --with-kerberos         support Kerberos-authenticated POP
   --with-kerberos5        support Kerberos version 5 authenticated POP
@@ -1353,25 +1353,27 @@ Optional Packages:
   --without-sound         don't compile with sound support
   --with-x-toolkit=KIT    use an X toolkit (KIT one of: yes, lucid, athena,
                           motif, gtk, no)
-  --with-xpm              use -lXpm for displaying XPM images
-  --with-jpeg             use -ljpeg for displaying JPEG images
-  --with-tiff             use -ltiff for displaying TIFF images
-  --with-gif              use -lgif (or -lungif) for displaying GIF images
-  --with-png              use -lpng for displaying PNG images
+  --without-xpm           don't compile with XPM image support
+  --without-jpeg          don't compile with JPEG image support
+  --without-tiff          don't compile with TIFF image support
+  --without-gif           don't compile with GIF image support
+  --without-png           don't compile with PNG image support
+  --without-rsvg          don't compile with SVG image support
   --with-freetype         use -lfreetype for local fonts support
   --with-xft              use -lXft for anti aliased fonts
-  --with-gpm              use -lgpm for mouse support on a GNU/Linux console
-  --with-rsvg             use -lrsvg-2 for displaying SVG images
-  --with-gtk              use GTK (same as --with-x-toolkit=gtk)
-  --with-pkg-config-prog  Path to pkg-config for finding GTK and librsvg
+  --without-libotf        don't use libotf for OpenType font support
+  --without-m17n-flt      don't use m17n-flt for text shaping
+  --with-gtk              use GTK toolkit
   --without-toolkit-scroll-bars
                           don't use Motif or Xaw3d scroll bars
   --without-xaw3d         don't use Xaw3d
   --without-xim           don't use X11 XIM
-  --without-carbon        don't use Carbon GUI on Mac OS X
-  --with-dbus             use D-Bus
-  --without-libotf        don't use libotf for OpenType font support
-  --without-m17n-flt      don't use m17n-flt for text shaping
+  --with-carbon           use Carbon GUI on Mac OS X. This is unsupported!
+  --without-gpm           don't use -lgpm for mouse support on a GNU/Linux
+                          console
+  --with-dbus             compile with D-Bus support
+  --with-pkg-config-prog=PATH
+                          Path to pkg-config for finding GTK and librsvg
   --with-x                use the X Window System
 
 Some influential environment variables:
@@ -1849,6 +1851,7 @@ gameuser=games
 
 
 
+
 # Check whether --with-gcc was given.
 if test "${with_gcc+set}" = set; then
   withval=$with_gcc;
@@ -1858,40 +1861,45 @@ fi
 
 # Check whether --with-pop was given.
 if test "${with_pop+set}" = set; then
-  withval=$with_pop; if test "$withval" = yes; then
+  withval=$with_pop;
+else
+     with_pop=yes
+fi
+
+if test "$with_pop" = yes; then
    cat >>confdefs.h <<\_ACEOF
 #define MAIL_USE_POP 1
 _ACEOF
 
-else :
 fi
-else
-  cat >>confdefs.h <<\_ACEOF
-#define MAIL_USE_POP 1
-_ACEOF
-
-fi
-
 
 
 
 # Check whether --with-kerberos was given.
 if test "${with_kerberos+set}" = set; then
-  withval=$with_kerberos; if test "$withval" = yes; then
+  withval=$with_kerberos;
+else
+      with_kerberos=no
+fi
+
+if test "$with_kerberos" = yes; then
    cat >>confdefs.h <<\_ACEOF
 #define KERBEROS 1
 _ACEOF
 
 fi
-fi
-
 
 
 
 # Check whether --with-kerberos5 was given.
 if test "${with_kerberos5+set}" = set; then
-  withval=$with_kerberos5; if test "${with_kerberos5+set}" = set; then
-  if test "${with_kerberos+set}" != set; then
+  withval=$with_kerberos5;
+else
+      with_kerberos5=no
+fi
+
+if test "${with_kerberos5}" = yes; then
+  if test "${with_kerberos}" != yes; then
     with_kerberos=yes
     cat >>confdefs.h <<\_ACEOF
 #define KERBEROS 1
@@ -1904,26 +1912,29 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
 fi
-fi
-
 
 
 # Check whether --with-hesiod was given.
 if test "${with_hesiod+set}" = set; then
-  withval=$with_hesiod; if test "$withval" = yes; then
+  withval=$with_hesiod;
+else
+      with_hesiod=no
+fi
+
+if test "$with_hesiod" = yes; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HESIOD 1
 _ACEOF
 
 fi
-fi
-
 
 
 # Check whether --with-sound was given.
 if test "${with_sound+set}" = set; then
   withval=$with_sound;
+else
+     with_sound=yes
 fi
 
 
@@ -1956,61 +1967,141 @@ fi
 # Check whether --with-xpm was given.
 if test "${with_xpm+set}" = set; then
   withval=$with_xpm;
+else
+     with_xpm=yes
 fi
 
 
 # Check whether --with-jpeg was given.
 if test "${with_jpeg+set}" = set; then
   withval=$with_jpeg;
+else
+     with_jpeg=yes
 fi
 
 
 # Check whether --with-tiff was given.
 if test "${with_tiff+set}" = set; then
   withval=$with_tiff;
+else
+     with_tiff=yes
 fi
 
 
 # Check whether --with-gif was given.
 if test "${with_gif+set}" = set; then
   withval=$with_gif;
+else
+     with_gif=yes
 fi
 
 
 # Check whether --with-png was given.
 if test "${with_png+set}" = set; then
   withval=$with_png;
-fi
-
-
-# Check whether --with-freetype was given.
-if test "${with_freetype+set}" = set; then
-  withval=$with_freetype;
-fi
-
-
-# Check whether --with-xft was given.
-if test "${with_xft+set}" = set; then
-  withval=$with_xft;
-fi
-
-
-# Check whether --with-gpm was given.
-if test "${with_gpm+set}" = set; then
-  withval=$with_gpm;
+else
+     with_png=yes
 fi
 
 
 # Check whether --with-rsvg was given.
 if test "${with_rsvg+set}" = set; then
   withval=$with_rsvg;
+else
+     with_rsvg=yes
 fi
+
+
+
+# Check whether --with-freetype was given.
+if test "${with_freetype+set}" = set; then
+  withval=$with_freetype;
+else
+      with_freetype=no
+fi
+
+
+# Check whether --with-xft was given.
+if test "${with_xft+set}" = set; then
+  withval=$with_xft;
+else
+      with_xft=no
+fi
+
+
+# Check whether --with-libotf was given.
+if test "${with_libotf+set}" = set; then
+  withval=$with_libotf;
+else
+     with_libotf=yes
+fi
+
+
+# Check whether --with-m17n-flt was given.
+if test "${with_m17n_flt+set}" = set; then
+  withval=$with_m17n_flt;
+else
+     with_m17n_flt=yes
+fi
+
 
 
 # Check whether --with-gtk was given.
 if test "${with_gtk+set}" = set; then
   withval=$with_gtk;
+else
+      with_gtk=no
 fi
+
+
+# Check whether --with-toolkit-scroll-bars was given.
+if test "${with_toolkit_scroll_bars+set}" = set; then
+  withval=$with_toolkit_scroll_bars;
+else
+     with_toolkit_scroll_bars=yes
+fi
+
+
+# Check whether --with-xaw3d was given.
+if test "${with_xaw3d+set}" = set; then
+  withval=$with_xaw3d;
+else
+     with_xaw3d=yes
+fi
+
+
+# Check whether --with-xim was given.
+if test "${with_xim+set}" = set; then
+  withval=$with_xim;
+else
+     with_xim=yes
+fi
+
+
+# Check whether --with-carbon was given.
+if test "${with_carbon+set}" = set; then
+  withval=$with_carbon;
+else
+      with_carbon=no
+fi
+
+
+
+# Check whether --with-gpm was given.
+if test "${with_gpm+set}" = set; then
+  withval=$with_gpm;
+else
+     with_gpm=yes
+fi
+
+
+# Check whether --with-dbus was given.
+if test "${with_dbus+set}" = set; then
+  withval=$with_dbus;
+else
+      with_dbus=no
+fi
+
 
 
 # Check whether --with-pkg-config-prog was given.
@@ -2018,48 +2109,11 @@ if test "${with_pkg_config_prog+set}" = set; then
   withval=$with_pkg_config_prog;
 fi
 
-
-# Check whether --with-toolkit-scroll-bars was given.
-if test "${with_toolkit_scroll_bars+set}" = set; then
-  withval=$with_toolkit_scroll_bars;
+if test "X${with_pkg_config_prog}" != X; then
+   if test "${with_pkg_config_prog}" != yes; then
+      PKG_CONFIG="${with_pkg_config_prog}"
+   fi
 fi
-
-
-# Check whether --with-xaw3d was given.
-if test "${with_xaw3d+set}" = set; then
-  withval=$with_xaw3d;
-fi
-
-
-# Check whether --with-xim was given.
-if test "${with_xim+set}" = set; then
-  withval=$with_xim;
-fi
-
-
-# Check whether --with-carbon was given.
-if test "${with_carbon+set}" = set; then
-  withval=$with_carbon;
-fi
-
-
-# Check whether --with-dbus was given.
-if test "${with_dbus+set}" = set; then
-  withval=$with_dbus;
-fi
-
-
-# Check whether --with-libotf was given.
-if test "${with_libotf+set}" = set; then
-  withval=$with_libotf;
-fi
-
-
-# Check whether --with-m17n-flt was given.
-if test "${with_m17n_flt+set}" = set; then
-  withval=$with_m17n_flt;
-fi
-
 
 # Check whether --enable-carbon-app was given.
 if test "${enable_carbon_app+set}" = set; then
@@ -2280,8 +2334,8 @@ configuration=${host_alias-${build_alias-$host}}
 ### based on the machine portion of the configuration name, and an s-
 ### file based on the operating system portion.  However, it turns out
 ### that each m/*.h file is pretty manufacturer-specific - for
-### example, apollo.h, hp9000s300.h, mega68k, news.h, and tad68k are
-### all 68000 machines; mips.h, pmax.h, and news-risc are all MIPS
+### example hp9000s300.h is a 68000 machine;
+### mips.h, pmax.h are all MIPS
 ### machines.  So we basically have to have a special case for each
 ### configuration name.
 ###
@@ -2344,14 +2398,12 @@ _ACEOF
       mips-*-netbsd*)	machine=pmax ;;
       mipsel-*-netbsd*)	machine=pmax ;;
       mipseb-*-netbsd*)	machine=pmax ;;
-      ns32k-*-netbsd*)	machine=ns32000 ;;
       powerpc-*-netbsd*) machine=macppc ;;
       sparc*-*-netbsd*)	machine=sparc ;;
       vax-*-netbsd*)	machine=vax ;;
       arm-*-netbsd*)	machine=arm ;;
       x86_64-*-netbsd*)	machine=amdx86-64 ;;
       hppa-*-netbsd*)	machine=hp800 ;;
-      shle-*-netbsd*)	machine=sh3el ;;
     esac
   ;;
 
@@ -2364,10 +2416,8 @@ _ACEOF
       hppa-*-openbsd*)         machine=hp9000s300 ;;
       i386-*-openbsd*)         machine=intel386 ;;
       m68k-*-openbsd*)         machine=hp9000s300 ;;
-      m88k-*-openbsd*)         machine=aviion ;;
       mips64-*-openbsd*)       machine=mips64 ;;
       powerpc-*-openbsd*)      machine=macppc ;;
-      sh-*-openbsd*)           machine=sh3el ;;
       sparc*-*-openbsd*)       machine=sparc ;;
       vax-*-openbsd*)          machine=vax ;;
       x86_64-*-openbsd*)       machine=amdx86-64 ;;
@@ -2381,16 +2431,6 @@ _ACEOF
       i[3456]86-*-lynxos*) machine=intel386 ;;
       powerpc-*-lynxos*) machine=powerpc ;;
     esac
-  ;;
-
-  ## Acorn RISCiX:
-  arm-acorn-riscix1.1* )
-    machine=acorn opsys=riscix1-1
-  ;;
-  arm-acorn-riscix1.2* | arm-acorn-riscix )
-    ## This name is riscix12 instead of riscix1.2
-    ## to avoid a file name conflict on MSDOS.
-    machine=acorn opsys=riscix12
   ;;
 
   ## BSDI ports
@@ -2408,19 +2448,6 @@ _ACEOF
       *-*-bsdi3* )		opsys=bsdos3 ;;
       *-*-bsdi[45]* )		opsys=bsdos4 ;;
     esac
-  ;;
-
-  ## Alliant machines
-  ## Strictly speaking, we need the version of the alliant operating
-  ## system to choose the right machine file, but currently the
-  ## configuration name doesn't tell us enough to choose the right
-  ## one; we need to give alliants their own operating system name to
-  ## do this right.  When someone cares, they can help us.
-  fx80-alliant-* )
-    machine=alliant4 opsys=bsd4-2
-  ;;
-  i860-alliant-* )
-    machine=alliant-2800 opsys=bsd4-3
   ;;
 
   ## Alpha (DEC) machines.
@@ -2448,21 +2475,6 @@ _ACEOF
     machine=arm opsys=gnu-linux
   ;;
 
-  ## Altos 3068
-  m68*-altos-sysv* )
-    machine=altos opsys=usg5-2
-  ;;
-
-  ## Amdahl UTS
-  580-amdahl-sysv* )
-    machine=amdahl opsys=usg5-2-2
-  ;;
-
-  ## Apollo, Domain/OS
-  m68*-apollo-* )
-    machine=apollo opsys=bsd4-3
-  ;;
-
   ## Apple Darwin / Mac OS X
   *-apple-darwin* )
     case "${canonical}" in
@@ -2481,101 +2493,16 @@ _ACEOF
     fi
   ;;
 
-  ## AT&T 3b2, 3b5, 3b15, 3b20
-  we32k-att-sysv* )
-    machine=att3b opsys=usg5-2-2
-  ;;
-
-  ## AT&T 3b1 - The Mighty Unix PC!
-  m68*-att-sysv* )
-    machine=7300 opsys=usg5-2-2
-  ;;
-
-  ## Bull dpx20
-  rs6000-bull-bosx* )
-    machine=ibmrs6000 opsys=aix3-2
-  ;;
-
-  ## Bull dpx2
-  m68*-bull-sysv3* )
-    machine=dpx2 opsys=usg5-3
-  ;;
-
-  ## Bull sps7
-  m68*-bull-sysv2* )
-    machine=sps7 opsys=usg5-2
-  ;;
-
-  ## CCI 5/32, 6/32 -- see "Tahoe".
-
-  ## Celerity
-  ## I don't know what configuration name to use for this; config.sub
-  ## doesn't seem to know anything about it.  Hey, Celerity users, get
-  ## in touch with us!
-  celerity-celerity-bsd* )
-    machine=celerity opsys=bsd4-2
-  ;;
-
-  ## Clipper
-  ## What operating systems does this chip run that Emacs has been
-  ## tested on?
-  clipper-* )
-    machine=clipper
-    ## We'll use the catch-all code at the bottom to guess the
-    ## operating system.
-  ;;
-
   ## Compaq Nonstop
   mips-compaq-nonstopux* )
     machine=nonstopux opsys=nonstopux
     ;;
-
-  ## Convex
-  *-convex-bsd* | *-convex-convexos* )
-    machine=convex opsys=bsd4-3
-    ## Prevents spurious white space in makefiles - d.m.cooke@larc.nasa.gov
-    NON_GNU_CPP="cc -E -P"
-  ;;
 
   ## Cubix QBx/386
   i[3456]86-cubix-sysv* )
     machine=intel386 opsys=usg5-3
   ;;
 
-  ## Cydra 5
-  cydra*-cydrome-sysv* )
-    machine=cydra5 opsys=usg5-3
-  ;;
-
-  ## Data General AViiON Machines
-  ## DG changed naming conventions with the release of 5.4.4.10, they
-  ## dropped the initial 5.4 but left the intervening R.  Because of the
-  ## R this shouldn't conflict with older versions of the OS (which I
-  ## think were named like dgux4.*). In addition, DG new AViiONs series
-  ## uses either Motorola M88k or Intel Pentium CPUs.
-  m88k-dg-dguxR4.* | m88k-dg-dgux4* )
-    machine=aviion opsys=dgux4
-  ;;
-  m88k-dg-dgux5.4R3* | m88k-dg-dgux5.4.3* )
-    ## This name is dgux5-4-3 instead of dgux5-4r3
-    ## to avoid a file name conflict on MSDOS.
-    machine=aviion opsys=dgux5-4-3
-  ;;
-  m88k-dg-dgux5.4R2* | m88k-dg-dgux5.4.2* )
-    machine=aviion opsys=dgux5-4r2
-  ;;
-  m88k-dg-dgux* )
-    machine=aviion opsys=dgux
-  ;;
-
-  ## Data General AViiON Intel (x86) Machines
-  ## Exists from 5.4.3 (current i586-dg-dguxR4.11)
-  ## Ehud Karni, 1998-may-30, ehud@unix.simonwiesel.co.il
-  i[345]86-dg-dguxR4* )
-    machine=aviion-intel opsys=dgux4
-  ;;
-
-  ## DECstations
   mips-dec-ultrix[0-3].* | mips-dec-ultrix4.0* | mips-dec-bsd4.2* )
     machine=pmax opsys=bsd4-2
   ;;
@@ -2590,96 +2517,6 @@ _ACEOF
   ;;
   mips-dec-mach_bsd4.3* )
     machine=pmax opsys=mach-bsd4-3
-  ;;
-
-  ## Motorola Delta machines
-  m68k-motorola-sysv* | m68000-motorola-sysv* )
-    machine=delta opsys=usg5-3
-    if test -z "`type gnucc | grep 'not found'`"
-    then
-      if test -s /etc/167config
-      then CC="gnucc -m68040"
-      else CC="gnucc -m68881"
-      fi
-    else
-      if test -z "`type gcc | grep 'not found'`"
-      then CC=gcc
-      else CC=cc
-      fi
-    fi
-  ;;
-  m88k-motorola-sysv4* )
-    # jbotte@bnr.ca says that UNIX_System_V <hostName> 4.0 R40V4.3 m88k mc88110
-    # needs POSIX_SIGNALS and therefore needs usg5-4-2.
-    # I hope there are not other 4.0 versions for this machine
-    # which really need usg5-4 instead.
-    machine=delta88k opsys=usg5-4-2
-  ;;
-  m88k-motorola-sysv* | m88k-motorola-m88kbcs* )
-    machine=delta88k opsys=usg5-3
-  ;;
-
-  ## Dual machines
-  m68*-dual-sysv* )
-    machine=dual opsys=usg5-2
-  ;;
-  m68*-dual-uniplus* )
-    machine=dual opsys=unipl5-2
-  ;;
-
-  ## Elxsi 6400
-  elxsi-elxsi-sysv* )
-    machine=elxsi opsys=usg5-2
-  ;;
-
-  ## Encore machines
-  ns16k-encore-bsd* )
-    machine=ns16000 opsys=umax
-  ;;
-
-  ## The GEC 63 - apparently, this port isn't really finished yet.
-  #  I'm sure we finished off the last of the machines, though.  -- fx
-
-  ## Gould Power Node and NP1
-  pn-gould-bsd4.2* )
-    machine=gould opsys=bsd4-2
-  ;;
-  pn-gould-bsd4.3* )
-    machine=gould opsys=bsd4-3
-  ;;
-  np1-gould-bsd* )
-    machine=gould-np1 opsys=bsd4-3
-  ;;
-
-  ## Harris Night Hawk machines running CX/UX (a 5000 looks just like a 4000
-  ## as far as Emacs is concerned).
-  m88k-harris-cxux* )
-    # Build needs to be different on 7.0 and later releases
-    case "`uname -r`" in
-       [56].[0-9] ) machine=nh4000 opsys=cxux ;;
-       [7].[0-9] ) machine=nh4000 opsys=cxux7 ;;
-    esac
-    NON_GNU_CPP="/lib/cpp"
-  ;;
-  ## Harris ecx or gcx running CX/UX (Series 1200, Series 3000)
-  m68k-harris-cxux* )
-    machine=nh3000 opsys=cxux
-  ;;
-  ## Harris power pc NightHawk running Power UNIX (Series 6000)
-  powerpc-harris-powerunix )
-    machine=nh6000 opsys=powerunix
-    NON_GNU_CPP="cc -Xo -E -P"
-  ;;
-  ## SR2001/SR2201 running HI-UX/MPP
-  hppa1.1-hitachi-hiuxmpp* )
-    machine=sr2k opsys=hiuxmpp
-  ;;
-  hppa1.1-hitachi-hiuxwe2* )
-    machine=sr2k opsys=hiuxwe2
-  ;;
-  ## Honeywell XPS100
-  xps*-honeywell-sysv* )
-    machine=xps100 opsys=usg5-2
   ;;
 
   ## HP 9000 series 200 or 300
@@ -2743,21 +2580,7 @@ _ACEOF
     machine=hp800 opsys=nextstep
   ;;
 
-  ## Orion machines
-  orion-orion-bsd* )
-    machine=orion opsys=bsd4-2
-  ;;
-  clipper-orion-bsd* )
-    machine=orion105 opsys=bsd4-2
-  ;;
-
   ## IBM machines
-  i[3456]86-ibm-aix1.1* )
-    machine=ibmps2-aix opsys=usg5-2-2
-  ;;
-  i[3456]86-ibm-aix1.[23]* | i[3456]86-ibm-aix* )
-    machine=ibmps2-aix opsys=usg5-3
-  ;;
   i370-ibm-aix*)
     machine=ibm370aix opsys=usg5-3
   ;;
@@ -2794,62 +2617,10 @@ _ACEOF
   rs6000-ibm-aix* | powerpc-ibm-aix* )
     machine=ibmrs6000 opsys=aix3-2
   ;;
-  romp-ibm-bsd4.3* )
-    machine=ibmrt opsys=bsd4-3
-  ;;
-  romp-ibm-bsd4.2* )
-    machine=ibmrt opsys=bsd4-2
-  ;;
-  romp-ibm-aos4.3* )
-    machine=ibmrt opsys=bsd4-3
-  ;;
-  romp-ibm-aos4.2* )
-    machine=ibmrt opsys=bsd4-2
-  ;;
-  romp-ibm-aos* )
-    machine=ibmrt opsys=bsd4-3
-  ;;
-  romp-ibm-bsd* )
-    machine=ibmrt opsys=bsd4-3
-  ;;
-  romp-ibm-aix* )
-    machine=ibmrt-aix opsys=usg5-2-2
-  ;;
-
-  ## Integrated Solutions `Optimum V'
-  m68*-isi-bsd4.2* )
-    machine=isi-ov opsys=bsd4-2
-  ;;
-  m68*-isi-bsd4.3* )
-    machine=isi-ov opsys=bsd4-3
-  ;;
-
-  ## Intel 386 machines where we do care about the manufacturer
-  i[3456]86-intsys-sysv* )
-    machine=is386 opsys=usg5-2-2
-  ;;
 
   ## Prime EXL
   i[3456]86-prime-sysv* )
     machine=i386 opsys=usg5-3
-  ;;
-
-  ## Sequent Symmetry running Dynix
-  i[3456]86-sequent-bsd* )
-    machine=symmetry opsys=bsd4-3
-  ;;
-
-  ## Sequent Symmetry running ptx 4, which is a modified SVR4.
-  i[3456]86-sequent-ptx4* | i[3456]86-sequent-sysv4* )
-    machine=sequent-ptx opsys=ptx4
-    NON_GNU_CPP=/lib/cpp
-  ;;
-
-  ## Sequent Symmetry running DYNIX/ptx
-  ## Use the old cpp rather than the newer ANSI one.
-  i[3456]86-sequent-ptx* )
-    machine=sequent-ptx opsys=ptx
-    NON_GNU_CPP="/lib/cpp"
   ;;
 
   ## ncr machine running svr4.3.
@@ -2863,31 +2634,9 @@ _ACEOF
     machine=ncr386 opsys=usg5-4-2
   ;;
 
-  ## Intel Paragon OSF/1
-  i860-intel-osf1* )
-    machine=paragon opsys=osf1 NON_GNU_CPP=/usr/mach/lib/cpp
-  ;;
-
-  ## Intel 860
-  i860-*-sysv4* )
-    machine=i860 opsys=usg5-4
-    NON_GNU_CC="/bin/cc" # Ie, not the one in /usr/ucb/cc.
-    NON_GNU_CPP="/usr/ccs/lib/cpp" # cc -E tokenizes macro expansion.
-  ;;
-
   ## Macintosh PowerPC
   powerpc*-*-linux-gnu* )
     machine=macppc opsys=gnu-linux
-  ;;
-
-  ## Masscomp machines
-  m68*-masscomp-rtu* )
-    machine=masscomp opsys=rtu
-  ;;
-
-  ## Megatest machines
-  m68*-megatest-bsd* )
-    machine=mega68 opsys=bsd4-2
   ;;
 
   ## Workstations sold by MIPS
@@ -2927,52 +2676,9 @@ _ACEOF
     machine=m68k opsys=nextstep
   ;;
 
-  ## The complete machine from National Semiconductor
-  ns32k-ns-genix* )
-    machine=ns32000 opsys=usg5-2
-  ;;
-
-  ## NCR machines
-  m68*-ncr-sysv2* | m68*-ncr-sysvr2* )
-    machine=tower32 opsys=usg5-2-2
-  ;;
-  m68*-ncr-sysv3* | m68*-ncr-sysvr3* )
-    machine=tower32v3 opsys=usg5-3
-  ;;
-
   ## NEC EWS4800
   mips-nec-sysv4*)
   machine=ews4800 opsys=ux4800
-  ;;
-
-  ## Nixdorf Targon 31
-  m68*-nixdorf-sysv* )
-    machine=targon31 opsys=usg5-2-2
-  ;;
-
-  ## Nu (TI or LMI)
-  m68*-nu-sysv* )
-    machine=nu opsys=usg5-2
-  ;;
-
-  ## Plexus
-  m68*-plexus-sysv* )
-    machine=plexus opsys=usg5-2
-  ;;
-
-  ## Pyramid machines
-  ## I don't really have any idea what sort of processor the Pyramid has,
-  ## so I'm assuming it is its own architecture.
-  pyramid-pyramid-bsd* )
-    machine=pyramid opsys=bsd4-2
-  ;;
-
-  ## Sequent Balance
-  ns32k-sequent-bsd4.2* )
-    machine=sequent opsys=bsd4-2
-  ;;
-  ns32k-sequent-bsd4.3* )
-    machine=sequent opsys=bsd4-3
   ;;
 
   ## Siemens Nixdorf
@@ -2983,20 +2689,7 @@ _ACEOF
   ;;
 
   ## Silicon Graphics machines
-  ## Iris 2500 and Iris 2500 Turbo (aka the Iris 3030)
-  m68*-sgi-iris3.5* )
-    machine=irist opsys=iris3-5
-  ;;
-  m68*-sgi-iris3.6* | m68*-sgi-iris*)
-    machine=irist opsys=iris3-6
-  ;;
   ## Iris 4D
-  mips-sgi-irix3* )
-    machine=iris4d opsys=irix3-3
-  ;;
-  mips-sgi-irix4* )
-    machine=iris4d opsys=irix4-0
-  ;;
   mips-sgi-irix6.5 )
     machine=iris4d opsys=irix6-5
     # Without defining _LANGUAGE_C, things get masked out in the headers
@@ -3020,31 +2713,6 @@ _ACEOF
     machine=iris4d opsys=irix5-2
   ;;
 
-  ## SONY machines
-  m68*-sony-bsd4.2* )
-    machine=news opsys=bsd4-2
-  ;;
-  m68*-sony-bsd4.3* )
-    machine=news opsys=bsd4-3
-  ;;
-  m68*-sony-newsos3* | m68*-sony-news3*)
-    machine=news opsys=bsd4-3
-  ;;
-  mips-sony-bsd* | mips-sony-newsos4* | mips-sony-news4*)
-    machine=news-risc opsys=bsd4-3
-  ;;
-  mips-sony-newsos6* )
-    machine=news-r6 opsys=newsos6
-  ;;
-  mips-sony-news* )
-    machine=news-risc opsys=newsos5
-  ;;
-
-  ## Stride
-  m68*-stride-sysv* )
-    machine=stride opsys=usg5-2
-  ;;
-
   ## Suns
   sparc-*-linux-gnu* | sparc64-*-linux-gnu* )
     machine=sparc opsys=gnu-linux
@@ -3054,10 +2722,6 @@ _ACEOF
     | i[3456]86-*-solaris2* | i[3456]86-*-sunos5* | powerpc*-*-solaris2* \
     | rs6000-*-solaris2*)
     case "${canonical}" in
-      m68*-sunos1* )	machine=sun1 ;;
-      m68*-sunos2* )	machine=sun2 ;;
-      m68* )		machine=sun3 ;;
-      i[3456]86-sun-sunos[34]* )	machine=sun386 ;;
       i[3456]86-*-* )     machine=intel386 ;;
       amd64-*-*|x86_64-*-*)	machine=amdx86-64 ;;
       powerpcle* )      machine=powerpcle ;;
@@ -3066,26 +2730,6 @@ _ACEOF
       * )		unported=yes ;;
     esac
     case "${canonical}" in
-      ## The Sun386 didn't get past 4.0.
-      i[3456]86-*-sunos4	  ) opsys=sunos4-0 ;;
-      *-sunos4.0*	  ) opsys=sunos4-0 ;;
-      *-sunos4.1.[3-9]*noshare )
-		## This name is sunos413 instead of sunos4-1-3
-		## to avoid a file name conflict on MSDOS.
-		opsys=sunos413
-		NON_GNU_CPP=/usr/lib/cpp
-		NON_GCC_TEST_OPTIONS=-Bstatic
-		GCC_TEST_OPTIONS=-static
-		;;
-      *-sunos4.1.[3-9]* | *-sunos4shr*)
-		opsys=sunos4shr
-		NON_GNU_CPP=/usr/lib/cpp
-		;;
-      *-sunos4* | *-sunos )
-		opsys=sunos4-1
-		NON_GCC_TEST_OPTIONS=-Bstatic
-		GCC_TEST_OPTIONS=-static
-		;;
       *-sunos5.3* | *-solaris2.3* )
 		opsys=sol2-3
 		NON_GNU_CPP=/usr/ccs/lib/cpp
@@ -3128,48 +2772,9 @@ _ACEOF
     machine=sparc opsys=nextstep
   ;;
 
-  ## Tadpole 68k
-  m68*-tadpole-sysv* )
-    machine=tad68k opsys=usg5-3
-  ;;
-
-  ## Tahoe machines
-  tahoe-tahoe-bsd4.2* )
-    machine=tahoe opsys=bsd4-2
-  ;;
-  tahoe-tahoe-bsd4.3* )
-    machine=tahoe opsys=bsd4-3
-  ;;
-
   ## Tandem Integrity S2
   mips-tandem-sysv* )
     machine=tandem-s2 opsys=usg5-3
-  ;;
-
-  ## Tektronix XD88
-  m88k-tektronix-sysv3* )
-  machine=tekxd88 opsys=usg5-3
-  ;;
-
-  ## Tektronix 16000 box (6130?)
-  ns16k-tektronix-bsd* )
-    machine=ns16000 opsys=bsd4-2
-  ;;
-  ## Tektronix 4300
-  ## src/m/tek4300.h hints that this is a m68k machine.
-  m68*-tektronix-bsd* )
-    machine=tek4300 opsys=bsd4-3
-  ;;
-
-  ## Titan P2 or P3
-  ## We seem to have lost the machine-description file titan.h!
-  titan-titan-sysv* )
-    machine=titan opsys=usg5-3
-  ;;
-
-  ## Ustation E30 (SS5E)
-  m68*-unisys-uniplus* )
-    machine=ustation opsystem=unipl5-2
   ;;
 
   ## Vaxen.
@@ -3186,18 +2791,6 @@ _ACEOF
     esac
   ;;
 
-  ## Whitechapel MG1
-  ns16k-whitechapel-* )
-    machine=mg1
-    ## We don't know what sort of OS runs on these; we'll let the
-    ## operating system guessing code below try.
-  ;;
-
-  ## Wicat
-  m68*-wicat-sysv* )
-    machine=wicat opsys=usg5-2
-  ;;
-
   ## IA-64
   ia64*-*-linux* )
     machine=ia64 opsys=gnu-linux
@@ -3211,25 +2804,8 @@ _ACEOF
       *-darwin* )               opsys=darwin
                                 CPP="${CC-cc} -E -no-cpp-precomp"
  				;;
-      *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
-      *-isc2.2* )		opsys=isc2-2 ;;
-      *-isc4.0* )		opsys=isc4-0 ;;
-      *-isc4.* )		opsys=isc4-1
-				GCC_TEST_OPTIONS=-posix
-				NON_GCC_TEST_OPTIONS=-Xp
-				;;
-      *-isc* )			opsys=isc3-0 ;;
-      *-esix5* )		opsys=esix5r4; NON_GNU_CPP=/usr/lib/cpp ;;
-      *-esix* )			opsys=esix ;;
       *-xenix* )		opsys=xenix ;;
       *-linux-gnu* )		opsys=gnu-linux ;;
-      *-sco3.2v4* )		opsys=sco4 ; NON_GNU_CPP=/lib/cpp  ;;
-      *-sco3.2v5* )		opsys=sco5
-				NON_GNU_CPP=/lib/cpp
-				# Prevent -belf from being passed to $CPP.
-				# /lib/cpp does not accept it.
-				OVERRIDE_CPPFLAGS=" "
-				;;
       *-sysv4.2uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-sysv5uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-sysv5OpenUNIX* )  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
@@ -3256,18 +2832,13 @@ _ACEOF
     RANLIB="ar -ts"
   ;;
 
-  ## UXP/V
-  f301-fujitsu-uxpv4.1)
-    machine=f301 opsys=uxpv
-  ;;
-
   ## AMD x86-64 Linux-based GNU system
   x86_64-*-linux-gnu* )
     machine=amdx86-64 opsys=gnu-linux
   ;;
 
   ## Tensilica Xtensa Linux-based GNU system
-  xtensa-*-linux-gnu* )
+  xtensa*-*-linux-gnu* )
     machine=xtensa opsys=gnu-linux
     ;;
 
@@ -6038,14 +5609,14 @@ fi
 
 
 
-### The standard library on x86-64 GNU/Linux distributions can
+### The standard library on x86-64 and s390x GNU/Linux distributions can
 ### be located in either /usr/lib64 or /usr/lib.
 case "${canonical}" in
-  x86_64-*-linux-gnu* )
+  x86_64-*-linux-gnu* | s390x-*-linux-gnu* )
     if test -d /usr/lib64; then
 
 cat >>confdefs.h <<\_ACEOF
-#define HAVE_X86_64_LIB64_DIR 1
+#define HAVE_LIB64_DIR 1
 _ACEOF
 
 fi
@@ -6513,14 +6084,10 @@ fi
 
   ALSA_REQUIRED=1.0.0
   ALSA_MODULES="alsa >= $ALSA_REQUIRED"
-    if test "X${with_pkg_config_prog}" != X; then
-    PKG_CONFIG="${with_pkg_config_prog}"
-  fi
 
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    # Extract the first word of "pkg-config", so it can be a program name with args.
+  # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -6561,7 +6128,6 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  fi
 
   if test "$PKG_CONFIG" = "no" ; then
      HAVE_ALSA=no
@@ -9812,22 +9378,6 @@ case ${HAVE_X11} in
   yes ) HAVE_MENUS=yes ;;
 esac
 
-if test "${opsys}" = "hpux9"; then
-  case "${x_libraries}" in
-    *X11R4* )
-      opsysfile="s/hpux9-x11r4.h"
-      ;;
-  esac
-fi
-
-if test "${opsys}" = "hpux9shr"; then
-  case "${x_libraries}" in
-    *X11R4* )
-      opsysfile="s/hpux9shxr4.h"
-      ;;
-  esac
-fi
-
 ### Compute the unexec source name from the object name.
 UNEXEC_SRC="`echo ${unexec} | sed 's/\.o/.c/'`"
 
@@ -11162,18 +10712,13 @@ fi
 HAVE_RSVG=no
 if test "${HAVE_X11}" = "yes" || test "${HAVE_CARBON}" = "yes"; then
   if test "${with_rsvg}" != "no"; then
-        if test "X${with_pkg_config_prog}" != X; then
-      PKG_CONFIG="${with_pkg_config_prog}"
-    fi
-
     RSVG_REQUIRED=2.0.0
     RSVG_MODULE="librsvg-2.0 >= $RSVG_REQUIRED"
 
 
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    # Extract the first word of "pkg-config", so it can be a program name with args.
+  # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -11214,7 +10759,6 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  fi
 
   if test "$PKG_CONFIG" = "no" ; then
      :
@@ -11297,14 +10841,10 @@ echo "$as_me: error: Conflicting options, --with-gtk is incompatible with --with
   GTK_REQUIRED=2.6
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
 
-    if test "X${with_pkg_config_prog}" != X; then
-    PKG_CONFIG="${with_pkg_config_prog}"
-  fi
 
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    # Extract the first word of "pkg-config", so it can be a program name with args.
+  # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -11345,7 +10885,6 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  fi
 
   if test "$PKG_CONFIG" = "no" ; then
      pkg_check_gtk=no
@@ -12063,8 +11602,7 @@ if test "${with_dbus}" = "yes"; then
 
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    # Extract the first word of "pkg-config", so it can be a program name with args.
+  # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -12105,7 +11643,6 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  fi
 
   if test "$PKG_CONFIG" = "no" ; then
      HAVE_DBUS=no
@@ -12930,8 +12467,7 @@ if test "${HAVE_X11}" = "yes"; then
 
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    # Extract the first word of "pkg-config", so it can be a program name with args.
+  # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -12972,7 +12508,6 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  fi
 
   if test "$PKG_CONFIG" = "no" ; then
      HAVE_XFT=no
@@ -13251,10 +12786,10 @@ elif test "x${with_freetype}" != "xno"; then
     PKG_CONFIG="${with_pkg_config_prog}"
   fi
 
+
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    # Extract the first word of "pkg-config", so it can be a program name with args.
+  # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -13295,7 +12830,6 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  fi
 
   if test "$PKG_CONFIG" = "no" ; then
      HAVE_FREETYPE=no
@@ -13350,8 +12884,7 @@ echo "${ECHO_T}no" >&6; }
 
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    # Extract the first word of "pkg-config", so it can be a program name with args.
+  # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -13392,7 +12925,6 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  fi
 
   if test "$PKG_CONFIG" = "no" ; then
      HAVE_FC=no
@@ -13463,8 +12995,7 @@ _ACEOF
 
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    # Extract the first word of "pkg-config", so it can be a program name with args.
+  # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -13505,7 +13036,6 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  fi
 
   if test "$PKG_CONFIG" = "no" ; then
      pkg_check_libotf=no
@@ -13574,8 +13104,7 @@ if test "${with_m17n_flt}" != "no"; then
 
   succeeded=no
 
-  if test -z "$PKG_CONFIG"; then
-    # Extract the first word of "pkg-config", so it can be a program name with args.
+  # Extract the first word of "pkg-config", so it can be a program name with args.
 set dummy pkg-config; ac_word=$2
 { echo "$as_me:$LINENO: checking for $ac_word" >&5
 echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
@@ -13616,7 +13145,6 @@ echo "${ECHO_T}no" >&6; }
 fi
 
 
-  fi
 
   if test "$PKG_CONFIG" = "no" ; then
      pkg_check_m17n_flt=no
@@ -19104,13 +18632,11 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
@@ -19150,13 +18676,11 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
@@ -24428,6 +23952,7 @@ echo "  Does Emacs use a gif library?                           ${HAVE_GIF} $ac_
 echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
+echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 

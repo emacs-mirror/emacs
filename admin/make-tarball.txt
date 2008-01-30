@@ -21,8 +21,8 @@ For each step, check for possible errors.
 
 5.   rm configure; make bootstrap
 
-6.  Commit configure, README, etc/AUTHORS, lisp/finder-inf.el,
-    lisp/version.el, man/emacs.texi, lispref/elisp.texi,
+6.  Commit configure, README, doc/emacs/emacs.texi,
+    doc/lispref/elisp.texi, etc/AUTHORS, lisp/version.el,    
     mac/Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings,
     mac/src/Emacs.r, nt/emacs.rc.  Copy lisp/loaddefs.el to
     lisp/ldefs-boot.el and commit lisp/ldefs-boot.el.  For a release,
@@ -73,9 +73,9 @@ For each step, check for possible errors.
     ftp://alpha.gnu.org/gnu/emacs/pretest/ for a pretest, at
     ftp://ftp.gnu.org/gnu/emacs/ for a release.
 
-14. For a pretest, let Richard Stallman <rms@gnu.org> know about the new pretest and
-    tell him to announce it using the announcement you prepared.  Remind
-    him to set a Reply-to header to <emacs-pretest-bug@gnu.org>.
+14. For a pretest, let Richard Stallman <rms@gnu.org> know about the new
+    pretest and tell him to announce it using the announcement you prepared.
+    Remind him to set a Reply-to header to <emacs-pretest-bug@gnu.org>.
 
 15. Shortly before the release, cut the branch with the following commands:
 

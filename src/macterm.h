@@ -457,6 +457,9 @@ struct scroll_bar {
   Lisp_Object fringe_extended_p;
 #endif
 
+  /* t if redraw needed in the next XTset_vertical_scroll_bar call.  */
+  Lisp_Object redraw_needed_p;
+
 #ifdef USE_TOOLKIT_SCROLL_BARS
   /* The position and size of the scroll bar handle track area in
      pixels, relative to the frame.  */

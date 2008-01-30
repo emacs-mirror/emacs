@@ -1,13 +1,12 @@
 ;;; vc.el --- drive a version-control system from within Emacs
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
-;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author:     FSF (see below for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 ;; Keywords: tools
-
-;; $Id$
 
 ;; This file is part of GNU Emacs.
 
@@ -522,6 +521,55 @@
 ;;   to your backend and which does not map to any of the VC generic
 ;;   concepts.
 
+;;; Todo:
+
+;; - Make vc-checkin avoid reverting the buffer if has not changed
+;;   after the checkin.  Comparing (md5 BUFFER) to (md5 FILE) should
+;;   be enough.
+;;
+;; - vc-update/vc-merge should deal with VC systems that don't
+;;   update/merge on a file basis, but on a whole repository basis.
+;;
+;; - the backend sometimes knows when a file it opens has been marked
+;;   by the VCS as having a "conflict". Find a way to pass this info -
+;;   to VC so that it can turn on smerge-mode when opening such a
+;;   file.
+;;
+;; - the *VC-log* buffer needs font-locking.
+;;
+;; - make it easier to write logs, maybe C-x 4 a should add to the log
+;;   buffer if there's one instead of the ChangeLog.
+;;
+;; - make vc-state for all backends return 'unregistered instead of
+;;   nil for unregistered files, then update vc-next-action.
+;;
+;; - add a generic mechanism for remembering the current branch names,
+;;   display the branch name in the mode-line. Replace
+;;   vc-cvs-sticky-tag with that.
+;;
+;; - vc-register should register a fileset at a time. The backends
+;;   already support this, only the front-end needs to be change to
+;;   handle multiple files at a time.
+;;
+;; - add a mechanism to for ignoring files.
+;;
+;; - deal with push/pull operations.
+;;
+;; - decide if vc-status should replace vc-dired.
+;;
+;; - vc-status needs a menu, mouse bindings and some color bling.
+;;
+;; - vc-status needs to show missing files. It probably needs to have
+;;   another state for those files. The user might want to restore
+;;   them, or remove them from the VCS. C-x v v might also need
+;;   adjustments.
+;;
+;; - "snapshots" should be renamed to "branches", and thoroughly reworked.
+;;
+;; - do not default to RCS anymore when the current directory is not
+;;   controlled by any VCS and the user does C-x v v
+;;
+
 ;;; Code:
 
 (require 'vc-hooks)
@@ -907,13 +955,15 @@ However, before executing BODY, find FILE, and after BODY, save buffer."
   "An alternative output filter for async process P.
 One difference with the default filter is that this inserts S after markers.
 Another is that undo information is not kept."
-  (with-current-buffer (process-buffer p)
-    (save-excursion
-      (let ((buffer-undo-list t)
-            (inhibit-read-only t))
-	(goto-char (process-mark p))
-	(insert s)
-	(set-marker (process-mark p) (point))))))
+  (let ((buffer (process-buffer p)))
+    (when (buffer-live-p buffer)
+      (with-current-buffer buffer
+        (save-excursion
+          (let ((buffer-undo-list t)
+                (inhibit-read-only t))
+            (goto-char (process-mark p))
+            (insert s)
+            (set-marker (process-mark p) (point))))))))
 
 (defun vc-setup-buffer (&optional buf)
   "Prepare BUF for executing a VC command and make it current.
@@ -934,29 +984,39 @@ BUF defaults to \"*vc*\", can be a string and will be created if necessary."
 (defvar vc-sentinel-movepoint)          ;Dynamically scoped.
 
 (defun vc-process-sentinel (p s)
-  (let ((previous (process-get p 'vc-previous-sentinel)))
-    (if previous (funcall previous p s))
-    (with-current-buffer (process-buffer p)
-      (let (vc-sentinel-movepoint)
-        ;; Normally, we want async code such as sentinels to not move point.
-        (save-excursion
-          (goto-char (process-mark p))
-          (let ((cmds (process-get p 'vc-sentinel-commands)))
-            (process-put p 'vc-sentinel-commands nil)
-            (dolist (cmd cmds)
-              ;; Each sentinel may move point and the next one should be run
-              ;; at that new point.  We could get the same result by having
-              ;; each sentinel read&set process-mark, but since `cmd' needs
-              ;; to work both for async and sync processes, this would be
-              ;; difficult to achieve.
-              (vc-exec-after cmd))))
-        ;; But sometimes the sentinels really want to move point.
-        (if vc-sentinel-movepoint
-            (let ((win (get-buffer-window (current-buffer) 0)))
-              (if (not win)
-                  (goto-char vc-sentinel-movepoint)
-                (with-selected-window win
-                  (goto-char vc-sentinel-movepoint)))))))))
+  (let ((previous (process-get p 'vc-previous-sentinel))
+        (buf (process-buffer p)))
+    ;; Impatient users sometime kill "slow" buffers; check liveness
+    ;; to avoid "error in process sentinel: Selecting deleted buffer".
+    (when (buffer-live-p buf)
+      (if previous (funcall previous p s))
+      (with-current-buffer buf
+        (setq mode-line-process
+              (let ((status (process-status p)))
+                ;; Leave mode-line uncluttered, normally.
+                ;; (Let known any weirdness in-form-ally. ;-)  --ttn
+                (unless (eq 'exit status)
+                  (format " (%s)" status))))
+        (let (vc-sentinel-movepoint)
+          ;; Normally, we want async code such as sentinels to not move point.
+          (save-excursion
+            (goto-char (process-mark p))
+            (let ((cmds (process-get p 'vc-sentinel-commands)))
+              (process-put p 'vc-sentinel-commands nil)
+              (dolist (cmd cmds)
+                ;; Each sentinel may move point and the next one should be run
+                ;; at that new point.  We could get the same result by having
+                ;; each sentinel read&set process-mark, but since `cmd' needs
+                ;; to work both for async and sync processes, this would be
+                ;; difficult to achieve.
+                (vc-exec-after cmd))))
+          ;; But sometimes the sentinels really want to move point.
+          (if vc-sentinel-movepoint
+              (let ((win (get-buffer-window (current-buffer) 0)))
+                (if (not win)
+                    (goto-char vc-sentinel-movepoint)
+                  (with-selected-window win
+                    (goto-char vc-sentinel-movepoint))))))))))
 
 (defun vc-exec-after (code)
   "Eval CODE when the current buffer's process is done.
@@ -975,6 +1035,17 @@ Else, add CODE to the process' sentinel."
       (eval code))
      ;; If a process is running, add CODE to the sentinel
      ((eq (process-status proc) 'run)
+      (setq mode-line-process
+            ;; Deliberate overstatement, but power law respected.
+            ;; (The message is ephemeral, so we make it loud.)  --ttn
+            (propertize " (incomplete/in progress)"
+                        'face (if (featurep 'compile)
+                                  ;; ttn's preferred loudness
+                                  'compilation-warning
+                                ;; suitably available fallback
+                                font-lock-warning-face)
+			'help-echo
+			"A VC command is in progress in this buffer"))
       (let ((previous (process-sentinel proc)))
         (unless (eq previous 'vc-process-sentinel)
           (process-put proc 'vc-previous-sentinel previous))
@@ -1276,9 +1347,12 @@ Otherwise, throw an error."
                (unless (eq (vc-backend f) firstbackend)
                  (error "All members of a fileset must be under the same version-control system."))))
 	   marked))
-	((eq major-mode 'vc-status-mode)
-	 (vc-status-marked-files))
-	((vc-backend buffer-file-name)
+        ((eq major-mode 'vc-status-mode)
+         (let ((marked (vc-status-marked-files)))
+           (if marked
+               marked
+             (list (vc-status-current-file)))))
+ 	((vc-backend buffer-file-name)
 	 (list buffer-file-name))
 	((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
 				   (with-current-buffer vc-parent-buffer
@@ -1307,8 +1381,12 @@ Otherwise, throw an error."
 
 (defun vc-ensure-vc-buffer ()
   "Make sure that the current buffer visits a version-controlled file."
-  (if vc-dired-mode
-      (set-buffer (find-file-noselect (dired-get-filename)))
+  (cond
+   (vc-dired-mode
+    (set-buffer (find-file-noselect (dired-get-filename))))
+   ((eq major-mode 'vc-status-mode)
+    (set-buffer (find-file-noselect (vc-status-current-file))))
+   (t
     (while (and vc-parent-buffer
                 (buffer-live-p vc-parent-buffer)
 		;; Avoid infinite looping when vc-parent-buffer and
@@ -1318,7 +1396,7 @@ Otherwise, throw an error."
     (if (not buffer-file-name)
 	(error "Buffer %s is not associated with a file" (buffer-name))
       (if (not (vc-backend buffer-file-name))
-	  (error "File %s is not under version control" buffer-file-name)))))
+	  (error "File %s is not under version control" buffer-file-name))))))
 
 ;;; Support for the C-x v v command.  This is where all the single-file-oriented
 ;;; code from before the fileset rewrite lives.
@@ -1404,9 +1482,9 @@ merge in the changes into your working copy."
 	 revision)
     ;; Verify that the fileset is homogenous
     (dolist (file (cdr files))
-      (if (not (vc-compatible-state (vc-state file) state))
-	  (error "Fileset is in a mixed-up state"))
-      (if (not (eq (vc-checkout-model file) model))
+      (unless (vc-compatible-state (vc-state file) state)
+	(error "Fileset is in a mixed-up state"))
+      (unless (eq (vc-checkout-model file) model)
 	  (error "Fileset has mixed checkout models")))
     ;; Check for buffers in the fileset not matching the on-disk contents.
     (dolist (file files)
@@ -1428,13 +1506,15 @@ merge in the changes into your working copy."
 		(error "Aborted"))
 	    ;; Now, check if we have unsaved changes.
 	    (vc-buffer-sync t)
-	    (if (buffer-modified-p)
-		(or (y-or-n-p (message "Use %s on disk, keeping modified buffer? " file))
-		    (error "Aborted")))))))
+	    (when (buffer-modified-p)
+	      (or (y-or-n-p (message "Use %s on disk, keeping modified buffer? " file))
+		  (error "Aborted")))))))
     ;; Do the right thing
     (cond
      ;; Files aren't registered
-     ((not state)
+     ((or (not state)  ;; RCS uses nil for unregistered files.
+	  (eq state 'unregistered)
+	  (eq state 'ignored))
       (mapc 'vc-register files))
      ;; Files are up-to-date, or need a merge and user specified a revision
      ((or (eq state 'up-to-date) (and verbose (eq state 'needs-patch)))
@@ -1458,32 +1538,30 @@ merge in the changes into your working copy."
       (let ((ready-for-commit files))
 	;; If files are edited but read-only, give user a chance to correct
 	(dolist (file files)
-	  (if (not (file-writable-p file))
-	      (progn
-		;; Make the file+buffer read-write.
-		(unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue?" file))
-		  (error "Aborted"))
-		(set-file-modes file (logior (file-modes file) 128))
-		(let ((visited (get-file-buffer file)))
-		  (if visited
-		      (with-current-buffer visited
-			(toggle-read-only -1)))))))
+	  (unless (file-writable-p file)
+	    ;; Make the file+buffer read-write.
+	    (unless (y-or-n-p (format "%s is edited but read-only; make it writable and continue?" file))
+	      (error "Aborted"))
+	    (set-file-modes file (logior (file-modes file) 128))
+	    (let ((visited (get-file-buffer file)))
+	      (when visited
+		(with-current-buffer visited
+		  (toggle-read-only -1))))))
 	;; Allow user to revert files with no changes
 	(save-excursion
           (dolist (file files)
             (let ((visited (get-file-buffer file)))
               ;; For files with locking, if the file does not contain
               ;; any changes, just let go of the lock, i.e. revert.
-              (if (and (not (eq model 'implicit))
-                       (vc-workfile-unchanged-p file)
-                       ;; If buffer is modified, that means the user just
-                       ;; said no to saving it; in that case, don't revert,
-                       ;; because the user might intend to save after
-                       ;; finishing the log entry and committing.
-                       (not (and visited (buffer-modified-p))))
-                  (progn
-                    (vc-revert-file file)
-                    (delete file ready-for-commit))))))
+              (when (and (not (eq model 'implicit))
+			 (vc-workfile-unchanged-p file)
+			 ;; If buffer is modified, that means the user just
+			 ;; said no to saving it; in that case, don't revert,
+			 ;; because the user might intend to save after
+			 ;; finishing the log entry and committing.
+			 (not (and visited (buffer-modified-p))))
+		(vc-revert-file file)
+		(delete file ready-for-commit)))))
 	;; Remaining files need to be committed
 	(if (not ready-for-commit)
 	    (message "No files remain to be committed")
@@ -1493,15 +1571,28 @@ merge in the changes into your working copy."
 	      (setq revision (read-string "New revision or backend: "))
 	      (let ((vsym (intern (upcase revision))))
 		(if (member vsym vc-handled-backends)
-		    (vc-transfer-file file vsym)
+		    (dolist (file files) (vc-transfer-file file vsym))
 		  (vc-checkin ready-for-commit revision))))))))
      ;; locked by somebody else (locking VCSes only)
      ((stringp state)
-      (let ((revision
-	     (if verbose
-		 (read-string "Revision to steal: ")
-	       (vc-working-revision file))))
-	(dolist (file files) (vc-steal-lock file revision state))))
+      ;; In the old days, we computed the revision once and used it on
+      ;; the single file.  Then, for the 2007-2008 fileset rewrite, we
+      ;; computed the revision once (incorrectly, using a free var) and
+      ;; used it on all files.  To fix the free var bug, we can either
+      ;; use `(car files)' or do what we do here: distribute the
+      ;; revision computation among `files'.  Although this may be
+      ;; tedious for those backends where a "revision" is a trans-file
+      ;; concept, it is nonetheless correct for both those and (more
+      ;; importantly) for those where "revision" is a per-file concept.
+      ;; If the intersection of the former group and "locking VCSes" is
+      ;; non-empty [I vaguely doubt it --ttn], we can reinstate the
+      ;; pre-computation approach of yore.
+      (dolist (file files)
+        (vc-steal-lock
+         file (if verbose
+                  (read-string (format "%s revision to steal: " file))
+                (vc-working-revision file))
+         state)))
      ;; needs-patch
      ((eq state 'needs-patch)
       (dolist (file files)
@@ -1509,16 +1600,16 @@ merge in the changes into your working copy."
 			  "%s is not up-to-date.  Get latest revision? "
 			  (file-name-nondirectory file)))
 	    (vc-checkout file (eq model 'implicit) t)
-	  (if (and (not (eq model 'implicit))
-		   (yes-or-no-p "Lock this revision? "))
-	      (vc-checkout file t)))))
+	  (when (and (not (eq model 'implicit))
+		     (yes-or-no-p "Lock this revision? "))
+	    (vc-checkout file t)))))
      ;; needs-merge
      ((eq state 'needs-merge)
       (dolist (file files)
-	(if (yes-or-no-p (format
+	(when (yes-or-no-p (format
 			  "%s is not up-to-date.  Merge in changes now? "
 			  (file-name-nondirectory file)))
-	    (vc-maybe-resolve-conflicts file (vc-call merge-news file)))))
+	  (vc-maybe-resolve-conflicts file (vc-call merge-news file)))))
 
      ;; unlocked-changes
      ((eq state 'unlocked-changes)
@@ -1667,7 +1758,7 @@ INITIAL-CONTENTS is nil, do action immediately as if the user had
 entered COMMENT.  If COMMENT is t, also do action immediately with an
 empty comment.  Remember the file's buffer in `vc-parent-buffer'
 \(current one if no file).  AFTER-HOOK specifies the local value
-for vc-log-operation-hook."
+for `vc-log-after-operation-hook'."
   (let ((parent
          (if (eq major-mode 'vc-dired-mode)
              ;; If we are called from VC dired, the parent buffer is
@@ -1900,18 +1991,19 @@ the buffer contents as a comment."
 (defmacro vc-diff-switches-list (backend) `(vc-switches ',backend 'diff))
 (make-obsolete 'vc-diff-switches-list 'vc-switches "22.1")
 
-(defun vc-diff-sentinel (verbose rev1-name rev2-name)
+(defun vc-diff-finish (buffer-name verbose)
   ;; The empty sync output case has already been handled, so the only
-  ;; possibility of an empty output is for an async process, in which case
-  ;; it's important to insert the "diffs end here" message in the buffer
-  ;; since the user may miss a message in the echo area.
-  (when verbose
-    (let ((inhibit-read-only t))
-      (if (eq (buffer-size) 0)
-          (insert "No differences found.\n")
-        (insert (format "\n\nDiffs between %s and %s end here." rev1-name rev2-name)))))
-  (goto-char (point-min))
-  (shrink-window-if-larger-than-buffer))
+  ;; possibility of an empty output is for an async process.
+  (when (buffer-live-p buffer-name)
+    (with-current-buffer (get-buffer buffer-name)
+      (and verbose
+           (zerop (buffer-size))
+           (let ((inhibit-read-only t))
+             (insert "No differences found.\n")))
+      (goto-char (point-min))
+      (let ((window (get-buffer-window (current-buffer) t)))
+        (when window
+          (shrink-window-if-larger-than-buffer window))))))
 
 (defvar vc-diff-added-files nil
   "If non-nil, diff added files by comparing them to /dev/null.")
@@ -1970,7 +2062,7 @@ returns t if the buffer had changes, nil otherwise."
       ;; bindings are nicer for read only buffers. pcl-cvs does the
       ;; same thing.
       (setq buffer-read-only t)
-      (vc-exec-after `(vc-diff-sentinel ,verbose ,rev1-name ,rev2-name))
+      (vc-exec-after `(vc-diff-finish ,(buffer-name) ,verbose))
       ;; Display the buffer, but at the end because it can change point.
       (pop-to-buffer (current-buffer))
       ;; In the async case, we return t even if there are no differences
@@ -2486,8 +2578,6 @@ With prefix arg READ-SWITCHES, specify a value to override
   (interactive "DDired under VC (directory): \nP")
   (let ((vc-dired-switches (concat vc-dired-listing-switches
                                    (if vc-dired-recurse "R" ""))))
-    (if (eq (string-match tramp-file-name-regexp dir) 0)
-        (error "Sorry, vc-directory does not work over Tramp"))
     (if read-switches
         (setq vc-dired-switches
               (read-string "Dired listing switches: "
@@ -2512,19 +2602,27 @@ With prefix arg READ-SWITCHES, specify a value to override
 
 (defvar vc-status nil)
 
-(defun vc-status-insert-headers (backend dir)
-  (insert (format "VC backend :%s\n" backend))
-  (insert "Repository : The repository goes here\n")
-  (insert (format "Working dir: %s\n\n\n" dir)))
+(defun vc-status-headers (backend dir)
+  (concat
+   (format "VC backend : %s\n" backend)
+   "Repository : The repository goes here\n"
+   (format "Working dir: %s\n" dir)))
 
 (defun vc-status-printer (fileentry)
   "Pretty print FILEENTRY."
   (insert
+   ;; If you change this, change vc-status-move-to-goal-column.
    (format "%c   %-20s %s"
 	   (if (vc-status-fileinfo->marked fileentry) ?* ? )
 	   (vc-status-fileinfo->state fileentry)
 	   (vc-status-fileinfo->name fileentry))))
 
+(defun vc-status-move-to-goal-column ()
+  (beginning-of-line)
+  ;; Must be in sync with vc-status-printer.
+  (forward-char 25))
+
+;;;###autoload
 (defun vc-status (dir)
   "Show the VC status for DIR."
   (interactive "DVC status for directory: ")
@@ -2533,10 +2631,33 @@ With prefix arg READ-SWITCHES, specify a value to override
   (cd dir)
   (vc-status-mode))
 
-(defvar vc-status-mode-map 
-  (let ((map (make-sparse-keymap)))
+(defvar vc-status-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    ;; Marking.
     (define-key map "m" 'vc-status-mark-file)
+    (define-key map "M" 'vc-status-mark-all-files)
     (define-key map "u" 'vc-status-unmark-file)
+    (define-key map "\C-?" 'vc-status-unmark-file-up)
+    (define-key map "\M-\C-?" 'vc-status-unmark-all-files)
+    ;; Movement.
+    (define-key map "n" 'vc-status-next-line)
+    (define-key map " " 'vc-status-next-line)
+    (define-key map "\t" 'vc-status-next-line)
+    (define-key map "p" 'vc-status-previous-line)
+    (define-key map [backtab] 'vc-status-previous-line)
+    ;; VC commands.
+    (define-key map "=" 'vc-diff)
+    (define-key map "a" 'vc-status-register)
+    ;; Can't be "g" (as in vc map), so "A" for "Annotate".
+    (define-key map "A" 'vc-annotate)
+    ;; vc-print-log uses the current buffer, not a file.
+    ;; (define-key map "l" 'vc-status-print-log)
+    ;; The remainder.
+    (define-key map "f" 'vc-status-find-file)
+    (define-key map "o" 'vc-status-find-file-other-window)
+    (define-key map "q" 'bury-buffer)
+    (define-key map "g" 'vc-status-refresh)
     map)
   "Keymap for VC status")
 
@@ -2552,38 +2673,128 @@ With prefix arg READ-SWITCHES, specify a value to override
 	entries)
     (erase-buffer)
     (set (make-local-variable 'vc-status)
-	 (ewoc-create #'vc-status-printer))
-    (vc-status-insert-headers backend default-directory)
-    (setq entries (vc-call-backend backend 'dir-status default-directory))
+	 (ewoc-create #'vc-status-printer
+		      (vc-status-headers backend default-directory)))
+    (vc-status-refresh)))
+
+(put 'vc-status-mode 'mode-class 'special)
+
+(defun vc-update-vc-status-buffer (entries buffer)
+  (with-current-buffer buffer
     (dolist (entry entries)
-      (ewoc-enter-last 
-       vc-status (vc-status-create-fileinfo (cdr entry) (car entry))))))
+      (ewoc-enter-last vc-status
+		       (vc-status-create-fileinfo (cdr entry) (car entry))))
+    (ewoc-goto-node vc-status (ewoc-nth vc-status 0))))
+
+(defun vc-status-refresh ()
+  "Refresh the contents of the VC status buffer."
+  (interactive)
+  ;; This is not very efficient; ewoc could use a new function here.
+  (ewoc-filter vc-status (lambda (node) nil))
+  (let ((backend (vc-responsible-backend default-directory)))
+    ;; Call the dir-status backend function. dir-status is supposed to
+    ;; be asynchronous.  It should compute the results and call the
+    ;; function passed as a an arg to update the vc-status buffer with
+    ;; the results.
+    (vc-call-backend
+     backend 'dir-status default-directory
+     #'vc-update-vc-status-buffer (current-buffer))))
+
+(defun vc-status-next-line (arg)
+  "Go to the next line.
+If a prefix argument is given, move by that many lines."
+  (interactive "p")
+  (ewoc-goto-next vc-status arg)
+  (vc-status-move-to-goal-column))
+
+(defun vc-status-previous-line (arg)
+  "Go to the previous line.
+If a prefix argument is given, move by that many lines."
+  (interactive "p")
+  (ewoc-goto-prev vc-status arg)
+  (vc-status-move-to-goal-column))
 
 (defun vc-status-mark-file ()
-  "Mark the current file."
+  "Mark the current file and move to the next line."
   (interactive)
   (let* ((crt (ewoc-locate vc-status))
          (file (ewoc-data crt)))
     (setf (vc-status-fileinfo->marked file) t)
     (ewoc-invalidate vc-status crt)
-    (ewoc-goto-next vc-status 1)))
+    (vc-status-next-line 1)))
+
+(defun vc-status-mark-all-files ()
+  "Mark all files."
+  (interactive)
+   (ewoc-map
+    (lambda (file)
+      (unless (vc-status-fileinfo->marked file)
+	(setf (vc-status-fileinfo->marked file) t)
+	t))
+    vc-status))
 
 (defun vc-status-unmark-file ()
-  "Mark the current file."
+  "Unmark the current file and move to the next line."
   (interactive)
   (let* ((crt (ewoc-locate vc-status))
          (file (ewoc-data crt)))
     (setf (vc-status-fileinfo->marked file) nil)
     (ewoc-invalidate vc-status crt)
-    (ewoc-goto-next vc-status 1)))
+    (vc-status-next-line 1)))
+
+(defun vc-status-unmark-file-up ()
+  "Move to the previous line and unmark the file."
+  (interactive)
+  ;; If we're on the first line, we won't move up, but we will still
+  ;; remove the mark.  This seems a bit odd but it is what buffer-menu
+  ;; does.
+  (let* ((prev (ewoc-goto-prev vc-status 1))
+	 (file (ewoc-data prev)))
+    (setf (vc-status-fileinfo->marked file) nil)
+    (ewoc-invalidate vc-status prev)
+    (vc-status-move-to-goal-column)))
+
+(defun vc-status-unmark-all-files ()
+  "Unmark all files."
+  (interactive)
+   (ewoc-map
+    (lambda (file)
+      (when (vc-status-fileinfo->marked file)
+	(setf (vc-status-fileinfo->marked file) nil)
+	t))
+    vc-status))
+
+(defun vc-status-register ()
+  "Register the marked files, or the current file if no marks."
+  (interactive)
+  (let ((files (or (vc-status-marked-files)
+		   (list (vc-status-current-file)))))
+    (dolist (file files)
+      (vc-register file))))
+
+(defun vc-status-find-file ()
+  "Find the file on the current line."
+  (interactive)
+  (find-file (vc-status-current-file)))
+
+(defun vc-status-find-file-other-window ()
+  "Find the file on the current line, in another window."
+  (interactive)
+  (find-file-other-window (vc-status-current-file)))
+
+(defun vc-status-current-file ()
+  (let ((node (ewoc-locate vc-status)))
+    (unless node
+      (error "No file available."))
+    (expand-file-name (vc-status-fileinfo->name (ewoc-data node)))))
 
 (defun vc-status-marked-files ()
   "Return the list of marked files"
-  (mapcar 
+  (mapcar
    (lambda (elem)
      (expand-file-name (vc-status-fileinfo->name elem)))
    (ewoc-collect
-    vc-status 
+    vc-status
     (lambda (crt) (vc-status-fileinfo->marked crt)))))
 
 ;;; End experimental code.
@@ -2782,8 +2993,7 @@ changes from the current branch are merged into the working file."
 	(if (not (vc-find-backend-function (vc-backend file) 'merge-news))
 	    (error "Sorry, merging news is not implemented for %s"
 		   (vc-backend file))
-	  (vc-call merge-news file)
-	  (vc-resynch-buffer file t t))))))
+	  (vc-maybe-resolve-conflicts file (vc-call merge-news file)))))))
 
 (defun vc-version-backup-file (file &optional rev)
   "Return name of backup file for revision REV of FILE.
@@ -3024,9 +3234,6 @@ log entries should be gathered."
           ;; it should find all relevant files relative to
           ;; the default-directory.
 	  nil)))
-  (dolist (file (or args (list default-directory)))
-    (if (eq (string-match tramp-file-name-regexp file) 0)
-        (error "Sorry, vc-update-change-log does not work over Tramp")))
   (vc-call-backend (vc-responsible-backend default-directory)
                    'update-changelog args))
 

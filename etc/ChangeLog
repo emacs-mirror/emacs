@@ -1,3 +1,21 @@
+2008-01-25  Michael Olson  <mwolson@gnu.org>
+
+	* ERC-NEWS: Update for ERC 5.3 release candidate.
+
+2008-01-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* DEVEL.HUMOR: New entry.
+
+2008-01-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* refcards/orgcard.tex: Update to Org-mode version 5.19.
+
+2008-01-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* MACHINES: Add an explicit list of platforms that are no longer
+	supported.
+	* NEWS: Refer to this list.
+
 2008-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* calccard.tex, cs-dired-ref.tex, cs-refcard.tex, cs-survival.tex:
@@ -24,7 +42,7 @@
 
 	* images/icons/emacs_16.png, images/icons/emacs_24.png
 	* images/icons/emacs_32.png, images/icons/emacs_48.png: Rename to
-	hicolor/16x16/apps/emacs.png hicolor/24x24/apps/emacs.png
+	hicolor/16x16/apps/emacs.png, hicolor/24x24/apps/emacs.png,
 	hicolor/32x32/apps/emacs.png and hicolor/48x48/apps/emacs.png.
 
 	* images/icons/README (Author): Update for renaming.

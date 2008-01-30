@@ -10,16 +10,16 @@
 ;;;;;;  ceiling* floor* isqrt lcm gcd cl-progv-before cl-set-frame-visible-p
 ;;;;;;  cl-map-overlays cl-map-intervals cl-map-keymap-recursively
 ;;;;;;  notevery notany every some mapcon mapcan mapl maplist map
-;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "53c2b3ede19dac62cff13a37f58cdf9c")
+;;;;;;  cl-mapcar-many equalp coerce) "cl-extra" "cl-extra.el" "2f89c94c42629315419a9d7404469c42")
 ;;; Generated autoloads from cl-extra.el
 
-(autoload (quote coerce) "cl-extra" "\
+(autoload 'coerce "cl-extra" "\
 Coerce OBJECT to type TYPE.
 TYPE is a Common Lisp type specifier.
 
 \(fn OBJECT TYPE)" nil nil)
 
-(autoload (quote equalp) "cl-extra" "\
+(autoload 'equalp "cl-extra" "\
 Return t if two Lisp objects have similar structures and contents.
 This is like `equal', except that it accepts numerically equal
 numbers of different types (float vs. integer), and also compares
@@ -27,246 +27,246 @@ strings case-insensitively.
 
 \(fn X Y)" nil nil)
 
-(autoload (quote cl-mapcar-many) "cl-extra" "\
+(autoload 'cl-mapcar-many "cl-extra" "\
 Not documented
 
 \(fn CL-FUNC CL-SEQS)" nil nil)
 
-(autoload (quote map) "cl-extra" "\
+(autoload 'map "cl-extra" "\
 Map a FUNCTION across one or more SEQUENCEs, returning a sequence.
 TYPE is the sequence type to return.
 
 \(fn TYPE FUNCTION SEQUENCE...)" nil nil)
 
-(autoload (quote maplist) "cl-extra" "\
+(autoload 'maplist "cl-extra" "\
 Map FUNCTION to each sublist of LIST or LISTs.
 Like `mapcar', except applies to lists and their cdr's rather than to
 the elements themselves.
 
 \(fn FUNCTION LIST...)" nil nil)
 
-(autoload (quote mapl) "cl-extra" "\
+(autoload 'mapl "cl-extra" "\
 Like `maplist', but does not accumulate values returned by the function.
 
 \(fn FUNCTION LIST...)" nil nil)
 
-(autoload (quote mapcan) "cl-extra" "\
+(autoload 'mapcan "cl-extra" "\
 Like `mapcar', but nconc's together the values returned by the function.
 
 \(fn FUNCTION SEQUENCE...)" nil nil)
 
-(autoload (quote mapcon) "cl-extra" "\
+(autoload 'mapcon "cl-extra" "\
 Like `maplist', but nconc's together the values returned by the function.
 
 \(fn FUNCTION LIST...)" nil nil)
 
-(autoload (quote some) "cl-extra" "\
+(autoload 'some "cl-extra" "\
 Return true if PREDICATE is true of any element of SEQ or SEQs.
 If so, return the true (non-nil) value returned by PREDICATE.
 
 \(fn PREDICATE SEQ...)" nil nil)
 
-(autoload (quote every) "cl-extra" "\
+(autoload 'every "cl-extra" "\
 Return true if PREDICATE is true of every element of SEQ or SEQs.
 
 \(fn PREDICATE SEQ...)" nil nil)
 
-(autoload (quote notany) "cl-extra" "\
+(autoload 'notany "cl-extra" "\
 Return true if PREDICATE is false of every element of SEQ or SEQs.
 
 \(fn PREDICATE SEQ...)" nil nil)
 
-(autoload (quote notevery) "cl-extra" "\
+(autoload 'notevery "cl-extra" "\
 Return true if PREDICATE is false of some element of SEQ or SEQs.
 
 \(fn PREDICATE SEQ...)" nil nil)
 
-(defalias (quote cl-map-keymap) (quote map-keymap))
+(defalias 'cl-map-keymap 'map-keymap)
 
-(autoload (quote cl-map-keymap-recursively) "cl-extra" "\
+(autoload 'cl-map-keymap-recursively "cl-extra" "\
 Not documented
 
 \(fn CL-FUNC-REC CL-MAP &optional CL-BASE)" nil nil)
 
-(autoload (quote cl-map-intervals) "cl-extra" "\
+(autoload 'cl-map-intervals "cl-extra" "\
 Not documented
 
 \(fn CL-FUNC &optional CL-WHAT CL-PROP CL-START CL-END)" nil nil)
 
-(autoload (quote cl-map-overlays) "cl-extra" "\
+(autoload 'cl-map-overlays "cl-extra" "\
 Not documented
 
 \(fn CL-FUNC &optional CL-BUFFER CL-START CL-END CL-ARG)" nil nil)
 
-(autoload (quote cl-set-frame-visible-p) "cl-extra" "\
+(autoload 'cl-set-frame-visible-p "cl-extra" "\
 Not documented
 
 \(fn FRAME VAL)" nil nil)
 
-(autoload (quote cl-progv-before) "cl-extra" "\
+(autoload 'cl-progv-before "cl-extra" "\
 Not documented
 
 \(fn SYMS VALUES)" nil nil)
 
-(autoload (quote gcd) "cl-extra" "\
+(autoload 'gcd "cl-extra" "\
 Return the greatest common divisor of the arguments.
 
 \(fn &rest ARGS)" nil nil)
 
-(autoload (quote lcm) "cl-extra" "\
+(autoload 'lcm "cl-extra" "\
 Return the least common multiple of the arguments.
 
 \(fn &rest ARGS)" nil nil)
 
-(autoload (quote isqrt) "cl-extra" "\
+(autoload 'isqrt "cl-extra" "\
 Return the integer square root of the argument.
 
 \(fn X)" nil nil)
 
-(autoload (quote floor*) "cl-extra" "\
+(autoload 'floor* "cl-extra" "\
 Return a list of the floor of X and the fractional part of X.
 With two arguments, return floor and remainder of their quotient.
 
 \(fn X &optional Y)" nil nil)
 
-(autoload (quote ceiling*) "cl-extra" "\
+(autoload 'ceiling* "cl-extra" "\
 Return a list of the ceiling of X and the fractional part of X.
 With two arguments, return ceiling and remainder of their quotient.
 
 \(fn X &optional Y)" nil nil)
 
-(autoload (quote truncate*) "cl-extra" "\
+(autoload 'truncate* "cl-extra" "\
 Return a list of the integer part of X and the fractional part of X.
 With two arguments, return truncation and remainder of their quotient.
 
 \(fn X &optional Y)" nil nil)
 
-(autoload (quote round*) "cl-extra" "\
+(autoload 'round* "cl-extra" "\
 Return a list of X rounded to the nearest integer and the remainder.
 With two arguments, return rounding and remainder of their quotient.
 
 \(fn X &optional Y)" nil nil)
 
-(autoload (quote mod*) "cl-extra" "\
+(autoload 'mod* "cl-extra" "\
 The remainder of X divided by Y, with the same sign as Y.
 
 \(fn X Y)" nil nil)
 
-(autoload (quote rem*) "cl-extra" "\
+(autoload 'rem* "cl-extra" "\
 The remainder of X divided by Y, with the same sign as X.
 
 \(fn X Y)" nil nil)
 
-(autoload (quote signum) "cl-extra" "\
+(autoload 'signum "cl-extra" "\
 Return 1 if X is positive, -1 if negative, 0 if zero.
 
 \(fn X)" nil nil)
 
-(autoload (quote random*) "cl-extra" "\
+(autoload 'random* "cl-extra" "\
 Return a random nonnegative number less than LIM, an integer or float.
 Optional second arg STATE is a random-state object.
 
 \(fn LIM &optional STATE)" nil nil)
 
-(autoload (quote make-random-state) "cl-extra" "\
+(autoload 'make-random-state "cl-extra" "\
 Return a copy of random-state STATE, or of `*random-state*' if omitted.
 If STATE is t, return a new state object seeded from the time of day.
 
 \(fn &optional STATE)" nil nil)
 
-(autoload (quote random-state-p) "cl-extra" "\
+(autoload 'random-state-p "cl-extra" "\
 Return t if OBJECT is a random-state object.
 
 \(fn OBJECT)" nil nil)
 
-(autoload (quote cl-float-limits) "cl-extra" "\
+(autoload 'cl-float-limits "cl-extra" "\
 Not documented
 
 \(fn)" nil nil)
 
-(autoload (quote subseq) "cl-extra" "\
+(autoload 'subseq "cl-extra" "\
 Return the subsequence of SEQ from START to END.
 If END is omitted, it defaults to the length of the sequence.
 If START or END is negative, it counts from the end.
 
 \(fn SEQ START &optional END)" nil nil)
 
-(autoload (quote concatenate) "cl-extra" "\
+(autoload 'concatenate "cl-extra" "\
 Concatenate, into a sequence of type TYPE, the argument SEQUENCEs.
 
 \(fn TYPE SEQUENCE...)" nil nil)
 
-(autoload (quote revappend) "cl-extra" "\
+(autoload 'revappend "cl-extra" "\
 Equivalent to (append (reverse X) Y).
 
 \(fn X Y)" nil nil)
 
-(autoload (quote nreconc) "cl-extra" "\
+(autoload 'nreconc "cl-extra" "\
 Equivalent to (nconc (nreverse X) Y).
 
 \(fn X Y)" nil nil)
 
-(autoload (quote list-length) "cl-extra" "\
+(autoload 'list-length "cl-extra" "\
 Return the length of list X.  Return nil if list is circular.
 
 \(fn X)" nil nil)
 
-(autoload (quote tailp) "cl-extra" "\
+(autoload 'tailp "cl-extra" "\
 Return true if SUBLIST is a tail of LIST.
 
 \(fn SUBLIST LIST)" nil nil)
 
-(autoload (quote get*) "cl-extra" "\
+(autoload 'get* "cl-extra" "\
 Return the value of SYMBOL's PROPNAME property, or DEFAULT if none.
 
 \(fn SYMBOL PROPNAME &optional DEFAULT)" nil nil)
 
-(autoload (quote getf) "cl-extra" "\
+(autoload 'getf "cl-extra" "\
 Search PROPLIST for property PROPNAME; return its value or DEFAULT.
 PROPLIST is a list of the sort returned by `symbol-plist'.
 
 \(fn PROPLIST PROPNAME &optional DEFAULT)" nil nil)
 
-(autoload (quote cl-set-getf) "cl-extra" "\
+(autoload 'cl-set-getf "cl-extra" "\
 Not documented
 
 \(fn PLIST TAG VAL)" nil nil)
 
-(autoload (quote cl-do-remf) "cl-extra" "\
+(autoload 'cl-do-remf "cl-extra" "\
 Not documented
 
 \(fn PLIST TAG)" nil nil)
 
-(autoload (quote cl-remprop) "cl-extra" "\
+(autoload 'cl-remprop "cl-extra" "\
 Remove from SYMBOL's plist the property PROPNAME and its value.
 
 \(fn SYMBOL PROPNAME)" nil nil)
 
-(defalias (quote remprop) (quote cl-remprop))
+(defalias 'remprop 'cl-remprop)
 
-(defalias (quote cl-gethash) (quote gethash))
+(defalias 'cl-gethash 'gethash)
 
-(defalias (quote cl-puthash) (quote puthash))
+(defalias 'cl-puthash 'puthash)
 
-(defalias (quote cl-remhash) (quote remhash))
+(defalias 'cl-remhash 'remhash)
 
-(defalias (quote cl-clrhash) (quote clrhash))
+(defalias 'cl-clrhash 'clrhash)
 
-(defalias (quote cl-maphash) (quote maphash))
+(defalias 'cl-maphash 'maphash)
 
-(defalias (quote cl-make-hash-table) (quote make-hash-table))
+(defalias 'cl-make-hash-table 'make-hash-table)
 
-(defalias (quote cl-hash-table-p) (quote hash-table-p))
+(defalias 'cl-hash-table-p 'hash-table-p)
 
-(defalias (quote cl-hash-table-count) (quote hash-table-count))
+(defalias 'cl-hash-table-count 'hash-table-count)
 
-(autoload (quote cl-macroexpand-all) "cl-extra" "\
+(autoload 'cl-macroexpand-all "cl-extra" "\
 Expand all macro calls through a Lisp FORM.
 This also does some trivial optimizations to make the form prettier.
 
 \(fn FORM &optional ENV)" nil nil)
 
-(autoload (quote cl-prettyexpand) "cl-extra" "\
+(autoload 'cl-prettyexpand "cl-extra" "\
 Not documented
 
 \(fn FORM &optional FULL)" nil nil)
@@ -745,7 +745,7 @@ Not documented
 ;;;;;;  find nsubstitute-if-not nsubstitute-if nsubstitute substitute-if-not
 ;;;;;;  substitute-if substitute delete-duplicates remove-duplicates
 ;;;;;;  delete-if-not delete-if delete* remove-if-not remove-if remove*
-;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "77bee7df392948b6ab0699e391e8abc1")
+;;;;;;  replace fill reduce) "cl-seq" "cl-seq.el" "e3c349e5231811c1c0482dd378dae56a")
 ;;; Generated autoloads from cl-seq.el
 
 (autoload 'reduce "cl-seq" "\

@@ -1032,11 +1032,6 @@ temacs${EXEEXT}: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} $
 prefix-args${EXEEXT}: prefix-args.c $(config_h)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) ${srcdir}/prefix-args.c -o prefix-args
 
-/* Do not lose if this was not defined.  */
-#ifndef OLDXMENU_OPTIONS
-#define OLDXMENU_OPTIONS
-#endif
-
 #if defined (HAVE_X_WINDOWS) && defined (HAVE_X11) && defined (HAVE_MENUS) && ! defined (HAVE_GTK)
 
 /* We use stamp-xmenu with these two deps
@@ -1082,7 +1077,7 @@ C_SWITCH_X_SITE_1 = C_SWITCH_X_SITE
 C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
 C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
 really-oldXMenu:
-	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} OLDXMENU_OPTIONS \
+	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
     "C_SWITCH_X_SITE=$(C_SWITCH_X_SITE_1)" \
     "C_SWITCH_X_MACHINE=$(C_SWITCH_X_MACHINE_1)" \

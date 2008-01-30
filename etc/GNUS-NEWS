@@ -58,7 +58,7 @@ Articles::.
 
 ** International host names (IDNA) can now be decoded inside article bodies
 using `W i' (`gnus-summary-idna-message').  This requires that GNU Libidn
-(<http://www.gnu.org/software/libidn/>) has been installed.
+(`http://www.gnu.org/software/libidn/') has been installed.
 
 ** The non-ASCII group names handling has been much improved.  The back
 ends that fully support non-ASCII group names are now `nntp', `nnml',
@@ -106,12 +106,23 @@ From Newsgroups::.
 
 ** You can replace MIME parts with external bodies.  See
 `gnus-mime-replace-part' and `gnus-article-replace-part'.  *Note MIME
-Commands::, *Note Using MIME::.
+Commands::, *note Using MIME::.
 
 ** The option `mm-fill-flowed' can be used to disable treatment of
 format=flowed messages.  Also, flowed text is disabled when sending
 inline PGP signed messages.  *Note Flowed text: (emacs-mime)Flowed text.
 (New in Gnus 5.10.7)
+
+** Now the new command `S W' (`gnus-article-wide-reply-with-original') for
+a wide reply in the article buffer yanks a text that is in the active
+region, if it is set, as well as the `R'
+(`gnus-article-reply-with-original') command.  Note that the `R' command
+in the article buffer no longer accepts a prefix argument, which was
+used to make it do a wide reply.  *Note Article Keymap::.
+
+** The new command `C-h b' (`gnus-article-describe-bindings') used in the
+article buffer now shows not only the article commands but also the real
+summary commands that are accessible from the article buffer.
 
 
 

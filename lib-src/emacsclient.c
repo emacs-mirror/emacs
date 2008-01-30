@@ -170,7 +170,9 @@ struct option longopts[] =
   { "socket-name",	required_argument, NULL, 's' },
 #endif
   { "server-file",	required_argument, NULL, 'f' },
+#ifndef WINDOWSNT
   { "display",	required_argument, NULL, 'd' },
+#endif
   { 0, 0, 0, 0 }
 };
 
@@ -227,7 +229,7 @@ xstrdup (const char *s)
 
 
 /* Return the current working directory.  Returns NULL on errors.
-   Any other returned value must be freed with free. This is used
+   Any other returned value must be freed with free.  This is used
    only when get_current_dir_name is not defined on the system.  */
 char*
 get_current_dir_name ()
@@ -477,9 +479,15 @@ decode_options (argc, argv)
      char **argv;
 {
   alternate_editor = egetenv ("ALTERNATE_EDITOR");
+
+  /* We used to set `display' to $DISPLAY by default, but this changed the
+     default behavior and is sometimes inconvenient.  So instead of forcing
+     users to say "--display ''" when they want to use Emacs's existing tty
+     or display connection, we force them to use "--display $DISPLAY" if
+     they want Emacs to connect to their current display.  */
+#if 0
   display = egetenv ("DISPLAY");
-  if (display && strlen (display) == 0)
-    display = NULL;
+#endif
 
   while (1)
     {
@@ -515,9 +523,15 @@ decode_options (argc, argv)
 	  server_file = optarg;
 	  break;
 
+	  /* We used to disallow this argument in w32, but it seems better
+	     to allow it, for the occasional case where the user is
+	     connecting with a w32 client to a server compiled with X11
+	     support.  */
+#if 1 /* !defined WINDOWS */
 	case 'd':
 	  display = optarg;
 	  break;
+#endif
 
 	case 'n':
 	  nowait = 1;
@@ -551,6 +565,9 @@ decode_options (argc, argv)
 	  break;
 	}
     }
+
+  if (display && strlen (display) == 0)
+    display = NULL;
 
   if (!tty && display)
     window_system = 1;
@@ -594,8 +611,10 @@ The following OPTIONS are accepted:\n\
 -c, --create-frame    	Create a new frame instead of trying to\n\
 			use the current Emacs frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
--n, --no-wait		Don't wait for the server to return\n\
--d, --display=DISPLAY	Visit the file in the given display\n"
+-n, --no-wait		Don't wait for the server to return\n"
+#ifndef WINDOWSNT
+"-d, --display=DISPLAY	Visit the file in the given display\n"
+#endif
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 "-s, --socket-name=FILENAME\n\
 			Set filename of the UNIX socket for communication\n"
@@ -882,7 +901,7 @@ initialize_sockets ()
 
   if (WSAStartup (MAKEWORD (2, 0), &wsaData))
     {
-      message (TRUE, "%s: error initializing WinSock2", progname);
+      message (TRUE, "%s: error initializing WinSock2\n", progname);
       exit (EXIT_FAILURE);
     }
 
@@ -939,7 +958,7 @@ get_server_config (server, authentication)
     }
   else
     {
-      message (TRUE, "%s: invalid configuration info", progname);
+      message (TRUE, "%s: invalid configuration info\n", progname);
       exit (EXIT_FAILURE);
     }
 
@@ -949,7 +968,7 @@ get_server_config (server, authentication)
 
   if (! fread (authentication, AUTH_KEY_LENGTH, 1, config))
     {
-      message (TRUE, "%s: cannot read authentication info", progname);
+      message (TRUE, "%s: cannot read authentication info\n", progname);
       exit (EXIT_FAILURE);
     }
 
@@ -1002,7 +1021,7 @@ set_tcp_socket ()
 
   send_to_emacs (s, "-auth ");
   send_to_emacs (s, auth_string);
-  send_to_emacs (s, "\n");
+  send_to_emacs (s, " ");
 
   return s;
 }
@@ -1092,7 +1111,7 @@ handle_sigtstp (int signalnum)
   if (emacs_socket)
     send_to_emacs (emacs_socket, "-suspend \n");
 
-  /* Unblock this signal and call the default handler by temprarily
+  /* Unblock this signal and call the default handler by temporarily
      changing the handler and resignalling. */
   sigprocmask (SIG_BLOCK, NULL, &set);
   sigdelset (&set, signalnum);
@@ -1167,7 +1186,7 @@ set_local_socket ()
       strcpy (server.sun_path, socket_name);
     else
       {
-        message (TRUE, "%s: socket-name %s too long",
+        message (TRUE, "%s: socket-name %s too long\n",
                  progname, socket_name);
         fail ();
       }
@@ -1202,7 +1221,7 @@ set_local_socket ()
 		  strcpy (server.sun_path, socket_name);
 		else
 		  {
-		    message (TRUE, "%s: socket-name %s too long",
+		    message (TRUE, "%s: socket-name %s too long\n",
 			     progname, socket_name);
 		    exit (EXIT_FAILURE);
 		  }
@@ -1266,7 +1285,7 @@ set_socket ()
       s = set_local_socket ();
       if ((s != INVALID_SOCKET) || alternate_editor)
 	return s;
-      message (TRUE, "%s: error accessing socket \"%s\"",
+      message (TRUE, "%s: error accessing socket \"%s\"\n",
 	       progname, socket_name);
       exit (EXIT_FAILURE);
     }
@@ -1282,7 +1301,7 @@ set_socket ()
       if ((s != INVALID_SOCKET) || alternate_editor)
 	return s;
 
-      message (TRUE, "%s: error accessing server file \"%s\"",
+      message (TRUE, "%s: error accessing server file \"%s\"\n",
 	       progname, server_file);
       exit (EXIT_FAILURE);
     }

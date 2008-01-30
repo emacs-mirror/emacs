@@ -33,10 +33,14 @@
 
 (require 'erc)
 
-;; Imenu Autoload
-(add-hook 'erc-mode-hook
-          (lambda ()
-            (setq imenu-create-index-function 'erc-create-imenu-index)))
+;;; Imenu support
+
+(defun erc-imenu-setup ()
+  "Setup Imenu support in an ERC buffer."
+  (set (make-local-variable 'imenu-create-index-function)
+       'erc-create-imenu-index))
+
+(add-hook 'erc-mode-hook 'erc-imenu-setup)
 (autoload 'erc-create-imenu-index "erc-imenu" "Imenu index creation function")
 
 ;;; Automatically scroll to bottom
@@ -51,11 +55,15 @@ argument to `recenter'."
   :type '(choice integer (const nil)))
 
 (define-erc-module scrolltobottom nil
-  "This mode causes the prompt to stay at the end of the window.
-You have to activate or deactivate it in already created windows
-separately."
-  ((add-hook 'erc-mode-hook 'erc-add-scroll-to-bottom))
-  ((remove-hook 'erc-mode-hook 'erc-add-scroll-to-bottom)))
+  "This mode causes the prompt to stay at the end of the window."
+  ((add-hook 'erc-mode-hook 'erc-add-scroll-to-bottom)
+   (dolist (buffer (erc-buffer-list))
+     (with-current-buffer buffer
+       (erc-add-scroll-to-bottom))))
+  ((remove-hook 'erc-mode-hook 'erc-add-scroll-to-bottom)
+   (dolist (buffer (erc-buffer-list))
+     (with-current-buffer buffer
+       (remove-hook 'window-scroll-functions 'erc-scroll-to-bottom t)))))
 
 (defun erc-add-scroll-to-bottom ()
   "A hook function for `erc-mode-hook' to recenter output at bottom of window.
@@ -110,7 +118,46 @@ Put this function on `erc-insert-post-hook' and/or `erc-send-post-hook'."
   (put-text-property (point-min) (point-max) 'front-sticky t)
   (put-text-property (point-min) (point-max) 'rear-nonsticky t))
 
-;; Distinguish non-commands
+;;; Move to prompt when typing text
+(define-erc-module move-to-prompt nil
+  "This mode causes the point to be moved to the prompt when typing text."
+  ((add-hook 'erc-mode-hook 'erc-move-to-prompt-setup)
+   (dolist (buffer (erc-buffer-list))
+     (with-current-buffer buffer
+       (erc-move-to-prompt-setup))))
+  ((remove-hook 'erc-mode-hook 'erc-move-to-prompt-setup)
+   (dolist (buffer (erc-buffer-list))
+     (with-current-buffer buffer
+       (remove-hook 'pre-command-hook 'erc-move-to-prompt t)))))
+
+(defun erc-move-to-prompt ()
+  "Move the point to the ERC prompt if this is a self-inserting command."
+  (when (and erc-input-marker (< (point) erc-input-marker)
+             (eq 'self-insert-command this-command))
+    (deactivate-mark)
+    (push-mark)
+    (goto-char (point-max))))
+
+(defun erc-move-to-prompt-setup ()
+  "Initialize the move-to-prompt module for XEmacs."
+  (add-hook 'pre-command-hook 'erc-move-to-prompt nil t))
+
+;;; Keep place in unvisited channels
+(define-erc-module keep-place nil
+  "Leave point above un-viewed text in other channels."
+  ((add-hook 'erc-insert-pre-hook  'erc-keep-place))
+  ((remove-hook 'erc-insert-pre-hook  'erc-keep-place)))
+
+(defun erc-keep-place (ignored)
+  "Move point away from the last line in a non-selected ERC buffer."
+  (when (and (not (eq (window-buffer (selected-window))
+                      (current-buffer)))
+             (>= (point) erc-insert-marker))
+    (deactivate-mark)
+    (goto-char (erc-beg-of-input-line))
+    (forward-line -1)))
+
+;;; Distinguish non-commands
 (defvar erc-noncommands-list '(erc-cmd-ME
                                erc-cmd-COUNTRY
                                erc-cmd-SV
@@ -496,8 +543,19 @@ channel that has weird people talking in morse to each other.
 
 See also `unmorse-region'."
   (goto-char (point-min))
-  (when (re-search-forward "[.-]+\\([.-]+[/ ]\\)+[.-]+" nil t)
-    (unmorse-region (match-beginning 0) (match-end 0))))
+  (when (re-search-forward "[.-]+\\([.-]*/? *\\)+[.-]+/?" nil t)
+    (save-restriction
+      (narrow-to-region (match-beginning 0) (match-end 0))
+      ;; Turn " / " into "  "
+      (goto-char (point-min))
+      (while (re-search-forward " / " nil t)
+        (replace-match "  "))
+      ;; Turn "/ " into "/"
+      (goto-char (point-min))
+      (while (re-search-forward "/ " nil t)
+        (replace-match "/"))
+      ;; Unmorse region
+      (unmorse-region (point-min) (point-max)))))
 
 ;;; erc-occur
 (defun erc-occur (string &optional proc)

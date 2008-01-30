@@ -1934,7 +1934,7 @@ is non-nil if the user has supplied the password interactively.
     (save-restriction
       (while (not (eobp))
 	(setq start (point))
-	(cond ((looking-at "BABYL OPTIONS:");Babyl header
+	(cond ((looking-at "BABYL OPTIONS:")	;Babyl header
 	       (if (search-forward "\n\^_" nil t)
 		   ;; If we find the proper terminator, delete through there.
 		   (delete-region (point-min) (point))
@@ -1953,75 +1953,80 @@ is non-nil if the user has supplied the password interactively.
 			      (save-excursion
 				(skip-chars-forward " \t\n")
 				(point)))
-	       (save-excursion
-		 (let* ((header-end
-			 (progn
-			   (save-excursion
-			     (goto-char start)
-			     (forward-line 1)
-			     (if (looking-at "0")
-				 (forward-line 1)
-			       (forward-line 2))
-			     (save-restriction
-			       (narrow-to-region (point) (point-max))
-			       (rfc822-goto-eoh)
-			       (point)))))
-			(case-fold-search t)
-			(quoted-printable-header-field-end
+	       ;; The following let* form was wrapped in a `save-excursion'
+	       ;; which in one case caused infinite looping, see:
+	       ;; http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00968.html
+	       ;; Removing that form leaves `point' at the end of the
+	       ;; region decoded by `rmail-decode-region' which should
+	       ;; be correct.
+	       (let* ((header-end
+		       (progn
 			 (save-excursion
 			   (goto-char start)
-			   (re-search-forward
-			    "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
-			    header-end t)))
-			(base64-header-field-end
-			 (save-excursion
-			   (goto-char start)
-			   ;; Don't try to decode non-text data.
-			   (and (re-search-forward
-				 "^content-type:\\(\n?[\t ]\\)\\(text\\|message\\)/"
-				 header-end t)
-				(goto-char start)
-				(re-search-forward
-				 "^content-transfer-encoding:\\(\n?[\t ]\\)*base64\\(\n?[\t ]\\)*"
-				 header-end t)))))
-		   (if quoted-printable-header-field-end
+			   (forward-line 1)
+			   (if (looking-at "0")
+			       (forward-line 1)
+			     (forward-line 2))
+			   (save-restriction
+			     (narrow-to-region (point) (point-max))
+			     (rfc822-goto-eoh)
+			     (point)))))
+		      (case-fold-search t)
+		      (quoted-printable-header-field-end
 		       (save-excursion
-			 (unless
-			     (mail-unquote-printable-region header-end (point) nil t t)
-			   (message "Malformed MIME quoted-printable message"))
-			 ;; Change "quoted-printable" to "8bit",
-			 ;; to reflect the decoding we just did.
-			 (goto-char quoted-printable-header-field-end)
+			 (goto-char start)
+			 (re-search-forward
+			  "^content-transfer-encoding:\\(\n?[\t ]\\)*quoted-printable\\(\n?[\t ]\\)*"
+			  header-end t)))
+		      (base64-header-field-end
+		       (save-excursion
+			 (goto-char start)
+			 ;; Don't try to decode non-text data.
+			 (and (re-search-forward
+			       "^content-type:\\(\n?[\t ]\\)\\(text\\|message\\)/"
+			       header-end t)
+			      (goto-char start)
+			      (re-search-forward
+			       "^content-transfer-encoding:\\(\n?[\t ]\\)*base64\\(\n?[\t ]\\)*"
+			       header-end t)))))
+		 (if quoted-printable-header-field-end
+		     (save-excursion
+		       (unless
+			   (mail-unquote-printable-region header-end (point) nil t t)
+			 (message "Malformed MIME quoted-printable message"))
+		       ;; Change "quoted-printable" to "8bit",
+		       ;; to reflect the decoding we just did.
+		       (goto-char quoted-printable-header-field-end)
+		       (delete-region (point) (search-backward ":"))
+		       (insert ": 8bit")))
+		 (if base64-header-field-end
+		     (save-excursion
+		       (when
+			   (condition-case nil
+			       (progn
+				 (base64-decode-region (1+ header-end)
+						       (- (point) 2))
+				 t)
+			     (error nil))
+			 ;; Change "base64" to "8bit", to reflect the
+			 ;; decoding we just did.
+			 (goto-char base64-header-field-end)
 			 (delete-region (point) (search-backward ":"))
-			 (insert ": 8bit")))
-		   (if base64-header-field-end
-		       (save-excursion
-			 (when
-			     (condition-case nil
-				 (progn
-				   (base64-decode-region (1+ header-end)
-							 (- (point) 2))
-				   t)
-			       (error nil))
-			   ;; Change "base64" to "8bit", to reflect the
-			   ;; decoding we just did.
-			   (goto-char base64-header-field-end)
-			   (delete-region (point) (search-backward ":"))
-			   (insert ": 8bit"))))
-		   (setq last-coding-system-used nil)
-		   (or rmail-enable-mime
-		       (not rmail-enable-multibyte)
-		       (let ((mime-charset
-			      (if (and rmail-decode-mime-charset
-				       (save-excursion
-					 (goto-char start)
-					 (search-forward "\n\n" nil t)
-					 (let ((case-fold-search t))
-					   (re-search-backward
-					    rmail-mime-charset-pattern
-					    start t))))
-				  (intern (downcase (match-string 1))))))
-			 (rmail-decode-region start (point) mime-charset)))))
+			 (insert ": 8bit"))))
+		 (setq last-coding-system-used nil)
+		 (or rmail-enable-mime
+		     (not rmail-enable-multibyte)
+		     (let ((mime-charset
+			    (if (and rmail-decode-mime-charset
+				     (save-excursion
+				       (goto-char start)
+				       (search-forward "\n\n" nil t)
+				       (let ((case-fold-search t))
+					 (re-search-backward
+					  rmail-mime-charset-pattern
+					  start t))))
+				(intern (downcase (match-string 1))))))
+		       (rmail-decode-region start (point) mime-charset))))
 	       ;; Add an X-Coding-System: header if we don't have one.
 	       (save-excursion
 		 (goto-char start)
@@ -2051,8 +2056,8 @@ is non-nil if the user has supplied the password interactively.
 		 (save-restriction
 		   (narrow-to-region start (1- (point)))
 		   (goto-char (point-min))
-		   (while (search-forward "\n\^_" nil t); single char "\^_"
-		     (replace-match "\n^_")))); 2 chars: "^" and "_"
+		   (while (search-forward "\n\^_" nil t) ; single char "\^_"
+		     (replace-match "\n^_"))))	; 2 chars: "^" and "_"
 	       (setq last-coding-system-used nil)
 	       (or rmail-enable-mime
 		   (not rmail-enable-multibyte)
@@ -2168,8 +2173,8 @@ is non-nil if the user has supplied the password interactively.
 		 (save-restriction
 		   (narrow-to-region start (point))
 		   (goto-char (point-min))
-		   (while (search-forward "\n\^_" nil t); single char
-		     (replace-match "\n^_")))); 2 chars: "^" and "_"
+		   (while (search-forward "\n\^_" nil t) ; single char
+		     (replace-match "\n^_"))))	; 2 chars: "^" and "_"
 	       ;; This is for malformed messages that don't end in newline.
 	       ;; There shouldn't be any, but some users say occasionally
 	       ;; there are some.

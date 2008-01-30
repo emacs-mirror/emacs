@@ -584,7 +584,7 @@ The counter can wrap around occasionally.
 This function returns @var{buffer}'s character-change modification-count.
 Changes to text properties leave this counter unchanged; however, each
 time text is inserted or removed from the buffer, the counter is reset
-to the value that would be returned @code{buffer-modified-tick}.
+to the value that would be returned by @code{buffer-modified-tick}.
 By comparing the values returned by two @code{buffer-chars-modified-tick}
 calls, you can tell whether a character change occurred in that buffer
 in between the calls.  If @var{buffer} is @code{nil} (or omitted), the
@@ -783,7 +783,7 @@ are selected for display in a window (@pxref{Displaying Buffers}), and
 to the end when they are buried (see @code{bury-buffer}, below).
 There are no functions available to the Lisp programmer which directly
 manipulate the buffer list.
-  
+
   In addition to the fundamental Emacs buffer list, each frame has its
 own version of the buffer list, in which the buffers that have been
 selected in that frame come first, starting with the buffers most

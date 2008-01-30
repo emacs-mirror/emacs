@@ -4779,12 +4779,13 @@ DEFUN ("hash-table-p", Fhash_table_p, Shash_table_p, 1, 1, 0,
 
 
 DEFUN ("clrhash", Fclrhash, Sclrhash, 1, 1, 0,
-       doc: /* Clear hash table TABLE.  */)
+       doc: /* Clear hash table TABLE and return it.  */)
      (table)
      Lisp_Object table;
 {
   hash_clear (check_hash_table (table));
-  return Qnil;
+  /* Be compatible with XEmacs.  */
+  return table;
 }
 
 
@@ -5200,9 +5201,10 @@ invoked by mouse clicks and mouse menu items.  */);
 
   DEFVAR_BOOL ("use-file-dialog", &use_file_dialog,
     doc: /* *Non-nil means mouse commands use a file dialog to ask for files.
-This applies to commands from menus and tool bar buttons.  The value of
-`use-dialog-box' takes precedence over this variable, so a file dialog is only
-used if both `use-dialog-box' and this variable are non-nil.  */);
+This applies to commands from menus and tool bar buttons even when
+they are initiated from the keyboard.  The value of `use-dialog-box'
+takes precedence over this variable, so a file dialog is only used if
+both `use-dialog-box' and this variable are non-nil.  */);
   use_file_dialog = 1;
 
   defsubr (&Sidentity);

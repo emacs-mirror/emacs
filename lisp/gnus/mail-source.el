@@ -74,6 +74,8 @@ See Info node `(gnus)Mail Source Specifiers'."
 	  (repeat :tag "List"
 	   (choice :format "%[Value Menu%] %v"
 		   :value (file)
+		   (cons :tag "Group parameter `mail-source'"
+			 (const :format "" group))
 		   (cons :tag "Spool file"
 			 (const :format "" file)
 			 (checklist :tag "Options" :greedy t
