@@ -192,4 +192,5 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
 
 (provide 'linum)
 
+;; arch-tag: dea45631-ed3c-4867-8b49-1c41c80aec6a
 ;;; linum.el ends here
