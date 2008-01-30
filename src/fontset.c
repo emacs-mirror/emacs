@@ -415,6 +415,8 @@ reorder_font_vector (font_group, charset_id, family)
   Lisp_Object preferred_by_charset, preferred_by_family;
 
   size = ASIZE (font_group) - 3;
+  /* Exclude the tailing nil elements from the reordering.  */
+  while (NILP (AREF (font_group, size - 1))) size--;
   charset_id_table = (int *) alloca (sizeof (int) * size);
   new_vec = (Lisp_Object *) alloca (sizeof (Lisp_Object) * size);
 
@@ -568,6 +570,7 @@ fontset_find_font (fontset, c, face, id, fallback)
     vec = CHAR_TABLE_REF (fontset, c);
   else
     vec = FONTSET_FALLBACK (fontset);
+
   if (NILP (vec))
     {
       Lisp_Object range;
@@ -586,33 +589,44 @@ fontset_find_font (fontset, c, face, id, fallback)
 	}
       if (NILP (elt))
 	{
-	  /* 0 means we have no font for characters of this range.  */
+	  /* This fontset doesn't specify any font for C. */
 	  vec = make_number (0);
+	}
+      else if (ASIZE (elt) == 1 && NILP (AREF (elt, 0)))
+	{
+	  /* Explicitly specified no font.  */
+	  vec = Qt;
 	}
       else
 	{
 	  /* Build a vector [ -1 -1 nil NEW-ELT0 NEW-ELT1 NEW-ELT2 ... ],
 	     where the first -1 is to force reordering of NEW-ELTn,
 	     NEW-ELTn is [nil nil AREF (elt, n) nil].  */
-	  vec = Fmake_vector (make_number (ASIZE (elt) + 3), Qnil);
+	  int size = ASIZE (elt);
+	  int j;
+
+	  vec = Fmake_vector (make_number (size + 3), Qnil);
 	  ASET (vec, 0, make_number (-1));
 	  ASET (vec, 1, make_number (-1));
-	  for (i = 0; i < ASIZE (elt); i++)
-	    {
-	      Lisp_Object tmp;
-	      tmp = Fmake_vector (make_number (5), Qnil);
-	      ASET (tmp, 2, AREF (elt, i));
-	      ASET (vec, i + 3, tmp);
-	    }
+	  for (i = j = 0; i < size; i++)
+	    if (! NILP (AREF (elt, i)))
+	      {
+		Lisp_Object tmp;
+		tmp = Fmake_vector (make_number (5), Qnil);
+		ASET (tmp, 2, AREF (elt, i));
+		ASET (vec, j + 3, tmp);
+		j++;
+	      }
 	}
       /* Then store it in the fontset.  */
       if (! fallback)
 	FONTSET_SET (fontset, range, vec);
       else
 	FONTSET_FALLBACK (fontset) = vec;
+
     }
   if (! VECTORP (vec))
-    return (INTEGERP (vec) ? Qnil : Qt);
+    return (EQ (vec, Qt) ? Qt : Qnil);
 
   if (ASIZE (vec) > 4
       && (XINT (AREF (vec, 0)) != charset_ordered_list_tick
@@ -629,7 +643,8 @@ fontset_find_font (fontset, c, face, id, fallback)
     {
       elt = AREF (vec, i);
       if (NILP (elt))
-	continue;
+	/* This is the sign of not to try fallback fonts.  */
+	return Qt;
       /* ELT == [ FACE-ID FONT-INDEX FONT-DEF ... ] */
       if (INTEGERP (AREF (elt, 1)) && XINT (AREF (elt, 1)) < 0)
 	/* We couldn't open this font last time.  */
@@ -652,48 +667,42 @@ fontset_find_font (fontset, c, face, id, fallback)
 
 	  if (NILP (font_entity))
 	    {
-	      Lisp_Object args[2];
-	      int j;
-
 	      font_entity = font_find_for_lface (f, face->lface,
-						 AREF (font_def, 0), c);
+						 AREF (font_def, 0), -1);
 	      if (NILP (font_entity))
-		continue;
-	      has_char = 1;
-	      /* Extend the vector and insert the new ELT here. */
-	      args[0] = vec;
-	      args[1] = Qnil;
-	      vec = Fvconcat (2, args);
-	      for (j = ASIZE (vec) - 2; j >= i; j--)
-		ASET (vec, j + 1, AREF (vec, j));
-	      elt = Fcopy_sequence (elt);
+		{
+		  ASET (elt, 1, make_number (-1));
+		  continue;
+		}
 	      ASET (elt, 3, font_entity);
-	      ASET (vec, i, elt);
-	      if (! has_char)
-		continue;
 	    }
 	  else if (FONT_ENTITY_P (font_entity))
 	    {
 	      if (FONT_ENTITY_NOT_LOADABLE (font_entity))
 		continue;
-	      has_char = font_has_char (f, font_entity, c);
-	      if (! has_char)
-		continue;
 	    }
+	  has_char = font_has_char (f, font_entity, c);
+	  if (! has_char)
+	    continue;
 	  if (! FONT_OBJECT_P (font_entity))
 	    {
-	      font_entity = font_open_for_lface (f, font_entity,
-						 face->lface, Qnil);
-	      if (NILP (font_entity))
+	      Lisp_Object font_object
+		= font_open_for_lface (f, font_entity, face->lface, Qnil);
+
+	      if (NILP (font_object))
 		{
 		  FONT_ENTITY_SET_NOT_LOADABLE (font_entity);
 		  continue;
 		}
-	      ASET (elt, 3, font_entity);
+	      ASET (elt, 3, font_object);
+	      if (has_char < 0)
+		{
+		  has_char = font_has_char (f, font_object, c);
+		  if (! has_char)
+		    continue;
+		}
 	    }
-	  if (! has_char
-	      && ! font_has_char (f, font_entity, c))
-	    continue;
+	  /* Decide to use this font.  */
 	  ASET (elt, 1, make_number (0));
 	}
       else
@@ -761,7 +770,7 @@ fontset_find_font (fontset, c, face, id, fallback)
       return elt;
     }
 
-  return Qt;
+  return Qnil;
 }
 
 
@@ -777,8 +786,10 @@ fontset_font (fontset, c, face, id)
 
   /* Try a font-group for C. */
   rfont_def = fontset_find_font (fontset, c, face, id, 0);
-  if (! NILP (rfont_def))
-    return (VECTORP (rfont_def) ? rfont_def : Qnil);
+  if (VECTORP (rfont_def))
+    return rfont_def;
+  if (EQ (rfont_def, Qt))
+    return Qnil;
   base_fontset = FONTSET_BASE (fontset);
   /* Try a font-group for C of the default fontset. */
   if (! EQ (base_fontset, Vdefault_fontset))
@@ -787,8 +798,11 @@ fontset_font (fontset, c, face, id)
 	FONTSET_DEFAULT (fontset)
 	  = make_fontset (FONTSET_FRAME (fontset), Qnil, Vdefault_fontset);
       rfont_def = fontset_find_font (FONTSET_DEFAULT (fontset), c, face, id, 0);
+      if (VECTORP (rfont_def))
+	return (rfont_def);
       if (! NILP (rfont_def))
-	return (VECTORP (rfont_def) ? rfont_def : Qnil);
+	/* Remeber that we have no font for C.  */
+	FONTSET_SET (fontset, make_number (c), Qt);
     }
 
   /* Try a fallback font-group. */
@@ -1507,6 +1521,7 @@ FONT-SPEC may one of these:
    REGISTRY is a font registry name.  FAMILY may contains foundry
    name, and REGISTRY may contains encoding name.
  * A font name string.
+ * nil, which explicitly specifies that there's no font for TARGET.
 
 Optional 4th argument FRAME, if non-nil, is a frame.  This argument is
 kept for backward compatibility and has no meaning.
@@ -2052,7 +2067,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
 	  Lisp_Object fontname = font_get_name (font_object);
 
 	  if (code == FONT_INVALID_CODE)
-	    return Fcons (fontname, Qnil);
+	    return Qnil;
 	  if (code <= MOST_POSITIVE_FIXNUM)
 	    return Fcons (fontname, make_number (code));
 	  return Fcons (fontname, Fcons (make_number (code >> 16),
