@@ -125,6 +125,7 @@
 (load "language/georgian")
 (load "language/khmer")
 (load "language/myanmar")
+(load "language/cham")
 
 (load "indent")
 (load "window")
