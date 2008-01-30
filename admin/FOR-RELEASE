@@ -112,7 +112,10 @@ Also emacsclient does not work on Windows, it also worked with
 server.el version 1.136.
 http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00710.html
 
-
+** diff mode change for missing spaces in -u format.
+Installed 2008-01-08 fix does not work right.
+http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html
+http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01114.html
 
 * DOCUMENTATION
 
