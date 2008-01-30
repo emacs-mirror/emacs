@@ -1,3 +1,8 @@
+2008-01-30  Bill Wohler  <wohler@newt.com>
+
+	* mh-mime.el (mh-mml-to-mime): Don't look up sender if From
+	absent. Fixes "Wrong type argument: stringp, nil" error.
+
 2007-12-02  Glenn Morris  <rgm@gnu.org>
 
 	* mh-mime.el (mail-strip-quoted-names): Autoload it.
