@@ -1,3 +1,11 @@
+2008-01-30  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* info.el (Info-bookmark-make-cell, Info-bookmark-jump): New
+	functions.  Implement bookmark support the new make-cell/handler
+	way.
+	(Info-mode): Bind bookmark-make-cell-function to
+	Info-bookmark-make-cell buffer locally.
+
 2008-01-30  Richard Stallman  <rms@gnu.org>
 
 	* progmodes/etags.el (tags-query-replace): Delete unused optional args.
