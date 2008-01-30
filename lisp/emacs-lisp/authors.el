@@ -587,7 +587,7 @@ Result is a buffer *Authors* containing authorship information, and a
 buffer *Authors Errors* containing references to unknown files."
   (interactive "DEmacs source directory: ")
   (setq root (expand-file-name root))
-  (let ((logs (process-lines "find" root "-name" "ChangeLog*"))
+  (let ((logs (process-lines find-program root "-name" "ChangeLog*"))
 	(table (make-hash-table :test 'equal))
 	(buffer-name "*Authors*")
 	authors-checked-files-alist
@@ -599,7 +599,7 @@ buffer *Authors Errors* containing references to unknown files."
       (when (string-match "ChangeLog\\(.[0-9]+\\)?$" log)
 	(message "Scanning %s..." log)
 	(authors-scan-change-log log table)))
-    (let ((els (process-lines "find" root "-name" "*.el")))
+    (let ((els (process-lines find-program root "-name" "*.el")))
       (dolist (file els)
 	(message "Scanning %s..." file)
 	(authors-scan-el file table)))
