@@ -886,13 +886,22 @@ type_changed=\".*?\".*?}")
   (let* ((var (nth (- (count-lines (point-min) (point)) 2) gdb-var-list))
 	 (varnum (car var)))
     (gdb-enqueue-input
-     (list 
+     (list
       (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
 	  (concat "server interpreter mi \"-var-set-format "
 		  varnum " " format "\"\n")
 	(concat "-var-set-format " varnum " " format "\n"))
-      'ignore))
-    (gdb-var-update-1)))
+	   `(lambda () (gdb-var-set-format-handler ,varnum))))))
+
+(defconst gdb-var-set-format-regexp
+  "format=\"\\(.*?\\)\",.*value=\"\\(.*?\\)\"")
+
+(defun gdb-var-set-format-handler (varnum)
+  (goto-char (point-min))
+  (if (re-search-forward gdb-var-set-format-regexp nil t)
+      (let ((var (assoc varnum gdb-var-list)))
+	(setcar (nthcdr 4 var) (match-string 2))
+	(gdb-var-update-1))))
 
 (defun gdb-var-delete-1 (varnum)
   (gdb-enqueue-input
