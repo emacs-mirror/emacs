@@ -494,7 +494,7 @@ echo "Making links to \`m4'"
 
 echo "Making links to \`nt'"
 (cd nt
- ln emacs.rc config.nt [a-z]*.c ../${tempdir}/nt
+ ln emacs.manifest emacs.rc config.nt [a-z]*.c ../${tempdir}/nt
  ln nmake.defs gmake.defs subdirs.el ../${tempdir}/nt
  ln [a-z]*.bat [a-z]*.h ../${tempdir}/nt
  ln ChangeLog INSTALL README makefile.w32-in ../${tempdir}/nt)
