@@ -1559,7 +1559,6 @@ main (argc, argv
 	 for the sake of symbols like error-message.  */
       /* Called before init_window_once for Mac OS Classic.  */
       syms_of_data ();
-#endif
       syms_of_chartab ();
       syms_of_lread ();
       syms_of_print ();
@@ -1575,7 +1574,6 @@ main (argc, argv
       syms_of_callproc ();
       syms_of_category ();
       syms_of_ccl ();
-#endif
       syms_of_character ();
       syms_of_cmds ();
 #ifndef NO_DIR_LIBRARY
