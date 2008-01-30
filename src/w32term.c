@@ -4787,19 +4787,64 @@ w32_read_socket (sd, expected, hold_quit)
 	      if (temp_index == sizeof temp_buffer / sizeof (short))
 		temp_index = 0;
 	      temp_buffer[temp_index++] = msg.msg.wParam;
-              if (msg.msg.message == WM_UNICHAR)
-                {
-                  inev.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
-                  inev.code = msg.msg.wParam;
-                }
-              else
-                {
-                  inev.kind = ASCII_KEYSTROKE_EVENT;
-                  inev.code = msg.msg.wParam;
-                }
+
 	      inev.modifiers = msg.dwModifiers;
 	      XSETFRAME (inev.frame_or_window, f);
 	      inev.timestamp = msg.msg.time;
+
+              if (msg.msg.message == WM_UNICHAR)
+                {
+                  inev.code = msg.msg.wParam;
+                }
+              else if (msg.msg.wParam < 256)
+                {
+                  wchar_t code;
+                  char dbcs[2];
+                  dbcs[0] = 0;
+                  dbcs[1] = (char) msg.msg.wParam;
+
+                  if (dbcs_lead)
+                    {
+                      dbcs[0] = dbcs_lead;
+                      dbcs_lead = 0;
+                      if (!MultiByteToWideChar (CP_ACP, 0, dbcs, 2, &code, 1))
+                        {
+                          /* Garbage */
+                          DebPrint (("Invalid DBCS sequence: %d %d\n",
+                                     dbcs[0], dbcs[1]));
+                          inev.kind = NO_EVENT;
+                          break;
+                        }
+                    }
+                  else if (IsDBCSLeadByteEx (CP_ACP, (BYTE) msg.msg.wParam))
+                    {
+                      dbcs_lead = (char) msg.msg.wParam;
+                      inev.kind = NO_EVENT;
+                      break;
+                    }
+                  else
+                    {
+                      if (!MultiByteToWideChar (CP_ACP, 0, &dbcs[1], 1,
+                                                &code, 1))
+                        {
+                          /* What to do with garbage? */
+                          DebPrint (("Invalid character: %d\n", dbcs[1]));
+                          inev.kind = NO_EVENT;
+                          break;
+                        }
+                    }
+                  inev.code = code;
+                }
+              else
+                {
+                  /* Windows shouldn't generate WM_CHAR events above 0xFF
+                     in non-Unicode message handlers.  */
+                  DebPrint (("Non-byte WM_CHAR: %d\n", msg.msg.wParam));
+                  inev.kind = NO_EVENT;
+                  break;
+                }
+              inev.kind = inev.code < 128 ? ASCII_KEYSTROKE_EVENT
+                                          : MULTIBYTE_CHAR_KEYSTROKE_EVENT;
 	    }
 	  break;
 
