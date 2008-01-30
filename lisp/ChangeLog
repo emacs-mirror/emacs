@@ -3,7 +3,7 @@
 	* progmodes/cc-langs.el (c-block-stmt-1-kwds, c-block-stmt-2-kwds)
 	(c-simple-stmt-kwds): New Objective C keywords: @finally, @try,
 	@catch, @synchronized, @throw.
- 
+
 	* progmodes/cc-langs.el (c-specifier-key): Exclude "template"
 	from this regexp; part of same fix as next change to cc-engine.el.
 
@@ -11,7 +11,7 @@
 	the "{" of a template function correctly on "template", not the
 	following "<".
 
-	* progmodes/cc-defs.el (c-version): increase to 5.31.5.
+	* progmodes/cc-defs.el (c-version): Increase to 5.31.5.
 
 2008-01-29  Richard Stallman  <rms@gnu.org>
 
