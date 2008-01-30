@@ -3486,6 +3486,8 @@ Advanced commands:
   (set (make-local-variable 'revert-buffer-function)
        'Info-revert-buffer-function)
   (Info-set-mode-line)
+  (set (make-local-variable 'bookmark-make-cell-function)
+       'Info-bookmark-make-cell)
   (run-mode-hooks 'Info-mode-hook))
 
 ;; When an Info buffer is killed, make sure the associated tags buffer
@@ -4314,6 +4316,84 @@ BUFFER is the buffer speedbar is requesting buttons for."
 
 (add-to-list 'desktop-buffer-mode-handlers
 	     '(Info-mode . Info-restore-desktop-buffer))
+
+;;;; Bookmark support
+
+(defun Info-bookmark-make-cell (annotation &rest args)
+  (let ((the-record
+         `((filename . ,(bookmark-buffer-file-name))
+           (front-context-string
+            . ,(if (>= (- (point-max) (point)) bookmark-search-size)
+                   (buffer-substring-no-properties
+                    (point)
+                    (+ (point) bookmark-search-size))
+		 nil))
+           (rear-context-string
+            . ,(if (>= (- (point) (point-min)) bookmark-search-size)
+                   (buffer-substring-no-properties
+                    (point)
+                    (- (point) bookmark-search-size))
+		 nil))
+           (position . ,(point))
+	   (info-node . ,info-node)
+	   (handler . Info-bookmark-jump))))
+
+    ;; Now fill in the optional parts:
+
+    ;; Take no chances with text properties
+    (set-text-properties 0 (length annotation) nil annotation)
+
+    (if annotation
+        (nconc the-record (list (cons 'annotation annotation))))
+
+    ;; Finally, return the completed record.
+    the-record))
+
+;;;###autoload
+(defun Info-bookmark-jump (bmk)
+  ;; This implements the `handler' function interface for record type returned
+  ;; by `Info-make-cell-function', which see.
+  (let* ((file (expand-file-name (bookmark-get-filename bmk)))
+         (forward-str            (bookmark-get-front-context-string bmk))
+         (behind-str             (bookmark-get-rear-context-string bmk))
+         (place                  (bookmark-get-position bmk))
+	 (info-node              (bookmark-get-info-node bmk))
+	 (orig-file              file))
+    (if (setq file (bookmark-file-or-variation-thereof file))
+        (save-excursion
+          (save-window-excursion
+	    (require 'info)
+	    (with-no-warnings
+	      (Info-find-node file info-node))
+	    ;; Go searching forward first.  Then, if forward-str exists and was
+            ;; found in the file, we can search backward for behind-str.
+            ;; Rationale is that if text was inserted between the two in the
+            ;; file, it's better to be put before it so you can read it, rather
+            ;; than after and remain perhaps unaware of the changes.
+            (if forward-str
+                (if (search-forward forward-str (point-max) t)
+                    (goto-char (match-beginning 0))))
+            (if behind-str
+                (if (search-backward behind-str (point-min) t)
+                    (goto-char (match-end 0))))
+            ;; added by db
+            (setq bookmark-current-bookmark bmk)
+	    `((buffer ,(current-buffer)) (position ,(point)))))
+
+      ;; Else unable to find the marked file, so ask if user wants to
+      ;; relocate the bookmark, else remind them to consider deletion.
+      (ding)
+      (if (y-or-n-p (concat (file-name-nondirectory orig-file)
+                            " nonexistent.  Relocate \""
+                            bmk
+                            "\"? "))
+          (progn
+            (bookmark-relocate bmk)
+            ;; gasp!  It's a recursive function call in Emacs Lisp!
+            (bookmark-jump-noselect bmk))
+        (message
+         "Bookmark not relocated; consider removing it \(%s\)." bmk)
+        nil))))
 
 (provide 'info)
 
