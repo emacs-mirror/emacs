@@ -1,8 +1,15 @@
+2008-01-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/check-declare.el (check-declare-directory):
+	* emacs-lisp/authors.el (authors): Use `find-program' and
+	`grep-program' instead of hardcoded program names.
+
+	* emacs-lisp/cl-loaddefs.el: Update.
+
 2008-01-30  Tassilo Horn  <tassilo@member.fsf.org>
 
-	* info.el (Info-bookmark-make-cell, Info-bookmark-jump): New
-	functions.  Implement bookmark support the new make-cell/handler
-	way.
+	* info.el (Info-bookmark-make-cell, Info-bookmark-jump): New functions.
+	Implement bookmark support the new make-cell/handler way.
 	(Info-mode): Bind bookmark-make-cell-function to
 	Info-bookmark-make-cell buffer locally.
 
@@ -19,9 +26,9 @@
 
 2008-01-29  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-methods): Use "-H" option for "sudo".  Suggested
-	by Trent W. Buck <trentbuck@gmail.com>.  Make ("%h") a single
-	element in "plinkx".
+	* net/tramp.el (tramp-methods): Use "-H" option for "sudo".
+	Suggested by Trent W. Buck <trentbuck@gmail.com>.  Make ("%h")
+	a single element in "plinkx".
 	(tramp-handle-shell-command): Reuse "*Async Shell Command*" or
 	"*Shell Command Output*" buffers.  Check, whether there is already
 	an asynchronous process running.  Display always the buffer of the
