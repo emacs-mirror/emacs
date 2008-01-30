@@ -27,11 +27,7 @@
 
 ;; Display line numbers for the current buffer.
 ;;
-;; Add the following to your .emacs file:
-
-;;    (require 'linum)
-
-;; Then toggle display of line numbers with M-x linum-mode. To enable
+;; Toggle display of line numbers with M-x linum-mode.  To enable
 ;; line numbering in all buffers, use M-x global-linum-mode.
 
 ;;; Code:
