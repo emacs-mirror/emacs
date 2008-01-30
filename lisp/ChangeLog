@@ -1,3 +1,9 @@
+2008-01-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-set-format-regexp): New constant.
+	(gdb-var-set-format-handler): New function.
+	(gdb-var-set-format): Use it.
+
 2008-01-29  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-langs.el (c-block-stmt-1-kwds, c-block-stmt-2-kwds)
