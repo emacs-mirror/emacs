@@ -209,6 +209,7 @@ view of the buffers."
   :type '(choice (const :tag "Last view time" :value recency)
 		 (const :tag "Lexicographic" :value alphabetic)
 		 (const :tag "Buffer size" :value size)
+		 (const :tag "File name" :value filename/process)
 		 (const :tag "Major mode" :value major-mode))
   :group 'ibuffer)
 (defvar ibuffer-sorting-mode nil)
@@ -447,6 +448,7 @@ directory, like `default-directory'."
     (define-key map (kbd "s a") 'ibuffer-do-sort-by-alphabetic)
     (define-key map (kbd "s v") 'ibuffer-do-sort-by-recency)
     (define-key map (kbd "s s") 'ibuffer-do-sort-by-size)
+    (define-key map (kbd "s f") 'ibuffer-do-sort-by-filename/process)
     (define-key map (kbd "s m") 'ibuffer-do-sort-by-major-mode)
 
     (define-key map (kbd "/ m") 'ibuffer-filter-by-mode)
@@ -826,6 +828,11 @@ directory, like `default-directory'."
     (define-key map [(mouse-1)] 'ibuffer-mouse-toggle-mark)
     (define-key map [(mouse-2)] 'ibuffer-mouse-visit-buffer)
     (define-key map [down-mouse-3] 'ibuffer-mouse-popup-menu)
+    map))
+
+(defvar ibuffer-filename/process-header-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [(mouse-1)] 'ibuffer-do-sort-by-filename/process)
     map))
 
 (defvar ibuffer-mode-name-map
@@ -1722,7 +1729,7 @@ If point is on a group name, this function operates on that group."
    ('mouse-face 'highlight
 		'keymap ibuffer-mode-name-map
 		'help-echo "mouse-2: filter by this mode"))
-  (format-mode-line mode-name))
+  (format-mode-line mode-name nil nil (current-buffer)))
 
 (define-ibuffer-column process
   (:summarizer
@@ -1753,6 +1760,7 @@ If point is on a group name, this function operates on that group."
 
 (define-ibuffer-column filename-and-process
   (:name "Filename/Process"
+   :header-mouse-map ibuffer-filename/process-header-map
    :summarizer
    (lambda (strings)
      (setq strings (delete "" strings))
@@ -2097,29 +2105,6 @@ the value of point at the beginning of the line for that buffer."
 	   (point))
 	 `(ibuffer-summary t)))))
 
-(defun ibuffer-update-mode-name ()
-  (setq mode-name (format "Ibuffer by %s" (if ibuffer-sorting-mode
-					      ibuffer-sorting-mode
-					    "view time")))
-  (when ibuffer-sorting-reversep
-    (setq mode-name (concat mode-name " [rev]")))
-  (when (and (featurep 'ibuf-ext)
-	     ibuffer-auto-mode)
-    (setq mode-name (concat mode-name " (Auto)")))
-  (let ((result ""))
-    (when (featurep 'ibuf-ext)
-      (dolist (qualifier ibuffer-filtering-qualifiers)
-	(setq result
-	      (concat result (ibuffer-format-qualifier qualifier))))
-      (if ibuffer-use-header-line
-	  (setq header-line-format
-		(when ibuffer-filtering-qualifiers
-		  (replace-regexp-in-string "%" "%%"
-					    (concat mode-name result))))
-	(progn
-	  (setq mode-name (concat mode-name result))
-	  (when (boundp 'header-line-format)
-	    (setq header-line-format nil)))))))
 
 (defun ibuffer-redisplay (&optional silent)
   "Redisplay the current list of buffers.
@@ -2137,7 +2122,6 @@ If optional arg SILENT is non-nil, do not display progress messages."
 	  (message "No buffers! (note: filtering in effect)")
 	(error "No buffers!")))
     (ibuffer-redisplay-engine blist t)
-    (ibuffer-update-mode-name)
     (unless silent
       (message "Redisplaying current buffer list...done"))
     (ibuffer-forward-line 0)))
@@ -2174,7 +2158,6 @@ If optional arg SILENT is non-nil, do not display progress messages."
     (unless silent
       (message "Updating buffer list..."))
     (ibuffer-redisplay-engine blist arg)
-    (ibuffer-update-mode-name)
     (unless silent
       (message "Updating buffer list...done")))
   (if (eq ibuffer-shrink-to-minimum-size 'onewindow)
@@ -2458,6 +2441,7 @@ Sorting commands:
   '\\[ibuffer-toggle-sorting-mode]' - Rotate between the various sorting modes.
   '\\[ibuffer-invert-sorting]' - Reverse the current sorting order.
   '\\[ibuffer-do-sort-by-alphabetic]' - Sort the buffers lexicographically.
+  '\\[ibuffer-do-sort-by-filename/process]' - Sort the buffers by the file name.
   '\\[ibuffer-do-sort-by-recency]' - Sort the buffers by last viewing time.
   '\\[ibuffer-do-sort-by-size]' - Sort the buffers by size.
   '\\[ibuffer-do-sort-by-major-mode]' - Sort the buffers by major mode.
@@ -2540,6 +2524,28 @@ will be inserted before the group at point."
   (use-local-map ibuffer-mode-map)
   (setq major-mode 'ibuffer-mode)
   (setq mode-name "Ibuffer")
+  ;; Include state info next to the mode name.
+  (set (make-local-variable 'mode-line-process)
+        '(" by "
+          (ibuffer-sorting-mode (:eval (symbol-name ibuffer-sorting-mode))
+                                "view time")
+          (ibuffer-sorting-reversep " [rev]")
+          (ibuffer-auto-mode " (Auto)")
+          ;; Only list the filters if they're not already in the header-line.
+          (header-line-format
+           ""
+           (:eval (if (functionp 'ibuffer-format-qualifier)
+                      (mapconcat 'ibuffer-format-qualifier
+                                 ibuffer-filtering-qualifiers ""))))))
+  (setq header-line-format
+        (if ibuffer-use-header-line
+            ;; Display the part that won't be in the mode-line.
+            (list* "" mode-name
+                   (mapcar (lambda (elem)
+                             (if (eq (car-safe elem) 'header-line-format)
+                                 (nth 2 elem) elem))
+                           mode-line-process))))
+
   (setq buffer-read-only t)
   (buffer-disable-undo)
   (setq truncate-lines ibuffer-truncate-lines)
@@ -2578,9 +2584,7 @@ will be inserted before the group at point."
   (when ibuffer-default-directory
     (setq default-directory ibuffer-default-directory))
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
-  (run-mode-hooks 'ibuffer-mode-hook)
-  ;; called after mode hooks to allow the user to add filters
-  (ibuffer-update-mode-name))
+  (run-mode-hooks 'ibuffer-mode-hook))
 
 (provide 'ibuffer)
 
@@ -2590,5 +2594,5 @@ will be inserted before the group at point."
 ;; coding: iso-8859-1
 ;; End:
 
-;;; arch-tag: 72581688-0603-4954-b8cf-837c700f62e8
+;; arch-tag: 72581688-0603-4954-b8cf-837c700f62e8
 ;;; ibuffer.el ends here

@@ -5094,7 +5094,8 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;;   The point is left at the first token after the first complete
   ;;   declarator, if there is one.  The return value is a cons where
-  ;;   the car is the position of the first token in the declarator.
+  ;;   the car is the position of the first token in the declarator.  (See
+  ;;   below for the cdr.)
   ;;   Some examples:
   ;;
   ;; 	 void foo (int a, char *b) stuff ...
@@ -5118,9 +5119,9 @@ comment at the start of cc-engine.el for more info."
   ;;     Foo::Foo (int b) : Base (b) {}
   ;; car ^                ^ point
   ;;
-  ;;   The cdr of the return value is non-nil if a
-  ;;   `c-typedef-decl-kwds' specifier is found in the declaration,
-  ;;   i.e. the declared identifier(s) are types.
+  ;;   The cdr of the return value is non-nil iff a `c-typedef-decl-kwds'
+  ;;   specifier (e.g. class, struct, enum, typedef) is found in the
+  ;;   declaration, i.e. the declared identifier(s) are types.
   ;;
   ;; If a cast is parsed:
   ;;
@@ -5135,7 +5136,7 @@ comment at the start of cc-engine.el for more info."
   ;; the first token in (the visible part of) the buffer.
   ;;
   ;; CONTEXT is a symbol that describes the context at the point:
-  ;; 'decl     In a comma-separatded declaration context (typically
+  ;; 'decl     In a comma-separated declaration context (typically
   ;;           inside a function declaration arglist).
   ;; '<>       In an angle bracket arglist.
   ;; 'arglist  Some other type of arglist.
@@ -8032,12 +8033,15 @@ comment at the start of cc-engine.el for more info."
 
 	     ;; CASE 5A.5: ordinary defun open
 	     (t
-	      (goto-char placeholder)
-	      (if (or containing-decl-open macro-start)
-		  (c-add-syntax 'defun-open (c-point 'boi))
-		;; Bogus to use bol here, but it's the legacy.
-		(c-add-syntax 'defun-open (c-point 'bol)))
-	      )))
+	      (save-excursion
+		(c-beginning-of-decl-1 lim)
+		(while (looking-at c-specifier-key)
+		  (goto-char (match-end 1))
+		  (c-forward-syntactic-ws indent-point))
+		(c-add-syntax 'defun-open (c-point 'boi))
+		;; Bogus to use bol here, but it's the legacy.  (Resolved,
+		;; 2007-11-09)
+		))))
 
 	   ;; CASE 5B: After a function header but before the body (or
 	   ;; the ending semicolon if there's no body).
@@ -8296,6 +8300,7 @@ comment at the start of cc-engine.el for more info."
 
 	   ;; CASE 5H: we could be looking at subsequent knr-argdecls
 	   ((and c-recognize-knr-p
+		 (not containing-sexp)	; can't be knr inside braces.
 		 (not (eq char-before-ip ?}))
 		 (save-excursion
 		   (setq placeholder (cdr (c-beginning-of-decl-1 lim)))

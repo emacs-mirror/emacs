@@ -228,7 +228,7 @@ Currently, this only applies to `ibuffer-saved-filters' and
       (ignore-errors
 	(with-current-buffer buf
 	  (when (and ibuffer-auto-mode
-		     (eq major-mode 'ibuffer-mode))
+		     (derived-mode-p 'ibuffer-mode))
 	    (ibuffer-update nil t)))))))
 
 ;;;###autoload
@@ -236,15 +236,14 @@ Currently, this only applies to `ibuffer-saved-filters' and
   "Toggle use of Ibuffer's auto-update facility.
 With numeric ARG, enable auto-update if and only if ARG is positive."
   (interactive)
-  (unless (eq major-mode 'ibuffer-mode)
+  (unless (derived-mode-p 'ibuffer-mode)
     (error "This buffer is not in Ibuffer mode"))
   (set (make-local-variable 'ibuffer-auto-mode)
        (if arg
 	   (plusp arg)
 	 (not ibuffer-auto-mode)))
   (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed) ; Initialize state vector
-  (add-hook 'post-command-hook 'ibuffer-auto-update-changed)
-  (ibuffer-update-mode-name))
+  (add-hook 'post-command-hook 'ibuffer-auto-update-changed))
 
 ;;;###autoload
 (defun ibuffer-mouse-filter-by-mode (event)
@@ -731,8 +730,7 @@ prompt for NAME, and use the current filters."
   (ibuffer-aif (assoc name ibuffer-saved-filter-groups)
       (setcdr it groups)
     (push (cons name groups) ibuffer-saved-filter-groups))
-  (ibuffer-maybe-save-stuff)
-  (ibuffer-update-mode-name))
+  (ibuffer-maybe-save-stuff))
 
 ;;;###autoload
 (defun ibuffer-delete-saved-filter-groups (name)
@@ -897,8 +895,7 @@ Interactively, prompt for NAME, and use the current filters."
   (ibuffer-aif (assoc name ibuffer-saved-filters)
       (setcdr it filters)
     (push (list name filters) ibuffer-saved-filters))
-  (ibuffer-maybe-save-stuff)
-  (ibuffer-update-mode-name))
+  (ibuffer-maybe-save-stuff))
 
 ;;;###autoload
 (defun ibuffer-delete-saved-filters (name)
@@ -1158,6 +1155,20 @@ Ordering is lexicographic."
      (with-current-buffer (car b)
        (buffer-size))))
 
+;;;###autoload (autoload 'ibuffer-do-sort-by-filename/process "ibuf-ext")
+(define-ibuffer-sorter filename/process
+ "Sort the buffers by their file name/process name."
+  (:description "file name")
+  (string-lessp
+   ;; FIXME: For now just compare the file name and the process name
+   ;; (if it exists).  Is there a better way to do this?
+   (or (buffer-file-name (car a)) 
+       (let ((pr-a (get-buffer-process (car a))))
+	 (and (processp pr-a) (process-name pr-a))))
+   (or (buffer-file-name (car b)) 
+       (let ((pr-b (get-buffer-process (car b))))
+	 (and (processp pr-b) (process-name pr-b))))))
+
 ;;; Functions to emulate bs.el
 
 ;;;###autoload
@@ -1386,7 +1397,7 @@ You can then feed the file name(s) to other commands with \\[yank]."
   (ibuffer-mark-on-buffer
    #'(lambda (buf)
        (with-current-buffer buf
-	 (string-match regexp (format-mode-line mode-name))))))
+	 (string-match regexp (format-mode-line mode-name nil nil buf))))))
 
 ;;;###autoload
 (defun ibuffer-mark-by-file-name-regexp (regexp)
@@ -1539,5 +1550,5 @@ defaults to one."
 
 (provide 'ibuf-ext)
 
-;;; arch-tag: 9af21953-deda-4c30-b76d-f81d9128e76d
+;; arch-tag: 9af21953-deda-4c30-b76d-f81d9128e76d
 ;;; ibuf-ext.el ends here

@@ -1,3 +1,74 @@
+2008-01-28  Michael Sperber  <sperber@deinprogramm.de>
+
+	* gnus.texi (Mail Source Specifiers): Document `group' specifier.
+	(Group Parameters): Document `mail-source' parameter.
+
+2008-01-27  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Inline methods): The hostname of the su(do)? methods
+	must be a local host.
+
+2008-01-26  Michael Olson  <mwolson@gnu.org>
+
+	* erc.texi: Update version for ERC 5.3 release.
+	(Obtaining ERC): Update extras URLs for 5.3.
+	(Development): Write instructions for git, and remove those for Arch.
+	(History): Mention the switch to git.
+
+2008-01-24  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Search Index),
+	 (Search Text): mention the command character in the section name,
+	 a la the (Go to node) node.
+
+2008-01-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Errors and Events): New macro dbus-ignore-errors.
+
+2008-01-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-news.texi: Mention gnus-article-describe-bindings.
+
+2008-01-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-news.texi: Mention gnus-article-wide-reply-with-original.
+
+2008-01-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Property inheritance): New section.
+	(Conventions): New section.
+	(Structure editing): Document C-RET, the prefix arg to the cut/copy
+	commands, and the new bindings for refiling.
+	(Sparse trees): Document the new special command for sparse trees.
+	(References): Be more clear about the counting of hilines.
+	(Handling links): Document M-p/n for accessing links.
+	(Fast access to TODO states): New section.
+	(Per file keywords): New section.
+	(Property inheritance): New section.
+	(Column attributes): New summary types.
+	(Capturing Column View): New section.
+	(The date/time prompt): Cover the new features in the date/time prompt.
+	Compactify the table of keys for the calendar remote control.
+	(Clocking work time): Document the new :scope parameter.
+	(Remember): Promoted to chapter.
+	(Quoted examples): New section.
+	(Enhancing text): New verbatim environments.
+
+2008-01-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	* trampver.texi: Update release number.
+
+2008-01-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Article Keymap): Add
+	gnus-article-wide-reply-with-original; fix descriptions of
+	gnus-article-reply-with-original and
+	gnus-article-followup-with-original.
+
+2008-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* nxml-mode.texi: Add @copying section.
+
 2008-01-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.texi (Mail Variables): Add some text from "(gnus)Posting
@@ -4673,7 +4744,7 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-      2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+      2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

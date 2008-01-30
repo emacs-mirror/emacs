@@ -441,7 +441,7 @@ files conditionalize this setup based on the TERM environment variable."
 	     (tramp-password-end-of-line nil))
     ("sudo"  (tramp-login-program        "sudo")
              (tramp-login-args           (("-u" "%u")
-					  ("-s" "-p" "Password:")))
+					  ("-s") ("-H") ("-p" "Password:")))
 	     (tramp-remote-sh            "/bin/sh")
 	     (tramp-copy-program         nil)
 	     (tramp-copy-args            nil)
@@ -519,7 +519,9 @@ files conditionalize this setup based on the TERM environment variable."
 	     (tramp-default-port         22))
     ("plinkx"
              (tramp-login-program        "plink")
-	     (tramp-login-args           (("-load" "%h") ("-t")
+	     ;; ("%h") must be a single element, see
+	     ;; `tramp-compute-multi-hops'.
+	     (tramp-login-args           (("-load") ("%h") ("-t")
 					  (,(format
 					     "env 'TERM=%s' 'PROMPT_COMMAND=' 'PS1=$ '"
 					     tramp-terminal-type))
@@ -914,7 +916,7 @@ directories for POSIX compatible commands."
 		  (string :tag "Directory"))))
 
 (defcustom tramp-remote-process-environment
-  `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "LC_CTYPE=C" "LC_TIME=C"
+  `("HISTFILE=$HOME/.tramp_history" "HISTSIZE=1" "LC_ALL=C"
     ,(concat "TERM=" tramp-terminal-type)
     "CDPATH=" "HISTORY=" "MAIL=" "MAILCHECK=" "MAILPATH="
     "autocorrect=" "correct=")
@@ -1433,9 +1435,11 @@ means to use always cached values for the directory contents."
 ;;; Internal Variables:
 
 (defvar tramp-end-of-output
-  (concat
-   "///" (md5 (concat
-	       (prin1-to-string process-environment) (current-time-string))))
+  (format
+   "%s///%s%s"
+   tramp-rsh-end-of-line
+   (md5 (concat (prin1-to-string process-environment) (current-time-string)))
+   tramp-rsh-end-of-line)
   "String used to recognize end of output.")
 
 (defvar tramp-current-method nil
@@ -3032,6 +3036,11 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
 	  ;; One of them must be a Tramp file.
 	  (error "Tramp implementation says this cannot happen")))
 
+      ;; In case of `rename', we must flush the cache of the source file.
+      (when (and t1 (eq op 'rename))
+	(with-parsed-tramp-file-name filename nil
+	  (tramp-flush-file-property v localname)))
+
       ;; When newname did exist, we have wrong cached values.
       (when t2
 	(with-parsed-tramp-file-name newname nil
@@ -3774,13 +3783,15 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
   (command &optional output-buffer error-buffer)
   "Like `shell-command' for Tramp files."
   (let* ((asynchronous (string-match "[ \t]*&[ \t]*\\'" command))
-	 (args (split-string (substring command 0 asynchronous) " "))
+	 ;; We cannot use `shell-file-name' and `shell-command-switch',
+	 ;; they are variables of the local host.
+	 (args (list "/bin/sh" "-c" (substring command 0 asynchronous)))
 	 (output-buffer
 	  (cond
 	   ((bufferp output-buffer) output-buffer)
 	   ((stringp output-buffer) (get-buffer-create output-buffer))
 	   (output-buffer (current-buffer))
-	   (t (generate-new-buffer
+	   (t (get-buffer-create
 	       (if asynchronous
 		   "*Async Shell Command*"
 		 "*Shell Command Output*")))))
@@ -3792,22 +3803,42 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 	  (if (and (not asynchronous) error-buffer)
 	      (with-parsed-tramp-file-name default-directory nil
 		(list output-buffer (tramp-make-tramp-temp-file v)))
-	    output-buffer)))
+	    output-buffer))
+	 (proc (get-buffer-process output-buffer)))
 
-    (prog1
-	;; Run the process.
-	(if (integerp asynchronous)
+    ;; Check whether there is another process running.  Tramp does not
+    ;; support 2 (asynchronous) processes in parallel.
+    (when proc
+      (if (yes-or-no-p "A command is running.  Kill it? ")
+	  (ignore-errors (kill-process proc))
+	(error "Shell command in progress")))
+
+    (with-current-buffer output-buffer
+      (setq buffer-read-only nil
+	    buffer-undo-list t)
+      (erase-buffer))
+
+    (if (integerp asynchronous)
+	(prog1
+	    ;; Run the process.
 	    (apply 'start-file-process "*Async Shell*" buffer args)
-	  (apply 'process-file (car args) nil buffer nil (cdr args)))
-      ;; Insert error messages if they were separated.
-      (when (listp buffer)
-	(with-current-buffer error-buffer (insert-file-contents (cadr buffer)))
-	(delete-file (cadr buffer)))
-      ;; There's some output, display it.
-      (when (with-current-buffer output-buffer (> (point-max) (point-min)))
-	(if (functionp 'display-message-or-buffer)
-	    (funcall (symbol-function 'display-message-or-buffer) output-buffer)
-	  (pop-to-buffer output-buffer))))))
+	  ;; Display output.
+	  (pop-to-buffer output-buffer))
+
+      (prog1
+	  ;; Run the process.
+	  (apply 'process-file (car args) nil buffer nil (cdr args))
+	;; Insert error messages if they were separated.
+	(when (listp buffer)
+	  (with-current-buffer error-buffer
+	    (insert-file-contents (cadr buffer)))
+	  (delete-file (cadr buffer)))
+	;; There's some output, display it.
+	(when (with-current-buffer output-buffer (> (point-max) (point-min)))
+	  (if (functionp 'display-message-or-buffer)
+	      (funcall (symbol-function 'display-message-or-buffer)
+		       output-buffer)
+	    (pop-to-buffer output-buffer)))))))
 
 ;; File Editing.
 
@@ -5360,22 +5391,14 @@ file exists and nonzero exit status otherwise."
 	     vec
 	     (format "PROMPT_COMMAND='' PS1='$ ' PS2='' PS3='' exec %s" shell)
 	     t))
+	  ;; Setting prompts.
 	  (tramp-message vec 5 "Setting remote shell prompt...")
-	  ;; Douglas Gray Stephens <DGrayStephens@slb.com> says that we
-	  ;; must use "\n" here, not tramp-rsh-end-of-line.  Kai left the
-	  ;; last tramp-rsh-end-of-line, Douglas wanted to replace that,
-	  ;; as well.
-	  (tramp-send-command
-	   vec
-	   (format "PS1='%s%s%s'"
-		   tramp-rsh-end-of-line
-		   tramp-end-of-output
-		   tramp-rsh-end-of-line)
-	   t)
+	  (tramp-send-command vec (format "PS1='%s'" tramp-end-of-output) t)
 	  (tramp-send-command vec "PS2=''" t)
 	  (tramp-send-command vec "PS3=''" t)
 	  (tramp-send-command vec "PROMPT_COMMAND=''" t)
 	  (tramp-message vec 5 "Setting remote shell prompt...done"))
+
 	 (t (tramp-message
 	     vec 5 "Remote `%s' groks tilde expansion, good"
 	     (tramp-get-method-parameter
@@ -5668,13 +5691,7 @@ process to set up.  VEC specifies the connection."
   ;; We can set $PS1 to `tramp-end-of-output' only when the echo has
   ;; been disabled.  Otherwise, the echo of the command would be
   ;; regarded as prompt already.
-  (tramp-send-command
-   vec
-   (format "PS1='%s%s%s'"
-	   tramp-rsh-end-of-line
-           tramp-end-of-output
-	   tramp-rsh-end-of-line)
-   t)
+  (tramp-send-command vec (format "PS1='%s'" tramp-end-of-output) t)
   (tramp-send-command vec "PS2=''" t)
   (tramp-send-command vec "PS3=''" t)
   (tramp-send-command vec "PROMPT_COMMAND=''" t)
@@ -6059,6 +6076,29 @@ Gateway hops are already opened."
 	   "Method `%s' is not supported for multi-hops."
 	   (tramp-file-name-method item)))))
 
+    ;; In case the host name is not used for the remote shell
+    ;; command, the user could be misguided by applying a random
+    ;; hostname.
+    (let* ((v (car target-alist))
+	   (method (tramp-file-name-method v))
+	   (host (tramp-file-name-host v)))
+      (unless
+	  (or
+	   ;; There are multi-hops.
+	   (cdr target-alist)
+	   ;; The host name is used for the remote shell command.
+	   (member
+	    '("%h") (tramp-get-method-parameter method 'tramp-login-args))
+	   ;; The host is local.  We cannot use `tramp-local-host-p'
+	   ;; here, because it opens a connection as well.
+	   (string-match
+	    (concat "^" (regexp-opt (list "localhost" (system-name)) t) "$")
+	    host))
+	(tramp-error
+	 v 'file-error
+	 "Host `%s' looks like a remote host, `%s' can only use the local host"
+	 host method)))
+
     ;; Result.
     target-alist))
 
@@ -6249,7 +6289,11 @@ function waits for output unless NOOUTPUT is set."
   (with-current-buffer (process-buffer proc)
     ;; Initially, `tramp-end-of-output' is "$ ".  There might be
     ;; leading escape sequences, which must be ignored.
-    (let* ((regexp (format "^[^$\n]*%s\r?$" (regexp-quote tramp-end-of-output)))
+    (let* ((regexp
+	    (if (string-match (regexp-quote "\n") tramp-end-of-output)
+		(mapconcat
+		 'identity (split-string tramp-end-of-output "\n") "\r?\n")
+	      (format "^[^$\n]*%s\r?$" (regexp-quote tramp-end-of-output))))
 	   (found (tramp-wait-for-regexp proc timeout regexp)))
       (if found
 	  (let (buffer-read-only)
@@ -6666,6 +6710,10 @@ values."
 	    (user      (match-string (nth 2 tramp-file-name-structure) name))
 	    (host      (match-string (nth 3 tramp-file-name-structure) name))
 	    (localname (match-string (nth 4 tramp-file-name-structure) name)))
+	(when (member method '("multi" "multiu"))
+	  (error
+	   "`%s' method is no longer supported, see (info \"(tramp)Multi-hops\")"
+	   method))
 	(if nodefault
 	    (vector method user host localname)
 	  (vector
@@ -6731,11 +6779,20 @@ necessary only.  This function will be used in file name completion."
 
 (defun tramp-local-host-p (vec)
   "Return t if this points to the local host, nil otherwise."
-  (let ((host (tramp-file-name-real-host vec)))
+  ;; We cannot use `tramp-file-name-real-host'.  A port is an
+  ;; indication for an ssh tunnel or alike.
+  (let ((host (tramp-file-name-host vec)))
     (and
      (stringp host)
      (string-match
-      (concat "^" (regexp-opt (list "localhost" (system-name)) t) "$") host))))
+      (concat "^" (regexp-opt (list "localhost" (system-name)) t) "$") host)
+     ;; The local temp directory must be writable for the other user.
+     (file-writable-p
+      (tramp-make-tramp-file-name
+       (tramp-file-name-method vec)
+       (tramp-file-name-user vec)
+       host
+       (tramp-compat-temporary-file-directory))))))
 
 ;; Variables local to connection.
 
@@ -6831,8 +6888,7 @@ necessary only.  This function will be used in file name completion."
 	vec (format "( %s / -nt / )" (tramp-get-test-command vec)))
        (with-current-buffer (tramp-get-buffer vec)
 	 (goto-char (point-min))
-	 (when (looking-at
-		(format "\n%s\r?\n" (regexp-quote tramp-end-of-output)))
+	 (when (looking-at (regexp-quote tramp-end-of-output))
 	   (format "%s %%s -nt %%s" (tramp-get-test-command vec)))))
      (progn
        (tramp-send-command

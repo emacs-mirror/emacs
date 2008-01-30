@@ -995,7 +995,8 @@ using `make-temp-file', and the generated name is returned."
 	(archive-maybe-update t))
       (or (not (buffer-name buffer))
           (cond
-           (view-p (view-buffer buffer (and just-created 'kill-buffer)))
+           (view-p (view-buffer
+		    buffer (and just-created 'kill-buffer-if-not-modified)))
            ((eq other-window-p 'display) (display-buffer buffer))
            (other-window-p (switch-to-buffer-other-window buffer))
            (t (switch-to-buffer buffer))))))
@@ -1952,7 +1953,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
           (archive-rar-extract tmpfile name))
       (if tmpbuf (kill-buffer tmpbuf))
       (delete-file tmpfile))))
-  
+
 
 ;; -------------------------------------------------------------------------
 ;; This line was a mistake; it is kept now for compatibility.

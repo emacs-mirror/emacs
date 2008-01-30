@@ -78,6 +78,17 @@
 			      :test 'equal)
   "*The article registry by Message ID.")
 
+(defcustom gnus-registry-marks
+  '(Important Work Personal To-Do Later)
+  "List of marks that `gnus-registry-mark-article' will offer for completion."
+  :group 'gnus-registry
+  :type '(repeat symbol))
+
+(defcustom gnus-registry-default-mark 'To-Do
+  "The default mark."
+  :group 'gnus-registry
+  :type 'symbol)
+
 (defcustom gnus-registry-unfollowed-groups '("delayed$" "drafts$" "queue$" "INBOX$")
   "List of groups that gnus-registry-split-fancy-with-parent won't return.
 The group names are matched, they don't have to be fully
@@ -128,6 +139,16 @@ way."
   "Whether the registry should clean out message IDs without groups."
   :group 'gnus-registry
   :type 'boolean)
+
+(defcustom gnus-registry-extra-entries-precious '(marks)
+  "What extra entries are precious, meaning they won't get trimmed.
+When you save the Gnus registry, it's trimmed to be no longer
+than `gnus-registry-max-entries' (which is nil by default, so no
+trimming happens).  Any entries with extra data in this list (by
+default, marks are included, so articles with marks are
+considered precious) will not be trimmed."
+  :group 'gnus-registry
+  :type '(repeat symbol))
 
 (defcustom gnus-registry-cache-file 
   (nnheader-concat 
@@ -313,30 +334,50 @@ way."
 
 (defun gnus-registry-trim (alist)
   "Trim alist to size, using gnus-registry-max-entries.
-Also, drop all gnus-registry-ignored-groups matches."
-  (if (null gnus-registry-max-entries)
+Also, drop all gnus-registry-ignored-groups matches.
+Any entries with extra data (marks, currently) are left alone."
+  (if (null gnus-registry-max-entries)      
       alist                             ; just return the alist
     ;; else, when given max-entries, trim the alist
     (let* ((timehash (make-hash-table
-		      :size 4096
+		      :size 20000
+		      :test 'equal))
+	   (precious (make-hash-table
+		      :size 20000
 		      :test 'equal))
 	   (trim-length (- (length alist) gnus-registry-max-entries))
-	   (trim-length (if (natnump trim-length) trim-length 0)))
+	   (trim-length (if (natnump trim-length) trim-length 0))
+	   precious-list junk-list)
       (maphash
        (lambda (key value)
-         (puthash key (gnus-registry-fetch-extra key 'mtime) timehash))
+	 (let ((extra (gnus-registry-fetch-extra key)))
+	   (dolist (item gnus-registry-extra-entries-precious)
+	     (dolist (e extra)
+	       (when (equal (nth 0 e) item)
+		 (puthash key t precious)
+		 (return))))
+	   (puthash key (gnus-registry-fetch-extra key 'mtime) timehash)))
        gnus-registry-hashtb)
-      
-      ;; we use the return value of this setq, which is the trimmed alist
-      (setq alist
-	    (nthcdr
-	     trim-length
-	     (sort alist
-		   (lambda (a b)
-		     (time-less-p
-		      (or (cdr (gethash (car a) timehash)) '(0 0 0))
-		      (or (cdr (gethash (car b) timehash)) '(0 0 0))))))))))
 
+      (dolist (item alist)
+	(let ((key (nth 0 item)))	      
+	  (if (gethash key precious)
+	      (push item precious-list)
+	    (push item junk-list))))
+
+      (sort 
+       junk-list
+       (lambda (a b)
+	 (let ((t1 (or (cdr (gethash (car a) timehash)) 
+		       '(0 0 0)))
+	       (t2 (or (cdr (gethash (car b) timehash)) 
+		       '(0 0 0))))
+	   (time-less-p t1 t2))))
+
+      ;; we use the return value of this setq, which is the trimmed alist
+      (setq alist (append precious-list
+			  (nthcdr trim-length junk-list))))))
+  
 (defun gnus-registry-action (action data-header from &optional to method)
   (let* ((id (mail-header-id data-header))
 	 (subject (gnus-string-remove-all-properties
@@ -577,6 +618,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 			  (assoc article (gnus-data-list nil)))))
     nil))
 
+;;; this should be redone with catch/throw
 (defun gnus-registry-grep-in-list (word list)
   (when word
     (memq nil
@@ -586,80 +628,91 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 		     (string-match word x))
 		   list)))))
 
-(defun gnus-registry-mark-article (article &optional mark remove)
-  "Mark ARTICLE with MARK in the Gnus registry or remove MARK.
-MARK can be any symbol.  If ARTICLE is nil, then the
-`gnus-current-article' will be marked.  If MARK is nil,
-`gnus-registry-flag-default' will be used."
-  (interactive "nArticle number: ")
-  (let ((article (or article gnus-current-article))
-	(mark (or mark 'gnus-registry-flag-default))
-	article-id)
-    (unless article
-      (error "No article on current line"))
-    (setq article-id 
-	  (gnus-registry-fetch-message-id-fast gnus-current-article))
-    (unless article-id
-      (error "No article ID could be retrieved"))
-    (let* (
-	   ;; all the marks for this article
-	   (marks (gnus-registry-fetch-extra-flags article-id))
-	   ;; the marks without the mark of interest
-	   (cleaned-marks (delq mark marks))
-	   ;; the new marks we want to use
-	   (new-marks (if remove
-			  cleaned-marks
-			(cons mark cleaned-marks))))
-    (apply 'gnus-registry-store-extra-flags ; set the extra flags
-     article-id				    ; for the message ID
-     new-marks)
-    (gnus-registry-fetch-extra-flags article-id))))
 
-(defun gnus-registry-article-marks (article)
-  "Get the Gnus registry marks for ARTICLE.
-If ARTICLE is nil, then the `gnus-current-article' will be
-used."
-  (interactive "nArticle number: ")
-  (let ((article (or article gnus-current-article))
-	article-id)
-    (unless article
-      (error "No article on current line"))
-    (setq article-id 
-	  (gnus-registry-fetch-message-id-fast gnus-current-article))
-    (unless article-id
-      (error "No article ID could be retrieved"))
-    (gnus-message 1 
-		  "Message ID %s, Registry flags: %s" 
-		  article-id 
-		  (concat (gnus-registry-fetch-extra-flags article-id)))))
-    
+(defun gnus-registry-read-mark ()
+  "Read a mark name from the user with completion."
+  (let ((mark (gnus-completing-read-with-default 
+	       (symbol-name gnus-registry-default-mark)
+	       "Label" 
+	       (mapcar (lambda (x)	; completion list
+			 (cons (symbol-name x) x))
+		       gnus-registry-marks))))
+    (when (stringp mark)
+      (intern mark))))
 
-;;; if this extends to more than 'flags, it should be improved to be more generic.
-(defun gnus-registry-fetch-extra-flags (id)
-  "Get the flags of a message, based on the message ID.
-Returns a list of symbol flags or nil."
-  (car-safe (cdr (gnus-registry-fetch-extra id 'flags))))
+(defun gnus-registry-set-article-mark (&rest articles)
+  "Apply a mark to process-marked ARTICLES."
+  (interactive (gnus-summary-work-articles current-prefix-arg))
+  (gnus-registry-set-article-mark-internal (gnus-registry-read-mark) articles nil t))
 
-(defun gnus-registry-has-extra-flag (id flag)
-  "Checks if a message has `flag', based on the message ID."
-  (memq flag (gnus-registry-fetch-extra-flags id)))
+(defun gnus-registry-remove-article-mark (&rest articles)
+  "Remove a mark from process-marked ARTICLES."
+  (interactive (gnus-summary-work-articles current-prefix-arg))
+  (gnus-registry-set-article-mark-internal (gnus-registry-read-mark) articles t t))
 
-(defun gnus-registry-store-extra-flags (id &rest flag-list)
-  "Set the flags of a message, based on the message ID.
-The `flag-list' can be nil, in which case no flags are left."
-  (gnus-registry-store-extra-entry id 'flags (list flag-list)))
+(defun gnus-registry-set-article-mark-internal (mark articles &optional remove show-message)
+  "Apply a mark to a list of ARTICLES."
+  (let ((article-id-list
+	 (mapcar 'gnus-registry-fetch-message-id-fast articles)))
+    (dolist (id article-id-list)
+      (let* (
+	     ;; all the marks for this article without the mark of
+	     ;; interest
+	     (marks
+	      (delq mark (gnus-registry-fetch-extra-marks id)))
+	     ;; the new marks we want to use
+	     (new-marks (if remove
+			    marks
+			  (cons mark marks))))
+	(when show-message
+	  (gnus-message 1 "%s mark %s with message ID %s, resulting in %S"
+			(if remove "Removing" "Adding")
+			mark id new-marks))
+	
+	(apply 'gnus-registry-store-extra-marks ; set the extra marks
+	       id				; for the message ID
+	       new-marks)))))
 
-(defun gnus-registry-delete-extra-flags (id &rest flag-delete-list)
-  "Delete the message flags in `flag-delete-list', based on the message ID."
-  (let ((flags (gnus-registry-fetch-extra-flags id)))
-    (when flags
-      (dolist (flag flag-delete-list)
-	(setq flags (delq flag flags))))
-    (gnus-registry-store-extra-flags id (car flags))))
+(defun gnus-registry-get-article-marks (&rest articles)
+  "Get the Gnus registry marks for ARTICLES and show them if interactive.
+Uses process/prefix conventions.  For multiple articles,
+only the last one's marks are returned."
+  (interactive (gnus-summary-work-articles 1))
+  (let (marks)
+    (dolist (article articles)
+      (let ((article-id
+	     (gnus-registry-fetch-message-id-fast article)))
+	(setq marks (gnus-registry-fetch-extra-marks article-id))))
+    (when (interactive-p)
+	(gnus-message 1 "Marks are %S" marks))
+    marks))
 
-(defun gnus-registry-delete-all-extra-flags (id)
-  "Delete all the flags for a message ID."
-  (gnus-registry-store-extra-flags id nil))
+;;; if this extends to more than 'marks, it should be improved to be more generic.
+(defun gnus-registry-fetch-extra-marks (id)
+  "Get the marks of a message, based on the message ID.
+Returns a list of symbol marks or nil."
+  (car-safe (cdr (gnus-registry-fetch-extra id 'marks))))
+
+(defun gnus-registry-has-extra-mark (id mark)
+  "Checks if a message has `mark', based on the message ID `id'."
+  (memq mark (gnus-registry-fetch-extra-marks id)))
+
+(defun gnus-registry-store-extra-marks (id &rest mark-list)
+  "Set the marks of a message, based on the message ID.
+The `mark-list' can be nil, in which case no marks are left."
+  (gnus-registry-store-extra-entry id 'marks (list mark-list)))
+
+(defun gnus-registry-delete-extra-marks (id &rest mark-delete-list)
+  "Delete the message marks in `mark-delete-list', based on the message ID."
+  (let ((marks (gnus-registry-fetch-extra-marks id)))
+    (when marks
+      (dolist (mark mark-delete-list)
+	(setq marks (delq mark marks))))
+    (gnus-registry-store-extra-marks id (car marks))))
+
+(defun gnus-registry-delete-all-extra-marks (id)
+  "Delete all the marks for a message ID."
+  (gnus-registry-store-extra-marks id nil))
 
 (defun gnus-registry-fetch-extra (id &optional entry)
   "Get the extra data of a message, based on the message ID.

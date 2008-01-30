@@ -1,6 +1,6 @@
 ;;; sasl-digest.el --- DIGEST-MD5 module for the SASL client framework
 
-;; Copyright (C) 2000, 2007  Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;;	Kenichi OKADA <okada@opaopa.org>

@@ -240,8 +240,11 @@ Note: The search is conducted only within 10%, at the beginning of the file."
 ;; backward-compatibility alias
 (put 'change-log-acknowledgement-face 'face-alias 'change-log-acknowledgement)
 
+(defconst change-log-file-names-re "^\\( +\\|\t\\)\\* \\([^ ,:([\n]+\\)")
+(defconst change-log-start-entry-re "^\\sw.........[0-9:+ ]*")
+
 (defvar change-log-font-lock-keywords
-  '(;;
+  `(;;
     ;; Date lines, new (2000-01-01) and old (Sat Jan  1 00:00:00 2000) styles.
     ;; Fixme: this regepx is just an approximate one and may match
     ;; wrongly with a non-date line existing as a random note.  In
@@ -255,7 +258,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
       (2 'change-log-email)))
     ;;
     ;; File names.
-    ("^\\( +\\|\t\\)\\* \\([^ ,:([\n]+\\)"
+    (,change-log-file-names-re
      (2 'change-log-file)
      ;; Possibly further names in a list:
      ("\\=, \\([^ ,:([\n]+\\)" nil nil (1 'change-log-file))
@@ -287,10 +290,49 @@ Note: The search is conducted only within 10%, at the beginning of the file."
      3 'change-log-acknowledgement))
   "Additional expressions to highlight in Change Log mode.")
 
+(defun change-log-search-file-name (where)
+  "Return the file-name for the change under point."
+  (save-excursion
+    (goto-char where)
+    (beginning-of-line 1)
+    (if (looking-at change-log-start-entry-re)
+	;; We are at the start of an entry, search forward for a file
+	;; name.
+	(progn
+	  (re-search-forward change-log-file-names-re nil t)
+	  (match-string 2))
+      (if (looking-at change-log-file-names-re)
+	  ;; We found a file name.
+	  (match-string 2)
+	;; Look backwards for either a file name or the log entry start.
+	(if (re-search-backward
+	     (concat "\\(" change-log-start-entry-re 
+		     "\\)\\|\\("
+		     change-log-file-names-re "\\)") nil t)
+	    (if (match-beginning 1)
+		;; We got the start of the entry, look forward for a
+		;; file name.
+		(progn
+		  (re-search-forward change-log-file-names-re nil t)
+		  (match-string 2))
+	      (match-string 4))
+	  ;; We must be before any file name, look forward.
+	  (re-search-forward change-log-file-names-re nil t)
+	  (match-string 2))))))
+
+(defun change-log-find-file ()
+  "Visit the file for the change under point."
+  (interactive)
+  (let ((file (change-log-search-file-name (point))))
+    (if (and file (file-exists-p file))
+	(find-file file)
+      (message "No such file or directory: %s" file))))
+
 (defvar change-log-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [?\C-c ?\C-p] 'add-log-edit-prev-comment)
     (define-key map [?\C-c ?\C-n] 'add-log-edit-next-comment)
+    (define-key map [?\C-c ?\C-f] 'change-log-find-file)
     map)
   "Keymap for Change Log major mode.")
 
@@ -1101,8 +1143,6 @@ Has a preference of looking backwards."
 	  (change-log-get-method-definition-1 ""))
 	(concat change-log-get-method-definition-md "]"))))))
 
-(defconst change-log-start-entry-re "^\\sw.........[0-9:+ ]*")
-
 (defun change-log-sortable-date-at ()
   "Return date of log entry in a consistent form for sorting.
 Point is assumed to be at the start of the entry."

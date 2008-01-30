@@ -15,7 +15,7 @@ This file describes how to use Info, the on-line, menu-driven GNU
 documentation system.
 
 Copyright @copyright{} 1989, 1992, 1996, 1997, 1998, 1999, 2000, 2001,
-2002, 2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -970,7 +970,7 @@ an actual @samp{?} character, the simplest way is to insert it using
 
 @node Search Text, Search Index,  , Advanced
 @comment  node-name,  next,  previous,  up
-@section How to search Info documents
+@section @kbd{s} searches Info documents
 
 @cindex searching Info documents
 @cindex Info document as a reference
@@ -1018,7 +1018,7 @@ by setting the variable @code{Info-isearch-search} to @code{nil}
 
 @node Search Index, Go to node, Search Text, Advanced
 @comment  node-name,  next,  previous,  up
-@section How to search the indices for specific subjects
+@section @kbd{i} searches the indices for specific subjects
 
 @cindex searching Info indices
 @kindex i @r{(Info mode)}

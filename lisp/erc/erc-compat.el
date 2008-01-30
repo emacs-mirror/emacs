@@ -88,53 +88,6 @@ See `replace-match' for explanations of FIXEDCASE and LITERAL."
 (defalias 'erc-make-obsolete 'make-obsolete)
 (defalias 'erc-make-obsolete-variable 'make-obsolete-variable)
 
-;; Provde an equivalent of `assert', based on the code from cl-macs.el
-(defun erc-const-expr-p (x)
-  (cond ((consp x)
-	 (or (eq (car x) 'quote)
-	     (and (memq (car x) '(function function*))
-		  (or (symbolp (nth 1 x))
-		      (and (eq (and (consp (nth 1 x))
-				    (car (nth 1 x))) 'lambda) 'func)))))
-	((symbolp x) (and (memq x '(nil t)) t))
-	(t t)))
-
-(put 'erc-assertion-failed 'error-conditions '(error))
-(put 'erc-assertion-failed 'error-message "Assertion failed")
-
-(defun erc-list* (arg &rest rest)
-  "Return a new list with specified args as elements, cons'd to last arg.
-Thus, `(list* A B C D)' is equivalent to `(nconc (list A B C) D)', or to
-`(cons A (cons B (cons C D)))'."
-  (cond ((not rest) arg)
-	((not (cdr rest)) (cons arg (car rest)))
-	(t (let* ((n (length rest))
-		  (copy (copy-sequence rest))
-		  (last (nthcdr (- n 2) copy)))
-	     (setcdr last (car (cdr last)))
-	     (cons arg copy)))))
-
-(defmacro erc-assert (form &optional show-args string &rest args)
-  "Verify that FORM returns non-nil; signal an error if not.
-Second arg SHOW-ARGS means to include arguments of FORM in message.
-Other args STRING and ARGS... are arguments to be passed to `error'.
-They are not evaluated unless the assertion fails.  If STRING is
-omitted, a default message listing FORM itself is used."
-  (let ((sargs
-	 (and show-args
-	      (delq nil (mapcar
-			 (function
-			  (lambda (x)
-			    (and (not (erc-const-expr-p x)) x)))
-			 (cdr form))))))
-    (list 'progn
-	  (list 'or form
-		(if string
-		    (erc-list* 'error string (append sargs args))
-		  (list 'signal '(quote erc-assertion-failed)
-			(erc-list* 'list (list 'quote form) sargs))))
-	  nil)))
-
 ;; Provide a simpler replacement for `member-if'
 (defun erc-member-if (predicate list)
   "Find the first item satisfying PREDICATE in LIST.

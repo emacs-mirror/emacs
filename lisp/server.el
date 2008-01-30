@@ -291,17 +291,29 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
 
       (server-log "Deleted" proc))))
 
+(defvar server-log-time-function 'current-time-string
+  "Function to generate timestamps for `server-buffer'.")
+
+(defconst server-buffer " *server*"
+  "Buffer used internally by Emacs's server.
+One use is to log the I/O for debugging purposes (see `server-log'),
+the other is to provide a current buffer in which the process filter can
+safely let-bind buffer-local variables like `default-directory'.")
+
+(defvar server-log nil
+  "If non-nil, log the server's inputs and outputs in the `server-buffer'.")
+
 (defun server-log (string &optional client)
-  "If a *server* buffer exists, write STRING to it for logging purposes.
+  "If `server-log' is non-nil, log STRING to `server-buffer'.
 If CLIENT is non-nil, add a description of it to the logged message."
-  (when (get-buffer "*server*")
-    (with-current-buffer "*server*"
+  (when server-log
+    (with-current-buffer (get-buffer-create server-buffer)
       (goto-char (point-max))
-      (insert (current-time-string)
+      (insert (funcall server-log-time-function)
 	      (cond
-	       ((null client) " ")
-	       ((listp client) (format " %s: " (car client)))
-	       (t (format " %s: " client)))
+		((null client) " ")
+		((listp client) (format " %s: " (car client)))
+		(t (format " %s: " client)))
 	      string)
       (or (bolp) (newline)))))
 
@@ -494,7 +506,7 @@ kill any existing server communications subprocess."
 		       ;; Those are decoded by server-process-filter according
 		       ;; to file-name-coding-system.
 		       :coding 'raw-text
-		       ;; The rest of the args depends on the kind of socket used.
+		       ;; The other args depend on the kind of socket used.
 		       (if server-use-tcp
 			   (list :family nil
 				 :service t
@@ -764,7 +776,7 @@ The following commands are accepted by the client:
   (server-log (concat "Received " string) proc)
   ;; First things first: let's check the authentication
   (unless (process-get proc :authenticated)
-    (if (and (string-match "-auth \\(.*?\\)\n" string)
+    (if (and (string-match "-auth \\([!-~]+\\)\n?" string)
 	     (equal (match-string 1 string) (process-get proc :auth-key)))
 	(progn
 	  (setq string (substring string (match-end 0)))
@@ -805,8 +817,7 @@ The following commands are accepted by the client:
                 (tty-name nil)       ;nil, `window-system', or the tty name.
                 tty-type             ;string.
 		(files nil)
-		(lineno 1)
-		(columnno 0)
+                (filepos nil)
 		command-line-args-left
 		arg)
 	    ;; Remove this line from STRING.
@@ -876,9 +887,9 @@ The following commands are accepted by the client:
                        (string-match "\\+\\([0-9]+\\)\\(?::\\([0-9]+\\)\\)?"
                                      (car command-line-args-left)))
 		  (setq arg (pop command-line-args-left))
-		  (setq lineno (string-to-number (match-string 1 arg))
-			columnno (if (null (match-end 2)) 0
-                                   (string-to-number (match-string 2 arg)))))
+		  (setq filepos
+                        (cons (string-to-number (match-string 1 arg))
+                              (string-to-number (or (match-string 2 arg) "")))))
 
 		 ;; -file FILENAME:  Load the given file.
 		 ((and (equal "-file" arg)
@@ -887,11 +898,10 @@ The following commands are accepted by the client:
 		    (if coding-system
 			(setq file (decode-coding-string file coding-system)))
 		    (setq file (command-line-normalize-file-name file))
-		    (push (list file lineno columnno) files)
-		    (server-log (format "New file: %s (%d:%d)"
-                                        file lineno columnno) proc))
-		  (setq lineno 1
-			columnno 0))
+		    (push (cons file filepos) files)
+		    (server-log (format "New file: %s %s"
+                                        file (or filepos "")) proc))
+		  (setq filepos nil))
 
 		 ;; -eval EXPR:  Evaluate a Lisp expression.
 		 ((and (equal "-eval" arg)
@@ -901,8 +911,7 @@ The following commands are accepted by the client:
 			(setq expr (decode-coding-string expr coding-system)))
                     (push (lambda () (server-eval-and-print expr proc))
                           commands)
-		    (setq lineno 1
-			  columnno 0)))
+		    (setq filepos nil)))
 
 		 ;; -env NAME=VALUE:  An environment variable.
 		 ((and (equal "-env" arg) command-line-args-left)
@@ -928,17 +937,25 @@ The following commands are accepted by the client:
                      (server-create-window-system-frame display nowait proc))
                     (t (server-create-tty-frame tty-name tty-type proc))))
 
-            (process-put proc 'continuation
-                         (lexical-let ((proc proc)
-                                       (files files)
-                                       (nowait nowait)
-                                       (commands commands)
-                                       (dontkill dontkill)
-                                       (frame frame)
-                                       (tty-name tty-name))
-                           (lambda ()
-                             (server-execute proc files nowait commands
-                                             dontkill frame tty-name))))
+            (process-put
+             proc 'continuation
+             (lexical-let ((proc proc)
+                           (files files)
+                           (nowait nowait)
+                           (commands commands)
+                           (dontkill dontkill)
+                           (frame frame)
+                           (dir dir)
+                           (tty-name tty-name))
+               (lambda ()
+                 (with-current-buffer (get-buffer-create server-buffer)
+                   ;; Use the same cwd as the emacsclient, if possible, so
+                   ;; relative file names work correctly, even in `eval'.
+                   (let ((default-directory
+			  (if (and dir (file-directory-p dir))
+			      dir default-directory)))
+                     (server-execute proc files nowait commands
+                                     dontkill frame tty-name))))))
 
             (when (or frame files)
               (server-goto-toplevel proc))
@@ -991,18 +1008,19 @@ The following commands are accepted by the client:
     (server-log (error-message-string err) proc)
     (delete-process proc)))
 
-(defun server-goto-line-column (file-line-col)
-  "Move point to the position indicated in FILE-LINE-COL.
-FILE-LINE-COL should be a three-element list as described in
-`server-visit-files'."
-  (goto-line (nth 1 file-line-col))
-  (let ((column-number (nth 2 file-line-col)))
-    (when (> column-number 0)
-      (move-to-column (1- column-number)))))
+(defun server-goto-line-column (line-col)
+  "Move point to the position indicated in LINE-COL.
+LINE-COL should be a pair (LINE . COL)."
+  (when line-col
+    (goto-line (car line-col))
+    (let ((column-number (cdr line-col)))
+      (when (> column-number 0)
+        (move-to-column (1- column-number))))))
 
 (defun server-visit-files (files proc &optional nowait)
   "Find FILES and return a list of buffers created.
-FILES is an alist whose elements are (FILENAME LINENUMBER COLUMNNUMBER).
+FILES is an alist whose elements are (FILENAME . FILEPOS)
+where FILEPOS can be nil or a pair (LINENUMBER . COLUMNNUMBER).
 PROC is the client that requested this operation.
 NOWAIT non-nil means this client is not waiting for the results,
 so don't mark these buffers specially, just visit them normally."
@@ -1021,22 +1039,21 @@ so don't mark these buffers specially, just visit them normally."
 	       (filen (car file))
 	       (obuf (get-file-buffer filen)))
 	  (add-to-history 'file-name-history filen)
-	  (if (and obuf (set-buffer obuf))
-	      (progn
-		(cond ((file-exists-p filen)
-		       (when (not (verify-visited-file-modtime obuf))
-			 (revert-buffer t nil)))
-		      (t
-		       (when (y-or-n-p
-			      (concat "File no longer exists: " filen
-				      ", write buffer to file? "))
-			 (write-file filen))))
-		(unless server-buffer-clients
-		  (setq server-existing-buffer t))
-		(server-goto-line-column file))
-	    (set-buffer (find-file-noselect filen))
-	    (server-goto-line-column file)
-	    (run-hooks 'server-visit-hook)))
+	  (if (null obuf)
+              (set-buffer (find-file-noselect filen))
+            (set-buffer obuf)
+            (cond ((file-exists-p filen)
+                   (when (not (verify-visited-file-modtime obuf))
+                     (revert-buffer t nil)))
+                  (t
+                   (when (y-or-n-p
+                          (concat "File no longer exists: " filen
+                                  ", write buffer to file? "))
+                     (write-file filen))))
+            (unless server-buffer-clients
+              (setq server-existing-buffer t)))
+          (server-goto-line-column (cdr file))
+          (run-hooks 'server-visit-hook))
 	(unless nowait
 	  ;; When the buffer is killed, inform the clients.
 	  (add-hook 'kill-buffer-hook 'server-kill-buffer nil t)

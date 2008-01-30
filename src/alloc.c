@@ -1928,11 +1928,7 @@ allocate_string ()
   consing_since_gc += sizeof *s;
 
 #ifdef GC_CHECK_STRING_BYTES
-  if (!noninteractive
-#ifdef MAC_OS8
-      && current_sblock
-#endif
-     )
+  if (!noninteractive)
     {
       if (++check_string_bytes_count == 200)
 	{

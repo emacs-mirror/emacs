@@ -404,8 +404,8 @@ This variable is buffer local and only used in the *cvs* buffer.")
 
 (easy-menu-define cvs-menu cvs-mode-map "Menu used in `cvs-mode'."
   '("CVS"
-    ["Open file.."		cvs-mode-find-file	t]
-    [" ..other window"		cvs-mode-find-file-other-window	t]
+    ["Open file"		cvs-mode-find-file	t]
+    ["Open in other window"	cvs-mode-find-file-other-window	t]
     ["Display in other window"  cvs-mode-display-file   t]
     ["Interactive merge"	cvs-mode-imerge		t]
     ("View diff"
@@ -413,6 +413,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
      ["Current diff"		cvs-mode-diff		t]
      ["Diff with head"		cvs-mode-diff-head	t]
      ["Diff with vendor"	cvs-mode-diff-vendor	t]
+     ["Diff against yesterday"	cvs-mode-diff-yesterday	t]
      ["Diff with backup"	cvs-mode-diff-backup	t])
     ["View log"			cvs-mode-log		t]
     ["View status"		cvs-mode-status		t]
@@ -436,6 +437,9 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ["Unmark"                   cvs-mode-unmark	t]
     ["Unmark all"		cvs-mode-unmark-all-files t]
     ["Hide handled"		cvs-mode-remove-handled	t]
+    "----"
+    ["PCL-CVS Manual"		(lambda () (interactive)
+				  (info "(pcl-cvs)Top")) t]
     "----"
     ["Quit"			cvs-mode-quit		t]))
 

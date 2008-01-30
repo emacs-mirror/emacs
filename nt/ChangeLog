@@ -1,3 +1,8 @@
+2008-01-20  Jason Rumney  <jasonr@gnu.org>
+
+	* gmake.defs (CYGWIN) [USING_SH]: Disable mapping of file
+	permissions to NTFS ACLs.
+
 2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* config.nt: Remove HAVE_X11R5.

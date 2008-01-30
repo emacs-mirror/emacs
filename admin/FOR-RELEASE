@@ -96,22 +96,11 @@ minimized.  I don't know what is left to do here.
 
 ** sdl.web@gmail.com, 30 Oct: ps-lpr-switches has no effect
 
-** Stephen.Berman@gmx.net: minibuffer and current-local-map
-
 ** timh@insightful.com, 9 Nov: X-coding-system incompatibility, and workaround
-
-** Get rid of old-style backquotes in cc-vars.el.
-ttn has a patch:
-http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg02052.html
-
-** Fix or document the shortcoming of easymenu and :suffix.
-http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01857.html
 
 ** Fix problem with mode-name in SGML mode.
 If mode-name stays non-string, add NEWS entry and doc fix.
 http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg02048.html
-
-** pot@gnu.org, 17 Dec: strange From line maker rmail-reply loop
 
 ** multi-tty does not work correctly.
 If the server is started from a tty frame and emacsclient creates an
@@ -119,6 +108,11 @@ X11 frame, the tty frame gets confused, it thinks it is an X11 frame
 when trying to do a C-z.  This worked with server.el version 1.136, it
 broke after that.
 http://lists.gnu.org/archive/html/emacs-devel/2007-12/msg00545.html
+Also emacsclient does not work on Windows, it also worked with
+server.el version 1.136.
+http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00710.html
+
+
 
 * DOCUMENTATION
 

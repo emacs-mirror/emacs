@@ -1,3 +1,22 @@
+2008-01-26  Richard Stallman  <rms@gnu.org>
+
+	* maintaining.texi (Tags): Delete redundant index entry.
+
+2008-01-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* programs.texi (Imenu): Move "@cindex tags" from here...
+	* maintaining.texi (Tags): ...to here.
+
+2008-01-23  Kevin Ryde  <user42@zip.com.au>
+
+	* custom.texi (Mouse Buttons): Update elisp xref to "Click Events" on
+	click count.
+
+2008-01-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* entering.texi (Exiting): Fix typo.
+	Reported by D. E. Evans <sinuhe@gnu.org>.
+
 2007-12-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* glossary.texi (Glossary): Fix typo.
@@ -5096,7 +5115,7 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
-      2003, 2004, 2005, 2006, 2007 Free Software Foundation, Inc.
+      2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
 
   This file is part of GNU Emacs.
 

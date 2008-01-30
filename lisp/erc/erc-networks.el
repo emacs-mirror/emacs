@@ -28,9 +28,7 @@
 ;;
 ;; Usage:
 ;;
-;; Put into your .emacs:
-;;
-;; (require 'erc-networks)
+;; This is the "networks" module.
 ;;
 ;; M-x erc-server-select provides an alternative way to connect to servers by
 ;; choosing networks.
@@ -351,6 +349,7 @@
   ("Relicnet: Random server" Relicnet "irc.relic.net" 6667)
   ("Rezosup: Random server" Rezosup "irc.rezosup.org" 6667)
   ("Risanet: Random server" Risanet "irc.risanet.com" ((6667 6669)))
+  ("Rizon: Random server" Rizon "irc.rizon.net" (6633 (6660 6669) 6697 7000 8080 9999))
   ("Rubiks: Random server" Rubiks "irc.rubiks.net" 6667)
   ("Rusnet: EU, RU, Tomsk" Rusnet "irc.tsk.ru" ((6667 6669) (7770 7775) ))
   ("Rusnet: EU, RU, Vladivostok" Rusnet "irc.vladivostok.ru" ((6667 6669) (7770 7775) ))
@@ -765,9 +764,14 @@ network as a symbol."
   (setq erc-network nil)
   nil)
 
-(add-hook 'erc-server-375-functions 'erc-set-network-name)
-(add-hook 'erc-server-422-functions 'erc-set-network-name)
-(add-hook 'erc-disconnected-hook 'erc-unset-network-name)
+(define-erc-module networks nil
+  "Provide data about IRC networks."
+  ((add-hook 'erc-server-375-functions 'erc-set-network-name)
+   (add-hook 'erc-server-422-functions 'erc-set-network-name)
+   (add-hook 'erc-disconnected-hook 'erc-unset-network-name))
+  ((remove-hook 'erc-server-375-functions 'erc-set-network-name)
+   (remove-hook 'erc-server-422-functions 'erc-set-network-name)
+   (remove-hook 'erc-disconnected-hook 'erc-unset-network-name)))
 
 (defun erc-ports-list (ports)
   "Return a list of PORTS.

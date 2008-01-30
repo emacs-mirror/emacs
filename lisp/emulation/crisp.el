@@ -148,7 +148,7 @@ does not load the scroll-all package."
 
 (defun crisp-region-active ()
   "Compatibility function to test for an active region."
-  (if (boundp 'zmacs-region-active-p)
+  (if (featurep 'xemacs)
       zmacs-region-active-p
     mark-active))
 

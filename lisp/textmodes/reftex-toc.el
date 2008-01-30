@@ -326,7 +326,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 (defun reftex-toc-next (&optional arg)
   "Move to next selectable item."
   (interactive "p")
-  (if (boundp 'zmacs-region-stays) (setq zmacs-region-stays t))
+  (when (featurep 'xemacs) (setq zmacs-region-stays t))
   (setq reftex-callback-fwd t)
   (or (eobp) (forward-char 1))
   (goto-char (or (next-single-property-change (point) :data) 
@@ -334,21 +334,21 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 (defun reftex-toc-previous (&optional arg)
   "Move to previous selectable item."
   (interactive "p")
-  (if (boundp 'zmacs-region-stays) (setq zmacs-region-stays t))
+  (when (featurep 'xemacs) (setq zmacs-region-stays t))
   (setq reftex-callback-fwd nil)
   (goto-char (or (previous-single-property-change (point) :data)
                  (point))))
 (defun reftex-toc-next-heading (&optional arg)
   "Move to next table of contentes line."
   (interactive "p")
-  (if (boundp 'zmacs-region-stays) (setq zmacs-region-stays t))
+  (when (featurep 'xemacs) (setq zmacs-region-stays t))
   (end-of-line)
   (re-search-forward "^ " nil t arg)
   (beginning-of-line))
 (defun reftex-toc-previous-heading (&optional arg)
   "Move to previous table of contentes line."
   (interactive "p")
-  (if (boundp 'zmacs-region-stays) (setq zmacs-region-stays t))
+  (when (featurep 'xemacs) (setq zmacs-region-stays t))
   (re-search-backward "^ " nil t arg))
 (defun reftex-toc-toggle-follow ()
   "Toggle follow (other window follows with context)."
@@ -637,7 +637,7 @@ point."
   (if mark-line
       (progn
         (set-mark mpos)
-        (if (fboundp 'zmacs-activate-region)
+        (if (featurep 'xemacs)
             (zmacs-activate-region)
           (setq mark-active t
                 deactivate-mark nil)))))

@@ -1,3 +1,48 @@
+2008-01-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacsclient.c (decode_options): Default to a NULL display, as Emacs-22.
+	Allow the -d option under w32 again, for those rare cases where it
+	actually does make sense.
+
+2008-01-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (set_tcp_socket): Don't send "\n" after
+	the authentication string; there's no need to haste.
+
+2008-01-22  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pop.c (pop_stat, pop_last): Fix last fix.
+
+2008-01-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* movemail.c: Remove references to XENIX.
+
+2008-01-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* movemail.c:
+	* make-docfile.c: Remove reference to symbols defined by systems
+	not supported anymore: MAC_OS8, XENIX and STRIDE.
+
+2008-01-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacsclient.c (decode_options) [WINDOWSNT]: Don't use the value
+	of DISPLAY in the environment.  Don't support -d.
+	(print_help_and_exit) [WINDOWSNT]: Don't show the --display option.
+	(longopts) [WINDOWSNT]: Remove --display.
+
+2008-01-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* pop.c (pop_stat, pop_last): Check validity of string-to-integer
+	conversion.  Mistakes spotted by Nico Golde.
+
+2008-01-09  Glenn Morris  <rgm@gnu.org>
+
+	* emacsclient.c: Add missing final newlines to message calls.
+
+2008-01-09  Daniel Hackney  <dan@haxney.org>  (tiny change)
+
+	* emacsclient.c (set_socket): Add final newline to socket error message.
+
 2008-01-04  Glenn Morris  <rgm@gnu.org>
 
 	* ebrowse.c (version) <emacs_copyright>: New variable.

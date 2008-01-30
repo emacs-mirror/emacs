@@ -99,6 +99,16 @@ sh_output := $(shell echo foo")
 ifeq "$(sh_output)" ""
 NEW_CYGWIN = 1
 endif
+
+# By default, newer versions of Cygwin mess with NTFS ACLs in an
+# attempt to emulate traditional posix file permissions. This can
+# cause bad effects, such as .exe files that are missing the
+# FILE_EXECUTE/FILE_GENERIC_EXECUTE permissions when they are created
+# with Cygwin commands that don't expect to be creating executable
+# files. Then when we later use a non-Cygwin program to create the
+# real .exe, the previous Cygwin defined ACL sticks.
+CYGWIN=nontsec
+export CYGWIN
 endif
 
 ALL_DEPS	= $^

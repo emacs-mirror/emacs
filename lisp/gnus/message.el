@@ -5952,7 +5952,7 @@ beginning of header value.  Therefore, repeated calls will toggle point
 between beginning of field and beginning of line."
   (interactive "p")
   (let ((zrs 'zmacs-region-stays))
-    (when (and (interactive-p) (boundp zrs))
+    (when (and (featurep 'xemacs) (interactive-p) (boundp zrs))
       (set zrs t)))
   (if (and message-beginning-of-line
 	   (message-point-in-header-p))

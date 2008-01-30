@@ -6386,9 +6386,7 @@ change_frame_size_1 (f, newheight, newwidth, pretend, delay, safe)
 
   record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
 
-  /* This isn't quite a no-op: it runs window-configuration-change-hook.  */
-  Fset_window_buffer (FRAME_SELECTED_WINDOW (f),
-		      XWINDOW (FRAME_SELECTED_WINDOW (f))->buffer, Qt);
+  run_window_configuration_change_hook (f);
 
   unbind_to (count, Qnil);
 }

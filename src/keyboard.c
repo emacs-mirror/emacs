@@ -95,18 +95,7 @@ volatile int interrupt_input_blocked;
    during the current critical section.  */
 int interrupt_input_pending;
 
-
-#ifdef HAVE_WINDOW_SYSTEM
-/* Make all keyboard buffers much bigger when using X windows.  */
-#ifdef MAC_OS8
-/* But not too big (local data > 32K error) if on Mac OS Classic.  */
-#define KBD_BUFFER_SIZE 512
-#else
 #define KBD_BUFFER_SIZE 4096
-#endif
-#else	/* No X-windows, character input */
-#define KBD_BUFFER_SIZE 4096
-#endif	/* No X-windows */
 
 #ifdef MULTI_KBOARD
 KBOARD *initial_kboard;
@@ -2715,6 +2704,8 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
   /* if redisplay was requested */
   if (commandflag >= 0)
     {
+      int echo_current = EQ (echo_message_buffer, echo_area_buffer[0]);
+
 	/* If there is pending input, process any events which are not
 	   user-visible, such as X selection_request events.  */
       if (input_pending
@@ -2738,6 +2729,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	  swallow_events (0);
 	  /* If that cleared input_pending, try again to redisplay.  */
 	}
+
+      /* Prevent the redisplay we just did
+	 from messing up echoing of the input after the prompt.  */
+      if (commandflag == 0 && echo_current)
+	echo_message_buffer = echo_area_buffer[0];
+
     }
 
   /* Message turns off echoing unless more keystrokes turn it on again.
@@ -7234,7 +7231,7 @@ tty_read_avail_input (struct terminal *terminal,
   if (n_to_read > sizeof cbuf)
     n_to_read = sizeof cbuf;
 #else /* no FIONREAD */
-#if defined (USG) || defined (DGUX) || defined(CYGWIN)
+#if defined (USG) || defined(CYGWIN)
   /* Read some input if available, but don't wait.  */
   n_to_read = sizeof cbuf;
   fcntl (fileno (tty->input), F_SETFL, O_NDELAY);
@@ -7284,9 +7281,9 @@ tty_read_avail_input (struct terminal *terminal,
          );
 
 #ifndef FIONREAD
-#if defined (USG) || defined (DGUX) || defined (CYGWIN)
+#if defined (USG) || defined (CYGWIN)
   fcntl (fileno (tty->input), F_SETFL, 0);
-#endif /* USG or DGUX or CYGWIN */
+#endif /* USG or CYGWIN */
 #endif /* no FIONREAD */
 
   if (nread <= 0)

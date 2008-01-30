@@ -570,7 +570,10 @@ Postpone undisplaying of viewers for types in
 	  ;; creates unibyte buffers. This `if', though not a perfect
 	  ;; solution, avoids most of them.
 	  (if from
-	      (setq from (cadr (mail-extract-address-components from))))))
+	      (setq from (cadr (mail-extract-address-components from))))
+	  (if description
+	      (setq description (mail-decode-encoded-word-string
+				 description)))))
       (if (or (not ctl)
 	      (not (string-match "/" (car ctl))))
 	  (mm-dissect-singlepart

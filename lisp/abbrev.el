@@ -524,7 +524,9 @@ the current abbrev table before abbrev lookup happens."
       (aset table i 0))
     ;; Preserve the table's properties.
     (assert sym)
-    (intern sym table)
+    (let ((newsym (intern "" table)))
+      (set newsym nil)	     ; Make sure it won't be confused for an abbrev.
+      (setplist newsym (symbol-plist sym)))
     (abbrev-table-put table :abbrev-table-modiff
                       (1+ (abbrev-table-get table :abbrev-table-modiff)))))
 

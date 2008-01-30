@@ -62,6 +62,11 @@ being evaluated and should return stings."
   :group 'erc-dcc
   :type '(repeat (repeat :tag "Message" (choice string sexp))))
 
+;;;###autoload (autoload 'erc-xdcc-mode "erc-xdcc")
+(define-erc-module xdcc nil
+  "Act as an XDCC file-server."
+  nil nil)
+
 ;;;###autoload
 (defun erc-xdcc-add-file (file)
   "Add a file to `erc-xdcc-files'."
@@ -126,5 +131,11 @@ being evaluated and should return stings."
 
 (provide 'erc-xdcc)
 
-;; arch-tag: a13b62fe-2399-4562-af4e-f18a8dd4b9c8
 ;;; erc-xdcc.el ends here
+;;
+;; Local Variables:
+;; indent-tabs-mode: t
+;; tab-width: 8
+;; End:
+
+;; arch-tag: a13b62fe-2399-4562-af4e-f18a8dd4b9c8

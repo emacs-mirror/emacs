@@ -797,7 +797,10 @@ This uses ffap-file-exists-string, which may try adding suffixes from
     ("\\.bib\\'" . ffap-bib)		; search ffap-bib-path
     ("\\`\\." . ffap-home)		; .emacs, .bashrc, .profile
     ("\\`~/" . ffap-lcd)		; |~/misc/ffap.el.Z|
-    ("^[Rr][Ff][Cc][- #]?\\([0-9]+\\)"	; no $
+    ;; This uses to have a blank, but ffap-string-at-point doesn't
+    ;; handle blanks.
+    ;; http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01058.html
+    ("^[Rr][Ff][Cc][-#]?\\([0-9]+\\)"	; no $
      . ffap-rfc)			; "100% RFC2100 compliant"
     (dired-mode . ffap-dired)		; maybe in a subdirectory
     )
@@ -969,7 +972,7 @@ If t, `ffap-tex-init' will initialize this when needed.")
     ;; Slightly controversial decisions:
     ;; * strip trailing "@" and ":"
     ;; * no commas (good for latex)
-    (file "--:$+<>@-Z_[:lower:]~*?" "<@" "@>;.,!:")
+    (file "--:\\\\$+<>@-Z_[:lower:]~*?" "<@" "@>;.,!:")
     ;; An url, or maybe a email/news message-id:
     (url "--:=&?$+@-Z_[:lower:]~#,%;*" "^[:alnum:]" ":;.,!?")
     ;; Find a string that does *not* contain a colon:
@@ -1263,20 +1266,25 @@ which may actually result in an url rather than a filename."
 	  (setq dir (file-name-directory guess))))
     (let ((minibuffer-completing-file-name t)
 	  (completion-ignore-case read-file-name-completion-ignore-case)
-	  ;; because of `rfn-eshadow-update-overlay'.
-	  (file-name-handler-alist
-	   (cons (cons ffap-url-regexp 'url-file-handler)
-		 file-name-handler-alist)))
-      (setq guess
-	    (completing-read
-	     prompt
-	     'ffap-read-file-or-url-internal
-	     dir
-	     nil
-	     (if dir (cons guess (length dir)) guess)
-	     (list 'file-name-history)
-	     (and buffer-file-name
-		  (abbreviate-file-name buffer-file-name)))))
+          (fnh-elem (cons ffap-url-regexp 'url-file-handler)))
+      ;; Explain to `rfn-eshadow' that we can use URLs here.
+      (push fnh-elem file-name-handler-alist)
+      (unwind-protect
+          (setq guess
+                (completing-read
+                 prompt
+                 'ffap-read-file-or-url-internal
+                 dir
+                 nil
+                 (if dir (cons guess (length dir)) guess)
+                 (list 'file-name-history)
+                 (and buffer-file-name
+                      (abbreviate-file-name buffer-file-name))))
+        ;; Remove the special handler manually.  We used to just let-bind
+        ;; file-name-handler-alist to preserve its value, but that caused
+        ;; other modifications to be lost (e.g. when Tramp gets loaded
+        ;; during the completing-read call).
+        (setq file-name-handler-alist (delq fnh-elem file-name-handler-alist))))
     ;; Do file substitution like (interactive "F"), suggested by MCOOK.
     (or (ffap-url-p guess) (setq guess (substitute-in-file-name guess)))
     ;; Should not do it on url's, where $ is a common (VMS?) character.

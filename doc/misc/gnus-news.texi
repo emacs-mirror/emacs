@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 
-@c Copyright (C) 2004, 2005, 2006 Free Software Foundation, Inc.
+@c Copyright (C) 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
 
 @c    Permission is granted to anyone to make or distribute verbatim copies
 @c    of this document as received, in any medium, provided that the
@@ -139,6 +139,19 @@ format=flowed messages.  Also, flowed text is disabled when sending
 inline @acronym{PGP} signed messages.  @xref{Flowed text, ,Flowed text,
 emacs-mime, The Emacs MIME Manual}.  (New in Gnus 5.10.7)
 @c This entry is also present in the node "Oort Gnus".
+
+@item Now the new command @kbd{S W}
+(@code{gnus-article-wide-reply-with-original}) for a wide reply in the
+article buffer yanks a text that is in the active region, if it is set,
+as well as the @kbd{R} (@code{gnus-article-reply-with-original}) command.
+Note that the @kbd{R} command in the article buffer no longer accepts a
+prefix argument, which was used to make it do a wide reply.
+@xref{Article Keymap}.
+
+@item The new command @kbd{C-h b}
+(@code{gnus-article-describe-bindings}) used in the article buffer now
+shows not only the article commands but also the real summary commands
+that are accessible from the article buffer.
 
 @end itemize
 

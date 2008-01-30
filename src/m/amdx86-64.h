@@ -146,7 +146,7 @@ Boston, MA 02110-1301, USA.  */
 #else /* !__OpenBSD__ && !__FreeBSD__ && !__NetBSD__ && !sun */
 
 #undef START_FILES
-#ifdef HAVE_X86_64_LIB64_DIR
+#ifdef HAVE_LIB64_DIR
 #define START_FILES pre-crt0.o /usr/lib64/crt1.o /usr/lib64/crti.o
 #else
 #define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
@@ -158,7 +158,7 @@ Boston, MA 02110-1301, USA.  */
    versions of ld are one-pass linkers, we need to mention -lgcc twice,
    or else we risk getting unresolved externals.  */
 #undef LIB_STANDARD
-#ifdef HAVE_X86_64_LIB64_DIR
+#ifdef HAVE_LIB64_DIR
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib64/crtn.o
 #else
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o

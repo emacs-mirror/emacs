@@ -147,8 +147,7 @@ is minibuffer."
     (save-excursion
       (let* ((sym (intern func-name))
 	     (buf (other-buffer nil t))
-	     (map (save-excursion (set-buffer buf) (current-local-map)))
-	     (keys (where-is-internal sym map)))
+	     (keys (with-current-buffer buf (where-is-internal sym))))
 	(if keys
 	    (concat "<"
 		    (mapconcat 'key-description

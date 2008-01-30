@@ -2320,43 +2320,93 @@ Return the name of the group if selection was successful."
 	 (message "Quit reading the ephemeral group")
 	 nil)))))
 
-(defvar gnus-group-gmane-group-download-format
-  "http://download.gmane.org/%s/%s/%s")
+(defcustom gnus-group-gmane-group-download-format
+  "http://download.gmane.org/%s/%s/%s"
+  "URL for downloading mbox files.
+It must contain three \"%s\".  They correspond to the group, the
+minimal and maximal article numbers, respectively."
+  :group 'gnus-group-foreign
+  :version "23.0" ;; No Gnus
+  :type 'string)
+
 (autoload 'url-insert-file-contents "url-handlers")
+;; FIXME:
+;; - Add documentation, menu, key bindings, ...
 
-;; FIXME: Make gnus-group-gmane-group-download-format customizable.  Add
-;; documentation, menu, key bindings...
-
-(defun gnus-group-read-ephemeral-gmane-group (group start end)
+(defun gnus-group-read-ephemeral-gmane-group (group start &optional range)
   "Read articles from Gmane group GROUP as an ephemeral group.
-START and END specify the articles range.  The articles are
-downloaded via HTTP using the URL specified by
-`gnus-group-gmane-group-download-format'."
+START is the first article.  RANGE specifies how many articles
+are fetched.  The articles are downloaded via HTTP using the URL
+specified by `gnus-group-gmane-group-download-format'."
   ;; See <http://gmane.org/export.php> for more information.
   (interactive
    (list
     (gnus-group-completing-read "Gmane group: ")
     (read-number "Start article number: ")
-    (read-number "End article number: ")))
-  (when (< (- end start) 0)
-    (error "Invalid range."))
-  (when (> (- end start)
-	   (min (or gnus-large-ephemeral-newsgroup 100) 100))
-    (unless (y-or-n-p
-	     (format "Large range (%s to %s), continue anyway? "
-		     start end))
-      (error "Range too large.  Aborted.")))
-  (let ((tmpfile (make-temp-file "gmane.gnus-temp-group-")))
+    (read-number "How many articles: ")))
+  (unless range (setq range 500))
+  (when (< range 1)
+    (error "Invalid range: %s" range))
+  (let ((tmpfile (make-temp-file
+		  (format "%s.start-%s.range-%s." group start range)))
+	(gnus-thread-sort-functions '(gnus-thread-sort-by-number)))
     (with-temp-file tmpfile
       (url-insert-file-contents
        (format gnus-group-gmane-group-download-format
-	       group start end))
+	       group start (+ start range)))
       (write-region (point-min) (point-max) tmpfile)
       (gnus-group-read-ephemeral-group
-       "rs-gnus-read-gmane"
+       (format "%s.start-%s.range-%s" group start range)
        `(nndoc ,tmpfile
 	       (nndoc-article-type guess))))
     (delete-file tmpfile)))
+
+(defun gnus-group-read-ephemeral-gmane-group-url (url)
+  "Create an ephemeral Gmane group from URL.
+
+Valid input formats include:
+\"http://thread.gmane.org/gmane.foo.bar/12300/focus=12399\",
+\"http://thread.gmane.org/gmane.foo.bar/12345/\",
+\"http://article.gmane.org/gmane.foo.bar/12345/\",
+\"http://news.gmane.org/group/gmane.foo.bar/thread=12345\""
+  ;; - Feel free to add other useful Gmane URLs here!  Maybe the URLs should
+  ;;   be customizable?
+  ;; - The URLs should be added to `gnus-button-alist'.  Probably we should
+  ;;   prompt the user to decide: "View via `browse-url' or in Gnus? "
+  ;;   (`gnus-group-read-ephemeral-gmane-group-url')
+  (interactive
+   (list (gnus-group-completing-read "Gmane URL: ")))
+  (let (group start range)
+    (cond
+     ;; URLs providing `group', `start' and `range':
+     ((string-match
+       ;; http://thread.gmane.org/gmane.emacs.devel/86326/focus=86525
+       "^http://thread\.gmane\.org/\\([^/]+\\)/\\([0-9]+\\)/focus=\\([0-9]+\\)$"
+       url)
+      (setq group (match-string 1 url)
+	    start (string-to-number (match-string 2 url))
+	    ;; Ensure that `range' is large enough to ensure focus article is
+	    ;; included.
+	    range (- (string-to-number (match-string 3 url))
+		     start -1)))
+     ;; URLs providing `group' and `start':
+     ((or (string-match
+	   ;; http://article.gmane.org/gmane.comp.gnu.make.bugs/3584
+	   "^http://\\(?:thread\\|article\\)\.gmane\.org/\\([^/]+\\)/\\([0-9]+\\)"
+	   url)
+	  (string-match
+	   ;; Don't advertize these in the doc string yet:
+	   "^\\(?:nntp\\|news\\)://news\.gmane\.org/\\([^/]+\\)/\\([0-9]+\\)"
+	   url)
+	  (string-match
+	   ;; http://news.gmane.org/group/gmane.emacs.gnus.general/thread=65099/force_load=t
+	   "^http://news\.gmane\.org/group/\\([^/]+\\)/thread=\\([0-9]+\\)"
+	   url))
+      (setq group (match-string 1 url)
+	    start (string-to-number (match-string 2 url))))
+     (t
+      (error "Can't parse URL %s" url)))
+    (gnus-group-read-ephemeral-gmane-group group start range)))
 
 (defun gnus-group-jump-to-group (group &optional prompt)
   "Jump to newsgroup GROUP.

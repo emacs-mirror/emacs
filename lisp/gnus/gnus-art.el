@@ -4215,6 +4215,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
   "F" gnus-article-followup-with-original
   "\C-hk" gnus-article-describe-key
   "\C-hc" gnus-article-describe-key-briefly
+  "\C-hb" gnus-article-describe-bindings
 
   "\C-d" gnus-article-read-summary-keys
   "\M-*" gnus-article-read-summary-keys
@@ -4224,6 +4225,13 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 
 (substitute-key-definition
  'undefined 'gnus-article-read-summary-keys gnus-article-mode-map)
+
+(gnus-define-keys (gnus-article-send-map "S" gnus-article-mode-map)
+  "W" gnus-article-wide-reply-with-original)
+(if (featurep 'xemacs)
+    (set-keymap-default-binding gnus-article-send-map
+				'gnus-article-read-summary-send-keys)
+  (define-key gnus-article-send-map [t] 'gnus-article-read-summary-send-keys))
 
 (defun gnus-article-make-menu-bar ()
   (unless (boundp 'gnus-article-commands-menu)
@@ -5447,9 +5455,7 @@ N is the numerical prefix."
 	     (mail-content-type-get (mm-handle-type handle) 'url)
 	     ""))
 	(gnus-tmp-type (mm-handle-media-type handle))
-	(gnus-tmp-description
-	 (mail-decode-encoded-word-string (or (mm-handle-description handle)
-					      "")))
+	(gnus-tmp-description (or (mm-handle-description handle) ""))
 	(gnus-tmp-dots
 	 (if (if displayed (car displayed)
 	       (mm-handle-displayed-p handle))
@@ -6234,26 +6240,27 @@ not have a face in `gnus-article-boring-faces'."
 	   "Zc" "ZC" "ZE" "ZQ" "ZZ" "Zn" "ZR" "ZG" "ZN" "ZP"
 	   "=" "^" "\M-^" "|"))
 	(nosave-but-article
-	 '("A\r"))
+	 '("A " "A<" "A>" "AM" "AP" "AR" "AT" "A\C-?" "A\M-\r" "A\r" "Ab" "Ae"
+	   "An" "Ap" [?A (meta return)] [?A delete]))
 	(nosave-in-article
-	 '("\C-d"))
+	 '("AS" "\C-d"))
 	(up-to-top
 	 '("n" "Gn" "p" "Gp"))
 	keys new-sum-point)
     (save-excursion
       (set-buffer gnus-article-current-summary)
       (let (gnus-pick-mode)
-	(push (or key last-command-event) unread-command-events)
-	(setq keys (if (featurep 'xemacs)
-		       (events-to-keys (read-key-sequence nil))
-		     (read-key-sequence nil)))))
+	(setq unread-command-events (nconc unread-command-events
+					   (list (or key last-command-event)))
+	      keys (if (featurep 'xemacs)
+		       (events-to-keys (read-key-sequence nil t))
+		     (read-key-sequence nil t)))))
 
     (message "")
 
     (cond
      ((eq (aref keys (1- (length keys))) ?\C-h)
-      (with-current-buffer gnus-article-current-summary
-	(describe-bindings (substring keys 0 -1))))
+      (gnus-article-describe-bindings (substring keys 0 -1)))
      ((or (member keys nosaves)
 	  (member keys nosave-but-article)
 	  (member keys nosave-in-article))
@@ -6339,53 +6346,98 @@ not have a face in `gnus-article-boring-faces'."
 	      (signal (car err) (cdr err))
 	    (ding))))))))
 
+(defun gnus-article-read-summary-send-keys ()
+  (interactive)
+  (let ((unread-command-events (list (gnus-character-to-event ?S))))
+    (gnus-article-read-summary-keys)))
+
 (defun gnus-article-describe-key (key)
-  "Display documentation of the function invoked by KEY.  KEY is a string."
-  (interactive "kDescribe key: ")
+  "Display documentation of the function invoked by KEY.
+KEY is a string or a vector."
+  (interactive (list (let ((cursor-in-echo-area t)) ;; better for XEmacs.
+		       (read-key-sequence "Describe key: "))))
   (gnus-article-check-buffer)
-  (if (eq (key-binding key) 'gnus-article-read-summary-keys)
+  (if (memq (key-binding key t) '(gnus-article-read-summary-keys
+				  gnus-article-read-summary-send-keys))
       (save-excursion
 	(set-buffer gnus-article-current-summary)
-	(let (gnus-pick-mode)
-	  (if (featurep 'xemacs)
-	      (progn
-		(push (elt key 0) unread-command-events)
-		(setq key (events-to-keys
-			   (read-key-sequence "Describe key: "))))
-	    (setq unread-command-events
-		  (mapcar
-		   (lambda (x) (if (>= x 128) (list 'meta (- x 128)) x))
-		   (string-to-list key)))
-	    (setq key (read-key-sequence "Describe key: "))))
-	(describe-key key))
+	(setq unread-command-events
+	      (if (featurep 'xemacs)
+		  (append key nil)
+		(mapcar (lambda (x) (if (and (integerp x) (>= x 128))
+					(list 'meta (- x 128))
+				      x))
+			key)))
+	(let ((cursor-in-echo-area t)
+	      gnus-pick-mode)
+	  (describe-key (read-key-sequence nil t))))
     (describe-key key)))
 
 (defun gnus-article-describe-key-briefly (key &optional insert)
-  "Display documentation of the function invoked by KEY.  KEY is a string."
-  (interactive "kDescribe key: \nP")
+  "Display documentation of the function invoked by KEY.
+KEY is a string or a vector."
+  (interactive (list (let ((cursor-in-echo-area t)) ;; better for XEmacs.
+		       (read-key-sequence "Describe key: "))
+		     current-prefix-arg))
   (gnus-article-check-buffer)
-  (if (eq (key-binding key) 'gnus-article-read-summary-keys)
+  (if (memq (key-binding key t) '(gnus-article-read-summary-keys
+				  gnus-article-read-summary-send-keys))
       (save-excursion
 	(set-buffer gnus-article-current-summary)
-	(let (gnus-pick-mode)
-	  (if (featurep 'xemacs)
-	      (progn
-		(push (elt key 0) unread-command-events)
-		(setq key (events-to-keys
-			   (read-key-sequence "Describe key: "))))
-	    (setq unread-command-events
-		  (mapcar
-		   (lambda (x) (if (>= x 128) (list 'meta (- x 128)) x))
-		   (string-to-list key)))
-	    (setq key (read-key-sequence "Describe key: "))))
-	(describe-key-briefly key insert))
+	(setq unread-command-events
+	      (if (featurep 'xemacs)
+		  (append key nil)
+		(mapcar (lambda (x) (if (and (integerp x) (>= x 128))
+					(list 'meta (- x 128))
+				      x))
+			key)))
+	(let ((cursor-in-echo-area t)
+	      gnus-pick-mode)
+	  (describe-key-briefly (read-key-sequence nil t) insert)))
     (describe-key-briefly key insert)))
+
+;;`gnus-agent-mode' in gnus-agent.el will define it.
+(defvar gnus-agent-summary-mode)
+
+(defun gnus-article-describe-bindings (&optional prefix)
+  "Show a list of all defined keys, and their definitions.
+The optional argument PREFIX, if non-nil, should be a key sequence;
+then we display only bindings that start with that prefix."
+  (interactive)
+  (gnus-article-check-buffer)
+  (let ((keymap (copy-keymap gnus-article-mode-map))
+	(map (copy-keymap gnus-article-send-map))
+	(sumkeys (where-is-internal 'gnus-article-read-summary-keys))
+	agent)
+    (define-key keymap "S" map)
+    (define-key map [t] nil)
+    (with-current-buffer gnus-article-current-summary
+      (set-keymap-parent map (key-binding "S"))
+      (let (def gnus-pick-mode)
+	(dolist (key sumkeys)
+	  (when (setq def (key-binding key))
+	    (define-key keymap key def))))
+      (when (boundp 'gnus-agent-summary-mode)
+	(setq agent gnus-agent-summary-mode)))
+    (with-temp-buffer
+      (use-local-map keymap)
+      (set (make-local-variable 'gnus-agent-summary-mode) agent)
+      (describe-bindings prefix))
+    (let ((item `((lambda (prefix)
+		    (save-excursion
+		      (set-buffer ,(current-buffer))
+		      (gnus-article-describe-bindings prefix)))
+		  ,prefix)))
+      (with-current-buffer (if (fboundp 'help-buffer)
+			       (let (help-xref-following) (help-buffer))
+			     "*Help*") ;; Emacs 21
+	(setq help-xref-stack-item item)))))
 
 (defun gnus-article-reply-with-original (&optional wide)
   "Start composing a reply mail to the current message.
 The text in the region will be yanked.  If the region isn't active,
 the entire article will be yanked."
-  (interactive "P")
+  (interactive)
   (let ((article (cdr gnus-article-current))
 	contents)
     (if (not (gnus-region-active-p))
@@ -6399,6 +6451,13 @@ the entire article will be yanked."
       (with-current-buffer gnus-summary-buffer
 	(gnus-summary-reply
 	 (list (list article contents)) wide)))))
+
+(defun gnus-article-wide-reply-with-original ()
+  "Start composing a wide reply mail to the current message.
+The text in the region will be yanked.  If the region isn't active,
+the entire article will be yanked."
+  (interactive)
+  (gnus-article-reply-with-original t))
 
 (defun gnus-article-followup-with-original ()
   "Compose a followup to the current article.

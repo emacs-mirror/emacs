@@ -1614,21 +1614,6 @@ and (b) in the directories named in `ebrowse-search-path'."
     file-name))
 
 
-(defun ebrowse-view-file-other-window (file)
-  "View a file FILE in another window.
-This is a replacement for `view-file-other-window' which does not
-seem to work. It should be removed when `view.el' is fixed."
-  (interactive)
-  (let ((old-arrangement (current-window-configuration))
-	(had-a-buf (get-file-buffer file))
-	(buf-to-view (find-file-noselect file)))
-    (switch-to-buffer-other-window buf-to-view)
-    (view-mode-enter old-arrangement
-		     (and (not had-a-buf)
-			  (not (buffer-modified-p buf-to-view))
-			  'kill-buffer))))
-
-
 (defun ebrowse-view-exit-fn (buffer)
   "Function called when exiting View mode in BUFFER.
 Restore frame configuration active before viewing the file,
@@ -1649,10 +1634,9 @@ and possibly kill the viewed buffer."
 
 (defun ebrowse-view-file-other-frame (file)
   "View a file FILE in another frame.
-The new frame is deleted when it is no longer used."
+The new frame is deleted when you quit viewing the file in that frame."
   (interactive)
   (let ((old-frame-configuration (current-frame-configuration))
-	(old-arrangement (current-window-configuration))
 	(had-a-buf (get-file-buffer file))
 	(buf-to-view (find-file-noselect file)))
     (switch-to-buffer-other-frame buf-to-view)
@@ -1663,8 +1647,8 @@ The new frame is deleted when it is no longer used."
 	  (and (not had-a-buf)
 	       (not (buffer-modified-p buf-to-view))
 	       'kill-buffer))
-    (view-mode-enter old-arrangement 'ebrowse-view-exit-fn)))
-
+    (view-mode-enter (cons (selected-window) (cons (selected-window) t))
+		     'ebrowse-view-exit-fn)))
 
 (defun ebrowse-view/find-file-and-search-pattern
   (struc info file tags-file-name &optional view where)
@@ -1699,7 +1683,7 @@ specifies where to find/view the result."
 	   (setq view-mode-hook nil))
 	 (push 'ebrowse-find-pattern view-mode-hook)
 	 (case where
-	   (other-window (ebrowse-view-file-other-window file))
+	   (other-window (view-file-other-window file))
 	   (other-frame  (ebrowse-view-file-other-frame file))
 	   (t            (view-file file))))
 	(t

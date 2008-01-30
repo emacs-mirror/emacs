@@ -789,6 +789,13 @@ See `occur-revert-function'.")
   :type 'hook
   :group 'matching)
 
+(defcustom occur-mode-find-occurrence-hook nil
+  "Hook run by Occur after locating an occurrence.
+This will be called with the cursor position at the occurrence.  An application
+for this is to reveal context in an outline-mode when the occurrence is hidden."
+  :type 'hook
+  :group 'matching)
+
 (put 'occur-mode 'mode-class 'special)
 (defun occur-mode ()
   "Major mode for output from \\[occur].
@@ -837,14 +844,16 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
         same-window-buffer-names
         same-window-regexps)
     (pop-to-buffer (marker-buffer pos))
-    (goto-char pos)))
+    (goto-char pos)
+    (run-hooks 'occur-mode-find-occurrence-hook)))
 
 (defun occur-mode-goto-occurrence-other-window ()
   "Go to the occurrence the current line describes, in another window."
   (interactive)
   (let ((pos (occur-mode-find-occurrence)))
     (switch-to-buffer-other-window (marker-buffer pos))
-    (goto-char pos)))
+    (goto-char pos)
+    (run-hooks 'occur-mode-find-occurrence-hook)))
 
 (defun occur-mode-display-occurrence ()
   "Display in another window the occurrence the current line describes."
@@ -858,7 +867,8 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
     ;; This is the way to set point in the proper window.
     (save-selected-window
       (select-window window)
-      (goto-char pos))))
+      (goto-char pos)
+      (run-hooks 'occur-mode-find-occurrence-hook))))
 
 (defun occur-find-match (n search message)
   (if (not n) (setq n 1))

@@ -33,6 +33,9 @@
 (defvar viper-expert-level)
 (defvar viper-ex-style-editing)
 (defvar viper-ex-style-motion)
+
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
 ;; end pacifier
 
 (require 'viper-util)

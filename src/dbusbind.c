@@ -33,11 +33,10 @@ Boston, MA 02110-1301, USA.  */
 /* Subroutines.  */
 Lisp_Object Qdbus_get_unique_name;
 Lisp_Object Qdbus_call_method;
-Lisp_Object Qdbus_method_return;
+Lisp_Object Qdbus_method_return_internal;
 Lisp_Object Qdbus_send_signal;
 Lisp_Object Qdbus_register_signal;
 Lisp_Object Qdbus_register_method;
-Lisp_Object Qdbus_unregister_object;
 
 /* D-Bus error symbol.  */
 Lisp_Object Qdbus_error;
@@ -595,10 +594,14 @@ xd_retrieve_arg (dtype, iter)
     case DBUS_TYPE_INT32:
     case DBUS_TYPE_UINT32:
       {
+	/* Assignment to EMACS_INT stops GCC whining about limited
+	   range of data type.  */
 	dbus_uint32_t val;
+	EMACS_INT val1;
 	dbus_message_iter_get_basic (iter, &val);
 	XD_DEBUG_MESSAGE ("%c %d", dtype, val);
-	return make_fixnum_or_float (val);
+	val1 = val;
+	return make_fixnum_or_float (val1);
       }
 
     case DBUS_TYPE_INT64:
@@ -833,14 +836,22 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &rest ARGS)  */)
   /* Append parameters to the message.  */
   for (i = 5; i < nargs; ++i)
     {
-
-      XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
-      XD_DEBUG_MESSAGE ("Parameter%d %s",
-			i-4, SDATA (format2 ("%s", args[i], Qnil)));
-
       dtype = XD_OBJECT_TO_DBUS_TYPE (args[i]);
       if (XD_DBUS_TYPE_P (args[i]))
-	++i;
+	{
+	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
+	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i+1]);
+	  XD_DEBUG_MESSAGE ("Parameter%d %s %s", i-4,
+			    SDATA (format2 ("%s", args[i], Qnil)),
+			    SDATA (format2 ("%s", args[i+1], Qnil)));
+	  ++i;
+	}
+      else
+	{
+	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
+	  XD_DEBUG_MESSAGE ("Parameter%d %s", i-4,
+			    SDATA (format2 ("%s", args[i], Qnil)));
+	}
 
       /* Check for valid signature.  We use DBUS_TYPE_INVALID as
 	 indication that there is no parent type.  */
@@ -872,7 +883,8 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &rest ARGS)  */)
     {
       /* Loop over the parameters of the D-Bus reply message.  Construct a
 	 Lisp list, which is returned by `dbus-call-method'.  */
-      while ((dtype = dbus_message_iter_get_arg_type (&iter)) != DBUS_TYPE_INVALID)
+      while ((dtype = dbus_message_iter_get_arg_type (&iter))
+	     != DBUS_TYPE_INVALID)
 	{
 	  result = Fcons (xd_retrieve_arg (dtype, &iter), result);
 	  dbus_message_iter_next (&iter);
@@ -880,7 +892,7 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &rest ARGS)  */)
     }
   else
     {
-      /* No arguments: just return nil. */
+      /* No arguments: just return nil.  */
     }
 
   /* Cleanup.  */
@@ -895,12 +907,13 @@ usage: (dbus-call-method BUS SERVICE PATH INTERFACE METHOD &rest ARGS)  */)
     RETURN_UNGCPRO (Fnreverse (result));
 }
 
-DEFUN ("dbus-method-return", Fdbus_method_return, Sdbus_method_return,
+DEFUN ("dbus-method-return-internal", Fdbus_method_return_internal,
+       Sdbus_method_return_internal,
        3, MANY, 0,
-       doc: /* Return to method SERIAL on the D-Bus BUS.
+       doc: /* Return for message SERIAL on the D-Bus BUS.
 This is an internal function, it shall not be used outside dbus.el.
 
-usage: (dbus-method-return BUS SERIAL SERVICE &rest ARGS)  */)
+usage: (dbus-method-return-internal BUS SERIAL SERVICE &rest ARGS)  */)
      (nargs, args)
      int nargs;
      register Lisp_Object *args;
@@ -948,14 +961,22 @@ usage: (dbus-method-return BUS SERIAL SERVICE &rest ARGS)  */)
   /* Append parameters to the message.  */
   for (i = 3; i < nargs; ++i)
     {
-
-      XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
-      XD_DEBUG_MESSAGE ("Parameter%d %s",
-			i-2, SDATA (format2 ("%s", args[i], Qnil)));
-
       dtype = XD_OBJECT_TO_DBUS_TYPE (args[i]);
       if (XD_DBUS_TYPE_P (args[i]))
-	++i;
+	{
+	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
+	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i+1]);
+	  XD_DEBUG_MESSAGE ("Parameter%d %s %s", i-2,
+			    SDATA (format2 ("%s", args[i], Qnil)),
+			    SDATA (format2 ("%s", args[i+1], Qnil)));
+	  ++i;
+	}
+      else
+	{
+	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
+	  XD_DEBUG_MESSAGE ("Parameter%d %s", i-2,
+			    SDATA (format2 ("%s", args[i], Qnil)));
+	}
 
       /* Check for valid signature.  We use DBUS_TYPE_INVALID as
 	 indication that there is no parent type.  */
@@ -1064,13 +1085,22 @@ usage: (dbus-send-signal BUS SERVICE PATH INTERFACE SIGNAL &rest ARGS)  */)
   /* Append parameters to the message.  */
   for (i = 5; i < nargs; ++i)
     {
-      XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
-      XD_DEBUG_MESSAGE ("Parameter%d %s",
-			i-4, SDATA (format2 ("%s", args[i], Qnil)));
-
       dtype = XD_OBJECT_TO_DBUS_TYPE (args[i]);
       if (XD_DBUS_TYPE_P (args[i]))
-	++i;
+	{
+	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
+	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i+1]);
+	  XD_DEBUG_MESSAGE ("Parameter%d %s %s", i-4,
+			    SDATA (format2 ("%s", args[i], Qnil)),
+			    SDATA (format2 ("%s", args[i+1], Qnil)));
+	  ++i;
+	}
+      else
+	{
+	  XD_DEBUG_VALID_LISP_OBJECT_P (args[i]);
+	  XD_DEBUG_MESSAGE ("Parameter%d %s", i-4,
+			    SDATA (format2 ("%s", args[i], Qnil)));
+	}
 
       /* Check for valid signature.  We use DBUS_TYPE_INVALID as
 	 indication that there is no parent type.  */
@@ -1392,56 +1422,6 @@ used for composing the returning D-Bus message.  */)
   return list2 (key, list3 (service, path, handler));
 }
 
-DEFUN ("dbus-unregister-object", Fdbus_unregister_object,
-       Sdbus_unregister_object,
-       1, 1, 0,
-       doc: /* Unregister OBJECT from the D-Bus.
-OBJECT must be the result of a preceding `dbus-register-signal' or
-`dbus-register-method' call.  It returns t if OBJECT has been
-unregistered, nil otherwise.  */)
-     (object)
-     Lisp_Object object;
-{
-  Lisp_Object value;
-  struct gcpro gcpro1;
-
-  /* Check parameter.  */
-  if (!(CONSP (object) && (!NILP (CAR_SAFE (object)))
-	&& CONSP (CDR_SAFE (object))))
-    wrong_type_argument (intern ("D-Bus"), object);
-
-  /* Find the corresponding entry in the hash table.  */
-  value = Fgethash (CAR_SAFE (object), Vdbus_registered_functions_table, Qnil);
-
-  /* Loop over the registered functions.  */
-  while (!NILP (value))
-    {
-      GCPRO1 (value);
-
-      /* (car value) has the structure (UNAME SERVICE PATH HANDLER).
-	 (cdr object) has the structure ((SERVICE PATH HANDLER) ...).  */
-      if (!NILP (Fequal (CDR_SAFE (CAR_SAFE (value)),
-			 CAR_SAFE (CDR_SAFE (object)))))
-	{
-	  /* Compute new hash value.  */
-	  value = Fdelete (CAR_SAFE (value),
-			   Fgethash (CAR_SAFE (object),
-				     Vdbus_registered_functions_table, Qnil));
-	  if (NILP (value))
-	    Fremhash (CAR_SAFE (object), Vdbus_registered_functions_table);
-	  else
-	    Fputhash (CAR_SAFE (object), value,
-		      Vdbus_registered_functions_table);
-	  RETURN_UNGCPRO (Qt);
-	}
-      UNGCPRO;
-      value = CDR_SAFE (value);
-    }
-
-  /* Return.  */
-  return Qnil;
-}
-
 
 void
 syms_of_dbusbind ()
@@ -1455,9 +1435,9 @@ syms_of_dbusbind ()
   staticpro (&Qdbus_call_method);
   defsubr (&Sdbus_call_method);
 
-  Qdbus_method_return = intern ("dbus-method-return");
-  staticpro (&Qdbus_method_return);
-  defsubr (&Sdbus_method_return);
+  Qdbus_method_return_internal = intern ("dbus-method-return-internal");
+  staticpro (&Qdbus_method_return_internal);
+  defsubr (&Sdbus_method_return_internal);
 
   Qdbus_send_signal = intern ("dbus-send-signal");
   staticpro (&Qdbus_send_signal);
@@ -1470,10 +1450,6 @@ syms_of_dbusbind ()
   Qdbus_register_method = intern ("dbus-register-method");
   staticpro (&Qdbus_register_method);
   defsubr (&Sdbus_register_method);
-
-  Qdbus_unregister_object = intern ("dbus-unregister-object");
-  staticpro (&Qdbus_unregister_object);
-  defsubr (&Sdbus_unregister_object);
 
   Qdbus_error = intern ("dbus-error");
   staticpro (&Qdbus_error);

@@ -309,20 +309,20 @@ automatically."
   "Setup a buffer to enter a log message.
 \\<log-edit-mode-map>The buffer will be put in `log-edit-mode'.
 If SETUP is non-nil, the buffer is then erased and `log-edit-hook' is run.
-Mark and point will be set around the entire contents of the
-buffer so that it is easy to kill the contents of the buffer with \\[kill-region].
+Mark and point will be set around the entire contents of the buffer so
+that it is easy to kill the contents of the buffer with \\[kill-region].
 Once you're done editing the message, pressing \\[log-edit-done] will call
 `log-edit-done' which will end up calling CALLBACK to do the actual commit.
-PARAMS if non-nil is an alist. The keys for the alist can be:
-`log-edit-listfun' and `log-edit-diff-function'. The associated
-value for `log-edit-listfun' should be a function with not
-arguments that returns the list of files that are concerned by
-the current operation (using relative names). The associated
-value for `log-edit-diff-function' should be a function with no
-arguments that displays a diff of the files concerned by the current operation.
+
+PARAMS if non-nil is an alist.  Possible keys and associated values:
+ `log-edit-listfun' -- function taking no arguments that returns the list of
+ files that are concerned by the current operation (using relative names);
+ `log-edit-diff-function' -- function taking no arguments that
+ displays a diff of the files concerned by the current operation.
+
 If BUFFER is non-nil `log-edit' will jump to that buffer, use it to edit the
-  log message and go back to the current buffer when done.  Otherwise, it
-  uses the current buffer."
+log message and go back to the current buffer when done.  Otherwise, it
+uses the current buffer."
   (let ((parent (current-buffer)))
     (if buffer (pop-to-buffer buffer))
     (when (and log-edit-setup-invert (not (eq setup 'force)))

@@ -1,6 +1,6 @@
 ;;; hmac-def.el --- A macro for defining HMAC functions.
 
-;; Copyright (C) 1999, 2001, 2007  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Shuhei KOBAYASHI <shuhei@aqua.ocn.ne.jp>
 ;; Keywords: HMAC, RFC 2104

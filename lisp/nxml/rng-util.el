@@ -1,6 +1,6 @@
 ;;; rng-util.el --- utility functions for RELAX NG library
 
-;; Copyright (C) 2003, 2007 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: James Clark
 ;; Keywords: XML, RelaxNG

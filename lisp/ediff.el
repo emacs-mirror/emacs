@@ -8,7 +8,7 @@
 ;; Keywords: comparing, merging, patching, tools, unix
 
 (defconst ediff-version "2.81.2" "The current version of Ediff")
-(defconst ediff-date "August 18, 2007" "Date of last update")
+(defconst ediff-date "January 09, 2008" "Date of last update")
 
 
 ;; This file is part of GNU Emacs.
@@ -112,6 +112,9 @@
 (defvar cvs-cookie-handle)
 (defvar ediff-last-dir-patch)
 (defvar ediff-patch-default-directory)
+
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
 
 
 (eval-when-compile

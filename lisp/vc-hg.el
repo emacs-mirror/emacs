@@ -149,7 +149,7 @@
   (when (vc-hg-root file)           ; short cut
     (let ((state (vc-hg-state file)))  ; expensive
       (vc-file-setprop file 'vc-state state)
-      (not (memq state '(ignored unregistered))))))
+      (and state (not (memq state '(ignored unregistered)))))))
 
 (defun vc-hg-state (file)
   "Hg-specific version of `vc-state'."
@@ -316,8 +316,7 @@
 	    (if oldvers
 		(if newvers
 		    (list "-r" oldvers "-r" newvers)
-		  (list "-r" oldvers))
-	      (list ""))))))
+		  (list "-r" oldvers)))))))
 
 (defun vc-hg-revision-table (files)
   (let ((default-directory (file-name-directory (car files))))
@@ -480,35 +479,41 @@ REV is the revision to check out into WORKFILE."
 
 (define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming")
 
-
 ;; XXX Experimental function for the vc-dired replacement.
-(defun vc-hg-dir-status (dir)
-  "Return a list of conses (file . state) for DIR."
-  (with-temp-buffer
-    (vc-hg-command (current-buffer) nil dir "status" "-A")
-    (goto-char (point-min))
-    (let ((status-char nil)
-	  (file nil)
-	  (translation '((?= . up-to-date)
-			 (?C . up-to-date)
-			 (?A . added)
-			 (?R . removed)
-			 (?M . edited)
-			 (?I . ignored)
-			 (?! . deleted)
-			 (?? . unregistered)))
-	  (translated nil)
+(defun vc-hg-after-dir-status (update-function buff)
+  (let ((status-char nil)
+	(file nil)
+	(translation '((?= . up-to-date)
+		       (?C . up-to-date)
+		       (?A . added)
+		       (?R . removed)
+		       (?M . edited)
+		       (?I . ignored)
+		       (?! . deleted)
+		       (?? . unregistered)))
+	(translated nil)
 	  (result nil))
+      (goto-char (point-min))
       (while (not (eobp))
 	(setq status-char (char-after))
 	(setq file 
 	      (buffer-substring-no-properties (+ (point) 2) 
-					       (line-end-position)))
+					      (line-end-position)))
 	(setq translated (assoc status-char translation))
 	(when (and translated (not (eq (cdr translated) 'up-to-date)))
 	  (push (cons file (cdr translated)) result))
 	(forward-line))
-      result)))
+      (funcall update-function result buff)))
+
+;; XXX Experimental function for the vc-dired replacement.
+(defun vc-hg-dir-status (dir update-function status-buffer)
+  "Return a list of conses (file . state) for DIR."
+  (with-current-buffer
+      (get-buffer-create
+       (expand-file-name " *VC-hg* tmp status" dir))
+    (vc-hg-command (current-buffer) 'async dir "status")
+    (vc-exec-after 
+     `(vc-hg-after-dir-status (quote ,update-function) ,status-buffer))))
 
 ;; XXX this adds another top level menu, instead figure out how to
 ;; replace the Log-View menu.

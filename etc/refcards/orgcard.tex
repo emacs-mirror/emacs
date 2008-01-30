@@ -1,8 +1,8 @@
 % Reference Card for Org Mode
-\def\orgversionnumber{5.03}
-\def\versionyear{2007}          % latest update
+\def\orgversionnumber{5.19}
+\def\versionyear{2008}          % latest update
 \def\year{2008}                 % latest copyright year
-%
+
 %**start of header
 \newcount\columnsperpage
 \newcount\letterpaper
@@ -12,16 +12,10 @@
 
 \columnsperpage=3
 
-% Set letterpaper to 0 for A4 paper, 1 for letter (US) paper.  Useful
+% Set letterpapaer to 0 for A4 paper, 1 for letter (US) paper.  Useful
 % only when columnsperpage is 2 or 3.
 
 \letterpaper=0
-
-% PDF output layout.  0 for A4, 1 for letter (US), a `l' is added for
-% a landscape layout.
-
-\input pdflayout.sty
-\pdflayout=(0l)
 
 % Nothing else needs to be changed below this line.
 % Copyright (C) 1987, 1993, 1996, 1997, 2001, 2002, 2003, 2004,
@@ -31,7 +25,7 @@
 
 % GNU Emacs is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 3, or (at your option)
+% the Free Software Foundation; either version 2, or (at your option)
 % any later version.
 
 % GNU Emacs is distributed in the hope that it will be useful,
@@ -314,6 +308,7 @@ are preserved on all copies.
 \section{Structure Editing}
 
 \key{insert new heading/item at current level}{M-RET}
+\key{insert new heading after subtree}{C-RET}
 \key{insert new TODO entry/checkbox item}{M-S-RET}
 
 \key{promote current heading up one level}{M-LEFT}
@@ -322,6 +317,7 @@ are preserved on all copies.
 \key{demote current subtree down one level}{M-S-RIGHT}
 
 \key{move subtree/list item up/down}{M-S-UP/DOWN}
+\key{refile subtree}{C-c C-w}
 \key{kill subtree}{C-c C-x C-w}
 \key{copy subtree}{C-c C-x M-w}
 \key{yank subtree}{C-c C-x C-y}
@@ -342,10 +338,10 @@ are preserved on all copies.
 
 \section{Filtering and Sparse Trees}
 
-\key{show sparse tree for all matches of a regexp}{C-c /}
+% FIXME: this is garbage
+\key{construct a sparse tree by various criteria}{C-c /}
 \key{view TODO's in sparse tree}{C-c C-v}
 \key{global TODO list in agenda mode}{C-c t$^1$}
-\key{create sparse tree with all deadlines due}{C-c C-w}
 \key{time sorted view of current org file}{C-c a L}
 %\key{agenda for the week}{C-c a$^1$}
 %\key{agenda for date at cursor}{C-c C-o}
@@ -552,9 +548,11 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 
 \section{Properties and Column View}
 
+\key{set property}{C-c C-x p}
 \key{special commands in property lines}{C-c C-c}
 \key{next/previous allowed value}{S-left/right}
 \key{turn on column view}{C-c C-x C-c}
+\key{capture columns view in dynamic block}{C-c C-x r}
 
 \key{quit column view}{q}
 \key{next/previous allowed value}{S-left/right}
@@ -575,7 +573,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{Like \kbd{C-c .} but make stamp inactive}{C-c !} % FIXME
 \key{insert DEADLINE timestamp}{C-c C-d}
 \key{insert SCHEDULED timestamp}{C-c C-s}
-\key{create sparse tree with all deadlines due}{C-c C-w}
+\key{create sparse tree with all deadlines due}{C-c / d}
 \key{the time between 2 dates in a time range}{C-c C-y}
 \key{change timestamp at cursor by $\pm 1$ day}{S-RIGHT/LEFT$^3$}
 \key{change year/month/day at cursor by $\pm 1$}{S-UP/DOWN$^3$}
@@ -606,6 +604,7 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{add/move current file to front of agenda}{C-c [}
 \key{remove current file from your agenda}{C-c ]}
 \key{cycle through agenda file list}{C-'}
+\key{set/remove restriction lock}{C-c C-x </>}
 
 \key{compile agenda for the current week}{C-c a a$^1$}
 \key{compile global TODO list}{C-c a t$^1$}
@@ -617,13 +616,6 @@ after  ``{\tt :}'', and dictionary words elsewhere.
 \key{configure custom commands}{C-c a C$^1$}
 \key{configure stuck projects}{C-c a !$^1$}
 \key{agenda for date at cursor}{C-c C-o}
-
-\vskip 1mm
-To set categories, add lines like$^2$:
-\vskip -1mm
-\beginexample%
-\#+CATEGORY: MyCateg
-\endexample
 
 {\bf Commands available in an agenda buffer}
 
@@ -658,7 +650,7 @@ To set categories, add lines like$^2$:
 \key{kill item and source}{C-k}
 \key{archive the subtree}{\$}
 \key{show tags of current headline}{T}
-\key{set tags for current headline}{:}
+\key{set tags for current headline/region}{:}
 \key{toggle ARCHIVE tag}{a}
 \key{set priority of current item}{p}
 \key{raise/lower priority of current item}{S-UP/DOWN$^3$}
@@ -669,9 +661,8 @@ To set categories, add lines like$^2$:
 \key{insert new entry into diary}{i}
 
 \newcolumn
-\key{start the clock on current item (clock-in)}{I}
-\key{stop the clock (clock-out)}{O}
-\key{cancel current clock}{X}
+\key{start/stop/cancel the clock on current item}{I / O / X}
+\key{jump to running clock entry}{J}
 
 {\bf Misc}
 

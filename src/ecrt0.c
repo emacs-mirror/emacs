@@ -84,146 +84,6 @@ char **environ;
 static start1 ();
 #endif
 
-#ifdef APOLLO
-extern	char   *malloc(), *realloc(), *(*_libc_malloc) (), *(*_libc_realloc)();
-extern	void	free(),	(*_libc_free) (); extern int main();
-std_$call void  unix_$main();
-
-_start()
-{
-	_libc_malloc = malloc;
-	_libc_realloc = realloc;
-	_libc_free = free;
-	unix_$main(main);	/* no return */
-}
-#endif /* APOLLO */
-
-#if defined(orion) || defined(pyramid) || defined(celerity) || defined(ALLIANT) || defined(clipper) || defined(sps7)
-
-#if defined(sps7) && defined(V3x)
-        asm("	section	10");
-        asm("	ds.b	0xb0");
-#endif
-
-#ifdef ALLIANT
-/* _start must initialize _curbrk and _minbrk on the first startup;
-   when starting up after dumping, it must initialize them to what they were
-   before the dumping, since they are in the shared library and
-   are not dumped.  See ADJUST_EXEC_HEADER in m-alliant.h.  */
-extern unsigned char *_curbrk, *_minbrk;
-extern unsigned char end;
-unsigned char *_setbrk = &end;
-#ifdef ALLIANT_2800
-unsigned char *_end = &end;
-#endif
-#endif
-
-#ifndef DUMMIES
-#define DUMMIES
-#endif
-
-_start (DUMMIES argc, argv, envp)
-     int argc;
-     char **argv, **envp;
-{
-#ifdef ALLIANT
-#ifdef ALLIANT_2800
-  _curbrk = _end;
-  _minbrk = _end;
-#else
-  _curbrk = _setbrk;
-  _minbrk = _setbrk;
-#endif
-#endif
-
-  environ = envp;
-
-  exit (main (argc, argv, envp));
-}
-
-#endif /* orion or pyramid or celerity or alliant or clipper */
-
-#if defined (ns16000) && !defined (sequent) && !defined (UMAX) && !defined (CRT0_DUMMIES)
-
-_start ()
-{
-/* On 16000, _start pushes fp onto stack */
-  start1 ();
-}
-
-/* ignore takes care of skipping the fp value pushed in start.  */
-static
-start1 (ignore, argc, argv)
-     int ignore;
-     int argc;
-     register char **argv;
-{
-  environ = argv + argc + 1;
-
-  if (environ == *argv)
-    environ--;
-  exit (main (argc, argv, environ));
-}
-#endif /* ns16000, not sequent and not UMAX, and not the CRT0_DUMMIES method */
-
-#ifdef UMAX
-_start()
-{
-	asm("	exit []			# undo enter");
-	asm("	.set	exitsc,1");
-	asm("	.set	sigcatchall,0x400");
-
-	asm("	.globl	_exit");
-	asm("	.globl	start");
-	asm("	.globl	__start");
-	asm("	.globl	_main");
-	asm("	.globl	_environ");
-	asm("	.globl	_sigvec");
-	asm("	.globl	sigentry");
-
-	asm("start:");
-	asm("	br	.xstart");
-	asm("	.org	0x20");
-	asm("	.double	p_glbl,0,0xf00000,0");
-	asm("	.org	0x30");
-	asm(".xstart:");
-	asm("	adjspb	$8");
-	asm("	movd	8(sp),0(sp)	# argc");
-	asm("	addr	12(sp),r0");
-	asm("	movd	r0,4(sp)	# argv");
-	asm("L1:");
-	asm("	movd	r0,r1");
-	asm("	addqd	$4,r0");
-	asm("	cmpqd	$0,0(r1)	# null args term ?");
-	asm("	bne	L1");
-	asm("	cmpd	r0,0(4(sp))	# end of 'env' or 'argv' ?");
-	asm("	blt	L2");
-	asm("	addqd	$-4,r0		# envp's are in list");
-	asm("L2:");
-	asm("	movd	r0,8(sp)	# env");
-	asm("	movd	r0,@_environ	# indir is 0 if no env ; not 0 if env");
-	asm("	movqd	$0,tos		# setup intermediate signal handler");
-	asm("	addr	@sv,tos");
-	asm("	movzwd	$sigcatchall,tos");
-	asm("	jsr	@_sigvec");
-	asm("	adjspb	$-12");
-	asm("	jsr	@_main");
-	asm("	adjspb	$-12");
-	asm("	movd	r0,tos");
-	asm("	jsr	@_exit");
-	asm("	adjspb	$-4");
-	asm("	addr	@exitsc,r0");
-	asm("	svc");
-	asm("	.align	4		# sigvec arg");
-	asm("sv:");
-	asm("	.double	sigentry");
-	asm("	.double	0");
-	asm("	.double	0");
-
-	asm("	.comm	p_glbl,1");
-}
-#endif /* UMAX */
-
 #ifdef CRT0_DUMMIES
 
 /* Define symbol "start": here; some systems want that symbol.  */
@@ -295,21 +155,10 @@ start1 (CRT0_DUMMIES argc, xargv)
 	asm ("	global	_start");
 	asm ("	text");
 	asm ("_start:");
-#ifndef NU
-#ifdef STRIDE
-	asm ("	comm	havefpu%,2");
-#else /* m68k, not STRIDE */
 	asm ("  comm	splimit%,4");
-#endif /* STRIDE */
 	asm ("	global	exit");
 	asm ("	text");
-#ifdef STRIDE
-	asm ("	trap	&3");
-	asm ("	mov.w	%d0,havefpu%");
-#else /* m68k, not STRIDE */
   	asm ("	mov.l	%d0,splimit%");
-#endif /* STRIDE */
-#endif /* not NU */
 	asm ("	jsr	start1");
 	asm ("	mov.l	%d0,(%sp)");
 	asm ("	jsr	exit");
@@ -319,32 +168,6 @@ start1 (CRT0_DUMMIES argc, xargv)
 
 #ifdef m68000
 
-#ifdef ISI68K
-/* Added by ESM Sun May 24 12:44:02 1987 to get new ISI library to work */
-/* Edited by Ray Mon May 15 15:59:56 EST 1989 so we can compile with gcc */
-#if defined(BSD4_3) && !defined(__GNUC__)
-static foo () {
-#endif
-	asm ("	.globl  is68020");
-	asm ("is68020:");
-#ifndef BSD4_3
-	asm ("	.long   0x00000000");
-	asm ("	.long   0xffffffff");
-/* End of stuff added by ESM */
-#endif
-	asm ("	.text");
-	asm ("	.globl	__start");
-	asm ("__start:");
-	asm ("	.word 0");
-	asm ("	link	a6,#0");
-	asm ("	jbsr	_start1");
-	asm ("	unlk	a6");
-	asm ("	rts");
-#if defined(BSD4_3) && !defined(__GNUC__)
-      }
-#endif
-#else /* not ISI68K */
-
 _start ()
 {
 #ifdef sun
@@ -353,7 +176,6 @@ _start ()
 /* On 68000, _start pushes a6 onto stack  */
   start1 ();
 }
-#endif /* not ISI68k */
 #endif /* m68000 */
 #endif /* m68k */
 
@@ -373,15 +195,6 @@ start1 (ignore, argc, xargv)
 
   if ((char *)environ == xargv)
     environ--;
-#ifdef sun_68881
-  asm("    jsr     f68881_used");
-#endif
-#ifdef sun_fpa
-  asm("    jsr     ffpa_used");
-#endif
-#ifdef sun_soft
-  asm("    jsr     start_float");
-#endif
   exit (main (argc, argv, environ));
 }
 
@@ -502,85 +315,6 @@ char **argv_value;
 
 #endif /* new hp assembler */
 #endif /* hp9000s300 */
-
-#ifdef GOULD
-
-/* startup code has to be in near text rather
-   than fartext as allocated by the C compiler. */
-	asm("	.text");
-	asm("	.align	2");
-	asm("	.globl	__start");
-	asm("	.text");
-	asm("__start:");
-/* setup base register b1 (function base). */
-	asm("	.using	b1,.");
-	asm("	tpcbr	b1");
-/* setup base registers b3 through b7 (data references). */
-	asm("	file	basevals,b3");
-/* setup base register b2 (stack pointer); it should be
-   aligned on a 8-word boundary; but because it is pointing
-   to argc, its value should be remembered (in r5). */
-	asm("	movw	b2,r4");
-	asm("	movw	b2,r5");
-	asm("	andw	#~0x1f,r4");
-	asm("	movw	r4,b2");
-/* allocate stack frame to do some work. */
-	asm("	subea	16w,b2");
-/* initialize signal catching for UTX/32 1.2; this is
-   necessary to make restart from saved image work. */
-	asm("	movea	sigcatch,r1");
-	asm("	movw	r1,8w[b2]");
-	asm("	svc	#1,#150");
-/* setup address of argc for start1. */
-	asm("	movw	r5,8w[b2]");
-	asm("   func	#1,_start1");
-	asm("	halt");
-/* space for ld to store base register initial values. */
-	asm("	.align	5");
-	asm("basevals:");
-	asm("	.word	__base3,__base4,__base5,__base6,__base7");
-
-static
-start1 (xargc)
-     int *xargc;
-{
-  register int	argc;
-  register char **argv;
-
-  argc = *xargc;
-  argv = (char **)(xargc) + 1;
-  environ = argv + argc + 1;
-
-  if (environ == argv)
-    environ--;
-  exit (main (argc, argv, environ));
-
-}
-
-#endif /* GOULD */
-
-#ifdef elxsi
-#include <elxsi/argvcache.h>
-
-extern char **environ;
-extern int	errno;
-extern void	_init_doscan(), _init_iob();
-extern char	end[];
-char		*_init_brk = end;
-
-_start()
-{
-  environ = exec_cache.ac_envp;
-  brk (_init_brk);
-  errno = 0;
-  _init_doscan ();
-  _init_iob ();
-  _exit (exit (main (exec_cache.ac_argc,
-		     exec_cache.ac_argv,
-		     exec_cache.ac_envp)));
-}
-#endif /* elxsi */
-
 
 #ifdef sparc
 asm (".global __start");

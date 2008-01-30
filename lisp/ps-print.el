@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.8.1
+;; Version: 6.8.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "6.8.1"
-  "ps-print.el, v 6.8.1 <2007/11/21 vinicius>
+(defconst ps-print-version "6.8.2"
+  "ps-print.el, v 6.8.2 <2008/01/08 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -3996,6 +3996,21 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
     (or (face-italic-p face)
 	(memq face ps-italic-faces))))
 
+(defun ps-face-strikeout-p (face)
+  (if (featurep 'xemacs)
+      nil
+    (eq (face-attribute face :strike-through) t)))
+
+(defun ps-face-overline-p (face)
+  (if (featurep 'xemacs)
+      nil
+    (eq (face-attribute face :overline) t)))
+
+(defun ps-face-box-p (face)
+  (if (featurep 'xemacs)
+      nil
+    (not (memq (face-attribute face :box) '(nil unspecified)))))
+
 (defvar ps-print-color-scale 1.0)
 
 (defun ps-color-scale (color)
@@ -6585,9 +6600,12 @@ If FACE is not a valid face name, use default face."
 
 (defun ps-screen-to-bit-face (face)
   (cons face
-	(vector (logior (if (ps-face-bold-p face) 1 0) ; bold
-			(if (ps-face-italic-p face) 2 0) ; italic
-			(if (ps-face-underlined-p face) 4 0)) ; underline
+	(vector (logior (if (ps-face-bold-p face)       1 0)  ; bold
+			(if (ps-face-italic-p face)     2 0)  ; italic
+			(if (ps-face-underlined-p face) 4 0)  ; underline
+			(if (ps-face-strikeout-p face)  8 0)  ; strikeout
+			(if (ps-face-overline-p face)  16 0)  ; overline
+			(if (ps-face-box-p face)       64 0)) ; box
 		(ps-face-foreground-name face)
 		(ps-face-background-name face))))
 
@@ -7155,7 +7173,7 @@ If FACE is not a valid face name, use default face."
 ;;;### (autoloads (ps-mule-begin-page ps-mule-begin-job ps-mule-encode-header-string
 ;;;;;;  ps-mule-initialize ps-mule-plot-composition ps-mule-plot-string
 ;;;;;;  ps-mule-set-ascii-font ps-mule-prepare-ascii-font ps-multibyte-buffer)
-;;;;;;  "ps-mule" "ps-mule.el" "586d0a4deeb89be9b80cc01def34481c")
+;;;;;;  "ps-mule" "ps-mule.el" "e4095a5bcfad44435e57bc157c6eed49")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\

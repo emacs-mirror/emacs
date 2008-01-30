@@ -851,10 +851,12 @@ replace chars to try and eliminate some spurious differences."
   (remove-overlays (match-beginning 0) (match-end 0) 'smerge 'refine)
   (smerge-ensure-match 1)
   (smerge-ensure-match 3)
-  (smerge-refine-subst (match-beginning 1) (match-end 1)
-                       (match-beginning 3) (match-end 3)
-                       '((smerge . refine)
-                         (face . smerge-refined-change))))
+  ;; Match 1 and 3 may be one and the same in case of trivial diff3 -A conflict.
+  (let ((n1 (if (eq (match-end 1) (match-end 3)) 2 1)))
+    (smerge-refine-subst (match-beginning n1) (match-end n1)
+                         (match-beginning 3)  (match-end 3)
+                         '((smerge . refine)
+                           (face . smerge-refined-change)))))
 
 (defun smerge-diff (n1 n2)
   (smerge-match-conflict)
@@ -992,6 +994,32 @@ buffer names."
 	       (message "Conflict resolution finished; you may save the buffer")))))
     (message "Please resolve conflicts now; exit ediff when done")))
 
+(defun smerge-makeup-conflict (pt1 pt2 pt3 &optional pt4)
+  "Insert diff3 markers to make a new conflict.
+Uses point and mark for 2 of the relevant positions and previous marks
+for the other ones.
+By default, makes up a 2-way conflict,
+with a \\[universal-argument] prefix, makes up a 3-way conflict."
+  (interactive
+   (list (point)
+         (mark)
+         (progn (pop-mark) (mark))
+         (when current-prefix-arg (pop-mark) (mark))))
+  ;; Start from the end so as to avoid problems with pos-changes.
+  (destructuring-bind (pt1 pt2 pt3 &optional pt4)
+      (sort (list* pt1 pt2 pt3 (if pt4 (list pt4))) '>=)
+    (goto-char pt1) (beginning-of-line)
+    (insert ">>>>>>> OTHER\n")
+    (goto-char pt2) (beginning-of-line)
+    (insert "=======\n")
+    (goto-char pt3) (beginning-of-line)
+    (when pt4
+      (insert "||||||| BASE\n")
+      (goto-char pt4) (beginning-of-line))
+    (insert "<<<<<<< MINE\n"))
+  (if smerge-mode nil (smerge-mode 1))
+  (smerge-refine))
+      
 
 (defconst smerge-parsep-re
   (concat smerge-begin-re "\\|" smerge-end-re "\\|"
@@ -1021,6 +1049,14 @@ buffer names."
   (unless smerge-mode
     (smerge-remove-props (point-min) (point-max))))
 
+;;;###autoload
+(defun smerge-start-session ()
+  "Turn on `smerge-mode' and move point to first conflict marker.
+If no conflict maker is found, turn off `smerge-mode'."
+  (smerge-mode 1)
+  (condition-case nil
+      (smerge-next)
+    (error (smerge-auto-leave))))
 
 (provide 'smerge-mode)
 

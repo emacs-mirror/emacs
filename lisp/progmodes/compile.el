@@ -272,8 +272,9 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      " in \\([^()\n ]+\\)(\\([0-9]+\\))$" 1 2)
 
     (msft
+     ;; AFAWK, The message may be a "warning", "error", or "fatal error".
      "^\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \
-: \\(?:error\\|warnin\\(g\\)\\) C[0-9]+:" 2 3 nil (4))
+: \\(?:warnin\\(g\\)\\|[a-z ]+\\) C[0-9]+:" 2 3 nil (4))
 
     (oracle
      "^\\(?:Semantic error\\|Error\\|PCC-[0-9]+:\\).* line \\([0-9]+\\)\

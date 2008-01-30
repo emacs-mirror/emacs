@@ -132,7 +132,8 @@ If you want to force an empty list of arguments, use t."
                ;; an `error' by vc-do-command.
                (error nil))))
         (when (eq 0 status)
-          (vc-svn-parse-status file))))))
+	  (let ((parsed (vc-svn-parse-status file)))
+	    (and parsed (not (memq parsed '(ignored unregistered))))))))))
 
 (defun vc-svn-state (file &optional localp)
   "SVN-specific version of `vc-state'."
@@ -156,6 +157,35 @@ If you want to force an empty list of arguments, use t."
       (buffer-disable-undo)		;; Because these buffers can get huge
       (vc-svn-command t 0 nil "status" (if localp "-v" "-u"))
       (vc-svn-parse-status))))
+
+(defun vc-svn-after-dir-status (callback buffer)
+  (let ((state-map '((?A . added)
+                    (?C . edited)
+                    (?D . removed)
+                    (?I . ignored)
+                    (?M . edited)
+                    (?R . removed)
+                    (?? . unregistered)
+                    ;; This is what vc-svn-parse-status does.
+                    (?~ . edited)))
+       result)
+    (goto-char (point-min))
+    (while (re-search-forward "^\\(.\\)..... \\(.*\\)$" nil t)
+      (let ((state (cdr (assq (aref (match-string 1) 0) state-map)))
+           (filename (match-string 2)))
+       (when state
+         (setq result (cons (cons filename state) result)))))
+    (funcall callback result buffer)))
+
+(defun vc-svn-dir-status (dir callback buffer)
+  "Run 'svn status' for DIR and update BUFFER via CALLBACK.
+CALLBACK is called as (CALLBACK RESULT BUFFER), where
+RESULT is a list of conses (FILE . STATE) for directory DIR."
+  (with-current-buffer (get-buffer-create
+                       (generate-new-buffer-name " *vc svn status*"))
+    (vc-svn-command (current-buffer) 'async nil "status")
+    (vc-exec-after
+     `(vc-svn-after-dir-status (quote ,callback) ,buffer))))
 
 (defun vc-svn-working-revision (file)
   "SVN-specific version of `vc-working-revision'."
@@ -537,8 +567,10 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
   "Call \"svn resolved\" if the conflict markers have been removed."
   (save-excursion
     (goto-char (point-min))
-    (if (not (re-search-forward "^<<<<<<< " nil t))
-        (vc-svn-command nil 0 buffer-file-name "resolved"))))
+    (unless (re-search-forward "^<<<<<<< " nil t)
+      (vc-svn-command nil 0 buffer-file-name "resolved")
+      ;; Remove the hook so that it is not called multiple times.
+      (remove-hook 'after-save-hook 'vc-svn-resolve-when-done t))))
 
 ;; Inspired by vc-arch-find-file-hook.
 (defun vc-svn-find-file-hook ()
@@ -550,7 +582,7 @@ and that it passes `vc-svn-global-switches' to it before FLAGS."
           (re-search-forward "^<<<<<<< " nil t))
         ;; There are conflict markers.
         (progn
-          (smerge-mode 1)
+          (smerge-start-session)
           (add-hook 'after-save-hook 'vc-svn-resolve-when-done nil t))
       ;; There are no conflict markers.  This is problematic: maybe it means
       ;; the conflict has been resolved and we should immediately call "svn

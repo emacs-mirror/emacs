@@ -1621,13 +1621,14 @@ This action can be undone by running \\[undo]."
   (require 'message)
   (when mh-pgp-support-flag
     ;; PGP requires actual e-mail addresses, not aliases.
-    ;; Parse the recipients and sender from the message
+    ;; Parse the recipients and sender from the message.
     (message-options-set-recipient)
-    ;; Do an alias lookup on sender
-    (message-options-set 'message-sender
-                     (mail-strip-quoted-names
-                      (mh-alias-expand
-                       (message-options-get 'message-sender))))
+    ;; Do an alias lookup on sender (if From field is present).
+    (when (message-options-get 'message-sender)
+      (message-options-set 'message-sender
+                           (mail-strip-quoted-names
+                            (mh-alias-expand
+                             (message-options-get 'message-sender)))))
     ;; Do an alias lookup on recipients
     (message-options-set 'message-recipients
                          (mapconcat
