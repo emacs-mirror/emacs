@@ -805,6 +805,7 @@ lisp= \
 	${lispsource}language/japanese.el \
 	${lispsource}language/korean.el \
 	${lispsource}language/lao.el \
+	${lispsource}language/cham.el \
 	${lispsource}language/tai-viet.el \
 	${lispsource}language/thai.el \
 	${lispsource}language/tibetan.elc \
@@ -896,6 +897,7 @@ shortlisp= \
 	../lisp/language/japanese.el \
 	../lisp/language/korean.el \
 	../lisp/language/lao.el \
+	../lisp/language/cham.el \
 	../lisp/language/tai-viet.el \
 	../lisp/language/thai.el \
 	../lisp/language/tibetan.elc \
