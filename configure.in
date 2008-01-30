@@ -135,8 +135,8 @@ OPTION_DEFAULT_ON([gif],[don't compile with GIF image support])
 OPTION_DEFAULT_ON([png],[don't compile with PNG image support])
 OPTION_DEFAULT_ON([rsvg],[don't compile with SVG image support])
 
-OPTION_DEFAULT_OFF([freetype],[use -lfreetype for local fonts support])
-OPTION_DEFAULT_OFF([xft],[use -lXft for anti aliased fonts])
+OPTION_DEFAULT_ON([freetype],[don't use Freetype for local font support])
+OPTION_DEFAULT_ON([xft],[don't use XFT for anti aliased fonts])
 OPTION_DEFAULT_ON([libotf],[don't use libotf for OpenType font support])
 OPTION_DEFAULT_ON([m17n-flt],[don't use m17n-flt for text shaping])
 

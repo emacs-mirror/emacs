@@ -1359,8 +1359,8 @@ Optional Packages:
   --without-gif           don't compile with GIF image support
   --without-png           don't compile with PNG image support
   --without-rsvg          don't compile with SVG image support
-  --with-freetype         use -lfreetype for local fonts support
-  --with-xft              use -lXft for anti aliased fonts
+  --without-freetype      don't use Freetype for local font support
+  --without-xft           don't use XFT for anti aliased fonts
   --without-libotf        don't use libotf for OpenType font support
   --without-m17n-flt      don't use m17n-flt for text shaping
   --with-gtk              use GTK toolkit
@@ -2017,7 +2017,7 @@ fi
 if test "${with_freetype+set}" = set; then
   withval=$with_freetype;
 else
-      with_freetype=no
+     with_freetype=yes
 fi
 
 
@@ -2025,7 +2025,7 @@ fi
 if test "${with_xft+set}" = set; then
   withval=$with_xft;
 else
-      with_xft=no
+     with_xft=yes
 fi
 
 
