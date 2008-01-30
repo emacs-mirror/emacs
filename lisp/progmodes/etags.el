@@ -1815,7 +1815,7 @@ See documentation of variable `tags-file-name'."
     (tags-loop-continue (or file-list-form t))))
 
 ;;;###autoload
-(defun tags-query-replace (from to &optional delimited file-list-form start end)
+(defun tags-query-replace (from to &optional delimited file-list-form)
   "Do `query-replace-regexp' of FROM with TO on all files listed in tags table.
 Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
@@ -1824,7 +1824,10 @@ Fourth arg FILE-LIST-FORM non-nil means initialize the replacement loop.
 Fifth and sixth arguments START and END are accepted, for compatibility
 with `query-replace-regexp', and ignored.
 
-See also documentation of the variable `tags-file-name'."
+If FILE-LIST-FORM is non-nil, it is a form to evaluate to
+produce the list of files to search.
+
+See also the documentation of the variable `tags-file-name'."
   (interactive (query-replace-read-args "Tags query replace (regexp)" t t))
   (setq tags-loop-scan `(let ,(unless (equal from (downcase from))
 				'((case-fold-search nil)))

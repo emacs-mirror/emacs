@@ -2839,7 +2839,8 @@ is specified, returning t if it is specified."
 	    (dolist (elt result)
 	      (let ((var (car elt))
 		    (val (cdr elt)))
-		(or (eq var 'mode)
+		;; Don't query about the fake variables.
+		(or (memq var '(mode unibyte coding))
 		    (and (eq var 'eval)
 			 (or (eq enable-local-eval t)
 			     (hack-one-local-variable-eval-safep
