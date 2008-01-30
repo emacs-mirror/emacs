@@ -1,3 +1,14 @@
+2008-01-30  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* fontset.c (reorder_font_vector): Exclude nil elements from the
+	font group.  Don't try multiple fonts.
+	(fontset_font): Adjusted for the above change.
+	(Finternal_char_font): Return nil if the found font doesn't
+	contain the character ch.
+
+	* Makefile.in (lisp): Add cham.el.
+	(shortlisp): Likewise.
+
 2008-01-28  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* font.h (FONTP): Make it return 1 also for a font-object.
