@@ -1,3 +1,7 @@
+2008-01-30  Markus Triska  <markus.triska@gmx.at>
+
+	* linum.el: New file.
+
 2008-01-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-methods): Use "-H" option for "sudo".  Suggested
@@ -18,7 +22,7 @@
 	the "{" of a template function correctly on "template", not the
 	following "<".
 
-	* progmodes/cc-defs.el (c-version): increase to 5.31.5.
+	* progmodes/cc-defs.el (c-version): Increase to 5.31.5.
 
 2008-01-29  Tassilo Horn  <tassilo@member.fsf.org>
 
@@ -6055,7 +6059,7 @@
 	Require tramp-cmds.el.
 	(tramp-make-tramp-temp-file): We can get rid of DONT-CREATE.
 	(tramp-handle-file-name-all-completions): Expand DIRECTORY.
-	 (tramp-do-copy-or-rename-file-directly): Make more rigid checks.
+	(tramp-do-copy-or-rename-file-directly): Make more rigid checks.
 	(tramp-do-copy-or-rename-file-out-of-band)
 	(tramp-maybe-open-connection): Use `make-temp-name'.  This is
 	possible, because we don't need to create the temporary file, but
