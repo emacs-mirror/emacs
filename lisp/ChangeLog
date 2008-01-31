@@ -1,3 +1,7 @@
+2008-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/rcompile.el (remote-compile): Remove broken code.
+
 2008-01-31  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el (image-library-alist): Prefer libxpm.dll.
@@ -54,8 +58,8 @@
 	* progmodes/cc-langs.el (c-specifier-key): Exclude "template"
 	from this regexp; part of same fix as next change to cc-engine.el.
 
-	* progmodes/cc-engine.el (c-guess-basic-syntax, CASE 5A.5): Anchor
-	the "{" of a template function correctly on "template", not the
+	* progmodes/cc-engine.el (c-guess-basic-syntax, CASE 5A.5):
+	Anchor the "{" of a template function correctly on "template", not the
 	following "<".
 
 	* progmodes/cc-defs.el (c-version): Increase to 5.31.5.
