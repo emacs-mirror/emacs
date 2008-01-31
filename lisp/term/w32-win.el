@@ -1110,7 +1110,7 @@ pop-up menu are unaffected by `w32-list-proportional-fonts')."
 
 ;;; Set default known names for image libraries
 (setq image-library-alist
-      '((xpm "xpm4.dll" "libXpm-nox4.dll" "libxpm.dll")
+      '((xpm "libxpm.dll" "xpm4.dll" "libXpm-nox4.dll")
         (png "libpng13d.dll" "libpng13.dll" "libpng12d.dll" "libpng12.dll" "libpng.dll")
         (jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
         (tiff "libtiff3.dll" "libtiff.dll")

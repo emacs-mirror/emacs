@@ -300,9 +300,10 @@ described in the documentation of `declare-function'."
         errlist files)
     (message "%s" m)
     (message "%s" m2)
-    (setq files (process-lines "find" root "-name" "*.el"
-                                 "-exec" "grep" "-l"
-                                 "^[ 	]*(declare-function" "{}" ";"))
+    (setq files (process-lines find-program root
+			       "-name" "*.el"
+			       "-exec" grep-program
+			       "-l" "^[ \t]*(declare-function" "{}" ";"))
     (message "%s%d found" m2 (length files))
     (when files
       (setq errlist (apply 'check-declare-files files))

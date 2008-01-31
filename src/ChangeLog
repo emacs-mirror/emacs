@@ -1,3 +1,8 @@
+2008-01-31  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* keyboard.c (make_ctrl_char): If C is a multibyte character, just
+	return it ORed with ctrl_modifier.
+
 2008-01-29  Miles Bader  <miles@gnu.org>
 
 	* macterm.c (XTset_vertical_scroll_bar): Fix merge mistake.

@@ -2354,6 +2354,9 @@ make_ctrl_char (c)
   /* Save the upper bits here.  */
   int upper = c & ~0177;
 
+  if (! ASCII_BYTE_P (c))
+    return c |= ctrl_modifier;
+
   c &= 0177;
 
   /* Everything in the columns containing the upper-case letters
