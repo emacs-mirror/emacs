@@ -72,14 +72,15 @@
 
 2008-01-29  Tassilo Horn  <tassilo@member.fsf.org>
 
-	* doc-view.el (doc-view-mode): Adapt to i-m-current-[vh]scroll
-	being an alist now.
+	* doc-view.el (doc-view-mode): Adapt to image-mode-current-vscroll
+	and image-mode-current-hscroll being alists now.
 
 	* image-mode.el (image-mode-current-vscroll)
 	(image-mode-current-hscroll): Add doc strings.
 	(image-set-window-vscroll, image-set-window-hscroll)
 	(image-reset-current-vhscroll, image-mode): Adapt to
-	i-m-current-[vh]scroll being an alist now.
+	image-mode-current-vscroll and image-mode-current-hscroll being
+	alists now.
 
 2008-01-29  Martin Rudalics  <rudalics@gmx.at>
 
