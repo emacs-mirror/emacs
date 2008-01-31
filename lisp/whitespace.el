@@ -1763,4 +1763,5 @@ options are valid."
 (run-hooks 'whitespace-load-hook)
 
 
+;; arch-tag: f1601e44-15a3-45d1-b4f8-b3ca8ae24242
 ;;; whitespace.el ends here
