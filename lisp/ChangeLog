@@ -1,3 +1,9 @@
+2008-01-31  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* blank-mode.el: Renamed to whitespace.el.
+
+	* obsolete/whitespace.el: Renamed to obsolete/old-whitespace.el.
+
 2008-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/rcompile.el (remote-compile): Remove broken code.
@@ -6,15 +12,15 @@
 
 	* term/w32-win.el (image-library-alist): Prefer libxpm.dll.
 
+2008-01-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* linum.el (linum-unload-function): New function.
+
 2008-01-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-set-format-regexp): New constant.
 	(gdb-var-set-format-handler): New function.
 	(gdb-var-set-format): Use it.
-
-2008-01-31  Juanma Barranquero  <lekktu@gmail.com>
-
-	* linum.el (linum-unload-function): New function.
 
 2008-01-30  Juanma Barranquero  <lekktu@gmail.com>
 
