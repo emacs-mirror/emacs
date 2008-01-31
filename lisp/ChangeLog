@@ -1,3 +1,7 @@
+2008-01-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* linum.el (linum-unload-function): New function.
+
 2008-01-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/check-declare.el (check-declare-directory):
@@ -70,8 +74,7 @@
 
 	* image-mode.el (image-mode-current-vscroll)
 	(image-mode-current-hscroll): New variables.
-	(image-set-window-hscroll, image-set-window-vscroll): New
-	functions.
+	(image-set-window-hscroll, image-set-window-vscroll): New functions.
 	(image-forward-hscroll, image-next-line, image-bol, image-eol)
 	(image-bob, image-eob): Use them.
 	(image-reset-current-vhscroll): New function.
