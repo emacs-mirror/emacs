@@ -1,3 +1,7 @@
+2008-01-31  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (image-library-alist): Prefer libxpm.dll.
+
 2008-01-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-set-format-regexp): New constant.
