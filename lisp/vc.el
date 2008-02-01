@@ -2980,7 +2980,7 @@ changes from the current branch are merged into the working file."
     (if (buffer-modified-p (get-file-buffer file))
 	(error "Please kill or save all modified buffers before updating."))
     (if (vc-up-to-date-p file)
-	(vc-checkout file nil "")
+	(vc-checkout file nil t)
       (if (eq (vc-checkout-model file) 'locking)
 	  (if (eq (vc-state file) 'edited)
 	      (error "%s"
