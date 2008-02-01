@@ -7744,8 +7744,6 @@ face_for_overlay_string (w, pos, region_beg, region_end,
   struct frame *f = XFRAME (w->frame);
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object prop, position;
-  int i, noverlays;
-  Lisp_Object *overlay_vec;
   Lisp_Object frame;
   int endpos;
   Lisp_Object propname = mouse ? Qmouse_face : Qface;

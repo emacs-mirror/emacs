@@ -1,3 +1,7 @@
+2008-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xfaces.c (face_at_buffer_position): Remove unused vars.
+
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* ccl.c (CCL_WRITE_CHAR): Fix overflow checking.
