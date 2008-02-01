@@ -1,3 +1,10 @@
+2008-02-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (get_lface_attributes): Function deleted.
+	(merge_named_face, lookup_named_face, lookup_derived_face)
+	(realize_named_face): Call lface_from_face_name directly, and use
+	the fact that merge_face_vectors does not alter its FROM argument.
+
 2008-02-02  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_read_socket) <WM_CHAR>: Decode non-Unicode
