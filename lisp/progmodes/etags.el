@@ -1629,12 +1629,14 @@ where they were found."
       (and (search-forward "\177" (save-excursion (end-of-line) (point)) t)
 	   (re-search-backward re bol t)))))
 
-(defcustom tags-loop-revert-buffers nil
-  "*Non-nil means tags-scanning loops should offer to reread changed files.
-These loops normally read each file into Emacs, but when a file
-is already visited, they use the existing buffer.
-When this flag is non-nil, they offer to revert the existing buffer
-in the case where the file has changed since you visited it."
+(defcustom tags-loop-revert-buffers 'ask
+  "Whether the tags-scanning loop should reread changed files.
+This loop normally reads each file into Emacs, but when a file is
+already visited, it uses the existing buffer.
+If this variable is nil, the loop uses the existing buffer even
+if the file has changed since you visited it.
+If the value is `ask', the loop offers to revert the buffer.
+Any other non-nil value means to revert the buffer automatically."
   :type 'boolean
   :group 'etags)
 
@@ -1696,6 +1698,14 @@ if the file was newly read in, the value is the filename."
     ;; if the files have changed on disk.
     (and buffer tags-loop-revert-buffers
 	 (not (verify-visited-file-modtime buffer))
+	 (or (not (eq tags-loop-revert-buffers 'ask))
+	     noninteractive
+	     (y-or-n-p
+	      (format
+	       (if (buffer-modified-p buffer)
+		   "File %s changed on disk.  Discard your edits? "
+		 "File %s changed on disk.  Reread from disk? ")
+	       next)))
 	 (with-current-buffer buffer
 	   (revert-buffer t)))
     (if (not (and new novisit))
