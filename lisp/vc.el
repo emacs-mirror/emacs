@@ -2597,7 +2597,7 @@ the current branch are merged into the working file."
   (vc-buffer-sync nil)
   (let ((file buffer-file-name))
     (if (vc-up-to-date-p file)
-        (vc-checkout file nil "")
+        (vc-checkout file nil t)
       (if (eq (vc-checkout-model file) 'locking)
           (if (eq (vc-state file) 'edited)
               (error
