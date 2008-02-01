@@ -931,7 +931,9 @@ Only useful with a windowing system."
 	(remove-hook 'find-file-hooks 'whitespace-turn-on-if-enabled))
       (dolist (buffer (buffer-list))	; adjust all local mode
 	(set-buffer buffer)
-	(unless whitespace-mode
+	(when (or (not whitespace-mode)
+		  ;; whitespace is being unloaded
+		  (bound-and-true-p unload-function-defs-list))
 	  (whitespace-turn-off)))))))
 
 
@@ -1756,6 +1758,12 @@ options are valid."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+(defun whitespace-unload-function ()
+  "Unload the Whitespace library."
+  (global-whitespace-mode -1)
+  ;; continue standard unloading
+  nil)
 
 (provide 'whitespace)
 
