@@ -1,3 +1,9 @@
+2008-02-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term/w32-win.el (image-library-alist): Prefer libpng12 to libpng13,
+	because the latter is in fact a 1.2.8 build distributed with GTK+ (as
+	of today, the most recent libpng is 1.2.24).
+
 2008-02-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* vc.el (vc-update): Fix bug: Specify branch tip as
@@ -23,7 +29,7 @@
 2008-01-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* mail/rmail.el (rmail-highlight): Fix specification.
-	Reported by: pod <pod@herald.ox.ac.uk>.
+	Reported by pod <pod@herald.ox.ac.uk>.
 
 2008-01-31  Jason Rumney  <jasonr@gnu.org>
 
