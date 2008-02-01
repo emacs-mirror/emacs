@@ -296,10 +296,6 @@ set a variable's `safe-local-variable' and `risky-local-variable' property.
 Use --no-members if you want the old default behaviour of not tagging
 struct members in C, members variables in C++ and variables in PHP.
 
-*** If tags-loop-revert-buffers has the value `ask', the tags-scanning
-loop queries the user interactively if an already-visited file has
-been changed since the last visit.  The new default value is `ask'.
-
 ** VC
 *** Clicking on the VC mode-line entry now pops the VC menu.
 
