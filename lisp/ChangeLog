@@ -1,3 +1,8 @@
+2008-02-01  Richard Stallman  <rms@gnu.org>
+
+	* language/burmese.el: Renamed from myanmar.el.
+	("Burmese"): Renamed from "Myanmar".
+
 2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/fontset.el (script-representative-chars): Add cham
