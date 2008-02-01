@@ -9539,7 +9539,7 @@ Wilson Snyder (wsnyder@wsnyder.org), and/or see http://www.veripool.com."
 
 (define-skeleton verilog-sk-prompt-msb
   "Prompt for least significant bit specification."
-  "msb:" str & ?: & (verilog-sk-prompt-lsb) | -1 )
+  "msb:" str & ?: & '(verilog-sk-prompt-lsb) | -1 )
 
 (define-skeleton verilog-sk-prompt-lsb
   "Prompt for least significant bit specification."
@@ -9578,21 +9578,21 @@ Wilson Snyder (wsnyder@wsnyder.org), and/or see http://www.veripool.com."
 (define-skeleton verilog-sk-module
   "Insert a module definition."
   ()
-  > "module " (verilog-sk-prompt-name) " (/*AUTOARG*/ ) ;" \n
+  > "module " '(verilog-sk-prompt-name) " (/*AUTOARG*/ ) ;" \n
   > _ \n
   > (- verilog-indent-level-behavioral) "endmodule" (progn (electric-verilog-terminate-line) nil))
 
 (define-skeleton verilog-sk-primitive
   "Insert a task definition."
   ()
-  > "primitive " (verilog-sk-prompt-name) " ( " (verilog-sk-prompt-output) ("input:" ", " str ) " );"\n
+  > "primitive " '(verilog-sk-prompt-name) " ( " '(verilog-sk-prompt-output) ("input:" ", " str ) " );"\n
   > _ \n
   > (- verilog-indent-level-behavioral) "endprimitive" (progn (electric-verilog-terminate-line) nil))
 
 (define-skeleton verilog-sk-task
   "Insert a task definition."
   ()
-  > "task " (verilog-sk-prompt-name) & ?; \n
+  > "task " '(verilog-sk-prompt-name) & ?; \n
   > _ \n
   > "begin" \n
   > \n
@@ -9602,7 +9602,7 @@ Wilson Snyder (wsnyder@wsnyder.org), and/or see http://www.veripool.com."
 (define-skeleton verilog-sk-function
   "Insert a function definition."
   ()
-  > "function [" (verilog-sk-prompt-width) | -1 (verilog-sk-prompt-name) ?; \n
+  > "function [" '(verilog-sk-prompt-width) | -1 '(verilog-sk-prompt-name) ?; \n
   > _ \n
   > "begin" \n
   > \n
@@ -9642,7 +9642,7 @@ for sensitivity list."
 (define-skeleton verilog-sk-begin
   "Insert begin end block.  Uses the minibuffer to prompt for name"
   ()
-  > "begin" (verilog-sk-prompt-name) \n
+  > "begin" '(verilog-sk-prompt-name) \n
   > _ \n
   > (- verilog-indent-level-behavioral) "end"
 )
@@ -9687,42 +9687,42 @@ and the case items."
 
 (define-skeleton verilog-sk-if
   "Insert a skeleton if statement."
-  > "if (" (verilog-sk-prompt-condition) & ")" " begin" \n
+  > "if (" '(verilog-sk-prompt-condition) & ")" " begin" \n
   > _ \n
   > (- verilog-indent-level-behavioral) "end " \n )
 
 (define-skeleton verilog-sk-else-if
   "Insert a skeleton else if statement."
   > (verilog-indent-line) "else if ("
-  (progn (setq verilog-sk-p (point)) nil) (verilog-sk-prompt-condition) (if (> (point) verilog-sk-p) ") " -1 ) & " begin" \n
+  (progn (setq verilog-sk-p (point)) nil) '(verilog-sk-prompt-condition) (if (> (point) verilog-sk-p) ") " -1 ) & " begin" \n
   > _ \n
   > "end" (progn (electric-verilog-terminate-line) nil))
 
 (define-skeleton verilog-sk-datadef
   "Common routine to get data definition"
   ()
-  (verilog-sk-prompt-width) | -1 ("name (RET to end):" str ", ") -2 ";" \n)
+  '(verilog-sk-prompt-width) | -1 ("name (RET to end):" str ", ") -2 ";" \n)
 
 (define-skeleton verilog-sk-input
   "Insert an input definition."
   ()
-  > "input  [" (verilog-sk-datadef))
+  > "input  [" '(verilog-sk-datadef))
 
 (define-skeleton verilog-sk-output
   "Insert an output definition."
   ()
-  > "output [" (verilog-sk-datadef))
+  > "output [" '(verilog-sk-datadef))
 
 (define-skeleton verilog-sk-inout
   "Insert an inout definition."
   ()
-  > "inout  [" (verilog-sk-datadef))
+  > "inout  [" '(verilog-sk-datadef))
 
 (defvar verilog-sk-signal nil)
 (define-skeleton verilog-sk-def-reg
   "Insert a reg definition."
   ()
-  > "reg    [" (verilog-sk-prompt-width) | -1 verilog-sk-signal ";" \n (verilog-pretty-declarations) )
+  > "reg    [" '(verilog-sk-prompt-width) | -1 verilog-sk-signal ";" \n (verilog-pretty-declarations) )
 
 (defun verilog-sk-define-signal ()
   "Insert a definition of signal under point at top of module."
@@ -9748,29 +9748,29 @@ and the case items."
 (define-skeleton verilog-sk-wire
   "Insert a wire definition."
   ()
-  > "wire   [" (verilog-sk-datadef))
+  > "wire   [" '(verilog-sk-datadef))
 
 (define-skeleton verilog-sk-reg
   "Insert a reg definition."
   ()
-  > "reg   [" (verilog-sk-datadef))
+  > "reg   [" '(verilog-sk-datadef))
 
 (define-skeleton verilog-sk-assign
   "Insert a skeleton assign statement."
   ()
-  > "assign " (verilog-sk-prompt-name) " = " _ ";" \n)
+  > "assign " '(verilog-sk-prompt-name) " = " _ ";" \n)
 
 (define-skeleton verilog-sk-while
   "Insert a skeleton while loop statement."
   ()
-  > "while ("  (verilog-sk-prompt-condition)  ") begin" \n
+  > "while ("  '(verilog-sk-prompt-condition)  ") begin" \n
   > _ \n
   > (- verilog-indent-level-behavioral) "end " (progn (electric-verilog-terminate-line) nil))
 
 (define-skeleton verilog-sk-repeat
   "Insert a skeleton repeat loop statement."
   ()
-  > "repeat ("  (verilog-sk-prompt-condition)  ") begin" \n
+  > "repeat ("  '(verilog-sk-prompt-condition)  ") begin" \n
   > _ \n
   > (- verilog-indent-level-behavioral) "end " (progn (electric-verilog-terminate-line) nil))
 
@@ -9778,9 +9778,9 @@ and the case items."
   "Insert a skeleton while loop statement."
   ()
   > "for ("
-  (verilog-sk-prompt-init) "; "
-  (verilog-sk-prompt-condition) "; "
-  (verilog-sk-prompt-inc)
+  '(verilog-sk-prompt-init) "; "
+  '(verilog-sk-prompt-condition) "; "
+  '(verilog-sk-prompt-inc)
   ") begin" \n
   > _ \n
   > (- verilog-indent-level-behavioral) "end " (progn (electric-verilog-terminate-line) nil))
@@ -9798,7 +9798,7 @@ and the case items."
   '(setq input "state")
   > "// State registers for " str | -23 \n
   '(setq verilog-sk-state str)
-  > "reg [" (verilog-sk-prompt-width) | -1 verilog-sk-state ", next_" verilog-sk-state ?; \n
+  > "reg [" '(verilog-sk-prompt-width) | -1 verilog-sk-state ", next_" verilog-sk-state ?; \n
   '(setq input nil)
   > \n
   > "// State FF for " verilog-sk-state \n
@@ -9809,7 +9809,7 @@ and the case items."
   > \n
   > "// Next State Logic for " verilog-sk-state \n
   > "always @ ( /*AUTOSENSE*/ ) begin\n"
-  > "case (" (verilog-sk-prompt-state-selector) ") " \n
+  > "case (" '(verilog-sk-prompt-state-selector) ") " \n
   > ("case selector: " str ": begin" \n > "next_" verilog-sk-state " = " _ ";" \n > (- verilog-indent-level-behavioral) "end" \n )
   resume: >  (- verilog-case-indent) "endcase" (progn (electric-verilog-terminate-line) nil)
   > (- verilog-indent-level-behavioral) "end" (progn (electric-verilog-terminate-line) nil))
