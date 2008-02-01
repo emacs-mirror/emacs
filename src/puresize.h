@@ -69,7 +69,7 @@ extern void pure_write_error P_ ((void)) NO_RETURN;
 
 /* Define PURE_P.  */
 
-#if defined(VIRT_ADDR_VARIES) || defined(CYGWIN)
+#ifdef VIRT_ADDR_VARIES
 /* For machines where text and data can go anywhere
    in virtual memory.  */
 
