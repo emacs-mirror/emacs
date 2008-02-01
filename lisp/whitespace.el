@@ -908,7 +908,7 @@ If ARG is null, toggle whitespace visualization.
 If ARG is a number greater than zero, turn on visualization;
 otherwise, turn off visualization.
 Only useful with a windowing system."
-  :lighter    " BL"
+  :lighter    " WS"
   :init-value nil
   :global     t
   :group      'whitespace
