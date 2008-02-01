@@ -748,7 +748,7 @@ while(0)
     int bytes = SINGLE_BYTE_CHAR_P (ch) ? 1: CHAR_BYTES (ch);		\
     if (!dst)								\
       CCL_INVALID_CMD;							\
-    else if (dst + bytes + extra_bytes < (dst_bytes ? dst_end : src))	\
+    else if (dst + bytes + extra_bytes <= (dst_bytes ? dst_end : src))	\
       {									\
 	if (bytes == 1)							\
 	  {								\
@@ -775,7 +775,7 @@ while(0)
     int bytes = CHAR_BYTES (ch);					\
     if (!dst)								\
       CCL_INVALID_CMD;							\
-    else if (dst + bytes + extra_bytes < (dst_bytes ? dst_end : src))	\
+    else if (dst + bytes + extra_bytes <= (dst_bytes ? dst_end : src))	\
       {									\
 	if (CHAR_VALID_P ((ch), 0))					\
 	  dst += CHAR_STRING ((ch), dst);				\

@@ -332,7 +332,7 @@ See also `rmail-highlight-face'."
   :group 'rmail-headers)
 
 (defface rmail-highlight
-  '((t :default highlight))
+  '((t (:inherit highlight)))
   "Face to use for highlighting the most important header fields."
   :group 'rmail-headers
   :version "22.1")
