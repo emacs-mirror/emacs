@@ -1,6 +1,6 @@
 2008-02-01  Andreas Schwab  <schwab@suse.de>
 
-	* loadup.el: Load language/burmese instead of language/mynamar.
+	* loadup.el: Load language/burmese instead of language/myanmar.
 
 2008-02-01  Richard Stallman  <rms@gnu.org>
 
