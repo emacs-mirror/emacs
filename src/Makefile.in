@@ -814,7 +814,7 @@ lisp= \
 	${lispsource}language/utf-8-lang.el \
 	${lispsource}language/georgian.el \
 	${lispsource}language/khmer.el \
-	${lispsource}language/myanmar.el \
+	${lispsource}language/burmese.el \
 	${lispsource}paths.el \
 	${lispsource}register.elc \
 	${lispsource}replace.elc \
@@ -906,7 +906,7 @@ shortlisp= \
 	../lisp/language/utf-8-lang.el \
 	../lisp/language/georgian.el \
 	../lisp/language/khmer.el \
-	../lisp/language/myanmar.el \
+	../lisp/language/burmese.el \
 	../lisp/menu-bar.elc \
 	../lisp/paths.el \
 	../lisp/register.elc \
