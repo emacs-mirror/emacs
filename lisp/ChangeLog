@@ -1,6 +1,9 @@
 2008-02-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* whitespace.el (global-whitespace-mode): Fix modeline lighter.
+	(global-whitespace-mode): When turning off the global mode, turn
+	off the local modes too if whitespace is being unloaded.
+	(whitespace-unload-function): New function.
 
 2008-02-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
