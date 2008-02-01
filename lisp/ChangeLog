@@ -1,3 +1,8 @@
+2008-02-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc.el (vc-update): Fix bug: Specify branch tip as
+	vc-checkout REVISION.  Reported by Dan Nicolaescu.
+
 2008-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (reindent-then-newline-and-indent): Be careful about the
