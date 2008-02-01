@@ -1,8 +1,6 @@
 2008-02-01  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/etags.el (tags-loop-revert-buffers): Value `ask' means
-	to query the user interactively.
-	(next-file): Implement it.
+	* progmodes/etags.el (next-file): Improve revert message.
 
 2008-02-01  Andreas Schwab  <schwab@suse.de>
 
