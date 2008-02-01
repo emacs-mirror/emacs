@@ -1,3 +1,9 @@
+2008-02-01  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (shortlisp): Update for rename of
+	../lisp/language/myanmar.el.
+	(lisp): Likewise.
+
 2008-02-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfaces.c (get_lface_attributes): Function deleted.
