@@ -632,7 +632,9 @@ column specified by the function `current-left-margin'."
     (newline)
     (save-excursion
       (goto-char pos)
-      (indent-according-to-mode)
+      ;; Usually indent-according-to-mode should "preserve" point, but it is
+      ;; not guaranteed; e.g. indent-to-left-margin doesn't.
+      (save-excursion (indent-according-to-mode))
       (delete-horizontal-space t))
     (indent-according-to-mode)))
 

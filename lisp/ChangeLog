@@ -1,3 +1,8 @@
+2008-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (reindent-then-newline-and-indent): Be careful about the
+	unusual case where indent-according-to-mode moves point.
+
 2008-02-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/verilog-mode.el (verilog-sk-prompt-msb)
@@ -13,7 +18,7 @@
 2008-01-31  Martin Rudalics  <rudalics@gmx.at>
 
 	* mail/rmail.el (rmail-highlight): Fix specification.
-        Reported by: pod <pod@herald.ox.ac.uk>.
+	Reported by: pod <pod@herald.ox.ac.uk>.
 
 2008-01-31  Jason Rumney  <jasonr@gnu.org>
 
@@ -34,8 +39,8 @@
 	* progmodes/cc-langs.el (c-specifier-key): Exclude "template"
 	from this regexp; part of same fix as next change to cc-engine.el.
 
-	* progmodes/cc-engine.el (c-guess-basic-syntax, CASE 5A.5): Anchor
-	the "{" of a template function correctly on "template", not the
+	* progmodes/cc-engine.el (c-guess-basic-syntax, CASE 5A.5):
+	Anchor the "{" of a template function correctly on "template", not the
 	following "<".
 
 	* progmodes/cc-defs.el (c-version): Increase to 5.31.5.
