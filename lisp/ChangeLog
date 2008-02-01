@@ -1,3 +1,8 @@
+2008-02-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc.el (vc-update): Fix bug: Specify branch tip as
+	vc-checkout REVISION.  Reported by Dan Nicolaescu.
+
 2008-02-01  Glenn Morris  <rgm@gnu.org>
 
 	* info.el (bookmark-make-cell-function, bookmark-search-size)
