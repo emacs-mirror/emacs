@@ -146,6 +146,9 @@ Boston, MA 02110-1301, USA.  */
    why it needed to be changed.  */
 #define GC_MARK_STACK GC_MAKE_GCPROS_NOOPS
 
+/* Virtual addresses of pure and impure space can vary, as on Windows.  */
+#define VIRT_ADDR_VARIES
+
 /* the end */
 
 /* arch-tag: 5ae7ba00-83b0-4ab3-806a-3e845779191b
