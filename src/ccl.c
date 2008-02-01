@@ -748,13 +748,16 @@ while(0)
     int bytes = SINGLE_BYTE_CHAR_P (ch) ? 1: CHAR_BYTES (ch);		\
     if (!dst)								\
       CCL_INVALID_CMD;							\
-    if (ccl->eight_bit_control						\
-	&& bytes == 1 && (ch) >= 0x80 && (ch) < 0xA0)			\
-      extra_bytes++;							\
-    if (dst + bytes + extra_bytes <= (dst_bytes ? dst_end : src))	\
+    else if (dst + bytes + extra_bytes < (dst_bytes ? dst_end : src))	\
       {									\
 	if (bytes == 1)							\
-	  *dst++ = (ch);						\
+	  {								\
+	    *dst++ = (ch);						\
+	    if (extra_bytes && (ch) >= 0x80 && (ch) < 0xA0)		\
+	      /* We may have to convert this eight-bit char to		\
+		 multibyte form later.  */				\
+	      extra_bytes++;						\
+	  }								\
 	else if (CHAR_VALID_P (ch, 0))					\
 	  dst += CHAR_STRING (ch, dst);					\
 	else								\
@@ -772,7 +775,7 @@ while(0)
     int bytes = CHAR_BYTES (ch);					\
     if (!dst)								\
       CCL_INVALID_CMD;							\
-    else if (dst + bytes + extra_bytes <= (dst_bytes ? dst_end : src))	\
+    else if (dst + bytes + extra_bytes < (dst_bytes ? dst_end : src))	\
       {									\
 	if (CHAR_VALID_P ((ch), 0))					\
 	  dst += CHAR_STRING ((ch), dst);				\
@@ -916,7 +919,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
      each of them will be converted to multibyte form of 2-byte
      sequence.  For that conversion, we remember how many more bytes
      we must keep in DESTINATION in this variable.  */
-  int extra_bytes = 0;
+  int extra_bytes = ccl->eight_bit_control;
   int eof_ic = ccl->eof_ic;
   int eof_hit = 0;
 
