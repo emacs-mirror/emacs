@@ -108,6 +108,7 @@ if "%1" == "--without-jpeg" goto withoutjpeg
 if "%1" == "--without-gif" goto withoutgif
 if "%1" == "--without-tiff" goto withouttiff
 if "%1" == "--without-xpm" goto withoutxpm
+if "%1" == "--enable-font-backend" goto withfont
 if "%1" == "" goto checkutils
 :usage
 echo Usage: configure [options]
@@ -125,6 +126,7 @@ echo.   --without-jpeg          do not use jpeg-6b
 echo.   --without-gif           do not use giflib or libungif
 echo.   --without-tiff          do not use libtiff
 echo.   --without-xpm           do not use libXpm
+echo.   --enable-font-backend   build with font backend support
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
@@ -208,6 +210,13 @@ rem ----------------------------------------------------------------------
 :withoutxpm
 set xpmsupport=N
 set HAVE_XPM=
+shift
+goto again
+
+:withfont
+set usercflags=%usercflags%%sep1%-DUSE_FONT_BACKEND
+set sep1= %nothing%
+set usefontbackend=Y
 shift
 goto again
 
@@ -481,6 +490,7 @@ for %%v in (%usercflags%) do if not (%%v)==() set docflags=Y
 if (%docflags%)==(Y) echo USER_CFLAGS=%usercflags%>>config.settings
 for %%v in (%userldflags%) do if not (%%v)==() set doldflags=Y
 if (%doldflags%)==(Y) echo USER_LDFLAGS=%userldflags%>>config.settings
+if (%usefontbackend%) == (Y) echo USE_FONTBACKEND=1 >>config.settings
 echo # End of settings from configure.bat>>config.settings
 echo. >>config.settings
 

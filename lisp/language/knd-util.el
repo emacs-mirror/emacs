@@ -114,21 +114,18 @@
 	dummy)
       (function (lambda (x y) (> (length x) (length y))))))))
 
-(defun kannada-composition-function (from to pattern &optional string)
-  "Compose Kannada characters in REGION, or STRING if specified.
-Assume that the REGION or STRING must fully match the composable
-PATTERN regexp."
-  (if string (kannada-compose-syllable-string string)
-    (kannada-compose-syllable-region from to))
-  (- to from))
-
-;; Register a function to compose Kannada characters.
-(mapc
- (function (lambda (ucs)
-   (aset composition-function-table (decode-char 'ucs ucs)
-	 (list (cons kannada-composable-pattern
-                     'kannada-composition-function)))))
- (kannada-range #x0c80 #x0cff))
+;;;###autoload
+(defun kannada-composition-function (pos &optional string)
+  "Compose Kannada characters after the position POS.
+If STRING is not nil, it is a string, and POS is an index to the string.
+In this case, compose characters after POS of the string."
+  (if string
+      ;; Not yet implemented.
+      nil
+    (goto-char pos)
+    (if (looking-at kannada-composable-pattern)
+	(prog1 (match-end 0)
+	  (kannada-compose-syllable-region pos (match-end 0))))))
 
 ;; Notes on conversion steps.
 
@@ -299,8 +296,8 @@ Default value contains only the basic rules.")
 
 (defun knd-charseq (from &optional to)
   (if (null to) (setq to from))
-  (mapcar (function (lambda (x) (indian-glyph-char x 'kannada)))
-          (kannada-range from to)))
+  (number-sequence (decode-char 'kannada-cdac from)
+		   (decode-char 'kannada-cdac to)))
 
 (defvar knd-glyph-cv
   (append

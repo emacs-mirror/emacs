@@ -28,6 +28,37 @@
 
 ;;; Code:
 
+(defvar selection-coding-system nil
+  "Coding system for communicating with other X clients.
+
+When sending text via selection and clipboard, if the target
+data-type matches with the type of this coding system, it is used
+for encoding the text.  Otherwise (including the case that this
+variable is nil), a proper coding system is used as below:
+
+data-type	coding system
+---------	-------------
+UTF8_STRING	utf-8
+COMPOUND_TEXT	compound-text-with-extensions
+STRING		iso-latin-1
+C_STRING	no-conversion
+
+When receiving text, if this coding system is non-nil, it is used
+for decoding regardless of the data-type.  If this is nil, a
+proper coding system is used according to the data-type as above.
+
+See also the documentation of the variable `x-select-request-type' how
+to control which data-type to request for receiving text.
+
+The default value is nil.")
+
+(defvar next-selection-coding-system nil
+  "Coding system for the next communication with other X clients.
+Usually, `selection-coding-system' is used for communicating with
+other X clients.  But, if this variable is set, it is used for
+the next communication only.  After the communication, this
+variable is set to nil.")
+
 ;; This is for temporary compatibility with pre-release Emacs 19.
 (defalias 'x-selection 'x-get-selection)
 (defun x-get-selection (&optional type data-type)
@@ -48,11 +79,21 @@ in `selection-converter-alist', which see."
 	coding)
     (when (and (stringp data)
 	       (setq data-type (get-text-property 0 'foreign-selection data)))
-      (setq coding (if (eq data-type 'UTF8_STRING)
-		       'utf-8
-		     (or next-selection-coding-system
-			 selection-coding-system))
-	    data (decode-coding-string data coding))
+      (setq coding (or next-selection-coding-system
+		       selection-coding-system
+		       (cond ((eq data-type 'UTF8_STRING)
+			      'utf-8)
+			     ((eq data-type 'COMPOUND-TEXT)
+			      'compound-text-with-extensions)
+			     ((eq data-type 'C_STRING)
+			      nil)
+			     ((eq data-type 'STRING)
+			      'iso-8859-1)
+			     (t
+			      (error "Unknow selection data type: %S" type))))
+	    data (if coding (decode-coding-string data coding)
+		   (string-to-multibyte data)))
+      (setq next-selection-coding-system nil)
       (put-text-property 0 (length data) 'foreign-selection data-type data))
     data))
 
@@ -157,41 +198,6 @@ Cut buffers are considered obsolete; you should use selections instead."
 ;;; Every selection type that Emacs handles is implemented this way, except
 ;;; for TIMESTAMP, which is a special case.
 
-(eval-when-compile (require 'ccl))
-
-(define-ccl-program ccl-check-utf-8
-  '(0
-    ((r0 = 1)
-     (loop
-      (read-if (r1 < #x80) (repeat)
-	((r0 = 0)
-	 (if (r1 < #xC2) (end))
-	 (read r2)
-	 (if ((r2 & #xC0) != #x80) (end))
-	 (if (r1 < #xE0) ((r0 = 1) (repeat)))
-	 (read r2)
-	 (if ((r2 & #xC0) != #x80) (end))
-	 (if (r1 < #xF0) ((r0 = 1) (repeat)))
-	 (read r2)
-	 (if ((r2 & #xC0) != #x80) (end))
-	 (if (r1 < #xF8) ((r0 = 1) (repeat)))
-	 (read r2)
-	 (if ((r2 & #xC0) != #x80) (end))
-	 (if (r1 == #xF8) ((r0 = 1) (repeat)))
-	 (end))))))
-  "Check if the input unibyte string is a valid UTF-8 sequence or not.
-If it is valid, set the register `r0' to 1, else set it to 0.")
-
-(defun string-utf-8-p (string)
-  "Return non-nil if STRING is a unibyte string of valid UTF-8 sequence."
-  (if (or (not (stringp string))
-	  (multibyte-string-p string))
-      (error "Not a unibyte string: %s" string))
-  (let ((status (make-vector 9 0)))
-    (ccl-execute-on-string ccl-check-utf-8 status string)
-    (= (aref status 0) 1)))
-
-
 (defun xselect-convert-to-string (selection type value)
   (let (str coding)
     ;; Get the actual string from VALUE.
@@ -224,52 +230,54 @@ If it is valid, set the register `r0' to 1, else set it to 0.")
 	  str
 	(setq coding (or next-selection-coding-system selection-coding-system))
 	(if coding
-	    (setq coding (coding-system-base coding))
-	  (setq coding 'raw-text))
+	    (setq coding (coding-system-base coding)))
 	(let ((inhibit-read-only t))
 	  ;; Suppress producing escape sequences for compositions.
 	  (remove-text-properties 0 (length str) '(composition nil) str)
-	  (cond
-	   ((eq type 'TEXT)
-	    (if (not (multibyte-string-p str))
-		;; Don't have to encode unibyte string.
-		(setq type 'STRING)
-	      ;; If STR contains only ASCII, Latin-1, and raw bytes,
-	      ;; encode STR by iso-latin-1, and return it as type
-	      ;; `STRING'.  Otherwise, encode STR by CODING.  In that
-	      ;; case, the returing type depends on CODING.
-	      (let ((charsets (find-charset-string str)))
-		(setq charsets
-		      (delq 'ascii
-			    (delq 'latin-iso8859-1
-				  (delq 'eight-bit-control
-					(delq 'eight-bit-graphic charsets)))))
-		(if charsets
-		    (setq str (encode-coding-string str coding)
-			  type (if (memq coding '(compound-text
-						  compound-text-with-extensions))
-				   'COMPOUND_TEXT
-				 'STRING))
-		  (setq type 'STRING
-			str (encode-coding-string str 'iso-latin-1))))))
+	  (if (not (multibyte-string-p str))
+	      ;; Don't have to encode unibyte string.
+	      (setq type 'C_STRING)
+	    (if (eq type 'TEXT)
+		;; TEXT is a polimorphic target.  We must select the
+		;; actual type from `UTF8_STRING', `COMPOUND_TEXT',
+		;; `STRING', and `C_STRING'.
+		(let (non-latin-1 non-unicode eight-bit)
+		  (mapc #'(lambda (x)
+			    (if (>= x #x100)
+				(if (< x #x110000)
+				    (setq non-latin-1 t)
+				  (if (< x #x3FFF80)
+				      (setq non-unicode t)
+				    (setq eight-bit t)))))
+			str)
+		  (setq type (if non-unicode 'COMPOUND_TEXT
+			       (if non-latin-1 'UTF8_STRING
+				 (if eight-bit 'C_STRING 'STRING))))))
+	    (cond
+	     ((eq type 'UTF8_STRING)
+	      (if (or (not coding)
+		      (not (eq (coding-system-type coding) 'utf-8)))
+		  (setq coding 'utf-8))
+	      (setq str (encode-coding-string str coding)))
 
-	   ((eq type 'COMPOUND_TEXT)
-	    (setq str (encode-coding-string str coding)))
+	     ((eq type 'STRING)
+	      (if (or (not coding)
+		      (not (eq (coding-system-type coding) 'charset)))
+		  (setq coding 'iso-8859-1))
+	      (setq str (encode-coding-string str coding)))
 
-	   ((eq type 'STRING)
-	    (if (memq coding '(compound-text
-			       compound-text-with-extensions))
-		(setq str (string-make-unibyte str))
-	      (setq str (encode-coding-string str coding))))
+	     ((eq type 'COMPOUND_TEXT)
+	      (if (or (not coding)
+		      (not (eq (coding-system-type coding) 'iso-2022)))
+		  (setq coding 'compound-text-with-extensions))
+	      (setq str (encode-coding-string str coding)))
 
-	   ((eq type 'UTF8_STRING)
-	    (if (multibyte-string-p str)
-		(setq str (encode-coding-string str 'utf-8)))
-	    (if (not (string-utf-8-p str))
-		(setq str nil))) ;; Decline request as we don't have UTF-8 data.
-	   (t
-	    (error "Unknow selection type: %S" type))
-	   )))
+	     ((eq type 'C_STRING)
+	      (setq str (string-make-unibyte str)))
+
+	     (t
+	      (error "Unknow selection type: %S" type))
+	     ))))
 
       (setq next-selection-coding-system nil)
       (cons type str))))

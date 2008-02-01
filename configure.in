@@ -135,6 +135,11 @@ OPTION_DEFAULT_ON([gif],[don't compile with GIF image support])
 OPTION_DEFAULT_ON([png],[don't compile with PNG image support])
 OPTION_DEFAULT_ON([rsvg],[don't compile with SVG image support])
 
+OPTION_DEFAULT_ON([freetype],[don't use Freetype for local font support])
+OPTION_DEFAULT_ON([xft],[don't use XFT for anti aliased fonts])
+OPTION_DEFAULT_ON([libotf],[don't use libotf for OpenType font support])
+OPTION_DEFAULT_ON([m17n-flt],[don't use m17n-flt for text shaping])
+
 OPTION_DEFAULT_OFF([gtk],[use GTK toolkit])
 OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
@@ -143,7 +148,6 @@ OPTION_DEFAULT_OFF([carbon],[use Carbon GUI on Mac OS X.  This is unsupported!])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_OFF([dbus],[compile with D-Bus support])
-
 
 AC_ARG_WITH([pkg-config-prog],dnl
 [AS_HELP_STRING([--with-pkg-config-prog=PATH],
@@ -159,6 +163,11 @@ AC_ARG_ENABLE(carbon-app,
                 [specify install directory for Emacs.app on Mac OS X
 		 [DIR=/Application]])],
 [ carbon_appdir_x=${enableval}])
+
+AC_ARG_ENABLE(font-backend,
+[  --enable-font-backend   compile code of font-backend support],
+      USE_FONT_BACKEND=$enableval,
+      USE_FONT_BACKEND=no)
 
 AC_ARG_ENABLE(asserts,
 [AS_HELP_STRING([--enable-asserts], [compile code with asserts enabled])],
@@ -1790,32 +1799,6 @@ if test "${with_dbus}" = "yes"; then
    fi
 fi
 
-### Link with -lXft if available to work around a bug.
-HAVE_XFT=maybe
-if test "${HAVE_GTK}" = "yes"; then
-  PKG_CHECK_MODULES(XFT, xft >= 0.13.0, , HAVE_XFT=no)
-  if test "$HAVE_XFT" != no; then
-    OLD_CFLAGS="$CPPFLAGS"
-    OLD_CPPFLAGS="$CFLAGS"
-    OLD_LIBS="$LIBS"
-    CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
-    CFLAGS="$CFLAGS $XFT_CFLAGS"
-    LIBS="$XFT_LIBS $LIBS"
-    AC_CHECK_HEADER(X11/Xft/Xft.h,
-      [AC_CHECK_LIB(Xft, XftFontOpen, HAVE_XFT=yes, , $XFT_LIBS)])
-
-    if test "${HAVE_XFT}" = "yes"; then
-      AC_DEFINE(HAVE_XFT, 1, [Define to 1 if you have the Xft library.])
-      AC_SUBST(XFT_LIBS)
-      C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
-    else
-      CFLAGS="$OLD_CPPFLAGS"
-      CFLAGS="$OLD_CFLAGS"
-      LIBS="$OLD_LIBS"
-    fi
-  fi
-fi
-
 dnl Do not put whitespace before the #include statements below.
 dnl Older compilers (eg sunos4 cc) choke on it.
 HAVE_XAW3D=no
@@ -2020,6 +2003,116 @@ either XPointer or XPointer*.])dnl
   fi
   CFLAGS=$late_CFLAGS
 fi
+
+#### For font-backend
+if test "${USE_FONT_BACKEND}" = "yes"; then
+
+AC_DEFINE(USE_FONT_BACKEND, 1,
+          [Define to 1 if we should use font-backend.])
+
+### Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
+HAVE_XFT=maybe
+if test "${HAVE_X11}" = "yes"; then
+  if test "x${with_freetype}" = "xno"; then
+    with_xft="no";
+  fi
+  if test "x${with_xft}" != "xno"; then
+
+    dnl Check if --with-pkg-config-prog has been given.
+    if test "X${with_pkg_config_prog}" != X; then
+      PKG_CONFIG="${with_pkg_config_prog}"
+    fi
+
+    PKG_CHECK_MODULES(XFT, xft >= 0.13.0, , HAVE_XFT=no)
+    if test "$HAVE_XFT" != no; then
+      OLD_CPPFLAGS="$CPPFLAGS"
+      OLD_CFLAGS="$CFLAGS"
+      OLD_LIBS="$LIBS"
+      CPPFLAGS="$CPPFLAGS $XFT_CFLAGS"
+      CFLAGS="$CFLAGS $XFT_CFLAGS"
+      LIBS="$XFT_LIBS $LIBS"
+      AC_CHECK_HEADER(X11/Xft/Xft.h,
+        AC_CHECK_LIB(Xft, XftFontOpen, HAVE_XFT=yes, , $XFT_LIBS))
+
+      if test "${HAVE_XFT}" = "yes"; then
+        AC_DEFINE(HAVE_XFT, 1, [Define to 1 if you have the Xft library.])
+ 	AC_SUBST(XFT_LIBS)
+        C_SWITCH_X_SITE="$C_SWITCH_X_SITE $XFT_CFLAGS"
+      else
+        CPPFLAGS="$OLD_CPPFLAGS"
+        CFLAGS="$OLD_CFLAGS"
+        LIBS="$OLD_LIBS"
+      fi
+    fi
+  fi
+fi
+
+HAVE_FREETYPE=no
+### Use -lfreetype if available, unless `--with-freetype=no'.
+if test "${HAVE_XFT}" = "yes"; then
+  dnl As we use Xft, we anyway use freetype.
+  dnl In this case, there's no need of additional CFLAGS and LIBS.
+  HAVE_FREETYPE=yes
+elif test "x${with_freetype}" != "xno"; then
+  dnl Check if --with-pkg-config-prog has been given.
+  if test "X${with_pkg_config_prog}" != X; then
+    PKG_CONFIG="${with_pkg_config_prog}"
+  fi
+
+  PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes, HAVE_FREETYPE=no)
+  if test "${HAVE_FREETYPE}" = "yes"; then
+    PKG_CHECK_MODULES(FONTCONFIG, fontconfig, HAVE_FC=yes, HAVE_FC=no)
+    if test "${HAVE_FC}" = "no"; then
+      dnl Witout fontconfig, we can't use freetype at the moment.
+      HAVE_FREETYPE=no
+    fi
+  fi
+fi
+
+HAVE_LIBOTF=no
+if test "${HAVE_FREETYPE}" = "yes"; then
+  AC_DEFINE(HAVE_FREETYPE, 1,
+            [Define to 1 if you have freetype and fontconfig libraries.])
+  if test "${with_libotf}" != "no"; then
+    dnl Check if --with-pkg-config-prog has been given.
+    if test "X${with_pkg_config_prog}" != X; then
+      PKG_CONFIG="${with_pkg_config_prog}"
+    fi
+    PKG_CHECK_MODULES(LIBOTF, libotf, pkg_check_libotf=yes, 
+                      pkg_check_libotf=no)
+    if test "$pkg_check_libotf" = "yes"; then
+      AC_DEFINE(HAVE_LIBOTF, 1,
+                [Define to 1 if you have libotf library.])
+    fi
+  fi
+fi
+
+HAVE_M17N_FLT=no
+if test "${with_m17n_flt}" != "no"; then
+  dnl Check if --with-pkg-config-prog has been given.
+  if test "X${with_pkg_config_prog}" != X; then
+    PKG_CONFIG="${with_pkg_config_prog}"
+  fi
+  dnl Checks for libraries.
+  PKG_CHECK_MODULES(M17N_FLT, m17n-flt, pkg_check_m17n_flt=yes, 
+                    pkg_check_m17n_flt=no)
+  if test "$pkg_check_m17n_flt" = "yes"; then
+    AC_DEFINE(HAVE_M17N_FLT, 1,
+              [Define to 1 if you have m17n-flt library.])
+  fi
+fi
+
+AC_SUBST(FREETYPE_CFLAGS)
+AC_SUBST(FREETYPE_LIBS)
+AC_SUBST(FONTCONFIG_CFLAGS)
+AC_SUBST(FONTCONFIG_LIBS)
+AC_SUBST(LIBOTF_CFLAGS)
+AC_SUBST(LIBOTF_LIBS)
+AC_SUBST(M17N_FLT_CFLAGS)
+AC_SUBST(M17N_FLT_LIBS)
+
+fi
+#### End for font-backend
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
 HAVE_XPM=no
@@ -3085,6 +3178,9 @@ echo creating src/Makefile
   sed -e '1,/start of cpp stuff/d'\
       -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
       < Makefile.c > junk.c
+  if test -f ${srcdir}/admin/unidata/UnicodeData.txt; then
+    CPPFLAGS="$CPPFLAGS -DHAVE_UNIDATA"
+  fi
   $CPP $undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
       sed -e 's/^ /	/' -e '/^#/d' -e '/^[ 	]*$/d' > junk2.c
   cat junk1.c junk2.c > Makefile.new

@@ -33,7 +33,7 @@ Boston, MA 02110-1301, USA.  */
 #include "window.h"
 #include "commands.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "disptab.h"
 #include "dispextern.h"
 #include "syntax.h"
@@ -1788,7 +1788,7 @@ command_loop_1 ()
 			  : (lose >= 0x20 && lose < 0x7f))
 		      /* To extract the case of continuation on
                          wide-column characters.  */
-		      && (WIDTH_BY_CHAR_HEAD (FETCH_BYTE (PT_BYTE)) == 1)
+		      && ASCII_BYTE_P (lose)
 		      && (XFASTINT (XWINDOW (selected_window)->last_modified)
 			  >= MODIFF)
 		      && (XFASTINT (XWINDOW (selected_window)->last_overlay_modified)
@@ -1845,7 +1845,7 @@ command_loop_1 ()
 		{
 		  unsigned int c
 		    = translate_char (Vtranslation_table_for_input,
-				      XFASTINT (last_command_char), 0, 0, 0);
+				      XFASTINT (last_command_char));
 		  int value;
 		  if (NILP (Vexecuting_kbd_macro)
 		      && !EQ (minibuf_window, selected_window))
@@ -2024,7 +2024,7 @@ adjust_point_for_property (last_pt, modified)
      int last_pt;
      int modified;
 {
-  int beg, end;
+  EMACS_INT beg, end;
   Lisp_Object val, overlay, tmp;
   int check_composition = 1, check_display = 1, check_invisible = 1;
   int orig_pt = PT;
@@ -3196,7 +3196,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, end_time)
 	  || (VECTORP (current_kboard->Vkeyboard_translate_table)
 	      && XVECTOR (current_kboard->Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
 	  || (CHAR_TABLE_P (current_kboard->Vkeyboard_translate_table)
-	      && CHAR_VALID_P (XINT (c), 0)))
+	      && CHARACTERP (c)))
 	{
 	  Lisp_Object d;
 	  d = Faref (current_kboard->Vkeyboard_translate_table, c);
@@ -10088,8 +10088,38 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
       /* If KEY is not defined in any of the keymaps,
 	 and cannot be part of a function key or translation,
-	 and is an upper case letter or shifted key,
-	 use the corresponding lower-case/unshifted key instead.  */
+	 and is an upper case letter
+	 use the corresponding lower-case letter instead.  */
+      if (first_binding >= nmaps
+	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t
+	  && INTEGERP (key)
+	  && ((CHARACTERP (make_number (XINT (key) & ~CHAR_MODIFIER_MASK))
+	       && UPPERCASEP (XINT (key) & ~CHAR_MODIFIER_MASK))
+	      || (XINT (key) & shift_modifier)))
+	{
+	  Lisp_Object new_key;
+
+	  original_uppercase = key;
+	  original_uppercase_position = t - 1;
+
+	  if (XINT (key) & shift_modifier)
+	    XSETINT (new_key, XINT (key) & ~shift_modifier);
+	  else
+	    XSETINT (new_key, (DOWNCASE (XINT (key) & ~CHAR_MODIFIER_MASK)
+			       | (XINT (key) & ~CHAR_MODIFIER_MASK)));
+
+	  /* We have to do this unconditionally, regardless of whether
+	     the lower-case char is defined in the keymaps, because they
+	     might get translated through function-key-map.  */
+	  keybuf[t - 1] = new_key;
+	  mock_input = max (t, mock_input);
+
+	  goto replay_sequence;
+	}
+      /* If KEY is not defined in any of the keymaps,
+	 and cannot be part of a function key or translation,
+	 and is a shifted function key,
+	 use the corresponding unshifted function key instead.  */
       if (first_binding >= nmaps
 	  && /* indec.start >= t && fkey.start >= t && */ keytran.start >= t)
 	{

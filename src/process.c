@@ -133,7 +133,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include "window.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "process.h"
 #include "frame.h"
@@ -174,8 +174,8 @@ extern Lisp_Object QCfilter;
    Qt nor Qnil but is instead a property list (KEY VAL ...).  */
 
 #ifdef HAVE_SOCKETS
-#define NETCONN_P(p) (GC_CONSP (XPROCESS (p)->childp))
-#define NETCONN1_P(p) (GC_CONSP ((p)->childp))
+#define NETCONN_P(p) (CONSP (XPROCESS (p)->childp))
+#define NETCONN1_P(p) (CONSP ((p)->childp))
 #else
 #define NETCONN_P(p) 0
 #define NETCONN1_P(p) 0
@@ -678,6 +678,7 @@ setup_process_coding_systems (process)
   struct Lisp_Process *p = XPROCESS (process);
   int inch = p->infd;
   int outch = p->outfd;
+  Lisp_Object coding_system;
 
   if (inch < 0 || outch < 0)
     return;
@@ -685,26 +686,24 @@ setup_process_coding_systems (process)
   if (!proc_decode_coding_system[inch])
     proc_decode_coding_system[inch]
       = (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  setup_coding_system (p->decode_coding_system,
-		       proc_decode_coding_system[inch]);
+  coding_system = p->decode_coding_system;
   if (! NILP (p->filter))
     {
       if (!p->filter_multibyte)
-	setup_raw_text_coding_system (proc_decode_coding_system[inch]);
+	coding_system = raw_text_coding_system (coding_system);
     }
   else if (BUFFERP (p->buffer))
     {
       if (NILP (XBUFFER (p->buffer)->enable_multibyte_characters))
-	setup_raw_text_coding_system (proc_decode_coding_system[inch]);
+	coding_system = raw_text_coding_system (coding_system);
     }
+  setup_coding_system (coding_system, proc_decode_coding_system[inch]);
 
   if (!proc_encode_coding_system[outch])
     proc_encode_coding_system[outch]
       = (struct coding_system *) xmalloc (sizeof (struct coding_system));
   setup_coding_system (p->encode_coding_system,
 		       proc_encode_coding_system[outch]);
-  if (proc_encode_coding_system[outch]->eol_type == CODING_EOL_UNDECIDED)
-    proc_encode_coding_system[outch]->eol_type = system_eol_type;
 }
 
 DEFUN ("processp", Fprocessp, Sprocessp, 1, 1, 0,
@@ -5155,13 +5154,13 @@ read_process_output (proc, channel)
 	 save the match data in a special nonrecursive fashion.  */
       running_asynch_code = 1;
 
-      text = decode_coding_string (make_unibyte_string (chars, nbytes),
-				   coding, 0);
-      Vlast_coding_system_used = coding->symbol;
+      decode_coding_c_string (coding, chars, nbytes, Qt);
+      text = coding->dst_object;
+      Vlast_coding_system_used = CODING_ID_NAME (coding->id);
       /* A new coding system might be found.  */
-      if (!EQ (p->decode_coding_system, coding->symbol))
+      if (!EQ (p->decode_coding_system, Vlast_coding_system_used))
 	{
-	  p->decode_coding_system = coding->symbol;
+	  p->decode_coding_system = Vlast_coding_system_used;
 
 	  /* Don't call setup_coding_system for
 	     proc_decode_coding_system[channel] here.  It is done in
@@ -5177,25 +5176,21 @@ read_process_output (proc, channel)
 	  if (NILP (p->encode_coding_system)
 	      && proc_encode_coding_system[p->outfd])
 	    {
-	      p->encode_coding_system = coding->symbol;
-	      setup_coding_system (coding->symbol,
+	      p->encode_coding_system
+		= coding_inherit_eol_type (Vlast_coding_system_used, Qnil);
+	      setup_coding_system (p->encode_coding_system,
 				   proc_encode_coding_system[p->outfd]);
-	      if (proc_encode_coding_system[p->outfd]->eol_type
-		  == CODING_EOL_UNDECIDED)
-		proc_encode_coding_system[p->outfd]->eol_type
-		  = system_eol_type;
 	    }
 	}
 
-      carryover = nbytes - coding->consumed;
-      if (carryover < 0)
-	abort ();
-
-      if (SCHARS (p->decoding_buf) < carryover)
-	p->decoding_buf = make_uninit_string (carryover);
-      bcopy (chars + coding->consumed, SDATA (p->decoding_buf),
-	     carryover);
-      p->decoding_carryover = carryover;
+      if (coding->carryover_bytes > 0)
+	{
+	  if (SCHARS (p->decoding_buf) < coding->carryover_bytes)
+	    p->decoding_buf = make_uninit_string (coding->carryover_bytes);
+	  bcopy (coding->carryover, SDATA (p->decoding_buf),
+		 coding->carryover_bytes);
+	  p->decoding_carryover = coding->carryover_bytes;
+	}
       /* Adjust the multibyteness of TEXT to that of the filter.  */
       if (!p->filter_multibyte != !STRING_MULTIBYTE (text))
 	text = (STRING_MULTIBYTE (text)
@@ -5280,36 +5275,31 @@ read_process_output (proc, channel)
       if (! (BEGV <= PT && PT <= ZV))
 	Fwiden ();
 
-      text = decode_coding_string (make_unibyte_string (chars, nbytes),
-				   coding, 0);
-      Vlast_coding_system_used = coding->symbol;
+      decode_coding_c_string (coding, chars, nbytes, Qt);
+      text = coding->dst_object;
+      Vlast_coding_system_used = CODING_ID_NAME (coding->id);
       /* A new coding system might be found.  See the comment in the
 	 similar code in the previous `if' block.  */
-      if (!EQ (p->decode_coding_system, coding->symbol))
+      if (!EQ (p->decode_coding_system, Vlast_coding_system_used))
 	{
-	  p->decode_coding_system = coding->symbol;
+	  p->decode_coding_system = Vlast_coding_system_used;
 	  if (NILP (p->encode_coding_system)
 	      && proc_encode_coding_system[p->outfd])
 	    {
-	      p->encode_coding_system = coding->symbol;
-	      setup_coding_system (coding->symbol,
+	      p->encode_coding_system
+		= coding_inherit_eol_type (Vlast_coding_system_used, Qnil);
+	      setup_coding_system (p->encode_coding_system,
 				   proc_encode_coding_system[p->outfd]);
-	      if (proc_encode_coding_system[p->outfd]->eol_type
-		  == CODING_EOL_UNDECIDED)
-		proc_encode_coding_system[p->outfd]->eol_type
-		  = system_eol_type;
 	    }
 	}
-      carryover = nbytes - coding->consumed;
-      if (carryover < 0)
-	abort ();
-
-      if (SCHARS (p->decoding_buf) < carryover)
-	p->decoding_buf = make_uninit_string (carryover);
-      bcopy (chars + coding->consumed, SDATA (p->decoding_buf),
-	     carryover);
-      p->decoding_carryover = carryover;
-
+      if (coding->carryover_bytes > 0)
+	{
+	  if (SCHARS (p->decoding_buf) < coding->carryover_bytes)
+	    p->decoding_buf = make_uninit_string (coding->carryover_bytes);
+	  bcopy (coding->carryover, SDATA (p->decoding_buf),
+		 coding->carryover_bytes);
+	  p->decoding_carryover = coding->carryover_bytes;
+	}
       /* Adjust the multibyteness of TEXT to that of the buffer.  */
       if (NILP (current_buffer->enable_multibyte_characters)
 	  != ! STRING_MULTIBYTE (text))
@@ -5431,24 +5421,19 @@ send_process (proc, buf, len, object)
     error ("Output file descriptor of %s is closed", SDATA (p->name));
 
   coding = proc_encode_coding_system[p->outfd];
-  Vlast_coding_system_used = coding->symbol;
+  Vlast_coding_system_used = CODING_ID_NAME (coding->id);
 
   if ((STRINGP (object) && STRING_MULTIBYTE (object))
       || (BUFFERP (object)
 	  && !NILP (XBUFFER (object)->enable_multibyte_characters))
       || EQ (object, Qt))
     {
-      if (!EQ (coding->symbol, p->encode_coding_system))
+      if (!EQ (Vlast_coding_system_used, p->encode_coding_system))
 	/* The coding system for encoding was changed to raw-text
 	   because we sent a unibyte text previously.  Now we are
 	   sending a multibyte text, thus we must encode it by the
 	   original coding system specified for the current process.  */
 	setup_coding_system (p->encode_coding_system, coding);
-      if (coding->eol_type == CODING_EOL_UNDECIDED)
-	coding->eol_type = system_eol_type;
-      /* src_multibyte should be set to 1 _after_ a call to
-	 setup_coding_system, since it resets src_multibyte to
-	 zero.  */
       coding->src_multibyte = 1;
     }
   else
@@ -5456,60 +5441,56 @@ send_process (proc, buf, len, object)
       /* For sending a unibyte text, character code conversion should
 	 not take place but EOL conversion should.  So, setup raw-text
 	 or one of the subsidiary if we have not yet done it.  */
-      if (coding->type != coding_type_raw_text)
+      if (CODING_REQUIRE_ENCODING (coding))
 	{
 	  if (CODING_REQUIRE_FLUSHING (coding))
 	    {
 	      /* But, before changing the coding, we must flush out data.  */
 	      coding->mode |= CODING_MODE_LAST_BLOCK;
 	      send_process (proc, "", 0, Qt);
+	      coding->mode &= CODING_MODE_LAST_BLOCK;
 	    }
+	  setup_coding_system (raw_text_coding_system
+			       (Vlast_coding_system_used),
+			       coding);
 	  coding->src_multibyte = 0;
-	  setup_raw_text_coding_system (coding);
 	}
     }
   coding->dst_multibyte = 0;
 
   if (CODING_REQUIRE_ENCODING (coding))
     {
-      int require = encoding_buffer_size (coding, len);
-      int from_byte = -1, from = -1, to = -1;
-
+      coding->dst_object = Qt;
       if (BUFFERP (object))
 	{
-	  from_byte = BUF_PTR_BYTE_POS (XBUFFER (object), buf);
-	  from = buf_bytepos_to_charpos (XBUFFER (object), from_byte);
-	  to = buf_bytepos_to_charpos (XBUFFER (object), from_byte + len);
+	  int from_byte, from, to;
+	  int save_pt, save_pt_byte;
+	  struct buffer *cur = current_buffer;
+
+	  set_buffer_internal (XBUFFER (object));
+	  save_pt = PT, save_pt_byte = PT_BYTE;
+
+	  from_byte = PTR_BYTE_POS (buf);
+	  from = BYTE_TO_CHAR (from_byte);
+	  to = BYTE_TO_CHAR (from_byte + len);
+	  TEMP_SET_PT_BOTH (from, from_byte);
+	  encode_coding_object (coding, object, from, from_byte,
+				to, from_byte + len, Qt);
+	  TEMP_SET_PT_BOTH (save_pt, save_pt_byte);
+	  set_buffer_internal (cur);
 	}
       else if (STRINGP (object))
 	{
-	  from_byte = buf - SDATA (object);
-	  from = string_byte_to_char (object, from_byte);
-	  to =  string_byte_to_char (object, from_byte + len);
+	  encode_coding_string (coding, object, 1);
 	}
-
-      if (coding->composing != COMPOSITION_DISABLED)
+      else
 	{
-	  if (from_byte >= 0)
-	    coding_save_composition (coding, from, to, object);
-	  else
-	    coding->composing = COMPOSITION_DISABLED;
+	  coding->dst_object = make_unibyte_string (buf, len);
+	  coding->produced = len;
 	}
 
-      if (SBYTES (p->encoding_buf) < require)
-	p->encoding_buf = make_uninit_string (require);
-
-      if (from_byte >= 0)
-	buf = (BUFFERP (object)
-	       ? BUF_BYTE_ADDRESS (XBUFFER (object), from_byte)
-	       : SDATA (object) + from_byte);
-
-      object = p->encoding_buf;
-      encode_coding (coding, (char *) buf, SDATA (object),
-		     len, SBYTES (object));
-      coding_free_composition_data (coding);
       len = coding->produced;
-      buf = SDATA (object);
+      buf = SDATA (coding->dst_object);
     }
 
 #ifdef VMS
@@ -5703,91 +5684,6 @@ send_process (proc, buf, len, object)
   UNGCPRO;
 }
 
-static Lisp_Object
-send_process_object_unwind (buf)
-     Lisp_Object buf;
-{
-  Lisp_Object tembuf;
-
-  if (XBUFFER (buf) == current_buffer)
-    return Qnil;
-  tembuf = Fcurrent_buffer ();
-  Fset_buffer (buf);
-  Fkill_buffer (tembuf);
-  return Qnil;
-}
-
-/* Send current contents of region between START and END to PROC.
-   If START is a string, send it instead.
-   This function can evaluate Lisp code and can garbage collect.  */
-
-static void
-send_process_object (proc, start, end)
-     Lisp_Object proc, start, end;
-{
-  int count = SPECPDL_INDEX ();
-  Lisp_Object object = STRINGP (start) ? start : Fcurrent_buffer ();
-  struct buffer *given_buffer = current_buffer;
-  unsigned char *buf;
-  int len;
-
-  record_unwind_protect (send_process_object_unwind, Fcurrent_buffer ());
-
-  if (STRINGP (object) ? STRING_MULTIBYTE (object)
-      : ! NILP (XBUFFER (object)->enable_multibyte_characters))
-    {
-      struct Lisp_Process *p = XPROCESS (proc);
-      struct coding_system *coding;
-
-      if (p->raw_status_new)
-	update_status (p);
-      if (! EQ (p->status, Qrun))
-	error ("Process %s not running", SDATA (p->name));
-      if (p->outfd < 0)
-	error ("Output file descriptor of %s is closed", SDATA (p->name));
-
-      coding = proc_encode_coding_system[p->outfd];
-      if (! EQ (coding->symbol, p->encode_coding_system))
-	/* The coding system for encoding was changed to raw-text
-	   because we sent a unibyte text previously.  Now we are
-	   sending a multibyte text, thus we must encode it by the
-	   original coding system specified for the current process.  */
-	setup_coding_system (p->encode_coding_system, coding);
-      if (! NILP (coding->pre_write_conversion))
-	{
-	  struct gcpro gcpro1, gcpro2;
-
-	  GCPRO2 (proc, object);
-	  call2 (coding->pre_write_conversion, start, end);
-	  UNGCPRO;
-	  if (given_buffer != current_buffer)
-	    {
-	      start = make_number (BEGV), end = make_number (ZV);
-	      object = Fcurrent_buffer ();
-	    }
-	}
-    }
-
-  if (BUFFERP (object))
-    {
-      EMACS_INT start_byte;
-
-      if (XINT (start) < GPT && XINT (end) > GPT)
-	move_gap (XINT (end));
-      start_byte = CHAR_TO_BYTE (XINT (start));
-      buf = BYTE_POS_ADDR (start_byte);
-      len = CHAR_TO_BYTE (XINT (end)) - start_byte;
-    }
-  else
-    {
-      buf = SDATA (object);
-      len = SBYTES (object);
-    }
-  send_process (proc, buf, len, object);
-
-  unbind_to (count, Qnil);
-}
-
 DEFUN ("process-send-region", Fprocess_send_region, Sprocess_send_region,
        3, 3, 0,
        doc: /* Send current contents of region as input to PROCESS.
@@ -5801,10 +5697,19 @@ Output from processes can arrive in between bunches.  */)
      Lisp_Object process, start, end;
 {
   Lisp_Object proc;
+  int start1, end1;
 
   proc = get_process (process);
   validate_region (&start, &end);
-  send_process_object (proc, start, end);
+
+  if (XINT (start) < GPT && XINT (end) > GPT)
+    move_gap (XINT (start));
+
+  start1 = CHAR_TO_BYTE (XINT (start));
+  end1 = CHAR_TO_BYTE (XINT (end));
+  send_process (proc, BYTE_POS_ADDR (start1), end1 - start1,
+		Fcurrent_buffer ());
+
   return Qnil;
 }
 
@@ -5822,7 +5727,8 @@ Output from processes can arrive in between bunches.  */)
   Lisp_Object proc;
   CHECK_STRING (string);
   proc = get_process (process);
-  send_process_object (proc, string, Qnil);
+  send_process (proc, SDATA (string),
+		SBYTES (string), string);
   return Qnil;
 }
 
@@ -6471,10 +6377,10 @@ kill_buffer_processes (buffer)
 {
   Lisp_Object tail, proc;
 
-  for (tail = Vprocess_alist; GC_CONSP (tail); tail = XCDR (tail))
+  for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
     {
       proc = XCDR (XCAR (tail));
-      if (GC_PROCESSP (proc)
+      if (PROCESSP (proc)
 	  && (NILP (buffer) || EQ (XPROCESS (proc)->buffer, buffer)))
 	{
 	  if (NETCONN_P (proc))
@@ -6569,11 +6475,11 @@ sigchld_handler (signo)
       /* Find the process that signaled us, and record its status.  */
 
       /* The process can have been deleted by Fdelete_process.  */
-      for (tail = deleted_pid_list; GC_CONSP (tail); tail = XCDR (tail))
+      for (tail = deleted_pid_list; CONSP (tail); tail = XCDR (tail))
 	{
 	  Lisp_Object xpid = XCAR (tail);
-	  if ((GC_INTEGERP (xpid) && pid == (pid_t) XINT (xpid))
-	      || (GC_FLOATP (xpid) && pid == (pid_t) XFLOAT_DATA (xpid)))
+	  if ((INTEGERP (xpid) && pid == (pid_t) XINT (xpid))
+	      || (FLOATP (xpid) && pid == (pid_t) XFLOAT_DATA (xpid)))
 	    {
 	      XSETCAR (tail, Qnil);
 	      goto sigchld_end_of_loop;
@@ -6582,11 +6488,11 @@ sigchld_handler (signo)
 
       /* Otherwise, if it is asynchronous, it is in Vprocess_alist.  */
       p = 0;
-      for (tail = Vprocess_alist; GC_CONSP (tail); tail = XCDR (tail))
+      for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
 	{
 	  proc = XCDR (XCAR (tail));
 	  p = XPROCESS (proc);
-	  if (GC_EQ (p->childp, Qt) && p->pid == pid)
+	  if (EQ (p->childp, Qt) && p->pid == pid)
 	    break;
 	  p = 0;
 	}
@@ -6594,7 +6500,7 @@ sigchld_handler (signo)
       /* Look for an asynchronous process whose pid hasn't been filled
 	 in yet.  */
       if (p == 0)
-	for (tail = Vprocess_alist; GC_CONSP (tail); tail = XCDR (tail))
+	for (tail = Vprocess_alist; CONSP (tail); tail = XCDR (tail))
 	  {
 	    proc = XCDR (XCAR (tail));
 	    p = XPROCESS (proc);
@@ -6917,7 +6823,7 @@ encode subprocess input.  */)
     error ("Output file descriptor of %s closed", SDATA (p->name));
   Fcheck_coding_system (decoding);
   Fcheck_coding_system (encoding);
-
+  encoding = coding_inherit_eol_type (encoding, Qnil);
   p->decode_coding_system = decoding;
   p->encode_coding_system = encoding;
   setup_process_coding_systems (process);
@@ -7336,7 +7242,7 @@ The variable takes effect when `start-process' is called.  */);
 
 #include "lisp.h"
 #include "systime.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "termopts.h"
 #include "sysselect.h"

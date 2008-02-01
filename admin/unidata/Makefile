@@ -1,0 +1,51 @@
+# Makefile -- Makefile to generate character property tables.
+# Copyright (C) 2005
+#   National Institute of Advanced Industrial Science and Technology (AIST)
+#   Registration Number H13PRO009
+#
+# This file is part of GNU Emacs.
+
+# GNU Emacs is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2, or (at your option)
+# any later version.
+
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs; see the file COPYING.  If not, write to the
+# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+# Boston, MA 02111-1307, USA.
+
+EMACS = ../../src/emacs
+DSTDIR = ../../lisp/international
+RUNEMACS = ${EMACS} -Q --multibyte -batch
+
+all: ${DSTDIR}/charprop.el
+
+.el.elc:
+	${RUNEMACS} -batch -f batch-byte-compile $<
+
+unidata.txt: UnicodeData.txt
+	sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' < $< > $@
+
+${DSTDIR}/charprop.el: unidata-gen.elc unidata.txt
+	ELC=`/bin/pwd`/unidata-gen.elc; \
+	DATA=`/bin/pwd`/unidata.txt; \
+	cd ${DSTDIR}; \
+	${RUNEMACS} -batch --load $${ELC} -f unidata-gen-files $${DATA}
+
+install: charprop.el
+	cp charprop.el ${DSTDIR}
+	cp `sed -n 's/^;; FILE: //p' < charprop.el` ${DSTDIR}
+
+clean:
+	if test -f charprop.el; then \
+	  rm -f `sed -n 's/^;; FILE: //p' < charprop.el`; \
+	fi
+	rm -f charprop.el unidata-gen.elc unidata.txt
+
+# arch-tag: 3f576384-a8e7-4ec5-9d2e-9190c71683b4

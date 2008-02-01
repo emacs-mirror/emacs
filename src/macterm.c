@@ -80,6 +80,8 @@ Boston, MA 02110-1301, USA.  */
 #include "intervals.h"
 #include "atimer.h"
 #include "keymap.h"
+#include "character.h"
+#include "ccl.h"
 
 
 
@@ -2421,7 +2423,8 @@ XTreset_terminal_modes (struct terminal *t)
 /* Function prototypes of this page.  */
 
 static XCharStruct *x_per_char_metric P_ ((XFontStruct *, XChar2b *));
-static int mac_encode_char P_ ((int, XChar2b *, struct font_info *, int *));
+static int mac_encode_char P_ ((int, XChar2b *, struct font_info *, 
+				struct charset *, int *));
 
 
 static void
@@ -2565,13 +2568,13 @@ mac_per_char_metric (font, char2b, font_type)
    the two-byte form of C.  Encoding is returned in *CHAR2B.  */
 
 static int
-mac_encode_char (c, char2b, font_info, two_byte_p)
+mac_encode_char (c, char2b, font_info, charset, two_byte_p)
      int c;
      XChar2b *char2b;
      struct font_info *font_info;
+     struct charset *charset;
      int *two_byte_p;
 {
-  int charset = CHAR_CHARSET (c);
   XFontStruct *font = font_info->font;
 
   /* FONT_INFO may define a scheme by which to encode byte1 and byte2.
@@ -2585,31 +2588,31 @@ mac_encode_char (c, char2b, font_info, two_byte_p)
       check_ccl_update (ccl);
       if (CHARSET_DIMENSION (charset) == 1)
 	{
-	  ccl->reg[0] = charset;
-	  ccl->reg[1] = char2b->byte2;
+	  ccl->reg[0] = CHARSET_ID (charset);
+	  ccl->reg[1] = XCHAR2B_BYTE2 (char2b);
 	  ccl->reg[2] = -1;
 	}
       else
 	{
-	  ccl->reg[0] = charset;
-	  ccl->reg[1] = char2b->byte1;
-	  ccl->reg[2] = char2b->byte2;
+	  ccl->reg[0] = CHARSET_ID (charset);
+	  ccl->reg[1] = XCHAR2B_BYTE1 (char2b);
+	  ccl->reg[2] = XCHAR2B_BYTE2 (char2b);
 	}
 
-      ccl_driver (ccl, NULL, NULL, 0, 0, NULL);
+      ccl_driver (ccl, NULL, NULL, 0, 0, Qnil);
 
       /* We assume that MSBs are appropriately set/reset by CCL
 	 program.  */
       if (font->max_byte1 == 0)	/* 1-byte font */
-	char2b->byte1 = 0, char2b->byte2 = ccl->reg[1];
+	STORE_XCHAR2B (char2b, 0, ccl->reg[1]);
       else
-	char2b->byte1 = ccl->reg[1], char2b->byte2 = ccl->reg[2];
+	STORE_XCHAR2B (char2b, ccl->reg[1], ccl->reg[2]);
     }
-  else if (font_info->encoding[charset])
+  else if (font_info->encoding_type)
     {
       /* Fixed encoding scheme.  See fontset.h for the meaning of the
 	 encoding numbers.  */
-      int enc = font_info->encoding[charset];
+      unsigned char enc = font_info->encoding_type;
 
       if ((enc == 1 || enc == 2)
 	  && CHARSET_DIMENSION (charset) == 2)
@@ -2619,13 +2622,12 @@ mac_encode_char (c, char2b, font_info, two_byte_p)
 	char2b->byte2 |= 0x80;
 
       if (enc == 4)
-        {
-          int sjis1, sjis2;
+	{
+	  int code = (char2b->byte1 << 8) | char2b->byte2;
 
-          ENCODE_SJIS (char2b->byte1, char2b->byte2, sjis1, sjis2);
-          char2b->byte1 = sjis1;
-          char2b->byte2 = sjis2;
-        }
+	  JIS_TO_SJIS (code);
+	  STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
+	}
     }
 
   if (two_byte_p)
@@ -2744,9 +2746,9 @@ x_set_mouse_face_gc (s)
     face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
 
   if (s->first_glyph->type == CHAR_GLYPH)
-    face_id = FACE_FOR_CHAR (s->f, face, s->first_glyph->u.ch);
+    face_id = FACE_FOR_CHAR (s->f, face, s->first_glyph->u.ch, -1, Qnil);
   else
-    face_id = FACE_FOR_CHAR (s->f, face, 0);
+    face_id = FACE_FOR_CHAR (s->f, face, 0, -1, Qnil);
   s->face = FACE_FROM_ID (s->f, face_id);
   PREPARE_FACE_FOR_DISPLAY (s->f, s->face);
 
@@ -3109,8 +3111,8 @@ x_frame_of_widget (widget)
 
   /* Look for a frame with that top-level widget.  Allocate the color
      on that frame to get the right gamma correction value.  */
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
-    if (GC_FRAMEP (XCAR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+    if (FRAMEP (XCAR (tail))
 	&& (f = XFRAME (XCAR (tail)),
 	    (f->output_data.nothing != 1
 	     && FRAME_X_DISPLAY_INFO (f) == dpyinfo))
@@ -4418,9 +4420,9 @@ mac_focus_changed (type, dpyinfo, frame, bufp)
 
           /* Don't stop displaying the initial startup message
              for a switch-frame event we don't need.  */
-          if (GC_NILP (Vterminal_frame)
-              && GC_CONSP (Vframe_list)
-              && !GC_NILP (XCDR (Vframe_list)))
+          if (NILP (Vterminal_frame)
+              && CONSP (Vframe_list)
+              && !NILP (XCDR (Vframe_list)))
             {
               bufp->kind = FOCUS_IN_EVENT;
               XSETFRAME (bufp->frame_or_window, frame);
@@ -4493,7 +4495,7 @@ x_frame_rehighlight (dpyinfo)
   if (dpyinfo->x_focus_frame)
     {
       dpyinfo->x_highlight_frame
-	= ((GC_FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame)))
+	= ((FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame)))
 	   ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame))
 	   : dpyinfo->x_focus_frame);
       if (! FRAME_LIVE_P (dpyinfo->x_highlight_frame))
@@ -5536,7 +5538,7 @@ x_scroll_bar_handle_click (bar, part_code, er, bufp)
 {
   int win_y, top_range;
 
-  if (! GC_WINDOWP (bar->window))
+  if (! WINDOWP (bar->window))
     abort ();
 
   bufp->kind = SCROLL_BAR_CLICK_EVENT;
@@ -5611,7 +5613,7 @@ x_scroll_bar_note_movement (bar, y_pos, t)
   XSETVECTOR (last_mouse_scroll_bar, bar);
 
   /* If we're dragging the bar, display it.  */
-  if (! GC_NILP (bar->dragging))
+  if (! NILP (bar->dragging))
     {
       /* Where should the handle be now?  */
       int new_start = y_pos - 24;
@@ -6577,10 +6579,15 @@ x_new_font (f, fontname)
      register char *fontname;
 {
   struct font_info *fontp
-    = FS_LOAD_FONT (f, 0, fontname, -1);
+    = FS_LOAD_FONT (f, fontname);
 
   if (!fontp)
     return Qnil;
+
+  if (FRAME_FONT (f) == (XFontStruct *) (fontp->font))
+    /* This font is already set in frame F.  There's nothing more to
+       do.  */
+    return build_string (fontp->full_name);
 
   FRAME_FONT (f) = (XFontStruct *) (fontp->font);
   FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
@@ -6624,38 +6631,50 @@ x_new_font (f, fontname)
 
   return build_string (fontp->full_name);
 }
+
+/* Give frame F the fontset named FONTSETNAME as its default fontset,
+   and return the full name of that fontset.  FONTSETNAME may be a
+   wildcard pattern; in that case, we choose some fontset that fits
+   the pattern.  FONTSETNAME may be a font name for ASCII characters;
+   in that case, we create a fontset from that font name.
 
-/* Give frame F the fontset named FONTSETNAME as its default font, and
-   return the full name of that fontset.  FONTSETNAME may be a wildcard
-   pattern; in that case, we choose some fontset that fits the pattern.
-   The return value shows which fontset we chose.  */
+   The return value shows which fontset we chose.
+   If FONTSETNAME specifies the default fontset, return Qt.
+   If an ASCII font in the specified fontset can't be loaded, return
+   Qnil.  */
 
 Lisp_Object
 x_new_fontset (f, fontsetname)
      struct frame *f;
-     char *fontsetname;
+     Lisp_Object fontsetname;
 {
-  int fontset = fs_query_fontset (build_string (fontsetname), 0);
+  int fontset = fs_query_fontset (fontsetname, 0);
   Lisp_Object result;
 
-  if (fontset < 0)
-    return Qnil;
-
-  if (FRAME_FONTSET (f) == fontset)
+  if (fontset > 0 && FRAME_FONTSET(f) == fontset)
     /* This fontset is already set in frame F.  There's nothing more
        to do.  */
     return fontset_name (fontset);
+  else if (fontset == 0)
+    /* The default fontset can't be the default font.   */
+    return Qt;
 
-  result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
+  if (fontset > 0)
+    result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
+  else
+    result = x_new_font (f, SDATA (fontsetname));
 
   if (!STRINGP (result))
     /* Can't load ASCII font.  */
     return Qnil;
 
+  if (fontset < 0)
+    fontset = new_fontset_from_font_name (result);
+
   /* Since x_new_font doesn't update any fontset information, do it now.  */
   FRAME_FONTSET (f) = fontset;
 
-  return build_string (fontsetname);
+  return fontset_name (fontset);
 }
 
 
@@ -7869,12 +7888,12 @@ decode_mac_font_name (name, size, coding_system)
 	  coding.src_multibyte = 0;
 	  coding.dst_multibyte = 1;
 	  coding.mode |= CODING_MODE_LAST_BLOCK;
-	  coding.composing = COMPOSITION_DISABLED;
-	  buf = (char *) alloca (size);
+	  coding.dst_bytes = size;
+	  coding.destination = (unsigned char *) alloca (coding.dst_bytes);
 
-	  decode_coding (&coding, name, buf, strlen (name), size - 1);
-	  bcopy (buf, name, coding.produced);
-	  name[coding.produced] = '\0';
+	  decode_coding_c_string (&coding, name, strlen (name), Qnil);
+	  bcopy (coding.destination, name, min (coding.produced, size));
+	  name[min (coding.produced, size)] = '\0';
 	}
     }
 
@@ -9211,6 +9230,7 @@ x_load_font (f, fontname, size)
     bzero (fontp, sizeof (*fontp));
     fontp->font = font;
     fontp->font_idx = i;
+    fontp->charset = -1;	/* fs_load_font sets it.  */
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
@@ -9256,19 +9276,20 @@ x_load_font (f, fontname, size)
 	fontp->height = max_height;
     }
 
+    /* MAC_TODO: The script encoding is irrelevant in unicode? */
     /* The slot `encoding' specifies how to map a character
        code-points (0x20..0x7F or 0x2020..0x7F7F) of each charset to
        the font code-points (0:0x20..0x7F, 1:0xA0..0xFF), or
        (0:0x2020..0x7F7F, 1:0xA0A0..0xFFFF, 3:0x20A0..0x7FFF,
        2:0xA020..0xFF7F).  For the moment, we don't know which charset
-       uses this font.  So, we set information in fontp->encoding[1]
+       uses this font.  So, we set information in fontp->encoding_type
        which is never used by any charset.  If mapping can't be
        decided, set FONT_ENCODING_NOT_DECIDED.  */
     if (font->mac_scriptcode == smJapanese)
-      fontp->encoding[1] = 4;
+      fontp->encoding_type = 4;
     else
       {
-        fontp->encoding[1]
+        fontp->encoding_type
            = (font->max_byte1 == 0
 	      /* 1-byte font */
 	      ? (font->min_char_or_byte2 < 0x80

@@ -3,6 +3,9 @@
      2005, 2006, 2007, 2008
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
+   Copyright (C) 2003
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 
@@ -93,21 +96,7 @@ extern Lisp_Object _temp_category_set;
 #define Vstandard_category_table buffer_defaults.category_table
 
 /* Return the category set of character C in the current category table.  */
-#ifdef __GNUC__
-#define CATEGORY_SET(c)							     \
-  ({ Lisp_Object table = current_buffer->category_table;		     \
-     Lisp_Object temp;							     \
-     if ((c) < CHAR_TABLE_SINGLE_BYTE_SLOTS)				     \
-       while (NILP (temp = XCHAR_TABLE (table)->contents[(unsigned char) c]) \
-	      && NILP (temp = XCHAR_TABLE (table)->defalt))		     \
-	 table = XCHAR_TABLE (table)->parent;				     \
-     else								     \
-       temp = Faref (table, make_number (c));				     \
-     temp; })
-#else
-#define CATEGORY_SET(c) \
-  Faref (current_buffer->category_table, make_number (c))
-#endif
+#define CATEGORY_SET(c) char_category_set (c)
 
 /* Return the doc string of CATEGORY in category table TABLE.  */
 #define CATEGORY_DOCSTRING(table, category) \
@@ -120,8 +109,8 @@ extern Lisp_Object _temp_category_set;
 
 /* Return 1 if there is a word boundary between two word-constituent
    characters C1 and C2 if they appear in this order, else return 0.
-   There is no word boundary between two word-constituent ASCII
-   characters.  */
+   There is no word boundary between two word-constituent ASCII and
+   Latin-1 characters.  */
 #define WORD_BOUNDARY_P(c1, c2)					\
   (!(SINGLE_BYTE_CHAR_P (c1) && SINGLE_BYTE_CHAR_P (c2))	\
    && word_boundary_p (c1, c2))

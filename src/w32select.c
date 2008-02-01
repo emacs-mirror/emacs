@@ -82,6 +82,7 @@ Boston, MA 02110-1301, USA.  */
 #include "keyboard.h"	/* cmd_error_internal() */
 #include "charset.h"
 #include "coding.h"
+#include "character.h"
 #include "composite.h"
 
 
@@ -100,6 +101,9 @@ static void setup_config (void);
 static BOOL WINAPI enum_locale_callback (/*const*/ char* loc_string);
 static UINT cp_from_locale (LCID lcid, UINT format);
 static Lisp_Object coding_from_cp (UINT codepage);
+static Lisp_Object validate_coding_system (Lisp_Object coding_system);
+static void setup_windows_coding_system (Lisp_Object coding_system,
+					 struct coding_system * coding);
 
 
 /* A remnant from X11: Symbol for the CLIPBORD selection type.  Other
@@ -213,62 +217,35 @@ convert_to_handle_as_ascii (void)
 static HGLOBAL
 convert_to_handle_as_coded (Lisp_Object coding_system)
 {
-  HGLOBAL htext = NULL, htext2;
-  int nbytes;
-  unsigned char *src;
+  HGLOBAL htext;
   unsigned char *dst = NULL;
-  int bufsize;
   struct coding_system coding;
-  Lisp_Object string = Qnil;
 
   ONTRACE (fprintf (stderr, "convert_to_handle_as_coded: %s\n",	
 		    SDATA (SYMBOL_NAME (coding_system))));
 
-  setup_coding_system (Fcheck_coding_system (coding_system), &coding);
-  coding.src_multibyte = 1;
-  coding.dst_multibyte = 0;
-  /* Need to set COMPOSITION_DISABLED, otherwise Emacs crashes in
-     encode_coding_iso2022 trying to dereference a null pointer.  */
-  coding.composing = COMPOSITION_DISABLED;
-  if (coding.type == coding_type_iso2022)
-    coding.flags |= CODING_FLAG_ISO_SAFE;
-  coding.mode |= CODING_MODE_LAST_BLOCK;
-  /* Force DOS line-ends. */
-  coding.eol_type = CODING_EOL_CRLF;
+  setup_windows_coding_system (coding_system, &coding);
+  coding.dst_bytes = SBYTES(current_text) * 2;
+  coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
+  encode_coding_object (&coding, current_text, 0, 0,
+			SCHARS (current_text), SBYTES (current_text), Qnil);
 
-  if (SYMBOLP (coding.pre_write_conversion)
-      && !NILP (Ffboundp (coding.pre_write_conversion)))
-    string = run_pre_post_conversion_on_str (current_text, &coding, 1);
-  else
-    string = current_text;
-
-  nbytes = SBYTES (string);
-  src = SDATA (string);
-
-  bufsize = encoding_buffer_size (&coding, nbytes) +2;
-  htext = GlobalAlloc (GMEM_MOVEABLE | GMEM_DDESHARE, bufsize);
+  htext = GlobalAlloc (GMEM_MOVEABLE | GMEM_DDESHARE, coding.produced +2);
 
   if (htext != NULL)
     dst = (unsigned char *) GlobalLock (htext);
 
   if (dst != NULL)
     {
-      encode_coding (&coding, src, dst, nbytes, bufsize-2);
+      memcpy (dst, coding.destination, coding.produced);
       /* Add the string terminator.  Add two NULs in case we are
 	 producing Unicode here.  */
       dst[coding.produced] = dst[coding.produced+1] = '\0';
+
+      GlobalUnlock (htext);
     }
 
-  if (dst != NULL)
-    GlobalUnlock (htext);
-
-  if (htext != NULL)
-    {
-      /* Shrink data block to actual size.  */
-      htext2 = GlobalReAlloc (htext, coding.produced+2,
-			      GMEM_MOVEABLE | GMEM_DDESHARE);
-      if (htext2 != NULL) htext = htext2;
-    }
+  xfree (coding.destination);
 
   return htext;
 }
@@ -518,17 +495,26 @@ setup_config (void)
   const char *cp;
   char *end;
   int slen;
-  Lisp_Object new_coding_system;
+  Lisp_Object coding_system;
+  Lisp_Object dos_coding_system;
 
   CHECK_SYMBOL (Vselection_coding_system);
 
-  /* Check if we have it cached */
-  new_coding_system = NILP (Vnext_selection_coding_system) ?
+  coding_system = NILP (Vnext_selection_coding_system) ?
     Vselection_coding_system : Vnext_selection_coding_system;
+
+  dos_coding_system = validate_coding_system (coding_system);
+  if (NILP (dos_coding_system))
+    Fsignal (Qerror,
+	     list2 (build_string ("Coding system is invalid or doesn't have "
+				  "an eol variant for dos line ends"),
+		    coding_system));
+
+  /* Check if we have it cached */
   if (!NILP (cfg_coding_system)
-      && EQ (cfg_coding_system, new_coding_system))
+      && EQ (cfg_coding_system, dos_coding_system))
     return;
-  cfg_coding_system = new_coding_system;
+  cfg_coding_system = dos_coding_system;
   
   /* Set some sensible fallbacks */
   cfg_codepage = ANSICP;
@@ -637,11 +623,60 @@ coding_from_cp (UINT codepage)
   char buffer[30];
   sprintf (buffer, "cp%d-dos", (int) codepage);
   return intern (buffer);
-  /* We don't need to check that this coding system exists right here,
-     because that is done when the coding system is actually
-     instantiated, i.e. it is passed through Fcheck_coding_system()
-     there.  */
+  /* We don't need to check that this coding system actually exists
+     right here, because that is done later for all coding systems
+     used, regardless of where they originate.  */
 }
+
+static Lisp_Object
+validate_coding_system (Lisp_Object coding_system)
+{
+  Lisp_Object eol_type;
+
+  /* Make sure the input is valid. */
+  if (NILP (Fcoding_system_p (coding_system)))
+    return Qnil;
+
+  /* Make sure we use a DOS coding system as mandated by the system
+     specs. */
+  eol_type = Fcoding_system_eol_type (coding_system);
+
+  /* Already a DOS coding system? */
+  if (EQ (eol_type, make_number (1)))
+    return coding_system;
+
+  /* Get EOL_TYPE vector of the base of CODING_SYSTEM.  */
+  if (!VECTORP (eol_type))
+    {
+      eol_type = Fcoding_system_eol_type (Fcoding_system_base (coding_system));
+      if (!VECTORP (eol_type))
+	return Qnil;
+    }
+
+  return AREF (eol_type, 1);
+}
+
+static void
+setup_windows_coding_system (Lisp_Object coding_system,
+			     struct coding_system * coding)
+{
+  memset (coding, 0, sizeof (*coding));
+  setup_coding_system (coding_system, coding);
+
+  /* Unset CODING_ANNOTATE_COMPOSITION_MASK.  Previous code had
+     comments about crashes in encode_coding_iso2022 trying to
+     dereference a null pointer when composition was on.  Selection
+     data should not contain any composition sequence on Windows.
+
+     CODING_ANNOTATION_MASK also includes
+     CODING_ANNOTATE_DIRECTION_MASK and CODING_ANNOTATE_CHARSET_MASK,
+     which both apply to ISO6429 only.  We don't know if these really
+     need to be unset on Windows, but it probably doesn't hurt
+     either.  */
+  coding->mode &= ~CODING_ANNOTATION_MASK;
+  coding->mode |= CODING_MODE_LAST_BLOCK | CODING_MODE_SAFE_ENCODING;
+}
+
 
 
 DEFUN ("w32-set-clipboard-data", Fw32_set_clipboard_data,
@@ -847,10 +882,9 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
 
     if (require_decoding)
       {
-	int bufsize;
-	unsigned char *buf;
 	struct coding_system coding;
 	Lisp_Object coding_system = Qnil;
+	Lisp_Object dos_coding_system;
 	
 	/* `next-selection-coding-system' should override everything,
 	   even when the locale passed by the system disagrees.  The
@@ -912,27 +946,16 @@ DEFUN ("w32-get-clipboard-data", Fw32_get_clipboard_data,
 	  coding_system = Vselection_coding_system;
 	Vnext_selection_coding_system = Qnil;
 
-	setup_coding_system (Fcheck_coding_system (coding_system), &coding);
-	coding.src_multibyte = 0;
-	coding.dst_multibyte = 1;
-	coding.mode |= CODING_MODE_LAST_BLOCK;
-	/* We explicitely disable composition handling because
-	   selection data should not contain any composition
-	   sequence.  */
-	coding.composing = COMPOSITION_DISABLED;
-	/* Force DOS line-ends. */
-	coding.eol_type = CODING_EOL_CRLF;
+	dos_coding_system = validate_coding_system (coding_system);
+	if (!NILP (dos_coding_system))
+	  {
+	    setup_windows_coding_system (dos_coding_system, &coding);
+	    coding.source = src;
+	    decode_coding_object (&coding, Qnil, 0, 0, nbytes, nbytes, Qt);
+	    ret = coding.dst_object;
 
-	bufsize = decoding_buffer_size (&coding, nbytes);
-	buf = (unsigned char *) xmalloc (bufsize);
-	decode_coding (&coding, src, buf, nbytes, bufsize);
-	Vlast_coding_system_used = coding.symbol;
-        ret = make_string_from_bytes ((char *) buf,
-                                      coding.produced_char, coding.produced);
-	xfree (buf);
-	if (SYMBOLP (coding.post_read_conversion)
-	    && !NILP (Ffboundp (coding.post_read_conversion)))
-	  ret = run_pre_post_conversion_on_str (ret, &coding, 0);
+	    Vlast_coding_system_used = CODING_ID_NAME (coding.id);
+	  }
       }
     else
       {
@@ -1017,10 +1040,11 @@ and t is the same as `SECONDARY'.  */)
     {
       Lisp_Object val = Qnil;
 
+      setup_config ();
+
       if (OpenClipboard (NULL))
 	{
 	  UINT format = 0;
-	  setup_config ();
 	  while ((format = EnumClipboardFormats (format)))
 	    /* Check CF_TEXT in addition to cfg_clipboard_type,
 	       because we can fall back on that if CF_UNICODETEXT is
@@ -1066,13 +1090,13 @@ next communication only.  After the communication, this variable is
 set to nil.  */);
   Vnext_selection_coding_system = Qnil;
 
-  QCLIPBOARD = intern ("CLIPBOARD");	staticpro (&QCLIPBOARD);
+  DEFSYM (QCLIPBOARD, "CLIPBOARD");
 
   cfg_coding_system = Qnil;     staticpro (&cfg_coding_system);
   current_text = Qnil;		staticpro (&current_text);
   current_coding_system = Qnil; staticpro (&current_coding_system);
 
-  QUNICODE = intern ("utf-16le-dos"); staticpro (&QUNICODE);
+  DEFSYM (QUNICODE, "utf-16le-dos");
   QANSICP = Qnil; staticpro (&QANSICP);
   QOEMCP = Qnil;  staticpro (&QOEMCP);
 }

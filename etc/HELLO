@@ -5,8 +5,9 @@ Non-ASCII examples:
           Cze,B6f(B!, Dobr,B}(B den, ,L7T`PRabRcYbU(B!, ,FCei\(B ,Fsar(B, $,1J2J0J;J0J@JOJ=J1J0(B
   Africa: $(3!A!,!>(B
   Middle/Near East: ,Hylem(B, (38R(47d(3T!JSa(4W(3W(B
-  South Asia: 4$,4!8v#")0$,15h14$,4!hv#")0$,15n14$,4!zv#!)v#")v#"D0$,15x6-5d6'1(B, 4$,44Kv#4z0$,1?(14$,44hv#4zv#40$,1?.14$,44qv#4{v#3Q0$,1?8?M>u?>14$,44av#4z0$,1?01(B, 4$,46<0$,1@H14$,46A0$,1@N14$,46Kv#6Vv#6)v#6M0$,1@X@m@5@^14$,46Cv#6W0$,1@P@"1(B, 4$,4*U0$,1<U14$,4*M0$,1<C14$,4*Hv#)b0$,1<5<m14$,4*H0$,1<514$,4*Qv#)b0$,1<N<m1(B, 4$(7"70"714$P0"!#C"Q1!;4"Er'"S0"E"S14"G0"G1!;4"70"714"2r'"[0"2"[1!;4"Dr'"[0"D"[14"#0"#14"G0"G1!>(B
-  South East Asia: (1JP:R-04U1(B, ,TJ0GQ1J04U1$0CQ1:(B, Ch,1`(Bo b,1U(Bn
+  South Asia: $,19h9n9x:-9d:'(B, $,15h5n5x6-5d6'(B, $,1?(?.?8?M>u?>?0(B, $,1@H@N@X@m@5@^@P@"(B, $,1;6;A;#;?;,;G(B,
+              $,1AFAzB4AvB=B AqB*(B, $,1<U<C<5<m<5<N<m(B, $,1=h=n=x>-=U=~=p=B(B, $(7"7"!#C!;"E"S"G!;"7"2"[!;"D"["#"G!>(B
+  South East Asia: $,1\'\f\:\V\4\?\]\:(B, (1JP:R-4U(B, $,1H9H$HYrmH"H<HLH5HL(B, ,TJGQJ4U$CQ:(B, Ch,1`(Bo b,1U(Bn
   East Asia: $ADc:C(B, $(0*/=((B, $B$3$s$K$A$O(B, $(C>H3gGO<<?d(B
   Misc: E,C6(Bo,C~(Ban,Cx(Bo ,Cf(Biu,C<(Ba,C}(Bde, $,2(3(1('('(5(B, $,1x (B p $,1x((B world $,1s"(B hello p  $,2!a(B
   CJK variety: GB($AT*Fx(B,$A?*7"(B), BIG5($(0&x86(B,$(0DeBv(B), JIS($B855$(B,$B3+H/(B), KSC($(Cj*Q((B,$(CKR[!(B)
@@ -14,47 +15,54 @@ Non-ASCII examples:
 
 LANGUAGE (NATIVE NAME)	HELLO
 ----------------------	-----
-Amharic ($(3"c!<!N"^(B)	$(3!A!,!>(B
-Arabic	(38R(47d(3T!JSa(4W(3W(B
+Amharic ($,1O M[MmN{(B)	$,1M`MKM](B
+Arabic (,GIqjHQYdG(B)	,GecjdY(B ,GeGdqSdG(B
+Bengali ($,17,7>6b727>(B)	$,17(7.787M6u7>70(B
 Braille	$,2(3(1('('(5(B
-Bulgarian (,LQj[SP`aZX(B)	,L7T`PRUYbU(B
 C	printf ("Hello, world!\n");
-Czech (,Bh(Be,B9(Btina)	Dobr,B}(B den
+Czech (,Bh(Be,B9(Btina)	Dobr,A}(B den
 Danish (dansk)	Hej, Goddag, Hall,Ax(Bj
+Dutch (Nederlands)	Hallo, Dag
 Emacs	emacs --no-splash -f view-hello-file
-English [,0p U(B-,0EZ L(B]	Hello
+English [$(O+S(Bi,D?(B-gli$(O*h(B]	Hello
 Esperanto	Saluton (E,C6(Bo,C~(Ban,Cx(Bo ,Cf(Biu,C<(Ba,C}(Bde)
-Estonian (eesti)	Tere p,Ad(Bevast, Tere ,Au(Bhtust
-Finnish (suomi)	Hei, Hyv,Add(B p,Ad(Biv,Add(B
+Estonian (eesti keel)	Tere p,Ad(Bevast, Tere ,Au(Bhtust
+Finnish (Suomi)	Hei, Hyv,Add(B p,Ad(Biv,Add(B
 French (fran,Ag(Bais)	Bonjour, Salut
 Georgian ($,1JEJ0J@J7J5J4J:J8(B)	$,1J2J0J;J0J@JOJ=J1J0(B
 German (Deutsch)	Guten Tag, Gr,A|_(B Gott
 Greek (,Fekkgmij\(B)	,FCei\(B ,Fsar(B
-Hebrew (,Hraxiz(B)	,Hylem(B
+Gujarati ($,19W:!9\9p9~9d: (B)	$,19h9n9x:-9d:'(B
+Hebrew (,Hzixar(B)	,Hylem(B
 Hungarian (magyar)	Sz,Bi(Bp j,Bs(B napot!
-Hindi (4$,4!}t%"+0$,15y55B14$,4!.v#"Yv#"20$,15f6 1(B)	4$,4!8v#")0$,15h14$,4!hv#")0$,15n14$,4!zv#!)v#")v#"D0$,15x6-5d6'1(B, 4$,4!8v#")0$,15h14$,4!hv#")0$,15n14$,4!zv# ev#"Rv#")0$,15x6-5U5~14$,4!nv#"W0$,15p1(B 4$,4 J0$,16D1(B
+Hindi ($,15y55B5f6 (B)	$,15h5n5x6-5d6'(B, $,15h5n5x6-5U5~5p(B $,16D(B
 Italian (italiano)	Ciao, Buon giorno
 Javanese (Jawa)	System.out.println("Halo, selamat sore!");
-Kannada (4$,43Ov#4z0$,1>u14$,44Kv#4zv#4M0$,1?(?M?(14$,43sv#4z0$,1?!1(B)	4$,44Kv#4z0$,1?(14$,44hv#4zv#40$,1?.14$,44qv#4{v#3Q0$,1?8?M>u?>14$,44av#4z0$,1?01(B
-Lao ((1>RJRERG(B)	(1JP:R-04U1(B, 0(1"m1c0Ki1b*!04U1(B
-Malayalam (4$,46A0$,1@N14$,46E0$,1@R14$,46Bv#6M0$,1@O@^14$,46Fv#6W0$,1@S@"1(B)	4$,46<0$,1@H14$,46A0$,1@N14$,46Kv#6Vv#6)v#6M0$,1@X@m@5@^14$,46Cv#6W0$,1@P@"1(B
+Kannada ($,1>u?(?M?(?!(B)	$,1?(?.?8?M>u?>?0(B
+Khmer ($,1\7\V\?\V\!\r\8\b\:(B)	$,1\'\f\:\V\4\?\]\:(B
+Lao ((1>RJRERG(B)	(1JP:R-4U(B, (1"mcKib*!4U(B
+Malayalam ($,1@N@R@O@^@S@"(B)	$,1@H@N@X@m@5@^@P@"(B
 Maltese (il-Malti)	Bon,Cu(Bu, Sa,C11(Ba
-Mathematics	$,1x (B p $,1x((B world $,1s"(B hello p  $,2!a(B
+Mathematics	$B"O(B p $A!J(B world $(O#@(B hello p  $A!u(B
+Myanmar ($,1H9HYH;H4HYrlH9HL(B)	$,1H9H$HYrmH"H<HLH5HL(B
 Nederlands, Vlaams	Hallo, Dag
 Norwegian (norsk)	Hei, God dag
-Polish (polski)	Dzie,Bq(B dobry! Cze,B6f(B!
+Oriya ($,1:s;\;?:f(B)	$,1;6;A;#;?;,;G(B
+Polish  (j,Bj(Bzyk polski)	Dzie,Bq(B dobry! Cze,B6f(B!
 Russian (,L`caaZXY(B)	,L7T`PRabRcYbU(B!
-Slovak (sloven,Bh(Bina)	Dobr,B}(B de,Br(B
+Sinhala ($,1B#B2ABB$A}(B)	$,1AFAzB4AvB=B AqB*(B
+Slovak (sloven,Bh(Bina)	Dobr,A}(B de,Br(B
 Slovenian (sloven,B9h(Bina)	Pozdravljeni!
 Spanish (espa,Aq(Bol)	,A!(BHola!
-Swedish (svenska)	Hej, Goddag, Hall,Ae(B
-Tamil (4$,4*N0$,1<D14$,4(i0$,1<N<_14$,4*Vv#)b0$,1<T<m1(B)	4$,4*U0$,1<U14$,4*M0$,1<C14$,4*Hv#)b0$,1<5<m14$,4*H0$,1<514$,4*Qv#)b0$,1<N<m1(B
-Thai (,T@RIRd7B(B)	,TJ0GQ1J04U1$0CQ1:(B, ,TJ0GQ1J04U10$h1P(B
-Tibetan (4$(7"7r'"]0"7"]14"20"21!;4%P0"G#!"Q14"20"21!;(B)	4$(7"70"714$P0"!#C"Q1!;4"Er'"S0"E"S14"G0"G1!;4"70"714"2r'"[0"2"[1!;4"Dr'"[0"D"[14"#0"#14"G0"G1!>(B
-Tigrigna ($(3"8#r!N"^(B)	$(3!Q!,!<"8(B
-Turkish (T,M|(Brk,Mg(Be)	Merhaba
+Swedish (p,Ae(B svenska)	Hej, Goddag, Hall,Ae(B
+Tamil ($,1<D<N<_<T<m(B)	$,1<U<C<5<m<5<N<m(B
+Telugu ($,1=d>&=r>!=W>!(B)	$,1=h=n=x>-=U=~=p=B(B
+Thai (,T@RIRd7B(B)	,TJGQJ4U$CQ:(B, ,TJGQJ4U$hP(B
+Tibetan ($(7"7"]"2!;"G#!"2!;(B)	$(7"7"!#C!;"E"S"G!;"7"2"[!;"D"["#"G!>(B
+Tigrigna ($,1NUP-MmN{(B)	$,1MpMKM[NU(B
+Turkish (T,A|(Brk,Ag(Be)	Merhaba
 Ukrainian (,LcZ`Pw]alZP(B)	,L2vbPn(B
-Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn
+Vietnamese (ti,1*(Bng Vi,1.(Bt)	Ch,A`(Bo b,1U(Bn
 
 Japanese ($BF|K\8l(B)	$B$3$s$K$A$O(B, (I:]FAJ(B
 Chinese ($AVPND(B,$AFUM(;0(B,$A::So(B)	$ADc:C(B

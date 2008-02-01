@@ -248,10 +248,10 @@ menubar_id_to_frame (id)
   Lisp_Object tail, frame;
   FRAME_PTR f;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
-      if (!GC_FRAMEP (frame))
+      if (!FRAMEP (frame))
         continue;
       f = XFRAME (frame);
       if (!FRAME_WINDOW_P (f))
@@ -1561,10 +1561,10 @@ show_help_event (f, widget, help)
       xt_or_gtk_widget frame_widget = XtParent (widget);
       Lisp_Object tail;
 
-      for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+      for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
 	{
 	  frame = XCAR (tail);
-	  if (GC_FRAMEP (frame)
+	  if (FRAMEP (frame)
 	      && (f = XFRAME (frame),
 		  FRAME_X_P (f) && f->output_data.x->widget == frame_widget))
 	    break;
@@ -1630,7 +1630,7 @@ menu_highlight_callback (widget, id, call_data)
 static void
 find_and_call_menu_selection (f, menu_bar_items_used, vector, client_data)
      FRAME_PTR f;
-     int menu_bar_items_used;
+     EMACS_INT menu_bar_items_used;
      Lisp_Object vector;
      void *client_data;
 {

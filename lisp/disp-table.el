@@ -125,7 +125,7 @@ Valid symbols are `truncation', `wrap', `escape', `control',
   (or standard-display-table
       (setq standard-display-table (make-display-table)))
   (while (<= l h)
-    (if (and (>= l ?\s) (char-valid-p l))
+    (if (and (>= l ?\s) (characterp l))
 	(aset standard-display-table l nil))
     (setq l (1+ l))))
 
@@ -189,20 +189,20 @@ X frame."
 (defun make-glyph-code (char &optional face)
   "Return a glyph code representing char CHAR with face FACE."
   ;; Due to limitations on Emacs integer values, faces with
-  ;; face id greater that 4091 are silently ignored.
-  (if (and face (<= (face-id face) #xfff))
-      (logior char (lsh (face-id face) 19))
+  ;; face id greater that 512 are silently ignored.
+  (if (and face (<= (face-id face) #x1ff))
+      (logior char (lsh (face-id face) 22))
     char))
 
 ;;;###autoload
 (defun glyph-char (glyph)
   "Return the character of glyph code GLYPH."
-  (logand glyph #x7ffff))
+  (logand glyph #x3fffff))
 
 ;;;###autoload
 (defun glyph-face (glyph)
   "Return the face of glyph code GLYPH, or nil if glyph has default face."
-  (let ((face-id (lsh glyph -19)))
+  (let ((face-id (lsh glyph -22)))
     (and (> face-id 0)
 	 (car (delq nil (mapcar (lambda (face)
 				  (and (eq (get face 'face) face-id)

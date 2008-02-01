@@ -789,6 +789,9 @@ bug_reporting_address ()
   return count >= 3 ? REPORT_EMACS_BUG_PRETEST_ADDRESS : REPORT_EMACS_BUG_ADDRESS;
 }
 
+#ifdef USE_FONT_BACKEND
+extern int enable_font_backend;
+#endif	/* USE_FONT_BACKEND */
 
 /* ARGSUSED */
 int
@@ -1283,6 +1286,7 @@ main (argc, argv
       init_alloc_once ();
       init_obarray ();
       init_eval_once ();
+      init_character_once ();
       init_charset_once ();
       init_coding_once ();
       init_syntax_once ();	/* Create standard syntax table.  */
@@ -1306,6 +1310,38 @@ main (argc, argv
 	 the X support will want to use.  This can happen when
 	 CANNOT_DUMP is defined.  */
       syms_of_keyboard ();
+
+#ifdef MAC_OS8
+      /* init_window_once calls make_terminal_frame which on Mac OS
+         creates a full-fledge output_mac type frame.  This does not
+         work correctly before syms_of_textprop, syms_of_macfns,
+         syms_of_ccl, syms_of_fontset, syms_of_xterm, syms_of_search,
+         syms_of_frame, mac_term_init, and init_keyboard have already
+         been called.  */
+      syms_of_textprop ();
+      syms_of_macfns ();
+      syms_of_ccl ();
+      syms_of_fontset ();
+      syms_of_macterm ();
+      syms_of_macmenu ();
+      syms_of_macselect ();
+      syms_of_search ();
+      syms_of_frame ();
+
+      init_atimer ();
+      mac_term_init (build_string ("Mac"), NULL, NULL);
+      init_keyboard ();
+#endif
+      /* Called before syms_of_fileio, because it sets up Qerror_condition.  */
+      syms_of_data ();
+      syms_of_fileio ();
+      /* Before syms_of_coding to initialize Vgc_cons_threshold.  */
+      syms_of_alloc ();
+      /* Before syms_of_coding because it initializes Qcharsetp.  */
+      syms_of_charset ();
+      /* Before init_window_once, because it sets up the
+	 Vcoding_system_hash_table.  */
+      syms_of_coding ();	/* This should be after syms_of_fileio.  */
 
       init_window_once ();	/* Init the window system.  */
       init_fileio_once ();	/* Must precede any path manipulation.  */
@@ -1379,12 +1415,15 @@ main (argc, argv
 	      Lisp_Object buffer;
 
 	      buffer = Fcdr (XCAR (tail));
-	      /* Verify that all buffers are empty now, as they
-		 ought to be.  */
-	      if (BUF_Z (XBUFFER (buffer)) > BUF_BEG (XBUFFER (buffer)))
-		abort ();
-	      /* It is safe to do this crudely in an empty buffer.  */
-	      XBUFFER (buffer)->enable_multibyte_characters = Qnil;
+	      /* Make a multibyte buffer unibyte.  */
+	      if (BUF_Z_BYTE (XBUFFER (buffer)) > BUF_Z (XBUFFER (buffer)))
+		{
+		  struct buffer *current = current_buffer;
+
+		  set_buffer_temp (XBUFFER (buffer));
+		  Fset_buffer_multibyte (Qnil);
+		  set_buffer_temp (current);
+		}
 	    }
 	}
     }
@@ -1392,6 +1431,16 @@ main (argc, argv
   no_loadup
     = argmatch (argv, argc, "-nl", "--no-loadup", 6, NULL, &skip_args);
 
+#ifdef USE_FONT_BACKEND
+  enable_font_backend = 1;
+  if (argmatch (argv, argc, "-enable-font-backend", "--enable-font-backend",
+		4, NULL, &skip_args))
+    enable_font_backend = 1;
+  else if (argmatch (argv, argc,
+		     "-disable-font-backend", "--disable-font-backend",
+		     4, NULL, &skip_args))
+    enable_font_backend = 0;
+#endif	/* USE_FONT_BACKEND */
 
 #ifdef HAVE_X_WINDOWS
   /* Stupid kludge to catch command-line display spec.  We can't
@@ -1510,7 +1559,7 @@ main (argc, argv
 	 for the sake of symbols like error-message.  */
       /* Called before init_window_once for Mac OS Classic.  */
       syms_of_data ();
-      syms_of_alloc ();
+      syms_of_chartab ();
       syms_of_lread ();
       syms_of_print ();
       syms_of_eval ();
@@ -1525,7 +1574,7 @@ main (argc, argv
       syms_of_callproc ();
       syms_of_category ();
       syms_of_ccl ();
-      syms_of_charset ();
+      syms_of_character ();
       syms_of_cmds ();
 #ifndef NO_DIR_LIBRARY
       syms_of_dired ();
@@ -1534,8 +1583,6 @@ main (argc, argv
       syms_of_doc ();
       syms_of_editfns ();
       syms_of_emacs ();
-      syms_of_fileio ();
-      syms_of_coding ();	/* This should be after syms_of_fileio.  */
 #ifdef CLASH_DETECTION
       syms_of_filelock ();
 #endif /* CLASH_DETECTION */
@@ -1566,6 +1613,7 @@ main (argc, argv
       syms_of_window ();
       syms_of_xdisp ();
 #ifdef HAVE_WINDOW_SYSTEM
+      syms_of_font ();
       syms_of_fringe ();
       syms_of_image ();
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -1634,6 +1682,8 @@ main (argc, argv
       globals_of_w32select ();
 #endif  /* HAVE_NTGUI */
     }
+
+  init_charset ();
 
   init_editfns (); /* init_process uses Voperating_system_release. */
   init_process (); /* init_display uses add_keyboard_wait_descriptor. */
@@ -1778,6 +1828,8 @@ struct standard_args standard_args[] =
   { "-unibyte", "--unibyte", 81, 0 },
   { "-no-multibyte", "--no-multibyte", 80, 0 },
   { "-nl", "--no-loadup", 70, 0 },
+  { "-enable-font-backend", "--enable-font-backend", 65, 0 },
+  { "-disable-font-backend", "--disable-font-backend", 65, 0 },
   /* -d must come last before the options handled in startup.el.  */
   { "-d", "--display", 60, 1 },
   { "-display", 0, 60, 1 },

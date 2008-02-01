@@ -179,6 +179,11 @@ See the end of the file for license conditions.
 
     % unzip some.zip
 
+  The precompiled binaries can be unpacked using unzip.exe from info-zip.org
+  if you do not already have other tools to do this.
+
+    % unzip some.zip
+
   Once you have unpacked a precompiled distribution of Emacs, it should
   have the following subdirectories:
 

@@ -54,7 +54,7 @@ Boston, MA 02110-1301, USA.  */
 #include "keyboard.h"
 #include "frame.h"
 #include "blockinput.h"
-#include "charset.h"
+#include "character.h"
 #include "syssignal.h"
 #include "termhooks.h"		/* For struct terminal.  */
 #include <setjmp.h>
@@ -503,7 +503,7 @@ struct gcpro *gcprolist;
 /* Addresses of staticpro'd variables.  Initialize it to a nonzero
    value; otherwise some compilers put it into BSS.  */
 
-#define NSTATICS 1280
+#define NSTATICS 0x600
 static Lisp_Object *staticvec[NSTATICS] = {&Vpurify_flag};
 
 /* Index of next unused slot in staticvec.  */
@@ -2285,7 +2285,7 @@ INIT must be an integer that represents a character.  */)
   CHECK_NUMBER (init);
 
   c = XINT (init);
-  if (SINGLE_BYTE_CHAR_P (c))
+  if (ASCII_CHAR_P (c))
     {
       nbytes = XINT (length);
       val = make_uninit_string (nbytes);
@@ -3045,51 +3045,6 @@ See also the function `vector'.  */)
     p->contents[index] = init;
 
   XSETVECTOR (vector, p);
-  return vector;
-}
-
-
-DEFUN ("make-char-table", Fmake_char_table, Smake_char_table, 1, 2, 0,
-       doc: /* Return a newly created char-table, with purpose PURPOSE.
-Each element is initialized to INIT, which defaults to nil.
-PURPOSE should be a symbol which has a `char-table-extra-slots' property.
-The property's value should be an integer between 0 and 10.  */)
-     (purpose, init)
-     register Lisp_Object purpose, init;
-{
-  Lisp_Object vector;
-  Lisp_Object n;
-  CHECK_SYMBOL (purpose);
-  n = Fget (purpose, Qchar_table_extra_slots);
-  CHECK_NUMBER (n);
-  if (XINT (n) < 0 || XINT (n) > 10)
-    args_out_of_range (n, Qnil);
-  /* Add 2 to the size for the defalt and parent slots.  */
-  vector = Fmake_vector (make_number (CHAR_TABLE_STANDARD_SLOTS + XINT (n)),
-			 init);
-  XSETPVECTYPE (XVECTOR (vector), PVEC_CHAR_TABLE);
-  XCHAR_TABLE (vector)->top = Qt;
-  XCHAR_TABLE (vector)->parent = Qnil;
-  XCHAR_TABLE (vector)->purpose = purpose;
-  XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
-  return vector;
-}
-
-
-/* Return a newly created sub char table with slots initialized by INIT.
-   Since a sub char table does not appear as a top level Emacs Lisp
-   object, we don't need a Lisp interface to make it.  */
-
-Lisp_Object
-make_sub_char_table (init)
-     Lisp_Object init;
-{
-  Lisp_Object vector
-    = Fmake_vector (make_number (SUB_CHAR_TABLE_STANDARD_SLOTS), init);
-  XSETPVECTYPE (XVECTOR (vector), PVEC_CHAR_TABLE);
-  XCHAR_TABLE (vector)->top = Qnil;
-  XCHAR_TABLE (vector)->defalt = Qnil;
-  XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
   return vector;
 }
 
@@ -4158,7 +4113,7 @@ mark_maybe_object (obj)
     {
       int mark_p = 0;
 
-      switch (XGCTYPE (obj))
+      switch (XTYPE (obj))
 	{
 	case Lisp_String:
 	  mark_p = (live_string_p (m, po)
@@ -4178,13 +4133,13 @@ mark_maybe_object (obj)
 	  break;
 
 	case Lisp_Vectorlike:
-	  /* Note: can't check GC_BUFFERP before we know it's a
+	  /* Note: can't check BUFFERP before we know it's a
 	     buffer because checking that dereferences the pointer
 	     PO which might point anywhere.  */
 	  if (live_vector_p (m, po))
-	    mark_p = !GC_SUBRP (obj) && !VECTOR_MARKED_P (XVECTOR (obj));
+	    mark_p = !SUBRP (obj) && !VECTOR_MARKED_P (XVECTOR (obj));
 	  else if (live_buffer_p (m, po))
-	    mark_p = GC_BUFFERP (obj) && !VECTOR_MARKED_P (XBUFFER (obj));
+	    mark_p = BUFFERP (obj) && !VECTOR_MARKED_P (XBUFFER (obj));
 	  break;
 
 	case Lisp_Misc:
@@ -4275,7 +4230,7 @@ mark_maybe_pointer (p)
 	    {
 	      Lisp_Object tem;
 	      XSETVECTOR (tem, p);
-	      if (!GC_SUBRP (tem) && !VECTOR_MARKED_P (XVECTOR (tem)))
+	      if (!SUBRP (tem) && !VECTOR_MARKED_P (XVECTOR (tem)))
 		obj = tem;
 	    }
 	  break;
@@ -4284,7 +4239,7 @@ mark_maybe_pointer (p)
 	  abort ();
 	}
 
-      if (!GC_NILP (obj))
+      if (!NILP (obj))
 	mark_object (obj);
     }
 }
@@ -5048,7 +5003,8 @@ returns nil, because real GC can't be done.  */)
 	  truncate_undo_list (nextb);
 
 	/* Shrink buffer gaps, but skip indirect and dead buffers.  */
-	if (nextb->base_buffer == 0 && !NILP (nextb->name))
+	if (nextb->base_buffer == 0 && !NILP (nextb->name)
+	    && ! nextb->text->inhibit_shrinking)
 	  {
 	    /* If a buffer's gap size is more than 10% of the buffer
 	       size, or larger than 2000 bytes, then shrink it
@@ -5187,8 +5143,8 @@ returns nil, because real GC can't be done.  */)
 	    prev = Qnil;
 	    while (CONSP (tail))
 	      {
-		if (GC_CONSP (XCAR (tail))
-		    && GC_MARKERP (XCAR (XCAR (tail)))
+		if (CONSP (XCAR (tail))
+		    && MARKERP (XCAR (XCAR (tail)))
 		    && !XMARKER (XCAR (XCAR (tail)))->gcmarkbit)
 		  {
 		    if (NILP (prev))
@@ -5337,7 +5293,7 @@ mark_glyph_matrix (matrix)
 	    struct glyph *end_glyph = glyph + row->used[area];
 
 	    for (; glyph < end_glyph; ++glyph)
-	      if (GC_STRINGP (glyph->object)
+	      if (STRINGP (glyph->object)
 		  && !STRING_MARKED_P (XSTRING (glyph->object)))
 		mark_object (glyph->object);
 	  }
@@ -5493,7 +5449,7 @@ mark_object (arg)
 
 #endif /* not GC_CHECK_MARKED_OBJECTS */
 
-  switch (SWITCH_ENUM_CAST (XGCTYPE (obj)))
+  switch (SWITCH_ENUM_CAST (XTYPE (obj)))
     {
     case Lisp_String:
       {
@@ -5512,13 +5468,13 @@ mark_object (arg)
     case Lisp_Vectorlike:
 #ifdef GC_CHECK_MARKED_OBJECTS
       m = mem_find (po);
-      if (m == MEM_NIL && !GC_SUBRP (obj)
+      if (m == MEM_NIL && !SUBRP (obj)
 	  && po != &buffer_defaults
 	  && po != &buffer_local_symbols)
 	abort ();
 #endif /* GC_CHECK_MARKED_OBJECTS */
 
-      if (GC_BUFFERP (obj))
+      if (BUFFERP (obj))
 	{
 	  if (!VECTOR_MARKED_P (XBUFFER (obj)))
 	    {
@@ -5535,9 +5491,9 @@ mark_object (arg)
 	      mark_buffer (obj);
 	    }
 	}
-      else if (GC_SUBRP (obj))
+      else if (SUBRP (obj))
 	break;
-      else if (GC_COMPILEDP (obj))
+      else if (COMPILEDP (obj))
 	/* We could treat this just like a vector, but it is better to
 	   save the COMPILED_CONSTANTS element for last and avoid
 	   recursion there.  */
@@ -5560,7 +5516,7 @@ mark_object (arg)
 	  obj = ptr->contents[COMPILED_CONSTANTS];
 	  goto loop;
 	}
-      else if (GC_FRAMEP (obj))
+      else if (FRAMEP (obj))
 	{
 	  register struct frame *ptr = XFRAME (obj);
 	  if (mark_vectorlike (XVECTOR (obj)))
@@ -5571,7 +5527,7 @@ mark_object (arg)
 #endif /* HAVE_WINDOW_SYSTEM */
 	    }
 	}
-      else if (GC_WINDOWP (obj))
+      else if (WINDOWP (obj))
 	{
 	  register struct Lisp_Vector *ptr = XVECTOR (obj);
 	  struct window *w = XWINDOW (obj);
@@ -5589,13 +5545,13 @@ mark_object (arg)
 		}
 	    }
 	}
-      else if (GC_HASH_TABLE_P (obj))
+      else if (HASH_TABLE_P (obj))
 	{
 	  struct Lisp_Hash_Table *h = XHASH_TABLE (obj);
 	  if (mark_vectorlike ((struct Lisp_Vector *)h))
 	    { /* If hash table is not weak, mark all keys and values.
 		 For weak tables, mark only the vector.  */
-	      if (GC_NILP (h->weak))
+	      if (NILP (h->weak))
 		mark_object (h->key_and_value);
 	      else
 		VECTOR_MARK (XVECTOR (h->key_and_value));
@@ -5817,7 +5773,7 @@ survives_gc_p (obj)
 {
   int survives_p;
 
-  switch (XGCTYPE (obj))
+  switch (XTYPE (obj))
     {
     case Lisp_Int:
       survives_p = 1;
@@ -5836,7 +5792,7 @@ survives_gc_p (obj)
       break;
 
     case Lisp_Vectorlike:
-      survives_p = GC_SUBRP (obj) || VECTOR_MARKED_P (XVECTOR (obj));
+      survives_p = SUBRP (obj) || VECTOR_MARKED_P (XVECTOR (obj));
       break;
 
     case Lisp_Cons:
@@ -6446,7 +6402,6 @@ The time is in seconds as a floating point value.  */);
   defsubr (&Smake_byte_code);
   defsubr (&Smake_list);
   defsubr (&Smake_vector);
-  defsubr (&Smake_char_table);
   defsubr (&Smake_string);
   defsubr (&Smake_bool_vector);
   defsubr (&Smake_symbol);

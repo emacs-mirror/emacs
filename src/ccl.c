@@ -5,6 +5,9 @@
      2005, 2006, 2007, 2008
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
+   Copyright (C) 2003
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 
@@ -28,9 +31,12 @@ Boston, MA 02110-1301, USA.  */
 #include <stdio.h>
 
 #include "lisp.h"
+#include "character.h"
 #include "charset.h"
 #include "ccl.h"
 #include "coding.h"
+
+Lisp_Object Qccl, Qcclp;
 
 /* This contains all code conversion map available to CCL.  */
 Lisp_Object Vcode_conversion_map_vector;
@@ -66,6 +72,8 @@ Lisp_Object Vtranslation_hash_table_vector;
 /* Return a hash table of id number ID.  */
 #define GET_HASH_TABLE(id) \
   (XHASH_TABLE (XCDR(XVECTOR(Vtranslation_hash_table_vector)->contents[(id)])))
+
+extern int charset_unicode;
 
 /* CCL (Code Conversion Language) is a simple language which has
    operations on one input buffer, one output buffer, and 7 registers.
@@ -199,10 +207,13 @@ Lisp_Object Vtranslation_hash_table_vector;
 #define CCL_WriteStringJump	0x0A /* Write string and jump:
 					1:A--D--D--R--E--S--S-000XXXXX
 					2:LENGTH
-					3:0000STRIN[0]STRIN[1]STRIN[2]
+					3:000MSTRIN[0]STRIN[1]STRIN[2]
 					...
 					------------------------------
-					write_string (STRING, LENGTH);
+					if (M)
+					  write_multibyte_string (STRING, LENGTH);
+					else
+					  write_string (STRING, LENGTH);
 					IC += ADDRESS;
 					*/
 
@@ -309,13 +320,16 @@ Lisp_Object Vtranslation_hash_table_vector;
 
 #define CCL_WriteConstString	0x14 /* Write a constant or a string:
 					1:CCCCCCCCCCCCCCCCCCCCrrrXXXXX
-					[2:0000STRIN[0]STRIN[1]STRIN[2]]
+					[2:000MSTRIN[0]STRIN[1]STRIN[2]]
 					[...]
 					-----------------------------
 					if (!rrr)
 					  write (CC..C)
 					else
-					  write_string (STRING, CC..C);
+					  if (M)
+					    write_multibyte_string (STRING, CC..C);
+					  else
+					    write_string (STRING, CC..C);
 					  IC += (CC..C + 2) / 3;
 					*/
 
@@ -743,136 +757,87 @@ while(0)
 
 /* Encode one character CH to multibyte form and write to the current
    output buffer.  If CH is less than 256, CH is written as is.  */
-#define CCL_WRITE_CHAR(ch)						\
-  do {									\
-    int bytes = SINGLE_BYTE_CHAR_P (ch) ? 1: CHAR_BYTES (ch);		\
-    if (!dst)								\
-      CCL_INVALID_CMD;							\
-    else if (dst + bytes + extra_bytes <= (dst_bytes ? dst_end : src))	\
-      {									\
-	if (bytes == 1)							\
-	  {								\
-	    *dst++ = (ch);						\
-	    if (extra_bytes && (ch) >= 0x80 && (ch) < 0xA0)		\
-	      /* We may have to convert this eight-bit char to		\
-		 multibyte form later.  */				\
-	      extra_bytes++;						\
-	  }								\
-	else if (CHAR_VALID_P (ch, 0))					\
-	  dst += CHAR_STRING (ch, dst);					\
-	else								\
-	  CCL_INVALID_CMD;						\
-      }									\
-    else								\
-      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);				\
-  } while (0)
-
-/* Encode one character CH to multibyte form and write to the current
-   output buffer.  The output bytes always forms a valid multibyte
-   sequence.  */
-#define CCL_WRITE_MULTIBYTE_CHAR(ch)					\
-  do {									\
-    int bytes = CHAR_BYTES (ch);					\
-    if (!dst)								\
-      CCL_INVALID_CMD;							\
-    else if (dst + bytes + extra_bytes <= (dst_bytes ? dst_end : src))	\
-      {									\
-	if (CHAR_VALID_P ((ch), 0))					\
-	  dst += CHAR_STRING ((ch), dst);				\
-	else								\
-	  CCL_INVALID_CMD;						\
-      }									\
-    else								\
-      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);				\
+#define CCL_WRITE_CHAR(ch)			\
+  do {						\
+    if (! dst)					\
+      CCL_INVALID_CMD;				\
+    else if (dst < dst_end)			\
+      *dst++ = (ch);				\
+    else					\
+      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);	\
   } while (0)
 
 /* Write a string at ccl_prog[IC] of length LEN to the current output
    buffer.  */
-#define CCL_WRITE_STRING(len)				\
-  do {							\
-    if (!dst)						\
-      CCL_INVALID_CMD;					\
-    else if (dst + len <= (dst_bytes ? dst_end : src))	\
-      for (i = 0; i < len; i++)				\
-	*dst++ = ((XFASTINT (ccl_prog[ic + (i / 3)]))	\
-		  >> ((2 - (i % 3)) * 8)) & 0xFF;	\
-    else						\
-      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);		\
-  } while (0)
-
-/* Read one byte from the current input buffer into REGth register.  */
-#define CCL_READ_CHAR(REG)				\
-  do {							\
-    if (!src)						\
-      CCL_INVALID_CMD;					\
-    else if (src < src_end)				\
-      {							\
-	REG = *src++;					\
-	if (REG == '\n'					\
-	    && ccl->eol_type != CODING_EOL_LF)		\
-	  {						\
-	    /* We are encoding.  */			\
-	    if (ccl->eol_type == CODING_EOL_CRLF)	\
-	      {						\
-		if (ccl->cr_consumed)			\
-		  ccl->cr_consumed = 0;			\
-		else					\
-		  {					\
-		    ccl->cr_consumed = 1;		\
-		    REG = '\r';				\
-		    src--;				\
-		  }					\
-	      }						\
-	    else					\
-	      REG = '\r';				\
-	  }						\
-	if (REG == LEADING_CODE_8_BIT_CONTROL		\
-	    && ccl->multibyte)				\
-	  REG = *src++ - 0x20;				\
-      }							\
-    else if (ccl->last_block)				\
-      {							\
-	REG = -1;					\
-        ic = eof_ic;					\
-        goto ccl_repeat;				\
-      }							\
-    else						\
-      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_SRC);		\
-  } while (0)
-
-
-/* Set C to the character code made from CHARSET and CODE.  This is
-   like MAKE_CHAR but check the validity of CHARSET and CODE.  If they
-   are not valid, set C to (CODE & 0xFF) because that is usually the
-   case that CCL_ReadMultibyteChar2 read an invalid code and it set
-   CODE to that invalid byte.  */
-
-#define CCL_MAKE_CHAR(charset, code, c)				\
+#define CCL_WRITE_STRING(len)					\
   do {								\
-    if (charset == CHARSET_ASCII)				\
-      c = code & 0xFF;						\
-    else if (CHARSET_DEFINED_P (charset)			\
-	     && (code & 0x7F) >= 32				\
-	     && (code < 256 || ((code >> 7) & 0x7F) >= 32))	\
+    int i;							\
+    if (!dst)							\
+      CCL_INVALID_CMD;						\
+    else if (dst + len <= dst_end)				\
       {								\
-	int c1 = code & 0x7F, c2 = 0;				\
-								\
-	if (code >= 256)					\
-	  c2 = c1, c1 = (code >> 7) & 0x7F;			\
-	c = MAKE_CHAR (charset, c1, c2);			\
+	if (XFASTINT (ccl_prog[ic]) & 0x1000000)		\
+	  for (i = 0; i < len; i++)				\
+	    *dst++ = XFASTINT (ccl_prog[ic + i]) & 0xFFFFFF;	\
+	else							\
+	  for (i = 0; i < len; i++)				\
+	    *dst++ = ((XFASTINT (ccl_prog[ic + (i / 3)]))	\
+		      >> ((2 - (i % 3)) * 8)) & 0xFF;		\
       }								\
     else							\
-      c = code & 0xFF;						\
+      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_DST);			\
   } while (0)
 
+/* Read one byte from the current input buffer into Rth register.  */
+#define CCL_READ_CHAR(r)			\
+  do {						\
+    if (! src)					\
+      CCL_INVALID_CMD;				\
+    else if (src < src_end)			\
+      r = *src++;				\
+    else if (ccl->last_block)			\
+      {						\
+	r = -1;					\
+	ic = ccl->eof_ic;			\
+	goto ccl_repeat;			\
+      }						\
+    else					\
+      CCL_SUSPEND (CCL_STAT_SUSPEND_BY_SRC);	\
+    } while (0)
 
-/* Execute CCL code on SRC_BYTES length text at SOURCE.  The resulting
-   text goes to a place pointed by DESTINATION, the length of which
-   should not exceed DST_BYTES.  The bytes actually processed is
-   returned as *CONSUMED.  The return value is the length of the
-   resulting text.  As a side effect, the contents of CCL registers
-   are updated.  If SOURCE or DESTINATION is NULL, only operations on
-   registers are permitted.  */
+/* Decode CODE by a charset whose id is ID.  If ID is 0, return CODE
+   as is for backward compatibility.  Assume that we can use the
+   variable `charset'.  */
+
+#define CCL_DECODE_CHAR(id, code)	\
+  ((id) == 0 ? (code)			\
+   : (charset = CHARSET_FROM_ID ((id)), DECODE_CHAR (charset, (code))))
+
+/* Encode character C by some of charsets in CHARSET_LIST.  Set ID to
+   the id of the used charset, ENCODED to the resulf of encoding.
+   Assume that we can use the variable `charset'.  */
+
+#define CCL_ENCODE_CHAR(c, charset_list, id, encoded)		\
+  do {								\
+    unsigned code;						\
+								\
+    charset = char_charset ((c), (charset_list), &code);	\
+    if (! charset && ! NILP (charset_list))			\
+      charset = char_charset ((c), Qnil, &code);	  	\
+    if (charset)						\
+      {								\
+	(id) = CHARSET_ID (charset);				\
+	(encoded) = code;					\
+      }								\
+   } while (0)
+
+/* Execute CCL code on characters at SOURCE (length SRC_SIZE).  The
+   resulting text goes to a place pointed by DESTINATION, the length
+   of which should not exceed DST_SIZE.  As a side effect, how many
+   characters are consumed and produced are recorded in CCL->consumed
+   and CCL->produced, and the contents of CCL registers are updated.
+   If SOURCE or DESTINATION is NULL, only operations on registers are
+   permitted.  */
 
 #ifdef CCL_DEBUG
 #define CCL_DEBUG_BACKTRACE_LEN 256
@@ -897,36 +862,32 @@ struct ccl_prog_stack
 /* For the moment, we only support depth 256 of stack.  */
 static struct ccl_prog_stack ccl_prog_stack_struct[256];
 
-int
-ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
+void
+ccl_driver (ccl, source, destination, src_size, dst_size, charset_list)
      struct ccl_program *ccl;
-     unsigned char *source, *destination;
-     int src_bytes, dst_bytes;
-     int *consumed;
+     int *source, *destination;
+     int src_size, dst_size;
+     Lisp_Object charset_list;
 {
   register int *reg = ccl->reg;
   register int ic = ccl->ic;
   register int code = 0, field1, field2;
   register Lisp_Object *ccl_prog = ccl->prog;
-  unsigned char *src = source, *src_end = src + src_bytes;
-  unsigned char *dst = destination, *dst_end = dst + dst_bytes;
+  int *src = source, *src_end = src + src_size;
+  int *dst = destination, *dst_end = dst + dst_size;
   int jump_address;
   int i = 0, j, op;
   int stack_idx = ccl->stack_idx;
   /* Instruction counter of the current CCL code. */
   int this_ic = 0;
-  /* CCL_WRITE_CHAR will produce 8-bit code of range 0x80..0x9F.  But,
-     each of them will be converted to multibyte form of 2-byte
-     sequence.  For that conversion, we remember how many more bytes
-     we must keep in DESTINATION in this variable.  */
-  int extra_bytes = ccl->eight_bit_control;
+  struct charset *charset;
   int eof_ic = ccl->eof_ic;
   int eof_hit = 0;
 
   if (ic >= eof_ic)
     ic = CCL_HEADER_MAIN;
 
-  if (ccl->buf_magnification == 0) /* We can't produce any bytes.  */
+  if (ccl->buf_magnification == 0) /* We can't read/produce any bytes.  */
     dst = NULL;
 
   /* Set mapping stack pointer. */
@@ -951,8 +912,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	  /* We can't just signal Qquit, instead break the loop as if
              the whole data is processed.  Don't reset Vquit_flag, it
              must be handled later at a safer place.  */
-	  if (consumed)
-	    src = source + src_bytes;
+	  if (src)
+	    src = source + src_size;
 	  ccl->status = CCL_STAT_QUIT;
 	  break;
 	}
@@ -1273,8 +1234,22 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    case CCL_LE: reg[rrr] = i <= j; break;
 	    case CCL_GE: reg[rrr] = i >= j; break;
 	    case CCL_NE: reg[rrr] = i != j; break;
-	    case CCL_DECODE_SJIS: DECODE_SJIS (i, j, reg[rrr], reg[7]); break;
-	    case CCL_ENCODE_SJIS: ENCODE_SJIS (i, j, reg[rrr], reg[7]); break;
+	    case CCL_DECODE_SJIS:
+	      {
+		i = (i << 8) | j;
+		SJIS_TO_JIS (i);
+		reg[rrr] = i >> 8;
+		reg[7] = i & 0xFF;
+		break;
+	      }
+	    case CCL_ENCODE_SJIS:
+	      {
+		i = (i << 8) | j;
+		JIS_TO_SJIS (i);
+		reg[rrr] = i >> 8;
+		reg[7] = i & 0xFF;
+		break;
+	      }
 	    default: CCL_INVALID_CMD;
 	    }
 	  code &= 0x1F;
@@ -1294,166 +1269,29 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    case CCL_ReadMultibyteChar2:
 	      if (!src)
 		CCL_INVALID_CMD;
-
-	      if (src >= src_end)
-		{
-		  src++;
-		  goto ccl_read_multibyte_character_suspend;
-		}
-
-	      if (!ccl->multibyte)
-		{
-		  int bytes;
-		  if (!UNIBYTE_STR_AS_MULTIBYTE_P (src, src_end - src, bytes))
-		    {
-		      reg[RRR] = CHARSET_8_BIT_CONTROL;
-		      reg[rrr] = *src++;
-		      break;
-		    }
-		}
-	      i = *src++;
-	      if (i == '\n' && ccl->eol_type != CODING_EOL_LF)
-		{
-		  /* We are encoding.  */
-		  if (ccl->eol_type == CODING_EOL_CRLF)
-		    {
-		      if (ccl->cr_consumed)
-			ccl->cr_consumed = 0;
-		      else
-			{
-			  ccl->cr_consumed = 1;
-			  i = '\r';
-			  src--;
-			}
-		    }
-		  else
-		    i = '\r';
-		  reg[rrr] = i;
-		  reg[RRR] = CHARSET_ASCII;
-		}
-	      else if (i < 0x80)
-		{
-		  /* ASCII */
-		  reg[rrr] = i;
-		  reg[RRR] = CHARSET_ASCII;
-		}
-	      else if (i <= MAX_CHARSET_OFFICIAL_DIMENSION2)
-		{
-		  int dimension = BYTES_BY_CHAR_HEAD (i) - 1;
-
-		  if (dimension == 0)
-		    {
-		      /* `i' is a leading code for an undefined charset.  */
-		      reg[RRR] = CHARSET_8_BIT_GRAPHIC;
-		      reg[rrr] = i;
-		    }
-		  else if (src + dimension > src_end)
-		    goto ccl_read_multibyte_character_suspend;
-		  else
-		    {
-		      reg[RRR] = i;
-		      i = (*src++ & 0x7F);
-		      if (dimension == 1)
-			reg[rrr] = i;
-		      else
-			reg[rrr] = ((i << 7) | (*src++ & 0x7F));
-		    }
-		}
-	      else if ((i == LEADING_CODE_PRIVATE_11)
-		       || (i == LEADING_CODE_PRIVATE_12))
-		{
-		  if ((src + 1) >= src_end)
-		    goto ccl_read_multibyte_character_suspend;
-		  reg[RRR] = *src++;
-		  reg[rrr] = (*src++ & 0x7F);
-		}
-	      else if ((i == LEADING_CODE_PRIVATE_21)
-		       || (i == LEADING_CODE_PRIVATE_22))
-		{
-		  if ((src + 2) >= src_end)
-		    goto ccl_read_multibyte_character_suspend;
-		  reg[RRR] = *src++;
-		  i = (*src++ & 0x7F);
-		  reg[rrr] = ((i << 7) | (*src & 0x7F));
-		  src++;
-		}
-	      else if (i == LEADING_CODE_8_BIT_CONTROL)
-		{
-		  if (src >= src_end)
-		    goto ccl_read_multibyte_character_suspend;
-		  reg[RRR] = CHARSET_8_BIT_CONTROL;
-		  reg[rrr] = (*src++ - 0x20);
-		}
-	      else if (i >= 0xA0)
-		{
-		  reg[RRR] = CHARSET_8_BIT_GRAPHIC;
-		  reg[rrr] = i;
-		}
-	      else
-		{
-		  /* INVALID CODE.  Return a single byte character.  */
-		  reg[RRR] = CHARSET_ASCII;
-		  reg[rrr] = i;
-		}
-	      break;
-
-	    ccl_read_multibyte_character_suspend:
-	      if (src <= src_end && !ccl->multibyte && ccl->last_block)
-		{
-		  reg[RRR] = CHARSET_8_BIT_CONTROL;
-		  reg[rrr] = i;
-		  break;
-		}
-	      src--;
-	      if (ccl->last_block)
-		{
-		  ic = eof_ic;
-		  eof_hit = 1;
-		  goto ccl_repeat;
-		}
-	      else
-		CCL_SUSPEND (CCL_STAT_SUSPEND_BY_SRC);
-
+	      CCL_READ_CHAR (i);
+	      CCL_ENCODE_CHAR (i, charset_list, reg[RRR], reg[rrr]);
 	      break;
 
 	    case CCL_WriteMultibyteChar2:
-	      i = reg[RRR]; /* charset */
-	      if (i == CHARSET_ASCII
-		  || i == CHARSET_8_BIT_CONTROL
-		  || i == CHARSET_8_BIT_GRAPHIC)
-		i = reg[rrr] & 0xFF;
-	      else if (CHARSET_DIMENSION (i) == 1)
-		i = ((i - 0x70) << 7) | (reg[rrr] & 0x7F);
-	      else if (i < MIN_CHARSET_PRIVATE_DIMENSION2)
-		i = ((i - 0x8F) << 14) | reg[rrr];
-	      else
-		i = ((i - 0xE0) << 14) | reg[rrr];
-
-	      CCL_WRITE_MULTIBYTE_CHAR (i);
-
+	      if (! dst)
+		CCL_INVALID_CMD;
+	      i = CCL_DECODE_CHAR (reg[RRR], reg[rrr]);
+	      CCL_WRITE_CHAR (i);
 	      break;
 
 	    case CCL_TranslateCharacter:
-	      CCL_MAKE_CHAR (reg[RRR], reg[rrr], i);
-	      op = translate_char (GET_TRANSLATION_TABLE (reg[Rrr]),
-				   i, -1, 0, 0);
-	      SPLIT_CHAR (op, reg[RRR], i, j);
-	      if (j != -1)
-		i = (i << 7) | j;
-
-	      reg[rrr] = i;
+	      i = CCL_DECODE_CHAR (reg[RRR], reg[rrr]);
+	      op = translate_char (GET_TRANSLATION_TABLE (reg[Rrr]), i);
+	      CCL_ENCODE_CHAR (op, charset_list, reg[RRR], reg[rrr]);
 	      break;
 
 	    case CCL_TranslateCharacterConstTbl:
 	      op = XINT (ccl_prog[ic]); /* table */
 	      ic++;
-	      CCL_MAKE_CHAR (reg[RRR], reg[rrr], i);
-	      op = translate_char (GET_TRANSLATION_TABLE (op), i, -1, 0, 0);
-	      SPLIT_CHAR (op, reg[RRR], i, j);
-	      if (j != -1)
-		i = (i << 7) | j;
-
-	      reg[rrr] = i;
+	      i = CCL_DECODE_CHAR (reg[RRR], reg[rrr]);
+	      op = translate_char (GET_TRANSLATION_TABLE (op), i);
+	      CCL_ENCODE_CHAR (op, charset_list, reg[RRR], reg[rrr]);
 	      break;
 
 	    case CCL_LookupIntConstTbl:
@@ -1467,12 +1305,10 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  {
 		    Lisp_Object opl;
 		    opl = HASH_VALUE (h, op);
-		    if (!CHAR_VALID_P (XINT (opl), 0))
+		    if (! CHARACTERP (opl))
 		      CCL_INVALID_CMD;
-		    SPLIT_CHAR (XINT (opl), reg[RRR], i, j);
-		    if (j != -1)
-		      i = (i << 7) | j;
-		    reg[rrr] = i;
+		    reg[RRR] = charset_unicode;
+		    reg[rrr] = op;
 		    reg[7] = 1; /* r7 true for success */
 		  }
 		else
@@ -1483,7 +1319,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	    case CCL_LookupCharConstTbl:
 	      op = XINT (ccl_prog[ic]); /* table */
 	      ic++;
-	      CCL_MAKE_CHAR (reg[RRR], reg[rrr], i);
+	      i = CCL_DECODE_CHAR (reg[RRR], reg[rrr]);
 	      {
 		struct Lisp_Hash_Table *h = GET_HASH_TABLE (op);
 
@@ -1917,10 +1753,10 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	}
 
       msglen = strlen (msg);
-      if (dst + msglen <= (dst_bytes ? dst_end : src))
+      if (dst + msglen <= dst_end)
 	{
-	  bcopy (msg, dst, msglen);
-	  dst += msglen;
+	  for (i = 0; i < msglen; i++)
+	    *dst++ = msg[i];
 	}
 
       if (ccl->status == CCL_STAT_INVALID_CMD)
@@ -1946,10 +1782,11 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
   ccl->ic = ic;
   ccl->stack_idx = stack_idx;
   ccl->prog = ccl_prog;
-  ccl->eight_bit_control = (extra_bytes > 1);
-  if (consumed)
-    *consumed = src - source;
-  return (dst ? dst - destination : 0);
+  ccl->consumed = src - source;
+  if (dst != NULL)
+    ccl->produced = dst - destination;
+  else
+    ccl->produced = 0;
 }
 
 /* Resolve symbols in the specified CCL code (Lisp vector).  This
@@ -2109,7 +1946,6 @@ setup_ccl_program (ccl, ccl_prog)
   ccl->private_state = 0;
   ccl->status = 0;
   ccl->stack_idx = 0;
-  ccl->eol_type = CODING_EOL_LF;
   ccl->suppress_error = 0;
   ccl->eight_bit_control = 0;
   return 0;
@@ -2197,7 +2033,7 @@ programs.  */)
 		  ? XINT (AREF (reg, i))
 		  : 0);
 
-  ccl_driver (&ccl, (unsigned char *)0, (unsigned char *)0, 0, 0, (int *)0);
+  ccl_driver (&ccl, NULL, NULL, 0, 0, Qnil);
   QUIT;
   if (ccl.status != CCL_STAT_SUCCESS)
     error ("Error in CCL program at %dth code", ccl.ic);
@@ -2239,10 +2075,13 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
 {
   Lisp_Object val;
   struct ccl_program ccl;
-  int i, produced;
+  int i;
   int outbufsize;
-  char *outbuf;
-  struct gcpro gcpro1, gcpro2;
+  unsigned char *outbuf, *outp;
+  int str_chars, str_bytes;
+#define CCL_EXECUTE_BUF_SIZE 1024
+  int source[CCL_EXECUTE_BUF_SIZE], destination[CCL_EXECUTE_BUF_SIZE];
+  int consumed_chars, consumed_bytes, produced_chars;
 
   if (setup_ccl_program (&ccl, ccl_prog) < 0)
     error ("Invalid CCL program");
@@ -2252,7 +2091,8 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
     error ("Length of vector STATUS is not 9");
   CHECK_STRING (str);
 
-  GCPRO2 (status, str);
+  str_chars = SCHARS (str);
+  str_bytes = SBYTES (str);
 
   for (i = 0; i < 8; i++)
     {
@@ -2267,33 +2107,90 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
       if (ccl.ic < i && i < ccl.size)
 	ccl.ic = i;
     }
-  outbufsize = SBYTES (str) * ccl.buf_magnification + 256;
-  outbuf = (char *) xmalloc (outbufsize);
-  ccl.last_block = NILP (contin);
-  ccl.multibyte = STRING_MULTIBYTE (str);
-  produced = ccl_driver (&ccl, SDATA (str), outbuf,
-			 SBYTES (str), outbufsize, (int *) 0);
+
+  outbufsize = (ccl.buf_magnification
+		? str_bytes * ccl.buf_magnification + 256
+		: str_bytes + 256);
+  outp = outbuf = (unsigned char *) xmalloc (outbufsize);
+
+  consumed_chars = consumed_bytes = 0;
+  produced_chars = 0;
+  while (1)
+    {
+      const unsigned char *p = SDATA (str) + consumed_bytes;
+      const unsigned char *endp = SDATA (str) + str_bytes;
+      int i = 0;
+      int *src, src_size;
+
+      if (endp - p == str_chars - consumed_chars)
+	while (i < CCL_EXECUTE_BUF_SIZE && p < endp)
+	  source[i++] = *p++;
+      else
+	while (i < CCL_EXECUTE_BUF_SIZE && p < endp)
+	  source[i++] = STRING_CHAR_ADVANCE (p);
+      consumed_chars += i;
+      consumed_bytes = p - SDATA (str);
+
+      if (consumed_bytes == str_bytes)
+	ccl.last_block = NILP (contin);
+      src = source;
+      src_size = i;
+      while (1)
+	{
+	  ccl_driver (&ccl, src, destination, src_size, CCL_EXECUTE_BUF_SIZE,
+		      Qnil);
+	  produced_chars += ccl.produced;
+	  if (NILP (unibyte_p))
+	    {
+	      if (outp - outbuf + MAX_MULTIBYTE_LENGTH * ccl.produced
+		  > outbufsize)
+		{
+		  int offset = outp - outbuf;
+		  outbufsize += MAX_MULTIBYTE_LENGTH * ccl.produced;
+		  outbuf = (unsigned char *) xrealloc (outbuf, outbufsize);
+		  outp = outbuf + offset;
+		}
+	      for (i = 0; i < ccl.produced; i++)
+		CHAR_STRING_ADVANCE (destination[i], outp);
+	    }
+	  else
+	    {
+	      if (outp - outbuf + ccl.produced > outbufsize)
+		{
+		  int offset = outp - outbuf;
+		  outbufsize += ccl.produced;
+		  outbuf = (unsigned char *) xrealloc (outbuf, outbufsize);
+		  outp = outbuf + offset;
+		}
+	      for (i = 0; i < ccl.produced; i++)
+		*outp++ = destination[i];
+	    }
+	  src += ccl.consumed;
+	  src_size -= ccl.consumed;
+	  if (ccl.status != CCL_STAT_SUSPEND_BY_DST)
+	    break;
+	}
+
+      if (ccl.status != CCL_STAT_SUSPEND_BY_SRC
+	  || str_chars == consumed_chars)
+	break;
+    }
+
+  if (ccl.status == CCL_STAT_INVALID_CMD)
+    error ("Error in CCL program at %dth code", ccl.ic);
+  if (ccl.status == CCL_STAT_QUIT)
+    error ("CCL program interrupted at %dth code", ccl.ic);
+
   for (i = 0; i < 8; i++)
     ASET (status, i, make_number (ccl.reg[i]));
   ASET (status, 8, make_number (ccl.ic));
-  UNGCPRO;
 
   if (NILP (unibyte_p))
-    {
-      int nchars;
-
-      produced = str_as_multibyte (outbuf, outbufsize, produced, &nchars);
-      val = make_multibyte_string (outbuf, nchars, produced);
-    }
+    val = make_multibyte_string ((char *) outbuf, produced_chars,
+				 outp - outbuf);
   else
-    val = make_unibyte_string (outbuf, produced);
+    val = make_unibyte_string ((char *) outbuf, produced_chars);
   xfree (outbuf);
-  QUIT;
-  if (ccl.status == CCL_STAT_SUSPEND_BY_DST)
-    error ("Output buffer for the CCL programs overflow");
-  if (ccl.status != CCL_STAT_SUCCESS
-      && ccl.status != CCL_STAT_SUSPEND_BY_SRC)
-    error ("Error in CCL program at %dth code", ccl.ic);
 
   return val;
 }
@@ -2424,6 +2321,12 @@ syms_of_ccl ()
 {
   staticpro (&Vccl_program_table);
   Vccl_program_table = Fmake_vector (make_number (32), Qnil);
+
+  Qccl = intern ("ccl");
+  staticpro (&Qccl);
+
+  Qcclp = intern ("cclp");
+  staticpro (&Qcclp);
 
   Qccl_program = intern ("ccl-program");
   staticpro (&Qccl_program);

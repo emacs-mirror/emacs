@@ -57,7 +57,7 @@ Boston, MA 02110-1301, USA.  */
 #include "dispextern.h"
 #include "dosfns.h"
 #include "termopts.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "disptab.h"
 #include "frame.h"
@@ -3800,15 +3800,15 @@ XMenuActivate (Display *foo, XMenu *menu, int *pane, int *selidx,
   screensize = screen_size * 2;
   faces[0]
     = lookup_derived_face (sf, intern ("msdos-menu-passive-face"),
-			   0, DEFAULT_FACE_ID, 1);
+			   DEFAULT_FACE_ID, 1);
   faces[1]
     = lookup_derived_face (sf, intern ("msdos-menu-active-face"),
-			   0, DEFAULT_FACE_ID, 1);
+			   DEFAULT_FACE_ID, 1);
   selectface = intern ("msdos-menu-select-face");
   faces[2] = lookup_derived_face (sf, selectface,
-				  0, faces[0], 1);
+				  faces[0], 1);
   faces[3] = lookup_derived_face (sf, selectface,
-				  0, faces[1], 1);
+				  faces[1], 1);
 
   /* Make sure the menu title is always displayed with
      `msdos-menu-active-face', no matter where the mouse pointer is.  */

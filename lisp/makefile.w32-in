@@ -49,6 +49,9 @@ BYTE_COMPILE_EXTRA_FLAGS =
 # Set EMACSLOADPATH correctly (already defined in environment).
 EMACSLOADPATH=$(lisp)
 
+# Use C locale
+LC_ALL = C
+
 lisptagsfiles1 = $(lisp)/*.el
 lisptagsfiles2 = $(lisp)/*/*.el
 ETAGS = "../lib-src/$(BLD)/etags"

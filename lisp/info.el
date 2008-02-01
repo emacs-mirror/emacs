@@ -3744,7 +3744,8 @@ the variable `Info-file-list-for-emacs'."
            (case-fold-search t)
            paragraph-markers
            (not-fontified-p ; the node hasn't already been fontified
-            (not (let ((where (next-property-change (point-min))))
+            (not (let ((where (next-single-property-change (point-min) 
+							   'font-lock-face)))
                    (and where (not (= where (point-max)))))))
            (fontify-visited-p ; visited nodes need to be re-fontified
             (and Info-fontify-visited-nodes

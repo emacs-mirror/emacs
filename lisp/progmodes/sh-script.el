@@ -1116,7 +1116,7 @@ subshells can nest."
 (defun sh-font-lock-syntactic-face-function (state)
   (let ((q (nth 3 state)))
     (if q
-        (if (char-valid-p q)
+        (if (characterp q)
             (if (eq q ?\`) 'sh-quoted-exec font-lock-string-face)
           sh-heredoc-face)
       font-lock-comment-face)))

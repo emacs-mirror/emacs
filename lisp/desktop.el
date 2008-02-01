@@ -842,6 +842,7 @@ DIRNAME must be the directory in which the desktop file will be saved."
     ((eq desktop-file-name-format 'local) (file-relative-name filename dirname))
     (t (expand-file-name filename))))
 
+
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
 (defun desktop-save (dirname &optional release)

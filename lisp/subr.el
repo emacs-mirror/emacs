@@ -739,7 +739,7 @@ The normal global definition of the character C-x indirects to this keymap.")
 	   ;; Filter out integers too large to be events.
 	   ;; M is the biggest modifier.
 	   (zerop (logand obj (lognot (1- (lsh ?\M-\^@ 1)))))
-	   (char-valid-p (event-basic-type obj)))
+	   (characterp (event-basic-type obj)))
       (and (symbolp obj)
 	   (get obj 'event-symbol-elements))
       (and (consp obj)

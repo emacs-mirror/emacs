@@ -52,7 +52,9 @@ AUTOGENEL = loaddefs.el \
 	finder-inf.el \
 	subdirs.el \
 	eshell/esh-groups.el \
-	mh-e/mh-loaddefs.el
+	mh-e/mh-loaddefs.el \
+	international/charprop.el \
+	international/uni-*.el
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  The CC files are compiled first
@@ -69,7 +71,7 @@ COMPILE_FIRST = \
 
 # The actual Emacs command run in the targets below.
 
-emacs = EMACSLOADPATH=$(lisp) $(EMACS) $(EMACSOPT)
+emacs = EMACSLOADPATH=$(lisp) LC_ALL=C $(EMACS) $(EMACSOPT)
 
 # Common command to find subdirectories
 
@@ -100,12 +102,12 @@ $(lisp)/cus-load.el:
 custom-deps: $(lisp)/subdirs.el autoloads $(lisp)/cus-load.el doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
+	LC_ALL=C $(emacs) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
 
 finder-data: $(lisp)/subdirs.el autoloads doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
+	LC_ALL=C $(emacs) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
 
 $(lisp)/loaddefs.el:
 	echo ";;; loaddefs.el --- automatically extracted autoloads" >> $@
@@ -120,7 +122,7 @@ $(lisp)/loaddefs.el:
 autoloads: $(lisp)/subdirs.el $(lisp)/loaddefs.el doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
+	LC_ALL=C $(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
 
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
@@ -220,7 +222,7 @@ compile-after-backup: backup-compiled-files compile-always
 # new ones.
 
 recompile: doit mh-autoloads $(lisp)/progmodes/cc-mode.elc
-	$(emacs) --eval "(batch-byte-recompile-directory 0)" $(lisp)
+	LC_ALL=C $(emacs) --eval "(batch-byte-recompile-directory 0)" $(lisp)
 
 # CC Mode uses a compile time macro system which causes a compile time
 # dependency in cc-mode.elc on the macros in cc-langs.el and the

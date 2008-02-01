@@ -148,7 +148,9 @@ Return nil if URI is not a local file."
       (setq f (replace-regexp-in-string
 	       "%[A-Fa-f0-9][A-Fa-f0-9]"
 	       (lambda (arg)
-		 (format "%c" (string-to-number (substring arg 1) 16)))
+		 (let ((str (make-string 1 0)))
+		   (aset str 0 (string-to-number (substring arg 1) 16))
+		   str))
 	       f t t))
       (let* ((decoded-f (decode-coding-string
 			 f

@@ -183,6 +183,27 @@ otherwise."
 	(insert "There are text properties here:\n")
 	(describe-property-list properties)))))
 
+(defcustom describe-char-unidata-list nil
+  "List of Unicode-based character property names shown by `describe-char'."
+  :group 'mule
+  :version "23.1"
+  :type '(set
+	  (const :tag "Unicode Name" name)
+	  (const :tag "Unicode general category " general-category)
+	  (const :tag "Unicode canonical combining class"
+		 canonical-combining-class)
+	  (const :tag "Unicode bidi class" bidi-class)
+	  (const :tag "Unicode decomposition mapping" decomposition)
+	  (const :tag "Unicode decimal digit value" decimal-digit-value)
+	  (const :tag "Unicode digit value" digit-value)
+	  (const :tag "Unicode numeric value" numeric-value)
+	  (const :tag "Unicode mirrored" mirrored)
+	  (const :tag "Unicode old name" old-name)
+	  (const :tag "Unicode ISO 10646 comment" iso-10646-comment)
+	  (const :tag "Unicode simple uppercase mapping" uppercase)
+	  (const :tag "Unicode simple lowercase mapping" lowercase)
+	  (const :tag "Unicode simple titlecase mapping" titlecase)))
+
 (defcustom describe-char-unicodedata-file nil
   "Location of Unicode data file.
 This is the UnicodeData.txt file from the Unicode Consortium, used for
@@ -208,7 +229,8 @@ At the time of writing it is at the URL
 (defun describe-char-unicode-data (char)
   "Return a list of Unicode data for unicode CHAR.
 Each element is a list of a property description and the property value.
-The list is null if CHAR isn't found in `describe-char-unicodedata-file'."
+The list is null if CHAR isn't found in `describe-char-unicodedata-file'.
+This function is semi-obsolete.  Use `get-char-code-property'."
   (when describe-char-unicodedata-file
     (unless (file-exists-p describe-char-unicodedata-file)
       (error "`unicodedata-file' %s not found" describe-char-unicodedata-file))
@@ -257,91 +279,20 @@ The list is null if CHAR isn't found in `describe-char-unicodedata-file'."
 				  (concat (match-string 1 name) ">")
 				name)))
 	       (list "Category"
-		     (cdr (assoc
-			   (nth 1 fields)
-			   '(("Lu" . "uppercase letter")
-			     ("Ll" . "lowercase letter")
-			     ("Lt" . "titlecase letter")
-			     ("Mn" . "non-spacing mark")
-			     ("Mc" . "spacing-combining mark")
-			     ("Me" . "enclosing mark")
-			     ("Nd" . "decimal digit")
-			     ("Nl" . "letter number")
-			     ("No" . "other number")
-			     ("Zs" . "space separator")
-			     ("Zl" . "line separator")
-			     ("Zp" . "paragraph separator")
-			     ("Cc" . "other control")
-			     ("Cf" . "other format")
-			     ("Cs" . "surrogate")
-			     ("Co" . "private use")
-			     ("Cn" . "not assigned")
-			     ("Lm" . "modifier letter")
-			     ("Lo" . "other letter")
-			     ("Pc" . "connector punctuation")
-			     ("Pd" . "dash punctuation")
-			     ("Ps" . "open punctuation")
-			     ("Pe" . "close punctuation")
-			     ("Pi" . "initial-quotation punctuation")
-			     ("Pf" . "final-quotation punctuation")
-			     ("Po" . "other punctuation")
-			     ("Sm" . "math symbol")
-			     ("Sc" . "currency symbol")
-			     ("Sk" . "modifier symbol")
-			     ("So" . "other symbol")))))
+		     (let ((val (nth 1 fields)))
+		       (or (char-code-property-description
+			    'general-category (intern val))
+			   val)))
 	       (list "Combining class"
-		     (cdr (assoc
-			   (string-to-number (nth 2 fields))
-			   '((0 . "Spacing")
-			     (1 . "Overlays and interior")
-			     (7 . "Nuktas")
-			     (8 . "Hiragana/Katakana voicing marks")
-			     (9 . "Viramas")
-			     (10 . "Start of fixed position classes")
-			     (199 . "End of fixed position classes")
-			     (200 . "Below left attached")
-			     (202 . "Below attached")
-			     (204 . "Below right attached")
-			     (208 . "Left attached (reordrant around \
-single base character)")
-			     (210 . "Right attached")
-			     (212 . "Above left attached")
-			     (214 . "Above attached")
-			     (216 . "Above right attached")
-			     (218 . "Below left")
-			     (220 . "Below")
-			     (222 . "Below right")
-			     (224 . "Left (reordrant around single base \
-character)")
-			     (226 . "Right")
-			     (228 . "Above left")
-			     (230 . "Above")
-			     (232 . "Above right")
-			     (233 . "Double below")
-			     (234 . "Double above")
-			     (240 . "Below (iota subscript)")))))
+		     (let ((val (nth 1 fields)))
+		       (or (char-code-property-description
+			    'canonical-combining-class (intern val))
+			   val)))
 	       (list "Bidi category"
-		     (cdr (assoc
-			   (nth 3 fields)
-			   '(("L" . "Left-to-Right")
-			     ("LRE" . "Left-to-Right Embedding")
-			     ("LRO" . "Left-to-Right Override")
-			     ("R" . "Right-to-Left")
-			     ("AL" . "Right-to-Left Arabic")
-			     ("RLE" . "Right-to-Left Embedding")
-			     ("RLO" . "Right-to-Left Override")
-			     ("PDF" . "Pop Directional Format")
-			     ("EN" . "European Number")
-			     ("ES" . "European Number Separator")
-			     ("ET" . "European Number Terminator")
-			     ("AN" . "Arabic Number")
-			     ("CS" . "Common Number Separator")
-			     ("NSM" . "Non-Spacing Mark")
-			     ("BN" . "Boundary Neutral")
-			     ("B" . "Paragraph Separator")
-			     ("S" . "Segment Separator")
-			     ("WS" . "Whitespace")
-			     ("ON" . "Other Neutrals")))))
+		     (let ((val (nth 1 fields)))
+		       (or (char-code-property-description
+			    'bidi-class (intern val))
+			   val)))
 	       (list
 		"Decomposition"
 		(if (nth 4 fields)
@@ -351,14 +302,9 @@ character)")
 			  (setq info (match-string 1 info))
 			(setq info nil))
 		      (if info (setq parts (cdr parts)))
-		      ;; Maybe printing ? for unrepresentable unicodes
-		      ;; here and below should be changed?
 		      (setq parts (mapconcat
 				   (lambda (arg)
-				     (string (or (decode-char
-						  'ucs
-						  (string-to-number arg 16))
-						 ??)))
+				     (string (string-to-number arg 16)))
 				   parts " "))
 		      (concat info parts))))
 	       (list "Decimal digit value"
@@ -373,31 +319,30 @@ character)")
 	       (list "Old name" (nth 9 fields))
 	       (list "ISO 10646 comment" (nth 10 fields))
 	       (list "Uppercase" (and (nth 11 fields)
-				      (string (or (decode-char
-						   'ucs
-						   (string-to-number
-						    (nth 11 fields) 16))
-						  ??))))
+				      (string (string-to-number
+					       (nth 11 fields) 16))))
 	       (list "Lowercase" (and (nth 12 fields)
-				      (string (or (decode-char
-						   'ucs
-						   (string-to-number
-						    (nth 12 fields) 16))
-						  ??))))
+				      (string (string-to-number
+					       (nth 12 fields) 16))))
 	       (list "Titlecase" (and (nth 13 fields)
-				      (string (or (decode-char
-						   'ucs
-						   (string-to-number
-						    (nth 13 fields) 16))
-						  ??)))))))))))
+				      (string (string-to-number
+					       (nth 13 fields) 16)))))))))))
 
 ;; Return information about how CHAR is displayed at the buffer
 ;; position POS.  If the selected frame is on a graphic display,
-;; return a cons (FONTNAME . GLYPH-CODE).  Otherwise, return a string
-;; describing the terminal codes for the character.
+;; return a cons (FONTNAME . GLYPH-CODE) where GLYPH-CODE is a
+;; hexadigit string representing the glyph-ID.  Otherwise, return a
+;; string describing the terminal codes for the character.
 (defun describe-char-display (pos char)
   (if (display-graphic-p (selected-frame))
-      (internal-char-font pos char)
+      (let ((char-font-info (internal-char-font pos char)))
+	(if char-font-info
+	    (if (integerp (cdr char-font-info))
+		(setcdr char-font-info (format "%02X" (cdr char-font-info)))
+	      (setcdr char-font-info
+		      (format "%04X%04X"
+			      (cadr char-font-info) (cddr char-font-info)))))
+	char-font-info)
     (let* ((coding (terminal-coding-system))
 	   (encoded (encode-coding-char char coding)))
       (if encoded
@@ -438,45 +383,40 @@ as well as widgets, buttons, overlays, and text properties."
 		  (describe-text-properties pos tmp-buf)
 		  (with-current-buffer tmp-buf (buffer-string)))
 	      (kill-buffer tmp-buf))))
-	 item-list max-width unicode)
+	 item-list max-width code)
 
-    (if (or (< char 256)
-	    (memq 'mule-utf-8 (find-coding-systems-region pos (1+ pos)))
-	    (get-char-property pos 'untranslated-utf-8))
-	(setq unicode (or (get-char-property pos 'untranslated-utf-8)
-			  (encode-char char 'ucs))))
+    (setq code (encode-char char charset))
     (setq item-list
 	  `(("character"
-	     ,(format "%s (%d, #o%o, #x%x%s)"
+	     ,(format "%s (%d, #o%o, #x%x)"
 		      (apply 'propertize char-description
 			     (text-properties-at pos))
-		      char char char
-		      (if unicode
-			  (format ", U+%04X" unicode)
-			"")))
-	    ("charset"
+		      char char char))
+	    ("preferred charset"
 	     ,`(insert-text-button
 		,(symbol-name charset)
 		'type 'help-character-set 'help-args '(,charset))
 	     ,(format "(%s)" (charset-description charset)))
 	    ("code point"
-	     ,(let ((split (split-char char)))
-		`(insert-text-button
-		  ,(if (= (charset-dimension charset) 1)
-		       (format "#x%02X" (nth 1 split))
-		     (format "#x%02X #x%02X" (nth 1 split)
-			     (nth 2 split)))
-		  'action (lambda (&rest ignore)
-			    (list-charset-chars ',charset)
-			    (with-selected-window
-				(get-buffer-window "*Character List*" 0)
-			      (goto-char (point-min))
-			      (forward-line 2) ;Skip the header.
-			      (let ((case-fold-search nil))
-				(search-forward ,(char-to-string char)
-						nil t))))
-		  'help-echo
-		  "mouse-2, RET: show this character in its character set")))
+	     ,(let ((str (if (integerp code)
+			     (format (if (< code 256) "0x%02X" "0x%04X") code)
+			   (format "0x%04X%04X" (car code) (cdr code)))))
+		(if (<= (charset-dimension charset) 2)
+		    `(insert-text-button
+		      ,str
+		      'action (lambda (&rest ignore)
+				(list-charset-chars ',charset)
+				(with-selected-window
+				    (get-buffer-window "*Character List*" 0)
+				  (goto-char (point-min))
+				  (forward-line 2) ;Skip the header.
+				  (let ((case-fold-search nil))
+				    (if (search-forward ,(char-to-string char)
+							nil t)
+					(goto-char (match-beginning 0))))))
+		      'help-echo
+		      "mouse-2, RET: show this character in its character set")
+		  str)))
 	    ("syntax"
 	     ,(let ((syntax (syntax-after pos)))
 		(with-temp-buffer
@@ -489,13 +429,6 @@ as well as widgets, buttons, overlays, and text properties."
 		   (mapcar #'(lambda (x) (format "%c:%s"
 						 x (category-docstring x)))
 			   (category-set-mnemonics category-set)))))
-	    ,@(let ((props (aref char-code-property-table char))
-		    ps)
-		(when props
-		  (while props
-		    (push (format "%s:" (pop props)) ps)
-		    (push (format "%s;" (pop props)) ps))
-		  (list (cons "Properties" (nreverse ps)))))
 	    ("to input"
 	     ,@(let ((key-list (and (eq input-method-function
 					'quail-input-method)
@@ -557,7 +490,7 @@ as well as widgets, buttons, overlays, and text properties."
 		      (if display
 			  (concat
 			   "by this font (glyph code)\n"
-			   (format "     %s (#x%02X)"
+			   (format "     %s (#x%s)"
 				   (car display) (cdr display)))
 			"no font available")
 		    (if display
@@ -570,9 +503,9 @@ as well as widgets, buttons, overlays, and text properties."
 				(save-excursion (goto-char pos)
 						(looking-at "[ \t]+$")))
 			   'trailing-whitespace)
-			  ((and nobreak-char-display unicode (eq unicode '#xa0))
+			  ((and nobreak-char-display char (eq char '#xa0))
 			   'nobreak-space)
-			  ((and nobreak-char-display unicode (eq unicode '#xad))
+			  ((and nobreak-char-display char (eq char '#xad))
 			   'escape-glyph)
 			  ((and (< char 32) (not (memq char '(9 10))))
 			   'escape-glyph)))))
@@ -580,11 +513,10 @@ as well as widgets, buttons, overlays, and text properties."
 				     `(insert-text-button
 				       ,(symbol-name face)
 				       'type 'help-face 'help-args '(,face))))))
-	    ,@(let ((unicodedata (and unicode
-				      (describe-char-unicode-data unicode))))
+	    ,@(let ((unicodedata (describe-char-unicode-data char)))
 		(if unicodedata
 		    (cons (list "Unicode data" " ") unicodedata)))))
-    (setq max-width (apply #'max (mapcar #'(lambda (x)
+    (setq max-width (apply #'max (mapcar #'(lambda (x) 
 					     (if (cadr x) (length (car x)) 0))
 					 item-list)))
     (help-setup-xref nil (interactive-p))
@@ -630,7 +562,7 @@ as well as widgets, buttons, overlays, and text properties."
 		  (insert (glyph-char (car (aref disp-vector i))) ?:
 			  (propertize " " 'display '(space :align-to 5))
 			  (if (cdr (aref disp-vector i))
-			      (format "%s (#x%02X)" (cadr (aref disp-vector i))
+			      (format "%s (#x%s)" (cadr (aref disp-vector i))
 				      (cddr (aref disp-vector i)))
 			    "-- no font --")
 			  "\n")
@@ -659,29 +591,60 @@ as well as widgets, buttons, overlays, and text properties."
 	    (if (cadr composition)
 		(insert " with the following character(s) \""
 			(cadr composition) "\"")))
-	  (insert " by the rule:\n\t("
-		  (mapconcat (lambda (x)
-			       (format (if (consp x) "%S" "?%c") x))
-			     (nth 2 composition)
-			     " ")
-		  ")")
-	  (insert  "\nThe component character(s) are displayed by ")
-	  (if (display-graphic-p (selected-frame))
+	  (if (and (vectorp (nth 2 composition))
+		   (vectorp (aref (nth 2 composition) 0)))
 	      (progn
-		(insert "these fonts (glyph codes):")
-		(dolist (elt component-chars)
-		  (insert "\n " (car elt) ?:
-			  (propertize " " 'display '(space :align-to 5))
-			  (if (cdr elt)
-			      (format "%s (#x%02X)" (cadr elt) (cddr elt))
-			    "-- no font --"))))
-	    (insert "these terminal codes:")
-	    (dolist (elt component-chars)
-	      (insert "\n  " (car elt) ":"
-		      (propertize " " 'display '(space :align-to 5))
-		      (or (cdr elt) "-- not encodable --"))))
-	  (insert "\nSee the variable `reference-point-alist' for "
-		  "the meaning of the rule.\n"))
+		(insert " using this font:\n  "
+			(aref (query-font (aref (aref (nth 2 composition) 0) 0))
+			      0)
+			"\nby these glyphs:\n")
+		(mapc (lambda (x) (insert (format "  %S\n" x)))
+		      (nth 2 composition)))
+	    (insert " by the rule:\n\t("
+		    (mapconcat (lambda (x)
+				 (if (consp x) (format "%S" x)
+				   (if (= x ?\t)
+				       (single-key-description x)
+				     (string ?? x))))
+			       (nth 2 composition)
+			       " ")
+		    ")")
+	    (insert  "\nThe component character(s) are displayed by ")
+	    (if (display-graphic-p (selected-frame))
+		(progn
+		  (insert "these fonts (glyph codes):")
+		  (dolist (elt component-chars)
+		    (if (/= (car elt) ?\t)
+			(insert "\n " (car elt) ?:
+				(propertize " " 'display '(space :align-to 5))
+				(if (cdr elt)
+				    (format "%s (#x%s)" (cadr elt) (cddr elt))
+				  "-- no font --")))))
+	      (insert "these terminal codes:")
+	      (dolist (elt component-chars)
+		(insert "\n  " (car elt) ":"
+			(propertize " " 'display '(space :align-to 4))
+			(or (cdr elt) "-- not encodable --"))))
+	    (insert "\nSee the variable `reference-point-alist' for "
+		    "the meaning of the rule.\n")))
+
+	(if (not describe-char-unidata-list)
+	    (insert "\nCharacter code properties are not shown: ")
+	  (insert "\nCharacter code properties: "))
+	(insert-text-button
+	 "customize what to show"
+	 'action (lambda (&rest ignore)
+		   (customize-variable
+		    'describe-char-unidata-list)))
+	(insert "\n")
+	(dolist (elt describe-char-unidata-list)
+	  (let ((val (get-char-code-property char elt))
+		description)
+	    (when val
+	      (setq description (char-code-property-description elt val))
+	      (if description
+		  (insert (format "  %s: %s (%s)\n" elt val description))
+		(insert (format "  %s: %s\n" elt val))))))
 
         (if text-props-desc (insert text-props-desc))
 	(setq help-xref-stack-item (list 'help-insert-string (buffer-string)))

@@ -1,0 +1,3385 @@
+2008-01-28  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (script-representative-chars): Add cham
+	and tai-viet.
+	(setup-default-fontset): Add iso10646-1 font for latin and ipa.
+	Add fontconfig spec for cjk-misc.  Explicitly specify font font
+	for U+E000..U+F8FF.
+
+	* international/characters.el (script-list): Add cham.
+
+2008-01-17  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-escape-string): Don't do any encoding changes on the
+	string.
+
+2008-01-16  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* language/ind-util.el (in-is13194-post-read-conversion): Delete
+	unnecessary call of indian-compose-region.
+
+2008-01-11  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* descr-text.el (describe-char-display): Fix previous change.
+
+2008-01-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Some face attributes (like :strike-through) was not
+	being recognised.  Reported by Leo <sdl.web@gmail.com>.
+	(ps-print-version): New version 7.3.2.
+	(ps-screen-to-bit-face): Fix code.  Call ps-face-strikout-p,
+	ps-face-overline-p and ps-face-box-p funs.
+
+	* ps-def.el (ps-face-strikout-p, ps-face-overline-p, ps-face-box-p):
+	New funs.
+
+2008-01-09  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (font-encoding-alist): Add an entry for
+	iso8859-16.
+	(setup-default-fontset): Add iso8859-16 to latin.
+
+	* descr-text.el (describe-char-display): Convert a GLYPH-CODE to a
+	hexadigit string.
+	(describe-char): Adjusted for the above change.
+
+2008-01-08  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (font-encoding-alist): Don't set the
+	repertory of GB18030 fonts.
+
+2008-01-07  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* language/indian.el: Set font-shape-text for all Indic characters
+	in composition-function-table.
+
+	* language/khmer.el: New file.
+
+	* language/myanmar.el: New file.
+
+	* loadup.el: Load "language/khmer" and "language/myanmar".
+
+2007-12-28  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (setup-default-fontset): Fix lao OTF
+	script name.
+
+2007-12-27  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* composite.el (terminal-composition-function): Fix previous change.
+	(terminal-composition-modification): Delete it.
+
+2007-12-26  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (x-complement-fontset-spec): Complement
+	size too.
+
+2007-12-20  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (font-encoding-charset-alist):
+	Initialize it.
+	(otf-script-alist): Fix typo of canadian-aboriginal.
+	(setup-default-fontset): Specify font-specs for many more scripts.
+	(x-complement-fontset-spec): The 1st argument changed to a
+	font-spec object.
+	(create-fontset-from-fontset-spec): Adjusted for the above change.
+
+2007-12-25  Kenichi Handa  <handa@m17n.org>
+
+	* language/devanagari.el: Register font-shape-text in
+	composition-function-table.
+
+	* language/tibetan.el: Register font-shape-text in
+	composition-function-table.
+
+	* language/thai-util.el (thai-composition-function): Fix arguments.
+
+	* language/tamil.el: Register font-shape-text in
+	composition-function-table.
+
+	* language/malayalam.el: Register font-shape-text in
+	composition-function-table.
+
+	* language/lao.el: Register font-shape-text in
+	composition-function-table.
+
+	* language/kannada.el: Register font-shape-text in
+	composition-function-table.
+
+	* language/european.el (diacritic-composition-function): Fix
+	arguments.
+
+	* language/ethio-util.el (ethio-composition-function): Fix
+	arguments.
+
+	* language/tv-util.el (tai-viet-composition-function): Fix
+	arguments.
+
+	* composite.el (composition-function-table): Fix docstring.
+	(terminal-composition-function): Fix arguments.
+	(auto-compose-current-font): Delete it.
+	(auto-compose-chars): Adjusted for the change of
+	composition-function-table.
+
+2007-12-13  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (font-encoding-alist): Add the entry of
+	"unicode-bmp".
+
+2007-12-10  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* composite.el (auto-compose-chars): Be sure to calculate
+	composition at least at POS.
+
+2007-12-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+
+	* printing.el: Fix pr-interface-map initialization code.
+	(pr-version): New version 6.9.3.
+	(pr-f-set-keymap-parents): Replaced by pr-set-keymap-parents.
+	(pr-f-set-keymap-name): Replaced by pr-set-keymap-name.
+	(pr-f-read-string): Replaced by pr-read-string.
+	(pr-set-keymap-parents, pr-set-keymap-name, pr-read-string): New fun
+	name.
+	(pr-interactive-n-up, pr-interactive-regexp): Code fix.
+
+2007-12-09  Kenichi Handa  <handa@m17n.org>
+
+	* language/tv-util.el (tai-viet-re): Include '-'.
+	(tai-viet-glyph-info): Handle '-'.
+
+	* descr-text.el (describe-char): Improve the previous change (show
+	font name).
+
+2007-12-04  Kenichi Handa  <handa@m17n.org>
+
+	* language/devan-util.el (devanagari-composition-function): Fix
+	previous change.
+
+	* descr-text.el (describe-char): Handle a composition of the new
+	format.
+
+2007-12-06  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* language/tibet-util.el (tibetan-composition-function): Use
+	font-shape-text if auto-compose-current-font is non-nil.
+
+	* language/tibetan.el: Fix the range for recording
+	tibetan-composition-function in composition-function-table.
+
+	* language/mlm-util.el (malayalam-composition-function): Use
+	font-shape-text if auto-compose-current-font is non-nil.
+
+	* international/mule-conf.el: Flag many charsets as supplementary.
+
+	* international/mule.el (define-charset): Update the docstring for
+	:supplementary-p.
+
+	* international/fontset.el (setup-default-fontset): Add OpenType
+	fonts for malayalam and tibetan.
+
+2007-12-03  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (x-complement-fontset-spec): Use
+	font-spec.
+
+2007-12-01  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (otf-script-alist): Make all otf tags
+	4-letters.
+	(setup-default-fontset): Add OpenType fonts for devanagari and
+	tamil.
+
+	* language/tml-util.el (tamil-composition-function): Use
+	font-shape-text if auto-compose-current-font is non-nil.
+
+	* language/devan-util.el (devanagari-composition-function): Use
+	font-shape-text if auto-compose-current-font is non-nil.
+
+	* composite.el (auto-compose-chars): Argument font-object changed
+	to window.
+
+2007-11-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-lpr-switches): Docstring fix.
+	(ps-string-list): New fun.
+	(ps-do-despool): Code fix.
+
+2007-11-19  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/utf-7.el (utf-7-imap-post-read-conversion)
+	(utf-7-imap-pre-write-conversion): New functions.
+
+	* international/mule-conf.el (utf-7-imap): New coding system.
+
+2007-11-18  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-selection-value): If x-select-request-type is
+	nil, try also STRING at last.
+	(x-select-request-type): Doc adjusted the change of
+	x-selection-value.
+
+	* select.el (selection-coding-system)
+	(next-selection-coding-system): Declaration moded from xselect.c.
+	(x-get-selection): Decode by selection-coding-system if it is
+	non-nil.  If it is nil, decode by a proper coding system.  Handle
+	C_STRING.
+	(ccl-check-utf-8, string-utf-8-p): Delete them.
+	(xselect-convert-to-string): Fix determining data-type in the case
+	that TEXT is requested.  Don't use selection-coding-system if it's
+	not proper for the data-type.
+
+2007-11-17  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-selection-value): If x-select-request-type is
+	nil, simply try UTF8_STRING and COMPOUND-TEXT in this order.
+
+2007-11-14  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el (w32-initialize-window-system): Use t, not nil
+	to signify default fontset.
+
+2007-06-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (describe-language-environment):
+	Check if the specified input method exists or not.
+
+2007-11-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* ldefs-boot.el: Regenerate.
+
+2007-11-11  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-do-despool): Do not force ps-lpr-switches to be a
+	list.
+	(ps-begin-job): Error if ps-lpr-switches is not a list.
+	(ps-face-background-name): Remove this function.  It's already defined
+	in ps-def.el file.
+
+2007-11-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-do-despool): If ps-lpr-switches is not a list, force
+	it to be one.
+	(ps-print-version): New version 7.3.1.
+
+2007-10-31  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Eliminate the check if ps-print was running on Lucid or
+	Epoch emacsen.
+
+2007-10-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Now detect if text foreground and background colors are
+	equals and replace the foreground color by another color, so the text
+	becomes visible.  Doc fix.
+	(ps-print-version): New version 7.3.
+	(ps-default-fg, ps-default-bg): Docstring fix.
+	(ps-fg-list, ps-fg-validate-p): New options.
+	(ps-foreground-list): New var.
+	(ps-generate-header-line): Replace fboundp by functionp.
+	(ps-setup, ps-begin-job, ps-plot-region): Fix code.
+
+2007-10-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Pacify byte compiler, that is, no compiler warnings.
+	Move (again) some variable definitions before use, define some fun
+	aliases, no code change.
+	(pr-version): New version 6.9.2.
+	(pr-path-style, pr-auto-region, pr-menu-char-height)
+	(pr-menu-char-width, pr-menu-lock, pr-ps-printer-alist)
+	(pr-txt-printer-alist, pr-ps-utility-alist): Options declaration
+	via (defvar VAR).
+	(pr-menu-lookup, pr-menu-lock, pr-menu-alist, pr-even-or-odd-pages)
+	(pr-menu-get-item, pr-menu-set-item-name, pr-menu-set-utility-title)
+	(pr-menu-set-ps-title, pr-menu-set-txt-title, pr-region-active-p)
+	(pr-do-update-menus, pr-update-mode-line, pr-f-read-string)
+	(pr-f-set-keymap-parents, pr-keep-region-active): Fun aliases.
+	(pr-menu-print-item, pr-ps-printer-menu-modified)
+	(pr-txt-printer-menu-modified, pr-ps-utility-menu-modified)
+	(pr-even-or-odd-alist): Vars definition moved.
+
+2007-10-23  Kenichi Handa  <handa@m17n.org>
+
+	* language/chinese.el (cp936): Delete duplicated alias.
+
+	* international/mule-diag.el (list-block-of-chars): Don't insert
+	non-Unicode characters.
+
+2007-10-14  Jason Rumney  <jasonr@gnu.org>
+
+	* loadup.el [windows-nt]: Don't load code-pages and ccl.
+	* term/w32-win.el: Don't require code-pages.
+
+2007-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Fix up multi-tty merge.
+
+	* version.el (emacs-version): Bump to 23.0.60.
+
+	* term/x-win.el (x-initialize-window-system): Don't try to create
+	a fontset from a font-specification anymore.  This was removed on the
+	unicode branch and mistakenly re-added by the multi-tty merge.
+
+	* term/w32-win.el: Remove duplicate code that's now in
+	w32-initialize-window-system.
+	(w32-initialize-window-system): Don't try to create a fontset from
+	a font-specification anymore.  This was removed on the unicode branch
+	and mistakenly re-added by the multi-tty merge.
+
+	* term/mac-win.el: Remove duplicate top-level code.
+
+	* ldefs-boot.el: Update.
+
+	* language/ethio-util.el:
+	* international/characters.el: Use utf-8 rather than utf-8-emacs
+	since it works as well and has the advantage of working with
+	non-unicode versions of Emacs.
+
+	* international/encoded-kb.el (encoded-kbd-setup-display): Use the new
+	multi-tty code, which includes the previous local change.
+
+2007-10-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Fix the usage of :foreground and :background face
+	attributes.  Reported by Nikolaj Schumacher <n_schumacher@web.de>.
+	(ps-print-version): New version 7.2.5.
+	(ps-face-attributes, ps-face-attribute-list, ps-face-background): Fix
+	code.
+	(ps-face-foreground-color-p, ps-face-background-color-p)
+	(ps-face-color-p): New inline funs.
+	(ps-background, ps-begin-file, ps-build-reference-face-lists): Use
+	`mapc' rather than `mapcar'.
+
+2007-09-07  Kenichi Handa  <handa@m17n.org>
+
+	* skeleton.el (skeleton-internal-1): Use integerp and stringp
+	instead of char-or-string-p to catch -1.
+
+2007-09-04  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (inactivate-input-method): Set
+	input-method-function to nil before calling
+	inactivate-current-input-method-function.
+
+2007-08-23  Kenichi Handa  <handa@m17n.org>
+
+	* play/gamegrid.el (gamegrid-setup-default-font): Calculate a font
+	height that doesn't exceed the requested height by rounding off.
+
+2007-08-16  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-header-font-size, ps-header-title-font-size)
+	(ps-footer-font-size, ps-line-number-font-size, ps-line-spacing)
+	(ps-paragraph-spacing): Docstring fix.
+
+2007-08-16  Glenn Morris  <rgm@gnu.org>
+
+	* ps-print.el (ps-font-size): Doc fix.
+
+2007-08-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-default-fg, ps-default-bg): Docstring fix.
+	(ps-begin-job): Use ps-default-fg and ps-default-bg only when
+	ps-print-color-p is neither nil nor black-white.  Reported by Christian
+	Schlauer <cs-muelleimer-rubbish.bin@arcor.de>.
+
+2007-08-06  Vinicius Jose Latorre  <viniciusig@ig.com.br>
+
+	* printing.el (pr-update-menus): Docstring fix.
+
+2007-08-05  Vinicius Jose Latorre  <viniciusig@ig.com.br>
+
+	* printing.el: Require lpr and ps-print when loading printing package.
+	Reported by Glenn Morris <rgm@gnu.org>.
+
+2007-08-03  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Evaluate require only during compilation.
+	(pr-version): New version 6.9.1.
+	(deactivate-mark): Replace (defvar VAR nil) by (defvar VAR).
+	(pr-global-menubar): Fix code.
+
+2007-07-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf-abn.el (ebnf-abn-skip-comment):
+	* progmodes/ebnf-bnf.el (ebnf-bnf-skip-comment):
+	* progmodes/ebnf-dtd.el (ebnf-dtd-skip-comment):
+	* progmodes/ebnf-ebx.el (ebnf-ebx-skip-comment):
+	* progmodes/ebnf-iso.el (ebnf-iso-skip-comment):
+	* progmodes/ebnf-yac.el (ebnf-yac-skip-comment): New version.
+	New command actions for EPS header and EPS footer.
+
+	* progmodes/ebnf2ps.el: New command actions for EPS header and EPS
+	footer.  Fix some problems with one-or-more, zero-or-more and
+	alternative constructions generation.  Some log messages
+	implementation.  Doc fix.
+	(ebnf-version): New version 4.4.
+	(ebnf-eps-header-font, ebnf-eps-header, ebnf-eps-footer-font)
+	(ebnf-eps-footer, ebnf-log): New options.
+	(ebnf-find-style, ebnf-eps-header-footer, ebnf-eps-header)
+	(ebnf-eps-footer, ebnf-eps-string, ebnf-eps-header-footer-comment)
+	(ebnf-eps-header-footer-p, ebnf-eps-header-comment)
+	(ebnf-eps-footer-comment, ebnf-eps-header-footer-file)
+	(ebnf-eps-header-footer-set, ebnf-log-header, ebnf-log): New funs.
+	(ebnf-style-custom-list, ebnf-style-database): Put new values.
+	(ebnf-print-directory, ebnf-print-file, ebnf-print-buffer)
+	(ebnf-print-region, ebnf-spool-directory, ebnf-spool-file)
+	(ebnf-spool-buffer, ebnf-spool-region, ebnf-eps-directory)
+	(ebnf-eps-file, ebnf-eps-buffer, ebnf-eps-region)
+	(ebnf-syntax-directory, ebnf-syntax-file, ebnf-syntax-buffer)
+	(ebnf-syntax-region, ebnf-parse-and-sort, ebnf-begin-job)
+	(ebnf-dimensions, ebnf-production-dimension, ebnf-terminal-dimension)
+	(ebnf-non-terminal-dimension, ebnf-special-dimension)
+	(ebnf-terminal-dimension1, ebnf-repeat-dimension)
+	(ebnf-except-dimension, ebnf-alternative-dimension)
+	(ebnf-optional-dimension, ebnf-one-or-more-dimension)
+	(ebnf-zero-or-more-dimension, ebnf-sequence-dimension): Insert log
+	message fun.
+	(ebnf-setup, ebnf-generate-one-or-more, ebnf-generate-zero-or-more)
+	(ebnf-begin-job, ebnf-begin-file, ebnf-eps-finish-and-write)
+	(ebnf-insert-ebnf-prologue, ebnf-production-dimension)
+	(ebnf-terminal-dimension1, ebnf-alternative-dimension)
+	(ebnf-one-or-more-dimension, ebnf-zero-or-more-dimension)
+	(ebnf-eps-add-context, ebnf-eps-add-production): Fix code.
+	(ebnf-eps-filename, ebnf-trim-right): Replace `?\s' by `?\ ' to keep
+	compatibility with Emacs 20 & 21.
+	(ebnf-eps-header-comment, ebnf-eps-footer-comment)
+	(ebnf-eps-file-alist, ebnf-basic-width-extra)
+	(ebnf-basic-empty-height): New vars.
+	(ebnf-prologue): Fix PostScript code.
+	(ebnf-make-empty, ebnf-make-terminal1, ebnf-make-or-more1)
+	(ebnf-make-production, ebnf-make-alternative, ebnf-make-optional)
+	(ebnf-make-except, ebnf-make-repeat, ebnf-make-sequence)
+	(ebnf-make-dup-sequence, ebnf-token-alternative): Add comments.
+
+2007-07-26  Andreas Schwab  <schwab@suse.de>
+
+	* international/mule-diag.el (print-fontset-element): Use fontp
+	only if defined.
+
+2007-07-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-multibyte-buffer): Docstring fix.
+
+	* ps-mule.el: Doc fix.
+	(ps-multibyte-buffer, ps-mule-font-info-database, ps-mule-prepare-font)
+	(ps-mule-external-libraries, ps-mule-encode-region)
+	(ps-mule-plot-composition, ps-mule-encode-header-string)
+	(ps-mule-begin-job): Docstring fix.
+	(ps-mule-prologue-generated): Code fix.
+
+2007-07-20  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Problem with foreground and background color when
+	printing a buffer with and without faces.  Reported by Christian
+	Schlauer <cs-muelleimer-rubbish.bin@arcor.de>.
+	(ps-print-version): New version 7.2.4.
+	(ps-default-fg): Change default value to nil, so black color is used
+	when a face does not specify a foreground color.
+	(ps-default-bg): Change default value to nil, so white color is used
+	for background color.
+	(ps-begin-job): Fix code.
+
+2007-06-26  Kenichi Handa  <handa@m17n.org>
+
+	* dnd.el (dnd-get-local-file-name): Call replace-regexp-in-string
+	with FIXEDCASE t.
+
+2007-06-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (print-fontset-element): Fix for the
+	format change of a fontset element for font-backend feature.
+
+2007-06-19  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Fix for the case that a component
+	character is TAB.
+
+2007-06-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el
+	(select-safe-coding-system-interactively): Fix printing of
+	rejected and unsafe coding-systems.
+
+	* international/fontset.el (setup-default-fontset): Add tai-viet.
+
+	* international/characters.el: Setup syntax/category table for Tai
+	Viet.
+	(script-list): Add tai-viet.
+
+	* loadup.el: Load "language/tai-viet".
+
+	* language/tai-viet.el: New file.
+
+	* language/tv-util.el: New file.
+
+2007-06-01  Jason Rumney  <jasonr@gnu.org>
+
+	* faces.el (font-weight-table): Use defaults on w32 that match
+	LOGFONT.lfWeight.
+
+	* term/w32-win.el: Don't create fontset from command-line font.
+
+2007-05-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/mule-cmds.el (toggle-enable-multibyte-characters)
+	(sort-coding-systems, search-unencodable-char): Doc fixes.
+	(default-input-method, input-method-verbose-flag)
+	(input-method-highlight-flag): Remove * in defcustom's docstrings.
+	(exit-language-environment-hook, set-default-coding-systems)
+	(coding-system-change-eol-conversion, prefer-coding-system)
+	(find-multibyte-characters, leim-list-entry-regexp)
+	(set-input-method, input-method-exit-on-first-char, princ-list)
+	(locale-language-names, locale-charset-language-names)
+	(define-char-code-property): Fix typos in docstrings.
+
+2007-05-28  Kenichi Handa  <handa@m17n.org>
+
+	* disp-table.el (make-glyph-code): Fix for a new character code
+	space (22-bit).
+	(glyph-char): Likewise.
+	(glyph-face): Likewise.
+
+2007-05-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Group together all XEmacs/Emacs definitions.
+	(pr-version): New version 6.9.
+	(pr-global-menubar, pr-menu-char-height, pr-menu-char-width): New funs.
+	(pr-menu-char-height, pr-menu-char-width): Fix initialization code.
+	(pr-menu-bind): Fix code.
+	(pr-e-frame-char-height, pr-e-frame-char-width)
+	(pr-e-mouse-pixel-position, pr-x-add-submenu, pr-x-event-function)
+	(pr-x-event-object, pr-x-find-menu-item, pr-x-font-height)
+	(pr-x-font-width, pr-x-get-popup-menu-response, pr-x-make-event)
+	(pr-x-misc-user-event-p, pr-x-relabel-menu-item, pr-x-event-x-pixel)
+	(pr-x-event-y-pixel): Aliases eliminated.
+	(pr-xemacs-global-menubar): Macro moved.
+	(current-menubar, current-mouse-event, zmacs-region-stays)
+	(deactivate-mark, pr-menu-position, pr-menu-state, pr-ps-name-old)
+	(pr-txt-name-old, pr-ps-utility-old, pr-even-or-odd-old, pr-temp-menu):
+	Vars moved.
+	(pr-region-active-p, pr-menu-position, pr-menu-lookup, pr-menu-lock)
+	(pr-update-mode-line, pr-do-update-menus, pr-menu-alist)
+	(pr-relabel-menu-item, pr-menu-set-ps-title, pr-menu-set-txt-title)
+	(pr-menu-set-utility-title, pr-even-or-odd-pages)
+	(pr-f-set-keymap-parents, pr-f-set-keymap-name, pr-f-read-string)
+	(pr-keep-region-active, pr-menu-get-item, pr-menu-set-item-name): Funs
+	moved.
+
+2007-05-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* printing.el (pr-ps-fast-fire): Fix typos in docstring.
+
+2007-05-13  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Use default color when foreground or background color
+	are unspecified.  Reported by Leo <sdl.web@gmail.com>.
+	(ps-print-version): New version 7.2.3.
+	(ps-rgb-color): New argument.  Use default color when color is
+	unspecified.
+	(ps-begin-job): Fix code.
+
+2007-03-28  Riccardo Murri  <riccardo.murri@gmail.com>
+
+	* vc-bzr.el: New file.
+
+2007-03-23  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Add more cases/syntaxes from Latin
+	characters.
+
+2007-03-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-def.el (installation-directory): Must be initialized when defining
+	it in XEmacs.
+	(coding-system-for-read): Eliminate duplicated definition.
+
+2007-03-05  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Replace some (defvar VAR) by (defvar VAR nil).
+
+2007-03-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Replace (defvar VAR nil) by (defvar VAR).
+	(ps-print-emacs-type): Var eliminated.
+	(ps-setup): Remove ps-print-emacs-type. Print which Emacsen is
+	running ps-print package.
+
+	* ps-def.el: Replace (defvar VAR nil) by (defvar VAR).
+	(ps-frame-parameter): Replace defun by defalias.
+	(mark-active): defvar eliminated.
+
+	* ps-samp.el (ps-prsc, ps-c-prsc, ps-s-prsc): Macros eliminated.
+	(ps-rmail-mode-hook, ps-vm-mode-hook, ps-gnus-summary-setup)
+	(ps-jts-ps-setup): Replace macros by vector key definition.
+
+2007-02-16  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf-abn.el (ebnf-abn-skip-comment):
+	* progmodes/ebnf-bnf.el (ebnf-bnf-skip-comment):
+	* progmodes/ebnf-dtd.el (ebnf-dtd-skip-comment):
+	* progmodes/ebnf-ebx.el (ebnf-ebx-skip-comment):
+	* progmodes/ebnf-iso.el (ebnf-iso-skip-comment):
+	* progmodes/ebnf-yac.el (ebnf-yac-skip-comment): New version.
+	New command actions for EPS header and EPS footer.
+
+	* progmodes/ebnf2ps.el: New command actions for EPS header and EPS
+	footer.  Fix some problems with one-or-more, zero-or-more and
+	alternative constructions generation.  Some log messages
+	implementation.  Doc fix.
+	(ebnf-version): New version 4.4.
+	(ebnf-eps-header-font, ebnf-eps-header, ebnf-eps-footer-font)
+	(ebnf-eps-footer, ebnf-log): New options.
+	(ebnf-find-style, ebnf-eps-header-footer, ebnf-eps-header)
+	(ebnf-eps-footer, ebnf-eps-string, ebnf-eps-header-footer-comment)
+	(ebnf-eps-header-footer-p, ebnf-eps-header-comment)
+	(ebnf-eps-footer-comment, ebnf-eps-header-footer-file)
+	(ebnf-eps-header-footer-set, ebnf-log-header, ebnf-log): New funs.
+	(ebnf-style-custom-list, ebnf-style-database): Put new values.
+	(ebnf-print-directory, ebnf-print-file, ebnf-print-buffer)
+	(ebnf-print-region, ebnf-spool-directory, ebnf-spool-file)
+	(ebnf-spool-buffer, ebnf-spool-region, ebnf-eps-directory)
+	(ebnf-eps-file, ebnf-eps-buffer, ebnf-eps-region)
+	(ebnf-syntax-directory, ebnf-syntax-file, ebnf-syntax-buffer)
+	(ebnf-syntax-region, ebnf-parse-and-sort, ebnf-begin-job)
+	(ebnf-dimensions, ebnf-production-dimension, ebnf-terminal-dimension)
+	(ebnf-non-terminal-dimension, ebnf-special-dimension)
+	(ebnf-terminal-dimension1, ebnf-repeat-dimension)
+	(ebnf-except-dimension, ebnf-alternative-dimension)
+	(ebnf-optional-dimension, ebnf-one-or-more-dimension)
+	(ebnf-zero-or-more-dimension, ebnf-sequence-dimension): Insert log
+	message fun.
+	(ebnf-setup, ebnf-generate-one-or-more, ebnf-generate-zero-or-more)
+	(ebnf-begin-job, ebnf-begin-file, ebnf-eps-finish-and-write)
+	(ebnf-insert-ebnf-prologue, ebnf-production-dimension)
+	(ebnf-terminal-dimension1, ebnf-alternative-dimension)
+	(ebnf-one-or-more-dimension, ebnf-zero-or-more-dimension)
+	(ebnf-eps-add-context, ebnf-eps-add-production): Fix code.
+	(ebnf-eps-filename, ebnf-trim-right): Replace `?\s' by `?\ ' to keep
+	compatibility with Emacs 20 & 21.
+	(ebnf-eps-header-comment, ebnf-eps-footer-comment)
+	(ebnf-eps-file-alist, ebnf-basic-width-extra)
+	(ebnf-basic-empty-height): New vars.
+	(ebnf-prologue): Fix PostScript code.
+	(ebnf-make-empty, ebnf-make-terminal1, ebnf-make-or-more1)
+	(ebnf-make-production, ebnf-make-alternative, ebnf-make-optional)
+	(ebnf-make-except, ebnf-make-repeat, ebnf-make-sequence)
+	(ebnf-make-dup-sequence, ebnf-token-alternative): Add comments.
+
+2007-02-14  Kenichi Handa  <handa@m17n.org>
+
+	* international/titdic-cnv.el: Synch with HEAD.
+
+2007-02-11  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Group together all XEmacs/Emacs definitions.
+	(pr-version): New version 6.9.
+	(pr-global-menubar, pr-menu-char-height, pr-menu-char-width): New funs.
+	(pr-menu-char-height, pr-menu-char-width): Fix initialization code.
+	(pr-menu-bind): Fix code.
+	(pr-e-frame-char-height, pr-e-frame-char-width)
+	(pr-e-mouse-pixel-position, pr-x-add-submenu, pr-x-event-function)
+	(pr-x-event-object, pr-x-find-menu-item, pr-x-font-height)
+	(pr-x-font-width, pr-x-get-popup-menu-response, pr-x-make-event)
+	(pr-x-misc-user-event-p, pr-x-relabel-menu-item, pr-x-event-x-pixel)
+	(pr-x-event-y-pixel): Aliases eliminated.
+	(pr-xemacs-global-menubar): Macro moved.
+	(current-menubar, current-mouse-event, zmacs-region-stays)
+	(deactivate-mark, pr-menu-position, pr-menu-state, pr-ps-name-old)
+	(pr-txt-name-old, pr-ps-utility-old, pr-even-or-odd-old, pr-temp-menu):
+	Vars moved.
+	(pr-region-active-p, pr-menu-position, pr-menu-lookup, pr-menu-lock)
+	(pr-update-mode-line, pr-do-update-menus, pr-menu-alist)
+	(pr-relabel-menu-item, pr-menu-set-ps-title, pr-menu-set-txt-title)
+	(pr-menu-set-utility-title, pr-even-or-odd-pages)
+	(pr-f-set-keymap-parents, pr-f-set-keymap-name, pr-f-read-string)
+	(pr-keep-region-active, pr-menu-get-item, pr-menu-set-item-name): Funs
+	moved.
+
+2007-02-07  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.ps: The ps-print commands without face printing should not
+	print background color.  Reported by Leo <sdl.web@gmail.com>.
+	(ps-print-version): New version 7.2.2.
+	(ps-begin-job): New arg.  Fix ps-default-background and
+	ps-default-foreground initialization.
+	(ps-face-attributes): Fix doc string.
+	(ps-face-background, ps-generate-postscript, ps-generate): Fix code.
+
+	* printing.el: Fix ps-print link.
+
+2007-01-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (list-character-sets-2): Don't print
+	width.
+
+2007-01-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.ps: Fix background height.
+	(ps-print-version): New version 7.2.1.
+
+2007-01-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Split XEmacs/Emacs definitions and sample setup code
+	into separate files.
+	(ps-print-version): New version 7.2.
+	(ps-postscript-code-directory): Fix XEmacs initialization.
+	(ps-generate-postscript-with-faces): Call
+	ps-generate-postscript-with-faces1 (new fun).
+	(ps-color-format, ps-float-format): Vars moved to ps-def.el.
+	(ps-xemacs-color-name, ps-mapper, ps-extent-sorter)
+	(ps-xemacs-face-kind-p, ps-mark-active-p, ps-face-foreground-name)
+	(ps-face-background-name, ps-frame-parameter, ps-color-device)
+	(ps-color-values, ps-face-bold-p, ps-face-italic-p): Funs moved to
+	ps-def.el.
+	(ps-prsc, ps-c-prsc, ps-s-prsc, ps-rmail-mode-hook)
+	(ps-rmail-print-message-from-summary, ps-print-message-from-summary)
+	(ps-article-subject, ps-article-author, ps-gnus-article-prepare-hook)
+	(ps-vm-mode-hook, ps-gnus-print-article-from-summary)
+	(ps-vm-print-message-from-summary, ps-gnus-summary-setup, ps-info-file)
+	(ps-info-node, ps-info-mode-hook, ps-jts-ps-setup, ps-jack-setup): Funs
+	moved to ps-samp.el.
+
+	* ps-bdf.el (installation-directory, coding-system-for-read): Vars
+	moved to ps-def.el.
+
+	* ps-mule.el (leading-code-private-22): Var moved to ps-def.el.
+	(charset-bytes, charset-dimension, charset-id, charset-width)
+	(find-charset-region, char-width, chars-in-region, forward-point)
+	(decompose-composite-char, encode-coding-string, coding-system-p)
+	(ccl-execute-on-string, define-ccl-program, multibyte-string-p)
+	(string-make-multibyte, encode-char): Funs moved to ps-def.el.
+
+	* ps-def.el: New file. XEmacs/Emacs definitions.
+	(ps-generate-postscript-with-faces1): New fun.
+	(ps-color-format, ps-float-format): Vars moved from ps-print.el.
+	(ps-xemacs-color-name, ps-mapper, ps-extent-sorter)
+	(ps-xemacs-face-kind-p, ps-mark-active-p, ps-face-foreground-name)
+	(ps-face-background-name, ps-frame-parameter, ps-color-device)
+	(ps-color-values, ps-face-bold-p, ps-face-italic-p): Funs moved from
+	ps-print.el.
+	(installation-directory, coding-system-for-read): Vars moved from
+	ps-bdf.el.
+	(leading-code-private-22): Var moved from ps-mule.el.
+	(charset-bytes, charset-dimension, charset-id, charset-width)
+	(find-charset-region, char-width, chars-in-region, forward-point)
+	(decompose-composite-char, encode-coding-string, coding-system-p)
+	(ccl-execute-on-string, define-ccl-program, multibyte-string-p)
+	(string-make-multibyte, encode-char): Funs moved from ps-mule.el.
+
+	* ps-samp.el: New file. Sample setup code.
+	(ps-prsc, ps-c-prsc, ps-s-prsc, ps-rmail-mode-hook)
+	(ps-rmail-print-message-from-summary, ps-print-message-from-summary)
+	(ps-article-subject, ps-article-author, ps-gnus-article-prepare-hook)
+	(ps-vm-mode-hook, ps-gnus-print-article-from-summary)
+	(ps-vm-print-message-from-summary, ps-gnus-summary-setup, ps-info-file)
+	(ps-info-node, ps-info-mode-hook, ps-jts-ps-setup, ps-jack-setup): Funs
+	moved from ps-print.el.
+
+2007-01-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Handle frame parameters (background and/or foreground
+	colors) changing dynamically.  Reported by Leo <sdl.web@gmail.com>.
+	(ps-print-version): New version 7.1.
+	(ps-x-frame-property, ps-e-frame-parameter): New aliases.
+	(ps-frame-parameter): New fun.
+	(ps-default-fg, ps-default-bg): New default value ('frame-parameter).
+	Fix doc and customization.
+	(ps-begin-job): Get frame parameters (background and/or foreground
+	colors).
+	(ps-do-despool): Ensure ps-printer-name has a valid value.
+
+2006-12-04  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* progmodes/ebnf-abn.el:
+	* progmodes/ebnf-bnf.el:
+	* progmodes/ebnf-dtd.el:
+	* progmodes/ebnf-ebx.el:
+	* progmodes/ebnf-iso.el:
+	* progmodes/ebnf-otz.el:
+	* progmodes/ebnf-yac.el:
+	* progmodes/ebnf2ps.el:
+	* delim-col.el:
+	* printing.el:
+	* ps-bdf.el:
+	* ps-mule.el:
+	* ps-print.el: Remove 'Time-stamp' comment mark.
+
+	* printing.el (pr-menu-bind): Replace 'easy-menu-change' by
+	'easy-menu-add-item' when called in Emacs 21 or higher.
+
+2006-12-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el : Fix doc.
+	(ps-print-version): New version 7.0.
+
+2006-11-29  Kenichi Handa  <handa@m17n.org>
+
+	* mail/emacsbug.el (report-emacs-bug): Insert also the value of
+	XMODIFIERS.
+
+2006-11-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: Fix maintainer email.  Eliminate function declaration
+	that kept compatibility with older Emacs version.
+	(ps-print-version): New version 6.7.
+
+2006-11-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-get-translations): Make
+	quail-current-key multibyte if not yet done.
+
+2006-11-27  Zhang Wei  <id.brep@gmail.com>
+
+	* language/chinese.el ("Chinese-GBK"): Add tutorial.
+	("Chinese-GB18030"): Add sample-text and tutorial.
+
+	* international/fontset.el (font-encoding-alist): Add gb18030.
+	(setup-default-fontset): Likewise.
+	(x-pixel-size-width-font-regexp, vertical-centering-font-regexp):
+	Add gbk and gb18030.
+	(charset-script-alist): Likewise.
+
+	* international/characters.el: Put property
+	preferred-coding-system to gbk and gb18030.
+
+	* international/mule-cmds.el (locale-language-names): Add an entry
+	for "zh_CN.UTF-8" and change "chs" to "Chinese-GBK".
+
+	* faces.el (face-font-registry-alternatives): Add gb18030.
+
+2006-11-22  Vinicius Jose Latorre  <viniciusjl@ig.com.br>  (tiny change)
+
+	* ps-mule.el: Fix maintainer email.
+
+2006-11-22  Kenichi Handa  <handa@m17n.org>
+
+	* language/european.el ("Turkish"): Sync with HEAD.
+
+	* international/characters.el: Sync with HEAD.
+
+	* international/mule-cmds.el (set-default-coding-systems): Sync
+	with HEAD.
+
+2006-11-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-insert-kbd-layout): Check the
+	length of (cdr translation).
+	(quail-get-current-str): Check the length of (cdr def).
+
+2006-11-16  Kenichi Handa  <handa@m17n.org>
+
+	* ruler-mode.el (ruler-mode-ruler): Make the string `ruler'
+	mulitbyte.
+
+2006-11-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (ucs-insert): Re-implement.
+
+2006-11-09  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (terminal-composition-modification): New function.
+	(terminal-composition-function): Create composition with the above
+	modification function.
+
+2006-11-08  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+
+	* international/characters.el: Add more full-width characters in
+	char-width-table.
+
+2006-10-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (create-fontset-from-fontset-spec): Fix
+	script name handling.
+
+2006-10-26  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (terminal-composition-function): New function.
+	(terminal-composition-function-table): New variable.
+	(auto-compose-chars): If running on a terminal, use
+	terminal-composition-function-table.
+
+	* loadup.el: Load "composite" after "international/characters".
+
+	* international/characters.el: Delete codes for setting up charset
+	property nospace-between-words.  Fix setting up of
+	char-width-table.  Don't make ethiopic and tibetan double column.
+
+	* textmodes/fill.el (fill-find-break-point-function-table): Don't
+	setup it in defvar.
+	(fill-nospace-between-words-table): New variable.
+	(fill-delete-newlines): Check fill-nospace-between-words-table
+	instead of charset property nospcae-between-words.
+
+2006-10-23  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (global-auto-composition-mode): Make the initial
+	value not depend on emacs-basic-display.
+
+	* textmodes/fill.el: Don't use charset property
+	`fill-find-break-point-function'.
+	(fill-find-break-point-function-table): New variable.
+	(fill-find-break-point): Lookup
+	fill-find-break-point-function-table.
+
+2006-10-17  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (coding-system-list): Be sure to exclude
+	subsidiary coding systems.
+
+2006-10-05  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (auto-composition-after-change): Remove
+	`auto-composed' property instead of put nil to it.
+	(toggle-auto-composition): Likewise.
+
+2006-10-02  Kenichi Handa  <handa@m17n.org>
+
+	* language/misc-lang.el (iso-8859-6): New coding system.
+
+2006-09-21  Kenichi Handa  <handa@m17n.org>
+
+	* dnd.el (dnd-get-local-file-name): Give a unibyte string to
+	replace-regexp-in-string as replacement.
+
+2006-08-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (otf-script-alist): Add byzm, math,
+	musc, and nko.
+
+	* international/characters.el (script-list): Add nko,
+	byzantine-musical-symbol, musical-symbol, and mathematical.
+
+2006-08-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/uni-bidi.el, international/uni-category.el,
+	international/uni-combining.el, international/uni-comment.el,
+	international/uni-decimal.el, international/uni-decomposition.el,
+	international/uni-digit.el, international/uni-lowercase.el,
+	international/uni-mirrored.el, international/uni-name.el,
+	international/uni-numeric.el, international/uni-old-name.el,
+	international/uni-titlecase.el, international/uni-uppercase.el:
+	Re-generated.
+
+2006-08-04  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): Fix
+	synching with head.
+
+2006-08-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* ldefs-boot.el: Delete the section for utf-7.
+
+2006-07-24  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (auto-compose-current-font): New variable.
+	(auto-compose-chars): New arg FONT-OBJECT.
+
+2006-07-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Modify category-table and
+	script-table for new Ethiopic character range.
+
+2006-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-language-info): Fix synching
+	with HEAD.
+	(set-language-environment): Likewise.
+	(standard-display-european-internal): Sync with HEAD.
+	(set-language-environment-nonascii-translation): Fix synching with
+	HEAD.
+	(set-language-environment-fontset): Delete it.
+	(set-language-environment-unibyte): Fix synching with HEAD.
+
+2006-07-03  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (otf-script-alist): Set it.
+
+2006-06-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (font-encoding-alist): Fix for
+	"ethiopic-unicode".
+
+2006-06-23  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (script-representative-chars): Add an
+	entry for latin script.
+
+2006-06-19  Kenichi Handa  <handa@m17n.org>
+
+	* faces.el (font-weight-table): Treat regular and normal as the
+	same as medium.
+	(font-slant-table): Add (roman . 100).
+
+2006-06-09  Kenichi Handa  <handa@m17n.org>
+
+	* tar-mode.el (tar-extract): Sync with HEAD.
+
+2006-06-06  Kenichi Handa  <handa@m17n.org>
+
+	These changes are for the new font handling codes.
+
+	* faces.el (font-weight-table, font-slant-table)
+	(font-swidth-table): New customizable variables.
+
+	* international/fontset.el (font-encoding-alist): Add koi8-4.
+	(script-representative-chars): Set the default value.
+	(create-fontset-from-x-resource): Delete `message'.
+
+2006-05-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-utxt-to-string, mac-string-to-utxt)
+	(mac-TEXT-to-string, mac-string-to-TEXT): Sync with HEAD.
+
+2006-04-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Cancel unnecessary sync code for
+	HEAD.
+
+2006-03-28  Kenichi Handa  <handa@m17n.org>
+
+	* tar-mode.el (tar-untar-buffer, tar-summarize-buffer): Call
+	set-buffer-multibyte with arg `to'.
+
+2006-03-14  Kenichi Handa  <handa@m17n.org>
+
+	* info.el (Info-fontify-node): Check if already fontified or not
+	by next-single-property-change.
+
+2006-03-08  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (ctext-pre-write-conversion): Produce
+	extra designation sequence for ASCII at the end off extended
+	segment.
+
+2006-03-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (ctext-non-standard-encodings-table):
+	Reverse the returning list.
+	(ctext-pre-write-conversion): Fix encoding with extended segments.
+
+	* international/mule-conf.el (compound-text)
+	(compound-text-with-extensions): Add long-form in :flags.
+
+2006-03-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (create-fontset-from-fontset-spec): Fix
+	regexp for paring FONTSET-SPEC (allow spaces after `:').
+
+2006-03-03  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (create-fontset-from-fontset-spec): Fix
+	for the case that a charset is specified as target.
+
+	* international/ccl.el (ccl-dump-write-const-string): Fix previous
+	change.
+
+2006-03-02  Kenichi Handa  <handa@m17n.org>
+
+	* international/ccl.el (ccl-embed-string): Check string length.
+	Set special flag for multibyte character sequence.
+	(ccl-compile-write-string): Don't make str unibyte.
+	(ccl-compile-write-repeat): Likewise.
+	(ccl-compile-write): If the character code doesn't fit in 22-bit
+	(ccl-dump-write-const-string): Check special flag for multibyte
+	character sequence.
+
+2006-02-28  Kenichi Handa  <handa@m17n.org>
+
+	* ps-mule.el (ps-mule-eight-bit-char): Delete this function.
+	(ps-mule-encode-region): Don't use ps-mule-eight-bit-char.
+	(ps-mule-plot-composition): Likewise.
+
+2006-02-27  Kenichi Handa  <handa@m17n.org>
+
+	* language/chinese.el ("Chinese-BIG5"): Set
+	ctext-non-standard-encodings property to "big5-0".
+
+	* international/mule.el (ctext-non-standard-encodings): Initialize
+	to nil.
+	(ctext-non-standard-encodings-alist): Set charset `big5' in the
+	entry for "big5-0".
+	(ctext-non-standard-encodings-table): Return a list instead of
+	char-table.
+	(ctext-pre-write-conversion): Adjusted for the above change.
+
+2006-02-27  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+
+	* international/mule.el (ctext-non-standard-encodings-alist): Add
+	an entry for gbk-0.
+	(ctext-post-read-conversion): Use multibyt-char-to-unibyte to read
+	a row 8-bit.
+
+	* language/chinese.el ("Chinese-GBK"): Set
+	ctext-non-standard-encodings property to "gbk-0".  Add sample-text
+	property.
+
+2006-02-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/kkc.el (kkc-region): Use
+	this-single-command-raw-keys on pushing back an unhandled key
+	sequence.
+
+2006-02-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/encoded-kb.el (encoded-kbd-mode): Check
+	saved-input-mode on turing off Encoded Kbd mode.
+
+	* composite.el (auto-composition-after-change): Use
+	save-buffer-state.
+	(turn-on-auto-composition-if-enabled): Don't turn on
+	auto-composition-mode in a unibyte buffer.
+
+2006-02-21  Kenichi Handa  <handa@m17n.org>
+
+	* startup.el (command-line): Use custom-reevaluate-setting for
+	global-auto-composition-mode.
+
+	* composite.el (auto-composition-function): Make it buffer local.
+	(auto-composition-mode): New minor mode.
+	(turn-on-auto-composition-if-enabled): New function.
+	(global-auto-composition-mode): New global minor mode.
+
+2006-01-24  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Use insert-text-button instead of
+	widget-create for "customize what to show" button.
+
+2006-01-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el: Merge changes from the trunk:
+	(tar-header-block-tokenize): Tighten regexp.
+	(tar-summarize-buffer): Don't clear the modified-p bit if it wasn't
+	cleared before.  Obey default-enable-multibyte-characters.
+	Use mapconcat.
+	(tar-mode-map): Move initialization inside delcaration.
+	(tar-alter-one-field): Don't hardcode point-min==1.
+
+2006-01-20  Naoto Takahashi  <ntakahas@m17n.org>
+
+	* language/ethiopic.el: Copyright fixed.
+	(composition-function-table): Support a new character in Unicode
+	4.1.
+
+	* language/ethio-util.el (ethio-fidel-to-tex-buffer)
+	(ethio-tex-to-fidel-buffer, ethio-composition-function)
+	("ethiopic-tex"): Support new characters in Unicode 4.1.
+
+	* descr-text.el (describe-char): Fix for sync with HEAD.
+
+2006-01-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (autoload-coding-system): Install the same
+	function as in HEAD.
+
+2005-12-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Register characters in
+	auto-fill-chars.  Put nospace-between-words to more charsets.
+
+2005-10-27  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+
+	* international/mule-cmds.el (locale-language-names): Add entries
+	for zh_CN.GB2312, zh_CN.GBK, and zh_CN.GB18030.
+	(locale-preferred-coding-systems): Fix entries for Chinese locales.
+
+2005-10-24  Kenichi Handa  <handa@etlken>
+
+	* international/utf-7.el: Delete the definition of utf-7.
+	(utf-7-post-read-conversion, utf-7-pre-write-conversion):
+	Add autoload cookies.
+
+2005-10-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Delete the code to create a fontset from the X
+	resource "Font".
+
+2005-07-29  Naoto Takahashi  <ntakahas@m17n.org>
+
+	* international/robin.el (robin-define-package): Be sure to call
+	put-char-code-property.
+
+2005-07-29  Kenichi Handa  <handa@m17n.org>
+
+	* language/korean.el (iso-2022-kr): Set :suitable-for-keyboard
+	property to 1.
+
+	* international/mule-conf.el (cp1125): Set :ascii-compatible-p
+	property to t.
+
+	* descr-text.el (describe-char): Sync with the main trunk.
+
+	* international/mule.el (coding-system-get):
+	Check `ascii-incompatible' for backward compatiblity.
+	(set-file-name-coding-system): Signal an error for a coding system
+	not suitable for file name.
+	(set-keyboard-coding-system): Signal an error for a coding system
+	not suitable for keyboard.
+
+	* language/chinese.el (iso-2022-cn, iso-2022-cn-ext):
+	Set :suitable-for-keyboard property to 1.
+
+	* language/japanese.el (iso-2022-jp, iso-2022-jp-2)
+	(iso-2022-jp-2004): Set :suitable-for-keyboard property to 1.
+
+	* language/vietnamese.el (vietnamese-viscii, vietnamese-vscii)
+	(vietnamese-tcvn): Set :suitable-for-file-name property to t.
+
+2005-07-26  Naoto Takahashi  <ntakahas@m17n.org>
+
+	* international/robin.el (robin-define-package): Delete redundant code.
+	(robin-add-rule): Allow N-1 reverse conversion.
+
+2005-07-26  Naoto Takahashi  <ntakahas@m17n.org>
+
+	* international/robin.el (robin-define-package): Make the
+	expaneded form shorter.
+
+2005-06-05  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+
+	* language/chinese.el (chinese-iso-8bit): Fix mime-charset of
+	chiense-iso-8bit.
+
+2005-05-11  Kenichi Handa  <handa@m17n.org>
+
+	* loadup.el: If we are byte-compiling unidata-gen.el or running
+	unidata-ge-files, set purify-flag to nil.
+
+2005-05-10  Kenichi Handa  <handa@m17n.org>
+
+	* loadup.el: Load international/charprop.el with NOERROR t.
+
+	* Makefile.in (AUTOGENEL): Add charprop.el and uni-*.el.
+
+2005-05-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/uni-bidi.el, international/uni-category.el,
+	international/uni-combining.el, international/uni-comment.el,
+	international/uni-decimal.el, international/uni-decomposition.el,
+	international/uni-digit.el, international/uni-lowercase.el,
+	international/uni-mirrored.el, international/uni-name.el,
+	international/uni-numeric.el, international/uni-old-name.el,
+	international/uni-titlecase.el, international/uni-uppercase.el,
+	international/charprop.el: Re-generated.
+
+2005-04-22  Kenichi Handa  <handa@m17n.org>
+
+	* term/mac-win.el: Sync with the main trunk.
+	(mac-centraleurroman, mac-cyrillic): New charsets and coding
+	systems.
+	(mac-symbol, mac-dingbats): New charsets.
+
+2005-04-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Set syntax of NBSP to punctuation.
+
+2005-04-11  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el: Don't require wid-edit.
+
+2005-04-09  Kenichi Handa  <handa@m17n.org>
+
+	* language/thai-util.el: Fix previous change.
+
+2005-03-28  Kenichi Handa  <handa@m17n.org>
+
+	* language/thai-util.el: Sync with the main trunk.
+
+2005-03-16  Naoto Takahashi  <ntakahas@m17n.org>
+
+	* international/robin.el: New file.
+
+	* language/ethiopic.el: Encoding changed to utf-8-emacs.
+	Register ethio-composition-function in composition-function-table.
+	("Ethiopic"): Coding-systems changed to utf-8-emacs.
+
+	* language/ethio-util.el: Encoding changed to utf-8-emacs.  All
+	transliteration functions rewritten to use robin.el.
+	(ethio-fidel-to-sera-map, ethio-fidel-to-tex-map)
+	(ethio-sera-to-fidel-table, ethio-implicit-period-conversion)
+	(ethio-prefer-ascii-punctuation): Deleted variables.
+	(ethio-char-to-ethiocode, ethio-convert-digit)
+	(ethio-ethiocode-to-char, ethio-fidel-to-sera-mail)
+	(ethio-fidel-to-sera-mail-or-marker, ethio-lone-consonant-p)
+	(ethio-sera-to-fidel-english, ethio-sera-to-fidel-ethio)
+	(ethio-sera-to-fidel-mail, ethio-sera-to-fidel-mail-or-marker)
+	(ethio-tilde-escape, ethio-toggle-punctuation): Deleted functions.
+	(ethio-adjust-robin, ethio-composition-function)
+	(ethio-get-consonant, ethio-prefer-amharic, ethio-process-digits)
+	(ethio-sera-to-fidel-region-ethio)
+	(ethio-sera-to-fidel-region-noethio)
+	(ethio-use-colon-for-colon, ethio-use-three-dot-question): New
+	functions.
+
+2005-01-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/uni-name.el: Re-generated.
+
+2005-02-24  Miles Bader  <miles@gnu.org>
+
+	* international/mule.el (auto-coding-regexp-alist)
+	(ctext-pre-write-conversion): Replace embedded control characters
+	with octal escapes; this prevents diff from thinking the file is
+	binary.
+
+2005-02-12  Miles Bader  <miles@gnu.org>
+
+	* version.el (emacs-version): Change to "23.0.0".
+
+	* descr-text.el (describe-char-unidata-list):
+	Replace references to Emacs version "22" with "23".
+	* emacs-lisp/bytecomp.el (byte-compile-fix-header)
+	(byte-compile-insert-header): Likewise.
+	* international/mule.el (charset-list, set-coding-priority)
+	(ignore-relative-composition): Likewise.
+	* international/mule-util.el (detect-coding-with-priority): Likewise.
+	* international/mule-diag.el: Likewise.
+	* international/mule-cmds.el (language-info-custom-alist): Likewise.
+	* international/codepage.el (codepage-setup): Likewise.
+
+2005-02-13  Kenichi Handa  <handa@m17n.org>
+
+	* case-table.el: Adjust code merged from trunk for unicode
+	branch (for the change on 2005-02-02).
+
+2005-01-30  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (DONTCOMPILE): Include charprop.el and uni-*.el.
+
+	* international/fontset.el (font-encoding-alist): Add an entry for
+	microsoft-cp1251.
+	(setup-default-fontset): Add entries for microsoft-cp1251 and
+	koi8-r for cyrillic.
+
+	* international/mule-cmds.el (char-code-property-alist): New
+	variable.
+	(define-char-code-property): New function.
+	(get-char-code-property): Handle a char-table registerd in
+	char-code-property-alist.
+	(put-char-code-property): Likewise.
+	(set-language-environment): Check :ascii-compatible-p property of
+	nonascii charset instead of its dimension.
+
+	* international/uni-bidi.el, international/uni-category.el,
+	international/uni-combining.el, international/uni-comment.el,
+	international/uni-decimal.el, international/uni-decomposition.el,
+	international/uni-digit.el, international/uni-lowercase.el,
+	international/uni-mirrored.el, international/uni-name.el,
+	international/uni-numeric.el, international/uni-old-name.el,
+	international/uni-titlecase.el, international/uni-uppercase.el,
+	international/charprop.el: New files automatically generated by
+	admin/unidata/Makefile.
+
+	* loadup.el: Load internationnal/charprop.el.
+
+	* descr-text.el (describe-char-unidata-list): New variable.
+	(describe-char-unicode-data): Use char-code-property-description.
+	(describe-char): Add lines for describing Unicode-based character
+	properties.
+
+2005-01-17  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/ispell.el: These changes are to fix the code merged
+	from trunk for the change on 2005-01-13.
+	(ispell-unified-chars-table): Delete it.
+	(ispell-get-decoded-string): Don't check
+	ispell-unified-chars-table.
+
+	* tar-mode.el (tar-extract): Adjust code merged from trunk for
+	unicode branch (for the change on 2005-01-15).
+
+2004-12-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-util.el (char-displayable-p): Check
+	:charset-list property of CODING.
+
+2004-12-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system-interactively):
+	Change 'mime-charset to :mime-charset.
+	(select-safe-coding-system): Use above (sync to HEAD).
+	(set-language-environment): Delete unnecessary code for handling
+	overriding-fontspec
+
+2004-10-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el: New coding system aliases unix, dos,
+	and mac.
+
+2004-10-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/titdic-cnv.el (tit-process-header): Fix embedded
+	coding tag.
+	(titdic-convert): Bind coding-system-for-write to the coding
+	system specfied in the map file.  Remove `charset' property after
+	decoding.
+	(miscdic-convert): Bind coding-system-for-write to the coding
+	system specfied for the map file.  Fix LANGUAGE arg to
+	quail-define-package.
+	(batch-miscdic-convert): Check if a file is directory or not.
+
+2004-10-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (coding-system-equal): Move from mule-util.el.
+
+	* international/mule-util.el (coding-system-equal): Move to mule.el.
+
+2004-10-15  Kenichi Handa  <handa@m17n.org>
+
+	* international/encoded-kb.el (encoded-kbd-decode-code-list): New
+	function.
+	(encoded-kbd-self-insert-charset): Support multibyte charsets.
+	(encoded-kbd-setup-keymap): Likewise.
+
+2004-10-12  Kenichi Handa  <handa@m17n.org>
+
+	* language/china-util.el (hz-set-msb-table): Turn chars beyond 128
+	to eight-bit chars.
+
+	* international/mule-conf.el: Dont' define coding system
+	`undecided' here.
+
+2004-10-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (locale-language-names): Fix for
+	gb18030 and gdk.
+
+2004-10-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (font-encoding-alist): Add gbk.
+	(charset-script-alist): Add chinese-gbk.
+
+2004-10-04  Kenichi Handa  <handa@m17n.org>
+
+	* language/chinese.el (chinese-gbk): Include ascii in
+	charset-list.
+
+	* international/encoded-kb.el (encoded-kbd-setup-keymap): Fix
+	previous change.
+
+2004-09-19  Kenichi Handa  <handa@m17n.org>
+
+	* language/japanese.el ("Japanese"): Fix ordering of charsets.
+
+2004-08-18  Kenichi Handa  <handa@m17n.org>
+
+	* international/encoded-kb.el (encoded-kbd-self-insert-charset)
+	(encoded-kbd-self-insert-utf-8, encoded-kbd-setup-keymap)
+	(encoded-kbd-mode): Adjust code merged from trunk for unicode branch.
+
+2004-08-17  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Fix for the case CODE is a cons
+	of integers.
+
+2004-08-03  Steven Tamm  <steventamm@mac.com>
+
+	* term/mac-win.el: Use mac-standard-fontset-spec to create
+	fontset-mac
+	(mac-standard-fontset-spec): Created
+
+2004-04-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (unicode-data): Call
+	find-file-noselect with NOWARN t.
+
+2004-04-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (cp932-2-byte): Fix :code-space.
+
+2004-04-20  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Give more CJK characters the
+	category `|'.
+
+	* descr-text.el (describe-char): Make it work on *Help* buffer.
+	Suppress auto-compostion on a region describing about composition.
+
+	* language/european.el (diacritic-compose-region): Compose
+	diacritical marks only with a character whose syntax is word
+	constituent.
+	(diacritic-compose-string): Likewise.
+	(diacritic-composition-function): Likewise.
+	(diacritic-post-read-conversion): Delete it.
+
+2004-04-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Fix invalid encoding caused by the
+	previous sync.
+
+2004-04-16  Kenichi Handa  <handa@m17n.org>
+
+	Sync all files to HEAD.
+
+2004-04-15  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (auto-compose-chars): Execute the main code in
+	condition-case.
+
+2004-04-14  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-property-list): Sync to HEAD.
+
+	* international/mule-diag.el: Sync to HEAD.
+
+	* international/fontset.el (x-complement-fontset-spec): Don't
+	change CHARSET_REGISTRY and CHARSET_ENCODING fields.
+
+2004-04-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el (next-word-boundary-kana): Handle
+	half-width kana.
+
+2004-04-12  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (indian-1-column): Fix :emacs-mule-id.
+
+2004-04-09  Kenichi Handa  <handa@m17n.org>
+
+	* language/japanese.el (japanese-iso-8bit): Fix order of
+	:charset-list.
+
+	* mail/rmail.el (rmail-decode-babyl-format): Use
+	with-coding-priority instead of detect-coding-with-priority.
+
+2004-04-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (make-translation-table): Set the second
+	extra slot of the char table to 1.
+	(make-translation-table-from-vector): Likewise.
+	(make-translation-table-from-alist): Fix handling of multiple
+	entries.
+
+2004-03-11  Kenichi Handa  <handa@m17n.org>
+
+	* language/japanese.el (jisx0213-to-unicode, unicode-to-jisx0213):
+	New translation tables.
+
+	* international/mule.el (make-translation-table-from-alist): New
+	function.
+
+2004-03-04  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (translate-region): Re-implement it here.
+	Make it interactive.
+
+2004-03-03  Kenichi Handa  <handa@m17n.org>
+
+	* ps-mule.el (ps-mule-font-info-database): Typo in doc fixed.
+
+2004-02-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (font-encoding-alist): Cancel previous
+	change.
+
+2004-02-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (font-encoding-alist): Register
+	"iso10646-2" for unicode-sip.
+
+2004-02-12  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (chinese-cns11643-15): New charset.
+
+2004-02-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (font-encoding-alist): Add entries for
+	variations of cns11643 fonts.
+	(setup-default-fontset): Add cns11643 fonts as fallback fonts.
+
+2004-02-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (list-charset-chars): Put charset
+	text property.
+
+	* international/fontset.el (setup-default-fontset): Delete the
+	entry for symbol script, add JISX0213 to kana script, specify
+	fallback fonts.
+
+2004-02-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (setup-default-fontset): Register
+	"JISX0213.2004-1".
+	(font-encoding-alist): Likewise.
+
+	* international/mule-diag.el (list-character-sets): Fix the first
+	line message.
+	(sort-listed-character-sets): Adjusted for the change of
+	list-characters-sets-1.
+	(list-character-sets-1): List supplementary character sets in a
+	different section.
+	(list-charset-chars): Validate charset at early stage.
+
+	* international/characters.el: Fix `han' script range.
+
+	* international/mule-conf.el (japanese-jisx0213.2004-1): Specify
+	:code-space.
+	(cp932-2-byte): Fix :code-space.
+	(unicode-smp, unicode-sip, unicode-ssp): New charsets.
+
+2004-02-03  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (japanese-jisx0213.2004-1): Specify
+	:dimension 2.
+
+	* language/japanese.el (iso-2022-jp): Exclude japanese-jisx0212.
+	(japanese-ucs-cp932-to-jis-map): Fix previous change.
+	(japanese-ucs-jis-to-cp932-map): Likewise.
+	(iso-2022-jp-2004, euc-jis-2004, japanese-shift-jis-2004): New
+	coding systems.
+	(iso-2022-jp-3, euc-jisx0213, shift_jis-2004): New coding system
+	aliases.
+	("Japanese"): Add new charsets and coding system.s
+
+2004-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* language/japanese.el (japanese-ucs-cp932-to-jis-map): Renamed
+	from japanese-ucs-cp932-map.
+	(japanese-ucs-jis-to-cp932-map): Renamed from
+	japanese-ucs-jis-map.
+	(japanese-ucs-glibc-map): Delete this tranlastion table.
+	(japanese-ucs-glibc-to-jis-map): New tranlastion table.
+	(japanese-ucs-jis-to-glibc-map): New tranlastion table.
+
+2004-01-30  Kenichi Handa  <handa@m17n.org>
+
+	* cus-start.el: Handle charset-map-path, not
+	charset-map-directory.
+
+2004-01-29  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-selection-value): Optimize for ASCII only case.
+
+2004-01-28  Kenichi Handa  <handa@m17n.org>
+
+	* language/japanese.el: Add map #x00A6 <-> #xFFE4 to translation
+	tables japanese-ucs-*-map.
+
+2004-01-27  Kenichi Handa  <handa@m17n.org>
+
+	* international/eucjp-ms.el: New file (automatically generated by
+	admin/charsets/Makefile).
+
+	* international/cp51932.el: New file (automatically generated by
+	admin/charsets/Makefile).
+
+	* language/japanese.el: Load cp51932 and eucjp-ms.
+	(japanese-ucs-cp932-map, japanese-ucs-jis-map)
+	(japanese-ucs-glibc-map): New translation tables.
+	(eucjp-ms): New coding system.
+
+	* international/mule.el (coding-system-put): Delete it.
+	It's implemented in C now.
+
+	* international/mule-conf.el (katakana-sjis): Fix :superset to
+	:subset.
+	(japanese-jisx0213-a): New supplementary charset.
+	(japanese-jisx0213.2004-1): New charset.
+
+2004-01-25  Kenichi Handa  <handa@m17n.org>
+
+	* language/japanese.el (japanese-cp932): New coding system.
+	(cp932): New alias of it.
+
+	* international/mule-conf.el (katakana-sjis, cp932-2-byte)
+	(cp932): New charsets.
+
+	* international/mule.el (define-charset): If :code-space is not
+	given, generate it from :dimension.
+
+2004-01-23  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (reference-point-alist): Doc fixed.
+	(encode-composition-rule): Handle a rule (GREF NREF XOFF YOFF).
+	(decode-composition-rule): Likewise.
+
+2004-01-20  Kenichi Handa  <handa@m17n.org>
+
+	* language/european.el (diacritic-composition-function): Fix for
+	the case that POS is at the head.  Allow combining with more
+	characters.
+
+2004-01-16  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Check `charset' property.
+	Show the code point in the charset in hexadigits.
+
+	* international/mule-diag.el (stretches-for-character-list):
+	Delete it.
+	(list-block-of-chars): Use tabs instead of `display' property for
+	aligning characters.
+	(print-fontset-element): Fix the printing of XLFD.
+
+2004-01-15  Kenichi Handa  <handa@m17n.org>
+
+	* international/encoded-kb.el (encoded-kbd-self-insert-utf-8):
+	New function.
+	(encoded-kbd-setup-keymap): Add code for handling utf-8.
+	(encoded-kbd-mode): Likewise.
+
+2003-12-29  Kenichi Handa  <handa@m17n.org>
+
+	* faces.el (read-face-font): Include fontsets in the completion
+	list.
+
+	* international/mule-cmds.el (set-locale-environment): Insert
+	locale-translation-file-name in a unibyte buffer.
+
+	* international/characters.el: Fix setting of category `|'.
+
+2003-12-02  Kenichi Handa  <handa@m17n.org>
+
+	* language/chinese.el (chinese-gb18030): Fix :charset-list.
+
+2003-11-26  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (auto-compose-chars): Fix previous change.
+
+2003-11-25  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): Fix for
+	the case that the first element of default-coding-system is t.
+	Fix a message when some coding systems are rejected.
+
+	* composite.el (auto-compose-chars): Fix previous change.
+
+2003-11-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-language-environment): Put
+	higher priority to charsets listed in `charset' property of the
+	language environment.
+
+2003-11-23  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (auto-compose-chars): Don't do unnecessary
+	save-exclusion and save-restriction.
+
+2003-11-22  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (ctext-no-compositions): Remove
+	garbage arguments.
+
+	* international/mule.el (make-coding-system): Fix generation of
+	properties.
+
+	* international/fontset.el (setup-default-fontset): Specify fonts
+	for `symbol' script.
+
+	* international/characters.el (script-list): Include `currency'
+	in `symbol'.
+
+2003-11-13  Alex Schroeder  <alex@gnu.org>
+
+	* timezone.el (timezone-parse-date): Fix style 8 to accept ISO
+	8601 format (a capital T between the date and the time).
+
+2003-11-17  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (private-char-area-1-min)
+	(private-char-area-1-max, private-char-area-2-min)
+	(private-char-area-2-max, emacs-mule-charset-table): New
+	variables.
+	(convert-define-charset-argument): New function.
+	(define-charset): Handle the old calling style.  Update
+	emacs-mule-charset-table.
+	(make-char-internal): New function.
+
+2003-11-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-charset-info-alist: Define iso10646-1 always.
+
+2003-10-24  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (compose-region): Doc fix (delete duplicated line).
+
+2003-10-17  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Fix syntax for Ethiopic.
+
+2003-10-12  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el (w32-charset-info-alist): Accept more charset aliases.
+
+	* makefile.w32-in (DONTCOMPILE): Remove old languages. Add
+	international/latin1-disp.el.
+	(LC_ALL): Define as C.
+
+2003-10-11  Jason Rumney  <jasonr@gnu.org>
+
+	* term/w32-win.el: Don't set fontsets to use sjis.
+
+2003-10-01  Kenichi Handa  <handa@m17n.org>
+
+	* language/japanese.el (iso-2022-jp, iso-2022-jp-2)
+	(japanese-iso-8bit): Fix the order of charsets in :charset-list.
+
+2003-09-30  Kenichi Handa  <handa@m17n.org>
+
+	* composite.el (auto-composition-chunk-size): Variable deleted.
+	(auto-compose-chars): Always stop after processing a newline.
+
+2003-09-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (define-coding-system): Fix attribute
+	name :for-unibyte.
+
+2003-09-26  Kenichi Handa  <handa@m17n.org>
+
+	* ps-bdf.el: Mostly re-written.
+
+	* ps-mule.el: Mostly re-written.
+
+	* ps-print.el (ps-generate-string-list): Function deleted.
+	(ps-rh-cache, ps-lf-cache, ps-rf-cache): Variables deleted.
+	(ps-header-footer-string): Function deleted.
+	(ps-encode-header-string-function): New variable
+	(ps-generate-header-line): Call ps-encode-header-string-function.
+	(ps-basic-plot-string-function): New variable
+	(ps-begin-job): Set ps-basic-plot-string-function and
+	ps-encode-header-string-function.  For setting up headers and
+	footers, don't use caches such as ps-rh-cache.  Don't call
+	ps-mule-begin-page.
+	(ps-basic-plot-str): Don't call ps-mule-prepare-ascii-font.
+	(ps-basic-plot-string): Likewise.
+	(ps-control-character): Likewise.
+	(ps-plot-region): Don't pay attention to composition and
+	non-ASCII characters.
+	(ps-generate): Call ps-mule-end-job.
+	(ps-mule-prepare-ascii-font): Delete autoload.
+	(ps-mule-set-ascii-font): Likewise.
+	(ps-mule-plot-string): Likewise.
+	(ps-mule-begin-page): Likewise.
+	(ps-mule-end-job): Declare autoload.
+
+	* composite.el (auto-compose-region): New function.
+
+2003-09-11  Dave Love  <fx@gnu.org>
+
+	* international/mule-util.el
+	(detect-coding-with-language-environment): Doc fix.
+
+	* composite.el: Doc fixes.
+	(auto-compose-chars): Use functionp, not fboundp.
+
+	* international/mule-diag.el (list-charset-chars): Set buffer file
+	coding system.
+
+	* progmodes/cap-words.el (capitalized-words-mode): Add autoload
+	cookie.  Doc fix.
+
+2003-09-10  Dave Love  <fx@gnu.org>
+
+	* international/mule-diag.el (list-charset-chars): Set buffer file
+	coding system.
+
+	* progmodes/cap-words.el (capitalized-words-mode): Add autoload
+	cookie.  Doc fix.
+
+	* textmodes/tex-mode.el (tex-font-lock-syntactic-face-function):
+	* progmodes/sh-script.el (sh-font-lock-syntactic-face-function):
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-face-function):
+	* eshell/esh-opt.el (eshell-process-option):
+	* emulation/keypad.el (keypad-setup):
+	* emacs-lisp/lisp-mode.el (prin1-char):
+	* generic.el (generic-mode-set-comments):
+	* edmacro.el (edmacro-parse-keys):
+	* disp-table.el (standard-display-default): Use characterp.
+
+2003-06-23  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (utf-16-be): Make it an alias of
+	utf-16be-with-signature.
+	(utf-16-le): Make it an alias of utf-16le-with-signature.
+	(utf-16-be-with-signature, utf-16-le-with-signature): Remove these
+	coding system aliases.
+
+	* international/utf-7.el (utf-7-decode, utf-7-encode): Use
+	utf-16be, not utf-16-be.
+
+2003-06-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (coding-system-category): New function.
+	(set-coding-priority): Re-written.
+	(make-translation-table): Re-written.
+
+	* international/mule-cmds.el (universal-coding-system-argument):
+	Check the coding system type `undecided', not `t'.
+	(sort-coding-systems): Fix for iso-2022 coding systems.
+	(find-multibyte-characters): Fix for eight-bit chars.
+	(set-language-environment): Set charset priorities according to
+	the charsets supported by the coding systems of higher priorities.
+
+2003-06-05  Kenichi Handa  <handa@m17n.org>
+
+	* font-lock.el
+	(font-lock-match-c-style-declaration-item-and-skip-to-next):
+	Check (match-end 2) before goto there.
+
+2003-05-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (ctext-non-standard-designations-alist):
+	Exclude entries for iso8859-1[03456].  Fix docstring.
+	(ctext-pre-write-conversion): Make it work for the case that FROM
+	is a string.  Don't do unnecessary save-restriction and
+	narrow-to-region.
+
+2003-05-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (ctext-non-standard-encodings-alist):
+	Renamed from non-standard-icccm-encodings-alist.
+	(ctext-non-standard-encodings-regexp): New variable
+	(ctext-post-read-conversion): Full rewrite.
+	(ctext-non-standard-designations-alist): Renamed from
+	non-standard-designations-alist.
+	(ctext-pre-write-conversion): Full rewrite.
+	(define-coding-system): Doc fix (escape '"' by '\').
+
+2003-05-24  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (utf-16le, utf-16be-16be)
+	(utf-16le-with-signature, utf-16be-with-signature, utf-16):
+	Define :mime-text-unsuitable.  `utf-16{b,l}e...' renamed from
+	`-16-{b,l}e-' and aliases defined for the old names.
+
+	* international/mule.el (define-coding-system): Doc fix.
+
+2003-05-08  Dave Love  <fx@gnu.org>
+
+	* international/utf-7.el: New file.
+
+	* international/mule-conf.el (utf-7): New.
+
+2003-05-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (utf-16-be)
+	(utf-16-be-with-signature): Cancel the previous change.
+	(utf-16): Add :endinan 'big.
+
+	* international/mule.el (define-coding-system): Fix docstring
+	about :bom and :endian.
+
+2003-04-30  Dave Love  <fx@gnu.org>
+
+	* mule-conf.el (utf-16-be)
+	(utf-16-be-with-signature): Comment-out :endian.
+
+	* mule-diag.el (describe-character-set): Fix
+	printing dimensions.  Use `,AW(B', not `x'.
+
+2003-04-12  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el: Register CDAC fonts in
+	face-font-rescale-alist instead of face-resizing-fonts.
+
+2003-03-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-conf.el (utf-16-le): Renamed from
+	utf-16-le-nosig.
+	(utf-16-be): Renamed from utf-16-be-nosig.
+	(utf-16-le-with-signature): Renamed from utf-16-le.
+	(utf-16-be-with-signature): Renamed from utf-16-be.
+	(utf-16): Set :bom to (utf-16-le-with-signature .
+	utf-16-be-with-signature).
+
+2003-02-12  Dave Love  <fx@gnu.org>
+
+	* language/georgian.el (georgian-ps, georgian-academy): New coding
+	system.
+
+	* language/chinese.el (chinese-big5-hkscs): New coding system.
+	(big5-hkscs, cn-big5-hkscs): New aliases.
+
+	* international/mule-conf.el (big5-hkscs, georgian-academy): New
+	charset.
+	(ibm1047): Doc fix.
+	(pt154): Add mime-charset.
+	(ptcp154, cp154): New aliases.
+
+2003-02-04  Dave Love  <fx@gnu.org>
+
+	* international/mule.el (charset-iso-final-char)
+	(define-coding-system): Doc fix.
+
+2003-01-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/ccl.el (define-ccl-program): Fset charset-id
+	to charset-id-internal temporarily.
+
+2003-01-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (list-block-of-chars): Use
+	decode-char instead of make-char.
+
+2003-01-10  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el: Enable the default fontset to use
+	unicode fonts for ASCII characters.
+	(x-decompose-font-name): Don't try to resolve PATTERN by
+	x-resolve-font-name.
+	(x-complement-fontset-spec): Never prepend an ASCII font.
+	(create-fontset-from-fontset-spec): If a fontset of the same name
+	already exists, override it instead of signalling an error.  Don't
+	turn `ascii' into `latin'.  Don't update fontset-alias-alist here.
+
+	* international/mule-conf.el (unicode-bmp): Delete duplicated
+	definition.  Give it :code-offset 0.
+
+	* international/mule-diag.el (print-fontset-element): New
+	function.
+	(print-fontset): Use print-fontset-element to print the elements
+	of a fontset.  Use it also to print fonts fallen back to the
+	default fontsets.
+
+	* term/x-win.el: Delete the code to create a fontset from the X
+	resource "Font".
+
+2003-01-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-diag.el (print-fontset): Insert proper
+	newline and indentation spaces.
+
+2003-01-07  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/byte-opt.el (side-effect-free-fns): Add langinfo,
+	multibyte-char-to-unibyte.
+
+	* emacs-lisp/cl-macs.el (cl-make-type-test): Use characterp.
+
+	* international/mule-cmds.el (find-coding-systems-for-charsets):
+	Use coding-system-type, coding-system-charset-list.
+	(standard-keyboard-coding-systems): Deleted.
+	(set-locale-environment): Maybe set keyboard coding system.  Avoid
+	typical warning about codeset in C locale.
+
+2003-01-06  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el (x-complement-fontset-spec): If a
+	fontname doesn't conform to XLFD format, try to get XLFD name by
+	x-list-fonts.
+
+2002-12-08  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (mik, pt154): New charsets.
+
+	* language/cyrillic.el (mik, pt154): New coding systems.
+
+2002-12-05  Dave Love  <fx@gnu.org>
+
+	* international/characters.el: Move parts around so that syntax
+	definitions aren't overwritten wrongly.
+
+	* international/mule-diag.el (unicode-data): Fix treatment of
+	numeric-value fields.
+
+2002-12-01  Dave Love  <fx@gnu.org>
+
+	* progmodes/cap-words.el: New file.
+
+2002-11-07  Kenichi Handa  <handa@m17n.org>
+
+	The following changes are to make character composition happen
+	automatically on displaying.
+
+	* composite.el: Remove all autoload cookies.
+	(composition-function-table): Variable declaration moved from
+	composite.c.  Format changed.
+	(save-buffer-state): Copied from font-lock.el.
+	(auto-composition-chunk-size): New variable.
+	(auto-compose-chars): New function.  Set
+	auto-composition-function to it.
+	(toggle-auto-composition): New function.
+
+	* international/characters.el: Make all chararacters in the
+	charset tibetan to tibetan script.
+
+	* international/mule-conf.el (tibetan): Fix :code-space property.
+	(tibetan-1-column): Delete :superset property, add :code-offset
+	property.
+
+	* international/quail.el (quail-input-string-to-events): Don't
+	generate compose-chars-after events.
+
+	* language/devanagari.el: Register devanagari-composable-function
+	in composition-function-table for Devanagari characters.
+
+	* language/devan-util.el: Register devanagari-composable-pattern
+	in indian-composable-pattern.
+	(devanagari-composition-function): Add autoload cookie.  Change
+	arguments to conform to composition-function-table.
+
+	* language/european.el: Register combining characters in
+	composition-function-table.
+	(diacritic-composition-function): Change arguments to conform to
+	composition-function-table.
+
+	* language/indian.el (indian-composable-pattern): New variable.
+
+	* language/ind-util.el (indian-compose-region): Don't call
+	compose-chars-after, instead call a function registered in
+	composition-function-table.
+
+	* language/lao.el: Register lao-composition-function in
+	composition-function-table for Lao vowels and tones.
+	(lao): Don't use lao-post-read-conversion.
+
+	* language/lao-util.el (lao-post-read-conversion): Delete this
+	function.
+	(lao-composition-function): Change arguments to conform to
+	composition-function-table.
+
+	* language/thai.el: Register thai-composition-function in
+	composition-function-table for Thai vowels and tones.
+	(thai-tis620): Don't use thai-post-read-conversion.
+
+	* language/thai-util.el (thai-post-read-conversion): Delete this
+	function.
+	(thai-composition-function): Change arguments to conform to
+	composition-function-table.
+
+	* language/tibetan.el: Register tibetan-composition-function in
+	composition-function-table for Tibetan characters.
+
+	* language/tibet-util.el (tibetan-composition-function): Change
+	arguments to conform to composition-function-table.
+
+	* loadup.el: Load composite.
+
+2002-11-01  Dave Love  <fx@gnu.org>
+
+	* international/mule-diag.el (unicode-data): Find unicodedata-file
+	literally.
+
+2002-10-31  Dave Love  <fx@gnu.org>
+
+	* international/fontset.el: Doc fixes.
+	("fontset-default"): Add iso8859-15.
+
+2002-10-30  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el ("fontset-default"): Add an entry for
+	`indian-is13194' charset.
+
+	* international/mule-conf.el (indian-is13194): Delete :unify-map
+	property.  Don't unify this charset.
+	(indian-2-column): Delete :superset property, add :code-offset
+	property.
+
+	* language/devan-util.el: Delete the superfluous autoload cookie
+	near the head of the file.
+	(devanagari-compose-region): Add autoload cookie.
+
+	* language/ind-util.el (indian-2-column-to-ucs-region): Add
+	autoload cookie.
+
+2002-10-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el ("fontset-default"): Add an entry for
+	`devanagari' script and `malayalam-glyph' charset.
+	(face-resizing-fonts): Register CDAC fonts.
+
+	* international/mule-conf.el (malayalam-glyph): New charset.
+
+2002-10-28  Dave Love  <fx@gnu.org>
+
+	* term/x-win.el: Fix typo in loop setting x-keysym-table.
+
+2002-10-27  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (utf-8-emacs): Delete :mime-charset.
+
+	* term/x-win.el: Remove some ancient compatibility code.  Populate
+	x-keysym-table.
+
+	* international/mule-cmds.el (wid-edit): Require when compiling.
+	(set-locale-environment): Check locale against coding system
+	aliases too.
+
+2002-10-25  Kenichi Handa  <handa@m17n.org>
+
+	* language/indian.el (in-is13194-devanagari): Fix
+	:post-read-conversion and :pre-write-conversion.
+
+2002-10-16  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (charset): Supply doc, :tag.
+
+2002-10-16  Kenichi Handa  <handa@m17n.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-lapcode): Be sure to
+	return a unibyte string.
+
+2002-10-15  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-locale-environment): Delete
+	superfluous ')'s at the tail.
+
+2002-10-14  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el (define-coding-system): Fix typo;
+	"docode" -> "decode".
+
+2002-10-14  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/byte-opt.el (side-effect-free-fns): Add
+	 string-make-unibyte string-make-multibyte string-to-multibyte
+	 string-as-multibyte string-as-unibyte.
+
+2002-10-11  Dave Love  <fx@gnu.org>
+
+	* language/english.el (ibm1047, cp1047): New.
+
+	* international/mule-conf.el (alternativnyj): Use new table.
+	(cp866): Define standalone, not as alias.
+	(ibm866): Change alias.
+	(ibm1047): New.
+
+	* language/cyrillic.el (cyrillic-alternativnyj): Remove
+	mime-charset.  Use alternativnj charset.
+	(cp866): Remove alias.  Define standalone.
+
+2002-10-09  Dave Love  <fx@gnu.org>
+
+	* language/european.el ("Latin-2", "Latin-5"): Doc fix.
+
+	* language/cyrillic.el ("Bulgarian"): Fix input method and
+	charset.
+	("Tajik", "Belarusian"): Fix charset.
+
+	* international/mule-cmds.el (describe-language-environment): Be
+	case-insensitive when looking for input methods.
+	(locale-name-match): Doc fix.
+	(locale-charset-match-p): New.
+	(set-locale-environment): Warn if coding system doesn't agree
+	with system locale.
+
+2002-10-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): If
+	:mime-charset property of a coding system is not equal to that
+	coding system, don't show that :mime-charset name.
+
+2002-10-06  Dave Love  <fx@gnu.org>
+
+	* international/quail.el (quail-help): Fix underlining.
+
+	* language/chinese.el (chinese-gb18030, gb18030)
+	("Chinese-GB18030"): New.
+
+	* international/mule-cmds.el (locale-language-names): Add GB18030.
+
+	* international/swedish.el: Don't require latin-1.
+
+2002-10-05  Dave Love  <fx@gnu.org>
+
+	* language/czech.el ("Czech"):
+	* language/slovak.el ("Slovak"):
+	* language/romanian.el ("Romanian"): Remove unibyte-syntax property.
+
+	* language/greek.el ("Greek"): Remove unibyte-syntax property.
+	(cp737): New coding system.
+
+	* language/european.el: Remove unibyte-syntax properties.
+	Augment some coding-system properties.
+
+	* international/mule-cmds.el (set-language-environment): Check
+	for charset property of environment.
+	(language-info-alist): Doc fix.
+
+	* Makefile.in (DONTCOMPILE): Remove latin-N.el.
+
+	* international/characters.el: Add Latin-1.
+
+	* international/latin-1, international/latin-2, international/latin-3:
+	* international/latin-4, international/latin-5, international/latin-8:
+	* international/latin-9: Deleted.
+
+	* loadup.el: Remove international/latin-N.el.
+
+	* case-table.el (set-case-syntax-charset, set-case-syntax-1)
+	(set-case-syntax-delims, set-case-syntax-pair, set-case-syntax):
+	Undo last changes.
+
+	* international/mule-diag.el (unicode-data): Check that
+	`unicodedata-file' exists.
+
+2002-10-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/fontset.el (charset-script-alist): Fix script
+	names.
+
+2002-10-01  Kenichi Handa  <handa@m17n.org>
+
+	* international/latin-1.el: Bind set-case-syntax-charset to
+	iso-8859-1.  Never provide latin-1.
+
+	* international/latin-2.el: Bind set-case-syntax-charset to
+	iso-8859-2.  Never provide latin-2.
+
+	* international/latin-3.el: Bind set-case-syntax-charset to
+	iso-8859-3.  Never provide latin-3.
+
+	* international/latin-4.el: Bind set-case-syntax-charset to
+	iso-8859-4.  Never provide latin-4.
+
+	* international/latin-5.el: Bind set-case-syntax-charset to
+	iso-8859-9.  Never provide latin-5.
+
+	* international/latin-8.el: Bind set-case-syntax-charset to
+	iso-8859-14.  Never provide latin-8.
+
+	* international/latin-9.el: Bind set-case-syntax-charset to
+	iso-8859-15.  Never provide latin-9.
+
+	* case-table.el (set-case-syntax-set-multibyte): This variable
+	deleted.
+	(set-case-syntax-charset): New variable.
+	(set-case-syntax-1): New function.
+	(set-case-syntax-delims, set-case-syntax-pair, set-case-syntax):
+	Call set-case-syntax-1 on arguments.
+
+	* international/mule-cmds.el (set-language-environment): Delete
+	unnecessary setup of syntax/case for unibyte case.
+
+2002-09-27  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el (generate-fontset-menu): Exclude the
+	default fontset.
+
+	* faces.el (describe-face): Describe :fontset property too.
+
+2002-09-25  Dave Love  <fx@gnu.org>
+
+	* international/characters.el: Fix last change.
+
+2002-09-23  Dave Love  <fx@gnu.org>
+
+	* international/characters.el: Don't set char width of CJK
+	charsets generally.  Add some non-word syntax cases.
+	(korean-ksc5601): Fix ranges with symbol syntax.
+
+2002-09-14  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (DONTCOMPILE): Add indian.el.
+
+	* language/ind-util.el:
+	(ucs-bengali-to-is13194-alist, ucs-assamese-to-is13194-alist)
+	(ucs-gurmukhi-to-is13194-alist, ucs-gujarati-to-is13194-alist)
+	(ucs-oriya-to-is13194-alist, ucs-tamil-to-is13194-alist)
+	(ucs-telugu-to-is13194-alist, ucs-malayalam-to-is13194-alist):
+	Remove declarations and let-bind them in re-written top-level loop
+	over scripts, including ucs-devanagari-to-is13194-alist.
+
+2002-09-14  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (charset): Move.
+	(language-info-custom-alist): Move.  Alter :set.
+	(find-coding-systems-for-charsets): Check charset type before
+	getting :charset-list.
+
+	* language/ind-util.el (iscii-to-ucs-region): Fix typo.
+
+2002-09-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-conf.el (emacs-mule, iso-2022-7bit)
+	(iso-2022-7bit-ss2, iso-2022-7bit-lock, iso-2022-8bit-ss2)
+	(compound-text, ctext-no-compositions): Cancel provious change.
+
+2002-09-09  Dave Love  <fx@gnu.org>
+
+	* wid-edit.el (widget-string-complete): New.
+	(widget-coding-system-prompt-value-history): Deleted.
+	(coding-system): Use coding-system-value-history.
+
+	* international/mule-cmds.el (charset): New widget.
+	(language-info-custom-alist): Use it.
+	(default-input-method): Modify :type.
+
+2002-09-08  Dave Love  <fx@gnu.org>
+
+	* language/ind-util.el (ucs-devanagari-to-is13194-alist)
+	(indian-glyph-char, indian-char-glyph): Delete.
+	(is13194-default-repertory): Rename from is13194-default-repartory.
+	(iscii-to-ucs-region): Hoist evals from loop.
+
+	* language/devan-util.el (dev-charseq): Avoid indian-glyph-char.
+
+	* language/indian.el (indian-script-table)
+	(ccl-encode-indian-glyph-font): Delete.
+
+	* international/mule-conf.el (emacs-mule, iso-2022-7bit)
+	(iso-2022-7bit-ss2, iso-2022-7bit-lock, iso-2022-8bit-ss2)
+	(compound-text, ctext-no-compositions): Remove :charset-list.
+
+	* international/mule-cmds.el (language-info-custom-alist): New.
+	(input-method-activate-hook, input-method-inactivate-hook)
+	(input-method-after-insert-chunk-hook)
+	(input-method-use-echo-area, set-language-environment-hook)
+	(exit-language-environment-hook): Customize.
+	(find-coding-systems-for-charsets): Rewritten.
+	(default-input-method): Add :link.
+
+2002-09-08  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (eight-bit): Add :docstring,
+	:short-name properties.
+	(cp851): Doc fix.
+	(unicode-bmp): New.
+
+	* case-table.el (set-case-syntax-pair): Remove check on byte lengths.
+
+	* language/european.el (cp858): New.
+	("Turkish"): Add special case rules.
+
+2002-09-05  Dave Love  <fx@gnu.org>
+
+	* international/characters.el: Make ,_/(B and ,A(B a case pair.
+
+2002-09-03  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-conf.el: Don't define the charset iso-8859-1
+	here, just setup its properties.
+
+2002-08-21  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-conf.el (utf-8): Give :mime-charset property.
+
+2002-08-20  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/characters.el: Remove duplicated case setting for
+	Cyrillic and Greek letters.   Don't setup printable-chars here.
+
+	* case-table.el (describe-buffer-case-table): Handle the case
+	that KEY is a cons within map-char-table.
+
+2002-08-19  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/characters.el: Fix categories ?A and ?C.
+	Treat ASCII characters as `latin' script.
+
+2002-08-18  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el (fontset-plain-name): If the fontset
+	name doesn't ends with "-fontset-*", use family name as the first
+	part of the plain name.
+	(create-fontset-from-ascii-font): If "fontset-startup" is not yet
+	created, use that name for the fontset.  Fix arguments to
+	subst-char-in-string.
+
+2002-08-18  Dave Love  <fx@gnu.org>
+
+	* term.el (term-char-mode): Remove generic-character-list code.
+
+	* ruler-mode.el (ruler-mode-character-validate): Use characterp.
+
+	* wid-edit.el (character): Use characterp.
+
+	* international/mule-diag.el (describe-coding-system): Add utf-16 case.
+
+	* language/viet-util.el (viet-encode-viscii-char): Use encode-char.
+
+	* language/cyrillic.el ("Tajik", "Bulgarian", "Belarusian"):
+	Add charset.
+	("Ukrainian"): New.
+
+	* language/georgian.el (georgian-ps): New coding system.
+
+2002-08-15  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-cmds.el (reset-language-environment):
+	Don't set nonascii-translation-table and nonascii-insert-offset.
+	Call set-unibyte-charset, not set-primary-charset.
+	(nonascii-translation-table, nonascii-insert-offset):
+	Declare these variable as obsolete ones.
+	(set-language-environment): Call set-unibyte-charset, not
+	set-primary-charset.  Call set-charset-priority with `charset'
+	info of the language environment.
+
+2002-08-08  Kenichi Handa  <handa@etl.go.jp>
+
+	* tar-mode.el (tar-extract): Fix previous change.
+
+2002-08-02  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/characters.el (next-word-boundary-han):
+	Don't treat katakana following han characters as a part of a word.
+
+2002-08-01  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/characters.el: Call map-charset-chars on big5 (not
+	chinese-big5-1/2) to set categories `c', `C', and `|'.
+	(next-word-boundary-han): New function.  Register it in
+	next-word-boundary-function-table.
+	(next-word-boundary-kana): Likewise.
+
+2002-07-31  Kenichi Handa  <handa@etl.go.jp>
+
+	* arc-mode.el (archive-file-name-coding-system): New variable.
+	Make it permanent-local.
+	(byte-after, bref, insert-unibyte): New function.  Change most of
+	char-after, aref, insert to them respectively.
+	(archive-mode): Set archive-file-name-coding-system.
+	(archive-summarize): Don't change the buffer's multibyteness.
+	(archive-extract): Inherit archive-file-name-coding-system from
+	archive-superior-buffer.  Bind coding-system-for-write to
+	archive-file-name-coding-system.
+	(archive-*-write-file-member): Encode ENAME by
+	archive-file-name-coding-system.  Bind coding-system-for-write to
+	no-conversion.
+	(archive-rename-entry): Encode the filename by
+	archive-file-name-coding-system.
+	(archive-mode-revert): Don't change the buffer's multibyteness.
+	(archive-arc-summarize, archive-lzh-summarize)
+	(archive-zoo-summarize): Don't change the buffer's multibyteness.
+	Decode filenames by archive-file-name-coding-system.
+	(archive-arc-rename-entry, archive-zip-chmod-entry): Don't change
+	the buffer's multibyteness.
+
+	* tar-mode.el (tar-file-name-coding-system): New variable.
+	Make it permanent-local.
+	(tar-header-block-tokenize): Decode filename and linkname by
+	tar-file-name-coding-system.
+	(tar-header-block-checksum): Call multibyte-char-to-unibyte to get
+	the byte value of eight-bit chars.
+	(tar-summarize-buffer): Call set-buffer-multibyte with METHOD
+	`to'.  Delete unnecessary call of position-bytes.
+	(tar-mode): Set tar-file-name-coding-system.  Delete unnecessary
+	call of position-bytes.
+	(tar-extract): Simplify by calling decode-coding-region with
+	DESTINATION argument.  Don't toggle multibyteness of tar buffer.
+	(tar-copy): Don't toggle multibyteness of tar buffer.
+	(tar-expunge): Likewise.
+	(tar-clear-modification-flags): Delete unnecessary call of
+	position-bytes.
+	(tar-rename-entry): Call tar-alter-one-field with encoded new name.
+	(tar-alter-one-field): Don't toggle multibyteness of tar buffer.
+	Convert new-data-string by string-to-multibyte before inserting it.
+	(tar-subfile-save-buffer): Don't toggle multibyteness of tar
+	buffer.  Simplify by calling encoding-coding-region with
+	DESTINATION argument.
+	(tar-mode-write-file): Delete unnecessary call of byte-to-position.
+
+2002-07-30  Dave Love  <fx@gnu.org>
+
+	* international/titdic-cnv.el (quail-cxterm-package-ext-info): Doc fix.
+
+	* emacs-lisp/copyright.el (copyright-regexp): Remove redundancy.
+
+2002-07-26  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/characters.el: Setup char-script-table.
+
+	* international/fontset.el: Setup the default fontset by the new
+	script based way.
+	(x-complement-fontset-spec): Change the format of arg FONTLIST to
+	an alist of charsets vs font name lists.
+	(charset-script-alist): New variable.
+	(create-fontset-from-fontset-spec): Allow script name in
+	FONTSET-SPEC.  If charset is specified in FONTSET-SPEC, change it
+	to the corresponding script name.
+	(create-fontset-from-ascii-font): Slightly tuned.
+
+	* international/mule-conf.el (devanagari-glyph): New charset.
+	Unify these charsets: korean-ksc5601, ipa, tibetan, ethiopic,
+	japanese-jisx0208, japanese-jisx0212, japanese-jisx0213-1,
+	japanese-jisx0213-2.
+
+	* international/mule-diag.el (print-fontset): Use describe-vector
+	to handle a char table returned by fontset-info.
+
+	* language/indian.el: Don't register ccl-encode-indian-glyph-font
+	and ccl-encode-unicode-font in font-ccl-encoder-alist.
+
+2002-07-18  Dave Love  <fx@gnu.org>
+
+	* startup.el (fancy-splash-head): Warn about status.
+	(fancy-splash-tail): Copyright up-date.
+
+2002-07-17  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-util.el (detect-coding-with-priority):
+	Fix the place of using `,' marker in backguote form.
+
+2002-07-12  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (mule-unicode-e000-ffff): Set :max-code.
+
+	* international/mule-util.el (with-coding-priority): Fix.
+
+	* international/mule.el (set-coding-priority): Fix obsolete spec.
+
+2002-07-05  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (leim-list-header): Add coding tag.
+
+2002-07-05  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (find-coding-systems-region)
+	(language-info-alist, reset-language-environment, princ-list): Doc
+	fix.
+	(input-method-verbose-flag): Fix :type.
+	(set-locale-environment): Revert last change.
+
+2002-07-03  Dave Love  <fx@gnu.org>
+
+	* international/mule.el (set-char-table-default): Make obsolete.
+
+2002-07-01  Dave Love  <fx@gnu.org>
+
+	* language/devanagari.el ("Devanagari"): Fix coding-system,
+	coding-priority.
+
+	* international/mule-diag.el (describe-char-after): Modify display
+	list processing.
+	(unicodedata-file, unicodedata-find): New.
+
+2002-06-29  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/bytecomp.el (batch-byte-compile-if-not-done): Add
+	autoload cookie.
+
+	* international/ja-dic-cnv.el (skkdic-convert): Add coding tag.
+
+2002-06-28  Dave Love  <fx@gnu.org>
+
+	* international/mule-util.el (detect-coding-with-priority):
+	Rewritten.
+
+2002-06-27  Dave Love  <fx@gnu.org>
+
+	* composite.el (compose-string): Doc fix.
+
+	* language/georgian.el ("Georgian"): Delete code-pages feature,
+	add nonascii-translation.
+
+	* language/european.el ("German", "French", "Spanish"): Add
+	latin-9 as alternative coding system.
+	("Slovenian", "Polish"): Add windows-1250 as alternative coding
+	system.
+	("Dutch"): Add latin-9 as alternative coding system.  Add input
+	method.
+	("Turkish"): Add windows-1254 and latin-3 as alternative coding
+	systems.
+	("Lithuanian", "Latvian"): Add windows-1257 as alternative coding
+	system.
+
+	* emacs-lisp/byte-opt.el (side-effect-free-fns): Add decode-char,
+	encode-coding-char.
+	(side-effect-and-error-free-fns): Add charsetp, max-char,
+	primary-charset.
+
+	* simple.el: Don't require cl when compiling.
+
+	* Makefile.in (DONTCOMPILE): Fix duplicates.
+
+	* emacs-lisp/bytecomp.el (byte-compile-insert-header): Fix typo.
+
+	* international/mule.el: Doc fixes.
+	(load-with-code-conversion): Fix coding-system-type test.
+
+	* international/mule-cmds.el (sort-coding-systems): Comment out
+	iso-2022 case.
+	(encoded-string-description): Fix coding-system-type test.
+
+2002-06-24  Dave Love  <fx@gnu.org>
+
+	* international/characters.el: Make korean-ksc5601 double-width.
+
+	* international/mule.el (auto-coding-regexp-alist): Recognize
+	Emacs 20/1 byte-compiled files.
+
+	* international/mule-conf.el (file-coding-system-alist): Change
+	.elc to utf-8-emacs.
+
+	* emacs-lisp/bytecomp.el (byte-recompile-directory)
+	(batch-byte-recompile-directory): Update from trunk.
+	(byte-compile-fix-header): Adjust for use of utf-8-emacs.
+	(byte-compile-insert-header): Update magic number.  Add ballast.
+	(map-char-table): Use byte-compile-funarg-2.
+
+2002-06-16  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment): Use
+	locale-codeset.
+
+2002-06-15  Dave Love  <fx@gnu.org>
+
+	* language/cyrillic.el ("Belarusian"): Doc fix.
+	(cp1125, koi8-t): Doc fix.
+
+	* international/mule-cmds.el (find-multibyte-characters): Doc fix.
+	(find-multibyte-characters): Don't test for charset `unknown'.
+	(locale-language-names): Change or add: be, bs, cy, mk, ru.koi8,
+	ru, sr_YU, tg, wa, zh.gbk.
+	(locale-language-names): Change sp to Cyrillic.
+	(locale-charset-language-names): Match @euro after utf-8.
+
+2002-06-13  Dave Love  <fx@gnu.org>
+
+	* language/chinese.el (chinese-gbk, gbk, cp936, windows-936): New
+	coding systems.
+	("Chinese-GBK"): New environment.
+
+2002-06-12  Dave Love  <fx@gnu.org>
+
+	* language/chinese.el (chinese-gbk, gbk, cp936, windows-936): New
+	coding systems.
+	("Chinese-GBK"): New environment.
+
+	* language/thai-util.el: Remove redundant unicodes in
+	category-setting.
+
+	* language/lao-util.el: Remove redundant unicodes in
+	category-setting.
+
+	* international/mule-conf.el (japanese-jisx0213-1)
+	(japanese-jisx0213-2): Add unify-map.
+
+2002-06-12  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/quail.el (quail-update-leim-list-file): Force
+	writing the file by iso-2022-7bit.
+
+	* international/titdic-cnv.el (miscdic-convert): Force writing the
+	file by iso-2022-7bit.
+
+	* international/mule.el (define-charset): Change the attribute
+	:parents to :subset or :superset.
+
+	* international/mule-conf.el: Adjusted for the change of
+	define-charset (:parent -> :subset or :superset).
+
+	* international/characters.el: Fix the last change.
+
+2002-06-11  Dave Love  <fx@gnu.org>
+
+	* language/cyril-util.el (cyrillic-encode-koi8-r-char)
+	(cyrillic-encode-alternativnyj-char): Fixed.
+	(standard-display-cyrillic-translit): Remove redundant unicodes.
+
+2002-06-10  Dave Love  <fx@gnu.org>
+
+	* language/cyrillic.el ("Tajik", "Bulgarian", "Belarusian"): New
+	environments.
+
+	* international/mule-conf.el (control-1): New charset.
+	(eight-bit-control, eight-bit-graphic): Redefined to use raw-bytes
+	space.
+	(korean-ksc5601): Redefine to use code-offset and unify-map.
+
+2002-06-07  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (tcvn-5712): New charset.
+
+	* language/vietnamese.el (vietnamese-tcvn, tcvn): New coding
+	system.
+	("Vietnamese"): Doc fix.
+
+2002-06-06  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (windows-936): New alias.
+
+	* cus-start.el: Add scalable-fonts-allowed.
+
+	* international/characters.el: Reinstate various CJK syntax and
+	category setup.  Remove obsolete syntax setting in Greek section.
+	Optimize the char tables.
+
+	* language/thai.el ("Thai"): Add cp874, iso-8859-11 coding
+	systems.
+
+	* language/vietnamese.el ("Vietnamese"): Add windows-1258 coding
+	system.
+
+	* language/greek.el ("Greek"): Add windows-1253, cp851, cp869
+	coding systems.
+
+	* language/romanian.el ("Romanian"): Add iso-latin-10 coding
+	system.
+
+2002-06-03  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/characters.el (printable-chars): Setup correctly.
+
+2002-06-02  Dave Love  <fx@gnu.org>
+
+	* cus-start.el: Add selection-coding-system.
+
+	* language/hebrew.el ("Hebrew"): Add windows-1255, cp862 coding
+	systems.
+
+	* language/china-util.el (post-read-decode-hz)
+	(pre-write-encode-hz): Moved from chinese.el.
+	(big5-to-flat-code, flat-code-to-big5, euc-to-flat-code)
+	(flat-code-to-euc, expand-euc-big5-alist, big5-to-cns): Deleted.
+
+	* language/chinese.el (post-read-decode-hz)
+	(pre-write-encode-hz): Moved to china-util.el.
+
+	* case-table.el (set-case-syntax-pair): Test again for equal byte
+	lengths of the pair.
+
+	* international/characters.el: Add Vietnamese category to
+	equivalent unicodes.
+
+2002-05-31  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (chinese-sisheng, ipa)
+	(indian-is13194, tibetan, ethiopic): Add :unify-map.
+
+	* international/mule-diag.el (describe-character-set): Account for
+	more than two dimensions of possibly different size.
+	(describe-current-coding-system): Add selection-coding-system.
+
+	* international/mule-cmds.el (unify-8859-on-encoding-mode)
+	(unify-8859-on-decoding-mode): Moved from mule.el.
+
+	* international/mule.el (unify-8859-on-encoding-mode)
+	(unify-8859-on-decoding-mode): Remove :init-value.
+	(charset-chars): Add optional dimension arg.
+	(unify-8859-on-encoding-mode, unify-8859-on-decoding-mode): Moved
+	to mule-cmds.el.
+
+2002-05-31  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el: Change registry for japanese-jisx0208
+	to "JISX0208*" in the default fontset.
+	(font-encoding-alist): Add an entry for "JISX0208.1983" and
+	"ISO10646.indian-1".
+
+2002-05-30  Kenichi Handa  <handa@etl.go.jp>
+
+	* language/japanese.el (japanese-iso-7bit-1978-irv): Add
+	`designation' to :flags, `ascii' to :charset-list.
+
+	* international/mule.el (define-charset): New args :min-code and
+	:max-code.
+	(coding-system-iso-2022-flags): Add use-roman, use-oldjis.
+
+	* international/mule-conf.el (chinese-gbk): Change :code-offset to
+	#x160000.
+	(gb18030-2-byte, gb18030-4-byte-bmp, gb18030-4-byte-smp,
+	gb18030-4-byte-ext-1, gb18030-4-byte-ext-2, gb18030): New
+	charsets.
+
+2002-05-29  Dave Love  <fx@gnu.org>
+
+	* language/thai.el (iso-8859-11): New coding system.
+
+	* international/mule-conf.el: Doc fixes.
+	(iso-8859-11): New.
+
+2002-05-28  Dave Love  <fx@albion.dl.ac.uk>
+
+	* cus-start.el (scalable-fonts-allowed): Add.
+
+2002-05-27  Dave Love  <fx@gnu.org>
+
+	* international/mule.el (unify-8859-on-encoding-mode)
+	(unify-8859-on-decoding-mode): Dummy versions.
+
+	* international/ucs-tables.el: Removed.
+
+	* Makefile.in (DONTCOMPILE): Add language/chinese.el,
+	language/japanese.el.
+
+	* international/mule-conf.el: Doc fixes.
+	(cp936): New alias.
+	(cp720, cp858): New charsets.
+
+	* mail/sendmail.el (mail-recover-1, mail-recover): Use utf-8-emacs
+	coding system, not emacs-mule.
+
+	* files.el (revert-buffer, recover-file): Likewise.
+
+	* desktop.el (desktop-save): Likewise.
+
+2002-05-26  Dave Love  <fx@gnu.org>
+
+	* international/mule.el (with-category-table): Use make-symbol.
+	(coding-system-list): Use coding-system-aliases.
+	(make-translation-table): Don't deal with generic characters.
+
+	* international/mule-util.el: (coding-system-post-read-conversion)
+	(coding-system-pre-write-conversion)
+	(coding-system-translation-table-for-decode)
+	(coding-system-translation-table-for-encode): Get the right
+	properties.
+	(with-coding-priority): New macro.
+	(detect-coding-with-language-environment): Use it.
+	(coding-system-equal): Use coding-system-plist.
+
+	* encoded-kb.el: (encoded-kbd-setup-keymap) <ccl>:
+	Use :valid property.
+
+	* mule-cmds.el (encode-coding-char): Use
+	find-coding-systems-string.  Don't use make-char.
+	(describe-language-environment): Use coding-system-aliases.
+	(prefer-coding-system): Doc fix.
+
+	* mule-diag.el (describe-current-coding-system): Fix aliases
+	listing.
+	(print-iso-2022-flags): Deleted.
+	(print-designation): Partly re-written.
+	(describe-coding-system): Deal with iso-2022 designations, flags.
+	Fix shift_jis case.
+	(describe-char-after): Use characterp.  Print explicit unicode.
+	Remove some obsolete code.
+	(print-coding-system-briefly): Fix printing aliases.
+	(print-coding-system): Use coding-system-aliases.
+	(mule-diag): Don't list coding categories.
+
+	* mule-conf.el: Doc fixes.  Remove redundant
+	:long-name properties.  Re-order charset priorities.
+	(binary): New alias.
+	(iso-8859-16): Fix nickname.
+	(define-iso-single-byte-charset): Un-define after use.
+
+2002-05-26  Dave Love  <fx@gnu.org>
+
+	* international/mule.el (coding-system-iso-2022-flags): Revert
+	last change.
+
+2002-05-25  Dave Love  <fx@gnu.org>
+
+	* international/characters.el: Additional double width
+	specifications.
+
+	* international/mule-diag.el (print-coding-system): Incomplete
+	updates.
+	(describe-character-set): List more properties.
+	(print-fontset): Fix case of vector font-spec.
+	(describe-current-coding-system): Fix iso-7, iso-7-else.
+
+	* international/mule-conf.el (ibm866): Fix alias.
+	(iso-8859-16): Fix nickname.
+
+	* international/mule.el (coding-system-iso-2022-flags): Add
+	use-roman, use-oldjis.
+
+2002-05-23  Dave Love  <fx@gnu.org>
+
+	* language/ind-util.el: Avoid decode-char.
+	(indian--puthash-char, indian--puthash-c, indian--puthash-cv):
+	Use characterp, not char-valid-p.
+
+	* language/devan-util.el: Add coding tag, avoid decode-char.
+
+	* international/titdic-cnv.el: Add coding tag.
+	(tit-process-header): Add coding tag to output.
+
+	* language/thai.el (cp874, ibm874): New coding systems.
+
+	* emacs-lisp/byte-opt.el <side-effect-and-error-free-fns>: Add
+	character-p.
+
+	* language/european.el (cp852, ibm852, cp857, ibm857, cp860)
+	(ibm860, cp861, ibm861, cp863, cp865, ibm865, cp437, ibm437): New
+	coding systems.
+	<set-language-info-alist>: Avoid decode-char.
+
+	* language/hebrew.el (cp862, ibm862): New coding systems.
+
+	* language/greek.el (cp851, ibm851, cp869, ibm869): New coding
+	systems.
+
+	* language/cyrillic.el (cp855, ibm855): New coding systems.
+
+	* international/mule-conf.el: Avoid decode-char in top-level code
+	for self-inserting multibyte chars.
+	(cp437, cp737, cp775, cp851, cp852, cp855, cp857, cp855, cp857)
+	(cp860, cp861, cp862, cp863, cp864, cp865, cp869, cp874):  New
+	charsets.
+
+	* international/characters.el: Various simplifications and
+	additions.
+
+2002-05-22  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (code-pages): Provide, for
+	compatibility.
+
+	* international/code-pages.el: Removed.
+
+2002-05-22  Kenichi Handa  <handa@etl.go.jp>
+
+	* Makefile.in: Cancel the 2002-05-17 change of mine.
+
+	* international/fontset.el: Add setting for unicode font at the
+	end of the default fontset.
+
+2002-05-21  Dave Love  <fx@gnu.org>
+
+	* international/mule-conf.el (adobe-standard-encoding, symbol):
+	Adjust :code-space.
+	(ibm850): Add :ascii-compatible-p.
+
+2002-05-21  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-conf.el (vietnamese-viscii-lower)
+	(vietnamese-viscii-upper): Supply them :code-offset, then unify by
+	mapping table.
+
+2002-05-20  Dave Love  <fx@gnu.org>
+
+	* cus-start.el: Add charset-map-directory.
+
+	* international/fontset.el (font-encoding-alist): Add
+	adobe-symbol.
+
+	* format.el (format-alist): Remove ibm, mac, hp entries (available
+	natively).
+
+	* language/romanian.el (iso-latin-10): Add :mime-charset.
+	("Romanian"): Add doc.
+
+	* international/mule-conf.el (iso-8859-10, symbol)
+	(adobe-standard-encoding, ibm850): New charsets.
+	(iso-8859-13): Fix IR number, final char.
+	(file-coding-system-alist): Add .xml.
+
+	* language/european.el (iso-latin-6, iso-8859-10, latin-6)
+	(iso-latin-7, iso-8859-13, latin-7, hp-roman8, roman8)
+	(adobe-standard-encoding, cp850, ibm850): New coding systems.
+	("Latin-6", "Latin-7"): New language environments.
+
+2002-05-19  Dave Love  <fx@gnu.org>
+
+	* Makefile.in (DONTCOMPILE): Remove ucs-tables, utf-8,
+	utf-8-subst; add vietnamese, cyrillic, czech.
+
+	* language/romanian.el (iso-latin-10): New coding system.
+
+	* international/mule-conf.el (emacs-mule): Set :charset-list,
+	consistent with coding-system-charset-list doc.
+	(iso-8859-16): New charset.
+
+	* international/mule-diag.el (describe-coding-system): Avoid error
+	for iso-2022, emacs-mule.
+
+2002-05-17  Dave Love  <fx@gnu.org>
+
+	* international/codepage.el: Most of code removed or commented
+	out.
+	(codepage-setup): Re-written as trivial, obsolete function.
+
+	* language/utf-8-lang.el ("UTF-8"): Use utf-8, not mule-utf-8.
+	Remove setup function.
+
+	* language/english.el (ebcdic-us, ebcdic-uk): New coding systems.
+
+	* Makefile.in (DONTCOMPILE): Add language/vietnamese.el,
+	language/cyrillic.el, language/czech.el.
+
+	* language/vietnamese.el (windows-1258, cp1258): New coding
+	systems.
+	(font-ccl-encoder-alist): Remove viscii, vscii.
+
+	* language/hebrew.el (windows-1255, cp1255): New coding systems.
+
+	* language/european.el (windows-1254, cp1254, windows-1257)
+	(cp1257, next, iso-latin-7, iso-8859-13, latin-7): New coding
+	systems.
+	("Latin-7", "Lithuanian", "Latvian"): Don't require code-pages.
+
+	* language/greek.el (windows-1253, cp1253): New coding systems.
+
+	* international/mule-conf.el (ebcdic-us, ebcdic-uk): Change map
+	file name.
+	(windows-1253, windows-1254, windows-1255, windows-1256)
+	(windows-1257, windows-1258, next): New charsets.
+
+	* international/utf-8.el, international/utf-8-subst.el: Removed.
+
+	* international/mule.el: Doc fixes.
+	(charset-list, generic-char-p, set-coding-priority): Make
+	obsolete.
+	(coding-system-get): Try to convert old-style symbol to keyword.
+	(define-charset): Purecopy strings in property list.
+	(define-coding-system): Purecopy docstring.
+
+	* international/mule-diag.el (list-character-sets-2): Avoid
+	charset-bytes.
+	(list-iso-charset-chars, list-non-iso-charset-chars): Deleted.
+	(list-block-of-chars): Re-written.
+	(describe-character-set): Show more properties.
+	(describe-char-after): Correct codepoint display.
+	(print-coding-system): Use symbolic types.
+
+2002-05-17  Kenichi Handa  <handa@etl.go.jp>
+
+	* Makefile.in: Be sure also to run emacs with LANG=C.
+
+2002-05-16  Dave Love  <fx@gnu.org>
+
+	* international/mule-diag.el: Doc fixes.
+	(sort-charset-list, charset-multibyte-form-string): Removed.
+	(list-character-sets, list-character-sets-1)
+	(list-character-sets-2): Re-written.
+	(non-iso-charset-alist): Set to nil and made obsolete.
+	(decode-codepage-char): Re-written and made obsolete.
+	(read-charset): Don't use non-iso-charset-alist.
+	(describe-coding-system): Use keyword properties.
+	(describe-character-set): Re-written.
+
+	* international/mule-conf.el (koi8-u, koi8-t, georgian-ps)
+	(windows-1250, windows-1251, windows-1252, cp1125, ebcdic-us)
+	(ebcdic-uk): New charsets.
+
+	* language/cyrillic.el (koi8-u, koi8-t, windows-1251, cp1125): New
+	coding systems.
+
+	* language/european.el (windows-1252): New coding system.
+
+2002-05-16  Kenichi Handa  <handa@etl.go.jp>
+
+	* Makefile.in: By sure to run emacs with LC_ALL=C.
+
+	* international/encoded-kb.el (encoded-kbd-handle-8bit): Call
+	encoded-kbd-self-insert-iso2022-8bit with argument 1.
+	(encoded-kbd-self-insert-charset): New function.
+	(encoded-kbd-setup-keymap): Handle a coding-system of type
+	charset.
+	(encoded-kbd-mode): Likewise.
+
+2002-05-15  Dave Love  <fx@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment): Comment out
+	set-keyboard-coding-system stuff.
+
+2002-05-14  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule.el (define-coding-system): Docstring
+	fixed (sjis->shift-jis).
+
+	* international/mule-conf.el: Use decode-char instead of
+	make-char.
+
+	* international/encoded-kb.el
+	(encoded-kbd-self-insert-iso2022-8bit): New arg ARG.  Directly
+	call self-insert-command.   This is a temporary workaround to
+	make it work with latin-1.
+	(encoded-kbd-mode): Change `sjis' to `shift-jis'.
+
+	* international/characters.el: Setup char-width-table for CJK
+	characters.
+
+2002-05-15  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/ja-dic-utl.el (skkdic-jisx0208-hiragana-block):
+	Fix the initial value to specify character range of
+	japanese-jisx0208, not unicode.
+
+	* international/characters.el: Set syntax/category for
+	japanese-jisx0208.
+
+2002-05-14  Dave Love  <fx@gnu.org>
+
+	* mail/sendmail.el (sendmail-send-it): Use :mime-charset, not
+	mime-charset.
+
+	* language/vietnamese.el, language/korean.el, language/japanese.el:
+	* language/hebrew.el, language/greek.el, language/chinese.el:
+	Fix :mime-charset properties.
+
+	* language/cyrillic.el (cyrillic-iso-8bit, cyrillic-koi8)
+	(cyrillic-alternativnyj): Fix :mime-charset.
+	(cp878, cp866): New alias.
+
+	* language/european.el: Fix mime-charset properties.
+
+	* international/mule-cmds.el (sort-coding-systems)
+	(select-safe-coding-system, select-message-coding-system): Use
+	:mime-charset, not 'mime-charset.
+
+	* international/mule-conf.el: Add various :mime-charset
+	properties.
+
+2002-05-13  Dave Love  <fx@gnu.org>
+
+	* international/encoded-kb.el (encoded-kbd-self-insert-ccl): Fix
+	getting decoder.
+	(encoded-kbd-mode): Fix code for coding system type and
+	designations.
+
+	* international/mule-conf.el: Speling fixes.
+
+2002-05-13  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el (fontset-plain-name): Handle the case
+	that size, weight, slant are not specified in the fontset name.
+
+2002-05-10  Yong Lu <lyongu@asia-infonet.com>
+
+	* language/greek.el (greek-iso-8bit): Fix typo.
+
+2002-05-10  Kenichi Handa  <handa@etl.go.jp>
+
+	* language/chinese.el (chinese-big5): Change :coding-type to
+	`charset'.
+
+2002-05-09  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/characters.el: Change encoding to utf-8-emacs.
+	Remove apparent duplicate codes.
+
+2002-05-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/fontset.el: Change the registry for
+	chinese-gb2312 and add the registry for chinese-gbk.
+
+	* international/mule.el (charset-chars): Fix typo.
+
+	* international/mule-conf.el (chinese-gbk): New charset.
+
+	* international/titdic-cnv.el (titdic-convert): Read into a
+	unibyte buffer then make the buffer multibyte.
+
+2002-03-07  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-conf.el (utf-16-le): Use :bom attribute
+	instead of :signature.
+	(utf-16-be): Likewise.
+
+2002-03-05  Kenichi Handa  <handa@etl.go.jp>
+
+	* language/czech.el ("Czech"): Set `iso-8859-2' for
+	`nonascii-translation'.
+
+	* language/romanian.el ("Romanian"): Likewise.
+
+	* language/slovak.el ("Slovak"): Likewise.
+
+	* international/characters.el: Optimize calls of
+	modify-category-entry.
+
+2002-03-01  Kenichi Handa  <handa@etl.go.jp>
+
+	* bindings.el: Don't bind multibyte characters to
+	self-insert-command here.  It's done in mule-conf.el
+
+	* case-table.el (set-case-syntax-offset): Variable deleted.
+	(set-case-syntax-1): Function deleted.  Callers changed.
+	(set-case-syntax-delims): Don't check byte length of characters.
+
+	* isearch.el (isearch-mode-map): Call set-char-table-range to bind
+	characters to isearch-printing-char.
+
+	* loadup.el: Don't load "international/utf-8".  Don't call
+	update-coding-systems-internal.  Bind coding-system-for-write to
+	`utf-8' while writing fns-XXX.el.  Call clear-charset-maps before
+	dumping.
+
+	* version.el (emacs-version): Set to "22.0.0".
+
+	* emacs-lisp/regexp-opt.el (regexp-opt-charset): Adjusted for the
+	change of map-char-table.
+
+	* eshell/esh-mode.el: Adjusted for the change of map-char-table.
+
+	* international/characters.el: Adjusted for the deletion of
+	generic characters.
+
+	* international/code-pages.el (cp-make-translation-table,
+	cp-valid-codes, cp-fix-safe-chars): Deleted.  Caller changed.
+	(cp-make-coding-system): Call define-coding-system.
+
+	* international/fontset.el: Mostly re-written.
+
+	* international/ja-dic-cnv.el (skkdic-get-kana-compact-codes):
+	Call encode-char instead of split-char.
+
+	* international/ja-dic-utl.el (skkdic-jisx0208-hiragana-block):
+	Value changed.
+	(skkdic-lookup-key): Call encode-char instead of split-char.
+
+	* international/titdic-cnv.el (titdic-convert): Bind
+	coding-system-for-write to 'iso-2022-7bit.  Don't work on unibyte
+	buffer.
+
+	* international/latin-1.el: Don't bind set-case-syntax-offset.
+
+	* international/latin-2.el: Don't bind set-case-syntax-offset.
+
+	* international/latin-3.el: Don't bind set-case-syntax-offset.
+
+	* international/latin-4.el: Don't bind set-case-syntax-offset.
+
+	* international/latin-5.el: Don't bind set-case-syntax-offset.
+
+	* international/latin-8.el: Don't bind set-case-syntax-offset.
+
+	* international/latin-9.el: Don't bind set-case-syntax-offset.
+
+	* international/mule-cmds.el: Don't use coding category.  Call
+	set-coding-system-priority instead of set-coding-priority.
+	(sort-coding-systems): Call coding-system-priority-list to get the
+	most preferred one.
+	(select-safe-coding-system): Likewise.
+	(reset-language-environment): Order of coding system priority
+	changed.  Set primary charset to iso-8859-1.
+	(set-language-environment-coding-systems): Call
+	set-coding-system-priority instead of set-coding-priority.
+	(get-charset-property, put-charset-property): Moved to mule.el.
+
+	* international/mule-conf.el: Fully Re-written.
+
+	* international/mule-diag.el (print-designation): Arguments
+	changed.
+	(print-iso-2022-flags): New function.
+	(describe-coding-system): Adjusted for the new structure of coding
+	system.
+	(describe-current-coding-system): Likewise.
+
+	* international/mule.el (char-valid-p): Make it an alias of
+	characterp.
+	(define-charset): Fully re-designed.
+	(charset-quoted-standard-p): Deleted.
+	(charsetp): Moved to charset.c.
+	(charset-info, charset-id, charset-bytes, charset-width,
+	charset-directioin, charset-iso-graphic-plane,
+	charset-reverse-charset): Deleted.
+	(charset-dimension, charset-chars, charset-iso-final-char,
+	charset-description, charset-short-name, charset-long-name): Call
+	charset-plist instead of charset-info.
+	(charset-plist, set-charset-plist): Moved to charset.c.
+	(get-charset-property, put-charset-property): Moved from
+	mule-cmds.el.  Call charset-plist and set-charset-plist.
+	(make-char): Deleted.
+	(generic-char-p): Make it always return nil.
+	(decode-char, encode-char): Moved to charset.c.
+	(coding-spec-XXX-idx): Variables deleted.
+	(coding-system-iso-2022-flags): New variable.
+	(define-coding-system): New function.
+	(transform-make-coding-system-args, make-coding-system): Delete.
+	(set-coding-priority): Make it obsolete.
+	(after-insert-file-set-buffer-file-coding-system): Adjust for
+	the new coding system structure.
+	(find-new-buffer-file-coding-system): Likewise.
+
+	* language/chinese.el, language/cyrillic.el, language/european.el,
+	language/greek.el, language/hebrew.el, language/indian.el,
+	language/japanese.el, language/korean.el, language/lao.el,
+	language/thai.el, language/tibetan.el, language/vietnamese.el:
+	Call define-coding-system instead of make-coding-system.  All CCL
+	program deleted.
+
+	* textmodes/sgml-mode.el (sgml-mode-map): Use encode-char instead
+	of make-char.
+	(sgml-char-names-table): Iteration limit fixed.
+
+	* term/mac-win.el: Deleted unnecessary calls of set-fontset-font.
+	(ccl-encode-mac-roman-font): Delete.
+
+	* Makefile.in (DONTCOMPILE): Add latin1-disp.el, ucs-tables.el,
+	utf-8.el, and utf-8-subst.el as they can't be bytecompiled
+	currently.  This is just a temporary workaround.
+
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; End:
+
+    Copyright (C) 2002 Free Software Foundation, Inc.
+  Copying and distribution of this file, with or without modification,
+  are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: d0d613db-0a9b-459c-a1c7-8a1722c771c1

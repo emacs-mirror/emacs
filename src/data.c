@@ -26,7 +26,7 @@ Boston, MA 02110-1301, USA.  */
 #include <stdio.h>
 #include "lisp.h"
 #include "puresize.h"
-#include "charset.h"
+#include "character.h"
 #include "buffer.h"
 #include "keyboard.h"
 #include "frame.h"
@@ -117,7 +117,7 @@ wrong_type_argument (predicate, value)
 {
   /* If VALUE is not even a valid Lisp object, abort here
      where we can get a backtrace showing where it came from.  */
-  if ((unsigned int) XGCTYPE (value) >= Lisp_Type_Limit)
+  if ((unsigned int) XTYPE (value) >= Lisp_Type_Limit)
     abort ();
 
   xsignal2 (Qwrong_type_argument, predicate, value);
@@ -189,7 +189,7 @@ for example, (type-of 1) returns `integer'.  */)
      (object)
      Lisp_Object object;
 {
-  switch (XGCTYPE (object))
+  switch (XTYPE (object))
     {
     case Lisp_Int:
       return Qinteger;
@@ -216,25 +216,25 @@ for example, (type-of 1) returns `integer'.  */)
       abort ();
 
     case Lisp_Vectorlike:
-      if (GC_WINDOW_CONFIGURATIONP (object))
+      if (WINDOW_CONFIGURATIONP (object))
 	return Qwindow_configuration;
-      if (GC_PROCESSP (object))
+      if (PROCESSP (object))
 	return Qprocess;
-      if (GC_WINDOWP (object))
+      if (WINDOWP (object))
 	return Qwindow;
-      if (GC_SUBRP (object))
+      if (SUBRP (object))
 	return Qsubr;
-      if (GC_COMPILEDP (object))
+      if (COMPILEDP (object))
 	return Qcompiled_function;
-      if (GC_BUFFERP (object))
+      if (BUFFERP (object))
 	return Qbuffer;
-      if (GC_CHAR_TABLE_P (object))
+      if (CHAR_TABLE_P (object))
 	return Qchar_table;
-      if (GC_BOOL_VECTOR_P (object))
+      if (BOOL_VECTOR_P (object))
 	return Qbool_vector;
-      if (GC_FRAMEP (object))
+      if (FRAMEP (object))
 	return Qframe;
-      if (GC_HASH_TABLE_P (object))
+      if (HASH_TABLE_P (object))
 	return Qhash_table;
       return Qvector;
 
@@ -437,11 +437,11 @@ DEFUN ("byte-code-function-p", Fbyte_code_function_p, Sbyte_code_function_p,
 }
 
 DEFUN ("char-or-string-p", Fchar_or_string_p, Schar_or_string_p, 1, 1, 0,
-       doc: /* Return t if OBJECT is a character (an integer) or a string.  */)
+       doc: /* Return t if OBJECT is a character or a string.  */)
      (object)
      register Lisp_Object object;
 {
-  if (INTEGERP (object) || STRINGP (object))
+  if (CHARACTERP (object) || STRINGP (object))
     return Qt;
   return Qnil;
 }
@@ -1990,96 +1990,8 @@ or a byte-code object.  IDX starts at 0.  */)
     }
   else if (CHAR_TABLE_P (array))
     {
-      Lisp_Object val;
-
-      val = Qnil;
-
-      if (idxval < 0)
-	args_out_of_range (array, idx);
-      if (idxval < CHAR_TABLE_ORDINARY_SLOTS)
-	{
-	  if (! SINGLE_BYTE_CHAR_P (idxval))
-	    args_out_of_range (array, idx);
-	  /* For ASCII and 8-bit European characters, the element is
-             stored in the top table.  */
-	  val = XCHAR_TABLE (array)->contents[idxval];
-	  if (NILP (val))
-	    {
-	      int default_slot
-		= (idxval < 0x80 ? CHAR_TABLE_DEFAULT_SLOT_ASCII
-		   : idxval < 0xA0 ? CHAR_TABLE_DEFAULT_SLOT_8_BIT_CONTROL
-		   : CHAR_TABLE_DEFAULT_SLOT_8_BIT_GRAPHIC);
-	      val = XCHAR_TABLE (array)->contents[default_slot];
-	    }
-	  if (NILP (val))
-	    val = XCHAR_TABLE (array)->defalt;
-	  while (NILP (val))	/* Follow parents until we find some value.  */
-	    {
-	      array = XCHAR_TABLE (array)->parent;
-	      if (NILP (array))
-		return Qnil;
-	      val = XCHAR_TABLE (array)->contents[idxval];
-	      if (NILP (val))
-		val = XCHAR_TABLE (array)->defalt;
-	    }
-	  return val;
-	}
-      else
-	{
-	  int code[4], i;
-	  Lisp_Object sub_table;
-	  Lisp_Object current_default;
-
-	  SPLIT_CHAR (idxval, code[0], code[1], code[2]);
-	  if (code[1] < 32) code[1] = -1;
-	  else if (code[2] < 32) code[2] = -1;
-
-	  /* Here, the possible range of CODE[0] (== charset ID) is
-	    128..MAX_CHARSET.  Since the top level char table contains
-	    data for multibyte characters after 256th element, we must
-	    increment CODE[0] by 128 to get a correct index.  */
-	  code[0] += 128;
-	  code[3] = -1;		/* anchor */
-
-	try_parent_char_table:
-	  current_default = XCHAR_TABLE (array)->defalt;
-	  sub_table = array;
-	  for (i = 0; code[i] >= 0; i++)
-	    {
-	      val = XCHAR_TABLE (sub_table)->contents[code[i]];
-	      if (SUB_CHAR_TABLE_P (val))
-		{
-		  sub_table = val;
-		  if (! NILP (XCHAR_TABLE (sub_table)->defalt))
-		    current_default = XCHAR_TABLE (sub_table)->defalt;
-		}
-	      else
-		{
-		  if (NILP (val))
-		    val = current_default;
-		  if (NILP (val))
-		    {
-		      array = XCHAR_TABLE (array)->parent;
-		      if (!NILP (array))
-			goto try_parent_char_table;
-		    }
-		  return val;
-		}
-	    }
-	  /* Reaching here means IDXVAL is a generic character in
-	     which each character or a group has independent value.
-	     Essentially it's nonsense to get a value for such a
-	     generic character, but for backward compatibility, we try
-	     the default value and parent.  */
-	  val = current_default;
-	  if (NILP (val))
-	    {
-	      array = XCHAR_TABLE (array)->parent;
-	      if (!NILP (array))
-		goto try_parent_char_table;
-	    }
-	  return val;
-	}
+      CHECK_CHARACTER (idx);
+      return CHAR_TABLE_REF (array, idxval);
     }
   else
     {
@@ -2135,45 +2047,8 @@ bool-vector.  IDX starts at 0.  */)
     }
   else if (CHAR_TABLE_P (array))
     {
-      if (idxval < 0)
-	args_out_of_range (array, idx);
-      if (idxval < CHAR_TABLE_ORDINARY_SLOTS)
-	{
-	  if (! SINGLE_BYTE_CHAR_P (idxval))
-	    args_out_of_range (array, idx);
-	  XCHAR_TABLE (array)->contents[idxval] = newelt;
-	}
-      else
-	{
-	  int code[4], i;
-	  Lisp_Object val;
-
-	  SPLIT_CHAR (idxval, code[0], code[1], code[2]);
-	  if (code[1] < 32) code[1] = -1;
-	  else if (code[2] < 32) code[2] = -1;
-
-	  /* See the comment of the corresponding part in Faref.  */
-	  code[0] += 128;
-	  code[3] = -1;		/* anchor */
-	  for (i = 0; code[i + 1] >= 0; i++)
-	    {
-	      val = XCHAR_TABLE (array)->contents[code[i]];
-	      if (SUB_CHAR_TABLE_P (val))
-		array = val;
-	      else
-		{
-		  Lisp_Object temp;
-
-		  /* VAL is a leaf.  Create a sub char table with the
-		     initial value VAL and look into it.  */
-
-		  temp = make_sub_char_table (val);
-		  XCHAR_TABLE (array)->contents[code[i]] = temp;
-		  array = temp;
-		}
-	    }
-	  XCHAR_TABLE (array)->contents[code[i]] = newelt;
-	}
+      CHECK_CHARACTER (idx);
+      CHAR_TABLE_SET (array, idxval, newelt);
     }
   else if (STRING_MULTIBYTE (array))
     {
@@ -2182,7 +2057,7 @@ bool-vector.  IDX starts at 0.  */)
 
       if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
-      CHECK_NUMBER (newelt);
+      CHECK_CHARACTER (newelt);
 
       nbytes = SBYTES (array);
 
@@ -2217,38 +2092,9 @@ bool-vector.  IDX starts at 0.  */)
 	args_out_of_range (array, idx);
       CHECK_NUMBER (newelt);
 
-      if (XINT (newelt) < 0 || SINGLE_BYTE_CHAR_P (XINT (newelt)))
-	SSET (array, idxval, XINT (newelt));
-      else
-	{
-	  /* We must relocate the string data while converting it to
-	     multibyte.  */
-	  int idxval_byte, prev_bytes, new_bytes;
-	  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
-	  unsigned char *origstr = SDATA (array), *str;
-	  int nchars, nbytes;
-	  USE_SAFE_ALLOCA;
-
-	  nchars = SCHARS (array);
-	  nbytes = idxval_byte = count_size_as_multibyte (origstr, idxval);
-	  nbytes += count_size_as_multibyte (origstr + idxval,
-					     nchars - idxval);
-	  SAFE_ALLOCA (str, unsigned char *, nbytes);
-	  copy_text (SDATA (array), str, nchars, 0, 1);
-	  PARSE_MULTIBYTE_SEQ (str + idxval_byte, nbytes - idxval_byte,
-			       prev_bytes);
-	  new_bytes = CHAR_STRING (XINT (newelt), p0);
-	  allocate_string_data (XSTRING (array), nchars,
-				nbytes + new_bytes - prev_bytes);
-	  bcopy (str, SDATA (array), idxval_byte);
-	  p1 = SDATA (array) + idxval_byte;
-	  while (new_bytes--)
-	    *p1++ = *p0++;
-	  bcopy (str + idxval_byte + prev_bytes, p1,
-		 nbytes - (idxval_byte + prev_bytes));
-	  SAFE_FREE ();
-	  clear_string_char_byte_cache ();
-	}
+      if (XINT (newelt) >= 0 && ! SINGLE_BYTE_CHAR_P (XINT (newelt)))
+	args_out_of_range (array, newelt);
+      SSET (array, idxval, XINT (newelt));
     }
 
   return newelt;

@@ -322,7 +322,7 @@ The expansion is entirely correct because it uses the C preprocessor."
     (while (< (point) limit)
       (cond
        ((or (null (setq char (nth 3 state)))
-            (and (char-valid-p char) (eq (char-syntax (nth 3 state)) ?\")))
+            (and (characterp char) (eq (char-syntax (nth 3 state)) ?\")))
         ;; Normal text, or comment, or docstring, or normal string.
         nil)
        ((eq (nth 3 state) ?\n)

@@ -1,10 +1,14 @@
-/* Basic multilingual character support.
+/* Basic character set support.
    Copyright (C) 2001, 2002, 2003, 2004, 2005,
                  2006, 2007, 2008 Free Software Foundation, Inc.
    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
      2005, 2006, 2007, 2008
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
+
+   Copyright (C) 2003, 2004
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 
@@ -23,720 +27,1248 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
-/* At first, see the document in `charset.h' to understand the code in
-   this file.  */
-
-#ifdef emacs
 #include <config.h>
-#endif
 
 #include <stdio.h>
-
-#ifdef emacs
-
+#include <unistd.h>
+#include <ctype.h>
 #include <sys/types.h>
 #include "lisp.h"
-#include "buffer.h"
+#include "character.h"
 #include "charset.h"
-#include "composite.h"
 #include "coding.h"
 #include "disptab.h"
+#include "buffer.h"
 
-#else  /* not emacs */
+/*** GENERAL NOTES on CODED CHARACTER SETS (CHARSETS) ***
 
-#include "mulelib.h"
+  A coded character set ("charset" hereafter) is a meaningful
+  collection (i.e. language, culture, functionality, etc.) of
+  characters.  Emacs handles multiple charsets at once.  In Emacs Lisp
+  code, a charset is represented by a symbol.  In C code, a charset is
+  represented by its ID number or by a pointer to a struct charset.
 
-#endif /* emacs */
+  The actual information about each charset is stored in two places.
+  Lispy information is stored in the hash table Vcharset_hash_table as
+  a vector (charset attributes).  The other information is stored in
+  charset_table as a struct charset.
 
-Lisp_Object Qcharset, Qascii, Qeight_bit_control, Qeight_bit_graphic;
-Lisp_Object Qunknown;
+*/
 
-/* Declaration of special leading-codes.  */
-EMACS_INT leading_code_private_11; /* for private DIMENSION1 of 1-column */
-EMACS_INT leading_code_private_12; /* for private DIMENSION1 of 2-column */
-EMACS_INT leading_code_private_21; /* for private DIMENSION2 of 1-column */
-EMACS_INT leading_code_private_22; /* for private DIMENSION2 of 2-column */
-
-/* Declaration of special charsets.  The values are set by
-   Fsetup_special_charsets.  */
-int charset_latin_iso8859_1;	/* ISO8859-1 (Latin-1) */
-int charset_jisx0208_1978;	/* JISX0208.1978 (Japanese Kanji old set) */
-int charset_jisx0208;		/* JISX0208.1983 (Japanese Kanji) */
-int charset_katakana_jisx0201;	/* JISX0201.Kana (Japanese Katakana) */
-int charset_latin_jisx0201;	/* JISX0201.Roman (Japanese Roman) */
-int charset_big5_1;		/* Big5 Level 1 (Chinese Traditional) */
-int charset_big5_2;		/* Big5 Level 2 (Chinese Traditional) */
-int charset_mule_unicode_0100_24ff;
-int charset_mule_unicode_2500_33ff;
-int charset_mule_unicode_e000_ffff;
-
-Lisp_Object Qcharset_table;
-
-/* A char-table containing information of each character set.  */
-Lisp_Object Vcharset_table;
-
-/* A vector of charset symbol indexed by charset-id.  This is used
-   only for returning charset symbol from C functions.  */
-Lisp_Object Vcharset_symbol_table;
-
-/* A list of charset symbols ever defined.  */
+/* List of all charsets.  This variable is used only from Emacs
+   Lisp.  */
 Lisp_Object Vcharset_list;
 
-/* Vector of translation table ever defined.
-   ID of a translation table is used to index this vector.  */
-Lisp_Object Vtranslation_table_vector;
+/* Hash table that contains attributes of each charset.  Keys are
+   charset symbols, and values are vectors of charset attributes.  */
+Lisp_Object Vcharset_hash_table;
 
-/* A char-table for characters which may invoke auto-filling.  */
-Lisp_Object Vauto_fill_chars;
+/* Table of struct charset.  */
+struct charset *charset_table;
 
-Lisp_Object Qauto_fill_chars;
+static int charset_table_size;
+static int charset_table_used;
 
-/* Tables used by macros BYTES_BY_CHAR_HEAD and WIDTH_BY_CHAR_HEAD.  */
-int bytes_by_char_head[256];
-int width_by_char_head[256];
+Lisp_Object Qcharsetp;
+
+/* Special charset symbols.  */
+Lisp_Object Qascii;
+Lisp_Object Qeight_bit;
+Lisp_Object Qiso_8859_1;
+Lisp_Object Qunicode;
+
+/* The corresponding charsets.  */
+int charset_ascii;
+int charset_eight_bit;
+int charset_iso_8859_1;
+int charset_unicode;
+
+/* The other special charsets.  */
+int charset_jisx0201_roman;
+int charset_jisx0208_1978;
+int charset_jisx0208;
+
+/* Value of charset attribute `charset-iso-plane'.  */
+Lisp_Object Qgl, Qgr;
+
+/* Charset of unibyte characters.  */
+int charset_unibyte;
+
+/* List of charsets ordered by the priority.  */
+Lisp_Object Vcharset_ordered_list;
+
+/* Incremented everytime we change Vcharset_ordered_list.  This is
+   unsigned short so that it fits in Lisp_Int and never matches
+   -1.  */
+unsigned short charset_ordered_list_tick;
+
+/* List of iso-2022 charsets.  */
+Lisp_Object Viso_2022_charset_list;
+
+/* List of emacs-mule charsets.  */
+Lisp_Object Vemacs_mule_charset_list;
+
+struct charset *emacs_mule_charset[256];
 
 /* Mapping table from ISO2022's charset (specified by DIMENSION,
    CHARS, and FINAL-CHAR) to Emacs' charset.  */
-int iso_charset_table[2][2][128];
+int iso_charset_table[ISO_MAX_DIMENSION][ISO_MAX_CHARS][ISO_MAX_FINAL];
 
-/* Variables used locally in the macro FETCH_MULTIBYTE_CHAR.  */
-unsigned char *_fetch_multibyte_char_p;
-int _fetch_multibyte_char_len;
+Lisp_Object Vcharset_map_path;
 
-/* Offset to add to a non-ASCII value when inserting it.  */
-EMACS_INT nonascii_insert_offset;
+Lisp_Object Vchar_unified_charset_table;
 
-/* Translation table for converting non-ASCII unibyte characters
-   to multibyte codes, or nil.  */
-Lisp_Object Vnonascii_translation_table;
+/* Defined in chartab.c */
+extern void
+map_char_table_for_charset P_ ((void (*c_function) (Lisp_Object, Lisp_Object),
+				Lisp_Object function, Lisp_Object table,
+				Lisp_Object arg, struct charset *charset,
+				unsigned from, unsigned to));
 
-/* List of all possible generic characters.  */
-Lisp_Object Vgeneric_character_list;
+#define CODE_POINT_TO_INDEX(charset, code)				\
+  ((charset)->code_linear_p						\
+   ? (code) - (charset)->min_code					\
+   : (((charset)->code_space_mask[(code) >> 24] & 0x8)			\
+      && ((charset)->code_space_mask[((code) >> 16) & 0xFF] & 0x4)	\
+      && ((charset)->code_space_mask[((code) >> 8) & 0xFF] & 0x2)	\
+      && ((charset)->code_space_mask[(code) & 0xFF] & 0x1))		\
+   ? (((((code) >> 24) - (charset)->code_space[12])			\
+       * (charset)->code_space[11])					\
+      + (((((code) >> 16) & 0xFF) - (charset)->code_space[8])		\
+	 * (charset)->code_space[7])					\
+      + (((((code) >> 8) & 0xFF) - (charset)->code_space[4])		\
+	 * (charset)->code_space[3])					\
+      + (((code) & 0xFF) - (charset)->code_space[0])			\
+      - ((charset)->char_index_offset))					\
+   : -1)
+
+
+/* Convert the character index IDX to code-point CODE for CHARSET.
+   It is assumed that IDX is in a valid range.  */
+
+#define INDEX_TO_CODE_POINT(charset, idx)				     \
+  ((charset)->code_linear_p						     \
+   ? (idx) + (charset)->min_code					     \
+   : (idx += (charset)->char_index_offset,				     \
+      (((charset)->code_space[0] + (idx) % (charset)->code_space[2])	     \
+       | (((charset)->code_space[4]					     \
+	   + ((idx) / (charset)->code_space[3] % (charset)->code_space[6]))  \
+	  << 8)								     \
+       | (((charset)->code_space[8]					     \
+	   + ((idx) / (charset)->code_space[7] % (charset)->code_space[10])) \
+	  << 16)							     \
+       | (((charset)->code_space[12] + ((idx) / (charset)->code_space[11]))  \
+	  << 24))))
+
 
 
-void
-invalid_character (c)
-     int c;
+
+/* Set to 1 to warn that a charset map is loaded and thus a buffer
+   text and a string data may be relocated.  */
+int charset_map_loaded;
+
+struct charset_map_entries
 {
-  error ("Invalid character: %d, #o%o, #x%x", c, c, c);
-}
+  struct {
+    unsigned from, to;
+    int c;
+  } entry[0x10000];
+  struct charset_map_entries *next;
+};
 
-/* Parse string STR of length LENGTH and fetch information of a
-   character at STR.  Set BYTES to the byte length the character
-   occupies, CHARSET, C1, C2 to proper values of the character. */
+/* Load the mapping information for CHARSET from ENTRIES.
 
-#define SPLIT_MULTIBYTE_SEQ(str, length, bytes, charset, c1, c2)	     \
-  do {									     \
-    (c1) = *(str);							     \
-    (bytes) = BYTES_BY_CHAR_HEAD (c1);					     \
-    if ((bytes) == 1)							     \
-      (charset) = ASCII_BYTE_P (c1) ? CHARSET_ASCII : CHARSET_8_BIT_GRAPHIC; \
-    else if ((bytes) == 2)						     \
-      {									     \
-	if ((c1) == LEADING_CODE_8_BIT_CONTROL)				     \
-	  (charset) = CHARSET_8_BIT_CONTROL, (c1) = (str)[1] - 0x20;	     \
-	else								     \
-	  (charset) = (c1), (c1) = (str)[1] & 0x7F;			     \
-      }									     \
-    else if ((bytes) == 3)						     \
-      {									     \
-	if ((c1) < LEADING_CODE_PRIVATE_11)				     \
-	  (charset) = (c1), (c1) = (str)[1] & 0x7F, (c2) = (str)[2] & 0x7F;  \
-	else								     \
-	  (charset) = (str)[1], (c1) = (str)[2] & 0x7F;			     \
-      }									     \
-    else								     \
-      (charset) = (str)[1], (c1) = (str)[2] & 0x7F, (c2) = (str)[3] & 0x7F;  \
-  } while (0)
+   If CONTROL_FLAG is 0, setup CHARSET->min_char and CHARSET->max_char.
 
-/* 1 if CHARSET, C1, and C2 compose a valid character, else 0.
-   Note that this intentionally allows invalid components, such
-   as 0xA0 0xA0, because there exist many files that contain
-   such invalid byte sequences, especially in EUC-GB. */
-#define CHAR_COMPONENTS_VALID_P(charset, c1, c2)	\
-  ((charset) == CHARSET_ASCII				\
-   ? ((c1) >= 0 && (c1) <= 0x7F)			\
-   : ((charset) == CHARSET_8_BIT_CONTROL		\
-      ? ((c1) >= 0x80 && (c1) <= 0x9F)			\
-      : ((charset) == CHARSET_8_BIT_GRAPHIC		\
-	 ? ((c1) >= 0x80 && (c1) <= 0xFF)		\
-	 : (CHARSET_DIMENSION (charset) == 1		\
-	    ? ((c1) >= 0x20 && (c1) <= 0x7F)		\
-	    : ((c1) >= 0x20 && (c1) <= 0x7F		\
-	       && (c2) >= 0x20 && (c2) <= 0x7F)))))
+   If CONTROL_FLAG is 1, setup CHARSET->min_char, CHARSET->max_char,
+   CHARSET->decoder, and CHARSET->encoder.
 
-/* Store multi-byte form of the character C in STR.  The caller should
-   allocate at least 4-byte area at STR in advance.  Returns the
-   length of the multi-byte form.  If C is an invalid character code,
-   return -1.  */
+   If CONTROL_FLAG is 2, setup CHARSET->deunifier and
+   Vchar_unify_table.  If Vchar_unified_charset_table is non-nil,
+   setup it too.  */
 
-int
-char_to_string_1 (c, str)
-     int c;
-     unsigned char *str;
+static void
+load_charset_map (charset, entries, n_entries, control_flag)
+  struct charset *charset;
+  struct charset_map_entries *entries;
+  int n_entries;
+  int control_flag;
 {
-  unsigned char *p = str;
+  Lisp_Object vec, table;
+  unsigned max_code = CHARSET_MAX_CODE (charset);
+  int ascii_compatible_p = charset->ascii_compatible_p;
+  int min_char, max_char, nonascii_min_char;
+  int i;
+  unsigned char *fast_map = charset->fast_map;
 
-  if (c & CHAR_MODIFIER_MASK)	/* This includes the case C is negative.  */
+  if (n_entries <= 0)
+    return;
+
+  if (control_flag > 0)
     {
-      /* Multibyte character can't have a modifier bit.  */
-      if (! SINGLE_BYTE_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
-	return -1;
+      int n = CODE_POINT_TO_INDEX (charset, max_code) + 1;
 
-      /* For Meta, Shift, and Control modifiers, we need special care.  */
-      if (c & CHAR_META)
-	{
-	  /* Move the meta bit to the right place for a string.  */
-	  c = (c & ~CHAR_META) | 0x80;
-	}
-      if (c & CHAR_SHIFT)
-	{
-	  /* Shift modifier is valid only with [A-Za-z].  */
-	  if ((c & 0377) >= 'A' && (c & 0377) <= 'Z')
-	    c &= ~CHAR_SHIFT;
-	  else if ((c & 0377) >= 'a' && (c & 0377) <= 'z')
-	    c = (c & ~CHAR_SHIFT) - ('a' - 'A');
-	}
-      if (c & CHAR_CTL)
-	{
-	  /* Simulate the code in lread.c.  */
-	  /* Allow `\C- ' and `\C-?'.  */
-	  if (c == (CHAR_CTL | ' '))
-	    c = 0;
-	  else if (c == (CHAR_CTL | '?'))
-	    c = 127;
-	  /* ASCII control chars are made from letters (both cases),
-	     as well as the non-letters within 0100...0137.  */
-	  else if ((c & 0137) >= 0101 && (c & 0137) <= 0132)
-	    c &= (037 | (~0177 & ~CHAR_CTL));
-	  else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
-	    c &= (037 | (~0177 & ~CHAR_CTL));
-	}
+      table = Fmake_char_table (Qnil, Qnil);
+      if (control_flag == 1)
+	vec = Fmake_vector (make_number (n), make_number (-1));
+      else if (! CHAR_TABLE_P (Vchar_unify_table))
+	Vchar_unify_table = Fmake_char_table (Qnil, Qnil);
 
-      /* If C still has any modifier bits, just ignore it.  */
-      c &= ~CHAR_MODIFIER_MASK;
+      charset_map_loaded = 1;
     }
 
-  if (SINGLE_BYTE_CHAR_P (c))
+  min_char = max_char = entries->entry[0].c;
+  nonascii_min_char = MAX_CHAR;
+  for (i = 0; i < n_entries; i++)
     {
-      if (ASCII_BYTE_P (c) || c >= 0xA0)
-	*p++ = c;
-      else
+      unsigned from, to;
+      int from_index, to_index;
+      int from_c, to_c;
+      int idx = i % 0x10000;
+
+      if (i > 0 && idx == 0)
+	entries = entries->next;
+      from = entries->entry[idx].from;
+      to = entries->entry[idx].to;
+      from_c = entries->entry[idx].c;
+      from_index = CODE_POINT_TO_INDEX (charset, from);
+      if (from == to)
 	{
-	  *p++ = LEADING_CODE_8_BIT_CONTROL;
-	  *p++ = c + 0x20;
-	}
-    }
-  else if (CHAR_VALID_P (c, 0))
-    {
-      int charset, c1, c2;
-
-      SPLIT_CHAR (c, charset, c1, c2);
-
-      if (charset >= LEADING_CODE_EXT_11)
-	*p++ = (charset < LEADING_CODE_EXT_12
-		? LEADING_CODE_PRIVATE_11
-		: (charset < LEADING_CODE_EXT_21
-		   ? LEADING_CODE_PRIVATE_12
-		   : (charset < LEADING_CODE_EXT_22
-		      ? LEADING_CODE_PRIVATE_21
-		      : LEADING_CODE_PRIVATE_22)));
-      *p++ = charset;
-      if ((c1 > 0 && c1 < 32) || (c2 > 0 && c2 < 32))
-	return -1;
-      if (c1)
-	{
-	  *p++ = c1 | 0x80;
-	  if (c2 > 0)
-	    *p++ = c2 | 0x80;
-	}
-    }
-  else
-    return -1;
-
-  return (p - str);
-}
-
-
-/* Store multi-byte form of the character C in STR.  The caller should
-   allocate at least 4-byte area at STR in advance.  Returns the
-   length of the multi-byte form.  If C is an invalid character code,
-   signal an error.
-
-   Use macro `CHAR_STRING (C, STR)' instead of calling this function
-   directly if C can be an ASCII character.  */
-
-int
-char_to_string (c, str)
-     int c;
-     unsigned char *str;
-{
-  int len;
-  len = char_to_string_1 (c, str);
-  if (len == -1)
-    invalid_character (c);
-  return len;
-}
-
-
-/* Return the non-ASCII character corresponding to multi-byte form at
-   STR of length LEN.  If ACTUAL_LEN is not NULL, store the byte
-   length of the multibyte form in *ACTUAL_LEN.
-
-   Use macros STRING_CHAR or STRING_CHAR_AND_LENGTH instead of calling
-   this function directly if you want ot handle ASCII characters as
-   well.  */
-
-int
-string_to_char (str, len, actual_len)
-     const unsigned char *str;
-     int len, *actual_len;
-{
-  int c, bytes, charset, c1, c2;
-
-  SPLIT_MULTIBYTE_SEQ (str, len, bytes, charset, c1, c2);
-  c = MAKE_CHAR (charset, c1, c2);
-  if (actual_len)
-    *actual_len = bytes;
-  return c;
-}
-
-/* Return the length of the multi-byte form at string STR of length LEN.
-   Use the macro MULTIBYTE_FORM_LENGTH instead.  */
-int
-multibyte_form_length (str, len)
-     const unsigned char *str;
-     int len;
-{
-  int bytes;
-
-  PARSE_MULTIBYTE_SEQ (str, len, bytes);
-  return bytes;
-}
-
-/* Check multibyte form at string STR of length LEN and set variables
-   pointed by CHARSET, C1, and C2 to charset and position codes of the
-   character at STR, and return 0.  If there's no multibyte character,
-   return -1.  This should be used only in the macro SPLIT_STRING
-   which checks range of STR in advance.  */
-
-int
-split_string (str, len, charset, c1, c2)
-     const unsigned char *str;
-     unsigned char *c1, *c2;
-     int len, *charset;
-{
-  register int bytes, cs, code1, code2 = -1;
-
-  SPLIT_MULTIBYTE_SEQ (str, len, bytes, cs, code1, code2);
-  if (cs == CHARSET_ASCII)
-    return -1;
-  *charset = cs;
-  *c1 = code1;
-  *c2 = code2;
-  return 0;
-}
-
-/* Return 1 if character C has valid printable glyph.
-   Use the macro CHAR_PRINTABLE_P instead.  */
-int
-char_printable_p (c)
-     int c;
-{
-  int charset, c1, c2;
-
-  if (ASCII_BYTE_P (c))
-    return 1;
-  else if (SINGLE_BYTE_CHAR_P (c))
-    return 0;
-  else if (c >= MAX_CHAR)
-    return 0;
-
-  SPLIT_CHAR (c, charset, c1, c2);
-  if (! CHARSET_DEFINED_P (charset))
-    return 0;
-  if (CHARSET_CHARS (charset) == 94
-      ? c1 <= 32 || c1 >= 127
-      : c1 < 32)
-    return 0;
-  if (CHARSET_DIMENSION (charset) == 2
-      && (CHARSET_CHARS (charset) == 94
-	  ? c2 <= 32 || c2 >= 127
-	  : c2 < 32))
-    return 0;
-  return 1;
-}
-
-/* Translate character C by translation table TABLE.  If C
-   is negative, translate a character specified by CHARSET, C1, and C2
-   (C1 and C2 are code points of the character).  If no translation is
-   found in TABLE, return C.  */
-int
-translate_char (table, c, charset, c1, c2)
-     Lisp_Object table;
-     int c, charset, c1, c2;
-{
-  Lisp_Object ch;
-  int alt_charset, alt_c1, alt_c2, dimension;
-
-  if (c < 0) c = MAKE_CHAR (charset, (c1 & 0x7F) , (c2 & 0x7F));
-  if (!CHAR_TABLE_P (table)
-      || (ch = Faref (table, make_number (c)), !NATNUMP (ch)))
-    return c;
-
-  SPLIT_CHAR (XFASTINT (ch), alt_charset, alt_c1, alt_c2);
-  dimension = CHARSET_DIMENSION (alt_charset);
-  if ((dimension == 1 && alt_c1 > 0) || (dimension == 2 && alt_c2 > 0))
-    /* CH is not a generic character, just return it.  */
-    return XFASTINT (ch);
-
-  /* Since CH is a generic character, we must return a specific
-     charater which has the same position codes as C from CH.  */
-  if (charset < 0)
-    SPLIT_CHAR (c, charset, c1, c2);
-  if (dimension != CHARSET_DIMENSION (charset))
-    /* We can't make such a character because of dimension mismatch.  */
-    return c;
-  return MAKE_CHAR (alt_charset, c1, c2);
-}
-
-/* Convert the unibyte character C to multibyte based on
-   Vnonascii_translation_table or nonascii_insert_offset.  If they can't
-   convert C to a valid multibyte character, convert it based on
-   DEFAULT_NONASCII_INSERT_OFFSET which makes C a Latin-1 character.  */
-
-int
-unibyte_char_to_multibyte (c)
-     int c;
-{
-  if (c < 0400 && c >= 0200)
-    {
-      int c_save = c;
-
-      if (! NILP (Vnonascii_translation_table))
-	{
-	  c = XINT (Faref (Vnonascii_translation_table, make_number (c)));
-	  if (c >= 0400 && ! char_valid_p (c, 0))
-	    c = c_save + DEFAULT_NONASCII_INSERT_OFFSET;
-	}
-      else if (c >= 0240 && nonascii_insert_offset > 0)
-	{
-	  c += nonascii_insert_offset;
-	  if (c < 0400 || ! char_valid_p (c, 0))
-	    c = c_save + DEFAULT_NONASCII_INSERT_OFFSET;
-	}
-      else if (c >= 0240)
-	c = c_save + DEFAULT_NONASCII_INSERT_OFFSET;
-    }
-  return c;
-}
-
-
-/* Convert the multibyte character C to unibyte 8-bit character based
-   on Vnonascii_translation_table or nonascii_insert_offset.  If
-   REV_TBL is non-nil, it should be a reverse table of
-   Vnonascii_translation_table, i.e. what given by:
-     Fchar_table_extra_slot (Vnonascii_translation_table, make_number (0))  */
-
-int
-multibyte_char_to_unibyte (c, rev_tbl)
-     int c;
-     Lisp_Object rev_tbl;
-{
-  if (!SINGLE_BYTE_CHAR_P (c))
-    {
-      int c_save = c;
-
-      if (! CHAR_TABLE_P (rev_tbl)
-	  && CHAR_TABLE_P (Vnonascii_translation_table))
-	rev_tbl = Fchar_table_extra_slot (Vnonascii_translation_table,
-					  make_number (0));
-      if (CHAR_TABLE_P (rev_tbl))
-	{
-	  Lisp_Object temp;
-	  temp = Faref (rev_tbl, make_number (c));
-	  if (INTEGERP (temp))
-	    c = XINT (temp);
-	  if (c >= 256)
-	    c = (c_save & 0177) + 0200;
+	  to_index = from_index;
+	  to_c = from_c;
 	}
       else
 	{
-	  if (nonascii_insert_offset > 0)
-	    c -= nonascii_insert_offset;
-	  if (c < 128 || c >= 256)
-	    c = (c_save & 0177) + 0200;
+	  to_index = CODE_POINT_TO_INDEX (charset, to);
+	  to_c = from_c + (to_index - from_index);
 	}
-    }
+      if (from_index < 0 || to_index < 0)
+	continue;
 
-  return c;
-}
-
-
-/* Update the table Vcharset_table with the given arguments (see the
-   document of `define-charset' for the meaning of each argument).
-   Several other table contents are also updated.  The caller should
-   check the validity of CHARSET-ID and the remaining arguments in
-   advance.  */
-
-void
-update_charset_table (charset_id, dimension, chars, width, direction,
-		      iso_final_char, iso_graphic_plane,
-		      short_name, long_name, description)
-     Lisp_Object charset_id, dimension, chars, width, direction;
-     Lisp_Object iso_final_char, iso_graphic_plane;
-     Lisp_Object short_name, long_name, description;
-{
-  int charset = XINT (charset_id);
-  int bytes;
-  unsigned char leading_code_base, leading_code_ext;
-
-  if (NILP (CHARSET_TABLE_ENTRY (charset)))
-    CHARSET_TABLE_ENTRY (charset)
-      = Fmake_vector (make_number (CHARSET_MAX_IDX), Qnil);
-
-  if (NILP (long_name))
-    long_name = short_name;
-  if (NILP (description))
-    description = long_name;
-
-  /* Get byte length of multibyte form, base leading-code, and
-     extended leading-code of the charset.  See the comment under the
-     title "GENERAL NOTE on CHARACTER SET (CHARSET)" in charset.h.  */
-  bytes = XINT (dimension);
-  if (charset < MIN_CHARSET_PRIVATE_DIMENSION1)
-    {
-      /* Official charset, it doesn't have an extended leading-code.  */
-      if (charset != CHARSET_ASCII && charset != CHARSET_8_BIT_GRAPHIC)
-	bytes += 1; /* For a base leading-code.  */
-      leading_code_base = charset;
-      leading_code_ext = 0;
-    }
-  else
-    {
-      /* Private charset.  */
-      bytes += 2; /* For base and extended leading-codes.  */
-      leading_code_base
-	= (charset < LEADING_CODE_EXT_12
-	   ? LEADING_CODE_PRIVATE_11
-	   : (charset < LEADING_CODE_EXT_21
-	      ? LEADING_CODE_PRIVATE_12
-	      : (charset < LEADING_CODE_EXT_22
-		 ? LEADING_CODE_PRIVATE_21
-		 : LEADING_CODE_PRIVATE_22)));
-      leading_code_ext = charset;
-      if (BYTES_BY_CHAR_HEAD (leading_code_base) != bytes)
-	error ("Invalid dimension for the charset-ID %d", charset);
-    }
-
-  CHARSET_TABLE_INFO (charset, CHARSET_ID_IDX) = charset_id;
-  CHARSET_TABLE_INFO (charset, CHARSET_BYTES_IDX) = make_number (bytes);
-  CHARSET_TABLE_INFO (charset, CHARSET_DIMENSION_IDX) = dimension;
-  CHARSET_TABLE_INFO (charset, CHARSET_CHARS_IDX) = chars;
-  CHARSET_TABLE_INFO (charset, CHARSET_WIDTH_IDX) = width;
-  CHARSET_TABLE_INFO (charset, CHARSET_DIRECTION_IDX) = direction;
-  CHARSET_TABLE_INFO (charset, CHARSET_LEADING_CODE_BASE_IDX)
-    = make_number (leading_code_base);
-  CHARSET_TABLE_INFO (charset, CHARSET_LEADING_CODE_EXT_IDX)
-    = make_number (leading_code_ext);
-  CHARSET_TABLE_INFO (charset, CHARSET_ISO_FINAL_CHAR_IDX) = iso_final_char;
-  CHARSET_TABLE_INFO (charset, CHARSET_ISO_GRAPHIC_PLANE_IDX)
-    = iso_graphic_plane;
-  CHARSET_TABLE_INFO (charset, CHARSET_SHORT_NAME_IDX) = short_name;
-  CHARSET_TABLE_INFO (charset, CHARSET_LONG_NAME_IDX) = long_name;
-  CHARSET_TABLE_INFO (charset, CHARSET_DESCRIPTION_IDX) = description;
-  CHARSET_TABLE_INFO (charset, CHARSET_PLIST_IDX) = Qnil;
-
-  {
-    /* If we have already defined a charset which has the same
-       DIMENSION, CHARS and ISO-FINAL-CHAR but the different
-       DIRECTION, we must update the entry REVERSE-CHARSET of both
-       charsets.  If there's no such charset, the value of the entry
-       is set to nil.  */
-    int i;
-
-    for (i = 0; i <= MAX_CHARSET; i++)
-      if (!NILP (CHARSET_TABLE_ENTRY (i)))
+      if (control_flag < 2)
 	{
-	  if (CHARSET_DIMENSION (i) == XINT (dimension)
-	      && CHARSET_CHARS (i) == XINT (chars)
-	      && CHARSET_ISO_FINAL_CHAR (i) == XINT (iso_final_char)
-	      && CHARSET_DIRECTION (i) != XINT (direction))
+	  int c;
+
+	  if (to_c > max_char)
+	    max_char = to_c;
+	  else if (from_c < min_char)
+	    min_char = from_c;
+	  if (ascii_compatible_p)
 	    {
-	      CHARSET_TABLE_INFO (charset, CHARSET_REVERSE_CHARSET_IDX)
-		= make_number (i);
-	      CHARSET_TABLE_INFO (i, CHARSET_REVERSE_CHARSET_IDX) = charset_id;
-	      break;
+	      if (! ASCII_BYTE_P (from_c))
+		{
+		  if (from_c < nonascii_min_char)
+		    nonascii_min_char = from_c;
+		}
+	      else if (! ASCII_BYTE_P (to_c))
+		{
+		  nonascii_min_char = 0x80;
+		}
+	    }
+
+	  for (c = from_c; c <= to_c; c++)
+	    CHARSET_FAST_MAP_SET (c, fast_map);
+
+	  if (control_flag == 1)
+	    {
+	      unsigned code = from;
+
+	      if (CHARSET_COMPACT_CODES_P (charset))
+		while (1)
+		  {
+		    ASET (vec, from_index, make_number (from_c));
+		    if (NILP (CHAR_TABLE_REF (table, from_c)))
+		      CHAR_TABLE_SET (table, from_c, make_number (code));
+		    if (from_index == to_index)
+		      break;
+		    from_index++, from_c++;
+		    code = INDEX_TO_CODE_POINT (charset, from_index);
+		  }
+	      else
+		for (; from_index <= to_index; from_index++, from_c++)
+		  {
+		    ASET (vec, from_index, make_number (from_c));
+		    if (NILP (CHAR_TABLE_REF (table, from_c)))
+		      CHAR_TABLE_SET (table, from_c, make_number (from_index));
+		  }
 	    }
 	}
-    if (i > MAX_CHARSET)
-      /* No such a charset.  */
-      CHARSET_TABLE_INFO (charset, CHARSET_REVERSE_CHARSET_IDX)
-	= make_number (-1);
-  }
+      else
+	{
+	  unsigned code = from;
 
-  if (charset != CHARSET_ASCII && charset != CHARSET_8_BIT_GRAPHIC
-      && charset < MIN_CHARSET_PRIVATE_DIMENSION1)
-    {
-      bytes_by_char_head[leading_code_base] = bytes;
-      width_by_char_head[leading_code_base] = XINT (width);
+	  while (1)
+	    {
+	      int c1 = DECODE_CHAR (charset, code);
 
-      /* Update table emacs_code_class.  */
-      emacs_code_class[charset] = (bytes == 2
-				   ? EMACS_leading_code_2
-				   : (bytes == 3
-				      ? EMACS_leading_code_3
-				      : EMACS_leading_code_4));
+	      if (c1 >= 0)
+		{
+		  CHAR_TABLE_SET (table, from_c, make_number (c1));
+		  CHAR_TABLE_SET (Vchar_unify_table, c1, make_number (from_c));
+		  if (CHAR_TABLE_P (Vchar_unified_charset_table))
+		    CHAR_TABLE_SET (Vchar_unified_charset_table, c1,
+				    CHARSET_NAME (charset));
+		}
+	      if (from_index == to_index)
+		break;
+	      from_index++, from_c++;
+	      code = INDEX_TO_CODE_POINT (charset, from_index);
+	    }
+	}
     }
 
-  /* Update table iso_charset_table.  */
-  if (XINT (iso_final_char) >= 0
-      && ISO_CHARSET_TABLE (dimension, chars, iso_final_char) < 0)
-    ISO_CHARSET_TABLE (dimension, chars, iso_final_char) = charset;
-}
-
-#ifdef emacs
-
-/* Return charset id of CHARSET_SYMBOL, or return -1 if CHARSET_SYMBOL
-   is invalid.  */
-int
-get_charset_id (charset_symbol)
-     Lisp_Object charset_symbol;
-{
-  Lisp_Object val;
-  int charset;
-
-  /* This originally used a ?: operator, but reportedly the HP-UX
-     compiler version HP92453-01 A.10.32.22 miscompiles that.  */
-  if (SYMBOLP (charset_symbol)
-      && VECTORP (val = Fget (charset_symbol, Qcharset))
-      && CHARSET_VALID_P (charset =
-			  XINT (XVECTOR (val)->contents[CHARSET_ID_IDX])))
-    return charset;
-  else
-    return -1;
-}
-
-/* Return an identification number for a new private charset of
-   DIMENSION and WIDTH.  If there's no more room for the new charset,
-   return 0.  */
-Lisp_Object
-get_new_private_charset_id (dimension, width)
-     int dimension, width;
-{
-  int charset, from, to;
-
-  if (dimension == 1)
+  if (control_flag < 2)
     {
-      from = LEADING_CODE_EXT_11;
-      to = LEADING_CODE_EXT_21;
+      CHARSET_MIN_CHAR (charset) = (ascii_compatible_p
+				    ? nonascii_min_char : min_char);
+      CHARSET_MAX_CHAR (charset) = max_char;
+      if (control_flag == 1)
+	{
+	  CHARSET_DECODER (charset) = vec;
+	  CHARSET_ENCODER (charset) = table;
+	}
     }
   else
-    {
-      from = LEADING_CODE_EXT_21;
-      to = LEADING_CODE_EXT_MAX + 1;
-    }
-
-  for (charset = from; charset < to; charset++)
-    if (!CHARSET_DEFINED_P (charset)) break;
-
-  return make_number (charset < to ? charset : 0);
+    CHARSET_DEUNIFIER (charset) = table;
 }
 
-DEFUN ("define-charset", Fdefine_charset, Sdefine_charset, 3, 3, 0,
-       doc: /* Define CHARSET-ID as the identification number of CHARSET with INFO-VECTOR.
-If CHARSET-ID is nil, it is decided automatically, which means CHARSET is
- treated as a private charset.
-INFO-VECTOR is a vector of the format:
-   [DIMENSION CHARS WIDTH DIRECTION ISO-FINAL-CHAR ISO-GRAPHIC-PLANE
-    SHORT-NAME LONG-NAME DESCRIPTION]
-The meanings of each elements is as follows:
-DIMENSION (integer) is the number of bytes to represent a character: 1 or 2.
-CHARS (integer) is the number of characters in a dimension: 94 or 96.
-WIDTH (integer) is the number of columns a character in the charset
-occupies on the screen: one of 0, 1, and 2.
 
-DIRECTION (integer) is the rendering direction of characters in the
-charset when rendering.  If 0, render from left to right, else
-render from right to left.
+/* Read a hexadecimal number (preceded by "0x") from the file FP while
+   paying attention to comment charcter '#'.  */
 
-ISO-FINAL-CHAR (character) is the final character of the
-corresponding ISO 2022 charset.
-It may be -1 if the charset is internal use only.
-
-ISO-GRAPHIC-PLANE (integer) is the graphic plane to be invoked
-while encoding to variants of ISO 2022 coding system, one of the
-following: 0/graphic-plane-left(GL), 1/graphic-plane-right(GR).
-It may be -1 if the charset is internal use only.
-
-SHORT-NAME (string) is the short name to refer to the charset.
-
-LONG-NAME (string) is the long name to refer to the charset.
-
-DESCRIPTION (string) is the description string of the charset.  */)
-       (charset_id, charset_symbol, info_vector)
-     Lisp_Object charset_id, charset_symbol, info_vector;
+static INLINE unsigned
+read_hex (fp, eof)
+     FILE *fp;
+     int *eof;
 {
-  Lisp_Object *vec;
+  int c;
+  unsigned n;
 
-  if (!NILP (charset_id))
-    CHECK_NUMBER (charset_id);
-  CHECK_SYMBOL (charset_symbol);
-  CHECK_VECTOR (info_vector);
-
-  if (! NILP (charset_id))
+  while ((c = getc (fp)) != EOF)
     {
-      if (! CHARSET_VALID_P (XINT (charset_id)))
-	error ("Invalid CHARSET: %d", XINT (charset_id));
-      else if (CHARSET_DEFINED_P (XINT (charset_id)))
-	error ("Already defined charset: %d", XINT (charset_id));
+      if (c == '#')
+	{
+	  while ((c = getc (fp)) != EOF && c != '\n');
+	}
+      else if (c == '0')
+	{
+	  if ((c = getc (fp)) == EOF || c == 'x')
+	    break;
+	}
+    }
+  if (c == EOF)
+    {
+      *eof = 1;
+      return 0;
+    }
+  *eof = 0;
+  n = 0;
+  if (c == 'x')
+    while ((c = getc (fp)) != EOF && isxdigit (c))
+      n = ((n << 4)
+	   | (c <= '9' ? c - '0' : c <= 'F' ? c - 'A' + 10 : c - 'a' + 10));
+  else
+    while ((c = getc (fp)) != EOF && isdigit (c))
+      n = (n * 10) + c - '0';
+  if (c != EOF)
+    ungetc (c, fp);
+  return n;
+}
+
+
+/* Return a mapping vector for CHARSET loaded from MAPFILE.
+   Each line of MAPFILE has this form
+	0xAAAA 0xCCCC
+   where 0xAAAA is a code-point and 0xCCCC is the corresponding
+   character code, or this form
+	0xAAAA-0xBBBB 0xCCCC
+   where 0xAAAA and 0xBBBB are code-points specifying a range, and
+   0xCCCC is the first character code of the range.
+
+   The returned vector has this form:
+	[ CODE1 CHAR1 CODE2 CHAR2 .... ]
+   where CODE1 is a code-point or a cons of code-points specifying a
+   range.  */
+
+extern void add_to_log P_ ((char *, Lisp_Object, Lisp_Object));
+
+static void
+load_charset_map_from_file (charset, mapfile, control_flag)
+     struct charset *charset;
+     Lisp_Object mapfile;
+     int control_flag;
+{
+  unsigned min_code = CHARSET_MIN_CODE (charset);
+  unsigned max_code = CHARSET_MAX_CODE (charset);
+  int fd;
+  FILE *fp;
+  int eof;
+  Lisp_Object suffixes;
+  struct charset_map_entries *head, *entries;
+  int n_entries;
+
+  suffixes = Fcons (build_string (".map"),
+		    Fcons (build_string (".TXT"), Qnil));
+
+  fd = openp (Vcharset_map_path, mapfile, suffixes, NULL, Qnil);
+  if (fd < 0
+      || ! (fp = fdopen (fd, "r")))
+    {
+      add_to_log ("Failure in loading charset map: %S", mapfile, Qnil);
+      return;
     }
 
-  vec = XVECTOR (info_vector)->contents;
-  if (XVECTOR (info_vector)->size != 9
-      || !INTEGERP (vec[0]) || !(XINT (vec[0]) == 1 || XINT (vec[0]) == 2)
-      || !INTEGERP (vec[1]) || !(XINT (vec[1]) == 94 || XINT (vec[1]) == 96)
-      || !INTEGERP (vec[2]) || !(XINT (vec[2]) == 1 || XINT (vec[2]) == 2)
-      || !INTEGERP (vec[3]) || !(XINT (vec[3]) == 0 || XINT (vec[3]) == 1)
-      || !INTEGERP (vec[4])
-      || !(XINT (vec[4]) == -1 || (XINT (vec[4]) >= '0' && XINT (vec[4]) <= '~'))
-      || !INTEGERP (vec[5])
-      || !(XINT (vec[5]) == -1 || XINT (vec[5]) == 0 || XINT (vec[5]) == 1)
-      || !STRINGP (vec[6])
-      || !STRINGP (vec[7])
-      || !STRINGP (vec[8]))
-    error ("Invalid info-vector argument for defining charset %s",
-	   SDATA (SYMBOL_NAME (charset_symbol)));
-
-  if (NILP (charset_id))
+  head = entries = ((struct charset_map_entries *)
+		    alloca (sizeof (struct charset_map_entries)));
+  n_entries = 0;
+  eof = 0;
+  while (1)
     {
-      charset_id = get_new_private_charset_id (XINT (vec[0]), XINT (vec[2]));
-      if (XINT (charset_id) == 0)
-	error ("There's no room for a new private charset %s",
-	       SDATA (SYMBOL_NAME (charset_symbol)));
+      unsigned from, to;
+      int c;
+      int idx;
+
+      from = read_hex (fp, &eof);
+      if (eof)
+	break;
+      if (getc (fp) == '-')
+	to = read_hex (fp, &eof);
+      else
+	to = from;
+      c = (int) read_hex (fp, &eof);
+
+      if (from < min_code || to > max_code || from > to || c > MAX_CHAR)
+	continue;
+
+      if (n_entries > 0 && (n_entries % 0x10000) == 0)
+	{
+	  entries->next = ((struct charset_map_entries *)
+			   alloca (sizeof (struct charset_map_entries)));
+	  entries = entries->next;
+	}
+      idx = n_entries % 0x10000;
+      entries->entry[idx].from = from;
+      entries->entry[idx].to = to;
+      entries->entry[idx].c = c;
+      n_entries++;
+    }
+  fclose (fp);
+  close (fd);
+
+  load_charset_map (charset, head, n_entries, control_flag);
+}
+
+static void
+load_charset_map_from_vector (charset, vec, control_flag)
+     struct charset *charset;
+     Lisp_Object vec;
+     int control_flag;
+{
+  unsigned min_code = CHARSET_MIN_CODE (charset);
+  unsigned max_code = CHARSET_MAX_CODE (charset);
+  struct charset_map_entries *head, *entries;
+  int n_entries;
+  int len = ASIZE (vec);
+  int i;
+
+  if (len % 2 == 1)
+    {
+      add_to_log ("Failure in loading charset map: %V", vec, Qnil);
+      return;
     }
 
-  update_charset_table (charset_id, vec[0], vec[1], vec[2], vec[3],
-			vec[4], vec[5], vec[6], vec[7], vec[8]);
-  Fput (charset_symbol, Qcharset, CHARSET_TABLE_ENTRY (XINT (charset_id)));
-  CHARSET_SYMBOL (XINT (charset_id)) = charset_symbol;
-  Vcharset_list = Fcons (charset_symbol, Vcharset_list);
-  Fupdate_coding_systems_internal ();
+  head = entries = ((struct charset_map_entries *)
+		    alloca (sizeof (struct charset_map_entries)));
+  n_entries = 0;
+  for (i = 0; i < len; i += 2)
+    {
+      Lisp_Object val, val2;
+      unsigned from, to;
+      int c;
+      int idx;
+
+      val = AREF (vec, i);
+      if (CONSP (val))
+	{
+	  val2 = XCDR (val);
+	  val = XCAR (val);
+	  CHECK_NATNUM (val);
+	  CHECK_NATNUM (val2);
+	  from = XFASTINT (val);
+	  to = XFASTINT (val2);
+	}
+      else
+	{
+	  CHECK_NATNUM (val);
+	  from = to = XFASTINT (val);
+	}
+      val = AREF (vec, i + 1);
+      CHECK_NATNUM (val);
+      c = XFASTINT (val);
+
+      if (from < min_code || to > max_code || from > to || c > MAX_CHAR)
+	continue;
+
+      if (n_entries > 0 && (n_entries % 0x10000) == 0)
+	{
+	  entries->next = ((struct charset_map_entries *)
+			   alloca (sizeof (struct charset_map_entries)));
+	  entries = entries->next;
+	}
+      idx = n_entries % 0x10000;
+      entries->entry[idx].from = from;
+      entries->entry[idx].to = to;
+      entries->entry[idx].c = c;
+      n_entries++;
+    }
+
+  load_charset_map (charset, head, n_entries, control_flag);
+}
+
+static void
+load_charset (charset)
+     struct charset *charset;
+{
+  if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP_DEFERRED)
+    {
+      Lisp_Object map;
+
+      map = CHARSET_MAP (charset);
+      if (STRINGP (map))
+	load_charset_map_from_file (charset, map, 1);
+      else
+	load_charset_map_from_vector (charset, map, 1);
+      CHARSET_METHOD (charset) = CHARSET_METHOD_MAP;
+    }
+}
+
+
+DEFUN ("charsetp", Fcharsetp, Scharsetp, 1, 1, 0,
+       doc: /* Return non-nil if and only if OBJECT is a charset.*/)
+     (object)
+     Lisp_Object object;
+{
+  return (CHARSETP (object) ? Qt : Qnil);
+}
+
+
+void
+map_charset_chars (c_function, function, arg,
+		   charset, from, to)
+     void (*c_function) P_ ((Lisp_Object, Lisp_Object));
+     Lisp_Object function, arg;
+     struct charset *charset;
+     unsigned from, to;
+{
+  Lisp_Object range;
+  int partial;
+
+  if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP_DEFERRED)
+    load_charset (charset);
+
+  partial = (from > CHARSET_MIN_CODE (charset)
+	     || to < CHARSET_MAX_CODE (charset));
+
+  if (CHARSET_UNIFIED_P (charset)
+      && CHAR_TABLE_P (CHARSET_DEUNIFIER (charset)))
+    {
+      map_char_table_for_charset (c_function, function,
+				  CHARSET_DEUNIFIER (charset), arg,
+				  partial ? charset : NULL, from, to);
+    }
+
+  if (CHARSET_METHOD (charset) == CHARSET_METHOD_OFFSET)
+    {
+      int from_idx = CODE_POINT_TO_INDEX (charset, from);
+      int to_idx = CODE_POINT_TO_INDEX (charset, to);
+      int from_c = from_idx + CHARSET_CODE_OFFSET (charset);
+      int to_c = to_idx + CHARSET_CODE_OFFSET (charset);
+
+      range = Fcons (make_number (from_c), make_number (to_c));
+      if (NILP (function))
+	(*c_function) (arg, range);
+      else
+	call2 (function, range, arg);
+    }
+  else if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP)
+    {
+      if (! CHAR_TABLE_P (CHARSET_ENCODER (charset)))
+	return;
+      map_char_table_for_charset (c_function, function,
+				  CHARSET_ENCODER (charset), arg,
+				  partial ? charset : NULL, from, to);
+    }
+  else if (CHARSET_METHOD (charset) == CHARSET_METHOD_SUBSET)
+    {
+      Lisp_Object subset_info;
+      int offset;
+
+      subset_info = CHARSET_SUBSET (charset);
+      charset = CHARSET_FROM_ID (XFASTINT (AREF (subset_info, 0)));
+      offset = XINT (AREF (subset_info, 3));
+      from -= offset;
+      if (from < XFASTINT (AREF (subset_info, 1)))
+	from = XFASTINT (AREF (subset_info, 1));
+      to -= offset;
+      if (to > XFASTINT (AREF (subset_info, 2)))
+	to = XFASTINT (AREF (subset_info, 2));
+      map_charset_chars (c_function, function, arg, charset, from, to);
+    }
+  else				/* i.e. CHARSET_METHOD_SUPERSET */
+    {
+      Lisp_Object parents;
+
+      for (parents = CHARSET_SUPERSET (charset); CONSP (parents);
+	   parents = XCDR (parents))
+	{
+	  int offset;
+	  unsigned this_from, this_to;
+
+	  charset = CHARSET_FROM_ID (XFASTINT (XCAR (XCAR (parents))));
+	  offset = XINT (XCDR (XCAR (parents)));
+	  this_from = from - offset;
+	  this_to = to - offset;
+	  if (this_from < CHARSET_MIN_CODE (charset))
+	    this_from = CHARSET_MIN_CODE (charset);
+	  if (this_to > CHARSET_MAX_CODE (charset))
+	    this_to = CHARSET_MAX_CODE (charset);
+	  map_charset_chars (c_function, function, arg, charset,
+			     this_from, this_to);
+	}
+    }
+}
+
+DEFUN ("map-charset-chars", Fmap_charset_chars, Smap_charset_chars, 2, 5, 0,
+       doc: /* Call FUNCTION for all characters in CHARSET.
+FUNCTION is called with an argument RANGE and the optional 3rd
+argument ARG.
+
+RANGE is a cons (FROM .  TO), where FROM and TO indicate a range of
+characters contained in CHARSET.
+
+The optional 4th and 5th arguments FROM-CODE and TO-CODE specify the
+range of code points of target characters.  */)
+     (function, charset, arg, from_code, to_code)
+       Lisp_Object function, charset, arg, from_code, to_code;
+{
+  struct charset *cs;
+  unsigned from, to;
+
+  CHECK_CHARSET_GET_CHARSET (charset, cs);
+  if (NILP (from_code))
+    from = CHARSET_MIN_CODE (cs);
+  else
+    {
+      CHECK_NATNUM (from_code);
+      from = XINT (from_code);
+      if (from < CHARSET_MIN_CODE (cs))
+	from = CHARSET_MIN_CODE (cs);
+    }
+  if (NILP (to_code))
+    to = CHARSET_MAX_CODE (cs);
+  else
+    {
+      CHECK_NATNUM (to_code);
+      to = XINT (to_code);
+      if (to > CHARSET_MAX_CODE (cs))
+	to = CHARSET_MAX_CODE (cs);
+    }
+  map_charset_chars (NULL, function, arg, cs, from, to);
   return Qnil;
 }
 
-DEFUN ("generic-character-list", Fgeneric_character_list,
-       Sgeneric_character_list, 0, 0, 0,
-       doc: /* Return a list of all possible generic characters.
-It includes a generic character for a charset not yet defined.  */)
+
+/* Define a charset according to the arguments.  The Nth argument is
+   the Nth attribute of the charset (the last attribute `charset-id'
+   is not included).  See the docstring of `define-charset' for the
+   detail.  */
+
+DEFUN ("define-charset-internal", Fdefine_charset_internal,
+       Sdefine_charset_internal, charset_arg_max, MANY, 0,
+       doc: /* For internal use only.
+usage: (define-charset-internal ...)  */)
+     (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  /* Charset attr vector.  */
+  Lisp_Object attrs;
+  Lisp_Object val;
+  unsigned hash_code;
+  struct Lisp_Hash_Table *hash_table = XHASH_TABLE (Vcharset_hash_table);
+  int i, j;
+  struct charset charset;
+  int id;
+  int dimension;
+  int new_definition_p;
+  int nchars;
+
+  if (nargs != charset_arg_max)
+    return Fsignal (Qwrong_number_of_arguments,
+		    Fcons (intern ("define-charset-internal"),
+			   make_number (nargs)));
+
+  attrs = Fmake_vector (make_number (charset_attr_max), Qnil);
+
+  CHECK_SYMBOL (args[charset_arg_name]);
+  ASET (attrs, charset_name, args[charset_arg_name]);
+
+  val = args[charset_arg_code_space];
+  for (i = 0, dimension = 0, nchars = 1; i < 4; i++)
+    {
+      int min_byte, max_byte;
+
+      min_byte = XINT (Faref (val, make_number (i * 2)));
+      max_byte = XINT (Faref (val, make_number (i * 2 + 1)));
+      if (min_byte < 0 || min_byte > max_byte || max_byte >= 256)
+	error ("Invalid :code-space value");
+      charset.code_space[i * 4] = min_byte;
+      charset.code_space[i * 4 + 1] = max_byte;
+      charset.code_space[i * 4 + 2] = max_byte - min_byte + 1;
+      nchars *= charset.code_space[i * 4 + 2];
+      charset.code_space[i * 4 + 3] = nchars;
+      if (max_byte > 0)
+	dimension = i + 1;
+    }
+
+  val = args[charset_arg_dimension];
+  if (NILP (val))
+    charset.dimension = dimension;
+  else
+    {
+      CHECK_NATNUM (val);
+      charset.dimension = XINT (val);
+      if (charset.dimension < 1 || charset.dimension > 4)
+	args_out_of_range_3 (val, make_number (1), make_number (4));
+    }
+
+  charset.code_linear_p
+    = (charset.dimension == 1
+       || (charset.code_space[2] == 256
+	   && (charset.dimension == 2
+	       || (charset.code_space[6] == 256
+		   && (charset.dimension == 3
+		       || charset.code_space[10] == 256)))));
+
+  if (! charset.code_linear_p)
+    {
+      charset.code_space_mask = (unsigned char *) xmalloc (256);
+      bzero (charset.code_space_mask, 256);
+      for (i = 0; i < 4; i++)
+	for (j = charset.code_space[i * 4]; j <= charset.code_space[i * 4 + 1];
+	     j++)
+	  charset.code_space_mask[j] |= (1 << i);
+    }
+
+  charset.iso_chars_96 = charset.code_space[2] == 96;
+
+  charset.min_code = (charset.code_space[0]
+		      | (charset.code_space[4] << 8)
+		      | (charset.code_space[8] << 16)
+		      | (charset.code_space[12] << 24));
+  charset.max_code = (charset.code_space[1]
+		      | (charset.code_space[5] << 8)
+		      | (charset.code_space[9] << 16)
+		      | (charset.code_space[13] << 24));
+  charset.char_index_offset = 0;
+
+  val = args[charset_arg_min_code];
+  if (! NILP (val))
+    {
+      unsigned code;
+
+      if (INTEGERP (val))
+	code = XINT (val);
+      else
+	{
+	  CHECK_CONS (val);
+	  CHECK_NUMBER_CAR (val);
+	  CHECK_NUMBER_CDR (val);
+	  code = (XINT (XCAR (val)) << 16) | (XINT (XCDR (val)));
+	}
+      if (code < charset.min_code
+	  || code > charset.max_code)
+	args_out_of_range_3 (make_number (charset.min_code),
+			     make_number (charset.max_code), val);
+      charset.char_index_offset = CODE_POINT_TO_INDEX (&charset, code);
+      charset.min_code = code;
+    }
+
+  val = args[charset_arg_max_code];
+  if (! NILP (val))
+    {
+      unsigned code;
+
+      if (INTEGERP (val))
+	code = XINT (val);
+      else
+	{
+	  CHECK_CONS (val);
+	  CHECK_NUMBER_CAR (val);
+	  CHECK_NUMBER_CDR (val);
+	  code = (XINT (XCAR (val)) << 16) | (XINT (XCDR (val)));
+	}
+      if (code < charset.min_code
+	  || code > charset.max_code)
+	args_out_of_range_3 (make_number (charset.min_code),
+			     make_number (charset.max_code), val);
+      charset.max_code = code;
+    }
+
+  charset.compact_codes_p = charset.max_code < 0x1000000;
+
+  val = args[charset_arg_invalid_code];
+  if (NILP (val))
+    {
+      if (charset.min_code > 0)
+	charset.invalid_code = 0;
+      else
+	{
+	  XSETINT (val, charset.max_code + 1);
+	  if (XINT (val) == charset.max_code + 1)
+	    charset.invalid_code = charset.max_code + 1;
+	  else
+	    error ("Attribute :invalid-code must be specified");
+	}
+    }
+  else
+    {
+      CHECK_NATNUM (val);
+      charset.invalid_code = XFASTINT (val);
+    }
+
+  val = args[charset_arg_iso_final];
+  if (NILP (val))
+    charset.iso_final = -1;
+  else
+    {
+      CHECK_NUMBER (val);
+      if (XINT (val) < '0' || XINT (val) > 127)
+	error ("Invalid iso-final-char: %d", XINT (val));
+      charset.iso_final = XINT (val);
+    }
+
+  val = args[charset_arg_iso_revision];
+  if (NILP (val))
+    charset.iso_revision = -1;
+  else
+    {
+      CHECK_NUMBER (val);
+      if (XINT (val) > 63)
+	args_out_of_range (make_number (63), val);
+      charset.iso_revision = XINT (val);
+    }
+
+  val = args[charset_arg_emacs_mule_id];
+  if (NILP (val))
+    charset.emacs_mule_id = -1;
+  else
+    {
+      CHECK_NATNUM (val);
+      if ((XINT (val) > 0 && XINT (val) <= 128) || XINT (val) >= 256)
+	error ("Invalid emacs-mule-id: %d", XINT (val));
+      charset.emacs_mule_id = XINT (val);
+    }
+
+  charset.ascii_compatible_p = ! NILP (args[charset_arg_ascii_compatible_p]);
+
+  charset.supplementary_p = ! NILP (args[charset_arg_supplementary_p]);
+
+  charset.unified_p = 0;
+
+  bzero (charset.fast_map, sizeof (charset.fast_map));
+
+  if (! NILP (args[charset_arg_code_offset]))
+    {
+      val = args[charset_arg_code_offset];
+      CHECK_NUMBER (val);
+
+      charset.method = CHARSET_METHOD_OFFSET;
+      charset.code_offset = XINT (val);
+
+      i = CODE_POINT_TO_INDEX (&charset, charset.min_code);
+      charset.min_char = i + charset.code_offset;
+      i = CODE_POINT_TO_INDEX (&charset, charset.max_code);
+      charset.max_char = i + charset.code_offset;
+      if (charset.max_char > MAX_CHAR)
+	error ("Unsupported max char: %d", charset.max_char);
+
+      i = (charset.min_char >> 7) << 7;
+      for (; i < 0x10000 && i <= charset.max_char; i += 128)
+	CHARSET_FAST_MAP_SET (i, charset.fast_map);
+      i = (i >> 12) << 12;
+      for (; i <= charset.max_char; i += 0x1000)
+	CHARSET_FAST_MAP_SET (i, charset.fast_map);
+    }
+  else if (! NILP (args[charset_arg_map]))
+    {
+      val = args[charset_arg_map];
+      ASET (attrs, charset_map, val);
+      if (STRINGP (val))
+	load_charset_map_from_file (&charset, val, 0);
+      else
+	load_charset_map_from_vector (&charset, val, 0);
+      charset.method = CHARSET_METHOD_MAP_DEFERRED;
+    }
+  else if (! NILP (args[charset_arg_subset]))
+    {
+      Lisp_Object parent;
+      Lisp_Object parent_min_code, parent_max_code, parent_code_offset;
+      struct charset *parent_charset;
+
+      val = args[charset_arg_subset];
+      parent = Fcar (val);
+      CHECK_CHARSET_GET_CHARSET (parent, parent_charset);
+      parent_min_code = Fnth (make_number (1), val);
+      CHECK_NATNUM (parent_min_code);
+      parent_max_code = Fnth (make_number (2), val);
+      CHECK_NATNUM (parent_max_code);
+      parent_code_offset = Fnth (make_number (3), val);
+      CHECK_NUMBER (parent_code_offset);
+      val = Fmake_vector (make_number (4), Qnil);
+      ASET (val, 0, make_number (parent_charset->id));
+      ASET (val, 1, parent_min_code);
+      ASET (val, 2, parent_max_code);
+      ASET (val, 3, parent_code_offset);
+      ASET (attrs, charset_subset, val);
+
+      charset.method = CHARSET_METHOD_SUBSET;
+      /* Here, we just copy the parent's fast_map.  It's not accurate,
+	 but at least it works for quickly detecting which character
+	 DOESN'T belong to this charset.  */
+      for (i = 0; i < 190; i++)
+	charset.fast_map[i] = parent_charset->fast_map[i];
+
+      /* We also copy these for parents.  */
+      charset.min_char = parent_charset->min_char;
+      charset.max_char = parent_charset->max_char;
+    }
+  else if (! NILP (args[charset_arg_superset]))
+    {
+      val = args[charset_arg_superset];
+      charset.method = CHARSET_METHOD_SUPERSET;
+      val = Fcopy_sequence (val);
+      ASET (attrs, charset_superset, val);
+
+      charset.min_char = MAX_CHAR;
+      charset.max_char = 0;
+      for (; ! NILP (val); val = Fcdr (val))
+	{
+	  Lisp_Object elt, car_part, cdr_part;
+	  int this_id, offset;
+	  struct charset *this_charset;
+
+	  elt = Fcar (val);
+	  if (CONSP (elt))
+	    {
+	      car_part = XCAR (elt);
+	      cdr_part = XCDR (elt);
+	      CHECK_CHARSET_GET_ID (car_part, this_id);
+	      CHECK_NUMBER (cdr_part);
+	      offset = XINT (cdr_part);
+	    }
+	  else
+	    {
+	      CHECK_CHARSET_GET_ID (elt, this_id);
+	      offset = 0;
+	    }
+	  XSETCAR (val, Fcons (make_number (this_id), make_number (offset)));
+
+	  this_charset = CHARSET_FROM_ID (this_id);
+	  if (charset.min_char > this_charset->min_char)
+	    charset.min_char = this_charset->min_char;
+	  if (charset.max_char < this_charset->max_char)
+	    charset.max_char = this_charset->max_char;
+	  for (i = 0; i < 190; i++)
+	    charset.fast_map[i] |= this_charset->fast_map[i];
+	}
+    }
+  else
+    error ("None of :code-offset, :map, :parents are specified");
+
+  val = args[charset_arg_unify_map];
+  if (! NILP (val) && !STRINGP (val))
+    CHECK_VECTOR (val);
+  ASET (attrs, charset_unify_map, val);
+
+  CHECK_LIST (args[charset_arg_plist]);
+  ASET (attrs, charset_plist, args[charset_arg_plist]);
+
+  charset.hash_index = hash_lookup (hash_table, args[charset_arg_name],
+				    &hash_code);
+  if (charset.hash_index >= 0)
+    {
+      new_definition_p = 0;
+      id = XFASTINT (CHARSET_SYMBOL_ID (args[charset_arg_name]));
+      HASH_VALUE (hash_table, charset.hash_index) = attrs;
+    }
+  else
+    {
+      charset.hash_index = hash_put (hash_table, args[charset_arg_name], attrs,
+				     hash_code);
+      if (charset_table_used == charset_table_size)
+	{
+	  struct charset *new_table
+	    = (struct charset *) xmalloc (sizeof (struct charset)
+					  * (charset_table_size + 16));
+	  bcopy (charset_table, new_table,
+		 sizeof (struct charset) * charset_table_size);
+	  charset_table_size += 16;
+	  charset_table = new_table;
+	}
+      id = charset_table_used++;
+      new_definition_p = 1;
+    }
+
+  ASET (attrs, charset_id, make_number (id));
+  charset.id = id;
+  charset_table[id] = charset;
+
+  if (charset.iso_final >= 0)
+    {
+      ISO_CHARSET_TABLE (charset.dimension, charset.iso_chars_96,
+			 charset.iso_final) = id;
+      if (new_definition_p)
+	Viso_2022_charset_list = nconc2 (Viso_2022_charset_list,
+					 Fcons (make_number (id), Qnil));
+      if (ISO_CHARSET_TABLE (1, 0, 'J') == id)
+	charset_jisx0201_roman = id;
+      else if (ISO_CHARSET_TABLE (2, 0, '@') == id)
+	charset_jisx0208_1978 = id;
+      else if (ISO_CHARSET_TABLE (2, 0, 'B') == id)
+	charset_jisx0208 = id;
+    }
+	
+  if (charset.emacs_mule_id >= 0)
+    {
+      emacs_mule_charset[charset.emacs_mule_id] = CHARSET_FROM_ID (id);
+      if (charset.emacs_mule_id < 0xA0)
+	emacs_mule_bytes[charset.emacs_mule_id] = charset.dimension + 1;
+      else
+	emacs_mule_bytes[charset.emacs_mule_id] = charset.dimension + 2;
+      if (new_definition_p)
+	Vemacs_mule_charset_list = nconc2 (Vemacs_mule_charset_list,
+					   Fcons (make_number (id), Qnil));
+    }
+
+  if (new_definition_p)
+    {
+      Vcharset_list = Fcons (args[charset_arg_name], Vcharset_list);
+      if (charset.supplementary_p)
+	Vcharset_ordered_list = nconc2 (Vcharset_ordered_list,
+					Fcons (make_number (id), Qnil));
+      else
+	Vcharset_ordered_list = Fcons (make_number (id),
+				       Vcharset_ordered_list);
+      charset_ordered_list_tick++;
+    }
+
+  return Qnil;
+}
+
+
+/* Same as Fdefine_charset_internal but arguments are more convenient
+   to call from C (typically in syms_of_charset).  This can define a
+   charset of `offset' method only.  Return the ID of the new
+   charset.  */
+
+static int
+define_charset_internal (name, dimension, code_space, min_code, max_code,
+			 iso_final, iso_revision, emacs_mule_id,
+			 ascii_compatible, supplementary,
+			 code_offset)
+     Lisp_Object name;
+     int dimension;
+     unsigned char *code_space;
+     unsigned min_code, max_code;
+     int iso_final, iso_revision, emacs_mule_id;
+     int ascii_compatible, supplementary;
+     int code_offset;
+{
+  Lisp_Object args[charset_arg_max];
+  Lisp_Object plist[14];
+  Lisp_Object val;
+  int i;
+
+  args[charset_arg_name] = name;
+  args[charset_arg_dimension] = make_number (dimension);
+  val = Fmake_vector (make_number (8), make_number (0));
+  for (i = 0; i < 8; i++)
+    ASET (val, i, make_number (code_space[i]));
+  args[charset_arg_code_space] = val;
+  args[charset_arg_min_code] = make_number (min_code);
+  args[charset_arg_max_code] = make_number (max_code);
+  args[charset_arg_iso_final]
+    = (iso_final < 0 ? Qnil : make_number (iso_final));
+  args[charset_arg_iso_revision] = make_number (iso_revision);
+  args[charset_arg_emacs_mule_id]
+    = (emacs_mule_id < 0 ? Qnil : make_number (emacs_mule_id));
+  args[charset_arg_ascii_compatible_p] = ascii_compatible ? Qt : Qnil;
+  args[charset_arg_supplementary_p] = supplementary ? Qt : Qnil;
+  args[charset_arg_invalid_code] = Qnil;
+  args[charset_arg_code_offset] = make_number (code_offset);
+  args[charset_arg_map] = Qnil;
+  args[charset_arg_subset] = Qnil;
+  args[charset_arg_superset] = Qnil;
+  args[charset_arg_unify_map] = Qnil;
+
+  plist[0] = intern (":name");
+  plist[1] = args[charset_arg_name];
+  plist[2] = intern (":dimension");
+  plist[3] = args[charset_arg_dimension];
+  plist[4] = intern (":code-space");
+  plist[5] = args[charset_arg_code_space];
+  plist[6] = intern (":iso-final-char");
+  plist[7] = args[charset_arg_iso_final];
+  plist[8] = intern (":emacs-mule-id");
+  plist[9] = args[charset_arg_emacs_mule_id];
+  plist[10] = intern (":ascii-compatible-p");
+  plist[11] = args[charset_arg_ascii_compatible_p];
+  plist[12] = intern (":code-offset");
+  plist[13] = args[charset_arg_code_offset];
+
+  args[charset_arg_plist] = Flist (14, plist);
+  Fdefine_charset_internal (charset_arg_max, args);
+
+  return XINT (CHARSET_SYMBOL_ID (name));
+}
+
+
+DEFUN ("define-charset-alias", Fdefine_charset_alias,
+       Sdefine_charset_alias, 2, 2, 0,
+       doc: /* Define ALIAS as an alias for charset CHARSET.  */)
+     (alias, charset)
+     Lisp_Object alias, charset;
+{
+  Lisp_Object attr;
+
+  CHECK_CHARSET_GET_ATTR (charset, attr);
+  Fputhash (alias, attr, Vcharset_hash_table);
+  Vcharset_list = Fcons (alias, Vcharset_list);
+  return Qnil;
+}
+
+
+DEFUN ("unibyte-charset", Funibyte_charset, Sunibyte_charset, 0, 0, 0,
+       doc: /* Return the unibyte charset (set by `set-unibyte-charset').  */)
      ()
 {
-  return Vgeneric_character_list;
+  return CHARSET_NAME (CHARSET_FROM_ID (charset_unibyte));
+}
+
+
+DEFUN ("set-unibyte-charset", Fset_unibyte_charset, Sset_unibyte_charset,
+       1, 1, 0,
+       doc: /* Set the unibyte charset to CHARSET.
+This determines how unibyte/multibyte conversion is done.  See also
+function `unibyte-charset'.  */)
+     (charset)
+     Lisp_Object charset;
+{
+  struct charset *cs;
+  int i, c;
+
+  CHECK_CHARSET_GET_CHARSET (charset, cs);
+  if (! cs->ascii_compatible_p
+      || cs->dimension != 1)
+    error ("Inappropriate unibyte charset: %s", SDATA (SYMBOL_NAME (charset)));
+  charset_unibyte = cs->id;
+  memset (unibyte_has_multibyte_table, 1, 128);
+  for (i = 128; i < 256; i++)
+    {
+      c = DECODE_CHAR (cs, i);
+      unibyte_to_multibyte_table[i] = (c < 0 ? BYTE8_TO_CHAR (i) : c);
+      unibyte_has_multibyte_table[i] = c >= 0;
+    }
+
+  return Qnil;
+}
+
+
+DEFUN ("charset-plist", Fcharset_plist, Scharset_plist, 1, 1, 0,
+       doc: /* Return the property list of CHARSET.  */)
+     (charset)
+     Lisp_Object charset;
+{
+  Lisp_Object attrs;
+
+  CHECK_CHARSET_GET_ATTR (charset, attrs);
+  return CHARSET_ATTR_PLIST (attrs);
+}
+
+
+DEFUN ("set-charset-plist", Fset_charset_plist, Sset_charset_plist, 2, 2, 0,
+       doc: /* Set CHARSET's property list to PLIST.  */)
+     (charset, plist)
+     Lisp_Object charset, plist;
+{
+  Lisp_Object attrs;
+
+  CHECK_CHARSET_GET_ATTR (charset, attrs);
+  CHARSET_ATTR_PLIST (attrs) = plist;
+  return plist;
+}
+
+
+DEFUN ("unify-charset", Funify_charset, Sunify_charset, 1, 3, 0,
+       doc: /* Unify characters of CHARSET with Unicode.
+This means reading the relevant file and installing the table defined
+by CHARSET's `:unify-map' property.
+
+Optional second arg UNIFY-MAP is a file name string or a vector.  It has
+the same meaning as the `:unify-map' attribute in the function
+`define-charset' (which see).
+
+Optional third argument DEUNIFY, if non-nil, means to de-unify CHARSET.  */)
+     (charset, unify_map, deunify)
+     Lisp_Object charset, unify_map, deunify;
+{
+  int id;
+  struct charset *cs;
+
+  CHECK_CHARSET_GET_ID (charset, id);
+  cs = CHARSET_FROM_ID (id);
+  if (CHARSET_METHOD (cs) == CHARSET_METHOD_MAP_DEFERRED)
+    load_charset (cs);
+  if (NILP (deunify)
+      ? CHARSET_UNIFIED_P (cs) && ! NILP (CHARSET_DEUNIFIER (cs))
+      : ! CHARSET_UNIFIED_P (cs))
+    return Qnil;
+
+  CHARSET_UNIFIED_P (cs) = 0;
+  if (NILP (deunify))
+    {
+      if (CHARSET_METHOD (cs) != CHARSET_METHOD_OFFSET)
+	error ("Can't unify charset: %s", SDATA (SYMBOL_NAME (charset)));
+      if (NILP (unify_map))
+	unify_map = CHARSET_UNIFY_MAP (cs);
+      if (STRINGP (unify_map))
+	load_charset_map_from_file (cs, unify_map, 2);
+      else if (VECTORP (unify_map))
+	load_charset_map_from_vector (cs, unify_map, 2);
+      else if (NILP (unify_map))
+	error ("No unify-map for charset");
+      else
+	error ("Bad unify-map arg");
+      CHARSET_UNIFIED_P (cs) = 1;
+    }
+  else if (CHAR_TABLE_P (Vchar_unify_table))
+    {
+      int min_code = CHARSET_MIN_CODE (cs);
+      int max_code = CHARSET_MAX_CODE (cs);
+      int min_char = DECODE_CHAR (cs, min_code);
+      int max_char = DECODE_CHAR (cs, max_code);
+
+      char_table_set_range (Vchar_unify_table, min_char, max_char, Qnil);
+    }
+
+  return Qnil;
 }
 
 DEFUN ("get-unused-iso-final-char", Fget_unused_iso_final_char,
        Sget_unused_iso_final_char, 2, 2, 0,
-       doc: /* Return an unused ISO's final char for a charset of DIMENSION and CHARS.
+       doc: /*
+Return an unused ISO final char for a charset of DIMENISION and CHARS.
 DIMENSION is the number of bytes to represent a character: 1 or 2.
 CHARS is the number of characters in a dimension: 94 or 96.
 
@@ -750,19 +1282,32 @@ return nil.  */)
 
   CHECK_NUMBER (dimension);
   CHECK_NUMBER (chars);
-  if (XINT (dimension) != 1 && XINT (dimension) != 2)
-    error ("Invalid charset dimension %d, it should be 1 or 2",
-	   XINT (dimension));
+  if (XINT (dimension) != 1 && XINT (dimension) != 2 && XINT (dimension) != 3)
+    args_out_of_range_3 (dimension, make_number (1), make_number (3));
   if (XINT (chars) != 94 && XINT (chars) != 96)
-    error ("Invalid charset chars %d, it should be 94 or 96",
-	   XINT (chars));
+    args_out_of_range_3 (chars, make_number (94), make_number (96));
   for (final_char = '0'; final_char <= '?'; final_char++)
-    {
-      if (ISO_CHARSET_TABLE (dimension, chars, make_number (final_char)) < 0)
-	break;
-    }
+    if (ISO_CHARSET_TABLE (XINT (dimension), XINT (chars), final_char) < 0)
+      break;
   return (final_char <= '?' ? make_number (final_char) : Qnil);
 }
+
+static void
+check_iso_charset_parameter (dimension, chars, final_char)
+     Lisp_Object dimension, chars, final_char;
+{
+  CHECK_NATNUM (dimension);
+  CHECK_NATNUM (chars);
+  CHECK_NATNUM (final_char);
+
+  if (XINT (dimension) > 3)
+    error ("Invalid DIMENSION %d, it should be 1, 2, or 3", XINT (dimension));
+  if (XINT (chars) != 94 && XINT (chars) != 96)
+    error ("Invalid CHARS %d, it should be 94 or 96", XINT (chars));
+  if (XINT (final_char) < '0' || XINT (final_char) > '~')
+    error ("Invalid FINAL-CHAR %c, it should be `0'..`~'", XINT (chars));
+}
+
 
 DEFUN ("declare-equiv-charset", Fdeclare_equiv_charset, Sdeclare_equiv_charset,
        4, 4, 0,
@@ -774,104 +1319,96 @@ if CHARSET is designated instead.  */)
      (dimension, chars, final_char, charset)
      Lisp_Object dimension, chars, final_char, charset;
 {
-  int charset_id;
+  int id;
+  int chars_flag;
 
-  CHECK_NUMBER (dimension);
-  CHECK_NUMBER (chars);
-  CHECK_NUMBER (final_char);
-  CHECK_SYMBOL (charset);
-
-  if (XINT (dimension) != 1 && XINT (dimension) != 2)
-    error ("Invalid DIMENSION %d, it should be 1 or 2", XINT (dimension));
-  if (XINT (chars) != 94 && XINT (chars) != 96)
-    error ("Invalid CHARS %d, it should be 94 or 96", XINT (chars));
-  if (XINT (final_char) < '0' || XFASTINT (final_char) > '~')
-    error ("Invalid FINAL-CHAR %c, it should be `0'..`~'", XINT (chars));
-  if ((charset_id = get_charset_id (charset)) < 0)
-    error ("Invalid charset %s", SDATA (SYMBOL_NAME (charset)));
-
-  ISO_CHARSET_TABLE (dimension, chars, final_char) = charset_id;
+  CHECK_CHARSET_GET_ID (charset, id);
+  check_iso_charset_parameter (dimension, chars, final_char);
+  chars_flag = XINT (chars) == 96;
+  ISO_CHARSET_TABLE (XINT (dimension), chars_flag, XINT (final_char)) = id;
   return Qnil;
 }
+
 
 /* Return information about charsets in the text at PTR of NBYTES
    bytes, which are NCHARS characters.  The value is:
 
 	0: Each character is represented by one byte.  This is always
-	   true for unibyte text.
-	1: No charsets other than ascii eight-bit-control,
-	   eight-bit-graphic, and latin-1 are found.
-	2: Otherwise.
+	   true for a unibyte string.  For a multibyte string, true if
+	   it contains only ASCII characters.
 
-   In addition, if CHARSETS is nonzero, for each found charset N, set
-   CHARSETS[N] to 1.  For that, callers should allocate CHARSETS
-   (MAX_CHARSET + 1 elements) in advance.  It may lookup a translation
-   table TABLE if supplied.  For invalid charsets, set CHARSETS[1] to
-   1 (note that there's no charset whose ID is 1).  */
+	1: No charsets other than ascii, control-1, and latin-1 are
+	   found.
+
+	2: Otherwise.
+*/
 
 int
-find_charset_in_text (ptr, nchars, nbytes, charsets, table)
-     const unsigned char *ptr;
-     int nchars, nbytes, *charsets;
-     Lisp_Object table;
+string_xstring_p (string)
+     Lisp_Object string;
 {
+  const unsigned char *p = SDATA (string);
+  const unsigned char *endp = p + SBYTES (string);
+
+  if (SCHARS (string) == SBYTES (string))
+    return 0;
+
+  while (p < endp)
+    {
+      int c = STRING_CHAR_ADVANCE (p);
+
+      if (c >= 0x100)
+	return 2;
+    }
+  return 1;
+}
+
+
+/* Find charsets in the string at PTR of NCHARS and NBYTES.
+
+   CHARSETS is a vector.  If Nth element is non-nil, it means the
+   charset whose id is N is already found.
+
+   It may lookup a translation table TABLE if supplied.  */
+
+static void
+find_charsets_in_text (ptr, nchars, nbytes, charsets, table, multibyte)
+     const unsigned char *ptr;
+     EMACS_INT nchars, nbytes;
+     Lisp_Object charsets, table;
+     int multibyte;
+{
+  const unsigned char *pend = ptr + nbytes;
+
   if (nchars == nbytes)
     {
-      if (charsets && nbytes > 0)
-	{
-	  const unsigned char *endp = ptr + nbytes;
-	  int maskbits = 0;
+      if (multibyte)
+	ASET (charsets, charset_ascii, Qt);
+      else
+	while (ptr < pend)
+	  {
+	    int c = *ptr++;
 
-	  while (ptr < endp && maskbits != 7)
-	    {
-	      maskbits |= (*ptr < 0x80 ? 1 : *ptr < 0xA0 ? 2 : 4);
-	      ptr++;
-	    }
-
-	  if (maskbits & 1)
-	    charsets[CHARSET_ASCII] = 1;
-	  if (maskbits & 2)
-	    charsets[CHARSET_8_BIT_CONTROL] = 1;
-	  if (maskbits & 4)
-	    charsets[CHARSET_8_BIT_GRAPHIC] = 1;
-	}
-      return 0;
+	    if (!NILP (table))
+	      c = translate_char (table, c);
+	    if (ASCII_BYTE_P (c))
+	      ASET (charsets, charset_ascii, Qt);
+	    else
+	      ASET (charsets, charset_eight_bit, Qt);
+	  }
     }
   else
     {
-      int return_val = 1;
-      int bytes, charset, c1, c2;
-
-      if (! CHAR_TABLE_P (table))
-	table = Qnil;
-
-      while (nchars-- > 0)
+      while (ptr < pend)
 	{
-	  SPLIT_MULTIBYTE_SEQ (ptr, len, bytes, charset, c1, c2);
-	  ptr += bytes;
+	  int c = STRING_CHAR_ADVANCE (ptr);
+	  struct charset *charset;
 
-	  if (!CHARSET_DEFINED_P (charset))
-	    charset = 1;
-	  else if (! NILP (table))
-	    {
-	      int c = translate_char (table, -1, charset, c1, c2);
-	      if (c >= 0)
-		charset = CHAR_CHARSET (c);
-	    }
-
-	  if (return_val == 1
-	      && charset != CHARSET_ASCII
-	      && charset != CHARSET_8_BIT_CONTROL
-	      && charset != CHARSET_8_BIT_GRAPHIC
-	      && charset != charset_latin_iso8859_1)
-	    return_val = 2;
-
-	  if (charsets)
-	    charsets[charset] = 1;
-	  else if (return_val == 2)
-	    break;
+	  if (!NILP (table))
+	    c = translate_char (table, c);
+	  charset = CHAR_CHARSET (c);
+	  ASET (charsets, CHARSET_ID (charset), Qt);
 	}
-      return return_val;
     }
 }
 
@@ -881,17 +1418,16 @@ DEFUN ("find-charset-region", Ffind_charset_region, Sfind_charset_region,
 BEG and END are buffer positions.
 Optional arg TABLE if non-nil is a translation table to look up.
 
-If the region contains invalid multibyte characters,
-`unknown' is included in the returned list.
-
 If the current buffer is unibyte, the returned list may contain
 only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
      (beg, end, table)
      Lisp_Object beg, end, table;
 {
-  int charsets[MAX_CHARSET + 1];
-  int from, from_byte, to, stop, stop_byte, i;
+  Lisp_Object charsets;
+  EMACS_INT from, from_byte, to, stop, stop_byte;
+  int i;
   Lisp_Object val;
+  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
   validate_region (&beg, &end);
   from = XFASTINT (beg);
@@ -907,11 +1443,12 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
 
   from_byte = CHAR_TO_BYTE (from);
 
-  bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
+  charsets = Fmake_vector (make_number (charset_table_used), Qnil);
   while (1)
     {
-      find_charset_in_text (BYTE_POS_ADDR (from_byte), stop - from,
-			    stop_byte - from_byte, charsets, table);
+      find_charsets_in_text (BYTE_POS_ADDR (from_byte), stop - from,
+			     stop_byte - from_byte, charsets, table,
+			     multibyte);
       if (stop < to)
 	{
 	  from = stop, from_byte = stop_byte;
@@ -922,13 +1459,9 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
     }
 
   val = Qnil;
-  if (charsets[1])
-    val = Fcons (Qunknown, val);
-  for (i = MAX_CHARSET; i >= MIN_CHARSET_OFFICIAL_DIMENSION1; i--)
-    if (charsets[i])
-      val = Fcons (CHARSET_SYMBOL (i), val);
-  if (charsets[0])
-    val = Fcons (Qascii, val);
+  for (i = charset_table_used - 1; i >= 0; i--)
+    if (!NILP (AREF (charsets, i)))
+      val = Fcons (CHARSET_NAME (charset_table + i), val);
   return val;
 }
 
@@ -937,151 +1470,445 @@ DEFUN ("find-charset-string", Ffind_charset_string, Sfind_charset_string,
        doc: /* Return a list of charsets in STR.
 Optional arg TABLE if non-nil is a translation table to look up.
 
-If the string contains invalid multibyte characters,
-`unknown' is included in the returned list.
-
 If STR is unibyte, the returned list may contain
-only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
+only `ascii', `eight-bit-control', and `eight-bit-graphic'. */)
      (str, table)
      Lisp_Object str, table;
 {
-  int charsets[MAX_CHARSET + 1];
+  Lisp_Object charsets;
   int i;
   Lisp_Object val;
 
   CHECK_STRING (str);
 
-  bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
-  find_charset_in_text (SDATA (str), SCHARS (str),
-			SBYTES (str), charsets, table);
-
+  charsets = Fmake_vector (make_number (charset_table_used), Qnil);
+  find_charsets_in_text (SDATA (str), SCHARS (str), SBYTES (str),
+			 charsets, table,
+			 STRING_MULTIBYTE (str));
   val = Qnil;
-  if (charsets[1])
-    val = Fcons (Qunknown, val);
-  for (i = MAX_CHARSET; i >= MIN_CHARSET_OFFICIAL_DIMENSION1; i--)
-    if (charsets[i])
-      val = Fcons (CHARSET_SYMBOL (i), val);
-  if (charsets[0])
-    val = Fcons (Qascii, val);
+  for (i = charset_table_used - 1; i >= 0; i--)
+    if (!NILP (AREF (charsets, i)))
+      val = Fcons (CHARSET_NAME (charset_table + i), val);
   return val;
 }
 
 
-DEFUN ("make-char-internal", Fmake_char_internal, Smake_char_internal, 1, 3, 0,
-       doc: /* Return a character made from arguments.
-Internal use only.  */)
-     (charset, code1, code2)
-     Lisp_Object charset, code1, code2;
+
+/* Return a character correponding to the code-point CODE of
+   CHARSET.  */
+
+int
+decode_char (charset, code)
+     struct charset *charset;
+     unsigned code;
 {
-  int charset_id, c1, c2;
+  int c, char_index;
+  enum charset_method method = CHARSET_METHOD (charset);
 
-  CHECK_NUMBER (charset);
-  charset_id = XINT (charset);
-  if (!CHARSET_DEFINED_P (charset_id))
-    error ("Invalid charset ID: %d", XINT (charset));
+  if (code < CHARSET_MIN_CODE (charset) || code > CHARSET_MAX_CODE (charset))
+    return -1;
 
-  if (NILP (code1))
-    c1 = 0;
+  if (method == CHARSET_METHOD_MAP_DEFERRED)
+    {
+      load_charset (charset);
+      method = CHARSET_METHOD (charset);
+    }
+
+  if (method == CHARSET_METHOD_SUBSET)
+    {
+      Lisp_Object subset_info;
+
+      subset_info = CHARSET_SUBSET (charset);
+      charset = CHARSET_FROM_ID (XFASTINT (AREF (subset_info, 0)));
+      code -= XINT (AREF (subset_info, 3));
+      if (code < XFASTINT (AREF (subset_info, 1))
+	  || code > XFASTINT (AREF (subset_info, 2)))
+	c = -1;
+      else
+	c = DECODE_CHAR (charset, code);
+    }
+  else if (method == CHARSET_METHOD_SUPERSET)
+    {
+      Lisp_Object parents;
+
+      parents = CHARSET_SUPERSET (charset);
+      c = -1;
+      for (; CONSP (parents); parents = XCDR (parents))
+	{
+	  int id = XINT (XCAR (XCAR (parents)));
+	  int code_offset = XINT (XCDR (XCAR (parents)));
+	  unsigned this_code = code - code_offset;
+
+	  charset = CHARSET_FROM_ID (id);
+	  if ((c = DECODE_CHAR (charset, this_code)) >= 0)
+	    break;
+	}
+    }
   else
     {
-      CHECK_NUMBER (code1);
-      c1 = XINT (code1);
-    }
-  if (NILP (code2))
-    c2 = 0;
-  else
-    {
-      CHECK_NUMBER (code2);
-      c2 = XINT (code2);
+      char_index = CODE_POINT_TO_INDEX (charset, code);
+      if (char_index < 0)
+	return -1;
+
+      if (method == CHARSET_METHOD_MAP)
+	{
+	  Lisp_Object decoder;
+
+	  decoder = CHARSET_DECODER (charset);
+	  if (! VECTORP (decoder))
+	    return -1;
+	  c = XINT (AREF (decoder, char_index));
+	}
+      else
+	{
+	  c = char_index + CHARSET_CODE_OFFSET (charset);
+	}
     }
 
-  if (charset_id == CHARSET_ASCII)
+  if (CHARSET_UNIFIED_P (charset)
+      && c >= 0)
     {
-      if (c1 < 0 || c1 > 0x7F)
-	goto invalid_code_posints;
-      return make_number (c1);
+      MAYBE_UNIFY_CHAR (c);
     }
-  else if (charset_id == CHARSET_8_BIT_CONTROL)
-    {
-      if (NILP (code1))
-	c1 = 0x80;
-      else if (c1 < 0x80 || c1 > 0x9F)
-	goto invalid_code_posints;
-      return make_number (c1);
-    }
-  else if (charset_id == CHARSET_8_BIT_GRAPHIC)
-    {
-      if (NILP (code1))
-	c1 = 0xA0;
-      else if (c1 < 0xA0 || c1 > 0xFF)
-	goto invalid_code_posints;
-      return make_number (c1);
-    }
-  else if (c1 < 0 || c1 > 0xFF || c2 < 0 || c2 > 0xFF)
-    goto invalid_code_posints;
-  c1 &= 0x7F;
-  c2 &= 0x7F;
-  if (c1 == 0
-      ? c2 != 0
-      : (c2 == 0
-	 ? !CHAR_COMPONENTS_VALID_P (charset_id, c1, 0x20)
-	 : !CHAR_COMPONENTS_VALID_P (charset_id, c1, c2)))
-    goto invalid_code_posints;
-  return make_number (MAKE_CHAR (charset_id, c1, c2));
 
- invalid_code_posints:
-  error ("Invalid code points for charset ID %d: %d %d", charset_id, c1, c2);
+  return c;
 }
+
+/* Variable used temporarily by the macro ENCODE_CHAR.  */
+Lisp_Object charset_work;
+
+/* Return a code-point of CHAR in CHARSET.  If CHAR doesn't belong to
+   CHARSET, return CHARSET_INVALID_CODE (CHARSET).  If STRICT is true,
+   use CHARSET's strict_max_char instead of max_char.  */
+
+unsigned
+encode_char (charset, c)
+     struct charset *charset;
+     int c;
+{
+  unsigned code;
+  enum charset_method method = CHARSET_METHOD (charset);
+
+  if (CHARSET_UNIFIED_P (charset))
+    {
+      Lisp_Object deunifier, deunified;
+
+      deunifier = CHARSET_DEUNIFIER (charset);
+      if (! CHAR_TABLE_P (deunifier))
+	{
+	  Funify_charset (CHARSET_NAME (charset), Qnil, Qnil);
+	  deunifier = CHARSET_DEUNIFIER (charset);
+	}
+      deunified = CHAR_TABLE_REF (deunifier, c);
+      if (! NILP (deunified))
+	c = XINT (deunified);
+    }
+
+  if (method == CHARSET_METHOD_SUBSET)
+    {
+      Lisp_Object subset_info;
+      struct charset *this_charset;
+
+      subset_info = CHARSET_SUBSET (charset);
+      this_charset = CHARSET_FROM_ID (XFASTINT (AREF (subset_info, 0)));
+      code = ENCODE_CHAR (this_charset, c);
+      if (code == CHARSET_INVALID_CODE (this_charset)
+	  || code < XFASTINT (AREF (subset_info, 1))
+	  || code > XFASTINT (AREF (subset_info, 2)))
+	return CHARSET_INVALID_CODE (charset);
+      code += XINT (AREF (subset_info, 3));
+      return code;
+    }
+
+  if (method == CHARSET_METHOD_SUPERSET)
+    {
+      Lisp_Object parents;
+
+      parents = CHARSET_SUPERSET (charset);
+      for (; CONSP (parents); parents = XCDR (parents))
+	{
+	  int id = XINT (XCAR (XCAR (parents)));
+	  int code_offset = XINT (XCDR (XCAR (parents)));
+	  struct charset *this_charset = CHARSET_FROM_ID (id);
+
+	  code = ENCODE_CHAR (this_charset, c);
+	  if (code != CHARSET_INVALID_CODE (this_charset))
+	    return code + code_offset;
+	}
+      return CHARSET_INVALID_CODE (charset);
+    }
+
+  if (! CHARSET_FAST_MAP_REF ((c), charset->fast_map)
+      || c < CHARSET_MIN_CHAR (charset) || c > CHARSET_MAX_CHAR (charset))
+    return CHARSET_INVALID_CODE (charset);
+
+  if (method == CHARSET_METHOD_MAP_DEFERRED)
+    {
+      load_charset (charset);
+      method = CHARSET_METHOD (charset);
+    }
+
+  if (method == CHARSET_METHOD_MAP)
+    {
+      Lisp_Object encoder;
+      Lisp_Object val;
+
+      encoder = CHARSET_ENCODER (charset);
+      if (! CHAR_TABLE_P (CHARSET_ENCODER (charset)))
+	return CHARSET_INVALID_CODE (charset);
+      val = CHAR_TABLE_REF (encoder, c);
+      if (NILP (val))
+	return CHARSET_INVALID_CODE (charset);
+      code = XINT (val);
+      if (! CHARSET_COMPACT_CODES_P (charset))
+	code = INDEX_TO_CODE_POINT (charset, code);
+    }
+  else				/* method == CHARSET_METHOD_OFFSET */
+    {
+      code = c - CHARSET_CODE_OFFSET (charset);
+      code = INDEX_TO_CODE_POINT (charset, code);
+    }
+
+  return code;
+}
+
+
+DEFUN ("decode-char", Fdecode_char, Sdecode_char, 2, 3, 0,
+       doc: /* Decode the pair of CHARSET and CODE-POINT into a character.
+Return nil if CODE-POINT is not valid in CHARSET.
+
+CODE-POINT may be a cons (HIGHER-16-BIT-VALUE . LOWER-16-BIT-VALUE).
+
+Optional argument RESTRICTION specifies a way to map the pair of CCS
+and CODE-POINT to a chracter.   Currently not supported and just ignored.  */)
+  (charset, code_point, restriction)
+     Lisp_Object charset, code_point, restriction;
+{
+  int c, id;
+  unsigned code;
+  struct charset *charsetp;
+
+  CHECK_CHARSET_GET_ID (charset, id);
+  if (CONSP (code_point))
+    {
+      CHECK_NATNUM_CAR (code_point);
+      CHECK_NATNUM_CDR (code_point);
+      code = (XINT (XCAR (code_point)) << 16) | (XINT (XCDR (code_point)));
+    }
+  else
+    {
+      CHECK_NATNUM (code_point);
+      code = XINT (code_point);
+    }
+  charsetp = CHARSET_FROM_ID (id);
+  c = DECODE_CHAR (charsetp, code);
+  return (c >= 0 ? make_number (c) : Qnil);
+}
+
+
+DEFUN ("encode-char", Fencode_char, Sencode_char, 2, 3, 0,
+       doc: /* Encode the character CH into a code-point of CHARSET.
+Return nil if CHARSET doesn't include CH.
+
+Optional argument RESTRICTION specifies a way to map CHAR to a
+code-point in CCS.  Currently not supported and just ignored.  */)
+     (ch, charset, restriction)
+     Lisp_Object ch, charset, restriction;
+{
+  int id;
+  unsigned code;
+  struct charset *charsetp;
+
+  CHECK_CHARSET_GET_ID (charset, id);
+  CHECK_NATNUM (ch);
+  charsetp = CHARSET_FROM_ID (id);
+  code = ENCODE_CHAR (charsetp, XINT (ch));
+  if (code == CHARSET_INVALID_CODE (charsetp))
+    return Qnil;
+  if (code > 0x7FFFFFF)
+    return Fcons (make_number (code >> 16), make_number (code & 0xFFFF));
+  return make_number (code);
+}
+
+
+DEFUN ("make-char", Fmake_char, Smake_char, 1, 5, 0,
+       doc:
+       /* Return a character of CHARSET whose position codes are CODEn.
+
+CODE1 through CODE4 are optional, but if you don't supply sufficient
+position codes, it is assumed that the minimum code in each dimension
+is specified.  */)
+     (charset, code1, code2, code3, code4)
+     Lisp_Object charset, code1, code2, code3, code4;
+{
+  int id, dimension;
+  struct charset *charsetp;
+  unsigned code;
+  int c;
+
+  CHECK_CHARSET_GET_ID (charset, id);
+  charsetp = CHARSET_FROM_ID (id);
+
+  dimension = CHARSET_DIMENSION (charsetp);
+  if (NILP (code1))
+    code = (CHARSET_ASCII_COMPATIBLE_P (charsetp)
+	    ? 0 : CHARSET_MIN_CODE (charsetp));
+  else
+    {
+      CHECK_NATNUM (code1);
+      if (XFASTINT (code1) >= 0x100)
+	args_out_of_range (make_number (0xFF), code1);
+      code = XFASTINT (code1);
+
+      if (dimension > 1)
+	{
+	  code <<= 8;
+	  if (NILP (code2))
+	    code |= charsetp->code_space[(dimension - 2) * 4];
+	  else
+	    {
+	      CHECK_NATNUM (code2);
+	      if (XFASTINT (code2) >= 0x100)
+		args_out_of_range (make_number (0xFF), code2);
+	      code |= XFASTINT (code2);
+	    }
+
+	  if (dimension > 2)
+	    {
+	      code <<= 8;
+	      if (NILP (code3))
+		code |= charsetp->code_space[(dimension - 3) * 4];
+	      else
+		{
+		  CHECK_NATNUM (code3);
+		  if (XFASTINT (code3) >= 0x100)
+		    args_out_of_range (make_number (0xFF), code3);
+		  code |= XFASTINT (code3);
+		}
+
+	      if (dimension > 3)
+		{
+		  code <<= 8;
+		  if (NILP (code4))
+		    code |= charsetp->code_space[0];
+		  else
+		    {
+		      CHECK_NATNUM (code4);
+		      if (XFASTINT (code4) >= 0x100)
+			args_out_of_range (make_number (0xFF), code4);
+		      code |= XFASTINT (code4);
+		    }
+		}
+	    }
+	}
+    }
+
+  if (CHARSET_ISO_FINAL (charsetp) >= 0)
+    code &= 0x7F7F7F7F;
+  c = DECODE_CHAR (charsetp, code);
+  if (c < 0)
+    error ("Invalid code(s)");
+  return make_number (c);
+}
+
+
+/* Return the first charset in CHARSET_LIST that contains C.
+   CHARSET_LIST is a list of charset IDs.  If it is nil, use
+   Vcharset_ordered_list.  */
+
+struct charset *
+char_charset (c, charset_list, code_return)
+     int c;
+     Lisp_Object charset_list;
+     unsigned *code_return;
+{
+  if (NILP (charset_list))
+    charset_list = Vcharset_ordered_list;
+
+  while (CONSP (charset_list))
+    {
+      struct charset *charset = CHARSET_FROM_ID (XINT (XCAR (charset_list)));
+      unsigned code = ENCODE_CHAR (charset, c);
+
+      if (code != CHARSET_INVALID_CODE (charset))
+	{
+	  if (code_return)
+	    *code_return = code;
+	  return charset;
+	}
+      charset_list = XCDR (charset_list);
+    }
+  return NULL;
+}
+
 
 DEFUN ("split-char", Fsplit_char, Ssplit_char, 1, 1, 0,
-       doc: /* Return list of charset and one or two position-codes of CH.
-If CH is invalid as a character code,
-return a list of symbol `unknown' and CH.  */)
+       doc:
+       /*Return list of charset and one to four position-codes of CHAR.
+The charset is decided by the current priority order of charsets.
+A position-code is a byte value of each dimension of the code-point of
+CHAR in the charset.  */)
      (ch)
      Lisp_Object ch;
 {
-  int c, charset, c1, c2;
+  struct charset *charset;
+  int c, dimension;
+  unsigned code;
+  Lisp_Object val;
 
-  CHECK_NUMBER (ch);
+  CHECK_CHARACTER (ch);
   c = XFASTINT (ch);
-  if (!CHAR_VALID_P (c, 1))
-    return Fcons (Qunknown, Fcons (ch, Qnil));
-  SPLIT_CHAR (XFASTINT (ch), charset, c1, c2);
-  return (c2 >= 0
-	  ? Fcons (CHARSET_SYMBOL (charset),
-		   Fcons (make_number (c1), Fcons (make_number (c2), Qnil)))
-	  : Fcons (CHARSET_SYMBOL (charset), Fcons (make_number (c1), Qnil)));
+  charset = CHAR_CHARSET (c);
+  if (! charset)
+    abort ();
+  code = ENCODE_CHAR (charset, c);
+  if (code == CHARSET_INVALID_CODE (charset))
+    abort ();
+  dimension = CHARSET_DIMENSION (charset);
+  for (val = Qnil; dimension > 0; dimension--)
+    {
+      val = Fcons (make_number (code & 0xFF), val);
+      code >>= 8;
+    }
+  return Fcons (CHARSET_NAME (charset), val);
 }
+
 
 DEFUN ("char-charset", Fchar_charset, Schar_charset, 1, 1, 0,
-       doc: /* Return charset of CH.  */)
+       doc: /* Return the charset of highest priority that contains CH.  */)
      (ch)
      Lisp_Object ch;
 {
-  CHECK_NUMBER (ch);
+  struct charset *charset;
 
-  return CHARSET_SYMBOL (CHAR_CHARSET (XINT (ch)));
+  CHECK_CHARACTER (ch);
+  charset = CHAR_CHARSET (XINT (ch));
+  return (CHARSET_NAME (charset));
 }
 
+
 DEFUN ("charset-after", Fcharset_after, Scharset_after, 0, 1, 0,
-       doc: /* Return charset of a character in the current buffer at position POS.
+       doc: /*
+Return charset of a character in the current buffer at position POS.
 If POS is nil, it defauls to the current point.
 If POS is out of range, the value is nil.  */)
      (pos)
      Lisp_Object pos;
 {
   Lisp_Object ch;
-  int charset;
+  struct charset *charset;
 
   ch = Fchar_after (pos);
   if (! INTEGERP (ch))
     return ch;
   charset = CHAR_CHARSET (XINT (ch));
-  return CHARSET_SYMBOL (charset);
+  return (CHARSET_NAME (charset));
 }
 
+
 DEFUN ("iso-charset", Fiso_charset, Siso_charset, 3, 3, 0,
-       doc: /* Return charset of ISO's specification DIMENSION, CHARS, and FINAL-CHAR.
+       doc: /*
+Return charset of ISO's specification DIMENSION, CHARS, and FINAL-CHAR.
 
 ISO 2022's designation sequence (escape sequence) distinguishes charsets
 by their DIMENSION, CHARS, and FINAL-CHAR,
@@ -1091,696 +1918,159 @@ DIMENSION, CHARS, and FINAL-CHAR.  */)
      (dimension, chars, final_char)
      Lisp_Object dimension, chars, final_char;
 {
-  int charset;
+  int id;
+  int chars_flag;
 
-  CHECK_NUMBER (dimension);
-  CHECK_NUMBER (chars);
-  CHECK_NUMBER (final_char);
-
-  if ((charset = ISO_CHARSET_TABLE (dimension, chars, final_char)) < 0)
-    return Qnil;
-  return CHARSET_SYMBOL (charset);
+  check_iso_charset_parameter (dimension, chars, final_char);
+  chars_flag = XFASTINT (chars) == 96;
+  id = ISO_CHARSET_TABLE (XFASTINT (dimension), chars_flag,
+			  XFASTINT (final_char));
+  return (id >= 0 ? CHARSET_NAME (CHARSET_FROM_ID (id)) : Qnil);
 }
 
-/* If GENERICP is nonzero, return nonzero if C is a valid normal or
-   generic character.  If GENERICP is zero, return nonzero if C is a
-   valid normal character.  Do not call this function directly,
-   instead use macro CHAR_VALID_P.  */
-int
-char_valid_p (c, genericp)
-     int c, genericp;
-{
-  int charset, c1, c2;
 
-  if (c < 0 || c >= MAX_CHAR)
-    return 0;
-  if (SINGLE_BYTE_CHAR_P (c))
-    return 1;
-  SPLIT_CHAR (c, charset, c1, c2);
-  if (genericp)
-    {
-      if (c1)
-	{
-	  if (c2 <= 0) c2 = 0x20;
-	}
-      else
-	{
-	  if (c2 <= 0) c1 = c2 = 0x20;
-	}
-    }
-  return (CHARSET_DEFINED_P (charset)
-	  && CHAR_COMPONENTS_VALID_P (charset, c1, c2));
-}
-
-DEFUN ("char-valid-p", Fchar_valid_p, Schar_valid_p, 1, 2, 0,
-       doc: /* Return t if OBJECT is a valid normal character.
-If optional arg GENERICP is non-nil, also return t if OBJECT is
-a valid generic character.  */)
-     (object, genericp)
-     Lisp_Object object, genericp;
-{
-  if (! NATNUMP (object))
-    return Qnil;
-  return (CHAR_VALID_P (XFASTINT (object), !NILP (genericp)) ? Qt : Qnil);
-}
-
-DEFUN ("unibyte-char-to-multibyte", Funibyte_char_to_multibyte,
-       Sunibyte_char_to_multibyte, 1, 1, 0,
-       doc: /* Convert the unibyte character CH to multibyte character.
-The conversion is done based on `nonascii-translation-table' (which see)
- or `nonascii-insert-offset' (which see).  */)
-     (ch)
-     Lisp_Object ch;
-{
-  int c;
-
-  CHECK_NUMBER (ch);
-  c = XINT (ch);
-  if (c < 0 || c >= 0400)
-    error ("Invalid unibyte character: %d", c);
-  c = unibyte_char_to_multibyte (c);
-  if (c < 0)
-    error ("Can't convert to multibyte character: %d", XINT (ch));
-  return make_number (c);
-}
-
-DEFUN ("multibyte-char-to-unibyte", Fmultibyte_char_to_unibyte,
-       Smultibyte_char_to_unibyte, 1, 1, 0,
-       doc: /* Convert the multibyte character CH to unibyte character.
-The conversion is done based on `nonascii-translation-table' (which see)
- or `nonascii-insert-offset' (which see).  */)
-     (ch)
-     Lisp_Object ch;
-{
-  int c;
-
-  CHECK_NUMBER (ch);
-  c = XINT (ch);
-  if (! CHAR_VALID_P (c, 0))
-    error ("Invalid multibyte character: %d", c);
-  c = multibyte_char_to_unibyte (c, Qnil);
-  if (c < 0)
-    error ("Can't convert to unibyte character: %d", XINT (ch));
-  return make_number (c);
-}
-
-DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
-       doc: /* Return 1 regardless of the argument CH.  */)
-     (ch)
-     Lisp_Object ch;
-{
-  CHECK_NUMBER (ch);
-  return make_number (1);
-}
-
-/* Return how many bytes C will occupy in a multibyte buffer.
-   Don't call this function directly, instead use macro CHAR_BYTES.  */
-int
-char_bytes (c)
-     int c;
-{
-  int charset;
-
-  if (ASCII_BYTE_P (c) || (c & ~((1 << CHARACTERBITS) -1)))
-    return 1;
-  if (SINGLE_BYTE_CHAR_P (c) && c >= 0xA0)
-    return 1;
-
-  charset = CHAR_CHARSET (c);
-  return (CHARSET_DEFINED_P (charset) ? CHARSET_BYTES (charset) : 1);
-}
-
-/* Return the width of character of which multi-byte form starts with
-   C.  The width is measured by how many columns occupied on the
-   screen when displayed in the current buffer.  */
-
-#define ONE_BYTE_CHAR_WIDTH(c)					     	\
-  (c < 0x20							     	\
-   ? (c == '\t'							     	\
-      ? XFASTINT (current_buffer->tab_width)			     	\
-      : (c == '\n' ? 0 : (NILP (current_buffer->ctl_arrow) ? 4 : 2)))	\
-   : (c < 0x7f							     	\
-      ? 1							     	\
-      : (c == 0x7F						     	\
-	 ? (NILP (current_buffer->ctl_arrow) ? 4 : 2)		     	\
-	 : ((! NILP (current_buffer->enable_multibyte_characters)    	\
-	     && BASE_LEADING_CODE_P (c))			     	\
-	    ? WIDTH_BY_CHAR_HEAD (c)				     	\
-	    : 4))))
-
-DEFUN ("char-width", Fchar_width, Schar_width, 1, 1, 0,
-       doc: /* Return width of CH when displayed in the current buffer.
-The width is measured by how many columns it occupies on the screen.
-Tab is taken to occupy `tab-width' columns.  */)
-     (ch)
-     Lisp_Object ch;
-{
-  Lisp_Object val, disp;
-  int c;
-  struct Lisp_Char_Table *dp = buffer_display_table ();
-
-  CHECK_NUMBER (ch);
-
-  c = XINT (ch);
-
-  /* Get the way the display table would display it.  */
-  disp = dp ? DISP_CHAR_VECTOR (dp, c) : Qnil;
-
-  if (VECTORP (disp))
-    XSETINT (val, XVECTOR (disp)->size);
-  else if (SINGLE_BYTE_CHAR_P (c))
-    XSETINT (val, ONE_BYTE_CHAR_WIDTH (c));
-  else
-    {
-      int charset = CHAR_CHARSET (c);
-
-      XSETFASTINT (val, CHARSET_WIDTH (charset));
-    }
-  return val;
-}
-
-/* Return width of string STR of length LEN when displayed in the
-   current buffer.  The width is measured by how many columns it
-   occupies on the screen.  */
-
-int
-strwidth (str, len)
-     unsigned char *str;
-     int len;
-{
-  return c_string_width (str, len, -1, NULL, NULL);
-}
-
-/* Return width of string STR of length LEN when displayed in the
-   current buffer.  The width is measured by how many columns it
-   occupies on the screen.  If PRECISION > 0, return the width of
-   longest substring that doesn't exceed PRECISION, and set number of
-   characters and bytes of the substring in *NCHARS and *NBYTES
-   respectively.  */
-
-int
-c_string_width (str, len, precision, nchars, nbytes)
-     const unsigned char *str;
-     int len, precision, *nchars, *nbytes;
-{
-  int i = 0, i_byte = 0;
-  int width = 0;
-  int chars;
-  struct Lisp_Char_Table *dp = buffer_display_table ();
-
-  while (i_byte < len)
-    {
-      int bytes, thiswidth;
-      Lisp_Object val;
-
-      if (dp)
-	{
-	  int c = STRING_CHAR_AND_LENGTH (str + i_byte, len - i_byte, bytes);
-
-	  chars = 1;
-	  val = DISP_CHAR_VECTOR (dp, c);
-	  if (VECTORP (val))
-	    thiswidth = XVECTOR (val)->size;
-	  else
-	    thiswidth = ONE_BYTE_CHAR_WIDTH (str[i_byte]);
-	}
-      else
-	{
-	  chars = 1;
-	  PARSE_MULTIBYTE_SEQ (str + i_byte, len - i_byte, bytes);
-	  thiswidth = ONE_BYTE_CHAR_WIDTH (str[i_byte]);
-	}
-
-      if (precision > 0
-	  && (width + thiswidth > precision))
-	{
-	  *nchars = i;
-	  *nbytes = i_byte;
-	  return width;
-	}
-      i++;
-      i_byte += bytes;
-      width += thiswidth;
-  }
-
-  if (precision > 0)
-    {
-      *nchars = i;
-      *nbytes = i_byte;
-    }
-
-  return width;
-}
-
-/* Return width of Lisp string STRING when displayed in the current
-   buffer.  The width is measured by how many columns it occupies on
-   the screen while paying attention to compositions.  If PRECISION >
-   0, return the width of longest substring that doesn't exceed
-   PRECISION, and set number of characters and bytes of the substring
-   in *NCHARS and *NBYTES respectively.  */
-
-int
-lisp_string_width (string, precision, nchars, nbytes)
-     Lisp_Object string;
-     int precision, *nchars, *nbytes;
-{
-  int len = SCHARS (string);
-  int len_byte = SBYTES (string);
-  /* This set multibyte to 0 even if STRING is multibyte when it
-     contains only ascii and eight-bit-graphic, but that's
-     intentional.  */
-  int multibyte = len < len_byte;
-  const unsigned char *str = SDATA (string);
-  int i = 0, i_byte = 0;
-  int width = 0;
-  struct Lisp_Char_Table *dp = buffer_display_table ();
-
-  while (i < len)
-    {
-      int chars, bytes, thiswidth;
-      Lisp_Object val;
-      int cmp_id;
-      int ignore, end;
-
-      if (find_composition (i, -1, &ignore, &end, &val, string)
-	  && ((cmp_id = get_composition_id (i, i_byte, end - i, val, string))
-	      >= 0))
-	{
-	  thiswidth = composition_table[cmp_id]->width;
-	  chars = end - i;
-	  bytes = string_char_to_byte (string, end) - i_byte;
-	}
-      else if (dp)
-	{
-	  int c;
-
-	  if (multibyte)
-	    c = STRING_CHAR_AND_LENGTH (str + i_byte, len - i_byte, bytes);
-	  else
-	    c = str[i_byte], bytes = 1;
-	  chars = 1;
-	  val = DISP_CHAR_VECTOR (dp, c);
-	  if (VECTORP (val))
-	    thiswidth = XVECTOR (val)->size;
-	  else
-	    thiswidth = ONE_BYTE_CHAR_WIDTH (str[i_byte]);
-	}
-      else
-	{
-	  chars = 1;
-	  if (multibyte)
-	    PARSE_MULTIBYTE_SEQ (str + i_byte, len_byte - i_byte, bytes);
-	  else
-	    bytes = 1;
-	  thiswidth = ONE_BYTE_CHAR_WIDTH (str[i_byte]);
-	}
-
-      if (precision > 0
-	  && (width + thiswidth > precision))
-	{
-	  *nchars = i;
-	  *nbytes = i_byte;
-	  return width;
-	}
-      i += chars;
-      i_byte += bytes;
-      width += thiswidth;
-  }
-
-  if (precision > 0)
-    {
-      *nchars = i;
-      *nbytes = i_byte;
-    }
-
-  return width;
-}
-
-DEFUN ("string-width", Fstring_width, Sstring_width, 1, 1, 0,
-       doc: /* Return width of STRING when displayed in the current buffer.
-Width is measured by how many columns it occupies on the screen.
-When calculating width of a multibyte character in STRING,
-only the base leading-code is considered; the validity of
-the following bytes is not checked.  Tabs in STRING are always
-taken to occupy `tab-width' columns.  */)
-     (string)
-     Lisp_Object string;
-{
-  Lisp_Object val;
-
-  CHECK_STRING (string);
-  XSETFASTINT (val, lisp_string_width (string, -1, NULL, NULL));
-  return val;
-}
-
-DEFUN ("char-direction", Fchar_direction, Schar_direction, 1, 1, 0,
-       doc: /* Return the direction of CH.
-The returned value is 0 for left-to-right and 1 for right-to-left.  */)
-     (ch)
-     Lisp_Object ch;
-{
-  int charset;
-
-  CHECK_NUMBER (ch);
-  charset = CHAR_CHARSET (XFASTINT (ch));
-  if (!CHARSET_DEFINED_P (charset))
-    invalid_character (XINT (ch));
-  return CHARSET_TABLE_INFO (charset, CHARSET_DIRECTION_IDX);
-}
-
-/* Return the number of characters in the NBYTES bytes at PTR.
-   This works by looking at the contents and checking for multibyte sequences.
-   However, if the current buffer has enable-multibyte-characters = nil,
-   we treat each byte as a character.  */
-
-int
-chars_in_text (ptr, nbytes)
-     const unsigned char *ptr;
-     int nbytes;
-{
-  /* current_buffer is null at early stages of Emacs initialization.  */
-  if (current_buffer == 0
-      || NILP (current_buffer->enable_multibyte_characters))
-    return nbytes;
-
-  return multibyte_chars_in_text (ptr, nbytes);
-}
-
-/* Return the number of characters in the NBYTES bytes at PTR.
-   This works by looking at the contents and checking for multibyte sequences.
-   It ignores enable-multibyte-characters.  */
-
-int
-multibyte_chars_in_text (ptr, nbytes)
-     const unsigned char *ptr;
-     int nbytes;
-{
-  const unsigned char *endp;
-  int chars, bytes;
-
-  endp = ptr + nbytes;
-  chars = 0;
-
-  while (ptr < endp)
-    {
-      PARSE_MULTIBYTE_SEQ (ptr, endp - ptr, bytes);
-      ptr += bytes;
-      chars++;
-    }
-
-  return chars;
-}
-
-/* Parse unibyte text at STR of LEN bytes as multibyte text, and
-   count the numbers of characters and bytes in it.  On counting
-   bytes, pay attention to the fact that 8-bit characters in the range
-   0x80..0x9F are represented by 2 bytes in multibyte text.  */
-void
-parse_str_as_multibyte (str, len, nchars, nbytes)
-     const unsigned char *str;
-     int len, *nchars, *nbytes;
-{
-  const unsigned char *endp = str + len;
-  int n, chars = 0, bytes = 0;
-
-  while (str < endp)
-    {
-      if (UNIBYTE_STR_AS_MULTIBYTE_P (str, endp - str, n))
-	str += n, bytes += n;
-      else
-	str++, bytes += 2;
-      chars++;
-    }
-  *nchars = chars;
-  *nbytes = bytes;
-  return;
-}
-
-/* Arrange unibyte text at STR of NBYTES bytes as multibyte text.
-   It actually converts only 8-bit characters in the range 0x80..0x9F
-   that don't contruct multibyte characters to multibyte forms.  If
-   NCHARS is nonzero, set *NCHARS to the number of characters in the
-   text.  It is assured that we can use LEN bytes at STR as a work
-   area and that is enough.  Return the number of bytes of the
-   resulting text.  */
-
-int
-str_as_multibyte (str, len, nbytes, nchars)
-     unsigned char *str;
-     int len, nbytes, *nchars;
-{
-  unsigned char *p = str, *endp = str + nbytes;
-  unsigned char *to;
-  int chars = 0;
-  int n;
-
-  while (p < endp && UNIBYTE_STR_AS_MULTIBYTE_P (p, endp - p, n))
-    p += n, chars++;
-  if (nchars)
-    *nchars = chars;
-  if (p == endp)
-    return nbytes;
-
-  to = p;
-  nbytes = endp - p;
-  endp = str + len;
-  safe_bcopy (p, endp - nbytes, nbytes);
-  p = endp - nbytes;
-  while (p < endp)
-    {
-      if (UNIBYTE_STR_AS_MULTIBYTE_P (p, endp - p, n))
-	{
-	  while (n--)
-	    *to++ = *p++;
-	}
-      else
-	{
-	  *to++ = LEADING_CODE_8_BIT_CONTROL;
-	  *to++ = *p++ + 0x20;
-	}
-      chars++;
-    }
-  if (nchars)
-    *nchars = chars;
-  return (to - str);
-}
-
-/* Parse unibyte string at STR of LEN bytes, and return the number of
-   bytes it may ocupy when converted to multibyte string by
-   `str_to_multibyte'.  */
-
-int
-parse_str_to_multibyte (str, len)
-     unsigned char *str;
-     int len;
-{
-  unsigned char *endp = str + len;
-  int bytes;
-
-  for (bytes = 0; str < endp; str++)
-    bytes += (*str < 0x80 || *str >= 0xA0) ? 1 : 2;
-  return bytes;
-}
-
-/* Convert unibyte text at STR of NBYTES bytes to multibyte text
-   that contains the same single-byte characters.  It actually
-   converts all 8-bit characters to multibyte forms.  It is assured
-   that we can use LEN bytes at STR as a work area and that is
-   enough.  */
-
-int
-str_to_multibyte (str, len, bytes)
-     unsigned char *str;
-     int len, bytes;
-{
-  unsigned char *p = str, *endp = str + bytes;
-  unsigned char *to;
-
-  while (p < endp && (*p < 0x80 || *p >= 0xA0)) p++;
-  if (p == endp)
-    return bytes;
-  to = p;
-  bytes = endp - p;
-  endp = str + len;
-  safe_bcopy (p, endp - bytes, bytes);
-  p = endp - bytes;
-  while (p < endp)
-    {
-      if (*p < 0x80 || *p >= 0xA0)
-	*to++ = *p++;
-      else
-	*to++ = LEADING_CODE_8_BIT_CONTROL, *to++ = *p++ + 0x20;
-    }
-  return (to - str);
-}
-
-/* Arrange multibyte text at STR of LEN bytes as a unibyte text.  It
-   actually converts only 8-bit characters in the range 0x80..0x9F to
-   unibyte forms.  */
-
-int
-str_as_unibyte (str, bytes)
-     unsigned char *str;
-     int bytes;
-{
-  unsigned char *p = str, *endp = str + bytes;
-  unsigned char *to = str;
-
-  while (p < endp && *p != LEADING_CODE_8_BIT_CONTROL) p++;
-  to = p;
-  while (p < endp)
-    {
-      if (*p == LEADING_CODE_8_BIT_CONTROL)
-	*to++ = *(p + 1) - 0x20, p += 2;
-      else
-	*to++ = *p++;
-    }
-  return (to - str);
-}
-
-
-DEFUN ("string", Fstring, Sstring, 0, MANY, 0,
-  doc: /* Concatenate all the argument characters and make the result a string.
-usage: (string &rest CHARACTERS)  */)
-     (n, args)
-     int n;
-     Lisp_Object *args;
-{
-  int i, bufsize;
-  unsigned char *buf, *p;
-  int c;
-  int multibyte = 0;
-  Lisp_Object ret;
-  USE_SAFE_ALLOCA;
-
-  bufsize = MAX_MULTIBYTE_LENGTH * n;
-  SAFE_ALLOCA (buf, unsigned char *, bufsize);
-  p = buf;
-
-  for (i = 0; i < n; i++)
-    {
-      CHECK_NUMBER (args[i]);
-      if (!multibyte && !SINGLE_BYTE_CHAR_P (XFASTINT (args[i])))
-	multibyte = 1;
-    }
-
-  for (i = 0; i < n; i++)
-    {
-      c = XINT (args[i]);
-      if (multibyte)
-	p += CHAR_STRING (c, p);
-      else
-	*p++ = c;
-    }
-
-  ret = make_string_from_bytes (buf, n, p - buf);
-  SAFE_FREE ();
-
-  return ret;
-}
-
-#endif /* emacs */
-
-int
-charset_id_internal (charset_name)
-     char *charset_name;
-{
-  Lisp_Object val;
-
-  val= Fget (intern (charset_name), Qcharset);
-  if (!VECTORP (val))
-    error ("Charset %s is not defined", charset_name);
-
-  return (XINT (XVECTOR (val)->contents[0]));
-}
-
-DEFUN ("setup-special-charsets", Fsetup_special_charsets,
-       Ssetup_special_charsets, 0, 0, 0, doc: /* Internal use only.  */)
+DEFUN ("clear-charset-maps", Fclear_charset_maps, Sclear_charset_maps,
+       0, 0, 0,
+       doc: /*
+Clear encoder and decoder of charsets that are loaded from mapfiles.  */)
      ()
 {
-  charset_latin_iso8859_1 = charset_id_internal ("latin-iso8859-1");
-  charset_jisx0208_1978 = charset_id_internal ("japanese-jisx0208-1978");
-  charset_jisx0208 = charset_id_internal ("japanese-jisx0208");
-  charset_katakana_jisx0201 = charset_id_internal ("katakana-jisx0201");
-  charset_latin_jisx0201 = charset_id_internal ("latin-jisx0201");
-  charset_big5_1 = charset_id_internal ("chinese-big5-1");
-  charset_big5_2 = charset_id_internal ("chinese-big5-2");
-  charset_mule_unicode_0100_24ff
-    = charset_id_internal ("mule-unicode-0100-24ff");
-  charset_mule_unicode_2500_33ff
-    = charset_id_internal ("mule-unicode-2500-33ff");
-  charset_mule_unicode_e000_ffff
-    = charset_id_internal ("mule-unicode-e000-ffff");
+  int i;
+  struct charset *charset;
+  Lisp_Object attrs;
+
+  for (i = 0; i < charset_table_used; i++)
+    {
+      charset = CHARSET_FROM_ID (i);
+      attrs = CHARSET_ATTRIBUTES (charset);
+
+      if (CHARSET_METHOD (charset) == CHARSET_METHOD_MAP)
+	{
+	  CHARSET_ATTR_DECODER (attrs) = Qnil;
+	  CHARSET_ATTR_ENCODER (attrs) = Qnil;
+	  CHARSET_METHOD (charset) = CHARSET_METHOD_MAP_DEFERRED;
+	}
+
+      if (CHARSET_UNIFIED_P (charset))
+	CHARSET_ATTR_DEUNIFIER (attrs) = Qnil;
+    }
+
+  if (CHAR_TABLE_P (Vchar_unified_charset_table))
+    {
+      Foptimize_char_table (Vchar_unified_charset_table);
+      Vchar_unify_table = Vchar_unified_charset_table;
+      Vchar_unified_charset_table = Qnil;
+    }
+
   return Qnil;
 }
+
+DEFUN ("charset-priority-list", Fcharset_priority_list,
+       Scharset_priority_list, 0, 1, 0,
+       doc: /* Return the list of charsets ordered by priority.
+HIGHESTP non-nil means just return the highest priority one.  */)
+     (highestp)
+     Lisp_Object highestp;
+{
+  Lisp_Object val = Qnil, list = Vcharset_ordered_list;
+
+  if (!NILP (highestp))
+    return CHARSET_NAME (CHARSET_FROM_ID (XINT (Fcar (list))));
+
+  while (!NILP (list))
+    {
+      val = Fcons (CHARSET_NAME (CHARSET_FROM_ID (XINT (XCAR (list)))), val);
+      list = XCDR (list);
+    }
+  return Fnreverse (val);
+}
+
+DEFUN ("set-charset-priority", Fset_charset_priority, Sset_charset_priority,
+       1, MANY, 0,
+       doc: /* Assign higher priority to the charsets given as arguments.
+usage: (set-charset-priority &rest charsets)  */)
+       (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  Lisp_Object new_head, old_list, arglist[2];
+  Lisp_Object list_2022, list_emacs_mule;
+  int i, id;
+
+  old_list = Fcopy_sequence (Vcharset_ordered_list);
+  new_head = Qnil;
+  for (i = 0; i < nargs; i++)
+    {
+      CHECK_CHARSET_GET_ID (args[i], id);
+      if (! NILP (Fmemq (make_number (id), old_list)))
+	{
+	  old_list = Fdelq (make_number (id), old_list);
+	  new_head = Fcons (make_number (id), new_head);
+	}
+    }
+  arglist[0] = Fnreverse (new_head);
+  arglist[1] = old_list;
+  Vcharset_ordered_list = Fnconc (2, arglist);
+  charset_ordered_list_tick++;
+
+  for (old_list = Vcharset_ordered_list, list_2022 = list_emacs_mule = Qnil;
+       CONSP (old_list); old_list = XCDR (old_list))
+    {
+      if (! NILP (Fmemq (XCAR (old_list), Viso_2022_charset_list)))
+	list_2022 = Fcons (XCAR (old_list), list_2022);
+      if (! NILP (Fmemq (XCAR (old_list), Vemacs_mule_charset_list)))
+	list_emacs_mule = Fcons (XCAR (old_list), list_emacs_mule);
+    }
+  Viso_2022_charset_list = Fnreverse (list_2022);
+  Vemacs_mule_charset_list = Fnreverse (list_emacs_mule);
+
+  return Qnil;
+}
+
+DEFUN ("charset-id-internal", Fcharset_id_internal, Scharset_id_internal,
+       0, 1, 0,
+       doc: /* Internal use only.
+Return charset identification number of CHARSET.  */)
+     (charset)
+     Lisp_Object charset;
+{
+  int id;
+
+  CHECK_CHARSET_GET_ID (charset, id);
+  return make_number (id);
+}
+
+
+void
+init_charset ()
+{
+  Vcharset_map_path
+    = Fcons (Fexpand_file_name (build_string ("charsets"), Vdata_directory),
+	     Qnil);
+}
+
 
 void
 init_charset_once ()
 {
   int i, j, k;
 
-  staticpro (&Vcharset_table);
-  staticpro (&Vcharset_symbol_table);
-  staticpro (&Vgeneric_character_list);
-
-  /* This has to be done here, before we call Fmake_char_table.  */
-  Qcharset_table = intern ("charset-table");
-  staticpro (&Qcharset_table);
-
-  /* Intern this now in case it isn't already done.
-     Setting this variable twice is harmless.
-     But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern ("char-table-extra-slots");
-
-  /* Now we are ready to set up this property, so we can
-     create the charset table.  */
-  Fput (Qcharset_table, Qchar_table_extra_slots, make_number (0));
-  Vcharset_table = Fmake_char_table (Qcharset_table, Qnil);
-
-  Qunknown = intern ("unknown");
-  staticpro (&Qunknown);
-  Vcharset_symbol_table = Fmake_vector (make_number (MAX_CHARSET + 1),
-					Qunknown);
-
-  /* Setup tables.  */
-  for (i = 0; i < 2; i++)
-    for (j = 0; j < 2; j++)
-      for (k = 0; k < 128; k++)
-	iso_charset_table [i][j][k] = -1;
+  for (i = 0; i < ISO_MAX_DIMENSION; i++)
+    for (j = 0; j < ISO_MAX_CHARS; j++)
+      for (k = 0; k < ISO_MAX_FINAL; k++)
+	iso_charset_table[i][j][k] = -1;
 
   for (i = 0; i < 256; i++)
-    bytes_by_char_head[i] = 1;
-  bytes_by_char_head[LEADING_CODE_PRIVATE_11] = 3;
-  bytes_by_char_head[LEADING_CODE_PRIVATE_12] = 3;
-  bytes_by_char_head[LEADING_CODE_PRIVATE_21] = 4;
-  bytes_by_char_head[LEADING_CODE_PRIVATE_22] = 4;
+    emacs_mule_charset[i] = NULL;
+
+  charset_jisx0201_roman = -1;
+  charset_jisx0208_1978 = -1;
+  charset_jisx0208 = -1;
 
   for (i = 0; i < 128; i++)
-    width_by_char_head[i] = 1;
+    unibyte_to_multibyte_table[i] = i;
   for (; i < 256; i++)
-    width_by_char_head[i] = 4;
-  width_by_char_head[LEADING_CODE_PRIVATE_11] = 1;
-  width_by_char_head[LEADING_CODE_PRIVATE_12] = 2;
-  width_by_char_head[LEADING_CODE_PRIVATE_21] = 1;
-  width_by_char_head[LEADING_CODE_PRIVATE_22] = 2;
-
-  {
-    Lisp_Object val;
-
-    val = Qnil;
-    for (i = 0x81; i < 0x90; i++)
-      val = Fcons (make_number ((i - 0x70) << 7), val);
-    for (; i < 0x9A; i++)
-      val = Fcons (make_number ((i - 0x8F) << 14), val);
-    for (i = 0xA0; i < 0xF0; i++)
-      val = Fcons (make_number ((i - 0x70) << 7), val);
-    for (; i < 0xFF; i++)
-      val = Fcons (make_number ((i - 0xE0) << 14), val);
-    Vgeneric_character_list = Fnreverse (val);
-  }
-
-  nonascii_insert_offset = 0;
-  Vnonascii_translation_table = Qnil;
+    unibyte_to_multibyte_table[i] = BYTE8_TO_CHAR (i);
 }
 
 #ifdef emacs
@@ -1788,140 +2078,87 @@ init_charset_once ()
 void
 syms_of_charset ()
 {
-  Qcharset = intern ("charset");
-  staticpro (&Qcharset);
+  DEFSYM (Qcharsetp, "charsetp");
 
-  Qascii = intern ("ascii");
-  staticpro (&Qascii);
+  DEFSYM (Qascii, "ascii");
+  DEFSYM (Qunicode, "unicode");
+  DEFSYM (Qeight_bit, "eight-bit");
+  DEFSYM (Qiso_8859_1, "iso-8859-1");
 
-  Qeight_bit_control = intern ("eight-bit-control");
-  staticpro (&Qeight_bit_control);
+  DEFSYM (Qgl, "gl");
+  DEFSYM (Qgr, "gr");
 
-  Qeight_bit_graphic = intern ("eight-bit-graphic");
-  staticpro (&Qeight_bit_graphic);
+  staticpro (&Vcharset_ordered_list);
+  Vcharset_ordered_list = Qnil;
 
-  /* Define special charsets ascii, eight-bit-control, and
-     eight-bit-graphic.  */
-  update_charset_table (make_number (CHARSET_ASCII),
-			make_number (1), make_number (94),
-			make_number (1),
-			make_number (0),
-			make_number ('B'),
-			make_number (0),
-			build_string ("ASCII"),
-			Qnil,	/* same as above */
-			build_string ("ASCII (ISO646 IRV)"));
-  CHARSET_SYMBOL (CHARSET_ASCII) = Qascii;
-  Fput (Qascii, Qcharset, CHARSET_TABLE_ENTRY (CHARSET_ASCII));
+  staticpro (&Viso_2022_charset_list);
+  Viso_2022_charset_list = Qnil;
 
-  update_charset_table (make_number (CHARSET_8_BIT_CONTROL),
-			make_number (1), make_number (96),
-			make_number (4),
-			make_number (0),
-			make_number (-1),
-			make_number (-1),
-			build_string ("8-bit control code (0x80..0x9F)"),
-			Qnil,	/* same as above */
-			Qnil);	/* same as above */
-  CHARSET_SYMBOL (CHARSET_8_BIT_CONTROL) = Qeight_bit_control;
-  Fput (Qeight_bit_control, Qcharset,
-	CHARSET_TABLE_ENTRY (CHARSET_8_BIT_CONTROL));
+  staticpro (&Vemacs_mule_charset_list);
+  Vemacs_mule_charset_list = Qnil;
 
-  update_charset_table (make_number (CHARSET_8_BIT_GRAPHIC),
-			make_number (1), make_number (96),
-			make_number (4),
-			make_number (0),
-			make_number (-1),
-			make_number (-1),
-			build_string ("8-bit graphic char (0xA0..0xFF)"),
-			Qnil,	/* same as above */
-			Qnil);	/* same as above */
-  CHARSET_SYMBOL (CHARSET_8_BIT_GRAPHIC) = Qeight_bit_graphic;
-  Fput (Qeight_bit_graphic, Qcharset,
-	CHARSET_TABLE_ENTRY (CHARSET_8_BIT_GRAPHIC));
+  staticpro (&Vcharset_hash_table);
+  {
+    Lisp_Object args[2];
+    args[0] = QCtest;
+    args[1] = Qeq;
+    Vcharset_hash_table = Fmake_hash_table (2, args);
+  }
 
-  Qauto_fill_chars = intern ("auto-fill-chars");
-  staticpro (&Qauto_fill_chars);
-  Fput (Qauto_fill_chars, Qchar_table_extra_slots, make_number (0));
+  charset_table_size = 128;
+  charset_table = ((struct charset *)
+		   xmalloc (sizeof (struct charset) * charset_table_size));
+  charset_table_used = 0;
 
-  defsubr (&Sdefine_charset);
-  defsubr (&Sgeneric_character_list);
+  staticpro (&Vchar_unified_charset_table);
+  Vchar_unified_charset_table = Fmake_char_table (Qnil, make_number (-1));
+
+  defsubr (&Scharsetp);
+  defsubr (&Smap_charset_chars);
+  defsubr (&Sdefine_charset_internal);
+  defsubr (&Sdefine_charset_alias);
+  defsubr (&Sunibyte_charset);
+  defsubr (&Sset_unibyte_charset);
+  defsubr (&Scharset_plist);
+  defsubr (&Sset_charset_plist);
+  defsubr (&Sunify_charset);
   defsubr (&Sget_unused_iso_final_char);
   defsubr (&Sdeclare_equiv_charset);
   defsubr (&Sfind_charset_region);
   defsubr (&Sfind_charset_string);
-  defsubr (&Smake_char_internal);
+  defsubr (&Sdecode_char);
+  defsubr (&Sencode_char);
   defsubr (&Ssplit_char);
+  defsubr (&Smake_char);
   defsubr (&Schar_charset);
   defsubr (&Scharset_after);
   defsubr (&Siso_charset);
-  defsubr (&Schar_valid_p);
-  defsubr (&Sunibyte_char_to_multibyte);
-  defsubr (&Smultibyte_char_to_unibyte);
-  defsubr (&Schar_bytes);
-  defsubr (&Schar_width);
-  defsubr (&Sstring_width);
-  defsubr (&Schar_direction);
-  defsubr (&Sstring);
-  defsubr (&Ssetup_special_charsets);
+  defsubr (&Sclear_charset_maps);
+  defsubr (&Scharset_priority_list);
+  defsubr (&Sset_charset_priority);
+  defsubr (&Scharset_id_internal);
+
+  DEFVAR_LISP ("charset-map-path", &Vcharset_map_path,
+	       doc: /* *Lisp of directories to search for charset map files.  */);
+  Vcharset_map_path = Qnil;
 
   DEFVAR_LISP ("charset-list", &Vcharset_list,
-	       doc: /* List of charsets ever defined.  */);
-  Vcharset_list = Fcons (Qascii, Fcons (Qeight_bit_control,
-					Fcons (Qeight_bit_graphic, Qnil)));
+	       doc: /* List of all charsets ever defined.  */);
+  Vcharset_list = Qnil;
 
-  DEFVAR_LISP ("translation-table-vector",  &Vtranslation_table_vector,
-	       doc: /* Vector of cons cell of a symbol and translation table ever defined.
-An ID of a translation table is an index of this vector.  */);
-  Vtranslation_table_vector = Fmake_vector (make_number (16), Qnil);
-
-  DEFVAR_INT ("leading-code-private-11", &leading_code_private_11,
-	      doc: /* Leading-code of private TYPE9N charset of column-width 1.  */);
-  leading_code_private_11 = LEADING_CODE_PRIVATE_11;
-
-  DEFVAR_INT ("leading-code-private-12", &leading_code_private_12,
-	      doc: /* Leading-code of private TYPE9N charset of column-width 2.  */);
-  leading_code_private_12 = LEADING_CODE_PRIVATE_12;
-
-  DEFVAR_INT ("leading-code-private-21", &leading_code_private_21,
-	      doc: /* Leading-code of private TYPE9Nx9N charset of column-width 1.  */);
-  leading_code_private_21 = LEADING_CODE_PRIVATE_21;
-
-  DEFVAR_INT ("leading-code-private-22", &leading_code_private_22,
-	      doc: /* Leading-code of private TYPE9Nx9N charset of column-width 2.  */);
-  leading_code_private_22 = LEADING_CODE_PRIVATE_22;
-
-  DEFVAR_INT ("nonascii-insert-offset", &nonascii_insert_offset,
-	      doc: /* Offset for converting non-ASCII unibyte codes 0240...0377 to multibyte.
-This is used for converting unibyte text to multibyte,
-and for inserting character codes specified by number.
-
-This serves to convert a Latin-1 or similar 8-bit character code
-to the corresponding Emacs multibyte character code.
-Typically the value should be (- (make-char CHARSET 0) 128),
-for your choice of character set.
-If `nonascii-translation-table' is non-nil, it overrides this variable.  */);
-  nonascii_insert_offset = 0;
-
-  DEFVAR_LISP ("nonascii-translation-table", &Vnonascii_translation_table,
-	       doc: /* Translation table to convert non-ASCII unibyte codes to multibyte.
-This is used for converting unibyte text to multibyte,
-and for inserting character codes specified by number.
-
-Conversion is performed only when multibyte characters are enabled,
-and it serves to convert a Latin-1 or similar 8-bit character code
-to the corresponding Emacs character code.
-
-If this is nil, `nonascii-insert-offset' is used instead.
-See also the docstring of `make-translation-table'.  */);
-  Vnonascii_translation_table = Qnil;
-
-  DEFVAR_LISP ("auto-fill-chars", &Vauto_fill_chars,
-	       doc: /* A char-table for characters which invoke auto-filling.
-Such characters have value t in this table.  */);
-  Vauto_fill_chars = Fmake_char_table (Qauto_fill_chars, Qnil);
-  CHAR_TABLE_SET (Vauto_fill_chars, make_number (' '), Qt);
-  CHAR_TABLE_SET (Vauto_fill_chars, make_number ('\n'), Qt);
+  charset_ascii
+    = define_charset_internal (Qascii, 1, "\x00\x7F\x00\x00\x00\x00",
+			       0, 127, 'B', -1, 0, 1, 0, 0);
+  charset_iso_8859_1
+    = define_charset_internal (Qiso_8859_1, 1, "\x00\xFF\x00\x00\x00\x00",
+			       0, 255, -1, -1, -1, 1, 0, 0);
+  charset_unicode
+    = define_charset_internal (Qunicode, 3, "\x00\xFF\x00\xFF\x00\x10",
+			       0, MAX_UNICODE_CHAR, -1, 0, -1, 1, 0, 0);
+  charset_eight_bit
+    = define_charset_internal (Qeight_bit, 1, "\x80\xFF\x00\x00\x00\x00",
+			       128, 255, -1, 0, -1, 0, 0,
+			       MAX_5_BYTE_CHAR + 1);
 }
 
 #endif /* emacs */

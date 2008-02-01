@@ -25,7 +25,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include "lisp.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "category.h"
 #include "indent.h"
 #include "keyboard.h"
@@ -292,7 +292,7 @@ check_composition (pos, pos_byte, point, len, len_byte, width)
      int *len, *len_byte, *width;
 {
   Lisp_Object prop;
-  int start, end;
+  EMACS_INT start, end;
   int id;
 
   if (! find_composition (pos, -1, &start, &end, &prop, Qnil)
@@ -328,7 +328,7 @@ check_composition (pos, pos_byte, point, len, len_byte, width)
 	if (dp != 0 && VECTORP (DISP_CHAR_VECTOR (dp, c)))		\
 	  width = XVECTOR (DISP_CHAR_VECTOR (dp, c))->size;		\
 	else								\
-	  width = WIDTH_BY_CHAR_HEAD (*p);				\
+	  width = CHAR_WIDTH (c);					\
 	if (width > 1)							\
 	  wide_column = width;						\
       }									\

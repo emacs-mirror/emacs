@@ -24552,21 +24552,6 @@
 	* elide-head.el (elide-head-headers-to-hide): Recognize the FSF's
 	new address as well.
 
-2005-07-07  Kenichi Handa  <handa@m17n.org>
-
-	* international/mule.el (make-coding-system):
-	Describe `ascii-incompatible' property in the docstring.
-	(set-file-name-coding-system): Signal an error if coding-system is
-	ascii-incompatible.
-	(set-keyboard-coding-system): Likewise.
-
-	* international/mule-cmds.el (set-default-coding-systems):
-	Don't set default-file-name-coding-system and
-	default-keyboard-coding-system if coding-system is ASCII-incompatible.
-
-	* international/utf-16.el: Declare that all UTF-16-based coding
-	systems are ASCII-incompatible.
-
 2005-07-07  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el: Require font-lock for displaying errors.

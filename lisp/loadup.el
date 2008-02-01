@@ -33,6 +33,8 @@
 ;; get autoloaded when bootstrapping
 (if (or (equal (nth 3 command-line-args) "bootstrap")
 	(equal (nth 4 command-line-args) "bootstrap")
+	(equal (nth 3 command-line-args) "unidata-gen.el")
+	(equal (nth 4 command-line-args) "unidata-gen-files")
 	;; in case CANNOT_DUMP
 	(equal (nth 0 command-line-args) "../src/bootstrap-emacs"))
     (let ((dir (car load-path)))
@@ -89,18 +91,12 @@
 ;; multilingual text.
 (load "international/mule-cmds")
 (load "case-table")
-(load "international/utf-8")
-(load "international/utf-16")
 (load "international/characters")
+(load "composite")
+;; This file doesn't exist when building Emacs from CVS.  It is
+;; generated just after temacs is build.
+(load "international/charprop.el" t)
 
-(let ((set-case-syntax-set-multibyte t))
-  (load "international/latin-1")
-  (load "international/latin-2")
-  (load "international/latin-3")
-  (load "international/latin-4")
-  (load "international/latin-5")
-  (load "international/latin-8")
-  (load "international/latin-9"))
 ;; Load language-specific files.
 (load "language/chinese")
 (load "language/cyrillic")
@@ -120,16 +116,16 @@
 (load "language/japanese")
 (load "language/korean")
 (load "language/lao")
+(load "language/tai-viet")
 (load "language/thai")
 (load "language/tibetan")
 (load "language/vietnamese")
 (load "language/misc-lang")
 (load "language/utf-8-lang")
 (load "language/georgian")
-
-(load "international/ucs-tables")
-
-(update-coding-systems-internal)
+(load "language/khmer")
+(load "language/myanmar")
+(load "language/cham")
 
 (load "indent")
 (load "window")
@@ -192,8 +188,6 @@
       (load "vms-patch")))
 (if (eq system-type 'windows-nt)
     (progn
-      (load "international/ccl")
-      (load "international/code-pages")
       (load "w32-vars")
       (load "term/w32-win")
       (load "ls-lisp")
@@ -330,6 +324,7 @@
 	(equal (nth 4 command-line-args) "bootstrap"))
     (setcdr load-path nil))
 
+(clear-charset-maps)
 (garbage-collect)
 
 ;;; At this point, we're ready to resume undo recording for scratch.

@@ -864,7 +864,7 @@ otherwise pop it")
 	       (setcar (cdr bytes) (logand pc 255))
 	       (setcar bytes (lsh pc -8))))
 	(setq patchlist (cdr patchlist))))
-    (concat (nreverse bytes))))
+    (string-make-unibyte (concat (nreverse bytes)))))
 
 
 ;;; compile-time evaluation
@@ -1949,13 +1949,13 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
 	(delete-region (point) (progn (re-search-forward "^(")
 				      (beginning-of-line)
 				      (point)))
-	(insert ";;; This file contains multibyte non-ASCII characters\n"
-		";;; and therefore cannot be loaded into Emacs 19.\n")
-	;; Replace "19" or "19.29" with "20", twice.
+	(insert ";;; This file contains utf-8 non-ASCII characters\n"
+		";;; and therefore cannot be loaded into Emacs 21 or earlier.\n")
+	;; Replace "19" or "19.29" with "22", twice.
 	(re-search-forward "19\\(\\.[0-9]+\\)")
-	(replace-match "20")
+	(replace-match "23")
 	(re-search-forward "19\\(\\.[0-9]+\\)")
-	(replace-match "20")
+	(replace-match "23")
 	;; Now compensate for the change in size,
 	;; to make sure all positions in the file remain valid.
 	(setq delta (- (point-max) old-header-end))
@@ -1970,7 +1970,7 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
       (set-buffer outbuffer)
       (goto-char (point-min))
       ;; The magic number of .elc files is ";ELC", or 0x3B454C43.  After
-      ;; that is the file-format version number (18, 19 or 20) as a
+      ;; that is the file-format version number (18, 19, 20, or 23) as a
       ;; byte, followed by some nulls.  The primary motivation for doing
       ;; this is to get some binary characters up in the first line of
       ;; the file so that `diff' will simply say "Binary files differ"
@@ -1982,7 +1982,7 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
 
       (insert
        ";ELC"
-       (if (byte-compile-version-cond byte-compile-compatibility) 18 20)
+       (if (byte-compile-version-cond byte-compile-compatibility) 18 23)
        "\000\000\000\n"
        )
       (insert ";;; Compiled by "
@@ -2010,41 +2010,41 @@ and will be removed soon.  See (elisp)Backquote in the manual."))
 	    ;; the buffer contains multibyte characters.  We may have to
 	    ;; compensate at the end in byte-compile-fix-header.
 	    (if dynamic-docstrings
-		(setq intro-string
-		      ";;; This file uses dynamic docstrings, first added in Emacs 19.29.\n"
-		      minimum-version "19.29")
 	      (setq intro-string
-		    ";;; This file uses opcodes which do not exist in Emacs 18.\n"
-		    minimum-version "19"))
-	    ;; Now insert the comment and the error check.
-	    (insert
-	     "\n"
-	     intro-string
-	     ;; Have to check if emacs-version is bound so that this works
-	     ;; in files loaded early in loadup.el.
-	     "(if (and (boundp 'emacs-version)\n"
-	     ;; If there is a name at the end of emacs-version,
-	     ;; don't try to check the version number.
-	     "\t (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
-	     "\t (or (and (boundp 'epoch::version) epoch::version)\n"
-	     (format "\t     (string-lessp emacs-version \"%s\")))\n"
-		     minimum-version)
-	     "    (error \"`"
-	     ;; prin1-to-string is used to quote backslashes.
-	     (substring (prin1-to-string (file-name-nondirectory filename))
-			1 -1)
-	     (format "' was compiled for Emacs %s or later\"))\n\n"
-		     minimum-version)
-	     ;; Insert semicolons as ballast, so that byte-compile-fix-header
-	     ;; can delete them so as to keep the buffer positions
-	     ;; constant for the actual compiled code.
-	     ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"))
-	;; Here if we want Emacs 18 compatibility.
-	(when dynamic-docstrings
-	  (error "Version-18 compatibility doesn't support dynamic doc strings"))
-	(when byte-compile-dynamic
-	  (error "Version-18 compatibility doesn't support dynamic byte code"))
-	(insert "(or (boundp 'current-load-list) (setq current-load-list nil))\n"
+		    ";;; This file uses dynamic docstrings, first added in Emacs 19.29.\n"
+		    minimum-version "19.29")
+	    (setq intro-string
+		  ";;; This file uses opcodes which do not exist in Emacs 18.\n"
+		  minimum-version "19"))
+	  ;; Now insert the comment and the error check.
+	  (insert
+	   "\n"
+	   intro-string
+	   ;; Have to check if emacs-version is bound so that this works
+	   ;; in files loaded early in loadup.el.
+	   "(if (and (boundp 'emacs-version)\n"
+	   ;; If there is a name at the end of emacs-version,
+	   ;; don't try to check the version number.
+	   "\t (< (aref emacs-version (1- (length emacs-version))) ?A)\n"
+	   "\t (or (and (boundp 'epoch::version) epoch::version)\n"
+	   (format "\t     (string-lessp emacs-version \"%s\")))\n"
+		   minimum-version)
+	   "    (error \"`"
+	   ;; prin1-to-string is used to quote backslashes.
+	   (substring (prin1-to-string (file-name-nondirectory filename))
+		      1 -1)
+	   (format "' was compiled for Emacs %s or later\"))\n\n"
+		   minimum-version)
+	   ;; Insert semicolons as ballast, so that byte-compile-fix-header
+	   ;; can delete them so as to keep the buffer positions
+	   ;; constant for the actual compiled code.
+	   ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;\n\n"))
+      ;; Here if we want Emacs 18 compatibility.
+      (when dynamic-docstrings
+	(error "Version-18 compatibility doesn't support dynamic doc strings"))
+      (when byte-compile-dynamic
+	(error "Version-18 compatibility doesn't support dynamic byte code"))
+      (insert "(or (boundp 'current-load-list) (setq current-load-list nil))\n"
 		"\n")))))
 
 (defun byte-compile-output-file-form (form)
@@ -3485,6 +3485,8 @@ That command is designed for interactive use only" fn))
 (byte-defop-compiler-1 mapc byte-compile-funarg)
 (byte-defop-compiler-1 maphash byte-compile-funarg)
 (byte-defop-compiler-1 map-char-table byte-compile-funarg)
+(byte-defop-compiler-1 map-char-table byte-compile-funarg-2)
+;; map-charset-chars should be funarg but has optional third arg
 (byte-defop-compiler-1 sort byte-compile-funarg-2)
 (byte-defop-compiler-1 let)
 (byte-defop-compiler-1 let*)

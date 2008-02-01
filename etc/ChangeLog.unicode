@@ -1,0 +1,91 @@
+2008-01-07  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* HELLO: Add Bengali, Gujarati, Khmer, Myanmar, Oriya, Sinhara,
+	Telugu.  Fix ISO-2022 desginations in Cantonese line.
+
+2007-12-09  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Remove non-unicode character from Tibetan text.
+
+2007-01-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-prin1.ps (printBackground): Fix background height.
+
+2006-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Sync with HEAD.
+
+2005-02-12  Miles Bader  <miles@gnu.org>
+
+	* TODO, PROBLEMS, NEWS: Replace references to Emacs version "22"
+	with "23".
+
+2004-02-12  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/CNS-[234567].map: Regenerated.
+
+2004-01-28  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/JISX2131.map: Regenerated.
+
+2004-01-27  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/JISX213A.map: New file.
+
+	* charsets/JISX0208.map: Regenerated.
+
+2004-01-26  Kenichi Handa  <handa@m17n.org>
+
+	* charsets/CP932-2BYTE.map: Updated from ../admin/charsets.
+
+2004-01-25  Kenichi Handa  <handa@m17n.org>
+
+	* CP932-2BYTE.map: New file.
+
+2003-09-26  Kenichi Handa  <handa@m17n.org>
+
+	* ps-prin1.ps (HeaderOrFooterTextLines): Handle multiple strings
+	in a line.
+
+2003-09-08  Kenichi Handa  <handa@m17n.org>
+
+	* charsets: New directory for charset mapping tables.
+
+	* charsets/README: New file.
+
+	* charsets/*.map: New files.
+
+2003-04-12  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Change "Hindi" to more common characters.
+
+2003-01-10  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Fix upcase and downcase for several languages.  Change
+	the two German lines into one.  Change "Nederlangs" to
+	"Dutch (Nederlands)".  Add original language names to several
+	entries.
+
+2003-01-06  Kenichi Handa  <handa@m17n.org>
+
+	* TUTORIAL.es: Add local variable coding: latin-1.
+
+2002-10-30  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Change indian-2-column chars of Hindi line to Unicode
+	chars.
+
+2002-05-27  Dave Love  <fx@gnu.org>
+
+	* HELLO: Add pseudo-maths example.
+
+;; Local Variables:
+;; coding: iso-2022-7bit
+;; End:
+
+    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2007
+	Free Software Foundation, Inc.
+  Copying and distribution of this file, with or without modification,
+  are permitted provided the copyright notice and this notice are preserved.
+
+;;; arch-tag: 3be3b13c-b969-4c9d-8542-66e0b5a3d27a

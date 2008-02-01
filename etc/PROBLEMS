@@ -8,6 +8,10 @@ This file describes various problems that have been encountered
 in compiling, installing and running GNU Emacs.  Try doing Ctl-C Ctl-t
 and browsing through the outline headers.
 
+* Mule-UCS doesn't work in Emacs 23.
+
+It's completely redundant now, as far as we know.
+
 * Emacs startup failures
 
 ** Emacs fails to start, complaining about missing fonts.

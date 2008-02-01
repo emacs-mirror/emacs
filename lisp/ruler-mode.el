@@ -135,8 +135,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
   "Ensure WIDGET value is a valid character value."
   (save-excursion
     (let ((value (widget-value widget)))
-      (if (char-valid-p value)
-          nil
+      (unless (characterp value)
         (widget-put widget :error
                     (format "Invalid character value: %S" value))
         widget))))
@@ -667,7 +666,8 @@ Optional argument PROPS specifies other text properties to apply."
          ;; Create an "clean" ruler.
          (ruler
           (propertize
-           (make-string w ruler-mode-basic-graduation-char)
+           (string-to-multibyte 
+	    (make-string w ruler-mode-basic-graduation-char))
            'face 'ruler-mode-default
            'local-map ruler-mode-map
            'help-echo (cond

@@ -4,6 +4,9 @@
    Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
+   Copyright (C) 2003, 2006
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 
@@ -25,7 +28,7 @@ Boston, MA 02110-1301, USA.  */
 #include <config.h>
 #include "lisp.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "intervals.h"
 
 /* Emacs uses special text property `composition' to support character
@@ -147,19 +150,17 @@ Lisp_Object composition_hash_table;
 /* Function to call to adjust composition.  */
 Lisp_Object Vcompose_chars_after_function;
 
-/* Char-table of patterns and functions to make a composition.  */
-Lisp_Object Vcomposition_function_table;
-Lisp_Object Qcomposition_function_table;
+Lisp_Object Qauto_composed;
+Lisp_Object Vauto_composition_function;
+Lisp_Object Qauto_composition_function;
+
+EXFUN (Fremove_list_of_text_properties, 4);
 
 /* Temporary variable used in macros COMPOSITION_XXX.  */
 Lisp_Object composition_temp;
-
-/* Return how many columns C will occupy on the screen.  It always
-   returns 1 for control characters and 8-bit characters because those
-   are just ignored in a composition.  */
-#define CHAR_WIDTH(c) \
-  (SINGLE_BYTE_CHAR_P (c) ? 1 : CHARSET_WIDTH (CHAR_CHARSET (c)))
 
+extern int enable_font_backend;
+
 /* Return COMPOSITION-ID of a composition at buffer position
    CHARPOS/BYTEPOS and length NCHARS.  The `composition' property of
    the sequence is PROP.  STRING, if non-nil, is a string that
@@ -274,6 +275,22 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
   /* Check if the contents of COMPONENTS are valid if COMPONENTS is a
      vector or a list.  It should be a sequence of:
 	char1 rule1 char2 rule2 char3 ...    ruleN charN+1  */
+
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend
+      && VECTORP (components)
+      && ASIZE (components) >= 2
+      && VECTORP (AREF (components, 0)))
+    {
+      /* COMPONENTS is a glyph-string.  */
+      int len = ASIZE (key);
+
+      for (i = 1; i < len; i++)
+	if (! VECTORP (AREF (key, i)))
+	  goto invalid_composition;
+    }
+  else
+#endif  /* USE_FONT_BACKEND */
   if (VECTORP (components) || CONSP (components))
     {
       int len = XVECTOR (key)->size;
@@ -307,6 +324,12 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
 		 : ((INTEGERP (components) || STRINGP (components))
 		    ? COMPOSITION_WITH_ALTCHARS
 		    : COMPOSITION_WITH_RULE_ALTCHARS));
+#ifdef USE_FONT_BACKEND
+  if (cmp->method == COMPOSITION_WITH_RULE_ALTCHARS
+      && VECTORP (components)
+      && ! INTEGERP (AREF (components, 0)))
+    cmp->method = COMPOSITION_WITH_GLYPH_STRING;
+#endif  /* USE_FONT_BACKEND */
   cmp->hash_index = hash_index;
   glyph_len = (cmp->method == COMPOSITION_WITH_RULE_ALTCHARS
 	       ? (XVECTOR (key)->size + 1) / 2
@@ -315,6 +338,14 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
   cmp->offsets = (short *) xmalloc (sizeof (short) * glyph_len * 2);
   cmp->font = NULL;
 
+#ifdef USE_FONT_BACKEND
+  if (cmp->method == COMPOSITION_WITH_GLYPH_STRING)
+    {
+      cmp->width = 1;		/* Should be fixed later.  */
+      cmp->glyph_len--;
+    }
+  else
+#endif	/* USE_FONT_BACKEND */
   /* Calculate the width of overall glyphs of the composition.  */
   if (cmp->method != COMPOSITION_WITH_RULE_ALTCHARS)
     {
@@ -335,17 +366,17 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
       float leftmost = 0.0, rightmost;
 
       ch = XINT (key_contents[0]);
-      rightmost = CHAR_WIDTH (ch);
+      rightmost = ch != '\t' ? CHAR_WIDTH (ch) : 1;
 
       for (i = 1; i < glyph_len; i += 2)
 	{
-	  int rule, gref, nref;
+	  int rule, gref, nref, xoff, yoff;
 	  int this_width;
 	  float this_left;
 
 	  rule = XINT (key_contents[i]);
 	  ch = XINT (key_contents[i + 1]);
-	  this_width = CHAR_WIDTH (ch);
+	  this_width = ch != '\t' ? CHAR_WIDTH (ch) : 1;
 
 	  /* A composition rule is specified by an integer value
 	     that encodes global and new reference points (GREF and
@@ -361,7 +392,7 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
 		|       |
 		6---7---8 -- descent
 	  */
-	  COMPOSITION_DECODE_RULE (rule, gref, nref);
+	  COMPOSITION_DECODE_RULE (rule, gref, nref, xoff, yoff);
 	  this_left = (leftmost
 		       + (gref % 3) * (rightmost - leftmost) / 2.0
 		       - (nref % 3) * this_width / 2.0);
@@ -407,7 +438,8 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
 
 int
 find_composition (pos, limit, start, end, prop, object)
-     int pos, limit, *start, *end;
+     int pos, limit;
+     EMACS_INT *start, *end;
      Lisp_Object *prop, object;
 {
   Lisp_Object val;
@@ -451,7 +483,7 @@ run_composition_function (from, to, prop)
      Lisp_Object prop;
 {
   Lisp_Object func;
-  int start, end;
+  EMACS_INT start, end;
 
   func = COMPOSITION_MODIFICATION_FUNC (prop);
   /* If an invalid composition precedes or follows, try to make them
@@ -466,24 +498,29 @@ run_composition_function (from, to, prop)
     to = end;
   if (!NILP (Ffboundp (func)))
     call2 (func, make_number (from), make_number (to));
-  else if (!NILP (Ffboundp (Vcompose_chars_after_function)))
-    call3 (Vcompose_chars_after_function,
-	   make_number (from), make_number (to), Qnil);
 }
 
 /* Make invalid compositions adjacent to or inside FROM and TO valid.
    CHECK_MASK is bitwise `or' of mask bits defined by macros
    CHECK_XXX (see the comment in composite.h).
 
+   It also resets the text-property `auto-composed' to a proper region
+   so that automatic character composition works correctly later while
+   displaying the region.
+
    This function is called when a buffer text is changed.  If the
    change is deletion, FROM == TO.  Otherwise, FROM < TO.  */
 
 void
 update_compositions (from, to, check_mask)
-     int from, to, check_mask;
+     EMACS_INT from, to;
+     int check_mask;
 {
   Lisp_Object prop;
-  int start, end;
+  EMACS_INT start, end;
+  /* The beginning and end of the region to set the property
+     `auto-composed' to nil.  */
+  EMACS_INT min_pos = from, max_pos = to;
 
   if (inhibit_modification_hooks)
     return;
@@ -503,6 +540,9 @@ update_compositions (from, to, check_mask)
 	  && find_composition (from - 1, -1, &start, &end, &prop, Qnil)
 	  && COMPOSITION_VALID_P (start, end, prop))
 	{
+	  min_pos = start;
+	  if (end > to)
+	    max_pos = end;
 	  if (from < end)
 	    Fput_text_property (make_number (from), make_number (end),
 				Qcomposition,
@@ -513,7 +553,11 @@ update_compositions (from, to, check_mask)
       else if (from < ZV
 	       && find_composition (from, -1, &start, &from, &prop, Qnil)
 	       && COMPOSITION_VALID_P (start, from, prop))
-	run_composition_function (start, from, prop);
+	{
+	  if (from > to)
+	    max_pos = from;
+	  run_composition_function (start, from, prop);
+	}
     }
 
   if (check_mask & CHECK_INSIDE)
@@ -540,15 +584,33 @@ update_compositions (from, to, check_mask)
 	     To avoid it, in such a case, we change the property of
 	     the former to the copy of it.  */
 	  if (to < end)
-	    Fput_text_property (make_number (start), make_number (to),
-				Qcomposition,
-				Fcons (XCAR (prop), XCDR (prop)), Qnil);
+	    {
+	      Fput_text_property (make_number (start), make_number (to),
+				  Qcomposition,
+				  Fcons (XCAR (prop), XCDR (prop)), Qnil);
+	      max_pos = end;
+	    }
 	  run_composition_function (start, end, prop);
 	}
       else if (to < ZV
 	       && find_composition (to, -1, &start, &end, &prop, Qnil)
 	       && COMPOSITION_VALID_P (start, end, prop))
-	run_composition_function (start, end, prop);
+	{
+	  run_composition_function (start, end, prop);
+	  max_pos = end;
+	}
+    }
+  if (min_pos < max_pos)
+    {
+      int count = SPECPDL_INDEX ();
+
+      specbind (Qinhibit_read_only, Qt);
+      specbind (Qinhibit_modification_hooks, Qt);
+      specbind (Qinhibit_point_motion_hooks, Qt);
+      Fremove_list_of_text_properties (make_number (min_pos),
+				       make_number (max_pos),
+				       Fcons (Qauto_composed, Qnil), Qnil);
+      unbind_to (count, Qnil);
     }
 }
 
@@ -590,12 +652,17 @@ compose_text (start, end, components, modification_func, string)
 {
   Lisp_Object prop;
 
+#if 0
+  if (VECTORP (components) && ASIZE (components) > 1
+      && VECTORP (AREF (components, 0)))
+    prop = components;
+  else
+#endif	/* USE_FONT_BACKEND */
   prop = Fcons (Fcons (make_number (end - start), components),
 		modification_func);
   Fput_text_property  (make_number (start), make_number (end),
 		       Qcomposition, prop, string);
 }
-
 
 /* Emacs Lisp APIs.  */
 
@@ -653,7 +720,7 @@ See `find-composition' for more detail.  */)
      Lisp_Object pos, limit, string, detail_p;
 {
   Lisp_Object prop, tail;
-  int start, end;
+  EMACS_INT start, end;
   int id;
 
   CHECK_NUMBER_COERCE_MARKER (pos);
@@ -732,12 +799,12 @@ syms_of_composite ()
 
     args[0] = QCtest;
     args[1] = Qequal;
+    args[2] = QCweakness;
     /* We used to make the hash table weak so that unreferenced
        compostions can be garbage-collected.  But, usually once
        created compositions are repeatedly used in an Emacs session,
        and thus it's not worth to save memory in such a way.  So, we
        make the table not weak.  */
-    args[2] = QCweakness;
     args[3] = Qnil;
     args[4] = QCsize;
     args[5] = make_number (311);
@@ -763,29 +830,24 @@ valid.
 The default value is the function `compose-chars-after'.  */);
   Vcompose_chars_after_function = intern ("compose-chars-after");
 
-  Qcomposition_function_table = intern ("composition-function-table");
-  staticpro (&Qcomposition_function_table);
+  Qauto_composed = intern ("auto-composed");
+  staticpro (&Qauto_composed);
 
-  /* Intern this now in case it isn't already done.
-     Setting this variable twice is harmless.
-     But don't staticpro it here--that is done in alloc.c.  */
-  Qchar_table_extra_slots = intern ("char-table-extra-slots");
+  Qauto_composition_function = intern ("auto-composition-function");
+  staticpro (&Qauto_composition_function);
 
-  Fput (Qcomposition_function_table, Qchar_table_extra_slots, make_number (0));
+  DEFVAR_LISP ("auto-composition-function", &Vauto_composition_function,
+	       doc: /* Function to call to compose characters automatically.
+The function is called from the display routine with four arguments,
+FROM, TO, WINDOW, and STRING.
 
-  DEFVAR_LISP ("composition-function-table", &Vcomposition_function_table,
-	       doc: /* Char table of patterns and functions to make a composition.
+If STRING is nil, the function must compose characters in the region
+between FROM and TO in the current buffer.
 
-Each element is nil or an alist of PATTERNs vs FUNCs, where PATTERNs
-are regular expressions and FUNCs are functions.  FUNC is responsible
-for composing text matching the corresponding PATTERN.  FUNC is called
-with three arguments FROM, TO, and PATTERN.  See the function
-`compose-chars-after' for more detail.
-
-This table is looked up by the first character of a composition when
-the composition gets invalid after a change in a buffer.  */);
-  Vcomposition_function_table
-    = Fmake_char_table (Qcomposition_function_table, Qnil);
+Otherwise, STRING is a string, and FROM and TO are indices into the
+string.  In this case, the function must compose characters in the
+string.  */);
+  Vauto_composition_function = Qnil;
 
   defsubr (&Scompose_region_internal);
   defsubr (&Scompose_string_internal);

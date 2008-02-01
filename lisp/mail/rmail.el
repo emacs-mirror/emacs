@@ -945,17 +945,17 @@ Note:    it means the file has no messages in it.\n\^_")))
     (unless (and coding-system
 		 (coding-system-p coding-system))
       (setq coding-system
-	    ;; Emacs 21.1 and later writes RMAIL files in emacs-mule, but
-	    ;; earlier versions did that with the current buffer's encoding.
-	    ;; So we want to favor detection of emacs-mule (whose normal
-	    ;; priority is quite low), but still allow detection of other
-	    ;; encodings if emacs-mule won't fit.  The call to
-	    ;; detect-coding-with-priority below achieves that.
-	    (car (detect-coding-with-priority
-		  from to
-		  '((coding-category-emacs-mule . emacs-mule))))))
-    (unless (memq coding-system
-		  '(undecided undecided-unix))
+	    ;; If rmail-file-coding-system is nil, Emacs 21 writes
+	    ;; RMAIL files in emacs-mule, Emacs 22 in utf-8, but
+	    ;; earlier versions did that with the current buffer's
+	    ;; encoding.  So we want to favor detection of emacs-mule
+	    ;; (whose normal priority is quite low) and utf-8, but
+	    ;; still allow detection of other encodings if they won't
+	    ;; fit.  The call to with-coding-priority below achieves
+	    ;; that.
+	    (with-coding-priority '(emacs-mule utf-8)
+	      (detect-coding-region from to 'highest))))
+    (unless (eq (coding-system-type coding-system) 'undecided)
       (set-buffer-modified-p t)		; avoid locking when decoding
       (let ((buffer-undo-list t))
 	(decode-coding-region from to coding-system))

@@ -4,6 +4,9 @@
    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H14PRO021
+   Copyright (C) 2003, 2006
+     National Institute of Advanced Industrial Science and Technology (AIST)
+     Registration Number H13PRO009
 
 This file is part of GNU Emacs.
 
@@ -25,22 +28,22 @@ Boston, MA 02110-1301, USA.  */
 #ifndef EMACS_COMPOSITE_H
 #define EMACS_COMPOSITE_H
 
-/* Methods to display a sequence of components a composition.  */
+/* Methods to display a sequence of components of a composition.  */
 enum composition_method {
-  /* The first two are actually not methods, but used in code
-     conversion to specify the current composing status.  */
-  COMPOSITION_DISABLED,		/* Never handle composition data */
-  COMPOSITION_NO,		/* Not processing composition data */
   /* Compose relatively without alternate characters.  */
   COMPOSITION_RELATIVE,
-  /* Compose by specified composition rule.  This is not used in Emacs
-     21 but we need it to decode files saved in the older versions of
-     Emacs.  */
+  /* Compose by specified composition rules.  This is not used in
+     Emacs 21 but we need it to decode files saved in the older
+     versions of Emacs.  */
   COMPOSITION_WITH_RULE,
   /* Compose relatively with alternate characters.  */
   COMPOSITION_WITH_ALTCHARS,
-  /* Compose by specified composition rule with alternate characters.  */
-  COMPOSITION_WITH_RULE_ALTCHARS
+  /* Compose by specified composition rules with alternate characters.  */
+  COMPOSITION_WITH_RULE_ALTCHARS,
+  /* Compose by specified lispy glyph-string.  */
+  COMPOSITION_WITH_GLYPH_STRING,
+  /* This is not a method.  */
+  COMPOSITION_NO
 };
 
 /* Maximum number of compoments a single composition can have.  */
@@ -87,9 +90,13 @@ extern Lisp_Object composition_temp;
    : (composition_temp = XCDR (XCAR (prop)),				\
       (NILP (composition_temp)						\
        ? COMPOSITION_RELATIVE						\
-       : ((INTEGERP (composition_temp) || STRINGP (composition_temp))	\
-	  ? COMPOSITION_WITH_ALTCHARS					\
-	  : COMPOSITION_WITH_RULE_ALTCHARS))))
+       : (INTEGERP (composition_temp) || STRINGP (composition_temp))	\
+       ? COMPOSITION_WITH_ALTCHARS					\
+       : (VECTORP (composition_temp)					\
+	  && ASIZE (composition_temp) >= 2				\
+	  && VECTORP (AREF (composition_temp, 0)))			\
+       ? COMPOSITION_WITH_GLYPH_STRING					\
+       : COMPOSITION_WITH_RULE_ALTCHARS)))
 
 /* Return 1 if the composition is valid.  It is valid if length of
    the composition equals to (END - START).  */
@@ -128,13 +135,19 @@ extern Lisp_Object composition_temp;
 	->contents[(n) * 2 - 1])
 
 /* Decode encoded composition rule RULE_CODE into GREF (global
-   reference point code) and NREF (new reference point code).  Don't
-   check RULE_CODE, always set GREF and NREF to valid values.  */
-#define COMPOSITION_DECODE_RULE(rule_code, gref, nref)	\
-  do {							\
-    gref = (rule_code) / 12;				\
-    if (gref > 12) gref = 11;				\
-    nref = (rule_code) % 12;				\
+   reference point code), NREF (new reference point code), XOFF
+   (horizontal offset) YOFF (vertical offset).  Don't check RULE_CODE,
+   always set GREF and NREF to valid values.  By side effect,
+   RULE_CODE is modified.  */
+
+#define COMPOSITION_DECODE_RULE(rule_code, gref, nref, xoff, yoff)	\
+  do {									\
+    xoff = (rule_code) >> 16;						\
+    yoff = ((rule_code) >> 8) & 0xFF;					\
+    rule_code &= 0xFF;							\
+    gref = (rule_code) / 12;						\
+    if (gref > 12) gref = 11;						\
+    nref = (rule_code) % 12;						\
   } while (0)
 
 /* Return encoded composition rule for the pair of global reference
@@ -160,6 +173,8 @@ struct composition {
 
   /* Width, ascent, and descent pixels of the composition.  */
   short pixel_width, ascent, descent;
+
+  short lbearing, rbearing;
 
   /* How many columns the overall glyphs occupy on the screen.  This
      gives an approximate value for column calculation in
@@ -200,11 +215,14 @@ extern int n_compositions;
 
 extern Lisp_Object Qcomposition;
 extern Lisp_Object composition_hash_table;
+extern Lisp_Object Qauto_composed;
+extern Lisp_Object Vauto_composition_function;
+extern Lisp_Object Qauto_composition_function;
 
 extern int get_composition_id P_ ((int, int, int, Lisp_Object, Lisp_Object));
-extern int find_composition P_ ((int, int, int *, int *, Lisp_Object *,
+extern int find_composition P_ ((int, int, EMACS_INT *, EMACS_INT *, Lisp_Object *,
 				 Lisp_Object));
-extern void update_compositions P_ ((int, int, int));
+extern void update_compositions P_ ((EMACS_INT, EMACS_INT, int));
 extern void make_composition_value_copy P_ ((Lisp_Object));
 extern void compose_region P_ ((int, int, Lisp_Object, Lisp_Object,
 				Lisp_Object));

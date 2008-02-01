@@ -755,7 +755,7 @@ define xchartable
   print (struct Lisp_Char_Table *) $ptr
   printf "Purpose: "
   xprintsym $->purpose
-  printf "  %d extra slots", ($->size & 0x1ff) - 388
+  printf "  %d extra slots", ($->size & 0x1ff) - 68
   echo \n
 end
 document xchartable
@@ -991,6 +991,52 @@ define xprintsym
 end
 document xprintsym
   Print argument as a symbol.
+end
+
+define xcoding
+  set $tmp = (struct Lisp_Hash_Table *) ((Vcoding_system_hash_table & $valmask) | gdb_data_seg_bits)
+  set $tmp = (struct Lisp_Vector *) (($tmp->key_and_value & $valmask) | gdb_data_seg_bits)
+  set $name = $tmp->contents[$arg0 * 2]
+  print $name
+  pr
+  print $tmp->contents[$arg0 * 2 + 1]
+  pr
+end
+document xcoding
+  Print the name and attributes of coding system that has ID (argument).
+end
+
+define xcharset
+  set $tmp = (struct Lisp_Hash_Table *) ((Vcharset_hash_table & $valmask) | gdb_data_seg_bits)
+  set $tmp = (struct Lisp_Vector *) (($tmp->key_and_value & $valmask) | gdb_data_seg_bits)
+  p $tmp->contents[$arg0->hash_index * 2]
+  pr
+end
+document xcharset
+  Print the name of charset that has ID (argument).
+end
+
+define xfontset
+  xgetptr $
+  set $tbl = (struct Lisp_Char_Table *) $ptr
+  print $tbl
+  xgetint $tbl->extras[0]
+  printf " ID:%d", $int
+  xgettype $tbl->extras[1]
+  xgetptr $tbl->extras[1]
+  if $type == Lisp_String
+    set $ptr = (struct Lisp_String *) $ptr
+    printf " Name:"
+    xprintstr $ptr
+  else
+    xgetptr $tbl->extras[2]
+    set $ptr = (struct Lisp_Char_Table *) $ptr
+    xgetptr $ptr->extras[1]
+    set $ptr = (struct Lisp_String *) $ptr
+    printf " Realized from:"
+    xprintstr $ptr
+  end
+  echo \n
 end
 
 define xbacktrace

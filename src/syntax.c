@@ -26,7 +26,7 @@ Boston, MA 02110-1301, USA.  */
 #include "lisp.h"
 #include "commands.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "keymap.h"
 #include "regex.h"
 
@@ -101,7 +101,8 @@ static int find_defun_start P_ ((int, int));
 static int back_comment P_ ((EMACS_INT, EMACS_INT, EMACS_INT, int, int,
 			     EMACS_INT *, EMACS_INT *));
 static int char_quoted P_ ((int, int));
-static Lisp_Object skip_chars P_ ((int, int, Lisp_Object, Lisp_Object, int));
+static Lisp_Object skip_chars P_ ((int, Lisp_Object, Lisp_Object, int));
+static Lisp_Object skip_syntaxes P_ ((int, Lisp_Object, Lisp_Object));
 static Lisp_Object scan_lists P_ ((EMACS_INT, EMACS_INT, EMACS_INT, int));
 static void scan_sexps_forward P_ ((struct lisp_parse_state *,
 				    int, int, int, int,
@@ -306,7 +307,7 @@ char_quoted (charpos, bytepos)
       int c;
 
       UPDATE_SYNTAX_TABLE_BACKWARD (charpos);
-      c = FETCH_CHAR (bytepos);
+      c = FETCH_CHAR_AS_MULTIBYTE (bytepos);
       code = SYNTAX (c);
       if (! (code == Scharquote || code == Sescape))
 	break;
@@ -398,11 +399,11 @@ find_defun_start (pos, pos_byte)
 
       /* Open-paren at start of line means we may have found our
 	 defun-start.  */
-      c = FETCH_CHAR (PT_BYTE);
+      c = FETCH_CHAR_AS_MULTIBYTE (PT_BYTE);
       if (SYNTAX (c) == Sopen)
 	{
 	  SETUP_SYNTAX_TABLE (PT + 1, -1);	/* Try again... */
-	  c = FETCH_CHAR (PT_BYTE);
+	  c = FETCH_CHAR_AS_MULTIBYTE (PT_BYTE);
 	  if (SYNTAX (c) == Sopen)
 	    break;
 	  /* Now fallback to the default value.  */
@@ -523,7 +524,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
       UPDATE_SYNTAX_TABLE_BACKWARD (from);
 
       prev_syntax = syntax;
-      c = FETCH_CHAR (from_byte);
+      c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
       syntax = SYNTAX_WITH_FLAGS (c);
       code = SYNTAX (c);
 
@@ -552,7 +553,7 @@ back_comment (from, from_byte, stop, comnested, comstyle, charpos_ptr, bytepos_p
 	  int next = from, next_byte = from_byte, next_c, next_syntax;
 	  DEC_BOTH (next, next_byte);
 	  UPDATE_SYNTAX_TABLE_BACKWARD (next);
-	  next_c = FETCH_CHAR (next_byte);
+	  next_c = FETCH_CHAR_AS_MULTIBYTE (next_byte);
 	  next_syntax = SYNTAX_WITH_FLAGS (next_c);
 	  if (((com2start || comnested)
 	       && SYNTAX_FLAGS_COMEND_SECOND (syntax)
@@ -855,29 +856,6 @@ char syntax_code_spec[16] =
 static Lisp_Object Vsyntax_code_object;
 
 
-/* Look up the value for CHARACTER in syntax table TABLE's parent
-   and its parents.  SYNTAX_ENTRY calls this, when TABLE itself has nil
-   for CHARACTER.  It's actually used only when not compiled with GCC.  */
-
-Lisp_Object
-syntax_parent_lookup (table, character)
-     Lisp_Object table;
-     int character;
-{
-  Lisp_Object value;
-
-  while (1)
-    {
-      table = XCHAR_TABLE (table)->parent;
-      if (NILP (table))
-	return Qnil;
-
-      value = XCHAR_TABLE (table)->contents[character];
-      if (!NILP (value))
-	return value;
-    }
-}
-
 DEFUN ("char-syntax", Fchar_syntax, Schar_syntax, 1, 1, 0,
        doc: /* Return the syntax code of CHARACTER, described by a character.
 For example, if CHARACTER is a word constituent,
@@ -996,6 +974,8 @@ DEFUN ("modify-syntax-entry", Fmodify_syntax_entry, Smodify_syntax_entry, 2, 3,
        doc: /* Set syntax for character CHAR according to string NEWENTRY.
 The syntax is changed only for table SYNTAX-TABLE, which defaults to
  the current buffer's syntax table.
+CHAR may be a cons (MIN . MAX), in which case, syntaxes of all characters
+in the range MIN and MAX are changed.
 The first character of NEWENTRY should be one of the following:
   Space or -  whitespace syntax.    w   word constituent.
   _           symbol constituent.   .   punctuation.
@@ -1032,14 +1012,24 @@ usage: (modify-syntax-entry CHAR NEWENTRY &optional SYNTAX-TABLE) */)
      (c, newentry, syntax_table)
      Lisp_Object c, newentry, syntax_table;
 {
-  CHECK_NUMBER (c);
+  if (CONSP (c))
+    {
+      CHECK_CHARACTER_CAR (c);
+      CHECK_CHARACTER_CDR (c);
+    }
+  else
+    CHECK_CHARACTER (c);
 
   if (NILP (syntax_table))
     syntax_table = current_buffer->syntax_table;
   else
     check_syntax_table (syntax_table);
 
-  SET_RAW_SYNTAX_ENTRY (syntax_table, XINT (c), Fstring_to_syntax (newentry));
+  newentry = Fstring_to_syntax (newentry);
+  if (CONSP (c))
+    SET_RAW_SYNTAX_ENTRY_RANGE (syntax_table, c, newentry);
+  else
+    SET_RAW_SYNTAX_ENTRY (syntax_table, XINT (c), newentry);
 
   /* We clear the regexp cache, since character classes can now have
      different values from those in the compiled regexps.*/
@@ -1198,6 +1188,10 @@ DEFUN ("internal-describe-syntax-value", Finternal_describe_syntax_value,
 
 int parse_sexp_ignore_comments;
 
+/* Char-table of functions that find the next or previous word
+   boundary.  */
+Lisp_Object Vfind_word_boundary_function_table;
+
 /* Return the position across COUNT words from FROM.
    If that many words cannot be found before the end of the buffer, return 0.
    COUNT negative means scan backward and stop at word beginning.  */
@@ -1211,6 +1205,7 @@ scan_words (from, count)
   register int from_byte = CHAR_TO_BYTE (from);
   register enum syntaxcode code;
   int ch0, ch1;
+  Lisp_Object func, script, pos;
 
   immediate_quit = 1;
   QUIT;
@@ -1227,7 +1222,7 @@ scan_words (from, count)
 	      return 0;
 	    }
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
-	  ch0 = FETCH_CHAR (from_byte);
+	  ch0 = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 	  code = SYNTAX (ch0);
 	  INC_BOTH (from, from_byte);
 	  if (words_include_escapes
@@ -1238,18 +1233,33 @@ scan_words (from, count)
 	}
       /* Now CH0 is a character which begins a word and FROM is the
          position of the next character.  */
-      while (1)
+      func = CHAR_TABLE_REF (Vfind_word_boundary_function_table, ch0);
+      if (! NILP (Ffboundp (func)))
 	{
-	  if (from == end) break;
-	  UPDATE_SYNTAX_TABLE_FORWARD (from);
-	  ch1 = FETCH_CHAR (from_byte);
-	  code = SYNTAX (ch1);
-	  if (!(words_include_escapes
-		&& (code == Sescape || code == Scharquote)))
-	    if (code != Sword || WORD_BOUNDARY_P (ch0, ch1))
-	      break;
-	  INC_BOTH (from, from_byte);
-	  ch0 = ch1;
+	  pos = call2 (func, make_number (from - 1), make_number (end));
+	  if (INTEGERP (pos) && XINT (pos) > from)
+	    {
+	      from = XINT (pos);
+	      from_byte = CHAR_TO_BYTE (from);
+	    }
+	}
+      else
+	{
+	  script = CHAR_TABLE_REF (Vchar_script_table, ch0);
+	  while (1)
+	    {
+	      if (from == end) break;
+	      UPDATE_SYNTAX_TABLE_FORWARD (from);
+	      ch1 = FETCH_CHAR_AS_MULTIBYTE (from_byte);
+	      code = SYNTAX (ch1);
+	      if ((code != Sword
+		   && (! words_include_escapes
+		       || (code != Sescape && code != Scharquote)))
+		  || ! EQ (CHAR_TABLE_REF (Vchar_script_table, ch1), script))
+		break;
+	      INC_BOTH (from, from_byte);
+	      ch0 = ch1;
+	    }
 	}
       count--;
     }
@@ -1264,7 +1274,7 @@ scan_words (from, count)
 	    }
 	  DEC_BOTH (from, from_byte);
 	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
-	  ch1 = FETCH_CHAR (from_byte);
+	  ch1 = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 	  code = SYNTAX (ch1);
 	  if (words_include_escapes
 	      && (code == Sescape || code == Scharquote))
@@ -1274,22 +1284,37 @@ scan_words (from, count)
 	}
       /* Now CH1 is a character which ends a word and FROM is the
          position of it.  */
-      while (1)
+      func = CHAR_TABLE_REF (Vfind_word_boundary_function_table, ch1);
+      if (! NILP (Ffboundp (func)))
+ 	{
+	  pos = call2 (func, make_number (from), make_number (beg));
+	  if (INTEGERP (pos) && XINT (pos) < from)
+	    {
+	      from = XINT (pos);
+	      from_byte = CHAR_TO_BYTE (from);
+	    }
+	}
+      else
 	{
-	  if (from == beg)
-	    break;
-	  DEC_BOTH (from, from_byte);
-	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
-	  ch0 = FETCH_CHAR (from_byte);
-	  code = SYNTAX (ch0);
-	  if (!(words_include_escapes
-		&& (code == Sescape || code == Scharquote)))
-	    if (code != Sword || WORD_BOUNDARY_P (ch0, ch1))
-	      {
-		INC_BOTH (from, from_byte);
+	  script = CHAR_TABLE_REF (Vchar_script_table, ch1);
+	  while (1)
+	    {
+	      if (from == beg)
 		break;
-	      }
-	  ch1 = ch0;
+	      DEC_BOTH (from, from_byte);
+	      UPDATE_SYNTAX_TABLE_BACKWARD (from);
+	      ch0 = FETCH_CHAR_AS_MULTIBYTE (from_byte);
+	      code = SYNTAX (ch0);
+	      if ((code != Sword
+		   && (! words_include_escapes
+		       || (code != Sescape && code != Scharquote)))
+		  || ! EQ (CHAR_TABLE_REF (Vchar_script_table, ch0), script))
+		{
+		  INC_BOTH (from, from_byte);
+		  break;
+		}
+	      ch1 = ch0;
+	    }
 	}
       count++;
     }
@@ -1344,7 +1369,7 @@ Returns the distance traveled, either zero or positive.  */)
      (string, lim)
      Lisp_Object string, lim;
 {
-  return skip_chars (1, 0, string, lim, 1);
+  return skip_chars (1, string, lim, 1);
 }
 
 DEFUN ("skip-chars-backward", Fskip_chars_backward, Sskip_chars_backward, 1, 2, 0,
@@ -1354,7 +1379,7 @@ Returns the distance traveled, either zero or negative.  */)
      (string, lim)
      Lisp_Object string, lim;
 {
-  return skip_chars (0, 0, string, lim, 1);
+  return skip_chars (0, string, lim, 1);
 }
 
 DEFUN ("skip-syntax-forward", Fskip_syntax_forward, Sskip_syntax_forward, 1, 2, 0,
@@ -1366,7 +1391,7 @@ This function returns the distance traveled, either zero or positive.  */)
      (syntax, lim)
      Lisp_Object syntax, lim;
 {
-  return skip_chars (1, 1, syntax, lim, 0);
+  return skip_syntaxes (1, syntax, lim);
 }
 
 DEFUN ("skip-syntax-backward", Fskip_syntax_backward, Sskip_syntax_backward, 1, 2, 0,
@@ -1378,25 +1403,27 @@ This function returns the distance traveled, either zero or negative.  */)
      (syntax, lim)
      Lisp_Object syntax, lim;
 {
-  return skip_chars (0, 1, syntax, lim, 0);
+  return skip_syntaxes (0, syntax, lim);
 }
 
 static Lisp_Object
-skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
-     int forwardp, syntaxp;
+skip_chars (forwardp, string, lim, handle_iso_classes)
+     int forwardp;
      Lisp_Object string, lim;
      int handle_iso_classes;
 {
   register unsigned int c;
   unsigned char fastmap[0400];
-  /* If SYNTAXP is 0, STRING may contain multi-byte form of characters
-     of which codes don't fit in FASTMAP.  In that case, set the
-     ranges of characters in CHAR_RANGES.  */
+  /* Store the ranges of non-ASCII characters.  */
   int *char_ranges;
   int n_char_ranges = 0;
   int negate = 0;
   register int i, i_byte;
-  int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  /* Set to 1 if the current buffer is multibyte and the region
+     contains non-ASCII chars.  */
+  int multibyte;
+  /* Set to 1 if STRING is multibyte and it contains non-ASCII
+     chars.  */
   int string_multibyte;
   int size_byte;
   const unsigned char *str;
@@ -1404,31 +1431,7 @@ skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
   Lisp_Object iso_classes;
 
   CHECK_STRING (string);
-  char_ranges = (int *) alloca (SCHARS (string) * (sizeof (int)) * 2);
-  string_multibyte = STRING_MULTIBYTE (string);
-  str = SDATA (string);
-  size_byte = SBYTES (string);
   iso_classes = Qnil;
-
-  /* Adjust the multibyteness of the string to that of the buffer.  */
-  if (multibyte != string_multibyte)
-    {
-      int nbytes;
-
-      if (multibyte)
-	nbytes = count_size_as_multibyte (SDATA (string),
-					  SCHARS (string));
-      else
-	nbytes = SCHARS (string);
-      if (nbytes != size_byte)
-	{
-	  unsigned char *tmp = (unsigned char *) alloca (nbytes);
-	  copy_text (SDATA (string), tmp, size_byte,
-		     string_multibyte, multibyte);
-	  size_byte = nbytes;
-	  str = tmp;
-	}
-    }
 
   if (NILP (lim))
     XSETINT (lim, forwardp ? ZV : BEGV);
@@ -1441,10 +1444,16 @@ skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
   if (XINT (lim) < BEGV)
     XSETFASTINT (lim, BEGV);
 
+  multibyte = (!NILP (current_buffer->enable_multibyte_characters)
+	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
+  string_multibyte = SBYTES (string) > SCHARS (string);
+
   bzero (fastmap, sizeof fastmap);
 
-  i_byte = 0;
+  str = SDATA (string);
+  size_byte = SBYTES (string);
 
+  i_byte = 0;
   if (i_byte < size_byte
       && SREF (string, 0) == '^')
     {
@@ -1452,21 +1461,23 @@ skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
     }
 
   /* Find the characters specified and set their elements of fastmap.
-     If syntaxp, each character counts as itself.
-     Otherwise, handle backslashes and ranges specially.  */
+     Handle backslashes and ranges specially.
 
-  while (i_byte < size_byte)
+     If STRING contains non-ASCII characters, setup char_ranges for
+     them and use fastmap only for their leading codes.  */
+
+  if (! string_multibyte)
     {
-      c = STRING_CHAR_AND_LENGTH (str + i_byte, size_byte - i_byte, len);
-      i_byte += len;
+      int string_has_eight_bit = 0;
 
-      if (syntaxp)
-	fastmap[syntax_spec_code[c & 0377]] = 1;
-      else
+      /* At first setup fastmap.  */
+      while (i_byte < size_byte)
 	{
+	  c = str[i_byte++];
+
 	  if (handle_iso_classes && c == '['
 	      && i_byte < size_byte
-	      && STRING_CHAR (str + i_byte, size_byte - i_byte) == ':')
+	      && str[i_byte] == ':')
 	    {
 	      const unsigned char *class_beg = str + i_byte + 1;
 	      const unsigned char *class_end = class_beg;
@@ -1505,9 +1516,7 @@ skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
 	      if (i_byte == size_byte)
 		break;
 
-	      c = STRING_CHAR_AND_LENGTH (str + i_byte,
-					  size_byte - i_byte, len);
-	      i_byte += len;
+	      c = str[i_byte++];
 	    }
 	  /* Treat `-' as range character only if another character
 	     follows.  */
@@ -1520,50 +1529,427 @@ skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
 	      i_byte++;
 
 	      /* Get the end of the range.  */
-	      c2 = STRING_CHAR_AND_LENGTH (str + i_byte,
-					   size_byte - i_byte, len);
-	      i_byte += len;
+	      c2 = str[i_byte++];
+	      if (c2 == '\\'
+		  && i_byte < size_byte)
+		c2 = str[i_byte++];
 
-	      if (SINGLE_BYTE_CHAR_P (c))
+	      if (c <= c2)
 		{
-		  if (! SINGLE_BYTE_CHAR_P (c2))
-		    {
-		      /* Handle a range starting with a character of
-			 less than 256, and ending with a character of
-			 not less than 256.  Split that into two
-			 ranges, the low one ending at 0377, and the
-			 high one starting at the smallest character
-			 in the charset of C2 and ending at C2.  */
-		      int charset = CHAR_CHARSET (c2);
-		      int c1 = MAKE_CHAR (charset, 0, 0);
-
-		      char_ranges[n_char_ranges++] = c1;
-		      char_ranges[n_char_ranges++] = c2;
-		      c2 = 0377;
-		    }
 		  while (c <= c2)
-		    {
-		      fastmap[c] = 1;
-		      c++;
-		    }
-		}
-	      else if (c <= c2)	/* Both C and C2 are multibyte char.  */
-		{
-		  char_ranges[n_char_ranges++] = c;
-		  char_ranges[n_char_ranges++] = c2;
+		    fastmap[c++] = 1;
+		  if (! ASCII_CHAR_P (c2))
+		    string_has_eight_bit = 1;
 		}
 	    }
 	  else
 	    {
-	      if (SINGLE_BYTE_CHAR_P (c))
+	      fastmap[c] = 1;
+	      if (! ASCII_CHAR_P (c))
+		string_has_eight_bit = 1;
+	    }
+	}
+
+      /* If the current range is multibyte and STRING contains
+	 eight-bit chars, arrange fastmap and setup char_ranges for
+	 the corresponding multibyte chars.  */
+      if (multibyte && string_has_eight_bit)
+	{
+	  unsigned char fastmap2[0400];
+	  int range_start_byte, range_start_char;
+
+	  bcopy (fastmap2 + 0200, fastmap + 0200, 0200);
+	  bzero (fastmap + 0200, 0200);
+	  /* We are sure that this loop stops.  */
+	  for (i = 0200; ! fastmap2[i]; i++);
+	  c = unibyte_char_to_multibyte (i);
+	  fastmap[CHAR_LEADING_CODE (c)] = 1;
+	  range_start_byte = i;
+	  range_start_char = c;
+	  char_ranges = (int *) alloca (sizeof (int) * 128 * 2);
+	  for (i = 129; i < 0400; i++)
+	    {
+	      c = unibyte_char_to_multibyte (i);
+	      fastmap[CHAR_LEADING_CODE (c)] = 1;
+	      if (i - range_start_byte != c - range_start_char)
+		{
+		  char_ranges[n_char_ranges++] = range_start_char;
+		  char_ranges[n_char_ranges++] = ((i - 1 - range_start_byte)
+						  + range_start_char);
+		  range_start_byte = i;
+		  range_start_char = c;
+		}
+	    }
+	  char_ranges[n_char_ranges++] = range_start_char;
+	  char_ranges[n_char_ranges++] = ((i - 1 - range_start_byte)
+					  + range_start_char);
+	}
+    }
+  else				/* STRING is multibyte */
+    {
+      char_ranges = (int *) alloca (sizeof (int) * SCHARS (string) * 2);
+
+      while (i_byte < size_byte)
+	{
+	  unsigned char leading_code;
+
+	  leading_code = str[i_byte];
+	  c = STRING_CHAR_AND_LENGTH (str + i_byte, size_byte-i_byte, len);
+	  i_byte += len;
+
+	  if (handle_iso_classes && c == '['
+	      && i_byte < size_byte
+	      && STRING_CHAR (str + i_byte, size_byte - i_byte) == ':')
+	    {
+	      const unsigned char *class_beg = str + i_byte + 1;
+	      const unsigned char *class_end = class_beg;
+	      const unsigned char *class_limit = str + size_byte - 2;
+	      /* Leave room for the null.	 */
+	      unsigned char class_name[CHAR_CLASS_MAX_LENGTH + 1];
+	      re_wctype_t cc;
+
+	      if (class_limit - class_beg > CHAR_CLASS_MAX_LENGTH)
+		class_limit = class_beg + CHAR_CLASS_MAX_LENGTH;
+
+	      while (class_end < class_limit
+		     && *class_end >= 'a' && *class_end <= 'z')
+		class_end++;
+
+	      if (class_end == class_beg
+		  || *class_end != ':' || class_end[1] != ']')
+		goto not_a_class_name_multibyte;
+
+	      bcopy (class_beg, class_name, class_end - class_beg);
+	      class_name[class_end - class_beg] = 0;
+
+	      cc = re_wctype (class_name);
+	      if (cc == 0)
+		error ("Invalid ISO C character class");
+
+	      iso_classes = Fcons (make_number (cc), iso_classes);
+
+	      i_byte = class_end + 2 - str;
+	      continue;
+	    }
+
+	not_a_class_name_multibyte:
+	  if (c == '\\')
+	    {
+	      if (i_byte == size_byte)
+		break;
+
+	      leading_code = str[i_byte];
+	      c = STRING_CHAR_AND_LENGTH (str + i_byte,
+					  size_byte - i_byte, len);
+	      i_byte += len;
+	    }
+	  /* Treat `-' as range character only if another character
+	     follows.  */
+	  if (i_byte + 1 < size_byte
+	      && str[i_byte] == '-')
+	    {
+	      unsigned int c2;
+	      unsigned char leading_code2;
+
+	      /* Skip over the dash.  */
+	      i_byte++;
+
+	      /* Get the end of the range.  */
+	      leading_code2 = str[i_byte];
+	      c2 = STRING_CHAR_AND_LENGTH (str + i_byte,
+					   size_byte - i_byte, len);
+	      i_byte += len;
+
+	      if (c2 == '\\'
+		  && i_byte < size_byte)
+		{
+		  leading_code2 = str[i_byte];
+		  c2 =STRING_CHAR_AND_LENGTH (str + i_byte, size_byte-i_byte, len);
+		  i_byte += len;
+		}
+
+	      if (c > c2)
+		continue;
+	      if (ASCII_CHAR_P (c))
+		{
+		  while (c <= c2 && c < 0x80)
+		    fastmap[c++] = 1;
+		  leading_code = CHAR_LEADING_CODE (c);
+		}
+	      if (! ASCII_CHAR_P (c))
+		{
+		  while (leading_code <= leading_code2)
+		    fastmap[leading_code++] = 1;
+		  if (c <= c2)
+		    {
+		      char_ranges[n_char_ranges++] = c;
+		      char_ranges[n_char_ranges++] = c2;
+		    }
+		}
+	    }
+	  else
+	    {
+	      if (ASCII_CHAR_P (c))
 		fastmap[c] = 1;
 	      else
 		{
+		  fastmap[leading_code] = 1;
 		  char_ranges[n_char_ranges++] = c;
 		  char_ranges[n_char_ranges++] = c;
 		}
 	    }
 	}
+
+      /* If the current range is unibyte and STRING contains non-ASCII
+	 chars, arrange fastmap for the corresponding unibyte
+	 chars.  */
+
+      if (! multibyte && n_char_ranges > 0)
+	{
+	  bzero (fastmap + 0200, 0200);
+	  for (i = 0; i < n_char_ranges; i += 2)
+	    {
+	      int c1 = char_ranges[i];
+	      int c2 = char_ranges[i + 1];
+
+	      for (; c1 <= c2; c1++)
+		fastmap[CHAR_TO_BYTE8 (c1)] = 1;
+	    }
+	}
+    }
+
+  /* If ^ was the first character, complement the fastmap.  */
+  if (negate)
+    {
+      if (! multibyte)
+	for (i = 0; i < sizeof fastmap; i++)
+	  fastmap[i] ^= 1;
+      else
+	{
+	  for (i = 0; i < 0200; i++)
+	    fastmap[i] ^= 1;
+	  /* All non-ASCII chars possibly match.  */
+	  for (; i < sizeof fastmap; i++)
+	    fastmap[i] = 1;
+	}
+    }
+
+  {
+    int start_point = PT;
+    int pos = PT;
+    int pos_byte = PT_BYTE;
+    unsigned char *p = PT_ADDR, *endp, *stop;
+
+    if (forwardp)
+      {
+	endp = (XINT (lim) == GPT) ? GPT_ADDR : CHAR_POS_ADDR (XINT (lim));
+	stop = (pos < GPT && GPT < XINT (lim)) ? GPT_ADDR : endp;
+      }
+    else
+      {
+	endp = CHAR_POS_ADDR (XINT (lim));
+	stop = (pos >= GPT && GPT > XINT (lim)) ? GAP_END_ADDR : endp;
+      }
+
+    immediate_quit = 1;
+    if (forwardp)
+      {
+	if (multibyte)
+	  while (1)
+	    {
+	      int nbytes;
+
+	      if (p >= stop)
+		{
+		  if (p >= endp)
+		    break;
+		  p = GAP_END_ADDR;
+		  stop = endp;
+		}
+	      c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, nbytes);
+	      if (! NILP (iso_classes) && in_classes (c, iso_classes))
+		{
+		  if (negate)
+		    break;
+		  else
+		    goto fwd_ok;
+		}
+
+	      if (! fastmap[*p])
+		break;
+	      if (! ASCII_CHAR_P (c))
+		{
+		  /* As we are looking at a multibyte character, we
+		     must look up the character in the table
+		     CHAR_RANGES.  If there's no data in the table,
+		     that character is not what we want to skip.  */
+
+		  /* The following code do the right thing even if
+		     n_char_ranges is zero (i.e. no data in
+		     CHAR_RANGES).  */
+		  for (i = 0; i < n_char_ranges; i += 2)
+		    if (c >= char_ranges[i] && c <= char_ranges[i + 1])
+		      break;
+		  if (!(negate ^ (i < n_char_ranges)))
+		    break;
+		}
+	    fwd_ok:
+	      p += nbytes, pos++, pos_byte += nbytes;
+	    }
+	else
+	  while (1)
+	    {
+	      if (p >= stop)
+		{
+		  if (p >= endp)
+		    break;
+		  p = GAP_END_ADDR;
+		  stop = endp;
+		}
+
+	      if (!NILP (iso_classes) && in_classes (*p, iso_classes))
+		{
+		  if (negate)
+		    break;
+		  else
+		    goto fwd_unibyte_ok;
+		}
+
+	      if (!fastmap[*p])
+		break;
+	    fwd_unibyte_ok:
+	      p++, pos++, pos_byte++;
+	    }
+      }
+    else
+      {
+	if (multibyte)
+	  while (1)
+	    {
+	      unsigned char *prev_p;
+
+	      if (p <= stop)
+		{
+		  if (p <= endp)
+		    break;
+		  p = GPT_ADDR;
+		  stop = endp;
+		}
+	      prev_p = p;
+	      while (--p >= stop && ! CHAR_HEAD_P (*p));
+	      c = STRING_CHAR (p, MAX_MULTIBYTE_LENGTH);
+
+	      if (! NILP (iso_classes) && in_classes (c, iso_classes))
+		{
+		  if (negate)
+		    break;
+		  else
+		    goto back_ok;
+		}
+
+	      if (! fastmap[*p])
+		break;
+	      if (! ASCII_CHAR_P (c))
+		{
+		  /* See the comment in the previous similar code.  */
+		  for (i = 0; i < n_char_ranges; i += 2)
+		    if (c >= char_ranges[i] && c <= char_ranges[i + 1])
+		      break;
+		  if (!(negate ^ (i < n_char_ranges)))
+		    break;
+		}
+	    back_ok:
+	      pos--, pos_byte -= prev_p - p;
+	    }
+	else
+	  while (1)
+	    {
+	      if (p <= stop)
+		{
+		  if (p <= endp)
+		    break;
+		  p = GPT_ADDR;
+		  stop = endp;
+		}
+
+	      if (! NILP (iso_classes) && in_classes (p[-1], iso_classes))
+		{
+		  if (negate)
+		    break;
+		  else
+		    goto back_unibyte_ok;
+		}
+
+	      if (!fastmap[p[-1]])
+		break;
+	    back_unibyte_ok:
+	      p--, pos--, pos_byte--;
+	    }
+      }
+
+    SET_PT_BOTH (pos, pos_byte);
+    immediate_quit = 0;
+
+    return make_number (PT - start_point);
+  }
+}
+
+
+static Lisp_Object
+skip_syntaxes (forwardp, string, lim)
+     int forwardp;
+     Lisp_Object string, lim;
+{
+  register unsigned int c;
+  unsigned char fastmap[0400];
+  int negate = 0;
+  register int i, i_byte;
+  int multibyte;
+  int size_byte;
+  unsigned char *str;
+
+  CHECK_STRING (string);
+
+  if (NILP (lim))
+    XSETINT (lim, forwardp ? ZV : BEGV);
+  else
+    CHECK_NUMBER_COERCE_MARKER (lim);
+
+  /* In any case, don't allow scan outside bounds of buffer.  */
+  if (XINT (lim) > ZV)
+    XSETFASTINT (lim, ZV);
+  if (XINT (lim) < BEGV)
+    XSETFASTINT (lim, BEGV);
+
+  if (forwardp ? (PT >= XFASTINT (lim)) : (PT <= XFASTINT (lim)))
+    return make_number (0);
+
+  multibyte = (!NILP (current_buffer->enable_multibyte_characters)
+	       && (XINT (lim) - PT != CHAR_TO_BYTE (XINT (lim)) - PT_BYTE));
+
+  bzero (fastmap, sizeof fastmap);
+
+  if (SBYTES (string) > SCHARS (string))
+    /* As this is very rare case (syntax spec is ASCII only), don't
+       consider efficiency.  */
+    string = string_make_unibyte (string);
+
+  str = SDATA (string);
+  size_byte = SBYTES (string);
+
+  i_byte = 0;
+  if (i_byte < size_byte
+      && SREF (string, 0) == '^')
+    {
+      negate = 1; i_byte++;
+    }
+
+  /* Find the syntaxes specified and set their elements of fastmap.  */
+
+  while (i_byte < size_byte)
+    {
+      c = str[i_byte++];
+      fastmap[syntax_spec_code[c]] = 1;
     }
 
   /* If ^ was the first character, complement the fastmap.  */
@@ -1589,254 +1975,89 @@ skip_chars (forwardp, syntaxp, string, lim, handle_iso_classes)
       }
 
     immediate_quit = 1;
-    if (syntaxp)
+    SETUP_SYNTAX_TABLE (pos, forwardp ? 1 : -1);
+    if (forwardp)
       {
-        SETUP_SYNTAX_TABLE (pos, forwardp ? 1 : -1);
-	if (forwardp)
+	if (multibyte)
 	  {
-	    if (multibyte)
-	      while (1)
-		{
-		  int nbytes;
+	    while (1)
+	      {
+		int nbytes;
 
-		  if (p >= stop)
-		    {
-		      if (p >= endp)
-			break;
-		      p = GAP_END_ADDR;
-		      stop = endp;
-		    }
-		  c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, nbytes);
-		  if (! fastmap[(int) SYNTAX (c)])
-		    break;
-		  p += nbytes, pos++, pos_byte += nbytes;
-		  UPDATE_SYNTAX_TABLE_FORWARD (pos);
-		}
-	    else
-	      while (1)
-		{
-		  if (p >= stop)
-		    {
-		      if (p >= endp)
-			break;
-		      p = GAP_END_ADDR;
-		      stop = endp;
-		    }
-		  if (! fastmap[(int) SYNTAX (*p)])
-		    break;
-		  p++, pos++;
-		  UPDATE_SYNTAX_TABLE_FORWARD (pos);
-		}
+		if (p >= stop)
+		  {
+		    if (p >= endp)
+		      break;
+		    p = GAP_END_ADDR;
+		    stop = endp;
+		  }
+		c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, nbytes);
+		if (! fastmap[(int) SYNTAX (c)])
+		  break;
+		p += nbytes, pos++, pos_byte += nbytes;
+		UPDATE_SYNTAX_TABLE_FORWARD (pos);
+	      }
 	  }
 	else
 	  {
-	    if (multibyte)
-	      while (1)
-		{
-		  unsigned char *prev_p;
-		  int nbytes;
-
-		  if (p <= stop)
-		    {
-		      if (p <= endp)
-			break;
-		      p = GPT_ADDR;
-		      stop = endp;
-		    }
-		  prev_p = p;
-		  while (--p >= stop && ! CHAR_HEAD_P (*p));
-		  PARSE_MULTIBYTE_SEQ (p, MAX_MULTIBYTE_LENGTH, nbytes);
-		  if (prev_p - p > nbytes)
-		    p = prev_p - 1, c = *p, nbytes = 1;
-		  else
-		    c = STRING_CHAR (p, MAX_MULTIBYTE_LENGTH);
-		  pos--, pos_byte -= nbytes;
-		  UPDATE_SYNTAX_TABLE_BACKWARD (pos);
-		  if (! fastmap[(int) SYNTAX (c)])
-		    {
-		      pos++;
-		      pos_byte += nbytes;
+	    while (1)
+	      {
+		if (p >= stop)
+		  {
+		    if (p >= endp)
 		      break;
-		    }
-		}
-	    else
-	      while (1)
-		{
-		  if (p <= stop)
-		    {
-		      if (p <= endp)
-			break;
-		      p = GPT_ADDR;
-		      stop = endp;
-		    }
-		  UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
-		  if (! fastmap[(int) SYNTAX (p[-1])])
-		    break;
-		  p--, pos--;
-		}
+		    p = GAP_END_ADDR;
+		    stop = endp;
+		  }
+		if (! fastmap[(int) SYNTAX (*p)])
+		  break;
+		p++, pos++, pos_byte++;
+		UPDATE_SYNTAX_TABLE_FORWARD (pos);
+	      }
 	  }
       }
     else
       {
-	if (forwardp)
+	if (multibyte)
 	  {
-	    if (multibyte)
-	      while (1)
-		{
-		  int nbytes;
+	    while (1)
+	      {
+		unsigned char *prev_p;
 
-		  if (p >= stop)
-		    {
-		      if (p >= endp)
-			break;
-		      p = GAP_END_ADDR;
-		      stop = endp;
-		    }
-		  c = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, nbytes);
-
-		  if (! NILP (iso_classes) && in_classes (c, iso_classes))
-		    {
-		      if (negate)
-			break;
-		      else
-			goto fwd_ok;
-		    }
-
-		  if (SINGLE_BYTE_CHAR_P (c))
-		    {
-		      if (!fastmap[c])
-			break;
-		    }
-		  else
-		    {
-		      /* If we are looking at a multibyte character,
-			 we must look up the character in the table
-			 CHAR_RANGES.  If there's no data in the
-			 table, that character is not what we want to
-			 skip.  */
-
-		      /* The following code do the right thing even if
-			 n_char_ranges is zero (i.e. no data in
-			 CHAR_RANGES).  */
-		      for (i = 0; i < n_char_ranges; i += 2)
-			if (c >= char_ranges[i] && c <= char_ranges[i + 1])
-			  break;
-		      if (!(negate ^ (i < n_char_ranges)))
-			break;
-		    }
-		fwd_ok:
-		  p += nbytes, pos++, pos_byte += nbytes;
-		}
-	    else
-	      while (1)
-		{
-		  if (p >= stop)
-		    {
-		      if (p >= endp)
-			break;
-		      p = GAP_END_ADDR;
-		      stop = endp;
-		    }
-
-		  if (!NILP (iso_classes) && in_classes (*p, iso_classes))
-		    {
-		      if (negate)
-			break;
-		      else
-			goto fwd_unibyte_ok;
-		    }
-
-		  if (!fastmap[*p])
-		    break;
-		fwd_unibyte_ok:
-		  p++, pos++;
-		}
+		if (p <= stop)
+		  {
+		    if (p <= endp)
+		      break;
+		    p = GPT_ADDR;
+		    stop = endp;
+		  }
+		UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
+		prev_p = p;
+		while (--p >= stop && ! CHAR_HEAD_P (*p));
+		c = STRING_CHAR (p, MAX_MULTIBYTE_LENGTH);
+		if (! fastmap[(int) SYNTAX (c)])
+		  break;
+		pos--, pos_byte -= prev_p - p;
+	      }
 	  }
 	else
 	  {
-	    if (multibyte)
-	      while (1)
-		{
-		  unsigned char *prev_p;
-		  int nbytes;
-
-		  if (p <= stop)
-		    {
-		      if (p <= endp)
-			break;
-		      p = GPT_ADDR;
-		      stop = endp;
-		    }
-		  prev_p = p;
-		  while (--p >= stop && ! CHAR_HEAD_P (*p));
-		  PARSE_MULTIBYTE_SEQ (p, MAX_MULTIBYTE_LENGTH, nbytes);
-		  if (prev_p - p > nbytes)
-		    p = prev_p - 1, c = *p, nbytes = 1;
-		  else
-		    c = STRING_CHAR (p, MAX_MULTIBYTE_LENGTH);
-
-		  if (! NILP (iso_classes) && in_classes (c, iso_classes))
-		    {
-		      if (negate)
-			break;
-		      else
-			goto back_ok;
-		    }
-
-		  if (SINGLE_BYTE_CHAR_P (c))
-		    {
-		      if (!fastmap[c])
-			break;
-		    }
-		  else
-		    {
-		      /* See the comment in the previous similar code.  */
-		      for (i = 0; i < n_char_ranges; i += 2)
-			if (c >= char_ranges[i] && c <= char_ranges[i + 1])
-			  break;
-		      if (!(negate ^ (i < n_char_ranges)))
-			break;
-		    }
-		back_ok:
-		  pos--, pos_byte -= nbytes;
-		}
-	    else
-	      while (1)
-		{
-		  if (p <= stop)
-		    {
-		      if (p <= endp)
-			break;
-		      p = GPT_ADDR;
-		      stop = endp;
-		    }
-
-		  if (! NILP (iso_classes) && in_classes (p[-1], iso_classes))
-		    {
-		      if (negate)
-			break;
-		      else
-			goto back_unibyte_ok;
-		    }
-
-		  if (!fastmap[p[-1]])
-		    break;
-		back_unibyte_ok:
-		  p--, pos--;
-		}
+	    while (1)
+	      {
+		if (p <= stop)
+		  {
+		    if (p <= endp)
+		      break;
+		    p = GPT_ADDR;
+		    stop = endp;
+		  }
+		UPDATE_SYNTAX_TABLE_BACKWARD (pos - 1);
+		if (! fastmap[(int) SYNTAX (p[-1])])
+		  break;
+		p--, pos--, pos_byte--;
+	      }
 	  }
       }
-
-#if 0 /* Not needed now that a position in mid-character
-	 cannot be specified in Lisp.  */
-    if (multibyte
-	/* INC_POS or DEC_POS might have moved POS over LIM.  */
-	&& (forwardp ? (pos > XINT (lim)) : (pos < XINT (lim))))
-      pos = XINT (lim);
-#endif
-
-    if (! multibyte)
-      pos_byte = pos;
 
     SET_PT_BOTH (pos, pos_byte);
     immediate_quit = 0;
@@ -1921,7 +2142,7 @@ forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
 	  *bytepos_ptr = from_byte;
 	  return 0;
 	}
-      c = FETCH_CHAR (from_byte);
+      c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
       syntax = SYNTAX_WITH_FLAGS (c);
       code = syntax & 0xff;
       if (code == Sendcomment
@@ -1951,7 +2172,7 @@ forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
     forw_incomment:
       if (from < stop && SYNTAX_FLAGS_COMEND_FIRST (syntax)
 	  && SYNTAX_FLAGS_COMMENT_STYLE (syntax) == style
-	  && (c1 = FETCH_CHAR (from_byte),
+	  && (c1 = FETCH_CHAR_AS_MULTIBYTE (from_byte),
 	      SYNTAX_COMEND_SECOND (c1))
 	  && ((SYNTAX_FLAGS_COMMENT_NESTED (syntax) ||
 	       SYNTAX_COMMENT_NESTED (c1)) ? nesting > 0 : nesting < 0))
@@ -1970,7 +2191,7 @@ forw_comment (from, from_byte, stop, nesting, style, prev_syntax,
       if (nesting > 0
 	  && from < stop
 	  && SYNTAX_FLAGS_COMSTART_FIRST (syntax)
-	  && (c1 = FETCH_CHAR (from_byte),
+	  && (c1 = FETCH_CHAR_AS_MULTIBYTE (from_byte),
 	      SYNTAX_COMMENT_STYLE (c1) == style
 	      && SYNTAX_COMSTART_SECOND (c1))
 	  && (SYNTAX_FLAGS_COMMENT_NESTED (syntax) ||
@@ -2034,7 +2255,7 @@ between them, return t; otherwise return nil.  */)
 	      immediate_quit = 0;
 	      return Qnil;
 	    }
-	  c = FETCH_CHAR (from_byte);
+	  c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 	  code = SYNTAX (c);
 	  comstart_first = SYNTAX_COMSTART_FIRST (c);
 	  comnested = SYNTAX_COMMENT_NESTED (c);
@@ -2042,7 +2263,7 @@ between them, return t; otherwise return nil.  */)
 	  INC_BOTH (from, from_byte);
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
 	  if (from < stop && comstart_first
-	      && (c1 = FETCH_CHAR (from_byte),
+	      && (c1 = FETCH_CHAR_AS_MULTIBYTE (from_byte),
 		  SYNTAX_COMSTART_SECOND (c1)))
 	    {
 	      /* We have encountered a comment start sequence and we
@@ -2100,7 +2321,7 @@ between them, return t; otherwise return nil.  */)
 	  DEC_BOTH (from, from_byte);
 	  /* char_quoted does UPDATE_SYNTAX_TABLE_BACKWARD (from).  */
 	  quoted = char_quoted (from, from_byte);
-	  c = FETCH_CHAR (from_byte);
+	  c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 	  code = SYNTAX (c);
 	  comstyle = 0;
 	  comnested = SYNTAX_COMMENT_NESTED (c);
@@ -2117,7 +2338,7 @@ between them, return t; otherwise return nil.  */)
 	      code = Sendcomment;
 	      /* Calling char_quoted, above, set up global syntax position
 		 at the new value of FROM.  */
-	      c1 = FETCH_CHAR (from_byte);
+	      c1 = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 	      comstyle = SYNTAX_COMMENT_STYLE (c1);
 	      comnested = comnested || SYNTAX_COMMENT_NESTED (c1);
 	    }
@@ -2131,7 +2352,7 @@ between them, return t; otherwise return nil.  */)
 		{
 		  DEC_BOTH (from, from_byte);
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from);
-		  c = FETCH_CHAR (from_byte);
+		  c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 		  if (SYNTAX (c) == Scomment_fence
 		      && !char_quoted (from, from_byte))
 		    {
@@ -2197,11 +2418,11 @@ between them, return t; otherwise return nil.  */)
   return Qt;
 }
 
-/* Return syntax code of character C if C is a single byte character
+/* Return syntax code of character C if C is an ASCII character
    or `multibyte_symbol_p' is zero.  Otherwise, return Ssymbol.  */
 
-#define SYNTAX_WITH_MULTIBYTE_CHECK(c)			\
-  ((SINGLE_BYTE_CHAR_P (c) || !multibyte_symbol_p)	\
+#define SYNTAX_WITH_MULTIBYTE_CHECK(c)		\
+  ((ASCII_CHAR_P (c) || !multibyte_symbol_p)	\
    ? SYNTAX (c) : Ssymbol)
 
 static Lisp_Object
@@ -2245,7 +2466,7 @@ scan_lists (from, count, depth, sexpflag)
 	{
 	  int comstart_first, prefix;
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
-	  c = FETCH_CHAR (from_byte);
+	  c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 	  code = SYNTAX_WITH_MULTIBYTE_CHECK (c);
 	  comstart_first = SYNTAX_COMSTART_FIRST (c);
 	  comnested = SYNTAX_COMMENT_NESTED (c);
@@ -2256,7 +2477,8 @@ scan_lists (from, count, depth, sexpflag)
 	  INC_BOTH (from, from_byte);
 	  UPDATE_SYNTAX_TABLE_FORWARD (from);
 	  if (from < stop && comstart_first
-	      && (c = FETCH_CHAR (from_byte), SYNTAX_COMSTART_SECOND (c))
+	      && (c = FETCH_CHAR_AS_MULTIBYTE (from_byte),
+		  SYNTAX_COMSTART_SECOND (c))
 	      && parse_sexp_ignore_comments)
 	    {
 	      /* we have encountered a comment start sequence and we
@@ -2265,7 +2487,7 @@ scan_lists (from, count, depth, sexpflag)
 		 only a comment end of the same style actually ends
 		 the comment section */
 	      code = Scomment;
-	      c1 = FETCH_CHAR (from_byte);
+	      c1 = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 	      comstyle = SYNTAX_COMMENT_STYLE (c1);
 	      comnested = comnested || SYNTAX_COMMENT_NESTED (c1);
 	      INC_BOTH (from, from_byte);
@@ -2291,7 +2513,7 @@ scan_lists (from, count, depth, sexpflag)
 		  UPDATE_SYNTAX_TABLE_FORWARD (from);
 
 		  /* Some compilers can't handle this inside the switch.  */
-		  c = FETCH_CHAR (from_byte);
+		  c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 		  temp = SYNTAX_WITH_MULTIBYTE_CHECK (c);
 		  switch (temp)
 		    {
@@ -2334,7 +2556,7 @@ scan_lists (from, count, depth, sexpflag)
 	    case Smath:
 	      if (!sexpflag)
 		break;
-	      if (from != stop && c == FETCH_CHAR (from_byte))
+	      if (from != stop && c == FETCH_CHAR_AS_MULTIBYTE (from_byte))
 		{
 		  INC_BOTH (from, from_byte);
 		}
@@ -2361,12 +2583,12 @@ scan_lists (from, count, depth, sexpflag)
 	    case Sstring:
 	    case Sstring_fence:
 	      temp_pos = dec_bytepos (from_byte);
-	      stringterm = FETCH_CHAR (temp_pos);
+	      stringterm = FETCH_CHAR_AS_MULTIBYTE (temp_pos);
 	      while (1)
 		{
 		  if (from >= stop) goto lose;
 		  UPDATE_SYNTAX_TABLE_FORWARD (from);
-		  c = FETCH_CHAR (from_byte);
+		  c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 		  if (code == Sstring
 		      ? (c == stringterm
 			 && SYNTAX_WITH_MULTIBYTE_CHECK (c) == Sstring)
@@ -2409,7 +2631,7 @@ scan_lists (from, count, depth, sexpflag)
 	{
 	  DEC_BOTH (from, from_byte);
 	  UPDATE_SYNTAX_TABLE_BACKWARD (from);
-	  c = FETCH_CHAR (from_byte);
+	  c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 	  code = SYNTAX_WITH_MULTIBYTE_CHECK (c);
 	  if (depth == min_depth)
 	    last_good = from;
@@ -2427,7 +2649,7 @@ scan_lists (from, count, depth, sexpflag)
 	      DEC_BOTH (from, from_byte);
 	      UPDATE_SYNTAX_TABLE_BACKWARD (from);
 	      code = Sendcomment;
-	      c1 = FETCH_CHAR (from_byte);
+	      c1 = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 	      comstyle = SYNTAX_COMMENT_STYLE (c1);
 	      comnested = comnested || SYNTAX_COMMENT_NESTED (c1);
 	    }
@@ -2460,7 +2682,7 @@ scan_lists (from, count, depth, sexpflag)
 		  else
 		    temp_pos--;
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
-		  c1 = FETCH_CHAR (temp_pos);
+		  c1 = FETCH_CHAR_AS_MULTIBYTE (temp_pos);
 		  temp_code = SYNTAX_WITH_MULTIBYTE_CHECK (c1);
 		  /* Don't allow comment-end to be quoted.  */
 		  if (temp_code == Sendcomment)
@@ -2472,7 +2694,7 @@ scan_lists (from, count, depth, sexpflag)
 		      temp_pos = dec_bytepos (temp_pos);
 		      UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
 		    }
-		  c1 = FETCH_CHAR (temp_pos);
+		  c1 = FETCH_CHAR_AS_MULTIBYTE (temp_pos);
 		  temp_code = SYNTAX_WITH_MULTIBYTE_CHECK (c1);
 		  if (! (quoted || temp_code == Sword
 			 || temp_code == Ssymbol
@@ -2487,7 +2709,7 @@ scan_lists (from, count, depth, sexpflag)
 		break;
 	      temp_pos = dec_bytepos (from_byte);
 	      UPDATE_SYNTAX_TABLE_BACKWARD (from - 1);
-	      if (from != stop && c == FETCH_CHAR (temp_pos))
+	      if (from != stop && c == FETCH_CHAR_AS_MULTIBYTE (temp_pos))
 		DEC_BOTH (from, from_byte);
 	      if (mathexit)
 		{
@@ -2532,7 +2754,7 @@ scan_lists (from, count, depth, sexpflag)
 		  DEC_BOTH (from, from_byte);
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from);
 		  if (!char_quoted (from, from_byte)
-		      && (c = FETCH_CHAR (from_byte),
+		      && (c = FETCH_CHAR_AS_MULTIBYTE (from_byte),
 			  SYNTAX_WITH_MULTIBYTE_CHECK (c) == code))
 		    break;
 		}
@@ -2540,14 +2762,15 @@ scan_lists (from, count, depth, sexpflag)
 	      break;
 
 	    case Sstring:
-	      stringterm = FETCH_CHAR (from_byte);
+	      stringterm = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 	      while (1)
 		{
 		  if (from == stop) goto lose;
 		  DEC_BOTH (from, from_byte);
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from);
 		  if (!char_quoted (from, from_byte)
-		      && stringterm == (c = FETCH_CHAR (from_byte))
+		      && (stringterm
+			  == (c = FETCH_CHAR_AS_MULTIBYTE (from_byte)))
 		      && SYNTAX_WITH_MULTIBYTE_CHECK (c) == Sstring)
 		    break;
 		}
@@ -2650,7 +2873,7 @@ This includes chars with "quote" or "prefix" syntax (' or p).  */)
 
   while (!char_quoted (pos, pos_byte)
 	 /* Previous statement updates syntax table.  */
-	 && ((c = FETCH_CHAR (pos_byte), SYNTAX (c) == Squote)
+	 && ((c = FETCH_CHAR_AS_MULTIBYTE (pos_byte), SYNTAX (c) == Squote)
 	     || SYNTAX_PREFIX (c)))
     {
       opoint = pos;
@@ -2678,7 +2901,8 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
 		    stopbefore, oldstate, commentstop)
      struct lisp_parse_state *stateptr;
      register int from;
-     int end, targetdepth, stopbefore, from_byte;
+     int from_byte;
+     int end, targetdepth, stopbefore;
      Lisp_Object oldstate;
      int commentstop;
 {
@@ -2715,7 +2939,7 @@ scan_sexps_forward (stateptr, from, from_byte, end, targetdepth,
 #define INC_FROM				\
 do { prev_from = from;				\
      prev_from_byte = from_byte; 		\
-     temp = FETCH_CHAR (prev_from_byte);	\
+     temp = FETCH_CHAR_AS_MULTIBYTE (prev_from_byte);	\
      prev_from_syntax = SYNTAX_WITH_FLAGS (temp); \
      INC_BOTH (from, from_byte);		\
      if (from < end)				\
@@ -2871,7 +3095,7 @@ do { prev_from = from;				\
 	  while (from < end)
 	    {
 	      /* Some compilers can't handle this inside the switch.  */
-	      temp = FETCH_CHAR (from_byte);
+	      temp = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 	      temp = SYNTAX (temp);
 	      switch (temp)
 		{
@@ -2945,7 +3169,7 @@ do { prev_from = from;				\
 	  if (stopbefore) goto stop;  /* this arg means stop at sexp start */
 	  curlevel->last = prev_from;
 	  state.instring = (code == Sstring
-			    ? (FETCH_CHAR (prev_from_byte))
+			    ? (FETCH_CHAR_AS_MULTIBYTE (prev_from_byte))
 			    : ST_STRING_STYLE);
 	  if (boundary_stop) goto done;
 	startinstring:
@@ -2957,7 +3181,7 @@ do { prev_from = from;				\
 		int c;
 
 		if (from >= end) goto done;
-		c = FETCH_CHAR (from_byte);
+		c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 		/* Some compilers can't handle this inside the switch.  */
 		temp = SYNTAX (c);
 
@@ -3183,8 +3407,7 @@ init_syntax_once ()
 
   /* All multibyte characters have syntax `word' by default.  */
   temp = XVECTOR (Vsyntax_code_object)->contents[(int) Sword];
-  for (i = CHAR_TABLE_SINGLE_BYTE_SLOTS; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
-    XCHAR_TABLE (Vstandard_syntax_table)->contents[i] = temp;
+  char_table_set_range (Vstandard_syntax_table, 0x80, MAX_CHAR, temp);
 }
 
 void
@@ -3231,6 +3454,25 @@ See the info node `(elisp)Syntax Properties' for a description of the
 	       &open_paren_in_column_0_is_defun_start,
 	       doc: /* *Non-nil means an open paren in column 0 denotes the start of a defun.  */);
   open_paren_in_column_0_is_defun_start = 1;
+
+
+  DEFVAR_LISP ("find-word-boundary-function-table",
+	       &Vfind_word_boundary_function_table,
+	       doc: /*
+Char table of functions to search for the word boundary.
+Each function is called with two arguments; POS and LIMIT.
+POS and LIMIT are character positions in the current buffer.
+
+If POS is less than LIMIT, POS is at the first character of a word,
+and the return value of a function is a position after the last
+character of that word.
+
+If POS is not less than LIMIT, POS is at the last character of a word,
+and the return value of a function is a position at the first
+character of that word.
+
+In both cases, LIMIT bounds the search. */);
+  Vfind_word_boundary_function_table = Fmake_char_table (Qnil, Qnil);
 
   defsubr (&Ssyntax_table_p);
   defsubr (&Ssyntax_table);

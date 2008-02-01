@@ -6952,16 +6952,6 @@
 
 	* international/characters.el: Undo unwanted and unexplained change.
 
-2007-10-10  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-print.el: Fix the usage of :foreground and :background face
-	attributes.  Reported by Nikolaj Schumacher <n_schumacher@web.de>.
-	(ps-print-version): New version 6.7.6.
-	(ps-face-attributes, ps-face-attribute-list, ps-face-background):
-	Fix code.
-	(ps-face-foreground-color-p, ps-face-background-color-p)
-	(ps-face-color-p): New inline funs.
-
 2007-10-10  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-additional-option-like-keywords): New constant.
@@ -10016,16 +10006,6 @@
 
 	* calc/calc.el (calc-language-alist): Add texinfo-mode.
 
-2007-08-16  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-print.el (ps-header-font-size, ps-header-title-font-size)
-	(ps-footer-font-size, ps-line-number-font-size, ps-line-spacing)
-	(ps-paragraph-spacing): Docstring fix.
-
-2007-08-16  Glenn Morris  <rgm@gnu.org>
-
-	* ps-print.el (ps-font-size): Doc fix.
-
 2007-08-16  Richard Stallman  <rms@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-names-regexp): Add custom group.
@@ -10336,13 +10316,6 @@
 	(tex-font-script-display, tex-font-lock-suscript): Change from a cons
 	cell to a list of 2 elements to simplify the unfontify code.
 
-2007-08-08  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-print.el (ps-default-fg, ps-default-bg): Docstring fix.
-	(ps-begin-job): Use ps-default-fg and ps-default-bg only when
-	ps-print-color-p is neither nil nor black-white.  Reported by Christian
-	Schlauer <cs-muelleimer-rubbish.bin@arcor.de>.
-
 2007-08-08  Andreas Schwab  <schwab@suse.de>
 
 	* mail/mailabbrev.el (sendmail-pre-abbrev-expand-hook): Check for
@@ -10424,10 +10397,6 @@
 	format-mode-line because it may be a list,
 	e.g., (sgml-xml-mode "XML" "SGML"), and not a string.
 
-2007-08-06  Vinicius Jose Latorre  <viniciusig@ig.com.br>
-
-	* printing.el (pr-update-menus): Docstring fix.
-
 2007-08-06  Jason Rumney  <jasonr@gnu.org>
 
 	* menu-bar.el (menu-bar-vc-filter): Use vc-call-backend.
@@ -10471,11 +10440,6 @@
 	* calc/calc-nlfit.el (math-nlfit-curve): Remove unnecessary variables.
 	(math-nlfit-givens): Let bind free variables.
 
-2007-08-05  Vinicius Jose Latorre  <viniciusig@ig.com.br>
-
-	* printing.el: Require lpr and ps-print when loading printing package.
-	Reported by Glenn Morris <rgm@gnu.org>.
-
 2007-08-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (set-auto-mode): Handle also remote files wrt
@@ -10504,13 +10468,6 @@
 	(diff-beginning-of-file): Adjust to the fact that diff-file-header-re
 	may match up to 4 lines.
 	(diff-beginning-of-file-and-junk): Rewrite.
-
-2007-08-03  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* printing.el: Evaluate require only during compilation.
-	(pr-version): New version 6.9.1.
-	(deactivate-mark): Replace (defvar VAR nil) by (defvar VAR).
-	(pr-global-menubar): Fix code.
 
 2007-08-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -10802,59 +10759,6 @@
 	* vc-git.el (vc-git-revision-table)
 	(vc-git-revision-completion-table): New functions.
 
-2007-07-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* progmodes/ebnf-abn.el (ebnf-abn-skip-comment):
-	* progmodes/ebnf-bnf.el (ebnf-bnf-skip-comment):
-	* progmodes/ebnf-dtd.el (ebnf-dtd-skip-comment):
-	* progmodes/ebnf-ebx.el (ebnf-ebx-skip-comment):
-	* progmodes/ebnf-iso.el (ebnf-iso-skip-comment):
-	* progmodes/ebnf-yac.el (ebnf-yac-skip-comment): New version.
-	New command actions for EPS header and EPS footer.
-
-	* progmodes/ebnf2ps.el: New command actions for EPS header and EPS
-	footer.  Fix some problems with one-or-more, zero-or-more and
-	alternative constructions generation.  Some log messages
-	implementation.  Doc fix.
-	(ebnf-version): New version 4.4.
-	(ebnf-eps-header-font, ebnf-eps-header, ebnf-eps-footer-font)
-	(ebnf-eps-footer, ebnf-log): New options.
-	(ebnf-find-style, ebnf-eps-header-footer, ebnf-eps-header)
-	(ebnf-eps-footer, ebnf-eps-string, ebnf-eps-header-footer-comment)
-	(ebnf-eps-header-footer-p, ebnf-eps-header-comment)
-	(ebnf-eps-footer-comment, ebnf-eps-header-footer-file)
-	(ebnf-eps-header-footer-set, ebnf-log-header, ebnf-log): New funs.
-	(ebnf-style-custom-list, ebnf-style-database): Put new values.
-	(ebnf-print-directory, ebnf-print-file, ebnf-print-buffer)
-	(ebnf-print-region, ebnf-spool-directory, ebnf-spool-file)
-	(ebnf-spool-buffer, ebnf-spool-region, ebnf-eps-directory)
-	(ebnf-eps-file, ebnf-eps-buffer, ebnf-eps-region)
-	(ebnf-syntax-directory, ebnf-syntax-file, ebnf-syntax-buffer)
-	(ebnf-syntax-region, ebnf-parse-and-sort, ebnf-begin-job)
-	(ebnf-dimensions, ebnf-production-dimension, ebnf-terminal-dimension)
-	(ebnf-non-terminal-dimension, ebnf-special-dimension)
-	(ebnf-terminal-dimension1, ebnf-repeat-dimension)
-	(ebnf-except-dimension, ebnf-alternative-dimension)
-	(ebnf-optional-dimension, ebnf-one-or-more-dimension)
-	(ebnf-zero-or-more-dimension, ebnf-sequence-dimension): Insert log
-	message fun.
-	(ebnf-setup, ebnf-generate-one-or-more, ebnf-generate-zero-or-more)
-	(ebnf-begin-job, ebnf-begin-file, ebnf-eps-finish-and-write)
-	(ebnf-insert-ebnf-prologue, ebnf-production-dimension)
-	(ebnf-terminal-dimension1, ebnf-alternative-dimension)
-	(ebnf-one-or-more-dimension, ebnf-zero-or-more-dimension)
-	(ebnf-eps-add-context, ebnf-eps-add-production): Fix code.
-	(ebnf-eps-filename, ebnf-trim-right): Replace `?\s' by `?\ ' to keep
-	compatibility with Emacs 20 & 21.
-	(ebnf-eps-header-comment, ebnf-eps-footer-comment)
-	(ebnf-eps-file-alist, ebnf-basic-width-extra)
-	(ebnf-basic-empty-height): New vars.
-	(ebnf-prologue): Fix PostScript code.
-	(ebnf-make-empty, ebnf-make-terminal1, ebnf-make-or-more1)
-	(ebnf-make-production, ebnf-make-alternative, ebnf-make-optional)
-	(ebnf-make-except, ebnf-make-repeat, ebnf-make-sequence)
-	(ebnf-make-dup-sequence, ebnf-token-alternative): Add comments.
-
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.
@@ -10920,14 +10824,6 @@
 
 	* vc-git.el (vc-git-log-view-mode): Port to the multi-file vc interface.
 	(vc-git-create-snapshot, vc-git-retrieve-snapshot): New functions.
-
-2007-07-25  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-print.el (ps-multibyte-buffer): Docstring fix.
-
-	* ps-mule.el: Doc fix.
-	(ps-multibyte-buffer, ps-mule-font-info-database-default)
-	(ps-mule-external-libraries, ps-mule-begin-job): Docstring fix.
 
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
@@ -11311,18 +11207,6 @@
 2007-07-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hg.el (vc-hg-diff): Use vc-hg-command.
-
-2007-07-20  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-print.el: Problem with foreground and background color when
-	printing a buffer with and without faces.  Reported by Christian
-	Schlauer <cs-muelleimer-rubbish.bin@arcor.de>.
-	(ps-print-version): New version 6.7.5.
-	(ps-default-fg): Change default value to nil, so black color is used
-	when a face does not specify a foreground color.
-	(ps-default-bg): Change default value to nil, so white color is used
-	for background color.
-	(ps-begin-job): Fix code.
 
 2007-07-20  Eli Zaretskii  <eliz@gnu.org>
 
@@ -13568,32 +13452,6 @@
 	for start and end positions.
 	(ispell-word): Assume END is a marker.
 
-2007-05-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* printing.el: Group together all XEmacs/Emacs definitions.
-	(pr-version): New version 6.9.
-	(pr-global-menubar, pr-menu-char-height, pr-menu-char-width): New funs.
-	(pr-menu-char-height, pr-menu-char-width): Fix initialization code.
-	(pr-menu-bind): Fix code.
-	(pr-e-frame-char-height, pr-e-frame-char-width)
-	(pr-e-mouse-pixel-position, pr-x-add-submenu, pr-x-event-function)
-	(pr-x-event-object, pr-x-find-menu-item, pr-x-font-height)
-	(pr-x-font-width, pr-x-get-popup-menu-response, pr-x-make-event)
-	(pr-x-misc-user-event-p, pr-x-relabel-menu-item, pr-x-event-x-pixel)
-	(pr-x-event-y-pixel): Aliases eliminated.
-	(pr-xemacs-global-menubar): Macro moved.
-	(current-menubar, current-mouse-event, zmacs-region-stays)
-	(deactivate-mark, pr-menu-position, pr-menu-state, pr-ps-name-old)
-	(pr-txt-name-old, pr-ps-utility-old, pr-even-or-odd-old, pr-temp-menu):
-	Vars moved.
-	(pr-region-active-p, pr-menu-position, pr-menu-lookup, pr-menu-lock)
-	(pr-update-mode-line, pr-do-update-menus, pr-menu-alist)
-	(pr-relabel-menu-item, pr-menu-set-ps-title, pr-menu-set-txt-title)
-	(pr-menu-set-utility-title, pr-even-or-odd-pages)
-	(pr-f-set-keymap-parents, pr-f-set-keymap-name, pr-f-read-string)
-	(pr-keep-region-active, pr-menu-get-item, pr-menu-set-item-name): Funs
-	moved.
-
 2007-05-17  Christian Plate  <cplate@web.de>  (tiny change)
 
 	* textmodes/sgml-mode.el (sgml-tag):
@@ -13655,15 +13513,6 @@
 
 	* files.el (mode-require-final-newline, require-final-newline)
 	(enable-local-variables, enable-local-eval): Doc fixes.
-
-2007-05-13  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-print.el: Use default color when foreground or background color
-	are unspecified.  Reported by Leo <sdl.web@gmail.com>.
-	(ps-print-version): New version 6.7.4.
-	(ps-rgb-color): New argument.  Use default color when color is
-	unspecified.
-	(ps-begin-job): Fix code.
 
 2007-05-12  Chong Yidong  <cyd@stupidchicken.com>
 

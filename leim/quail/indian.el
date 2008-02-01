@@ -34,88 +34,8 @@
 ;;; Code:
 
 (require 'quail)
-(require 'devan-util)
 (require 'ind-util)
-
-(defun quail-indian-preceding-char-position (position)
-  "Return the position of preceding composite character."
-  (let (prec-composed)
-    (if (char-valid-p (char-before position)) ;; range o.k.
-        (if (setq prec-composed (find-composition (1- position)))
-            (car prec-composed)
-          (1- position))
-      nil)))
-
-(defvar quail-indian-update-preceding-char nil)
-
-;; Input value ::
-;;   CONTROL-FLAG is integer `n'
-;;     quail-current-key :: keyboard input.
-;;                          Only first `n' can be translated.
-;;     quail-current-str :: corresonding string.
-;;     jobs :: (1) put last (len-n) char to unrread-command-event.
-;;             (2) put translated string to  quail-current-str.
-;;
-;;   CONTROL-FLAG is t (terminate) or nil (proceed the translation)
-;;     quail-current-key :: keyboard input.
-;;     quail-current-str :: corresponding string.
-;;     jobs :: (1) put modified translated string to quail-current-str.
-;;
-;; When non-nil value is returned from quail-translation-update-function,
-;; the quail-current-str is split to characters and put into event queue,
-;; with `compose-last-char' event with composition info at the end.
-
-(defun quail-indian-update-translation (control-flag)
-  ;; make quail-current-str string when possible.
-  (if (char-valid-p quail-current-str)
-      (setq quail-current-str (char-to-string quail-current-str)))
-  ;(message "\n input control-flag=%s, str=%s, key=%s q-ind-upd-prec-char=%s"
-  ;         control-flag quail-current-str quail-current-key
-  ;         quail-indian-update-preceding-char)
-  ;; reset quail-indian-update-preceding-char if it's initial.
-  (if (= (overlay-start quail-overlay) (overlay-end quail-overlay))
-      (setq quail-indian-update-preceding-char nil))
-  ;; Check the preceding character of the quail region.  If the
-  ;; preceding character can be composed with quail-current-str, then
-  ;; grab that preceding character into the quail-current-str and
-  ;; remove that char from the region.
-  (let* (prec-char-position composition-regexp
-         prec-char-str candidate-str match-pos match-end)
-    (when (and quail-current-str
-               (null quail-indian-update-preceding-char)
-               (null input-method-use-echo-area)
-               (null input-method-exit-on-first-char)
-               (setq prec-char-position
-                     (quail-indian-preceding-char-position
-                      (overlay-start quail-overlay)))
-               (setq composition-regexp
-                     (if prec-char-position
-                         (caar (elt composition-function-table
-                                    (char-after prec-char-position)))))
-               (setq prec-char-str
-                     (buffer-substring prec-char-position
-                                       (overlay-start quail-overlay))
-                     candidate-str (concat prec-char-str quail-current-str)
-                     match-pos (string-match composition-regexp candidate-str)
-                     match-end (match-end 0))
-               (> match-end (length prec-char-str)))
-      (setq quail-indian-update-preceding-char prec-char-str)
-      (delete-region prec-char-position
-                     (overlay-start quail-overlay))))
-  (setq quail-current-str
-        (indian-compose-string
-         (concat quail-indian-update-preceding-char
-                 quail-current-str)))
-  (if (numberp control-flag)
-      (setq unread-command-events
-            (string-to-list
-             (substring quail-current-key control-flag))))
-  (when control-flag
-    (setq quail-indian-update-preceding-char nil))
-  ;(message "output control-flag=%s, str=%s, key=%s q-ind-upd-prec-char=%s"
-  ;         control-flag quail-current-str quail-current-key
-  ;         quail-indian-update-preceding-char)
-  control-flag)
+(require 'devan-util)
 
 ;;;
 ;;; Input by transliteration
@@ -124,8 +44,7 @@
 (defun quail-define-indian-trans-package (hashtbls pkgname
 						   lang title doc)
   (funcall 'quail-define-package pkgname lang title t doc
-	   nil nil nil nil nil nil t nil
-	   'quail-indian-update-translation)
+	   nil nil nil nil nil nil t nil)
   (maphash
    (lambda (key val)
      (quail-defrule key (if (= (length val) 1)
@@ -214,25 +133,28 @@
 ;;; Input by Inscript
 ;;;
 
-(defun quail-indian-flatten-list (lst)
-  "Flatten the nested LIST so that there would be no innner list."
-  (if (listp lst)
-      (apply 'append (mapcar 'quail-indian-flatten-list lst))
-    (list lst)))
-
-(defun quail-define-inscript-package (char-table key-table pkgname lang title
-						 docstring)
-  (setq char-table (quail-indian-flatten-list char-table))
-  (setq key-table (quail-indian-flatten-list key-table))
+(defun quail-define-inscript-package (char-tables key-tables pkgname lang
+                                                  title docstring)
   (funcall 'quail-define-package pkgname lang title nil docstring
-	   nil nil nil nil nil nil nil nil
-	   'quail-indian-update-translation)
-  (dolist (key key-table)
-    (let ((val (pop char-table)))
-      (if (and key val)
-	  (quail-defrule
-	    (if (char-valid-p key) (char-to-string key) key)
-	    (if (stringp val) (vector val) val))))))
+	   nil nil nil nil nil nil nil nil)
+  (let (char-table key-table char key)
+    (while (and char-tables key-tables)
+      (setq char-table  (car char-tables)
+            char-tables (cdr char-tables)
+            key-table   (car key-tables)
+            key-tables  (cdr key-tables))
+      (while (and char-table key-table)
+        (setq char       (car char-table)
+              char-table (cdr char-table)
+              key        (car key-table)
+              key-table  (cdr key-table))
+        (if (and (consp char) (consp key))
+            (setq char-table (append char char-table)
+                  key-table  (append key  key-table))
+          (if (and key char)
+              (quail-defrule
+               (if (characterp key) (char-to-string key) key)
+               (if (stringp char)   (vector char) char))))))))
 
 ;;
 
@@ -242,6 +164,29 @@
      (?D nil) (?E ?e) (?F ?f) (?R ?r) (?G ?g) (?T ?t)
      (?+ ?=) ("F]" "f]") (?! ?@) (?Z ?z) (?S ?s) (?W ?w)
      (?| ?\\) (?~ ?`) (?A ?a) (?Q ?q) ("+]" "=]") ("R]" "r]"))
+    (;; CONSONANTS (42)
+     ?k ?K ?i ?I ?U                ;; GRUTTALS
+     ?\; ?: ?p ?P ?}               ;; PALATALS
+     ?' ?\" ?\[ ?{ ?C              ;; CEREBRALS
+     ?l ?L ?o ?O ?v ?V             ;; DENTALS
+     ?h ?H ?y ?Y ?c                ;; LABIALS
+     ?/ ?j ?J ?n ?N "N]" ?b        ;; SEMIVOWELS
+     ?M ?< ?m ?u                   ;; SIBILANTS
+     "k]" "K]" "i]" "p]" "[]" "{]" "H]" "/]" ;; NUKTAS
+     ?% ?&)
+    (;; Misc Symbols (7)
+     ?X ?x ?_ ">]" ?d "X]" ?>)
+    (;; Digits
+     ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9)
+    (;; Inscripts
+     ?# ?$ ?^ ?* ?\])))
+
+(defvar inscript-tml-keytable
+  '(
+    (;; VOWELS  (18)
+     (?D nil) (?E ?e) (?F ?f) (?R ?r) (?G ?g) (?T ?t)
+     nil nil nil (?S ?s) (?Z ?z) (?W ?w)
+     nil (?A ?a) (?~ ?`) (?Q ?q) nil nil)
     (;; CONSONANTS (42)
      ?k ?K ?i ?I ?U                ;; GRUTTALS
      ?\; ?: ?p ?P ?}               ;; PALATALS
@@ -325,7 +270,7 @@
 (if nil
     (quail-define-package "tamil-inscript" "Tamil" "TmlIS" t "Tamil keyboard Inscript"))
 (quail-define-inscript-package
- indian-tml-base-table inscript-dev-keytable
+ indian-tml-base-table inscript-tml-keytable
  "tamil-inscript" "Tamil" "TmlIS"
  "Tamil keyboard Inscript.")
 

@@ -34,41 +34,15 @@
 ;; This is not really a Quail method, but uses some Quail functions.
 ;; There is probably A Better Way.
 
-;; Compare `ucs-insert', which explicitly inserts a unicoded character
-;; rather than supplying an input method.
+;; You can get a similar effect by using C-q with
+;; `read-quoted-char-radix' set to 16.
+
+;; Note that this only allows you to enter BMP values unless someone
+;; extends it to use variable numbers of digits.
 
 ;;; Code:
 
 (require 'quail)
-
-;; Maybe stolen from Mule-UCS -- I don't remember.
-(define-ccl-program utf-8-ccl-encode
-  `(4 (if (r0 < ?\x80)
-	((write r0))
-      (if (r0 < #x800)
-	  ((write ((r0 >> 6) | ?\xC0))
-	   (write ((r0 & ?\x3F) | ?\x80)))
-	(if (r0 < #x10000)
-	    ((write ((r0 >> 12) | ?\xE0))
-	     (write (((r0 >> 6) & ?\x3F) | ?\x80))
-	     (write ((r0 & ?\x3F) | ?\x80)))
-	  (if (r0 < #x200000)
-	      ((write ((r0 >> 18) | ?\xF0))
-	       (write (((r0 >> 12) & ?\x3F) | ?\x80))
-	       (write (((r0 >> 6) & ?\x3F) | ?\x80))
-	       (write ((r0 & ?\x3F) | ?\x80)))
-	    (if (r0 < #x4000000)
-		((write ((r0 >> 24) | ?\xF8))
-		 (write (((r0 >> 18) & ?\x3F) | ?\x80))
-		 (write (((r0 >> 12) & ?\x3F) | ?\x80))
-		 (write (((r0 >> 6) & ?\x3F) | ?\x80))
-		 (write ((r0 & ?\x3F) | ?\x80)))
-	      ((write ((r0 >> 30) | ?\xFC))
-	       (write (((r0 >> 24) & ?\x3F) | ?\x80))
-	       (write (((r0 >> 18) & ?\x3F) | ?\x80))
-	       (write (((r0 >> 12) & ?\x3F) | ?\x80))
-	       (write (((r0 >> 6) & ?\x3F) | ?\x80))
-	       (write ((r0 & ?\x3F) | ?\x80))))))))))
 
 (defun ucs-input-insert-char (char)
   (insert char)
@@ -97,7 +71,7 @@
 			   (= 1 (length seq))
 			   (setq key (aref seq 0))
 			   (memq key '(?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9 ?a
-				       ?b ?c ?d ?e ?f ?A ?B ?C ?D ?E ?F)))
+					  ?b ?c ?d ?e ?f ?A ?B ?C ?D ?E ?F)))
 		      (progn
 			(push key events)
 			(ucs-input-insert-char key))
@@ -105,20 +79,11 @@
 		    (throw 'non-digit (append (reverse events)
 					      (listify-key-sequence seq))))))
 	      (quail-delete-region)
-	      (let* ((n (string-to-number (apply 'string
-						 (cdr (nreverse events)))
-					  16))
-		     (c (decode-char 'ucs n)))
-		(if c
-		    (list c)
-		  ;; The intention of the following code is to insert
-		  ;; a correct UTF-8 sequence by raw bytes, but
-		  ;; currently it doesn't work.
-		  ;; (let ((status (make-vector 9 nil)))
-		  ;;   (aset status 0 n)
-		  ;;   (string-to-list (ccl-execute-on-string
-		  ;;                    'utf-8-ccl-encode status "")))
-		  (error "Character U+%04X is not yet supported" n)))))
+	      (let ((n (string-to-number (apply 'string
+					    (cdr (nreverse events)))
+				     16)))
+		(if (characterp n)
+		    (list n)))))
 	(quail-delete-overlays)
 	(set-buffer-modified-p modified-p)
 	(run-hooks 'input-method-after-insert-chunk-hook)))))

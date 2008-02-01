@@ -25,6 +25,7 @@ Boston, MA 02110-1301, USA.  */
 #include <stdio.h>
 #include "lisp.h"
 #include "buffer.h"
+#include "character.h"
 #include "charset.h"
 #include "keyboard.h"
 #include "frame.h"
@@ -477,11 +478,15 @@ print_string (string, printcharfun)
     {
       int chars;
 
+      if (print_escape_nonascii)
+	string = string_escape_byte8 (string);
+
       if (STRING_MULTIBYTE (string))
 	chars = SCHARS (string);
-      else if (EQ (printcharfun, Qt)
-	       ? ! NILP (buffer_defaults.enable_multibyte_characters)
-	       : ! NILP (current_buffer->enable_multibyte_characters))
+      else if (! print_escape_nonascii
+	       && (EQ (printcharfun, Qt)
+		   ? ! NILP (buffer_defaults.enable_multibyte_characters)
+		   : ! NILP (current_buffer->enable_multibyte_characters)))
 	{
 	  /* If unibyte string STRING contains 8-bit codes, we must
 	     convert STRING to a multibyte string containing the same
@@ -546,11 +551,6 @@ print_string (string, printcharfun)
 	    int len;
 	    int ch = STRING_CHAR_AND_LENGTH (SDATA (string) + i,
 					     size_byte - i, len);
-	    if (!CHAR_VALID_P (ch, 0))
-	      {
-		ch = SREF (string, i);
-		len = 1;
-	      }
 	    PRINTCHAR (ch);
 	    i += len;
 	  }
@@ -1431,7 +1431,7 @@ print_preprocess (obj)
 	  print_number_index++;
 	}
 
-      switch (XGCTYPE (obj))
+      switch (XTYPE (obj))
 	{
 	case Lisp_String:
 	  /* A string may have text properties, which can be circular.  */
@@ -1474,6 +1474,93 @@ print_preprocess_string (interval, arg)
   print_preprocess (interval->plist);
 }
 
+/* A flag to control printing of `charset' text property.
+   The default value is Qdefault. */
+Lisp_Object Vprint_charset_text_property;
+extern Lisp_Object Qdefault;
+
+static void print_check_string_charset_prop ();
+
+#define PRINT_STRING_NON_CHARSET_FOUND 1
+#define PRINT_STRING_UNSAFE_CHARSET_FOUND 2
+
+/* Bitwize or of the abobe macros. */
+static int print_check_string_result;
+
+static void
+print_check_string_charset_prop (interval, string)
+     INTERVAL interval;
+     Lisp_Object string;
+{
+  Lisp_Object val;
+
+  if (NILP (interval->plist)
+      || (print_check_string_result == (PRINT_STRING_NON_CHARSET_FOUND
+					| PRINT_STRING_UNSAFE_CHARSET_FOUND)))
+    return;
+  for (val = interval->plist; CONSP (val) && ! EQ (XCAR (val), Qcharset);
+       val = XCDR (XCDR (val)));
+  if (! CONSP (val))
+    {
+      print_check_string_result |= PRINT_STRING_NON_CHARSET_FOUND;
+      return;
+    }
+  if (! (print_check_string_result & PRINT_STRING_NON_CHARSET_FOUND))
+    {
+      if (! EQ (val, interval->plist)
+	  || CONSP (XCDR (XCDR (val))))
+	print_check_string_result |= PRINT_STRING_NON_CHARSET_FOUND;
+    }
+  if (NILP (Vprint_charset_text_property)
+      || ! (print_check_string_result & PRINT_STRING_UNSAFE_CHARSET_FOUND))
+    {
+      int i, c;
+      int charpos = interval->position;
+      int bytepos = string_char_to_byte (string, charpos);
+      Lisp_Object charset;
+
+      charset = XCAR (XCDR (val));
+      for (i = 0; i < LENGTH (interval); i++)
+	{
+	  FETCH_STRING_CHAR_ADVANCE (c, string, charpos, bytepos);
+	  if (! ASCII_CHAR_P (c)
+	      && ! EQ (CHARSET_NAME (CHAR_CHARSET (c)), charset))
+	    {
+	      print_check_string_result |= PRINT_STRING_UNSAFE_CHARSET_FOUND;
+	      break;
+	    }
+	}
+    }
+}
+
+/* The value is (charset . nil).  */
+static Lisp_Object print_prune_charset_plist;
+
+static Lisp_Object
+print_prune_string_charset (string)
+     Lisp_Object string;
+{
+  print_check_string_result = 0;
+  traverse_intervals (STRING_INTERVALS (string), 0,
+		      print_check_string_charset_prop, string);
+  if (! (print_check_string_result & PRINT_STRING_UNSAFE_CHARSET_FOUND))
+    {
+      string = Fcopy_sequence (string);
+      if (print_check_string_result & PRINT_STRING_NON_CHARSET_FOUND)
+	{
+	  if (NILP (print_prune_charset_plist))
+	    print_prune_charset_plist = Fcons (Qcharset, Qnil);
+	  Fremove_text_properties (make_number (0),
+				   make_number (SCHARS (string)),
+				   print_prune_charset_plist, string);
+	}
+      else
+	Fset_text_properties (make_number (0), make_number (SCHARS (string)),
+			      Qnil, string);
+    }
+  return string;
+}
+
 static void
 print_object (obj, printcharfun, escapeflag)
      Lisp_Object obj;
@@ -1486,7 +1573,7 @@ print_object (obj, printcharfun, escapeflag)
 
   /* Detect circularities and truncate them.  */
   if (STRINGP (obj) || CONSP (obj) || VECTORP (obj)
-      || COMPILEDP (obj) || CHAR_TABLE_P (obj)
+      || COMPILEDP (obj) || CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj)
       || (! NILP (Vprint_gensym)
 	  && SYMBOLP (obj)
 	  && !SYMBOL_INTERNED_P (obj)))
@@ -1545,7 +1632,7 @@ print_object (obj, printcharfun, escapeflag)
     }
 #endif /* MAX_PRINT_CHARS */
 
-  switch (XGCTYPE (obj))
+  switch (XTYPE (obj))
     {
     case Lisp_Int:
       if (sizeof (int) == sizeof (EMACS_INT))
@@ -1582,6 +1669,9 @@ print_object (obj, printcharfun, escapeflag)
 
 	  GCPRO1 (obj);
 
+	  if (! EQ (Vprint_charset_text_property, Qt))
+	    obj = print_prune_string_charset (obj);
+
 	  if (!NULL_INTERVAL_P (STRING_INTERVALS (obj)))
 	    {
 	      PRINTCHAR ('#');
@@ -1603,10 +1693,7 @@ print_object (obj, printcharfun, escapeflag)
 		{
 		  c = STRING_CHAR_AND_LENGTH (str + i_byte,
 					      size_byte - i_byte, len);
-		  if (CHAR_VALID_P (c, 0))
-		    i_byte += len;
-		  else
-		    c = str[i_byte++];
+		  i_byte += len;
 		}
 	      else
 		c = str[i_byte++];
@@ -1624,8 +1711,8 @@ print_object (obj, printcharfun, escapeflag)
 		  PRINTCHAR ('f');
 		}
 	      else if (multibyte
-		       && ! ASCII_BYTE_P (c)
-		       && (SINGLE_BYTE_CHAR_P (c) || print_escape_multibyte))
+		       && (CHAR_BYTE8_P (c) 
+			   || (! ASCII_CHAR_P (c) && print_escape_multibyte)))
 		{
 		  /* When multibyte is disabled,
 		     print multibyte string chars using hex escapes.
@@ -1633,9 +1720,15 @@ print_object (obj, printcharfun, escapeflag)
 		     when found in a multibyte string, always use a hex escape
 		     so it reads back as multibyte.  */
 		  unsigned char outbuf[50];
-		  sprintf (outbuf, "\\x%x", c);
+
+		  if (CHAR_BYTE8_P (c))
+		    sprintf (outbuf, "\\%03o", CHAR_TO_BYTE8 (c));
+		  else
+		    {
+		      sprintf (outbuf, "\\x%04x", c);
+		      need_nonhex = 1;
+		    }
 		  strout (outbuf, -1, -1, printcharfun, 0);
-		  need_nonhex = 1;
 		}
 	      else if (! multibyte
 		       && SINGLE_BYTE_CHAR_P (c) && ! ASCII_BYTE_P (c)
@@ -1924,7 +2017,12 @@ print_object (obj, printcharfun, escapeflag)
 	    {
 	      QUIT;
 	      c = XBOOL_VECTOR (obj)->data[i];
-	      if (c == '\n' && print_escape_newlines)
+	      if (! ASCII_BYTE_P (c))
+		{
+		  sprintf (buf, "\\%03o", c);
+		  strout (buf, -1, -1, printcharfun, 0);
+		}
+	      else if (c == '\n' && print_escape_newlines)
 		{
 		  PRINTCHAR ('\\');
 		  PRINTCHAR ('n');
@@ -2039,7 +2137,7 @@ print_object (obj, printcharfun, escapeflag)
 	      PRINTCHAR ('#');
 	      size &= PSEUDOVECTOR_SIZE_MASK;
 	    }
-	  if (CHAR_TABLE_P (obj))
+	  if (CHAR_TABLE_P (obj) || SUB_CHAR_TABLE_P (obj))
 	    {
 	      /* We print a char-table as if it were a vector,
 		 lumping the parent and default slots in with the
@@ -2227,6 +2325,8 @@ print_interval (interval, printcharfun)
      INTERVAL interval;
      Lisp_Object printcharfun;
 {
+  if (NILP (interval->plist))
+    return;
   PRINTCHAR (' ');
   print_object (make_number (interval->position), printcharfun, 1);
   PRINTCHAR (' ');
@@ -2349,6 +2449,19 @@ the printing done so far has not found any shared structure or objects
 that need to be recorded in the table.  */);
   Vprint_number_table = Qnil;
 
+  DEFVAR_LISP ("print-charset-text-property", &Vprint_charset_text_property,
+	       doc: /* A flag to control printing of `charset' text property on printing a string.
+The value must be nil, t, or `default'.
+
+If the value is nil, don't print the text property `charset'.
+
+If the value is t, always print the text property `charset'.
+
+If the value is `default', print the text property `charset' only when
+the value is different from what is guessed in the current charset
+priorities.  */);
+  Vprint_charset_text_property = Qdefault;
+
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */
   staticpro (&Vprin1_to_string_buffer);
 
@@ -2375,6 +2488,9 @@ that need to be recorded in the table.  */);
 
   Qprint_escape_nonascii = intern ("print-escape-nonascii");
   staticpro (&Qprint_escape_nonascii);
+
+  print_prune_charset_plist = Qnil;
+  staticpro (&print_prune_charset_plist);
 
   defsubr (&Swith_output_to_temp_buffer);
 }

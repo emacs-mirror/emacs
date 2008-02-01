@@ -10,11 +10,11 @@
 ;; Maintainer: Kenichi Handa <handa@m17n.org> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.8.2
+;; Version: 7.3.2
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
-(defconst ps-print-version "6.8.2"
-  "ps-print.el, v 6.8.2 <2008/01/08 vinicius>
+(defconst ps-print-version "7.3.2"
+  "ps-print.el, v 7.3.2 <2008/01/09 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1342,7 +1342,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Faces are always treated as opaque.
 ;;
-;; Epoch, Lucid and Emacs 21 not supported.  At all.
+;; Epoch, Lucid and Emacs 22 not supported.  At all.
 ;;
 ;; Fixed-pitch fonts work better for line folding, but are not required.
 ;;
@@ -1459,31 +1459,16 @@ Please send all bug fixes and enhancements to
 
 (require 'lpr)
 
+
 (or (featurep 'lisp-float-type)
     (error "`ps-print' requires floating point support"))
+
 
 (if (featurep 'xemacs)
     ()
   (unless (and (boundp 'emacs-major-version)
-	       (>= emacs-major-version 22))
-    (error "`ps-print' only supports Emacs 22 and higher")))
-
-
-;; GNU Emacs
-(or (fboundp 'line-beginning-position)
-    (defun line-beginning-position (&optional n)
-      (save-excursion
-	(and n (/= n 1) (forward-line (1- n)))
-	(beginning-of-line)
-	(point))))
-
-
-;; to avoid compilation gripes
-
-;; GNU Emacs
-(defalias 'ps-e-find-composition (if (fboundp 'find-composition)
-				     'find-composition
-				   'ignore))
+	       (>= emacs-major-version 23))
+    (error "`ps-print' only supports Emacs 23 and higher")))
 
 
 (defconst ps-windows-system
@@ -1492,30 +1477,9 @@ Please send all bug fixes and enhancements to
   (memq system-type '(usg-unix-v hpux irix)))
 
 
-(defun ps-xemacs-color-name (color)
-  (when (featurep 'xemacs)
-    (if (color-specifier-p color)
-	(color-name color)
-      color)))
+;; Load XEmacs/Emacs definitions
+(eval-and-compile (require 'ps-def))
 
-(defalias 'ps-frame-parameter
-  (if (fboundp 'frame-parameter) 'frame-parameter 'frame-property))
-
-(defalias 'ps-mark-active-p
-  (if (featurep 'xemacs)
-      'region-active-p			; XEmacs
-    (defvar mark-active)		; To shup up XEmacs's byte compiler.
-    (lambda () mark-active)))		; Emacs
-
-(defun ps-face-foreground-name (face)
-  (if (featurep 'xemacs)
-      (ps-xemacs-color-name (face-foreground face))
-    (face-foreground face nil t)))
-
-(defun ps-face-background-name (face)
-  (if (featurep 'xemacs)
-      (ps-xemacs-color-name (face-background face))
-    (face-background face nil t)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Variables:
@@ -3900,117 +3864,6 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
   (format-time-string "%T"))
 
 
-(and (featurep 'xemacs)
-     ;; XEmacs change: Need to check for emacs-major-version too.
-     (or (< emacs-major-version 19)
-	 (and (= emacs-major-version 19) (< emacs-minor-version 12)))
-     (setq ps-print-color-p nil))
-
-
-;; Return t if the device (which can be changed during an emacs session)
-;; can handle colors.
-;; This function is not yet implemented for GNU emacs.
-(defalias 'ps-color-device
-  (cond ((and (featurep 'xemacs)
-	      ;; XEmacs change: Need to check for emacs-major-version too.
-	      (or (> emacs-major-version 19)
-		  (and (= emacs-major-version 19)
-		       (>= emacs-minor-version 12)))) ; XEmacs >= 19.12
-	 (lambda ()
-	   (eq (device-class) 'color)))
-
-	(t				; Emacs
-	 (lambda ()
-	   (if (fboundp 'color-values)
-	       (color-values "Green")
-	     t)))))
-
-
-(defun ps-xemacs-mapper (extent list)
-  (when (featurep 'xemacs)
-    (nconc list
-	   (list (list (extent-start-position extent) 'push extent)
-		 (list (extent-end-position extent) 'pull extent))))
-  nil)
-
-(defun ps-xemacs-extent-sorter (a b)
-  (when (featurep 'xemacs)
-    (< (extent-priority a) (extent-priority b))))
-
-(defun ps-xemacs-face-kind-p (face kind kind-regex)
-  (when (featurep 'xemacs)
-    (let* ((frame-font (or (face-font-instance face)
-			   (face-font-instance 'default)))
-	   (kind-cons
-	    (and frame-font
-		 (assq kind
-		       (font-instance-properties frame-font))))
-	   (kind-spec (cdr-safe kind-cons))
-	   (case-fold-search t))
-      (and kind-spec (string-match kind-regex kind-spec)))))
-
-(when (featurep 'xemacs)
-  ;; to avoid XEmacs compilation gripes
-  (defvar coding-system-for-write)
-  (defvar coding-system-for-read)
-  (defvar buffer-file-coding-system)
-  
-  (and (fboundp 'find-coding-system)
-       (or (find-coding-system 'raw-text-unix)
-	   (copy-coding-system 'no-conversion-unix 'raw-text-unix))))
-
-(defun ps-color-values (x-color)
-  (if (featurep 'xemacs)
-      (let ((color (ps-xemacs-color-name x-color)))
-	(cond
-	 ((fboundp 'x-color-values)
-	  (x-color-values color))
-	 ((and (fboundp 'color-instance-rgb-components)
-	       (ps-color-device))
-	  (color-instance-rgb-components
-	   (if (color-instance-p x-color)
-	       x-color
-	     (make-color-instance color))))
-	 (t
-	  (error "No available function to determine X color values"))))
-    (cond
-     ((fboundp 'color-values)
-      (color-values x-color))
-     ((fboundp 'x-color-values)
-      (x-color-values x-color))
-     (t
-      (error "No available function to determine X color values")))))
-
-(defun ps-face-bold-p (face)
-  (if (featurep 'xemacs)
-      (or (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold")
-	  (memq face ps-bold-faces))	; Kludge-compatible
-    (or (face-bold-p face)
-	(memq face ps-bold-faces))))
-
-(defun ps-face-italic-p (face)
-  (if (featurep 'xemacs)
-      (or (ps-xemacs-face-kind-p face 'ANGLE_NAME "i\\|o")
-	  (ps-xemacs-face-kind-p face 'SLANT "i\\|o")
-	  (memq face ps-italic-faces))	; Kludge-compatible
-    (or (face-italic-p face)
-	(memq face ps-italic-faces))))
-
-(defun ps-face-strikeout-p (face)
-  (if (featurep 'xemacs)
-      nil
-    (eq (face-attribute face :strike-through) t)))
-
-(defun ps-face-overline-p (face)
-  (if (featurep 'xemacs)
-      nil
-    (eq (face-attribute face :overline) t)))
-
-(defun ps-face-box-p (face)
-  (if (featurep 'xemacs)
-      nil
-    (not (memq (face-attribute face :box) '(nil unspecified)))))
-
 (defvar ps-print-color-scale 1.0)
 
 (defun ps-color-scale (color)
@@ -4091,15 +3944,6 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 (defvar ps-razchunk 0)
 
 (defvar ps-color-p nil)
-(defvar ps-color-format
-  (if (featurep 'xemacs)
-      ;; XEmacs will have to make do with %s (princ) for floats.
-      "%s %s %s"
-
-    ;; Emacs understands the %f format; we'll use it to limit color RGB
-    ;; values to three decimals to cut down some on the size of the
-    ;; PostScript output.
-    "%0.3f %0.3f %0.3f"))
 
 ;; These values determine how much print-height to deduct when headers/footers
 ;; are turned on.  This is a pretty clumsy way of handling it, but it'll do for
@@ -4885,53 +4729,9 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
     (goto-char (point-max))
     (insert-file-contents fname)))
 
-;; These functions are used in `ps-mule' to get charset of header and footer.
-;; To avoid unnecessary calls to functions in `ps-left-header',
-;; `ps-right-header', `ps-left-footer' and `ps-right-footer'.
-
-(defun ps-generate-string-list (content)
-  (let (str)
-    (while content
-      (setq str (cons (cond
-		       ;; string
-		       ((stringp (car content))
-			(car content))
-		       ;; function symbol
-		       ((functionp (car content))
-			(concat "(" (funcall (car content)) ")"))
-		       ;; variable symbol
-		       ((and (symbolp (car content)) (boundp (car content)))
-			(concat "(" (symbol-value (car content)) ")"))
-		       ;; otherwise, empty string
-		       (t
-			""))
-		      str)
-	    content (cdr content)))
-    (nreverse str)))
-
-(defvar ps-lh-cache nil)
-(defvar ps-rh-cache nil)
-(defvar ps-lf-cache nil)
-(defvar ps-rf-cache nil)
-
-(defun ps-header-footer-string ()
-  (and ps-print-header
-       (setq ps-lh-cache (ps-generate-string-list ps-left-header)
-	     ps-rh-cache (ps-generate-string-list ps-right-header)))
-  (and ps-print-footer
-       (setq ps-lf-cache (ps-generate-string-list ps-left-footer)
-	     ps-rf-cache (ps-generate-string-list ps-right-footer)))
-  (append ps-lh-cache ps-rh-cache ps-lf-cache ps-rf-cache))
-
-;; All autoloads.
-(declare-function ps-mule-encode-header-string "ps-mule")
-(declare-function ps-mule-begin-page           "ps-mule")
-(declare-function ps-mule-prepare-ascii-font   "ps-mule")
-(declare-function ps-mule-set-ascii-font       "ps-mule")
-(declare-function ps-mule-initialize           "ps-mule")
-(declare-function ps-mule-begin-job            "ps-mule")
-
 ;; These functions insert the arrays that define the contents of the headers.
+
+(defvar ps-encode-header-string-function nil)
 
 (defun ps-generate-header-line (fonttag &optional content)
   (ps-output " [" fonttag " ")
@@ -4939,19 +4739,25 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
    ;; Literal strings should be output as is -- the string must contain its own
    ;; PS string delimiters, '(' and ')', if necessary.
    ((stringp content)
-    (ps-output (ps-mule-encode-header-string content fonttag)))
+    (ps-output content))
 
    ;; Functions are called -- they should return strings; they will be inserted
    ;; as strings and the PS string delimiters added.
    ((functionp content)
-    (ps-output-string (ps-mule-encode-header-string (funcall content)
-						    fonttag)))
+    (if (functionp ps-encode-header-string-function)
+	(dolist (l (funcall ps-encode-header-string-function
+			    (funcall content) fonttag))
+	  (ps-output-string l))
+      (ps-output-string (funcall content))))
 
    ;; Variables will have their contents inserted.  They should contain
    ;; strings, and will be inserted as strings.
    ((and (symbolp content) (boundp content))
-    (ps-output-string (ps-mule-encode-header-string (symbol-value content)
-						    fonttag)))
+    (if (fboundp ps-encode-header-string-function)
+	(dolist (l (funcall ps-encode-header-string-function
+			     (symbol-value content) fonttag))
+	  (ps-output-string l))
+      (ps-output-string (symbol-value content))))
 
    ;; Anything else will get turned into an empty string.
    (t
@@ -5015,15 +4821,6 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 		  (string-to-number	; upper y
 		   (buffer-substring (match-beginning 4) (match-end 4))))
 	(vector 0 0 0 0)))))
-
-
-;; Emacs understands the %f format; we'll use it to limit color RGB values
-;; to three decimals to cut down some on the size of the PostScript output.
-;; XEmacs will have to make do with %s (princ) for floats.
-
-(defvar ps-float-format (if (featurep 'xemacs)
-			    "%s "	; XEmacs
-			  "%0.3f "))	; Emacs
 
 
 (defun ps-float-format (value &optional default)
@@ -5926,6 +5723,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
    (t
     (list default default default))))
 
+(defvar ps-basic-plot-string-function 'ps-basic-plot-string)
 
 (defun ps-begin-job (genfunc)
   ;; prologue files
@@ -6042,7 +5840,11 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	ps-default-color      (and (not (member ps-print-color-p
 						'(nil back-white)))
 				   ps-default-foreground)
-	ps-current-color      ps-default-color)
+	ps-current-color      ps-default-color
+	;; Set up default functions.
+	;; They may be overridden by ps-mule-begin-job.
+	ps-basic-plot-string-function    'ps-basic-plot-string
+	ps-encode-header-string-function nil)
   ;; initialize page dimensions
   (ps-get-page-dimensions)
   ;; final check
@@ -6129,28 +5931,19 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	     (format "/PageNumber %d def\n" (ps-page-number)))
 
   (when ps-print-header
-    (ps-generate-header "HeaderLinesLeft"  "/h0" "/h1"
-			(or ps-lh-cache ps-left-header))
-    (ps-generate-header "HeaderLinesRight" "/h0" "/h1"
-			(or ps-rh-cache ps-right-header))
-    (ps-output (format "%d SetHeaderLines\n" ps-header-lines))
-    (setq ps-lh-cache nil
-	  ps-rh-cache nil))
+    (ps-generate-header "HeaderLinesLeft"  "/h0" "/h1" ps-left-header)
+    (ps-generate-header "HeaderLinesRight" "/h0" "/h1" ps-right-header)
+    (ps-output (format "%d SetHeaderLines\n" ps-header-lines)))
 
   (when ps-print-footer
-    (ps-generate-header "FooterLinesLeft"  "/H0" "/H0"
-			(or ps-lf-cache ps-left-footer))
-    (ps-generate-header "FooterLinesRight" "/H0" "/H0"
-			(or ps-rf-cache ps-right-footer))
-    (ps-output (format "%d SetFooterLines\n" ps-footer-lines))
-    (setq ps-lf-cache nil
-	  ps-rf-cache nil))
+    (ps-generate-header "FooterLinesLeft"  "/H0" "/H0" ps-left-footer)
+    (ps-generate-header "FooterLinesRight" "/H0" "/H0" ps-right-footer)
+    (ps-output (format "%d SetFooterLines\n" ps-footer-lines)))
 
   (ps-output (number-to-string ps-lines-printed) " BeginPage\n")
   (ps-set-font  ps-current-font)
   (ps-set-bg    ps-current-bg)
-  (ps-set-color ps-current-color)
-  (ps-mule-begin-page))
+  (ps-set-color ps-current-color))
 
 (defsubst ps-skip-newline (limit)
   (setq ps-showline-count (1+ ps-showline-count)
@@ -6194,7 +5987,6 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				       (ps-avg-char-width 'ps-font-for-text)))
 	 (to (car wrappoint))
 	 (str (substring string from to)))
-    (ps-mule-prepare-ascii-font str)
     (ps-output-string str)
     (ps-output " S\n")
     wrappoint))
@@ -6204,7 +5996,6 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				       (ps-avg-char-width 'ps-font-for-text)))
 	 (to (car wrappoint))
 	 (string (buffer-substring-no-properties from to)))
-    (ps-mule-prepare-ascii-font string)
     (ps-output-string string)
     (ps-output " S\n")
     wrappoint))
@@ -6329,26 +6120,16 @@ to the equivalent Latin-1 characters.")
       (if (re-search-forward ps-control-or-escape-regexp to t)
 	  ;; region with some control characters or some multi-byte characters
 	  (let* ((match-point (match-beginning 0))
-		 (match       (char-after match-point))
-		 (composition (ps-e-find-composition from (1+ match-point))))
-	    (if composition
-		(if (and (nth 2 composition)
-			 (<= (car composition) match-point))
-		    (progn
-		      (setq match-point (car composition)
-			    match 0)
-		      (goto-char (nth 1 composition)))
-		  (setq composition nil)))
+		 (match       (char-after match-point)))
 	    (when (< from match-point)
-	      (ps-mule-set-ascii-font)
-	      (ps-plot 'ps-basic-plot-string from match-point bg-color))
+	      (ps-plot ps-basic-plot-string-function
+		       from match-point bg-color))
 	    (cond
 	     ((= match ?\t)		; tab
 	      (let ((linestart (line-beginning-position)))
 		(forward-char -1)
 		(setq from (+ linestart (current-column)))
 		(when (re-search-forward "[ \t]+" to t)
-		  (ps-mule-set-ascii-font)
 		  (ps-plot 'ps-basic-plot-whitespace
 			   from (+ linestart (current-column))
 			   bg-color))))
@@ -6373,30 +6154,11 @@ to the equivalent Latin-1 characters.")
 		     (ps-skip-newline to))
 		(ps-next-page)))
 
-	     (composition		; a composite sequence
-	      (ps-plot 'ps-mule-plot-composition match-point (point) bg-color))
-
-	     ((> match 255)		; a multi-byte character
-	      (setq match (or (aref ps-print-translation-table match) match))
-	      (let* ((charset (char-charset match))
-		     (composition (ps-e-find-composition match-point to))
-		     (stop (if (nth 2 composition) (car composition) to)))
-		(or (eq charset 'composition)
-		    (while (and (< (point) stop)
-				(let ((ch (following-char)))
-				  (setq ch
-					(or (aref ps-print-translation-table ch)
-					    ch))
-				  (eq (char-charset ch) charset)))
-		      (forward-char 1)))
-		(ps-plot 'ps-mule-plot-string match-point (point) bg-color)))
-					; characters from ^@ to ^_ and
 	     (t				; characters from 127 to 255
 	      (ps-control-character match)))
 	    (setq from (point)))
-	;; region without control characters nor multi-byte characters
-	(ps-mule-set-ascii-font)
-	(ps-plot 'ps-basic-plot-string from to bg-color)
+	;; region without control characters
+	(ps-plot ps-basic-plot-string-function from to bg-color)
 	(setq from to)))))
 
 (defvar ps-string-control-codes
@@ -6428,7 +6190,6 @@ to the equivalent Latin-1 characters.")
     (if (< (car wrappoint) to)
 	(ps-continue-line))
     (setq ps-width-remaining (- ps-width-remaining (* len char-width)))
-    (ps-mule-prepare-ascii-font str)
     (ps-output-string str)
     (ps-output " S\n")))
 
@@ -6643,125 +6404,7 @@ If FACE is not a valid face name, use default face."
   (save-restriction
     (narrow-to-region from to)
     (ps-print-ensure-fontified from to)
-    (let ((face 'default)
-	  (position to))
-      (cond
-       ((featurep 'xemacs)		; XEmacs
-	;; Build the list of extents...
-	(let ((a (cons 'dummy nil))
-	      record type extent extent-list)
-	  (map-extents 'ps-xemacs-mapper nil from to a)
-	  (setq a (sort (cdr a) 'car-less-than-car)
-		extent-list nil)
-
-	  ;; Loop through the extents...
-	  (while a
-	    (setq record (car a)
-		  position (car record)
-
-		  record (cdr record)
-		  type (car record)
-
-		  record (cdr record)
-		  extent (car record))
-
-	    ;; Plot up to this record.
-	    ;; XEmacs 19.12: for some reason, we're getting into a
-	    ;; situation in which some of the records have
-	    ;; positions less than 'from'.  Since we've narrowed
-	    ;; the buffer, this'll generate errors.  This is a hack,
-	    ;; but don't call ps-plot-with-face unless from > point-min.
-	    (and (>= from (point-min))
-		 (ps-plot-with-face from (min position (point-max)) face))
-
-	    (cond
-	     ((eq type 'push)
-	      (and (extent-face extent)
-		   (setq extent-list (sort (cons extent extent-list)
-					   'ps-xemacs-extent-sorter))))
-
-	     ((eq type 'pull)
-	      (setq extent-list (sort (delq extent extent-list)
-				      'ps-xemacs-extent-sorter))))
-
-	    (setq face (if extent-list
-			   (extent-face (car extent-list))
-			 'default)
-		  from position
-		  a (cdr a)))))
-
-       (t				; Emacs
-	(let ((property-change from)
-	      (overlay-change from)
-	      (save-buffer-invisibility-spec buffer-invisibility-spec)
-	      (buffer-invisibility-spec nil)
-	      before-string after-string)
-	  (while (< from to)
-	    (and (< property-change to)	; Don't search for property change
-					; unless previous search succeeded.
-		 (setq property-change (next-property-change from nil to)))
-	    (and (< overlay-change to)	; Don't search for overlay change
-					; unless previous search succeeded.
-		 (setq overlay-change (min (next-overlay-change from)
-					   to)))
-	    (setq position (min property-change overlay-change)
-		  before-string nil
-		  after-string nil)
-	    ;; The code below is not quite correct,
-	    ;; because a non-nil overlay invisible property
-	    ;; which is inactive according to the current value
-	    ;; of buffer-invisibility-spec nonetheless overrides
-	    ;; a face text property.
-	    (setq face
-		  (cond ((let ((prop (get-text-property from 'invisible)))
-			   ;; Decide whether this invisible property
-			   ;; really makes the text invisible.
-			   (if (eq save-buffer-invisibility-spec t)
-			       (not (null prop))
-			     (or (memq prop save-buffer-invisibility-spec)
-				 (assq prop save-buffer-invisibility-spec))))
-			 'emacs--invisible--face)
-			((get-text-property from 'face))
-			(t 'default)))
-	    (let ((overlays (overlays-at from))
-		  (face-priority -1))	; text-property
-	      (while (and overlays
-			  (not (eq face 'emacs--invisible--face)))
-		(let* ((overlay (car overlays))
-		       (overlay-invisible
-			(overlay-get overlay 'invisible))
-		       (overlay-priority
-			(or (overlay-get overlay 'priority) 0)))
-		  (and (> overlay-priority face-priority)
-		       (setq before-string
-			     (or (overlay-get overlay 'before-string)
-				 before-string)
-			     after-string
-			     (or (and (<= (overlay-end overlay) position)
-				      (overlay-get overlay 'after-string))
-				 after-string)
-			     face-priority overlay-priority
-			     face
-			     (cond
-			      ((if (eq save-buffer-invisibility-spec t)
-				   (not (null overlay-invisible))
-				 (or (memq overlay-invisible
-					   save-buffer-invisibility-spec)
-				     (assq overlay-invisible
-					   save-buffer-invisibility-spec)))
-			       'emacs--invisible--face)
-			      ((overlay-get overlay 'face))
-			      (t face)
-			      ))))
-		(setq overlays (cdr overlays))))
-	    ;; Plot up to this record.
-	    (and before-string
-		 (ps-plot-string before-string))
-	    (ps-plot-with-face from position face)
-	    (and after-string
-		 (ps-plot-string after-string))
-	    (setq from position)))))
-      (ps-plot-with-face from to face))))
+    (ps-generate-postscript-with-faces1 from to)))
 
 (defun ps-generate-postscript (from to)
   (ps-plot-region from to 0))
@@ -6809,6 +6452,7 @@ If FACE is not a valid face name, use default face."
 		(ps-begin-page)
 		(funcall genfunc from to)
 		(ps-end-page)
+		(ps-mule-end-job)
 		(ps-end-job needs-begin-file)
 
 		;; Setting this variable tells the unwind form that the
@@ -6969,211 +6613,11 @@ If FACE is not a valid face name, use default face."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Sample Setup Code:
-
-
-;; This stuff is for anybody that's brave enough to look this far,
-;; and able to figure out how to use it.  It isn't really part of
-;; ps-print, but I'll leave it here in hopes it might be useful:
-
-;; WARNING!!! The following code is *sample* code only.
-;; Don't use it unless you understand what it does!
-
-;; The key `f22' should probably be replaced by `print'.  --Stef
-
-;; A hook to bind to `rmail-mode-hook' to locally bind prsc and set the
-;; `ps-left-headers' specially for mail messages.
-(defun ps-rmail-mode-hook ()
-  (local-set-key [(f22)] 'ps-rmail-print-message-from-summary)
-  (setq ps-header-lines 3
-	ps-left-header
-	;; The left headers will display the message's subject, its
-	;; author, and the name of the folder it was in.
-	'(ps-article-subject ps-article-author buffer-name)))
-
-;; See `ps-gnus-print-article-from-summary'.  This function does the
-;; same thing for rmail.
-(defun ps-rmail-print-message-from-summary ()
-  (interactive)
-  (ps-print-message-from-summary 'rmail-summary-buffer "RMAIL"))
-
-;; Used in `ps-rmail-print-article-from-summary',
-;; `ps-gnus-print-article-from-summary' and `ps-vm-print-message-from-summary'.
-(defun ps-print-message-from-summary (summary-buffer summary-default)
-  (let ((ps-buf (or (and (boundp summary-buffer)
-			 (symbol-value summary-buffer))
-		    summary-default)))
-    (and (get-buffer ps-buf)
-	 (save-excursion
-	   (set-buffer ps-buf)
-	   (ps-spool-buffer-with-faces)))))
-
-;; Look in an article or mail message for the Subject: line.  To be
-;; placed in `ps-left-headers'.
-(defun ps-article-subject ()
-  (save-excursion
-    (goto-char (point-min))
-    (if (re-search-forward "^Subject:[ \t]+\\(.*\\)$" nil t)
-	(buffer-substring (match-beginning 1) (match-end 1))
-      "Subject ???")))
-
-;; Look in an article or mail message for the From: line.  Sorta-kinda
-;; understands RFC-822 addresses and can pull the real name out where
-;; it's provided.  To be placed in `ps-left-headers'.
-(defun ps-article-author ()
-  (save-excursion
-    (goto-char (point-min))
-    (if (re-search-forward "^From:[ \t]+\\(.*\\)$" nil t)
-	(let ((fromstring (buffer-substring (match-beginning 1) (match-end 1))))
-	  (cond
-
-	   ;; Try first to match addresses that look like
-	   ;; thompson@wg2.waii.com (Jim Thompson)
-	   ((string-match ".*[ \t]+(\\(.*\\))" fromstring)
-	    (substring fromstring (match-beginning 1) (match-end 1)))
-
-	   ;; Next try to match addresses that look like
-	   ;; Jim Thompson <thompson@wg2.waii.com> or
-	   ;; "Jim Thompson" <thompson@wg2.waii.com>
-	   ((string-match "\\(\"?\\)\\(.*\\)\\1[ \t]+<.*>" fromstring)
-	    (substring fromstring (match-beginning 2) (match-end 2)))
-
-	   ;; Couldn't find a real name -- show the address instead.
-	   (t fromstring)))
-      "From ???")))
-
-;; A hook to bind to `gnus-article-prepare-hook'.  This will set the
-;; `ps-left-headers' specially for gnus articles.  Unfortunately,
-;; `gnus-article-mode-hook' is called only once, the first time the *Article*
-;; buffer enters that mode, so it would only work for the first time
-;; we ran gnus.  The second time, this hook wouldn't get set up.  The
-;; only alternative is `gnus-article-prepare-hook'.
-(defun ps-gnus-article-prepare-hook ()
-  (setq ps-header-lines 3
-	ps-left-header
-	;; The left headers will display the article's subject, its
-	;; author, and the newsgroup it was in.
-	'(ps-article-subject ps-article-author gnus-newsgroup-name)))
-
-;; A hook to bind to `vm-mode-hook' to locally bind prsc and set the
-;; `ps-left-headers' specially for mail messages.
-(defun ps-vm-mode-hook ()
-  (local-set-key [(f22)] 'ps-vm-print-message-from-summary)
-  (setq ps-header-lines 3
-	ps-left-header
-	;; The left headers will display the message's subject, its
-	;; author, and the name of the folder it was in.
-	'(ps-article-subject ps-article-author buffer-name)))
-
-;; Every now and then I forget to switch from the *Summary* buffer to
-;; the *Article* before hitting prsc, and a nicely formatted list of
-;; article subjects shows up at the printer.  This function, bound to
-;; prsc for the gnus *Summary* buffer means I don't have to switch
-;; buffers first.
-;; sb:  Updated for Gnus 5.
-(defun ps-gnus-print-article-from-summary ()
-  (interactive)
-  (ps-print-message-from-summary 'gnus-article-buffer "*Article*"))
-
-;; See `ps-gnus-print-article-from-summary'.  This function does the
-;; same thing for vm.
-(defun ps-vm-print-message-from-summary ()
-  (interactive)
-  (ps-print-message-from-summary 'vm-mail-buffer ""))
-
-;; A hook to bind to bind to `gnus-summary-setup-buffer' to locally bind
-;; prsc.
-(defun ps-gnus-summary-setup ()
-  (local-set-key [(f22)] 'ps-gnus-print-article-from-summary))
-
-;; Look in an article or mail message for the Subject: line.  To be
-;; placed in `ps-left-headers'.
-(defun ps-info-file ()
-  (save-excursion
-    (goto-char (point-min))
-    (if (re-search-forward "File:[ \t]+\\([^, \t\n]*\\)" nil t)
-	(buffer-substring (match-beginning 1) (match-end 1))
-      "File ???")))
-
-;; Look in an article or mail message for the Subject: line.  To be
-;; placed in `ps-left-headers'.
-(defun ps-info-node ()
-  (save-excursion
-    (goto-char (point-min))
-    (if (re-search-forward "Node:[ \t]+\\([^,\t\n]*\\)" nil t)
-	(buffer-substring (match-beginning 1) (match-end 1))
-      "Node ???")))
-
-(defun ps-info-mode-hook ()
-  (setq ps-left-header
-	;; The left headers will display the node name and file name.
-	'(ps-info-node ps-info-file)))
-
-;; WARNING! The following function is a *sample* only, and is *not*
-;; meant to be used as a whole unless you understand what the effects
-;; will be!  (In fact, this is a copy of Jim's setup for ps-print --
-;; I'd be very surprised if it was useful to *anybody*, without
-;; modification.)
-
-(defun ps-jts-ps-setup ()
-  (global-set-key [(f22)] 'ps-spool-buffer-with-faces) ;f22 is prsc
-  (global-set-key [(shift f22)] 'ps-spool-region-with-faces)
-  (global-set-key [(control f22)] 'ps-despool)
-  (add-hook 'gnus-article-prepare-hook 'ps-gnus-article-prepare-hook)
-  (add-hook 'gnus-summary-mode-hook 'ps-gnus-summary-setup)
-  (add-hook 'vm-mode-hook 'ps-vm-mode-hook)
-  (add-hook 'vm-mode-hooks 'ps-vm-mode-hook)
-  (add-hook 'Info-mode-hook 'ps-info-mode-hook)
-  (setq ps-spool-duplex t
-	ps-print-color-p nil
-	ps-lpr-command "lpr"
-	ps-lpr-switches '("-Jjct,duplex_long"))
-  'ps-jts-ps-setup)
-
-;; WARNING! The following function is a *sample* only, and is *not*
-;; meant to be used as a whole unless it corresponds to your needs.
-;; (In fact, this is a copy of Jack's setup for ps-print --
-;; I would not be that surprised if it was useful to *anybody*,
-;; without modification.)
-
-(defun ps-jack-setup ()
-  (setq ps-print-color-p  nil
-	ps-lpr-command    "lpr"
-	ps-lpr-switches   nil
-
-	ps-paper-type        'a4
-	ps-landscape-mode    t
-	ps-number-of-columns 2
-
-	ps-left-margin   (/ (* 72  1.0) 2.54) ;  1.0 cm
-	ps-right-margin  (/ (* 72  1.0) 2.54) ;  1.0 cm
-	ps-inter-column  (/ (* 72  1.0) 2.54) ;  1.0 cm
-	ps-bottom-margin (/ (* 72  1.5) 2.54) ;  1.5 cm
-	ps-top-margin    (/ (* 72  1.5) 2.54) ;  1.5 cm
-	ps-header-offset (/ (* 72  1.0) 2.54) ;  1.0 cm
-	ps-header-line-pad    .15
-	ps-print-header       t
-	ps-print-header-frame t
-	ps-header-lines       2
-	ps-show-n-of-n        t
-	ps-spool-duplex       nil
-
-	ps-font-family             'Courier
-	ps-font-size               5.5
-	ps-header-font-family      'Helvetica
-	ps-header-font-size        6
-	ps-header-title-font-size  8)
-  'ps-jack-setup)
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; To make this file smaller, some commands go in a separate file.
 ;; But autoload them here to make the separation invisible.
 
-;;;### (autoloads (ps-mule-begin-page ps-mule-begin-job ps-mule-encode-header-string
-;;;;;;  ps-mule-initialize ps-mule-plot-composition ps-mule-plot-string
-;;;;;;  ps-mule-set-ascii-font ps-mule-prepare-ascii-font ps-multibyte-buffer)
-;;;;;;  "ps-mule" "ps-mule.el" "e4095a5bcfad44435e57bc157c6eed49")
+;;;### (autoloads (ps-mule-end-job ps-mule-begin-job ps-mule-initialize
+;;;;;;  ps-multibyte-buffer) "ps-mule" "ps-mule.el" "54fab899bd8999dd0aeca2c6357d24ca")
 ;;; Generated autoloads from ps-mule.el
 
 (defvar ps-multibyte-buffer nil "\
@@ -7221,60 +6665,10 @@ Any other value is treated as nil.")
 
 (custom-autoload 'ps-multibyte-buffer "ps-mule" t)
 
-(autoload 'ps-mule-prepare-ascii-font "ps-mule" "\
-Setup special ASCII font for STRING.
-STRING should contain only ASCII characters.
-
-\(fn STRING)" nil nil)
-
-(autoload 'ps-mule-set-ascii-font "ps-mule" "\
-Not documented
-
-\(fn)" nil nil)
-
-(autoload 'ps-mule-plot-string "ps-mule" "\
-Generate PostScript code for plotting characters in the region FROM and TO.
-
-It is assumed that all characters in this region belong to the same charset.
-
-Optional argument BG-COLOR specifies background color.
-
-Returns the value:
-
-	(ENDPOS . RUN-WIDTH)
-
-Where ENDPOS is the end position of the sequence and RUN-WIDTH is the width of
-the sequence.
-
-\(fn FROM TO &optional BG-COLOR)" nil nil)
-
-(autoload 'ps-mule-plot-composition "ps-mule" "\
-Generate PostScript code for plotting composition in the region FROM and TO.
-
-It is assumed that all characters in this region belong to the same
-composition.
-
-Optional argument BG-COLOR specifies background color.
-
-Returns the value:
-
-	(ENDPOS . RUN-WIDTH)
-
-Where ENDPOS is the end position of the sequence and RUN-WIDTH is the width of
-the sequence.
-
-\(fn FROM TO &optional BG-COLOR)" nil nil)
-
 (autoload 'ps-mule-initialize "ps-mule" "\
 Initialize global data for printing multi-byte characters.
 
 \(fn)" nil nil)
-
-(autoload 'ps-mule-encode-header-string "ps-mule" "\
-Generate PostScript code for ploting STRING by font FONTTAG.
-FONTTAG should be a string \"/h0\" or \"/h1\".
-
-\(fn STRING FONTTAG)" nil nil)
 
 (autoload 'ps-mule-begin-job "ps-mule" "\
 Start printing job for multi-byte chars between FROM and TO.
@@ -7282,8 +6676,8 @@ It checks if all multi-byte characters in the region are printable or not.
 
 \(fn FROM TO)" nil nil)
 
-(autoload 'ps-mule-begin-page "ps-mule" "\
-Not documented
+(autoload 'ps-mule-end-job "ps-mule" "\
+Finish printing job for multi-byte chars.
 
 \(fn)" nil nil)
 

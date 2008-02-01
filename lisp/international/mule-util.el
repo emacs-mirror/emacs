@@ -6,6 +6,9 @@
 ;;   2005, 2006, 2007, 2008
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
+;; Copyright (C) 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H13PRO009
 
 ;; Keywords: mule, multilingual
 
@@ -185,18 +188,18 @@ defaults to \"...\"."
 ;; 		(("foobarbaz" 6 nil nil "...") . "foo...")
 ;; 		(("foobarbaz" 7 2 nil "...") . "ob...")
 ;; 		(("foobarbaz" 9 3 nil "...") . "barbaz")
-;; 		(("$B$3(Bh$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo" 15 1 ?  t) . " h$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo")
-;; 		(("$B$3(Bh$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo" 14 1 ?  t) . " h$B$s(Be$B$K(Bl$B$A(B...")
-;; 		(("x" 3 nil nil "$(0GnM$(B") . "x")
-;; 		(("$AVP(B" 2 nil nil "$(0GnM$(B") . "$AVP(B")
-;; 		(("$AVP(B" 1 nil ?x "$(0GnM$(B") . "x") ;; XEmacs error
-;; 		(("$AVPND(B" 3 nil ?  "$(0GnM$(B") . "$AVP(B ") ;; XEmacs error
-;; 		(("foobarbaz" 4 nil nil  "$(0GnM$(B") . "$(0GnM$(B")
-;; 		(("foobarbaz" 5 nil nil  "$(0GnM$(B") . "f$(0GnM$(B")
-;; 		(("foobarbaz" 6 nil nil  "$(0GnM$(B") . "fo$(0GnM$(B")
-;; 		(("foobarbaz" 8 3 nil "$(0GnM$(B") . "b$(0GnM$(B")
-;; 		(("$B$3(Bh$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo" 14 4 ?x "$BF|K\8l(B") . "xe$B$KF|K\8l(B")
-;; 		(("$B$3(Bh$B$s(Be$B$K(Bl$B$A(Bl$B$O(Bo" 13 4 ?x "$BF|K\8l(B") . "xex$BF|K\8l(B")
+;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 15 1 ?  t) . " h$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo")
+;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 14 1 ?  t) . " h$A$s(Be$A$K(Bl$A$A(B...")
+;; 		(("x" 3 nil nil "$(Gemk#(B") . "x")
+;; 		(("$AVP(B" 2 nil nil "$(Gemk#(B") . "$AVP(B")
+;; 		(("$AVP(B" 1 nil ?x "$(Gemk#(B") . "x") ;; XEmacs error
+;; 		(("$AVPND(B" 3 nil ?  "$(Gemk#(B") . "$AVP(B ") ;; XEmacs error
+;; 		(("foobarbaz" 4 nil nil  "$(Gemk#(B") . "$(Gemk#(B")
+;; 		(("foobarbaz" 5 nil nil  "$(Gemk#(B") . "f$(Gemk#(B")
+;; 		(("foobarbaz" 6 nil nil  "$(Gemk#(B") . "fo$(Gemk#(B")
+;; 		(("foobarbaz" 8 3 nil "$(Gemk#(B") . "b$(Gemk#(B")
+;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 14 4 ?x "$AHU1>$(Gk#(B") . "xe$A$KHU1>$(Gk#(B")
+;; 		(("$A$3(Bh$A$s(Be$A$K(Bl$A$A(Bl$A$O(Bo" 13 4 ?x "$AHU1>$(Gk#(B") . "xex$AHU1>$(Gk#(B")
 ;; 		))
 ;;   (let (ret)
 ;;     (condition-case e
@@ -294,56 +297,57 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
 ;;;###autoload
 (defun coding-system-post-read-conversion (coding-system)
   "Return the value of CODING-SYSTEM's `post-read-conversion' property."
-  (coding-system-get coding-system 'post-read-conversion))
+  (coding-system-get coding-system :post-read-conversion))
 
 ;;;###autoload
 (defun coding-system-pre-write-conversion (coding-system)
   "Return the value of CODING-SYSTEM's `pre-write-conversion' property."
-  (coding-system-get coding-system 'pre-write-conversion))
+  (coding-system-get coding-system :pre-write-conversion))
 
 ;;;###autoload
 (defun coding-system-translation-table-for-decode (coding-system)
-  "Return the value of CODING-SYSTEM's `translation-table-for-decode' property."
-  (coding-system-get coding-system 'translation-table-for-decode))
+  "Return the value of CODING-SYSTEM's `decode-translation-table' property."
+  (coding-system-get coding-system :decode-translation-table))
 
 ;;;###autoload
 (defun coding-system-translation-table-for-encode (coding-system)
-  "Return the value of CODING-SYSTEM's `translation-table-for-encode' property."
-  (coding-system-get coding-system 'translation-table-for-encode))
+  "Return the value of CODING-SYSTEM's `encode-translation-table' property."
+  (coding-system-get coding-system :encode-translation-table))
+
+;;;###autoload
+(defmacro with-coding-priority (coding-systems &rest body)
+  "Execute BODY like `progn' with CODING-SYSTEMS at the front of priority list.
+CODING-SYSTEMS is a list of coding systems.  See
+`set-coding-priority'.  This affects the implicit sorting of lists of
+coding sysems returned by operations such as `find-coding-systems-region'."
+  (let ((current (make-symbol "current")))
+  `(let ((,current (coding-system-priority-list)))
+     (apply #'set-coding-system-priority ,coding-systems)
+     (unwind-protect
+	 (progn ,@body)
+       (apply #'set-coding-system-priority ,current)))))
+(put 'with-coding-priority 'lisp-indent-function 1)
+(put 'with-coding-priority 'edebug-form-spec t)
 
 ;;;###autoload
 (defmacro detect-coding-with-priority (from to priority-list)
   "Detect a coding system of the text between FROM and TO with PRIORITY-LIST.
 PRIORITY-LIST is an alist of coding categories vs the corresponding
 coding systems ordered by priority."
-  `(unwind-protect
-       (let* ((prio-list ,priority-list)
-	      (coding-category-list coding-category-list)
-	      ,@(mapcar (function (lambda (x) (list x x)))
-			coding-category-list))
-	 (mapc (function (lambda (x) (set (car x) (cdr x))))
-	       prio-list)
-	 (set-coding-priority (mapcar #'car prio-list))
-	 ;; Changing the binding of a coding category requires this call.
-	 (update-coding-systems-internal)
-	 (detect-coding-region ,from ,to))
-     ;; We must restore the internal database.
-     (set-coding-priority coding-category-list)
-     (update-coding-systems-internal)))
+  `(with-coding-priority (mapcar #'cdr ,priority-list)
+     (detect-coding-region ,from ,to)))
+(make-obsolete 'detect-coding-with-priority
+	       "Use with-coding-priority and detect-coding-region" "23.1")
 
 ;;;###autoload
 (defun detect-coding-with-language-environment (from to lang-env)
-  "Detect a coding system of the text between FROM and TO with LANG-ENV.
+  "Detect a coding system for the text between FROM and TO with LANG-ENV.
 The detection takes into account the coding system priorities for the
 language environment LANG-ENV."
   (let ((coding-priority (get-language-info lang-env 'coding-priority)))
     (if coding-priority
-	(detect-coding-with-priority
-	 from to
-	 (mapcar (function (lambda (x)
-			     (cons (coding-system-get x 'coding-category) x)))
-		 coding-priority))
-      (detect-coding-region from to))))
+	(with-coding-priority coding-priority
+          (detect-coding-region from to)))))
 
 ;;;###autoload
 (defun char-displayable-p (char)
@@ -364,14 +368,35 @@ basis, this may not be accurate."
 	 ;; currently selected frame.
 	 (car (internal-char-font nil char)))
 	(t
-	 (let ((coding (terminal-coding-system)))
+	 (let ((coding 'iso-2022-7bit))
 	   (if coding
-	       (let ((safe-chars (coding-system-get coding 'safe-chars))
-		     (safe-charsets (coding-system-get coding 'safe-charsets)))
-		 (or (and safe-chars
-			  (aref safe-chars char))
-		     (and safe-charsets
-			  (memq (char-charset char) safe-charsets)))))))))
+	       (let ((cs-list (coding-system-get coding :charset-list)))
+		 (cond
+		  ((listp cs-list)
+		   (catch 'tag
+		     (mapc #'(lambda (charset) 
+			       (if (encode-char char charset)
+				   (throw 'tag charset)))
+			   cs-list)
+		     nil))
+		  ((eq cs-list 'iso-2022)
+		   (catch 'tag2
+		     (mapc #'(lambda (charset)
+			       (if (and (plist-get (charset-plist charset)
+						   :iso-final-char)
+					(encode-char char charset))
+				   (throw 'tag2 charset)))
+			   charset-list)
+		     nil))
+		  ((eq cs-list 'emacs-mule)
+		   (catch 'tag3
+		     (mapc #'(lambda (charset)
+			       (if (and (plist-get (charset-plist charset) 
+						   :emacs-mule-id)
+					(encode-char char charset))
+				   (throw 'tag3 charset)))
+			   charset-list)
+		     nil)))))))))
 
 (provide 'mule-util)
 

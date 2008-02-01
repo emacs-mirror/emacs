@@ -452,6 +452,10 @@ Archive and member name will be added."
 (make-variable-buffer-local 'archive-subfile-mode)
 (put 'archive-subfile-mode 'permanent-local t)
 
+(defvar archive-file-name-coding-system nil)
+(make-variable-buffer-local 'archive-file-name-coding-system)
+(put 'archive-file-name-coding-system 'permanent-local t)
+
 (defvar archive-files nil
   "Vector of file descriptors.
 Each descriptor is a vector of the form
@@ -460,6 +464,18 @@ Each descriptor is a vector of the form
 
 ;; -------------------------------------------------------------------------
 ;;; Section: Support functions.
+
+(eval-when-compile
+  (defsubst byte-after (pos)
+    "Like char-after but an eight-bit char is converted to unibyte."
+    (multibyte-char-to-unibyte (char-after pos)))
+  (defsubst insert-unibyte (&rest args)
+    "Like insert but don't make unibyte string and eight-bit char multibyte."
+    (dolist (elt args)
+      (if (integerp elt)
+	  (insert (if (< elt 128) elt (decode-char 'eight-bit elt)))
+	(insert (string-to-multibyte elt)))))
+  )
 
 (defsubst archive-name (suffix)
   (intern (concat "archive-" (symbol-name archive-subtype) "-" suffix)))
@@ -473,6 +489,7 @@ FLOAT, if non-nil, means generate and return a float instead of an integer
   (if (stringp str)
       (setq len (length str))
     (setq str (buffer-substring str (+ str len))))
+  (setq str (string-as-unibyte str))
   (let ((result 0)
         (i 0))
     (while (< i len)
@@ -677,6 +694,12 @@ archive.
       (make-local-variable 'archive-file-list-start)
       (make-local-variable 'archive-file-list-end)
       (make-local-variable 'archive-file-name-indent)
+      (setq archive-file-name-coding-system
+	    (or file-name-coding-system
+		default-file-name-coding-system
+		locale-coding-system))
+      (if default-enable-multibyte-characters
+	  (set-buffer-multibyte 'to))
       (archive-summarize nil)
       (setq buffer-read-only t))))
 
@@ -727,7 +750,6 @@ is visible (and the real data of the buffer is hidden).
 Optional argument SHUT-UP, if non-nil, means don't print messages
 when parsing the archive."
   (widen)
-  (set-buffer-multibyte nil)
   (let ((inhibit-read-only t))
     (setq archive-proper-file-start (copy-marker (point-min) t))
     (set (make-local-variable 'change-major-mode-hook) 'archive-desummarize)
@@ -933,7 +955,8 @@ using `make-temp-file', and the generated name is returned."
 			  (string-match file-name-invalid-regexp ename)))
 	 (arcfilename (expand-file-name (concat arcname ":" iname)))
          (buffer (get-buffer bufname))
-         (just-created nil))
+         (just-created nil)
+	 (file-name-coding archive-file-name-coding-system))
       (if (and buffer
 	       (string= (buffer-file-name buffer) arcfilename))
           nil
@@ -951,13 +974,14 @@ using `make-temp-file', and the generated name is returned."
           (setq archive-superior-buffer archive-buffer)
           (add-hook 'write-file-functions 'archive-write-file-member nil t)
           (setq archive-subfile-mode descr)
+	  (setq archive-file-name-coding-system file-name-coding)
 	  (if (and
 	       (null
 		(let (;; We may have to encode file name arguement for
 		      ;; external programs.
 		      (coding-system-for-write
 		       (and enable-multibyte-characters
-			    file-name-coding-system))
+			    archive-file-name-coding-system))
 		      ;; We read an archive member by no-conversion at
 		      ;; first, then decode appropriately by calling
 		      ;; archive-set-buffer-as-visiting-file later.
@@ -1135,15 +1159,16 @@ using `make-temp-file', and the generated name is returned."
 	  (if (aref descr 3)
 	      ;; Set the file modes, but make sure we can read it.
 	      (set-file-modes tmpfile (logior ?\400 (aref descr 3))))
-	  (if enable-multibyte-characters
-	      (setq ename
-		    (encode-coding-string ename file-name-coding-system)))
-          (let ((exitcode (apply 'call-process
-                                 (car command)
-                                 nil
-                                 nil
-                                 nil
-                                 (append (cdr command) (list archive ename)))))
+	  (setq ename
+		(encode-coding-string ename archive-file-name-coding-system))
+          (let* ((coding-system-for-write 'no-conversion)
+		 (exitcode (apply 'call-process
+				  (car command)
+				  nil
+				  nil
+				  nil
+				  (append (cdr command)
+					  (list archive ename)))))
             (if (equal exitcode 0)
                 nil
               (error "Updating was unsuccessful (%S)" exitcode))))
@@ -1316,9 +1341,8 @@ as a relative change like \"g+rw\" as for chmod(2)."
     (if (fboundp func)
         (progn
 	  (funcall func
-		   (if enable-multibyte-characters
-		       (encode-coding-string newname file-name-coding-system)
-		     newname)
+		   (encode-coding-string newname
+					 archive-file-name-coding-system)
 		   descr)
 	  (archive-resummarize))
       (error "Renaming is not supported for this archive type"))))
@@ -1329,7 +1353,6 @@ as a relative change like \"g+rw\" as for chmod(2)."
     (setq archive-files nil)
     (let ((revert-buffer-function nil)
 	  (coding-system-for-read 'no-conversion))
-      (set-buffer-multibyte nil)
       (revert-buffer t t))
     (archive-mode)
     (goto-char archive-file-list-start)
@@ -1351,11 +1374,12 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
         files
 	visual)
     (while (and (< (+ p 29) (point-max))
-		(= (char-after p) ?\C-z)
-		(> (char-after (1+ p)) 0))
+		(= (byte-after p) ?\C-z)
+		(> (byte-after (1+ p)) 0))
       (let* ((namefld (buffer-substring (+ p 2) (+ p 2 13)))
 	     (fnlen   (or (string-match "\0" namefld) 13))
-	     (efnname (substring namefld 0 fnlen))
+	     (efnname (decode-coding-string (substring namefld 0 fnlen)
+					    archive-file-name-coding-system))
 	     ;; Convert to float to avoid overflow for very large files.
              (csize   (archive-l-e (+ p 15) 4 'float))
              (moddate (archive-l-e (+ p 19) 2))
@@ -1407,10 +1431,9 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (save-restriction
       (save-excursion
 	(widen)
-	(set-buffer-multibyte nil)
 	(goto-char (+ archive-proper-file-start (aref descr 4) 2))
 	(delete-char 13)
-	(insert name)))))
+	(insert-unibyte name)))))
 ;; -------------------------------------------------------------------------
 ;;; Section: Lzh Archives
 
@@ -1422,14 +1445,14 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	visual)
     (while (progn (goto-char p)		;beginning of a base header.
 		  (looking-at "\\(.\\|\n\\)\\(.\\|\n\\)-l[hz][0-9ds]-"))
-      (let* ((hsize   (char-after p))	;size of the base header (level 0 and 1)
+      (let* ((hsize   (byte-after p))	;size of the base header (level 0 and 1)
 	     ;; Convert to float to avoid overflow for very large files.
 	     (csize   (archive-l-e (+ p 7) 4 'float)) ;size of a compressed file to follow (level 0 and 2),
 					;size of extended headers + the compressed file to follow (level 1).
              (ucsize  (archive-l-e (+ p 11) 4 'float))	;size of an uncompressed file.
 	     (time1   (archive-l-e (+ p 15) 2))	;date/time (MSDOS format in level 0, 1 headers
 	     (time2   (archive-l-e (+ p 17) 2))	;and UNIX format in level 2 header.)
-	     (hdrlvl  (char-after (+ p 20))) ;header level
+	     (hdrlvl  (byte-after (+ p 20))) ;header level
 	     thsize		;total header size (base + extensions)
 	     fnlen efnname osid fiddle ifnname width p2
 	     neh	;beginning of next extension header (level 1 and 2)
@@ -1437,11 +1460,10 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     gname uname modtime moddate)
 	(if (= hdrlvl 3) (error "can't handle lzh level 3 header type"))
 	(when (or (= hdrlvl 0) (= hdrlvl 1))
-	  (setq fnlen   (char-after (+ p 21))) ;filename length
+	  (setq fnlen   (byte-after (+ p 21))) ;filename length
 	  (setq efnname (let ((str (buffer-substring (+ p 22) (+ p 22 fnlen))))	;filename from offset 22
-			(if file-name-coding-system
-			    (decode-coding-string str file-name-coding-system)
-			  (string-as-multibyte str))))
+			(decode-coding-string
+			 str archive-file-name-coding-system)))
 	  (setq p2      (+ p 22 fnlen))) ;
 	(if (= hdrlvl 1)
             (setq neh (+ p2 3))         ;specific to level 1 header
@@ -1449,19 +1471,19 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
               (setq neh (+ p 24))))     ;specific to level 2 header
 	(if neh		;if level 1 or 2 we expect extension headers to follow
 	    (let* ((ehsize (archive-l-e neh 2))	;size of the extension header
-		   (etype (char-after (+ neh 2)))) ;extension type
+		   (etype (byte-after (+ neh 2)))) ;extension type
 	      (while (not (= ehsize 0))
 		  (cond
 		 ((= etype 1)	;file name
 		  (let ((i (+ neh 3)))
 		    (while (< i (+ neh ehsize))
-		      (setq efnname (concat efnname (char-to-string (char-after i))))
+		      (setq efnname (concat efnname (char-to-string (byte-after i))))
 		      (setq i (1+ i)))))
 		 ((= etype 2)	;directory name
 		  (let ((i (+ neh 3)))
 		    (while (< i (+ neh ehsize))
 				    (setq dir (concat dir
-						       (if (= (char-after i)
+						       (if (= (byte-after i)
 							      255)
 							   "/"
 							 (char-to-string
@@ -1485,7 +1507,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		   )
 		(setq neh (+ neh ehsize))
 		(setq ehsize (archive-l-e neh 2))
-		(setq etype (char-after (+ neh 2))))
+		(setq etype (byte-after (+ neh 2))))
 	      ;;get total header size for level 1 and 2 headers
 	      (setq thsize (- neh p))))
 	(if (= hdrlvl 0)  ;total header size
@@ -1546,7 +1568,6 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	       (setq p (+ p thsize 2 (round csize)))))
 	))
     (goto-char (point-min))
-    (set-buffer-multibyte default-enable-multibyte-characters)
     (let ((dash (concat (if archive-alternate-display
 			    "- --------  -----  -----  "
 			  "- ----------  --------  -----------  --------  ")
@@ -1577,7 +1598,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
   (let ((sum 0))
     (while (> count 0)
       (setq count (1- count)
-	    sum (+ sum (char-after p))
+	    sum (+ sum (byte-after p))
 	    p (1+ p)))
     (logand sum 255)))
 
@@ -1585,10 +1606,9 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
   (save-restriction
     (save-excursion
       (widen)
-      (set-buffer-multibyte nil)
       (let* ((p        (+ archive-proper-file-start (aref descr 4)))
-	     (oldhsize (char-after p))
-	     (oldfnlen (char-after (+ p 21)))
+	     (oldhsize (byte-after p))
+	     (oldfnlen (byte-after (+ p 21)))
 	     (newfnlen (length newname))
 	     (newhsize (+ oldhsize newfnlen (- oldfnlen)))
 	     (inhibit-read-only t))
@@ -1596,22 +1616,21 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	    (error "The file name is too long"))
 	(goto-char (+ p 21))
 	(delete-char (1+ oldfnlen))
-	(insert newfnlen newname)
+	(insert-unibyte newfnlen newname)
 	(goto-char p)
 	(delete-char 2)
-	(insert newhsize (archive-lzh-resum p newhsize))))))
+	(insert-unibyte newhsize (archive-lzh-resum p newhsize))))))
 
 (defun archive-lzh-ogm (newval files errtxt ofs)
   (save-excursion
     (save-restriction
       (widen)
-      (set-buffer-multibyte nil)
       (dolist (fil files)
 	(let* ((p (+ archive-proper-file-start (aref fil 4)))
-	       (hsize   (char-after p))
-	       (fnlen   (char-after (+ p 21)))
+	       (hsize   (byte-after p))
+	       (fnlen   (byte-after (+ p 21)))
 	       (p2      (+ p 22 fnlen))
-	       (creator (if (>= (- hsize fnlen) 24) (char-after (+ p2 2)) 0))
+	       (creator (if (>= (- hsize fnlen) 24) (byte-after (+ p2 2)) 0))
 	       (inhibit-read-only t))
 	  (if (= creator ?U)
 	      (progn
@@ -1619,10 +1638,10 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		    (setq newval (funcall newval (archive-l-e (+ p2 ofs) 2))))
 		(goto-char (+ p2 ofs))
 		(delete-char 2)
-		(insert (logand newval 255) (lsh newval -8))
+		(insert-unibyte (logand newval 255) (lsh newval -8))
 		(goto-char (1+ p))
 		(delete-char 1)
-		(insert (archive-lzh-resum (1+ p) hsize)))
+		(insert-unibyte (archive-lzh-resum (1+ p) hsize)))
 	    (message "Member %s does not have %s field"
 		     (aref fil 1) errtxt)))))))
 
@@ -1677,7 +1696,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
         files
 	visual)
     (while (string= "PK\001\002" (buffer-substring p (+ p 4)))
-      (let* ((creator (char-after (+ p 5)))
+      (let* ((creator (byte-after (+ p 5)))
 	     ;; (method  (archive-l-e (+ p 10) 2))
              (modtime (archive-l-e (+ p 12) 2))
              (moddate (archive-l-e (+ p 14) 2))
@@ -1688,9 +1707,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
              (fclen   (archive-l-e (+ p 32) 2))
              (lheader (archive-l-e (+ p 42) 4))
              (efnname (let ((str (buffer-substring (+ p 46) (+ p 46 fnlen))))
-			(if file-name-coding-system
-			    (decode-coding-string str file-name-coding-system)
-			  (string-as-multibyte str))))
+			(decode-coding-string
+			 str archive-file-name-coding-system)))
 	     (isdir   (and (= ucsize 0)
 			   (string= (file-name-nondirectory efnname) "")))
 	     (mode    (cond ((memq creator '(2 3)) ; Unix + VMS
@@ -1699,7 +1717,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			     (logior ?\444
 				     (if isdir (logior 16384 ?\111) 0)
 				     (if (zerop
-					  (logand 1 (char-after (+ p 38))))
+					  (logand 1 (byte-after (+ p 38))))
 					 ?\222 0)))
 			    (t nil)))
 	     (modestr (if mode (archive-int-to-mode mode) "??????????"))
@@ -1756,21 +1774,20 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
   (save-restriction
     (save-excursion
       (widen)
-      (set-buffer-multibyte nil)
       (dolist (fil files)
 	(let* ((p (+ archive-proper-file-start (car (aref fil 4))))
-	       (creator (char-after (+ p 5)))
+	       (creator (byte-after (+ p 5)))
 	       (oldmode (aref fil 3))
 	       (newval  (archive-calc-mode oldmode newmode t))
 	       (inhibit-read-only t))
 	  (cond ((memq creator '(2 3)) ; Unix + VMS
 		 (goto-char (+ p 40))
 		 (delete-char 2)
-		 (insert (logand newval 255) (lsh newval -8)))
+		 (insert-unibyte (logand newval 255) (lsh newval -8)))
 		((memq creator '(0 5 6 7 10 11 15)) ; Dos etc.
 		 (goto-char (+ p 38))
-		 (insert (logior (logand (char-after (point)) 254)
-				 (logand (logxor 1 (lsh newval -7)) 1)))
+		 (insert-unibyte (logior (logand (byte-after (point)) 254)
+					 (logand (logxor 1 (lsh newval -7)) 1)))
 		 (delete-char 1))
 		(t (message "Don't know how to change mode for this member"))))
         ))))
@@ -1791,9 +1808,9 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     ;; Convert to float to avoid overflow for very large files.
              (ucsize  (archive-l-e (+ p 20) 4 'float))
 	     (namefld (buffer-substring (+ p 38) (+ p 38 13)))
-	     (dirtype (char-after (+ p 4)))
-	     (lfnlen  (if (= dirtype 2) (char-after (+ p 56)) 0))
-	     (ldirlen (if (= dirtype 2) (char-after (+ p 57)) 0))
+	     (dirtype (byte-after (+ p 4)))
+	     (lfnlen  (if (= dirtype 2) (byte-after (+ p 56)) 0))
+	     (ldirlen (if (= dirtype 2) (byte-after (+ p 57)) 0))
 	     (fnlen   (or (string-match "\0" namefld) 13))
 	     (efnname (let ((str
 			     (concat
@@ -1807,9 +1824,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 				  (buffer-substring (+ p 58)
 						    (+ p 58 lfnlen -1))
 				(substring namefld 0 fnlen)))))
-			(if file-name-coding-system
-			    (decode-coding-string str file-name-coding-system)
-			  (string-as-multibyte str))))
+			(decode-coding-string
+			 str archive-file-name-coding-system)))
 	     (fiddle  (and (= lfnlen 0) (string= efnname (upcase efnname))))
              (ifnname (if fiddle (downcase efnname) efnname))
 	     (width (string-width ifnname))

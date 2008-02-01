@@ -77,6 +77,8 @@ enum text_cursor_kinds
 
 struct terminal;
 
+struct font_driver_list;
+
 struct frame
 {
   EMACS_UINT size;
@@ -268,6 +270,9 @@ struct frame
   /* Size of the frame window in pixels.  */
   int pixel_height, pixel_width;
 
+  /* Dots per inch of the screen the frame is on.  */
+  double resx, resy;
+
   /* These many pixels are the difference between the outer window (i.e. the
      left and top of the window manager decoration) and FRAME_X_WINDOW. */
   int x_pixels_diff, y_pixels_diff;
@@ -316,6 +321,12 @@ struct frame
     EMACS_INT nothing;
   }
   output_data;
+
+  /* List of font-drivers available on the frame. */
+  struct font_driver_list *font_driver_list;
+  /* List of data specific to font-driver and frame, but common to
+     faces.  */
+  struct font_data_list *font_data_list;
 
   /* Total width of fringes reserved for drawing truncation bitmaps,
      continuation bitmaps and alike.  The width is in canonical char
@@ -475,7 +486,7 @@ struct frame
 
 typedef struct frame *FRAME_PTR;
 
-#define XFRAME(p) (eassert (GC_FRAMEP(p)),(struct frame *) XPNTR (p))
+#define XFRAME(p) (eassert (FRAMEP(p)),(struct frame *) XPNTR (p))
 #define XSETFRAME(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FRAME))
 
 /* Given a window, return its frame as a Lisp_Object.  */
@@ -1005,6 +1016,7 @@ extern Lisp_Object Qscreen_gamma;
 extern Lisp_Object Qline_spacing;
 extern Lisp_Object Qwait_for_wm;
 extern Lisp_Object Qfullscreen;
+extern Lisp_Object Qfont_backend;
 
 extern Lisp_Object Qleft_fringe, Qright_fringe;
 extern Lisp_Object Qheight, Qwidth;
@@ -1043,8 +1055,10 @@ extern void x_set_offset P_ ((struct frame *, int, int, int));
 extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
 
 extern Lisp_Object x_new_font P_ ((struct frame *, char *));
-extern Lisp_Object x_new_fontset P_ ((struct frame *, char *));
-
+extern Lisp_Object x_new_fontset P_ ((struct frame *, Lisp_Object));
+#ifdef USE_FONT_BACKEND
+extern Lisp_Object x_new_fontset2 P_ ((struct frame *, int, Lisp_Object));
+#endif	/* USE_FONT_BACKEND */
 
 /* These are in frame.c  */
 
@@ -1064,6 +1078,7 @@ extern void x_set_fullscreen P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void x_set_line_spacing P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void x_set_screen_gamma P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void x_set_font P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_font_backend P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void x_set_fringe_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void x_set_border_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
 extern void x_set_internal_border_width P_ ((struct frame *, Lisp_Object,

@@ -53,6 +53,7 @@
 ;;; 1999-10-23  included in pgnus
 ;;; 2000-08-15  `rfc2104-hexstring-to-bitstring'
 ;;; 2000-05-12  added sha-1 example, added test case reference
+;;; 2003-11-13  change rfc2104-hexstring-to-bitstring to ...-byte-list
 
 ;;; Code:
 
@@ -88,12 +89,12 @@
 	(rfc2104-hex-to-int (reverse (append str nil))))
     0))
 
-(defun rfc2104-hexstring-to-bitstring (str)
+(defun rfc2104-hexstring-to-byte-list (str)
   (let (out)
     (while (< 0 (length str))
       (push (rfc2104-hex-to-int (substring str -2)) out)
       (setq str (substring str 0 -2)))
-    (concat out)))
+    out))
 
 (defun rfc2104-hash (hash block-length hash-length key text)
   (let* (;; if key is longer than B, reset it to HASH(key)
@@ -110,9 +111,12 @@
     (setq k_ipad (mapcar (lambda (c) (logxor c rfc2104-ipad)) k_ipad))
     (setq k_opad (mapcar (lambda (c) (logxor c rfc2104-opad)) k_opad))
     ;; perform outer hash
-    (funcall hash (concat k_opad (rfc2104-hexstring-to-bitstring
-				  ;; perform inner hash
-				  (funcall hash (concat k_ipad text)))))))
+    (funcall hash
+	     (encode-coding-string
+	      (concat k_opad (rfc2104-hexstring-to-byte-list
+			      ;; perform inner hash
+			      (funcall hash (concat k_ipad text))))
+	      'iso-latin-1))))
 
 (provide 'rfc2104)
 

@@ -192,6 +192,47 @@ get_next_msg (lpmsg, bWait)
       }
 
       nQueue--;
+      /* Consolidate WM_PAINT messages to optimise redrawing.  */
+      if (lpmsg->msg.message == WM_PAINT && nQueue)
+        {
+          int_msg * lpCur = lpHead;
+          int_msg * lpPrev = NULL;
+          int_msg * lpNext = NULL;
+
+          while (lpCur && nQueue)
+            {
+              lpNext = lpCur->lpNext;
+              if (lpCur->w32msg.msg.message == WM_PAINT)
+                {
+                  /* Remove this message from the queue.  */
+                  if (lpPrev)
+                    lpPrev->lpNext = lpNext;
+                  else
+                    lpHead = lpNext;
+
+                  if (lpCur == lpTail)
+                    lpTail = lpPrev;
+
+                  /* Adjust clip rectangle to cover both.  */
+                  if (!UnionRect (&(lpmsg->rect), &(lpmsg->rect),
+                                  &(lpCur->w32msg.rect)))
+                    {
+                      SetRectEmpty(&(lpmsg->rect));
+                    }
+
+                  myfree (lpCur);
+
+                  nQueue--;
+
+                  lpCur = lpNext;
+                }
+              else
+                {
+                  lpPrev = lpCur;
+                  lpCur = lpNext;
+                }
+            }
+        }
 
       bRet = TRUE;
     }

@@ -3024,6 +3024,43 @@ as the value."
   :complete-function 'ispell-complete-word
   :prompt-history 'widget-string-prompt-value-history)
 
+(eval-when-compile (defvar widget))
+
+(defun widget-string-complete ()
+  "Complete contents of string field.
+Completions are taken from the :completion-alist property of the
+widget.  If that isn't a list, it's evalled and expected to yield a list."
+  (interactive)
+  (let* ((prefix (buffer-substring-no-properties (widget-field-start widget)
+						 (point)))
+	 (completion-ignore-case (widget-get widget :completion-ignore-case))
+	 (alist (widget-get widget :completion-alist))
+	 (_ (unless (listp alist)
+	      (setq alist (eval alist))))
+	 (completion (try-completion prefix alist)))
+    (cond ((eq completion t)
+	   (when completion-ignore-case
+	     ;; Replace field with completion in case its case is different.
+	     (delete-region (widget-field-start widget)
+			    (widget-field-end widget))
+	     (insert-and-inherit (car (assoc-ignore-case prefix alist))))
+	   (message "Only match"))
+	  ((null completion)
+	   (error "No match"))
+	  ((not (eq t (compare-strings prefix nil nil completion nil nil 
+				       completion-ignore-case)))
+	   (when completion-ignore-case
+	     ;; Replace field with completion in case its case is different.
+	     (delete-region (widget-field-start widget)
+			    (widget-field-end widget))
+	     (insert-and-inherit completion)))
+	  (t
+	   (message "Making completion list...")
+	   (with-output-to-temp-buffer "*Completions*"
+	     (display-completion-list
+	      (all-completions prefix alist nil)))
+	   (message "Making completion list...done")))))
+
 (define-widget 'regexp 'string
   "A regular expression."
   :match 'widget-regexp-match
@@ -3180,16 +3217,13 @@ It reads a directory name from an editable text field."
 		       (interactive)
 		       (lisp-complete-symbol 'boundp))
   :tag "Variable")
-
-(defvar widget-coding-system-prompt-value-history nil
-  "History of input to `widget-coding-system-prompt-value'.")
 
 (define-widget 'coding-system 'symbol
   "A MULE coding-system."
   :format "%{%t%}: %v"
   :tag "Coding system"
   :base-only nil
-  :prompt-history 'widget-coding-system-prompt-value-history
+  :prompt-history 'coding-system-value-history
   :prompt-value 'widget-coding-system-prompt-value
   :action 'widget-coding-system-action
   :complete-function (lambda ()
@@ -3429,7 +3463,7 @@ To use this type, you must define :match or :match-alternatives."
 			   (aref value 0)
 			 value))
   :match (lambda (widget value)
-	   (char-valid-p value)))
+	   (characterp value)))
 
 (define-widget 'list 'group
   "A Lisp list."

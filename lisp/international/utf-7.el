@@ -36,25 +36,6 @@
 
 ;;; Code:
 
-;;;###autoload(autoload-coding-system 'utf-7 '(require 'utf-7))
-(make-coding-system
- 'utf-7 0 ?U
- "UTF-7 encoding of Unicode (RFC 2152)"
- nil
- `((safe-chars . ,(coding-system-get 'utf-16be 'safe-chars))
-   (mime-charset . utf-7)
-   (pre-write-conversion . utf-7-pre-write-conversion)
-   (post-read-conversion . utf-7-post-read-conversion)))
-
-;;;###autoload(autoload-coding-system 'utf-7-imap '(require 'utf-7))
-(make-coding-system
- 'utf-7-imap 0 ?u
- "UTF-7 encoding of Unicode, IMAP version (RFC 2060)"
- nil
- `((safe-chars . ,(coding-system-get 'utf-16be 'safe-chars))
-   (pre-write-conversion . utf-7-imap-pre-write-conversion)
-   (post-read-conversion . utf-7-imap-post-read-conversion)))
-
 (defun utf-7-decode (len imap)
   "Decode LEN bytes of UTF-7 at point.
 IMAP non-nil means use the IMAP version."
@@ -83,9 +64,11 @@ IMAP non-nil means use the IMAP version."
 		  (delete-backward-char 1)))))))
       (- (point-max) (point-min)))))
 
+;;;###autoload
 (defun utf-7-post-read-conversion (len)
   (utf-7-decode len nil))
 
+;;;###autoload
 (defun utf-7-imap-post-read-conversion (len)
   (utf-7-decode len t))
 
@@ -131,9 +114,11 @@ ESC and SKIP-CHARS are adjusted for the normal and IMAP versions."
 	    (insert ?-)))))
     nil))
 
+;;;###autoload
 (defun utf-7-pre-write-conversion (from to)
   (utf-7-encode from to nil))
 
+;;;###autoload
 (defun utf-7-imap-pre-write-conversion (from to)
   (utf-7-encode from to t))
 

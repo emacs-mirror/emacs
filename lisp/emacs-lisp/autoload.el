@@ -642,8 +642,9 @@ directory or directories specified."
 (defun batch-update-autoloads ()
   "Update loaddefs.el autoloads in batch mode.
 Calls `update-directory-autoloads' on the command line arguments."
-  (apply 'update-directory-autoloads command-line-args-left)
-  (setq command-line-args-left nil))
+  (let ((args command-line-args-left))
+    (setq command-line-args-left nil)
+    (apply 'update-directory-autoloads args)))
 
 (provide 'autoload)
 

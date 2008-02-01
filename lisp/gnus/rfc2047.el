@@ -78,6 +78,8 @@ The values can be:
     (iso-2022-jp . B)
     (iso-2022-kr . B)
     (gb2312 . B)
+    (gbk . B)
+    (gb18030 . B)
     (big5 . B)
     (cn-big5 . B)
     (cn-gb . B)
@@ -344,7 +346,7 @@ The buffer may be narrowed."
   ;; (make-char-table 'syntax-table '(2)) only works in Emacs.
   (let ((table (make-syntax-table)))
     ;; The following is done to work for setting all elements of the table
-    ;; in Emacs 21 and 22 and XEmacs; it appears to be the cleanest way.
+    ;; in Emacs 21-23 and XEmacs; it appears to be the cleanest way.
     ;; Play safe and don't assume the form of the word syntax entry --
     ;; copy it from ?a.
     (if (fboundp 'set-char-table-range)	; Emacs

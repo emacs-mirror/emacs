@@ -311,15 +311,11 @@ A value of nil means highlight all matches."
 (defvar isearch-mode-map
   (let* ((i 0)
 	 (map (make-keymap)))
-    (or (vectorp (nth 1 map))
-	(char-table-p (nth 1 map))
+    (or (char-table-p (nth 1 map))
 	(error "The initialization of isearch-mode-map must be updated"))
     ;; Make all multibyte characters search for themselves.
-    (let ((l (generic-character-list))
-	  (table (nth 1 map)))
-      (while l
-	(set-char-table-default table (car l) 'isearch-printing-char)
-	(setq l (cdr l))))
+    (set-char-table-range (nth 1 map) (cons #x100 (max-char))
+			  'isearch-printing-char)
     ;; Make function keys, etc, which aren't bound to a scrolling-function
     ;; exit the search.
     (define-key map [t] 'isearch-other-control-char)

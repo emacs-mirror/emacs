@@ -852,10 +852,9 @@ xml-entity-alist."
                  (if (rassoc char xml-entity-alist)
                      (concat "&" (car (rassoc char xml-entity-alist)) ";")
                    char)))
-             (if (multibyte-string-p string)
-                 (encode-coding-string string 'utf-8)
-               string)
-             ""))
+             ;; This differs from the non-unicode branch.  Just
+             ;; grabbing the string works here.
+             string ""))
 
 (defun xml-debug-print-internal (xml indent-string)
   "Outputs the XML tree in the current buffer.

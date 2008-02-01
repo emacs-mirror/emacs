@@ -159,6 +159,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the `fpathconf' function. */
 #undef HAVE_FPATHCONF
 
+/* Define to 1 if you have freetype and fontconfig libraries. */
+#undef HAVE_FREETYPE
+
 /* Define to 1 if you have the `frexp' function. */
 #undef HAVE_FREXP
 
@@ -352,6 +355,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the `ncurses' library (-lncurses). */
 #undef HAVE_LIBNCURSES
 
+/* Define to 1 if you have libotf library. */
+#undef HAVE_LIBOTF
+
 /* Define to 1 if you have the <libpng/png.h> header file. */
 #undef HAVE_LIBPNG_PNG_H
 
@@ -387,6 +393,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to 1 if you have the `lrand48' function. */
 #undef HAVE_LRAND48
+
+/* Define to 1 if you have m17n-flt library. */
+#undef HAVE_M17N_FLT
 
 /* Define to 1 if you have the <machine/soundcard.h> header file. */
 #undef HAVE_MACHINE_SOUNDCARD_H
@@ -846,6 +855,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define to the unexec source file name. */
 #undef UNEXEC_SRC
+
+/* Define to 1 if we should use font-backend. */
+#undef USE_FONT_BACKEND
 
 /* Define to 1 if we should use toolkit scroll bars. */
 #undef USE_TOOLKIT_SCROLL_BARS

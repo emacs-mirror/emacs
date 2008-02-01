@@ -43,11 +43,9 @@ A value of nil means to search whole buffer."
   :type '(choice (integer :tag "Limit")
 		 (const :tag "No limit")))
 
-;; The character classes have the Latin-1 version and the Latin-9
-;; version, which is probably enough.
 (defcustom copyright-regexp
- "\\([Å©Å©]\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *\\(?:(C)\\)?\
-\\|[Cc]opyright\\s *:?\\s *[Å©Å©]\\)\
+ "\\(¬©\\|@copyright{}\\|[Cc]opyright\\s *:?\\s *\\(?:(C)\\)?\
+\\|[Cc]opyright\\s *:?\\s *¬©\\)\
 \\s *\\([1-9]\\([-0-9, ';/*%#\n\t]\\|\\s<\\|\\s>\\)*[0-9]+\\)"
   "What your copyright notice looks like.
 The second \\( \\) construct must match the years."
@@ -258,7 +256,7 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
 
 ;; For the copyright sign:
 ;; Local Variables:
-;; coding: emacs-mule
+;; coding: utf-8
 ;; End:
 
 ;; arch-tag: b4991afb-b6b1-4590-bebe-e076d9d4aee8

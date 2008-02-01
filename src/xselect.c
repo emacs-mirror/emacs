@@ -123,13 +123,6 @@ Lisp_Object QCUT_BUFFER0, QCUT_BUFFER1, QCUT_BUFFER2, QCUT_BUFFER3,
 
 static Lisp_Object Vx_lost_selection_functions;
 static Lisp_Object Vx_sent_selection_functions;
-/* Coding system for communicating with other X clients via selection
-   and clipboard.  */
-static Lisp_Object Vselection_coding_system;
-
-/* Coding system for the next communicating with other X clients.  */
-static Lisp_Object Vnext_selection_coding_system;
-
 static Lisp_Object Qforeign_selection;
 
 /* If this is a smaller number than the max-request-size of the display,
@@ -3005,30 +2998,6 @@ to convert into a type that we don't know about or that is inappropriate.
 This hook doesn't let you change the behavior of Emacs's selection replies,
 it merely informs you that they have happened.  */);
   Vx_sent_selection_functions = Qnil;
-
-  DEFVAR_LISP ("selection-coding-system", &Vselection_coding_system,
-	       doc: /* Coding system for communicating with other X clients.
-
-When sending text via selection and clipboard, if the requested
-data-type is not "UTF8_STRING", the text is encoded by this coding
-system.
-
-When receiving text, if the data-type of the received text is not
-"UTF8_STRING", it is decoded by this coding system.
-
-See also the documentation of the variable `x-select-request-type' how
-to control which data-type to request for receiving text.
-
-The default value is `compound-text-with-extensions'.  */);
-  Vselection_coding_system = intern ("compound-text-with-extensions");
-
-  DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
-	       doc: /* Coding system for the next communication with other X clients.
-Usually, `selection-coding-system' is used for communicating with
-other X clients.  But, if this variable is set, it is used for the
-next communication only.  After the communication, this variable is
-set to nil.  */);
-  Vnext_selection_coding_system = Qnil;
 
   DEFVAR_INT ("x-selection-timeout", &x_selection_timeout,
 	      doc: /* Number of milliseconds to wait for a selection reply.

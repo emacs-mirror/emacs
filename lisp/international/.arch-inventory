@@ -1,0 +1,4 @@
+# "uni-*.el" and "charprop.el" files are generated at compile time
+precious ^(charprop|uni-.*)\.el$
+
+# arch-tag: 7290e69e-5886-4603-9d06-b0f251fb1679

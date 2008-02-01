@@ -1209,8 +1209,9 @@
 	 char-equal char-to-string char-width
 	 compare-strings concat coordinates-in-window-p
 	 copy-alist copy-sequence copy-marker cos count-lines
+	 decdoe-char
 	 decode-time default-boundp default-value documentation downcase
-	 elt exp expt encode-time error-message-string
+	 elt encode-char exp expt encode-time error-message-string
 	 fboundp fceiling featurep ffloor
 	 file-directory-p file-exists-p file-locked-p file-name-absolute-p
 	 file-newer-than-file-p file-readable-p file-symlink-p file-writable-p
@@ -1221,7 +1222,7 @@
 	 int-to-string intern-soft
 	 keymap-parent
 	 length local-variable-if-set-p local-variable-p log log10 logand
-	 logb logior lognot logxor lsh
+	 logb logior lognot logxor lsh langinfo
 	 make-list make-string make-symbol
 	 marker-buffer max member memq min mod multibyte-char-to-unibyte
 	 next-window nth nthcdr number-to-string
@@ -1233,6 +1234,7 @@
 	 string-to-int string-to-number substring sxhash symbol-function
 	 symbol-name symbol-plist symbol-value string-make-unibyte
 	 string-make-multibyte string-as-multibyte string-as-unibyte
+	 string-to-multibyte
 	 tan truncate
 	 unibyte-char-to-multibyte upcase user-full-name
 	 user-login-name user-original-login-name user-variable-p
@@ -1244,7 +1246,8 @@
        '(arrayp atom
 	 bobp bolp bool-vector-p
 	 buffer-end buffer-list buffer-size buffer-string bufferp
-	 car-safe case-table-p cdr-safe char-or-string-p commandp cons consp
+	 car-safe case-table-p cdr-safe char-or-string-p characterp
+	 charsetp commandp cons consp
 	 current-buffer current-global-map current-indentation
 	 current-local-map current-minor-mode-maps current-time
 	 current-time-string current-time-zone
@@ -1256,11 +1259,13 @@
 	 invocation-directory invocation-name
 	 keymapp
 	 line-beginning-position line-end-position list listp
-	 make-marker mark mark-marker markerp memory-limit minibuffer-window
+	 make-marker mark mark-marker markerp max-char
+	 memory-limit minibuffer-window
 	 mouse-movement-p
 	 natnump nlistp not null number-or-marker-p numberp
 	 one-window-p overlayp
-	 point point-marker point-min point-max preceding-char processp
+	 point point-marker point-min point-max preceding-char primary-charset
+	 processp
 	 recent-keys recursion-depth
 	 safe-length selected-frame selected-window sequencep
 	 standard-case-table standard-syntax-table stringp subrp symbolp

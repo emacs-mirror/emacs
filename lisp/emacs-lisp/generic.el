@@ -240,9 +240,9 @@ Some generic modes are defined in `generic-x.el'."
 	(when (consp start)
 	  (setq end (cdr start))
 	  (setq start (car start)))
-	(when (char-valid-p start) (setq start (char-to-string start)))
+	(when (characterp start) (setq start (char-to-string start)))
 	(cond
-	 ((char-valid-p end)   (setq end (char-to-string end)))
+	 ((characterp end)   (setq end (char-to-string end)))
 	 ((zerop (length end)) (setq end "\n")))
 
 	;; Setup the vars for `comment-region'

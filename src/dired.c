@@ -96,6 +96,7 @@ extern struct direct *readdir ();
 #include "systime.h"
 #include "buffer.h"
 #include "commands.h"
+#include "character.h"
 #include "charset.h"
 #include "coding.h"
 #include "regex.h"

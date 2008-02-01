@@ -1190,28 +1190,7 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
       (decode-coding-string str (ispell-get-coding-system))
     str))
 
-(put 'ispell-unified-chars-table 'char-table-extra-slots 0)
-
-;; Char-table that maps an Unicode character (charset:
-;; latin-iso8859-1, mule-unicode-0100-24ff, mule-unicode-2500-34ff) to
-;; a string in which all equivalent characters are listed.
-
-(defconst ispell-unified-chars-table
-  (let ((table (make-char-table 'ispell-unified-chars-table)))
-    (map-char-table
-     #'(lambda (c v)
-	 (if (and v (/= c v))
-	     (let ((unified (or (aref table v) (string v))))
-	       (aset table v (concat unified (string c))))))
-     ucs-mule-8859-to-mule-unicode)
-    table))
-
-;; Return a string decoded from Nth element of the current dictionary
-;; while splicing equivalent characters into the string.  This splicing
-;; is done only if the string is a regular expression of the form
-;; "[...]" because, otherwise, splicing will result in incorrect
-;; regular expression matching.
-
+;; Return a string decoded from Nth element of the current dictionary.
 (defun ispell-get-decoded-string (n)
   (let* ((slot (or
 		(assoc ispell-current-dictionary ispell-local-dictionary-alist)
@@ -1220,17 +1199,8 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
     (when (and (> (length str) 0)
 	       (not (multibyte-string-p str)))
       (setq str (ispell-decode-string str))
-      (if (and (= (aref str 0) ?\[)
-	       (eq (string-match "\\]" str) (1- (length str))))
-	  (setq str
-		(string-as-multibyte
-		 (mapconcat
-		  #'(lambda (c)
-		      (let ((unichar (aref ucs-mule-8859-to-mule-unicode c)))
-			(if unichar
-			    (aref ispell-unified-chars-table unichar)
-			  (string c))))
-		  str ""))))
+      (or (multibyte-string-p str)
+	  (setq str (string-to-multibyte str)))
       (setcar (nthcdr n slot) str))
     str))
 

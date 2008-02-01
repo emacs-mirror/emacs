@@ -838,6 +838,7 @@ opening the first frame (e.g. open a connection to an X server).")
   (custom-reevaluate-setting 'file-name-shadow-mode)
   (custom-reevaluate-setting 'send-mail-function)
   (custom-reevaluate-setting 'focus-follows-mouse)
+  (custom-reevaluate-setting 'global-auto-composition-mode)
 
   (normal-erase-is-backspace-setup-frame)
 

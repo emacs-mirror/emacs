@@ -201,13 +201,6 @@ Several are for Debian GNU/Linux in particular.
  * JDEE: <URL:http://jdee.sunsite.dk/>
    Provides a Java development environment for Emacs.
 
- * Mule-UCS: Universal enCoding System:
-   <URL:ftp://ftp.m17n.org/pub/mule/Mule-UCS/>
-   Extended coding systems for Mule, specifically for reading and
-   writing UTF-8 encoded Unicode.  This probably doesn't have much
-   advantage over the built-in `mule-utf-8' coding system with
-   `utf-translate-cjk' turned on.
-
  * Mailcrypt:
    <URL:http://mailcrypt.sourceforge.net/>
    PGP and GPG support.  PGP isn't free software, but GPG, the GNU

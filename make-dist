@@ -328,7 +328,7 @@ for subdir in lisp site-lisp \
 	      leim/SKK-DIC leim/ja-dic leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
-	      etc etc/e etc/gnus etc/nxml \
+	      etc etc/charsets etc/e etc/gnus etc/nxml \
 	      etc/images etc/images/ezimage etc/images/gnus etc/images/gud \
 	      etc/images/icons etc/images/icons/hicolor \
 	      etc/images/icons/hicolor/*x* etc/images/icons/hicolor/*x*/apps \
@@ -587,7 +587,7 @@ echo "Making links to \`etc'"
 ### tex litter.
 (cd etc
  files=`ls -d * | grep -v CVS | grep -v RCS | grep -v 'Old' | grep -v '^e$' \
-        | grep -v '^gnus$' | grep -v '^images$' | grep -v '^nxml$' \
+        | grep -v '^charsets$' | grep -v '^gnus$' | grep -v '^images$' | grep -v '^nxml$' \
         | grep -v '^refcards$' | grep -v '^tutorials$'| grep -v '^schema$'`
  ln $files ../${tempdir}/etc
  ## If we ended up with a symlink, or if we did not get anything
@@ -611,7 +611,7 @@ echo "Making links to \`etc'"
  rm -f DOC* *~ \#*\# *.dvi *.log *.orig *.rej *,v =* core
  rm -f TAGS)
 
-for dir in etc/e etc/gnus etc/nxml etc/tutorials etc/refcards etc/schema ; do
+for dir in etc/charsets etc/e etc/gnus etc/nxml etc/tutorials etc/refcards etc/schema ; do
     echo "Making links to \`${dir}'"
     (cd ${dir}
 	ln `ls -d * | grep -v CVS | grep -v RCS` ../../${tempdir}/${dir}

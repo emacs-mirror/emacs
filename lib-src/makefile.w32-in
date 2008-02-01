@@ -142,14 +142,15 @@ $(BLD)/ctags.$(O): ctags.c
 # make-docfile blindly replaces .o with .c anyway.  Keep .o in this list
 # as it is required by code in doc.c.
 #
-obj=    dosfns.o msdos.o \
-	xterm.o xfns.o xmenu.o xselect.o xrdb.o  fringe.o image.o \
-	mac.o macterm.o macfns.o macmenu.o fontset.o \
+obj =   dosfns.o msdos.o \
+	xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
+	mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o \
 	w32.o w32bdf.o w32console.o w32fns.o w32heap.o w32inevt.o \
 	w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o \
+	font.o w32font.o \
 	dispnew.o frame.o scroll.o xdisp.o window.o \
-	charset.o coding.o category.o ccl.o \
-	cm.o term.o xfaces.o \
+	charset.o coding.o category.o ccl.o character.o chartab.o \
+	cm.o term.o terminal.o xfaces.o \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o \
 	minibuf.o fileio.o dired.o filemode.o \
@@ -166,30 +167,56 @@ obj=    dosfns.o msdos.o \
 #
 lispsource = ../lisp/
 
-MOUSE_SUPPORT = $(lispsource)select.elc $(lispsource)scroll-bar.elc $(lispsource)mouse.elc $(lispsource)tooltip.elc
-WINNT_SUPPORT = $(lispsource)ls-lisp.elc $(lispsource)disp-table.elc $(lispsource)w32-fns.elc $(lispsource)dos-w32.elc $(lispsource)w32-vars.elc
+MOUSE_SUPPORT = \
+	$(lispsource)select.elc \
+	$(lispsource)scroll-bar.elc \
+	$(lispsource)mouse.elc \
+	$(lispsource)tooltip.elc
+WINNT_SUPPORT = \
+	$(lispsource)ls-lisp.elc \
+	$(lispsource)disp-table.elc \
+	$(lispsource)w32-fns.elc \
+	$(lispsource)dos-w32.elc \
+	$(lispsource)w32-vars.elc \
+	$(lispsource)term/w32-win.elc
 
 # lisp files that are loaded up on other platforms
-MSDOS_SUPPORT = $(lispsource)dos-fns.elc $(lispsource)dos-vars.elc $(lispsource)international/ccl.elc $(lispsource)international/codepage.elc
-VMS_SUPPORT = $(lispsource)vmsproc.el $(lispsource)vms-patch.el
+MSDOS_SUPPORT = \
+	$(lispsource)dos-fns.elc \
+	$(lispsource)dos-vars.elc \
+	$(lispsource)international/ccl.elc \
+	$(lispsource)international/codepage.elc
+VMS_SUPPORT = \
+	$(lispsource)vmsproc.el \
+	$(lispsource)vms-patch.el
+TOOLTIP_SUPPORT = $(lispsource)tooltip.elc
+WINDOW_SUPPORT = \
+	$(lispsource)fringe.elc \
+	$(lispsource)image.elc \
+	$(lispsource)international/fontset.elc \
+	$(lispsource)dnd.elc \
+	$(lispsource)tool-bar.elc \
+	$(lispsource)mwheel.elc
 
 lisp1= \
 	$(lispsource)abbrev.elc \
 	$(lispsource)buff-menu.elc \
 	$(lispsource)button.elc \
 	$(lispsource)emacs-lisp/byte-run.elc \
+	${lispsource}composite.elc \
 	$(lispsource)cus-face.elc \
 	$(lispsource)cus-start.elc \
 	$(lispsource)custom.elc \
 	$(lispsource)emacs-lisp/backquote.elc \
 	$(lispsource)emacs-lisp/lisp-mode.elc \
 	$(lispsource)emacs-lisp/lisp.elc \
-	$(lispsource)facemenu.elc \
-	$(MOUSE_SUPPORT) \
+	$(lispsource)env.elc \
 	$(lispsource)faces.elc \
 	$(lispsource)files.elc \
-	$(lispsource)emacs-lisp/float-sup.elc \
 	$(lispsource)format.elc \
+	$(lispsource)facemenu.elc \
+	$(MOUSE_SUPPORT) \
+	$(lispsource)emacs-lisp/float-sup.elc \
 	$(lispsource)frame.elc \
 	$(lispsource)help.elc \
 	$(lispsource)indent.elc \
@@ -199,33 +226,18 @@ lisp1= \
 	$(lispsource)loaddefs.el \
 	$(lispsource)bindings.elc \
 	$(lispsource)emacs-lisp/map-ynp.elc \
-	$(lispsource)env.elc \
+	$(lispsource)menu-bar.elc \
 	$(lispsource)international/mule.elc \
 	$(lispsource)international/mule-conf.el \
 	$(lispsource)international/mule-cmds.elc \
 	$(lispsource)international/characters.elc \
-	$(lispsource)international/ucs-tables.elc \
-	$(lispsource)international/utf-8.elc \
-	$(lispsource)international/utf-16.elc \
-	$(lispsource)international/latin-1.el \
-	$(lispsource)international/latin-2.el \
-	$(lispsource)international/latin-3.el \
-	$(lispsource)international/latin-4.el \
-	$(lispsource)international/latin-5.el \
-	$(lispsource)international/latin-8.el \
-	$(lispsource)international/latin-9.el \
-	$(lispsource)fringe.elc \
-	$(lispsource)image.elc \
-	$(lispsource)international/fontset.elc \
-	$(lispsource)dnd.elc \
-	$(lispsource)mwheel.elc \
-	$(lispsource)tool-bar.elc \
+	$(lispsource)international/charprop.el \
 	$(lispsource)case-table.elc
 
 lisp2 = \
-	$(lispsource)language/chinese.elc \
-	$(lispsource)language/cyrillic.elc \
-	$(lispsource)language/indian.elc \
+	$(lispsource)language/chinese.el \
+	$(lispsource)language/cyrillic.el \
+	$(lispsource)language/indian.el \
 	$(lispsource)language/devanagari.el \
 	$(lispsource)language/kannada.el \
 	$(lispsource)language/malayalam.el \
@@ -241,13 +253,13 @@ lisp2 = \
 	$(lispsource)language/japanese.el \
 	$(lispsource)language/korean.el \
 	$(lispsource)language/lao.el \
+	$(lispsource)language/tai-viet.el \
 	$(lispsource)language/thai.el \
 	$(lispsource)language/tibetan.elc \
-	$(lispsource)language/vietnamese.elc \
+	$(lispsource)language/vietnamese.el \
 	$(lispsource)language/misc-lang.el \
 	$(lispsource)language/utf-8-lang.el \
 	$(lispsource)language/georgian.el \
-	$(lispsource)menu-bar.elc \
 	$(lispsource)paths.el \
 	$(lispsource)register.elc \
 	$(lispsource)replace.elc \
@@ -264,12 +276,14 @@ lisp2 = \
 	$(lispsource)textmodes/paragraphs.elc \
 	$(lispsource)textmodes/text-mode.elc \
 	$(lispsource)emacs-lisp/timer.elc \
-	$(lispsource)vc-hooks.elc \
 	$(lispsource)jka-cmpr-hook.elc \
+	$(lispsource)vc-hooks.elc \
 	$(lispsource)ediff-hook.elc \
+	$(TOOLTIP_SUPPORT) \
 	$(VMS_SUPPORT) \
 	$(MSDOS_SUPPORT) \
 	$(WINNT_SUPPORT) \
+	$(WINDOW_SUPPORT) \
 	$(lispsource)widget.elc \
 	$(lispsource)window.elc \
 	$(lispsource)version.el

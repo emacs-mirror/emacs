@@ -36,8 +36,14 @@ Boston, MA 02110-1301, USA.  */
 
 extern Lisp_Object disp_char_vector P_ ((struct Lisp_Char_Table *, int));
 
-#define DISP_CHAR_VECTOR(dp, c) \
-  (SINGLE_BYTE_CHAR_P(c) ? (dp)->contents[c] : disp_char_vector ((dp), (c)))
+#define DISP_CHAR_VECTOR(dp, c)				\
+  (ASCII_CHAR_P(c)					\
+   ? (NILP ((dp)->ascii)				\
+      ? (dp)->defalt					\
+      : (SUB_CHAR_TABLE_P ((dp)->ascii)			\
+	 ? XSUB_CHAR_TABLE ((dp)->ascii)->contents[c]	\
+	 : (dp)->ascii))				\
+   : disp_char_vector ((dp), (c)))
 
 /* Defined in window.c.  */
 extern struct Lisp_Char_Table *window_display_table P_ ((struct window *));

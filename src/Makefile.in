@@ -52,6 +52,7 @@ LIBOBJS = @LIBOBJS@
 dot = .
 dotdot = ${dot}${dot}
 lispsource = ${srcdir}/$(dot)$(dot)/lisp/
+admindir = $(srcdir)/$(dot)$(dot)/admin/
 libsrc = $(dot)$(dot)/lib-src/
 etc = $(dot)$(dot)/etc/
 oldXMenudir = $(dot)$(dot)/oldXMenu/
@@ -282,7 +283,7 @@ DBUS_OBJ = dbusbind.o
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${CFLAGS}
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 
@@ -591,10 +592,29 @@ emacsapp = $(PWD)/$(mac)Emacs.app/
 emacsappsrc = ${srcdir}/../mac/Emacs.app/
 #endif
 
+#ifdef HAVE_WINDOW_SYSTEM
+FONTSRC = font.h
+#ifdef USE_FONT_BACKEND
+#ifdef HAVE_X_WINDOWS
+#if defined (HAVE_XFT)
+FONTOBJ = font.o xfont.o ftfont.o xftfont.o ftxfont.o
+#elif defined (HAVE_FREETYPE)
+FONTOBJ = font.o xfont.o ftfont.o ftxfont.o
+#else /* ! defined (HAVE_XFT) && ! defined (HAVE_FREETYPE) */
+FONTOBJ = font.o xfont.o
+#endif /* ! defined (HAVE_XFT) && ! defined (HAVE_FREETYPE) */
+#else /* ! HAVE_X_WINDOWS */
+FONTOBJ = font.o
+#endif /* ! HAVE_X_WINDOWS */
+#else  /* ! USE_FONT_BACKEND */
+FONTOBJ = font.o
+#endif /* ! USE_FONT_BACKEND */
+#endif /* HAVE_WINDOW_SYSTEM */
+
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
 obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
-	charset.o coding.o category.o ccl.o \
+	charset.o coding.o category.o ccl.o character.o chartab.o \
 	cm.o term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ) $(DBUS_OBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o \
@@ -606,7 +626,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 	process.o callproc.o \
 	region-cache.o sound.o atimer.o \
 	doprnt.o strftime.o intervals.o textprop.o composite.o md5.o \
-	$(MSDOS_OBJ) $(MAC_OBJ) $(CYGWIN_OBJ)
+	$(MSDOS_OBJ) $(MAC_OBJ) $(CYGWIN_OBJ) $(FONTOBJ)
 
 /* Object files used on some machine or other.
    These go in the DOC file on all machines
@@ -615,7 +635,7 @@ SOME_MACHINE_OBJECTS = dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o \
   w32.o w32bdf.o w32console.o w32fns.o w32heap.o w32inevt.o \
-  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o
+  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o $(FONTOBJ)
 
 
 #ifdef TERMINFO
@@ -737,6 +757,7 @@ lisp= \
 	${lispsource}buff-menu.elc \
 	${lispsource}button.elc \
 	${lispsource}emacs-lisp/byte-run.elc \
+	${lispsource}composite.elc \
 	${lispsource}cus-face.elc \
 	${lispsource}cus-start.elc \
 	${lispsource}custom.elc \
@@ -764,20 +785,11 @@ lisp= \
 	${lispsource}international/mule-conf.el \
 	${lispsource}international/mule-cmds.elc \
 	${lispsource}international/characters.elc \
-	${lispsource}international/ucs-tables.elc \
-	${lispsource}international/utf-8.elc \
-	${lispsource}international/utf-16.elc \
-	${lispsource}international/latin-1.el \
-	${lispsource}international/latin-2.el \
-	${lispsource}international/latin-3.el \
-	${lispsource}international/latin-4.el \
-	${lispsource}international/latin-5.el \
-	${lispsource}international/latin-8.el \
-	${lispsource}international/latin-9.el \
+	${lispsource}international/charprop.el \
 	${lispsource}case-table.elc \
-	${lispsource}language/chinese.elc \
-	${lispsource}language/cyrillic.elc \
-	${lispsource}language/indian.elc \
+	${lispsource}language/chinese.el \
+	${lispsource}language/cyrillic.el \
+	${lispsource}language/indian.el \
 	${lispsource}language/devanagari.el \
 	${lispsource}language/kannada.el \
 	${lispsource}language/malayalam.el \
@@ -793,12 +805,16 @@ lisp= \
 	${lispsource}language/japanese.el \
 	${lispsource}language/korean.el \
 	${lispsource}language/lao.el \
+	${lispsource}language/cham.el \
+	${lispsource}language/tai-viet.el \
 	${lispsource}language/thai.el \
 	${lispsource}language/tibetan.elc \
-	${lispsource}language/vietnamese.elc \
+	${lispsource}language/vietnamese.el \
 	${lispsource}language/misc-lang.el \
 	${lispsource}language/utf-8-lang.el \
 	${lispsource}language/georgian.el \
+	${lispsource}language/khmer.el \
+	${lispsource}language/myanmar.el \
 	${lispsource}paths.el \
 	${lispsource}register.elc \
 	${lispsource}replace.elc \
@@ -836,6 +852,7 @@ shortlisp= \
 	../lisp/buff-menu.elc \
 	../lisp/button.elc \
 	../lisp/emacs-lisp/byte-run.elc \
+	../lisp/composite.elc \
 	../lisp/cus-face.elc \
 	../lisp/cus-start.elc \
 	../lisp/custom.elc \
@@ -861,20 +878,10 @@ shortlisp= \
 	../lisp/international/mule-conf.el \
 	../lisp/international/mule-cmds.elc \
 	../lisp/international/characters.elc \
-	../lisp/international/ucs-tables.elc \
-	../lisp/international/utf-8.elc \
-	../lisp/international/utf-16.elc \
-	../lisp/international/latin-1.el \
-	../lisp/international/latin-2.el \
-	../lisp/international/latin-3.el \
-	../lisp/international/latin-4.el \
-	../lisp/international/latin-5.el \
-	../lisp/international/latin-8.el \
-	../lisp/international/latin-9.el \
 	../lisp/case-table.elc \
-	../lisp/language/chinese.elc \
-	../lisp/language/cyrillic.elc \
-	../lisp/language/indian.elc \
+	../lisp/language/chinese.el \
+	../lisp/language/cyrillic.el \
+	../lisp/language/indian.el \
 	../lisp/language/devanagari.el \
 	../lisp/language/kannada.el \
 	../lisp/language/malayalam.el \
@@ -890,12 +897,16 @@ shortlisp= \
 	../lisp/language/japanese.el \
 	../lisp/language/korean.el \
 	../lisp/language/lao.el \
+	../lisp/language/cham.el \
+	../lisp/language/tai-viet.el \
 	../lisp/language/thai.el \
 	../lisp/language/tibetan.elc \
-	../lisp/language/vietnamese.elc \
+	../lisp/language/vietnamese.el \
 	../lisp/language/misc-lang.el \
 	../lisp/language/utf-8-lang.el \
 	../lisp/language/georgian.el \
+	../lisp/language/khmer.el \
+	../lisp/language/myanmar.el \
 	../lisp/menu-bar.elc \
 	../lisp/paths.el \
 	../lisp/register.elc \
@@ -947,8 +958,9 @@ SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
    with GCC, we might need gnulib again after them.  */
 LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
    LIBGPM LIBRESOLV LIBS_SYSTEM LIBS_MACHINE LIBS_TERMCAP \
-   LIBS_DEBUG $(GETLOADAVG_LIBS) $(GNULIB_VAR) LIB_MATH LIB_STANDARD \
-   $(GNULIB_VAR)
+   LIBS_DEBUG $(GETLOADAVG_LIBS) \
+   @FREETYPE_LIBS@ @FONTCONFIG_LIBS@ @LIBOTF_LIBS@ @M17N_FLT_LIBS@ \
+   $(GNULIB_VAR) LIB_MATH LIB_STANDARD $(GNULIB_VAR)
 
 /* Enable recompilation of certain other files depending on system type.  */
 
@@ -960,7 +972,11 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) $(RSVG_LIBS) $(DBUS_LIBS) \
 #define OBJECTS_MACHINE
 #endif
 
-RUN_TEMACS = ./temacs
+#ifdef HAVE_SHM
+RUN_TEMACS = `/bin/pwd`/temacs -nl
+#else
+RUN_TEMACS = `/bin/pwd`/temacs
+#endif
 
 all: emacs${EXEEXT} OTHER_FILES
 
@@ -969,11 +985,7 @@ emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
 	rm -f emacs${EXEEXT}
 	ln temacs${EXEEXT} emacs${EXEEXT}
 #else
-#ifdef HAVE_SHM
-	LC_ALL=C $(RUN_TEMACS) -nl -batch -l loadup dump
-#else /* ! defined (HAVE_SHM) */
 	LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump
-#endif /* ! defined (HAVE_SHM) */
 #endif /* ! defined (CANNOT_DUMP) */
 	-./emacs -q -batch -f list-load-path-shadows
 
@@ -993,7 +1005,22 @@ ${etc}DOC: ${libsrc}make-docfile${EXEEXT} ${obj} ${shortlisp} ${SOME_MACHINE_LIS
 ${libsrc}make-docfile${EXEEXT}:
 	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile${EXEEXT}
 
-temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
+#ifdef HAVE_UNIDATA
+UNIDATA=${admindir}unidata/UnicodeData.txt
+
+${lispsource}international/charprop.el: temacs${EXEEXT} ${UNIDATA}
+	RUNEMACS="$(RUN_TEMACS)"; \
+	cd ${admindir}unidata; \
+	$(MAKE) $(MFLAGS) \
+	  RUNEMACS="$${RUNEMACS}" DSTDIR=${lispsource}international
+#endif
+
+/* Some systems define this to cause parallel Make-ing.  */
+#ifndef MAKE_PARALLEL
+#define MAKE_PARALLEL
+#endif
+
+temacs${EXEEXT}: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
 	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
@@ -1083,70 +1110,81 @@ stamp-oldxmenu:
    it is so often changed in ways that do not require any recompilation
    and so rarely changed in ways that do require any.  */
 
+abbrev.o: abbrev.c buffer.h window.h dispextern.h commands.h character.h \
+	syntax.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
-   dispextern.h $(INTERVAL_SRC) blockinput.h atimer.h systime.h charset.h \
+   dispextern.h $(INTERVAL_SRC) blockinput.h atimer.h systime.h character.h \
    $(config_h)
 callint.o: callint.c window.h commands.h buffer.h keymap.h \
    keyboard.h dispextern.h $(config_h)
 callproc.o: callproc.c epaths.h buffer.h commands.h $(config_h) \
-	process.h systty.h syssignal.h charset.h coding.h ccl.h msdos.h \
+	process.h systty.h syssignal.h character.h coding.h ccl.h msdos.h \
         composite.h w32.h blockinput.h atimer.h systime.h frame.h termhooks.h
-casefiddle.o: casefiddle.c syntax.h commands.h buffer.h composite.h \
+casefiddle.o: casefiddle.c syntax.h commands.h buffer.h character.h \
+   composite.h \
 	charset.h keymap.h $(config_h)
 casetab.o: casetab.c buffer.h $(config_h)
-category.o: category.c category.h buffer.h charset.h keymap.h $(config_h)
-ccl.o: ccl.c ccl.h charset.h coding.h $(config_h)
-charset.o: charset.c charset.h buffer.h coding.h composite.h disptab.h \
-	$(config_h)
-coding.o: coding.c coding.h ccl.h buffer.h charset.h intervals.h composite.h \
+category.o: category.c category.h buffer.h charset.h keymap.h	\
+	character.h $(config_h)
+ccl.o: ccl.c ccl.h charset.h character.h coding.h $(config_h)
+character.o: character.c character.h buffer.h charset.h composite.h disptab.h \
+   $(config.h)
+charset.o: charset.c charset.h character.h buffer.h coding.h composite.h \
+   disptab.h $(config_h)
+chartab.o: charset.h character.h $(config.h)
+coding.o: coding.c coding.h ccl.h buffer.h character.h charset.h intervals.h composite.h \
 	window.h dispextern.h frame.h termhooks.h $(config_h)
 cm.o: cm.c frame.h cm.h termhooks.h termchar.h $(config_h)
-cmds.o: cmds.c syntax.h buffer.h charset.h commands.h window.h $(config_h) \
+cmds.o: cmds.c syntax.h buffer.h character.h commands.h window.h $(config_h) \
 	msdos.h dispextern.h keyboard.h keymap.h
 pre-crt0.o: pre-crt0.c
 ecrt0.o: ecrt0.c $(config_h)
 	CRT0_COMPILE ${srcdir}/ecrt0.c
-dired.o: dired.c commands.h buffer.h $(config_h) charset.h coding.h regex.h \
-   systime.h blockinput.h atimer.h
+dired.o: dired.c commands.h buffer.h $(config_h) character.h charset.h \
+   coding.h regex.h systime.h blockinput.h atimer.h
 dispnew.o: dispnew.c systime.h commands.h process.h frame.h \
    window.h buffer.h dispextern.h termchar.h termopts.h termhooks.h cm.h \
    disptab.h indent.h intervals.h \
-   xterm.h blockinput.h atimer.h charset.h msdos.h composite.h keyboard.h \
+   xterm.h blockinput.h atimer.h character.h msdos.h composite.h keyboard.h \
    $(config_h)
-doc.o: doc.c $(config_h) epaths.h buffer.h keyboard.h keymap.h charset.h
-doprnt.o: doprnt.c charset.h $(config_h)
+doc.o: doc.c $(config_h) epaths.h buffer.h keyboard.h keymap.h character.h
+doprnt.o: doprnt.c character.h $(config_h)
 dosfns.o: buffer.h termchar.h termhooks.h frame.h blockinput.h window.h \
    msdos.h dosfns.h dispextern.h charset.h coding.h atimer.h systime.h \
    $(config_h)
-editfns.o: editfns.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
+editfns.o: editfns.c window.h buffer.h systime.h $(INTERVAL_SRC) character.h \
    coding.h dispextern.h frame.h blockinput.h atimer.h $(config_h)
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    termhooks.h buffer.h atimer.h systime.h $(INTERVAL_SRC) $(config_h) \
    window.h dispextern.h keyboard.h keymap.h
-fileio.o: fileio.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
+fileio.o: fileio.c window.h buffer.h systime.h $(INTERVAL_SRC) character.h \
    coding.h msdos.h dispextern.h blockinput.h atimer.h $(config_h)
-filelock.o: filelock.c buffer.h charset.h coding.h systime.h epaths.h $(config_h)
+filelock.o: filelock.c buffer.h character.h charset.h coding.h systime.h \
+   epaths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
-   blockinput.h atimer.h systime.h buffer.h charset.h fontset.h \
+   blockinput.h atimer.h systime.h buffer.h character.h fontset.h \
    msdos.h dosfns.h dispextern.h w32term.h macterm.h termchar.h $(config_h)
 fringe.o: fringe.c dispextern.h frame.h window.h buffer.h termhooks.h $(config_h)
-fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h charset.h frame.h \
-   keyboard.h termhooks.h $(config_h)
+font.o: font.c dispextern.h frame.h window.h ccl.h character.h charset.h \
+   font.h $(config_h)
+ftfont.o: dispextern.h frame.h character.h charset.h font.h $(config_h)
+fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h character.h \
+   charset.h frame.h keyboard.h termhooks.h $(FONTSRC) $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
 image.o: image.c frame.h window.h dispextern.h blockinput.h atimer.h \
    systime.h xterm.h w32term.h w32gui.h macterm.h macgui.h $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
-   termopts.h disptab.h region-cache.h charset.h composite.h dispextern.h \
-   keyboard.h
-insdel.o: insdel.c window.h buffer.h $(INTERVAL_SRC) blockinput.h charset.h \
+   termopts.h disptab.h region-cache.h character.h category.h composite.h \
+   dispextern.h keyboard.h
+insdel.o: insdel.c window.h buffer.h $(INTERVAL_SRC) blockinput.h character.h \
    dispextern.h atimer.h systime.h region-cache.h $(config_h)
-keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h charset.h \
+keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h character.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
    systime.h dispextern.h syntax.h $(INTERVAL_SRC) blockinput.h \
    atimer.h xterm.h puresize.h msdos.h keymap.h w32term.h macterm.h $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
-   atimer.h systime.h puresize.h charset.h intervals.h keymap.h window.h \
+   atimer.h systime.h puresize.h character.h intervals.h keymap.h window.h \
    $(config_h)
 lastfile.o: lastfile.c  $(config_h)
 macros.o: macros.c window.h buffer.h commands.h macros.h keyboard.h \
@@ -1155,35 +1193,37 @@ malloc.o: malloc.c $(config_h)
 gmalloc.o: gmalloc.c $(config_h)
 ralloc.o: ralloc.c $(config_h)
 vm-limit.o: vm-limit.c mem-limits.h $(config_h)
-marker.o: marker.c buffer.h charset.h $(config_h)
+marker.o: marker.c buffer.h character.h $(config_h)
 md5.o: md5.c md5.h $(config_h)
 minibuf.o: minibuf.c syntax.h dispextern.h frame.h window.h keyboard.h \
-   buffer.h commands.h charset.h msdos.h $(INTERVAL_SRC) keymap.h \
+   buffer.h commands.h character.h msdos.h $(INTERVAL_SRC) keymap.h \
    termhooks.h $(config_h)
 mktime.o: mktime.c $(config_h)
 msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h frame.h \
-   termopts.h termchar.h charset.h coding.h ccl.h disptab.h window.h \
+   termopts.h termchar.h character.h coding.h ccl.h disptab.h window.h \
    keyboard.h intervals.h buffer.h commands.h blockinput.h atimer.h $(config_h)
 process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    commands.h syssignal.h systime.h systty.h syswait.h frame.h dispextern.h \
    blockinput.h atimer.h charset.h coding.h ccl.h msdos.h composite.h \
    keyboard.h $(config_h)
-regex.o: regex.c syntax.h buffer.h $(config_h) regex.h category.h charset.h
+regex.o: regex.c syntax.h buffer.h $(config_h) regex.h category.h character.h \
+   charset.h
 region-cache.o: region-cache.c buffer.h region-cache.h $(config_h)
 scroll.o: scroll.c termchar.h dispextern.h frame.h msdos.h keyboard.h \
    termhooks.h $(config_h)
 search.o: search.c regex.h commands.h buffer.h region-cache.h syntax.h \
-   blockinput.h atimer.h systime.h category.h charset.h composite.h \
-   $(INTERVAL_SRC) $(config_h)
+   blockinput.h atimer.h systime.h category.h character.h charset.h \
+   composite.h $(INTERVAL_SRC) \
+   $(config_h)
 strftime.o: strftime.c $(config_h)
-syntax.o: syntax.c syntax.h buffer.h commands.h category.h charset.h \
+syntax.o: syntax.c syntax.h buffer.h commands.h category.h character.h \
    composite.h keymap.h regex.h $(INTERVAL_SRC) $(config_h)
 sysdep.o: sysdep.c syssignal.h systty.h systime.h syswait.h blockinput.h \
    process.h dispextern.h termhooks.h termchar.h termopts.h \
    frame.h atimer.h window.h msdos.h dosfns.h keyboard.h cm.h $(config_h)
 term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
-   disptab.h dispextern.h keyboard.h charset.h coding.h ccl.h msdos.h \
-   window.h keymap.h blockinput.h atimer.h systime.h
+   disptab.h dispextern.h keyboard.h character.h charset.h coding.h ccl.h \
+   msdos.h window.h keymap.h blockinput.h atimer.h systime.h
 termcap.o: termcap.c $(config_h)
 terminal.o: terminal.c frame.h termchar.h termhooks.h charset.h coding.h \
    keyboard.h $(config_h)
@@ -1202,24 +1242,32 @@ window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    disptab.h keyboard.h dispextern.h msdos.h composite.h \
    keymap.h blockinput.h atimer.h systime.h $(INTERVAL_SRC) \
    xterm.h w32term.h macterm.h $(config_h)
-xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h coding.h \
-   termchar.h frame.h window.h disptab.h termhooks.h charset.h $(config_h) \
-   keyboard.h $(INTERVAL_SRC) region-cache.h xterm.h w32term.h macterm.h \
-   msdos.h composite.h fontset.h blockinput.h atimer.h systime.h keymap.h
-xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
-   window.h charset.h msdos.h dosfns.h composite.h atimer.h systime.h \
-   keyboard.h fontset.h w32term.h macterm.h $(INTERVAL_SRC) termchar.h \
-   termhooks.h $(config_h)
+xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h \
+   coding.h termchar.h frame.h window.h disptab.h termhooks.h character.h     \
+   charset.h $(config_h) keyboard.h $(INTERVAL_SRC) region-cache.h xterm.h    \
+   w32term.h macterm.h msdos.h composite.h fontset.h blockinput.h atimer.h    \
+   systime.h keymap.h $(FONTSRC)
+xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h	\
+   window.h character.h charset.h msdos.h dosfns.h composite.h atimer.h	\
+   systime.h keyboard.h fontset.h w32term.h macterm.h $(INTERVAL_SRC)	\
+   termchar.h termhooks.h $(FONTSRC) $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
-   charset.h gtkutil.h termchar.h termhooks.h $(config_h)
+   character.h charset.h coding.h gtkutil.h $(config_h) termhooks.h \
+   fontset.h termchar.h $(FONTSRC)
+xfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
+   font.h $(config_h)
+xftfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
+   font.h $(config_h)
+ftxfont.o: dispextern.h xterm.h frame.h blockinput.h character.h charset.h \
+   font.h $(config_h)
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
-   keyboard.h $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h \
-   gtkutil.h msdos.h coding.h $(config_h)
+   charset.h keyboard.h $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h \
+   systime.h gtkutil.h msdos.h coding.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
-  dispextern.h frame.h disptab.h blockinput.h atimer.h systime.h syssignal.h \
-  keyboard.h gnu.h charset.h ccl.h fontset.h composite.h \
-  coding.h process.h gtkutil.h $(config_h)
+   dispextern.h frame.h disptab.h blockinput.h atimer.h systime.h syssignal.h \
+   keyboard.h gnu.h character.h charset.h ccl.h fontset.h composite.h \
+   coding.h process.h gtkutil.h $(FONTSRC) $(config_h)
 xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
   buffer.h atimer.h systime.h termhooks.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
@@ -1237,28 +1285,30 @@ atimer.o: atimer.c atimer.h systime.h $(config_h)
 /* The files of Lisp proper */
 
 alloc.o: alloc.c process.h frame.h window.h buffer.h  puresize.h syssignal.h keyboard.h \
- blockinput.h atimer.h systime.h charset.h dispextern.h $(config_h) $(INTERVAL_SRC)
-bytecode.o: bytecode.c buffer.h syntax.h charset.h window.h dispextern.h \
+ blockinput.h atimer.h systime.h character.h dispextern.h $(config_h) \
+ $(INTERVAL_SRC)
+bytecode.o: bytecode.c buffer.h syntax.h character.h window.h dispextern.h \
   frame.h xterm.h $(config_h)
-data.o: data.c buffer.h puresize.h charset.h syssignal.h keyboard.h frame.h termhooks.h $(config_h)
+data.o: data.c buffer.h puresize.h character.h syssignal.h keyboard.h frame.h \
+   termhooks.h $(config_h)
 eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h \
   dispextern.h $(config_h)
 floatfns.o: floatfns.c $(config_h)
-fns.o: fns.c commands.h $(config_h) frame.h buffer.h charset.h keyboard.h \
+fns.o: fns.c commands.h $(config_h) frame.h buffer.h character.h keyboard.h \
  keymap.h frame.h window.h dispextern.h $(INTERVAL_SRC) coding.h md5.h \
  blockinput.h atimer.h systime.h xterm.h termhooks.h
-print.o: print.c process.h frame.h window.h buffer.h keyboard.h charset.h \
+print.o: print.c process.h frame.h window.h buffer.h keyboard.h character.h \
    $(config_h) dispextern.h termchar.h $(INTERVAL_SRC) msdos.h composite.h \
    blockinput.h atimer.h systime.h
-lread.o: lread.c commands.h keyboard.h buffer.h epaths.h charset.h \
- $(config_h) $(INTERVAL_SRC) termhooks.h coding.h msdos.h
+lread.o: lread.c commands.h keyboard.h buffer.h epaths.h character.h \
+ charset.h $(config_h) $(INTERVAL_SRC) termhooks.h coding.h msdos.h
 
 /* Text properties support */
 textprop.o: textprop.c buffer.h window.h dispextern.h $(INTERVAL_SRC) \
 	$(config_h)
 intervals.o: intervals.c buffer.h $(INTERVAL_SRC) keyboard.h puresize.h \
 	keymap.h $(config_h)
-composite.o: composite.c buffer.h  charset.h $(INTERVAL_SRC) $(config_h)
+composite.o: composite.c buffer.h  character.h $(INTERVAL_SRC) $(config_h)
 
 /* System-specific programs to be made.
    OTHER_FILES and OBJECTS_MACHINE
@@ -1361,14 +1411,10 @@ bootstrap: bootstrap-emacs${EXEEXT}
 /* Dump an Emacs executable named bootstrap-emacs containing the
    files from loadup.el in source form.  */
 
-bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
+bootstrap-emacs${EXEEXT}: temacs${EXEEXT} ${lispsource}international/charprop.el
 #ifdef CANNOT_DUMP
 	ln temacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #else
-#ifdef HAVE_SHM
-	$(RUN_TEMACS) -nl -batch -l loadup bootstrap
-#else /* ! defined (HAVE_SHM) */
 	$(RUN_TEMACS) --batch --load loadup bootstrap
-#endif /* ! defined (HAVE_SHM) */
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */

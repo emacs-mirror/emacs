@@ -94,7 +94,7 @@ numbers, and the build number."
   (x-server-version))
 
 (defun w32-using-nt ()
-  "Return non-nil if running on a 32-bit Windows system.
+  "Return non-nil if running on a Windows NT descendant.
 That includes all Windows systems except for 9X/Me."
   (and (eq system-type 'windows-nt) (getenv "SystemRoot")))
 
@@ -374,9 +374,11 @@ bit output with no translation."
 ;; value from w32-select-font etc, so list the most important charsets last.
 (w32-add-charset-info "iso8859-14" 'w32-charset-ansi  28604)
 (w32-add-charset-info "iso8859-15" 'w32-charset-ansi  28605)
+;; The following two are included for pattern matching.
+(w32-add-charset-info "jisx0201" 'w32-charset-shiftjis 932)
+(w32-add-charset-info "jisx0208" 'w32-charset-shiftjis 932)
 (w32-add-charset-info "jisx0201-latin" 'w32-charset-shiftjis 932)
 (w32-add-charset-info "jisx0201-katakana" 'w32-charset-shiftjis 932)
-(w32-add-charset-info "jisx0208-sjis" 'w32-charset-shiftjis 932)
 (w32-add-charset-info "ksc5601.1989" 'w32-charset-hangeul 949)
 (w32-add-charset-info "big5" 'w32-charset-chinesebig5 950)
 (w32-add-charset-info "gb2312.1980" 'w32-charset-gb2312 936)
@@ -397,12 +399,20 @@ bit output with no translation."
       (w32-add-charset-info "iso8859-5" 'w32-charset-russian 28595)
       (w32-add-charset-info "tis620" 'w32-charset-thai 874)
       (w32-add-charset-info "ksc5601.1992" 'w32-charset-johab 1361)
-      (w32-add-charset-info "mac-latin" 'w32-charset-mac nil)))
+      (w32-add-charset-info "mac-roman" 'w32-charset-mac 10000)))
 (if (boundp 'w32-unicode-charset-defined)
     (progn
       (w32-add-charset-info "iso10646-1" 'w32-charset-unicode t))
-  ;; If unicode windows charset is not defined, use ansi fonts.
-  (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))
+  (w32-add-charset-info "iso10646-1" 'w32-charset-default t))
+;;   ;; If unicode windows charset is not defined, use ansi fonts.
+;;   (w32-add-charset-info "iso10646-1" 'w32-charset-ansi t))
+
+;; Prefered names
+(w32-add-charset-info "big5-0" 'w32-charset-chinesebig5 950)
+(w32-add-charset-info "gb2312.1980-0" 'w32-charset-gb2312 936)
+(w32-add-charset-info "jisx0208-sjis" 'w32-charset-shiftjis 932)
+(w32-add-charset-info "ksc5601.1987-0" 'w32-charset-hangeul 949)
+(w32-add-charset-info "tis620-0" 'w32-charset-thai 874)
 (w32-add-charset-info "iso8859-1" 'w32-charset-ansi 1252)
 
 (make-obsolete-variable 'w32-enable-italics

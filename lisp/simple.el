@@ -961,9 +961,9 @@ in *Help* buffer.  See also the command `describe-char'."
 	(if (or (not coding)
 		(eq (coding-system-type coding) t))
 	    (setq coding default-buffer-file-coding-system))
-	(if (not (char-valid-p char))
+	(if (eq (char-charset char) 'eight-bit)
 	    (setq encoding-msg
-		  (format "(%d, #o%o, #x%x, invalid)" char char char))
+		  (format "(%d, #o%o, #x%x, raw-byte)" char char char))
 	  ;; Check if the character is displayed with some `display'
 	  ;; text property.  In that case, set under-display to the
 	  ;; buffer substring covered by that property.
