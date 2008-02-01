@@ -1,7 +1,8 @@
 ;;; info.el --- info package for Emacs
 
 ;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
@@ -3374,6 +3375,7 @@ With a zero prefix arg, put the name inside a function call to `info'."
 (put 'Info-mode 'no-clone-indirect t)
 
 (defvar tool-bar-map)
+(defvar bookmark-make-cell-function)
 
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
@@ -4319,7 +4321,12 @@ BUFFER is the buffer speedbar is requesting buttons for."
 
 ;;;; Bookmark support
 
-(defun Info-bookmark-make-cell (annotation &rest args)
+(defvar bookmark-search-size)
+
+;; This is only called from bookmark.el.
+(declare-function bookmark-buffer-file-name "bookmark" ())
+
+(defun Info-bookmark-make-cell (annotation &optional info-node)
   (let ((the-record
          `((filename . ,(bookmark-buffer-file-name))
            (front-context-string
@@ -4349,6 +4356,15 @@ BUFFER is the buffer speedbar is requesting buttons for."
     ;; Finally, return the completed record.
     the-record))
 
+(defvar bookmark-current-bookmark)
+(declare-function bookmark-get-filename              "bookmark" (bookmark))
+(declare-function bookmark-get-front-context-string  "bookmark" (bookmark))
+(declare-function bookmark-get-rear-context-string   "bookmark" (bookmark))
+(declare-function bookmark-get-position              "bookmark" (bookmark))
+(declare-function bookmark-get-info-node             "bookmark" (bookmark))
+(declare-function bookmark-file-or-variation-thereof "bookmark" (file))
+(declare-function bookmark-jump-noselect             "bookmark" (str))
+
 ;;;###autoload
 (defun Info-bookmark-jump (bmk)
   ;; This implements the `handler' function interface for record type returned
@@ -4362,7 +4378,6 @@ BUFFER is the buffer speedbar is requesting buttons for."
     (if (setq file (bookmark-file-or-variation-thereof file))
         (save-excursion
           (save-window-excursion
-	    (require 'info)
 	    (with-no-warnings
 	      (Info-find-node file info-node))
 	    ;; Go searching forward first.  Then, if forward-str exists and was
