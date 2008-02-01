@@ -1,3 +1,16 @@
+2008-02-02  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat (withfont): Set sep1 after modifying usercflags.
+
+2008-02-02  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Rename --with-font-backend to --enable-font-backend
+	for consistency with other platforms.
+
+2008-02-02  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Add --with-font-backend option.
+
 2008-01-20  Jason Rumney  <jasonr@gnu.org>
 
 	* gmake.defs (CYGWIN) [USING_SH]: Disable mapping of file

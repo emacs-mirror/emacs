@@ -1,3 +1,111 @@
+2008-02-02  James Cloos  <cloos@jhcloos.com>
+
+	* quail/arabic.el: Updated (sync with xkeyboard-config keyboard).
+
+2008-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (OTHERS): Add arabic.elc.
+
+2008-02-02  James Cloos  <cloos@jhcloos.com>
+
+	* quail/arabic.el: New file.
+
+2008-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* MISC-DIC/pinyin.map: Fix encoding to that of the original file.
+
+2008-02-02  KAWABATA, Taichi  <kawabata@m17n.org>
+
+	* quail/indian.el (quail-indian-flatten-list): Delete it.
+	(quail-define-inscript-package): Pay attention to `nil' values of
+	char/key-table.
+	(inscript-tml-keytable): New variable.  Use it for Tamil inscript.
+
+2008-02-02  Dave Love  <fx@gnu.org>
+
+	* quail/latin-post.el ("turkish-latin-3-postfix"): Make it
+	just an alias for turkish-postfix.
+
+	* quail/latin-alt.el ("turkish-latin-3-alt-postfix"): Make it
+	just an alias for turkish-alt-postfix.
+
+	* quail/cyrillic.el (ukrainian-computer): Fix duplicate `\'.
+
+2008-02-02  Kenichi Handa  <handa@m17n.org>
+
+	* quail/thai.el: Don't require thai-util.
+	(quail-thai-update-translation): Function deleted.
+	(thai-generate-quail-map): Changed to a macro that directly calls
+	quail-define-rules.
+	("thai-kesmanee", "thai-pattachote"): Don't use
+	UPDATE-TRANSLATION-FUNCTION.
+
+	* quail/indian.el (quail-indian-preceding-char-position): Function
+	deleted.
+	(quail-indian-update-preceding-char): Variable deleted.
+	(quail-indian-update-translation): Function deleted.
+	(quail-define-indian-trans-package): Don't call
+	quail-define-package with quail-indian-update-translation.
+	(quail-define-inscript-package): Likewise.
+
+2008-02-02  Dave Love  <fx@gnu.org>
+
+	* quail/indian.el (quail-indian-preceding-char-position) 
+	(quail-indian-update-translation, quail-define-inscript-package):
+	Use characterp, not char-valid-p.
+
+2008-02-02  Dave Love  <fx@gnu.org>
+
+	* quail/welsh.el ("welsh"): Doc fix.
+
+	* quail/cyrillic.el: Reinstate some commented-out redundancies.
+	("russian-typewriter"): Renamed from cyrillic-typewriter.  Make
+	cyrillic-jcuken effectively an alias for it.
+	("russian-computer"): New.
+	("bulgarian-phonetic"): Renamed from bulgarian-pho.
+	("bulgarian-bds"): Renamed from bulgarian-standard.
+
+2008-02-02  Dave Love  <fx@gnu.org>
+
+	* quail/indian.el: Update from head.
+
+2008-02-02  Dave Love  <fx@gnu.org>
+
+	* ja-dic/ja-dic.el: Add coding tag.
+
+2008-02-02  Dave Love  <fx@gnu.org>
+
+	* latin-post.el: Recoded to utf-8.
+	("latin-postfix"): New method.
+
+	* latin-alt.el: Recoded to utf-8.
+	("latin-alt-postfix"): New method.
+
+	* quail/latin-pre.el: Recoded to utf-8.
+	("latin-1-prefix", "latin-8-prefix", "latin-9-prefix"): Add nbsp.
+	("latin-3-prefix"): Remove bogus Latin-3 characters and ~o -> ,Cu(B,
+	~O -> ,CU(B.
+	("latin-prefix"): New method.
+
+	* quail/uni-input.el (utf-8-ccl-encode): Deleted.
+	(ucs-input-method): Modified.
+
+2008-02-02  Dave Love  <fx@gnu.org>
+
+	* quail/hanja3.el, quail/hanja.el, makefile.nt, Makefile.in: 
+	* quail/vntelex.el: Update from trunk.
+
+	* quail/cyrillic.el: Doc fixes.
+	("cyrillic-beylorussian"): Commented-out.
+	("cyrillic-translit-bulgarian"): Deleted.
+	("cyrillic-ukrainian"): Fix `q', `Q', `W', `w' bindings.
+	("ukrainian-computer", "belarusian", "bulgarian-standard"): New.
+	("bulgarian-pho"): Add ,A'(B, ,Lp(B, ,LN(B.
+
+2008-02-02  Kenichi Handa  <handa@etl.go.jp>
+
+	* Makefile.in (RUN-EMACS): Add LC_ALL=C.
+
 2008-01-14  Aidan Kehoe  <kehoea@parhasard.net>  (tiny change)
 
         * quail/latin-ltx.el ("TeX"): Correct the mappings for \v{k} and
