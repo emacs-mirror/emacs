@@ -1,3 +1,16 @@
+2008-02-01  Glenn Morris  <rgm@gnu.org>
+
+	* info.el (bookmark-make-cell-function, bookmark-search-size)
+	(bookmark-current-bookmark): Declare variables for compiler.
+	(bookmark-buffer-file-name, bookmark-get-filename)
+	(bookmark-get-front-context-string)
+	(bookmark-get-rear-context-string, bookmark-get-position)
+	(bookmark-get-info-node, bookmark-file-or-variation-thereof)
+	(bookmark-jump-noselect): Declare functions for compiler.
+	(Info-bookmark-make-cell): Fix argument list to match example of
+	`bookmark-make-cell-for-text-file'.
+	(Info-bookmark-jump): Don't require info inside info.el.
+
 2008-02-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/verilog-mode.el (verilog-sk-prompt-msb)
