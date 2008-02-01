@@ -1,3 +1,9 @@
+2008-02-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/etags.el (tags-loop-revert-buffers): Value `ask' means
+	to query the user interactively.
+	(next-file): Implement it.
+
 2008-02-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* term/w32-win.el (image-library-alist): Prefer libpng12 to libpng13,
