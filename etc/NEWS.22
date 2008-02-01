@@ -85,6 +85,12 @@ customize it with the new option `desktop-load-locked-desktop'.  When saving,
 desktop.el warns about attempts to overwrite a desktop file if it determines
 that the desktop being saved is not an update of the one on disk.
 
+** Etags changes.
+
+*** If tags-loop-revert-buffers has the value `ask', the tags-scanning
+loop queries the user interactively if an already-visited file has
+been changed since the last visit.  The new default value is `ask'.
+
 * New Modes and Packages in Emacs 22.2
 
 ** bibtex-style-mode helps you write BibTeX's *.bst files.
