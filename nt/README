@@ -21,6 +21,49 @@
   See the INSTALL file in this directory for detailed instructions on
   building and installing Emacs on your system.
 
+* EXE files produced
+
+  Building and installing Emacs will produce the following executable
+  files in the bin directory.
+
+  + emacs.exe - The main Emacs executable. As this is designed to run
+    as both a text-mode application (emacs -nw) and as a GUI application,
+    it will pop up a command prompt window if run directly from Explorer.
+
+  + runemacs.exe - A wrapper for running Emacs as a GUI application
+    without popping up a command prompt window.
+
+  + emacsclient.exe - A command-line client program that can
+    communicate with a running Emacs process. See the `Emacs Server'
+    node of the Emacs manul.
+
+  + emacsclientw.exe - A version of emacsclient that does not open
+    a command-line window.
+
+  + addpm.exe - A basic installer that creates Start Menu icons for Emacs.
+    Running this is optional.
+
+  + cmdproxy.exe - Used internally by Emacs to work around problems with
+    the native shells in various versions of Windows.
+
+  + ctags.exe, etags.exe - Tools for generating tag files.  See the
+  `Tags' node of the Emacs manual.
+
+  + ebrowse.exe - A tool for generating C++ browse information.  See the
+    `Ebrowse' manual.
+
+  + ddeclient.exe - A tool for interacting with DDE servers.
+
+  + hexl.exe - A tool for converting files to hex dumps.  See the
+    `Editing Binary Files' node of the Emacs manual.
+
+  + movemail.exe - A helper application for safely moving mail from
+    a mail spool or POP server to a local user mailbox.  See the
+    `Movemail' node of the Emacs manual.
+
+  + digest-doc.exe, sorted-doc.exe - Tools for rebuilding the
+  built-in documentation.
+
 * Further information
 
   There is a web page that serves as a FAQ for the Windows port of

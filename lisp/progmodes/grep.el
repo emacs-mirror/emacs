@@ -408,7 +408,7 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
 	     (grep-find-use-xargs ,grep-find-use-xargs)
 	     (grep-highlight-matches ,grep-highlight-matches)))))
   (let* ((host-id
-	  (intern (or (file-remote-p default-directory 'host) "localhost")))
+	  (intern (or (file-remote-p default-directory) "localhost")))
 	 (host-defaults (assq host-id grep-host-defaults-alist))
 	 (defaults (assq nil grep-host-defaults-alist)))
     ;; There are different defaults on different hosts.  They must be

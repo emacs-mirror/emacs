@@ -52,30 +52,41 @@
 
 (defvar image-mode-current-vscroll nil
   "An alist with elements (WINDOW . VSCROLL).")
+(make-variable-buffer-local 'image-mode-current-vscroll)
 
 (defvar image-mode-current-hscroll nil
   "An alist with elements (WINDOW . HSCROLL).")
+(make-variable-buffer-local 'image-mode-current-hscroll)
 
 (defun image-set-window-vscroll (window vscroll &optional pixels-p)
   (setq image-mode-current-vscroll
-	(append (list (cons window vscroll))
-		(delete (assoc window image-mode-current-vscroll)
-			image-mode-current-vscroll)))
+	(cons (cons window vscroll)
+              (delq (assq window image-mode-current-vscroll)
+                    image-mode-current-vscroll)))
   (set-window-vscroll window vscroll pixels-p))
 
 (defun image-set-window-hscroll (window ncol)
   (setq image-mode-current-hscroll
-	(append (list (cons window ncol))
-		(delete (assoc window image-mode-current-hscroll)
-			image-mode-current-hscroll)))
+	(cons (cons window ncol)
+              (delq (assq window image-mode-current-hscroll)
+                    image-mode-current-hscroll)))
   (set-window-hscroll window ncol))
 
 (defun image-reset-current-vhscroll ()
-  (let ((win (selected-window)))
-    (when (assoc win image-mode-current-hscroll)
-      (set-window-hscroll win (cdr (assoc win image-mode-current-hscroll))))
-    (when (assoc win image-mode-current-vscroll)
-      (set-window-vscroll win (cdr (assoc win image-mode-current-vscroll))))))
+  (walk-windows
+   (lambda (win)
+     (with-current-buffer (window-buffer win)
+       ;; When set-window-buffer, set hscroll and vscroll to what they were
+       ;; last time the image was displayed in this window.  If it's the first
+       ;; time it's displayed in this window, use the most recent setting.
+       (when image-mode-current-hscroll
+         (set-window-hscroll win (cdr (or (assoc win image-mode-current-hscroll)
+                                          (car image-mode-current-hscroll)))))
+       (when image-mode-current-vscroll
+         (set-window-vscroll win (cdr (or (assoc win image-mode-current-vscroll)
+                                          (car image-mode-current-vscroll)))))))
+   'nomini
+   (selected-frame)))
 
 (defun image-forward-hscroll (&optional n)
   "Scroll image in current window to the left by N character widths.
@@ -145,7 +156,7 @@ When calling from a program, supply as argument a number, nil, or `-'."
 	(t (image-next-line (prefix-numeric-value n)))))
 
 (defun image-scroll-down (&optional n)
-  "Scroll image in current window downward by N lines
+  "Scroll image in current window downward by N lines.
 Stop if the top edge of the image is reached.
 If ARG is omitted or nil, scroll downward by a near full screen.
 A near full screen is `next-screen-context-lines' less than a full screen.
@@ -253,8 +264,6 @@ to toggle between display as an image and display as text."
        'image-bookmark-make-cell)
 
   ;; Keep track of [vh]scroll when switching buffers
-  (make-local-variable 'image-mode-current-hscroll)
-  (make-local-variable 'image-mode-current-vscroll)
   (image-set-window-hscroll (selected-window) (window-hscroll))
   (image-set-window-vscroll (selected-window) (window-vscroll))
   (add-hook 'window-configuration-change-hook

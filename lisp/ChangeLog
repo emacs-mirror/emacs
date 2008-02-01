@@ -1,16 +1,47 @@
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el: Partially revert 2007-11-10 change.
+
+2008-02-01  Martin Rudalics  <rudalics@gmx.at>
+
+	* mail/rmail.el (rmail-highlight): Fix specification.
+        Reported by: pod <pod@herald.ox.ac.uk>.
+
+2008-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image-mode.el (image-mode-current-vscroll)
+	(image-mode-current-hscroll): Make buffer-local.
+	(image-set-window-vscroll, image-set-window-hscroll): Simplify.
+	(image-reset-current-vhscroll): Use the latest setting when displaying
+	for the first time in a window.  Apply to all windows in the frame.
+	(image-mode): Don't make image-mode-current-[vh]scroll buffer-local.
+
+	* progmodes/grep.el (grep-compute-defaults):
+	Don't mix up defaults for different connections to the same host.
+
+2008-01-31  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* blank-mode.el: Renamed to whitespace.el.
+
+	* obsolete/whitespace.el: Renamed to obsolete/old-whitespace.el.
+
+2008-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/rcompile.el (remote-compile): Remove broken code.
+
 2008-01-31  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el (image-library-alist): Prefer libxpm.dll.
+
+2008-01-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* linum.el (linum-unload-function): New function.
 
 2008-01-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-set-format-regexp): New constant.
 	(gdb-var-set-format-handler): New function.
 	(gdb-var-set-format): Use it.
-
-2008-01-31  Juanma Barranquero  <lekktu@gmail.com>
-
-	* linum.el (linum-unload-function): New function.
 
 2008-01-30  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -54,22 +85,23 @@
 	* progmodes/cc-langs.el (c-specifier-key): Exclude "template"
 	from this regexp; part of same fix as next change to cc-engine.el.
 
-	* progmodes/cc-engine.el (c-guess-basic-syntax, CASE 5A.5): Anchor
-	the "{" of a template function correctly on "template", not the
+	* progmodes/cc-engine.el (c-guess-basic-syntax, CASE 5A.5):
+	Anchor the "{" of a template function correctly on "template", not the
 	following "<".
 
 	* progmodes/cc-defs.el (c-version): Increase to 5.31.5.
 
 2008-01-29  Tassilo Horn  <tassilo@member.fsf.org>
 
-	* doc-view.el (doc-view-mode): Adapt to i-m-current-[vh]scroll
-	being an alist now.
+	* doc-view.el (doc-view-mode): Adapt to image-mode-current-vscroll
+	and image-mode-current-hscroll being alists now.
 
 	* image-mode.el (image-mode-current-vscroll)
 	(image-mode-current-hscroll): Add doc strings.
 	(image-set-window-vscroll, image-set-window-hscroll)
 	(image-reset-current-vhscroll, image-mode): Adapt to
-	i-m-current-[vh]scroll being an alist now.
+	image-mode-current-vscroll and image-mode-current-hscroll being
+	alists now.
 
 2008-01-29  Martin Rudalics  <rudalics@gmx.at>
 
