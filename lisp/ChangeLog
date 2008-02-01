@@ -1,5 +1,22 @@
 2008-02-01  Juanma Barranquero  <lekktu@gmail.com>
 
+	* whitespace.el (whitespace): Set :version tag to 23.1.
+	(whitespace-turn-off, whitespace-toggle-options): Fix typos.
+	(whitespace-style, whitespace-chars, whitespace-space)
+	(whitespace-hspace, whitespace-tab, whitespace-newline)
+	(whitespace-trailing, whitespace-line, whitespace-space-before-tab)
+	(whitespace-indentation, whitespace-empty, whitespace-space-after-tab)
+	(whitespace-hspace-regexp, whitespace-space-regexp)
+	(whitespace-tab-regexp, whitespace-trailing-regexp)
+	(whitespace-space-before-tab-regexp, whitespace-indentation-regexp)
+	(whitespace-empty-at-bob-regexp, whitespace-empty-at-eob-regexp)
+	(whitespace-space-after-tab-regexp, whitespace-line-column)
+	(whitespace-display-mappings, global-whitespace-toggle-options)
+	(whitespace-cleanup, whitespace-cleanup-region)
+	(whitespace-interactive-char): Doc fixes.
+
+2008-02-01  Juanma Barranquero  <lekktu@gmail.com>
+
 	* whitespace.el (global-whitespace-mode): Fix modeline lighter.
 	When turning off the global mode, turn off the local modes too
 	if whitespace is being unloaded.
