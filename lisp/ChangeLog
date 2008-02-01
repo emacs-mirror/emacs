@@ -1,5 +1,12 @@
 2008-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* image-mode.el (image-mode-current-vscroll)
+	(image-mode-current-hscroll): Make buffer-local.
+	(image-set-window-vscroll, image-set-window-hscroll): Simplify.
+	(image-reset-current-vhscroll): Use the latest setting when displaying
+	for the first time in a window.  Apply to all windows in the frame.
+	(image-mode): Don't make image-mode-current-[vh]scroll buffer-local.
+
 	* progmodes/grep.el (grep-compute-defaults):
 	Don't mix up defaults for different connections to the same host.
 
