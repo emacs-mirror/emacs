@@ -943,7 +943,8 @@ If BACKWARD is non-nil, jump to the previous match."
 (defun doc-view-mode ()
   "Major mode in DocView buffers.
 You can use \\<doc-view-mode-map>\\[doc-view-toggle-display] to
-toggle between displaying the document or editing it as text."
+toggle between displaying the document or editing it as text.
+\\{doc-view-mode-map}"
   (interactive)
 
   (let* ((prev-major-mode (if (eq major-mode 'doc-view-mode)
