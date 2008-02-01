@@ -1,3 +1,7 @@
+2008-02-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* whitespace.el (global-whitespace-mode): Fix modeline lighter.
+
 2008-02-01  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* vc.el (vc-update): Fix bug: Specify branch tip as
@@ -31,7 +35,7 @@
 2008-02-01  Martin Rudalics  <rudalics@gmx.at>
 
 	* mail/rmail.el (rmail-highlight): Fix specification.
-        Reported by: pod <pod@herald.ox.ac.uk>.
+        Reported by pod <pod@herald.ox.ac.uk>.
 
 2008-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -47,9 +51,9 @@
 
 2008-01-31  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* blank-mode.el: Renamed to whitespace.el.
+	* blank-mode.el: Rename to whitespace.el.
 
-	* obsolete/whitespace.el: Renamed to obsolete/old-whitespace.el.
+	* obsolete/whitespace.el: Rename to obsolete/old-whitespace.el.
 
 2008-01-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
