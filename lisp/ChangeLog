@@ -1,3 +1,8 @@
+2008-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/grep.el (grep-compute-defaults):
+	Don't mix up defaults for different connections to the same host.
+
 2008-01-31  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* blank-mode.el: Renamed to whitespace.el.
