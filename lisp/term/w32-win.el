@@ -1254,7 +1254,9 @@ pop-up menu are unaffected by `w32-list-proportional-fonts')."
 ;;; Set default known names for image libraries
 (setq image-library-alist
       '((xpm "libxpm.dll" "xpm4.dll" "libXpm-nox4.dll")
-        (png "libpng13d.dll" "libpng13.dll" "libpng12d.dll" "libpng12.dll" "libpng.dll")
+        (png "libpng12d.dll" "libpng12.dll" "libpng.dll"
+	 ;; these are libpng 1.2.8 from GTK+
+	 "libpng13d.dll" "libpng13.dll")
         (jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
         (tiff "libtiff3.dll" "libtiff.dll")
         (gif "giflib4.dll" "libungif4.dll" "libungif.dll")))
