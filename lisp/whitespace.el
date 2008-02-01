@@ -175,23 +175,23 @@
 ;;
 ;; 1. empty lines at beginning of buffer.
 ;; 2. empty lines at end of buffer.
-;;    If `whitespace-chars' has `empty' as an element, remove all
+;;    If `whitespace-chars' includes the value `empty', remove all
 ;;    empty lines at beginning and/or end of buffer.
 ;;
 ;; 3. 8 or more SPACEs at beginning of line.
-;;    If `whitespace-chars' has `indentation' as an element, replace 8
+;;    If `whitespace-chars' includes the value `indentation', replace 8
 ;;    or more SPACEs at beginning of line by TABs.
 ;;
 ;; 4. SPACEs before TAB.
-;;    If `whitespace-chars' has `space-before-tab' as an element,
+;;    If `whitespace-chars' includes the value `space-before-tab',
 ;;    replace SPACEs by TABs.
 ;;
 ;; 5. SPACEs or TABs at end of line.
-;;    If `whitespace-chars' has `trailing' as an element, remove all
+;;    If `whitespace-chars' includes the value `trailing', remove all
 ;;    SPACEs or TABs at end of line."
 ;;
 ;; 6. 8 or more SPACEs after TAB.
-;;    If `whitespace-chars' has `space-after-tab' as an element,
+;;    If `whitespace-chars' includes the value `space-after-tab',
 ;;    replace SPACEs by TABs.
 ;;
 ;;
@@ -336,7 +336,7 @@
 (defgroup whitespace nil
   "Visualize blanks (TAB, (HARD) SPACE and NEWLINE)."
   :link '(emacs-library-link :tag "Source Lisp File" "whitespace.el")
-  :version "22.2"
+  :version "23.1"
   :group 'wp
   :group 'data)
 
@@ -344,7 +344,7 @@
 (defcustom whitespace-style '(mark color)
   "*Specify the visualization style.
 
-It's a list which element value can be:
+It's a list containing some or all of the following values:
 
    mark		display mappings are visualized.
 
@@ -367,7 +367,7 @@ See also `whitespace-display-mappings' for documentation."
 	 indentation empty space-after-tab)
   "*Specify which kind of blank is visualized.
 
-It's a list which element value can be:
+It's a list containing some or all of the following values:
 
    trailing		trailing blanks are visualized.
 
@@ -404,9 +404,9 @@ Any other value is ignored.
 
 If nil, don't visualize TABs, (HARD) SPACEs and NEWLINEs.
 
-Used when `whitespace-style' has `color' as an element.
-Used also when `whitespace-chars' has `newline' as an element and
-`whitespace-style' has `mark' as an element."
+Used when `whitespace-style' includes the value `color'.
+Used also when `whitespace-chars' includes `newline',
+and `whitespace-style' includes `mark'."
   :type '(repeat :tag "Kind of Blank"
 		 (choice :tag "Kind of Blank"
 			 (const :tag "Trailing TABs, SPACEs and HARD SPACEs"
@@ -428,7 +428,7 @@ Used also when `whitespace-chars' has `newline' as an element and
 (defcustom whitespace-space 'whitespace-space
   "*Symbol face used to visualize SPACE.
 
-Used when `whitespace-style' has `color' as an element."
+Used when `whitespace-style' includes the value `color'."
   :type 'face
   :group 'whitespace)
 
@@ -446,7 +446,7 @@ Used when `whitespace-style' has `color' as an element."
 (defcustom whitespace-hspace 'whitespace-hspace
   "*Symbol face used to visualize HARD SPACE.
 
-Used when `whitespace-style' has `color' as an element."
+Used when `whitespace-style' includes the value `color'."
   :type 'face
   :group 'whitespace)
 
@@ -464,7 +464,7 @@ Used when `whitespace-style' has `color' as an element."
 (defcustom whitespace-tab 'whitespace-tab
   "*Symbol face used to visualize TAB.
 
-Used when `whitespace-style' has `color' as an element."
+Used when `whitespace-style' includes the value `color'."
   :type 'face
   :group 'whitespace)
 
@@ -484,8 +484,8 @@ Used when `whitespace-style' has `color' as an element."
 
 See `whitespace-display-mappings'.
 
-Used when `whitespace-style' has `mark' and `color' as elements
-and `whitespace-chars' has `newline' as an element."
+Used when `whitespace-style' includes the values `mark'
+and `color', and `whitespace-chars' includes `newline'."
   :type 'face
   :group 'whitespace)
 
@@ -505,7 +505,7 @@ See `whitespace-display-mappings'."
 (defcustom whitespace-trailing 'whitespace-trailing
   "*Symbol face used to visualize traling blanks.
 
-Used when `whitespace-style' has `color' as an element."
+Used when `whitespace-style' includes the value `color'."
   :type 'face
   :group 'whitespace)
 
@@ -522,7 +522,7 @@ Used when `whitespace-style' has `color' as an element."
 
 See `whitespace-line-column'.
 
-Used when `whitespace-style' has `color' as an element."
+Used when `whitespace-style' includes the value `color'."
   :type 'face
   :group 'whitespace)
 
@@ -539,7 +539,7 @@ See `whitespace-line-column'."
 (defcustom whitespace-space-before-tab 'whitespace-space-before-tab
   "*Symbol face used to visualize SPACEs before TAB.
 
-Used when `whitespace-style' has `color' as an element."
+Used when `whitespace-style' includes the value `color'."
   :type 'face
   :group 'whitespace)
 
@@ -554,7 +554,7 @@ Used when `whitespace-style' has `color' as an element."
 (defcustom whitespace-indentation 'whitespace-indentation
   "*Symbol face used to visualize 8 or more SPACEs at beginning of line.
 
-Used when `whitespace-style' has `color' as an element."
+Used when `whitespace-style' includes the value `color'."
   :type 'face
   :group 'whitespace)
 
@@ -569,7 +569,7 @@ Used when `whitespace-style' has `color' as an element."
 (defcustom whitespace-empty 'whitespace-empty
   "*Symbol face used to visualize empty lines at beginning and/or end of buffer.
 
-Used when `whitespace-style' has `color' as an element."
+Used when `whitespace-style' includes the value `color'."
   :type 'face
   :group 'whitespace)
 
@@ -584,7 +584,7 @@ Used when `whitespace-style' has `color' as an element."
 (defcustom whitespace-space-after-tab 'whitespace-space-after-tab
   "*Symbol face used to visualize 8 or more SPACEs after TAB.
 
-Used when `whitespace-style' has `color' as an element."
+Used when `whitespace-style' includes the value `color'."
   :type 'face
   :group 'whitespace)
 
@@ -600,7 +600,7 @@ Used when `whitespace-style' has `color' as an element."
   "\\(\\(\xA0\\|\x8A0\\|\x920\\|\xE20\\|\xF20\\)+\\)"
   "*Specify HARD SPACE characters regexp.
 
-If you're using `mule' package, it may exist other characters besides:
+If you're using `mule' package, there may be other characters besides:
 
    \"\\xA0\"   \"\\x8A0\"   \"\\x920\"   \"\\xE20\"   \"\\xF20\"
 
@@ -620,8 +620,8 @@ visualize only HARD SPACEs between TABs.
 NOTE: Enclose always by \\\\( and \\\\) the elements to highlight.
       Use exactly one pair of enclosing \\\\( and \\\\).
 
-Used when `whitespace-style' has `color' as an element, and
-`whitespace-chars' has `spaces' as an element."
+Used when `whitespace-style' includes the value `color',
+and `whitespace-chars' includes `spaces'."
   :type '(regexp :tag "HARD SPACE Chars")
   :group 'whitespace)
 
@@ -629,7 +629,7 @@ Used when `whitespace-style' has `color' as an element, and
 (defcustom whitespace-space-regexp "\\( +\\)"
   "*Specify SPACE characters regexp.
 
-If you're using `mule' package, it may exist other characters
+If you're using `mule' package, there may be other characters
 besides \" \" that should be considered SPACE.
 
 Here are some examples:
@@ -643,8 +643,8 @@ visualize leading and/or trailing SPACEs.
 NOTE: Enclose always by \\\\( and \\\\) the elements to highlight.
       Use exactly one pair of enclosing \\\\( and \\\\).
 
-Used when `whitespace-style' has `color' as an element, and
-`whitespace-chars' has `spaces' as an element."
+Used when `whitespace-style' includes the value `color',
+and `whitespace-chars' includes `spaces'."
   :type '(regexp :tag "SPACE Chars")
   :group 'whitespace)
 
@@ -652,7 +652,7 @@ Used when `whitespace-style' has `color' as an element, and
 (defcustom whitespace-tab-regexp "\\(\t+\\)"
   "*Specify TAB characters regexp.
 
-If you're using `mule' package, it may exist other characters
+If you're using `mule' package, there may be other characters
 besides \"\\t\" that should be considered TAB.
 
 Here are some examples:
@@ -666,8 +666,8 @@ visualize leading and/or trailing TABs.
 NOTE: Enclose always by \\\\( and \\\\) the elements to highlight.
       Use exactly one pair of enclosing \\\\( and \\\\).
 
-Used when `whitespace-style' has `color' as an element, and
-`whitespace-chars' has `tabs' as an element."
+Used when `whitespace-style' includes the value `color',
+and `whitespace-chars' includes `tabs'."
   :type '(regexp :tag "TAB Chars")
   :group 'whitespace)
 
@@ -676,7 +676,7 @@ Used when `whitespace-style' has `color' as an element, and
   "\t\\| \\|\xA0\\|\x8A0\\|\x920\\|\xE20\\|\xF20"
   "*Specify trailing characters regexp.
 
-If you're using `mule' package, it may exist other characters besides:
+If you're using `mule' package, there may be other characters besides:
 
    \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
 \"\\xF20\"
@@ -687,8 +687,8 @@ NOTE: DO NOT enclose by \\\\( and \\\\) the elements to highlight.
       `whitespace-mode' surrounds this regexp by \"\\\\(\\\\(\" and
       \"\\\\)+\\\\)$\".
 
-Used when `whitespace-style' has `color' as an element, and
-`whitespace-chars' has `trailing' as an element."
+Used when `whitespace-style' includes the value `color',
+and `whitespace-chars' includes `trailing'."
   :type '(regexp :tag "Trailing Chars")
   :group 'whitespace)
 
@@ -696,15 +696,15 @@ Used when `whitespace-style' has `color' as an element, and
 (defcustom whitespace-space-before-tab-regexp "\\( +\\)\t"
   "*Specify SPACEs before TAB regexp.
 
-If you're using `mule' package, it may exist other characters besides:
+If you're using `mule' package, there may be other characters besides:
 
    \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
 \"\\xF20\"
 
 that should be considered blank.
 
-Used when `whitespace-style' has `color' as an element, and
-`whitespace-chars' has `space-before-tab' as an element."
+Used when `whitespace-style' includes the value `color',
+and `whitespace-chars' includes `space-before-tab'."
   :type '(regexp :tag "SPACEs Before TAB")
   :group 'whitespace)
 
@@ -713,15 +713,15 @@ Used when `whitespace-style' has `color' as an element, and
   "^\t*\\(\\( \\{8\\}\\)+\\)[^\n\t]"
   "*Specify regexp for 8 or more SPACEs at beginning of line.
 
-If you're using `mule' package, it may exist other characters besides:
+If you're using `mule' package, there may be other characters besides:
 
    \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
 \"\\xF20\"
 
 that should be considered blank.
 
-Used when `whitespace-style' has `color' as an element, and
-`whitespace-chars' has `indentation' as an element."
+Used when `whitespace-style' includes the value `color',
+and `whitespace-chars' includes `indentation'."
   :type '(regexp :tag "Indentation SPACEs")
   :group 'whitespace)
 
@@ -729,15 +729,15 @@ Used when `whitespace-style' has `color' as an element, and
 (defcustom whitespace-empty-at-bob-regexp "\\`\\(\\([ \t]*\n\\)+\\)"
   "*Specify regexp for empty lines at beginning of buffer.
 
-If you're using `mule' package, it may exist other characters besides:
+If you're using `mule' package, there may be other characters besides:
 
    \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
 \"\\xF20\"
 
 that should be considered blank.
 
-Used when `whitespace-style' has `color' as an element, and
-`whitespace-chars' has `empty' as an element."
+Used when `whitespace-style' includes the value `color',
+and `whitespace-chars' includes `empty'."
   :type '(regexp :tag "Empty Lines At Beginning Of Buffer")
   :group 'whitespace)
 
@@ -745,15 +745,15 @@ Used when `whitespace-style' has `color' as an element, and
 (defcustom whitespace-empty-at-eob-regexp "^\\([ \t\n]+\\)\\'"
   "*Specify regexp for empty lines at end of buffer.
 
-If you're using `mule' package, it may exist other characters besides:
+If you're using `mule' package, there may be other characters besides:
 
    \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
 \"\\xF20\"
 
 that should be considered blank.
 
-Used when `whitespace-style' has `color' as an element, and
-`whitespace-chars' has `empty' as an element."
+Used when `whitespace-style' includes the value `color',
+and `whitespace-chars' includes `empty'."
   :type '(regexp :tag "Empty Lines At End Of Buffer")
   :group 'whitespace)
 
@@ -761,15 +761,15 @@ Used when `whitespace-style' has `color' as an element, and
 (defcustom whitespace-space-after-tab-regexp "\t\\(\\( \\{8\\}\\)+\\)"
   "*Specify regexp for 8 or more SPACEs after TAB.
 
-If you're using `mule' package, it may exist other characters besides:
+If you're using `mule' package, there may be other characters besides:
 
    \" \"  \"\\t\"  \"\\xA0\"  \"\\x8A0\"  \"\\x920\"  \"\\xE20\"  \
 \"\\xF20\"
 
 that should be considered blank.
 
-Used when `whitespace-style' has `color' as an element, and
-`whitespace-chars' has `space-after-tab' as an element."
+Used when `whitespace-style' includes the value `color',
+and `whitespace-chars' includes `space-after-tab'."
   :type '(regexp :tag "SPACEs After TAB")
   :group 'whitespace)
 
@@ -777,8 +777,8 @@ Used when `whitespace-style' has `color' as an element, and
 (defcustom whitespace-line-column 80
   "*Specify column beyond which the line is highlighted.
 
-Used when `whitespace-style' has `color' as an element, and
-`whitespace-chars' has `lines' or `lines-tail' as an element."
+Used when `whitespace-style' includes the value `color',
+and `whitespace-chars' includes `lines' or `lines-tail'."
   :type '(integer :tag "Line Length")
   :group 'whitespace)
 
@@ -830,7 +830,7 @@ The NEWLINE character is displayed using the face given by
 be displayed will not have this face applied if the character
 code is above #x1FFFF.
 
-Used when `whitespace-style' has `mark' as an element."
+Used when `whitespace-style' includes the value `mark'."
   :type '(repeat
 	  (list :tag "Character Mapping"
 		(character :tag "Char")
@@ -1070,8 +1070,8 @@ The valid symbols are:
    space-after-tab	toggle SPACEs after TAB visualization
    color		toggle color faces
    mark			toggle visual mark
-   whitespace-chars		restore `whitespace-chars' value
-   whitespace-style		restore `whitespace-style' value
+   whitespace-chars	restore `whitespace-chars' value
+   whitespace-style	restore `whitespace-style' value
 
 Only useful with a windowing system."
   (interactive (whitespace-interactive-char t))
@@ -1103,7 +1103,7 @@ and turn on global whitespace-mode.
 If global whitespace-mode is on, toggle the option given by ARG
 and restart global whitespace-mode.
 
-Interactively, it reads one of the following chars:
+Interactively, it accepts one of the following chars:
 
   CHAR	MEANING
    t	toggle TAB visualization
@@ -1167,32 +1167,32 @@ Only useful with a windowing system."
 It usually applies to the whole buffer, but in transient mark
 mode when the mark is active, it applies to the region.  It also
 applies to the region when it is not in transiente mark mode, the
-mark is active and it was pressed `C-u' just before calling
+mark is active and \\[universal-argument] was pressed just before calling
 `whitespace-cleanup' interactively.
 
 See also `whitespace-cleanup-region'.
 
-The problems, which are cleaned up, are:
+The problems cleaned up are:
 
 1. empty lines at beginning of buffer.
 2. empty lines at end of buffer.
-   If `whitespace-chars' has `empty' as an element, remove all
+   If `whitespace-chars' includes the value `empty', remove all
    empty lines at beginning and/or end of buffer.
 
 3. 8 or more SPACEs at beginning of line.
-   If `whitespace-chars' has `indentation' as an element, replace
+   If `whitespace-chars' includes the value `indentation', replace
    8 or more SPACEs at beginning of line by TABs.
 
 4. SPACEs before TAB.
-   If `whitespace-chars' has `space-before-tab' as an element,
+   If `whitespace-chars' includes the value `space-before-tab',
    replace SPACEs by TABs.
 
 5. SPACEs or TABs at end of line.
-   If `whitespace-chars' has `trailing' as an element, remove all
+   If `whitespace-chars' includes the value `trailing', remove all
    SPACEs or TABs at end of line.
 
 6. 8 or more SPACEs after TAB.
-   If `whitespace-chars' has `space-after-tab' as an element,
+   If `whitespace-chars' includes the value `space-after-tab',
    replace SPACEs by TABs."
   (interactive "@*")
   (if (and (or transient-mark-mode
@@ -1231,22 +1231,22 @@ The problems, which are cleaned up, are:
 (defun whitespace-cleanup-region (start end)
   "Cleanup some blank problems at region.
 
-The problems, which are cleaned up, are:
+The problems cleaned up are:
 
 1. 8 or more SPACEs at beginning of line.
-   If `whitespace-chars' has `indentation' as an element, replace
+   If `whitespace-chars' includes the value `indentation', replace
    8 or more SPACEs at beginning of line by TABs.
 
 2. SPACEs before TAB.
-   If `whitespace-chars' has `space-before-tab' as an element,
+   If `whitespace-chars' includes the value `space-before-tab',
    replace SPACEs by TABs.
 
 3. SPACEs or TABs at end of line.
-   If `whitespace-chars' has `trailing' as an element, remove all
+   If `whitespace-chars' includes the value `trailing', remove all
    SPACEs or TABs at end of line.
 
 4. 8 or more SPACEs after TAB.
-   If `whitespace-chars' has `space-after-tab' as an element,
+   If `whitespace-chars' includes the value `space-after-tab',
    replace SPACEs by TABs."
   (interactive "@*r")
   (let ((rstart           (min start end))
@@ -1447,7 +1447,7 @@ can't split window to display whitespace toggle options"))
 If LOCAL-P is non-nil, it uses a local context; otherwise, it
 uses a global context.
 
-It reads one of the following chars:
+It accepts one of the following chars:
 
   CHAR	MEANING
    t	toggle TAB visualization
@@ -1556,7 +1556,7 @@ options are valid."
 
 
 (defun whitespace-turn-off ()
-  "Turn off whitesapce visualization."
+  "Turn off whitespace visualization."
   (when (memq 'color whitespace-active-style)
     (whitespace-color-off))
   (when (memq 'mark  whitespace-active-style)
