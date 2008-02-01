@@ -124,7 +124,7 @@
 (load "language/utf-8-lang")
 (load "language/georgian")
 (load "language/khmer")
-(load "language/myanmar")
+(load "language/burmese")
 (load "language/cham")
 
 (load "indent")
