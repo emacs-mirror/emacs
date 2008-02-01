@@ -930,8 +930,7 @@ Boston, MA 02110-1301, USA.  */
 #endif
 
 /* Multi-tty support relies on MULTI_KBOARD.  It seems safe to turn it
-   on unconditionally.  Note that src/s/darwin.h disables this at
-   present.  */
+   on unconditionally. */
 #ifndef MULTI_KBOARD
 #define MULTI_KBOARD
 #endif
