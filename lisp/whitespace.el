@@ -179,8 +179,8 @@
 ;;    empty lines at beginning and/or end of buffer.
 ;;
 ;; 3. 8 or more SPACEs at beginning of line.
-;;    If `whitespace-chars' includes the value `indentation', replace 8
-;;    or more SPACEs at beginning of line by TABs.
+;;    If `whitespace-chars' includes the value `indentation', replace
+;;    8 or more SPACEs at beginning of line by TABs.
 ;;
 ;; 4. SPACEs before TAB.
 ;;    If `whitespace-chars' includes the value `space-before-tab',
@@ -276,8 +276,9 @@
 ;; `whitespace-display-mappings'	Specify an alist of mappings
 ;;					for displaying characters.
 ;;
-;; `whitespace-global-modes'	Modes for which global `whitespace-mode' is
-;;				automagically turned on.
+;; `whitespace-global-modes'	Modes for which global
+;;				`whitespace-mode' is automagically
+;;				turned on.
 ;;
 ;;
 ;; Acknowledgements
@@ -917,18 +918,14 @@ Only useful with a windowing system."
     (setq global-whitespace-mode nil))
    (global-whitespace-mode		; global-whitespace-mode on
     (save-excursion
-      (if (boundp 'find-file-hook)
-	  (add-hook 'find-file-hook 'whitespace-turn-on-if-enabled t)
-	(add-hook 'find-file-hooks 'whitespace-turn-on-if-enabled t))
+      (add-hook 'find-file-hook 'whitespace-turn-on-if-enabled t)
       (dolist (buffer (buffer-list))	; adjust all local mode
 	(set-buffer buffer)
 	(unless whitespace-mode
 	  (whitespace-turn-on-if-enabled)))))
    (t					; global-whitespace-mode off
     (save-excursion
-      (if (boundp 'find-file-hook)
-	  (remove-hook 'find-file-hook 'whitespace-turn-on-if-enabled)
-	(remove-hook 'find-file-hooks 'whitespace-turn-on-if-enabled))
+      (remove-hook 'find-file-hook 'whitespace-turn-on-if-enabled)
       (dolist (buffer (buffer-list))	; adjust all local mode
 	(set-buffer buffer)
 	(when (or (not whitespace-mode)
@@ -1137,8 +1134,8 @@ The valid symbols are:
    space-after-tab	toggle SPACEs after TAB visualization
    color		toggle color faces
    mark			toggle visual mark
-   whitespace-chars		restore `whitespace-chars' value
-   whitespace-style		restore `whitespace-style' value
+   whitespace-chars	restore `whitespace-chars' value
+   whitespace-style	restore `whitespace-style' value
 
 Only useful with a windowing system."
   (interactive (whitespace-interactive-char nil))

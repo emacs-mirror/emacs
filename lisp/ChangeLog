@@ -3374,6 +3374,12 @@
 	utf-8.el, and utf-8-subst.el as they can't be bytecompiled
 	currently.  This is just a temporary workaround.
 
+2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el (global-whitespace-mode): Use `find-file-hook' instead
+	of `find-file-hooks'.
+	(global-whitespace-toggle-options): Doc fix.
+
 2008-02-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* whitespace.el (whitespace): Set :version tag to 23.1.
