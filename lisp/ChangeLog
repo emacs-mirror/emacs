@@ -1,3 +1,7 @@
+2008-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* view.el (kill-buffer-if-not-modified): Add an autoload cookie.
+
 2008-02-02  Glenn Morris  <rgm@gnu.org>
 
 	* international/latin1-disp.el (latin1-display):
