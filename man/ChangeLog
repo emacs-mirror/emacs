@@ -1,3 +1,7 @@
+2008-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* maintaining.texi (Tags): Fix last change.
+
 2008-02-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.57.
