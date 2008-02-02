@@ -1,9 +1,9 @@
 ;;; tai-viet.el --- support for Tai Viet -*- coding: utf-8; no-byte-compile: t -*-
 
-;; Copyright (C) 2007
+;; Copyright (C) 2007, 2008
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
-;; Copyright (C) 2007  Free Software Foundation, Inc.
+;; Copyright (C) 2007, 2008  Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, Tai Viet, i18n
 
@@ -11,7 +11,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
