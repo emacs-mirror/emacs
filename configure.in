@@ -2046,6 +2046,11 @@ if test "${HAVE_X11}" = "yes"; then
     fi
   fi
 fi
+dnl For the "Does Emacs use" message at the end.
+if test "$HAVE_XFT" != "yes"; then
+   HAVE_XFT=no
+fi
+
 
 HAVE_FREETYPE=no
 ### Use -lfreetype if available, unless `--with-freetype=no'.
@@ -3069,6 +3074,14 @@ echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
+echo "  Does Emacs use a font backend?                          ${USE_FONT_BACKEND}"
+
+if test "${USE_FONT_BACKEND}" = "yes"; then
+  echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
+  echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"
+  echo "  Does Emacs use -lotf?                                   ${HAVE_LIBOTF}"
+  echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
+fi
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 
