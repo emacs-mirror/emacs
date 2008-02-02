@@ -3985,7 +3985,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
     ;; UNIQUIFY element of `auto-save-file-name-transforms'); but for
     ;; all other cases we must do it ourselves.
     (when (boundp 'auto-save-file-name-transforms)
-      (mapcar
+      (mapc
        '(lambda (x)
 	  (when (and (string-match (car x) buffer-file-name)
 		     (not (car (cddr x))))
@@ -4768,18 +4768,18 @@ They are collected by `tramp-completion-dissect-file-name1'."
 			"\\(" tramp-host-regexp x-nil   "\\)$")
 		1 2 3 nil)))
 
-    (mapcar (lambda (regexp)
-      (add-to-list 'result
-	(tramp-completion-dissect-file-name1 regexp name)))
-      (list
-       tramp-completion-file-name-structure1
-       tramp-completion-file-name-structure2
-       tramp-completion-file-name-structure3
-       tramp-completion-file-name-structure4
-       tramp-completion-file-name-structure5
-       tramp-completion-file-name-structure6
-       tramp-completion-file-name-structure7
-       tramp-file-name-structure))
+    (mapc
+     (lambda (regexp)
+       (add-to-list 'result (tramp-completion-dissect-file-name1 regexp name)))
+     (list
+      tramp-completion-file-name-structure1
+      tramp-completion-file-name-structure2
+      tramp-completion-file-name-structure3
+      tramp-completion-file-name-structure4
+      tramp-completion-file-name-structure5
+      tramp-completion-file-name-structure6
+      tramp-completion-file-name-structure7
+      tramp-file-name-structure))
 
     (delq nil result)))
 
@@ -5264,9 +5264,9 @@ This function expects to be in the right *tramp* buffer."
                      "then echo tramp_executable $d/%s; "
                      "break; fi; done <<'EOF'")
              progname progname progname))
-    (mapcar (lambda (d)
-              (tramp-send-command multi-method method user host d))
-            dirlist)
+    (mapc (lambda (d)
+	    (tramp-send-command multi-method method user host d))
+	  dirlist)
     (tramp-send-command multi-method method user host "EOF")
     (tramp-wait-for-output)
     (goto-char (point-max))
@@ -6256,9 +6256,18 @@ to set up.  METHOD, USER and HOST specify the connection."
   ;; the last time we sent a command, to avoid tramp-send-command to send
   ;; "echo are you awake".
   (setq tramp-last-cmd-time (current-time))
+  (tramp-send-command-internal multi-method method user host
+			       "PROMPT_COMMAND=''")
+  (erase-buffer)
+  (tramp-send-command-internal multi-method method user host
+			       "PS2=''")
+  (erase-buffer)
+  (tramp-send-command-internal multi-method method user host
+			       "PS3=''")
+  (erase-buffer)
   (tramp-send-command
    multi-method method user host
-   (format "PROMPT_COMMAND=''; PS1='%s%s%s'; PS2=''; PS3=''"
+   (format "PS1='%s%s%s'"
 	   tramp-rsh-end-of-line
            tramp-end-of-output
 	   tramp-rsh-end-of-line))
