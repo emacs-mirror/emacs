@@ -3043,7 +3043,7 @@ widget.  If that isn't a list, it's evalled and expected to yield a list."
 	     ;; Replace field with completion in case its case is different.
 	     (delete-region (widget-field-start widget)
 			    (widget-field-end widget))
-	     (insert-and-inherit (car (assoc-ignore-case prefix alist))))
+	     (insert-and-inherit (car (assoc-string prefix alist t))))
 	   (message "Only match"))
 	  ((null completion)
 	   (error "No match"))
@@ -3302,7 +3302,7 @@ It reads a directory name from an editable text field."
       (setq unread-command-events (cons ev unread-command-events)
 	    ev (read-quoted-char (format "Enter code (radix %d)" read-quoted-char-radix))
 	    tr nil)
-      (if (and (integerp ev) (not (char-valid-p ev)))
+      (if (and (integerp ev) (not (characterp ev)))
 	  (insert (char-to-string ev))))  ;; throw invalid char error
     (setq ev (key-description (list ev)))
     (when (arrayp tr)
