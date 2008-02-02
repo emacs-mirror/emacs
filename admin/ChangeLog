@@ -2,7 +2,7 @@
 
 	* unidata/unidata-gen.el (unidata-gen-files): Force unix line ends.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/UnicodeData.txt: Updated to Unicode 5.0.
 
@@ -10,13 +10,13 @@
 
 	* unidata/copyright.html: New file.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el (unidata-get-decomposition): For Hangul
 	decomposition, if T is the same as TBase, don't include it in the
 	returned list.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el (unidata-text-file): Delete it.
 	(unidata-list): Initialize to nil.
@@ -30,7 +30,7 @@
 	(all): Depends on ${DSTDIR}/charprop.el.
 	(${DSTDIR}/charprop.el): Run emacs after cd to DISDIR.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el: Typo fixed in comments.  Change
 	string-to-int to string-to-number.
@@ -46,12 +46,12 @@
 	(charprop.el): Depends on unidata.txt.
 	(clean): Remove unidata.txt.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el (unidata-get-name): Handle "CJK IDEOGRAPH".
 	(unidata-get-name): Handle U+110B.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	Sub-directory `unidata' is for codes to generate charprop.el and
 	many other uni-*.el files from `UnicodeData.txt'.
@@ -63,11 +63,11 @@
 	* unidata/unidata-gen.el: New file.
 
 	* unidata/UnicodeData.txt: New file.  Copied from
-	http://www.unicode.org on 2008-02-02.
+	http://www.unicode.org on 2006-05-23.
 
 	* unidata/.cvsignore: New file.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charsets/.cvsignore: New file.
 
@@ -88,11 +88,11 @@
 	* charsets/Makefile (JISX2131.map): Convert 0x2015 to 0x2014,
 	0x2299 to 0x29BF.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charsets/Makefile (TRANS_TABLE): New macro.
 	(JISX0208.map): Convert 0x2015 to 0x2014.
-	(cp51932.el): New target. 
+	(cp51932.el): New target.
 	(eucjp-ms.el): New target.
 	(install): Include ${TRANS_TABLE}.
 	(CJK): Include JISX213A.map.
@@ -102,7 +102,7 @@
 
 	* charsets/cp51932.awk: New file.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charsets/cp932.awk: New file.
 
@@ -112,14 +112,14 @@
 	* charsets/mapconv: In UNICODE2 case, sort by 4th field after
 	running an awk program.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charsets/mapconv: Handle UNICODE2.
 
 	* charsets/Makefile (CJK): Include CP932-2BYTE.map
 	(CP932-2BYTE.map): New target.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charsets: New directory for scripts to generate charset map
 	files in ../etc/charsets/.
