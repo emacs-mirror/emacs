@@ -1686,7 +1686,7 @@ options are valid."
 (defsubst whitespace-char-valid-p (char)
   ;; This check should be improved!!!
   (or (< char 256)
-      (char-valid-p char)))
+      (characterp char)))
 
 
 (defun whitespace-display-vector-p (vec)
