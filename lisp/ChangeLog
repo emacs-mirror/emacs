@@ -8,8 +8,8 @@
 
 2008-02-01  Richard Stallman  <rms@gnu.org>
 
-	* language/burmese.el: Renamed from myanmar.el.
-	("Burmese"): Renamed from "Myanmar".
+	* language/burmese.el: Rename from myanmar.el.
+	("Burmese"): Rename from "Myanmar".
 
 2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
 
