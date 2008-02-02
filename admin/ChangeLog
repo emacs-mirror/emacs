@@ -1,5 +1,7 @@
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
+	* unidata/Makefile.in: Renamed from Makefile.
+
 	* unidata/makefile.w32-in: New file.
 
 2008-02-02  Jason Rumney  <jasonr@gnu.org>
