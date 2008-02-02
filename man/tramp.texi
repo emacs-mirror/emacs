@@ -1,6 +1,6 @@
 \input texinfo   @c -*-texinfo-*-
-@c %**start of header
 @setfilename ../info/tramp
+@c %**start of header
 @settitle TRAMP User Manual
 @setchapternewpage odd
 @c %**end of header
@@ -25,8 +25,8 @@
 @end macro
 
 @copying
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+  2006, 2007, 2008 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -37,9 +37,9 @@ Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
 license is included in the section entitled ``GNU Free Documentation
 License'' in the Emacs manual.
 
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
+(a) The FSF's Back-Cover Text is: ``You have the freedom to
+copy and modify this GNU manual.  Buying copies from the FSF
+supports it in developing GNU and promoting software freedom.''
 
 This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
