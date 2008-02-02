@@ -2083,9 +2083,9 @@ if test "${HAVE_FREETYPE}" = "yes"; then
     if test "X${with_pkg_config_prog}" != X; then
       PKG_CONFIG="${with_pkg_config_prog}"
     fi
-    PKG_CHECK_MODULES(LIBOTF, libotf, pkg_check_libotf=yes, 
-                      pkg_check_libotf=no)
-    if test "$pkg_check_libotf" = "yes"; then
+    PKG_CHECK_MODULES(LIBOTF, libotf, HAVE_LIBOTF=yes, 
+                      HAVE_LIBOTF=no)
+    if test "$HAVE_LIBOTF" = "yes"; then
       AC_DEFINE(HAVE_LIBOTF, 1,
                 [Define to 1 if you have libotf library.])
     fi
@@ -2099,9 +2099,9 @@ if test "${with_m17n_flt}" != "no"; then
     PKG_CONFIG="${with_pkg_config_prog}"
   fi
   dnl Checks for libraries.
-  PKG_CHECK_MODULES(M17N_FLT, m17n-flt, pkg_check_m17n_flt=yes, 
-                    pkg_check_m17n_flt=no)
-  if test "$pkg_check_m17n_flt" = "yes"; then
+  PKG_CHECK_MODULES(M17N_FLT, m17n-flt, HAVE_M17N_FLT=yes, 
+                    HAVE_M17N_FLT=no)
+  if test "$HAVE_M17N_FLT" = "yes"; then
     AC_DEFINE(HAVE_M17N_FLT, 1,
               [Define to 1 if you have m17n-flt library.])
   fi

@@ -13042,7 +13042,7 @@ fi
 
 
   if test "$PKG_CONFIG" = "no" ; then
-     pkg_check_libotf=no
+     HAVE_LIBOTF=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
@@ -13085,12 +13085,12 @@ echo "${ECHO_T}no" >&6; }
   fi
 
   if test $succeeded = yes; then
-     pkg_check_libotf=yes
+     HAVE_LIBOTF=yes
   else
-     pkg_check_libotf=no
+     HAVE_LIBOTF=no
   fi
 
-    if test "$pkg_check_libotf" = "yes"; then
+    if test "$HAVE_LIBOTF" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBOTF 1
@@ -13151,7 +13151,7 @@ fi
 
 
   if test "$PKG_CONFIG" = "no" ; then
-     pkg_check_m17n_flt=no
+     HAVE_M17N_FLT=no
   else
      PKG_CONFIG_MIN_VERSION=0.9.0
      if $PKG_CONFIG --atleast-pkgconfig-version $PKG_CONFIG_MIN_VERSION; then
@@ -13194,12 +13194,12 @@ echo "${ECHO_T}no" >&6; }
   fi
 
   if test $succeeded = yes; then
-     pkg_check_m17n_flt=yes
+     HAVE_M17N_FLT=yes
   else
-     pkg_check_m17n_flt=no
+     HAVE_M17N_FLT=no
   fi
 
-  if test "$pkg_check_m17n_flt" = "yes"; then
+  if test "$HAVE_M17N_FLT" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_M17N_FLT 1

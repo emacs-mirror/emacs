@@ -1,3 +1,11 @@
+2008-02-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* configure.in: For libotf and m17n-flt checks, set shell vars
+	HAVE_LIBOTF and HAVE_M17N_FLT instead of pkg_check_libotf and
+	pkg_check_m17n_flt, respectively, for the sake of the summary output.
+	Reported by Ulrich Mueller.
+	* configure: Regenerated.
+
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.in: If admin/unidata/UnicodeData.txt is present, copy
