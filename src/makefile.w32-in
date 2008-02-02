@@ -27,6 +27,8 @@ ALL = emacs
 # Set EMACSLOADPATH correctly (in case already defined in environment).
 EMACSLOADPATH=$(CURDIR)/../lisp
 
+SRC		= .
+
 #
 # HAVE_CONFIG_H is required by some generic gnu sources stuck into
 # the emacs source tree.
@@ -45,7 +47,15 @@ TLASTLIB	= $(BLD)/lastfile.$(A)
 
 DOC		= $(OBJDIR)/etc/DOC-X
 
-FULL_LINK_FLAGS      = $(LINK_FLAGS) $(TEMACS_EXTRA_LINK)
+FULL_LINK_FLAGS = $(LINK_FLAGS) $(TEMACS_EXTRA_LINK)
+
+CHARPROP	= $(SRC)/../lisp/international/charprop.el
+UNIDATA		= $(SRC)/$(BLD)/unidata.txt
+UNIDATA_SRC	= $(SRC)/../admin/unidata/UnicodeData.txt
+UNIDATA_GEN	= $(SRC)/../admin/unidata/unidata-gen.elc
+UNIDATA_GEN_SRC	= $(SRC)/../admin/unidata/unidata-gen.el
+UNIDATA_DEST	= $(SRC)/../lisp/international
+RUNTEMACS	= "$(SRC)/$(BLD)/temacs.exe"
 
 #
 # Split up the objects into two sets so that we don't run out of
@@ -168,7 +178,7 @@ all:            $(ALL)
 # The dumped executable
 #
 emacs:          stamp_BLD $(EMACS)
-$(EMACS):       $(DOC) $(TEMACS)
+$(EMACS):       $(DOC) $(TEMACS) $(CHARPROP)
 	"$(THISDIR)/$(BLD)/temacs.exe" -batch -l loadup dump
 	-"$(THISDIR)/$(BLD)/emacs.exe" -q -batch -f list-load-path-shadows
 
@@ -182,7 +192,7 @@ temacs:         stamp_BLD $(TEMACS)
 $(TEMACS):      $(TLIB0) $(TLIB1) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES) \
 		  ../nt/$(BLD)/addsection.exe
 	$(LINK) $(LINK_OUT)$(TEMACS_TMP) $(FULL_LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
-	"../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 20
+	"../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 21
 	echo $(OBJ0) > $(BLD)/buildobj.lst
 	echo $(OBJ1) >> $(BLD)/buildobj.lst
 	echo $(WIN32OBJ) >> $(BLD)/buildobj.lst
@@ -248,6 +258,17 @@ $(TLASTLIB):	$(BLD)/lastfile.$(O)
 	- $(DEL) $@
 	$(AR) $(AR_OUT)$@ $(ALL_DEPS)
 
+$(CHARPROP):	$(UNIDATA) $(UNIDATA_GEN)
+	$(RUNTEMACS) -batch --load $(UNIDATA_GEN) -f unidata-gen-files $(UNIDATA)
+	$(CP) *.el ../lisp/international
+	$(RM) *.el
+
+$(UNIDATA): $(UNIDATA_SRC)
+	sed -e $(ARGQUOTE)s/\([^;]*\);\(.*\)/(#x\1 $(DQUOTE)\2$(DQUOTE))/$(ARGQUOTE) -e $(ARGQUOTE)s/;/$(DQUOTE) $(DQUOTE)/g$(ARGQUOTE) < $< > $@
+
+$(UNIDATA_GEN): $(UNIDATA_GEN_SRC)
+	$(RUNTEMACS) -batch -f batch-byte-compile $(UNIDATA_GEN_SRC)
+
 #
 # Assuming INSTALL_DIR is defined, build and install emacs in it.
 #
@@ -278,7 +299,6 @@ cleanall:	clean
 ### DEPENDENCIES ###
 
 EMACS_ROOT	= ..
-SRC		= .
 
 $(BLD)/abbrev.$(O) : \
 	$(SRC)/abbrev.c \
