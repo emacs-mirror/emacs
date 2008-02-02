@@ -1,5 +1,8 @@
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in (unidatagen-SH, unidatagen-clean-SH): Ignore
+	return status.
+
 	* configure.bat (dontCopy): Rename admin/unidata/Makefile to keep
 	it out of the way of Windows generated file.  Generate
 	admin/unidata/makefile.
