@@ -233,7 +233,7 @@
 	x-selection-value.
 
 	* select.el (selection-coding-system)
-	(next-selection-coding-system): Declaration moded from xselect.c.
+	(next-selection-coding-system): Move declarations from xselect.c.
 	(x-get-selection): Decode by selection-coding-system if it is
 	non-nil.  If it is nil, decode by a proper coding system.  Handle
 	C_STRING.
