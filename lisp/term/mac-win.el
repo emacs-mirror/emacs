@@ -2077,7 +2077,7 @@ the echo area or in a buffer where the cursor is not displayed."
    ""))
 
 (defun mac-keyboard-translate-char (ch)
-  (if (and (char-valid-p ch)
+  (if (and (characterp ch)
 	   (or (char-table-p keyboard-translate-table)
 	       (and (or (stringp keyboard-translate-table)
 			(vectorp keyboard-translate-table))
