@@ -196,7 +196,7 @@ Normally a space."
   :type  'string
   :group 'fortran-comment)
 (put 'fortran-comment-indent-char 'safe-local-variable
-     (lambda (value) (or (char-valid-p value)
+     (lambda (value) (or (characterp value)
                          (and (stringp value)
                               (= (length value) 1)))))
 
