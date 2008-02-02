@@ -117,6 +117,11 @@ Installed 2008-01-08 fix does not work right.
 http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html
 http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01114.html
 
+** The data segment size increased after the unicode-2 merge.
+The "data" size increased for temacs from ~4MB to ~11MB on x86. 
+http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00951.html
+
+
 * DOCUMENTATION
 
 ** Check the Emacs Tutorial.
