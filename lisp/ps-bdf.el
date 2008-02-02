@@ -240,7 +240,7 @@ CODE, where N and CODE are in the following relation:
 	  (goto-char (point-min))
 	  (search-forward "\nFONT ")
 	  (if (looking-at "-[^-]*-[^-]*-[^-]*-[^-]*-[^-]*-[^-]*-\\([0-9]+\\)")
-	      (setq size (string-to-int (match-string 1)))
+	      (setq size (string-to-number (match-string 1)))
 	    (search-forward "\nSIZE ")
 	    (setq size (read (current-buffer)))
 	    ;; The following kludgy code is t avoid bugs of several
