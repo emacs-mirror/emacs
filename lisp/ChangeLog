@@ -1,3 +1,18 @@
+2008-02-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.57.
+
+	* net/tramp.el (tramp-handle-make-auto-save-file-name)
+	(tramp-completion-dissect-file-name, tramp-find-executable): Use
+	`mapc' instead of `mapcar'.
+	(tramp-open-connection-setup-interactive-shell): Send only single
+	prompt setting commands, in order to avoid double-prompt.
+
+	* net/tramp-vc.el (tramp-vc-do-command): Use `mapc' instead of
+	`mapcar'.
+
+	* net/trampver.el: Update release number.
+
 2008-02-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/etags.el (next-file): Improve revert message.
