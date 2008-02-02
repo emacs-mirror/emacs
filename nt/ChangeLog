@@ -1,3 +1,11 @@
+2008-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (unidatagen-nmake, unidatagen-clean-nmake)
+	(unidatagen-CMD, unidatagen-clean-CMD, unidatagen-SH)
+	(unidatagen-clean-SH): New targets.
+	(bootstrap-nmake): Invoke unidatagen-nmake.
+	(bootstrap-gmake): Invoke unidatagen-$(SHELLTYPE).
+
 2008-02-02  Jason Rumney  <jasonr@gnu.org>
 
 	* configure.bat (withfont): Set sep1 after modifying usercflags.
