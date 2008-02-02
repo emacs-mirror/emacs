@@ -1,37 +1,29 @@
-2008-02-02  Miles Bader  <miles@gnu.org>
+2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* configure.in: Use OPTION_DEFAULT_ON for [freetype], [xft],
 	[libotf], and [m17n-flt] options.
 
-	* configure: Re-generated.
-
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
-
-	* configure: Re-generated.
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* configure.in: Add EMACS_ARG_N([libotf]...), and
 	EMACS_ARG_N([m17n-flt].  Set back OLD_CPPFLAGS to CPPFLAGS (not
 	CFLAGS) in XFT checking part.  Don't alter C_SWITCH_X_SITE,
 	CFLAGS, and LIBS in checking of m17n-flt.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
-
-	* configure: Re-generated.
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* configure.in: Check the availability of m17n-flt library.
 
-2008-02-02  Juanma Barranquero  <lekktu@gmail.com>
+2008-02-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .cvsignore: Add data and site-lisp.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
-
-	* configure: Re-generated.
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* configure.in: Don't define HAVE_LIBOTF if OTF_get_features is
 	not available.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* configure.in: New args --enable-font-backend, --with-xft,
 	--with-freetyp.  New AC_DEFINEs USE_FONT_BACKEND, HAVE_XFT,
@@ -39,25 +31,19 @@
 	FREETYPE_CFLAGS, FREETYPE_LIBS, FONTCONFIG_CFLAGS,
 	FONTCONFIG_LIBS, LIBOTF_CFLAGS, LIBOTF_LIBS.
 
-	* configure: Re-generated.
-
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* make-dist: Include etc/charsets in tarball.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* configure.in: While running cpp on junk.c, include
 	-DHAVE_UNIDATA in CPPFLAGS if admin/unidata/UnicodeData.txt
 	exists.
 
-	* configure: Re-generated.
-
 2008-01-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (xtensa): Match more configurations.
-
-	* configure: Regenerate.
 
 2008-01-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
