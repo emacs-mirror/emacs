@@ -1,13 +1,14 @@
 ;;; cap-words.el --- minor mode for motion in CapitalizedWordIdentifiers
 
-;; Copyright (C) 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: languages
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
 ;; This file is distributed in the hope that it will be useful,
@@ -16,9 +17,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -33,8 +34,8 @@
 
 ;;; Code:
 
-(defun capitalized-next-word-boundary (pos limit)
-  "Function for use in `next-word-boundary-function-table'.
+(defun capitalized-find-word-boundary (pos limit)
+  "Function for use in `find-word-boundary-function-table'.
 Looks for word boundaries before capitals."
   (save-excursion
     (goto-char pos)
@@ -50,11 +51,12 @@ Looks for word boundaries before capitals."
 	    (re-search-backward "\\<" limit t))))
     (point)))
 
-(defconst capitalized-next-word-boundary-function-table
+
+(defconst capitalized-find-word-boundary-function-table
   (let ((tab (make-char-table nil)))
-    (set-char-table-range tab t #'capitalized-next-word-boundary)
+    (set-char-table-range tab t #'capitalized-find-word-boundary)
     tab)
-  "Assigned to `next-word-boundary-function-table' in Capitalized Words mode.")
+  "Assigned to `find-word-boundary-function-table' in Capitalized Words mode.")
 
 ;;;###autoload
 (define-minor-mode capitalized-words-mode
@@ -85,8 +87,8 @@ trouble if such identifiers aren't used.
 See also `glasses-mode' and `studlify-word'.
 Obsoletes `c-forward-into-nomenclature'."
   nil " Caps" nil :group 'programming
-  (set (make-local-variable 'next-word-boundary-function-table)
-       capitalized-next-word-boundary-function-table))
+  (set (make-local-variable 'find-word-boundary-function-table)
+       capitalized-find-word-boundary-function-table))
 
 (provide 'cap-words)
 
