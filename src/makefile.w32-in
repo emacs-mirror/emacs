@@ -261,7 +261,7 @@ $(TLASTLIB):	$(BLD)/lastfile.$(O)
 $(CHARPROP):	$(UNIDATA) $(UNIDATA_GEN)
 	$(RUNTEMACS) -batch --load $(UNIDATA_GEN) -f unidata-gen-files $(UNIDATA)
 	$(CP) *.el ../lisp/international
-	$(RM) *.el
+	$(DEL) *.el
 
 $(UNIDATA): $(UNIDATA_SRC)
 	sed -e $(ARGQUOTE)s/\([^;]*\);\(.*\)/(#x\1 $(DQUOTE)\2$(DQUOTE))/$(ARGQUOTE) -e $(ARGQUOTE)s/;/$(DQUOTE) $(DQUOTE)/g$(ARGQUOTE) < $< > $@
