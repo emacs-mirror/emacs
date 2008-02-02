@@ -26,12 +26,12 @@
 	(realize_named_face): Call lface_from_face_name directly, and use
 	the fact that merge_face_vectors does not alter its FROM argument.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_read_socket) <WM_CHAR>: Decode non-Unicode
 	input in the default locale. Handle non-Unicode multibyte input.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* fontset.c (reorder_font_vector): Exclude nil elements from the
 	font group.  Don't try multiple fonts.
@@ -42,7 +42,7 @@
 	* Makefile.in (lisp): Add cham.el.
 	(shortlisp): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* font.h (FONTP): Make it return 1 also for a font-object.
 
@@ -63,23 +63,23 @@
 	no font for the target.
 	(Finternal_char_font): Adjusted for the change of RFONT-DEF.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* font.c (font_load_for_face): Handle the case that the font in
 	face->lface is a string.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xfaces.c (set_lface_from_font_and_fontset): Set the fontname in
 	lface.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xfaces.c (Finternal_set_lisp_face_attribute) [USE_FONT_BACKEND]:
 	Fix previous change.  If the frame is not on a window system,
 	signal an error.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* coding.c (decode_coding_object): Adjuste marker positions after
 	conversion.
@@ -87,7 +87,7 @@
 
 	* lisp.h (struct Lisp_Marker): New member need_adjustment.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* font.c (font_find_for_lface): Fix the handling of the return
 	value of font_has_char.
@@ -102,12 +102,12 @@
 	(new_fontset_from_font): Make the specified font the default for
 	all Latin characters.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xfaces.c (Finternal_set_lisp_face_attribute): Check if the frame
 	is on a window system before accessing the fontset of the frame.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* Makefile.in (lisp): Add kherm.el and myanmar.el.
 	(shortlisp): Likewise.
@@ -119,7 +119,7 @@
 	shaper function, make zero-width glyphs to have at least one-pixel
 	width.  Fix setting of `to' field of glyphs.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* ftfont.c (ftfont_drive_otf): Fix setting of FROM and TO slots of
 	glyphs.
@@ -127,7 +127,7 @@
 	* font.h (struct font_driver): Docstring of member `shape' is
 	improved.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (syms_of_composite): Fix docstring of
 	auto-composition-function.
@@ -152,7 +152,7 @@
 
 	* xftfont.c (xftfont_encode_char): Use the macro FONT_INVALID_CODE.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* font.c (Ffont_shape_text): Avoid unnecessary composition.
 
@@ -164,7 +164,7 @@
 	(face_for_char): Map the charset property by
 	Vfont_encoding_charset_alist.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (logfonts_match): Don't check adstyle here.
 	(font_matches_spec): Check here against physical font instead.
@@ -175,7 +175,7 @@
 	(font_score) [WINDOWSNT]: Scale weight difference down to closer
 	match freetype scores.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_text_extents): Don't use the frame stored in the
 	font, as it may have been deleted.
@@ -187,7 +187,7 @@
 
 	* w32font.h (w32font_get_cache): Update declaration.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* ftfont.c (ftfont_get_cache): Adjust the argument type.
 
@@ -214,7 +214,7 @@
 
 	* fontset.c (fontset_find_font): Fix previous change.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xterm.c (x_check_font) [USE_FONT_BACKEND]: Don't access
 	dpyinfo->font_table.
@@ -229,7 +229,7 @@
 	the position here, and call font_at with the arg C -1.  Don't
 	check the range of the existing composition at the point.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* fontset.c (fontset_add): New args charset_id and famliy.  Caller
 	changed.
@@ -241,7 +241,7 @@
 	* xdisp.c (handle_auto_composed_prop): Use Fget_text_property
 	instead of get_property_and_range.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xftfont.c (struct xftfont_info): Delete the member ft_face.
 	(xftfont_open): Don't keep locking face.
@@ -252,7 +252,7 @@
 	* fontset.c (fontset_find_font): Don't prefer a font of
 	supplementary charset.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (struct OpenTypeSpec): Members script_tag renamed to
 	script, langsys_tag renamed to langsys, new member script.
@@ -261,7 +261,7 @@
 	listing to the script specified in that property.  Fix arg to
 	OTF_check_features.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.h: New file.
 
@@ -284,7 +284,7 @@
 
 	* makefile.w32-in (w32font.o): Depend on w32font.h.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* charset.c (Fdefine_charset_internal): Record a supplementary
 	charset at the tail of Vcharset_order_list.
@@ -295,7 +295,7 @@
 
 	* xdisp.c (handle_auto_composed_prop): Fix previous change.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* ftfont.c (struct OpenTypeSpec): New struct.
 	(OTF_SYM_TAG, OTF_TAG_STR): New macros.
@@ -305,24 +305,24 @@
 	* lread.c (read1): Redo the previous change with checking
 	Vpurify_flag.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (add_font_entity_to_list): Compare only the beginning
 	of full name.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (handle_auto_composed_prop): Simplify the code.  Never
 	return HANDLED_RECOMPUTE_PROPS.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_gstring_produce): Delete it.
 
 	* composite.h (COMPOSITION_METHOD): Handle
 	COMPOSITION_WITH_GLYPH_STRING.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xfont.c (Qx): Deleted.
 	(syms_of_xfont): Don't initialize Qx.
@@ -330,7 +330,7 @@
 	* composite.h (enum composition_method): Define
 	COMPOSITION_WITH_GLYPH_STRING unconditionally.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xfaces.c [HAVE_WINDOW_SYSTEM]: Include "font.h" unconditionally.
 	(choose_face_font): Accept new form of font-spec.
@@ -355,16 +355,16 @@
 	ftfont_info only when HAVE_LIBOTF is defined.
 
 >>>>>>> 1.1.2.202
-2008-02-02  Andreas Schwab  <schwab@suse.de>
+2008-02-01  Andreas Schwab  <schwab@suse.de>
 
 	* xdisp.c (back_to_previous_visible_line_start): Fix type of beg
 	and end.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_driver): Add new fields.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* config.in: Re-generated.
 
@@ -461,15 +461,15 @@ third arg it->window.
 	* xterm.c (x_draw_composite_glyph_string_foreground): Adjusted for
 	the change of lispy gstring.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* ftxfont.c (ftxfont_end_for_frame): Fix array indexing error.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_draw): Fill background manually.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* font.c (Qfontp): Remove unused symbol.
 	(QCantialias): New symbol.
@@ -486,16 +486,16 @@ third arg it->window.
 	Set antialias parameter if non-default was requested.
 	(fill_in_logfont): Fill in lfQuality if :antialias specified.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* lread.c (read1): Undo the previous change.
 
-2008-02-02  CHENG Gao  <chenggao@gmail.com>  (tiny change)
+2008-02-01  CHENG Gao  <chenggao@gmail.com>  (tiny change)
 
 	* frame.c (Fdelete_frame): Call font_update_drivers only when
 	USE_FONT_BACKEND is defined..
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* font.h (struct font_bitmap): New member bits_per_pixel.
 	(struct font_driver): New members start_for_frame and end_for_frame.
@@ -532,14 +532,14 @@ third arg it->window.
 
 	* ftfont.c (ftfont_get_bitmap): Set bitmap->bits_per_pixel.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xselect.c (Vselection_coding_system)
 	(Vnext_selection_coding_system): Delete them.
 	(syms_of_xselect): Don't declare selection-coding-system and
 	next-selection-coding-system.  They are declared in select.el.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.h (WM_UNICHAR, UNICODE_NOCHAR): Define if not already.
 
@@ -554,7 +554,7 @@ third arg it->window.
 	* w32term.c (w32_read_socket) [WM_UNICHAR]: Handle as
 	MULTIBYTE_CHAR_KEYSTROKE_EVENT.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* lread.c (READCHAR): Call readchar with the 2nd arg NULL.
 	(READCHAR_REPORT_MULTIBYTE): New macro.
@@ -563,12 +563,12 @@ third arg it->window.
 	symbol's name multibyte according to the multibyteness of the
 	source.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xfaces.c (face_for_overlay_string): Call lookup_face with
 	correct arguments (fix of synching with the trunk).
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_prop_validate_symbol): The argument prop_index is
 	deleted.
@@ -579,28 +579,28 @@ third arg it->window.
 	(font_lispy_object): Deleted.
 	(font_at): Use font_find_object instead fo font_lispy_object.
 
-2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* fileio.c (Fexpand_file_name): Adjust multibyteness of directory
 	and file names.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (add_font_name_to_list): Avoid vertical fonts.
 	(font_matches_spec): Remove debug output.
 	(add_font_entity_to_list): Avoid using substituted fonts.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* doc.c (Fsnarf_documentation):
 	* Makefile.in (temacs${EXEEXT}, mostlyclean): Undo last change.
 
-2008-02-02  Miles Bader  <miles@gnu.org>
+2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* src/dispextern.h (struct glyph_row): Only define "clip" field if
 	HAVE_WINDOW_SYSTEM is defined.
 
-2008-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+2008-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	Fix up multi-tty merge.
 
@@ -649,16 +649,16 @@ third arg it->window.
 
 	* ChangeLog.10: Add mistakenly removed entry.
 
-2008-02-02  Dan Nicolaescu  <dann@ics.uci.edu>
+2008-02-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (fringe.o, minibuf.o): Fix dependencies.
 
-2008-02-02  Miles Bader  <miles@gnu.org>
+2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* xdisp.c (get_char_face_and_encoding): Remove extraneous definition.
 	Add extra args to FACE_FOR_CHAR.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (where_is_internal_1): If key is a cons, store the copy
 	in sequence.
@@ -668,16 +668,16 @@ third arg it->window.
 	is not 3.
 	(map_char_table): Likewise.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_text_extents): Calculate metrics for the
 	whole string.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32xfns.c (get_next_msg): Consolidate WM_PAINT messages.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_set_glyph_string_clipping): Use
 	get_glyph_string_clip_rects.
@@ -687,7 +687,7 @@ third arg it->window.
 
 	* w32font.c (w32font_draw): Do clipping here.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_draw): Adjusted for the change of struct
 	glyph_string.
@@ -708,28 +708,28 @@ third arg it->window.
 	(struct glyph_string): Delete members clip_x, clip_y, clip_width,
 	clip_height, new member clip, and num_clips.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* data.c (Fchar_or_string_p): Fix docstring.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_draw): If s->font_info != s->face->font_info,
 	create a temporal XftDraw object.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (Ffontp): Fix docstring.
 
 	* coding.c (detect_coding_iso_2022): Don't treat SI/SO codes as a
 	strong evidence of ISO-2022.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* abbrev.c (abbrev_check_chars): Use CHAR_TABLE_REF, not
 	SYNTAX_ENTRY_FOLLOW_PARENT.
 
-2008-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+2008-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fns.c (weak_hash_tables): Rename from Vweak_hash_tables and change
 	its type.
@@ -769,42 +769,42 @@ third arg it->window.
 	* src/xmenu.c:
 	* src/xterm.c: Replace uses of GC_* macros with the non-GC_ versions.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* chartab.c (map_sub_char_table): Make it work for the top-level
 	char-table.  Fix handling of parent char-table.
 	(map_char_table):  Adjust for the above change.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (Qgdi): Rename from Qw32.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32bdf.c (get_quoted_string): Make function static.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_open): If one of font's ASCII glyph has
 	bigger ascent and descent than those of the font, use them as
 	font's ascent and descent.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (${lispsource}international/charprop.el): Move this
 	target within "#ifdef HAVE_UNIDATA" and "#endif".
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (lisp): Add ${lispsource}language/tai-viet.el.
 	(shortlisp): Add ../lisp/language/tai-viet.el.
 
-2008-02-02  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
+2008-02-01  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
 
 	* Makefile.in (${lispsource}international/charprop.el): Depend on
 	temacs${EXEEXT}.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_close): Delete the GDI font object.
 
@@ -816,7 +816,7 @@ third arg it->window.
 
 	* makefile.w32-in (w32proc.o): Depend on character.h
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (syms_of_w32fns): Use DEFSYM macro.
 
@@ -828,18 +828,18 @@ third arg it->window.
 
 	* w32term.c (syms_of_w32term): Likewise.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_draw): Delete brush after using it.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_open): Don't set font_idx.
 	(w32font_text_extents): Try GetTextExtentPoint32W before defaulting
 	to font settings.
 	(w32font_draw): Fill background explicitly.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_initialize): Don't call w32font_initialize.
 
@@ -885,7 +885,7 @@ third arg it->window.
 	(w32font_initialize): Remove.
 	(syms_of_w32font): Update which symbols are defined.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* font.c (font_pixel_size): Reverse assq_no_quit args.
 
@@ -901,14 +901,14 @@ third arg it->window.
 
 	* w32fns.c (w32_load_system_font, w32_list_fonts): Use FONT_AVG_WIDTH.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_open): Make lfHeight negative.
 
 	* w32fns.c (x_default_font_parameter): Use new style font name.
 	(Fx_create_frame, x_create_tip_frame): Initialize resx and resy.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (QCsubranges): New symbol.
 	(w32font_open, w32font_has_char): Get subranges from subproperty
@@ -961,20 +961,20 @@ third arg it->window.
 
 	* w32font.c: New file for w32 font backend.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* term.c: Don't include "buffer.h" twice.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (skip_syntaxes): Synch with the trunk.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (Funibyte_string): New function.
 	(syms_of_character): Defsubr it.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c [USE_FONT_BACKEND]:
 	(x_get_font_repertory, note_mouse_movement, x_set_mouse_face_gc):
@@ -983,17 +983,17 @@ third arg it->window.
 	(x_draw_composite_glyph_string_foreground, x_new_fontset2):
 	(x_free_frame_resources): Sync with xterm.c.
 
-2008-02-02  Andreas Schwab  <schwab@suse.de>
+2008-02-01  Andreas Schwab  <schwab@suse.de>
 
 	* lread.c (read1): Use CHAR_TABLE_STANDARD_SLOTS to validate
 	char-table size.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (check_otf_features): Define it regardless of
 	HAVE_LIBOTF.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_driver): Delete font_otf_gsub and
 	font_otf_gpos, add font_drive_otf.
@@ -1028,7 +1028,7 @@ third arg it->window.
 	(font_otf_gsub, font_otf_gpos): Delete externs.
 	(font_drive_otf): Extern it.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_at): If the window W is not on a window system,
 	return Qnil.
@@ -1037,20 +1037,20 @@ third arg it->window.
 	characters to produce.
 	(encode_coding): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (free_realized_fontsets): Avoid unnecessary call of
 	Fclear_face_cache.
 
 	* xfaces.c (face_for_font): Check also face->font==font->font.font.
 
-2008-02-02  Miles Bader  <miles@gnu.org>
+2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* emacs.c (main): Change default value of `enable_font_backend' to 1.
 	Parse "--disable-font-backend" option.
 	(standard_args): Add "--disable-font-backend" option.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_find_font): New function.
 	(fontset_font): Use fontset_find_font.
@@ -1061,7 +1061,7 @@ third arg it->window.
 	(dump_fontset): For a realized fontset, include the base fontset
 	name in the returned vector.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* character.h (CHAR_STRING): Cast C to unsigned on calling
 	char_string.
@@ -1072,7 +1072,7 @@ third arg it->window.
 	* editfns.c (general_insert_function): Use CHARACTERP, not INTEGERP.
 	(Fchar_to_string): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* character.h (MIN_MULTIBYTE_LEADING_CODE)
 	(MAX_MULTIBYTE_LEADING_CODE): New macros.
@@ -1080,15 +1080,15 @@ third arg it->window.
 	* regex.c (analyse_first): Fix for multibyte characters in "case
 	charset:" and "case categoryspec:".
 
-2008-02-02  Andreas Schwab  <schwab@suse.de>
+2008-02-01  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (LIBES): Move standard libraries to the end.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* process.c: Cancel the change done by sync with HEAD.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* alloc.c (Fgarbage_collect): If nextb->text->inhibit_shrinking is
 	nonzero, don't shrink the buffer nextb.
@@ -1102,16 +1102,16 @@ third arg it->window.
 	(decode_coding_gap): Temporarily set
 	current_buffer->text->inhibit_shrinking to 1.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_draw_composite_glyph_string_foreground): Fix
 	indexing into elements of s->cmp and s->char2b.
 
-2008-02-02  Juanma Barranquero  <lekktu@gmail.com>
+2008-02-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* regex.c (RE_STRING_CHAR_AND_LENGTH) [! emacs]: Add missing arg `len'.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* regex.c (GET_CHAR_BEFORE_2, GET_CHAR_AFTER): Check the variable
 	target_multibyte instead of multibyte.
@@ -1119,7 +1119,7 @@ third arg it->window.
 	(bcmp_translate): Change the argument name from multibyte to
 	target_multibyte.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	These changes are to compile a regexp into a pattern that can be
 	used both for multibyte and unibyte targets.
@@ -1155,45 +1155,45 @@ third arg it->window.
 	(re_match_2_internal): Pay attention to the case that the
 	multibyteness of bufp and target may be different.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (x_produce_glyphs): When a font is not found, make the
 	empty box occupy at least one column width.
 
-2008-02-02  Miles Bader  <miles@gnu.org>
+2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* Makefile.in: Remove redundant HAVE_XFT clause.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xrdb.c (x_load_resources): Setup the default fontSet X reource.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* regex.c (regex_compile): Synch with HEAD.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Finternal_char_font): Fix previous change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Finternal_char_font): Fix for the case of POSITION
 	being nil.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_open): Call FcConfigSubstitute.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_open): Don't enable antialias explicitly.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (simple_search): Fix previous change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (ftfont_font_format): Extern declaration.
 
@@ -1214,14 +1214,14 @@ third arg it->window.
 	(create_frame_xic) [USE_FONT_BACKEND]: Call xic_create_xfontset2.
 	(xic_set_xfontset) [USE_FONT_BACKEND]: Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_pattern_entity): Check if FC_FONTFORMAT is
 	defined.
 	(ftfont_list_generic_family, ftfont_list, ftfont_font_format):
 	Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xfont.c (xfont_open): Set font->format.
 
@@ -1239,51 +1239,51 @@ third arg it->window.
 	(Fquery_font): Change the format of the last element of the return
 	value.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (simple_search): Fix sync with HEAD.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xfns.c (xic_create_xfontset): Try the default fontset name as a
 	last resort.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_charset): Fix detection of multi-byte
 	charset.
 
-2008-02-02  Bob Halley  <halley@play-bow.org>  (tiny change)
+2008-02-01  Bob Halley  <halley@play-bow.org>  (tiny change)
 
 	* ccl.c (ccl_driver): If DST is NULL, set ccl->produced to 0.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (get_next_display_element): Set it->face_id for the
 	first component of a composition.
 	(x_produce_glyphs): Check if the font is changed or not for
 	composition.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	(get_next_display_element): Set it->face_id for the
 	first component of a composition.
 	(x_produce_glyphs): Check if the font is changed or not for
 	composition.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Qlatin): New variable.
 	(syms_of_fontset): Define it as a lisp symbol.
 	(Fset_fontset_font): If TARGET is `latin', use FONT_SPEC for
 	ASCII.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_unparse_fcname): Pay attention to the case that
 	some of font property is a null string.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* term.c: Include "composite.h".
 	(encode_terminal_code): Output all components of composition.
@@ -1294,7 +1294,7 @@ third arg it->window.
 	* xdisp.c (x_produce_glyphs): In handling composition, if a font
 	is not found, get font_info from the current ascii face.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents): On replacing, temporarily bind
 	buffer-file-name to Qnil before calling insert_from_buffer.
@@ -1302,7 +1302,7 @@ third arg it->window.
 	* font.c (font_unparse_fcname): Pay attention to the case that
 	foundry is a null string.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_list): Allow registry "unicode-sip".
 
@@ -1311,7 +1311,7 @@ third arg it->window.
 
 	* font.h (Qunicode_sip): Extern it.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (get_composition_id): Pay attention to TAB
 	component.
@@ -1329,18 +1329,18 @@ third arg it->window.
 	(BUILD_COMPOSITE_GLYPH_STRING): Adjusted for the above change.
 	(x_produce_glyphs): Fix handling of left/right padding.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* regex.c (analyse_first): Cancel the change for synching with
 	HEAD.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_system): Fix for handling off
 	inhibit_iso_escape_detection.  Fix for the case that no coding
 	system is defined for a specific coding category.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_matching_entity): Dolete unused local var.
 
@@ -1357,11 +1357,11 @@ third arg it->window.
 	(coding_inherit_eol_type): If PARENT is not nil, be sure to
 	inherit from it.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* alloc.c (NSTATICS): Increased to 0x600.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_driver): Set ftfont_driver.match to
 	ftfont_match.
@@ -1405,7 +1405,7 @@ third arg it->window.
 	* xftfont.c (xftfont_match): New function.
 	(syms_of_xftfont): Set xftfont_driver.match to xftfont_match.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (struct font): New member scalable.
 	(struct font_driver): New arg ALTERANTE_SUBST to otf_gsub.
@@ -1451,7 +1451,7 @@ third arg it->window.
 	* xfns.c (x_create_tip_frame) [USE_FONT_BACKEND]: Handle
 	FontBackend frame parameter.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (struct font_driver_list): New member `on'.
 	(Fclear_font_cache): EXFUN it.
@@ -1478,7 +1478,7 @@ third arg it->window.
 	* xfont.c (xfont_list): Don't try listing by :name property if the
 	name is not for XLFD.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (LGLYPH_FROM, LGLYPH_TO, LGLYPH_SET_FROM)
 	(LGLYPH_SET_TO): New macros.
@@ -1515,20 +1515,20 @@ third arg it->window.
 
 	* Makefile.in (font.o): Make it depends on window.h.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_draw_composite_glyph_string_foreground): Check if
 	adjustment is vector or not.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* casefiddle.c (casify_object): Sync with HEAD.
 
-2008-02-02  Miles Bader  <miles@gnu.org>
+2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* character.h (CHECK_CHARACTER): Redefine in terms of CHECK_TYPE.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (LGLYPH_XOFF, LGLYPH_YOFF, LGLYPH_WIDTH, LGLYPH_WADJUST)
 	(LGLYPH_SET_WIDTH): Adjusted for the change of LGLYPH format.
@@ -1543,35 +1543,35 @@ third arg it->window.
 	* xterm.c (x_draw_composite_glyph_string_foreground): Adjusted for
 	the change of LGLYPH format.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_list): Fix typo.
 	(ftfont_build_basic_charsets): Don't include letters with
 	diactrics.
 
-2008-02-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2008-02-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfaces.c (realize_non_ascii_face): Set face->extra to NULL.
 
 	* xftfont.c (xftfont_done_face): Call XftDrawDestroy only if
 	xftface_info is non-NULL.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_list): Fix typo.
 	(ftfont_build_basic_charsets): Don't include letters with
 	diactrics.
 
-2008-02-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2008-02-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* ftfont.c (ftfont_list): Move misplaced #endif
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_list): Pay attention to the case that
 	FC_CAPABILITY is not defined.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_open): Set charset related members to -1.
 
@@ -1589,7 +1589,7 @@ third arg it->window.
 
 	* font.h (font_close_object, font_merge_old_spec): Extern them.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (QCscalable, Qc, Qm, Qp, Qd): New variables.
 	(syms_of_font): Initialize them.
@@ -1634,21 +1634,21 @@ third arg it->window.
 	* xftfont.c (xftfont_prepare_face): Cancel previous change.
 	(xftfont_done_face): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (Flist_fonts): EXFUN it.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_initialize): Add back smoothing_type and
 	smoothing_enabled definitions.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_draw_glyph_string) [USE_FONT_BACKEND]: Check
 	s->face->font on determining underline position.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_parse_xlfd): Fix generating of CHARSET_REGISTRY field.
 	(font_has_char): Accept font-object too.
@@ -1658,12 +1658,12 @@ third arg it->window.
 	face->extra with ascii face.
 	(xftfont_done_face): Don't free face->extra of non-ascii face.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* frame.c (x_set_font) [USE_FONT_BACKEND]: Fix argument to
 	font_open_by_name.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (QCspacing, QCdpi): Extern them.
 	(enum font_spacing): New enum.
@@ -1694,7 +1694,7 @@ third arg it->window.
 	listed font.  Don't include scalable in pattern.  Pay attention to
 	FONT_PIXEL_SIZE_QUANTUM.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* lread.c (read_escape): Fix the code synched with HEAD.
 
@@ -1715,11 +1715,11 @@ third arg it->window.
 	* xftfont.c (xftfont_open): For generating a name, start from
 	96-byte buffer.
 
-2008-02-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2008-02-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* frame.h (x_new_fontset2): Fix prototype.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (struct font_driver): Member parse_name deleted.
 	(font_match_p, font_get_spec, font_parse_fcname)
@@ -1792,11 +1792,11 @@ third arg it->window.
 	* xterm.c (x_new_fontset2) [USE_FONT_BACKEND]: Change arguments.
 	Both args FONTSET and FONT_OBJECT must be existing ones.
 
-2008-02-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-02-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (mac_set_unicode_keystroke_event): Don't use MAKE_CHAR.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xfont.c (xfont_open, xfont_encode_char): Fix typo.
 
@@ -1816,7 +1816,7 @@ third arg it->window.
 	(ftfont_list): Enforce FC_LANG in PATTERN to cancel the effect of
 	locale.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.h (Qiso8859_1, Qiso10646_1, Qunicode_bmp): Extern them.
 
@@ -1862,12 +1862,12 @@ third arg it->window.
 	* xterm.c (x_new_fontset2): If an ASCII font couldn't be loaded,
 	return Qnil.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
-	* w32term.c (w32_initialize): Manually sync 2008-02-02 change from
+	* w32term.c (w32_initialize): Manually sync 2008-02-01 change from
 	HEAD.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* emacs.c (main): Check -enable-font-backend arg after the check
 	of -nl.
@@ -1879,7 +1879,7 @@ third arg it->window.
 
 	* coding.h (CODING_REQUIRE_ENCODING): Comment sync with HEAD.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xftfont.c (xftfont_default_fid): Set fid_known to 1.
 	(struct xftdraw_list, xftdraw_list): Delete them.
@@ -1891,7 +1891,7 @@ third arg it->window.
 
 	* xfont.c (xfont_encode_char): Fix calculation of char2b.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	These changes are for the new font handling codes.
 
@@ -1999,7 +1999,7 @@ third arg it->window.
 	enable_font_backend is nonzero, use font-backend mechanism.
 	(x_new_fontset2) [USE_FONT_BACKEND]: New function.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.h (system_eol_type): Fix synching with HEAD.
 
@@ -2020,38 +2020,38 @@ third arg it->window.
 
 	* keymap.c (push_key_description): Fix synching with HEAD.
 
-2008-02-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-02-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macgui.h (USE_ATSUI): Don't enable on emacs-unicode-2 branch.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_eol): Pay attention to buffer relocation in
 	del_range_2.
 	(decode_coding): Call decode_eol before restoring undo_list.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (Fdefine_charset_internal): Fix setting of
 	emacs_mule_bytes.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* keyboard.c (read_char): Check if C is a character or not before
 	looking up Vkeyboard_translate_table.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (DECODE_EMACS_MULE_20_RELATIVE_COMPOSITION): Fix
 	condition to terminate the loop.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (produce_composition): Compare charbuf[i] instead of
 	args[i] against 0.
 	(Fterminal_coding_system): Use EQ to compare Lisp objects.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (DECODE_COMPOSITION_START): If the source is short, set
 	coding->result to CODING_RESULT_INSUFFICIENT_SRC.
@@ -2064,17 +2064,17 @@ third arg it->window.
 	(DECODE_EMACS_MULE_20_RULEBASE_COMPOSITION): Likewise.
 	(decode_coding_emacs_mule): Handle invalid bytes correctly.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encode_coding_ccl): Allocate destination dynamically
 	when necessary.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* ccl.c (Fccl_execute_on_string): Fix the condition of terminating
 	the loop.  When quitted, show a proper error message.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding): Fix previous change.
 
@@ -2085,28 +2085,28 @@ third arg it->window.
 	character sequence.
 	(Fccl_execute_on_string): Use ASET, not XSET.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (search_buffer): Fix handling of "\\" in a trivial
 	regexp.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding): Fix the condition of terminating the
 	decoding loop.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* data.c (Faset): On setting a character bigger than 255 in a
 	unibyte string, signal an error instead of make the string
 	multibyte.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (map_charset_chars): Fix for ascii-compatible charset
 	made by a mapping table.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (fill_composite_glyph_string): Check s->face is NULL or
 	not.
@@ -2116,7 +2116,7 @@ third arg it->window.
 	* xterm.c (x_draw_composite_glyph_string_foreground): Check
 	s->face is NULL or not.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_set_glyph_string_clipping_exactly): New function.
 	(x_draw_glyph_string): Fix drawing of right_overhang and
@@ -2127,21 +2127,21 @@ third arg it->window.
 
 	* term.c (produce_glyphs): Sync to HEAD.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (x_produce_glyphs): Handle composition with TAB.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c: Cancel incorrect synching with HEAD.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Fdefine_coding_system_internal): Avoid a duplicated
 	element in Vcoding_system_alist.
 	(Fdefine_coding_system_alias): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (handle_one_xevent): Handle keysyms 0x1000000..0x10000FF.
 
@@ -2159,18 +2159,18 @@ third arg it->window.
 	(CHECK_CODING_SYSTEM_GET_SPEC): Try also Fcheck_coding_system.
 	(CHECK_CODING_SYSTEM_GET_ID): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (handle_one_xevent): Delete unnecessary code inserted by
 	sync with HEAD.
 
 	* coding.c (code_conversion_restore): GCPRO arg.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (lisp_string_width): Check multibyteness of STRING.
 
-2008-02-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-02-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (mac_encode_char): Call ccl_driver with the last arg
 	Qnil.  Use JIS_TO_SJIS instead of ENCODE_SJIS.
@@ -2179,7 +2179,7 @@ third arg it->window.
 	(x_load_font): Initialize fontp->fontset to -1.  Set
 	fontp->encoding_type.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (search_buffer): Give up BM search on case-fold-search
 	if one of a target character has a case-equivalence of different
@@ -2188,21 +2188,21 @@ third arg it->window.
 	(boyer_moore): Fix handling of case-equivalent multibyte
 	characters.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding): Fix handling of invalid bytes.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (handle_one_xevent): Handle keysyms directly mapped to
 	Unicode characters.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encode_coding_object): If a pre-write-conversion
 	function makes a new buffer, kill it.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (QCascii_compatible_p): New variable.
 	(syms_of_coding): Initialize it.
@@ -2214,27 +2214,27 @@ third arg it->window.
 	property in the plist of the coding system.
 	(Fcoding_system_put): Check QCascii_compatible_p.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (get_next_display_element): Sync with the change in
-	HEAD (2008-02-02).
+	HEAD (2008-02-01).
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* callproc.c (Fcall_process): Sync with the change in
-	HEAD (2008-02-02).
+	HEAD (2008-02-01).
 
-2008-02-02  Miles Bader  <miles@gnu.org>
+2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (Finternal_lisp_face_equal_p): Restore previously
 	removed calculation of frame `f', as it's now used.
 
-2008-02-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-02-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (x_font_name_to_mac_font_name): Sync with trunk
 	for the case that does not require code conversion.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (shortlisp): Cancel previous change.
 	(RUN_TEMACS): Include "-nl" if HAVE_SHM is defined.
@@ -2244,19 +2244,19 @@ third arg it->window.
 	(bootstrap-emacs${EXEEXT}): Depends on charprop.el.  Run
 	$(RUN_TEMACS) unconditionally.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (shortlisp): Add ../lisp/international/charprop.el.
 	(temacs${EXEEXT}): Build charprop.el if necessary.
 	(admindir): New variable.
 	($(lispsource)international/charprop.el): New target.
 
-2008-02-02  Miles Bader  <miles@gnu.org>
+2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* character.c (chars-in-region): Obsolete function removed.
 	(syms_of_character): Remove its initialization.
 
-2008-02-02  Benjamin Riefenstahl  <b.riefenstahl@turtle-trading.net>
+2008-02-01  Benjamin Riefenstahl  <b.riefenstahl@turtle-trading.net>
 
 	* w32select.c (validate_coding_system)
 	(setup_windows_coding_system): New functions.
@@ -2270,65 +2270,65 @@ third arg it->window.
 	* lisp.h (Fcoding_system_base, Fcoding_system_eol_type)
 	(Fcheck_coding_system): Add declarations.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* s/ms-w32.h (STDC_HEADERS): Sync with the change in
-	HEAD (2008-02-02).
+	HEAD (2008-02-01).
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (load_charset_map_from_vector): Fix for the first
 	iteration.
 
-2008-02-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-02-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (Fx_create_frame, x_create_tip_frame): Pass Lisp
 	string as the second argument for x_new_fontset.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (Fstring_as_multibyte): Fix the change for syncing with
 	CVS head.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (search_buffer): Fix the change for syncing with CVS
 	head.
 	(search_buffer): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (get_next_display_element): Sync with CVS head.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_object): Use safe_call1 instead of call1.
 	(encode_coding_object): Use safe_call instead of call2.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (set_default_ascii_font): Fix the change for
 	syncing with CVS head.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Fset_fontset_font): Check family element of a given
 	vector.
 
 	* Makefile.in (lisp): Include charprop.el.
 
-2008-02-02  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+2008-02-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (Fx_create_frame, x_create_tip_frame): Fix crash.
 	Not sure if it's unnecessary.
 
-2008-02-02  Steven Tamm  <steventamm@mac.com>
+2008-02-01  Steven Tamm  <steventamm@mac.com>
 
 	* macfns.c (Fx_create_frame, x_create_tip_frame): ifdef'd out
 	some possibly unnecessary fontset checking code that crashed
 	when creating a new frame
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (merge_faces): Fix argument to lookup_derived_face and
 	lookup_face.
@@ -2338,30 +2338,30 @@ third arg it->window.
 	* fringe.c (draw_fringe_bitmap_1): Fix argument to
 	lookup_named_face.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (get_next_display_element): Sync to the change in HEAD
-	on 2008-02-02.
+	on 2008-02-01.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* search.c: Sync to the change in HEAD on 2008-02-02, 20.
+	* search.c: Sync to the change in HEAD on 2008-02-01, 20.
 
-	* w32console.c: Sync to the change in HEAD on 2008-02-02.
+	* w32console.c: Sync to the change in HEAD on 2008-02-01.
 
-	* coding.c: Cancel the change done in HEAD on 2008-02-02.
+	* coding.c: Cancel the change done in HEAD on 2008-02-01.
 	(coding_charset_list): New function.
 
 	* coding.h (coding_charset_list): Extern it.
 
-	* term.c: Sync to the change in HEAD on 2008-02-02.
+	* term.c: Sync to the change in HEAD on 2008-02-01.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Fset_fontset_font): Call find_font_encoding with
 	concatenation of family and registry.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* character.h (BYTE8_STRING): Fix typo.
 
@@ -2371,16 +2371,16 @@ third arg it->window.
 	* casefiddle.c (casify_region): Handle changes in byte-length
 	using replace_range_2 (sync to HEAD).
 
-2008-02-02  Andreas Schwab  <schwab@suse.de>
+2008-02-01  Andreas Schwab  <schwab@suse.de>
 
 	* chartab.c (map_char_table): GCPRO table and arg.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (skip_syntaxes): Return lispy 0 (not nil) if point is
 	already at limit.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fs_load_font): Use fast_string_match_ignore_case
 	instead of fast_c_string_match_ignore_case.
@@ -2388,7 +2388,7 @@ third arg it->window.
 	fast_string_match_ignore_case instead of
 	fast_c_string_match_ignore_case.  Caller changed.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (get_next_display_element): In unibyte case, decide to
 	display in octal form by checking a chacter by
@@ -2402,16 +2402,16 @@ third arg it->window.
 	* character.h (unibyte_has_multibyte_table): Extern it.
 	(UNIBYTE_CHAR_HAS_MULTIBYTE_P): New macro.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* callproc.c (Fcall_process): Fix merging of 2008-02-02 change.
+	* callproc.c (Fcall_process): Fix merging of 2008-02-01 change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encode_coding_iso_2022): Fix handling of charset
 	annotation.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (setup_coding_system): If coding_system is nil, use
 	Qundecided.
@@ -2420,7 +2420,7 @@ third arg it->window.
 	(syms_of_coding): Define coding-system `undecided' here.  Setup
 	terminal_coding as `undecided'.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (message_dolog, set_message_1): Call
 	unibyte_char_to_multibyte with arg type int.
@@ -2432,28 +2432,28 @@ third arg it->window.
 	* print.c (print_object): Include sub char-table in cicularities
 	detection.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (where_is_internal_2): Fix for the case that KEY is a
 	cons.  Append the found sequences in car of ARGS instead of
 	prepending.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (report_file_error): Make a unibyte string from
 	strerror (errorno).
 	(Fsubstitute_in_file_name): Fix the arg to
 	unibyte_char_to_multibyte.  It is evaluated twice.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (CHAR_CHARSET): Shortcut for ASCII case.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding): Fix previous change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_utf_16): Don't set detect_info->found if
 	BOM is not found.
@@ -2461,16 +2461,16 @@ third arg it->window.
 	found.
 	(detect_coding_system): Likewise.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (x_to_w32_font): Update to use new coding struct.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (Fdeclare_equiv_charset): Fix handing of CHARS.
 	(Fiso_charset): Likewise.
 
-2008-02-02  Steven Tamm  <steventamm@mac.com>
+2008-02-01  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (mac_encode_char): Add charset argument and update
 	to use encoding_type.
@@ -2480,7 +2480,7 @@ third arg it->window.
 	(x_font_name_to_mac_font_name): Temporarily remove encoding
 	(x_load_font): Temporarily remove encoding
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (Fface_font): If frame is not on a window system,
 	ignore CHARACTER arg.  If HAVE_WINDOW_SYSTEM is not defined, don't
@@ -2489,7 +2489,7 @@ third arg it->window.
 	(lookup_non_ascii_face, realize_non_ascii_face): Define them only
 	whne HAVE_WINDOW_SYSTEM is defined.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (BUILD_GLYPH_STRINGS): Check if s is NULL.
 	(x_produce_glyphs): Fix setting of members of cmp in case
@@ -2498,17 +2498,17 @@ third arg it->window.
 	* fontset.c (Fset_fontset_font): Docstring fixed.
 	(Ffontset_info): Make it backward compatible.  New arg ALL.
 
-2008-02-02  Kim F. Storm  <storm@cua.dk>
+2008-02-01  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (read_process_output): Grow decoding_buf when needed;
 	this could cause a crash in allocate_string and compact_small_strings.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (WRITE_BUF_SIZE): This macro deleted.
 	(e_write): Fix previous change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (setup_coding_system): Set coding->common_flags
 	correctly for raw-text.
@@ -2519,21 +2519,21 @@ third arg it->window.
 
 	* fileio.c (e_write): Short cut for the case of no encoding.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding): Delete unused variables.
 	(detect_coding_system): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encode_coding_utf_8): Fix handling of raw-byte char.
 	(consume_chars): Fix handling of 8-bit bytes in unibyte source.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	Sync all files to HEAD.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Ffind_coding_systems_region_internal): Include
 	raw-text and no-conversion in the result.
@@ -2542,7 +2542,7 @@ third arg it->window.
 
 	* fontset.c: Sync to HEAD.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (find_font_encoding): Return `ascii' for unknown
 	encoding.
@@ -2554,7 +2554,7 @@ third arg it->window.
 	name and charset name.
 	(new_fontset_from_font_name): Fix argument to Fnew_fontset.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_font): Renamed from fontset_face.  Return
 	value changed.
@@ -2583,7 +2583,7 @@ third arg it->window.
 	* character.h (LEADING_CODE_LATIN_1_MIN)
 	(LEADING_CODE_LATIN_1_MAX): Delete these macros.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* category.h: Sync to HEAD.
 
@@ -2597,17 +2597,17 @@ third arg it->window.
 
 	* regex.c: Sync to HEAD.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* editfns.c: Sync to HEAD.
 	(check_translation): New function.
 	(Ftranslate_region_internal): Handle M:N mapping.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (xlfd_point_size): Set font->numeric[XLFD_PIXEL_SIZE].
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (DECODE_DESIGNATION): Set chars_96 to -1 instead of
 	goto invalid_code.
@@ -2616,7 +2616,7 @@ third arg it->window.
 	* fileio.c (Finsert_file_contents): Be sure to call unbind_to
 	after calling code_conversion_save.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (handle_auto_composed_prop): Fix Lisp_Object/int mixup.
 
@@ -2636,7 +2636,7 @@ third arg it->window.
 	(Funencodable_char_position, Fcheck_coding_systems_region):
 	Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (get_translation_table): Declare it as Lisp_Object.
 	(LOOKUP_TRANSLATION_TABLE): New macro.
@@ -2644,7 +2644,7 @@ third arg it->window.
 	CHAR_TABLE_REF.
 	(consume_chars): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (MAX_ANNOTATION_LENGTH): Adjusted for the change of
 	annotation data format.
@@ -2668,7 +2668,7 @@ third arg it->window.
 	(syms_of_coding): Make translation-table's number of extra slots
 	2.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (simple_search): Fix setting this_pos_byte in backward
 	search.
@@ -2677,7 +2677,7 @@ third arg it->window.
 	byte sequence.
 	(detect_coding_ccl): Fix setting of the variable valids.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_list_fonts): Fix the detection of an auto-scaled font.
 
@@ -2695,15 +2695,15 @@ third arg it->window.
 	pattern string is specified,
 
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (Fface_font): New optional arg CHARACTER.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (CHARSET_OFFSET): New macro.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_get_font_repertory): Fix for non-Unicode-bmp charset.
 
@@ -2712,7 +2712,7 @@ third arg it->window.
 	(find_font_encoding): Return nil for unknown encoding.
 	(Fset_fontset_font): Ignore a font of unknown encoding.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (describe_vector): Handle default value of a char
 	table.
@@ -2720,7 +2720,7 @@ third arg it->window.
 	* fontset.c (fontset_face): Handle fallback fonts correctly.
 	(Ffontset_info): Return infomation about fallback fonts.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (FONTSET_DEFAULT): New macro.
 	(FONTSET_ADD): Handle the case that range is nil.
@@ -2734,7 +2734,7 @@ third arg it->window.
 	* charset.h (CHAR_CHARSET_P): Fix for the case that the method is
 	subset or superset.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* emacs.c (main): Call init_charset after syms_of_XXX.
 
@@ -2745,7 +2745,7 @@ third arg it->window.
 	(syms_of_charset): Delete declaration of "charset-map-directory",
 	add declaration of "charset-map-path".
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (string_char_to_byte): Optimize for ASCII only string.
 	(string_byte_to_char): Likewise.
@@ -2756,7 +2756,7 @@ third arg it->window.
 	(detect_coding): Treat '\0' as normal ASCII byte..
 	(detect_coding_system): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.h (SJIS_TO_JIS2, JIS_TO_SJIS2): New macros.
 
@@ -2781,7 +2781,7 @@ third arg it->window.
 
 	* character.c (translate_char): Accept list of translation tables.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.h (enum coding_attr_index): New member
 	coding_attr_trans_tbl.
@@ -2799,14 +2799,14 @@ third arg it->window.
 	(Fdefine_coding_system_internal): Allow a symbol as translation
 	table.  For shift-jis type coding system, allow 4th charset.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_sjis): Check the first byte rigidly.
 
 	* xdisp.c (get_next_display_element): Pass -1 as POS to
 	FACE_FOR_CHAR if displaying a C-string.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (get_composition_id): Handle xoff and yoff in a
 	composition rule.
@@ -2822,7 +2822,7 @@ third arg it->window.
 	* xterm.c (x_compute_glyph_string_overhangs): Handle also a
 	composition glyph.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* print.c: Include charset.h.
 	(Vprint_charset_text_property): New variable.
@@ -2839,7 +2839,7 @@ third arg it->window.
 	(syms_of_print): Declare Vprint_charset_text_property as a lisp
 	variable.  Init and staticpro print_prune_charset_plist.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (new_fontset_from_font_name): Use the specified font
 	for all characters in the new fontset.
@@ -2853,7 +2853,7 @@ third arg it->window.
 	* w32term.c (x_set_mouse_face_gc): Call FACE_FOR_CHAR with POS and
 	OBJECT args.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (FACE_FOR_CHAR): New args POS and OBJECT.
 
@@ -2884,12 +2884,12 @@ third arg it->window.
 	* xterm.c (x_set_mouse_face_gc): Call FACE_FOR_CHAR with
 	POS and OBJECT args.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32select.c (Fw32_set_clipboard_data): Avoid potential realloc
 	of GlobalAlloc'ed memory.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* ccl.c (Fccl_execute_on_string): Fix the condition of loop.
 
@@ -2934,17 +2934,17 @@ third arg it->window.
 
 	* xdisp.c (handle_auto_composed_prop): Fix setting of limit.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (handle_auto_composed_prop): Give limit to
 	Fnext_single_char_property_change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding): Fix previous change.
 	(detect_coding_system): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (syms_of_composite): Don't make the compostion hash
 	table week.
@@ -2994,14 +2994,14 @@ third arg it->window.
 	(syms_of_coding): Initialized Vcode_conversion_workbuf_name and
 	reused_workbuf_in_use.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (store_in_keymap): Pay attention to the case that idx
 	is a cons specifying a character range.
 
 	* coding.c (Fdefine_coding_system_internal): Fix previous change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (handle_auto_composed_prop): Fix the case of returning
 	HANDLED_RECOMPUTE_PROPS.
@@ -3009,7 +3009,7 @@ third arg it->window.
 	* coding.c (Fdefine_coding_system_internal): Fix checking of
 	ascii compatibility.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (find_charsets_in_text): Delete unused locale
 	variable.
@@ -3021,14 +3021,14 @@ third arg it->window.
 	* keymap.c (store_in_keymap): Pay attention to the case that idx
 	is a cons specifying a character range.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (update_compositions): Bind inhibit-read-only, etc
 	to t before calling remove-list-of-text-properties.
 
 	* print.c (print_object): Always print ASCII chars as is.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (Fdefine_key): Fix handling of Lucid style event type
 	list.
@@ -3037,27 +3037,27 @@ third arg it->window.
 	(Fmapcar): Likewise.
 	(Fmapc): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (skip_chars): Be sure to alloca char_ranges when
 	necessary.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (set_lface_from_font_name): Fix for the case that
 	FONTNAME is not fontset name.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (base64_encode_1): Fix previous change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (set_fontset_font): New function.
 	(Fset_fontset_font): If a font is specified for a charset, use
 	map_charset_chars to store the font spec in a fontset.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_face): Create a fallback fontset on demand
 	(make_fontset): Don't create a fallback fontset here.
@@ -3070,23 +3070,23 @@ third arg it->window.
 	(syms_of_fontset): Initialize and staticpro auto_fontset_alist.
 	Defsubr Sfontset_list_all.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_list_fonts): Fix excluding of auto-scaled fonts.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Fnew_fontset): Check NAME more rigidly.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* editfns.c (Fgoto_char): Fix docstring.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* insdel.c (insert_from_gap): Adjust intervals correctly.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (GLYPHSET, WCRANGE): Define if system headers don't.
 	(pfnGetFontUnicodeRanges): New dynamically loaded function.
@@ -3105,7 +3105,7 @@ third arg it->window.
 
 	* makefile.w32-in (temacs): Increase EMHEAP.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_encode_char): New charset parameter.
 	font_info.encoding becomes encoding_type.
@@ -3146,16 +3146,16 @@ third arg it->window.
 	* makefile.w32-in: Add character.h dependancies.
 	(character.o, chartab.o): New targets.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents) [DOS_NT]: Use the macro
 	CODING_ID_EOL_TYPE..
 
-2008-02-02  Andreas Schwab  <schwab@suse.de>
+2008-02-01  Andreas Schwab  <schwab@suse.de>
 
 	* coding.c (produce_chars): Revert last change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (charset_unicode): Extern it.
 
@@ -3177,7 +3177,7 @@ third arg it->window.
 	* xterm.c (x_get_font_repertory): Handle the case that the
 	encoding of font is other than Unicode.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* term.c (encode_terminal_code): Don't handle glyph-table.  Check
 	if a character is encodable by the terminal coding system.  If
@@ -3185,7 +3185,7 @@ third arg it->window.
 	terminal_encode_buffer and terminal_encode_buf_size if necessary.
 	(produce_glyphs): Check by CHAR_BYTE8_P, not SINGLE_BYTE_CHAR_P.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* term.c (terminal_encode_buffer, terminal_encode_buf_size): New
 	variables.
@@ -3200,12 +3200,12 @@ third arg it->window.
 	* coding.c (consume_chars): If coding->src_object is nil, don't
 	check annotation.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (char_string): Use ASCII_CHAR_P instead of
 	SINGLE_BYTE_CHAR_P.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (handle_auto_composed_prop): Check if the last
 	characters of auto-composed region is newly composed with the
@@ -3213,7 +3213,7 @@ third arg it->window.
 	(handle_composition_prop): Fix checking of point being inside
 	composition.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (concat): Don't change multibyteness of the result by
 	concatenating an 8-bit character.
@@ -3221,7 +3221,7 @@ third arg it->window.
 	* data.c (Faset): Check newelt by CHECK_CHARACTER.  Don't change
 	multibyteness of the result when newelt is an 8-bit character.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* xmenu.c (find_and_call_menu_selection): Make menu_bar_items_used
 	EMACS_INT.
@@ -3270,11 +3270,11 @@ third arg it->window.
 	* window.c (Fdisplay_buffer, Fframe_selected_window): Remove
 	unsued vars.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* xterm.c (x_bitmap_mask): Declare.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* xterm.c (x_term_init): Fix type error.
 
@@ -3309,7 +3309,7 @@ third arg it->window.
 
 	* unexalpha.c: Don't include varargs.h.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* coding.h (ENCODE_UTF_8): New.
 
@@ -3317,28 +3317,28 @@ third arg it->window.
 
 	* coding.c (Fset_coding_system_priority): Doc fix.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents): Call setup_coding_system in
 	the case of auto saving.
 
-2008-02-02  Andreas Schwab  <schwab@suse.de>
+2008-02-01  Andreas Schwab  <schwab@suse.de>
 
 	* chartab.c (map_char_table): Protect `range' from GC.
 	(map_char_table_for_charset): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_sjis): Check bytes more rigidly.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (choose_write_coding_system): Return a decided coding
 	system.
 	(Fwrite_region): Set Vlast_coding_system_used to the return value
 	of choose_write_coding_system.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (Fset_charset_priority): Pay attention to duplicated
 	arguments.
@@ -3350,7 +3350,7 @@ third arg it->window.
 	coding-category-XXX, and coding-category-list.
 	(Fdefine_coding_system_internal): Add category in the plist.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* callproc.c (Fcall_process): Handle carryover correctly.
 
@@ -3363,11 +3363,11 @@ third arg it->window.
 
 	* process.c (read_process_output): Handle carryover correctly.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* regex.c (re_search_2): Fix last change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* regex.c (GET_CHAR_BEFORE_2): Check multibyte, not
 	target_multibyte.  Even in a unibyte case, return a converted
@@ -3410,7 +3410,7 @@ third arg it->window.
 	unibyte_to_multibyte_table.
 	(init_charset_once): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (setup_coding_system): If coding has
 	post-read-conversion or pre-write-conversion, set
@@ -3421,12 +3421,12 @@ third arg it->window.
 	* fileio.c (Finsert_file_contents): Even if we read into a
 	unibyte buffer, check if we must decode the result or not.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (make_conversion_work_buffer): Change the work buffer
 	name to the same one as that of Emacs 21.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.h (make_conversion_work_buffer): Prototype adjusted.
 	(code_conversion_restore): Don't extern it.
@@ -3456,7 +3456,7 @@ third arg it->window.
 
 	* lisp.h (Fgenerate_new_buffer_name): EXFUN it.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (BASE_FONTSET_P): Check FONTSET_BASE, not
 	FONTSET_NAME.
@@ -3468,13 +3468,13 @@ third arg it->window.
 	* coding.c (Fdefine_coding_system_internal): Fix for the case that
 	coding_type is Qcharset.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* chartab.c (map_sub_char_table): New argument DEFAULT_VAL.
 	(map_char_table): Don't inherit the value from the parent on
 	initializing VAL.  Adjusted for the above change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Qsignature, Qendian): Delete these variables.
 	(syms_of_coding): Don't initialize them.
@@ -3493,19 +3493,19 @@ third arg it->window.
 	utf-16, check if the attribute :endian is Qbig or not (not nil or
 	not).
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (coding_set_source): Fix for the case that the current
 	buffer is different from coding->src_object.
 	(decode_coding_object): Don't use the conversion work buffer if
 	DST_OBJECT is a buffer.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* lread.c (read_emacs_mule_char) [len==2]: Index
 	emacs_mule_charset correctly.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* coding.c (Qbig5, Vbig5_coding_system, CATEGORY_MASK_BIG5)
 	(detect_coding_big5, decode_coding_big5, encode_coding_big5)
@@ -3514,7 +3514,7 @@ third arg it->window.
 	(setup_coding_system, coding_category, CATEGORY_MASK_ANY)
 	(detected_mask): Remove Big5 bits.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	The following changes are to make the font rescaling facility
 	compatible with Emacs 21.
@@ -3530,7 +3530,7 @@ third arg it->window.
 	(syms_of_xfaces): Declare Vface_font_rescale_alist as a Lisp
 	variable.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Qutf_16_be_nosig, Qutf_16_be, Qutf_16_le_nosig)
 	(Qutf_16_le): Remove these variables.
@@ -3538,22 +3538,22 @@ third arg it->window.
 	(decode_coding_utf_16): Fix handling of BOM.
 	(encode_coding_utf_16): Fix handling of BOM.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents): On replacing, before decoding
 	the file into the work buffer, set point of the work buffer to the
 	end.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* coding.c (Fcheck_coding_systems_region): Fix type errors.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* xterm.c (XTread_socket): Check Lisp types for Vx_keysym_table
 	and fix C types.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (SKIP_GLYPHS): New macro.
 	(set_cursor_from_row): Pay attention to string display properties.
@@ -3566,7 +3566,7 @@ third arg it->window.
 	* w32term.c (w32_encode_char): Call ccl_driver with the last arg
 	Qnil.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (Fcharset_id_internal): New function.
 	(syms_of_charset): Defsubr it.
@@ -3587,7 +3587,7 @@ third arg it->window.
 	(Fccl_execute): Call ccl_driver with the last arg Qnil.
 	(Fccl_execute_on_string): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (ENCODE_CHAR): If the method is SUBSET or SUPERSET,
 	call encode_char.
@@ -3597,12 +3597,12 @@ third arg it->window.
 
 	* xterm.c (x_new_fontset): Fix previous change.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* composite.c (syms_of_composite): Make composition_hash_table
 	weak.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (check_face_attributes, generate_ascii_font_name)
 	(font_name_registry): Don't extern them.
@@ -3654,7 +3654,7 @@ third arg it->window.
 	string.  Use new_fontset_from_font_name to create a fontset from a
 	font name.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* Makefile.in: Fix some dependencies.
 
@@ -3665,12 +3665,12 @@ third arg it->window.
 
 	* syntax.c (skip_chars, skip_syntaxes): Fix type errors.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_new_font): Optimize for the case that the font is
 	already set for the frame.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* chartab.c (char_table_ascii): Check if the char table contents
 	is sub-char-table or not.
@@ -3717,11 +3717,11 @@ third arg it->window.
 	adjusted.
 	(CODING_ANNOTATE_CHARSET_MASK): New macro.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* insdel.c (insert_from_gap): Fix argument to offset_intervals.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* keymap.c (apropos_predicate, apropos_accumulate): Declare
 	static.
@@ -3729,16 +3729,16 @@ third arg it->window.
 	to new local and nullify apropos_accumulate before returning.
 	(syms_of_keymap): Staticpro and initialize apropos_accumulate.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (Fdefine_charset_internal): Setup charset.fast_map
 	correctly.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* fns.c (Flanginfo): Call synchronize_system_time_locale.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	The following changes are to make character composition happen
 	automatically on displaying.
@@ -3768,7 +3768,7 @@ third arg it->window.
 	* xselect.c (selection_data_to_lisp_data): Don't call
 	compose_chars_in_text.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* keyboard.c (read_char): Modify checking around use of
 	Vkeyboard_translate_table.
@@ -3776,7 +3776,7 @@ third arg it->window.
 	* xterm.c (XTread_socket): Check Lisp types for Vx_keysym_table
 	and fix C types.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_utf_8): When eol_type is Qdos, handle
 	the case that the last byte is '\r' correctly.
@@ -3790,18 +3790,18 @@ third arg it->window.
 	(decode_coding_gap): Set CODING_MODE_LAST_BLOCK bit of
 	coding->mode.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* xterm.c (XTread_socket): Fix changes for defined keysyms.  Add
 	XK_ISO... case.
 	(xaw_scroll_callback): Revert last change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (Fset_charset_priority): Update
 	Viso_2022_charset_list.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (Vface_resizing_fonts): New variable.
 	(struct font_name): New member `resizing_ratio'.
@@ -3814,11 +3814,11 @@ third arg it->window.
 	Vscalable_fonts_allowed is not Qt.
 	(syms_of_xfaces): Declare Vface_resizing_fonts as a Lisp variable.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* xterm.c (xaw_scroll_callback): Cast correctly.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* keyboard.c (lispy_accent_codes, lispy_accent_keys): Extend.
 	(lispy_kana_keys): Comment out.
@@ -3828,7 +3828,7 @@ third arg it->window.
 	(XTread_socket): Deal with ASCII keysyms.
 	(syms_of_xterm) <Vx_keysym_table>: Fix args of make_hash_table.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* xterm.c (Vx_keysym_table): New.
 	(syms_of_xterm): Initialize it.
@@ -3837,7 +3837,7 @@ third arg it->window.
 	decoding the output of X*LookupString.
 	(x_get_font_repertory): Delete charset declaration.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding): Fix previous change.
 	(detect_coding_charset): If only ASCII bytes are found, return 0.
@@ -3845,13 +3845,13 @@ third arg it->window.
 	(Fdefine_coding_system_internal): Setup
 	CODING_ATTR_ASCII_COMPAT (attrs) correctly.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* coding.c (Fcheck_coding_system): Doc fix.
 
 	* editfns.c (Finsert_byte): Return a proper value.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding): Fix args to translate_chars.  Pay
 	attention to Vstandard_translation_table_for_decode.
@@ -3876,17 +3876,17 @@ third arg it->window.
 	* search.c (Freplace_match): Check C by ASCII_CHAR_P, not by
 	SINGLE_BYTE_CHAR_P.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* fns.c (Fstring_as_multibyte, Fstring_to_multibyte): Doc fix.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* fns.c (Flanginfo): Fix typo.
 
 	* unexelf.c (unexec): Make last change conditional on Irix 6.5.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (detect_coding_utf_8): Check incomplete byte sequence.
 	Don't update *mask when correctly detected.
@@ -3902,7 +3902,7 @@ third arg it->window.
 	(detect_coding): Adjusted for the changes above.
 	(detect_coding_system): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (char_string): Renamed from
 	char_string_with_unification.  Pay attention to
@@ -3917,24 +3917,24 @@ third arg it->window.
 	(STRING_CHAR_AND_LENGTH): Likewise.
 	(STRING_CHAR_ADVANCE): Likewise.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* coding.c (decode_coding_utf_8): Treat surrogates as invalid.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (push_key_description): Pay attention to
 	force_multibyte.
 
 	* regex.c (re_search_2): Fix for the case of unibyte buffer.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* charset.c (define_charset_internal): Rename `supprementary'.
 
 	* Makefile.in (lisp, shortlisp): Remove latin-N.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* xfns.c (x_window, x_window): Use use_xim.
 
@@ -3944,13 +3944,13 @@ third arg it->window.
 
 	* xterm.h (use_xim) [HAVE_X_I18N]: Declare.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (search_buffer): Fix case-fold-search of multibyte
 	characters.
 	(boyer_moore): Rename the last argument to char_high_bits.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (display_string): Fix for the case of zero width glyph.
 
@@ -3964,24 +3964,24 @@ third arg it->window.
 	* xterm.c (x_new_fontset): If FONTSETNAME specifies the default
 	fontset, return Qt.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* regex.c (re_search_2): Fix previous change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (skip_syntaxes): Fix previous change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (skip_chars): Fix previous change.
 	(skip_syntaxes): Fix previous change.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* config.in: Restore it.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* config.in: Removed (now auto-generated).
 
@@ -4000,13 +4000,13 @@ third arg it->window.
 
 	* fontset.c (fontset_add): Return Lisp_Object.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* charset.h (charset_ordered_list_tick): Declare extern.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	The following changes (and some of 2008-02-02 changes of mine) are
+	The following changes (and some of 2008-02-01 changes of mine) are
 	for handling syntax, category, and case conversion for unibyte
 	characters by converting them to multibyte on the fly.  With these
 	changes, we don't have to setup syntax and case tables for unibyte
@@ -4112,7 +4112,7 @@ third arg it->window.
 	(Fbackward_prefix_chars): Likewise.
 	(scan_sexps_forward): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xfaces.c (QCfontset): New variable.
 	(LFACE_FONTSET): New macro.
@@ -4131,7 +4131,7 @@ third arg it->window.
 
 	* fns.c (base64_encode_1): Handle eight-bit chars correctly.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (coding_set_destination): Fix coding->destination for
 	the case converting a region.
@@ -4145,7 +4145,7 @@ third arg it->window.
 
 	* fns.c (base64_decode_1): Insert eight-bit chars correctly.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (get_next_display_element): Don't display unibyte 8-bit
 	characters by octal form.
@@ -4178,7 +4178,7 @@ third arg it->window.
 
 	* search.c (Freplace_match): Fix for the unibyte case.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* lread.c (safe_to_load_p): Fix the logic.
 
@@ -4193,18 +4193,18 @@ third arg it->window.
 	* emacs.c (main): In the case of --unibyte, instead of aborting on
 	finding non-empty buffer, make it unibyte.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (x_new_fontset): Call `create-fontset-from-ascii-font'
 	to create a fontset.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* character.c (Funibyte_char_to_multibyte): Doc fix.
 
 	* xfns.c [HAVE_STDLIB_H]: Fix last change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (fontset_add): Make the type `int'.
 	(fontset_id_valid_p): Define it if FONTSET_DEBUG is defined.
@@ -4229,17 +4229,17 @@ third arg it->window.
 	* lisp.h (nonascii_insert_offset, Vnonascii_translation_table):
 	Extern deleted.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Fdefine_coding_system_internal): Fix category setting
 	for a coding system of type iso-2022.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.h (FS_LOAD_FONT): Call fs_load_font with the arg CHARSET
 	-1.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (Vnext_word_boundary_function_table): New variable.
 	(syms_of_syntax): Declare it as a Lisp variable.
@@ -4251,7 +4251,7 @@ third arg it->window.
 	* fontset.c (fs_load_font): If fontp->charset is not negative,
 	return fontp without setting its members.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* config.in: Generated with autoheader.
 
@@ -4268,7 +4268,7 @@ third arg it->window.
 	(TIOCSIGSEND): Don't test IRIX6.
 	(bcopy, bzero, bcmp): Define conditionally.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* buffer.c (Qas, Qmake, Qto): New variables.
 	(Fset_buffer_multibyte): New optional arg METHOD.  Caller changed.
@@ -4306,7 +4306,7 @@ third arg it->window.
 	* fns.c (Fstring_to_multibyte): New function.
 	(syms_of_fns): Declare Fstring_to_multibyte as Lisp subroutine.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* xfns.c (x_put_x_image): Declare args.
 
@@ -4347,7 +4347,7 @@ third arg it->window.
 	* ccl.c: Remove `emacs' conditional.  Include hash table stuff
 	from trunk.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	The following changes are to allow specifying multiple font
 	patterns for a character range (specified by script or charset).
@@ -4459,7 +4459,7 @@ third arg it->window.
 	fontsets, create a new one.
 	(x_get_font_repertory): New function.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (Ffind_coding_systems_region_internal): Detect an
 	ASCII only string correctly.
@@ -4467,7 +4467,7 @@ third arg it->window.
 	* lread.c (Fload): Don't load with Qload_force_doc_strings t if
 	version is 0.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* lread.c: Include "coding.h".
 	(Qget_emacs_mule_file_char, Qload_force_doc_strings,
@@ -4501,12 +4501,12 @@ third arg it->window.
 	(syms_of_lread): Intern and staticpro Qget_emacs_mule_file_char
 	and Qload_force_doc_strings.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (face_before_or_after_it_pos): Call
 	FETCH_MULTIBYTE_CHAR with byte postion, not char position.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* character.h (TRAILING_CODE_P): New macro.
 	(MAYBE_UNIFY_CHAR): Adjusted for the change of Funify_charset.
@@ -4552,12 +4552,12 @@ third arg it->window.
 	* print.c (print_object): Use octal form for printing the
 	contents of a bool vector.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* lread.c (Fload) <!load_dangerous_libraries>: Don't leak fd.
 	<version == 20>: Refuse to load.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* fns.c: Move coding.h.
 	(Qcodeset, Qdays, Qmonths): New.
@@ -4568,7 +4568,7 @@ third arg it->window.
 
 	* coding.c (adjust_coding_eol_type): Fix eol_type/eol_seen mixup.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* casetab.c (init_casetab_once, init_casetab_once): Fix
 	CHAR_TABLE_SET call.
@@ -4606,11 +4606,11 @@ third arg it->window.
 
 	* callproc.c (Fcall_process): Remove unused variables.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* coding.c (Fset_coding_system_priority): Allow null arg list.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* minibuf.c (Fminibuffer_complete_word): Remove unused var.
 	(Fself_insert_and_exit): Use CHARACTERP.
@@ -4632,18 +4632,18 @@ third arg it->window.
 	* keymap.c (access_keymap): Remove generic char code.
 	(push_key_description): Use CHARACTERP.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* charset.c: Doc fixes.
 	(Funify_charset): Extra checking.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* lread.c: Remove some unused variables.
 	(safe_to_load_p): If safe, return the magic number version byte.
 	(Fload): Maybe use load-with-code-conversion.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* category.c (Fmodify_category_entry): Don't modify the contents
 	of category_set for characters out of the range.  Avoid
@@ -4694,7 +4694,7 @@ third arg it->window.
 
 	* lisp.h (map_charset_chars): Deleted.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* fns.c (count_combining): Comment out (unused).
 	(Flocale_codeset): New.
@@ -4703,20 +4703,20 @@ third arg it->window.
 	* config.in (HAVE_PTY_H, HAVE_SIZE_T, HAVE_LANGINFO_CODESET): New.
 	(size_t): Removed.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (chartab.o): Depend on charset.h
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (syms_of_character): Set the default value of
 	Vprintable_chars to Qnil.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* Makefile.in (lisp, shortlisp): Change indian.elc to indian.el.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (load_charset_map): Handle the case that from < to
 	correctly.
@@ -4728,7 +4728,7 @@ third arg it->window.
 	(encode_coding_big5): Likewise.
 	(encode_coding_charset): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (lisp): Change chinese.elc to chinese.el.  They are
 	not bytecompiled now.
@@ -4753,7 +4753,7 @@ third arg it->window.
 	(encode_coding_iso_2022): Change the 1st arg to
 	ENCODE_ISO_CHARACTER to a variable.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (enum define_charset_arg_index): New enums
 	charset_arg_min_code and charset_arg_max_code.
@@ -4766,17 +4766,17 @@ third arg it->window.
 	args[charset_arg_max_code].  Setup charset.char_index_offset.
 	(syms_of_charset): Fix args to Fdefine_charset_internal.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* coding.c (decode_coding_utf_8): Reject overlong sequences.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* coding.c: Doc fixes.
 	(Fcoding_system_aliases): Fix return value.
 	(Qmac): Remove (duplicated) definition.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* charset.c (Fcharset_priority_list, Fset_charset_priority): New
 	functions.
@@ -4789,7 +4789,7 @@ third arg it->window.
 	ids.
 	(font-encoding-alist): Doc fix.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* term.c (costs_set): Declare static, non-initialized for pcc.
 	(encode_terminal_code): Remove ensued var.
@@ -4807,27 +4807,27 @@ third arg it->window.
 
 	* lisp.h (DEFUN) [!PROTOTYPES]: Remove spurious `args'.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* data.c (Fchar_or_string_p): Doc fix.  Use CHARACTERP.
 
 	* category.c (Fmodify_category_entry): Doc fix.  Remove unused
 	vars.
 
-2008-02-02  Yong Lu <lyongu@asia-infonet.com>
+2008-02-01  Yong Lu <lyongu@asia-infonet.com>
 
 	* charset.c (Fdefine_charset_internal): Fix argument to bzero.
 
 	* coding.c (Fdefine_coding_system_internal): Fix previous change.
 	(decode_coding_charset): Workaround for the bug of GCC 2.96.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (lisp): Change cyrillic.elc to cyrillic.el,
 	vietnamese.elc to vietnamese.el.  They are not bytecompiled now.
 	(shortlisp): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_charset): Adjusted for the change of
 	Fdefine_coding_system_internal.
@@ -4837,7 +4837,7 @@ third arg it->window.
 
 	* charset.c (Fmake_char): Fix previous change.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (ONE_MORE_BYTE_NO_CHECK): Increment consumed_chars.
 	(emacs_mule_char): New arg src.  Delete arg `composition'.  Caller
@@ -4862,7 +4862,7 @@ third arg it->window.
 	(Fmake_char): If CODE1 is nil, use the minimum code of the
 	charset.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encode_coding_iso_2022): If coding requires safe
 	encoding, produce a character specified by
@@ -4871,7 +4871,7 @@ third arg it->window.
 	(encode_coding_big5): Likewise.
 	(encode_coding_charset): Likewise.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* xterm.c (XSetIMValues): Declare.
 
@@ -4904,18 +4904,18 @@ third arg it->window.
 	(Fset_coding_system_priority, Fset_coding_system_priority)
 	(Fdefine_coding_system_internal): Doc fix.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* s/osf5-0.h (C_SWITCH_SYSTEM) [!__GNUC__]: Remove -nointrinsics.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* character.c (string_escape_byte8): Make multibyte string with
 	correct size.
 
 	* charset.c (Fmake_char): Delete unnecessary code.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xfns.c (x_encode_text): Allocate coding.destination here, and
 	call encode_coding_object with dst_object Qnil.
@@ -4943,18 +4943,18 @@ third arg it->window.
 	* charset.c (Fmake_char): Make it more backward compatible.
 	(Fmap_charset_chars): Fix docstring.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* coding.c: Doc fixes.
 	(Fdefine_coding_system_alias): Use names, not symbols, in
 	coding-system-alist.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (free_realized_fontsets): Call Fclear_face_cache instead
 	of calling free_realized_face.
 
-2008-02-02  Yong Lu <lyongu@asia-infonet.com>
+2008-02-01  Yong Lu <lyongu@asia-infonet.com>
 
 	* charset.c (load_charset_map): Fix previous change.
 	(read_hex): Don't treat SPC as a comment starter.
@@ -4962,7 +4962,7 @@ third arg it->window.
 	-1.
 	(Fdecode_char): Fix typo.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (struct charset): New member `code_space_mask'.
 
@@ -4979,7 +4979,7 @@ third arg it->window.
 	(encode_char): Before calling CODE_POINT_TO_INDEX, check if CODE
 	is within the range of charset->min_code and carset->max_code.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* syntax.h (syntax_temp) [!__GNUC__]: Declare.
 
@@ -4991,12 +4991,12 @@ third arg it->window.
 	(Fset_terminal_coding_system_internal)
 	(Fset_safe_terminal_coding_system_internal): Fix arg declarations.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_charset, encode_coding_charset): Handle
 	multiple charsets correctly.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (boyer_moore): Fix handling of mulitbyte character
 	translation.
@@ -5004,7 +5004,7 @@ third arg it->window.
 	* xdisp.c (display_mode_element): When the variable `elt' is
 	changed, update `this' and `lisp_string'.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* buffer.c (Fset_buffer_multibyte): Fix 8-bit char handling.
 
@@ -5041,7 +5041,7 @@ third arg it->window.
 	* xfaces.c (try_font_list): Give higher priority to fontset's
 	family than face's family.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* callproc.c (Fcall_process): Be sure to give the current buffer
 	to decode_coding_c_string.
@@ -5049,19 +5049,19 @@ third arg it->window.
 	* xfaces.c (try_font_list): Give a family specified in a fontset
 	higher priority than a family specified in a face.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents): Fix calculation of `inserted'.
 	Fix arguments to insert_from_buffer.
 
 	* xdisp.c (display_mode_element): Fix calculation of `bytepos'.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (produce_chars): Set the variable `multibytep' correctly.
 	(decode_coding_gap): Set coding->dst_multibyte correctly.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encode_coding_utf_8): Initialize produced_chars to 0.
 	(decode_coding_utf_16): Fix converting high and low bytes to
@@ -5075,7 +5075,7 @@ third arg it->window.
 
 	* insdel.c (insert_from_gap): Call record_insert.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* casefiddle.c (casify_region): Fix multibyte case.
 
@@ -5100,7 +5100,7 @@ third arg it->window.
 
 	* syntax.h (SET_RAW_SYNTAX_ENTRY): Don't call make_number.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	The following changes are for using Unicode as an internal
 	character model, and use UTF-8 format for buffer/string
