@@ -1,3 +1,7 @@
+2008-02-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unidata/.cvsignore: Ignore also "Makefile.unix" and "makefile".
+
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* unidata/makefile.w32-in (charprop-CMD): Fix last change.
