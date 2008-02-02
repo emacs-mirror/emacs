@@ -1,3 +1,24 @@
+# Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008
+#   National Institute of Advanced Industrial Science and Technology (AIST)
+#   Registration Number H13PRO009
+#
+# This file is part of GNU Emacs.
+#
+# GNU Emacs is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3, or (at your option)
+# any later version.
+#
+# GNU Emacs is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Emacs; see the file COPYING.  If not, write to the
+# Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
+
 BEGIN {
   tohex["A"] = 10;
   tohex["B"] = 11;
@@ -50,5 +71,5 @@ function decode_big5(big5) {
   printf "0x%04X %s\n", code, $2;
 }
 
-    
+
 # arch-tag: 36f08d21-0d24-4b67-852d-a9a51299586d
