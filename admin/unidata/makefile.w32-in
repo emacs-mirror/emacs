@@ -41,9 +41,7 @@ charprop-SH: unidata-gen.elc unidata.txt
 	  $(RUNEMACS) --load $${ELC} -f unidata-gen-files $${DATA}
 
 charprop-CMD: unidata-gen.elc unidata.txt
-	cd $(DSTDIR)
-	$(RUNEMACS) --load $(CURDIR)/unidata-gen.elc -f unidata-gen-files $(CURDIR)/unidata.txt
-	cd ../../admin/unidata
+	$(RUNEMACS) --eval $(ARGQUOTE)(cd $(DQUOTE)$(DSTDIR)$(DQUOTE))$(ARGQUOTE) --load $(CURDIR)/unidata-gen.elc -f unidata-gen-files $(CURDIR)/unidata.txt
 
 ${DSTDIR}/charprop.el: charprop-$(SHELLTYPE)
 
