@@ -162,11 +162,11 @@ unidatagen-clean-CMD:
 	   $(MAKE) $(MFLAGS) $(XMFLAGS) -C ../admin/unidata clean
 
 unidatagen-SH:
-	test -f ../admin/unidata/UnicodeData.txt && \
+	- test -f ../admin/unidata/UnicodeData.txt && \
 	   $(MAKE) $(MFLAGS) $(XMFLAGS) -C ../admin/unidata
 
 unidatagen-clean-SH:
-	test -f ../admin/unidata/UnicodeData.txt && \
+	- test -f ../admin/unidata/UnicodeData.txt && \
 	   $(MAKE) $(MFLAGS) $(XMFLAGS) -C ../admin/unidata clean
 
 bootstrap-nmake: addsection cmdproxy
