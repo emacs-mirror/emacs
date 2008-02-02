@@ -1,7 +1,8 @@
 ;;; ps-print.el --- print text from the buffer as PostScript
 
 ;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -6408,6 +6409,12 @@ If FACE is not a valid face name, use default face."
 
 (defun ps-generate-postscript (from to)
   (ps-plot-region from to 0))
+
+;; These are autoloaded, but ps-mule generates autoloads at the end of
+;; this file, so they are unknown at this point when compiling.
+(declare-function ps-mule-initialize "ps-mule" ())
+(declare-function ps-mule-begin-job  "ps-mule" (from to))
+(declare-function ps-mule-end-job    "ps-mule" ())
 
 (defun ps-generate (buffer from to genfunc)
   (save-excursion
