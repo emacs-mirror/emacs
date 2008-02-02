@@ -1,7 +1,7 @@
-;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP -*- coding: iso-8859-1; -*-
+;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
