@@ -3192,6 +3192,8 @@ echo creating src/Makefile
       -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
       < Makefile.c > junk.c
   if test -f ${srcdir}/admin/unidata/UnicodeData.txt; then
+    echo creating ${srcdir}/admin/unidata/Makefile
+    cp ${srcdir}/admin/unidata/Makefile.in ${srcdir}/admin/unidata/Makefile
     CPPFLAGS="$CPPFLAGS -DHAVE_UNIDATA"
   fi
   $CPP $undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \

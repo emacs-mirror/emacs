@@ -12776,6 +12776,10 @@ _ACEOF
     fi
   fi
 fi
+if test "$HAVE_XFT" != "yes"; then
+   HAVE_XFT=no
+fi
+
 
 HAVE_FREETYPE=no
 ### Use -lfreetype if available, unless `--with-freetype=no'.
@@ -23953,6 +23957,14 @@ echo "  Does Emacs use -lpng?                                   ${HAVE_PNG}"
 echo "  Does Emacs use -lrsvg-2?                                ${HAVE_RSVG}"
 echo "  Does Emacs use -lgpm?                                   ${HAVE_GPM}"
 echo "  Does Emacs use -ldbus?                                  ${HAVE_DBUS}"
+echo "  Does Emacs use a font backend?                          ${USE_FONT_BACKEND}"
+
+if test "${USE_FONT_BACKEND}" = "yes"; then
+  echo "  Does Emacs use -lfreetype?                              ${HAVE_FREETYPE}"
+  echo "  Does Emacs use -lm17n-flt?                              ${HAVE_M17N_FLT}"
+  echo "  Does Emacs use -lotf?                                   ${HAVE_LIBOTF}"
+  echo "  Does Emacs use -lxft?                                   ${HAVE_XFT}"
+fi
 echo "  Does Emacs use X toolkit scroll bars?                   ${USE_TOOLKIT_SCROLL_BARS}"
 echo
 
@@ -25278,6 +25290,8 @@ echo creating src/Makefile
       -e 's,/\*\*/#\(.*\)$,/* \1 */,' \
       < Makefile.c > junk.c
   if test -f ${srcdir}/admin/unidata/UnicodeData.txt; then
+    echo creating ${srcdir}/admin/unidata/Makefile
+    cp ${srcdir}/admin/unidata/Makefile.in ${srcdir}/admin/unidata/Makefile
     CPPFLAGS="$CPPFLAGS -DHAVE_UNIDATA"
   fi
   $CPP $undefs -I. -I$srcdir/src $CPPFLAGS junk.c | \
