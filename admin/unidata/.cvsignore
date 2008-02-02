@@ -1,3 +1,5 @@
 charprop.el
 uni-*.el
 unidata.txt
+Makefile.unix
+makefile
