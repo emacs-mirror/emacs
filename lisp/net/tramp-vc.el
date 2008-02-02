@@ -1,7 +1,7 @@
 ;;; tramp-vc.el --- Version control integration for TRAMP.el
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
-;;   2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pittman <daniel@danann.net>
 ;; Keywords: comm, processes
@@ -98,9 +98,8 @@ See `vc-do-command' for more information."
 
 	(erase-buffer)
 
-	(mapcar
-	 (function
-	  (lambda (s) (and s (setq squeezed (append squeezed (list s))))))
+	(mapc
+	 (lambda (s) (and s (setq squeezed (append squeezed (list s)))))
 	 flags)
 	(if (and (eq last 'MASTER) file
 		 (setq vc-file (vc-name file)))
