@@ -3,51 +3,43 @@
 	* HELLO: Add Bengali, Gujarati, Khmer, Myanmar, Oriya, Sinhara,
 	Telugu.  Fix ISO-2022 desginations in Cantonese line.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* HELLO: Remove non-unicode character from Tibetan text.
 
-2008-02-02  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-prin1.ps (printBackground): Fix background height.
-
-2008-02-02  Kenichi Handa  <handa@m17n.org>
-
-	* HELLO: Sync with HEAD.
-
-2008-02-02  Miles Bader  <miles@gnu.org>
+2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* TODO, PROBLEMS, NEWS: Replace references to Emacs version "22"
 	with "23".
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* charsets/CNS-[234567].map: Regenerated.
+	* charsets/CNS-[234567].map: Regenerate.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* charsets/JISX2131.map: Regenerated.
+	* charsets/JISX2131.map: Regenerate.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charsets/JISX213A.map: New file.
 
-	* charsets/JISX0208.map: Regenerated.
+	* charsets/JISX0208.map: Regenerate.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* charsets/CP932-2BYTE.map: Updated from ../admin/charsets.
+	* charsets/CP932-2BYTE.map: Update from ../admin/charsets.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* CP932-2BYTE.map: New file.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* ps-prin1.ps (HeaderOrFooterTextLines): Handle multiple strings
 	in a line.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charsets: New directory for charset mapping tables.
 
@@ -55,27 +47,27 @@
 
 	* charsets/*.map: New files.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* HELLO: Change "Hindi" to more common characters.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* HELLO: Fix upcase and downcase for several languages.  Change
 	the two German lines into one.  Change "Nederlangs" to
 	"Dutch (Nederlands)".  Add original language names to several
 	entries.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* TUTORIAL.es: Add local variable coding: latin-1.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* HELLO: Change indian-2-column chars of Hindi line to Unicode
 	chars.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* HELLO: Add pseudo-maths example.
 
@@ -3102,7 +3094,7 @@
 
 2000-03-15  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
-	* ps-print0.ps: New file.
+	* ps-prin0.ps: New file.
 
 	* ps-prin1.ps, ps-prin3.ps: Eliminate CheckConfig.
 
