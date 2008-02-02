@@ -1,3 +1,9 @@
+2008-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.in: If admin/unidata/UnicodeData.txt is present, copy
+	admin/unidata/Makefile.in to Makefile.
+	* configure: Regenerated.
+
 2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* configure.in: Use OPTION_DEFAULT_ON for [freetype], [xft],
