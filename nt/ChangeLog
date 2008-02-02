@@ -1,5 +1,9 @@
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
+	* configure.bat (dontCopy): Rename admin/unidata/Makefile to keep
+	it out of the way of Windows generated file.  Generate
+	admin/unidata/makefile.
+
 	* makefile.w32-in (unidatagen-nmake, unidatagen-clean-nmake)
 	(unidatagen-CMD, unidatagen-clean-CMD, unidatagen-SH)
 	(unidatagen-clean-SH): New targets.
