@@ -1,3 +1,32 @@
+2008-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* international/latin1-disp.el (latin1-display):
+	* progmodes/fortran.el (fortran-comment-indent-char):
+	* progmodes/idlw-shell.el (top-level):
+	* term/mac-win.el (mac-keyboard-translate-char):
+	* whitespace.el (whitespace-char-valid-p):
+	* wid-edit.el (widget-key-sequence-read-event):
+	Use characterp rather than char-valid-p.
+
+	* progmodes/cap-words.el (capitalized-next-word-boundary): Rename
+	to capitalized-find-word-boundary.  Doc fix.  Update callers.
+	(capitalized-next-word-boundary-function-table): Rename to
+	capitalized-find-word-boundary-function-table.  Doc fix.  Update
+	users.
+
+	* ps-bdf.el (bdf-read-font-info): Use string-to-number rather than
+	string-to-int.
+
+	* ps-def.el (declare-function): Add compatibility definition.
+	(ps-plot-with-face, ps-plot-string): Declare as functions.
+	(ps-bold-faces, ps-italic-faces): Declare variables.
+
+	* ps-print.el (ps-mule-initialize, ps-mule-begin-job)
+	(ps-mule-end-job): Declare as functions.
+
+	* wid-edit.el (widget-string-complete): Use assoc-string rather
+	than assoc-ignore-case.
+
 2008-02-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/etags.el (next-file): Improve revert message.
