@@ -1,3 +1,7 @@
+2008-02-02  Jason Rumney  <jasonr@gnu.org>
+
+	* unidata/unidata-gen.el (unidata-gen-files): Force unix line ends.
+
 2008-02-02  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/UnicodeData.txt: Updated to Unicode 5.0.
