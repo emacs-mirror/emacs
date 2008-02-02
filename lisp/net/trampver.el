@@ -2,7 +2,8 @@
 ;;; trampver.el --- Transparent Remote Access, Multiple Protocol
 ;;; lisp/trampver.el.  Generated from trampver.el.in by configure.
 
-;; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006, 2007,
+;;   2008 Free Software Foundation, Inc.
 
 ;; Author: Kai Gro,A_(Bjohann <kai.grossjohann@gmx.net>
 ;; Keywords: comm, processes
@@ -30,7 +31,7 @@
 ;; are auto-frobbed from configure.ac, so you should edit that file and run
 ;; "autoconf && ./configure" to change them.
 
-(defconst tramp-version "2.0.57-pre"
+(defconst tramp-version "2.0.57"
   "This version of Tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@gnu.org"
