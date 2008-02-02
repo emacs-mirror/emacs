@@ -354,7 +354,6 @@
 	* ftfont.c (ftfont_open): Set members maybe_otf and otf of
 	ftfont_info only when HAVE_LIBOTF is defined.
 
->>>>>>> 1.1.2.202
 2008-02-01  Andreas Schwab  <schwab@suse.de>
 
 	* xdisp.c (back_to_previous_visible_line_start): Fix type of beg
@@ -365,8 +364,6 @@
 	* w32font.c (w32font_driver): Add new fields.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
-
-	* config.in: Re-generated.
 
 	* Makefile.in (ALL_CFLAGS): Add @M17N_FLT_CFLAGS@.
 	(FONTSRC, FONTOBJ) [HAVE_WINDOW_SYSTEM]: Set them unconditionally.
@@ -1921,8 +1918,6 @@ third arg it->window.
 
 	* composite.h (enum composition_method) [USE_FONT_BACKEND]: New
 	enumeration COMPOSITION_WITH_GLYPH_STRING.
-
-	* config.in: Re-generated.
 
 	* dispextern.h (struct glyph_string) [USE_FONT_BACKEND]: New
 	members clip_x, clip_y, clip_width, and clip_height.
