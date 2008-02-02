@@ -31,6 +31,15 @@
 
 ;;; Code:
 
+(eval-and-compile
+  (unless (fboundp 'declare-function) (defmacro declare-function (&rest r))))
+
+(declare-function ps-plot-with-face "ps-print" (from to face))
+(declare-function ps-plot-string    "ps-print" (string))
+
+(defvar ps-bold-faces)                  ; in ps-print.el
+(defvar ps-italic-faces)
+
 
 
 ;; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
