@@ -1,11 +1,6 @@
 2008-02-02  Jason Rumney  <jasonr@gnu.org>
 
-	* makefile.w32-in (SRC): Define earlier.
-	(CHARPROP, UNIDATA, UNIDATA_SRC, UNIDATA_GEN, UNIDATA_GEN_SRC)
-	(UNIDATA_DEST, RUNTEMACS): New definitions.
-	($(EMACS)): Depend on $(CHARPROP).
-	(temacs): Bump EMHEAP to 21.
-	($(CHARPROP), $(UNIDATA), $(UNIDATA_GEN)): New targets.
+	* makefile.w32-in (temacs): Bump EMHEAP to 21.
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
