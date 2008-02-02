@@ -4,13 +4,17 @@
 	HAVE_LIBOTF and HAVE_M17N_FLT instead of pkg_check_libotf and
 	pkg_check_m17n_flt, respectively, for the sake of the summary output.
 	Reported by Ulrich Mueller.
-	* configure: Regenerated.
 
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.in: If admin/unidata/UnicodeData.txt is present, copy
 	admin/unidata/Makefile.in to Makefile.
-	* configure: Regenerated.
+
+2008-02-02  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (HAVE_XFT): Ensure it is either "yes" or "no".
+	(USE_FONT_BACKEND, HAVE_FREETYPE, HAVE_M17N_FLT, HAVE_LIBOTF)
+	(HAVE_XFT): Add "Does Emacs use..." messages at end.
 
 2008-02-01  Miles Bader  <miles@gnu.org>
 
