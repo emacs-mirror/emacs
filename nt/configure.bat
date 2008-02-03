@@ -244,15 +244,16 @@ rem   Auto-detect compiler if not specified, and validate GCC if chosen.
 if (%COMPILER%)==(cl) goto compilercheckdone
 if (%COMPILER%)==(gcc) goto checkgcc
 
-echo Checking whether 'cl' is available...
+echo Checking whether 'gcc' is available...
 echo main(){} >junk.c
+gcc -c junk.c
+if exist junk.o goto checkgcc
+del junk.o
+
+echo Checking whether 'cl' is available...
 cl -nologo -c junk.c
 if exist junk.obj goto clOK
-
-echo Checking whether 'gcc' is available...
-gcc -c junk.c
-if not exist junk.o goto nocompiler
-del junk.o
+goto nocompiler
 
 :checkgcc
 Rem WARNING -- COMMAND.COM on some systems only looks at the first
