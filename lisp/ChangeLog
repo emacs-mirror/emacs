@@ -269,11 +269,10 @@
 	(x-select-request-type): Doc adjusted the change of
 	x-selection-value.
 
-	* select.el (selection-coding-system)
-	(next-selection-coding-system): Move declarations from xselect.c.
-	(x-get-selection): Decode by selection-coding-system if it is
-	non-nil.  If it is nil, decode by a proper coding system.  Handle
-	C_STRING.
+	* select.el (selection-coding-system, next-selection-coding-system):
+	Move declarations from xselect.c.
+	(x-get-selection): Decode by selection-coding-system if it is non-nil.
+	If it is nil, decode by a proper coding system.  Handle C_STRING.
 	(ccl-check-utf-8, string-utf-8-p): Delete them.
 	(xselect-convert-to-string): Fix determining data-type in the case
 	that TEXT is requested.  Don't use selection-coding-system if it's
@@ -508,7 +507,7 @@
 
 	* ps-print.el: Replace (defvar VAR nil) by (defvar VAR).
 	(ps-print-emacs-type): Var eliminated.
-	(ps-setup): Remove ps-print-emacs-type. Print which Emacsen is
+	(ps-setup): Remove ps-print-emacs-type.  Print which Emacsen is
 	running ps-print package.
 
 	* ps-def.el: Replace (defvar VAR nil) by (defvar VAR).
@@ -656,7 +655,7 @@
 	(ccl-execute-on-string, define-ccl-program, multibyte-string-p)
 	(string-make-multibyte, encode-char): Funs moved to ps-def.el.
 
-	* ps-def.el: New file. XEmacs/Emacs definitions.
+	* ps-def.el: New file.  XEmacs/Emacs definitions.
 	(ps-generate-postscript-with-faces1): New fun.
 	(ps-color-format, ps-float-format): Vars moved from ps-print.el.
 	(ps-xemacs-color-name, ps-mapper, ps-extent-sorter)
@@ -673,7 +672,7 @@
 	(ccl-execute-on-string, define-ccl-program, multibyte-string-p)
 	(string-make-multibyte, encode-char): Funs moved from ps-mule.el.
 
-	* ps-samp.el: New file. Sample setup code.
+	* ps-samp.el: New file.  Sample setup code.
 	(ps-prsc, ps-c-prsc, ps-s-prsc, ps-rmail-mode-hook)
 	(ps-rmail-print-message-from-summary, ps-print-message-from-summary)
 	(ps-article-subject, ps-article-author, ps-gnus-article-prepare-hook)
@@ -1305,7 +1304,7 @@
 	Change 'mime-charset to :mime-charset.
 	(select-safe-coding-system): Use above (sync to HEAD).
 	(set-language-environment): Delete unnecessary code for handling
-	overriding-fontspec
+	overriding-fontspec.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1382,7 +1381,7 @@
 
 	* term/mac-win.el: Use mac-standard-fontset-spec to create
 	fontset-mac
-	(mac-standard-fontset-spec): Created
+	(mac-standard-fontset-spec): Created.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1535,7 +1534,7 @@
 	coding systems.
 	(iso-2022-jp-3, euc-jisx0213, shift_jis-2004): New coding system
 	aliases.
-	("Japanese"): Add new charsets and coding system.s
+	("Japanese"): Add new charsets and coding systems.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1706,8 +1705,8 @@
 
 	* w32-fns.el (w32-charset-info-alist): Accept more charset aliases.
 
-	* makefile.w32-in (DONTCOMPILE): Remove old languages. Add
-	international/latin1-disp.el.
+	* makefile.w32-in (DONTCOMPILE): Remove old languages.
+	Add international/latin1-disp.el.
 	(LC_ALL): Define as C.
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
@@ -2352,7 +2351,7 @@
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/characters.el: Remove duplicated case setting for
-	Cyrillic and Greek letters.   Don't setup printable-chars here.
+	Cyrillic and Greek letters.  Don't setup printable-chars here.
 
 	* case-table.el (describe-buffer-case-table): Handle the case
 	that KEY is a cons within map-char-table.
@@ -3062,7 +3061,7 @@
 
 	* international/encoded-kb.el
 	(encoded-kbd-self-insert-iso2022-8bit): New arg ARG.  Directly
-	call self-insert-command.   This is a temporary workaround to
+	call self-insert-command.  This is a temporary workaround to
 	make it work with latin-1.
 	(encoded-kbd-mode): Change `sjis' to `shift-jis'.
 
@@ -3161,7 +3160,7 @@
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
 	* bindings.el: Don't bind multibyte characters to
-	self-insert-command here.  It's done in mule-conf.el
+	self-insert-command here.  It's done in mule-conf.el.
 
 	* case-table.el (set-case-syntax-offset): Variable deleted.
 	(set-case-syntax-1): Function deleted.  Callers changed.
@@ -5355,7 +5354,7 @@
 	* vc.el (vc-dired-hook): Show unregistered file status as "?" in
 	non-terse mode.
 	(vc-dired-ignorable-p): Ignore Makefile when it has a peer named
-	Makefile.in or Makefile.am
+	Makefile.in or Makefile.am.
 
 2007-12-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -6294,7 +6293,7 @@
 
 	* subr.el (declare-function): Move from byte-run.el.
 
-	* emacs-lisp/byte-run.el (declare-function): Move to subr.el
+	* emacs-lisp/byte-run.el (declare-function): Move to subr.el.
 
 	* window.el (recenter-top-bottom): Don't use `ecase'.
 
