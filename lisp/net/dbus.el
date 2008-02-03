@@ -32,6 +32,10 @@
 
 ;;; Code:
 
+;; D-Bus support in the Emacs core can be disabled with configuration
+;; option "--without-dbus".  Check it.
+(assert (featurep 'dbusbind) nil "D-Bus is not supported")
+
 (require 'xml)
 
 (defconst dbus-service-dbus "org.freedesktop.DBus"
