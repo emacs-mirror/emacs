@@ -203,17 +203,14 @@ PROPERTY is set persistent when KEY is a vector."
       (error nil))
     value))
 
-(defun tramp-flush-connection-property (key event)
+(defun tramp-flush-connection-property (key)
   "Remove all properties identified by KEY.
-KEY identifies the connection, it is either a process or a
-vector.  EVENT is not used, it is just applied because this
-function is intended to run also as process sentinel."
+KEY identifies the connection, it is either a process or a vector."
   ;; Unify key by removing localname from vector.  Work with a copy in
   ;; order to avoid side effects.
   (when (vectorp key)
     (setq key (copy-sequence key))
     (aset key 3 nil))
-;  (tramp-message key 7 "%s" event)
   (remhash key tramp-cache-data))
 
 (defun tramp-cache-print (table)
