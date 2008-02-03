@@ -1,3 +1,8 @@
+2008-02-03  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (OBJ1): Include font.o here.
+	(FONTOBJ) [USE_FONTBACKEND]: Instead of here.
+
 2008-02-02  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (temacs): Bump EMHEAP to 21.
