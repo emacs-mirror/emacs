@@ -1,3 +1,7 @@
+2008-02-03  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Make gcc the default compiler.
+
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (unidatagen-SH, unidatagen-clean-SH): Ignore
