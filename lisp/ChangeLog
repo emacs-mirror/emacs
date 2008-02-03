@@ -1,3 +1,26 @@
+2008-02-03  Michael Albinus  <michael.albinus@gmx.de>
+
+	* ediff-util.el (ediff-compute-custom-diffs-maybe): Handle remote
+	files.
+
+	* net/dbus.el (top): Check (featurep 'dbusbind).
+
+	* net/tramp.el (tramp-process-sentinel): New defun.
+	(tramp-do-copy-or-rename-file-out-of-band)
+	(tramp-maybe-open-connection): Use it as process sentinel.
+	(tramp-handle-delete-directory): Don't use the "-f" option; it
+	isn't portable.
+	(tramp-handle-start-file-process): Echo `tramp-end-of-output'
+	after the command.
+	(tramp-handle-shell-command): Set `mode-line-process' in the
+	asynchronous case.
+
+	* net/tramp-cache.el (tramp-flush-connection-property): Remove EVENT.
+
+	* net/tramp-fish.el (tramp-fish-maybe-open-connection):
+	* net/tramp-smb.el (tramp-smb-maybe-open-connection): Use
+	`tramp-process-sentinel' as process sentinel.
+
 2008-02-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* whitespace.el (global-whitespace-mode): Revert last change.
