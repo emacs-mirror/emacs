@@ -1,3 +1,9 @@
+2008-02-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el: Add new TODO entry.
+	(diff-create-changelog): New function.
+	(diff-mode-menu): Bind it.
+
 2008-02-04  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/mule-diag.el (print-fontset-element): Handle the

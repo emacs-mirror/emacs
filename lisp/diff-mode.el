@@ -39,6 +39,8 @@
 
 ;; Todo:
 
+;; - Improve `diff-create-changelog', it is very simplistic now.
+;;  
 ;; - Add a `delete-after-apply' so C-c C-a automatically deletes hunks.
 ;;   Also allow C-c C-a to delete already-applied hunks.
 ;;
@@ -171,6 +173,8 @@ when editing big diffs)."
     ["Apply hunk"		diff-apply-hunk		t]
     ["Test applying hunk"	diff-test-hunk		t]
     ["Apply diff with Ediff"	diff-ediff-patch	t]
+    ["Create Change Log"        diff-create-changelog
+     :help "Create ChangeLog entries for the changes in the diff buffer"]
     "-----"
     ["Reverse direction"	diff-reverse-direction	t]
     ["Context -> Unified"	diff-context->unified	t]
@@ -1724,6 +1728,35 @@ For use in `add-log-current-defun-function'."
                                   (match-end 0) end
                                   props 'diff-refine-preproc))))))))
 
+
+(defun diff-create-changelog ()
+  "Iterate through the current diff and create ChangeLog entries."
+  (interactive)
+  ;; XXX: Currently add-change-log-entry-other-window is only called
+  ;; once per hunk.  Some hunks have multiple changes, it would be
+  ;; good to call it for each change.
+  (save-excursion
+    (goto-char (point-min))
+    (let ((orig-buffer (current-buffer)))
+      (condition-case nil
+	  ;; Call add-change-log-entry-other-window for each hunk in
+	  ;; the diff buffer.
+	  (while t
+	    (set-buffer orig-buffer)
+	    (diff-hunk-next)
+	    (beginning-of-line)
+	    (while (not (looking-at "^ "))
+	      (forward-line 1))
+	    ;; Move to where the changes are,
+	    ;; `add-change-log-entry-other-window' works better in
+	    ;; that case.
+	    (while (not (looking-at "^[!+-]"))
+	      (forward-line 1))
+	    (add-change-log-entry-other-window)
+	    ;; Insert a "." so that the entries created don't get
+	    ;; merged.
+	    (insert "."))
+	(error nil)))))
 
 ;; provide the package
 (provide 'diff-mode)
