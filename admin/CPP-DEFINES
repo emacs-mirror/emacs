@@ -4,7 +4,7 @@ of their use.  Feel free to add more macros and more categories.
 ** Distinguishing OSes **
 
 MAC_OS		Compiling for the `mac' window-system.
-MAC_OS8		Compiling for Mac OS Classic (v8 or v9).
+MAC_OS8		Compiling for Mac OS Classic (v8 or v9). No longer supported, all code using it can be removed.
 MAC_OSX		Compiling for Mac OS X.  Not bare Darwin.
 CYGWIN		Compiling the Cygwin port.
 __CYGWIN__	Ditto
