@@ -9045,13 +9045,13 @@ static const unsigned char fn_keycode_to_keycode_table[] = {
 
 static int
 #if USE_CARBON_EVENTS
-mac_to_emacs_modifiers (UInt32 mods)
+mac_to_emacs_modifiers (UInt32 mods, UInt32 unmapped_mods)
 #else
-mac_to_emacs_modifiers (EventModifiers mods)
+mac_to_emacs_modifiers (EventModifiers mods, EventModifiers unmapped_mods)
 #endif
 {
   unsigned int result = 0;
-  if (mods & shiftKey)
+  if ((mods | unmapped_mods) & shiftKey)
     result |= shift_modifier;
 
   /* Deactivated to simplify configuration:
@@ -9153,7 +9153,7 @@ mac_quit_char_key_p (modifiers, key_code)
   if (char_code & ~0xff)
     return 0;
 
-  emacs_modifiers = mac_to_emacs_modifiers (mapped_modifiers);
+  emacs_modifiers = mac_to_emacs_modifiers (mapped_modifiers, modifiers);
   if (emacs_modifiers & ctrl_modifier)
     c = make_ctrl_char (char_code);
 
@@ -9179,7 +9179,7 @@ mac_event_to_emacs_modifiers (EventRef eventRef)
     {
       mods &= ~(optionKey | cmdKey);
     }
-  return mac_to_emacs_modifiers (mods);
+  return mac_to_emacs_modifiers (mods, 0);
 }
 
 /* Given an event ref, return the code to use for the mouse button
@@ -9769,7 +9769,7 @@ mac_store_drag_event (window, mouse_pos, modifiers, desc)
   EVENT_INIT (buf);
 
   buf.kind = DRAG_N_DROP_EVENT;
-  buf.modifiers = mac_to_emacs_modifiers (modifiers);
+  buf.modifiers = mac_to_emacs_modifiers (modifiers, 0);
   buf.timestamp = TickCount () * (1000 / 60);
   XSETINT (buf.x, mouse_pos.h);
   XSETINT (buf.y, mouse_pos.v);
@@ -10255,7 +10255,7 @@ mac_handle_text_input_event (next_handler, event, data)
 		    read_socket_inev->kind = ASCII_KEYSTROKE_EVENT;
 		    read_socket_inev->code = code;
 		    read_socket_inev->modifiers =
-		      mac_to_emacs_modifiers (modifiers);
+		      mac_to_emacs_modifiers (modifiers, 0);
 		    read_socket_inev->modifiers |=
 		      (extra_keyboard_modifiers
 		       & (meta_modifier | alt_modifier
@@ -10901,7 +10901,7 @@ XTread_socket (sd, expected, hold_quit)
 		    inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
 #else
 		    inev.code = mac_get_emulated_btn (er.modifiers);
-		    inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
+		    inev.modifiers = mac_to_emacs_modifiers (er.modifiers, 0);
 #endif
 		    XSETINT (inev.x, mouse_loc.h);
 		    XSETINT (inev.y, mouse_loc.v);
@@ -11430,7 +11430,8 @@ XTread_socket (sd, expected, hold_quit)
 		inev.code = er.message & charCodeMask;
 	      }
 
-	    inev.modifiers = mac_to_emacs_modifiers (mapped_modifiers);
+	    inev.modifiers = mac_to_emacs_modifiers (mapped_modifiers,
+						     modifiers);
 	    inev.modifiers |= (extra_keyboard_modifiers
 			       & (meta_modifier | alt_modifier
 				  | hyper_modifier | super_modifier));
