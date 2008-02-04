@@ -1,10 +1,14 @@
+2008-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (cancel-change-group): Don't move point.
+
 2008-02-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.57.
 
 	* net/tramp.el (tramp-handle-make-auto-save-file-name)
-	(tramp-completion-dissect-file-name, tramp-find-executable): Use
-	`mapc' instead of `mapcar'.
+	(tramp-completion-dissect-file-name, tramp-find-executable):
+	Use `mapc' instead of `mapcar'.
 	(tramp-open-connection-setup-interactive-shell): Send only single
 	prompt setting commands, in order to avoid double-prompt.
 
@@ -112,8 +116,8 @@
 
 2008-01-26  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-defs.el (c-save-buffer-state): Bind
-	buffer-file-name and buffer-file-truename to nil, to prevent
+	* progmodes/cc-defs.el (c-save-buffer-state):
+	Bind buffer-file-name and buffer-file-truename to nil, to prevent
 	primitives generating "buffer is read only" messages.
 
 2008-01-26  Eli Zaretskii  <eliz@gnu.org>
@@ -179,9 +183,8 @@
 
 2008-01-16  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-vars.el (c-constant-symbol): Put this defun inside
-	an eval-and-compile, so as to permit byte-compiling (e.g. in
-	bootstrap).
+	* progmodes/cc-vars.el (c-constant-symbol): Put this defun inside an
+	eval-and-compile, so as to permit byte-compiling (e.g. in bootstrap).
 
 2008-01-16  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -225,7 +228,7 @@
 	* progmodes/cc-vars.el (c-hanging-braces-alist): Remove the
 	obscure non-working fragment ":value c-".
 
-	* progmodes/cc-engine.el (c-guess-basic-syntax): prevent a macro
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Prevent a macro
 	call inside a struct being recognised as a K&R argument.
 
 2008-01-14  Jason Rumney  <jasonr@gnu.org>
@@ -240,15 +243,14 @@
 
 2008-01-12  Eli Zaretskii  <eliz@gnu.org>
 
-	* view.el (view-file-other-window, view-file-other-frame): Don't
-	kill the buffer if it is modified.  Doc fixes.
+	* view.el (view-file-other-window, view-file-other-frame):
+	Don't kill the buffer if it is modified.  Doc fixes.
 	(kill-buffer-if-not-modified): New function.
 	(view-file): Don't kill the buffer if it is modified.
 
-	* progmodes/ebrowse.el (ebrowse-view-file-other-window): Delete
-	function.
-	(ebrowse-view/find-file-and-search-pattern): Call
-	view-file-other-window instead of ebrowse-view-file-other-window.
+	* progmodes/ebrowse.el (ebrowse-view-file-other-window): Delete.
+	(ebrowse-view/find-file-and-search-pattern):
+	Call view-file-other-window instead of ebrowse-view-file-other-window.
 	(ebrowse-view-file-other-frame): Don't call
 	current-window-configuration.  Fix second argument in the call to
 	view-mode-enter.  Doc fix.
@@ -263,8 +265,8 @@
 
 2008-01-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* files.el (safe-local-eval-forms): Mark
-	(add-hook 'write-file-hooks 'time-stamp) as safe.
+	* files.el (safe-local-eval-forms):
+	Mark (add-hook 'write-file-hooks 'time-stamp) as safe.
 
 2008-01-10  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -344,8 +346,8 @@
 	(verilog-auto-input-ignore-regexp)
 	(verilog-auto-inout-ignore-regexp)
 	(verilog-auto-output-ignore-regexp)
-	(verilog-auto-unused-ignore-regexp, verilog-typedef-regexp): Add
-	safe-local-variable properties.
+	(verilog-auto-unused-ignore-regexp, verilog-typedef-regexp):
+	Add safe-local-variable properties.
 	(verilog-statement-menu, verilog-company)
 	(verilog-re-search-forward, verilog-re-search-backward)
 	(verilog-error-regexp-add, verilog-end-block-re)
@@ -431,13 +433,12 @@
 
 2008-01-07  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gud-gdb-command-name): Explain
-	"--annotate=3" option is necessary for the Graphical Interface.
+	* progmodes/gdb-ui.el (gud-gdb-command-name):
+	Explain "--annotate=3" option is necessary for the Graphical Interface.
 
 2008-01-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-hg.el (vc-hg-dir-state): Pass the dir argument to
-	vc-hg-command.
+	* vc-hg.el (vc-hg-dir-state): Pass the dir argument to vc-hg-command.
 
 2008-01-07  Glenn Morris  <rgm@gnu.org>
 
