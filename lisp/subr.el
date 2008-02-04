@@ -1871,29 +1871,29 @@ This finishes the change group by accepting its changes as final."
 (defun cancel-change-group (handle)
   "Finish a change group made with `prepare-change-group' (which see).
 This finishes the change group by reverting all of its changes."
-  (save-excursion
-    (dolist (elt handle)
-      (with-current-buffer (car elt)
-        (setq elt (cdr elt))
-        (let ((old-car
-               (if (consp elt) (car elt)))
-              (old-cdr
-               (if (consp elt) (cdr elt))))
-          ;; Temporarily truncate the undo log at ELT.
-          (when (consp elt)
-            (setcar elt nil) (setcdr elt nil))
-          (unless (eq last-command 'undo) (undo-start))
-          ;; Make sure there's no confusion.
-          (when (and (consp elt) (not (eq elt (last pending-undo-list))))
-            (error "Undoing to some unrelated state"))
-          ;; Undo it all.
-          (while (listp pending-undo-list) (undo-more 1))
-          ;; Reset the modified cons cell ELT to its original content.
-          (when (consp elt)
-            (setcar elt old-car)
-            (setcdr elt old-cdr))
-          ;; Revert the undo info to what it was when we grabbed the state.
-          (setq buffer-undo-list elt))))))
+  (dolist (elt handle)
+    (with-current-buffer (car elt)
+      (setq elt (cdr elt))
+      (let ((old-car
+             (if (consp elt) (car elt)))
+            (old-cdr
+             (if (consp elt) (cdr elt))))
+        ;; Temporarily truncate the undo log at ELT.
+        (when (consp elt)
+          (setcar elt nil) (setcdr elt nil))
+        (unless (eq last-command 'undo) (undo-start))
+        ;; Make sure there's no confusion.
+        (when (and (consp elt) (not (eq elt (last pending-undo-list))))
+          (error "Undoing to some unrelated state"))
+        ;; Undo it all.
+        (save-excursion
+          (while (listp pending-undo-list) (undo-more 1)))
+        ;; Reset the modified cons cell ELT to its original content.
+        (when (consp elt)
+          (setcar elt old-car)
+          (setcdr elt old-cdr))
+        ;; Revert the undo info to what it was when we grabbed the state.
+        (setq buffer-undo-list elt)))))
 
 ;;;; Display-related functions.
 
