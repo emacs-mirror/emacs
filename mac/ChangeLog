@@ -26,6 +26,7 @@
         * inc/sys/types.h:
         * src/EmacsMPW.r: Remove files for no longer supported pre-MacOSX
 	systems.
+	* inc: Remove directory.
 
 2008-01-04  Glenn Morris  <rgm@gnu.org>
 
