@@ -115,9 +115,9 @@
 ;;; Code:
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "383"
+(defconst verilog-mode-version "389"
   "Version of this verilog mode.")
-(defconst verilog-mode-release-date "2008-01-07-GNU"
+(defconst verilog-mode-release-date "2008-02-01-GNU"
   "Release date of this verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of verilog mode was released with Emacs itself.")
@@ -1526,6 +1526,8 @@ find the errors."
   (eval-when-compile
     (verilog-regexp-words
      `(
+       ;; port direction (by themselves)
+       "inout" "input" "output" 
        ;; integer_atom_type
        "byte" "shortint" "int" "longint" "integer" "time"
        ;; integer_vector_type
@@ -4681,7 +4683,7 @@ ARG is ignored, for `comment-indent-function' compatibility."
 
 ;;
 
-(defun verilog-pretty-declarations ()
+(defun verilog-pretty-declarations (&optional quiet)
   "Line up declarations around point."
   (interactive)
   (save-excursion
@@ -4725,7 +4727,8 @@ ARG is ignored, for `comment-indent-function' compatibility."
 		  (current-column))))
 	  (goto-char end)
 	  (goto-char start)
-	  (if (> (- end start) 100)
+	  (if (and (not quiet)
+		   (> (- end start) 100))
 	      (message "Lining up declarations..(please stand by)"))
 	  ;; Get the beginning of line indent first
 	  (while (progn (setq e (marker-position edpos))
@@ -4750,7 +4753,7 @@ ARG is ignored, for `comment-indent-function' compatibility."
 			(setq r (- e (point)))
 			(> r 0))
 	    (setq e (point))
-	    (message "%d" r)
+	    (unless quiet (message "%d" r))
 	    (cond
 	     ((or (and verilog-indent-declaration-macros
 		       (looking-at verilog-declaration-re-1-macro))
@@ -4775,90 +4778,98 @@ ARG is ignored, for `comment-indent-function' compatibility."
 	      (verilog-forward-ws&directives)
 	      (forward-line -1)))
 	    (forward-line 1))
-	  (message "")))))
+	  (unless quiet (message ""))))))
 
-(defun verilog-pretty-expr (&optional myre)
+(defun verilog-pretty-expr (&optional quiet myre)
   "Line up expressions around point, or optional regexp MYRE."
   (interactive "sRegular Expression: ((<|:)?=) ")
   (save-excursion
     (if (or (eq myre nil)
 	    (string-equal myre ""))
 	(setq myre "\\(<\\|:\\)?="))
-;    (setq myre (concat "\\(^[^;" myre "]*\\)\\([" myre "]\\)"))
-    (setq myre (concat "\\(^[^;#:?=]*\\)\\([" myre "]\\)"))
-    (beginning-of-line)
-    (if (and (not (looking-at (concat "^\\s-*" verilog-complete-reg)))
-	     (looking-at myre))
-	(let* ((here (point))
-	       (e) (r)
-	       (start
-		(progn
-		  (beginning-of-line)
-		  (setq e (point))
-		  (verilog-backward-syntactic-ws)
-		  (beginning-of-line)
-		  (while (and (not (looking-at (concat "^\\s-*" verilog-complete-reg)))
-			      (looking-at myre)
-			      (not (bobp)))
+    (setq myre (concat "\\(^[^;#:<=>]*\\)\\(" myre "\\)"))
+    (let ((rexp(concat "^\\s-*" verilog-complete-reg)))
+      (beginning-of-line)
+      (if (and (not (looking-at rexp ))
+	       (looking-at myre))
+	  (let* ((here (point))
+		 (e) (r)
+		 (start
+		  (progn
+		    (beginning-of-line)
 		    (setq e (point))
 		    (verilog-backward-syntactic-ws)
 		    (beginning-of-line)
-		    ) ;Ack, need to grok `define
-		  e))
-	       (end
-		(progn
-		  (goto-char here)
-		  (end-of-line)
-		  (setq e (point))	;Might be on last line
-		  (verilog-forward-syntactic-ws)
-		  (beginning-of-line)
-		  (while (and (not (looking-at
-				    (concat "^\\s-*" verilog-complete-reg)))
-			      (looking-at myre))
+		    (while (and (not (looking-at rexp ))
+				(looking-at myre)
+				(not (bobp))
+				)
+		      (setq e (point))
+		      (verilog-backward-syntactic-ws)
+		      (beginning-of-line)
+		      ) ;Ack, need to grok `define
+		    e))
+		 (end
+		  (progn
+		    (goto-char here)
 		    (end-of-line)
-		    (setq e (point))
+		    (setq e (point))	;Might be on last line
 		    (verilog-forward-syntactic-ws)
-		    (beginning-of-line))
-		  e))
-	       (edpos (set-marker (make-marker) end))
-	       (ind))
-	  (goto-char start)
-	  (verilog-do-indent (verilog-calculate-indent))
-	  (if (> (- end start) 100)
-	      (message "Lining up expressions..(please stand by)"))
-
-	  ;; Set indent to minimum throughout region
-	  (while (< (point) (marker-position edpos))
-	    (beginning-of-line)
-	    (verilog-just-one-space myre)
-	    (end-of-line)
-	    (verilog-forward-syntactic-ws))
-
-	  ;; Now find biggest prefix
-	  (setq ind (verilog-get-lineup-indent-2 myre start edpos))
-
-	  ;; Now indent each line.
-	  (goto-char start)
-	  (while (progn (setq e (marker-position edpos))
-			(setq r (- e (point)))
-			(> r 0))
-	    (setq e (point))
-	    (message "%d" r)
-	    (cond
-	     ((looking-at myre)
-	      (goto-char (match-end 1))
-	      (if (eq (char-after) ?=)
-		  (indent-to (1+ ind))	; line up the = of the <= with surrounding =
-		(indent-to ind)))
-	     ((verilog-continued-line-1 start)
-	      (goto-char e)
-	      (indent-line-to ind))
-	     (t		; Must be comment or white space
-	      (goto-char e)
-	      (verilog-forward-ws&directives)
-	      (forward-line -1)))
-	    (forward-line 1))
-	  (message "")))))
+		    (beginning-of-line)
+		    (while (and (not (looking-at rexp ))
+				(looking-at myre))
+		      (end-of-line)
+		      (setq e (point))
+		      (verilog-forward-syntactic-ws)
+		      (beginning-of-line)
+		      )
+		    e))
+		 (edpos (set-marker (make-marker) end))
+		 (ind)
+		 )
+	    (goto-char start)
+	    (verilog-do-indent (verilog-calculate-indent))
+	    (if (and (not quiet)
+		     (> (- end start) 100))
+		(message "Lining up expressions..(please stand by)"))
+	    
+	    ;; Set indent to minimum throughout region
+	    (while (< (point) (marker-position edpos))
+	      (beginning-of-line)
+	      (verilog-just-one-space myre)
+	      (end-of-line)
+	      (verilog-forward-syntactic-ws)
+	      )
+	    
+	    ;; Now find biggest prefix
+	    (setq ind (verilog-get-lineup-indent-2 myre start edpos))
+	    
+	    ;; Now indent each line.
+	    (goto-char start)
+	    (while (progn (setq e (marker-position edpos))
+			  (setq r (- e (point)))
+			  (> r 0))
+	      (setq e (point))
+	      (if (not quiet) (message "%d" r))
+	      (cond
+	       ((looking-at myre)
+		(goto-char (match-end 1))
+		(if (not (verilog-parenthesis-depth)) ;; ignore parenthsized exprs
+		    (if (eq (char-after) ?=)
+			(indent-to (1+ ind))	; line up the = of the <= with surrounding =
+		      (indent-to ind)
+		      )))
+	       ((verilog-continued-line-1 start)
+		(goto-char e)
+		(indent-line-to ind))
+	       (t		; Must be comment or white space
+		(goto-char e)
+		(verilog-forward-ws&directives)
+		(forward-line -1))
+	       )
+	      (forward-line 1))
+	    (unless quiet (message ""))
+	    )))))
 
 (defun verilog-just-one-space (myre)
   "Remove extra spaces around regular expression MYRE."
@@ -4872,8 +4883,8 @@ ARG is ignored, for `comment-indent-function' compatibility."
 	  (if (looking-at "\\s-") (just-one-space))
 	  (goto-char p1)
 	  (forward-char -1)
-	  (if (looking-at "\\s-") (just-one-space)))))
-  (message ""))
+	  (if (looking-at "\\s-") (just-one-space))
+	  ))))
 
 (defun verilog-indent-declaration (baseind)
   "Indent current lines as declaration.
@@ -4974,13 +4985,15 @@ Region is defined by B and EDPOS."
       ;; Get rightmost position
       (while (progn (setq e (marker-position edpos))
 		    (< (point) e))
-	(if (verilog-re-search-forward myre e 'move)
+	(if (and (verilog-re-search-forward myre e 'move)
+		 (not (verilog-parenthesis-depth))) ;; skip parenthsized exprs
 	    (progn
-	      (goto-char (match-end 0))
+	      (goto-char (match-beginning 2))
 	      (verilog-backward-syntactic-ws)
 	      (if (> (current-column) ind)
 		  (setq ind (current-column)))
-	      (goto-char (match-end 0)))))
+	      (goto-char (match-end 0)))
+	  ))
       (if (> ind 0)
 	  (1+ ind)
 	;; No lineup-string found
@@ -8498,7 +8511,7 @@ Typing \\[verilog-auto] will make this into:
 	(when nil	;; Too slow on huge modules, plus makes everyone's module change
 	  (beginning-of-line)
 	  (setq pnt (point))
-	  (verilog-pretty-declarations)
+	  (verilog-pretty-declarations quiet)
 	  (goto-char pnt)
 	  (verilog-pretty-expr "//"))))))
 
