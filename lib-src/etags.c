@@ -2500,6 +2500,7 @@ while,		0,			st_C_ignore
 switch,		0,			st_C_ignore
 return,		0,			st_C_ignore
 __attribute__,	0,			st_C_attribute
+GTY,            0,                      st_C_attribute
 @interface,	0,			st_C_objprot
 @protocol,	0,			st_C_objprot
 @implementation,0,			st_C_objimpl
@@ -2563,9 +2564,9 @@ hash (str, len)
       35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
       35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
       35, 35, 35, 35, 35, 35, 35, 35, 35, 35,
-      35, 35, 35, 35, 35, 35, 35, 35, 35, 15,
-      14, 35, 35, 35, 35, 35, 35, 35, 14, 35,
-      35, 35, 35, 12, 13, 35, 35, 35, 35, 12,
+      35, 35, 35, 35, 35, 35, 35, 35, 35,  3,
+      26, 35, 35, 35, 35, 35, 35, 35, 27, 35,
+      35, 35, 35, 24,  0, 35, 35, 35, 35,  0,
       35, 35, 35, 35, 35,  1, 35, 16, 35,  6,
       23,  0,  0, 35, 22,  0, 35, 35,  5,  0,
        0, 15,  1, 35,  6, 35,  8, 19, 35, 16,
@@ -2605,7 +2606,7 @@ in_word_set (str, len)
 {
   enum
     {
-      TOTAL_KEYWORDS = 32,
+      TOTAL_KEYWORDS = 33,
       MIN_WORD_LENGTH = 2,
       MAX_WORD_LENGTH = 15,
       MIN_HASH_VALUE = 2,
@@ -2616,7 +2617,7 @@ in_word_set (str, len)
     {
       {""}, {""},
       {"if",		0,			st_C_ignore},
-      {""},
+      {"GTY",           0,                      st_C_attribute},
       {"@end",		0,			st_C_objend},
       {"union",		0,			st_C_struct},
       {"define",		0,			st_C_define},
