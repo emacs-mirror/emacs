@@ -1,3 +1,7 @@
+2008-02-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Don't ignore .arch-inventory.
+
 2008-02-03  Jason Rumney  <jasonr@gnu.org>
 
 	* configure.bat: Make gcc the default compiler.
