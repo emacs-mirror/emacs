@@ -32,10 +32,6 @@
 
 	* configure.in: Check the availability of m17n-flt library.
 
-2008-02-01  Juanma Barranquero  <lekktu@gmail.com>
-
-	* .cvsignore: Add data and site-lisp.
-
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* configure.in: Don't define HAVE_LIBOTF if OTF_get_features is
