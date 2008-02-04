@@ -1,3 +1,8 @@
+2008-02-04  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/mule-diag.el (print-fontset-element): Handle the
+	case of inhibitting the fallback fonts.
+
 2008-02-04  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-magic-forward-char, ido-magic-backward-char)
