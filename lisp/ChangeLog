@@ -1,3 +1,9 @@
+2008-02-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term/w32-win.el (image-library-alist): Prefer libpng12 to libpng13,
+	because the latter is in fact a 1.2.8 build distributed with GTK+ (as
+	of today, the most recent libpng is 1.2.24).
+
 2008-02-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* ediff-util.el (ediff-compute-custom-diffs-maybe): Handle remote

@@ -108,7 +108,7 @@
 2008-02-01  Dave Love  <fx@gnu.org>
 
 	* mm-util.el (mm-mule4-p, mm-enable-multibyte-mule4)
-	(mm-disable-multibyte-mule4) 	
+	(mm-disable-multibyte-mule4)
 	(mm-with-unibyte-current-buffer-mule4): Deleted.
 
 	* gnus-sum.el (gnus-summary-mode, gnus-summary-display-article)

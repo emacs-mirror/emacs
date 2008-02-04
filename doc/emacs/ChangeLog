@@ -1,3 +1,11 @@
+2008-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* maintaining.texi (Tags): Fix last change.
+
+2008-02-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi: Use new FSF's Back-Cover Text.
+
 2008-01-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* trouble.texi (Checklist): Direct users to emacs-devel@gnu.org.
