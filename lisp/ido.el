@@ -2537,17 +2537,18 @@ If no merge has yet taken place, toggle automatic merging option."
 
 ;;; Magic C-f
 
-(defun ido-magic-forward-char ()
+(defun ido-magic-forward-char (arg)
   "Move forward in user input or perform magic action.
 If no user input is present, or at end of input, perform magic actions:
 C-x C-b ... C-f  switch to ido-find-file.
 C-x C-f ... C-f  fallback to non-ido find-file.
 C-x C-d ... C-f  fallback to non-ido brief dired.
 C-x d ... C-f    fallback to non-ido dired."
-  (interactive)
+  (interactive "P")
   (cond
-   ((not (eobp))
-    (forward-char 1))
+   ((or arg (not (eobp)))
+    (forward-char (min (prefix-numeric-value arg)
+		       (- (point-max) (point)))))
    ((memq ido-cur-item '(file dir))
     (ido-fallback-command))
    (ido-context-switch-command
@@ -2557,17 +2558,19 @@ C-x d ... C-f    fallback to non-ido dired."
 
 ;;; Magic C-b
 
-(defun ido-magic-backward-char ()
+(defun ido-magic-backward-char (arg)
   "Move backward in user input or perform magic action.
 If no user input is present, or at start of input, perform magic actions:
 C-x C-f C-b  switch to `ido-switch-buffer'.
 C-x C-d C-b  switch to `ido-switch-buffer'.
 C-x d C-b    switch to `ido-switch-buffer'.
 C-x C-b C-b  fallback to non-ido `switch-to-buffer'."
-  (interactive)
+  (interactive "P")
   (cond
-   ((> (point) (minibuffer-prompt-end))
-    (forward-char -1))
+   ((or arg (> (point) (minibuffer-prompt-end)))
+    (forward-char
+     (- (min (prefix-numeric-value arg)
+	     (- (point) (minibuffer-prompt-end))))))
    ((eq last-command this-command)
     (when (and (memq ido-cur-item '(file dir))
 	       (not (bobp)))
@@ -2581,14 +2584,15 @@ C-x C-b C-b  fallback to non-ido `switch-to-buffer'."
 
 ;;; Magic C-d
 
-(defun ido-magic-delete-char ()
+(defun ido-magic-delete-char (arg)
   "Delete following char in user input or perform magic action.
 If at end of user input, perform magic actions:
 C-x C-f ... C-d  enter dired on current directory."
-  (interactive)
+  (interactive "P")
   (cond
-   ((not (eobp))
-    (delete-char 1))
+   ((or arg (not (eobp)))
+    (delete-char (min (prefix-numeric-value arg)
+		       (- (point-max) (point)))))
    (ido-context-switch-command
     nil)
    ((memq ido-cur-item '(file dir))
