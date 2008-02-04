@@ -2188,7 +2188,12 @@ fontset.  The format is the same as abobe.  */)
 
 	      /* At first, set ALIST to ((FONT-SPEC) ...).  */
 	      for (alist = Qnil, i = 0; i < ASIZE (val); i++)
-		alist = Fcons (Fcons (AREF (AREF (val, i), 0), Qnil), alist);
+		{
+		  if (NILP (AREF (val, i)))
+		    alist = Fcons (Qnil, alist);
+		  else
+		    alist = Fcons (Fcons (AREF (AREF (val, i), 0), Qnil), alist);
+		}
 	      alist = Fnreverse (alist);
 
 	      /* Then store opend font names to cdr of each elements.  */
@@ -2200,29 +2205,63 @@ fontset.  The format is the same as abobe.  */)
 		    val = FONTSET_FALLBACK (realized[k][i]);
 		  if (! VECTORP (val))
 		    continue;
-		  /* VAL is [int int ?
-		     	     [FACE-ID FONT-INDEX FONT-DEF FONT-NAME] ...].
-		     If a font of an element is already opened,
-		     FONT-NAME is the name of a opened font.  */
-		  for (j = 3; j < ASIZE (val); j++)
-		    if (STRINGP (AREF (AREF (val, j), 3)))
+#ifdef USE_FONT_BACKEND
+		  /* VAL: [int int ?
+		           [FACE-ID FONT-INDEX FONT-DEF FONT-ENTITY/OBJECT]
+			   ...]  */
+		  if (enable_font_backend)
+		    for (j = 3; j < ASIZE (val); j++)
 		      {
-			Lisp_Object font_idx;
+			elt = AREF (val, j);
+			if (INTEGERP (AREF (elt, 1))
+			    && XINT (AREF (elt, 1)) >= 0)
+			  {
+			    Lisp_Object font_object = AREF (elt, 3);
 
-			font_idx = AREF (AREF (val, j), 1);
-			elt = Fassq (AREF (AREF (AREF (val, j), 2), 0), alist);
-			if (CONSP (elt)
-			    && NILP (Fmemq (font_idx, XCDR(elt))))
-			  nconc2 (elt, Fcons (font_idx, Qnil));
+			    if (FONT_OBJECT_P (font_object))
+			      {
+				struct font *font
+				  = XSAVE_VALUE (font_object)->pointer;
+				char *name = font->font.full_name;;
+				int len = strlen (name);
+				Lisp_Object slot;
+
+				slot = Fassq (AREF (AREF (elt, 2), 0), alist);
+				nconc2 (slot,
+					Fcons (make_unibyte_string (name, len),
+					       Qnil));
+			      }
+			  }
 		      }
+		  else
+#endif  /* not USE_FONT_BACKEND */
+		    {
+		      /* VAL is [int int ?
+			         [FACE-ID FONT-INDEX FONT-DEF FONT-NAME] ...].
+			 If a font of an element is already opened,
+			 FONT-NAME is the name of a opened font.  */
+		      for (j = 3; j < ASIZE (val); j++)
+			if (STRINGP (AREF (AREF (val, j), 3)))
+			  {
+			    Lisp_Object font_idx;
+
+			    font_idx = AREF (AREF (val, j), 1);
+			    elt = Fassq (AREF (AREF (AREF (val, j), 2), 0),
+					 alist);
+			    if (CONSP (elt)
+				&& NILP (Fmemq (font_idx, XCDR(elt))))
+			      nconc2 (elt, Fcons (font_idx, Qnil));
+			  }
+		      for (val = alist; CONSP (val); val = XCDR (val))
+			for (elt = XCDR (XCAR (val)); CONSP (elt);
+			     elt = XCDR (elt))
+			  {
+			    struct font_info *font_info
+			      = (*get_font_info_func) (f, XINT (XCAR (elt)));
+			    XSETCAR (elt, build_string (font_info->full_name));
+			  }
+		    }
 		}
-	      for (val = alist; CONSP (val); val = XCDR (val))
-		for (elt = XCDR (XCAR (val)); CONSP (elt); elt = XCDR (elt))
-		  {
-		    struct font_info *font_info
-		      = (*get_font_info_func) (f, XINT (XCAR (elt)));
-		    XSETCAR (elt, build_string (font_info->full_name));
-		  }
 
 	      /* Store ALIST in TBL for characters C..TO.  */
 	      if (c <= MAX_5_BYTE_CHAR)
