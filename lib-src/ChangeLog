@@ -1,3 +1,8 @@
+2008-02-04  Tom Tromey  <tromey@redhat.com>
+
+	* etags.c: Added "GTY" as synonym for __attribute__.  Updated
+	gperf output.
+
 2008-02-02  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (obj): Sync with src/Makefile.in
