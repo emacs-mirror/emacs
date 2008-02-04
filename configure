@@ -412,10 +412,10 @@ else
 fi
 
 test \$exitcode = 0") || {
-  echo Please tell bug-autoconf@gnu.org about your system,
-  echo including any error possibly output before this message.
-  echo This can help us improve future autoconf versions.
-  echo Configuration will now proceed without shell functions.
+  echo No shell found that supports shell functions.
+  echo Please tell autoconf@gnu.org about your system,
+  echo including any error possibly output before this
+  echo message
 }
 
 
@@ -679,6 +679,7 @@ INSTALL_DATA
 RANLIB
 INSTALL_INFO
 GZIP_PROG
+MAKEINFO
 LIBSOUND
 PKG_CONFIG
 ALSA_CFLAGS
@@ -1790,6 +1791,21 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 ac_config_headers="$ac_config_headers src/config.h:src/config.in"
 
+
+cat 1>&2 <<EOF
+******************************************************************
+*                                                                *
+*   The Emacs "multi-tty" branch has been merged into the	 *
+*   CVS trunk, and is now obsolete.  You should probably use	 *
+*   the CVS trunk instead.   					 *
+*                                                                *
+*   To switch a CVS checkout to the trunk, use the command:      *
+*                                                                *
+*      cvs update -A                                             *
+*                                                                *
+******************************************************************
+EOF
+exit 1
 
 test "$program_prefix" != NONE &&
   program_transform_name="s&^&$program_prefix&;$program_transform_name"
@@ -5327,6 +5343,61 @@ else
 echo "${ECHO_T}no" >&6; }
 fi
 
+
+
+
+## Need makeinfo >= 4.6 (?) to build the manuals.
+# Extract the first word of "makeinfo", so it can be a program name with args.
+set dummy makeinfo; ac_word=$2
+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
+if test "${ac_cv_path_MAKEINFO+set}" = set; then
+  echo $ECHO_N "(cached) $ECHO_C" >&6
+else
+  case $MAKEINFO in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_MAKEINFO="$MAKEINFO" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+  for ac_exec_ext in '' $ac_executable_extensions; do
+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
+    ac_cv_path_MAKEINFO="$as_dir/$ac_word$ac_exec_ext"
+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_MAKEINFO" && ac_cv_path_MAKEINFO="no"
+  ;;
+esac
+fi
+MAKEINFO=$ac_cv_path_MAKEINFO
+if test -n "$MAKEINFO"; then
+  { echo "$as_me:$LINENO: result: $MAKEINFO" >&5
+echo "${ECHO_T}$MAKEINFO" >&6; }
+else
+  { echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6; }
+fi
+
+
+if test "$MAKEINFO" != "no" && \
+  test x"`$MAKEINFO --version 2> /dev/null | $EGREP 'texinfo[^0-9]*([5-9]|4\.[6-9])'`" = x; then
+   MAKEINFO=no
+fi
+
+if test "$MAKEINFO" = "no"; then
+  { { echo "$as_me:$LINENO: error: makeinfo >= 4.6 is required " >&5
+echo "$as_me: error: makeinfo >= 4.6 is required " >&2;}
+   { (exit 1); exit 1; }; }
+fi
 
 
 
@@ -11450,6 +11521,7 @@ if test "${HAVE_GTK}" = "yes"; then
     with_toolkit_scroll_bars=yes
   fi
 
+      HAVE_GTK_MULTIDISPLAY=no
 
 for ac_func in gdk_display_open
 do
@@ -14253,13 +14325,13 @@ if test "${HAVE_X11}" = "yes"; then
     MISSING="$MISSING libtiff" && WITH_NO="$WITH_NO --with-tiff=no"
 
   if test "X${MISSING}" != X; then
-    { { echo "$as_me:$LINENO: error: The following required libraries was not found:
+    { { echo "$as_me:$LINENO: error: The following required libraries were not found:
     $MISSING
 Maybe some development libraries/packages are missing?
 If you don't want to link with them give
     $WITH_NO
 as options to configure" >&5
-echo "$as_me: error: The following required libraries was not found:
+echo "$as_me: error: The following required libraries were not found:
     $MISSING
 Maybe some development libraries/packages are missing?
 If you don't want to link with them give
@@ -18446,13 +18518,11 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
@@ -18492,13 +18562,11 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
@@ -24405,6 +24473,7 @@ INSTALL_DATA!$INSTALL_DATA$ac_delim
 RANLIB!$RANLIB$ac_delim
 INSTALL_INFO!$INSTALL_INFO$ac_delim
 GZIP_PROG!$GZIP_PROG$ac_delim
+MAKEINFO!$MAKEINFO$ac_delim
 LIBSOUND!$LIBSOUND$ac_delim
 PKG_CONFIG!$PKG_CONFIG$ac_delim
 ALSA_CFLAGS!$ALSA_CFLAGS$ac_delim
@@ -24438,7 +24507,6 @@ x_default_search_path!$x_default_search_path$ac_delim
 etcdir!$etcdir$ac_delim
 archlibdir!$archlibdir$ac_delim
 bitmapdir!$bitmapdir$ac_delim
-gamedir!$gamedir$ac_delim
 _ACEOF
 
   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
@@ -24480,6 +24548,7 @@ _ACEOF
 ac_delim='%!_!# '
 for ac_last_try in false false false false false :; do
   cat >conf$$subs.sed <<_ACEOF
+gamedir!$gamedir$ac_delim
 gameuser!$gameuser$ac_delim
 c_switch_system!$c_switch_system$ac_delim
 c_switch_machine!$c_switch_machine$ac_delim
@@ -24493,7 +24562,7 @@ carbon_appdir!$carbon_appdir$ac_delim
 LTLIBOBJS!$LTLIBOBJS$ac_delim
 _ACEOF
 
-  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 11; then
+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 12; then
     break
   elif $ac_last_try; then
     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5

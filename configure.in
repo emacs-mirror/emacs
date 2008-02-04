@@ -27,6 +27,21 @@ AC_PREREQ(2.61)dnl
 AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 
+cat 1>&2 <<EOF
+******************************************************************
+*                                                                *
+*   The Emacs "multi-tty" branch has been merged into the	 *
+*   CVS trunk, and is now obsolete.  You should probably use	 *
+*   the CVS trunk instead.   					 *
+*                                                                *
+*   To switch a CVS checkout to the trunk, use the command:      *
+*                                                                *
+*      cvs update -A                                             *
+*                                                                *
+******************************************************************
+EOF
+exit 1
+
 dnl Support for --program-prefix, --program-suffix and
 dnl --program-transform-name options
 AC_ARG_PROGRAM
