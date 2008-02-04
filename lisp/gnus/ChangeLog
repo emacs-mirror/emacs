@@ -1,3 +1,13 @@
+2008-02-03  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.el (gnus-group-startup-message): Add `find-image' call before
+	image-load-path is let-bound.  Reported by Harald Hanche-Olsen
+	<hanche@math.ntnu.no>.
+
+2008-02-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-describe-bindings): Work for draft group.
+
 2008-02-01  Zhang Wei  <id.brep@gmail.com>
 
 	* rfc2047.el (rfc2047-charset-encoding-alist): Add gbk and GB18030.
