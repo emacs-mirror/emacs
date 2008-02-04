@@ -1,49 +1,49 @@
-2008-02-02  Zhang Wei  <id.brep@gmail.com>
+2008-02-01  Zhang Wei  <id.brep@gmail.com>
 
 	* rfc2047.el (rfc2047-charset-encoding-alist): Add gbk and GB18030.
 
 	* mm-util.el (mm-mime-mule-charset-alist): Add gbk and GB18030.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* gnus-start.el (gnus-gnus-to-quick-newsrc-format): Use correct
 	form for specifying a mode in the header line.
 
-2008-02-02  Miles Bader  <miles@gnu.org>
+2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* mml.el (mml-parse-1): Remove apparently vestigial use of
 	`mm-hack-charsets'.
 	* mm-bodies.el (mm-encode-body): Likewise.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* mm-util.el (mm-enable-multibyte): Call set-buffer-multibyte
 	with the arg `to'.
 
-2008-02-02  Kenichi Handa  <handa@m17n.org>
+2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* rfc2104.el (rfc2104-hexstring-to-byte-list): Renamed from
 	rfc2104-hexstring-to-bitstring and changed to return a byte list.
 	(rfc2104-hash): Convert the result of concat to unibyte string.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* mm-bodies.el (mm-encode-body): Doc fix.
 
 	* qp.el (quoted-printable-encode-region): Fix non-Emacs 22 case.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* qp.el (quoted-printable-encode-region): Fix non-multibyte search
 	for Emacs 22.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* qp.el (quoted-printable-encode-region): Go to start of range
 	before searching.
 	(quoted-printable-encode-region): Use multibyte-char-to-unibyte.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* qp.el (quoted-printable-decode-region): Use mm-insert-byte.
 
@@ -65,16 +65,16 @@
 	in encoding.  Add `address-mime' case and bind
 	rfc2047-special-chars for `mime' case.
 
-2008-02-02  Kenichi Handa  <handa@etl.go.jp>
+2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
 	* qp.el (quoted-printable-decode-region): Insert bytes by
 	`insert-byte'.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* rfc2047.el (rfc2047-encode): Fix last change.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* rfc2047.el (rfc2047-charset-encoding-alist): Use B for Hebrew.
 	Doc fix.
@@ -83,19 +83,19 @@
 	coding-system-for-read.
 	(gnus-gnus-to-quick-newsrc-format): Insert coding cookie.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* mm-util.el (mm-find-mime-charset-region): Fix :mime-charset
 	part.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* rfc2047.el (rfc2047-encodable-p): Avoid mm-find-charset-region.
 	(rfc2047-dissect-region): Don't record charsets.
 	(rfc2047-encode): Remove arg CHARSET.
 	(rfc2047-encode-region): Change rfc2047-encode call.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* mm-util.el (mm-mule4-p, mm-enable-multibyte-mule4)
 	(mm-disable-multibyte-mule4) 	
@@ -115,12 +115,12 @@
 	(mm-encode-body): Just call mm-encode-coding-region in encoding
 	case.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* mm-util.el (mm-auto-save-coding-system): Prefer utf-8-emacs
 	coding system to emacs-mule.
 
-2008-02-02  Dave Love  <fx@gnu.org>
+2008-02-01  Dave Love  <fx@gnu.org>
 
 	* mm-util.el (mm-mime-mule-charset-alist)
 	(mm-mule-charset-to-mime-charset, mm-charset-to-coding-system)

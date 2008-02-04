@@ -7,18 +7,18 @@
 	* etags.c: Added "GTY" as synonym for __attribute__.  Updated
 	gperf output.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (obj): Sync with src/Makefile.in
 	(TOOLTIP_SUPPORT, WINDOW_SUPPORT): New definitions.
 	(WINNT_SUPPORT): Add term/w32-win.elc.
 	(lisp1, lisp2): Sync with lisp in src/Makefile.in.
 
-2008-02-02  Jason Rumney  <jasonr@gnu.org>
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (obj): Add font.o and w32font.o
 
-2008-02-02  Zhang Wei <id.brep@gmail.com>  (tiny change)
+2008-02-01  Zhang Wei <id.brep@gmail.com>  (tiny change)
 
 	* lib-src/makefile.w32-in (lisp1): Delete ucs-tables.elc,
 	utf-8.elc, and latin-*.el.
