@@ -1,3 +1,7 @@
+2008-02-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32-vars.el (w32-system-shells): Add TCC (new name for 4NT).
+
 2008-02-04  Michael McNamara  <mac@mail.brushroad.com>
 
 	* progmodes/verilog-mode.el (verilog-declaration-core-re):
