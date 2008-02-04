@@ -53,7 +53,7 @@ X does.  See `w32-fixed-font-alist' for the font menu definition."
 
 (defcustom w32-system-shells '("cmd" "cmd.exe" "command" "command.com"
 			       "4nt" "4nt.exe" "4dos" "4dos.exe"
-			       "ndos" "ndos.exe")
+			       "tcc" "tcc.exe" "ndos" "ndos.exe")
   "*List of strings recognized as Windows NT/9X system shells."
   :type '(repeat string)
   :group 'w32)
