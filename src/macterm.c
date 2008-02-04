@@ -9009,8 +9009,8 @@ static const unsigned char keycode_to_xkeysym_table[] = {
 /* Table for translating Mac keycode with the laptop `fn' key to that
    without it.  Destination symbols in comments are keys on US
    keyboard, and they may not be the same on other types of keyboards.
-   If the destination is identical to the source (f1 ... f12), it
-   doesn't map `fn' key to a modifier.  */
+   If the destination is identical to the source, it doesn't map `fn'
+   key to a modifier.  */
 static const unsigned char fn_keycode_to_keycode_table[] = {
   /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
   /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -9033,13 +9033,13 @@ static const unsigned char fn_keycode_to_keycode_table[] = {
 
   /*0x60*/ 0x60 /*f5 = f5*/, 0x61 /*f6 = f6*/, 0x62 /*f7 = f7*/, 0x63 /*f3 = f3*/,
   /*0x64*/ 0x64 /*f8 = f8*/, 0x65 /*f9 = f9*/, 0, 0x67 /*f11 = f11*/,
-  /*0x68*/ 0, 0, 0, 0,
+  /*0x68*/ 0, 0x69 /*f13 = f13*/, 0x6a /*f16 = f16*/, 0x6b /*f14 = f14*/,
   /*0x6C*/ 0, 0x6d /*f10 = f10*/, 0, 0x6f /*f12 = f12*/,
 
-  /*0x70*/ 0, 0, 0, 0x7b /*home -> left*/,
+  /*0x70*/ 0, 0x71 /*f15 = f15*/, 0x72 /*help = help*/, 0x7b /*home -> left*/,
   /*0x74*/ 0x7e /*pgup -> up*/, 0x33 /*delete -> backspace*/, 0x76 /*f4 = f4*/, 0x7c /*end -> right*/,
-  /*0x78*/ 0x78 /*f2 = f2*/, 0x7d /*pgdown -> down*/, 0x7a /*f1 = f1*/, 0,
-  /*0x7C*/ 0, 0, 0, 0
+  /*0x78*/ 0x78 /*f2 = f2*/, 0x7d /*pgdown -> down*/, 0x7a /*f1 = f1*/, 0x7b /*left = left*/,
+  /*0x7C*/ 0x7c /*right = right*/, 0x7d /*down = down*/, 0x7e /*up = up*/, 0
 };
 #endif	/* MAC_OSX */
 
@@ -9091,8 +9091,8 @@ mac_to_emacs_modifiers (EventModifiers mods)
 }
 
 static UInt32
-mac_mapped_modifiers (modifiers)
-     UInt32 modifiers;
+mac_mapped_modifiers (modifiers, key_code)
+     UInt32 modifiers, key_code;
 {
   UInt32 mapped_modifiers_all =
     (NILP (Vmac_control_modifier) ? 0 : controlKey)
@@ -9102,6 +9102,17 @@ mac_mapped_modifiers (modifiers)
 #ifdef MAC_OSX
   mapped_modifiers_all |=
     (NILP (Vmac_function_modifier) ? 0 : kEventKeyModifierFnMask);
+
+  /* The meaning of kEventKeyModifierFnMask has changed in Mac OS X
+     10.5, and it now behaves much like Cocoa's NSFunctionKeyMask.  It
+     no longer means laptop's `fn' key is down for the following keys:
+     F1, F2, and so on, Help, Forward Delete, Home, End, Page Up, Page
+     Down, the arrow keys, and Clear.  We ignore the corresponding bit
+     if that key can be entered without the `fn' key on laptops.  */
+  if (modifiers & kEventKeyModifierFnMask
+      && key_code <= 0x7f
+      && fn_keycode_to_keycode_table[key_code] == key_code)
+    modifiers &= ~kEventKeyModifierFnMask;
 #endif
 
   return mapped_modifiers_all & modifiers;
@@ -9130,18 +9141,19 @@ int
 mac_quit_char_key_p (modifiers, key_code)
      UInt32 modifiers, key_code;
 {
-  UInt32 char_code;
+  UInt32 char_code, mapped_modifiers;
   unsigned long some_state = 0;
   Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
   int c, emacs_modifiers;
 
   /* Mask off modifier keys that are mapped to some Emacs modifiers.  */
-  key_code |= (modifiers & ~(mac_mapped_modifiers (modifiers)));
+  mapped_modifiers = mac_mapped_modifiers (modifiers, key_code);
+  key_code |= (modifiers & ~mapped_modifiers);
   char_code = KeyTranslate (kchr_ptr, key_code, &some_state);
   if (char_code & ~0xff)
     return 0;
 
-  emacs_modifiers = mac_to_emacs_modifiers (modifiers);
+  emacs_modifiers = mac_to_emacs_modifiers (mapped_modifiers);
   if (emacs_modifiers & ctrl_modifier)
     c = make_ctrl_char (char_code);
 
@@ -10203,7 +10215,7 @@ mac_handle_text_input_event (next_handler, event, data)
     case kEventTextInputUnicodeForKeyEvent:
       {
 	EventRef kbd_event;
-	UInt32 actual_size, modifiers;
+	UInt32 actual_size, modifiers, key_code;
 
 	err = GetEventParameter (event, kEventParamTextInputSendKeyboardEvent,
 				 typeEventRef, NULL, sizeof (EventRef), NULL,
@@ -10212,7 +10224,11 @@ mac_handle_text_input_event (next_handler, event, data)
 	  err = GetEventParameter (kbd_event, kEventParamKeyModifiers,
 				   typeUInt32, NULL,
 				   sizeof (UInt32), NULL, &modifiers);
-	if (err == noErr && mac_mapped_modifiers (modifiers))
+	if (err == noErr)
+	  err = GetEventParameter (kbd_event, kEventParamKeyCode,
+				   typeUInt32, NULL, sizeof (UInt32),
+				   NULL, &key_code);
+	if (err == noErr && mac_mapped_modifiers (modifiers, key_code))
 	  /* There're mapped modifier keys.  Process it in
 	     XTread_socket.  */
 	  return eventNotHandledErr;
@@ -10230,29 +10246,21 @@ mac_handle_text_input_event (next_handler, event, data)
 	    if (err == noErr && code < 0x80)
 	      {
 		/* ASCII character.  Process it in XTread_socket.  */
-		if (read_socket_inev && code >= 0x20 && code <= 0x7e)
+		if (read_socket_inev && code >= 0x20 && code <= 0x7e
+		    && !(key_code <= 0x7f
+			 && keycode_to_xkeysym_table [key_code]))
 		  {
-		    UInt32 key_code;
+		    struct frame *f = mac_focus_frame (&one_mac_display_info);
 
-		    err = GetEventParameter (kbd_event, kEventParamKeyCode,
-					     typeUInt32, NULL, sizeof (UInt32),
-					     NULL, &key_code);
-		    if (!(err == noErr && key_code <= 0x7f
-			  && keycode_to_xkeysym_table [key_code]))
-		      {
-			struct frame *f =
-			  mac_focus_frame (&one_mac_display_info);
-
-			read_socket_inev->kind = ASCII_KEYSTROKE_EVENT;
-			read_socket_inev->code = code;
-			read_socket_inev->modifiers =
-			  mac_to_emacs_modifiers (modifiers);
-			read_socket_inev->modifiers |=
-			  (extra_keyboard_modifiers
-			   & (meta_modifier | alt_modifier
-			      | hyper_modifier | super_modifier));
-			XSETFRAME (read_socket_inev->frame_or_window, f);
-		      }
+		    read_socket_inev->kind = ASCII_KEYSTROKE_EVENT;
+		    read_socket_inev->code = code;
+		    read_socket_inev->modifiers =
+		      mac_to_emacs_modifiers (modifiers);
+		    read_socket_inev->modifiers |=
+		      (extra_keyboard_modifiers
+		       & (meta_modifier | alt_modifier
+			  | hyper_modifier | super_modifier));
+		    XSETFRAME (read_socket_inev->frame_or_window, f);
 		  }
 		return eventNotHandledErr;
 	      }
@@ -11264,7 +11272,7 @@ XTread_socket (sd, expected, hold_quit)
 			       typeUInt32, NULL,
 			       sizeof (UInt32), NULL, &modifiers);
 #endif
-	    mapped_modifiers = mac_mapped_modifiers (modifiers);
+	    mapped_modifiers = mac_mapped_modifiers (modifiers, keycode);
 
 #if USE_CARBON_EVENTS && (defined (MAC_OSX) || USE_MAC_TSM)
 	    /* When using Carbon Events, we need to pass raw keyboard
@@ -11329,12 +11337,6 @@ XTread_socket (sd, expected, hold_quit)
 	      {
 		inev.kind = NON_ASCII_KEYSTROKE_EVENT;
 		inev.code = 0xff00 | keycode_to_xkeysym_table [keycode];
-#ifdef MAC_OSX
-		if (modifiers & kEventKeyModifierFnMask
-		    && keycode <= 0x7f
-		    && fn_keycode_to_keycode_table[keycode] == keycode)
-		  modifiers &= ~kEventKeyModifierFnMask;
-#endif
 	      }
 	    else if (mapped_modifiers)
 	      {
@@ -11428,7 +11430,7 @@ XTread_socket (sd, expected, hold_quit)
 		inev.code = er.message & charCodeMask;
 	      }
 
-	    inev.modifiers = mac_to_emacs_modifiers (modifiers);
+	    inev.modifiers = mac_to_emacs_modifiers (mapped_modifiers);
 	    inev.modifiers |= (extra_keyboard_modifiers
 			       & (meta_modifier | alt_modifier
 				  | hyper_modifier | super_modifier));
