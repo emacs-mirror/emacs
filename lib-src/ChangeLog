@@ -1,8 +1,3 @@
-2008-02-04  Tom Tromey  <tromey@redhat.com>
-
-	* etags.c: Added "GTY" as synonym for __attribute__.  Updated
-	gperf output.
-
 2008-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pop.c (pop_stat, pop_last): Fix last fix.
