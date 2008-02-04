@@ -203,7 +203,7 @@ lisp1= \
 	$(lispsource)buff-menu.elc \
 	$(lispsource)button.elc \
 	$(lispsource)emacs-lisp/byte-run.elc \
-	${lispsource}composite.elc \
+	$(lispsource)composite.elc \
 	$(lispsource)cus-face.elc \
 	$(lispsource)cus-start.elc \
 	$(lispsource)custom.elc \
