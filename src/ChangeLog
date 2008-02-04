@@ -21,6 +21,7 @@
 
 	* w32font.c (w32font_open_internal): Use font_unparse_fcname to
 	set full_name.
+	(w32font_open_internal): Use xmalloc, xrealloc, xfree.
 
 2008-02-03  Jason Rumney  <jasonr@gnu.org>
 
