@@ -227,8 +227,12 @@ w32font_close (f, font)
       font->font.font = 0;
     }
 
+  if (font->font.full_name && font->font.full_name != font->font.name)
+    xfree (font->font.full_name);
+
   if (font->font.name)
     xfree (font->font.name);
+
   xfree (font);
 }
 
@@ -678,7 +682,27 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
   font->font.name = (char *) xmalloc (len + 1);
   bcopy (logfont.lfFaceName, font->font.name, len);
   font->font.name[len] = '\0';
-  font->font.full_name = font->font.name;
+
+  {
+    char *name;
+
+    /* We don't know how much space we need for the full name, so start with
+       96 bytes and go up in steps of 32.  */
+    len = 96;
+    name = malloc (len);
+    while (name && font_unparse_fcname (font_entity, pixel_size, name, len) < 0)
+      {
+        char *new = realloc (name, len += 32);
+
+        if (! new)
+          free (name);
+        name = new;
+      }
+    if (name)
+      font->font.full_name = name;
+    else
+      font->font.full_name = font->font.name;
+  }
   font->font.charset = 0;
   font->font.codepage = 0;
   font->font.size = w32_font->metrics.tmMaxCharWidth;
