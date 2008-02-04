@@ -28,6 +28,21 @@ AC_INIT(emacs, 23.0.50)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 
+cat 1>&2 <<EOF
+******************************************************************
+*                                                                *
+*   The Emacs "emacs-unicode-2" branch has been merged into      *
+*   the CVS trunk, and is now obsolete.  You should probably     *
+*   use the CVS trunk instead.                                   *
+*                                                                *
+*   To switch a CVS checkout to the trunk, use the command:      *
+*                                                                *
+*      cvs update -A                                             *
+*                                                                *
+******************************************************************
+EOF
+exit 1
+
 dnl Support for --program-prefix, --program-suffix and
 dnl --program-transform-name options
 AC_ARG_PROGRAM

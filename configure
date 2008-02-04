@@ -1824,6 +1824,21 @@ ac_config_headers="$ac_config_headers src/config.h:src/config.in"
 
 
 
+cat 1>&2 <<EOF
+******************************************************************
+*                                                                *
+*   The Emacs "emacs-unicode-2" branch has been merged into      *
+*   the CVS trunk, and is now obsolete.  You should probably     *
+*   use the CVS trunk instead.                                   *
+*                                                                *
+*   To switch a CVS checkout to the trunk, use the command:      *
+*                                                                *
+*      cvs update -A                                             *
+*                                                                *
+******************************************************************
+EOF
+exit 1
+
 test "$program_prefix" != NONE &&
   program_transform_name="s&^&$program_prefix&;$program_transform_name"
 # Use a double $ so make ignores it.
