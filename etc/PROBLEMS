@@ -2514,7 +2514,7 @@ in building Emacs (as of v22.1).
 
 *** Building the native MS-Windows port with Cygwin GCC can fail.
 
-Emacs may not build using recent Cygwin builds of GCC, such as Cygwin
+Emacs may not build using some Cygwin builds of GCC, such as Cygwin
 version 1.1.8, using the default configure settings.  It appears to be
 necessary to specify the -mwin32 flag when compiling, and define
 __MSVCRT__, like so:
