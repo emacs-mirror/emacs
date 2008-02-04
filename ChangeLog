@@ -1,3 +1,8 @@
+2008-02-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* make-dist: Remove references to files in mac/ that have been
+	deleted.
+
 2008-02-02  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* configure.in: For libotf and m17n-flt checks, set shell vars

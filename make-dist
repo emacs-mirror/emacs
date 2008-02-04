@@ -338,7 +338,7 @@ for subdir in lisp site-lisp \
 	      etc/images/tree-widget/default etc/images/tree-widget/folder \
 	      etc/refcards etc/schema etc/tutorials info doc doc/emacs \
 	      doc/misc doc/man doc/lispref doc/lispintro m4 msdos vms mac \
-	      mac/inc mac/inc/sys mac/src mac/Emacs.app mac/Emacs.app/Contents \
+	      mac/src mac/Emacs.app mac/Emacs.app/Contents \
 	      mac/Emacs.app/Contents/MacOS mac/Emacs.app/Contents/Resources \
 	      mac/Emacs.app/Contents/Resources/English.lproj
 do
@@ -538,15 +538,7 @@ echo "Making links to \`nt/icons'"
 
 echo "Making links to \`mac'"
 (cd mac
- ln ChangeLog INSTALL README make-package *.xml *.MPW ../${tempdir}/mac)
-
-echo "Making links to \`mac/inc'"
-(cd mac/inc
- ln [a-z]*.h ../../${tempdir}/mac/inc)
-
-echo "Making links to \`mac/inc/sys'"
-(cd mac/inc/sys
- ln [a-z]*.h ../../../${tempdir}/mac/inc/sys)
+ ln ChangeLog INSTALL README make-package ../${tempdir}/mac)
 
 echo "Making links to \`mac/src'"
 (cd mac/src
