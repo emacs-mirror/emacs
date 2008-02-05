@@ -38,8 +38,8 @@
 @end macro
 
 @copying
-Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
-2007, 2008 Free Software Foundation, Inc.
+Copyright @copyright{} 1999, 2000, 2001, 2002, 2003, 2004, 2005,
+  2006, 2007, 2008 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -2373,6 +2373,22 @@ out-of-the-box on a remote host, please let us know.  We will try to
 integrate them as well.  @xref{Bug Reports}.
 
 
+@subsection Running shell-command on a remote host
+@cindex shell-command
+
+@code{shell-command} allows to execute commands in a shell, either
+synchronously, either asynchronously.  This works also on remote
+hosts.  Example:
+
+@example
+@kbd{C-x C-f @trampfn{sudo, , , } @key{RET}}
+@kbd{M-! tail -f /var/log/syslog.log & @key{RET}}
+@end example
+
+You will see the buffer @file{*Async Shell Command*}, containing the
+continous output of the @command{tail} command.
+
+
 @subsection Running eshell on a remote host
 @cindex eshell
 
@@ -2428,7 +2444,7 @@ file name as program to debug, like @kbd{perl -d
 /home/user/myprog.pl}, though.
 
 Arguments of the program to be debugged are taken literally.  That
-means file names as arguments must be given as ordinary relative or
+means, file names as arguments must be given as ordinary relative or
 absolute file names, without any remote specification.
 
 
