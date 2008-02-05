@@ -1,3 +1,8 @@
+2008-02-05  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_read_socket) <WM_CHAR>: Use locale-coding-system
+	instead of using mule-unicode-* charsets directly.
+
 2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* unexec.c (make_hdr):
