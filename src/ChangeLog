@@ -1,3 +1,9 @@
+2008-02-05  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (get_lface_attributes, merge_named_face)
+	(lookup_named_face, lookup_derived_face, realize_named_face):
+	Revert 2008-02-01 change by cyd@stupidchicken.com.
+
 2008-02-04  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* fontset.c (Ffontset_info): Handle the case of inhibitting the
