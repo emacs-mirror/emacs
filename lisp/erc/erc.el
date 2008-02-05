@@ -2342,7 +2342,7 @@ If STRING is nil, the function does nothing."
 	(setq list (cdr list))))))
 
 (defvar erc-valid-nick-regexp "[]a-zA-Z^[;\\`_{}|][]^[;\\`_{}|a-zA-Z0-9-]*"
-  "Regexp which matches all legal characters in a IRC nickname.")
+  "Regexp which matches all valid characters in a IRC nickname.")
 
 (defun erc-is-valid-nick-p (nick)
   "Check if NICK is a valid IRC nickname."
