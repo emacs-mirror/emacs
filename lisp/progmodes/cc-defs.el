@@ -721,7 +721,7 @@ be after it."
 		  ((bobp) (setq pos (point-min)))
 		  ((not pos)
 		   (let ((distance (skip-chars-backward "^{")))
-		     ;; unbalanced parenthesis, while illegal C code,
+		     ;; unbalanced parenthesis, while invalid C code,
 		     ;; shouldn't cause an infloop!  See unbal.c
 		     (when (zerop distance)
 		       ;; Punt!
