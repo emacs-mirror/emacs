@@ -256,7 +256,7 @@ current-nick, keyword, pal, dangerous-host, fool"
     (modify-syntax-entry ?\\ "w" table)
     table)
   "Syntax table used when highlighting messages.
-This syntax table should make all the legal nick characters word
+This syntax table should make all the valid nick characters word
 constituents.")
 
 ;; Faces:
