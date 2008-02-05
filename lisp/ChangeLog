@@ -1,3 +1,8 @@
+2008-02-05  Glenn Morris  <rgm@gnu.org>
+
+	* net/tramp-cmds.el (tramp-cleanup-connection): Update calls to
+	tramp-flush-connection-property for removed 2nd argument.
+
 2008-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-add-change-log-entries-other-window):
