@@ -492,6 +492,7 @@ static int better_font_p P_ ((int *, struct font_name *, struct font_name *,
 static int x_face_list_fonts P_ ((struct frame *, char *,
 				  struct font_name **, int, int));
 static int font_scalable_p P_ ((struct font_name *));
+static int get_lface_attributes P_ ((struct frame *, Lisp_Object, Lisp_Object *, int));
 static int load_pixmap P_ ((struct frame *, Lisp_Object, unsigned *, unsigned *));
 static unsigned char *xstrlwr P_ ((unsigned char *));
 static struct frame *frame_or_selected_frame P_ ((Lisp_Object, int));
@@ -3438,6 +3439,36 @@ lface_from_face_name (f, face_name, signal_p)
 }
 
 
+/* Get face attributes of face FACE_NAME from frame-local faces on
+   frame F.  Store the resulting attributes in ATTRS which must point
+   to a vector of Lisp_Objects of size LFACE_VECTOR_SIZE.  If SIGNAL_P
+   is non-zero, signal an error if FACE_NAME does not name a face.
+   Otherwise, value is zero if FACE_NAME is not a face.  */
+
+static INLINE int
+get_lface_attributes (f, face_name, attrs, signal_p)
+     struct frame *f;
+     Lisp_Object face_name;
+     Lisp_Object *attrs;
+     int signal_p;
+{
+  Lisp_Object lface;
+  int success_p;
+
+  lface = lface_from_face_name (f, face_name, signal_p);
+  if (!NILP (lface))
+    {
+      bcopy (XVECTOR (lface)->contents, attrs,
+	     LFACE_VECTOR_SIZE * sizeof *attrs);
+      success_p = 1;
+    }
+  else
+    success_p = 0;
+
+  return success_p;
+}
+
+
 /* Non-zero if all attributes in face attribute vector ATTRS are
    specified, i.e. are non-nil.  */
 
@@ -3723,14 +3754,12 @@ merge_face_heights (from, to, invalid)
 
 /* Merge two Lisp face attribute vectors on frame F, FROM and TO, and
    store the resulting attributes in TO, which must be already be
-   completely specified and contain only absolute attributes. The
-   contents of FROM are not altered.
-
-   Every specified attribute of FROM overrides the corresponding
-   attribute of TO; relative attributes in FROM are merged with the
-   absolute value in TO and replace it.  NAMED_MERGE_POINTS is used
-   internally to detect loops in face inheritance; it should be 0 when
-   called from other places.  */
+   completely specified and contain only absolute attributes.  Every
+   specified attribute of FROM overrides the corresponding attribute of
+   TO; relative attributes in FROM are merged with the absolute value in
+   TO and replace it.  NAMED_MERGE_POINTS is used internally to detect
+   loops in face inheritance; it should be 0 when called from other
+   places.  */
 
 static INLINE void
 merge_face_vectors (f, from, to, named_merge_points)
@@ -3794,15 +3823,17 @@ merge_named_face (f, face_name, to, named_merge_points)
 			      face_name, &named_merge_points))
     {
       struct gcpro gcpro1;
-      Lisp_Object lface = lface_from_face_name (f, face_name, 0);
-      if (NILP (lface))
-	return 0;
+      Lisp_Object from[LFACE_VECTOR_SIZE];
+      int ok = get_lface_attributes (f, face_name, from, 0);
 
-      GCPRO1 (named_merge_point.face_name);
-      merge_face_vectors (f, XVECTOR (lface)->contents, to,
-			  named_merge_points);
-      UNGCPRO;
-      return 1;
+      if (ok)
+	{
+	  GCPRO1 (named_merge_point.face_name);
+	  merge_face_vectors (f, from, to, named_merge_points);
+	  UNGCPRO;
+	}
+
+      return ok;
     }
   else
     return 0;
@@ -3828,8 +3859,6 @@ merge_named_face (f, face_name, to, named_merge_points)
    3. Conses or the form (FOREGROUND-COLOR . COLOR) or
    (BACKGROUND-COLOR . COLOR) where COLOR is a color name.  This is
    for compatibility with 20.2.
-
-   The contents of FACE_REF is not altered by this function.
 
    Face specifications earlier in lists take precedence over later
    specifications.  */
@@ -6088,7 +6117,8 @@ lookup_named_face (f, symbol, signal_p)
      Lisp_Object symbol;
      int signal_p;
 {
-  Lisp_Object lface, attrs[LFACE_VECTOR_SIZE];
+  Lisp_Object attrs[LFACE_VECTOR_SIZE];
+  Lisp_Object symbol_attrs[LFACE_VECTOR_SIZE];
   struct face *default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
 
   if (default_face == NULL)
@@ -6100,12 +6130,11 @@ lookup_named_face (f, symbol, signal_p)
 	abort ();  /* realize_basic_faces must have set it up  */
     }
 
-  lface = lface_from_face_name (f, symbol, signal_p);
-  if (NILP (lface))
+  if (!get_lface_attributes (f, symbol, symbol_attrs, signal_p))
     return -1;
 
   bcopy (default_face->lface, attrs, sizeof attrs);
-  merge_face_vectors (f, XVECTOR (lface)->contents, attrs, 0);
+  merge_face_vectors (f, symbol_attrs, attrs, 0);
 
   return lookup_face (f, attrs);
 }
@@ -6236,16 +6265,16 @@ lookup_derived_face (f, symbol, face_id, signal_p)
      int face_id;
      int signal_p;
 {
-  Lisp_Object lface, attrs[LFACE_VECTOR_SIZE];
+  Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object symbol_attrs[LFACE_VECTOR_SIZE];
   struct face *default_face = FACE_FROM_ID (f, face_id);
 
   if (!default_face)
     abort ();
 
-  lface = lface_from_face_name (f, symbol, signal_p);
+  get_lface_attributes (f, symbol, symbol_attrs, signal_p);
   bcopy (default_face->lface, attrs, sizeof attrs);
-  merge_face_vectors (f, XVECTOR (lface)->contents, attrs, 0);
+  merge_face_vectors (f, symbol_attrs, attrs, 0);
   return lookup_face (f, attrs);
 }
 
@@ -7536,16 +7565,18 @@ realize_named_face (f, symbol, id)
      Lisp_Object symbol;
      int id;
 {
+  struct face_cache *c = FRAME_FACE_CACHE (f);
   Lisp_Object lface = lface_from_face_name (f, symbol, 0);
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
-  struct face *default_face = FACE_FROM_ID (f, DEFAULT_FACE_ID);
+  Lisp_Object symbol_attrs[LFACE_VECTOR_SIZE];
+  struct face *new_face;
 
   /* The default face must exist and be fully specified.  */
-  bcopy (default_face->lface, attrs, LFACE_VECTOR_SIZE * sizeof *attrs);
+  get_lface_attributes (f, Qdefault, attrs, 1);
   check_lface_attrs (attrs);
   xassert (lface_fully_specified_p (attrs));
 
-  /* If SYMBOL isn't known as a face, create it.  */
+  /* If SYMBOL isn't know as a face, create it.  */
   if (NILP (lface))
     {
       Lisp_Object frame;
@@ -7554,8 +7585,11 @@ realize_named_face (f, symbol, id)
     }
 
   /* Merge SYMBOL's face with the default face.  */
-  merge_face_vectors (f, XVECTOR (lface)->contents, attrs, 0);
-  realize_face (FRAME_FACE_CACHE (f), attrs, id);
+  get_lface_attributes (f, symbol, symbol_attrs, 1);
+  merge_face_vectors (f, symbol_attrs, attrs, 0);
+
+  /* Realize the face.  */
+  new_face = realize_face (c, attrs, id);
 }
 
 

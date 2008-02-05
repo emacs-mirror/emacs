@@ -1,3 +1,26 @@
+2008-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-add-change-log-entries-other-window):
+	Rename from diff-create-changelog.  Change users.
+	Minor change to hopefully work with plain diffs.
+	(diff-mode-map): Add binding for it.
+
+2008-02-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el: Add new TODO entry.
+	(diff-create-changelog): New function.
+	(diff-mode-menu): Bind it.
+
+2008-02-04  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/mule-diag.el (print-fontset-element): Handle the
+	case of inhibitting the fallback fonts.
+
+2008-02-04  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-magic-forward-char, ido-magic-backward-char)
+	(ido-magic-delete-char): Use prefix arg.
+
 2008-02-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* term/w32-win.el (image-library-alist): Prefer libpng12 to libpng13,

@@ -268,8 +268,14 @@ This is enabled if isearch-buffers-multi is non-nil.
 ** smerge-refine highlights word-level details of changes in conflict.
 It's used automatically as you move through conflicts, see smerge-auto-refine.
 
-** diff-refine-hunk highlights word-level details of changes in a diff hunk.
-It's used automatically as you move through hunks, see diff-auto-refine.
+** Diff mode
+
+*** diff-refine-hunk highlights word-level details of changes in a diff hunk.
+It's used automatically as you move through hunks, see
+diff-auto-refine.  It is bound to `C-c C-b'.
+
+*** diff-create-changelog iterates through the diff buffer and tries
+to create ChangeLog entries for each change.
 
 ** archive-mode has basic support to browse Rar archives.
 

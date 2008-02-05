@@ -689,13 +689,13 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
     /* We don't know how much space we need for the full name, so start with
        96 bytes and go up in steps of 32.  */
     len = 96;
-    name = malloc (len);
+    name = xmalloc (len);
     while (name && font_unparse_fcname (font_entity, pixel_size, name, len) < 0)
       {
-        char *new = realloc (name, len += 32);
+        char *new = xrealloc (name, len += 32);
 
         if (! new)
-          free (name);
+          xfree (name);
         name = new;
       }
     if (name)

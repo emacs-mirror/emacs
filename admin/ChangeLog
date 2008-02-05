@@ -1,3 +1,7 @@
+2008-02-04  Jason Rumney  <jasonr@gnu.org>
+
+	* unidata/makefile.w32-in (unidata.txt): Use ARGQUOTE and DQUOTE macros.
+
 2008-02-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* unidata/.cvsignore: Ignore also "Makefile.unix" and "makefile".

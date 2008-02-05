@@ -1,12 +1,12 @@
-Emacs for Mac OS Classic and Mac OS X
+Emacs for Mac OS X
 
 Copyright (C) 2001, 2002, 2003, 2004, 2005,
    2006, 2007, 2008 Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 
-This directory contains the files needed to build Emacs on the Mac OS
-Classic and Mac OS X.  Many of the major features of the Unix version
+This directory contains the files needed to build Emacs on Mac OS X.
+Many of the major features of the Unix version
 are supported: multiple frames, colors, scroll bars, menu bars, use of
 the mouse, fontsets, international characters, input methods, and
 coding systems.
@@ -15,15 +15,6 @@ Mac OS specific support includes document drag-and-drop in the Finder,
 transfer of text to and from other applications via the clipboard, and
 sending AppleScript commands to other applications from Emacs.
 
-The following are not supported on Mac OS Classic: unexec (dump-emacs),
-asynchronous subprocesses (start-process), and networking
-(open-network-stream).  These features work fine on Mac OS X.
-
-There is basic support for synchronous subprocesses (call-process) on
-Mac OS Classic (non-Carbon build only) although Unix commands that are
-used will need to be ported.
-
-MPW-GM (August 2001) can be used to build Emacs on the Mac OS Classic.
 On Mac OS X, Emacs can be built using the Developer Tools.  See the
 INSTALL file in this directory for instructions on building Emacs.
 
