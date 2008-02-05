@@ -1576,7 +1576,7 @@ pop_close (server)
  * Function: pop_trash
  *
  * Purpose: Like pop_close or pop_quit, but doesn't deallocate the
- * 	memory associated with the server.  It is legal to call
+ * 	memory associated with the server.  It is valid to call
  * 	pop_close or pop_quit after this function has been called.
  */
 static void
