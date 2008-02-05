@@ -171,15 +171,11 @@ cvs.m17n.org.
     % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/m17n co m17n-lib
     % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/m17n co libotf
 
-The installation procedure is the same for them as below:
+For m17n-lib, if you face some problem with making the whole package
+because you luck some other packages m17n-lib depends, try to
+configure it with the arg "--without-gui".
 
-    % cd CVC_WORKING_DIR (m17n-db, m17n-lib, or libotf)
-    % ./autogeh.sh
-    % ./configure
-    % make
-    % make install  (you may have to run this after "su root")
-
-Please note that Emacs is configured with the arg
+Please note that Emacs must be configured with the arg
 "--enable-font-backend" to get the benefit of those libraries.
 
 * Extra fonts
