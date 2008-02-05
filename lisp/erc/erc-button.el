@@ -240,7 +240,7 @@ PAR is a number of a regexp grouping whose text will be passed to
     (modify-syntax-entry ?\\ "w" table)
     table)
   "Syntax table used when buttonizing messages.
-This syntax table should make all the legal nick characters word
+This syntax table should make all the valid nick characters word
 constituents.")
 
 (defvar erc-button-keys-added nil
