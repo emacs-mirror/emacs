@@ -1,3 +1,9 @@
+2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mh-e.el (mh-scan-format-file-check, mh-adaptive-cmd-note-flag-check):
+	* mh-xface.el (mh-x-image-url-cache-canonicalize):
+	Replace `legal' with `valid'.
+
 2007-08-08  Glenn Morris  <rgm@gnu.org>
 
 	* mh-folder.el, mh-letter.el, mh-show.el: Replace `iff' in
