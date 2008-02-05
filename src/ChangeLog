@@ -1,3 +1,8 @@
+2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unexec.c (make_hdr):
+	* unexhp9k800.c (read_header): Replace `legal' with `valid'.
+
 2008-02-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c [MAC_OSX] (fn_keycode_to_keycode_table): Add more entries
@@ -60,7 +65,7 @@
 
 	* mac.c (mac_emacs_pid) [MAC_OSX]: New variable.
 	[MAC_OSX] (init_mac_osx_environment): Initialize it.
-	[MAC_OSX] (mac_try_close_socket) [SELECT_USE_CFSOCKET]:	Return 0
+	[MAC_OSX] (mac_try_close_socket) [SELECT_USE_CFSOCKET]: Return 0
 	when used on child processes.
 
 2008-01-10  Chong Yidong  <cyd@stupidchicken.com>
@@ -174,7 +179,7 @@
 2007-11-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Don't call x-gtk-map-stock if
-        file for image is nil.
+	file for image is nil.
 
 2007-11-19  Jason Rumney  <jasonr@gnu.org>
 
@@ -7158,7 +7163,7 @@
 
 	* macterm.c (Qmac_ready_for_drag_n_drop, Qapplication, Qabout)
 	(Qpreferences): Remove variables.
-	(syms_of_macterm) : Don't initialize them.
+	(syms_of_macterm): Don't initialize them.
 	(Qhicommand) [USE_CARBON_EVENTS]: New variable.
 	(syms_of_macterm) [USE_CARBON_EVENTS]: Initialize it.
 	(init_required_apple_events, do_ae_open_application)
