@@ -1591,7 +1591,7 @@ is_fat_volume (const char * name, const char ** pPath)
   return FALSE;
 }
 
-/* Map filename to a legal 8.3 name if necessary. */
+/* Map filename to a valid 8.3 name if necessary. */
 const char *
 map_w32_filename (const char * name, const char ** pPath)
 {
