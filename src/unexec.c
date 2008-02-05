@@ -693,7 +693,7 @@ make_hdr (new, a_out, data_start, bss_start, entry_address, a_name, new_name)
 	}
       if (coffheader.f_magic != COFF_MAGIC)
 	{
-	  ERROR1("%s doesn't have legal coff magic number\n", a_name);
+	  ERROR1("%s doesn't have valid coff magic number\n", a_name);
 	}
 #endif
       if (read (a_out, &ohdr, sizeof hdr) != sizeof hdr)
