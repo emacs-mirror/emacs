@@ -5717,7 +5717,10 @@ decode_eol (coding)
 		  pos_end--;
 		}
 	      pos++;
-	      pos_byte += BYTES_BY_CHAR_HEAD (*p);
+	      if (coding->dst_multibyte)
+		pos_byte += BYTES_BY_CHAR_HEAD (*p);
+	      else
+		pos_byte++;
 	    }
 	}
       coding->produced -= n;
