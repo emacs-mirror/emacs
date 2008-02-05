@@ -147,7 +147,7 @@ OPTION_DEFAULT_ON([xim],[don't use X11 XIM])
 OPTION_DEFAULT_OFF([carbon],[use Carbon GUI on Mac OS X.  This is unsupported!])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
-OPTION_DEFAULT_OFF([dbus],[compile with D-Bus support])
+OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
 
 AC_ARG_WITH([pkg-config-prog],dnl
 [AS_HELP_STRING([--with-pkg-config-prog=PATH],
