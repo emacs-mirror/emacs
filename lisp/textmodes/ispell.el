@@ -3757,7 +3757,7 @@ Both should not be used to define a buffer-local dictionary."
 	;; any character other than a space.  Not rigorous enough.
 	(while (re-search-forward " *\\([^ ]+\\)" end t)
 	  (setq string (match-string-no-properties 1))
-	  ;; This can fail when string contains a word with illegal chars.
+	  ;; This can fail when string contains a word with invalid chars.
 	  ;; Error handling needs to be added between ispell and emacs.
 	  (if (and (< 1 (length string))
 		   (equal 0 (string-match ispell-casechars string)))
