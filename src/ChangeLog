@@ -1,3 +1,8 @@
+2008-02-05  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_open_internal): Fill min_width with tmAveCharWidth.
+	Set smallest_font_height and smallest_char_width in display info.
+
 2008-02-05  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* coding.c (decode_eol): Pay attention to coding->dst_multibyte.
