@@ -139,10 +139,7 @@ can be found:
                       Get version 6b -- 6a is reported to fail in
                       Emacs.
   . libtiff for TIFF: http://www.libtiff.org/
-  . libungif for GIF:
-      http://sourceforge.net/projects/libungif
-      Ensure you get version 4.1.0b1 or higher of libungif -- a bug in
-      4.1.0 can crash Emacs.
+  . libgif for GIF:   http://sourceforge.net/projects/giflib/
 
 Emacs will configure itself to build with these libraries if the
 `configure' script finds them on your system, unless you supply the
