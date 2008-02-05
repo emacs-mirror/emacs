@@ -323,7 +323,7 @@
 ;; Below is a complete spec for loop, in several parts that correspond
 ;; to the syntax given in CLtL2.  The specs do more than specify where
 ;; the forms are; it also specifies, as much as Edebug allows, all the
-;; syntactically legal loop clauses.  The disadvantage of this
+;; syntactically valid loop clauses.  The disadvantage of this
 ;; completeness is rigidity, but the "for ... being" clause allows
 ;; arbitrary extensions of the form: [symbolp &rest &or symbolp form].
 
