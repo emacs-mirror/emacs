@@ -944,7 +944,7 @@ CONST2 may be evaulated multiple times."
       (setcar (cdr bytes-tail) (logand pc 255))
       (setcar bytes-tail (lsh pc -8)))
 
-    (concat (nreverse bytes))))
+    (string-make-unibyte (concat (nreverse bytes)))))
 
 
 ;;; compile-time evaluation

@@ -1814,8 +1814,6 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
   else
     specbind (Qinternal_interpreter_environment, Fcons (Qt, Qnil));
 
-  readchar_backlog = -1;
-
   GCPRO4 (sourcename, readfun, start, end);
 
   /* Try to ensure sourcename is a truename, except whilst preloading. */
