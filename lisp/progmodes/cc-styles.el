@@ -423,7 +423,7 @@ STYLE using `c-set-style' if the optional SET-P flag is non-nil."
 
 (defun c-read-offset (langelem)
   ;; read new offset value for LANGELEM from minibuffer. return a
-  ;; legal value only
+  ;; valid value only
   (let* ((oldoff  (cdr-safe (or (assq langelem c-offsets-alist)
 				(assq langelem (get 'c-offsets-alist
 						    'c-stylevar-fallback)))))
@@ -555,7 +555,7 @@ variables."
 	"[ \t\f]*\\\\?$")
   (setq c-sentence-end-with-esc-eol
 	(concat "\\(\\(" (c-default-value-sentence-end) "\\)"
-		;; N.B.:  "$" would be illegal when not enclosed like "\\($\\)".
+		;; N.B.:  "$" would be invalid when not enclosed like "\\($\\)".
 		"\\|" "[.?!][]\"')}]* ?\\\\\\($\\)[ \t\n]*"
 		"\\)")))
 
