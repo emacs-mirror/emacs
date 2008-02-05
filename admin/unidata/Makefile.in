@@ -47,5 +47,3 @@ clean:
 	  rm -f `sed -n 's/^;; FILE: //p' < charprop.el`; \
 	fi
 	rm -f charprop.el unidata-gen.elc unidata.txt
-
-# arch-tag: 3f576384-a8e7-4ec5-9d2e-9190c71683b4

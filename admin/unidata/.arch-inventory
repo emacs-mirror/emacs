@@ -1,7 +1,3 @@
-# Unlike most emacs dirs, admin/unidata has a simple non-autoconf-generated
-# makefile
-source ^(Makefile)$
-
 # Generated at compile time
 precious ^unidata\.txt$
 
