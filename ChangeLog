@@ -1,3 +1,7 @@
+2008-02-05  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
+
+	* INSTALL: Recommend giflib, not libungif.
+
 2008-01-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (xtensa): Match more configurations.
@@ -16,7 +20,7 @@
 
 	* configure.in: Add support for gnu-kfreebsd.
 
-2007-09-16  Peter O'Gorman <bug-gnu-emacs@mlists.thewrittenword.com> (tiny change)
+2007-09-16  Peter O'Gorman  <bug-gnu-emacs@mlists.thewrittenword.com>  (tiny change)
 
 	* configure.in: Don't use -lpthread on HP-UX.
 
@@ -49,8 +53,7 @@
 
 2007-04-19  Glenn Morris  <rgm@gnu.org>
 
-	* configure.in: Signal error if Xaw libs are missing in a Lucid
-	build.
+	* configure.in: Signal error if Xaw libs are missing in a Lucid build.
 
 2007-04-18  Glenn Morris  <rgm@gnu.org>
 
@@ -923,7 +926,7 @@
 
 2003-04-28  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* configure.in:  Undo last (RMS') change, as it is useless, per
+	* configure.in: Undo last (RMS') change, as it is useless, per
 	Dave Love.
 
 2003-04-08  Richard M. Stallman  <rms@gnu.org>
@@ -1094,7 +1097,7 @@
 
 2002-10-30  Dave Love  <fx@gnu.org>
 
-	* configure.in:  Require autoconf 2.53.  Test for pty.h,
+	* configure.in: Require autoconf 2.53.  Test for pty.h,
 	sys/mman.h, sys/param.h, mremap, memmove.
 	(AH_BOTTOM): Maybe include strings.h.  Add local variables for mode.
 	(AC_PROG_YACC): Delete.
@@ -2884,7 +2887,7 @@
 
 1997-04-09  Marcus G. Daniels  <marcus@cathcart.sysc.pdx.edu>
 
-	* configure.in (doug_lea_malloc):  First check for SYSTEM_MALLOC,
+	* configure.in (doug_lea_malloc): First check for SYSTEM_MALLOC,
 	in case it is desirable to disable the GNU malloc features with glibc.
 
 1997-04-08  Marcus G. Daniels  <marcus@cathcart.sysc.pdx.edu>
