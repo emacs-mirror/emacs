@@ -154,16 +154,16 @@ configure should avoid such old versions.  If that happens, use the
 * Complex Text Layout support libraries
 
 Emacs needs the optional libraries "m17n-db", "libm17n-flt", "libotf"
-to display correctly such complext scripts as Indic and Khmer
-correclty.  On some systems, particularly on GNU/Linux, these
-libraries may already be present or available as additional packages.
-Note that if there is a separate `dev' or `devel' package, for use at
-compilation time rather than run time, you will need that as well as
-the corresponding run time package; typically the dev package will
-contain header files and a library archive.  Otherwise, you can
-download and build libraries from sources.
+to correctly display such complex scripts as Indic and Khmer.
+On some systems, particularly GNU/Linux, these libraries may be
+already present or available as additional packages.  Note that if
+there is a separate `dev' or `devel' package, for use at compilation
+time rather than run time, you will need that as well as the
+corresponding run time package; typically the dev package will contain
+header files and a library archive.  Otherwise, you can download and
+build libraries from sources.
 
-The sources of those libraries are available by anonyous CVS from
+The sources of these libraries are available by anonymous CVS from
 cvs.m17n.org.
 
     % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/m17n login
@@ -171,9 +171,9 @@ cvs.m17n.org.
     % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/m17n co m17n-lib
     % cvs -d :pserver:anonymous@cvs.m17n.org:/cvs/m17n co libotf
 
-For m17n-lib, if you face some problem with making the whole package
-because you luck some other packages m17n-lib depends, try to
-configure it with the arg "--without-gui".
+For m17n-lib, if you have problems with making the whole package
+because you lack some other packages on which m17n-lib depends, try to
+configure it with the option "--without-gui".
 
 Please note that Emacs must be configured with the arg
 "--enable-font-backend" to get the benefit of those libraries.
