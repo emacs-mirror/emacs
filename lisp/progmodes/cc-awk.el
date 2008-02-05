@@ -213,7 +213,7 @@
   "\\([{}@` \t]\\|\\+\\+\\|--\\|\\\\.\\)")
 ;;   A "neutral" char(pair).  Doesn't change the "state" of a subsequent /.
 ;; This is space/tab, braces, an auto-increment/decrement operator or an
-;; escaped character.  Or one of the (illegal) characters @ or `.  But NOT an
+;; escaped character.  Or one of the (invalid) characters @ or `.  But NOT an
 ;; end of line (even if escaped).
 (defconst c-awk-neutrals*-re
   (concat "\\(" c-awk-neutral-re "\\)*"))
