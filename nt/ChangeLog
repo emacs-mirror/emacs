@@ -1,3 +1,7 @@
+2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: In help, use generic names for the image libraries.
+
 2008-01-20  Jason Rumney  <jasonr@gnu.org>
 
 	* gmake.defs (CYGWIN) [USING_SH]: Disable mapping of file
