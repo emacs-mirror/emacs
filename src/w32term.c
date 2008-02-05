@@ -4338,7 +4338,7 @@ w32_read_socket (sd, expected, hold_quit)
                         }
                     }
 
-                  /* Now process unicode input as per xterm.c */
+                  /* Process unicode input for ASCII and ISO Control only. */
                   if (code < 0x80)
                     {
                       inev.kind = ASCII_KEYSTROKE_EVENT;
@@ -4346,82 +4346,56 @@ w32_read_socket (sd, expected, hold_quit)
                     }
                   else if (code < 0xA0)
                     inev.code = MAKE_CHAR (CHARSET_8_BIT_CONTROL, code, 0);
-                  else if (code < 0x100)
-                    inev.code = MAKE_CHAR (charset_latin_iso8859_1, code, 0);
                   else
                     {
-                      int c1, c2;
-                      int charset_id;
+                      /* Many locales do not have full mapping from
+                         unicode on save, so use the locale coding to
+                         decode them. Windows only allows non-Unicode
+                         Windows to receive characters in the system
+                         locale anyway, so this doesn't really limit
+                         us.  */
+                      int nbytes, nchars, require, i, len;
+                      unsigned char *dest;
+                      struct coding_system coding;
 
-                      if (code < 0x2500)
+                      if (dbcs[0] == 0)
                         {
-                          charset_id = charset_mule_unicode_0100_24ff;
-                          code -= 0x100;
-                        }
-                      else if (code < 0x3400)
-                        {
-                          charset_id = charset_mule_unicode_2500_33ff;
-                          code -= 0x2500;
-                        }
-                      else if (code >= 0xE000)
-                        {
-                          charset_id = charset_mule_unicode_e000_ffff;
-                          code -= 0xE000;
+                          nbytes = 1;
+                          dbcs[0] = dbcs[1];
                         }
                       else
-                        {
-                          /* Not in the unicode range that we can handle in
-                             Emacs-22, so decode the original character
-                             using the locale  */
-                          int nbytes, nchars, require, i, len;
-                          unsigned char *dest;
-                          struct coding_system coding;
+                        nbytes = 2;
 
-                          if (dbcs[0] == 0)
+                      setup_coding_system (Vlocale_coding_system, &coding);
+                      coding.src_multibyte = 0;
+                      coding.dst_multibyte = 1;
+                      coding.composing = COMPOSITION_DISABLED;
+                      require = decoding_buffer_size (&coding, nbytes);
+                      dest = (unsigned char *) alloca (require);
+                      coding.mode |= CODING_MODE_LAST_BLOCK;
+
+                      decode_coding (&coding, dbcs, dest, nbytes, require);
+                      nbytes = coding.produced;
+                      nchars = coding.produced_char;
+
+                      for (i = 0; i < nbytes; i += len)
+                        {
+                          if (nchars == nbytes)
                             {
-                              nbytes = 1;
-                              dbcs[0] = dbcs[1];
+                              inev.code = dest[i];
+                              len = 1;
                             }
                           else
-                            nbytes = 2;
-
-                          setup_coding_system (Vlocale_coding_system, &coding);
-                          coding.src_multibyte = 0;
-                          coding.dst_multibyte = 1;
-                          coding.composing = COMPOSITION_DISABLED;
-                          require = decoding_buffer_size (&coding, nbytes);
-                          dest = (unsigned char *) alloca (require);
-                          coding.mode |= CODING_MODE_LAST_BLOCK;
-
-                          decode_coding (&coding, dbcs, dest, nbytes, require);
-                          nbytes = coding.produced;
-                          nchars = coding.produced_char;
-
-                          for (i = 0; i < nbytes; i += len)
-                            {
-                              if (nchars == nbytes)
-                                {
-                                  inev.code = dest[i];
-                                  len = 1;
-                                }
-                              else
-                                inev.code = STRING_CHAR_AND_LENGTH (dest + i,
-                                                                    nbytes - 1,
-                                                                    len);
-                              inev.kind = (SINGLE_BYTE_CHAR_P (inev.code)
-                                           ? ASCII_KEYSTROKE_EVENT
-                                           : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-                              kbd_buffer_store_event_hold (&inev, hold_quit);
-                              count++;
-                            }
-                          inev.kind = NO_EVENT; /* Already handled */
-                          break;
+                            inev.code = STRING_CHAR_AND_LENGTH (dest + i,
+                                                                nbytes - 1,
+                                                                len);
+                          inev.kind = (SINGLE_BYTE_CHAR_P (inev.code)
+                                       ? ASCII_KEYSTROKE_EVENT
+                                       : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+                          kbd_buffer_store_event_hold (&inev, hold_quit);
+                          count++;
                         }
-
-                      /* Unicode characters from above.  */
-                      c1 = (code / 96) + 32;
-                      c2 = (code % 96) + 32;
-                      inev.code = MAKE_CHAR (charset_id, c1, c2);
+                      inev.kind = NO_EVENT; /* Already handled */
                     }
                 }
               else
@@ -4430,7 +4404,6 @@ w32_read_socket (sd, expected, hold_quit)
                      in non-Unicode message handlers.  */
                   DebPrint (("Non-byte WM_CHAR: %d\n", msg.msg.wParam));
                   inev.kind = NO_EVENT;
-                  break;
                 }
 	    }
 	  break;
