@@ -120,11 +120,11 @@ echo.   --no-opt                disable optimization
 echo.   --no-cygwin             use -mno-cygwin option with GCC
 echo.   --cflags FLAG           pass FLAG to compiler
 echo.   --ldflags FLAG          pass FLAG to compiler when linking
-echo.   --without-png           do not use libpng even if it is installed
-echo.   --without-jpeg          do not use jpeg-6b even if it is installed
-echo.   --without-gif           do not use libungif even if it is installed
-echo.   --without-tiff          do not use libtiff even if it is installed
-echo.   --without-xpm           do not use libXpm even if it is installed
+echo.   --without-png           do not use PNG library even if it is installed
+echo.   --without-jpeg          do not use JPEG library even if it is installed
+echo.   --without-gif           do not use GIF library even if it is installed
+echo.   --without-tiff          do not use TIFF library even if it is installed
+echo.   --without-xpm           do not use XPM library even if it is installed
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
