@@ -227,7 +227,7 @@ In interpreted code, this is entirely equivalent to `progn'."
 ;;   verbose	  t, nil		byte-compile-verbose
 ;;   optimize	  t, nil, source, byte	byte-compile-optimize
 ;;   warnings	  list of warnings	byte-compile-warnings
-;; 		      Legal elements: (callargs redefine free-vars unresolved)
+;; 		      Valid elements: (callargs redefine free-vars unresolved)
 ;;   file-format	  emacs18, emacs19	byte-compile-compatibility
 ;;
 ;; For example, this might appear at the top of a source file:
