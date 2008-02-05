@@ -228,7 +228,7 @@ read_header (file, hdr, auxhdr)
   if (hdr->a_magic != EXEC_MAGIC && hdr->a_magic != SHARE_MAGIC
       &&  hdr->a_magic != DEMAND_MAGIC)
     {
-      fprintf (stderr, "a.out file doesn't have legal magic number\n");
+      fprintf (stderr, "a.out file doesn't have valid magic number\n");
       exit (1);
     }
 
