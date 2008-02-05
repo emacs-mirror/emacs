@@ -38,9 +38,9 @@ ENVADD = $(srcdir)\..\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
 
 .SUFFIXES: .dvi .ps .texi
 
-info: $(INFO_TARGETS)
+info: $(INFO_TARGETS) $(infodir)/dir
 
-$(infodir)/dir:
+$(infodir)/dir: $(INFO_TARGETS)
 	$(INSTALL_INFO) --info-dir=$(infodir) $(INFO_TARGETS)
 
 dvi: $(DVI_TARGETS)

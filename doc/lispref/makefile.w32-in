@@ -101,9 +101,9 @@ srcs = \
 
 # The info file is named `elisp'.
 
-info: $(infodir)/elisp
+info: $(infodir)/elisp $(infodir)/dir
 
-$(infodir)/dir:
+$(infodir)/dir: $(infodir)/elisp
 	$(INSTALL_INFO) --info-dir=$(infodir) $(infodir)/elisp
 
 $(infodir)/elisp: $(srcs)

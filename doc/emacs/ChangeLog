@@ -1,3 +1,8 @@
+2008-02-05  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (info): Depend on $(infodir)/dir
+	($(infodir)/dir): Depend on info files.
+
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* maintaining.texi (Tags): Fix last change.

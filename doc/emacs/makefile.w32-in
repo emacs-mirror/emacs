@@ -102,7 +102,7 @@ EMACSSOURCES= \
 	$(srcdir)/kmacro.texi \
 	$(EMACS_XTRA)
 
-info: $(INFO_TARGETS)
+info: $(INFO_TARGETS) $(infodir)/dir
 
 dvi: $(DVI_TARGETS)
 
@@ -111,7 +111,7 @@ dvi: $(DVI_TARGETS)
 # to exist in the build directory.
 # In a distribution of Emacs, the Info files should be up to date.
 
-$(infodir)/dir:
+$(infodir)/dir: $(INFO_TARGETS)
 	$(MULTI_INSTALL_INFO) --info-dir=$(infodir) $(INFO_TARGETS)
 
 $(infodir)/emacs: $(EMACSSOURCES)

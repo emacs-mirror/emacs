@@ -64,7 +64,7 @@ ENVADD = $(srcdir)\..\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
 	 "MAKEINFO=$(MAKEINFO) -I$(srcdir)" /C
 
 
-info: $(INFO_TARGETS)
+info: $(INFO_TARGETS) $(infodir)/dir
 
 dvi: $(DVI_TARGETS)
 
@@ -79,7 +79,7 @@ dvi: $(DVI_TARGETS)
 # Some Windows ports of makeinfo seem to require -o to come before the
 # texi filename, contrary to GNU standards.
 
-$(infodir)/dir:
+$(infodir)/dir: $(INFO_TARGETS)
 	$(MULTI_INSTALL_INFO) --info-dir=$(infodir) $(INFO_TARGETS)
 
 $(infodir)/info: $(INFOSOURCES)
