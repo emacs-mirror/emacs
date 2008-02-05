@@ -1,7 +1,7 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers
 
-;; Copyright (C) 2002, 2003, 2004, 2005, 2006,
-;;   2007, 2008 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -948,7 +948,7 @@ connection if a previous connection has died for some reason."
 
 	    (tramp-message
 	     vec 6 "%s" (mapconcat 'identity (process-command p) " "))
-	    (set-process-sentinel p 'tramp-flush-connection-property)
+	    (set-process-sentinel p 'tramp-process-sentinel)
 	    (tramp-set-process-query-on-exit-flag p nil)
 	    (tramp-set-connection-property p "smb-share" share)
 

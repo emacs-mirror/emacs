@@ -35,6 +35,7 @@ Boston, MA 02110-1301, USA.  */
 #include "blockinput.h"
 #include "buffer.h"
 #include "charset.h"
+#include "character.h"
 #include "coding.h"
 
 /* This may include sys/types.h, and that somehow loses
@@ -260,10 +261,10 @@ menubar_id_to_frame (id)
   Lisp_Object tail, frame;
   FRAME_PTR f;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
-      if (!GC_FRAMEP (frame))
+      if (!FRAMEP (frame))
         continue;
       f = XFRAME (frame);
       if (!FRAME_WINDOW_P (f))
@@ -2592,14 +2593,13 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
 
 void syms_of_w32menu ()
 {
-	globals_of_w32menu ();
+  globals_of_w32menu ();
   staticpro (&menu_items);
   menu_items = Qnil;
 
   current_popup_menu = NULL;
 
-  Qdebug_on_next_call = intern ("debug-on-next-call");
-  staticpro (&Qdebug_on_next_call);
+  DEFSYM (Qdebug_on_next_call, "debug-on-next-call");
 
   defsubr (&Sx_popup_menu);
   defsubr (&Smenu_or_popup_active_p);

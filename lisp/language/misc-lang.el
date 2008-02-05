@@ -43,6 +43,16 @@
 IPA is International Phonetic Alphabet for English, French, German
 and Italian.")))
 
+;; This is for Arabic.  But, as we still don't have Arabic language
+;; support, we at least define a coding system here.
+
+(define-coding-system 'iso-8859-6
+  "ISO-8859-6 based encoding (MIME:ISO-8859-6)."
+  :coding-type 'charset
+  :mnemonic ?6
+  :charset-list '(iso-8859-6)
+  :mime-charset 'iso-8859-6)
+
 (provide 'misc-lang)
 
 ;;; arch-tag: 6953585c-1a1a-4c09-be82-a2518afb6074

@@ -3,11 +3,14 @@
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005, 2006, 2007, 2008
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H13PRO009
+;; Copyright (C) 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 ;; Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005,
 ;;   2006, 2007, 2008  Free Software Foundation, Inc.
 
-;; Keywords: multilingual, Thai
+;; Keywords: multilingual, Thai, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -32,14 +35,11 @@
 
 ;;; Code:
 
-(make-coding-system
- 'thai-tis620 2 ?T
- "8-bit encoding for ASCII (MSB=0) and Thai TIS620 (MSB=1)."
- '(ascii thai-tis620 nil nil
-   nil nil nil nil nil nil nil nil nil nil nil t)
- '((safe-charsets ascii thai-tis620)
-   (mime-charset . tis-620)
-   (post-read-conversion . thai-post-read-conversion)))
+(define-coding-system 'thai-tis620
+  "8-bit encoding for ASCII (MSB=0) and Thai TIS620 (MSB=1)."
+  :coding-type 'charset
+  :mnemonic ?T
+  :charset-list '(tis620-2533))
 
 (define-coding-system-alias 'th-tis620 'thai-tis620)
 (define-coding-system-alias 'tis620 'thai-tis620)
@@ -48,9 +48,9 @@
 (set-language-info-alist
  "Thai" '((tutorial . "TUTORIAL.th")
 	  (charset thai-tis620)
-	  (coding-system thai-tis620)
+	  (coding-system thai-tis620 iso-8859-11 cp874)
 	  (coding-priority thai-tis620)
-	  (nonascii-translation . thai-tis620)
+	  (nonascii-translation . tis620-2533)
 	  (input-method . "thai-kesmanee")
 	  (unibyte-display . thai-tis620)
 	  (features thai-util)
@@ -58,16 +58,30 @@
 	  (exit-function . exit-thai-language-environment-internal)
 	  (sample-text
 	   . (thai-compose-string
-	      (copy-sequence "Thai (,T@RIRd7B(B)		,TJ0GQ1J04U1$0CQ1:(B, ,TJ0GQ1J04U10$h1P(B")))
+	      (copy-sequence "Thai (,T@RIRd7B(B)		,TJGQJ4U$CQ:(B, ,TJGQJ4U$hP(B")))
 	  (documentation . t)))
 
+(define-coding-system 'cp874
+  "DOS codepage 874 (Thai)"
+  :coding-type 'charset
+  :mnemonic ?D
+  :charset-list '(cp874)
+  :mime-charset 'cp874)
+(define-coding-system-alias 'ibm874 'cp874)
 
-;; Register a function to compose Thai characters.
-(let ((patterns '(("\\c0?\\(\\c2\\|\\c3\\|\\c4\\)+"
-		   . thai-composition-function))))
-  (aset composition-function-table (make-char 'thai-tis620) patterns)
-  (dotimes (i (1+ (- #xe7f #xe00)))
-    (aset composition-function-table (decode-char 'ucs (+ i #xe00)) patterns)))
+(define-coding-system 'iso-8859-11
+  "ISO/IEC 8859/11 (Latin/Thai)
+This is the same as `thai-tis620' with the addition of no-break-space."
+  :coding-type 'charset
+  :mnemonic ?*
+  :mime-charset 'iso-8859-11 ; not actually registered as of 2002-05-24
+  :charset-list '(iso-8859-11))
+
+;; For automatic composition.
+(let ((chars ",TQTUVWXYZghijklmn(B"))
+  (dotimes (i (length chars))
+    (aset composition-function-table (aref chars i)
+	  'thai-composition-function)))
 
 (provide 'thai)
 

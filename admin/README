@@ -89,4 +89,11 @@ mode: outline
 paragraph-separate: "[ 	]*$"
 end:
 
+Brief description of sub-directories:
+
+charsets		scripts for generating charset map files
+			in ../etc/charsets
+unidata			scripts for generating character property files
+			in ../lisp/international
+
 # arch-tag: 812b9461-bc0a-46a7-925e-24bd41118463

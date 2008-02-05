@@ -3424,10 +3424,14 @@ Without an argument, it saves customized diff argument, if available
   (let ((buf-A-file-name (buffer-file-name ediff-buffer-A))
 	(buf-B-file-name (buffer-file-name ediff-buffer-B))
 	file-A file-B)
-    (unless (and buf-A-file-name (file-exists-p buf-A-file-name))
+    (unless (and buf-A-file-name
+		 (file-exists-p buf-A-file-name)
+		 (not (ediff-file-remote-p buf-A-file-name)))
       (setq file-A
 	    (ediff-make-temp-file ediff-buffer-A)))
-    (unless (and buf-B-file-name (file-exists-p buf-B-file-name))
+    (unless (and buf-B-file-name
+		 (file-exists-p buf-B-file-name)
+		 (not (ediff-file-remote-p buf-B-file-name)))
       (setq file-B
 	    (ediff-make-temp-file ediff-buffer-B)))
     (or (ediff-buffer-live-p ediff-custom-diff-buffer)
@@ -3441,16 +3445,14 @@ Without an argument, it saves customized diff argument, if available
      ediff-custom-diff-program ediff-custom-diff-buffer 'synchronize
      ediff-custom-diff-options
      ;; repetition of buf-A-file-name is needed so it'll return a file
-     (or (and buf-A-file-name (file-exists-p buf-A-file-name) buf-A-file-name)
-	 file-A)
-     (or (and buf-B-file-name (file-exists-p buf-B-file-name) buf-B-file-name)
-	 file-B))
+     (or file-A buf-A-file-name)
+     (or file-B buf-B-file-name))
     ;; put the diff file in diff-mode, if it is available
     (if (fboundp 'diff-mode)
 	(with-current-buffer ediff-custom-diff-buffer
 	  (diff-mode)))
-    (and file-A (file-exists-p file-A) (delete-file file-A))
-    (and file-B (file-exists-p file-B) (delete-file file-B))
+    (and file-A (delete-file file-A))
+    (and file-B (delete-file file-B))
     ))
 
 (defun ediff-show-diff-output (arg)

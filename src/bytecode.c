@@ -37,7 +37,7 @@ by Hallvard:
 #include <config.h>
 #include "lisp.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "syntax.h"
 #include "window.h"
 
@@ -1461,10 +1461,17 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 	  break;
 
 	case Bchar_syntax:
-	  BEFORE_POTENTIAL_GC ();
-	  CHECK_NUMBER (TOP);
-	  AFTER_POTENTIAL_GC ();
-	  XSETFASTINT (TOP, syntax_code_spec[(int) SYNTAX (XINT (TOP))]);
+	  {
+	    int c;
+
+	    BEFORE_POTENTIAL_GC ();
+	    CHECK_CHARACTER (TOP);
+	    AFTER_POTENTIAL_GC ();
+	    c = XFASTINT (TOP);
+	    if (NILP (current_buffer->enable_multibyte_characters))
+	      MAKE_CHAR_MULTIBYTE (c);
+	    XSETFASTINT (TOP, syntax_code_spec[(int) SYNTAX (c)]);
+	  }
 	  break;
 
 	case Bbuffer_substring:

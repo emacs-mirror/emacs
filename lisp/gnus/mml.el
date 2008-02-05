@@ -284,8 +284,7 @@ part.  This is for the internal use, you should never modify the value.")
 			 (list
 			  (intern (downcase (cdr (assq 'charset tag))))))
 			(t
-			 (mm-find-mime-charset-region point (point)
-						      mm-hack-charsets))))
+			 (mm-find-mime-charset-region point (point)))))
 	(when (and (not raw) (memq nil charsets))
 	  (if (or (memq 'unknown-encoding mml-confirmation-set)
 		  (message-options-get 'unknown-encoding)

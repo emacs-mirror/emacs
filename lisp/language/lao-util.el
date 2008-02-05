@@ -6,8 +6,11 @@
 ;;   2007, 2008
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
+;; Copyright (C) 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H13PRO009
 
-;; Keywords: multilingual, Lao
+;; Keywords: multilingual, Lao, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -131,73 +134,7 @@
 	   (?(1{(B invalid nil)
 	   (?(1|(B consonant "LETTER NHOR NHUU" "MOUSE")
 	   (?(1}(B consonant "LETTER MHOR MHAR" "DOG")
-	   (?(1~(B invalid nil)
-	   ;; Unicode equivalents
-	   (?$,1D!(B consonant "LETTER KOR  KAI'" "CHICKEN")
-	   (?$,1D"(B consonant "LETTER KHOR KHAI'" "EGG")
-	   (?$,1D$(B consonant "LETTER QHOR QHWARGN" "BUFFALO")
-	   (?$,1D'(B consonant "LETTER NGOR NGUU" "SNAKE")
-	   (?$,1D((B consonant "LETTER JOR JUA" "BUDDHIST NOVICE")
-	   (?$,1D*(B consonant "LETTER XOR X\"ARNG" "ELEPHANT")
-	   (?$,1D-(B consonant "LETTER YOR YUNG" "MOSQUITO")
-	   (?$,1D4(B consonant "LETTER DOR DANG" "NOSE")
-	   (?$,1D5(B consonant "LETTER TOR TAR" "EYE")
-	   (?$,1D6(B consonant "LETTER THOR THUNG" "TO ASK,QUESTION")
-	   (?$,1D7(B consonant "LETTER DHOR DHARM" "FLAG")
-	   (?$,1D9(B consonant "LETTER NOR NOK" "BIRD")
-	   (?$,1D:(B consonant "LETTER BOR BED" "FISHHOOK")
-	   (?$,1D;(B consonant "LETTER POR PAR" "FISH")
-	   (?$,1D<(B consonant "LETTER HPOR HPER\"" "BEE")
-	   (?$,1D=(B consonant "LETTER FHOR FHAR" "WALL")
-	   (?$,1D>(B consonant "LETTER PHOR PHUU" "MOUNTAIN")
-	   (?$,1D?(B consonant "LETTER FOR FAI" "FIRE")
-	   (?$,1DA(B consonant "LETTER MOR MAR\"" "HORSE")
-	   (?$,1DB(B consonant "LETTER GNOR GNAR" "MEDICINE")
-	   (?$,1DC(B consonant "LETTER ROR ROD" "CAR")
-	   (?$,1DE(B consonant "LETTER LOR LIING" "MONKEY")
-	   (?$,1DG(B consonant "LETTER WOR WII" "HAND FAN")
-	   (?$,1DJ(B consonant "LETTER SOR SEA" "TIGER")
-	   (?$,1DK(B consonant "LETTER HHOR HHAI" "JAR")
-	   (?$,1DM(B consonant "LETTER OR OOW" "TAKE")
-	   (?$,1DN(B consonant "LETTER HOR HEA" "BOAT")
-	   (?$,1DO(B special "ELLIPSIS")
-	   (?$,1DP(B vowel-base "VOWEL SIGN SARA A")
-	   (?$,1DQ(B vowel-upper "VOWEL SIGN MAI KAN")
-	   (?$,1DR(B vowel-base "VOWEL SIGN SARA AR")
-	   (?$,1DS(B vowel-base "VOWEL SIGN SARA AM")
-	   (?$,1DT(B vowel-upper "VOWEL SIGN SARA I")
-	   (?$,1DU(B vowel-upper "VOWEL SIGN SARA II")
-	   (?$,1DV(B vowel-upper "VOWEL SIGN SARA EU")
-	   (?$,1DW(B vowel-upper "VOWEL SIGN SARA UR")
-	   (?$,1DX(B vowel-lower "VOWEL SIGN SARA U")
-	   (?$,1DY(B vowel-lower "VOWEL SIGN SARA UU")
-	   (?$,1D[(B vowel-upper "VOWEL SIGN MAI KONG")
-	   (?$,1D\(B semivowel-lower "SEMIVOWEL SIGN LO")
-	   (?$,1D](B vowel-base "SEMIVOWEL SIGN SARA IA")
-	   (?$,1D`(B vowel-base "VOWEL SIGN SARA EE")
-	   (?$,1Da(B vowel-base "VOWEL SIGN SARA AA")
-	   (?$,1Db(B vowel-base "VOWEL SIGN SARA OO")
-	   (?$,1Dc(B vowel-base "VOWEL SIGN SARA EI MAI MUAN\"")
-	   (?$,1Dd(B vowel-base "VOWEL SIGN SARA AI MAI MAY")
-	   (?$,1Df(B special "KO LA (REPETITION)")
-	   (?$,1Dh(B tone "TONE MAI EK")
-	   (?$,1Di(B tone "TONE MAI THO")
-	   (?$,1Dj(B tone "TONE MAI TI")
-	   (?$,1Dk(B tone "TONE MAI JADTAWAR")
-	   (?$,1Dl(B tone "CANCELLATION MARK")
-	   (?$,1Dm(B vowel-upper "VOWEL SIGN SARA OR")
-	   (?$,1Dp(B special "DIGIT ZERO")
-	   (?$,1Dq(B special "DIGIT ONE")
-	   (?$,1Dr(B special "DIGIT TWO")
-	   (?$,1Ds(B special "DIGIT THREE")
-	   (?$,1Dt(B special "DIGIT FOUR")
-	   (?$,1Du(B special "DIGIT FIVE")
-	   (?$,1Dv(B special "DIGIT SIX")
-	   (?$,1Dw(B special "DIGIT SEVEN")
-	   (?$,1Dx(B special "DIGIT EIGHT")
-	   (?$,1Dy(B special "DIGIT NINE")
-	   (?$,1D|(B consonant "LETTER NHOR NHUU" "MOUSE")
-	   (?$,1D}(B consonant "LETTER MHOR MHAR" "DOG")))
+	   (?(1~(B invalid nil)))
       elm)
   (while l
     (setq elm (car l) l (cdr l))
@@ -222,10 +159,10 @@
 ;; CV -> C, CT -> C, CVT -> C, Cv -> C, CvT -> C
 ;;                                   v         v
 ;;                             T
-;;        V         T          V                   T
-;; CsV -> C, CsT -> C, CsVT -> C, Csv -> C, CvT -> C
-;;        s         s          s         s         s
-;;                                       v         v
+;;        V         T          V                    T
+;; CsV -> C, CsT -> C, CsVT -> C, Csv -> C, CsvT -> C
+;;        s         s          s         s          s
+;;                                       v          v
 
 
 ;; where C: consonant, V: vowel upper, v: vowel lower,
@@ -425,37 +362,7 @@
     ("(1d(B" (?(1d(B 0))
     ("(1c(B" (?(1c(B 0))
     ("(1`[R(B" (?(1`(B 0 ?(1[(B ?(1R(B))
-    ("(1S(B" (0 ?(1S(B))
-
-    ;; Unicode equivalents
-    ("$,1DP(B" (0 ?$,1DP(B) (0 ?$,1DQ(B))
-    ("$,1DR(B" (0 ?$,1DR(B))
-    ("$,1DT(B" (0 ?$,1DU(B))
-    ("$,1DU(B" (0 ?$,1DU(B))
-    ("$,1DV(B" (0 ?$,1DV(B))
-    ("$,1DW(B" (0 ?$,1DW(B))
-    ("$,1DX(B" (0 ?$,1DX(B))
-    ("$,1DY(B" (0 ?$,1DY(B))
-    ("$,1D`DP(B" (?$,1D`(B 0 ?$,1DP(B) (?$,1D`(B 0 ?$,1DQ(B))
-    ("$,1D`(B" (?$,1D`(B 0))
-    ("$,1DaDP(B" (?$,1Da(B 0 ?$,1DP(B) (?$,1Da(B 0 ?$,1DQ(B))
-    ("$,1Da(B" (?$,1Da(B 0))
-    ("$,1DbDP(B" (?$,1Db(B 0 ?$,1DP(B) (0 ?$,1D[(B) (?$,1D-(B ?$,1Db(B 0 ?$,1DQ(B) (?$,1DG(B ?$,1Db(B 0 ?$,1DQ(B))
-    ("$,1Db(B" (?$,1Db(B 0))
-    ("$,1D`DRDP(B" (?$,1D`(B 0 ?$,1DR(B ?$,1DP(B) (0 ?$,1DQ(B ?$,1DM(B))
-    ("$,1Dm(B" (0 ?$,1Dm(B) (0 ?$,1DM(B))
-    ("$,1D`DT(B" (?$,1D`(B 0 ?$,1DT(B))
-    ("$,1D`DU(B" (?$,1D`(B 0 ?$,1DU(B))
-    ("$,1D[DGDP(B" (0 ?$,1D[(B ?$,1DG(B ?$,1DP(B) (0 ?$,1DQ(B ?$,1DG(B))
-    ("$,1D[DG(B" (0 ?$,1D[(B ?$,1DG(B) (0 ?$,1DG(B))
-    ("$,1D`DQD]DP(B" (?$,1D`(B 0 ?$,1DQ(B ?$,1D](B ?$,1DP(B) (0 ?$,1DQ(B ?$,1D](B))
-    ("$,1D`DQD](B" (?$,1D`(B 0 ?$,1DQ(B ?$,1D](B) (0 ?$,1D](B))
-    ("$,1D`DVDM(B" (?$,1D`(B 0 ?$,1DV(B ?$,1DM(B))
-    ("$,1D`DWDM(B" (?$,1D`(B 0 ?$,1DW(B ?$,1DM(B))
-    ("$,1Dd(B" (?$,1Dd(B 0))
-    ("$,1Dc(B" (?$,1Dc(B 0))
-    ("$,1D`D[DR(B" (?$,1D`(B 0 ?$,1D[(B ?$,1DR(B))
-    ("$,1DS(B" (0 ?$,1DS(B)))
+    ("(1S(B" (0 ?(1S(B)))
   "Alist of Lao vowel string vs the corresponding re-ordering rule.
 Each element has this form:
 	(VOWEL NO-MAA-SAKOD-RULE WITH-MAA-SAKOD-RULE (MAA-SAKOD-0 RULE-0) ...)
@@ -586,24 +493,20 @@ syllable.  In that case, FROM and TO are indexes to STR."
       lao-str)))
 
 ;;;###autoload
-(defun lao-post-read-conversion (len)
-  (lao-compose-region (point) (+ (point) len))
-  len)
-
-;;;###autoload
-(defun lao-composition-function (from to pattern &optional string)
-  "Compose Lao text in the region FROM and TO.
-The text matches the regular expression PATTERN.
-Optional 4th argument STRING, if non-nil, is a string containing text
-to compose.
-
-The return value is number of composed characters."
-  (if (< (1+ from) to)
-      (progn
-	(if string
-	    (compose-string string from to)
-	  (compose-region from to))
-	(- to from))))
+(defun lao-composition-function (pos &optional string)
+  (setq pos (1- pos))
+  (with-category-table lao-category-table
+    (if string
+	(if (and (>= pos 0)
+		 (eq (string-match lao-composition-pattern string pos) pos))
+	    (prog1 (match-end 0)
+	      (compose-string string pos (match-end 0))))
+      (if (>= pos (point-min))
+	  (save-excursion
+	    (goto-char pos)
+	    (if (looking-at lao-composition-pattern)
+		(prog1 (match-end 0)
+		  (compose-region pos (match-end 0)))))))))
 
 ;;;###autoload
 (defun lao-compose-region (from to)

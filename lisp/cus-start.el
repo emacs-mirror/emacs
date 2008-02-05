@@ -104,6 +104,9 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (exec-path execute
 			(repeat (choice (const :tag "default directory" nil)
 					(directory :format "%v"))))
+	     ;; charset.c
+	     (charset-map-path installation
+			       (repeat (directory :format "%v")))
 	     ;; coding.c
 	     (inhibit-eol-conversion mule boolean)
 	     (eol-mnemonic-undecided mule string)

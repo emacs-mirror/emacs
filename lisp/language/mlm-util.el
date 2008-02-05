@@ -102,21 +102,24 @@
 
 
 ;;;###autoload
-(defun malayalam-composition-function (from to pattern  &optional string)
-  "Compose Malayalam characters in REGION, or STRING if specified.
-Assume that the REGION or STRING must fully match the composable
-PATTERN regexp."
-  (if string (malayalam-compose-syllable-string string)
-    (malayalam-compose-syllable-region from to))
-  (- to from))
-
-;; Register a function to compose Malayalam characters.
-(mapc
- (function (lambda (ucs)
-   (aset composition-function-table (decode-char 'ucs ucs)
-	 (list (cons malayalam-composable-pattern
-                     'malayalam-composition-function)))))
- (nconc '(#x0d02 #x0d03) (malayalam-range #x0d05 #x0d39)))
+(defun malayalam-composition-function (pos  &optional string)
+  "Compose Malayalam characters after the position POS.
+If STRING is not nil, it is a string, and POS is an index to the string.
+In this case, compose characters after POS of the string."
+  (if string
+      (if auto-compose-current-font
+	  (if (eq (string-match "[$,1@ (B-$,1A?(B]+" pos) pos)
+	      (or (font-shape-text 0 (match-end 0) auto-compose-current-font
+				   string)
+		  pos)))
+    (goto-char pos)
+    (if auto-compose-current-font
+	(if (looking-at  "[$,1@ (B-$,1A?(B]+")
+	    (or (font-shape-text pos (match-end 0) auto-compose-current-font)
+		pos)
+	  (if (looking-at malayalam-composable-pattern)
+	      (prog1 (match-end 0)
+		(malayalam-compose-syllable-region pos (match-end 0))))))))
 
 ;; Notes on conversion steps.
 
@@ -381,10 +384,16 @@ PATTERN regexp."
         (narrow-to-region from to)
         (goto-char (point-min))
         ;; char-glyph-conversion
-        (while (re-search-forward mlm-char-glyph-regexp nil t)
-          (setq match-str (match-string 0))
-          (setq glyph-str
-                (concat glyph-str (gethash match-str mlm-char-glyph-hash))))
+        (while (not (eobp))
+	  (if (looking-at mlm-char-glyph-regexp)
+	      (progn
+		(setq match-str (match-string 0)
+		      glyph-str
+		      (concat glyph-str
+			      (gethash match-str mlm-char-glyph-hash)))
+		(goto-char (match-end 0)))
+	    (setq glyph-str (concat glyph-str (string (following-char))))
+	    (forward-char 1)))
         (when (string-match mlm-glyph-reorder-key-glyphs glyph-str)
           ;; glyph reordering
           (setq glyph-reorder-regexps mlm-glyph-reordering-regexp-list)

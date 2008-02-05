@@ -247,6 +247,7 @@ This is local in each buffer, once it is used.")
 ;; kill a buffer modified by the user.  A buffer in view mode can
 ;; become modified if the user types C-x C-q, edits the buffer, then
 ;; types C-x C-q again to return to view mode.
+;;;###autoload
 (defun kill-buffer-if-not-modified (buf)
   "Like `kill-buffer', but does nothing if the buffer is modified."
   (let ((buf (get-buffer buf)))

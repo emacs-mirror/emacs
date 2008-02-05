@@ -417,7 +417,7 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   (with ASCIIfied fallback via latin1-disp).  Examples include
   box-drawing graphics in Custom buffers, W3 rules and tables, and
   tree displays generally, mode-line mail indicator.  [See work done
-  already for Emacs 22 and consult fx.]
+  already for Emacs 23 and consult fx.]
 
 ** Do something to make rms happy with fx's dynamic loading, and use it
   to implement things like auto-loaded buffer parsers and database

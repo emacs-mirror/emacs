@@ -1,6 +1,9 @@
 # Unlike most emacs dirs, etc has a simple non-autoconf-generated makefile
 source ^(Makefile)$
 
+# Auto-generated files, which ignore
+precious ^(buildobj\.lst)$
+
 # Generated files (DOC-X is generated on windows)
 backup ^(DOC(|-[0-9.]*|-X))$
 

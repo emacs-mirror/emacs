@@ -31,22 +31,23 @@ Boston, MA 02110-1301, USA.  */
 #include <math.h>
 
 #include "lisp.h"
-#include "charset.h"
-#include "dispextern.h"
 #include "w32term.h"
-#include "keyboard.h"
 #include "frame.h"
 #include "window.h"
 #include "buffer.h"
-#include "fontset.h"
 #include "intervals.h"
+#include "dispextern.h"
+#include "keyboard.h"
 #include "blockinput.h"
 #include "epaths.h"
-#include "w32heap.h"
-#include "termhooks.h"
+#include "character.h"
+#include "charset.h"
 #include "coding.h"
 #include "ccl.h"
+#include "fontset.h"
 #include "systime.h"
+#include "termhooks.h"
+#include "w32heap.h"
 
 #include "bitmaps/gray.xbm"
 
@@ -58,7 +59,12 @@ Boston, MA 02110-1301, USA.  */
 #include <objbase.h>
 
 #include <dlgs.h>
+#include <imm.h>
 #define FILE_NAME_TEXT_FIELD edt1
+
+#ifdef USE_FONT_BACKEND
+#include "font.h"
+#endif
 
 void syms_of_w32fns ();
 void globals_of_w32fns ();
@@ -257,10 +263,19 @@ static HWND track_mouse_window;
 
 typedef BOOL (WINAPI * TrackMouseEvent_Proc)
   (IN OUT LPTRACKMOUSEEVENT lpEventTrack);
+typedef LONG (WINAPI * ImmGetCompositionString_Proc)
+  (IN HIMC context, IN DWORD index, OUT LPVOID buffer, IN DWORD bufLen);
+typedef HIMC (WINAPI * ImmGetContext_Proc) (IN HWND window);
 
 TrackMouseEvent_Proc track_mouse_event_fn = NULL;
 ClipboardSequence_Proc clipboard_sequence_fn = NULL;
+ImmGetCompositionString_Proc get_composition_string_fn = NULL;
+ImmGetContext_Proc get_ime_context_fn = NULL;
+
 extern AppendMenuW_Proc unicode_append_menu;
+
+/* Flag to selectively ignore WM_IME_CHAR messages.  */
+static int ignore_ime_char = 0;
 
 /* W95 mousewheel handler */
 unsigned int msh_mousewheel = 0;
@@ -380,10 +395,10 @@ x_window_to_frame (dpyinfo, wdesc)
   Lisp_Object tail, frame;
   struct frame *f;
 
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       frame = XCAR (tail);
-      if (!GC_FRAMEP (frame))
+      if (!FRAMEP (frame))
         continue;
       f = XFRAME (frame);
       if (!FRAME_W32_P (f) || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
@@ -2450,8 +2465,8 @@ register_hot_keys (hwnd)
 {
   Lisp_Object keylist;
 
-  /* Use GC_CONSP, since we are called asynchronously.  */
-  for (keylist = w32_grabbed_keys; GC_CONSP (keylist); keylist = XCDR (keylist))
+  /* Use CONSP, since we are called asynchronously.  */
+  for (keylist = w32_grabbed_keys; CONSP (keylist); keylist = XCDR (keylist))
     {
       Lisp_Object key = XCAR (keylist);
 
@@ -2470,8 +2485,7 @@ unregister_hot_keys (hwnd)
 {
   Lisp_Object keylist;
 
-  /* Use GC_CONSP, since we are called asynchronously.  */
-  for (keylist = w32_grabbed_keys; GC_CONSP (keylist); keylist = XCDR (keylist))
+  for (keylist = w32_grabbed_keys; CONSP (keylist); keylist = XCDR (keylist))
     {
       Lisp_Object key = XCAR (keylist);
 
@@ -3151,7 +3165,6 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       if (windows_translate)
 	{
 	  MSG windows_msg = { hwnd, msg, wParam, lParam, 0, {0,0} };
-
 	  windows_msg.time = GetMessageTime ();
 	  TranslateMessage (&windows_msg);
 	  goto dflt;
@@ -3164,6 +3177,64 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       post_character_message (hwnd, msg, wParam, lParam,
 			      w32_get_key_modifiers (wParam, lParam));
       break;
+
+    case WM_UNICHAR:
+      /* WM_UNICHAR looks promising from the docs, but the exact
+         circumstances in which TranslateMessage sends it is one of those
+         Microsoft secret API things that EU and US courts are supposed
+         to have put a stop to already. Spy++ shows it being sent to Notepad
+         and other MS apps, but never to Emacs.
+
+         Some third party IMEs send it in accordance with the official
+         documentation though, so handle it here.
+
+         UNICODE_NOCHAR is used to test for support for this message.
+         TRUE indicates that the message is supported.  */
+      if (wParam == UNICODE_NOCHAR)
+        return TRUE;
+
+      {
+        W32Msg wmsg;
+        wmsg.dwModifiers = w32_get_key_modifiers (wParam, lParam);
+        signal_user_input ();
+        my_post_msg (&wmsg, hwnd, msg, wParam, lParam);
+      }
+      break;
+
+    case WM_IME_CHAR:
+      /* If we can't get the IME result as unicode, use default processing,
+         which will at least allow characters decodable in the system locale
+         get through.  */
+      if (!get_composition_string_fn)
+        goto dflt;
+
+      else if (!ignore_ime_char)
+        {
+          wchar_t * buffer;
+          int size, i;
+          W32Msg wmsg;
+          HIMC context = get_ime_context_fn (hwnd);
+          wmsg.dwModifiers = w32_get_key_modifiers (wParam, lParam);
+          /* Get buffer size.  */
+          size = get_composition_string_fn (context, GCS_RESULTSTR, buffer, 0);
+          buffer = alloca(size);
+          size = get_composition_string_fn (context, GCS_RESULTSTR,
+                                            buffer, size);
+          signal_user_input ();
+          for (i = 0; i < size / sizeof (wchar_t); i++)
+            {
+              my_post_msg (&wmsg, hwnd, WM_UNICHAR, (WPARAM) buffer[i],
+                           lParam);
+            }
+          /* We output the whole string above, so ignore following ones
+             until we are notified of the end of composition.  */
+          ignore_ime_char = 1;
+        }
+      break;
+
+    case WM_IME_ENDCOMPOSITION:
+      ignore_ime_char = 0;
+      goto dflt;
 
       /* Simulate middle mouse button events when left and right buttons
 	 are used together, but only if user has two button mouse. */
@@ -4137,6 +4208,38 @@ unwind_create_frame (frame)
   return Qnil;
 }
 
+#ifdef USE_FONT_BACKEND
+static void
+x_default_font_parameter (f, parms)
+     struct frame *f;
+     Lisp_Object parms;
+{
+  struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+  Lisp_Object font = x_get_arg (dpyinfo, parms, Qfont, "font", "Font",
+                                RES_TYPE_STRING);
+
+  if (!STRINGP (font))
+    {
+      int i;
+      static char *names[]
+        = { "Courier New-10",
+            "-*-Courier-normal-r-*-*-13-*-*-*-c-*-iso8859-1",
+            "-*-Fixedsys-normal-r-*-*-12-*-*-*-c-*-iso8859-1",
+            "Fixedsys",
+            NULL };
+
+      for (i = 0; names[i]; i++)
+        {
+          font = font_open_by_name (f, names[i]);
+          if (! NILP (font))
+            break;
+        }
+      if (NILP (font))
+        error ("No suitable font was found");
+    }
+  x_default_parameter (f, parms, Qfont, font, "font", "Font", RES_TYPE_STRING);
+}
+#endif
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
@@ -4276,8 +4379,28 @@ This function is an internal primitive--use `make-frame' instead.  */)
       specbind (Qx_resource_name, name);
     }
 
+  f->resx = dpyinfo->resx;
+  f->resy = dpyinfo->resy;
+
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    {
+      /* Perhaps, we must allow frame parameter, say `font-backend',
+	 to specify which font backends to use.  */
+      register_font_driver (&w32font_driver, f);
+
+      x_default_parameter (f, parameters, Qfont_backend, Qnil,
+			   "fontBackend", "FontBackend", RES_TYPE_STRING);
+    }
+#endif	/* USE_FONT_BACKEND */
+
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    x_default_font_parameter (f, parameters);
+  else
+#endif 
   {
     Lisp_Object font;
 
@@ -4289,7 +4412,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
       {
         tem = Fquery_fontset (font, Qnil);
         if (STRINGP (tem))
-          font = x_new_fontset (f, SDATA (tem));
+          font = x_new_fontset (f, tem);
         else
           font = x_new_font (f, SDATA (font));
       }
@@ -4684,10 +4807,10 @@ w32_load_system_font (f, fontname, size)
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
-    if (lf.lfPitchAndFamily == FIXED_PITCH)
+    if ((lf.lfPitchAndFamily & 0x03) == FIXED_PITCH)
       {
 	/* Fixed width font.  */
-	fontp->average_width = fontp->space_width = FONT_WIDTH (font);
+	fontp->average_width = fontp->space_width = FONT_AVG_WIDTH (font);
       }
     else
       {
@@ -4697,11 +4820,12 @@ w32_load_system_font (f, fontname, size)
 	if (pcm)
 	  fontp->space_width = pcm->width;
 	else
-	  fontp->space_width = FONT_WIDTH (font);
+	  fontp->space_width = FONT_AVG_WIDTH (font);
 
 	fontp->average_width = font->tm.tmAveCharWidth;
       }
 
+    fontp->charset = -1;
     charset = xlfd_charset_of_font (fontname);
 
   /* Cache the W32 codepage for a font.  This makes w32_encode_char
@@ -4728,7 +4852,7 @@ w32_load_system_font (f, fontname, size)
        (0:0x20..0x7F, 1:0xA0..0xFF,
        (0:0x2020..0x7F7F, 1:0xA0A0..0xFFFF, 3:0x20A0..0x7FFF,
        2:0xA020..0xFF7F).  For the moment, we don't know which charset
-       uses this font.  So, we set information in fontp->encoding[1]
+       uses this font.  So, we set information in fontp->encoding_type
        which is never used by any charset.  If mapping can't be
        decided, set FONT_ENCODING_NOT_DECIDED.  */
 
@@ -4736,9 +4860,9 @@ w32_load_system_font (f, fontname, size)
        type FONT_ENCODING_NOT_DECIDED.  */
     encoding = strrchr (fontp->name, '-');
     if (encoding && strnicmp (encoding+1, "sjis", 4) == 0)
-      fontp->encoding[1] = 4;
+      fontp->encoding_type = 4;
     else
-      fontp->encoding[1] = FONT_ENCODING_NOT_DECIDED;
+      fontp->encoding_type = FONT_ENCODING_NOT_DECIDED;
 
     /* The following three values are set to 0 under W32, which is
        what they get set to if XGetFontProperty fails under X.  */
@@ -4880,7 +5004,7 @@ w32_to_x_weight (fnweight)
     return "*";
 }
 
-static LONG
+LONG
 x_to_w32_charset (lpcs)
     char * lpcs;
 {
@@ -4892,12 +5016,16 @@ x_to_w32_charset (lpcs)
   if (strncmp (lpcs, "*-#", 3) == 0)
     return atoi (lpcs + 3);
 
+  /* All Windows fonts qualify as unicode.  */
+  if (!strncmp (lpcs, "iso10646", 8))
+    return DEFAULT_CHARSET;
+
   /* Handle wildcards by ignoring them; eg. treat "big5*-*" as "big5".  */
   charset = alloca (len + 1);
   strcpy (charset, lpcs);
   lpcs = strchr (charset, '*');
   if (lpcs)
-    *lpcs = 0;
+    *lpcs = '\0';
 
   /* Look through w32-charset-info-alist for the character set.
      Format of each entry is
@@ -4964,12 +5092,27 @@ x_to_w32_charset (lpcs)
 }
 
 
-static char *
-w32_to_x_charset (fncharset)
+char *
+w32_to_x_charset (fncharset, matching)
     int fncharset;
+    char *matching;
 {
   static char buf[32];
   Lisp_Object charset_type;
+  int match_len = 0;
+
+  if (matching)
+    {
+      /* If fully specified, accept it as it is.  Otherwise use a
+	 substring match. */
+      char *wildcard = strchr (matching, '*');
+      if (wildcard)
+	*wildcard = '\0';
+      else if (strchr (matching, '-'))
+	return matching;
+
+      match_len = strlen (matching);
+    }
 
   switch (fncharset)
     {
@@ -5054,6 +5197,7 @@ w32_to_x_charset (fncharset)
   {
     Lisp_Object rest;
     char * best_match = NULL;
+    int matching_found = 0;
 
     /* Look through w32-charset-info-alist for the character set.
        Prefer ISO codepages, and prefer lower numbers in the ISO
@@ -5089,12 +5233,34 @@ w32_to_x_charset (fncharset)
             /* If we don't have a match already, then this is the
                best.  */
             if (!best_match)
-              best_match = x_charset;
-            /* If this is an ISO codepage, and the best so far isn't,
-               then this is better.  */
-            else if (strnicmp (best_match, "iso", 3) != 0
-                     && strnicmp (x_charset, "iso", 3) == 0)
-              best_match = x_charset;
+	      {
+		best_match = x_charset;
+		if (matching && !strnicmp (x_charset, matching, match_len))
+		  matching_found = 1;
+	      }
+	    /* If we already found a match for MATCHING, then
+	       only consider other matches.  */
+	    else if (matching_found
+		     && strnicmp (x_charset, matching, match_len))
+	      continue;
+	    /* If this matches what we want, and the best so far doesn't,
+	       then this is better.  */
+	    else if (!matching_found && matching
+		     && !strnicmp (x_charset, matching, match_len))
+	      {
+		best_match = x_charset;
+		matching_found = 1;
+	      }
+	    /* If this is fully specified, and the best so far isn't,
+	       then this is better.  */
+	    else if ((!strchr (best_match, '-') && strchr (x_charset, '-'))
+	    /* If this is an ISO codepage, and the best so far isn't,
+	       then this is better, but only if it fully specifies the
+	       encoding.  */
+		|| (strnicmp (best_match, "iso", 3) != 0
+		    && strnicmp (x_charset, "iso", 3) == 0
+		    && strchr (x_charset, '-')))
+		best_match = x_charset;
             /* If both are ISO8859 codepages, choose the one with the
                lowest number in the encoding field.  */
             else if (strnicmp (best_match, "iso8859-", 8) == 0
@@ -5116,6 +5282,17 @@ w32_to_x_charset (fncharset)
       }
 
     strncpy (buf, best_match, 31);
+    /* If the charset is not fully specified, put -0 on the end.  */
+    if (!strchr (best_match, '-'))
+      {
+	int pos = strlen (best_match);
+	/* Charset specifiers shouldn't be very long.  If it is a made
+	   up one, truncating it should not do any harm since it isn't
+	   recognized anyway.  */
+	if (pos > 29)
+	  pos = 29;
+	strcpy (buf + pos, "-0");
+      }
     buf[31] = '\0';
     return buf;
   }
@@ -5215,7 +5392,8 @@ w32_to_all_x_charsets (fncharset)
   {
     Lisp_Object rest;
     /* Look through w32-charset-info-alist for the character set.
-       Only return charsets for codepages which are installed.
+       Only return fully specified charsets for codepages which are
+       installed.
 
        Format of each entry in Vw32_charset_info_alist is
          (CHARSET_NAME . (WINDOWS_CHARSET . CODEPAGE)).
@@ -5237,6 +5415,9 @@ w32_to_all_x_charsets (fncharset)
         x_charset = XCAR (this_entry);
         w32_charset = XCAR (XCDR (this_entry));
         codepage = XCDR (XCDR (this_entry));
+
+	if (!strchr (SDATA (x_charset), '-'))
+	  continue;
 
         /* Look for Same charset and a valid codepage (or non-int
            which means ignore).  */
@@ -5268,9 +5449,6 @@ w32_codepage_for_font (char *fontname)
   Lisp_Object codepage, entry;
   char *charset_str, *charset, *end;
 
-  if (NILP (Vw32_charset_info_alist))
-    return CP_DEFAULT;
-
   /* Extract charset part of font string.  */
   charset = xlfd_charset_of_font (fontname);
 
@@ -5296,7 +5474,13 @@ w32_codepage_for_font (char *fontname)
         *end = '\0';
       }
 
-  entry = Fassoc (build_string (charset), Vw32_charset_info_alist);
+  if (!strcmp (charset, "iso10646"))
+    return CP_UNICODE;
+
+  if (NILP (Vw32_charset_info_alist))
+    return CP_DEFAULT;
+
+  entry = Fassoc (build_string(charset), Vw32_charset_info_alist);
   if (NILP (entry))
     return CP_UNKNOWN;
 
@@ -5328,7 +5512,6 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
   char *fontname_dash;
   int display_resy = (int) one_w32_display_info.resy;
   int display_resx = (int) one_w32_display_info.resx;
-  int bufsz;
   struct coding_system coding;
 
   if (!lpxstr) abort ();
@@ -5350,12 +5533,14 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
   coding.mode |= CODING_MODE_LAST_BLOCK;
   /* We explicitely disable composition handling because selection
      data should not contain any composition sequence.  */
-  coding.composing = COMPOSITION_DISABLED;
-  bufsz = decoding_buffer_size (&coding, LF_FACESIZE);
+  coding.common_flags &= ~CODING_ANNOTATION_MASK;
 
-  fontname = alloca (sizeof (*fontname) * bufsz);
-  decode_coding (&coding, lplogfont->lfFaceName, fontname,
-                 strlen (lplogfont->lfFaceName), bufsz - 1);
+  coding.dst_bytes = LF_FACESIZE * 2;
+  coding.destination = (unsigned char *) xmalloc (coding.dst_bytes + 1);
+  decode_coding_c_string (&coding, lplogfont->lfFaceName,
+			  strlen(lplogfont->lfFaceName), Qnil);
+  fontname = coding.destination;
+
   *(fontname + coding.produced) = '\0';
 
   /* Replace dashes with underscores so the dashes are not
@@ -5399,8 +5584,7 @@ w32_to_x_font (lplogfont, lpxstr, len, specific_charset)
 	     ((lplogfont->lfPitchAndFamily & 0x3) == VARIABLE_PITCH)
              ? 'p' : 'c',                            /* spacing */
 	     width_pixels,                           /* avg width */
-	     specific_charset ? specific_charset
-             : w32_to_x_charset (lplogfont->lfCharSet)
+             w32_to_x_charset (lplogfont->lfCharSet, specific_charset)
              /* charset registry and encoding */
 	     );
 
@@ -5478,26 +5662,24 @@ x_to_w32_font (lpxstr, lplogfont)
 
       if (fields > 0 && name[0] != '*')
         {
-	  int bufsize;
-	  unsigned char *buf;
-
+	  Lisp_Object string = build_string (name);
           setup_coding_system
             (Fcheck_coding_system (Vlocale_coding_system), &coding);
-	  coding.src_multibyte = 1;
-	  coding.dst_multibyte = 0;
-	  /* Need to set COMPOSITION_DISABLED, otherwise Emacs crashes in
-	     encode_coding_iso2022 trying to dereference a null pointer.  */
-	  coding.composing = COMPOSITION_DISABLED;
-	  if (coding.type == coding_type_iso2022)
-	    coding.flags |= CODING_FLAG_ISO_SAFE;
-	  bufsize = encoding_buffer_size (&coding, strlen (name));
-	  buf = (unsigned char *) alloca (bufsize);
-          coding.mode |= CODING_MODE_LAST_BLOCK;
-          encode_coding (&coding, name, buf, strlen (name), bufsize);
+          coding.mode |= (CODING_MODE_SAFE_ENCODING | CODING_MODE_LAST_BLOCK);
+	  /* Disable composition/charset annotation.   */
+	  coding.common_flags &= ~CODING_ANNOTATION_MASK;
+	  coding.dst_bytes = SCHARS (string) * 2;
+
+	  coding.destination = (unsigned char *) xmalloc (coding.dst_bytes);
+          encode_coding_object (&coding, string, 0, 0,
+				SCHARS (string), SBYTES (string), Qnil);
 	  if (coding.produced >= LF_FACESIZE)
 	    coding.produced = LF_FACESIZE - 1;
-	  buf[coding.produced] = 0;
-	  strcpy (lplogfont->lfFaceName, buf);
+
+	  coding.destination[coding.produced] = '\0';
+
+	  strcpy (lplogfont->lfFaceName, coding.destination);
+	  xfree (coding.destination);
 	}
       else
         {
@@ -5529,8 +5711,12 @@ x_to_w32_font (lpxstr, lplogfont)
 	lplogfont->lfHeight = atoi (height) * dpi / 720;
 
       if (fields > 0)
-      lplogfont->lfPitchAndFamily =
-	(fields > 0 && pitch == 'p') ? VARIABLE_PITCH : FIXED_PITCH;
+        {
+          if (pitch == 'p')
+            lplogfont->lfPitchAndFamily = VARIABLE_PITCH | FF_DONTCARE;
+          else if (pitch == 'c')
+            lplogfont->lfPitchAndFamily = FIXED_PITCH | FF_DONTCARE;
+        }
 
       fields--;
 
@@ -5875,14 +6061,17 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
 	if (charset
 	    && strncmp (charset, "*-*", 3) != 0
 	    && lpef->logfont.lfCharSet == DEFAULT_CHARSET
-	    && strcmp (charset, w32_to_x_charset (DEFAULT_CHARSET)) != 0)
+	    && strcmp (charset, w32_to_x_charset (DEFAULT_CHARSET, NULL)) != 0)
 	  return 1;
       }
 
     if (charset)
       charset_list = Fcons (build_string (charset), Qnil);
     else
-      charset_list = w32_to_all_x_charsets (lplf->elfLogFont.lfCharSet);
+      /* Always prefer unicode.  */
+      charset_list
+	= Fcons (build_string ("iso10646-1"),
+		 w32_to_all_x_charsets (lplf->elfLogFont.lfCharSet));
 
     /* Loop through the charsets.  */
     for ( ; CONSP (charset_list); charset_list = Fcdr (charset_list))
@@ -5890,14 +6079,15 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
 	Lisp_Object this_charset = Fcar (charset_list);
 	charset = SDATA (this_charset);
 
+	enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
+				     charset, width);
+
 	/* List bold and italic variations if w32-enable-synthesized-fonts
 	   is non-nil and this is a plain font.  */
 	if (w32_enable_synthesized_fonts
 	    && lplf->elfLogFont.lfWeight == FW_NORMAL
 	    && lplf->elfLogFont.lfItalic == FALSE)
 	  {
-	    enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
-					 charset, width);
 	    /* bold.  */
 	    lplf->elfLogFont.lfWeight = FW_BOLD;
 	    enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
@@ -5911,9 +6101,6 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
 	    enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
 					 charset, width);
 	  }
-	else
-	  enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
-				       charset, width);
       }
   }
 
@@ -6178,7 +6365,7 @@ w32_list_fonts (f, pattern, size, maxnames)
               hdc = GetDC (dpyinfo->root_window);
               oldobj = SelectObject (hdc, thisinfo.hfont);
               if (GetTextMetrics (hdc, &thisinfo.tm))
-                XSETCDR (tem, make_number (FONT_WIDTH (&thisinfo)));
+                XSETCDR (tem, make_number (FONT_AVG_WIDTH (&thisinfo)));
               else
                 XSETCDR (tem, make_number (0));
               SelectObject (hdc, oldobj);
@@ -7313,8 +7500,28 @@ x_create_tip_frame (dpyinfo, parms, text)
       specbind (Qx_resource_name, name);
     }
 
+  f->resx = dpyinfo->resx;
+  f->resy = dpyinfo->resy;
+
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    {
+      /* Perhaps, we must allow frame parameter, say `font-backend',
+	 to specify which font backends to use.  */
+      register_font_driver (&w32font_driver, f);
+
+      x_default_parameter (f, parms, Qfont_backend, Qnil,
+			   "fontBackend", "FontBackend", RES_TYPE_STRING);
+    }
+#endif	/* USE_FONT_BACKEND */
+
   /* Extract the window parameters from the supplied values
      that are needed to determine window geometry.  */
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    x_default_font_parameter (f, parms);
+  else
+#endif	/* USE_FONT_BACKEND */
   {
     Lisp_Object font;
 
@@ -7326,7 +7533,7 @@ x_create_tip_frame (dpyinfo, parms, text)
       {
 	tem = Fquery_fontset (font, Qnil);
 	if (STRINGP (tem))
-	  font = x_new_fontset (f, SDATA (tem));
+	  font = x_new_fontset (f, tem);
 	else
 	  font = x_new_font (f, SDATA (font));
       }
@@ -8628,6 +8835,9 @@ frame_parm_handler w32_frame_parm_handlers[] =
   x_set_fringe_width,
   0, /* x_set_wait_for_wm, */
   x_set_fullscreen,
+#ifdef USE_FONT_BACKEND
+  x_set_font_backend
+#endif
 };
 
 void
@@ -8640,29 +8850,17 @@ syms_of_w32fns ()
 
   w32_visible_system_caret_hwnd = NULL;
 
-  Qnone = intern ("none");
-  staticpro (&Qnone);
-  Qsuppress_icon = intern ("suppress-icon");
-  staticpro (&Qsuppress_icon);
-  Qundefined_color = intern ("undefined-color");
-  staticpro (&Qundefined_color);
-  Qcancel_timer = intern ("cancel-timer");
-  staticpro (&Qcancel_timer);
-
-  Qhyper = intern ("hyper");
-  staticpro (&Qhyper);
-  Qsuper = intern ("super");
-  staticpro (&Qsuper);
-  Qmeta = intern ("meta");
-  staticpro (&Qmeta);
-  Qalt = intern ("alt");
-  staticpro (&Qalt);
-  Qctrl = intern ("ctrl");
-  staticpro (&Qctrl);
-  Qcontrol = intern ("control");
-  staticpro (&Qcontrol);
-  Qshift = intern ("shift");
-  staticpro (&Qshift);
+  DEFSYM (Qnone, "none");
+  DEFSYM (Qsuppress_icon, "suppress-icon");
+  DEFSYM (Qundefined_color, "undefined-color");
+  DEFSYM (Qcancel_timer, "cancel-timer");
+  DEFSYM (Qhyper, "hyper");
+  DEFSYM (Qsuper, "super");
+  DEFSYM (Qmeta, "meta");
+  DEFSYM (Qalt, "alt");
+  DEFSYM (Qctrl, "ctrl");
+  DEFSYM (Qcontrol, "control");
+  DEFSYM (Qshift, "shift");
   /* This is the end of symbol initialization.  */
 
   /* Text property `display' should be nonsticky by default.  */
@@ -8952,24 +9150,16 @@ CODEPAGE should be an integer specifying the codepage that should be used
 to display the character set, t to do no translation and output as Unicode,
 or nil to do no translation and output as 8 bit (or multibyte on far-east
 versions of Windows) characters.  */);
-    Vw32_charset_info_alist = Qnil;
+  Vw32_charset_info_alist = Qnil;
 
-  staticpro (&Qw32_charset_ansi);
-  Qw32_charset_ansi = intern ("w32-charset-ansi");
-  staticpro (&Qw32_charset_symbol);
-  Qw32_charset_default = intern ("w32-charset-default");
-  staticpro (&Qw32_charset_default);
-  Qw32_charset_symbol = intern ("w32-charset-symbol");
-  staticpro (&Qw32_charset_shiftjis);
-  Qw32_charset_shiftjis = intern ("w32-charset-shiftjis");
-  staticpro (&Qw32_charset_hangeul);
-  Qw32_charset_hangeul = intern ("w32-charset-hangeul");
-  staticpro (&Qw32_charset_chinesebig5);
-  Qw32_charset_chinesebig5 = intern ("w32-charset-chinesebig5");
-  staticpro (&Qw32_charset_gb2312);
-  Qw32_charset_gb2312 = intern ("w32-charset-gb2312");
-  staticpro (&Qw32_charset_oem);
-  Qw32_charset_oem = intern ("w32-charset-oem");
+  DEFSYM (Qw32_charset_ansi, "w32-charset-ansi");
+  DEFSYM (Qw32_charset_symbol, "w32-charset-symbol");
+  DEFSYM (Qw32_charset_default, "w32-charset-default");
+  DEFSYM (Qw32_charset_shiftjis, "w32-charset-shiftjis");
+  DEFSYM (Qw32_charset_hangeul, "w32-charset-hangeul");
+  DEFSYM (Qw32_charset_chinesebig5, "w32-charset-chinesebig5");
+  DEFSYM (Qw32_charset_gb2312, "w32-charset-gb2312");
+  DEFSYM (Qw32_charset_oem, "w32-charset-oem");
 
 #ifdef JOHAB_CHARSET
   {
@@ -8977,28 +9167,17 @@ versions of Windows) characters.  */);
     DEFVAR_BOOL ("w32-extra-charsets-defined", &w32_extra_charsets_defined,
 		 doc: /* Internal variable.  */);
 
-    staticpro (&Qw32_charset_johab);
-    Qw32_charset_johab = intern ("w32-charset-johab");
-    staticpro (&Qw32_charset_easteurope);
-    Qw32_charset_easteurope = intern ("w32-charset-easteurope");
-    staticpro (&Qw32_charset_turkish);
-    Qw32_charset_turkish = intern ("w32-charset-turkish");
-    staticpro (&Qw32_charset_baltic);
-    Qw32_charset_baltic = intern ("w32-charset-baltic");
-    staticpro (&Qw32_charset_russian);
-    Qw32_charset_russian = intern ("w32-charset-russian");
-    staticpro (&Qw32_charset_arabic);
-    Qw32_charset_arabic = intern ("w32-charset-arabic");
-    staticpro (&Qw32_charset_greek);
-    Qw32_charset_greek = intern ("w32-charset-greek");
-    staticpro (&Qw32_charset_hebrew);
-    Qw32_charset_hebrew = intern ("w32-charset-hebrew");
-    staticpro (&Qw32_charset_vietnamese);
-    Qw32_charset_vietnamese = intern ("w32-charset-vietnamese");
-    staticpro (&Qw32_charset_thai);
-    Qw32_charset_thai = intern ("w32-charset-thai");
-    staticpro (&Qw32_charset_mac);
-    Qw32_charset_mac = intern ("w32-charset-mac");
+    DEFSYM (Qw32_charset_johab, "w32-charset-johab");
+    DEFSYM (Qw32_charset_easteurope, "w32-charset-easteurope");
+    DEFSYM (Qw32_charset_turkish, "w32-charset-turkish");
+    DEFSYM (Qw32_charset_baltic, "w32-charset-baltic");
+    DEFSYM (Qw32_charset_russian, "w32-charset-russian");
+    DEFSYM (Qw32_charset_arabic, "w32-charset-arabic");
+    DEFSYM (Qw32_charset_greek, "w32-charset-greek");
+    DEFSYM (Qw32_charset_hebrew, "w32-charset-hebrew");
+    DEFSYM (Qw32_charset_vietnamese, "w32-charset-vietnamese");
+    DEFSYM (Qw32_charset_thai, "w32-charset-thai");
+    DEFSYM (Qw32_charset_mac, "w32-charset-mac");
   }
 #endif
 
@@ -9008,9 +9187,7 @@ versions of Windows) characters.  */);
     DEFVAR_BOOL ("w32-unicode-charset-defined",
                  &w32_unicode_charset_defined,
 		 doc: /* Internal variable.  */);
-
-    staticpro (&Qw32_charset_unicode);
-    Qw32_charset_unicode = intern ("w32-charset-unicode");
+    DEFSYM (Qw32_charset_unicode, "w32-charset-unicode");
   }
 #endif
 
@@ -9074,6 +9251,7 @@ versions of Windows) characters.  */);
   find_ccl_program_func = w32_find_ccl_program;
   query_font_func = w32_query_font;
   set_frame_fontset_func = x_set_font;
+  get_font_repertory_func = x_get_font_repertory;
   check_window_system_func = check_w32;
 
 
@@ -9114,7 +9292,13 @@ globals_of_w32fns ()
   /* ditto for GetClipboardSequenceNumber.  */
   clipboard_sequence_fn = (ClipboardSequence_Proc)
     GetProcAddress (user32_lib, "GetClipboardSequenceNumber");
-
+  {
+    HMODULE imm32_lib = GetModuleHandle ("imm32.dll");
+    get_composition_string_fn = (ImmGetCompositionString_Proc)
+      GetProcAddress (imm32_lib, "ImmGetCompositionStringW");
+    get_ime_context_fn = (ImmGetContext_Proc)
+      GetProcAddress (imm32_lib, "ImmGetContext");
+  }
   DEFVAR_INT ("w32-ansi-code-page",
 	      &w32_ansi_code_page,
 	      doc: /* The ANSI code page used by the system.  */);

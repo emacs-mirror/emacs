@@ -1125,7 +1125,7 @@ connection if a previous connection has died for some reason."
 	(tramp-message vec 6 "%s" (mapconcat 'identity (process-command p) " "))
 
 	;; Check whether process is alive.
-	(set-process-sentinel p 'tramp-flush-connection-property)
+	(set-process-sentinel p 'tramp-process-sentinel)
 	(tramp-set-process-query-on-exit-flag p nil)
 
 	(tramp-process-actions p vec tramp-actions-before-shell 60)

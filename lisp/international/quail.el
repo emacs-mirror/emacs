@@ -800,7 +800,9 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 	(if translation
 	    (progn
 	      (if (consp translation)
-		  (setq translation (aref (cdr translation) 0)))
+		  (if (> (length (cdr translation)) 0)
+		      (setq translation (aref (cdr translation) 0))
+		    (setq translation " ")))
 	      (setq done-list (cons translation done-list)))
 	  (setq translation ch))
 	(aset layout i translation))
@@ -1276,28 +1278,16 @@ The returned value is a Quail map specific to KEY."
 
 (defun quail-input-string-to-events (str)
   "Convert input string STR to a list of events.
-Do so while interleaving with the following special events:
-\(compose-last-chars LEN COMPONENTS)
-\(quail-advice INPUT-STRING)"
-  (let* ((events (mapcar
-		  (lambda (c)
-		    ;; This gives us the chance to unify on input
-		    ;; (e.g. using ucs-tables.el).
-		    (or (and translation-table-for-input
-			     (aref translation-table-for-input c))
-			c))
-		  str))
-	 (len (length str))
-	 (idx len)
-	 composition from to)
-    (while (and (> idx 0)
-		(setq composition (find-composition idx 0 str t)))
-      (setq from (car composition) to (nth 1 composition))
-      (setcdr (nthcdr (1- to) events)
-	      (cons (list 'compose-last-chars (- to from)
-			  (and (not (nth 3 composition)) (nth 2 composition)))
-		    (nthcdr to events)))
-      (setq idx (1- from)))
+If STR has `advice' text property, append the following special event:
+\(quail-advice STR)"
+  (let ((events (mapcar
+		 (lambda (c)
+		   ;; This gives us the chance to unify on input
+		   ;; (e.g. using ucs-tables.el).
+		   (or (and translation-table-for-input
+			    (aref translation-table-for-input c))
+		       c))
+		 str)))
     (if (or (get-text-property 0 'advice str)
 	    (next-single-property-change 0 'advice str))
 	(setq events
@@ -1597,7 +1587,10 @@ with more keys."
   "Return string to be shown as current translation of key sequence.
 LEN is the length of the sequence.  DEF is a definition part of the
 Quail map for the sequence."
-  (or (and (consp def) (aref (cdr def) (car (car def))))
+  (or (and (consp def)
+	   (if (> (length (cdr def)) (car (car def)))
+	       (aref (cdr def) (car (car def)))
+	     ""))
       def
       (and (> len 1)
 	   (let* ((str (quail-get-current-str
@@ -2076,6 +2069,8 @@ minibuffer and the selected frame has no other windows)."
 
 (defun quail-get-translations ()
   "Return a string containing the current possible translations."
+  (or (multibyte-string-p quail-current-key)
+      (setq quail-current-key (string-to-multibyte quail-current-key)))
   (let ((map (quail-lookup-key quail-current-key nil t))
 	(str (copy-sequence quail-current-key)))
     (if quail-current-translations
@@ -2084,7 +2079,7 @@ minibuffer and the selected frame has no other windows)."
     ;; Show the current key.
     (let ((guidance (quail-guidance)))
       (if (listp guidance)
-	  ;; We must replace thetyped key with the specified PROMPTKEY.
+	  ;; We must replace the typed key with the specified PROMPT-KEY.
 	  (dotimes (i (length str))
 	    (let ((prompt-key (cdr (assoc (aref str i) guidance))))
 	      (if prompt-key
@@ -2531,7 +2526,7 @@ physical keyboard layout as specified with that variable.
 	  (when (> num 0)
 	    (insert "
 KEY SEQUENCE
------------
+------------
 ")
 	    (if (quail-show-layout)
 		(insert "You can also input more characters")
@@ -3024,8 +3019,8 @@ of each directory."
 
     ;; At last, write out LEIM list file.
     (with-current-buffer list-buf
-      (setq buffer-file-coding-system 'iso-2022-7bit)
-      (save-buffer 0))
+      (let ((coding-system-for-write 'iso-2022-7bit))
+	(save-buffer 0)))
     (kill-buffer list-buf)
     (message "Updating %s ... done" leim-list)))
 

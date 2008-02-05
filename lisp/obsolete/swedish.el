@@ -26,13 +26,15 @@
 
 ;;; Commentary:
 
+;; Fixme: Is this actually used?  if so, it should be in language,
+;; possibly as a feature property of Swedish, probably defining a
+;; `swascii' coding system.
+
 ;;; Code:
 
 ;; Written by Howard Gayle.  See case-table.el for details.
 
 ;; See iso-swed.el for a description of the character set.
-
-(require 'latin-1)
 
 (defvar mail-send-hook)
 (defvar news-group-hook-alist)

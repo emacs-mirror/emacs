@@ -112,8 +112,8 @@ a Unicode font with which to display them."
 	  ;; It doesn't look as though we have a Unicode font.
 	  (map-char-table
 	   (lambda (c uc)
-	     (when (and (char-valid-p c)
-			(char-valid-p uc)
+	     (when (and (characterp c)
+			(characterp uc)
 			(not (aref standard-display-table uc)))
 	       (aset standard-display-table uc
 		     (or (aref standard-display-table c)

@@ -68,6 +68,7 @@ Boston, MA 02110-1301, USA.  */
 /* #include <sys/param.h>  */
 
 #include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "ccl.h"
 #include "frame.h"
@@ -100,6 +101,10 @@ Boston, MA 02110-1301, USA.  */
 #ifdef USE_GTK
 #include "gtkutil.h"
 #endif
+
+#ifdef USE_FONT_BACKEND
+#include "font.h"
+#endif	/* USE_FONT_BACKEND */
 
 #ifdef USE_LUCID
 extern int xlwmenu_window_p P_ ((Widget w, Window window));
@@ -873,7 +878,8 @@ XTreset_terminal_modes (struct terminal *terminal)
 
 /* Function prototypes of this page.  */
 
-static int x_encode_char P_ ((int, XChar2b *, struct font_info *, int *));
+static int x_encode_char P_ ((int, XChar2b *, struct font_info *,
+			      struct charset *, int *));
 
 
 /* Get metrics of character CHAR2B in FONT.  Value is null if CHAR2B
@@ -952,13 +958,13 @@ x_per_char_metric (font, char2b, font_type)
    the two-byte form of C.  Encoding is returned in *CHAR2B.  */
 
 static int
-x_encode_char (c, char2b, font_info, two_byte_p)
+x_encode_char (c, char2b, font_info, charset, two_byte_p)
      int c;
      XChar2b *char2b;
      struct font_info *font_info;
+     struct charset *charset;
      int *two_byte_p;
 {
-  int charset = CHAR_CHARSET (c);
   XFontStruct *font = font_info->font;
 
   /* FONT_INFO may define a scheme by which to encode byte1 and byte2.
@@ -972,31 +978,31 @@ x_encode_char (c, char2b, font_info, two_byte_p)
       check_ccl_update (ccl);
       if (CHARSET_DIMENSION (charset) == 1)
 	{
-	  ccl->reg[0] = charset;
+	  ccl->reg[0] = CHARSET_ID (charset);
 	  ccl->reg[1] = char2b->byte2;
 	  ccl->reg[2] = -1;
 	}
       else
 	{
-	  ccl->reg[0] = charset;
+	  ccl->reg[0] = CHARSET_ID (charset);
 	  ccl->reg[1] = char2b->byte1;
 	  ccl->reg[2] = char2b->byte2;
 	}
 
-      ccl_driver (ccl, NULL, NULL, 0, 0, NULL);
+      ccl_driver (ccl, NULL, NULL, 0, 0, Qnil);
 
       /* We assume that MSBs are appropriately set/reset by CCL
 	 program.  */
       if (font->max_byte1 == 0)	/* 1-byte font */
-	char2b->byte1 = 0, char2b->byte2 = ccl->reg[1];
+	STORE_XCHAR2B (char2b, 0, ccl->reg[1]);
       else
-	char2b->byte1 = ccl->reg[1], char2b->byte2 = ccl->reg[2];
+	STORE_XCHAR2B (char2b, ccl->reg[1], ccl->reg[2]);
     }
-  else if (font_info->encoding[charset])
+  else if (font_info->encoding_type)
     {
       /* Fixed encoding scheme.  See fontset.h for the meaning of the
 	 encoding numbers.  */
-      int enc = font_info->encoding[charset];
+      unsigned char enc = font_info->encoding_type;
 
       if ((enc == 1 || enc == 2)
 	  && CHARSET_DIMENSION (charset) == 2)
@@ -1124,15 +1130,20 @@ x_set_mouse_face_gc (s)
     face = FACE_FROM_ID (s->f, MOUSE_FACE_ID);
 
   if (s->first_glyph->type == CHAR_GLYPH)
-    face_id = FACE_FOR_CHAR (s->f, face, s->first_glyph->u.ch);
+    face_id = FACE_FOR_CHAR (s->f, face, s->first_glyph->u.ch, -1, Qnil);
   else
-    face_id = FACE_FOR_CHAR (s->f, face, 0);
+    face_id = FACE_FOR_CHAR (s->f, face, 0, -1, Qnil);
   s->face = FACE_FROM_ID (s->f, face_id);
   PREPARE_FACE_FOR_DISPLAY (s->f, s->face);
 
   /* If font in this face is same as S->font, use it.  */
   if (s->font == s->face->font)
     s->gc = s->face->gc;
+#ifdef USE_FONT_BACKEND
+  else if (enable_font_backend)
+    /* No need of setting a font for s->gc.  */
+    s->gc = s->face->gc;
+#endif	/* USE_FONT_BACKEND */
   else
     {
       /* Otherwise construct scratch_cursor_gc with values from FACE
@@ -1227,15 +1238,60 @@ static INLINE void
 x_set_glyph_string_clipping (s)
      struct glyph_string *s;
 {
+#ifdef USE_FONT_BACKEND
+  XRectangle *r = s->clip;
+#else
+  XRectangle r[2];
+#endif
+  int n = get_glyph_string_clip_rects (s, r, 2);
+
+  if (n > 0)
+    XSetClipRectangles (s->display, s->gc, 0, 0, r, n, Unsorted);
+#ifdef USE_FONT_BACKEND
+  s->num_clips = n;
+#endif
+}
+
+
+/* Set SRC's clipping for output of glyph string DST.  This is called
+   when we are drawing DST's left_overhang or right_overhang only in
+   the area of SRC.  */
+
+static void
+x_set_glyph_string_clipping_exactly (src, dst)
+     struct glyph_string *src, *dst;
+{
   XRectangle r;
-  get_glyph_string_clip_rect (s, &r);
-  XSetClipRectangles (s->display, s->gc, 0, 0, &r, 1, Unsorted);
+
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    {
+      r.x = src->x;
+      r.width = src->width;
+      r.y = src->y;
+      r.height = src->height;
+      dst->clip[0] = r;
+      dst->num_clips = 1;
+    }
+  else
+    {
+#endif	/* USE_FONT_BACKEND */
+  struct glyph_string *clip_head = src->clip_head;
+  struct glyph_string *clip_tail = src->clip_tail;
+
+  /* This foces clipping just this glyph string.  */
+  src->clip_head = src->clip_tail = src;
+  get_glyph_string_clip_rect (src, &r);
+  src->clip_head = clip_head, src->clip_tail = clip_tail;
+#ifdef USE_FONT_BACKEND
+    }
+#endif	/* USE_FONT_BACKEND */
+  XSetClipRectangles (dst->display, dst->gc, 0, 0, &r, 1, Unsorted);
 }
 
 
 /* RIF:
-   Compute left and right overhang of glyph string S.  If S is a glyph
-   string for a composition, assume overhangs don't exist.  */
+   Compute left and right overhang of glyph string S.  */
 
 static void
 x_compute_glyph_string_overhangs (s)
@@ -1246,10 +1302,33 @@ x_compute_glyph_string_overhangs (s)
     {
       XCharStruct cs;
       int direction, font_ascent, font_descent;
+
+#ifdef USE_FONT_BACKEND
+      if (enable_font_backend)
+	{
+	  unsigned *code = alloca (sizeof (unsigned) * s->nchars);
+	  struct font *font = (struct font *) s->font_info;
+	  struct font_metrics metrics;
+	  int i;
+
+	  for (i = 0; i < s->nchars; i++)
+	    code[i] = (s->char2b[i].byte1 << 8) | s->char2b[i].byte2;
+	  font->driver->text_extents (font, code, s->nchars, &metrics);
+	  cs.rbearing = metrics.rbearing;
+	  cs.lbearing = metrics.lbearing;
+	  cs.width = metrics.width;
+	}
+      else
+#endif	/* USE_FONT_BACKEND */
       XTextExtents16 (s->font, s->char2b, s->nchars, &direction,
 		      &font_ascent, &font_descent, &cs);
       s->right_overhang = cs.rbearing > cs.width ? cs.rbearing - cs.width : 0;
       s->left_overhang = cs.lbearing < 0 ? -cs.lbearing : 0;
+    }
+  else if (s->cmp)
+    {
+      s->right_overhang = s->cmp->rbearing - s->cmp->pixel_width;
+      s->left_overhang = - s->cmp->lbearing;
     }
 }
 
@@ -1340,6 +1419,26 @@ x_draw_glyph_string_foreground (s)
 	  x += g->pixel_width;
 	}
     }
+#ifdef USE_FONT_BACKEND
+  else if (enable_font_backend)
+    {
+      int boff = s->font_info->baseline_offset;
+      struct font *font = (struct font *) s->font_info;
+      int y;
+
+      if (s->font_info->vertical_centering)
+	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
+
+      y = s->ybase - boff;
+      if (s->for_overlaps
+	  || (s->background_filled_p && s->hl != DRAW_CURSOR))
+	font->driver->draw (s, 0, s->nchars, x, y, 0);
+      else
+	font->driver->draw (s, 0, s->nchars, x, y, 1);
+      if (s->face->overstrike)
+	font->driver->draw (s, 0, s->nchars, x + 1, y, 0);
+    }
+#endif	/* USE_FONT_BACKEND */
   else
     {
       char *char1b = (char *) s->char2b;
@@ -1399,11 +1498,11 @@ static void
 x_draw_composite_glyph_string_foreground (s)
      struct glyph_string *s;
 {
-  int i, x;
+  int i, j, x;
 
   /* If first glyph of S has a left box line, start drawing the text
      of S to the right of that box line.  */
-  if (s->face->box != FACE_NO_BOX
+  if (s->face && s->face->box != FACE_NO_BOX
       && s->first_glyph->left_box_line_p)
     x = s->x + eabs (s->face->box_line_width);
   else
@@ -1422,20 +1521,78 @@ x_draw_composite_glyph_string_foreground (s)
 	XDrawRectangle (s->display, s->window, s->gc, x, s->y,
 			s->width - 1, s->height - 1);
     }
+#ifdef USE_FONT_BACKEND
+  else if (enable_font_backend)
+    {
+      struct font *font = (struct font *) s->font_info;
+      int y = s->ybase;
+      int width = 0;
+
+      if (s->cmp->method == COMPOSITION_WITH_GLYPH_STRING)
+	{
+	  Lisp_Object gstring = AREF (XHASH_TABLE (composition_hash_table)
+				      ->key_and_value,
+				      s->cmp->hash_index * 2);
+	  int from;
+
+	  for (i = from = 0; i < s->nchars; i++)
+	    {
+	      Lisp_Object g = LGSTRING_GLYPH (gstring, i);
+	      Lisp_Object adjustment = LGLYPH_ADJUSTMENT (g);
+	      int xoff, yoff, wadjust;
+
+	      if (! VECTORP (adjustment))
+		{
+		  width += LGLYPH_WIDTH (g);
+		  continue;
+		}
+	      if (from < i)
+		{
+		  font->driver->draw (s, from, i, x, y, 0);
+		  x += width;
+		}
+	      xoff = XINT (AREF (adjustment, 0));
+	      yoff = XINT (AREF (adjustment, 1));
+	      wadjust = XINT (AREF (adjustment, 2));
+
+	      font->driver->draw (s, i, i + 1, x + xoff, y + yoff, 0);
+	      x += wadjust;
+	      from = i + 1;
+	      width = 0;
+	    }
+	  if (from < i)
+	    font->driver->draw (s, from, i, x, y, 0);
+	}
+      else
+	{
+	  for (i = 0, j = s->gidx; i < s->nchars; i++, j++)
+	    if (COMPOSITION_GLYPH (s->cmp, j) != '\t')
+	      {
+		int xx = x + s->cmp->offsets[j * 2];
+		int yy = y - s->cmp->offsets[j * 2 + 1];
+
+		font->driver->draw (s, j, j + 1, xx, yy, 0);
+		if (s->face->overstrike)
+		  font->driver->draw (s, j, j + 1, xx + 1, yy, 0);
+	      }
+	}
+    }
+#endif	/* USE_FONT_BACKEND */
   else
     {
-      for (i = 0; i < s->nchars; i++, ++s->gidx)
-	{
-	  XDrawString16 (s->display, s->window, s->gc,
-			 x + s->cmp->offsets[s->gidx * 2],
-			 s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-			 s->char2b + i, 1);
-	  if (s->face->overstrike)
+      for (i = 0, j = s->gidx; i < s->nchars; i++, j++)
+	if (s->face)
+	  {
 	    XDrawString16 (s->display, s->window, s->gc,
-			   x + s->cmp->offsets[s->gidx * 2] + 1,
-			   s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-			   s->char2b + i, 1);
-	}
+			   x + s->cmp->offsets[j * 2],
+			   s->ybase - s->cmp->offsets[j * 2 + 1],
+			   s->char2b + j, 1);
+	    if (s->face->overstrike)
+	      XDrawString16 (s->display, s->window, s->gc,
+			     x + s->cmp->offsets[j * 2] + 1,
+			     s->ybase - s->cmp->offsets[j * 2 + 1],
+			     s->char2b + j, 1);
+	  }
     }
 }
 
@@ -1471,8 +1628,8 @@ x_frame_of_widget (widget)
 
   /* Look for a frame with that top-level widget.  Allocate the color
      on that frame to get the right gamma correction value.  */
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
-    if (GC_FRAMEP (XCAR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
+    if (FRAMEP (XCAR (tail))
 	&& (f = XFRAME (XCAR (tail)),
 	    (FRAME_X_P (f)
              && f->output_data.nothing != 1
@@ -2683,15 +2840,25 @@ x_draw_glyph_string (s)
 {
   int relief_drawn_p = 0;
 
-  /* If S draws into the background of its successor, draw the
-     background of the successor first so that S can draw into it.
+  /* If S draws into the background of its successors, draw the
+     background of the successors first so that S can draw into it.
      This makes S->next use XDrawString instead of XDrawImageString.  */
   if (s->next && s->right_overhang && !s->for_overlaps)
     {
-      xassert (s->next->img == NULL);
-      x_set_glyph_string_gc (s->next);
-      x_set_glyph_string_clipping (s->next);
-      x_draw_glyph_string_background (s->next, 1);
+      int width;
+      struct glyph_string *next;
+
+      for (width = 0, next = s->next; next;
+	   width += next->width, next = next->next)
+	if (next->first_glyph->type != IMAGE_GLYPH)
+	  {
+	    x_set_glyph_string_gc (next);
+	    x_set_glyph_string_clipping (next);
+	    x_draw_glyph_string_background (next, 1);
+#ifdef USE_FONT_BACKEND
+	    next->num_clips = 0;
+#endif	/* USE_FONT_BACKEND */
+	  }
     }
 
   /* Set up S->gc, set clipping and draw S.  */
@@ -2711,6 +2878,12 @@ x_draw_glyph_string (s)
       x_set_glyph_string_clipping (s);
       relief_drawn_p = 1;
     }
+  else if ((s->prev && s->prev->hl != s->hl && s->left_overhang)
+	   || (s->next && s->next->hl != s->hl && s->right_overhang))
+    /* We must clip just this glyph.  left_overhang part has already
+       drawn when s->prev was drawn, and right_overhang part will be
+       drawn later when s->next is drawn. */
+    x_set_glyph_string_clipping_exactly (s, s);
   else
     x_set_glyph_string_clipping (s);
 
@@ -2753,26 +2926,45 @@ x_draw_glyph_string (s)
 	  int y;
 
 	  /* Get the underline thickness.  Default is 1 pixel.  */
+#ifdef USE_FONT_BACKEND
+	  if (enable_font_backend)
+	    /* In the future, we must use information of font.  */
+	    h = 1;
+	  else
+#endif	/* USE_FONT_BACKEND */
 	  if (!XGetFontProperty (s->font, XA_UNDERLINE_THICKNESS, &h))
 	    h = 1;
 
-	  y = s->y + s->height - h;
-	  if (!x_underline_at_descent_line)
-            {
-	      /* Get the underline position.  This is the recommended
-                 vertical offset in pixels from the baseline to the top of
-                 the underline.  This is a signed value according to the
-                 specs, and its default is
+#ifdef USE_FONT_BACKEND
+	  if (enable_font_backend)
+	    {
+	      if (s->face->font)
+		/* In the future, we must use information of font.  */
+		y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
+	      else
+		y = s->y + s->height - h;
+	    }
+	  else
+#endif
+	    {
+	      y = s->y + s->height - h;
+	      if (!x_underline_at_descent_line)
+		{
+		  /* Get the underline position.  This is the recommended
+		     vertical offset in pixels from the baseline to the top of
+		     the underline.  This is a signed value according to the
+		     specs, and its default is
 
-	         ROUND ((maximum descent) / 2), with
-	         ROUND(x) = floor (x + 0.5)  */
+		     ROUND ((maximum descent) / 2), with
+		     ROUND(x) = floor (x + 0.5)  */
 
-              if (x_use_underline_position_properties
-                  && XGetFontProperty (s->font, XA_UNDERLINE_POSITION, &tem))
-                y = s->ybase + (long) tem;
-              else if (s->face->font)
-                y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
-            }
+		  if (x_use_underline_position_properties
+		      && XGetFontProperty (s->font, XA_UNDERLINE_POSITION, &tem))
+		    y = s->ybase + (long) tem;
+		  else if (s->face->font)
+		    y = s->ybase + (s->face->font->max_bounds.descent + 1) / 2;
+		}
+	    }
 
 	  if (s->face->underline_defaulted_p)
 	    XFillRectangle (s->display, s->window, s->gc,
@@ -2830,10 +3022,67 @@ x_draw_glyph_string (s)
       /* Draw relief if not yet drawn.  */
       if (!relief_drawn_p && s->face->box != FACE_NO_BOX)
 	x_draw_glyph_string_box (s);
+
+      if (s->prev)
+	{
+	  struct glyph_string *prev;
+
+	  for (prev = s->prev; prev; prev = prev->prev)
+	    if (prev->hl != s->hl
+		&& prev->x + prev->width + prev->right_overhang > s->x)
+	      {
+		/* As prev was drawn while clipped to its own area, we
+		   must draw the right_overhang part using s->hl now.  */
+		enum draw_glyphs_face save = prev->hl;
+
+		prev->hl = s->hl;
+		x_set_glyph_string_gc (prev);
+		x_set_glyph_string_clipping_exactly (s, prev);
+		if (prev->first_glyph->type == CHAR_GLYPH)
+		  x_draw_glyph_string_foreground (prev);
+		else
+		  x_draw_composite_glyph_string_foreground (prev);
+		XSetClipMask (prev->display, prev->gc, None);
+		prev->hl = save;
+#ifdef USE_FONT_BACKEND
+		prev->num_clips = 0;
+#endif	/* USE_FONT_BACKEND */
+	      }
+	}
+
+      if (s->next)
+	{
+	  struct glyph_string *next;
+
+	  for (next = s->next; next; next = next->next)
+	    if (next->hl != s->hl
+		&& next->x - next->left_overhang < s->x + s->width)
+	      {
+		/* As next will be drawn while clipped to its own area,
+		   we must draw the left_overhang part using s->hl now.  */
+		enum draw_glyphs_face save = next->hl;
+
+		next->hl = s->hl;
+		x_set_glyph_string_gc (next);
+		x_set_glyph_string_clipping_exactly (s, next);
+		if (next->first_glyph->type == CHAR_GLYPH)
+		  x_draw_glyph_string_foreground (next);
+		else
+		  x_draw_composite_glyph_string_foreground (next);
+		XSetClipMask (next->display, next->gc, None);
+		next->hl = save;
+#ifdef USE_FONT_BACKEND
+		next->num_clips = 0;
+#endif	/* USE_FONT_BACKEND */
+	      }
+	}
     }
 
   /* Reset clipping.  */
   XSetClipMask (s->display, s->gc, None);
+#ifdef USE_FONT_BACKEND
+  s->num_clips = 0;
+#endif	/* USE_FONT_BACKEND */
 }
 
 /* Shift display to make room for inserted glyphs.   */
@@ -3286,9 +3535,9 @@ x_focus_changed (type, state, dpyinfo, frame, bufp)
 
           /* Don't stop displaying the initial startup message
              for a switch-frame event we don't need.  */
-          if (GC_NILP (Vterminal_frame)
-              && GC_CONSP (Vframe_list)
-              && !GC_NILP (XCDR (Vframe_list)))
+          if (NILP (Vterminal_frame)
+              && CONSP (Vframe_list)
+              && !NILP (XCDR (Vframe_list)))
             {
               bufp->kind = FOCUS_IN_EVENT;
               XSETFRAME (bufp->frame_or_window, frame);
@@ -3398,7 +3647,7 @@ x_frame_rehighlight (dpyinfo)
   if (dpyinfo->x_focus_frame)
     {
       dpyinfo->x_highlight_frame
-	= ((GC_FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame)))
+	= ((FRAMEP (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame)))
 	   ? XFRAME (FRAME_FOCUS_FRAME (dpyinfo->x_focus_frame))
 	   : dpyinfo->x_focus_frame);
       if (! FRAME_LIVE_P (dpyinfo->x_highlight_frame))
@@ -3939,15 +4188,13 @@ x_window_to_scroll_bar (display, window_id)
   window_id = (Window) xg_get_scroll_id_for_window (display, window_id);
 #endif /* USE_GTK  && USE_TOOLKIT_SCROLL_BARS */
 
-  for (tail = Vframe_list;
-       XGCTYPE (tail) == Lisp_Cons;
-       tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object frame, bar, condemned;
 
       frame = XCAR (tail);
       /* All elements of Vframe_list should be frames.  */
-      if (! GC_FRAMEP (frame))
+      if (! FRAMEP (frame))
 	abort ();
 
       if (! FRAME_X_P (XFRAME (frame)))
@@ -3959,9 +4206,9 @@ x_window_to_scroll_bar (display, window_id)
       for (bar = FRAME_SCROLL_BARS (XFRAME (frame));
 	   /* This trick allows us to search both the ordinary and
               condemned scroll bar lists with one loop.  */
-	   ! GC_NILP (bar) || (bar = condemned,
+	   ! NILP (bar) || (bar = condemned,
 			       condemned = Qnil,
-			       ! GC_NILP (bar));
+			       ! NILP (bar));
 	   bar = XSCROLL_BAR (bar)->next)
 	if (XSCROLL_BAR (bar)->x_window == window_id &&
             FRAME_X_DISPLAY (XFRAME (frame)) == display)
@@ -3983,9 +4230,7 @@ x_window_to_menu_bar (window)
 {
   Lisp_Object tail;
 
-  for (tail = Vframe_list;
-       XGCTYPE (tail) == Lisp_Cons;
-       tail = XCDR (tail))
+  for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
     {
       if (FRAME_X_P (XFRAME (XCAR (tail))))
         {
@@ -5397,7 +5642,7 @@ x_scroll_bar_handle_click (bar, event, emacs_event)
      XEvent *event;
      struct input_event *emacs_event;
 {
-  if (! GC_WINDOWP (bar->window))
+  if (! WINDOWP (bar->window))
     abort ();
 
   emacs_event->kind = SCROLL_BAR_CLICK_EVENT;
@@ -5492,7 +5737,7 @@ x_scroll_bar_note_movement (bar, event)
   XSETVECTOR (last_mouse_scroll_bar, bar);
 
   /* If we're dragging the bar, display it.  */
-  if (! GC_NILP (bar->dragging))
+  if (! NILP (bar->dragging))
     {
       /* Where should the handle be now?  */
       int new_start = event->xmotion.y - XINT (bar->dragging);
@@ -6369,41 +6614,14 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	      goto done_keysym;
 	    }
 
-	  /* Keysyms directly mapped to supported Unicode characters.  */
-	  if ((keysym >= 0x01000000 && keysym <= 0x010033ff)
-	      || (keysym >= 0x0100e000 && keysym <= 0x0100ffff))
+	  /* Keysyms directly mapped to Unicode characters.  */
+	  if (keysym >= 0x01000000 && keysym <= 0x0110FFFF)
 	    {
-	      int code = keysym & 0xFFFF, charset_id, c1, c2;
-
-	      if (code < 0x80)
-		{
-		  inev.ie.kind = ASCII_KEYSTROKE_EVENT;
-		  inev.ie.code = code;
-		}
-	      else if (code < 0x100)
-		{
-		  if (code < 0xA0)
-		    charset_id = CHARSET_8_BIT_CONTROL;
-		  else
-		    charset_id = charset_latin_iso8859_1;
-		  inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
-		  inev.ie.code = MAKE_CHAR (charset_id, code, 0);
-		}
+	      if (keysym < 0x01000080)
+		inev.ie.kind = ASCII_KEYSTROKE_EVENT;
 	      else
-		{
-		  if (code < 0x2500)
-		    charset_id = charset_mule_unicode_0100_24ff,
-		      code -= 0x100;
-		  else if (code < 0xE000)
-		    charset_id = charset_mule_unicode_2500_33ff,
-		      code -= 0x2500;
-		  else
-		    charset_id = charset_mule_unicode_e000_ffff,
-		      code -= 0xE000;
-		  c1 = (code / 96) + 32, c2 = (code % 96) + 32;
-		  inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
-		  inev.ie.code = MAKE_CHAR (charset_id, c1, c2);
-		}
+		inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+	      inev.ie.code = keysym & 0xFFFFFF;
 	      goto done_keysym;
 	    }
 
@@ -6508,54 +6726,54 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	    register int c;
 	    int nchars, len;
 
-	    /* The input should be decoded with `coding_system'
-	       which depends on which X*LookupString function
-	       we used just above and the locale.  */
-	    setup_coding_system (coding_system, &coding);
-	    coding.src_multibyte = 0;
-	    coding.dst_multibyte = 1;
-	    /* The input is converted to events, thus we can't
-	       handle composition.  Anyway, there's no XIM that
-	       gives us composition information.  */
-	    coding.composing = COMPOSITION_DISABLED;
+	    for (i = 0, nchars = 0; i < nbytes; i++)
+	      {
+		if (ASCII_BYTE_P (copy_bufptr[i]))
+		  nchars++;
+		STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
+	      }
 
-	    if (nbytes > 0)
+	    if (nchars < nbytes)
 	      {
 		/* Decode the input data.  */
 		int require;
 		unsigned char *p;
 
-		for (i = 0; i < nbytes; i++)
-		  {
-		    STORE_KEYSYM_FOR_DEBUG (copy_bufptr[i]);
-		  }
+		/* The input should be decoded with `coding_system'
+		   which depends on which X*LookupString function
+		   we used just above and the locale.  */
+		setup_coding_system (coding_system, &coding);
+		coding.src_multibyte = 0;
+		coding.dst_multibyte = 1;
+		/* The input is converted to events, thus we can't
+		   handle composition.  Anyway, there's no XIM that
+		   gives us composition information.  */
+		coding.common_flags &= ~CODING_ANNOTATION_MASK;
 
-		require = decoding_buffer_size (&coding, nbytes);
-		p = (unsigned char *) alloca (require);
+		require = MAX_MULTIBYTE_LENGTH * nbytes;
+		coding.destination = alloca (require);
+		coding.dst_bytes = require;
 		coding.mode |= CODING_MODE_LAST_BLOCK;
-		/* We explicitly disable composition handling because
-		   key data should not contain any composition sequence.  */
-		coding.composing = COMPOSITION_DISABLED;
-		decode_coding (&coding, copy_bufptr, p, nbytes, require);
+		decode_coding_c_string (&coding, copy_bufptr, nbytes, Qnil);
 		nbytes = coding.produced;
 		nchars = coding.produced_char;
-		copy_bufptr = p;
+		copy_bufptr = coding.destination;
+	      }
 
-		/* Convert the input data to a sequence of
-		   character events.  */
-		for (i = 0; i < nbytes; i += len)
-		  {
-		    if (nchars == nbytes)
-		      c = copy_bufptr[i], len = 1;
-		    else
-		      c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
-						  nbytes - i, len);
-		    inev.ie.kind = (SINGLE_BYTE_CHAR_P (c)
-				    ? ASCII_KEYSTROKE_EVENT
-				    : MULTIBYTE_CHAR_KEYSTROKE_EVENT);
-		    inev.ie.code = c;
-		    kbd_buffer_store_event_hold (&inev.ie, hold_quit);
-		  }
+	    /* Convert the input data to a sequence of
+	       character events.  */
+	    for (i = 0; i < nbytes; i += len)
+	      {
+		if (nchars == nbytes)
+		  c = copy_bufptr[i], len = 1;
+		else
+		  c = STRING_CHAR_AND_LENGTH (copy_bufptr + i,
+					      nbytes - i, len);
+		inev.ie.kind = (SINGLE_BYTE_CHAR_P (c)
+				? ASCII_KEYSTROKE_EVENT
+				: MULTIBYTE_CHAR_KEYSTROKE_EVENT);
+		inev.ie.code = c;
+		kbd_buffer_store_event_hold (&inev.ie, hold_quit);
 	      }
 
 	    count += nchars;
@@ -7998,10 +8216,15 @@ x_new_font (f, fontname)
      register char *fontname;
 {
   struct font_info *fontp
-    = FS_LOAD_FONT (f, 0, fontname, -1);
+    = FS_LOAD_FONT (f, fontname);
 
   if (!fontp)
     return Qnil;
+
+  if (FRAME_FONT (f) == (XFontStruct *) (fontp->font))
+    /* This font is already set in frame F.  There's nothing more to
+       do.  */
+    return build_string (fontp->full_name);
 
   FRAME_FONT (f) = (XFontStruct *) (fontp->font);
   FRAME_BASELINE_OFFSET (f) = fontp->baseline_offset;
@@ -8046,32 +8269,44 @@ x_new_font (f, fontname)
   return build_string (fontp->full_name);
 }
 
-/* Give frame F the fontset named FONTSETNAME as its default font, and
-   return the full name of that fontset.  FONTSETNAME may be a wildcard
-   pattern; in that case, we choose some fontset that fits the pattern.
-   The return value shows which fontset we chose.  */
+/* Give frame F the fontset named FONTSETNAME as its default fontset,
+   and return the full name of that fontset.  FONTSETNAME may be a
+   wildcard pattern; in that case, we choose some fontset that fits
+   the pattern.  FONTSETNAME may be a font name for ASCII characters;
+   in that case, we create a fontset from that font name.
+
+   The return value shows which fontset we chose.
+   If FONTSETNAME specifies the default fontset, return Qt.
+   If an ASCII font in the specified fontset can't be loaded, return
+   Qnil.  */
 
 Lisp_Object
 x_new_fontset (f, fontsetname)
      struct frame *f;
-     char *fontsetname;
+     Lisp_Object fontsetname;
 {
-  int fontset = fs_query_fontset (build_string (fontsetname), 0);
+  int fontset = fs_query_fontset (fontsetname, 0);
   Lisp_Object result;
 
-  if (fontset < 0)
-    return Qnil;
-
-  if (FRAME_FONTSET (f) == fontset)
+  if (fontset > 0 && f->output_data.x->fontset == fontset)
     /* This fontset is already set in frame F.  There's nothing more
        to do.  */
     return fontset_name (fontset);
+  else if (fontset == 0)
+    /* The default fontset can't be the default font.   */
+    return Qt;
 
-  result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
+  if (fontset > 0)
+    result = x_new_font (f, (SDATA (fontset_ascii (fontset))));
+  else
+    result = x_new_font (f, SDATA (fontsetname));
 
   if (!STRINGP (result))
     /* Can't load ASCII font.  */
     return Qnil;
+
+  if (fontset < 0)
+    fontset = new_fontset_from_font_name (result);
 
   /* Since x_new_font doesn't update any fontset information, do it now.  */
   FRAME_FONTSET (f) = fontset;
@@ -8082,8 +8317,70 @@ x_new_fontset (f, fontsetname)
     xic_set_xfontset (f, SDATA (fontset_ascii (fontset)));
 #endif
 
-  return build_string (fontsetname);
+  return fontset_name (fontset);
 }
+
+#ifdef USE_FONT_BACKEND
+Lisp_Object
+x_new_fontset2 (f, fontset, font_object)
+     struct frame *f;
+     int fontset;
+     Lisp_Object font_object;
+{
+  struct font *font = XSAVE_VALUE (font_object)->pointer;
+
+  if (FRAME_FONT_OBJECT (f) == font)
+    /* This font is already set in frame F.  There's nothing more to
+       do.  */
+    return fontset_name (fontset);
+
+  BLOCK_INPUT;
+
+  FRAME_FONT_OBJECT (f) = font;
+  FRAME_FONT (f) = font->font.font;
+  FRAME_BASELINE_OFFSET (f) = font->font.baseline_offset;
+  FRAME_FONTSET (f) = fontset;
+
+  FRAME_COLUMN_WIDTH (f) = font->font.average_width;
+  FRAME_SPACE_WIDTH (f) = font->font.space_width;
+  FRAME_LINE_HEIGHT (f) = font->font.height;
+
+  compute_fringe_widths (f, 1);
+
+  /* Compute the scroll bar width in character columns.  */
+  if (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) > 0)
+    {
+      int wid = FRAME_COLUMN_WIDTH (f);
+      FRAME_CONFIG_SCROLL_BAR_COLS (f)
+	= (FRAME_CONFIG_SCROLL_BAR_WIDTH (f) + wid - 1) / wid;
+    }
+  else
+    {
+      int wid = FRAME_COLUMN_WIDTH (f);
+      FRAME_CONFIG_SCROLL_BAR_COLS (f) = (14 + wid - 1) / wid;
+    }
+
+  /* Now make the frame display the given font.  */
+  if (FRAME_X_WINDOW (f) != 0)
+    {
+      /* Don't change the size of a tip frame; there's no point in
+	 doing it because it's done in Fx_show_tip, and it leads to
+	 problems because the tip frame has no widget.  */
+      if (NILP (tip_frame) || XFRAME (tip_frame) != f)
+	x_set_window_size (f, 0, FRAME_COLS (f), FRAME_LINES (f));
+    }
+
+#ifdef HAVE_X_I18N
+  if (FRAME_XIC (f)
+      && (FRAME_XIC_STYLE (f) & (XIMPreeditPosition | XIMStatusArea)))
+    xic_set_xfontset (f, SDATA (fontset_ascii (fontset)));
+#endif
+
+  UNBLOCK_INPUT;
+
+  return fontset_name (fontset);
+}
+#endif	/* USE_FONT_BACKEND */
 
 
 /***********************************************************************
@@ -9354,6 +9651,15 @@ x_free_frame_resources (f)
      commands to the X server.  */
   if (dpyinfo->display)
     {
+#ifdef USE_FONT_BACKEND
+      /* We must free faces before destroying windows because some
+	 font-driver (e.g. xft) access a window while finishing a
+	 face.  */
+      if (enable_font_backend
+	  && FRAME_FACE_CACHE (f))
+	free_frame_faces (f);
+#endif	/* USE_FONT_BACKEND */
+
       if (f->output_data.x->icon_desc)
 	XDestroyWindow (FRAME_X_DISPLAY (f), f->output_data.x->icon_desc);
 
@@ -9735,7 +10041,7 @@ x_get_font_info (f, font_idx)
    If SIZE is > 0, it is the size (maximum bounds width) of fonts
    to be listed.
 
-   SIZE < 0 means include scalable fonts.
+   SIZE < 0 means include auto scaled fonts.
 
    Frame F null means we have not yet created any frame on X, and
    consult the first display in x_display_list.  MAXNAMES sets a limit
@@ -10044,6 +10350,11 @@ x_check_font (f, font)
 
   xassert (font != NULL);
 
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    /* Fixme: Perhaps we should check all cached fonts.  */
+    return;
+#endif
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name
 	&& font == dpyinfo->font_table[i].font)
@@ -10208,6 +10519,7 @@ x_load_font (f, fontname, size)
     bzero (fontp, sizeof (*fontp));
     fontp->font = font;
     fontp->font_idx = i;
+    fontp->charset = -1;	/* fs_load_font sets it.  */
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
@@ -10319,10 +10631,10 @@ x_load_font (f, fontname, size)
        the font code-points (0:0x20..0x7F, 1:0xA0..0xFF), or
        (0:0x2020..0x7F7F, 1:0xA0A0..0xFFFF, 3:0x20A0..0x7FFF,
        2:0xA020..0xFF7F).  For the moment, we don't know which charset
-       uses this font.  So, we set information in fontp->encoding[1]
+       uses this font.  So, we set information in fontp->encoding_type
        which is never used by any charset.  If mapping can't be
        decided, set FONT_ENCODING_NOT_DECIDED.  */
-    fontp->encoding[1]
+    fontp->encoding_type
       = (font->max_byte1 == 0
 	 /* 1-byte font */
 	 ? (font->min_char_or_byte2 < 0x80
@@ -10422,6 +10734,160 @@ x_find_ccl_program (fontp)
 }
 
 
+/* Return a char-table whose elements are t if the font FONT_INFO
+   contains a glyph for the corresponding character, and nil if
+   not.  */
+
+Lisp_Object
+x_get_font_repertory (f, font_info)
+     FRAME_PTR f;
+     struct font_info *font_info;
+{
+  XFontStruct *font = (XFontStruct *) font_info->font;
+  Lisp_Object table;
+  int min_byte1, max_byte1, min_byte2, max_byte2;
+  int c;
+  struct charset *charset = CHARSET_FROM_ID (font_info->charset);
+  int offset = CHARSET_OFFSET (charset);
+
+  table = Fmake_char_table (Qnil, Qnil);
+
+  min_byte1 = font->min_byte1;
+  max_byte1 = font->max_byte1;
+  min_byte2 = font->min_char_or_byte2;
+  max_byte2 = font->max_char_or_byte2;
+  if (min_byte1 == 0 && max_byte1 == 0)
+    {
+      if (! font->per_char || font->all_chars_exist == True)
+	{
+	  if (offset >= 0)
+	    char_table_set_range (table, offset + min_byte2,
+				  offset + max_byte2, Qt);
+	  else
+	    for (; min_byte2 <= max_byte2; min_byte2++)
+	      {
+		c = DECODE_CHAR (charset, min_byte2);
+		CHAR_TABLE_SET (table, c, Qt);
+	      }
+	}
+      else
+	{
+	  XCharStruct *pcm = font->per_char;
+	  int from = -1;
+	  int i;
+
+	  for (i = min_byte2; i <= max_byte2; i++, pcm++)
+	    {
+	      if (pcm->width == 0 && pcm->rbearing == pcm->lbearing)
+		{
+		  if (from >= 0)
+		    {
+		      if (offset >= 0)
+			char_table_set_range (table, offset + from,
+					      offset + i - 1, Qt);
+		      else
+			for (; from < i; from++)
+			  {
+			    c = DECODE_CHAR (charset, from);
+			    CHAR_TABLE_SET (table, c, Qt);
+			  }
+		      from = -1;
+		    }
+		}
+	      else if (from < 0)
+		from = i;
+	    }
+	  if (from >= 0)
+	    {
+	      if (offset >= 0)
+		char_table_set_range (table, offset + from, offset + i - 1,
+				      Qt);
+	      else
+		for (; from < i; from++)
+		  {
+		    c = DECODE_CHAR (charset, from);
+		    CHAR_TABLE_SET (table, c, Qt);
+		  }
+	    }
+	}
+    }
+  else
+    {
+      if (! font->per_char || font->all_chars_exist == True)
+	{
+	  int i, j;
+
+	  if (offset >= 0)
+	    for (i = min_byte1; i <= max_byte1; i++)
+	      char_table_set_range
+		(table, offset + ((i << 8) | min_byte2),
+		 offset + ((i << 8) | max_byte2), Qt);
+	  else
+	    for (i = min_byte1; i <= max_byte1; i++)	    
+	      for (j = min_byte2; j <= max_byte2; j++)
+		{
+		  unsigned code = (i << 8) | j;
+		  c = DECODE_CHAR (charset, code);
+		  CHAR_TABLE_SET (table, c, Qt);
+		}
+	}
+      else
+	{
+	  XCharStruct *pcm = font->per_char;
+	  int i;
+
+	  for (i = min_byte1; i <= max_byte1; i++)
+	    {
+	      int from = -1;
+	      int j;
+
+	      for (j = min_byte2; j <= max_byte2; j++, pcm++)
+		{
+		  if (pcm->width == 0 && pcm->rbearing == pcm->lbearing)
+		    {
+		      if (from >= 0)
+			{
+			  if (offset >= 0)
+			    char_table_set_range
+			      (table, offset + ((i << 8) | from),
+			       offset + ((i << 8) | (j - 1)), Qt);
+			  else
+			    {
+			      for (; from < j; from++)
+				{
+				  unsigned code = (i << 8) | from;
+				  c = ENCODE_CHAR (charset, code);
+				  CHAR_TABLE_SET (table, c, Qt);
+				}
+			    }
+			  from = -1;
+			}
+		    }
+		  else if (from < 0)
+		    from = j;
+		}
+	      if (from >= 0)
+		{
+		  if (offset >= 0)
+		    char_table_set_range
+		      (table, offset + ((i << 8) | from),
+		       offset + ((i << 8) | (j - 1)), Qt);
+		  else
+		    {
+		      for (; from < j; from++)
+			{
+			  unsigned code = (i << 8) | from;
+			  c = DECODE_CHAR (charset, code);
+			  CHAR_TABLE_SET (table, c, Qt);
+			}
+		    }
+		}
+	    }
+	}
+    }
+
+  return table;
+}
 
 /***********************************************************************
 			    Initialization
@@ -11132,6 +11598,10 @@ x_delete_display (dpyinfo)
     xim_close_dpy (dpyinfo);
 #endif
 
+#ifdef USE_FONT_BACKEND
+  if (! enable_font_backend)
+    {
+#endif
   /* Free the font names in the font table.  */
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name)
@@ -11147,6 +11617,10 @@ x_delete_display (dpyinfo)
 	xfree (dpyinfo->font_table->font_encoder);
       xfree (dpyinfo->font_table);
     }
+#ifdef USE_FONT_BACKEND
+    }
+#endif
+
   if (dpyinfo->x_id_name)
     xfree (dpyinfo->x_id_name);
   if (dpyinfo->color_cells)
@@ -11256,6 +11730,9 @@ x_delete_terminal (struct terminal *terminal)
     return;
 
   BLOCK_INPUT;
+#ifdef USE_FONT_BACKEND
+  if (! enable_font_backend)
+#endif
   /* Free the fonts in the font table.  */
   for (i = 0; i < dpyinfo->n_fonts; i++)
     if (dpyinfo->font_table[i].name)
@@ -11403,8 +11880,6 @@ syms_of_xterm ()
   staticpro (&Qvendor_specific_keysyms);
   Qvendor_specific_keysyms = intern ("vendor-specific-keysyms");
 
-  staticpro (&Qutf_8);
-  Qutf_8 = intern ("utf-8");
   staticpro (&Qlatin_1);
   Qlatin_1 = intern ("latin-1");
 

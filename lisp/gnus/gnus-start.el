@@ -463,6 +463,8 @@ Can be used to turn version control on or off."
 
 ;;; Internal variables
 
+;; Fixme: deal with old emacs-mule when mm-universal-coding-system is
+;; utf-8-emacs.
 (defvar gnus-ding-file-coding-system mm-universal-coding-system
   "Coding system for ding file.")
 
@@ -2404,8 +2406,7 @@ If FORCE is non-nil, the .newsrc file is read."
       ;; We always, always read the .eld file.
       (gnus-message 5 "Reading %s..." ding-file)
       (let (gnus-newsrc-assoc)
-	(let ((coding-system-for-read gnus-ding-file-coding-system))
-	  (gnus-load ding-file))
+	(gnus-load ding-file)
 	;; Older versions of `gnus-format-specs' are no longer valid
 	;; in Oort Gnus 0.01.
 	(let ((version
@@ -2837,7 +2838,8 @@ If FORCE is non-nil, the .newsrc file is read."
 
 (defun gnus-gnus-to-quick-newsrc-format (&optional minimal name &rest specific-variables)
   "Print Gnus variables such as `gnus-newsrc-alist' in Lisp format."
-    (princ ";; -*- emacs-lisp -*-\n")
+    (princ (format ";; -*- mode:emacs-lisp; coding: %s; -*-\n"
+		   gnus-ding-file-coding-system))
     (if name
 	(princ (format ";; %s\n" name))
       (princ ";; Gnus startup file.\n"))

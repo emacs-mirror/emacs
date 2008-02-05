@@ -50,7 +50,7 @@ BUILT-EMACS = ${dot}${dot}/src/emacs
 buildlisppath=${srcdir}/${dot}${dot}/lisp
 
 # How to run Emacs.
-RUN-EMACS = EMACSLOADPATH=$(buildlisppath) LC_ALL=C\
+RUN-EMACS = EMACSLOADPATH=$(buildlisppath) LC_ALL=C \
 	${BUILT-EMACS} -batch --no-init-file --no-site-file --multibyte
 
 # Subdirectories to be made if ${srcdir} is different from the current
@@ -126,6 +126,7 @@ GREEK=${srcdir}/quail/greek.elc
 RUSSIAN=${srcdir}/quail/cyrillic.elc ${srcdir}/quail/cyril-jis.elc
 
 OTHERS= \
+	${srcdir}/quail/arabic.elc \
 	${srcdir}/quail/ethiopic.elc \
 	${srcdir}/quail/ipa.elc \
 	${srcdir}/quail/hebrew.elc \

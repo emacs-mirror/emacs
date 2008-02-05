@@ -52,7 +52,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include "intervals.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "frame.h"
 #include "window.h"
@@ -210,11 +210,9 @@ usage: (char-to-string CHAR)  */)
   int len;
   unsigned char str[MAX_MULTIBYTE_LENGTH];
 
-  CHECK_NUMBER (character);
+  CHECK_CHARACTER (character);
 
-  len = (SINGLE_BYTE_CHAR_P (XFASTINT (character))
-	 ? (*str = (unsigned char)(XFASTINT (character)), 1)
-	 : char_to_string (XFASTINT (character), str));
+  len = CHAR_STRING (XFASTINT (character), str);
   return make_string_from_bytes (str, 1, len);
 }
 
@@ -2155,7 +2153,7 @@ general_insert_function (insert_func, insert_from_string_func,
   for (argnum = 0; argnum < nargs; argnum++)
     {
       val = args[argnum];
-      if (INTEGERP (val))
+      if (CHARACTERP (val))
 	{
 	  unsigned char str[MAX_MULTIBYTE_LENGTH];
 	  int len;
@@ -2164,7 +2162,7 @@ general_insert_function (insert_func, insert_from_string_func,
 	    len = CHAR_STRING (XFASTINT (val), str);
 	  else
 	    {
-	      str[0] = (SINGLE_BYTE_CHAR_P (XINT (val))
+	      str[0] = (ASCII_CHAR_P (XINT (val))
 			? XINT (val)
 			: multibyte_char_to_unibyte (XINT (val), Qnil));
 	      len = 1;
@@ -2329,6 +2327,29 @@ from adjoining text, if those properties are sticky.  */)
 	insert (string, n);
     }
   return Qnil;
+}
+
+DEFUN ("insert-byte", Finsert_byte, Sinsert_byte, 2, 3, 0,
+       doc: /* Insert COUNT (second arg) copies of BYTE (first arg).
+Both arguments are required.
+BYTE is a number of the range 0..255.
+
+If BYTE is 128..255 and the current buffer is multibyte, the
+corresponding eight-bit character is inserted.
+
+Point, and before-insertion markers, are relocated as in the function `insert'.
+The optional third arg INHERIT, if non-nil, says to inherit text properties
+from adjoining text, if those properties are sticky.  */)
+     (byte, count, inherit)
+       Lisp_Object byte, count, inherit;
+{
+  CHECK_NUMBER (byte);
+  if (XINT (byte) < 0 || XINT (byte) > 255)
+    args_out_of_range_3 (byte, make_number (0), make_number (255));
+  if (XINT (byte) >= 128
+      && ! NILP (current_buffer->enable_multibyte_characters))
+    XSETFASTINT (byte, BYTE8_TO_CHAR (XINT (byte)));
+  return Finsert_char (byte, count, inherit);
 }
 
 
@@ -2892,12 +2913,73 @@ Both characters must have the same length of multi-byte form.  */)
   return Qnil;
 }
 
+
+static Lisp_Object check_translation P_ ((int, int, int, Lisp_Object));
+
+/* Helper function for Ftranslate_region_internal.
+
+   Check if a character sequence at POS (POS_BYTE) matches an element
+   of VAL.  VAL is a list (([FROM-CHAR ...] . TO) ...).  If a matching
+   element is found, return it.  Otherwise return Qnil.  */
+
+static Lisp_Object
+check_translation (pos, pos_byte, end, val)
+     int pos, pos_byte, end;
+     Lisp_Object val;
+{
+  int buf_size = 16, buf_used = 0;
+  int *buf = alloca (sizeof (int) * buf_size);
+
+  for (; CONSP (val); val = XCDR (val))
+    {
+      Lisp_Object elt;
+      int len, i;
+
+      elt = XCAR (val);
+      if (! CONSP (elt))
+	continue;
+      elt = XCAR (elt);
+      if (! VECTORP (elt))
+	continue;
+      len = ASIZE (elt);
+      if (len <= end - pos)
+	{
+	  for (i = 0; i < len; i++)
+	    {
+	      if (buf_used <= i)
+		{
+		  unsigned char *p = BYTE_POS_ADDR (pos_byte);
+		  int len;
+
+		  if (buf_used == buf_size)
+		    {
+		      int *newbuf;
+
+		      buf_size += 16;
+		      newbuf = alloca (sizeof (int) * buf_size);
+		      memcpy (newbuf, buf, sizeof (int) * buf_used);
+		      buf = newbuf;
+		    }
+		  buf[buf_used++] = STRING_CHAR_AND_LENGTH (p, 0, len);
+		  pos_byte += len;
+		}
+	      if (XINT (AREF (elt, i)) != buf[i])
+		break;
+	    }
+	  if (i == len)
+	    return XCAR (val);
+	}
+    }
+  return Qnil;
+}
+
+
 DEFUN ("translate-region-internal", Ftranslate_region_internal,
        Stranslate_region_internal, 3, 3, 0,
        doc: /* Internal use only.
 From START to END, translate characters according to TABLE.
-TABLE is a string; the Nth character in it is the mapping
-for the character with code N.
+TABLE is a string or a char-table; the Nth character in it is the
+mapping for the character with code N.
 It returns the number of characters changed.  */)
      (start, end, table)
      Lisp_Object start;
@@ -2911,10 +2993,13 @@ It returns the number of characters changed.  */)
   int pos, pos_byte, end_pos;
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
   int string_multibyte;
+  Lisp_Object val;
 
   validate_region (&start, &end);
   if (CHAR_TABLE_P (table))
     {
+      if (! EQ (XCHAR_TABLE (table)->purpose, Qtranslation_table))
+	error ("Not a translation table");
       size = MAX_CHAR;
       tt = NULL;
     }
@@ -2925,14 +3010,14 @@ It returns the number of characters changed.  */)
       if (! multibyte && (SCHARS (table) < SBYTES (table)))
 	table = string_make_unibyte (table);
       string_multibyte = SCHARS (table) < SBYTES (table);
-      size = SCHARS (table);
+      size = SBYTES (table);
       tt = SDATA (table);
     }
 
   pos = XINT (start);
   pos_byte = CHAR_TO_BYTE (pos);
   end_pos = XINT (end);
-  modify_region (current_buffer, pos, XINT (end), 0);
+  modify_region (current_buffer, pos, end_pos, 0);
 
   cnt = 0;
   for (; pos < end_pos; )
@@ -2941,6 +3026,7 @@ It returns the number of characters changed.  */)
       unsigned char *str, buf[MAX_MULTIBYTE_LENGTH];
       int len, str_len;
       int oc;
+      Lisp_Object val;
 
       if (multibyte)
 	oc = STRING_CHAR_AND_LENGTH (p, MAX_MULTIBYTE_LENGTH, len);
@@ -2955,7 +3041,7 @@ It returns the number of characters changed.  */)
 	      if (string_multibyte)
 		{
 		  str = tt + string_char_to_byte (table, oc);
-		  nc = STRING_CHAR_AND_LENGTH (str, MAX_MULTIBYTE_LENGTH,
+		  nc = STRING_CHAR_AND_LENGTH (str, MAX_MULTIBYTE_LENGTH, 
 					       str_len);
 		}
 	      else
@@ -2963,7 +3049,7 @@ It returns the number of characters changed.  */)
 		  nc = tt[oc];
 		  if (! ASCII_BYTE_P (nc) && multibyte)
 		    {
-		      str_len = CHAR_STRING (nc, buf);
+		      str_len = BYTE8_STRING (nc, buf);
 		      str = buf;
 		    }
 		  else
@@ -2975,28 +3061,34 @@ It returns the number of characters changed.  */)
 	    }
 	  else
 	    {
-	      Lisp_Object val;
 	      int c;
 
 	      nc = oc;
 	      val = CHAR_TABLE_REF (table, oc);
-	      if (INTEGERP (val)
+	      if (CHARACTERP (val)
 		  && (c = XINT (val), CHAR_VALID_P (c, 0)))
 		{
 		  nc = c;
 		  str_len = CHAR_STRING (nc, buf);
 		  str = buf;
 		}
+	      else if (VECTORP (val) || (CONSP (val)))
+		{
+		  /* VAL is [TO_CHAR ...] or (([FROM-CHAR ...] .  TO) ...)
+		     where TO is TO-CHAR or [TO-CHAR ...].  */
+		  nc = -1;
+		}
 	    }
 
-	  if (nc != oc)
+	  if (nc != oc && nc >= 0)
 	    {
+	      /* Simple one char to one char translation.  */
 	      if (len != str_len)
 		{
 		  Lisp_Object string;
 
 		  /* This is less efficient, because it moves the gap,
-		     but it should multibyte characters correctly.  */
+		     but it should handle multibyte characters correctly.  */
 		  string = make_multibyte_string (str, 1, str_len);
 		  replace_range (pos, pos + 1, string, 1, 0, 1);
 		  len = str_len;
@@ -3010,6 +3102,46 @@ It returns the number of characters changed.  */)
 		  update_compositions (pos, pos + 1, CHECK_BORDER);
 		}
 	      ++cnt;
+	    }
+	  else if (nc < 0)
+	    {
+	      Lisp_Object string;
+
+	      if (CONSP (val))
+		{
+		  val = check_translation (pos, pos_byte, end_pos, val);
+		  if (NILP (val))
+		    {
+		      pos_byte += len;
+		      pos++;
+		      continue;
+		    }
+		  /* VAL is ([FROM-CHAR ...] . TO).  */
+		  len = ASIZE (XCAR (val));
+		  val = XCDR (val);
+		}
+	      else
+		len = 1;
+
+	      if (VECTORP (val))
+		{
+		  int i;
+
+		  string = Fmake_string (make_number (ASIZE (val)),
+					 AREF (val, 0));
+		  for (i = 1; i < ASIZE (val); i++)
+		    Faset (string, make_number (i), AREF (val, i));
+		}
+	      else
+		{
+		  string = Fmake_string (make_number (1), val);
+		}
+	      replace_range (pos, pos + len, string, 1, 0, 1);
+	      pos_byte += SBYTES (string);
+	      pos += SCHARS (string);
+	      cnt += SCHARS (string);
+	      end_pos += SCHARS (string) - len;
+	      continue;
 	    }
 	}
       pos_byte += len;
@@ -3608,8 +3740,8 @@ usage: (format STRING &rest OBJECTS)  */)
 	    thissize = 30 + (precision[n] > 0 ? precision[n] : 0);
 	    if (*format == 'c')
 	      {
-		if (! SINGLE_BYTE_CHAR_P (XINT (args[n]))
-		    /* Note: No one can remember why we have to treat
+		if (! ASCII_CHAR_P (XINT (args[n]))
+		    /* Note: No one can remeber why we have to treat
 		       the character 0 as a multibyte character here.
 		       But, until it causes a real problem, let's
 		       don't change it.  */
@@ -4030,8 +4162,20 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
   /* Do these in separate statements,
      then compare the variables.
      because of the way DOWNCASE uses temp variables.  */
-  i1 = DOWNCASE (XFASTINT (c1));
-  i2 = DOWNCASE (XFASTINT (c2));
+  i1 = XFASTINT (c1);
+  if (NILP (current_buffer->enable_multibyte_characters)
+      && ! ASCII_CHAR_P (i1))
+    {
+      MAKE_CHAR_MULTIBYTE (i1);
+    }
+  i2 = XFASTINT (c2);
+  if (NILP (current_buffer->enable_multibyte_characters)
+      && ! ASCII_CHAR_P (i2))
+    {
+      MAKE_CHAR_MULTIBYTE (i2);
+    }
+  i1 = DOWNCASE (i1);
+  i2 = DOWNCASE (i2);
   return (i1 == i2 ? Qt :  Qnil);
 }
 
@@ -4526,6 +4670,7 @@ functions if all the text being accessed has this property.  */);
   defsubr (&Sinsert_and_inherit);
   defsubr (&Sinsert_and_inherit_before_markers);
   defsubr (&Sinsert_char);
+  defsubr (&Sinsert_byte);
 
   defsubr (&Suser_login_name);
   defsubr (&Suser_real_login_name);

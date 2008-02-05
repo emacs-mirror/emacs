@@ -36,7 +36,7 @@ Boston, MA 02110-1301, USA.  */
 #include "dispextern.h"
 #include "cm.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "keyboard.h"
 #include "frame.h"
 #include "termhooks.h"

@@ -91,6 +91,8 @@ highlighting, and help echoing in the minibuffer.
 recenter the visited source file.  Its value can be a number (for example,
 0 for top line, -1 for bottom line), or nil for no recentering.
 
+** C-l is bound to the new command recenter-top-bottom, rather than recenter.
+
 ** The mode-line displays a `@' if the default-directory for the current buffer
 is on a remote machine, or a hyphen otherwise.
 

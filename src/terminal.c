@@ -242,8 +242,8 @@ create_terminal (void)
   terminal->terminal_coding =
     (struct coding_system *) xmalloc (sizeof (struct coding_system));
 
-  setup_coding_system (Qnil, terminal->keyboard_coding);
-  setup_coding_system (Qnil, terminal->terminal_coding);
+  setup_coding_system (Qno_conversion, terminal->keyboard_coding);
+  setup_coding_system (Qundecided, terminal->terminal_coding);
 
   terminal->param_alist = Qnil;
   return terminal;

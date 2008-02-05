@@ -610,6 +610,29 @@ x_load_resources (display, xrm_string, myname, myclass)
 
 #endif /* not USE_MOTIF */
 
+#ifdef HAVE_X_I18N
+  {
+#ifdef USE_MOTIF
+    Bool motif = True;
+#else  /* not USE_MOTIF */
+    Bool motif = False;
+#endif  /* not USE_MOTIF */
+    /* Setup the default fontSet resource.  */
+    extern char *xic_create_fontsetname P_ ((char *base_fontname, Bool motif));
+    char *fontsetname = xic_create_fontsetname (helv, motif);
+    int len = strlen (fontsetname);
+    char *buf = line;
+
+    /* fontsetname may be very long.  */
+    if (len + 16 > 256)
+      buf = alloca (len + 16);
+    sprintf (buf, "Emacs*fontSet: %s", fontsetname);
+    XrmPutLineResource (&rdb, buf);
+    if (fontsetname != helv)
+      xfree (fontsetname);
+  }
+#endif	/* HAVE_X_I18N */
+
   user_database = get_user_db (display);
 
   /* Figure out what the "customization string" is, so we can use it

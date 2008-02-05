@@ -54,7 +54,7 @@ extern int errno;
 
 #include "lisp.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "systime.h"
 
@@ -667,7 +667,7 @@ unlock_all_files ()
   register Lisp_Object tail;
   register struct buffer *b;
 
-  for (tail = Vbuffer_alist; GC_CONSP (tail); tail = XCDR (tail))
+  for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     {
       b = XBUFFER (XCDR (XCAR (tail)));
       if (STRINGP (b->file_truename) && BUF_SAVE_MODIFF (b) < BUF_MODIFF (b))

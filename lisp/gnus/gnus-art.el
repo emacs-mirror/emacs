@@ -6398,6 +6398,7 @@ KEY is a string or a vector."
 
 ;;`gnus-agent-mode' in gnus-agent.el will define it.
 (defvar gnus-agent-summary-mode)
+(defvar gnus-draft-mode)
 
 (defun gnus-article-describe-bindings (&optional prefix)
   "Show a list of all defined keys, and their definitions.
@@ -6408,7 +6409,7 @@ then we display only bindings that start with that prefix."
   (let ((keymap (copy-keymap gnus-article-mode-map))
 	(map (copy-keymap gnus-article-send-map))
 	(sumkeys (where-is-internal 'gnus-article-read-summary-keys))
-	agent)
+	agent draft)
     (define-key keymap "S" map)
     (define-key map [t] nil)
     (with-current-buffer gnus-article-current-summary
@@ -6418,10 +6419,13 @@ then we display only bindings that start with that prefix."
 	  (when (setq def (key-binding key))
 	    (define-key keymap key def))))
       (when (boundp 'gnus-agent-summary-mode)
-	(setq agent gnus-agent-summary-mode)))
+	(setq agent gnus-agent-summary-mode))
+      (when (boundp 'gnus-draft-mode)
+	(setq draft gnus-draft-mode)))
     (with-temp-buffer
       (use-local-map keymap)
       (set (make-local-variable 'gnus-agent-summary-mode) agent)
+      (set (make-local-variable 'gnus-draft-mode) draft)
       (describe-bindings prefix))
     (let ((item `((lambda (prefix)
 		    (save-excursion

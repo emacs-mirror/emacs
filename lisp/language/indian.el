@@ -33,21 +33,16 @@
 
 ;;; Code:
 
-(make-coding-system
- 'in-is13194 2 ?D
- "8-bit encoding for ASCII (MSB=0) and IS13194-Devanagari (MSB=1)."
- '(ascii indian-is13194 nil nil
-   nil ascii-eol)
- `((safe-chars . ,(let ((table (make-char-table 'safe-chars nil)))
-		    (set-char-table-range table 'indian-is13194 t)
-		    (dotimes (i 127)
-		      (aset table i t)
-		      (aset table (decode-char 'ucs (+ #x900 i)) t))
-		    table))
-   (post-read-conversion . in-is13194-post-read-conversion)
-   (pre-write-conversion . in-is13194-pre-write-conversion)))
+(define-coding-system 'in-is13194-devanagari
+  "8-bit encoding for ASCII (MSB=0) and IS13194-Devanagari (MSB=1)."
+  :coding-type 'iso-2022
+  :mnemonic ?D
+  :designation [ascii indian-is13194 nil nil]
+  :charset-list '(ascii indian-is13194)
+  :post-read-conversion 'in-is13194-post-read-conversion
+  :pre-write-conversion 'in-is13194-pre-write-conversion)
 
-(define-coding-system-alias 'devanagari 'in-is13194)
+(define-coding-system-alias 'devanagari 'in-is13194-devanagari)
 
 (defvar indian-font-foundry 'cdac
   "Font foundry for Indian characters.
@@ -160,18 +155,29 @@ Each Indian language environment sets this value
 to one of `indian-script-table' (which see).
 The default value is `devanagari'.")
 
-(define-ccl-program ccl-encode-indian-glyph-font
-  `(0
-    ;; Shorten (r1 = (((((r1 - 32) * 96) + r2) - 32) % 256))
-    (r1 = ((((r1 * 96) + r2) - ,(+ (* 32 96) 32)) % 256))))
+(defvar indian-composable-pattern
+  (make-char-table nil)
+  "Char table of regexps for composable Indian character sequence.")
 
-(setq font-ccl-encoder-alist
-      (cons (cons "-CDAC" 'ccl-encode-indian-glyph-font)
-	    font-ccl-encoder-alist))
-
-(setq font-ccl-encoder-alist
-      (cons (cons "-AKRUTI" 'ccl-encode-indian-glyph-font)
-	    font-ccl-encoder-alist))
+(let ((script-regexp-alist
+       '((devanagari . "[\x900-\x9FF\x200C\x200D]+")
+	 (bengali . "[\x980-\x9FF\x200C\x200D]+")
+	 (gurmukhi . "[\xA00-\xA7F\x200C\x200D]+")
+	 (gujarati . "[\xA80-\xAFF\x200C\x200D]+")
+	 (oriya . "[\xB00-\xB7F\x200C\x200D]+")
+	 (tamil . "[\xB80-\xBFF\x200C\x200D]+")
+	 (telugu . "[\xC00-\xC7F\x200C\x200D]+")
+	 (kannada . "[\xC80-\xCFF\x200C\x200D]+")
+	 (malayalam . "[\xD00-\xD7F\x200C\x200D]+")
+	 (sinhala . "[\xD80-\xDFF\x200C\x200D]+"))))
+  (map-char-table #'(lambda (key val) 
+		      (let ((slot (assq val script-regexp-alist)))
+			(if slot
+			    (set-char-table-range 
+			     composition-function-table key
+			     (list (cons (cdr slot) 'font-shape-text))))))
+		  char-script-table))
+					      
 
 (provide 'indian)
 

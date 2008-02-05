@@ -765,12 +765,12 @@ This is an interface to the function `load'."
 
 (defun file-remote-p (file &optional identification connected)
   "Test whether FILE specifies a location on a remote system.
-Return an identification of the system if the location is indeed
-remote.  The identification of the system may comprise a method
-to access the system and its hostname, amongst other things.
-
-For example, the filename \"/user@host:/foo\" specifies a location
-on the system \"/user@host:\".
+Returns nil or a string identifying the remote connection (ideally
+a prefix of FILE).  For example, the remote identification for filename
+\"/user@host:/foo\" could be \"/user@host:\".
+A file is considered \"remote\" if accessing it is likely to be slower or
+less reliable than accessing local files.
+Furthermore, relative file names do not work across remote connections.
 
 IDENTIFICATION specifies which part of the identification shall
 be returned as string.  IDENTIFICATION can be the symbol

@@ -300,7 +300,7 @@ extern Lisp_Object textget P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object lookup_char_property P_ ((Lisp_Object, Lisp_Object, int));
 extern void move_if_not_intangible P_ ((int));
 extern int get_property_and_range P_ ((int, Lisp_Object, Lisp_Object *,
-				       int *, int *, Lisp_Object));
+				       EMACS_INT *, EMACS_INT *, Lisp_Object));
 extern Lisp_Object get_local_map P_ ((int, struct buffer *, Lisp_Object));
 extern INTERVAL update_interval P_ ((INTERVAL, int));
 extern void set_intervals_multibyte P_ ((int));

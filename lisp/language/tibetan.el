@@ -6,8 +6,11 @@
 ;;   2006, 2007, 2008
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
+;; Copyright (C) 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H13PRO009
 
-;; Keywords: multilingual, Tibetan
+;; Keywords: multilingual, Tibetan, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -86,14 +89,12 @@
 ;;;
 
 
-(make-coding-system
- 'tibetan-iso-8bit 2 ?Q
- "8-bit encoding for ASCII (MSB=0) and TIBETAN (MSB=1)."
- '(ascii tibetan nil nil
-   nil nil)
- '((safe-charsets ascii tibetan)
-   (post-read-conversion . tibetan-post-read-conversion)
-   (pre-write-conversion . tibetan-pre-write-conversion)))
+(define-coding-system 'tibetan-iso-8bit
+  "8-bit encoding for ASCII (MSB=0) and TIBETAN (MSB=1)."
+  :coding-type 'iso-2022
+  :mnemonic ?Q
+  :designation [ascii tibetan nil nil]
+  :charset-list '(ascii tibetan))
 
 (define-coding-system-alias 'tibetan 'tibetan-iso-8bit)
 
@@ -104,11 +105,7 @@
 	     (input-method . "tibetan-wylie")
 	     (features tibet-util)
 	     (documentation . t)
-	     (sample-text
-	      . (tibetan-compose-string
-		 (copy-sequence
-"Tibetan (4$(7"7r'"]0"7"]14"20"21!;4%P0"G#!"Q14"20"21!;(B) $(7!4!5!5!>4"70"714$P0"!#C"Q1!;4"Er'"S0"E"S14"G0"G1!;4"70"714"2r'"[0"2"[1!;4"Dr'"[0"D"[14"#0"#14"G0"G1!>4"Ir'"]r'"_0"I"]"_1!;4"90"9"Q1!;4"/r'"S0"/"S1!;4"50"5"Q14#2x!#9r'"[0"2#9"[1!;4"Hx!"Rx!"Ur'"c0"H"A"U"c1!>(B")))))
-
+	     (sample-text "Tibetan ($(7"7"]"2!;"G#!"Q"2!;(B) $(7!4!5!5!>"7"!#C"Q!;"E"S"G!;"7"2"[!;"D"["#"G!>"I"]"_!;"9"Q!;"/"S!;"5"Q"2#9"[!;"H"A"U"c!>(B")))
 
 ;; `$(7"A(B' is included in the pattern for subjoined consonants because we
 ;; treat it specially in tibetan-add-components.
@@ -119,12 +116,8 @@
 ;; $(7"A(B is removed from the class of subjoined. Tomabechi 2000/06/08
 ;; (for Unicode support)
 (defconst tibetan-composable-pattern
-  "[$(7"!(B-$(7"J"K(B][$(7#!(B-$(7#J#K#L#M(B]*[$(7"Q"R"S(B-$(7"^"a"b"e(B]*[$(7"_"c"d"g(B-$(7"l!I!e!g(B]*"
+  "[$(7"!(B-$(7"J"K(B][$(7#!(B-$(7#J#K#L#M(B]*[$,1FP$(7"Q"R"S(B-$(7"^"a"b"e(B]*[$(7"_"c"d"g(B-$(7"l!I!e!g(B]*"
   "Regexp matching a composable sequence of Tibetan characters.")
-
-;; Register a function to compose Tibetan characters.
-(aset composition-function-table (make-char 'tibetan)
-      (list (cons tibetan-composable-pattern 'tibetan-composition-function)))
 
 ;;;
 ;;; Definitions of conversion data.
@@ -611,6 +604,10 @@ This also matches some punctuation characters which need conversion.")
 
 (defvar tibetan-decomposed nil)
 (defvar tibetan-decomposed-temp nil)
+
+;; For automatic composition.
+(set-char-table-range composition-function-table '(#xF00 . #xFD1)
+		      '(("[\xF00-\xFD1]+" . font-shape-text)))
 
 (provide 'tibetan)
 

@@ -58,37 +58,14 @@ enum syntaxcode
 
 /* Set the syntax entry VAL for char C in table TABLE.  */
 
-#define SET_RAW_SYNTAX_ENTRY(table, c, val)				\
-  ((((c) & 0xFF) == (c))						\
-   ? (XCHAR_TABLE (table)->contents[(unsigned char) (c)] = (val))	\
-   : Faset ((table), make_number (c), (val)))
+#define SET_RAW_SYNTAX_ENTRY(table, c, val)	\
+  CHAR_TABLE_SET ((table), c, (val))
 
-/* Fetch the syntax entry for char C in syntax table TABLE.
-   This macro is called only when C is less than CHAR_TABLE_ORDINARY_SLOTS.
-   Do inheritance.  */
+/* Set the syntax entry VAL for char-range RANGE in table TABLE.
+   RANGE is a cons (FROM . TO) specifying the range of characters.  */
 
-#ifdef __GNUC__
-#define SYNTAX_ENTRY_FOLLOW_PARENT(table, c)			\
-  ({ Lisp_Object _syntax_tbl = (table);				\
-     Lisp_Object _syntax_temp = XCHAR_TABLE (_syntax_tbl)->contents[(c)]; \
-     while (NILP (_syntax_temp))				\
-       {							\
-	 _syntax_tbl = XCHAR_TABLE (_syntax_tbl)->parent;	\
-	 if (NILP (_syntax_tbl))				\
-	   break;						\
-	 _syntax_temp = XCHAR_TABLE (_syntax_tbl)->contents[(c)]; \
-       }							\
-     _syntax_temp; })
-#else
-extern Lisp_Object syntax_temp;
-extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
-
-#define SYNTAX_ENTRY_FOLLOW_PARENT(table, c)	    	\
-  (syntax_temp = XCHAR_TABLE (table)->contents[(c)],	\
-   (NILP (syntax_temp)				    	\
-    ? syntax_parent_lookup (table, (c))		    	\
-    : syntax_temp))
-#endif
+#define SET_RAW_SYNTAX_ENTRY_RANGE(table, range, val)	\
+  Fset_char_table_range ((table), (range), (val))
 
 /* SYNTAX_ENTRY fetches the information from the entry for character C
    in syntax table TABLE, or from globally kept data (gl_state).
@@ -106,12 +83,7 @@ extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
 #  define CURRENT_SYNTAX_TABLE current_buffer->syntax_table
 #endif
 
-#define SYNTAX_ENTRY_INT(c)				\
-  ((((c) & 0xFF) == (c))				\
-   ? SYNTAX_ENTRY_FOLLOW_PARENT (CURRENT_SYNTAX_TABLE,	\
-				 (unsigned char) (c))	\
-   : Faref (CURRENT_SYNTAX_TABLE,			\
-	    make_number (c)))
+#define SYNTAX_ENTRY_INT(c) CHAR_TABLE_REF (CURRENT_SYNTAX_TABLE, (c))
 
 /* Extract the information from the entry for character C
    in the current syntax table.  */
@@ -138,6 +110,7 @@ extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
       ? XCDR (_syntax_temp)						\
       : Qnil); })
 #else
+extern Lisp_Object syntax_temp;
 #define SYNTAX(c)							\
   (syntax_temp = SYNTAX_ENTRY ((c)),					\
    (CONSP (syntax_temp)							\

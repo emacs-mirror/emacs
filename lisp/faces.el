@@ -81,11 +81,11 @@ ALTERNATIVE2 etc."
 (defcustom face-font-registry-alternatives
   (if (eq system-type 'windows-nt)
       '(("iso8859-1" "ms-oemlatin")
-	("gb2312.1980" "gb2312")
+	("gb2312.1980" "gb2312" "gbk" "gb18030")
 	("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")
 	("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
 	("muletibetan-2" "muletibetan-0"))
-    '(("gb2312.1980" "gb2312.80&gb8565.88" "gbk*")
+    '(("gb2312.1980" "gb2312.80&gb8565.88" "gbk" "gb18030")
       ("jisx0208.1990" "jisx0208.1983" "jisx0208.1978")
       ("ksc5601.1989" "ksx1001.1992" "ksc5601.1987")
       ("muletibetan-2" "muletibetan-0")))
@@ -103,6 +103,76 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
 	   (internal-set-alternative-font-registry-alist value)))
 
 
+(defcustom font-weight-table
+  (if (eq system-type 'windows-nt)
+      '((thin . 100)
+        (ultralight . 200) (ultra-light . 200) (extra-light . 200)
+        (light . 300)
+        (semilight . 330) (semi-light . 330)
+        (book . 350)
+        (normal . 400) (regular . 400)
+        (medium . 500) 
+        (semibold . 600) (semi-bold . 600) (demibold . 600) (demi . 600)
+        (bold . 700)
+        (extrabold . 800) (extra-bold . 800)
+        (ultrabold . 800) (ultra-bold . 800)
+        (black . 900) (heavy . 900))
+    '((thin . 0)
+      (ultralight . 40) (ultra-light . 40) (extra-light . 40)
+      (light . 50)
+      (semilight . 65) (semi-light . 65)
+      (book . 75)
+      (medium . 100) (regular . 100) (normal . 100)
+      (semibold . 180) (semi-bold . 180) (demibold . 180) (demi . 180)
+      (bold . 200)
+      (extrabold . 205) (extra-bold . 205)
+      (ultrabold . 205) (ultra-bold . 205)
+      (black . 210) (heavy . 210)))
+  "*Alist of font weight symbols vs the corresponding numeric values."
+  :tag "Font weight table"
+  :version "23.1"
+  :group 'font-selection
+  :type '(repeat (cons symbol integer))
+  :set #'(lambda (symbol value)
+	   (set-default symbol value)
+	   (if (fboundp 'internal-set-font-style-table)
+	       (internal-set-font-style-table :weight value))))
+
+(defcustom font-slant-table
+  '((ro . 0)
+    (ri . 10)
+    (r . 100) (roman . 100) (normal . 100)
+    (i . 200) (italic . 200) (ot . 200)
+    (o . 210) (oblique . 210))
+  "*Alist of font slant symbols vs the corresponding numeric values."
+  :tag "Font slant table"
+  :version "23.1"
+  :group 'font-selection
+  :type '(repeat (cons symbol integer))
+  :set #'(lambda (symbol value)
+	   (set-default symbol value)
+	   (if (fboundp 'internal-set-font-style-table)
+	       (internal-set-font-style-table :slant value))))
+
+(defcustom font-swidth-table
+  '((ultracondensed . 50) (ultra-condensed . 50)
+    (extracondensed . 63) (extra-condensed . 63)
+    (condensed . 75) (compressed . 75) (narrow . 75)
+    (semicondensed . 87) (semi-condensed . 87)
+    (normal . 100) (medium . 100) (regular . 100)
+    (semiexpanded . 113) (semi-expanded . 113) (demiexpanded . 113)
+    (expanded . 125)
+    (extraexpanded . 150) (extra-expanded . 150)
+    (ultraexpanded . 200) (ultra-expanded . 200) (wide . 200))
+  "*Alist of font swidth symbols vs the corresponding numeric values."
+  :tag "Font swidth table"
+  :version "23.1"
+  :group 'font-selection
+  :type '(repeat (cons symbol integer))
+  :set #'(lambda (symbol value)
+	   (set-default symbol value)
+	   (if (fboundp 'internal-set-font-style-table)
+	       (internal-set-font-style-table :width value))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Creation, copying.
@@ -1110,7 +1180,7 @@ of a global face.  Value is the new attribute value."
 If optional argument FRAME is nil or omitted, use the selected frame."
   (let ((completion-ignore-case t))
     (completing-read (format "Set font attributes of face `%s' from font: " face)
-		     (x-list-fonts "*" nil frame))))
+		     (append (fontset-list) (x-list-fonts "*" nil frame)))))
 
 
 (defun read-all-face-attributes (face &optional frame)
@@ -1283,7 +1353,8 @@ If FRAME is omitted or nil, use the selected frame."
 		  (:box . "Box")
 		  (:inverse-video . "Inverse")
 		  (:stipple . "Stipple")
-		  (:font . "Font or fontset")
+		  (:font . "Font")
+		  (:fontset . "Fontset")
 		  (:inherit . "Inherit")))
 	(max-width (apply #'max (mapcar #'(lambda (x) (length (cdr x)))
 					attrs))))

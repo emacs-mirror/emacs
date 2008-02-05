@@ -28,7 +28,6 @@
 
 ;;; Code:
 
-;;;###autoload
 (defconst reference-point-alist
   '((tl . 0) (tc . 1) (tr . 2)
     (Bl . 3) (Bc . 4) (Br . 5)
@@ -43,8 +42,7 @@
     (mid-left . 3) (mid-center . 10) (mid-right . 5))
   "Alist of symbols vs integer codes of glyph reference points.
 A glyph reference point symbol is to be used to specify a composition
-rule in COMPONENTS argument to such functions as `compose-region' and
-`make-composition'.
+rule in COMPONENTS argument to such functions as `compose-region'.
 
 Meanings of glyph reference point codes are as follows:
 
@@ -77,7 +75,12 @@ follows (the point `*' corresponds to both reference points):
     |    | new |
     |    |glyph|
     +----+-----+ <--- new descent
-")
+
+A composition rule may have the form \(GLOBAL-REF-POINT
+NEW-REF-POINT XOFF YOFF), where XOFF and YOFF specifies how much
+to shift NEW-REF-POINT from GLOBAL-REF-POINT.  In this case, XOFF
+and YOFF are integers in the range -100..100 representing the
+shifting percentage against the font size.")
 
 
 ;;;###autoload
@@ -92,17 +95,29 @@ RULE is a cons of global and new reference point symbols
   (if (and (integerp rule) (< rule 144))
       ;; Already encoded.
       rule
-    (or (consp rule)
-	(error "Invalid composition rule: %S" rule))
-    (let ((gref (car rule))
-	  (nref (cdr rule)))
-      (or (integerp gref)
-	  (setq gref (cdr (assq gref reference-point-alist))))
-      (or (integerp nref)
-	  (setq nref (cdr (assq nref reference-point-alist))))
-      (or (and (>= gref 0) (< gref 12) (>= nref 0) (< nref 12))
-	  (error "Invalid composition rule: %S" rule))
-      (+ (* gref 12) nref))))
+    (if (consp rule)
+	(let ((gref (car rule))
+	      (nref (cdr rule))
+	      xoff yoff)
+	  (if (consp nref)		; (GREF NREF XOFF YOFF)
+	      (progn
+		(setq xoff (nth 1 nref)
+		      yoff (nth 2 nref)
+		      nref (car nref))
+		(or (and (>= xoff -100) (<= xoff 100)
+			 (>= yoff -100) (<= yoff 100))
+		    (error "Invalid compostion rule: %s" rule))
+		(setq xoff (+ xoff 128) yoff (+ yoff 128)))
+	    ;; (GREF . NREF)
+	    (setq xoff 0 yoff 0))
+	  (or (integerp gref)
+	      (setq gref (cdr (assq gref reference-point-alist))))
+	  (or (integerp nref)
+	      (setq nref (cdr (assq nref reference-point-alist))))
+	  (or (and (>= gref 0) (< gref 12) (>= nref 0) (< nref 12))
+	      (error "Invalid composition rule: %S" rule))
+	  (logior (lsh xoff 16) (lsh yoff 8) (+ (* gref 12) nref)))
+      (error "Invalid composition rule: %S" rule))))
 
 ;; Decode encoded composition rule RULE-CODE.  The value is a cons of
 ;; global and new reference point symbols.
@@ -110,13 +125,20 @@ RULE is a cons of global and new reference point symbols
 ;; defined in composite.h.
 
 (defun decode-composition-rule (rule-code)
-  (or (and (natnump rule-code) (< rule-code 144))
+  (or (and (natnump rule-code) (< rule-code #x1000000))
       (error "Invalid encoded composition rule: %S" rule-code))
-  (let ((gref (car (rassq (/ rule-code 12) reference-point-alist)))
-	(nref (car (rassq (% rule-code 12) reference-point-alist))))
+  (let ((xoff (lsh rule-code -16))
+	(yoff (logand (lsh rule-code -8) #xFF))
+	gref nref)
+    (setq rule-code (logand rule-code #xFF)
+	  gref (car (rassq (/ rule-code 12) reference-point-alist))
+	  nref (car (rassq (% rule-code 12) reference-point-alist)))
     (or (and gref (symbolp gref) nref (symbolp nref))
 	(error "Invalid composition rule code: %S" rule-code))
-    (cons gref nref)))
+    (if (and (= xoff 0) (= yoff 0))
+	(cons gref nref)
+      (setq xoff (- xoff 128) yoff (- yoff 128))
+      (list gref xoff yoff nref))))
 
 ;; Encode composition rules in composition components COMPONENTS.  The
 ;; value is a copy of COMPONENTS, where composition rules (cons of
@@ -160,7 +182,6 @@ RULE is a cons of global and new reference point symbols
       (setq i (+ i 2))))
   components)
 
-;;;###autoload
 (defun compose-region (start end &optional components modification-func)
   "Compose characters in the current region.
 
@@ -172,9 +193,8 @@ When called from a program, expects these four arguments.
 First two arguments START and END are positions (integers or markers)
 specifying the region.
 
-Optional 3rd argument COMPONENTS, if non-nil, is a character or a
-sequence (vector, list, or string) of integers.  In this case,
-characters are composed not relatively but according to COMPONENTS.
+Optional 3rd argument COMPONENTS, if non-nil, is a character, a string
+or a vector or list of integers and rules.
 
 If it is a character, it is an alternate character to display instead
 of the text in the region.
@@ -201,7 +221,6 @@ text in the composition."
     (compose-region-internal start end components modification-func)
     (restore-buffer-modified-p modified-p)))
 
-;;;###autoload
 (defun decompose-region (start end)
   "Decompose text in the current region.
 
@@ -213,11 +232,10 @@ positions (integers or markers) specifying the region."
     (remove-text-properties start end '(composition nil))
     (restore-buffer-modified-p modified-p)))
 
-;;;###autoload
 (defun compose-string (string &optional start end components modification-func)
   "Compose characters in string STRING.
 
-The return value is STRING where `composition' property is put on all
+The return value is STRING with the `composition' property put on all
 the characters in it.
 
 Optional 2nd and 3rd arguments START and END specify the range of
@@ -238,13 +256,11 @@ text in the composition."
   (compose-string-internal string start end components modification-func)
   string)
 
-;;;###autoload
 (defun decompose-string (string)
   "Return STRING where `composition' property is removed."
   (remove-text-properties 0 (length string) '(composition nil) string)
   string)
 
-;;;###autoload
 (defun compose-chars (&rest args)
   "Return a string from arguments in which all characters are composed.
 For relative composition, arguments are characters.
@@ -268,7 +284,6 @@ A composition rule is a cons of glyph reference points of the form
       (setq str (concat args)))
     (compose-string-internal str 0 (length str) components)))
 
-;;;###autoload
 (defun find-composition (pos &optional limit string detail-p)
   "Return information about a composition at or nearest to buffer position POS.
 
@@ -308,7 +323,6 @@ WIDTH is a number of columns the composition occupies on the screen."
     result))
 
 
-;;;###autoload
 (defun compose-chars-after (pos &optional limit object)
   "Compose characters in current buffer after position POS.
 
@@ -329,7 +343,7 @@ is:
 Optional 2nd arg LIMIT, if non-nil, limits the matching of text.
 
 Optional 3rd arg OBJECT, if non-nil, is a string that contains the
-text to compose.  In that case, POS and LIMIT index to the string.
+text to compose.  In that case, POS and LIMIT index into the string.
 
 This function is the default value of `compose-chars-after-function'."
   (let ((tail (aref composition-function-table (char-after pos)))
@@ -349,7 +363,6 @@ This function is the default value of `compose-chars-after-function'."
 	      (setq func nil tail (cdr tail)))))))
       result))
 
-;;;###autoload
 (defun compose-last-chars (args)
   "Compose last characters.
 The argument is a parameterized event of the form
@@ -370,13 +383,294 @@ after a sequence of character events."
 	    (compose-region (- (point) chars) (point) (nth 2 args))
 	  (compose-chars-after (- (point) chars) (point))))))
 
-;;;###autoload(global-set-key [compose-last-chars] 'compose-last-chars)
+(global-set-key [compose-last-chars] 'compose-last-chars)
+
+
+;;; Automatic character composition.
+
+(defvar composition-function-table
+  (make-char-table nil)
+  "Char table of functions for automatic character composition.
+For each character that has to be composed automatically with
+preceding and/or following characters, this char table contains
+a function to call to compose that character.
+
+An element, if non-nil, is FUNC or an alist of PATTERNs vs FUNCs,
+where PATTERNs are regular expressions and FUNCs are functions.
+If the element is FUNC, FUNC itself determines the region to
+compose.
+
+Each function is called with 5 arguments, FROM, TO, FONT-OBJECT,
+and STRING.
+
+If STRING is nil, FROM and TO are positions specifying the region
+maching with PATTERN in the current buffer, and the function has
+to compose character in that region (possibly with characters
+preceding FROM).  The return value of the function is the end
+position where characters are composed.
+
+Otherwise, STRING is a string, and FROM and TO are indices into
+the string.  In this case, the function has to compose a
+character in the string.
+
+FONT-OBJECT may be nil if not available (e.g. for the case of
+terminal).
+
+See also the command `toggle-auto-composition'.")
+
+;; Copied from font-lock.el.
+(eval-when-compile
+  ;; Borrowed from lazy-lock.el.
+  ;; We use this to preserve or protect things when modifying text properties.
+  (defmacro save-buffer-state (varlist &rest body)
+    "Bind variables according to VARLIST and eval BODY restoring buffer state."
+    `(let* ,(append varlist
+		    '((modified (buffer-modified-p)) (buffer-undo-list t)
+		      (inhibit-read-only t) (inhibit-point-motion-hooks t)
+		      (inhibit-modification-hooks t)
+		      deactivate-mark buffer-file-name buffer-file-truename))
+       ,@body
+       (unless modified
+	 (restore-buffer-modified-p nil))))
+  ;; Fixme: This makes bootstrapping fail with this error.
+  ;;   Symbol's function definition is void: eval-defun
+  ;;(def-edebug-spec save-buffer-state let)
+  )
+
+(put 'save-buffer-state 'lisp-indent-function 1)
+
+(defun terminal-composition-function (from to font-object string)
+  "General composition function used on terminal.
+Non-spacing characters are composed with the preceding spacing
+character.  All non-spacing characters has this function in
+`terminal-composition-function-table'."
+  (let ((pos (1+ from)))
+    (if string
+	(progn
+	  (while (and (< pos to)
+		      (= (aref char-width-table (aref string pos)) 0))
+	    (setq pos (1+ pos)))
+	  (if (> from 0)
+	      (compose-string string (1- from) pos)
+	    (compose-string string from pos
+			    (concat " " (buffer-substring from pos)))))
+      (while (and (< pos to)
+		  (= (aref char-width-table (char-after pos)) 0))
+	(setq pos (1+ pos)))
+      (if (> from (point-min))
+	  (compose-region (1- from) pos (buffer-substring from pos))
+	(compose-region from pos
+			(concat " " (buffer-substring from pos)))))
+    pos))
+
+(defvar terminal-composition-function-table
+  (let ((table (make-char-table nil)))
+    (map-char-table
+     #'(lambda (key val)
+	 (if (= val 0) (set-char-table-range table key
+					     'terminal-composition-function)))
+     char-width-table)
+    table)
+  "Char table of functions for automatic character composition on terminal.
+This is like `composition-function-table' but used when Emacs is running
+on a terminal.")
+
+(defun auto-compose-chars (from to window string)
+  "Compose characters in the region between FROM and TO.
+WINDOW is a window displaying the current buffer.
+If STRING is non-nil, it is a string, and FROM and TO are indices
+into the string.  In that case, compose characters in the string.
+
+This function is the default value of `auto-composition-function' (which see)."
+  (save-buffer-state nil
+    (save-excursion
+      (save-restriction
+	(save-match-data
+	  (let ((table (if (display-graphic-p)
+			   composition-function-table
+			 terminal-composition-function-table))
+		(start from))
+	    (setq to (or (text-property-any (1+ from) to 'auto-composed t
+					    string)
+			 to))
+	    (if string
+		(while (< from to)
+		  (let* ((ch (aref string from))
+			 (elt (aref table ch))
+			 font-obj newpos)
+		    (when elt
+		      (if window
+			  (setq font-obj (font-at from window string)))
+		      (if (functionp elt)
+			  (setq newpos (funcall elt from to font-obj string))
+			(while (and elt
+				    (or (not (eq (string-match (caar elt) string
+							       from)
+						 from))
+					(not (setq newpos
+						   (funcall (cdar elt) from
+							    (match-end 0)
+							    font-obj string)))))
+			  (setq elt (cdr elt)))))
+		    (if (and newpos (> newpos from))
+			(setq from newpos)
+		      (setq from (1+ from)))))
+	      (narrow-to-region from to)
+	      (while (< from to)
+		  (let* ((ch (char-after from))
+			 (elt (aref table ch))
+			 func pattern font-obj newpos)
+		    (when elt
+		      (if window
+			  (setq font-obj (font-at from window)))
+		      (if (functionp elt)
+			  (setq newpos (funcall elt from to font-obj nil))
+			(goto-char from)
+			(while (and elt
+				    (or (not (looking-at (caar elt)))
+					(not (setq newpos
+						   (funcall (cdar elt) from
+							    (match-end 0)
+							    font-obj nil)))))
+			  (setq elt (cdr elt)))))
+		    (if (and newpos (> newpos from))
+			(setq from newpos)
+		      (setq from (1+ from))))))
+	    (put-text-property start to 'auto-composed t string)))))))
+
+(make-variable-buffer-local 'auto-composition-function)
+
+;;;###autoload
+(define-minor-mode auto-composition-mode
+  "Toggle Auto Compostion mode.
+With arg, turn Auto Compostion mode off if and only if arg is a non-positive
+number; if arg is nil, toggle Auto Compostion mode; anything else turns Auto
+Compostion on.
+
+When Auto Composition is enabled, text characters are automatically composed
+by functions registered in `composition-function-table' (which see).
+
+You can use Global Auto Composition mode to automagically turn on
+Auto Composition mode in all buffers (this is the default)."
+  nil nil nil
+  (if noninteractive
+      (setq auto-composition-mode nil))
+  (cond (auto-composition-mode
+	 (add-hook 'after-change-functions 'auto-composition-after-change nil t)
+	 (setq auto-composition-function 'auto-compose-chars))
+	(t
+	 (remove-hook 'after-change-functions 'auto-composition-after-change t)
+	 (setq auto-composition-function nil)))
+  (save-buffer-state nil
+    (save-restriction
+      (widen)
+      (remove-text-properties (point-min) (point-max) '(auto-composed nil))
+      (decompose-region (point-min) (point-max)))))
+
+(defun auto-composition-after-change (start end old-len)
+  (save-buffer-state nil
+    (if (< start (point-min))
+	(setq start (point-min)))
+    (if (> end (point-max))
+	(setq end (point-max)))
+    (when (and auto-composition-mode (not memory-full))
+      (let (func1 func2)
+	(when (and (> start (point-min))
+		   (setq func2 (aref composition-function-table
+				     (char-after (1- start))))
+		   (or (= start (point-max))
+		       (not (setq func1 (aref composition-function-table
+					      (char-after start))))
+		       (eq func1 func2)))
+	  (setq start (1- start)
+		func1 func2)
+	  (while (eq func1 func2)
+	    (if (> start (point-min))
+		(setq start (1- start)
+		      func2 (aref composition-function-table
+				  (char-after start)))
+	      (setq func2 nil))))
+	(when (and (< end (point-max))
+		   (setq func2 (aref composition-function-table
+				     (char-after end)))
+		   (or (= end (point-min))
+		       (not (setq func1 (aref composition-function-table
+					      (char-after (1- end)))))
+		       (eq func1 func2)))
+	  (setq end (1+ end)
+		func1 func2)
+	  (while (eq func1 func2)
+	    (if (< end (point-max))
+		(setq func2 (aref composition-function-table
+				  (char-after end))
+		      end (1+ end))
+	      (setq func2 nil))))
+	(if (< start end)
+	    (remove-text-properties start end '(auto-composed nil)))))))
+
+(defun turn-on-auto-composition-if-enabled ()
+  (if enable-multibyte-characters
+      (auto-composition-mode 1)))
+
+;;;###autoload
+(define-global-minor-mode global-auto-composition-mode
+  auto-composition-mode turn-on-auto-composition-if-enabled
+  :extra-args (dummy)
+  :initialize 'custom-initialize-safe-default
+  :init-value (not noninteractive)
+  :group 'auto-composition
+  :version "23.1")
+
+(defun toggle-auto-composition (&optional arg)
+  "Change whether automatic character composition is enabled in this buffer.
+With arg, enable it iff arg is positive."
+  (interactive "P")
+  (let ((enable (if (null arg) (not auto-composition-function)
+		  (> (prefix-numeric-value arg) 0))))
+    (if enable
+	(kill-local-variable 'auto-composition-function)
+      (make-local-variable 'auto-composition-function)
+      (setq auto-composition-function nil)
+      (save-buffer-state nil
+	(save-restriction
+	  (widen)
+	  (decompose-region (point-min) (point-max)))))
+
+    (save-buffer-state nil
+      (save-restriction
+	(widen)
+	(remove-text-properties (point-min) (point-max)
+				'(auto-composed nil))))))
+
+(defun auto-compose-region (from to)
+  "Force automatic character composition on the region FROM and TO."
+  (save-excursion
+    (if (get-text-property from 'auto-composed)
+	(setq from (next-single-property-change from 'auto-composed nil to)))
+    (goto-char from)
+    (let ((modified-p (buffer-modified-p))
+	  (inhibit-read-only '(composition auto-composed))
+	  (stop (next-single-property-change (point) 'auto-composed nil to)))
+      (while (< (point) to)
+	(if (= (point) stop)
+	    (progn
+	      (goto-char (next-single-property-change (point)
+						      'auto-composed nil to))
+	      (setq stop (next-single-property-change (point)
+						      'auto-composed nil to)))
+	  (let ((func (aref composition-function-table (following-char)))
+		(pos (point)))
+	    (if (functionp func)
+		(goto-char (funcall func (point) nil)))
+	    (if (<= (point) pos)
+		(forward-char 1)))))
+      (put-text-property from to 'auto-composed t)
+      (set-buffer-modified-p modified-p))))
 
 
 ;; The following codes are only for backward compatibility with Emacs
 ;; 20.4 and earlier.
 
-;;;###autoload
 (defun decompose-composite-char (char &optional type with-composition-rule)
   "Convert CHAR to string.
 
@@ -388,7 +682,6 @@ Optional 3rd arg WITH-COMPOSITION-RULE is ignored."
 	((eq type 'list) (list char))
 	(t (vector char))))
 
-;;;###autoload
 (make-obsolete 'decompose-composite-char 'char-to-string "21.1")
 
 

@@ -7,7 +7,7 @@
 ;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
 
-;; Keywords: mule, multilingual, thai
+;; Keywords: mule, multilingual, Thai, i18n
 
 ;; This file is part of GNU Emacs.
 
@@ -57,17 +57,6 @@
 (defvar thai-composition-pattern
   "\\cc\\(\\cu\\|\\cI\\cU\\|\\cv\\ct?\\)\\|\\cv\\ct\\|\\cI\\cU"
   "Regular expression matching a Thai composite sequence.")
-
-(defun thai-self-insert-command (&optional n)
-  "Insert the Thai character you type.
-The character will be composed with the surrounding Thai character
-if necessary."
-  (interactive "*p")
-  (let ((pos (point))
-	category-set ch)
-    (self-insert-command n)
-    (or thai-auto-composition-mode
-	(thai-auto-composition (1- (point)) (point) 0))))
 
 (let ((l '((?,T!(B consonant "LETTER KO KAI")				; 0xA1
 	   (?,T"(B consonant "LETTER KHO KHAI")				; 0xA2
@@ -163,95 +152,6 @@ if necessary."
 	   (?,T|(B invalid nil)						; 0xFC
 	   (?,T}(B invalid nil)						; 0xFD
 	   (?,T~(B invalid nil)						; 0xFE
-
-	   ;; Unicode equivalents
-	   (?$,1Ba(B consonant "LETTER KO KAI")
-	   (?$,1Bb(B consonant "LETTER KHO KHAI")
-	   (?$,1Bc(B consonant "LETTER KHO KHUAT")
-	   (?$,1Bd(B consonant "LETTER KHO KHWAI")
-	   (?$,1Be(B consonant "LETTER KHO KHON")
-	   (?$,1Bf(B consonant "LETTER KHO RAKHANG")
-	   (?$,1Bg(B consonant "LETTER NGO NGU")
-	   (?$,1Bh(B consonant "LETTER CHO CHAN")
-	   (?$,1Bi(B consonant "LETTER CHO CHING")
-	   (?$,1Bj(B consonant "LETTER CHO CHANG")
-	   (?$,1Bk(B consonant "LETTER SO SO")
-	   (?$,1Bl(B consonant "LETTER CHO CHOE")
-	   (?$,1Bm(B consonant "LETTER YO YING")
-	   (?$,1Bn(B consonant "LETTER DO CHADA")
-	   (?$,1Bo(B consonant "LETTER TO PATAK")
-	   (?$,1Bp(B consonant "LETTER THO THAN")
-	   (?$,1Bq(B consonant "LETTER THO NANGMONTHO")
-	   (?$,1Br(B consonant "LETTER THO PHUTHAO")
-	   (?$,1Bs(B consonant "LETTER NO NEN")
-	   (?$,1Bt(B consonant "LETTER DO DEK")
-	   (?$,1Bu(B consonant "LETTER TO TAO")
-	   (?$,1Bv(B consonant "LETTER THO THUNG")
-	   (?$,1Bw(B consonant "LETTER THO THAHAN")
-	   (?$,1Bx(B consonant "LETTER THO THONG")
-	   (?$,1By(B consonant "LETTER NO NU")
-	   (?$,1Bz(B consonant "LETTER BO BAIMAI")
-	   (?$,1B{(B consonant "LETTER PO PLA")
-	   (?$,1B|(B consonant "LETTER PHO PHUNG")
-	   (?$,1B}(B consonant "LETTER FO FA")
-	   (?$,1B~(B consonant "LETTER PHO PHAN")
-	   (?$,1B(B consonant "LETTER FO FAN")
-	   (?$,1C (B consonant "LETTER PHO SAMPHAO")
-	   (?$,1C!(B consonant "LETTER MO MA")
-	   (?$,1C"(B consonant "LETTER YO YAK")
-	   (?$,1C#(B consonant "LETTER RO RUA")
-	   (?$,1C$(B vowel-base "LETTER RU (Pali vowel letter)")
-	   (?$,1C%(B consonant "LETTER LO LING")
-	   (?$,1C&(B vowel-base "LETTER LU (Pali vowel letter)")
-	   (?$,1C'(B consonant "LETTER WO WAEN")
-	   (?$,1C((B consonant "LETTER SO SALA")
-	   (?$,1C)(B consonant "LETTER SO RUSI")
-	   (?$,1C*(B consonant "LETTER SO SUA")
-	   (?$,1C+(B consonant "LETTER HO HIP")
-	   (?$,1C,(B consonant "LETTER LO CHULA")
-	   (?$,1C-(B consonant "LETTER O ANG")
-	   (?$,1C.(B consonant "LETTER HO NOK HUK")
-	   (?$,1C/(B special "PAI YAN NOI (abbreviation)")
-	   (?$,1C0(B vowel-base "VOWEL SIGN SARA A")
-	   (?$,1C1(B vowel-upper "VOWEL SIGN MAI HAN-AKAT N/S-T")
-	   (?$,1C2(B vowel-base "VOWEL SIGN SARA AA")
-	   (?$,1C3(B vowel-base "VOWEL SIGN SARA AM")
-	   (?$,1C4(B vowel-upper "VOWEL SIGN SARA I N/S-T")
-	   (?$,1C5(B vowel-upper "VOWEL SIGN SARA II N/S-T")
-	   (?$,1C6(B vowel-upper "VOWEL SIGN SARA UE N/S-T")
-	   (?$,1C7(B vowel-upper "VOWEL SIGN SARA UEE N/S-T")
-	   (?$,1C8(B vowel-lower "VOWEL SIGN SARA U N/S-B")
-	   (?$,1C9(B vowel-lower "VOWEL SIGN SARA UU N/S-B")
-	   (?$,1C:(B vowel-lower "VOWEL SIGN PHINTHU N/S-B (Pali virama)")
-	   (?$,1C?(B special "BAHT SIGN (currency symbol)")
-	   (?$,1C@(B vowel-base "VOWEL SIGN SARA E")
-	   (?$,1CA(B vowel-base "VOWEL SIGN SARA AE")
-	   (?$,1CB(B vowel-base "VOWEL SIGN SARA O")
-	   (?$,1CC(B vowel-base "VOWEL SIGN SARA MAI MUAN")
-	   (?$,1CD(B vowel-base "VOWEL SIGN SARA MAI MALAI")
-	   (?$,1CE(B vowel-base "LAK KHANG YAO")
-	   (?$,1CF(B special "MAI YAMOK (repetion)")
-	   (?$,1CG(B sign-upper "VOWEL SIGN MAI TAI KHU N/S-T")
-	   (?$,1CH(B tone "TONE MAI EK N/S-T")
-	   (?$,1CI(B tone "TONE MAI THO N/S-T")
-	   (?$,1CJ(B tone "TONE MAI TRI N/S-T")
-	   (?$,1CK(B tone "TONE MAI CHATTAWA N/S-T")
-	   (?$,1CL(B sign-upper "THANTHAKHAT N/S-T (cancellation mark)")
-	   (?$,1CM(B sign-upper "NIKKHAHIT N/S-T (final nasal)")
-	   (?$,1CN(B sign-upper "YAMAKKAN N/S-T")
-	   (?$,1CO(B special "FONRMAN")
-	   (?$,1CP(B special "DIGIT ZERO")
-	   (?$,1CQ(B special "DIGIT ONE")
-	   (?$,1CR(B special "DIGIT TWO")
-	   (?$,1CS(B special "DIGIT THREE")
-	   (?$,1CT(B special "DIGIT FOUR")
-	   (?$,1CU(B special "DIGIT FIVE")
-	   (?$,1CV(B special "DIGIT SIX")
-	   (?$,1CW(B special "DIGIT SEVEN")
-	   (?$,1CX(B special "DIGIT EIGHT")
-	   (?$,1CY(B special "DIGIT NINE")
-	   (?$,1CZ(B special "ANGKHANKHU (ellipsis)")
-	   (?$,1C[(B special "KHOMUT (beginning of religious texts)")
 	   ))
       elm)
   (while l
@@ -260,24 +160,20 @@ if necessary."
 	  (ptype (nth 1 elm)))
       (put-char-code-property char 'phonetic-type ptype)
       (cond ((eq ptype 'consonant)
-	     (modify-category-entry char ?c thai-category-table)
-	     (global-set-key (vector char) 'thai-self-insert-command))
+	     (modify-category-entry char ?c thai-category-table))
 	    ((memq ptype '(vowel-upper vowel-lower))
 	     (modify-category-entry char ?v thai-category-table)
-	     (if (or (= char ?,TT(B) (= char ?$,1C4(B))
+	     (if (= char ?,TT(B)
 		 ;; Give category `I' to "SARA I".
-		 (modify-category-entry char ?I thai-category-table))
-	     (global-set-key (vector char) 'thai-self-insert-command))
+		 (modify-category-entry char ?I thai-category-table)))
 	    ((eq ptype 'tone)
 	     (modify-category-entry char ?t thai-category-table)
-	     (modify-category-entry char ?u thai-category-table)
-	     (global-set-key (vector char) 'thai-self-insert-command))
+	     (modify-category-entry char ?u thai-category-table))
 	    ((eq ptype 'sign-upper)
 	     (modify-category-entry char ?u thai-category-table)
-	     (if (or (= char ?,Tl(B) (= char ?$,1CL(B))
+	     (if (= char ?,Tl(B)
 		 ;; Give category `U' to "THANTHAKHAT".
-		 (modify-category-entry char ?U thai-category-table))
-	     (global-set-key (vector char) 'thai-self-insert-command)))
+		 (modify-category-entry char ?U thai-category-table))))
       (put-char-code-property char 'name (nth 2 elm)))))
 
 (defun thai-compose-syllable (beg end &optional category-set string)
@@ -333,57 +229,20 @@ positions (integers or markers) specifying the region."
   (thai-compose-region (point-min) (point-max)))
 
 ;;;###autoload
-(defun thai-post-read-conversion (len)
-  (thai-compose-region (point) (+ (point) len))
-  len)
-
-;;;###autoload
-(defun thai-composition-function (from to pattern &optional string)
-  "Compose Thai text in the region FROM and TO.
-The text matches the regular expression PATTERN.
-Optional 4th argument STRING, if non-nil, is a string containing text
-to compose.
-
-The return value is number of composed characters."
-  (when (and (not thai-auto-composition-mode)
-	     (< (1+ from) to))
-    (with-category-table thai-category-table
-      (if string
-	  (if (eq (string-match thai-composition-pattern string from) from)
-	      (thai-compose-syllable from (match-end 0) nil string))
-	(if (save-excursion
-	      (goto-char from)
-	      (and (looking-at thai-composition-pattern)
-		   (setq to (match-end 0))))
-	    (thai-compose-syllable from to))))))
-
-(defun thai-auto-composition (beg end len)
+(defun thai-composition-function (pos to font-object string)
+  (setq pos (1- pos))
   (with-category-table thai-category-table
-    (let (category-set)
-      (while (and (> beg (point-min))
-		  (setq category-set (char-category-set (char-after (1- beg))))
-		  (or (aref category-set ?v) (aref category-set ?u)))
-	  (setq beg (1- beg)))
-      (if (and (> beg (point-min))
-	       (aref (char-category-set (char-after (1- beg))) ?c))
-	  (setq beg (1- beg)))
-      (while (and (< end (point-max))
-		  (setq category-set (char-category-set (char-after end)))
-		  (or (aref category-set ?v) (aref category-set ?u)))
-	(setq end (1+ end)))
-      (if (< beg end)
-	  (thai-compose-region beg end)))))
-
-(put 'thai-auto-composition-mode 'permanent-local t)
-
-;;;###autoload
-(define-minor-mode thai-auto-composition-mode
-  "Minor mode for automatically correct Thai character composition."
-  :group 'mule
-  (cond ((null thai-auto-composition-mode)
-	 (remove-hook 'after-change-functions 'thai-auto-composition))
-	(t
-	 (add-hook 'after-change-functions 'thai-auto-composition))))
+    (if string
+	(if (and (>= pos 0)
+		 (eq (string-match thai-composition-pattern string pos) pos))
+	    (prog1 (match-end 0)
+	      (thai-compose-syllable pos (match-end 0) nil string)))
+      (if (>= pos (point-min))
+	  (progn
+	    (goto-char pos)
+	    (if (looking-at thai-composition-pattern)
+		(prog1 (match-end 0)
+		  (thai-compose-syllable pos (match-end 0)))))))))
 
 ;; Thai-word-mode requires functions in the feature `thai-word'.
 (require 'thai-word)

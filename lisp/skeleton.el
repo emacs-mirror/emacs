@@ -355,7 +355,7 @@ automatically, and you are prompted to fill in the variable parts.")))
 
 (defun skeleton-internal-1 (element &optional literal recursive)
   (cond
-   ((char-or-string-p element)
+   ((or (integerp element) (stringp element))
     (if (and (integerp element)		; -num
 	     (< element 0))
 	(if skeleton-untabify

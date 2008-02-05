@@ -190,6 +190,12 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
 (defun linum-after-config ()
   (walk-windows (lambda (w) (linum-update (window-buffer))) nil 'visible))
 
+(defun linum-unload-function ()
+  "Unload the Linum library."
+  (global-linum-mode -1)
+  ;; continue standard unloading
+  nil)
+
 (provide 'linum)
 
 ;; arch-tag: dea45631-ed3c-4867-8b49-1c41c80aec6a

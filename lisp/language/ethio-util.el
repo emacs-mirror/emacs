@@ -1,4 +1,4 @@
-;;; ethio-util.el --- utilities for Ethiopic -*- coding: iso-2022-7bit; -*-
+;;; ethio-util.el --- utilities for Ethiopic	-*- coding: utf-8; -*-
 
 ;; Copyright (C) 1997, 1998, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
@@ -6,6 +6,9 @@
 ;;   2006, 2007, 2008
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
+;; Copyright (C) 2005, 2006
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number: H15PRO110
 
 ;; Keywords: mule, multilingual, Ethiopic
 
@@ -32,6 +35,8 @@
 
 ;;; Code:
 
+(require 'robin)
+
 (defvar rmail-current-message)
 (defvar rmail-message-vector)
 
@@ -42,36 +47,17 @@
 (defun setup-ethiopic-environment-internal ()
   (let ((key-bindings '((" " . ethio-insert-space)
 			([?\S- ] . ethio-insert-ethio-space)
-			([?\C-'] . ethio-gemination)
-
-			;; these old bindings conflict
-			;; with Emacs' binding policy
-
-			;; ([f2] . ethio-toggle-space)
-			;; ([S-f2] . ethio-replace-space) ; as requested
-			;; ([f3] . ethio-toggle-punctuation)
-			;; ([f4] . ethio-sera-to-fidel-buffer)
-			;; ([S-f4] . ethio-sera-to-fidel-region)
-			;; ([C-f4] . ethio-sera-to-fidel-mail-or-marker)
-			;; ([f5] . ethio-fidel-to-sera-buffer)
-			;; ([S-f5] . ethio-fidel-to-sera-region)
-			;; ([C-f5] . ethio-fidel-to-sera-mail-or-marker)
-			;; ([f6] . ethio-modify-vowel)
-			;; ([f7] . ethio-replace-space)
-			;; ([f8] . ethio-input-special-character)
-
-			;; this is the rewritten bindings
-
+			;; ([?\C-'] . ethio-gemination)
 			([f3] . ethio-fidel-to-sera-buffer)
 			([S-f3] . ethio-fidel-to-sera-region)
-			([C-f3] . ethio-fidel-to-sera-mail-or-marker)
+			([C-f3] . ethio-fidel-to-sera-marker)
 			([f4] . ethio-sera-to-fidel-buffer)
 			([S-f4] . ethio-sera-to-fidel-region)
-			([C-f4] . ethio-sera-to-fidel-mail-or-marker)
+			([C-f4] . ethio-sera-to-fidel-marker)
 			([S-f5] . ethio-toggle-punctuation)
 			([S-f6] . ethio-modify-vowel)
 			([S-f7] . ethio-replace-space)
-			([S-f8] . ethio-input-special-character)
+			;; ([S-f8] . ethio-input-special-character) ; deprecated
 			([C-f9] . ethio-toggle-space)
 			([S-f9] . ethio-replace-space) ; as requested
 			))
@@ -84,7 +70,6 @@
       (global-set-key kb (cdr (car key-bindings)))
       (setq key-bindings (cdr key-bindings))))
 
-  (add-hook 'quail-activate-hook 'ethio-select-a-translation)
   (add-hook 'find-file-hook 'ethio-find-file)
   (add-hook 'write-file-functions 'ethio-write-file)
   (add-hook 'after-save-hook 'ethio-find-file))
@@ -97,7 +82,6 @@
     (setq exit-ethiopic-environment-data
 	  (cdr exit-ethiopic-environment-data)))
 
-  (remove-hook 'quail-activate-hook 'ethio-select-a-translation)
   (remove-hook 'find-file-hook 'ethio-find-file)
   (remove-hook 'write-file-functions 'ethio-write-file)
   (remove-hook 'after-save-hook 'ethio-find-file))
@@ -115,15 +99,6 @@
 ;;
 ;; If the filename ends in ".tex", editing is done in fidel
 ;; but file I/O is done in EthioTeX format.
-;;
-;; To automatically convert Ethiopic text to SERA format when sending mail,
-;;   (add-hook 'mail-send-hook 'ethio-fidel-to-sera-mail)
-;;
-;; To automatically convert SERA format to Ethiopic when receiving mail,
-;;   (add-hook 'rmail-show-message-hook 'ethio-sera-to-fidel-mail)
-;;
-;; To automatically convert Ethiopic text to SERA format when posting news,
-;;   (add-hook 'news-inews-hook 'ethio-fidel-to-sera-mail)
 
 ;;
 ;; users' preference
@@ -150,7 +125,7 @@ mark.  All SERA <--> FIDEL converters refer this variable.")
 
 (defvar ethio-quote-vowel-always nil
   "*Non-nil means always put an apostrophe before an isolated vowel (except at word initial) in FIDEL --> SERA conversion.
-If nil, put an apostrophe only between a sixth-form consonant and an
+If nil, put an apostrophe only between a 6th-form consonant and an
 isolated vowel.")
 
 (defvar ethio-W-sixth-always nil
@@ -164,292 +139,54 @@ For example, ({10}{9}{100}{80}{7}) is converted into:
     `109100807	    if `ethio-numeric-reduction' is 1,
     `10900807	    if `ethio-numeric-reduction' is 2.")
 
-(defvar ethio-implicit-period-conversion t
-  "*Non-nil means replacing the Ethiopic dot at the end of an Ethiopic sentence
-with an Ethiopic full stop.")
-
 (defvar ethio-java-save-lowercase nil
   "*Non-nil means save Ethiopic characters in lowercase hex numbers to Java files.
 If nil, use uppercases.")
 
+(defun ethio-prefer-amharic-p ()
+  (or (eq ethio-primary-language 'amharic)
+      (and (not (eq ethio-primary-language 'tigrigna))
+	   (eq ethio-secondary-language 'amharic))))
+
+(defun ethio-prefer-amharic (arg)
+  (if arg
+      (progn
+	(robin-modify-package "ethiopic-sera" "'a" ?አ)
+	(robin-modify-package "ethiopic-sera" "a" "አ")
+	(robin-modify-package "ethiopic-sera" "'A" ?ኣ)
+	(robin-modify-package "ethiopic-sera" "A" "ኣ"))
+    (robin-modify-package "ethiopic-sera" "'A" ?አ)
+    (robin-modify-package "ethiopic-sera" "A" "አ")
+    (robin-modify-package "ethiopic-sera" "'a" ?ኣ)
+    (robin-modify-package "ethiopic-sera" "a" "ኣ")))
+
+(defun ethio-use-colon-for-colon (arg)
+  (if arg
+      (progn
+	(robin-modify-package "ethiopic-sera" ":" ?፥)
+	(robin-modify-package "ethiopic-sera" "`:" ?፡))
+    (robin-modify-package "ethiopic-sera" " : " ?፡)
+    (robin-modify-package "ethiopic-sera" ":" "፡")
+    (robin-modify-package "ethiopic-sera" "-:" ?፥)))
+
+(defun ethio-use-three-dot-question (arg)
+  (if arg
+      (progn
+	(robin-modify-package "ethiopic-sera" "?" ?፧)
+	(robin-modify-package "ethiopic-sera" "`?" ??))
+    (robin-modify-package "ethiopic-sera" "?" ??)
+    (robin-modify-package "ethiopic-sera" "`?" ?፧)))
+
+(defun ethio-adjust-robin ()
+  (ethio-prefer-amharic (ethio-prefer-amharic-p))
+  (ethio-use-colon-for-colon ethio-use-colon-for-colon)
+  (ethio-use-three-dot-question ethio-use-three-dot-question))
+
+(add-hook 'robin-activate-hook 'ethio-adjust-robin)
+
 ;;
 ;; SERA to FIDEL
 ;;
-
-(defconst ethio-sera-to-fidel-table
-  [
-   nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
-   nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
-;;; SP
-   (" "
-    (?: (if ethio-use-colon-for-colon " $(3$l(B" "$(3$h(B")
-	(32 (if ethio-use-colon-for-colon " $(3$l(B " "$(3$h(B"))
-	(?- " $(3$m(B")
-	(?: " $(3$i(B")
-	(?| (if ethio-use-colon-for-colon " $(3$l(B|" " $(3$h(B|")
-	    (?: " $(3$o(B"))))
-
-;;; !   "   #   $   %   &    '
-   nil nil nil nil nil nil ("" (?' "$(3%s(B"))
-;;; (   )   *   +    ,      -               .
-   nil nil nil nil ("$(3$j(B") ("-" (?: "$(3$l(B")) ("$(3%u(B")
-;;;  /   0   1   2   3   4   5   6   7   8   9
-    nil nil nil nil nil nil nil nil nil nil nil
-;;; :
-   ((if ethio-use-colon-for-colon "$(3$l(B" "$(3$h(B")
-    (32 (if ethio-use-colon-for-colon "$(3$l(B " "$(3$h(B"))
-    (?- "$(3$m(B")
-    (?: "$(3$i(B")
-    (?| (if ethio-use-colon-for-colon "$(3$l(B|" "$(3$h(B|")
-	(?: "$(3$o(B")))
-;;;  ;      <              =    >
-   ("$(3$k(B") ("<" (?< "$(3%v(B")) nil (">" (?> "$(3%w(B"))
-;;; ?
-   ((if ethio-use-three-dot-question "$(3$n(B" "$(3%x(B"))
-;;; @
-    nil
-;;; A
-   ("$(3"f(B" (?2 "$(3#8(B"))
-;;; B
-   ("$(3"((B" (?e "$(3"#(B") (?u "$(3"$(B") (?i "$(3"%(B") (?a "$(3"&(B") (?E "$(3"'(B") (?o "$(3")(B")
-         (?W "$(3%b(B" (?e "$(3%2(B") (?u "$(3%b(B") (?i "$(3%B(B") (?a "$(3"*(B") (?E "$(3%R(B")))
-;;; C
-   ("$(3$4(B" (?e "$(3$/(B") (?u "$(3$0(B") (?i "$(3$1(B") (?a "$(3$2(B") (?E "$(3$3(B") (?o "$(3$5(B")
-         (?W "$(3$6(B" (?a "$(3$6(B")
-                  (?e "$(3$4%n(B") (?u "$(3$4%r(B") (?i "$(3$4%o(B") (?E "$(3$4%q(B")))
-;;; D
-   ("$(3#b(B" (?e "$(3#](B") (?u "$(3#^(B") (?i "$(3#_(B") (?a "$(3#`(B") (?E "$(3#a(B") (?o "$(3#c(B")
-         (?W "$(3#d(B" (?a "$(3#d(B")
-                  (?e "$(3#b%n(B") (?u "$(3#b%r(B") (?i "$(3#b%o(B") (?E "$(3#b%q(B")))
-;;; E
-   ("$(3"g(B" (?2 "$(3#9(B"))
-;;; F
-   ("$(3$T(B" (?e "$(3$O(B") (?u "$(3$P(B") (?i "$(3$Q(B") (?a "$(3$R(B") (?E "$(3$S(B") (?o "$(3$U(B")
-         (?W "$(3%d(B" (?e "$(3%4(B") (?u "$(3%d(B") (?i "$(3%D(B") (?a "$(3$V(B") (?E "$(3%T(B"))
-	 (?Y "$(3$a(B" (?a "$(3$a(B")))
-;;; G
-   ("$(3$$(B" (?e "$(3#}(B") (?u "$(3#~(B") (?i "$(3$!(B") (?a "$(3$"(B") (?E "$(3$#(B") (?o "$(3$%(B")
-         (?W "$(3%c(B" (?e "$(3%3(B") (?u "$(3%c(B") (?i "$(3%C(B") (?a "$(3$&(B") (?E "$(3%S(B")))
-;;; H
-   ("$(3!6(B" (?e "$(3!1(B") (?u "$(3!2(B") (?i "$(3!3(B") (?a "$(3!4(B") (?E "$(3!5(B") (?o "$(3!7(B")
-         (?W "$(3!8(B" (?a "$(3!8(B")
-                  (?e "$(3!6%n(B") (?u "$(3!6%r(B") (?i "$(3!6%o(B") (?E "$(3!6%q(B")))
-;;; I
-   ("$(3"h(B" (?2 "$(3#:(B"))
-;;; J
-   ("$(3#j(B" (?e "$(3#e(B") (?u "$(3#f(B") (?i "$(3#g(B") (?a "$(3#h(B") (?E "$(3#i(B") (?o "$(3#k(B")
-         (?W "$(3#l(B" (?a "$(3#l(B")
-	          (?e "$(3#j%n(B") (?u "$(3#j%r(B") (?i "$(3#j%o(B") (?E "$(3#j%q(B")))
-;;; K
-   ("$(3#"(B" (?e "$(3"{(B") (?u "$(3"|(B") (?i "$(3"}(B") (?a "$(3"~(B") (?E "$(3#!(B") (?o "$(3##(B")
-         (?W "$(3#*(B" (?e "$(3#%(B") (?u "$(3#*(B") (?i "$(3#'(B") (?a "$(3#((B") (?E "$(3#)(B")))
-;;; L
-   ("$(3!.(B" (?e "$(3!)(B") (?u "$(3!*(B") (?i "$(3!+(B") (?a "$(3!,(B") (?E "$(3!-(B") (?o "$(3!/(B")
-         (?W "$(3!0(B" (?a "$(3!0(B")
-                  (?e "$(3!.%n(B") (?u "$(3!.%r(B") (?i "$(3!.%o(B") (?E "$(3!.%q(B")))
-;;; M
-   ("$(3!>(B" (?e "$(3!9(B") (?u "$(3!:(B") (?i "$(3!;(B") (?a "$(3!<(B") (?E "$(3!=(B") (?o "$(3!?(B")
-         (?W "$(3%a(B" (?e "$(3%1(B") (?u "$(3%a(B") (?i "$(3%A(B") (?a "$(3!@(B") (?E "$(3%Q(B"))
-	 (?Y "$(3$_(B" (?a "$(3$_(B")))
-;;; N
-   ("$(3"`(B" (?e "$(3"[(B") (?u "$(3"\(B") (?i "$(3"](B") (?a "$(3"^(B") (?E "$(3"_(B") (?o "$(3"a(B")
-         (?W "$(3"b(B" (?a "$(3"b(B")
-                  (?e "$(3"`%n(B") (?u "$(3"`%r(B") (?i "$(3"`%o(B") (?E "$(3"`%q(B")))
-;;; O
-   ("$(3"i(B" (?2 "$(3#;(B"))
-;;; P
-   ("$(3$<(B" (?e "$(3$7(B") (?u "$(3$8(B") (?i "$(3$9(B") (?a "$(3$:(B") (?E "$(3$;(B") (?o "$(3$=(B")
-         (?W "$(3$>(B" (?a "$(3$>(B")
-                  (?e "$(3$<%n(B") (?u "$(3$<%r(B") (?i "$(3$<%o(B") (?E "$(3$<%q(B")))
-;;; Q
-   ("$(3!v(B" (?e "$(3!q(B") (?u "$(3!r(B") (?i "$(3!s(B") (?a "$(3!t(B") (?E "$(3!u(B") (?o "$(3!w(B")
-         (?W "$(3!~(B" (?e "$(3!y(B") (?u "$(3!~(B") (?i "$(3!{(B") (?a "$(3!|(B") (?E "$(3!}(B")))
-;;; R
-   ("$(3!N(B" (?e "$(3!I(B") (?u "$(3!J(B") (?i "$(3!K(B") (?a "$(3!L(B") (?E "$(3!M(B") (?o "$(3!O(B")
-         (?W "$(3!P(B" (?a "$(3!P(B")
-	          (?e "$(3!N%n(B") (?u "$(3!N%r(B") (?i "$(3!N%o(B") (?E "$(3!N%q(B"))
-         (?Y "$(3$`(B" (?a "$(3$`(B")))
-;;; S
-   ("$(3$D(B" (?e "$(3$?(B") (?u "$(3$@(B") (?i "$(3$A(B") (?a "$(3$B(B") (?E "$(3$C(B") (?o "$(3$E(B")
-         (?W "$(3$F(B" (?a "$(3$F(B")
-                  (?e "$(3$D%n(B") (?u "$(3$D%r(B") (?i "$(3$D%o(B") (?E "$(3$D%q(B"))
-	 (?2 "$(3$L(B"
-	     (?e "$(3$G(B") (?u "$(3$H(B") (?i "$(3$I(B") (?a "$(3$J(B") (?E "$(3$K(B") (?o "$(3$M(B")
-	     (?W "$(3$F(B" (?a "$(3$F(B")
-		 (?e "$(3$L%n(B") (?u "$(3$L%r(B") (?i "$(3$L%o(B") (?E "$(3$L%q(B"))))
-;;; T
-   ("$(3$,(B" (?e "$(3$'(B") (?u "$(3$((B") (?i "$(3$)(B") (?a "$(3$*(B") (?E "$(3$+(B") (?o "$(3$-(B")
-         (?W "$(3$.(B" (?a "$(3$.(B")
-	          (?e "$(3$,%n(B") (?u "$(3$,%r(B") (?i "$(3$,%o(B") (?E "$(3$,%q(B")))
-;;; U
-   ("$(3"d(B" (?2 "$(3#6(B"))
-;;; V
-   ("$(3"0(B" (?e "$(3"+(B") (?u "$(3",(B") (?i "$(3"-(B") (?a "$(3".(B") (?E "$(3"/(B") (?o "$(3"1(B")
-         (?W "$(3"2(B" (?a "$(3"2(B")
-	          (?e "$(3"0%n(B") (?u "$(3"0%r(B") (?i "$(3"0%o(B") (?E "$(3"0%q(B")))
-;;; W
-   ("$(3%r(B" (?e "$(3%n(B") (?u "$(3%r(B") (?i "$(3%o(B") (?a "$(3%p(B") (?E "$(3%q(B"))
-;;; X
-   ("$(3%N(B" (?e "$(3%I(B") (?u "$(3%J(B") (?i "$(3%K(B") (?a "$(3%L(B") (?E "$(3%M(B") (?o "$(3%O(B"))
-;;; Y
-   ("$(3#R(B" (?e "$(3#M(B") (?u "$(3#N(B") (?i "$(3#O(B") (?a "$(3#P(B") (?E "$(3#Q(B") (?o "$(3#S(B")
-         (?W "$(3#T(B" (?a "$(3#T(B")
-	          (?e "$(3#R%n(B") (?u "$(3#R%r(B") (?i "$(3#R%o(B") (?E "$(3#R%q(B")))
-;;; Z
-   ("$(3#J(B" (?e "$(3#E(B") (?u "$(3#F(B") (?i "$(3#G(B") (?a "$(3#H(B") (?E "$(3#I(B") (?o "$(3#K(B")
-         (?W "$(3#L(B" (?a "$(3#L(B")
-	          (?e "$(3#J%n(B") (?u "$(3#J%r(B") (?i "$(3#J%o(B") (?E "$(3#J%q(B")))
-;;; [   \   ]   ^   _
-   nil nil nil nil nil
-;;; `
-   (""
-    (?: "$(3$h(B")
-    (?? (if ethio-use-three-dot-question "$(3%x(B" "$(3$n(B"))
-    (?! "$(3%t(B")
-    (?e "$(3#5(B") (?u "$(3#6(B") (?U "$(3#6(B") (?i "$(3#7(B") (?a "$(3#8(B") (?A "$(3#8(B")
-        (?E "$(3#9(B") (?I "$(3#:(B") (?o "$(3#;(B") (?O "$(3#;(B")
-    (?g "$(3%^(B"
-        (?e "$(3%Y(B") (?u "$(3%Z(B") (?i "$(3%[(B") (?a "$(3%\(B") (?E "$(3%](B") (?o "$(3%_(B"))
-    (?h "$(3"H(B"
-        (?e "$(3"C(B") (?u "$(3"D(B") (?i "$(3"E(B") (?a "$(3"F(B") (?E "$(3"G(B") (?o "$(3"I(B")
-	          (?W "$(3"P(B" (?e "$(3"K(B") (?u "$(3"P(B") (?i "$(3"M(B") (?a "$(3"N(B") (?E "$(3"O(B")))
-    (?k "$(3%>(B"
-        (?e "$(3%9(B") (?u "$(3%:(B") (?i "$(3%;(B") (?a "$(3%<(B") (?E "$(3%=(B") (?o "$(3%?(B"))
-    (?s "$(3!F(B"
-        (?e "$(3!A(B") (?u "$(3!B(B") (?i "$(3!C(B") (?a "$(3!D(B") (?E "$(3!E(B") (?o "$(3!G(B")
-	(?W "$(3!H(B" (?a "$(3!H(B")
-		   (?e "$(3!F%n(B") (?u "$(3!F%r(B") (?i "$(3!F%o(B") (?E "$(3!F%q(B")))
-    (?S "$(3$L(B"
-	(?e "$(3$G(B") (?u "$(3$H(B") (?i "$(3$I(B") (?a "$(3$J(B") (?E "$(3$K(B") (?o "$(3$M(B")
-	(?W "$(3$F(B" (?a "$(3$F(B")
-	         (?e "$(3$L%n(B") (?u "$(3$L%r(B") (?i "$(3$L%o(B") (?E "$(3$L%q(B")))
-    (?q "$(3%.(B" (?e "$(3%)(B") (?u "$(3%*(B") (?i "$(3%+(B") (?a "$(3%,(B") (?E "$(3%-(B") (?o "$(3%/(B")))
-;;; a
-   ("$(3"f(B" (?2 "$(3#8(B"))
-;;; b
-   ("$(3"((B" (?e "$(3"#(B") (?u "$(3"$(B") (?i "$(3"%(B") (?a "$(3"&(B") (?E "$(3"'(B") (?o "$(3")(B")
-         (?W "$(3%b(B" (?e "$(3%2(B") (?u "$(3%b(B") (?i "$(3%B(B") (?a "$(3"*(B") (?E "$(3%R(B")))
-;;; c
-   ("$(3"@(B" (?e "$(3";(B") (?u "$(3"<(B") (?i "$(3"=(B") (?a "$(3">(B") (?E "$(3"?(B") (?o "$(3"A(B")
-         (?W "$(3"B(B" (?a "$(3"B(B")
-	          (?e "$(3"@%n(B") (?u "$(3"@%r(B") (?i "$(3"@%o(B") (?E "$(3"@%q(B")))
-;;; d
-   ("$(3#Z(B" (?e "$(3#U(B") (?u "$(3#V(B") (?i "$(3#W(B") (?a "$(3#X(B") (?E "$(3#Y(B") (?o "$(3#[(B")
-         (?W "$(3#\(B" (?a "$(3#\(B")
-	          (?e "$(3#Z%o(B") (?u "$(3#Z%r(B") (?i "$(3#Z%p(B") (?E "$(3#Z%q(B")))
-;;; e
-   ("$(3"c(B" (?2 "$(3#5(B") (?a "$(3"j(B"))
-;;; f
-   ("$(3$T(B" (?e "$(3$O(B") (?u "$(3$P(B") (?i "$(3$Q(B") (?a "$(3$R(B") (?E "$(3$S(B") (?o "$(3$U(B")
-         (?W "$(3%d(B" (?e "$(3%4(B") (?u "$(3%d(B") (?i "$(3%D(B") (?a "$(3$V(B") (?E "$(3%T(B"))
-	 (?Y "$(3$a(B" (?a "$(3$a(B")))
-;;; g
-   ("$(3#r(B" (?e "$(3#m(B") (?u "$(3#n(B") (?i "$(3#o(B") (?a "$(3#p(B") (?E "$(3#q(B") (?o "$(3#s(B")
-         (?W "$(3#z(B" (?e "$(3#u(B") (?u "$(3#z(B") (?i "$(3#w(B") (?a "$(3#x(B") (?E "$(3#y(B"))
-         (?2 "$(3%^(B" (?e "$(3%Y(B") (?u "$(3%Z(B") (?i "$(3%[(B") (?a "$(3%\(B") (?E "$(3%](B") (?o "$(3%_(B")))
-;;; h
-   ("$(3!&(B" (?e "$(3!!(B") (?u "$(3!"(B") (?i "$(3!#(B") (?a "$(3!$(B") (?E "$(3!%(B") (?o "$(3!'(B")
-         (?W "$(3"P(B" (?e "$(3"K(B") (?u "$(3"P(B") (?i "$(3"M(B") (?a "$(3"N(B") (?E "$(3"O(B"))
-	 (?2 "$(3"H(B" (?e "$(3"C(B") (?u "$(3"D(B") (?i "$(3"E(B") (?a "$(3"F(B") (?E "$(3"G(B") (?o "$(3"I(B")
-	          (?W "$(3"P(B" (?e "$(3"K(B") (?u "$(3"P(B") (?i "$(3"M(B") (?a "$(3"N(B") (?E "$(3"O(B"))))
-;;; i
-   ("$(3"e(B" (?2 "$(3#7(B"))
-;;; j
-   ("$(3#j(B" (?e "$(3#e(B") (?u "$(3#f(B") (?i "$(3#g(B") (?a "$(3#h(B") (?E "$(3#i(B") (?o "$(3#k(B")
-         (?W "$(3#l(B" (?a "$(3#l(B")
-	          (?e "$(3#j%n(B") (?u "$(3#j%r(B") (?i "$(3#j%o(B") (?E "$(3#j%q(B")))
-;;; k
-   ("$(3"p(B" (?e "$(3"k(B") (?u "$(3"l(B") (?i "$(3"m(B") (?a "$(3"n(B") (?E "$(3"o(B") (?o "$(3"q(B")
-         (?W "$(3"x(B" (?e "$(3"s(B") (?u "$(3"x(B") (?i "$(3"u(B") (?a "$(3"v(B") (?E "$(3"w(B"))
-	 (?2 "$(3%>(B" (?e "$(3%9(B") (?u "$(3%:(B") (?i "$(3%;(B") (?a "$(3%<(B") (?E "$(3%=(B") (?o "$(3%?(B")))
-;;; l
-   ("$(3!.(B" (?e "$(3!)(B") (?u "$(3!*(B") (?i "$(3!+(B") (?a "$(3!,(B") (?E "$(3!-(B") (?o "$(3!/(B")
-         (?W "$(3!0(B" (?a "$(3!0(B")
-                  (?e "$(3!.%n(B") (?u "$(3!.%r(B") (?i "$(3!.%o(B") (?E "$(3!.%q(B")))
-;;; m
-   ("$(3!>(B" (?e "$(3!9(B") (?u "$(3!:(B") (?i "$(3!;(B") (?a "$(3!<(B") (?E "$(3!=(B") (?o "$(3!?(B")
-         (?W "$(3%a(B" (?e "$(3%1(B") (?u "$(3%a(B") (?i "$(3%A(B") (?a "$(3!@(B") (?E "$(3%Q(B"))
-	 (?Y "$(3$_(B" (?a "$(3$_(B")))
-;;; n
-   ("$(3"X(B" (?e "$(3"S(B") (?u "$(3"T(B") (?i "$(3"U(B") (?a "$(3"V(B") (?E "$(3"W(B") (?o "$(3"Y(B")
-         (?W "$(3"Z(B" (?a "$(3"Z(B")
-	          (?e "$(3"X%n(B") (?u "$(3"X%r(B") (?i "$(3"X%o(B") (?E "$(3"X%q(B")))
-;;; o
-   ("$(3"i(B" (?2 "$(3#;(B"))
-;;; p
-   ("$(3$\(B" (?e "$(3$W(B") (?u "$(3$X(B") (?i "$(3$Y(B") (?a "$(3$Z(B") (?E "$(3$[(B") (?o "$(3$](B")
-         (?W "$(3%e(B" (?e "$(3%5(B") (?u "$(3%e(B") (?i "$(3%E(B") (?a "$(3$^(B") (?E "$(3%U(B")))
-;;; q
-   ("$(3!f(B" (?e "$(3!a(B") (?u "$(3!b(B") (?i "$(3!c(B") (?a "$(3!d(B") (?E "$(3!e(B") (?o "$(3!g(B")
-         (?W "$(3!n(B" (?e "$(3!i(B") (?u "$(3!n(B") (?i "$(3!k(B") (?a "$(3!l(B") (?E "$(3!m(B"))
-         (?2 "$(3%.(B" (?e "$(3%)(B") (?u "$(3%*(B") (?i "$(3%+(B") (?a "$(3%,(B") (?E "$(3%-(B") (?o "$(3%/(B")))
-;;; r
-   ("$(3!N(B" (?e "$(3!I(B") (?u "$(3!J(B") (?i "$(3!K(B") (?a "$(3!L(B") (?E "$(3!M(B") (?o "$(3!O(B")
-         (?W "$(3!P(B" (?a "$(3!P(B")
-	          (?e "$(3!N%n(B") (?u "$(3!N%r(B") (?i "$(3!N%o(B") (?E "$(3!N%q(B"))
-         (?Y "$(3$`(B" (?a "$(3$`(B")))
-;;; s
-   ("$(3!V(B" (?e "$(3!Q(B") (?u "$(3!R(B") (?i "$(3!S(B") (?a "$(3!T(B") (?E "$(3!U(B") (?o "$(3!W(B")
-         (?W "$(3!X(B" (?a "$(3!X(B")
-	          (?e "$(3!V%n(B") (?u "$(3!V%r(B") (?i "$(3!V%o(B") (?E "$(3!V%q(B"))
-	 (?2 "$(3!F(B" (?e "$(3!A(B") (?u "$(3!B(B") (?i "$(3!C(B") (?a "$(3!D(B") (?E "$(3!E(B") (?o "$(3!G(B")
-		  (?W "$(3!H(B" (?a "$(3!H(B")
-		           (?e "$(3!F%n(B") (?u "$(3!F%r(B") (?i "$(3!F%o(B") (?E "$(3!F%q(B"))))
-;;; t
-   ("$(3"8(B" (?e "$(3"3(B") (?u "$(3"4(B") (?i "$(3"5(B") (?a "$(3"6(B") (?E "$(3"7(B") (?o "$(3"9(B")
-         (?W "$(3":(B" (?a "$(3":(B")
-	          (?e "$(3"8%n(B") (?u "$(3"8%r(B") (?i "$(3"8%o(B") (?E "$(3"8%q(B")))
-;;; u
-   ("$(3"d(B" (?2 "$(3#6(B"))
-;;; v
-   ("$(3"0(B" (?e "$(3"+(B") (?u "$(3",(B") (?i "$(3"-(B") (?a "$(3".(B") (?E "$(3"/(B") (?o "$(3"1(B")
-         (?W "$(3"2(B" (?a "$(3"2(B")
-	          (?e "$(3"0%n(B") (?u "$(3"0%r(B") (?i "$(3"0%o(B") (?E "$(3"0%q(B")))
-;;; w
-   ("$(3#2(B" (?e "$(3#-(B") (?u "$(3#.(B") (?i "$(3#/(B") (?a "$(3#0(B") (?E "$(3#1(B") (?o "$(3#3(B")
-         (?W "$(3%p(B" (?e "$(3%n(B") (?u "$(3%r(B") (?i "$(3%o(B") (?a "$(3%p(B") (?E "$(3%q(B")))
-;;; x
-   ("$(3!^(B" (?e "$(3!Y(B") (?u "$(3!Z(B") (?i "$(3![(B") (?a "$(3!\(B") (?E "$(3!](B") (?o "$(3!_(B")
-         (?W "$(3!`(B" (?a "$(3!`(B")
-	          (?e "$(3!^%n(B") (?u "$(3!^%r(B") (?i "$(3!^%o(B") (?E "$(3!^%q(B")))
-;;; y
-   ("$(3#R(B" (?e "$(3#M(B") (?u "$(3#N(B") (?i "$(3#O(B") (?a "$(3#P(B") (?E "$(3#Q(B") (?o "$(3#S(B")
-         (?W "$(3#T(B" (?a "$(3#T(B")
-	          (?e "$(3#R%n(B") (?u "$(3#R%r(B") (?i "$(3#R%o(B") (?E "$(3#R%q(B")))
-;;; z
-   ("$(3#B(B" (?e "$(3#=(B") (?u "$(3#>(B") (?i "$(3#?(B") (?a "$(3#@(B") (?E "$(3#A(B") (?o "$(3#C(B")
-         (?W "$(3#D(B" (?a "$(3#D(B")
-	          (?e "$(3#B%n(B") (?u "$(3#B%r(B") (?i "$(3#B%o(B") (?E "$(3#B%q(B")))
-;;; {   |   }   ~  DEL
-   nil nil nil nil nil
-   ])
-
-;; To avoid byte-compiler warnings.  It should never be set globally.
-(defvar ethio-sera-being-called-by-w3)
-;; This variable will be bound by some third-party package.
-(defvar sera-being-called-by-w3)
-
-;;;###autoload
-(defun ethio-sera-to-fidel-region (beg end &optional secondary force)
-  "Convert the characters in region from SERA to FIDEL.
-The variable `ethio-primary-language' specifies the primary language
-and `ethio-secondary-language' specifies the secondary.
-
-If the 3rd parameter SECONDARY is given and non-nil, assume the region
-begins with the secondary language; otherwise with the primary
-language.
-
-If the 4th parameter FORCE is given and non-nil, perform conversion
-even if the buffer is read-only.
-
-See also the descriptions of the variables
-`ethio-use-colon-for-colon' and
-`ethio-use-three-dot-question'."
-
-  (interactive "r\nP")
-  (save-restriction
-    (narrow-to-region beg end)
-    (ethio-sera-to-fidel-buffer secondary force)))
 
 ;;;###autoload
 (defun ethio-sera-to-fidel-buffer (&optional secondary force)
@@ -458,19 +195,42 @@ See also the descriptions of the variables
 The variable `ethio-primary-language' specifies the primary
 language and `ethio-secondary-language' specifies the secondary.
 
-If the 1st optional parameter SECONDARY is non-nil, assume the buffer
-begins with the secondary language; otherwise with the primary
-language.
+If the 1st optional argument SECONDARY is non-nil, assume the
+buffer begins with the secondary language; otherwise with the
+primary language.
 
-If the 2nd optional parametr FORCE is non-nil, perform conversion even if the
-buffer is read-only.
+If the 2nd optional argument FORCE is non-nil, perform conversion
+even if the buffer is read-only.
 
 See also the descriptions of the variables
-`ethio-use-colon-for-colon' and
-`ethio-use-three-dot-question'."
+`ethio-use-colon-for-colon' and `ethio-use-three-dot-question'."
 
   (interactive "P")
+  (ethio-sera-to-fidel-region (point-min) (point-max) secondary force))
 
+;; To avoid byte-compiler warnings.  It should never be set globally.
+(defvar ethio-sera-being-called-by-w3)
+;; This variable will be bound by some third-party package.
+(defvar sera-being-called-by-w3)
+
+;;;###autoload
+(defun ethio-sera-to-fidel-region (begin end &optional secondary force)
+  "Convert the characters in region from SERA to FIDEL.
+
+The variable `ethio-primary-language' specifies the primary
+language and `ethio-secondary-language' specifies the secondary.
+
+If the 3rd argument SECONDARY is given and non-nil, assume the
+region begins with the secondary language; otherwise with the
+primary language.
+
+If the 4th argument FORCE is given and non-nil, perform
+conversion even if the buffer is read-only.
+
+See also the descriptions of the variables
+`ethio-use-colon-for-colon' and `ethio-use-three-dot-question'."
+
+  (interactive "r\nP")
   (if (and buffer-read-only
 	   (not force)
 	   (not (y-or-n-p "Buffer is read-only.  Force to convert? ")))
@@ -478,219 +238,165 @@ See also the descriptions of the variables
 
   (let ((ethio-primary-language ethio-primary-language)
 	(ethio-secondary-language ethio-secondary-language)
-	(ethio-use-colon-for-colon ethio-use-colon-for-colon)
-	(ethio-use-three-dot-question ethio-use-three-dot-question)
-	;; The above four variables may be changed temporary
-	;; by tilde escapes during conversion.  So we bind them to other
-	;; variables but of the same names.
+	;; The above two variables may be changed temporarily by tilde
+	;; escapes during conversion.  We bind them to the variables
+	;; of the same names so that the original values are restored
+	;; when this function exits.
 	(buffer-read-only nil)
-	(case-fold-search nil)
-	current-language
-	next-language)
+	(lang (if secondary ethio-secondary-language ethio-primary-language))
+	ret)
 
-    (setq current-language
-	  (if secondary
-	      ethio-secondary-language
-	    ethio-primary-language))
+    (ethio-use-colon-for-colon ethio-use-colon-for-colon)
+    (ethio-use-three-dot-question ethio-use-three-dot-question)
 
-    (goto-char (point-min))
+    (save-restriction
+      (narrow-to-region begin end)
+      (goto-char (point-min))
+      (while (not (eobp))
+	(setq ret
+	      (cond
+	       ((eq lang 'amharic)
+		(ethio-prefer-amharic t)
+		(ethio-sera-to-fidel-region-ethio 'amharic))
+	       ((eq lang 'tigrigna)
+		(ethio-prefer-amharic nil)
+		(ethio-sera-to-fidel-region-ethio 'tigrigna))
+	       (t
+		(ethio-sera-to-fidel-region-noethio))))
+	(setq lang
+	      (if (eq ret 'toggle)
+		  (if (eq lang ethio-primary-language)
+		      ethio-secondary-language
+		    ethio-primary-language)
+		ret)))))
 
-    (while (not (eobp))
-      (setq next-language
-	    (cond
-	     ((eq current-language 'english)
-	      (ethio-sera-to-fidel-english))
-	     ((eq current-language 'amharic)
-	      (ethio-sera-to-fidel-ethio 'amharic))
-	     ((eq current-language 'tigrigna)
-	      (ethio-sera-to-fidel-ethio 'tigrigna))
-	     (t				; we don't know what to do
-	      (ethio-sera-to-fidel-english))))
+  ;; Restore user's preference.
+  (ethio-adjust-robin))
 
-      (setq current-language
-	    (cond
+(defun ethio-sera-to-fidel-region-noethio ()
+  "Return next language as symbol: amharic, tigrigna, toggle or nil."
+  (let (lflag)
+    (cond
 
-	     ;; when language tag is explicitly specified
-	     ((not (eq next-language 'toggle))
-	      next-language)
+     ;; No more "\", i.e. nothing to do.
+     ((not (search-forward "\\" nil 0))
+      nil)
 
-	     ;; found a toggle in a primary language section
-	     ((eq current-language ethio-primary-language)
-	      ethio-secondary-language)
+     ;; Hereafter point is put after a "\".
+     ;; First delete that "\", then check the following chars.
 
-	     ;; found a toggle in a secondary, third, fourth, ...
-	     ;; language section
-	     (t
-	      ethio-primary-language))))
+     ;; A language flag.
+     ((progn (delete-char -1) (setq lflag (ethio-process-language-flag)))
+      lflag)
 
-    ;; If ethio-implicit-period-conversion is non-nil, the
-    ;; Ethiopic dot "$(3%u(B" at the end of an Ethiopic sentence is
-    ;; replaced with the Ethiopic full stop "$(3$i(B".
-    (if ethio-implicit-period-conversion
-	(progn
-	  (goto-char (point-min))
-	  (while (re-search-forward "\\([$(3!!(B-$(3$a%)(B-$(3%e%n(B-$(3%r%s(B]\\)$(3%u(B\\([ \t]\\)"
-				    nil t)
-	    (replace-match "\\1$(3$i(B\\2"))
-	  (goto-char (point-min))
-	  (while (re-search-forward "\\([$(3!!(B-$(3$a%)(B-$(3%e%n(B-$(3%r%s(B]\\)$(3%u(B$" nil t)
-	    (replace-match "\\1$(3$i(B"))))
+     ;; "\\" : leave the second "\" and continue in the same language.
+     ((= (following-char) ?\\)
+      (forward-char 1)
+      nil)
 
-    ;; gemination
-    (goto-char (point-min))
-    (while (re-search-forward "\\ce$(3%s(B" nil 0)
-      (compose-region
-       (save-excursion (backward-char 2) (point))
-       (point)))
-    ))
+     ;; "\ " : delete the following " " and toggle the language.
+     ((= (following-char) 32)
+      (delete-char 1)
+      'toggle)
 
-(defun ethio-sera-to-fidel-english nil
-  "Handle English section in SERA to FIDEL conversion.
-Conversion stops when a language switch is found.  Then delete that
-switch and return the name of the new language as a symbol."
-  (let ((new-language nil))
+     ;; A  "\" but not a special sequence: simply toggle the language.
+     (t
+      'toggle))))
 
-    (while (and (not (eobp)) (null new-language))
-      (cond
+(defun ethio-sera-to-fidel-region-ethio (lang)
+  "Return next language as symbol: amharic, tigrigna, toggle or nil."
+  (save-restriction
+    (narrow-to-region
+     (point)
+     (if (re-search-forward "\\(`[1-9][0-9]*\\)\\|[\\<&]" nil t)
+	 (match-beginning 0)
+       (point-max)))
+    (robin-convert-region (point-min) (point-max) "ethiopic-sera")
+    (goto-char (point-max)))
 
-       ;; if no more "\", nothing to do.
-       ((not (search-forward "\\" nil 0)))
+  (let (lflag)
+    (cond
+     ((= (following-char) ?`)
+      (delete-char 1)
+      (ethio-process-digits)
+      lang)
 
-       ;; hereafter point is put after a "\".
-       ;; first delete that "\", then check the following chars
-
-       ;; "\\" :  leave the second "\"
-       ((progn
-	  (delete-backward-char 1)
-	  (= (following-char) ?\\ ))
+     ((looking-at "[<&]")
+      (if (or (and (boundp 'ethio-sera-being-called-by-w3)
+		   ethio-sera-being-called-by-w3)
+	      (and (boundp 'sera-being-called-by-w3)
+		   sera-being-called-by-w3))
+	  (search-forward (if (= (following-char) ?<) ">" ";") nil 0)
 	(forward-char 1))
+      lang)
 
-       ;; "\ " :  delete the following " "
-       ((= (following-char) 32)
-	(delete-char 1)
-	(setq new-language 'toggle))
+     ((eobp)
+      nil)
 
-       ;; a language flag
-       ((setq new-language (ethio-process-language-flag)))
+     ;; Now we must be looking at a "\".
+     ;; First delete that "\", then check the following chars.
 
-       ;; just a "\" :  not special sequence.
-       (t
-	(setq new-language 'toggle))))
+     ((progn (delete-char 1) (= (following-char) 32))
+      (delete-char 1)
+      'toggle)
 
-    new-language))
+     ((looking-at "[,.;:'`?\\]+")
+      (goto-char (match-end 0))
+      lang)
 
-(defun ethio-sera-to-fidel-ethio (lang)
-  "Handle Ethiopic section in SERA to FIDEL conversion.
-Conversion stops when a language switch is found.  Then delete that
-switch and return the name of the new language as a symbol.
+     ((/= (following-char) ?~)
+      'toggle)
 
-The parameter LANG (symbol, either `amharic' or `tigrigna') affects
-the conversion of \"a\"."
+     ;; Now we must be looking at a "~".
 
-  (let ((new-language nil)
-	(verbatim nil)
-	start table table2 ch)
+     ((setq lflag (ethio-process-language-flag))
+      lflag)
 
-    (setcar (aref ethio-sera-to-fidel-table ?a)
-	    (if (eq lang 'tigrigna) "$(3"f(B" "$(3"c(B"))
+     ;; Delete the following "~" and check the following chars.
 
-    (while (and (not (eobp)) (null new-language))
-      (setq ch (following-char))
-      (cond
+     ((progn (delete-char 1) (looking-at "! ?"))
+      (replace-match "")
+      (if (re-search-forward "\\\\~! ?" nil 0)
+	  (replace-match ""))
+      lang)
 
-       ;; skip from "<" to ">" (or from "&" to ";") if in w3-mode
-       ((and (or (= ch ?<) (= ch ?&))
-	     (or (and (boundp 'ethio-sera-being-called-by-w3)
-		      ethio-sera-being-called-by-w3)
-		 (and (boundp 'sera-being-called-by-w3)
-		      sera-being-called-by-w3)))
-	(search-forward (if (= ch ?<) ">" ";")
-			nil 0))
+     ((looking-at "-: ?")
+      (replace-match "")
+      (ethio-use-colon-for-colon t)
+      lang)
 
-       ;; leave non-ASCII characters as they are
-       ((>= ch 128)
-	(forward-char 1))
+     ((looking-at "`: ?")
+      (replace-match "")
+      (ethio-use-colon-for-colon nil)
+      lang)
 
-       ;; ethiopic digits
-       ((looking-at "`[1-9][0-9]*")
-	(delete-char 1)
-	(ethio-convert-digit))
+     ((looking-at "`| ?")
+      (replace-match "")
+      (ethio-use-three-dot-question t)
+      lang)
 
-       ;; if not seeing a "\", do sera to fidel conversion
-       ((/= ch ?\\ )
-	(setq start (point))
-	(forward-char 1)
-	(setq table (aref ethio-sera-to-fidel-table ch))
-	(while (setq table2 (cdr (assoc (following-char) table)))
-	  (setq table table2)
-	  (forward-char 1))
-	(if (setq ch (car table))
-	    (progn
-	      (delete-region start (point))
-	      (if (stringp ch)
-		  (insert ch)
-		(insert (eval ch))))))
+     ((looking-at "\\? ?")
+      (replace-match "")
+      (ethio-use-three-dot-question nil)
+      lang)
 
-       ;; if control reaches here, we must be looking at a "\"
-
-       ;; verbatim mode
-       (verbatim
-	(if (looking-at "\\\\~! ?")
-
-	    ;; "\~!" or "\~! ".  switch to non-verbatim mode
-	    (progn
-	      (replace-match "")
-	      (setq verbatim nil))
-
-	  ;; "\" but not "\~!" nor "\~! ".  skip the current "\".
-	  (forward-char 1)))
-
-       ;; hereafter, non-verbatim mode and looking at a "\"
-       ;; first delete that "\", then check the following chars.
-
-       ;; "\ " : delete the following " "
-       ((progn
-	  (delete-char 1)
-	  (setq ch (following-char))
-	  (= ch 32))
-	(delete-char 1)
-	(setq new-language 'toggle))
-
-       ;; "\~!" or "\~! " : switch to verbatim mode
-       ((looking-at "~! ?")
-	(replace-match "")
-	(setq verbatim t))
-
-       ;; a language flag
-       ((setq new-language (ethio-process-language-flag)))
-
-       ;; "\~" but not "\~!" nor a language flag
-       ((= ch ?~)
-	(delete-char 1)
-	(ethio-tilde-escape))
-
-       ;; ASCII punctuation escape.  skip
-       ((looking-at "\\(,\\|\\.\\|;\\|:\\|'\\|`\\|\?\\|\\\\\\)+")
-	(goto-char (match-end 0)))
-
-       ;; "\", but not special sequence
-       (t
-	(setq new-language 'toggle))))
-
-    new-language))
+     ;; Unknown tilde escape.  Recover the deleted chars.
+     (t
+      (insert "\\~")
+      lang))))
 
 (defun ethio-process-language-flag nil
   "Process a language flag of the form \"~lang\" or \"~lang1~lang2\".
 
 If looking at \"~lang1~lang2\", set `ethio-primary-language' and
-`ethio-une-secondary-language' based on \"lang1\" and \"lang2\".
+`ethio-secondary-language' based on \"lang1\" and \"lang2\".
 Then delete the language flag \"~lang1~lang2\" from the buffer.
 Return value is the new primary language.
 
-If looking at \"~lang\", delete that language flag \"~lang\" from the
-buffer and return that language.  In this case
-`ethio-primary-language' and `ethio-uni-secondary-language'
-are left unchanged.
+If looking at \"~lang\", delete that language flag \"~lang\" from
+the buffer and return that language.  In this case
+`ethio-primary-language' and `ethio-secondary-language' are left
+unchanged.
 
 If an unsupported language flag is found, just return nil without
 changing anything."
@@ -701,12 +407,8 @@ changing anything."
      ;; ~lang1~lang2
      ((and (looking-at
 	    "~\\([a-z][a-z][a-z]?\\)~\\([a-z][a-z][a-z]?\\)[ \t\n\\]")
-	   (setq lang1
-		 (ethio-flag-to-language
-		  (buffer-substring (match-beginning 1) (match-end 1))))
-	   (setq lang2
-		 (ethio-flag-to-language
-		  (buffer-substring (match-beginning 2) (match-end 2)))))
+	   (setq lang1 (ethio-flag-to-language (match-string 1)))
+	   (setq lang2 (ethio-flag-to-language (match-string 2))))
       (setq ethio-primary-language lang1
 	    ethio-secondary-language lang2)
       (delete-region (point) (match-end 2))
@@ -716,68 +418,13 @@ changing anything."
 
      ;; ~lang
      ((and (looking-at "~\\([a-z][a-z][a-z]?\\)[ \t\n\\]")
-	   (setq lang1
-		 (ethio-flag-to-language
-		  (buffer-substring (match-beginning 1) (match-end 1)))))
+	   (setq lang1 (ethio-flag-to-language (match-string 1))))
       (delete-region (point) (match-end 1))
       (if (= (following-char) 32)
 	  (delete-char 1))
       lang1)
 
      ;; otherwise
-     (t
-      nil))))
-
-(defun ethio-tilde-escape nil
-  "Handle a SERA tilde escape in Ethiopic section and delete it.
-Delete the escape even it is not recognized."
-
-  (let ((p (point)) command)
-    (skip-chars-forward "^ \t\n\\\\")
-    (setq command (buffer-substring p (point)))
-    (delete-region p (point))
-    (if (= (following-char) 32)
-	(delete-char 1))
-
-    (cond
-
-     ;; \~-:
-     ((string= command "-:")
-      (setq ethio-use-colon-for-colon t))
-
-     ;; \~`:
-     ((string= command "`:")
-      (setq ethio-use-colon-for-colon nil))
-
-     ;; \~?
-     ((string= command "?")
-      (setq ethio-use-three-dot-question nil))
-
-     ;; \~`|
-     ((string= command "`|")
-      (setq ethio-use-three-dot-question t))
-
-     ;; \~e
-     ((string= command "e")
-      (insert "$(3%j(B"))
-
-     ;; \~E
-     ((string= command "E")
-      (insert "$(3%k(B"))
-
-     ;; \~a
-     ((string= command "a")
-      (insert "$(3%l(B"))
-
-     ;; \~A
-     ((string= command "A")
-      (insert "$(3%m(B"))
-
-     ;; \~X
-     ((string= command "X")
-      (insert "$(3%i(B"))
-
-     ;; unsupported tilde escape
      (t
       nil))))
 
@@ -788,7 +435,7 @@ Delete the escape even it is not recognized."
    ((or (string= flag "am") (string= flag "amh")) 'amharic)
    (t nil)))
 
-(defun ethio-convert-digit nil
+(defun ethio-process-digits nil
   "Convert Arabic digits to Ethiopic digits."
   (let (ch z)
     (while (and (>= (setq ch (following-char)) ?1)
@@ -805,97 +452,23 @@ Delete the escape even it is not recognized."
 
        ;; first digit is 10, 20, ..., or 90
        ((= (mod z 2) 1)
-	(insert (aref [?$(3$y(B ?$(3$z(B ?$(3${(B ?$(3$|(B ?$(3$}(B ?$(3$~(B ?$(3%!(B ?$(3%"(B ?$(3%#(B] (- ch ?1)))
+	(insert (aref [?፲ ?፳ ?፴ ?፵ ?፶ ?፷ ?፸ ?፹ ?፺] (- ch ?1)))
 	(setq z (1- z)))
 
        ;; first digit is 2, 3, ..., or 9
        ((/= ch ?1)
-	(insert (aref [?$(3$q(B ?$(3$r(B ?$(3$s(B ?$(3$t(B ?$(3$u(B ?$(3$v(B ?$(3$w(B ?$(3$x(B] (- ch ?2))))
+	(insert (aref [?፪ ?፫ ?፬ ?፭ ?፮ ?፯ ?፰ ?፱] (- ch ?2))))
 
        ;; single 1
        ((= z 0)
-	(insert "$(3$p(B")))
+	(insert "፩")))
 
       ;; 100
       (if (= (mod z 4) 2)
-	  (insert "$(3%$(B"))
+	  (insert "፻"))
 
       ;; 10000
-      (insert-char ?$(3%%(B (/ z 4)))))
-
-;;;###autoload
-(defun ethio-sera-to-fidel-mail-or-marker (&optional arg)
-  "Execute `ethio-sera-to-fidel-mail' or `ethio-sera-to-fidel-marker' depending on the current major mode.
-If in rmail-mode or in mail-mode, execute the former; otherwise latter."
-
-  (interactive "P")
-  (if (or (eq major-mode 'rmail-mode)
-	  (eq major-mode 'mail-mode))
-      (ethio-sera-to-fidel-mail (prefix-numeric-value arg))
-    (ethio-sera-to-fidel-marker arg)))
-
-;;;###autoload
-(defun ethio-sera-to-fidel-mail (&optional arg)
-  "Convert SERA to FIDEL to read/write mail and news.
-
-If the buffer contains the markers \"<sera>\" and \"</sera>\",
-convert the segments between them into FIDEL.
-
-If invoked interactively and there is no marker, convert the subject field
-and the body into FIDEL using `ethio-sera-to-fidel-region'."
-
-  (interactive "p")
-  (let ((buffer-read-only nil)
-	border)
-    (save-excursion
-
-      ;; follow RFC822 rules instead of looking for a fixed separator
-      (rfc822-goto-eoh)
-      (forward-line 1)
-      (setq border (point))
-
-      ;; note that the point is placed at the border
-      (if (or (re-search-forward "^<sera>$" nil t)
-	      (progn
-		(goto-char (point-min))
-		(re-search-forward "^Subject: <sera>" border t)))
-
-	  ;; there are markers
-	  (progn
-	    ;; we start with the body so that the border will not change
-	    ;; use "^<sera>\n" instead of "^<sera>$" not to leave a blank line
-	    (goto-char border)
-	    (while (re-search-forward "^<sera>\n" nil t)
-	      (replace-match "")
-	      (ethio-sera-to-fidel-region
-	       (point)
-	       (progn
-		 (if (re-search-forward "^</sera>\n" nil 0)
-		     (replace-match ""))
-		 (point))))
-	    ;; now process the subject
-	    (goto-char (point-min))
-	    (if (re-search-forward "^Subject: <sera>" border t)
-		(ethio-sera-to-fidel-region
-		 (progn (delete-backward-char 6) (point))
-		 (progn
-		   (if (re-search-forward "</sera>$" (line-end-position) 0)
-		       (replace-match ""))
-		   (point)))))
-
-	;; in case there are no marks but invoked interactively
-	(if arg
-	    (progn
-	      (ethio-sera-to-fidel-region border (point-max))
-	      (goto-char (point-min))
-	      (if (re-search-forward "^Subject: " border t)
-		  (ethio-sera-to-fidel-region (point) (line-end-position))))))
-
-      ;; adjust the rmail marker
-      (if (eq major-mode 'rmail-mode)
-	  (set-marker
-	   (aref rmail-message-vector (1+ rmail-current-message))
-	   (point-max))))))
+      (insert-char ?፼ (/ z 4)))))
 
 ;;;###autoload
 (defun ethio-sera-to-fidel-marker (&optional force)
@@ -909,10 +482,10 @@ The markers \"<sera>\" and \"</sera>\" themselves are not deleted."
       (error ""))
   (save-excursion
     (goto-char (point-min))
-    (while (re-search-forward "<sera>" nil t)
+    (while (search-forward "<sera>" nil t)
       (ethio-sera-to-fidel-region
        (point)
-       (if (re-search-forward "</sera>" nil t)
+       (if (search-forward "</sera>" nil t)
 	   (match-beginning 0)
 	 (point-max))
        nil
@@ -922,71 +495,6 @@ The markers \"<sera>\" and \"</sera>\" themselves are not deleted."
 ;; FIDEL to SERA
 ;;
 
-(defconst ethio-fidel-to-sera-map
- [ "he"  "hu"  "hi"  "ha"  "hE"  "h"  "ho"    ""       ;;   0 - 7
-   "le"  "lu"  "li"  "la"  "lE"  "l"  "lo"  "lWa"      ;;   8
-   "He"  "Hu"  "Hi"  "Ha"  "HE"  "H"  "Ho"  "HWa"      ;;  16
-   "me"  "mu"  "mi"  "ma"  "mE"  "m"  "mo"  "mWa"      ;;  24
-  "`se" "`su" "`si" "`sa" "`sE" "`s" "`so" "`sWa"      ;;  32
-   "re"  "ru"  "ri"  "ra"  "rE"  "r"  "ro"  "rWa"      ;;  40
-   "se"  "su"  "si"  "sa"  "sE"  "s"  "so"  "sWa"      ;;  48
-   "xe"  "xu"  "xi"  "xa"  "xE"  "x"  "xo"  "xWa"      ;;  56
-   "qe"  "qu"  "qi"  "qa"  "qE"  "q"  "qo"    ""       ;;  64
-  "qWe"   ""  "qWi" "qWa" "qWE"  "qW'" ""     ""       ;;  72
-   "Qe"  "Qu"  "Qi"  "Qa"  "QE"  "Q"  "Qo"    ""       ;;  80
-  "QWe"   ""  "QWi" "QWa" "QWE"  "QW'" ""     ""       ;;  88
-   "be"  "bu"  "bi"  "ba"  "bE"  "b"  "bo"  "bWa"      ;;  96
-   "ve"  "vu"  "vi"  "va"  "vE"  "v"  "vo"  "vWa"      ;; 104
-   "te"  "tu"  "ti"  "ta"  "tE"  "t"  "to"  "tWa"      ;; 112
-   "ce"  "cu"  "ci"  "ca"  "cE"  "c"  "co"  "cWa"      ;; 120
-  "`he" "`hu" "`hi" "`ha" "`hE" "`h" "`ho"    ""       ;; 128
-  "hWe"   ""  "hWi" "hWa"  "hWE" "hW'" ""     ""       ;; 136
-   "ne"  "nu"  "ni"  "na"  "nE"  "n"  "no"  "nWa"      ;; 144
-   "Ne"  "Nu"  "Ni"  "Na"  "NE"  "N"  "No"  "NWa"      ;; 152
-    "e"   "u"   "i"   "A"   "E"  "I"   "o"   "ea"      ;; 160
-   "ke"  "ku"  "ki"  "ka"  "kE"  "k"  "ko"    ""       ;; 168
-  "kWe"   ""  "kWi" "kWa" "kWE"  "kW'" ""     ""       ;; 176
-   "Ke"  "Ku"  "Ki"  "Ka"  "KE"  "K"  "Ko"    ""       ;; 184
-  "KWe"   ""  "KWi" "KWa" "KWE"  "KW'" ""     ""       ;; 192
-   "we"  "wu"  "wi"  "wa"  "wE"  "w"  "wo"    ""       ;; 200
-   "`e"  "`u"  "`i"  "`a"  "`E" "`I"  "`o"    ""       ;; 208
-   "ze"  "zu"  "zi"  "za"  "zE"  "z"  "zo"  "zWa"      ;; 216
-   "Ze"  "Zu"  "Zi"  "Za"  "ZE"  "Z"  "Zo"  "ZWa"      ;; 224
-   "ye"  "yu"  "yi"  "ya"  "yE"  "y"  "yo"  "yWa"      ;; 232
-   "de"  "du"  "di"  "da"  "dE"  "d"  "do"  "dWa"      ;; 240
-   "De"  "Du"  "Di"  "Da"  "DE"  "D"  "Do"  "DWa"      ;; 248
-   "je"  "ju"  "ji"  "ja"  "jE"  "j"  "jo"  "jWa"      ;; 256
-   "ge"  "gu"  "gi"  "ga"  "gE"  "g"  "go"    ""       ;; 264
-  "gWe"   ""  "gWi" "gWa" "gWE" "gW'"  ""     ""       ;; 272
-   "Ge"  "Gu"  "Gi"  "Ga"  "GE"  "G"  "Go"  "GWa"      ;; 280
-   "Te"  "Tu"  "Ti"  "Ta"  "TE"  "T"  "To"  "TWa"      ;; 288
-   "Ce"  "Cu"  "Ci"  "Ca"  "CE"  "C"  "Co"  "CWa"      ;; 296
-   "Pe"  "Pu"  "Pi"  "Pa"  "PE"  "P"  "Po"  "PWa"      ;; 304
-   "Se"  "Su"  "Si"  "Sa"  "SE"  "S"  "So"  "SWa"      ;; 312
-  "`Se" "`Su" "`Si" "`Sa" "`SE" "`S" "`So"    ""       ;; 320
-   "fe"  "fu"  "fi"  "fa"  "fE"  "f"  "fo"  "fWa"      ;; 328
-   "pe"  "pu"  "pi"  "pa"  "pE"  "p"  "po"  "pWa"      ;; 336
-  "mYa" "rYa" "fYa"   ""    ""   ""    ""     ""       ;; 344
-   " "  " : "  "::"  ","   ";"  "-:"  ":-"   "`?"      ;; 352
-  ":|:"  "1"   "2"   "3"   "4"   "5"   "6"   "7"       ;; 360
-   "8"   "9"   "10"  "20"  "30"  "40" "50"   "60"      ;; 368
-   "70"  "80"  "90" "100" "10000" ""   ""     ""       ;; 376
-  "`qe" "`qu" "`qi" "`qa" "`qE" "`q" "`qo"    ""       ;; 384
-  "mWe" "bWe" "GWe" "fWe" "pWe"  ""    ""     ""       ;; 392
-  "`ke" "`ku" "`ki" "`ka" "`kE" "`k" "`ko"    ""       ;; 400
-  "mWi" "bWi" "GWi" "fWi" "pWi"  ""    ""     ""       ;; 408
-   "Xe"  "Xu"  "Xi"  "Xa"  "XE"  "X"  "Xo"    ""       ;; 416
-  "mWE" "bWE" "GWE" "fWE" "pWE"  ""    ""     ""       ;; 424
-  "`ge" "`gu" "`gi" "`ga" "`gE" "`g" "`go"    ""       ;; 432
-  "mW'" "bW'" "GW'" "fW'" "pW'"  ""    ""     ""       ;; 440
-  "\\~X " "\\~e " "\\~E " "\\~a " "\\~A " "wWe" "wWi" "wWa" ;; 448
-  "wWE" "wW'"  "''"  "`!"  "."  "<<"  ">>"   "?" ])    ;; 456
-
-(defun ethio-prefer-amharic-p nil
-  (or (eq ethio-primary-language 'amharic)
-      (and (not (eq ethio-primary-language 'tigrigna))
-	   (eq ethio-secondary-language 'amharic))))
-
 (defun ethio-language-to-flag (lang)
   (cond
    ((eq lang 'english) "eng")
@@ -995,16 +503,37 @@ The markers \"<sera>\" and \"</sera>\" themselves are not deleted."
    (t "")))
 
 ;;;###autoload
-(defun ethio-fidel-to-sera-region (begin end &optional secondary force)
-  "Replace all the FIDEL characters in the region to the SERA format.
+(defun ethio-fidel-to-sera-buffer (&optional secondary force)
+  "Replace all the FIDEL characters in the current buffer to the SERA format.
 The variable `ethio-primary-language' specifies the primary
 language and `ethio-secondary-language' specifies the secondary.
 
-If the 3dr parameter SECONDARY is given and non-nil, try to convert
-the region so that it begins in the secondary language; otherwise with
+If the 1st optional argument SECONDARY is non-nil, try to convert the
+region so that it begins with the secondary language; otherwise with the
+primary language.
+
+If the 2nd optional argument FORCE is non-nil, convert even if the
+buffer is read-only.
+
+See also the descriptions of the variables
+`ethio-use-colon-for-colon', `ethio-use-three-dot-question',
+`ethio-quote-vowel-always' and `ethio-numeric-reduction'."
+
+  (interactive "P")
+  (ethio-fidel-to-sera-region (point-min) (point-max) secondary force))
+
+;;;###autoload
+(defun ethio-fidel-to-sera-region (begin end &optional secondary force)
+  "Replace all the FIDEL characters in the region to the SERA format.
+
+The variable `ethio-primary-language' specifies the primary
+language and `ethio-secondary-language' specifies the secondary.
+
+If the 3rd argument SECONDARY is given and non-nil, convert
+the region so that it begins with the secondary language; otherwise with
 the primary language.
 
-If the 4th parameter FORCE is given and non-nil, convert even if the
+If the 4th argument FORCE is given and non-nil, convert even if the
 buffer is read-only.
 
 See also the descriptions of the variables
@@ -1012,267 +541,104 @@ See also the descriptions of the variables
 `ethio-quote-vowel-always' and `ethio-numeric-reduction'."
 
   (interactive "r\nP")
-  (save-restriction
-    (narrow-to-region begin end)
-    (ethio-fidel-to-sera-buffer secondary force)))
-
-;;;###autoload
-(defun ethio-fidel-to-sera-buffer (&optional secondary force)
-  "Replace all the FIDEL characters in the current buffer to the SERA format.
-The variable `ethio-primary-language' specifies the primary
-language and `ethio-secondary-language' specifies the secondary.
-
-If the 1st optional parameter SECONDARY is non-nil, try to convert the
-region so that it begins in the secondary language; otherwise with the
-primary language.
-
-If the 2nd optional parameter FORCE is non-nil, convert even if the
-buffer is read-only.
-
-See also the descriptions of the variables
-`ethio-use-colon-for-colon', `ethio-use-three-dot-question',
-`ethio-quote-vowel-always' and `ethio-numeric-reduction'."
-
-  (interactive "P")
   (if (and buffer-read-only
 	   (not force)
 	   (not (y-or-n-p "Buffer is read-only.  Force to convert? ")))
       (error ""))
 
-  (let ((buffer-read-only nil)
-	(case-fold-search nil)
-	(lonec nil) ;; t means previous char was a lone consonant
-	(fidel nil) ;; t means previous char was a FIDEL
-	(digit nil) ;; t means previous char was an Ethiopic digit
-	(flag (if (ethio-prefer-amharic-p) "\\~amh " "\\~tir "))
-	mode ch)
+  (save-restriction
+    (narrow-to-region begin end)
 
-    ;; user's preference in transcription
-    (if ethio-use-colon-for-colon
-	(progn
-	  (aset ethio-fidel-to-sera-map 353 "`:")
-	  (aset ethio-fidel-to-sera-map 357 ":"))
-      (aset ethio-fidel-to-sera-map 353 " : ")
-      (aset ethio-fidel-to-sera-map 357 "-:"))
+    (let ((buffer-read-only nil)
+	  (mode (if secondary
+		    ethio-secondary-language
+		  ethio-primary-language))
+	  (flag (if (ethio-prefer-amharic-p) "\\~amh " "\\~tir "))
+	  p ch)
 
-    (if ethio-use-three-dot-question
-	(progn
-	  (aset ethio-fidel-to-sera-map 359 "?")
-	  (aset ethio-fidel-to-sera-map 463 "`?"))
-      (aset ethio-fidel-to-sera-map 359 "`?")
-      (aset ethio-fidel-to-sera-map 463 "?"))
-
-    (mapc
-     '(lambda (x)
-	(aset (aref ethio-fidel-to-sera-map x)
-	      2
-	      (if ethio-W-sixth-always ?' ?u)))
-     '(77 93 141 181 197 277 440 441 442 443 444 457))
-
-    (if (ethio-prefer-amharic-p)
-	(aset ethio-fidel-to-sera-map 160 "a")
-      (aset ethio-fidel-to-sera-map 160 "e"))
-    ;; end of user's preference
-
-    ;; first, decompose geminated characters
-    (decompose-region (point-min) (point-max))
-
-    ;; main conversion routine
-    (goto-char (point-min))
-    (while (not (eobp))
-      (setq ch (following-char))
-
-      (cond				; ethiopic, english, neutral
-
-       ;; ethiopic character.  must go to ethiopic mode, if not in it.
-       ((eq (char-charset ch) 'ethiopic)
-	(setq ch (ethio-char-to-ethiocode ch))
-	(delete-char 1)
-	(if (not (eq mode 'ethiopic))
-	    (progn
-	      (insert flag)
-	      (setq mode 'ethiopic)))
-
-	(cond				; fidel, punc, digit
-
-	 ;; fidels
-	 ((or (<= ch 346)		;  he - fYa
-	      (and (>= ch 384) (<= ch 444)) ; `qe - pw
-	      (and (>= ch 453) (<= ch 457))) ; wWe - wW
-	  (if (and (memq ch '(160 161 162 163 164 166 167)) ; (e - ea)
-		   (or lonec
-		       (and ethio-quote-vowel-always
-			    fidel)))
-	      (insert "'"))
-	  (insert (aref ethio-fidel-to-sera-map ch))
-	  (setq lonec (ethio-lone-consonant-p ch)
-		fidel t
-		digit nil))
-
-	 ;; punctuations or icons
-	 ((or (and (>= ch 353) (<= ch 360)) ;  : - :|:
-	      (>= ch 458)		;  '' -  ?
-	      (and (>= ch 448) (<= ch 452))) ;  \~X \~e \~E \~a \~A
-	  (insert (aref ethio-fidel-to-sera-map ch))
-	  (setq lonec nil
-		fidel nil
-		digit nil))
-
-	 ;; now CH must be an ethiopic digit
-
-	 ;; reduction = 0 or not preceded by Ethiopic number(s)
-	 ((or (= ethio-numeric-reduction 0)
-	      (not digit))
-	  (insert "`" (aref ethio-fidel-to-sera-map ch))
-	  (setq lonec nil
-		fidel nil
-		digit t))
-
-	 ;; reduction = 2 and following 10s, 100s, 10000s
-	 ((and (= ethio-numeric-reduction 2)
-	       (memq ch '(370 379 380)))
-	  (insert (substring (aref ethio-fidel-to-sera-map ch) 1))
-	  (setq lonec nil
-		fidel nil
-		digit t))
-
-	 ;; ordinary following digits
-	 (t
-	  (insert (aref ethio-fidel-to-sera-map ch))
-	  (setq lonec nil
-		fidel nil
-		digit t))))
-
-       ;; english character.  must go to english mode, if not in it.
-       ((or (and (>= ch ?a) (<= ch ?z))
-	    (and (>= ch ?A) (<= ch ?Z)))
-	(if (not (eq mode 'english))
-	    (insert "\\~eng "))
-	(forward-char 1)
-	(setq mode 'english
-	      lonec nil
-	      fidel nil
-	      digit nil))
-
-       ;; ch can appear both in ethiopic section and in english section.
-       (t
-
-	;; we must decide the mode, if not decided yet
-	(if (null mode)
-	    (progn
-	      (setq mode
-		    (if secondary
-			ethio-secondary-language
-		      ethio-primary-language))
-	      (if (eq mode 'english)
-		  (insert "\\~eng ")
-		(insert flag)
-		(setq mode 'ethiopic)))) ; tigrigna & amharic --> ethiopic
-
-	(cond				; \ , eng-mode , punc , w3 , other
-
-	 ;; backslash is always quoted
-	 ((= ch ?\\ )
-	  (insert "\\")
-	  (forward-char 1))
-
-	 ;; nothing to do if in english mode
-	 ((eq mode 'english)
-	  (forward-char 1))
-
-	 ;; now we must be in ethiopic mode and seeing a non-"\"
-
-	 ;; ascii punctuations in ethiopic mode
-	 ((looking-at "[,.;:'`?]+")
-	  (insert "\\")
-	  (goto-char (1+ (match-end 0)))) ; because we inserted one byte (\)
-
-	 ;; skip from "<" to ">" (or from "&" to ";") if called from w3
-	 ((and (or (= ch ?<) (= ch ?&))
-	       (or (and (boundp 'ethio-sera-being-called-by-w3)
-			ethio-sera-being-called-by-w3)
-		   (and (boundp 'sera-being-called-by-w3)
-			sera-being-called-by-w3)))
-	  (search-forward (if (= ch ?<) ">" ";")
-			  nil 0))
-
-	 ;; neutral character.  no need to quote.  just skip it.
-	 (t
-	  (forward-char 1)))
-
-	(setq lonec nil
-	      fidel nil
-	      digit nil)))
-    ;; end of main conversion routine
-    )))
-
-(defun ethio-lone-consonant-p (ethiocode)
-  "If ETHIOCODE is an Ethiopic lone consonant, return t."
-  (or (and (< ethiocode 344) (= (% ethiocode 8) 5))
-
-      ;;                     `q  `k   X  `g  mW  bW  GW  fW  pW  wW
-      (memq ethiocode '(389 405 421 437 440 441 442 443 444 457))))
-
-;;;###autoload
-(defun ethio-fidel-to-sera-mail-or-marker (&optional arg)
-  "Execute `ethio-fidel-to-sera-mail' or `ethio-fidel-to-sera-marker' depending on the current major mode.
-If in rmail-mode or in mail-mode, execute the former; otherwise latter."
-
-  (interactive "P")
-  (if (or (eq major-mode 'rmail-mode)
-	  (eq major-mode 'mail-mode))
-      (ethio-fidel-to-sera-mail)
-    (ethio-fidel-to-sera-marker arg)))
-
-;;;###autoload
-(defun ethio-fidel-to-sera-mail nil
-  "Convert FIDEL to SERA to read/write mail and news.
-
-If the body contains at least one Ethiopic character,
- 1) insert the string \"<sera>\" at the beginning of the body,
- 2) insert \"</sera>\" at the end of the body, and
- 3) convert the body into SERA.
-
-The very same procedure applies to the subject field, too."
-
-  (interactive)
-  (let ((buffer-read-only nil)
-	border)
-    (save-excursion
-
-      ;; follow RFC822 rules instead of looking for a fixed separator
-      (rfc822-goto-eoh)
-      (forward-line 1)
-      (setq border (point))
-
-      ;; process body first not to change the border
-      ;; note that the point is already at the border
-      (if (re-search-forward "\\ce" nil t)
-	  (progn
-	    (ethio-fidel-to-sera-region border (point-max))
-	    (goto-char border)
-	    (insert "<sera>")
-	    (goto-char (point-max))
-	    (insert "</sera>")))
-
-      ;; process subject
       (goto-char (point-min))
-      (if (re-search-forward "^Subject: " border t)
-	  (let ((beg (point))
-		(end (line-end-position)))
-	    (if (re-search-forward "\\ce" end t)
-		(progn
-		  (ethio-fidel-to-sera-region beg end)
-		  (goto-char beg)
-		  (insert "<sera>")
-		  (end-of-line)
-		  (insert "</sera>")))))
+      (ethio-adjust-robin)
+      (unless (eq mode 'english)
+	(setq mode 'ethiopic))
+      (if (and (eq mode 'english) (looking-at "\\ce"))
+	  (setq mode 'ethiopic))
+      (if (and (eq mode 'ethiopic) (looking-at "\\Ce"))
+	  (setq mode 'english))
+      (insert (if (eq mode 'english) "\\~eng " flag))
 
-      ;; adjust the rmail marker
-      (if (eq major-mode 'rmail-mode)
-	  (set-marker
-	   (aref rmail-message-vector (1+ rmail-current-message))
-	   (point-max))))))
+      (while (not (eobp))
+
+	(if (eq mode 'english)
+	    (progn
+	      (if (re-search-forward "\\(\\ce\\|\\\\\\)" nil 0)
+		  (forward-char -1))
+	      (cond
+	       ((eq (following-char) ?\\)
+		(insert "\\")
+		(forward-char 1))
+	       ((looking-at "\\ce")
+		(insert flag)
+		(setq mode 'ethiopic))))
+
+	  ;; If we reach here, mode is ethiopic.
+	  (setq p (point))
+	  (if (re-search-forward "[a-z,.;:'`?\\<&]" nil 0)
+	      (forward-char -1))
+	  (save-restriction
+	    (narrow-to-region p (point))
+	    (robin-invert-region (point-min) (point-max) "ethiopic-sera")
+
+	    ;; ethio-quote-vowel-alwyas
+	    (goto-char (point-min))
+	    (while (re-search-forward "'[eauio]" nil t)
+	      (save-excursion
+		(forward-char -2)
+		(setq ch (preceding-char))
+		(if (or (and (>= ch ?a) (<= ch ?z))
+			(and (>= ch ?A) (<= ch ?Z)))
+		    (if (and (not ethio-quote-vowel-always)
+			     (memq ch '(?e ?a ?u ?i ?o ?E ?A ?I)))
+			(delete-char 1))
+		  (delete-char 1))))
+
+	    ;; ethio-W-sixth-always
+	    (unless ethio-W-sixth-always
+	      (goto-char (point-min))
+	      (while (search-forward "W'" nil t)
+		(delete-char -1)
+		(insert "u")))
+
+	    ;; ethio-numeric-reduction
+	    (when (> ethio-numeric-reduction 0)
+	      (goto-char (point-min))
+	      (while (re-search-forward "\\([0-9]\\)`\\([0-9]\\)" nil t)
+		(replace-match "\\1\\2")
+		(forward-char -1)))
+	    (when (= ethio-numeric-reduction 2)
+	      (goto-char (point-min))
+	      (while (re-search-forward "\\([0-9]\\)1\\(0+\\)" nil t)
+		(replace-match "\\1\\2")))
+
+	    (goto-char (point-max)))
+
+	  (cond
+	   ((looking-at "[a-z]")
+	    (insert"\\~eng ")
+	    (setq mode 'english))
+	   ((looking-at "[,.;:'`\\]+")
+	    (insert "\\")
+	    (goto-char (1+ (match-end 0))))
+	   ((= (following-char) ??)
+	    (if ethio-use-three-dot-question
+		(insert "\\"))
+	    (forward-char 1))
+	   ((looking-at "[<&]")
+	    (if (or (and (boundp 'ethio-sera-being-called-by-w3)
+			 ethio-sera-being-called-by-w3)
+		    (and (boundp 'sera-being-called-by-w3)
+			 sera-being-called-by-w3))
+		(search-forward (if (= (following-char) ?<) ">" "&") nil 0)
+	      (forward-char 1)))))))))
 
 ;;;###autoload
 (defun ethio-fidel-to-sera-marker (&optional force)
@@ -1286,10 +652,10 @@ The markers \"<sera>\" and \"</sera>\" themselves are not deleted."
       (error ""))
   (save-excursion
     (goto-char (point-min))
-    (while (re-search-forward "<sera>" nil t)
+    (while (search-forward "<sera>" nil t)
       (ethio-fidel-to-sera-region
        (point)
-       (if (re-search-forward "</sera>" nil t)
+       (if (search-forward "</sera>" nil t)
 	   (match-beginning 0)
 	 (point-max))
        nil
@@ -1303,225 +669,31 @@ The markers \"<sera>\" and \"</sera>\" themselves are not deleted."
 (defun ethio-modify-vowel nil
   "Modify the vowel of the FIDEL that is under the cursor."
   (interactive)
-  (let ((ch (following-char))
-	(composite nil)			; geminated or not
-	newch base vowel modulo)
-
-    (cond
-     ;; in case of gemination
-     ((eq (char-charset ch) 'composition)
-      (setq ch (string-to-char (char-to-string ch))
-	    composite t))
-     ;; neither gemination nor fidel
-     ((not (eq (char-charset ch) 'ethiopic))
-      (error "Not a valid character")))
-
-    ;; set frequently referred character features
-    (setq ch     (ethio-char-to-ethiocode ch)
-	  base   (* (/ ch 8) 8)
-	  modulo (% ch 8))
-
-    (if (or (and (>= ch 344) (<= ch 380)) ;; mYa - `10000
-	    (and (>= ch 448) (<= ch 452)) ;; \~X - \~A
-	    (>= ch 458))		  ;; private punctuations
-	(error "Not a valid character"))
-
-    (setq
-     newch
-     (cond
-
-      ;; first standalone vowels
-      ((= base 160)
-       (if (ethio-prefer-amharic-p)
-	   (message "Modify vowel to: [auiAEIoW\"] ")
-	 (message "Modify vowel to: [euiAEIoW\"] "))
-       (setq vowel (read-char))
-       (cond
-	((= vowel ?e) 160)
-	((= vowel ?u) 161)
-	((= vowel ?i) 162)
-	((= vowel ?A) 163)
-	((= vowel ?E) 164)
-	((= vowel ?I) 165)
-	((= vowel ?o) 166)
-	((= vowel ?W) 167)
-	((= vowel ?a) (if (ethio-prefer-amharic-p) 160 163))
-	((= vowel ?\") (setq composite t) ch)
-	(t nil)))
-
-      ;; second standalone vowels
-      ((= base 208)
-       (message "Modify vowel to: [euiaEIo\"] ")
-       (setq vowel (read-char))
-       (cond
-	((= vowel ?e) 208)
-	((= vowel ?u) 209)
-	((= vowel ?i) 210)
-	((= vowel ?a) 211)
-	((= vowel ?E) 212)
-	((= vowel ?I) 213)
-	((= vowel ?o) 214)
-	((= vowel ?\") (setq composite t) ch)
-	(t nil)))
-
-      ;; 12-form consonants, *W* form
-      ((memq base '(72 88 136 176 192 272)) ; qW QW hW kW KW gW
-       (message "Modify vowel to: [euiaE'\"] ")
-       (setq vowel (read-char))
-       (cond
-	((= vowel ?e) base)
-	((= vowel ?u) (+ base 5))
-	((= vowel ?i) (+ base 2))
-	((= vowel ?a) (+ base 3))
-	((= vowel ?E) (+ base 4))
-	((= vowel ?') (+ base 5))
-	((= vowel ?\") (setq composite t) ch)
-	(t nil)))
-
-      ;; extended 12-form consonants, mWa bWa GWa fWa pWa
-      ((= ch 31)			; mWa
-       (message "Modify vowel to: [euiaE'\"] ")
-       (setq vowel (read-char))
-       (cond
-	((= vowel ?e) 392)
-	((= vowel ?u) 440)
-	((= vowel ?i) 408)
-	((= vowel ?a) ch)
-	((= vowel ?E) 424)
-	((= vowel ?') 440)
-	((= vowel ?\") (setq composite t) ch)
-	(t nil)))
-      ((= ch 103)			; bWa
-       (message "Modify vowel to: [euiaE'\"] ")
-       (setq vowel (read-char))
-       (cond
-	((= vowel ?e) 393)
-	((= vowel ?u) 441)
-	((= vowel ?i) 409)
-	((= vowel ?a) ch)
-	((= vowel ?E) 425)
-	((= vowel ?') 441)
-	((= vowel ?\") (setq composite t) ch)
-	(t nil)))
-      ((= ch 287)			; GWa
-       (message "Modify vowel to: [euiaE'\"] ")
-       (setq vowel (read-char))
-       (cond
-	((= vowel ?e) 394)
-	((= vowel ?u) 442)
-	((= vowel ?i) 410)
-	((= vowel ?a) ch)
-	((= vowel ?E) 426)
-	((= vowel ?') 442)
-	((= vowel ?\") (setq composite t) ch)
-	(t nil)))
-      ((= ch 335)			; fWa
-       (message "Modify vowel to: [euiaE'\"] ")
-       (setq vowel (read-char))
-       (cond
-	((= vowel ?e) 395)
-	((= vowel ?u) 443)
-	((= vowel ?i) 411)
-	((= vowel ?a) ch)
-	((= vowel ?E) 427)
-	((= vowel ?') 443)
-	((= vowel ?\") (setq composite t) ch)
-	(t nil)))
-      ((= ch 343)			; pWa
-       (message "Modify vowel to: [euiaE'\"] ")
-       (setq vowel (read-char))
-       (cond
-	((= vowel ?e) 396)
-	((= vowel ?u) 444)
-	((= vowel ?i) 412)
-	((= vowel ?a) ch)
-	((= vowel ?E) 428)
-	((= vowel ?') 444)
-	((= vowel ?\") (setq composite t) ch)
-	(t nil)))
-
-      ;; extended 12-form consonatns, mW* bW* GW* fW* pW*
-      ((memq base '(392 408 424 440))	; *We *Wi *WE *W
-       (message "Modify vowel to: [eiEau'\"] ")
-       (setq vowel (read-char))
-       (cond
-	((= vowel ?e) (+ 392 modulo))
-	((= vowel ?i) (+ 408 modulo))
-	((= vowel ?E) (+ 424 modulo))
-	((= vowel ?a) (cond
-		       ((= modulo 0)  31) ; mWa
-		       ((= modulo 1) 103) ; bWa
-		       ((= modulo 2) 287) ; GWa
-		       ((= modulo 3) 335) ; fWa
-		       ((= modulo 4) 343) ; pWa
-		       (t nil)))	; never reach here
-	((= vowel ?') (+ 440 modulo))
-	((= vowel ?u) (+ 440 modulo))
-	((= vowel ?\") (setq composite t) ch)
-	(t nil)))
-
-      ((and (>= ch 453) (<= ch 457))	; wWe wWi wWa wWE wW
-       (message "Modify vowel to: [eiaE'u\"] ")
-       (setq vowel (read-char))
-       (cond
-	((= vowel ?e) 453)
-	((= vowel ?i) 454)
-	((= vowel ?a) 455)
-	((= vowel ?E) 456)
-	((= vowel ?') 457)
-	((= vowel ?u) 457)
-	((= vowel ?\") (setq composite t) ch)
-	(t nil)))
-
-      ;; 7-form consonants, or
-      ;; first 7 of 8-form consonants
-      ((<= modulo 6)
-       (message "Modify vowel to: [euiaE'o\"] ")
-       (setq vowel (read-char))
-       (cond
-	((= vowel ?e) base)
-	((= vowel ?u) (+ base 1))
-	((= vowel ?i) (+ base 2))
-	((= vowel ?a) (+ base 3))
-	((= vowel ?E) (+ base 4))
-	((= vowel ?') (+ base 5))
-	((= vowel ?o) (+ base 6))
-	((= vowel ?\") (setq composite t) ch)
-	(t nil)))
-
-      ;; otherwise
-      (t
-       nil)))
-
-    (cond
-
-     ;; could not get new character
-     ((null newch)
-      (error "Invalid vowel"))
-
-     ;; vowel changed on a composite Fidel
-     (composite
+  (ethio-adjust-robin)
+  (let ((consonant (ethio-get-consonant (following-char)))
+	vowel)
+    (if (null consonant)
+	(error "")			; not an Ethiopic char
+      (setq vowel (read-char "Modify vowel to: "))
       (delete-char 1)
-      (insert
-       (compose-string
-	(concat (char-to-string (ethio-ethiocode-to-char newch))	"$(3%s(B"))))
+      (if (and (string= consonant "'") (= vowel ?W))
+	  (insert ?ኧ)
+	(save-restriction
+	  (narrow-to-region (point) (point))
+	  (insert consonant vowel)
+	  (robin-convert-region (point-min) (point-max) "ethiopic-sera"))))))
 
-     ;; simple vowel modification
-     (t
-      (delete-char 1)
-      (insert (ethio-ethiocode-to-char newch))))))
-
-(defun ethio-ethiocode-to-char (ethiocode)
-  (make-char
-   'ethiopic
-   (+ (/ ethiocode 94) 33)
-   (+ (mod ethiocode 94) 33)))
-
-(defun ethio-char-to-ethiocode (ch)
-  (and (eq (char-charset ch) 'ethiopic)
-       (let ((char-components (split-char ch)))
-	 (+ (* (- (nth 1 char-components) 33) 94)
-	    (- (nth 2 char-components) 33)))))
+(defun ethio-get-consonant (ch)
+  "Return the consonant part of CH's SERA spelling in ethiopic-sera."
+  (let ((sera (get-char-code-property ch 'ethiopic-sera)))
+    (cond
+     ((null sera) nil)
+     ((= ch ?ኧ) "'")			; Only this has two vowel letters.
+     (t (with-temp-buffer
+	  (insert sera)
+	  (if (memq (preceding-char) '(?e ?u ?i ?a ?o ?E ?I ?A ?'))
+	      (delete-char -1))
+	  (buffer-substring (point-min) (point-max)))))))
 
 ;;
 ;; space replacement
@@ -1532,14 +704,14 @@ The markers \"<sera>\" and \"</sera>\" themselves are not deleted."
   "Replace ASCII spaces with Ethiopic word separators in the region.
 
 In the specified region, replace word separators surrounded by two
-Ethiopic characters, depending on the first parameter CH, which should
+Ethiopic characters, depending on the first argument CH, which should
 be 1, 2, or 3.
 
 If CH = 1, word separator will be replaced with an ASCII space.
 If CH = 2, with two ASCII spaces.
 If CH = 3, with the Ethiopic colon-like word separator.
 
-The second and third parameters BEGIN and END specify the region."
+The 2nd and 3rd arguments BEGIN and END specify the region."
 
   (interactive "*cReplace spaces to: 1 (sg col), 2 (dbl col), 3 (Ethiopic)\nr")
   (if (not (memq ch '(?1 ?2 ?3)))
@@ -1552,61 +724,62 @@ The second and third parameters BEGIN and END specify the region."
        ((= ch ?1)
 	;; an Ethiopic word separator --> an ASCII space
 	(goto-char (point-min))
-	(while (search-forward "$(3$h(B" nil t)
-	  (replace-match " " nil t))
+	(while (search-forward "፡" nil t)
+	  (replace-match " "))
 
 	;; two ASCII spaces between Ethiopic characters --> an ASCII space
 	(goto-char (point-min))
 	(while (re-search-forward "\\(\\ce\\)  \\(\\ce\\)" nil t)
 	  (replace-match "\\1 \\2")
-	  (goto-char (match-beginning 2))))
+	  (forward-char -1)))
 
        ((= ch ?2)
 	;; An Ethiopic word separator --> two ASCII spaces
 	(goto-char (point-min))
-	(while (search-forward "$(3$h(B" nil t)
+	(while (search-forward "፡" nil t)
 	  (replace-match "  "))
 
 	;; An ASCII space between Ethiopic characters --> two ASCII spaces
 	(goto-char (point-min))
 	(while (re-search-forward "\\(\\ce\\) \\(\\ce\\)" nil t)
 	  (replace-match "\\1  \\2")
-	  (goto-char (match-beginning 2))))
+	  (forward-char -1)))
 
        (t
 	;; One or two ASCII spaces between Ethiopic characters
 	;;   --> An Ethiopic word separator
 	(goto-char (point-min))
 	(while (re-search-forward "\\(\\ce\\)  ?\\(\\ce\\)" nil t)
-	  (replace-match "\\1$(3$h(B\\2")
-	  (goto-char (match-beginning 2)))
+	  (replace-match "\\1፡\\2")
+	  (forward-char -1))
 
 	;; Three or more ASCII spaces between Ethiopic characters
 	;;   --> An Ethiopic word separator + (N - 2) ASCII spaces
 	(goto-char (point-min))
-	(while (re-search-forward "\\(\\ce\\)  \\( *\\ce\\)" nil t)
-	  (replace-match "\\1$(3$h(B\\2")
-	  (goto-char (match-beginning 2))))))))
+	(while (re-search-forward "\\(\\ce\\)  \\( +\\ce\\)" nil t)
+	  (replace-match "\\1፡\\2")
+	  (forward-char -1)))))))
 
 ;;
 ;; special icons
 ;;
 
+;; This function is deprecated.
 ;;;###autoload
 (defun ethio-input-special-character (arg)
-  "Allow the user to input special characters."
-  (interactive "*cInput number: 1.$(3%j(B  2.$(3%k(B  3.$(3%l(B  4.$(3%m(B  5.$(3%i(B")
+  "This function is deprecated."
+  (interactive "*cInput number: 1.����  2.����  3.����  4.����  5.����")
   (cond
    ((= arg ?1)
-    (insert "$(3%j(B"))
+    (insert "����"))
    ((= arg ?2)
-    (insert "$(3%k(B"))
+    (insert "����"))
    ((= arg ?3)
-    (insert "$(3%l(B"))
+    (insert "����"))
    ((= arg ?4)
-    (insert "$(3%m(B"))
+    (insert "����"))
    ((= arg ?5)
-    (insert "$(3%i(B"))
+    (insert "����"))
    (t
     (error ""))))
 
@@ -1614,120 +787,49 @@ The second and third parameters BEGIN and END specify the region."
 ;; TeX support
 ;;
 
-(defconst ethio-fidel-to-tex-map
- [ "heG"  "huG"  "hiG"  "haG"  "hEG"   "hG"  "hoG"      ""     ;;   0 - 7
-   "leG"  "luG"  "liG"  "laG"  "lEG"   "lG"  "loG"  "lWaG"     ;;   8
-   "HeG"  "HuG"  "HiG"  "HaG"  "HEG"   "HG"  "HoG"  "HWaG"     ;;  16
-   "meG"  "muG"  "miG"  "maG"  "mEG"   "mG"  "moG"  "mWaG"     ;;  24
-  "sseG" "ssuG" "ssiG" "ssaG" "ssEG"  "ssG" "ssoG" "ssWaG"     ;;  32
-   "reG"  "ruG"  "riG"  "raG"  "rEG"   "rG"  "roG"  "rWaG"     ;;  40
-   "seG"  "suG"  "siG"  "saG"  "sEG"   "sG"  "soG"  "sWaG"     ;;  48
-   "xeG"  "xuG"  "xiG"  "xaG"  "xEG"   "xG"  "xoG"  "xWaG"     ;;  56
-   "qeG"  "quG"  "qiG"  "qaG"  "qEG"   "qG"  "qoG"      ""     ;;  64
-  "qWeG"     "" "qWiG" "qWaG" "qWEG"  "qWG"     ""      ""     ;;  72
-   "QeG"  "QuG"  "QiG"  "QaG"  "QEG"   "QG"  "QoG"      ""     ;;  80
-  "QWeG"     "" "QWiG" "QWaG" "QWEG"  "QWG"     ""      ""     ;;  88
-   "beG"  "buG"  "biG"  "baG"  "bEG"   "bG"  "boG"  "bWaG"     ;;  96
-   "veG"  "vuG"  "viG"  "vaG"  "vEG"   "vG"  "voG"  "vWaG"     ;; 104
-   "teG"  "tuG"  "tiG"  "taG"  "tEG"   "tG"  "toG"  "tWaG"     ;; 112
-   "ceG"  "cuG"  "ciG"  "caG"  "cEG"   "cG"  "coG"  "cWaG"     ;; 120
-  "hheG" "hhuG" "hhiG" "hhaG" "hhEG"  "hhG" "hhoG"      ""     ;; 128
-  "hWeG"     "" "hWiG" "hWaG" "hWEG"  "hWG"     ""      ""     ;; 136
-   "neG"  "nuG"  "niG"  "naG"  "nEG"   "nG"  "noG"  "nWaG"     ;; 144
-   "NeG"  "NuG"  "NiG"  "NaG"  "NEG"   "NG"  "NoG"  "NWaG"     ;; 152
-    "eG"   "uG"   "iG"   "AG"   "EG"   "IG"   "oG"   "eaG"     ;; 160
-   "keG"  "kuG"  "kiG"  "kaG"  "kEG"   "kG"  "koG"      ""     ;; 168
-  "kWeG"     "" "kWiG" "kWaG" "kWEG"  "kWG"     ""      ""     ;; 176
-   "KeG"  "KuG"  "KiG"  "KaG"  "KEG"   "KG"  "KoG"      ""     ;; 184
-  "KWeG"     "" "KWiG" "KWaG" "KWEG"  "KWG"     ""      ""     ;; 192
-   "weG"  "wuG"  "wiG"  "waG"  "wEG"   "wG"  "woG"      ""     ;; 200
-   "eeG"  "uuG"  "iiG"  "aaG"  "EEG"  "IIG"  "ooG"      ""     ;; 208
-   "zeG"  "zuG"  "ziG"  "zaG"  "zEG"   "zG"  "zoG"  "zWaG"     ;; 216
-   "ZeG"  "ZuG"  "ZiG"  "ZaG"  "ZEG"   "ZG"  "ZoG"  "ZWaG"     ;; 224
-   "yeG"  "yuG"  "yiG"  "yaG"  "yEG"   "yG"  "yoG"  "yWaG"     ;; 232
-   "deG"  "duG"  "diG"  "daG"  "dEG"   "dG" "doG"   "dWaG"     ;; 240
-   "DeG"  "DuG"  "DiG"  "DaG"  "DEG"   "DG"  "DoG"  "DWaG"     ;; 248
-   "jeG"  "juG"  "jiG"  "jaG"  "jEG"   "jG"  "joG"  "jWaG"     ;; 256
-   "geG"  "guG"  "giG"  "gaG"  "gEG"   "gG"  "goG"     ""      ;; 264
-  "gWeG"     "" "gWiG" "gWaG" "gWEG"  "gWG"     ""     ""      ;; 272
-   "GeG"  "GuG"  "GiG"  "GaG"  "GEG"   "GG"  "GoG"  "GWaG"     ;; 280
-   "TeG"  "TuG"  "TiG"  "TaG"  "TEG"   "TG"  "ToG"  "TWaG"     ;; 288
-   "CeG"  "CuG"  "CiG"  "CaG"  "CEG"   "CG"  "CoG"  "CWaG"     ;; 296
-   "PeG"  "PuG"  "PiG"  "PaG"  "PEG"   "PG"  "PoG"  "PWaG"     ;; 304
-   "SeG"  "SuG"  "SiG"  "SaG"  "SEG"   "SG"  "SoG"  "SWaG"     ;; 312
-  "SSeG" "SSuG" "SSiG" "SSaG" "SSEG"  "SSG" "SSoG"      ""     ;; 320
-   "feG"  "fuG"  "fiG"  "faG"  "fEG"   "fG"  "foG"  "fWaG"     ;; 328
-   "peG"  "puG"  "piG"  "paG"  "pEG"   "pG"  "poG"  "pWaG"     ;; 336
-  "mYaG" "rYaG" "fYaG"     ""     ""     ""     ""      ""     ;; 344
-      "" "spaceG" "periodG" "commaG"                           ;; 352
-  "semicolonG" "colonG" "precolonG" "oldqmarkG"                ;; 356
-  "pbreakG" "andG" "huletG" "sostG" "aratG" "amstG" "sadstG" "sabatG"  ;; 360
-  "smntG" "zeteNG" "asrG" "heyaG" "selasaG" "arbaG" "hemsaG" "slsaG"   ;; 368
-  "sebaG" "semanyaG" "zeTanaG" "metoG" "asrxiG" "" "" ""               ;; 376
-  "qqeG" "qquG" "qqiG" "qqaG" "qqEG" "qqG" "qqoG"    ""      ;; 384
-  "mWeG" "bWeG" "GWeG" "fWeG" "pWeG"    ""     ""    ""      ;; 392
-  "kkeG" "kkuG" "kkiG" "kkaG" "kkEG" "kkG" "kkoG"    ""      ;; 400
-  "mWiG" "bWiG" "GWiG" "fWiG" "pWiG"    ""     ""    ""      ;; 408
-   "XeG"  "XuG" "GXiG"  "XaG"  "XEG"  "XG"  "XoG"    ""      ;; 416
-  "mWEG" "bWEG" "GWEG" "fWEG" "pWEG"    ""     ""    ""      ;; 424
-  "ggeG" "gguG" "ggiG" "ggaG" "ggEG" "ggG" "ggoG"    ""      ;; 432
-   "mWG" "bWG"   "GWG"  "fWG"  "pWG"    ""     ""    ""      ;; 440
-  "ornamentG" "flandG" "iflandG" "africaG"	                 ;; 448
-  "iafricaG" "wWeG" "wWiG" "wWaG"                            ;; 452
-  "wWEG"  "wWG" "" "slaqG" "dotG" "lquoteG" "rquoteG" "qmarkG" ])  ;; 456
-
-;;
-;; To make tex-to-fidel mapping.
-;; The following code makes
-;;     (get 'ethio-tex-command-he 'ethio-fidel-char)  ==>  ?$(3!!(B
-;; etc.
-;;
-
-(let ((i 0) str)
-  (while (< i (length ethio-fidel-to-tex-map))
-    (setq str (aref ethio-fidel-to-tex-map i))
-    (if (not (string= str ""))
-	(put
-	 (intern (concat "ethio-tex-command-" (aref ethio-fidel-to-tex-map i)))
-	 'ethio-fidel-char
-	 (ethio-ethiocode-to-char i)))
-    (setq i (1+ i))))
-
 ;;;###autoload
 (defun ethio-fidel-to-tex-buffer nil
-  "Convert each fidel characters in the current buffer into a fidel-tex command.
-Each command is always surrounded by braces."
+  "Convert each fidel characters in the current buffer into a fidel-tex command."
   (interactive)
-  (let ((buffer-read-only nil))
+  (let ((buffer-read-only nil)
+	comp ch)
 
-    ;; Isolated gemination marks need special treatement
+    ;; Special treatment for geminated characters.
+    ;; Geminated characters la", etc. change into \geminateG{\laG}, etc.
     (goto-char (point-min))
-    (while (search-forward "$(3%s(B" nil t)
-      (replace-match "\\geminateG{}" t t))
+    (while (re-search-forward "፟\\|����" nil t)
+      (setq comp (find-composition (match-beginning 0)))
+      (if (null comp)
+	  (replace-match "\\\\geminateG{}" t)
+	(decompose-region (car comp) (cadr comp))
+	(delete-char -1)
+	(forward-char -1)
+	(insert "\\geminateG{")
+	(forward-char 1)
+	(insert "}")))
 
-    ;; First, decompose geminations
-    ;; Here we assume that each composed character consists of
-    ;; one Ethiopic character and the Ethiopic gemination mark.
-    (decompose-region (point-min) (point-max))
-
-    ;; Special treatment for geminated characters
-    ;; The geminated character (la'') will be "\geminateG{\la}".
+    ;; Special Ethiopic punctuations.
     (goto-char (point-min))
-    (while (search-forward "$(3%s(B" nil t)
-      (delete-backward-char 1)
-      (backward-char 1)
-      (insert "\\geminateG")
-      (forward-char 1))
+    (while (re-search-forward "\\ce[»\\.\\?]\\|«\\ce" nil t)
+      (cond
+       ((= (setq ch (preceding-char)) ?\»)
+	(delete-char -1)
+	(insert "\\rquoteG"))
+       ((= ch ?.)
+	(delete-char -1)
+	(insert "\\dotG"))
+       ((= ch ??)
+	(delete-char -1)
+	(insert "\\qmarkG"))
+       (t
+	(forward-char -1)
+	(delete-char -1)
+	(insert "\\lquoteG")
+	(forward-char 1))))
 
     ;; Ethiopic characters to TeX macros
-    (goto-char (point-min))
-    (while (re-search-forward "\\ce" nil t)
-      (insert
-       "{\\"
-       (aref ethio-fidel-to-tex-map
-	     (prog1 (ethio-char-to-ethiocode (preceding-char))
-	       (backward-delete-char 1)))
-       "}"))
+    (robin-invert-region (point-min) (point-max) "ethiopic-tex")
+
     (goto-char (point-min))
     (set-buffer-modified-p nil)))
 
@@ -1738,43 +840,18 @@ Each command is always surrounded by braces."
   (let ((buffer-read-only nil)
 	(p) (ch))
 
-    ;; Special treatment for gemination
-    ;; "\geminateG{\la}" or "\geminateG{{\la}}" will be "\la$(3%s(B"
-    ;; "\geminateG{}" remains unchanged.
-    (goto-char (point-min))
-    (while (re-search-forward "\\\\geminateG{\\(\\\\[a-zA-Z]+\\)}" nil t)
-      (replace-match "\\1$(3%s(B"))
-
     ;; TeX macros to Ethiopic characters
-    (goto-char (point-min))
-    (while (search-forward "\\" nil t)
-      (setq p (point))
-      (skip-chars-forward "a-zA-Z")
-      (setq ch
-	    (get (intern (concat "ethio-tex-command-"
-				 (buffer-substring p (point))))
-		 'ethio-fidel-char))
-      (if ch
-	  (progn
-	    (delete-region (1- p) (point)) ; don't forget the preceding "\"
-	    (if (and (= (preceding-char) ?{)
-		     (= (following-char) ?}))
-		(progn
-		  (backward-delete-char 1)
-		  (delete-char 1)))
-	    (insert ch))))
+    (robin-convert-region (point-min) (point-max) "ethiopic-tex")
 
     ;; compose geminated characters
     (goto-char (point-min))
-    (while (re-search-forward "\\ce$(3%s(B" nil 0)
-      (compose-region
-       (save-excursion (backward-char 2) (point))
-       (point)))
+    (while (re-search-forward "\\\\geminateG{\\(\\ce?\\)}" nil t)
+      (replace-match "\\1፟"))
 
-    ;; Now it's time to convert isolated gemination marks.
+    ;; remove redundant braces, if any
     (goto-char (point-min))
-    (while (search-forward "\\geminateG{}" nil t)
-      (replace-match "$(3%s(B"))
+    (while (re-search-forward "{\\(\\ce\\)}" nil t)
+      (replace-match "\\1"))
 
     (goto-char (point-min))
     (set-buffer-modified-p nil)))
@@ -1794,47 +871,24 @@ If `ethio-java-save-lowercase' is non-nil, use [0-9a-f].
 Otherwise, [0-9A-F]."
   (let ((ucode))
 
-    ;; first, decompose geminations
-    (decompose-region (point-min) (point-max))
-
     (goto-char (point-min))
-    (while (re-search-forward "\\ce" nil t)
-      (setq ucode (+ ?\x1200 (ethio-char-to-ethiocode (preceding-char))))
-      (if (> ucode ?\x13bc)
-	  (setq ucode (+ ucode 59952)))
+    (while (re-search-forward "[ሀ-፼]" nil t)
+      (setq ucode (preceding-char))
       (delete-backward-char 1)
-      (if ethio-java-save-lowercase
-	  (insert (format "\\u%4x" ucode))
-	(insert (upcase (format "\\u%4x" ucode)))))))
+      (insert
+       (format (if ethio-java-save-lowercase "\\u%4x" "\\u%4X")
+	       ucode)))))
 
 ;;;###autoload
 (defun ethio-java-to-fidel-buffer nil
   "Convert the Java escape sequences into corresponding Ethiopic characters."
-  (let ((ucode))
+  (let ((case-fold-search t)
+	(ucode))
     (goto-char (point-min))
-    (while (re-search-forward "\\\\u\\([0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]\\)" nil t)
-      (setq ucode
-	    (read
-	     (concat
-	      "?\\x"
-	      (buffer-substring (match-beginning 1) (match-end 1)))))
-      (cond
-       ((and (>= ucode ?\x1200) (<= ucode ?\x13bc))
-	(replace-match "")
-	(insert (ethio-ethiocode-to-char (- ucode ?\x1200))))
-       ((and (>= ucode ?\xfdf1) (<= ucode ?\xfdff))
-	(replace-match "")
-	(insert (ethio-ethiocode-to-char (- ucode 64560))))
-       (t
-	nil)))
-
-    ;; gemination
-    (goto-char (point-min))
-    (while (re-search-forward "\\ce$(3%s(B" nil 0)
-      (compose-region
-       (save-excursion (backward-char 2) (point))
-       (point)))
-    ))
+    (while (re-search-forward "\\\\u\\([0-9a-f][0-9a-f][0-9a-f][0-9a-f]\\)" nil t)
+      (setq ucode (read (concat "#x" (match-string 1))))
+      (when (and (>= ucode #x1200) (<= ucode #x137f))
+	(replace-match (char-to-string ucode))))))
 
 ;;
 ;; file I/O hooks
@@ -1842,7 +896,7 @@ Otherwise, [0-9A-F]."
 
 ;;;###autoload
 (defun ethio-find-file nil
-  "Transcribe file content into Ethiopic depending on filename suffix."
+  "Transliterate file content into Ethiopic dependig on filename suffix."
   (cond
 
    ((string-match "\\.sera$" (buffer-file-name))
@@ -1855,10 +909,10 @@ Otherwise, [0-9A-F]."
       (save-excursion
 	(ethio-sera-to-fidel-marker 'force)
 	(goto-char (point-min))
-	(while (re-search-forward "&[lr]aquote;" nil t)
+	(while (re-search-forward "&[lr]aquo;" nil t)
 	  (if (= (char-after (1+ (match-beginning 0))) ?l)
-	      (replace-match "$(3%v(B")
-	    (replace-match "$(3%w(B")))
+	      (replace-match "«")
+	    (replace-match "»")))
 	(set-buffer-modified-p nil))))
 
    ((string-match "\\.tex$" (buffer-file-name))
@@ -1876,7 +930,7 @@ Otherwise, [0-9A-F]."
 
 ;;;###autoload
 (defun ethio-write-file nil
-  "Transcribe Ethiopic characters in ASCII depending on the file extension."
+  "Transliterate Ethiopic characters in ASCII depending on the file extension."
   (cond
 
    ((string-match "\\.sera$" (buffer-file-name))
@@ -1888,17 +942,14 @@ Otherwise, [0-9A-F]."
 
    ((string-match "\\.html$" (buffer-file-name))
     (save-excursion
-      (let ((ethio-sera-being-called-by-w3 t)
-	    (lq (aref ethio-fidel-to-sera-map 461))
-	    (rq (aref ethio-fidel-to-sera-map 462)))
-	(aset ethio-fidel-to-sera-map 461 "&laquote;")
-	(aset ethio-fidel-to-sera-map 462 "&raquote;")
+      (let ((ethio-sera-being-called-by-w3 t))
 	(ethio-fidel-to-sera-marker 'force)
+	(goto-char (point-min))
+	(while (re-search-forward "[«»]" nil t)
+	  (replace-match (if (= (preceding-char) ?«) "&laquo;" "&raquo;")))
 	(goto-char (point-min))
 	(if (search-forward "<sera>" nil t)
 	    (ethio-record-user-preference))
-	(aset ethio-fidel-to-sera-map 461 lq)
-	(aset ethio-fidel-to-sera-map 462 rq)
 	(set-buffer-modified-p nil))))
 
    ((string-match "\\.tex$" (buffer-file-name))
@@ -1915,11 +966,8 @@ Otherwise, [0-9A-F]."
     nil)))
 
 (defun ethio-record-user-preference nil
-  (if (looking-at "\\\\~\\(tir?\\|amh?\\) ")
-      (goto-char (match-end 0))
-    (insert (if (ethio-prefer-amharic-p) "\\~amh " "\\~tir ")))
   (insert (if ethio-use-colon-for-colon "\\~-: " "\\~`: ")
-	  (if ethio-use-three-dot-question "\\~`| " "\\~`? ")))
+	  (if ethio-use-three-dot-question "\\~`| " "\\~? ")))
 
 ;;
 ;; Ethiopic word separator vs. ASCII space
@@ -1932,10 +980,7 @@ Otherwise, [0-9A-F]."
   "Toggle ASCII space and Ethiopic separator for keyboard input."
   (interactive)
   (setq ethio-prefer-ascii-space
-	(not ethio-prefer-ascii-space))
-  (if (equal current-input-method "ethiopic")
-      (setq current-input-method-title (quail-title)))
-  (force-mode-line-update))
+	(not ethio-prefer-ascii-space)))
 
 (defun ethio-insert-space (arg)
   "Insert ASCII spaces or Ethiopic word separators depending on context.
@@ -1958,68 +1003,1080 @@ many Ethiopic word separators."
    ((save-excursion
       (skip-chars-backward " ")
       (memq (preceding-char)
-	    '(?$(3$h(B ?$(3$i(B ?$(3$j(B ?$(3$k(B ?$(3$l(B ?$(3$m(B ?$(3$n(B ?$(3$o(B ?$(3%t(B ?$(3%u(B ?$(3%v(B ?$(3%w(B ?$(3%x(B)))
+	    '(?፡ ?። ?፣ ?፤ ?፥ ?፦ ?፧ ?፨ ?���� ?���� ?���� ?���� ?����)))
     (insert-char 32 arg))
    (t
-    (insert-char ?$(3$h(B arg))))
+    (insert-char ?፡ arg))))
 
+;;;###autoload
 (defun ethio-insert-ethio-space (arg)
   "Insert the Ethiopic word delimiter (the colon-like character).
 With ARG, insert that many delimiters."
   (interactive "*p")
-  (insert-char ?$(3$h(B arg))
-
-;;
-;; Ethiopic punctuation vs. ASCII punctuation
-;;
-
-(defvar ethio-prefer-ascii-punctuation nil)
-(make-variable-buffer-local 'ethio-prefer-ascii-punctuation)
-
-(defun ethio-toggle-punctuation nil
-  "Toggle Ethiopic punctuations and ASCII punctuations for keyboard input."
-  (interactive)
-  (setq ethio-prefer-ascii-punctuation
-	(not ethio-prefer-ascii-punctuation))
-  (let* ((keys '("." ".." "..." "," ",," ";" ";;" ":" "::" ":::" "*" "**"))
-	 (puncs
-	  (if ethio-prefer-ascii-punctuation
-	      '(?. [".."] ["..."] ?, [",,"] ?\; [";;"] ?: ["::"] [":::"] ?* ["**"])
-	    '(?$(3$i(B ?$(3%u(B ?. ?$(3$j(B ?, ?$(3$k(B ?\; ?$(3$h(B ?$(3$i(B ?: ?* ?$(3$o(B))))
-    (while keys
-      (quail-defrule (car keys) (car puncs) "ethiopic")
-      (setq keys (cdr keys)
-	    puncs (cdr puncs)))
-    (if (equal current-input-method "ethiopic")
-	(setq current-input-method-title (quail-title)))
-    (force-mode-line-update)))
+  (insert-char ?፡ arg))
 
 ;;
 ;; Gemination
 ;;
 
+;;;###autoload
+(defun ethio-composition-function (pos to font-object string)
+  (setq pos (1- pos))
+  (let ((pattern "\\ce\\(፟\\|����\\)"))
+    (if string
+	(if (and (>= pos 0)
+		 (eq (string-match pattern string pos) pos))
+	    (prog1 (match-end 0)
+	      (compose-string string pos (match-end 0))))
+      (if (>= pos (point-min))
+	  (progn
+	    (goto-char pos)
+	    (if (looking-at pattern)
+		(prog1 (match-end 0)
+		  (compose-region pos (match-end 0)))))))))
+
+;; This function is not used any more.
 (defun ethio-gemination nil
   "Compose the character before the point with the Ethiopic gemination mark.
 If the character is already composed, decompose it and remove the gemination
 mark."
   (interactive "*")
-  (cond
-   ((eq (char-charset (preceding-char)) 'ethiopic)
-    (insert "$(3%s(B")
-    (compose-region
-     (save-excursion (backward-char 2) (point))
-     (point))
-    (forward-char 1))
-   ((eq (char-charset (preceding-char)) 'leading-code-composition)
-    (decompose-region
-     (save-excursion (backward-char 1) (point))
-     (point))
-    (delete-backward-char 1))
-   (t
-    (error ""))))
+  (let ((ch (preceding-char)))
+    (cond
+     ((and (= ch ?����) (find-composition (1- (point))))
+      (decompose-region (- (point) 2) (point)))
+     ((and (>= ch #x1200) (<= ch #x137f))
+      (insert "����")
+      (compose-region (- (point) 2) (point)))
+     (t
+      (error "")))))
 
-;;
+;;;
+;;; Robin packages
+;;;
+
+(robin-define-package "ethiopic-sera"
+ "SERA transliteration system for Ethiopic."
+
+ ("he" ?ሀ)
+ ("hu" ?ሁ)
+ ("hi" ?ሂ)
+ ("ha" ?ሃ)
+ ("hE" ?ሄ) ("hee" "ሄ")
+ ("h" ?ህ)
+ ("ho" ?ሆ)
+
+ ("le" ?ለ) ("Le" "ለ")
+ ("lu" ?ሉ) ("Lu" "ሉ")
+ ("li" ?ሊ) ("Li" "ሊ")
+ ("la" ?ላ) ("La" "ላ")
+ ("lE" ?ሌ) ("LE" "ሌ") ("lee" "ሌ") ("Lee" "ሌ")
+ ("l" ?ል) ("L" "ል")
+ ("lo" ?ሎ) ("Lo" "ሎ")
+ ("lWa" ?ሏ) ("LWa" "ሏ") ("lW" "ሏ") ("LW" "ሏ")
+
+ ("He" ?ሐ)
+ ("Hu" ?ሑ)
+ ("Hi" ?ሒ)
+ ("Ha" ?ሓ)
+ ("HE" ?ሔ) ("Hee" "ሔ")
+ ("H" ?ሕ)
+ ("Ho" ?ሖ)
+ ("HWa" ?ሗ) ("HW" "ሗ")
+
+ ("me" ?መ) ("Me" "መ")
+ ("mu" ?ሙ) ("Mu" "ሙ")
+ ("mi" ?ሚ) ("Mi" "ሚ")
+ ("ma" ?ማ) ("Ma" "ማ")
+ ("mE" ?ሜ) ("ME" "ሜ") ("mee" "ሜ") ("Mee" "ሜ")
+ ("m" ?ም) ("M" "ም")
+ ("mo" ?ሞ) ("Mo" "ሞ")
+ ("mWa" ?ሟ) ("MWa" "ሟ") ("mW" "ሟ") ("MW" "ሟ")
+
+ ("`se" ?ሠ) ("sse" "ሠ") ("s2e" "ሠ")
+ ("`su" ?ሡ) ("ssu" "ሡ") ("s2u" "ሡ")
+ ("`si" ?ሢ) ("ssi" "ሢ") ("s2i" "ሢ")
+ ("`sa" ?ሣ) ("ssa" "ሣ") ("s2a" "ሣ")
+ ("`sE" ?ሤ) ("ssE" "ሤ") ("s2E" "ሤ")
+   ("`see" "ሤ") ("ssee" "ሤ") ("s2ee" "ሤ")
+ ("`s" ?ሥ) ("ss" "ሥ") ("s2" "ሥ")
+ ("`so" ?ሦ) ("sso" "ሦ") ("s2o" "ሦ")
+ ("`sWa" ?ሧ) ("ssWa" "ሧ") ("s2Wa" "ሧ")
+   ("`sW" "ሧ") ("ssW" "ሧ") ("s2W" "ሧ")
+
+ ("re" ?ረ) ("Re" "ረ")
+ ("ru" ?ሩ) ("Ru" "ሩ")
+ ("ri" ?ሪ) ("Ri" "ሪ")
+ ("ra" ?ራ) ("Ra" "ራ")
+ ("rE" ?ሬ) ("RE" "ሬ") ("ree" "ሬ") ("Ree" "ሬ")
+ ("r" ?ር) ("R" "ር")
+ ("ro" ?ሮ) ("Ro" "ሮ")
+ ("rWa" ?ሯ) ("RWa" "ሯ") ("rW" "ሯ") ("RW" "ሯ")
+
+ ("se" ?ሰ)
+ ("su" ?ሱ)
+ ("si" ?ሲ)
+ ("sa" ?ሳ)
+ ("sE" ?ሴ) ("see" "ሴ")
+ ("s" ?ስ)
+ ("so" ?ሶ)
+ ("sWa" ?ሷ) ("sW" "ሷ")
+
+ ("xe" ?ሸ)
+ ("xu" ?ሹ)
+ ("xi" ?ሺ)
+ ("xa" ?ሻ)
+ ("xE" ?ሼ) ("xee" "ሼ")
+ ("x" ?ሽ)
+ ("xo" ?ሾ)
+ ("xWa" ?ሿ) ("xW" "ሿ")
+
+ ("qe" ?ቀ)
+ ("qu" ?ቁ)
+ ("qi" ?ቂ)
+ ("qa" ?ቃ)
+ ("qE" ?ቄ) ("qee" "ቄ")
+ ("q" ?ቅ)
+ ("qo" ?ቆ)
+ ("qWe" ?ቈ)
+ ("qWi" ?ቊ)
+ ("qWa" ?ቋ) ("qW" "ቋ")
+ ("qWE" ?ቌ) ("qWee" "ቌ")
+ ("qW'" ?ቍ) ("qWu" "ቍ")
+
+ ("Qe" ?ቐ)
+ ("Qu" ?ቑ)
+ ("Qi" ?ቒ)
+ ("Qa" ?ቓ)
+ ("QE" ?ቔ) ("Qee" "ቔ")
+ ("Q" ?ቕ)
+ ("Qo" ?ቖ)
+ ("QWe" ?ቘ)
+ ("QWi" ?ቚ)
+ ("QWa" ?ቛ) ("QW" "ቛ")
+ ("QWE" ?ቜ) ("QWee" "ቜ")
+ ("QW'" ?ቝ) ("QWu" "ቝ")
+
+ ("be" ?በ) ("Be" "በ")
+ ("bu" ?ቡ) ("Bu" "ቡ")
+ ("bi" ?ቢ) ("Bi" "ቢ")
+ ("ba" ?ባ) ("Ba" "ባ")
+ ("bE" ?ቤ) ("BE" "ቤ") ("bee" "ቤ") ("Bee" "ቤ")
+ ("b" ?ብ) ("B" "ብ")
+ ("bo" ?ቦ) ("Bo" "ቦ")
+ ("bWa" ?ቧ) ("BWa" "ቧ") ("bW" "ቧ") ("BW" "ቧ")
+
+ ("ve" ?ቨ) ("Ve" "ቨ")
+ ("vu" ?ቩ) ("Vu" "ቩ")
+ ("vi" ?ቪ) ("Vi" "ቪ")
+ ("va" ?ቫ) ("Va" "ቫ")
+ ("vE" ?ቬ) ("VE" "ቬ") ("vee" "ቬ") ("Vee" "ቬ")
+ ("v" ?ቭ) ("V" "ቭ")
+ ("vo" ?ቮ) ("Vo" "ቮ")
+ ("vWa" ?ቯ) ("VWa" "ቯ") ("vW" "ቯ") ("VW" "ቯ")
+
+ ("te" ?ተ)
+ ("tu" ?ቱ)
+ ("ti" ?ቲ)
+ ("ta" ?ታ)
+ ("tE" ?ቴ) ("tee" "ቴ")
+ ("t" ?ት)
+ ("to" ?ቶ)
+ ("tWa" ?ቷ) ("tW" "ቷ")
+
+ ("ce" ?ቸ)
+ ("cu" ?ቹ)
+ ("ci" ?ቺ)
+ ("ca" ?ቻ)
+ ("cE" ?ቼ) ("cee" "ቼ")
+ ("c" ?ች)
+ ("co" ?ቾ)
+ ("cWa" ?ቿ) ("cW" "ቿ")
+
+ ("`he" ?ኀ) ("hhe" "ኀ") ("h2e" "ኀ")
+ ("`hu" ?ኁ) ("hhu" "ኁ") ("h2u" "ኁ")
+ ("`hi" ?ኂ) ("hhi" "ኂ") ("h2i" "ኂ")
+ ("`ha" ?ኃ) ("hha" "ኃ") ("h2a" "ኃ")
+ ("`hE" ?ኄ) ("hhE" "ኄ") ("h2E" "ኄ")
+   ("`hee" "ኄ") ("hhee" "ኄ") ("h2ee" "ኄ")
+ ("`h" ?ኅ) ("hh" "ኅ") ("h2" "ኅ")
+ ("`ho" ?ኆ) ("hho" "ኆ") ("h2o" "ኆ")
+ ("`hWe" ?ኈ) ("hhWe" "ኈ") ("h2We" "ኈ") ("hWe" "ኈ")
+ ("`hWi" ?ኊ) ("hhWi" "ኊ") ("h2Wi" "ኊ") ("hWi" "ኊ")
+ ("`hWa" ?ኋ) ("hhWa" "ኋ") ("h2Wa" "ኋ") ("hWa" "ኋ")
+   ("`hW" "ኋ") ("hhW" "ኋ") ("h2W" "ኋ")
+ ("`hWE" ?ኌ) ("hhWE" "ኌ") ("h2WE" "ኌ") ("hWE" "ኌ")
+   ("`hWee" "ኌ") ("hhWee" "ኌ") ("h2Wee" "ኌ") ("hWee" "ኌ")
+ ("`hW'" ?ኍ) ("hhW'" "ኍ") ("h2W'" "ኍ") ("hW'" "ኍ")
+   ("`hWu" "ኍ") ("hhWu" "ኍ") ("h2Wu" "ኍ") ("hWu" "ኍ")
+
+ ("ne" ?ነ)
+ ("nu" ?ኑ)
+ ("ni" ?ኒ)
+ ("na" ?ና)
+ ("nE" ?ኔ) ("nee" "ኔ")
+ ("n" ?ን)
+ ("no" ?ኖ)
+ ("nWa" ?ኗ) ("nW" "ኗ")
+
+ ("Ne" ?ኘ)
+ ("Nu" ?ኙ)
+ ("Ni" ?ኚ)
+ ("Na" ?ኛ)
+ ("NE" ?ኜ) ("Nee" "ኜ")
+ ("N" ?ኝ)
+ ("No" ?ኞ)
+ ("NWa" ?ኟ) ("NW" "ኟ")
+
+ ("'A" ?አ) ("A" "አ")
+ ("'u" ?ኡ) ("u" "ኡ") ("'U" "ኡ") ("U" "ኡ")
+ ("'i" ?ኢ) ("i" "ኢ")
+ ("'a" ?ኣ) ("a" "ኣ")
+ ("'E" ?ኤ) ("E" "ኤ")
+ ("'I" ?እ) ("I" "እ") ("'e" "እ") ("e" "እ")
+ ("'o" ?ኦ) ("o" "ኦ") ("'O" "ኦ") ("O" "ኦ")
+ ("'ea" ?ኧ) ("ea" "ኧ")
+
+ ("ke" ?ከ)
+ ("ku" ?ኩ)
+ ("ki" ?ኪ)
+ ("ka" ?ካ)
+ ("kE" ?ኬ) ("kee" "ኬ")
+ ("k" ?ክ)
+ ("ko" ?ኮ)
+ ("kWe" ?ኰ)
+ ("kWi" ?ኲ)
+ ("kWa" ?ኳ) ("kW" "ኳ")
+ ("kWE" ?ኴ) ("kWee" "ኴ")
+ ("kW'" ?ኵ) ("kWu" "ኵ")
+
+ ("Ke" ?ኸ)
+ ("Ku" ?ኹ)
+ ("Ki" ?ኺ)
+ ("Ka" ?ኻ)
+ ("KE" ?ኼ) ("Kee" "ኼ")
+ ("K" ?ኽ)
+ ("Ko" ?ኾ)
+ ("KWe" ?ዀ)
+ ("KWi" ?ዂ)
+ ("KWa" ?ዃ) ("KW" "ዃ")
+ ("KWE" ?ዄ) ("KWee" "ዄ")
+ ("KW'" ?ዅ) ("KWu" "ዅ")
+
+ ("we" ?ወ)
+ ("wu" ?ዉ)
+ ("wi" ?ዊ)
+ ("wa" ?ዋ)
+ ("wE" ?ዌ) ("wee" "ዌ")
+ ("w" ?ው)
+ ("wo" ?ዎ)
+
+ ("`e" ?ዐ) ("ae" "ዐ") ("aaa" "ዐ") ("e2" "ዐ")
+ ("`u" ?ዑ) ("uu" "ዑ") ("u2" "ዑ") ("`U" "ዑ") ("UU" "ዑ") ("U2" "ዑ")
+ ("`i" ?ዒ) ("ii" "ዒ") ("i2" "ዒ")
+ ("`a" ?ዓ) ("aa" "ዓ") ("a2" "ዓ") ("`A" "ዓ") ("AA" "ዓ") ("A2" "ዓ")
+ ("`E" ?ዔ) ("EE" "ዔ") ("E2" "ዔ")
+ ("`I" ?ዕ) ("II" "ዕ") ("I2" "ዕ") ("ee" "ዕ")
+ ("`o" ?ዖ) ("oo" "ዖ") ("o2" "ዖ") ("`O" "ዖ") ("OO" "ዖ") ("O2" "ዖ")
+
+ ("ze" ?ዘ)
+ ("zu" ?ዙ)
+ ("zi" ?ዚ)
+ ("za" ?ዛ)
+ ("zE" ?ዜ) ("zee" "ዜ")
+ ("z" ?ዝ)
+ ("zo" ?ዞ)
+ ("zWa" ?ዟ) ("zW" "ዟ")
+
+ ("Ze" ?ዠ)
+ ("Zu" ?ዡ)
+ ("Zi" ?ዢ)
+ ("Za" ?ዣ)
+ ("ZE" ?ዤ) ("Zee" "ዤ")
+ ("Z" ?ዥ)
+ ("Zo" ?ዦ)
+ ("ZWa" ?ዧ) ("ZW" "ዧ")
+
+ ("ye" ?የ) ("Ye" "የ")
+ ("yu" ?ዩ) ("Yu" "ዩ")
+ ("yi" ?ዪ) ("Yi" "ዪ")
+ ("ya" ?ያ) ("Ya" "ያ")
+ ("yE" ?ዬ) ("YE" "ዬ") ("yee" "ዬ") ("Yee" "ዬ")
+ ("y" ?ይ) ("Y" "ይ")
+ ("yo" ?ዮ) ("Yo" "ዮ")
+
+ ("de" ?ደ)
+ ("du" ?ዱ)
+ ("di" ?ዲ)
+ ("da" ?ዳ)
+ ("dE" ?ዴ) ("dee" "ዴ")
+ ("d" ?ድ)
+ ("do" ?ዶ)
+ ("dWa" ?ዷ) ("dW" "ዷ")
+
+ ("De" ?ዸ)
+ ("Du" ?ዹ)
+ ("Di" ?ዺ)
+ ("Da" ?ዻ)
+ ("DE" ?ዼ) ("Dee" "ዼ")
+ ("D" ?ዽ)
+ ("Do" ?ዾ)
+ ("DWa" ?ዿ) ("DW" "ዿ")
+
+ ("je" ?ጀ) ("Je" "ጀ")
+ ("ju" ?ጁ) ("Ju" "ጁ")
+ ("ji" ?ጂ) ("Ji" "ጂ")
+ ("ja" ?ጃ) ("Ja" "ጃ")
+ ("jE" ?ጄ) ("JE" "ጄ") ("jee" "ጄ") ("Jee" "ጄ")
+ ("j" ?ጅ) ("J" "ጅ")
+ ("jo" ?ጆ) ("Jo" "ጆ")
+ ("jWa" ?ጇ) ("jW" "ጇ") ("JWa" "ጇ") ("JW" "ጇ")
+
+ ("ge" ?ገ)
+ ("gu" ?ጉ)
+ ("gi" ?ጊ)
+ ("ga" ?ጋ)
+ ("gE" ?ጌ) ("gee" "ጌ")
+ ("g" ?ግ)
+ ("go" ?ጎ)
+ ("gWe" ?ጐ)
+ ("gWi" ?ጒ)
+ ("gWa" ?ጓ) ("gW" "ጓ")
+ ("gWE" ?ጔ) ("gWee" "ጔ")
+ ("gW'" ?ጕ) ("gWu" "ጕ")
+
+ ("Ge" ?ጘ)
+ ("Gu" ?ጙ)
+ ("Gi" ?ጚ)
+ ("Ga" ?ጛ)
+ ("GE" ?ጜ) ("Gee" "ጜ")
+ ("G" ?ጝ)
+ ("Go" ?ጞ)
+
+ ("Te" ?ጠ)
+ ("Tu" ?ጡ)
+ ("Ti" ?ጢ)
+ ("Ta" ?ጣ)
+ ("TE" ?ጤ) ("Tee" "ጤ")
+ ("T" ?ጥ)
+ ("To" ?ጦ)
+ ("TWa" ?ጧ) ("TW" "ጧ")
+
+ ("Ce" ?ጨ)
+ ("Cu" ?ጩ)
+ ("Ci" ?ጪ)
+ ("Ca" ?ጫ)
+ ("CE" ?ጬ) ("Cee" "ጬ")
+ ("C" ?ጭ)
+ ("Co" ?ጮ)
+ ("CWa" ?ጯ) ("CW" "ጯ")
+
+ ("Pe" ?ጰ)
+ ("Pu" ?ጱ)
+ ("Pi" ?ጲ)
+ ("Pa" ?ጳ)
+ ("PE" ?ጴ) ("Pee" "ጴ")
+ ("P" ?ጵ)
+ ("Po" ?ጶ)
+ ("PWa" ?ጷ) ("PW" "ጷ")
+
+ ("Se" ?ጸ)
+ ("Su" ?ጹ)
+ ("Si" ?ጺ)
+ ("Sa" ?ጻ)
+ ("SE" ?ጼ) ("See" "ጼ")
+ ("S" ?ጽ)
+ ("So" ?ጾ)
+ ("SWa" ?ጿ) ("`SWa" "ጿ") ("SSWa" "ጿ") ("S2Wa" "ጿ")
+   ("SW" "ጿ") ("`SW" "ጿ") ("SSW" "ጿ") ("S2W" "ጿ")
+
+ ("`Se" ?ፀ) ("SSe" "ፀ") ("S2e" "ፀ")
+ ("`Su" ?ፁ) ("SSu" "ፁ") ("S2u" "ፁ")
+ ("`Si" ?ፂ) ("SSi" "ፂ") ("S2i" "ፂ")
+ ("`Sa" ?ፃ) ("SSa" "ፃ") ("S2a" "ፃ")
+ ("`SE" ?ፄ) ("SSE" "ፄ") ("S2E" "ፄ")
+   ("`See" "ፄ") ("SSee" "ፄ") ("S2ee" "ፄ")
+ ("`S" ?ፅ) ("SS" "ፅ") ("S2" "ፅ")
+ ("`So" ?ፆ) ("SSo" "ፆ") ("S2o" "ፆ")
+
+ ("fe" ?ፈ) ("Fe" "ፈ")
+ ("fu" ?ፉ) ("Fu" "ፉ")
+ ("fi" ?ፊ) ("Fi" "ፊ")
+ ("fa" ?ፋ) ("Fa" "ፋ")
+ ("fE" ?ፌ) ("FE" "ፌ") ("fee" "ፌ") ("Fee" "ፌ")
+ ("f" ?ፍ) ("F" "ፍ")
+ ("fo" ?ፎ) ("Fo" "ፎ")
+ ("fWa" ?ፏ) ("FWa" "ፏ") ("fW" "ፏ") ("FW" "ፏ")
+
+ ("pe" ?ፐ)
+ ("pu" ?ፑ)
+ ("pi" ?ፒ)
+ ("pa" ?ፓ)
+ ("pE" ?ፔ) ("pee" "ፔ")
+ ("p" ?ፕ)
+ ("po" ?ፖ)
+ ("pWa" ?ፗ) ("pW" "ፗ")
+
+ ("rYa" ?ፘ) ("RYa" "ፘ") ("rY" "ፘ") ("RY" "ፘ")
+ ("mYa" ?ፙ) ("MYa" "ፙ") ("mY" "ፙ") ("MY" "ፙ")
+ ("fYa" ?ፚ) ("FYa" "ፚ") ("fY" "ፚ") ("FY" "ፚ")
+
+ (" : " ?፡) (":" "፡") ("`:" "፡")
+ ("::" ?።) ("." "።")
+ ("," ?፣)
+ (";" ?፤)
+ ("-:" ?፥)
+ (":-" ?፦)
+ ("`?" ?፧) ("??" "፧")
+ (":|:" ?፨) ("**" "፨")
+
+ ;; Explicit syllable delimiter
+ ("'" "")
+
+ ;; Quick ASCII input
+ ("''" "'")
+ (":::" ":")
+ (".." ".")
+ (",," ",")
+ (";;" ";")
+
+ ("`1" ?፩)
+ ("`2" ?፪)
+ ("`3" ?፫)
+ ("`4" ?፬)
+ ("`5" ?፭)
+ ("`6" ?፮)
+ ("`7" ?፯)
+ ("`8" ?፰)
+ ("`9" ?፱)
+ ("`10" ?፲)
+ ("`20" ?፳)
+ ("`30" ?፴)
+ ("`40" ?፵)
+ ("`50" ?፶)
+ ("`60" ?፷)
+ ("`70" ?፸)
+ ("`80" ?፹)
+ ("`90" ?፺)
+ ("`100" ?፻)
+ ("`10000" ?፼)
+
+ ("`200" "፪፻")
+ ("`300" "፫፻")
+ ("`400" "፬፻")
+ ("`500" "፭፻")
+ ("`600" "፮፻")
+ ("`700" "፯፻")
+ ("`800" "፰፻")
+ ("`900" "፱፻")
+ ("`1000" "፲፻")
+ ("`2000" "፳፻")
+ ("`3000" "፴፻")
+ ("`4000" "፵፻")
+ ("`5000" "፶፻")
+ ("`6000" "፷፻")
+ ("`7000" "፸፻")
+ ("`8000" "፹፻")
+ ("`9000" "፺፻")
+ ("`20000" "፪፼")
+ ("`30000" "፫፼")
+ ("`40000" "፬፼")
+ ("`50000" "፭፼")
+ ("`60000" "፮፼")
+ ("`70000" "፯፼")
+ ("`80000" "፰፼")
+ ("`90000" "፱፼")
+ ("`100000" "፲፼")
+ ("`200000" "፳፼")
+ ("`300000" "፴፼")
+ ("`400000" "፵፼")
+ ("`500000" "፶፼")
+ ("`600000" "፷፼")
+ ("`700000" "፸፼")
+ ("`800000" "፹፼")
+ ("`900000" "፺፼")
+ ("`1000000" "፻፼")
+ )
+
+(register-input-method
+ "ethiopic-sera" "Ethiopic"
+ 'robin-use-package "et" "An input method for Ethiopic.")
+
+(robin-define-package "ethiopic-tex"
+ "TeX transliteration system for Ethiopic."
+
+ ("\\heG" ?ሀ)				; U+1200 ..
+ ("\\huG" ?ሁ)
+ ("\\hiG" ?ሂ)
+ ("\\haG" ?ሃ)
+ ("\\hEG" ?ሄ)
+ ("\\hG" ?ህ)
+ ("\\hoG" ?ሆ)
+ ;; reserved
+ ("\\leG" ?ለ)
+ ("\\luG" ?ሉ)
+ ("\\liG" ?ሊ)
+ ("\\laG" ?ላ)
+ ("\\lEG" ?ሌ)
+ ("\\lG" ?ል)
+ ("\\loG" ?ሎ)
+ ("\\lWaG" ?ሏ)
+
+ ("\\HeG" ?ሐ)				; U+1210 ..
+ ("\\HuG" ?ሑ)
+ ("\\HiG" ?ሒ)
+ ("\\HaG" ?ሓ)
+ ("\\HEG" ?ሔ)
+ ("\\HG" ?ሕ)
+ ("\\HoG" ?ሖ)
+ ("\\HWaG" ?ሗ)
+ ("\\meG" ?መ)
+ ("\\muG" ?ሙ)
+ ("\\miG" ?ሚ)
+ ("\\maG" ?ማ)
+ ("\\mEG" ?ሜ)
+ ("\\mG" ?ም)
+ ("\\moG" ?ሞ)
+ ("\\mWaG" ?ሟ)
+
+ ("\\sseG" ?ሠ)				; U+1220 ..
+ ("\\ssuG" ?ሡ)
+ ("\\ssiG" ?ሢ)
+ ("\\ssaG" ?ሣ)
+ ("\\ssEG" ?ሤ)
+ ("\\ssG" ?ሥ)
+ ("\\ssoG" ?ሦ)
+ ("\\ssWaG" ?ሧ)
+ ("\\reG" ?ረ)
+ ("\\ruG" ?ሩ)
+ ("\\riG" ?ሪ)
+ ("\\raG" ?ራ)
+ ("\\rEG" ?ሬ)
+ ("\\rG" ?ር)
+ ("\\roG" ?ሮ)
+ ("\\rWaG" ?ሯ)
+
+ ("\\seG" ?ሰ)				; U+1230 ..
+ ("\\suG" ?ሱ)
+ ("\\siG" ?ሲ)
+ ("\\saG" ?ሳ)
+ ("\\sEG" ?ሴ)
+ ("\\sG" ?ስ)
+ ("\\soG" ?ሶ)
+ ("\\sWaG" ?ሷ)
+ ("\\xeG" ?ሸ)
+ ("\\xuG" ?ሹ)
+ ("\\xiG" ?ሺ)
+ ("\\xaG" ?ሻ)
+ ("\\xEG" ?ሼ)
+ ("\\xG" ?ሽ)
+ ("\\xoG" ?ሾ)
+ ("\\xWaG" ?ሿ)
+
+ ("\\qeG" ?ቀ)				; U+1240 ..
+ ("\\quG" ?ቁ)
+ ("\\qiG" ?ቂ)
+ ("\\qaG" ?ቃ)
+ ("\\qEG" ?ቄ)
+ ("\\qG" ?ቅ)
+ ("\\qoG" ?ቆ)
+ ;; reserved
+ ("\\qWeG" ?ቈ)
+ ;; reserved
+ ("\\qWiG" ?ቊ)
+ ("\\qWaG" ?ቋ)
+ ("\\qWEG" ?ቌ)
+ ("\\qWG" ?ቍ)
+ ;; reserved
+ ;; reserved
+
+ ("\\QeG" ?ቐ)				; U+1250 ..
+ ("\\QuG" ?ቑ)
+ ("\\QiG" ?ቒ)
+ ("\\QaG" ?ቓ)
+ ("\\QEG" ?ቔ)
+ ("\\QG" ?ቕ)
+ ("\\QoG" ?ቖ)
+ ;; reserved
+ ("\\QWeG" ?ቘ)
+ ;; reserved
+ ("\\QWiG" ?ቚ)
+ ("\\QWaG" ?ቛ)
+ ("\\QWEG" ?ቜ)
+ ("\\QWG" ?ቝ)
+ ;; reserved
+ ;; reserved
+
+ ("\\beG" ?በ)				; U+1260 ..
+ ("\\buG" ?ቡ)
+ ("\\biG" ?ቢ)
+ ("\\baG" ?ባ)
+ ("\\bEG" ?ቤ)
+ ("\\bG" ?ብ)
+ ("\\boG" ?ቦ)
+ ("\\bWaG" ?ቧ)
+ ("\\veG" ?ቨ)
+ ("\\vuG" ?ቩ)
+ ("\\viG" ?ቪ)
+ ("\\vaG" ?ቫ)
+ ("\\vEG" ?ቬ)
+ ("\\vG" ?ቭ)
+ ("\\voG" ?ቮ)
+ ("\\vWaG" ?ቯ)
+
+ ("\\teG" ?ተ)				; U+1270 ..
+ ("\\tuG" ?ቱ)
+ ("\\tiG" ?ቲ)
+ ("\\taG" ?ታ)
+ ("\\tEG" ?ቴ)
+ ("\\tG" ?ት)
+ ("\\toG" ?ቶ)
+ ("\\tWaG" ?ቷ)
+ ("\\ceG" ?ቸ)
+ ("\\cuG" ?ቹ)
+ ("\\ciG" ?ቺ)
+ ("\\caG" ?ቻ)
+ ("\\cEG" ?ቼ)
+ ("\\cG" ?ች)
+ ("\\coG" ?ቾ)
+ ("\\cWaG" ?ቿ)
+
+ ("\\hheG" ?ኀ)				; U+1280 ..
+ ("\\hhuG" ?ኁ)
+ ("\\hhiG" ?ኂ)
+ ("\\hhaG" ?ኃ)
+ ("\\hhEG" ?ኄ)
+ ("\\hhG" ?ኅ)
+ ("\\hhoG" ?ኆ)
+ ;; reserved
+ ("\\hWeG" ?ኈ)
+ ;; reserved
+ ("\\hWiG" ?ኊ)
+ ("\\hWaG" ?ኋ)
+ ("\\hWEG" ?ኌ)
+ ("\\hWG" ?ኍ)
+ ;; reserved
+ ;; reserved
+
+ ("\\neG" ?ነ)				; U+1290 ..
+ ("\\nuG" ?ኑ)
+ ("\\niG" ?ኒ)
+ ("\\naG" ?ና)
+ ("\\nEG" ?ኔ)
+ ("\\nG" ?ን)
+ ("\\noG" ?ኖ)
+ ("\\nWaG" ?ኗ)
+ ("\\NeG" ?ኘ)
+ ("\\NuG" ?ኙ)
+ ("\\NiG" ?ኚ)
+ ("\\NaG" ?ኛ)
+ ("\\NEG" ?ኜ)
+ ("\\NG" ?ኝ)
+ ("\\NoG" ?ኞ)
+ ("\\NWaG" ?ኟ)
+
+ ("\\eG" ?አ)				; U+12A0 ..
+ ("\\uG" ?ኡ)
+ ("\\iG" ?ኢ)
+ ("\\AG" ?ኣ)
+ ("\\EG" ?ኤ)
+ ("\\IG" ?እ)
+ ("\\oG" ?ኦ)
+ ("\\eaG" ?ኧ)
+ ("\\keG" ?ከ)
+ ("\\kuG" ?ኩ)
+ ("\\kiG" ?ኪ)
+ ("\\kaG" ?ካ)
+ ("\\kEG" ?ኬ)
+ ("\\kG" ?ክ)
+ ("\\koG" ?ኮ)
+ ;; reserved
+
+ ("\\kWeG" ?ኰ)				; U+12B0 ..
+ ;; reserved
+ ("\\kWiG" ?ኲ)
+ ("\\kWaG" ?ኳ)
+ ("\\kWEG" ?ኴ)
+ ("\\kWG" ?ኵ)
+ ;; reserved
+ ;; reserved
+ ("\\KeG" ?ኸ)
+ ("\\KuG" ?ኹ)
+ ("\\KiG" ?ኺ)
+ ("\\KaG" ?ኻ)
+ ("\\KEG" ?ኼ)
+ ("\\KG" ?ኽ)
+ ("\\KoG" ?ኾ)
+ ;; reserved
+
+ ("\\KWeG" ?ዀ)				; U+12C0 ..
+ ;; reserved
+ ("\\KWiG" ?ዂ)
+ ("\\KWaG" ?ዃ)
+ ("\\KWEG" ?ዄ)
+ ("\\KWG" ?ዅ)
+ ;; reserved
+ ;; reserved
+ ("\\weG" ?ወ)
+ ("\\wuG" ?ዉ)
+ ("\\wiG" ?ዊ)
+ ("\\waG" ?ዋ)
+ ("\\wEG" ?ዌ)
+ ("\\wG" ?ው)
+ ("\\woG" ?ዎ)
+ ;; reserved
+
+ ("\\eeG" ?ዐ)				; U+12D0 ..
+ ("\\uuG" ?ዑ)
+ ("\\iiG" ?ዒ)
+ ("\\aaG" ?ዓ)
+ ("\\EEG" ?ዔ)
+ ("\\IIG" ?ዕ)
+ ("\\ooG" ?ዖ)
+ ;; reserved
+ ("\\zeG" ?ዘ)
+ ("\\zuG" ?ዙ)
+ ("\\ziG" ?ዚ)
+ ("\\zaG" ?ዛ)
+ ("\\zEG" ?ዜ)
+ ("\\zG" ?ዝ)
+ ("\\zoG" ?ዞ)
+ ("\\zWaG" ?ዟ)
+
+ ("\\ZeG" ?ዠ)				; U+12E0 ..
+ ("\\ZuG" ?ዡ)
+ ("\\ZiG" ?ዢ)
+ ("\\ZaG" ?ዣ)
+ ("\\ZEG" ?ዤ)
+ ("\\ZG" ?ዥ)
+ ("\\ZoG" ?ዦ)
+ ("\\ZWaG" ?ዧ)
+ ("\\yeG" ?የ)
+ ("\\yuG" ?ዩ)
+ ("\\yiG" ?ዪ)
+ ("\\yaG" ?ያ)
+ ("\\yEG" ?ዬ)
+ ("\\yG" ?ይ)
+ ("\\yoG" ?ዮ)
+ ;; reserved
+
+ ("\\deG" ?ደ)				; U+12F0 ..
+ ("\\duG" ?ዱ)
+ ("\\diG" ?ዲ)
+ ("\\daG" ?ዳ)
+ ("\\dEG" ?ዴ)
+ ("\\dG" ?ድ)
+ ("\\doG" ?ዶ)
+ ("\\dWaG" ?ዷ)
+ ("\\DeG" ?ዸ)
+ ("\\DuG" ?ዹ)
+ ("\\DiG" ?ዺ)
+ ("\\DaG" ?ዻ)
+ ("\\DEG" ?ዼ)
+ ("\\DG" ?ዽ)
+ ("\\DoG" ?ዾ)
+ ("\\DWaG" ?ዿ)
+
+ ("\\jeG" ?ጀ)				; U+1300 ..
+ ("\\juG" ?ጁ)
+ ("\\jiG" ?ጂ)
+ ("\\jaG" ?ጃ)
+ ("\\jEG" ?ጄ)
+ ("\\jG" ?ጅ)
+ ("\\joG" ?ጆ)
+ ("\\jWaG" ?ጇ)
+ ("\\geG" ?ገ)
+ ("\\guG" ?ጉ)
+ ("\\giG" ?ጊ)
+ ("\\gaG" ?ጋ)
+ ("\\gEG" ?ጌ)
+ ("\\gG" ?ግ)
+ ("\\goG" ?ጎ)
+ ;; reserved
+
+ ("\\gWeG" ?ጐ)				; U+1310 ..
+ ;; reserved
+ ("\\gWiG" ?ጒ)
+ ("\\gWaG" ?ጓ)
+ ("\\gWEG" ?ጔ)
+ ("\\gWG" ?ጕ)
+ ;; reserved
+ ;; reserved
+ ("\\GeG" ?ጘ)
+ ("\\GuG" ?ጙ)
+ ("\\GiG" ?ጚ)
+ ("\\GaG" ?ጛ)
+ ("\\GEG" ?ጜ)
+ ("\\GG" ?ጝ)
+ ("\\GoG" ?ጞ)
+ ;; reserved
+
+ ("\\TeG" ?ጠ)				; U+1320 ..
+ ("\\TuG" ?ጡ)
+ ("\\TiG" ?ጢ)
+ ("\\TaG" ?ጣ)
+ ("\\TEG" ?ጤ)
+ ("\\TG" ?ጥ)
+ ("\\ToG" ?ጦ)
+ ("\\TWaG" ?ጧ)
+ ("\\CeG" ?ጨ)
+ ("\\CuG" ?ጩ)
+ ("\\CiG" ?ጪ)
+ ("\\CaG" ?ጫ)
+ ("\\CEG" ?ጬ)
+ ("\\CG" ?ጭ)
+ ("\\CoG" ?ጮ)
+ ("\\CWaG" ?ጯ)
+
+ ("\\PeG" ?ጰ)				; U+1330 ..
+ ("\\PuG" ?ጱ)
+ ("\\PiG" ?ጲ)
+ ("\\PaG" ?ጳ)
+ ("\\PEG" ?ጴ)
+ ("\\PG" ?ጵ)
+ ("\\PoG" ?ጶ)
+ ("\\PWaG" ?ጷ)
+ ("\\SeG" ?ጸ)
+ ("\\SuG" ?ጹ)
+ ("\\SiG" ?ጺ)
+ ("\\SaG" ?ጻ)
+ ("\\SEG" ?ጼ)
+ ("\\SG" ?ጽ)
+ ("\\SoG" ?ጾ)
+ ("\\SWaG" ?ጿ)
+
+ ("\\SSeG" ?ፀ)				; U+1340 ..
+ ("\\SSuG" ?ፁ)
+ ("\\SSiG" ?ፂ)
+ ("\\SSaG" ?ፃ)
+ ("\\SSEG" ?ፄ)
+ ("\\SSG" ?ፅ)
+ ("\\SSoG" ?ፆ)
+ ;; reserved
+ ("\\feG" ?ፈ)
+ ("\\fuG" ?ፉ)
+ ("\\fiG" ?ፊ)
+ ("\\faG" ?ፋ)
+ ("\\fEG" ?ፌ)
+ ("\\fG" ?ፍ)
+ ("\\foG" ?ፎ)
+ ("\\fWaG" ?ፏ)
+
+ ("\\peG" ?ፐ)				; U+1350 ..
+ ("\\puG" ?ፑ)
+ ("\\piG" ?ፒ)
+ ("\\paG" ?ፓ)
+ ("\\pEG" ?ፔ)
+ ("\\pG" ?ፕ)
+ ("\\poG" ?ፖ)
+ ("\\pWaG" ?ፗ)
+ ("\\mYaG" ?ፘ)
+ ("\\rYaG" ?ፙ)
+ ("\\fYaG" ?ፚ)
+ ;; reserved
+ ;; reserved
+ ;; reserved
+ ;; reserved
+ ;; reserved
+
+ ;; reserved				; U+1360 ..
+ ("\\spaceG" ?፡)
+ ("\\periodG" ?።)
+ ("\\commaG" ?፣)
+ ("\\semicolonG" ?፤)
+ ("\\colonG" ?፥)
+ ("\\precolonG" ?፦)
+ ("\\oldqmarkG" ?፧)
+ ("\\pbreakG" ?፨)
+ ("\\andG" ?፩)
+ ("\\huletG" ?፪)
+ ("\\sostG" ?፫)
+ ("\\aratG" ?፬)
+ ("\\amstG" ?፭)
+ ("\\sadstG" ?፮)
+ ("\\sabatG" ?፯)
+
+ ("\\smntG" ?፰)			; U+1370 ..
+ ("\\zeteNG" ?፱)
+ ("\\asrG" ?፲)
+ ("\\heyaG" ?፳)
+ ("\\selasaG" ?፴)
+ ("\\arbaG" ?፵)
+ ("\\hemsaG" ?፶)
+ ("\\slsaG" ?፷)
+ ("\\sebaG" ?፸)
+ ("\\semanyaG" ?፹)
+ ("\\zeTanaG" ?፺)
+ ("\\metoG" ?፻)
+ ("\\asrxiG" ?፼)
+ ;; reserved
+ ;; reserved
+ ;; reserved
+
+ ;;
+ ;; private extension
+ ;;
+
+ ("\\yWaG" ?����)				; U+1A00EF (was U+12EF)
+
+ ("\\GWaG" ?����)				; U+1A011F (was U+131F)
+
+ ("\\qqeG" ?����)				; U+1A0180 .. (was U+1380 ..)
+ ("\\qquG" ?����)
+ ("\\qqiG" ?����)
+ ("\\qqaG" ?����)
+ ("\\qqEG" ?����)
+ ("\\qqG" ?����)
+ ("\\qqoG" ?����)
+ ;; unused
+ ("\\MWeG" ?����)
+ ("\\bWeG" ?����)
+ ("\\GWeG" ?����)
+ ("\\fWeG" ?����)
+ ("\\pWeG" ?����)
+ ;; unused
+ ;; unused
+ ;; unused
+
+ ("\\kkeG" ?����)				; U+1A0190 .. (was U+1390 ..)
+ ("\\kkuG" ?����)
+ ("\\kkiG" ?����)
+ ("\\kkaG" ?����)
+ ("\\kkEG" ?����)
+ ("\\kkG" ?����)
+ ("\\kkoG" ?����)
+ ;; unused
+ ("\\mWiG" ?����)
+ ("\\bWiG" ?����)
+ ("\\GWiG" ?����)
+ ("\\fWiG" ?����)
+ ("\\pWiG" ?����)
+ ;; unused
+ ;; unused
+ ;; unused
+
+ ("\\XeG" ?����)				; U+1A01A0 .. (was U+13A0 ..)
+ ("\\XuG" ?����)
+ ("\\XiG" ?����)
+ ("\\XaG" ?����)
+ ("\\XEG" ?����)
+ ("\\XG" ?����)
+ ("\\XoG" ?����)
+ ;; unused
+ ("\\mWEG" ?����)
+ ("\\bWEG" ?����)
+ ("\\GWEG" ?����)
+ ("\\fWEG" ?����)
+ ("\\pWEG" ?����)
+ ;; unused
+ ;; unused
+ ;; unused
+
+ ("\\ggeG" ?����)				; U+1A01B0 .. (was U+13B0 ..)
+ ("\\gguG" ?����)
+ ("\\ggiG" ?����)
+ ("\\ggaG" ?����)
+ ("\\ggEG" ?����)
+ ("\\ggG" ?����)
+ ("\\ggoG" ?����)
+ ;; unused
+ ("\\mWG" ?����)
+ ("\\bWG" ?����)
+ ("\\GWG" ?����)
+ ("\\fWG" ?����)
+ ("\\pWG" ?����)
+ ;; unused
+ ;; unused
+ ;; unused
+
+ ("\\ornamentG" ?����)			; U+1A01C0 .. (was U+FDF0 ..)
+ ("\\flandG" ?����)
+ ("\\iflandG" ?����)
+ ("\\africaG" ?����)
+ ("\\iafricaG" ?����)
+ ("\\wWeG" ?����)
+ ("\\wWiG" ?����)
+ ("\\wWaG" ?����)
+ ("\\wWEG" ?����)
+ ("\\wWG" ?����)
+ ;; Gemination (����) is handled in a special way.
+ ("\\slaqG" ?����)
+
+ ;; Assign reverse conversion to Fidel chars.
+ ;; Then override forward conversion with ASCII chars.
+ ;; ASCII chars should not have reverse conversions.
+ ("\\dotG" ?����) ("\\dotG" ".")
+ ("\\lquoteG" ?����) ("\\lquoteG" "«")
+ ("\\rquoteG" ?����) ("\\rquoteG" "»")
+ ("\\qmarkG" ?����) ("\\qmarkG" "?")
+
+ ;;
+ ;; New characters in Unicode 4.1.
+ ;;
+ ;; In forward conversion, these characters override the old private
+ ;; extensions above.  The old private extensions still keep their
+ ;; reverse conversion.
+ ;;
+
+ ("\\ornamentG" ?፠)
+ ("\\yWaG" ?ዯ)
+ ("\\GWaG" ?ጟ)
+ ("\\MWeG" ?ᎀ)
+ ("\\mWiG" ?ᎁ)
+ ("\\mWEG" ?ᎂ)
+ ("\\mWG" ?ᎃ)
+ ("\\bWeG" ?ᎄ)
+ ("\\bWiG" ?ᎅ)
+ ("\\bWEG" ?ᎆ)
+ ("\\bWG" ?ᎇ)
+ ("\\fWeG" ?ᎈ)
+ ("\\fWiG" ?ᎉ)
+ ("\\fWEG" ?ᎊ)
+ ("\\fWG" ?ᎋ)
+ ("\\pWeG" ?ᎌ)
+ ("\\pWiG" ?ᎍ)
+ ("\\pWEG" ?ᎎ)
+ ("\\pWG" ?ᎏ)
+ ("\\GWeG" ?ⶓ)
+ ("\\GWiG" ?ⶔ)
+ ("\\GWEG" ?ⶕ)
+ ("\\GWG" ?ⶖ)
+ ("\\qqeG" ?ⷀ)
+ ("\\qquG" ?ⷁ)
+ ("\\qqiG" ?ⷂ)
+ ("\\qqaG" ?ⷃ)
+ ("\\qqEG" ?ⷄ)
+ ("\\qqG" ?ⷅ)
+ ("\\qqoG" ?ⷆ)
+ ("\\kkeG" ?ⷈ)
+ ("\\kkuG" ?ⷉ)
+ ("\\kkiG" ?ⷊ)
+ ("\\kkaG" ?ⷋ)
+ ("\\kkEG" ?ⷌ)
+ ("\\kkG" ?ⷍ)
+ ("\\kkoG" ?ⷎ)
+ ("\\XeG" ?ⷐ)
+ ("\\XuG" ?ⷑ)
+ ("\\XiG" ?ⷒ)
+ ("\\XaG" ?ⷓ)
+ ("\\XEG" ?ⷔ)
+ ("\\XG" ?ⷕ)
+ ("\\XoG" ?ⷖ)
+ ("\\ggeG" ?ⷘ)
+ ("\\gguG" ?ⷙ)
+ ("\\ggiG" ?ⷚ)
+ ("\\ggaG" ?ⷛ)
+ ("\\ggEG" ?ⷜ)
+ ("\\ggG" ?ⷝ)
+ ("\\ggoG" ?ⷞ)
+ )
+
+;; The ethiopic-tex package is not used for keyboard input, therefore
+;; not registered with the register-input-method function.
+
 (provide 'ethio-util)
+
+;;; ethio-util.el ends here
 
 ;;; arch-tag: c8feb3d6-39bf-4b0a-b6ef-26f03fbc8140
 ;;; ethio-util.el ends here

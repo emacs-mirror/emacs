@@ -1696,8 +1696,14 @@ if the file was newly read in, the value is the filename."
     ;; if the files have changed on disk.
     (and buffer tags-loop-revert-buffers
 	 (not (verify-visited-file-modtime buffer))
+	 (y-or-n-p
+	  (format
+	   (if (buffer-modified-p buffer)
+	       "File %s changed on disk.  Discard your edits? "
+	     "File %s changed on disk.  Reread from disk? ")
+	   next))
 	 (with-current-buffer buffer
-	   (revert-buffer t)))
+	   (revert-buffer t t)))
     (if (not (and new novisit))
 	(set-buffer (find-file-noselect next novisit))
       ;; Like find-file, but avoids random warning messages.

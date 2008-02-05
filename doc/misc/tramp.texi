@@ -50,9 +50,9 @@ Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
 license is included in the section entitled ``GNU Free Documentation
 License'' in the Emacs manual.
 
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
+(a) The FSF's Back-Cover Text is: ``You have the freedom to
+copy and modify this GNU manual.  Buying copies from the FSF
+supports it in developing GNU and promoting software freedom.''
 
 This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document

@@ -586,7 +586,7 @@ draw_fringe_bitmap_1 (w, row, left_p, overlay, which)
       Lisp_Object face;
 
       if ((face = fringe_faces[which], NILP (face))
-	  || (face_id = lookup_derived_face (f, face, 'A', FRINGE_FACE_ID, 0),
+	  || (face_id = lookup_derived_face (f, face, FRINGE_FACE_ID, 0),
 	      face_id < 0))
 	face_id = FRINGE_FACE_ID;
     }
@@ -1563,7 +1563,7 @@ If FACE is nil, reset face to default fringe face.  */)
   if (!NILP (face))
     {
       face_id = lookup_derived_face (SELECTED_FRAME (), face,
-				     'A', FRINGE_FACE_ID, 1);
+				     FRINGE_FACE_ID, 1);
       if (face_id < 0)
 	error ("No such face");
     }

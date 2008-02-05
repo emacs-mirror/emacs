@@ -43,7 +43,7 @@ extern int errno;
 #include "window.h"
 #include "commands.h"
 #include "buffer.h"
-#include "charset.h"
+#include "character.h"
 #include "region-cache.h"
 #include "indent.h"
 #include "blockinput.h"
@@ -177,6 +177,7 @@ static struct Lisp_Overlay * copy_overlays P_ ((struct buffer *, struct Lisp_Ove
 static void modify_overlay P_ ((struct buffer *, EMACS_INT, EMACS_INT));
 static Lisp_Object buffer_lisp_local_variables P_ ((struct buffer *));
 
+extern char * emacs_strerror P_ ((int));
 
 /* For debugging; temporary.  See set_buffer_internal.  */
 /* Lisp_Object Qlisp_mode, Vcheck_symbol; */
@@ -2208,8 +2209,10 @@ DEFUN ("set-buffer-multibyte", Fset_buffer_multibyte, Sset_buffer_multibyte,
        doc: /* Set the multibyte flag of the current buffer to FLAG.
 If FLAG is t, this makes the buffer a multibyte buffer.
 If FLAG is nil, this makes the buffer a single-byte buffer.
-The buffer contents remain unchanged as a sequence of bytes
-but the contents viewed as characters do change.
+In these cases, the buffer contents remain unchanged as a sequence of
+bytes but the contents viewed as characters do change.
+If FLAG is `to', this makes the buffer a multibyte buffer by changing
+all eight-bit bytes to eight-bit characters.
 If the multibyte flag was really changed, undo information of the
 current buffer is cleared.  */)
      (flag)
@@ -2283,11 +2286,11 @@ current buffer is cleared.  */)
 	      p = GAP_END_ADDR;
 	      stop = Z;
 	    }
-	  if (MULTIBYTE_STR_AS_UNIBYTE_P (p, bytes))
-	    p += bytes, pos += bytes;
-	  else
+	  if (ASCII_BYTE_P (*p))
+	    p++, pos++;
+	  else if (CHAR_BYTE8_HEAD_P (*p))
 	    {
-	      c = STRING_CHAR (p, stop - pos);
+	      c = STRING_CHAR_AND_LENGTH (p, stop - pos, bytes);
 	      /* Delete all bytes for this 8-bit character but the
 		 last one, and change the last one to the charcter
 		 code.  */
@@ -2302,6 +2305,11 @@ current buffer is cleared.  */)
 		zv -= bytes;
 	      stop = Z;
 	    }
+	  else
+	    {
+	      bytes = BYTES_BY_CHAR_HEAD (*p);
+	      p += bytes, pos += bytes;
+	    }
 	}
       if (narrowed)
 	Fnarrow_to_region (make_number (begv), make_number (zv));
@@ -2310,13 +2318,14 @@ current buffer is cleared.  */)
     {
       int pt = PT;
       int pos, stop;
-      unsigned char *p;
+      unsigned char *p, *pend;
 
       /* Be sure not to have a multibyte sequence striding over the GAP.
-	 Ex: We change this: "...abc\201 _GAP_ \241def..."
-	     to: "...abc _GAP_ \201\241def..."  */
+	 Ex: We change this: "...abc\302 _GAP_ \241def..."
+	     to: "...abc _GAP_ \302\241def..."  */
 
-      if (GPT_BYTE > 1 && GPT_BYTE < Z_BYTE
+      if (EQ (flag, Qt)
+	  && GPT_BYTE > 1 && GPT_BYTE < Z_BYTE
 	  && ! CHAR_HEAD_P (*(GAP_END_ADDR)))
 	{
 	  unsigned char *p = GPT_ADDR - 1;
@@ -2335,6 +2344,7 @@ current buffer is cleared.  */)
       pos = BEG;
       stop = GPT;
       p = BEG_ADDR;
+      pend = GPT_ADDR;
       while (1)
 	{
 	  int bytes;
@@ -2344,16 +2354,21 @@ current buffer is cleared.  */)
 	      if (pos == Z)
 		break;
 	      p = GAP_END_ADDR;
+	      pend = Z_ADDR;
 	      stop = Z;
 	    }
 
-	  if (UNIBYTE_STR_AS_MULTIBYTE_P (p, stop - pos, bytes))
+	  if (ASCII_BYTE_P (*p))
+	    p++, pos++;
+	  else if (EQ (flag, Qt) && (bytes = MULTIBYTE_LENGTH (p, pend)) > 0)
 	    p += bytes, pos += bytes;
 	  else
 	    {
 	      unsigned char tmp[MAX_MULTIBYTE_LENGTH];
+	      int c;
 
-	      bytes = CHAR_STRING (*p, tmp);
+	      c = BYTE8_TO_CHAR (*p);
+	      bytes = CHAR_STRING (c, tmp);
 	      *p = tmp[0];
 	      TEMP_SET_PT_BOTH (pos + 1, pos + 1);
 	      bytes--;
@@ -2367,6 +2382,7 @@ current buffer is cleared.  */)
 		zv += bytes;
 	      if (pos <= pt)
 		pt += bytes;
+	      pend = Z_ADDR;
 	      stop = Z;
 	    }
 	}
@@ -2874,7 +2890,7 @@ overlay_touches_p (pos)
       int endpos;
 
       XSETMISC (overlay ,tail);
-      if (!GC_OVERLAYP (overlay))
+      if (!OVERLAYP (overlay))
 	abort ();
 
       endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
@@ -2889,7 +2905,7 @@ overlay_touches_p (pos)
       int startpos;
 
       XSETMISC (overlay, tail);
-      if (!GC_OVERLAYP (overlay))
+      if (!OVERLAYP (overlay))
 	abort ();
 
       startpos = OVERLAY_POSITION (OVERLAY_START (overlay));

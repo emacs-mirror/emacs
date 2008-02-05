@@ -3274,7 +3274,7 @@ be a local filename.  The method used must be an out-of-band method."
 				(append copy-args (list source target))))))
 		(tramp-message
 		 v 6 "%s" (mapconcat 'identity (process-command p) " "))
-		(set-process-sentinel p 'tramp-flush-connection-property)
+		(set-process-sentinel p 'tramp-process-sentinel)
 		(tramp-set-process-query-on-exit-flag p nil)
 		(tramp-process-actions p v tramp-actions-copy-out-of-band))))
 
@@ -3315,8 +3315,7 @@ be a local filename.  The method used must be an out-of-band method."
     (tramp-flush-directory-property v localname)
     (unless (zerop (tramp-send-command-and-check
 		    v
-		    (format "rmdir -f %s"
-			    (tramp-shell-quote-argument localname))))
+		    (format "rmdir %s" (tramp-shell-quote-argument localname))))
       (tramp-error v 'file-error "Couldn't delete %s" directory))))
 
 (defun tramp-handle-delete-file (filename)
@@ -3649,9 +3648,10 @@ beginning of local filename are not substituted."
 	  ;; Send the command.
 	  (tramp-send-command
 	   v
-	   (format "%s; exit"
+	   (format "%s; echo %s; exit"
 		   (mapconcat 'tramp-shell-quote-argument
-			      (cons program args) " "))
+			      (cons program args) " ")
+		   (tramp-shell-quote-argument tramp-end-of-output))
 	   nil t) ; nooutput
 	  ;; Return process.
 	  (tramp-get-connection-process v))
@@ -3804,13 +3804,13 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 	      (with-parsed-tramp-file-name default-directory nil
 		(list output-buffer (tramp-make-tramp-temp-file v)))
 	    output-buffer))
-	 (proc (get-buffer-process output-buffer)))
+	 (p (get-buffer-process output-buffer)))
 
     ;; Check whether there is another process running.  Tramp does not
     ;; support 2 (asynchronous) processes in parallel.
-    (when proc
+    (when p
       (if (yes-or-no-p "A command is running.  Kill it? ")
-	  (ignore-errors (kill-process proc))
+	  (ignore-errors (kill-process p))
 	(error "Shell command in progress")))
 
     (with-current-buffer output-buffer
@@ -3823,7 +3823,9 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
 	    ;; Run the process.
 	    (apply 'start-file-process "*Async Shell*" buffer args)
 	  ;; Display output.
-	  (pop-to-buffer output-buffer))
+	  (pop-to-buffer output-buffer)
+	  (setq mode-line-process '(":%s"))
+	  (require 'shell) (shell-mode))
 
       (prog1
 	  ;; Run the process.
@@ -4190,7 +4192,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 			;; conditions are satisfied, it tries to write
 			;; to a local file in default-directory, but
 			;; at this point, default-directory is remote.
-			;; (CALL-PROCESS-REGION can't write to remote
+			;; (`call-process-region' can't write to remote
 			;; files, it seems.)  The file in question is
 			;; a tmp file anyway.
 			(let ((default-directory
@@ -5305,7 +5307,9 @@ variable PATH."
    vec (format "PATH=%s; export PATH"
 	       (mapconcat 'identity (tramp-get-remote-path vec) ":"))))
 
-;; -- communication with external shell --
+;; ------------------------------------------------------------
+;; -- Communication with external shell --
+;; ------------------------------------------------------------
 
 (defun tramp-find-file-exists-command (vec)
   "Find a command on the remote host for checking if a file exists.
@@ -5356,7 +5360,6 @@ file exists and nonzero exit status otherwise."
       (tramp-error
        vec 'file-error "Couldn't find command to check if file exists"))
     result))
-
 
 ;; CCC test ksh or bash found for tilde expansion?
 (defun tramp-find-shell (vec)
@@ -5643,6 +5646,20 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
 		     tramp-current-method
 		     'tramp-password-end-of-line)
 		    tramp-default-password-end-of-line))))
+
+(defun tramp-process-sentinel (proc event)
+  "Process sentinel for Tramp processes."
+  (when (memq (process-status proc) '(stop exit signal))
+    (tramp-flush-connection-property proc)
+    ;; The "Connection closed" and "exit" messages disturb the output
+    ;; for asynchronous processes. That's why we have echoed the Tramp
+    ;; prompt at the end.  Trailing messages can be removed.
+    (with-current-buffer (process-buffer proc)
+      (goto-char (point-max))
+      (re-search-backward
+       (mapconcat 'identity (split-string tramp-end-of-output "\n") "\r?\n")
+       (line-beginning-position -8) t)
+      (delete-region (point) (point-max)))))
 
 (defun tramp-open-connection-setup-interactive-shell (proc vec)
   "Set up an interactive shell.
@@ -6176,7 +6193,7 @@ connection if a previous connection has died for some reason."
 	 vec 6 "%s" (mapconcat 'identity (process-command p) " "))
 
 	;; Check whether process is alive.
-	(set-process-sentinel p 'tramp-flush-connection-property)
+	(set-process-sentinel p 'tramp-process-sentinel)
 	(tramp-set-process-query-on-exit-flag p nil)
 	(tramp-message vec 3 "Waiting 60s for local shell to come up...")
 	(tramp-barf-if-no-shell-prompt
@@ -7367,7 +7384,9 @@ Only works for Bourne-like shells."
 ;; ** Try to avoid usage of `last-input-event' in `tramp-completion-mode-p'.
 ;; ** Unify `tramp-parse-{rhosts,shosts,sconfig,hosts,passwd,netrc}'.
 ;;    Code is nearly identical.
-;; * Allow out-of-band methods as _last_ multi-hop.
+;; * Allow out-of-band methods as _last_ multi-hop.  Open a connection
+;;   until the last but one hop via `start-file-process'.  Apply it
+;;   also for ftp and smb.
 ;; * WIBNI if we had a command "trampclient"?  If I was editing in
 ;;   some shell with root priviledges, it would be nice if I could
 ;;   just call

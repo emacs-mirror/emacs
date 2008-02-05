@@ -211,16 +211,21 @@
 ;; Embed string STR of length LEN in `ccl-program-vector' at
 ;; `ccl-current-ic'.
 (defun ccl-embed-string (len str)
-  (let ((i 0))
-    (while (< i len)
-      (ccl-embed-data (logior (ash (aref str i) 16)
-			       (if (< (1+ i) len)
-				   (ash (aref str (1+ i)) 8)
-				 0)
-			       (if (< (+ i 2) len)
-				   (aref str (+ i 2))
-				 0)))
-      (setq i (+ i 3)))))
+  (if (> len #xFFFFF)
+      (error "CCL: String too long: %d" len))
+  (if (> (string-bytes str) len)
+      (dotimes (i len)
+	(ccl-embed-data (logior #x1000000 (aref str i))))
+    (let ((i 0))
+      (while (< i len)
+	(ccl-embed-data (logior (ash (aref str i) 16)
+				(if (< (1+ i) len)
+				    (ash (aref str (1+ i)) 8)
+				  0)
+				(if (< (+ i 2) len)
+				    (aref str (+ i 2))
+				  0)))
+	(setq i (+ i 3))))))
 
 ;; Embed a relative jump address to `ccl-current-ic' in
 ;; `ccl-program-vector' at IC without altering the other bit field.
@@ -463,7 +468,6 @@
 
 ;; Compile WRITE statement with string argument.
 (defun ccl-compile-write-string (str)
-  (setq str (string-as-unibyte str))
   (let ((len (length str)))
     (ccl-embed-code 'write-const-string 1 len)
     (ccl-embed-string len str))
@@ -675,7 +679,6 @@
 	   (ccl-embed-code 'write-const-jump 0 ccl-loop-head)
 	   (ccl-embed-data arg))
 	  ((stringp arg)
-	   (setq arg (string-as-unibyte arg))
 	   (let ((len (length arg))
 		 (i 0))
 	     (ccl-embed-code 'write-string-jump 0 ccl-loop-head)
@@ -733,7 +736,9 @@
       (error "CCL: Invalid number of arguments: %s" cmd))
   (let ((rrr (nth 1 cmd)))
     (cond ((integerp rrr)
-	   (ccl-embed-code 'write-const-string 0 rrr))
+	   (if (> rrr #xFFFFF)
+	       (ccl-compile-write-string (string rrr))
+	     (ccl-embed-code 'write-const-string 0 rrr)))
 	  ((stringp rrr)
 	   (ccl-compile-write-string rrr))
 	  ((and (symbolp rrr) (vectorp (nth 2 cmd)))
@@ -1137,12 +1142,16 @@
       (insert "write \"")
       (while (< i len)
 	(let ((code (ccl-get-next-code)))
-	  (insert (format "%c" (lsh code -16)))
-	  (if (< (1+ i) len)
-	      (insert (format "%c" (logand (lsh code -8) 255))))
-	  (if (< (+ i 2) len)
-	      (insert (format "%c" (logand code 255))))
-	  (setq i (+ i 3))))
+	  (if (/= (logand code #x1000000) 0)
+	      (progn
+		(insert (logand code #xFFFFFF))
+		(setq i (1+ i)))
+	    (insert (format "%c" (lsh code -16)))
+	    (if (< (1+ i) len)
+		(insert (format "%c" (logand (lsh code -8) 255))))
+	    (if (< (+ i 2) len)
+		(insert (format "%c" (logand code 255))))
+	    (setq i (+ i 3)))))
       (insert "\"\n"))))
 
 (defun ccl-dump-write-array (rrr cc)
@@ -1509,7 +1518,12 @@ MAP-IDs := MAP-ID ...
 MAP-SET := MAP-IDs | (MAP-IDs) MAP-SET
 MAP-ID := integer
 "
-  `(let ((prog ,(ccl-compile (eval ccl-program))))
+  `(let ((prog ,(unwind-protect
+		    (progn
+		      ;; To make ,(charset-id CHARSET) works well.
+		      (fset 'charset-id 'charset-id-internal)
+		      (ccl-compile (eval ccl-program)))
+		  (fmakunbound 'charset-id))))
      (defconst ,name prog ,doc)
      (put ',name 'ccl-program-idx (register-ccl-program ',name prog))
      nil))

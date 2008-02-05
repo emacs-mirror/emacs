@@ -23,7 +23,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include <stdio.h>
 #include "lisp.h"
-#include "charset.h"
+#include "character.h"
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
 #endif
@@ -53,6 +53,10 @@ Boston, MA 02110-1301, USA.  */
 
 
 #ifdef HAVE_WINDOW_SYSTEM
+
+#ifdef USE_FONT_BACKEND
+#include "font.h"
+#endif	/* USE_FONT_BACKEND */
 
 /* The name we're using in resource queries.  Most often "emacs".  */
 
@@ -112,6 +116,9 @@ Lisp_Object Qtty_color_mode;
 Lisp_Object Qtty, Qtty_type;
 
 Lisp_Object Qfullscreen, Qfullwidth, Qfullheight, Qfullboth;
+#ifdef USE_FONT_BACKEND
+Lisp_Object Qfont_backend;
+#endif	/* USE_FONT_BACKEND */
 
 Lisp_Object Qinhibit_face_set_after_frame_default;
 Lisp_Object Qface_set_after_frame_default;
@@ -326,6 +333,10 @@ make_frame (mini_p)
 #endif
   f->size_hint_flags = 0;
   f->win_gravity = 0;
+#ifdef USE_FONT_BACKEND
+  f->font_driver_list = NULL;
+  f->font_data_list = NULL;
+#endif	/* USE_FONT_BACKEND */
 
   root_window = make_window ();
   if (mini_p)
@@ -1464,6 +1475,11 @@ The functions are run with one arg, the frame to be deleted.  */)
      memory. */
   free_glyphs (f);
 
+#ifdef USE_FONT_BACKEND
+  /* Give chance to each font driver to free a frame specific data.  */
+  font_update_drivers (f, Qnil);
+#endif	/* USE_FONT_BACKEND */
+
   /* Mark all the windows that used to be on FRAME as deleted, and then
      remove the reference to them.  */
   delete_all_subwindows (XWINDOW (f->root_window));
@@ -2183,7 +2199,7 @@ store_in_alist (alistptr, prop, val)
 static int
 frame_name_fnn_p (str, len)
      char *str;
-     int len;
+     EMACS_INT len;
 {
   if (len > 1 && str[0] == 'F')
     {
@@ -2824,6 +2840,9 @@ static struct frame_parm_table frame_parms[] =
   {"right-fringe",		&Qright_fringe},
   {"wait-for-wm",		&Qwait_for_wm},
   {"fullscreen",                &Qfullscreen},
+#ifdef USE_FONT_BACKEND
+  {"font-backend",		&Qfont_backend}
+#endif	/* USE_FONT_BACKEND */
 };
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -3338,20 +3357,60 @@ x_set_font (f, arg, oldval)
   Lisp_Object frame;
   int old_fontset = FRAME_FONTSET(f);
 
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    {
+      int fontset = -1;
+      Lisp_Object font_object;
+
+      /* ARG is a fontset name, a font name, or a font object.
+	 In the last case, this function never fail.  */
+      if (STRINGP (arg))
+	{
+	  fontset = fs_query_fontset (arg, 0);
+	  if (fontset < 0)
+	    font_object = font_open_by_name (f, SDATA (arg));
+	  else if (fontset > 0)
+	    {
+	      Lisp_Object ascii_font = fontset_ascii (fontset);
+
+	      font_object = font_open_by_name (f, SDATA (ascii_font));
+	    }
+	}
+      else
+	font_object = arg;
+
+      if (fontset < 0 && ! NILP (font_object))
+	fontset = new_fontset_from_font (font_object);
+
+      if (fontset == 0)
+	/* Refuse the default fontset.  */
+	result = Qt;
+      else if (NILP (font_object))
+	result = Qnil;
+      else
+	result = x_new_fontset2 (f, fontset, font_object);
+    }
+  else
+    {
+#endif	/* USE_FONT_BACKEND */
   CHECK_STRING (arg);
 
   fontset_name = Fquery_fontset (arg, Qnil);
 
   BLOCK_INPUT;
   result = (STRINGP (fontset_name)
-            ? x_new_fontset (f, SDATA (fontset_name))
-            : x_new_font (f, SDATA (arg)));
+            ? x_new_fontset (f, fontset_name)
+            : x_new_fontset (f, arg));
   UNBLOCK_INPUT;
+#ifdef USE_FONT_BACKEND
+    }
+#endif
 
   if (EQ (result, Qnil))
     error ("Font `%s' is not defined", SDATA (arg));
   else if (EQ (result, Qt))
-    error ("The characters of the given font have varying widths");
+    error ("The default fontset can't be used for a frame font");
   else if (STRINGP (result))
     {
       set_default_ascii_font (result);
@@ -3362,7 +3421,9 @@ x_set_font (f, arg, oldval)
 	  if (old_fontset == FRAME_FONTSET (f))
 	    return;
 	}
-      else if (!NILP (Fequal (result, oldval)))
+      store_frame_param (f, Qfont, result);
+
+      if (!NILP (Fequal (result, oldval)))
         return;
 
       /* Recalculate toolbar height.  */
@@ -3370,7 +3431,6 @@ x_set_font (f, arg, oldval)
       /* Ensure we redraw it.  */
       clear_current_matrices (f);
 
-      store_frame_param (f, Qfont, result);
       recompute_basic_faces (f);
     }
   else
@@ -3389,6 +3449,62 @@ x_set_font (f, arg, oldval)
       call1 (Qface_set_after_frame_default, frame);
     }
 }
+
+
+#ifdef USE_FONT_BACKEND
+void
+x_set_font_backend (f, new_value, old_value)
+     struct frame *f;
+     Lisp_Object new_value, old_value;
+{
+  if (! NILP (new_value)
+      && !CONSP (new_value))
+    {
+      char *p0, *p1;
+	
+      CHECK_STRING (new_value);
+      p0 = p1 = SDATA (new_value);
+      new_value = Qnil;
+      while (*p0)
+	{
+	  while (*p1 && *p1 != ',') p1++;
+	  if (p0 < p1)
+	    new_value = Fcons (Fintern (make_string (p0, p1 - p0), Qnil),
+			       new_value);
+	  if (*p1)
+	    p1++;
+	  p0 = p1;
+	}
+      new_value = Fnreverse (new_value);
+    }
+
+  if (! NILP (old_value) && ! NILP (Fequal (old_value, new_value)))
+    return;
+
+  if (FRAME_FONT_OBJECT (f))
+    free_all_realized_faces (Qnil);
+
+  new_value = font_update_drivers (f, NILP (new_value) ? Qt : new_value);
+  if (NILP (new_value))
+    {
+      if (NILP (old_value))
+	error ("No font backend available");
+      font_update_drivers (f, old_value);
+      error ("None of specified font backends are available");
+    }
+  store_frame_param (f, Qfont_backend, new_value);
+
+  if (FRAME_FONT_OBJECT (f))
+    {
+      Lisp_Object frame;
+
+      XSETFRAME (frame, f);
+      x_set_font (f, Fframe_parameter (frame, Qfont), Qnil);
+      ++face_change_count;
+      ++windows_or_buffers_changed;
+    }
+}
+#endif	/* USE_FONT_BACKEND */
 
 
 void

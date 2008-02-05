@@ -26,6 +26,7 @@ Boston, MA 02110-1301, USA.  */
 #include "syntax.h"
 #include "category.h"
 #include "buffer.h"
+#include "character.h"
 #include "charset.h"
 #include "region-cache.h"
 #include "commands.h"
@@ -121,61 +122,25 @@ matcher_overflow ()
    subexpression bounds.
    POSIX is nonzero if we want full backtracking (POSIX style)
    for this pattern.  0 means backtrack only enough to get a valid match.
-   MULTIBYTE is nonzero if we want to handle multibyte characters in
-   PATTERN.  0 means all multibyte characters are recognized just as
-   sequences of binary data.
 
    The behavior also depends on Vsearch_spaces_regexp.  */
 
 static void
-compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
+compile_pattern_1 (cp, pattern, translate, regp, posix)
      struct regexp_cache *cp;
      Lisp_Object pattern;
      Lisp_Object translate;
      struct re_registers *regp;
      int posix;
-     int multibyte;
 {
-  unsigned char *raw_pattern;
-  int raw_pattern_size;
   char *val;
   reg_syntax_t old;
-
-  /* MULTIBYTE says whether the text to be searched is multibyte.
-     We must convert PATTERN to match that, or we will not really
-     find things right.  */
-
-  if (multibyte == STRING_MULTIBYTE (pattern))
-    {
-      raw_pattern = (unsigned char *) SDATA (pattern);
-      raw_pattern_size = SBYTES (pattern);
-    }
-  else if (multibyte)
-    {
-      raw_pattern_size = count_size_as_multibyte (SDATA (pattern),
-						  SCHARS (pattern));
-      raw_pattern = (unsigned char *) alloca (raw_pattern_size + 1);
-      copy_text (SDATA (pattern), raw_pattern,
-		 SCHARS (pattern), 0, 1);
-    }
-  else
-    {
-      /* Converting multibyte to single-byte.
-
-	 ??? Perhaps this conversion should be done in a special way
-	 by subtracting nonascii-insert-offset from each non-ASCII char,
-	 so that only the multibyte chars which really correspond to
-	 the chosen single-byte character set can possibly match.  */
-      raw_pattern_size = SCHARS (pattern);
-      raw_pattern = (unsigned char *) alloca (raw_pattern_size + 1);
-      copy_text (SDATA (pattern), raw_pattern,
-		 SBYTES (pattern), 1, 0);
-    }
 
   cp->regexp = Qnil;
   cp->buf.translate = (! NILP (translate) ? translate : make_number (0));
   cp->posix = posix;
-  cp->buf.multibyte = multibyte;
+  cp->buf.multibyte = STRING_MULTIBYTE (pattern);
+  cp->buf.charset_unibyte = charset_unibyte;
   cp->whitespace_regexp = Vsearch_spaces_regexp;
   /* rms: I think BLOCK_INPUT is not needed here any more,
      because regex.c defines malloc to call xmalloc.
@@ -184,12 +149,11 @@ compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte)
   /*  BLOCK_INPUT;  */
   old = re_set_syntax (RE_SYNTAX_EMACS
 		       | (posix ? 0 : RE_NO_POSIX_BACKTRACKING));
-
   re_set_whitespace_regexp (NILP (Vsearch_spaces_regexp) ? NULL
 			    : SDATA (Vsearch_spaces_regexp));
 
-  val = (char *) re_compile_pattern ((char *)raw_pattern,
-				     raw_pattern_size, &cp->buf);
+  val = (char *) re_compile_pattern ((char *) SDATA (pattern),
+				     SBYTES (pattern), &cp->buf);
 
   /* If the compiled pattern hard codes some of the contents of the
      syntax-table, it can only be reused with *this* syntax table.  */
@@ -275,10 +239,10 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
 	  && !NILP (Fstring_equal (cp->regexp, pattern))
 	  && EQ (cp->buf.translate, (! NILP (translate) ? translate : make_number (0)))
 	  && cp->posix == posix
-	  && cp->buf.multibyte == multibyte
 	  && (EQ (cp->syntax_table, Qt)
 	      || EQ (cp->syntax_table, current_buffer->syntax_table))
-	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_spaces_regexp)))
+	  && !NILP (Fequal (cp->whitespace_regexp, Vsearch_spaces_regexp))
+	  && cp->buf.charset_unibyte == charset_unibyte)
 	break;
 
       /* If we're at the end of the cache, compile into the nil cell
@@ -287,7 +251,7 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
       if (cp->next == 0)
 	{
 	compile_it:
-	  compile_pattern_1 (cp, pattern, translate, regp, posix, multibyte);
+	  compile_pattern_1 (cp, pattern, translate, regp, posix);
 	  break;
 	}
     }
@@ -303,6 +267,10 @@ compile_pattern (pattern, regp, translate, posix, multibyte)
      for register data.  */
   if (regp)
     re_set_registers (&cp->buf, regp, regp->num_regs, regp->start, regp->end);
+
+  /* The compiled pattern can be used both for mulitbyte and unibyte
+     target.  But, we have to tell which the pattern is used for. */
+  cp->buf.target_multibyte = multibyte;
 
   return &cp->buf;
 }
@@ -1265,7 +1233,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       unsigned char *base_pat;
       /* Set to positive if we find a non-ASCII char that need
 	 translation.  Otherwise set to zero later.  */
-      int charset_base = -1;
+      int char_base = -1;
       int boyer_moore_ok = 1;
 
       /* MULTIBYTE says whether the text to be searched is multibyte.
@@ -1306,7 +1274,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       /* Copy and optionally translate the pattern.  */
       len = raw_pattern_size;
       len_byte = raw_pattern_size_byte;
-      patbuf = (unsigned char *) alloca (len_byte);
+      patbuf = (unsigned char *) alloca (len * MAX_MULTIBYTE_LENGTH);
       pat = patbuf;
       base_pat = raw_pattern;
       if (multibyte)
@@ -1356,46 +1324,47 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		  if (c != inverse && boyer_moore_ok)
 		    {
 		      /* Check if all equivalents belong to the same
-			 charset & row.  Note that the check of C
-			 itself is done by the last iteration.  Note
-			 also that we don't have to check ASCII
-			 characters because boyer-moore search can
-			 always handle their translation.  */
-		      while (1)
+			 group of characters.  Note that the check of C
+			 itself is done by the last iteration.  */
+		      int this_char_base = -1;
+
+		      while (boyer_moore_ok)
 			{
 			  if (ASCII_BYTE_P (inverse))
 			    {
-			      if (charset_base > 0)
+			      if (this_char_base > 0)
+				boyer_moore_ok = 0;
+			      else
 				{
-				  boyer_moore_ok = 0;
-				  break;
+				  this_char_base = 0;
+				  if (char_base < 0)
+				    char_base = this_char_base;
 				}
-			      charset_base = 0;
 			    }
-			  else if (SINGLE_BYTE_CHAR_P (inverse))
+			  else if (CHAR_BYTE8_P (inverse))
+			    /* Boyer-moore search can't handle a
+			       translation of an eight-bit
+			       character.  */
+			    boyer_moore_ok = 0;
+			  else if (this_char_base < 0)
 			    {
-			      /* Boyer-moore search can't handle a
-				 translation of an eight-bit
-				 character.  */
-			      boyer_moore_ok = 0;
-			      break;
+			      this_char_base = inverse & ~0x3F;
+			      if (char_base < 0)
+				char_base = this_char_base;
+			      else if (char_base > 0
+				       && this_char_base != char_base)
+				boyer_moore_ok = 0;
 			    }
-			  else if (charset_base < 0)
-			    charset_base = inverse & ~CHAR_FIELD3_MASK;
-			  else if ((inverse & ~CHAR_FIELD3_MASK)
-				   != charset_base)
-			    {
-			      boyer_moore_ok = 0;
-			      break;
-			    }
+			  else if ((inverse & ~0x3F) != this_char_base)
+			    boyer_moore_ok = 0;
 			  if (c == inverse)
 			    break;
 			  TRANSLATE (inverse, inverse_trt, inverse);
 			}
 		    }
 		}
-	      if (charset_base < 0)
-		charset_base = 0;
+	      if (char_base < 0)
+		char_base = 0;
 
 	      /* Store this character into the translated pattern.  */
 	      bcopy (str, pat, charlen);
@@ -1407,7 +1376,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       else
 	{
 	  /* Unibyte buffer.  */
-	  charset_base = 0;
+	  char_base = 0;
 	  while (--len >= 0)
 	    {
 	      int c, translated;
@@ -1434,7 +1403,7 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       if (boyer_moore_ok)
 	return boyer_moore (n, pat, len, len_byte, trt, inverse_trt,
 			    pos, pos_byte, lim, lim_byte,
-			    charset_base);
+			    char_base);
       else
 	return simple_search (n, pat, len, len_byte, trt,
 			      pos, pos_byte, lim, lim_byte);
@@ -1464,6 +1433,9 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 {
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
   int forward = n > 0;
+  /* Number of buffer bytes matched.  Note that this may be different
+     from len_byte in a multibyte buffer.  */
+  int match_byte;
 
   if (lim > pos && multibyte)
     while (n > 0)
@@ -1476,7 +1448,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	    int this_len = len;
 	    int this_len_byte = len_byte;
 	    unsigned char *p = pat;
-	    if (pos + len > lim)
+	    if (pos + len > lim || pos_byte + len_byte > lim_byte)
 	      goto stop;
 
 	    while (this_len > 0)
@@ -1503,8 +1475,9 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 
 	    if (this_len == 0)
 	      {
+		match_byte = this_pos_byte - pos_byte;
 		pos += len;
-		pos_byte += len_byte;
+		pos_byte += match_byte;
 		break;
 	      }
 
@@ -1541,6 +1514,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 
 	    if (this_len == 0)
 	      {
+		match_byte = len;
 		pos += len;
 		break;
 	      }
@@ -1558,13 +1532,15 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	  {
 	    /* Try matching at position POS.  */
 	    int this_pos = pos - len;
-	    int this_pos_byte = pos_byte - len_byte;
+	    int this_pos_byte;
 	    int this_len = len;
 	    int this_len_byte = len_byte;
 	    unsigned char *p = pat;
 
-	    if (this_pos < lim || this_pos_byte < lim_byte)
+	    if (this_pos < lim || (pos_byte - len_byte) < lim_byte)
 	      goto stop;
+	    this_pos_byte = CHAR_TO_BYTE (this_pos);
+	    match_byte = pos_byte - this_pos_byte;
 
 	    while (this_len > 0)
 	      {
@@ -1590,7 +1566,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	    if (this_len == 0)
 	      {
 		pos -= len;
-		pos_byte -= len_byte;
+		pos_byte -= match_byte;
 		break;
 	      }
 
@@ -1609,7 +1585,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	    int this_len = len;
 	    unsigned char *p = pat;
 
-	    if (pos - len < lim)
+	    if (this_pos < lim)
 	      goto stop;
 
 	    while (this_len > 0)
@@ -1626,6 +1602,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 
 	    if (this_len == 0)
 	      {
+		match_byte = len;
 		pos -= len;
 		break;
 	      }
@@ -1640,9 +1617,9 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
   if (n == 0)
     {
       if (forward)
-	set_search_regs ((multibyte ? pos_byte : pos) - len_byte, len_byte);
+	set_search_regs ((multibyte ? pos_byte : pos) - match_byte, match_byte);
       else
-	set_search_regs (multibyte ? pos_byte : pos, len_byte);
+	set_search_regs (multibyte ? pos_byte : pos, match_byte);
 
       return pos;
     }
@@ -1663,13 +1640,13 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
    have nontrivial translation are the same aside from the last byte.
    This makes it possible to translate just the last byte of a
    character, and do so after just a simple test of the context.
-   CHARSET_BASE is nonzero if there is such a non-ASCII character.
+   CHAR_BASE is nonzero if there is such a non-ASCII character.
 
    If that criterion is not satisfied, do not call this function.  */
 
 static int
 boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
-	     pos, pos_byte, lim, lim_byte, charset_base)
+	     pos, pos_byte, lim, lim_byte, char_base)
      int n;
      unsigned char *base_pat;
      int len, len_byte;
@@ -1677,7 +1654,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
      Lisp_Object inverse_trt;
      int pos, pos_byte;
      int lim, lim_byte;
-     int charset_base;
+     int char_base;
 {
   int direction = ((n > 0) ? 1 : -1);
   register int dirlen;
@@ -1691,12 +1668,13 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 
   unsigned char simple_translate[0400];
   /* These are set to the preceding bytes of a byte to be translated
-     if charset_base is nonzero.  As the maximum byte length of a
-     multibyte character is 4, we have to check at most three previous
+     if char_base is nonzero.  As the maximum byte length of a
+     multibyte character is 5, we have to check at most four previous
      bytes.  */
   int translate_prev_byte1 = 0;
   int translate_prev_byte2 = 0;
   int translate_prev_byte3 = 0;
+  int translate_prev_byte4 = 0;
 
   BM_tab = (int *) alloca (0400 * sizeof (int));
 
@@ -1758,20 +1736,23 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
   for (i = 0; i < 0400; i++)
     simple_translate[i] = i;
 
-  if (charset_base)
+  if (char_base)
     {
-      /* Setup translate_prev_byte1/2/3 from CHARSET_BASE.  Only a
+      /* Setup translate_prev_byte1/2/3/4 from CHAR_BASE.  Only a
 	 byte following them are the target of translation.  */
-      int sample_char = charset_base | 0x20;
       unsigned char str[MAX_MULTIBYTE_LENGTH];
-      int len = CHAR_STRING (sample_char, str);
+      int len = CHAR_STRING (char_base, str);
 
       translate_prev_byte1 = str[len - 2];
       if (len > 2)
 	{
 	  translate_prev_byte2 = str[len - 3];
 	  if (len > 3)
-	    translate_prev_byte3 = str[len - 4];
+	    {
+	      translate_prev_byte3 = str[len - 4];
+	      if (len > 4)
+		translate_prev_byte4 = str[len - 5];
+	    }
 	}
     }
 
@@ -1787,12 +1768,12 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	  /* If the byte currently looking at is the last of a
 	     character to check case-equivalents, set CH to that
 	     character.  An ASCII character and a non-ASCII character
-	     matching with CHARSET_BASE are to be checked.  */
+	     matching with CHAR_BASE are to be checked.  */
 	  int ch = -1;
 
 	  if (ASCII_BYTE_P (*ptr) || ! multibyte)
 	    ch = *ptr;
-	  else if (charset_base
+	  else if (char_base
 		   && ((pat_end - ptr) == 1 || CHAR_HEAD_P (ptr[1])))
 	    {
 	      unsigned char *charstart = ptr - 1;
@@ -1800,12 +1781,12 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	      while (! (CHAR_HEAD_P (*charstart)))
 		charstart--;
 	      ch = STRING_CHAR (charstart, ptr - charstart + 1);
-	      if (charset_base != (ch & ~CHAR_FIELD3_MASK))
+	      if (char_base != (ch & ~0x3F))
 		ch = -1;
 	    }
 
 	  if (ch >= 0400)
-	    j = ((unsigned char) ch) | 0200;
+	    j = (ch & 0x3F) | 0200;
 	  else
 	    j = *ptr;
 
@@ -1824,9 +1805,9 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 		{
 		  TRANSLATE (ch, inverse_trt, ch);
 		  if (ch >= 0400)
-		    j = ((unsigned char) ch) | 0200;
+		    j = (ch & 0x3F) | 0200;
 		  else
-		    j = (unsigned char) ch;
+		    j = ch;
 
 		  /* For all the characters that map into CH,
 		     set up simple_translate to map the last byte
@@ -2153,7 +2134,7 @@ wordify (string)
     {
       int c;
 
-      FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
+      FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c, string, i, i_byte);
 
       if (SYNTAX (c) != Sword)
 	{
@@ -2188,7 +2169,7 @@ wordify (string)
       int c;
       int i_byte_orig = i_byte;
 
-      FETCH_STRING_CHAR_ADVANCE (c, string, i, i_byte);
+      FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c, string, i, i_byte);
 
       if (SYNTAX (c) == Sword)
 	{
@@ -2472,11 +2453,11 @@ since only regular expressions have distinguished subexpressions.  */)
 	{
 	  if (NILP (string))
 	    {
-	      c = FETCH_CHAR (pos_byte);
+	      c = FETCH_CHAR_AS_MULTIBYTE (pos_byte);
 	      INC_BOTH (pos, pos_byte);
 	    }
 	  else
-	    FETCH_STRING_CHAR_ADVANCE (c, string, pos, pos_byte);
+	    FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE (c, string, pos, pos_byte);
 
 	  if (LOWERCASEP (c))
 	    {
@@ -2648,10 +2629,7 @@ since only regular expressions have distinguished subexpressions.  */)
       Lisp_Object rev_tbl;
       int really_changed = 0;
 
-      rev_tbl= (!buf_multibyte && CHAR_TABLE_P (Vnonascii_translation_table)
-		? Fchar_table_extra_slot (Vnonascii_translation_table,
-					  make_number (0))
-		: Qnil);
+      rev_tbl = Qnil;
 
       substed_alloc_size = length * 2 + 100;
       substed = (unsigned char *) xmalloc (substed_alloc_size + 1);
@@ -2694,7 +2672,7 @@ since only regular expressions have distinguished subexpressions.  */)
 		{
 		  FETCH_STRING_CHAR_ADVANCE_NO_CHECK (c, newtext,
 						      pos, pos_byte);
-		  if (!buf_multibyte && !SINGLE_BYTE_CHAR_P (c))
+		  if (!buf_multibyte && !ASCII_CHAR_P (c))
 		    c = multibyte_char_to_unibyte (c, rev_tbl);
 		}
 	      else

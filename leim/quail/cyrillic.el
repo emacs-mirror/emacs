@@ -283,7 +283,7 @@
 ;; least the top row is different.
 (quail-define-package
  "cyrillic-macedonian" "Cyrillic" ",L6(BM" nil
- ",L)*5@B7(B-,L#,(B keyboard layout based on JUS.I.K1.004 (ISO 8859-5 encoding)"
+ ",L)*5@B7(B-,L#,(B keyboard layout based on JUS.I.K1.004"
  nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2" 3# 4$ 5% 6& 7' 8( 9) 0= /? +* <>
@@ -392,7 +392,7 @@
 
 (quail-define-package
  "cyrillic-serbian" "Cyrillic" ",L6(BS" nil
- ",L)*5@B7(B-,L"+(B keyboard layout based on JUS.I.K1.005 (ISO 8859-5 encoding)"
+ ",L)*5@B7(B-,L"+(B keyboard layout based on JUS.I.K1.005"
  nil t t t t nil nil nil nil nil t)
 
 ;;  1! 2" 3# 4$ 5% 6& 7' 8( 9) 0= /? +* <>
@@ -618,7 +618,7 @@
 ;; Fixme: add GHE_WITH_UPTURN.
 (quail-define-package
  "cyrillic-ukrainian" "Ukrainian" ",L6(BU" nil
- ",L$'5@B7(B-,L&.(B UKRAINIAN (ISO 8859-5 encoding)
+ ",L$'5@B7(B-,L&.(B UKRAINIAN
 
 Sorry, but 'ghe with upturn' is not included in ISO 8859-5."
  nil t t t t nil nil nil nil nil t)
@@ -838,7 +838,7 @@ Sorry, but 'ghe with upturn' is not included in ISO 8859-5."
 ;; (mostly Russian) from time to time.
 (quail-define-package
  "cyrillic-yawerty" "Cyrillic" ",L6O(B" nil
- ",LO25@BK(B Roman transcription (ISO 8859-5 encoding)
+ ",LO25@BK(B Roman transcription
 
 This layout is based on Roman transcription by phonemic resemblance.
 When preceded by a '/', the second and the third rows (number key row) change

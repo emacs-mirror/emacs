@@ -108,6 +108,7 @@ if "%1" == "--without-jpeg" goto withoutjpeg
 if "%1" == "--without-gif" goto withoutgif
 if "%1" == "--without-tiff" goto withouttiff
 if "%1" == "--without-xpm" goto withoutxpm
+if "%1" == "--enable-font-backend" goto withfont
 if "%1" == "" goto checkutils
 :usage
 echo Usage: configure [options]
@@ -125,6 +126,7 @@ echo.   --without-jpeg          do not use jpeg-6b
 echo.   --without-gif           do not use giflib or libungif
 echo.   --without-tiff          do not use libtiff
 echo.   --without-xpm           do not use libXpm
+echo.   --enable-font-backend   build with font backend support
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
@@ -211,6 +213,13 @@ set HAVE_XPM=
 shift
 goto again
 
+:withfont
+set usercflags=%usercflags%%sep1%-DUSE_FONT_BACKEND
+set sep1= %nothing%
+set usefontbackend=Y
+shift
+goto again
+
 rem ----------------------------------------------------------------------
 rem    Check that necessary utilities (cp and rm) are present.
 :checkutils
@@ -235,15 +244,16 @@ rem   Auto-detect compiler if not specified, and validate GCC if chosen.
 if (%COMPILER%)==(cl) goto compilercheckdone
 if (%COMPILER%)==(gcc) goto checkgcc
 
-echo Checking whether 'cl' is available...
+echo Checking whether 'gcc' is available...
 echo main(){} >junk.c
+gcc -c junk.c
+if exist junk.o goto checkgcc
+del junk.o
+
+echo Checking whether 'cl' is available...
 cl -nologo -c junk.c
 if exist junk.obj goto clOK
-
-echo Checking whether 'gcc' is available...
-gcc -c junk.c
-if not exist junk.o goto nocompiler
-del junk.o
+goto nocompiler
 
 :checkgcc
 Rem WARNING -- COMMAND.COM on some systems only looks at the first
@@ -481,6 +491,7 @@ for %%v in (%usercflags%) do if not (%%v)==() set docflags=Y
 if (%docflags%)==(Y) echo USER_CFLAGS=%usercflags%>>config.settings
 for %%v in (%userldflags%) do if not (%%v)==() set doldflags=Y
 if (%doldflags%)==(Y) echo USER_LDFLAGS=%userldflags%>>config.settings
+if (%usefontbackend%) == (Y) echo USE_FONTBACKEND=1 >>config.settings
 echo # End of settings from configure.bat>>config.settings
 echo. >>config.settings
 
@@ -513,6 +524,8 @@ copy paths.h ..\src\epaths.h
 :dontCopy
 if exist config.tmp del config.tmp
 copy /b config.settings+%MAKECMD%.defs+..\nt\makefile.w32-in ..\nt\makefile
+if exist ..\admin\unidata\Makefile if not exist ..\admin\unidata\Makefile.unix ren ..\admin\unidata\Makefile Makefile.unix
+if exist ..\admin\unidata copy /b config.settings+%MAKECMD%.defs+..\admin\unidata\makefile.w32-in ..\admin\unidata\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lib-src\makefile.w32-in ..\lib-src\makefile
 copy /b config.settings+%MAKECMD%.defs+..\src\makefile.w32-in ..\src\makefile
 copy /b config.settings+%MAKECMD%.defs+..\doc\emacs\makefile.w32-in ..\doc\emacs\makefile

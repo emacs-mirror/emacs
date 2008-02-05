@@ -1,3 +1,35 @@
+2008-02-03  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Make gcc the default compiler.
+
+2008-02-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (unidatagen-SH, unidatagen-clean-SH): Ignore
+	return status.
+
+	* configure.bat (dontCopy): Rename admin/unidata/Makefile to keep
+	it out of the way of Windows generated file.  Generate
+	admin/unidata/makefile.
+
+	* makefile.w32-in (unidatagen-nmake, unidatagen-clean-nmake)
+	(unidatagen-CMD, unidatagen-clean-CMD, unidatagen-SH)
+	(unidatagen-clean-SH): New targets.
+	(bootstrap-nmake): Invoke unidatagen-nmake.
+	(bootstrap-gmake): Invoke unidatagen-$(SHELLTYPE).
+
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat (withfont): Set sep1 after modifying usercflags.
+
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Rename --with-font-backend to --enable-font-backend
+	for consistency with other platforms.
+
+2008-02-01  Jason Rumney  <jasonr@gnu.org>
+
+	* configure.bat: Add --with-font-backend option.
+
 2008-01-20  Jason Rumney  <jasonr@gnu.org>
 
 	* gmake.defs (CYGWIN) [USING_SH]: Disable mapping of file

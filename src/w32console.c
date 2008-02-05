@@ -32,7 +32,7 @@ Boston, MA 02110-1301, USA.
 #include <string.h>
 
 #include "lisp.h"
-#include "charset.h"
+#include "character.h"
 #include "coding.h"
 #include "disptab.h"
 #include "frame.h"

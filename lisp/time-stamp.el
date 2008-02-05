@@ -710,7 +710,7 @@ around literals."
 ;;; Some functions used in time-stamp-format
 
 ;;; These functions have been obsolete since 1995
-;;; and will be removed in a future Emacs release.
+;;; and will be removed in Emacs 23.
 ;;; Meanwhile, discourage other packages from using them.
 (dolist (function '(time-stamp-month-dd-yyyy time-stamp-dd/mm/yyyy
 		    time-stamp-mon-dd-yyyy   time-stamp-dd-mon-yy

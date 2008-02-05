@@ -39,6 +39,9 @@
 South Indian Language Tamil supported in this language environment."))
  '("Indian"))
 
+;; For automatic composition.
+(set-char-table-range composition-function-table '(#x0b80 . #x0bff)
+		      '(("[\x0B80-\x0BFF]+" . font-shape-text)))
 (provide 'tamil)
 
 ;;; arch-tag: 2201ac78-7d1e-4674-9bcb-9923c7a2bd9c
