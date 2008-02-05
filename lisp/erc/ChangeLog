@@ -1,3 +1,9 @@
+2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc.el (erc-valid-nick-regexp):
+	* erc-button.el (erc-button-syntax-table):
+	* erc-match.el (erc-match-syntax-table): Replace `legal' with `valid'.
+
 2007-11-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* erc.el (erc-open):
