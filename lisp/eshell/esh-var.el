@@ -47,7 +47,7 @@ variable value, a subcommand, or even the result of a Lisp form."
 ;;
 ;;   $ALSO-VAR
 ;;
-;; "-" is a legal part of a variable name.
+;; "-" is a valid part of a variable name.
 ;;
 ;;   $<MYVAR>-TOO
 ;;
