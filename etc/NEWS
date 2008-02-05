@@ -274,8 +274,9 @@ It's used automatically as you move through conflicts, see smerge-auto-refine.
 It's used automatically as you move through hunks, see
 diff-auto-refine.  It is bound to `C-c C-b'.
 
-*** diff-create-changelog iterates through the diff buffer and tries
-to create ChangeLog entries for each change.
+*** diff-add-change-log-entries-other-window iterates through the diff
+buffer and tries to create ChangeLog entries for each change.
+It is bound to `C-x 4 A'.
 
 ** archive-mode has basic support to browse Rar archives.
 

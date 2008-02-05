@@ -1,3 +1,7 @@
+2008-02-05  Tom Tromey  <tromey@redhat.com>
+
+	* configure.in (--with-dbus): Default to enabled.
+
 2008-02-05  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* INSTALL (Complex Text Layout support libraries): New section.

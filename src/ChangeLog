@@ -1,3 +1,7 @@
+2008-02-05  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* coding.c (decode_eol): Pay attention to coding->dst_multibyte.
+
 2008-02-05  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (get_lface_attributes, merge_named_face)

@@ -88,8 +88,8 @@ When called interactively, a Tramp connection has to be selected."
     (tramp-flush-directory-property vec "/")
 
     ;; Flush connection cache.
-    (tramp-flush-connection-property (tramp-get-connection-process vec) nil)
-    (tramp-flush-connection-property vec nil)
+    (tramp-flush-connection-property (tramp-get-connection-process vec))
+    (tramp-flush-connection-property vec)
 
     ;; Remove buffers.
     (dolist
