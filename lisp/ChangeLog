@@ -1,3 +1,10 @@
+2008-02-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-add-change-log-entries-other-window):
+	Rename from diff-create-changelog.  Change users.
+	Minor change to hopefully work with plain diffs.
+	(diff-mode-map): Add binding for it.
+
 2008-02-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* diff-mode.el: Add new TODO entry.
