@@ -724,10 +724,40 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
   font->file_name = NULL;
   font->encoding_charset = -1;
   font->repertory_charset = -1;
-  font->min_width = 0;
+  /* TODO: do we really want the minimum width here, which could be negative? */
+  font->min_width = font->font.space_width;
   font->ascent = w32_font->metrics.tmAscent;
   font->descent = w32_font->metrics.tmDescent;
   font->scalable = w32_font->metrics.tmPitchAndFamily & TMPF_VECTOR;
+
+  /* Set global flag fonts_changed_p to non-zero if the font loaded
+     has a character with a smaller width than any other character
+     before, or if the font loaded has a smaller height than any other
+     font loaded before.  If this happens, it will make a glyph matrix
+     reallocation necessary.  */
+  {
+    struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+    dpyinfo->n_fonts++;
+
+    if (dpyinfo->n_fonts == 1)
+      {
+        dpyinfo->smallest_font_height = font->font.height;
+        dpyinfo->smallest_char_width = font->min_width;
+      }
+    else
+      {
+        if (dpyinfo->smallest_font_height > font->font.height)
+          {
+            dpyinfo->smallest_font_height = font->font.height;
+            fonts_changed_p |= 1;
+          }
+        if (dpyinfo->smallest_char_width > font->min_width)
+          {
+            dpyinfo->smallest_char_width = font->min_width;
+            fonts_changed_p |= 1;
+          }
+      }
+  }
 
   return 1;
 }
