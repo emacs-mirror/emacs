@@ -1,3 +1,7 @@
+2008-02-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote processes): Add `shell-command'.
+
 2008-02-05  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (info): Depend on $(infodir)/dir
