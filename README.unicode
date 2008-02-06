@@ -1,18 +1,15 @@
                                             -*-mode: text; coding: latin-1;-*-
 
-Problems, fixmes and other issues in the emacs-unicode branch
+Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007, 2008
+  Free Software Foundation, Inc.
+See the end of the file for license conditions.
+
+Problems, fixmes and other issues for unicode-related issues
 -------------------------------------------------------------
 
 Notes by fx to record various things of variable importance.  handa
 needs to check them -- don't take too seriously, especially with
 regard to completeness.
-
-_Do take seriously that you don't want this branch unless you're
-actually working on it; you risk your data by actually using it._  If
-you just want to edit Unicode and/or unify iso-8859 et al, see the
-existing support and the extra stuff at
-<URL:ftp://dlpx1.dl.ac.uk/fx/emacs/Mule>, mostly now in the CVS trunk.
-(Editing support is mostly orthogonal to the internal representation.)
 
  * SINGLE_BYTE_CHAR_P returns true for Latin-1 characters, which has
    undesirable effects.  E.g.:
@@ -135,7 +132,7 @@ existing support and the extra stuff at
 New font handling mechanism with font backend method
 ----------------------------------------------------
 
-This branch now contains new codes for handling fonts by multiple font
+Emacs now contains new codes for handling fonts by multiple font
 backends.  The old font handling codes still exist completely parallel
 to the new codes, and the new codes are used only when you configure
 Emacs with the argument "--enable-font-backend".
@@ -199,3 +196,21 @@ Non-ASCII Latin characters will not be displayed by the font "tahoma".
 In such a case, please try this:
 
 (set-fontset-font "fontset-default" 'latin '("tahoma" . "unicode-bmp"))
+
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to the
+Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.
