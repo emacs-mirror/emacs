@@ -1,3 +1,8 @@
+2008-02-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* url-handlers.el (file-remote-p): Add handler.
+	(url-handler-file-remote-p): New fun.
+
 2008-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-handlers.el (url-handler-unhandled-file-name-directory):
