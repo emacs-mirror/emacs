@@ -135,7 +135,6 @@ OPTION_DEFAULT_ON([xft],[don't use XFT for anti aliased fonts])
 OPTION_DEFAULT_ON([libotf],[don't use libotf for OpenType font support])
 OPTION_DEFAULT_ON([m17n-flt],[don't use m17n-flt for text shaping])
 
-OPTION_DEFAULT_OFF([gtk],[use GTK toolkit])
 OPTION_DEFAULT_ON([toolkit-scroll-bars],[don't use Motif or Xaw3d scroll bars])
 OPTION_DEFAULT_ON([xaw3d],[don't use Xaw3d])
 OPTION_DEFAULT_ON([xim],[don't use X11 XIM])
@@ -143,6 +142,15 @@ OPTION_DEFAULT_OFF([carbon],[use Carbon GUI on Mac OS X.  This is unsupported!])
 
 OPTION_DEFAULT_ON([gpm],[don't use -lgpm for mouse support on a GNU/Linux console])
 OPTION_DEFAULT_ON([dbus],[don't compile with D-Bus support])
+
+dnl Can remove these in Emacs 24.
+AC_ARG_WITH([gtk],,
+  AC_MSG_ERROR([--with-gtk has been removed.  Use --with-x-toolkit to
+specify a toolkit.]),,)
+
+AC_ARG_WITH([gcc],,
+  AC_MSG_ERROR([--with-gcc has been removed.  Set the `CC' environment
+  variable to specify a compiler.]),,)
 
 AC_ARG_WITH([pkg-config-prog],dnl
 [AS_HELP_STRING([--with-pkg-config-prog=PATH],
@@ -821,6 +829,7 @@ test -n "$CC" && cc_specified=yes
 # Save the value of CFLAGS that the user specified.
 SPECIFIED_CFLAGS="$CFLAGS"
 
+dnl Sets GCC=yes if using gcc.
 AC_PROG_CC
 
 # On Suns, sometimes $CPP names a directory.
@@ -1422,7 +1431,7 @@ fi
 if test "${window_system}" = x11 && test "${HAVE_CARBON}" = yes; then
   if test "${with_carbon+set}" != set \
      && test "${carbon_appdir_x+set}" != set; then
-    for var in with_x with_x_toolkit with_gtk with_xim \
+    for var in with_x with_x_toolkit with_xim \
                with_xpm with_jpeg with_tiff with_gif with_png; do
       if eval test \"\${$var+set}\" = set; then
         HAVE_CARBON=no
@@ -1449,13 +1458,7 @@ dnl USE_X_TOOLKIT is set.
       no ) USE_X_TOOLKIT=none ;;
 dnl If user did not say whether to use a toolkit, make this decision later:
 dnl use the toolkit if we have gtk, or X11R5 or newer.
-      * )
-          if test x"$with_gtk" = xyes; then
-             USE_X_TOOLKIT=none
-          else
-             USE_X_TOOLKIT=maybe
-          fi
-          ;;
+      * ) USE_X_TOOLKIT=maybe ;;
     esac
   ;;
   mac | none )
@@ -1683,14 +1686,7 @@ fi
 
 
 HAVE_GTK=no
-if test "${with_gtk}" = "yes" && test "$USE_X_TOOLKIT" = "gtk"; then
-  USE_X_TOOLKIT=none
-fi
-if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk" || \
- test "$USE_X_TOOLKIT" = "maybe"; then
-  if test "$USE_X_TOOLKIT" != "none" && test "$USE_X_TOOLKIT" != "maybe"; then
-    AC_MSG_ERROR([Conflicting options, --with-gtk is incompatible with --with-x-toolkit=${with_x_toolkit}]);
-  fi
+if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
   GLIB_REQUIRED=2.6
   GTK_REQUIRED=2.6
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
