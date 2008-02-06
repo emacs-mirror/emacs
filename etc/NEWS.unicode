@@ -154,10 +154,6 @@ Composition Mode locally and globally.
 Auto Composition Mode to compose characters.  The default value is the
 function `auto-compose-chars'.
 
-*** New variable `auto-compose-current-font' is set to the current
-font-object while characters are being composed in Auto Composition
-Mode.
-
 ** Font Backend changes.
 
 *** New frame parameter `font-backend' specifies a list of
