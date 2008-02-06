@@ -53,13 +53,13 @@
 
 ;;; Macros
 
-(defmacro mh-make-seq (name msgs)
+(defsubst mh-make-seq (name msgs)
   "Create sequence NAME with the given MSGS."
-  (list 'cons name msgs))
+  (cons name msgs))
 
-(defmacro mh-seq-name (sequence)
+(defsubst mh-seq-name (sequence)
   "Extract sequence name from the given SEQUENCE."
-  (list 'car sequence))
+  (car sequence))
 
 
 
