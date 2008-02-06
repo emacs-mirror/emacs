@@ -37,18 +37,6 @@
 	fallback fonts.
 	(Ffontset_info) [USE_FONT_BACKEND]: Fix getting of opened font names.
 
-2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
-
-	* ccl.c (CCL_WRITE_CHAR, CCL_WRITE_MULTIBYTE_CHAR, ccl_driver):
-	Cancel previous change.
-
-2008-01-31  Kenichi Handa  <handa@ni.aist.go.jp>
-
-	* ccl.c (CCL_WRITE_CHAR): Increment extra_bytes only when
-	ccl->eight_bit_control.  Fix check for buffer overflow.
-	(CCL_WRITE_MULTIBYTE_CHAR): Fix check for buffer overflow.
-	(ccl_driver): Initialize extra_bytes to 0.
-
 2008-02-04  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_open_internal): Use font_unparse_fcname to
@@ -5278,6 +5266,18 @@
 
 	* ccl.c (CCL_WRITE_CHAR): Fix overflow checking.
 	(CCL_WRITE_MULTIBYTE_CHAR): Likewise.
+
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* ccl.c (CCL_WRITE_CHAR, CCL_WRITE_MULTIBYTE_CHAR, ccl_driver):
+	Cancel previous change.
+
+2008-01-31  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* ccl.c (CCL_WRITE_CHAR): Increment extra_bytes only when
+	ccl->eight_bit_control.  Fix check for buffer overflow.
+	(CCL_WRITE_MULTIBYTE_CHAR): Fix check for buffer overflow.
+	(ccl_driver): Initialize extra_bytes to 0.
 
 2008-01-31  Kenichi Handa  <handa@ni.aist.go.jp>
 
