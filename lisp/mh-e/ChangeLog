@@ -1,3 +1,13 @@
+2008-02-06  Richard Stallman  <rms@gnu.org>
+
+	* mh-seq.el (mh-make-seq, mh-seq-name): Use defsubst.
+
+	* mh-acros.el (mh-do-in-gnu-emacs, mh-do-in-xemacs)
+	(with-mh-folder-updating, mh-in-show-buffer)
+	(mh-iterate-on-messages-in-region, mh-iterate-on-range):
+	(mh-do-at-event-location): Add debug decls.
+	(mh-seq-msgs): Use defsubst.
+	
 2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mh-e.el (mh-scan-format-file-check, mh-adaptive-cmd-note-flag-check):
