@@ -1,3 +1,9 @@
+2008-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (--with-gcc): Give an error saying this option has
+	been removed.
+	(--with-gtk): Remove this option.
+
 2008-02-06  Tom Tromey  <tromey@redhat.com>
 
 	* configure.in (--with-gcc): Remove.
