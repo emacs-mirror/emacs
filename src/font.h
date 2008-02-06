@@ -1,5 +1,5 @@
 /* font.h -- Interface definition for font handling.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2008 Free Software Foundation, Inc.
    Copyright (C) 2006
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -8,7 +8,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
+the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -256,51 +256,67 @@ struct face;
 struct composition;
 
 /* Macros for lispy glyph-string.  */
-#define LGSTRING_FONT(lgs) AREF (AREF ((lgs), 0), 0)
-#define LGSTRING_WIDTH(lgs) XINT (AREF (AREF ((lgs), 0), 1))
-#define LGSTRING_LBEARING(lgs) XINT (AREF (AREF ((lgs), 0), 2))
-#define LGSTRING_RBEARING(lgs) XINT (AREF (AREF ((lgs), 0), 3))
-#define LGSTRING_ASCENT(lgs) XINT (AREF (AREF ((lgs), 0), 4))
-#define LGSTRING_DESCENT(lgs) XINT (AREF (AREF ((lgs), 0), 5))
-#define LGSTRING_SET_FONT(lgs, val)	\
-  ASET (AREF ((lgs), 0), 0, (val))
+enum lgstring_indices
+  {
+    LGSTRING_IX_FONT, LGSTRING_IX_WIDTH,
+    LGSTRING_IX_LBEARING, LGSTRING_IX_RBEARING,
+    LGSTRING_IX_ASCENT, LGSTRING_IX_DESCENT
+  };
+#define LGSTRING_SLOT(lgs, ix) AREF (AREF ((lgs), 0), ix)
+#define LGSTRING_FONT(lgs) LGSTRING_SLOT (lgs, LGSTRING_IX_FONT)
+#define LGSTRING_WIDTH(lgs) XINT (LGSTRING_SLOT (lgs, LGSTRING_IX_WIDTH))
+#define LGSTRING_LBEARING(lgs) XINT (LGSTRING_SLOT (lgs, LGSTRING_IX_LBEARING))
+#define LGSTRING_RBEARING(lgs) XINT (LGSTRING_SLOT (lgs, LGSTRING_IX_RBEARING))
+#define LGSTRING_ASCENT(lgs) XINT (LGSTRING_SLOT (lgs, LGSTRING_IX_ASCENT))
+#define LGSTRING_DESCENT(lgs) XINT (LGSTRING_SLOT (lgs, LGSTRING_IX_DESCENT))
+#define LGSTRING_SET_SLOT(lgs, ix, val) ASET (AREF ((lgs), 0), ix, (val))
+#define LGSTRING_SET_FONT(lgs, val)     \
+  LGSTRING_SET_SLOT(lgs, LGSTRING_IX_FONT, (val))
 #define LGSTRING_SET_WIDTH(lgs, val)	\
-  ASET (AREF ((lgs), 0), 1, make_number (val))
+  LGSTRING_SET_SLOT(lgs, LGSTRING_IX_WIDTH, make_number (val))
 #define LGSTRING_SET_LBEARING(lgs, val) \
-  ASET (AREF ((lgs), 0), 2, make_number (val))
+  LGSTRING_SET_SLOT(lgs, LGSTRING_IX_LBEARING, make_number (val))
 #define LGSTRING_SET_RBEARING(lgs, val)	\
-  ASET (AREF ((lgs), 0), 3, make_number (val))
+  LGSTRING_SET_SLOT(lgs, LGSTRING_IX_RBEARING, make_number (val))
 #define LGSTRING_SET_ASCENT(lgs, val)	\
-  ASET (AREF ((lgs), 0), 4, make_number (val))
+  LGSTRING_SET_SLOT(lgs, LGSTRING_IX_ASCENT, make_number (val))
 #define LGSTRING_SET_DESCENT(lgs, val)	\
-  ASET (AREF ((lgs), 0), 5, make_number (val))
+  LGSTRING_SET_SLOT(lgs, LGSTRING_IX_DESCENT, make_number (val))
 
 #define LGSTRING_LENGTH(lgs) (ASIZE ((lgs)) - 1)
 #define LGSTRING_GLYPH(lgs, idx) AREF ((lgs), (idx) + 1)
 #define LGSTRING_SET_GLYPH(lgs, idx, val) ASET ((lgs), (idx) + 1, (val))
 
 /* Vector size of Lispy glyph.  */
-#define LGLYPH_SIZE 10
-#define LGLYPH_FROM(g) XINT (AREF ((g), 0))
-#define LGLYPH_TO(g) XINT (AREF ((g), 1))
-#define LGLYPH_CHAR(g) XINT (AREF ((g), 2))
-#define LGLYPH_CODE(g) XINT (AREF ((g), 3))
-#define LGLYPH_WIDTH(g) XINT (AREF ((g), 4))
-#define LGLYPH_LBEARING(g) XINT (AREF ((g), 5))
-#define LGLYPH_RBEARING(g) XINT (AREF ((g), 6))
-#define LGLYPH_ASCENT(g) XINT (AREF ((g), 7))
-#define LGLYPH_DESCENT(g) XINT (AREF ((g), 8))
-#define LGLYPH_ADJUSTMENT(g) AREF ((g), 9)
-#define LGLYPH_SET_FROM(g, val) ASET ((g), 0, make_number (val))
-#define LGLYPH_SET_TO(g, val) ASET ((g), 1, make_number (val))
-#define LGLYPH_SET_CHAR(g, val) ASET ((g), 2, make_number (val))
-#define LGLYPH_SET_CODE(g, val) ASET ((g), 3, make_number (val))
-#define LGLYPH_SET_WIDTH(g, val) ASET ((g), 4, make_number (val))
-#define LGLYPH_SET_LBEARING(g, val) ASET ((g), 5, make_number (val))
-#define LGLYPH_SET_RBEARING(g, val) ASET ((g), 6, make_number (val))
-#define LGLYPH_SET_ASCENT(g, val) ASET ((g), 7, make_number (val))
-#define LGLYPH_SET_DESCENT(g, val) ASET ((g), 8, make_number (val))
-#define LGLYPH_SET_ADJUSTMENT(g, val) ASET ((g), 9, (val))
+enum lglyph_indices
+  {
+    LGLYPH_IX_FROM, LGLYPH_IX_TO,  LGLYPH_IX_CHAR, LGLYPH_IX_CODE,
+    LGLYPH_IX_WIDTH, LGLYPH_IX_LBEARING, LGLYPH_IX_RBEARING,
+    LGLYPH_IX_ASCENT, LGLYPH_IX_DESCENT, LGLYPH_IX_ADJUSTMENT,
+    /* Not an index.  */
+    LGLYPH_SIZE
+  };
+#define LGLYPH_FROM(g) XINT (AREF ((g), LGLYPH_IX_FROM))
+#define LGLYPH_TO(g) XINT (AREF ((g), LGLYPH_IX_TO))
+#define LGLYPH_CHAR(g) XINT (AREF ((g), LGLYPH_IX_CHAR))
+#define LGLYPH_CODE(g) XUINT (AREF ((g), LGLYPH_IX_CODE))
+#define LGLYPH_WIDTH(g) XINT (AREF ((g), LGLYPH_IX_WIDTH))
+#define LGLYPH_LBEARING(g) XINT (AREF ((g), LGLYPH_IX_LBEARING))
+#define LGLYPH_RBEARING(g) XINT (AREF ((g), LGLYPH_IX_RBEARING))
+#define LGLYPH_ASCENT(g) XINT (AREF ((g), LGLYPH_IX_ASCENT))
+#define LGLYPH_DESCENT(g) XINT (AREF ((g), LGLYPH_IX_DESCENT))
+#define LGLYPH_ADJUSTMENT(g) AREF ((g), LGLYPH_IX_ADJUSTMENT)
+#define LGLYPH_SET_FROM(g, val) ASET ((g), LGLYPH_IX_FROM, make_number (val))
+#define LGLYPH_SET_TO(g, val) ASET ((g), LGLYPH_IX_TO, make_number (val))
+#define LGLYPH_SET_CHAR(g, val) ASET ((g), LGLYPH_IX_CHAR, make_number (val))
+/* FIXME: we should use make_uint_number here.  */
+#define LGLYPH_SET_CODE(g, val) ASET ((g), LGLYPH_IX_CODE, make_number (val))
+#define LGLYPH_SET_WIDTH(g, val) ASET ((g), LGLYPH_IX_WIDTH, make_number (val))
+#define LGLYPH_SET_LBEARING(g, val) ASET ((g), LGLYPH_IX_RBEARING, make_number (val))
+#define LGLYPH_SET_RBEARING(g, val) ASET ((g), LGLYPH_IX_LBEARING, make_number (val))
+#define LGLYPH_SET_ASCENT(g, val) ASET ((g), LGLYPH_IX_ASCENT, make_number (val))
+#define LGLYPH_SET_DESCENT(g, val) ASET ((g), LGLYPH_IX_DESCENT, make_number (val))
+#define LGLYPH_SET_ADJUSTMENT(g, val) ASET ((g), LGLYPH_IX_ADJUSTMENT, (val))
 
 #define LGLYPH_XOFF(g) (VECTORP (LGLYPH_ADJUSTMENT (g)) \
 			? XINT (AREF (LGLYPH_ADJUSTMENT (g), 0)) : 0)
