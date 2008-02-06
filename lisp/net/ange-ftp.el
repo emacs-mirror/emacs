@@ -4172,7 +4172,7 @@ directory, so that Emacs will know its current contents."
 
 ;; Calculate default-unhandled-directory for a given ange-ftp buffer.
 (defun ange-ftp-unhandled-file-name-directory (filename)
-  (file-name-directory ange-ftp-tmp-name-template))
+  nil)
 
 
 ;; Need the following functions for making filenames of compressed

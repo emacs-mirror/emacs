@@ -1,3 +1,8 @@
+2008-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-unhandled-file-name-directory):
+	Just return nil and let the C code provide a fallback.
+
 2008-02-05  Glenn Morris  <rgm@gnu.org>
 
 	* net/tramp-cmds.el (tramp-cleanup-connection): Update calls to
