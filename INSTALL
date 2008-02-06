@@ -294,11 +294,6 @@ to search for GTK by specifying `--with-pkg-config-prog=PATH' where
 PATH is the pathname to pkg-config.  Note that GTK version 2.4 or
 newer is required for Emacs.
 
-The `--with-gcc' option specifies that the build process should
-compile Emacs using GCC.  If you don't want to use GCC, specify
-`--with-gcc=no'.  If you omit this option, `configure' will search
-for GCC in your path, and use it if present.
-
 The Emacs mail reader RMAIL is configured to be able to read mail from
 a POP3 server by default.  Versions of the POP protocol older than
 POP3 are not supported.  For Kerberos-authenticated POP add
