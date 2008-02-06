@@ -1,3 +1,15 @@
+2008-02-06  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* xdisp.c (x_produce_glyphs): Don't set it->ascent and it->descent
+	to negative value.
+
+	* ftxfont.c (ftxfont_draw): Use s->font_info, not face->font_info.
+
+	* ftfont.c (ftfont_open): Fix calculation of
+	font->font.averange_width.
+
+	* charset.c (syms_of_charset): Set QCtest and Qeq.
+
 2008-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* process.c (Fstart_process):
