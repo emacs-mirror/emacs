@@ -2,6 +2,10 @@
 
 	* font.h (enum lgstring_indices, enum lglyph_indices): New enums.
 	(LGSTRING_SLOT, LGSTRING_SET_SLOT): New macros.
+	* font.c (check_gstring): Use them and AREF to access the vector before
+	we know it's really a gstring.
+	(Ffont_shape_text): Fix typo.
+	(Ffont_shape_text, Ffont_otf_alternates): Fix up int/Lisp_Oject mixups.
 
 	* composite.h (Fcompose_region_internal, Fcompose_string_internal):
 	Declare.

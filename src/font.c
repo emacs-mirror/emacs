@@ -1,5 +1,5 @@
 /* font.c -- "Font" primitives.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2008 Free Software Foundation, Inc.
    Copyright (C) 2006
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -8,7 +8,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
+the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -1576,16 +1576,16 @@ check_gstring (gstring)
   if (ASIZE (val) < LGSTRING_HEADER_SIZE)
     goto err;
   CHECK_FONT_OBJECT (LGSTRING_FONT (gstring));
-  if (! NILP (LGSTRING_LBEARING (gstring)))
-    CHECK_NUMBER (LGSTRING_LBEARING (gstring));
-  if (! NILP (LGSTRING_RBEARING (gstring)))
-    CHECK_NUMBER (LGSTRING_RBEARING (gstring));
-  if (! NILP (LGSTRING_WIDTH (gstring)))
-    CHECK_NATNUM (LGSTRING_WIDTH (gstring));
-  if (! NILP (LGSTRING_ASCENT (gstring)))
-    CHECK_NUMBER (LGSTRING_ASCENT (gstring));
-  if (! NILP (LGSTRING_DESCENT (gstring)))
-    CHECK_NUMBER (LGSTRING_DESCENT(gstring));
+  if (!NILP (LGSTRING_SLOT (gstring, LGSTRING_IX_LBEARING)))
+    CHECK_NUMBER (LGSTRING_SLOT (gstring, LGSTRING_IX_LBEARING));
+  if (!NILP (LGSTRING_SLOT (gstring, LGSTRING_IX_RBEARING)))
+    CHECK_NUMBER (LGSTRING_SLOT (gstring, LGSTRING_IX_RBEARING));
+  if (!NILP (LGSTRING_SLOT (gstring, LGSTRING_IX_WIDTH)))
+    CHECK_NATNUM (LGSTRING_SLOT (gstring, LGSTRING_IX_WIDTH));
+  if (!NILP (LGSTRING_SLOT (gstring, LGSTRING_IX_ASCENT)))
+    CHECK_NUMBER (LGSTRING_SLOT (gstring, LGSTRING_IX_ASCENT));
+  if (!NILP (LGSTRING_SLOT (gstring, LGSTRING_IX_ASCENT)))
+    CHECK_NUMBER (LGSTRING_SLOT (gstring, LGSTRING_IX_ASCENT));
 
   for (i = 0; i < LGSTRING_LENGTH (gstring); i++)
     {
@@ -1593,18 +1593,18 @@ check_gstring (gstring)
       CHECK_VECTOR (val);
       if (ASIZE (val) < LGSTRING_GLYPH_SIZE)
 	goto err;
-      if (NILP (LGLYPH_CHAR (val)))
+      if (NILP (AREF (val, LGLYPH_IX_CHAR)))
 	break;
-      CHECK_NATNUM (LGLYPH_FROM (val));
-      CHECK_NATNUM (LGLYPH_TO (val));
-      CHECK_CHARACTER (LGLYPH_CHAR (val));
-      if (! NILP (LGLYPH_CODE (val)))
-	CHECK_NATNUM (LGLYPH_CODE (val));
-      if (! NILP (LGLYPH_WIDTH (val)))
-	CHECK_NATNUM (LGLYPH_WIDTH (val));
-      if (! NILP (LGLYPH_ADJUSTMENT (val)))
+      CHECK_NATNUM (AREF (val, LGLYPH_IX_FROM));
+      CHECK_NATNUM (AREF (val, LGLYPH_IX_TO));
+      CHECK_CHARACTER (AREF (val, LGLYPH_IX_CHAR));
+      if (!NILP (AREF (val, LGLYPH_IX_CODE)))
+	CHECK_NATNUM (AREF (val, LGLYPH_IX_CODE));
+      if (!NILP (AREF (val, LGLYPH_IX_WIDTH)))
+	CHECK_NATNUM (AREF (val, LGLYPH_IX_WIDTH));
+      if (!NILP (AREF (val, LGLYPH_IX_ADJUSTMENT)))
 	{
-	  val = LGLYPH_ADJUSTMENT (val);
+	  val = AREF (val, LGLYPH_IX_ADJUSTMENT);
 	  CHECK_VECTOR (val);
 	  if (ASIZE (val) < 3)
 	    goto err;
@@ -3604,7 +3604,7 @@ FONT-OBJECT.  */)
 	      if (NILP (string))
 		Fcompose_region_internal (from, to, gstr, Qnil);
 	      else
-		Fcompose_region_internal (string, from, to, gstr, Qnil);
+		Fcompose_string_internal (string, from, to, gstr, Qnil);
 	    }
 	}
       return make_number (end);
@@ -3643,7 +3643,7 @@ FONT-OBJECT.  */)
       if (NILP (LGLYPH_ADJUSTMENT (g)))
 	{
 	  metrics.width = LGLYPH_WIDTH (g);
-	  if (XINT (LGLYPH_CHAR (g)) == 0 || metrics.width == 0)
+	  if (LGLYPH_CHAR (g) == 0 || metrics.width == 0)
 	    need_composition = 1;
 	}
       else
@@ -3810,7 +3810,7 @@ corresponding character.  */)
 
   gstring_in = Ffont_make_gstring (font_object, make_number (1));
   g = LGSTRING_GLYPH (gstring_in, 0);
-  LGLYPH_SET_CHAR (g, character);
+  LGLYPH_SET_CHAR (g, XINT (character));
   gstring_out = Ffont_make_gstring (font_object, make_number (10));
   while ((num = font->driver->otf_drive (font, otf_features, gstring_in, 0, 1,
 					 gstring_out, 0, 1)) < 0)
@@ -3820,8 +3820,8 @@ corresponding character.  */)
   for (i = 0; i < num; i++)
     {
       Lisp_Object g = LGSTRING_GLYPH (gstring_out, i);
-      int c = XINT (LGLYPH_CHAR (g));
-      unsigned code = XUINT (LGLYPH_CODE (g));
+      int c = LGLYPH_CHAR (g);
+      unsigned code = LGLYPH_CODE (g);
 
       alternates = Fcons (Fcons (make_number (code),
 				 c > 0 ? make_number (c) : Qnil),
