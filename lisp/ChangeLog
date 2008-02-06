@@ -116,6 +116,8 @@
 
 	* international/characters.el (script-list): Add cham.
 
+	* language/cham.el: New file.
+
 2008-02-01  Mark A. Hershberger  <mah@everybody.org>
 
 	* xml.el (xml-escape-string): Don't do any encoding changes on the
