@@ -65,12 +65,14 @@ loads \"cl\" appropriately."
 ;;;###mh-autoload
 (defmacro mh-do-in-gnu-emacs (&rest body)
   "Execute BODY if in GNU Emacs."
+  (declare (debug t))
   (unless (featurep 'xemacs) `(progn ,@body)))
 (put 'mh-do-in-gnu-emacs 'lisp-indent-hook 'defun)
 
 ;;;###mh-autoload
 (defmacro mh-do-in-xemacs (&rest body)
   "Execute BODY if in XEmacs."
+  (declare (debug t))
   (when (featurep 'xemacs) `(progn ,@body)))
 (put 'mh-do-in-xemacs 'lisp-indent-hook 'defun)
 
@@ -178,6 +180,7 @@ Execute BODY, which can modify the folder buffer without having to
 worry about file locking or the read-only flag, and return its result.
 If SAVE-MODIFICATION-FLAG is non-nil, the buffer's modification flag
 is unchanged, otherwise it is cleared."
+  (declare (debug t))
   (setq save-modification-flag (car save-modification-flag)) ; CL style
   `(prog1
        (let ((mh-folder-updating-mod-flag (buffer-modified-p))
@@ -196,6 +199,7 @@ is unchanged, otherwise it is cleared."
   "Format is (mh-in-show-buffer (SHOW-BUFFER) &body BODY).
 Display buffer SHOW-BUFFER in other window and execute BODY in it.
 Stronger than `save-excursion', weaker than `save-window-excursion'."
+  (declare (debug t))
   (setq show-buffer (car show-buffer))  ; CL style
   `(let ((mh-in-show-buffer-saved-window (selected-window)))
      (switch-to-buffer-other-window ,show-buffer)
@@ -212,6 +216,7 @@ Stronger than `save-excursion', weaker than `save-window-excursion'."
 After BODY has been executed return to original window. The
 modification flag of the buffer in the event window is
 preserved."
+  (declare (debug t))
   (let ((event-window (make-symbol "event-window"))
         (event-position (make-symbol "event-position"))
         (original-window (make-symbol "original-window"))
@@ -245,9 +250,9 @@ preserved."
 ;;; Sequences and Ranges
 
 ;;;###mh-autoload
-(defmacro mh-seq-msgs (sequence)
+(defsubst mh-seq-msgs (sequence)
   "Extract messages from the given SEQUENCE."
-  (list 'cdr sequence))
+  (cdr sequence))
 
 ;;;###mh-autoload
 (defmacro mh-iterate-on-messages-in-region (var begin end &rest body)
@@ -257,6 +262,7 @@ VAR is bound to the message on the current line as we loop
 starting from BEGIN till END. In each step BODY is executed.
 
 If VAR is nil then the loop is executed without any binding."
+  (declare (debug (symbolp body)))
   (unless (symbolp var)
     (error "Can not bind the non-symbol %s" var))
   (let ((binding-needed-flag var))
@@ -282,6 +288,7 @@ a string. In each iteration, BODY is executed.
 The parameter RANGE is usually created with
 `mh-interactive-range' in order to provide a uniform interface to
 MH-E functions."
+  (declare (debug (symbolp body)))
   (unless (symbolp var)
     (error "Can not bind the non-symbol %s" var))
   (let ((binding-needed-flag var)
