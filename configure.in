@@ -70,11 +70,6 @@ AC_DEFUN([OPTION_DEFAULT_ON], [dnl
    m4_bpatsubst([with_$1], [[^0-9a-z]], [_])=yes])dnl
 ])dnl
 
-dnl By default, neither off nor on.
-AC_ARG_WITH([gcc],
-[AS_HELP_STRING([--without-gcc],
-    [don't use GCC to compile Emacs even if GCC is found])])
-
 OPTION_DEFAULT_ON([pop],[don't support POP mail retrieval with movemail])
 if test "$with_pop" = yes; then
    AC_DEFINE(MAIL_USE_POP)
@@ -826,11 +821,6 @@ test -n "$CC" && cc_specified=yes
 # Save the value of CFLAGS that the user specified.
 SPECIFIED_CFLAGS="$CFLAGS"
 
-case ${with_gcc} in
-  "yes" ) CC="gcc" GCC=yes ;;
-  "no"  ) : ${CC=cc} ;;
-  * )
-esac
 AC_PROG_CC
 
 # On Suns, sometimes $CPP names a directory.
