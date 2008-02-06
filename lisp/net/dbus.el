@@ -47,7 +47,11 @@
 (defconst dbus-interface-dbus "org.freedesktop.DBus"
   "The interface exported by the object with `dbus-service-dbus' and `dbus-path-dbus'.")
 
-(defconst dbus-interface-introspectable "org.freedesktop.DBus.Introspectable"
+(defconst dbus-interface-peer (concat dbus-interface-dbus ".Peer")
+  "The interface for peer objects.")
+
+(defconst dbus-interface-introspectable
+  (concat dbus-interface-dbus ".Introspectable")
   "The interface supported by introspectable objects.")
 
 (defmacro dbus-ignore-errors (&rest body)
@@ -318,6 +322,16 @@ The result is either a string, or nil if there is no name owner."
     (dbus-call-method
      bus dbus-service-dbus dbus-path-dbus
      dbus-interface-dbus "GetNameOwner" service)))
+
+(defun dbus-ping (bus service)
+  "Check whether SERVICE is registered for D-Bus BUS."
+  ;; "Ping" raises a D-Bus error if SERVICE does not exist.
+  ;; Otherwise, it returns silently.
+  (condition-case nil
+      (progn
+	(dbus-call-method bus service dbus-path-dbus dbus-interface-peer "Ping")
+	t)
+    (dbus-error nil)))
 
 (defun dbus-introspect (bus service path)
   "Return the introspection data of SERVICE in D-Bus BUS at object path PATH.
