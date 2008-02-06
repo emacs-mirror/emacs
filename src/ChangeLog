@@ -1,3 +1,13 @@
+2008-02-06  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_text_extents): Fill in lbearing metric.
+	Use cached metrics for ASCII characters.
+	(w32font_open_internal): Don't set font's owning_frame.  Cache
+	metrics for ASCII characters.
+
+	* w32font.h (struct w32font_info): Add ascii_metrics.
+	Remove owning_frame.
+
 2008-02-06  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xdisp.c (x_produce_glyphs): Don't set it->ascent and it->descent

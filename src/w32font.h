@@ -32,7 +32,7 @@ struct w32font_info
 {
   struct font font;
   TEXTMETRIC metrics;
-  struct frame *owning_frame;
+  struct font_metrics ascii_metrics[96];
 };
 
 Lisp_Object w32font_get_cache P_ ((FRAME_PTR fe));

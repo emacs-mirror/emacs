@@ -297,13 +297,10 @@ w32font_text_extents (font, code, nglyphs, metrics)
   WORD *wcode = alloca(nglyphs * sizeof (WORD));
   SIZE size;
 
-#if 0
-  /* Frames can come and go, and their fonts outlive them. This is
-     particularly troublesome with tooltip frames, and causes crashes.  */
-  f = ((struct w32font_info *)font)->owning_frame;
-#else
+  /* TODO: Frames can come and go, and their fonts outlive them. So we
+     can't cache the frame in the font structure.  Use selected_frame
+     until the API is updated to pass in a frame.  */
   f = XFRAME (selected_frame);
-#endif
 
   dc = get_frame_dc (f);
   old_font = SelectObject (dc, ((W32FontStruct *)(font->font.font))->hfont);
@@ -320,16 +317,36 @@ w32font_text_extents (font, code, nglyphs, metrics)
       metrics->width = 0;
       metrics->ascent = 0;
       metrics->descent = 0;
+      metrics->lbearing = 0;
 
       for (i = 0; i < nglyphs; i++)
         {
-          if (GetGlyphOutlineW (dc, *(code + i), GGO_METRICS, &gm, 0,
+          if (*(code + i) < 128 && *(code + i) > 32)
+            {
+              /* Use cached metrics for ASCII.  */
+              struct font_metrics *char_metric
+                = &((struct w32font_info *)font)->ascii_metrics[*(code+i)-32];
+
+              /* If we couldn't get metrics when caching, use fallback.  */
+              if (char_metric->width == 0)
+                break;
+
+              metrics->lbearing = max (metrics->lbearing,
+                                       char_metric->lbearing - metrics->width);
+              metrics->rbearing = max (metrics->rbearing,
+                                       metrics->width + char_metric->rbearing);
+              metrics->width += char_metric->width;
+              metrics->ascent = max (metrics->ascent, char_metric->ascent);
+              metrics->descent = max (metrics->descent, char_metric->descent);
+            }
+          else if (GetGlyphOutlineW (dc, *(code + i), GGO_METRICS, &gm, 0,
                                 NULL, &transform) != GDI_ERROR)
             {
               int new_val = metrics->width + gm.gmBlackBoxX
                 + gm.gmptGlyphOrigin.x;
-
               metrics->rbearing = max (metrics->rbearing, new_val);
+              new_val = -gm.gmptGlyphOrigin.x - metrics->width;
+              metrics->lbearing = max (metrics->lbearing, new_val);
               metrics->width += gm.gmCellIncX;
               new_val = -gm.gmptGlyphOrigin.y;
               metrics->ascent = max (metrics->ascent, new_val);
@@ -658,14 +675,39 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
   if (hfont == NULL)
     return 0;
 
-  w32_font->owning_frame = f;
-
   /* Get the metrics for this font.  */
   dc = get_frame_dc (f);
   old_font = SelectObject (dc, hfont);
 
   GetTextMetrics (dc, &w32_font->metrics);
 
+  /* Cache ASCII metrics.  */
+  {
+    GLYPHMETRICS gm;
+    MAT2 transform;
+    int i;
+
+    bzero (&transform, sizeof (transform));
+    transform.eM11.value = 1;
+    transform.eM22.value = 1;
+
+    for (i = 0; i < 96; i++)
+      {
+        struct font_metrics* char_metric = &w32_font->ascii_metrics[i];
+
+        if (GetGlyphOutlineW (dc, i + 32, GGO_METRICS, &gm, 0,
+                              NULL, &transform) != GDI_ERROR)
+          {
+            char_metric->lbearing = -gm.gmptGlyphOrigin.x;
+            char_metric->rbearing = gm.gmBlackBoxX + gm.gmptGlyphOrigin.x;
+            char_metric->width = gm.gmCellIncX;
+            char_metric->ascent = -gm.gmptGlyphOrigin.y;
+            char_metric->descent = gm.gmBlackBoxY + gm.gmptGlyphOrigin.y;
+          }
+        else
+          char_metric->width = 0;
+      }
+  }
   SelectObject (dc, old_font);
   release_frame_dc (f, dc);
   /* W32FontStruct - we should get rid of this, and use the w32font_info
