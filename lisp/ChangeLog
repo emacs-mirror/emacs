@@ -1,3 +1,8 @@
+2008-02-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-interface-peer): New defconst.
+	(dbus-ping): New defun.
+
 2008-02-06  Sam Steingold  <sds@gnu.org>
 
 	* vc-hooks.el (vc-prefix-key): New user-customizable variable.
@@ -4800,7 +4805,7 @@
 2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-status-fileinfo): New defstruct.
-	(vc-status): New defvar
+	(vc-status): New defvar.
 	(vc-status-insert-headers, vc-status-printer, vc-status)
 	(vc-status-mode-map, vc-status-mode, vc-status-mark-file)
 	(vc-status-unmark-file, vc-status-marked-files): New functions.
