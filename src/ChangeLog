@@ -1,5 +1,9 @@
 2008-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* process.c (Fstart_process):
+	* callproc.c (Fcall_process): Handle the case where
+	Funhandled_file_name_directory returns nil.
+
 	* font.h (enum lgstring_indices, enum lglyph_indices): New enums.
 	(LGSTRING_SLOT, LGSTRING_SET_SLOT): New macros.
 	* font.c (check_gstring): Use them and AREF to access the vector before

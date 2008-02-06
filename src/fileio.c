@@ -532,6 +532,8 @@ A `directly usable' directory name is one that may be used without the
 intervention of any file handler.
 If FILENAME is a directly usable file itself, return
 \(file-name-directory FILENAME).
+If FILENAME refers to a file which is not accessible from a local process,
+then this should return nil.
 The `call-process' and `start-process' functions use this function to
 get a current directory to run processes in.  */)
      (filename)

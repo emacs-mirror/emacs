@@ -1614,9 +1614,12 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 
     GCPRO2 (buffer, current_dir);
 
-    current_dir
-      = expand_and_dir_to_file (Funhandled_file_name_directory (current_dir),
-				Qnil);
+    current_dir = Funhandled_file_name_directory (current_dir);
+    if (NILP (current_dir))
+      /* If the file name handler says that current_dir is unreachable, use
+	 a sensible default. */
+      current_dir = build_string ("~/");
+    current_dir = expand_and_dir_to_file (current_dir, Qnil);
     if (NILP (Ffile_accessible_directory_p (current_dir)))
       report_file_error ("Setting current directory",
 			 Fcons (current_buffer->directory, Qnil));
