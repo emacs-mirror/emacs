@@ -1,3 +1,8 @@
+2008-02-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (all): Wrap Lisp code examples with @lisp ... @end lisp.
+	(Inspection): New function dbus-ping.
+
 2008-02-05  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Remote processes): Add `shell-command'.
