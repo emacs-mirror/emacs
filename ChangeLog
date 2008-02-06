@@ -1,4 +1,9 @@
-2008-02-05  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
+2008-02-06  Tom Tromey  <tromey@redhat.com>
+
+	* configure.in (--with-gcc): Remove.
+	* INSTALL (DETAILED BUILDING AND INSTALLATION): Remove --with-gcc.
+
+2008-02-05  Ulrich Mueller  <ulm@gentoo.org>
 
 	* INSTALL: Recommend giflib, not libungif.
 
