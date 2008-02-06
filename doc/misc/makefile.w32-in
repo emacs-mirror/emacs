@@ -64,7 +64,7 @@ ENVADD = $(srcdir)\..\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" \
 	 "MAKEINFO=$(MAKEINFO) -I$(srcdir)" /C
 
 
-info: $(INFO_TARGETS) $(infodir)/dir
+info: $(INFO_TARGETS)
 
 dvi: $(DVI_TARGETS)
 
@@ -73,14 +73,14 @@ dvi: $(DVI_TARGETS)
 # to exist in the build directory.
 # In a distribution of Emacs, the Info files should be up to date.
 
+$(infodir)/dir:
+	$(MULTI_INSTALL_INFO) --info-dir=$(infodir) $(INFO_TARGETS)
+
 # The following target uses an explicit -o switch to work around
 # the @setfilename directive in info.texi, which is required for
 # the Texinfo distribution.
 # Some Windows ports of makeinfo seem to require -o to come before the
 # texi filename, contrary to GNU standards.
-
-$(infodir)/dir: $(INFO_TARGETS)
-	$(MULTI_INSTALL_INFO) --info-dir=$(infodir) $(INFO_TARGETS)
 
 $(infodir)/info: $(INFOSOURCES)
 	$(MAKEINFO) --no-split -o $@ info.texi
