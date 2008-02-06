@@ -968,7 +968,8 @@ Used in `find-file-not-found-functions'."
     (define-key map "+" 'vc-update)
     (define-key map "=" 'vc-diff)
     (define-key map "~" 'vc-revision-other-window)
-    (define-key map "?" 'vc-status)
+    ;; `vc-status' is a not-quite-ready replacement for `vc-directory'
+    ;; (define-key map "?" 'vc-status)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
 (defcustom vc-prefix-key "\C-xv" "*The prefix for the VC bindings."
@@ -989,7 +990,8 @@ Used in `find-file-not-found-functions'."
     (define-key map [vc-create-snapshot]
       '("Create Snapshot" . vc-create-snapshot))
     (define-key map [vc-directory] '("VC Directory Listing" . vc-directory))
-    (define-key map [vc-status] '("VC Status" . vc-status))
+    ;; `vc-status' is a not-quite-ready replacement for `vc-directory'
+    ;; (define-key map [vc-status] '("VC Status" . vc-status))
     (define-key map [separator1] '("----"))
     (define-key map [vc-annotate] '("Annotate" . vc-annotate))
     (define-key map [vc-rename-file] '("Rename File" . vc-rename-file))
