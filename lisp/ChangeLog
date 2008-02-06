@@ -1,3 +1,9 @@
+2008-02-06  Sam Steingold  <sds@gnu.org>
+
+	* vc-hooks.el (vc-prefix-map): Bind `vc-status' to "?".
+	(vc-prefix-key): New user-customizable variable.
+	(vc-menu-map): Add `vc-status'.
+
 2008-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/ange-ftp.el (ange-ftp-unhandled-file-name-directory):

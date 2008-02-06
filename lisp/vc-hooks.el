@@ -77,8 +77,8 @@ An empty list disables VC altogether."
   :group 'vc)
 
 ;; Note: we don't actually have a darcs back end yet.
-(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" 
-					 ".svn" ".git" ".hg" ".bzr" 
+(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS"
+					 ".svn" ".git" ".hg" ".bzr"
 					 "_MTN" "_darcs" "{arch}")
   "List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
@@ -505,22 +505,22 @@ For registered files, the value returned is one of:
                      with monotonic IDs like Subversion and Mercurial.
 
   'removed           Scheduled to be deleted from the repository on next commit.
- 
-  'ignored           The file showed up in a dir-state listing with a flag 
+
+  'ignored           The file showed up in a dir-state listing with a flag
                      indicating the version-control system is ignoring it,
-                     Note: This property is not set reliably (some VCSes 
-                     don't have useful directory-status commands) so assume 
+                     Note: This property is not set reliably (some VCSes
+                     don't have useful directory-status commands) so assume
                      that any file with vc-state nil might be ignorable
-                     without VC knowing it. 
+                     without VC knowing it.
 
-  'unregistered      The file showed up in a dir-state listing with a flag 
+  'unregistered      The file showed up in a dir-state listing with a flag
                      indicating that it is not under version control.
-                     Note: This property is not set reliably (some VCSes 
-                     don't have useful directory-status commands) so assume 
+                     Note: This property is not set reliably (some VCSes
+                     don't have useful directory-status commands) so assume
                      that any file with vc-state nil might be unregistered
-                     without VC knowing it. 
+                     without VC knowing it.
 
-A return of nil from this function means we have no information on the 
+A return of nil from this function means we have no information on the
 status of this file.
 "
   ;; Note: in Emacs 22 and older, return of nil meant the file was unregistered.
@@ -796,7 +796,7 @@ visiting FILE."
                  (propertize
                   ml-string
                   'mouse-face 'mode-line-highlight
-                  'help-echo 
+                  'help-echo
                   (concat (or ml-echo
                               (format "File under the %s version control system"
                                       backend))
@@ -968,9 +968,17 @@ Used in `find-file-not-found-functions'."
     (define-key map "+" 'vc-update)
     (define-key map "=" 'vc-diff)
     (define-key map "~" 'vc-revision-other-window)
+    (define-key map "?" 'vc-status)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
-(define-key global-map "\C-xv" 'vc-prefix-map)
+(defcustom vc-prefix-key "\C-xv" "*The prefix for the VC bindings."
+  :set (lambda (symbol prefix)  ; symbol == vc-prefix-key
+         (define-key global-map prefix 'vc-prefix-map) ; install new prefix
+         (when (boundp 'vc-prefix-key) ; disable the previous prefix
+           (define-key global-map vc-prefix-key nil))
+         (set symbol prefix))   ; save the new prefix
+  :version "23.1"
+  :group 'vc)
 
 (defvar vc-menu-map
   (let ((map (make-sparse-keymap "Version Control")))
@@ -981,6 +989,7 @@ Used in `find-file-not-found-functions'."
     (define-key map [vc-create-snapshot]
       '("Create Snapshot" . vc-create-snapshot))
     (define-key map [vc-directory] '("VC Directory Listing" . vc-directory))
+    (define-key map [vc-status] '("VC Status" . vc-status))
     (define-key map [separator1] '("----"))
     (define-key map [vc-annotate] '("Annotate" . vc-annotate))
     (define-key map [vc-rename-file] '("Rename File" . vc-rename-file))
