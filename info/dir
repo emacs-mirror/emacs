@@ -1,80 +1,78 @@
--*- Text -*-
-This is the file .../info/dir, which contains the topmost node of the
-Info hierarchy.  The first time you invoke Info you start off
-looking at that node, which is (dir)Top.
+This is the file .../info/dir, which contains the
+topmost node of the Info hierarchy, called (dir)Top.
+The first time you invoke Info you start off looking at this node.
 
-File: dir	Node: Top	This is the top of the INFO tree
+File: dir,	Node: Top	This is the top of the INFO tree
 
-The Info Directory
-******************
+  This (the Directory node) gives a menu of major topics.
+  Typing "q" exits, "?" lists all Info commands, "d" returns here,
+  "h" gives a primer for first-timers,
+  "mEmacs<Return>" visits the Emacs manual, etc.
 
-  The Info Directory is the top-level menu of major Info topics.
-  Type "d" in Info to return to the Info Directory.  Type "q" to exit Info.
-  Type "?" for a list of Info commands, or "h" to visit an Info tutorial.
-  Type "m" to choose a menu item--for instance,
-    "mEmacs<Return>" visits the Emacs manual.
-  In Emacs Info, you can click mouse button 2 on a menu item
-  or cross reference to follow it to its target.
-  Each menu line that starts with a * is a topic you can select with "m".
-  Every third topic has a red * to help pick the right number to type.
+  In Emacs, you can click mouse button 2 on a menu item or cross reference
+  to select it.
 
 * Menu:
 
-* Info: (info).         How to use the documentation browsing system.
-
 Emacs
-* Emacs: (emacs).       The extensible self-documenting text editor.
-* Emacs FAQ: (efaq).    Frequently Asked Questions about Emacs.
-* Emacs Lisp Introduction: (eintr).
-                        A simple introduction to Emacs Lisp programming.
-* Elisp: (elisp).       The Emacs Lisp Reference Manual.
-
-* CL: (cl).             Partial Common Lisp support for Emacs Lisp.
-* Dired-X: (dired-x).   Dired Extra Features.
-* Ediff: (ediff).       A visual interface for comparing and merging programs.
-* Org Mode: (org).      Outline-based notes management and organizer.
-* PCL-CVS: (pcl-cvs).   Emacs front-end to CVS.
-* Speedbar: (speedbar). File/Tag summarizing utility.
-
-* Ada mode: (ada-mode). Emacs mode for editing Ada code.
-* CC mode: (ccmode).    Emacs mode for editing C, C++, Objective-C,
-                          Java, Pike, and IDL code.
-* Ebrowse: (ebrowse).   A C++ class browser for Emacs.
-* ERC: (erc).           Powerful, modular, and extensible IRC client
-                          for Emacs.
-* Flymake: (flymake).   An on-the-fly syntax checker for Emacs.
-* IDLWAVE: (idlwave).   Major mode and shell for IDL and WAVE/CL files.
-
-* Gnus: (gnus).         The news reader Gnus.
-* Message: (message).   Mail and news composition mode that goes with Gnus.
-* MH-E: (mh-e).         Emacs interface to the MH mail system.
-* MIME: (emacs-mime).   Emacs MIME de/composition library.
-* Newsticker: (newsticker).   A News ticker for Emacs.
-* PGG: (pgg).           Emacs interface to various PGP implementations.
-* Rcirc: (rcirc).       Internet Relay Chat (IRC) client.
-* SC: (sc).             Supercite lets you cite parts of messages you're
-                          replying to, in flexible ways.
-* SMTP: (smtpmail).     Emacs library for sending mail via SMTP.
-* Sieve: (sieve).       Managing Sieve scripts in Emacs.
-
+* Ada mode: (ada-mode). Emacs mode for editing and compiling Ada code.
 * Autotype: (autotype). Convenient features for text that you enter frequently
                           in Emacs.
+* CC Mode: (ccmode).    Emacs mode for editing C, C++, Objective-C,
+                        Java, Pike, AWK, and CORBA IDL code.
+* CL: (cl).		Partial Common Lisp support for Emacs Lisp.
 * Calc: (calc).         Advanced desk calculator and mathematical tool.
+* D-Bus: (dbus).                Using D-Bus in Emacs.
+* Dired-X: (dired-x).   Dired Extra Features.
+* ERC: (erc).           Powerful, modular, and extensible IRC client for Emacs.
+* EUDC: (eudc).   An Emacs client for directory servers (LDAP, PH).
+* Ebrowse: (ebrowse).   A C++ class browser for Emacs.
+* Ediff: (ediff).       A visual interface for comparing and merging programs.
+* Elisp: (elisp).       The Emacs Lisp Reference Manual.
+* Emacs: (emacs).	The extensible self-documenting text editor.
+* Emacs FAQ: (efaq).	Frequently Asked Questions about Emacs.
+* Emacs Lisp Intro: (eintr).
+                          A simple introduction to Emacs Lisp programming.
+* Emacs MIME: (emacs-mime).   Emacs MIME de/composition library.
 * Eshell: (eshell).     A command shell implemented in Emacs Lisp.
-* EUDC: (eudc).         An Emacs client for directory servers (LDAP, PH).
-* Forms: (forms).       Emacs package for editing data bases
-                          by filling in forms.
-* RefTeX: (reftex).     Emacs support for LaTeX cross-references and citations.
-* SES: (ses).           Simple Emacs Spreadsheet
-* Tramp: (tramp).       Transparent Remote (file) Access, Multiple Protocol.
-                          Edit remote files via a remote shell (rsh,
-                          ssh, telnet).
-* URL: (url).           URL loading package.
-* Widget: (widget).     The "widget" package used by the Emacs Customization
-                          facility.
-* WoMan: (woman).       Browse UN*X Manual Pages "Wo (without) Man".
-
+* Flymake: (flymake). A universal on-the-fly syntax checker.
+* Forms: (forms).	Emacs package for editing data bases
+			  by filling in forms.
+* Gnus: (gnus).         The newsreader Gnus.
+* IDLWAVE: (idlwave).	Major mode and shell for IDL files.
+* MH-E: (mh-e).		Emacs interface to the MH mail system.
+* Message: (message).   Mail and news composition mode that goes with Gnus.
+* Newsticker: (newsticker). A Newsticker for Emacs.
+* Org Mode: (org).      Outline-based notes management and organizer
+* PCL-CVS: (pcl-cvs).	Emacs front-end to CVS.
+* PGG: (pgg).   Emacs interface to various PGP implementations.
+* Rcirc: (rcirc).       Internet Relay Chat (IRC) client.
+* RefTeX: (reftex).	Emacs support for LaTeX cross-references and citations.
+* Remember: (remember). Simple information manager for Emacs
+* SC: (sc).		Supercite lets you cite parts of messages you're
+			  replying to, in flexible ways.
+* SES: (ses).       Simple Emacs Spreadsheet
+* SMTP: (smtpmail). Emacs library for sending mail via SMTP.
+* Sieve: (sieve).               Managing Sieve scripts in Emacs.
+* Speedbar: (speedbar). File/Tag summarizing utility.
+* VIP: (vip).		An older VI-emulation for Emacs.
 * VIPER: (viper).       The newest Emacs VI-emulation mode.
                           (also, A VI Plan for Emacs Rescue
                            or the VI PERil.)
-* VIP: (vip).           An older VI-emulation for Emacs.
+* Widget: (widget).      The "widget" package used by the Emacs Customization
+                           facility.
+* WoMan: (woman).       Browse UN*X Manual Pages "W.O. (without) Man".
+* nXML Mode: (nxml-mode).       XML editing mode with RELAX NG support.
+
+Texinfo documentation system
+* Info: (info).         How to use the documentation browsing system.
+
+GNU Emacs Lisp
+* URL: (url).                 URL loading package.
+
+World Wide Web
+* URL: (url).                 URL loading package.
+
+GNU Emacs
+* TRAMP: (tramp).                Transparent Remote Access, Multiple Protocol
+                                 GNU Emacs remote file access via rsh and rcp.
