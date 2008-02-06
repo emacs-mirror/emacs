@@ -1005,10 +1005,6 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* syntax.c (skip_syntaxes): Synch with the trunk.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* character.c (Funibyte_string): New function.
 	(syms_of_character): Defsubr it.
 
@@ -1124,10 +1120,6 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* process.c: Cancel the change done by sync with HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* alloc.c (Fgarbage_collect): If nextb->text->inhibit_shrinking is
 	nonzero, don't shrink the buffer nextb.
 
@@ -1208,10 +1200,6 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* regex.c (regex_compile): Synch with HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* fontset.c (Finternal_char_font): Fix previous change.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -1276,10 +1264,6 @@
 	(syms_of_font): Defsym it.
 	(Fquery_font): Change the format of the last element of the return
 	value.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* search.c (simple_search): Fix sync with HEAD.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1366,11 +1350,6 @@
 	(fill_composite_glyph_string): Argument changed.
 	(BUILD_COMPOSITE_GLYPH_STRING): Adjusted for the above change.
 	(x_produce_glyphs): Fix handling of left/right padding.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* regex.c (analyse_first): Cancel the change for synching with
-	HEAD.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1558,10 +1537,6 @@
 	* xterm.c (x_draw_composite_glyph_string_foreground): Check if
 	adjustment is vector or not.
 
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* casefiddle.c (casify_object): Sync with HEAD.
-
 2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* character.h (CHECK_CHARACTER): Redefine in terms of CHECK_TYPE.
@@ -1734,8 +1709,6 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* lread.c (read_escape): Fix the code synched with HEAD.
-
 	* font.c (font_parse_fcname): Fix parsing of point-size.
 	(font_unparse_fcname): Produce symbolic names for style
 	properties.
@@ -1900,22 +1873,11 @@
 	* xterm.c (x_new_fontset2): If an ASCII font couldn't be loaded,
 	return Qnil.
 
-2008-02-01  Jason Rumney  <jasonr@gnu.org>
-
-	* w32term.c (w32_initialize): Manually sync 2008-02-01 change from
-	HEAD.
-
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* emacs.c (main): Check -enable-font-backend arg after the check
 	of -nl.
 	(standard_args): Add "-enable-font-backend".
-
-	* coding.c (Ffind_operation_coding_system): Sync with HEAD.
-
-	* callproc.c (Fcall_process): Sync with HEAD.
-
-	* coding.h (CODING_REQUIRE_ENCODING): Comment sync with HEAD.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2037,24 +1999,12 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.h (system_eol_type): Fix synching with HEAD.
-
-	* coding.c (system_eol_type): Sync with HEAD.
-	(coding_inherit_eol_type): If PARENT is nil, inherit from
+	* coding.c (coding_inherit_eol_type): If PARENT is nil, inherit from
 	system_eol_type.
 	(syms_of_coding): Initialize system_eol_type.
 
-	* callproc.c (Fcall_process): Sync with HEAD.
-
-	* process.c (setup_process_coding_systems): Fix synching with
-	HEAD.
-	(read_process_output): Likewise.
-	(Fset_process_coding_system): Inherit system's eol format if
-	necessary.
-
-	* fileio.c (choose_write_coding_system): Fix synching with HEAD.
-
-	* keymap.c (push_key_description): Fix synching with HEAD.
+	* process.c (Fset_process_coding_system): Inherit system's eol
+	format if necessary.
 
 2008-02-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -2161,15 +2111,9 @@
 	* xdisp.c (draw_glyphs): Fix inclusion of right_overwriting
 	glyphs.
 
-	* term.c (produce_glyphs): Sync to HEAD.
-
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (x_produce_glyphs): Handle composition with TAB.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* coding.c: Cancel incorrect synching with HEAD.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2181,8 +2125,7 @@
 
 	* xterm.c (handle_one_xevent): Handle keysyms 0x1000000..0x10000FF.
 
-	* coding.c: Sync to HEAD for handling autoload-coding-system.
-	(Qcoding_system_define_form): New variable.
+	* coding.c (Qcoding_system_define_form): New variable.
 	(syms_of_coding): Intern and staticpro it.
 	(Fcoding_system_p): Check Qcoding_system_define_form.
 	(Fcheck_coding_system): Try to autoload the definition of
@@ -2196,9 +2139,6 @@
 	(CHECK_CODING_SYSTEM_GET_ID): Likewise.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* xterm.c (handle_one_xevent): Delete unnecessary code inserted by
-	sync with HEAD.
 
 	* coding.c (code_conversion_restore): GCPRO arg.
 
@@ -2250,25 +2190,10 @@
 	property in the plist of the coding system.
 	(Fcoding_system_put): Check QCascii_compatible_p.
 
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* xdisp.c (get_next_display_element): Sync with the change in
-	HEAD (2008-02-01).
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* callproc.c (Fcall_process): Sync with the change in
-	HEAD (2008-02-01).
-
 2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (Finternal_lisp_face_equal_p): Restore previously
 	removed calculation of frame `f', as it's now used.
-
-2008-02-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
-
-	* macterm.c (x_font_name_to_mac_font_name): Sync with trunk
-	for the case that does not require code conversion.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2308,11 +2233,6 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* s/ms-w32.h (STDC_HEADERS): Sync with the change in
-	HEAD (2008-02-01).
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* charset.c (load_charset_map_from_vector): Fix for the first
 	iteration.
 
@@ -2323,28 +2243,8 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* fns.c (Fstring_as_multibyte): Fix the change for syncing with
-	CVS head.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* search.c (search_buffer): Fix the change for syncing with CVS
-	head.
-	(search_buffer): Likewise.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* xdisp.c (get_next_display_element): Sync with CVS head.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* coding.c (decode_coding_object): Use safe_call1 instead of call1.
 	(encode_coding_object): Use safe_call instead of call2.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* fontset.c (set_default_ascii_font): Fix the change for
-	syncing with CVS head.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2376,21 +2276,10 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* xdisp.c (get_next_display_element): Sync to the change in HEAD
-	on 2008-02-01.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* search.c: Sync to the change in HEAD on 2008-02-01, 20.
-
-	* w32console.c: Sync to the change in HEAD on 2008-02-01.
-
 	* coding.c: Cancel the change done in HEAD on 2008-02-01.
 	(coding_charset_list): New function.
 
 	* coding.h (coding_charset_list): Extern it.
-
-	* term.c: Sync to the change in HEAD on 2008-02-01.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2567,16 +2456,8 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	Sync all files to HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* coding.c (Ffind_coding_systems_region_internal): Include
 	raw-text and no-conversion in the result.
-
-	* fontset.h: Sync to HEAD.
-
-	* fontset.c: Sync to HEAD.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2603,40 +2484,14 @@
 	to get a font name.
 	(Ffontset_info): Adjusted for the change of fontset_font.
 
-	* composite.c: Sync to HEAD.
-
-	* search.c: Sync to HEAD.
-
-	* coding.c: Sync to HEAD.
-	(emacs_mule_char): Check invalid code more regidly.
-
-	* coding.h: Sync to HEAD.
-
-	* charset.c: Sync to HEAD.
-
-	* charset.h: Sync to HEAD.
+	* coding.c (emacs_mule_char): Check invalid code more regidly.
 
 	* character.h (LEADING_CODE_LATIN_1_MIN)
 	(LEADING_CODE_LATIN_1_MAX): Delete these macros.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* category.h: Sync to HEAD.
-
-	* category.c: Sync to HEAD.
-
-	* syntax.h: Sync to HEAD.
-
-	* syntax.c: Sync to HEAD.
-
-	* regex.h: Sync to HEAD.
-
-	* regex.c: Sync to HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* editfns.c: Sync to HEAD.
-	(check_translation): New function.
+	* editfns.c (check_translation): New function.
 	(Ftranslate_region_internal): Handle M:N mapping.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -3318,8 +3173,6 @@
 
 	* coding.c (Fread_coding_system): Fix arg of XSETSTRING.
 	(Fset_coding_system_priority): Doc fix.
-
-	* alloc.c: Sync with HEAD version.
 
 	* ccl.c (ccl_driver): Fix arg of CHARACTERP.
 
