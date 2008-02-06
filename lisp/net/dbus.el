@@ -326,11 +326,10 @@ The result is either a string, or nil if there is no name owner."
 (defun dbus-ping (bus service)
   "Check whether SERVICE is registered for D-Bus BUS."
   ;; "Ping" raises a D-Bus error if SERVICE does not exist.
-  ;; Otherwise, it returns silently.
+  ;; Otherwise, it returns silently with `nil'.
   (condition-case nil
-      (progn
-	(dbus-call-method bus service dbus-path-dbus dbus-interface-peer "Ping")
-	t)
+      (not
+       (dbus-call-method bus service dbus-path-dbus dbus-interface-peer "Ping"))
     (dbus-error nil)))
 
 (defun dbus-introspect (bus service path)
