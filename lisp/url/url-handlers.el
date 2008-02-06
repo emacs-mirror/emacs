@@ -183,11 +183,16 @@ the arguments that would have been passed to OPERATION."
     (url-run-real-handler 'directory-file-name (list dir))))
 
 (defun url-handler-unhandled-file-name-directory (filename)
-  ;; Copied from tramp.el.  This is used as the cwd for subprocesses:
-  ;; without it running call-process or start-process in a URL directory
-  ;; signals an error.
-  ;; FIXME: we can do better if `filename' is a "file://" URL.
-  (expand-file-name "~/"))
+  (let ((url (url-generic-parse-url filename)))
+    (if (equal (url-type url) "file")
+        ;; `file' URLs are actually local.  The filename part may be ""
+        ;; which really stands for "/".
+        ;; FIXME: maybe we should check that the host part is "" or "localhost"
+        ;; or some name that represents the local host?
+        (or (file-name-directory (url-filename url)) "/")
+      ;; All other URLs are not expected to be directly accessible from
+      ;; a local process.
+      nil)))
 
 ;; The actual implementation
 ;;;###autoload

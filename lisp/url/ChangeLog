@@ -1,3 +1,8 @@
+2008-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (url-handler-unhandled-file-name-directory):
+	Handle `file' URLs specially.  Return nil for non-local filenames.
+
 2008-02-04  Magnus Henoch  <mange@freemail.hu>
 
 	* url-expand.el: Require cl when compiling, for setf.
