@@ -21398,8 +21398,11 @@ x_produce_glyphs (it)
 
       it->pixel_width = cmp->pixel_width;
       it->ascent = it->phys_ascent = cmp->ascent;
+      if (it->ascent < 0)
+	it->ascent = it->phys_ascent = 0;
       it->descent = it->phys_descent = cmp->descent;
-
+      if (it->descent < 0)
+	it->descent = it->phys_descent = 0;
       if (face->box != FACE_NO_BOX)
 	{
 	  int thick = face->box_line_width;
