@@ -883,6 +883,7 @@ ftfont_open (f, entity, pixel_size)
     {
       int i;
 
+      font->font.average_width = 0;
       for (i = 32; i < 127; i++)
 	{
 	  if (FT_Load_Char (ft_face, i, FT_LOAD_DEFAULT) != 0)
