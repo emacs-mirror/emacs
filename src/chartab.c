@@ -104,7 +104,6 @@ make_sub_char_table (depth, min_char, defalt)
   XSETPVECTYPE (XVECTOR (table), PVEC_SUB_CHAR_TABLE);
   XSUB_CHAR_TABLE (table)->depth = make_number (depth);
   XSUB_CHAR_TABLE (table)->min_char = make_number (min_char);
-  XSETSUB_CHAR_TABLE (table, XSUB_CHAR_TABLE (table));
 
   return table;
 }

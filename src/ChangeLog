@@ -1,3 +1,7 @@
+2008-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* chartab.c (make_sub_char_table): Remove noop-yet-incorrect statement.
+
 2008-02-05  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_open_internal): Fill min_width with tmAveCharWidth.
