@@ -370,7 +370,7 @@ ftxfont_draw (s, from, to, x, y, with_background)
 {
   FRAME_PTR f = s->f;
   struct face *face = s->face;
-  struct font *font = (struct font *) face->font_info;
+  struct font *font = (struct font *) s->font_info;
   XPoint p[0x700];
   int n[7];
   unsigned *code;
