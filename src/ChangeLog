@@ -1,5 +1,8 @@
 2008-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* composite.h (Fcompose_region_internal, Fcompose_string_internal):
+	Declare.
+
 	* chartab.c (make_sub_char_table): Remove noop-yet-incorrect statement.
 
 2008-02-05  Jason Rumney  <jasonr@gnu.org>
@@ -21,8 +24,7 @@
 
 	* fontset.c (Ffontset_info): Handle the case of inhibitting the
 	fallback fonts.
-	(Ffontset_info) [USE_FONT_BACKEND]: Fix getting of opened font
-	names.
+	(Ffontset_info) [USE_FONT_BACKEND]: Fix getting of opened font names.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -79,7 +81,7 @@
 
 	* fontset.c (reorder_font_vector): Exclude nil elements from the
 	font group.  Don't try multiple fonts.
-	(fontset_font): Adjusted for the above change.
+	(fontset_font): Adjust for the above change.
 	(Finternal_char_font): Return nil if the found font doesn't
 	contain the character ch.
 
@@ -100,12 +102,12 @@
 	Use 0 (not Qt) for the indication of empty font-group.  Change the
 	format of RFONT-DEF.  Return Qt if no font in the font-group
 	support the character.
-	(fontset_font): Adjusted for the above change.  If no font was
+	(fontset_font): Adjust for the above change.  If no font was
 	found the character, remember that.
-	(face_for_char): Adjusted for the change of RFONT-DEF.
+	(face_for_char): Adjust for the change of RFONT-DEF.
 	(Fset_fontset_font): Allow nil for FONT-SPEC to explicitly specify
 	no font for the target.
-	(Finternal_char_font): Adjusted for the change of RFONT-DEF.
+	(Finternal_char_font): Adjust for the change of RFONT-DEF.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -168,8 +170,7 @@
 	* ftfont.c (ftfont_drive_otf): Fix setting of FROM and TO slots of
 	glyphs.
 
-	* font.h (struct font_driver): Docstring of member `shape' is
-	improved.
+	* font.h (struct font_driver): Docstring of member `shape' is improved.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -182,8 +183,7 @@
 	supported by the font is found.
 	(Ffont_shape_text): When a shape callback function returns nil,
 	try at most two more times with larger gstring.
-	(Ffont_at): Fix getting of w.  Call font_at with correct 5th
-	argument.
+	(Ffont_at): Fix getting of w.  Call font_at with correct 5th argument.
 
 	* xdisp.c (handle_auto_composed_prop): Change the argument to
 	auto-composition-function.
@@ -202,8 +202,7 @@
 
 	* fontset.c (Vfont_encoding_charset_alist): New variable.
 	(syms_of_fontset): DEFVAR it.
-	(reorder_font_vector): Optimize for the case of no need of
-	reordring.
+	(reorder_font_vector): Optimize for the case of no need of reordring.
 	(fontset_find_font): Likewise.
 	(face_for_char): Map the charset property by
 	Vfont_encoding_charset_alist.
@@ -235,8 +234,8 @@
 
 	* ftfont.c (ftfont_get_cache): Adjust the argument type.
 
-	* frame.c (x_set_font_backend): Don't call Fclear_font_cache.  If
-	none of the new drivers are available, call font_update_drviers
+	* frame.c (x_set_font_backend): Don't call Fclear_font_cache.
+	If none of the new drivers are available, call font_update_drviers
 	with the old drivers.
 
 	* w32font.c (w32font_get_cache): Adjust the argument type.
@@ -248,13 +247,11 @@
 	* xftfont.c (xftfont_start_for_frame): Delete prototype.
 
 	* font.c (Ffont_get): Fix arguments to Fassoc.
-	(font_prepare_cache, font_finish_cache, font_get_cache): New
-	functions.
+	(font_prepare_cache, font_finish_cache, font_get_cache): New functions.
 	(font_clear_cache): New function.
 	(font_list_entities): Use font_get_cache.
 	(font_matching_entity): Likewise.
-	(font_update_drivers): Call font_clear_cache when finishing a
-	driver.
+	(font_update_drivers): Call font_clear_cache when finishing a driver.
 
 	* fontset.c (fontset_find_font): Fix previous change.
 
@@ -263,20 +260,20 @@
 	* xterm.c (x_check_font) [USE_FONT_BACKEND]: Don't access
 	dpyinfo->font_table.
 	(x_delete_display) [USE_FONT_BACKEND]: Likewise.
-	(x_delete_terminal) [USE_FONT_BACKEND]: Likewise
+	(x_delete_terminal) [USE_FONT_BACKEND]: Likewise.
 
 	* font.c (font_at): Handle the case that the arg C is negative.
 	Handle the unibyte case.
 	(Ffont_at): Call font_at with the arg C -1.
 
 	* xdisp.c (handle_auto_composed_prop): Don't get a character at
-	the position here, and call font_at with the arg C -1.  Don't
-	check the range of the existing composition at the point.
+	the position here, and call font_at with the arg C -1.
+	Don't check the range of the existing composition at the point.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* fontset.c (fontset_add): New args charset_id and famliy.  Caller
-	changed.
+	* fontset.c (fontset_add): New args charset_id and family.
+	Caller changed.
 	(load_font_get_repertory): Assume that font_spec is always a
 	font-spec object.
 	(fontset_find_font): Likewise.
@@ -346,8 +343,7 @@
 	(ftfont_get_open_type_spec): New function.
 	(ftfont_list) [HAVE_LIBOTF]: Check otf-spec property.
 
-	* lread.c (read1): Redo the previous change with checking
-	Vpurify_flag.
+	* lread.c (read1): Redo the previous change with checking Vpurify_flag.
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
@@ -356,23 +352,23 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* xdisp.c (handle_auto_composed_prop): Simplify the code.  Never
-	return HANDLED_RECOMPUTE_PROPS.
+	* xdisp.c (handle_auto_composed_prop): Simplify the code.
+	Never return HANDLED_RECOMPUTE_PROPS.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_gstring_produce): Delete it.
 
-	* composite.h (COMPOSITION_METHOD): Handle
-	COMPOSITION_WITH_GLYPH_STRING.
+	* composite.h (COMPOSITION_METHOD):
+	Handle COMPOSITION_WITH_GLYPH_STRING.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* xfont.c (Qx): Deleted.
+	* xfont.c (Qx): Delete.
 	(syms_of_xfont): Don't initialize Qx.
 
-	* composite.h (enum composition_method): Define
-	COMPOSITION_WITH_GLYPH_STRING unconditionally.
+	* composite.h (enum composition_method):
+	Define COMPOSITION_WITH_GLYPH_STRING unconditionally.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -384,8 +380,7 @@
 	unconditionally.
 
 	* fontset.c: Include "font.h" unconditionally.
-	(generate_ascii_font_name): Use font_parse_xlfd and
-	font_unparse_xlfd.
+	(generate_ascii_font_name): Use font_parse_xlfd and font_unparse_xlfd.
 	(Fset_fontset_font): Accept a font-spec object.
 
 	* font.c (font_unparse_xlfd): If pixel_size is zero, make the
@@ -420,8 +415,7 @@
 
 	* font.h (FONT_ENTITY_NOT_LOADABLE)
 	(FONT_ENTITY_SET_NOT_LOADABLE): New macros.
-	(LGSTRING_XXXX, LGLYPH_XXX): Adjusted for the change of lispy
-	gstring.
+	(LGSTRING_XXXX, LGLYPH_XXX): Adjust for the change of lispy gstring.
 	(struct font_driver): New member shape.
 	(font_registry_charsets): Extern. it.
 	(font_find_for_lface): Prototype adjusted.
@@ -429,33 +423,31 @@
 	(font_otf_capability, font_drive_otf): Delete their externs.
 
 	* font.c [HAVE_M17N_FLT]: Include <m17n-flt.h>.
-	(font_charset_alist): Moved from xfont.c and renamed.
+	(font_charset_alist): Move from xfont.c and renamed.
 	(font_registry_charsets): Likewise.
 	(font_prop_validate_otf): New function.
 	(font_property_table): Register it for QCotf.
 	(DEVICE_DELTA, adjust_anchor, REPLACEMENT_CHARACTER)
-	(font_drive_otf): Deleted.
+	(font_drive_otf): Delete.
 	(font_prepare_composition): New arg F.  Adjusted for the change of
 	lispy gstring.
 	(font_find_for_lface): New arg C.
-	(font_load_for_face): Adjusted for the change of
-	font_find_for_lface.
-	(Ffont_make_gstring): Adjusted for the change of lispy gstring.
+	(font_load_for_face): Adjust for the change of font_find_for_lface.
+	(Ffont_make_gstring): Adjust for the change of lispy gstring.
 	(Ffont_fill_gstring): Likewise.
 	(Ffont_shape_text): New function.
 	(Fopen_font): If the font size is not given, use 12-pixel.
 	(Ffont_at): New arg STRING.
-	(syms_of_font): Initalize font_charset_alist.  Declare
-	Ffont_shape_text as a Lisp function.  Call syms_of_XXfont
+	(syms_of_font): Initalize font_charset_alist.
+	Declare Ffont_shape_text as a Lisp function.  Call syms_of_XXfont
 	conditionally.
 
 	* fontset.c (fontset_find_font) [USE_FONT_BACKEND]: Try multiple
 	fonts of the same font-spec.  Change the format of RFONT-DEF.
-	(face_for_char): Adjusted for the change of RFONT-DEF.
+	(face_for_char): Adjust for the change of RFONT-DEF.
 	(make_fontset_for_ascii_face): Likewise.
 	(Finternal_char_font): Likewise.
-	(Fset_fontset_font) [USE_FONT_BACKEND]: Handle new format of
-	font-spec.
+	(Fset_fontset_font) [USE_FONT_BACKEND]: Handle new format of font-spec.
 
 	* ftfont.h: New file.
 
@@ -464,7 +456,7 @@
 	(ftfont_open) [HAVE_LIBOTF]: Initialize the above members.
 	(ftfont_driver) [HAVE_LIBOTF, HAVE_M17N_FLT]: Don't set
 	font_otf_capability and font_drive_otf, set ftfont_shape.
-	(ftfont_list): Adjusted for the change of :otf property value.
+	(ftfont_list): Adjust for the change of :otf property value.
 	(struct MFLTFontFT) [HAVE_LIBOTF, HAVE_M17N_FLT]: New struct.
 	(ftfont_get_glyph_id, ftfont_get_metrics, ftfont_check_otf)
 	(adjust_anchor, ftfont_drive_otf, ftfont_shape_by_flt)
@@ -472,34 +464,31 @@
 	(DEVICE_DELTA) [HAVE_LIBOTF, HAVE_M17N_FLT]: New macro.
 	(otf_gstring, gstring, m17n_flt_initialized): New variables.
 
-	* w32term.c (x_draw_composite_glyph_string_foreground): Adjusted
-	for the change of lispy gstring.
+	* w32term.c (x_draw_composite_glyph_string_foreground):
+	Adjust for the change of lispy gstring.
 
-	* xdisp.c (handle_composition_prop): Adjusted for the change of
+	* xdisp.c (handle_composition_prop): Adjust for the change of
 	lispy gstring.  Call a function for auto-composition with the
-third arg it->window.
-	(fill_composite_glyph_string): Adjusted for the change of lispy
-	string.
-	(x_produce_glyphs): Adjusted for the change of
-	font_prepare_compositionl.
+	third arg it->window.
+	(fill_composite_glyph_string): Adjust for the change of lispy string.
+	(x_produce_glyphs): Adjust for the change of font_prepare_compositionl.
 
-	* xfaces.c (set_font_frame_param): Adjusted for the change of
+	* xfaces.c (set_font_frame_param): Adjust for the change of
 	font_find_for_lface.
 
-	* xfont.c (x_font_charset_alist): Moved to font.c and renamed.
+	* xfont.c (x_font_charset_alist): Move to font.c and renamed.
 	(xfont_registry_charsets): Likewise.  Caller changed.
 	(syms_of_xfont): Don't handle x_font_charset_alist.
 
 	* xftfont.c: Include "ftfont.h".
-	(struct xftfont_info) [HAVE_LIBOTF]: New members maybe_otf and
-	otf.
+	(struct xftfont_info) [HAVE_LIBOTF]: New members maybe_otf and otf.
 	(xftfont_open) [HAVE_LIBOTF]: Initialize the above members.
 	(xftfont_close) [HAVE_LIBOTF]: Close otf.
 	(xftfont_shape) [HAVE_LIBOTF, HAVE_M17N_FLT]: New function.
-	(syms_of_xftfont) [HAVE_LIBOTF, HAVE_M17N_FLT]: Set
-	xftfont_driver.shape to xftfont_shape.
+	(syms_of_xftfont) [HAVE_LIBOTF, HAVE_M17N_FLT]:
+	Set xftfont_driver.shape to xftfont_shape.
 
-	* xterm.c (x_draw_composite_glyph_string_foreground): Adjusted for
+	* xterm.c (x_draw_composite_glyph_string_foreground): Adjust for
 	the change of lispy gstring.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
@@ -517,8 +506,8 @@ third arg it->window.
 	(syms_of_font): Define it.
 	(font_property_table): Set a validator for QCantialias.
 
-	* w32font.c (CLEARTYPE_QUALITY, CLEARTYPE_NATURAL_QUALITY): Define
-	if not already.
+	* w32font.c (CLEARTYPE_QUALITY, CLEARTYPE_NATURAL_QUALITY):
+	Define if not already.
 	(QCfamily): Share with xfaces.c.
 	(Qstandard, Qsubpixel, Qnatural): New symbols.
 	(syms_of_w32font): Define them. Don't define QCfamily here.
@@ -554,20 +543,19 @@ third arg it->window.
 	(Fdelete_frame): Call font_update_drivers.
 
 	* xftfont.c (struct xftface_info): Delete the member xft_draw.
-	(xftfont_prepare_face): Adjusted for the above change.
+	(xftfont_prepare_face): Adjust for the above change.
 	(xftfont_done_face): Likewise.
 	(xftfont_get_xft_draw): New function.
 	(xftfont_draw): Get XftDraw by xftfont_get_xft_draw.
 	(xftfont_end_for_frame): New function.
 	(syms_of_xftfont): Set xftfont_driver.end_for_frame.
 
-	* ftxfont.c (ftxfont_get_gcs): Renamed from ftxfont_create_gcs.
+	* ftxfont.c (ftxfont_get_gcs): Rename from ftxfont_create_gcs.
 	Argument changed.  Cache GCs in the per-frame data.
 	(struct ftxfont_frame_data): New struct.
 	(ftxfont_draw_bitmap): New arg gc_fore and flush.
 	(ftxfont_prepare_face, ftxfont_done_face): Delete them.
-	(ftxfont_draw): Get GCs by ftxfont_get_gcs.  Reflect s->clip in
-	GCs.
+	(ftxfont_draw): Get GCs by ftxfont_get_gcs.  Reflect s->clip in GCs.
 	(ftxfont_end_for_frame): New function.
 	(syms_of_ftxfont): Set ftxfont_driver.end_for_frame.
 
@@ -600,8 +588,8 @@ third arg it->window.
 	* lread.c (READCHAR): Call readchar with the 2nd arg NULL.
 	(READCHAR_REPORT_MULTIBYTE): New macro.
 	(readchar): New 2nd arg MULTIBYTE.
-	(read1): Use READCHAR_REPORT_MULTIBYTE for the first read.  Make
-	symbol's name multibyte according to the multibyteness of the
+	(read1): Use READCHAR_REPORT_MULTIBYTE for the first read.
+	Make symbol's name multibyte according to the multibyteness of the
 	source.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
@@ -611,13 +599,11 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* font.c (font_prop_validate_symbol): The argument prop_index is
-	deleted.
+	* font.c (font_prop_validate_symbol): Delete argument prop_index.
 	(font_prop_validate_style, font_prop_validate_non_neg)
 	(font_prop_validate_spacing): Likewise.
-	(font_property_table): Arguments to validater changed.  Callers
-	changed.
-	(font_lispy_object): Deleted.
+	(font_property_table): Change arguments to validater.  Change Callers.
+	(font_lispy_object): Delete.
 	(font_at): Use font_find_object instead fo font_lispy_object.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
