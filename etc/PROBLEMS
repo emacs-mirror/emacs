@@ -815,7 +815,7 @@ XFree86 3.1.1.  XFree86 3.1.2 works.
 
 This can occur when two different versions of FontConfig are used.
 For example, XFree86 4.3.0 has one version and Gnome usually comes
-with a newer version.  Emacs compiled with --with-gtk will then use
+with a newer version.  Emacs compiled with Gtk+ will then use
 the newer version.  In most cases the problem can be temporarily
 fixed by stopping the application that has the error (it can be
 Emacs or any other application), removing ~/.fonts.cache-1,
