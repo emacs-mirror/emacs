@@ -388,7 +388,7 @@ before running `configure'.  CPP is the command which invokes the
 preprocessor, CPPFLAGS lists the options passed to it, CFLAGS are
 compilation options, LDFLAGS are options used when linking, LIBS are
 libraries to link against, and CC is the command which invokes the
-compiler.
+compiler.  By default, gcc is used if available.
 
 Here's an example of a `configure' invocation, assuming a Bourne-like
 shell such as Bash, which uses these variables:
