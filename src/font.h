@@ -1,6 +1,6 @@
 /* font.h -- Interface definition for font handling.
-   Copyright (C) 2006, 2008 Free Software Foundation, Inc.
-   Copyright (C) 2006
+   Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
