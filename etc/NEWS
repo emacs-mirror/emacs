@@ -45,6 +45,13 @@ See the list at the end of etc/MACHINES for details.
 
 ** The new configuration option "--with-dbus" enables D-Bus language
 bindings for Emacs.
+
+** The configure options `--with-gcc', `--without-gcc' have been removed.
+Configure will use gcc by default.  Set the CC environment variable if
+you need control over which C compiler is used.
+
+** The configure option `--with-gtk' has been removed. Gtk is now the
+default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 
 * Changes in Emacs 23.1
 
