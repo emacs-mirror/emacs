@@ -630,10 +630,6 @@
 	(ebnf-make-except, ebnf-make-repeat, ebnf-make-sequence)
 	(ebnf-make-dup-sequence, ebnf-token-alternative): Add comments.
 
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* international/titdic-cnv.el: Synch with HEAD.
-
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Group together all XEmacs/Emacs definitions.
@@ -818,15 +814,6 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* language/european.el ("Turkish"): Sync with HEAD.
-
-	* international/characters.el: Sync with HEAD.
-
-	* international/mule-cmds.el (set-default-coding-systems): Sync
-	with HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* international/quail.el (quail-insert-kbd-layout): Check the
 	length of (cdr translation).
 	(quail-get-current-str): Check the length of (cdr def).
@@ -925,11 +912,6 @@
 	international/uni-titlecase.el, international/uni-uppercase.el:
 	Re-generated.
 
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* international/mule-cmds.el (select-safe-coding-system): Fix
-	synching with head.
-
 2008-02-01  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* ldefs-boot.el: Delete the section for utf-7.
@@ -946,14 +928,8 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (set-language-info): Fix synching
-	with HEAD.
-	(set-language-environment): Likewise.
-	(standard-display-european-internal): Sync with HEAD.
-	(set-language-environment-nonascii-translation): Fix synching with
-	HEAD.
-	(set-language-environment-fontset): Delete it.
-	(set-language-environment-unibyte): Fix synching with HEAD.
+	* international/mule-cmds.el (set-language-environment-fontset):
+	Delete it.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -977,10 +953,6 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* tar-mode.el (tar-extract): Sync with HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	These changes are for the new font handling codes.
 
 	* faces.el (font-weight-table, font-slant-table)
@@ -989,16 +961,6 @@
 	* international/fontset.el (font-encoding-alist): Add koi8-4.
 	(script-representative-chars): Set the default value.
 	(create-fontset-from-x-resource): Delete `message'.
-
-2008-02-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
-
-	* term/mac-win.el (mac-utxt-to-string, mac-string-to-utxt)
-	(mac-TEXT-to-string, mac-string-to-TEXT): Sync with HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* international/characters.el: Cancel unnecessary sync code for
-	HEAD.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1129,8 +1091,6 @@
 	(ethio-tex-to-fidel-buffer, ethio-composition-function)
 	("ethiopic-tex"): Support new characters in Unicode 4.1.
 
-	* descr-text.el (describe-char): Fix for sync with HEAD.
-
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (autoload-coding-system): Install the same
@@ -1170,8 +1130,6 @@
 
 	* international/mule-conf.el (cp1125): Set :ascii-compatible-p
 	property to t.
-
-	* descr-text.el (describe-char): Sync with the main trunk.
 
 	* international/mule.el (coding-system-get):
 	Check `ascii-incompatible' for backward compatiblity.
@@ -1228,9 +1186,8 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* term/mac-win.el: Sync with the main trunk.
-	(mac-centraleurroman, mac-cyrillic): New charsets and coding
-	systems.
+	* term/mac-win.el (mac-centraleurroman, mac-cyrillic): New
+	charsets and coding systems.
 	(mac-symbol, mac-dingbats): New charsets.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -1240,14 +1197,6 @@
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el: Don't require wid-edit.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* language/thai-util.el: Fix previous change.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* language/thai-util.el: Sync with the main trunk.
 
 2008-02-01  Naoto Takahashi  <ntakahas@m17n.org>
 
@@ -1361,7 +1310,7 @@
 
 	* international/mule-cmds.el (select-safe-coding-system-interactively):
 	Change 'mime-charset to :mime-charset.
-	(select-safe-coding-system): Use above (sync to HEAD).
+	(select-safe-coding-system): Use above.
 	(set-language-environment): Delete unnecessary code for handling
 	overriding-fontspec.
 
@@ -1468,23 +1417,10 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/characters.el: Fix invalid encoding caused by the
-	previous sync.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	Sync all files to HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* composite.el (auto-compose-chars): Execute the main code in
 	condition-case.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* descr-text.el (describe-property-list): Sync to HEAD.
-
-	* international/mule-diag.el: Sync to HEAD.
 
 	* international/fontset.el (x-complement-fontset-spec): Don't
 	change CHARSET_REGISTRY and CHARSET_ENCODING fields.
