@@ -42,10 +42,6 @@ Boston, MA 02110-1301, USA.  */
 #include "coding.h"
 #include "blockinput.h"
 
-#ifdef lint
-#include <sys/inode.h>
-#endif /* lint */
-
 #ifdef MSDOS
 #if __DJGPP__ < 2
 #include <unistd.h>	/* to get X_OK */
