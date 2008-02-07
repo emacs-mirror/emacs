@@ -4,8 +4,7 @@
 
 2008-02-04  Tom Tromey  <tromey@redhat.com>
 
-	* etags.c: Added "GTY" as synonym for __attribute__.  Updated
-	gperf output.
+	* etags.c: Add "GTY" as synonym for __attribute__. Update gperf output.
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
@@ -25,7 +24,7 @@
 
 2008-01-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* emacsclient.c (decode_options): Default to a NULL display, as Emacs-22.
+	* emacsclient.c (decode_options): Default to NULL display, as Emacs-22.
 	Allow the -d option under w32 again, for those rare cases where it
 	actually does make sense.
 
