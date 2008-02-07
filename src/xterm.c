@@ -3610,6 +3610,15 @@ x_detect_focus_change (dpyinfo, event, bufp)
 			FOCUS_IMPLICIT : FOCUS_EXPLICIT),
 		       dpyinfo, frame, bufp);
       break;
+
+    case ClientMessage:
+      if (event->xclient.message_type == dpyinfo->Xatom_XEMBED)
+	{
+	  enum xembed_message msg = event->xclient.data.l[1];
+	  x_focus_changed ((msg == XEMBED_FOCUS_IN ? FocusIn : FocusOut),
+			   FOCUS_EXPLICIT, dpyinfo, frame, bufp);
+	}
+      break;
     }
 }
 
@@ -6201,6 +6210,18 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           }
 #endif /* USE_TOOLKIT_SCROLL_BARS */
 
+	/* XEmbed messages from the embedder (if any).  */
+        if (event.xclient.message_type
+	    == dpyinfo->Xatom_XEMBED)
+          {
+	    enum xembed_message msg = event.xclient.data.l[1];
+	    if (msg == XEMBED_FOCUS_IN || msg == XEMBED_FOCUS_OUT)
+	      x_detect_focus_change (dpyinfo, &event, &inev.ie);
+
+	    *finish = X_EVENT_GOTO_OUT;
+            goto done;
+          }
+
 	f = x_any_window_to_frame (dpyinfo, event.xclient.window);
 	if (!f)
 	  goto OTHER;
@@ -7086,6 +7107,9 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                   else
                     construct_mouse_click (&inev.ie, &event.xbutton, f);
                 }
+            if (FRAME_X_EMBEDDED_P (f))
+              xembed_send_message (f, event.xbutton.time,
+                                   XEMBED_REQUEST_FOCUS, 0, 0, 0);
           }
         else
           {
@@ -9285,6 +9309,51 @@ XTframe_raise_lower (f, raise_flag)
     x_lower_frame (f);
 }
 
+/* XEmbed implementation.  */
+
+void
+xembed_set_info (f, flags)
+     struct frame *f;
+     enum xembed_info flags;
+{
+  Atom atom;
+  unsigned long data[2];
+
+  atom = XInternAtom (FRAME_X_DISPLAY (f), "_XEMBED_INFO", False);
+
+  data[0] = XEMBED_VERSION;
+  data[1] = flags;
+
+  XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), atom, atom,
+		   32, PropModeReplace, (unsigned char *) data, 2);
+}
+
+void
+xembed_send_message (f, time, message, detail, data1, data2)
+     struct frame *f;
+     Time time;
+     enum xembed_message message;
+     long detail;
+     long data1;
+     long data2;
+{
+  XEvent event;
+
+  event.xclient.type = ClientMessage;
+  event.xclient.window = FRAME_X_OUTPUT (f)->parent_desc;
+  event.xclient.message_type = FRAME_X_DISPLAY_INFO (f)->Xatom_XEMBED;
+  event.xclient.format = 32;
+  event.xclient.data.l[0] = time;
+  event.xclient.data.l[1] = message;
+  event.xclient.data.l[2] = detail;
+  event.xclient.data.l[3] = data1;
+  event.xclient.data.l[4] = data2;
+
+  XSendEvent (FRAME_X_DISPLAY (f), FRAME_X_OUTPUT (f)->parent_desc,
+	      False, NoEventMask, &event);
+  XSync (FRAME_X_DISPLAY (f), False);
+}
+
 /* Change of visibility.  */
 
 /* This tries to wait until the frame is really visible.
@@ -9317,6 +9386,7 @@ x_make_frame_visible (f)
 	 if we get to x_make_frame_visible a second time
 	 before the window gets really visible.  */
       if (! FRAME_ICONIFIED_P (f)
+	  && ! FRAME_X_EMBEDDED_P (f)
 	  && ! f->output_data.x->asked_for_visible)
 	x_set_offset (f, f->left_pos, f->top_pos, 0);
 
@@ -9325,14 +9395,22 @@ x_make_frame_visible (f)
       if (! EQ (Vx_no_window_manager, Qt))
 	x_wm_set_window_state (f, NormalState);
 #ifdef USE_X_TOOLKIT
-      /* This was XtPopup, but that did nothing for an iconified frame.  */
-      XtMapWidget (f->output_data.x->widget);
+      if (FRAME_X_EMBEDDED_P (f))
+	xembed_set_info (f, XEMBED_MAPPED);
+      else
+	{
+	  /* This was XtPopup, but that did nothing for an iconified frame.  */
+	  XtMapWidget (f->output_data.x->widget);
+	}
 #else /* not USE_X_TOOLKIT */
 #ifdef USE_GTK
       gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
       gtk_window_deiconify (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
 #else
-      XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+      if (FRAME_X_EMBEDDED_P (f))
+	xembed_set_info (f, XEMBED_MAPPED);
+      else
+	XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 #endif /* not USE_GTK */
 #endif /* not USE_X_TOOLKIT */
 #if 0 /* This seems to bring back scroll bars in the wrong places
@@ -9373,7 +9451,9 @@ x_make_frame_visible (f)
        because the window manager may choose the position
        and we don't want to override it.  */
 
-    if (! FRAME_VISIBLE_P (f) && ! FRAME_ICONIFIED_P (f)
+    if (! FRAME_VISIBLE_P (f)
+	&& ! FRAME_ICONIFIED_P (f)
+	&& ! FRAME_X_EMBEDDED_P (f)
 	&& f->win_gravity == NorthWestGravity
 	&& previously_visible)
       {
@@ -9484,6 +9564,10 @@ x_make_frame_invisible (f)
   if (FRAME_GTK_OUTER_WIDGET (f))
     gtk_widget_hide (FRAME_GTK_OUTER_WIDGET (f));
   else
+#else
+  if (FRAME_X_EMBEDDED_P (f))
+    xembed_set_info (f, 0);
+  else
 #endif
   {
 
@@ -9588,7 +9672,9 @@ x_iconify_frame (f)
 
   /* Make sure the X server knows where the window should be positioned,
      in case the user deiconifies with the window manager.  */
-  if (! FRAME_VISIBLE_P (f) && !FRAME_ICONIFIED_P (f))
+  if (! FRAME_VISIBLE_P (f)
+      && ! FRAME_ICONIFIED_P (f)
+      && ! FRAME_X_EMBEDDED_P (f))
     x_set_offset (f, f->left_pos, f->top_pos, 0);
 
   /* Since we don't know which revision of X we're running, we'll use both
@@ -11398,6 +11484,9 @@ x_term_init (display_name, xrm_option, resource_name)
 
   dpyinfo->Xatom_Scrollbar = XInternAtom (dpyinfo->display, "SCROLLBAR",
 					  False);
+
+  dpyinfo->Xatom_XEMBED = XInternAtom (dpyinfo->display, "_XEMBED",
+				       False);
 
   dpyinfo->cut_buffers_initialized = 0;
 
