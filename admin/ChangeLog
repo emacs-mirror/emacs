@@ -10,7 +10,7 @@
 
 	* unidata/makefile.w32-in (charprop-CMD): Fix last change.
 
-	* unidata/Makefile.in: Renamed from Makefile.
+	* unidata/Makefile.in: Rename from Makefile.
 
 	* unidata/makefile.w32-in: New file.
 
@@ -19,10 +19,6 @@
 	* unidata/unidata-gen.el (unidata-gen-files): Force unix line ends.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* unidata/UnicodeData.txt: Updated to Unicode 5.0.
-
-	* unidata/README: Adjusted for Unicode 5.0.
 
 	* unidata/copyright.html: New file.
 
@@ -37,28 +33,23 @@
 	* unidata/unidata-gen.el (unidata-text-file): Delete it.
 	(unidata-list): Initialize to nil.
 	(unidata-setup-list): New function.
-	(unidata-gen-files): New optional arg unidata-text-file.  If it's
-	nil, set unidata-text-file the left command line arg.  Call
-	unidate-setup-list at first.
+	(unidata-gen-files): New optional arg unidata-text-file.
+	If it's nil, set unidata-text-file to the left command line arg.
+	Call unidate-setup-list at first.
 
-	* unidata/Makefile (EMACS): Rename back to Emacs and set to emacs.
-	Caller changed.
-	(all): Depends on ${DSTDIR}/charprop.el.
+	* unidata/Makefile (all): Depends on ${DSTDIR}/charprop.el.
 	(${DSTDIR}/charprop.el): Run emacs after cd to DISDIR.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* unidata/unidata-gen.el: Typo fixed in comments.  Change
-	string-to-int to string-to-number.
-	(unidata-text-file): Defined to .../unidata.txt.
+	* unidata/unidata-gen.el: Fix comment typo.
+	Change string-to-int to string-to-number.
+	(unidata-text-file): Define to .../unidata.txt.
 	(unidata-list): Just insert unidata-text-file.
 	(unidata-get-decomposition): Handle Hangul decomposition.
-	(unidata-gen-files): Don't use \040, instead at ^L near the end of
-	file.
+	(unidata-gen-files): Don't use \040, instead at ^L near the end of file.
 
-	* unidata/Makefile (TEMACS): Renamed from EMACS.  Set to temacs.
-	Caller changed.
-	(unidata.txt): New target.
+	* unidata/Makefile (unidata.txt): New target.
 	(charprop.el): Depends on unidata.txt.
 	(clean): Remove unidata.txt.
 
@@ -89,15 +80,15 @@
 
 	* charsets/mapconv: Add code for handling KANJI-DATABASE format.
 
-	* charsets/Makefile (all): Rename target from charsets.  Depend on
-	${TRANS_TABLE}
-	(CNS-2.map, CNS-3.map, CNS-4.map, CNS-5.map, CNS-6.map)
-	(CNS-7.map): Generate from cns2ucsdkw.txt.
+	* charsets/Makefile (all): Rename target from charsets.
+	Depend on ${TRANS_TABLE}.
+	(CNS-2.map, CNS-3.map, CNS-4.map, CNS-5.map, CNS-6.map, CNS-7.map):
+	Generate from cns2ucsdkw.txt.
 	(install): Copy updated files only.
 
 2008-02-02  Kenichi Handa  <handa@m17n.org>
 
-	* charsets/cp932.awk: Append user defined area of CP932.
+	* charsets/cp932.awk: Append user-defined area of CP932.
 
 2008-02-02  Kenichi Handa  <handa@m17n.org>
 
@@ -122,8 +113,7 @@
 
 	* charsets/cp932.awk: New file.
 
-	* charsets/Makefile (CP932-2BYTE.map): Call mapconv with
-	cp932.awk.
+	* charsets/Makefile (CP932-2BYTE.map): Call mapconv with cp932.awk.
 
 	* charsets/mapconv: In UNICODE2 case, sort by 4th field after
 	running an awk program.
@@ -140,9 +130,9 @@
 	* charsets: New directory for scripts to generate charset map
 	files in ../etc/charsets/.
 
-	* charsets/Makefile, charsets/mapconv, charsets/compact.awk,
-	charsets/big5.awk charsets/gb18030-2.awk, charsets/gb18030-4.awk,
-	cahrsets/kuten.awk: New files.
+	* charsets/Makefile, charsets/mapconv, charsets/compact.awk:
+	* charsets/big5.awk, charsets/gb18030-2.awk, charsets/gb18030-4.awk:
+	* charsets/kuten.awk: New files.
 
 2008-01-08  Glenn Morris  <rgm@gnu.org>
 
