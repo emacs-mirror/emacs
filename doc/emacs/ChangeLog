@@ -1,3 +1,7 @@
+2008-02-07  D. E. Evans  <sinuhe@gnu.org>  (tiny change)
+
+	* basic.texi (Basic Undo): Remove duplicate "you can".
+
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* maintaining.texi (Tags): Fix last change.
