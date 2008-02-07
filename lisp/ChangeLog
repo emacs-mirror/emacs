@@ -1,3 +1,9 @@
+2008-02-07  Timo Savola <timo.savola@iki.fi>
+
+	* startup.el (command-line-x-option-alist): Add --parent-id.
+
+	* term/x-win.el (x-handle-parent-id): New function.
+
 2008-02-07  Chris Moore  <christopher.ian.moore@gmail.com>
 
 	* mouse.el (x-fixed-font-alist): Use consistent capitalization for
