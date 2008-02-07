@@ -351,6 +351,14 @@ ftxfont_open (f, entity, pixel_size)
 	dpyinfo->smallest_char_width = font->min_width, fonts_changed_p |= 1;
     }
 
+  if (fonts_changed_p)
+    {
+      if (dpyinfo->smallest_font_height == 0)
+	dpyinfo->smallest_font_height = 1;
+      if (dpyinfo->smallest_char_width == 0)
+	dpyinfo->smallest_char_width = 1;
+    }
+
   return font;
 }
 
