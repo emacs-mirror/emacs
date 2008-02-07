@@ -1,3 +1,10 @@
+2008-02-07  Jason Rumney  <jasonr@gnu.org>
+
+	* msdog.texi (Windows Files): w32-get-true-file-attributes default
+	value has changed.
+	(Windows HOME): Clarify what is meant by "if that fails as well".
+	(Windows Fonts): New section.
+
 2008-02-07  D. E. Evans  <sinuhe@gnu.org>  (tiny change)
 
 	* basic.texi (Basic Undo): Remove duplicate "you can".
