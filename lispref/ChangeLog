@@ -1,3 +1,8 @@
+2008-02-07  Richard Stallman  <rms@gnu.org>
+
+	* windows.texi (Window Start): Mention the feature of moving
+	window-start to start of line.
+
 2008-01-19  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffers.texi (Buffer Modification): Fix typo.
