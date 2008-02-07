@@ -380,7 +380,7 @@ extern char unibyte_has_multibyte_table[256];
    we increment them past the character fetched.  */
 
 #define FETCH_STRING_CHAR_ADVANCE(OUTPUT, STRING, CHARIDX, BYTEIDX)	\
-  if (1)								\
+  do                                                                    \
     {									\
       CHARIDX++;							\
       if (STRING_MULTIBYTE (STRING))					\
@@ -394,13 +394,13 @@ extern char unibyte_has_multibyte_table[256];
       else								\
 	OUTPUT = XSTRING (STRING)->data[BYTEIDX++];			\
     }									\
-  else
+  while (0)
 
 /* Like FETCH_STRING_CHAR_ADVANCE but return a multibyte character eve
    if STRING is unibyte.  */
 
 #define FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE(OUTPUT, STRING, CHARIDX, BYTEIDX) \
-  if (1)								      \
+  do                                                                          \
     {									      \
       CHARIDX++;							      \
       if (STRING_MULTIBYTE (STRING))					      \
@@ -417,13 +417,13 @@ extern char unibyte_has_multibyte_table[256];
 	  MAKE_CHAR_MULTIBYTE (OUTPUT);					      \
 	}								      \
     }									      \
-  else
+  while (0)
 
 
 /* Like FETCH_STRING_CHAR_ADVANCE but assumes STRING is multibyte.  */
 
 #define FETCH_STRING_CHAR_ADVANCE_NO_CHECK(OUTPUT, STRING, CHARIDX, BYTEIDX) \
-  if (1)								     \
+  do    								     \
     {									     \
       unsigned char *ptr = &XSTRING (STRING)->data[BYTEIDX];		     \
       int len;								     \
@@ -432,14 +432,14 @@ extern char unibyte_has_multibyte_table[256];
       BYTEIDX += len;							     \
       CHARIDX++;							     \
     }									     \
-  else
+  while (0)
 
 
 /* Like FETCH_STRING_CHAR_ADVANCE but fetch character from the current
    buffer.  */
 
 #define FETCH_CHAR_ADVANCE(OUTPUT, CHARIDX, BYTEIDX)		\
-  if (1)							\
+  do    							\
     {								\
       CHARIDX++;						\
       if (!NILP (current_buffer->enable_multibyte_characters))	\
@@ -456,13 +456,13 @@ extern char unibyte_has_multibyte_table[256];
 	  BYTEIDX++;						\
 	}							\
     }								\
-  else
+  while (0)
 
 
 /* Like FETCH_CHAR_ADVANCE but assumes the current buffer is multibyte.  */
 
 #define FETCH_CHAR_ADVANCE_NO_CHECK(OUTPUT, CHARIDX, BYTEIDX)	\
-  if (1)							\
+  do    							\
     {								\
       unsigned char *ptr = BYTE_POS_ADDR (BYTEIDX);		\
       int len;							\
@@ -471,7 +471,7 @@ extern char unibyte_has_multibyte_table[256];
       BYTEIDX += len;						\
       CHARIDX++;						\
     }								\
-  else
+  while (0)
 
 
 /* Increase the buffer byte position POS_BYTE of the current buffer to
