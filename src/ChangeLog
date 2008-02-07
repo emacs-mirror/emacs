@@ -1,3 +1,7 @@
+2008-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* coding.c (DECODE_EMACS_MULE_COMPOSITION_CHAR): Use "do...while (0)".
+
 2008-02-07  Jim Meyering  <meyering@redhat.com>
 
         Use "do...while (0)", not "if (1)..else" in macro definitions.
