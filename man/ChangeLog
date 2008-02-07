@@ -1,3 +1,7 @@
+2008-02-07  D. E. Evans  <sinuhe@gnu.org>  (tiny change)
+
+	* basic.texi (Basic Undo): Remove duplicate "you can".
+
 2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.texi (Setting tags, In-buffer settings):
