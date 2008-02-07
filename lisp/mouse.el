@@ -2376,7 +2376,7 @@ and selects that window."
 		  (cdr elt)))))
 
 (defvar x-fixed-font-alist
-  '("Font menu"
+  '("Font Menu"
     ("Misc"
      ;; For these, we specify the pixel height and width.
      ("fixed" "fixed")
