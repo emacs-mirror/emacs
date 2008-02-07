@@ -85,6 +85,11 @@ customize it with the new option `desktop-load-locked-desktop'.  When saving,
 desktop.el warns about attempts to overwrite a desktop file if it determines
 that the desktop being saved is not an update of the one on disk.
 
+** Compilation mode now correctly respects the value of
+`compilation-scroll-output' between invocations.  Previously, output
+was mistakenly scrolled on compiles after the first.  Customize
+`compilation-scroll-output' if you want to retain the scrolling.
+
 * New Modes and Packages in Emacs 22.2
 
 ** bibtex-style-mode helps you write BibTeX's *.bst files.
