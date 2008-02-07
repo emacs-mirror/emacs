@@ -1,4 +1,4 @@
-2008-02-07  Timo Savola <timo.savola@iki.fi>
+2008-02-07  Timo Savola  <timo.savola@iki.fi>
 
 	* startup.el (command-line-x-option-alist): Add --parent-id.
 

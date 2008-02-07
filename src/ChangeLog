@@ -1,4 +1,4 @@
-2008-02-07  Timo Savola <timo.savola@iki.fi>
+2008-02-07  Timo Savola  <timo.savola@iki.fi>
 
 	* xterm.c (x_detect_focus_change): Handle embed client message.
 	(handle_one_xevent): Ditto.
@@ -34,18 +34,18 @@
 
 2008-02-07  Jim Meyering  <meyering@redhat.com>
 
-        Use "do...while (0)", not "if (1)..else" in macro definitions.
-        The latter provokes a warning from gcc about the empty else, when
-        followed by ";".  Also, without that trailing semicolon, it would
-        silently swallow up any following statement.
-        * syntax.h (SETUP_SYNTAX_TABLE):
-        (SETUP_SYNTAX_TABLE_FOR_OBJECT): Likewise.
-        * buffer.h (DECODE_POSITION): Likewise.
-        * character.h (FETCH_STRING_CHAR_ADVANCE): Likewise.
-        (FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE): Likewise.
-        (FETCH_STRING_CHAR_ADVANCE_NO_CHECK): Likewise.
-        (FETCH_CHAR_ADVANCE): Likewise.
-        (FETCH_CHAR_ADVANCE_NO_CHECK): Likewise.
+	Use "do...while (0)", not "if (1)..else" in macro definitions.
+	The latter provokes a warning from gcc about the empty else, when
+	followed by ";".  Also, without that trailing semicolon, it would
+	silently swallow up any following statement.
+	* syntax.h (SETUP_SYNTAX_TABLE):
+	(SETUP_SYNTAX_TABLE_FOR_OBJECT): Likewise.
+	* buffer.h (DECODE_POSITION): Likewise.
+	* character.h (FETCH_STRING_CHAR_ADVANCE): Likewise.
+	(FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE): Likewise.
+	(FETCH_STRING_CHAR_ADVANCE_NO_CHECK): Likewise.
+	(FETCH_CHAR_ADVANCE): Likewise.
+	(FETCH_CHAR_ADVANCE_NO_CHECK): Likewise.
 
 2008-02-07  Jim Meyering  <meyering@redhat.com>
 
