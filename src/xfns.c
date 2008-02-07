@@ -2720,6 +2720,10 @@ x_window (f, window_prompting, minibuffer_only)
   XtManageChild (pane_widget);
   XtRealizeWidget (shell_widget);
 
+  if (FRAME_X_EMBEDDED_P (f))
+    XReparentWindow (FRAME_X_DISPLAY (f), XtWindow (shell_widget),
+		     f->output_data.x->parent_desc, 0, 0);
+
   FRAME_X_WINDOW (f) = XtWindow (frame_widget);
 
   validate_x_resource_name ();
@@ -3459,8 +3463,10 @@ else
   xlwmenu_default_font = FRAME_FONT (f);
 #endif
 
-  x_default_parameter (f, parms, Qborder_width, make_number (2),
-		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
+  /* Frame contents get displaced if an embedded X window has a border.  */
+  if (! FRAME_X_EMBEDDED_P (f))
+    x_default_parameter (f, parms, Qborder_width, make_number (2),
+			 "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
 
   /* This defaults to 1 in order to match xterm.  We recognize either
      internalBorderWidth or internalBorder (which is what xterm calls
@@ -3530,8 +3536,6 @@ else
 		       "waitForWM", "WaitForWM", RES_TYPE_BOOLEAN);
   x_default_parameter (f, parms, Qfullscreen, Qnil,
                        "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
-
-  f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
 
   /* Compute the size of the X window.  */
   window_prompting = x_figure_window_size (f, parms, 1);
