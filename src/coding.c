@@ -1898,7 +1898,7 @@ detect_coding_emacs_mule (coding, detect_info)
    value 0.  */
 
 #define DECODE_EMACS_MULE_COMPOSITION_CHAR(buf)			\
-  if (1)							\
+  do    							\
     {								\
       int c;							\
       int nbytes, nchars;					\
@@ -1916,7 +1916,7 @@ detect_coding_emacs_mule (coding, detect_info)
       src += nbytes;						\
       consumed_chars += nchars;					\
     }								\
-  else
+  while (0)
 
 
 /* Decode a composition rule represented as a component of composition
