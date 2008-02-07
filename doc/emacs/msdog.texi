@@ -35,6 +35,7 @@ here.
 * Windows Mouse::       Windows-specific mouse features.
 * Windows Processes::   Running subprocesses on Windows.
 * Windows Printing::    How to specify the printer on MS-Windows.
+* Windows Fonts::       Specifying fonts on MS-Windows.
 * Windows Misc::        Miscellaneous Windows features.
 @ifnottex
 * MS-DOS::              Using Emacs on MS-DOS (otherwise known as @dfn{MS-DOG}).
@@ -174,8 +175,8 @@ default ignores letter-case in file names during completion.
   If the variable @code{w32-get-true-file-attributes} is
 non-@code{nil} (the default), Emacs tries to determine the accurate
 link counts for files.  This option is only useful on NTFS volumes,
-and it considerably slows down Dired and other features, so use it
-only on fast machines.
+and it considerably slows down Dired and other features, so disable it
+on slow machines.
 
 @node ls in Lisp
 @section Emulation of @code{ls} on MS-Windows
@@ -332,12 +333,11 @@ When Emacs starts, it first checks whether the environment variable
 directory pointed by @env{HOME}.  If @env{HOME} is not defined, Emacs
 checks for an existing @file{.emacs} file in @file{C:\}, the root
 directory of drive @file{C:}@footnote{
-The check in @file{C:\} is in preference to the application data
-directory for compatibility with older versions of Emacs, which didn't
-check the application data directory.
+The check in @file{C:\} is for compatibility with older versions of Emacs,
+which didn't check the application data directory.
 }.  If there's no such file in @file{C:\}, Emacs next uses the Windows
 system calls to find out the exact location of your application data
-directory.  If that fails as well, Emacs falls back to @file{C:\}.
+directory.  If that system call fails, Emacs falls back to @file{C:\}.
 
   Whatever the final place is, Emacs sets the value of the @env{HOME}
 environment variable to point to it, and it will use that location for
@@ -588,12 +588,12 @@ variables control printing on all systems, but in some cases they have
 different default values on MS-DOS and MS-Windows.
 
   Emacs on Windows automatically determines your default printer and
-sets the variable @var{printer-name} to that printer's name.  But in
+sets the variable @code{printer-name} to that printer's name.  But in
 some rare cases this can fail, or you may wish to use a different
 printer from within Emacs.  The rest of this section explains how to
 tell Emacs which printer to use.
 
-@vindex printer-name@r{, (MS-DOS/MW-Windows)}
+@vindex printer-name@r{, (MS-DOS/MS-Windows)}
   If you want to use your local printer, then set the Lisp variable
 @code{lpr-command} to @code{""} (its default value on Windows) and
 @code{printer-name} to the name of the printer port---for example,
@@ -721,6 +721,94 @@ printer, put this in your @file{.emacs} file:
 @noindent
 (This assumes that Ghostscript is installed in the
 @file{D:/gs6.01} directory.)
+
+@node Windows Fonts
+@section Specifying Fonts on MS-Windows
+@cindex font specification (MS Windows)
+
+  Starting with Emacs 23, fonts are specified by their name, size
+and optional properties. The format for specifying fonts comes from the
+fontconfig library used in modern Free desktops.
+
+@example
+  [Family[-PointSize]][:Option1=Value1[:Option2=Value2[...]]]
+@end example
+
+  The old XLFD based format is also supported for backwards compatibility.
+
+  Emacs 23 supports a number of backends. Currently on Windows the @code{gdi}
+  font backend is supported.
+
+@cindex font properties (MS Windows)
+@noindent
+Optional properties common to all font backends on MS-Windows are:
+
+@vindex font-weight-table @r{(MS-Windows)}
+   @code{weight} specifies the weight of the font. Special values @code{light},
+@code{medium}, @code{demibold}, @code{bold} and @code{black} can be specified
+without the @code{weight=} (eg @samp{Courier New-12:bold}).  Otherwise
+the weight should be a numeric value between 100 and 900, or one of the
+named weights in @code{font-weight-table}. If unspecified, a regular font
+is assumed.
+
+@vindex font-slant-table @r{(MS-Windows)}
+  @code{slant} specifies whether the font is italic. Special values
+@code{roman}, @code{italic} and @code{oblique} can be specified
+without the @code{slant=} (eg @samp{Courier New-12:italic}).
+Otherwise the weight should be a numeric value, or one of the named
+slants in @code{font-slant-table}.  On Windows, any slant above 150 is
+treated as italic, and anything below as roman.
+
+  @code{family} specifies the font family, but normally this will be specified
+at the start of the font name.
+
+  @code{pixelsize} specifies the font size in pixels. This can be used instead
+of the point size specified after the family name.
+
+  @code{adstyle} specifies additional style information for the font.
+On MS-Windows, the values @code{mono}, @code{sans}, @code{serif},
+@code{script} and @code{decorative} are recognized. These are most useful
+as a fallback with the font family left unspecified.
+
+@vindex w32-charset-info-alist
+  @code{registry} specifies the character set registry that the font is
+expected to cover. Most Truetype and Opentype fonts will be unicode fonts
+that cover several national character sets, but you can narrow down the
+selection of fonts to those that support a particular character set by
+using a specific registry from @code{w32-charset-info-alist} here.
+
+  @code{spacing} specifies how the font is spaced. @code{p} specifies
+a proportional font, and @code{m} or @code{c} specify a monospaced font.
+
+  @code{foundry} is not used on Windows, but for informational purposes and to
+prevent problems with code that expects it to be set, is set internally to
+@code{raster} for bitmapped fonts, @code{outline} for scalable fonts,
+or @code{unknown} if the type cannot be determined as one of those.
+
+@cindex font properties (MS Windows gdi backend)
+Options specific to @code{GDI} fonts
+
+@cindex font scripts (MS Windows)
+@cindex font unicode subranges (MS Windows)
+  @code{script} specifies a unicode subrange the font should support.
+Scripts recognized on Windows are @code{latin}, @code{greek}, @code{coptic},
+@code{cyrillic}, @code{armenian}, @code{hebrew}, @code{arabic},
+@code{syriac}, @code{nko}, @code{thaana}, @code{devanagari}, @code{bengali},
+@code{gurmukhi}, @code{gujarati}, @code{oriya}, @code{tamil}, @code{telugu},
+@code{kannada}, @code{malayam}, @code{sinhala}, @code{thai}, @code{lao},
+@code{tibetan}, @code{myanmar}, @code{georgian}, @code{hangul},
+@code{ethiopic}, @code{cherokee}, @code{canadian-aboriginal}, @code{ogham},
+@code{runic}, @code{khmer}, @code{mongolian}, @code{symbol}, @code{braille},
+@code{han}, @code{ideographic-description}, @code{cjk-misc}, @code{kana},
+@code{bopomofo}, @code{kanbun}, @code{yi}, @code{byzantine-musical-symbol},
+@code{musical-symbol}, and @code{mathematical}.
+
+@cindex font antialiasing (MS Windows)
+  @code{antialias} specifies the antialiasing to use for the font. @code{none}
+means no antialiasing, @code{standard} means use standard antialiasing,
+@code{subpixel} means use subpixel antialiasing (known as Cleartype on Windows),
+@code{natural} means use subpixel antialiasing with adjusted spacing between
+letters. If unspecified, the font will use the system default antialiasing.
 
 @node Windows Misc
 @section Miscellaneous Windows-specific features
