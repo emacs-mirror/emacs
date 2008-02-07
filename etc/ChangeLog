@@ -1,7 +1,6 @@
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
-	* TUTORIAL.ru: Restore copyright years.  Update tutorial.  Fix
-	wording.
+	* TUTORIAL.ru: Restore copyright years.  Update tutorial.  Fix wording.
 
 2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -19,28 +18,6 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* charsets/CNS-[234567].map: Regenerate.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* charsets/JISX2131.map: Regenerate.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* charsets/JISX213A.map: New file.
-
-	* charsets/JISX0208.map: Regenerate.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* charsets/CP932-2BYTE.map: Update from ../admin/charsets.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* CP932-2BYTE.map: New file.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* charsets: New directory for charset mapping tables.
 
 	* charsets/README: New file.
@@ -53,10 +30,9 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* HELLO: Fix upcase and downcase for several languages.  Change
-	the two German lines into one.  Change "Nederlangs" to
-	"Dutch (Nederlands)".  Add original language names to several
-	entries.
+	* HELLO: Fix upcase and downcase for several languages.
+	Change the two German lines into one.  Change "Nederlangs" to
+	"Dutch (Nederlands)".  Add original language names to several entries.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -64,8 +40,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* HELLO: Change indian-2-column chars of Hindi line to Unicode
-	chars.
+	* HELLO: Change indian-2-column chars of Hindi line to Unicode chars.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
