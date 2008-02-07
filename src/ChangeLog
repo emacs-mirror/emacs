@@ -1,3 +1,33 @@
+2008-02-07  Timo Savola <timo.savola@iki.fi>
+
+	* xterm.c (x_detect_focus_change): Handle embed client message.
+	(handle_one_xevent): Ditto.
+	(handle_one_xevent): If embedded and we get a button press/release,
+	request focus.
+	(xembed_set_info, xembed_send_message): New functions.
+	(x_make_frame_visible): Call xembed_set_info if embedded.
+	(x_make_frame_invisible): Call xembed_set_info if embedded.
+	(x_term_init): Initialize Xatom_XEMBED.
+	(x_make_frame_visible): Check for FRAME_X_EMBEDDED_P also.
+	(x_iconify_frame): Ditto.
+
+	* xterm.h (struct x_display_info): Add AtomXatom_XEMBED.
+	(enum xembed_info, enum xerm srmbed_message, enum xembed_focus)
+	(enum xembed_modifier, enum xembed_accelerator): New.
+	(xembed_set_info, xembed_send_message): Declare.
+	(FRAME_X_EMBEDDED_P): New.
+
+	* gtkutil.c (xg_create_frame_widgets): If frame is embedded, call
+	gtk_plug_new.
+
+	* xfns.c (Fx_create_frame): Do not override the explicitly set parent
+	window ID of a frame.
+	(x_window): Reparent frame if embedded.
+	(Fx_create_frame): Don't set border width if embedded.
+
+	* emacs.c (USAGE3): Add --parent-id
+	(standard_args): Ditto.
+
 2008-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* coding.c (DECODE_EMACS_MULE_COMPOSITION_CHAR): Use "do...while (0)".
