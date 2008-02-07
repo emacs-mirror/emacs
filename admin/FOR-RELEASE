@@ -30,8 +30,8 @@ These don't need to be fixed before a release, but we call the
 attention of Windows users to fixing them.
 
 ** Drew Adams 12 Aug bug rpt: overlay display artifact: trace left behind
-Windows only bug. Bug appears only when Cleartype enabled, probably related
-to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
+Verify that the new font backend eliminates this and other Cleartype related
+problems.
 
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
@@ -124,6 +124,12 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00951.html
 
 
 * DOCUMENTATION
+
+** Document multi-tty features
+
+** Document new font backend
+
+** Document XEmbed support
 
 ** Check the Emacs Tutorial.
 
