@@ -1229,6 +1229,15 @@ is called the @dfn{display-start} position of the window (or just the
 at the upper left corner of the window.  It is usually, but not
 inevitably, at the beginning of a text line.
 
+  After switching windows or buffers, and in some other cases, if the
+window start is in the middle of a line, Emacs adjusts the window
+start to the start of a line.  This prevents certain operations from
+leaving the window start at a meaningless point within a line.  This
+feature may interfere with testing some Lisp code by executing it
+using the commands of Lisp mode, because they trigger this
+readjustment.  To test such code, put it into a command and bind the
+command to a key.
+
 @defun window-start &optional window
 @cindex window top line
 This function returns the display-start position of window
@@ -1296,10 +1305,10 @@ However, if you specify the start position with this function using
 screen.  If this does place point off screen, the display routines move
 point to the left margin on the middle line in the window.
 
-For example, if point @w{is 1} and you set the start of the window @w{to
-2}, then point would be ``above'' the top of the window.  The display
-routines will automatically move point if it is still 1 when redisplay
-occurs.  Here is an example:
+For example, if point @w{is 1} and you set the start of the window
+@w{to 37}, the start of the next line, point will be ``above'' the top
+of the window.  The display routines will automatically move point if
+it is still 1 when redisplay occurs.  Here is an example:
 
 @example
 @group
@@ -1321,15 +1330,17 @@ occurs.  Here is an example:
 @group
 (set-window-start
  (selected-window)
- (1+ (window-start)))
-@result{} 2
+ (save-excursion
+   (goto-char 1)
+   (forward-line 1)
+   (point)))
+@result{} 37
 @end group
 
 @group
 ;; @r{Here is what @samp{foo} looks like after executing}
 ;;   @r{the @code{set-window-start} expression.}
 ---------- Buffer: foo ----------
-his is the contents of buffer foo.
 2
 3
 @point{}4
