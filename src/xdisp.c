@@ -8214,7 +8214,7 @@ with_echo_area_buffer_unwind_data (w)
      struct window *w;
 {
   int i = 0;
-  Lisp_Object vector;
+  Lisp_Object vector, tmp;
 
   /* Reduce consing by keeping one vector in
      Vwith_echo_area_save_vector.  */
@@ -8224,22 +8224,22 @@ with_echo_area_buffer_unwind_data (w)
   if (NILP (vector))
     vector = Fmake_vector (make_number (7), Qnil);
 
-  XSETBUFFER (AREF (vector, i), current_buffer); ++i;
-  AREF (vector, i) = Vdeactivate_mark, ++i;
-  AREF (vector, i) = make_number (windows_or_buffers_changed), ++i;
+  XSETBUFFER (tmp, current_buffer); ASET (vector, i, tmp); ++i;
+  ASET (vector, i, Vdeactivate_mark); ++i;
+  ASET (vector, i, make_number (windows_or_buffers_changed)); ++i;
 
   if (w)
     {
-      XSETWINDOW (AREF (vector, i), w); ++i;
-      AREF (vector, i) = w->buffer; ++i;
-      AREF (vector, i) = make_number (XMARKER (w->pointm)->charpos); ++i;
-      AREF (vector, i) = make_number (XMARKER (w->pointm)->bytepos); ++i;
+      XSETWINDOW (tmp, w); ASET (vector, i, tmp); ++i;
+      ASET (vector, i, w->buffer); ++i;
+      ASET (vector, i, make_number (XMARKER (w->pointm)->charpos)); ++i;
+      ASET (vector, i, make_number (XMARKER (w->pointm)->bytepos)); ++i;
     }
   else
     {
       int end = i + 4;
       for (; i < end; ++i)
-	AREF (vector, i) = Qnil;
+	ASET (vector, i, Qnil);
     }
 
   xassert (i == ASIZE (vector));
@@ -9090,7 +9090,7 @@ static Lisp_Object
 format_mode_line_unwind_data (obuf, save_proptrans)
      struct buffer *obuf;
 {
-  Lisp_Object vector;
+  Lisp_Object vector, tmp;
 
   /* Reduce consing by keeping one vector in
      Vwith_echo_area_save_vector.  */
@@ -9100,17 +9100,18 @@ format_mode_line_unwind_data (obuf, save_proptrans)
   if (NILP (vector))
     vector = Fmake_vector (make_number (7), Qnil);
 
-  AREF (vector, 0) = make_number (mode_line_target);
-  AREF (vector, 1) = make_number (MODE_LINE_NOPROP_LEN (0));
-  AREF (vector, 2) = mode_line_string_list;
-  AREF (vector, 3) = (save_proptrans ? mode_line_proptrans_alist : Qt);
-  AREF (vector, 4) = mode_line_string_face;
-  AREF (vector, 5) = mode_line_string_face_prop;
+  ASET (vector, 0, make_number (mode_line_target));
+  ASET (vector, 1, make_number (MODE_LINE_NOPROP_LEN (0)));
+  ASET (vector, 2, mode_line_string_list);
+  ASET (vector, 3, save_proptrans ? mode_line_proptrans_alist : Qt);
+  ASET (vector, 4, mode_line_string_face);
+  ASET (vector, 5, mode_line_string_face_prop);
 
   if (obuf)
-    XSETBUFFER (AREF (vector, 6), obuf);
+    XSETBUFFER (tmp, obuf);
   else
-    AREF (vector, 6) = Qnil;
+    tmp = Qnil;
+  ASET (vector, 6, tmp);
 
   return vector;
 }
@@ -9130,7 +9131,7 @@ unwind_format_mode_line (vector)
   if (!NILP (AREF (vector, 6)))
     {
       set_buffer_internal_1 (XBUFFER (AREF (vector, 6)));
-      AREF (vector, 6) = Qnil;
+      ASET (vector, 6, Qnil);
     }
 
   Vmode_line_unwind_vector = vector;
@@ -16775,7 +16776,7 @@ display_menu_bar (w)
 	break;
 
       /* Remember where item was displayed.  */
-      AREF (items, i + 3) = make_number (it.hpos);
+      ASET (items, i + 3, make_number (it.hpos));
 
       /* Display the item, pad with one space.  */
       if (it.current_x < it.last_visible_x)

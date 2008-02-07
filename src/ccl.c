@@ -1825,7 +1825,7 @@ resolve_symbol_ccl_program (ccl)
 
 	  val = Fget (XCAR (contents), XCDR (contents));
 	  if (NATNUMP (val))
-	    AREF (result, i) = val;
+	    ASET (result, i, val);
 	  else
 	    unresolved = 1;
 	  continue;
@@ -1840,17 +1840,17 @@ resolve_symbol_ccl_program (ccl)
 
 	  val = Fget (contents, Qtranslation_table_id);
 	  if (NATNUMP (val))
-	    AREF (result, i) = val;
+	    ASET (result, i, val);
 	  else
 	    {
 	      val = Fget (contents, Qcode_conversion_map_id);
 	      if (NATNUMP (val))
-		AREF (result, i) = val;
+		ASET (result, i, val);
 	      else
 		{
 		  val = Fget (contents, Qccl_program_idx);
 		  if (NATNUMP (val))
-		    AREF (result, i) = val;
+		    ASET (result, i, val);
 		  else
 		    unresolved = 1;
 		}
@@ -1900,8 +1900,8 @@ ccl_get_compiled_code (ccl_prog, idx)
       val = resolve_symbol_ccl_program (AREF (slot, 1));
       if (! VECTORP (val))
 	return Qnil;
-      AREF (slot, 1) = val;
-      AREF (slot, 2) = Qt;
+      ASET (slot, 1, val);
+      ASET (slot, 2, Qt);
     }
   return AREF (slot, 1);
 }
@@ -2039,7 +2039,7 @@ programs.  */)
     error ("Error in CCL program at %dth code", ccl.ic);
 
   for (i = 0; i < 8; i++)
-    XSETINT (AREF (reg, i), ccl.reg[i]);
+    ASET (reg, i, make_number (ccl.reg[i]));
   return Qnil;
 }
 
@@ -2097,7 +2097,7 @@ usage: (ccl-execute-on-string CCL-PROGRAM STATUS STRING &optional CONTINUE UNIBY
   for (i = 0; i < 8; i++)
     {
       if (NILP (AREF (status, i)))
-	XSETINT (AREF (status, i), 0);
+	ASET (status, i, make_number (0));
       if (INTEGERP (AREF (status, i)))
 	ccl.reg[i] = XINT (AREF (status, i));
     }
@@ -2311,7 +2311,7 @@ Return index number of the registered map.  */)
   index = make_number (i);
   Fput (symbol, Qcode_conversion_map, map);
   Fput (symbol, Qcode_conversion_map_id, index);
-  AREF (Vcode_conversion_map_vector, i) = Fcons (symbol, map);
+  ASET (Vcode_conversion_map_vector, i, Fcons (symbol, map));
   return index;
 }
 

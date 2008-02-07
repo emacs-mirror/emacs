@@ -2791,15 +2791,15 @@ x_handle_dnd_message (f, event, dpyinfo, bufp)
     }
 
   vec = Fmake_vector (make_number (4), Qnil);
-  AREF (vec, 0) = SYMBOL_NAME (x_atom_to_symbol (FRAME_X_DISPLAY (f),
-                                                 event->message_type));
-  AREF (vec, 1) = frame;
-  AREF (vec, 2) = make_number (event->format);
-  AREF (vec, 3) = x_property_data_to_lisp (f,
-                                           data,
-                                           event->message_type,
-                                           event->format,
-                                           size);
+  ASET (vec, 0, SYMBOL_NAME (x_atom_to_symbol (FRAME_X_DISPLAY (f),
+					       event->message_type)));
+  ASET (vec, 1, frame);
+  ASET (vec, 2, make_number (event->format));
+  ASET (vec, 3, x_property_data_to_lisp (f,
+					 data,
+					 event->message_type,
+					 event->format,
+					 size));
 
   mouse_position_for_drop (f, &x, &y);
   bufp->kind = DRAG_N_DROP_EVENT;

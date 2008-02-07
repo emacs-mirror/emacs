@@ -4227,8 +4227,10 @@ add_overlay_mod_hooklist (functionlist, overlay)
   if (last_overlay_modification_hooks_used == oldsize)
     last_overlay_modification_hooks = larger_vector 
       (last_overlay_modification_hooks, oldsize * 2, Qnil);
-  AREF (last_overlay_modification_hooks, last_overlay_modification_hooks_used++) = functionlist;
-  AREF (last_overlay_modification_hooks, last_overlay_modification_hooks_used++) = overlay;
+  ASET (last_overlay_modification_hooks, last_overlay_modification_hooks_used,
+	functionlist); last_overlay_modification_hooks_used++;
+  ASET (last_overlay_modification_hooks, last_overlay_modification_hooks_used,
+	overlay);      last_overlay_modification_hooks_used++;
 }
 
 /* Run the modification-hooks of overlays that include

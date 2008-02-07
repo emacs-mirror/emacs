@@ -574,7 +574,7 @@ store_function_docstring (fun, offset)
       /* This bytecode object must have a slot for the
 	 docstring, since we've found a docstring for it.  */
       if ((ASIZE (fun) & PSEUDOVECTOR_SIZE_MASK) > COMPILED_DOC_STRING)
-	XSETFASTINT (AREF (fun, COMPILED_DOC_STRING), offset);
+	ASET (fun, COMPILED_DOC_STRING, make_number (offset));
     }
 }
 

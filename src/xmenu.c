@@ -1943,7 +1943,7 @@ digest_single_submenu (start, end, top_level_items)
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
 	    {
 	      pane_name = ENCODE_MENU_STRING (pane_name);
-	      AREF (menu_items, i + MENU_ITEMS_PANE_NAME) = pane_name;
+	      ASET (menu_items, i + MENU_ITEMS_PANE_NAME, pane_name);
 	    }
 #endif
 	  pane_string = (NILP (pane_name)
@@ -1999,13 +1999,13 @@ digest_single_submenu (start, end, top_level_items)
           if (STRING_MULTIBYTE (item_name))
 	    {
 	      item_name = ENCODE_MENU_STRING (item_name);
-	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
+	      ASET (menu_items, i + MENU_ITEMS_ITEM_NAME, item_name);
 	    }
 
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
 	      descrip = ENCODE_MENU_STRING (descrip);
-	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
+	      ASET (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY, descrip);
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
 
@@ -2928,7 +2928,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
 	    {
 	      pane_name = ENCODE_MENU_STRING (pane_name);
-	      AREF (menu_items, i + MENU_ITEMS_PANE_NAME) = pane_name;
+	      ASET (menu_items, i + MENU_ITEMS_PANE_NAME, pane_name);
 	    }
 #endif
 	  pane_string = (NILP (pane_name)
@@ -2982,13 +2982,13 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
           if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
 	    {
 	      item_name = ENCODE_MENU_STRING (item_name);
-	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
+	      ASET (menu_items, i + MENU_ITEMS_ITEM_NAME, item_name);
 	    }
 
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
 	      descrip = ENCODE_MENU_STRING (descrip);
-	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
+	      ASET (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY, descrip);
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
 

@@ -1,3 +1,16 @@
+2008-02-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xselect.c (x_handle_dnd_message):
+	* xmenu.c (digest_single_submenu, xmenu_show):
+	* xdisp.c (with_echo_area_buffer_unwind_data)
+	(format_mode_line_unwind_data, unwind_format_mode_line)
+	(display_menu_bar):
+	* eval.c (Ffetch_bytecode):
+	* doc.c (store_function_docstring):
+	* ccl.c (resolve_symbol_ccl_program, ccl_get_compiled_code)
+	(Fccl_execute, Fccl_execute_on_string, Fregister_code_conversion_map):
+	* buffer.c (add_overlay_mod_hooklist): Use ASET.
+
 2008-02-07  Kenichi Handa  <handa@m17n.org>
 
 	* ftxfont.c (ftxfont_open): Don't set
@@ -9,8 +22,8 @@
 
 	* w32font.c (w32font_text_extents): Fill in lbearing metric.
 	Use cached metrics for ASCII characters.
-	(w32font_open_internal): Don't set font's owning_frame.  Cache
-	metrics for ASCII characters.
+	(w32font_open_internal): Don't set font's owning_frame.
+	Cache metrics for ASCII characters.
 
 	* w32font.h (struct w32font_info): Add ascii_metrics.
 	Remove owning_frame.
@@ -22,8 +35,7 @@
 
 	* ftxfont.c (ftxfont_draw): Use s->font_info, not face->font_info.
 
-	* ftfont.c (ftfont_open): Fix calculation of
-	font->font.averange_width.
+	* ftfont.c (ftfont_open): Fix calculation of font->font.average_width.
 
 	* charset.c (syms_of_charset): Set QCtest and Qeq.
 
