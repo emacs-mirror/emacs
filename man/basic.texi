@@ -321,10 +321,10 @@ line with the following line.
 @section Undoing Changes
 
   Emacs records a list of changes made in the buffer text, so you can
-you can undo recent changes, as far as the records go.
-Usually each editing command makes a separate entry in the undo
-records, but sometimes an entry covers just part of a command, and
-very simple commands may be grouped.
+undo recent changes, as far as the records go.  Usually each editing
+command makes a separate entry in the undo records, but sometimes an
+entry covers just part of a command, and very simple commands may be
+grouped.
 
 @table @kbd
 @item C-x u
