@@ -256,7 +256,7 @@ extern char syntax_code_spec[16];
  */
 
 #define SETUP_SYNTAX_TABLE(FROM, COUNT)					\
-if (1)									\
+do									\
   {									\
     gl_state.b_property = BEGV;						\
     gl_state.e_property = ZV + 1;					\
@@ -269,7 +269,7 @@ if (1)									\
         update_syntax_table ((COUNT) > 0 ? (FROM) : (FROM) - 1, (COUNT),\
 			     1, Qnil);					\
   }									\
-else
+while (0)
 
 /* Same as above, but in OBJECT.  If OBJECT is nil, use current buffer.
    If it is t, ignore properties altogether.
@@ -279,7 +279,7 @@ else
    So if it is a buffer, we set the offset field to BEGV.  */
 
 #define SETUP_SYNTAX_TABLE_FOR_OBJECT(OBJECT, FROM, COUNT)		\
-if (1)									\
+do									\
   {									\
     gl_state.object = (OBJECT);						\
     if (BUFFERP (gl_state.object))					\
@@ -314,7 +314,7 @@ if (1)									\
 			    + (COUNT > 0 ? 0 :  -1)),			\
 			   COUNT, 1, gl_state.object);			\
   }									\
-else
+while (0)
 
 struct gl_state_s
 {
