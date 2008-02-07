@@ -786,7 +786,11 @@ xg_create_frame_widgets (f)
 
   BLOCK_INPUT;
 
-  wtop = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  if (FRAME_X_EMBEDDED_P (f))
+    wtop = gtk_plug_new (f->output_data.x->parent_desc);
+  else
+    wtop = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+
   xg_set_screen (wtop, f);
 
   wvbox = gtk_vbox_new (FALSE, 0);
