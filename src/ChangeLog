@@ -1,3 +1,7 @@
+2008-02-07  Jim Meyering  <meyering@redhat.com>
+
+	* lread.c [lint]: Don't include <sys/inode.h>.
+
 2008-02-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xselect.c (x_handle_dnd_message):
