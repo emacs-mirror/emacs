@@ -1,5 +1,15 @@
 2008-02-07  Jim Meyering  <meyering@redhat.com>
 
+        Use "do...while (0)", not "if (1)..else" in macro definitions.
+        The latter provokes a warning from gcc about the empty else, when
+        followed by ";".  Also, without that trailing semicolon, it would
+        silently swallow up any following statement.
+        * syntax.h (SETUP_SYNTAX_TABLE):
+        (SETUP_SYNTAX_TABLE_FOR_OBJECT): Likewise.
+        * buffer.h (DECODE_POSITION): Likewise.
+
+2008-02-07  Jim Meyering  <meyering@redhat.com>
+
 	* lread.c [lint]: Don't include <sys/inode.h>.
 
 2008-02-07  Stefan Monnier  <monnier@iro.umontreal.ca>
