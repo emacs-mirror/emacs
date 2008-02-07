@@ -266,7 +266,7 @@ extern void enlarge_buffer_text P_ ((struct buffer *, int));
    and store the charpos in CHARPOS and the bytepos in BYTEPOS.  */
 
 #define DECODE_POSITION(charpos, bytepos, pos)			\
-if (1)								\
+do								\
   {								\
     Lisp_Object __pos = (pos);					\
     if (NUMBERP (__pos))					\
@@ -282,7 +282,7 @@ if (1)								\
     else							\
       wrong_type_argument (Qinteger_or_marker_p, __pos);	\
   }								\
-else
+while (0)
 
 /* Return the address of byte position N in current buffer.  */
 
