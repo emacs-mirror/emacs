@@ -174,7 +174,8 @@ This is normally copied from `default-directory' when Emacs starts.")
     ("--vertical-scroll-bars" 0 x-handle-switch vertical-scroll-bars t)
     ("--line-spacing" 1 x-handle-numeric-switch line-spacing)
     ("--border-color" 1 x-handle-switch border-color)
-    ("--smid" 1 x-handle-smid))
+    ("--smid" 1 x-handle-smid)
+    ("--parent-id" 1 x-handle-parent-id))
   "Alist of X Windows options.
 Each element has the form
   (NAME NUMARGS HANDLER FRAME-PARAM VALUE)
