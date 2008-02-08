@@ -565,7 +565,7 @@ decode_options (argc, argv)
      -c still implicitly passes --display $DISPLAY unless -t was specified
      so as to try and mimick the behavior of `emacs' which either uses
      the current tty or the current $DISPLAY.  */
-  if (!current_frame && !tty)
+  if (!current_frame && !tty && !display)
     display = egetenv ("DISPLAY");
 
   if (display && strlen (display) == 0)
