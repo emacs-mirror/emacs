@@ -1,3 +1,9 @@
+2008-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* custom.el (custom-theme-set-variables): Sort symbols that are
+	dependencies before symbols that depend on them.
+	(custom-enabled-themes): Set after custom-theme-directory.
+
 2008-02-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32-vars.el (w32-system-shells): Add TCC (new name for 4NT).
