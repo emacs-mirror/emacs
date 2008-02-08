@@ -779,6 +779,24 @@ info: force-info
 	-(cd doc/misc; $(MAKE) $(MFLAGS) info)
 	-(cd doc/lispref; $(MAKE) $(MFLAGS) info)
 	-(cd doc/lispintro; $(MAKE) $(MFLAGS) info)
+
+# The info/dir file must be updated by hand when new manuals are added.
+check-info-dir: info
+	cd info ; \
+	missing= ; \
+	for file in *; do \
+	  test -f "$${file}" || continue ; \
+	  case $${file} in \
+	    *-[0-9]*|COPYING|dir) continue ;; \
+	  esac ; \
+	  grep -q -F ": ($${file})." dir || missing="$${missing} $${file}" ; \
+	done ; \
+	if test -n "$${missing}"; then \
+	  echo "Missing info/dir entries: $${missing}" ; \
+	  exit 1 ; \
+	fi ; \
+	echo "info/dir is OK"
+
 dvi:
 	(cd doc/emacs; $(MAKE) $(MFLAGS) dvi)
 	(cd doc/misc; $(MAKE) $(MFLAGS) dvi)
