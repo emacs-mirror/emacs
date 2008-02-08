@@ -1,3 +1,7 @@
+2008-02-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* NEWS: Mention EasyPG.
+
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* TUTORIAL.ru: Restore copyright years.  Update tutorial.  Fix wording.

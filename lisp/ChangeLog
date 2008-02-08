@@ -1,3 +1,14 @@
+2008-02-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-dired.el:
+	* epa-file.el:
+	* epa-mail.el:
+	* epa-setup.el:
+	* epa.el:
+	* epg-config.el:
+	* epg-package-info.el:
+	* epg.el: Initial check-in of EasyPG.
+
 2008-02-08  Glenn Morris  <rgm@gnu.org>
 
 	* pcmpl-unix.el (top-level): Move provide statement to end.
