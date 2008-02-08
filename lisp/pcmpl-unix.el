@@ -24,26 +24,29 @@
 
 ;;; Code:
 
-(provide 'pcmpl-unix)
-
 (require 'pcomplete)
 
 ;; User Variables:
 
 (defcustom pcmpl-unix-group-file "/etc/group"
-  "*If non-nil, a string naming the group file on your system."
-  :type 'file
+  "If non-nil, a string naming the group file on your system."
+  :type '(choice file (const nil))
   :group 'pcmpl-unix)
 
 (defcustom pcmpl-unix-passwd-file "/etc/passwd"
-  "*If non-nil, a string naming the passwd file on your system."
-  :type 'file
+  "If non-nil, a string naming the passwd file on your system."
+  :type '(choice file (const nil))
   :group 'pcmpl-unix)
 
 (defcustom pcmpl-ssh-known-hosts-file "~/.ssh/known_hosts"
-  "The location of the user's SSH `known_hosts' file."
-  :type 'file
-  :group 'pcmpl-unix)
+  "If non-nil, a string naming your SSH \"known_hosts\" file.
+This allows completion of SSH host names.  Note that newer
+versions of ssh hash the hosts by default to prevent
+Island-hopping SSH attacks.  This can be disabled, at some risk,
+with the SSH option \"HashKnownHosts no\"."
+  :type '(choice file (const nil))
+  :group 'pcmpl-unix
+  :version "23.1")
 
 ;; Functions:
 
@@ -128,21 +131,24 @@
     (pcomplete-here* (pcmpl-unix-group-names)))
   (while (pcomplete-here (pcomplete-entries))))
 
+
 ;; ssh support by Phil Hagelberg.
 ;; http://www.emacswiki.org/cgi-bin/wiki/pcmpl-ssh.el
 
-;; This will allow eshell to autocomplete SSH hosts from the list of
-;; known hosts in your ~/.ssh/known_hosts file. Note that newer
-;; versions of ssh hash the hosts by default to prevent Island-hopping
-;; SSH attacks. (https://itso.iu.edu/Hashing_the_OpenSSH_known__hosts_File)
-;; You can disable this by putting the following line in your ~/.ssh/config
-;; file following the "Host *" directive:
-
-;; HashKnownHosts no
-
-;; Note that this will make you vulnerable to the Island-hopping
-;; attack described in the link above if you allow key-based
-;; passwordless logins and your account is compromised.
+(defun pcmpl-ssh-hosts ()
+  "Return a list of hosts found in `pcmpl-ssh-known-hosts-file'."
+  (when (and pcmpl-ssh-known-hosts-file
+             (file-readable-p pcmpl-ssh-known-hosts-file))
+    (with-temp-buffer
+      (insert-file-contents-literally pcmpl-ssh-known-hosts-file)
+      (let (ssh-hosts-list)
+        (while (re-search-forward "^ *\\([-.[:alnum:]]+\\)[, ]" nil t)
+          (add-to-list 'ssh-hosts-list (match-string 1))
+          (while (and (looking-back ",")
+                      (re-search-forward "\\([-.[:alnum:]]+\\)[, ]"
+                                         (line-end-position) t))
+            (add-to-list 'ssh-hosts-list (match-string 1))))
+        ssh-hosts-list))))
 
 ;;;###autoload
 (defun pcomplete/ssh ()
@@ -153,24 +159,14 @@
 ;;;###autoload
 (defun pcomplete/scp ()
   "Completion rules for the `scp' command.
-
 Includes files as well as host names followed by a colon."
   (pcomplete-opt "1246BCpqrvcFiloPS")
   (while t (pcomplete-here (append (pcomplete-all-entries)
-                                   (mapcar (lambda (host) (concat host ":")) (pcmpl-ssh-hosts))))))
+                                   (mapcar (lambda (host)
+                                             (concat host ":"))
+                                           (pcmpl-ssh-hosts))))))
 
-(defun pcmpl-ssh-hosts ()
-  "Returns a list of hosts found in the users `known_hosts' file."
-  (if (file-readable-p pcmpl-ssh-known-hosts-file)
-      (with-temp-buffer
-        (insert-file-contents-literally pcmpl-ssh-known-hosts-file)
-        (let ((ssh-hosts-list) '())
-          (while (not (eobp))
-            (let ((hostname (buffer-substring (point) (- (search-forward-regexp "[, ]") 1))))
-              (unless (string-match "^|" hostname)
-                (add-to-list 'ssh-hosts-list hostname)))
-            (forward-line))
-          ssh-hosts-list))))
+(provide 'pcmpl-unix)
 
-;;; arch-tag: 3f9eb5af-7e0e-449d-b586-381cbbf8fc5c
+;; arch-tag: 3f9eb5af-7e0e-449d-b586-381cbbf8fc5c
 ;;; pcmpl-unix.el ends here
