@@ -28,6 +28,9 @@ so we will look at it and add it to the manual.
 
 ** The default X toolkit is now Gtk+, rather than Lucid.
 
+** The new configuration option "--with-dbus" enables D-Bus language
+bindings for Emacs.
+
 ** The Mac Carbon port is no longer supported.
 Instead, use... [what?]
 
@@ -43,9 +46,6 @@ See the list at the end of etc/MACHINES for details.
 
 ** The `emacstool' utility has been removed.
 
-** The new configuration option "--with-dbus" enables D-Bus language
-bindings for Emacs.
-
 ** The configure options `--with-gcc', `--without-gcc' have been removed.
 Configure will use gcc by default.  Set the CC environment variable if
 you need control over which C compiler is used.
@@ -56,7 +56,10 @@ default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 * Changes in Emacs 23.1
 
 ** Emacs now supports using both X displays and ttys in one session.
-You can also use any number of different ttys.
+Start the server (M-x server-start).  Then `emacsclient -t' creates a
+tty frame connected to the running emacs server.  You can also use any
+number of different ttys.  `emacsclient -c' creates a new X11 frame on
+the current $DISPLAY or a tty frame if $DISPLAY is not set.
 
 You can test for the presence of this feature in your Lisp code by
 testing for the `multi-tty' feature.
@@ -103,6 +106,9 @@ highlighting, and help echoing in the minibuffer.
 ** The new variable next-error-recenter specifies how next-error should
 recenter the visited source file.  Its value can be a number (for example,
 0 for top line, -1 for bottom line), or nil for no recentering.
+
+** New command recenter-top-bottom moves the current line to window
+center, top and bottom on successive invokations.
 
 ** C-l is bound to the new command recenter-top-bottom, rather than recenter.
 
