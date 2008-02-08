@@ -1,3 +1,18 @@
+2008-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* pcmpl-unix.el (top-level): Move provide statement to end.
+	(pcmpl-unix-group-file, pcmpl-unix-passwd-file): Remove leading
+	`*' from doc-string.  Allow to be nil.
+	(pcmpl-ssh-known-hosts-file): Convert comment into expanded doc-string.
+	Allow to be nil.  Add :version.
+	(pcmpl-ssh-hosts): Move definition before use.  Handle lines
+	without hostnames, and multiple hostnames per line.
+
+2008-02-08  Phil Hagelberg <phil@evri.com>
+
+	* pcmpl-unix.el (pcmpl-ssh-known-hosts-file): New defcustom.
+	(pcomplete/ssh, pcomplete/scp, pcmpl-ssh-hosts): New functions.
+
 2008-02-07  Timo Savola  <timo.savola@iki.fi>
 
 	* startup.el (command-line-x-option-alist): Add --parent-id.
