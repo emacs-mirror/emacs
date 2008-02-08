@@ -1,3 +1,7 @@
+2008-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (check-info-dir): New target.
+
 2008-02-08  Michael Olson  <mwolson@gnu.org>
 
 	* Makefile.in (INFO_FILES): Add epa.
