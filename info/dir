@@ -58,6 +58,7 @@ Emacs misc features
                           in Emacs.
 * Calc: (calc).         Advanced desk calculator and mathematical tool.
 * Dired-X: (dired-x).   Dired Extra Features.
+* EasyPG Assistant: (epa).   An Emacs user interface to GNU Privacy Guard.
 * Ebrowse: (ebrowse).   A C++ class browser for Emacs.
 * Ediff: (ediff).       A visual interface for comparing and merging programs.
 * Eshell: (eshell).     A command shell implemented in Emacs Lisp.

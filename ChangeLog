@@ -1,3 +1,8 @@
+2008-02-08  Michael Olson  <mwolson@gnu.org>
+
+	* info/dir: Add EasyPG Assistant manual to the "Emacs misc
+	features" section.
+
 2008-02-06  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (--with-gcc): Give an error saying this option has
