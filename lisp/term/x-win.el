@@ -194,10 +194,11 @@
 (defun x-handle-parent-id (switch)
   (or (consp x-invocation-args)
       (error "%s: missing argument to `%s' option" (invocation-name) switch))
-  (setq parent-id (string-to-number (car x-invocation-args))
-	x-invocation-args (cdr x-invocation-args))
-  (setq initial-frame-alist (cons (cons 'parent-id parent-id)
-				  initial-frame-alist)))
+  (setq initial-frame-alist (cons
+                             (cons 'parent-id
+                                   (string-to-number (car x-invocation-args)))
+                             initial-frame-alist)
+        x-invocation-args (cdr x-invocation-args)))
 
 (defvar x-display-name nil
   "The name of the X display on which Emacs was started.
