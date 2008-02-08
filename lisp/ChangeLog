@@ -21,6 +21,14 @@
 
 2008-02-08  Glenn Morris  <rgm@gnu.org>
 
+	* woman.el (woman-locale): New defcustom.
+	(woman-expand-locale, woman-manpath-add-locales): New functions.
+	(woman-manpath): Call woman-manpath-add-locales.  Bump :version.
+
+	* international/mule-cmds.el (locale-translate): New function,
+	with old code extracted from set-locale-environment.
+	(set-locale-environment): Use locale-translate.  Set woman-locale.
+
 	* cus-start.el (selection-coding-system): Remove, since it's now
 	defined in select.el rather than in xselect.c.
 	* select.el (selection-coding-system): Make it a defcustom, and
