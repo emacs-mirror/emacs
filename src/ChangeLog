@@ -2,6 +2,7 @@
 
 	* keymap.c (Fkey_description): Move side effect outside of macro call.
 
+	* xfaces.c (Finternal_make_lisp_face):
 	* keyboard.c (add_command_key, parse_menu_item): Use ASET.
 
 	* fontset.c (free_face_fontset): Use FONTSET_FROM_ID.

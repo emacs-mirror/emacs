@@ -4101,7 +4101,7 @@ Value is a vector of face attributes.  */)
     {
       global_lface = Fmake_vector (make_number (LFACE_VECTOR_SIZE),
 				   Qunspecified);
-      AREF (global_lface, 0) = Qface;
+      ASET (global_lface, 0, Qface);
       Vface_new_frame_defaults = Fcons (Fcons (face, global_lface),
 					Vface_new_frame_defaults);
 
@@ -4123,7 +4123,7 @@ Value is a vector of face attributes.  */)
     }
   else if (f == NULL)
     for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-      AREF (global_lface, i) = Qunspecified;
+      ASET (global_lface, i, Qunspecified);
 
   /* Add a frame-local definition.  */
   if (f)
@@ -4132,12 +4132,12 @@ Value is a vector of face attributes.  */)
 	{
 	  lface = Fmake_vector (make_number (LFACE_VECTOR_SIZE),
 				Qunspecified);
-	  AREF (lface, 0) = Qface;
+	  ASET (lface, 0, Qface);
 	  f->face_alist = Fcons (Fcons (face, lface), f->face_alist);
 	}
       else
 	for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-	  AREF (lface, i) = Qunspecified;
+	  ASET (lface, i, Qunspecified);
     }
   else
     lface = global_lface;
