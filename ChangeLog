@@ -1,5 +1,7 @@
 2008-02-08  Michael Olson  <mwolson@gnu.org>
 
+	* Makefile.in (INFO_FILES): Add epa.
+
 	* info/dir: Add EasyPG Assistant manual to the "Emacs misc
 	features" section.
 
