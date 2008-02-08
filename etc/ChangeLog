@@ -1,3 +1,7 @@
+2008-02-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: Mention XEmbed and --parent-id.
+
 2008-02-08  Daiki Ueno  <ueno@unixuser.org>
 
 	* NEWS: Mention EasyPG.
