@@ -1,3 +1,8 @@
+2008-02-08  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (setup-default-fontset): Fix arabic otf
+	font specification.
+
 2008-02-08  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-dired.el:
