@@ -737,7 +737,7 @@ fontconfig library used in modern Free desktops.
   The old XLFD based format is also supported for backwards compatibility.
 
   Emacs 23 supports a number of backends. Currently on Windows the @code{gdi}
-  font backend is supported.
+font backend is supported.
 
 @cindex font properties (MS Windows)
 @noindent
@@ -755,7 +755,7 @@ is assumed.
   @code{slant} specifies whether the font is italic. Special values
 @code{roman}, @code{italic} and @code{oblique} can be specified
 without the @code{slant=} (eg @samp{Courier New-12:italic}).
-Otherwise the weight should be a numeric value, or one of the named
+Otherwise the slant should be a numeric value, or one of the named
 slants in @code{font-slant-table}.  On Windows, any slant above 150 is
 treated as italic, and anything below as roman.
 
