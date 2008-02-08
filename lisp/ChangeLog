@@ -1,3 +1,10 @@
+2008-02-08  Richard Stallman  <rms@gnu.org>
+
+	* net/net-utils.el (ifconfig): Renamed from ipconfig.
+	(ipconfig): Alas to ifconfig.
+	(ifconfig-program): Renamed from ipconfig-program.
+	(ifconfig-program-options): Renamed from ipconfig-program-options.
+
 2008-02-08  Glenn Morris  <rgm@gnu.org>
 
 	* custom.el (custom-theme-set-variables): Sort symbols that are
