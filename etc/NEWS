@@ -410,6 +410,8 @@ saving changes.
 
 *** The new command `eshell/info' runs info in an eshell buffer.
 
+*** The pcmpl-unix package supports hostname completion for ssh and scp.
+
 
 * Changes in Emacs 23.1 on non-free operating systems
 
