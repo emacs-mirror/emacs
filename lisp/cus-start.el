@@ -129,6 +129,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 			     :match (lambda (widget value)
 				      (and value (not (functionp value)))))
 			    (function :value ignore))))
+	     (selection-coding-system mule coding-system "22.1")
 	     ;; dired.c
 	     (completion-ignored-extensions dired
 					    (repeat (string :format "%v")))
@@ -455,6 +456,10 @@ since it could result in memory overflow and make Emacs crash."
 (custom-add-to-group 'iswitchb 'read-buffer-function 'custom-variable)
 (custom-add-to-group 'font-lock 'open-paren-in-column-0-is-defun-start
 		     'custom-variable)
+(put 'selection-coding-system 'custom-set
+     (lambda (symbol value)
+       (set-selection-coding-system value)
+       (set symbol value)))
 
 ;; Record cus-start as loaded
 ;; if we have set up all the info that we can set up.
