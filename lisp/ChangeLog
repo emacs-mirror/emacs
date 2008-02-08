@@ -21,6 +21,11 @@
 
 2008-02-08  Glenn Morris  <rgm@gnu.org>
 
+	* cus-start.el (selection-coding-system): Remove, since it's now
+	defined in select.el rather than in xselect.c.
+	* select.el (selection-coding-system): Make it a defcustom, and
+	add the properties from cus-start.el.  Bump :version.
+
 	* custom.el (custom-theme-set-variables): Sort symbols that are
 	dependencies before symbols that depend on them.
 	(custom-enabled-themes): Set after custom-theme-directory.
