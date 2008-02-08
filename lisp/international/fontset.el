@@ -330,7 +330,7 @@
 	       (nil . "koi8-r"))
 
      (arabic ,(font-spec :registry "iso10646-1"
-			 :otf '(arab (init medi fini liga)))
+			 :otf '(arab nil (init medi fini liga)))
 	     (nil . "MuleArabic-0")
 	     (nil . "MuleArabic-1")
 	     (nil . "MuleArabic-2")
