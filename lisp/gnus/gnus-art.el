@@ -7895,6 +7895,9 @@ url is put as the `gnus-button-url' overlay property on the button."
   (Info-directory)
   (Info-menu url))
 
+;; Called after pgg-snarf-keys-region, which autoloads pgg.el.
+(declare-function pgg-display-output-buffer "pgg" (start end status))
+
 (defun gnus-button-openpgp (url)
   "Retrieve and add an OpenPGP key given URL from an OpenPGP header."
   (with-temp-buffer
