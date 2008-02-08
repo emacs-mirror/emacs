@@ -28,7 +28,7 @@
 
 ;;; Code:
 
-(defvar selection-coding-system nil
+(defcustom selection-coding-system nil
   "Coding system for communicating with other X clients.
 
 When sending text via selection and clipboard, if the target
@@ -50,7 +50,14 @@ proper coding system is used according to the data-type as above.
 See also the documentation of the variable `x-select-request-type' how
 to control which data-type to request for receiving text.
 
-The default value is nil.")
+The default value is nil."
+  :type 'coding-system
+  :group 'mule
+  ;; Default was compound-text-with-extensions in 22.x (pre-unicode).
+  :version "23.1"
+  :set (lambda (symbol value)
+         (set-selection-coding-system value)
+         (set symbol value)))
 
 (defvar next-selection-coding-system nil
   "Coding system for the next communication with other X clients.
