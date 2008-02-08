@@ -61,6 +61,12 @@ You can also use any number of different ttys.
 You can test for the presence of this feature in your Lisp code by
 testing for the `multi-tty' feature.
 
+** Emacs now supports the XEmbed specification.
+You can embed Emacs in another application on X11.  The new command line option
+--parent-id is used to pass the parent window id to Emacs.  See
+http://standards.freedesktop.org/xembed-spec/xembed-spec-latest.html
+for details about XEmbed.
+
 ** Emacs comes with a new set of icons for Mac OS X.
 OS-X-style icons (an application icon and a relevant document icon)
 were contributed by Kentaro Ohkouchi.
