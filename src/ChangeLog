@@ -1,5 +1,7 @@
 2008-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keyboard.c (add_command_key, parse_menu_item): Use ASET.
+
 	* fontset.c (free_face_fontset): Use FONTSET_FROM_ID.
 	(syms_of_fontset): Use ASET.
 

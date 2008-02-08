@@ -918,7 +918,7 @@ add_command_key (key)
 				       2 * ASIZE (this_command_keys),
 				       Qnil);
 
-  AREF (this_command_keys, this_command_key_count) = key;
+  ASET (this_command_keys, this_command_key_count, key);
   ++this_command_key_count;
 }
 
@@ -7826,11 +7826,11 @@ parse_menu_item (item, notreal, inmenubar)
 
   /* Initialize optional entries.  */
   for (i = ITEM_PROPERTY_DEF; i < ITEM_PROPERTY_ENABLE; i++)
-    AREF (item_properties, i) = Qnil;
-  AREF (item_properties, ITEM_PROPERTY_ENABLE) = Qt;
+    ASET (item_properties, i, Qnil);
+  ASET (item_properties, ITEM_PROPERTY_ENABLE, Qt);
 
   /* Save the item here to protect it from GC.  */
-  AREF (item_properties, ITEM_PROPERTY_ITEM) = item;
+  ASET (item_properties, ITEM_PROPERTY_ITEM, item);
 
   item_string = XCAR (item);
 
@@ -7839,12 +7839,12 @@ parse_menu_item (item, notreal, inmenubar)
   if (STRINGP (item_string))
     {
       /* Old format menu item.  */
-      AREF (item_properties, ITEM_PROPERTY_NAME) = item_string;
+      ASET (item_properties, ITEM_PROPERTY_NAME, item_string);
 
       /* Maybe help string.  */
       if (CONSP (item) && STRINGP (XCAR (item)))
 	{
-	  AREF (item_properties, ITEM_PROPERTY_HELP) = XCAR (item);
+	  ASET (item_properties, ITEM_PROPERTY_HELP, XCAR (item));
 	  start = item;
 	  item = XCDR (item);
 	}
@@ -7859,27 +7859,27 @@ parse_menu_item (item, notreal, inmenubar)
 	}
 
       /* This is the real definition--the function to run.  */
-      AREF (item_properties, ITEM_PROPERTY_DEF) = item;
+      ASET (item_properties, ITEM_PROPERTY_DEF, item);
 
       /* Get enable property, if any.  */
       if (SYMBOLP (item))
 	{
 	  tem = Fget (item, Qmenu_enable);
 	  if (!NILP (Venable_disabled_menus_and_buttons))
-	    AREF (item_properties, ITEM_PROPERTY_ENABLE) = Qt;
+	    ASET (item_properties, ITEM_PROPERTY_ENABLE, Qt);
 	  else if (!NILP (tem))
-	    AREF (item_properties, ITEM_PROPERTY_ENABLE) = tem;
+	    ASET (item_properties, ITEM_PROPERTY_ENABLE, tem);
 	}
     }
   else if (EQ (item_string, Qmenu_item) && CONSP (item))
     {
       /* New format menu item.  */
-      AREF (item_properties, ITEM_PROPERTY_NAME) = XCAR (item);
+      ASET (item_properties, ITEM_PROPERTY_NAME, XCAR (item));
       start = XCDR (item);
       if (CONSP (start))
 	{
 	  /* We have a real binding.  */
-	  AREF (item_properties, ITEM_PROPERTY_DEF) = XCAR (start);
+	  ASET (item_properties, ITEM_PROPERTY_DEF, XCAR (start));
 
 	  item = XCDR (start);
 	  /* Is there a cache list with key equivalences. */
@@ -7898,9 +7898,9 @@ parse_menu_item (item, notreal, inmenubar)
 	      if (EQ (tem, QCenable))
 		{
 		  if (!NILP (Venable_disabled_menus_and_buttons))
-		    AREF (item_properties, ITEM_PROPERTY_ENABLE) = Qt;
+		    ASET (item_properties, ITEM_PROPERTY_ENABLE, Qt);
 		  else
-		    AREF (item_properties, ITEM_PROPERTY_ENABLE) = XCAR (item);
+		    ASET (item_properties, ITEM_PROPERTY_ENABLE, XCAR (item));
 		}
 	      else if (EQ (tem, QCvisible) && !notreal)
 		{
@@ -7911,7 +7911,7 @@ parse_menu_item (item, notreal, inmenubar)
 		    return 0;
 	 	}
 	      else if (EQ (tem, QChelp))
-		AREF (item_properties, ITEM_PROPERTY_HELP) = XCAR (item);
+		ASET (item_properties, ITEM_PROPERTY_HELP, XCAR (item));
 	      else if (EQ (tem, QCfilter))
 		filter = item;
 	      else if (EQ (tem, QCkey_sequence))
@@ -7926,7 +7926,7 @@ parse_menu_item (item, notreal, inmenubar)
 		{
 		  tem = XCAR (item);
 		  if (CONSP (tem) || (STRINGP (tem) && NILP (cachelist)))
-		    AREF (item_properties, ITEM_PROPERTY_KEYEQ) = tem;
+		    ASET (item_properties, ITEM_PROPERTY_KEYEQ, tem);
 		}
 	      else if (EQ (tem, QCbutton) && CONSP (XCAR (item)))
 		{
@@ -7935,10 +7935,9 @@ parse_menu_item (item, notreal, inmenubar)
 		  type = XCAR (tem);
 		  if (EQ (type, QCtoggle) || EQ (type, QCradio))
 		    {
-		      AREF (item_properties, ITEM_PROPERTY_SELECTED)
-			= XCDR (tem);
-		      AREF (item_properties, ITEM_PROPERTY_TYPE)
-			= type;
+		      ASET (item_properties, ITEM_PROPERTY_SELECTED,
+			    XCDR (tem));
+		      ASET (item_properties, ITEM_PROPERTY_TYPE, type);
 		    }
 		}
 	      item = XCDR (item);
@@ -7958,7 +7957,7 @@ parse_menu_item (item, notreal, inmenubar)
       item_string = menu_item_eval_property (item_string);
       if (!STRINGP (item_string))
 	return 0;
-      AREF (item_properties, ITEM_PROPERTY_NAME) = item_string;
+      ASET (item_properties, ITEM_PROPERTY_NAME, item_string);
     }
 
   /* If got a filter apply it on definition.  */
@@ -7968,7 +7967,7 @@ parse_menu_item (item, notreal, inmenubar)
       def = menu_item_eval_property (list2 (XCAR (filter),
 					    list2 (Qquote, def)));
 
-      AREF (item_properties, ITEM_PROPERTY_DEF) = def;
+      ASET (item_properties, ITEM_PROPERTY_DEF, def);
     }
 
   /* Enable or disable selection of item.  */
@@ -7981,7 +7980,7 @@ parse_menu_item (item, notreal, inmenubar)
 	tem = menu_item_eval_property (tem);
       if (inmenubar && NILP (tem))
 	return 0;		/* Ignore disabled items in menu bar.  */
-      AREF (item_properties, ITEM_PROPERTY_ENABLE) = tem;
+      ASET (item_properties, ITEM_PROPERTY_ENABLE, tem);
     }
 
   /* If we got no definition, this item is just unselectable text which
@@ -7995,8 +7994,8 @@ parse_menu_item (item, notreal, inmenubar)
   /* For a subkeymap, just record its details and exit.  */
   if (CONSP (tem))
     {
-      AREF (item_properties, ITEM_PROPERTY_MAP) = tem;
-      AREF (item_properties, ITEM_PROPERTY_DEF) = tem;
+      ASET (item_properties, ITEM_PROPERTY_MAP, tem);
+      ASET (item_properties, ITEM_PROPERTY_DEF, tem);
       return 1;
     }
 
@@ -8120,7 +8119,7 @@ parse_menu_item (item, notreal, inmenubar)
     return 1;
 
   /* If we have an equivalent key binding, use that.  */
-  AREF (item_properties, ITEM_PROPERTY_KEYEQ) = tem;
+  ASET (item_properties, ITEM_PROPERTY_KEYEQ, tem);
 
   /* Include this when menu help is implemented.
   tem = XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP];
@@ -8136,8 +8135,8 @@ parse_menu_item (item, notreal, inmenubar)
   /* Handle radio buttons or toggle boxes.  */
   tem = AREF (item_properties, ITEM_PROPERTY_SELECTED);
   if (!NILP (tem))
-    AREF (item_properties, ITEM_PROPERTY_SELECTED)
-      = menu_item_eval_property (tem);
+    ASET (item_properties, ITEM_PROPERTY_SELECTED,
+	  menu_item_eval_property (tem));
 
   return 1;
 }
