@@ -2422,6 +2422,19 @@ is returned.  Thus, for instance, if charset \"ISO8859-2\",
 ;; too, for setting things such as calendar holidays, ps-print paper
 ;; size, spelling dictionary.
 
+(defun locale-translate (locale)
+  "Expand LOCALE according to `locale-translation-file-name', if possible.
+For example, translate \"swedish\" into \"sv_SE.ISO8859-1\"."
+  (if locale-translation-file-name
+      (with-temp-buffer
+        (set-buffer-multibyte nil)
+        (insert-file-contents locale-translation-file-name)
+        (if (re-search-forward
+             (concat "^" (regexp-quote locale) ":?[ \t]+") nil t)
+            (buffer-substring (point) (line-end-position))
+          locale))
+    locale))
+
 (defun set-locale-environment (&optional locale-name frame)
   "Set up multi-lingual environment for using LOCALE-NAME.
 This sets the language environment, the coding system priority,
@@ -2491,16 +2504,7 @@ See also `locale-charset-language-names', `locale-language-names',
       (setq locale mac-system-locale))
 
     (when locale
-
-      ;; Translate "swedish" into "sv_SE.ISO8859-1", and so on,
-      ;; using the translation file that many systems have.
-      (when locale-translation-file-name
-	(with-temp-buffer
-	  (set-buffer-multibyte nil)
-	  (insert-file-contents locale-translation-file-name)
-	  (when (re-search-forward
-		 (concat "^" (regexp-quote locale) ":?[ \t]+") nil t)
-	    (setq locale (buffer-substring (point) (line-end-position))))))
+      (setq locale (locale-translate locale))
 
       ;; Leave the system locales alone if the caller did not specify
       ;; an explicit locale name, as their defaults are set from
@@ -2508,8 +2512,16 @@ See also `locale-charset-language-names', `locale-language-names',
       ;; want to set them to the same value as LC_CTYPE.
       (when locale-name
 	(setq system-messages-locale locale)
-	(setq system-time-locale locale))
+	(setq system-time-locale locale)))
 
+    (setq woman-locale
+          (or system-messages-locale
+              (let ((msglocale (getenv "LC_MESSAGES")))
+                (if (zerop (length msglocale))
+                    locale
+                  (locale-translate msglocale)))))
+
+    (when locale
       (setq locale (downcase locale))
 
       (let ((language-name
