@@ -1342,7 +1342,9 @@ but if the second optional argument FORCE is non-nil, you may do so.
 
 This function runs `delete-frame-functions' before actually deleting the
 frame, unless the frame is a tooltip.
-The functions are run with one arg, the frame to be deleted.  */)
+The functions are run with one arg, the frame to be deleted.
+But FORCE inhibits this too.  */)
+/* FORCE is non-nil when handling a disconnected terminal.  */
      (frame, force)
      Lisp_Object frame, force;
 {
@@ -1393,12 +1395,21 @@ The functions are run with one arg, the frame to be deleted.  */)
 	      && EQ (frame,
 		     WINDOW_FRAME (XWINDOW
 				   (FRAME_MINIBUF_WINDOW (XFRAME (this))))))
-	    error ("Attempt to delete a surrogate minibuffer frame");
+	    {
+	      /* If we MUST delete this frame, delete the other first.  */
+	      if (!NILP (force))
+		Fdelete_frame (this, force);
+	      else
+		error ("Attempt to delete a surrogate minibuffer frame");
+	    }
 	}
     }
 
-  /* Run `delete-frame-functions' unless frame is a tooltip.  */
-  if (!NILP (Vrun_hooks)
+  /* Run `delete-frame-functions'
+     unless FORCE is true or frame is a tooltip.
+     FORCE is set when handling a disconnect from the terminal,
+     so we don't dare call Lisp code.  */
+  if (!NILP (Vrun_hooks) && NILP (force)
       && NILP (Fframe_parameter (frame, intern ("tooltip"))))
     {
       Lisp_Object args[2];
@@ -1417,6 +1428,9 @@ The functions are run with one arg, the frame to be deleted.  */)
   /* The hook may sometimes (indirectly) cause the frame to be deleted.  */
   if (! FRAME_LIVE_P (f))
     return Qnil;
+
+  /* At this point, we are committed to deleting the frame.
+     There is no more chance for errors to prevent it.  */
 
   minibuffer_selected = EQ (minibuf_window, selected_window);
 
