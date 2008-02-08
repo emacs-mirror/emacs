@@ -1,3 +1,9 @@
+2008-02-08  Richard Stallman  <rms@gnu.org>
+
+	* frame.c (Fdelete_frame): If FORCE, don't call hooks.
+	If FORCE, and frame has a surrogate minibuffer for another frame,
+	delete the other frame first.
+
 2008-02-07  Timo Savola  <timo.savola@iki.fi>
 
 	* xterm.c (x_detect_focus_change): Handle embed client message.
