@@ -1,3 +1,9 @@
+2008-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* custom.el (custom-theme-set-variables): Sort symbols that are
+	dependencies before symbols that depend on them.
+	(custom-enabled-themes): Set after custom-theme-directory.
+
 2008-02-08  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-dired.el:
