@@ -1,3 +1,8 @@
+2008-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (concat): Move side effect outside of macro call.
+	(hash_clear): Use ASET.
+
 2008-02-08  Richard Stallman  <rms@gnu.org>
 
 	* frame.c (Fdelete_frame): If FORCE, don't call hooks.

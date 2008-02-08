@@ -727,7 +727,10 @@ concat (nargs, args, target_type, last_special)
 		thisindex++;
 	      }
 	    else
-	      elt = AREF (this, thisindex++);
+	      {
+		elt = AREF (this, thisindex);
+		thisindex++;
+	      }
 
 	    /* Store this element into the result.  */
 	    if (toindex < 0)
@@ -737,7 +740,10 @@ concat (nargs, args, target_type, last_special)
 		tail = XCDR (tail);
 	      }
 	    else if (VECTORP (val))
-	      AREF (val, toindex++) = elt;
+	      {
+		ASET (val, toindex, elt);
+		toindex++;
+	      }
 	    else
 	      {
 		CHECK_NUMBER (elt);
@@ -4239,7 +4245,7 @@ hash_clear (h)
 	}
 
       for (i = 0; i < ASIZE (h->index); ++i)
-	AREF (h->index, i) = Qnil;
+	ASET (h->index, i, Qnil);
 
       h->next_free = make_number (0);
       h->count = 0;
