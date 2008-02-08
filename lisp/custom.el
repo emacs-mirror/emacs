@@ -913,6 +913,8 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
 			 (error "Circular custom dependency between `%s' and `%s'"
 				sym1 sym2))
 			(2-then-1 nil)
+			;; 1 is a dependency of 2, so needs to be set first.
+			(1-then-2)
 			;; Put minor modes and symbols with :require last.
 			;; Putting minor modes last ensures that the mode
 			;; function will see other customized values rather
@@ -1104,6 +1106,7 @@ This does not include the `user' theme, which is set by Customize,
 and always takes precedence over other Custom Themes."
   :group 'customize
   :type  '(repeat symbol)
+  :set-after '(custom-theme-directory)  ; so we can find the themes
   :set (lambda (symbol themes)
 	 ;; Avoid an infinite loop when custom-enabled-themes is
 	 ;; defined in a theme (e.g. `user').  Enabling the theme sets
