@@ -40,6 +40,11 @@
   :type 'file
   :group 'pcmpl-unix)
 
+(defcustom pcmpl-ssh-known-hosts-file "~/.ssh/known_hosts"
+  "The location of the user's SSH `known_hosts' file."
+  :type 'file
+  :group 'pcmpl-unix)
+
 ;; Functions:
 
 ;;;###autoload
@@ -122,6 +127,50 @@
   (unless (pcomplete-match "\\`-")
     (pcomplete-here* (pcmpl-unix-group-names)))
   (while (pcomplete-here (pcomplete-entries))))
+
+;; ssh support by Phil Hagelberg.
+;; http://www.emacswiki.org/cgi-bin/wiki/pcmpl-ssh.el
+
+;; This will allow eshell to autocomplete SSH hosts from the list of
+;; known hosts in your ~/.ssh/known_hosts file. Note that newer
+;; versions of ssh hash the hosts by default to prevent Island-hopping
+;; SSH attacks. (https://itso.iu.edu/Hashing_the_OpenSSH_known__hosts_File)
+;; You can disable this by putting the following line in your ~/.ssh/config
+;; file following the "Host *" directive:
+
+;; HashKnownHosts no
+
+;; Note that this will make you vulnerable to the Island-hopping
+;; attack described in the link above if you allow key-based
+;; passwordless logins and your account is compromised.
+
+;;;###autoload
+(defun pcomplete/ssh ()
+  "Completion rules for the `ssh' command."
+  (pcomplete-opt "1246AaCfgKkMNnqsTtVvXxYbcDeFiLlmOopRSw" nil t)
+  (pcomplete-here (pcmpl-ssh-hosts)))
+
+;;;###autoload
+(defun pcomplete/scp ()
+  "Completion rules for the `scp' command.
+
+Includes files as well as host names followed by a colon."
+  (pcomplete-opt "1246BCpqrvcFiloPS")
+  (while t (pcomplete-here (append (pcomplete-all-entries)
+                                   (mapcar (lambda (host) (concat host ":")) (pcmpl-ssh-hosts))))))
+
+(defun pcmpl-ssh-hosts ()
+  "Returns a list of hosts found in the users `known_hosts' file."
+  (if (file-readable-p pcmpl-ssh-known-hosts-file)
+      (with-temp-buffer
+        (insert-file-contents-literally pcmpl-ssh-known-hosts-file)
+        (let ((ssh-hosts-list) '())
+          (while (not (eobp))
+            (let ((hostname (buffer-substring (point) (- (search-forward-regexp "[, ]") 1))))
+              (unless (string-match "^|" hostname)
+                (add-to-list 'ssh-hosts-list hostname)))
+            (forward-line))
+          ssh-hosts-list))))
 
 ;;; arch-tag: 3f9eb5af-7e0e-449d-b586-381cbbf8fc5c
 ;;; pcmpl-unix.el ends here
