@@ -93,7 +93,7 @@ These options can be used to limit how many ICMP packets are emitted."
   :group 'net-utils
   :type  '(repeat string))
 
-(defcustom ipconfig-program
+(defcustom ifconfig-program
   (if (eq system-type 'windows-nt)
       "ipconfig"
     "ifconfig")
@@ -101,11 +101,11 @@ These options can be used to limit how many ICMP packets are emitted."
   :group 'net-utils
   :type  'string)
 
-(defcustom ipconfig-program-options
+(defcustom ifconfig-program-options
   (list
    (if (eq system-type 'windows-nt)
        "/all" "-a"))
-  "Options for ipconfig-program."
+  "Options for `ifconfig-program'."
   :group 'net-utils
   :type  '(repeat string))
 
@@ -352,18 +352,18 @@ If your system's ping continues until interrupted, you can try setting
      options)))
 
 ;;;###autoload
-(defun ipconfig ()
-  "Run ipconfig program."
+(defun ifconfig ()
+  "Run ifconfig program."
   (interactive)
   (net-utils-run-program
-   "Ipconfig"
-   (concat "** Ipconfig ** " ipconfig-program " ** ")
-   ipconfig-program
-   ipconfig-program-options))
+   "Ifconfig"
+   (concat "** Ifconfig ** " ifconfig-program " ** ")
+   ifconfig-program
+   ifconfig-program-options))
 
-;; This is the normal name on most Unixes.
+;; Windows uses this name.
 ;;;###autoload
-(defalias 'ifconfig 'ipconfig)
+(defalias 'ipconfig 'ifconfig)
 
 ;;;###autoload
 (defun netstat ()
