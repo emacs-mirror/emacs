@@ -117,11 +117,37 @@ Installed 2008-01-08 fix does not work right.
 http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html
 http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01114.html
 
+** unicode-merge issues:
+
 ** The data segment size increased after the unicode-2 merge.
 The "data" size increased for emacs from ~4MB to ~11MB on x86.
 The temacs sizes are comparable.
 http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00951.html
 
+** ps-prin1.ps: "Handle multiple strings in a line"
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00079.html
+Change lost?
+
+** ucs-mule-8859-to-mule-unicode
+This has been removed (together with ucs-tables.el), but
+latin1-disp.el still uses it.
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00066.html
+
+** auto-compose-current-font
+This has been removed, but is still used in
+devan-util.el, mlm-util.el, tibet-util.el, tml-util.el
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00064.html
+
+** find-word-boundary-function-table
+No ChangeLog entry.
+http://cvs.savannah.gnu.org/viewvc/emacs/src/syntax.c?root=emacs&r1=1.166&r2=1.166.4.1&pathrev=emacs-unicode-2
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00068.html
+
+** cp-supported-codepages
+This has been removed (together with most of codepage.el), but is
+still used by mm-codepage-setup in gnus/mm-util.  There is no NEWS
+entry about this removal.
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00063.html
 
 * DOCUMENTATION
 
