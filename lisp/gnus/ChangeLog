@@ -1,3 +1,7 @@
+2008-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-art.el (pgg-display-output-buffer): Declare as function.
+
 2008-02-03  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.el (gnus-group-startup-message): Add `find-image' call before
