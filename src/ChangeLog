@@ -1,5 +1,8 @@
 2008-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* fontset.c (free_face_fontset): Use FONTSET_FROM_ID.
+	(syms_of_fontset): Use ASET.
+
 	* fns.c (concat): Move side effect outside of macro call.
 	(hash_clear): Use ASET.
 

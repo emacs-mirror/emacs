@@ -923,7 +923,7 @@ free_face_fontset (f, face)
 {
   Lisp_Object fontset;
 
-  fontset = AREF (Vfontset_table, face->fontset);
+  fontset = FONTSET_FROM_ID (face->fontset);
   xassert (!NILP (fontset) && ! BASE_FONTSET_P (fontset));
   xassert (f == XFRAME (FONTSET_FRAME (fontset)));
   ASET (Vfontset_table, face->fontset, Qnil);
@@ -2432,7 +2432,7 @@ syms_of_fontset ()
   FONTSET_ID (Vdefault_fontset) = make_number (0);
   FONTSET_NAME (Vdefault_fontset)
     = build_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
-  AREF (Vfontset_table, 0) = Vdefault_fontset;
+  ASET (Vfontset_table, 0, Vdefault_fontset);
   next_fontset_id = 1;
 
   auto_fontset_alist = Qnil;
