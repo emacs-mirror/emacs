@@ -119,6 +119,10 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01114.html
 ** skeleton bug? Or is it now working as documented?
 http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01335.html
 
+** move verilog-mode.el compile patterns into compile.el?
+http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00234.html
+
+
 ** unicode-merge issues:
 
 ** The data segment size increased after the unicode-2 merge.
