@@ -443,9 +443,6 @@ when the body only calls primitives.
 ** Optionally make the cursor a little thinner at the end of a line
   or the end of the buffer.
 
-** Add support for rendering antialiased text, probably using
-  XRender/Freetype.
-
 ** Port the conservative stack marking code of Emacs' garbage collector
   to more systems, so that we can completely get rid of GCPROs.  Note
   that Boehm garbage collector provides this.
@@ -528,12 +525,6 @@ when the body only calls primitives.
   addition to ASCII.
 
 ** In ps-print, provide an user friendly interface to specify fonts.
-
-** OpenType font support for various complex scripts (e.g. Devanagari).
-  As X protocal doesn't provide a way to access OpenType Layout Tables
-  in a OpenType font of a server side, we need a way to utilize local
-  fonts (perhaps by directly using the Freetype library or indirectly
-  via Xft library).
 
 ** Enhance word boundary detection for such a script that doesn't use
   space at word boundary (e.g. Thai).
