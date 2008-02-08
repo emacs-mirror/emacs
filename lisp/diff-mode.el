@@ -1750,7 +1750,14 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
                    ;; Move to where the changes are,
                    ;; `add-change-log-entry-other-window' works better in
                    ;; that case.
-                   (re-search-forward "\n[!+-<>]" nil t))
+                   (re-search-forward
+                    (concat "\n[!+-<>]"
+                            ;; If the hunk is a context hunk with an empty first
+                            ;; half, recognize the "--- NNN,MMM ----" line
+                            "\\(-- [0-9]+\\(,[0-9]+\\)? ----\n"
+                            ;; and skip to the next non-context line.
+                            "\\( .*\n\\)*[+]\\)?")
+                    nil t))
             (save-excursion
               (add-change-log-entry-other-window)
               ;; Insert a "." so that the entries created don't get
