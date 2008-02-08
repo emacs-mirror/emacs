@@ -23,6 +23,8 @@
 	(pcmpl-ssh-hosts): Move definition before use.  Handle lines
 	without hostnames, and multiple hostnames per line.
 
+	* term/x-win.el (x-handle-parent-id): Remove free variable `parent-id'.
+
 2008-02-08  Phil Hagelberg <phil@evri.com>
 
 	* pcmpl-unix.el (pcmpl-ssh-known-hosts-file): New defcustom.
