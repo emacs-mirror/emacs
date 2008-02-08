@@ -1,3 +1,8 @@
+2008-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacsclient.c (decode_options): Pass --display implicitly if -c
+	is specified.  Only set tty if -t or -c is specified.
+
 2008-02-04  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (lisp1): Use (), not {}.

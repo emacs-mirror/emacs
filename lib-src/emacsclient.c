@@ -480,15 +480,6 @@ decode_options (argc, argv)
 {
   alternate_editor = egetenv ("ALTERNATE_EDITOR");
 
-  /* We used to set `display' to $DISPLAY by default, but this changed the
-     default behavior and is sometimes inconvenient.  So instead of forcing
-     users to say "--display ''" when they want to use Emacs's existing tty
-     or display connection, we force them to use "--display $DISPLAY" if
-     they want Emacs to connect to their current display.  */
-#if 0
-  display = egetenv ("DISPLAY");
-#endif
-
   while (1)
     {
       int opt = getopt_long (argc, argv,
@@ -566,13 +557,24 @@ decode_options (argc, argv)
 	}
     }
 
+  /* We used to set `display' to $DISPLAY by default, but this changed the
+     default behavior and is sometimes inconvenient.  So instead of forcing
+     users to say "--display ''" when they want to use Emacs's existing tty
+     or display connection, we force them to use "--display $DISPLAY" if
+     they want Emacs to connect to their current display.
+     -c still implicitly passes --display $DISPLAY unless -t was specified
+     so as to try and mimick the behavior of `emacs' which either uses
+     the current tty or the current $DISPLAY.  */
+  if (!current_frame && !tty)
+    display = egetenv ("DISPLAY");
+
   if (display && strlen (display) == 0)
     display = NULL;
 
   if (!tty && display)
     window_system = 1;
 #if !defined (WINDOWSNT) && !defined (HAVE_CARBON)
-  else
+  else if (!current_frame)
     tty = 1;
 #endif
 
