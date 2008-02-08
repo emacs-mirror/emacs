@@ -1,0 +1,393 @@
+\input texinfo                  @c -*- mode: texinfo -*-
+@c %**start of header
+@setfilename ../../info/epa
+@settitle EasyPG Assistant User's Manual
+@c %**end of header
+
+@set VERSION 1.0.0
+
+@copying
+This file describes EasyPG Assistant.
+
+Copyright @copyright{} 2007, 2008 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.2 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+Texts.  A copy of the license is included in the section entitled "GNU
+Free Documentation License".
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* EasyPG Assistant: (epa).   An Emacs user interface to GNU Privacy Guard.
+@end direntry
+
+
+@titlepage
+@title EasyPG Assistant
+
+@author by Daiki Ueno
+@page
+
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+@page
+
+@c @summarycontents
+@c @contents
+
+@node Top
+@top EasyPG Assistant user's manual
+
+EasyPG Assistant is an Emacs user interface to GNU Privacy Guard
+(GnuPG, @pxref{Top, , Top, gnupg, Using the GNU Privacy Guard}).
+
+EasyPG Assistant is a part of the package called EasyPG, an all-in-one
+GnuPG interface for Emacs.  EasyPG also contains the library interface
+called EasyPG Library.
+
+@noindent
+This manual covers EasyPG version @value{VERSION}.
+
+@menu
+* Overview::                    
+* Quick start::                 
+* Commands::               
+@end menu
+
+@node  Overview
+@chapter Overview
+
+EasyPG Assistant provides the following features.
+
+@itemize @bullet
+@item Key manegement.
+@item Cryptographic operations on regions.
+@item Cryptographic operations on files.
+@item Dired integration.
+@item Mail-mode integration.
+@item Automatic encryption/decryption of *.gpg files.
+@end itemize
+
+@node  Quick start
+@chapter Quick start
+
+To install, just follow the standard CMMI installation instructions.
+
+@cartouche
+@example
+$ ./configure
+$ sudo make install
+@end example
+@end cartouche
+
+@noindent
+Then, add the following line to your @file{~/.emacs}
+
+@cartouche
+@lisp
+(require 'epa-setup)
+@end lisp
+@end cartouche
+
+@noindent
+That's all.  Restart emacs and type @kbd{M-x epa- @key{TAB}}, and you will see a
+lot of commands available.  For example,
+
+@itemize @bullet
+@item To browse your keyring, type @kbd{M-x epa-list-keys}
+
+@item To create a cleartext signature of the region, type @kbd{M-x epa-sign-region}
+@end itemize
+
+@node Commands
+@chapter Commands
+
+This chapter introduces various commands for typical use cases.
+
+@menu
+* Key management::              
+* Cryptographic operations on regions::  
+* Cryptographic operations on files::  
+* Dired integration::           
+* Mail-mode integration::       
+* Encrypting/decrypting *.gpg files::  
+@end menu
+
+@node Key management
+@section Key management
+Probably the first step of using EasyPG Assistant is to browse your
+keyring.  @kbd{M-x epa-list-keys} is corresponding to @samp{gpg
+--list-keys} from the command line.
+
+@deffn Command epa-list-keys name mode
+Show all keys matched with @var{name} from the public keyring.
+@end deffn
+
+@noindent
+The output looks as follows.
+
+@example
+  u A5B6B2D4B15813FE Daiki Ueno <ueno@@unixuser.org>
+@end example
+
+@noindent
+A character on the leftmost column indicates the trust level of the
+key.  If it is @samp{u}, the key is marked as ultimately trusted.  The
+second column is the key ID, and the rest is the user ID.
+
+You can move over entries by @key{TAB}.  If you type @key{RET} or
+click button1 on an entry, you will see more detailed information
+about the key you selected.
+
+@example
+ u Daiki Ueno <ueno@@unixuser.org>
+ u A5B6B2D4B15813FE 1024bits DSA
+	Created: 2001-10-09
+	Expires: 2007-09-04
+	Capabilities: sign certify
+	Fingerprint: 8003 7CD0 0F1A 9400 03CA  50AA A5B6 B2D4 B158 13FE
+ u 4447461B2A9BEA2D 2048bits ELGAMAL_E
+	Created: 2001-10-09
+	Expires: 2007-09-04
+	Capabilities: encrypt
+	Fingerprint: 9003 D76B 73B7 4A8A E588  10AF 4447 461B 2A9B EA2D
+@end example
+
+@noindent
+To browse your private keyring, use @kbd{M-x epa-list-secret-keys}.
+
+@deffn Command epa-list-secret-keys name
+Show all keys matched with @var{name} from the private keyring.
+@end deffn
+
+@noindent
+In @samp{*Keys*} buffer, several commands are available.  The common
+use case is to export some keys to a file.  To do that, type @kbd{m}
+to select keys, type @kbd{o}, and then supply the filename.
+
+Below are other commands related to key management.  Some of them take
+a file as input/output, and others take the current region.
+
+@deffn Command epa-insert-keys keys
+Insert selected @var{keys} after the point.  It will let you select
+keys before insertion.  By default, it will encode keys in the OpenPGP
+armor format.
+@end deffn
+
+@deffn Command epa-import-keys file
+Import keys from @var{file} to your keyring.
+@end deffn
+
+@deffn Command epa-import-keys-region start end
+Import keys from the current region between @var{start} and @var{end}
+to your keyring.
+@end deffn
+
+@deffn Command epa-import-armor-in-region start end
+Import keys in the OpenPGP armor format in the current region between
+@var{start} and @var{end}.  The difference from
+@code{epa-import-keys-region} is that
+@code{epa-import-armor-in-region} searches armors in the region and
+applies @code{epa-import-keys-region} to each of them.
+@end deffn
+
+@deffn Command epa-delete-keys allow-secret
+Delete selected keys.  If @var{allow-secret} is non-@code{nil}, it
+also delete the secret keys.
+@end deffn
+
+@node Cryptographic operations on regions
+@section Cryptographic operations on regions
+
+@deffn Command epa-decrypt-region start end
+Decrypt the current region between @var{start} and @var{end}.  It
+replaces the region with the decrypted text.
+@end deffn
+
+@deffn Command epa-decrypt-armor-in-region start end
+Decrypt OpenPGP armors in the current region between @var{start} and
+@var{end}.  The difference from @code{epa-decrypt-region} is that
+@code{epa-decrypt-armor-in-region} searches armors in the region
+and applies @code{epa-decrypt-region} to each of them.  That is, this
+command does not alter the original text around armors.
+@end deffn
+
+@deffn Command epa-verify-region start end
+Verify the current region between @var{start} and @var{end}.  It sends
+the verification result to the minibuffer or a popup window.  It
+replaces the region with the signed text.
+@end deffn
+
+@deffn Command epa-verify-cleartext-in-region
+Verify OpenPGP cleartext blocks in the current region between
+@var{start} and @var{end}.  The difference from
+@code{epa-verify-region} is that @code{epa-verify-cleartext-in-region}
+searches OpenPGP cleartext blocks in the region and applies
+@code{epa-verify-region} to each of them.  That is, this command does
+not alter the original text around OpenPGP cleartext blocks.
+@end deffn
+
+@deffn Command epa-sign-region start end signers type
+Sign the current region between @var{start} and @var{end}.  By
+default, it creates a cleartext signature.  If a prefix argument is
+given, it will let you select signing keys, and then a signature
+type.
+@end deffn
+
+@deffn Command epa-encrypt-region start end recipients sign signers
+Encrypt the current region between @var{start} and @var{end}.  It will
+let you select recipients.  If a prefix argument is given, it will
+also ask you whether or not to sign the text before encryption and if
+you answered yes, it will let you select the signing keys.
+@end deffn
+
+@node Cryptographic operations on files
+@section Cryptographic operations on files
+
+@deffn Command epa-decrypt-file file
+Decrypt @var{file}.
+@end deffn
+
+@deffn Command epa-verify-file file
+Verify @var{file}.
+@end deffn
+
+@deffn Command epa-sign-file file signers type
+Sign @var{file}.  If a prefix argument is given, it will let you
+select signing keys, and then a signature type.
+@end deffn
+
+@deffn Command epa-encrypt-file file recipients
+Encrypt @var{file}.  It will let you select recipients.
+@end deffn
+
+@node Dired integration
+@section Dired integration
+
+EasyPG Assistant extends Dired Mode for GNU Emacs to allow users to
+easily do cryptographic operations on files.  For example,
+
+@example
+M-x dired
+(mark some files)
+: e (or M-x epa-dired-do-encrypt)
+(select recipients by 'm' and click [OK])
+@end example
+
+@noindent
+The following keys are assigned.
+
+@table @kbd
+@item : d
+@kindex @kbd{: d}
+@findex epa-dired-do-decrypt
+Decrypt marked files.
+
+@item : v
+@kindex @kbd{: v}
+@findex epa-dired-do-verify
+Verify marked files.
+
+@item : s
+@kindex @kbd{: s}
+@findex epa-dired-do-sign
+Sign marked files.
+
+@item : e
+@kindex @kbd{: e}
+@findex epa-dired-do-encrypt
+Encrypt marked files.
+
+@end table
+
+@node Mail-mode integration
+@section Mail-mode integration
+
+EasyPG Assistant provides a minor mode to help user compose inline PGP
+messages.  Inline PGP is sending the OpenPGP blobs directly inside a
+mail message and it is not recommended and you should consider to use
+PGP/MIME.  See
+@uref{http://josefsson.org/inline-openpgp-considered-harmful.html,
+Inline PGP in E-mail is bad, Mm'kay?}.
+
+@noindent
+The following keys are assigned.
+
+@table @kbd
+@item C-c C-e d
+@kindex @kbd{C-c C-e d}
+@findex epa-mail-decrypt
+Decrypt OpenPGP armors in the current buffer.
+
+@item C-c C-e v
+@kindex @kbd{C-c C-e v}
+@findex epa-mail-verify
+Verify OpenPGP cleartext signed messages in the current buffer.
+
+@item C-c C-e s
+@kindex @kbd{C-c C-e s}
+@findex epa-mail-sign
+Compose a signed message from the current buffer.
+
+@item C-c C-e e
+@kindex @kbd{C-c C-e e}
+@findex epa-mail-encrypt
+Compose an encrypted message from the current buffer.
+
+@end table
+
+@node Encrypting/decrypting *.gpg files
+@section Encrypting/decrypting *.gpg files
+Once @code{epa-setup} is loaded, every file whose extension is
+@samp{.gpg} will be treated as encrypted.  That is, when you attempt
+to open such a file which already exists, the decrypted text is
+inserted in the buffer rather than encrypted one.  On the other hand,
+when you attempt to save the buffer to a file whose extension is
+@samp{.gpg}, encrypted data is written.
+
+If you want to temporarily disable this behavior, use @kbd{M-x
+epa-file-disable}, and then to enable this behavior use @kbd{M-x
+epa-file-enable}.
+
+@deffn Command epa-file-disable
+Disable automatic encryption/decryption of *.gpg files.
+@end deffn
+
+@deffn Command epa-file-enable
+Enable automatic encryption/decryption of *.gpg files.
+@end deffn
+
+@noindent
+@code{epa-file} will let you select recipients.  If you want to
+suppress this question, it might be a good idea to put the following
+line on the first line of the text being encrypted.
+@vindex epa-file-encrypt-to
+
+@cartouche
+@lisp
+;; -*- epa-file-encrypt-to: ("ueno@@unixuser.org") -*-
+@end lisp
+@end cartouche
+
+Other variables which control the automatic encryption/decryption
+behavior are below.
+
+@defvar epa-file-cache-passphrase-for-symmetric-encryption
+If non-@code{nil}, cache passphrase for symmetric encryption.  The
+default value is @code{nil}.
+@end defvar
+
+@defvar epa-file-inhibit-auto-save
+If non-@code{nil}, disable auto-saving when opening an encrypted file.
+The default value is @code{t}.
+@end defvar
+
+@bye
+
+@c End:
