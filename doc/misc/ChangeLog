@@ -1,3 +1,8 @@
+2008-02-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add epa.
+	($(infodir)/epa, epa.dvi): New targets.
+
 2008-02-08  Daiki Ueno  <ueno@unixuser.org>
 
 	* Makefile.in: Add rules to build EasyPG Assistant User's Manual.
@@ -32,9 +37,8 @@
 
 2008-01-24  Karl Berry  <karl@gnu.org>
 
-	* info.texi (Search Index),
-	 (Search Text): mention the command character in the section name,
-	 a la the (Go to node) node.
+	* info.texi (Search Index, Search Text): Mention the command
+	character in the section name, a la the (Go to node) node.
 
 2008-01-21  Michael Albinus  <michael.albinus@gmx.de>
 
