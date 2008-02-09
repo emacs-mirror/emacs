@@ -1,3 +1,7 @@
+2008-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (dontCopy): Do not rename admin/unidata/Makefile.
+
 2008-02-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .cvsignore: Don't ignore .arch-inventory.
