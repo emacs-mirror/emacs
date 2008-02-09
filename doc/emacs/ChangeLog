@@ -1,3 +1,8 @@
+2008-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (Windows Fonts): Use a @table for describing font
+	properties.
+
 2008-02-07  Jason Rumney  <jasonr@gnu.org>
 
 	* msdog.texi (Windows Files): w32-get-true-file-attributes default
