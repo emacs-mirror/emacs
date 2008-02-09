@@ -1544,9 +1544,13 @@ Just inserts the text, but uses `insert-before-markers'."
 
 (defun compilation-next-error (n &optional different-file pt)
   "Move point to the next error in the compilation buffer.
+This function does NOT find the source line like \\[next-error].
 Prefix arg N says how many error messages to move forwards (or
 backwards, if negative).
-Does NOT find the source line like \\[next-error]."
+Optional arg DIFFERENT-FILE, if non-nil, means find next error for a
+file that is different from the current one.
+Optional arg PT, if non-nil, specifies the value of point to start
+looking for the next message."
   (interactive "p")
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer"))
