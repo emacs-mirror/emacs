@@ -1,3 +1,7 @@
+2008-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (syms_of_fileio) <insert-default-directory>: Doc fix.
+
 2008-02-05  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_read_socket) <WM_CHAR>: Use locale-coding-system
