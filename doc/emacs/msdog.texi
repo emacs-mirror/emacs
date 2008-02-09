@@ -727,8 +727,8 @@ printer, put this in your @file{.emacs} file:
 @cindex font specification (MS Windows)
 
   Starting with Emacs 23, fonts are specified by their name, size
-and optional properties. The format for specifying fonts comes from the
-fontconfig library used in modern Free desktops.
+and optional properties.  The format for specifying fonts comes from the
+fontconfig library used in modern Free desktops:
 
 @example
   [Family[-PointSize]][:Option1=Value1[:Option2=Value2[...]]]
@@ -736,63 +736,78 @@ fontconfig library used in modern Free desktops.
 
   The old XLFD based format is also supported for backwards compatibility.
 
-  Emacs 23 supports a number of backends. Currently on Windows the @code{gdi}
-font backend is supported.
+  Emacs 23 supports a number of backends.  Currently, the @code{gdi}
+font backend is supported on Windows.
 
 @cindex font properties (MS Windows)
 @noindent
 Optional properties common to all font backends on MS-Windows are:
 
+@table @code
+
 @vindex font-weight-table @r{(MS-Windows)}
-   @code{weight} specifies the weight of the font. Special values @code{light},
-@code{medium}, @code{demibold}, @code{bold} and @code{black} can be specified
-without the @code{weight=} (eg @samp{Courier New-12:bold}).  Otherwise
+@item weight
+Specifies the weight of the font.  Special values @code{light},
+@code{medium}, @code{demibold}, @code{bold}, and @code{black} can be specified
+without @code{weight=} (e.g., @kbd{Courier New-12:bold}).  Otherwise,
 the weight should be a numeric value between 100 and 900, or one of the
-named weights in @code{font-weight-table}. If unspecified, a regular font
+named weights in @code{font-weight-table}.  If unspecified, a regular font
 is assumed.
 
 @vindex font-slant-table @r{(MS-Windows)}
-  @code{slant} specifies whether the font is italic. Special values
+@item slant
+Specifies whether the font is italic.  Special values
 @code{roman}, @code{italic} and @code{oblique} can be specified
-without the @code{slant=} (eg @samp{Courier New-12:italic}).
-Otherwise the slant should be a numeric value, or one of the named
+without @code{slant=} (e.g., @kbd{Courier New-12:italic}).
+Otherwise, the slant should be a numeric value, or one of the named
 slants in @code{font-slant-table}.  On Windows, any slant above 150 is
-treated as italic, and anything below as roman.
+treated as italics, and anything below as roman.
 
-  @code{family} specifies the font family, but normally this will be specified
+@item family
+Specifies the font family, but normally this will be specified
 at the start of the font name.
 
-  @code{pixelsize} specifies the font size in pixels. This can be used instead
+@item pixelsize
+Specifies the font size in pixels.  This can be used instead
 of the point size specified after the family name.
 
-  @code{adstyle} specifies additional style information for the font.
+@item adstyle
+Specifies additional style information for the font.
 On MS-Windows, the values @code{mono}, @code{sans}, @code{serif},
-@code{script} and @code{decorative} are recognized. These are most useful
+@code{script} and @code{decorative} are recognized.  These are most useful
 as a fallback with the font family left unspecified.
 
 @vindex w32-charset-info-alist
-  @code{registry} specifies the character set registry that the font is
-expected to cover. Most Truetype and Opentype fonts will be unicode fonts
+@item registry
+Specifies the character set registry that the font is
+expected to cover.  Most Truetype and Opentype fonts will be unicode fonts
 that cover several national character sets, but you can narrow down the
 selection of fonts to those that support a particular character set by
 using a specific registry from @code{w32-charset-info-alist} here.
 
-  @code{spacing} specifies how the font is spaced. @code{p} specifies
+@item spacing
+Specifies how the font is spaced. The @code{p} spacing specifies
 a proportional font, and @code{m} or @code{c} specify a monospaced font.
 
-  @code{foundry} is not used on Windows, but for informational purposes and to
+@item foundry
+Not used on Windows, but for informational purposes and to
 prevent problems with code that expects it to be set, is set internally to
 @code{raster} for bitmapped fonts, @code{outline} for scalable fonts,
 or @code{unknown} if the type cannot be determined as one of those.
+@end table
 
 @cindex font properties (MS Windows gdi backend)
-Options specific to @code{GDI} fonts
+Options specific to @code{GDI} fonts:
+
+@table @code
 
 @cindex font scripts (MS Windows)
 @cindex font unicode subranges (MS Windows)
-  @code{script} specifies a unicode subrange the font should support.
-Scripts recognized on Windows are @code{latin}, @code{greek}, @code{coptic},
-@code{cyrillic}, @code{armenian}, @code{hebrew}, @code{arabic},
+@item script
+Specifies a unicode subrange the font should support.
+
+The following scripts are recognized on Windows: @code{latin}, @code{greek},
+@code{coptic}, @code{cyrillic}, @code{armenian}, @code{hebrew}, @code{arabic},
 @code{syriac}, @code{nko}, @code{thaana}, @code{devanagari}, @code{bengali},
 @code{gurmukhi}, @code{gujarati}, @code{oriya}, @code{tamil}, @code{telugu},
 @code{kannada}, @code{malayam}, @code{sinhala}, @code{thai}, @code{lao},
@@ -804,11 +819,13 @@ Scripts recognized on Windows are @code{latin}, @code{greek}, @code{coptic},
 @code{musical-symbol}, and @code{mathematical}.
 
 @cindex font antialiasing (MS Windows)
-  @code{antialias} specifies the antialiasing to use for the font. @code{none}
+@item antialias
+Specifies the antialiasing to use for the font.  The value @code{none}
 means no antialiasing, @code{standard} means use standard antialiasing,
 @code{subpixel} means use subpixel antialiasing (known as Cleartype on Windows),
-@code{natural} means use subpixel antialiasing with adjusted spacing between
-letters. If unspecified, the font will use the system default antialiasing.
+and @code{natural} means use subpixel antialiasing with adjusted spacing between
+letters.  If unspecified, the font will use the system default antialiasing.
+@end table
 
 @node Windows Misc
 @section Miscellaneous Windows-specific features
