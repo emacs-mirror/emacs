@@ -524,7 +524,6 @@ copy paths.h ..\src\epaths.h
 :dontCopy
 if exist config.tmp del config.tmp
 copy /b config.settings+%MAKECMD%.defs+..\nt\makefile.w32-in ..\nt\makefile
-if exist ..\admin\unidata\Makefile if not exist ..\admin\unidata\Makefile.unix ren ..\admin\unidata\Makefile Makefile.unix
 if exist ..\admin\unidata copy /b config.settings+%MAKECMD%.defs+..\admin\unidata\makefile.w32-in ..\admin\unidata\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lib-src\makefile.w32-in ..\lib-src\makefile
 copy /b config.settings+%MAKECMD%.defs+..\src\makefile.w32-in ..\src\makefile
