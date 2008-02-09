@@ -1,9 +1,14 @@
+2008-02-09  Glenn Morris  <rgm@gnu.org>
+
+	* net/net-utils.el (ipconfig-program, ipconfig-program-options):
+	Add obsolete aliases to the old names.
+
 2008-02-08  Richard Stallman  <rms@gnu.org>
 
-	* net/net-utils.el (ifconfig): Renamed from ipconfig.
+	* net/net-utils.el (ifconfig): Rename from ipconfig.
 	(ipconfig): Alas to ifconfig.
 	(ifconfig-program): Renamed from ipconfig-program.
-	(ifconfig-program-options): Renamed from ipconfig-program-options.
+	(ifconfig-program-options): Rename from ipconfig-program-options.
 
 2008-02-08  Glenn Morris  <rgm@gnu.org>
 
