@@ -1848,13 +1848,17 @@ and overlay is highlighted between MK and END-MK."
 
 (defun compilation-find-file (marker filename directory &rest formats)
   "Find a buffer for file FILENAME.
+If FILENAME is not found at all, ask the user where to find it.
+Pop up the buffer containing MARKER and scroll to MARKER if we ask
+the user where to find the file.
 Search the directories in `compilation-search-path'.
 A nil in `compilation-search-path' means to try the
 \"current\" directory, which is passed in DIRECTORY.
 If DIRECTORY is relative, it is combined with `default-directory'.
 If DIRECTORY is nil, that means use `default-directory'.
-If FILENAME is not found at all, ask the user where to find it.
-Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
+FORMATS, if given, is a list of formats to reformat FILENAME when
+looking for it: for each element FMT in FORMATS, this function
+attempts to find a file whose name is produced by (format FMT FILENAME)."
   (or formats (setq formats '("%s")))
   (let ((dirs compilation-search-path)
         (spec-dir (if directory
