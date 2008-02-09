@@ -343,7 +343,7 @@ extern unsigned char *_fetch_multibyte_char_p;
 #define FETCH_CHAR_AS_MULTIBYTE(pos)			\
   (!NILP (current_buffer->enable_multibyte_characters)	\
    ? FETCH_MULTIBYTE_CHAR ((pos))			\
-   : unibyte_char_to_multibyte (FETCH_BYTE ((pos))))
+   : unibyte_to_multibyte_table[(FETCH_BYTE ((pos)))])
 
 
 /* Macros for accessing a character or byte,
