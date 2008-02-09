@@ -1,3 +1,7 @@
+2008-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/compile.el (compilation-next-error): Doc fix.
+
 2008-02-09  Glenn Morris  <rgm@gnu.org>
 
 	* net/net-utils.el (ipconfig-program, ipconfig-program-options):
