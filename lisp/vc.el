@@ -1051,7 +1051,11 @@ Else, add CODE to the process' sentinel."
           (process-put proc 'vc-previous-sentinel previous))
         (set-process-sentinel proc 'vc-process-sentinel))
       (process-put proc 'vc-sentinel-commands
-                   (cons code (process-get proc 'vc-sentinel-commands))))
+                   ;; We keep the code fragments in the order given
+                   ;; so that vc-diff-finish's message shows up in
+                   ;; the presence of non-nil vc-command-messages.
+                   (append (process-get proc 'vc-sentinel-commands)
+                           (list code))))
      (t (error "Unexpected process state"))))
   nil)
 
@@ -1991,19 +1995,22 @@ the buffer contents as a comment."
 (defmacro vc-diff-switches-list (backend) `(vc-switches ',backend 'diff))
 (make-obsolete 'vc-diff-switches-list 'vc-switches "22.1")
 
-(defun vc-diff-finish (buffer-name verbose)
+(defun vc-diff-finish (buffer messages)
   ;; The empty sync output case has already been handled, so the only
   ;; possibility of an empty output is for an async process.
-  (when (buffer-live-p buffer-name)
-    (with-current-buffer (get-buffer buffer-name)
-      (and verbose
-           (zerop (buffer-size))
-           (let ((inhibit-read-only t))
-             (insert "No differences found.\n")))
-      (goto-char (point-min))
-      (let ((window (get-buffer-window (current-buffer) t)))
+  (when (buffer-live-p buffer)
+    (let ((window (get-buffer-window buffer t))
+          (emptyp (zerop (buffer-size buffer))))
+      (with-current-buffer buffer
+        (and messages emptyp
+             (let ((inhibit-read-only t))
+               (insert (cdr messages) ".\n")
+               (message "%s" (cdr messages))))
+        (goto-char (point-min))
         (when window
-          (shrink-window-if-larger-than-buffer window))))))
+          (shrink-window-if-larger-than-buffer window)))
+      (when (and messages (not emptyp))
+        (message "%sdone" (car messages))))))
 
 (defvar vc-diff-added-files nil
   "If non-nil, diff added files by comparing them to /dev/null.")
@@ -2012,16 +2019,18 @@ the buffer contents as a comment."
   "Report diffs between two revisions of a fileset.
 Diff output goes to the *vc-diff* buffer.  The function
 returns t if the buffer had changes, nil otherwise."
-  (let* ((filenames (vc-delistify files))
-	 (rev1-name (or rev1 "working revision"))
-	 (rev2-name (or rev2 "workfile"))
+  (let* ((messages (cons (format "Finding changes in %s..."
+                                 (vc-delistify files))
+                         (format "No changes between %s and %s"
+                                 (or rev1 "working revision")
+                                 (or rev2 "workfile"))))
 	 ;; Set coding system based on the first file.  It's a kluge,
 	 ;; but the only way to set it for each file included would
 	 ;; be to call the back end separately for each file.
 	 (coding-system-for-read
 	  (if files (vc-coding-system-for-diff (car files)) 'undecided)))
     (vc-setup-buffer "*vc-diff*")
-    (message "Finding changes in %s..." filenames)
+    (message "%s" (car messages))
     ;; Many backends don't handle well the case of a file that has been
     ;; added but not yet committed to the repo (notably CVS and Subversion).
     ;; Do that work here so the backends don't have to futz with it.  --ESR
@@ -2055,14 +2064,15 @@ returns t if the buffer had changes, nil otherwise."
              (not (get-buffer-process (current-buffer))))
         ;; Treat this case specially so as not to pop the buffer.
         (progn
-          (message "No changes between %s and %s" rev1-name rev2-name)
+          (message "%s" (cdr messages))
           nil)
       (diff-mode)
       ;; Make the *vc-diff* buffer read only, the diff-mode key
       ;; bindings are nicer for read only buffers. pcl-cvs does the
       ;; same thing.
       (setq buffer-read-only t)
-      (vc-exec-after `(vc-diff-finish ,(buffer-name) ,verbose))
+      (vc-exec-after `(vc-diff-finish ,(current-buffer) ',(when verbose
+                                                            messages)))
       ;; Display the buffer, but at the end because it can change point.
       (pop-to-buffer (current-buffer))
       ;; In the async case, we return t even if there are no differences
