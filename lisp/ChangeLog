@@ -2,6 +2,7 @@
 
 	* button.el (button-map):
 	* wid-edit.el (widget-keymap): Avoid line-end confusion in autoloads.
+	* ldefs-bool.el: Regenerate.
 
 2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
