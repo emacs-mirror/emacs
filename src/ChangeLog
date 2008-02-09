@@ -1,3 +1,8 @@
+2008-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.h (FETCH_CHAR_AS_MULTIBYTE): Use unibyte_to_multibyte_table
+	instead of unibyte_char_to_multibyte.
+
 2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/gnu-linux.h: Remove commented out code.
