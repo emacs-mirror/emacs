@@ -31,6 +31,7 @@
 
 (defgroup epa nil
   "The EasyPG Assistant"
+  :version "23.1"
   :group 'epg)
 
 (defcustom epa-popup-info-window t
@@ -46,6 +47,7 @@ the separate window."
 
 (defgroup epa-faces nil
   "Faces for epa-mode."
+  :version "23.1"
   :group 'epa)
 
 (defface epa-validity-high

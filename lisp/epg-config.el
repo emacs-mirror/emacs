@@ -27,6 +27,7 @@
 
 (defgroup epg ()
   "The EasyPG Library"
+  :version "23.1"
   :group 'emacs)
 
 (defcustom epg-gpg-program "gpg"

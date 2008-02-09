@@ -27,6 +27,7 @@
 
 (defgroup epa-file nil
   "The EasyPG Assistant hooks for transparent file encryption"
+  :version "23.1"
   :group 'epa)
 
 (defun epa-file--file-name-regexp-set (variable value)

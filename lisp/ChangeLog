@@ -1,3 +1,9 @@
+2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* epa.el (epa-faces, epa):
+	* epa-file.el (epa-file):
+	* epg-config.el (epg): Add :version.
+
 2008-02-09  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* vc.el (vc-exec-after): Append CODE to previous fragments.
