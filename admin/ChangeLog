@@ -1,3 +1,9 @@
+2008-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/makefile.w32-in (lisp): New variable.
+	(EMACSLOADPATH): Use $(lisp).  Add lisp/international and
+	lisp/emacs-lisp.
+
 2008-02-04  Jason Rumney  <jasonr@gnu.org>
 
 	* unidata/makefile.w32-in (unidata.txt): Use ARGQUOTE and DQUOTE macros.
