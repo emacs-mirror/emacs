@@ -47,7 +47,7 @@ Boston, MA 02110-1301, USA.  */
 #define FD_ZERO(p) (*(p) = 0)
 #endif /* no FD_SET */
 
-#if !defined (HAVE_SELECT) || defined (BROKEN_SELECT_NON_X)
+#if !defined (HAVE_SELECT)
 #define select sys_select
 #endif
 

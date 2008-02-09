@@ -127,9 +127,7 @@ static struct sensemode {
 #ifdef SYSV_PTYS
 #include <sys/types.h>
 #include <sys/tty.h>
-#ifndef NO_PTY_H
 #include <sys/pty.h>
-#endif
 #endif
 
 

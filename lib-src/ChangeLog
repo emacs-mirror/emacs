@@ -1,5 +1,8 @@
 2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* fakemail.c (MAIL_PROGRAM_NAME): Remove unused conditional.
+	(main): Replace MAIL_PROGRAM_NAME with its value.
+
 	* Makefile.in (REGEXP_IN_LIBC): Remove reference to obsolete
 	variable.
 

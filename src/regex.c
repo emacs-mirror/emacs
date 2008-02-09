@@ -289,11 +289,7 @@ xrealloc (block, size)
 /* Sword must be nonzero for the wordchar pattern commands in re_match_2.  */
 enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 
-# ifdef SWITCH_ENUM_BUG
-#  define SWITCH_ENUM_CAST(x) ((int)(x))
-# else
 #  define SWITCH_ENUM_CAST(x) (x)
-# endif
 
 /* Dummy macros for non-Emacs environments.  */
 # define BASE_LEADING_CODE_P(c) (0)

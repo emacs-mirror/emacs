@@ -1665,8 +1665,7 @@ typedef unsigned char UCHAR;
     A null string means call interactively with no arguments.
  `doc' is documentation for the user.  */
 
-#if (!defined (__STDC__) && !defined (PROTOTYPES)) \
-    || defined (USE_NONANSI_DEFUN)
+#if (!defined (__STDC__) && !defined (PROTOTYPES))
 
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
   Lisp_Object fnname ();						\
@@ -2115,8 +2114,7 @@ void staticpro P_ ((Lisp_Object *));
 
 /* Declare a Lisp-callable function.  The MAXARGS parameter has the same
    meaning as in the DEFUN macro, and is used to construct a prototype.  */
-#if (!defined (__STDC__) &&  !defined (PROTOTYPES)) \
-    || defined (USE_NONANSI_DEFUN)
+#if (!defined (__STDC__) &&  !defined (PROTOTYPES))
 #define EXFUN(fnname, maxargs) \
   extern Lisp_Object fnname ()
 #else
@@ -3368,11 +3366,7 @@ extern Lisp_Object Vdirectory_sep_char;
 #define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_))
 #endif
 
-#ifdef SWITCH_ENUM_BUG
-#define SWITCH_ENUM_CAST(x) ((int)(x))
-#else
 #define SWITCH_ENUM_CAST(x) (x)
-#endif
 
 /* Loop over Lisp list LIST.  Signal an error if LIST is not a proper
    list, or if it contains circles.

@@ -1,3 +1,27 @@
+2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* src/Makefile.in:
+	* src/emacs.c:
+	* src/gmalloc.c:
+	* src/keyboard.c:
+	* src/lisp.h:
+	* src/m/ibm370aix.h:
+	* src/process.c:
+	* src/regex.c:
+	* src/s/hpux.h:
+	* src/sysdep.c:
+	* src/sysselect.h:
+	* src/systty.h:
+	* src/unexec.c:
+	* src/w32term.c:
+	* src/xsmfns.c:
+	* src/xterm.c: Remove code that deals with obsolete variables.
+
+	* s/msdos.h (DONT_NEED_ENVIRON): Don't define.
+
+	* ecrt0.c: Replace the DONT_NEED_ENVIRON test with MSDOS test,
+	nothing else needs it anymore.
+
 2008-02-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffer.h (FETCH_CHAR_AS_MULTIBYTE): Use unibyte_to_multibyte_table

@@ -7255,7 +7255,7 @@ tty_read_avail_input (struct terminal *terminal,
          Jeffrey Honig <jch@bsdi.com> says this is generally safe. */
       if (nread == -1 && errno == EIO)
         return -2;          /* Close this terminal. */
-#if defined (AIX) && (! defined (aix386) && defined (_BSD))
+#if defined (AIX) && defined (_BSD)
       /* The kernel sometimes fails to deliver SIGHUP for ptys.
          This looks incorrect, but it isn't, because _BSD causes
          O_NDELAY to be defined in fcntl.h as O_NONBLOCK,

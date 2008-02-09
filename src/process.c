@@ -57,12 +57,9 @@ Boston, MA 02110-1301, USA.  */
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#ifdef NEED_NET_ERRNO_H
-#include <net/errno.h>
-#endif /* NEED_NET_ERRNO_H */
 
 /* Are local (unix) sockets supported?  */
-#if defined (HAVE_SYS_UN_H) && !defined (NO_SOCKETS_IN_FILE_SYSTEM)
+#if defined (HAVE_SYS_UN_H)
 #if !defined (AF_LOCAL) && defined (AF_UNIX)
 #define AF_LOCAL AF_UNIX
 #endif
@@ -76,15 +73,6 @@ Boston, MA 02110-1301, USA.  */
 /* TERM is a poor-man's SLIP, used on GNU/Linux.  */
 #ifdef TERM
 #include <client.h>
-#endif
-
-/* On some systems, inet_addr returns a 'struct in_addr'. */
-#ifdef HAVE_BROKEN_INET_ADDR
-#define IN_ADDR struct in_addr
-#define NUMERIC_ADDR_ERROR (numeric_addr.s_addr == -1)
-#else
-#define IN_ADDR unsigned long
-#define NUMERIC_ADDR_ERROR (numeric_addr == -1)
 #endif
 
 #if defined(BSD_SYSTEM)
@@ -215,12 +203,6 @@ extern int h_errno;
 /* t means use pty, nil means use a pipe,
    maybe other values to come.  */
 static Lisp_Object Vprocess_connection_type;
-
-#ifdef SKTPAIR
-#ifndef HAVE_SOCKETS
-#include <sys/socket.h>
-#endif
-#endif /* SKTPAIR */
 
 /* These next two vars are non-static since sysdep.c uses them in the
    emulation of `select'.  */
@@ -1905,14 +1887,6 @@ create_process (process, new_argv, current_dir)
     }
   else
 #endif /* HAVE_PTYS */
-#ifdef SKTPAIR
-    {
-      if (socketpair (AF_UNIX, SOCK_STREAM, 0, sv) < 0)
-	report_file_error ("Opening socketpair", Qnil);
-      outchannel = inchannel = sv[0];
-      forkout = forkin = sv[1];
-    }
-#else /* not SKTPAIR */
     {
       int tem;
       tem = pipe (sv);
@@ -1930,7 +1904,6 @@ create_process (process, new_argv, current_dir)
       outchannel = sv[1];
       forkin = sv[0];
     }
-#endif /* not SKTPAIR */
 
 #if 0
   /* Replaced by close_process_descs */
@@ -3156,9 +3129,9 @@ usage: (make-network-process &rest ARGS)  */)
       else
 	/* Attempt to interpret host as numeric inet address */
 	{
-	  IN_ADDR numeric_addr;
+	  unsigned long numeric_addr;
 	  numeric_addr = inet_addr ((char *) SDATA (host));
-	  if (NUMERIC_ADDR_ERROR)
+	  if (numeric_addr == -1)
 	    error ("Unknown host \"%s\"", SDATA (host));
 
 	  bcopy ((char *)&numeric_addr, (char *) &address_in.sin_addr,

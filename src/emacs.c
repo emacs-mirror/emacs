@@ -423,11 +423,7 @@ memory_warning_signal (sig)
 
 #if ! defined (DOS_NT) && ! defined (NO_ABORT)
 
-#ifndef ABORT_RETURN_TYPE
-#define ABORT_RETURN_TYPE void
-#endif
-
-ABORT_RETURN_TYPE
+void
 abort ()
 {
   kill (getpid (), SIGABRT);
@@ -1086,10 +1082,6 @@ main (argc, argv
      fixup_locale must wait until later, since it builds strings.  */
   if (do_initial_setlocale)
     setlocale (LC_ALL, "");
-
-#ifdef EXTRA_INITIALIZE
-  EXTRA_INITIALIZE;
-#endif
 
   inhibit_window_system = 0;
 

@@ -1004,14 +1004,10 @@ configure___ c_switch_machine=C_SWITCH_MACHINE
 #define LIB_X11_LIB -lX11
 #endif
 
-#ifndef LIBX11_MACHINE
-#define LIBX11_MACHINE
-#endif
-
 #ifndef LIBX11_SYSTEM
 #define LIBX11_SYSTEM
 #endif
-configure___ LIBX=LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM
+configure___ LIBX=LIB_X11_LIB LIBX11_SYSTEM
 
 #ifdef UNEXEC
 configure___ unexec=UNEXEC
@@ -1547,15 +1543,6 @@ dnl FIXME replace main with a function we actually want from this library.
 AC_CHECK_LIB(Xbsd, main, LD_SWITCH_X_SITE="$LD_SWITCH_X_SITE -lXbsd")
 
 AC_CHECK_LIB(pthreads, cma_open)
-
-AC_MSG_CHECKING(for XFree86 in /usr/X386)
-if test -d /usr/X386/include; then
-  HAVE_XFREE386=yes
-  : ${C_SWITCH_X_SITE="-I/usr/X386/include"}
-else
-  HAVE_XFREE386=no
-fi
-AC_MSG_RESULT($HAVE_XFREE386)
 
 dnl Check for need for bigtoc support on IBM AIX
 
@@ -2701,9 +2688,6 @@ if test "${HAVE_X11}" = "yes" ; then
   AC_DEFINE(HAVE_X11, 1,
 	    [Define to 1 if you want to use version 11 of X windows.
 	     Otherwise, Emacs expects to use version 10.])
-fi
-if test "${HAVE_XFREE386}" = "yes" ; then
-  AC_DEFINE(HAVE_XFREE386, 1, [Define to 1 if you're using XFree386.])
 fi
 if test "${HAVE_MENUS}" = "yes" ; then
   AC_DEFINE(HAVE_MENUS, 1,

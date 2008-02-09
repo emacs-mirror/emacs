@@ -193,7 +193,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 /* command.com does not understand `...` so we define this.  */
 #define LIB_GCC -Lgcc
-#define DONT_NEED_ENVIRON
 #define SEPCHAR ';'
 
 #define NULL_DEVICE "nul"

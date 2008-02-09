@@ -219,7 +219,7 @@ MAKE = MAKE_COMMAND
 #ifndef ORDINARY_LINK
 
 #ifndef CRT0_COMPILE
-#define CRT0_COMPILE $(CC) -c $(ALL_CFLAGS) C_SWITCH_ASM
+#define CRT0_COMPILE $(CC) -c $(ALL_CFLAGS)
 #endif
 
 #ifndef START_FILES
@@ -240,12 +240,6 @@ STARTFILES = START_FILES
 
 #endif /* not ORDINARY_LINK */
 
-
-/* cc switches needed to make ``asm'' keyword work.
-   Nothing special needed on most machines.  */
-#ifndef C_SWITCH_ASM
-#define C_SWITCH_ASM
-#endif
 
 #if HAVE_GTK
 #define USE_GTK
@@ -283,10 +277,6 @@ DBUS_OBJ = dbusbind.o
 ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
-
-#ifndef LIBX11_MACHINE
-#define LIBX11_MACHINE
-#endif
 
 #ifndef LIBX11_SYSTEM
 #define LIBX11_SYSTEM
@@ -441,7 +431,7 @@ XFT_LIBS=@XFT_LIBS@
 /* LD_SWITCH_X_DEFAULT comes after everything else that specifies
    options for where to find X libraries, but before those libraries.  */
 X11_LDFLAGS = LD_SWITCH_X_SITE LD_SWITCH_X_DEFAULT
-LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIBTIFF LIBJPEG LIBPNG LIBGIF LIBXPM LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM $(XFT_LIBS)
+LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIBTIFF LIBJPEG LIBPNG LIBGIF LIBXPM LIB_X11_LIB LIBX11_SYSTEM $(XFT_LIBS)
 #else /* not HAVE_X11 */
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE
 #endif /* not HAVE_X11 */
@@ -523,12 +513,6 @@ GNULIB_VAR =
 
 #endif /* not __GNUC__ */
 #endif /* not ORDINARY_LINK */
-
-/* Specify address for ld to start loading at,
-   if requested by configuration.  */
-#ifdef LD_TEXT_START_ADDR
-STARTFLAGS = -T LD_TEXT_START_ADDR -e __start
-#endif
 
 #ifdef ORDINARY_LINK
 LD = $(CC)

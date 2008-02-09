@@ -144,9 +144,7 @@ extern int errno;
 
 #if defined (USG)
 #include <sys/utsname.h>
-#ifndef MEMORY_IN_STRING_H
 #include <memory.h>
-#endif
 #if defined (TIOCGWINSZ)
 #ifdef NEED_SIOCTL
 #include <sys/sioctl.h>
@@ -387,9 +385,6 @@ init_baud_rate (int fd)
     emacs_ospeed = 0;
   else
     {
-#ifdef INIT_BAUD_RATE
-      INIT_BAUD_RATE ();
-#else
 #ifdef DOS_NT
     emacs_ospeed = 15;
 #else  /* not DOS_NT */
@@ -406,11 +401,6 @@ init_baud_rate (int fd)
       sg.c_cflag = B9600;
       tcgetattr (fd, &sg);
       emacs_ospeed = cfgetospeed (&sg);
-#if defined (USE_GETOBAUD) && defined (getobaud)
-      /* m88k-motorola-sysv3 needs this (ghazi@noc.rutgers.edu) 9/1/94. */
-      if (emacs_ospeed == 0)
-        emacs_ospeed = getobaud (sg.c_cflag);
-#endif
 #else /* neither VMS nor TERMIOS */
 #ifdef HAVE_TERMIO
       struct termio sg;
@@ -433,7 +423,6 @@ init_baud_rate (int fd)
 #endif /* not HAVE_TERMIOS */
 #endif /* not VMS */
 #endif /* not DOS_NT */
-#endif /* not INIT_BAUD_RATE */
     }
 
   baud_rate = (emacs_ospeed < sizeof baud_convert / sizeof baud_convert[0]
@@ -1274,11 +1263,9 @@ emacs_set_tty (fd, settings, flushp)
 int lmode;
 #endif
 
-#ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
 int old_fcntl_owner[MAXDESC];
 #endif /* F_SETOWN */
-#endif /* F_SETOWN_BUG */
 
 /* This may also be defined in stdio,
    but if so, this does no harm,
@@ -1632,7 +1619,6 @@ init_sys_modes (tty_out)
 #endif /* VMS */
 
 #ifdef F_SETFL
-#ifndef F_SETOWN_BUG
 #ifdef F_GETOWN		/* F_SETFL does not imply existence of F_GETOWN */
   if (interrupt_input)
     {
@@ -1651,7 +1637,6 @@ init_sys_modes (tty_out)
 #endif /* HAVE_GPM */
     }
 #endif /* F_GETOWN */
-#endif /* F_SETOWN_BUG */
 #endif /* F_SETFL */
 
 #ifdef BSD4_1
@@ -1895,7 +1880,6 @@ reset_sys_modes (tty_out)
 #endif
 
 #ifdef F_SETFL
-#ifndef F_SETOWN_BUG
 #ifdef F_SETOWN		/* F_SETFL does not imply existence of F_SETOWN */
   if (interrupt_input)
     {
@@ -1904,7 +1888,6 @@ reset_sys_modes (tty_out)
              old_fcntl_owner[fileno (tty_out->input)]);
     }
 #endif /* F_SETOWN */
-#endif /* F_SETOWN_BUG */
 #ifdef O_NDELAY
   fcntl (fileno (tty_out->input), F_SETFL,
          fcntl (fileno (tty_out->input), F_GETFL, 0) & ~O_NDELAY);
@@ -2543,7 +2526,7 @@ init_system_name ()
 
 #ifndef MSDOS
 #ifndef VMS
-#if !defined (HAVE_SELECT) || defined (BROKEN_SELECT_NON_X)
+#if !defined (HAVE_SELECT)
 
 #include "sysselect.h"
 #undef select
@@ -2781,7 +2764,7 @@ read_input_waiting ()
     }
 }
 
-#if !defined (HAVE_SELECT) || defined (BROKEN_SELECT_NON_X)
+#if !defined (HAVE_SELECT)
 #define select sys_select
 #endif
 
@@ -5287,31 +5270,6 @@ hft_reset (struct tty_display_info *tty_out)
 
 #endif /* AIXHFT */
 
-#ifdef USE_DL_STUBS
-
-/* These are included on Sunos 4.1 when we do not use shared libraries.
-   X11 libraries may refer to these functions but (we hope) do not
-   actually call them.  */
-
-void *
-dlopen ()
-{
-  return 0;
-}
-
-void *
-dlsym ()
-{
-  return 0;
-}
-
-int
-dlclose ()
-{
-  return -1;
-}
-
-#endif /* USE_DL_STUBS */
 
 #ifndef BSTRING
 
