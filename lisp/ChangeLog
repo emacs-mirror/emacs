@@ -1,3 +1,11 @@
+2008-02-09  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc.el (vc-exec-after): Append CODE to previous fragments.
+	(vc-diff-finish): Take BUFFER directly, not BUFFER-NAME;
+	take MESSAGES instead of VERBOSE; use it when non-nil.
+	(vc-diff-internal): Compute messages once; use them;
+	update call to vc-diff-finish.
+
 2008-02-09  Michael Olson  <mwolson@gnu.org>
 
 	* net/tramp.el (tramp-process-sentinel): Avoid error when process
