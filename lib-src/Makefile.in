@@ -382,7 +382,7 @@ test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
 	./test-distrib ${srcdir}/testfile
 
 /* We need the following in order to create a <getopt.h> when the system
-   doesn't have one that works with the given compiler.  */
+   does not have one that works with the given compiler.  */
 GETOPT_H = @GETOPT_H@
 getopt.h: getopt_.h
 	cp $(srcdir)/getopt_.h $@-t
@@ -395,13 +395,8 @@ getopt.o: ${srcdir}/getopt.c $(GETOPT_H) ${srcdir}/gettext.h
 getopt1.o: ${srcdir}/getopt1.c $(GETOPT_H)
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt1.c
 
-#ifdef REGEXP_IN_LIBC
-REGEXPOBJ =
-REGEXPDEPS =
-#else
 REGEXPOBJ = regex.o
 REGEXPDEPS = $(REGEXPOBJ) $(srcdir)/../src/regex.h
-#endif
 
 regex.o: $(srcdir)/../src/regex.c $(srcdir)/../src/regex.h ../src/config.h
 	${CC} -c ${BASE_CFLAGS} -DCONFIG_BROKETS -DINHIBIT_STRING_HEADER ${srcdir}/../src/regex.c

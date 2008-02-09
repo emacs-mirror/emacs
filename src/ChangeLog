@@ -1,3 +1,18 @@
+2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/gnu-linux.h: Remove commented out code.
+
+	* unexec.c: Remove references to obsolete variable
+	COFF_ENCAPSULATE.
+
+	* Makefile.in: Update what RMS says about using autoconf.
+	(C_COMPILER):
+	(COFF_ENCAPSULATE):
+	(MAKE_PARALLEL): Remove obsolete variable.
+	(C_SWITCH_MACHINE_1, C_SWITCH_SYSTEM_1, C_SWITCH_SITE_1):
+	(C_SWITCH_X_SITE_1, C_SWITCH_X_MACHINE_1)
+	(C_SWITCH_X_SYSTEM_1): Move invariant code outside conditional.
+
 2008-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (Fkey_description): Move side effect outside of macro call.

@@ -27,6 +27,11 @@
 
 # Don't try to replace the cpp processing using autoconf facilities,
 # says rms.
+# Replacing a particular part of the conditionals to work via autoconf
+# is OK.
+# Some of the conditionals might be dead now.  Finding them and
+# deleting them would be fine.
+
 
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
@@ -100,10 +105,6 @@ SHELL=/bin/sh
 MAKE = MAKE_COMMAND
 #endif
 
-#ifdef C_COMPILER
-CC = C_COMPILER
-#endif
-
 /* GNU libc requires ORDINARY_LINK so that its own crt0 is used.
    GNU/Linux is an exception because it uses a funny variant of GNU libc.  */
 #ifdef __GNU_LIBRARY__
@@ -144,11 +145,11 @@ CC = C_COMPILER
 
 /* Some s/SYSTEM.h files define this to request special switches in ld.  */
 #ifndef LD_SWITCH_SYSTEM
-#if !defined (__GNUC__) && (defined(COFF_ENCAPSULATE) || (defined (BSD_SYSTEM) && !defined (COFF)))
+#if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
 #define LD_SWITCH_SYSTEM -X
-#else /* ! defined(COFF_ENCAPSULATE) || (defined (BSD_SYSTEM) && !defined (COFF)) */
+#else /* (defined (BSD_SYSTEM) && !defined (COFF)) */
 #define LD_SWITCH_SYSTEM
-#endif /* ! defined(COFF_ENCAPSULATE) || (defined (BSD_SYSTEM) && !defined (COFF)) */
+#endif /* (defined (BSD_SYSTEM) && !defined (COFF)) */
 #endif /* LD_SWITCH_SYSTEM */
 
 /* This holds special options for linking temacs
@@ -223,11 +224,7 @@ CC = C_COMPILER
 
 #ifndef START_FILES
 #ifdef NO_REMAP
-#ifdef COFF_ENCAPSULATE
-#define START_FILES pre-crt0.o /usr/local/lib/gcc-crt0.o
-#else /* ! defined (COFF_ENCAPSULATE) */
 #define START_FILES pre-crt0.o /lib/crt0.o
-#endif /* ! defined (COFF_ENCAPSULATE) */
 #else /* ! defined (NO_REMAP) */
 #define START_FILES ecrt0.o
 #endif /* ! defined (NO_REMAP) */
@@ -536,15 +533,11 @@ STARTFLAGS = -T LD_TEXT_START_ADDR -e __start
 #ifdef ORDINARY_LINK
 LD = $(CC)
 #else
-#ifdef COFF_ENCAPSULATE
-LD=$(CC) -nostdlib
-#else /* not ORDINARY_LINK */
 #ifdef LINKER
 LD=LINKER
 #else /* not LINKER */
 LD=ld
 #endif /* not LINKER */
-#endif /* not COFF_ENCAPSULATE */
 #endif /* not ORDINARY_LINK */
 
 /* Flags to pass to LD only for temacs.  */
@@ -1015,12 +1008,7 @@ ${lispsource}international/charprop.el: temacs${EXEEXT} ${UNIDATA}
 	  RUNEMACS="$${RUNEMACS}" DSTDIR=${lispsource}international
 #endif
 
-/* Some systems define this to cause parallel Make-ing.  */
-#ifndef MAKE_PARALLEL
-#define MAKE_PARALLEL
-#endif
-
-temacs${EXEEXT}: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
+temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
 	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
@@ -1043,9 +1031,6 @@ stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU)
 /* Supply an ordering for parallel make.  */
 ../src/$(OLDXMENU): ${OLDXMENU}
 
-#ifdef USE_X_TOOLKIT
-$(OLDXMENU): really-lwlib
-
 /* Encode the values of these two macros in Make variables,
    so we can use $(...) to substitute their values within "...".  */
 C_SWITCH_MACHINE_1 = C_SWITCH_MACHINE
@@ -1054,6 +1039,10 @@ C_SWITCH_SITE_1 = C_SWITCH_SITE
 C_SWITCH_X_SITE_1 = C_SWITCH_X_SITE
 C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
 C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
+
+#ifdef USE_X_TOOLKIT
+$(OLDXMENU): really-lwlib
+
 really-lwlib:
 	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
@@ -1068,14 +1057,6 @@ really-lwlib:
 #else /* not USE_X_TOOLKIT */
 $(OLDXMENU): really-oldXMenu
 
-/* Encode the values of these two macros in Make variables,
-   so we can use $(...) to substitute their values within "...".  */
-C_SWITCH_MACHINE_1 = C_SWITCH_MACHINE
-C_SWITCH_SYSTEM_1 = C_SWITCH_SYSTEM
-C_SWITCH_SITE_1 = C_SWITCH_SITE
-C_SWITCH_X_SITE_1 = C_SWITCH_X_SITE
-C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
-C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
 really-oldXMenu:
 	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \

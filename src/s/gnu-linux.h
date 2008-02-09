@@ -333,12 +333,6 @@ Boston, MA 02110-1301, USA.  */
 #define HAVE_XRMSETDATABASE
 #endif
 
-/* The regex.o routines are a part of the GNU C-library used with Linux.  */
-/* However, sometimes they disagree with the src/regex.h that comes with Emacs,
-   and that can make trouble in etags.c because it gets the regex.h from Emacs
-   and the function definitions in libc.  So turn this off.  */
-/* #define REGEXP_IN_LIBC */
-
 /* Use BSD process groups, but use setpgid() instead of setpgrp() to
    actually set a process group. */
 
