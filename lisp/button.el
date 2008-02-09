@@ -64,7 +64,9 @@
 ;;;###autoload
 (defvar button-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'push-button)
+    ;; The following definition needs to avoid using escape sequences that
+    ;; might get converted to ^M when building loaddefs.el
+    (define-key map [(control ?m)] 'push-button)
     (define-key map [mouse-2] 'push-button)
     map)
   "Keymap used by buttons.")

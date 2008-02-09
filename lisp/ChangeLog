@@ -1,3 +1,8 @@
+2008-02-09  Jason Rumney  <jasonr@gnu.org>
+
+	* button.el (button-map):
+	* wid-edit.el (widget-keymap): Avoid line-end confusion in autoloads.
+
 2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* epa.el (epa-faces, epa):
