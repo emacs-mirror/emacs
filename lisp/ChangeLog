@@ -6,7 +6,7 @@
 2008-02-08  Richard Stallman  <rms@gnu.org>
 
 	* net/net-utils.el (ifconfig): Rename from ipconfig.
-	(ipconfig): Alas to ifconfig.
+	(ipconfig): Alias to ifconfig.
 	(ifconfig-program): Rename from ipconfig-program.
 	(ifconfig-program-options): Rename from ipconfig-program-options.
 
