@@ -7,7 +7,7 @@
 
 	* net/net-utils.el (ifconfig): Rename from ipconfig.
 	(ipconfig): Alas to ifconfig.
-	(ifconfig-program): Renamed from ipconfig-program.
+	(ifconfig-program): Rename from ipconfig-program.
 	(ifconfig-program-options): Rename from ipconfig-program-options.
 
 2008-02-08  Glenn Morris  <rgm@gnu.org>
