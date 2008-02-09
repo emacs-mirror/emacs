@@ -22,7 +22,11 @@
 
 EMACS = ../../src/$(BLD)/emacs.exe
 DSTDIR = ../../lisp/international
-EMACSLOADPATH = $(CURDIR)/../../lisp
+lisp = $(CURDIR)/../../lisp
+# EMACSLOADPATH should include international, so Emacs finds encoded-kb.
+# It should include emacs-lisp, so Emacs finds bytecomp.  This is because
+# lisp/subdirs.el is not generated yet when the commands below run.
+EMACSLOADPATH = $(lisp);$(lisp)/international;$(lisp)/emacs-lisp
 # Quote EMACS so it could be a file name with embedded whitespace
 RUNEMACS = "$(EMACS)" -Q --multibyte -batch
 
