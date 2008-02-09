@@ -101,6 +101,11 @@
   dos2unix and unix2dos available from GnuWin32 or dtou and utod from
   the DJGPP project.
 
+  Additionally, the file lisp/ldefs-boot.el needs Unix line ends due
+  to some embedded ^M characters that are not at the end of the line.
+  So in the lisp directory you should run "cvs update -kb ldefs-boot.el",
+  or use dos2unix on that file.
+
   In addition to this file, you should also read INSTALL.CVS in the
   parent directory, and make sure that you have a version of
   "touch.exe" in your path, and that it will create files that do not
