@@ -1678,9 +1678,9 @@ Uninteresting lines are those whose responses are listed in
   (setq rcirc-omit-mode (not rcirc-omit-mode))
   (if rcirc-omit-mode
       (progn
-	(add-to-invisibility-spec '(rcirc-omit . t))
+	(add-to-invisibility-spec '(rcirc-omit . nil))
 	(message "Rcirc-Omit mode enabled"))
-    (remove-from-invisibility-spec '(rcirc-omit . t))
+    (remove-from-invisibility-spec '(rcirc-omit . nil))
     (message "Rcirc-Omit mode disabled"))
     (recenter (when (> (point) rcirc-prompt-start-marker) -1)))
 

@@ -1,3 +1,7 @@
+2008-02-09  Miles Bader  <miles@gnu.org>
+
+	* net/rcirc.el (rcirc-omit-mode): Suppress invisibility ellipsis.
+
 2008-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-add-change-log-entries-other-window): Avoid the
