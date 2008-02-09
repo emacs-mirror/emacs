@@ -1173,4 +1173,5 @@ Don't use this command in Lisp programs!"
 
 (provide 'epa)
 
+;; arch-tag: 38d20ced-20d5-4137-b17a-f206335423d7
 ;;; epa.el ends here

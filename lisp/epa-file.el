@@ -315,4 +315,5 @@ If no one is selected, symmetric encryption will be performed.  ")))
 
 (provide 'epa-file)
 
+;; arch-tag: 5715152f-0eb1-4dbc-9008-07098775314d
 ;;; epa-file.el ends here

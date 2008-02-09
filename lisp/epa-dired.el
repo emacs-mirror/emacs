@@ -84,4 +84,5 @@ If no one is selected, symmetric encryption will be performed.  "))
 
 (provide 'epa-dired)
 
+;; arch-tag: 2025700b-48d0-4684-bc94-228ad1f8e9ff
 ;;; epa-dired.el ends here

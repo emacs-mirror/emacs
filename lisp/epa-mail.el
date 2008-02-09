@@ -175,4 +175,5 @@ Don't use this command in Lisp programs!"
 
 (provide 'epa-mail)
 
+;; arch-tag: a6f82b3f-d177-4a11-af95-040da55927d2
 ;;; epa-mail.el ends here

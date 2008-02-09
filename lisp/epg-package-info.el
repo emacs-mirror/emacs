@@ -34,4 +34,5 @@
 
 (provide 'epg-package-info)
 
+;; arch-tag: 3dcbed1c-9733-47ce-bd02-cbe70def6df4
 ;;; epg-package-info.el ends here

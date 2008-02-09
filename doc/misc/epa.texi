@@ -391,3 +391,7 @@ The default value is @code{t}.
 @bye
 
 @c End:
+
+@ignore
+   arch-tag: 7404e246-7d4c-4db4-9332-c1293a455a4f
+@end ignore

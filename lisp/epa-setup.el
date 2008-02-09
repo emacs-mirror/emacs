@@ -36,4 +36,5 @@
 
 (provide 'epa-setup)
 
+;; arch-tag: 81bdf787-6f97-4c7a-b2bb-172dfef852c4
 ;;; epa-setup.el ends here
