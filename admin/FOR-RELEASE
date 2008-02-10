@@ -94,6 +94,26 @@ minimized.  I don't know what is left to do here.
 
 ** timh@insightful.com, 9 Nov: X-coding-system incompatibility, and workaround
 
+<<<<<<< FOR-RELEASE
+<<<<<<< FOR-RELEASE
+** Get rid of old-style backquotes in cc-vars.el.
+ttn has a patch:
+http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg02052.html
+
+** Fix or document the shortcoming of easymenu and :suffix.
+http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01857.html
+
+** tool bar icons disappear [in customize buffers]
+http://thread.gmane.org/gmane.emacs.devel/84869
+
+=======
+>>>>>>> 1.738
+** Fix problem with mode-name in SGML mode.
+If mode-name stays non-string, add NEWS entry and doc fix.
+http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg02048.html
+
+=======
+>>>>>>> 1.748
 ** multi-tty does not work correctly.
 If the server is started from a tty frame and emacsclient creates an
 X11 frame, the tty frame gets confused, it thinks it is an X11 frame
@@ -137,8 +157,7 @@ devan-util.el, mlm-util.el, tibet-util.el, tml-util.el
 http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00064.html
 
 ** cp-supported-codepages
-This has been removed (together with most of codepage.el), but is
-still used by mm-codepage-setup in gnus/mm-util.  There is no NEWS
+This has been removed (together with most of codepage.el).  There is no NEWS
 entry about this removal.
 http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00063.html
 
