@@ -1626,6 +1626,7 @@ Does NOT find the source line like \\[next-error]."
       (error "Not in a compilation buffer"))
   (or pt (setq pt (point)))
   (let* ((msg (get-text-property pt 'message))
+         ;; `loc' is used by the compilation-loop macro.
 	 (loc (car msg))
 	 last)
     (if (zerop n)
