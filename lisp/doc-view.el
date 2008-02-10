@@ -99,6 +99,9 @@
 
 ;;; Todo:
 
+;; - fix behavior with clone-indirect-buffer
+;; - allow different windows showing the same buffer to change pages
+;;   independently.
 ;; - share more code with image-mode again.
 ;; - better menu.
 ;; - Bind slicing to a drag event.
