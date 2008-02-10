@@ -6,7 +6,7 @@
 	(epg-bug-report-address): New constant.
 
 	* epa-mail.el (epa-mail-mode): Add autoload cookie.
-	(epa-mail-minor-mode): New global minor mode.
+	(epa-global-mail-mode): New global minor mode.
 
 	* epa-file.el (epa-file-mode): New global minor mode.
 

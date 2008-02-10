@@ -175,11 +175,11 @@ Don't use this command in Lisp programs!"
   (epa-import-armor-in-region (point-min) (point-max)))
 
 ;;;###autoload
-(define-minor-mode epa-mail-minor-mode
+(define-minor-mode epa-global-mail-mode
   "Minor mode to hook EasyPG into Mail mode."
   :global t :init-value nil :group 'epa-mail :version "23.1"
   (remove-hook 'mail-mode-hook 'epa-mail-mode)
-  (if epa-mail-minor-mode
+  (if epa-global-mail-mode
       (add-hook 'mail-mode-hook 'epa-mail-mode)))
 
 (provide 'epa-mail)

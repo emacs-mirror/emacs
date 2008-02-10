@@ -47,7 +47,7 @@ the separate window."
 
 (defcustom epa-global-minor-modes '(epa-dired-mode
 				    epa-file-mode
-				    epa-mail-minor-mode
+				    epa-global-mail-mode
 				    epa-menu-mode)
   "Globally defined minor modes to hook into other modes."
   :type '(repeat symbol)
