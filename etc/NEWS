@@ -242,13 +242,10 @@ dbus.el and by extensions to the C modules of Emacs.  D-Bus is an
 inter-process communication mechanism for applications residing on the
 same host, based on messages.  See the manual for further details.
 
-** EasyPG is now part of the Emacs distribution.
-EasyPG is an all-in-one GnuPG interface for Emacs. It consists of two
-parts: EasyPG Assistant and EasyPG Library.
-
-EasyPG Assistant is a set of convenient tools to use GnuPG from
-Emacs. EasyPG Library is a sort of an elisp port of GPGME, a wrapper
-library which provides API to access some of the GnuPG functions.
+** EasyPG is now part of the Emacs distribution.  It is an all-in-one
+GnuPG interface which includes GnuPG keyring browser, cryptographic
+operations on regions and files, and automatic encryption of *.gpg
+files.  See the EasyPG Assistant User's Manual for further details.
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
