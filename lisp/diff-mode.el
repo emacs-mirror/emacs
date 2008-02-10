@@ -1759,10 +1759,7 @@ I.e. like `add-change-log-entry-other-window' but applied to all hunks."
                             "\\( .*\n\\)*[+]\\)?")
                     nil t))
             (save-excursion
-              (add-change-log-entry-other-window)
-              ;; Insert a "." so that the entries created don't get
-              ;; merged.
-              (insert ".")))
+              (add-change-log-entry nil nil t t)))
         ;; When there's no more hunks, diff-hunk-next signals an error.
 	(error nil)))))
 
