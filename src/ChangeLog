@@ -1,3 +1,7 @@
+2008-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (mode-name): Doc fix.
+
 2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* src/Makefile.in:
