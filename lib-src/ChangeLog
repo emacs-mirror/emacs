@@ -1,3 +1,7 @@
+2008-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* fakemail.c: Undo previous change.
+
 2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* fakemail.c (MAIL_PROGRAM_NAME): Remove unused conditional.
