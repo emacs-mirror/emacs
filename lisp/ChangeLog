@@ -1,3 +1,9 @@
+2008-02-10  Bastien Guerry  <bzg@altern.org>
+
+	* mail/rmail.el (rmail-nonignored-headers): Allow to be nil.
+	(rmail-clear-headers): Don't check `rmail-nonignored-headers' when
+	it is nil.
+
 2008-02-10  Daiki Ueno  <ueno@unixuser.org>
 
 	* epg-config.el: Expand the contents of epg-package-info.el.

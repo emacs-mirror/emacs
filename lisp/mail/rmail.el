@@ -299,6 +299,7 @@ go to that message and type \\[rmail-toggle-header] twice."
   "*Regexp to match X header fields that Rmail should show.
 This regexp overrides `rmail-ignored-headers'; if both this regexp
 and that one match a certain header field, Rmail shows the field.
+If this is nil, ignore all header fields in `rmail-ignored-headers'.
 
 This variable is used for reformatting the message header,
 which normally happens once for each message,
@@ -306,7 +307,7 @@ when you view the message for the first time in Rmail.
 To make a change in this variable take effect
 for a message that you have already viewed,
 go to that message and type \\[rmail-toggle-header] twice."
-  :type 'regexp
+  :type '(choice (const nil) (regexp))
   :group 'rmail-headers)
 
 ;;;###autoload
@@ -2329,7 +2330,8 @@ unless they also match `rmail-nonignored-headers'."
 	  (while (and ignored-headers
 		      (re-search-forward ignored-headers nil t))
 	    (beginning-of-line)
-	    (if (looking-at rmail-nonignored-headers)
+	    (if (and rmail-nonignored-headers
+		     (looking-at rmail-nonignored-headers))
 		(forward-line 1)
 	      (delete-region (point)
 			     (save-excursion
