@@ -471,6 +471,9 @@ checking/manipulating elements directly, use the new functions
 `byte-compile-warning-enabled-p', `byte-compile-disable-warning', and
 `byte-compile-enable-warning.'
 
+** `mode-name' is no longer guaranteed to be a string.
+Use `(format-mode-line mode-name)' to ensure a string value.
+
 
 * Lisp Changes in Emacs 23.1
 
