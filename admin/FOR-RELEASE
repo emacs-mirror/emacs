@@ -144,11 +144,6 @@ This has been removed, but is still used in
 devan-util.el, mlm-util.el, tibet-util.el, tml-util.el
 http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00064.html
 
-** find-word-boundary-function-table
-No ChangeLog entry.
-http://cvs.savannah.gnu.org/viewvc/emacs/src/syntax.c?root=emacs&r1=1.166&r2=1.166.4.1&pathrev=emacs-unicode-2
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00068.html
-
 ** cp-supported-codepages
 This has been removed (together with most of codepage.el), but is
 still used by mm-codepage-setup in gnus/mm-util.  There is no NEWS
