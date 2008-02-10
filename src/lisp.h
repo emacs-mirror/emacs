@@ -594,7 +594,7 @@ extern size_t pure_size;
 #define ASET(ARRAY, IDX, VAL)	\
   (eassert ((IDX) == (IDX)),				\
    eassert ((IDX) >= 0 && (IDX) < ASIZE (ARRAY)),	\
-   ASLOT ((ARRAY), (IDX)) = (VAL))
+   AREF ((ARRAY), (IDX)) = (VAL))
 
 /* Convenience macros for dealing with Lisp strings.  */
 
