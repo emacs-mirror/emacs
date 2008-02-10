@@ -1,3 +1,7 @@
+2008-02-10  Richard Stallman  <rms@gnu.org>
+
+	* lisp.h (ASET): Use AREF, not ASLOT.
+
 2008-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lisp.h (ASET): Check bounds.
