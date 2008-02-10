@@ -1133,14 +1133,14 @@ struct Lisp_Hash_Table
 
 struct Lisp_Misc_Any		/* Supertype of all Misc types.  */
 {
-  int type : 16;		/* = Lisp_Misc_Marker */
+  enum Lisp_Misc_Type type : 16;		/* = Lisp_Misc_Marker */
   unsigned gcmarkbit : 1;
   int spacer : 15;
 };
 
 struct Lisp_Marker
 {
-  int type : 16;		/* = Lisp_Misc_Marker */
+  enum Lisp_Misc_Type type : 16;		/* = Lisp_Misc_Marker */
   unsigned gcmarkbit : 1;
   int spacer : 13;
   /* This flag is temporarily used in the functions
@@ -1292,7 +1292,7 @@ struct Lisp_Buffer_Local_Value
    PLIST is the overlay's property list.  */
 struct Lisp_Overlay
   {
-    int type : 16;	/* = Lisp_Misc_Overlay */
+    enum Lisp_Misc_Type type : 16;	/* = Lisp_Misc_Overlay */
     unsigned gcmarkbit : 1;
     int spacer : 15;
     struct Lisp_Overlay *next;
@@ -1303,7 +1303,7 @@ struct Lisp_Overlay
    current kboard.  */
 struct Lisp_Kboard_Objfwd
   {
-    int type : 16;	/* = Lisp_Misc_Kboard_Objfwd */
+    enum Lisp_Misc_Type type : 16;	/* = Lisp_Misc_Kboard_Objfwd */
     unsigned gcmarkbit : 1;
     int spacer : 15;
     int offset;
@@ -1313,7 +1313,7 @@ struct Lisp_Kboard_Objfwd
    This type of object is used in the arg to record_unwind_protect.  */
 struct Lisp_Save_Value
   {
-    int type : 16;	/* = Lisp_Misc_Save_Value */
+    enum Lisp_Misc_Type type : 16;	/* = Lisp_Misc_Save_Value */
     unsigned gcmarkbit : 1;
     int spacer : 14;
     /* If DOGC is set, POINTER is the address of a memory
@@ -1327,7 +1327,7 @@ struct Lisp_Save_Value
 /* A miscellaneous object, when it's on the free list.  */
 struct Lisp_Free
   {
-    int type : 16;	/* = Lisp_Misc_Free */
+    enum Lisp_Misc_Type type : 16;	/* = Lisp_Misc_Free */
     unsigned gcmarkbit : 1;
     int spacer : 15;
     union Lisp_Misc *chain;

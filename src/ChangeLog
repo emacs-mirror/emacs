@@ -1,3 +1,10 @@
+2008-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (struct Lisp_Misc_Any, struct Lisp_Marker)
+	(struct Lisp_Overlay, struct Lisp_Kboard_Objfwd)
+	(struct Lisp_Save_Value, struct Lisp_Free): Use enum Lisp_Misc_Type
+	rather than `int' for the type of `type'.
+
 2008-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/gnu-linux.h: Remove support for non-ELF and linux-1.x.
