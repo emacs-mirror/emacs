@@ -3541,6 +3541,13 @@
 	string.  Use new_fontset_from_font_name to create a fontset from a
 	font name.
 
+2008-02-01  Kenichi Handa  <handa@m17n.org>
+
+	* syntax.c (Vfind_word_boundary_function_table): New name for
+	Vnext_word_boundary_function_table.
+	(find-word-boundary-function-table): New name for
+	next-word-boundary-function-table.
+
 2008-02-01  Dave Love  <fx@gnu.org>
 
 	* Makefile.in: Fix some dependencies.
@@ -4072,7 +4079,8 @@
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (Vnext_word_boundary_function_table): New variable.
-	(syms_of_syntax): Declare it as a Lisp variable.
+	(next-word-boundary-function-table): Declare it as a Lisp variable
+	in syms_of_syntax.
 	(scan_words): Call functions in Vnext_word_boundary_function_table
 	if any.
 
