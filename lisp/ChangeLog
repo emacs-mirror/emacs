@@ -1,3 +1,8 @@
+2008-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-beginning-of-file-and-junk): If we're on the
+	Index: line, don't search backward for the previous one.
+
 2008-02-10  ,AF(Bvar Arnfj,Av(Br,Ap(B Bjarmason  <avar@cpan.org>  (tiny change)
 
 	* net/rcirc.el (rcirc-url-regexp): Replace definition by copying

@@ -489,6 +489,7 @@ data such as \"Index: ...\" and such."
       (diff-file-next)
       (setq file (point)))
     (let ((index (save-excursion
+                   (forward-line 1)  ;In case we're looking at "Index:".
                    (re-search-backward "^Index: " prevhunk t))))
       (when index (setq file index))
       (if (<= file start)
