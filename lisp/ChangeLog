@@ -1,3 +1,12 @@
+2008-02-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el: Remove `no-byte-compile' cookie.
+	(dbus-call-method, dbus-register-signal, dbus-debug)
+	(dbus-registered-functions-table): Declare them with
+	`declare-function' or `defvar', respectively.
+	(top): Don't assert any longer.  Require 'cl when compiling.
+	Apply `ignore-errors' but `dbus-ignore-errors'.
+
 2008-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* diff-mode.el (diff-add-change-log-entries-other-window): Use
