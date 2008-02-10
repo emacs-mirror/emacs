@@ -1,4 +1,3 @@
-;;; -*- no-byte-compile: t; -*-
 ;;; dbus.el --- Elisp bindings for D-Bus.
 
 ;; Copyright (C) 2007, 2008 Free Software Foundation, Inc.
@@ -33,8 +32,15 @@
 ;;; Code:
 
 ;; D-Bus support in the Emacs core can be disabled with configuration
-;; option "--without-dbus".  Check it.
-(assert (featurep 'dbusbind) nil "D-Bus is not supported")
+;; option "--without-dbus".  Declare used subroutines and variables.
+(declare-function dbus-call-method "dbusbind.c")
+(declare-function dbus-register-signal "dbusbind.c")
+(defvar dbus-debug)
+(defvar dbus-registered-functions-table)
+
+;; Pacify byte compiler.
+(eval-when-compile
+  (require 'cl))
 
 (require 'xml)
 
@@ -158,7 +164,7 @@ usage: (dbus-name-owner-changed-handler service old-owner new-owner)"
 	  args))))))
 
 ;; Register the handler.
-(dbus-ignore-errors
+(ignore-errors
   (dbus-register-signal
    :system dbus-service-dbus dbus-path-dbus dbus-interface-dbus
    "NameOwnerChanged" 'dbus-name-owner-changed-handler)
