@@ -464,8 +464,6 @@ RSVG_CFLAGS= @RSVG_CFLAGS@
 /* Fix linking if compiled with GCC.  */
 #ifdef __GNUC__
 
-#if __GNUC__ > 1
-
 #ifdef LINKER
 #define LINKER_WAS_SPECIFIED
 #endif
@@ -501,13 +499,6 @@ GNULIB_VAR = LIB_GCC
 #define YMF_PASS_LDFLAGS(flags) flags
 #endif
 
-#else /* __GNUC__ < 2 */
-
-#ifndef LIB_GCC
-#define LIB_GCC /usr/local/lib/gcc-gnulib
-#endif /* not LIB_GCC */
-GNULIB_VAR = `if [ -f LIB_GCC ] ; then echo LIB_GCC; else echo; fi`
-#endif /* __GNUC__ < 2 */
 #else /* not __GNUC__ */
 GNULIB_VAR =
 

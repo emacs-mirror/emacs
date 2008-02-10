@@ -39,19 +39,11 @@ Boston, MA 02110-1301, USA.  */
 
 #define SYSTEM_TYPE "gnu/linux"		/* All the best software is free. */
 
-/* Check the version number of Linux--if it is at least 1.2.0,
-   it is safe to use SIGIO.  */
 #ifndef NOT_C_CODE
 #ifdef emacs
 #ifdef HAVE_LINUX_VERSION_H
 #include <linux/version.h>
 
-#if LINUX_VERSION_CODE > 0x10200
-#define LINUX_SIGIO_DOES_WORK
-#endif /* LINUX_VERSION_CODE > 0x10200 */
-#if LINUX_VERSION_CODE >= 0x20000
-#define LINUX_MAP_SHARED_DOES_WORK
-#endif /* LINUX_VERSION_CODE >= 0x20000 */
 #if LINUX_VERSION_CODE >= 0x20400
 #define LINUX_SIGNALS_VIA_CHARACTERS_DOES_WORK
 #endif /* LINUX_VERSION_CODE >= 0x20400 */
@@ -188,14 +180,8 @@ Boston, MA 02110-1301, USA.  */
 /* Ask GCC where to find libgcc.a.  */
 #define LIB_GCC `$(CC) $(C_SWITCH_X_SITE) -print-libgcc-file-name`
 
-#ifndef __ELF__
-/* GNU/Linux usually has crt0.o in a non-standard place */
-#define START_FILES pre-crt0.o /usr/lib/crt0.o
-#else
 #define START_FILES pre-crt0.o /usr/lib/crt1.o /usr/lib/crti.o
-#endif
 
-#ifdef __ELF__
 /* Here is how to find X Windows.  LD_SWITCH_X_SITE_AUX gives an -R option
    says where to find X windows at run time.  */
 
@@ -210,20 +196,9 @@ Boston, MA 02110-1301, USA.  */
    switches, so this also works with older versions that don't implement
    -z combreloc.  */
 #define LD_SWITCH_SYSTEM_TEMACS -z nocombreloc
-#endif /* __ELF__ */
 
-/* As of version 1.1.51, Linux did not actually implement SIGIO.
-   But it works in newer versions.  */
 #ifdef emacs
-#ifdef LINUX_SIGIO_DOES_WORK
 #define INTERRUPT_INPUT
-#else
-#define BROKEN_SIGIO
-/* Some versions of Linux define SIGURG and SIGPOLL as aliases for SIGIO.
-   This prevents lossage in process.c.  */
-#define BROKEN_SIGURG
-#define BROKEN_SIGPOLL
-#endif
 #endif
 
 /* This is needed for sysdep.c */
@@ -239,13 +214,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Best not to include -lg, unless it is last on the command line */
 #define LIBS_DEBUG
-#ifndef __ELF__
-#define LIB_STANDARD -lc /* avoid -lPW */
-#else
 #undef LIB_GCC
 #define LIB_GCC
 #define LIB_STANDARD -lgcc -lc -lgcc /usr/lib/crtn.o
-#endif
 
 /* Don't use -g in test compiles in configure.
    This is so we will use the same shared libs for that linking
@@ -286,45 +257,12 @@ Boston, MA 02110-1301, USA.  */
 
 #define HAVE_SYSVIPC
 
-#ifdef __ELF__
 #define UNEXEC unexelf.o
-#ifndef LINUX_MAP_SHARED_DOES_WORK
-#define UNEXEC_USE_MAP_PRIVATE
-#endif
-#endif
-
-#ifdef LINUX_QMAGIC
-
-#define HAVE_TEXT_START
-#define UNEXEC unexsunos4.o
-#define N_PAGSIZ(x) PAGE_SIZE
-
-#else /* not LINUX_QMAGIC */
 
 #define A_TEXT_OFFSET(hdr) (N_MAGIC(hdr) == QMAGIC ? sizeof (struct exec) : 0)
 #define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
 #define ADJUST_EXEC_HEADER \
   unexec_text_start = N_TXTADDR(ohdr) + A_TEXT_OFFSET(ohdr)
-
-#endif /* not LINUX_QMAGIC */
-
-#if 0
-/* In 19.23 and 19.24, configure sometimes fails to define these.
-   It has to do with the fact that configure uses CFLAGS when linking
-   while Makefile.in.in (erroneously) fails to do so when linking temacs.  */
-#ifndef HAVE_GETTIMEOFDAY
-#define HAVE_GETTIMEOFDAY
-#endif
-#ifndef HAVE_MKDIR
-#define HAVE_MKDIR
-#endif
-#ifndef HAVE_RMDIR
-#define HAVE_RMDIR
-#endif
-#ifndef HAVE_XSCREENNUMBEROFSCREEN
-#define HAVE_XSCREENNUMBEROFSCREEN
-#endif
-#endif /* 0 */
 
 /* This is to work around mysterious gcc failures in some system versions.
    It is unlikely that Emacs changes will work around this problem;

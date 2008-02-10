@@ -1,3 +1,9 @@
+2008-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/gnu-linux.h: Remove support for non-ELF and linux-1.x.
+
+	* Makefile.in (GNUC): Remove support for gcc-1.x.
+
 2008-02-10  Richard Stallman  <rms@gnu.org>
 
 	* lisp.h (ASET): Use AREF, not ASLOT.
