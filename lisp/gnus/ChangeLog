@@ -1,3 +1,8 @@
+2008-02-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-util.el (mm-codepage-setup): If cp-supported-codepages isn't
+	fbound (Emacs 23 unicode), signal an error.
+
 2008-02-08  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-art.el (pgg-display-output-buffer): Declare as function.

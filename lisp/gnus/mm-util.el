@@ -219,7 +219,10 @@ non-nil, an alias is created and added to
 the alias.  Else windows-NUMBER is used."
   (interactive
    (let ((completion-ignore-case t)
-	 (candidates (cp-supported-codepages)))
+	 (candidates (if (fboundp 'cp-supported-codepages)
+			 (cp-supported-codepages)
+		       ;; Removed in Emacs 23 (unicode), sosignal an error:
+		       (error "`codepage-setup' is obsolete in this Emacs version."))))
      (list (completing-read "Setup DOS Codepage: (default 437) " candidates
 			    nil t nil nil "437"))))
   (when alias
