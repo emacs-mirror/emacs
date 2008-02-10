@@ -77,26 +77,28 @@ EasyPG Assistant provides the following features.
 @node  Quick start
 @chapter Quick start
 
-To install, just follow the standard CMMI installation instructions.
+@c To install, just follow the standard CMMI installation instructions.
 
-@cartouche
-@example
-$ ./configure
-$ sudo make install
-@end example
-@end cartouche
+@c @cartouche
+@c @example
+@c $ ./configure
+@c $ sudo make install
+@c @end example
+@c @end cartouche
 
-@noindent
-Then, add the following line to your @file{~/.emacs}
+@c @noindent
+@c Then, add the following line to your @file{~/.emacs}
+
+Add the following line to your @file{~/.emacs}.
 
 @cartouche
 @lisp
-(require 'epa-setup)
+(epa-mode 1)
 @end lisp
 @end cartouche
 
 @noindent
-That's all.  Restart emacs and type @kbd{M-x epa- @key{TAB}}, and you will see a
+Restart emacs and type @kbd{M-x epa- @key{TAB}}, and you will see a
 lot of commands available.  For example,
 
 @itemize @bullet

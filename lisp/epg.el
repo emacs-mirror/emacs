@@ -1430,7 +1430,7 @@ This function is for internal use only."
        signature
        (string-to-number (match-string 4 string)))
       (epg-signature-set-pubkey-algorithm
-       signature 
+       signature
        (string-to-number (match-string 5 string)))
       (epg-signature-set-digest-algorithm
        signature
@@ -1744,7 +1744,7 @@ This function is for internal use only."
 (defun epg-list-keys (context &optional name mode)
   "Return a list of epg-key objects matched with NAME.
 If MODE is nil or 'public, only public keyring should be searched.
-If MODE is t or 'secret, only secret keyring should be searched. 
+If MODE is t or 'secret, only secret keyring should be searched.
 Otherwise, only public keyring should be searched and the key
 signatures should be included.
 NAME is either a string or a list of strings."

@@ -1,3 +1,23 @@
+2008-02-10  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg-config.el: Expand the contents of epg-package-info.el.
+	(epg-package-name): New constant.
+	(epg-version-number): New constant.
+	(epg-bug-report-address): New constant.
+
+	* epa-mail.el (epa-mail-mode): Add autoload cookie.
+	(epa-mail-minor-mode): New global minor mode.
+
+	* epa-file.el (epa-file-mode): New global minor mode.
+
+	* epa-dired.el (epa-dired-mode): New global minor mode.
+
+	* epa.el (epa-menu): New variable.
+	(epa-menu-items): New variable.
+	(epa-menu-mode): New global minor mode.
+	(epa-global-minor-modes): New user option.
+	(epa-mode): New global minor mode.
+
 2008-02-10  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/dbus.el: Remove `no-byte-compile' cookie.

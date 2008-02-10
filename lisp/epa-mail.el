@@ -40,6 +40,7 @@
 (defvar epa-mail-mode-on-hook nil)
 (defvar epa-mail-mode-off-hook nil)
 
+;;;###autoload
 (define-minor-mode epa-mail-mode
   "A minor-mode for composing encrypted/clearsigned mails."
   nil " epa-mail" epa-mail-mode-map)
@@ -172,6 +173,14 @@ The buffer is expected to contain a mail message.
 Don't use this command in Lisp programs!"
   (interactive)
   (epa-import-armor-in-region (point-min) (point-max)))
+
+;;;###autoload
+(define-minor-mode epa-mail-minor-mode
+  "Minor mode to hook EasyPG into Mail mode."
+  :global t :init-value nil :group 'epa-mail :version "23.1"
+  (remove-hook 'mail-mode-hook 'epa-mail-mode)
+  (if epa-mail-minor-mode
+      (add-hook 'mail-mode-hook 'epa-mail-mode)))
 
 (provide 'epa-mail)
 

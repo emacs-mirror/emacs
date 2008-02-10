@@ -23,7 +23,14 @@
 
 ;;; Code:
 
-(require 'epg-package-info)
+(defconst epg-package-name "epg"
+  "Name of this package.")
+
+(defconst epg-version-number "1.0.0"
+  "Version number of this package.")
+
+(defconst epg-bug-report-address "ueno@unixuser.org"
+  "Report bugs to this address.")
 
 (defgroup epg ()
   "The EasyPG Library"

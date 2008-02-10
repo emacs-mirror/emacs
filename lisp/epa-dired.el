@@ -82,6 +82,14 @@ If no one is selected, symmetric encryption will be performed.  "))
       (setq file-list (cdr file-list)))
     (revert-buffer)))
 
+;;;###autoload
+(define-minor-mode epa-dired-mode
+  "Minor mode to hook EasyPG into Dired."
+  :global t :init-value nil :group 'epa-dired :version "23.1"
+  (remove-hook 'dired-mode-hook 'epa-dired-mode-hook)
+  (if epa-dired-mode
+      (add-hook 'dired-mode-hook 'epa-dired-mode-hook)))
+
 (provide 'epa-dired)
 
 ;; arch-tag: 2025700b-48d0-4684-bc94-228ad1f8e9ff

@@ -314,6 +314,24 @@ If no one is selected, symmetric encryption will be performed.  ")))
 	(message "`epa-file' disabled"))
     (message "`epa-file' already disabled")))
 
+;;;###autoload
+(define-minor-mode epa-file-mode
+  "Toggle automatic file encryption and decryption.
+With prefix argument ARG, turn auto encryption on if positive, else off.
+Return the new status of auto encryption (non-nil means on)."
+  :global t :init-value nil :group 'epa-file :version "23.1"
+  (setq file-name-handler-alist
+	(delq epa-file-handler file-name-handler-alist))
+  (remove-hook 'find-file-hooks 'epa-file-find-file-hook)
+  (setq auto-mode-alist (delq epa-file-auto-mode-alist-entry
+			      auto-mode-alist))
+  (when epa-file-mode
+    (setq file-name-handler-alist
+	  (cons epa-file-handler file-name-handler-alist))
+    (add-hook 'find-file-hooks 'epa-file-find-file-hook)
+    (setq auto-mode-alist (cons epa-file-auto-mode-alist-entry
+				auto-mode-alist))))
+
 (provide 'epa-file)
 
 ;; arch-tag: 5715152f-0eb1-4dbc-9008-07098775314d
