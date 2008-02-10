@@ -8062,7 +8062,7 @@ x_connection_closed (dpy, error_message)
 	  && FRAME_X_P (XFRAME (minibuf_frame))
 	  && ! EQ (frame, minibuf_frame)
 	  && FRAME_X_DISPLAY_INFO (XFRAME (minibuf_frame)) == dpyinfo)
-	Fdelete_frame (frame, Qt);
+	Fdelete_frame (frame, Qnoelisp);
     }
 
   /* Now delete all remaining frames on the dead display.
@@ -8075,7 +8075,7 @@ x_connection_closed (dpy, error_message)
 	/* Set this to t so that Fdelete_frame won't get confused
 	   trying to find a replacement.  */
 	FRAME_KBOARD (XFRAME (frame))->Vdefault_minibuffer_frame = Qt;
-	Fdelete_frame (frame, Qt);
+	Fdelete_frame (frame, Qnoelisp);
       }
 
   /* We have to close the display to inform Xt that it doesn't
@@ -8087,7 +8087,7 @@ x_connection_closed (dpy, error_message)
      M-x make-frame-on-display RET :1 RET
 
      will indefinitely wait in Xt for events for display `:1', opened
-     in the first class to make-frame-on-display.
+     in the first call to make-frame-on-display.
 
      Closing the display is reported to lead to a bus error on
      OpenWindows in certain situations.  I suspect that is a bug

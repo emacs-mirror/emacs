@@ -271,6 +271,7 @@ delete_terminal (struct terminal *terminal)
       struct frame *f = XFRAME (frame);
       if (FRAME_LIVE_P (f) && f->terminal == terminal)
         {
+	  /* Maybe this should pass Qnoelisp rather than Qt?  */
           Fdelete_frame (frame, Qt);
         }
     }

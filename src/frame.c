@@ -76,6 +76,7 @@ Lisp_Object Qx, Qw32, Qmac, Qpc;
 Lisp_Object Qvisible;
 Lisp_Object Qdisplay_type;
 Lisp_Object Qbackground_mode;
+Lisp_Object Qnoelisp;
 
 Lisp_Object Qx_frame_parameter;
 Lisp_Object Qx_resource_name;
@@ -1406,10 +1407,10 @@ But FORCE inhibits this too.  */)
     }
 
   /* Run `delete-frame-functions'
-     unless FORCE is true or frame is a tooltip.
-     FORCE is set when handling a disconnect from the terminal,
+     unless FORCE is `noelisp' or frame is a tooltip.
+     FORCE is set to `noelisp' when handling a disconnect from the terminal,
      so we don't dare call Lisp code.  */
-  if (!NILP (Vrun_hooks) && NILP (force)
+  if (!NILP (Vrun_hooks) && EQ (force, Qnoelisp)
       && NILP (Fframe_parameter (frame, intern ("tooltip"))))
     {
       Lisp_Object args[2];
@@ -4395,6 +4396,8 @@ syms_of_frame ()
   staticpro (&Qdisplay_type);
   Qbackground_mode = intern ("background-mode");
   staticpro (&Qbackground_mode);
+  Qnoelisp = intern ("noelisp");
+  staticpro (&Qnoelisp);
   Qtty_color_mode = intern ("tty-color-mode");
   staticpro (&Qtty_color_mode);
   Qtty = intern ("tty");

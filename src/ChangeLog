@@ -1,5 +1,12 @@
 2008-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* frame.c (Qnoelisp): New symbol.
+	(syms_of_frame): Initialize it.
+	(Fdelete_frame): Use it to distinguish a mere `force' passed from
+	someharmles Elisp code, from a strong `force' from x_connection_closed.
+	* frame.h (Qnoelisp): Declare.
+	* xterm.c (x_connection_closed): Pass `noelisp'.
+
 	* lisp.h (struct Lisp_Misc_Any, struct Lisp_Marker)
 	(struct Lisp_Overlay, struct Lisp_Kboard_Objfwd)
 	(struct Lisp_Save_Value, struct Lisp_Free): Use enum Lisp_Misc_Type
