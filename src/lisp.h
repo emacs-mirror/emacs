@@ -589,8 +589,12 @@ extern size_t pure_size;
 /* Convenience macros for dealing with Lisp arrays.  */
 
 #define AREF(ARRAY, IDX)	XVECTOR ((ARRAY))->contents[IDX]
-#define ASET(ARRAY, IDX, VAL)	(AREF ((ARRAY), (IDX)) = (VAL))
 #define ASIZE(ARRAY)		XVECTOR ((ARRAY))->size
+/* The IDX==IDX tries to detect when the macro argument is side-effecting.  */
+#define ASET(ARRAY, IDX, VAL)	\
+  (eassert ((IDX) == (IDX)),				\
+   eassert ((IDX) >= 0 && (IDX) < ASIZE (ARRAY)),	\
+   ASLOT ((ARRAY), (IDX)) = (VAL))
 
 /* Convenience macros for dealing with Lisp strings.  */
 

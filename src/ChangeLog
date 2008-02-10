@@ -1,3 +1,7 @@
+2008-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (ASET): Check bounds.
+
 2008-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* buffer.c (mode-name): Doc fix.
