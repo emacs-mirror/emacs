@@ -5735,6 +5735,8 @@ mark_buffer (buf)
       mark_object (tmp);
     }
 
+  /* buffer-local Lisp variables start at `undo_list',
+     tho only the ones from `name' on are GC'd normally.  */
   for (ptr = &buffer->name;
        (char *)ptr < (char *)buffer + sizeof (struct buffer);
        ptr++)
