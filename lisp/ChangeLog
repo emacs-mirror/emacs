@@ -1,3 +1,7 @@
+2008-02-11  Jason Rumney  <jasonr@gnu.org>
+
+	* ldefs-boot.el: Regenerated.
+
 2008-02-11  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/compile.el (compilation-error-regexp-alist-alist):
