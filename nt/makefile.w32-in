@@ -143,43 +143,15 @@ maybe-bootstrap-SH: doit
 bootstrap:	addsection cmdproxy bootstrap-$(MAKETYPE)
 	$(MAKE) $(MFLAGS) $(XMFLAGS) all
 
-unidatagen-nmake:
-	cd ..\admin\unidata
-	$(MAKE) $(MFLAGS)
-	cd ..\..\nt
-
-unidatagen-clean-nmake:
-	cd ..\admin\unidata
-	$(MAKE) $(MFLAGS) clean
-	cd ..\..\nt
-
-unidatagen-CMD:
-	if exist ..\admin\unidata\UnicodeData.txt \
-	   $(MAKE) $(MFLAGS) $(XMFLAGS) -C ../admin/unidata
-
-unidatagen-clean-CMD:
-	if exist ..\admin\unidata\UnicodeData.txt \
-	   $(MAKE) $(MFLAGS) $(XMFLAGS) -C ../admin/unidata clean
-
-unidatagen-SH:
-	- test -f ../admin/unidata/UnicodeData.txt && \
-	   $(MAKE) $(MFLAGS) $(XMFLAGS) -C ../admin/unidata
-
-unidatagen-clean-SH:
-	- test -f ../admin/unidata/UnicodeData.txt && \
-	   $(MAKE) $(MFLAGS) $(XMFLAGS) -C ../admin/unidata clean
-
 bootstrap-nmake: addsection cmdproxy
 	cd ..\lisp
 	$(MAKE) $(MFLAGS) bootstrap-clean
 	cd ..\src
 	$(MAKE) $(MFLAGS) clean
-	if exist ..\admin $(MAKE) unidatagen-clean-nmake
 	cd ..\lib-src
 	$(MAKE) $(MFLAGS) clean
 	cd ..\src
 	$(MAKE) $(MFLAGS) bootstrap
-	if exist ..\admin $(MAKE) unidatagen-nmake
 	$(MAKE) $(MFLAGS) bootstrap-clean
 	cd ..\nt
 	$(CP) $(BLD)/cmdproxy.exe ../bin
@@ -192,10 +164,8 @@ bootstrap-nmake: addsection cmdproxy
 bootstrap-gmake: addsection cmdproxy
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap-clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src clean
-	$(MAKE) $(MFLAGS) $(XMFLAGS) unidatagen-clean-$(SHELLTYPE)
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lib-src clean
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap
-	$(MAKE) $(MFLAGS) $(XMFLAGS) unidatagen-$(SHELLTYPE)
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../src bootstrap-clean
 	$(CP) $(BLD)/cmdproxy.exe ../bin
 	$(MAKE) $(MFLAGS) $(XMFLAGS) -C ../lisp bootstrap
