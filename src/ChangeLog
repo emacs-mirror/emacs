@@ -1,3 +1,8 @@
+2008-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (clone_per_buffer_values, reset_buffer_local_variables)
+	(Fbuffer_local_value, Fbuffer_local_variables): Don't forget undo_list.
+
 2008-02-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32menu.c (push_submenu_start, push_submenu_end)

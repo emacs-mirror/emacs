@@ -496,7 +496,9 @@ clone_per_buffer_values (from, to)
 
   XSETBUFFER (to_buffer, to);
 
-  for (offset = PER_BUFFER_VAR_OFFSET (name) + sizeof (Lisp_Object);
+  /* buffer-local Lisp variables start at `undo_list',
+     tho only the ones from `name' on are GC'd normally.  */
+  for (offset = PER_BUFFER_VAR_OFFSET (undo_list) + sizeof (Lisp_Object);
        offset < sizeof *to;
        offset += sizeof (Lisp_Object))
     {
@@ -808,7 +810,9 @@ reset_buffer_local_variables (b, permanent_too)
   /* For each slot that has a default value,
      copy that into the slot.  */
 
-  for (offset = PER_BUFFER_VAR_OFFSET (name);
+  /* buffer-local Lisp variables start at `undo_list',
+     tho only the ones from `name' on are GC'd normally.  */
+  for (offset = PER_BUFFER_VAR_OFFSET (undo_list);
        offset < sizeof *b;
        offset += sizeof (Lisp_Object))
     {
@@ -940,7 +944,9 @@ is the default binding of the variable. */)
       int found = 0;
 
       /* Look in special slots */
-      for (offset = PER_BUFFER_VAR_OFFSET (name);
+      /* buffer-local Lisp variables start at `undo_list',
+	 tho only the ones from `name' on are GC'd normally.  */
+      for (offset = PER_BUFFER_VAR_OFFSET (undo_list);
 	   offset < sizeof (struct buffer);
 	   /* sizeof EMACS_INT == sizeof Lisp_Object */
 	   offset += (sizeof (EMACS_INT)))
@@ -1051,7 +1057,9 @@ No argument or nil as argument means use current buffer as BUFFER.  */)
   {
     int offset, idx;
 
-    for (offset = PER_BUFFER_VAR_OFFSET (name);
+    /* buffer-local Lisp variables start at `undo_list',
+       tho only the ones from `name' on are GC'd normally.  */
+    for (offset = PER_BUFFER_VAR_OFFSET (undo_list);
 	 offset < sizeof (struct buffer);
 	 /* sizeof EMACS_INT == sizeof Lisp_Object */
 	 offset += (sizeof (EMACS_INT)))
