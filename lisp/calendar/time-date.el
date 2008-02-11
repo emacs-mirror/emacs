@@ -254,6 +254,40 @@ If DATE is malformed, return a time value of zeros."
       (date-to-time date)
     (error '(0 0))))
 
+
+;;;###autoload
+(defun emacs-uptime ()
+  "Return a string giving the uptime of this instance of Emacs."
+  (interactive)
+  (let* ((sec (time-to-seconds
+               (time-subtract (current-time) emacs-startup-time)))
+         (prev)
+         (num)
+         (str
+          ;; cf article-make-date-line in gnus-art.
+          ;; Worth having a general time-date `format-seconds'
+          ;; function that converts a number of seconds into so many
+          ;; years, hours, etc?
+          (mapconcat
+           (lambda (unit)
+             (if (zerop (setq num (floor sec (cdr unit))))
+                 ""
+               (setq sec (- sec (* num (cdr unit))))
+              (prog1
+                  (format "%s%d %s%s" (if prev ", " "") num
+                          (symbol-name (car unit))
+                          (if (= num 1) "" "s"))
+                (setq prev t))))
+           '((year   . 31536000)        ; 365-day year
+             (day    .    86400)
+             (hour   .     3600)
+             (minute .       60)
+             (second .        1))
+           "")))
+    (if (interactive-p)
+        (message "%s" str)
+      str)))
+
 (provide 'time-date)
 
 ;;; arch-tag: addcf07b-b20a-465b-af72-550b8ac5190f
