@@ -2000,7 +2000,8 @@ always true.
 @end example
 
 Comparison of strings is case-sensitive, but does not take account of
-text properties---it compares only the characters in the strings.  For
+text properties---it compares only the characters in the strings.  Use
+@code{equal-including-properties} to also compare text properties.  For
 technical reasons, a unibyte string and a multibyte string are
 @code{equal} if and only if they contain the same sequence of
 character codes and all these codes are either in the range 0 through
