@@ -9590,7 +9590,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    }
 
 	  GROW_RAW_KEYBUF;
-	  ASET (raw_keybuf, raw_keybuf_count++, key);
+	  ASET (raw_keybuf, raw_keybuf_count, key);
+	  raw_keybuf_count++;
 	}
 
       /* Clicks in non-text areas get prefixed by the symbol
@@ -9617,7 +9618,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    {
 	      Lisp_Object window, posn;
 
-	      window = POSN_WINDOW      (EVENT_START (key));
+	      window = POSN_WINDOW (EVENT_START (key));
 	      posn   = POSN_POSN (EVENT_START (key));
 
 	      if (CONSP (posn)
