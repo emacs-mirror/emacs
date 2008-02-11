@@ -1,3 +1,10 @@
+2008-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (emacs-startup-time): New variable.
+	(command-line): Set emacs-startup-time.
+
+	* calendar/time-date.el (emacs-uptime): New function.
+
 2008-02-10  Bastien Guerry  <bzg@altern.org>
 
 	* mail/rmail.el (rmail-nonignored-headers): Allow to be nil.
