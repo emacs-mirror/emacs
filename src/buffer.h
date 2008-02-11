@@ -562,6 +562,10 @@ struct buffer
   /* Position where the overlay lists are centered.  */
   EMACS_INT overlay_center;
 
+  /* Everything from here down must be a Lisp_Object.  */
+  /* buffer-local Lisp variables start at `undo_list',
+     tho only the ones from `name' on are GC'd normally.  */
+
   /* Changes in the buffer are recorded here for undo.
      t means don't record anything.
      This information belongs to the base buffer of an indirect buffer,
@@ -570,8 +574,6 @@ struct buffer
      So we copy it around in set_buffer_internal.
      This comes before `name' because it is marked in a special way.  */
   Lisp_Object undo_list;
-
-  /* Everything from here down must be a Lisp_Object.  */
 
   /* The name of this buffer.  */
   Lisp_Object name;
