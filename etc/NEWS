@@ -437,6 +437,9 @@ saving changes.
 *** WoMan tries to add locale-specific manual page directories to the
 search path.  This can be disabled by setting `woman-locale' to nil.
 
+*** The new variable `ffap-rfc-directories' specifies a list of local
+directories in which `ffap-rfc' will first search for RFCs.
+
 
 * Changes in Emacs 23.1 on non-free operating systems
 
