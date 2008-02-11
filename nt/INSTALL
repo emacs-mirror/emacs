@@ -277,14 +277,19 @@
   compatible (for example, that they were built with the same compiler).
 
   Binaries for the image libraries (among many others) can be found at
-  the GnuWin32 project.  These are built with MinGW, but they can be
-  used with both GCC/MinGW and MSVC builds of Emacs.  See the info on
+  the GnuWin32 project.  PNG, JPEG and TIFF libraries are also
+  included with GTK, which is installed along with other Free Software
+  that requires it.  These are built with MinGW, but they can be used
+  with both GCC/MinGW and MSVC builds of Emacs.  See the info on
   http://ourcomments.org/Emacs/w32-build-emacs.html, under "How to Get
   Images Support", for more details about installing image support
   libraries.  Note specifically that, due to some packaging snafus in
   the GnuWin32-supplied image libraries, you will need to download
   _source_ packages for some of the libraries in order to get the
   header files necessary for building Emacs with image support.
+
+  If GTK 2.0 is installed, addpm will arrange for its image libraries
+  to be on the DLL search path for Emacs.
 
 * Building
 
