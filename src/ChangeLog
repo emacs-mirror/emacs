@@ -1,3 +1,7 @@
+2008-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* terminal.c (Fdelete_terminal): Clean up the `force' path.
+
 2008-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.c (Qnoelisp): New symbol.

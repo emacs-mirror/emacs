@@ -305,19 +305,20 @@ but if the second argument FORCE is non-nil, you may do so. */)
   (terminal, force)
      Lisp_Object terminal, force;
 {
-  struct terminal *t, *p;
-
-  t = get_terminal (terminal, 0);
+  struct terminal *t = get_terminal (terminal, 0);
 
   if (!t)
     return Qnil;
 
-  p = terminal_list;
-  while (p && (p == t || !TERMINAL_ACTIVE_P (p)))
-    p = p->next_terminal;
-  
-  if (NILP (force) && !p)
-    error ("Attempt to delete the sole active display terminal");
+  if (NILP (force))
+    {
+      struct terminal *p = terminal_list;
+      while (p && (p == t || !TERMINAL_ACTIVE_P (p)))
+	p = p->next_terminal;
+      
+      if (!p)
+	error ("Attempt to delete the sole active display terminal");
+    }
 
   if (t->delete_terminal_hook)
     (*t->delete_terminal_hook) (t);
