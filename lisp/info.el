@@ -2673,7 +2673,7 @@ See `Info-scroll-down'."
 (defun Info-next-reference (&optional recur)
   "Move cursor to the next cross-reference or menu item in the node."
   (interactive)
-  (let ((pat "\\*note[ \n\t]+\\([^:]+\\):\\|^\\* .*:\\|[hf]t?tp://")
+  (let ((pat "\\*note[ \n\t]+\\([^:]+\\):\\|^\\* .*:\\|[hf]t?tps?://")
 	(old-pt (point))
 	(case-fold-search t))
     (or (eobp) (forward-char 1))
@@ -2695,7 +2695,7 @@ See `Info-scroll-down'."
 (defun Info-prev-reference (&optional recur)
   "Move cursor to the previous cross-reference or menu item in the node."
   (interactive)
-  (let ((pat "\\*note[ \n\t]+\\([^:]+\\):\\|^\\* .*:\\|[hf]t?tp://")
+  (let ((pat "\\*note[ \n\t]+\\([^:]+\\):\\|^\\* .*:\\|[hf]t?tps?://")
 	(old-pt (point))
 	(case-fold-search t))
     (or (re-search-backward pat nil t)
@@ -3123,7 +3123,7 @@ If FORK is a string, it is the name to use for the new buffer."
 If FORK is non-nil, it i spassed to `Info-goto-node'."
   (let (node)
     (cond
-     ((Info-get-token (point) "[hf]t?tp://" "[hf]t?tp://\\([^ \t\n\"`({<>})']+\\)")
+     ((Info-get-token (point) "[hf]t?tps?://" "[hf]t?tps?://\\([^ \t\n\"`({<>})']+\\)")
       (setq node t)
       (browse-url (browse-url-url-at-point)))
      ((setq node (Info-get-token (point) "\\*note[ \n\t]+"
