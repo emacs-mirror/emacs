@@ -1,3 +1,7 @@
+2008-02-11  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in: Remove unidata-gen related rules.
+
 2008-02-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.bat (dontCopy): Do not rename admin/unidata/Makefile.
