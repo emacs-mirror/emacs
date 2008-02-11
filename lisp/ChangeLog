@@ -1,3 +1,7 @@
+2008-02-11  Drew Adams  <drew.adams@oracle.com>
+
+	* progmodes/etags.el: Add many doc strings.
+
 2008-02-11  Jason Rumney  <jasonr@gnu.org>
 
 	* ldefs-boot.el: Regenerated.
