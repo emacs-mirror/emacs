@@ -1,3 +1,11 @@
+2008-02-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat (checkgcc): Move "del junk.o" to here, and make it
+	conditional on existence of junk.o.  If %nocygwin% is already set
+	to Y, skip to chkapiN instead of chkapi.
+	(chkapi): Move "rm -f junk.c junk.o" to here.
+	(chkapiN): New label.
+
 2008-02-11  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in: Remove unidata-gen related rules.
