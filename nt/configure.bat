@@ -248,7 +248,6 @@ echo Checking whether 'gcc' is available...
 echo main(){} >junk.c
 gcc -c junk.c
 if exist junk.o goto checkgcc
-del junk.o
 
 echo Checking whether 'cl' is available...
 cl -nologo -c junk.c
@@ -256,11 +255,12 @@ if exist junk.obj goto clOK
 goto nocompiler
 
 :checkgcc
+if exist junk.o del junk.o
 Rem WARNING -- COMMAND.COM on some systems only looks at the first
 Rem            8 characters of a label.  So do NOT be tempted to change
 Rem            chkapi* into something fancier like checkw32api
 Rem You HAVE been warned!
-if (%nocygwin%) == (Y) goto chkapi
+if (%nocygwin%) == (Y) goto chkapiN
 echo Checking whether gcc requires '-mno-cygwin'...
 echo #include "cygwin/version.h" >junk.c
 echo main(){} >>junk.c
@@ -270,11 +270,12 @@ if not exist junk.o goto chkapi
 echo gcc -mno-cygwin -c junk.c >>config.log
 gcc -mno-cygwin -c junk.c >>config.log 2>&1
 if exist junk.o set nocygwin=Y
-rm -f junk.c junk.o
 
 :chkapi
 echo The failed program was: >>config.log
 type junk.c >>config.log
+:chkapiN
+rm -f junk.c junk.o
 rem ----------------------------------------------------------------------
 rem   Older versions of the Windows API headers either don't have any of
 rem   the IMAGE_xxx definitions (the headers that come with Cygwin b20.1
