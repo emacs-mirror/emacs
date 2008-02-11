@@ -2032,6 +2032,23 @@ returns @code{t} if and only if both the expressions below return
 Because of this recursive method, circular lists may therefore cause
 infinite recursion (leading to an error).
 
+@defun equal-including-properties object1 object2
+This function behaves like @code{equal} in all cases but also requires
+that for two strings to be equal, they have the same text properties.
+
+@example
+@group
+(equal "asdf" (propertize "asdf" '(asdf t)))
+     @result{} t
+@end group
+@group
+(equal-including-properties "asdf"
+                            (propertize "asdf" '(asdf t)))
+     @result{} nil
+@end group
+@end example
+@end defun
+
 @ignore
    arch-tag: 9711a66e-4749-4265-9e8c-972d55b67096
 @end ignore
