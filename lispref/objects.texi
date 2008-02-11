@@ -1870,7 +1870,7 @@ This function returns a symbol naming the primitive type of
 @section Equality Predicates
 @cindex equality
 
-  Here we describe two functions that test for equality between any two
+  Here we describe functions that test for equality between any two
 objects.  Other functions test equality between objects of specific
 types, e.g., strings.  For these predicates, see the appropriate chapter
 describing the data type.
