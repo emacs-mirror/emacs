@@ -46,14 +46,14 @@
 
 2008-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* diff-mode.el (diff-add-change-log-entries-other-window): Use
-	add-change-log-entry.
+	* diff-mode.el (diff-add-change-log-entries-other-window):
+	Use add-change-log-entry.
 
 2008-02-09  Jason Rumney  <jasonr@gnu.org>
 
 	* button.el (button-map):
 	* wid-edit.el (widget-keymap): Avoid line-end confusion in autoloads.
-	* ldefs-bool.el: Regenerate.
+	* ldefs-boot.el: Regenerate.
 
 2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
