@@ -2622,7 +2622,7 @@ Play Bubbles game.
 
 ;;;### (autoloads (insert-text-button make-text-button insert-button
 ;;;;;;  make-button define-button-type) "button" "button.el" (18350
-;;;;;;  10550))
+;;;;;;  11412))
 ;;; Generated autoloads from button.el
 
 (defvar button-map (let ((map (make-sparse-keymap))) (define-key map [(control 109)] 'push-button) (define-key map [mouse-2] 'push-button) map) "\
@@ -4638,7 +4638,7 @@ on third call it again advances points to the next difference and so on.
 ;;;;;;  compilation-shell-minor-mode compilation-mode compilation-start
 ;;;;;;  compile compilation-disable-input compile-command compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-mode-hook)
-;;;;;;  "compile" "progmodes/compile.el" (18324 26616))
+;;;;;;  "compile" "progmodes/compile.el" (18352 4533))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -5985,8 +5985,8 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion].
 
 ;;;***
 
-;;;### (autoloads (dbus-handle-event) "dbus" "net/dbus.el" (18346
-;;;;;;  13710))
+;;;### (autoloads (dbus-handle-event) "dbus" "net/dbus.el" (18351
+;;;;;;  47690))
 ;;; Generated autoloads from net/dbus.el
 
 (autoload 'dbus-handle-event "dbus" "\
@@ -6717,7 +6717,7 @@ With prefix arg, prompt for diff switches.
 ;;;***
 
 ;;;### (autoloads (diff-minor-mode diff-mode) "diff-mode" "diff-mode.el"
-;;;;;;  (18344 9811))
+;;;;;;  (18351 47688))
 ;;; Generated autoloads from diff-mode.el
 
 (autoload 'diff-mode "diff-mode" "\
@@ -7623,7 +7623,7 @@ Locate SOA record and increment the serial field.
 ;;;***
 
 ;;;### (autoloads (doc-view-bookmark-jump doc-view-minor-mode doc-view-mode
-;;;;;;  doc-view-mode-p) "doc-view" "doc-view.el" (18339 17931))
+;;;;;;  doc-view-mode-p) "doc-view" "doc-view.el" (18351 47688))
 ;;; Generated autoloads from doc-view.el
 
 (autoload 'doc-view-mode-p "doc-view" "\
@@ -9123,6 +9123,581 @@ Not documented
 Not documented
 
 \(fn FROM TO)" nil nil)
+
+;;;***
+
+;;;### (autoloads (epa-mode epa-menu-mode epa-insert-keys epa-export-keys
+;;;;;;  epa-import-armor-in-region epa-import-keys-region epa-import-keys
+;;;;;;  epa-delete-keys epa-encrypt-region epa-sign-region epa-verify-cleartext-in-region
+;;;;;;  epa-verify-region epa-decrypt-armor-in-region epa-decrypt-region
+;;;;;;  epa-encrypt-file epa-sign-file epa-verify-file epa-decrypt-file
+;;;;;;  epa-select-keys epa-list-secret-keys epa-list-keys) "epa"
+;;;;;;  "epa.el" (18351 47688))
+;;; Generated autoloads from epa.el
+
+(autoload 'epa-list-keys "epa" "\
+List all keys matched with NAME from the public keyring.
+
+\(fn &optional NAME)" t nil)
+
+(autoload 'epa-list-secret-keys "epa" "\
+List all keys matched with NAME from the private keyring.
+
+\(fn &optional NAME)" t nil)
+
+(autoload 'epa-select-keys "epa" "\
+Display a user's keyring and ask him to select keys.
+CONTEXT is an epg-context.
+PROMPT is a string to prompt with.
+NAMES is a list of strings to be matched with keys.  If it is nil, all
+the keys are listed.
+If SECRET is non-nil, list secret keys instead of public keys.
+
+\(fn CONTEXT PROMPT &optional NAMES SECRET)" nil nil)
+
+(autoload 'epa-decrypt-file "epa" "\
+Decrypt FILE.
+
+\(fn FILE)" t nil)
+
+(autoload 'epa-verify-file "epa" "\
+Verify FILE.
+
+\(fn FILE)" t nil)
+
+(autoload 'epa-sign-file "epa" "\
+Sign FILE by SIGNERS keys selected.
+
+\(fn FILE SIGNERS MODE)" t nil)
+
+(autoload 'epa-encrypt-file "epa" "\
+Encrypt FILE for RECIPIENTS.
+
+\(fn FILE RECIPIENTS)" t nil)
+
+(autoload 'epa-decrypt-region "epa" "\
+Decrypt the current region between START and END.
+
+Don't use this command in Lisp programs!
+
+\(fn START END)" t nil)
+
+(autoload 'epa-decrypt-armor-in-region "epa" "\
+Decrypt OpenPGP armors in the current region between START and END.
+
+Don't use this command in Lisp programs!
+
+\(fn START END)" t nil)
+
+(autoload 'epa-verify-region "epa" "\
+Verify the current region between START and END.
+
+Don't use this command in Lisp programs!
+
+\(fn START END)" t nil)
+
+(autoload 'epa-verify-cleartext-in-region "epa" "\
+Verify OpenPGP cleartext signed messages in the current region
+between START and END.
+
+Don't use this command in Lisp programs!
+
+\(fn START END)" t nil)
+
+(autoload 'epa-sign-region "epa" "\
+Sign the current region between START and END by SIGNERS keys selected.
+
+Don't use this command in Lisp programs!
+
+\(fn START END SIGNERS MODE)" t nil)
+
+(autoload 'epa-encrypt-region "epa" "\
+Encrypt the current region between START and END for RECIPIENTS.
+
+Don't use this command in Lisp programs!
+
+\(fn START END RECIPIENTS SIGN SIGNERS)" t nil)
+
+(autoload 'epa-delete-keys "epa" "\
+Delete selected KEYS.
+
+Don't use this command in Lisp programs!
+
+\(fn KEYS &optional ALLOW-SECRET)" t nil)
+
+(autoload 'epa-import-keys "epa" "\
+Import keys from FILE.
+
+Don't use this command in Lisp programs!
+
+\(fn FILE)" t nil)
+
+(autoload 'epa-import-keys-region "epa" "\
+Import keys from the region.
+
+Don't use this command in Lisp programs!
+
+\(fn START END)" t nil)
+
+(autoload 'epa-import-armor-in-region "epa" "\
+Import keys in the OpenPGP armor format in the current region
+between START and END.
+
+Don't use this command in Lisp programs!
+
+\(fn START END)" t nil)
+
+(autoload 'epa-export-keys "epa" "\
+Export selected KEYS to FILE.
+
+Don't use this command in Lisp programs!
+
+\(fn KEYS FILE)" t nil)
+
+(autoload 'epa-insert-keys "epa" "\
+Insert selected KEYS after the point.
+
+Don't use this command in Lisp programs!
+
+\(fn KEYS)" t nil)
+
+(defvar epa-menu-mode nil "\
+Non-nil if Epa-Menu mode is enabled.
+See the command `epa-menu-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `epa-menu-mode'.")
+
+(custom-autoload 'epa-menu-mode "epa" nil)
+
+(autoload 'epa-menu-mode "epa" "\
+Minor mode to hook EasyPG into the menu-bar.
+
+\(fn &optional ARG)" t nil)
+
+(defvar epa-mode nil "\
+Non-nil if Epa mode is enabled.
+See the command `epa-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `epa-mode'.")
+
+(custom-autoload 'epa-mode "epa" nil)
+
+(autoload 'epa-mode "epa" "\
+Minor mode to hook EasyPG into various modes.
+See `epa-global-minor-modes'.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads (epa-dired-mode) "epa-dired" "epa-dired.el" (18351
+;;;;;;  47688))
+;;; Generated autoloads from epa-dired.el
+
+(defvar epa-dired-mode nil "\
+Non-nil if Epa-Dired mode is enabled.
+See the command `epa-dired-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `epa-dired-mode'.")
+
+(custom-autoload 'epa-dired-mode "epa-dired" nil)
+
+(autoload 'epa-dired-mode "epa-dired" "\
+Minor mode to hook EasyPG into Dired.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads (epa-file-mode epa-file-disable epa-file-enable)
+;;;;;;  "epa-file" "epa-file.el" (18351 47688))
+;;; Generated autoloads from epa-file.el
+
+(put 'epa-file-encrypt-to 'safe-local-variable (lambda (val) (or (stringp val) (and (listp val) (catch 'safe (mapc (lambda (elt) (unless (stringp elt) (throw 'safe nil))) val) t)))))
+
+(put 'epa-file-encrypt-to 'permanent-local t)
+
+(autoload 'epa-file-enable "epa-file" "\
+Not documented
+
+\(fn)" t nil)
+
+(autoload 'epa-file-disable "epa-file" "\
+Not documented
+
+\(fn)" t nil)
+
+(defvar epa-file-mode nil "\
+Non-nil if Epa-File mode is enabled.
+See the command `epa-file-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `epa-file-mode'.")
+
+(custom-autoload 'epa-file-mode "epa-file" nil)
+
+(autoload 'epa-file-mode "epa-file" "\
+Toggle automatic file encryption and decryption.
+With prefix argument ARG, turn auto encryption on if positive, else off.
+Return the new status of auto encryption (non-nil means on).
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads (epa-global-mail-mode epa-mail-import-keys epa-mail-encrypt
+;;;;;;  epa-mail-sign epa-mail-verify epa-mail-decrypt epa-mail-mode)
+;;;;;;  "epa-mail" "epa-mail.el" (18351 47688))
+;;; Generated autoloads from epa-mail.el
+
+(autoload 'epa-mail-mode "epa-mail" "\
+A minor-mode for composing encrypted/clearsigned mails.
+
+\(fn &optional ARG)" t nil)
+
+(autoload 'epa-mail-decrypt "epa-mail" "\
+Decrypt OpenPGP armors in the current buffer.
+The buffer is expected to contain a mail message.
+
+Don't use this command in Lisp programs!
+
+\(fn)" t nil)
+
+(autoload 'epa-mail-verify "epa-mail" "\
+Verify OpenPGP cleartext signed messages in the current buffer.
+The buffer is expected to contain a mail message.
+
+Don't use this command in Lisp programs!
+
+\(fn)" t nil)
+
+(autoload 'epa-mail-sign "epa-mail" "\
+Sign the current buffer.
+The buffer is expected to contain a mail message.
+
+Don't use this command in Lisp programs!
+
+\(fn START END SIGNERS MODE)" t nil)
+
+(autoload 'epa-mail-encrypt "epa-mail" "\
+Encrypt the current buffer.
+The buffer is expected to contain a mail message.
+
+Don't use this command in Lisp programs!
+
+\(fn START END RECIPIENTS SIGN SIGNERS)" t nil)
+
+(autoload 'epa-mail-import-keys "epa-mail" "\
+Import keys in the OpenPGP armor format in the current buffer.
+The buffer is expected to contain a mail message.
+
+Don't use this command in Lisp programs!
+
+\(fn)" t nil)
+
+(defvar epa-global-mail-mode nil "\
+Non-nil if Epa-Global-Mail mode is enabled.
+See the command `epa-global-mail-mode' for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `epa-global-mail-mode'.")
+
+(custom-autoload 'epa-global-mail-mode "epa-mail" nil)
+
+(autoload 'epa-global-mail-mode "epa-mail" "\
+Minor mode to hook EasyPG into Mail mode.
+
+\(fn &optional ARG)" t nil)
+
+;;;***
+
+;;;### (autoloads (epg-generate-key-from-string epg-generate-key-from-file
+;;;;;;  epg-start-generate-key epg-sign-keys epg-start-sign-keys
+;;;;;;  epg-delete-keys epg-start-delete-keys epg-receive-keys epg-start-receive-keys
+;;;;;;  epg-import-keys-from-string epg-import-keys-from-file epg-start-import-keys
+;;;;;;  epg-export-keys-to-string epg-export-keys-to-file epg-start-export-keys
+;;;;;;  epg-encrypt-string epg-encrypt-file epg-start-encrypt epg-sign-string
+;;;;;;  epg-sign-file epg-start-sign epg-verify-string epg-verify-file
+;;;;;;  epg-start-verify epg-decrypt-string epg-decrypt-file epg-start-decrypt
+;;;;;;  epg-cancel epg-list-keys) "epg" "epg.el" (18351 47688))
+;;; Generated autoloads from epg.el
+
+(autoload 'epg-list-keys "epg" "\
+Return a list of epg-key objects matched with NAME.
+If MODE is nil or 'public, only public keyring should be searched.
+If MODE is t or 'secret, only secret keyring should be searched.
+Otherwise, only public keyring should be searched and the key
+signatures should be included.
+NAME is either a string or a list of strings.
+
+\(fn CONTEXT &optional NAME MODE)" nil nil)
+
+(autoload 'epg-cancel "epg" "\
+Not documented
+
+\(fn CONTEXT)" nil nil)
+
+(autoload 'epg-start-decrypt "epg" "\
+Initiate a decrypt operation on CIPHER.
+CIPHER must be a file data object.
+
+If you use this function, you will need to wait for the completion of
+`epg-gpg-program' by using `epg-wait-for-completion' and call
+`epg-reset' to clear a temporaly output file.
+If you are unsure, use synchronous version of this function
+`epg-decrypt-file' or `epg-decrypt-string' instead.
+
+\(fn CONTEXT CIPHER)" nil nil)
+
+(autoload 'epg-decrypt-file "epg" "\
+Decrypt a file CIPHER and store the result to a file PLAIN.
+If PLAIN is nil, it returns the result as a string.
+
+\(fn CONTEXT CIPHER PLAIN)" nil nil)
+
+(autoload 'epg-decrypt-string "epg" "\
+Decrypt a string CIPHER and return the plain text.
+
+\(fn CONTEXT CIPHER)" nil nil)
+
+(autoload 'epg-start-verify "epg" "\
+Initiate a verify operation on SIGNATURE.
+SIGNATURE and SIGNED-TEXT are a data object if they are specified.
+
+For a detached signature, both SIGNATURE and SIGNED-TEXT should be set.
+For a normal or a cleartext signature, SIGNED-TEXT should be nil.
+
+If you use this function, you will need to wait for the completion of
+`epg-gpg-program' by using `epg-wait-for-completion' and call
+`epg-reset' to clear a temporaly output file.
+If you are unsure, use synchronous version of this function
+`epg-verify-file' or `epg-verify-string' instead.
+
+\(fn CONTEXT SIGNATURE &optional SIGNED-TEXT)" nil nil)
+
+(autoload 'epg-verify-file "epg" "\
+Verify a file SIGNATURE.
+SIGNED-TEXT and PLAIN are also a file if they are specified.
+
+For a detached signature, both SIGNATURE and SIGNED-TEXT should be
+string.  For a normal or a cleartext signature, SIGNED-TEXT should be
+nil.  In the latter case, if PLAIN is specified, the plaintext is
+stored into the file after successful verification.
+
+\(fn CONTEXT SIGNATURE &optional SIGNED-TEXT PLAIN)" nil nil)
+
+(autoload 'epg-verify-string "epg" "\
+Verify a string SIGNATURE.
+SIGNED-TEXT is a string if it is specified.
+
+For a detached signature, both SIGNATURE and SIGNED-TEXT should be
+string.  For a normal or a cleartext signature, SIGNED-TEXT should be
+nil.  In the latter case, this function returns the plaintext after
+successful verification.
+
+\(fn CONTEXT SIGNATURE &optional SIGNED-TEXT)" nil nil)
+
+(autoload 'epg-start-sign "epg" "\
+Initiate a sign operation on PLAIN.
+PLAIN is a data object.
+
+If optional 3rd argument MODE is t or 'detached, it makes a detached signature.
+If it is nil or 'normal, it makes a normal signature.
+Otherwise, it makes a cleartext signature.
+
+If you use this function, you will need to wait for the completion of
+`epg-gpg-program' by using `epg-wait-for-completion' and call
+`epg-reset' to clear a temporaly output file.
+If you are unsure, use synchronous version of this function
+`epg-sign-file' or `epg-sign-string' instead.
+
+\(fn CONTEXT PLAIN &optional MODE)" nil nil)
+
+(autoload 'epg-sign-file "epg" "\
+Sign a file PLAIN and store the result to a file SIGNATURE.
+If SIGNATURE is nil, it returns the result as a string.
+If optional 3rd argument MODE is t or 'detached, it makes a detached signature.
+If it is nil or 'normal, it makes a normal signature.
+Otherwise, it makes a cleartext signature.
+
+\(fn CONTEXT PLAIN SIGNATURE &optional MODE)" nil nil)
+
+(autoload 'epg-sign-string "epg" "\
+Sign a string PLAIN and return the output as string.
+If optional 3rd argument MODE is t or 'detached, it makes a detached signature.
+If it is nil or 'normal, it makes a normal signature.
+Otherwise, it makes a cleartext signature.
+
+\(fn CONTEXT PLAIN &optional MODE)" nil nil)
+
+(autoload 'epg-start-encrypt "epg" "\
+Initiate an encrypt operation on PLAIN.
+PLAIN is a data object.
+If RECIPIENTS is nil, it performs symmetric encryption.
+
+If you use this function, you will need to wait for the completion of
+`epg-gpg-program' by using `epg-wait-for-completion' and call
+`epg-reset' to clear a temporaly output file.
+If you are unsure, use synchronous version of this function
+`epg-encrypt-file' or `epg-encrypt-string' instead.
+
+\(fn CONTEXT PLAIN RECIPIENTS &optional SIGN ALWAYS-TRUST)" nil nil)
+
+(autoload 'epg-encrypt-file "epg" "\
+Encrypt a file PLAIN and store the result to a file CIPHER.
+If CIPHER is nil, it returns the result as a string.
+If RECIPIENTS is nil, it performs symmetric encryption.
+
+\(fn CONTEXT PLAIN RECIPIENTS CIPHER &optional SIGN ALWAYS-TRUST)" nil nil)
+
+(autoload 'epg-encrypt-string "epg" "\
+Encrypt a string PLAIN.
+If RECIPIENTS is nil, it performs symmetric encryption.
+
+\(fn CONTEXT PLAIN RECIPIENTS &optional SIGN ALWAYS-TRUST)" nil nil)
+
+(autoload 'epg-start-export-keys "epg" "\
+Initiate an export keys operation.
+
+If you use this function, you will need to wait for the completion of
+`epg-gpg-program' by using `epg-wait-for-completion' and call
+`epg-reset' to clear a temporaly output file.
+If you are unsure, use synchronous version of this function
+`epg-export-keys-to-file' or `epg-export-keys-to-string' instead.
+
+\(fn CONTEXT KEYS)" nil nil)
+
+(autoload 'epg-export-keys-to-file "epg" "\
+Extract public KEYS.
+
+\(fn CONTEXT KEYS FILE)" nil nil)
+
+(autoload 'epg-export-keys-to-string "epg" "\
+Extract public KEYS and return them as a string.
+
+\(fn CONTEXT KEYS)" nil nil)
+
+(autoload 'epg-start-import-keys "epg" "\
+Initiate an import keys operation.
+KEYS is a data object.
+
+If you use this function, you will need to wait for the completion of
+`epg-gpg-program' by using `epg-wait-for-completion' and call
+`epg-reset' to clear a temporaly output file.
+If you are unsure, use synchronous version of this function
+`epg-import-keys-from-file' or `epg-import-keys-from-string' instead.
+
+\(fn CONTEXT KEYS)" nil nil)
+
+(autoload 'epg-import-keys-from-file "epg" "\
+Add keys from a file KEYS.
+
+\(fn CONTEXT KEYS)" nil nil)
+
+(autoload 'epg-import-keys-from-string "epg" "\
+Add keys from a string KEYS.
+
+\(fn CONTEXT KEYS)" nil nil)
+
+(autoload 'epg-start-receive-keys "epg" "\
+Initiate a receive key operation.
+KEY-ID-LIST is a list of key IDs.
+
+If you use this function, you will need to wait for the completion of
+`epg-gpg-program' by using `epg-wait-for-completion' and call
+`epg-reset' to clear a temporaly output file.
+If you are unsure, use synchronous version of this function
+`epg-generate-key-from-file' or `epg-generate-key-from-string' instead.
+
+\(fn CONTEXT KEY-ID-LIST)" nil nil)
+
+(autoload 'epg-receive-keys "epg" "\
+Add keys from server.
+KEYS is a list of key IDs
+
+\(fn CONTEXT KEYS)" nil nil)
+
+(defalias 'epg-import-keys-from-server 'epg-receive-keys)
+
+(autoload 'epg-start-delete-keys "epg" "\
+Initiate an delete keys operation.
+
+If you use this function, you will need to wait for the completion of
+`epg-gpg-program' by using `epg-wait-for-completion' and call
+`epg-reset' to clear a temporaly output file.
+If you are unsure, use synchronous version of this function
+`epg-delete-keys' instead.
+
+\(fn CONTEXT KEYS &optional ALLOW-SECRET)" nil nil)
+
+(autoload 'epg-delete-keys "epg" "\
+Delete KEYS from the key ring.
+
+\(fn CONTEXT KEYS &optional ALLOW-SECRET)" nil nil)
+
+(autoload 'epg-start-sign-keys "epg" "\
+Initiate a sign keys operation.
+
+If you use this function, you will need to wait for the completion of
+`epg-gpg-program' by using `epg-wait-for-completion' and call
+`epg-reset' to clear a temporaly output file.
+If you are unsure, use synchronous version of this function
+`epg-sign-keys' instead.
+
+\(fn CONTEXT KEYS &optional LOCAL)" nil nil)
+
+(autoload 'epg-sign-keys "epg" "\
+Sign KEYS from the key ring.
+
+\(fn CONTEXT KEYS &optional LOCAL)" nil nil)
+
+(autoload 'epg-start-generate-key "epg" "\
+Initiate a key generation.
+PARAMETERS specifies parameters for the key.
+
+If you use this function, you will need to wait for the completion of
+`epg-gpg-program' by using `epg-wait-for-completion' and call
+`epg-reset' to clear a temporaly output file.
+If you are unsure, use synchronous version of this function
+`epg-generate-key-from-file' or `epg-generate-key-from-string' instead.
+
+\(fn CONTEXT PARAMETERS)" nil nil)
+
+(autoload 'epg-generate-key-from-file "epg" "\
+Generate a new key pair.
+PARAMETERS is a file which tells how to create the key.
+
+\(fn CONTEXT PARAMETERS)" nil nil)
+
+(autoload 'epg-generate-key-from-string "epg" "\
+Generate a new key pair.
+PARAMETERS is a string which tells how to create the key.
+
+\(fn CONTEXT PARAMETERS)" nil nil)
+
+;;;***
+
+;;;### (autoloads (epg-expand-group epg-check-configuration epg-configuration)
+;;;;;;  "epg-config" "epg-config.el" (18351 47688))
+;;; Generated autoloads from epg-config.el
+
+(autoload 'epg-configuration "epg-config" "\
+Return a list of internal configuration parameters of `epg-gpg-program'.
+
+\(fn)" nil nil)
+
+(autoload 'epg-check-configuration "epg-config" "\
+Verify that a sufficient version of GnuPG is installed.
+
+\(fn CONFIG &optional MINIMUM-VERSION)" nil nil)
+
+(autoload 'epg-expand-group "epg-config" "\
+Look at CONFIG and try to expand GROUP.
+
+\(fn CONFIG GROUP)" nil nil)
 
 ;;;***
 
@@ -10733,7 +11308,7 @@ you can set `feedmail-queue-reminder-alist' to nil.
 ;;;***
 
 ;;;### (autoloads (ffap-bindings dired-at-point ffap-at-mouse ffap-menu
-;;;;;;  find-file-at-point ffap-next) "ffap" "ffap.el" (18324 26601))
+;;;;;;  find-file-at-point ffap-next) "ffap" "ffap.el" (18352 4530))
 ;;; Generated autoloads from ffap.el
 
 (autoload 'ffap-next "ffap" "\
@@ -11976,7 +12551,7 @@ If CLEAN, obsolete (ignore).
 ;;;***
 
 ;;;### (autoloads (gnus-article-prepare-display) "gnus-art" "gnus/gnus-art.el"
-;;;;;;  (18342 56660))
+;;;;;;  (18350 11228))
 ;;; Generated autoloads from gnus/gnus-art.el
 
 (autoload 'gnus-article-prepare-display "gnus-art" "\
@@ -15638,7 +16213,7 @@ of `inferior-lisp-program').  Runs the hooks from
 ;;;### (autoloads (Info-bookmark-jump Info-speedbar-browser Info-goto-emacs-key-command-node
 ;;;;;;  Info-goto-emacs-command-node Info-mode info-apropos Info-index
 ;;;;;;  Info-directory Info-on-current-buffer info-standalone info-emacs-manual
-;;;;;;  info info-other-window) "info" "info.el" (18339 17932))
+;;;;;;  info info-other-window) "info" "info.el" (18352 4531))
 ;;; Generated autoloads from info.el
 
 (autoload 'info-other-window "info" "\
@@ -20609,9 +21184,9 @@ You can use \\[eshell-report-bug] to do so.
 
 ;;;***
 
-;;;### (autoloads (pcomplete/chgrp pcomplete/chown pcomplete/which
-;;;;;;  pcomplete/xargs pcomplete/rm pcomplete/rmdir pcomplete/cd)
-;;;;;;  "pcmpl-unix" "pcmpl-unix.el" (18310 12044))
+;;;### (autoloads (pcomplete/scp pcomplete/ssh pcomplete/chgrp pcomplete/chown
+;;;;;;  pcomplete/which pcomplete/xargs pcomplete/rm pcomplete/rmdir
+;;;;;;  pcomplete/cd) "pcmpl-unix" "pcmpl-unix.el" (18350 11227))
 ;;; Generated autoloads from pcmpl-unix.el
 
 (autoload 'pcomplete/cd "pcmpl-unix" "\
@@ -20650,6 +21225,17 @@ Completion for the `chown' command.
 
 (autoload 'pcomplete/chgrp "pcmpl-unix" "\
 Completion for the `chgrp' command.
+
+\(fn)" nil nil)
+
+(autoload 'pcomplete/ssh "pcmpl-unix" "\
+Completion rules for the `ssh' command.
+
+\(fn)" nil nil)
+
+(autoload 'pcomplete/scp "pcmpl-unix" "\
+Completion rules for the `scp' command.
+Includes files as well as host names followed by a colon.
 
 \(fn)" nil nil)
 
@@ -22448,7 +23034,7 @@ Display `quickurl-list' as a formatted list using `quickurl-list-mode'.
 ;;;***
 
 ;;;### (autoloads (rcirc-track-minor-mode rcirc-connect rcirc) "rcirc"
-;;;;;;  "net/rcirc.el" (18310 12096))
+;;;;;;  "net/rcirc.el" (18350 11229))
 ;;; Generated autoloads from net/rcirc.el
 
 (autoload 'rcirc "rcirc" "\
@@ -23088,8 +23674,8 @@ variable.
 ;;;;;;  rmail-mail-new-frame rmail-primary-inbox-list rmail-delete-after-output
 ;;;;;;  rmail-highlight-face rmail-highlighted-headers rmail-retry-ignored-headers
 ;;;;;;  rmail-displayed-headers rmail-ignored-headers rmail-dont-reply-to-names
-;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (18339
-;;;;;;  17961))
+;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (18351
+;;;;;;  47689))
 ;;; Generated autoloads from mail/rmail.el
 
 (autoload 'rmail-movemail-variant-p "rmail" "\
@@ -24948,7 +25534,7 @@ Turning on Sieve mode runs `sieve-mode-hook'.
 
 ;;;***
 
-;;;### (autoloads nil "simple" "simple.el" (18339 17947))
+;;;### (autoloads nil "simple" "simple.el" (18352 4531))
 ;;; Generated autoloads from simple.el
 (put 'fill-prefix 'safe-local-variable 'string-or-null-p)
 
@@ -27855,11 +28441,11 @@ To turn off the world time display, go to that window and type `q'.
 
 ;;;***
 
-;;;### (autoloads (safe-date-to-time time-to-days time-to-day-in-year
+;;;### (autoloads (emacs-uptime safe-date-to-time time-to-days time-to-day-in-year
 ;;;;;;  date-leap-year-p days-between date-to-day time-add time-subtract
 ;;;;;;  time-since days-to-time time-less-p seconds-to-time time-to-seconds
-;;;;;;  date-to-time) "time-date" "calendar/time-date.el" (18310
-;;;;;;  12060))
+;;;;;;  date-to-time) "time-date" "calendar/time-date.el" (18351
+;;;;;;  47689))
 ;;; Generated autoloads from calendar/time-date.el
 
 (autoload 'date-to-time "time-date" "\
@@ -27941,6 +28527,11 @@ Parse a string that represents a date-time and return a time value.
 If DATE is malformed, return a time value of zeros.
 
 \(fn DATE)" nil nil)
+
+(autoload 'emacs-uptime "time-date" "\
+Return a string giving the uptime of this instance of Emacs.
+
+\(fn)" t nil)
 
 ;;;***
 
@@ -28504,7 +29095,7 @@ BUFFER defaults to `trace-buffer'.
 ;;;### (autoloads (tramp-unload-tramp tramp-completion-handle-file-name-completion
 ;;;;;;  tramp-completion-handle-file-name-all-completions tramp-unload-file-name-handlers
 ;;;;;;  tramp-file-name-handler tramp-syntax) "tramp" "net/tramp.el"
-;;;;;;  (18342 13363))
+;;;;;;  (18350 11229))
 ;;; Generated autoloads from net/tramp.el
 
 (defvar tramp-syntax (if (featurep 'xemacs) 'sep 'ftp) "\
@@ -29654,7 +30245,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME.
 ;;;;;;  vc-status vc-directory vc-merge vc-insert-headers vc-revision-other-window
 ;;;;;;  vc-diff vc-version-diff vc-register vc-next-action vc-do-command
 ;;;;;;  edit-vc-file with-vc-file vc-before-checkin-hook vc-checkin-hook
-;;;;;;  vc-checkout-hook) "vc" "vc.el" (18339 17948))
+;;;;;;  vc-checkout-hook) "vc" "vc.el" (18350 11227))
 ;;; Generated autoloads from vc.el
 
 (defvar vc-checkout-hook nil "\
@@ -31581,8 +32172,8 @@ With arg, turn widget mode on if and only if arg is positive.
 ;;;***
 
 ;;;### (autoloads (widget-setup widget-insert widget-delete widget-create
-;;;;;;  widget-prompt-value widgetp) "wid-edit" "wid-edit.el" (18340
-;;;;;;  21050))
+;;;;;;  widget-prompt-value widgetp) "wid-edit" "wid-edit.el" (18350
+;;;;;;  11423))
 ;;; Generated autoloads from wid-edit.el
 
 (autoload 'widgetp "wid-edit" "\
@@ -31614,7 +32205,7 @@ Call `insert' with ARGS even if surrounding text is read only.
 
 (defalias 'advertised-widget-backward 'widget-backward)
 
-(defvar widget-keymap (let ((map (make-sparse-keymap))) (define-key map "	" 'widget-forward) (define-key map "	" 'widget-backward) (define-key map [(shift tab)] 'advertised-widget-backward) (define-key map [backtab] 'widget-backward) (define-key map [down-mouse-2] 'widget-button-click) (define-key map [down-mouse-1] 'widget-button-click) (define-key map "" 'widget-button-press) map) "\
+(defvar widget-keymap (let ((map (make-sparse-keymap))) (define-key map "	" 'widget-forward) (define-key map "	" 'widget-backward) (define-key map [(shift tab)] 'advertised-widget-backward) (define-key map [backtab] 'widget-backward) (define-key map [down-mouse-2] 'widget-button-click) (define-key map [down-mouse-1] 'widget-button-click) (define-key map [(control 109)] 'widget-button-press) map) "\
 Keymap containing useful binding for buffers containing widgets.
 Recommended as a parent keymap for modes using widgets.")
 
@@ -31698,9 +32289,17 @@ With arg, turn Winner mode on if and only if arg is positive.
 
 ;;;***
 
-;;;### (autoloads (woman-find-file woman-dired-find-file woman) "woman"
-;;;;;;  "woman.el" (18314 40529))
+;;;### (autoloads (woman-find-file woman-dired-find-file woman woman-locale)
+;;;;;;  "woman" "woman.el" (18350 11228))
 ;;; Generated autoloads from woman.el
+
+(defvar woman-locale nil "\
+String specifying a manual page locale, or nil.
+If a manual page is available in the specified locale
+\(e.g. \"sv_SE.ISO8859-1\"), it will be offered in preference to the
+default version.  Normally, `set-locale-environment' sets this at startup.")
+
+(custom-autoload 'woman-locale "woman" t)
 
 (autoload 'woman "woman" "\
 Browse UN*X man page for TOPIC (Without using external Man program).
@@ -32043,9 +32642,10 @@ Zone out, completely.
 ;;;;;;  "emulation/vi.el" "emulation/vip.el" "emulation/viper-cmd.el"
 ;;;;;;  "emulation/viper-ex.el" "emulation/viper-init.el" "emulation/viper-keym.el"
 ;;;;;;  "emulation/viper-macs.el" "emulation/viper-mous.el" "emulation/viper-util.el"
-;;;;;;  "emulation/viper.el" "emulation/ws-mode.el" "env.el" "erc/erc-autoaway.el"
-;;;;;;  "erc/erc-backend.el" "erc/erc-button.el" "erc/erc-capab.el"
-;;;;;;  "erc/erc-compat.el" "erc/erc-dcc.el" "erc/erc-ezbounce.el"
+;;;;;;  "emulation/viper.el" "emulation/ws-mode.el" "env.el" "epa-dired.el"
+;;;;;;  "epa-file.el" "epa-mail.el" "epa.el" "epg-config.el" "epg.el"
+;;;;;;  "erc/erc-autoaway.el" "erc/erc-backend.el" "erc/erc-button.el"
+;;;;;;  "erc/erc-capab.el" "erc/erc-compat.el" "erc/erc-dcc.el" "erc/erc-ezbounce.el"
 ;;;;;;  "erc/erc-fill.el" "erc/erc-goodies.el" "erc/erc-hecomplete.el"
 ;;;;;;  "erc/erc-ibuffer.el" "erc/erc-identd.el" "erc/erc-imenu.el"
 ;;;;;;  "erc/erc-join.el" "erc/erc-lang.el" "erc/erc-list.el" "erc/erc-log.el"
@@ -32285,8 +32885,8 @@ Zone out, completely.
 ;;;;;;  "view.el" "vms-patch.el" "vmsproc.el" "vt-control.el" "vt100-led.el"
 ;;;;;;  "w32-fns.el" "w32-vars.el" "wdired.el" "whitespace.el" "wid-browse.el"
 ;;;;;;  "wid-edit.el" "widget.el" "windmove.el" "window.el" "winner.el"
-;;;;;;  "woman.el" "x-dnd.el" "xml.el" "xt-mouse.el") (18350 10658
-;;;;;;  546000))
+;;;;;;  "woman.el" "x-dnd.el" "xml.el" "xt-mouse.el") (18352 6733
+;;;;;;  296000))
 
 ;;;***
 
