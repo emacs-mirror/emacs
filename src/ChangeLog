@@ -1,3 +1,8 @@
+2008-02-11  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* search.c (boyer_moore): Fix incorrect synching of the trunk and
+	emacs-unicode-2.
+
 2008-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* terminal.c (Fdelete_terminal): Clean up the `force' path.
