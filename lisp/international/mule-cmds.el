@@ -2854,7 +2854,7 @@ Interactively, prompts for a hex string giving the code."
       (setq arg (string-to-number arg 16)))
   (if (or (< arg 0) (> arg #x10FFFF))
       (error "Not a Unicode character code: 0x%X" arg))
-  (insert arg))
+  (insert-and-inherit arg))
 
 
 ;; arch-tag: b382c432-4b36-460e-bf4c-05efd0bb18dc

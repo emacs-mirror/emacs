@@ -1,3 +1,8 @@
+2008-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (ucs-insert): Inherit surrounding
+	properties like self-insert-command.
+
 2008-02-11  Drew Adams  <drew.adams@oracle.com>
 
 	* progmodes/etags.el: Add many doc strings.
