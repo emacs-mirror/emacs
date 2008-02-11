@@ -1,3 +1,7 @@
+2008-02-11  Sam Steingold  <sds@gnu.org>
+
+	* vc-hooks.el (vc-prefix-key): Remove (undo 2008-02-06 patch).
+
 2008-02-11  Glenn Morris  <rgm@gnu.org>
 
 	* startup.el (emacs-startup-time): New variable.
@@ -2317,7 +2321,7 @@
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* international/characters.el: Make ,_/(B and ,A(B a case pair.
+	* international/characters.el: Make $,1!8(B and ,A(B a case pair.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 

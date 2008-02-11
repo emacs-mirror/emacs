@@ -972,14 +972,7 @@ Used in `find-file-not-found-functions'."
     ;; (define-key map "?" 'vc-status)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
-(defcustom vc-prefix-key "\C-xv" "*The prefix for the VC bindings."
-  :set (lambda (symbol prefix)  ; symbol == vc-prefix-key
-         (define-key global-map prefix 'vc-prefix-map) ; install new prefix
-         (when (boundp 'vc-prefix-key) ; disable the previous prefix
-           (define-key global-map vc-prefix-key nil))
-         (set symbol prefix))   ; save the new prefix
-  :version "23.1"
-  :group 'vc)
+(define-key global-map "\C-xv" 'vc-prefix-map)
 
 (defvar vc-menu-map
   (let ((map (make-sparse-keymap "Version Control")))
