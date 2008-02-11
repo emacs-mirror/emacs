@@ -1,7 +1,14 @@
+2008-02-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32menu.c (push_submenu_start, push_submenu_end)
+	(push_left_right_boundary, push_menu_pane, push_menu_item):
+	* keyboard.c (read_key_sequence): Don't pass args with side effects
+	to AREF, it fails when compiling with -DENABLE_CHECKING.
+
 2008-02-11  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* Makefile.in (${lispsource}international/charprop.el): Delete
-	this target.
+	* Makefile.in (${lispsource}international/charprop.el):
+	Delete this target.
 
 	* search.c (boyer_moore): Fix incorrect synching of the trunk and
 	emacs-unicode-2.
@@ -75,13 +82,10 @@
 
 	* s/gnu-linux.h: Remove commented out code.
 
-	* unexec.c: Remove references to obsolete variable
-	COFF_ENCAPSULATE.
+	* unexec.c: Remove references to obsolete variable COFF_ENCAPSULATE.
 
 	* Makefile.in: Update what RMS says about using autoconf.
-	(C_COMPILER):
-	(COFF_ENCAPSULATE):
-	(MAKE_PARALLEL): Remove obsolete variable.
+	(C_COMPILER, COFF_ENCAPSULATE, MAKE_PARALLEL): Remove obsolete variable.
 	(C_SWITCH_MACHINE_1, C_SWITCH_SYSTEM_1, C_SWITCH_SITE_1):
 	(C_SWITCH_X_SITE_1, C_SWITCH_X_MACHINE_1)
 	(C_SWITCH_X_SYSTEM_1): Move invariant code outside conditional.
