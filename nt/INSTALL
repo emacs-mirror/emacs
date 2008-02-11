@@ -101,6 +101,13 @@
   dos2unix and unix2dos available from GnuWin32 or dtou and utod from
   the DJGPP project.
 
+  Additionally, the files lisp/international/uni-*.el need Unix line
+  ends due to some embedded ^M characters that are not at the end of
+  the line.  So in the lisp/international directory you should run the
+  following command, or use dos2unix on those files.
+
+     cvs update -kb uni-*.el
+
   In addition to this file, you should also read INSTALL.CVS in the
   parent directory, and make sure that you have a version of
   "touch.exe" in your path, and that it will create files that do not
