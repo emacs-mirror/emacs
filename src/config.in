@@ -726,9 +726,6 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the Xaw3d library (-lXaw3d). */
 #undef HAVE_XAW3D
 
-/* Define to 1 if you're using XFree386. */
-#undef HAVE_XFREE386
-
 /* Define to 1 if you have the Xft library. */
 #undef HAVE_XFT
 
