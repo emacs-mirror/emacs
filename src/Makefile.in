@@ -973,16 +973,6 @@ ${etc}DOC: ${libsrc}make-docfile${EXEEXT} ${obj} ${shortlisp} ${SOME_MACHINE_LIS
 ${libsrc}make-docfile${EXEEXT}:
 	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile${EXEEXT}
 
-#ifdef HAVE_UNIDATA
-UNIDATA=${admindir}unidata/UnicodeData.txt
-
-${lispsource}international/charprop.el: temacs${EXEEXT} ${UNIDATA}
-	RUNEMACS="$(RUN_TEMACS)"; \
-	cd ${admindir}unidata; \
-	$(MAKE) $(MFLAGS) \
-	  RUNEMACS="$${RUNEMACS}" DSTDIR=${lispsource}international
-#endif
-
 temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
 	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
