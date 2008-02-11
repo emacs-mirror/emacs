@@ -1,5 +1,8 @@
 2008-02-11  Kenichi Handa  <handa@ni.aist.go.jp>
 
+	* Makefile.in (${lispsource}international/charprop.el): Delete
+	this target.
+
 	* search.c (boyer_moore): Fix incorrect synching of the trunk and
 	emacs-unicode-2.
 
