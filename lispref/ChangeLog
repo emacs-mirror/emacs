@@ -1,3 +1,8 @@
+2008-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* objects.texi (Equality Predicates):
+	Mention equal-including-properties.
+
 2008-02-07  Richard Stallman  <rms@gnu.org>
 
 	* windows.texi (Window Start): Mention the feature of moving
