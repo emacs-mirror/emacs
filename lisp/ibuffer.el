@@ -49,6 +49,7 @@
 (defvar ibuffer-filter-group-kill-ring)
 (defvar ibuffer-filter-groups)
 (defvar ibuffer-filtering-qualifiers)
+(defvar ibuffer-header-line-format)
 (defvar ibuffer-hidden-filter-groups)
 (defvar ibuffer-inline-columns)
 (defvar ibuffer-show-empty-filter-groups)
@@ -2164,7 +2165,14 @@ If optional arg SILENT is non-nil, do not display progress messages."
       (ibuffer-shrink-to-fit t)
     (when ibuffer-shrink-to-minimum-size
       (ibuffer-shrink-to-fit)))
-  (ibuffer-forward-line 0))
+  (ibuffer-forward-line 0)
+  ;; I tried to update this automatically from the mode-line-process format,
+  ;; but changing nil-ness of header-line-format while computing
+  ;; mode-line-format is asking a bit too much it seems.  --Stef
+  (setq header-line-format
+        (and ibuffer-use-header-line
+             ibuffer-filtering-qualifiers
+             ibuffer-header-line-format)))
 
 (defun ibuffer-sort-bufferlist (bmarklist)
   (let* ((sortdat (assq ibuffer-sorting-mode
@@ -2537,14 +2545,14 @@ will be inserted before the group at point."
            (:eval (if (functionp 'ibuffer-format-qualifier)
                       (mapconcat 'ibuffer-format-qualifier
                                  ibuffer-filtering-qualifiers ""))))))
-  (setq header-line-format
-        (if ibuffer-use-header-line
-            ;; Display the part that won't be in the mode-line.
-            (list* "" mode-name
-                   (mapcar (lambda (elem)
-                             (if (eq (car-safe elem) 'header-line-format)
-                                 (nth 2 elem) elem))
-                           mode-line-process))))
+  ;; `ibuffer-update' puts this on header-line-format when needed.
+  (setq ibuffer-header-line-format
+        ;; Display the part that won't be in the mode-line.
+        (list* "" mode-name
+               (mapcar (lambda (elem)
+                         (if (eq (car-safe elem) 'header-line-format)
+                             (nth 2 elem) elem))
+                       mode-line-process)))
 
   (setq buffer-read-only t)
   (buffer-disable-undo)
