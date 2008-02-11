@@ -258,11 +258,11 @@ One argument, the tag info returned by `snarf-tag-function'.")
 (defvar verify-tags-table-function nil
   "Function to return t if current buffer contains valid tags file.")
 
-;; Initialize the tags table in the current buffer.
-;; Returns non-nil if it is a valid tags table.  On
-;; non-nil return, the tags table state variable are
-;; made buffer-local and initialized to nil.
 (defun initialize-new-tags-table ()
+  "Initialize the tags table in the current buffer.
+Return non-nil if it is a valid tags table, and
+in that case, also make the tags table state variables 
+buffer-local and set them to nil."
   (set (make-local-variable 'tags-table-files) nil)
   (set (make-local-variable 'tags-completion-table) nil)
   (set (make-local-variable 'tags-included-tables) nil)
@@ -357,13 +357,13 @@ file the tag was in."
 	  (setq tags-table-computed-list-for compute-for
 		tags-table-computed-list (nreverse computed))))))
 
-;; Extend `tags-table-computed-list' to remove the first `t' placeholder.
-;; An element of the list that is `t' is a placeholder indicating that the
-;; preceding element is a table that has not been read into core and might
-;; contain included tables to search.  On return, the first placeholder
-;; element will be gone and the element before it read into core and its
-;; included tables inserted into the list.
 (defun tags-table-extend-computed-list ()
+  "Extend `tags-table-computed-list' to remove the first t placeholder.
+
+An element of the list that is t is a placeholder indicating that the
+preceding element is a table that has not been read in and might
+contain included tables to search.  This function reads in the first
+such table and puts its included tables into the list."
   (let ((list tags-table-computed-list))
     (while (not (eq (nth 1 list) t))
       (setq list (cdr list)))
@@ -398,8 +398,8 @@ file the tag was in."
 	;; It was not a valid table, so just remove the following placeholder.
 	(setcdr list (cdr (cdr list)))))))
 
-;; Expand tags table name FILE into a complete file name.
 (defun tags-expand-table-name (file)
+  "Expand tags table name FILE into a complete file name."
   (setq file (expand-file-name file))
   (if (file-directory-p file)
       (expand-file-name "TAGS" file)
@@ -408,6 +408,10 @@ file the tag was in."
 ;; Like member, but comparison is done after tags-expand-table-name on both
 ;; sides and elements of LIST that are t are skipped.
 (defun tags-table-list-member (file list)
+  "Like (member FILE LIST) after applying `tags-expand-table-name'.
+More precisely, apply `tags-expand-table-name' to FILE
+and each element of LIST, returning the link whose car is the first match.
+If an element of LIST is t, ignore it."
   (setq file (tags-expand-table-name file))
   (while (and list
 	      (or (eq (car list) t)
@@ -464,6 +468,12 @@ Returns non-nil if it is a valid table."
 ;; we return.  If CORE-ONLY is non-nil, check only tags tables that are
 ;; already in buffers--don't visit any new files.
 (defun tags-table-including (this-file core-only)
+  "Search current tags tables for tags for THIS-FILE.
+Subroutine of `visit-tags-table-buffer'.
+Looks for a tags table that has such tags or that includes a table
+that has them.  Returns the name of the first such table.
+Non-nil CORE-ONLY means check only tags tables that are already in
+buffers.  Nil CORE-ONLY is ignored."
   (let ((tables tags-table-computed-list)
 	(found nil))
     ;; Loop over the list, looking for a table containing tags for THIS-FILE.
@@ -509,9 +519,10 @@ Returns non-nil if it is a valid table."
 	  ;; included the one we found.
 	  could-be))))
 
-;; Subroutine of visit-tags-table-buffer.  Move tags-table-list-pointer
-;; along and set tags-file-name.  Returns nil when out of tables.
 (defun tags-next-table ()
+  "Move `tags-table-list-pointer' along and set `tags-file-name'.
+Subroutine of `visit-tags-table-buffer'.\
+Returns nil when out of tables."
   ;; If there is a placeholder element next, compute the list to replace it.
   (while (eq (nth 1 tags-table-list-pointer) t)
     (tags-table-extend-computed-list))
@@ -672,7 +683,7 @@ Returns t if it visits a tags table, or nil if there are no more in the list."
 					  tags-table-set-list)))
 			  ;; Clear out buffers holding old tables.
 			  (dolist (table tags-table-list)
-			    ;; The list can contain items `t'.
+			    ;; The list can contain items t.
 			    (if (stringp table)
 				(let ((buffer (find-buffer-visiting table)))
 			      (if buffer
@@ -742,10 +753,10 @@ Assumes the tags table is the current buffer."
   (or tags-included-tables
       (setq tags-included-tables (funcall tags-included-tables-function))))
 
-;; Build tags-completion-table on demand.  The single current tags table
-;; and its included tags tables (and their included tables, etc.) have
-;; their tags included in the completion table.
 (defun tags-completion-table ()
+  "Build `tags-completion-table' on demand.
+The tags included in the completion table are those in the current
+tags table and its (recursively) included tags tables."
   (or tags-completion-table
       ;; No cached value for this buffer.
       (condition-case ()
@@ -769,9 +780,10 @@ Assumes the tags table is the current buffer."
 	(quit (message "Tags completion table construction aborted.")
 	      (setq tags-completion-table nil)))))
 
-;; Completion function for tags.  Does normal try-completion,
-;; but builds tags-completion-table on demand.
 (defun tags-complete-tag (string predicate what)
+  "Completion function for tags.
+Does normal `try-completion', but builds `tags-completion-table' on
+demand."
   (save-excursion
     ;; If we need to ask for the tag table, allow that.
     (let ((enable-recursive-minibuffers t))
@@ -780,8 +792,8 @@ Assumes the tags table is the current buffer."
 	(all-completions string (tags-completion-table) predicate)
       (try-completion string (tags-completion-table) predicate))))
 
-;; Read a tag name from the minibuffer with defaulting and completion.
 (defun find-tag-tag (string)
+  "Read a tag name, with defaulting and completion."
   (let* ((completion-ignore-case (if (memq tags-case-fold-search '(t nil))
 				     tags-case-fold-search
 				   case-fold-search))
@@ -802,8 +814,10 @@ Assumes the tags table is the current buffer."
 (defvar last-tag nil
   "Last tag found by \\[find-tag].")
 
-;; Get interactive args for find-tag{-noselect,-other-window,-regexp}.
 (defun find-tag-interactive (prompt &optional no-default)
+  "Get interactive arguments for tag functions.
+The functions using this are `find-tag-noselect',
+`find-tag-other-window', and `find-tag-regexp'."
   (if (and current-prefix-arg last-tag)
       (list nil (if (< (prefix-numeric-value current-prefix-arg) 0)
 		    '-
@@ -812,7 +826,7 @@ Assumes the tags table is the current buffer."
 	      (read-string prompt)
 	    (find-tag-tag prompt)))))
 
-(defvar find-tag-history nil)
+(defvar find-tag-history nil) ; Doc string?
 
 ;; Dynamic bondage:
 (eval-when-compile
@@ -1028,26 +1042,8 @@ where they were found."
     (goto-char (marker-position marker))
     (set-marker marker nil nil)))
 
-;; Internal tag finding function.
-
-;; PATTERN is a string to pass to second arg SEARCH-FORWARD-FUNC, and to
-;; any member of the function list ORDER (third arg).  If ORDER is nil,
-;; use saved state to continue a previous search.
-
-;; Fourth arg NEXT-LINE-AFTER-FAILURE-P is non-nil if after a failed match,
-;; point should be moved to the next line.
-
-;; Fifth arg MATCHING is a string, an English '-ing' word, to be used in
-;; an error message.
-
-;; Algorithm is as follows.  For each qualifier-func in ORDER, go to
-;; beginning of tags file, and perform inner loop: for each naive match for
-;; PATTERN found using SEARCH-FORWARD-FUNC, qualify the naive match using
-;; qualifier-func.  If it qualifies, go to the specified line in the
-;; specified source file and return.  Qualified matches are remembered to
-;; avoid repetition.  State is saved so that the loop can be continued.
-
-(defvar tag-lines-already-matched nil)	;matches remembered here between calls
+(defvar tag-lines-already-matched nil
+  "Matches remembered between calls.") ; Doc string: calls to what?
 
 (defun find-tag-in-order (pattern
 			  search-forward-func
@@ -1055,6 +1051,23 @@ where they were found."
 			  next-line-after-failure-p
 			  matching
 			  first-search)
+  "Internal tag-finding function.
+PATTERN is a string to pass to arg SEARCH-FORWARD-FUNC, and to any
+member of the function list ORDER.  If ORDER is nil, use saved state
+to continue a previous search.
+
+Arg NEXT-LINE-AFTER-FAILURE-P is non-nil if after a failed match,
+point should be moved to the next line.
+
+Arg MATCHING is a string, an English `-ing' word, to be used in an
+error message."
+;; Algorithm is as follows:
+;; For each qualifier-func in ORDER, go to beginning of tags file, and
+;; perform inner loop: for each naive match for PATTERN found using
+;; SEARCH-FORWARD-FUNC, qualify the naive match using qualifier-func.  If
+;; it qualifies, go to the specified line in the specified source file
+;; and return.  Qualified matches are remembered to avoid repetition.
+;; State is saved so that the loop can be continued.
   (let (file				;name of file containing tag
 	tag-info			;where to find the tag in FILE
 	(first-table t)
@@ -1147,10 +1160,9 @@ where they were found."
       (current-buffer))))
 
 (defun tag-find-file-of-tag-noselect (file)
-  ;; Find the right line in the specified file.
-  ;; If we are interested in compressed-files,
-  ;; we search files with extensions.
-  ;; otherwise only the real file.
+  "Find the right line in the specified FILE."
+  ;; If interested in compressed-files, search files with extensions.
+  ;; Otherwise, search only the real file.
   (let* ((buffer-search-extensions (if (featurep 'jka-compr)
 				       tags-compression-info-list
 				     '("")))
@@ -1180,7 +1192,7 @@ where they were found."
 	  (error "File %s not found" file))
       (set-buffer the-buffer))))
 
-(defun tag-find-file-of-tag (file)
+(defun tag-find-file-of-tag (file) ; Doc string?
   (let ((buf (tag-find-file-of-tag-noselect file)))
     (condition-case nil
 	(switch-to-buffer buf)
@@ -1188,9 +1200,10 @@ where they were found."
 
 ;; `etags' TAGS file format support.
 
-;; If the current buffer is a valid etags TAGS file, give it local values of
-;; the tags table format variables, and return non-nil.
 (defun etags-recognize-tags-table ()
+  "If `etags-verify-tags-table', make buffer-local format variables.
+If current buffer is a valid etags TAGS file, then give it
+buffer-local values of tags table format variables."
   (and (etags-verify-tags-table)
        ;; It is annoying to flash messages on the screen briefly,
        ;; and this message is not useful.  -- rms
@@ -1225,7 +1238,7 @@ where they were found."
   ;; Use eq instead of = in case char-after returns nil.
   (eq (char-after (point-min)) ?\f))
 
-(defun etags-file-of-tag (&optional relative)
+(defun etags-file-of-tag (&optional relative) ; Doc string?
   (save-excursion
     (re-search-backward "\f\n\\([^\n]+\\),[0-9]*\n")
     (let ((str (buffer-substring (match-beginning 1) (match-end 1))))
@@ -1235,7 +1248,7 @@ where they were found."
 			  (file-truename default-directory))))))
 
 
-(defun etags-tags-completion-table ()
+(defun etags-tags-completion-table () ; Doc string?
   (let ((table (make-vector 511 0))
 	(progress-reporter
 	 (make-progress-reporter
@@ -1265,7 +1278,7 @@ where they were found."
 		table)))
     table))
 
-(defun etags-snarf-tag (&optional use-explicit)
+(defun etags-snarf-tag (&optional use-explicit) ; Doc string?
   (let (tag-text line startpos explicit-start)
     (if (save-excursion
 	  (forward-line -1)
@@ -1305,15 +1318,20 @@ where they were found."
     (forward-line 1)
     (cons tag-text (cons line startpos))))
 
-;; TAG-INFO is a cons (TEXT LINE . POSITION) where TEXT is the initial part
-;; of a line containing the tag and POSITION is the character position of
-;; TEXT within the file (starting from 1); LINE is the line number.  If
-;; TEXT is t, it means the tag refers to exactly LINE or POSITION
-;; (whichever is present, LINE having preference, no searching.  Either
-;; LINE or POSITION may be nil; POSITION is used if present.  If the tag
-;; isn't exactly at the given position then look around that position using
-;; a search window which expands until it hits the start of file.
 (defun etags-goto-tag-location (tag-info)
+  "Go to location of tag specified by TAG-INFO.
+TAG-INFO is a cons (TEXT LINE . POSITION).
+TEXT is the initial part of a line containing the tag.
+LINE is the line number.
+POSITION is the (one-based) char position of TEXT within the file.
+
+If TEXT is t, it means the tag refers to exactly LINE or POSITION,
+whichever is present, LINE having preference, no searching.
+Either LINE or POSITION can be nil.  POSITION is used if present.
+
+If the tag isn't exactly at the given position, then look near that
+position using a search window that expands progressively until it
+hits the start of file."
   (let ((startpos (cdr (cdr tag-info)))
 	(line (car (cdr tag-info)))
 	offset found pat)
@@ -1362,7 +1380,7 @@ where they were found."
 	 (forward-char 1))
     (beginning-of-line)))
 
-(defun etags-list-tags (file)
+(defun etags-list-tags (file) ; Doc string?
   (goto-char (point-min))
   (when (re-search-forward (concat "\f\n" "\\(" file "\\)" ",") nil t)
     (let ((path (save-excursion (forward-line 1) (file-of-tag)))
@@ -1435,7 +1453,7 @@ where they were found."
 	    (funcall ins-symb (car sy))))
         (sort-lines nil beg (point))))))
 
-(defun etags-tags-apropos (string)
+(defun etags-tags-apropos (string) ; Doc string?
   (when tags-apropos-verbose
     (princ "Tags in file `")
     (tags-with-face 'highlight (princ buffer-file-name))
@@ -1496,7 +1514,7 @@ where they were found."
     (message nil))
   (when tags-apropos-verbose (princ "\n")))
 
-(defun etags-tags-table-files ()
+(defun etags-tags-table-files () ; Doc string?
   (let ((files nil)
 	beg)
     (goto-char (point-min))
@@ -1508,7 +1526,7 @@ where they were found."
 	  (setq files (cons (buffer-substring beg (1- (point))) files))))
     (nreverse files)))
 
-(defun etags-tags-included-tables ()
+(defun etags-tags-included-tables () ; Doc string?
   (let ((files nil)
 	beg)
     (goto-char (point-min))
@@ -1524,9 +1542,10 @@ where they were found."
 
 ;; Empty tags file support.
 
-;; Recognize an empty file and give it local values of the tags table format
-;; variables which do nothing.
 (defun tags-recognize-empty-tags-table ()
+  "Return non-nil if current buffer is empty.
+If empty, make buffer-local values of the tags table format variables
+that do nothing."
   (and (zerop (buffer-size))
        (mapc (lambda (sym) (set (make-local-variable sym) 'ignore))
 	     '(tags-table-files-function
@@ -1560,15 +1579,20 @@ where they were found."
 ;; exact file name match, i.e. searched tag must match complete file
 ;; name including directories parts if there are some.
 (defun tag-exact-file-name-match-p (tag)
+  "Return non-nil if TAG matches complete file name.
+Any directory part of the file name is also matched."
   (and (looking-at ",[0-9\n]")
        (save-excursion (backward-char (+ 2 (length tag)))
 		       (looking-at "\f\n"))))
+
 ;; file name match as above, but searched tag must match the file
 ;; name not including the directories if there are some.
 (defun tag-file-name-match-p (tag)
+  "Return non-nil if TAG matches file name, excluding directory part."
   (and (looking-at ",[0-9\n]")
        (save-excursion (backward-char (1+ (length tag)))
 		       (looking-at "/"))))
+
 ;; this / to detect we are after a directory separator is ok for unix,
 ;; is there a variable that contains the regexp for directory separator
 ;; on whatever operating system ?
@@ -1577,6 +1601,8 @@ where they were found."
 ;; t if point is at a tag line that matches TAG exactly.
 ;; point should be just after a string that matches TAG.
 (defun tag-exact-match-p (tag)
+  "Return non-nil if current tag line matches TAG exactly.
+Point should be just after a string that matches TAG."
   ;; The match is really exact if there is an explicit tag name.
   (or (and (eq (char-after (point)) ?\001)
 	   (eq (char-after (- (point) (length tag) 1)) ?\177))
@@ -1586,6 +1612,8 @@ where they were found."
 ;; t if point is at a tag line that has an implicit name.
 ;; point should be just after a string that matches TAG.
 (defun tag-implicit-name-match-p (tag)
+  "Return non-nil if current tag line has an implicit name.
+Point should be just after a string that matches TAG."
   ;; Look at the comment of the make_tag function in lib-src/etags.c for
   ;; a textual description of the four rules.
   (and (string-match "^[^ \t()=,;]+$" tag) ;rule #1
@@ -1597,6 +1625,8 @@ where they were found."
 ;; t if point is at a tag line that matches TAG as a symbol.
 ;; point should be just after a string that matches TAG.
 (defun tag-symbol-match-p (tag)
+  "Return non-nil if current tag line matches TAG as a symbol.
+Point should be just after a string that matches TAG."
   (and (looking-at "\\Sw.*\177") (looking-at "\\S_.*\177")
        (save-excursion
 	 (backward-char (1+ (length tag)))
@@ -1605,6 +1635,8 @@ where they were found."
 ;; t if point is at a tag line that matches TAG as a word.
 ;; point should be just after a string that matches TAG.
 (defun tag-word-match-p (tag)
+  "Return non-nil if current tag line matches TAG as a word.
+Point should be just after a string that matches TAG."
   (and (looking-at "\\b.*\177")
        (save-excursion (backward-char (length tag))
 		       (looking-at "\\b"))))
@@ -1612,6 +1644,9 @@ where they were found."
 ;; partial file name match, i.e. searched tag must match a substring
 ;; of the file name (potentially including a directory separator).
 (defun tag-partial-file-name-match-p (tag)
+  "Return non-nil if current tag matches file name.
+This is a substring match, and it can include directory separators.
+Point should be just after a string that matches TAG."
   (and (looking-at ".*,[0-9\n]")
        (save-excursion (beginning-of-line)
                        (backward-char 2)
@@ -1619,10 +1654,12 @@ where they were found."
 
 ;; t if point is in a tag line with a tag containing TAG as a substring.
 (defun tag-any-match-p (tag)
+  "Return non-nil if current tag line contains TAG as a substring."
   (looking-at ".*\177"))
 
 ;; t if point is at a tag line that matches RE as a regexp.
 (defun tag-re-match-p (re)
+  "Return non-nil if current tag line matches regexp RE."
   (save-excursion
     (beginning-of-line)
     (let ((bol (point)))
@@ -1845,7 +1882,7 @@ See also the documentation of the variable `tags-file-name'."
 	tags-loop-operate `(perform-replace ',from ',to t t ',delimited))
   (tags-loop-continue (or file-list-form t)))
 
-(defun tags-complete-tags-table-file (string predicate what)
+(defun tags-complete-tags-table-file (string predicate what) ; Doc string?
   (save-excursion
     ;; If we need to ask for the tag table, allow that.
     (let ((enable-recursive-minibuffers t))
@@ -1966,7 +2003,7 @@ see the doc of that variable if you want to add names to the list."
   (set-buffer-modified-p nil)
   (select-tags-table-mode))
 
-(defvar select-tags-table-mode-map
+(defvar select-tags-table-mode-map ; Doc string?
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map button-buffer-map)
     (define-key map "t" 'push-button)
