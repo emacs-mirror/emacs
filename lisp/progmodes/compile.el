@@ -346,7 +346,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      (0 'default t)
      (1 compilation-error-face prepend) (2 compilation-line-face prepend))
 
-    (compilation-perl--Pod::Checker
+    (perl--Pod::Checker
      ;; podchecker error messages, per Pod::Checker.
      ;; The style is from the Pod::Checker::poderror() function, eg.
      ;; *** ERROR: Spurious text after =cut at line 193 in file foo.pm
@@ -364,14 +364,14 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      "^\\*\\*\\* \\(?:ERROR\\|\\(WARNING\\)\\).* \\(?:at\\|on\\) line \
 \\([0-9]+\\) \\(?:.* \\)?in file \\([^ \t\n]+\\)"
      3 2 nil (1))
-    (compilation-perl--Test
+    (perl--Test
      ;; perl Test module error messages.
      ;; Style per the ok() function "$context", eg.
      ;; # Failed test 1 in foo.t at line 6
      ;;
      "^# Failed test [0-9]+ in \\([^ \t\r\n]+\\) at line \\([0-9]+\\)"
      1 2)
-    (compilation-perl--Test2
+    (perl--Test2
      ;; Or when comparing got/want values,
      ;; # Test 2 got: "xx" (t-compilation-perl-2.t at line 10)
      ;;
@@ -382,7 +382,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      "^\\(.*NOK.*\\)?# Test [0-9]+ got:.* (\\([^ \t\r\n]+\\) at line \
 \\([0-9]+\\))"
      2 3)
-    (compilation-perl--Test::Harness
+    (perl--Test::Harness
      ;; perl Test::Harness output, eg.
      ;; NOK 1# Test 1 got: "1234" (t/foo.t at line 46)
      ;;
@@ -393,7 +393,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      ;;
      "^.*NOK.* \\([^ \t\r\n]+\\) at line \\([0-9]+\\)"
      1 2)
-    (compilation-weblint
+    (weblint
      ;; The style comes from HTML::Lint::Error::as_string(), eg.
      ;; index.html (13:1) Unknown element <fdjsk>
      ;;
