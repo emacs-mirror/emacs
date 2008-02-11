@@ -5293,7 +5293,10 @@ to decide what to delete."
 Type \\<completion-list-mode-map>\\[choose-completion] in the completion list\
  to select the completion near point.
 Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
- with the mouse."
+ with the mouse.
+
+\\{completion-list-mode-map}"
+
   (interactive)
   (kill-all-local-variables)
   (use-local-map completion-list-mode-map)
