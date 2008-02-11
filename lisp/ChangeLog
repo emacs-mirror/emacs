@@ -1,5 +1,8 @@
 2008-02-11  Glenn Morris  <rgm@gnu.org>
 
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Shorten some names.
+
 	* ffap.el (ffap-rfc-directories): Add :version.
 
 2008-02-11  Chris Moore  <christopher.ian.moore@gmail.com>
