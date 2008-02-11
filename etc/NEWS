@@ -131,6 +131,11 @@ run processes remotely.
 
 ** The new command `display-time-world' starts an updating time display
 using several time zones, in a buffer.
+
+** The new variable `emacs-startup-time' gives the time at which Emacs started.
+
+** The new function `emacs-uptime' returns the uptime of an Emacs instance.
+
 
 * Startup Changes in Emacs 23.1
 
