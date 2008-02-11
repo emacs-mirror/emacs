@@ -1410,7 +1410,7 @@ But FORCE inhibits this too.  */)
      unless FORCE is `noelisp' or frame is a tooltip.
      FORCE is set to `noelisp' when handling a disconnect from the terminal,
      so we don't dare call Lisp code.  */
-  if (!NILP (Vrun_hooks) && EQ (force, Qnoelisp)
+  if (!NILP (Vrun_hooks) && !EQ (force, Qnoelisp)
       && NILP (Fframe_parameter (frame, intern ("tooltip"))))
     {
       Lisp_Object args[2];
