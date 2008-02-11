@@ -332,7 +332,8 @@ push_submenu_start ()
   if (menu_items_used + 1 > menu_items_allocated)
     grow_menu_items ();
 
-  ASET (menu_items, menu_items_used++, Qnil);
+  ASET (menu_items, menu_items_used, Qnil);
+  menu_items_used++;
   menu_items_submenu_depth++;
 }
 
@@ -344,7 +345,8 @@ push_submenu_end ()
   if (menu_items_used + 1 > menu_items_allocated)
     grow_menu_items ();
 
-  ASET (menu_items, menu_items_used++, Qlambda);
+  ASET (menu_items, menu_items_used, Qlambda);
+  menu_items_used++;
   menu_items_submenu_depth--;
 }
 
@@ -356,7 +358,8 @@ push_left_right_boundary ()
   if (menu_items_used + 1 > menu_items_allocated)
     grow_menu_items ();
 
-  ASET (menu_items, menu_items_used++, Qquote);
+  ASET (menu_items, menu_items_used, Qquote);
+  menu_items_used++;
 }
 
 /* Start a new menu pane in menu_items.
@@ -371,9 +374,9 @@ push_menu_pane (name, prefix_vec)
 
   if (menu_items_submenu_depth == 0)
     menu_items_n_panes++;
-  ASET (menu_items, menu_items_used++, Qt);
-  ASET (menu_items, menu_items_used++, name);
-  ASET (menu_items, menu_items_used++, prefix_vec);
+  ASET (menu_items, menu_items_used, Qt);         menu_items_used++;
+  ASET (menu_items, menu_items_used, name);       menu_items_used++;
+  ASET (menu_items, menu_items_used, prefix_vec); menu_items_used++;
 }
 
 /* Push one menu item into the current pane.  NAME is the string to
@@ -391,14 +394,14 @@ push_menu_item (name, enable, key, def, equiv, type, selected, help)
   if (menu_items_used + MENU_ITEMS_ITEM_LENGTH > menu_items_allocated)
     grow_menu_items ();
 
-  ASET (menu_items, menu_items_used++, name);
-  ASET (menu_items, menu_items_used++, enable);
-  ASET (menu_items, menu_items_used++, key);
-  ASET (menu_items, menu_items_used++, equiv);
-  ASET (menu_items, menu_items_used++, def);
-  ASET (menu_items, menu_items_used++, type);
-  ASET (menu_items, menu_items_used++, selected);
-  ASET (menu_items, menu_items_used++, help);
+  ASET (menu_items, menu_items_used, name);     menu_items_used++;
+  ASET (menu_items, menu_items_used, enable);   menu_items_used++;
+  ASET (menu_items, menu_items_used, key);      menu_items_used++;
+  ASET (menu_items, menu_items_used, equiv);    menu_items_used++;
+  ASET (menu_items, menu_items_used, def);      menu_items_used++;
+  ASET (menu_items, menu_items_used, type);     menu_items_used++;
+  ASET (menu_items, menu_items_used, selected); menu_items_used++;
+  ASET (menu_items, menu_items_used, help);     menu_items_used++;
 }
 
 /* Look through KEYMAPS, a vector of keymaps that is NMAPS long,
