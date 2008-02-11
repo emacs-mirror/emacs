@@ -1,6 +1,6 @@
 2008-02-11  Chris Moore  <christopher.ian.moore@gmail.com>
 
-	* jka-cmpr-hook.el (jka-compr-compression-info-list): Handle .svgz
+	* jka-cmpr-hook.el (jka-compr-compression-info-list): Handle .sifz
 	files, and backup files of same.
 
 2008-02-11  Kevin Ryde  <user42@zip.com.au>
