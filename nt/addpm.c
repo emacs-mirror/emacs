@@ -46,6 +46,9 @@ DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
 		              CF_TEXT, XTYP_EXECUTE, 30000, NULL)
 
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
+#define REG_GTK "SOFTWARE\\GTK\\2.0"
+#define REG_APP_PATH \
+  "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\emacs.exe"
 
 static struct entry
 {
@@ -73,6 +76,57 @@ add_registry (path)
   HKEY hrootkey = NULL;
   int i;
   BOOL ok = TRUE;
+  DWORD size;
+
+  /* Record the location of Emacs to the App Paths key if we have
+     sufficient permissions to do so.  This helps Windows find emacs quickly
+     if the user types emacs.exe in the "Run Program" dialog without having
+     emacs on their path.  Some applications also use the same registry key
+     to discover the installation directory for programs they are looking for.
+     Multiple installations cannot be handled by this method, but it does not
+     affect the general operation of other installations of Emacs, and we
+     are blindly overwriting the Start Menu entries already.
+  */
+  if (RegCreateKeyEx (HKEY_LOCAL_MACHINE, REG_APP_PATH, 0, "", 
+                      REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL,
+                      &hrootkey, NULL) == ERROR_SUCCESS)
+    {
+      int len;
+      char *emacs_path;
+      HKEY gtk_key = NULL;
+
+      len = strlen (path) + 15; /* \bin\emacs.exe + terminator.  */
+      emacs_path = alloca (len);
+      sprintf (emacs_path, "%s\\bin\\emacs.exe", path);
+
+      RegSetValueEx (hrootkey, NULL, 0, REG_SZ, emacs_path, len);
+
+      /* Look for a GTK installation. If found, add it to the library search
+         path for Emacs so that the image libraries it provides are available
+         to Emacs regardless of whether it is in the path or not.  */
+      if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, REG_GTK, REG_OPTION_NON_VOLATILE,
+                        KEY_READ, &gtk_key) == ERROR_SUCCESS)
+        {
+          if (RegQueryValueEx (gtk_key, "DllPath", NULL, NULL,
+                               NULL, &size) == ERROR_SUCCESS)
+            {
+              char *gtk_path = (char *) alloca (size);
+              if (RegQueryValueEx (gtk_key, "DllPath", NULL, NULL,
+                                   gtk_path, &size) == ERROR_SUCCESS)
+                {
+                  /* Make sure the emacs bin directory continues to be searched
+                     first by including it as well.  */
+                  char *dll_paths;
+                  len = strlen (path) + 5 + size;
+                  dll_paths = (char *) alloca (size + strlen (path) + 1);
+                  sprintf (dll_paths, "%s\\bin;%s", path, gtk_path);
+                  RegSetValueEx (hrootkey, "Path", 0, REG_SZ, dll_paths, len);
+                }
+            }
+          RegCloseKey (gtk_key);
+        }
+      RegCloseKey (hrootkey);
+    }
 
   /* Previous versions relied on registry settings, but we do not need
      them any more.  If registry settings are installed from a previous
