@@ -960,6 +960,7 @@ If t, `ffap-tex-init' will initialize this when needed.")
   "A list of directories to look for RFC files.
 If a given RFC isn't in these then `ffap-rfc-path' is offered."
   :type '(repeat directory)
+  :version "23.1"
   :group 'ffap)
 
 (defvar ffap-rfc-path
