@@ -1,3 +1,13 @@
+2008-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* objects.texi (Equality Predicates): No longer talk about "two"
+	functions.
+
+2008-02-11  Lawrence Mitchell <wence@gmx.li>  (tiny change)
+
+	* objects.texi (Equality Predicates): Add defun for
+	equal-including-properties.
+
 2008-02-10  Glenn Morris  <rgm@gnu.org>
 
 	* objects.texi (Equality Predicates):
