@@ -189,6 +189,13 @@ It actually holds the list of `uniquify-item's corresponding to the conflict.")
 (make-variable-buffer-local 'uniquify-managed)
 (put 'uniquify-managed 'permanent-local t)
 
+;; Used in desktop.el to save the non-uniquified buffer name
+(defun uniquify-buffer-base-name ()
+  "Return the base name of the current buffer.
+Return nil if the buffer is not managed by uniquify."
+  (and uniquify-managed
+       (uniquify-item-base (car uniquify-managed))))
+
 ;;; Main entry point.
 
 (defun uniquify-rationalize-file-buffer-names (base dirname newbuf)
@@ -489,7 +496,7 @@ For use on `kill-buffer-hook'."
       (dolist (buf buffers)
 	(set-buffer (car buf))
 	(rename-buffer (cdr buf) t))))
-  ;; continue standard uploading
+  ;; continue standard unloading
   nil)
 
 (provide 'uniquify)
