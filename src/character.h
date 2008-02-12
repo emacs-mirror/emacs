@@ -385,14 +385,17 @@ extern char unibyte_has_multibyte_table[256];
       CHARIDX++;							\
       if (STRING_MULTIBYTE (STRING))					\
 	{								\
-	  unsigned char *ptr = &XSTRING (STRING)->data[BYTEIDX];	\
+	  unsigned char *ptr = &SDATA (STRING)[BYTEIDX];		\
 	  int len;							\
 									\
 	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, 0, len);		\
 	  BYTEIDX += len;						\
 	}								\
       else								\
-	OUTPUT = XSTRING (STRING)->data[BYTEIDX++];			\
+	{								\
+	  OUTPUT = SREF (STRING, BYTEIDX);				\
+	  BYTEIDX++;							\
+	}								\
     }									\
   while (0)
 
@@ -405,7 +408,7 @@ extern char unibyte_has_multibyte_table[256];
       CHARIDX++;							      \
       if (STRING_MULTIBYTE (STRING))					      \
 	{								      \
-	  unsigned char *ptr = &XSTRING (STRING)->data[BYTEIDX];	      \
+	  unsigned char *ptr = &SDATA (STRING)[BYTEIDX];		      \
 	  int len;							      \
 									      \
 	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, 0, len);		      \
@@ -413,7 +416,8 @@ extern char unibyte_has_multibyte_table[256];
 	}								      \
       else								      \
 	{								      \
-	  OUTPUT = XSTRING (STRING)->data[BYTEIDX++];			      \
+	  OUTPUT = SREF (STRING, BYTEIDX);				      \
+	  BYTEIDX++;							      \
 	  MAKE_CHAR_MULTIBYTE (OUTPUT);					      \
 	}								      \
     }									      \
@@ -425,7 +429,7 @@ extern char unibyte_has_multibyte_table[256];
 #define FETCH_STRING_CHAR_ADVANCE_NO_CHECK(OUTPUT, STRING, CHARIDX, BYTEIDX) \
   do    								     \
     {									     \
-      unsigned char *ptr = &XSTRING (STRING)->data[BYTEIDX];		     \
+      unsigned char *ptr = &SDATA (STRING)[BYTEIDX];			     \
       int len;								     \
 									     \
       OUTPUT = STRING_CHAR_AND_LENGTH (ptr, 0, len);			     \
@@ -493,9 +497,9 @@ extern char unibyte_has_multibyte_table[256];
     						\
     pos_byte--;					\
     if (pos_byte < GPT_BYTE)			\
-      p = BEG_ADDR + pos_byte - 1;		\
+      p = BEG_ADDR + pos_byte - BEG_BYTE;	\
     else					\
-      p = BEG_ADDR + GAP_SIZE + pos_byte - 1;	\
+      p = BEG_ADDR + GAP_SIZE + pos_byte - BEG_BYTE;\
     while (!CHAR_HEAD_P (*p))			\
       {						\
 	p--;					\
@@ -551,9 +555,9 @@ extern char unibyte_has_multibyte_table[256];
     unsigned char *p;							\
     pos_byte--;								\
     if (pos_byte < BUF_GPT_BYTE (buf))					\
-      p = BUF_BEG_ADDR (buf) + pos_byte - 1;				\
+      p = BUF_BEG_ADDR (buf) + pos_byte - BEG_BYTE;			\
     else								\
-      p = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos_byte - 1;	\
+      p = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos_byte - BEG_BYTE;\
     while (!CHAR_HEAD_P (*p))						\
       {									\
 	p--;								\

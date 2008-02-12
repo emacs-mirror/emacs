@@ -1,5 +1,10 @@
 2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* character.h (FETCH_STRING_CHAR_ADVANCE)
+	(FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE)
+	(FETCH_STRING_CHAR_ADVANCE_NO_CHECK): Use SDATA and SREF.
+	(DEC_POS, BUF_DEC_POS): Use BEG_BYTE rather than hardcoding 1.
+
 	* casefiddle.c (casify_region): Only call after-change and composition
 	functions on the part of the region that was changed.
 
