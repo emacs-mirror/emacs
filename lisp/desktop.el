@@ -1292,7 +1292,9 @@ If there are no buffers left to create, kill the timer."
       (when (member key command-line-args)
         (setq command-line-args (delete key command-line-args))
         (setq desktop-save-mode nil)))
-    (when desktop-save-mode (desktop-read))))
+    (when desktop-save-mode
+      (desktop-read)
+      (setq inhibit-startup-screen t))))
 
 (provide 'desktop)
 
