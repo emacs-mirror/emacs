@@ -999,7 +999,7 @@ coding_set_destination (coding)
     {
       if (coding->src_pos < 0)
 	{
-	  coding->destination = BEG_ADDR + coding->dst_pos_byte - 1;
+	  coding->destination = BEG_ADDR + coding->dst_pos_byte - BEG_BYTE;
 	  coding->dst_bytes = (GAP_END_ADDR
 			       - (coding->src_bytes - coding->consumed)
 			       - coding->destination);
@@ -1009,7 +1009,7 @@ coding_set_destination (coding)
 	  /* We are sure that coding->dst_pos_byte is before the gap
 	     of the buffer. */
 	  coding->destination = (BUF_BEG_ADDR (XBUFFER (coding->dst_object))
-				 + coding->dst_pos_byte - 1);
+				 + coding->dst_pos_byte - BEG_BYTE);
 	  coding->dst_bytes = (BUF_GAP_END_ADDR (XBUFFER (coding->dst_object))
 			       - coding->destination);
 	}
@@ -7329,7 +7329,8 @@ Lisp_Object
 detect_coding_system (src, src_chars, src_bytes, highest, multibytep,
 		      coding_system)
      const unsigned char *src;
-     int src_chars, src_bytes, highest;
+     EMACS_INT src_chars, src_bytes;
+     int highest;
      int multibytep;
      Lisp_Object coding_system;
 {

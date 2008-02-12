@@ -4183,12 +4183,12 @@ variable `last-coding-system-used' to the coding system actually used.  */)
      in a more optimized way.  */
   if (!NILP (replace) && ! replace_handled && BEGV < ZV)
     {
-      int same_at_start = BEGV_BYTE;
-      int same_at_end = ZV_BYTE;
-      int same_at_start_charpos;
-      int inserted_chars;
-      int overlap;
-      int bufpos;
+      EMACS_INT same_at_start = BEGV_BYTE;
+      EMACS_INT same_at_end = ZV_BYTE;
+      EMACS_INT same_at_start_charpos;
+      EMACS_INT inserted_chars;
+      EMACS_INT overlap;
+      EMACS_INT bufpos;
       unsigned char *decoded;
       int temp;
       int this_count = SPECPDL_INDEX ();

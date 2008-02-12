@@ -1172,7 +1172,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 
 void
 insert_from_gap (nchars, nbytes)
-     register int nchars, nbytes;
+     register EMACS_INT nchars, nbytes;
 {
   if (NILP (current_buffer->enable_multibyte_characters))
     nchars = nbytes;

@@ -1,5 +1,16 @@
 2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* coding.c (coding_set_destination): Use BEG_BYTE rather than hardcoding 1.
+	(detect_coding_system):
+	* lisp.h (detect_coding_system, chars_in_text, multibyte_chars_in_text)
+	(string_char_to_byte, string_byte_to_char, insert_from_gap):
+	* insdel.c (insert_from_gap):
+	* fns.c (string_char_byte_cache_charpos, string_char_byte_cache_bytepos)
+	(string_char_to_byte, string_byte_to_char, string_make_multibyte)
+	(string_to_multibyte):
+	* character.c (chars_in_text, multibyte_chars_in_text):
+	* fileio.c (Finsert_file_contents): Use EMACS_INT for buffer positions.
+
 	* character.h (FETCH_STRING_CHAR_ADVANCE)
 	(FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE)
 	(FETCH_STRING_CHAR_ADVANCE_NO_CHECK): Use SDATA and SREF.
