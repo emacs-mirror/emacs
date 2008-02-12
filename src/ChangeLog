@@ -1,3 +1,7 @@
+2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Fdelete_frame): Call Fdelete_terminal.
+
 2008-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (clone_per_buffer_values, reset_buffer_local_variables)

@@ -1538,11 +1538,11 @@ But FORCE inhibits this too.  */)
     terminal->reference_count--;
     if (terminal->reference_count == 0)
       {
+	Lisp_Object tmp;
+	XSETTERMINAL (tmp, terminal);
+
         kb = NULL;
-        if (terminal->delete_terminal_hook)
-          (*terminal->delete_terminal_hook) (terminal);
-        else
-          delete_terminal (terminal);
+	Fdelete_terminal (tmp, NILP (force) ? Qt : force);
       }
 #ifdef MULTI_KBOARD
     else
