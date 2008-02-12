@@ -2297,7 +2297,7 @@ This function is intended to be added to `auto-coding-functions'."
     (setq size (min (+ (point) size)
 		    (save-excursion
 		      ;; Limit the search by the end of the HTML header.
-		      (or (search-forward "</head>" size t)
+		      (or (search-forward "</head>" (+ (point) size) t)
 			  ;; In case of no header, search only 10 lines.
 			  (forward-line 10))
 		      (point))))

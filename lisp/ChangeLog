@@ -1,5 +1,8 @@
 2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Make sure the search limit is ahead.
+
 	* tar-mode.el: Fix broken indentation.
 	(tar-mouse-extract, tar-extract, tar-subfile-save-buffer):
 	Use with-current-buffer.
