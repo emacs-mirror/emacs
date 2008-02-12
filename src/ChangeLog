@@ -1,5 +1,8 @@
 2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* casefiddle.c (casify_region): Only call after-change and composition
+	functions on the part of the region that was changed.
+
 	* keyboard.c (read_avail_input):
 	* frame.c (Fdelete_frame): Call Fdelete_terminal.
 
