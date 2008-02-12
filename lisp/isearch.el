@@ -231,6 +231,10 @@ Default value, nil, means edit the string instead."
   :group 'basic-faces)
 (defvar isearch 'isearch)
 
+(defface isearch-fail '((t (:foreground "Black" :background "Plum")))
+  "Face for highlighting failed part in Isearch echo-area message."
+  :group 'isearch)
+
 (defcustom isearch-lazy-highlight t
   "*Controls the lazy-highlighting during incremental search.
 When non-nil, all text in the buffer matching the current search
@@ -1955,21 +1959,22 @@ If there is no completion possible, say so and continue searching."
 (defun isearch-message (&optional c-q-hack ellipsis)
   ;; Generate and print the message string.
   (let ((cursor-in-echo-area ellipsis)
-	(m (concat
+          (cmds isearch-cmds)
+          succ-msg m)
+      (while (not (isearch-success-state (car cmds))) (pop cmds))
+      (setq succ-msg (and cmds (isearch-message-state (car cmds))))
+      (setq m (concat
 	    (isearch-message-prefix c-q-hack ellipsis isearch-nonincremental)
-	    (if (and (not isearch-success)
-                     (string-match " +$" isearch-message))
-                (concat
-                 (substring isearch-message 0 (match-beginning 0))
-                 (propertize (substring isearch-message (match-beginning 0))
-                             'face 'trailing-whitespace))
-              isearch-message)
-	    (isearch-message-suffix c-q-hack ellipsis)
-	    )))
-    (if c-q-hack
-	m
-      (let ((message-log-max nil))
-	(message "%s" m)))))
+               succ-msg
+               (and (not isearch-success)
+                    (string-match (regexp-quote succ-msg) isearch-message)
+                    (not (string= succ-msg isearch-message))
+                    (propertize (substring isearch-message (match-end 0))
+                                'face 'isearch-fail))))
+      (when (and (not isearch-success) (string-match " +$" m))
+        (put-text-property (match-beginning 0) (length m) 'face 'trailing-whitespace m))
+      (setq m (concat m (isearch-message-suffix c-q-hack ellipsis)))
+      (if c-q-hack m (let ((message-log-max nil)) (message "%s" m)))))
 
 (defun isearch-message-prefix (&optional c-q-hack ellipsis nonincremental)
   ;; If about to search, and previous search regexp was invalid,

@@ -1,3 +1,9 @@
+2008-02-11 Drew Adams  <drew.adams@oracle.com>
+
+	* isearch.el:
+	(isearch-fail): New face.
+	(isearch-message): Highlight failure part of input.
+
 2008-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ibuffer.el (ibuffer-header-line-format): New var.
@@ -49,6 +55,7 @@
 
 	* calendar/time-date.el (emacs-uptime): New function.
 
+>>>>>>> 1.12767
 2008-02-10  Bastien Guerry  <bzg@altern.org>
 
 	* mail/rmail.el (rmail-nonignored-headers): Allow to be nil.
