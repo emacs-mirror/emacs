@@ -1,3 +1,9 @@
+2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el: Fix broken indentation.
+	(tar-mouse-extract, tar-extract, tar-subfile-save-buffer):
+	Use with-current-buffer.
+
 2008-02-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* hexl.el (hexl-mode): Don't make `font-lock-defaults' buffer-local;
