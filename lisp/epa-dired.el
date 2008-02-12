@@ -26,18 +26,22 @@
 (require 'epa)
 (require 'dired)
 
-(defvar epa-dired-map
+(defvar epa-dired-mode-map
   (let ((keymap (make-sparse-keymap)))
-    (define-key keymap "d" 'epa-dired-do-decrypt)
-    (define-key keymap "v" 'epa-dired-do-verify)
-    (define-key keymap "s" 'epa-dired-do-sign)
-    (define-key keymap "e" 'epa-dired-do-encrypt)
+    (define-key keymap ":d" 'epa-dired-do-decrypt)
+    (define-key keymap ":v" 'epa-dired-do-verify)
+    (define-key keymap ":s" 'epa-dired-do-sign)
+    (define-key keymap ":e" 'epa-dired-do-encrypt)
     keymap))
 
-(fset 'epa-dired-prefix epa-dired-map)
+(defvar epa-dired-mode-hook nil)
+(defvar epa-dired-mode-on-hook nil)
+(defvar epa-dired-mode-off-hook nil)
 
-(defun epa-dired-mode-hook ()
-  (define-key dired-mode-map ":" 'epa-dired-prefix))
+;;;###autoload
+(define-minor-mode epa-dired-mode
+  "A minor-mode for encrypt/decrypt files with Dired."
+  nil " epa-dired" epa-dired-mode-map)
 
 (defun epa-dired-do-decrypt ()
   "Decrypt marked files."
@@ -83,12 +87,12 @@ If no one is selected, symmetric encryption will be performed.  "))
     (revert-buffer)))
 
 ;;;###autoload
-(define-minor-mode epa-dired-mode
+(define-minor-mode epa-global-dired-mode
   "Minor mode to hook EasyPG into Dired."
   :global t :init-value nil :group 'epa-dired :version "23.1"
-  (remove-hook 'dired-mode-hook 'epa-dired-mode-hook)
-  (if epa-dired-mode
-      (add-hook 'dired-mode-hook 'epa-dired-mode-hook)))
+  (remove-hook 'dired-mode-hook 'epa-dired-mode)
+  (if epa-global-dired-mode
+      (add-hook 'dired-mode-hook 'epa-dired-mode)))
 
 (provide 'epa-dired)
 

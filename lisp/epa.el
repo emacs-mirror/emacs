@@ -45,10 +45,9 @@ the separate window."
   :type 'integer
   :group 'epa)
 
-(defcustom epa-global-minor-modes '(epa-dired-mode
-				    epa-file-mode
+(defcustom epa-global-minor-modes '(epa-global-dired-mode
 				    epa-global-mail-mode
-				    epa-menu-mode)
+				    epa-file-mode)
   "Globally defined minor modes to hook into other modes."
   :type '(repeat symbol)
   :group 'epa)
@@ -240,7 +239,7 @@ You should bind this variable with `let', but do not set it globally.")
 (defvar epa-menu nil)
 
 (defconst epa-menu-items
-  '("EasyPG Assistant"
+  '("Encryption/Decryption"
     ("Decrypt"
      ["File" epa-decrypt-file
       :help "Decrypt a file"]
@@ -1220,28 +1219,23 @@ Don't use this command in Lisp programs!"
 ;; (make-obsolete 'epa-sign-keys "Do not use.")
 
 ;;;###autoload
-(define-minor-mode epa-menu-mode
-  "Minor mode to hook EasyPG into the menu-bar."
-  :global t :init-value nil :group 'epa :version "23.1"
-  (unless epa-menu
-    (easy-menu-define epa-menu nil "EasyPG Assistant global menu"
-      epa-menu-items))
-  (easy-menu-remove-item nil '("Tools") "EasyPG Assistant")
-  (if epa-menu-mode
-      (easy-menu-add-item nil '("Tools") epa-menu)))
-
-;;;###autoload
 (define-minor-mode epa-mode
   "Minor mode to hook EasyPG into various modes.
 See `epa-global-minor-modes'."
   :global t :init-value nil :group 'epa :version "23.1"
+  (unless epa-menu
+    (easy-menu-define epa-menu nil "EasyPG Assistant global menu"
+      epa-menu-items))
+  (easy-menu-remove-item nil '("Tools") "Encryption/Decryption")
+  (if epa-mode
+      (easy-menu-add-item nil '("Tools") epa-menu))
   (let ((modes epa-global-minor-modes)
 	symbol)
     (while modes
       (setq symbol (car modes))
       (if (and symbol
 	       (fboundp symbol))
-	  (funcall symbol (if epa-mode 1 0))
+	  (funcall symbol epa-mode)
 	(message "`%S' not found" (car modes)))
       (setq modes (cdr modes)))))
 

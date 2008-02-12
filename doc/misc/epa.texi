@@ -77,35 +77,22 @@ EasyPG Assistant provides the following features.
 @node  Quick start
 @chapter Quick start
 
-@c To install, just follow the standard CMMI installation instructions.
-
-@c @cartouche
-@c @example
-@c $ ./configure
-@c $ sudo make install
-@c @end example
-@c @end cartouche
-
-@c @noindent
-@c Then, add the following line to your @file{~/.emacs}
-
-Add the following line to your @file{~/.emacs}.
-
-@cartouche
-@lisp
-(epa-mode 1)
-@end lisp
-@end cartouche
-
-@noindent
-Restart emacs and type @kbd{M-x epa- @key{TAB}}, and you will see a
-lot of commands available.  For example,
+EasyPG Assistant commands are prefixed by @samp{epa-}.  For example,
 
 @itemize @bullet
 @item To browse your keyring, type @kbd{M-x epa-list-keys}
 
 @item To create a cleartext signature of the region, type @kbd{M-x epa-sign-region}
+
+@item To encrypt a file, type @kbd{M-x epa-encrypt-file}
 @end itemize
+
+EasyPG Assistant provides several cryptographic features which can be
+integrated into other Emacs functionalities.  For example, automatic
+encryption/decryption of @samp{*.gpg} files.
+
+To install these features, do @kbd{C-u 1 M-x epa-mode}.  It can also
+be turned on by customize.  Try @kbd{M-x customize-variable epa-mode}.
 
 @node Commands
 @chapter Commands

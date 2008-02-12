@@ -1,3 +1,7 @@
+2008-02-11  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Quick start): Remove the .emacs setting.
+
 2008-02-10  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.texi (Quick start): Use the command `epa-enable' instead of
