@@ -762,7 +762,8 @@ from a different message."
 (defun compilation-auto-jump (buffer pos)
   (with-current-buffer buffer
     (goto-char pos)
-    (compile-goto-error)))
+    (if compilation-auto-jump-to-first-error
+	(compile-goto-error))))
 
 ;; This function is the central driver, called when font-locking to gather
 ;; all information needed to later jump to corresponding source code.
@@ -1054,8 +1055,13 @@ original use.  Otherwise, recompile using `compile-command'."
 
 Setting it causes the Compilation mode commands to put point at the
 end of their output window so that the end of the output is always
-visible rather than the beginning."
-  :type 'boolean
+visible rather than the beginning.
+
+The value `first-error' stops scrolling at the first error, and leaves
+point on its location in the *compilation* buffer."
+  :type '(choice (const :tag "No scrolling" nil)
+		 (const :tag "Scroll compilation output" t)
+		 (const :tag "Stop scrolling at the first error" first-error))
   :version "20.3"
   :group 'compilation)
 
@@ -1168,7 +1174,8 @@ Returns the compilation buffer created."
 	(if highlight-regexp
 	    (set (make-local-variable 'compilation-highlight-regexp)
 		 highlight-regexp))
-        (if compilation-auto-jump-to-first-error
+        (if (or compilation-auto-jump-to-first-error
+		(eq compilation-scroll-output 'first-error))
             (set (make-local-variable 'compilation-auto-jump-to-next) t))
 	;; Output a mode setter, for saving and later reloading this buffer.
 	(insert "-*- mode: " name-of-mode
@@ -2160,7 +2167,8 @@ The file-structure looks like this:
   ;; compilations, to set the beginning of "this compilation", it's a good
   ;; place to reset compilation-auto-jump-to-next.
   (set (make-local-variable 'compilation-auto-jump-to-next)
-       compilation-auto-jump-to-first-error))
+       (or compilation-auto-jump-to-first-error
+	   (eq compilation-scroll-output 'first-error))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gcov\\'" . compilation-mode))
