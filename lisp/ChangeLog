@@ -6,6 +6,9 @@
 
 2008-02-12  Kenichi Handa  <handa@ni.aist.go.jp>
 
+	* emacs-lisp/bytecomp.el (byte-compile-lapcode): Use
+	unibyte-string instead of string-make-unibyte.
+
 	* Makefile.in (AUTOGENEL): Remove charprop.el and uni-*.el.
 
 2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
