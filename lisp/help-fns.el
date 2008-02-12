@@ -267,7 +267,8 @@ face (according to `face-differs-from-default-p')."
 		  (symbol-function real-function)
 		function))
 	 file-name string
-	 (beg (if (commandp def) "an interactive " "a ")))
+	 (beg (if (commandp def) "an interactive " "a "))
+         (pt1 (with-current-buffer (help-buffer) (point))))
     (setq string
 	  (cond ((or (stringp def)
 		     (vectorp def))
@@ -348,8 +349,12 @@ face (according to `face-differs-from-default-p')."
 	  (re-search-backward "`\\([^`']+\\)'" nil t)
 	  (help-xref-button 1 'help-function-def real-function file-name))))
     (princ ".")
-    (terpri)
+    (with-current-buffer (help-buffer)
+      (fill-region-as-paragraph (save-excursion (goto-char pt1) (forward-line 0) (point))
+                                (point)))
+    (terpri)(terpri)
     (when (commandp function)
+      (let ((pt2 (with-current-buffer (help-buffer) (point))))
       (if (and (eq function 'self-insert-command)
 	       (eq (key-binding "a") 'self-insert-command)
 	       (eq (key-binding "b") 'self-insert-command)
@@ -369,7 +374,7 @@ face (according to `face-differs-from-default-p')."
 	    (princ "'"))
 
 	  (when keys
-	    (princ (if remapped " which is bound to " "It is bound to "))
+              (princ (if remapped ", which is bound to " "It is bound to "))
 	    ;; If lots of ordinary text characters run this command,
 	    ;; don't mention them one by one.
 	    (if (< (length non-modified-keys) 10)
@@ -383,7 +388,9 @@ face (according to `face-differs-from-default-p')."
 		(princ "many ordinary text characters"))))
 	  (when (or remapped keys non-modified-keys)
 	    (princ ".")
-	    (terpri)))))
+              (terpri))))
+        (with-current-buffer (help-buffer) (fill-region-as-paragraph pt2 (point)))
+        (terpri)))
     (let* ((arglist (help-function-arglist def))
 	   (doc (documentation function))
 	   (usage (help-split-fundoc doc function)))

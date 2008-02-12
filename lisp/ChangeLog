@@ -1,3 +1,9 @@
+2008-02-11 Drew Adams  <drew.adams@oracle.com>
+
+	* help.el (describe-key): Joined some split lines to facilitate
+	filling.
+	* help-fns.el (describe-function-1): Fill text of overlong lines.
+
 2008-02-12  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* Makefile.in (AUTOGENEL): Remove charprop.el and uni-*.el.
@@ -25,6 +31,8 @@
 
 2008-02-11 Drew Adams  <drew.adams@oracle.com>
 
+	* isearch.el:
+	(isearch-fail): New face.
 	* isearch.el (isearch-fail): New face.
 	(isearch-message): Highlight failure part of input.
 

@@ -345,6 +345,19 @@ See also `rmail-highlight-face'."
 		 face)
   :group 'rmail-headers)
 
+(defface rmail-header-name
+  '((t (:inherit font-lock-function-name-face)))
+  "Face to use for highlighting the header names."
+  :group 'rmail-headers
+  :version "23.1")
+
+;;;###autoload
+(defcustom rmail-header-name-face 'rmail-header-name "\
+*Face to use for highlighting the header names."
+  :type '(choice (const :tag "Default" nil)
+		 face)
+  :group 'rmail-headers)
+
 ;;;###autoload
 (defcustom rmail-delete-after-output nil "\
 *Non-nil means automatically delete a message that is copied to a file."
@@ -698,19 +711,19 @@ The first parenthesized expression should match the MIME-charset name.")
      "\n"))
   nil)
 
-(defvar rmail-font-lock-keywords
+(setq rmail-font-lock-keywords
   ;; These are all matched case-insensitively.
-  (eval-when-compile
+      ;;(eval-when-compile
     (let* ((cite-chars "[>|}]")
 	   (cite-prefix "a-z")
 	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
       (list '("^\\(From\\|Sender\\|Resent-From\\):"
-	      . font-lock-function-name-face)
-	    '("^Reply-To:.*$" . font-lock-function-name-face)
-	    '("^Subject:" . font-lock-comment-face)
-	    '("^X-Spam-Status:" . font-lock-keyword-face)
+	      . 'rmail-header-name)
+	    '("^Reply-To:.*$" . 'rmail-header-name)
+	    '("^Subject:" . 'rmail-header-name)
+	    '("^X-Spam-Status:" . 'rmail-header-name)
 	    '("^\\(To\\|Apparently-To\\|Cc\\|Newsgroups\\):"
-	      . font-lock-keyword-face)
+	      . 'rmail-header-name)
 	    ;; Use MATCH-ANCHORED to effectively anchor the regexp left side.
 	    `(,cite-chars
 	      (,(concat "\\=[ \t]*"
@@ -721,8 +734,9 @@ The first parenthesized expression should match the MIME-charset name.")
 	       (1 font-lock-comment-delimiter-face nil t)
 	       (5 font-lock-comment-face nil t)))
 	    '("^\\(X-[a-z0-9-]+\\|In-reply-to\\|Date\\):.*\\(\n[ \t]+.*\\)*$"
-	      . font-lock-string-face))))
-  "Additional expressions to highlight in Rmail mode.")
+	      . 'rmail-header-name))))
+;;)
+;;  "Additional expressions to highlight in Rmail mode.")
 
 ;; Perform BODY in the summary buffer
 ;; in such a way that its cursor is properly updated in its own window.

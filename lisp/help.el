@@ -745,8 +745,7 @@ temporarily enables it to allow getting help on disabled items and buttons."
       (with-help-window (help-buffer)
 	(princ (help-key-description key untranslated))
 	(princ (format "\
-%s runs the command %S
-  which is "
+%s runs the command %S, which is "
 		       mouse-msg defn))
 	(describe-function-1 defn)
 	(when up-event
@@ -757,12 +756,11 @@ temporarily enables it to allow getting help on disabled items and buttons."
 
 ----------------- up-event %s----------------
 
-<%S>%s%s runs the command %S
-  which is "
+<%S>%s%s runs the command %S, which is "
 			   (if mouse-1-tricky "(short click) " "")
 			   ev-type mouse-msg
 			   (if mouse-1-remapped
-			       " is remapped to <mouse-2>\nwhich" "")
+                               " is remapped to <mouse-2>, which" "")
 			   defn-up))
 	    (describe-function-1 defn-up))
 	  (unless (or (null defn-up-tricky)
@@ -773,8 +771,7 @@ temporarily enables it to allow getting help on disabled items and buttons."
 ----------------- up-event (long click) ----------------
 
 Pressing <%S>%s for longer than %d milli-seconds
-runs the command %S
-  which is "
+runs the command %S, which is "
 			   ev-type mouse-msg
 			   mouse-1-click-follows-link
 			   defn-up-tricky))
