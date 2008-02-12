@@ -1,13 +1,17 @@
-2008-02-11 Drew Adams  <drew.adams@oracle.com>
+2008-02-12  Juanma Barranquero  <lekktu@gmail.com>
 
-	* help.el (describe-key): Joined some split lines to facilitate
-	filling.
+	* hexl.el (hexl-mode): Don't make `font-lock-defaults' buffer-local;
+	it is already automatically buffer-local.
+
+2008-02-11  Drew Adams  <drew.adams@oracle.com>
+
+	* help.el (describe-key): Join some split lines to facilitate filling.
 	* help-fns.el (describe-function-1): Fill text of overlong lines.
 
 2008-02-12  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* emacs-lisp/bytecomp.el (byte-compile-lapcode): Use
-	unibyte-string instead of string-make-unibyte.
+	* emacs-lisp/bytecomp.el (byte-compile-lapcode):
+	Use unibyte-string instead of string-make-unibyte.
 
 	* Makefile.in (AUTOGENEL): Remove charprop.el and uni-*.el.
 
@@ -16,8 +20,8 @@
 	* doc-view.el (doc-view-display): Change file arg to buffer arg, so it
 	works also for buffers w/o buffer-file-name.  Update callers.
 	(doc-view-clone-buffer-hook): New fun.
-	(doc-view-mode): Use it for indirect clones.
-	Mark the overlays with the `doc-view' property so they can be recognized.
+	(doc-view-mode): Use it for indirect clones.  Mark the overlays with
+	the `doc-view' property so they can be recognized.
 
 	* simple.el (clone-indirect-buffer-hook): New hook.
 	(clone-indirect-buffer): Run it.
