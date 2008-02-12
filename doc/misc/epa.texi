@@ -66,7 +66,7 @@ This manual covers EasyPG version @value{VERSION}.
 EasyPG Assistant provides the following features.
 
 @itemize @bullet
-@item Key manegement.
+@item Key management.
 @item Cryptographic operations on regions.
 @item Cryptographic operations on files.
 @item Dired integration.

@@ -1,3 +1,7 @@
+2008-02-12  Romain Francoise  <romain@orebokech.com>
+
+	* epa.texi (Overview): Fix typo.
+
 2008-02-11  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.texi (Quick start): Remove the .emacs setting.
