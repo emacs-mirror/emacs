@@ -1,3 +1,8 @@
+2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-set-defaults): Unset previously set variables
+	when needed.
+
 2008-02-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* uniquify.el (uniquify-buffer-base-name): New function.
