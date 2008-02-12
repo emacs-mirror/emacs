@@ -52,9 +52,7 @@ AUTOGENEL = loaddefs.el \
 	finder-inf.el \
 	subdirs.el \
 	eshell/esh-groups.el \
-	mh-e/mh-loaddefs.el \
-	international/charprop.el \
-	international/uni-*.el
+	mh-e/mh-loaddefs.el
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  The CC files are compiled first
