@@ -1,3 +1,7 @@
+2008-02-12  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* Makefile.in (AUTOGENEL): Remove charprop.el and uni-*.el.
+
 2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-display): Change file arg to buffer arg, so it
