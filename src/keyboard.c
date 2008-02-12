@@ -7134,10 +7134,11 @@ read_avail_input (expected)
                 kill (getpid (), SIGHUP);
 
               /* XXX Is calling delete_terminal safe here?  It calls Fdelete_frame. */
-              if (t->delete_terminal_hook)
-                (*t->delete_terminal_hook) (t);
-              else
-                delete_terminal (t);
+	      {
+		Lisp_Object tmp;
+		XSETTERMINAL (tmp, t);
+		Fdelete_terminal (tmp, Qnoelisp);
+	      }
             }
 
           if (hold_quit.kind != NO_EVENT)
