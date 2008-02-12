@@ -551,7 +551,7 @@ Should be invoked when the cached images aren't up-to-date."
         (cancel-timer doc-view-current-timer)
         (setq doc-view-current-timer nil))
       ;; Yippie, finished.  Update the display!
-      (doc-view-display buffer-file-name 'force))))
+      (doc-view-display (current-buffer) 'force))))
 
 (defun doc-view-pdf/ps->png (pdf-ps png)
   "Convert PDF-PS to PNG asynchronously."
@@ -575,7 +575,7 @@ Should be invoked when the cached images aren't up-to-date."
     (setq doc-view-current-timer
 	  (run-at-time "1 secs" doc-view-conversion-refresh-interval
 		       'doc-view-display
-		       buffer-file-name))))
+		       (current-buffer)))))
 
 (defun doc-view-pdf->txt-sentinel (proc event)
   (if (not (string-match "finished" event))
@@ -731,11 +731,11 @@ Predicate for sorting `doc-view-current-files'."
       (and (= (length a) (length b))
            (string< a b))))
 
-(defun doc-view-display (doc &optional force)
-  "Start viewing the document DOC.
+(defun doc-view-display (buffer &optional force)
+  "Start viewing the document in BUFFER.
 If FORCE is non-nil, start viewing even if the document does not
 have the page we want to view."
-  (with-current-buffer (get-file-buffer doc)
+  (with-current-buffer buffer
     (setq doc-view-current-files
           (sort (directory-files (doc-view-current-cache-dir) t
                                  "page-[0-9]+\\.png" t)
@@ -778,7 +778,7 @@ For now these keys are useful:
       (progn
 	(doc-view-kill-proc)
 	(setq buffer-read-only nil)
-        (delete-overlay doc-view-current-overlay)
+        (remove-overlays (point-min) (point-max) 'doc-view)
 	;; Switch to the previously used major mode or fall back to fundamental
 	;; mode.
 	(if doc-view-previous-major-mode
@@ -926,7 +926,7 @@ If BACKWARD is non-nil, jump to the previous match."
 	(if (file-exists-p (doc-view-current-cache-dir))
 	    (progn
 	      (message "DocView: using cached files!")
-	      (doc-view-display buffer-file-name 'force))
+	      (doc-view-display (current-buffer) 'force))
 	  (doc-view-convert-current-doc))
 	(message
 	 "%s"
@@ -941,6 +941,24 @@ If BACKWARD is non-nil, jump to the previous match."
 	      "Type \\[doc-view-toggle-display] to switch to an editing mode.")))))
 
 (defvar bookmark-make-cell-function)
+
+(defun doc-view-clone-buffer-hook ()
+  ;; FIXME: There are several potential problems linked with reconversion
+  ;; and auto-revert when we have indirect buffers because they share their
+  ;; /tmp cache directory.  This sharing is good (you'd rather not reconvert
+  ;; for each clone), but that means that clones need to collaborate a bit.
+  ;; I guess it mostly means: detect when a reconversion process is already
+  ;; running, and run the sentinel in all clones.
+  ;; Not sure how important it is to fix it: a better target would be to
+  ;; allow a single buffer (without cloning) to display different pages in
+  ;; different windows.
+  ;; Maybe then the clones should really have a separate /tmp directory
+  ;; so they could have a different resolution and you could use clones
+  ;; for zooming.
+  (dolist (ol (overlays-in (point-min) (point-max)))
+    ;; The overlay was copied by the cloning, so we just need to find it
+    ;; and put it in doc-view-current-overlay.
+    (if (overlay-get ol 'doc-view) (setq doc-view-current-overlay ol))))
 
 ;;;###autoload
 (defun doc-view-mode ()
@@ -988,9 +1006,11 @@ toggle between displaying the document or editing it as text.
   (make-local-variable 'doc-view-current-search-matches)
   (set (make-local-variable 'doc-view-current-overlay)
        (make-overlay (point-min) (point-max) nil t))
+  (overlay-put doc-view-current-overlay 'doc-view t)
   (add-hook 'change-major-mode-hook
-	    (lambda () (delete-overlay doc-view-current-overlay))
+	    (lambda () (remove-overlays (point-min) (point-max) 'doc-view))
 	    nil t)
+  (add-hook 'clone-indirect-buffer-hook 'doc-view-clone-buffer-hook nil t)
 
   ;; Keep track of [vh]scroll when switching buffers
   (make-local-variable 'image-mode-current-hscroll)
