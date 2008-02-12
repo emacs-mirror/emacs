@@ -1,3 +1,14 @@
+2008-02-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* uniquify.el (uniquify-buffer-base-name): New function.
+	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
+
+	* desktop.el (uniquify-managed): Don't defvar.
+	(desktop-buffer-info): Use `uniquify-buffer-base-name', not
+	`uniquify-managed'.  Return also the buffer's base name.
+	(desktop-save): When saving the buffer info, filter out the base name,
+	and save it as buffer name if the buffer is managed by uniquify.
+
 2008-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-beginning-of-file-and-junk): If we're on the
