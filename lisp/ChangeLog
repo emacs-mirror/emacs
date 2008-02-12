@@ -1,3 +1,11 @@
+2008-02-12  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (fancy-startup-screen, normal-splash-screen):
+	Set default-directory to command-line-default-directory.
+
+	* desktop.el (after-init-hook): Set inhibit-startup-screen to t
+	after reading the desktop.
+
 2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-set-defaults): Unset previously set variables
