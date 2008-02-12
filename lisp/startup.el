@@ -1456,6 +1456,7 @@ splash screen in another window."
     (with-current-buffer splash-buffer
       (let ((inhibit-read-only t))
 	(erase-buffer)
+	(setq default-directory command-line-default-directory)
 	(make-local-variable 'startup-screen-inhibit-startup-screen)
 	(if pure-space-overflow
 	    (insert pure-space-overflow-message))
@@ -1554,6 +1555,7 @@ after Emacs starts.  If STARTUP is nil, display the About screen."
     (with-current-buffer (get-buffer-create "*About GNU Emacs*")
       (setq buffer-read-only nil)
       (erase-buffer)
+      (setq default-directory command-line-default-directory)
       (set (make-local-variable 'tab-width) 8)
       (if (not startup)
 	  (set (make-local-variable 'mode-line-format)
