@@ -1,3 +1,8 @@
+2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (clone-indirect-buffer-hook): New hook.
+	(clone-indirect-buffer): Run it.
+
 2008-02-11  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.el (epa-menu-mode): Merge into epa-mode.
@@ -5,8 +10,8 @@
 	"Encryption/Decryption".
 
 	* epa-dired.el: Define a new minor-mode epa-dired-mode for dired.
-	(epa-dired-mode-map): Renamed from epa-dired-map.
-	(epa-global-dired-mode): Renamed the global minor mode.
+	(epa-dired-mode-map): Rename from epa-dired-map.
+	(epa-global-dired-mode): Rename the global minor mode.
 
 2008-02-11 Drew Adams  <drew.adams@oracle.com>
 

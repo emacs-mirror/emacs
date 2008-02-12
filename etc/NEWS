@@ -482,6 +482,7 @@ Use `(format-mode-line mode-name)' to ensure a string value.
 
 * Lisp Changes in Emacs 23.1
 
+** clone-indirect-buffer now runs the clone-indirect-buffer-hook.
 ** `beginning-of-defun-function' now takes one argument, the count
    given to `beginning-of-defun'.
 
