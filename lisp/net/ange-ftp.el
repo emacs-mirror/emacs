@@ -3766,7 +3766,7 @@ Value is (0 0) if the modification time cannot be determined."
 	    (ange-ftp-send-cmd
 	     t-host
 	     t-user
-	     (list 'put (or temp2 filename) t-name)
+	     (list 'put (or temp2 (ange-ftp-quote-string filename)) t-name)
 	     (or msg
 		 (if (and temp2 f-parsed)
 		     (format "Putting %s" newname)
