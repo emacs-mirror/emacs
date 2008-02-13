@@ -327,8 +327,7 @@ If nil, display all header fields except those matched by
 ;;;###autoload
 (defcustom rmail-highlighted-headers "^From:\\|^Subject:" "\
 *Regexp to match Header fields that Rmail should normally highlight.
-A value of nil means don't highlight.
-See also `rmail-highlight-face'."
+A value of nil means don't highlight."
   :type 'regexp
   :group 'rmail-headers)
 
@@ -338,12 +337,11 @@ See also `rmail-highlight-face'."
   :group 'rmail-headers
   :version "22.1")
 
-;;;###autoload
-(defcustom rmail-highlight-face 'rmail-highlight "\
-*Face used by Rmail for highlighting headers."
-  :type '(choice (const :tag "Default" nil)
-		 face)
-  :group 'rmail-headers)
+(defface rmail-header-name
+  '((t (:inherit font-lock-function-name-face)))
+  "Face to use for highlighting the header names."
+  :group 'rmail-headers
+  :version "23.1")
 
 ;;;###autoload
 (defcustom rmail-delete-after-output nil "\
@@ -705,12 +703,12 @@ The first parenthesized expression should match the MIME-charset name.")
 	   (cite-prefix "a-z")
 	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
       (list '("^\\(From\\|Sender\\|Resent-From\\):"
-	      . font-lock-function-name-face)
-	    '("^Reply-To:.*$" . font-lock-function-name-face)
-	    '("^Subject:" . font-lock-comment-face)
-	    '("^X-Spam-Status:" . font-lock-keyword-face)
+	      . 'rmail-header-name)
+	    '("^Reply-To:.*$" . 'rmail-header-name)
+	    '("^Subject:" . 'rmail-header-name)
+	    '("^X-Spam-Status:" . 'rmail-header-name)
 	    '("^\\(To\\|Apparently-To\\|Cc\\|Newsgroups\\):"
-	      . font-lock-keyword-face)
+	      . 'rmail-header-name)
 	    ;; Use MATCH-ANCHORED to effectively anchor the regexp left side.
 	    `(,cite-chars
 	      (,(concat "\\=[ \t]*"
@@ -721,7 +719,7 @@ The first parenthesized expression should match the MIME-charset name.")
 	       (1 font-lock-comment-delimiter-face nil t)
 	       (5 font-lock-comment-face nil t)))
 	    '("^\\(X-[a-z0-9-]+\\|In-reply-to\\|Date\\):.*\\(\n[ \t]+.*\\)*$"
-	      . font-lock-string-face))))
+	      . 'rmail-header-name))))
   "Additional expressions to highlight in Rmail mode.")
 
 ;; Perform BODY in the summary buffer
@@ -2975,7 +2973,7 @@ iso-8859, koi8-r, etc."
 		(inhibit-read-only t)
 		;; Highlight with boldface if that is available.
 		;; Otherwise use the `highlight' face.
-		(face (or rmail-highlight-face
+		(face (or 'rmail-highlight
 			  (if (face-differs-from-default-p 'bold)
 			      'bold 'highlight)))
 		;; List of overlays to reuse.

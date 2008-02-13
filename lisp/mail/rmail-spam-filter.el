@@ -201,6 +201,9 @@ specify 'this\\&that' in the appropriate spam definition field."
 	   (cons :format "%v" :value (contents . "")
 		 (const :format ""  contents)
 		 (string :tag "Contents"  ""))
+	   (cons :format "%v" :value (x-spam-status . "")
+		 (const :format ""  x-spam-status)
+		 (string :tag "X-Spam-Status"  ""))
 	   (cons :format "%v" :value (action . output-and-delete)
 		 (const :format "" action)
 		 (choice :tag "Action selection"
@@ -284,6 +287,7 @@ it from rmail file.  Called for each new message retrieved by
 			    (concat ", " (mail-fetch-field "Cc")))))
 	  (setq message-subject (mail-fetch-field "Subject"))
 	  (setq message-content-type (mail-fetch-field "Content-Type"))
+	  (setq message-spam-status (mail-fetch-field "X-Spam-Status"))
 	  )
 	;; Find number of spam-definition elements in the list
 	;; rsf-definitions-alist specified by user:
@@ -362,6 +366,11 @@ it from rmail file.  Called for each new message retrieved by
                          (buffer-substring
                           (rmail-msgbeg msg) (rmail-msgend msg))
                          definition maybe-spam)
+
+	    ;; finally, check the X-Spam-Status header.  You will typically
+	    ;; look for the "Yes" string in this header field
+	    (check-field 'x-spam-status message-spam-status
+			 definition maybe-spam)
 
 	    ;; if the search in rsf-definitions-alist found
 	    ;; that this email is spam, output the email to the spam
