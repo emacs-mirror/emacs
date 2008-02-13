@@ -289,6 +289,10 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      " at \\([^ \n]+\\) line \\([0-9]+\\)\\(?:[,.]\\|$\\| \
 during global destruction\\.$\\)" 1 2)
 
+    (php
+     "\\(?:Parse\\|Fatal\\) error: \\(.*\\) in \\(.*\\) on line \\([0-9]+\\)"
+     2 3 nil nil)
+
     (rxp
      "^\\(?:Error\\|Warnin\\(g\\)\\):.*\n.* line \\([0-9]+\\) char\
  \\([0-9]+\\) of file://\\(.+\\)"
