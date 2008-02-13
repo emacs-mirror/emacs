@@ -1,3 +1,10 @@
+2008-02-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hilit-chg.el (highlight-save-buffer-state): New macro.
+	(highlight-save-buffer-state, hilit-chg-set-face-on-change)
+	(hilit-chg-clear): Use it to preserve the modified-p flag.
+	(highlight-changes-rotate-faces): Don't mess with the undo-list.
+
 2008-02-13  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/ange-ftp.el (ange-ftp-cf1): Quote FILENAME.
