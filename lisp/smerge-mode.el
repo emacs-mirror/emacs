@@ -297,6 +297,8 @@ Can be nil if the style is undecided, or else:
 
 (defun smerge-combine-with-next ()
   "Combine the current conflict with the next one."
+  ;; `smerge-auto-combine' relies on the finish position (at the beginning
+  ;; of the closing marker).
   (interactive)
   (smerge-match-conflict)
   (let ((ends nil))
@@ -327,6 +329,25 @@ Can be nil if the style is undecided, or else:
 	;; Free the markers.
 	(dolist (m match-data) (if m (move-marker m nil)))
 	(mapc (lambda (m) (if m (move-marker m nil))) ends)))))
+
+(defvar smerge-auto-combine-max-separation 2
+  "Max number of lines between conflicts that should be combined.")
+
+(defun smerge-auto-combine ()
+  "Automatically combine conflicts that are near each other."
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (while (smerge-find-conflict)
+      ;; 2 is 1 (default) + 1 (the begin markers).
+      (while (save-excursion
+               (smerge-find-conflict
+                (line-beginning-position
+                 (+ 2 smerge-auto-combine-max-separation))))
+        (forward-line -1)               ;Go back inside the conflict.
+        (smerge-combine-with-next)
+        (forward-line 1)                ;Move past the end of the conflict.
+        ))))
 
 (defvar smerge-resolve-function
   (lambda () (error "Don't know how to resolve"))

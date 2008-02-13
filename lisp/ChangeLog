@@ -1,3 +1,8 @@
+2008-02-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-auto-combine-max-separation): New var.
+	(smerge-auto-combine): New fun.
+
 2008-02-12  Juri Linkov  <juri@jurta.org>
 
 	* startup.el (fancy-startup-screen, normal-splash-screen):
@@ -6,8 +11,8 @@
 	* desktop.el (after-init-hook): Set inhibit-startup-screen to t
 	after reading the desktop.
 
-	* progmodes/compile.el (compilation-auto-jump): Call
-	compile-goto-error only when compilation-auto-jump-to-first-error
+	* progmodes/compile.el (compilation-auto-jump):
+	Call compile-goto-error only when compilation-auto-jump-to-first-error
 	is non-nil.
 	(compilation-scroll-output): Replace :type 'boolean with a choice
 	that has three options including a third option `first-error'.

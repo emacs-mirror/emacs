@@ -233,17 +233,17 @@ struct font_bitmap
 /* Check macros for various font-related objects.  */
 
 #define CHECK_FONT(x)	\
-  do { if (! FONTP (x)) x = wrong_type_argument (Qfont, x); } while (0)
+  do { if (! FONTP (x)) wrong_type_argument (Qfont, x); } while (0)
 #define CHECK_FONT_SPEC(x)	\
-  do { if (! FONT_SPEC_P (x)) x = wrong_type_argument (Qfont, x); } while (0)
+  do { if (! FONT_SPEC_P (x)) wrong_type_argument (Qfont, x); } while (0)
 #define CHECK_FONT_ENTITY(x)	\
-  do { if (! FONT_ENTITY_P (x)) x = wrong_type_argument (Qfont, x); } while (0)
+  do { if (! FONT_ENTITY_P (x)) wrong_type_argument (Qfont, x); } while (0)
 #define CHECK_FONT_OBJECT(x)	\
-  do { if (! FONT_OBJECT_P (x)) x = wrong_type_argument (Qfont, x); } while (0)
+  do { if (! FONT_OBJECT_P (x)) wrong_type_argument (Qfont, x); } while (0)
 
 #define CHECK_FONT_GET_OBJECT(x, font)					\
   do {									\
-    if (! FONT_OBJECT_P (x)) x = wrong_type_argument (Qfont, x);	\
+    if (! FONT_OBJECT_P (x)) wrong_type_argument (Qfont, x);	\
     if (! XSAVE_VALUE (x)->pointer) error ("Font already closed");	\
     font = XSAVE_VALUE (x)->pointer;					\
   } while (0)
