@@ -588,17 +588,13 @@ extern size_t pure_size;
 
 /* Convenience macros for dealing with Lisp arrays.  */
 
-#define ASLOT(ARRAY, IDX)	XVECTOR ((ARRAY))->contents[IDX]
+#define AREF(ARRAY, IDX)	XVECTOR ((ARRAY))->contents[IDX]
 #define ASIZE(ARRAY)		XVECTOR ((ARRAY))->size
-/* The IDX==IDX checks that the macro argument is not side-effecting.  */
-#define AREF(ARRAY, IDX)	\
-  (eassert ((IDX) == (IDX)),				\
-   eassert ((IDX) >= 0 && (IDX) < ASIZE (ARRAY)),	\
-   ASLOT (ARRAY, (IDX)))
+/* The IDX==IDX tries to detect when the macro argument is side-effecting.  */
 #define ASET(ARRAY, IDX, VAL)	\
   (eassert ((IDX) == (IDX)),				\
    eassert ((IDX) >= 0 && (IDX) < ASIZE (ARRAY)),	\
-   ASLOT ((ARRAY), (IDX)) = (VAL))
+   AREF ((ARRAY), (IDX)) = (VAL))
 
 /* Convenience macros for dealing with Lisp strings.  */
 
@@ -690,12 +686,12 @@ struct Lisp_Cons
 #define CAR(c)					\
  (CONSP ((c)) ? XCAR ((c))			\
   : NILP ((c)) ? Qnil				\
-  : (wrong_type_argument (Qlistp, (c)), Qnil))
+  : wrong_type_argument (Qlistp, (c)))
 
 #define CDR(c)					\
  (CONSP ((c)) ? XCDR ((c))			\
   : NILP ((c)) ? Qnil				\
-  : (wrong_type_argument (Qlistp, (c)), Qnil))
+  : wrong_type_argument (Qlistp, (c)))
 
 /* Take the car or cdr of something whose type is not known.  */
 #define CAR_SAFE(c)				\
@@ -1094,25 +1090,25 @@ struct Lisp_Hash_Table
 
 /* Value is the key part of entry IDX in hash table H.  */
 
-#define HASH_KEY(H, IDX)   ASLOT ((H)->key_and_value, 2 * (IDX))
+#define HASH_KEY(H, IDX)   AREF ((H)->key_and_value, 2 * (IDX))
 
 /* Value is the value part of entry IDX in hash table H.  */
 
-#define HASH_VALUE(H, IDX) ASLOT ((H)->key_and_value, 2 * (IDX) + 1)
+#define HASH_VALUE(H, IDX) AREF ((H)->key_and_value, 2 * (IDX) + 1)
 
 /* Value is the index of the next entry following the one at IDX
    in hash table H.  */
 
-#define HASH_NEXT(H, IDX)  ASLOT ((H)->next, (IDX))
+#define HASH_NEXT(H, IDX)  AREF ((H)->next, (IDX))
 
 /* Value is the hash code computed for entry IDX in hash table H.  */
 
-#define HASH_HASH(H, IDX)  ASLOT ((H)->hash, (IDX))
+#define HASH_HASH(H, IDX)  AREF ((H)->hash, (IDX))
 
 /* Value is the index of the element in hash table H that is the
    start of the collision list at index IDX in the index vector of H.  */
 
-#define HASH_INDEX(H, IDX)  ASLOT ((H)->index, (IDX))
+#define HASH_INDEX(H, IDX)  AREF ((H)->index, (IDX))
 
 /* Value is the size of hash table H.  */
 
@@ -2256,7 +2252,7 @@ extern unsigned long cons_to_long P_ ((Lisp_Object));
 extern void args_out_of_range P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;
 extern void args_out_of_range_3 P_ ((Lisp_Object, Lisp_Object,
 				     Lisp_Object)) NO_RETURN;
-extern void wrong_type_argument P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;
+extern Lisp_Object wrong_type_argument P_ ((Lisp_Object, Lisp_Object)) NO_RETURN;
 extern void store_symval_forwarding P_ ((Lisp_Object, Lisp_Object,
 					 Lisp_Object, struct buffer *));
 extern Lisp_Object do_symval_forwarding P_ ((Lisp_Object));
