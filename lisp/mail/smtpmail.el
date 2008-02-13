@@ -78,6 +78,7 @@
 (autoload 'netrc-parse "netrc")
 (autoload 'netrc-machine "netrc")
 (autoload 'netrc-get "netrc")
+(autoload 'password-read "password") ; for new emacsen: "password-cache"
 
 ;;;
 (defgroup smtpmail nil
@@ -546,12 +547,12 @@ This is relative to `smtpmail-queue-dir'.")
                              (netrc-get hostentry "password"))))
 		 (smtpmail-find-credentials
 		  smtpmail-auth-credentials host port)))
+	 (prompt (when cred (format "SMTP password for %s:%s: "
+				    (smtpmail-cred-server cred)
+				    (smtpmail-cred-port cred))))
 	 (passwd (when cred
 		   (or (smtpmail-cred-passwd cred)
-		       (read-passwd
-			(format "SMTP password for %s:%s: "
-				(smtpmail-cred-server cred)
-				(smtpmail-cred-port cred))))))
+		       (password-read prompt prompt))))
 	 ret)
     (when (and cred mech)
       (cond
@@ -621,9 +622,8 @@ This is relative to `smtpmail-queue-dir'.")
        (t
 	(error "Mechanism %s not implemented" mech)))
       ;; Remember the password.
-      (when (and (not (stringp smtpmail-auth-credentials))
-		 (null (smtpmail-cred-passwd cred)))
-	(setcar (cdr (cdr (cdr cred))) passwd)))))
+      (when (null (smtpmail-cred-passwd cred))
+	(password-cache-add prompt passwd)))))
 
 (defun smtpmail-via-smtp (recipient smtpmail-text-buffer)
   (let ((process nil)

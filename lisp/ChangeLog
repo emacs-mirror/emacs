@@ -1,3 +1,14 @@
+2008-02-13  Bastien Guerry  <bzg@altern.org>
+
+	* mail/rmail.el (rmail-header-name): New face.
+	(rmail-font-lock-keywords): Use rmail-header-name.
+
+	* mail/smtpmail.el: Use password-cache.
+
+	* mail/rmail-spam-filter.el (rsf-definitions-alist): Allow check
+	against X-Spam-Status header field.
+	(rmail-spam-filter): Also check X-Spam-Status header field.
+
 2008-02-14  Mark A. Hershberger  <mah@everybody.org>
 
 	* progmodes/flymake.el (flymake-allowed-file-name-masks): Add
