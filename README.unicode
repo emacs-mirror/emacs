@@ -18,7 +18,7 @@ regard to completeness.
    (text-char-description ?£) => "M-#"
 
 	These examples are all fixed by the change of 2002-10-14, but
-	there still exist questionalble SINGLE_BYTE_CHAR_P in the
+	there still exist questionable SINGLE_BYTE_CHAR_P in the
 	code (keymap.c and print.c).
 
  * Rationalize character syntax and its relationship to the Unicode
@@ -58,10 +58,10 @@ regard to completeness.
 
  * Lazy-load tables for unify-charset somehow?
 
-	Actually, Emacs clear out all charset maps and unify-map just
-	before dumping, and their are loaded again on demand the
+	Actually, Emacs clears out all charset maps and unify-map just
+	before dumping, and they are loaded again on demand by the
 	dumped emacs.  But, those maps (char tables) generated while
-	temacs is running can't be get rid of from the dumped emacs.
+	temacs is running can't be removed from the dumped emacs.
 
  * Translation tables for {en,de}code currently aren't supported.
 
@@ -83,7 +83,7 @@ regard to completeness.
 
  * Revisit locale processing: look at treating the language and
    charset parts separately.  (Language should affect things like
-   speling and calendar, but that's not a Unicode issue.)
+   spelling and calendar, but that's not a Unicode issue.)
 
  * Handle Unicode combining characters usefully, e.g. diacritics, and
    handle more scripts specifically (à la Devanagari).  There are
@@ -99,7 +99,7 @@ regard to completeness.
 
  * There's currently no support for Unicode normalization.
 
- * Populate char-width-table correctly for Unicode chanaracters and
+ * Populate char-width-table correctly for Unicode characters and
    worry about what happens when double-width charsets covering
    non-CJK characters are unified.
 
@@ -188,7 +188,7 @@ have these font driver.
 	ftfbfont.c -- font-driver on FB for FreeType fonts.
 	bdffbfont.c -- font-driver on FB for BDF fonts.
 
-Note: The fontset related codes are not yet matuared to work well with
+Note: The fontset related codes are not yet matured to work well with
 the font backend method.  So, for instance, even if you start Emacs
 as something like this:
   % emacs -fn tahoma
