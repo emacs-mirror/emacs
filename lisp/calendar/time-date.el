@@ -1,7 +1,7 @@
 ;;; time-date.el --- Date and time handling functions
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006,
+;;   2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu Umeda <umerin@mse.kyutech.ac.jp>
@@ -256,34 +256,93 @@ If DATE is malformed, return a time value of zeros."
 
 
 ;;;###autoload
+(defun format-seconds (string seconds &optional nonzero)
+  "Use format control STRING to format the number SECONDS.
+The valid format specifiers are:
+%y is the number of (365-day) years.
+%d is the number of days.
+%h is the number of hours.
+%m is the number of minutes.
+%s is the number of seconds.
+%% is a literal \"%\".
+
+Upper-case specifiers are followed by the unit-name (e.g. \"years\").
+Lower-case specifiers return only the unit.
+
+\"%\" may be followed by a number specifying a width, with an
+optional leading \".\" for zero-padding.  For example, \"%.3Y\" will
+return something of the form \"001 year\".
+
+If the optional argument NONZERO is non-nil, then nothing is output until
+the first non-zero unit (or the last unit) is encountered.  In this case,
+specifiers must be used in order of decreasing size.
+
+This does not work for input SECONDS greater than `most-positive-fixnum'."
+  (let ((start 0)
+        (units '(("y" "year"   31536000)
+                 ("d" "day"       86400)
+                 ("h" "hour"       3600)
+                 ("m" "minute"       60)
+                 ("s" "second"        1)))
+        (case-fold-search t)
+        spec match outunits unit prev name next)
+    (setq nonzero (not nonzero))
+    (while (string-match "%\\.?[0-9]*\\(.\\)" string start)
+      (setq start (match-end 0)
+            spec (match-string 1 string))
+      (unless (string-equal spec "%")
+        (or (setq match (assoc-string spec units t))
+            (error "Bad format specifier: `%s'" spec))
+        (if (assoc-string spec outunits t)
+            (error "Multiple instances of specifier: `%s'" spec))
+        (unless nonzero
+          (setq unit (nth 2 match))
+          (and prev (> unit prev)
+               (error "Units are not in decreasing order of size"))
+          (setq prev unit))
+        (push match outunits)))
+    ;; Cf article-make-date-line in gnus-art.
+    (dolist (ulist units)
+      (setq spec (car ulist)
+            name (cadr ulist)
+            unit (nth 2 ulist))
+      (when (string-match (format "%%\\(\\.?[0-9]+\\)?\\(%s\\)" spec) string)
+        (setq num (floor seconds unit)
+              seconds (- seconds (* num unit)))
+        (or nonzero
+            (setq nonzero (not (zerop num)))
+            ;; Start of the next unit specifier, if there is one.
+            (setq next (save-match-data
+                         (string-match "%\\.?[0-9]*[a-z]"
+                                       string (match-end 0)))))
+        ;; If there are no more specifiers, we have to print this one,
+        ;; even if it is zero.
+        (or nonzero (setq nonzero (not next)))
+        (setq string
+              (if nonzero
+                  (replace-match
+                   (format (concat "%" (match-string 1 string) "d%s") num
+                           (if (string-equal (match-string 2 string) spec)
+                               ""       ; lower-case, no unit-name
+                             (format " %s%s" name
+                                     (if (= num 1) "" "s"))))
+                   t t string)
+                ;; If we haven't found a non-zero unit yet, delete
+                ;; everything up to the next format specifier.
+                (substring string next))))))
+  (replace-regexp-in-string "%%" "%" string))
+
+
+;; This doesn't really belong here - perhaps in time.el?
+;;;###autoload
 (defun emacs-uptime ()
   "Return a string giving the uptime of this instance of Emacs."
   (interactive)
-  (let* ((sec (time-to-seconds
-               (time-subtract (current-time) emacs-startup-time)))
-         (prev)
-         (num)
-         (str
-          ;; cf article-make-date-line in gnus-art.
-          ;; Worth having a general time-date `format-seconds'
-          ;; function that converts a number of seconds into so many
-          ;; years, hours, etc?
-          (mapconcat
-           (lambda (unit)
-             (if (zerop (setq num (floor sec (cdr unit))))
-                 ""
-               (setq sec (- sec (* num (cdr unit))))
-              (prog1
-                  (format "%s%d %s%s" (if prev ", " "") num
-                          (symbol-name (car unit))
-                          (if (= num 1) "" "s"))
-                (setq prev t))))
-           '((year   . 31536000)        ; 365-day year
-             (day    .    86400)
-             (hour   .     3600)
-             (minute .       60)
-             (second .        1))
-           "")))
+  (let ((str
+         (format-seconds "%Y, %D, %H, %M, %S"
+                         (time-to-seconds
+                          (time-subtract (current-time) emacs-startup-time))
+                         t)))
     (if (interactive-p)
         (message "%s" str)
       str)))
