@@ -348,6 +348,9 @@ as a single changeset.
 
 *** In VC Annotate mode, you can type V to toggle the annotation visibility.
 
+*** In VC Annotate mode, you can type f to show the file revision on
+the current line.
+
 ** log-edit now has a command bound to C-c C-d to show the diff for
 the files involved.
 

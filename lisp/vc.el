@@ -820,6 +820,7 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
   (let ((m (make-sparse-keymap)))
     (define-key m "A" 'vc-annotate-revision-previous-to-line)
     (define-key m "D" 'vc-annotate-show-diff-revision-at-line)
+    (define-key m "f" 'vc-annotate-find-revision-at-line)
     (define-key m "J" 'vc-annotate-revision-at-line)
     (define-key m "L" 'vc-annotate-show-log-revision-at-line)
     (define-key m "N" 'vc-annotate-next-revision)
@@ -3624,22 +3625,39 @@ cover the range from the oldest annotation to the newest."
     ["Span to Oldest"
      (unless (eq vc-annotate-display-mode 'scale)
        (vc-annotate-display-select nil 'scale))
+     :help 
+     "Use an autoscaled color map from the oldest annotation to the current time"
      :style toggle :selected
      (eq vc-annotate-display-mode 'scale)]
     ["Span Oldest->Newest"
      (unless (eq vc-annotate-display-mode 'fullscale)
        (vc-annotate-display-select nil 'fullscale))
+     :help 
+     "Use an autoscaled color map from the oldest to the newest annotation"
      :style toggle :selected
      (eq vc-annotate-display-mode 'fullscale)]
     "--"
-    ["Toggle annotation visibility" vc-annotate-toggle-annotation-visibility]
-    ["Annotate previous revision" vc-annotate-prev-revision]
-    ["Annotate next revision" vc-annotate-next-revision]
-    ["Annotate revision at line" vc-annotate-revision-at-line]
-    ["Annotate revision previous to line" vc-annotate-revision-previous-to-line]
-    ["Annotate latest revision" vc-annotate-working-revision]
-    ["Show log of revision at line" vc-annotate-show-log-revision-at-line]
-    ["Show diff of revision at line" vc-annotate-show-diff-revision-at-line]))
+    ["Toggle annotation visibility" vc-annotate-toggle-annotation-visibility
+     :help 
+     "Toggle whether the annotation is visible or not"]
+    ["Annotate previous revision" vc-annotate-prev-revision
+     :help "Visit the annotation of the revision previous to this one"]
+    ["Annotate next revision" vc-annotate-next-revision
+     :help "Visit the annotation of the revision after this one"]
+    ["Annotate revision at line" vc-annotate-revision-at-line
+     :help 
+     "Visit the annotation of the revision identified in the current line"]
+    ["Annotate revision previous to line" vc-annotate-revision-previous-to-line
+     :help "Visit the annotation of the revision before the revision at line"]
+    ["Annotate latest revision" vc-annotate-working-revision
+     :help "Visit the annotation of the working revision of this file"]
+    ["Show log of revision at line" vc-annotate-show-log-revision-at-line
+     :help "Visit the log of the revision at line"]
+    ["Show diff of revision at line" vc-annotate-show-diff-revision-at-line
+     :help 
+     "Visit the diff of the revision at line from its previous revision"]
+    ["Visit revision at line" vc-annotate-find-revision-at-line
+     :help "Visit the revision identified in the current line"]))
 
 (defun vc-annotate-display-select (&optional buffer mode)
   "Highlight the output of \\[vc-annotate].
@@ -3789,6 +3807,16 @@ revisions after."
 	(if (equal rev-at-line vc-annotate-parent-rev)
 	    (message "Already at revision %s" rev-at-line)
 	  (vc-annotate-warp-revision rev-at-line))))))
+
+(defun vc-annotate-find-revision-at-line ()
+  "Visit the revision identified in the current line."
+  (interactive)
+  (if (not (equal major-mode 'vc-annotate-mode))
+      (message "Cannot be invoked outside of a vc annotate buffer")
+    (let ((rev-at-line (vc-annotate-extract-revision-at-line)))
+      (if (not rev-at-line)
+	  (message "Cannot extract revision number from the current line")
+	(vc-revision-other-window rev-at-line)))))
 
 (defun vc-annotate-revision-previous-to-line ()
   "Visit the annotation of the revision before the revision at line."

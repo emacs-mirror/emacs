@@ -1,3 +1,10 @@
+2008-02-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-annotate-find-revision-at-line): New function.
+	(vc-annotate-mode-map): Bind it.
+	(vc-annotate-mode-menu): Add a menu entry for it.  Add :help for
+	some entries.
+
 2008-02-14  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (custom-deps, finder-data, autoloads, recompile):
