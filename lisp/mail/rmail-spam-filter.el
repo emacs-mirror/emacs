@@ -256,6 +256,7 @@ it from rmail file.  Called for each new message retrieved by
 	(message-recipients)
 	(message-subject)
 	(message-content-type)
+	(message-spam-status)
 	(num-spam-definition-elements)
 	(num-element 0)
 	(exit-while-loop nil)
