@@ -135,8 +135,6 @@
 
 ;;; Code:
 
-(defvar uniquify-managed)
-
 (defvar desktop-file-version "206"
   "Version number of desktop file format.
 Written into the desktop file and used at desktop read to provide
@@ -651,16 +649,14 @@ is nil, ask the user where to save the desktop."
       value)))
 
 ;; ----------------------------------------------------------------------------
-(declare-function uniquify-item-base "uniquify" (cl-x) t) ; defstruct
-
 (defun desktop-buffer-info (buffer)
   (set-buffer buffer)
   (list
+   ;; base name of the buffer; replaces the buffer name if managed by uniquify
+   (and (fboundp 'uniquify-buffer-base-name) (uniquify-buffer-base-name))
    ;; basic information
    (desktop-file-name (buffer-file-name) desktop-dirname)
-   (if (bound-and-true-p uniquify-managed)
-       (uniquify-item-base (car uniquify-managed))
-     (buffer-name))
+   (buffer-name)
    major-mode
    ;; minor modes
    (let (ret)
@@ -890,19 +886,22 @@ See also `desktop-base-file-name'."
 
 	  (insert "\n;; Buffer section -- buffers listed in same order as in buffer list:\n")
 	  (dolist (l (mapcar 'desktop-buffer-info (buffer-list)))
-	    (when (apply 'desktop-save-buffer-p l)
-	      (insert "("
-		      (if (or (not (integerp eager))
-			      (if (zerop eager)
-				  nil
-				(setq eager (1- eager))))
-			  "desktop-create-buffer"
-			"desktop-append-buffer-args")
-		      " "
-		      desktop-file-version)
-	      (dolist (e l)
-		(insert "\n  " (desktop-value-to-string e)))
-	      (insert ")\n\n")))
+	    (let ((base (pop l)))
+	      (when (apply 'desktop-save-buffer-p l)
+		(insert "("
+			(if (or (not (integerp eager))
+				(if (zerop eager)
+				    nil
+				  (setq eager (1- eager))))
+			    "desktop-create-buffer"
+			  "desktop-append-buffer-args")
+			" "
+			desktop-file-version)
+		;; If the base name is non-nil, we save it instead of the buffer name
+		(when base (setcar (nthcdr 1 l) base))
+		(dolist (e l)
+		  (insert "\n  " (desktop-value-to-string e)))
+		(insert ")\n\n"))))
 
 	  (setq default-directory desktop-dirname)
 	  (let ((coding-system-for-write 'emacs-mule))
