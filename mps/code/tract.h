@@ -158,10 +158,12 @@ typedef struct ChunkStruct {
 #define ChunkSizeToPages(chunk, size) ((Count)((size) >> (chunk)->pageShift))
 
 extern Bool ChunkCheck(Chunk chunk);
+extern Res ChunkDescribe(Chunk chunk, mps_lib_FILE *stream);
 extern Res ChunkInit(Chunk chunk, Arena arena,
                      Addr base, Addr limit, Align pageSize, BootBlock boot);
 extern void ChunkFinish(Chunk chunk);
-
+extern Bool ChunkZonesNextArea(Addr *baseReturn, Addr *limitReturn, 
+                               Chunk chunk, ZoneSet zones, Addr base);
 extern Bool ChunkCacheEntryCheck(ChunkCacheEntry entry);
 extern void ChunkCacheEntryInit(ChunkCacheEntry entry);
 extern void ChunkEncache(Arena arena, Chunk chunk);
@@ -284,7 +286,7 @@ extern void PageFree(Chunk chunk, Index pi);
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
