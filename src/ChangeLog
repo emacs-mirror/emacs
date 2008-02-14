@@ -1,11 +1,12 @@
 2008-02-14  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* coding.c (decode_coding_object, encode_coding_object): Preserve
-	Vdeactivate_mark.  Delete unnecessary call of Fcurrnet_buffer.
+	* coding.c (decode_coding_object, encode_coding_object):
+	Preserve Vdeactivate_mark.  Delete unnecessary call of Fcurrent_buffer.
 
 2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* coding.c (coding_set_destination): Use BEG_BYTE rather than hardcoding 1.
+	* coding.c (coding_set_destination): Use BEG_BYTE rather than
+	hardcoding 1.
 	(detect_coding_system):
 	* lisp.h (detect_coding_system, chars_in_text, multibyte_chars_in_text)
 	(string_char_to_byte, string_byte_to_char, insert_from_gap):
