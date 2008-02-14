@@ -338,6 +338,91 @@ void ChunkFinish(Chunk chunk)
 }
 
 
+/* ChunkZonesNextArea -- return next area in chunk and zoneset
+ *
+ * "area" means a maximal contiguous area of pages that are within the 
+ * specified ZoneSet and Chunk.  (These pages may or may not be 
+ * allocated already; pages used by the chunk's internal datastructures
+ * are excluded).
+ *
+ * "next" means starting at or after base.
+ *
+ * Values to pass in the "base" parameter:
+ *  first call: pass chunkAllocBase
+ *    (= PageIndexBase(chunk, chunk->allocBase); NOT chunk->base);
+ *  next call: pass previous limitReturn.
+ *
+ * Return value:
+ *  TRUE: a matching area is returned in baseReturn & limitReturn;
+ *  FALSE: no more matching areas in this chunk.
+ */
+Bool ChunkZonesNextArea(Addr *baseReturn, Addr *limitReturn, 
+                        Chunk chunk, ZoneSet zones, Addr base)
+{
+  Arena arena;
+  Addr chunkAllocBase;
+  Size zoneSize;
+  
+  AVERT(Chunk, chunk);
+  arena = chunk->arena;
+  zoneSize = (Size)1 << arena->zoneShift;
+  
+  /* .alloc.skip: The first address available for allocation */
+  /* is just after the chunk's internal datastructures. */
+  chunkAllocBase = PageIndexBase(chunk, chunk->allocBase);
+  
+  AVER(base >= chunkAllocBase);
+  AVER(base <= chunk->limit);
+  
+  while(base < chunk->limit) {
+    if (ZoneSetIsMember(arena, zones, base)) {
+      Addr limit;
+      /* Search for a run of zone stripes which are in the ZoneSet */
+      /* and the arena.  Adding the zoneSize might wrap round (to */
+      /* zero, because limit is aligned to zoneSize, which is a */
+      /* power of two). */
+      limit = base;
+      do {
+        /* advance limit to next higher zone stripe boundary */
+        limit = AddrAlignUp(AddrAdd(limit, 1), zoneSize);
+
+        AVER(limit > base || limit == (Addr)0);
+
+        if (limit >= chunk->limit || limit < base) {
+          limit = chunk->limit;
+          break;
+        }
+
+        AVER(base < limit);
+        AVER(limit < chunk->limit);
+      } while(ZoneSetIsMember(arena, zones, limit));
+
+      /* If the ZoneSet was universal, then the area found ought to */
+      /* be the whole chunk. */
+      AVER(zones != ZoneSetUNIV
+           || (base == chunkAllocBase && limit == chunk->limit));
+
+      *baseReturn = base;
+      *limitReturn = limit;
+      return TRUE;
+      
+    } else {
+      /* Adding the zoneSize might wrap round (to zero, because */
+      /* base is aligned to zoneSize, which is a power of two). */
+      base = AddrAlignUp(AddrAdd(base, 1), zoneSize);
+      AVER(base > chunkAllocBase || base == (Addr)0);
+      if (base >= chunk->limit || base < chunkAllocBase) {
+        base = chunk->limit;
+        break;
+      }
+    }
+  }
+  
+  AVER(base == chunk->limit);
+  return FALSE;
+}
+
+
 /* Chunk Cache
  *
  * Functions for manipulating the chunk cache in the arena.
@@ -717,7 +802,7 @@ void PageFree(Chunk chunk, Index pi)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
