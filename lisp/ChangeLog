@@ -1,3 +1,8 @@
+2008-02-14  Zhang Wei <id.brep@gmail.com> (tiny change)
+
+	* textmodes/org-publish.el (org-publish-timestamp-filename):
+	Replace colon characters in filename too.
+
 2008-02-13  Bastien Guerry  <bzg@altern.org>
 
 	* mail/rmail.el (rmail-header-name): New face.
