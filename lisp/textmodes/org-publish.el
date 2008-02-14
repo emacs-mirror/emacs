@@ -294,7 +294,7 @@ files."
 
 (defun org-publish-timestamp-filename (filename)
   "Return path to timestamp file for filename FILENAME."
-  (while (string-match "~\\|/" filename)
+  (while (string-match "~\\|/\\|:/" filename)
     (setq filename (replace-match "_" nil t filename)))
   (concat org-publish-timestamp-directory filename ".timestamp"))
 
