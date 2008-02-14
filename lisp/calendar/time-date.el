@@ -285,7 +285,7 @@ This does not work for input SECONDS greater than `most-positive-fixnum'."
                  ("m" "minute"       60)
                  ("s" "second"        1)))
         (case-fold-search t)
-        spec match outunits unit prev name next)
+        spec match outunits unit prev name num next)
     (setq nonzero (not nonzero))
     (while (string-match "%\\.?[0-9]*\\(.\\)" string start)
       (setq start (match-end 0)
