@@ -6852,11 +6852,11 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
   EMACS_INT chars = to - from;
   EMACS_INT bytes = to_byte - from_byte;
   Lisp_Object attrs;
-  Lisp_Object buffer;
   int saved_pt = -1, saved_pt_byte;
   int need_marker_adjustment = 0;
+  Lisp_Object old_deactivate_mark;
 
-  buffer = Fcurrent_buffer ();
+  old_deactivate_mark = Vdeactivate_mark;
 
   if (NILP (dst_object))
     {
@@ -6938,12 +6938,13 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 
   if (! NILP (CODING_ATTR_POST_READ (attrs)))
     {
-      struct gcpro gcpro1, gcpro2;
+      struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
       EMACS_INT prev_Z = Z, prev_Z_BYTE = Z_BYTE;
       Lisp_Object val;
 
       TEMP_SET_PT_BOTH (coding->dst_pos, coding->dst_pos_byte);
-      GCPRO2 (coding->src_object, coding->dst_object);
+      GCPRO5 (coding->src_object, coding->dst_object, src_object, dst_object,
+	      old_deactivate_mark);
       val = safe_call1 (CODING_ATTR_POST_READ (attrs),
 			make_number (coding->produced_char));
       UNGCPRO;
@@ -6961,8 +6962,7 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
       set_buffer_internal (XBUFFER (coding->dst_object));
       if (dst_bytes < coding->produced)
 	{
-	  destination
-	    = (unsigned char *) xrealloc (destination, coding->produced);
+	  destination = xrealloc (destination, coding->produced);
 	  if (! destination)
 	    {
 	      record_conversion_result (coding,
@@ -7019,6 +7019,7 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 	}
     }
 
+  Vdeactivate_mark = old_deactivate_mark;
   unbind_to (count, coding->dst_object);
 }
 
@@ -7035,12 +7036,12 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
   EMACS_INT chars = to - from;
   EMACS_INT bytes = to_byte - from_byte;
   Lisp_Object attrs;
-  Lisp_Object buffer;
   int saved_pt = -1, saved_pt_byte;
   int need_marker_adjustment = 0;
   int kill_src_buffer = 0;
+  Lisp_Object old_deactivate_mark;
 
-  buffer = Fcurrent_buffer ();
+  old_deactivate_mark = Vdeactivate_mark;
 
   coding->src_object = src_object;
   coding->src_chars = chars;
@@ -7082,11 +7083,15 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 
       {
 	Lisp_Object args[3];
+	struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
 
+	GCPRO5 (coding->src_object, coding->dst_object, src_object, dst_object,
+		old_deactivate_mark);
 	args[0] = CODING_ATTR_PRE_WRITE (attrs);
 	args[1] = make_number (BEG);
 	args[2] = make_number (Z);
 	safe_call (3, args);
+	UNGCPRO;
       }
       if (XBUFFER (coding->src_object) != current_buffer)
 	kill_src_buffer = 1;
@@ -7217,6 +7222,8 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 
   if (kill_src_buffer)
     Fkill_buffer (coding->src_object);
+
+  Vdeactivate_mark = old_deactivate_mark;
   unbind_to (count, Qnil);
 }
 
