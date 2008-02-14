@@ -1,3 +1,8 @@
+2008-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/time-date.el (format-seconds): New function.
+	(emacs-uptime): Use format-seconds.
+
 2008-02-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-annotate-find-revision-at-line): New function.
