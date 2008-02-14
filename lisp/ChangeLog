@@ -1,5 +1,8 @@
 2008-02-14  Glenn Morris  <rgm@gnu.org>
 
+	* mail/rmail-spam-filter.el (rmail-spam-filter): Let-bind
+	message-spam-status.
+
 	* mail/smtpmail.el (password-cache-add): Declare as function.
 
 2008-02-14  Justus Piater <Justus-bulk@Piater.name>  (tiny change)
