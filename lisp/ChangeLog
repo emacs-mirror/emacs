@@ -1,3 +1,7 @@
+2008-02-14  Justus Piater <Justus-bulk@Piater.name>  (tiny change)
+
+	* mail/smtpmail.el: Use password-cache.
+
 2008-02-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* uniquify.el (uniquify-buffer-base-name): New function.
@@ -34,8 +38,6 @@
 
 	* mail/rmail.el (rmail-header-name): New face.
 	(rmail-font-lock-keywords): Use rmail-header-name.
-
-	* mail/smtpmail.el: Use password-cache.
 
 	* mail/rmail-spam-filter.el (rsf-definitions-alist): Allow check
 	against X-Spam-Status header field.

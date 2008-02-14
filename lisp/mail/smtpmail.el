@@ -78,7 +78,7 @@
 (autoload 'netrc-parse "netrc")
 (autoload 'netrc-machine "netrc")
 (autoload 'netrc-get "netrc")
-(autoload 'password-read "password") ; for new emacsen: "password-cache"
+(autoload 'password-read "password-cache")
 
 ;;;
 (defgroup smtpmail nil
