@@ -1,3 +1,8 @@
+2008-02-14  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* coding.c (decode_coding_object, encode_coding_object): Preserve
+	Vdeactivate_mark.  Delete unnecessary call of Fcurrnet_buffer.
+
 2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* coding.c (coding_set_destination): Use BEG_BYTE rather than hardcoding 1.
