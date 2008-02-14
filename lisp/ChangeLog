@@ -1,3 +1,8 @@
+2008-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (custom-deps, finder-data, autoloads, recompile):
+	Remove `LC_ALL=C', since it's included in $(emacs) now.
+
 2008-02-14  Zhang Wei <id.brep@gmail.com> (tiny change)
 
 	* textmodes/org-publish.el (org-publish-timestamp-filename):
