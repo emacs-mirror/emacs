@@ -533,6 +533,9 @@ This is relative to `smtpmail-queue-dir'.")
 		 (list "--x509keyfile" cred-key "--x509certfile" cred-cert)))))
 	(starttls-open-stream "SMTP" process-buffer host port)))))
 
+;; password-read autoloads password-cache.
+(declare-function password-cache-add "password-cache" (key password))
+
 (defun smtpmail-try-auth-methods (process supported-extensions host port)
   (let* ((mechs (cdr-safe (assoc 'auth supported-extensions)))
 	 (mech (car (smtpmail-intersection smtpmail-auth-supported mechs)))
