@@ -1,3 +1,15 @@
+2008-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* uniquify.el (uniquify-buffer-base-name): New function.
+	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
+
+	* desktop.el (uniquify-managed): Don't defvar.
+	(desktop-buffer-info): Use `uniquify-buffer-base-name', not
+	`uniquify-managed'.  Return also the buffer's base name.
+	(desktop-save): When saving the buffer info, filter out the base name,
+	and save it as buffer name if the buffer is managed by uniquify.
+	(uniquify-item-base): Don't declare; not called anymore.
+
 2008-02-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-annotate-find-revision-at-line): New function.
@@ -13,7 +25,7 @@
 	* Makefile.in (custom-deps, finder-data, autoloads, recompile):
 	Remove `LC_ALL=C', since it's included in $(emacs) now.
 
-2008-02-14  Zhang Wei <id.brep@gmail.com>
+2008-02-14  Zhang Wei  <id.brep@gmail.com>
 
 	* textmodes/org-publish.el (org-publish-timestamp-filename):
 	Replace colon characters in filename too.
@@ -31,19 +43,18 @@
 
 2008-02-14  Mark A. Hershberger  <mah@everybody.org>
 
-	* progmodes/flymake.el (flymake-allowed-file-name-masks): Add
-	support for .pm files and .php files.
+	* progmodes/flymake.el (flymake-allowed-file-name-masks):
+	Add support for .pm files and .php files.
 	(flymake-err-line-patterns): Add pattern for PHP errors.
 	(flymake-php-init): New function.  PHP support for flymake.
 
-	* progmodes/compile.el (compilation-error-regexp-alist-alist): Add
-	regular expression for PHP errors.
-
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Add regular expression for PHP errors.
 
 2008-02-13  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/ange-ftp.el (ange-ftp-quote-string): Use
-	`shell-quote-argument'.  This DTRT even on w32 machines.
+	* net/ange-ftp.el (ange-ftp-quote-string): Use `shell-quote-argument'.
+	This DTRT even on w32 machines.
 	(ange-ftp-cf1): Quote FILENAME.
 
 2008-02-13  Stefan Monnier  <monnier@iro.umontreal.ca>
