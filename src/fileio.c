@@ -4338,10 +4338,12 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       SET_PT_BOTH (temp, same_at_start);
       same_at_start_charpos
 	= buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
-				  same_at_start);
+				  same_at_start - BEGV_BYTE
+				  + BUF_BEG_BYTE (XBUFFER (conversion_buffer)));
       inserted_chars
 	= (buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
-				   same_at_start + inserted)
+				   same_at_start + inserted - BEGV_BYTE
+				  + BUF_BEG_BYTE (XBUFFER (conversion_buffer)))
 	   - same_at_start_charpos);
       /* This binding is to avoid ask-user-about-supersession-threat
 	 being called in insert_from_buffer (via in
