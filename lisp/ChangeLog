@@ -1,3 +1,7 @@
+2008-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* mail/smtpmail.el (password-cache-add): Declare as function.
+
 2008-02-14  Justus Piater <Justus-bulk@Piater.name>  (tiny change)
 
 	* mail/smtpmail.el: Use password-cache.
