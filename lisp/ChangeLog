@@ -13,7 +13,7 @@
 	* Makefile.in (custom-deps, finder-data, autoloads, recompile):
 	Remove `LC_ALL=C', since it's included in $(emacs) now.
 
-2008-02-14  Zhang Wei <id.brep@gmail.com>  (tiny change)
+2008-02-14  Zhang Wei <id.brep@gmail.com>
 
 	* textmodes/org-publish.el (org-publish-timestamp-filename):
 	Replace colon characters in filename too.
@@ -1118,7 +1118,7 @@
 	(terminal-composition-function): Create composition with the above
 	modification function.
 
-2008-02-01  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+2008-02-01  Zhang Wei  <id.brep@gmail.com>
 
 	* international/characters.el: Add more full-width characters in
 	char-width-table.
@@ -1294,7 +1294,7 @@
 	char-table.
 	(ctext-pre-write-conversion): Adjust for the above change.
 
-2008-02-01  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+2008-02-01  Zhang Wei  <id.brep@gmail.com>
 
 	* international/mule.el (ctext-non-standard-encodings-alist):
 	Add an entry for gbk-0.
@@ -1348,7 +1348,7 @@
 	* international/characters.el: Register characters in
 	auto-fill-chars.  Put nospace-between-words to more charsets.
 
-2008-02-01  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+2008-02-01  Zhang Wei  <id.brep@gmail.com>
 
 	* international/mule-cmds.el (locale-language-names): Add entries
 	for zh_CN.GB2312, zh_CN.GBK, and zh_CN.GB18030.
@@ -1404,7 +1404,7 @@
 	* international/robin.el (robin-define-package): Make the
 	expanded form shorter.
 
-2008-02-01  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+2008-02-01  Zhang Wei  <id.brep@gmail.com>
 
 	* language/chinese.el (chinese-iso-8bit): Fix mime-charset of
 	chiense-iso-8bit.
