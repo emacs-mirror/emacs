@@ -2100,6 +2100,12 @@ that should read:
 
 Note the lower case <t>.  Changing this line should make C-t work.
 
+*** On Solaris, Emacs fails to set menu-bar-update-hook on startup, with error
+"Error in menu-bar-update-hook: (error Point before start of properties)".
+This seems to be a GCC optimization bug that occurs for GCC 4.1.2 (-g
+and -g -O2) and GCC 4.2.3 (-g -O and -g -O2).  You can fix this by
+compiling with GCC 4.2.3 or CC 5.7, with no optimizations.
+
 ** Irix
 
 *** Irix 6.5: Emacs crashes on the SGI R10K, when compiled with GCC.
