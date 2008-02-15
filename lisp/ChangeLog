@@ -1,3 +1,7 @@
+2008-02-15  Jason Rumney  <jasonr@gnu.org>
+
+	* term/mac-win.el: Fix coding tag.
+
 2008-02-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hooks.el (vc-menu-map):
