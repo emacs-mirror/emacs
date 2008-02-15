@@ -300,9 +300,10 @@ simply inserts a newline."
 
 ;;; Utility functions
 
-(defun ielm-is-whitespace (string)
+(defun ielm-is-whitespace-or-comment (string)
   "Return non-nil if STRING is all whitespace."
-  (or (string= string "") (string-match "\\`[ \t\n]+\\'" string)))
+  (or (string= string "") 
+      (string-match "\\`[ \t\n]*\\(?:;.*\\)*\\'" string)))
 
 ;;; Evaluation
 
@@ -327,7 +328,7 @@ simply inserts a newline."
 	(ielm-output	"")		; result to display
 	(ielm-wbuf ielm-working-buffer)	; current buffer after evaluation
 	(ielm-pmark (ielm-pm)))
-    (if (not (ielm-is-whitespace ielm-string))
+    (if (not (ielm-is-whitespace-or-comment ielm-string))
 	(progn
 	  (condition-case err
 	      (let (rout)
@@ -342,7 +343,8 @@ simply inserts a newline."
 		(setq ielm-result "Working buffer has been killed"
 		      ielm-error-type "IELM Error"
 		      ielm-wbuf (current-buffer))
-	      (if (ielm-is-whitespace (substring ielm-string ielm-pos))
+	      (if (ielm-is-whitespace-or-comment
+                   (substring ielm-string ielm-pos))
 		  ;; To correctly handle the ielm-local variables *,
 		  ;; ** and ***, we need a temporary buffer to be
 		  ;; current at entry to the inner of the next two let
