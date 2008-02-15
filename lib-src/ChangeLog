@@ -1,3 +1,7 @@
+2008-02-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacsclient.c (print_help_and_exit): Show -d option on Windows.
+
 2008-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* fakemail.c: Undo previous change.
@@ -7,8 +11,7 @@
 	* fakemail.c (MAIL_PROGRAM_NAME): Remove unused conditional.
 	(main): Replace MAIL_PROGRAM_NAME with its value.
 
-	* Makefile.in (REGEXP_IN_LIBC): Remove reference to obsolete
-	variable.
+	* Makefile.in (REGEXP_IN_LIBC): Remove reference to obsolete variable.
 
 2008-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -21,7 +24,8 @@
 
 2008-02-04  Tom Tromey  <tromey@redhat.com>
 
-	* etags.c: Add "GTY" as synonym for __attribute__. Update gperf output.
+	* etags.c: Add "GTY" as synonym for __attribute__.
+	Update gperf output.
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
@@ -32,9 +36,9 @@
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
-	* makefile.w32-in (obj): Add font.o and w32font.o
+	* makefile.w32-in (obj): Add font.o and w32font.o.
 
-2008-02-01  Zhang Wei <id.brep@gmail.com>  (tiny change)
+2008-02-01  Zhang Wei  <id.brep@gmail.com>  (tiny change)
 
 	* lib-src/makefile.w32-in (lisp1): Delete ucs-tables.elc,
 	utf-8.elc, and latin-*.el.
@@ -2689,12 +2693,12 @@
 	* etags.c (suggest_asking_for_help): Provide a
 	meaningful help message with and without LONG_OPTIONS.
 
-	* etags.c: <io.h> [MSDOS]: Include it, don't include string.h.
+	* etags.c (<io.h>) [MSDOS]: Include it, don't include string.h.
 	<stdlib.h, string.h>: Don't test MSDOS when including them.
 	(white, nonam, endtk): Like elsewhere, use \r instead of \013.
 	(put_entries): Correctly use %ld instead of %d in printf.
 
-	* etags.c: <unistd.h> [HAVE_UNISTD_H]: Include conditionally, else
+	* etags.c (<unistd.h>) [HAVE_UNISTD_H]: Include conditionally, else
 	declare getcwd if HAVE_GETCWD.
 	(consider_token): Dead break instruction removed.
 
@@ -2703,14 +2707,14 @@
 	Add support for large files.  Merge glibc 2.1.2.
 
 	* b2m.c, emacsclient.c, emacsserver.c, fakemail.c, make-docfile.c,
-	movemail.c, pop.c:
+	* movemail.c, pop.c:
 	Do not include <stdlib.h>, as <config.h> does this now.
 
 	* b2m.c, emacsserver.c, etags.c, profile.c:
 	Include <config.h> before any system include files.
 
 	* emacsclient.c, emacsserver.c, fakemail.c, movemail.c, pop.c,
-	test-distrib.c:
+	* test-distrib.c:
 	(read, write, open, close): Do not undef.
 
 	* getopt.c, getopt1.c: Adopt glibc 2.1.2, with the following fix:
