@@ -2528,28 +2528,6 @@ Some versions of mingw32 make on some versions of Windows do not seem
 to detect the shell correctly. Try "make SHELL=cmd.exe", or if that
 fails, try running make from Cygwin bash instead.
 
-*** Building the MS-Windows port with Leim fails in the `leim' directory.
-
-The error message might be something like this:
-
- Converting d:/emacs-21.3/leim/CXTERM-DIC/4Corner.tit to quail-package...
- Invalid ENCODE: value in TIT dictionary
- NMAKE : fatal error U1077: '"../src/obj-spd/i386/emacs.exe"' : return code
-       '0xffffffff'
- Stop.
-
-This can happen if the Leim distribution is unpacked with a program
-which converts the `*.tit' files to DOS-style CR-LF text format.  The
-`*.tit' files in the leim/CXTERM-DIC directory require Unix-style line
-endings to compile properly, because Emacs reads them without any code
-or EOL conversions.
-
-The solution is to make sure the program used to unpack Leim does not
-change the files' line endings behind your back.  The GNU FTP site has
-in the `/gnu/emacs/windows' directory a program called `djtarnt.exe'
-which can be used to unpack `.tar.gz' and `.zip' archives without
-mangling them.
-
 *** Building `ctags' for MS-Windows with the MinGW port of GCC fails.
 
 This might happen due to a bug in the MinGW header assert.h, which
