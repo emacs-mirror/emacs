@@ -159,22 +159,19 @@ Res ChunkDescribe(Chunk chunk, mps_lib_FILE *stream)
   Res res;
   Size grainSize;  /* size of an arena grain */
   Size chunkSize;
-  Size zoneSize;
-  Count zones;
+  Addr chunkAllocBase;
+  Count zones = MPS_WORD_WIDTH;
   Index zone;
-  Size lapSize;
-  Addr zoneLoBase, zoneHiLimit;
-  Count laps;
-  Count zoneGrains;
-  
+
   if(!CHECKT(Chunk, chunk))
     return ResFAIL;
   if(stream == NULL)
     return ResFAIL;
   
   grainSize = chunk->arena->alignment;
-
   chunkSize = AddrOffset(chunk->base, chunk->limit);
+  chunkAllocBase = PageIndexBase(chunk, chunk->allocBase);
+
   res = WriteF(stream,
     "Chunk [$W..<$W>..$W) ($U) $U arena grains: ", 
     chunk->base, chunkSize, chunk->limit,
@@ -183,56 +180,40 @@ Res ChunkDescribe(Chunk chunk, mps_lib_FILE *stream)
   if(res != ResOK)
     return res;
 
-
-  /* Grains per zone
-   *
-   * o -- -- -- -< XX XX XX XX |
-   * | XX XX XX XX XX XX XX XX |
-   * | XX >- -- -- -- -- -- -- o
-   *
-   * o -- -- -- -- -- -< >- -- o
-   *
-   * If the chunk started at zone 0, and did complete 'laps' ending 
-   * at zone 31, it would go from zoneLoBase ("o") to zoneHiLimit("o").
-   * In fact, some grains are lost at the beginning and end ("--").
-   */
-  
-  zoneSize = (Size)1 << chunk->arena->zoneShift;
-  zones = MPS_WORD_WIDTH;
-  lapSize = zoneSize * zones;
-  zoneLoBase = AddrAlignDown(chunk->base, lapSize);
-  zoneHiLimit = AddrAlignUp(chunk->limit, lapSize);
-  /* @@@@ zoneHiLimit may wraparound to 0 :-(  Need code to cope with this. */
-  laps = AddrOffset(zoneLoBase, zoneHiLimit) / lapSize;
-  AVER(laps >= 1);
-  zoneGrains = zoneSize / grainSize;
-  AVER(AddrIsAligned(chunk->base, grainSize));
-  AVER(AddrIsAligned(chunk->limit, grainSize));
-  
   for(zone = 0; zone < zones; zone += 1) {
-    Count grains = zoneGrains * laps;
-    Addr zoneBase;
-    Addr zoneLimit0, zoneLimit;
+    Count grains = 0;
+    Count grainsFree = 0;
+    Addr base, limit;
+    ZoneSet zs = 1 << zone;
     
-    zoneBase = AddrAdd(zoneLoBase, (zone * zoneSize));
-    if(zoneBase < chunk->base) {
-      Count lost = AddrOffset(zoneBase, chunk->base) / grainSize;
-      if(lost > zoneGrains)
-        lost = zoneGrains;
-      grains -= lost;
-    }
-
-    zoneLimit0 = AddrAdd(AddrSub(zoneHiLimit, lapSize), zoneSize);
-    zoneLimit = AddrAdd(zoneLimit0, zone * zoneSize);
-    if(chunk->limit < zoneLimit) {
-      Count lost = AddrOffset(chunk->limit, zoneLimit) / grainSize;
-      if(lost > zoneGrains)
-        lost = zoneGrains;
-      grains -= lost;
+    for(base = chunkAllocBase;
+        ChunkZonesNextArea(&base, &limit, chunk, zs, base);
+        base = limit) {
+      
+      AVER(AddrIsAligned(base, ChunkPageSize(chunk)));
+      AVER(AddrIsAligned(limit, ChunkPageSize(chunk)));
+      AVER(chunk->base <= base);
+      AVER(base < limit);
+      AVER(limit <= chunk->limit);
+      
+      /* how many grains, how many free, largest free range? */
+      
+      grains += AddrOffset(base, limit) / grainSize;
+      
+      {
+        Index basePageIndex, limitPageIndex;
+        basePageIndex = INDEX_OF_ADDR(chunk, base);
+        limitPageIndex = INDEX_OF_ADDR(chunk, limit);
+        grainsFree += BTCountResRange(chunk->allocTable, 
+                                      basePageIndex, limitPageIndex);
+      }
+      
+      {
+      }
     }
 
     res = WriteF(stream,
-      "$U ", grains,
+      "$U/$U ", grainsFree, grains,
       NULL);
     if(res != ResOK)
       return res;
