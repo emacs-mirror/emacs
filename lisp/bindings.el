@@ -156,7 +156,7 @@ corresponding to the mode line clicked."
       (setq desc
 	    (propertize
 	     mnemonic
-	     'help-echo (format "%s end-of-line; mouse-1 to cycle"
+	     'help-echo (format "End-of-line style: %s\nmouse-1 to cycle"
 				(if (eq eol 0) "Unix-style LF"
 				  (if (eq eol 1) "Dos-style CRLF"
 				    (if (eq eol 2) "Mac-style CR"
@@ -228,12 +228,12 @@ Normally nil in most modes, since there is no process to display.")
   (list (propertize
 	 "%1*"
 	 'help-echo (purecopy (lambda (window object point)
- 				(format "%sead-only: mouse-1 toggles"
+ 				(format "Buffer is %s\nmouse-1 toggles"
 					(save-selected-window
 					  (select-window window)
 					  (if buffer-read-only
-					      "R"
-					    "Not r")))))
+					      "read-only"
+					    "writable")))))
 	 'local-map (purecopy (make-mode-line-mouse-map
 			       'mouse-1
 			       #'mode-line-toggle-read-only))
@@ -302,7 +302,9 @@ Keymap to display on minor modes.")
 	;; 	  "\
 	;; mouse-1: select window, mouse-2: delete others, mouse-3: delete,
 	;; drag-mouse-1: resize, C-mouse-2: split horizontally"
-	"mouse-1: select (drag to resize), mouse-2 = C-x 1, mouse-3 = C-x 0")
+	"mouse-1: Select (drag to resize)\n\
+mouse-2: Make current window occupy the whole frame\n\
+mouse-3: Remove current window from display")
        (dashes (propertize "--" 'help-echo help-echo))
        (standard-mode-line-format
 	(list
@@ -326,15 +328,21 @@ Keymap to display on minor modes.")
 	(list
 	 (propertize "%[(" 'help-echo help-echo)
 	 `(:propertize ("" mode-name)
-		       help-echo "mouse-1: major mode, mouse-2: major mode help, mouse-3: toggle minor modes"
+		       help-echo "Major mode\n\
+mouse-1: Display major mode menu\n\
+mouse-2: Show help for major mode\n\
+mouse-3: Toggle minor modes"
 		       mouse-face mode-line-highlight
 		       local-map ,mode-line-major-mode-keymap)
 	 '("" mode-line-process)
 	 `(:propertize ("" minor-mode-alist)
 		       mouse-face mode-line-highlight
-		       help-echo "mouse-1: minor mode, mouse-2: minor mode help, mouse-3: toggle minor modes"
+		       help-echo "Minor mode\n\
+mouse-1: Display minor mode menu\n\
+mouse-2: Show help for minor mode\n\
+mouse-3: Toggle minor modes"
 		       local-map ,mode-line-minor-mode-keymap)
-	 (propertize "%n" 'help-echo "mouse-2: widen"
+	 (propertize "%n" 'help-echo "mouse-2: Remove narrowing from the current buffer"
 		     'mouse-face 'mode-line-highlight
 		     'local-map (make-mode-line-mouse-map
 				 'mouse-2 #'mode-line-widen))
@@ -343,13 +351,25 @@ Keymap to display on minor modes.")
        (standard-mode-line-position
 	`((-3 ,(propertize "%p" 'help-echo help-echo))
 	  (size-indication-mode
-	   (8 ,(propertize " of %I" 'help-echo help-echo)))
+	   (8 ,(propertize 
+		" of %I"
+		;; XXX needs better description
+		'help-echo (format "Size indication mode\n%s" help-echo))))
 	  (line-number-mode
 	   ((column-number-mode
-	     (10 ,(propertize " (%l,%c)" 'help-echo help-echo))
-	     (6 ,(propertize " L%l" 'help-echo help-echo))))
+	     (10 ,(propertize 
+		   " (%l,%c)" 
+		   'help-echo 
+		   (format "Line number and Column number\n%s" help-echo)))
+	     (6 ,(propertize 
+		  " L%l" 
+		  'help-echo
+		  (format "Line number\n%s" help-echo)))))
 	   ((column-number-mode
-	     (5 ,(propertize " C%c" 'help-echo help-echo))))))))
+	     (5 ,(propertize 
+		  " C%c" 
+		  'help-echo
+		  (format "Column number\n%s" help-echo)))))))))
 
   (setq-default mode-line-format standard-mode-line-format)
   (put 'mode-line-format 'standard-value
@@ -385,7 +405,9 @@ text properties for face, help-echo, and local-map to it."
   (list (propertize fmt
 		    'face 'mode-line-buffer-id
 		    'help-echo
-		    (purecopy "mouse-1: previous buffer, mouse-3: next buffer")
+		    (purecopy "Buffer name\n\
+mouse-1: previous buffer\n\
+mouse-3: next buffer")
 		    'mouse-face 'mode-line-highlight
 		    'local-map mode-line-buffer-identification-keymap)))
 
@@ -456,37 +478,49 @@ Menu of mode operations in the mode line.")
 ;; Global ones can go on the menubar (Options --> Show/Hide).
 (define-key mode-line-mode-menu [overwrite-mode]
   `(menu-item ,(purecopy "Overwrite (Ovwrt)") overwrite-mode
+	      :help "Overwrite mode: typed characters replace existing text"
 	      :button (:toggle . overwrite-mode)))
 (define-key mode-line-mode-menu [outline-minor-mode]
   `(menu-item ,(purecopy "Outline (Outl)") outline-minor-mode
+	      ;; XXX: This needs a good, brief description.
+	      :help ""
 	      :button (:toggle . (bound-and-true-p outline-minor-mode))))
 (define-key mode-line-mode-menu [highlight-changes-mode]
   `(menu-item ,(purecopy "Highlight changes (Chg)") highlight-changes-mode
+	      :help "Show changes in the buffer in a distinctive color"
 	      :button (:toggle . (bound-and-true-p highlight-changes-mode))))
 (define-key mode-line-mode-menu [hide-ifdef-mode]
   `(menu-item ,(purecopy "Hide ifdef (Ifdef)") hide-ifdef-mode
+	      :help "Show/Hide code within #ifdef constructs"
 	      :button (:toggle . (bound-and-true-p hide-ifdef-mode))))
 (define-key mode-line-mode-menu [glasses-mode]
   `(menu-item ,(purecopy "Glasses (o^o)") glasses-mode
+	      :help "Insert virtual separators to make long identifiers easy to read"
 	      :button (:toggle . (bound-and-true-p glasses-mode))))
 (define-key mode-line-mode-menu [font-lock-mode]
   `(menu-item ,(purecopy "Font Lock") font-lock-mode
+	      :help "Syntax coloring"
 	      :button (:toggle . font-lock-mode)))
 (define-key mode-line-mode-menu [flyspell-mode]
   `(menu-item ,(purecopy "Flyspell (Fly)") flyspell-mode
+	      :help "Spell checking on the fly"
 	      :button (:toggle . (bound-and-true-p flyspell-mode))))
 (define-key mode-line-mode-menu [auto-revert-tail-mode]
   `(menu-item ,(purecopy "Auto revert tail (Tail)") auto-revert-tail-mode
+	      :help "Revert the tail of the buffer when buffer grows"
 	      :enable (buffer-file-name)
 	      :button (:toggle . (bound-and-true-p auto-revert-tail-mode))))
 (define-key mode-line-mode-menu [auto-revert-mode]
   `(menu-item ,(purecopy "Auto revert (ARev)") auto-revert-mode
+	      :help "Revert the buffer when the file on disk changes"
 	      :button (:toggle . (bound-and-true-p auto-revert-mode))))
 (define-key mode-line-mode-menu [auto-fill-mode]
   `(menu-item ,(purecopy "Auto fill (Fill)") auto-fill-mode
+	      :help "Automatically insert new lines"
 	      :button (:toggle . auto-fill-function)))
 (define-key mode-line-mode-menu [abbrev-mode]
   `(menu-item ,(purecopy "Abbrev (Abbrev)") abbrev-mode
+	      :help "Automatically expand abbreviations"
 	      :button (:toggle . abbrev-mode)))
 
 (defun mode-line-mode-menu (event)

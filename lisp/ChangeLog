@@ -1,3 +1,11 @@
+2008-02-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-menu-map):
+	* bindings.el (mode-line-mode-menu): Add tooltips.
+
+	* bindings.el (help-echo): Add more tooltips.  Use a less
+	telegraphic style for existing tooltips.
+
 2008-02-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.el (frame-notice-user-settings): Distinguish explicit parent-id
