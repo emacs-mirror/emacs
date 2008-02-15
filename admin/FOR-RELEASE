@@ -27,10 +27,6 @@ Reminders sent out on 2006-06-08.
 These don't need to be fixed before a release, but we call the
 attention of Windows users to fixing them.
 
-** Drew Adams 12 Aug bug rpt: overlay display artifact: trace left behind
-Windows only bug. Bug appears only when Cleartype enabled, probably related
-to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
-
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
 
