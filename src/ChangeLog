@@ -1,3 +1,10 @@
+2008-02-15  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (x_draw_glyph_string_background): Clear the background
+	manually when cleartype is in use.
+	(x_draw_glyph_string_foreground): Draw text transparently when
+	cleartype is in use.
+
 2008-02-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (syms_of_fileio) <insert-default-directory>: Doc fix.
