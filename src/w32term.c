@@ -1519,6 +1519,7 @@ x_draw_glyph_string_background (s, force_p)
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
                || s->font->bdf
+               || cleartype_active
 	       || force_p)
 	{
 	  x_clear_glyph_string_rect (s, s->x, s->y + box_line_width,
@@ -1547,7 +1548,8 @@ x_draw_glyph_string_foreground (s)
   else
     x = s->x;
 
-  if (s->for_overlaps || (s->background_filled_p && s->hl != DRAW_CURSOR))
+  if (s->for_overlaps || (s->background_filled_p && s->hl != DRAW_CURSOR)
+      || cleartype_active)
     SetBkMode (s->hdc, TRANSPARENT);
   else
     SetBkMode (s->hdc, OPAQUE);
