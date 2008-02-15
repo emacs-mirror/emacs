@@ -2152,14 +2152,13 @@ for menus.  Help text is only available in later versions of Windows.
 When "ClearType" method is selected as the "method to smooth edges of
 screen fonts" (in Display Properties, Appearance tab, under
 "Effects"), there are various problems related to display of
-characters: 2-pixel trace is left behind when moving overlays, bold
-fonts can be hard to read, small portions of some characters could
-appear chopped, etc.  This happens because, under ClearType,
-characters are drawn outside their advertised bounding box.  Emacs 21
-disabled the use of ClearType, whereas Emacs 22 allows it and has some
-code to enlarge the width of the bounding box.  Apparently, this
-display feature needs more changes to get it 100% right.  A workaround
-is to disable ClearType.
+characters:  Bold fonts can be hard to read, small portions of some
+characters could appear chopped, etc.  This happens because, under
+ClearType, characters are drawn outside their advertised bounding box.
+Emacs 21 disabled the use of ClearType, whereas Emacs 22 allows it and
+has some code to enlarge the width of the bounding box.  Apparently,
+this display feature needs more changes to get it 100% right.  A
+workaround is to disable ClearType.
 
 There are problems with display if mouse-tracking is enabled and the
 mouse is moved off a frame, over another frame then back over the first
