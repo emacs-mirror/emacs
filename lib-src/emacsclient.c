@@ -613,10 +613,8 @@ The following OPTIONS are accepted:\n\
 -c, --create-frame    	Create a new frame instead of trying to\n\
 			use the current Emacs frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
--n, --no-wait		Don't wait for the server to return\n"
-#ifndef WINDOWSNT
-"-d, --display=DISPLAY	Visit the file in the given display\n"
-#endif
+-n, --no-wait		Don't wait for the server to return\n\
+-d, --display=DISPLAY	Visit the file in the given display\n"
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 "-s, --socket-name=FILENAME\n\
 			Set filename of the UNIX socket for communication\n"
