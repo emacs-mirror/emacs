@@ -1,3 +1,7 @@
+2008-02-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* .gdbinit: Don't set `args', it breaks gdb --args.
+
 2008-02-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Finsert_file_contents): Adjust offsets when replacing
