@@ -1,15 +1,14 @@
-2008-02-16  Lawrence Mitchell <wence@gmx.li>
+2008-02-16  Lawrence Mitchell  <wence@gmx.li>
 
-        * ielm.el (ielm-is-whitespace-or-comment): Docstring
-        fix.
+	* ielm.el (ielm-is-whitespace-or-comment): Docstring fix.
 
 2008-02-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-annotate): Add new argument.
 	(vc-annotate-warp-revision): Pass the current line to vc-annotate.
 
-	* progmodes/hideshow.el: Remove the minor-mode bookkeeping. Move
-	make-variable-buffer-local code after the corresponding defvar.
+	* progmodes/hideshow.el: Remove the minor-mode bookkeeping.
+	Move make-variable-buffer-local code after the corresponding defvar.
 	(hs-minor-mode-map): Define and initialize in one step.
 	(hs-minor-mode): Change from defun to define-minor-mode.
 
@@ -33,15 +32,15 @@
 	* calendar/time-date.el (format-seconds): Remove `nonzero' argument
 	in favor of `%z' specifier.
 	(emacs-uptime): Move to time.el.
-	* time.el (emacs-uptime): Move here from time-date.el.  Add
-	optional `format' argument.  Doc fix.  Use `%z' rather than
-	removed `nonzero' argument of format-seconds.
+	* time.el (emacs-uptime): Move here from time-date.el.  Add optional
+	`format' argument.  Doc fix.  Use `%z' rather than removed `nonzero'
+	argument of format-seconds.
 
 2008-02-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* bindings.el (mode-line-mule-info): Make the tooltips more explicit.
 
-2008-02-15  Lawrence Mitchell <wence@gmx.li>
+2008-02-15  Lawrence Mitchell  <wence@gmx.li>
 
 	* ielm.el (ielm-is-whitespace): Remove.
 	(ielm-is-whitespace-or-comment): New function.
