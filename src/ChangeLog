@@ -1,3 +1,7 @@
+2008-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* fontset.c (Finternal_char_font): Fix compilation warning.
+
 2008-02-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (init_user_info): Use TOKEN_USER and TOKEN_PRIMARY_GROUP
