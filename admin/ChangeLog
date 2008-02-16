@@ -1,3 +1,11 @@
+2008-02-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* unidata/makefile.w32-in (unidata.txt): Don't use $<, it's
+	non-portable in this context.
+
+	* unidata/Makefile.in (unidata.txt): Don't use $<, it's
+	non-portable in this context.
+
 2008-02-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* unidata/makefile.w32-in (lisp): New variable.
