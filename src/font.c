@@ -3494,10 +3494,13 @@ FONT-OBJECT may be nil if GSTRING already already contains one.  */)
       for (i = 0; i < len; i++)
 	{
 	  Lisp_Object g = LGSTRING_GLYPH (gstring, i);
+	  /* Shut up GCC warning in comparison with
+	     MOST_POSITIVE_FIXNUM below.  */
+	  EMACS_INT cod;
 
 	  c = STRING_CHAR_ADVANCE (p);
-	  code = font->driver->encode_char (font, c);
-	  if (code > MOST_POSITIVE_FIXNUM || code == FONT_INVALID_CODE)
+	  cod = code = font->driver->encode_char (font, c);
+	  if (cod > MOST_POSITIVE_FIXNUM || code == FONT_INVALID_CODE)
 	    break;
 	  LGLYPH_SET_FROM (g, i);
 	  LGLYPH_SET_TO (g, i);
@@ -3520,10 +3523,13 @@ FONT-OBJECT may be nil if GSTRING already already contains one.  */)
       for (i = 0; i < len; i++)
 	{
 	  Lisp_Object g = LGSTRING_GLYPH (gstring, i);
+	  /* Shut up GCC warning in comparison with
+	     MOST_POSITIVE_FIXNUM below.  */
+	  EMACS_INT cod;
 
 	  FETCH_CHAR_ADVANCE (c, pos, pos_byte);
-	  code = font->driver->encode_char (font, c);
-	  if (code > MOST_POSITIVE_FIXNUM || code == FONT_INVALID_CODE)
+	  cod = code = font->driver->encode_char (font, c);
+	  if (cod > MOST_POSITIVE_FIXNUM || code == FONT_INVALID_CODE)
 	    break;
 	  LGLYPH_SET_FROM (g, i);
 	  LGLYPH_SET_TO (g, i);
@@ -3961,13 +3967,14 @@ Each element is a vector [GLYPH-CODE LBEARING RBEARING WIDTH ASCENT DESCENT].  *
       Lisp_Object val;
       int c = XINT (ch);
       unsigned code;
+      EMACS_INT cod;
       struct font_metrics metrics;
 
-      code = font->driver->encode_char (font, c);
+      cod = code = font->driver->encode_char (font, c);
       if (code == FONT_INVALID_CODE)
 	continue;
       val = Fmake_vector (make_number (6), Qnil);
-      if (code <= MOST_POSITIVE_FIXNUM)
+      if (cod <= MOST_POSITIVE_FIXNUM)
 	ASET (val, 0, make_number (code));
       else
 	ASET (val, 0, Fcons (make_number (code >> 16),
