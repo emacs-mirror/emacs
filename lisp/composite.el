@@ -400,7 +400,7 @@ where PATTERNs are regular expressions and FUNCs are functions.
 If the element is FUNC, FUNC itself determines the region to
 compose.
 
-Each function is called with 5 arguments, FROM, TO, FONT-OBJECT,
+Each function is called with 4 arguments, FROM, TO, FONT-OBJECT,
 and STRING.
 
 If STRING is nil, FROM and TO are positions specifying the region
