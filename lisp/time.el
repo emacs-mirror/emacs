@@ -548,7 +548,6 @@ To turn off the world time display, go to that window and type `q'."
           (when (equal (symbol-name (aref elt 5)) "display-time-world-timer")
             (cancel-timer elt)))))))
 
-
 ;;;###autoload
 (defun emacs-uptime (&optional format)
   "Return a string giving the uptime of this instance of Emacs.
@@ -559,6 +558,18 @@ For example, the Unix uptime command format is \"%D, %z%2h:%.2m\"."
          (format-seconds (or format "%Y, %D, %H, %M, %z%S")
                          (time-to-seconds
                           (time-subtract (current-time) before-init-time)))))
+    (if (interactive-p)
+        (message "%s" str)
+      str)))
+
+;;;###autoload
+(defun emacs-init-time ()
+  "Return a string giving the duration of the Emacs initialization."
+  (interactive)
+  (let ((str
+         (format-seconds "%z%S"
+			 (time-to-seconds
+			  (time-subtract after-init-time before-init-time)))))
     (if (interactive-p)
         (message "%s" str)
       str)))
