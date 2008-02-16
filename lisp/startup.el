@@ -197,6 +197,9 @@ an error in one of these functions will invoke the debugger.")
 (defvar before-init-time nil
   "Value of `current-time' before Emacs begins initialization.")
 
+(defvar after-init-time nil
+  "Value of `current-time' after loading the init files.")
+
 (defvar emacs-startup-hook nil
   "Normal hook run after loading init files and handling the command line.")
 
@@ -1097,6 +1100,7 @@ opening the first frame (e.g. open a connection to an X server).")
 		 (eq face-ignored-fonts old-face-ignored-fonts))
       (clear-face-cache)))
 
+  (setq after-init-time (current-time))
   (run-hooks 'after-init-hook)
 
   ;; Decode all default-directory.
