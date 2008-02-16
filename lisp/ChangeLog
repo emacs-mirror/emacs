@@ -32,6 +32,8 @@
 
 2008-02-16  Glenn Morris  <rgm@gnu.org>
 
+	* nxml/test.invalid.xml, nxml/test.valid.xml: Move to etc/nxml.
+
 	* startup.el (emacs-startup-time): Rename to `before-init-time'.
 	(before-init-time): New name for `emacs-startup-time'.
 	(command-line): Use before-init-time rather than emacs-startup-time.
