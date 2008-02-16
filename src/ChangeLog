@@ -1,3 +1,8 @@
+2008-02-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* font.c (Ffont_fill_gstring, Fget_font_glyphs): Fix compilation
+	warnings.
+
 2008-02-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* .gdbinit: Don't set `args', it breaks gdb --args.
