@@ -1,3 +1,16 @@
+2008-02-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-gdb): Don't reset gdb-ready.
+	(gdb-ready): Move declaration...
+
+	* progmodes/gdb-ui.el (gdb-ready): ...to here.
+	(gdb-early-user-input): New variable.
+	(gdb): Reset gdb-flush-pending-output to nil and set
+	comint-input-sender here (before gdb-prompt), instead of...
+	(gdb-init-1): ...here.
+	(gdb-send): If Emacs is not ready, defer user input to...
+	(gdb-prompt): ...here.
+
 2008-02-16  Glenn Morris  <rgm@gnu.org>
 
 	* composite.el (composition-function-table): Doc fix.
