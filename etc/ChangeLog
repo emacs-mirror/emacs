@@ -1,3 +1,8 @@
+2008-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* nxml/test-invalid.xml, nxml/test-valid.xml: Move here from lisp/nxml.
+	Rename from "test." to "test-" for doschk.
+
 2008-02-10  Daiki Ueno  <ueno@unixuser.org>
 
 	* NEWS: Clarify EasyPG functionalities.
