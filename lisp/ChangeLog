@@ -1,7 +1,3 @@
-2008-02-16  Eli Zaretskii  <eliz@gnu.org>
-
-	* vc-hooks.el (vc-find-root): Don't loop forever on non-existent root.
-
 2008-02-14  Stefan Monnier  <monnier@pastel.home>
 
 	* textmodes/sgml-mode.el (sgml-mode): Fix comment syntax.
