@@ -345,24 +345,49 @@ info node `(elisp)Overlays'.")
   "Non-nil if using hideshow mode as a minor mode of some other mode.
 Use the command `hs-minor-mode' to toggle or set this variable.")
 
-(defvar hs-minor-mode-map nil
+(defvar hs-minor-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; These bindings roughly imitate those used by Outline mode.
+    (define-key map "\C-c@\C-h"	      'hs-hide-block)
+    (define-key map "\C-c@\C-s"	      'hs-show-block)
+    (define-key map "\C-c@\C-\M-h"    'hs-hide-all)
+    (define-key map "\C-c@\C-\M-s"    'hs-show-all)
+    (define-key map "\C-c@\C-l"	      'hs-hide-level)
+    (define-key map "\C-c@\C-c"	      'hs-toggle-hiding)
+    (define-key map [(shift mouse-2)] 'hs-mouse-toggle-hiding)
+    (easy-menu-define hs-minor-mode-menu map
+      "Menu used when hideshow minor mode is active."
+      '("Hide/Show"
+	["Hide Block"    hs-hide-block
+	 :help "Hide the code or comment block at point"]
+	["Show Block"    hs-show-block
+	 :help "Show the code or comment block at point"]
+	["Hide All"      hs-hide-all
+	 :help "Hide all the blocks in the buffer"]
+	["Show All"      hs-show-all
+	 :help "Show all the clocks in the buffer"]
+	["Hide Level"    hs-hide-level
+	 :help "Hide all block at levels below the current block"]
+	["Toggle Hiding" hs-toggle-hiding
+	 :help "Toggle the hiding state of the current block"]))
+    map)
   "Keymap for hideshow minor mode.")
-
-(defvar hs-minor-mode-menu nil
-  "Menu for hideshow minor mode.")
 
 (defvar hs-c-start-regexp nil
   "Regexp for beginning of comments.
 Differs from mode-specific comment regexps in that
 surrounding whitespace is stripped.")
+(make-variable-buffer-local 'hs-c-start-regexp)
 
 (defvar hs-block-start-regexp nil
   "Regexp for beginning of block.")
+(make-variable-buffer-local 'hs-block-start-regexp)
 
 (defvar hs-block-start-mdata-select nil
   "Element in `hs-block-start-regexp' match data to consider as block start.
 The internal function `hs-forward-sexp' moves point to the beginning of this
 element (using `match-beginning') before calling `hs-forward-sexp-func'.")
+(make-variable-buffer-local 'hs-block-start-mdata-select)
 
 (defvar hs-block-end-regexp nil
   "Regexp for end of block.")
@@ -374,6 +399,7 @@ delimiters -- ie, the syntax table regexp for the character is
 either `(' or `)' -- `hs-forward-sexp-func' would just be
 `forward-sexp'.  For other modes such as simula, a more specialized
 function is necessary.")
+(make-variable-buffer-local 'hs-forward-sexp-func)
 
 (defvar hs-adjust-block-beginning nil
   "Function used to tweak the block beginning.
@@ -394,6 +420,7 @@ It should return the position from where we should start hiding.
 It should not move the point.
 
 See `hs-c-like-adjust-block-beginning' for an example of using this.")
+(make-variable-buffer-local 'hs-adjust-block-beginning)
 
 (defvar hs-headline nil
   "Text of the line where a hidden block begins, set during isearch.
@@ -873,9 +900,8 @@ This can be useful if you have huge RCS logs in those comments."
            (hs-hide-comment-region beg end)))))))
 
 ;;;###autoload
-(defun hs-minor-mode (&optional arg)
-  "Toggle hideshow minor mode.
-With ARG, turn hideshow minor mode on if ARG is positive, off otherwise.
+(define-minor-mode hs-minor-mode
+  "Minor mode to selectively hide/show code and comment blocks. 
 When hideshow minor mode is on, the menu bar is augmented with hideshow
 commands and the hideshow commands are enabled.
 The value '(hs . t) is added to `buffer-invisibility-spec'.
@@ -891,12 +917,10 @@ Lastly, the normal hook `hs-minor-mode-hook' is run using `run-hooks'.
 
 Key bindings:
 \\{hs-minor-mode-map}"
-
-  (interactive "P")
-  (setq hs-headline nil
-        hs-minor-mode (if (null arg)
-                          (not hs-minor-mode)
-                        (> (prefix-numeric-value arg) 0)))
+  :group 'hideshow 
+  :lighter " hs"
+  :keymap hs-minor-mode-map
+  (setq hs-headline nil)
   (if hs-minor-mode
       (progn
         (hs-grok-mode-type)
@@ -907,59 +931,15 @@ Key bindings:
         (easy-menu-add hs-minor-mode-menu)
         (set (make-local-variable 'line-move-ignore-invisible) t)
         (add-to-invisibility-spec '(hs . t)))
-    (easy-menu-remove hs-minor-mode-menu)
     (remove-from-invisibility-spec '(hs . t))
     ;; hs-show-all does nothing unless h-m-m is non-nil.
     (let ((hs-minor-mode t))
-      (hs-show-all)))
-  (run-hooks 'hs-minor-mode-hook))
+      (hs-show-all))))
 
 ;;;###autoload
 (defun turn-off-hideshow ()
   "Unconditionally turn off `hs-minor-mode'."
   (hs-minor-mode -1))
-
-;;---------------------------------------------------------------------------
-;; load-time actions
-
-;; keymaps and menus
-(unless hs-minor-mode-map
-  (setq hs-minor-mode-map (make-sparse-keymap))
-  (easy-menu-define hs-minor-mode-menu
-    hs-minor-mode-map
-    "Menu used when hideshow minor mode is active."
-    (cons "Hide/Show"
-          (mapcar
-           ;; Interpret each table entry as follows: first, populate keymap
-           ;; with elements 2 and 1; then, for easymenu, use entry directly
-           ;; unless element 0 is nil, in which case the entry is "omitted".
-           (lambda (ent)
-             (define-key hs-minor-mode-map (aref ent 2) (aref ent 1))
-             (if (aref ent 0) ent "-----"))
-           ;; These bindings roughly imitate those used by Outline mode.
-           ;; menu entry      command                key
-           '(["Hide Block"    hs-hide-block          "\C-c@\C-h"]
-             ["Show Block"    hs-show-block          "\C-c@\C-s"]
-             ["Hide All"      hs-hide-all            "\C-c@\C-\M-h"]
-             ["Show All"      hs-show-all            "\C-c@\C-\M-s"]
-             ["Hide Level"    hs-hide-level          "\C-c@\C-l"]
-             ["Toggle Hiding" hs-toggle-hiding       "\C-c@\C-c"]
-             [nil             hs-mouse-toggle-hiding [(shift mouse-2)]]
-             )))))
-
-;; some housekeeping
-(add-to-list 'minor-mode-map-alist (cons 'hs-minor-mode hs-minor-mode-map))
-(add-to-list 'minor-mode-alist '(hs-minor-mode " hs") t)
-
-;; make some variables buffer-local
-(dolist (var '(hs-minor-mode
-               hs-c-start-regexp
-               hs-block-start-regexp
-               hs-block-start-mdata-select
-               hs-block-end-regexp
-               hs-forward-sexp-func
-               hs-adjust-block-beginning))
-  (make-variable-buffer-local var))
 
 ;;---------------------------------------------------------------------------
 ;; that's it

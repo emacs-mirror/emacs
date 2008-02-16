@@ -1,3 +1,10 @@
+2008-02-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/hideshow.el: Remove the minor-mode bookkeeping. Move
+	make-variable-buffer-local code after the corresponding defvar.
+	(hs-minor-mode-map): Define and initialize in one step.
+	(hs-minor-mode): Change from defun to define-minor-mode.
+
 2008-02-16  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-gdb): Don't reset gdb-ready.
