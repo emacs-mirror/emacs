@@ -1,5 +1,9 @@
 2008-02-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32.c (init_user_info): Use TOKEN_USER and TOKEN_PRIMARY_GROUP
+	instead of char arrays.  Enlarge the size of array passed to
+	get_token_information.
+
 	* font.c (Ffont_fill_gstring, Fget_font_glyphs): Fix compilation
 	warnings.
 
