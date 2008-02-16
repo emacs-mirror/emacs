@@ -136,9 +136,13 @@ using several time zones, in a buffer.
 readable string of days, hours, etc.
 
 ** The new variable `before-init-time' records the value of `current-time'
-when Emacs begins initialization.
+when Emacs begins initialization, and the new variable `after-init-time'
+records the value of `current-time' after loading the init files.
 
 ** The new function `emacs-uptime' returns the uptime of an Emacs instance.
+
+** The new function `emacs-init-time' returns the duration of the
+Emacs initialization.
 
 
 * Startup Changes in Emacs 23.1
