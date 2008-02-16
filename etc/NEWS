@@ -135,7 +135,8 @@ using several time zones, in a buffer.
 ** The new function `format-seconds' converts a number of seconds into a
 readable string of days, hours, etc.
 
-** The new variable `emacs-startup-time' gives the time at which Emacs started.
+** The new variable `before-init-time' records the value of `current-time'
+when Emacs begins initialization.
 
 ** The new function `emacs-uptime' returns the uptime of an Emacs instance.
 
