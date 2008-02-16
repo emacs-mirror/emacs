@@ -1,3 +1,10 @@
+2008-02-16  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (after-init-time): New variable.
+	(command-line): Set `after-init-time' to the current time.
+
+	* time.el (emacs-init-time): New function.
+
 2008-02-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (locate-dominating-file): Remove initial loop because it's
