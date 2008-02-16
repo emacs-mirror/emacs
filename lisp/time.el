@@ -558,7 +558,7 @@ For example, the Unix uptime command format is \"%D, %z%2h:%.2m\"."
   (let ((str
          (format-seconds (or format "%Y, %D, %H, %M, %z%S")
                          (time-to-seconds
-                          (time-subtract (current-time) emacs-startup-time)))))
+                          (time-subtract (current-time) before-init-time)))))
     (if (interactive-p)
         (message "%s" str)
       str)))
