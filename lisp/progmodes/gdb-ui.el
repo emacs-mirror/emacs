@@ -137,6 +137,8 @@ Emacs can't find.")
   "Non-nil when GDB generates frame-begin annotation.")
 (defvar gdb-printing t)
 (defvar gdb-parent-bptno-enabled nil)
+(defvar gdb-ready nil)
+(defvar gdb-early-user-input nil)
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
@@ -284,6 +286,7 @@ session."
 
   (gud-common-init command-line nil 'gud-gdba-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'gdba)
+  (setq comint-input-sender 'gdb-send)
 
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t"
@@ -317,6 +320,8 @@ session."
   (setq gdb-first-prompt t)
   (setq gud-running nil)
   (setq gdb-ready nil)
+  (setq gdb-flush-pending-output nil)
+  (setq gdb-early-user-input nil)
   (setq gud-filter-pending-text nil)
   (run-hooks 'gdb-mode-hook))
 
@@ -574,8 +579,6 @@ otherwise do not."
   (define-key gud-minor-mode-map [left-margin C-mouse-3]
     'gdb-mouse-jump)
 
-  (setq comint-input-sender 'gdb-send)
-
   ;; (re-)initialize
   (setq gdb-pc-address (if gdb-show-main "main" nil))
   (setq gdb-previous-frame-address nil
@@ -593,7 +596,6 @@ otherwise do not."
 	gdb-pending-triggers nil
 	gdb-output-sink 'user
 	gdb-server-prefix "server "
-	gdb-flush-pending-output nil
 	gdb-location-alist nil
 	gdb-source-file-list nil
 	gdb-error nil
@@ -1194,21 +1196,24 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 (defun gdb-send (proc string)
   "A comint send filter for gdb.
 This filter may simply queue input for a later time."
-  (when gdb-ready
-      (with-current-buffer gud-comint-buffer
-	(let ((inhibit-read-only t))
-	  (remove-text-properties (point-min) (point-max) '(face))))
-      (if gud-running
-	  (progn
-	    (let ((item (concat string "\n")))
-	      (if gdb-enable-debug (push (cons 'send item) gdb-debug-log))
-	      (process-send-string proc item)))
-	(if (string-match "\\\\\\'" string)
-	    (setq gdb-continuation (concat gdb-continuation string "\n"))
-	  (let ((item (concat gdb-continuation string
-			      (if (not comint-input-sender-no-newline) "\n"))))
-	    (gdb-enqueue-input item)
-	    (setq gdb-continuation nil))))))
+  (if gdb-ready
+      (progn
+	(with-current-buffer gud-comint-buffer
+	  (let ((inhibit-read-only t))
+	    (remove-text-properties (point-min) (point-max) '(face))))
+	(if gud-running
+	    (progn
+	      (let ((item (concat string "\n")))
+		(if gdb-enable-debug (push (cons 'send item) gdb-debug-log))
+		(process-send-string proc item)))
+	  (if (string-match "\\\\\\'" string)
+	      (setq gdb-continuation (concat gdb-continuation string "\n"))
+	    (let ((item (concat
+			 gdb-continuation string
+			 (if (not comint-input-sender-no-newline) "\n"))))
+	      (gdb-enqueue-input item)
+	      (setq gdb-continuation nil)))))
+    (push (concat string "\n")  gdb-early-user-input)))
 
 ;; Note: Stuff enqueued here will be sent to the next prompt, even if it
 ;; is a query, or other non-top-level prompt.
@@ -1362,7 +1367,11 @@ This sends the next command (if any) to gdb."
 	(gdb-send-item input)
       (progn
 	(setq gdb-prompting t)
-	(gud-display-frame)))))
+	(gud-display-frame)
+	(setq gdb-early-user-input (nreverse gdb-early-user-input))
+	(while gdb-early-user-input
+	    (gdb-enqueue-input (car gdb-early-user-input))
+	    (setq gdb-early-user-input (cdr gdb-early-user-input)))))))
 
 (defun gdb-subprompt (ignored)
   "An annotation handler for non-top-level prompts."
