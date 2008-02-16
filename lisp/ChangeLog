@@ -1,3 +1,8 @@
+2008-02-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (locate-dominating-file): Remove initial loop because it's
+	not careful enough.  Detect the uid-change all within the main loop.
+
 2008-02-16  Lawrence Mitchell  <wence@gmx.li>  (tiny change)
 
 	* ielm.el (ielm-is-whitespace-or-comment): Docstring fix.

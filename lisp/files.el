@@ -727,18 +727,22 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
 
 (defun locate-dominating-file (file regexp)
   "Look up the directory hierarchy from FILE for a file matching REGEXP."
-  (while (and file (not (file-directory-p file)))
-    (setq file (file-name-directory (directory-file-name file))))
   (catch 'found
-    (let ((user (nth 2 (file-attributes file)))
+    ;; `user' is not initialized yet because `file' may not exist, so we may
+    ;; have to walk up part of the hierarchy before we find the "initial UID".
+    (let ((user nil)
           ;; Abbreviate, so as to stop when we cross ~/.
           (dir (abbreviate-file-name (file-name-as-directory file)))
           files)
-      ;; As a heuristic, we stop looking up the hierarchy of directories as
-      ;; soon as we find a directory belonging to another user.  This should
-      ;; save us from looking in things like /net and /afs.  This assumes
-      ;; that all the files inside a project belong to the same user.
-      (while (and dir (equal user (nth 2 (file-attributes dir))))
+      (while (and dir
+                  ;; As a heuristic, we stop looking up the hierarchy of
+                  ;; directories as soon as we find a directory belonging to
+                  ;; another user.  This should save us from looking in
+                  ;; things like /net and /afs.  This assumes that all the
+                  ;; files inside a project belong to the same user.
+                  (let ((prev-user user))
+                    (setq user (nth 2 (file-attributes file)))
+                    (not (or (null prev-user) (equal user prev-user)))))
         (if (setq files (directory-files dir 'full regexp))
             (throw 'found (car files))
           (if (equal dir
