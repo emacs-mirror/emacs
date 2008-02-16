@@ -256,7 +256,7 @@ If DATE is malformed, return a time value of zeros."
 
 
 ;;;###autoload
-(defun format-seconds (string seconds &optional nonzero)
+(defun format-seconds (string seconds)
   "Use format control STRING to format the number SECONDS.
 The valid format specifiers are:
 %y is the number of (365-day) years.
@@ -264,6 +264,7 @@ The valid format specifiers are:
 %h is the number of hours.
 %m is the number of minutes.
 %s is the number of seconds.
+%z is a non-printing control flag (see below).
 %% is a literal \"%\".
 
 Upper-case specifiers are followed by the unit-name (e.g. \"years\").
@@ -273,79 +274,64 @@ Lower-case specifiers return only the unit.
 optional leading \".\" for zero-padding.  For example, \"%.3Y\" will
 return something of the form \"001 year\".
 
-If the optional argument NONZERO is non-nil, then nothing is output until
-the first non-zero unit (or the last unit) is encountered.  In this case,
-specifiers must be used in order of decreasing size.
+The \"%z\" specifier does not print anything.  When it is used, specifiers
+must be given in order of decreasing size.  To the left of \"%z\", nothing
+is output until the first non-zero unit is encountered.
 
-This does not work for input SECONDS greater than `most-positive-fixnum'."
+This function does not work for SECONDS greater than `most-positive-fixnum'."
   (let ((start 0)
         (units '(("y" "year"   31536000)
                  ("d" "day"       86400)
                  ("h" "hour"       3600)
                  ("m" "minute"       60)
-                 ("s" "second"        1)))
+                 ("s" "second"        1)
+                 ("z")))
         (case-fold-search t)
-        spec match outunits unit prev name num next)
-    (setq nonzero (not nonzero))
+        spec match usedunits zeroflag larger prev name unit num zeropos)
     (while (string-match "%\\.?[0-9]*\\(.\\)" string start)
       (setq start (match-end 0)
             spec (match-string 1 string))
       (unless (string-equal spec "%")
         (or (setq match (assoc-string spec units t))
             (error "Bad format specifier: `%s'" spec))
-        (if (assoc-string spec outunits t)
+        (if (assoc-string spec usedunits t)
             (error "Multiple instances of specifier: `%s'" spec))
-        (unless nonzero
-          (setq unit (nth 2 match))
-          (and prev (> unit prev)
-               (error "Units are not in decreasing order of size"))
-          (setq prev unit))
-        (push match outunits)))
-    ;; Cf article-make-date-line in gnus-art.
-    (dolist (ulist units)
-      (setq spec (car ulist)
-            name (cadr ulist)
-            unit (nth 2 ulist))
+        (if (string-equal (car match) "z")
+            (setq zeroflag t)
+          (unless larger
+            (setq unit (nth 2 match)
+                  larger (and prev (> unit prev))
+                  prev unit)))
+        (push match usedunits)))
+    (and zeroflag larger
+         (error "Units are not in decreasing order of size"))
+    (dolist (u units)
+      (setq spec (car u)
+            name (cadr u)
+            unit (nth 2 u))
       (when (string-match (format "%%\\(\\.?[0-9]+\\)?\\(%s\\)" spec) string)
-        (setq num (floor seconds unit)
-              seconds (- seconds (* num unit)))
-        (or nonzero
-            (setq nonzero (not (zerop num)))
-            ;; Start of the next unit specifier, if there is one.
-            (setq next (save-match-data
-                         (string-match "%\\.?[0-9]*[a-z]"
-                                       string (match-end 0)))))
-        ;; If there are no more specifiers, we have to print this one,
-        ;; even if it is zero.
-        (or nonzero (setq nonzero (not next)))
-        (setq string
-              (if nonzero
-                  (replace-match
-                   (format (concat "%" (match-string 1 string) "d%s") num
-                           (if (string-equal (match-string 2 string) spec)
-                               ""       ; lower-case, no unit-name
-                             (format " %s%s" name
-                                     (if (= num 1) "" "s"))))
-                   t t string)
-                ;; If we haven't found a non-zero unit yet, delete
-                ;; everything up to the next format specifier.
-                (substring string next))))))
+        (if (string-equal spec "z")     ; must be last in units
+            (setq string
+                  (replace-regexp-in-string
+                   "%z" ""
+                   (substring string (min (or zeropos (match-end 0))
+                                          (match-beginning 0)))))
+          ;; Cf article-make-date-line in gnus-art.
+          (setq num (floor seconds unit)
+                seconds (- seconds (* num unit)))
+          ;; Start position of the first non-zero unit.
+          (or zeropos
+              (setq zeropos (unless (zerop num) (match-beginning 0))))
+          (setq string
+                (replace-match
+                 (format (concat "%" (match-string 1 string) "d%s") num
+                         (if (string-equal (match-string 2 string) spec)
+                             ""       ; lower-case, no unit-name
+                           (format " %s%s" name
+                                   (if (= num 1) "" "s"))))
+                 t t string))))))
   (replace-regexp-in-string "%%" "%" string))
 
-
-;; This doesn't really belong here - perhaps in time.el?
-;;;###autoload
-(defun emacs-uptime ()
-  "Return a string giving the uptime of this instance of Emacs."
-  (interactive)
-  (let ((str
-         (format-seconds "%Y, %D, %H, %M, %S"
-                         (time-to-seconds
-                          (time-subtract (current-time) emacs-startup-time))
-                         t)))
-    (if (interactive-p)
-        (message "%s" str)
-      str)))
 
 (provide 'time-date)
 
