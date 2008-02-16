@@ -548,6 +548,20 @@ To turn off the world time display, go to that window and type `q'."
           (when (equal (symbol-name (aref elt 5)) "display-time-world-timer")
             (cancel-timer elt)))))))
 
+
+;;;###autoload
+(defun emacs-uptime ()
+  "Return a string giving the uptime of this instance of Emacs."
+  (interactive)
+  (let ((str
+         (format-seconds "%Y, %D, %H, %M, %S"
+                         (time-to-seconds
+                          (time-subtract (current-time) emacs-startup-time))
+                         t)))
+    (if (interactive-p)
+        (message "%s" str)
+      str)))
+
 (provide 'time)
 
 ;;; arch-tag: b9c1623f-b5cb-48e4-b650-482a4d23c5a6
