@@ -1,4 +1,4 @@
-2008-02-16  Lawrence Mitchell  <wence@gmx.li>
+2008-02-16  Lawrence Mitchell  <wence@gmx.li>  (tiny change)
 
 	* ielm.el (ielm-is-whitespace-or-comment): Docstring fix.
 
@@ -40,7 +40,7 @@
 
 	* bindings.el (mode-line-mule-info): Make the tooltips more explicit.
 
-2008-02-15  Lawrence Mitchell  <wence@gmx.li>
+2008-02-15  Lawrence Mitchell  <wence@gmx.li>  (tiny change)
 
 	* ielm.el (ielm-is-whitespace): Remove.
 	(ielm-is-whitespace-or-comment): New function.
