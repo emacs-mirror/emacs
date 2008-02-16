@@ -32,6 +32,12 @@
 
 2008-02-16  Glenn Morris  <rgm@gnu.org>
 
+	* startup.el (emacs-startup-time): Rename to `before-init-time'.
+	(before-init-time): New name for `emacs-startup-time'.
+	(command-line): Use before-init-time rather than emacs-startup-time.
+	* time.el (emacs-uptime): Use before-init-time rather than
+	emacs-startup-time.
+
 	* composite.el (composition-function-table): Doc fix.
 
 	* calendar/time-date.el (format-seconds): Remove `nonzero' argument
