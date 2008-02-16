@@ -1618,7 +1618,7 @@ ftfont_shape (lgstring)
   CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring), font);
   ftfont_info = (struct ftfont_info *) font;
   if (! ftfont_info->maybe_otf)
-    return 0;
+    return make_number (0);
   if (! ftfont_info->otf)
     {
       OTF *otf = OTF_open_ft_face (ftfont_info->ft_size->face);
@@ -1628,7 +1628,7 @@ ftfont_shape (lgstring)
 	  if (otf)
 	    OTF_close (otf);
 	  ftfont_info->maybe_otf = 0;
-	  return 0;
+	  return make_number (0);
 	}
 
       ftfont_info->otf = otf;
