@@ -194,8 +194,8 @@ There is no `condition-case' around the running of these functions;
 therefore, if you set `debug-on-error' non-nil in `.emacs',
 an error in one of these functions will invoke the debugger.")
 
-(defvar emacs-startup-time nil
-  "Value of `current-time' when Emacs was started.")
+(defvar before-init-time nil
+  "Value of `current-time' before Emacs begins initialization.")
 
 (defvar emacs-startup-hook nil
   "Normal hook run after loading init files and handling the command line.")
@@ -628,7 +628,7 @@ opening the first frame (e.g. open a connection to an X server).")
     (nreverse rest)))
 
 (defun command-line ()
-  (setq emacs-startup-time (current-time)
+  (setq before-init-time (current-time)
         command-line-default-directory default-directory)
 
   ;; Choose a reasonable location for temporary files.
