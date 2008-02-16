@@ -73,6 +73,7 @@ Boston, MA 02110-1301, USA.
 #define _ANONYMOUS_STRUCT
 #endif
 #include <windows.h>
+#include <lmcons.h>
 #include <shlobj.h>
 
 #ifdef HAVE_SOCKETS	/* TCP connection support, if kernel can do it */
@@ -594,16 +595,20 @@ init_user_info ()
      the user-sid as the user id value (same for group id using the
      primary group sid from the process token). */
 
-  char         user_sid[256], name[256], domain[256];
+  char         name[UNLEN+1], domain[1025];
   DWORD        length = sizeof (name), dlength = sizeof (domain), trash;
   HANDLE       token = NULL;
   SID_NAME_USE user_type;
+  unsigned char buf[1024];
+  TOKEN_USER   user_token;
+  TOKEN_PRIMARY_GROUP group_token;
 
   if (open_process_token (GetCurrentProcess (), TOKEN_QUERY, &token)
       && get_token_information (token, TokenUser,
-				(PVOID) user_sid, sizeof (user_sid), &trash)
-      && lookup_account_sid (NULL, *((PSID *) user_sid), name, &length,
-			     domain, &dlength, &user_type))
+				(PVOID)buf, sizeof (buf), &trash)
+      && (memcpy (&user_token, buf, sizeof (user_token)),
+	  lookup_account_sid (NULL, user_token.User.Sid, name, &length,
+			      domain, &dlength, &user_type)))
     {
       strcpy (the_passwd.pw_name, name);
       /* Determine a reasonable uid value.  */
@@ -617,14 +622,14 @@ init_user_info ()
 	  /* Use the last sub-authority value of the RID, the relative
 	     portion of the SID, as user/group ID. */
 	  DWORD n_subauthorities =
-	    *get_sid_sub_authority_count (*((PSID *) user_sid));
+	    *get_sid_sub_authority_count (user_token.User.Sid);
 
 	  if (n_subauthorities < 1)
 	    the_passwd.pw_uid = 0;	/* the "World" RID */
 	  else
 	    {
 	      the_passwd.pw_uid =
-		*get_sid_sub_authority (*((PSID *) user_sid),
+		*get_sid_sub_authority (user_token.User.Sid,
 					n_subauthorities - 1);
 	      /* Restrict to conventional uid range for normal users.  */
 	      the_passwd.pw_uid %= 60001;
@@ -632,17 +637,18 @@ init_user_info ()
 
 	  /* Get group id */
 	  if (get_token_information (token, TokenPrimaryGroup,
-				     (PVOID) user_sid, sizeof (user_sid), &trash))
+				     (PVOID)buf, sizeof (buf), &trash))
 	    {
+	      memcpy (&group_token, buf, sizeof (group_token));
 	      n_subauthorities =
-		*get_sid_sub_authority_count (*((PSID *) user_sid));
+		*get_sid_sub_authority_count (group_token.PrimaryGroup);
 
 	      if (n_subauthorities < 1)
 		the_passwd.pw_gid = 0;	/* the "World" RID */
 	      else
 		{
 		  the_passwd.pw_gid =
-		    *get_sid_sub_authority (*((PSID *) user_sid),
+		    *get_sid_sub_authority (group_token.PrimaryGroup,
 					    n_subauthorities - 1);
 		  /* I don't know if this is necessary, but for safety...  */
 		  the_passwd.pw_gid %= 60001;
