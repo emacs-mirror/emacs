@@ -261,7 +261,7 @@ Normally nil in most modes, since there is no process to display.")
  				(format "%s"
 					(save-selected-window
 					  (select-window window)
-					  (concat 
+					  (concat
 					  (if (file-remote-p default-directory)
 					      "Remote: "
 					    "Local: ")
@@ -351,23 +351,23 @@ mouse-3: Toggle minor modes"
        (standard-mode-line-position
 	`((-3 ,(propertize "%p" 'help-echo help-echo))
 	  (size-indication-mode
-	   (8 ,(propertize 
+	   (8 ,(propertize
 		" of %I"
 		;; XXX needs better description
 		'help-echo (format "Size indication mode\n%s" help-echo))))
 	  (line-number-mode
 	   ((column-number-mode
-	     (10 ,(propertize 
-		   " (%l,%c)" 
-		   'help-echo 
+	     (10 ,(propertize
+		   " (%l,%c)"
+		   'help-echo
 		   (format "Line number and Column number\n%s" help-echo)))
-	     (6 ,(propertize 
-		  " L%l" 
+	     (6 ,(propertize
+		  " L%l"
 		  'help-echo
 		  (format "Line number\n%s" help-echo)))))
 	   ((column-number-mode
-	     (5 ,(propertize 
-		  " C%c" 
+	     (5 ,(propertize
+		  " C%c"
 		  'help-echo
 		  (format "Column number\n%s" help-echo)))))))))
 
