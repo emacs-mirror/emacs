@@ -1,3 +1,14 @@
+2008-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* composite.el (composition-function-table): Doc fix.
+
+	* calendar/time-date.el (format-seconds): Remove `nonzero' argument
+	in favor of `%z' specifier.
+	(emacs-uptime): Move to time.el.
+	* time.el (emacs-uptime): Move here from time-date.el.  Add
+	optional `format' argument.  Doc fix.  Use `%z' rather than
+	removed `nonzero' argument of format-seconds.
+
 2008-02-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* bindings.el (mode-line-mule-info): Make the tooltips more explicit.
