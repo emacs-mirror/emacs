@@ -1,3 +1,7 @@
+2008-02-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* bindings.el (mode-line-mule-info): Make the tooltips more explicit.
+
 2008-02-15  Jason Rumney  <jasonr@gnu.org>
 
 	* term/mac-win.el: Fix coding tag.

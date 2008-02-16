@@ -181,9 +181,11 @@ corresponding to the mode line clicked."
     (current-input-method
      (:propertize ("" current-input-method-title)
 		  help-echo (concat
-			     "Input method: "
+			     "Current input method: "
 			     current-input-method
-			     ".  mouse-2: disable, mouse-3: describe")
+			     "\n\
+mouse-2: Disable input method\n\
+mouse-3: Describe current input method")
 		  local-map ,mode-line-input-method-map
 		  mouse-face mode-line-highlight))
     ,(propertize
@@ -194,11 +196,12 @@ corresponding to the mode line clicked."
 	    ;; Don't show this tip if the coding system is nil,
 	    ;; it reads like a bug, and is not useful anyway.
 	    (when buffer-file-coding-system
-	      (if enable-multibyte-characters
-		  (concat (symbol-name buffer-file-coding-system)
-			  " buffer; mouse-1: describe coding system")
-		(concat "Unibyte " (symbol-name buffer-file-coding-system)
-			" buffer")))))
+	      (format "Buffer coding system %s\nmouse-1: describe coding system"
+		      (if enable-multibyte-characters
+			  (concat "(multi-byte): "
+				  (symbol-name buffer-file-coding-system))
+			(concat "(unibyte): "
+				(symbol-name buffer-file-coding-system)))))))
       'mouse-face 'mode-line-highlight
       'local-map mode-line-coding-system-map)
     (:eval (mode-line-eol-desc)))
@@ -241,7 +244,7 @@ Normally nil in most modes, since there is no process to display.")
 	(propertize
 	 "%1+"
 	 'help-echo  (purecopy (lambda (window object point)
-				 (format "%sodified: mouse-1 toggles"
+				 (format "Buffer is %sodified\nmouse-1 toggles modified state"
 					 (save-selected-window
 					   (select-window window)
 					   (if (buffer-modified-p)
