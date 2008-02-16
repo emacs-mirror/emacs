@@ -63,7 +63,7 @@
 
 (defgroup gud nil
   "Grand Unified Debugger mode for gdb and other debuggers under Emacs.
-Supported debuggers include gdb, sdb, dbx, xdb, perldb, pdb (Python), jdb."
+Supported debuggers include gdb, sdb, dbx, xdb, perldb, pdb (Python) and jdb."
   :group 'processes
   :group 'tools)
 
@@ -108,8 +108,6 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
 (defvar gud-running nil
   "Non-nil if debugged program is running.
 Used to grey out relevant toolbar icons.")
-
-(defvar gdb-ready nil)
 
 (defvar gud-target-name "--unknown--"
   "The apparent name of the program being debugged in a gud buffer.")
@@ -771,7 +769,6 @@ directory and source-file directory for your debugger."
   (setq paragraph-start comint-prompt-regexp)
   (setq gdb-first-prompt t)
   (setq gud-running nil)
-  (setq gdb-ready nil)
   (setq gud-filter-pending-text nil)
   (run-hooks 'gud-gdb-mode-hook))
 
@@ -2307,7 +2304,6 @@ gud, see `gud-mode'."
   (gud-def gud-run    "run"           nil    "Run the program.") ;if VM start using jdb
   (gud-def gud-print  "print %e"  "\C-p" "Evaluate Java expression at point.")
 
-
   (setq comint-prompt-regexp "^> \\|^[^ ]+\\[[0-9]+\\] ")
   (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'jdb-mode-hook)
@@ -2867,7 +2863,7 @@ Obeying it means displaying in another window the specified file and line."
 	    (set-marker-insertion-type gud-delete-prompt-marker t))
 	  (unless (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
 		      'jdb)
-	      (insert (concat  expr " = "))))))
+	    (insert (concat  expr " = "))))))
     expr))
 
 ;; The next eight functions are hacked from gdbsrc.el by
