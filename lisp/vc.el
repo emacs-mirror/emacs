@@ -3684,7 +3684,7 @@ use; you may override this using the second optional arg MODE."
 		  vc-annotate-display-mode))))
 
 ;;;###autoload
-(defun vc-annotate (file rev &optional display-mode buf)
+(defun vc-annotate (file rev &optional display-mode buf move-point-to)
   "Display the edit history of the current file using colors.
 
 This command creates a buffer that shows, for each line of the current
@@ -3702,6 +3702,8 @@ you are prompted for the time span in days which the color range
 should cover.  For example, a time span of 20 days means that changes
 over the past 20 days are shown in red to blue, according to their
 age, and everything that is older than that is shown in blue.
+
+If MOVE-POINT-TO is given, move the point to that line.
 
 Customization variables:
 
@@ -3730,7 +3732,7 @@ mode-specific menu.  `vc-annotate-color-map' and
          ;; If BUF is specified, we presume the caller maintains current line,
          ;; so we don't need to do it here.  This implementation may give
          ;; strange results occasionally in the case of REV != WORKFILE-REV.
-         (current-line (unless buf (line-number-at-pos))))
+         (current-line (or move-point-to (unless buf (line-number-at-pos)))))
     (message "Annotating...")
     ;; If BUF is specified it tells in which buffer we should put the
     ;; annotations.  This is used when switching annotations to another
@@ -3898,10 +3900,12 @@ revision."
       (when newrev
 	(vc-annotate vc-annotate-parent-file newrev
                      vc-annotate-parent-display-mode
-                     buf)
-	(goto-line (min oldline (progn (goto-char (point-max))
-				       (forward-line -1)
-				       (line-number-at-pos))) buf)))))
+                     buf
+		     ;; Pass the current line so that vc-annotate will
+		     ;; place the point in the line.
+		     (min oldline (progn (goto-char (point-max))
+					   (forward-line -1)
+					   (line-number-at-pos))))))))
 
 (defun vc-annotate-compcar (threshold a-list)
   "Test successive cons cells of A-LIST against THRESHOLD.

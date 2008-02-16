@@ -1,5 +1,8 @@
 2008-02-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el (vc-annotate): Add new argument.
+	(vc-annotate-warp-revision): Pass the current line to vc-annotate.
+
 	* progmodes/hideshow.el: Remove the minor-mode bookkeeping. Move
 	make-variable-buffer-local code after the corresponding defvar.
 	(hs-minor-mode-map): Define and initialize in one step.
