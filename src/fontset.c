@@ -2065,10 +2065,13 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
 	  struct font *font = XSAVE_VALUE (font_object)->pointer;
 	  unsigned code = font->driver->encode_char (font, c);
 	  Lisp_Object fontname = font_get_name (font_object);
+	  /* Assignment to EMACS_INT stops GCC whining about limited range
+	     of data type.  */
+	  EMACS_INT cod = code;
 
 	  if (code == FONT_INVALID_CODE)
 	    return Qnil;
-	  if (code <= MOST_POSITIVE_FIXNUM)
+	  if (cod <= MOST_POSITIVE_FIXNUM)
 	    return Fcons (fontname, make_number (code));
 	  return Fcons (fontname, Fcons (make_number (code >> 16),
 					 make_number (code & 0xFFFF)));
