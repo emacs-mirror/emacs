@@ -316,7 +316,7 @@ The function walks up the directory tree from FILE looking for WITNESS.
 If WITNESS if not found, return nil, otherwise return the root."
   ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
   ;; witnesses in /home or in /.
-  (while (not (file-directory-p file))
+  (while (and (not (file-directory-p file)) (file-exists-p file))
     (setq file (file-name-directory (directory-file-name file))))
   (setq file (abbreviate-file-name file))
   (let ((root nil)
