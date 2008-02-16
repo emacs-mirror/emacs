@@ -550,14 +550,15 @@ To turn off the world time display, go to that window and type `q'."
 
 
 ;;;###autoload
-(defun emacs-uptime ()
-  "Return a string giving the uptime of this instance of Emacs."
+(defun emacs-uptime (&optional format)
+  "Return a string giving the uptime of this instance of Emacs.
+FORMAT is a string to format the result, using `format-seconds'.
+For example, the Unix uptime command format is \"%D, %z%2h:%.2m\"."
   (interactive)
   (let ((str
-         (format-seconds "%Y, %D, %H, %M, %S"
+         (format-seconds (or format "%Y, %D, %H, %M, %z%S")
                          (time-to-seconds
-                          (time-subtract (current-time) emacs-startup-time))
-                         t)))
+                          (time-subtract (current-time) emacs-startup-time)))))
     (if (interactive-p)
         (message "%s" str)
       str)))
