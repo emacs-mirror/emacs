@@ -38,7 +38,7 @@ all: $(DSTDIR)/charprop.el
 unidata.txt: UnicodeData.txt
 	sed -e \
 	  $(ARGQUOTE)s/\([^;]*\);\(.*\)/(#x\1 $(DQUOTE)\2$(DQUOTE))/$(ARGQUOTE)\
-	  -e $(ARGQUOTE)s/;/$(DQUOTE) $(DQUOTE)/g$(ARGQUOTE) < $< > $@
+	  -e $(ARGQUOTE)s/;/$(DQUOTE) $(DQUOTE)/g$(ARGQUOTE) < UnicodeData.txt > $@
 
 charprop-SH: unidata-gen.elc unidata.txt
 	ELC=$(CURDIR)/unidata-gen.elc; \
