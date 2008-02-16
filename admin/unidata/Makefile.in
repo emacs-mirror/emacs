@@ -30,7 +30,7 @@ all: ${DSTDIR}/charprop.el
 	${RUNEMACS} -batch -f batch-byte-compile $<
 
 unidata.txt: UnicodeData.txt
-	sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' < $< > $@
+	sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' < UnicodeData.txt > $@
 
 ${DSTDIR}/charprop.el: unidata-gen.elc unidata.txt
 	ELC=`/bin/pwd`/unidata-gen.elc; \
