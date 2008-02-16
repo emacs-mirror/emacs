@@ -301,7 +301,7 @@ simply inserts a newline."
 ;;; Utility functions
 
 (defun ielm-is-whitespace-or-comment (string)
-  "Return non-nil if STRING is all whitespace."
+  "Return non-nil if STRING is all whitespace or a comment."
   (or (string= string "") 
       (string-match "\\`[ \t\n]*\\(?:;.*\\)*\\'" string)))
 
