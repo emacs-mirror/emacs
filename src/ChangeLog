@@ -1,3 +1,8 @@
+2008-02-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* callint.c (syms_of_callint): Initialize Vmark_even_if_inactive
+	with Qt.
+
 2008-02-17  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_shape): Return Lispy number.

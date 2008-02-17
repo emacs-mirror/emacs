@@ -1,3 +1,10 @@
+2008-02-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* simple.el (transient-mark-mode): Add an :init-value.
+
+	* startup.el (command-line): Use custom-reevaluate-setting for
+	transient-mark-mode.
+
 2008-02-17  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* wdired.el (wdired-allow-to-change-permissions): Fix typo.

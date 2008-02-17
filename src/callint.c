@@ -960,7 +960,7 @@ This option makes a difference in Transient Mark mode.
 When the option is non-nil, deactivation of the mark
 turns off region highlighting, but commands that use the mark
 behave as if the mark were still active.  */);
-  Vmark_even_if_inactive = Qnil;
+  Vmark_even_if_inactive = Qt;
 
   DEFVAR_LISP ("mouse-leave-buffer-hook", &Vmouse_leave_buffer_hook,
 	       doc: /* Hook to run when about to switch windows with a mouse command.

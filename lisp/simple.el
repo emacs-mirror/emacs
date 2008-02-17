@@ -3586,7 +3586,9 @@ default part of the buffer's text.  Examples of such commands include
 Invoke \\[apropos-documentation] and type \"transient\" or
 \"mark.*active\" at the prompt, to see the documentation of
 commands which are sensitive to the Transient Mark mode."
-  :global t :group 'editing-basics)
+  :global t 
+  :init-value (not noninteractive)
+  :group 'editing-basics)
 
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.

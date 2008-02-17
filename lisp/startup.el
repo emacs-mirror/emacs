@@ -847,6 +847,7 @@ opening the first frame (e.g. open a connection to an X server).")
   (custom-reevaluate-setting 'send-mail-function)
   (custom-reevaluate-setting 'focus-follows-mouse)
   (custom-reevaluate-setting 'global-auto-composition-mode)
+  (custom-reevaluate-setting 'transient-mark-mode)
 
   (normal-erase-is-backspace-setup-frame)
 
