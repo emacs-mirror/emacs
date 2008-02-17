@@ -176,6 +176,11 @@ struct x_display_info
   /* The current capacity of x_font_table.  */
   int font_table_size;
 
+#ifdef USE_FONT_BACKEND
+  /* This provides a commonly used Font ID on this display.  */
+  XFontStruct *font;
+#endif
+
   /* Minimum width over all characters in all fonts in font_table.  */
   int smallest_char_width;
 
