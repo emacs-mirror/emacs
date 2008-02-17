@@ -46,7 +46,6 @@ static int ftxfont_draw_bitmap P_ ((FRAME_PTR, GC, GC *, struct font *,
 				    int));
 static void ftxfont_draw_backgrond P_ ((FRAME_PTR, struct font *, GC,
 					int, int, int));
-static Font ftxfont_default_fid P_ ((FRAME_PTR));
 
 struct ftxfont_frame_data
 {
@@ -242,29 +241,6 @@ ftxfont_draw_backgrond (f, font, gc, x, y, width)
   XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.foreground);
 }
 
-/* Return the default Font ID on frame F.  */
-
-static Font
-ftxfont_default_fid (f)
-     FRAME_PTR f;
-{
-  static int fid_known;
-  static Font fid;
-
-  if (! fid_known)
-    {
-      fid = XLoadFont (FRAME_X_DISPLAY (f), "fixed");
-      if (! fid)
-	{
-	  fid = XLoadFont (FRAME_X_DISPLAY (f), "*");
-	  if (! fid)
-	    abort ();
-	}
-      fid_known = 1;
-    }
-  return fid;
-}
-
 /* Prototypes for font-driver methods.  */
 static Lisp_Object ftxfont_list P_ ((Lisp_Object, Lisp_Object));
 static Lisp_Object ftxfont_match P_ ((Lisp_Object, Lisp_Object));
@@ -321,8 +297,7 @@ ftxfont_open (f, entity, pixel_size)
       free (xfont);
       return NULL;
     }
-
-  xfont->fid = ftxfont_default_fid (f);
+  xfont->fid = (Font) 0;
   xfont->ascent = font->ascent;
   xfont->descent = font->descent;
   xfont->max_bounds.width = font->font.size;
@@ -455,6 +430,7 @@ ftxfont_end_for_frame (f)
       data = next;
     }
   UNBLOCK_INPUT;
+  font_put_frame_data (f, &ftxfont_driver, NULL);
   return 0;
 }
 
