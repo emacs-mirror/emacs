@@ -40,6 +40,18 @@ Boston, MA 02110-1301, USA.  */
 #include "fontset.h"
 #include "font.h"
 
+#ifdef HAVE_X_WINDOWS
+#include "xterm.h"
+#endif /* HAVE_X_WINDOWS */
+
+#ifdef HAVE_NTGUI
+#include "w32term.h"
+#endif /* HAVE_NTGUI */
+
+#ifdef MAC_OS
+#include "macterm.h"
+#endif /* MAC_OS */
+
 #ifndef FONT_DEBUG
 #define FONT_DEBUG
 #endif
@@ -1815,13 +1827,13 @@ font_otf_ValueRecord (value_format, value_record)
   Lisp_Object val = Fmake_vector (make_number (8), Qnil);
 
   if (value_format & OTF_XPlacement)
-    ASET (val, 0, value_record->XPlacement);
+    ASET (val, 0, make_number (value_record->XPlacement));
   if (value_format & OTF_YPlacement)
-    ASET (val, 1, value_record->YPlacement);
+    ASET (val, 1, make_number (value_record->YPlacement));
   if (value_format & OTF_XAdvance)
-    ASET (val, 2, value_record->XAdvance);
+    ASET (val, 2, make_number (value_record->XAdvance));
   if (value_format & OTF_YAdvance)
-    ASET (val, 3, value_record->YAdvance);
+    ASET (val, 3, make_number (value_record->YAdvance));
   if (value_format & OTF_XPlaDevice)
     ASET (val, 4, font_otf_DeviceTable (&value_record->XPlaDevice));
   if (value_format & OTF_YPlaDevice)
@@ -2197,6 +2209,7 @@ font_prepare_cache (f, driver)
     }
 }
 
+
 static void
 font_finish_cache (f, driver)
      FRAME_PTR f;
@@ -2211,16 +2224,14 @@ font_finish_cache (f, driver)
     cache = val, val = XCDR (val);
   xassert (! NILP (val));
   tmp = XCDR (XCAR (val));
+  XSETCAR (tmp, make_number (XINT (XCAR (tmp)) - 1));
   if (XINT (XCAR (tmp)) == 0)
     {
       font_clear_cache (f, XCAR (val), driver);
       XSETCDR (cache, XCDR (val));
     }
-  else
-    {
-      XSETCAR (tmp, make_number (XINT (XCAR (tmp)) - 1));
-    }
 }
+
 
 static Lisp_Object
 font_get_cache (f, driver)
@@ -2237,6 +2248,8 @@ font_get_cache (f, driver)
   val = XCDR (XCAR (val));
   return val;
 }
+
+static int num_fonts;
 
 static void
 font_clear_cache (f, cache, driver)
@@ -2273,6 +2286,7 @@ font_clear_cache (f, cache, driver)
 		      driver->close (f, font);
 		      p->pointer = NULL;
 		      p->integer = 0;
+		      num_fonts--;
 		    }
 		  if (driver->free_entity)
 		    driver->free_entity (entity);
@@ -2406,8 +2420,6 @@ font_matching_entity (frame, spec)
   return entity;
 }
 
-static int num_fonts;
-
 
 /* Open a font of ENTITY and PIXEL_SIZE on frame F, and return the
    opened font object.  */
@@ -2419,7 +2431,7 @@ font_open_entity (f, entity, pixel_size)
      int pixel_size;
 {
   struct font_driver_list *driver_list;
-  Lisp_Object objlist, size, val;
+  Lisp_Object objlist, size, val, font_object;
   struct font *font;
 
   size = AREF (entity, FONT_SIZE_INDEX);
@@ -2427,35 +2439,49 @@ font_open_entity (f, entity, pixel_size)
   if (XINT (size) != 0)
     pixel_size = XINT (size);
 
+  font_object = Qnil;
   for (objlist = AREF (entity, FONT_OBJLIST_INDEX); CONSP (objlist);
        objlist = XCDR (objlist))
     {
       font = XSAVE_VALUE (XCAR (objlist))->pointer;
       if (font->pixel_size == pixel_size)
 	{
-	  XSAVE_VALUE (XCAR (objlist))->integer++;
-	  return XCAR (objlist);
+	  font_object = XCAR (objlist);
+	  XSAVE_VALUE (font_object)->integer++;
+	  break;
 	}
     }
 
-  xassert (FONT_ENTITY_P (entity));
-  val = AREF (entity, FONT_TYPE_INDEX);
-  for (driver_list = f->font_driver_list;
-       driver_list && ! EQ (driver_list->driver->type, val);
-       driver_list = driver_list->next);
-  if (! driver_list)
-    return Qnil;
+  if (NILP (font_object))
+    {
+      val = AREF (entity, FONT_TYPE_INDEX);
+      for (driver_list = f->font_driver_list;
+	   driver_list && ! EQ (driver_list->driver->type, val);
+	   driver_list = driver_list->next);
+      if (! driver_list)
+	return Qnil;
 
-  font = driver_list->driver->open (f, entity, pixel_size);
-  if (! font)
-    return Qnil;
-  font->scalable = XINT (size) == 0;
+      font = driver_list->driver->open (f, entity, pixel_size);
+      if (! font)
+	return Qnil;
+      font->scalable = XINT (size) == 0;
 
-  val = make_save_value (font, 1);
-  ASET (entity, FONT_OBJLIST_INDEX,
-	Fcons (val, AREF (entity, FONT_OBJLIST_INDEX)));
-  num_fonts++;
-  return val;
+      font_object = make_save_value (font, 1);
+      ASET (entity, FONT_OBJLIST_INDEX,
+	    Fcons (font_object, AREF (entity, FONT_OBJLIST_INDEX)));
+      num_fonts++;
+    }
+
+  if (FRAME_SMALLEST_CHAR_WIDTH (f) > font->min_width)
+    FRAME_SMALLEST_CHAR_WIDTH (f) = font->min_width;
+  if (FRAME_SMALLEST_CHAR_WIDTH (f) <= 0)
+    FRAME_SMALLEST_CHAR_WIDTH (f) = 1;
+  if (FRAME_SMALLEST_FONT_HEIGHT (f) > font->font.height)
+    FRAME_SMALLEST_FONT_HEIGHT (f) = font->font.height;
+  if (FRAME_SMALLEST_FONT_HEIGHT (f) <= 0)
+    FRAME_SMALLEST_FONT_HEIGHT (f) = 1;
+
+  return font_object;
 }
 
 
@@ -2470,8 +2496,8 @@ font_close_object (f, font_object)
   Lisp_Object objlist;
   Lisp_Object tail, prev = Qnil;
 
+  xassert (XSAVE_VALUE (font_object)->integer > 0);
   XSAVE_VALUE (font_object)->integer--;
-  xassert (XSAVE_VALUE (font_object)->integer >= 0);
   if (XSAVE_VALUE (font_object)->integer > 0)
     return;
 
@@ -2487,6 +2513,7 @@ font_close_object (f, font_object)
 	  ASET (font->entity, FONT_OBJLIST_INDEX, XCDR (objlist));
 	else
 	  XSETCDR (prev, XCDR (objlist));
+	num_fonts--;
 	return;
       }
   abort ();
@@ -3364,8 +3391,10 @@ DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,
 	    Lisp_Object val;
 	    
 	    val = XCDR (cache);
-	    while (! EQ (XCAR (val), driver_list->driver->type))
+	    while (! NILP (val)
+		   && ! EQ (XCAR (XCAR (val)), driver_list->driver->type))
 	      val = XCDR (val);
+	    xassert (! NILP (val));
 	    val = XCDR (XCAR (val));
 	    if (XINT (XCAR (val)) == 0)
 	      {
