@@ -6564,9 +6564,10 @@ If optional TXT is given, check this string instead of the current kill."
   "Narrow buffer to the current subtree."
   (interactive)
   (save-excursion
-    (narrow-to-region
-     (progn (org-back-to-heading) (point))
-     (progn (org-end-of-subtree t t) (point)))))
+    (save-match-data
+      (narrow-to-region
+       (progn (org-back-to-heading) (point))
+       (progn (org-end-of-subtree t t) (point))))))
 
 
 ;;; Outline Sorting

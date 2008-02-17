@@ -1,3 +1,7 @@
+2008-02-17  Ulrich Mueller <ulm@kph.uni-mainz.de>  (tiny change)
+
+	* msdog-xtra.texi (MS-DOS): Docstring fix.
+
 2008-02-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* msdog.texi (Windows Fonts): Use a @table for describing font
