@@ -1098,6 +1098,11 @@ x_set_cursor_gc (s)
 	}
 
       IF_DEBUG (x_check_font (s->f, s->font));
+#ifdef USE_FONT_BACKEND
+      if (enable_font_backend)
+	xgcv.font = FRAME_X_DISPLAY_INFO (s->f)->font->fid;
+      else
+#endif
       xgcv.font = s->font->fid;
       xgcv.graphics_exposures = False;
       mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
@@ -1154,6 +1159,11 @@ x_set_mouse_face_gc (s)
       xgcv.background = s->face->background;
       xgcv.foreground = s->face->foreground;
       IF_DEBUG (x_check_font (s->f, s->font));
+#ifdef USE_FONT_BACKEND
+      if (enable_font_backend)
+	xgcv.font = FRAME_X_DISPLAY_INFO (s->f)->font->fid;
+      else
+#endif
       xgcv.font = s->font->fid;
       xgcv.graphics_exposures = False;
       mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
@@ -8276,12 +8286,17 @@ x_new_font (f, fontname)
   /* Now make the frame display the given font.  */
   if (FRAME_X_WINDOW (f) != 0)
     {
-      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->normal_gc,
-		FRAME_FONT (f)->fid);
-      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->reverse_gc,
-		FRAME_FONT (f)->fid);
-      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->cursor_gc,
-		FRAME_FONT (f)->fid);
+      Font fid;
+
+#ifdef USE_FONT_BACKEND
+      if (enable_font_backend)
+	fid = FRAME_X_DISPLAY_INFO (f)->font->fid;
+      else
+#endif
+      fid = FRAME_FONT (f)->fid;
+      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->normal_gc, fid);
+      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->reverse_gc, fid);
+      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->cursor_gc, fid);
 
       /* Don't change the size of a tip frame; there's no point in
 	 doing it because it's done in Fx_show_tip, and it leads to
@@ -11358,6 +11373,13 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->font_table = NULL;
   dpyinfo->n_fonts = 0;
   dpyinfo->font_table_size = 0;
+#ifdef USE_FONT_BACKEND
+  dpyinfo->font = XLoadQueryFont (dpyinfo->display, "fixed");
+  if (! dpyinfo->font)
+    dpyinfo->font = XLoadQueryFont (dpyinfo->display, "*");
+  if (! dpyinfo->font)
+    abort ();
+#endif	/* USE_FONT_BACKEND */
   dpyinfo->bitmaps = 0;
   dpyinfo->bitmaps_size = 0;
   dpyinfo->bitmaps_last = 0;
@@ -11813,7 +11835,9 @@ x_delete_terminal (struct terminal *terminal)
 
   BLOCK_INPUT;
 #ifdef USE_FONT_BACKEND
-  if (! enable_font_backend)
+  if (enable_font_backend)
+    XFreeFont (dpyinfo->display, dpyinfo->font);
+  else
 #endif
   /* Free the fonts in the font table.  */
   for (i = 0; i < dpyinfo->n_fonts; i++)
