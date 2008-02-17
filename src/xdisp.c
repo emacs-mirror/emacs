@@ -2536,7 +2536,7 @@ init_iterator (it, w, charpos, bytepos, row, base_face_id)
   XSETWINDOW (it->window, w);
   it->w = w;
   it->f = XFRAME (w->frame);
-  
+
   /* Extra space between lines (on window systems only).  */
   if (base_face_id == DEFAULT_FACE_ID
       && FRAME_WINDOW_P (it->f))
@@ -5997,7 +5997,7 @@ get_next_display_element (it)
       int pos = (it->s ? -1
 		 : STRINGP (it->string) ? IT_STRING_CHARPOS (*it)
 		 : IT_CHARPOS (*it));
-	  
+
       it->face_id = FACE_FOR_CHAR (it->f, face, it->c, pos, it->string);
     }
 
@@ -8473,7 +8473,7 @@ resize_mini_window_1 (a1, exactly, a3, a4)
 }
 
 
-/* Resize mini-window W to fit the size of its contents.  EXACT:P
+/* Resize mini-window W to fit the size of its contents.  EXACT_P
    means size the window exactly to the size needed.  Otherwise, it's
    only enlarged until W's buffer is empty.
 
@@ -8915,11 +8915,11 @@ clear_garbaged_frames ()
     {
       Lisp_Object tail, frame;
       int changed_count = 0;
-      
+
       FOR_EACH_FRAME (tail, frame)
 	{
 	  struct frame *f = XFRAME (frame);
-	  
+
 	  if (FRAME_VISIBLE_P (f) && FRAME_GARBAGED_P (f))
 	    {
 	      if (f->resized_p)
@@ -8933,7 +8933,7 @@ clear_garbaged_frames ()
 	      f->resized_p = 0;
 	    }
 	}
-      
+
       frame_garbaged = 0;
       if (changed_count)
 	++windows_or_buffers_changed;
@@ -11214,7 +11214,7 @@ redisplay_internal (preserve_echo_area)
       }
   }
 
-  
+
   /* Notice any pending interrupt request to change frame size.  */
   do_pending_window_change (1);
 
@@ -21329,7 +21329,7 @@ x_produce_glyphs (it)
 			      + grefx * (rightmost - leftmost) / 2
 			      - nrefx * width / 2
 			      + xoff);
-		  
+
 		      btm = ((grefy == 0 ? highest
 			      : grefy == 1 ? 0
 			      : grefy == 2 ? lowest
@@ -23922,7 +23922,7 @@ x_draw_vertical_border (w)
      struct window *w;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  
+
   /* We could do better, if we knew what type of scroll-bar the adjacent
      windows (on either side) have...  But we don't :-(
      However, I think this works ok.  ++KFS 2003-04-25 */
