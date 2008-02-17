@@ -2516,7 +2516,7 @@ See also `locale-charset-language-names', `locale-language-names',
 
     (setq woman-locale
           (or system-messages-locale
-              (let ((msglocale (getenv "LC_MESSAGES")))
+              (let ((msglocale (getenv "LC_MESSAGES" frame)))
                 (if (zerop (length msglocale))
                     locale
                   (locale-translate msglocale)))))
