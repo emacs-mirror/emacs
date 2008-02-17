@@ -1,3 +1,64 @@
+2008-02-17  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_shape): Return Lispy number.
+
+	* xfaces.c (prepare_face_for_display): Use display_info->font->fid
+	for GCs.
+	(Finternal_set_font_selection_order): Call font_update_sort_order
+	only when enable_font_backend is set.
+	(realize_x_face): Set face->font_info to that of default face only
+	when enable_font_backend is set.
+
+	* xdisp.c (handle_composition_prop): Set it->c to the fist
+	characte of the composed region.
+	(fill_composite_glyph_string): Set base_face->font_info to
+	s->font_info.  Get a face for ascii from base_face->ascii_face.
+	(BUILD_COMPOSITE_GLYPH_STRING): Call fill_composite_glyph_string
+	with a face already decided.
+	(x_produce_glyphs): Be sure to set it->ascent and it->descent to
+	non-negative.
+	(x_produce_glyphs): If the composition method is
+	..._WITH_GLYPH_STRING, call font_prepare_composition
+	unconditionally.
+
+	* xfns.c (x_make_gc): Use the default font id of the frame for
+	GCs.
+
+	* xterm.h (struct x_display_info): New member font.
+
+	* xterm.c (x_set_cursor_gc): Use display_info->font->fid for GCs.
+	(x_set_mouse_face_gc, x_new_font): Likewise.
+	(x_term_init): Setup display_info->font.
+	(x_delete_terminal): Free display_info->font.
+
+	* xfont.c (xfont_draw): Use BLOCK_INPUT and UNBLOCK_INPUT.
+
+	* ftxfont.c (ftxfont_default_fid): Delete it.
+	(ftxfont_open): Set xfont->fid to 0.
+	(ftxfont_end_for_frame): Clear data specifi to the frame and the
+	font-driver.
+
+	* xftfont.c (xftfont_default_fid): Delete it.
+	(xftfont_open): Set xfont->fid to 0.
+
+	* fontset.c (FONTSET_OBJLIST): New macro.
+	(fontset_find_font): Update font-object list of the fontset.
+	(free_realized_fontset): New function.
+	(free_face_fontset): Call free_realized_fontset.
+	(Ffont_info): Call font_close_object only when enable_font_backend
+	is set.
+
+	* font.c [HAVE_X_WINDOWS]: Include xterm.h.
+	[HAVE_NTGUI]: Include w32term.h.
+	[MAC_OS]: Include macterm.ch.
+	(font_otf_ValueRecord): Use make_number.
+	(font_finish_cache): Fix handling of reference count.
+	(font_clear_cache): Update num_fonts.
+	(font_open_entity): Update smallest_char_width and
+	smallest_font_height of the frame.
+	(font_close_object): Update num_fonts.
+	(Fclear_font_cache): Fix finding the target cache data.
+
 2008-02-16  Glenn Morris  <rgm@gnu.org>
 
 	* fontset.c (Finternal_char_font): Fix compilation warning.
