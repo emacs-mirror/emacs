@@ -1,3 +1,16 @@
+2008-02-17  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-search-entry): Rename from
+	bibtex-find-entry. Add autoload cookie.
+	(bibtex-find-entry): Alias for bibtex-search-entry.
+	(bibtex-search-crossref): Rename from bibtex-find-crossref.
+	(bibtex-find-crossref): Alias for bibtex-search-crossref.
+	(bibtex-clean-entry): atomic-change-group removed.
+	(bibtex-format-entry): Use atomic-change-group.  Use
+	unwind-protect to locate buffer location where error occured.
+	Make error messages more specific.
+	(bibtex-parse-keys): Only parse if buffer uses bibtex-mode.
+
 2008-02-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/hideshow.el (hs-minor-mode-map): Move menu creation to
