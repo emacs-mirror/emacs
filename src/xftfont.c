@@ -67,7 +67,6 @@ struct xftface_info
 static void xftfont_get_colors P_ ((FRAME_PTR, struct face *, GC gc,
 				    struct xftface_info *,
 				    XftColor *fg, XftColor *bg));
-static Font xftfont_default_fid P_ ((FRAME_PTR));
 
 
 /* Setup foreground and background colors of GC into FG and BG.  If
@@ -133,31 +132,6 @@ xftfont_get_colors (f, face, gc, xftface_info, fg, bg)
 	}
       UNBLOCK_INPUT;
     }
-}
-
-/* Return the default Font ID on frame F.  The Returned Font ID is
-   stored in the GC of the frame F, but the font is never used.  So,
-   any ID is ok as long as it is valid.  */
-
-static Font
-xftfont_default_fid (f)
-     FRAME_PTR f;
-{
-  static int fid_known;
-  static Font fid;
-
-  if (! fid_known)
-    {
-      fid = XLoadFont (FRAME_X_DISPLAY (f), "fixed");
-      if (! fid)
-	{
-	  fid = XLoadFont (FRAME_X_DISPLAY (f), "*");
-	  if (! fid)
-	    abort ();
-	}
-      fid_known = 1;
-    }
-  return fid;
 }
 
 
@@ -342,7 +316,7 @@ xftfont_open (f, entity, pixel_size)
   font->font.vertical_centering = 0;
 
   /* Setup pseudo XFontStruct */
-  xfont->fid = xftfont_default_fid (f);
+  xfont->fid = 0;
   xfont->ascent = font->ascent;
   xfont->descent = font->descent;
   xfont->max_bounds.descent = font->descent;
