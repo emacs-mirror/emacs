@@ -355,23 +355,24 @@ Use the command `hs-minor-mode' to toggle or set this variable.")
     (define-key map "\C-c@\C-l"	      'hs-hide-level)
     (define-key map "\C-c@\C-c"	      'hs-toggle-hiding)
     (define-key map [(shift mouse-2)] 'hs-mouse-toggle-hiding)
-    (easy-menu-define hs-minor-mode-menu map
-      "Menu used when hideshow minor mode is active."
-      '("Hide/Show"
-	["Hide Block"    hs-hide-block
-	 :help "Hide the code or comment block at point"]
-	["Show Block"    hs-show-block
-	 :help "Show the code or comment block at point"]
-	["Hide All"      hs-hide-all
-	 :help "Hide all the blocks in the buffer"]
-	["Show All"      hs-show-all
-	 :help "Show all the clocks in the buffer"]
-	["Hide Level"    hs-hide-level
-	 :help "Hide all block at levels below the current block"]
-	["Toggle Hiding" hs-toggle-hiding
-	 :help "Toggle the hiding state of the current block"]))
     map)
   "Keymap for hideshow minor mode.")
+
+(easy-menu-define hs-minor-mode-menu hs-minor-mode-map
+  "Menu used when hideshow minor mode is active."
+  '("Hide/Show"
+    ["Hide Block"    hs-hide-block
+     :help "Hide the code or comment block at point"]
+    ["Show Block"    hs-show-block
+     :help "Show the code or comment block at point"]
+    ["Hide All"      hs-hide-all
+     :help "Hide all the blocks in the buffer"]
+    ["Show All"      hs-show-all
+     :help "Show all the clocks in the buffer"]
+    ["Hide Level"    hs-hide-level
+     :help "Hide all block at levels below the current block"]
+    ["Toggle Hiding" hs-toggle-hiding
+     :help "Toggle the hiding state of the current block"]))
 
 (defvar hs-c-start-regexp nil
   "Regexp for beginning of comments.

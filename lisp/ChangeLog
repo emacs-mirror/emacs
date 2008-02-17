@@ -1,5 +1,8 @@
 2008-02-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* progmodes/hideshow.el (hs-minor-mode-map): Move menu creation to
+	top level.
+
 	* simple.el (transient-mark-mode): Add an :init-value.
 
 	* startup.el (command-line): Use custom-reevaluate-setting for
