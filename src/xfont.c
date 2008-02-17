@@ -781,9 +781,11 @@ xfont_draw (s, from, to, x, y, with_background)
       XGCValues xgcv;
       Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (s->f);
 
+      BLOCK_INPUT;
       XGetGCValues (s->display, gc, GCFont, &xgcv);
       if (xgcv.font != xfont->fid)
 	XSetFont (s->display, gc, xfont->fid);
+      UNBLOCK_INPUT;
     }
 
   if (xfont->min_byte1 == 0 && xfont->max_byte1 == 0)
@@ -795,22 +797,26 @@ xfont_draw (s, from, to, x, y, with_background)
       SAFE_ALLOCA (str, char *, len);
       for (i = 0; i < len ; i++)
 	str[i] = XCHAR2B_BYTE2 (s->char2b + from + i);
+      BLOCK_INPUT;
       if (with_background > 0)
 	XDrawImageString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
 			  gc, x, y, str, len);
       else
 	XDrawString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
 		     gc, x, y, str, len);
+      UNBLOCK_INPUT;
       SAFE_FREE ();
       return s->nchars;
     }
 
+  BLOCK_INPUT;
   if (with_background > 0)
     XDrawImageString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
 			gc, x, y, s->char2b + from, len);
   else
     XDrawString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
 		   gc, x, y, s->char2b + from, len);
+  UNBLOCK_INPUT;
 
   return len;
 }
