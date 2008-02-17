@@ -1,3 +1,8 @@
+2008-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ada-mode.el (ada-font-lock-syntactic-keywords):
+	Recognize ''' just like any other char-constant.
+
 2008-02-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-find-root): Remove initial loop because it's not
