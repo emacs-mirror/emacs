@@ -1,3 +1,7 @@
+2008-02-17  Juri Linkov  <juri@jurta.org>
+
+	* time.el (emacs-init-time): Use format instead of format-seconds.
+
 2008-02-17  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-search-entry): Rename from
