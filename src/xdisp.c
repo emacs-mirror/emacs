@@ -4676,15 +4676,20 @@ handle_composition_prop (it)
 
   if (STRINGP (it->string))
     {
+      unsigned char *s;
+
       pos = IT_STRING_CHARPOS (*it);
       pos_byte = IT_STRING_BYTEPOS (*it);
       string = it->string;
+      s = SDATA (string) + pos_byte;
+      it->c = STRING_CHAR (s, 0);
     }
   else
     {
       pos = IT_CHARPOS (*it);
       pos_byte = IT_BYTEPOS (*it);
       string = Qnil;
+      it->c = FETCH_CHAR (pos_byte);
     }
 
   /* If there's a valid composition and point is not inside of the
@@ -4740,8 +4745,6 @@ handle_composition_prop (it)
 	      Lisp_Object lgstring = AREF (XHASH_TABLE (composition_hash_table)
 					   ->key_and_value,
 					   cmp->hash_index * 2);
-
-	      it->c = LGLYPH_CHAR (LGSTRING_GLYPH (lgstring, 0));
 	    }
 	  else
 #endif /* USE_FONT_BACKEND */
@@ -19309,7 +19312,7 @@ fill_composite_glyph_string (s, base_face, overlaps)
 		s->cmp->hash_index * 2);
 
       s->face = base_face;
-      s->font_info = s->cmp->font;
+      s->font_info = base_face->font_info;
       s->font = s->font_info->font;
       for (i = 0, s->nchars = 0; i < s->cmp->glyph_len; i++, s->nchars++)
 	{
@@ -19341,7 +19344,8 @@ fill_composite_glyph_string (s, base_face, overlaps)
 
 	  if (c != '\t')
 	    {
-	      int face_id = FACE_FOR_CHAR (s->f, base_face, c, -1, Qnil);
+	      int face_id = FACE_FOR_CHAR (s->f, base_face->ascii_face, c,
+					   -1, Qnil);
 
 	      face = get_char_face_and_encoding (s->f, c, face_id,
 						 s->char2b + i, 1, 1);
@@ -19879,7 +19883,6 @@ compute_overhangs_and_x (s, x, backward_p)
     int n;								    \
     									    \
     char2b = (XChar2b *) alloca ((sizeof *char2b) * cmp->glyph_len);	    \
-    base_face = base_face->ascii_face;					    \
     									    \
     /* Make glyph_strings for each glyph sequence that is drawable by	    \
        the same face, and append them to HEAD/TAIL.  */			    \
@@ -21095,6 +21098,11 @@ x_produce_glyphs (it)
 
 	  take_vertical_position_into_account (it);
 
+	  if (it->ascent < 0)
+	    it->ascent = 0;
+	  if (it->descent < 0)
+	    it->descent = 0;
+
 	  if (it->glyph_row)
 	    append_glyph (it);
 	}
@@ -21119,8 +21127,8 @@ x_produce_glyphs (it)
 #ifdef USE_FONT_BACKEND
       if (cmp->method == COMPOSITION_WITH_GLYPH_STRING)
 	{
-	  if (! cmp->font || cmp->font != font)
-	    font_prepare_composition (cmp, it->f);
+	  PREPARE_FACE_FOR_DISPLAY (it->f, face);
+	  font_prepare_composition (cmp, it->f);
 	}
       else
 #endif	/* USE_FONT_BACKEND */
@@ -21399,11 +21407,7 @@ x_produce_glyphs (it)
 
       it->pixel_width = cmp->pixel_width;
       it->ascent = it->phys_ascent = cmp->ascent;
-      if (it->ascent < 0)
-	it->ascent = it->phys_ascent = 0;
       it->descent = it->phys_descent = cmp->descent;
-      if (it->descent < 0)
-	it->descent = it->phys_descent = 0;
       if (face->box != FACE_NO_BOX)
 	{
 	  int thick = face->box_line_width;
@@ -21428,6 +21432,10 @@ x_produce_glyphs (it)
 	it->ascent += overline_margin;
 
       take_vertical_position_into_account (it);
+      if (it->ascent < 0)
+	it->ascent = 0;
+      if (it->descent < 0)
+	it->descent = 0;
 
       if (it->glyph_row)
 	append_composite_glyph (it);
