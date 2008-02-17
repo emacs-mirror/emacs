@@ -1,3 +1,8 @@
+2008-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment): Pass
+	`frame' to getenv for LC_MESSAGES.
+
 2008-02-17  Juri Linkov  <juri@jurta.org>
 
 	* time.el (emacs-init-time): Use format instead of format-seconds.
