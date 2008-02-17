@@ -935,7 +935,7 @@ The following is a complex example, see http://link.aps.org/linkfaq.html.
 Each rule should be of the form (REGEXP . SUBEXP), where SUBEXP
 specifies which parenthesized expression in REGEXP is a cited key.
 Case is significant.
-Used by `bibtex-find-crossref' and for font-locking."
+Used by `bibtex-search-crossref' and for font-locking."
   :group 'bibtex
   :type '(repeat (cons (regexp :tag "Regexp")
                        (integer :tag "Number"))))
@@ -978,8 +978,8 @@ Used by `bibtex-find-crossref' and for font-locking."
     (define-key km "\C-c}" 'bibtex-remove-delimiters)
     (define-key km "\C-c\C-c" 'bibtex-clean-entry)
     (define-key km "\C-c\C-q" 'bibtex-fill-entry)
-    (define-key km "\C-c\C-s" 'bibtex-find-entry)
-    (define-key km "\C-c\C-x" 'bibtex-find-crossref)
+    (define-key km "\C-c\C-s" 'bibtex-search-entry)
+    (define-key km "\C-c\C-x" 'bibtex-search-crossref)
     (define-key km "\C-c\C-t" 'bibtex-copy-summary-as-kill)
     (define-key km "\C-c?" 'bibtex-print-help-message)
     (define-key km "\C-c\C-p" 'bibtex-pop-previous)
@@ -1035,8 +1035,8 @@ Used by `bibtex-find-crossref' and for font-locking."
     "--"
      ["Make Entry Visible" bibtex-reposition-window t])
     ("Moving in BibTeX Buffers"
-     ["Find Entry" bibtex-find-entry t]
-     ["Find Crossref Entry" bibtex-find-crossref t])
+     ["Search Entry" bibtex-search-entry t]
+     ["Search Crossref Entry" bibtex-search-crossref t])
     "--"
     ("Operating on Current Field"
      ["Fill Field" fill-paragraph t]
@@ -1546,7 +1546,7 @@ If optional arg FOLLOW-CROSSREF is non-nil, follow crossref."
                          (setq bounds (bibtex-search-forward-field
                                        "\\(OPT\\)?crossref" end))))
              (let ((crossref-field (bibtex-text-in-field-bounds bounds t)))
-               (if (bibtex-find-crossref crossref-field)
+               (if (bibtex-search-crossref crossref-field)
                    ;; Do not pass FOLLOW-CROSSREF because we want
                    ;; to follow crossrefs only one level of recursion.
                    (bibtex-text-in-field field))))))))
@@ -1887,254 +1887,274 @@ Formats current entry according to variable `bibtex-entry-format'."
       (setq bibtex-field-strings-opt
             (bibtex-field-re-init bibtex-field-strings-alist 'strings)))
 
-  (save-excursion
-    (save-restriction
-      (bibtex-narrow-to-entry)
-      (let ((case-fold-search t)
-            (format (if (eq bibtex-entry-format t)
-                        '(realign opts-or-alts required-fields numerical-fields
-                                  page-dashes whitespace inherit-booktitle
-                                  last-comma delimiters unify-case braces
-                                  strings)
-                      bibtex-entry-format))
-            bounds crossref-key req-field-list default-field-list field-list)
+  (let ((case-fold-search t)
+        (format (if (eq bibtex-entry-format t)
+                    '(realign opts-or-alts required-fields numerical-fields
+                              page-dashes whitespace inherit-booktitle
+                              last-comma delimiters unify-case braces
+                              strings)
+                  bibtex-entry-format))
+        bounds crossref-key req-field-list default-field-list field-list
+        alt-fields error-field-name)
+    (unwind-protect
+        ;; formatting (undone if error occurs)
+        (atomic-change-group
+          (save-excursion
+            (save-restriction
+              (bibtex-narrow-to-entry)
 
-        ;; There are more elegant high-level functions for several tasks
-        ;; done by `bibtex-format-entry'.  However, they contain some
-        ;; redundancy compared with what we need to do anyway.
-        ;; So for speed-up we avoid using them.
-        ;; (`bibtex-format-entry' is called many times by `bibtex-reformat'.)
+              ;; There are more elegant high-level functions for several tasks
+              ;; done by `bibtex-format-entry'.  However, they contain some
+              ;; redundancy compared with what we need to do anyway.
+              ;; So for speed-up we avoid using them.
+              ;; (`bibtex-format-entry' is called often by `bibtex-reformat'.)
 
-        ;; identify entry type
-        (goto-char (point-min))
-        (or (re-search-forward bibtex-entry-type nil t)
-            (error "Not inside a BibTeX entry"))
-        (let* ((beg-type (1+ (match-beginning 0)))
-               (end-type (match-end 0))
-               (entry-list (assoc-string (buffer-substring-no-properties
-					  beg-type end-type)
-					 bibtex-entry-field-alist t)))
+              ;; identify entry type
+              (goto-char (point-min))
+              (or (re-search-forward bibtex-entry-type nil t)
+                  (error "Not inside a BibTeX entry"))
+              (let* ((beg-type (1+ (match-beginning 0)))
+                     (end-type (match-end 0))
+                     (entry-list (assoc-string (buffer-substring-no-properties
+                                                beg-type end-type)
+                                               bibtex-entry-field-alist t)))
 
-          ;; unify case of entry name
-          (when (memq 'unify-case format)
-            (delete-region beg-type end-type)
-            (insert (car entry-list)))
+                ;; unify case of entry name
+                (when (memq 'unify-case format)
+                  (delete-region beg-type end-type)
+                  (insert (car entry-list)))
 
-          ;; update left entry delimiter
-          (when (memq 'delimiters format)
-            (goto-char end-type)
-            (skip-chars-forward " \t\n")
-            (delete-char 1)
-            (insert (bibtex-entry-left-delimiter)))
+                ;; update left entry delimiter
+                (when (memq 'delimiters format)
+                  (goto-char end-type)
+                  (skip-chars-forward " \t\n")
+                  (delete-char 1)
+                  (insert (bibtex-entry-left-delimiter)))
 
-          ;; Do we have a crossref key?
-          (goto-char (point-min))
-          (if (setq bounds (bibtex-search-forward-field "crossref"))
-              (let ((text (bibtex-text-in-field-bounds bounds t)))
-                (unless (equal "" text)
-                  (setq crossref-key text))))
+                ;; Do we have a crossref key?
+                (goto-char (point-min))
+                (if (setq bounds (bibtex-search-forward-field "crossref"))
+                    (let ((text (bibtex-text-in-field-bounds bounds t)))
+                      (unless (equal "" text)
+                        (setq crossref-key text))))
 
-          ;; list of required fields appropriate for an entry with
-          ;; or without crossref key.
-          (setq req-field-list (if (and crossref-key (nth 2 entry-list))
-                                   (car (nth 2 entry-list))
-                                 (car (nth 1 entry-list)))
-                ;; default list of fields that may appear in this entry
-                default-field-list (append (nth 0 (nth 1 entry-list))
-                                           (nth 1 (nth 1 entry-list))
-                                           bibtex-user-optional-fields)))
+                ;; list of required fields appropriate for an entry with
+                ;; or without crossref key.
+                (setq req-field-list (if (and crossref-key (nth 2 entry-list))
+                                         (car (nth 2 entry-list))
+                                       (car (nth 1 entry-list)))
+                      ;; default list of fields that may appear in this entry
+                      default-field-list (append (nth 0 (nth 1 entry-list))
+                                                 (nth 1 (nth 1 entry-list))
+                                                 bibtex-user-optional-fields)))
 
-        ;; process all fields
-        (bibtex-beginning-first-field (point-min))
-        (while (setq bounds (bibtex-parse-field))
-          (let* ((beg-field (copy-marker (bibtex-start-of-field bounds)))
-                 (end-field (copy-marker (bibtex-end-of-field bounds) t))
-                 (beg-name  (copy-marker (bibtex-start-of-name-in-field bounds)))
-                 (end-name  (copy-marker (bibtex-end-of-name-in-field bounds)))
-                 (beg-text  (copy-marker (bibtex-start-of-text-in-field bounds)))
-                 (end-text  (copy-marker (bibtex-end-of-text-in-field bounds) t))
-                 (opt-alt   (string-match "OPT\\|ALT"
-                                          (buffer-substring-no-properties
-                                           beg-name (+ beg-name 3))))
-                 (field-name (buffer-substring-no-properties
-                              (if opt-alt (+ beg-name 3) beg-name) end-name))
-                 (empty-field (equal "" (bibtex-text-in-field-bounds bounds t)))
-                 deleted)
+              ;; process all fields
+              (bibtex-beginning-first-field (point-min))
+              (while (setq bounds (bibtex-parse-field))
+                (let* ((beg-field (copy-marker (bibtex-start-of-field bounds)))
+                       (end-field (copy-marker (bibtex-end-of-field bounds) t))
+                       (beg-name  (copy-marker (bibtex-start-of-name-in-field bounds)))
+                       (end-name  (copy-marker (bibtex-end-of-name-in-field bounds)))
+                       (beg-text  (copy-marker (bibtex-start-of-text-in-field bounds)))
+                       (end-text  (copy-marker (bibtex-end-of-text-in-field bounds) t))
+                       (opt-alt   (string-match "OPT\\|ALT"
+                                                (buffer-substring-no-properties
+                                                 beg-name (+ beg-name 3))))
+                       (field-name (buffer-substring-no-properties
+                                    (if opt-alt (+ beg-name 3) beg-name) end-name))
+                       (empty-field (equal "" (bibtex-text-in-field-bounds bounds t)))
+                       deleted)
 
-            (if (memq 'opts-or-alts format)
-                ;; delete empty optional and alternative fields
-                ;; (but keep empty required fields)
-                (cond ((and empty-field
-                            (or opt-alt
-                                (let ((field (assoc-string
-                                              field-name req-field-list t)))
-                                  (or (not field)       ; OPT field
-                                      (nth 3 field))))) ; ALT field
-                       (delete-region beg-field end-field)
-                       (setq deleted t))
-                      ;; otherwise nonempty field: delete "OPT" or "ALT"
-                      (opt-alt
-                       (goto-char beg-name)
-                       (delete-char 3))))
+                  ;; keep track of alternatives
+                  (if (nth 3 (assoc-string field-name req-field-list t))
+                      (push field-name alt-fields))
 
-            (unless deleted
-              (push field-name field-list)
+                  (if (memq 'opts-or-alts format)
+                      ;; delete empty optional and alternative fields
+                      ;; (but keep empty required fields)
+                      (cond ((and empty-field
+                                  (or opt-alt
+                                      (let ((field (assoc-string
+                                                    field-name req-field-list t)))
+                                        (or (not field) ; OPT field
+                                            (nth 3 field))))) ; ALT field
+                             (delete-region beg-field end-field)
+                             (setq deleted t))
+                            ;; otherwise nonempty field: delete "OPT" or "ALT"
+                            (opt-alt
+                             (goto-char beg-name)
+                             (delete-char 3))))
 
-              ;; remove delimiters from purely numerical fields
-              (when (and (memq 'numerical-fields format)
-                         (progn (goto-char beg-text)
-                                (looking-at "\\(\"[0-9]+\"\\)\\|\\({[0-9]+}\\)")))
-                (goto-char end-text)
-                (delete-char -1)
-                (goto-char beg-text)
-                (delete-char 1))
+                  (unless deleted
+                    (push field-name field-list)
 
-              ;; update delimiters
+                    ;; remove delimiters from purely numerical fields
+                    (when (and (memq 'numerical-fields format)
+                               (progn (goto-char beg-text)
+                                      (looking-at "\\(\"[0-9]+\"\\)\\|\\({[0-9]+}\\)")))
+                      (goto-char end-text)
+                      (delete-char -1)
+                      (goto-char beg-text)
+                      (delete-char 1))
+
+                    ;; update delimiters
+                    (when (memq 'delimiters format)
+                      (goto-char beg-text)
+                      (when (looking-at "[{\"]")
+                        (delete-char 1)
+                        (insert (bibtex-field-left-delimiter)))
+                      (goto-char (1- (marker-position end-text)))
+                      (when (looking-at "[}\"]")
+                        (delete-char 1)
+                        (insert (bibtex-field-right-delimiter))))
+
+                    ;; update page dashes
+                    (if (and (memq 'page-dashes format)
+                             (bibtex-string= field-name "pages")
+                             (progn (goto-char beg-text)
+                                    (looking-at
+                                     "\\([\"{][0-9]+\\)[ \t\n]*--?[ \t\n]*\\([0-9]+[\"}]\\)")))
+                        (replace-match "\\1-\\2"))
+
+                    ;; remove whitespace at beginning and end of field
+                    (when (memq 'whitespace format)
+                      (goto-char beg-text)
+                      (if (looking-at "\\([{\"]\\)[ \t\n]+")
+                          (replace-match "\\1"))
+                      (goto-char end-text)
+                      (if (looking-back "[ \t\n]+\\([}\"]\\)" beg-text t)
+                          (replace-match "\\1")))
+
+                    ;; enclose field text by braces according to
+                    ;; `bibtex-field-braces-alist'.
+                    (let (case-fold-search temp) ; Case-sensitive search
+                      (when (and (memq 'braces format)
+                                 (setq temp (cdr (assoc-string field-name
+                                                               bibtex-field-braces-opt t))))
+                        (goto-char beg-text)
+                        (while (re-search-forward temp end-text t)
+                          (let ((beg (match-beginning 0))
+                                (bounds (bibtex-find-text-internal nil t)))
+                            (unless (or (nth 4 bounds) ; string constant
+                                        ;; match already surrounded by braces
+                                        ;; (braces are inside field delimiters)
+                                        (and (< (point) (1- (nth 2 bounds)))
+                                             (< (1+ (nth 1 bounds)) beg)
+                                             (looking-at "}")
+                                             (save-excursion (goto-char (1- beg))
+                                                             (looking-at "{"))))
+                              (insert "}")
+                              (goto-char beg)
+                              (insert "{")))))
+
+                      ;; replace field text by BibTeX string constants
+                      ;; according to `bibtex-field-strings-alist'.
+                      (when (and (memq 'strings format)
+                                 (setq temp (cdr (assoc-string field-name
+                                                               bibtex-field-strings-opt t))))
+                        (goto-char beg-text)
+                        (dolist (re temp)
+                          (while (re-search-forward (car re) end-text t)
+                            (let ((bounds (save-match-data
+                                            (bibtex-find-text-internal nil t))))
+                              (unless (nth 4 bounds)
+                                ;; if match not at right subfield boundary...
+                                (if (< (match-end 0) (1- (nth 2 bounds)))
+                                    (insert " # " (bibtex-field-left-delimiter))
+                                  (delete-char 1))
+                                (replace-match (cdr re))
+                                (goto-char (match-beginning 0))
+                                ;; if match not at left subfield boundary...
+                                (if (< (1+ (nth 1 bounds)) (match-beginning 0))
+                                    (insert (bibtex-field-right-delimiter) " # ")
+                                  (delete-backward-char 1))))))))
+
+                    ;; use book title of crossref'd entry
+                    (if (and (memq 'inherit-booktitle format)
+                             empty-field
+                             (bibtex-string= field-name "booktitle")
+                             crossref-key)
+                        (let ((title (save-excursion
+                                       (save-restriction
+                                         (widen)
+                                         (if (bibtex-search-entry crossref-key t)
+                                             (bibtex-text-in-field "title"))))))
+                          (when title
+                            (setq empty-field nil)
+                            (goto-char (1+ beg-text))
+                            (insert title))))
+
+                    ;; if empty field is a required field, complain
+                    (when (and empty-field
+                               (memq 'required-fields format)
+                               (assoc-string field-name req-field-list t))
+                      (setq error-field-name field-name)
+                      (error "Mandatory field `%s' is empty" field-name))
+
+                    ;; unify case of field name
+                    (if (memq 'unify-case format)
+                        (let ((fname (car (assoc-string field-name
+                                                        default-field-list t))))
+                          (if fname
+                              (progn
+                                (delete-region beg-name end-name)
+                                (goto-char beg-name)
+                                (insert fname))
+                            ;; there are no rules we could follow
+                            (downcase-region beg-name end-name))))
+
+                    ;; update point
+                    (goto-char end-field))))
+
+              ;; check whether all required fields are present
+              (if (memq 'required-fields format)
+                  (let ((found 0) alt-list)
+                    (dolist (fname req-field-list)
+                      (cond ((nth 3 fname) ; t if field has alternative flag
+                             (push (car fname) alt-list)
+                             (if (member-ignore-case (car fname) field-list)
+                                 (setq found (1+ found))))
+                            ((not (member-ignore-case (car fname) field-list))
+                             (error "Mandatory field `%s' is missing" (car fname)))))
+                    (if alt-list
+                        (cond ((= found 0)
+                               (if alt-fields
+                                   (setq error-field-name (car (last alt-fields))))
+                               (error "Alternative mandatory field `%s' is missing"
+                                      alt-list))
+                              ((> found 1)
+                               (if alt-fields
+                                   (setq error-field-name (car (last alt-fields))))
+                               (error "Alternative fields `%s' are defined %s times"
+                                      alt-list found))))))
+
+              ;; update comma after last field
+              (if (memq 'last-comma format)
+                  (cond ((and bibtex-comma-after-last-field
+                              (not (looking-at ",")))
+                         (insert ","))
+                        ((and (not bibtex-comma-after-last-field)
+                              (looking-at ","))
+                         (delete-char 1))))
+
+              ;; update right entry delimiter
+              (if (looking-at ",")
+                  (forward-char))
               (when (memq 'delimiters format)
-                (goto-char beg-text)
-                (when (looking-at "[{\"]")
-                  (delete-char 1)
-                  (insert (bibtex-field-left-delimiter)))
-                (goto-char (1- (marker-position end-text)))
-                (when (looking-at "[}\"]")
-                  (delete-char 1)
-                  (insert (bibtex-field-right-delimiter))))
+                (skip-chars-forward " \t\n")
+                (delete-char 1)
+                (insert (bibtex-entry-right-delimiter)))
 
-              ;; update page dashes
-              (if (and (memq 'page-dashes format)
-                       (bibtex-string= field-name "pages")
-                       (progn (goto-char beg-text)
-                              (looking-at
-                               "\\([\"{][0-9]+\\)[ \t\n]*--?[ \t\n]*\\([0-9]+[\"}]\\)")))
-                  (replace-match "\\1-\\2"))
+              ;; realign and fill entry
+              (if (memq 'realign format)
+                  (bibtex-fill-entry)))))
 
-              ;; remove whitespace at beginning and end of field
-              (when (memq 'whitespace format)
-                (goto-char beg-text)
-                (if (looking-at "\\([{\"]\\)[ \t\n]+")
-                    (replace-match "\\1"))
-                (goto-char end-text)
-                (if (looking-back "[ \t\n]+\\([}\"]\\)" beg-text t)
-                    (replace-match "\\1")))
-
-              ;; enclose field text by braces according to
-              ;; `bibtex-field-braces-alist'.
-              (let (case-fold-search temp) ; Case-sensitive search
-                (when (and (memq 'braces format)
-                           (setq temp (cdr (assoc-string field-name
-                                                         bibtex-field-braces-opt t))))
-                  (goto-char beg-text)
-                  (while (re-search-forward temp end-text t)
-                    (let ((beg (match-beginning 0))
-                          (bounds (bibtex-find-text-internal nil t)))
-                      (unless (or (nth 4 bounds) ; string constant
-                                  ;; match already surrounded by braces
-                                  ;; (braces are inside field delimiters)
-                                  (and (< (point) (1- (nth 2 bounds)))
-                                       (< (1+ (nth 1 bounds)) beg)
-                                       (looking-at "}")
-                                       (save-excursion (goto-char (1- beg))
-                                                       (looking-at "{"))))
-                        (insert "}")
-                        (goto-char beg)
-                        (insert "{")))))
-
-                ;; replace field text by BibTeX string constants according to
-                ;; `bibtex-field-strings-alist'.
-                (when (and (memq 'strings format)
-                           (setq temp (cdr (assoc-string field-name
-                                                         bibtex-field-strings-opt t))))
-                  (goto-char beg-text)
-                  (dolist (re temp)
-                    (while (re-search-forward (car re) end-text t)
-                      (let ((bounds (save-match-data
-                                      (bibtex-find-text-internal nil t))))
-                        (unless (nth 4 bounds)
-                          ;; if match not at right subfield boundary...
-                          (if (< (match-end 0) (1- (nth 2 bounds)))
-                              (insert " # " (bibtex-field-left-delimiter))
-                            (delete-char 1))
-                          (replace-match (cdr re))
-                          (goto-char (match-beginning 0))
-                          ;; if match not at left subfield boundary...
-                          (if (< (1+ (nth 1 bounds)) (match-beginning 0))
-                              (insert (bibtex-field-right-delimiter) " # ")
-                            (delete-backward-char 1))))))))
-
-              ;; use book title of crossref'd entry
-              (if (and (memq 'inherit-booktitle format)
-                       empty-field
-                       (bibtex-string= field-name "booktitle")
-                       crossref-key)
-                  (let ((title (save-excursion
-                                 (save-restriction
-                                   (widen)
-                                   (if (bibtex-find-entry crossref-key t)
-                                       (bibtex-text-in-field "title"))))))
-                    (when title
-                      (setq empty-field nil)
-                      (goto-char (1+ beg-text))
-                      (insert title))))
-
-              ;; if empty field is a required field, complain
-              (if (and empty-field
-                       (memq 'required-fields format)
-                       (assoc-string field-name req-field-list t))
-                  (error "Mandatory field `%s' is empty" field-name))
-
-              ;; unify case of field name
-              (if (memq 'unify-case format)
-                  (let ((fname (car (assoc-string field-name
-                                                  default-field-list t))))
-                    (if fname
-                        (progn
-                          (delete-region beg-name end-name)
-                          (goto-char beg-name)
-                          (insert fname))
-                      ;; there are no rules we could follow
-                      (downcase-region beg-name end-name))))
-
-              ;; update point
-              (goto-char end-field))))
-
-        ;; check whether all required fields are present
-        (if (memq 'required-fields format)
-            (let ((found 0) alt-list)
-              (dolist (fname req-field-list)
-                (cond ((nth 3 fname) ; t if field has alternative flag
-                       (push (car fname) alt-list)
-                       (if (member-ignore-case (car fname) field-list)
-                           (setq found (1+ found))))
-                      ((not (member-ignore-case (car fname) field-list))
-                       (error "Mandatory field `%s' is missing" (car fname)))))
-              (if alt-list
-                  (cond ((= found 0)
-                         (error "Alternative mandatory field `%s' is missing"
-                                alt-list))
-                        ((> found 1)
-                         (error "Alternative fields `%s' are defined %s times"
-                                alt-list found))))))
-
-        ;; update comma after last field
-        (if (memq 'last-comma format)
-            (cond ((and bibtex-comma-after-last-field
-                        (not (looking-at ",")))
-                   (insert ","))
-                  ((and (not bibtex-comma-after-last-field)
-                        (looking-at ","))
-                   (delete-char 1))))
-
-        ;; update right entry delimiter
-        (if (looking-at ",")
-            (forward-char))
-        (when (memq 'delimiters format)
-          (skip-chars-forward " \t\n")
-          (delete-char 1)
-          (insert (bibtex-entry-right-delimiter)))
-
-        ;; realign and fill entry
-        (if (memq 'realign format)
-            (bibtex-fill-entry))))))
+      ;; Unwindform: move to location where error occured if possible
+      (when error-field-name
+        (bibtex-beginning-of-entry)
+        (goto-char (bibtex-start-of-text-in-field
+                    (bibtex-search-forward-field error-field-name)))
+        (bibtex-find-text)))))
 
 (defun bibtex-field-re-init (regexp-alist type)
   "Calculate optimized value for bibtex-regexp-TYPE-opt.
@@ -2425,61 +2445,62 @@ on user input.  If VERBOSE is non-nil give messages about progress.
 Return alist of keys if parsing was completed, `aborted' otherwise.
 If `bibtex-parse-keys-fast' is non-nil, use fast but simplified algorithm
 for parsing BibTeX keys.  If parsing fails, try to set this variable to nil."
-  (let (ref-keys crossref-keys)
-    (save-excursion
-      (save-match-data
-        (if verbose
-            (bibtex-progress-message
-             (concat (buffer-name) ": parsing reference keys")))
-        (catch 'userkey
-          (goto-char (point-min))
-          (if bibtex-parse-keys-fast
-              (let ((case-fold-search t)
-                    (re (concat bibtex-entry-head "\\|"
-                                ",[ \t\n]*crossref[ \t\n]*=[ \t\n]*"
-                                "\\(\"[^\"]*\"\\|{[^}]*}\\)[ \t\n]*[,})]")))
-                (while (re-search-forward re nil t)
-                  (if (and abortable (input-pending-p))
-                      ;; user has aborted by typing a key --> return `aborted'
-                      (throw 'userkey 'aborted))
-                  (cond ((match-end 3)
-                         ;; This is a crossref.
-                         (let ((key (buffer-substring-no-properties
-                                     (1+ (match-beginning 3)) (1- (match-end 3)))))
+  (if (eq major-mode 'bibtex-mode)
+      (let (ref-keys crossref-keys)
+        (save-excursion
+          (save-match-data
+            (if verbose
+                (bibtex-progress-message
+                 (concat (buffer-name) ": parsing reference keys")))
+            (catch 'userkey
+              (goto-char (point-min))
+              (if bibtex-parse-keys-fast
+                  (let ((case-fold-search t)
+                        (re (concat bibtex-entry-head "\\|"
+                                    ",[ \t\n]*crossref[ \t\n]*=[ \t\n]*"
+                                    "\\(\"[^\"]*\"\\|{[^}]*}\\)[ \t\n]*[,})]")))
+                    (while (re-search-forward re nil t)
+                      (if (and abortable (input-pending-p))
+                          ;; user has aborted by typing a key: return `aborted'
+                          (throw 'userkey 'aborted))
+                      (cond ((match-end 3)
+                             ;; This is a crossref.
+                             (let ((key (buffer-substring-no-properties
+                                         (1+ (match-beginning 3)) (1- (match-end 3)))))
                                (unless (assoc key crossref-keys)
                                  (push (list key) crossref-keys))))
-                        ;; only keys of known entries
-                        ((assoc-string (bibtex-type-in-head)
-                                       bibtex-entry-field-alist t)
-                         ;; This is an entry.
-                         (let ((key (bibtex-key-in-head)))
-                           (unless (assoc key ref-keys)
-                             (push (cons key t) ref-keys)))))))
+                            ;; only keys of known entries
+                            ((assoc-string (bibtex-type-in-head)
+                                           bibtex-entry-field-alist t)
+                             ;; This is an entry.
+                             (let ((key (bibtex-key-in-head)))
+                               (unless (assoc key ref-keys)
+                                 (push (cons key t) ref-keys)))))))
 
-            (let (;; ignore @String entries because they are handled
-                  ;; separately by `bibtex-parse-strings'
-                  (bibtex-sort-ignore-string-entries t)
-                  bounds)
-              (bibtex-map-entries
-               (lambda (key beg end)
-                 (if (and abortable
-                          (input-pending-p))
-                     ;; user has aborted by typing a key --> return `aborted'
-                     (throw 'userkey 'aborted))
-                 (if verbose (bibtex-progress-message))
-                 (unless (assoc key ref-keys)
-                   (push (cons key t) ref-keys))
-                 (if (and (setq bounds (bibtex-search-forward-field "crossref" end))
-                          (setq key (bibtex-text-in-field-bounds bounds t))
-                          (not (assoc key crossref-keys)))
-                     (push (list key) crossref-keys))))))
+                (let (;; ignore @String entries because they are handled
+                      ;; separately by `bibtex-parse-strings'
+                      (bibtex-sort-ignore-string-entries t)
+                      bounds)
+                  (bibtex-map-entries
+                   (lambda (key beg end)
+                     (if (and abortable
+                              (input-pending-p))
+                         ;; user has aborted by typing a key: return `aborted'
+                         (throw 'userkey 'aborted))
+                     (if verbose (bibtex-progress-message))
+                     (unless (assoc key ref-keys)
+                       (push (cons key t) ref-keys))
+                     (if (and (setq bounds (bibtex-search-forward-field "crossref" end))
+                              (setq key (bibtex-text-in-field-bounds bounds t))
+                              (not (assoc key crossref-keys)))
+                         (push (list key) crossref-keys))))))
 
-          (dolist (key crossref-keys)
-            (unless (assoc (car key) ref-keys) (push key ref-keys)))
-          (if verbose
-              (bibtex-progress-message 'done))
-          ;; successful operation --> return `bibtex-reference-keys'
-          (setq bibtex-reference-keys ref-keys))))))
+              (dolist (key crossref-keys)
+                (unless (assoc (car key) ref-keys) (push key ref-keys)))
+              (if verbose
+                  (bibtex-progress-message 'done))
+              ;; successful operation --> return `bibtex-reference-keys'
+              (setq bibtex-reference-keys ref-keys)))))))
 
 (defun bibtex-parse-strings (&optional add abortable)
   "Set `bibtex-strings' to the string definitions in the whole buffer.
@@ -2700,7 +2721,7 @@ expansion of STR using expansion list COMPL."
 Use `bibtex-summary-function' to generate summary."
   (save-excursion
     (if (and (stringp key)
-             (bibtex-find-entry key t))
+             (bibtex-search-entry key t))
         (message "Ref: %s" (funcall bibtex-summary-function)))))
 
 (defun bibtex-copy-summary-as-kill (&optional arg)
@@ -2856,7 +2877,7 @@ If NO-BUTTON is non-nil do not generate buttons."
       (setq start (1+ (match-beginning 1))
             end (1- (match-end 1))
             found (>= start pnt)))
-    (if found (bibtex-button start end 'bibtex-find-crossref
+    (if found (bibtex-button start end 'bibtex-search-crossref
                              (buffer-substring-no-properties start end)
                              start t))
     found))
@@ -2869,7 +2890,7 @@ BOUND limits the search."
     (if (re-search-forward (car matcher) bound t)
         (let ((start (match-beginning (cdr matcher)))
               (end (match-end (cdr matcher))))
-          (bibtex-button start end 'bibtex-find-crossref
+          (bibtex-button start end 'bibtex-search-crossref
                          (buffer-substring-no-properties start end)
                          start t t)
           t))))
@@ -2884,9 +2905,9 @@ BOUND limits the search."
   'bibtex-function 'bibtex-url
   'help-echo (purecopy "mouse-2, RET: follow URL"))
 
-(define-button-type 'bibtex-find-crossref
+(define-button-type 'bibtex-search-crossref
   'action 'bibtex-button-action
-  'bibtex-function 'bibtex-find-crossref
+  'bibtex-function 'bibtex-search-crossref
   'help-echo (purecopy "mouse-2, RET: follow crossref"))
 
 (defun bibtex-button (beg end type &rest args)
@@ -3452,7 +3473,7 @@ are ignored."
              nil                           ; ENDKEY function
              'bibtex-lessp))               ; PREDICATE
 
-(defun bibtex-find-crossref (crossref-key &optional pnt split noerror)
+(defun bibtex-search-crossref (crossref-key &optional pnt split noerror)
   "Move point to the beginning of BibTeX entry CROSSREF-KEY.
 If `bibtex-files' is non-nil, search all these files.
 Otherwise the search is limited to the current buffer.
@@ -3497,7 +3518,7 @@ for a crossref key, t otherwise."
 
   (let (buffer pos eqb)
     (save-excursion
-      (setq pos (bibtex-find-entry crossref-key t)
+      (setq pos (bibtex-search-entry crossref-key t)
             buffer (current-buffer)))
     (setq eqb (eq buffer (current-buffer)))
     (cond ((not pos)
@@ -3514,13 +3535,15 @@ for a crossref key, t otherwise."
              (beginning-of-line)
              (if (and eqb (> pnt pos) (not noerror))
                  (error "The referencing entry must precede the crossrefed entry!"))))
-          ;; `bibtex-find-crossref' is called noninteractively during
+          ;; `bibtex-search-crossref' is called noninteractively during
           ;; clean-up of an entry.  Then it is not possible to check
           ;; whether the current entry and the crossrefed entry have
           ;; the correct sorting order.
           (eqb (goto-char pos))
           (t (set-buffer buffer) (goto-char pos)))
     pos))
+;; backward compatibility
+(defalias 'bibtex-find-crossref 'bibtex-search-crossref)
 
 (defun bibtex-dist (pos beg end)
   "Return distance between POS and region delimited by BEG and END."
@@ -3528,26 +3551,30 @@ for a crossref key, t otherwise."
         ((< pos beg) (- beg pos))
         (t (- pos end))))
 
-(defun bibtex-find-entry (key &optional global start display)
+;;;###autoload
+(defun bibtex-search-entry (key &optional global start display)
   "Move point to the beginning of BibTeX entry named KEY.
 Return position of entry if KEY is found or nil if not found.
-With prefix arg GLOBAL non-nil, search KEY in `bibtex-files'.
-Otherwise the search is limited to the current buffer.
-Optional arg START is buffer position where the search starts.
-If it is nil, start search at beginning of buffer.
+With GLOBAL non-nil, search KEY in `bibtex-files'.  Otherwise the search
+is limited to the current buffer.  Optional arg START is buffer position
+where the search starts.  If it is nil, start search at beginning of buffer.
 If DISPLAY is non-nil, display the buffer containing KEY.
-Otherwise, use `set-buffer'.  DISPLAY is t when called interactively."
-  (interactive (list (bibtex-read-key "Find key: " nil current-prefix-arg)
-                     current-prefix-arg nil t))
+Otherwise, use `set-buffer'.
+When called interactively, GLOBAL is t if there is a prefix arg or the current
+mode is not `bibtex-mode', START is nil, and DISPLAY is t."
+  (interactive
+   (let ((global (or current-prefix-arg (not (eq major-mode 'bibtex-mode)))))
+     (list (bibtex-read-key "Find key: " nil global) global nil t)))
   (if (and global bibtex-files)
       (let ((buffer-list (bibtex-initialize t))
             buffer found)
         (while (and (not found)
                     (setq buffer (pop buffer-list)))
           (with-current-buffer buffer
-            (if (cdr (assoc-string key bibtex-reference-keys))
-                ;; `bibtex-find-entry' moves point if key found
-                (setq found (bibtex-find-entry key)))))
+            (if (and (listp bibtex-reference-keys)
+                     (cdr (assoc-string key bibtex-reference-keys)))
+                ;; `bibtex-search-entry' moves point if key found
+                (setq found (bibtex-search-entry key)))))
         (cond ((and found display)
                (let ((same-window-buffer-names
                       (cons (buffer-name buffer) same-window-buffer-names)))
@@ -3572,6 +3599,8 @@ Otherwise, use `set-buffer'.  DISPLAY is t when called interactively."
              (if display (bibtex-reposition-window)))
             (display (message "Key `%s' not found" key)))
       pnt)))
+;; backward compatibility
+(defalias 'bibtex-find-entry 'bibtex-search-entry)
 
 (defun bibtex-prepare-new-entry (index)
   "Prepare a new BibTeX entry with index INDEX.
@@ -3590,7 +3619,7 @@ Return t if preparation was successful or nil if entry KEY already exists."
     (cond ((or (null key)
                (and (stringp key)
                     (string-equal key ""))
-               (and (not (setq key-exist (bibtex-find-entry key)))
+               (and (not (setq key-exist (bibtex-search-entry key)))
                     (not bibtex-maintain-sorted-entries)))
            (bibtex-move-outside-of-entry))
           ;; if key-exist is non-nil due to the previous cond clause
@@ -3708,7 +3737,7 @@ Return t if test was successful, nil otherwise."
             (dolist (key (with-current-buffer buffer bibtex-reference-keys))
               (when (and (cdr key)
                          (cdr (assoc-string (car key) bibtex-reference-keys)))
-                (bibtex-find-entry (car key))
+                (bibtex-search-entry (car key))
                 (push (cons (bibtex-current-line)
                             (format "Duplicate key `%s' in %s" (car key)
                                     (abbreviate-file-name (buffer-file-name buffer))))
@@ -3830,7 +3859,7 @@ Return t if test was successful, nil otherwise."
         (dolist (buffer buffer-list)
           (dolist (key (cdr (assq buffer buffer-key-list)))
             (when (assoc-string key current-keys)
-              (bibtex-find-entry key)
+              (bibtex-search-entry key)
               (push (format "%s:%d: Duplicate key `%s' in %s\n"
                             (buffer-file-name) (bibtex-current-line) key
                             (abbreviate-file-name (buffer-file-name buffer)))
@@ -4143,15 +4172,13 @@ At end of the cleaning process, the functions in
 	       (error "Not inside a BibTeX entry")))
         (entry-type (bibtex-type-in-head))
         (key (bibtex-key-in-head)))
-    ;; formatting (undone if error occurs)
-    (atomic-change-group
-      (cond ((bibtex-string= entry-type "preamble")
-             ;; (bibtex-format-preamble)
-             (error "No clean up of @Preamble entries"))
-            ((bibtex-string= entry-type "string")
-             (setq entry-type 'string))
-             ;; (bibtex-format-string)
-            (t (bibtex-format-entry))))
+    (cond ((bibtex-string= entry-type "preamble")
+           ;; (bibtex-format-preamble)
+           (error "No clean up of @Preamble entries"))
+          ((bibtex-string= entry-type "string")
+           (setq entry-type 'string))
+          ;; (bibtex-format-string)
+          (t (bibtex-format-entry)))
     ;; set key
     (when (or new-key (not key))
       (setq key (bibtex-generate-autokey))
@@ -4190,9 +4217,9 @@ At end of the cleaning process, the functions in
               (setq error (not (bibtex-prepare-new-entry index))
                     start (point)) ; update start
               (save-excursion (insert entry)))
-          (bibtex-find-entry key)
+          (bibtex-search-entry key)
           (setq error (or (/= (point) start)
-                          (bibtex-find-entry key nil end))))
+                          (bibtex-search-entry key nil end))))
         (if error
             (error "New inserted entry yields duplicate key"))
         (dolist (buffer (bibtex-initialize))
