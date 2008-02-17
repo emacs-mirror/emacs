@@ -5605,6 +5605,11 @@ prepare_face_for_display (f, face)
       if (face->font)
 	{
 #ifdef HAVE_X_WINDOWS
+#ifdef USE_FONT_BACKEND
+	  if (enable_font_backend)
+	    xgcv.font = FRAME_X_DISPLAY_INFO (f)->font->fid;
+	  else
+#endif
 	  xgcv.font = face->font->fid;
 #endif
 #ifdef WINDOWSNT
@@ -6710,7 +6715,8 @@ Value is ORDER.  */)
     }
 
 #ifdef USE_FONT_BACKEND
-  font_update_sort_order (font_sort_order);
+  if (enable_font_backend)
+    font_update_sort_order (font_sort_order);
 #endif	/* USE_FONT_BACKEND */
 
   return Qnil;
@@ -7658,7 +7664,7 @@ realize_non_ascii_face (f, font_id, base_face)
   face->gc = 0;
 #ifdef USE_FONT_BACKEND
   face->extra = NULL;
-#endif
+#endif	/* USE_FONT_BACKEND */
 
   /* Don't try to free the colors copied bitwise from BASE_FACE.  */
   face->colors_copied_bitwise_p = 1;
@@ -7720,7 +7726,8 @@ realize_x_face (cache, attrs)
       face->font = default_face->font;
       face->font_info_id = default_face->font_info_id;
 #ifdef USE_FONT_BACKEND
-      face->font_info = default_face->font_info;
+      if (enable_font_backend)
+	face->font_info = default_face->font_info;
 #endif	/* USE_FONT_BACKEND */
       face->font_name = default_face->font_name;
       face->fontset
