@@ -1,3 +1,7 @@
+2008-02-17  Michaël Cadilhac  <michael@cadilhac.name>
+
+	* wdired.el (wdired-allow-to-change-permissions): Fix typo.
+
 2008-02-16  Juri Linkov  <juri@jurta.org>
 
 	* startup.el (after-init-time): New variable.
