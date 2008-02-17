@@ -8293,7 +8293,7 @@ resize_mini_window_1 (a1, exactly, a3, a4)
 }
 
 
-/* Resize mini-window W to fit the size of its contents.  EXACT:P
+/* Resize mini-window W to fit the size of its contents.  EXACT_P
    means size the window exactly to the size needed.  Otherwise, it's
    only enlarged until W's buffer is empty.
 
