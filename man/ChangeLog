@@ -1,3 +1,7 @@
+2008-02-17  Ulrich Mueller  <ulm@kph.uni-mainz.de>  (tiny change)
+
+	* msdog-xtra.texi (MS-DOS): Fix omission bug: Close quotes.
+
 2008-02-07  D. E. Evans  <sinuhe@gnu.org>  (tiny change)
 
 	* basic.texi (Basic Undo): Remove duplicate "you can".
