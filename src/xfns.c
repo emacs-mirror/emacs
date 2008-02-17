@@ -3042,6 +3042,11 @@ x_make_gc (f)
      Note that many default values are used.  */
 
   /* Normal video */
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    gc_values.font = FRAME_X_DISPLAY_INFO (f)->font->fid;
+  else
+#endif
   gc_values.font = FRAME_FONT (f)->fid;
   gc_values.foreground = FRAME_FOREGROUND_PIXEL (f);
   gc_values.background = FRAME_BACKGROUND_PIXEL (f);
