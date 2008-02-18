@@ -26,8 +26,8 @@
 
 ;;; Commentary:
 
-;; The ancestral gdb.el was by W. Schelter <wfs@rascal.ics.utexas.edu> It was
-;; later rewritten by rms.  Some ideas were due to Masanobu.  Grand
+;; The ancestral gdb.el was by W. Schelter <wfs@rascal.ics.utexas.edu>.
+;; It was later rewritten by rms.  Some ideas were due to Masanobu.  Grand
 ;; Unification (sdb/dbx support) by Eric S. Raymond <esr@thyrsus.com> Barry
 ;; Warsaw <bwarsaw@cen.com> hacked the mode to use comint.el.  Shane Hartman
 ;; <shane@spr.com> added support for xdb (HPUX debugger).  Rick Sladkey
