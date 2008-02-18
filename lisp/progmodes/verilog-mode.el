@@ -70,7 +70,7 @@
 ;; <http://www.verilog.com/emacs_install.html>
 
 ;; The short list of installation instructions are: To set up
-;; automatic verilog mode, put this file in your load path, and put
+;; automatic Verilog mode, put this file in your load path, and put
 ;; the following in code (please un comment it first!) in your
 ;; .emacs, or in your site's site-load.el
 
@@ -116,11 +116,11 @@
 
 ;; This variable will always hold the version number of the mode
 (defconst verilog-mode-version "389"
-  "Version of this verilog mode.")
+  "Version of this Verilog mode.")
 (defconst verilog-mode-release-date "2008-02-01-GNU"
-  "Release date of this verilog mode.")
+  "Release date of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
-  "If non-nil, this version of verilog mode was released with Emacs itself.")
+  "If non-nil, this version of Verilog mode was released with Emacs itself.")
 
 (defun verilog-version ()
   "Inform caller of the version of this file."
@@ -291,20 +291,20 @@ STRING should be given if the last search was by `string-match' on STRING."
 ;  :group 'verilog-mode)
 
 (defgroup verilog-mode-indent nil
-  "Customize indentation and highlighting of verilog source text."
+  "Customize indentation and highlighting of Verilog source text."
   :group 'verilog-mode)
 
 (defgroup verilog-mode-actions nil
-  "Customize actions on verilog source text."
+  "Customize actions on Verilog source text."
   :group 'verilog-mode)
 
 (defgroup verilog-mode-auto nil
-  "Customize AUTO actions when expanding verilog source text."
+  "Customize AUTO actions when expanding Verilog source text."
   :group 'verilog-mode)
 
 (defcustom verilog-linter
   "echo 'No verilog-linter set, see \"M-x describe-variable verilog-linter\"'"
-  "*Unix program and arguments to call to run a lint checker on verilog source.
+  "*Unix program and arguments to call to run a lint checker on Verilog source.
 Depending on the `verilog-set-compile-command', this may be invoked when
 you type \\[compile].  When the compile completes, \\[next-error] will take
 you to the next lint error."
@@ -314,7 +314,7 @@ you to the next lint error."
 
 (defcustom verilog-coverage
   "echo 'No verilog-coverage set, see \"M-x describe-variable verilog-coverage\"'"
-  "*Program and arguments to use to annotate for coverage verilog source.
+  "*Program and arguments to use to annotate for coverage Verilog source.
 Depending on the `verilog-set-compile-command', this may be invoked when
 you type \\[compile].  When the compile completes, \\[next-error] will take
 you to the next lint error."
@@ -324,7 +324,7 @@ you to the next lint error."
 
 (defcustom verilog-simulator
   "echo 'No verilog-simulator set, see \"M-x describe-variable verilog-simulator\"'"
-  "*Program and arguments to use to interpret verilog source.
+  "*Program and arguments to use to interpret Verilog source.
 Depending on the `verilog-set-compile-command', this may be invoked when
 you type \\[compile].  When the compile completes, \\[next-error] will take
 you to the next lint error."
@@ -334,7 +334,7 @@ you to the next lint error."
 
 (defcustom verilog-compiler
   "echo 'No verilog-compiler set, see \"M-x describe-variable verilog-compiler\"'"
-  "*Program and arguments to use to compile verilog source.
+  "*Program and arguments to use to compile Verilog source.
 Depending on the `verilog-set-compile-command', this may be invoked when
 you type \\[compile].  When the compile completes, \\[next-error] will take
 you to the next lint error."
@@ -624,7 +624,7 @@ always be saved."
        ; Leda
     ("In file \\([^ \t]+\\)[ \t]+line[ \t]+\\([0-9]+\\):\n[^\n]*\n[^\n]*\n\\[\\(Warning\\|Error\\|Failure\\)\\][^\n]*" 1 2)
     )
-;  "*List of regexps for verilog compilers, like verilint. See compilation-error-regexp-alist for the formatting."
+;  "*List of regexps for Verilog compilers, like verilint. See compilation-error-regexp-alist for the formatting."
 )
 
 (defvar verilog-error-font-lock-keywords
@@ -777,7 +777,7 @@ included."
   "*If true, AUTOSENSE should assume all defines represent constants.
 When true, the defines will not be included in sensitivity lists.  To
 maintain compatibility with other sites, this should be set at the bottom
-of each verilog file that requires it, rather than being set globally."
+of each Verilog file that requires it, rather than being set globally."
   :group 'verilog-mode-auto
   :type 'boolean)
 (put 'verilog-auto-sense-defines-constant 'safe-local-variable 'verilog-booleanp)
@@ -905,12 +905,12 @@ If nil, in European format (e.g.  17.09.1997).  The brain-dead American
 format (e.g.  09/17/1997) is not supported.")
 
 (defvar verilog-company nil
-  "*Default name of Company for verilog header.
+  "*Default name of Company for Verilog header.
 If set will become buffer local.")
 (make-variable-buffer-local 'verilog-company)
 
 (defvar verilog-project nil
-  "*Default name of Project for verilog header.
+  "*Default name of Project for Verilog header.
 If set will become buffer local.")
 (make-variable-buffer-local 'verilog-project)
 
@@ -2368,7 +2368,7 @@ Key bindings specific to `verilog-mode-map' are:
   (add-hook 'font-lock-after-fontify-buffer-hook 'verilog-colorize-include-files-buffer t t) ; not in emacs 20
   (add-hook 'after-change-functions 'verilog-colorize-include-files t t)
 
-  ;; Tell imenu how to handle verilog.
+  ;; Tell imenu how to handle Verilog.
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression verilog-imenu-generic-expression)
   ;; hideshow support
@@ -2640,7 +2640,7 @@ following code fragment:
   (verilog-insert-1 "%3.3d" max))
 
 (defun verilog-mark-defun ()
-  "Mark the current verilog function (or procedure).
+  "Mark the current Verilog function (or procedure).
 This puts the mark at the end, and point at the beginning."
   (interactive)
   (when (featurep 'xemacs)
@@ -7114,7 +7114,7 @@ Return modi if successful, else print message unless IGNORE-ERROR is true."
   (set-buffer (if (bufferp (verilog-modi-file-or-buffer modi))
 		  (verilog-modi-file-or-buffer modi)
 		(find-file-noselect (verilog-modi-file-or-buffer modi))))
-  (or (equal major-mode `verilog-mode)	;; Put into verilog mode to get syntax
+  (or (equal major-mode `verilog-mode)	;; Put into Verilog mode to get syntax
       (verilog-mode))
   (goto-char (verilog-modi-point modi)))
 
@@ -9920,14 +9920,14 @@ Clicking on the middle-mouse button loads them in a buffer (as in dired)."
   ;; remake overlays
   (verilog-colorize-include-files (point-min) (point-max) nil))
 
-;; ffap-at-mouse isn't useful for verilog mode. It uses library paths.
+;; ffap-at-mouse isn't useful for Verilog mode. It uses library paths.
 ;; so define this function to do more or less the same as ffap-at-mouse
 ;; but first resolve filename...
 (defun verilog-load-file-at-mouse (event)
   "Load file under button 2 click's EVENT.
 Files are checked based on `verilog-library-directories'."
   (interactive "@e")
-  (save-excursion ;; implement a verilog specific ffap-at-mouse
+  (save-excursion ;; implement a Verilog specific ffap-at-mouse
     (mouse-set-point event)
     (beginning-of-line)
     (if (looking-at verilog-include-file-regexp)
@@ -9942,14 +9942,14 @@ Files are checked based on `verilog-library-directories'."
 	     "File '%s' isn't readable, use shift-mouse2 to paste in this field"
 	     (match-string 1)))))))
 
-;; ffap isn't useable for verilog mode. It uses library paths.
+;; ffap isn't useable for Verilog mode. It uses library paths.
 ;; so define this function to do more or less the same as ffap
 ;; but first resolve filename...
 (defun verilog-load-file-at-point ()
   "Load file under point.
 Files are checked based on `verilog-library-directories'."
   (interactive)
-  (save-excursion ;; implement a verilog specific ffap
+  (save-excursion ;; implement a Verilog specific ffap
     (beginning-of-line)
     (if (looking-at verilog-include-file-regexp)
 	(if (and
@@ -10045,7 +10045,7 @@ You may also want to look at the Verilog-Mode FAQ, see
 http://www.veripool.com/verilog-mode-faq.html.
 
 To reproduce the bug, start a fresh Emacs via " invocation-name "
--no-init-file -no-site-file'.  In a new buffer, in verilog mode, type
+-no-init-file -no-site-file'.  In a new buffer, in Verilog mode, type
 the code included below.
 
 Given those lines, I expected [[Fill in here]] to happen;
