@@ -1,5 +1,7 @@
 2008-02-18  Jason Rumney  <jasonr@gnu.org>
 
+	* nxml/nxml-mode.el (nxml-mode): Don't add a write-contents-hook.
+
 	* international/mule.el (sgml-xml-auto-coding-function): Detect
 	and warn if file encoding is not utf-8 and encoding not specified.
 	(xml-find-file-coding-system): New function.
