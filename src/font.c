@@ -75,7 +75,7 @@ Lisp_Object Qiso8859_1, Qiso10646_1, Qunicode_bmp, Qunicode_sip;
 
 #define CHECK_VALIDATE_FONT_SPEC(x)				\
   do {								\
-    if (! FONT_SPEC_P (x)) x = wrong_type_argument (Qfont, x);	\
+    if (! FONT_SPEC_P (x)) wrong_type_argument (Qfont, x);	\
     x = font_prop_validate (x);					\
   } while (0)
 
@@ -1161,18 +1161,21 @@ font_unparse_xlfd (font, pixel_size, name, nbytes)
   xassert (NUMBERP (val) || NILP (val));
   if (INTEGERP (val))
     {
-      f[XLFD_PIXEL_INDEX] = alloca (22);
-      i = XINT (val);
+      int i = XINT (val);
+      if (i <= 0)
+	i = pixel_size;
       if (i > 0)
-	len += sprintf (f[XLFD_PIXEL_INDEX], "%d-*", i) + 1;
-      else if (pixel_size > 0)
-	len += sprintf (f[XLFD_PIXEL_INDEX], "%d-*", pixel_size) + 1;
-      f[XLFD_PIXEL_INDEX] = "*-*", len += 4;
+	{
+	  f[XLFD_PIXEL_INDEX] = alloca (22);
+	  len += sprintf (f[XLFD_PIXEL_INDEX], "%d-*", i) + 1;
+	}
+      else
+	f[XLFD_PIXEL_INDEX] = "*-*", len += 4;
     }
   else if (FLOATP (val))
     {
+      int i = XFLOAT_DATA (val) * 10;
       f[XLFD_PIXEL_INDEX] = alloca (12);
-      i = XFLOAT_DATA (val) * 10;
       len += sprintf (f[XLFD_PIXEL_INDEX], "*-%d", i) + 1;
     }
   else

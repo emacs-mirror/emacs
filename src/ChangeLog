@@ -1,3 +1,7 @@
+2008-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font.c (font_unparse_xlfd): Don't ignore integer pixel size specs.
+
 2008-02-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_show_tip): Set string to " " if empty.
