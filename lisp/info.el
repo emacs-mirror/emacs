@@ -1550,13 +1550,12 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
 	   1
 	 0)))
 
-(defun Info-read-node-name (prompt &optional default)
+(defun Info-read-node-name (prompt)
   (let* ((completion-ignore-case t)
 	 (Info-read-node-completion-table (Info-build-node-completions))
 	 (nodename (completing-read prompt 'Info-read-node-name-1 nil t)))
     (if (equal nodename "")
-	(or default
-	    (Info-read-node-name prompt))
+	(Info-read-node-name prompt)
       nodename)))
 
 (defun Info-build-node-completions ()
