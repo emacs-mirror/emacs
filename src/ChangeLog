@@ -1,3 +1,7 @@
+2008-02-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_show_tip): Set string to " " if empty.
+
 2008-02-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* callint.c (syms_of_callint): Initialize Vmark_even_if_inactive
