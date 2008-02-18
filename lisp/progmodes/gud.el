@@ -93,7 +93,7 @@ Supported debuggers include gdb, sdb, dbx, xdb, perldb, pdb (Python) and jdb."
 
 (defun gud-symbol (sym &optional soft minor-mode)
   "Return the symbol used for SYM in MINOR-MODE.
-MINOR-MODE defaults to `gud-minor-mode.
+MINOR-MODE defaults to `gud-minor-mode'.
 The symbol returned is `gud-<MINOR-MODE>-<SYM>'.
 If SOFT is non-nil, returns nil if the symbol doesn't already exist."
   (unless (or minor-mode gud-minor-mode) (error "Gud internal error"))
@@ -346,14 +346,14 @@ Uses `gud-<MINOR-MODE>-directories' to find the source files."
 ;; Of course you may use `gud-def' with any other debugger command, including
 ;; user defined ones.
 
-;; A macro call like (gud-def FUNC NAME KEY DOC) expands to a form
-;; which defines FUNC to send the command NAME to the debugger, gives
+;; A macro call like (gud-def FUNC CMD KEY DOC) expands to a form
+;; which defines FUNC to send the command CMD to the debugger, gives
 ;; it the docstring DOC, and binds that function to KEY in the GUD
 ;; major mode.  The function is also bound in the global keymap with the
 ;; GUD prefix.
 
 (defmacro gud-def (func cmd key &optional doc)
-  "Define FUNC to be a command sending STR and bound to KEY, with
+  "Define FUNC to be a command sending CMD and bound to KEY, with
 optional doc string DOC.  Certain %-escapes in the string arguments
 are interpreted specially if present.  These are:
 
@@ -425,7 +425,7 @@ we're in the GUD buffer)."
 
 (defvar gud-last-speedbar-stackframe nil
   "Description of the currently displayed GUD stack.
-t means that there is no stack, and we are in display-file mode.")
+The value t means that there is no stack, and we are in display-file mode.")
 
 (defvar gud-speedbar-key-map nil
   "Keymap used when in the buffers display mode.")
@@ -487,14 +487,14 @@ t means that there is no stack, and we are in display-file mode.")
   (add-hook 'speedbar-load-hook 'gud-install-speedbar-variables))
 
 (defun gud-expansion-speedbar-buttons (directory zero)
-  "Wrapper for call to speedbar-add-expansion-list.   DIRECTORY and
-ZERO are not used, but are required by the caller."
+  "Wrapper for call to `speedbar-add-expansion-list'.
+DIRECTORY and ZERO are not used, but are required by the caller."
   (gud-speedbar-buttons gud-comint-buffer))
 
 (defun gud-speedbar-buttons (buffer)
   "Create a speedbar display based on the current state of GUD.
 If the GUD BUFFER is not running a supported debugger, then turn
-off the specialized speedbar mode.  BUFFER is not used, but are
+off the specialized speedbar mode.  BUFFER is not used, but is
 required by the caller."
   (when (and gud-comint-buffer
 	     ;; gud-comint-buffer might be killed
@@ -919,7 +919,7 @@ It is passed through FILTER before we look at it."
 (defun gud-gdb-run-command-fetch-lines (command buffer &optional skip)
   "Run COMMAND, and return the list of lines it outputs.
 BUFFER is the current buffer which may be the GUD buffer in which to run.
-SKIP is the number of chars to skip on each lines, it defaults to 0."
+SKIP is the number of chars to skip on each line, it defaults to 0."
   (with-current-buffer gud-comint-buffer
     (if (and (eq gud-comint-buffer buffer)
 	     (save-excursion
@@ -1172,8 +1172,8 @@ a better solution in 6.1 upwards.")
 (defvar gud-dbx-use-stopformat-p
   (string-match "irix[6-9]\\.[1-9]" system-configuration)
   "Non-nil to use the dbx feature present at least from Irix 6.1
-  whereby $stopformat=1 produces an output format compatiable with
-  `gud-dbx-marker-filter'.")
+whereby $stopformat=1 produces an output format compatible with
+`gud-dbx-marker-filter'.")
 ;; [Irix dbx seems to be a moving target.  The dbx output changed
 ;; subtly sometime between OS v4.0.5 and v5.2 so that, for instance,
 ;; the output from `up' is no longer spotted by gud (and it's probably
@@ -1765,7 +1765,7 @@ class information on jdb startup (original method)."
   :group 'gud)
 
 (defvar gud-jdb-classpath nil
- "Java/jdb classpath directories list.
+  "Java/jdb classpath directories list.
 If `gud-jdb-use-classpath' is non-nil, gud-jdb derives the `gud-jdb-classpath'
 list automatically using the following methods in sequence
 \(with subsequent successful steps overriding the results of previous
@@ -1774,7 +1774,7 @@ steps):
 1) Read the CLASSPATH environment variable,
 2) Read any \"-classpath\" argument used to run jdb,
    or detected in jdb output (e.g. if jdb is run by a script
-   that echoes the actual jdb command before starting jdb)
+   that echoes the actual jdb command before starting jdb),
 3) Send a \"classpath\" command to jdb and scan jdb output for
    classpath information if jdb is invoked with an \"-attach\" (to
    an already running VM) argument (This case typically does not
@@ -1782,7 +1782,7 @@ steps):
    to the VM when it is started).
 
 Note that method 3 cannot be used with oldjdb (or Java 1 jdb) since
-those debuggers do not support the classpath command. Use 1) or 2).")
+those debuggers do not support the classpath command.  Use 1) or 2).")
 
 (defvar gud-jdb-sourcepath nil
   "Directory list provided by an (optional) \"-sourcepath\" option to jdb.
@@ -1796,7 +1796,7 @@ the most recent debugger output history while searching for
 source file information.")
 
 (defvar gud-jdb-history nil
-"History of argument lists passed to jdb.")
+  "History of argument lists passed to jdb.")
 
 
 ;; List of Java source file directories.
@@ -1813,21 +1813,21 @@ file from which the class originated.  This allows gud mode to keep
 the source code display in sync with the debugging session.")
 
 (defvar gud-jdb-source-files nil
-"List of the java source files for this debugging session.")
+  "List of the java source files for this debugging session.")
 
 ;; Association list of fully qualified class names (package + class name)
 ;; and their source files.
 (defvar gud-jdb-class-source-alist nil
-"Association list of fully qualified class names and source files.")
+  "Association list of fully qualified class names and source files.")
 
 ;; This is used to hold a source file during analysis.
 (defvar gud-jdb-analysis-buffer nil)
 
 (defvar gud-jdb-classpath-string nil
-"Holds temporary classpath values.")
+  "Holds temporary classpath values.")
 
 (defun gud-jdb-build-source-files-list (path extn)
-"Return a list of java source files (absolute paths).
+  "Return a list of java source files (absolute paths).
 PATH gives the directories in which to search for files with
 extension EXTN.  Normally EXTN is given as the regular expression
  \"\\.java$\" ."
@@ -2097,8 +2097,8 @@ extension EXTN.  Normally EXTN is given as the regular expression
 (defvar gud-jdb-lowest-stack-level 999)
 
 (defun gud-jdb-find-source-using-classpath (p)
-"Find source file corresponding to fully qualified class p.
-Convert p from jdb's output, converted to a pathname
+  "Find source file corresponding to fully qualified class P.
+Convert P from jdb's output, converted to a pathname
 relative to a classpath directory."
   (save-match-data
     (let
@@ -2126,14 +2126,14 @@ relative to a classpath directory."
     (if found-file (concat (car cplist) "/" filename)))))
 
 (defun gud-jdb-find-source (string)
-"Alias for function used to locate source files.
+  "Alias for function used to locate source files.
 Set to `gud-jdb-find-source-using-classpath' or `gud-jdb-find-source-file'
 during jdb initialization depending on the value of
 `gud-jdb-use-classpath'."
-nil)
+  nil)
 
 (defun gud-jdb-parse-classpath-string (string)
-"Parse the classpath list and convert each item to an absolute pathname."
+  "Parse the classpath list and convert each item to an absolute pathname."
   (mapcar (lambda (s) (if (string-match "[/\\]$" s)
 			  (replace-match "" nil nil s) s))
 	  (mapcar 'file-truename
@@ -2260,7 +2260,7 @@ The buffer is named \"*gud*\" if no initial class is given or
 switch is given, omit all whitespace between it and its value.
 
 See `gud-jdb-use-classpath' and `gud-jdb-classpath' documentation for
-information on how jdb accesses source files. Alternatively (if
+information on how jdb accesses source files.  Alternatively (if
 `gud-jdb-use-classpath' is nil), see `gud-jdb-directories' for the
 original source file access method.
 
@@ -3016,7 +3016,7 @@ Link exprs of the form:
   "Find fully qualified class in file F at line LINE.
 This function uses the `gud-jdb-classpath' (and optional
 `gud-jdb-sourcepath') list(s) to derive a file
-pathname relative to its classpath directory. The values in
+pathname relative to its classpath directory.  The values in
 `gud-jdb-classpath' are assumed to have been converted to absolute
 pathname standards using file-truename.
 If F is visited by a buffer and its mode is CC-mode(Java),
@@ -3214,7 +3214,7 @@ Treats actions as defuns."
 
 ;;;###autoload
 (define-derived-mode gdb-script-mode nil "GDB-Script"
-  "Major mode for editing GDB scripts"
+  "Major mode for editing GDB scripts."
   (set (make-local-variable 'comment-start) "#")
   (set (make-local-variable 'comment-start-skip) "#+\\s-*")
   (set (make-local-variable 'outline-regexp) "[ \t]")
@@ -3361,7 +3361,7 @@ For C this would dereference a pointer expression.")
 
 (defvar gud-tooltip-event nil
   "The mouse movement event that led to a tooltip display.
-This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
+This event can be examined by forms in `gud-tooltip-display'.")
 
 (defun gud-tooltip-dereference (&optional arg)
   "Toggle whether tooltips should show `* expr' or `expr'.
@@ -3402,8 +3402,8 @@ With arg, dereference expr if ARG is positive, otherwise do not derereference."
 (defun gud-tooltip-tips (event)
   "Show tip for identifier or selection under the mouse.
 The mouse must either point at an identifier or inside a selected
-region for the tip window to be shown.  If gud-tooltip-dereference is t,
-add a `*' in front of the printed expression. In the case of a C program
+region for the tip window to be shown.  If `gud-tooltip-dereference' is t,
+add a `*' in front of the printed expression.  In the case of a C program
 controlled by GDB, show the associated #define directives when program is
 not executing.
 
