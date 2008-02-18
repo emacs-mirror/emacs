@@ -1019,11 +1019,13 @@
 
 (defun use-cjk-char-width-table ()
   "Internal use only.
-Setup char-width-table appropriate for CJK language environment.")
+Setup char-width-table appropriate for CJK language environment."
+  (setq char-width-table cjk-char-width-table))
 
 (defun use-default-char-width-table ()
   "Internal use only.
-Setup char-width-table appropriate for non-CJK language environment.")
+Setup char-width-table appropriate for non-CJK language environment."
+  (setq char-width-table (char-table-parent cjk-char-width-table)))
 
 (optimize-char-table (standard-case-table))
 (optimize-char-table (standard-category-table))
