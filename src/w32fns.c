@@ -8105,9 +8105,12 @@ an integer representing a ShowWindow flag:
 
   CHECK_STRING (document);
 
-  /* Encode filename and current directory.  */
+  /* Encode filename, current directory and parameters.  */
   current_dir = ENCODE_FILE (current_buffer->directory);
   document = ENCODE_FILE (document);
+  if (STRINGP (parameters))
+    parameters = ENCODE_SYSTEM (parameters);
+
   if ((int) ShellExecute (NULL,
 			  (STRINGP (operation) ?
 			   SDATA (operation) : NULL),
