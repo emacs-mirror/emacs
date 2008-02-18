@@ -981,7 +981,7 @@ This should be the last function called when composing the draft."
 
 (defun mh-annotate-msg (msg folder note &rest args)
   "Mark MSG in FOLDER with character NOTE and annotate message with ARGS.
-MSG can be a message number, a list of message numbers, or a sequence.  
+MSG can be a message number, a list of message numbers, or a sequence.
 The hook `mh-annotate-msg-hook' is run after annotating; see its
 documentation for variables it can use."
   (apply 'mh-exec-cmd "anno" folder
