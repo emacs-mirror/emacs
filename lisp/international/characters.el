@@ -268,7 +268,7 @@
 
 (modify-category-entry '(#x1200 . #x1399) ?e)
 (modify-category-entry '(#x2d80 . #x2dde) ?e)
-(let ((chars '(?፡ ?። ?፣ ?፤ ?፥ ?፦ ?፧ ?፨ ?���� ?���� ?���� ?���� ?���� ?����)))
+(let ((chars '(?፡ ?። ?፣ ?፤ ?፥ ?፦ ?፧ ?፨)))
   (while chars
     (modify-syntax-entry (car chars) ".")
     (setq chars (cdr chars))))
@@ -368,12 +368,10 @@
 
 (let ((deflist	'(;; chars             syntax category
 		  ("ཀ-ཀྵཪ"        	"w"	?0) ; consonant
-		  ("ྐ-ྐྵྺྻྼ��������"       "w"     ?0) ;
-		  ("����-����"              "w"     ?0) ;
-		  ("����-����"              "w"     ?0) ;
+		  ("ྐ-ྐྵྺྻྼ"       "w"     ?0) ;
 		  ("ིེཻོཽྀ"       "w"	?2) ; upper vowel
 		  ("ཾྂྃ྆྇ྈྉྊྋ" "w"	?2) ; upper modifier
-		  ("༙����྄ཱུ༵༷"       "w"	?3) ; lowel vowel/modifier
+		  ("྄ཱུ༙༵༷"       "w"	?3) ; lowel vowel/modifier
 		  ("཰"		"w" ?3)		    ; invisible vowel a
 		  ("༠-༩༪-༳"	        "w"	?6) ; digit
 		  ("་།-༒༔ཿ"        "."     ?|) ; line-break char
@@ -1007,9 +1005,32 @@
  (lambda (range ignore) (set-char-table-range char-width-table range 2))
  'arabic-2-column)
 
+(defvar cjk-char-width-table
+  (let ((table (make-char-table nil)))
+    (dolist (charset '(big5 chinese-gb2312 chinese-cns11643-1 
+			    japanese-jisx0208 korean-ksc5601))
+      (map-charset-chars #'(lambda (range arg)
+			     (set-char-table-range table range 2))
+			 charset))
+    (optimize-char-table table)
+    (set-char-table-parent table char-width-table)
+    table)
+  "Character width table used in CJK language environment.")
+
+(defun use-cjk-char-width-table ()
+  "Internal use only.
+Setup char-width-table appropriate for CJK language environment.")
+
+(defun use-default-char-width-table ()
+  "Internal use only.
+Setup char-width-table appropriate for non-CJK language environment.")
+
 (optimize-char-table (standard-case-table))
 (optimize-char-table (standard-category-table))
 (optimize-char-table (standard-syntax-table))
+
+
+;; Setting char-script-table.
 
 ;; The Unicode blocks actually extend past some of these ranges with
 ;; undefined codepoints.
