@@ -1,3 +1,7 @@
+2008-02-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fw32_shell_execute): Encode parameters.
+
 2008-02-15  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (x_draw_glyph_string_background): Clear the background
