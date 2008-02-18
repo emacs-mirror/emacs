@@ -1,3 +1,12 @@
+2008-02-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/gud.el (gud-def, gud-last-speedbar-stackframe): Doc fixes.
+	(gud-symbol, gud-expansion-speedbar-buttons, gud-speedbar-buttons)
+	(gud-gdb-run-command-fetch-lines, gud-dbx-use-stopformat-p)
+	(gud-jdb-classpath, gud-jdb-find-source-using-classpath, jdb)
+	(gud-find-class, gdb-script-mode, gud-tooltip-event, gud-tooltip-tips):
+	Fix typos in docstrings.
+
 2008-02-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/ada-mode.el (ada-font-lock-syntactic-keywords):
