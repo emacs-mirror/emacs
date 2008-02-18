@@ -1,5 +1,8 @@
 2008-02-18  Jason Rumney  <jasonr@gnu.org>
 
+	* international/mule.el (xml-find-file-coding-system): Don't warn
+	about utf-16 with BOM.
+
 	* nxml/nxml-mode.el (nxml-mode): Don't add a write-contents-hook.
 
 	* international/mule.el (sgml-xml-auto-coding-function): Detect
