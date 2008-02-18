@@ -1,3 +1,10 @@
+2008-02-18  Jason Rumney  <jasonr@gnu.org>
+
+	* international/mule.el (sgml-xml-auto-coding-function): Detect
+	and warn if file encoding is not utf-8 and encoding not specified.
+	(xml-find-file-coding-system): New function.
+	* international/mule-conf.el (file-coding-system-alist): Use it.
+
 2008-02-17  Glenn Morris  <rgm@gnu.org>
 
 	* international/mule-cmds.el (set-locale-environment): Pass

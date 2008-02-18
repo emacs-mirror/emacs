@@ -2288,7 +2288,22 @@ This function is intended to be added to `auto-coding-functions'."
 		  sym
 		(message "Warning: unknown coding system \"%s\"" match)
 		nil))
-	  'utf-8)))))
+          ;; Files without an encoding tag should be UTF-8. But users
+          ;; may be naive about encodings, and have saved the file from
+          ;; another editor that does not help them get the encoding right.
+          ;; Detect the encoding and warn the user if it is detected as
+          ;; something other than UTF-8.
+	  (let ((detected
+                 (with-coding-priority '(utf-8)
+                   (coding-system-base
+                    (detect-coding-region (point-min) size t)))))
+            ;; Pure ASCII always comes back as undecided.
+            (if (memq detected '(utf-8 undecided))
+                'utf-8
+              (warn "File contents detected as %s.
+  Consider adding an encoding attribute to the xml declaration,
+  or saving as utf-8, as mandated by the xml specification." detected)
+              detected)))))))
 
 (defun sgml-html-meta-auto-coding-function (size)
   "If the buffer has an HTML meta tag, use it to determine encoding.
@@ -2313,6 +2328,30 @@ This function is intended to be added to `auto-coding-functions'."
 	    sym
 	  (message "Warning: unknown coding system \"%s\"" match)
 	  nil)))))
+
+(defun xml-find-file-coding-system (args)
+  "Determine the coding system of an XML file without a declaration.
+Strictly speaking, the file should be utf-8, but mistakes are
+made, and there are genuine cases where XML fragments are saved,
+with the encoding properly specified in a master document, or
+added by processing software."
+  (if (eq (car args) 'insert-file-contents)
+      (let ((detected
+             (with-coding-priority '(utf-8)
+               (coding-system-base
+                (detect-coding-region (point-min) (point-max) t)))))
+        ;; Pure ASCII always comes back as undecided.
+        (if (memq detected '(utf-8 undecided))
+            'utf-8
+          (warn "File contents detected as %s.
+  Consider adding an xml declaration with the encoding specified,
+  or saving as utf-8, as mandated by the xml specification." detected)
+          detected))
+    ;; Don't interfere with the user's wishes for saving the buffer.
+    ;; We did what we could when the buffer was created to ensure the
+    ;; correct encoding was used, or the user was warned, so any
+    ;; non-conformity here is deliberate on the part of the user.
+    'undecided))
 
 ;;;
 (provide 'mule)
