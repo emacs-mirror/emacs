@@ -2341,12 +2341,16 @@ added by processing software."
                (coding-system-base
                 (detect-coding-region (point-min) (point-max) t)))))
         ;; Pure ASCII always comes back as undecided.
-        (if (memq detected '(utf-8 undecided))
-            'utf-8
+        (cond
+         ((memq detected '(utf-8 undecided))
+          'utf-8)
+         ((eq detected 'utf-16le-with-signature) 'utf-16le-with-signature)
+         ((eq detected 'utf-16be-with-signature) 'utf-16be-with-signature)
+         (t
           (warn "File contents detected as %s.
   Consider adding an xml declaration with the encoding specified,
   or saving as utf-8, as mandated by the xml specification." detected)
-          detected))
+          detected)))
     ;; Don't interfere with the user's wishes for saving the buffer.
     ;; We did what we could when the buffer was created to ensure the
     ;; correct encoding was used, or the user was warned, so any
