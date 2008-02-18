@@ -1,3 +1,9 @@
+2008-02-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-annotate-msg):
+	* mh-e.el (mh-invisible-header-fields-internal): Remove trailing
+	whitespace.
+
 2008-01-30  Bill Wohler  <wohler@newt.com>
 
 	* mh-mime.el (mh-mml-to-mime): Don't look up sender if From
