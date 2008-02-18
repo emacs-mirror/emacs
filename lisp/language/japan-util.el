@@ -36,7 +36,8 @@
   ;; following prefer-coding-system will override it.
   (if (memq system-type '(windows-nt ms-dos cygwin))
       (prefer-coding-system 'japanese-shift-jis)
-    (prefer-coding-system 'japanese-iso-8bit)))
+    (prefer-coding-system 'japanese-iso-8bit))
+  (use-cjk-char-width-table))
 
 (defconst japanese-kana-table
   '((?あ ?ア ?ｱ) (?い ?イ ?ｲ) (?う ?ウ ?ｳ) (?え ?エ ?ｴ) (?お ?オ ?ｵ)
