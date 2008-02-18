@@ -2644,7 +2644,7 @@ of citations entirely, choose \"None\"."
     "X-Unity"
     "X-UserInfo1:"
     "X-VSMLoop:"                        ; NTMail
-    "X-Virus-"                          ; 
+    "X-Virus-"                          ;
     "X-Vms-To:"
     "X-WebTV-Signature:"
     "X-Wss-Id:"                         ; Worldtalk gateways
