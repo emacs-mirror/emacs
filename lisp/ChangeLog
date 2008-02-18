@@ -18,7 +18,12 @@
 	(verilog-add-list-unique, verilog-symbol-detick, verilog-modi-filename)
 	(verilog-auto-star, verilog-auto-inst, verilog-auto-wire)
 	(verilog-enum-ascii, verilog-sk-begin, verilog-sk-fork)
-	(verilog-sk-datadef, verilog-colorize-include-files-buffer):
+	(verilog-sk-datadef, verilog-colorize-include-files-buffer)
+	(verilog-mode-version, verilog-mode-release-date)
+	(verilog-mode-release-emacs, verilog-linter, verilog-coverage)
+	(verilog-simulator, verilog-compiler)
+	(verilog-auto-sense-defines-constant, verilog-company)
+	(verilog-project, verilog-mark-defun, verilog-submit-bug-report):
 	Fix typos in docstrings.
 	(verilog-set-auto-endcomments, verilog-calculate-indent)
 	(verilog-inject-auto, verilog-auto-arg, verilog-auto-inout-module):
