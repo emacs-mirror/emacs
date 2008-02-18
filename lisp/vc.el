@@ -557,7 +557,7 @@
 ;;
 ;; - decide if vc-status should replace vc-dired.
 ;;
-;; - vc-status needs a menu, mouse bindings and some color bling.
+;; - vc-status needs mouse bindings and some color bling.
 ;;
 ;; - vc-status needs to show missing files. It probably needs to have
 ;;   another state for those files. The user might want to restore
@@ -2672,6 +2672,48 @@ With prefix arg READ-SWITCHES, specify a value to override
     map)
   "Keymap for VC status")
 
+(easy-menu-define vc-status-mode-menu vc-status-mode-map
+  "Menu for vc-status."
+  '("VC Status"
+    ["Open file" vc-status-find-file
+     :help "Find the file on the current line"]
+    ["Open in other window" vc-status-find-file-other-window
+     :help "Find the file on the current line, in another window"]
+    "----"
+    ;; VC commands.
+    ["Compare with Base Version" vc-diff
+     :help "Compare file set with the base version"]
+    ["Register" vc-status-register
+     :help "Register file set into the version control system"]
+    ["Annotate" vc-annotate
+     :help "Display the edit history of the current file using colors"]
+    ;; vc-print-log uses the current buffer, not a file.
+    ;; ["Show history" vc-status-print-log
+    ;;  :help "List the change log of the current file set in a window"]
+    "----"
+    ;; Movement.
+    ["Next line" vc-status-next-line
+     :help "Go to the next line"]
+    ["Previous line" vc-status-previous-line
+     :help "Go to the previous line"]
+    "----"
+    ;; Marking.
+    ["Mark" vc-status-mark-file
+     :help "Mark the current file and move to the next line"]
+    ["Marl All" vc-status-mark-all-files
+     :help "Mark all files"]
+    ["Unmark" vc-status-unmark-file
+     :help "Unmark the current file and move to the next line"]
+    ["Unmark previous " vc-status-unmark-file-up
+     :help "Move to the previous line and unmark the file"]
+    ["Unmark All" vc-status-unmark-all-files
+     :help "Unmark all files"]
+    "----"
+    ["Refresh" vc-status-refresh
+     :help "Refresh the contents of the VC status buffer"]
+    ["Quit" bury-buffer
+     :help "Quit"]))
+
 (defun vc-status-mode ()
   "Major mode for VC status.
 \\{vc-status-mode-map}"
@@ -3625,27 +3667,27 @@ cover the range from the oldest annotation to the newest."
     ["Span to Oldest"
      (unless (eq vc-annotate-display-mode 'scale)
        (vc-annotate-display-select nil 'scale))
-     :help 
+     :help
      "Use an autoscaled color map from the oldest annotation to the current time"
      :style toggle :selected
      (eq vc-annotate-display-mode 'scale)]
     ["Span Oldest->Newest"
      (unless (eq vc-annotate-display-mode 'fullscale)
        (vc-annotate-display-select nil 'fullscale))
-     :help 
+     :help
      "Use an autoscaled color map from the oldest to the newest annotation"
      :style toggle :selected
      (eq vc-annotate-display-mode 'fullscale)]
     "--"
     ["Toggle annotation visibility" vc-annotate-toggle-annotation-visibility
-     :help 
+     :help
      "Toggle whether the annotation is visible or not"]
     ["Annotate previous revision" vc-annotate-prev-revision
      :help "Visit the annotation of the revision previous to this one"]
     ["Annotate next revision" vc-annotate-next-revision
      :help "Visit the annotation of the revision after this one"]
     ["Annotate revision at line" vc-annotate-revision-at-line
-     :help 
+     :help
      "Visit the annotation of the revision identified in the current line"]
     ["Annotate revision previous to line" vc-annotate-revision-previous-to-line
      :help "Visit the annotation of the revision before the revision at line"]
@@ -3654,7 +3696,7 @@ cover the range from the oldest annotation to the newest."
     ["Show log of revision at line" vc-annotate-show-log-revision-at-line
      :help "Visit the log of the revision at line"]
     ["Show diff of revision at line" vc-annotate-show-diff-revision-at-line
-     :help 
+     :help
      "Visit the diff of the revision at line from its previous revision"]
     ["Visit revision at line" vc-annotate-find-revision-at-line
      :help "Visit the revision identified in the current line"]))
