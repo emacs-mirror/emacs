@@ -7,8 +7,8 @@
 
 2008-02-17  Glenn Morris  <rgm@gnu.org>
 
-	* international/mule-cmds.el (set-locale-environment): Pass
-	`frame' to getenv for LC_MESSAGES.
+	* international/mule-cmds.el (set-locale-environment):
+	Pass `frame' to getenv for LC_MESSAGES.
 
 2008-02-17  Juri Linkov  <juri@jurta.org>
 
@@ -17,13 +17,13 @@
 2008-02-17  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-search-entry): Rename from
-	bibtex-find-entry. Add autoload cookie.
+	bibtex-find-entry.  Add autoload cookie.
 	(bibtex-find-entry): Alias for bibtex-search-entry.
 	(bibtex-search-crossref): Rename from bibtex-find-crossref.
 	(bibtex-find-crossref): Alias for bibtex-search-crossref.
 	(bibtex-clean-entry): atomic-change-group removed.
-	(bibtex-format-entry): Use atomic-change-group.  Use
-	unwind-protect to locate buffer location where error occured.
+	(bibtex-format-entry): Use atomic-change-group.  Use unwind-protect
+	to locate buffer location where error occurred.
 	Make error messages more specific.
 	(bibtex-parse-keys): Only parse if buffer uses bibtex-mode.
 
@@ -128,12 +128,12 @@
 
 2008-02-14  Glenn Morris  <rgm@gnu.org>
 
-	* mail/rmail-spam-filter.el (rmail-spam-filter): Let-bind
-	message-spam-status.
+	* mail/rmail-spam-filter.el (rmail-spam-filter):
+	Let-bind message-spam-status.
 
 	* mail/smtpmail.el (password-cache-add): Declare as function.
 
-2008-02-14  Justus Piater <Justus-bulk@Piater.name>  (tiny change)
+2008-02-14  Justus Piater  <Justus-bulk@Piater.name>  (tiny change)
 
 	* mail/smtpmail.el: Use password-cache.
 
@@ -1094,7 +1094,7 @@
 
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.ps: The ps-print commands without face printing should not
+	* ps-print.el: The ps-print commands without face printing should not
 	print background color.  Reported by Leo <sdl.web@gmail.com>.
 	(ps-print-version): New version 7.2.2.
 	(ps-begin-job): New arg.  Fix ps-default-background and
@@ -2111,7 +2111,7 @@
 	* eshell/esh-opt.el (eshell-process-option):
 	* emulation/keypad.el (keypad-setup):
 	* emacs-lisp/lisp-mode.el (prin1-char):
-	* generic.el (generic-mode-set-comments):
+	* emacs-lisp/generic.el (generic-mode-set-comments):
 	* edmacro.el (edmacro-parse-keys):
 	* disp-table.el (standard-display-default): Use characterp.
 
@@ -2188,7 +2188,7 @@
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* mule-diag.el (describe-character-set):
+	* international/mule-diag.el (describe-character-set):
 	Fix printing dimensions.  Use `,AW(B', not `x'.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -2508,9 +2508,10 @@
 
 	* international/characters.el: Add Latin-1.
 
-	* international/latin-1, international/latin-2, international/latin-3:
-	* international/latin-4, international/latin-5, international/latin-8:
-	* international/latin-9: Delete.
+	* international/latin-1.el, international/latin-2.el,
+	* international/latin-3.el, international/latin-4.el,
+	* international/latin-5.el, international/latin-8.el,
+	* international/latin-9.el: Delete.
 
 	* loadup.el: Remove international/latin-N.el.
 
@@ -3078,14 +3079,16 @@
 	(detect-coding-with-language-environment): Use it.
 	(coding-system-equal): Use coding-system-plist.
 
-	* encoded-kb.el (encoded-kbd-setup-keymap) <ccl>: Use :valid property.
+	* international/encoded-kb.el (encoded-kbd-setup-keymap) <ccl>:
+	Use :valid property.
 
-	* mule-cmds.el (encode-coding-char): Use find-coding-systems-string.
-	Don't use make-char.
+	* international/mule-cmds.el (encode-coding-char):
+	Use find-coding-systems-string.  Don't use make-char.
 	(describe-language-environment): Use coding-system-aliases.
 	(prefer-coding-system): Doc fix.
 
-	* mule-diag.el (describe-current-coding-system): Fix aliases listing.
+	* international/mule-diag.el (describe-current-coding-system):
+	Fix aliases listing.
 	(print-iso-2022-flags): Delete.
 	(print-designation): Partial re-write.
 	(describe-coding-system): Deal with iso-2022 designations, flags.
@@ -3096,7 +3099,7 @@
 	(print-coding-system): Use coding-system-aliases.
 	(mule-diag): Don't list coding categories.
 
-	* mule-conf.el: Doc fixes.  Remove redundant :long-name properties.
+	* international/mule-conf.el: Doc fixes.  Remove redundant :long-name properties.
 	Re-order charset priorities.
 	(binary): New alias.
 	(iso-8859-16): Fix nickname.
@@ -3822,7 +3825,7 @@
 
 2008-01-20  Ulf Jasper  <ulf.jasper@web.de>
 
-	* icalendar.el (icalendar-version): Increase to "0.17".
+	* calendar/icalendar.el (icalendar-version): Increase to "0.17".
 	(icalendar-import-format): Doc fix.  Allow function type.
 	(icalendar--read-element): Doc fix.
 	(icalendar--parse-summary-and-rest): Doc fix.  Handle function
@@ -4824,7 +4827,7 @@
 
 2008-01-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* testmodes/sgml-mode.el (sgml-tag-syntax-table): Initialize this
+	* textmodes/sgml-mode.el (sgml-tag-syntax-table): Initialize this
 	constant with a computation on sgml-specials rather than a literal
 	list.  Without this change the syntax table is generated
 	incorrectly, and the mode will think it's in a comment following
@@ -4848,13 +4851,15 @@
 
 	* ediff-util (eqiff-quit): Autoraise minibuffer.
 
-	* ediff-diff (ediff-convert-fine-diffs-to-overlays): Make it a defun.
+	* ediff-diff.el (ediff-convert-fine-diffs-to-overlays): Make it a defun.
 
-	* viper*.el: Comment out declare-function -- not defined in XEmacs.
+	* emulation/viper*.el: Comment out declare-function -- not defined
+	in XEmacs.
 
-	* viper-ex.el (viper-info-on-file): Take care of indirect buffers.
+	* emulation/viper-ex.el (viper-info-on-file):
+	Take care of indirect buffers.
 
-	* viper.el (viper-set-hooks, set-cursor-color):
+	* emulation/viper.el (viper-set-hooks, set-cursor-color):
 	Set viper-vi-state-cursor-color.
 
 2008-01-09  Tom Tromey  <tromey@redhat.com>
@@ -5238,7 +5243,7 @@
 	* progmodes/grep.el (grep-find-ignored-directories):
 	Initialize from the value of vc-directory-exclusion-list.
 
-	* vc-hooks (vc-directory-exclusion-list): Include "_darcs",
+	* vc-hooks.el (vc-directory-exclusion-list): Include "_darcs",
 	even though we don't have a back end for darcs yet.
 
 2008-01-02  Karl Fogel  <kfogel@red-bean.com>
@@ -5247,18 +5252,18 @@
 	See http://lists.gnu.org/archive/html/emacs-devel/2007-12/msg01077.html
 	and its thread for discussion leading to this change.
 
-	* emacs-cvs/lisp/bookmark.el:
-	(bookmark-jump-noselect): Return an alist instead of a dotted pair.
+	* bookmark.el (bookmark-jump-noselect):
+	Return an alist instead of a dotted pair.
 	(bookmark-jump, bookmark-jump-other-window, bookmark-insert)
 	(bookmark-bmenu-2-window, bookmark-bmenu-other-window)
 	(bookmark-bmenu-switch-other-window): Adjust accordingly.
 	(bookmark-make-cell-function): Adjust documentation accordingly.
 
-	* emacs-cvs/lisp/image-mode.el
-	(image-bookmark-jump): Adjust return type accordingly; document.
+	* image-mode.el (image-bookmark-jump):
+	Adjust return type accordingly; document.
 
-	* emacs-cvs/lisp/doc-view.el
-	(doc-view-bookmark-jump): Adjust return type accordingly; document.
+	* doc-view.el (doc-view-bookmark-jump):
+	Adjust return type accordingly; document.
 
 2008-01-02  Miles Bader  <miles@gnu.org>
 
@@ -5594,7 +5599,7 @@
 
 2007-12-27  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el, vc-sccs.el, vc-rcs.el, vc-cs.el, vc-mcvs.el:
+	* vc.el, vc-sccs.el, vc-rcs.el, vc-cvs.el, vc-mcvs.el:
 	Put new machinery in place to support editing of change comments
 	with 'e' in a log-view buffer.  Not documented yet as this
 	only works for SCCS, RCS, and maybe CVS if you have admin
@@ -6301,7 +6306,7 @@
 	* informat.el, emacs-lisp/bytecomp.el, emacs-lisp/gulp.el:
 	* emacs-lisp/tcover-ses.el, emacs-lisp/timer.el, emulation/edt.el:
 	* emulation/vi.el, emulation/viper-cmd.el:
-	* international/titdic-cnv.el, mail/emacsbug.el, progmodes/dcl.el:
+	* international/titdic-cnv.el, mail/emacsbug.el, progmodes/dcl-mode.el:
 	* progmodes/prolog.el, progmodes/ps-mode.el, progmodes/python.el:
 	* textmodes/fill.el: Remove directory part from filenames in
 	function declarations.
@@ -6575,9 +6580,9 @@
 2007-12-02  Karl Fogel  <kfogel@red-bean.com>
 
 	Offer option for saveplace to be quiet about loading and saving.
-	Suggested by David Reitter <dreitter{_AT_}inf.ed.ac.uk>
+	Suggested by David Reitter <dreitter{_AT_}inf.ed.ac.uk>.
 
-	* lisp/saveplace.el (save-place-quiet): New customizable boolean.
+	* saveplace.el (save-place-quiet): New customizable boolean.
 	(save-place-alist-to-file, load-save-place-alist-from-file): Use it
 	to determine whether to print loading/saving messages.
 
@@ -8277,7 +8282,7 @@
 
 	* net/tramp.el (top): Don't autoload `tramp-cache-print'.
 
-	* net/tramp-cache (tramp-cache-print): Move down.
+	* net/tramp-cache.el (tramp-cache-print): Move down.
 	(tramp-cache-list-connections): New defun.
 
 	* net/tramp-cmds.el (tramp-cleanup-connection): Use it.
@@ -9424,7 +9429,7 @@
 
 2007-10-22  Bastien Guerry  <Bastien.Guerry@ens.fr>
 
-	* org-export-latex.el (org-export-latex-protect-string):
+	* textmodes/org-export-latex.el (org-export-latex-protect-string):
 	Renaming of `org-latex-protect'.
 	(org-export-latex-emphasis-alist): By default, don't protect
 	any emphasis formatter from further conversion.
@@ -16066,7 +16071,7 @@
 	* calc/calc-forms.el (math-format-date-part, math-parse-standard-date)
 	(calcFunc-julian): Use `math-read-number-simple' to insert bignums.
 
-	* calc/calc-func.el (math-besJ0, math-besJ1, math-besY0, math-besY1)
+	* calc/calc-funcs.el (math-besJ0, math-besJ1, math-besY0, math-besY1)
 	(math-bernoulli-b-cache): Use math-read-number-simple to insert
 	bignums.
 
@@ -16472,7 +16477,7 @@
 	(viper-inactivate-input-method-action):
 	Use viper-suppress-input-method-change-message.
 
-	* emulation/viper-kem.el (viper-vi-basic-map): Disable the bindings
+	* emulation/viper-keym.el (viper-vi-basic-map): Disable the bindings
 	for C-s, C-r.
 
 	* emulation/viper-util.el (viper-set-cursor-color-according-to-state):
