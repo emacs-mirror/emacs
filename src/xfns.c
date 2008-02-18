@@ -5317,6 +5317,9 @@ Text larger than the specified size is clipped.  */)
   GCPRO4 (string, parms, frame, timeout);
 
   CHECK_STRING (string);
+  if (SCHARS (string) == 0)
+    string = make_unibyte_string (" ", 1);
+
   f = check_x_frame (frame);
   if (NILP (timeout))
     timeout = make_number (5);
