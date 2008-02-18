@@ -1,3 +1,55 @@
+2008-02-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/verilog-mode.el (customize): Fix typo in error message.
+	(verilog-mode, verilog-mode-indent, verilog-mode-actions)
+	(verilog-mode-auto, verilog-indent-level-module)
+	(verilog-minimum-comment-distance, verilog-library-flags)
+	(verilog-library-directories, verilog-library-files)
+	(verilog-auto-reset-widths, verilog-imenu-generic-expression)
+	(verilog-xemacs-menu, verilog-set-compile-command)
+	(verilog-set-compile-command, verilog-mode-syntax-table, verilog-mode)
+	(verilog-get-expr, verilog-strip-comments, verilog-one-line)
+	(verilog-lint-off, verilog-batch-auto, verilog-batch-delete-auto)
+	(verilog-batch-inject-auto, verilog-batch-indent)
+	(verilog-continued-line, verilog-type-keywords)
+	(verilog-read-sub-decls-sig, verilog-read-sub-decls-line)
+	(verilog-read-inst-pins, verilog-read-arg-pins)
+	(verilog-read-auto-template, verilog-read-signals, verilog-getopt-file)
+	(verilog-add-list-unique, verilog-symbol-detick, verilog-modi-filename)
+	(verilog-auto-star, verilog-auto-inst, verilog-auto-wire)
+	(verilog-enum-ascii, verilog-sk-begin, verilog-sk-fork)
+	(verilog-sk-datadef, verilog-colorize-include-files-buffer)
+	(verilog-mode-version, verilog-mode-release-date)
+	(verilog-mode-release-emacs, verilog-linter, verilog-coverage)
+	(verilog-simulator, verilog-compiler)
+	(verilog-auto-sense-defines-constant, verilog-company)
+	(verilog-project, verilog-mark-defun, verilog-submit-bug-report):
+	Fix typos in docstrings.
+	(verilog-set-auto-endcomments, verilog-calculate-indent)
+	(verilog-inject-auto, verilog-auto-arg, verilog-auto-inout-module):
+	Reflow docstrings.
+	(verilog-tab-always-indent, verilog-highlight-p1800-keywords)
+	(verilog-auto-star-save, verilog-auto-inst-vector, verilog-mode-hook)
+	(electric-verilog-forward-sexp, verilog-in-case-region-p)
+	(verilog-in-struct-region-p, verilog-in-generate-region-p)
+	(verilog-leap-to-head, verilog-current-indent-level)
+	(verilog-case-indent-level, verilog-cpp-keywords)
+	(verilog-defun-keywords, verilog-block-keywords, verilog-tf-keywords)
+	(verilog-case-keywords, verilog-separator-keywords, verilog-completion)
+	(verilog-signals-not-in, verilog-symbol-detick-text)
+	(verilog-modi-cache-preserve-tick, verilog-modi-cache-preserve-buffer)
+	(verilog-forward-close-paren, verilog-backward-open-paren)
+	(verilog-backward-open-bracket): Doc fixes.
+
+	* progmodes/gud.el (gud-def, gud-last-speedbar-stackframe): Doc fixes.
+	(gud-symbol, gud-expansion-speedbar-buttons, gud-speedbar-buttons)
+	(gud-gdb-run-command-fetch-lines, gud-dbx-use-stopformat-p)
+	(gud-jdb-classpath, gud-jdb-find-source-using-classpath, jdb)
+	(gud-find-class, gdb-script-mode, gud-tooltip-event, gud-tooltip-tips):
+	Fix typos in docstrings.
+
+	* w32-vars.el (w32-system-shells): Add TCC (new name for 4NT).
+
 2008-02-18  Bastien Guerry  <Bastien.Guerry@ens.fr>
 
 	* info.el (Info-read-node-name): Removed unused `default' arg.
@@ -463,7 +515,7 @@
 
 	* term/x-win.el (x-handle-parent-id): Remove free variable `parent-id'.
 
-2008-02-08  Phil Hagelberg <phil@evri.com>
+2008-02-08  Phil Hagelberg  <phil@evri.com>
 
 	* pcmpl-unix.el (pcmpl-ssh-known-hosts-file): New defcustom.
 	(pcomplete/ssh, pcomplete/scp, pcmpl-ssh-hosts): New functions.
@@ -3376,7 +3428,7 @@
 	* international/fontset.el (fontset-plain-name): Handle the case
 	that size, weight, slant are not specified in the fontset name.
 
-2008-02-01  Yong Lu <lyongu@asia-infonet.com>
+2008-02-01  Yong Lu  <lyongu@asia-infonet.com>
 
 	* language/greek.el (greek-iso-8bit): Fix typo.
 
@@ -4761,7 +4813,7 @@
 
 	* mail/rmail.el (rmail-convert-to-babyl-format):
 	Remove save-excursion to avoid infinite looping.
-	Reported by: dnz <dnz@bk.ru>.
+	Reported by dnz <dnz@bk.ru>.
 
 2008-01-12  Glenn Morris  <rgm@gnu.org>
 
