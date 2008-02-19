@@ -5,6 +5,7 @@
 	* vc-rcs.el (vc-rcs-root): New func.
 	* vc-cvs.el (vc-cvs-root): New func.
 	* vc-svn.el (vc-svn-root): New func.
+	* vc-sccs.el (vc-sccs-root): New func.
 
 2008-02-18  Kenichi Handa  <handa@ni.aist.go.jp>
 
