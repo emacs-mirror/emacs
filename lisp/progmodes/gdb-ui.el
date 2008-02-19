@@ -317,8 +317,13 @@ session."
   (setq gdb-first-prompt t)
   (setq gud-running nil)
   (setq gdb-ready nil)
+  (setq gdb-flush-pending-output nil)
   (setq gud-filter-pending-text nil)
   (run-hooks 'gdb-mode-hook))
+
+;; Keep as an alias for compatibility with Emacs 22.1.
+;;;###autoload
+(defalias 'gdba 'gdb)
 
 (defcustom gdb-debug-log-max 128
   "Maximum size of `gdb-debug-log'.  If nil, size is unlimited."
@@ -593,7 +598,6 @@ otherwise do not."
 	gdb-pending-triggers nil
 	gdb-output-sink 'user
 	gdb-server-prefix "server "
-	gdb-flush-pending-output nil
 	gdb-location-alist nil
 	gdb-source-file-list nil
 	gdb-error nil
