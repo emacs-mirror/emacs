@@ -461,7 +461,7 @@ whether to remove it."
 		 (previous (if (vc-trunk-p discard) "" (vc-branch-part discard)))
 		 (config (current-window-configuration))
 		 (done nil))
-	    (if (null (yes-or-no-p (format "Remove version %s from %s history? " 
+	    (if (null (yes-or-no-p (format "Remove version %s from %s history? "
 					   discard file)))
 		(error "Aborted"))
 	    (message "Removing revision %s from %s." discard file)
@@ -513,7 +513,7 @@ Needs RCS 5.6.2 or later for -M."
 (defun vc-rcs-modify-change-comment (files rev comment)
   "Modify the change comments change on FILES on a specified REV."
   (dolist (file files)
-    (vc-do-command nil 0 "rcs" (vc-name file) 
+    (vc-do-command nil 0 "rcs" (vc-name file)
 		   (concat "-m" comment ":" rev))))
 
 
@@ -527,7 +527,7 @@ Needs RCS 5.6.2 or later for -M."
 
 (defun vc-rcs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using RCS between two sets of files."
-  (apply 'vc-do-command (or buffer "*vc-diff*") 
+  (apply 'vc-do-command (or buffer "*vc-diff*")
 	 1		;; Always go synchronous, the repo is local
 	 "rcsdiff" (vc-expand-dirs files)
          (append (list "-q"
