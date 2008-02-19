@@ -75,24 +75,7 @@ struct interval
 /* Size of a pointer to an interval structure */
 #define INTERVAL_PTR_SIZE (sizeof (struct interval *))
 
-/* True if an interval pointer is null, or is a Lisp_Buffer or
-   Lisp_String pointer (meaning it points to the owner of this
-   interval tree). */
-#ifdef NO_UNION_TYPE
-#define INT_LISPLIKE(i) (BUFFERP ((Lisp_Object)(i)) \
-			 || STRINGP ((Lisp_Object)(i)))
-#else
-#define INT_LISPLIKE(i) (BUFFERP ((Lisp_Object){(EMACS_INT)(i)}) \
-			 || STRINGP ((Lisp_Object){(EMACS_INT)(i)}))
-#endif
-
-#ifdef ENABLE_CHECKING
-#define NULL_INTERVAL_P(i) \
-   (CHECK (!INT_LISPLIKE (i), "non-interval"), (i) == NULL_INTERVAL)
-/* old #define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL || INT_LISPLIKE (i)) */
-#else
 #define NULL_INTERVAL_P(i) ((i) == NULL_INTERVAL)
-#endif
 
 /* True if this interval has no right child. */
 #define NULL_RIGHT_CHILD(i) ((i)->right == NULL_INTERVAL)
@@ -162,7 +145,7 @@ struct interval
    casts to get around this, it will break some development work in
    progress.  */
 #define SET_INTERVAL_PARENT(i,p) \
-   (eassert (!INT_LISPLIKE (p)), (i)->up_obj = 0, (i)->up.interval = (p))
+   ((i)->up_obj = 0, (i)->up.interval = (p))
 #define SET_INTERVAL_OBJECT(i,o) \
    (eassert (BUFFERP (o) || STRINGP (o)), (i)->up_obj = 1, (i)->up.obj = (o))
 #define INTERVAL_PARENT(i) \

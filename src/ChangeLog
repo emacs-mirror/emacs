@@ -1,3 +1,8 @@
+2008-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.h (INT_LISPLIKE): Remove.  It may misfire.
+	(NULL_INTERVAL_P, SET_INTERVAL_PARENT): Don't use it.
+
 2008-02-18  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fw32_shell_execute): Encode parameters.
