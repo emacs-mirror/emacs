@@ -53,6 +53,8 @@
 
 ;; Silence the byte compiler.
 (cc-bytecomp-defvar font-lock-mode)	; Checked with boundp before use.
+(cc-bytecomp-defvar c-new-BEG)
+(cc-bytecomp-defvar c-new-END)
 
 ;; Some functions in cc-engine that are used below.  There's a cyclic
 ;; dependency so it can't be required here.  (Perhaps some functions
@@ -624,22 +626,25 @@
     (forward-line -1))
   (point))
 
-(defun c-awk-end-of-logical-line (&optional pos)
-;; Go forward to the end of the (apparent) current logical line (or the end of
-;; the line containing POS), returning the buffer position of that point.  I.e.,
-;; go to the end of the next line which doesn't have an escaped EOL.
+(defun c-awk-beyond-logical-line (&optional pos)
+;; Return the position just beyond the (apparent) current logical line, or the
+;; one containing POS.  This is usually the beginning of the next line which
+;; doesn't follow an escaped EOL.  At EOB, this will be EOB.
+;;
+;; Point is unchanged.
 ;;
 ;; This is guaranteed to be "safe" for syntactic analysis, i.e. outwith any
 ;; comment, string or regexp.  IT MAY WELL BE that this function should not be
 ;; executed on a narrowed buffer.
-;;
-;; This function might do hidden buffer changes.
-  (if pos (goto-char pos))
-  (end-of-line)
-  (while (and (< (point) (point-max))
-              (eq (char-before) ?\\))
-    (end-of-line 2))
-  (point))
+  (save-excursion
+    (if pos (goto-char pos))
+    (end-of-line)
+    (while (and (< (point) (point-max))
+		(eq (char-before) ?\\))
+      (end-of-line 2))
+    (if (< (point) (point-max))
+	(1+ (point))
+      (point))))
 
 ;; ACM, 2002/02/15: The idea of the next function is to put the "Error font"
 ;; on strings/regexps which are missing their closing delimiter.
@@ -712,7 +717,7 @@
   ;;
   ;; The result is what ANCHOR-STATE-/DIV (see above) is where point is left.
   ;;
-  ;; This function might do hidden buffer changes.
+  ;; This function does hidden buffer changes.
   (let ((/point (point)))
     (goto-char anchor)
     ;; Analyse the line to find out what the / is.
@@ -780,55 +785,38 @@
               (c-awk-syntax-tablify-/ anchor anchor-state-/div))))
     nil))
 
-
 ;; ACM, 2002/07/21: Thoughts: We need an AWK Mode after-change function to set
 ;; the syntax-table properties even when font-lock isn't enabled, for the
 ;; subsequent use of movement functions, etc.  However, it seems that if font
 ;; lock _is_ enabled, we can always leave it to do the job.
-(defvar c-awk-old-EOLL 0)
-(make-variable-buffer-local 'c-awk-old-EOLL)
-;; End of logical line following the region which is about to be changed.  Set
-;; in c-awk-before-change and used in c-awk-after-change.
+(defvar c-awk-old-ByLL 0)
+(make-variable-buffer-local 'c-awk-old-Byll)
+;; Just beyond logical line following the region which is about to be changed.
+;; Set in c-awk-record-region-clear-NL and used in c-awk-after-change.
 
-(defun c-awk-before-change (beg end)
+(defun c-awk-record-region-clear-NL (beg end)
 ;; This function is called exclusively from the before-change-functions hook.
 ;; It does two things: Finds the end of the (logical) line on which END lies,
-;; and clears c-awk-NL-prop text properties from this point onwards.
+;; and clears c-awk-NL-prop text properties from this point onwards.  BEG is
+;; ignored.
 ;;
-;; This function might do hidden buffer changes.
-  (save-restriction
-    (save-excursion
-      (setq c-awk-old-EOLL (c-awk-end-of-logical-line end))
-      (c-save-buffer-state nil
-       (c-awk-clear-NL-props end (point-max))))))
+;; On entry, the buffer will have been widened and match-data will have been
+;; saved; point is undefined on both entry and exit; the return value is
+;; ignored.
+;;
+;; This function does hidden buffer changes.
+  (c-save-buffer-state ()
+    (setq c-awk-old-ByLL (c-awk-beyond-logical-line end))
+    (c-save-buffer-state nil
+      (c-awk-clear-NL-props end (point-max)))))
 
 (defun c-awk-end-of-change-region (beg end old-len)
   ;; Find the end of the region which needs to be font-locked after a change.
   ;; This is the end of the logical line on which the change happened, either
   ;; as it was before the change, or as it is now, whichever is later.
   ;; N.B. point is left undefined.
-  ;;
-  ;; This function might do hidden buffer changes.
-  (max (+ (- c-awk-old-EOLL old-len) (- end beg))
-       (c-awk-end-of-logical-line end)))
-
-(defun c-awk-after-change (beg end old-len)
-;; This function is called exclusively as an after-change function in
-;; AWK Mode.  It ensures that the syntax-table properties get set in the
-;; changed region.  However, if font-lock is enabled, this function does
-;; nothing, since an enabled font-lock after-change function will always do
-;; this.
-;;
-;; This function might do hidden buffer changes.
-  (unless (and (boundp 'font-lock-mode) font-lock-mode)
-    (save-restriction
-      (save-excursion
-	(save-match-data
-	  (setq end (c-awk-end-of-change-region beg end old-len))
-	  (c-awk-beginning-of-logical-line beg)
-	  (c-save-buffer-state nil  ; So that read-only status isn't affected.
-                                        ; (e.g. when first loading the buffer)
-	    (c-awk-set-syntax-table-properties end)))))))
+  (max (+ (- c-awk-old-ByLL old-len) (- end beg))
+       (c-awk-beyond-logical-line end)))
 
 ;; ACM 2002/5/25.  When font-locking is invoked by a buffer change, the region
 ;; specified by the font-lock after-change function must be expanded to
@@ -836,22 +824,28 @@
 ;; do this in practice is to use the beginning/end-of-logical-line functions.
 ;; Don't overlook the possibility of the buffer change being the "recapturing"
 ;; of a previously escaped newline.
-(defmacro c-awk-advise-fl-for-awk-region (function)
-  `(defadvice ,function (before get-awk-region activate)
-;; When font-locking an AWK Mode buffer, make sure that any string/regexp is
-;; completely font-locked.
-  (when (eq major-mode 'awk-mode)
-    (save-excursion
-      (ad-set-arg 1 (c-awk-end-of-change-region
-                     (ad-get-arg 0)     ; beg
-                     (ad-get-arg 1)     ; end
-                     (ad-get-arg 2)))   ; old-len
-      (ad-set-arg 0 (c-awk-beginning-of-logical-line (ad-get-arg 0)))))))
 
-(c-awk-advise-fl-for-awk-region font-lock-after-change-function)
-(c-awk-advise-fl-for-awk-region jit-lock-after-change)
-(c-awk-advise-fl-for-awk-region lazy-lock-defer-rest-after-change)
-(c-awk-advise-fl-for-awk-region lazy-lock-defer-line-after-change)
+;; ACM 2008-02-05: 
+(defun c-awk-extend-and-syntax-tablify-region (beg end old-len)
+  ;; Expand the region (BEG END) as needed to (c-new-BEG c-new-END) then put
+  ;; `syntax-table' properties on this region.
+  ;;
+  ;; This function is called from an after-change function, BEG END and
+  ;; OLD-LEN being the standard parameters.
+  ;; 
+  ;; Point is undefined both before and after this function call, the buffer
+  ;; has been widened, and match-data saved.  The return value is ignored.
+  ;;
+  ;; It prepares the buffer for font
+  ;; locking, hence must get called before `font-lock-after-change-function'.
+  ;;
+  ;; This function is the AWK value of `c-before-font-lock-function'.
+  ;; It does hidden buffer changes.
+  (c-save-buffer-state ()
+    (setq c-new-END (c-awk-end-of-change-region beg end old-len))
+    (setq c-new-BEG (c-awk-beginning-of-logical-line beg))
+    (goto-char c-new-BEG)
+    (c-awk-set-syntax-table-properties c-new-END)))
 
 ;; Awk regexps written with help from Peter Galbraith
 ;; <galbraith@mixing.qc.dfo.ca>.
