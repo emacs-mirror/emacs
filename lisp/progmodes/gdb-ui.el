@@ -150,7 +150,7 @@ Emacs can't find.")
 (defvar gdb-prompting nil
   "True when gdb is idle with no pending input.")
 
-(defvar gdb-output-sink 'user
+(defvar gdb-output-sink nil
   "The disposition of the output of the current gdb command.
 Possible values are these symbols:
 
@@ -317,6 +317,7 @@ session."
   (local-set-key "\C-i" 'gud-gdb-complete-command)
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
   (setq paragraph-start comint-prompt-regexp)
+  (setq gdb-output-sink 'user)
   (setq gdb-first-prompt t)
   (setq gud-running nil)
   (setq gdb-ready nil)
