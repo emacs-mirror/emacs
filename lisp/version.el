@@ -30,7 +30,7 @@
 (defconst emacs-copyright "Copyright (C) 2008 Free Software Foundation, Inc."
   "Short copyright string for this version of Emacs.")
 
-(defconst emacs-version "22.1.90" "\
+(defconst emacs-version "22.1.91" "\
 Version numbers of this version of Emacs.")
 
 (defconst emacs-major-version

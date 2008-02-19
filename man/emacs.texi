@@ -5,7 +5,7 @@
 
 @c The edition number appears in several places in this file
 @set EDITION   Sixteenth
-@set EMACSVER  22.1.90
+@set EMACSVER  22.1.91
 
 @copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},@*
