@@ -390,7 +390,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   /* Set next_event to point to the first event with parameters.  */
   for (next_event = 0; next_event < key_count; next_event++)
-    if (EVENT_HAS_PARAMETERS (XVECTOR (keys)->contents[next_event]))
+    if (EVENT_HAS_PARAMETERS (AREF (keys, next_event)))
       break;
 
   /* Handle special starting chars `*' and `@'.  Also `-'.  */
@@ -428,7 +428,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  Lisp_Object event, tem;
 
 	  event = (next_event < key_count
-		   ? XVECTOR (keys)->contents[next_event]
+		   ? AREF (keys, next_event)
 		   : Qnil);
 	  if (EVENT_HAS_PARAMETERS (event)
 	      && (tem = XCDR (event), CONSP (tem))
@@ -647,13 +647,13 @@ invoke it.  If KEYS is omitted or nil, the return value of
 		   (SYMBOLP (function)
 		    ? (char *) SDATA (SYMBOL_NAME (function))
 		    : "command"));
-	  args[i] = XVECTOR (keys)->contents[next_event++];
+	  args[i] = AREF (keys, next_event);
+	  next_event++;
 	  varies[i] = -1;
 
 	  /* Find the next parameterized event.  */
 	  while (next_event < key_count
-		 && ! (EVENT_HAS_PARAMETERS
-		       (XVECTOR (keys)->contents[next_event])))
+		 && !(EVENT_HAS_PARAMETERS (AREF (keys, next_event))))
 	    next_event++;
 
 	  break;
