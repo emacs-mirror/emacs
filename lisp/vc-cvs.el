@@ -733,6 +733,9 @@ If UPDATE is non-nil, then update (resynch) any affected buffers."
 ;;; Internal functions
 ;;;
 
+(defun vc-cvs-root (dir)
+  (vc-find-root dir "CVS" t))
+
 (defun vc-cvs-command (buffer okstatus files &rest flags)
   "A wrapper around `vc-do-command' for use in vc-cvs.el.
 The difference to vc-do-command is that this function always invokes `cvs',

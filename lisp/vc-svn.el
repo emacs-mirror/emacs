@@ -532,6 +532,9 @@ NAME is assumed to be a URL."
   :type 'string
   :group 'vc)
 
+(defun vc-svn-root (dir)
+  (vc-find-root dir vc-svn-admin-directory t))
+
 (defun vc-svn-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-svn.el.
 The difference to vc-do-command is that this function always invokes `svn',
