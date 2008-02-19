@@ -414,6 +414,49 @@ the new syntax, as accepted by `modify-syntax-entry'."
 classifies symbol constituents like '_' and '$' as word constituents,
 so that all identifiers are recognized as words.")
 
+(c-lang-defconst c-get-state-before-change-function
+  "If non-nil, a function called from c-before-change-hook.
+Typically it will record enough state to allow
+`c-before-font-lock-function' to extend the region to fontify,
+and may do such things as removing text-properties which must be
+recalculated.
+
+It takes 2 parameters, the BEG and END supplied to every
+before-change function; on entry, the buffer will have been
+widened and match-data will have been saved; point is undefined
+on both entry and exit; the return value is ignored.
+
+When the mode is initialized, this function is called with
+parameters \(point-min) and \(point-max)."
+  t nil
+  (c c++ objc) 'c-extend-region-for-CPP
+  awk 'c-awk-record-region-clear-NL)
+(c-lang-defvar c-get-state-before-change-function
+	       (c-lang-const c-get-state-before-change-function))
+  
+(c-lang-defconst c-before-font-lock-function
+  "If non-nil, a function called just before font locking.
+Typically it will extend the region about to be fontified \(see
+below) and will set `syntax-table' text properties on the region.
+
+It takes 3 parameters, the BEG, END, and OLD-LEN supplied to
+every after-change function; point is undefined on both entry and
+exit; on entry, the buffer will have been widened and match-data
+will have been saved; the return value is ignored.
+
+The function may extend the region to be fontified by setting the
+buffer local variables c-old-BEG and c-old-LEN.
+
+The function is called even when font locking is disabled.
+
+When the mode is initialized, this function is called with
+parameters \(point-min), \(point-max) and <buffer size>."
+  t nil
+  (c c++ objc) 'c-neutralize-syntax-in-CPP
+  awk 'c-awk-extend-and-syntax-tablify-region)
+(c-lang-defvar c-before-font-lock-function
+	       (c-lang-const c-before-font-lock-function))
+
 
 ;;; Lexer-level syntax (identifiers, tokens etc).
 
@@ -645,6 +688,13 @@ Assumed to not contain any submatches or \\| operators."
   (java awk) nil)
 (c-lang-defvar c-opt-cpp-prefix (c-lang-const c-opt-cpp-prefix))
 
+(c-lang-defconst c-anchored-cpp-prefix
+  "Regexp matching the prefix of a cpp directive anchored to BOL,
+in the languages that have a macro preprocessor."
+  t (if (c-lang-const c-opt-cpp-prefix)
+	(concat "^" (c-lang-const c-opt-cpp-prefix))))
+(c-lang-defvar c-anchored-cpp-prefix (c-lang-const c-anchored-cpp-prefix))
+
 (c-lang-defconst c-opt-cpp-start
   "Regexp matching the prefix of a cpp directive including the directive
 name, or nil in languages without preprocessor support.  The first
@@ -662,7 +712,7 @@ submatch surrounds the directive name."
 string message."
   t    (if (c-lang-const c-opt-cpp-prefix)
 	   '("error"))
-  pike '("error" "warning"))
+  (c c++ objc pike) '("error" "warning"))
 
 (c-lang-defconst c-cpp-include-directives
   "List of cpp directives (without the prefix) that are followed by a
@@ -700,7 +750,7 @@ definition, or nil if the language doesn't have any."
   (c-lang-const c-opt-cpp-macro-define-id))
 
 (c-lang-defconst c-cpp-expr-directives
-  "List if cpp directives (without the prefix) that are followed by an
+  "List of cpp directives (without the prefix) that are followed by an
 expression."
   t (if (c-lang-const c-opt-cpp-prefix)
 	'("if" "elif")))
