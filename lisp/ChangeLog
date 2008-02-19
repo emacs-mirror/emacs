@@ -1,3 +1,12 @@
+2008-02-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-status-menu, vc-status-menu-map-filter): New functions.
+	(vc-status-mode-menu): Add a :filter.
+	(vc-status-printer): Add faces.
+
+	* vc-hg.el (vc-hg-extra-status-menu): New function.
+	(vc-hg-dir-status): Clean up the buffer before using it.
+
 2008-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/gdb-ui.el (gdb-output-sink): Define with an invalid value.

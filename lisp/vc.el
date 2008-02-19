@@ -520,6 +520,16 @@
 ;;   you can provide menu entries for functionality that is specific
 ;;   to your backend and which does not map to any of the VC generic
 ;;   concepts.
+;;
+;; - extra-status-menu ()
+;;
+;;   Return list of menu items.  The items will appear at the end of
+;;   the VC menu.  The goal is to allow backends to specify extra menu
+;;   items that appear in the VC Status menu.  This way you can
+;;   provide menu entries for functionality that is specific to your
+;;   backend and which does not map to any of the VC generic concepts.
+;;   XXX: this should be changed to be a keymap, for consistency with
+;;   extra-menu.
 
 ;;; Todo:
 
@@ -2621,12 +2631,21 @@ With prefix arg READ-SWITCHES, specify a value to override
 
 (defun vc-status-printer (fileentry)
   "Pretty print FILEENTRY."
+  ;; If you change the layout here, change vc-status-move-to-goal-column.
   (insert
-   ;; If you change this, change vc-status-move-to-goal-column.
-   (format "%c   %-20s %s"
-	   (if (vc-status-fileinfo->marked fileentry) ?* ? )
-	   (vc-status-fileinfo->state fileentry)
-	   (vc-status-fileinfo->name fileentry))))
+   (propertize
+    (format "%c" (if (vc-status-fileinfo->marked fileentry) ?* ? ))
+    'face 'font-lock-type-face)
+   "   "
+   (propertize
+    (format "%-20s" (vc-status-fileinfo->state fileentry))
+    'face 'font-lock-variable-name-face
+    'mouse-face 'highlight)
+   " "
+   (propertize
+    (format "%s" (vc-status-fileinfo->name fileentry))
+    'face 'font-lock-function-name-face
+    'mouse-face 'highlight)))
 
 (defun vc-status-move-to-goal-column ()
   (beginning-of-line)
@@ -2669,12 +2688,30 @@ With prefix arg READ-SWITCHES, specify a value to override
     (define-key map "o" 'vc-status-find-file-other-window)
     (define-key map "q" 'bury-buffer)
     (define-key map "g" 'vc-status-refresh)
+    ;; Not working yet.  Functions like vc-status-find-file need to
+    ;; find the file from the mouse position, not `point'.
+    ;; (define-key map [(down-mouse-3)] 'vc-status-menu)
     map)
   "Keymap for VC status")
+
+(defun vc-status-menu-map-filter (orig-binding)
+  (when (and (symbolp orig-binding) (fboundp orig-binding))
+    (setq orig-binding (indirect-function orig-binding)))
+  (let ((ext-binding
+	 (vc-call-backend (vc-responsible-backend default-directory)
+			  'extra-status-menu)))
+    (if (null ext-binding)
+        orig-binding
+      (append orig-binding
+	      '("----")
+              ext-binding))))
 
 (easy-menu-define vc-status-mode-menu vc-status-mode-map
   "Menu for vc-status."
   '("VC Status"
+    ;; This is used to that VC backends could add backend specific
+    ;; menu items to vc-status-mode-menu.
+    :filter vc-status-menu-map-filter
     ["Open file" vc-status-find-file
      :help "Find the file on the current line"]
     ["Open in other window" vc-status-find-file-other-window
@@ -2713,6 +2750,11 @@ With prefix arg READ-SWITCHES, specify a value to override
      :help "Refresh the contents of the VC status buffer"]
     ["Quit" bury-buffer
      :help "Quit"]))
+
+(defun vc-status-menu (e)
+  "Popup the VC status menu."
+  (interactive "e")
+  (popup-menu vc-status-mode-menu e))
 
 (defun vc-status-mode ()
   "Major mode for VC status.

@@ -475,6 +475,10 @@ REV is the revision to check out into WORKFILE."
 
 (defun vc-hg-extra-menu () vc-hg-extra-menu-map)
 
+(defun vc-hg-extra-status-menu () 
+  '(["Show incoming" vc-hg-incoming]
+    ["Show outgoing" vc-hg-outgoing])
+
 (define-derived-mode vc-hg-outgoing-mode vc-hg-log-view-mode "Hg-Outgoing")
 
 (define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming")
@@ -511,6 +515,7 @@ REV is the revision to check out into WORKFILE."
   (with-current-buffer
       (get-buffer-create
        (expand-file-name " *VC-hg* tmp status" dir))
+    (erase-buffer)
     (vc-hg-command (current-buffer) 'async dir "status")
     (vc-exec-after 
      `(vc-hg-after-dir-status (quote ,update-function) ,status-buffer))))
