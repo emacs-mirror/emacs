@@ -1,3 +1,7 @@
+2008-02-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (dir-status): Add a brief description.
+
 2008-02-19  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* vc-hooks.el (vc-find-root): Take optional arg INVERT.

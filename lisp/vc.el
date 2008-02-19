@@ -167,6 +167,19 @@
 ;;   in older versions this method was not required to recurse into
 ;;   subdirectories.)
 ;;
+;; - dir-status (dir update-function status-buffer)
+;;
+;;   Produce RESULT: a list of conses of the form (file . vc-state)
+;;   for the files in DIR.  If a command needs to be run to compute
+;;   this list, it should be run asynchronously.  When RESULT is
+;;   computed, it should be passed back by doing:
+;;       (funcall UPDATE-FUNCTION RESULT STATUS-BUFFER)
+;;   This function is used by vc-status, a replacement for vc-dired.
+;;   vc-status is still under development, and is NOT feature
+;;   complete.  As such, the requirements for this function might
+;;   change.
+;;   This is a replacement for dir-state.
+;;
 ;; * working-revision (file)
 ;;
 ;;   Return the working revision of FILE.  This is the revision fetched
