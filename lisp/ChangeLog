@@ -1,3 +1,16 @@
+2008-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el: Make it more robust in the presence of empty context
+	lines in unified hunks.
+	(diff-valid-unified-empty-line): New var.
+	(diff-unified->context, diff-sanity-check-hunk): Obey it.
+	(diff-end-of-hunk): Obey it.  New arg `donttrustheader'.
+	(diff-fixup-modifs, diff-post-command-hook): Use this new arg.
+	(diff-hunk-header-re-unified): New const.
+	(diff-font-lock-keywords, diff-hunk-header-re, diff-split-hunk)
+	(diff-fixup-modifs, diff-unified->context, diff-next-complex-hunk)
+	(diff-sanity-check-hunk): Use it.
+
 2008-02-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdba): Recreate as an alias for gdb.
