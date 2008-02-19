@@ -1527,7 +1527,9 @@ then kill the related ftp process."
   ;; and that by doubling it.  But experiment says UNIX-style kind of
   ;; quoting is correct when talking to ftp on GNU/Linux systems, and
   ;; W32-style kind of quoting on, yes, W32 systems.
-  (when (stringp string) (shell-quote-argument string)))
+  (if (stringp string)
+      (shell-quote-argument string)
+    ""))
 
 (defun ange-ftp-barf-if-not-directory (directory)
   (or (file-directory-p directory)
