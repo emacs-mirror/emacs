@@ -501,11 +501,19 @@ If the prefix ARG is given, restrict the view to the current file instead."
       (diff-end-of-hunk)
       (kill-region start (point)))))
 
+(defconst diff-file-junk-re "diff \\|index ") ; "index " is output by git-diff.
+
 (defun diff-beginning-of-file-and-junk ()
   "Go to the beginning of file-related diff-info.
 This is like `diff-beginning-of-file' except it tries to skip back over leading
 data such as \"Index: ...\" and such."
-  (let ((start (point))
+  (let ((orig (point))
+        ;; Skip forward over what might be "leading junk" so as to get
+        ;; closer to the actual diff.
+        (_ (progn (beginning-of-line)
+                  (while (looking-at diff-file-junk-re)
+                    (forward-line 1))))
+        (start (point))
         (file (condition-case err (progn (diff-beginning-of-file) (point))
                 (error err)))
         ;; prevhunk is one of the limits.
@@ -521,20 +529,28 @@ data such as \"Index: ...\" and such."
                    (re-search-backward "^Index: " prevhunk t))))
       (when index (setq file index))
       (if (<= file start)
-          (goto-char file)
+          (progn
+            (goto-char file)
+            ;; Now skip backward over the leading junk we may have before the
+            ;; diff itself.
+            (while (save-excursion
+                     (and (zerop (forward-line -1))
+                          (looking-at diff-file-junk-re)))
+              (forward-line -1)))
         ;; File starts *after* the starting point: we really weren't in
         ;; a file diff but elsewhere.
-        (goto-char start)
+        (goto-char orig)
         (signal (car err) (cdr err))))))
           
 (defun diff-file-kill ()
   "Kill current file's hunks."
   (interactive)
-  (diff-beginning-of-file-and-junk)
-  (let* ((start (point))
+  (let ((orig (point))
+        (start (progn (diff-beginning-of-file-and-junk) (point)))
 	 (inhibit-read-only t))
     (diff-end-of-file)
     (if (looking-at "^\n") (forward-char 1)) ;`tla' generates such diffs.
+    (if (> orig (point)) (error "Not inside a file diff"))
     (kill-region start (point))))
 
 (defun diff-kill-junk ()

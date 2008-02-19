@@ -1,5 +1,9 @@
 2008-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* diff-mode.el (diff-file-junk-re): New const.
+	(diff-beginning-of-file-and-junk): Use it.
+	(diff-file-kill): Make sure we were really inside a file diff.
+
 	* diff-mode.el: Make it more robust in the presence of empty context
 	lines in unified hunks.
 	(diff-valid-unified-empty-line): New var.
