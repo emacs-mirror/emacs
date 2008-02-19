@@ -1,3 +1,8 @@
+2008-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (locate-dominating-file): Fix thinko in last change.
+	Reported by Bruce Stephens <bruce.stephens@isode.com>.
+
 2008-02-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-status-mode-menu): New menu for vc-status.
