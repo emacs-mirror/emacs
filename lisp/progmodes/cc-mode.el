@@ -464,117 +464,6 @@ preferably use the `c-mode-menu' language constant directly."
 (defvar c-maybe-stale-found-type nil)
 (make-variable-buffer-local 'c-maybe-stale-found-type)
 
-(defun c-before-change (beg end)
-  ;; Function to be put on `before-change-function'.  Currently
-  ;; (2007-02) it is used only to remove stale entries from the
-  ;; `c-found-types' cache, and to record entries which a
-  ;; `c-after-change' function might confirm as stale.
-  ;; 
-  ;; Note that this function must be FAST rather than accurate.  Note
-  ;; also that it only has any effect when font locking is enabled.
-  ;; We exploit this by checking for font-lock-*-face instead of doing
-  ;; rigourous syntactic analysis.
-
-  ;; If either change boundary is wholly inside an identifier, delete
-  ;; it/them from the cache.  Don't worry about being inside a string
-  ;; or a comment - "wrongly" removing a symbol from `c-found-types'
-  ;; isn't critical.
-  (setq c-maybe-stale-found-type nil)
-  (save-restriction
-    (save-match-data
-      (widen)
-      (save-excursion
-	;; Are we inserting/deleting stuff in the middle of an identifier?
-	(c-unfind-enclosing-token beg)
-	(c-unfind-enclosing-token end)
-	;; Are we coalescing two tokens together, e.g. "fo o" -> "foo"?
-	(when (< beg end)
-	  (c-unfind-coalesced-tokens beg end))
-	;; Are we (potentially) disrupting the syntactic context which
-	;; makes a type a type?  E.g. by inserting stuff after "foo" in
-	;; "foo bar;", or before "foo" in "typedef foo *bar;"?
-	;;
-	;; We search for appropriate c-type properties "near" the change.
-	;; First, find an appropriate boundary for this property search.
-	(let (lim
-	      type type-pos
-	      marked-id term-pos
-	      (end1
-	       (or (and (eq (get-text-property end 'face) 'font-lock-comment-face)
-			(previous-single-property-change end 'face))
-		   end)))
-	  (when (>= end1 beg) ; Don't hassle about changes entirely in comments.
-	    ;; Find a limit for the search for a `c-type' property
-	    (while
-		(and (/= (skip-chars-backward "^;{}") 0)
-		     (> (point) (point-min))
-		     (memq (c-get-char-property (1- (point)) 'face)
-			   '(font-lock-comment-face font-lock-string-face))))
-	    (setq lim (max (point-min) (1- (point))))
-
-	    ;; Look for the latest `c-type' property before end1
-	    (when (and (> end1 (point-min))
-		       (setq type-pos
-			     (if (get-text-property (1- end1) 'c-type)
-				 end1
-			       (previous-single-property-change end1 'c-type nil lim))))
-	      (setq type (get-text-property (max (1- type-pos) lim) 'c-type))
-
-	      (when (memq type '(c-decl-id-start c-decl-type-start))
-		;; Get the identifier, if any, that the property is on.
-		(goto-char (1- type-pos))
-		(setq marked-id
-		      (when (looking-at "\\(\\sw\\|\\s_\\)")
-			(c-beginning-of-current-token)
-			(buffer-substring-no-properties (point) type-pos)))
-
-		(goto-char end1)
-		(skip-chars-forward "^;{}") ; FIXME!!!  loop for comment, maybe
-		(setq lim (point))
-		(setq term-pos
-		      (or (next-single-property-change end 'c-type nil lim) lim))
-		(setq c-maybe-stale-found-type
-		      (list type marked-id
-			    type-pos term-pos
-			    (buffer-substring-no-properties type-pos term-pos)
-			    (buffer-substring-no-properties beg end)))))))))))
-
-(defun c-after-change (beg end old-len)
-  ;; Function put on `after-change-functions' to adjust various caches
-  ;; etc.  Prefer speed to finesse here, since there will be an order
-  ;; of magnitude more calls to this function than any of the
-  ;; functions that use the caches.
-  ;;
-  ;; Note that care must be taken so that this is called before any
-  ;; font-lock callbacks since we might get calls to functions using
-  ;; these caches from inside them, and we must thus be sure that this
-  ;; has already been executed.
-
-  (c-save-buffer-state ()
-    ;; When `combine-after-change-calls' is used we might get calls
-    ;; with regions outside the current narrowing.  This has been
-    ;; observed in Emacs 20.7.
-    (save-restriction
-      (save-match-data		  ; c-recognize-<>-arglists changes match-data
-	(widen)
-
-	(when (> end (point-max))
-	  ;; Some emacsen might return positions past the end. This has been
-	  ;; observed in Emacs 20.7 when rereading a buffer changed on disk
-	  ;; (haven't been able to minimize it, but Emacs 21.3 appears to
-	  ;; work).
-	  (setq end (point-max))
-	  (when (> beg end)
-	    (setq beg end)))
-
-	(c-trim-found-types beg end old-len) ; maybe we don't need all of these.
-	(c-invalidate-sws-region-after beg end)
-	(c-invalidate-state-cache beg)
-	(c-invalidate-find-decl-cache beg)
-
-	(when c-recognize-<>-arglists
-	  (c-after-change-check-<>-operators beg end))))))
-
 (defun c-basic-common-init (mode default-style)
   "Do the necessary initialization for the syntax handling routines
 and the line breaking/filling code.  Intended to be used by other
@@ -622,7 +511,8 @@ that requires a literal mode spec at compile time."
   (setq fill-paragraph-function 'c-fill-paragraph)
 
   (when (or c-recognize-<>-arglists
-	    (c-major-mode-is 'awk-mode))
+	    (c-major-mode-is 'awk-mode)
+	    (c-major-mode-is '(c-mode c++-mode objc-mode)))
     ;; We'll use the syntax-table text property to change the syntax
     ;; of some chars for this language, so do the necessary setup for
     ;; that.
@@ -709,34 +599,6 @@ that requires a literal mode spec at compile time."
   (make-local-hook 'after-change-functions)
   (add-hook 'after-change-functions 'c-after-change nil t))
 
-(defun c-after-font-lock-init ()
-  ;; Put on `font-lock-mode-hook'.
-  (remove-hook 'after-change-functions 'c-after-change t)
-  (add-hook 'after-change-functions 'c-after-change nil t))
-
-(defun c-font-lock-init ()
-  "Set up the font-lock variables for using the font-lock support in CC Mode.
-This does not load the font-lock package.  Use after
-`c-basic-common-init' and after cc-fonts has been loaded."
-
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults
-	`(,(if (c-major-mode-is 'awk-mode)
-	       ;; awk-mode currently has only one font lock level.
-	       'awk-font-lock-keywords
-	     (mapcar 'c-mode-symbol
-		     '("font-lock-keywords" "font-lock-keywords-1"
-		       "font-lock-keywords-2" "font-lock-keywords-3")))
-	  nil nil
-	  ,c-identifier-syntax-modifications
-	  c-beginning-of-syntax
-	  (font-lock-lines-before . 1)
-	  (font-lock-mark-block-function
-	   . c-mark-function)))
-
-  (make-local-hook 'font-lock-mode-hook)
-  (add-hook 'font-lock-mode-hook 'c-after-font-lock-init nil t))
-
 (defun c-setup-doc-comment-style ()
   "Initialize the variables that depend on the value of `c-doc-comment-style'."
   (when (and (featurep 'font-lock)
@@ -765,6 +627,16 @@ compatible with old code; callers should always specify it."
   (when mode
     ;; Only initialize font locking if we aren't called from an old package.
     (c-font-lock-init))
+
+  ;; Starting a mode is a sort of "change".  So call the change functions...
+  (save-restriction
+    (widen)
+    (save-excursion
+      (if c-get-state-before-change-function
+	  (funcall c-get-state-before-change-function (point-min) (point-max)))
+      (if c-before-font-lock-function
+	  (funcall c-before-font-lock-function (point-min) (point-max)
+		   (- (point-max) (point-min))))))
 
   (make-local-variable 'outline-regexp)
   (make-local-variable 'outline-level)
@@ -873,6 +745,280 @@ Note that the style variables are always made local to the buffer."
   (if (cc-bytecomp-fboundp 'run-mode-hooks)
       `(run-mode-hooks ,@hooks)
     `(progn ,@(mapcar (lambda (hook) `(run-hooks ,hook)) hooks))))
+
+
+;;; Change hooks, linking with Font Lock.
+
+;; Buffer local variables defining the region to be fontified by a font lock
+;; after-change function.  They are set in c-after-change to
+;; after-change-function's BEG and END, and may be modified by a
+;; `c-before-font-lock-function'.
+(defvar c-new-BEG 0)
+(make-variable-buffer-local 'c-new-BEG)
+(defvar c-new-END 0)
+(make-variable-buffer-local 'c-new-END)
+
+;; Buffer local variables recording Beginning/End-of-Macro position before a
+;; change, when a macro straddles, respectively, the BEG or END (or both) of
+;; the change region.  Otherwise these have the values BEG/END.
+(defvar c-old-BOM 0)
+(make-variable-buffer-local 'c-old-BOM)
+(defvar c-old-EOM 0)
+(make-variable-buffer-local 'c-old-EOM)
+
+(defun c-extend-region-for-CPP (beg end)
+  ;; If either BEG or END is inside a preprocessor (logical) line, set
+  ;; c-old-BOM or c-ole-EOM respectively to the beginning/end of the line.
+  ;;
+  ;; Point is undefined both before and after this function call; the buffer
+  ;; has already been widened, and match-data saved.  The return value is
+  ;; meaningless.
+  ;;
+  ;; This function is the C/C++/ObjC value of
+  ;; `c-get-state-before-change-function' and is called exclusively as a
+  ;; before change function.
+  (goto-char beg)
+  (c-beginning-of-macro)
+  (setq c-old-BOM (point))
+
+  (goto-char end)
+  (when (c-beginning-of-macro)
+    (c-end-of-macro)
+    (setq c-old-EOM (point))))
+
+(defun c-neutralize-CPP-line (beg end)
+  ;; BEG and END bound a preprocessor line.  Put a "punctuation" syntax-table
+  ;; property on syntactically obtrusive characters, ones which would interact
+  ;; syntactically with stuff outside the CPP line.
+  ;;
+  ;; These are unmatched string delimiters, or unmatched
+  ;; parens/brackets/braces.  An unclosed comment is regarded as valid, NOT
+  ;; obtrusive.
+  (let (s)
+    (while
+	(progn
+	  (setq s (parse-partial-sexp beg end -1))
+	  (cond
+	   ((< (nth 0 s) 0)		; found an unmated ),},]
+	    (c-put-char-property (1- (point)) 'syntax-table '(1))
+	    t)
+	   ((nth 3 s)			; In a string
+	    (c-put-char-property (nth 8 s) 'syntax-table '(1))
+	    t)
+	   ((> (nth 0 s) 0)		; In a (,{,[
+	    (c-put-char-property (nth 1 s) 'syntax-table '(1))
+	    t)
+	   (t nil))))))
+
+(defun c-neutralize-syntax-in-CPP (begg endd old-len)
+  ;; "Neutralize" every preprocessor line wholly or partially in the changed
+  ;; region.  "Restore" lines which were CPP lines before the change and are
+  ;; no longer so; these can be located from the Buffer local variables
+  ;; c-old-[EB]OM.
+  ;; 
+  ;; That is, set syntax-table properties on characters that would otherwise
+  ;; interact syntactically with those outside the CPP line(s).
+  ;; 
+  ;; This function is called from an after-change function, BEGG ENDD and
+  ;; OLD-LEN being the standard parameters.  It prepares the buffer for font
+  ;; locking, hence must get called before `font-lock-after-change-function'.
+  ;;
+  ;; Point is undefined both before and after this function call, the buffer
+  ;; has been widened, and match-data saved.  The return value is ignored.
+  ;;
+  ;; This function is the C/C++/ObjC value of `c-before-font-lock-function'.
+  ;;
+  ;; This function might do invisible changes.
+  (c-save-buffer-state (limits mbeg beg end)
+    ;; First calculate the region, possibly to be extended.
+    (setq beg (min begg c-old-BOM))
+    (goto-char endd)
+    (when (c-beginning-of-macro)
+      (c-end-of-macro))
+    (setq end (max (+ (- c-old-EOM old-len) (- endd begg))
+		   (point)))
+    ;; Clear all old punctuation properties
+    (c-clear-char-property-with-value beg end 'syntax-table '(1))
+
+    (goto-char beg)
+    ;; If we're inside a string/comment, go to its end.
+    (if (setq limits (c-literal-limits))
+	(goto-char (cdr limits)))
+
+    (while (and (< (point) end)
+		(search-forward-regexp c-anchored-cpp-prefix end t))
+      (when (c-beginning-of-macro)    ; Guard against being in a string/comment.
+	(setq mbeg (point))
+	(c-end-of-macro)	  ; Do we need to go forward 1 char here?  No!
+	(c-neutralize-CPP-line mbeg (point)))
+      (forward-char))))		; We might still be in a comment - this is OK.
+
+(defun c-before-change (beg end)
+  ;; Function to be put on `before-change-function'.  Primarily, this calls
+  ;; the language dependent `c-get-state-before-change-function'.  It is
+  ;; otherwise used only to remove stale entries from the `c-found-types'
+  ;; cache, and to record entries which a `c-after-change' function might
+  ;; confirm as stale.
+  ;; 
+  ;; Note that this function must be FAST rather than accurate.  Note
+  ;; also that it only has any effect when font locking is enabled.
+  ;; We exploit this by checking for font-lock-*-face instead of doing
+  ;; rigourous syntactic analysis.
+
+  ;; If either change boundary is wholly inside an identifier, delete
+  ;; it/them from the cache.  Don't worry about being inside a string
+  ;; or a comment - "wrongly" removing a symbol from `c-found-types'
+  ;; isn't critical.
+  (setq c-maybe-stale-found-type nil)
+  (save-restriction
+    (save-match-data
+      (widen)
+      (save-excursion
+	;; Are we inserting/deleting stuff in the middle of an identifier?
+	(c-unfind-enclosing-token beg)
+	(c-unfind-enclosing-token end)
+	;; Are we coalescing two tokens together, e.g. "fo o" -> "foo"?
+	(when (< beg end)
+	  (c-unfind-coalesced-tokens beg end))
+	;; Are we (potentially) disrupting the syntactic context which
+	;; makes a type a type?  E.g. by inserting stuff after "foo" in
+	;; "foo bar;", or before "foo" in "typedef foo *bar;"?
+	;;
+	;; We search for appropriate c-type properties "near" the change.
+	;; First, find an appropriate boundary for this property search.
+	(let (lim
+	      type type-pos
+	      marked-id term-pos
+	      (end1
+	       (or (and (eq (get-text-property end 'face) 'font-lock-comment-face)
+			(previous-single-property-change end 'face))
+		   end)))
+	  (when (>= end1 beg) ; Don't hassle about changes entirely in comments.
+	    ;; Find a limit for the search for a `c-type' property
+	    (while
+		(and (/= (skip-chars-backward "^;{}") 0)
+		     (> (point) (point-min))
+		     (memq (c-get-char-property (1- (point)) 'face)
+			   '(font-lock-comment-face font-lock-string-face))))
+	    (setq lim (max (point-min) (1- (point))))
+
+	    ;; Look for the latest `c-type' property before end1
+	    (when (and (> end1 (point-min))
+		       (setq type-pos
+			     (if (get-text-property (1- end1) 'c-type)
+				 end1
+			       (previous-single-property-change end1 'c-type nil lim))))
+	      (setq type (get-text-property (max (1- type-pos) lim) 'c-type))
+
+	      (when (memq type '(c-decl-id-start c-decl-type-start))
+		;; Get the identifier, if any, that the property is on.
+		(goto-char (1- type-pos))
+		(setq marked-id
+		      (when (looking-at "\\(\\sw\\|\\s_\\)")
+			(c-beginning-of-current-token)
+			(buffer-substring-no-properties (point) type-pos)))
+
+		(goto-char end1)
+		(skip-chars-forward "^;{}") ; FIXME!!!  loop for comment, maybe
+		(setq lim (point))
+		(setq term-pos
+		      (or (next-single-property-change end 'c-type nil lim) lim))
+		(setq c-maybe-stale-found-type
+		      (list type marked-id
+			    type-pos term-pos
+			    (buffer-substring-no-properties type-pos term-pos)
+			    (buffer-substring-no-properties beg end)))))))
+
+	(setq c-new-BEG beg
+	      c-new-END end)
+	(if c-get-state-before-change-function
+	    (funcall c-get-state-before-change-function beg end))
+	))))
+
+(defun c-after-change (beg end old-len)
+  ;; Function put on `after-change-functions' to adjust various caches
+  ;; etc.  Prefer speed to finesse here, since there will be an order
+  ;; of magnitude more calls to this function than any of the
+  ;; functions that use the caches.
+  ;;
+  ;; Note that care must be taken so that this is called before any
+  ;; font-lock callbacks since we might get calls to functions using
+  ;; these caches from inside them, and we must thus be sure that this
+  ;; has already been executed.
+  ;;
+  ;; This calls the language variable c-before-font-lock-function, if non nil.
+  ;; This typically sets `syntax-table' properties.
+
+  (c-save-buffer-state ()
+    ;; When `combine-after-change-calls' is used we might get calls
+    ;; with regions outside the current narrowing.  This has been
+    ;; observed in Emacs 20.7.
+    (save-restriction
+      (save-match-data		  ; c-recognize-<>-arglists changes match-data
+	(widen)
+
+	(when (> end (point-max))
+	  ;; Some emacsen might return positions past the end. This has been
+	  ;; observed in Emacs 20.7 when rereading a buffer changed on disk
+	  ;; (haven't been able to minimize it, but Emacs 21.3 appears to
+	  ;; work).
+	  (setq end (point-max))
+	  (when (> beg end)
+	    (setq beg end)))
+
+	(c-trim-found-types beg end old-len) ; maybe we don't need all of these.
+	(c-invalidate-sws-region-after beg end)
+	(c-invalidate-state-cache beg)
+	(c-invalidate-find-decl-cache beg)
+
+	(when c-recognize-<>-arglists
+	  (c-after-change-check-<>-operators beg end))
+
+	(if c-before-font-lock-function
+	    (save-excursion
+	      (funcall c-before-font-lock-function beg end old-len)))))))
+
+(defun c-after-font-lock-init ()
+  ;; Put on `font-lock-mode-hook'.
+  (remove-hook 'after-change-functions 'c-after-change t)
+  (add-hook 'after-change-functions 'c-after-change nil t))
+
+(defun c-font-lock-init ()
+  "Set up the font-lock variables for using the font-lock support in CC Mode.
+This does not load the font-lock package.  Use after
+`c-basic-common-init' and after cc-fonts has been loaded."
+
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults
+	`(,(if (c-major-mode-is 'awk-mode)
+	       ;; awk-mode currently has only one font lock level.
+	       'awk-font-lock-keywords
+	     (mapcar 'c-mode-symbol
+		     '("font-lock-keywords" "font-lock-keywords-1"
+		       "font-lock-keywords-2" "font-lock-keywords-3")))
+	  nil nil
+	  ,c-identifier-syntax-modifications
+	  c-beginning-of-syntax
+	  (font-lock-lines-before . 1)
+	  (font-lock-mark-block-function
+	   . c-mark-function)))
+
+  (make-local-hook 'font-lock-mode-hook)
+  (add-hook 'font-lock-mode-hook 'c-after-font-lock-init nil t))
+
+(defmacro c-advise-fl-for-region (function)
+  `(defadvice ,function (before get-awk-region activate)
+;; When font-locking an AWK Mode buffer, make sure that any string/regexp is
+;; completely font-locked.
+  (when (eq major-mode 'awk-mode)
+    (save-excursion
+      (ad-set-arg 1 c-new-END)   ; end
+      (ad-set-arg 0 c-new-BEG)))))	; beg
+
+(c-advise-fl-for-region font-lock-after-change-function)
+(c-advise-fl-for-region jit-lock-after-change)
+(c-advise-fl-for-region lazy-lock-defer-rest-after-change)
+(c-advise-fl-for-region lazy-lock-defer-line-after-change)
 
 
 ;; Support for C
@@ -1336,21 +1482,7 @@ Key bindings:
   (use-local-map awk-mode-map)
   (c-init-language-vars-for 'awk-mode)
   (c-common-init 'awk-mode)
-  ;; The rest of CC Mode does not (yet) use `font-lock-syntactic-keywords',
-  ;; so it's not set by `c-font-lock-init'.
-  (make-local-variable 'font-lock-syntactic-keywords)
-  (setq font-lock-syntactic-keywords
-	'((c-awk-set-syntax-table-properties
-	   0 (0)			; Everything on this line is a dummy.
-	   nil t)))
   (c-awk-unstick-NL-prop)
-  (add-hook 'before-change-functions 'c-awk-before-change nil t)
-  (add-hook 'after-change-functions 'c-awk-after-change nil t)
-  (c-save-buffer-state nil
-    (save-restriction
-      (widen)
-      (c-awk-clear-NL-props (point-min) (point-max))
-      (c-awk-after-change (point-min) (point-max) 0))) ; Set syntax-table props.
 
   ;; Prevent Xemacs's buffer-syntactic-context being used.  See the comment
   ;; in cc-engine.el, just before (defun c-fast-in-literal ...
