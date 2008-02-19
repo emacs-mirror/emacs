@@ -1,3 +1,11 @@
+2008-02-19  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc-hooks.el (vc-find-root): Take optional arg INVERT.
+	If non-nil, reverse the sense of the check.
+	* vc-rcs.el (vc-rcs-root): New func.
+	* vc-cvs.el (vc-cvs-root): New func.
+	* vc-svn.el (vc-svn-root): New func.
+
 2008-02-18  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* language/japan-util.el (setup-japanese-environment-internal):
