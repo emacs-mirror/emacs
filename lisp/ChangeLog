@@ -1,3 +1,46 @@
+2008-02-19  Alan Mackenzie  <acm@muc.de>
+
+	Set of changes so that "obtrusive" syntactic elements in a
+	C/C++/ObjC preprocessor line (e.g. an unbalanced string quote or
+	unmatched paren) don't interact syntactically with stuff outside
+	the CPP line.
+
+	* progmodes/cc-awk.el (c-awk-beyond-logical-line, c-awk-old-ByLL):
+	Replace c-awk-end-of-logical-line and c-awk-old-EoLL to solve an
+	off-by-one bug.
+	(c-awk-record-region-clear-NL): Replaces c-awk-before-change, with
+	a bit of refactoring.
+	(c-awk-extend-and-syntax-tablify-region): Takes some of the
+	functionality of c-awk-advise-fl-for-awk-region, which has been
+	refactored away.
+
+	* progmodes/cc-defs.el (c-clear-char-property-with-value-function)
+	(c-clear-char-property-with-value): New function and macro which
+	remove text-properties `equal' to a supplied value.
+
+	* progmodes/cc-engine.el: Comment about text properties amended.
+
+	* progmodes/cc-fonts.el (c-cpp-matchers): Make it put regexp
+	parens around "error\\|warning".
+
+	* progmodes/cc-langs.el (c-get-state-before-change-function)
+	(c-before-font-lock-function, c-anchored-cpp-prefix): new language
+	variables.
+	(c-cpp-message-directives): Handle "#warning" in C, C++ and ObjC.
+
+	* progmodes/cc-mode.el (c-basic-common-init): C and ObjC now use
+	syntax-table text properties.
+	(c-common-init): Call language specific before/after-change
+	functions at mode initialisation.
+	(c-new-BEG, c-new-END, c-old-BOM, c-old-EOM): new variables.
+	(c-extend-region-for-CPP, c-neutralize-CPP-line)
+	(c-neutralize-syntax-in-CPP): new functions.
+	(c-before-change, c-after-change): call the new language specific
+	change functions defined in cc-langs.el.
+	(c-advise-fl-for-region): new macro.
+	(awk-mode): Remove AWK specific stuff which has been refactored
+	into language independent stuff.
+
 2008-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-file-junk-re): New const.
