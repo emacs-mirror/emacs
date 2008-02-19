@@ -1,3 +1,9 @@
+2008-02-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdba): Recreate as an alias for gdb.
+	(gdb): (Re)set gdb-flush-pending-output to nil here...
+	(gdb-init-1): ...instead of here (before gdb-prompt).
+
 2008-02-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/verilog-mode.el (customize): Fix typo in error message.
