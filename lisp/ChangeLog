@@ -1,3 +1,17 @@
+2008-02-18  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* language/japan-util.el (setup-japanese-environment-internal):
+	Call use-cjk-char-width-table.
+
+	* language/japanese.el ("Japanese"): Set exit-function to
+	use-default-char-width-table.
+
+	* international/characters.el: Delete occurances of non-Unicode
+	tibetan and ethiopic characters.
+	(cjk-char-width-table): New variable.
+	(use-cjk-char-width-table, use-default-char-width-table): New
+	functions.
+
 2008-02-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-status-menu, vc-status-menu-map-filter): New functions.
