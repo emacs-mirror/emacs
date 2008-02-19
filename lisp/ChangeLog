@@ -1,3 +1,8 @@
+2008-02-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* net/ange-ftp.el (ange-ftp-quote-string): Return the null string
+	when the argument is nil.
+
 2008-02-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (dir-status): Add a brief description.
