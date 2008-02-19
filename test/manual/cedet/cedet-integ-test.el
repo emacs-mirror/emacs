@@ -44,14 +44,14 @@
 ;;    c Use a template to build some C++ templates
 ;;    d SRecode to load the new template and construct some sources.
 ;;
-;; 5) Semantic to parse stuff
+;; 3) Semantic to parse stuff
 ;;    a Parse the sources
 ;;    b Use srecode to make more sources
 ;;    c test the incremental parsers.
 ;;    d test the completion engine.
 ;;    e Save semanticdb tables.  Are the files there?
 ;;
-;; 6) Delete the project
+;; 4) Delete the project
 ;;    a Make sure the semanticdb cleans up the dead cache files.
 ;;    b Make sure EDE clears this project from it's project cache.
 
@@ -65,6 +65,7 @@
   ;; 1 a) build directories
   ;;
   (cit-make-dir cedet-integ-target)
+  ;; 1 c) make src and include directories
   (cit-make-dir (cit-file "src"))
   (cit-make-dir (cit-file "include"))
   ;;
@@ -72,7 +73,7 @@
   ;;
   (find-file (expand-file-name "README" cedet-integ-target))
   (ede-new "Make" "CEDET Integ Test Project")
-  ;;
+  ;; 1 d) Put C++ src into the right directories.
   ;; 2 a) Create sources with SRecode
   ;;
   (cit-srecode-fill)
@@ -158,17 +159,22 @@ Append FILENAME to the target directory."
 
 (defun cit-srecode-fill ()
   "Fill up a base set of files with some base tags."
+  ;; 2 b) Test various templates.
+
   (cit-srecode-fill-with-stuff "include/foo.hh" cit-header-tags)
   (ede-new "Make" "Includes")
+  ;; 1 e) Tell EDE where the srcs are
   (ede-new-target "Includes" "miscelaneous" "n")
   (ede-add-file "Includes")
 
   (cit-srecode-fill-with-stuff "src/foo.cpp" cit-src-tags)
   (ede-new "Make" "Src")
+  ;; 1 e) Tell EDE where the srcs are
   (ede-new-target "Prog" "program" "n")
   (ede-add-file "Prog")
 
   (cit-srecode-fill-with-stuff "src/main.cpp" cit-main-tags)
+  ;; 1 e) Tell EDE where the srcs are
   (ede-add-file "Prog")
 
   (let ((p (ede-current-project)))
@@ -177,7 +183,9 @@ Append FILENAME to the target directory."
     )
 
   (find-file "../Project.ede")
+  ;; 1 f) Create a build file.
   (ede-proj-regenerate)
+  ;; 1 g) build the sources.
   (compile "make")
   )
 
@@ -196,6 +204,7 @@ Argument TAGS is the list of tags to insert into FILENAME."
     (erase-buffer)
     (srecode-insert "file:empty")
 
+    ;; 3 a) Parse the sources
     (setq post-empty-tags (semantic-fetch-tags))
 
     ;;
@@ -204,6 +213,8 @@ Argument TAGS is the list of tags to insert into FILENAME."
     (dolist (tag tags)
 
       (sit-for 0)
+      ;; 3 b) Srecode to make more sources
+      ;; 3 c) Test incremental parsers (by side-effect)
       (let ((e (srecode-semantic-insert-tag tag)))
 
 	(goto-char e)
