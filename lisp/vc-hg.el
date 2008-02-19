@@ -477,7 +477,7 @@ REV is the revision to check out into WORKFILE."
 
 (defun vc-hg-extra-status-menu () 
   '(["Show incoming" vc-hg-incoming]
-    ["Show outgoing" vc-hg-outgoing])
+    ["Show outgoing" vc-hg-outgoing]))
 
 (define-derived-mode vc-hg-outgoing-mode vc-hg-log-view-mode "Hg-Outgoing")
 
