@@ -1,3 +1,7 @@
+2008-02-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* help-mode.el (help-mode-menu): New menu.
+
 2008-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-autodetect): Add .exe extension to movemail
