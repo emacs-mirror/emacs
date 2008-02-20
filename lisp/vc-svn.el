@@ -263,7 +263,7 @@ This is only possible if SVN is responsible for FILE's directory.")
 
 (defun vc-svn-checkin (files rev comment)
   "SVN-specific version of `vc-backend-checkin'."
-  (if rev (error "Committing to a specific revision is unsupported in SVN."))
+  (if rev (error "Committing to a specific revision is unsupported in SVN"))
   (let ((status (apply
                  'vc-svn-command nil 1 files "ci"
                  (nconc (list "-m" comment) (vc-switches 'SVN 'checkin)))))
@@ -528,7 +528,7 @@ NAME is assumed to be a URL."
 ;;;
 
 (defcustom vc-svn-program "svn"
-  "Name of the svn executable."
+  "Name of the SVN executable."
   :type 'string
   :group 'vc)
 
