@@ -91,7 +91,7 @@
 	* language/japanese.el ("Japanese"): Set exit-function to
 	use-default-char-width-table.
 
-	* international/characters.el: Delete occurances of non-Unicode
+	* international/characters.el: Delete occurrences of non-Unicode
 	tibetan and ethiopic characters.
 	(cjk-char-width-table): New variable.
 	(use-cjk-char-width-table, use-default-char-width-table):
