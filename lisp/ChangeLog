@@ -1,3 +1,7 @@
+2008-02-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-mode.el: Require easymenu when compiling.
+
 2008-02-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* help-mode.el (help-mode-menu): New menu.
