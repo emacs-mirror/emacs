@@ -1511,7 +1511,7 @@ main (argc, argv)
 	       a valid drive designator, are interpreted as drive:path, not
 	       file:stream, and treated as absolute.
 	       The user can still pass a file:stream if desired (for example,
-	       .\X:Y, but it is not very useful, as Emacs currently does a
+	       .\X:Y), but it is not very useful, as Emacs currently does a
 	       very bad job of dealing wih NTFS streams. */
 	    {
 	      char *filename = (char *) xmalloc (MAX_PATH);
