@@ -138,11 +138,6 @@ In general, many of the various *-composition-functions seem to need
 updating in terms of the number of arguments they take and their doc
 strings.
 
-** cp-supported-codepages
-This has been removed (together with most of codepage.el).  There is no NEWS
-entry about this removal.
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00063.html
-
 ** han@mijncomputer.nl, Feb 3: emacsclient misbehaves
 
 * DOCUMENTATION
