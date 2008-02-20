@@ -234,6 +234,8 @@ that range have the same value.
   cp-make-coding-systems-for-codepage, cp-charset-for-codepage,
   cp-language-for-codepage, cp-offset-for-codepage,
   cp-supported-codepages
+You don't need them anymore because coding systems created by these
+functions are supported from the start now.
 
 
 ----------------------------------------------------------------------
