@@ -219,7 +219,15 @@ Otherwise, look for `movemail' in the directories in
       (dolist (dir (append rmail-movemail-search-path exec-path
 			   (list exec-directory)))
 	(when (and dir (file-accessible-directory-p dir))
-	  (let ((progname (expand-file-name "movemail" dir)))
+	  ;; Previously, this didn't have to work on Windows, because
+	  ;; rmail-insert-inbox-text before r1.439 fell back to using
+	  ;; (expand-file-name "movemail" exec-directory) and just
+	  ;; assuming it would work.
+	  ;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00087.html
+	  (let ((progname (expand-file-name
+			   (concat "movemail"
+				   (if (memq system-type '(ms-dos windows-nt))
+				       ".exe")) dir)))
 	    (when (and (not (file-directory-p progname))
 		       (file-executable-p progname))
 	      (let ((x (rmail-probe progname)))
