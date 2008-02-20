@@ -1,7 +1,8 @@
 2008-02-20  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* FOR-RELEASE: Remove the problem of ucs-mule-8859-to-mule-unicode
-	being used in latin1-disp.el.
+	being used in latin1-disp.el.  Remove the problem of
+	cp-supported-codepages.
 
 2008-02-16  Eli Zaretskii  <eliz@gnu.org>
 
