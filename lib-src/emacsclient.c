@@ -848,38 +848,6 @@ file_name_absolute_p (filename)
 
   /* Both \xxx and \\xxx\yyy are absolute.  */
   if (filename[0] == '\\') return TRUE;
-
-  /*
-    FIXME:  There's a corner case not dealt with, "x:y", where:
-
-    1) x is a valid drive designation (usually a letter in the A-Z range)
-       and y is a path, relative to the current directory on drive x.  This
-       is absolute, *after* fixing the y part to include the current
-       directory in x.
-
-    2) x is a relative file name, and y is an NTFS stream name.  This is a
-       correct relative path, but it is very unusual.
-
-    The trouble is that first case items are also valid examples of the
-    second case, i.e., "c:test" can be understood as drive:path or as
-    file:stream.
-
-    The "right" fix would involve checking whether
-    - the current drive/partition is NTFS,
-    - x is a valid (and accesible) drive designator,
-    - x:y already exists as a file:stream in the current directory,
-    - y already exists on the current directory of drive x,
-    - the auspices are favorable,
-    and then taking an "informed decision" based on the above.
-
-    Whatever the result, Emacs currently does a very bad job of dealing
-    with NTFS file:streams: it cannot visit them, and the only way to
-    create one is by setting `buffer-file-name' to point to it (either
-    manually or with emacsclient). So perhaps resorting to 1) and ignoring
-    2) for now is the right thing to do.
-
-    Anyway, something to decide After the Release.
-  */
 #endif
 
   return FALSE;
@@ -1535,8 +1503,30 @@ main (argc, argv)
               else
                 relative = 1;
             }
-          else if (! file_name_absolute_p (argv[i]))
-            relative = 1;
+	  else if (! file_name_absolute_p (argv[i]))
+#ifndef WINDOWSNT
+	    relative = 1;
+#else
+	    /* Call GetFullPathName so filenames of the form X:Y, where X is
+	       a valid drive designator, are interpreted as drive:path, not
+	       file:stream, and treated as absolute.
+	       The user can still pass a file:stream if desired (for example,
+	       .\X:Y, but it is not very useful, as Emacs currently does a
+	       very bad job of dealing wih NTFS streams. */
+	    {
+	      char *filename = (char *) xmalloc (MAX_PATH);
+	      DWORD size;
+
+	      size = GetFullPathName (argv[i], MAX_PATH, filename, NULL);
+	      if (size > 0 && size < MAX_PATH)
+		argv[i] = filename;
+	      else
+		{
+		  relative = 1;
+		  free (filename);
+		}
+	    }
+#endif
 
           send_to_emacs (emacs_socket, "-file ");
           if (relative)
