@@ -1,3 +1,10 @@
+2008-02-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-mouse-set-clear-breakpoint): Fall back
+	to mouse-set-point in buffers that aren't associated with files.
+
+	* progmodes/gud.el: Rename menu item to "Show GUD tooltips".
+
 2008-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-autodetect): Add .exe extension to movemail
