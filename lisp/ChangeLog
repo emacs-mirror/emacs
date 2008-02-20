@@ -1,46 +1,3 @@
-2008-02-20  Juanma Barranquero  <lekktu@gmail.com>
-
-	* progmodes/verilog-mode.el (customize): Fix typo in error message.
-	(verilog-mode, verilog-mode-indent, verilog-mode-actions)
-	(verilog-mode-auto, verilog-indent-level-module)
-	(verilog-minimum-comment-distance, verilog-library-flags)
-	(verilog-library-directories, verilog-library-files)
-	(verilog-auto-reset-widths, verilog-imenu-generic-expression)
-	(verilog-xemacs-menu, verilog-set-compile-command)
-	(verilog-set-compile-command, verilog-mode-syntax-table, verilog-mode)
-	(verilog-get-expr, verilog-strip-comments, verilog-one-line)
-	(verilog-lint-off, verilog-batch-auto, verilog-batch-delete-auto)
-	(verilog-batch-inject-auto, verilog-batch-indent)
-	(verilog-continued-line, verilog-type-keywords)
-	(verilog-read-sub-decls-sig, verilog-read-sub-decls-line)
-	(verilog-read-inst-pins, verilog-read-arg-pins)
-	(verilog-read-auto-template, verilog-read-signals, verilog-getopt-file)
-	(verilog-add-list-unique, verilog-symbol-detick, verilog-modi-filename)
-	(verilog-auto-star, verilog-auto-inst, verilog-auto-wire)
-	(verilog-enum-ascii, verilog-sk-begin, verilog-sk-fork)
-	(verilog-sk-datadef, verilog-colorize-include-files-buffer)
-	(verilog-mode-version, verilog-mode-release-date)
-	(verilog-mode-release-emacs, verilog-linter, verilog-coverage)
-	(verilog-simulator, verilog-compiler)
-	(verilog-auto-sense-defines-constant, verilog-company)
-	(verilog-project, verilog-mark-defun, verilog-submit-bug-report):
-	Fix typos in docstrings.
-	(verilog-set-auto-endcomments, verilog-calculate-indent)
-	(verilog-inject-auto, verilog-auto-arg, verilog-auto-inout-module):
-	Reflow docstrings.
-	(verilog-tab-always-indent, verilog-highlight-p1800-keywords)
-	(verilog-auto-star-save, verilog-auto-inst-vector, verilog-mode-hook)
-	(electric-verilog-forward-sexp, verilog-in-case-region-p)
-	(verilog-in-struct-region-p, verilog-in-generate-region-p)
-	(verilog-leap-to-head, verilog-current-indent-level)
-	(verilog-case-indent-level, verilog-cpp-keywords)
-	(verilog-defun-keywords, verilog-block-keywords, verilog-tf-keywords)
-	(verilog-case-keywords, verilog-separator-keywords, verilog-completion)
-	(verilog-signals-not-in, verilog-symbol-detick-text)
-	(verilog-modi-cache-preserve-tick, verilog-modi-cache-preserve-buffer)
-	(verilog-forward-close-paren, verilog-backward-open-paren)
-	(verilog-backward-open-bracket): Doc fixes.
-
 2008-02-20  Glenn Morris  <rgm@gnu.org>
 
 	* mail/rmail.el (rmail-autodetect): Add .exe extension to movemail
@@ -72,20 +29,20 @@
 	parens around "error\\|warning".
 
 	* progmodes/cc-langs.el (c-get-state-before-change-function)
-	(c-before-font-lock-function, c-anchored-cpp-prefix): new language
-	variables.
+	(c-before-font-lock-function, c-anchored-cpp-prefix):
+	New language variables.
 	(c-cpp-message-directives): Handle "#warning" in C, C++ and ObjC.
 
 	* progmodes/cc-mode.el (c-basic-common-init): C and ObjC now use
 	syntax-table text properties.
 	(c-common-init): Call language specific before/after-change
 	functions at mode initialisation.
-	(c-new-BEG, c-new-END, c-old-BOM, c-old-EOM): new variables.
+	(c-new-BEG, c-new-END, c-old-BOM, c-old-EOM): New variables.
 	(c-extend-region-for-CPP, c-neutralize-CPP-line)
-	(c-neutralize-syntax-in-CPP): new functions.
-	(c-before-change, c-after-change): call the new language specific
+	(c-neutralize-syntax-in-CPP): New functions.
+	(c-before-change, c-after-change): Call the new language specific
 	change functions defined in cc-langs.el.
-	(c-advise-fl-for-region): new macro.
+	(c-advise-fl-for-region): New macro.
 	(awk-mode): Remove AWK specific stuff which has been refactored
 	into language independent stuff.
 
