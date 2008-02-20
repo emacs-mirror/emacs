@@ -1,3 +1,31 @@
+2008-02-19    Ken Manheimer  <ken.manheimer@gmail.com>
+	Minor Adaptions by Nick Roberts  <nickrob@snap.net.nz> for Emacs.
+
+	* progmodes/python.el: Also require comint when loading.
+	(python-mode-map): Bind python-pdbtrack-toggle-stack-tracking,
+	Replace python-shell with run-python on menu bar,
+	(python-shell-map): New map.
+	(python-default-interpreter, python-python-command-args)
+	(python-jython-command-args, python-pdbtrack-do-tracking-p):
+	New options.
+	(python-which-shell, python-which-args, python-which-bufname):
+	New buffer local variables.
+	(python-file-queue, python-pdbtrack-is-tracking-p):
+	* progmodes/python.el (python-pdbtrack-stack-entry-regexp)
+	(python-pdbtrack-input-prompt, python-pdbtrack-track-range):
+	New constants.
+
+	Pdbtrack features:
+
+	(python-point, python-end-of-def-or-class)
+	(python-beginning-of-def-or-class, python-goto-initial-line)
+	(python-comint-output-filter-function)
+	(python-pdbtrack-overlay-arrow)
+	(python-pdbtrack-track-stack-file, python-toggle-shells)
+	(python-shell, python-pdbtrack-toggle-stack-tracking)
+	(turn-on-pdbtrack, turn-off-pdbtrack, python-sentinel):
+	New functions.
+
 2008-02-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* net/ange-ftp.el (ange-ftp-quote-string): Return the null string
