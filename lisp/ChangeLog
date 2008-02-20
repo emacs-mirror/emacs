@@ -1,5 +1,8 @@
 2008-02-20  Juanma Barranquero  <lekktu@gmail.com>
 
+	* vc-svn.el (vc-svn-program): Fix typo in docstring.
+	(vc-svn-checkin): Fix typo in error message.
+
 	* help-mode.el: Require easymenu when compiling.
 
 2008-02-20  Dan Nicolaescu  <dann@ics.uci.edu>
