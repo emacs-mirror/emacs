@@ -2,7 +2,8 @@
 
 	* FOR-RELEASE: Remove the problem of ucs-mule-8859-to-mule-unicode
 	being used in latin1-disp.el.  Remove the problem of
-	cp-supported-codepages.
+	cp-supported-codepages.  Remove the problem of lost changelog for
+	ps-prin1.ps.
 
 2008-02-16  Eli Zaretskii  <eliz@gnu.org>
 
