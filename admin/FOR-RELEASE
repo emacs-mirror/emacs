@@ -129,11 +129,6 @@ http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00951.html
 http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00079.html
 Change lost?
 
-** ucs-mule-8859-to-mule-unicode
-This has been removed (together with ucs-tables.el), but
-latin1-disp.el still uses it.
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00066.html
-
 ** auto-compose-current-font
 This has been removed, but is still used in
 devan-util.el, mlm-util.el, tibet-util.el, tml-util.el
