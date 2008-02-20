@@ -1972,15 +1972,17 @@ static char *magick[] = {
   (interactive "e")
   (mouse-minibuffer-check event)
   (let ((posn (event-end event)))
-    (if (numberp (posn-point posn))
-	(with-selected-window (posn-window posn)
-	  (save-excursion
-	    (goto-char (posn-point posn))
-	    (if (or (posn-object posn)
-		    (eq (car (fringe-bitmaps-at-pos (posn-point posn)))
-			'breakpoint))
-		(gud-remove nil)
-	      (gud-break nil)))))))
+    (if (buffer-file-name)
+	(if (numberp (posn-point posn))
+	    (with-selected-window (posn-window posn)
+	      (save-excursion
+		(goto-char (posn-point posn))
+		(if (or (posn-object posn)
+			(eq (car (fringe-bitmaps-at-pos (posn-point posn)))
+			    'breakpoint))
+		    (gud-remove nil)
+		  (gud-break nil)))))
+      (posn-set-point posn))))
 
 (defun gdb-mouse-toggle-breakpoint-margin (event)
   "Enable/disable breakpoint in left margin with mouse click."
