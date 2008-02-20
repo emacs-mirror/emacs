@@ -1,3 +1,8 @@
+2008-02-20  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-convert-alien): Do not use optional
+	args in calls of sit-for.
+
 2008-02-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vc-svn.el (vc-svn-program): Fix typo in docstring.
