@@ -1,3 +1,8 @@
+2008-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-autodetect): Add .exe extension to movemail
+	on Windows.
+
 2008-02-19  Alan Mackenzie  <acm@muc.de>
 
 	Set of changes so that "obtrusive" syntactic elements in a
