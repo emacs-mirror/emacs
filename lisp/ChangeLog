@@ -1,3 +1,8 @@
+2008-02-20  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-extend-region-for-CPP): Bug fix from
+	yesterday's commit.
+
 2008-02-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-mouse-set-clear-breakpoint): Fall back
