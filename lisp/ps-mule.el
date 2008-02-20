@@ -579,10 +579,7 @@ FONT-SPEC-TABLE is 0, 1, 2, 3, 4, 5, or 6, each represents font tags f0, f1,
 f2, f3, h0, h1, and H0 respectively."
   (let* ((font-spec nil)
 	 (font-id 0)
-	 (string-list nil)
-	 ;; At most 4-byte (EscChar FONT-ID CODE1 CODE2) per character.
-	 (str (make-string (* (- to from) 4) 0))
-	 (i 0))
+	 (code-list nil))
     (goto-char from)
     (while (< (point) to)
       (let* ((char (following-char))
@@ -594,30 +591,20 @@ f2, f3, h0, h1, and H0 respectively."
 	  (setq char ??
 		this-spec (ps-mule-get-font-spec char font-spec-table nil)
 		this-id (ps-mule-font-spec-font-id this-spec)))
-	(or (= font-id this-id)
-	    (progn
-	      (if font-spec
-		  (setq string-list (cons (substring str 0 i) string-list)
-			i 0))
-	      (setq font-id this-id)
-	      (or (= font-id 0)
-		  (progn
-		    (aset str i ps-mule-esc-char)
-		    (setq i (1+ i))
-		    (aset str i font-id)
-		    (setq i (1+ i))))))
+	(unless (= font-id this-id)
+	  (setq font-id this-id)
+	  (push ps-mule-esc-char code-list)
+	  (push font-id code-list))
 	(setq font-spec this-spec)
 	(if (< char 128)
-	    (aset str i char)
+	    (push char code-list)
 	  (let* ((code (ps-mule-encode-char char font-spec)))
 	    (if (= (ps-mule-font-spec-bytes font-spec) 1)
-		(aset str i code)
-	      (aset str i (/ code 256))
-	      (setq i (1+ i))
-	      (aset str i (% code 256)))))
-	(setq i (1+ i))
+		(push code code-list)
+	      (push (/ code 256) code-list)
+	      (push (% code 256) code-list))))
 	(forward-char 1)))
-    (nreverse (cons (substring str 0 i) string-list))))
+    (apply 'unibyte-string (nreverse code-list))))
 
 (defun ps-mule-plot-composition (composition font-spec-table)
   "Generate PostScript code for plotting COMPOSITION with FONT-SPEC-TABLE."
@@ -687,11 +674,10 @@ the sequence."
       (cond ((= (point) stop)
 	     (if (= stop to)
 		 (setq endpos stop)
-	       (if (< from stop)
-		   (dolist (l (ps-mule-encode-region from (point)
-						     font-spec-table))
-		     (ps-output-string l)
-		     (ps-output " S\n")))
+	       (when (< from stop)
+		 (ps-output-string (ps-mule-encode-region from (point)
+							  font-spec-table))
+		 (ps-output " S\n"))
 	       (setq width (* (nth 5 composition) average-width))
 	       (if (< ps-width-remaining (+ run-width width))
 		   (setq endpos stop)
@@ -721,10 +707,9 @@ the sequence."
 		 (setq run-width (+ run-width width))
 		 (forward-char 1))))))
 
-    (if (< from endpos)
-	(dolist (l (ps-mule-encode-region from endpos font-spec-table))
-	  (ps-output-string l)
-	  (ps-output " S\n")))
+    (when (< from endpos)
+      (ps-output-string (ps-mule-encode-region from endpos font-spec-table))
+      (ps-output " S\n"))
     (goto-char point)
     (cons endpos run-width)))
 
@@ -1042,13 +1027,13 @@ FONTTAG should be a string \"/h0\", \"/h1\", \"/L0\", or \"/H0\".
 Any other value is treated as \"/H0\"."
   (with-temp-buffer
     (insert string)
-    (ps-mule-encode-region (point-min) (point-max)
-			   (aref ps-mule-font-spec-tables
-				 (aref ps-mule-font-number-to-type
-				       (cond ((string= fonttag "/h0") 4)
-					     ((string= fonttag "/h1") 5)
-					     ((string= fonttag "/L0") 6)
-					     (t 0)))))))
+    (list (ps-mule-encode-region (point-min) (point-max)
+				 (aref ps-mule-font-spec-tables
+				       (aref ps-mule-font-number-to-type
+					     (cond ((string= fonttag "/h0") 4)
+						   ((string= fonttag "/h1") 5)
+						   ((string= fonttag "/L0") 6)
+						   (t 0))))))))
 
 ;;;###autoload
 (defun ps-mule-begin-job (from to)
