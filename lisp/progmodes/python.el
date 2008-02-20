@@ -64,9 +64,10 @@
 
 ;;; Code:
 
+(require 'comint)
+
 (eval-when-compile
   (require 'compile)
-  (require 'comint)
   (require 'hippie-exp))
 
 (autoload 'comint-mode "comint")
@@ -201,6 +202,7 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
     (define-key map "\C-c<" 'python-shift-left)
     (define-key map "\C-c>" 'python-shift-right)
     (define-key map "\C-c\C-k" 'python-mark-block)
+    (define-key map "\C-c\C-d" 'python-pdbtrack-toggle-stack-tracking)
     (define-key map "\C-c\C-n" 'python-next-statement)
     (define-key map "\C-c\C-p" 'python-previous-statement)
     (define-key map "\C-c\C-u" 'python-beginning-of-block)
@@ -248,7 +250,7 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
 			     (vector (car elt) (cdr elt) t))
 			   python-skeletons))) ; defined later
 	"-"
-	["Start interpreter" run-python
+	["Start interpreter" python-shell
 	 :help "Run `inferior' Python in separate buffer"]
 	["Import/reload file" python-load-file
 	 :help "Load into inferior Python session"]
@@ -277,6 +279,14 @@ Used for syntactic keywords.  N is the match number (1, 2 or 3)."
 ;; region, at least.  (Shouldn't be specific to Python, obviously.)
 ;; eric has items including: (un)indent, (un)comment, restart script,
 ;; run script, debug script; also things for profiling, unit testing.
+
+(defvar python-shell-map
+  (let ((map (copy-keymap comint-mode-map)))
+    (define-key map [tab]   'tab-to-tab-stop)
+    (define-key map "\C-c-" 'py-up-exception)
+    (define-key map "\C-c=" 'py-down-exception)
+    map)
+  "Keymap used in *Python* shell buffers.")
 
 (defvar python-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -441,6 +451,73 @@ Continuation lines follow a backslash-terminated line starting a
 statement."
   :group 'python
   :type 'integer)
+
+
+(defcustom python-default-interpreter 'cpython
+  "*Which Python interpreter is used by default.
+The value for this variable can be either `cpython' or `jpython'.
+
+When the value is `cpython', the variables `python-python-command' and
+`python-python-command-args' are consulted to determine the interpreter
+and arguments to use.
+
+When the value is `jpython', the variables `python-jpython-command' and
+`python-jpython-command-args' are consulted to determine the interpreter
+and arguments to use.
+
+Note that this variable is consulted only the first time that a Python
+mode buffer is visited during an Emacs session.  After that, use
+\\[python-toggle-shells] to change the interpreter shell."
+  :type '(choice (const :tag "Python (a.k.a. CPython)" cpython)
+		 (const :tag "JPython" jpython))
+  :group 'python)
+
+(defcustom python-python-command-args '("-i")
+  "*List of string arguments to be used when starting a Python shell."
+  :type '(repeat string)
+  :group 'python)
+
+(defcustom python-jython-command-args '("-i")
+  "*List of string arguments to be used when starting a Jython shell."
+  :type '(repeat string)
+  :group 'python
+  :tag "JPython Command Args")
+
+;; for toggling between CPython and JPython
+(defvar python-which-shell nil)
+(defvar python-which-args  python-python-command-args)
+(defvar python-which-bufname "Python")
+(make-variable-buffer-local 'python-which-shell)
+(make-variable-buffer-local 'python-which-args)
+(make-variable-buffer-local 'python-which-bufname)
+
+(defcustom python-pdbtrack-do-tracking-p t
+  "*Controls whether the pdbtrack feature is enabled or not.
+When non-nil, pdbtrack is enabled in all comint-based buffers,
+e.g. shell buffers and the *Python* buffer.  When using pdb to debug a
+Python program, pdbtrack notices the pdb prompt and displays the
+source file and line that the program is stopped at, much the same way
+as gud-mode does for debugging C programs with gdb."
+  :type 'boolean
+  :group 'python)
+(make-variable-buffer-local 'python-pdbtrack-do-tracking-p)
+
+;; Bind python-file-queue before installing the kill-emacs-hook.
+(defvar python-file-queue nil
+  "Queue of Python temp files awaiting execution.
+Currently-active file is at the head of the list.")
+
+(defvar python-pdbtrack-is-tracking-p nil)
+
+(defconst python-pdbtrack-stack-entry-regexp
+  "> \\([^(]+\\)(\\([0-9]+\\))[?a-zA-Z0-9_]+()"
+  "Regular expression pdbtrack uses to find a stack trace entry.")
+
+(defconst python-pdbtrack-input-prompt "\n[(<]?pdb[>)]? "
+  "Regular expression pdbtrack uses to recognize a pdb prompt.")
+
+(defconst python-pdbtrack-track-range 10000
+  "Max number of characters from end of buffer to search for stack entry.")
 
 (defun python-guess-indent ()
   "Guess step for indentation of current buffer.
@@ -2330,6 +2407,372 @@ Like `python-mode', but sets up parameters for Jython subprocesses.
 Runs `jython-mode-hook' after `python-mode-hook'."
   :group 'python
   (set (make-local-variable 'python-command) python-jython-command))
+
+
+
+;; pdbtrack features
+
+(defsubst python-point (position)
+  "Returns the value of point at certain commonly referenced POSITIONs.
+POSITION can be one of the following symbols:
+
+  bol  -- beginning of line
+  eol  -- end of line
+  bod  -- beginning of def or class
+  eod  -- end of def or class
+  bob  -- beginning of buffer
+  eob  -- end of buffer
+  boi  -- back to indentation
+  bos  -- beginning of statement
+
+This function does not modify point or mark."
+  (let ((here (point)))
+    (cond
+     ((eq position 'bol) (beginning-of-line))
+     ((eq position 'eol) (end-of-line))
+     ((eq position 'bod) (python-beginning-of-def-or-class))
+     ((eq position 'eod) (python-end-of-def-or-class))
+     ;; Kind of funny, I know, but useful for python-up-exception.
+     ((eq position 'bob) (goto-char (point-min)))
+     ((eq position 'eob) (goto-char (point-max)))
+     ((eq position 'boi) (back-to-indentation))
+     ((eq position 'bos) (python-goto-initial-line))
+     (t (error "Unknown buffer position requested: %s" position)))
+    (prog1
+	(point)
+      (goto-char here))))
+
+(defun python-end-of-def-or-class (&optional class count)
+  "Move point beyond end of `def' or `class' body.
+
+By default, looks for an appropriate `def'.  If you supply a prefix
+arg, looks for a `class' instead.  The docs below assume the `def'
+case; just substitute `class' for `def' for the other case.
+Programmatically, if CLASS is `either', then moves to either `class'
+or `def'.
+
+When second optional argument is given programmatically, move to the
+COUNTth end of `def'.
+
+If point is in a `def' statement already, this is the `def' we use.
+
+Else, if the `def' found by `\\[python-beginning-of-def-or-class]'
+contains the statement you started on, that's the `def' we use.
+
+Otherwise, we search forward for the closest following `def', and use that.
+
+If a `def' can be found by these rules, point is moved to the start of
+the line immediately following the `def' block, and the position of the
+start of the `def' is returned.
+
+Else point is moved to the end of the buffer, and nil is returned.
+
+Note that doing this command repeatedly will take you closer to the
+end of the buffer each time.
+
+To mark the current `def', see `\\[python-mark-def-or-class]'."
+  (interactive "P")			; raw prefix arg
+  (if (and count (/= count 1))
+      (python-beginning-of-def-or-class (- 1 count)))
+  (let ((start (progn (python-goto-initial-line) (point)))
+	(which (cond ((eq class 'either) "\\(class\\|def\\)")
+		     (class "class")
+		     (t "def")))
+	(state 'not-found))
+    ;; move point to start of appropriate def/class
+    (if (looking-at (concat "[ \t]*" which "\\>")) ; already on one
+	(setq state 'at-beginning)
+      ;; else see if python-beginning-of-def-or-class hits container
+      (if (and (python-beginning-of-def-or-class class)
+	       (progn (python-goto-beyond-block)
+		      (> (point) start)))
+	  (setq state 'at-end)
+	;; else search forward
+	(goto-char start)
+	(if (re-search-forward (concat "^[ \t]*" which "\\>") nil 'move)
+	    (progn (setq state 'at-beginning)
+		   (beginning-of-line)))))
+    (cond
+     ((eq state 'at-beginning) (python-goto-beyond-block) t)
+     ((eq state 'at-end) t)
+     ((eq state 'not-found) nil)
+     (t (error "Internal error in `python-end-of-def-or-class'")))))
+
+(defun python-beginning-of-def-or-class (&optional class count)
+  "Move point to start of `def' or `class'.
+
+Searches back for the closest preceding `def'.  If you supply a prefix
+arg, looks for a `class' instead.  The docs below assume the `def'
+case; just substitute `class' for `def' for the other case.
+Programmatically, if CLASS is `either', then moves to either `class'
+or `def'.
+
+When second optional argument is given programmatically, move to the
+COUNTth start of `def'.
+
+If point is in a `def' statement already, and after the `d', simply
+moves point to the start of the statement.
+
+Otherwise (i.e. when point is not in a `def' statement, or at or
+before the `d' of a `def' statement), searches for the closest
+preceding `def' statement, and leaves point at its start.  If no such
+statement can be found, leaves point at the start of the buffer.
+
+Returns t iff a `def' statement is found by these rules.
+
+Note that doing this command repeatedly will take you closer to the
+start of the buffer each time.
+
+To mark the current `def', see `\\[python-mark-def-or-class]'."
+  (interactive "P")			; raw prefix arg
+  (setq count (or count 1))
+  (let ((at-or-before-p (<= (current-column) (current-indentation)))
+	(start-of-line (goto-char (python-point 'bol)))
+	(start-of-stmt (goto-char (python-point 'bos)))
+	(start-re (cond ((eq class 'either) "^[ \t]*\\(class\\|def\\)\\>")
+			(class "^[ \t]*class\\>")
+			(t "^[ \t]*def\\>"))))
+    ;; searching backward
+    (if (and (< 0 count)
+	     (or (/= start-of-stmt start-of-line)
+		 (not at-or-before-p)))
+	(end-of-line))
+    ;; search forward
+    (if (and (> 0 count)
+	     (zerop (current-column))
+	     (looking-at start-re))
+	(end-of-line))
+    (if (re-search-backward start-re nil 'move count)
+	(goto-char (match-beginning 0)))))
+
+(defun python-goto-initial-line ()
+  "Go to the initial line of the current statement.
+Usually this is the line we're on, but if we're on the 2nd or
+following lines of a continuation block, we need to go up to the first
+line of the block."
+  ;; Tricky: We want to avoid quadratic-time behavior for long
+  ;; continued blocks, whether of the backslash or open-bracket
+  ;; varieties, or a mix of the two.  The following manages to do that
+  ;; in the usual cases.
+  ;;
+  ;; Also, if we're sitting inside a triple quoted string, this will
+  ;; drop us at the line that begins the string.
+  (let (open-bracket-pos)
+    (while (python-continuation-line-p)
+      (beginning-of-line)
+      (if (python-backslash-continuation-line-p)
+	  (while (python-backslash-continuation-line-p)
+	    (forward-line -1))
+	;; else zip out of nested brackets/braces/parens
+	(while (setq open-bracket-pos (python-nesting-level))
+	  (goto-char open-bracket-pos)))))
+  (beginning-of-line))
+
+(defun python-comint-output-filter-function (string)
+  "Watch output for Python prompt and exec next file waiting in queue.
+This function is appropriate for `comint-output-filter-functions'."
+  ;; TBD: this should probably use split-string
+  (when (and (or (string-equal string ">>> ")
+		 (and (>= (length string) 5)
+		      (string-equal (substring string -5) "\n>>> ")))
+	     python-file-queue)
+    (python-safe (delete-file (car python-file-queue)))
+    (setq python-file-queue (cdr python-file-queue))
+    (if python-file-queue
+	(let ((pyproc (get-buffer-process (current-buffer))))
+	  (python-execute-file pyproc (car python-file-queue))))))
+
+(defun python-pdbtrack-overlay-arrow (activation)
+  "Activate or de arrow at beginning-of-line in current buffer."
+  ;; This was derived/simplified from edebug-overlay-arrow
+  (cond (activation
+	 (setq overlay-arrow-position (make-marker))
+	 (setq overlay-arrow-string "=>")
+	 (set-marker overlay-arrow-position
+		     (python-point 'bol) (current-buffer))
+	 (setq python-pdbtrack-is-tracking-p t))
+	(python-pdbtrack-is-tracking-p
+	 (setq overlay-arrow-position nil)
+	 (setq python-pdbtrack-is-tracking-p nil))))
+
+(defun python-pdbtrack-track-stack-file (text)
+  "Show the file indicated by the pdb stack entry line, in a separate window.
+
+Activity is disabled if the buffer-local variable
+`python-pdbtrack-do-tracking-p' is nil.
+
+We depend on the pdb input prompt matching `python-pdbtrack-input-prompt'
+at the beginning of the line."
+  ;; Instead of trying to piece things together from partial text
+  ;; (which can be almost useless depending on Emacs version), we
+  ;; monitor to the point where we have the next pdb prompt, and then
+  ;; check all text from comint-last-input-end to process-mark.
+  ;;
+  ;; KLM: It might be nice to provide an optional override, so this
+  ;; routine could be fed debugger output strings as the text
+  ;; argument, for deliberate application elsewhere.
+  ;;
+  ;; KLM: We're very conservative about clearing the overlay arrow, to
+  ;; minimize residue.  This means, for instance, that executing other
+  ;; pdb commands wipes out the highlight.
+  (let* ((origbuf (current-buffer))
+	 (currproc (get-buffer-process origbuf)))
+    (if (not (and currproc python-pdbtrack-do-tracking-p))
+        (python-pdbtrack-overlay-arrow nil)
+      (let* (;(origdir default-directory)
+             (procmark (process-mark currproc))
+             (block (buffer-substring (max comint-last-input-end
+                                           (- procmark
+                                              python-pdbtrack-track-range))
+                                      procmark))
+             fname lineno)
+        (if (not (string-match (concat python-pdbtrack-input-prompt "$") block))
+            (python-pdbtrack-overlay-arrow nil)
+          (if (not (string-match
+                    (concat ".*" python-pdbtrack-stack-entry-regexp ".*")
+                    block))
+              (python-pdbtrack-overlay-arrow nil)
+            (setq fname (match-string 1 block)
+                  lineno (match-string 2 block))
+            (if (file-exists-p fname)
+                (progn
+                  (find-file-other-window fname)
+                  (goto-line (string-to-number lineno))
+                  (message "pdbtrack: line %s, file %s" lineno fname)
+                  (python-pdbtrack-overlay-arrow t)
+                  (pop-to-buffer origbuf t) )
+              (if (= (elt fname 0) ?\<)
+                  (message "pdbtrack: (Non-file source: '%s')" fname)
+                (message "pdbtrack: File not found: %s" fname)))))))))
+
+(defun python-toggle-shells (arg)
+  "Toggles between the CPython and JPython shells.
+
+With positive argument ARG (interactively \\[universal-argument]),
+uses the CPython shell, with negative ARG uses the JPython shell, and
+with a zero argument, toggles the shell.
+
+Programmatically, ARG can also be one of the symbols `cpython' or
+`jpython', equivalent to positive arg and negative arg respectively."
+  (interactive "P")
+  ;; default is to toggle
+  (if (null arg)
+      (setq arg 0))
+  ;; preprocess arg
+  (cond
+   ((equal arg 0)
+    ;; toggle
+    (if (string-equal python-which-bufname "Python")
+	(setq arg -1)
+      (setq arg 1)))
+   ((equal arg 'cpython) (setq arg 1))
+   ((equal arg 'jpython) (setq arg -1)))
+  (let (msg)
+    (cond
+     ((< 0 arg)
+      ;; set to CPython
+      (setq python-which-shell python-python-command
+	    python-which-args python-python-command-args
+	    python-which-bufname "Python"
+	    msg "CPython"
+	    mode-name "Python"))
+     ((> 0 arg)
+      (setq python-which-shell python-jython-command
+	    python-which-args python-jython-command-args
+	    python-which-bufname "JPython"
+	    msg "JPython"
+	    mode-name "JPython")))
+    (message "Using the %s shell" msg)))
+
+;;;###autoload
+(defun python-shell (&optional argprompt)
+  "Start an interactive Python interpreter in another window.
+This is like Shell mode, except that Python is running in the window
+instead of a shell.  See the `Interactive Shell' and `Shell Mode'
+sections of the Emacs manual for details, especially for the key
+bindings active in the `*Python*' buffer.
+
+With optional \\[universal-argument], the user is prompted for the
+flags to pass to the Python interpreter.  This has no effect when this
+command is used to switch to an existing process, only when a new
+process is started.  If you use this, you will probably want to ensure
+that the current arguments are retained (they will be included in the
+prompt).  This argument is ignored when this function is called
+programmatically, or when running in Emacs 19.34 or older.
+
+Note: You can toggle between using the CPython interpreter and the
+JPython interpreter by hitting \\[python-toggle-shells].  This toggles
+buffer local variables which control whether all your subshell
+interactions happen to the `*JPython*' or `*Python*' buffers (the
+latter is the name used for the CPython buffer).
+
+Warning: Don't use an interactive Python if you change sys.ps1 or
+sys.ps2 from their default values, or if you're running code that
+prints `>>> ' or `... ' at the start of a line.  `python-mode' can't
+distinguish your output from Python's output, and assumes that `>>> '
+at the start of a line is a prompt from Python.  Similarly, the Emacs
+Shell mode code assumes that both `>>> ' and `... ' at the start of a
+line are Python prompts.  Bad things can happen if you fool either
+mode.
+
+Warning:  If you do any editing *in* the process buffer *while* the
+buffer is accepting output from Python, do NOT attempt to `undo' the
+changes.  Some of the output (nowhere near the parts you changed!) may
+be lost if you do.  This appears to be an Emacs bug, an unfortunate
+interaction between undo and process filters; the same problem exists in
+non-Python process buffers using the default (Emacs-supplied) process
+filter."
+  (interactive "P")
+  ;; Set the default shell if not already set
+  (when (null python-which-shell)
+    (python-toggle-shells python-default-interpreter))
+  (let ((args python-which-args))
+    (when (and argprompt
+	       (interactive-p)
+	       (fboundp 'split-string))
+      ;; TBD: Perhaps force "-i" in the final list?
+      (setq args (split-string
+		  (read-string (concat python-which-bufname
+				       " arguments: ")
+			       (concat
+				(mapconcat 'identity python-which-args " ") " ")
+			       ))))
+    (switch-to-buffer-other-window
+     (apply 'make-comint python-which-bufname python-which-shell nil args))
+    (make-local-variable 'comint-prompt-regexp)
+    (set-process-sentinel (get-buffer-process (current-buffer)) 'python-sentinel)
+    (setq comint-prompt-regexp "^>>> \\|^[.][.][.] \\|^(pdb) ")
+    (add-hook 'comint-output-filter-functions
+	      'python-comint-output-filter-function nil t)
+    ;; pdbtrack
+    (add-hook 'comint-output-filter-functions
+	      'python-pdbtrack-track-stack-file nil t)
+    (setq python-pdbtrack-do-tracking-p t)
+    (set-syntax-table python-mode-syntax-table)
+    (use-local-map python-shell-map)))
+
+(defun python-pdbtrack-toggle-stack-tracking (arg)
+  (interactive "P")
+  (if (not (get-buffer-process (current-buffer)))
+      (error "No process associated with buffer '%s'" (current-buffer)))
+  ;; missing or 0 is toggle, >0 turn on, <0 turn off
+  (if (or (not arg)
+	  (zerop (setq arg (prefix-numeric-value arg))))
+      (setq python-pdbtrack-do-tracking-p (not python-pdbtrack-do-tracking-p))
+    (setq python-pdbtrack-do-tracking-p (> arg 0)))
+  (message "%sabled Python's pdbtrack"
+           (if python-pdbtrack-do-tracking-p "En" "Dis")))
+
+(defun turn-on-pdbtrack ()
+  (interactive)
+  (python-pdbtrack-toggle-stack-tracking 1))
+
+(defun turn-off-pdbtrack ()
+  (interactive)
+  (python-pdbtrack-toggle-stack-tracking 0))
+
+(defun python-sentinel (proc msg)
+  (setq overlay-arrow-position nil))
 
 (provide 'python)
 (provide 'python-21)
