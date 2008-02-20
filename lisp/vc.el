@@ -465,6 +465,12 @@
 ;;
 ;; MISCELLANEOUS
 ;;
+;; - root (dir)
+;;
+;;   Return DIR's "root" directory, that is, a parent directory of
+;;   DIR for which the same backend as used for DIR applies.  If no
+;;   such parent exists, this function should return DIR.
+;;
 ;; - make-version-backups-p (file)
 ;;
 ;;   Return non-nil if unmodified repository revisions of FILE should be
