@@ -35,7 +35,7 @@ Emacsen.
 See M-x list-character-sets.  New charsets can be defined conveniently
 as tables of unicodes.
 
-The dimension of a charset is now 0, 1, 2, or 3, and the size of each
+The dimension of a charset is now 1, 2, 3, or 4, and the size of each
 dimension is no longer limited to 94 or 96.
 
 A dynamic charset priority list is used to infer the charset of
@@ -49,7 +49,8 @@ as Emacs is running) by freetype and fontconfig libraries.  On X, they
 are derived via Xft library with antialias support.  Fontconfig-like
 font names (e.g. monospace-12) are also accepted.
 
-** New language environments Chinese-GBK, Chinese-GB18030, and TaiViet.
+** New language environments Chinese-GBK, Chinese-GB18030, Khmer,
+TaiViet.
 
 ** The following facilities are obsolete:
 
@@ -180,7 +181,7 @@ character properties.  They are `name', `general-category',
 `old-name', `iso-10646-comment', `uppercase', `lowercase', and
 `titlecase'.
 
-** Thew new function `define-char-code-property' defines a character
+** The new function `define-char-code-property' defines a character
 code property.
 
 ** The new function `char-code-property-description' returns the
@@ -228,6 +229,11 @@ that range have the same value.
 ** The value of the function `charset-id' is now always 0.
 
 ** The functions `register-char-codings' and `coding-system-spec' are deleted.
+
+** Many codepage related functions are removed.  They are:
+  cp-make-coding-systems-for-codepage, cp-charset-for-codepage,
+  cp-language-for-codepage, cp-offset-for-codepage,
+  cp-supported-codepages
 
 
 ----------------------------------------------------------------------
