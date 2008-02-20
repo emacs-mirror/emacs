@@ -239,7 +239,7 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 (defun vc-svn-create-repo ()
   "Create a new SVN repository."
   (vc-do-command nil 0 "svnadmin" '("create" "SVN"))
-  (vc-do-command nil 0 "svn" '(".") 
+  (vc-do-command nil 0 "svn" '(".")
 		 "checkout" (concat "file://" default-directory "SVN")))
 
 (defun vc-svn-register (files &optional rev comment)
@@ -405,7 +405,7 @@ uses locally for temp files must also be writeable by you on that host."
   (goto-char (point-min))
   (unless (re-search-forward "Repository Root: svn\\+ssh://\\([^/]+\\)\\(/.*\\)" nil t)
     (error "Repository information is unavailable."))
-  (let* ((tempfile (make-temp-file user-mail-address)) 
+  (let* ((tempfile (make-temp-file user-mail-address))
 	(host (match-string 1))
 	(directory (match-string 2))
 	(remotefile (concat host ":" tempfile)))
@@ -414,9 +414,9 @@ uses locally for temp files must also be writeable by you on that host."
       (write-region (point-min) (point-max) tempfile))
     (unless (vc-do-command nil 0 "scp" nil "-q" tempfile remotefile)
       (error "Copy of comment to %s failed" remotefile))
-    (unless (vc-do-command nil 0 "ssh" nil 
-			   "-q" host 
-			   (format "svnadmin setlog --bypass-hooks %s -r %s %s; rm %s" 
+    (unless (vc-do-command nil 0 "ssh" nil
+			   "-q" host
+			   (format "svnadmin setlog --bypass-hooks %s -r %s %s; rm %s"
 				   directory rev tempfile tempfile))
       (error "Log edit failed"))
   ))
