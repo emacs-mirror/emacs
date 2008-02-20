@@ -4416,14 +4416,14 @@ With prefix argument READ-OPTIONS non-nil, read options for reformatting
 entries from minibuffer."
   (interactive "*P")
   (message "Starting to validate buffer...")
-  (sit-for 1 nil t)
+  (sit-for 1)
   (bibtex-realign)
   (deactivate-mark)  ; So `bibtex-validate' works on the whole buffer.
   (if (not (let (bibtex-maintain-sorted-entries)
              (bibtex-validate)))
       (message "Correct errors and call `bibtex-convert-alien' again")
     (message "Starting to reformat entries...")
-    (sit-for 2 nil t)
+    (sit-for 2)
     (bibtex-reformat read-options)
     (goto-char (point-max))
     (message "Buffer is now parsable.  Please save it.")))
