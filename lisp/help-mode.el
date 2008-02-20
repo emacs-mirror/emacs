@@ -32,6 +32,7 @@
 
 (require 'button)
 (require 'view)
+(eval-when-compile (require 'easymenu))
 
 (defvar help-mode-map (make-sparse-keymap)
   "Keymap for help mode.")
