@@ -13,6 +13,10 @@
 
 2008-02-20  Kenichi Handa  <handa@ni.aist.go.jp>
 
+	* ps-mule.el (ps-mule-encode-region): Return a single string.
+	(ps-mule-plot-string): Adjusted for the above change.
+	(ps-mule-encode-header-string): Likewise.
+
 	* international/latin1-disp.el (latin1-display): Don't use
 	ucs-mule-8859-to-mule-unicode.  Fix the way of resetting
 	standard-display-table.
