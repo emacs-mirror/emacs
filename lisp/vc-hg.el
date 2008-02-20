@@ -63,7 +63,7 @@
 ;; * find-revision (file rev buffer)            OK
 ;; * checkout (file &optional editable rev)    OK
 ;; * revert (file &optional contents-done)     OK
-;; - rollback (files)                          ?? PROBABLY NOT NEEDED   
+;; - rollback (files)                          ?? PROBABLY NOT NEEDED
 ;; - merge (file rev1 rev2)                    NEEDED
 ;; - merge-news (file)                         NEEDED
 ;; - steal-lock (file &optional revision)       NOT NEEDED
@@ -87,7 +87,7 @@
 ;; - retrieve-snapshot (dir name update)       ?? NEEDED??
 ;; MISCELLANEOUS
 ;; - make-version-backups-p (file)             ??
-;; - repository-hostname (dirname)             ?? 
+;; - repository-hostname (dirname)             ??
 ;; - previous-revision (file rev)               OK
 ;; - next-revision (file rev)                   OK
 ;; - check-headers ()                          ??
@@ -153,7 +153,7 @@
 
 (defun vc-hg-state (file)
   "Hg-specific version of `vc-state'."
-  (let* 
+  (let*
       ((status nil)
        (out
 	(with-output-to-string
@@ -190,9 +190,9 @@
 	  (file nil))
       (while (not (eobp))
 	(setq status-char (char-after))
-	(setq file 
+	(setq file
 	      (expand-file-name
-	       (buffer-substring-no-properties (+ (point) 2) 
+	       (buffer-substring-no-properties (+ (point) 2)
 					       (line-end-position))))
 	(cond
 	 ;; State flag for a clean file is now C, might change to =.
@@ -230,7 +230,7 @@
 
 (defun vc-hg-working-revision (file)
   "Hg-specific version of `vc-working-revision'."
-  (let* 
+  (let*
       ((status nil)
        (out
 	(with-output-to-string
@@ -264,7 +264,7 @@
   ;; If the buffer exists from a previous invocation it might be
   ;; read-only.
   (let ((inhibit-read-only t))
-    ;; We need to loop and call "hg log" on each file separately. 
+    ;; We need to loop and call "hg log" on each file separately.
     ;; "hg log" with multiple file arguments mashes all the logs
     ;; together.  Ironically enough, this puts us back near CVS
     ;; which can't generate proper fileset logs either.
@@ -293,8 +293,8 @@
 	   (1 'change-log-name)
 	   (2 'change-log-email))
 	  ;; Handle the cases:
-	  ;; user: foo@bar 
-	  ;; and 
+	  ;; user: foo@bar
+	  ;; and
 	  ;; user: foo
 	  ("^user:[ \t]+\\([A-Za-z0-9_.+-]+\\(?:@[A-Za-z0-9_.-]+\\)?\\)"
 	   (1 'change-log-email))
@@ -322,7 +322,7 @@
   (let ((default-directory (file-name-directory (car files))))
     (with-temp-buffer
       (vc-hg-command t nil files "log" "--template" "{rev} ")
-      (split-string 
+      (split-string
        (buffer-substring-no-properties (point-min) (point-max))))))
 
 ;; Modelled after the similar function in vc-cvs.el
@@ -366,7 +366,7 @@ Optional arg REVISION is a revision to annotate from."
 
 (defun vc-hg-next-revision (file rev)
   (let ((newrev (1+ (string-to-number rev)))
-	(tip-revision 
+	(tip-revision
 	 (with-temp-buffer
 	   (vc-hg-command t 0 nil "tip")
 	   (goto-char (point-min))
@@ -475,7 +475,7 @@ REV is the revision to check out into WORKFILE."
 
 (defun vc-hg-extra-menu () vc-hg-extra-menu-map)
 
-(defun vc-hg-extra-status-menu () 
+(defun vc-hg-extra-status-menu ()
   '(["Show incoming" vc-hg-incoming]
     ["Show outgoing" vc-hg-outgoing]))
 
@@ -500,8 +500,8 @@ REV is the revision to check out into WORKFILE."
       (goto-char (point-min))
       (while (not (eobp))
 	(setq status-char (char-after))
-	(setq file 
-	      (buffer-substring-no-properties (+ (point) 2) 
+	(setq file
+	      (buffer-substring-no-properties (+ (point) 2)
 					      (line-end-position)))
 	(setq translated (assoc status-char translation))
 	(when (and translated (not (eq (cdr translated) 'up-to-date)))
@@ -517,7 +517,7 @@ REV is the revision to check out into WORKFILE."
        (expand-file-name " *VC-hg* tmp status" dir))
     (erase-buffer)
     (vc-hg-command (current-buffer) 'async dir "status")
-    (vc-exec-after 
+    (vc-exec-after
      `(vc-hg-after-dir-status (quote ,update-function) ,status-buffer))))
 
 ;; XXX this adds another top level menu, instead figure out how to
@@ -553,7 +553,7 @@ REV is the revision to check out into WORKFILE."
   (interactive)
   (let ((marked-list (log-view-get-marked)))
     (if marked-list
-	(vc-hg-command 
+	(vc-hg-command
 	 nil 0 nil
 	 (cons "push"
 	       (apply 'nconc
@@ -564,7 +564,7 @@ REV is the revision to check out into WORKFILE."
   (interactive)
   (let ((marked-list (log-view-get-marked)))
     (if marked-list
-	(vc-hg-command 
+	(vc-hg-command
 	 nil 0 nil
 	 (cons "pull"
 	       (apply 'nconc
