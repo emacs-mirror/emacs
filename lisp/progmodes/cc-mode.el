@@ -767,8 +767,8 @@ Note that the style variables are always made local to the buffer."
 (make-variable-buffer-local 'c-old-EOM)
 
 (defun c-extend-region-for-CPP (beg end)
-  ;; If either BEG or END is inside a preprocessor (logical) line, set
-  ;; c-old-BOM or c-ole-EOM respectively to the beginning/end of the line.
+  ;; Set c-old-BOM or c-old-EOM respectively to BEG, END, each extended to the
+  ;; beginning/end of any preprocessor construct they may be in.
   ;;
   ;; Point is undefined both before and after this function call; the buffer
   ;; has already been widened, and match-data saved.  The return value is
@@ -782,9 +782,9 @@ Note that the style variables are always made local to the buffer."
   (setq c-old-BOM (point))
 
   (goto-char end)
-  (when (c-beginning-of-macro)
-    (c-end-of-macro)
-    (setq c-old-EOM (point))))
+  (if (c-beginning-of-macro)
+    (c-end-of-macro))
+  (setq c-old-EOM (point)))
 
 (defun c-neutralize-CPP-line (beg end)
   ;; BEG and END bound a preprocessor line.  Put a "punctuation" syntax-table
