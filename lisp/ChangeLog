@@ -1,3 +1,14 @@
+2008-02-20  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/latin1-disp.el (latin1-display): Don't use
+	ucs-mule-8859-to-mule-unicode.  Fix the way of resettting
+	standard-display-table.
+	(latin1-display-identities): Adjusted for the change of what is
+	returned by (get-language-info charset 'charset).
+
+	* international/mule-util.el (char-displayable-p): Fix for Latin-1
+	characters and terminal case.
+
 2008-02-19    Ken Manheimer  <ken.manheimer@gmail.com>
 	Minor Adaptions by Nick Roberts  <nickrob@snap.net.nz> for Emacs.
 
