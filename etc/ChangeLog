@@ -1,3 +1,7 @@
+2008-02-20  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* NEWS.unicode: Mention the removal of codepage related functions.
+
 2008-02-16  Glenn Morris  <rgm@gnu.org>
 
 	* nxml/test-invalid.xml, nxml/test-valid.xml: Move here from lisp/nxml.
