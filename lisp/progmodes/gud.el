@@ -139,7 +139,7 @@ Used to grey out relevant toolbar icons.")
 
 (easy-mmode-defmap gud-menu-map
   '(([help]     "Info" . gud-goto-info)
-    ([tooltips] menu-item "Toggle GUD tooltips" gud-tooltip-mode
+    ([tooltips] menu-item "Show GUD tooltips" gud-tooltip-mode
                   :enable (and (not emacs-basic-display)
 			       (display-graphic-p)
 			       (fboundp 'x-show-tip))
