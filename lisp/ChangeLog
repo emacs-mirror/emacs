@@ -1,3 +1,8 @@
+2008-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-autodetect): Add .exe extension to movemail
+	on Windows.
+
 2008-02-20  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/latin1-disp.el (latin1-display): Don't use
