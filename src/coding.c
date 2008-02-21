@@ -1711,7 +1711,7 @@ emacs_mule_char (coding, src, nbytes, nchars, id)
     {
       if (c >= 0xA0)
 	{
-	  /* Old style component character of a compostion.  */
+	  /* Old style component character of a composition.  */
 	  if (c == 0xA0)
 	    {
 	      ONE_MORE_BYTE (c);
