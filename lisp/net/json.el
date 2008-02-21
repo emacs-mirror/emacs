@@ -53,6 +53,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(require 'thingatpt)
 
 ;; Compatibility code
 
