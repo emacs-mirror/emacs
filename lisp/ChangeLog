@@ -14,6 +14,9 @@
 
 	* subr.el (sit-for): Fix obsolete form for nil second argument.
 
+	* textmodes/spell.el (spell-buffer, spell-word, spell-region)
+	(spell-string): Make obsolete, in favor of ispell.
+
 2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* composite.el (compose-chars-after): Fix arguments for a function
