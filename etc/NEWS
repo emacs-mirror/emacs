@@ -28,6 +28,13 @@ so we will look at it and add it to the manual.
 
 ** The default X toolkit is now Gtk+, rather than Lucid.
 
+** The new configuration option "--enable-font-backend" enables new code
+for handling fonts by multiple backends (the old font handling codes
+still exist).  This requires the freetype and fontconfig libraries, and
+supports local fonts (fonts installed on the machine where Emacs is running).
+Additionally, the Xft library can be used for antialiasing support.
+Fontconfig-like font names (e.g. monospace-12) are also accepted.
+
 ** The new configuration option "--with-dbus" enables D-Bus language
 bindings for Emacs.
 
@@ -81,11 +88,6 @@ compiled by Emacs 20, 21, or 22 are loaded correctly as emacs-mule
 them somewhat slower than Emacs 23-compiled files.  Thus it may be worth
 recompiling existing .elc files which don't need to be shared with older
 Emacsen.
-
-** Emacs now supports local fonts (fonts installed in the same machine
-as Emacs is running) using the freetype and fontconfig libraries.
-On X, antialias support is available via the Xft library.
-Fontconfig-like font names (e.g. monospace-12) are also accepted.
 
 ** There are assorted new coding systems/aliases -- see M-x list-coding-systems.
 
@@ -746,7 +748,15 @@ Composition Mode locally and globally.
 Auto Composition Mode to compose characters.  The default value is the
 function `auto-compose-chars'.
 
-** Font Backend changes.
+** Changes related to the new font backend.
+
+Which font backends to use can be specified by X resource "FontBackend".
+For instance, if you want to use Xft fonts only,
+
+Emacs.FontBackend: xft
+
+will work.  If this resource is not set, Emacs tries to use all font
+backends available on your graphic device.
 
 *** New frame parameter `font-backend' specifies a list of
 font-backends supported by the frame's graphic device.  On X, they are
