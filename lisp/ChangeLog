@@ -1,3 +1,7 @@
+2008-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* subr.el (sit-for): Fix obsolete form for nil second argument.
+
 2008-02-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/verilog-mode.el (eval-when-compile): Don't define
