@@ -1,3 +1,20 @@
+2008-02-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (eval-when-compile): Don't define
+	add-submenu.
+	(verilog-xemacs-menu): Add :keys for C-M-a, C-M-e and C-M-h.
+	Remove.  Move contents to the only use ...
+	(verilog-menu): ... here.
+	(verilog-statement-menu): Remove.  Move contents to the only use ...
+	(verilog-stmt-menu): ... here.
+	(verilog-mark-defun): Simply call mark-defun for emacs.
+	(occur-pos-list): Declare for byte compiler.
+	(mode-popup-menu): Don't defvar.
+	(verilog-add-statement-menu): Remove.
+	(verilog-mode-hook): Don't add verilog-add-statement-menu.
+	(verilog-mode): Call easy-menu-add and set mode-popup-menu for
+	XEmacs.
+
 2008-02-21  Michael McNamara  <mac@mail.brushroad.com>
 
 	* progmodes/verilog-mode.el (verilog-xemacs-menu): Remove XEmacs

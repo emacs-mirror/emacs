@@ -161,13 +161,6 @@
           (defmacro store-match-data (&rest args) nil))
       (error nil))
     (condition-case nil
-        (if (boundp 'current-menubar)
-            nil ;; great
-          (progn
-            (defmacro add-submenu (&rest args) nil))
-          )
-      (error nil))
-    (condition-case nil
         (if (fboundp 'char-before)
             nil ;; great
           (defmacro char-before (&rest body)
@@ -957,7 +950,8 @@ If set will become buffer local.")
   "Keymap used in Verilog mode.")
 
 ;; menus
-(defvar verilog-xemacs-menu
+(easy-menu-define
+  verilog-menu verilog-mode-map "Menu for Verilog mode"
   `("Verilog"
     ("Choose Compilation Action"
      ["None"
@@ -992,9 +986,12 @@ If set will become buffer local.")
       :selected (equal verilog-tool `verilog-compiler)]
      )
     ("Move"
-     ["Beginning of function"           verilog-beg-of-defun t]
-     ["End of function"                 verilog-end-of-defun t]
-     ["Mark function"                   verilog-mark-defun t]
+     ["Beginning of function"           verilog-beg-of-defun
+      :keys "C-M-a"]
+     ["End of function"                 verilog-end-of-defun
+      :keys "C-M-e"]
+     ["Mark function"                   verilog-mark-defun
+      :keys "C-M-h"]
      ["Goto function/module"		verilog-goto-defun t]
      ["Move to beginning of block"	electric-verilog-backward-sexp t]
      ["Move to end of block"		electric-verilog-forward-sexp t]
@@ -1051,11 +1048,10 @@ If set will become buffer local.")
     ["Submit bug report"		verilog-submit-bug-report t]
     ["Version and FAQ"			verilog-faq t]
     ["Customize Verilog Mode..."	verilog-customize t]
-    ["Customize Verilog Fonts & Colors"	verilog-font-customize t]
-    )
-  "Emacs menu for Verilog mode."
-  )
-(defvar verilog-statement-menu
+    ["Customize Verilog Fonts & Colors"	verilog-font-customize t]))
+
+(easy-menu-define
+  verilog-stmt-menu verilog-mode-map "Menu for statement templates in Verilog."
   '("Statements"
     ["Header"		verilog-sk-header  t]
     ["Comment"		verilog-sk-comment t]
@@ -1086,14 +1082,7 @@ If set will become buffer local.")
     ["Repeat"		verilog-sk-repeat t]
     ["Case"		verilog-sk-case t]
     ["Casex"		verilog-sk-casex t]
-    ["Casez"		verilog-sk-casez t]
-    )
-  "Menu for statement templates in Verilog.")
-
-(easy-menu-define verilog-menu verilog-mode-map "Menu for Verilog mode"
-		  verilog-xemacs-menu)
-(easy-menu-define verilog-stmt-menu verilog-mode-map "Menu for statement templates in Verilog."
-		  verilog-statement-menu)
+    ["Casez"		verilog-sk-casez t]))
 
 (defvar verilog-mode-abbrev-table nil
   "Abbrev table in use in Verilog-mode buffers.")
@@ -2375,11 +2364,9 @@ Key bindings specific to `verilog-mode-map' are:
 
   ;; Setting up menus
   (when (featurep 'xemacs)
-    (when (and current-menubar
-	       (not (assoc "Verilog" current-menubar)))
-      ;; (set-buffer-menubar (copy-sequence current-menubar))
-      (add-submenu nil verilog-xemacs-menu)
-      (add-submenu nil verilog-stmt-menu)))
+    (easy-menu-add verilog-stmt-menu)
+    (easy-menu-add verilog-menu)
+    (setq mode-popup-menu (cons "Verilog Mode" verilog-stmt-menu)))
 
   ;; Stuff for GNU emacs
   (set (make-local-variable 'font-lock-defaults)
@@ -2673,13 +2660,15 @@ following code fragment:
   "Mark the current Verilog function (or procedure).
 This puts the mark at the end, and point at the beginning."
   (interactive)
-  (when (featurep 'xemacs)
-    (push-mark (point))
-    (verilog-end-of-defun)
-    (push-mark (point))
-    (verilog-beg-of-defun)
-    (if (fboundp 'zmacs-activate-region)
-	(zmacs-activate-region))))
+  (if (featurep 'xemacs)
+      (progn
+	(push-mark (point))
+	(verilog-end-of-defun)
+	(push-mark (point))
+	(verilog-beg-of-defun)
+	(if (fboundp 'zmacs-activate-region)
+	    (zmacs-activate-region)))
+    (mark-defun)))
 
 (defun verilog-comment-region (start end)
   ; checkdoc-params: (start end)
@@ -5510,9 +5499,7 @@ If search fails, other files are checked based on
 	(verilog-goto-defun-file label))))
 
 ;; Eliminate compile warning
-(eval-when-compile
-  (if (not (boundp 'occur-pos-list))
-      (defvar occur-pos-list nil "Backward compatibility occur positions.")))
+(defvar occur-pos-list)
 
 (defun verilog-showscopes ()
   "List all scopes in this module."
@@ -9869,23 +9856,6 @@ and the case items."
   > ("case selector: " str ": begin" \n > "next_" verilog-sk-state " = " _ ";" \n > (- verilog-indent-level-behavioral) "end" \n )
   resume: >  (- verilog-case-indent) "endcase" (progn (electric-verilog-terminate-line) nil)
   > (- verilog-indent-level-behavioral) "end" (progn (electric-verilog-terminate-line) nil))
-
-;; Eliminate compile warning
-(eval-when-compile
-  (if (not (boundp 'mode-popup-menu))
-      (defvar mode-popup-menu nil "Compatibility with XEmacs.")))
-
-;; ---- add menu 'Statements' in Verilog mode (MH)
-(defun verilog-add-statement-menu ()
-  "Add the menu 'Statements' to the menu bar in Verilog mode."
-  (if (featurep 'xemacs)
-      (progn
-	(easy-menu-add verilog-stmt-menu)
-	(easy-menu-add verilog-menu)
-	(setq mode-popup-menu (cons "Verilog Mode" verilog-stmt-menu)))))
-
-(add-hook 'verilog-mode-hook 'verilog-add-statement-menu)
-
 
 
 ;;
