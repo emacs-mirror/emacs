@@ -349,6 +349,9 @@ if there is one (e.g. go from ChangeLog to ChangeLog.12).
 
 This is enabled if isearch-buffers-multi is non-nil.
 
+*** The part of an isearch that failed to match is highlighted in `isearch-fail'
+face.
+
 ** smerge-refine highlights word-level details of changes in conflict.
 It's used automatically as you move through conflicts, see smerge-auto-refine.
 
@@ -461,6 +464,11 @@ file copy is checked via the file's checksum.
 
 *** The file etc/emacs.py now supports both Python 2 and 3, meaning
 that either version can be used as inferior Python by python.el.
+
+*** Python mode now has `pdbtrack' functionality.  When using pdb to
+debug a Python program, pdbtrack notices the pdb prompt and displays
+the source file and line that the program is stopped at, much the same
+way as gud-mode does for debugging C programs with gdb.
 
 *** The variable `fortran-line-length' can change the fixed-form line-length.
 
