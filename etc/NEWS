@@ -757,13 +757,13 @@ function `auto-compose-chars'.
 
 ** Changes related to the new font backend.
 
-Which font backends to use can be specified by X resource "FontBackend".
-For instance, if you want to use Xft fonts only,
+Which font backends to use can be specified by the X resource "FontBackend".
+For instance, to use both X core fonts and Xft fonts:
 
-Emacs.FontBackend: xft
+Emacs.FontBackend: x,xft
 
-will work.  If this resource is not set, Emacs tries to use all font
-backends available on your graphic device.
+If this resource is not set, Emacs tries to use all font backends
+available on your graphic device.
 
 *** New frame parameter `font-backend' specifies a list of
 font-backends supported by the frame's graphic device.  On X, they are
