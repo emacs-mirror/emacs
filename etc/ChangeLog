@@ -1,3 +1,9 @@
+2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* NEWS: Improve the description about the removal of
+	cp-...-codepage functions.  Describe the removal of the feature
+	`devan-util'.
+
 2008-02-21  Glenn Morris  <rgm@gnu.org>
 
 	* NEWS.unicode: Merge into NEWS and remove file.
