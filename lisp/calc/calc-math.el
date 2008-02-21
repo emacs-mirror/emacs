@@ -1074,7 +1074,7 @@ If this can't be done, return NIL."
 	(t (calc-record-why 'scalarp x)
 	   (list 'calcFunc-cot x))))
 
-(defun math-sin-raw (x)   ; [N N]
+(defun math-sin-raw (x &optional orgx)   ; [N N]
   (cond ((eq (car x) 'cplx)
 	 (let* ((expx (math-exp-raw (nth 2 x)))
 		(expmx (math-div-float '(float 1 0) expx))
@@ -1089,15 +1089,15 @@ If this can't be done, return NIL."
 	((eq (car x) 'polar)
 	 (math-polar (math-sin-raw (math-complex x))))
 	((Math-integer-negp (nth 1 x))
-	 (math-neg-float (math-sin-raw (math-neg-float x))))
+	 (math-neg-float (math-sin-raw (math-neg-float x) (if orgx orgx x))))
 	((math-lessp-float '(float 7 0) x)  ; avoid inf loops due to roundoff
-	 (math-sin-raw (math-mod x (math-two-pi))))
-	(t (math-sin-raw-2 x x))))
+	 (math-sin-raw (math-mod x (math-two-pi)) (if orgx orgx x)))
+	(t (math-sin-raw-2 x (if orgx orgx x)))))
 
 (defun math-cos-raw (x)   ; [N N]
   (if (eq (car-safe x) 'polar)
       (math-polar (math-cos-raw (math-complex x)))
-    (math-sin-raw (math-sub (math-pi-over-2) x))))
+    (math-sin-raw (math-sub (math-pi-over-2) x) x)))
 
 (defun math-sec-raw (x)   ; [N N]
   (cond ((eq (car x) 'cplx)
@@ -1216,13 +1216,15 @@ If this can't be done, return NIL."
 	   (math-cos-raw-2 xmpo2 orgx))
 	  ((math-lessp-float x (math-neg (math-pi-over-4)))
 	   (math-neg (math-cos-raw-2 (math-add (math-pi-over-2) x) orgx)))
-	  ((math-nearly-zerop-float x orgx) '(float 0 0))
+	  ((math-with-extra-prec -1 (math-nearly-zerop-float x orgx)) 
+           '(float 0 0))
           ((math-use-emacs-fn 'sin x))
 	  (calc-symbolic-mode (signal 'inexact-result nil))
 	  (t (math-sin-series x 6 4 x (math-neg-float (math-sqr-float x)))))))
 
 (defun math-cos-raw-2 (x orgx)   ; [F F]
-  (cond ((math-nearly-zerop-float x orgx) '(float 1 0))
+  (cond ((math-with-extra-prec -1 (math-nearly-zerop-float x orgx))
+         '(float 1 0))
         ((math-use-emacs-fn 'cos x))
 	(calc-symbolic-mode (signal 'inexact-result nil))
 	(t (let ((xnegsqr (math-neg-float (math-sqr-float x))))
