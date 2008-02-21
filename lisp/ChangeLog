@@ -2001,7 +2001,7 @@
 	category `|'.
 
 	* descr-text.el (describe-char): Make it work on *Help* buffer.
-	Suppress auto-compostion on a region describing about composition.
+	Suppress auto-composition on a region describing about composition.
 
 	* language/european.el (diacritic-compose-region)
 	(diacritic-compose-string, diacritic-composition-function):
