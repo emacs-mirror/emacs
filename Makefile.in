@@ -414,6 +414,13 @@ install-arch-dep: mkdir
 			&& cat > /dev/null))) || exit 1; \
 	fi
 
+## http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01672.html
+## Needs to be the user running install, so configure can't set it.
+set_installuser=for installuser in $${LOGNAME} $${USERNAME} $${USER} \
+	  `id -un 2> /dev/null`; do \
+	  [ -n "$${installuser}" ] && break ; \
+	done
+
 ### Install the files that are machine-independent.
 ### Most of them come straight from the distribution;
 ### the exception is the DOC-* files, which are copied
@@ -431,11 +438,6 @@ install-arch-dep: mkdir
 ## Note that the Makefiles in the etc directory are potentially useful
 ## in an installed Emacs, so should not be excluded.
 
-## installuser:
-## http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg01672.html
-## Nuisance because i) it needs to be the user running install, so
-## configure can't set it; ii) can't (?) use the result of rule
-## commands to set make variables.
 install-arch-indep: mkdir info install-etc
 	-set ${COPYDESTS} ; \
 	unset CDPATH; \
@@ -449,10 +451,7 @@ install-arch-indep: mkdir info install-etc
 	mkdir ${COPYDESTS} ; \
 	chmod ugo+rx ${COPYDESTS} ; \
 	unset CDPATH; \
-	for installuser in $${LOGNAME} $${USERNAME} $${USER} \
-	  `id -un 2> /dev/null`; do \
-	  [ -n "$${installuser}" ] && break ; \
-	done ; \
+	$(set_installuser); \
 	for dir in ${COPYDIR} ; do \
 	  dest=$$1 ; shift ; \
 	  [ -d $${dir} ] \
@@ -510,10 +509,7 @@ install-arch-indep: mkdir info install-etc
 	   (cd ./etc; tar -chf - $${docfile}) \
 	     |(cd $(DESTDIR)${docdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
 	   (cd $(DESTDIR)$(docdir); \
-	    for installuser in $${LOGNAME} $${USERNAME} $${USER} \
-	      `id -un 2> /dev/null`; do \
-	       [ -n "$${installuser}" ] && break ; \
-	    done ; \
+	    $(set_installuser); \
 	    chown $${installuser} DOC*; chmod a+r DOC*; \
 	    if test "`echo DOC-*`" != "DOC-*"; then rm -f DOC; fi); \
 	else true; fi
@@ -527,10 +523,7 @@ install-arch-indep: mkdir info install-etc
 	   (cd lisp; tar -chf - *.el *.elc) \
 	     |(cd $(DESTDIR)${lispdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
 	   (cd $(DESTDIR)${lispdir}; \
-	    for installuser in $${LOGNAME} $${USERNAME} $${USER} \
-	      `id -un 2> /dev/null`; do \
-	       [ -n "$${installuser}" ] && break ; \
-	    done ; \
+	    $(set_installuser); \
 	    find . -exec chown $${installuser} {} ';') ; \
 	else true; fi
 	-unset CDPATH; \
