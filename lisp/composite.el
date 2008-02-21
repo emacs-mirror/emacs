@@ -326,42 +326,42 @@ WIDTH is a number of columns the composition occupies on the screen."
 (defun compose-chars-after (pos &optional limit object)
   "Compose characters in current buffer after position POS.
 
-It looks up the char-table `composition-function-table' (which see) by
-a character after POS.  If non-nil value is found, the format of the
-value should be an alist of PATTERNs vs FUNCs, where PATTERNs are
-regular expressions and FUNCs are functions.  If the text after POS
-matches one of PATTERNs, call the corresponding FUNC with three
-arguments POS, TO, and PATTERN, where TO is the end position of text
-matching PATTERN, and return what FUNC returns.  Otherwise, return
-nil.
+It looks up the char-table `composition-function-table' (which
+see) by a character at POS, and compose characters after POS
+according to the contents of `composition-function-table'.
 
-FUNC is responsible for composing the text properly.  The return value
-is:
-  nil -- if no characters were composed.
-  CHARS (integer) -- if CHARS characters were composed.
-
-Optional 2nd arg LIMIT, if non-nil, limits the matching of text.
+Optional 2nd arg LIMIT, if non-nil, limits characters to compose.
 
 Optional 3rd arg OBJECT, if non-nil, is a string that contains the
 text to compose.  In that case, POS and LIMIT index into the string.
 
 This function is the default value of `compose-chars-after-function'."
   (let ((tail (aref composition-function-table (char-after pos)))
+	(font-obj (and (display-multi-font-p)
+		       (and (not (stringp object))
+			    (font-at pos (selected-window)))))
 	pattern func result)
+    (or limit
+	(setq limit (if (stringp object) (length object) (point-max))))
     (when tail
       (save-match-data
 	(save-excursion
-	  (while (and tail (not func))
-	    (setq pattern (car (car tail))
-		  func (cdr (car tail)))
+	  (while tail
+	    (if (functionp (car tail))
+		(setq pattern nil func (car tail))
+	      (setq pattern (car (car tail))
+		    func (cdr (car tail))))
 	    (goto-char pos)
-	    (if (if limit
-		    (and (re-search-forward pattern limit t)
-			 (= (match-beginning 0) pos))
-		  (looking-at pattern))
-		(setq result (funcall func pos (match-end 0) pattern nil))
-	      (setq func nil tail (cdr tail)))))))
-      result))
+	    (if pattern
+		(if (and (if (stringp object)
+			     (eq (string-match pattern object) 0)
+			   (looking-at pattern))
+			 (<= (match-end 0) limit))
+		    (setq result
+			  (funcall func pos (match-end 0) font-obj object)))
+	      (setq result (funcall func pos limit font-obj  object)))
+	    (if result (setq tail nil))))))
+    result))
 
 (defun compose-last-chars (args)
   "Compose last characters.
@@ -406,17 +406,16 @@ and STRING.
 If STRING is nil, FROM and TO are positions specifying the region
 maching with PATTERN in the current buffer, and the function has
 to compose character in that region (possibly with characters
-preceding FROM).  The return value of the function is the end
-position where characters are composed.
+preceding FROM).  FONT-OBJECT may be nil if not
+available (e.g. for the case of terminal).  The return value of
+the function is the end position where characters are composed,
+or nil if no compostion is made.
 
 Otherwise, STRING is a string, and FROM and TO are indices into
 the string.  In this case, the function has to compose a
-character in the string.
+character in the string.  The others are the same as above.
 
-FONT-OBJECT may be nil if not available (e.g. for the case of
-terminal).
-
-See also the command `toggle-auto-composition'.")
+See also the documentation of `auto-composition-mode'.")
 
 ;; Copied from font-lock.el.
 (eval-when-compile
@@ -659,9 +658,11 @@ With arg, enable it iff arg is positive."
 	      (setq stop (next-single-property-change (point)
 						      'auto-composed nil to)))
 	  (let ((func (aref composition-function-table (following-char)))
+		(font-obj (and (display-multi-font-p)
+			       (font-at (point) (selected-window))))
 		(pos (point)))
 	    (if (functionp func)
-		(goto-char (funcall func (point) nil)))
+		(goto-char (funcall func (point) to font-obj nil)))
 	    (if (<= (point) pos)
 		(forward-char 1)))))
       (put-text-property from to 'auto-composed t)
