@@ -32,6 +32,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'time-date))
+
 (defgroup display-time nil
   "Display time and load in mode line of Emacs."
   :group 'mode-line
