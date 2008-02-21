@@ -1,3 +1,8 @@
+2008-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* README.unicode: Split into admin/notes/unicode,font-backend and
+	remove.
+
 2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (LIBX11_MACHINE, HAVE_XFREE386): Remove code
