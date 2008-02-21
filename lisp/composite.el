@@ -106,7 +106,7 @@ RULE is a cons of global and new reference point symbols
 		      nref (car nref))
 		(or (and (>= xoff -100) (<= xoff 100)
 			 (>= yoff -100) (<= yoff 100))
-		    (error "Invalid compostion rule: %s" rule))
+		    (error "Invalid composition rule: %s" rule))
 		(setq xoff (+ xoff 128) yoff (+ yoff 128)))
 	    ;; (GREF . NREF)
 	    (setq xoff 0 yoff 0))
@@ -404,12 +404,12 @@ Each function is called with 4 arguments, FROM, TO, FONT-OBJECT,
 and STRING.
 
 If STRING is nil, FROM and TO are positions specifying the region
-maching with PATTERN in the current buffer, and the function has
+matching with PATTERN in the current buffer, and the function has
 to compose character in that region (possibly with characters
 preceding FROM).  FONT-OBJECT may be nil if not
 available (e.g. for the case of terminal).  The return value of
 the function is the end position where characters are composed,
-or nil if no compostion is made.
+or nil if no composition is made.
 
 Otherwise, STRING is a string, and FROM and TO are indices into
 the string.  In this case, the function has to compose a
@@ -541,15 +541,15 @@ This function is the default value of `auto-composition-function' (which see)."
 
 ;;;###autoload
 (define-minor-mode auto-composition-mode
-  "Toggle Auto Compostion mode.
-With arg, turn Auto Compostion mode off if and only if arg is a non-positive
-number; if arg is nil, toggle Auto Compostion mode; anything else turns Auto
-Compostion on.
+  "Toggle Auto Composition mode.
+With ARG, turn Auto Composition mode off if and only if ARG is a non-positive
+number; if ARG is nil, toggle Auto Composition mode; anything else turns Auto
+Composition on.
 
 When Auto Composition is enabled, text characters are automatically composed
 by functions registered in `composition-function-table' (which see).
 
-You can use Global Auto Composition mode to automagically turn on
+You can use `global-auto-composition-mode' to turn on
 Auto Composition mode in all buffers (this is the default)."
   nil nil nil
   (if noninteractive
