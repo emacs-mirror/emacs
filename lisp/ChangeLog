@@ -4,6 +4,8 @@
 	JavaScript Object Notation parser / generator.  Replace XEmacs
 	compatibility code to get rid of compiler warnings.
 
+	* time.el: Fix compiler warning.
+
 2008-02-21  Dave Love  <fx@gnu.org>
 
 	* progmodes/sym-comp.el: New file.
