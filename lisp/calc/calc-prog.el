@@ -165,7 +165,7 @@
 (defvar math-integral-cache-state)
 
 ;; calc-user-formula-alist is local to calc-user-define-formula,
-;; calc-user-define-compostion and calc-finish-formula-edit,
+;; calc-user-define-composition and calc-finish-formula-edit,
 ;; but is used by calc-fix-user-formula.
 (defvar calc-user-formula-alist)
 
