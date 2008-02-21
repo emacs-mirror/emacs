@@ -917,7 +917,8 @@ static int display_mode_lines P_ ((struct window *));
 static int display_mode_line P_ ((struct window *, enum face_id, Lisp_Object));
 static int display_mode_element P_ ((struct it *, int, int, int, Lisp_Object, Lisp_Object, int));
 static int store_mode_line_string P_ ((char *, Lisp_Object, int, int, int, Lisp_Object));
-static char *decode_mode_spec P_ ((struct window *, int, int, int, int *));
+static char *decode_mode_spec P_ ((struct window *, int, int, int, int *,
+				   Lisp_Object *));
 static void display_menu_bar P_ ((struct window *));
 static int display_count_lines P_ ((int, int, int, int, int *));
 static int display_string P_ ((unsigned char *, Lisp_Object, Lisp_Object,
@@ -17234,14 +17235,14 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		    int multibyte;
 		    int bytepos, charpos;
 		    unsigned char *spec;
+		    Lisp_Object string;
 
 		    bytepos = percent_position;
 		    charpos = (STRING_MULTIBYTE (elt)
 			       ? string_byte_to_char (elt, bytepos)
 			       : bytepos);
-
-		    spec
-		      = decode_mode_spec (it->w, c, field, prec, &multibyte);
+		    spec = decode_mode_spec (it->w, c, field, prec, &multibyte,
+					     &string);
 
 		    switch (mode_line_target)
 		      {
@@ -17251,8 +17252,11 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 			break;
 		      case MODE_LINE_STRING:
 			{
-			  int len = strlen (spec);
-			  Lisp_Object tem = make_string (spec, len);
+			  if (NILP (string))
+			    {
+			      int len = strlen (spec);
+			      string = make_string (spec, len);
+			    }
 			  props = Ftext_properties_at (make_number (charpos), elt);
 			  /* Should only keep face property in props */
 			  n += store_mode_line_string (NULL, tem, 0, field, prec, props);
@@ -17262,8 +17266,10 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 			{
 			  int nglyphs_before, nwritten;
 
+			  if (STRINGP (string))
+			    spec = NULL;
 			  nglyphs_before = it->glyph_row->used[TEXT_AREA];
-			  nwritten = display_string (spec, Qnil, elt,
+			  nwritten = display_string (spec, string, elt,
 						     charpos, 0, it,
 						     field, prec, 0,
 						     multibyte);
@@ -17927,18 +17933,19 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 static char lots_of_dashes[] = "--------------------------------------------------------------------------------------------------------------------------------------------";
 
 static char *
-decode_mode_spec (w, c, field_width, precision, multibyte)
+decode_mode_spec (w, c, field_width, precision, multibyte, string)
      struct window *w;
      register int c;
      int field_width, precision;
      int *multibyte;
+     Lisp_Object *string;
 {
   Lisp_Object obj;
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   char *decode_mode_spec_buf = f->decode_mode_spec_buffer;
   struct buffer *b = current_buffer;
 
-  obj = Qnil;
+  *string = obj = Qnil;
   *multibyte = 0;
 
   switch (c)
@@ -18331,6 +18338,7 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
   if (STRINGP (obj))
     {
       *multibyte = STRING_MULTIBYTE (obj);
+      *string = obj;
       return (char *) SDATA (obj);
     }
   else
