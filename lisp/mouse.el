@@ -152,18 +152,33 @@ PREFIX is the prefix argument (if any) to pass to the command."
       (call-interactively cmd))))
 
 (defun minor-mode-menu-from-indicator (indicator)
-  "Show menu, if any, for minor mode specified by INDICATOR.
-Interactively, INDICATOR is read using completion."
-  (interactive (list (completing-read "Minor mode indicator: "
-                                      (describe-minor-mode-completion-table-for-indicator))))
+  "Show menu for minor mode specified by INDICATOR.
+Interactively, INDICATOR is read using completion.
+If there is no menu defined for the minor mode, then create one with
+items `Turn Off' and `Help'."
+  (interactive
+   (list (completing-read 
+	  "Minor mode indicator: "
+	  (describe-minor-mode-completion-table-for-indicator))))
   (let ((minor-mode (lookup-minor-mode-from-indicator indicator)))
-    (if minor-mode
-        (let* ((map (cdr-safe (assq minor-mode minor-mode-map-alist)))
-               (menu (and (keymapp map) (lookup-key map [menu-bar]))))
-          (if menu
-              (popup-menu menu)
-            (message "No menu for minor mode `%s'" minor-mode)))
-      (error "Cannot find minor mode for `%s'" indicator))))
+    (unless minor-mode (error "Cannot find minor mode for `%s'" indicator))
+    (let* ((map (cdr-safe (assq minor-mode minor-mode-map-alist)))
+           (menu (and (keymapp map) (lookup-key map [menu-bar]))))
+      (unless menu
+        (setq menu 
+	      `(keymap
+		(,(intern indicator) ,indicator
+		 keymap
+		 (turn-off menu-item "Turn Off minor mode"
+			   (lambda ()
+			     (interactive)
+			     (,minor-mode -1)
+			     (message ,(format "`%S' turned OFF" minor-mode))))
+		 (help menu-item "Help for minor mode"
+		       (lambda () (interactive) 
+			 (describe-function
+			  ',minor-mode)))))))
+      (popup-menu menu))))
 
 (defun mouse-minor-mode-menu (event)
   "Show minor-mode menu for EVENT on minor modes area of the mode line."
