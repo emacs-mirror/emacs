@@ -2684,9 +2684,9 @@ With prefix arg READ-SWITCHES, specify a value to override
   (let ((map (make-keymap)))
     (suppress-keymap map)
     ;; Marking.
-    (define-key map "m" 'vc-status-mark-file)
+    (define-key map "m" 'vc-status-mark)
     (define-key map "M" 'vc-status-mark-all-files)
-    (define-key map "u" 'vc-status-unmark-file)
+    (define-key map "u" 'vc-status-unmark)
     (define-key map "\C-?" 'vc-status-unmark-file-up)
     (define-key map "\M-\C-?" 'vc-status-unmark-all-files)
     ;; Movement.
@@ -2754,11 +2754,11 @@ With prefix arg READ-SWITCHES, specify a value to override
      :help "Go to the previous line"]
     "----"
     ;; Marking.
-    ["Mark" vc-status-mark-file
+    ["Mark" vc-status-mark
      :help "Mark the current file and move to the next line"]
     ["Marl All" vc-status-mark-all-files
      :help "Mark all files"]
-    ["Unmark" vc-status-unmark-file
+    ["Unmark" vc-status-unmark
      :help "Unmark the current file and move to the next line"]
     ["Unmark previous " vc-status-unmark-file-up
      :help "Move to the previous line and unmark the file"]
@@ -2828,14 +2828,31 @@ If a prefix argument is given, move by that many lines."
   (ewoc-goto-prev vc-status arg)
   (vc-status-move-to-goal-column))
 
+(defun vc-status-mark-unmark (mark-unmark-function)
+  (if (use-region-p)
+      (let ((firstl (line-number-at-pos (region-beginning)))
+	    (lastl (line-number-at-pos (region-end))))
+	(save-excursion
+	  (goto-char (region-beginning))
+	  (while (<= (line-number-at-pos) lastl)
+	    (funcall mark-unmark-function))))
+    (funcall mark-unmark-function)))
+
 (defun vc-status-mark-file ()
-  "Mark the current file and move to the next line."
-  (interactive)
+  ;; Mark the current file and move to the next line.
   (let* ((crt (ewoc-locate vc-status))
          (file (ewoc-data crt)))
     (setf (vc-status-fileinfo->marked file) t)
     (ewoc-invalidate vc-status crt)
     (vc-status-next-line 1)))
+
+(defun vc-status-mark ()
+  "Mark the current file or all files in the region.
+If the region is active, mark all the files in the region.
+Otherwise mark the file on the current line and move to the next
+line."
+  (interactive)
+  (vc-status-mark-unmark 'vc-status-mark-file))
 
 (defun vc-status-mark-all-files ()
   "Mark all files."
@@ -2848,13 +2865,20 @@ If a prefix argument is given, move by that many lines."
     vc-status))
 
 (defun vc-status-unmark-file ()
-  "Unmark the current file and move to the next line."
-  (interactive)
+  ;; Unmark the current file and move to the next line.
   (let* ((crt (ewoc-locate vc-status))
          (file (ewoc-data crt)))
     (setf (vc-status-fileinfo->marked file) nil)
     (ewoc-invalidate vc-status crt)
     (vc-status-next-line 1)))
+
+(defun vc-status-unmark ()
+  "Unmark the current file or all files in the region.
+If the region is active, unmark all the files in the region.
+Otherwise mark the file on the current line and move to the next
+line."
+  (interactive)
+  (vc-status-mark-unmark 'vc-status-unmark-file))
 
 (defun vc-status-unmark-file-up ()
   "Move to the previous line and unmark the file."
