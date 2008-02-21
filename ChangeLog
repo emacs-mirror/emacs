@@ -1,5 +1,8 @@
 2008-02-21  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (set_installuser): New.
+	(install-arch-indep): Use set_installuser to avoid duplicate code.
+
 	* README.unicode: Split into admin/notes/unicode,font-backend and
 	remove.
 
