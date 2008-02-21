@@ -303,11 +303,13 @@ same host, based on messages.  See the manual for further details.
 GnuPG interface which includes GnuPG keyring browser, cryptographic
 operations on regions and files, and automatic encryption of *.gpg
 files.  See the EasyPG Assistant User's Manual for further details.
+
+** Auto Composition Mode is a minor mode that composes characters
+automatically when they are displayed.  It is globally on by default.
+It uses `auto-composition-function' (default `auto-compose-chars').
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
-
-** New minor mode Auto Composition Mode composes characters automatically
-when they are displayed.  This mode is globally on by default.
 
 ** ChangeLog now has function bound to C-c C-f that finds the file in
 the current log entry.
@@ -744,16 +746,6 @@ robin rule can hold the original ASCII sequence as a char-code-property)
 
 *** The new function `robin-use-package' starts using a Robin package
 as an input method.
-
-** Composition changes.
-
-*** New functions and variables `auto-composition-mode' and
-`global-auto-composition-mode' toggles the new minor mode Auto
-Composition Mode locally and globally.
-
-*** New variable `auto-composition-function' is a function used in
-Auto Composition Mode to compose characters.  The default value is the
-function `auto-compose-chars'.
 
 ** Changes related to the new font backend.
 
