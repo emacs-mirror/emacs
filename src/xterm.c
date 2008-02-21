@@ -8103,25 +8103,23 @@ x_connection_closed (dpy, error_message)
      OpenWindows in certain situations.  I suspect that is a bug
      in OpenWindows.  I don't know how to circumvent it here.  */
 
-#ifdef USE_X_TOOLKIT
-  /* If DPYINFO is null, this means we didn't open the display
-     in the first place, so don't try to close it.  */
   if (dpyinfo)
     {
-      extern void (*fatal_error_signal_hook) P_ ((void));
-      fatal_error_signal_hook = x_fatal_error_signal;
-      XtCloseDisplay (dpy);
-      fatal_error_signal_hook = NULL;
-    }
+#ifdef USE_X_TOOLKIT
+      /* If DPYINFO is null, this means we didn't open the display
+	 in the first place, so don't try to close it.  */
+      {
+	extern void (*fatal_error_signal_hook) P_ ((void));
+	fatal_error_signal_hook = x_fatal_error_signal;
+	XtCloseDisplay (dpy);
+	fatal_error_signal_hook = NULL;
+      }
 #endif
 
 #ifdef USE_GTK
-  if (dpyinfo)
-    xg_display_close (dpyinfo->display);
+      xg_display_close (dpyinfo->display);
 #endif
 
-  if (dpyinfo)
-    {
       /* Indicate that this display is dead.  */
       dpyinfo->display = 0;
 
@@ -11834,30 +11832,35 @@ x_delete_terminal (struct terminal *terminal)
     return;
 
   BLOCK_INPUT;
+  /* If called from x_connection_closed, the display may already be closed
+     and dpyinfo->display was set to 0 to indicate that.  */
+  if (dpyinfo->display)
+    {
 #ifdef USE_FONT_BACKEND
-  if (enable_font_backend)
-    XFreeFont (dpyinfo->display, dpyinfo->font);
-  else
+      if (enable_font_backend)
+	XFreeFont (dpyinfo->display, dpyinfo->font);
+      else
 #endif
-  /* Free the fonts in the font table.  */
-  for (i = 0; i < dpyinfo->n_fonts; i++)
-    if (dpyinfo->font_table[i].name)
-      {
-	XFreeFont (dpyinfo->display, dpyinfo->font_table[i].font);
-      }
+	/* Free the fonts in the font table.  */
+	for (i = 0; i < dpyinfo->n_fonts; i++)
+	  if (dpyinfo->font_table[i].name)
+	    {
+	      XFreeFont (dpyinfo->display, dpyinfo->font_table[i].font);
+	    }
 
-  x_destroy_all_bitmaps (dpyinfo);
-  XSetCloseDownMode (dpyinfo->display, DestroyAll);
+      x_destroy_all_bitmaps (dpyinfo);
+      XSetCloseDownMode (dpyinfo->display, DestroyAll);
 
 #ifdef USE_GTK
-  xg_display_close (dpyinfo->display);
+      xg_display_close (dpyinfo->display);
 #else
 #ifdef USE_X_TOOLKIT
-  XtCloseDisplay (dpyinfo->display);
+      XtCloseDisplay (dpyinfo->display);
 #else
-  XCloseDisplay (dpyinfo->display);
+      XCloseDisplay (dpyinfo->display);
 #endif
 #endif /* ! USE_GTK */
+    }
 
   x_delete_display (dpyinfo);
   UNBLOCK_INPUT;

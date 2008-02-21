@@ -1,7 +1,12 @@
+2008-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c (x_connection_closed): Consolidate identical tests.
+	(x_delete_terminal): Don't crash if called via x_connection_closed.
+
 2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xdisp.c (decode_mode_spec): New arg string.
-	(display_mode_element): Adjusted for the above change.
+	(display_mode_element): Adjust for the above change.
 
 2008-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
