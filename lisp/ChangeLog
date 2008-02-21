@@ -493,8 +493,6 @@
 
 2008-02-11 Drew Adams  <drew.adams@oracle.com>
 
-	* isearch.el:
-	(isearch-fail): New face.
 	* isearch.el (isearch-fail): New face.
 	(isearch-message): Highlight failure part of input.
 
