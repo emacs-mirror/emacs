@@ -1,3 +1,7 @@
+2008-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* NEWS.unicode: Merge into NEWS and remove file.
+
 2008-02-20  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* NEWS.unicode: Mention the removal of codepage related functions.
