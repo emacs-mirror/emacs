@@ -1617,7 +1617,7 @@
 	* term.c: Include "composite.h".
 	(encode_terminal_code): Output all components of composition.
 	Check the size of encode_terminal_src.
-	(produce_glyphs): For compostion, call produce_composite_glyph.
+	(produce_glyphs): For composition, call produce_composite_glyph.
 	(append_composite_glyph, produce_composite_glyph): New functions.
 
 	* xdisp.c (x_produce_glyphs): In handling composition, if a font
@@ -1818,7 +1818,7 @@
 	(syms_of_font): Defsubr Sfont_at.
 
 	* xdisp.c (it_props): Move the entry for Qauto_composed to just
-	before the entry for Qcompostion.
+	before the entry for Qcomposition.
 	(handle_auto_composed_prop): Call auto-composition-function with 4 args.
 	(handle_composition_prop) [USE_FONT_BACKEND]: Set it->face_id from
 	the font in gstring.
@@ -3055,7 +3055,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* composite.c (syms_of_composite): Don't make the compostion hash
+	* composite.c (syms_of_composite): Don't make the composition hash
 	table weak.
 
 	* fontset.c (Fset_fontset_font): Fix docstring.
