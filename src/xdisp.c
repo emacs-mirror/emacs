@@ -17259,7 +17259,7 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 			    }
 			  props = Ftext_properties_at (make_number (charpos), elt);
 			  /* Should only keep face property in props */
-			  n += store_mode_line_string (NULL, tem, 0, field, prec, props);
+			  n += store_mode_line_string (NULL, string, 0, field, prec, props);
 			}
 			break;
 		      case MODE_LINE_DISPLAY:
