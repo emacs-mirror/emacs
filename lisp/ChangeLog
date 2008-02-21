@@ -1,3 +1,18 @@
+2008-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image-mode.el: Extend [hv]scroll support to per-window properties.
+	(image-mode-current-vscroll, image-mode-current-hscroll): Remove.
+	(image-mode-winprops-alist): New var to replace them.
+	(image-mode-new-window-functions): New hook.
+	(image-mode-winprops, image-mode-window-get, image-mode-window-put):
+	New funs.
+	(image-set-window-vscroll, image-set-window-hscroll): Use them.
+	Remove the `window' argument, update callers.
+	(image-mode-reapply-winprops): Rename image-reset-current-vhscroll.
+	Use the new functions.
+	(image-mode-reapply-winprops): New fun.
+	(image-mode): Use it.
+
 2008-02-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-math.el (math-sin-raw): Add optional argument
@@ -31,13 +46,13 @@
 2008-02-20  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* ps-mule.el (ps-mule-encode-region): Return a single string.
-	(ps-mule-plot-string): Adjusted for the above change.
+	(ps-mule-plot-string): Adjust for the above change.
 	(ps-mule-encode-header-string): Likewise.
 
 	* international/latin1-disp.el (latin1-display): Don't use
 	ucs-mule-8859-to-mule-unicode.  Fix the way of resetting
 	standard-display-table.
-	(latin1-display-identities): Adjusted for the change of what is
+	(latin1-display-identities): Adjust for the change of what is
 	returned by (get-language-info charset 'charset).
 
 	* international/mule-util.el (char-displayable-p): Fix for Latin-1

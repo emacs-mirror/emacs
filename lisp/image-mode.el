@@ -35,6 +35,7 @@
 ;;; Code:
 
 (require 'image)
+(eval-when-compile (require 'cl))
 
 ;;;###autoload (push '("\\.jpe?g\\'"    . image-mode) auto-mode-alist)
 ;;;###autoload (push '("\\.png\\'"      . image-mode) auto-mode-alist)
@@ -48,45 +49,73 @@
 ;;;###autoload (push '("\\.svgz?\\'"    . xml-mode)   auto-mode-alist)
 ;;;###autoload (push '("\\.svgz?\\'"    . image-mode-maybe) auto-mode-alist)
 
-;;; Image scrolling functions
+;;; Image mode window-info management.
 
-(defvar image-mode-current-vscroll nil
-  "An alist with elements (WINDOW . VSCROLL).")
-(make-variable-buffer-local 'image-mode-current-vscroll)
+(defvar image-mode-winprops-alist t)
+(make-variable-buffer-local 'image-mode-winprops-alist)
 
-(defvar image-mode-current-hscroll nil
-  "An alist with elements (WINDOW . HSCROLL).")
-(make-variable-buffer-local 'image-mode-current-hscroll)
+(defvar image-mode-new-window-functions nil
+  "Special hook run when image data is requested in a new window.
+It is called with one argument, the initial WINPROPS.")
 
-(defun image-set-window-vscroll (window vscroll &optional pixels-p)
-  (setq image-mode-current-vscroll
-	(cons (cons window vscroll)
-              (delq (assq window image-mode-current-vscroll)
-                    image-mode-current-vscroll)))
-  (set-window-vscroll window vscroll pixels-p))
+(defun image-mode-winprops (&optional window)
+  "Return winprops of WINDOW.
+A winprops object has the shape (WINDOW . ALIST)."
+  (unless window (setq window (selected-window)))
+  (let ((winprops (assq window image-mode-winprops-alist)))
+    ;; For new windows, set defaults from the latest.
+    (unless winprops
+      (setq winprops (cons window
+                           (copy-alist (cdar image-mode-winprops-alist))))
+      (run-hook-with-args 'image-mode-new-window-functions winprops))
+    ;; Move window to front.
+    (setq image-mode-winprops-alist
+          (cons winprops (delq winprops image-mode-winprops-alist)))
+    winprops))
 
-(defun image-set-window-hscroll (window ncol)
-  (setq image-mode-current-hscroll
-	(cons (cons window ncol)
-              (delq (assq window image-mode-current-hscroll)
-                    image-mode-current-hscroll)))
-  (set-window-hscroll window ncol))
+(defun image-mode-window-get (prop &optional winprops)
+  (unless (consp winprops) (setq winprops (image-mode-winprops winprops)))
+  (cdr (assq prop (cdr winprops))))
 
-(defun image-reset-current-vhscroll ()
+(defsetf image-mode-window-get (prop &optional winprops) (val)
+  `(image-mode-window-put ,prop ,val ,winprops))
+
+(defun image-mode-window-put (prop val &optional winprops)
+  (unless (consp winprops) (setq winprops (image-mode-winprops winprops)))
+  (setcdr winprops (cons (cons prop val)
+                         (delq (assq prop (cdr winprops)) (cdr winprops)))))
+
+(defun image-set-window-vscroll (vscroll)
+  (setf (image-mode-window-get 'vscroll) vscroll)
+  (set-window-vscroll (selected-window) vscroll))
+
+(defun image-set-window-hscroll (ncol)
+  (setf (image-mode-window-put 'hscroll) ncol)
+  (set-window-hscroll (selected-window) ncol))
+
+(defun image-mode-reapply-winprops ()
   (walk-windows
    (lambda (win)
      (with-current-buffer (window-buffer win)
        ;; When set-window-buffer, set hscroll and vscroll to what they were
-       ;; last time the image was displayed in this window.  If it's the first
-       ;; time it's displayed in this window, use the most recent setting.
-       (when image-mode-current-hscroll
-         (set-window-hscroll win (cdr (or (assoc win image-mode-current-hscroll)
-                                          (car image-mode-current-hscroll)))))
-       (when image-mode-current-vscroll
-         (set-window-vscroll win (cdr (or (assoc win image-mode-current-vscroll)
-                                          (car image-mode-current-vscroll)))))))
+       ;; last time the image was displayed in this window.
+       (when (listp image-mode-winprops-alist)
+         (let* ((winprops (image-mode-winprops win))
+                (hscroll (image-mode-window-get 'hscroll winprops))
+                (vscroll (image-mode-window-get 'vscroll winprops)))
+           (if hscroll (set-window-hscroll win hscroll))
+           (if vscroll (set-window-vscroll win vscroll))))))
    'nomini
    (selected-frame)))
+
+(defun image-mode-setup-winprops ()
+  ;; Record current scroll settings.
+  (unless (listp image-mode-winprops-alist)
+    (setq image-mode-winprops-alist nil))
+  (add-hook 'window-configuration-change-hook
+ 	    'image-mode-reapply-winprops nil t))
+
+;;; Image scrolling functions
 
 (defun image-get-display-property ()
   (get-char-property (point-min) 'display
@@ -100,15 +129,13 @@ Stop if the right edge of the image is reached."
   (interactive "p")
   (cond ((= n 0) nil)
 	((< n 0)
-	 (image-set-window-hscroll (selected-window)
-				   (max 0 (+ (window-hscroll) n))))
+	 (image-set-window-hscroll (max 0 (+ (window-hscroll) n))))
 	(t
 	 (let* ((image (image-get-display-property))
 		(edges (window-inside-edges))
 		(win-width (- (nth 2 edges) (nth 0 edges)))
 		(img-width (ceiling (car (image-size image)))))
-	   (image-set-window-hscroll (selected-window)
-				     (min (max 0 (- img-width win-width))
+	   (image-set-window-hscroll (min (max 0 (- img-width win-width))
 					  (+ n (window-hscroll))))))))
 
 (defun image-backward-hscroll (&optional n)
@@ -123,15 +150,13 @@ Stop if the bottom edge of the image is reached."
   (interactive "p")
   (cond ((= n 0) nil)
 	((< n 0)
-	 (image-set-window-vscroll (selected-window)
-				   (max 0 (+ (window-vscroll) n))))
+	 (image-set-window-vscroll (max 0 (+ (window-vscroll) n))))
 	(t
 	 (let* ((image (image-get-display-property))
 		(edges (window-inside-edges))
 		(win-height (- (nth 3 edges) (nth 1 edges)))
 		(img-height (ceiling (cdr (image-size image)))))
-	   (image-set-window-vscroll (selected-window)
-				     (min (max 0 (- img-height win-height))
+	   (image-set-window-vscroll (min (max 0 (- img-height win-height))
 					  (+ n (window-vscroll))))))))
 
 (defun image-previous-line (&optional n)
@@ -190,7 +215,7 @@ stopping if the top or bottom edge of the image is reached."
   (and arg
        (/= (setq arg (prefix-numeric-value arg)) 1)
        (image-next-line (- arg 1)))
-  (image-set-window-hscroll (selected-window) 0))
+  (image-set-window-hscroll 0))
 
 (defun image-eol (arg)
   "Scroll horizontally to the right edge of the image in the current window.
@@ -204,14 +229,13 @@ stopping if the top or bottom edge of the image is reached."
 	 (edges (window-inside-edges))
 	 (win-width (- (nth 2 edges) (nth 0 edges)))
 	 (img-width (ceiling (car (image-size image)))))
-    (image-set-window-hscroll (selected-window)
-			      (max 0 (- img-width win-width)))))
+    (image-set-window-hscroll (max 0 (- img-width win-width)))))
 
 (defun image-bob ()
   "Scroll to the top-left corner of the image in the current window."
   (interactive)
-  (image-set-window-hscroll (selected-window) 0)
-  (image-set-window-vscroll (selected-window) 0))
+  (image-set-window-hscroll 0)
+  (image-set-window-vscroll 0))
 
 (defun image-eob ()
   "Scroll to the bottom-right corner of the image in the current window."
@@ -222,8 +246,8 @@ stopping if the top or bottom edge of the image is reached."
 	 (img-width (ceiling (car (image-size image))))
 	 (win-height (- (nth 3 edges) (nth 1 edges)))
 	 (img-height (ceiling (cdr (image-size image)))))
-    (image-set-window-hscroll (selected-window) (max 0 (- img-width win-width)))
-    (image-set-window-vscroll (selected-window) (max 0 (- img-height win-height)))))
+    (image-set-window-hscroll (max 0 (- img-width win-width)))
+    (image-set-window-vscroll (max 0 (- img-height win-height)))))
 
 ;;; Image Mode setup
 
@@ -270,10 +294,7 @@ to toggle between display as an image and display as text."
        'image-bookmark-make-cell)
 
   ;; Keep track of [vh]scroll when switching buffers
-  (image-set-window-hscroll (selected-window) (window-hscroll))
-  (image-set-window-vscroll (selected-window) (window-vscroll))
-  (add-hook 'window-configuration-change-hook
-	    'image-reset-current-vhscroll nil t)
+  (image-mode-setup-winprops)
 
   (add-hook 'change-major-mode-hook 'image-toggle-display-text nil t)
   (if (and (display-images-p)
