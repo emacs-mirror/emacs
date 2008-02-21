@@ -1,3 +1,13 @@
+2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* composite.el (compose-chars-after): Fix arguments for a function
+	in composition-function-table.
+	(auto-compose-region): Likewise.
+
+	* ps-mule.el (ps-mule-font-info-database-bdf): Use
+	ethio16f-uni.bdf for Ethiopic.
+	(ps-mule-plot-string): Ignore glyph-string based compositions.
+
 2008-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el: Allow different windows to show different pages.
