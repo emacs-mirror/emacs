@@ -542,12 +542,9 @@ that range have the same value.
 ** The functions `register-char-codings' and `coding-system-spec'
 have been removed.
 
-** Many codepage related functions have been removed.  They are:
-  cp-make-coding-systems-for-codepage, cp-charset-for-codepage,
-  cp-language-for-codepage, cp-offset-for-codepage,
-  cp-supported-codepages
-You don't need them anymore because coding systems created by these
-functions are supported from the start now.
+** The cpXXX coding systems are now supported automatically.  The
+functions cp-...-codepage, which you had to use in Emacs 22 to enable
+support for these coding systems, have been deleted.
 
 +++
 ** The function `dired-call-process' has been removed.
@@ -562,6 +559,24 @@ checking/manipulating elements directly, use the new functions
 
 ** `mode-name' is no longer guaranteed to be a string.
 Use `(format-mode-line mode-name)' to ensure a string value.
+
+** The feature `devan-util' is removed, and the file devan-util.el
+providing the feature is removed.  Accordingly the following functions
+and variables are removed:
+  devanagari-consonant, devanagari-composable-pattern,
+  devanagari-compose-region, devanagari-compose-string,
+  devanagari-post-read-conversion, devanagari-regexp-of-hashtbl-keys,
+  devanagari-composition-function, dev-char-glyph,
+  dev-char-glyph-hash, dev-char-glyph-regexp, dev-glyph-glyph,
+  dev-glyph-glyph-hash, dev-glyph-glyph-regexp, dev-glyph-glyph-2,
+  dev-glyph-glyph-2-hash, dev-glyph-glyph-2-regexp, dev-charseq,
+  dev-glyph-cvn, dev-glyph-space, dev-glyph-right-modifier,
+  dev-glyph-right-modifier-regexp, dev-glyph-left-matra,
+  dev-glyph-top-matra, dev-glyph-bottom-modifier, dev-glyph-order,
+  devanagari-compose-syllable-string, devanagari-compose-syllable-region
+These were for displaying Devanagari text with a specific kind of font
+in Emacs 22, and not necessary anymore because of OpenType font
+support.
 
 
 * Lisp Changes in Emacs 23.1
