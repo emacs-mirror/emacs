@@ -1,3 +1,45 @@
+2008-02-21  Dave Love  <fx@gnu.org>
+
+	* progmodes/sym-comp.el: New file.
+
+	* progmodes/python.el: Merge from Dave Love's 2008-01-20 version.
+	Require sym-comp.  Add Python buffer to same-window-buffer-names.
+	Fixup whitespaces.
+	(python-font-lock-keywords): Add highlighting for Python builtins.
+	(python-font-lock-syntactic-keywords): Rewrite.
+	(python-quote-syntax): Use syntax-ppss-context instead of parsing
+	ppss directly.
+	(python-mode-map): Add binding for python-find-function.
+	(python-calculate-indentation): Clean up the logic.
+	(python-beginning-of-defun): Explicitly set return value.
+	(python-beginning-of-statement): Stop looping if we get stuck
+	going backwards.
+	(python-next-statement): Stop looping if we somehow end up inside
+	a string while advancing.
+	(python-preoutput-continuation, python-version-checked): New vars.
+	(python-check-version): New function.
+	(run-python): Set default command to python-command instead of
+	python-python-command.
+	(run-python): Use python-check-version.  Give PYTHONPATH
+	precedence over data-directory in the process environment.  Load
+	function definitions in python process after.
+	(python-check-comint-prompt): New function.
+	(python-send-command, python-send-receive): Use it.
+	(python-complete-symbol, python-try-complete): Functions deleted.
+	Use symbol-complete instead of python-complete-symbol throughout.
+	(python-fill-paragraph): Further refine the fenced-string regexp.
+	(def-python-skeleton): Expand to the original abbrev instead if in
+	a comment or string.  Tweak skeletons for `if', `while', `for',
+	`try/except', `try/finally', `name'.
+	(python-pea-hook, python-abbrev-pc-hook): New functions.
+	(python-abbrev-syntax-table): New var.
+	(python-mode): Add python-pea-hook to pre-abbrev-expand-hook.  Use
+	symbol-completion-try-complete for hippie expansion.  Turn on font
+	lock unconditionally.
+	(python-mode-hook): Defcustom it.  No need to use make-local
+	variable on indent-tabs-mode in "Turn off Indent Tabs mode"
+	option, since it's buffer-local.
+
 2008-02-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* play/hanoi.el (hanoi-internal): Set `show-trailing-whitespace' to nil.
