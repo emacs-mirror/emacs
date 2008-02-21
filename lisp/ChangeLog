@@ -9,7 +9,7 @@
 	(vc-status-mode-map, vc-status-mode-menu): Mark them instead for
 	vc-status-mark-file and vc-status-unmark-file.
 	(vc-status-mark-unmark): New function.
-	(vc-status-previous-line, vc-status-mark-all-files): No longer
+	(vc-status-previous-line, vc-status-next-line): No longer
 	interactive.
 
 2008-02-21  Glenn Morris  <rgm@gnu.org>
