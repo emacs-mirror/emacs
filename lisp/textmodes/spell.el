@@ -62,6 +62,8 @@ If you do not want to change a word, just give the same word
 as its \"correct\" spelling; then the query replace is skipped."
   (interactive)
   (spell-region (point-min) (point-max) "buffer"))
+;;;###autoload
+(make-obsolete 'spell-buffer 'ispell-buffer "23.1")
 
 ;;;###autoload
 (defun spell-word ()
@@ -77,6 +79,8 @@ and `query-replace' the entire buffer to substitute it."
      (forward-word 1)
      (setq end (point)))
     (spell-region beg end (buffer-substring beg end))))
+;;;###autoload
+(make-obsolete 'spell-word 'ispell-word "23.1")
 
 ;;;###autoload
 (defun spell-region (start end &optional description)
@@ -138,7 +142,8 @@ for example, \"word\"."
 	     (goto-char (point-min))
 	     (query-replace-regexp (concat "\\b" (regexp-quote word) "\\b")
 				   newword)))))))
-
+;;;###autoload
+(make-obsolete 'spell-region 'ispell-region "23.1")
 
 ;;;###autoload
 (defun spell-string (string)
@@ -161,6 +166,9 @@ for example, \"word\"."
        (while (search-forward "\n" nil t)
 	 (replace-match " "))
        (message "%sincorrect" (buffer-substring 1 (point-max)))))))
+;;;###autoload
+(make-obsolete 'spell-string "The `spell' package is obsolete - use `ispell'."
+               "23.1")
 
 (provide 'spell)
 
