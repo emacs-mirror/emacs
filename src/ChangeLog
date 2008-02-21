@@ -1,3 +1,8 @@
+2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* xdisp.c (decode_mode_spec): New arg string.
+	(display_mode_element): Adjusted for the above change.
+
 2008-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* callint.c (Fcall_interactively): Use AREF.
