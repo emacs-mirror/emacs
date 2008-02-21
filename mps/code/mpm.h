@@ -577,6 +577,7 @@ extern Res ArenaNoExtend(Arena arena, Addr base, Size size);
 /* Locus interface */
 
 extern Bool SegPrefCheck(SegPref pref);
+extern Res SegPrefDescribe(SegPref pref, mps_lib_FILE *stream);
 extern SegPref SegPrefDefault(void);
 extern void SegPrefExpress(SegPref pref, SegPrefKind kind, void *p);
 

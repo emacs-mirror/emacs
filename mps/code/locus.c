@@ -32,6 +32,51 @@ Bool SegPrefCheck(SegPref pref)
 }
 
 
+/* SegPrefDescribe -- describe a segment preference */
+
+Res SegPrefDescribe(SegPref pref, mps_lib_FILE *stream)
+{
+  Res res;
+  
+  if(!CHECKT(SegPref, pref))
+    return ResFAIL;
+  
+  res = WriteF(stream,
+    "SegPref $P {", (WriteFP)pref,
+    (pref->isCollected ? "  COLLECTED" : "  not-collected"),
+    NULL);
+  if(res != ResOK)
+    return res;
+
+  if(pref->isGen) {
+    res = WriteF(stream,
+      "  gen: $U", (WriteFU)pref->gen,
+      NULL);
+  } else {
+    res = WriteF(stream,
+      "  nogen", NULL);
+  }
+  if(res != ResOK)
+    return res;
+  
+  res = WriteF(stream,
+    (pref->high ? "  high" : "  LOW"),
+    NULL);
+  if(res != ResOK)
+    return res;
+
+  res = WriteF(stream,
+    "  (preferred-zones: $B)\n", (WriteFB)pref->zones,
+    " }\n",
+    NULL);
+  if(res != ResOK)
+    return res;
+
+  
+  return ResOK;
+}
+
+
 /* SegPrefDefault -- return a segment preference representing the defaults */
 
 static SegPrefStruct segPrefDefault = SegPrefDEFAULT;
