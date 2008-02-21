@@ -31,24 +31,14 @@
 ;;; Code:
 
 (set-language-info-alist
- "Devanagari" '((charset indian-is13194 mule-unicode-0100-24ff
-                         indian-2-column indian-glyph ;; comment out later
-                         )
-		(coding-system in-is13194-devanagari)
-		(coding-priority in-is13194-devanagari)
+ "Devanagari" '((charset unicode)
+		(coding-system utf-8)
+		(coding-priority utf-8)
 		(input-method . "dev-aiba")
-		(features devan-util)
 		(documentation . "\
 Such languages using Devanagari script as Hindi and Marathi
 are supported in this language environment."))
  '("Indian"))
-
-;; For automatic composition.
-(dolist (range '((#x0903 . #x0903)
-		 (#x0905 . #x0939)
-		 (#x0958 . #x0961)))
-  (set-char-table-range composition-function-table range
-			'(("[\x0900-\x097F]+" . font-shape-text))))
 
 (provide 'devanagari)
 
