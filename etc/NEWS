@@ -311,8 +311,8 @@ It uses `auto-composition-function' (default `auto-compose-chars').
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
-** ChangeLog now has function bound to C-c C-f that finds the file in
-the current log entry.
+** In Change Log mode, the new function `change-log-find-file', bound to
+C-c C-f, finds the file associated with the current log entry.
 
 ** abbrev was rewritten in Elisp and extended with more flexibility.
 *** New functions: abbrev-get, abbrev-put, abbrev-table-get, abbrev-table-put,
