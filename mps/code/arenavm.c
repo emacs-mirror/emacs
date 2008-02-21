@@ -75,6 +75,8 @@ typedef struct VMArenaStruct {  /* VM arena structure */
   VM vm;                        /* VM where the arena itself is stored */
   Size spareSize;              /* total size of spare pages */
   ZoneSet blacklist;             /* zones to use last */
+  ZoneSet uncolZoneSet;          /* ! pref->isCollected */
+  ZoneSet nogenZoneSet;
   ZoneSet genZoneSet[VMArenaGenCount]; /* .gencount.const */
   ZoneSet freeSet;               /* unassigned zones */
   Size extendBy;                /* desired arena increment */
@@ -175,6 +177,8 @@ static Bool VMArenaCheck(VMArena vmArena)
   CHECKL(vmArena->blacklist != ZoneSetUNIV);
 
   allocSet = ZoneSetEMPTY;
+  allocSet = ZoneSetUnion(allocSet, vmArena->uncolZoneSet);
+  allocSet = ZoneSetUnion(allocSet, vmArena->nogenZoneSet);
   for(gen = (Index)0; gen < VMArenaGenCount; ++gen) {
     allocSet = ZoneSetUnion(allocSet, vmArena->genZoneSet[gen]);
   }
@@ -216,6 +220,14 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
    *
   */
 
+  res = WriteF(stream,
+               "   uncolZoneSet: $B\n",
+               (WriteFB)vmArena->uncolZoneSet,
+               "   nogenZoneSet: $B\n",
+               (WriteFB)vmArena->nogenZoneSet,
+               NULL);
+  if(res != ResOK)
+    return res;
   for(gen = (Index)0; gen < VMArenaGenCount; gen++) {
     if(vmArena->genZoneSet[gen] != ZoneSetEMPTY) {
       res = WriteF(stream,
@@ -485,6 +497,8 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   vmArena->blacklist =
     ZoneSetAdd(arena, ZoneSetAdd(arena, ZoneSetEMPTY, (Addr)1), (Addr)-1);
 
+  vmArena->uncolZoneSet = ZoneSetEMPTY;
+  vmArena->nogenZoneSet = ZoneSetEMPTY;
   for(gen = (Index)0; gen < VMArenaGenCount; gen++) {
     vmArena->genZoneSet[gen] = ZoneSetEMPTY;
   }
@@ -936,6 +950,9 @@ static Bool pagesFindFreeWithSegPref(Index *baseReturn, VMChunk *chunkReturn,
     preferred = vmArena->genZoneSet[gen];
   } else {
     preferred = pref->zones;
+    /* Note: for now, vmArena->nogenZoneSet is recorded, but not used */
+    /* to colocate further allocation.  If you want colocation, use */
+    /* a 'generation' number.  RHSK 2008-02-15. */
   }
 
   /* @@@@ Some of these tests might be duplicates.  If we're about */
@@ -1276,6 +1293,8 @@ static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
   Count pages;
   Index baseIndex;
   ZoneSet zones;
+  ZoneSet *zsRecord;
+  ZoneSet zsNew;
   Res res;
   VMArena vmArena;
   VMChunk vmChunk;
@@ -1339,7 +1358,36 @@ static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
 
   if (pref->isGen) {
     Serial gen = vmGenOfSegPref(vmArena, pref);
-    vmArena->genZoneSet[gen] = ZoneSetUnion(vmArena->genZoneSet[gen], zones);
+    zsRecord = &vmArena->genZoneSet[gen];
+  }
+  else {
+    zsRecord = &vmArena->nogenZoneSet;
+  }
+  
+  zsNew = ZoneSetDiff(zones, *zsRecord);
+  if(zsNew != ZoneSetEMPTY) {
+    /* using a new zone */
+    DIAG_FIRSTF(( "vmAllocComm_newzone", NULL));
+    DIAG( SegPrefDescribe(pref, DIAG_STREAM); );
+    if(pref->isGen) {
+      DIAG_MOREF(( "  gen: $U  ", (WriteFU)pref->gen, NULL));
+    } else {
+      DIAG_MOREF(( "  nogen  ", NULL));
+    }
+    DIAG_MOREF((
+      "was: $B  ", (WriteFB)*zsRecord,
+      "add: $B\n", (WriteFB)zsNew,
+      NULL));
+    if(!ZoneSetSub(zsNew, vmArena->freeSet)) {
+      DIAG_MOREF(( "BARGE!\n", NULL ));
+    }
+    DIAG_END("vmAllocComm_newzone");
+
+    *zsRecord = ZoneSetUnion(*zsRecord, zones);
+  }
+
+  if(!pref->isCollected) {
+    vmArena->uncolZoneSet = ZoneSetUnion(vmArena->uncolZoneSet, zones);
   }
 
   vmArena->freeSet = ZoneSetDiff(vmArena->freeSet, zones);
