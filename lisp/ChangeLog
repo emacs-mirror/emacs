@@ -1,3 +1,12 @@
+2008-02-20  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-math.el (math-sin-raw): Add optional argument
+	to keep track of original argument.
+	(math-cos-raw): Use optional argument when calling
+	math-sin-raw.
+	(math-sin-raw-2, math-cos-raw-2): Check for a zero argument
+	with close to original precision.
+
 2008-02-20  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-convert-alien): Do not use optional
