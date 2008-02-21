@@ -90,7 +90,7 @@ A winprops object has the shape (WINDOW . ALIST)."
   (set-window-vscroll (selected-window) vscroll))
 
 (defun image-set-window-hscroll (ncol)
-  (setf (image-mode-window-put 'hscroll) ncol)
+  (setf (image-mode-window-get 'hscroll) ncol)
   (set-window-hscroll (selected-window) ncol))
 
 (defun image-mode-reapply-winprops ()
