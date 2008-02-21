@@ -3,6 +3,8 @@
 	* composite.el (encode-composition-rule): Fix typo in error message.
 	(composition-function-table, auto-composition-mode): Doc fixes.
 
+	* subr.el (sit-for): Fix obsolete form for nil second argument.
+
 2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* composite.el (compose-chars-after): Fix arguments for a function
