@@ -115,9 +115,9 @@
 ;;; Code:
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "389"
+(defconst verilog-mode-version "399"
   "Version of this Verilog mode.")
-(defconst verilog-mode-release-date "2008-02-01-GNU"
+(defconst verilog-mode-release-date "2008-02-19-GNU"
   "Release date of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -992,15 +992,9 @@ If set will become buffer local.")
       :selected (equal verilog-tool `verilog-compiler)]
      )
     ("Move"
-     ,(if (featurep 'xemacs)
-	  (progn
-	    ["Beginning of function"		verilog-beg-of-defun t]
-	    ["End of function"			verilog-end-of-defun t]
-	    ["Mark function"			verilog-mark-defun t])
-	["Beginning of function"		beginning-of-defun t]
-	["End of function"			end-of-defun t]
-	["Mark function"			mark-defun t])
-
+     ["Beginning of function"           verilog-beg-of-defun t]
+     ["End of function"                 verilog-end-of-defun t]
+     ["Mark function"                   verilog-mark-defun t]
      ["Goto function/module"		verilog-goto-defun t]
      ["Move to beginning of block"	electric-verilog-backward-sexp t]
      ["Move to end of block"		electric-verilog-forward-sexp t]
@@ -1451,19 +1445,18 @@ find the errors."
 (defconst verilog-beg-block-re-ordered
   ( concat "\\<"
 	   "\\(begin\\)"		;1
-	   "\\|\\(randcase\\|\\(unique\\s-+\\|priority\\s-+\\)?case[xz]?\\)" ; 2
-;;	   "\\|\\(randcase\\|case[xz]?\\)" ; 2
-	   "\\|\\(fork\\)"		;3
-	   "\\|\\(class\\)"		;4
-	   "\\|\\(table\\)"		;5
-	   "\\|\\(specify\\)"		;6
-	   "\\|\\(function\\)"		;7
-	   "\\|\\(task\\)"		;8
-	   "\\|\\(generate\\)"		;9
-	   "\\|\\(covergroup\\)"	;10
-	   "\\|\\(property\\)"		;11
-	   "\\|\\(\\(rand\\)?sequence\\)"  ;12
-	   "\\|\\(clocking\\)"          ;13
+	   "\\|\\(randcase\\|\\(unique\\s-+\\|priority\\s-+\\)?case[xz]?\\)" ; 2,3
+	   "\\|\\(\\(disable\\s-+\\)?fork\\)" ;4
+	   "\\|\\(class\\)"		;5
+	   "\\|\\(table\\)"		;6
+	   "\\|\\(specify\\)"		;7
+	   "\\|\\(function\\)"		;8
+	   "\\|\\(task\\)"		;9
+	   "\\|\\(generate\\)"		;10
+	   "\\|\\(covergroup\\)"	;11
+	   "\\|\\(property\\)"		;12
+	   "\\|\\(\\(rand\\)?sequence\\)" ;13
+	   "\\|\\(clocking\\)"          ;14
 	   "\\>"))
 
 (defconst verilog-end-block-ordered-rry
@@ -1574,8 +1567,8 @@ find the errors."
   (concat verilog-defun-re "\\|" verilog-end-defun-re))
 
 (defconst verilog-behavioral-block-beg-re
-  (concat "\\(\\<initial\\>\\|\\<final\\>\\|\\<always\\>\\|\\<always_comb\\>\\|\\<always_ff\\>\\|"
-	  "\\<always_latch\\>\\|\\<function\\>\\|\\<task\\>\\)"))
+  (eval-when-compile (verilog-regexp-words `("initial" "final" "always" "always_comb" "always_latch" "always_ff"
+					     "function" "task"))))
 
 (defconst verilog-indent-re
   (eval-when-compile
@@ -1640,6 +1633,7 @@ find the errors."
      `(
        "endmodule" "endprimitive" "endinterface" "endpackage" "endprogram" "endclass"
        ))))
+(defconst verilog-disable-fork-re "disable\\s-+fork")
 (defconst verilog-extended-case-re "\\(unique\\s-+\\|priority\\s-+\\)?case[xz]?")
 (defconst verilog-extended-complete-re
   (concat "\\(\\<extern\\s-+\\|\\<virtual\\s-+\\|\\<protected\\s-+\\)*\\(\\<function\\>\\|\\<task\\>\\)"
@@ -1815,6 +1809,20 @@ See also `verilog-font-lock-extra-types'.")
   "Font lock mode face used to highlight AMS keywords."
   :group 'font-lock-highlighting-faces)
 
+(defvar verilog-font-grouping-keywords-face
+  'verilog-font-lock-grouping-keywords-face
+  "Font to use for Verilog Grouping Keywords (such as begin..end).")
+(defface verilog-font-lock-grouping-keywords-face
+  '((((class color)
+      (background light))
+     (:foreground "red4" :bold t ))
+    (((class color)
+      (background dark))
+     (:foreground "red4" :bold t ))
+    (t (:italic t)))
+  "Font lock mode face used to highlight verilog grouping keywords."
+  :group 'font-lock-highlighting-faces)
+
 (let* ((verilog-type-font-keywords
 	(eval-when-compile
 	  (verilog-regexp-opt
@@ -1879,8 +1887,8 @@ See also `verilog-font-lock-extra-types'.")
 	(eval-when-compile
 	  (verilog-regexp-opt
 	   '(
-	     "assign" "begin" "case" "casex" "casez" "randcase" "deassign"
-	     "default" "disable" "else" "end" "endcase" "endfunction"
+	     "assign" "case" "casex" "casez" "randcase" "deassign"
+	     "default" "disable" "else" "endcase" "endfunction"
 	     "endgenerate" "endinterface" "endmodule" "endprimitive"
 	     "endspecify" "endtable" "endtask" "final" "for" "force" "return" "break"
 	     "continue" "forever" "fork" "function" "generate" "if" "iff" "initial"
@@ -1889,7 +1897,12 @@ See also `verilog-font-lock-extra-types'.")
 	     "always_latch" "posedge" "primitive" "priority" "release"
 	     "repeat" "specify" "table" "task" "unique" "wait" "while"
 	     "class" "program" "endclass" "endprogram"
-	     ) nil  ))))
+	     ) nil  )))
+
+       (verilog-font-grouping-keywords
+	(eval-when-compile
+	  (verilog-regexp-opt
+	   '( "begin" "end" ) nil  ))))
 
   (setq verilog-font-lock-keywords
 	(list
@@ -1899,7 +1912,9 @@ See also `verilog-font-lock-extra-types'.")
 		       "\\$[a-zA-Z][a-zA-Z0-9_\\$]*"
 		       "\\)\\>")
 	 ;; Fontify all types
-	 (cons (concat "\\<\\(" verilog-type-font-keywords "\\)\\>")
+	 (cons (concat "\\(\\<" verilog-font-grouping-keywords "\\)\\>") 
+	       'verilog-font-lock-ams-face)
+	 (cons (concat "\\<\\(" verilog-type-font-keywords "\\)\\>") 
 	       'font-lock-type-face)
 	 ;; Fontify IEEE-P1800 keywords appropriately
 	 (if verilog-highlight-p1800-keywords
@@ -2066,49 +2081,64 @@ Use filename, if current buffer being edited shorten to just buffer name."
     (cond
      ((verilog-skip-forward-comment-or-string)
       (verilog-forward-syntactic-ws))
-     ((looking-at verilog-beg-block-re-ordered);; begin|case|fork|class|table|specify|function|task|generate|covergroup|property|sequence|clocking
+     ((looking-at verilog-beg-block-re-ordered) ;; begin|(case)|xx|(fork)|class|table|specify|function|task|generate|covergroup|property|sequence|clocking
       (cond
        ((match-end 1) ; end
 	;; Search forward for matching begin
 	(setq reg "\\(\\<begin\\>\\)\\|\\(\\<end\\>\\)" ))
        ((match-end 2) ; endcase
 	;; Search forward for matching case
-	(setq reg "\\(\\<randcase\\>\\|\\(\\<unique\\>\\s-+\\|\\<priority\\>\\s-+\\)?\\<case[xz]?\\>[^:]\\)\\|\\(\\<endcase\\>\\)" ))
-       ((match-end 3) ; join
-	;; Search forward for matching fork
-	(setq reg "\\(\\<fork\\>\\)\\|\\(\\<join\\(_any\\|_none\\)?\\>\\)" ))
-       ((match-end 4) ; endclass
+	(setq reg "\\(\\<randcase\\>\\|\\(\\<unique\\>\\s-+\\|\\<priority\\>\\s-+\\)?\\<case[xz]?\\>[^:]\\)\\|\\(\\<endcase\\>\\)" )
+	(setq md 3) ;; ender is third item in regexp
+	)
+       ((match-end 4) ; join
+	;; might be "disable fork"
+	(if (or 
+	     (looking-at verilog-disable-fork-re)
+	     (and (looking-at "fork")
+		  (progn
+		    (forward-word -1)
+		    (looking-at verilog-disable-fork-re))))
+	    (progn
+	      (goto-char (match-end 0))
+	      (forward-word)
+	      (setq reg nil))
+	  (progn
+	    ;; Search forward for matching fork
+	    (setq reg "\\(\\<fork\\>\\)\\|\\(\\<join\\(_any\\|_none\\)?\\>\\)" ))))
+       ((match-end 5) ; endclass
 	;; Search forward for matching class
 	(setq reg "\\(\\<class\\>\\)\\|\\(\\<endclass\\>\\)" ))
-       ((match-end 5) ; endtable
+       ((match-end 6) ; endtable
 	;; Search forward for matching table
 	(setq reg "\\(\\<table\\>\\)\\|\\(\\<endtable\\>\\)" ))
-       ((match-end 6) ; endspecify
+       ((match-end 7) ; endspecify
 	;; Search forward for matching specify
 	(setq reg "\\(\\<specify\\>\\)\\|\\(\\<endspecify\\>\\)" ))
-       ((match-end 7) ; endfunction
+       ((match-end 8) ; endfunction
 	;; Search forward for matching function
 	(setq reg "\\(\\<function\\>\\)\\|\\(\\<endfunction\\>\\)" ))
-       ((match-end 8) ; endtask
+       ((match-end 9) ; endtask
 	;; Search forward for matching task
 	(setq reg "\\(\\<task\\>\\)\\|\\(\\<endtask\\>\\)" ))
-       ((match-end 9) ; endgenerate
+       ((match-end 10) ; endgenerate
 	;; Search forward for matching generate
 	(setq reg "\\(\\<generate\\>\\)\\|\\(\\<endgenerate\\>\\)" ))
-       ((match-end 10) ; endgroup
+       ((match-end 11) ; endgroup
 	;; Search forward for matching covergroup
 	(setq reg "\\(\\<covergroup\\>\\)\\|\\(\\<endgroup\\>\\)" ))
-       ((match-end 11) ; endproperty
+       ((match-end 12) ; endproperty
 	;; Search forward for matching property
 	(setq reg "\\(\\<property\\>\\)\\|\\(\\<endproperty\\>\\)" ))
-       ((match-end 12) ; endsequence
+       ((match-end 13) ; endsequence
 	;; Search forward for matching sequence
 	(setq reg "\\(\\<\\(rand\\)?sequence\\>\\)\\|\\(\\<endsequence\\>\\)" )
 	(setq md 3)) ; 3 to get to endsequence in the reg above
-       ((match-end 13) ; endclocking
+       ((match-end 14) ; endclocking
 	;; Search forward for matching clocking
 	(setq reg "\\(\\<clocking\\>\\)\\|\\(\\<endclocking\\>\\)" )))
-      (if (forward-word 1)
+      (if (and reg
+	       (forward-word 1))
 	  (catch 'skip
 	    (let ((nest 1))
 	      (while (verilog-re-search-forward reg nil 'move)
@@ -3934,6 +3964,16 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 		(throw 'nesting 'case)
 	      (goto-char here)))
 	  (throw 'nesting 'case))
+	 
+	 ((match-end 4)  ; *sigh* could be "disable fork"
+	  (let ((here (point)))
+	    (verilog-beg-of-statement)
+	    (if (looking-at verilog-disable-fork-re)
+		t ; is disable fork, this is a normal statement
+	      (progn ; or is fork, starts a new block
+		(goto-char here)
+		(throw 'nesting 'block)))))
+
 
 	 ;; need to consider typedef struct here...
 	 ((looking-at "\\<class\\|struct\\|function\\|task\\|property\\>")
@@ -4168,6 +4208,8 @@ Set point to where line starts."
     (forward-word -1)
     (cond
      ((looking-at "\\<else\\>")
+      t)
+     ((looking-at verilog-behavioral-block-beg-re)
       t)
      ((looking-at verilog-indent-re)
       nil)

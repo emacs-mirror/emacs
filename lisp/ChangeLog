@@ -1,3 +1,35 @@
+2008-02-21  Michael McNamara  <mac@mail.brushroad.com>
+
+	* progmodes/verilog-mode.el (verilog-xemacs-menu): Remove XEmacs
+	conditional.
+	(verilog-font-grouping-keywords-face): Make the begin..end
+	keywords standout more than other verilog keywords.
+        (verilog-type-font-keywords): Move the begin..end out of this list
+	to facilitate making them to (potentially) stand out more.
+	(verilog-backward-token): Fix indent of bare always{_*}?, initial,
+	function & task blocks.
+        (verilog-behavioral-block-beg-re): Fix indent of bare always{_*}?,
+	initial, function & task blocks.
+	(verilog-forward-sexp): Handle the new "disable fork" statement of
+	IEEE-1800 Verilog.
+        (verilog-beg-block-re-ordered): Handle the new "disable fork"
+	statement of IEEE-1800 Verilog.
+        (verilog-calc-1): Handle the new "disable fork" statement of
+	IEEE-1800 Verilog.
+        (verilog-disable-fork-re): Add const to help handle the new
+	"disable fork" statement of IEEE-1800 Verilog.
+	(verilog-declaration-core-re): Add port directions by themselves,
+	with no qualification, as base item of a declaration.
+        (verilog-pretty-declarations): Add new flag to ask it to refrain
+	from printing to the message buffer.
+        (verilog-pretty-expr): Add a QUIET flag to ask it to refrain from
+	printing to the message buffer.  Improve handling of the many
+	types of expression line up.
+        (verilog-just-one-space): Remove printing of an empty message.
+        (verilog-get-lineup-indent): Rework to support the better handling
+	of expression lineup for verilog-pretty-expr.
+        (verilog-auto-wire): Pass the quiet flag to verilog-pretty-expr.
+
 2008-02-20  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (c-extend-region-for-CPP): Bug fix from
