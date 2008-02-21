@@ -1,3 +1,8 @@
+2008-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* composite.el (encode-composition-rule): Fix typo in error message.
+	(composition-function-table, auto-composition-mode): Doc fixes.
+
 2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* composite.el (compose-chars-after): Fix arguments for a function
