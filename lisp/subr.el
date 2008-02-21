@@ -1763,9 +1763,10 @@ in milliseconds; this was useful when Emacs was built without
 floating point support.
 
 \(fn SECONDS &optional NODISP)"
-  (when (or obsolete (numberp nodisp))
-    (setq seconds (+ seconds (* 1e-3 nodisp)))
-    (setq nodisp obsolete))
+  (if (numberp nodisp)
+      (setq seconds (+ seconds (* 1e-3 nodisp))
+            nodisp obsolete)
+    (if obsolete (setq nodisp obsolete)))
   (cond
    (noninteractive
     (sleep-for seconds)
