@@ -276,7 +276,7 @@ Currently, data for Japanese and Korean PostScript printers are listed.")
     (indian-1-column
      (normal bdf ("ind1c24-mule.bdf" "mule-indian-1col-24.bdf")))
     (ethiopic
-     (normal bdf ("ethio24f-uni.bdf" "ethiomx24f-uni.bdf") unicode-bmp))
+     (normal bdf ("ethio16f-uni.bdf" "ethiomx24f-uni.bdf") unicode-bmp))
     (chinese-cns11643-3
      (normal bdf ("cns3-40.bdf" "cns-3-40.bdf")))
     (chinese-cns11643-4
@@ -661,7 +661,10 @@ the sequence."
   (let* ((average-width (ps-avg-char-width 'ps-font-for-text))
 	 (point (point))
 	 (composition (find-composition from to nil t))
-	 (stop (if composition (car composition) to))
+	 (stop (if (and composition
+			(not (vectorp (aref (nth 2 composition) 0))))
+		   (car composition)
+		 to))
 	 (ascii-or-latin-1 "[\000-\377]+")
 	 (run-width 0)
 	 (endpos nil)
