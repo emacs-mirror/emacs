@@ -1,3 +1,8 @@
+2008-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* notes/unicode, notes/font-backend: New files, split off from
+	README.unicode.
+
 2008-02-20  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* FOR-RELEASE: Remove the problem of ucs-mule-8859-to-mule-unicode
