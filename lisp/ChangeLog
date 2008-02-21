@@ -1,3 +1,30 @@
+2008-02-21  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* python.el (python-pdbtrack-toggle-stack-tracking): Clarify
+	docstring.
+	(python-pdbtrack-minor-mode-string): A sign indicating that pdb
+	tracking is happening.
+	(python-pdbtrack-stack-entry-regexp): Better recognize stack
+	traces.
+	(python-pdbtrack-input-prompt): Better recognize PDB prompts.
+	(add python-pdbtrack-track-stack-file to
+	comint-output-filter-functions): Tracking is plugged in to all
+	comint buffers once python.el is loaded.
+	(python-pdbtrack-overlay-arrow): Toggle activation of
+	`python-pdbtrack-minor-mode-string' in addition to the overlay
+	arrow.
+	(python-pdbtrack-track-stack-file): Use new
+	`python-pdbtrack-get-source-buffer' for more flexible access to
+	debugging source files.
+	(python-pdbtrack-get-source-buffer): Identify debugging target
+	buffer according to pdb stack trace, optionally using new
+	`python-pdbtrack-grub-for-buffer' if file is not locally
+	available.
+	(python-pdbtrack-grub-for-buffer): Find most recent python-mode
+	named buffer, or having function with indicated name.
+	(python-shell): Remove comint-output-filter-functions hook
+	addition, it's being done elsewhere.  Wrap long line.
+
 2008-02-21  Michael Olson  <mwolson@gnu.org>
 
 	* net/json.el: Install new file by Edward O'Connor.  json.el is a
