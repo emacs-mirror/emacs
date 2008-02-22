@@ -396,8 +396,8 @@ text-only terminals they count characters or lines instead.
 
 @table @code
 @item left
-The screen position of the left (or right) edge, in pixels, with respect
-to the left (or right) edge of the screen.  The value may be:
+The position, in pixels, of the left (or right) edge of the frame with
+respect to the left (or right) edge of the screen.  The value may be:
 
 @table @asis
 @item an integer
