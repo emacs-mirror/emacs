@@ -7033,7 +7033,7 @@ w32_term_init (display_name, xrm_option, resource_name)
   dpyinfo->resx = GetDeviceCaps (hdc, LOGPIXELSX);
   dpyinfo->resy = GetDeviceCaps (hdc, LOGPIXELSY);
   dpyinfo->has_palette = GetDeviceCaps (hdc, RASTERCAPS) & RC_PALETTE;
-  dpyinfo->image_cache = make_image_cache ();
+  dpyinfo->terminal->image_cache = make_image_cache ();
   dpyinfo->height_in = dpyinfo->height / dpyinfo->resx;
   dpyinfo->width_in = dpyinfo->width / dpyinfo->resy;
   ReleaseDC (GetDesktopWindow (), hdc);

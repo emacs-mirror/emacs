@@ -894,9 +894,10 @@ init_frame_faces (f)
   /* Make the image cache.  */
   if (FRAME_WINDOW_P (f))
     {
-      if (FRAME_X_IMAGE_CACHE (f) == NULL)
-	FRAME_X_IMAGE_CACHE (f) = make_image_cache ();
-      ++FRAME_X_IMAGE_CACHE (f)->refcount;
+      if (FRAME_IMAGE_CACHE (f) == NULL)
+	/* Is that ever possible??  --Stef  */
+	FRAME_IMAGE_CACHE (f) = make_image_cache ();
+      ++FRAME_IMAGE_CACHE (f)->refcount;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -933,7 +934,7 @@ free_frame_faces (f)
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     {
-      struct image_cache *image_cache = FRAME_X_IMAGE_CACHE (f);
+      struct image_cache *image_cache = FRAME_IMAGE_CACHE (f);
       if (image_cache)
 	{
 	  --image_cache->refcount;
@@ -1008,11 +1009,9 @@ clear_face_cache (clear_fonts_p)
 	{
 	  f = XFRAME (frame);
 	  if (FRAME_WINDOW_P (f))
-	    {
 	      clear_face_gcs (FRAME_FACE_CACHE (f));
-	      clear_image_cache (f, 0);
-	    }
 	}
+      clear_image_caches (0);
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 }

@@ -11797,13 +11797,7 @@ redisplay_internal (preserve_echo_area)
 #ifdef HAVE_WINDOW_SYSTEM
       if (clear_image_cache_count > CLEAR_IMAGE_CACHE_COUNT)
 	{
-	  Lisp_Object tail, frame;
-	  FOR_EACH_FRAME (tail, frame)
-	    {
-	      struct frame *f = XFRAME (frame);
-	      if (FRAME_WINDOW_P (f))
-		clear_image_cache (f, 0);
-	    }
+	  clear_image_caches (0);
 	  clear_image_cache_count = 0;
 	}
 #endif /* HAVE_WINDOW_SYSTEM */

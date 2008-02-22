@@ -233,9 +233,6 @@ struct w32_display_info
      frame.  It differs from w32_focus_frame when we're using a global
      minibuffer.  */
   struct frame *x_highlight_frame;
-
-  /* Cache of images.  */
-  struct image_cache *image_cache;
 };
 
 /* This is a chain of structures for all the displays currently in use.  */
@@ -443,11 +440,6 @@ extern struct w32_output w32term_display;
 
 #define FRAME_SMALLEST_FONT_HEIGHT(F) \
      FRAME_W32_DISPLAY_INFO(F)->smallest_font_height
-
-/* Return a pointer to the image cache of frame F.  */
-
-#define FRAME_X_IMAGE_CACHE(F) FRAME_W32_DISPLAY_INFO ((F))->image_cache
-
 
 /* W32-specific scroll bar stuff.  */
 

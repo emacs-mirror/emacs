@@ -484,6 +484,9 @@ struct frame
 #define FRAME_KBOARD(f) (&the_only_kboard)
 #endif
 
+/* Return a pointer to the image cache of frame F.  */
+#define FRAME_IMAGE_CACHE(F) ((F)->terminal->image_cache)
+
 typedef struct frame *FRAME_PTR;
 
 #define XFRAME(p) (eassert (FRAMEP(p)),(struct frame *) XPNTR (p))

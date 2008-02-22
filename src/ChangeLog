@@ -1,5 +1,34 @@
 2008-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	Consolidate the image_cache to the terminal struct.
+	* termhooks.h (P_): Remove redundant def.
+	(struct terminal): New field `image_cache'.
+	* frame.h (FRAME_IMAGE_CACHE): New macro.  Use it everywhere in place
+	of FRAME_X_IMAGE_CACHE.
+	* xterm.h (struct x_display_info): Remove image_cache field.
+	(FRAME_X_IMAGE_CACHE): Remove.  Use FRAME_IMAGE_CACHE instead.
+	* w32term.h (struct w32_display_info): Remove image_cache field.
+	(FRAME_X_IMAGE_CACHE): Remove.  Use FRAME_IMAGE_CACHE instead.
+	* macterm.h (struct mac_display_info): Remove image_cache field.
+	(FRAME_X_IMAGE_CACHE): Remove.  Use FRAME_IMAGE_CACHE instead.
+	* xterm.c (x_term_init):
+	* w32term.c (w32_term_init):
+	* macterm.c (mac_term_init): Set the image_cache in the terminal.
+	* dispextern.h (clear_image_cache, forall_images_in_image_cache):
+	Remove declarations.
+	(clear_image_caches, mark_image_cache): New declarations.
+	* xfaces.c (clear_face_cache):
+	* xdisp.c (redisplay_internal): Use clear_image_caches.
+	* image.c (clear_image_cache): Don't check that a frame is on
+	a window-system before checking if it shares the same cache.
+	(clear_image_caches): New function.
+	(Fclear_image_cache): Use it.
+	(mark_image): Move from allo.c.
+	(mark_image_cache): Move from alloc.c and forall_images_in_image_cache.
+	* alloc.c (mark_image, mark_image_cache): Move to image.c.
+	(mark_object): Don't call mark_image_cache for frames.
+	(mark_terminals): Call mark_image_cache.
+
 	* lisp.h (Fdelete_terminal): Declare.
 
 	* charset.h (CHECK_CHARSET, CHECK_CHARSET_GET_ID)

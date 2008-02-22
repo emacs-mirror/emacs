@@ -2547,8 +2547,8 @@ struct image_cache
    no image with that id exists.  */
 
 #define IMAGE_FROM_ID(F, ID)					\
-     (((ID) >= 0 && (ID) < (FRAME_X_IMAGE_CACHE (F)->used))	\
-      ? FRAME_X_IMAGE_CACHE (F)->images[ID]			\
+     (((ID) >= 0 && (ID) < (FRAME_IMAGE_CACHE (F)->used))	\
+      ? FRAME_IMAGE_CACHE (F)->images[ID]			\
       : NULL)
 
 /* Size of bucket vector of image caches.  Should be prime.  */
@@ -2818,9 +2818,8 @@ extern Lisp_Object x_find_image_file P_ ((Lisp_Object));
 void x_kill_gs_process P_ ((Pixmap, struct frame *));
 struct image_cache *make_image_cache P_ ((void));
 void free_image_cache P_ ((struct frame *));
-void clear_image_cache P_ ((struct frame *, int));
-void forall_images_in_image_cache P_ ((struct frame *,
-				       void (*) P_ ((struct image *))));
+void clear_image_caches P_ ((int));
+void mark_image_cache P_ ((struct image_cache *));
 int valid_image_p P_ ((Lisp_Object));
 void prepare_image_for_display P_ ((struct frame *, struct image *));
 int lookup_image P_ ((struct frame *, Lisp_Object));

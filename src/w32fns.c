@@ -7476,7 +7476,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   f->icon_name = Qnil;
 
 #if 0 /* GLYPH_DEBUG TODO: image support.  */
-  image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
+  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
 #ifdef MULTI_KBOARD

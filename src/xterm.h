@@ -330,9 +330,6 @@ struct x_display_info
   /* The gray pixmap.  */
   Pixmap gray;
 
-  /* Cache of images.  */
-  struct image_cache *image_cache;
-
 #ifdef HAVE_X_I18N
   /* XIM (X Input method).  */
   XIM xim;
@@ -737,11 +734,6 @@ enum
 
 #define FRAME_SMALLEST_FONT_HEIGHT(F) \
      FRAME_X_DISPLAY_INFO(F)->smallest_font_height
-
-/* Return a pointer to the image cache of frame F.  */
-
-#define FRAME_X_IMAGE_CACHE(F) FRAME_X_DISPLAY_INFO ((F))->image_cache
-
 
 /* X-specific scroll bar stuff.  */
 

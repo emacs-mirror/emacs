@@ -24,11 +24,6 @@ Boston, MA 02110-1301, USA.  */
 
 struct glyph;
 struct frame;
-
-/* Only use prototypes when lisp.h has been included.  */
-#ifndef P_
-#define P_(X) ()
-#endif
 
 
 enum scroll_bar_part {
@@ -362,6 +357,11 @@ struct terminal
   /* The terminal's keyboard object. */
   struct kboard *kboard;
 #endif
+
+#ifdef HAVE_WINDOW_SYSTEM
+  /* Cache of images.  */
+  struct image_cache *image_cache;
+#endif /* HAVE_WINDOW_SYSTEM */
 
   /* Device-type dependent data shared amongst all frames on this terminal. */
   union display_info

@@ -11395,7 +11395,7 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->x_focus_frame = 0;
   dpyinfo->x_focus_event_frame = 0;
   dpyinfo->x_highlight_frame = 0;
-  dpyinfo->image_cache = make_image_cache ();
+  dpyinfo->terminal->image_cache = make_image_cache ();
   dpyinfo->wm_type = X_WMTYPE_UNKNOWN;
 
   /* See if we can construct pixel values from RGB values.  */
