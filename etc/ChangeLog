@@ -1,3 +1,7 @@
+2008-02-22  Michael Olson  <mwolson@gnu.org>
+
+	* NEWS: Describe nXML mode and json.el.
+
 2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* NEWS: Improve the description about the removal of
