@@ -61,7 +61,9 @@ and then put into a query-replace to fix some or all occurrences.
 If you do not want to change a word, just give the same word
 as its \"correct\" spelling; then the query replace is skipped."
   (interactive)
-  (spell-region (point-min) (point-max) "buffer"))
+  ;; Don't warn about spell-region being obsolete.
+  (with-no-warnings
+    (spell-region (point-min) (point-max) "buffer")))
 ;;;###autoload
 (make-obsolete 'spell-buffer 'ispell-buffer "23.1")
 
@@ -78,7 +80,9 @@ and `query-replace' the entire buffer to substitute it."
      (setq beg (point))
      (forward-word 1)
      (setq end (point)))
-    (spell-region beg end (buffer-substring beg end))))
+    ;; Don't warn about spell-region being obsolete.
+    (with-no-warnings
+      (spell-region beg end (buffer-substring beg end)))))
 ;;;###autoload
 (make-obsolete 'spell-word 'ispell-word "23.1")
 
