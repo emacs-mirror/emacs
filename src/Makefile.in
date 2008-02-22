@@ -758,10 +758,7 @@ lisp= \
 	${lispsource}language/chinese.el \
 	${lispsource}language/cyrillic.el \
 	${lispsource}language/indian.el \
-	${lispsource}language/devanagari.el \
-	${lispsource}language/kannada.el \
-	${lispsource}language/malayalam.el \
-	${lispsource}language/tamil.el \
+	${lispsource}language/sinhala.el \
 	${lispsource}language/english.el \
 	${lispsource}language/ethiopic.elc \
 	${lispsource}language/european.elc \
@@ -850,10 +847,7 @@ shortlisp= \
 	../lisp/language/chinese.el \
 	../lisp/language/cyrillic.el \
 	../lisp/language/indian.el \
-	../lisp/language/devanagari.el \
-	../lisp/language/kannada.el \
-	../lisp/language/malayalam.el \
-	../lisp/language/tamil.el \
+	../lisp/language/sinhala.el \
 	../lisp/language/english.el \
 	../lisp/language/ethiopic.elc \
 	../lisp/language/european.elc \
