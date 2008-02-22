@@ -396,26 +396,34 @@ text-only terminals they count characters or lines instead.
 
 @table @code
 @item left
-The screen position of the left edge, in pixels, with respect to the
-left edge of the screen.  The value may be a positive number @var{pos},
-or a list of the form @code{(+ @var{pos})} which permits specifying a
-negative @var{pos} value.
+The screen position of the left (or right) edge, in pixels, with respect
+to the left (or right) edge of the screen.  The value may be:
 
-A negative number @minus{}@var{pos}, or a list of the form @code{(-
-@var{pos})}, actually specifies the position of the right edge of the
-window with respect to the right edge of the screen.  A positive value
-of @var{pos} counts toward the left.  @strong{Reminder:} if the
-parameter is a negative integer @minus{}@var{pos}, then @var{pos} is
-positive.
+@table @asis
+@item an integer
+A positive integer relates the left edge of the frame to the left edge
+of the screen.  A negative integer relates the right frame edge to the
+right screen edge.
+
+@item @code{(+ @var{pos})}
+This specifies the position of the left frame edge relative to the left
+screen edge.  The integer @var{pos} may be positive or negative; a
+negative value specifies a position outside the screen.
+
+@item @code{(- @var{pos})}
+This specifies the position of the right frame edge relative to the right
+screen edge.  The integer @var{pos} may be positive or negative; a
+negative value specifies a position outside the screen.
+@end table
 
 Some window managers ignore program-specified positions.  If you want to
 be sure the position you specify is not ignored, specify a
 non-@code{nil} value for the @code{user-position} parameter as well.
 
 @item top
-The screen position of the top edge, in pixels, with respect to the
-top edge of the screen.  It works just like @code{left}, except vertically
-instead of horizontally.
+The screen position of the top (or bottom) edge, in pixels, with respect
+to the top (or bottom) edge of the screen.  It works just like
+@code{left}, except vertically instead of horizontally.
 
 @item icon-left
 The screen position of the left edge @emph{of the frame's icon}, in
@@ -884,28 +892,9 @@ values are @code{left}, @code{top}, @code{width}, and @code{height}.
 For the size parameters, the value must be an integer.  The position
 parameter names @code{left} and @code{top} are not totally accurate,
 because some values indicate the position of the right or bottom edges
-instead.  These are the @var{value} possibilities for the position
-parameters:
-
-@table @asis
-@item an integer
-A positive integer relates the left edge or top edge of the window to
-the left or top edge of the screen.  A negative integer relates the
-right or bottom edge of the window to the right or bottom edge of the
-screen.
-
-@item @code{(+ @var{position})}
-This specifies the position of the left or top edge of the window
-relative to the left or top edge of the screen.  The integer
-@var{position} may be positive or negative; a negative value specifies a
-position outside the screen.
-
-@item @code{(- @var{position})}
-This specifies the position of the right or bottom edge of the window
-relative to the right or bottom edge of the screen.  The integer
-@var{position} may be positive or negative; a negative value specifies a
-position outside the screen.
-@end table
+instead.  The @var{value} possibilities for the position parameters are:
+an integer, a list @code{(+ @var{pos})}, or a list @code{(- @var{pos})};
+as previously described (@pxref{Position Parameters}).
 
 Here is an example:
 
