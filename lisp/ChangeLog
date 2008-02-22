@@ -1,3 +1,22 @@
+2008-02-22  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	Finish pdbtrack integration cleanup, settling missing-functions
+	byte compiler warnings appropriately.
+
+	* progmodes/python.el (python-point): Remove this -
+	beginning-of-line was all that was necessary for
+	`python-pdbtrack-overlay-arrow'.
+	(python-end-of-def-or-class, python-beginning-of-def-or-class)
+	(python-goto-initial-line): Drop these - they were only needed for
+	python-point.
+	(python-comint-output-filter-function): Use condition-case and
+	beginning-of-line directly, instead of python-mode.el functions
+	which require all sorts of baggage.
+	(point-safe): Unnecessary - we're using condition-case directly,
+	instead.
+	(python-execute-file): Include for python-shell, which i'm leaving
+	in keeping despite it being unnecessary for pdb tracking.
+
 2008-02-22  Peter Danenberg  <pcd@wikitex.org>  (tiny change)
 
 	* progmodes/scheme.el (scheme-font-lock-keywords-2):
@@ -75,7 +94,10 @@
 
 2008-02-21  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* python.el (python-pdbtrack-toggle-stack-tracking): Clarify docstring.
+	Update Nick Robert's port of pdb tracking from python-mode.el.
+
+	* progmodes/python.el (python-pdbtrack-toggle-stack-tracking):
+	Clarify docstring.
 	(python-pdbtrack-minor-mode-string): A sign indicating that pdb
 	tracking is happening.
 	(python-pdbtrack-stack-entry-regexp): Better recognize stack traces.

@@ -2547,162 +2547,6 @@ Runs `jython-mode-hook' after `python-mode-hook'."
 
 ;; pdbtrack features
 
-(defsubst python-point (position)
-  "Returns the value of point at certain commonly referenced POSITIONs.
-POSITION can be one of the following symbols:
-
-  bol  -- beginning of line
-  eol  -- end of line
-  bod  -- beginning of def or class
-  eod  -- end of def or class
-  bob  -- beginning of buffer
-  eob  -- end of buffer
-  boi  -- back to indentation
-  bos  -- beginning of statement
-
-This function does not modify point or mark."
-  (let ((here (point)))
-    (cond
-     ((eq position 'bol) (beginning-of-line))
-     ((eq position 'eol) (end-of-line))
-     ((eq position 'bod) (python-beginning-of-def-or-class))
-     ((eq position 'eod) (python-end-of-def-or-class))
-     ;; Kind of funny, I know, but useful for python-up-exception.
-     ((eq position 'bob) (goto-char (point-min)))
-     ((eq position 'eob) (goto-char (point-max)))
-     ((eq position 'boi) (back-to-indentation))
-     ((eq position 'bos) (python-goto-initial-line))
-     (t (error "Unknown buffer position requested: %s" position)))
-    (prog1
-	(point)
-      (goto-char here))))
-
-(defun python-end-of-def-or-class (&optional class count)
-  "Move point beyond end of `def' or `class' body.
-
-By default, looks for an appropriate `def'.  If you supply a prefix
-arg, looks for a `class' instead.  The docs below assume the `def'
-case; just substitute `class' for `def' for the other case.
-Programmatically, if CLASS is `either', then moves to either `class'
-or `def'.
-
-When second optional argument is given programmatically, move to the
-COUNTth end of `def'.
-
-If point is in a `def' statement already, this is the `def' we use.
-
-Else, if the `def' found by `\\[python-beginning-of-def-or-class]'
-contains the statement you started on, that's the `def' we use.
-
-Otherwise, we search forward for the closest following `def', and use that.
-
-If a `def' can be found by these rules, point is moved to the start of
-the line immediately following the `def' block, and the position of the
-start of the `def' is returned.
-
-Else point is moved to the end of the buffer, and nil is returned.
-
-Note that doing this command repeatedly will take you closer to the
-end of the buffer each time.
-
-To mark the current `def', see `\\[python-mark-def-or-class]'."
-  (interactive "P")			; raw prefix arg
-  (if (and count (/= count 1))
-      (python-beginning-of-def-or-class (- 1 count)))
-  (let ((start (progn (python-goto-initial-line) (point)))
-	(which (cond ((eq class 'either) "\\(class\\|def\\)")
-		     (class "class")
-		     (t "def")))
-	(state 'not-found))
-    ;; move point to start of appropriate def/class
-    (if (looking-at (concat "[ \t]*" which "\\>")) ; already on one
-	(setq state 'at-beginning)
-      ;; else see if python-beginning-of-def-or-class hits container
-      (if (and (python-beginning-of-def-or-class class)
-	       (progn (python-goto-beyond-block)
-		      (> (point) start)))
-	  (setq state 'at-end)
-	;; else search forward
-	(goto-char start)
-	(if (re-search-forward (concat "^[ \t]*" which "\\>") nil 'move)
-	    (progn (setq state 'at-beginning)
-		   (beginning-of-line)))))
-    (cond
-     ((eq state 'at-beginning) (python-goto-beyond-block) t)
-     ((eq state 'at-end) t)
-     ((eq state 'not-found) nil)
-     (t (error "Internal error in `python-end-of-def-or-class'")))))
-
-(defun python-beginning-of-def-or-class (&optional class count)
-  "Move point to start of `def' or `class'.
-
-Searches back for the closest preceding `def'.  If you supply a prefix
-arg, looks for a `class' instead.  The docs below assume the `def'
-case; just substitute `class' for `def' for the other case.
-Programmatically, if CLASS is `either', then moves to either `class'
-or `def'.
-
-When second optional argument is given programmatically, move to the
-COUNTth start of `def'.
-
-If point is in a `def' statement already, and after the `d', simply
-moves point to the start of the statement.
-
-Otherwise (i.e. when point is not in a `def' statement, or at or
-before the `d' of a `def' statement), searches for the closest
-preceding `def' statement, and leaves point at its start.  If no such
-statement can be found, leaves point at the start of the buffer.
-
-Returns t iff a `def' statement is found by these rules.
-
-Note that doing this command repeatedly will take you closer to the
-start of the buffer each time.
-
-To mark the current `def', see `\\[python-mark-def-or-class]'."
-  (interactive "P")			; raw prefix arg
-  (setq count (or count 1))
-  (let ((at-or-before-p (<= (current-column) (current-indentation)))
-	(start-of-line (goto-char (python-point 'bol)))
-	(start-of-stmt (goto-char (python-point 'bos)))
-	(start-re (cond ((eq class 'either) "^[ \t]*\\(class\\|def\\)\\>")
-			(class "^[ \t]*class\\>")
-			(t "^[ \t]*def\\>"))))
-    ;; searching backward
-    (if (and (< 0 count)
-	     (or (/= start-of-stmt start-of-line)
-		 (not at-or-before-p)))
-	(end-of-line))
-    ;; search forward
-    (if (and (> 0 count)
-	     (zerop (current-column))
-	     (looking-at start-re))
-	(end-of-line))
-    (if (re-search-backward start-re nil 'move count)
-	(goto-char (match-beginning 0)))))
-
-(defun python-goto-initial-line ()
-  "Go to the initial line of the current statement.
-Usually this is the line we're on, but if we're on the 2nd or
-following lines of a continuation block, we need to go up to the first
-line of the block."
-  ;; Tricky: We want to avoid quadratic-time behavior for long
-  ;; continued blocks, whether of the backslash or open-bracket
-  ;; varieties, or a mix of the two.  The following manages to do that
-  ;; in the usual cases.
-  ;;
-  ;; Also, if we're sitting inside a triple quoted string, this will
-  ;; drop us at the line that begins the string.
-  (let (open-bracket-pos)
-    (while (python-continuation-line-p)
-      (beginning-of-line)
-      (if (python-backslash-continuation-line-p)
-	  (while (python-backslash-continuation-line-p)
-	    (forward-line -1))
-	;; else zip out of nested brackets/braces/parens
-	(while (setq open-bracket-pos (python-nesting-level))
-	  (goto-char open-bracket-pos)))))
-  (beginning-of-line))
-
 (defun python-comint-output-filter-function (string)
   "Watch output for Python prompt and exec next file waiting in queue.
 This function is appropriate for `comint-output-filter-functions'."
@@ -2711,7 +2555,9 @@ This function is appropriate for `comint-output-filter-functions'."
 		 (and (>= (length string) 5)
 		      (string-equal (substring string -5) "\n>>> ")))
 	     python-file-queue)
-    (python-safe (delete-file (car python-file-queue)))
+    (condition-case nil
+        (delete-file (car python-file-queue))
+      (error nil))
     (setq python-file-queue (cdr python-file-queue))
     (if python-file-queue
 	(let ((pyproc (get-buffer-process (current-buffer))))
@@ -2725,7 +2571,8 @@ This function is appropriate for `comint-output-filter-functions'."
               overlay-arrow-string "=>"
               python-pdbtrack-is-tracking-p t)
         (set-marker overlay-arrow-position
-                    (python-point 'bol) (current-buffer)))
+                    (save-excursion (beginning-of-line) (point))
+                    (current-buffer)))
     (setq overlay-arrow-position nil
           python-pdbtrack-is-tracking-p nil)))
 
@@ -2900,6 +2747,26 @@ Programmatically, ARG can also be one of the symbols `cpython' or
 	    mode-name "JPython")))
     (message "Using the %s shell" msg)))
 
+;; Python subprocess utilities and filters
+(defun python-execute-file (proc filename)
+  "Send to Python interpreter process PROC \"execfile('FILENAME')\".
+Make that process's buffer visible and force display.  Also make
+comint believe the user typed this string so that
+`kill-output-from-shell' does The Right Thing."
+  (let ((curbuf (current-buffer))
+	(procbuf (process-buffer proc))
+;	(comint-scroll-to-bottom-on-output t)
+	(msg (format "## working on region in file %s...\n" filename))
+        ;; add some comment, so that we can filter it out of history
+	(cmd (format "execfile(r'%s') # PYTHON-MODE\n" filename)))
+    (unwind-protect
+	(save-excursion
+	  (set-buffer procbuf)
+	  (goto-char (point-max))
+	  (move-marker (process-mark proc) (point))
+	  (funcall (process-filter proc) proc msg))
+      (set-buffer curbuf))
+    (process-send-string proc cmd)))
 ;;;###autoload
 (defun python-shell (&optional argprompt)
   "Start an interactive Python interpreter in another window.
