@@ -3261,6 +3261,7 @@ extern void syms_of_term P_ ((void));
 extern void fatal P_ ((const char *msgid, ...)) NO_RETURN;
 
 /* Defined in terminal.c */
+EXFUN (Fdelete_terminal, 2);
 extern void syms_of_terminal P_ ((void));
 
 #ifdef HAVE_WINDOW_SYSTEM
