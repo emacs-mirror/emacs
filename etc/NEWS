@@ -101,7 +101,8 @@ dimension is no longer limited to 94 or 96.
 A dynamic charset priority list is used to infer the charset of
 characters for display.
 
-** There are new Chinese-GBK, Chinese-GB18030, Khmer, and TaiViet language
+** There are new Chinese-GBK, Chinese-GB18030, Khmer, Bengali,
+Punjabi, Gujarati, Oriya, Telugu, Sinhala, and TaiViet language
 environments.
 
 ** Emacs now supports the XEmbed specification.
@@ -573,23 +574,25 @@ checking/manipulating elements directly, use the new functions
 ** `mode-name' is no longer guaranteed to be a string.
 Use `(format-mode-line mode-name)' to ensure a string value.
 
-** The feature `devan-util' is removed, and the file devan-util.el
-providing the feature is removed.  Accordingly the following functions
-and variables are removed:
-  devanagari-consonant, devanagari-composable-pattern,
-  devanagari-compose-region, devanagari-compose-string,
-  devanagari-post-read-conversion, devanagari-regexp-of-hashtbl-keys,
-  devanagari-composition-function, dev-char-glyph,
-  dev-char-glyph-hash, dev-char-glyph-regexp, dev-glyph-glyph,
-  dev-glyph-glyph-hash, dev-glyph-glyph-regexp, dev-glyph-glyph-2,
-  dev-glyph-glyph-2-hash, dev-glyph-glyph-2-regexp, dev-charseq,
-  dev-glyph-cvn, dev-glyph-space, dev-glyph-right-modifier,
-  dev-glyph-right-modifier-regexp, dev-glyph-left-matra,
-  dev-glyph-top-matra, dev-glyph-bottom-modifier, dev-glyph-order,
-  devanagari-compose-syllable-string, devanagari-compose-syllable-region
-These were for displaying Devanagari text with a specific kind of font
-in Emacs 22, and not necessary anymore because of OpenType font
-support.
+** The feature `devanagari' and `devan-util' were removed, and all
+devanagari-* and dev-* functions and variables were removed too.  They
+were for displaying Devanagari script with a specific kind of font in
+Emacs 22, and not necessary anymore because of OpenType font support.
+
+** The feature `kannada' and `knd-util' were removed, and all
+kannada-* and knd-* functions and variables are removed too.  They
+were for displaying Kannada script with a specific kind of font in
+Emacs 22, and not necessary anymore because of OpenType font support.
+
+** The feature `malayalam' and `mlm-util' are removed, and all
+malayalam-* and mlm-* functions and variables are removed too.  They
+were for displaying Malayalam script with a specific kind of font in
+Emacs 22, and not necessary anymore because of OpenType font support.
+
+** The feature `tamil' and `tml-util' are removed, and all tamil-* and
+tml-* functions and variables are removed too.  They were for
+displaying Tamil script with a specific kind of font in Emacs 22, and
+not necessary anymore because of OpenType font support.
 
 
 * Lisp Changes in Emacs 23.1
