@@ -64,12 +64,13 @@ Instead, it moves the L frame edge 20pix to the R of the L screen edge.
 (modify-frame-parameters nil
                          '((user-position . t) (user-size . t) (left - -20)))
 
-This should move the L frame edge 20pix to the R of the L screen edge.
-It also moves the L frame edge 20pix to the R of the L screen edge.
+This should move the L frame edge 20pix to the L of the L screen edge.
+Instead, it moves the R frame edge 20pix to the L of the R screen edge.
 (modify-frame-parameters nil
-                         '((user-position . t) (user-size . t) (left + +20)))
+                         '((user-position . t) (user-size . t) (left + -20)))
 
-(It works in Emacs 21.)
+It works in Emacs 21. The "+ +" and "- +" forms are OK; ie it is when
+the number is -ve that things go wrong.
 
 
 ** Does deleting frames run Lisp code?  If so, can we get rid of that?
