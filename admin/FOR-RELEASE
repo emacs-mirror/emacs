@@ -127,15 +127,6 @@ The "data" size increased for emacs from ~4MB to ~11MB on x86.
 The temacs sizes are comparable.
 http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00951.html
 
-** auto-compose-current-font
-This has been removed, but is still used in
-devan-util.el, mlm-util.el, tibet-util.el, tml-util.el
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00064.html
-
-In general, many of the various *-composition-functions seem to need
-updating in terms of the number of arguments they take and their doc
-strings.
-
 ** Xresource pane.menubar.*font no longer takes effect
 http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00314.html
 http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg01683.html
