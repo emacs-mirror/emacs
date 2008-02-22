@@ -94,6 +94,8 @@ When this is `function', only ask when called non-interactively."
 (defun copyright-update-year (replace noquery)
   (when
       (condition-case err
+	  ;; (1) Need the extra \\( \\) around copyright-regexp because we
+	  ;; goto (match-end 1) below. See note (2) below.
 	  (re-search-forward (concat "\\(" copyright-regexp
 				     "\\)\\([ \t]*\n\\)?.*\\(?:"
 				     copyright-names-regexp "\\)")
@@ -104,7 +106,7 @@ When this is `function', only ask when called non-interactively."
 	;; such an error is very inconvenient for the user.
 	(error (message "Can't update copyright: %s" err) nil))
     (goto-char (match-end 1))
-    ;; If the years are continued onto multiple lined
+    ;; If the years are continued onto multiple lines
     ;; that are marked as comments, skip to the end of the years anyway.
     (while (save-excursion
 	     (and (eq (following-char) ?,)
@@ -119,7 +121,9 @@ When this is `function', only ask when called non-interactively."
 		    (looking-at copyright-years-regexp))))
       (forward-line 1)
       (re-search-forward comment-start-skip)
-      (re-search-forward copyright-years-regexp))
+      ;; (2) Need the extra \\( \\) so that the years are subexp 3, as
+      ;; they are at note (1) above.
+      (re-search-forward (format "\\(%s\\)" copyright-years-regexp)))
 
     ;; Note that `current-time-string' isn't locale-sensitive.
     (setq copyright-current-year (substring (current-time-string) -4))
@@ -132,7 +136,7 @@ When this is `function', only ask when called non-interactively."
 			  (concat "Add " copyright-current-year
 				  " to copyright? "))))
 	  (if replace
-	      (replace-match copyright-current-year t t nil 2)
+	      (replace-match copyright-current-year t t nil 3)
 	    (let ((size (save-excursion (skip-chars-backward "0-9"))))
 	      (if (and (eq (% (- (string-to-number copyright-current-year)
 				 (string-to-number (buffer-substring
