@@ -108,10 +108,10 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
       '((thin . 100)
         (ultralight . 199) (ultra-light . 200) (extra-light . 201)
         (light . 300)
-        (semilight . 330) (semi-light . 330)
+        (semilight . 330) (semi-light . 331)
         (book . 350)
         (normal . 400) (regular . 401)
-        (medium . 500) 
+        (medium . 500)
         (semibold . 599) (semi-bold . 600) (demibold . 601) (demi . 602)
         (bold . 700)
         (extrabold . 799) (extra-bold . 800)
@@ -1772,7 +1772,7 @@ a message."
 ;;     (save-match-data
 ;;       (dolist (this result)
 ;; 	   (if (string-match " " this)
-;; 	       (push (replace-regexp-in-string " " "" 
+;; 	       (push (replace-regexp-in-string " " ""
 ;; 					       this)
 ;; 		     to-be-rejected)))
 ;;       (dolist (elt to-be-rejected)
