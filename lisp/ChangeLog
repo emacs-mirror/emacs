@@ -1,3 +1,8 @@
+2008-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* faces.el (font-weight-table, font-slant-table, font-swidth-table):
+	Make those tables bijective.
+
 2008-02-22  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	Finish pdbtrack integration cleanup, settling missing-functions
@@ -32,7 +37,7 @@
 	(vc-update-vc-status-buffer): Reset mode-line-process.
 	(vc-status-mark-all-files, vc-status-unmark-all-files): Change to
 	mark/unmark all the files with the same state as the current one.
-        With a prefix argument mark/unmark all files.
+	With a prefix argument mark/unmark all files.
 	(vc-status-mode-menu): Adjust strings.
 	(vc-update-vc-status-buffer): Only do something when the argument
 	is not nil.
@@ -54,8 +59,8 @@
 
 	* time.el (top-level): No need to require time-date when compiling.
 
-	* emacs-lisp/copyright.el (copyright-update-year): Fix
-	subexpression numbering for the case when years are split over
+	* emacs-lisp/copyright.el (copyright-update-year):
+	Fix subexpression numbering for the case when years are split over
 	lines, and for the replace case.
 
 	* emulation/tpu-edt.el (tpu-have-ispell): Doc fix.  Make obsolete.

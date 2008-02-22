@@ -106,28 +106,28 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
 (defcustom font-weight-table
   (if (eq system-type 'windows-nt)
       '((thin . 100)
-        (ultralight . 200) (ultra-light . 200) (extra-light . 200)
+        (ultralight . 199) (ultra-light . 200) (extra-light . 201)
         (light . 300)
         (semilight . 330) (semi-light . 330)
         (book . 350)
-        (normal . 400) (regular . 400)
+        (normal . 400) (regular . 401)
         (medium . 500) 
-        (semibold . 600) (semi-bold . 600) (demibold . 600) (demi . 600)
+        (semibold . 599) (semi-bold . 600) (demibold . 601) (demi . 602)
         (bold . 700)
-        (extrabold . 800) (extra-bold . 800)
-        (ultrabold . 800) (ultra-bold . 800)
-        (black . 900) (heavy . 900))
+        (extrabold . 799) (extra-bold . 800)
+        (ultrabold . 801) (ultra-bold . 802)
+        (black . 900) (heavy . 901))
     '((thin . 0)
-      (ultralight . 40) (ultra-light . 40) (extra-light . 40)
+      (ultralight . 39) (ultra-light . 40) (extra-light . 41)
       (light . 50)
-      (semilight . 65) (semi-light . 65)
+      (semilight . 65) (semi-light . 66)
       (book . 75)
-      (medium . 100) (regular . 100) (normal . 100)
-      (semibold . 180) (semi-bold . 180) (demibold . 180) (demi . 180)
+      (medium . 99) (regular . 100) (normal . 101)
+      (semibold . 179) (semi-bold . 180) (demibold . 181) (demi . 182)
       (bold . 200)
-      (extrabold . 205) (extra-bold . 205)
-      (ultrabold . 205) (ultra-bold . 205)
-      (black . 210) (heavy . 210)))
+      (extrabold . 204) (extra-bold . 205)
+      (ultrabold . 206) (ultra-bold . 207)
+      (black . 210) (heavy . 211)))
   "*Alist of font weight symbols vs the corresponding numeric values."
   :tag "Font weight table"
   :version "23.1"
@@ -141,9 +141,9 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
 (defcustom font-slant-table
   '((ro . 0)
     (ri . 10)
-    (r . 100) (roman . 100) (normal . 100)
-    (i . 200) (italic . 200) (ot . 200)
-    (o . 210) (oblique . 210))
+    (r . 99) (roman . 100) (normal . 101)
+    (i . 199) (italic . 200) (ot . 201)
+    (o . 210) (oblique . 211))
   "*Alist of font slant symbols vs the corresponding numeric values."
   :tag "Font slant table"
   :version "23.1"
@@ -155,15 +155,15 @@ REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
 	       (internal-set-font-style-table :slant value))))
 
 (defcustom font-swidth-table
-  '((ultracondensed . 50) (ultra-condensed . 50)
-    (extracondensed . 63) (extra-condensed . 63)
-    (condensed . 75) (compressed . 75) (narrow . 75)
-    (semicondensed . 87) (semi-condensed . 87)
-    (normal . 100) (medium . 100) (regular . 100)
-    (semiexpanded . 113) (semi-expanded . 113) (demiexpanded . 113)
+  '((ultracondensed . 50) (ultra-condensed . 51)
+    (extracondensed . 63) (extra-condensed . 64)
+    (narrow . 74) (compressed . 75) (condensed . 76)
+    (semi-condensed . 87) (semicondensed . 88)
+    (medium . 99) (normal . 100) (regular . 101)
+    (semiexpanded . 112) (semi-expanded . 113) (demiexpanded . 114)
     (expanded . 125)
-    (extraexpanded . 150) (extra-expanded . 150)
-    (ultraexpanded . 200) (ultra-expanded . 200) (wide . 200))
+    (extraexpanded . 150) (extra-expanded . 151)
+    (ultraexpanded . 199) (ultra-expanded . 200) (wide . 201))
   "*Alist of font swidth symbols vs the corresponding numeric values."
   :tag "Font swidth table"
   :version "23.1"
@@ -2190,8 +2190,7 @@ terminal type to a different value."
   "The standard faces of Emacs."
   :group 'faces)
 
-(defface default
-  '((t nil))
+(defface default nil
   "Basic default face."
   :group 'basic-faces)
 
