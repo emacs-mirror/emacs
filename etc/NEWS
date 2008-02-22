@@ -574,25 +574,21 @@ checking/manipulating elements directly, use the new functions
 ** `mode-name' is no longer guaranteed to be a string.
 Use `(format-mode-line mode-name)' to ensure a string value.
 
-** The features `devanagari' and `devan-util' were removed, and all
-devanagari-* and dev-* functions and variables were removed too.  They
-were for displaying Devanagari script with a specific kind of font in
-Emacs 22, and are not necessary anymore because of OpenType font support.
+** The following features have been removed.  They were used for
+displaying various scripts with specific fonts, and are no longer
+needed now that OpenType font support is available:
 
-** The feature `kannada' and `knd-util' were removed, and all
-kannada-* and knd-* functions and variables are removed too.  They
-were for displaying Kannada script with a specific kind of font in
-Emacs 22, and not necessary anymore because of OpenType font support.
+*** `devanagari' and `devan-util', and all associated devanagari-* and
+dev-* functions and variables (formerly used for Devanagari script).
 
-** The feature `malayalam' and `mlm-util' are removed, and all
-malayalam-* and mlm-* functions and variables are removed too.  They
-were for displaying Malayalam script with a specific kind of font in
-Emacs 22, and not necessary anymore because of OpenType font support.
+*** `kannada' and `knd-util', and all associated kannada-* and knd-*
+functions and variables (formerly used for Kannada script).
 
-** The feature `tamil' and `tml-util' are removed, and all tamil-* and
-tml-* functions and variables are removed too.  They were for
-displaying Tamil script with a specific kind of font in Emacs 22, and
-not necessary anymore because of OpenType font support.
+*** `malayalam' and `mlm-util', and all associated malayalam-* and
+mlm-* functions and variables (formerly used for Malayalam script).
+
+*** `tamil' and `tml-util, and all associated tamil-* and tml-*
+functions and variables (formerly used for Tamil script).
 
 
 * Lisp Changes in Emacs 23.1
