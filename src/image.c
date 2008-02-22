@@ -42,7 +42,7 @@ Boston, MA 02110-1301, USA.  */
 #include <epaths.h>
 #include "charset.h"
 #include "coding.h"
-
+#include "termhooks.h"
 
 #ifdef HAVE_X_WINDOWS
 #include "xterm.h"
