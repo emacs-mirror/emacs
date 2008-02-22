@@ -574,10 +574,10 @@ checking/manipulating elements directly, use the new functions
 ** `mode-name' is no longer guaranteed to be a string.
 Use `(format-mode-line mode-name)' to ensure a string value.
 
-** The feature `devanagari' and `devan-util' were removed, and all
+** The features `devanagari' and `devan-util' were removed, and all
 devanagari-* and dev-* functions and variables were removed too.  They
 were for displaying Devanagari script with a specific kind of font in
-Emacs 22, and not necessary anymore because of OpenType font support.
+Emacs 22, and are not necessary anymore because of OpenType font support.
 
 ** The feature `kannada' and `knd-util' were removed, and all
 kannada-* and knd-* functions and variables are removed too.  They
@@ -670,7 +670,7 @@ multiple charsets (e.g. a-grave, U+00E0, belongs to charsets unicode,
 iso-8859-1, iso-8859-3, etc).
 
 *** The new function `characterp' returns t if and only if the argument
-is a character.
+is a character.  This replaces `char-valid-p', which is now obsolete.
 
 *** The new function `max-char' returns the maximum character code
 (currently it is #x3FFFFF).
@@ -727,9 +727,6 @@ character is printable or not.
 *** The functions `modify-syntax-entry' and `modify-category-entry' now
 accepts a cons of characters as the first argument, and modify all
 entries in that range of characters.
-
-*** The functions `char-bytes', `chars-in-region', and `char-valid-p' are
-obsolete.
 
 ** Code conversion changes.
 
