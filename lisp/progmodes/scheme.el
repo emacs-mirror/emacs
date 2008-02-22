@@ -334,6 +334,8 @@ See `run-hooks'."
 	       "call-with-input-file" "call-with-output-file" "case" "cond"
 	       "do" "else" "for-each" "if" "lambda"
 	       "let" "let*" "let-syntax" "letrec" "letrec-syntax"
+	       ;; SRFI 11 usage comes up often enough.
+	       "let-values" "let*-values"
 	       ;; Hannes Haug <hannes.haug@student.uni-tuebingen.de> wants:
 	       "and" "or" "delay" "force"
 	       ;; Stefan Monnier <stefan.monnier@epfl.ch> says don't bother:
@@ -541,6 +543,8 @@ that variable's value is a string."
 (put 'let 'scheme-indent-function 'scheme-let-indent)
 (put 'let* 'scheme-indent-function 1)
 (put 'letrec 'scheme-indent-function 1)
+(put 'let-values 'scheme-indent-function 1) ; SRFI 11
+(put 'let*-values 'scheme-indent-function 1) ; SRFI 11
 (put 'sequence 'scheme-indent-function 0) ; SICP, not r4rs
 (put 'let-syntax 'scheme-indent-function 1)
 (put 'letrec-syntax 'scheme-indent-function 1)
