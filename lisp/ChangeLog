@@ -1,3 +1,7 @@
+2008-02-22  Bill Meier <wmeier@newsguy.com>  (tiny change)
+
+	* progmodes/sh-script.el (sh-indent-comment): Docstring fix.
+
 2008-02-21  Glenn Morris  <rgm@gnu.org>
 
 	* subr.el (sit-for): Fix obsolete form for nil second argument.

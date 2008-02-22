@@ -1212,7 +1212,7 @@ This value is used for the `+' and `-' symbols in an indentation variable."
 nil means leave it as it is;
 t  means indent it as a normal line, aligning it to previous non-blank
    non-comment line;
-a number means align to that column, e.g. 0 means fist column."
+a number means align to that column, e.g. 0 means first column."
   :type '(choice
 	  (const :tag "Leave as is." nil)
 	  (const :tag "Indent as a normal line."  t)
