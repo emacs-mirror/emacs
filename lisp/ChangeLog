@@ -1,3 +1,24 @@
+2008-02-22  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* loadup.el: Don't load language/devanagari, language/kannanda,
+	language/malayalam, and language/tamil.  Load language/sinhala.
+
+	* language/indian.el (indian-font-foundry)
+	(indian-script-language-alist, indian-font-char-index-table)
+	(indian-font-char, indian-font-char-range, indian-script-table)
+	(indian-default-script, indian-composable-pattern): Delete them.
+	("Devanagari", "Kannada", "Malayalam", "Tamil"): Definitions of
+	language environments moved to here.
+	("Bengali", "Punjabi", "Gujarati", "Oriya", "Telugu"): New
+	language environments.
+
+	* language/devanagari.el, language/devan-util.el,
+	language/kannanda.el, language/knd-util.el, language/malayalam.el,
+	language/mlm-util.el, language/tamil.el, language/tml-util.el:
+	Delete them.
+
+	* language/sinhala.el: New file.
+
 2008-02-21  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* python.el (python-pdbtrack-toggle-stack-tracking): Clarify
@@ -103,6 +124,11 @@
 	(spell-string): Make obsolete, in favor of ispell.
 
 2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* language/devanagari.el: Don't setup composition-function-table
+	here.
+	("Devanagari"): Change charset, coding-system, coding-priority to
+	Unicode-based ones.  Don't require the feature devan-util.
 
 	* composite.el (compose-chars-after): Fix arguments for a function
 	in composition-function-table.
