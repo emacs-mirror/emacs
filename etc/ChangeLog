@@ -1,6 +1,6 @@
 2008-02-22  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* NEWS: Mention the new language envrironments Bengali, Punjabi,
+	* NEWS: Mention the new language environments Bengali, Punjabi,
 	Gujarati, Oriya, Telugu, Sinhala.  Mention the removal of features
 	devanagari, devan-util, kannada, knd-util, malayalam, mlm-util,
 	tamil, and tml-util.
@@ -11,9 +11,8 @@
 
 2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* NEWS: Improve the description about the removal of
-	cp-...-codepage functions.  Describe the removal of the feature
-	`devan-util'.
+	* NEWS: Improve the description about the removal of cp-...-codepage
+	functions.  Describe the removal of the feature `devan-util'.
 
 2008-02-21  Glenn Morris  <rgm@gnu.org>
 
