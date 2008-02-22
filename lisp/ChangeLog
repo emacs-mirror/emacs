@@ -62,9 +62,8 @@
 	tracking is happening.
 	(python-pdbtrack-stack-entry-regexp): Better recognize stack traces.
 	(python-pdbtrack-input-prompt): Better recognize PDB prompts.
-	(add python-pdbtrack-track-stack-file to
-	comint-output-filter-functions): Tracking is plugged in to all
-	comint buffers once python.el is loaded.
+	(comint-output-filter-functions): Add python-pdbtrack-track-stack-file.
+	Tracking is plugged in to all comint buffers once python.el is loaded.
 	(python-pdbtrack-overlay-arrow): Toggle activation of
 	`python-pdbtrack-minor-mode-string' in addition to the overlay arrow.
 	(python-pdbtrack-track-stack-file): Use new
