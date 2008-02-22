@@ -836,7 +836,7 @@ is the name of the register for COM."
 	((= char ?q)
 	 (set-mark vip-com-point)
 	 (vip-quote-region))
-	((= char ?s) (spell-region vip-com-point (point)))))
+	((= char ?s) (ispell-region vip-com-point (point)))))
 
 
 ;; undoing
