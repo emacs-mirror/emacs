@@ -238,10 +238,7 @@ lisp2 = \
 	$(lispsource)language/chinese.el \
 	$(lispsource)language/cyrillic.el \
 	$(lispsource)language/indian.el \
-	$(lispsource)language/devanagari.el \
-	$(lispsource)language/kannada.el \
-	$(lispsource)language/malayalam.el \
-	$(lispsource)language/tamil.el \
+	$(lispsource)language/sinhala.el \
 	$(lispsource)language/english.el \
 	$(lispsource)language/ethiopic.elc \
 	$(lispsource)language/european.elc \
