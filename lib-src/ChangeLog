@@ -1,3 +1,8 @@
+2008-02-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (lisp2): Remove devanagari.el, kannada.el,
+	malayalam.el, and tamil.el.  Add sinhala.el.
+
 2008-02-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacsclient.c (main) [WINDOWSNT]: Understand DRIVE:NAME,
