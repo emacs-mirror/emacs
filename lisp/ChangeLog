@@ -4,11 +4,6 @@
 	Add SRFI 11 support.
 	(let-values, let*-values): Specify scheme-indent-function.
 
-2008-02-22  Andreas Schwab  <schwab@suse.de>
-
-	* progmodes/verilog-mode.el (verilog-xemacs-menu): Fix setup of
-	"Move" submenu.
-
 2008-02-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-exec-after): Move setting mode-line-process in the
