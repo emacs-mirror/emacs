@@ -1,3 +1,9 @@
+2008-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* charset.h (CHECK_CHARSET, CHECK_CHARSET_GET_ID)
+	(CHECK_CHARSET_GET_ATTR): Don't use the inexistent return value of
+	wrong_type_argument.
+
 2008-02-22  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* Makefile.in (lisp): Remove devanagari.el, kannada.el,

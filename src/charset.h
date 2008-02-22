@@ -339,7 +339,7 @@ extern struct charset *emacs_mule_charset[256];
 #define CHECK_CHARSET(x)					\
   do {								\
     if (! SYMBOLP (x) || CHARSET_SYMBOL_HASH_INDEX (x) < 0)	\
-      x = wrong_type_argument (Qcharsetp, (x));			\
+      wrong_type_argument (Qcharsetp, (x));			\
   } while (0)
 
 
@@ -350,7 +350,7 @@ extern struct charset *emacs_mule_charset[256];
     int idx;								\
 									\
     if (! SYMBOLP (x) || (idx = CHARSET_SYMBOL_HASH_INDEX (x)) < 0)	\
-      x = wrong_type_argument (Qcharsetp, (x));				\
+      wrong_type_argument (Qcharsetp, (x));				\
     id = XINT (AREF (HASH_VALUE (XHASH_TABLE (Vcharset_hash_table), idx), \
 		     charset_id));					\
   } while (0)
@@ -361,7 +361,7 @@ extern struct charset *emacs_mule_charset[256];
 #define CHECK_CHARSET_GET_ATTR(x, attr)				\
   do {									\
     if (!SYMBOLP (x) || NILP (attr = CHARSET_SYMBOL_ATTRIBUTES (x)))	\
-      x = wrong_type_argument (Qcharsetp, (x));				\
+      wrong_type_argument (Qcharsetp, (x));				\
   } while (0)
 
 
