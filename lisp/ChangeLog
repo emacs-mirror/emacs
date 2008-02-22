@@ -1,3 +1,7 @@
+2008-02-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (font-weight-table): Fix value of `semi-light'.
+
 2008-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* faces.el (font-weight-table, font-slant-table, font-swidth-table):
@@ -8,9 +12,8 @@
 	Finish pdbtrack integration cleanup, settling missing-functions
 	byte compiler warnings appropriately.
 
-	* progmodes/python.el (python-point): Remove this -
-	beginning-of-line was all that was necessary for
-	`python-pdbtrack-overlay-arrow'.
+	* progmodes/python.el (python-point): Remove this - beginning-of-line
+	was all that was necessary for `python-pdbtrack-overlay-arrow'.
 	(python-end-of-def-or-class, python-beginning-of-def-or-class)
 	(python-goto-initial-line): Drop these - they were only needed for
 	python-point.
@@ -19,7 +22,7 @@
 	which require all sorts of baggage.
 	(point-safe): Unnecessary - we're using condition-case directly,
 	instead.
-	(python-execute-file): Include for python-shell, which i'm leaving
+	(python-execute-file): Include for python-shell, which I'm leaving
 	in keeping despite it being unnecessary for pdb tracking.
 
 2008-02-22  Peter Danenberg  <pcd@wikitex.org>  (tiny change)
