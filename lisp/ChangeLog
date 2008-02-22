@@ -1,3 +1,27 @@
+2008-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* json.el (top-level): No need to require thingatpt.
+	(json-read-keyword): Use thing-at-point rather than word-at-point.
+
+	* time.el (top-level): No need to require time-date when compiling.
+
+	* emacs-lisp/copyright.el (copyright-update-year): Fix
+	subexpression numbering for the case when years are split over
+	lines, and for the replace case.
+
+	* emulation/tpu-edt.el (tpu-have-ispell): Doc fix.  Make obsolete.
+	(tpu-caar, tpu-cadr): Delete functions.
+	(zmacs-regions): No need to declare for compiler.
+	(tpu-goto-breadcrumb): Use cadr rather than tpu-cadr.
+	(tpu-spell-check): Rewrite, and handle mark after point.
+	(tpu-special-insert): Use or rather than if.
+
+	* emulation/vip.el (vip-special-prefix-com): Use ispell-region
+	rather than spell-region.
+
+	* textmodes/spell.el (spell-buffer, spell-word): Suppress compiler
+	warnings about spell-region.
+
 2008-02-22  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* loadup.el: Don't load language/devanagari, language/kannanda,
