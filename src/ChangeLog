@@ -1,3 +1,8 @@
+2008-02-22  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* Makefile.in (lisp): Remove devanagari.el, kannada.el,
+	malayalam.el, and tamil.el.   Add sinhala.el.
+
 2008-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xterm.c (x_connection_closed): Consolidate identical tests.
