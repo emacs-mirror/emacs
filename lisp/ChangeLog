@@ -9,6 +9,18 @@
 	mark/unmark all the files with the same state as the current one.
         With a prefix argument mark/unmark all files.
 	(vc-status-mode-menu): Adjust strings.
+	(vc-update-vc-status-buffer): Only do something when the argument
+	is not nil.
+	(vc-status-kill-dir-status-process): New function.
+	(vc-status-mode-map): Bind it.
+	(vc-status-process-buffer): New variable.
+	(vc-status-mode): Make it local.
+	(vc-status-refresh): Set it.
+
+	* vc-hg.el (vc-hg-dir-status):
+	* vc-git.el (vc-git-dir-status):
+	* vc-svn.el (vc-svn-dir-status): Return the buffer in which the
+	command is run.
 
 2008-02-22  Glenn Morris  <rgm@gnu.org>
 

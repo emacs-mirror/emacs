@@ -518,7 +518,8 @@ REV is the revision to check out into WORKFILE."
     (erase-buffer)
     (vc-hg-command (current-buffer) 'async dir "status")
     (vc-exec-after
-     `(vc-hg-after-dir-status (quote ,update-function) ,status-buffer))))
+     `(vc-hg-after-dir-status (quote ,update-function) ,status-buffer))
+    (current-buffer)))
 
 ;; XXX this adds another top level menu, instead figure out how to
 ;; replace the Log-View menu.

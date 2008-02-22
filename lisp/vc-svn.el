@@ -185,7 +185,8 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
                        (generate-new-buffer-name " *vc svn status*"))
     (vc-svn-command (current-buffer) 'async nil "status")
     (vc-exec-after
-     `(vc-svn-after-dir-status (quote ,callback) ,buffer))))
+     `(vc-svn-after-dir-status (quote ,callback) ,buffer))
+    (current-buffer)))
 
 (defun vc-svn-working-revision (file)
   "SVN-specific version of `vc-working-revision'."

@@ -174,6 +174,8 @@
 ;;   this list, it should be run asynchronously.  When RESULT is
 ;;   computed, it should be passed back by doing:
 ;;       (funcall UPDATE-FUNCTION RESULT STATUS-BUFFER)
+;;   Return the buffer used for the asynchronous call.  This buffer
+;;   is used to kill the status update process on demand.
 ;;   This function is used by vc-status, a replacement for vc-dired.
 ;;   vc-status is still under development, and is NOT feature
 ;;   complete.  As such, the requirements for this function might
@@ -2715,6 +2717,7 @@ With prefix arg READ-SWITCHES, specify a value to override
     (define-key map "o" 'vc-status-find-file-other-window)
     (define-key map "q" 'bury-buffer)
     (define-key map "g" 'vc-status-refresh)
+    (define-key map "\C-c\C-c" 'vc-status-kill-dir-status-process)
     ;; Not working yet.  Functions like vc-status-find-file need to
     ;; find the file from the mouse position, not `point'.
     ;; (define-key map [(down-mouse-3)] 'vc-status-menu)
@@ -2785,6 +2788,9 @@ With prefix arg READ-SWITCHES, specify a value to override
   (interactive "e")
   (popup-menu vc-status-mode-menu e))
 
+(defvar vc-status-process-buffer nil
+  "The buffer used for the asynchronous call that computes the VC status.")
+
 (defun vc-status-mode ()
   "Major mode for VC status.
 \\{vc-status-mode-map}"
@@ -2796,6 +2802,7 @@ With prefix arg READ-SWITCHES, specify a value to override
 	(backend (vc-responsible-backend default-directory))
 	entries)
     (erase-buffer)
+    (set (make-local-variable 'vc-status-process-buffer) nil)
     (set (make-local-variable 'vc-status)
 	 (ewoc-create #'vc-status-printer
 		      (vc-status-headers backend default-directory)))
@@ -2805,10 +2812,11 @@ With prefix arg READ-SWITCHES, specify a value to override
 
 (defun vc-update-vc-status-buffer (entries buffer)
   (with-current-buffer buffer
-    (dolist (entry entries)
-      (ewoc-enter-last vc-status
-		       (vc-status-create-fileinfo (cdr entry) (car entry))))
-    (ewoc-goto-node vc-status (ewoc-nth vc-status 0))
+    (when entries
+      (dolist (entry entries)
+	(ewoc-enter-last vc-status
+			 (vc-status-create-fileinfo (cdr entry) (car entry))))
+      (ewoc-goto-node vc-status (ewoc-nth vc-status 0)))
     (setq mode-line-process nil)))
 
 (defun vc-status-refresh ()
@@ -2822,9 +2830,19 @@ With prefix arg READ-SWITCHES, specify a value to override
     ;; be asynchronous.  It should compute the results and call the
     ;; function passed as a an arg to update the vc-status buffer with
     ;; the results.
-    (vc-call-backend
-     backend 'dir-status default-directory
-     #'vc-update-vc-status-buffer (current-buffer))))
+    (setq vc-status-process-buffer
+	  (vc-call-backend
+	   backend 'dir-status default-directory
+	   #'vc-update-vc-status-buffer (current-buffer)))))
+
+(defun vc-status-kill-dir-status-process ()
+  "Kill the temporary buffer and associated process."
+  (interactive)
+  (when (and (bufferp vc-status-process-buffer) 
+	     (buffer-live-p vc-status-process-buffer))
+    (let ((proc (get-buffer-process vc-status-process-buffer)))
+      (when proc (delete-process proc))
+      (setq mode-line-process nil))))
 
 (defun vc-status-next-line (arg)
   "Go to the next line.

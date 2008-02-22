@@ -252,7 +252,8 @@
                     "--directory"
                     "--exclude-per-directory=.gitignore")
     (vc-exec-after
-     `(vc-git-after-dir-status (quote ,update-function) ,status-buffer))))
+     `(vc-git-after-dir-status (quote ,update-function) ,status-buffer))
+    (current-buffer)))
 
 ;;; STATE-CHANGING FUNCTIONS
 
