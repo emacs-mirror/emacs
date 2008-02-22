@@ -9,38 +9,34 @@
 	(indian-default-script, indian-composable-pattern): Delete them.
 	("Devanagari", "Kannada", "Malayalam", "Tamil"): Definitions of
 	language environments moved to here.
-	("Bengali", "Punjabi", "Gujarati", "Oriya", "Telugu"): New
-	language environments.
+	("Bengali", "Punjabi", "Gujarati", "Oriya", "Telugu"):
+	New language environments.
 
 	* language/devanagari.el, language/devan-util.el,
-	language/kannanda.el, language/knd-util.el, language/malayalam.el,
-	language/mlm-util.el, language/tamil.el, language/tml-util.el:
+	* language/kannanda.el, language/knd-util.el, language/malayalam.el,
+	* language/mlm-util.el, language/tamil.el, language/tml-util.el:
 	Delete them.
 
 	* language/sinhala.el: New file.
 
 2008-02-21  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* python.el (python-pdbtrack-toggle-stack-tracking): Clarify
-	docstring.
+	* python.el (python-pdbtrack-toggle-stack-tracking): Clarify docstring.
 	(python-pdbtrack-minor-mode-string): A sign indicating that pdb
 	tracking is happening.
-	(python-pdbtrack-stack-entry-regexp): Better recognize stack
-	traces.
+	(python-pdbtrack-stack-entry-regexp): Better recognize stack traces.
 	(python-pdbtrack-input-prompt): Better recognize PDB prompts.
 	(add python-pdbtrack-track-stack-file to
 	comint-output-filter-functions): Tracking is plugged in to all
 	comint buffers once python.el is loaded.
 	(python-pdbtrack-overlay-arrow): Toggle activation of
-	`python-pdbtrack-minor-mode-string' in addition to the overlay
-	arrow.
+	`python-pdbtrack-minor-mode-string' in addition to the overlay arrow.
 	(python-pdbtrack-track-stack-file): Use new
 	`python-pdbtrack-get-source-buffer' for more flexible access to
 	debugging source files.
-	(python-pdbtrack-get-source-buffer): Identify debugging target
-	buffer according to pdb stack trace, optionally using new
-	`python-pdbtrack-grub-for-buffer' if file is not locally
-	available.
+	(python-pdbtrack-get-source-buffer): Identify debugging target buffer
+	according to pdb stack trace, optionally using new
+	`python-pdbtrack-grub-for-buffer' if file is not locally available.
 	(python-pdbtrack-grub-for-buffer): Find most recent python-mode
 	named buffer, or having function with indicated name.
 	(python-shell): Remove comint-output-filter-functions hook
@@ -77,8 +73,8 @@
 	(run-python): Set default command to python-command instead of
 	python-python-command.
 	(run-python): Use python-check-version.  Give PYTHONPATH
-	precedence over data-directory in the process environment.  Load
-	function definitions in python process after.
+	precedence over data-directory in the process environment.
+	Load function definitions in python process after.
 	(python-check-comint-prompt): New function.
 	(python-send-command, python-send-receive): Use it.
 	(python-complete-symbol, python-try-complete): Functions deleted.
@@ -89,9 +85,9 @@
 	`try/except', `try/finally', `name'.
 	(python-pea-hook, python-abbrev-pc-hook): New functions.
 	(python-abbrev-syntax-table): New var.
-	(python-mode): Add python-pea-hook to pre-abbrev-expand-hook.  Use
-	symbol-completion-try-complete for hippie expansion.  Turn on font
-	lock unconditionally.
+	(python-mode): Add python-pea-hook to pre-abbrev-expand-hook.
+	Use symbol-completion-try-complete for hippie expansion.
+	Turn on font lock unconditionally.
 	(python-mode-hook): Defcustom it.  No need to use make-local
 	variable on indent-tabs-mode in "Turn off Indent Tabs mode"
 	option, since it's buffer-local.
