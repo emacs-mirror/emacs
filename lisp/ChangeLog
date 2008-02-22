@@ -1,3 +1,8 @@
+2008-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.el (dired-mark-prompt): Don't count/display the t element.
+	Reported by Carsten Blaauw <it-media.blaauw@daimler.com>.
+
 2008-02-22  Bill Meier <wmeier@newsguy.com>  (tiny change)
 
 	* progmodes/sh-script.el (sh-indent-comment): Docstring fix.
