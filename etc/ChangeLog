@@ -1,3 +1,10 @@
+2008-02-22  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* NEWS: Mention the new language envrironments Bengali, Punjabi,
+	Gujarati, Oriya, Telugu, Sinhala.  Mention the removal of features
+	devanagari, devan-util, kannada, knd-util, malayalam, mlm-util,
+	tamil, and tml-util.
+
 2008-02-22  Michael Olson  <mwolson@gnu.org>
 
 	* NEWS: Describe nXML mode and json.el.
@@ -39,7 +46,7 @@
 
 2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* HELLO: Add Bengali, Gujarati, Khmer, Myanmar, Oriya, Sinhara,
+	* HELLO: Add Bengali, Gujarati, Khmer, Myanmar, Oriya, Sinhala,
 	Telugu.  Fix ISO-2022 desginations in Cantonese line.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
