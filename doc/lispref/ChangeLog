@@ -1,3 +1,10 @@
+2008-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* frames.texi (Position Parameters): Clarify the description of
+	`left' and `top', using information from "Geometry".
+	(Geometry): Give a pointer to "Position Parameters", rather than
+	repeating information.
+
 2008-02-11  Glenn Morris  <rgm@gnu.org>
 
 	* objects.texi (Equality Predicates): No longer talk about "two"
