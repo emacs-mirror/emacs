@@ -593,6 +593,11 @@
 ;;   them, or remove them from the VCS. C-x v v might also need
 ;;   adjustments.
 ;;
+;; - vc-diff, vc-annotate, etc. need to deal better with unregistered
+;;   files. Now that unregistered and ignored files are shown in
+;;   vc-dired/vc-status, it is possible that these commands are called
+;;   for unregistered/ignored files.
+;;
 ;; - "snapshots" should be renamed to "branches", and thoroughly reworked.
 ;;
 ;; - do not default to RCS anymore when the current directory is not
@@ -1048,6 +1053,19 @@ BUF defaults to \"*vc*\", can be a string and will be created if necessary."
                   (with-selected-window win
                     (goto-char vc-sentinel-movepoint))))))))))
 
+(defun vc-set-mode-line-busy-indicator ()
+  (setq mode-line-process
+	;; Deliberate overstatement, but power law respected.
+	;; (The message is ephemeral, so we make it loud.)  --ttn
+	(propertize " (incomplete/in progress)"
+		    'face (if (featurep 'compile)
+			      ;; ttn's preferred loudness
+			      'compilation-warning
+			    ;; suitably available fallback
+			    font-lock-warning-face)
+		    'help-echo
+		    "A VC command is in progress in this buffer")))
+
 (defun vc-exec-after (code)
   "Eval CODE when the current buffer's process is done.
 If the current buffer has no process, just evaluate CODE.
@@ -1065,17 +1083,7 @@ Else, add CODE to the process' sentinel."
       (eval code))
      ;; If a process is running, add CODE to the sentinel
      ((eq (process-status proc) 'run)
-      (setq mode-line-process
-            ;; Deliberate overstatement, but power law respected.
-            ;; (The message is ephemeral, so we make it loud.)  --ttn
-            (propertize " (incomplete/in progress)"
-                        'face (if (featurep 'compile)
-                                  ;; ttn's preferred loudness
-                                  'compilation-warning
-                                ;; suitably available fallback
-                                font-lock-warning-face)
-			'help-echo
-			"A VC command is in progress in this buffer"))
+      (vc-set-mode-line-busy-indicator)
       (let ((previous (process-sentinel proc)))
         (unless (eq previous 'vc-process-sentinel)
           (process-put proc 'vc-previous-sentinel previous))
@@ -2755,15 +2763,17 @@ With prefix arg READ-SWITCHES, specify a value to override
     "----"
     ;; Marking.
     ["Mark" vc-status-mark
-     :help "Mark the current file and move to the next line"]
+     :help "Mark the current file  or all files in the region"]
     ["Marl All" vc-status-mark-all-files
-     :help "Mark all files"]
+     :help "Mark all files that are in the same state as the current file\
+\nWith prefix argument mark all files"]
     ["Unmark" vc-status-unmark
-     :help "Unmark the current file and move to the next line"]
+     :help "Unmark the current file or all files in the region"]
     ["Unmark previous " vc-status-unmark-file-up
      :help "Move to the previous line and unmark the file"]
     ["Unmark All" vc-status-unmark-all-files
-     :help "Unmark all files"]
+     :help "Unmark all files that are in the same state as the current file\
+\nWith prefix argument unmark all files"]
     "----"
     ["Refresh" vc-status-refresh
      :help "Refresh the contents of the VC status buffer"]
@@ -2798,7 +2808,8 @@ With prefix arg READ-SWITCHES, specify a value to override
     (dolist (entry entries)
       (ewoc-enter-last vc-status
 		       (vc-status-create-fileinfo (cdr entry) (car entry))))
-    (ewoc-goto-node vc-status (ewoc-nth vc-status 0))))
+    (ewoc-goto-node vc-status (ewoc-nth vc-status 0))
+    (setq mode-line-process nil)))
 
 (defun vc-status-refresh ()
   "Refresh the contents of the VC status buffer."
@@ -2806,6 +2817,7 @@ With prefix arg READ-SWITCHES, specify a value to override
   ;; This is not very efficient; ewoc could use a new function here.
   (ewoc-filter vc-status (lambda (node) nil))
   (let ((backend (vc-responsible-backend default-directory)))
+    (vc-set-mode-line-busy-indicator)
     ;; Call the dir-status backend function. dir-status is supposed to
     ;; be asynchronous.  It should compute the results and call the
     ;; function passed as a an arg to update the vc-status buffer with
@@ -2854,15 +2866,32 @@ line."
   (interactive)
   (vc-status-mark-unmark 'vc-status-mark-file))
 
-(defun vc-status-mark-all-files ()
-  "Mark all files."
-  (interactive)
-   (ewoc-map
-    (lambda (file)
-      (unless (vc-status-fileinfo->marked file)
-	(setf (vc-status-fileinfo->marked file) t)
-	t))
-    vc-status))
+
+;; XXX: Should this take the region into consideration?
+(defun vc-status-mark-all-files (arg)
+  "Mark all files with the same state as the current one.
+With a prefix argument mark all files.
+
+The VC commands operate on files that are on the same state.
+This command is intended to make it easy to select all files that
+share the same state."
+  (interactive "P")
+  (if arg
+      (ewoc-map
+       (lambda (filearg)
+	 (unless (vc-status-fileinfo->marked filearg)
+	   (setf (vc-status-fileinfo->marked filearg) t)
+	   t))
+       vc-status)
+    (let* ((crt (ewoc-locate vc-status))
+	   (crt-state (vc-status-fileinfo->state (ewoc-data crt))))
+      (ewoc-map
+       (lambda (filearg)
+	 (when (and (not (vc-status-fileinfo->marked filearg))
+		    (eq (vc-status-fileinfo->state filearg) crt-state))
+	   (setf (vc-status-fileinfo->marked filearg) t)
+	   t))
+       vc-status))))
 
 (defun vc-status-unmark-file ()
   ;; Unmark the current file and move to the next line.
@@ -2892,15 +2921,30 @@ line."
     (ewoc-invalidate vc-status prev)
     (vc-status-move-to-goal-column)))
 
-(defun vc-status-unmark-all-files ()
-  "Unmark all files."
-  (interactive)
-   (ewoc-map
-    (lambda (file)
-      (when (vc-status-fileinfo->marked file)
-	(setf (vc-status-fileinfo->marked file) nil)
-	t))
-    vc-status))
+(defun vc-status-unmark-all-files (arg)
+  "Unmark all files with the same state as the current one.
+With a prefix argument mark all files.
+
+The VC commands operate on files that are on the same state.
+This command is intended to make it easy to deselect all files
+that share the same state."
+  (interactive "P")
+  (if arg
+      (ewoc-map
+       (lambda (filearg)
+	 (when (vc-status-fileinfo->marked filearg)
+	   (setf (vc-status-fileinfo->marked filearg) nil)
+	   t))
+       vc-status)
+    (let* ((crt (ewoc-locate vc-status))
+	   (crt-state (vc-status-fileinfo->state (ewoc-data crt))))
+      (ewoc-map
+       (lambda (filearg)
+	 (when (and (vc-status-fileinfo->marked filearg)
+		    (eq (vc-status-fileinfo->state filearg) crt-state))
+	   (setf (vc-status-fileinfo->marked filearg) nil)
+	   t))
+       vc-status))))
 
 (defun vc-status-register ()
   "Register the marked files, or the current file if no marks."
