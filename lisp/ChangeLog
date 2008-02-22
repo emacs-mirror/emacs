@@ -44,11 +44,14 @@
 
 2008-02-21  Michael Olson  <mwolson@gnu.org>
 
-	* json.el: Install new file by Edward O'Connor.  json.el is a
-	JavaScript Object Notation parser / generator.  Replace XEmacs
-	compatibility code to get rid of compiler warnings.
+	* json.el: Replace XEmacs compatibility code to get rid of
+	compiler warnings.
 
 	* time.el: Fix compiler warning.
+
+2008-02-21  Edward O'Connor  <ted@oconnor.cx>
+
+	* json.el: New file (JavaScript Object Notation parser / generator).
 
 2008-02-21  Dave Love  <fx@gnu.org>
 
