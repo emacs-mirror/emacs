@@ -1,3 +1,9 @@
+2008-02-22  Peter Danenberg  <pcd@wikitex.org>  (tiny change)
+
+	* progmodes/scheme.el (scheme-font-lock-keywords-2):
+	Add SRFI 11 support.
+	(let-values, let*-values): Specify scheme-indent-function.
+
 2008-02-22  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/verilog-mode.el (verilog-xemacs-menu): Fix setup of
