@@ -992,14 +992,13 @@ If set will become buffer local.")
       :selected (equal verilog-tool `verilog-compiler)]
      )
     ("Move"
-     ,(if (featurep 'xemacs)
-	  (progn
-	    ["Beginning of function"		verilog-beg-of-defun t]
-	    ["End of function"			verilog-end-of-defun t]
-	    ["Mark function"			verilog-mark-defun t])
-	["Beginning of function"		beginning-of-defun t]
-	["End of function"			end-of-defun t]
-	["Mark function"			mark-defun t])
+     ,@(if (featurep 'xemacs)
+	   '(["Beginning of function"		verilog-beg-of-defun t]
+	     ["End of function"			verilog-end-of-defun t]
+	     ["Mark function"			verilog-mark-defun t])
+	'(["Beginning of function"		beginning-of-defun t]
+	  ["End of function"			end-of-defun t]
+	  ["Mark function"			mark-defun t]))
 
      ["Goto function/module"		verilog-goto-defun t]
      ["Move to beginning of block"	electric-verilog-backward-sexp t]
