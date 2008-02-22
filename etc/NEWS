@@ -282,8 +282,17 @@ document to a set of PNG images first.  One can also search for a
 regular expression in the document.  The commentary of the file explains
 its usage.
 
-** The nXML package has been added.
-[FIXME someone who uses this, please write a brief description.]
+** The nXML package has been added.  It is a new mode for editing XML
+documents.  nXML mode allows a schema to be associated with the XML
+document being edited.  nXML mode uses Relax NG as its schema
+language.  The schema is used to provide two key features:
+
+*** Continuous validation.  nXML validates as you type, highlighting
+any invalid parts of your document.
+
+*** Completion.  nXML can assist you in entering an element name,
+attribute name or data value by using information about what is
+allowed by the schema in that context.
 
 ** A new game called `bubbles' has been added.
 
@@ -303,6 +312,10 @@ same host, based on messages.  See the manual for further details.
 GnuPG interface which includes GnuPG keyring browser, cryptographic
 operations on regions and files, and automatic encryption of *.gpg
 files.  See the EasyPG Assistant User's Manual for further details.
+
+** json.el is now included with Emacs.  It is a library for parsing
+and generating JSON (JavaScript Object Notation).  JSON is a
+lightweight data-interchange format.
 
 ** Auto Composition Mode is a minor mode that composes characters
 automatically when they are displayed.  It is globally on by default.
