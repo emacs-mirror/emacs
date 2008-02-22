@@ -870,6 +870,39 @@ font_expand_wildcards (field, n)
   return 0;
 }
 
+
+#ifdef ENABLE_CHECKING
+/* Match a 14-field XLFD pattern against a full XLFD font name.  */
+static int
+font_match_xlfd (char *pattern, char *name)
+{
+  while (*pattern && *name)
+    {
+      if (*pattern == *name)
+	pattern++;
+      else if (*pattern == '*')
+	if (*name == pattern[1])
+	  pattern += 2;
+	else
+	  ;
+      else
+	return 0;
+      name++;
+    }
+  return 1;
+}
+
+/* Make sure the font object matches the XLFD font name.  */
+static int
+font_check_xlfd_parse (Lisp_Object font, char *name)
+{
+  char name_check[256];
+  font_unparse_xlfd (font, 0, name_check, 255);
+  return font_match_xlfd (name_check, name);
+}
+
+#endif
+
 /* Parse NAME (null terminated) as XLFD and store information in FONT
    (font-spec or font-entity).  Size property of FONT is set as
    follows:
@@ -984,6 +1017,7 @@ font_parse_xlfd (name, font)
 	  i = XLFD_RESX_INDEX;
 	  ASET (font, FONT_EXTRA_INDEX,
 		intern_font_field (f[i], f[XLFD_REGISTRY_INDEX] - 1 - f[i]));
+	  eassert (font_check_xlfd_parse (font, name));
 	  return 0;
 	}
 
@@ -2911,7 +2945,7 @@ register_font_driver (driver, f)
   struct font_driver_list *prev, *list;
 
   if (f && ! driver->draw)
-    error ("Unsable font driver for a frame: %s",
+    error ("Unusable font driver for a frame: %s",
 	   SDATA (SYMBOL_NAME (driver->type)));
 
   for (prev = NULL, list = root; list; prev = list, list = list->next)
@@ -3432,14 +3466,16 @@ sorted by numeric values.  */)
     error ("Invalid font style property: %s", SDATA (SYMBOL_NAME (prop)));
   table = Fcopy_sequence (table);
   numeric = -1;
-  for (tail = table; ! NILP (tail); tail = Fcdr (tail))
+  for (tail = table; CONSP (tail); tail = XCDR (tail))
     {
-      prop = Fcar (Fcar (tail));
-      val = Fcdr (Fcar (tail));
+      prop = Fcar (XCAR (tail));
+      val = Fcdr (XCAR (tail));
       CHECK_SYMBOL (prop);
       CHECK_NATNUM (val);
       if (numeric > XINT (val))
 	error ("Numeric values not sorted for %s", SDATA (SYMBOL_NAME (prop)));
+      else if (numeric == XINT (val))
+	error ("Duplicate numeric values for %s", SDATA (SYMBOL_NAME (prop)));
       numeric = XINT (val);
       XSETCAR (tail, Fcons (prop, val));
     }
