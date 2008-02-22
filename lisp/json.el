@@ -53,7 +53,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-(require 'thingatpt)
 
 ;; Compatibility code
 
@@ -200,14 +199,14 @@ KEYWORD is the keyword expected."
             (signal 'json-unknown-keyword
                     (list (save-excursion
                             (backward-word 1)
-                            (word-at-point)))))
+                            (thing-at-point 'word)))))
           (json-advance))
         keyword)
   (unless (looking-at "\\(\\s-\\|[],}]\\|$\\)")
     (signal 'json-unknown-keyword
             (list (save-excursion
                     (backward-word 1)
-                    (word-at-point)))))
+                    (thing-at-point 'word)))))
   (cond ((string-equal keyword "true") t)
         ((string-equal keyword "false") json-false)
         ((string-equal keyword "null") json-null)))
