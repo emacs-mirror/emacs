@@ -109,6 +109,16 @@ These options can be used to limit how many ICMP packets are emitted."
   :group 'net-utils
   :type  '(repeat string))
 
+(defcustom iwconfig-program "iwconfig"
+  "Program to print wireless network configuration information."
+  :group 'net-utils
+  :type 'string)
+
+(defcustom iwconfig-program-options nil
+ "Options for `iwconfig-program'."
+ :group 'net-utils
+ :type '(repeat string))
+
 (defcustom netstat-program  "netstat"
   "Program to print network statistics."
   :group 'net-utils
@@ -364,6 +374,16 @@ If your system's ping continues until interrupted, you can try setting
 ;; This is the normal name on most Unixes.
 ;;;###autoload
 (defalias 'ifconfig 'ipconfig)
+
+;;;###autoload
+(defun iwconfig ()
+  "Run iwconfig program."
+  (interactive)
+  (net-utils-run-program
+   "Iwconfig"
+   (concat "** Iwconfig ** " iwconfig-program " ** ")
+   iwconfig-program
+   iwconfig-program-options))
 
 ;;;###autoload
 (defun netstat ()
