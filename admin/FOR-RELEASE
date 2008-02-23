@@ -102,6 +102,9 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00119.html
 ** overlay face property not used for after-string property
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00124.html
 
+** Should dired-do-search bind tags-loop-revert-buffers automatically?
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00059.html
+
 * DOCUMENTATION
 
 ** Shouldn't directory-abbrev-alist be in Emacs manual?
