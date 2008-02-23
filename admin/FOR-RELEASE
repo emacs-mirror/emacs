@@ -1,27 +1,5 @@
 Tasks needed before the next release.
 
-* TO BE DONE SHORTLY BEFORE RELEASE
-
-** Check for widow and orphan lines in manuals;
-make sure all the pages really look ok in the manual as formatted.
-
-** Regenerate the postscript files of the reference cards in etc.
-
-** Ask maintainers of refcard translations to update them.
-
-Requests to have been sent out on 2006-05-23 (Reiner Steib).
-
-LANG	Translator            Status
-cs	Pavel Janík           Can't work on it now.
-de	Sven Joachim          Done
-fr	Eric Jacoboni         Done
-pl	Włodek Bzyl           Done
-pt-br	Rodrigo Real          Done
-ru	Alex Ott              Done
-sk	Miroslav Vaško        No response
-
-Reminders sent out on 2006-06-08.
-
 * WINDOWS SUPPORT BUGS.
 
 These don't need to be fixed before a release, but we call the
@@ -46,43 +24,85 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
 * BUGS
 
-** python.el changes by Dave Love.
+** nesting of unwind-protect and atomic-change-group
+Stefan has a fix at
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00032.html
+
+** Emacs fails to start properly if the current working directory is
+on a vfat or ntfs filesystem
+
+** Loading ebrowse file yields warning
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00014.html
+
+** dired cannot access file names with a quote
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00024.html
+
+** inserting a comment into a blank line for nroff (M-;)
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00162.html
+
+** Auto-Save bug when file/directory no longer exists
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-11/msg00058.html
+
+** url-cookies file stored world-readable
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00012.html
+
+** url-digest-auth doesn't work with Apache 2.2.3 and AUTH Digest
+And: Bug in url-get-authentication
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00059.html
+
+** modify-frame-parameters behaviour broken
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-01/msg00058.html
+
+* Bugs and feature requests for 22.3 or later
+
+** python.el changes by Dave Love?
+
+** etags support for php5
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00131.html
+
+** Etags completion problem for local tags table
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00103.html
+
+** M-x grep significantly slower in emacs 22 (compared to emacs 21)
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00155.html
+
+** Emacs CVS: find-file.el - Line up all columns in output
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00039.html
+Do we need papers for Jari Aalto?
+
+** emacs crashs when remote x-windows closes after make-frame-on-display
+even when other frame was closed due to assertion in xcd_xlib.c
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00082.html
+
+** outline does not change heading line endings
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00175.html
+If this feature might be easy to implement and safe, we can add it to
+Emacs 22 at some point.
+
+** mouse-2 and calc-yank
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00048.html
+
+** query-replace / longlines / C-o
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00073.html
+
+** don't require path hints for *shell*
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-01/msg00046.html
+
+** Tweak sit-for to accept the form (sit-for 1 nil t)
+This obsolete form was not explicitly allowed, but some legacy
+programs use it.
+
+** Two display bugs involving interactions between after-string and
+display properties of adjacent overlays
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00119.html
+
+** overlay face property not used for after-string property
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00124.html
 
 * DOCUMENTATION
 
-** Check the Emacs Tutorial.
-
-The first line of every tutorial must begin with text ending in a
-period (".", ASCII 0x2E) saying "Emacs Tutorial" in the respective
-language.  This should be followed by "See end for copying
-conditions", likewise in the respective language.
-
-After each file name, on the same line or the following line, come the
-names of the people who have checked it.
-
-SECTION                  READERS
-----------------------------------
-etc/TUTORIAL             rms
-etc/TUTORIAL.bg          Ognyan Kulev <ogi@fmi.uni-sofia.bg>
-etc/TUTORIAL.cn
-etc/TUTORIAL.cs          Pavel Janík <Pavel@Janik.cz>
-etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
-etc/TUTORIAL.eo		 ttn
-etc/TUTORIAL.es          Marcelo Toledo
-etc/TUTORIAL.fr          ttn
-etc/TUTORIAL.it          ttn
-etc/TUTORIAL.ja		 Kenichi Handa <handa@m17n.org>
-etc/TUTORIAL.ko
-etc/TUTORIAL.nl		 Lute Kamstra
-etc/TUTORIAL.pl          Slawomir Nowaczyk <slawek@cs.lth.se>
-etc/TUTORIAL.pt_BR       Marcelo Toledo
-etc/TUTORIAL.ro		 ttn
-etc/TUTORIAL.ru          Alex Ott <alexott@gmail.com>
-etc/TUTORIAL.sk          Pavel Janík <Pavel@Janik.cz>
-etc/TUTORIAL.sl          Primoz PETERLIN <primoz.peterlin@biofiz.mf.uni-lj.si>
-etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
-etc/TUTORIAL.th          Virach Sornlertlamvanich <virach@tcllab.org>
-etc/TUTORIAL.zh
+** Shouldn't directory-abbrev-alist be in Emacs manual?
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00017.html
 
 
 Local variables:
