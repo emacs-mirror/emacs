@@ -112,12 +112,14 @@ These options can be used to limit how many ICMP packets are emitted."
 (defcustom iwconfig-program "iwconfig"
   "Program to print wireless network configuration information."
   :group 'net-utils
-  :type 'string)
+  :type 'string
+  :version "23.1")
 
 (defcustom iwconfig-program-options nil
  "Options for `iwconfig-program'."
  :group 'net-utils
- :type '(repeat string))
+ :type '(repeat string)
+ :version "23.1")
 
 (defcustom netstat-program  "netstat"
   "Program to print network statistics."
