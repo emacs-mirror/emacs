@@ -544,13 +544,12 @@
 ;;
 ;; - extra-status-menu ()
 ;;
-;;   Return list of menu items.  The items will appear at the end of
-;;   the VC menu.  The goal is to allow backends to specify extra menu
-;;   items that appear in the VC Status menu.  This way you can
-;;   provide menu entries for functionality that is specific to your
-;;   backend and which does not map to any of the VC generic concepts.
-;;   XXX: this should be changed to be a keymap, for consistency with
-;;   extra-menu.
+;;   Return a menu keymap, the items in the keymap will appear at the
+;;   end of the VC Status menu.  The goal is to allow backends to
+;;   specify extra menu items that appear in the VC Status menu.  This
+;;   makes it possible to provide menu entries for functionality that
+;;   is specific to a backend and which does not map to any of the VC
+;;   generic concepts.
 
 ;;; Todo:
 
@@ -594,6 +593,14 @@
 ;;   another state for those files. The user might want to restore
 ;;   them, or remove them from the VCS. C-x v v might also need
 ;;   adjustments.
+;;
+;; - when changing a file whose directory is shown in the vc-status
+;;   buffer, it should be added there are "modified".  (PCL-CVS does this).
+;;
+;; - vc-status needs a toolbar.
+;;
+;; - vc-status: refresh should not completely wipe out the current
+;;   contents of the vc-status buffer.
 ;;
 ;; - vc-diff, vc-annotate, etc. need to deal better with unregistered
 ;;   files. Now that unregistered and ignored files are shown in
@@ -2246,7 +2253,7 @@ If `F.~REV~' already exists, use it instead of checking it out again."
       (with-current-buffer result-buf
 	;; Set the parent buffer so that things like
 	;; C-x v g, C-x v l, ... etc work.
-	(setq vc-parent-buffer filebuf))
+	(set (make-local-variable 'vc-parent-buffer) filebuf))
       result-buf)))
 
 ;; Header-insertion code
@@ -2690,6 +2697,73 @@ With prefix arg READ-SWITCHES, specify a value to override
   (cd dir)
   (vc-status-mode))
 
+(defvar vc-status-menu-map
+  (let ((map (make-sparse-keymap "VC-status")))
+    (define-key map [quit] 
+      '(menu-item "Quit" bury-buffer
+		  :help "Quit"))
+    (define-key map [refresh] 
+      '(menu-item "Refresh" vc-status-refresh
+		  :help "Refresh the contents of the VC status buffer"))
+
+    ;; VC commands.
+    (define-key map [separator-vc-commands] '("--"))
+    (define-key map [annotate] 
+      '(menu-item "Annotate" vc-annotate
+		  :help "Display the edit history of the current file using colors"))
+    (define-key map [diff] 
+      '(menu-item "Compare with Base Version" vc-diff
+		  :help "Compare file set with the base version"))
+    (define-key map [register] 
+      '(menu-item "Register" vc-status-register
+		  :help "Register file set into the version control system"))
+    ;; vc-print-log uses the current buffer, not a file.
+    ;; (define-key map [log] 
+    ;;  '(menu-item "Show history" vc-status-print-log
+    ;;  :help "List the change log of the current file set in a window"))
+
+    ;; Movement.
+    (define-key map [separator-movement] '("--"))
+    (define-key map [next-line] 
+      '(menu-item "Next line" vc-status-next-line
+		  :help "Go to the next line" :keys "n"))
+    (define-key map [previous-line] 
+      '(menu-item "Previous line" vc-status-previous-line
+		  :help "Go to the previous line"))
+    ;; Marking.
+    (define-key map [separator-marking] '("--"))
+    (define-key map [unmark-all] 
+      '(menu-item "Unmark All" vc-status-unmark-all-files
+		  :help "Unmark all files that are in the same state as the current file\
+\nWith prefix argument unmark all files"))
+    (define-key map [unmark-previous] 
+      '(menu-item "Unmark previous " vc-status-unmark-file-up
+		  :help "Move to the previous line and unmark the file"))
+
+    (define-key map [mark-all] 
+      '(menu-item "Marl All" vc-status-mark-all-files
+		  :help "Mark all files that are in the same state as the current file\
+\nWith prefix argument mark all files"))
+    (define-key map [unmark] 
+      '(menu-item "Unmark" vc-status-unmark
+		  :help "Unmark the current file or all files in the region"))
+
+    (define-key map [mark] 
+      '(menu-item "Mark" vc-status-mark
+		  :help "Mark the current file  or all files in the region"))
+
+    (define-key map [separator-open] '("--"))
+    (define-key map [open-other] 
+      '(menu-item "Open in other window" vc-status-find-file-other-window
+		  :help "Find the file on the current line, in another window"))
+    (define-key map [open] 
+      '(menu-item "Open file" vc-status-find-file
+		  :help "Find the file on the current line"))
+    map)
+  "Menu for VC status")
+
+(defalias 'vc-status-menu-map vc-status-menu-map)
+
 (defvar vc-status-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map)
@@ -2721,6 +2795,13 @@ With prefix arg READ-SWITCHES, specify a value to override
     ;; Not working yet.  Functions like vc-status-find-file need to
     ;; find the file from the mouse position, not `point'.
     ;; (define-key map [(down-mouse-3)] 'vc-status-menu)
+
+    ;; Hook up the menu.
+    (define-key map [menu-bar vc-status-mode]
+      '(menu-item
+	;; This is used to that VC backends could add backend specific
+	;; menu items to vc-status-menu-map.
+	"VC Status" vc-status-menu-map :filter vc-status-menu-map-filter))
     map)
   "Keymap for VC status")
 
@@ -2736,57 +2817,10 @@ With prefix arg READ-SWITCHES, specify a value to override
 	      '("----")
               ext-binding))))
 
-(easy-menu-define vc-status-mode-menu vc-status-mode-map
-  "Menu for vc-status."
-  '("VC Status"
-    ;; This is used to that VC backends could add backend specific
-    ;; menu items to vc-status-mode-menu.
-    :filter vc-status-menu-map-filter
-    ["Open file" vc-status-find-file
-     :help "Find the file on the current line"]
-    ["Open in other window" vc-status-find-file-other-window
-     :help "Find the file on the current line, in another window"]
-    "----"
-    ;; VC commands.
-    ["Compare with Base Version" vc-diff
-     :help "Compare file set with the base version"]
-    ["Register" vc-status-register
-     :help "Register file set into the version control system"]
-    ["Annotate" vc-annotate
-     :help "Display the edit history of the current file using colors"]
-    ;; vc-print-log uses the current buffer, not a file.
-    ;; ["Show history" vc-status-print-log
-    ;;  :help "List the change log of the current file set in a window"]
-    "----"
-    ;; Movement.
-    ["Next line" vc-status-next-line
-     :help "Go to the next line"]
-    ["Previous line" vc-status-previous-line
-     :help "Go to the previous line"]
-    "----"
-    ;; Marking.
-    ["Mark" vc-status-mark
-     :help "Mark the current file  or all files in the region"]
-    ["Marl All" vc-status-mark-all-files
-     :help "Mark all files that are in the same state as the current file\
-\nWith prefix argument mark all files"]
-    ["Unmark" vc-status-unmark
-     :help "Unmark the current file or all files in the region"]
-    ["Unmark previous " vc-status-unmark-file-up
-     :help "Move to the previous line and unmark the file"]
-    ["Unmark All" vc-status-unmark-all-files
-     :help "Unmark all files that are in the same state as the current file\
-\nWith prefix argument unmark all files"]
-    "----"
-    ["Refresh" vc-status-refresh
-     :help "Refresh the contents of the VC status buffer"]
-    ["Quit" bury-buffer
-     :help "Quit"]))
-
 (defun vc-status-menu (e)
   "Popup the VC status menu."
   (interactive "e")
-  (popup-menu vc-status-mode-menu e))
+  (popup-menu vc-status-menu-map e))
 
 (defvar vc-status-process-buffer nil
   "The buffer used for the asynchronous call that computes the VC status.")

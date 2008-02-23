@@ -1,3 +1,17 @@
+2008-02-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-find-revision): Make vc-parent-buffer local before
+	setting it.
+	(vc-status-menu-map): Do not define using easy-menu.
+	(vc-status-menu-map): New defalias.
+	(vc-status-mode-map): Hook up the menu.
+	(top-level): Update TODO.
+
+	* vc-hg.el (vc-hg-extra-status-menu): Return a keymap.
+
+	* vc-bzr.el (vc-bzr-init-version): Rename to ...
+	(vc-bzr-init-revision): ... this.
+
 2008-02-23  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (WINS_ALMOST): Remove term.

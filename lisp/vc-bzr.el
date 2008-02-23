@@ -277,7 +277,7 @@ If any error occurred in running `bzr status', then return nil."
   "Create a new Bzr repository."
   (vc-bzr-command "init" nil 0 nil))
 
-(defun vc-bzr-init-version (&optional file)
+(defun vc-bzr-init-revision (&optional file)
   "Always return nil, as Bzr cannot register explicit versions."
   nil)
 
