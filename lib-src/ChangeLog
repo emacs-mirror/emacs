@@ -1,3 +1,11 @@
+2008-02-23  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (MOUSE_SUPPORT): Remove duplicate tooltip.elc.
+	(MSDOS_SUPPORT, VMS_SUPPORT): Remove.
+	(OTHER_PLATFORM_SUPPORT): Replace above. Add X specific files too.
+	(lisp2): Add new languages.
+	($(DOC)): Use OTHER_PLATFORM_SUPPORT.
+
 2008-02-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (lisp2): Remove devanagari.el, kannada.el,
