@@ -295,7 +295,8 @@ any invalid parts of your document.
 attribute name or data value by using information about what is
 allowed by the schema in that context.
 
-** A new game called `bubbles' has been added.
+** A new game called `bubbles' has been added.  This is a version of
+the "Same Game" with configurable difficulty level.
 
 ** minibuffer-indicate-depth-mode shows the minibuffer depth in the prompt.
 
