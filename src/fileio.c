@@ -158,6 +158,9 @@ int auto_saving;
    a new file with the same mode as the original */
 int auto_save_mode_bits;
 
+/* Set by auto_save_1 if an error occurred during the last auto-save. */
+int auto_save_error_occurred;
+
 /* The symbol bound to coding-system-for-read when
    insert-file-contents is called for recovering a file.  This is not
    an actual coding system name, but just an indicator to tell
@@ -5728,6 +5731,8 @@ auto_save_error (error)
   char *msgbuf;
   USE_SAFE_ALLOCA;
 
+  auto_save_error_occurred = 1;
+
   ring_bell (XFRAME (selected_frame));
 
   args[0] = build_string ("Auto-saving %s: %s");
@@ -5899,6 +5904,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 			 make_number (minibuffer_auto_raise));
   minibuffer_auto_raise = 0;
   auto_saving = 1;
+  auto_save_error_occurred = 0;
 
   /* On first pass, save all files that don't have handlers.
      On second pass, save all files that do have handlers.
@@ -6013,7 +6019,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	  sit_for (make_number (1), 0, 0);
 	  restore_message ();
 	}
-      else
+      else if (!auto_save_error_occurred)
+	/* Don't overwrite the error message if an error occurred.  */
 	/* If we displayed a message and then restored a state
 	   with no message, leave a "done" message on the screen.  */
 	message1 ("Auto-saving...done");
