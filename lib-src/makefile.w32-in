@@ -170,8 +170,7 @@ lispsource = ../lisp/
 MOUSE_SUPPORT = \
 	$(lispsource)select.elc \
 	$(lispsource)scroll-bar.elc \
-	$(lispsource)mouse.elc \
-	$(lispsource)tooltip.elc
+	$(lispsource)mouse.elc
 WINNT_SUPPORT = \
 	$(lispsource)ls-lisp.elc \
 	$(lispsource)disp-table.elc \
@@ -179,16 +178,6 @@ WINNT_SUPPORT = \
 	$(lispsource)dos-w32.elc \
 	$(lispsource)w32-vars.elc \
 	$(lispsource)term/w32-win.elc
-
-# lisp files that are loaded up on other platforms
-MSDOS_SUPPORT = \
-	$(lispsource)dos-fns.elc \
-	$(lispsource)dos-vars.elc \
-	$(lispsource)international/ccl.elc \
-	$(lispsource)international/codepage.elc
-VMS_SUPPORT = \
-	$(lispsource)vmsproc.el \
-	$(lispsource)vms-patch.el
 TOOLTIP_SUPPORT = $(lispsource)tooltip.elc
 WINDOW_SUPPORT = \
 	$(lispsource)fringe.elc \
@@ -197,6 +186,18 @@ WINDOW_SUPPORT = \
 	$(lispsource)dnd.elc \
 	$(lispsource)tool-bar.elc \
 	$(lispsource)mwheel.elc
+
+# lisp files that are loaded up on other platforms
+OTHER_PLATFORM_SUPPORT = \
+	$(lispsource)dos-fns.elc \
+	$(lispsource)dos-vars.elc \
+	$(lispsource)international/ccl.elc \
+	$(lispsource)international/codepage.elc \
+	$(lispsource)vmsproc.el \
+	$(lispsource)vms-patch.el \
+	$(lispsource)x-dnd.elc \
+	$(lispsource)term/x-win.elc
+
 
 lisp1= \
 	$(lispsource)abbrev.elc \
@@ -250,6 +251,7 @@ lisp2 = \
 	$(lispsource)language/japanese.el \
 	$(lispsource)language/korean.el \
 	$(lispsource)language/lao.el \
+	$(lispsource)language/cham.el \
 	$(lispsource)language/tai-viet.el \
 	$(lispsource)language/thai.el \
 	$(lispsource)language/tibetan.elc \
@@ -257,6 +259,8 @@ lisp2 = \
 	$(lispsource)language/misc-lang.el \
 	$(lispsource)language/utf-8-lang.el \
 	$(lispsource)language/georgian.el \
+	$(lispsource)language/khmer.el \
+	$(lispsource)language/burmese.el \
 	$(lispsource)paths.el \
 	$(lispsource)register.elc \
 	$(lispsource)replace.elc \
@@ -277,8 +281,6 @@ lisp2 = \
 	$(lispsource)vc-hooks.elc \
 	$(lispsource)ediff-hook.elc \
 	$(TOOLTIP_SUPPORT) \
-	$(VMS_SUPPORT) \
-	$(MSDOS_SUPPORT) \
 	$(WINNT_SUPPORT) \
 	$(WINDOW_SUPPORT) \
 	$(lispsource)widget.elc \
@@ -296,11 +298,12 @@ lisp2 = \
 	- $(DEL) temacs.exe
 
 DOC	      = DOC
-$(DOC):		stamp_BLD $(BLD)/make-docfile.exe ../src/$(BLD)/temacs.exe $(lisp1) $(lisp2)
+$(DOC):		stamp_BLD $(BLD)/make-docfile.exe ../src/$(BLD)/temacs.exe $(lisp1) $(lisp2) $(OTHER_PLATFORM_SUPPORT)
 		- $(DEL) $(DOC)
 		"$(THISDIR)/$(BLD)/make-docfile" -o $(DOC) -d ../src $(obj)
 		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(lisp1)
 		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(lisp2)
+		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(OTHER_PLATFORM_SUPPORT)
 		$(CP) $(DOC) ../etc/DOC-X
 		- mkdir "../src/$(OBJDIR)"
 		- mkdir "../src/$(OBJDIR)/etc"
