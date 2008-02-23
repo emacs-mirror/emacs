@@ -1,3 +1,8 @@
+2008-02-24  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-send-letter): Call split-string on mh-send-args
+	when sending synchronously too.
+
 2008-02-19  Bill Wohler  <wohler@newt.com>
 
 	* mh-comp.el (mh-annotate-msg):
