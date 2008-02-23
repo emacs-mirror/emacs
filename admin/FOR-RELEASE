@@ -107,11 +107,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00073.html
 ** don't require path hints for *shell*
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-01/msg00046.html
 
-** Tweak sit-for to accept the form (sit-for 1 nil t)
-This obsolete form was not explicitly allowed, but some legacy
-programs use it.
-[already fixed in 22 branch on 2008-02-21 AFAIK]
-
 ** Two display bugs involving interactions between after-string and
 display properties of adjacent overlays
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00119.html
