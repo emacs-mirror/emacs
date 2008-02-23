@@ -3,6 +3,8 @@
 	* menu-bar.el (menu-bar-games-menu): Add Bubbles and Pong.
 	Add :help for Solitaire and Tetris.
 
+	* tree-widget.el (tree-widget-lookup-image): Let-bind `file'.
+
 	* mail/smtpmail.el: Remove leading `*' from defcustom doc-strings.
 	(smtpmail-code-conv-from): Doc fix.  Fix custom type.
 	(smtpmail-queue-index-file): Make it a defcustom.
