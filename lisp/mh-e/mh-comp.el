@@ -295,13 +295,15 @@ use `mh-send-prog' to tell MH-E the name."
     (cond (arg
            (pop-to-buffer mh-mail-delivery-buffer)
            (erase-buffer)
-           (mh-exec-cmd-output mh-send-prog t "-watch" "-nopush"
-                               "-nodraftfolder" mh-send-args file-name)
+           (mh-exec-cmd-output mh-send-prog t
+                               "-nodraftfolder" "-watch" "-nopush"
+                               (split-string mh-send-args) file-name)
            (goto-char (point-max))      ; show the interesting part
            (recenter -1)
            (set-buffer draft-buffer))   ; for annotation below
           (t
-           (mh-exec-cmd-daemon mh-send-prog nil "-nodraftfolder" "-noverbose"
+           (mh-exec-cmd-daemon mh-send-prog nil
+                               "-nodraftfolder" "-noverbose"
                                (split-string mh-send-args) file-name)))
     (if mh-annotate-char
         (mh-annotate-msg mh-sent-from-msg
