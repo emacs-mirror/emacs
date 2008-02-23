@@ -113,9 +113,15 @@ extern Lisp_Object Vw32_get_true_file_attributes;
 extern int w32_num_mouse_buttons;
 
 
-/*
-  Initialization states
- */
+/* Initialization states.
+
+   WARNING: If you add any more such variables for additional APIs,
+            you MUST add initialization for them to globals_of_w32
+            below.  This is because these variables might get set
+            to non-NULL values during dumping, but the dumped Emacs
+            cannot reuse those values, because it could be run on a
+            different version of the OS, where API addresses are
+            different.  */
 static BOOL g_b_init_is_windows_9x;
 static BOOL g_b_init_open_process_token;
 static BOOL g_b_init_get_token_information;
@@ -4294,6 +4300,8 @@ globals_of_w32 ()
   g_b_init_get_token_information = 0;
   g_b_init_lookup_account_sid = 0;
   g_b_init_get_sid_identifier_authority = 0;
+  g_b_init_get_sid_sub_authority = 0;
+  g_b_init_get_sid_sub_authority_count = 0;
   /* The following sets a handler for shutdown notifications for
      console apps. This actually applies to Emacs in both console and
      GUI modes, since we had to fool windows into thinking emacs is a
