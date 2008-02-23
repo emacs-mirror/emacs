@@ -188,7 +188,7 @@ and you have to scroll or press \\[recenter-top-bottom] to update the numbers."
   (run-with-idle-timer 0 nil #'linum-update-current))
 
 (defun linum-after-config ()
-  (walk-windows (lambda (w) (linum-update (window-buffer))) nil 'visible))
+  (walk-windows (lambda (w) (linum-update (window-buffer w))) nil 'visible))
 
 (defun linum-unload-function ()
   "Unload the Linum library."
