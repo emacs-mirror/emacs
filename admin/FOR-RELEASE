@@ -35,9 +35,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00033.html
 ** dired cannot access file names with a quote
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00024.html
 
-** Auto-Save bug when file/directory no longer exists
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-11/msg00058.html
-
 ** url-digest-auth doesn't work with Apache 2.2.3 and AUTH Digest
 And: Bug in url-get-authentication
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00059.html
@@ -108,6 +105,11 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00059.html
 ** Backport find-function-search-for-symbol change to try `.emacs'
 Fix is already in the trunk, and can wait till after 22.2.
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-01/msg00147.html
+
+** Auto-Save bug when file/directory no longer exists
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-11/msg00058.html
+Fix is already in the trunk, and can wait till after 22.2.
+2008-02-23 change to fileio.c by cyd.
 
 * DOCUMENTATION
 
