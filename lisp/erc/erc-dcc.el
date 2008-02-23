@@ -474,7 +474,12 @@ type and nick are optional."
            ?n (erc-extract-nick (plist-get ret :nick))))))
       t))
 
-(defun erc-dcc-do-GET-command (proc nick &optional file)
+(defun erc-dcc-do-GET-command (proc nick &rest file)
+  "Do a DCC GET command.  NICK is the person who is sending the file.
+FILE is the filename.  If FILE is split into multiple arguments,
+re-join the arguments, separated by a space.
+PROC is the server process."
+  (setq file (and file (mapconcat #'identity file " ")))
   (let* ((elt (erc-dcc-member :nick nick :type 'GET))
          (filename (or file (plist-get elt :file) "unknown")))
     (if elt
@@ -547,8 +552,11 @@ It lists the current state of `erc-dcc-list' in an easy to read manner."
      'dcc-list-end)
     t))
 
-(defun erc-dcc-do-SEND-command (proc nick file)
-  "Offer FILE to NICK by sending a ctcp dcc send message."
+(defun erc-dcc-do-SEND-command (proc nick &rest file)
+  "Offer FILE to NICK by sending a ctcp dcc send message.
+If FILE is split into multiple arguments, re-join the arguments,
+separated by a space."
+  (setq file (and file (mapconcat #'identity file " ")))
   (if (file-exists-p file)
       (progn
         (erc-display-message

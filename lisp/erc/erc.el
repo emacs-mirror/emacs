@@ -1110,6 +1110,7 @@ which the local user typed."
     (define-key map "\C-c\C-r" 'erc-remove-text-properties-region)
     (define-key map "\C-c\C-t" 'erc-set-topic)
     (define-key map "\C-c\C-u" 'erc-kill-input)
+    (define-key map "\C-c\C-x" 'erc-quit-server)
     (define-key map "\M-\t" 'ispell-complete-word)
     (define-key map "\t" 'erc-complete-word)
 
@@ -1168,7 +1169,8 @@ See the variable `erc-command-indicator'."
   :group 'erc-faces)
 
 (defface erc-notice-face
-  (if (featurep 'xemacs)
+  (if (or (featurep 'xemacs)
+	  (< emacs-major-version 22))
       '((t (:bold t :foreground "blue")))
     '((((class color) (min-colors 88))
        (:bold t :foreground "SlateBlue"))
@@ -4026,7 +4028,7 @@ and as second argument the event parsed as a vector."
 	       (string= target (erc-current-nick)))
 	   (not (erc-get-buffer query proc))
 	   (not (erc-is-message-ctcp-and-not-action-p msg))
-	   (let ((erc-join-buffer erc-auto-query))
+	   (let ((erc-query-display erc-auto-query))
 	     (erc-cmd-QUERY query))
 	   nil))))
 

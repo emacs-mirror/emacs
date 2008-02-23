@@ -854,7 +854,7 @@ Use `erc-make-mode-line-buffer-name' to create buttons."
       (when (featurep 'xemacs)
 	(erc-modified-channels-object nil))
       (setq erc-modified-channels-object
-	      (erc-modified-channels-object strings))))))
+	    (erc-modified-channels-object strings))))))
 
 (defun erc-modified-channels-remove-buffer (buffer)
   "Remove BUFFER from `erc-modified-channels-alist'."
@@ -867,16 +867,15 @@ Use `erc-make-mode-line-buffer-name' to create buttons."
 
 (defun erc-track-find-face (faces)
   "Return the face to use in the modeline from the faces in FACES.
-If `erc-track-faces-priority-list' is set, the one from FACES who is
-first in that list will be used.
+If `erc-track-faces-priority-list' is set, the one from FACES who
+is first in that list will be used.  If nothing matches or if
+`erc-track-faces-priority-list' is not set, the default mode-line
+faces will be used.
 
 If `erc-track-faces-normal-list' is non-nil, use it to produce a
 blinking effect that indicates channel activity when the first
 element in FACES and the highest-ranking face among the rest of
 FACES are both members of `erc-track-faces-normal-list'.
-
-If `erc-track-faces-priority-list' is not set, the first element
-in FACES will be used.
 
 If one of the faces is a list, then it will be ranked according
 to its highest-tanking face member.  A list of faces including
@@ -892,7 +891,7 @@ element."
 			   (when (member candidate (cdr faces))
 			     (throw 'face candidate)))))))
     (cond ((null choice)
-	   (car faces))
+	   nil)
 	  ((and (member choice erc-track-faces-normal-list)
 		(member no-first erc-track-faces-normal-list))
 	   no-first)
