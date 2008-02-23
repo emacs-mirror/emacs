@@ -39,16 +39,8 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00014.html
 ** dired cannot access file names with a quote
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00024.html
 
-** inserting a comment into a blank line for nroff (M-;)
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00162.html
-[was fixed by 2007-11-01 change]
-
 ** Auto-Save bug when file/directory no longer exists
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-11/msg00058.html
-
-** url-cookies file stored world-readable
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00012.html
-[was fixed by 2007-12-11 change]
 
 ** url-digest-auth doesn't work with Apache 2.2.3 and AUTH Digest
 And: Bug in url-get-authentication
