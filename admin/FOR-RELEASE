@@ -32,10 +32,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00032.html
 on a vfat or ntfs filesystem
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00033.html
 
-** Loading ebrowse file yields warning
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00014.html
-[fixed in trunk 2007-10-13]
-
 ** dired cannot access file names with a quote
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00024.html
 
