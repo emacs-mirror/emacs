@@ -525,4 +525,5 @@ Advances point just past JSON object."
 
 (provide 'json)
 
+;; arch-tag: 15f6e4c8-b831-4172-8749-bbc680c50ea1
 ;;; json.el ends here

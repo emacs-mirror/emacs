@@ -4,7 +4,7 @@
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: extensions
-;; $Revision: 1.2 $
+;; $Revision: 1.1 $
 ;; URL: http://www.loveshack.ukfsn.org/emacs
 
 ;; This file is free software; you can redistribute it and/or modify
@@ -258,4 +258,6 @@ completion:
       elt)))
 
 (provide 'sym-comp)
+
+;; arch-tag: 6fcce616-f3c4-4751-94b4-710e83144124
 ;;; sym-comp.el ends here
