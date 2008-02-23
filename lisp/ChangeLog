@@ -1,3 +1,16 @@
+2008-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-bar-games-menu): Add Bubbles and Pong.
+	Add :help for Solitaire and Tetris.
+
+	* mail/smtpmail.el: Remove leading `*' from defcustom doc-strings.
+	(smtpmail-code-conv-from): Doc fix.  Fix custom type.
+	(smtpmail-queue-index-file): Make it a defcustom.
+	(smtpmail-queue-index): Delete.
+	(smtpmail-send-it, smtpmail-send-queued-mail):
+	Use smtpmail-queue-index-file and smtpmail-queue-dir rather than
+	smtpmail-queue-index.
+
 2008-02-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-find-revision): Make vc-parent-buffer local before
