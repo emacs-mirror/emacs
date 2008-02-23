@@ -11,6 +11,15 @@
 	Use smtpmail-queue-index-file and smtpmail-queue-dir rather than
 	smtpmail-queue-index.
 
+	* net/net-utils.el (iwconfig-program, iwconfig-program-options):
+	Add :version.
+
+2008-02-23  Yoni Rabkin  <yoni@rabkins.net>  (tiny change)
+
+	* net/net-utils.el (iwconfig-program, iwconfig-program-options):
+	New variables.
+	(iwconfig): New function.
+
 2008-02-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-find-revision): Make vc-parent-buffer local before
