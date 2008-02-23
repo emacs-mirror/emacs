@@ -1,3 +1,7 @@
+2008-02-23  Markus Triska  <markus.triska@gmx.at>
+
+	* linum.el (linum-after-config): Update all visible windows.
+
 2008-02-23  Glenn Morris  <rgm@gnu.org>
 
 	* menu-bar.el (menu-bar-games-menu): Add Bubbles and Pong.
