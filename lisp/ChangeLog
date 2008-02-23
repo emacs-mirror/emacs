@@ -3,7 +3,7 @@
 	* makefile.w32-in (WINS_ALMOST): Remove term.
 	(WINS): Add term here.
 	(custom-deps, finder-data): Use WINS_ALMOST.
-	
+
 2008-02-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* faces.el (font-weight-table): Fix value of `semi-light'.
