@@ -20,7 +20,7 @@
 
 	* font.c (font_match_xlfd, font_check_xlfd_parse): New funs.
 	(font_parse_xlfd): Use them for sanity check.
-	(Finternal_set_font_style_table): Make sure the table is bijiective.
+	(Finternal_set_font_style_table): Make sure the table is bijective.
 
 	Consolidate the image_cache to the terminal struct.
 	* termhooks.h (P_): Remove redundant def.
