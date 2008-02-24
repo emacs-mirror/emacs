@@ -1,3 +1,8 @@
+2008-02-24  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_text_extents): Avoid getting HDC and selecting
+	a font into it unless we have to.
+
 2008-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* intervals.h (INT_LISPLIKE): Remove.  It may misfire.
