@@ -290,8 +290,8 @@ w32font_text_extents (font, code, nglyphs, metrics)
      struct font_metrics *metrics;
 {
   int i;
-  HFONT old_font;
-  HDC dc;
+  HFONT old_font = NULL;
+  HDC dc = NULL;
   struct frame * f;
   int total_width = 0;
   WORD *wcode = alloca(nglyphs * sizeof (WORD));
@@ -301,9 +301,6 @@ w32font_text_extents (font, code, nglyphs, metrics)
      can't cache the frame in the font structure.  Use selected_frame
      until the API is updated to pass in a frame.  */
   f = XFRAME (selected_frame);
-
-  dc = get_frame_dc (f);
-  old_font = SelectObject (dc, ((W32FontStruct *)(font->font.font))->hfont);
 
   if (metrics)
     {
@@ -339,33 +336,45 @@ w32font_text_extents (font, code, nglyphs, metrics)
               metrics->ascent = max (metrics->ascent, char_metric->ascent);
               metrics->descent = max (metrics->descent, char_metric->descent);
             }
-          else if (GetGlyphOutlineW (dc, *(code + i), GGO_METRICS, &gm, 0,
-                                NULL, &transform) != GDI_ERROR)
-            {
-              int new_val = metrics->width + gm.gmBlackBoxX
-                + gm.gmptGlyphOrigin.x;
-              metrics->rbearing = max (metrics->rbearing, new_val);
-              new_val = -gm.gmptGlyphOrigin.x - metrics->width;
-              metrics->lbearing = max (metrics->lbearing, new_val);
-              metrics->width += gm.gmCellIncX;
-              new_val = -gm.gmptGlyphOrigin.y;
-              metrics->ascent = max (metrics->ascent, new_val);
-              new_val = gm.gmBlackBoxY + gm.gmptGlyphOrigin.y;
-              metrics->descent = max (metrics->descent, new_val);
-            }
           else
             {
-              /* Rely on an estimate based on the overall font metrics.  */
-              break;
+              if (dc == NULL)
+                {
+                  dc = get_frame_dc (f);
+                  old_font = SelectObject (dc, ((W32FontStruct *)
+                                                (font->font.font))->hfont);
+                }
+              if (GetGlyphOutlineW (dc, *(code + i), GGO_METRICS, &gm, 0,
+                                    NULL, &transform) != GDI_ERROR)
+                {
+                  int new_val = metrics->width + gm.gmBlackBoxX
+                    + gm.gmptGlyphOrigin.x;
+                  metrics->rbearing = max (metrics->rbearing, new_val);
+                  new_val = -gm.gmptGlyphOrigin.x - metrics->width;
+                  metrics->lbearing = max (metrics->lbearing, new_val);
+                  metrics->width += gm.gmCellIncX;
+                  new_val = -gm.gmptGlyphOrigin.y;
+                  metrics->ascent = max (metrics->ascent, new_val);
+                  new_val = gm.gmBlackBoxY + gm.gmptGlyphOrigin.y;
+                  metrics->descent = max (metrics->descent, new_val);
+                }
+              else
+                {
+                  /* Rely on an estimate based on the overall font metrics.  */
+                  break;
+                }
             }
         }
 
       /* If we got through everything, return.  */
       if (i == nglyphs)
         {
-          /* Restore state and release DC.  */
-          SelectObject (dc, old_font);
-          release_frame_dc (f, dc);
+          if (dc != NULL)
+            {
+              /* Restore state and release DC.  */
+              SelectObject (dc, old_font);
+              release_frame_dc (f, dc);
+            }
 
           return metrics->width;
         }
@@ -380,6 +389,13 @@ w32font_text_extents (font, code, nglyphs, metrics)
           /* TODO: Convert to surrogate, reallocating array if needed */
           wcode[i] = 0xffff;
         }
+    }
+
+  if (dc == NULL)
+    {
+      dc = get_frame_dc (f);
+      old_font = SelectObject (dc, ((W32FontStruct *)
+                                    (font->font.font))->hfont);
     }
 
   if (GetTextExtentPoint32W (dc, wcode, nglyphs, &size))
