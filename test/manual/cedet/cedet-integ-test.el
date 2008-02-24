@@ -37,6 +37,7 @@
 ;;    e Tell EDE where they are.
 ;;    f create a build file.
 ;;    g build the sources
+;;    e remove files from a project.
 ;;
 ;; 2) Build sources using SRecode.
 ;;    a Fill in the constructed C files with classes and methods.
@@ -54,6 +55,9 @@
 ;; 4) Delete the project
 ;;    a Make sure the semanticdb cleans up the dead cache files.
 ;;    b Make sure EDE clears this project from it's project cache.
+(require 'cit-cpp)
+(require 'cit-el)
+(require 'cit-texi)
 
 (defvar cedet-integ-target "/tmp/CEDET_INTEG"
   "Root of the integration tests.")
@@ -76,8 +80,16 @@
   ;; 1 d) Put C++ src into the right directories.
   ;; 2 a) Create sources with SRecode
   ;;
-  (cit-srecode-fill)
+  (cit-srecode-fill-cpp)
 
+  ;; 1 e) remove files from a project
+  (cit-remove-add-to-project-cpp)
+
+  ;; Do some more with Emacs Lisp.
+  (cit-srecode-fill-el)
+
+  ;; Do some texinfo documentation.
+  (cit-srecode-fill-texi)
   )
 
 (defun cit-make-dir (dir)
@@ -90,109 +102,12 @@
 Append FILENAME to the target directory."
   (expand-file-name filename cedet-integ-target))
 
-(defvar cit-header-tags
-  (list
-   (semantic-tag-new-type
-    "foo" "class"
-    (list
-     (semantic-tag "public" 'label)
-     (semantic-tag-new-function
-      "foo" "" (list (semantic-tag-new-variable "f" "int"))
-      :constructor t)
-     (semantic-tag-new-function
-      "foo" "" nil :destructor t )
-     (semantic-tag-new-function
-      "doSomethingPublic" "void"
-      (list (semantic-tag-new-variable "ctxt" "int")
-	    (semantic-tag-new-variable "thing" "char *")))
-     (semantic-tag-new-function
-      "setField1" "void"
-      (list (semantic-tag-new-variable "f" "int"))
-      )
-     (semantic-tag-new-function
-      "getField1" "int" nil )
-     (semantic-tag "protected" 'label)
-     (semantic-tag-new-function
-      "doSomethingProtected" "void"
-      (list (semantic-tag-new-variable "ctxt" "int")
-	    (semantic-tag-new-variable "thing" "char *")))
-     (semantic-tag "private" 'label)
-     (semantic-tag-new-variable
-      "Field1" "int")
-     )
-    nil)
-   )
-  "Tags to be inserted into a header file.")
-
-(defvar cit-src-tags
-  (list
-   (semantic-tag-new-include "foo.hh" nil)
-   (semantic-tag-new-function
-    "doSomethingPublic" "void"
-    (list (semantic-tag-new-variable "ctxt" "int")
-	  (semantic-tag-new-variable "thing" "char *"))
-    :parent "foo")
-   (semantic-tag-new-function
-    "setField1" "void"
-    (list (semantic-tag-new-variable "f" "int"))
-    :parent "foo")
-   (semantic-tag-new-function
-    "getField1" "int" nil
-    :parent "foo")
-   (semantic-tag-new-function
-    "doSomethingProtected" "void"
-    (list (semantic-tag-new-variable "ctxt" "int")
-	  (semantic-tag-new-variable "thing" "char *"))
-    :parent "foo")
-   )
-  "Tags to be inserted into a source file.")
-
-(defvar cit-main-tags
-  (list
-   (semantic-tag-new-include "foo.hh" nil)
-   (semantic-tag-new-function
-    "main" "int"
-    (list (semantic-tag-new-variable "argc" "int")
-	  (semantic-tag-new-variable "argv" "char**")))
-   )
-  "Tags to be inserted into main.")
-
-(defun cit-srecode-fill ()
-  "Fill up a base set of files with some base tags."
-  ;; 2 b) Test various templates.
-
-  (cit-srecode-fill-with-stuff "include/foo.hh" cit-header-tags)
-  (ede-new "Make" "Includes")
-  ;; 1 e) Tell EDE where the srcs are
-  (ede-new-target "Includes" "miscelaneous" "n")
-  (ede-add-file "Includes")
-
-  (cit-srecode-fill-with-stuff "src/foo.cpp" cit-src-tags)
-  (ede-new "Make" "Src")
-  ;; 1 e) Tell EDE where the srcs are
-  (ede-new-target "Prog" "program" "n")
-  (ede-add-file "Prog")
-
-  (cit-srecode-fill-with-stuff "src/main.cpp" cit-main-tags)
-  ;; 1 e) Tell EDE where the srcs are
-  (ede-add-file "Prog")
-
-  (let ((p (ede-current-project)))
-    (oset p :variables '( ( "CPPFLAGS" . "-I../include") ))
-    (ede-commit-project p)
-    )
-
-  (find-file "../Project.ede")
-  ;; 1 f) Create a build file.
-  (ede-proj-regenerate)
-  ;; 1 g) build the sources.
-  (compile "make")
-  )
-
-(defun cit-srecode-fill-with-stuff (filename tags)
+(defun cit-srecode-fill-with-stuff (filename tags &rest
+					     empty-dict-entries)
   "Fill up FILENAME with some TAGS.
 Argument FILENAME is the file to fill up.
-Argument TAGS is the list of tags to insert into FILENAME."
+Argument TAGS is the list of tags to insert into FILENAME.
+EMPTY-DICT-ENTRIES are dictionary entries for the EMPTY fill macro."
   (let ((post-empty-tags nil)
 	)
 
@@ -202,23 +117,23 @@ Argument TAGS is the list of tags to insert into FILENAME."
     (find-file (cit-file filename))
     (srecode-load-tables-for-mode major-mode)
     (erase-buffer)
-    (srecode-insert "file:empty")
+    (apply 'srecode-insert "file:empty" empty-dict-entries)
 
     ;; 3 a) Parse the sources
     (setq post-empty-tags (semantic-fetch-tags))
 
+    (sit-for 0)
     ;;
     ;; Add in our tags
     ;;
     (dolist (tag tags)
 
-      (sit-for 0)
       ;; 3 b) Srecode to make more sources
       ;; 3 c) Test incremental parsers (by side-effect)
       (let ((e (srecode-semantic-insert-tag tag)))
 
 	(goto-char e)
-
+	(sit-for 0)
 	)
       )
 
@@ -233,35 +148,77 @@ Argument TAGS is the list of tags to insert into FILENAME."
 
     ))
 
+(defclass cit-tag-verify-error-debug ()
+  ((actual :initarg :actual
+	   :documentation
+	   "The actual value found in the buffer.")
+   (expected :initarg :expected
+	     :documentation
+	     "The expected value found in the buffer.")
+   )
+  "Debugging object for cit tag verifier.")
+
 (defun cit-srecode-verify-tags (actual expected &optional extra)
   "Make sure the ACTUAL tags found in a buffer match those in EXPECTED.
 EXTRA tags might also be in the list, so don't fail if any tags in EXTRA
 are found, but don't error if they are not their."
   (while actual
 
-    (if (semantic-tag-similar-p (car actual) (car expected))
+    (let ((T1 (car actual))
+	  (T2 (car expected)))
 
-	(let ((mem1 (semantic-tag-components (car actual)))
-	      (mem2 (semantic-tag-components (car expected))))
+      (cond
+       ((semantic-tag-similar-p T1 T2 :default-value)
 
-	  (cit-srecode-verify-tags mem1 mem2)
+	(let ((mem1 (semantic-tag-components T1))
+	      (mem2 (semantic-tag-components T2)))
+
+	  (when (and (or mem1 mem2)
+		     (semantic-tag-p (car mem1)))
+	    (cit-srecode-verify-tags mem1 mem2))
 
 	  (setq expected (cdr expected)))
+	)
 
-      ;; ELSE - it might be in a list of extra tags???
-
-      (when (semantic-tag-similar-p (car actual) (car extra))
+	;;it might be in a list of extra tags???
+       ((semantic-tag-similar-p T1 (car extra) :default-value)
 
 	;; Don't check members.  These should be simple cases for now.
 	(setq extra (cdr extra))
-
 	)
 
-      )
+       (t ;; Not the same
+	(semantic-adebug-show (cit-tag-verify-error-debug
+			       "Dbg" :actual T1 :expected T2))
 
+	(error "Tag %s does not match %s"
+	       (semantic-format-tag-name T1)
+	       (semantic-format-tag-name T2))
+	)
+       ))
 
-    (setq actual (cdr actual))))
+    (setq actual (cdr actual))
+    ))
 
+(defun cit-compile-and-wait ()
+  "Compile our current project, but wait for it to finish."
+  (find-file (cit-file "Project.ede"))
+  ;; 1 f) Create a build file.
+  (ede-proj-regenerate)
+  ;; 1 g) build the sources.
+  (compile "make")
+
+  (while compilation-in-progress
+    (accept-process-output)
+    (sit-for 1))
+
+  (save-excursion
+    (set-buffer "*compilation*")
+    (goto-char (point-max))
+
+    (when (re-search-backward " Error " nil t)
+      (error "Compilation failed!"))
+    ))
 
 (provide 'cedet-integ-test)
 ;;; cedet-integ-test.el ends here
