@@ -7,8 +7,8 @@
    (ede-proj-target-elisp "Lisp"
     :name "Lisp"
     :path ""
-    :source '("cedet-integ-test.el")
+    :source '("cedet-integ-test.el" "cit-cpp.el" "cit-el.el" "cit-texi.el" "cit-load.el")
     )
    )
-  :metasubproject t
+  :metasubproject 't
   )
