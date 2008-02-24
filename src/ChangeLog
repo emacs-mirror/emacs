@@ -1,5 +1,10 @@
 2008-02-24  Jason Rumney  <jasonr@gnu.org>
 
+	* w32term.c: (x_draw_glyph_string_background): Clear the background
+	manually when cleartype is in use.
+	(x_draw_glyph_string_foreground): Draw text transparently when
+	cleartype is in use.
+
 	* w32font.c (w32font_text_extents): Avoid getting HDC and selecting
 	a font into it unless we have to.
 
