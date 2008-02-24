@@ -8271,7 +8271,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
 {
   int modified_top, modified_left;
 
-  if (change_gravity != 0)
+  if (change_gravity > 0)
     {
       FRAME_X_OUTPUT (f)->left_before_move = f->left_pos;
       FRAME_X_OUTPUT (f)->top_before_move = f->top_pos;
