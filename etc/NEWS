@@ -524,6 +524,7 @@ search path.  This can be disabled by setting `woman-locale' to nil.
 directories in which `ffap-rfc' will first search for RFCs.
 
 *** net-utils has an `iwconfig' command, similar to the existing `ifconfig'.
+It is used to configure wireless interfaces.
 
 
 * Changes in Emacs 23.1 on non-free operating systems
