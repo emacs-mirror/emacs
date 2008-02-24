@@ -1181,7 +1181,10 @@ articles in the topic and its subtopics."
 No article is selected automatically.
 If the group is opened, just switch the summary buffer.
 If ALL is non-nil, already read articles become readable.
-If ALL is a number, fetch this number of articles.
+
+If ALL is a positive number, fetch this number of the latest
+articles in the group.  If ALL is a negative number, fetch this
+number of the earliest articles in the group.
 
 If performed over a topic line, toggle folding the topic."
   (interactive "P")
@@ -1233,10 +1236,15 @@ Also see `gnus-group-catchup'."
 (defun gnus-topic-read-group (&optional all no-article group)
   "Read news in this newsgroup.
 If the prefix argument ALL is non-nil, already read articles become
-readable.  IF ALL is a number, fetch this number of articles.  If the
-optional argument NO-ARTICLE is non-nil, no article will be
-auto-selected upon group entry.  If GROUP is non-nil, fetch that
-group.
+readable.
+
+If ALL is a positive number, fetch this number of the latest
+articles in the group.  If ALL is a negative number, fetch this
+number of the earliest articles in the group.
+
+If the optional argument NO-ARTICLE is non-nil, no article will
+be auto-selected upon group entry.  If GROUP is non-nil, fetch
+that group.
 
 If performed over a topic line, toggle folding the topic."
   (interactive "P")

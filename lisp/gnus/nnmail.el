@@ -532,8 +532,9 @@ performed."
   :type '(choice (const :tag "disable" nil)
 		 (integer :format "%v")))
 
-(defcustom nnmail-message-id-cache-file "~/.nnmail-cache"
-  "*The file name of the nnmail Message-ID cache."
+(defcustom nnmail-message-id-cache-file
+  (nnheader-concat gnus-home-directory ".nnmail-cache")
+  "The file name of the nnmail Message-ID cache."
   :group 'nnmail-duplicate
   :group 'nnmail-files
   :type 'file)

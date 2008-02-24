@@ -2008,10 +2008,15 @@ and with point over the group in question."
 (defun gnus-group-read-group (&optional all no-article group select-articles)
   "Read news in this newsgroup.
 If the prefix argument ALL is non-nil, already read articles become
-readable.  IF ALL is a number, fetch this number of articles.  If the
-optional argument NO-ARTICLE is non-nil, no article will be
-auto-selected upon group entry.  If GROUP is non-nil, fetch that
-group."
+readable.
+
+If ALL is a positive number, fetch this number of the latest
+articles in the group.  If ALL is a negative number, fetch this
+number of the earliest articles in the group.
+
+If the optional argument NO-ARTICLE is non-nil, no article will
+be auto-selected upon group entry.  If GROUP is non-nil, fetch
+that group."
   (interactive "P")
   (let ((no-display (eq all 0))
 	(group (or group (gnus-group-group-name)))

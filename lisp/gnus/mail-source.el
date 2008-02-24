@@ -269,16 +269,19 @@ If non-nil, this maildrop will be checked periodically for new mail."
   :group 'mail-source
   :type 'integer)
 
-(defcustom mail-source-delete-incoming t
-  "*If non-nil, delete incoming files after handling.
+(defcustom mail-source-delete-incoming
+  ;; 10 ;; development versions
+  2 ;; released versions
+  "If non-nil, delete incoming files after handling.
 If t, delete immediately, if nil, never delete.  If a positive number, delete
-files older than number of days."
-  ;; Note: The removing happens in `mail-source-callback', i.e. no old
-  ;; incoming files will be deleted, unless you receive new mail.
-  ;;
-  ;; You may also set this to `nil' and call `mail-source-delete-old-incoming'
-  ;; from a hook or interactively.
+files older than number of days.
+
+Removing of old files happens in `mail-source-callback', i.e. no
+old incoming files will be deleted unless you receive new mail.
+You may also set this variable to nil and call
+`mail-source-delete-old-incoming' interactively."
   :group 'mail-source
+  :version "22.2" ;; No Gnus / Gnus 5.10.10 (default changed)
   :type '(choice (const :tag "immediately" t)
 		 (const :tag "never" nil)
 		 (integer :tag "days")))

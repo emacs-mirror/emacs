@@ -1,3 +1,20 @@
+2008-02-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mail-source.el (mail-source-delete-incoming): Change default.
+	Supplement doc string.
+
+2008-02-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnmail.el (nnmail-message-id-cache-file): Derive from
+	`gnus-home-directory'.
+
+2008-02-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-topic.el (gnus-topic-select-group, gnus-topic-read-group):
+	Document negativ prefix.
+
+	* gnus-group.el (gnus-group-read-group): Document negativ prefix.
+
 2008-02-03  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.el (gnus-group-startup-message): Add `find-image' call before
