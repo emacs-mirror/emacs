@@ -1011,7 +1011,7 @@ clear_face_cache (clear_fonts_p)
 	  if (FRAME_WINDOW_P (f))
 	      clear_face_gcs (FRAME_FACE_CACHE (f));
 	}
-      clear_image_caches (0);
+      clear_image_caches (Qnil);
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 }
@@ -5481,10 +5481,10 @@ lface_hash (v)
   return (hash_string_case_insensitive (v[LFACE_FAMILY_INDEX])
 	  ^ hash_string_case_insensitive (v[LFACE_FOREGROUND_INDEX])
 	  ^ hash_string_case_insensitive (v[LFACE_BACKGROUND_INDEX])
-	  ^ XFASTINT (v[LFACE_WEIGHT_INDEX])
-	  ^ XFASTINT (v[LFACE_SLANT_INDEX])
-	  ^ XFASTINT (v[LFACE_SWIDTH_INDEX])
-	  ^ XFASTINT (v[LFACE_HEIGHT_INDEX]));
+	  ^ XHASH (v[LFACE_WEIGHT_INDEX])
+	  ^ XHASH (v[LFACE_SLANT_INDEX])
+	  ^ XHASH (v[LFACE_SWIDTH_INDEX])
+	  ^ XHASH (v[LFACE_HEIGHT_INDEX]));
 }
 
 
@@ -7755,7 +7755,7 @@ realize_x_face (cache, attrs)
 	font_load_for_face (f, face);
       else
 #endif	/* USE_FONT_BACKEND */
-      load_face_font (f, face);
+	load_face_font (f, face);
       if (face->font)
 	face->fontset = make_fontset_for_ascii_face (f, fontset, face);
       else
@@ -8149,7 +8149,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
 
   /* Look at properties from overlays.  */
   {
-    int next_overlay;
+    EMACS_INT next_overlay;
 
     GET_OVERLAYS_AT (pos, overlay_vec, noverlays, &next_overlay, 0);
     if (next_overlay < endpos)

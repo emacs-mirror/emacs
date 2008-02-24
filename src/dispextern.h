@@ -2487,6 +2487,11 @@ struct image
   /* Lisp specification of this image.  */
   Lisp_Object spec;
 
+  /* List of "references" followed to build the image.
+     Typically will just contain the name of the image file.
+     Used to allow fine-grained cache flushing.  */
+  Lisp_Object dependencies;
+
   /* Relief to draw around the image.  */
   int relief;
 
@@ -2818,7 +2823,7 @@ extern Lisp_Object x_find_image_file P_ ((Lisp_Object));
 void x_kill_gs_process P_ ((Pixmap, struct frame *));
 struct image_cache *make_image_cache P_ ((void));
 void free_image_cache P_ ((struct frame *));
-void clear_image_caches P_ ((int));
+void clear_image_caches P_ ((Lisp_Object));
 void mark_image_cache P_ ((struct image_cache *));
 int valid_image_p P_ ((Lisp_Object));
 void prepare_image_for_display P_ ((struct frame *, struct image *));

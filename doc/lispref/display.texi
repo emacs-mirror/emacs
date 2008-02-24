@@ -4364,10 +4364,12 @@ This works by removing all image with image specifications matching
 displayed, Emacs will load the image again.
 @end defun
 
-@defun clear-image-cache &optional frame
-This function clears the entire image cache.  If @var{frame} is
-non-@code{nil}, only the cache for that frame is cleared.  Otherwise,
-all frames' caches are cleared.
+@defun clear-image-cache &optional filter
+This function clears the image cache.  If @var{filter} is
+a frame, only the cache for that frame is cleared.  If omitted or
+@code{nil}, clear the images on the selected frame.  If @code{t},
+all frames' caches are cleared.  Otherwise, @var{filter} is taken as
+a file name and only images that reference this file will be flushed.
 @end defun
 
 If an image in the image cache has not been displayed for a specified

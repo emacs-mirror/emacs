@@ -1184,9 +1184,11 @@ make_image (spec, hash)
      unsigned hash;
 {
   struct image *img = (struct image *) xmalloc (sizeof *img);
+  Lisp_Object file = image_spec_value (spec, QCfile, NULL);
 
   xassert (valid_image_p (spec));
   bzero (img, sizeof *img);
+  img->dependencies = NILP (file) ? Qnil : list1 (file);
   img->type = lookup_image_type (image_spec_value (spec, QCtype, NULL));
   xassert (img->type != NULL);
   img->spec = spec;
@@ -1707,21 +1709,20 @@ free_image_cache (f)
 }
 
 
-/* Clear image cache of frame F.  FORCE_P non-zero means free all
-   images.  FORCE_P zero means clear only images that haven't been
-   displayed for some time.  Should be called from time to time to
-   reduce the number of loaded images.  If image-cache-eviction-delay
-   is non-nil, this frees images in the cache which weren't displayed
-   for at least that many seconds.  */
+/* Clear image cache of frame F.  FILTER=t means free all images.
+   FILTER=nil means clear only images that haven't been
+   displayed for some time.
+   Else, only free the images which have FILTER in their `dependencies'.
+   Should be called from time to time to reduce the number of loaded images.
+   If image-cache-eviction-delay is non-nil, this frees images in the cache
+   which weren't displayed for at least that many seconds.  */
 
 void
-clear_image_cache (f, force_p)
-     struct frame *f;
-     int force_p;
+clear_image_cache (struct frame *f, Lisp_Object filter)
 {
   struct image_cache *c = FRAME_IMAGE_CACHE (f);
 
-  if (c && INTEGERP (Vimage_cache_eviction_delay))
+  if (c && (!NILP (filter) || INTEGERP (Vimage_cache_eviction_delay)))
     {
       EMACS_TIME t;
       unsigned long old;
@@ -1738,7 +1739,9 @@ clear_image_cache (f, force_p)
 	{
 	  struct image *img = c->images[i];
 	  if (img != NULL
-	      && (force_p || img->timestamp < old))
+	      && (NILP (filter) ? img->timestamp < old
+		  : (EQ (Qt, filter)
+		     || !NILP (Fmember (filter, img->dependencies)))))
 	    {
 	      free_image (f, img);
 	      ++nfreed;
@@ -1768,7 +1771,7 @@ clear_image_cache (f, force_p)
 }
 
 void
-clear_image_caches (int force_p)
+clear_image_caches (Lisp_Object filter)
 {
   /* FIXME: We want to do
    * struct terminal *t;
@@ -1777,21 +1780,23 @@ clear_image_caches (int force_p)
   Lisp_Object tail, frame;
   FOR_EACH_FRAME (tail, frame)
     if (FRAME_WINDOW_P (XFRAME (frame)))
-      clear_image_cache (XFRAME (frame), force_p);
+      clear_image_cache (XFRAME (frame), filter);
 }
 
 DEFUN ("clear-image-cache", Fclear_image_cache, Sclear_image_cache,
        0, 1, 0,
-       doc: /* Clear the image cache of FRAME.
-FRAME nil or omitted means use the selected frame.
-FRAME t means clear the image caches of all frames.  */)
-     (frame)
-     Lisp_Object frame;
+       doc: /* Clear the image cache.
+FILTER nil or a frame means clear all images in the selected frame.
+FILTER t means clear the image caches of all frames.
+Anything else, means only clear those images which refer to FILTER,
+which is then usually a filename.  */)
+     (filter)
+     Lisp_Object filter;
 {
-  if (EQ (frame, Qt))
-    clear_image_caches (1);
+  if (!(EQ (filter, Qnil) || FRAMEP (filter)))
+    clear_image_caches (filter);
   else
-    clear_image_cache (check_x_frame (frame), 1);
+    clear_image_cache (check_x_frame (filter), Qt);
 
   return Qnil;
 }
@@ -2074,6 +2079,7 @@ mark_image (img)
      struct image *img;
 {
   mark_object (img->spec);
+  mark_object (img->dependencies);
 
   if (!NILP (img->data.lisp_val))
     mark_object (img->data.lisp_val);

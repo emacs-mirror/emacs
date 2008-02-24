@@ -3229,7 +3229,7 @@ next_overlay_change (pos)
      int pos;
 {
   int noverlays;
-  int endpos;
+  EMACS_INT endpos;
   Lisp_Object *overlays;
   int i;
 
@@ -11042,27 +11042,20 @@ select_frame_for_redisplay (frame)
 
   selected_frame = frame;
 
-  for (tail = XFRAME (frame)->param_alist; CONSP (tail); tail = XCDR (tail))
-    if (CONSP (XCAR (tail))
-	&& (sym = XCAR (XCAR (tail)),
-	    SYMBOLP (sym))
-	&& (sym = indirect_variable (sym),
-	    val = SYMBOL_VALUE (sym),
-	    (BUFFER_LOCAL_VALUEP (val)))
-	&& XBUFFER_LOCAL_VALUE (val)->check_frame)
-      /* Use find_symbol_value rather than Fsymbol_value
-	 to avoid an error if it is void.  */
-      find_symbol_value (sym);
-
-  for (tail = XFRAME (old)->param_alist; CONSP (tail); tail = XCDR (tail))
-    if (CONSP (XCAR (tail))
-	&& (sym = XCAR (XCAR (tail)),
-	    SYMBOLP (sym))
-	&& (sym = indirect_variable (sym),
-	    val = SYMBOL_VALUE (sym),
-	    (BUFFER_LOCAL_VALUEP (val)))
-	&& XBUFFER_LOCAL_VALUE (val)->check_frame)
-      find_symbol_value (sym);
+  do
+    {
+      for (tail = XFRAME (frame)->param_alist; CONSP (tail); tail = XCDR (tail))
+	if (CONSP (XCAR (tail))
+	    && (sym = XCAR (XCAR (tail)),
+		SYMBOLP (sym))
+	    && (sym = indirect_variable (sym),
+		val = SYMBOL_VALUE (sym),
+		(BUFFER_LOCAL_VALUEP (val)))
+	    && XBUFFER_LOCAL_VALUE (val)->check_frame)
+	  /* Use find_symbol_value rather than Fsymbol_value
+	     to avoid an error if it is void.  */
+	  find_symbol_value (sym);
+    } while (!EQ (frame, old) && (frame = old, 1));
 }
 
 
@@ -11797,7 +11790,7 @@ redisplay_internal (preserve_echo_area)
 #ifdef HAVE_WINDOW_SYSTEM
       if (clear_image_cache_count > CLEAR_IMAGE_CACHE_COUNT)
 	{
-	  clear_image_caches (0);
+	  clear_image_caches (Qnil);
 	  clear_image_cache_count = 0;
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
@@ -14426,8 +14419,7 @@ find_first_unchanged_at_end_row (w, delta, delta_bytes)
 
   /* Display must not have been paused, otherwise the current matrix
      is not up to date.  */
-  if (NILP (w->window_end_valid))
-    abort ();
+  eassert (!NILP (w->window_end_valid));
 
   /* A value of window_end_pos >= END_UNCHANGED means that the window
      end is in the range of changed text.  If so, there is no
@@ -14478,8 +14470,7 @@ find_first_unchanged_at_end_row (w, delta, delta_bytes)
 	}
     }
 
-  if (row_found && !MATRIX_ROW_DISPLAYS_TEXT_P (row_found))
-    abort ();
+  eassert (!row_found || MATRIX_ROW_DISPLAYS_TEXT_P (row_found));
 
   return row_found;
 }
@@ -18104,8 +18095,8 @@ decode_mode_spec (w, c, field_width, precision, multibyte, string)
 	    goto no_value;
 	  }
 
-	if (!NILP (w->base_line_number)
-	    && !NILP (w->base_line_pos)
+	if (INTEGERP (w->base_line_number)
+	    && INTEGERP (w->base_line_pos)
 	    && XFASTINT (w->base_line_pos) <= startpos)
 	  {
 	    line = XFASTINT (w->base_line_number);

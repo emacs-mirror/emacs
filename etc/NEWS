@@ -596,6 +596,8 @@ functions and variables (formerly used for Tamil script).
 
 * Lisp Changes in Emacs 23.1
 
+** `clear-image-cache' can be told to flush only images of a specific file.
+
 ** clone-indirect-buffer now runs the clone-indirect-buffer-hook.
 
 ** `beginning-of-defun-function' now takes one argument, the count
