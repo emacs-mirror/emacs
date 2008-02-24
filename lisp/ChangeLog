@@ -11,7 +11,7 @@
 	* dired.el (dired-mark-prompt): Don't count/display the t element.
 	Reported by Carsten Blaauw <it-media.blaauw@daimler.com>.
 
-2008-02-22  Bill Meier <wmeier@newsguy.com>  (tiny change)
+2008-02-22  Bill Meier  <wmeier@newsguy.com>  (tiny change)
 
 	* progmodes/sh-script.el (sh-indent-comment): Docstring fix.
 
@@ -28,13 +28,12 @@
 	(verilog-menu): ... here.
 	(verilog-statement-menu): Remove.  Move contents to the only use ...
 	(verilog-stmt-menu): ... here.
-	(verilog-mark-defun): Simply call mark-defun for emacs.
+	(verilog-mark-defun): Simply call mark-defun for Emacs.
 	(occur-pos-list): Declare for byte compiler.
 	(mode-popup-menu): Don't defvar.
 	(verilog-add-statement-menu): Remove.
 	(verilog-mode-hook): Don't add verilog-add-statement-menu.
-	(verilog-mode): Call easy-menu-add and set mode-popup-menu for
-	XEmacs.
+	(verilog-mode): Call easy-menu-add and set mode-popup-menu for XEmacs.
 
 2008-02-21  Michael McNamara  <mac@mail.brushroad.com>
 
@@ -42,31 +41,31 @@
 	conditional.
 	(verilog-font-grouping-keywords-face): Make the begin..end
 	keywords standout more than other verilog keywords.
-        (verilog-type-font-keywords): Move the begin..end out of this list
+	(verilog-type-font-keywords): Move the begin..end out of this list
 	to facilitate making them to (potentially) stand out more.
 	(verilog-backward-token): Fix indent of bare always{_*}?, initial,
 	function & task blocks.
-        (verilog-behavioral-block-beg-re): Fix indent of bare always{_*}?,
+	(verilog-behavioral-block-beg-re): Fix indent of bare always{_*}?,
 	initial, function & task blocks.
 	(verilog-forward-sexp): Handle the new "disable fork" statement of
 	IEEE-1800 Verilog.
-        (verilog-beg-block-re-ordered): Handle the new "disable fork"
+	(verilog-beg-block-re-ordered): Handle the new "disable fork"
 	statement of IEEE-1800 Verilog.
-        (verilog-calc-1): Handle the new "disable fork" statement of
+	(verilog-calc-1): Handle the new "disable fork" statement of
 	IEEE-1800 Verilog.
-        (verilog-disable-fork-re): Add const to help handle the new
+	(verilog-disable-fork-re): Add const to help handle the new
 	"disable fork" statement of IEEE-1800 Verilog.
 	(verilog-declaration-core-re): Add port directions by themselves,
 	with no qualification, as base item of a declaration.
-        (verilog-pretty-declarations): Add new flag to ask it to refrain
+	(verilog-pretty-declarations): Add new flag to ask it to refrain
 	from printing to the message buffer.
-        (verilog-pretty-expr): Add a QUIET flag to ask it to refrain from
-	printing to the message buffer.  Improve handling of the many
+	(verilog-pretty-expr): Add a QUIET flag to ask it to refrain from
+	printing to the message buffer.	 Improve handling of the many
 	types of expression line up.
-        (verilog-just-one-space): Remove printing of an empty message.
-        (verilog-get-lineup-indent): Rework to support the better handling
+	(verilog-just-one-space): Remove printing of an empty message.
+	(verilog-get-lineup-indent): Rework to support the better handling
 	of expression lineup for verilog-pretty-expr.
-        (verilog-auto-wire): Pass the quiet flag to verilog-pretty-expr.
+	(verilog-auto-wire): Pass the quiet flag to verilog-pretty-expr.
 
 2008-02-20  Alan Mackenzie  <acm@muc.de>
 
@@ -591,7 +590,7 @@
 	Remove.  Move syntax table initialization ...
 	(verilog-mode-syntax-table): ... here.
 	(verilog-mode): Don't initialize the syntax table here.
-	(verilog-mark-defun): Only do something useful for XEmacs, emacs
+	(verilog-mark-defun): Only do something useful for XEmacs, Emacs
 	does not need it.
 
 2008-01-10  Glenn Morris  <rgm@gnu.org>
@@ -1041,7 +1040,7 @@
 	* progmodes/verilog-mode.el (verilog-mode-map)
 	(verilog-template-map, verilog-mode-mouse-map): Fix typos.
 	(verilog-colorize-include-files): Use only overlay functions so
-	that it can work on both emacs and XEmacs.
+	that it can work on both Emacs and XEmacs.
 	(set-extent-keymap): Remove unused defun.
 	(verilog-kill-existing-comment, verilog-insert-date)
 	(verilog-insert-year): Rename in order not to pollute the global
@@ -6488,7 +6487,7 @@
 	* bookmark.el (bookmark-buffer-file-name): Abbreviate the bookmark
 	path.  Rewrite function in `cond' style for readability.
 
-	Suggested by: Stephen Eglen <S.J.Eglen{_AT_}damtp.cam.ac.uk>.
+	Suggested by Stephen Eglen <S.J.Eglen{_AT_}damtp.cam.ac.uk>.
 	(The path shortening, that is, not the rearrangement.)
 
 2007-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
