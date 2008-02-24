@@ -35,24 +35,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00024.html
 And: Bug in url-get-authentication
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00059.html
 
-** modify-frame-parameters behaviour broken
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-01/msg00058.html
-http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01367.html
-
-This should move the R frame edge 20pix to the R of the R screen edge.
-Instead, it moves the L frame edge 20pix to the R of the L screen edge.
-(modify-frame-parameters nil
-                         '((user-position . t) (user-size . t) (left - -20)))
-
-This should move the L frame edge 20pix to the L of the L screen edge.
-Instead, it moves the R frame edge 20pix to the L of the R screen edge.
-(modify-frame-parameters nil
-                         '((user-position . t) (user-size . t) (left + -20)))
-
-It works in Emacs 21. The "+ +" and "- +" forms are OK; ie it is when
-the number is -ve that things go wrong.
-
-
 * Bugs and feature requests for 22.3 or later
 
 ** python.el changes by Dave Love?
