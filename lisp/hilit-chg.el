@@ -242,7 +242,7 @@
       '( "magenta" "blue" "darkgreen" "chocolate" "sienna4" "NavyBlue")
       ;; defaults for dark background:
     '("yellow" "magenta" "blue" "maroon" "firebrick" "green4" "DarkOrchid"))
-  "*Colors used by `highlight-changes-rotate-faces'.
+  "Colors used by `highlight-changes-rotate-faces'.
 The newest rotated change will be displayed in the first element of this list,
 the next older will be in the second element etc.
 
@@ -261,7 +261,7 @@ colors then use this, if you want fancier faces then set
 ;; active or passive mode?
 ;;
 (defcustom highlight-changes-initial-state 'active
-  "*What state (active or passive) Highlight Changes mode should start in.
+  "What state (active or passive) Highlight Changes mode should start in.
 This is used when `highlight-changes-mode' is called with no argument.
 This variable must be set to one of the symbols `active' or `passive'."
   :type '(choice (const :tag "Active" active)
@@ -269,7 +269,7 @@ This variable must be set to one of the symbols `active' or `passive'."
   :group 'highlight-changes)
 
 (defcustom highlight-changes-global-initial-state 'passive
-  "*What state global Highlight Changes mode should start in.
+  "What state global Highlight Changes mode should start in.
 This is used if `global-highlight-changes' is called with no argument.
 This variable must be set to either `active' or `passive'."
   :type '(choice (const :tag "Active" active)
@@ -278,7 +278,7 @@ This variable must be set to either `active' or `passive'."
 
 ;; The strings displayed in the mode-line for the minor mode:
 (defcustom highlight-changes-active-string " +Chg"
-  "*The string used when Highlight Changes mode is in the active state.
+  "The string used when Highlight Changes mode is in the active state.
 This should be set to nil if no indication is desired, or to
 a string with a leading space."
   :type '(choice string
@@ -286,7 +286,7 @@ a string with a leading space."
   :group 'highlight-changes)
 
 (defcustom highlight-changes-passive-string " -Chg"
-  "*The string used when Highlight Changes mode is in the passive state.
+  "The string used when Highlight Changes mode is in the passive state.
 This should be set to nil if no indication is desired, or to
 a string with a leading space."
   :type '(choice string
@@ -294,7 +294,7 @@ a string with a leading space."
   :group 'highlight-changes)
 
 (defcustom highlight-changes-global-modes t
-  "*Determine whether a buffer is suitable for global Highlight Changes mode.
+  "Determine whether a buffer is suitable for global Highlight Changes mode.
 
 A function means call that function to decide: if it returns non-nil,
 the buffer is suitable.
@@ -328,7 +328,7 @@ modes only."
 (defvar global-highlight-changes nil)
 
 (defcustom highlight-changes-global-changes-existing-buffers nil
-  "*If non-nil, toggling global Highlight Changes mode affects existing buffers.
+  "If non-nil, toggling global Highlight Changes mode affects existing buffers.
 Normally, `global-highlight-changes' affects only new buffers (to be
 created).  However, if `highlight-changes-global-changes-existing-buffers'
 is non-nil, then turning on `global-highlight-changes' will turn on
@@ -383,7 +383,7 @@ remove it from existing buffers."
 
 
 (defcustom highlight-changes-face-list nil
-  "*A list of faces used when rotating changes.
+  "A list of faces used when rotating changes.
 Normally the variable is initialized to nil and the list is created from
 `highlight-changes-colors' when needed.  However, you can set this variable
 to any list of faces.  You will have to do this if you want faces which
@@ -451,10 +451,9 @@ This is the opposite of `hilit-chg-hide-changes'."
   ;; for the region make change overlays corresponding to
   ;; the text property 'hilit-chg
   (let ((ov (make-overlay start end))
-	face)
-    (if (eq prop 'hilit-chg-delete)
-	(setq face 'highlight-changes-delete)
-      (setq face (nth 1 (member prop hilit-chg-list))))
+	(face (if (eq prop 'hilit-chg-delete)
+                  'highlight-changes-delete
+                (nth 1 (member prop hilit-chg-list)))))
     (if face
 	(progn
 	  ;; We must mark the face, that is the purpose of the overlay
@@ -491,29 +490,8 @@ This is the opposite of `hilit-chg-display-changes'."
 Ensure the overlays agree with the changes as determined from
 the text properties of type `hilit-chg'."
   ;; Remove or alter overlays in region beg..end
-  (let (ov-start ov-end	 props q)
-    ;; temp for debugging:
-    ;; (or (eq highlight-changes-mode 'active)
-    ;;	 (error "hilit-chg-fixup called but Highlight Changes mode not active"))
-    (dolist (ov (overlays-in beg end))
-      ;; Don't alter overlays that are not ours.
-      (when (overlay-get ov 'hilit-chg)
-	(let ((ov-start (overlay-start ov))
-	      (ov-end (overlay-end ov)))
-	  (if (< ov-start beg)
-	      (progn
-		(move-overlay ov ov-start beg)
-		(if (> ov-end end)
-		    (progn
-		      (setq props (overlay-properties ov))
-		      (setq ov (make-overlay end ov-end))
-		      (while props
-			(overlay-put ov (car props)(car (cdr props)))
-			(setq props (cdr (cdr props)))))))
-	    (if (> ov-end end)
-		(move-overlay ov end ov-end)
-	      (delete-overlay ov))))))
-    (hilit-chg-display-changes beg end)))
+  (remove-overlays beg end 'hilit-chg t)
+  (hilit-chg-display-changes beg end))
 
 ;; Inspired by font-lock.  Something like this should be moved to subr.el.
 (defmacro highlight-save-buffer-state (&rest body)
@@ -584,7 +562,6 @@ This allows you to manually remove highlighting from uninteresting changes."
 	  ;; changed otherwise its highlighting disappears.
 	  (if (eq (get-text-property end 'hilit-chg) 'hilit-chg-delete)
 	      (progn
-		(remove-text-properties end (+ end 1) '(hilit-chg nil))
 		(put-text-property end (+ end 1) 'hilit-chg 'hilit-chg)
 		(if (eq highlight-changes-mode 'active)
                       (hilit-chg-fixup beg (+ end 1))))))

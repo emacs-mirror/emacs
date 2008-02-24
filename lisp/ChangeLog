@@ -1,5 +1,11 @@
 2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* hilit-chg.el: Remove spurious * in defcustom docstrings.
+	(hilit-chg-make-ov): Simplify.
+	(hilit-chg-fixup): Use remove-overlays.
+	(hilit-chg-set-face-on-change): Remove redundant call to
+	`remove-text-properties'.
+
 	* dired.el (dired-mark-prompt): Don't count/display the t element.
 	Reported by Carsten Blaauw <it-media.blaauw@daimler.com>.
 
