@@ -1,5 +1,8 @@
 2008-02-24  Glenn Morris  <rgm@gnu.org>
 
+	* vc-cvs.el (vc-cvs-register): Fix registering of directories in
+	multiple file case.
+
 	* vc-mcvs.el (vc-mcvs-register): Fix let-binding (for use of `file').
 
 2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
