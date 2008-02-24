@@ -24,10 +24,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
 * BUGS
 
-** nesting of unwind-protect and atomic-change-group
-Stefan has a fix at
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00032.html
-
 ** Emacs fails to start properly if the current working directory is
 on a vfat or ntfs filesystem
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00033.html
