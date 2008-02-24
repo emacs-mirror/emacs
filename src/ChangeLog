@@ -108,12 +108,10 @@
 	with a face already decided.
 	(x_produce_glyphs): Be sure to set it->ascent and it->descent to
 	non-negative.
-	(x_produce_glyphs): If the composition method is
-	..._WITH_GLYPH_STRING, call font_prepare_composition
-	unconditionally.
+	(x_produce_glyphs): If the composition method is ..._WITH_GLYPH_STRING,
+	call font_prepare_composition unconditionally.
 
-	* xfns.c (x_make_gc): Use the default font id of the frame for
-	GCs.
+	* xfns.c (x_make_gc): Use the default font id of the frame for GCs.
 
 	* xterm.h (struct x_display_info): New member font.
 
@@ -126,7 +124,7 @@
 
 	* ftxfont.c (ftxfont_default_fid): Delete it.
 	(ftxfont_open): Set xfont->fid to 0.
-	(ftxfont_end_for_frame): Clear data specifi to the frame and the
+	(ftxfont_end_for_frame): Clear data specific to the frame and the
 	font-driver.
 
 	* xftfont.c (xftfont_default_fid): Delete it.
