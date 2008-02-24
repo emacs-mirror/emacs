@@ -1,3 +1,8 @@
+2008-02-24  Ulrich Neumerkel  <ulrich@complang.tuwien.ac.at>  (tiny change)
+
+	* xterm.c (x_set_offset): Don't change the gravity if
+	CHANGE_GRAVITY is -1.
+
 2008-02-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* fileio.c (auto_save_error_occurred): New var.
