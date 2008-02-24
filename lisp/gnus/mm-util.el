@@ -576,6 +576,36 @@ with Mule charsets.  It is completely useless for Emacs."
 	  (push (cons mime (delq 'ascii mule)) alist)))
       (setq mm-mime-mule-charset-alist (nreverse alist)))))
 
+(defvar mm-hack-charsets '(iso-8859-15 iso-2022-jp-2)
+  "A list of special charsets.
+Valid elements include:
+`iso-8859-15'    convert ISO-8859-1, -9 to ISO-8859-15 if ISO-8859-15 exists.
+`iso-2022-jp-2'  convert ISO-2022-jp to ISO-2022-jp-2 if ISO-2022-jp-2 exists."
+)
+
+(defvar mm-iso-8859-15-compatible
+  '((iso-8859-1 "\xA4\xA6\xA8\xB4\xB8\xBC\xBD\xBE")
+    (iso-8859-9 "\xA4\xA6\xA8\xB4\xB8\xBC\xBD\xBE\xD0\xDD\xDE\xF0\xFD\xFE"))
+  "ISO-8859-15 exchangeable coding systems and inconvertible characters.")
+
+(defvar mm-iso-8859-x-to-15-table
+  (and (fboundp 'coding-system-p)
+       (mm-coding-system-p 'iso-8859-15)
+       (mapcar
+	(lambda (cs)
+	  (if (mm-coding-system-p (car cs))
+	      (let ((c (string-to-char
+			(decode-coding-string "\341" (car cs)))))
+		(cons (char-charset c)
+		      (cons
+		       (- (string-to-char
+			   (decode-coding-string "\341" 'iso-8859-15)) c)
+		       (string-to-list (decode-coding-string (car (cdr cs))
+							     (car cs))))))
+	    '(gnus-charset 0)))
+	mm-iso-8859-15-compatible))
+  "A table of the difference character between ISO-8859-X and ISO-8859-15.")
+
 (defcustom mm-coding-system-priorities
   (if (boundp 'current-language-environment)
       (let ((lang (symbol-value 'current-language-environment)))
@@ -829,6 +859,27 @@ This affects whether coding conversion should be attempted generally."
 	  default-enable-multibyte-characters
 	t)))
 
+(defun mm-iso-8859-x-to-15-region (&optional b e)
+  (if (fboundp 'char-charset)
+      (let (charset item c inconvertible)
+	(save-restriction
+	  (if e (narrow-to-region b e))
+	  (goto-char (point-min))
+	  (skip-chars-forward "\0-\177")
+	  (while (not (eobp))
+	    (cond
+	     ((not (setq item (assq (char-charset (setq c (char-after)))
+				    mm-iso-8859-x-to-15-table)))
+	      (forward-char))
+	     ((memq c (cdr (cdr item)))
+	      (setq inconvertible t)
+	      (forward-char))
+	     (t
+	      (insert-before-markers (prog1 (+ c (car (cdr item)))
+				       (delete-char 1)))))
+	    (skip-chars-forward "\0-\177")))
+	(not inconvertible))))
+
 (defun mm-sort-coding-systems-predicate (a b)
   (let ((priorities
 	 (mapcar (lambda (cs)
@@ -976,6 +1027,26 @@ charset, and a longer list means no appropriate charset."
 	       (mapcar 'mm-mime-charset
 		       (delq 'ascii
 			     (mm-find-charset-region b e))))))
+    (if (and (> (length charsets) 1)
+	     (memq 'iso-8859-15 charsets)
+	     (memq 'iso-8859-15 hack-charsets)
+	     (save-excursion (mm-iso-8859-x-to-15-region b e)))
+	(dolist (x mm-iso-8859-15-compatible)
+	  (setq charsets (delq (car x) charsets))))
+    (if (and (memq 'iso-2022-jp-2 charsets)
+	     (memq 'iso-2022-jp-2 hack-charsets))
+	(setq charsets (delq 'iso-2022-jp charsets)))
+    ;; Attempt to reduce the number of charsets if utf-8 is available.
+    (if (and (featurep 'xemacs)
+	     (> (length charsets) 1)
+	     (mm-coding-system-p 'utf-8))
+	(let ((mm-coding-system-priorities
+	       (cons 'utf-8 mm-coding-system-priorities)))
+	  (setq charsets
+		(mm-delete-duplicates
+		 (mapcar 'mm-mime-charset
+			 (delq 'ascii
+			       (mm-find-charset-region b e)))))))
     charsets))
 
 (defmacro mm-with-unibyte-buffer (&rest forms)

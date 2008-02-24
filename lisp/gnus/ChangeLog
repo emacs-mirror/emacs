@@ -1,3 +1,11 @@
+2008-02-24  Miles Bader  <miles@gnu.org>
+
+	* mm-util.el (mm-hack-charsets, mm-iso-8859-15-compatible)
+	(mm-iso-8859-x-to-15-table, mm-iso-8859-x-to-15-region)
+	(mm-find-mime-charset-region):
+	* mm-bodies.el (mm-encode-body):
+	* mml.el (mml-parse-1): Revert removal of `mm-hack-charsets'.
+
 2008-02-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* mail-source.el (mail-source-delete-incoming): Change default.
