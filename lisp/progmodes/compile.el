@@ -1549,13 +1549,13 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
 			 (append '(compilation-handle-exit t) nil))
     (setq mode-line-process
 	  (let ((out-string (format ":%s [%s]" process-status (cdr status)))
-		(tooltip (buffer-substring-no-properties (1+ omax) (point))))
-	    (propertize
-	     out-string
-	     'help-echo tooltip
-	     'face
-	     (if (> exit-status 0) 'font-lock-warning-face 'compilation-info))))
-    (message (format "exit status: %s %s" exit-status (> 0 exit-status)))
+		(msg (format "%s %s" mode-name
+			     (replace-regexp-in-string "\n?$" "" (car status)))))
+	    (message "%s" msg)
+	    (propertize out-string
+			'help-echo msg 'face (if (> exit-status 0)
+						 'compilation-error
+					       'compilation-info))))
     ;; Force mode line redisplay soon.
     (force-mode-line-update)
     (if (and opoint (< opoint omax))
