@@ -44,6 +44,7 @@
 ;;    b Test various templates
 ;;    c Use a template to build some C++ templates
 ;;    d SRecode to load the new template and construct some sources.
+;;    e SRecode map update for local templates.
 ;;
 ;; 3) Semantic to parse stuff
 ;;    a Parse the sources
@@ -56,6 +57,7 @@
 ;;    a Make sure the semanticdb cleans up the dead cache files.
 ;;    b Make sure EDE clears this project from it's project cache.
 (require 'cit-cpp)
+(require 'cit-srec)
 (require 'cit-el)
 (require 'cit-texi)
 
@@ -84,6 +86,9 @@
 
   ;; 1 e) remove files from a project
   (cit-remove-add-to-project-cpp)
+
+  ;; 2 e) srecode map manipulation
+  (cit-srecode-map-test)
 
   ;; Do some more with Emacs Lisp.
   (cit-srecode-fill-el)
