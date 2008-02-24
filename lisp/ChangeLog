@@ -1,3 +1,10 @@
+2008-02-24  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-handle-exit):
+	Use compilation-error face instead of font-lock-warning-face.
+	Display the same message in the minibuffer as is inserted
+	at the end of the compilation buffer.
+
 2008-02-24  Glenn Morris  <rgm@gnu.org>
 
 	* vc-cvs.el (vc-cvs-register): Fix registering of directories in
