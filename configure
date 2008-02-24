@@ -1345,7 +1345,6 @@ Optional Features:
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --without-gcc           don't use GCC to compile Emacs even if GCC is found
   --without-pop           don't support POP mail retrieval with movemail
   --with-kerberos         support Kerberos-authenticated POP
   --with-kerberos5        support Kerberos version 5 authenticated POP
@@ -1363,7 +1362,6 @@ Optional Packages:
   --without-xft           don't use XFT for anti aliased fonts
   --without-libotf        don't use libotf for OpenType font support
   --without-m17n-flt      don't use m17n-flt for text shaping
-  --with-gtk              use GTK toolkit
   --without-toolkit-scroll-bars
                           don't use Motif or Xaw3d scroll bars
   --without-xaw3d         don't use Xaw3d
@@ -1372,6 +1370,7 @@ Optional Packages:
   --without-gpm           don't use -lgpm for mouse support on a GNU/Linux
                           console
   --without-dbus          don't compile with D-Bus support
+
   --with-pkg-config-prog=PATH
                           Path to pkg-config for finding GTK and librsvg
   --with-x                use the X Window System
@@ -1852,13 +1851,6 @@ gameuser=games
 
 
 
-# Check whether --with-gcc was given.
-if test "${with_gcc+set}" = set; then
-  withval=$with_gcc;
-fi
-
-
-
 # Check whether --with-pop was given.
 if test "${with_pop+set}" = set; then
   withval=$with_pop;
@@ -2046,14 +2038,6 @@ fi
 
 
 
-# Check whether --with-gtk was given.
-if test "${with_gtk+set}" = set; then
-  withval=$with_gtk;
-else
-      with_gtk=no
-fi
-
-
 # Check whether --with-toolkit-scroll-bars was given.
 if test "${with_toolkit_scroll_bars+set}" = set; then
   withval=$with_toolkit_scroll_bars;
@@ -2100,6 +2084,28 @@ if test "${with_dbus+set}" = set; then
   withval=$with_dbus;
 else
      with_dbus=yes
+fi
+
+
+
+# Check whether --with-gtk was given.
+if test "${with_gtk+set}" = set; then
+  withval=$with_gtk; { { echo "$as_me:$LINENO: error: --with-gtk has been removed.  Use --with-x-toolkit to
+specify a toolkit." >&5
+echo "$as_me: error: --with-gtk has been removed.  Use --with-x-toolkit to
+specify a toolkit." >&2;}
+   { (exit 1); exit 1; }; }
+fi
+
+
+
+# Check whether --with-gcc was given.
+if test "${with_gcc+set}" = set; then
+  withval=$with_gcc; { { echo "$as_me:$LINENO: error: --with-gcc has been removed.  Set the \`CC' environment
+  variable to specify a compiler." >&5
+echo "$as_me: error: --with-gcc has been removed.  Set the \`CC' environment
+  variable to specify a compiler." >&2;}
+   { (exit 1); exit 1; }; }
 fi
 
 
@@ -2451,23 +2457,6 @@ _ACEOF
     esac
   ;;
 
-  ## Alpha (DEC) machines.
-  alpha*-dec-osf* )
-    machine=alpha opsys=osf1
-    # This is needed to find X11R6.1 libraries for certain tests.
-    NON_GCC_LINK_TEST_OPTIONS=-Wl,-rpath,/usr/X11R6/lib
-    GCC_LINK_TEST_OPTIONS=-Wl,-rpath,/usr/X11R6/lib
-    # NON_GNU_CPP is necessary on 5.0 to avoid mangling src/Makefile
-    # due to non-traditional preprocessing with the current compiler
-    # defaults.  OSF 4 can also have that compiler version, and there
-    # seems always to have been a usable /usr/bin/cpp.
-    NON_GNU_CPP=/usr/bin/cpp
-    case "${canonical}" in
-    alpha*-dec-osf[5-9]*)
-      opsys=osf5-0 ;;
-    esac
-  ;;
-
   alpha*-*-linux-gnu* )
     machine=alpha opsys=gnu-linux
   ;;
@@ -2513,13 +2502,6 @@ _ACEOF
   mips-dec-ultrix* )
     machine=pmax opsys=ultrix4-3
   ;;
-  mips-dec-osf* )
-    machine=pmax opsys=osf1
-  ;;
-  mips-dec-mach_bsd4.3* )
-    machine=pmax opsys=mach-bsd4-3
-  ;;
-
   ## HP 9000 series 200 or 300
   m68*-hp-bsd* )
     machine=hp9000s300 opsys=bsd4-3
@@ -2644,27 +2626,6 @@ _ACEOF
   ## This is not necessarily all workstations using the MIPS processor -
   ## Irises are produced by SGI, and DECstations by DEC.
 
-  ## etc/MACHINES lists mips.h and mips4.h as possible machine files,
-  ## and usg5-2-2 and bsd4-3 as possible OS files.  The only guidance
-  ## it gives for choosing between the alternatives seems to be "Use
-  ## -machine=mips4 for RISCOS version 4; use -opsystem=bsd4-3 with
-  ## the BSD world."  I'll assume that these are instructions for
-  ## handling two odd situations, and that every other situation
-  ## should use mips.h and usg5-2-2, they being listed first.
-  mips-mips-usg* )
-    machine=mips4
-    ## Fall through to the general code at the bottom to decide on the OS.
-  ;;
-  mips-mips-riscos4* )
-    machine=mips4 opsys=bsd4-3
-    NON_GNU_CC="cc -systype bsd43"
-    NON_GNU_CPP="cc -systype bsd43 -E"
-  ;;
-  mips-mips-riscos5* )
-    machine=mips4 opsys=riscos5
-    NON_GNU_CC="cc -systype bsd43"
-    NON_GNU_CPP="cc -systype bsd43 -E"
-  ;;
   mips-mips-bsd* )
     machine=mips opsys=bsd4-3
   ;;
@@ -2698,20 +2659,6 @@ _ACEOF
     # AC_HEADER_STD_C fails.   (MIPSPro 7.2.1.2m compilers, Irix 6.5.3m).
     NON_GNU_CPP="/lib/cpp -D_LANGUAGE_C"
     NON_GCC_TEST_OPTIONS="-D_LANGUAGE_C"
-  ;;
-  mips-sgi-irix6* )
-    machine=iris4d opsys=irix6-0
-    # It's not clear whether -D_LANGUAGE_C is necessary as it is for 6.5,
-    # but presumably it does no harm.
-    NON_GNU_CPP="/lib/cpp -D_LANGUAGE_C"
-    # -32 probably isn't necessary in later v.6s -- anyone know which?
-    NON_GCC_TEST_OPTIONS=-32
-  ;;
-  mips-sgi-irix5.[01]* )
-    machine=iris4d opsys=irix5-0
-  ;;
-  mips-sgi-irix5* | mips-sgi-irix* )
-    machine=iris4d opsys=irix5-2
   ;;
 
   ## Suns
@@ -2805,7 +2752,6 @@ _ACEOF
       *-darwin* )               opsys=darwin
                                 CPP="${CC-cc} -E -no-cpp-precomp"
  				;;
-      *-xenix* )		opsys=xenix ;;
       *-linux-gnu* )		opsys=gnu-linux ;;
       *-sysv4.2uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-sysv5uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
@@ -2906,11 +2852,6 @@ test -n "$CC" && cc_specified=yes
 # Save the value of CFLAGS that the user specified.
 SPECIFIED_CFLAGS="$CFLAGS"
 
-case ${with_gcc} in
-  "yes" ) CC="gcc" GCC=yes ;;
-  "no"  ) : ${CC=cc} ;;
-  * )
-esac
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -5154,14 +5095,10 @@ configure___ c_switch_machine=C_SWITCH_MACHINE
 #define LIB_X11_LIB -lX11
 #endif
 
-#ifndef LIBX11_MACHINE
-#define LIBX11_MACHINE
-#endif
-
 #ifndef LIBX11_SYSTEM
 #define LIBX11_SYSTEM
 #endif
-configure___ LIBX=LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM
+configure___ LIBX=LIB_X11_LIB LIBX11_SYSTEM
 
 #ifdef UNEXEC
 configure___ unexec=UNEXEC
@@ -9272,7 +9209,7 @@ fi
 if test "${window_system}" = x11 && test "${HAVE_CARBON}" = yes; then
   if test "${with_carbon+set}" != set \
      && test "${carbon_appdir_x+set}" != set; then
-    for var in with_x with_x_toolkit with_gtk with_xim \
+    for var in with_x with_x_toolkit with_xim \
                with_xpm with_jpeg with_tiff with_gif with_png; do
       if eval test \"\${$var+set}\" = set; then
         HAVE_CARBON=no
@@ -9295,13 +9232,7 @@ case "${window_system}" in
       gtk ) with_gtk=yes
             USE_X_TOOLKIT=none ;;
       no ) USE_X_TOOLKIT=none ;;
-      * )
-          if test x"$with_gtk" = xyes; then
-             USE_X_TOOLKIT=none
-          else
-             USE_X_TOOLKIT=maybe
-          fi
-          ;;
+      * ) USE_X_TOOLKIT=maybe ;;
     esac
   ;;
   mac | none )
@@ -10267,17 +10198,6 @@ _ACEOF
 fi
 
 
-{ echo "$as_me:$LINENO: checking for XFree86 in /usr/X386" >&5
-echo $ECHO_N "checking for XFree86 in /usr/X386... $ECHO_C" >&6; }
-if test -d /usr/X386/include; then
-  HAVE_XFREE386=yes
-  : ${C_SWITCH_X_SITE="-I/usr/X386/include"}
-else
-  HAVE_XFREE386=no
-fi
-{ echo "$as_me:$LINENO: result: $HAVE_XFREE386" >&5
-echo "${ECHO_T}$HAVE_XFREE386" >&6; }
-
 
 case ${host_os} in
 aix*)
@@ -10828,16 +10748,7 @@ fi
 
 
 HAVE_GTK=no
-if test "${with_gtk}" = "yes" && test "$USE_X_TOOLKIT" = "gtk"; then
-  USE_X_TOOLKIT=none
-fi
-if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "gtk" || \
- test "$USE_X_TOOLKIT" = "maybe"; then
-  if test "$USE_X_TOOLKIT" != "none" && test "$USE_X_TOOLKIT" != "maybe"; then
-    { { echo "$as_me:$LINENO: error: Conflicting options, --with-gtk is incompatible with --with-x-toolkit=${with_x_toolkit}" >&5
-echo "$as_me: error: Conflicting options, --with-gtk is incompatible with --with-x-toolkit=${with_x_toolkit}" >&2;}
-   { (exit 1); exit 1; }; };
-  fi
+if test "${with_gtk}" = "yes" || test "$USE_X_TOOLKIT" = "maybe"; then
   GLIB_REQUIRED=2.6
   GTK_REQUIRED=2.6
   GTK_MODULES="gtk+-2.0 >= $GTK_REQUIRED glib-2.0 >= $GLIB_REQUIRED"
@@ -18637,13 +18548,11 @@ _ACEOF
 cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
@@ -18683,13 +18592,11 @@ cat confdefs.h >>conftest.$ac_ext
 cat >>conftest.$ac_ext <<_ACEOF
 /* end confdefs.h.  */
 #define _LARGEFILE_SOURCE 1
-#include <sys/types.h> /* for off_t */
-     #include <stdio.h>
+#include <stdio.h>
 int
 main ()
 {
-int (*fp) (FILE *, off_t, int) = fseeko;
-     return fseeko (stdin, 0, 0) && fp (stdin, 0, 0);
+return fseeko (stdin, 0, 0) && (fseeko) (stdin, 0, 0);
   ;
   return 0;
 }
@@ -23884,13 +23791,6 @@ if test "${HAVE_X11}" = "yes" ; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_X11 1
-_ACEOF
-
-fi
-if test "${HAVE_XFREE386}" = "yes" ; then
-
-cat >>confdefs.h <<\_ACEOF
-#define HAVE_XFREE386 1
 _ACEOF
 
 fi

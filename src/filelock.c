@@ -130,7 +130,7 @@ static void get_boot_time_1 P_ ((char *, int));
 static time_t
 get_boot_time ()
 {
-#if defined (BOOT_TIME) && ! defined (NO_WTMP_FILE)
+#if defined (BOOT_TIME)
   int counter;
 #endif
 
@@ -166,7 +166,7 @@ get_boot_time ()
 	}
     }
 
-#if defined (BOOT_TIME) && ! defined (NO_WTMP_FILE)
+#if defined (BOOT_TIME)
 #ifndef CANNOT_DUMP
   /* The utmp routines maintain static state.
      Don't touch that state unless we are initialized,

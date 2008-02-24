@@ -1,3 +1,9 @@
+2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove references to obsolete variables and
+	systems.
+	* configure: Regenerate.
+
 2008-02-21  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (set_installuser): New.

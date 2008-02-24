@@ -377,23 +377,6 @@ dnl see the `changequote' comment above.
     esac
   ;;
 
-  ## Alpha (DEC) machines.
-  alpha*-dec-osf* )
-    machine=alpha opsys=osf1
-    # This is needed to find X11R6.1 libraries for certain tests.
-    NON_GCC_LINK_TEST_OPTIONS=-Wl,-rpath,/usr/X11R6/lib
-    GCC_LINK_TEST_OPTIONS=-Wl,-rpath,/usr/X11R6/lib
-    # NON_GNU_CPP is necessary on 5.0 to avoid mangling src/Makefile
-    # due to non-traditional preprocessing with the current compiler
-    # defaults.  OSF 4 can also have that compiler version, and there
-    # seems always to have been a usable /usr/bin/cpp.
-    NON_GNU_CPP=/usr/bin/cpp
-    case "${canonical}" in
-    alpha*-dec-osf[5-9]*)
-      opsys=osf5-0 ;;
-    esac
-  ;;
-
   alpha*-*-linux-gnu* )
     machine=alpha opsys=gnu-linux
   ;;
@@ -439,13 +422,6 @@ dnl see the `changequote' comment above.
   mips-dec-ultrix* )
     machine=pmax opsys=ultrix4-3
   ;;
-  mips-dec-osf* )
-    machine=pmax opsys=osf1
-  ;;
-  mips-dec-mach_bsd4.3* )
-    machine=pmax opsys=mach-bsd4-3
-  ;;
-
   ## HP 9000 series 200 or 300
   m68*-hp-bsd* )
     machine=hp9000s300 opsys=bsd4-3
@@ -570,27 +546,6 @@ dnl see the `changequote' comment above.
   ## This is not necessarily all workstations using the MIPS processor -
   ## Irises are produced by SGI, and DECstations by DEC.
 
-  ## etc/MACHINES lists mips.h and mips4.h as possible machine files,
-  ## and usg5-2-2 and bsd4-3 as possible OS files.  The only guidance
-  ## it gives for choosing between the alternatives seems to be "Use
-  ## -machine=mips4 for RISCOS version 4; use -opsystem=bsd4-3 with
-  ## the BSD world."  I'll assume that these are instructions for
-  ## handling two odd situations, and that every other situation
-  ## should use mips.h and usg5-2-2, they being listed first.
-  mips-mips-usg* )
-    machine=mips4
-    ## Fall through to the general code at the bottom to decide on the OS.
-  ;;
-  mips-mips-riscos4* )
-    machine=mips4 opsys=bsd4-3
-    NON_GNU_CC="cc -systype bsd43"
-    NON_GNU_CPP="cc -systype bsd43 -E"
-  ;;
-  mips-mips-riscos5* )
-    machine=mips4 opsys=riscos5
-    NON_GNU_CC="cc -systype bsd43"
-    NON_GNU_CPP="cc -systype bsd43 -E"
-  ;;
   mips-mips-bsd* )
     machine=mips opsys=bsd4-3
   ;;
@@ -624,20 +579,6 @@ dnl see the `changequote' comment above.
     # AC_HEADER_STD_C fails.   (MIPSPro 7.2.1.2m compilers, Irix 6.5.3m).
     NON_GNU_CPP="/lib/cpp -D_LANGUAGE_C"
     NON_GCC_TEST_OPTIONS="-D_LANGUAGE_C"
-  ;;
-  mips-sgi-irix6* )
-    machine=iris4d opsys=irix6-0
-    # It's not clear whether -D_LANGUAGE_C is necessary as it is for 6.5,
-    # but presumably it does no harm.
-    NON_GNU_CPP="/lib/cpp -D_LANGUAGE_C"
-    # -32 probably isn't necessary in later v.6s -- anyone know which?
-    NON_GCC_TEST_OPTIONS=-32
-  ;;
-  mips-sgi-irix5.[01]* )
-    machine=iris4d opsys=irix5-0
-  ;;
-  mips-sgi-irix5* | mips-sgi-irix* )
-    machine=iris4d opsys=irix5-2
   ;;
 
   ## Suns
@@ -731,7 +672,6 @@ dnl see the `changequote' comment above.
       *-darwin* )               opsys=darwin
                                 CPP="${CC-cc} -E -no-cpp-precomp"
  				;;
-      *-xenix* )		opsys=xenix ;;
       *-linux-gnu* )		opsys=gnu-linux ;;
       *-sysv4.2uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
       *-sysv5uw* )	  	opsys=unixware; NON_GNU_CPP=/lib/cpp ;;
@@ -2808,17 +2748,6 @@ AH_BOTTOM([
 /* Include the os and machine dependent files.  */
 #include config_opsysfile
 #include config_machfile
-
-/* Load in the conversion definitions if this system
-   needs them and the source file being compiled has not
-   said to inhibit this.  There should be no need for you
-   to alter these lines.  */
-
-#ifdef SHORTNAMES
-#ifndef NO_SHORTNAMES
-#include "../shortnames/remap.h"
-#endif /* not NO_SHORTNAMES */
-#endif /* SHORTNAMES */
 
 /* If no remapping takes place, static variables cannot be dumped as
    pure, so don't worry about the `static' keyword. */

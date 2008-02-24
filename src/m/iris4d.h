@@ -121,16 +121,7 @@ Boston, MA 02110-1301, USA.  */
 #define DATA_SEG_BITS	0x10000000
 
 #undef LIBS_MACHINE
-/* -lsun in case using Yellow Pages for passwords.  */
-#if defined(__GNUC__) && defined(_ABIN32)
 #define LIBS_MACHINE
-#else
-#ifndef IRIX6_5
-#define LIBS_MACHINE -lmld
-#else
-#define LIBS_MACHINE
-#endif
-#endif
 #define LIBS_DEBUG
 
 /* Define this if you have a fairly recent system,
@@ -172,21 +163,6 @@ Boston, MA 02110-1301, USA.  */
 #define XSET(var, type, ptr) \
    ((var) = ((int)(type) << VALBITS) + (((unsigned) (ptr) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS))
 #endif /* _LP64 */
-
-#ifndef __GNUC__
-/* Turn off some "helpful" error checks for type mismatches
-   that we can't fix without breaking other machines.  */
-#ifdef IRIX_FORCE_32_BITS
-#ifdef THIS_IS_MAKEFILE
-#ifndef IRIX6_5
-#define C_SWITCH_MACHINE -32
-#else
-#define C_SWITCH_MACHINE -n32
-#endif
-#endif
-#endif
-
-#endif /* not __GNUC__ */
 
 /* arch-tag: fff5e139-9ae0-465d-afec-837c41ea0aa6
    (do not change this comment) */

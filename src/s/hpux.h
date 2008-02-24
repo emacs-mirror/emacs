@@ -115,16 +115,6 @@ Boston, MA 02110-1301, USA.  */
 
 #define CLASH_DETECTION
 
-/* Define SHORTNAMES if the C compiler can distinguish only
-   short names.  It means that the stuff in ../shortnames
-   must be run to convert the long names to short ones.
-
-   Some USG systems support long names.
-   If yours is one, DO NOT change this file!
-   Do #undef SHORTNAMES in the m- file or in config.h.  */
-
-/* #define SHORTNAMES */
-
 /* The file containing the kernel's symbol table is called /hp-ux.  */
 
 #define KERNEL_FILE "/hp-ux"

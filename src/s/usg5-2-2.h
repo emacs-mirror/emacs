@@ -102,12 +102,6 @@ Boston, MA 02110-1301, USA.  */
 
 /* #define CLASH_DETECTION */
 
-/* Define SHORTNAMES if the C compiler can distinguish only
-   short names.  It means that the stuff in ../shortnames
-   must be run to convert the long names to short ones.  */
-
-/* #define SHORTNAMES */
-
 /* The file containing the kernel's symbol table is called /unix.  */
 
 #define KERNEL_FILE "/unix"

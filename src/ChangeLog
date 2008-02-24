@@ -1,3 +1,33 @@
+2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/vms4-0.h:
+	* s/vms4-2.h:
+	* s/vms4-4.h:
+	* s/vms5-5.h: Remove, unused.
+
+	* s/irix5-2.h:
+	* s/irix6-0.h:
+	* s/riscos5.h:
+	* s/mach-bsd4-3.h:
+	* m/mips4.h: Remove files for obsolete systems
+
+	* Makefile.in:
+	* filelock.c:
+	* unexmips.c:
+	* m/hp9000s300.h:
+	* m/iris4d.h:
+	* s/aix3-1.h:
+	* s/hpux.h:
+	* s/msdos.h:
+	* s/usg5-0.h:
+	* s/usg5-2-2.h:
+	* s/usg5-2.h:
+	* s/usg5-3.h: Remove references to obsolete variables.
+
+	* s/irix5-0.h: Remove, move all the contents ...
+	* s/irix6-5.h: ... here.  Simplify.
+	* config.in: Regenerate.
+
 2008-02-24  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c: (x_draw_glyph_string_background): Clear the background

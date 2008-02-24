@@ -78,7 +78,6 @@ C_SWITCH_SYSTEM=
 SHELL=/bin/sh
 
 #define THIS_IS_MAKEFILE
-#define NO_SHORTNAMES
 #define NOT_C_CODE
 #include "config.h"
 

@@ -21,7 +21,6 @@ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
 #ifdef HAVE_CONFIG_H
-#define NO_SHORTNAMES	/* Tell config not to load remap.h */
 #include <config.h>
 #else
 #define MAIL_USE_POP

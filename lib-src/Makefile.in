@@ -141,7 +141,6 @@ MOVE_FLAGS=
 # ========================== start of cpp stuff =======================
 /* From here on, comments must be done in C syntax.  */
 
-#define NO_SHORTNAMES
 #define THIS_IS_MAKEFILE
 #define NOT_C_CODE
 #include "../src/config.h"

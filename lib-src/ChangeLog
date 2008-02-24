@@ -1,3 +1,12 @@
+2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (NO_SHORTNAMES):
+	* emacsclient.c (NO_SHORTNAMES):
+	* fakemail.c (NO_SHORTNAMES):
+	* make-docfile.c (NO_SHORTNAMES):
+	* movemail.c (NO_SHORTNAMES):
+	* pop.c (NO_SHORTNAMES): Remove references to obsolete variable.
+
 2008-02-23  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (MOUSE_SUPPORT): Remove duplicate tooltip.elc.

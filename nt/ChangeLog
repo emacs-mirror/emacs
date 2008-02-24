@@ -1,3 +1,7 @@
+2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* config.nt (SHORTNAMES): Remove reference to obsolete variable.
+
 2008-02-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.bat (checkgcc): Move "del junk.o" to here, and make it

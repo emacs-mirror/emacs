@@ -160,8 +160,6 @@ You lose; /* Emacs for DOS must be compiled with DJGPP */
 
 #if __DJGPP__ < 2
 
-#define NO_MODE_T
-
 /* New chdir () routine.
    DJGPP v2.0 and later doesn't need it because its chdir() does
    set the drive itself. */
