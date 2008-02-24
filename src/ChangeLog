@@ -1,3 +1,8 @@
+2008-02-24  Ulrich Neumerkel  <ulrich@complang.tuwien.ac.at>  (tiny change)
+
+	* xterm.c (x_set_offset): Don't change the gravity if
+	CHANGE_GRAVITY is -1.
+
 2008-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* intervals.h (INT_LISPLIKE): Remove.  It may misfire.
