@@ -1,3 +1,7 @@
+2008-02-24  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (enum_font_cb2): Don't use raster fonts for Unicode.
+
 2008-02-24  Ulrich Neumerkel  <ulrich@complang.tuwien.ac.at>  (tiny change)
 
 	* xterm.c (x_set_offset): Don't change the gravity if
