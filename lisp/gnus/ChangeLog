@@ -1,3 +1,34 @@
+2008-02-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mail-source.el (mail-source-delete-incoming): Change default.
+	Supplement doc string.
+
+	* gnus-util.el (gnus-y-or-n-p, gnus-y-or-n-p): Update comments.
+
+2008-02-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnmail.el (nnmail-message-id-cache-file): Derive from
+	`gnus-home-directory'.
+
+2008-02-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-topic.el (gnus-topic-select-group, gnus-topic-read-group):
+	Document negativ prefix.
+
+	* gnus-group.el (gnus-group-read-group): Document negativ prefix.
+
+2008-02-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* message.el (message-unsent-separator): Add the Exim bounce
+	separator.
+
+2008-02-10  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-epg-sign): Remove skipped signers from the signer
+	list.
+	(mml2015-epg-encrypt): Remove skipped recipients/signers from the
+	recipient/signer list.
+
 2008-02-10  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* mm-util.el (mm-codepage-setup): If cp-supported-codepages isn't
@@ -6,6 +37,12 @@
 2008-02-08  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-art.el (pgg-display-output-buffer): Declare as function.
+
+2008-02-07  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* nnimap.el (nnimap-open-connection): Add "143" and "993" as default
+	ports to the calls to `netrc-machine-user-or-password' in addition to
+	"imap" and "imaps".
 
 2008-02-03  Reiner Steib  <Reiner.Steib@gmx.de>
 

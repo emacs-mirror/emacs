@@ -1722,6 +1722,7 @@ You must have the \"hashcash\" binary installed, see `hashcash-path'."
 	  "^ *--+ +begin message +--+ *$\\|"
 	  "^ *---+ +Original message follows +---+ *$\\|"
 	  "^ *---+ +Undelivered message follows +---+ *$\\|"
+	  "^------ This is a copy of the message, including all the headers. ------ *$\\|"
 	  "^|? *---+ +Message text follows: +---+ *|?$")
   "A regexp that matches the separator before the text of a failed message.")
 

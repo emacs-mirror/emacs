@@ -38,6 +38,8 @@ the new installer issues a warning if other Gnus installations which
 will shadow the latest one are detected.  You can then remove those
 shadows manually or remove them using @code{make
 remove-installed-shadows}.
+
+@item The installation directory name is allowed to have spaces and/or tabs.
 @end itemize
 
 @item New packages and libraries within Gnus
