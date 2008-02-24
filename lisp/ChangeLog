@@ -1,3 +1,10 @@
+2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/compile.el (compilation-start): Specify a face for
+	mode-line-process.
+	(compilation-handle-exit): Specify a face and a tooltip for
+	mode-line-process.
+
 2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* hilit-chg.el: Remove spurious * in defcustom docstrings.

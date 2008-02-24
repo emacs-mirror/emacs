@@ -1248,7 +1248,8 @@ Returns the compilation buffer created."
 		 (start-file-process-shell-command (downcase mode-name)
 						   outbuf command))))
 	  ;; Make the buffer's mode line show process state.
-	  (setq mode-line-process '(":%s"))
+	  (setq mode-line-process 
+		(list (propertize ":%s" 'face 'compilation-warning)))
 	  (set-process-sentinel proc 'compilation-sentinel)
 	  (set-process-filter proc 'compilation-filter)
 	  ;; Use (point-max) here so that output comes in
@@ -1546,7 +1547,15 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
     ;; Prevent that message from being recognized as a compilation error.
     (add-text-properties omax (point)
 			 (append '(compilation-handle-exit t) nil))
-    (setq mode-line-process (format ":%s [%s]" process-status (cdr status)))
+    (setq mode-line-process
+	  (let ((out-string (format ":%s [%s]" process-status (cdr status)))
+		(tooltip (buffer-substring-no-properties (1+ omax) (point))))
+	    (propertize
+	     out-string
+	     'help-echo tooltip
+	     'face
+	     (if (> exit-status 0) 'font-lock-warning-face 'compilation-info))))
+    (message (format "exit status: %s %s" exit-status (> 0 exit-status)))
     ;; Force mode line redisplay soon.
     (force-mode-line-update)
     (if (and opoint (< opoint omax))
