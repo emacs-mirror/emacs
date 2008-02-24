@@ -17,6 +17,7 @@ DOS_NT		Compiling for either the MS-DOS or native MS-Windows port.
 WINDOWSNT	Compiling the native MS-Windows (W32) port.
 __MINGW32__	Compiling the W32 port with the MinGW port of GCC.
 _MSC_VER	Compiling the W32 port with the Microsoft C compiler.
+IRIX6_5         Compiling on Irix-6.5
 
 ** Distinguishing GUIs **
 
@@ -121,8 +122,6 @@ INTEL386
 INTERRUPT_INPUT
 IRIS
 IRIS_4D
-IRIX6_5
-IRIX_FORCE_32_BITS
 KERNEL_FILE
 LDAV_SYMBOL
 LD_SWITCH_MACHINE
