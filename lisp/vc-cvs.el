@@ -298,15 +298,18 @@ COMMENT can be used to provide an initial description of FILES.
 
 `vc-register-switches' and `vc-cvs-register-switches' are passed to
 the CVS command (in that order)."
-  (when (and (not (vc-cvs-responsible-p file))
-	       (vc-cvs-could-register file))
-      ;; Register the directory if needed.
-      (vc-cvs-register (directory-file-name (file-name-directory file))))
-    (apply 'vc-cvs-command nil 0 files
-	   "add"
-	   (and comment (string-match "[^\t\n ]" comment)
-		(concat "-m" comment))
-	   (vc-switches 'CVS 'register)))
+  ;; Register the directories if needed.
+  (let (dirs)
+    (dolist (file files)
+      (and (not (vc-cvs-responsible-p file))
+           (vc-cvs-could-register file)
+           (push (directory-file-name (file-name-directory file)) dirs)))
+    (if dirs (vc-cvs-register dirs)))
+  (apply 'vc-cvs-command nil 0 files
+         "add"
+         (and comment (string-match "[^\t\n ]" comment)
+              (concat "-m" comment))
+         (vc-switches 'CVS 'register)))
 
 (defun vc-cvs-responsible-p (file)
   "Return non-nil if CVS thinks it is responsible for FILE."
