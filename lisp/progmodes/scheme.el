@@ -33,7 +33,7 @@
 ;; for instance, at <URL:http://www.sil.org/sgml/related.html#dsssl>.]
 ;; All these Lisp-ish modes vary basically in details of the language
 ;; syntax they highlight/indent/index, but dsssl-mode uses "^;;;" as
-;; the page-delimiter since ^L isn't normally a legal SGML character.
+;; the page-delimiter since ^L isn't normally a valid SGML character.
 ;;
 ;; For interacting with a Scheme interpreter See also `run-scheme' in
 ;; the `cmuscheme' package and also the implementation-specific

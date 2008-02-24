@@ -1,3 +1,186 @@
+2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.el (dired-mark-prompt): Don't count/display the t element.
+	Reported by Carsten Blaauw <it-media.blaauw@daimler.com>.
+
+2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (eval-when-compile): Don't define
+	add-submenu.
+	(verilog-xemacs-menu): Add :keys for C-M-a, C-M-e and C-M-h.
+	Remove.  Move contents to the only use ...
+	(verilog-menu): ... here.
+	(verilog-statement-menu): Remove.  Move contents to the only use ...
+	(verilog-stmt-menu): ... here.
+	(verilog-mark-defun): Simply call mark-defun for emacs.
+	(occur-pos-list): Declare for byte compiler.
+	(mode-popup-menu): Don't defvar.
+	(verilog-add-statement-menu): Remove.
+	(verilog-mode-hook): Don't add verilog-add-statement-menu.
+	(verilog-mode): Call easy-menu-add and set mode-popup-menu for
+	XEmacs.
+
+2008-02-24  Michael McNamara  <mac@mail.brushroad.com>
+
+	* progmodes/verilog-mode.el (verilog-xemacs-menu): Remove XEmacs
+	conditional.
+	(verilog-font-grouping-keywords-face): Make the begin..end
+	keywords standout more than other verilog keywords.
+        (verilog-type-font-keywords): Move the begin..end out of this list
+	to facilitate making them to (potentially) stand out more.
+	(verilog-backward-token): Fix indent of bare always{_*}?, initial,
+	function & task blocks.
+        (verilog-behavioral-block-beg-re): Fix indent of bare always{_*}?,
+	initial, function & task blocks.
+	(verilog-forward-sexp): Handle the new "disable fork" statement of
+	IEEE-1800 Verilog.
+        (verilog-beg-block-re-ordered): Handle the new "disable fork"
+	statement of IEEE-1800 Verilog.
+        (verilog-calc-1): Handle the new "disable fork" statement of
+	IEEE-1800 Verilog.
+        (verilog-disable-fork-re): Add const to help handle the new
+	"disable fork" statement of IEEE-1800 Verilog.
+	(verilog-declaration-core-re): Add port directions by themselves,
+	with no qualification, as base item of a declaration.
+        (verilog-pretty-declarations): Add new flag to ask it to refrain
+	from printing to the message buffer.
+        (verilog-pretty-expr): Add a QUIET flag to ask it to refrain from
+	printing to the message buffer.  Improve handling of the many
+	types of expression line up.
+        (verilog-just-one-space): Remove printing of an empty message.
+        (verilog-get-lineup-indent): Rework to support the better handling
+	of expression lineup for verilog-pretty-expr.
+        (verilog-auto-wire): Pass the quiet flag to verilog-pretty-expr.
+
+2008-02-24  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-extend-region-for-CPP): Bug fix from
+	yesterday's commit.
+
+2008-02-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-mouse-set-clear-breakpoint): Fall back
+	to mouse-set-point in buffers that aren't associated with files.
+
+	* progmodes/gud.el: Rename menu item to "Show GUD tooltips".
+
+2008-02-24  Alan Mackenzie  <acm@muc.de>
+
+	Set of changes so that "obtrusive" syntactic elements in a
+	C/C++/ObjC preprocessor line (e.g. an unbalanced string quote or
+	unmatched paren) don't interact syntactically with stuff outside
+	the CPP line.
+
+	* progmodes/cc-awk.el (c-awk-beyond-logical-line, c-awk-old-ByLL):
+	Replace c-awk-end-of-logical-line and c-awk-old-EoLL to solve an
+	off-by-one bug.
+	(c-awk-record-region-clear-NL): Replaces c-awk-before-change, with
+	a bit of refactoring.
+	(c-awk-extend-and-syntax-tablify-region): Takes some of the
+	functionality of c-awk-advise-fl-for-awk-region, which has been
+	refactored away.
+
+	* progmodes/cc-defs.el (c-clear-char-property-with-value-function)
+	(c-clear-char-property-with-value): New function and macro which
+	remove text-properties `equal' to a supplied value.
+
+	* progmodes/cc-engine.el: Comment about text properties amended.
+
+	* progmodes/cc-fonts.el (c-cpp-matchers): Make it put regexp
+	parens around "error\\|warning".
+
+	* progmodes/cc-langs.el (c-get-state-before-change-function)
+	(c-before-font-lock-function, c-anchored-cpp-prefix):
+	New language variables.
+	(c-cpp-message-directives): Handle "#warning" in C, C++ and ObjC.
+
+	* progmodes/cc-mode.el (c-basic-common-init): C and ObjC now use
+	syntax-table text properties.
+	(c-common-init): Call language specific before/after-change
+	functions at mode initialisation.
+	(c-new-BEG, c-new-END, c-old-BOM, c-old-EOM): New variables.
+	(c-extend-region-for-CPP, c-neutralize-CPP-line)
+	(c-neutralize-syntax-in-CPP): New functions.
+	(c-before-change, c-after-change): Call the new language specific
+	change functions defined in cc-langs.el.
+	(c-advise-fl-for-region): New macro.
+	(awk-mode): Remove AWK specific stuff which has been refactored
+	into language independent stuff.
+
+2008-02-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdba): Recreate as an alias for gdb.
+	(gdb): (Re)set gdb-flush-pending-output to nil here...
+	(gdb-init-1): ...instead of here (before gdb-prompt).
+
+2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ada-mode.el (ada-font-lock-syntactic-keywords):
+	Recognize ''' just like any other char-constant.
+
+2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-find-root): Remove initial loop because it's not
+	careful enough.  Detect the uid-change all within the main loop.
+
+2008-02-24  Stefan Monnier  <monnier@pastel.home>
+
+	* textmodes/sgml-mode.el (sgml-mode): Fix comment syntax.
+
+2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hilit-chg.el (highlight-save-buffer-state): New macro.
+	(highlight-save-buffer-state, hilit-chg-set-face-on-change)
+	(hilit-chg-clear): Use it to preserve the modified-p flag.
+	(highlight-changes-rotate-faces): Don't mess with the undo-list.
+
+2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-set-defaults): Unset previously set variables
+	when needed.
+
+2008-02-24  ,AF(Bvar Arnfj,Av(Br,Ap(B Bjarmason  <avar@cpan.org>  (tiny change)
+
+	* net/rcirc.el (rcirc-url-regexp): Replace definition by copying
+	from gnus-button-url-regexp.
+
+2008-02-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/compile.el (compilation-next-error): Doc fix.
+	(compilation-find-file): Doc fix.
+
+2008-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* net/net-utils.el (ipconfig-program, ipconfig-program-options):
+	Add obsolete aliases to the old names.
+
+2008-02-24  Richard Stallman  <rms@gnu.org>
+
+	* net/net-utils.el (ifconfig): Rename from ipconfig.
+	(ipconfig): Alias to ifconfig.
+	(ifconfig-program): Rename from ipconfig-program.
+	(ifconfig-program-options): Rename from ipconfig-program-options.
+
+2008-02-24  Michael McNamara  <mac@mail.brushroad.com>
+
+	* progmodes/verilog-mode.el (verilog-declaration-core-re):
+	Add port directions by themselves, with no qualification, as base
+	item of a declaration.
+	(verilog-pretty-declarations): Add new flag that inhibits printing
+	to the message buffer.
+	(verilog-pretty-expr): Add new flag that inhibits printing to the
+	message buffer.  Improve handling of the many types of expression
+	line up.
+	(verilog-just-one-space): Don't print an empty message.
+	(verilog-get-lineup-indent): Rework to support the better handling
+	of expression lineup for verilog-pretty-expr.
+	(verilog-auto-wire): Pass the quiet flag to verilog-pretty-expr.
+	(verilog-mode-version, verilog-mode-release-date): Update.
+
+2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (cancel-change-group): Don't move point.
+
 2008-02-23  Markus Triska  <markus.triska@gmx.at>
 
 	* linum.el (linum-after-config): Update all visible windows.

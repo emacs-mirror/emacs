@@ -2156,14 +2156,13 @@ for menus.  Help text is only available in later versions of Windows.
 When "ClearType" method is selected as the "method to smooth edges of
 screen fonts" (in Display Properties, Appearance tab, under
 "Effects"), there are various problems related to display of
-characters: 2-pixel trace is left behind when moving overlays, bold
-fonts can be hard to read, small portions of some characters could
-appear chopped, etc.  This happens because, under ClearType,
-characters are drawn outside their advertised bounding box.  Emacs 21
-disabled the use of ClearType, whereas Emacs 22 allows it and has some
-code to enlarge the width of the bounding box.  Apparently, this
-display feature needs more changes to get it 100% right.  A workaround
-is to disable ClearType.
+characters:  Bold fonts can be hard to read, small portions of some
+characters could appear chopped, etc.  This happens because, under
+ClearType, characters are drawn outside their advertised bounding box.
+Emacs 21 disabled the use of ClearType, whereas Emacs 22 allows it and
+has some code to enlarge the width of the bounding box.  Apparently,
+this display feature needs more changes to get it 100% right.  A
+workaround is to disable ClearType.
 
 There are problems with display if mouse-tracking is enabled and the
 mouse is moved off a frame, over another frame then back over the first
@@ -2532,28 +2531,6 @@ __MSVCRT__, like so:
 Some versions of mingw32 make on some versions of Windows do not seem
 to detect the shell correctly. Try "make SHELL=cmd.exe", or if that
 fails, try running make from Cygwin bash instead.
-
-*** Building the MS-Windows port with Leim fails in the `leim' directory.
-
-The error message might be something like this:
-
- Converting d:/emacs-21.3/leim/CXTERM-DIC/4Corner.tit to quail-package...
- Invalid ENCODE: value in TIT dictionary
- NMAKE : fatal error U1077: '"../src/obj-spd/i386/emacs.exe"' : return code
-       '0xffffffff'
- Stop.
-
-This can happen if the Leim distribution is unpacked with a program
-which converts the `*.tit' files to DOS-style CR-LF text format.  The
-`*.tit' files in the leim/CXTERM-DIC directory require Unix-style line
-endings to compile properly, because Emacs reads them without any code
-or EOL conversions.
-
-The solution is to make sure the program used to unpack Leim does not
-change the files' line endings behind your back.  The GNU FTP site has
-in the `/gnu/emacs/windows' directory a program called `djtarnt.exe'
-which can be used to unpack `.tar.gz' and `.zip' archives without
-mangling them.
 
 *** Building `ctags' for MS-Windows with the MinGW port of GCC fails.
 

@@ -1785,13 +1785,16 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 	    (cdr-safe (assq major-mode font-lock-removed-keywords-alist))))
       (set (make-local-variable 'font-lock-defaults) defaults)
       ;; Syntactic fontification?
-      (when (nth 1 defaults)
-	(set (make-local-variable 'font-lock-keywords-only) t))
+      (if (nth 1 defaults)
+          (set (make-local-variable 'font-lock-keywords-only) t)
+        (kill-local-variable 'font-lock-keywords-only))
       ;; Case fold during regexp fontification?
-      (when (nth 2 defaults)
-	(set (make-local-variable 'font-lock-keywords-case-fold-search) t))
+      (if (nth 2 defaults)
+          (set (make-local-variable 'font-lock-keywords-case-fold-search) t)
+        (kill-local-variable 'font-lock-keywords-case-fold-search))
       ;; Syntax table for regexp and syntactic fontification?
-      (when (nth 3 defaults)
+      (if (null (nth 3 defaults))
+          (kill-local-variable 'font-lock-syntax-table)
 	(set (make-local-variable 'font-lock-syntax-table)
 	     (copy-syntax-table (syntax-table)))
 	(dolist (selem (nth 3 defaults))
@@ -1802,9 +1805,10 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 			    (mapcar 'identity (car selem))))
 	      (modify-syntax-entry char syntax font-lock-syntax-table)))))
       ;; Syntax function for syntactic fontification?
-      (when (nth 4 defaults)
+      (if (nth 4 defaults)
 	(set (make-local-variable 'font-lock-beginning-of-syntax-function)
-	     (nth 4 defaults)))
+               (nth 4 defaults))
+        (kill-local-variable 'font-lock-beginning-of-syntax-function))
       ;; Variable alist?
       (dolist (x (nthcdr 5 defaults))
 	(set (make-local-variable (car x)) (cdr x)))

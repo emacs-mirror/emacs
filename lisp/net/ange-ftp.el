@@ -297,7 +297,7 @@
 ;; you would type:
 ;;  C-x C-f /anonymous@ymir.claremont.edu:CSV/POLICY/RULES.MEM
 ;;
-;; A legal VMS filename is of the form: FILE.TYPE;##
+;; A valid VMS filename is of the form: FILE.TYPE;##
 ;; where FILE can be up to 39 characters
 ;;       TYPE can be up to 39 characters
 ;;       ## is a version number (an integer between 1 and 32,767)

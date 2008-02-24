@@ -20,6 +20,11 @@
 	* objects.texi (Equality Predicates):
 	Mention equal-including-properties.
 
+2008-02-07  Richard Stallman  <rms@gnu.org>
+
+	* windows.texi (Window Start): Mention the feature of moving
+	window-start to start of line.
+
 2008-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* keymaps.texi (Tool Bar): Document rtl property.

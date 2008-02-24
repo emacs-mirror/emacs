@@ -2550,8 +2550,10 @@ non-empty directories is allowed."
   (if (= 1 count) "" "s"))
 
 (defun dired-mark-prompt (arg files)
-  ;; Return a string for use in a prompt, either the current file
-  ;; name, or the marker and a count of marked files.
+  "Return a string for use in a prompt, either the current file
+name, or the marker and a count of marked files."
+  ;; distinguish-one-marked can cause the first element to be just t.
+  (if (eq (car files) t) (setq files (cdr files)))
   (let ((count (length files)))
     (if (= count 1)
 	(car files)

@@ -302,7 +302,7 @@
 ;; above for an example of how to bind the keys the way you like.
 ;;
 ;; Please note that the keymap is defined the first time this file is
-;; loaded.  Also note that the only legal way to manipulate the
+;; loaded.  Also note that the only valid way to manipulate the
 ;; keymap is to use `define-key'.  Don't change it using `setq' or
 ;; similar!
 

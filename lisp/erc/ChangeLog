@@ -2,6 +2,12 @@
 
 	* erc.el (erc-notice-face): Fix this face for Emacs 21 users.
 
+2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* erc.el (erc-valid-nick-regexp):
+	* erc-button.el (erc-button-syntax-table):
+	* erc-match.el (erc-match-syntax-table): Replace `legal' with `valid'.
+
 2008-02-04  Jeremy Maitin-Shepard  <jbms@cmu.edu>
 
 	* erc.el (erc-cmd-QUERY): Bind the value of `erc-auto-query' to

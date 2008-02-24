@@ -1,3 +1,8 @@
+2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.texi (Setting tags, In-buffer settings):
+	* rcirc.texi (rcirc commands): Replace `legal' with `valid'.
+
 2008-02-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-news.texi: Mention that spaces and tabs are allowed in the

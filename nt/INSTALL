@@ -101,12 +101,17 @@
   dos2unix and unix2dos available from GnuWin32 or dtou and utod from
   the DJGPP project.
 
-  Additionally, the files lisp/international/uni-*.el need Unix line
-  ends due to some embedded ^M characters that are not at the end of
-  the line.  So in the lisp/international directory you should run the
-  following command, or use dos2unix on those files.
+  Additionally, the files lisp/international/uni-*.el and
+  lisp/ldefs-boot.el need Unix line ends due to some embedded ^M
+  characters that are not at the end of the line.  So in the
+  lisp/international directory you should run the following command, or
+  use dos2unix on those files.
 
      cvs update -kb uni-*.el
+
+  and in the lisp directory, use the command:
+
+     cvs update -kb lisp/ldefs-boot.el
 
   In addition to this file, you should also read INSTALL.CVS in the
   parent directory, and make sure that you have a version of
@@ -279,14 +284,19 @@
   compatible (for example, that they were built with the same compiler).
 
   Binaries for the image libraries (among many others) can be found at
-  the GnuWin32 project.  These are built with MinGW, but they can be
-  used with both GCC/MinGW and MSVC builds of Emacs.  See the info on
+  the GnuWin32 project.  PNG, JPEG and TIFF libraries are also
+  included with GTK, which is installed along with other Free Software
+  that requires it.  These are built with MinGW, but they can be used
+  with both GCC/MinGW and MSVC builds of Emacs.  See the info on
   http://ourcomments.org/Emacs/w32-build-emacs.html, under "How to Get
   Images Support", for more details about installing image support
   libraries.  Note specifically that, due to some packaging snafus in
   the GnuWin32-supplied image libraries, you will need to download
   _source_ packages for some of the libraries in order to get the
   header files necessary for building Emacs with image support.
+
+  If GTK 2.0 is installed, addpm will arrange for its image libraries
+  to be on the DLL search path for Emacs.
 
 * Building
 

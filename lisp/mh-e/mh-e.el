@@ -1982,7 +1982,7 @@ you would use \"(mh-set-cmd-note 4)\"."
   :package-version '(MH-E . "7.0"))
 
 (defun mh-scan-format-file-check (symbol value)
-  "Check if desired setting is legal.
+  "Check if desired setting is valid.
 Throw an error if user tries to set `mh-scan-format-file' to
 anything but t when `mh-adaptive-cmd-note-flag' is on. Otherwise,
 set SYMBOL to VALUE."
@@ -2021,7 +2021,7 @@ Emacs start with 0)."
   :package-version '(MH-E . "6.0"))
 
 (defun mh-adaptive-cmd-note-flag-check (symbol value)
-  "Check if desired setting is legal.
+  "Check if desired setting is valid.
 Throw an error if user tries to turn on
 `mh-adaptive-cmd-note-flag' when `mh-scan-format-file' isn't t.
 Otherwise, set SYMBOL to VALUE."

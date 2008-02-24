@@ -1629,9 +1629,13 @@ Just inserts the text, but uses `insert-before-markers'."
 
 (defun compilation-next-error (n &optional different-file pt)
   "Move point to the next error in the compilation buffer.
+This function does NOT find the source line like \\[next-error].
 Prefix arg N says how many error messages to move forwards (or
 backwards, if negative).
-Does NOT find the source line like \\[next-error]."
+Optional arg DIFFERENT-FILE, if non-nil, means find next error for a
+file that is different from the current one.
+Optional arg PT, if non-nil, specifies the value of point to start
+looking for the next message."
   (interactive "p")
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer"))
@@ -1943,13 +1947,17 @@ and overlay is highlighted between MK and END-MK."
 
 (defun compilation-find-file (marker filename directory &rest formats)
   "Find a buffer for file FILENAME.
+If FILENAME is not found at all, ask the user where to find it.
+Pop up the buffer containing MARKER and scroll to MARKER if we ask
+the user where to find the file.
 Search the directories in `compilation-search-path'.
 A nil in `compilation-search-path' means to try the
 \"current\" directory, which is passed in DIRECTORY.
 If DIRECTORY is relative, it is combined with `default-directory'.
 If DIRECTORY is nil, that means use `default-directory'.
-If FILENAME is not found at all, ask the user where to find it.
-Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
+FORMATS, if given, is a list of formats to reformat FILENAME when
+looking for it: for each element FMT in FORMATS, this function
+attempts to find a file whose name is produced by (format FMT FILENAME)."
   (or formats (setq formats '("%s")))
   (let ((dirs compilation-search-path)
         (spec-dir (if directory

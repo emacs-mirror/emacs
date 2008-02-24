@@ -6619,19 +6619,25 @@ of file names regardless of the current language environment.  */);
 
   DEFVAR_BOOL ("insert-default-directory", &insert_default_directory,
 	       doc: /* *Non-nil means when reading a filename start with default dir in minibuffer.
-If the initial minibuffer contents are non-empty, you can usually
-request a default filename by typing RETURN without editing.  For some
-commands, exiting with an empty minibuffer has a special meaning,
-such as making the current buffer visit no file in the case of
-`set-visited-file-name'.
+
+When the initial minibuffer contents show a name of a file or a directory,
+typing RETURN without editing the initial contents is equivalent to typing
+the default file name.
+
 If this variable is non-nil, the minibuffer contents are always
-initially non-empty and typing RETURN without editing will fetch the
+initially non-empty, and typing RETURN without editing will fetch the
 default name, if one is provided.  Note however that this default name
-is not necessarily the name originally inserted in the minibuffer, if
-that is just the default directory.
+is not necessarily the same as initial contents inserted in the minibuffer,
+if the initial contents is just the default directory.
+
 If this variable is nil, the minibuffer often starts out empty.  In
 that case you may have to explicitly fetch the next history element to
-request the default name.  */);
+request the default name; typing RETURN without editing will leave
+the minibuffer empty.
+
+For some commands, exiting with an empty minibuffer has a special meaning,
+such as making the current buffer visit no file in the case of
+`set-visited-file-name'.  */);
   insert_default_directory = 1;
 
   DEFVAR_BOOL ("vms-stmlf-recfm", &vms_stmlf_recfm,

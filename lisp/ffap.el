@@ -426,7 +426,7 @@ Returned values:
   ;; (ffap-machine-p "mathcs" 5678 nil 'ping)
   ;; (ffap-machine-p "foo.bonk" nil nil 'ping)
   ;; (ffap-machine-p "foo.bonk.com" nil nil 'ping)
-  (if (or (string-match "[^-[:alnum:].]" host) ; Illegal chars (?)
+  (if (or (string-match "[^-[:alnum:].]" host) ; Invalid chars (?)
 	  (not (string-match "[^0-9]" host))) ; 1: a number? 2: quick reject
       nil
     (let* ((domain

@@ -68,7 +68,7 @@
 ;; > verb.  This sentence no verb.  This sentence no verb.  This
 ;; > sentence no verb.
 ;;
-;; Unwrapping "You forgot in all your sentences." would be illegal as
+;; Unwrapping "You forgot in all your sentences." would be invalid as
 ;; this part wasn't intended to be cited text.
 ;; `gnus-article-outlook-unwrap-lines' will only unwrap lines if the resulting
 ;; citation line will be of a certain maximum length.  You can control

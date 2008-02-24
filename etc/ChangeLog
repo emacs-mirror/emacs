@@ -31,6 +31,11 @@
 
 	* NEWS: Clarify EasyPG functionalities.
 
+2008-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* tutorials/TUTORIAL.ru: Remove redundant empty lines, insert a
+	magic line instead.
+
 2008-02-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* NEWS: Mention XEmbed and --parent-id.
@@ -41,7 +46,8 @@
 
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
-	* TUTORIAL.ru: Restore copyright years.  Update tutorial.  Fix wording.
+	* tutorials/TUTORIAL.ru: Restore copyright years.  Update
+	tutorial.  Fix wording.
 
 2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -77,7 +83,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* TUTORIAL.es: Add local variable coding: latin-1.
+	* tutorials/TUTORIAL.es: Add local variable coding: latin-1.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 

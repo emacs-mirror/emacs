@@ -6,6 +6,10 @@
 	* README.unicode: Split into admin/notes/unicode,font-backend and
 	remove.
 
+2008-02-10  Matthew Luckie  <mjl@luckie.org.nz>  (tiny change)
+
+	* configure.in (arm*-*-freebsd*): Added.
+
 2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in (LIBX11_MACHINE, HAVE_XFREE386): Remove code
@@ -1394,7 +1398,7 @@
 
 2003-04-28  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* configure.in:  Undo last (RMS') change, as it is useless, per
+	* configure.in: Undo last (RMS') change, as it is useless, per
 	Dave Love.
 
 2003-04-08  Richard M. Stallman  <rms@gnu.org>
@@ -1565,7 +1569,7 @@
 
 2002-10-30  Dave Love  <fx@gnu.org>
 
-	* configure.in:  Require autoconf 2.53.  Test for pty.h,
+	* configure.in: Require autoconf 2.53.  Test for pty.h,
 	sys/mman.h, sys/param.h, mremap, memmove.
 	(AH_BOTTOM): Maybe include strings.h.  Add local variables for mode.
 	(AC_PROG_YACC): Delete.
@@ -3352,7 +3356,7 @@
 
 1997-04-09  Marcus G. Daniels  <marcus@cathcart.sysc.pdx.edu>
 
-	* configure.in (doug_lea_malloc):  First check for SYSTEM_MALLOC,
+	* configure.in (doug_lea_malloc): First check for SYSTEM_MALLOC,
 	in case it is desirable to disable the GNU malloc features with glibc.
 
 1997-04-08  Marcus G. Daniels  <marcus@cathcart.sysc.pdx.edu>

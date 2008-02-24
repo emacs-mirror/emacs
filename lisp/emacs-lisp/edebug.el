@@ -1496,7 +1496,7 @@ expressions; a `progn' form will be returned enclosing these forms."
     (cond
      ((symbolp head)
       (cond
-       ((null head) nil) ; () is legal.
+       ((null head) nil) ; () is valid.
        ((eq head 'interactive-p)
 	;; Special case: replace (interactive-p) with variable
 	(setq edebug-def-interactive 'check-it)
@@ -2076,7 +2076,7 @@ expressions; a `progn' form will be returned enclosing these forms."
    ;; doesn't handle (a . ,b).  The straightforward fix:
    ;;   (backquote-form . [&or nil backquote-form])
    ;; uses up too much stack space.
-   ;; Note that `(foo . ,@bar) is not legal, so we don't need to handle it.
+   ;; Note that `(foo . ,@bar) is not valid, so we don't need to handle it.
    (backquote-form [&rest [&not ","] backquote-form]
 		   . [&or nil backquote-form])
    ;; If you use dotted forms in backquotes, replace the previous line

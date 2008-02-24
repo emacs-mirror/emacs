@@ -465,8 +465,12 @@ Do \\[describe-key] on the following bindings to discover what they do.
          sgml-transformation-function))
   ;; This will allow existing comments within declarations to be
   ;; recognized.
-  (set (make-local-variable 'comment-start-skip) "\\(?:<!\\)?--[ \t]*")
-  (set (make-local-variable 'comment-end-skip) "[ \t]*--\\([ \t\n]*>\\)?")
+  ;; I can't find a clear description of SGML/XML comments, but it seems that
+  ;; the only reliable ones are <!-- ... --> although it's not clear what
+  ;; "..." can contain.  It used to accept -- ... -- as well, but that was
+  ;; apparently a mistake.
+  (set (make-local-variable 'comment-start-skip) "<!--[ \t]*")
+  (set (make-local-variable 'comment-end-skip) "[ \t]*--[ \t\n]*>")
   ;; This definition has an HTML leaning but probably fits well for other modes.
   (setq imenu-generic-expression
 	`((nil

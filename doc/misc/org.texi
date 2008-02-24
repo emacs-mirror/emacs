@@ -3255,7 +3255,7 @@ these lines to activate any changes.
 
 If at least one tag has a selection key, pressing @kbd{C-c C-c} will
 automatically present you with a special interface, listing inherited
-tags, the tags of the current headline, and a list of all legal tags
+tags, the tags of the current headline, and a list of all valid tags
 with corresponding keys@footnote{Keys will automatically be assigned to
 tags which have no configured keys.}.  In this interface, you can use
 the following keys:
@@ -7367,7 +7367,7 @@ constcgs   @r{@file{constants.el} should use the c-g-s unit system}
 constSI    @r{@file{constants.el} should use the SI unit system}
 @end example
 @item #+TAGS:  TAG1(c1) TAG2(c2)
-These lines (several such lines are allowed) specify the legal tags in
+These lines (several such lines are allowed) specify the valid tags in
 this file, and (potentially) the corresponding @emph{fast tag selection}
 keys.  The corresponding variable is @code{org-tag-alist}.
 @item #+TBLFM:

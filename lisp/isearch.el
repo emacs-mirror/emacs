@@ -1486,7 +1486,7 @@ to the barrier."
 	;; removes all bracket-sets and groups that might be in the way, as
 	;; well as partial \{\} constructs that the code below leaves behind.
 	;; Also skip over postfix operators -- though horrid,
-	;; 'ab?\{5,6\}+\{1,2\}*' is perfectly legal.
+	;; 'ab?\{5,6\}+\{1,2\}*' is perfectly valid.
 	(while (and previous
 		    (or (isearch-error-state frame)
 			(let* ((string (isearch-string-state frame))

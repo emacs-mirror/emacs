@@ -14,6 +14,15 @@
 
 	* configure.bat (dontCopy): Do not rename admin/unidata/Makefile.
 
+2008-02-11  Jason Rumney  <jasonr@gnu.org>
+
+	* addpm.c (add_registry): Add an App Paths registry key.
+	Look for GTK and add it to the DLL search path for Emacs if found.
+
+2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: In help, use generic names for the image libraries.
+
 2008-02-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .cvsignore: Don't ignore .arch-inventory.

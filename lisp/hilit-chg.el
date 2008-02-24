@@ -515,12 +515,28 @@ the text properties of type `hilit-chg'."
 	      (delete-overlay ov))))))
     (hilit-chg-display-changes beg end)))
 
+;; Inspired by font-lock.  Something like this should be moved to subr.el.
+(defmacro highlight-save-buffer-state (&rest body)
+  "Bind variables according to VARLIST and eval BODY restoring buffer state."
+  (declare (indent 0) (debug t))
+  (let ((modified (make-symbol "modified")))
+    `(let* ((,modified (buffer-modified-p))
+            (inhibit-modification-hooks t)
+            deactivate-mark
+            ;; So we don't check the file's mtime.
+            buffer-file-name
+            buffer-file-truename)
+       (progn
+         ,@body)
+       (unless ,modified
+         (restore-buffer-modified-p nil)))))
+
 ;;;###autoload
 (defun highlight-changes-remove-highlight (beg end)
   "Remove the change face from the region between BEG and END.
 This allows you to manually remove highlighting from uninteresting changes."
   (interactive "r")
-  (let ((after-change-functions nil))
+  (highlight-save-buffer-state
     (remove-text-properties beg end '(hilit-chg nil))
     (hilit-chg-fixup beg end)))
 
@@ -543,38 +559,39 @@ This allows you to manually remove highlighting from uninteresting changes."
       (if undo-in-progress
 	  (if (eq highlight-changes-mode 'active)
 	      (hilit-chg-fixup beg end))
-	(if (and (= beg end) (> leng-before 0))
-	    ;; deletion
-	    (progn
-	      ;; The eolp and bolp tests are a kludge!  But they prevent
-	      ;; rather nasty looking displays when deleting text at the end
-	      ;; of line, such as normal corrections as one is typing and
-	      ;; immediately makes a correction, and when deleting first
-	      ;; character of a line.
-;;;	      (if (= leng-before 1)
-;;;		  (if (eolp)
-;;;		      (setq beg-decr 0 end-incr 0)
-;;;		    (if (bolp)
-;;;			(setq beg-decr 0))))
-;;;	      (setq beg (max (- beg beg-decr) (point-min)))
-	      (setq end (min (+ end end-incr) (point-max)))
-	      (setq type 'hilit-chg-delete))
-	  ;; Not a deletion.
-	  ;; Most of the time the following is not necessary, but
-	  ;; if the current text was marked as a deletion then
-	  ;; the old overlay is still in effect, so if we add some
-	  ;; text then remove the deletion marking, but set it to
+        (highlight-save-buffer-state
+          (if (and (= beg end) (> leng-before 0))
+              ;; deletion
+              (progn
+                ;; The eolp and bolp tests are a kludge!  But they prevent
+                ;; rather nasty looking displays when deleting text at the end
+                ;; of line, such as normal corrections as one is typing and
+                ;; immediately makes a correction, and when deleting first
+                ;; character of a line.
+                ;; (if (= leng-before 1)
+                ;;     (if (eolp)
+                ;;         (setq beg-decr 0 end-incr 0)
+                ;;       (if (bolp)
+                ;;   	(setq beg-decr 0))))
+                ;; (setq beg (max (- beg beg-decr) (point-min)))
+                (setq end (min (+ end end-incr) (point-max)))
+                (setq type 'hilit-chg-delete))
+            ;; Not a deletion.
+            ;; Most of the time the following is not necessary, but
+            ;; if the current text was marked as a deletion then
+            ;; the old overlay is still in effect, so if we add some
+            ;; text then remove the deletion marking, but set it to
 	  ;; changed otherwise its highlighting disappears.
 	  (if (eq (get-text-property end 'hilit-chg) 'hilit-chg-delete)
 	      (progn
 		(remove-text-properties end (+ end 1) '(hilit-chg nil))
 		(put-text-property end (+ end 1) 'hilit-chg 'hilit-chg)
 		(if (eq highlight-changes-mode 'active)
-		    (hilit-chg-fixup beg (+ end 1))))))
-	(unless no-property-change
-		(put-text-property beg end 'hilit-chg type))
-	(if (or (eq highlight-changes-mode 'active) no-property-change)
-	    (hilit-chg-make-ov type beg end))))))
+                      (hilit-chg-fixup beg (+ end 1))))))
+          (unless no-property-change
+            (put-text-property beg end 'hilit-chg type))
+          (if (or (eq highlight-changes-mode 'active) no-property-change)
+              (hilit-chg-make-ov type beg end)))))))
 
 (defun hilit-chg-set (value)
   "Turn on Highlight Changes mode for this buffer."
@@ -602,12 +619,11 @@ This removes all saved change information."
       (message "Cannot remove highlighting from read-only mode buffer %s"
 	       (buffer-name))
     (remove-hook 'after-change-functions 'hilit-chg-set-face-on-change t)
-    (let ((after-change-functions nil))
+    (highlight-save-buffer-state
       (hilit-chg-hide-changes)
       (hilit-chg-map-changes
-       '(lambda (prop start stop)
-	  (remove-text-properties start stop '(hilit-chg nil))))
-      )
+       (lambda (prop start stop)
+         (remove-text-properties start stop '(hilit-chg nil)))))
     (setq highlight-changes-mode nil)
     (force-mode-line-update)
     ;; If we type:  C-u -1 M-x highlight-changes-mode
@@ -798,11 +814,12 @@ this, eval the following in the buffer to be saved:
       ;; of the current buffer due to the rotation.  We do this by inserting (in
       ;; `buffer-undo-list') entries restoring buffer-modified-p to nil before
       ;; and after the entry for the rotation.
-      (unless modified
-	;; Install the "before" entry.
-	(setq buffer-undo-list
-	      (cons '(apply restore-buffer-modified-p nil)
-		    buffer-undo-list)))
+      ;; FIXME: this is no good: we need to test the `modified' state at the
+      ;; time of the undo, not at the time of the "do", otherwise the undo
+      ;; may erroneously clear the modified flag.  --Stef
+      ;; (unless modified
+      ;;   ;; Install the "before" entry.
+      ;;   (push '(apply restore-buffer-modified-p nil) buffer-undo-list))
       (unwind-protect
 	  (progn
 	    ;; ensure hilit-chg-list is made and up to date
@@ -815,10 +832,8 @@ this, eval the following in the buffer to be saved:
 	    (if (eq highlight-changes-mode 'active)
 		(hilit-chg-display-changes)))
 	(unless modified
-	  ;; Install the "after" entry.
-	  (setq buffer-undo-list
-		(cons '(apply restore-buffer-modified-p nil)
-		      buffer-undo-list))
+	  ;; Install the "after" entry.  FIXME: See above.
+	  ;; (push '(apply restore-buffer-modified-p nil) buffer-undo-list)
 
 	  (restore-buffer-modified-p nil)))))
   ;; This always returns nil so it is safe to use in write-file-functions

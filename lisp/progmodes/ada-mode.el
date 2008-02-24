@@ -5180,12 +5180,9 @@ Return nil if no body was found."
 
 (defconst ada-font-lock-syntactic-keywords
   ;; Mark single quotes as having string quote syntax in 'c' instances.
-  ;; As a special case, ''' will not be highlighted, but if we do not
-  ;; set this special case, then the rest of the buffer is highlighted as
-  ;; a string
-  ;; This sets the properties of the characters, so that ada-in-string-p
-  ;; correctly handles '"' too...
-  '(("[^a-zA-Z0-9)]\\('\\)[^'\n]\\('\\)" (1 (7 . ?')) (2 (7 . ?')))
+  ;; We used to explicitly avoid ''' as a special case for fear the buffer
+  ;; be highlighted as a string, but it seems this fear is unfounded.
+  '(("[^a-zA-Z0-9)]\\('\\)[^\n]\\('\\)" (1 (7 . ?')) (2 (7 . ?')))
     ("^[ \t]*\\(#\\(if\\|else\\|elsif\\|end\\)\\)" (1 (11 . ?\n)))))
 
 (defvar ada-font-lock-keywords

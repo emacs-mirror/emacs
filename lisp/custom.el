@@ -900,7 +900,7 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
                   (memq (get symbol 'custom-autoload) '(nil noset)))
         ;; This symbol needs to be autoloaded, even just for a `set'.
         (custom-load-symbol symbol))))
- 
+
   ;; Move minor modes and variables with explicit requires to the end.
   (setq args
 	(sort args

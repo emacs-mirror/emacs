@@ -1,3 +1,20 @@
+2008-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.h (INT_LISPLIKE): Remove.  It may misfire.
+	(NULL_INTERVAL_P, SET_INTERVAL_PARENT): Don't use it.
+
+2008-02-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fw32_shell_execute): Encode parameters.
+
+2008-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (syms_of_fileio) <insert-default-directory>: Doc fix.
+
+2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unexhp9k800.c (read_header): Replace `legal' with `valid'.
+
 2008-02-24  Ulrich Neumerkel  <ulrich@complang.tuwien.ac.at>  (tiny change)
 
 	* xterm.c (x_set_offset): Don't change the gravity if

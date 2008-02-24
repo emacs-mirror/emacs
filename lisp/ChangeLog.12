@@ -2386,7 +2386,7 @@
 
 2007-01-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.ps: Fix background height.
+	* ps-print.el: Fix background height.
 	(ps-print-version): New version 6.7.2.
 
 2007-01-26  Eli Zaretskii  <eliz@gnu.org>
@@ -6104,7 +6104,7 @@
 	* emulation/viper.el: Bump up version/date of update to reflect the
 	substantial changes done in August 2006.
 
-	* emulation/viper-cmd (viper-next-line-at-bol): Make sure button-at,
+	* emulation/viper-cmd.el (viper-next-line-at-bol): Make sure button-at,
 	push-button are defined.
 
 	* ediff-util.el (ediff-add-to-history): New function.
@@ -18114,7 +18114,7 @@
 
 2005-11-15  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* emulation/viper-utils.el (viper-non-word-characters-reformed-vi):
+	* emulation/viper-util.el (viper-non-word-characters-reformed-vi):
 	Quote `-' in string.
 
 	* emulation/viper.el (viper-emacs-state-mode-list): Ensure that
@@ -20772,7 +20772,7 @@
 
 2005-10-05  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-merge.el (ediff-merge-region-is-non-clash): New defsubst.
+	* ediff-merg.el (ediff-merge-region-is-non-clash): New defsubst.
 	(ediff-merge-region-is-non-clash-to-skip): Previously called
 	ediff-merge-region-is-non-clash.
 
@@ -21424,7 +21424,7 @@
 
 	* emulation/viper-macs.el (ex-map): Better messages.
 
-	* emulation/viper-utils.el (viper-beginning-of-field): New function.
+	* emulation/viper-util.el (viper-beginning-of-field): New function.
 
 	* emulation/viper.el: Replace make-variable-buffer-local with
 	viper-make-variable-buffer-local everywhere, to avoid warnings.
@@ -26999,7 +26999,7 @@
 
 2005-05-29  Richard M. Stallman  <rms@gnu.org>
 
-	* textmoddes/flyspell.el (flyspell-version): Function deleted.
+	* textmodes/flyspell.el (flyspell-version): Function deleted.
 	(flyspell-auto-correct-previous-hook): Doc fix.
 
 	* jit-lock.el (jit-lock-function, jit-lock-after-change):
@@ -30044,7 +30044,7 @@
 
 2005-04-04  Jay Belanger  <belanger@truman.edu>
 
-	* calc.el (calc-language-alist): Add tags to customization type.
+	* calc/calc.el (calc-language-alist): Add tags to customization type.
 
 2005-04-03  Luc Teirlinck  <teirllm@auburn.edu>
 

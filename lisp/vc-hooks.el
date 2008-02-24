@@ -333,12 +333,13 @@ Optional arg INVERT non-nil reverses the sense of the check;
 the root is the last directory for which WITNESS *is* found."
   ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
   ;; witnesses in /home or in /.
-  (while (not (file-directory-p file))
-    (setq file (file-name-directory (directory-file-name file))))
   (setq file (abbreviate-file-name file))
   (let ((root nil)
         (prev-file file)
-        (user (nth 2 (file-attributes file)))
+        ;; `user' is not initialized outside the loop because
+        ;; `file' may not exist, so we may have to walk up part of the
+        ;; hierarchy before we find the "initial UID".
+        (user nil)
         try)
     (while (not (or root
                     (null file)
@@ -347,7 +348,9 @@ the root is the last directory for which WITNESS *is* found."
                     ;; to another user.  This should save us from looking in
                     ;; things like /net and /afs.  This assumes that all the
                     ;; files inside a project belong to the same user.
-                    (not (equal user (nth 2 (file-attributes file))))
+                    (let ((prev-user user))
+                      (setq user (nth 2 (file-attributes file)))
+                      (and prev-user (not (equal user prev-user))))
                     (string-match vc-ignore-dir-regexp file)))
       (setq try (file-exists-p (expand-file-name witness file)))
       (cond ((and invert (not try)) (setq root prev-file))

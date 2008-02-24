@@ -692,7 +692,7 @@ char Errmsg[200];		/* POP errors, at least, can exceed
 				   the original length of 80.  */
 
 /*
- * The full legal syntax for a POP mailbox specification for movemail
+ * The full valid syntax for a POP mailbox specification for movemail
  * is "po:username:hostname".  The ":hostname" is optional; if it is
  * omitted, the MAILHOST environment variable will be consulted.  Note
  * that by the time popmail() is called the "po:" has been stripped
