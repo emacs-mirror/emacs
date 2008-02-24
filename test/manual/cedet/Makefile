@@ -9,7 +9,7 @@
 top=
 ede_FILES=Project.ede Makefile
 
-Lisp_LISP=cedet-integ-test.el cit-cpp.el cit-el.el cit-texi.el cit-load.el
+Lisp_LISP=cedet-integ-test.el cit-cpp.el cit-el.el cit-texi.el cit-load.el cit-srec.el
 EMACS=emacs
 VERSION=1.0
 DISTDIR=$(top)Tests-$(VERSION)
