@@ -55,9 +55,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
 * BUGS
 
-** vc-sccs-diff is broken (see FIXME).
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00121.html
-
 ** Does deleting frames run Lisp code?  If so, can we get rid of that?
 It is a dangerous design.
 http://lists.gnu.org/archive/html/emacs-devel/2007-09/msg01330.html
