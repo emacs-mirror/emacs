@@ -487,7 +487,16 @@ w32font_draw (s, from, to, x, y, with_background)
       DeleteObject (brush);
     }
 
-  ExtTextOutW (s->hdc, x, y, options, NULL, s->char2b + from, to - from, NULL);
+  if (s->padding_p)
+    {
+      int len = to - from, i;
+
+      for (i = 0; i < len; i++)
+	ExtTextOutW (s->hdc, x + i, y, options, NULL,
+		     s->char2b + from + i, len, NULL);
+    }
+  else
+    ExtTextOutW (s->hdc, x, y, options, NULL, s->char2b + from, to - from, NULL);
 
   /* Restore clip region.  */
   if (s->num_clips > 0)
