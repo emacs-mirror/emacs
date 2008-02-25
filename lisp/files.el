@@ -226,12 +226,12 @@ have fast storage with limited space, such as a RAM disk."
   (cond ((and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
 	 (concat "^\\([^A-Z[-`a-z]\\|..+\\)?:\\|" ; colon except after drive
 		 "[+, ;=|<>\"?*]\\|\\[\\|\\]\\|"  ; invalid characters
-		 "[\000-\031]\\|"		  ; control characters
+		 "[\000-\037]\\|"		  ; control characters
 		 "\\(/\\.\\.?[^/]\\)\\|"	  ; leading dots
 		 "\\(/[^/.]+\\.[^/.]*\\.\\)"))	  ; more than a single dot
 	((memq system-type '(ms-dos windows-nt cygwin))
 	 (concat "^\\([^A-Z[-`a-z]\\|..+\\)?:\\|" ; colon except after drive
-		 "[|<>\"?*\000-\031]"))		  ; invalid characters
+		 "[|<>\"?*\000-\037]"))		  ; invalid characters
 	(t "[\000]"))
   "Regexp recognizing file names which aren't allowed by the filesystem.")
 

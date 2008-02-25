@@ -1,3 +1,7 @@
+2008-02-25  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (enum_font_cb2): Don't use raster fonts for Unicode.
+
 2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/vms4-0.h:

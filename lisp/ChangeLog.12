@@ -2595,7 +2595,7 @@
 	* bookmark.el (bookmark-buffer-file-name): Abbreviate the bookmark
 	path.  Rewrite function in `cond' style for readability.
 
-	Suggested by: Stephen Eglen <S.J.Eglen{_AT_}damtp.cam.ac.uk>.
+	Suggested by Stephen Eglen <S.J.Eglen{_AT_}damtp.cam.ac.uk>.
 	(The path shortening, that is, not the rearrangement.)
 
 2007-01-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
