@@ -1,3 +1,7 @@
+2008-02-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (command_loop_1): Revert 2006-10-09 change.
+
 2008-02-25  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_draw): Draw one character at a time when padding.
