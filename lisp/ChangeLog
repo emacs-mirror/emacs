@@ -1,3 +1,16 @@
+2008-02-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-format-entry): Handle error message
+	refering to a missing required field with the OPT prefix.  Make
+	unwindform more robust.
+
+2008-02-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el: Remove support for hideshow minor mode as
+	it duplicates the bibtex support in progmodes/hideshow.el.
+	* progmodes/hideshow.el (hs-special-modes-alist): Allow bibtex
+	entries that do not start at the beginning of a line.
+	
 2008-02-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (shell-quote-wildcard-pattern): Quote ' and " as well.
