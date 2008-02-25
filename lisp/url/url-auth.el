@@ -158,7 +158,7 @@ instead of hostname:portnum."
 	(setq file (cond
 		    (realm realm)
 		    ((string-match "/$" file) file)
-		    (t (url-basepath file)))
+		    (t (url-file-directory file)))
 	      server (format "%s:%d" server port)
 	      byserv (cdr-safe (assoc server url-digest-auth-storage)))
 	(cond
@@ -188,18 +188,18 @@ instead of hostname:portnum."
 			 (string= data (substring file 0 (length data)))))
 		    (setq retval (cdr (car byserv))))
 		(setq byserv (cdr byserv))))
-	  (if overwrite
-	      (if (and (not retval) prompt)
-		  (setq user (read-string (url-auth-user-prompt url realm)
-					  (user-real-login-name))
-			pass (read-passwd "Password: ")
-			retval (setq retval
-				     (cons user
-					   (url-digest-auth-create-key
-					    user pass realm
-					    (or url-request-method "GET")
-					    url)))
-			byserv (assoc server url-digest-auth-storage))
+	  (if (or (and (not retval) prompt) overwrite)
+	      (progn
+		(setq user (read-string (url-auth-user-prompt url realm)
+					(user-real-login-name))
+		      pass (read-passwd "Password: ")
+		      retval (setq retval
+				   (cons user
+					 (url-digest-auth-create-key
+					  user pass realm
+					  (or url-request-method "GET")
+					  url)))
+		      byserv (assoc server url-digest-auth-storage))
 		(setcdr byserv
 			(cons (cons file retval) (cdr byserv))))))
 	 (t (setq retval nil)))
