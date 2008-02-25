@@ -1,3 +1,14 @@
+2008-02-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* progmodes/grep.el (grep-mode-tool-bar-map): New variable.
+	(grep-mode): Use grep-mode-tool-bar-map.
+
+	* progmodes/compile.el (tool-bar): Require tool-bar.
+	(compilation-mode-tool-bar-map): New variable.
+	(compilation-mode): Use compilation-mode-tool-bar-map.
+
+	* term/x-win.el (x-gtk-stock-map): Add cancel.  Remove extensions.
+
 2008-02-25  Glenn Morris  <rgm@gnu.org>
 
 	* vc-sccs.el (vc-sccs-diff): Fix setting of oldvers and newvers.
