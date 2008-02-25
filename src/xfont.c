@@ -775,6 +775,7 @@ xfont_draw (s, from, to, x, y, with_background)
   XFontStruct *xfont = s->face->font;
   int len = to - from;
   GC gc = s->gc;
+  int i;
 
   if (gc != s->face->gc)
     {
@@ -791,7 +792,6 @@ xfont_draw (s, from, to, x, y, with_background)
   if (xfont->min_byte1 == 0 && xfont->max_byte1 == 0)
     {
       char *str;
-      int i;
       USE_SAFE_ALLOCA;
 
       SAFE_ALLOCA (str, char *, len);
@@ -799,11 +799,25 @@ xfont_draw (s, from, to, x, y, with_background)
 	str[i] = XCHAR2B_BYTE2 (s->char2b + from + i);
       BLOCK_INPUT;
       if (with_background > 0)
-	XDrawImageString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
-			  gc, x, y, str, len);
+	{
+	  if (s->padding_p)
+	    for (i = 0; i < len; i++)
+	      XDrawImageString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+				gc, x + i, y, str + i, 1);
+	  else
+	    XDrawImageString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+			      gc, x, y, str, len);
+	}
       else
-	XDrawString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
-		     gc, x, y, str, len);
+	{
+	  if (s->padding_p)
+	    for (i = 0; i < len; i++)
+	      XDrawString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+			   gc, x + i, y, str + i, 1);
+	  else
+	    XDrawString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+			 gc, x, y, str, len);
+	}
       UNBLOCK_INPUT;
       SAFE_FREE ();
       return s->nchars;
@@ -811,11 +825,25 @@ xfont_draw (s, from, to, x, y, with_background)
 
   BLOCK_INPUT;
   if (with_background > 0)
-    XDrawImageString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
-			gc, x, y, s->char2b + from, len);
+    {
+      if (s->padding_p)
+	for (i = 0; i < len; i++)
+	  XDrawImageString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+			      gc, x + i, y, s->char2b + from + i, 1);
+      else
+	XDrawImageString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+			    gc, x, y, s->char2b + from, len);
+    }
   else
-    XDrawString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
-		   gc, x, y, s->char2b + from, len);
+    {
+      if (s->padding_p)
+	for (i = 0; i < len; i++)
+	  XDrawString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+			 gc, x + i, y, s->char2b + from + i, 1);
+      else
+	XDrawString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+		       gc, x, y, s->char2b + from, len);
+    }
   UNBLOCK_INPUT;
 
   return len;
