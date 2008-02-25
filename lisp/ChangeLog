@@ -1,3 +1,23 @@
+2008-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-file-junk-re): New const.
+	(diff-beginning-of-file-and-junk): Use it.
+	(diff-file-kill): Make sure we were really inside a file diff.
+
+	* diff-mode.el: Make it more robust in the presence of empty context
+	lines in unified hunks.
+	(diff-valid-unified-empty-line): New var.
+	(diff-unified->context, diff-sanity-check-hunk): Obey it.
+	(diff-end-of-hunk): Obey it.  New arg `donttrustheader'.
+	(diff-fixup-modifs, diff-post-command-hook): Use this new arg.
+	(diff-hunk-header-re-unified): New const.
+	(diff-font-lock-keywords, diff-hunk-header-re, diff-split-hunk)
+	(diff-fixup-modifs, diff-unified->context, diff-next-complex-hunk)
+	(diff-sanity-check-hunk): Use it.
+
+	* diff-mode.el (diff-beginning-of-file-and-junk): If we're on the
+	Index: line, don't search backward for the previous one.
+
 2008-02-25  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/fontset.el (setup-default-fontset): Add non-OTF
@@ -6,16 +26,15 @@
 	* language/tibetan.el: Register tibetan-composition-function in
 	composition-function-table.
 
-	* language/tibet-util.el (tibetan-composition-function): Adjusted
-	for the new calling way (argument changed).  Try font-shape-text
+	* language/tibet-util.el (tibetan-composition-function):
+	Adjust for the new calling way (argument changed).  Try font-shape-text
 	if possible.
 
 	* language/lao.el: Register lao-composition-function in
 	composition-function-table.
 
-	* language/lao-util.el (lao-composition-function): Adjusted for
-	the new calling way (argument changed).  Try font-shape-text if
-	possible.
+	* language/lao-util.el (lao-composition-function): Adjust for the new
+	calling way (argument changed).  Try font-shape-text if possible.
 
 2008-02-25  Jason Rumney  <jasonr@gnu.org>
 
