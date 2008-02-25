@@ -3,7 +3,7 @@
 	* international/fontset.el (setup-default-fontset): Add non-OTF
 	lao font for lao script.
 
-	* language/tibetan.el: Register tibetan-composition-fucntion in
+	* language/tibetan.el: Register tibetan-composition-function in
 	composition-function-table.
 
 	* language/tibet-util.el (tibetan-composition-function): Adjusted
