@@ -273,7 +273,7 @@ This has effect only if `search-invisible' is set to `open'."
 (defvar hs-special-modes-alist
   '((c-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning)
     (c++-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning)
-    (bibtex-mode ("^@\\S(*\\(\\s(\\)" 1))
+    (bibtex-mode ("@\\S(*\\(\\s(\\)" 1))
     (java-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning))
   "*Alist for initializing the hideshow variables for different modes.
 Each element has the form
