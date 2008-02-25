@@ -522,8 +522,13 @@ xftfont_draw (s, from, to, x, y, with_background)
     code[i] = ((XCHAR2B_BYTE1 (s->char2b + from + i) << 8)
 	       | XCHAR2B_BYTE2 (s->char2b + from + i));
 
-  XftDrawGlyphs (xft_draw, &fg, xftfont_info->xftfont,
-		 x, y, code, len);
+  if (s->padding_p)
+    for (i = 0; i < len; i++)
+      XftDrawGlyphs (xft_draw, &fg, xftfont_info->xftfont,
+		     x + i, y, code + i, 1);
+  else
+    XftDrawGlyphs (xft_draw, &fg, xftfont_info->xftfont,
+		   x, y, code, len);
   UNBLOCK_INPUT;
 
   return len;
