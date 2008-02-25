@@ -360,6 +360,7 @@ ftxfont_draw (s, from, to, x, y, with_background)
   int len = to - from;
   int i;
   GC *gcs;
+  int xadvance;
 
   n[0] = n[1] = n[2] = n[3] = n[4] = n[5] = n[6] = 0;
 
@@ -392,8 +393,11 @@ ftxfont_draw (s, from, to, x, y, with_background)
 			      s->clip, s->num_clips, Unsorted);
 
       for (i = 0; i < len; i++)
-	x += ftxfont_draw_bitmap (f, s->gc, gcs, font, code[i], x, y,
-				  p, 0x100, n, i + 1 == len);
+	{
+	  xadvance = ftxfont_draw_bitmap (f, s->gc, gcs, font, code[i], x, y,
+					  p, 0x100, n, i + 1 == len);
+	  x += (s->padding_p ? 1 : xadvance);
+	}
       if (s->num_clips)
 	for (i = 0; i < 6; i++)
 	  XSetClipMask (FRAME_X_DISPLAY (f), gcs[i], None);
@@ -403,8 +407,11 @@ ftxfont_draw (s, from, to, x, y, with_background)
       /* We can't draw with antialiasing.
 	 s->gc should already have a proper clipping setting. */
       for (i = 0; i < len; i++)
-	x += ftxfont_draw_bitmap (f, s->gc, NULL, font, code[i], x, y,
-				  p, 0x700, n, i + 1 == len);
+	{
+	  xadvance = ftxfont_draw_bitmap (f, s->gc, NULL, font, code[i], x, y,
+					  p, 0x700, n, i + 1 == len);
+	  x += (s->padding_p ? 1 : xadvance);
+	}
     }
 
   UNBLOCK_INPUT;
