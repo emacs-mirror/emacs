@@ -20925,6 +20925,10 @@ x_produce_glyphs (it)
 	      if (pcm && (pcm->lbearing < 0 || pcm->rbearing > pcm->width))
 		it->glyph_row->contains_overlapping_glyphs_p = 1;
 	    }
+	  if (! stretched_p && it->pixel_width == 0)
+	    /* We assure that all visible glyphs have at least 1-pixel
+	       width.  */
+	    it->pixel_width = 1;
 	}
       else if (it->char_to_display == '\n')
 	{
@@ -21109,6 +21113,10 @@ x_produce_glyphs (it)
 
 	  if (it->glyph_row)
 	    append_glyph (it);
+	  if (it->pixel_width == 0)
+	    /* We assure that all visible glyphs have at least 1-pixel
+	       width.  */
+	    it->pixel_width = 1;
 	}
       it->multibyte_p = saved_multibyte_p;
     }
