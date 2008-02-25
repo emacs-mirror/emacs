@@ -53,6 +53,14 @@ like that, customize the value of the new option `find-name-arg'.
 than the window, the usual keys for moving the cursor cause the image
 to be scrolled horizontally or vertically instead.
 
+** Emacs can use stock icons in the tool bar when compiled with Gtk+.
+However, this feature is disabled by default.  To enable it, put
+
+  (setq icon-map-list '(x-gtk-stock-map))
+
+in your .emacs or some other startup file.  For more information, see
+the documentation for the two variables icon-map-list and x-gtk-stock-map.
+
 ** Scrollbars follow the system theme on Windows XP and later.
 Windows XP introduced themed scrollbars, but applications have to take
 special steps to use them. Emacs now has the appropriate resources linked
