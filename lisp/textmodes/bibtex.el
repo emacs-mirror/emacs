@@ -124,7 +124,7 @@ last-comma          Add or delete comma on end of last field in entry,
                       according to value of `bibtex-comma-after-last-field'.
 delimiters          Change delimiters according to variables
                       `bibtex-field-delimiters' and `bibtex-entry-delimiters'.
-unify-case          Change case of entry and field names.
+unify-case          Change case of entry types and field names.
 braces              Enclose parts of field entries by braces according to
                       `bibtex-field-braces-alist'.
 strings             Replace parts of field entries by string constants
@@ -185,7 +185,7 @@ crossref     All entries are sorted alphabetically unless an entry has a
              crossref field.  These crossrefed entries are placed in
              alphabetical order immediately preceding the main entry.
 entry-class  The entries are divided into classes according to their
-             entry name, see `bibtex-sort-entry-class'.  Within each class
+             entry type, see `bibtex-sort-entry-class'.  Within each class
              the entries are sorted alphabetically.
 See also `bibtex-sort-ignore-string-entries'."
   :group 'bibtex
@@ -201,15 +201,15 @@ See also `bibtex-sort-ignore-string-entries'."
   '(("String")
     (catch-all)
     ("Book" "Proceedings"))
-  "List of classes of BibTeX entry names, used for sorting entries.
+  "List of classes of BibTeX entry types, used for sorting entries.
 If value of `bibtex-maintain-sorted-entries' is `entry-class'
 entries are ordered according to the classes they belong to.  Each
-class contains a list of entry names.  An entry `catch-all' applies
+class contains a list of entry types.  An entry `catch-all' applies
 to all entries not explicitly mentioned."
   :group 'BibTeX
   :type '(repeat (choice :tag "Class"
                          (const :tag "catch-all" (catch-all))
-                         (repeat :tag "Entry name" string))))
+                         (repeat :tag "Entry type" string))))
 (put 'bibtex-sort-entry-class 'safe-local-variable
      (lambda (x) (let ((OK t))
               (while (consp x)
@@ -464,8 +464,8 @@ If parsing fails, try to set this variable to nil."
 
   "List of BibTeX entry types and their associated fields.
 List elements are triples
-\(ENTRY-NAME (REQUIRED OPTIONAL) (CROSSREF-REQUIRED CROSSREF-OPTIONAL)).
-ENTRY-NAME is the name of a BibTeX entry.  The remaining pairs contain
+\(ENTRY-TYPE (REQUIRED OPTIONAL) (CROSSREF-REQUIRED CROSSREF-OPTIONAL)).
+ENTRY-TYPE is the type of a BibTeX entry.  The remaining pairs contain
 the required and optional fields of the BibTeX entry.
 The second pair is used if a crossref field is present
 and the first pair is used if a crossref field is absent.
@@ -481,7 +481,7 @@ of the field, and ALTERNATIVE-FLAG (either nil or t) marks if the
 field is an alternative.  ALTERNATIVE-FLAG may be t only in the
 REQUIRED or CROSSREF-REQUIRED lists."
   :group 'bibtex
-  :type '(repeat (group (string :tag "Entry name")
+  :type '(repeat (group (string :tag "Entry type")
                         (group (repeat :tag "Required fields"
                                        (group (string :tag "Field")
                                               (string :tag "Comment")
@@ -1209,7 +1209,7 @@ The CDRs of the elements are t for header keys and nil for crossref keys.")
 (defvar bibtex-entry-type
   (concat "@[ \t]*\\(?:"
           (regexp-opt (mapcar 'car bibtex-entry-field-alist)) "\\)")
-  "Regexp matching the name of a BibTeX entry.")
+  "Regexp matching the type of a BibTeX entry.")
 
 (defvar bibtex-entry-head
   (concat "^[ \t]*\\("
@@ -1906,7 +1906,7 @@ Formats current entry according to variable `bibtex-entry-format'."
                                                 beg-type end-type)
                                                bibtex-entry-field-alist t)))
 
-                ;; unify case of entry name
+                ;; unify case of entry type
                 (when (memq 'unify-case format)
                   (delete-region beg-type end-type)
                   (insert (car entry-list)))
@@ -2102,6 +2102,11 @@ Formats current entry according to variable `bibtex-entry-format'."
                              (if (member-ignore-case (car fname) field-list)
                                  (setq found (1+ found))))
                             ((not (member-ignore-case (car fname) field-list))
+                             ;; If we use the crossref field, a required field
+                             ;; can have the OPT prefix.  So if it was empty,
+                             ;; we have deleted by now.  Nonetheless we can
+                             ;; move point on this empty field.
+                             (setq error-field-name (car fname))
                              (error "Mandatory field `%s' is missing" (car fname)))))
                     (if alt-list
                         (cond ((= found 0)
@@ -2136,12 +2141,18 @@ Formats current entry according to variable `bibtex-entry-format'."
               (if (memq 'realign format)
                   (bibtex-fill-entry)))))
 
-      ;; Unwindform: move to location where error occured if possible
-      (when error-field-name
-        (bibtex-beginning-of-entry)
-        (goto-char (bibtex-start-of-text-in-field
-                    (bibtex-search-forward-field error-field-name)))
-        (bibtex-find-text)))))
+      ;; Unwindform: move point to location where error occured if possible
+      (if error-field-name
+          (let (bounds)
+            (when (save-excursion
+                    (bibtex-beginning-of-entry)
+                    (setq bounds
+                          (bibtex-search-forward-field
+                           ;; If we use the crossref field, a required field
+                           ;; can have the OPT prefix
+                           (concat "\\(OPT\\|ALT\\)?" error-field-name) t)))
+              (goto-char (bibtex-start-of-text-in-field bounds))
+              (bibtex-find-text)))))))
 
 (defun bibtex-field-re-init (regexp-alist type)
   "Calculate optimized value for bibtex-regexp-TYPE-opt.
@@ -3376,23 +3387,23 @@ If mark is active count entries in region, if not in whole buffer."
 
 (defun bibtex-entry-index ()
   "Return index of BibTeX entry head at or past position of point.
-The index is a list (KEY CROSSREF-KEY ENTRY-NAME) that is used for sorting
+The index is a list (KEY CROSSREF-KEY ENTRY-TYPE) that is used for sorting
 the entries of the BibTeX buffer.  CROSSREF-KEY is nil unless the value
 of `bibtex-maintain-sorted-entries' is `crossref'.  Move point to the end
 of the head of the entry found.  Return nil if no entry found."
   (let ((case-fold-search t))
     (if (re-search-forward bibtex-entry-maybe-empty-head nil t)
         (let ((key (bibtex-key-in-head))
-              ;; all entry names should be downcase (for ease of comparison)
-              (entry-name (downcase (bibtex-type-in-head))))
+              ;; all entry types should be downcase (for ease of comparison)
+              (entry-type (downcase (bibtex-type-in-head))))
           ;; Don't search CROSSREF-KEY if we don't need it.
           (if (eq bibtex-maintain-sorted-entries 'crossref)
               (let ((bounds (bibtex-search-forward-field
                              "\\(OPT\\)?crossref" t)))
                 (list key
                       (if bounds (bibtex-text-in-field-bounds bounds t))
-                      entry-name))
-            (list key nil entry-name))))))
+                      entry-type))
+            (list key nil entry-type))))))
 
 (defun bibtex-init-sort-entry-class-alist ()
   "Initialize `bibtex-sort-entry-class-alist' (buffer-local)."
@@ -3402,13 +3413,13 @@ of the head of the entry found.  Return nil if no entry found."
            (dolist (class bibtex-sort-entry-class alist)
              (setq i (1+ i))
              (dolist (entry class)
-               ;; All entry names should be downcase (for ease of comparison).
+               ;; All entry types should be downcase (for ease of comparison).
                (push (cons (if (stringp entry) (downcase entry) entry) i)
                      alist)))))))
 
 (defun bibtex-lessp (index1 index2)
   "Predicate for sorting BibTeX entries with indices INDEX1 and INDEX2.
-Each index is a list (KEY CROSSREF-KEY ENTRY-NAME).
+Each index is a list (KEY CROSSREF-KEY ENTRY-TYPE).
 The predicate depends on the variable `bibtex-maintain-sorted-entries'.
 If its value is nil use plain sorting."
   (cond ((not index1) (not index2)) ; indices can be nil
@@ -3591,7 +3602,7 @@ mode is not `bibtex-mode', START is nil, and DISPLAY is t."
 
 (defun bibtex-prepare-new-entry (index)
   "Prepare a new BibTeX entry with index INDEX.
-INDEX is a list (KEY CROSSREF-KEY ENTRY-NAME).
+INDEX is a list (KEY CROSSREF-KEY ENTRY-TYPE).
 Move point where the entry KEY should be placed.
 If `bibtex-maintain-sorted-entries' is non-nil, perform a binary
 search to look for place for KEY.  This requires that buffer is sorted,
@@ -3913,8 +3924,8 @@ interactive calls."
 
 (defun bibtex-find-text-internal (&optional noerror subfield comma)
   "Find text part of current BibTeX field or entry head.
-Return list (NAME START-TEXT END-TEXT END STRING-CONST) with field
-or entry name, start and end of text, and end of field or entry head.
+Return list (NAME START-TEXT END-TEXT END STRING-CONST) with field name
+or entry type, start and end of text, and end of field or entry head.
 STRING-CONST is a flag which is non-nil if current subfield delimited by #
 is a BibTeX string constant.  Return value is nil if field or entry head
 are not found.
