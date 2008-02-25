@@ -1,8 +1,25 @@
+2008-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-conversion-buffer): Give it an internal name.
+	Demote it to plain defvar.
+	(doc-view-conversion-refresh-interval): Reduce interval.
+	(doc-view-goto-page): Allow moving to pages not yet rendered.
+	(doc-view-goto-page): Construct a file name rather than extracting it
+	from doc-view-current-files.
+	(doc-view-kill-proc): Ignore errors from kill-process.
+	(doc-view-pdf/ps->png-sentinel): Die gracefully if the buffer is dead.
+	(doc-view-insert-image): Use appropriate text if the page hasn't been
+	rendered yet.  Adjust scrolling so the text is displayed.
+	(doc-view-display): Detect not just that a page is available, but also
+	that it wasn't available before, so as to avoid refreshing all pages
+	repeatedly.
+	(doc-view-mode): Make doc-view-cache-directory if needed.
+
 2008-02-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-format-entry): Handle error message
-	refering to a missing required field with the OPT prefix.  Make
-	unwindform more robust.
+	refering to a missing required field with the OPT prefix.
+	Make unwindform more robust.
 
 2008-02-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
@@ -10,7 +27,7 @@
 	it duplicates the bibtex support in progmodes/hideshow.el.
 	* progmodes/hideshow.el (hs-special-modes-alist): Allow bibtex
 	entries that do not start at the beginning of a line.
-	
+
 2008-02-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.el (shell-quote-wildcard-pattern): Quote ' and " as well.

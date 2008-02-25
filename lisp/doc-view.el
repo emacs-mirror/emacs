@@ -99,10 +99,8 @@
 
 ;;; Todo:
 
-;; - fix behavior with clone-indirect-buffer
-;; - allow different windows showing the same buffer to change pages
-;;   independently.
-;; - share more code with image-mode again.
+;; - add print command.
+;; - share more code with image-mode.
 ;; - better menu.
 ;; - Bind slicing to a drag event.
 ;; - doc-view-fit-doc-to-window and doc-view-fit-window-to-doc.
@@ -198,12 +196,10 @@ Needed for searching."
   :type 'directory
   :group 'doc-view)
 
-(defcustom doc-view-conversion-buffer "*doc-view conversion output*"
-  "The buffer where messages from the converter programs go to."
-  :type 'string
-  :group 'doc-view)
+(defvar doc-view-conversion-buffer " *doc-view conversion output*"
+  "The buffer where messages from the converter programs go to.")
 
-(defcustom doc-view-conversion-refresh-interval 3
+(defcustom doc-view-conversion-refresh-interval 1
   "Interval in seconds between refreshes of the DocView buffer while converting.
 After such a refresh newly converted pages will be available for
 viewing.  If set to nil there won't be any refreshes and the
@@ -334,7 +330,10 @@ the (uncompressed, extracted) file residing in
   (let ((len (length doc-view-current-files)))
     (if (< page 1)
 	(setq page 1)
-      (when (> page len)
+      (when (and (> page len)
+                 ;; As long as the converter is running, we don't know
+                 ;; how many pages will be available.
+                 (null doc-view-current-converter-process))
 	(setq page len)))
     (setf (doc-view-current-page) page
 	  (doc-view-current-info)
@@ -355,7 +354,11 @@ the (uncompressed, extracted) file residing in
 			 (setq contexts (concat contexts "  - \"" m "\"\n")))
 		       contexts)))))
     ;; Update the buffer
-    (doc-view-insert-image (nth (1- page) doc-view-current-files)
+    ;; We used to find the file name from doc-view-current-files but
+    ;; that's not right if the pages are not generated sequentially
+    ;; or if the page isn't in doc-view-current-files yet.
+    (doc-view-insert-image (expand-file-name (format "page-%d.png" page)
+                                             (doc-view-current-cache-dir))
                            :pointer 'arrow)
     (overlay-put (doc-view-current-overlay)
                  'help-echo (doc-view-current-info))))
@@ -404,7 +407,8 @@ the (uncompressed, extracted) file residing in
   "Kill the current converter process."
   (interactive)
   (when doc-view-current-converter-process
-    (kill-process doc-view-current-converter-process)
+    (ignore-errors ;; Maybe it's dead already?
+      (kill-process doc-view-current-converter-process))
     (setq doc-view-current-converter-process nil))
   (when doc-view-current-timer
     (cancel-timer doc-view-current-timer)
@@ -542,14 +546,16 @@ Should be invoked when the cached images aren't up-to-date."
   "If PDF/PS->PNG conversion was successful, update the display."
   (if (not (string-match "finished" event))
       (message "DocView: converter process changed status to %s." event)
-    (with-current-buffer (process-get proc 'buffer)
-      (setq doc-view-current-converter-process nil
-            mode-line-process nil)
-      (when doc-view-current-timer
-        (cancel-timer doc-view-current-timer)
-        (setq doc-view-current-timer nil))
-      ;; Yippie, finished.  Update the display!
-      (doc-view-display (current-buffer) 'force))))
+    ;; FIXME: kill the process if we kill the buffer?
+    (when (buffer-live-p (process-get proc 'buffer))
+      (with-current-buffer (process-get proc 'buffer)
+        (setq doc-view-current-converter-process nil
+              mode-line-process nil)
+        (when doc-view-current-timer
+          (cancel-timer doc-view-current-timer)
+          (setq doc-view-current-timer nil))
+        ;; Yippie, finished.  Update the display!
+        (doc-view-display (current-buffer) 'force)))))
 
 (defun doc-view-pdf/ps->png (pdf-ps png)
   "Convert PDF-PS to PNG asynchronously."
@@ -705,21 +711,38 @@ ARGS is a list of image descriptors."
     (clear-image-cache)
     (setq doc-view-pending-cache-flush nil))
   (let ((ol (doc-view-current-overlay))
-        (image (if file (apply 'create-image file 'png nil args)))
+        (image (if (and file (file-readable-p file))
+                   (apply 'create-image file 'png nil args)))
         (slice (doc-view-current-slice)))
     (setf (doc-view-current-image) image)
-    (move-overlay ol (point-min) (point-max)) ;Probably redundant.
+    (move-overlay ol (point-min) (point-max))
     (overlay-put ol 'display
-                 (if (null image)
-                     ;; We're trying to display a page that doesn't exist.
-                     ;; Typically happens if the conversion process somehow
-                     ;; failed.  Better not signal an error here because it
-                     ;; could prevent a subsequent reconversion from fixing
-                     ;; the problem.
-                     "Cannot display this page!  Probably a conversion failure!"
+                 (cond
+                  (image
                    (if slice
                        (list (cons 'slice slice) image)
-                     image)))))
+                     image))
+                  ;; We're trying to display a page that doesn't exist.
+                  (doc-view-current-converter-process
+                   ;; Maybe the page doesn't exist *yet*.
+                   "Cannot display this page (yet)!")
+                  (t
+                   ;; Typically happens if the conversion process somehow
+                   ;; failed.  Better not signal an error here because it
+                   ;; could prevent a subsequent reconversion from fixing
+                   ;; the problem.
+                   (concat "Cannot display this page!\n"
+                           "Maybe because of a conversion failure!"))))
+    (let ((win (overlay-get ol 'window)))
+      (if (stringp (overlay-get ol 'display))
+          (progn            ;Make sure the text is not scrolled out of view.
+            (set-window-hscroll win 0)
+            (set-window-vscroll win 0))
+        (let ((hscroll (image-mode-window-get 'hscroll win))
+              (vscroll (image-mode-window-get 'vscroll win)))
+          ;; Reset scroll settings, in case they were changed.
+          (if hscroll (set-window-hscroll win hscroll))
+          (if vscroll (set-window-vscroll win vscroll)))))))
 
 (defun doc-view-sort (a b)
   "Return non-nil if A should be sorted before B.
@@ -733,14 +756,21 @@ Predicate for sorting `doc-view-current-files'."
 If FORCE is non-nil, start viewing even if the document does not
 have the page we want to view."
   (with-current-buffer buffer
-    (setq doc-view-current-files
-          (sort (directory-files (doc-view-current-cache-dir) t
-                                 "page-[0-9]+\\.png" t)
-                'doc-view-sort))
-    (let ((page (doc-view-current-page)))
-      (when (or force
-                (>= (length doc-view-current-files) (or page 1)))
-        (doc-view-goto-page page)))))
+    (let ((prev-pages doc-view-current-files))
+      (setq doc-view-current-files
+            (sort (directory-files (doc-view-current-cache-dir) t
+                                   "page-[0-9]+\\.png" t)
+                  'doc-view-sort))
+      (dolist (win (get-buffer-window-list buffer nil t))
+        (let* ((page (doc-view-current-page win))
+               (pagefile (expand-file-name (format "page-%d.png" page)
+                                             (doc-view-current-cache-dir))))
+          (when (or force
+                    (and (not (member pagefile prev-pages))
+                         (member pagefile doc-view-current-files)))
+            (with-selected-window win
+              (assert (eq (current-buffer) buffer))
+              (doc-view-goto-page page))))))))
 
 (defun doc-view-buffer-message ()
   ;; Only show this message initially, not when refreshing the buffer (in which
@@ -968,6 +998,7 @@ toggle between displaying the document or editing it as text.
     (kill-all-local-variables)
     (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
 
+  (doc-view-make-safe-dir doc-view-cache-directory)
   ;; Handle compressed files, remote files, files inside archives
   (set (make-local-variable 'doc-view-buffer-file-name)
        (cond
