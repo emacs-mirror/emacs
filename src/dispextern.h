@@ -351,13 +351,16 @@ struct glyph
      glyphs above or below it.  */
   unsigned overlaps_vertically_p : 1;
 
-  /* 1 means glyph is a padding glyph.  Padding glyphs are used for
-     characters whose visual shape consists of more than one glyph
-     (e.g. Asian characters).  All but the first glyph of such a glyph
-     sequence have the padding_p flag set.  Only used for terminal
-     frames, and there only to minimize code changes.  A better way
-     would probably be to use the width field of glyphs to express
-     padding. */
+  /* For terminal frames, 1 means glyph is a padding glyph.  Padding
+     glyphs are used for characters whose visual shape consists of
+     more than one glyph (e.g. Asian characters).  All but the first
+     glyph of such a glyph sequence have the padding_p flag set.  This
+     flag is used only to minimize code changes.  A better way would
+     probably be to use the width field of glyphs to express padding.
+
+     For graphic frames, 1 means the pixel width of the glyph in a
+     font is 0, but 1-pixel is padded on displaying for correct cursor
+     displaying.  The member `pixel_width' above is set to 1.  */
   unsigned padding_p : 1;
 
   /* 1 means the actual glyph is not available, draw a box instead.
@@ -1196,6 +1199,11 @@ struct glyph_string
      draw overlaps with the preceding and the succeeding rows,
      respectively.  */
   unsigned for_overlaps : 3;
+
+  /* 1 means that all glyphs in this glyph string has the flag
+     padding_p set, and thus must be drawn one by one to have 1-pixel
+     width even though the logical width in the font is zero.  */
+  unsigned padding_p : 1;
 
   /* The GC to use for drawing this glyph string.  */
 #if defined(HAVE_X_WINDOWS) || defined(MAC_OS)
