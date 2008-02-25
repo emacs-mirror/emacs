@@ -607,7 +607,7 @@ This also matches some punctuation characters which need conversion.")
 
 ;; For automatic composition.
 (set-char-table-range composition-function-table '(#xF00 . #xFD1)
-		      '(("[\xF00-\xFD1]+" . font-shape-text)))
+		      '(("[\xF00-\xFD1]+" . tibetan-composition-function)))
 
 (provide 'tibetan)
 
