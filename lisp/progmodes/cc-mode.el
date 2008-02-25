@@ -845,13 +845,11 @@ Note that the style variables are always made local to the buffer."
     (if (setq limits (c-literal-limits))
 	(goto-char (cdr limits)))
 
-    (while (and (< (point) end)
-		(search-forward-regexp c-anchored-cpp-prefix end t))
+    (while (search-forward-regexp c-anchored-cpp-prefix end t)
       (when (c-beginning-of-macro)    ; Guard against being in a string/comment.
 	(setq mbeg (point))
 	(c-end-of-macro)	  ; Do we need to go forward 1 char here?  No!
-	(c-neutralize-CPP-line mbeg (point)))
-      (forward-char))))		; We might still be in a comment - this is OK.
+	(c-neutralize-CPP-line mbeg (point)))))) ; We might still be in a comment - this is OK.
 
 (defun c-before-change (beg end)
   ;; Function to be put on `before-change-function'.  Primarily, this calls
