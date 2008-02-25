@@ -1,3 +1,11 @@
+2008-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fdelete_window, Fadjust_window_trailing_edge):
+	Handle a nil arg.  Use run_window_configuration_change_hook.
+	(delete_window, adjust_window_trailing_edge): Don't handle nil any more.
+	(Fenlarge_window, Fshrink_window, Fset_window_configuration):
+	Use run_window_configuration_change_hook.
+
 2008-02-25  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* xdisp.c (fill_glyph_string): Pay attention to glyph->padding_p.
@@ -14,8 +22,7 @@
 
 	* xftfont.c (xftfont_draw): Pay attention to s->padding_p.
 
-	* font.c: If the font driver doesn't have `shape' function, return
-	Qnil.
+	* font.c: If the font driver doesn't have `shape' function, return Qnil.
 
 2008-02-25  Jason Rumney  <jasonr@gnu.org>
 
