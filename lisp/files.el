@@ -4869,7 +4869,7 @@ and `list-directory-verbose-switches'."
 
 PATTERN is assumed to represent a file-name wildcard suitable for the
 underlying filesystem.  For Unix and GNU/Linux, the characters from the
-set [ \\t\\n;<>&|()#$] are quoted with a backslash; for DOS/Windows, all
+set [ \\t\\n;<>&|()'\"#$] are quoted with a backslash; for DOS/Windows, all
 the parts of the pattern which don't include wildcard characters are
 quoted with double quotes.
 Existing quote characters in PATTERN are left alone, so you can pass
@@ -4901,7 +4901,7 @@ PATTERN that already quotes some of the special characters."
 	  (concat result (substring pattern beg) "\""))))
      (t
       (let ((beg 0))
-	(while (string-match "[ \t\n;<>&|()#$]" pattern beg)
+	(while (string-match "[ \t\n;<>&|()'\"#$]" pattern beg)
 	  (setq pattern
 		(concat (substring pattern 0 (match-beginning 0))
 			"\\"
