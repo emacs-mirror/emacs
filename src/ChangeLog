@@ -1,3 +1,8 @@
+2008-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Fbuffer_swap_text): New function.
+	(syms_of_buffer): Defsubr it.
+
 2008-02-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (command_loop_1): Revert 2006-10-09 change.

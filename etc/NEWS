@@ -597,6 +597,9 @@ functions and variables (formerly used for Tamil script).
 
 * Lisp Changes in Emacs 23.1
 
+** The new `buffer-swap-text' function can swap the text between two buffers.
+This can be useful for modes such as tar-mode, archive-mode, RMAIL.
+
 ** `clear-image-cache' can be told to flush only images of a specific file.
 
 ** clone-indirect-buffer now runs the clone-indirect-buffer-hook.

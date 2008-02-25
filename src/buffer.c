@@ -2212,6 +2212,101 @@ advance_to_char_boundary (byte_pos)
   return byte_pos;
 }
 
+DEFUN ("buffer-swap-text", Fbuffer_swap_text, Sbuffer_swap_text,
+       1, 1, 0,
+       doc: /* Swap the text between current buffer and BUFFER.  */)
+     (buffer)
+     Lisp_Object buffer;
+{
+  struct buffer *other_buffer;
+  CHECK_BUFFER (buffer);
+  other_buffer = XBUFFER (buffer);
+
+  /* Actually, it probably works just fine.
+   * if (other_buffer == current_buffer)
+   *   error ("Cannot swap a buffer's text with itself"); */
+
+  /* Actually, this may be workable as well, tho probably only if they're
+     *both* indirect.  */
+  if (other_buffer->base_buffer
+      || current_buffer->base_buffer)
+    error ("Cannot swap indirect buffers's text");
+
+  { /* This is probably harder to make work.  */
+    struct buffer *other;
+    for (other = all_buffers; other; other = other->next)
+      if (other->base_buffer == other_buffer
+	  || other->base_buffer == current_buffer)
+	error ("One of the buffers to swap has indirect buffers");
+  }
+
+#define swapfield(field, type) \
+  do {							\
+    type tmp##field = other_buffer->field;		\
+    other_buffer->field = current_buffer->field;	\
+    current_buffer->field = tmp##field;			\
+  } while (0)
+
+  swapfield (own_text, struct buffer_text);
+  eassert (current_buffer->text == &current_buffer->own_text);
+  eassert (other_buffer->text == &other_buffer->own_text);
+  swapfield (pt, EMACS_INT);
+  swapfield (pt_byte, EMACS_INT);
+  swapfield (begv, EMACS_INT);
+  swapfield (begv_byte, EMACS_INT);
+  swapfield (zv, EMACS_INT);
+  swapfield (zv_byte, EMACS_INT);
+  eassert (!current_buffer->base_buffer);
+  eassert (!other_buffer->base_buffer);
+  current_buffer->clip_changed = 1;	other_buffer->clip_changed = 1;
+  swapfield (newline_cache, struct region_cache *);
+  swapfield (width_run_cache, struct region_cache *);
+  current_buffer->prevent_redisplay_optimizations_p = 1;
+  other_buffer->prevent_redisplay_optimizations_p = 1;
+  swapfield (overlays_before, struct Lisp_Overlay *);
+  swapfield (overlays_after, struct Lisp_Overlay *);
+  swapfield (overlay_center, EMACS_INT);
+  swapfield (undo_list, Lisp_Object);
+  swapfield (mark, Lisp_Object);
+  if (MARKERP (current_buffer->mark) && XMARKER (current_buffer->mark)->buffer)
+    XMARKER (current_buffer->mark)->buffer = current_buffer;
+  if (MARKERP (other_buffer->mark) && XMARKER (other_buffer->mark)->buffer)
+    XMARKER (other_buffer->mark)->buffer = other_buffer;
+  swapfield (enable_multibyte_characters, Lisp_Object);
+  /* FIXME: Not sure what we should do with these *_marker fields.
+     Hopefully they're just nil anyway.  */
+  swapfield (pt_marker, Lisp_Object);
+  swapfield (begv_marker, Lisp_Object);
+  swapfield (zv_marker, Lisp_Object);
+  current_buffer->point_before_scroll = Qnil;
+  other_buffer->point_before_scroll = Qnil;
+
+  current_buffer->text->modiff++;	  other_buffer->text->modiff++;
+  current_buffer->text->chars_modiff++;	  other_buffer->text->chars_modiff++;
+  current_buffer->text->overlay_modiff++; other_buffer->text->overlay_modiff++;
+  current_buffer->text->beg_unchanged = current_buffer->text->gpt;
+  current_buffer->text->end_unchanged = current_buffer->text->gpt;
+  other_buffer->text->beg_unchanged = current_buffer->text->gpt;
+  other_buffer->text->end_unchanged = current_buffer->text->gpt;
+  {
+    struct Lisp_Marker *m;
+    for (m = BUF_MARKERS (current_buffer); m; m = m->next)
+      if (m->buffer == other_buffer)
+	m->buffer = current_buffer;
+    for (m = BUF_MARKERS (other_buffer); m; m = m->next)
+      if (m->buffer == current_buffer)
+	m->buffer = other_buffer;
+  }
+  if (current_buffer->text->intervals)
+    (eassert (EQ (current_buffer->text->intervals->up.obj, buffer)),
+     XSETBUFFER (current_buffer->text->intervals->up.obj, current_buffer));
+  if (other_buffer->text->intervals)
+    (eassert (EQ (other_buffer->text->intervals->up.obj, Fcurrent_buffer ())),
+     XSETBUFFER (other_buffer->text->intervals->up.obj, other_buffer));
+
+  return Qnil;
+}
+
 DEFUN ("set-buffer-multibyte", Fset_buffer_multibyte, Sset_buffer_multibyte,
        1, 1, 0,
        doc: /* Set the multibyte flag of the current buffer to FLAG.
@@ -6189,6 +6284,7 @@ The function `kill-all-local-variables' runs this before doing anything else.  *
   defsubr (&Sbarf_if_buffer_read_only);
   defsubr (&Sbury_buffer);
   defsubr (&Serase_buffer);
+  defsubr (&Sbuffer_swap_text);
   defsubr (&Sset_buffer_multibyte);
   defsubr (&Skill_all_local_variables);
 
