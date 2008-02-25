@@ -7,8 +7,6 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id$
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -314,9 +312,8 @@ locked.  REV is the revision to check out."
 
 (defun vc-sccs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using SCCS between two filesets."
-  ;; FIXME this is broken (`file' versus `files').
-  (setq oldvers (vc-sccs-lookup-triple file oldvers))
-  (setq newvers (vc-sccs-lookup-triple file newvers))
+  (setq oldvers (vc-sccs-lookup-triple (car files) oldvers))
+  (setq newvers (vc-sccs-lookup-triple (car files) newvers))
   (apply 'vc-do-command (or buffer "*vc-diff*")
 	 1 "vcdiff" (mapcar 'vc-name (vc-expand-dirs files))
          (append (list "-q"
