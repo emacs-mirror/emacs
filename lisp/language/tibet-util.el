@@ -316,21 +316,12 @@ are decomposed into normal Tibetan character sequences."
     new))
 
 ;;;###autoload
-(defun tibetan-composition-function (pos &optional string)
-  (if string
-      (if auto-compose-current-font
-	  (if (eq (string-match "[$(7!0(B-$,1GQ(B]+" pos) pos)
-	      (or (font-shape-text 0 (match-end 0) auto-compose-current-font
-				   string)
-		  pos)))
-    (goto-char pos)
-    (if auto-compose-current-font
-	(if (looking-at "[$(7!0(B-$,1GQ(B]+")
-	    (or (font-shape-text pos (match-end 0) auto-compose-current-font)
-		pos)
-	  (if (looking-at tibetan-composable-pattern)
-	      (prog1 (match-end 0)
-		(tibetan-compose-region pos (match-end 0))))))))
+(defun tibetan-composition-function (from to font-object string)
+  (or (and font-object
+	   (font-shape-text from to font-object string))
+      (if string
+	  (tibetan-compose-string string)
+	(tibetan-compose-region from to))))
 
 ;;;
 ;;; This variable is used to avoid repeated decomposition.
