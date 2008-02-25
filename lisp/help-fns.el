@@ -636,8 +636,8 @@ it is displayed along with the global value."
             (terpri)
 
             (let* ((alias (condition-case nil
-                             (indirect-variable variable)
-                           (error variable)))
+                              (indirect-variable variable)
+                            (error variable)))
                    (obsolete (get variable 'byte-obsolete-variable))
 		   (safe-var (get variable 'safe-local-variable))
                    (doc (or (documentation-property variable 'variable-documentation)
@@ -676,17 +676,39 @@ it is displayed along with the global value."
 	      (princ "Documentation:\n")
 	      (with-current-buffer standard-output
 		(insert (or doc "Not documented as a variable."))))
-	    ;; Make a link to customize if this variable can be customized.
-	    (when (custom-variable-p variable)
-	      (let ((customize-label "customize"))
+
+            (let ((customize-label "customize")
+                  (initialization-file "initialization file"))
+              ;; All variables can be set; some can be customized
+              (when (and (symbolp variable) (not (custom-variable-p variable)))
 		(terpri)
 		(terpri)
-		(princ (concat "You can " customize-label " this variable."))
+		(princ (concat "You can set this variable in your "
+                               initialization-file "."))
+		(with-current-buffer standard-output
+		  (save-excursion
+                    (re-search-backward
+		     (concat "\\(" initialization-file "\\)") nil t)
+                    (help-xref-button 1 'help-info-variable variable
+                                      "(emacs)Init File"))))
+              ;; Make a link to customize if this variable can be customized.
+              (when (custom-variable-p variable)
+		(terpri)
+		(terpri)
+		(princ (concat "You can " customize-label " this variable"))
+		(princ (concat " or set it in your " initialization-file "."))
 		(with-current-buffer standard-output
 		  (save-excursion
 		    (re-search-backward
 		     (concat "\\(" customize-label "\\)") nil t)
-		    (help-xref-button 1 'help-customize-variable variable))))
+		    (help-xref-button 1 'help-customize-variable variable))
+		  (save-excursion
+                    (re-search-backward
+		     (concat "\\(" initialization-file "\\)") nil t)
+                    (help-xref-button 1 'help-info-variable variable
+                                      "(emacs)Init File")
+                    )
+                  ))
 	      ;; Note variable's version or package version
 	      (let ((output (describe-variable-custom-version-info variable)))
 		(when output
