@@ -1,3 +1,9 @@
+2008-02-25  John Wiegley  <johnw@newartisans.com>
+
+	* url-auth.el (url-digest-auth): Don't show prompt if
+	authentication succeeded on the previous pass.  Don't pass
+	"opaque" value if none is presented by the server.
+
 2008-01-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-handlers.el (unhandled-file-name-directory): Add handler.
