@@ -2606,6 +2606,10 @@ If @var{image} is a single image specification, Emacs draws the tool bar
 button in disabled state by applying an edge-detection algorithm to the
 image.
 
+The @code{:rtl} property specifies an alternative image to use for
+right-to-left languages.  Only the Gtk+ version of Emacs supports this
+at present.
+
 The default tool bar is defined so that items specific to editing do not
 appear for major modes whose command symbol has a @code{mode-class}
 property of @code{special} (@pxref{Major Mode Conventions}).  Major

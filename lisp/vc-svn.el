@@ -185,7 +185,8 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
                        (generate-new-buffer-name " *vc svn status*"))
     (vc-svn-command (current-buffer) 'async nil "status")
     (vc-exec-after
-     `(vc-svn-after-dir-status (quote ,callback) ,buffer))))
+     `(vc-svn-after-dir-status (quote ,callback) ,buffer))
+    (current-buffer)))
 
 (defun vc-svn-working-revision (file)
   "SVN-specific version of `vc-working-revision'."
@@ -239,7 +240,7 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 (defun vc-svn-create-repo ()
   "Create a new SVN repository."
   (vc-do-command nil 0 "svnadmin" '("create" "SVN"))
-  (vc-do-command nil 0 "svn" '(".") 
+  (vc-do-command nil 0 "svn" '(".")
 		 "checkout" (concat "file://" default-directory "SVN")))
 
 (defun vc-svn-register (files &optional rev comment)
@@ -263,7 +264,7 @@ This is only possible if SVN is responsible for FILE's directory.")
 
 (defun vc-svn-checkin (files rev comment)
   "SVN-specific version of `vc-backend-checkin'."
-  (if rev (error "Committing to a specific revision is unsupported in SVN."))
+  (if rev (error "Committing to a specific revision is unsupported in SVN"))
   (let ((status (apply
                  'vc-svn-command nil 1 files "ci"
                  (nconc (list "-m" comment) (vc-switches 'SVN 'checkin)))))
@@ -405,7 +406,7 @@ uses locally for temp files must also be writeable by you on that host."
   (goto-char (point-min))
   (unless (re-search-forward "Repository Root: svn\\+ssh://\\([^/]+\\)\\(/.*\\)" nil t)
     (error "Repository information is unavailable."))
-  (let* ((tempfile (make-temp-file user-mail-address)) 
+  (let* ((tempfile (make-temp-file user-mail-address))
 	(host (match-string 1))
 	(directory (match-string 2))
 	(remotefile (concat host ":" tempfile)))
@@ -414,9 +415,9 @@ uses locally for temp files must also be writeable by you on that host."
       (write-region (point-min) (point-max) tempfile))
     (unless (vc-do-command nil 0 "scp" nil "-q" tempfile remotefile)
       (error "Copy of comment to %s failed" remotefile))
-    (unless (vc-do-command nil 0 "ssh" nil 
-			   "-q" host 
-			   (format "svnadmin setlog --bypass-hooks %s -r %s %s; rm %s" 
+    (unless (vc-do-command nil 0 "ssh" nil
+			   "-q" host
+			   (format "svnadmin setlog --bypass-hooks %s -r %s %s; rm %s"
 				   directory rev tempfile tempfile))
       (error "Log edit failed"))
   ))
@@ -528,9 +529,12 @@ NAME is assumed to be a URL."
 ;;;
 
 (defcustom vc-svn-program "svn"
-  "Name of the svn executable."
+  "Name of the SVN executable."
   :type 'string
   :group 'vc)
+
+(defun vc-svn-root (dir)
+  (vc-find-root dir vc-svn-admin-directory t))
 
 (defun vc-svn-command (buffer okstatus file-or-list &rest flags)
   "A wrapper around `vc-do-command' for use in vc-svn.el.

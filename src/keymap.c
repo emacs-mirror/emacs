@@ -2304,7 +2304,7 @@ spaces are put between sequence elements, etc.  */)
 	}
       else if (VECTORP (list))
 	{
-	  key = AREF (list, i++);
+	  key = AREF (list, i); i++;
 	}
       else
 	{

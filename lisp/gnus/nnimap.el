@@ -802,7 +802,7 @@ If EXAMINE is non-nil the group is selected read-only."
 			(or nnimap-server-address
 			    nnimap-address))
 		  (list port)
-		  (list "imap" "imaps")))
+		  (list "imap" "imaps" "143" "993")))
 	   (passwd (netrc-machine-user-or-password
 		    "password"
 		    list
@@ -810,7 +810,7 @@ If EXAMINE is non-nil the group is selected read-only."
 			  (or nnimap-server-address
 			      nnimap-address))
 		    (list port)
-		    (list "imap" "imaps"))))
+		    (list "imap" "imaps" "143" "993"))))
       (if (imap-authenticate user passwd nnimap-server-buffer)
 	  (prog2
 	      (setq nnimap-server-buffer-alist

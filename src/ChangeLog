@@ -1,3 +1,525 @@
+2008-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fdelete_window, Fadjust_window_trailing_edge):
+	Handle a nil arg.  Use run_window_configuration_change_hook.
+	(delete_window, adjust_window_trailing_edge): Don't handle nil any more.
+	(Fenlarge_window, Fshrink_window, Fset_window_configuration):
+	Use run_window_configuration_change_hook.
+
+2008-02-25  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* xdisp.c (fill_glyph_string): Pay attention to glyph->padding_p.
+	(append_glyph): Set glyph->pixel_width and glyph->padding_p to 1
+	if the glyph in the font is zero pixel with.
+
+	* dispextern.h (struct glyph_string): New member padding_p.
+
+	* w32font.c (w32font_draw): Pay attention to s->padding_p.
+
+	* ftxfont.c (ftxfont_draw): Pay attention to s->padding_p.
+
+	* xfont.c (xfont_draw): Pay attention to s->padding_p.
+
+	* xftfont.c (xftfont_draw): Pay attention to s->padding_p.
+
+	* font.c: If the font driver doesn't have `shape' function, return Qnil.
+
+2008-02-25  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (enum_font_cb2): Don't use raster fonts for Unicode.
+
+2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/vms4-0.h:
+	* s/vms4-2.h:
+	* s/vms4-4.h:
+	* s/vms5-5.h: Remove, unused.
+
+	* s/irix5-2.h:
+	* s/irix6-0.h:
+	* s/riscos5.h:
+	* s/mach-bsd4-3.h:
+	* m/mips4.h: Remove files for obsolete systems
+
+	* Makefile.in:
+	* filelock.c:
+	* unexmips.c:
+	* m/hp9000s300.h:
+	* m/iris4d.h:
+	* s/aix3-1.h:
+	* s/hpux.h:
+	* s/msdos.h:
+	* s/usg5-0.h:
+	* s/usg5-2-2.h:
+	* s/usg5-2.h:
+	* s/usg5-3.h: Remove references to obsolete variables.
+
+	* s/irix5-0.h: Remove, move all the contents ...
+	* s/irix6-5.h: ... here.  Simplify.
+	* config.in: Regenerate.
+
+2008-02-24  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c: (x_draw_glyph_string_background): Clear the background
+	manually when cleartype is in use.
+	(x_draw_glyph_string_foreground): Draw text transparently when
+	cleartype is in use.
+
+	* w32font.c (w32font_text_extents): Avoid getting HDC and selecting
+	a font into it unless we have to.
+
+2008-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.h (INT_LISPLIKE): Remove.  It may misfire.
+	(NULL_INTERVAL_P, SET_INTERVAL_PARENT): Don't use it.
+
+2008-02-18  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fw32_shell_execute): Encode parameters.
+
+2008-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (syms_of_fileio) <insert-default-directory>: Doc fix.
+
+2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* unexhp9k800.c (read_header): Replace `legal' with `valid'.
+
+2008-02-24  Ulrich Neumerkel  <ulrich@complang.tuwien.ac.at>  (tiny change)
+
+	* xterm.c (x_set_offset): Don't change the gravity if
+	CHANGE_GRAVITY is -1.
+
+2008-02-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fileio.c (auto_save_error_occurred): New var.
+	(auto_save_error): Set it.
+	(Fdo_auto_save): Don't overwrite the error message if an auto-save
+	error occurred.
+
+2008-02-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (globals_of_w32): Add initializations for
+	g_b_init_get_sid_sub_authority and
+	g_b_init_get_sid_sub_authority_count.
+
+2008-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font.c (font_match_xlfd, font_check_xlfd_parse): New funs.
+	(font_parse_xlfd): Use them for sanity check.
+	(Finternal_set_font_style_table): Make sure the table is bijective.
+
+	Consolidate the image_cache to the terminal struct.
+	* termhooks.h (P_): Remove redundant def.
+	(struct terminal): New field `image_cache'.
+	* frame.h (FRAME_IMAGE_CACHE): New macro.  Use it everywhere in place
+	of FRAME_X_IMAGE_CACHE.
+	* xterm.h (struct x_display_info): Remove image_cache field.
+	(FRAME_X_IMAGE_CACHE): Remove.  Use FRAME_IMAGE_CACHE instead.
+	* w32term.h (struct w32_display_info): Remove image_cache field.
+	(FRAME_X_IMAGE_CACHE): Remove.  Use FRAME_IMAGE_CACHE instead.
+	* macterm.h (struct mac_display_info): Remove image_cache field.
+	(FRAME_X_IMAGE_CACHE): Remove.  Use FRAME_IMAGE_CACHE instead.
+	* xterm.c (x_term_init):
+	* w32term.c (w32_term_init):
+	* macterm.c (mac_term_init): Set the image_cache in the terminal.
+	* dispextern.h (clear_image_cache, forall_images_in_image_cache):
+	Remove declarations.
+	(clear_image_caches, mark_image_cache): New declarations.
+	* xfaces.c (clear_face_cache):
+	* xdisp.c (redisplay_internal): Use clear_image_caches.
+	* image.c (clear_image_cache): Don't check that a frame is on
+	a window-system before checking if it shares the same cache.
+	(clear_image_caches): New function.
+	(Fclear_image_cache): Use it.
+	(mark_image): Move from allo.c.
+	(mark_image_cache): Move from alloc.c and forall_images_in_image_cache.
+	* alloc.c (mark_image, mark_image_cache): Move to image.c.
+	(mark_object): Don't call mark_image_cache for frames.
+	(mark_terminals): Call mark_image_cache.
+
+	* lisp.h (Fdelete_terminal): Declare.
+
+	* charset.h (CHECK_CHARSET, CHECK_CHARSET_GET_ID)
+	(CHECK_CHARSET_GET_ATTR): Don't use the inexistent return value of
+	wrong_type_argument.
+
+2008-02-22  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* Makefile.in (lisp): Remove devanagari.el, kannada.el,
+	malayalam.el, and tamil.el.  Add sinhala.el.
+
+2008-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c (x_connection_closed): Consolidate identical tests.
+	(x_delete_terminal): Don't crash if called via x_connection_closed.
+
+2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* xdisp.c (decode_mode_spec): New arg string.
+	(display_mode_element): Adjust for the above change.
+
+2008-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* callint.c (Fcall_interactively): Use AREF.
+
+2008-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font.c (font_unparse_xlfd): Don't ignore integer pixel size specs.
+
+2008-02-18  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_show_tip): Set string to " " if empty.
+
+2008-02-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* callint.c (syms_of_callint): Initialize Vmark_even_if_inactive
+	with Qt.
+
+2008-02-17  Kenichi Handa  <handa@m17n.org>
+
+	* ftfont.c (ftfont_shape): Return Lispy number.
+
+	* xfaces.c (prepare_face_for_display): Use display_info->font->fid
+	for GCs.
+	(Finternal_set_font_selection_order): Call font_update_sort_order
+	only when enable_font_backend is set.
+	(realize_x_face): Set face->font_info to that of default face only
+	when enable_font_backend is set.
+
+	* xdisp.c (handle_composition_prop): Set it->c to the fist
+	characte of the composed region.
+	(fill_composite_glyph_string): Set base_face->font_info to
+	s->font_info.  Get a face for ascii from base_face->ascii_face.
+	(BUILD_COMPOSITE_GLYPH_STRING): Call fill_composite_glyph_string
+	with a face already decided.
+	(x_produce_glyphs): Be sure to set it->ascent and it->descent to
+	non-negative.
+	(x_produce_glyphs): If the composition method is ..._WITH_GLYPH_STRING,
+	call font_prepare_composition unconditionally.
+
+	* xfns.c (x_make_gc): Use the default font id of the frame for GCs.
+
+	* xterm.h (struct x_display_info): New member font.
+
+	* xterm.c (x_set_cursor_gc): Use display_info->font->fid for GCs.
+	(x_set_mouse_face_gc, x_new_font): Likewise.
+	(x_term_init): Setup display_info->font.
+	(x_delete_terminal): Free display_info->font.
+
+	* xfont.c (xfont_draw): Use BLOCK_INPUT and UNBLOCK_INPUT.
+
+	* ftxfont.c (ftxfont_default_fid): Delete it.
+	(ftxfont_open): Set xfont->fid to 0.
+	(ftxfont_end_for_frame): Clear data specific to the frame and the
+	font-driver.
+
+	* xftfont.c (xftfont_default_fid): Delete it.
+	(xftfont_open): Set xfont->fid to 0.
+
+	* fontset.c (FONTSET_OBJLIST): New macro.
+	(fontset_find_font): Update font-object list of the fontset.
+	(free_realized_fontset): New function.
+	(free_face_fontset): Call free_realized_fontset.
+	(Ffont_info): Call font_close_object only when enable_font_backend
+	is set.
+
+	* font.c [HAVE_X_WINDOWS]: Include xterm.h.
+	[HAVE_NTGUI]: Include w32term.h.
+	[MAC_OS]: Include macterm.ch.
+	(font_otf_ValueRecord): Use make_number.
+	(font_finish_cache): Fix handling of reference count.
+	(font_clear_cache): Update num_fonts.
+	(font_open_entity): Update smallest_char_width and
+	smallest_font_height of the frame.
+	(font_close_object): Update num_fonts.
+	(Fclear_font_cache): Fix finding the target cache data.
+
+2008-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* fontset.c (Finternal_char_font): Fix compilation warning.
+
+2008-02-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (init_user_info): Use TOKEN_USER and TOKEN_PRIMARY_GROUP
+	instead of char arrays.  Enlarge the size of array passed to
+	get_token_information.
+
+	* font.c (Ffont_fill_gstring, Fget_font_glyphs): Fix compilation
+	warnings.
+
+2008-02-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* .gdbinit: Don't set `args', it breaks gdb --args.
+
+2008-02-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Adjust offsets when replacing
+	within a narrowed buffer.
+
+2008-02-14  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* coding.c (decode_coding_object, encode_coding_object):
+	Preserve Vdeactivate_mark.  Delete unnecessary call of Fcurrent_buffer.
+
+2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* coding.c (coding_set_destination): Use BEG_BYTE rather than
+	hardcoding 1.
+	(detect_coding_system):
+	* lisp.h (detect_coding_system, chars_in_text, multibyte_chars_in_text)
+	(string_char_to_byte, string_byte_to_char, insert_from_gap):
+	* insdel.c (insert_from_gap):
+	* fns.c (string_char_byte_cache_charpos, string_char_byte_cache_bytepos)
+	(string_char_to_byte, string_byte_to_char, string_make_multibyte)
+	(string_to_multibyte):
+	* character.c (chars_in_text, multibyte_chars_in_text):
+	* fileio.c (Finsert_file_contents): Use EMACS_INT for buffer positions.
+
+	* character.h (FETCH_STRING_CHAR_ADVANCE)
+	(FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE)
+	(FETCH_STRING_CHAR_ADVANCE_NO_CHECK): Use SDATA and SREF.
+	(DEC_POS, BUF_DEC_POS): Use BEG_BYTE rather than hardcoding 1.
+
+	* casefiddle.c (casify_region): Only call after-change and composition
+	functions on the part of the region that was changed.
+
+	* keyboard.c (read_avail_input):
+	* frame.c (Fdelete_frame): Call Fdelete_terminal.
+
+2008-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (clone_per_buffer_values, reset_buffer_local_variables)
+	(Fbuffer_local_value, Fbuffer_local_variables): Don't forget undo_list.
+
+2008-02-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32menu.c (push_submenu_start, push_submenu_end)
+	(push_left_right_boundary, push_menu_pane, push_menu_item):
+	* keyboard.c (read_key_sequence): Don't pass args with side effects
+	to AREF, it fails when compiling with -DENABLE_CHECKING.
+
+2008-02-11  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* Makefile.in (${lispsource}international/charprop.el):
+	Delete this target.
+
+	* search.c (boyer_moore): Fix incorrect synching of the trunk and
+	emacs-unicode-2.
+
+2008-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* terminal.c (Fdelete_terminal): Clean up the `force' path.
+
+2008-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.c (Qnoelisp): New symbol.
+	(syms_of_frame): Initialize it.
+	(Fdelete_frame): Use it to distinguish a mere `force' passed from
+	someharmles Elisp code, from a strong `force' from x_connection_closed.
+	* frame.h (Qnoelisp): Declare.
+	* xterm.c (x_connection_closed): Pass `noelisp'.
+
+	* lisp.h (struct Lisp_Misc_Any, struct Lisp_Marker)
+	(struct Lisp_Overlay, struct Lisp_Kboard_Objfwd)
+	(struct Lisp_Save_Value, struct Lisp_Free): Use enum Lisp_Misc_Type
+	rather than `int' for the type of `type'.
+
+2008-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/gnu-linux.h: Remove support for non-ELF and linux-1.x.
+
+	* Makefile.in (GNUC): Remove support for gcc-1.x.
+
+2008-02-10  Richard Stallman  <rms@gnu.org>
+
+	* lisp.h (ASET): Use AREF, not ASLOT.
+
+2008-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lisp.h (ASET): Check bounds.
+
+2008-02-10  Glenn Morris  <rgm@gnu.org>
+
+	* buffer.c (mode-name): Doc fix.
+
+2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* src/Makefile.in:
+	* src/emacs.c:
+	* src/gmalloc.c:
+	* src/keyboard.c:
+	* src/lisp.h:
+	* src/m/ibm370aix.h:
+	* src/process.c:
+	* src/regex.c:
+	* src/s/hpux.h:
+	* src/sysdep.c:
+	* src/sysselect.h:
+	* src/systty.h:
+	* src/unexec.c:
+	* src/w32term.c:
+	* src/xsmfns.c:
+	* src/xterm.c: Remove code that deals with obsolete variables.
+
+	* s/msdos.h (DONT_NEED_ENVIRON): Don't define.
+
+	* ecrt0.c: Replace the DONT_NEED_ENVIRON test with MSDOS test,
+	nothing else needs it anymore.
+
+2008-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.h (FETCH_CHAR_AS_MULTIBYTE): Use unibyte_to_multibyte_table
+	instead of unibyte_char_to_multibyte.
+
+2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/gnu-linux.h: Remove commented out code.
+
+	* unexec.c: Remove references to obsolete variable COFF_ENCAPSULATE.
+
+	* Makefile.in: Update what RMS says about using autoconf.
+	(C_COMPILER, COFF_ENCAPSULATE, MAKE_PARALLEL): Remove obsolete variable.
+	(C_SWITCH_MACHINE_1, C_SWITCH_SYSTEM_1, C_SWITCH_SITE_1):
+	(C_SWITCH_X_SITE_1, C_SWITCH_X_MACHINE_1)
+	(C_SWITCH_X_SYSTEM_1): Move invariant code outside conditional.
+
+2008-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (Fkey_description): Move side effect outside of macro call.
+
+	* xfaces.c (Finternal_make_lisp_face):
+	* keyboard.c (add_command_key, parse_menu_item): Use ASET.
+
+	* fontset.c (free_face_fontset): Use FONTSET_FROM_ID.
+	(syms_of_fontset): Use ASET.
+
+	* fns.c (concat): Move side effect outside of macro call.
+	(hash_clear): Use ASET.
+
+2008-02-08  Richard Stallman  <rms@gnu.org>
+
+	* frame.c (Fdelete_frame): If FORCE, don't call hooks.
+	If FORCE, and frame has a surrogate minibuffer for another frame,
+	delete the other frame first.
+
+2008-02-07  Timo Savola  <timo.savola@iki.fi>
+
+	* xterm.c (x_detect_focus_change): Handle embed client message.
+	(handle_one_xevent): Ditto.
+	(handle_one_xevent): If embedded and we get a button press/release,
+	request focus.
+	(xembed_set_info, xembed_send_message): New functions.
+	(x_make_frame_visible): Call xembed_set_info if embedded.
+	(x_make_frame_invisible): Call xembed_set_info if embedded.
+	(x_term_init): Initialize Xatom_XEMBED.
+	(x_make_frame_visible): Check for FRAME_X_EMBEDDED_P also.
+	(x_iconify_frame): Ditto.
+
+	* xterm.h (struct x_display_info): Add AtomXatom_XEMBED.
+	(enum xembed_info, enum xerm srmbed_message, enum xembed_focus)
+	(enum xembed_modifier, enum xembed_accelerator): New.
+	(xembed_set_info, xembed_send_message): Declare.
+	(FRAME_X_EMBEDDED_P): New.
+
+	* gtkutil.c (xg_create_frame_widgets): If frame is embedded, call
+	gtk_plug_new.
+
+	* xfns.c (Fx_create_frame): Do not override the explicitly set parent
+	window ID of a frame.
+	(x_window): Reparent frame if embedded.
+	(Fx_create_frame): Don't set border width if embedded.
+
+	* emacs.c (USAGE3): Add --parent-id
+	(standard_args): Ditto.
+
+2008-02-07  Jan Dj,Adrv  <jan.h.d@swipnet.se>
+
+	* coding.c (DECODE_EMACS_MULE_COMPOSITION_CHAR): Use "do...while (0)".
+
+2008-02-07  Jim Meyering  <meyering@redhat.com>
+
+	Use "do...while (0)", not "if (1)..else" in macro definitions.
+	The latter provokes a warning from gcc about the empty else, when
+	followed by ";".  Also, without that trailing semicolon, it would
+	silently swallow up any following statement.
+	* syntax.h (SETUP_SYNTAX_TABLE):
+	(SETUP_SYNTAX_TABLE_FOR_OBJECT): Likewise.
+	* buffer.h (DECODE_POSITION): Likewise.
+	* character.h (FETCH_STRING_CHAR_ADVANCE): Likewise.
+	(FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE): Likewise.
+	(FETCH_STRING_CHAR_ADVANCE_NO_CHECK): Likewise.
+	(FETCH_CHAR_ADVANCE): Likewise.
+	(FETCH_CHAR_ADVANCE_NO_CHECK): Likewise.
+
+2008-02-07  Jim Meyering  <meyering@redhat.com>
+
+	* lread.c [lint]: Don't include <sys/inode.h>.
+
+2008-02-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xselect.c (x_handle_dnd_message):
+	* xmenu.c (digest_single_submenu, xmenu_show):
+	* xdisp.c (with_echo_area_buffer_unwind_data)
+	(format_mode_line_unwind_data, unwind_format_mode_line)
+	(display_menu_bar):
+	* eval.c (Ffetch_bytecode):
+	* doc.c (store_function_docstring):
+	* ccl.c (resolve_symbol_ccl_program, ccl_get_compiled_code)
+	(Fccl_execute, Fccl_execute_on_string, Fregister_code_conversion_map):
+	* buffer.c (add_overlay_mod_hooklist): Use ASET.
+
+2008-02-07  Kenichi Handa  <handa@m17n.org>
+
+	* ftxfont.c (ftxfont_open): Don't set
+	dpyinfo->smallest_font_height and dpyinfo->smallest_char_width to 0.
+
+	* ftfont.c (ftfont_open): Fix previous change.
+
+2008-02-06  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_text_extents): Fill in lbearing metric.
+	Use cached metrics for ASCII characters.
+	(w32font_open_internal): Don't set font's owning_frame.
+	Cache metrics for ASCII characters.
+
+	* w32font.h (struct w32font_info): Add ascii_metrics.
+	Remove owning_frame.
+
+2008-02-06  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* xdisp.c (x_produce_glyphs): Don't set it->ascent and it->descent
+	to negative value.
+
+	* ftxfont.c (ftxfont_draw): Use s->font_info, not face->font_info.
+
+	* ftfont.c (ftfont_open): Fix calculation of font->font.average_width.
+
+	* charset.c (syms_of_charset): Set QCtest and Qeq.
+
+2008-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* process.c (Fstart_process):
+	* callproc.c (Fcall_process): Handle the case where
+	Funhandled_file_name_directory returns nil.
+
+	* font.h (enum lgstring_indices, enum lglyph_indices): New enums.
+	(LGSTRING_SLOT, LGSTRING_SET_SLOT): New macros.
+	* font.c (check_gstring): Use them and AREF to access the vector before
+	we know it's really a gstring.
+	(Ffont_shape_text): Fix typo.
+	(Ffont_shape_text, Ffont_otf_alternates): Fix up int/Lisp_Oject mixups.
+
+	* composite.h (Fcompose_region_internal, Fcompose_string_internal):
+	Declare.
+
+	* chartab.c (make_sub_char_table): Remove noop-yet-incorrect statement.
+
+2008-02-05  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_open_internal): Fill min_width with tmAveCharWidth.
+	Set smallest_font_height and smallest_char_width in display info.
+
 2008-02-05  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* coding.c (decode_eol): Pay attention to coding->dst_multibyte.
@@ -12,20 +534,7 @@
 
 	* fontset.c (Ffontset_info): Handle the case of inhibitting the
 	fallback fonts.
-	(Ffontset_info) [USE_FONT_BACKEND]: Fix getting of opened font
-	names.
-
-2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
-
-	* ccl.c (CCL_WRITE_CHAR, CCL_WRITE_MULTIBYTE_CHAR, ccl_driver):
-	Cancel previous change.
-
-2008-01-31  Kenichi Handa  <handa@ni.aist.go.jp>
-
-	* ccl.c (CCL_WRITE_CHAR): Increment extra_bytes only when
-	ccl->eight_bit_control.  Fix check for buffer overflow.
-	(CCL_WRITE_MULTIBYTE_CHAR): Fix check for buffer overflow.
-	(ccl_driver): Initialize extra_bytes to 0.
+	(Ffontset_info) [USE_FONT_BACKEND]: Fix getting of opened font names.
 
 2008-02-04  Jason Rumney  <jasonr@gnu.org>
 
@@ -50,13 +559,12 @@
 
 2008-02-01  Andreas Schwab  <schwab@suse.de>
 
-	* Makefile.in (shortlisp): Update for rename of
+	* Makefile.in (shortlisp, lisp): Update for rename of
 	../lisp/language/myanmar.el.
-	(lisp): Likewise.
 
 2008-02-01  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xfaces.c (get_lface_attributes): Function deleted.
+	* xfaces.c (get_lface_attributes): Delete function.
 	(merge_named_face, lookup_named_face, lookup_derived_face)
 	(realize_named_face): Call lface_from_face_name directly, and use
 	the fact that merge_face_vectors does not alter its FROM argument.
@@ -64,18 +572,17 @@
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_read_socket) <WM_CHAR>: Decode non-Unicode
-	input in the default locale. Handle non-Unicode multibyte input.
+	input in the default locale.  Handle non-Unicode multibyte input.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* fontset.c (reorder_font_vector): Exclude nil elements from the
 	font group.  Don't try multiple fonts.
-	(fontset_font): Adjusted for the above change.
+	(fontset_font): Adjust for the above change.
 	(Finternal_char_font): Return nil if the found font doesn't
 	contain the character ch.
 
-	* Makefile.in (lisp): Add cham.el.
-	(shortlisp): Likewise.
+	* Makefile.in (lisp, shortlisp): Add cham.el.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -91,12 +598,12 @@
 	Use 0 (not Qt) for the indication of empty font-group.  Change the
 	format of RFONT-DEF.  Return Qt if no font in the font-group
 	support the character.
-	(fontset_font): Adjusted for the above change.  If no font was
+	(fontset_font): Adjust for the above change.  If no font was
 	found the character, remember that.
-	(face_for_char): Adjusted for the change of RFONT-DEF.
+	(face_for_char): Adjust for the change of RFONT-DEF.
 	(Fset_fontset_font): Allow nil for FONT-SPEC to explicitly specify
 	no font for the target.
-	(Finternal_char_font): Adjusted for the change of RFONT-DEF.
+	(Finternal_char_font): Adjust for the change of RFONT-DEF.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -105,8 +612,7 @@
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* xfaces.c (set_lface_from_font_and_fontset): Set the fontname in
-	lface.
+	* xfaces.c (set_lface_from_font_and_fontset): Set the fontname in lface.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -116,9 +622,8 @@
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* coding.c (decode_coding_object): Adjuste marker positions after
-	conversion.
-	(encode_coding_object): Likewise.
+	* coding.c (decode_coding_object, encode_coding_object): Adjust
+	marker positions after conversion.
 
 	* lisp.h (struct Lisp_Marker): New member need_adjustment.
 
@@ -144,8 +649,7 @@
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* Makefile.in (lisp): Add kherm.el and myanmar.el.
-	(shortlisp): Likewise.
+	* Makefile.in (lisp, shortlisp): Add kherm.el and myanmar.el.
 
 	* ftfont.c (ftfont_driver): Set ftfont_shape in ftfont_driver only
 	when both HAVE_M17N_FLT and HAVE_LIBOTF are defined.
@@ -159,8 +663,7 @@
 	* ftfont.c (ftfont_drive_otf): Fix setting of FROM and TO slots of
 	glyphs.
 
-	* font.h (struct font_driver): Docstring of member `shape' is
-	improved.
+	* font.h (struct font_driver): Improve docstring of member `shape'.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -173,8 +676,7 @@
 	supported by the font is found.
 	(Ffont_shape_text): When a shape callback function returns nil,
 	try at most two more times with larger gstring.
-	(Ffont_at): Fix getting of w.  Call font_at with correct 5th
-	argument.
+	(Ffont_at): Fix getting of w.  Call font_at with correct 5th argument.
 
 	* xdisp.c (handle_auto_composed_prop): Change the argument to
 	auto-composition-function.
@@ -193,9 +695,8 @@
 
 	* fontset.c (Vfont_encoding_charset_alist): New variable.
 	(syms_of_fontset): DEFVAR it.
-	(reorder_font_vector): Optimize for the case of no need of
-	reordring.
-	(fontset_find_font): Likewise.
+	(reorder_font_vector, fontset_find_font): Optimize for the case of
+	no need of reordering.
 	(face_for_char): Map the charset property by
 	Vfont_encoding_charset_alist.
 
@@ -226,8 +727,8 @@
 
 	* ftfont.c (ftfont_get_cache): Adjust the argument type.
 
-	* frame.c (x_set_font_backend): Don't call Fclear_font_cache.  If
-	none of the new drivers are available, call font_update_drviers
+	* frame.c (x_set_font_backend): Don't call Fclear_font_cache.
+	If none of the new drivers are available, call font_update_drviers
 	with the old drivers.
 
 	* w32font.c (w32font_get_cache): Adjust the argument type.
@@ -239,13 +740,10 @@
 	* xftfont.c (xftfont_start_for_frame): Delete prototype.
 
 	* font.c (Ffont_get): Fix arguments to Fassoc.
-	(font_prepare_cache, font_finish_cache, font_get_cache): New
-	functions.
+	(font_prepare_cache, font_finish_cache, font_get_cache): New functions.
 	(font_clear_cache): New function.
-	(font_list_entities): Use font_get_cache.
-	(font_matching_entity): Likewise.
-	(font_update_drivers): Call font_clear_cache when finishing a
-	driver.
+	(font_list_entities, font_matching_entity): Use font_get_cache.
+	(font_update_drivers): Call font_clear_cache when finishing a driver.
 
 	* fontset.c (fontset_find_font): Fix previous change.
 
@@ -254,23 +752,22 @@
 	* xterm.c (x_check_font) [USE_FONT_BACKEND]: Don't access
 	dpyinfo->font_table.
 	(x_delete_display) [USE_FONT_BACKEND]: Likewise.
-	(x_delete_terminal) [USE_FONT_BACKEND]: Likewise
+	(x_delete_terminal) [USE_FONT_BACKEND]: Likewise.
 
 	* font.c (font_at): Handle the case that the arg C is negative.
 	Handle the unibyte case.
 	(Ffont_at): Call font_at with the arg C -1.
 
 	* xdisp.c (handle_auto_composed_prop): Don't get a character at
-	the position here, and call font_at with the arg C -1.  Don't
-	check the range of the existing composition at the point.
+	the position here, and call font_at with the arg C -1.
+	Don't check the range of the existing composition at the point.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* fontset.c (fontset_add): New args charset_id and famliy.  Caller
-	changed.
-	(load_font_get_repertory): Assume that font_spec is always a
-	font-spec object.
-	(fontset_find_font): Likewise.
+	* fontset.c (fontset_add): New args charset_id and family.
+	Change caller.
+	(load_font_get_repertory, fontset_find_font): Assume that
+	font_spec is always a font-spec object.
 	(Fset_fontset_font): Always store a font-spec object in a fontset.
 
 	* xdisp.c (handle_auto_composed_prop): Use Fget_text_property
@@ -281,16 +778,15 @@
 	* xftfont.c (struct xftfont_info): Delete the member ft_face.
 	(xftfont_open): Don't keep locking face.
 	(xftfont_close): Don't unlock face.
-	(xftfont_anchor_point): Lock and unlock face.
-	(xftfont_shape): Likewise.
+	(xftfont_anchor_point, xftfont_shape): Lock and unlock face.
 
 	* fontset.c (fontset_find_font): Don't prefer a font of
 	supplementary charset.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* ftfont.c (struct OpenTypeSpec): Members script_tag renamed to
-	script, langsys_tag renamed to langsys, new member script.
+	* ftfont.c (struct OpenTypeSpec): Rename members script_tag to
+	script, langsys_tag to langsys, new member script.
 	(OTF_TAG_STR): Terminate by '\0'.
 	(ftfont_get_open_type_spec): If :otf prop is is spec, Limit the
 	listing to the script specified in that property.  Fix arg to
@@ -337,8 +833,7 @@
 	(ftfont_get_open_type_spec): New function.
 	(ftfont_list) [HAVE_LIBOTF]: Check otf-spec property.
 
-	* lread.c (read1): Redo the previous change with checking
-	Vpurify_flag.
+	* lread.c (read1): Redo the previous change with checking Vpurify_flag.
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
@@ -347,23 +842,23 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* xdisp.c (handle_auto_composed_prop): Simplify the code.  Never
-	return HANDLED_RECOMPUTE_PROPS.
+	* xdisp.c (handle_auto_composed_prop): Simplify the code.
+	Never return HANDLED_RECOMPUTE_PROPS.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* font.c (font_gstring_produce): Delete it.
 
-	* composite.h (COMPOSITION_METHOD): Handle
-	COMPOSITION_WITH_GLYPH_STRING.
+	* composite.h (COMPOSITION_METHOD):
+	Handle COMPOSITION_WITH_GLYPH_STRING.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* xfont.c (Qx): Deleted.
+	* xfont.c (Qx): Delete.
 	(syms_of_xfont): Don't initialize Qx.
 
-	* composite.h (enum composition_method): Define
-	COMPOSITION_WITH_GLYPH_STRING unconditionally.
+	* composite.h (enum composition_method):
+	Define COMPOSITION_WITH_GLYPH_STRING unconditionally.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -375,8 +870,7 @@
 	unconditionally.
 
 	* fontset.c: Include "font.h" unconditionally.
-	(generate_ascii_font_name): Use font_parse_xlfd and
-	font_unparse_xlfd.
+	(generate_ascii_font_name): Use font_parse_xlfd and font_unparse_xlfd.
 	(Fset_fontset_font): Accept a font-spec object.
 
 	* font.c (font_unparse_xlfd): If pixel_size is zero, make the
@@ -411,42 +905,37 @@
 
 	* font.h (FONT_ENTITY_NOT_LOADABLE)
 	(FONT_ENTITY_SET_NOT_LOADABLE): New macros.
-	(LGSTRING_XXXX, LGLYPH_XXX): Adjusted for the change of lispy
-	gstring.
+	(LGSTRING_XXXX, LGLYPH_XXX): Adjust for the change of lispy gstring.
 	(struct font_driver): New member shape.
-	(font_registry_charsets): Extern. it.
-	(font_find_for_lface): Prototype adjusted.
-	(font_prepare_composition): Likewise.
+	(font_registry_charsets): Extern it.
+	(font_find_for_lface, font_prepare_composition): Adjust prototype.
 	(font_otf_capability, font_drive_otf): Delete their externs.
 
 	* font.c [HAVE_M17N_FLT]: Include <m17n-flt.h>.
-	(font_charset_alist): Moved from xfont.c and renamed.
-	(font_registry_charsets): Likewise.
+	(font_charset_alist, font_registry_charsets): Move from xfont.c
+	and rename.
 	(font_prop_validate_otf): New function.
 	(font_property_table): Register it for QCotf.
 	(DEVICE_DELTA, adjust_anchor, REPLACEMENT_CHARACTER)
-	(font_drive_otf): Deleted.
-	(font_prepare_composition): New arg F.  Adjusted for the change of
+	(font_drive_otf): Delete.
+	(font_prepare_composition): New arg F.  Adjust for the change of
 	lispy gstring.
 	(font_find_for_lface): New arg C.
-	(font_load_for_face): Adjusted for the change of
-	font_find_for_lface.
-	(Ffont_make_gstring): Adjusted for the change of lispy gstring.
-	(Ffont_fill_gstring): Likewise.
+	(font_load_for_face): Adjust for the change of font_find_for_lface.
+	(Ffont_make_gstring, Ffont_fill_gstring): Adjust for the change of
+	lispy gstring.
 	(Ffont_shape_text): New function.
 	(Fopen_font): If the font size is not given, use 12-pixel.
 	(Ffont_at): New arg STRING.
-	(syms_of_font): Initalize font_charset_alist.  Declare
-	Ffont_shape_text as a Lisp function.  Call syms_of_XXfont
+	(syms_of_font): Initalize font_charset_alist.
+	Declare Ffont_shape_text as a Lisp function.  Call syms_of_XXfont
 	conditionally.
 
 	* fontset.c (fontset_find_font) [USE_FONT_BACKEND]: Try multiple
 	fonts of the same font-spec.  Change the format of RFONT-DEF.
-	(face_for_char): Adjusted for the change of RFONT-DEF.
-	(make_fontset_for_ascii_face): Likewise.
-	(Finternal_char_font): Likewise.
-	(Fset_fontset_font) [USE_FONT_BACKEND]: Handle new format of
-	font-spec.
+	(face_for_char, make_fontset_for_ascii_face, Finternal_char_font):
+	Adjust for the change of RFONT-DEF.
+	(Fset_fontset_font) [USE_FONT_BACKEND]: Handle new format of font-spec.
 
 	* ftfont.h: New file.
 
@@ -455,7 +944,7 @@
 	(ftfont_open) [HAVE_LIBOTF]: Initialize the above members.
 	(ftfont_driver) [HAVE_LIBOTF, HAVE_M17N_FLT]: Don't set
 	font_otf_capability and font_drive_otf, set ftfont_shape.
-	(ftfont_list): Adjusted for the change of :otf property value.
+	(ftfont_list): Adjust for the change of :otf property value.
 	(struct MFLTFontFT) [HAVE_LIBOTF, HAVE_M17N_FLT]: New struct.
 	(ftfont_get_glyph_id, ftfont_get_metrics, ftfont_check_otf)
 	(adjust_anchor, ftfont_drive_otf, ftfont_shape_by_flt)
@@ -463,34 +952,31 @@
 	(DEVICE_DELTA) [HAVE_LIBOTF, HAVE_M17N_FLT]: New macro.
 	(otf_gstring, gstring, m17n_flt_initialized): New variables.
 
-	* w32term.c (x_draw_composite_glyph_string_foreground): Adjusted
-	for the change of lispy gstring.
+	* w32term.c (x_draw_composite_glyph_string_foreground):
+	Adjust for the change of lispy gstring.
 
-	* xdisp.c (handle_composition_prop): Adjusted for the change of
+	* xdisp.c (handle_composition_prop): Adjust for the change of
 	lispy gstring.  Call a function for auto-composition with the
-third arg it->window.
-	(fill_composite_glyph_string): Adjusted for the change of lispy
-	string.
-	(x_produce_glyphs): Adjusted for the change of
-	font_prepare_compositionl.
+	third arg it->window.
+	(fill_composite_glyph_string): Adjust for the change of lispy string.
+	(x_produce_glyphs): Adjust for the change of font_prepare_compositionl.
 
-	* xfaces.c (set_font_frame_param): Adjusted for the change of
+	* xfaces.c (set_font_frame_param): Adjust for the change of
 	font_find_for_lface.
 
-	* xfont.c (x_font_charset_alist): Moved to font.c and renamed.
-	(xfont_registry_charsets): Likewise.  Caller changed.
+	* xfont.c (x_font_charset_alist): Move to font.c and rename.
+	(xfont_registry_charsets): Likewise.  Change caller.
 	(syms_of_xfont): Don't handle x_font_charset_alist.
 
 	* xftfont.c: Include "ftfont.h".
-	(struct xftfont_info) [HAVE_LIBOTF]: New members maybe_otf and
-	otf.
+	(struct xftfont_info) [HAVE_LIBOTF]: New members maybe_otf and otf.
 	(xftfont_open) [HAVE_LIBOTF]: Initialize the above members.
 	(xftfont_close) [HAVE_LIBOTF]: Close otf.
 	(xftfont_shape) [HAVE_LIBOTF, HAVE_M17N_FLT]: New function.
-	(syms_of_xftfont) [HAVE_LIBOTF, HAVE_M17N_FLT]: Set
-	xftfont_driver.shape to xftfont_shape.
+	(syms_of_xftfont) [HAVE_LIBOTF, HAVE_M17N_FLT]:
+	Set xftfont_driver.shape to xftfont_shape.
 
-	* xterm.c (x_draw_composite_glyph_string_foreground): Adjusted for
+	* xterm.c (x_draw_composite_glyph_string_foreground): Adjust for
 	the change of lispy gstring.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
@@ -508,11 +994,11 @@ third arg it->window.
 	(syms_of_font): Define it.
 	(font_property_table): Set a validator for QCantialias.
 
-	* w32font.c (CLEARTYPE_QUALITY, CLEARTYPE_NATURAL_QUALITY): Define
-	if not already.
+	* w32font.c (CLEARTYPE_QUALITY, CLEARTYPE_NATURAL_QUALITY):
+	Define if not already.
 	(QCfamily): Share with xfaces.c.
 	(Qstandard, Qsubpixel, Qnatural): New symbols.
-	(syms_of_w32font): Define them. Don't define QCfamily here.
+	(syms_of_w32font): Define them.  Don't define QCfamily here.
 	(w32_antialias_type, lispy_antialias_type): New functions.
 	(w32_enumfont_pattern_entity): New arg requested_font.
 	Set antialias parameter if non-default was requested.
@@ -545,20 +1031,18 @@ third arg it->window.
 	(Fdelete_frame): Call font_update_drivers.
 
 	* xftfont.c (struct xftface_info): Delete the member xft_draw.
-	(xftfont_prepare_face): Adjusted for the above change.
-	(xftfont_done_face): Likewise.
+	(xftfont_prepare_face, xftfont_done_face): Adjust for the above change.
 	(xftfont_get_xft_draw): New function.
 	(xftfont_draw): Get XftDraw by xftfont_get_xft_draw.
 	(xftfont_end_for_frame): New function.
 	(syms_of_xftfont): Set xftfont_driver.end_for_frame.
 
-	* ftxfont.c (ftxfont_get_gcs): Renamed from ftxfont_create_gcs.
-	Argument changed.  Cache GCs in the per-frame data.
+	* ftxfont.c (ftxfont_get_gcs): Rename from ftxfont_create_gcs.
+	Change argument.  Cache GCs in the per-frame data.
 	(struct ftxfont_frame_data): New struct.
 	(ftxfont_draw_bitmap): New arg gc_fore and flush.
 	(ftxfont_prepare_face, ftxfont_done_face): Delete them.
-	(ftxfont_draw): Get GCs by ftxfont_get_gcs.  Reflect s->clip in
-	GCs.
+	(ftxfont_draw): Get GCs by ftxfont_get_gcs.  Reflect s->clip in GCs.
 	(ftxfont_end_for_frame): New function.
 	(syms_of_ftxfont): Set ftxfont_driver.end_for_frame.
 
@@ -591,8 +1075,8 @@ third arg it->window.
 	* lread.c (READCHAR): Call readchar with the 2nd arg NULL.
 	(READCHAR_REPORT_MULTIBYTE): New macro.
 	(readchar): New 2nd arg MULTIBYTE.
-	(read1): Use READCHAR_REPORT_MULTIBYTE for the first read.  Make
-	symbol's name multibyte according to the multibyteness of the
+	(read1): Use READCHAR_REPORT_MULTIBYTE for the first read.
+	Make symbol's name multibyte according to the multibyteness of the
 	source.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
@@ -602,13 +1086,11 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* font.c (font_prop_validate_symbol): The argument prop_index is
-	deleted.
-	(font_prop_validate_style, font_prop_validate_non_neg)
-	(font_prop_validate_spacing): Likewise.
-	(font_property_table): Arguments to validater changed.  Callers
-	changed.
-	(font_lispy_object): Deleted.
+	* font.c (font_prop_validate_symbol, font_prop_validate_style)
+	(font_prop_validate_non_neg, font_prop_validate_spacing):
+	Delete argument prop_index.
+	(font_property_table): Change arguments to validater.  Change Callers.
+	(font_lispy_object): Delete.
 	(font_at): Use font_find_object instead fo font_lispy_object.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
@@ -695,10 +1177,9 @@ third arg it->window.
 	* keymap.c (where_is_internal_1): If key is a cons, store the copy
 	in sequence.
 
-	* chartab.c (map_sub_char_table): If the range contains just one
-	character, call the function with that character even if the depth
-	is not 3.
-	(map_char_table): Likewise.
+	* chartab.c (map_sub_char_table, map_char_table): If the range
+	contains just one character, call the function with that character
+	even if the depth is not 3.
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
@@ -713,26 +1194,24 @@ third arg it->window.
 
 	* w32term.c (x_set_glyph_string_clipping): Use
 	get_glyph_string_clip_rects.
-	(x_set_glyph_string_clipping_exactly): Adjusted for the change of
-	struct glyph_string.
-	(x_draw_glyph_string): Likewise.
+	(x_set_glyph_string_clipping_exactly, x_draw_glyph_string):
+	Adjust for the change of struct glyph_string.
 
 	* w32font.c (w32font_draw): Do clipping here.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* xftfont.c (xftfont_draw): Adjusted for the change of struct
+	* xftfont.c (xftfont_draw): Adjust for the change of struct
 	glyph_string.
 
 	* xterm.c (x_set_glyph_string_clipping): Use
 	get_glyph_string_clip_rects.
-	(x_set_glyph_string_clipping_exactly): Adjusted for the change of
-	struct glyph_string.
-	(x_draw_glyph_string): Likewise.
+	(x_set_glyph_string_clipping_exactly, x_draw_glyph_string):
+	Adjust for the change of struct glyph_string.
 
 	* xdisp.c (get_glyph_string_clip_rects): Reflect s->row->clip to
 	the resulting clip(s}.
-	(expose_overlaps): Add arg r.  Callers changed.  Set it ot
+	(expose_overlaps): Add arg r.  Change callers.  Set it to
 	row->clip temporarily.
 	(expose_window): Redraw rows overlapping the exposed area.
 
@@ -831,7 +1310,7 @@ third arg it->window.
 	* Makefile.in (lisp): Add ${lispsource}language/tai-viet.el.
 	(shortlisp): Add ../lisp/language/tai-viet.el.
 
-2008-02-01  Ulrich Mueller  <ulm@gentoo.org>  (tiny change)
+2008-02-01  Ulrich Mueller  <ulm@gentoo.org>
 
 	* Makefile.in (${lispsource}international/charprop.el): Depend on
 	temacs${EXEEXT}.
@@ -893,23 +1372,23 @@ third arg it->window.
 	(w32font_has_char): Use script Lisp symbols, not subrange bitmask.
 	(w32font_encode_char): Always return unicode code-point as-is.
 	(w32font_text_extents): Supply a tranformation matrix to
-	GetGlyphOutline. Never look up by glyph index. Avoid looping
-	twice. Use unicode version of GetTexExtentPoint32 instead of
+	GetGlyphOutline.  Never look up by glyph index.  Avoid looping
+	twice.  Use unicode version of GetTexExtentPoint32 instead of
 	glyph index version.
 	(set_fonts_frame): Remove
 	(w32_enumfont_pattern_entity): Add frame parameter, use it to
-	set frame parameter. Use backward compatible fake foundries.
-	Save generic family in extra slot under QCfamily. Make width slot
-	constant. Save QCspacing value. Save list of scripts instead of
+	set frame parameter.  Use backward compatible fake foundries.
+	Save generic family in extra slot under QCfamily.  Make width slot
+	constant.  Save QCspacing value.  Save list of scripts instead of
 	binary subranges.
 	(w32_generic_family, logfonts_match, font_matches_spec): New functions.
-	(add_font_entity_to_list): Use font_callback_data struct. Filter
+	(add_font_entity_to_list): Use font_callback_data struct.  Filter
 	unwanted fonts.
 	(add_one_font_entity_to_list): Use font_callback_data struct.
-	(w32_registry): Default to iso10646_1;
-	(fill_in_logfont): Use dpi from extra slot. Don't bother with
-	string font registries. Don't fill in font name if it is a generic
-	family name, fill family instead. Use spacing, family and script
+	(w32_registry): Default to iso10646_1.
+	(fill_in_logfont): Use dpi from extra slot.  Don't bother with
+	string font registries.  Don't fill in font name if it is a generic
+	family name, fill family instead.  Use spacing, family and script
 	extra info to fill pitch, family and charset fields.
 	(list_all_matching_fonts): Use font_callback_data struct.
 	(unicode_range_for_char): Remove.
@@ -950,7 +1429,7 @@ third arg it->window.
 
 	* font.c (font_put_extra): Expose externally.
 
-	* font.h (font_put_extra): Moved declaration from font.c.
+	* font.h (font_put_extra): Move declaration from font.c.
 
 	* font.c (Ffont_get): Use font driver to determine otf capability.
 	(adjust_anchor): Check if driver defines anchor_point before using.
@@ -963,7 +1442,7 @@ third arg it->window.
 	expressed as lisp symbols.
 	(w32_registry): Express charset as lisp symbol.
 	(fill_in_logfont): Reverse pixel and point height logic.
-	Don't set width here. Set quality to default.
+	Don't set width here.  Set quality to default.
 
 	* w32fns.c (w32_load_system_font): Fix detecting FIXED_PITCH fonts.
 	(x_to_w32_font): Fill in lfPitchAndFamily correctly.
@@ -996,10 +1475,6 @@ third arg it->window.
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* term.c: Don't include "buffer.h" twice.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* syntax.c (skip_syntaxes): Synch with the trunk.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1037,21 +1512,20 @@ third arg it->window.
 	* font.c (struct otf_list): Delete it.
 	(otf_list): Make it a lisp variable..
 	(otf_open): Use lispy otf_list.
-	(generate_otf_features): Renamed from parse_gsub_gpos_spec.
+	(generate_otf_features): Rename from parse_gsub_gpos_spec.
 	(check_otf_features): New function.
 	(font_otf_DeviceTable, font_otf_ValueRecord, font_otf_Anchor): New
 	functinos.
 	(font_drive_otf): New function merging font_otf_gsub and
 	font_otf_gpos.
 	(font_open_for_lface): New arg spec.  Change argument order.
-	(font_load_for_face): Adjusted for the change of
-	font_open_for_lface.
+	(font_load_for_face): Adjust for the change of font_open_for_lface.
 	(Ffont_drive_otf): New function merging Ffont_otf_gsub and
 	Ffont_otf_gpos.
 	(syms_of_font): Staticpro otf_list.  Delete defsubr of
 	Sfont_otf_gsub and Sfont_otf_gpos.  Defsubr Sfont_drive_otf.
 
-	* xfaces.c (set_font_frame_param): Adjusted for the change of
+	* xfaces.c (set_font_frame_param): Adjust for the change of
 	font_open_for_lface.
 
 	* font.h (font_open_for_lface): Adjust prototype.
@@ -1065,9 +1539,8 @@ third arg it->window.
 	* font.c (font_at): If the window W is not on a window system,
 	return Qnil.
 
-	* coding.c (produce_chars): Don't call insert_from_gap if no
-	characters to produce.
-	(encode_coding): Likewise.
+	* coding.c (produce_chars, encode_coding): Don't call
+	insert_from_gap if no characters to produce.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1101,8 +1574,8 @@ third arg it->window.
 	* character.c (char_string): Type of arg C changed to unsigned.
 	Signal an error if C is an invalid character code.
 
-	* editfns.c (general_insert_function): Use CHARACTERP, not INTEGERP.
-	(Fchar_to_string): Likewise.
+	* editfns.c (general_insert_function, Fchar_to_string):
+	Use CHARACTERP, not INTEGERP.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1115,10 +1588,6 @@ third arg it->window.
 2008-02-01  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (LIBES): Move standard libraries to the end.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* process.c: Cancel the change done by sync with HEAD.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1172,18 +1641,17 @@ third arg it->window.
 	* regex.h (struct re_pattern_buffer): New member charset_unibyte.
 
 	* regex.c (RE_STRING_CHAR, RE_STRING_CHAR_AND_LENGTH): New arg
-	multibyte.  Callers changed.
+	multibyte.  Change callers.
 	(RE_CHAR_TO_MULTIBYTE, RE_CHAR_TO_UNIBYTE): New macros.
-	(MAKE_CHAR_MULTIBYTE, MAKE_CHAR_UNIBYTE): Deleted.  Callers
-	changed to use RE_CHAR_TO_MULTIBYTE and RE_CHAR_TO_UNIBYTE
-	respectively.
+	(MAKE_CHAR_MULTIBYTE, MAKE_CHAR_UNIBYTE): Delete.  Change callers
+	to use RE_CHAR_TO_MULTIBYTE and RE_CHAR_TO_UNIBYTE, respectively.
 	(SETUP_ASCII_RANGE, SETUP_UNIBYTE_RANGE): New macros.
 	(SETUP_MULTIBYTE_RANGE): Generate a more compact range_table.
 	(regex_compile): Make the compiled pattern usable both for
 	multibyte and unibyte targets.
 	(analyse_first): Make the fastmap usable both for multibyte and
 	unibyte targets.
-	(TRANSLATE_VIA_MULTIBYTE): Deleted.
+	(TRANSLATE_VIA_MULTIBYTE): Delete.
 	(re_match_2_internal): Pay attention to the case that the
 	multibyteness of bufp and target may be different.
 
@@ -1199,14 +1667,6 @@ third arg it->window.
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xrdb.c (x_load_resources): Setup the default fontSet X reource.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* regex.c (regex_compile): Synch with HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* fontset.c (Finternal_char_font): Fix previous change.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1248,10 +1708,8 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* ftfont.c (ftfont_pattern_entity): Check if FC_FONTFORMAT is
-	defined.
-	(ftfont_list_generic_family, ftfont_list, ftfont_font_format):
-	Likewise.
+	* ftfont.c (ftfont_pattern_entity, ftfont_list_generic_family)
+	(ftfont_list, ftfont_font_format): Check if FC_FONTFORMAT is defined.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1273,10 +1731,6 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* search.c (simple_search): Fix sync with HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* xfns.c (xic_create_xfontset): Try the default fontset name as a
 	last resort.
 
@@ -1293,22 +1747,19 @@ third arg it->window.
 
 	* xdisp.c (get_next_display_element): Set it->face_id for the
 	first component of a composition.
-	(x_produce_glyphs): Check if the font is changed or not for
-	composition.
+	(x_produce_glyphs): Check if the font is changed or not for composition.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	(get_next_display_element): Set it->face_id for the
 	first component of a composition.
-	(x_produce_glyphs): Check if the font is changed or not for
-	composition.
+	(x_produce_glyphs): Check if the font is changed or not for composition.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (Qlatin): New variable.
 	(syms_of_fontset): Define it as a lisp symbol.
-	(Fset_fontset_font): If TARGET is `latin', use FONT_SPEC for
-	ASCII.
+	(Fset_fontset_font): If TARGET is `latin', use FONT_SPEC for ASCII.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1320,7 +1771,7 @@ third arg it->window.
 	* term.c: Include "composite.h".
 	(encode_terminal_code): Output all components of composition.
 	Check the size of encode_terminal_src.
-	(produce_glyphs): For compostion, call produce_composite_glyph.
+	(produce_glyphs): For composition, call produce_composite_glyph.
 	(append_composite_glyph, produce_composite_glyph): New functions.
 
 	* xdisp.c (x_produce_glyphs): In handling composition, if a font
@@ -1345,26 +1796,19 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* composite.c (get_composition_id): Pay attention to TAB
-	component.
+	* composite.c (get_composition_id): Pay attention to TAB component.
 
 	* xterm.c (x_draw_composite_glyph_string_foreground): Don't draw
-	TAB.  Adjusted for the change of s->char2b which always points to
+	TAB.  Adjust for the change of s->char2b which always points to
 	the first elememnt of allocated memory.
 
-	* xftfont.c (xftfont_text_extents): Fix calculation of descent
-	value.
+	* xftfont.c (xftfont_text_extents): Fix calculation of descent value.
 
 	* xdisp.c (handle_composition_prop): Set it->c to the first
 	non-TAB component.
-	(fill_composite_glyph_string): Argument changed.
-	(BUILD_COMPOSITE_GLYPH_STRING): Adjusted for the above change.
+	(fill_composite_glyph_string): Change argument.
+	(BUILD_COMPOSITE_GLYPH_STRING): Adjust for the above change.
 	(x_produce_glyphs): Fix handling of left/right padding.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* regex.c (analyse_first): Cancel the change for synching with
-	HEAD.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1374,7 +1818,7 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* font.c (font_matching_entity): Dolete unused local var.
+	* font.c (font_matching_entity): Delete unused local var.
 
 	* xftfont.c (xftfont_open): Call XftDefaultSubstitute before
 	opening a font.
@@ -1391,22 +1835,21 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* alloc.c (NSTATICS): Increased to 0x600.
+	* alloc.c (NSTATICS): Increas to 0x600.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* ftfont.c (ftfont_driver): Set ftfont_driver.match to
-	ftfont_match.
+	* ftfont.c (ftfont_driver): Set ftfont_driver.match to ftfont_match.
 	(ftfont_list): Don't check :name property.
 	(ftfont_match): New function.
 	(ftfont_pattern_entity): If the pattern doesn't contain
 	FC_SPACING, don't assuce FC_MONO.
 
 	* font.h (struct font_driver): New member `match'.
-	(font_update_drivers): Prototype adjusted.
+	(font_update_drivers): Adjust prototype.
 
-	* font.c (font_parse_fcname): Don't change :name property of FONT.
-	(font_parse_name): Likewise.
+	* font.c (font_parse_fcname, font_parse_name): Don't change :name
+	property of FONT.
 	(LGSTRING_HEADER_SIZE, LGSTRING_GLYPH_SIZE, check_gstring): Define
 	them unconditionally.
 	(font_matching_entity): New function.
@@ -1417,10 +1860,8 @@ third arg it->window.
 	Don't store data in frame parameters.  Don't call x_set_font.
 	(Ffont_spec): Store :name property as is.
 	(Ffont_get): Check HAVE_LIBOTF before calling font_otf_capability.
-	(Ffont_otf_gsub): Call font->driver->otf_gsub instead of
-	font_otf_gsub.
-	(Ffont_otf_gpos): Call font->driver->otf_gpos instead of
-	font_otf_gpos.
+	(Ffont_otf_gsub): Call font->driver->otf_gsub instead of font_otf_gsub.
+	(Ffont_otf_gpos): Call font->driver->otf_gpos instead of font_otf_gpos.
 	(Ffont_otf_alternates): Check if the driver has otf_gsub function.
 	Call font->driver->otf_gsub instead of font_otf_gsub.
 
@@ -1441,11 +1882,10 @@ third arg it->window.
 
 	* font.h (struct font): New member scalable.
 	(struct font_driver): New arg ALTERANTE_SUBST to otf_gsub.
-	(font_otf_gsub): Prototype adjusted.
+	(font_otf_gsub): Adjust prototype.
 
-	* font.c (font_otf_capability): Fix handling of the default
-	langsys.
-	(parse_gsub_gpos_spec): Type changed to void.  New arg nbytes.
+	* font.c (font_otf_capability): Fix handling of the default langsys.
+	(parse_gsub_gpos_spec): Change type to void.  New arg nbytes.
 	Check the contents of SPEC.
 	(LGSTRING_HEADER_SIZE, LGSTRING_GLYPH_SIZE): New macros.
 	(check_gstring): New function.
@@ -1532,9 +1972,8 @@ third arg it->window.
 	(syms_of_font): Defsubr Sfont_at.
 
 	* xdisp.c (it_props): Move the entry for Qauto_composed to just
-	before the entry for Qcompostion.
-	(handle_auto_composed_prop): Call auto-composition-function with 4
-	args.
+	before the entry for Qcomposition.
+	(handle_auto_composed_prop): Call auto-composition-function with 4 args.
 	(handle_composition_prop) [USE_FONT_BACKEND]: Set it->face_id from
 	the font in gstring.
 	(fill_composite_glyph_string) [USE_FONT_BACKEND]: Check
@@ -1552,10 +1991,6 @@ third arg it->window.
 	* xterm.c (x_draw_composite_glyph_string_foreground): Check if
 	adjustment is vector or not.
 
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* casefiddle.c (casify_object): Sync with HEAD.
-
 2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* character.h (CHECK_CHARACTER): Redefine in terms of CHECK_TYPE.
@@ -1566,20 +2001,18 @@ third arg it->window.
 	(LGLYPH_SET_WIDTH): Adjusted for the change of LGLYPH format.
 	(LGLYPH_ADJUSTMENT, LGLYPH_SET_ADJUSTMENT): New macros.
 
-	* font.c (font_merge_old_spec): Treat '*' in foundry as a wild
-	card.
+	* font.c (font_merge_old_spec): Treat '*' in foundry as a wild card.
 	(DEVICE_DELTA): Fix typo.
-	(font_otf_gpos): Adjusted for the change of LGLYPH format.
-	(font_prepare_composition): Likewise.
+	(font_otf_gpos, font_prepare_compositio): Adjust for the change of
+	LGLYPH format.
 
-	* xterm.c (x_draw_composite_glyph_string_foreground): Adjusted for
+	* xterm.c (x_draw_composite_glyph_string_foreground): Adjust for
 	the change of LGLYPH format.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_list): Fix typo.
-	(ftfont_build_basic_charsets): Don't include letters with
-	diactrics.
+	(ftfont_build_basic_charsets): Don't include letters with diacritics.
 
 2008-02-01  Jan Dj,Adrv  <jan.h.d@swipnet.se>
 
@@ -1591,12 +2024,11 @@ third arg it->window.
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* ftfont.c (ftfont_list): Fix typo.
-	(ftfont_build_basic_charsets): Don't include letters with
-	diactrics.
+	(ftfont_build_basic_charsets): Don't include letters with diactrics.
 
 2008-02-01  Jan Dj,Adrv  <jan.h.d@swipnet.se>
 
-	* ftfont.c (ftfont_list): Move misplaced #endif
+	* ftfont.c (ftfont_list): Move misplaced #endif.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1607,8 +2039,8 @@ third arg it->window.
 
 	* xftfont.c (xftfont_open): Set charset related members to -1.
 
-	* ftfont.c (ftfont_list): Handle QCotf property.  Handling of
-	QCname fixed.
+	* ftfont.c (ftfont_list): Handle QCotf property.  Fix handling of
+	QCname.
 	(ftfont_open): Set charset related members to -1.
 
 	* fontset.c (Votf_script_alist): New variable.
@@ -1617,7 +2049,7 @@ third arg it->window.
 
 	* fontset.h (Votf_script_alist): Extern it.
 
-	* font.c (font_find_for_lface): Code optimized.
+	* font.c (font_find_for_lface): Optimize code.
 
 	* font.h (font_close_object, font_merge_old_spec): Extern them.
 
@@ -1626,45 +2058,38 @@ third arg it->window.
 	* font.c (QCscalable, Qc, Qm, Qp, Qd): New variables.
 	(syms_of_font): Initialize them.
 	(font_pixel_size): Allow float value in dpi.
-	(font_prop_validate_type): Deleted.
-	(font_prop_validate_symbol, font_prop_validate_style): Argument
-	changed.  Caller changed.
-	(font_prop_validate_non_neg): Renamed from
-	font_prop_validate_size.
-	(font_prop_validate_extra): Deleted.
+	(font_prop_validate_type): Delete.
+	(font_prop_validate_symbol, font_prop_validate_style): Change argument.
+	Change caller.
+	(font_prop_validate_non_neg): Rename from font_prop_validate_size.
+	(font_prop_validate_extra): Delete.
 	(font_prop_validate_spacing): New function.
 	(font_property_table): Add elements for all known properties.
-	(get_font_prop_index): Renamed from check_font_prop_name.  New
-	argument FROM.  Caller changed.
+	(get_font_prop_index): Rename from check_font_prop_name.  New
+	argument FROM.  Change caller.
 	(font_prop_validate): Validate all known properties.
-	(font_put_extra): Argument force deleted.  Caller changed.
+	(font_put_extra): Delete argument force.  Change caller.
 	(font_expand_wildcards): Make it static.  Fix the way of shrinking
 	the possible range.
-	(font_parse_xlfd): Arguemnt merge deleted.  Fix handling of RESX,
+	(font_parse_xlfd): Delete argument merge.  Fix handling of RESX,
 	RESY, SPACING, and AVGWIDTH.  Don't validate property values here.
-	Caller changed.
+	Change caller.
 	(font_unparse_xlfd): Handle dpi, spacing, and scalable properties.
-	(font_parse_fcname): Arguemnt merge deleted.  Fix parsing of point
-	size.  Don't validate properties values here.  Caller changed.
-	(font_unparse_fcname): Handle dpi, spacing, and scalable
-	properties.
+	(font_parse_fcname): Delete argument merge.  Fix parsing of point
+	size.  Don't validate properties values here.  Change caller.
+	(font_unparse_fcname): Handle dpi, spacing, and scalable properties.
 	(font_open_by_name): Delete unused variable.
 	(Ffont_spec): Likewise.  Validate property values.
 	(Ffont_match_p): New function.
 
 	* font.h (QCscalable): Extern it.
-	(font_parse_xlfd, font_parse_fcname): Prototype adjusted.
+	(font_parse_xlfd, font_parse_fcname): Adjust prototype.
 
-	* ftfont.c (ftfont_list): Handle properties dpi, spacing, and
-	scalable.
+	* ftfont.c (ftfont_list): Handle properties dpi, spacing, and scalable.
 
-	* xfont.c (xfont_query_font): Adjusted for the change of
-	font_parse_xlfd.
+	* xfont.c (xfont_query_font): Adjust for the change of font_parse_xlfd.
 	(xfont_list_pattern): New function.
 	(xfont_list): Use xfont_list_pattern.
-
-	* xftfont.c (xftfont_prepare_face): Cancel previous change.
-	(xftfont_done_face): Likewise.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1685,10 +2110,6 @@ third arg it->window.
 	* font.c (font_parse_xlfd): Fix generating of CHARSET_REGISTRY field.
 	(font_has_char): Accept font-object too.
 	(font_find_for_lface): Try at first with a size specified in face.
-
-	* xftfont.c (xftfont_prepare_face): Make non-ascii face share
-	face->extra with ascii face.
-	(xftfont_done_face): Don't free face->extra of non-ascii face.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1711,15 +2132,11 @@ third arg it->window.
 	(font_parse_fcname): Handle enumenrated values (e.g. bold).  Fix
 	handling font size.  Add QCname property that contains only
 	unknown properties.
-	(font_score): Change argument.  Caller changed.  Pay attention to
+	(font_score): Change argument.  Change caller.  Pay attention to
 	FONT_PIXEL_SIZE_QUANTUM.
-	(font_sort_entites): Fix handling of font size.
-	(font_list_entities): Likewise.
-	(font_find_for_lface): Likewise.
-	(font_open_for_lface): Likewise.
-	(font_open_by_name): Likewise.
-	(Ffont_spec): Add QCname property that contains only unknown
-	properties.
+	(font_sort_entites, font_list_entities, font_find_for_lface)
+	(font_open_for_lface, font_open_by_name): Fix handling of font size.
+	(Ffont_spec): Add QCname property that contains only unknown properties.
 
 	* ftfont.c (ftfont_list): Use assq_no_quit, not Fassq.  Don't
 	include weight in listing pattern, instead check weight of each
@@ -1728,11 +2145,8 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* lread.c (read_escape): Fix the code synched with HEAD.
-
 	* font.c (font_parse_fcname): Fix parsing of point-size.
-	(font_unparse_fcname): Produce symbolic names for style
-	properties.
+	(font_unparse_fcname): Produce symbolic names for style properties.
 	(font_list_entities): Handle float size correctly.
 	(font_open_by_name): Prefer `normal' property values if the name
 	doesn't specify them.
@@ -1753,10 +2167,10 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* font.h (struct font_driver): Member parse_name deleted.
+	* font.h (struct font_driver): Delete member parse_name.
 	(font_match_p, font_get_spec, font_parse_fcname)
 	(font_unparse_fcname): Extern them.
-	(font_get_name): Prototype adjusted.
+	(font_get_name): Adjust prototype.
 
 	* font.c (XLFD_SMALLNUM_MASK): Delete this macro.
 	(XLFD_LARGENUM_MASK): Delete XLFD_ENCODING_MASK from it.
@@ -1766,7 +2180,7 @@ third arg it->window.
 	(font_unparse_fcname): New function.
 	(font_parse_name): New function.
 	(font_match_p): New function.
-	(font_get_name): Return value changed to Lisp string.
+	(font_get_name): Change return value to Lisp string.
 	(font_get_spec): New function.
 	(Qunspecified, Qignore_defface): Don't extern them.
 	(font_find_for_lface): Assume that LFACE is fully specified.
@@ -1776,27 +2190,26 @@ third arg it->window.
 	driver->parse_name.
 	(Ffont_spec): Call font_parse_name, not font_parse_xlfd.
 
-	* fontset.h (new_fontset_from_font) [USE_FONT_BACKEND]: Prototype
-	adjusted.
+	* fontset.h (new_fontset_from_font) [USE_FONT_BACKEND]: Adjust
+	prototype.
 
-	* fontset.c (new_fontset_from_font) [USE_FONT_BACKEND]: Argument F
-	deleted.  Don't call Fnew_fontset.  Instead, directly call
+	* fontset.c (new_fontset_from_font) [USE_FONT_BACKEND]: Delete
+	argument F.  Don't call Fnew_fontset.  Instead, directly call
 	make_fontset.
 
-	* frame.h (x_new_fontset2) [USE_FONT_BACKEND]: Prototype adjusted.
+	* frame.h (x_new_fontset2) [USE_FONT_BACKEND]: Adjust prototype.
 
-	* frame.c (x_set_font) [USE_FONT_BACKEND]: Adjusted for the change
+	* frame.c (x_set_font) [USE_FONT_BACKEND]: Adjust for the change
 	of x_new_fontset2.
 
 	* ftfont.c (Qmonospace, Qsans_serif, Qserif, Qmono, Qsans)
 	(Qsans__serif): New variables.
 	(ftfont_generic_family_list): New variable.
 	(syms_of_ftfont): Initialize the above variables.
-	(ftfont_pattern_entity): Argument NAME deleted.
+	(ftfont_pattern_entity): Delete argument NAME.
 	(ftfont_list_generic_family): New function.
 	(ftfont_parse_name): Delete this function.
-	(ftfont_list): Try generic family only when FcFontList found no
-	font.
+	(ftfont_list): Try generic family only when FcFontList found no font.
 	(ftfont_list_family): Fix args to FcObjectSetBuild.
 
 	* xfaces.c (check_lface_attrs) [USE_FONT_BACKEND]: Accept font
@@ -1837,7 +2250,7 @@ third arg it->window.
 	* font.c (enum xlfd_field_index): Rename XLFD_XXX_SIZE_INDEX to
 	XLFD_XXX_INDEX.
 	(enum xlfd_field_mask): New enum.
-	(intern_font_field): Argument changed.  Caller changed.  If digits
+	(intern_font_field): Changed argument.  Change caller.  If digits
 	are followed by non-digits, return a symbol.
 	(font_expand_wildcards): New function.
 	(font_parse_xlfd): Fix wildcard handling.
@@ -1852,8 +2265,7 @@ third arg it->window.
 
 	* font.h (Qiso8859_1, Qiso10646_1, Qunicode_bmp): Extern them.
 
-	* font.c (Qiso8859_1, Qiso10646_1, Qunicode_bmp): Moved from
-	ftfont.c.
+	* font.c (Qiso8859_1, Qiso10646_1, Qunicode_bmp): Move from ftfont.c.
 	(font_unparse_xlfd): Fix argument type declaration.  Append "*" if
 	registry doesn't specify encoding part.
 	(font_find_for_lface): Pay attention to LFACE_FONT_INDEX.
@@ -1870,8 +2282,7 @@ third arg it->window.
 	font name.
 	(fontset_ascii_font): If a font can't be opened, return nil.
 
-	* ftfont.c (Qiso8859_1, Qiso10646_1, Qunicode_bmp): Moved to
-	font.c.
+	* ftfont.c (Qiso8859_1, Qiso10646_1, Qunicode_bmp): Move to font.c.
 	(ftfont_pattern_entity): New function.
 	(ftfont_get_cache): Assume that freetype_font_cache is already
 	initialized.
@@ -1894,22 +2305,10 @@ third arg it->window.
 	* xterm.c (x_new_fontset2): If an ASCII font couldn't be loaded,
 	return Qnil.
 
-2008-02-01  Jason Rumney  <jasonr@gnu.org>
-
-	* w32term.c (w32_initialize): Manually sync 2008-02-01 change from
-	HEAD.
-
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* emacs.c (main): Check -enable-font-backend arg after the check
-	of -nl.
+	* emacs.c (main): Check -enable-font-backend arg after the check of -nl.
 	(standard_args): Add "-enable-font-backend".
-
-	* coding.c (Ffind_operation_coding_system): Sync with HEAD.
-
-	* callproc.c (Fcall_process): Sync with HEAD.
-
-	* coding.h (CODING_REQUIRE_ENCODING): Comment sync with HEAD.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1936,11 +2335,9 @@ third arg it->window.
 	(LIBES): Add @FREETYPE_LIBS@, @FONTCONFIG_LIBS@, and
 	@LIBOTF_LIBS@.
 	(font.o, ftfont.o, xfont.o, xftfont.o, ftxfont.o): New targets.
-	(fontset.o, xdisp.o, xfaces.o, xfns.o, xterm.o): Depends on
-	$(FONTSRC).
+	(fontset.o, xdisp.o, xfaces.o, xfns.o, xterm.o): Depend on $(FONTSRC).
 
-	* font.h, font.c, xfont.c, ftfont.c, xftfont.c, ftxfont.c: New
-	files.
+	* font.h, font.c, xfont.c, ftfont.c, xftfont.c, ftxfont.c: New files.
 
 	* character.h (Vscript_representative_chars): Extern it.
 
@@ -1981,8 +2378,7 @@ third arg it->window.
 	(x_new_fontset2) [USE_FONT_BACKEND]: Extern it.
 
 	* frame.c [USE_FONT_BACKEND]: Include "font.h".
-	(make_frame, x_set_font) [USE_FONT_BACKEND]: Use font-backend
-	mechanism.
+	(make_frame, x_set_font) [USE_FONT_BACKEND]: Use font-backend mechanism.
 
 	* lisp.h (assoc_no_quit): Extern it.
 
@@ -2005,12 +2401,10 @@ third arg it->window.
 	(Finternal_set_font_selection_order, realize_x_face)
 	[USE_FONT_BACKEND]: If enable_font_backend is nonzero, use
 	font-backend mechanism.
-	(clear_face_cache) [USE_FONT_BACKEND]: Don't call
-	clear_font_table.
+	(clear_face_cache) [USE_FONT_BACKEND]: Don't call clear_font_table.
 	(load_face_font) [USE_FONT_BACKEND]: Abort.
 	(face_symbolic_value, face_symbolic_weight, face_symbolic_slant)
-	(face_symbolic_swidth, face_for_font) [USE_FONT_BACKEND]: New
-	functions.
+	(face_symbolic_swidth, face_for_font) [USE_FONT_BACKEND]: New functions.
 
 	* xfns.c [USE_FONT_BACKEND]: Include "font.h".
 	(x_default_font_parameter) [USE_FONT_BACKEND]: New function.
@@ -2031,24 +2425,12 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.h (system_eol_type): Fix synching with HEAD.
-
-	* coding.c (system_eol_type): Sync with HEAD.
-	(coding_inherit_eol_type): If PARENT is nil, inherit from
+	* coding.c (coding_inherit_eol_type): If PARENT is nil, inherit from
 	system_eol_type.
 	(syms_of_coding): Initialize system_eol_type.
 
-	* callproc.c (Fcall_process): Sync with HEAD.
-
-	* process.c (setup_process_coding_systems): Fix synching with
-	HEAD.
-	(read_process_output): Likewise.
-	(Fset_process_coding_system): Inherit system's eol format if
-	necessary.
-
-	* fileio.c (choose_write_coding_system): Fix synching with HEAD.
-
-	* keymap.c (push_key_description): Fix synching with HEAD.
+	* process.c (Fset_process_coding_system): Inherit system's eol
+	format if necessary.
 
 2008-02-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -2089,9 +2471,9 @@ third arg it->window.
 	detect_coding.
 	(emacs_mule_char): Handle old style (Emacs 20) component character
 	of a composition.
-	(DECODE_EMACS_MULE_COMPOSITION_RULE_20): Fix parsing a composition
-	rule.
-	(DECODE_EMACS_MULE_20_RULEBASE_COMPOSITION): Likewise.
+	(DECODE_EMACS_MULE_COMPOSITION_RULE_20)
+	(DECODE_EMACS_MULE_20_RULEBASE_COMPOSITION): Fix parsing a
+	composition rule.
 	(decode_coding_emacs_mule): Handle invalid bytes correctly.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -2106,8 +2488,6 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (decode_coding): Fix previous change.
-
 	* xterm.c (x_set_glyph_string_clipping_exactly): Set
 	src->clip_head and src->clip_tail temporarily instead of src->hl.
 
@@ -2117,8 +2497,7 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* search.c (search_buffer): Fix handling of "\\" in a trivial
-	regexp.
+	* search.c (search_buffer): Fix handling of "\\" in a trivial regexp.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2128,8 +2507,7 @@ third arg it->window.
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* data.c (Faset): On setting a character bigger than 255 in a
-	unibyte string, signal an error instead of make the string
-	multibyte.
+	unibyte string, signal an error instead of make the string multibyte.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2152,10 +2530,7 @@ third arg it->window.
 	(x_draw_glyph_string): Fix drawing of right_overhang and
 	left_overhang around/on cursor.
 
-	* xdisp.c (draw_glyphs): Fix inclusion of right_overwriting
-	glyphs.
-
-	* term.c (produce_glyphs): Sync to HEAD.
+	* xdisp.c (draw_glyphs): Fix inclusion of right_overwriting glyphs.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2163,36 +2538,27 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c: Cancel incorrect synching with HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* coding.c (Fdefine_coding_system_internal): Avoid a duplicated
-	element in Vcoding_system_alist.
-	(Fdefine_coding_system_alias): Likewise.
+	* coding.c (Fdefine_coding_system_internal)
+	(Fdefine_coding_system_alias): Avoid a duplicated element in
+	Vcoding_system_alist.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (handle_one_xevent): Handle keysyms 0x1000000..0x10000FF.
 
-	* coding.c: Sync to HEAD for handling autoload-coding-system.
-	(Qcoding_system_define_form): New variable.
+	* coding.c (Qcoding_system_define_form): New variable.
 	(syms_of_coding): Intern and staticpro it.
 	(Fcoding_system_p): Check Qcoding_system_define_form.
-	(Fcheck_coding_system): Try to autoload the definition of
-	CODING-SYSTEM.
+	(Fcheck_coding_system): Try to autoload the definition of CODING-SYSTEM.
 
 	* coding.h (CODING_SYSTEM_P): If ID is not available, call
 	Fcoding_system_p.
 	(CHECK_CODING_SYSTEM): If ID is not available, call
 	Fcheck_coding_system.
-	(CHECK_CODING_SYSTEM_GET_SPEC): Try also Fcheck_coding_system.
-	(CHECK_CODING_SYSTEM_GET_ID): Likewise.
+	(CHECK_CODING_SYSTEM_GET_SPEC, CHECK_CODING_SYSTEM_GET_ID):
+	Try also Fcheck_coding_system.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* xterm.c (handle_one_xevent): Delete unnecessary code inserted by
-	sync with HEAD.
 
 	* coding.c (code_conversion_restore): GCPRO arg.
 
@@ -2214,9 +2580,8 @@ third arg it->window.
 	* search.c (search_buffer): Give up BM search on case-fold-search
 	if one of a target character has a case-equivalence of different
 	byte length even if that target charcter is an ASCII.
-	(simple_search): Fix culculation of byte length of matched text.
-	(boyer_moore): Fix handling of case-equivalent multibyte
-	characters.
+	(simple_search): Fix calculation of byte length of matched text.
+	(boyer_moore): Fix handling of case-equivalent multibyte characters.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2236,38 +2601,22 @@ third arg it->window.
 
 	* coding.c (QCascii_compatible_p): New variable.
 	(syms_of_coding): Initialize it.
-	(ONE_MORE_BYTE): Decrement `src' before calling string_char.
-	(ONE_MORE_BYTE_NO_CHECK): Likewise.
+	(ONE_MORE_BYTE, ONE_MORE_BYTE_NO_CHECK): Decrement `src' before
+	calling string_char.
 	(record_conversion_result): Add `default:' case.
 	(coding_charset_list): Delete unused variable `coding_type'.
 	(Fdefine_coding_system_internal): Add `ascii-compatible-p'
 	property in the plist of the coding system.
 	(Fcoding_system_put): Check QCascii_compatible_p.
 
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* xdisp.c (get_next_display_element): Sync with the change in
-	HEAD (2008-02-01).
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* callproc.c (Fcall_process): Sync with the change in
-	HEAD (2008-02-01).
-
 2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (Finternal_lisp_face_equal_p): Restore previously
 	removed calculation of frame `f', as it's now used.
 
-2008-02-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
-
-	* macterm.c (x_font_name_to_mac_font_name): Sync with trunk
-	for the case that does not require code conversion.
-
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* Makefile.in (shortlisp): Cancel previous change.
-	(RUN_TEMACS): Include "-nl" if HAVE_SHM is defined.
+	* Makefile.in (RUN_TEMACS): Include "-nl" if HAVE_SHM is defined.
 	(emacs${EXEEXT}): Run $(RUN_TEMACS) unconditionally.
 	(UNIDATA): New variable.
 	(${lispsource}international/charprop.el): Depends on ${UNIDATA}.
@@ -2276,14 +2625,13 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* Makefile.in (shortlisp): Add ../lisp/international/charprop.el.
-	(temacs${EXEEXT}): Build charprop.el if necessary.
+	* Makefile.in (temacs${EXEEXT}): Build charprop.el if necessary.
 	(admindir): New variable.
 	($(lispsource)international/charprop.el): New target.
 
 2008-02-01  Miles Bader  <miles@gnu.org>
 
-	* character.c (chars-in-region): Obsolete function removed.
+	* character.c (chars-in-region): Remove obsolete function.
 	(syms_of_character): Remove its initialization.
 
 2008-02-01  Benjamin Riefenstahl  <b.riefenstahl@turtle-trading.net>
@@ -2295,20 +2643,14 @@ third arg it->window.
 	(setup_config, Fw32_get_clipboard_data): Use
 	validate_coding_system.
 	(Fx_selection_exists): Move call to setup_config to a place
-	were signals are allowed.
+	where signals are allowed.
 
 	* lisp.h (Fcoding_system_base, Fcoding_system_eol_type)
 	(Fcheck_coding_system): Add declarations.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* s/ms-w32.h (STDC_HEADERS): Sync with the change in
-	HEAD (2008-02-01).
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* charset.c (load_charset_map_from_vector): Fix for the first
-	iteration.
+	* charset.c (load_charset_map_from_vector): Fix for the first iteration.
 
 2008-02-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -2317,33 +2659,12 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* fns.c (Fstring_as_multibyte): Fix the change for syncing with
-	CVS head.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* search.c (search_buffer): Fix the change for syncing with CVS
-	head.
-	(search_buffer): Likewise.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* xdisp.c (get_next_display_element): Sync with CVS head.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* coding.c (decode_coding_object): Use safe_call1 instead of call1.
 	(encode_coding_object): Use safe_call instead of call2.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* fontset.c (set_default_ascii_font): Fix the change for
-	syncing with CVS head.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* fontset.c (Fset_fontset_font): Check family element of a given
-	vector.
+	* fontset.c (Fset_fontset_font): Check family element of a given vector.
 
 	* Makefile.in (lisp): Include charprop.el.
 
@@ -2356,7 +2677,7 @@ third arg it->window.
 
 	* macfns.c (Fx_create_frame, x_create_tip_frame): ifdef'd out
 	some possibly unnecessary fontset checking code that crashed
-	when creating a new frame
+	when creating a new frame.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2365,26 +2686,14 @@ third arg it->window.
 
 	* xdisp.c (Fformat_mode_line): Fix argument to lookup_named_face.
 
-	* fringe.c (draw_fringe_bitmap_1): Fix argument to
-	lookup_named_face.
+	* fringe.c (draw_fringe_bitmap_1): Fix argument to lookup_named_face.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* xdisp.c (get_next_display_element): Sync to the change in HEAD
-	on 2008-02-01.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* search.c: Sync to the change in HEAD on 2008-02-01, 20.
-
-	* w32console.c: Sync to the change in HEAD on 2008-02-01.
 
 	* coding.c: Cancel the change done in HEAD on 2008-02-01.
 	(coding_charset_list): New function.
 
 	* coding.h (coding_charset_list): Extern it.
-
-	* term.c: Sync to the change in HEAD on 2008-02-01.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2414,9 +2723,9 @@ third arg it->window.
 
 	* fontset.c (fs_load_font): Use fast_string_match_ignore_case
 	instead of fast_c_string_match_ignore_case.
-	(find_font_encoding): Argument changed to Lisp_Object.  Use
+	(find_font_encoding): Change argument to Lisp_Object.  Use
 	fast_string_match_ignore_case instead of
-	fast_c_string_match_ignore_case.  Caller changed.
+	fast_c_string_match_ignore_case.  Change caller.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2424,17 +2733,12 @@ third arg it->window.
 	display in octal form by checking a chacter by
 	UNIBYTE_CHAR_HAS_MULTIBYTE_P.
 
-	* charset.c (Fset_unibyte_charset): Setup
-	unibyte_has_multibyte_table.
+	* charset.c (Fset_unibyte_charset): Setup unibyte_has_multibyte_table.
 
 	* character.c (unibyte_has_multibyte_table): New variable.
 
 	* character.h (unibyte_has_multibyte_table): Extern it.
 	(UNIBYTE_CHAR_HAS_MULTIBYTE_P): New macro.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* callproc.c (Fcall_process): Fix merging of 2008-02-01 change.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2455,8 +2759,6 @@ third arg it->window.
 	* xdisp.c (message_dolog, set_message_1): Call
 	unibyte_char_to_multibyte with arg type int.
 
-	* fileio.c (Fsubstitute_in_file_name): Fix previous change.
-
 	* lread.c (read1): Fix reading of a char-table.
 
 	* print.c (print_object): Include sub char-table in cicularities
@@ -2465,8 +2767,7 @@ third arg it->window.
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (where_is_internal_2): Fix for the case that KEY is a
-	cons.  Append the found sequences in car of ARGS instead of
-	prepending.
+	cons.  Append the found sequences in car of ARGS instead of prepending.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2481,15 +2782,10 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (detect_coding): Fix previous change.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* coding.c (detect_coding_utf_16): Don't set detect_info->found if
 	BOM is not found.
-	(detect_coding): Optimization for ISO-2022 when no 8-bit data is
-	found.
-	(detect_coding_system): Likewise.
+	(detect_coding, detect_coding_system): Optimization for ISO-2022
+	when no 8-bit data is found.
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
@@ -2497,18 +2793,18 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* charset.c (Fdeclare_equiv_charset): Fix handing of CHARS.
-	(Fiso_charset): Likewise.
+	* charset.c (Fdeclare_equiv_charset, Fiso_charset): Fix handing of
+	CHARS.
 
 2008-02-01  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (mac_encode_char): Add charset argument and update
 	to use encoding_type.
 	(x_new_font,x_new_fontset): Merge in changes from xterm.c;
-	switch to pure fontset
-	(decode_mac_font_name): Temporarily remove decoding
-	(x_font_name_to_mac_font_name): Temporarily remove encoding
-	(x_load_font): Temporarily remove encoding
+	switch to pure fontset.
+	(decode_mac_font_name): Temporarily remove decoding.
+	(x_font_name_to_mac_font_name): Temporarily remove encoding.
+	(x_load_font): Temporarily remove encoding.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2523,9 +2819,9 @@ third arg it->window.
 
 	* xdisp.c (BUILD_GLYPH_STRINGS): Check if s is NULL.
 	(x_produce_glyphs): Fix setting of members of cmp in case
-	cmp->glyph_len is zero,
+	cmp->glyph_len is zero.
 
-	* fontset.c (Fset_fontset_font): Docstring fixed.
+	* fontset.c (Fset_fontset_font): Fix docstring.
 	(Ffontset_info): Make it backward compatible.  New arg ALL.
 
 2008-02-01  Kim F. Storm  <storm@cua.dk>
@@ -2535,8 +2831,7 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* fileio.c (WRITE_BUF_SIZE): This macro deleted.
-	(e_write): Fix previous change.
+	* fileio.c (WRITE_BUF_SIZE): Delete this macro.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2544,15 +2839,14 @@ third arg it->window.
 	correctly for raw-text.
 	(consume_chars): On encoding unibyte text by raw-text, don't check
 	multibyte form.
-	(encode_coding): On encoding by raw-text, never use translation
-	tables.
+	(encode_coding): On encoding by raw-text, never use translation tables.
 
 	* fileio.c (e_write): Short cut for the case of no encoding.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (detect_coding): Delete unused variables.
-	(detect_coding_system): Likewise.
+	* coding.c (detect_coding, detect_coding_system): Delete unused
+	variables.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2561,76 +2855,40 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	Sync all files to HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* coding.c (Ffind_coding_systems_region_internal): Include
 	raw-text and no-conversion in the result.
 
-	* fontset.h: Sync to HEAD.
-
-	* fontset.c: Sync to HEAD.
-
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* fontset.c (find_font_encoding): Return `ascii' for unknown
-	encoding.
+	* fontset.c (find_font_encoding): Return `ascii' for unknown encoding.
 	(load_font_get_repertory): Delete unnecessary check of ENCODING of
 	FONT_DEF.
 	(font_def_arg, add_arg, from_arg, to_arg): New args.
-	(set_fontset_font): Argument changed.
+	(set_fontset_font): Change argument.
 	(Fset_fontset_font): Fix for the case that TARGET is a script
 	name and charset name.
 	(new_fontset_from_font_name): Fix argument to Fnew_fontset.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* fontset.c (fontset_font): Renamed from fontset_face.  Return
-	value changed.
-	(face_suitable_for_char_p): Adjusted for the change of
-	fontset_font.
-	(face_for_char): Likewise.
+	* fontset.c (fontset_font): Rename from fontset_face.  Change return
+	value.
+	(face_suitable_for_char_p, face_for_char): Adjust for the change
+	of fontset_font.
 	(make_fontset_for_ascii_face): Fix setting of the fontset element
 	for ASCII.
 	(Finternal_char_font): Use fontset_font instead of FACE_FOR_CHAR
 	to get a font name.
-	(Ffontset_info): Adjusted for the change of fontset_font.
+	(Ffontset_info): Adjust for the change of fontset_font.
 
-	* composite.c: Sync to HEAD.
-
-	* search.c: Sync to HEAD.
-
-	* coding.c: Sync to HEAD.
-	(emacs_mule_char): Check invalid code more regidly.
-
-	* coding.h: Sync to HEAD.
-
-	* charset.c: Sync to HEAD.
-
-	* charset.h: Sync to HEAD.
+	* coding.c (emacs_mule_char): Check invalid code more regidly.
 
 	* character.h (LEADING_CODE_LATIN_1_MIN)
 	(LEADING_CODE_LATIN_1_MAX): Delete these macros.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* category.h: Sync to HEAD.
-
-	* category.c: Sync to HEAD.
-
-	* syntax.h: Sync to HEAD.
-
-	* syntax.c: Sync to HEAD.
-
-	* regex.h: Sync to HEAD.
-
-	* regex.c: Sync to HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* editfns.c: Sync to HEAD.
-	(check_translation): New function.
+	* editfns.c (check_translation): New function.
 	(Ftranslate_region_internal): Handle M:N mapping.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -2654,49 +2912,45 @@ third arg it->window.
 
 	* fontset.c: Include "intervals.h".
 	(fontset_face): Fix comparing of Lisp_Objects.
-	(free_face_fontset): Fix Lisp_Object/int mixup.
-	(new_fontset_from_font_name): Likewise.
+	(free_face_fontset, new_fontset_from_font_name): Fix
+	Lisp_Object/int mixup.
 
 	* editfns.c (Ftranslate_region_internal): Fix Lisp_Object/int mixup.
 
 	* coding.c: Add many prototypes for static functions.
 	(get_translation_table): Allow max_lookup to be NULL.
-	(decode_coding): Call get_translation_table with max_lookup NULL.
-	(Ffind_coding_systems_region_internal): Likewise.
-	(Funencodable_char_position, Fcheck_coding_systems_region):
-	Likewise.
+	(decode_coding,Ffind_coding_systems_region_internal)
+	(Funencodable_char_position, Fcheck_coding_systems_region): Call
+	get_translation_table with max_lookup NULL.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (get_translation_table): Declare it as Lisp_Object.
 	(LOOKUP_TRANSLATION_TABLE): New macro.
-	(produce_chars): Use LOOKUP_TRANSLATION_TABLE instead of
-	CHAR_TABLE_REF.
-	(consume_chars): Likewise.
+	(produce_chars, consume_chars): Use LOOKUP_TRANSLATION_TABLE
+	instead of CHAR_TABLE_REF.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (MAX_ANNOTATION_LENGTH): Adjusted for the change of
+	* coding.c (MAX_ANNOTATION_LENGTH): Adjust for the change of
 	annotation data format.
 	(ADD_ANNOTATION_DATA, ADD_COMPOSITION_DATA, ADD_CHARSET_DATA):
-	Change arguments FROM and TO to single argument NCHARS.  Caller
-	changed.
-	(decode_coding_utf_8): Pay attention to coding->charbuf_used.
-	(decode_coding_utf_16, decode_coding_emacs_mule)
+	Change arguments FROM and TO to single argument NCHARS.  Change caller.
+	(decode_coding_utf_8, decode_coding_utf_16, decode_coding_emacs_mule)
 	(decode_coding_iso_2022, decode_coding_sjis, decode_coding_big5)
-	(decode_coding_ccl, decode_coding_charset): Likewise.
+	(decode_coding_ccl, decode_coding_charset): Pay attention to
+	coding->charbuf_used.
 	(get_translation): New function.
 	(produce_chars): New arguments translation_table and last_block.
 	Translate characters here.  Return number of carryover chars.
-	Caller changed.
-	(produce_composition): New argument pos.  Caller changed.
-	Adjusted for the change of annotation data format.
+	Change caller.
+	(produce_composition): New argument pos.  Change caller.
+	Adjust for the change of annotation data format.
 	(produce_charset, produce_annotation): Likewise.
 	(decode_coding, encode_coding): Don't call translate_chars.
-	(consume_chars): New arg translation_table.  Caller changed.
-	(translate_chars): Deleted.
-	(syms_of_coding): Make translation-table's number of extra slots
-	2.
+	(consume_chars): New arg translation_table.  Change caller.
+	(translate_chars): Delete.
+	(syms_of_coding): Make translation-table's number of extra slots 2.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2713,7 +2967,7 @@ third arg it->window.
 
 	* coding.c (decode_coding_utf_16): Fix handling of surrogate pair.
 
-	* editfns.c (Ftranslate_region_internal): Renamed from
+	* editfns.c (Ftranslate_region_internal): Rename from
 	Ftranslate_region.  Accept a char-table in TABLE.
 	(syms_of_editfns): Defsubr Stranslate_region_internal.
 
@@ -2722,8 +2976,7 @@ third arg it->window.
 	(build_scalable_font_name): If the scalable font is requested for
 	a specific size, don't change that size.
 	(try_font_list): Try a scalable font also in the case that a
-	pattern string is specified,
-
+	pattern string is specified.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2744,8 +2997,7 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* keymap.c (describe_vector): Handle default value of a char
-	table.
+	* keymap.c (describe_vector): Handle default value of a char table.
 
 	* fontset.c (fontset_face): Handle fallback fonts correctly.
 	(Ffontset_info): Return infomation about fallback fonts.
@@ -2753,13 +3005,11 @@ third arg it->window.
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fontset.c (FONTSET_DEFAULT): New macro.
-	(FONTSET_ADD): Handle the case that range is nil.
-	(fontset_add): Likewise.
+	(FONTSET_ADD, fontset_add): Handle the case that range is nil.
 	(Fset_fontset_font): Change the 2nd arg name to TARGET, and handle
 	the case that it is nil.
 	(dump_fontset): Call FONTSET_DEFAULT, not FONTSET_FALLBACK.
-	(syms_of_fontset): Set char-table-extra-slots property of fontset
-	to 9.
+	(syms_of_fontset): Set char-table-extra-slots property of fontset to 9.
 
 	* charset.h (CHAR_CHARSET_P): Fix for the case that the method is
 	subset or superset.
@@ -2768,7 +3018,7 @@ third arg it->window.
 
 	* emacs.c (main): Call init_charset after syms_of_XXX.
 
-	* charset.c (Vcharset_map_directory): Deleted.
+	* charset.c (Vcharset_map_directory): Delete.
 	(Vcharset_map_path): New variable
 	(load_charset_map_from_file): Use Vcharset_map_path instead.
 	(init_charset): Initialize Vcharset_map_path.
@@ -2777,14 +3027,13 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* fns.c (string_char_to_byte): Optimize for ASCII only string.
-	(string_byte_to_char): Likewise.
+	* fns.c (string_char_to_byte, string_byte_to_char): Optimize for
+	ASCII only string.
 
 	* fileio.c (Finsert_file_contents): Avoid detecting a code twice.
 
 	* coding.c (detect_coding_iso_2022): Fix handling of SS2 and SS3.
-	(detect_coding): Treat '\0' as normal ASCII byte..
-	(detect_coding_system): Likewise.
+	(detect_coding, detect_coding_system): Treat '\0' as normal ASCII byte..
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2803,8 +3052,8 @@ third arg it->window.
 	(Fcoding_system_put): New function.
 	(syms_of_coding): Declare new symbols.  Defsubr
 	Scoding_system_put.
-	(decode_coding_sjis): Handle 4th charset (typically JISX0212).
-	(encode_coding_sjis): Likewise.
+	(decode_coding_sjis, encode_coding_sjis): Handle 4th charset,
+	typically JISX0212.
 
 	* charset.c (map_charset_chars): Fix arg to map_charset_chars in
 	when the charset is superset type.
@@ -2813,19 +3062,17 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.h (enum coding_attr_index): New member
-	coding_attr_trans_tbl.
+	* coding.h (enum coding_attr_index): New member coding_attr_trans_tbl.
 	(CODING_ATTR_TRANS_TBL): New macro.
 
 	* coding.c (get_translation_table): New function.
 	(translate_chars): Fix the bug of skipping annotation data.
-	(decode_coding): Utilze get_translation_table.
-	(encode_coding): Likewise.
-	(char_encodable_p): Translate char if necessary.
-	(Funencodable_char_position): Likewise.
-	(Ffind_coding_systems_region_internal): Setup translation table
-	for encode in a coding system attribute vector in advance.
-	(Fcheck_coding_systems_region): Likewise.
+	(decode_coding, encode_coding): Utilize get_translation_table.
+	(char_encodable_p, Funencodable_char_position): Translate char if
+	necessary.
+	(Ffind_coding_systems_region_internal)
+	(Fcheck_coding_systems_region): Setup translation table for encode
+	in a coding system attribute vector in advance.
 	(Fdefine_coding_system_internal): Allow a symbol as translation
 	table.  For shift-jis type coding system, allow 4th charset.
 
@@ -2846,8 +3093,7 @@ third arg it->window.
 
 	* xdisp.c (move_it_to): Optimize for the case (op & MOVE_TO_Y).
 	(x_get_glyph_overhangs): Handle a composition glyph.
-	(x_produce_glyphs): Setup lbearing and rbreaing for a composition
-	glyph.
+	(x_produce_glyphs): Setup lbearing and rbreaing for a composition glyph.
 
 	* xterm.c (x_compute_glyph_string_overhangs): Handle also a
 	composition glyph.
@@ -2887,26 +3133,22 @@ third arg it->window.
 
 	* dispextern.h (FACE_FOR_CHAR): New args POS and OBJECT.
 
-	* fontset.c (reorder_font_vector): Adjusted for the change of
+	* fontset.c (reorder_font_vector): Adjust for the change of
 	FONT_DEF format.
-	(fontset_face): New arg id.  Caller changed.
+	(fontset_face): New arg id.  Change caller.
 	(face_for_char): New args pos and object.
-	(make_fontset_for_ascii_face): Adjusted for the change of FONT_DEF
+	(make_fontset_for_ascii_face): Adjust for the change of FONT_DEF
 	format.n
 	(fs_query_fontset): Check NAME by Fassoc too.
 	(Fset_fontset_font): Allow non-XLFD font name.
-	(Ffontset_info): Adjusted for the change of FONT_DEF format.
+	(Ffontset_info): Adjust for the change of FONT_DEF format.
 
-	* fontset.h (face_for_char): Prototype adjusted.
+	* fontset.h (face_for_char): Adjust prototype.
 
-	* xdisp.c (face_before_or_after_it_pos): Call FACE_FOR_CHAR with
-	POS and OBJECT args.
-	(get_next_display_element): Likewise.
-	(append_space): Likewise.
-	(extend_face_to_end_of_line): Likewise.
-	(get_char_face_and_encoding): Likewise.
-	(BUILD_COMPOSITE_GLYPH_STRING): Likewise.
-	(x_produce_glyphs): Likewise.
+	* xdisp.c (face_before_or_after_it_pos, get_next_display_element)
+	(append_space, extend_face_to_end_of_line)
+	(get_char_face_and_encoding, BUILD_COMPOSITE_GLYPH_STRING)
+	(x_produce_glyphs): Call FACE_FOR_CHAR with POS and OBJECT args.
 
 	* xfaces.c (compute_char_face): Call FACE_FOR_CHAR with
 	POS and OBJECT args.
@@ -2935,23 +3177,19 @@ third arg it->window.
 	CODING_RESULT_INSUFFICIENT_CMP, add CODING_RESULT_INVALID_SRC.
 
 	* coding.c (Qinsufficient_source, Qinconsistent_eol)
-	(Qinvalid_source, Qinterrupted, Qinsufficient_memory): New
-	variables.
+	(Qinvalid_source, Qinterrupted, Qinsufficient_memory): New variables.
 	(Vlast_code_conversion_error): New variables.
 	(syms_of_coding): DEFSYM or DEFVAR_LISP them.
 	(ONE_MORE_BYTE): Record error if any instead of signaling an
 	error.  If non-ASCII multibyte char is found, return the negative
 	value of the code.  All callers changed to check it.
 	(ONE_MORE_BYTE_NO_CHECK): Likewise.
-	(record_conversion_result): New function.  All codes setting
-	coding->result are changed to call this function.
-	(detect_coding_utf_8): Don't use the local variable incomplete.
-	(decode_coding_utf_8): Likewise.
+	(record_conversion_result): New function.  Change all codes setting
+	coding->result to call this function.
+	(detect_coding_utf_8, decode_coding_utf_8)
+	(detect_coding_emacs_mule, detect_coding_sji, detect_coding_big5):
+	Don't use the local variable incomplete.
 	(emacs_mule_char): Change the second arg to `const'.
-	(detect_coding_emacs_mule): Don't use the local variable
-	incomplete.
-	(detect_coding_sjis): Likewise.
-	(detect_coding_big5): Likewise.
 	(decode_coding): Fix of flushing out unprocessed data.
 	(make_conversion_work_buffer): Fix making of a work buffer.
 	(decode_coding_object): Return coding->dst_object;
@@ -2971,13 +3209,8 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (detect_coding): Fix previous change.
-	(detect_coding_system): Likewise.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* composite.c (syms_of_composite): Don't make the compostion hash
-	table week.
+	* composite.c (syms_of_composite): Don't make the composition hash
+	table weak.
 
 	* fontset.c (Fset_fontset_font): Fix docstring.
 
@@ -2993,16 +3226,13 @@ third arg it->window.
 	(code_conversion_save): Extern it.
 
 	* coding.c (enum iso_code_class_type): Delete ISO_carriage_return.
-	(CODING_GET_INFO): Delete argument eol_type.  Callers changed.
+	(CODING_GET_INFO): Delete argument eol_type.  Change callers.
 	(decode_coding_utf_8): Don't do eol converion.
 	(detect_coding_utf_16): Check coding->src_chars, not
-	coding->src_bytes.  Add heuristics for those that have no
-	signature.
-	(decode_coding_emacs_mule): Don't do eol converion.
-	(decode_coding_iso_2022): Likewise.
-	(decode_coding_sjis): Likewise.
-	(decode_coding_big5): Likewise.
-	(decode_coding_charset): Likewise.
+	coding->src_bytes.  Add heuristics for those that have no signature.
+	(decode_coding_emacs_mule, decode_coding_iso_2022)
+	(decode_coding_sjis, decode_coding_big5, decode_coding_charset):
+	Don't do eol converion.
 	(adjust_coding_eol_type): Return a new coding system.
 	(detect_coding): Don't detect eol.  Fix for utf-16 detection.
 	(decode_eol): In case of CRLF->LF conversion, use del_range_2 on
@@ -3010,26 +3240,23 @@ third arg it->window.
 	(decode_coding): Pay attention to undo_list.  Do eol convesion for
 	all types of coding-systems (if necessary).
 	(Vcode_conversion_work_buf_list): Delete it.
-	(Vcode_conversion_reused_workbuf): Renamed from
+	(Vcode_conversion_reused_workbuf): Rename from
 	Vcode_conversion_reused_work_buf.
 	(Vcode_conversion_workbuf_name): New variable.
 	(reused_workbuf_in_use): New variable.
 	(make_conversion_work_buffer): Delete the arg DEPTH.
-	(code_conversion_restore): Argument changed to cons.
-	(code_conversion_save): Delete the argument BUFFER.  Callers
-	changed.
-	(detect_coding_system): New argument src_chars.  Callers changed.
+	(code_conversion_restore): Change argument to cons.
+	(code_conversion_save): Delete the argument BUFFER.  Change callers.
+	(detect_coding_system): New argument src_chars.  Change callers.
 	Fix for utf-16 detection.
 	(init_coding_once): Don't use ISO_carriage_return.
-	(syms_of_coding): Initialized Vcode_conversion_workbuf_name and
+	(syms_of_coding): Initialize Vcode_conversion_workbuf_name and
 	reused_workbuf_in_use.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* keymap.c (store_in_keymap): Pay attention to the case that idx
 	is a cons specifying a character range.
-
-	* coding.c (Fdefine_coding_system_internal): Fix previous change.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -3041,8 +3268,7 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* charset.c (find_charsets_in_text): Delete unused locale
-	variable.
+	* charset.c (find_charsets_in_text): Delete unused locale variable.
 	(Fset_charset_priority): Update Vemacs_mule_charset_list too.
 
 	* coding.c (encode_coding_emacs_mule): Emit bytes with MSB.
@@ -3060,17 +3286,14 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* keymap.c (Fdefine_key): Fix handling of Lucid style event type
-	list.
+	* keymap.c (Fdefine_key): Fix handling of Lucid style event type list.
 
-	* fns.c (Fmapconcat): Signal an error if SEQUENCE is a char table.
-	(Fmapcar): Likewise.
-	(Fmapc): Likewise.
+	* fns.c (Fmapconcat, Fmapcar, Fmapc): Signal an error if SEQUENCE
+	is a char table.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* syntax.c (skip_chars): Be sure to alloca char_ranges when
-	necessary.
+	* syntax.c (skip_chars): Be sure to alloca char_ranges when necessary.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -3126,7 +3349,7 @@ third arg it->window.
 
 	* w32fns.c (w32_load_system_font): Default charset to -1.
 	(x_to_w32_charset): Match all fonts for unicode.
-	(w32_to_x_charset): New parameter matching. Don't return partial
+	(w32_to_x_charset): New parameter matching.  Don't return partial
 	or wildcard charsets.
 	(w32_to_all_x_charsets): Don't return partial or wildcard charsets.
 	(w32_codepage_for_font): Return CP_UNICODE for unicode.
@@ -3139,16 +3362,16 @@ third arg it->window.
 
 	* w32term.c (w32_encode_char): New charset parameter.
 	font_info.encoding becomes encoding_type.
-	(x_get_font_repertory): New function. Warning: stub only!
+	(x_get_font_repertory): New function.  Warning: stub only!
 	(x_new_font): Return quickly if font already set.
 	(x_new_fontset): fontsetname parameter is Lisp_Object.
-	Use new fs_query_fontset. Try new_fontset_from_font_name. Use
+	Use new fs_query_fontset.  Try new_fontset_from_font_name.  Use
 	fontset_name for return value.
 
 	* w32term.h: Declare x_get_font_repertory.
 
 	* w32select.c (Fw32_set_clipboard_data): Use string_x_string_p in
-	place of find_charset_in_text. Use encode_coding_object in place
+	place of find_charset_in_text.  Use encode_coding_object in place
 	of encode_coding.
 	(Fw32_get_clipboard_data): Use decode_coding_c_string in place of
 	decode_coding.
@@ -3157,15 +3380,13 @@ third arg it->window.
 	of x_new_fontset.
 	(w32_load_system_font): Initialize charset as unicode.
 	font_info.encoding becomes encoding_type.
-	(w32_to_x_font): Use decode_coding_c_string in place of
-	decode_coding.
-	(x_to_w32_font): Use encode_coding_object in place of
-	encode_coding.
+	(w32_to_x_font): Use decode_coding_c_string in place of decode_coding.
+	(x_to_w32_font): Use encode_coding_object in place of encode_coding.
 	(syms_of_w32fns): Set get_font_repertory_func.
 
-	* w32console.c: Include character.h. Use terminal_encode_buffer
+	* w32console.c: Include character.h.  Use terminal_encode_buffer
 	from term.c.
-	(write_glyphs): Use new version of encode_terminal_code. Use
+	(write_glyphs): Use new version of encode_terminal_code.  Use
 	encode_coding_object in place of encode_coding.
 
 	* w32bdf.c (w32_load_bdf_font): Clear font_info before filling.
@@ -3179,7 +3400,7 @@ third arg it->window.
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents) [DOS_NT]: Use the macro
-	CODING_ID_EOL_TYPE..
+	CODING_ID_EOL_TYPE.
 
 2008-02-01  Andreas Schwab  <schwab@suse.de>
 
@@ -3190,9 +3411,9 @@ third arg it->window.
 	* charset.h (charset_unicode): Extern it.
 
 	* charset.c (string_xstring_p): Check by (C >= 0x100).
-	(find_charsets_in_text): Format of the arc CHARSETS changed.  New
+	(find_charsets_in_text): Change format of the arc CHARSETS.  New
 	arg MULTIBYTE.
-	(Ffind_charset_region, Ffind_charset_string): Adjusted for the
+	(Ffind_charset_region, Ffind_charset_string): Adjust for the
 	change of find_charsets_in_text.
 	(Fsplit_char): Fix doc.  Never return unknown.
 
@@ -3219,11 +3440,11 @@ third arg it->window.
 
 	* term.c (terminal_encode_buffer, terminal_encode_buf_size): New
 	variables.
-	(encode_terminal_code): Argument changed.  Encode multiple
+	(encode_terminal_code): Change argument.  Encode multiple
 	characters at once.  Store the result of encoding in
 	terminal_encode_buffer.
-	(write_glyphs): Adjusted for the change of encode_terminal_code.
-	(insert_glyphs): Likewise.
+	(write_glyphs, insert_glyphs): Adjust for the change of
+	encode_terminal_code.
 	(term_init): Initialize terminal_encode_buffer and
 	terminal_encode_buf_size.
 
@@ -3285,9 +3506,8 @@ third arg it->window.
 
 	* composite.c (Fremove_list_of_text_properties): Declare.
 
-	* coding.c (inhibit_pre_post_conversion): Removed (unused).
-	(alloc_destination, produce_chars): Use EMACS_INT for byte/char
-	counts.
+	* coding.c (inhibit_pre_post_conversion): Remove (unused).
+	(alloc_destination, produce_chars): Use EMACS_INT for byte/char counts.
 	(coding_inherit_eol_type): Remove unused attrs.
 	(detect_coding): Cast arg of detect_eol.
 
@@ -3298,7 +3518,7 @@ third arg it->window.
 	* casetab.c (set_case_table): Remove unused var.
 
 	* window.c (Fdisplay_buffer, Fframe_selected_window): Remove
-	unsued vars.
+	unused vars.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -3312,8 +3532,6 @@ third arg it->window.
 
 	* coding.c (Fread_coding_system): Fix arg of XSETSTRING.
 	(Fset_coding_system_priority): Doc fix.
-
-	* alloc.c: Sync with HEAD version.
 
 	* ccl.c (ccl_driver): Fix arg of CHARACTERP.
 
@@ -3331,8 +3549,7 @@ third arg it->window.
 	* composite.h (find_composition, update_compositions): Make
 	position args EMACS_INT.
 
-	* keyboard.c (adjust_point_for_property): Make beg and end
-	EMACS_INT.
+	* keyboard.c (adjust_point_for_property): Make beg and end EMACS_INT.
 
 	* intervals.c (get_property_and_range):
 	* intervals.h (get_property_and_range): Make start and end EMACS_INT.
@@ -3354,8 +3571,8 @@ third arg it->window.
 
 2008-02-01  Andreas Schwab  <schwab@suse.de>
 
-	* chartab.c (map_char_table): Protect `range' from GC.
-	(map_char_table_for_charset): Likewise.
+	* chartab.c (map_char_table, map_char_table_for_charset): Protect
+	`range' from GC.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -3363,8 +3580,7 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* fileio.c (choose_write_coding_system): Return a decided coding
-	system.
+	* fileio.c (choose_write_coding_system): Return a decided coding system.
 	(Fwrite_region): Set Vlast_coding_system_used to the return value
 	of choose_write_coding_system.
 
@@ -3384,8 +3600,7 @@ third arg it->window.
 
 	* callproc.c (Fcall_process): Handle carryover correctly.
 
-	* coding.c (decode_coding_iso_2022): Fix handling of invalid
-	bytes.
+	* coding.c (decode_coding_iso_2022): Fix handling of invalid bytes.
 	(raw_text_coding_system): Check NILP (coding_system).
 	(coding_inherit_eol_type): Check NILP (coding_system) and
 	NILP (parent).
@@ -3413,8 +3628,7 @@ third arg it->window.
 	characters, don't check by BASE_LEADING_CODE_P.
 	(re_search_2): Don't check RE_TARGET_MULTIBYTE_P (bufp).  It is
 	the same as RE_MULTIBYTE_P (bufp) now.
-	(mutually_exclusive_p): Check by (! multibyte ||
-	IS_REAL_ASCII (c)).
+	(mutually_exclusive_p): Check by (! multibyte || IS_REAL_ASCII (c)).
 	(TARGET_CHAR_AND_LENGTH): Delete this macro.
 	(TRANSLATE_VIA_MULTIBYTE): New macro.
 	(re_match_2_internal): Don't check RE_TARGET_MULTIBYTE_P (bufp).
@@ -3436,9 +3650,8 @@ third arg it->window.
 	* lread.c (read1): While reading a string, set force_singlebyte
 	and force_multibyte correctly.
 
-	* charset.c (Fset_unibyte_charset): Fix setting up of
-	unibyte_to_multibyte_table.
-	(init_charset_once): Likewise.
+	* charset.c (Fset_unibyte_charset, init_charset_once): Fix setting
+	up of unibyte_to_multibyte_table.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -3458,7 +3671,7 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.h (make_conversion_work_buffer): Prototype adjusted.
+	* coding.h (make_conversion_work_buffer): Adjust prototype.
 	(code_conversion_restore): Don't extern it.
 
 	* coding.c (detected_mask): Delete unused variable.
@@ -3468,16 +3681,15 @@ third arg it->window.
 	(setup_coding_system): Delete unused variable `category'.
 	(consume_chars): Delete unused variable `category'.  Make it work
 	for non-multibyte case.
-	(make_conversion_work_buffer): Argument changed.
+	(make_conversion_work_buffer): Change argument.
 	(saved_coding): Delete unused variable.
 	(code_conversion_restore): Don't check saved_coding->destination.
 	(code_conversion_save): New function.
 	(decode_coding_gap, encode_coding_gap): Call code_conversion_save
 	instead of record_unwind_protect.
-	(decode_coding_object, encode_coding_object): Likewise.  Recover
-	PT.
+	(decode_coding_object, encode_coding_object): Likewise.  Recover PT.
 	(detect_coding_system): Delete unused variable `mask'.
-	(Fdefine_coding_system_internal): Delete unsed vaiable id;
+	(Fdefine_coding_system_internal): Delete unused vaiable id.
 
 	* fileio.c (kill_workbuf_unwind): New function.
 	(Finsert_file_contents): On replacing, call
@@ -3488,8 +3700,7 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* fontset.c (BASE_FONTSET_P): Check FONTSET_BASE, not
-	FONTSET_NAME.
+	* fontset.c (BASE_FONTSET_P): Check FONTSET_BASE, not FONTSET_NAME.
 	(fontset_add): Fix for the case that TO is less than TO1.
 	(Ffontset_info): Don't use fallback fontset on checking the
 	default fontset.
@@ -3502,7 +3713,7 @@ third arg it->window.
 
 	* chartab.c (map_sub_char_table): New argument DEFAULT_VAL.
 	(map_char_table): Don't inherit the value from the parent on
-	initializing VAL.  Adjusted for the above change.
+	initializing VAL.  Adjust for the above change.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -3520,8 +3731,7 @@ third arg it->window.
 	(detect_coding): If coding type is utf-16 and BOM detection is
 	required, detect it.
 	(Fdefine_coding_system_internal): For a coding system of type
-	utf-16, check if the attribute :endian is Qbig or not (not nil or
-	not).
+	utf-16, check if the attribute :endian is Qbig or not (not nil or not).
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -3539,7 +3749,7 @@ third arg it->window.
 
 	* coding.c (Qbig5, Vbig5_coding_system, CATEGORY_MASK_BIG5)
 	(detect_coding_big5, decode_coding_big5, encode_coding_big5)
-	(Fdecode_big5_char, Fencode_big5_char): Deleted.  (Big5 no longer
+	(Fdecode_big5_char, Fencode_big5_char): Delete.  (Big5 no longer
 	treated specially.)
 	(setup_coding_system, coding_category, CATEGORY_MASK_ANY)
 	(detected_mask): Remove Big5 bits.
@@ -3549,16 +3759,15 @@ third arg it->window.
 	The following changes are to make the font rescaling facility
 	compatible with Emacs 21.
 
-	* xfaces.c (Vface_font_rescale_alist): Renamed from
+	* xfaces.c (Vface_font_rescale_alist): Rename from
 	Vface_resizing_fonts.
 	(struct font_name): Rename member resizing_ratio to rescale_ratio.
-	(font_rescale_ratio): Renamed from font_resizing_ratio.
+	(font_rescale_ratio): Rename from font_resizing_ratio.
 	(split_font_name): Set font->rescale_ratio.
 	(better_font_p): Pay attention to font->rescale_ratio.
 	(build_scalable_font_name): Likewise.  Change RESX, and RESY
 	fields.
-	(syms_of_xfaces): Declare Vface_font_rescale_alist as a Lisp
-	variable.
+	(syms_of_xfaces): Declare Vface_font_rescale_alist as a Lisp variable.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -3571,8 +3780,7 @@ third arg it->window.
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* fileio.c (Finsert_file_contents): On replacing, before decoding
-	the file into the work buffer, set point of the work buffer to the
-	end.
+	the file into the work buffer, set point of the work buffer to the end.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -3593,8 +3801,7 @@ third arg it->window.
 
 	* xterm.c (x_encode_char): Call ccl_driver with the last arg Qnil.
 
-	* w32term.c (w32_encode_char): Call ccl_driver with the last arg
-	Qnil.
+	* w32term.c (w32_encode_char): Call ccl_driver with the last arg Qnil.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -3609,35 +3816,30 @@ third arg it->window.
 	* coding.h (enum define_coding_ccl_arg_index): Set the first
 	member coding_arg_ccl_decoder to coding_arg_max.
 
-	* ccl.h (ccl_driver): Prototype adjusted.
+	* ccl.h (ccl_driver): Adjust prototype.
 
 	* ccl.c (CCL_DECODE_CHAR, CCL_ENCODE_CHAR): New macros.
 	(ccl_driver): New arg CHARSET_LIST.  Use the above macros instead
 	of DECODE_CAHR, ENCODE_CHAR, CHAR_CHARSET.
-	(Fccl_execute): Call ccl_driver with the last arg Qnil.
-	(Fccl_execute_on_string): Likewise.
+	(Fccl_execute, Fccl_execute_on_string): Call ccl_driver with the
+	last arg Qnil.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (ENCODE_CHAR): If the method is SUBSET or SUPERSET,
 	call encode_char.
 
-	* charset.c (encode_char): Fix handling of methods SUBSET and
-	SUPERSET.
-
-	* xterm.c (x_new_fontset): Fix previous change.
+	* charset.c (encode_char): Fix handling of methods SUBSET and SUPERSET.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* composite.c (syms_of_composite): Make composition_hash_table
-	weak.
+	* composite.c (syms_of_composite): Make composition_hash_table weak.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* dispextern.h (check_face_attributes, generate_ascii_font_name)
 	(font_name_registry): Don't extern them.
-	(split_font_name_into_vector, build_font_name_from_vector): Extern
-	them.
+	(split_font_name_into_vector, build_font_name_from_vector): Extern them.
 
 	* fontset.h (Qfontset): Don't extern it.
 	(new_fontset_from_font_name): Extern it.
@@ -3647,9 +3849,8 @@ third arg it->window.
 	(syms_of_fontset): Defsym it.
 	(FONTSET_FALLBACK): New macro.
 	(fontset_face): Try also the default fontset.
-	(make_fontset): Realize a fallback fontset from the default
-	fontset.
-	(generate_ascii_font_name): Moved from xfaces.c.  Rewritten by
+	(make_fontset): Realize a fallback fontset from the default fontset.
+	(generate_ascii_font_name): Move from xfaces.c.  Rewritten by
 	using split_font_name_into_vector and build_font_name_from_vector.
 	(Fset_fontset_font): Access the elements of font_spec by enum
 	FONT_SPEC_INDEX.  If font_spec is a string, extract the registry
@@ -3660,29 +3861,34 @@ third arg it->window.
 	(n_auto_fontsets): New variable.
 	(new_fontset_from_font_name): New function.
 	(Ffont_info): Store the information about fonts generated from the
-	default fontset in the first extra slot of the returned
-	char-table.
+	default fontset in the first extra slot of the returned char-table.
 
-	* xfaces.c (generate_ascii_font_name): Moved to fontset.c.
-	(font_name_registry): Function deleted.
+	* xfaces.c (generate_ascii_font_name): Move to fontset.c.
+	(font_name_registry): Delete function.
 	(split_font_name_into_vector): New function.
 	(build_font_name_from_vector): New function.
-	(font_list): The argument REGISTRY is now a list of registry
-	names.
+	(font_list): The argument REGISTRY is now a list of registry names.
 	(choose_face_font): If we are choosing an ASCII font, and ATTRS
 	specifies an explicit font name, return the name as is.  Make a
 	list of registy names.
 
-	* xfns.c (x_set_font, x_create_tip_frame): Adjusted to the change
+	* xfns.c (x_set_font, x_create_tip_frame): Adjust for the change
 	of x_new_fontset.
 	(Fx_create_frame): Don't call x_new_fontset here.  Just use
 	x_list_fonts to check the existence of fonts.
 
-	* xterm.h (x_new_fontset): Prototype adjusted.
+	* xterm.h (x_new_fontset): Adjust prototype.
 
 	* xterm.c (x_new_fontset): Change the arg FONTSETNAME to Lisp
 	string.  Use new_fontset_from_font_name to create a fontset from a
 	font name.
+
+2008-02-01  Kenichi Handa  <handa@m17n.org>
+
+	* syntax.c (Vfind_word_boundary_function_table): New name for
+	Vnext_word_boundary_function_table.
+	(find-word-boundary-function-table): New name for
+	next-word-boundary-function-table.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -3704,8 +3910,8 @@ third arg it->window.
 
 	* chartab.c (char_table_ascii): Check if the char table contents
 	is sub-char-table or not.
-	(char_table_set): Fix argument to char_table_ascii.
-	(char_table_set_range): Likewise.
+	(char_table_set, char_table_set_range): Fix argument to
+	char_table_ascii.
 
 	* coding.c (CATEGORY_MASK_RAW_TEXT): New macro.
 	(detect_coding_utf_8, detect_coding_utf_16)
@@ -3713,13 +3919,13 @@ third arg it->window.
 	(detect_coding_sjis, detect_coding_big5)
 	(detect_coding_ccl, detect_coding_charset): Change argument MASK
 	to DETECT_INFO.  Update DETECT_INFO and return 1 if the byte
-	sequence is valid in this coding system.  Callers changed.
+	sequence is valid in this coding system.  Change callers.
 	(MAX_ANNOTATION_LENGTH): New macro.
 	(ADD_ANNOTATION_DATA): New macro.
-	(ADD_COMPOSITION_DATA): Argument changed.  Callers changed.  Call
-	ADD_ANNOTATION_DATA.  The format of annotation data changed.
+	(ADD_COMPOSITION_DATA): Change argument.  Change callers.  Call
+	ADD_ANNOTATION_DATA.  Change the format of annotation data.
 	(ADD_CHARSET_DATA): New macro.
-	(emacs_mule_char): New argument ID.  Callers changed.
+	(emacs_mule_char): New argument ID.  Change callers.
 	(decode_coding_emacs_mule, decode_coding_iso_2022)
 	(decode_coding_sjis, decode_coding_big5, decode_coding_charset):
 	Produce charset annotation data in coding->charbuf.
@@ -3728,8 +3934,7 @@ third arg it->window.
 	(setup_coding_system): Add CODING_ANNOTATE_CHARSET_MASK
 	coding->common_flags if the coding system is iso-2022 based and
 	uses designation.
-	(produce_composition): Adjusted for the new annotation data
-	format.
+	(produce_composition): Adjust for the new annotation data format.
 	(produce_charset): New function.
 	(produce_annotation): Handle charset annotation.
 	(handle_composition_annotation, handle_charset_annotation): New
@@ -3743,8 +3948,7 @@ third arg it->window.
 	coding_detection_info.
 
 	* coding.h (struct coding_detection_info): New structure.
-	(struct coding_system): Prototype of the member `detector'
-	adjusted.
+	(struct coding_system): Adjust prototype of the member `detector'.
 	(CODING_ANNOTATE_CHARSET_MASK): New macro.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -3753,8 +3957,7 @@ third arg it->window.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* keymap.c (apropos_predicate, apropos_accumulate): Declare
-	static.
+	* keymap.c (apropos_predicate, apropos_accumulate): Declare static.
 	(Fapropos_internal): Don't gcpro apropos_accumulate.  Set result
 	to new local and nullify apropos_accumulate before returning.
 	(syms_of_keymap): Staticpro and initialize apropos_accumulate.
@@ -3775,13 +3978,13 @@ third arg it->window.
 
 	* Makefile.in (lisp, shortlisp): Add composite.elc
 
-	* composite.h (Qauto_composed, Vauto_composition_function,
-	Qauto_composition_function): Extern them.
+	* composite.h (Qauto_composed, Vauto_composition_function)
+	(Qauto_composition_function): Extern them.
 
-	* composite.c (Vcomposition_function_table,
-	Qcomposition_function_table): Delete variables.
-	(Qauto_composed, Vauto_composition_function,
-	Qauto_composition_function): New variables.
+	* composite.c (Vcomposition_function_table)
+	(Qcomposition_function_table): Delete variables.
+	(Qauto_composed, Vauto_composition_function)
+	(Qauto_composition_function): New variables.
 	(run_composition_function): Don't call
 	compose-chars-after-function.
 	(update_compositions): Clear `auto-composed' text property.
@@ -3808,17 +4011,12 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (decode_coding_utf_8): When eol_type is Qdos, handle
+	* coding.c (decode_coding_utf_8, decode_coding_emacs_mule)
+	(decode_coding_iso_2022, decode_coding_sjis, decode_coding_big5)
+	(decode_coding_charset, produce_chars): When eol_type is Qdos, handle
 	the case that the last byte is '\r' correctly.
-	(decode_coding_emacs_mule): Likewise.
-	(decode_coding_iso_2022): Likewise.
-	(decode_coding_sjis): Likewise.
-	(decode_coding_big5): Likewise.
-	(decode_coding_charset): Likewise.
-	(produce_chars): Likewise.
-	(decode_coding): Flushing out the unprocessed data correctly.
-	(decode_coding_gap): Set CODING_MODE_LAST_BLOCK bit of
-	coding->mode.
+	(decode_coding): Flush out the unprocessed data correctly.
+	(decode_coding_gap): Set CODING_MODE_LAST_BLOCK bit of coding->mode.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -3828,8 +4026,7 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* charset.c (Fset_charset_priority): Update
-	Viso_2022_charset_list.
+	* charset.c (Fset_charset_priority): Update Viso_2022_charset_list.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -3869,9 +4066,8 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (detect_coding): Fix previous change.
-	(detect_coding_charset): If only ASCII bytes are found, return 0.
-	(detect_coding_system): Fix previous change.
+	* coding.c (detect_coding_charset): If only ASCII bytes are found,
+	return 0.
 	(Fdefine_coding_system_internal): Setup
 	CODING_ATTR_ASCII_COMPAT (attrs) correctly.
 
@@ -3918,34 +4114,24 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (detect_coding_utf_8): Check incomplete byte sequence.
-	Don't update *mask when correctly detected.
-	(detect_coding_utf_16): Likewise.
-	(detect_coding_emacs_mule): Likewise.
-	(detect_coding_iso_2022): Likewise.
-	(detect_coding_sjis): Likewise.
-	(detect_coding_big5): Likewise.
-	(detect_coding_ccl): Likewise.
+	* coding.c (detect_coding_utf_8, detect_coding_utf_16)
+	(detect_coding_emacs_mule, detect_coding_iso_2022)
+	(detect_coding_sjis, detect_coding_big5, detect_coding_ccl): Check
+	incomplete byte sequence.  Don't update *mask when correctly detected.
 	(decode_coding_sjis): Fix decoding of katakana-jisx0201.
-	(detect_eol): Delete the argument CODING, and add the argument
-	CATEGORY.
-	(detect_coding): Adjusted for the changes above.
-	(detect_coding_system): Likewise.
+	(detect_eol): Delete the argument CODING, and add the argument CATEGORY.
+	(detect_coding, detect_coding_system): Adjust for the changes above.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* character.c (char_string): Renamed from
-	char_string_with_unification.  Pay attention to
-	CHAR_MODIFIER_MASK.
-	(string_char): Renamed from string_char.
+	* character.c (char_string): Rename from
+	char_string_with_unification.  Pay attention to CHAR_MODIFIER_MASK.
+	(string_char): Rename from string_char.
 
-	* character.h (CHAR_STRING): Call char_string if C is greater than
-	MAX_3_BYTE_CHAR.
-	(CHAR_STRING_ADVANCE): Likewise.
-	(STRING_CHAR): Call string_char instead of
-	string_char_with_unification.
-	(STRING_CHAR_AND_LENGTH): Likewise.
-	(STRING_CHAR_ADVANCE): Likewise.
+	* character.h (CHAR_STRING, CHAR_STRING_ADVANCE): Call char_string
+	if C is greater than MAX_3_BYTE_CHAR.
+	(STRING_CHAR, STRING_CHAR_AND_LENGTH, STRING_CHAR_ADVANCE): Call
+	string_char instead of string_char_with_unification.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -3953,8 +4139,7 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* keymap.c (push_key_description): Pay attention to
-	force_multibyte.
+	* keymap.c (push_key_description): Pay attention to force_multibyte.
 
 	* regex.c (re_search_2): Fix for the case of unibyte buffer.
 
@@ -3994,28 +4179,7 @@ third arg it->window.
 	* xterm.c (x_new_fontset): If FONTSETNAME specifies the default
 	fontset, return Qt.
 
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* regex.c (re_search_2): Fix previous change.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* syntax.c (skip_syntaxes): Fix previous change.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* syntax.c (skip_chars): Fix previous change.
-	(skip_syntaxes): Fix previous change.
-
 2008-02-01  Dave Love  <fx@gnu.org>
-
-	* config.in: Restore it.
-
-2008-02-01  Dave Love  <fx@gnu.org>
-
-	* config.in: Removed (now auto-generated).
-
-	* s/usg5-4.h: Fix last change.
 
 	* unexelf.c (unexec): Make .got handling not SGI-specific.
 
@@ -4056,8 +4220,7 @@ third arg it->window.
 	(FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE): New macro.
 
 	* character.c (unibyte_to_multibyte_table): New variable.
-	(unibyte_char_to_multibyte): Move to character.h and defined as
-	macro.
+	(unibyte_char_to_multibyte): Move to character.h and define as macro.
 	(multibyte_char_to_unibyte): If C is an eight-bit character,
 	convert it to the corresponding byte value.
 
@@ -4067,13 +4230,11 @@ third arg it->window.
 	(init_charset_once): Initialize unibyte_to_multibyte_table.
 	(syms_of_charset): Define the charset `iso-8859-1'.
 
-	* casefiddle.c (casify_object): Fix previous change.
-
 	* cmds.c (internal_self_insert): In a multibyte buffer, insert C
 	as is without converting it to unibyte.  In a unibyte buffer,
 	convert C to multibyte before checking the syntax.
 
-	* lisp.h (unibyte_char_to_multibyte): Extern deleted.
+	* lisp.h (unibyte_char_to_multibyte): Delete extern.
 
 	* minibuf.c (Fminibuffer_complete_word): Use the macro
 	FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE.
@@ -4092,12 +4253,11 @@ third arg it->window.
 	instead of PATFETCH in many places.  To handle `charset'
 	specification of unibyte, call HANDLE_UNIBYTE_RANGE.   Use bitmap
 	only for ASCII chars.
-	(analyse_first) <exactn>: Simplified because the compiled pattern
+	(analyse_first) <exactn>: Simplify because the compiled pattern
 	is multibyte.
 	<charset_not>: Setup fastmap from bitmap only for ASCII chars.
 	<charset>: Use CHAR_LEADING_CODE to get leading codes.
-	<categoryspec>: If multibyte, setup fastmap only for ASCII chars
-	here.
+	<categoryspec>: If multibyte, setup fastmap only for ASCII chars here.
 	(re_compile_fastmap) [emacs]: Call analyse_first with the arg
 	multibyte always 1.
 	(re_search_2): In emacs, set the locale variable multibyte to 1,
@@ -4119,28 +4279,22 @@ third arg it->window.
 	* search.c (compile_pattern_1): Don't adjust the multibyteness of
 	the regexp pattern and the matching target.  Set cp->buf.multibyte
 	to the multibyteness of the regexp pattern.  Set
-	cp->but.target_multibyte to the multibyteness of the matching
-	target.
+	cp->but.target_multibyte to the multibyteness of the matching target.
 	(wordify): Use FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE instead of
 	FETCH_STRING_CHAR_ADVANCE.
 	(Freplace_match): Convert unibyte chars to multibyte.
 
-	* syntax.c (char_quoted): Use FETCH_CHAR_AS_MULTIBYTE to convert
+	* syntax.c (char_quoted, back_comment, scan_words)
+	(Fforward_comment, scan_lists, Fbackward_prefix_chars)
+	(scan_sexps_forward): Use FETCH_CHAR_AS_MULTIBYTE to convert
 	unibyte chars to multibyte.
-	(back_comment): Likewise.
-	(scan_words): Likewise.
-	(skip_chars): The arg syntaxp is deleted, and the code for
-	handling syntaxes is moved to skip_syntaxes.  Callers changed.
+	(skip_chars): Delete the arg syntaxp, and move the code for
+	handling syntaxes to skip_syntaxes.  Change callers.
 	Fix the case that the multibyteness of STRING and the current
 	buffer doesn't match.
 	(skip_syntaxes): New function.
 	(SYNTAX_WITH_MULTIBYTE_CHECK): Check C by ASCII_CHAR_P, not by
 	SINGLE_BYTE_CHAR_P.
-	(Fforward_comment): Use FETCH_CHAR_AS_MULTIBYTE to convert unibyte
-	chars to multibyte.
-	(scan_lists): Likewise.
-	(Fbackward_prefix_chars): Likewise.
-	(scan_sexps_forward): Likewise.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -4148,8 +4302,8 @@ third arg it->window.
 	(LFACE_FONTSET): New macro.
 	(check_lface_attrs): Check also LFACE_FONTSET_INDEX.
 	(set_lface_from_font_name): Setup LFACE_FONTSET (lface).
-	(Finternal_set_lisp_face_attribute): Handle QCfontset.
-	(Finternal_get_lisp_face_attribute): Likewise.
+	(Finternal_set_lisp_face_attribute)
+	(Finternal_get_lisp_face_attribute): Handle QCfontset.
 	(lface_same_font_attributes_p): Fix checking of LFACE_FONT_INDEX,
 	check also LFACE_FONTSET_INDEX.
 	(face_fontset): Check attrs[LFACE_FONTSET_INDEX], not
@@ -4182,21 +4336,20 @@ third arg it->window.
 
 	* abbrev.c (Fexpand_abbrev): Fix for the multibyte case.
 
-	* buffer.h (_fetch_multibyte_char_len): Extern deleted.
-	(FETCH_MULTIBYTE_CHAR): Don't use _fetch_multibyte_char_len.
-	(BUF_FETCH_MULTIBYTE_CHAR): Likewise.
+	* buffer.h (_fetch_multibyte_char_len): Delete extern.
+	(FETCH_MULTIBYTE_CHAR, BUF_FETCH_MULTIBYTE_CHAR): Don't use
+	_fetch_multibyte_char_len.
 	(FETCH_CHAR_AS_MULTIBYTE): New macro.
 
-	* casetab.c (set_canon, set_identity, shuffle): Simplified.
+	* casetab.c (set_canon, set_identity, shuffle): Simplify.
 
-	* casefiddle.c (casify_object): Simplified.  Handle the case that
+	* casefiddle.c (casify_object): Simplify.  Handle the case that
 	the case conversion change the byte length.
-	(casify_region): Likewise
+	(casify_region): Likewise.
 
-	* character.h (MAKE_CHAR_UNIBYTE, MAKE_CHAR_MULTIBYTE): New
-	macros.
+	* character.h (MAKE_CHAR_UNIBYTE, MAKE_CHAR_MULTIBYTE): New macros.
 
-	* character.c (_fetch_multibyte_char_len): This variable deleted.
+	* character.c (_fetch_multibyte_char_len): Delet this variable.
 	(syms_of_character): Setup Vprintable_chars.
 
 	* editfns.c (Fchar_equal): Fix for the unibyte case.
@@ -4217,8 +4370,7 @@ third arg it->window.
 
 	* editfns.c (Fformat): Use ASCII_CHAR_P, not SINGLE_BYTE_CHAR_P.
 
-	* fontset.c (Fset_fontset_font): Treat `ascii' as charset, not
-	script.
+	* fontset.c (Fset_fontset_font): Treat `ascii' as charset, not script.
 
 	* emacs.c (main): In the case of --unibyte, instead of aborting on
 	finding non-empty buffer, make it unibyte.
@@ -4239,25 +4391,23 @@ third arg it->window.
 	* fontset.c (fontset_add): Make the type `int'.
 	(fontset_id_valid_p): Define it if FONTSET_DEBUG is defined.
 
-	* character.c (unibyte_char_to_multibyte): Refer to
+	* character.c (unibyte_char_to_multibyte)
+	(multibyte_char_to_unibyte, Funibyte_char_to_multibyte): Refer to
 	charset_unibyte, not charset_primary.
-	(multibyte_char_to_unibyte): Likewise.
-	(Funibyte_char_to_multibyte): Likewise.
 
-	* charset.h: (charset_unibyte): Extern it instead of
-	charset_primary.
+	* charset.h (charset_unibyte): Extern it instead of charset_primary.
 
-	* charset.c (charset_unibyte): Renamed from charset_primary.
-	(Funibyte_charset): Renamed from Fprimary_charset.
-	(Fset_unibyte_charset): Renamed from Fset_primary_charset.
-	(syms_of_charset): Adjusted for the above changes.
+	* charset.c (charset_unibyte): Rename from charset_primary.
+	(Funibyte_charset): Rename from Fprimary_charset.
+	(Fset_unibyte_charset): Rename from Fset_primary_charset.
+	(syms_of_charset): Adjust for the above changes.
 
 	* w32term.c (x_produce_glyphs): Use ASCII_CHAR_P, not
 	SINGLE_BYTE_CHAR_P.  Fix the logic of handling non-ASCII char when
 	it->multibyte_p is zero.
 
 	* lisp.h (nonascii_insert_offset, Vnonascii_translation_table):
-	Extern deleted.
+	Delete extern.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -4266,13 +4416,13 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* fontset.h (FS_LOAD_FONT): Call fs_load_font with the arg CHARSET
-	-1.
+	* fontset.h (FS_LOAD_FONT): Call fs_load_font with the arg CHARSET -1.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* syntax.c (Vnext_word_boundary_function_table): New variable.
-	(syms_of_syntax): Declare it as a Lisp variable.
+	(next-word-boundary-function-table): Declare it as a Lisp variable
+	in syms_of_syntax.
 	(scan_words): Call functions in Vnext_word_boundary_function_table
 	if any.
 
@@ -4282,8 +4432,6 @@ third arg it->window.
 	return fontp without setting its members.
 
 2008-02-01  Dave Love  <fx@gnu.org>
-
-	* config.in: Generated with autoheader.
 
 	* xfns.c [HAVE_STDLIB_H]: Change logic (instead of fixing typo).
 
@@ -4301,7 +4449,7 @@ third arg it->window.
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* buffer.c (Qas, Qmake, Qto): New variables.
-	(Fset_buffer_multibyte): New optional arg METHOD.  Caller changed.
+	(Fset_buffer_multibyte): New optional arg METHOD.  Change caller.
 	(syms_of_buffer): Intern and staticpro Qas, Qmake, and Qto.
 
 	* callproc.c (Fcall_process): Don't call insert_1_both directly if
@@ -4314,23 +4462,22 @@ third arg it->window.
 	by the primary charset, make it eight-bit char.
 	(Fmultibyte_char_to_unibyte): Call CHAR_TO_BYTE8.
 
-	* charset.c: (charset_eight_bit, Qeight_bit_control): New
-	variables.
-	(charset_8_bit__control, charset_8_bit_graphic,
-	Qeight_bit_control, Qeight_bit_graphic): These variables deleted.
+	* charset.c (charset_eight_bit, Qeight_bit_control): New variables.
+	(charset_8_bit__control, charset_8_bit_graphic)
+	(Qeight_bit_control, Qeight_bit_graphic): Delete these variables.
 	(define_charset_internal): New function.
 	(syms_of_charset): Call define_charset_internal for pre-defined
 	charsets.
 
 	* charset.h (charset_8_bit): Extern it.
 
-	* coding.c (make_conversion_work_buffer): Adjusted for the change
+	* coding.c (make_conversion_work_buffer): Adjust for the change
 	of Fset_buffer_multibyte.
 	(encode_coding_raw_text): Increment p0 in the loop.
 
-	* lisp.h (Fset_buffer_multibyte): Prototype adjusted.
+	* lisp.h (Fset_buffer_multibyte): Adjust prototype.
 
-	* xdisp.c (setup_echo_area_for_printing, set_message_1): Adjusted
+	* xdisp.c (setup_echo_area_for_printing, set_message_1): Adjust
 	for the change of Fset_buffer_multibyte.
 
 	* fns.c (Fstring_to_multibyte): New function.
@@ -4340,8 +4487,7 @@ third arg it->window.
 
 	* xfns.c (x_put_x_image): Declare args.
 
-	* xfaces.c (font_name_registry, choose_face_font): Delete unused
-	vars.
+	* xfaces.c (font_name_registry, choose_face_font): Delete unused vars.
 	(try_font_list): Declare an arg.
 
 	* xdisp.c (message2_nolog, set_message): Declare an arg.
@@ -4357,8 +4503,7 @@ third arg it->window.
 
 	* keymap.c (push_key_description): Call CHARACTERP correctly.
 
-	* fontset.c (fontset_add): Declare args.  Call make_number
-	correctly.
+	* fontset.c (fontset_add): Declare args.  Call make_number correctly.
 	(face_for_char): Delete unused vars.
 	(Fset_fontset_font): Doc fix.  Delete unused vars.
 
@@ -4371,11 +4516,9 @@ third arg it->window.
 	* charset.c: Remove `emacs' conditional.  Doc fixes.
 	(map_char_table_for_charset): Declare.
 
-	* character.c (syms_of_character) <translation-table-vector>: Doc
-	fix.
+	* character.c (syms_of_character) <translation-table-vector>: Doc fix.
 
-	* ccl.c: Remove `emacs' conditional.  Include hash table stuff
-	from trunk.
+	* ccl.c: Remove `emacs' conditional.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -4392,39 +4535,36 @@ third arg it->window.
 
 	* character.h (Vchar_script_table): Extern it.
 
-	* character.c (Vscript_alist): This variable deleted.
+	* character.c (Vscript_alist): Delete.
 	(Vchar_script_table, Qchar_script_table): New variable.
 	(syms_of_character): Declare Vchar_script_table as a lisp variable
 	and initialize it.
 
-	* chartab.c (Fmake_char_table): Doc fixed.  If PURPOSE doesn't
+	* chartab.c (Fmake_char_table): Doc fix.  If PURPOSE doesn't
 	have property char-table-extra-slots, make no extra slot.
 
-	* dispextern.h (struct face): Member `charset' deleted.
-	(FACE_SUITABLE_FOR_CHAR_P): Use ASCII_CHAR_P, not
+	* dispextern.h (struct face): Delete member `charset'.
+	(FACE_SUITABLE_FOR_CHAR_P, FACE_FOR): Use ASCII_CHAR_P, not
 	SINGLE_BYTE_CHAR_P.
-	(FACE_FOR_CHAR): Likewise.
-	(choose_face_font, lookup_non_ascii_face, font_name_registry): Add
-	prototypes
-	(lookup_face, lookup_named_face, lookup_derived_face): Prototype
-	fixed.
-	(generate_ascii_font_name): Renamed from generate_ascii_font.
+	(choose_face_font, lookup_non_ascii_face, font_name_registry):
+	Add prototypes.
+	(lookup_face, lookup_named_face, lookup_derived_face): Fix prototype.
+	(generate_ascii_font_name): Rename from generate_ascii_font.
 
 	* fontset.h (get_font_repertory_func): New prototype.
-	(make_fontset_for_ascii_face, fs_load_font): Prototypes fixed.
+	(make_fontset_for_ascii_face, fs_load_font): Fix prototypes.
 	(FS_LOAD_FONT): Call fs_load_font with the 3rd arg charset_ascii.
 
 	* fontset.c (Qprepend, Qappend): New variables.
-	(FONTSET_CHARSET_ALIST, FONTSET_FACE_ALIST): These macros deleted.
+	(FONTSET_CHARSET_ALIST, FONTSET_FACE_ALIST): Delete.
 	(FONTSET_NOFONT_FACE, FONTSET_REPERTORY): New macros.
 	(FONTSET_REF): Optimize if FONTSET is Vdefault_fontset.
 	(FONTSET_REF_AND_RANGE, FONTSET_ADD): New macros.
 	(fontset_ref_and_range, fontset_add, reorder_font_vector)
 	(load_font_get_repertory): New functions.
-	(fontset_set): This function deleted.
+	(fontset_set): Delete.
 	(fontset_face): New arg FACE.  Return face ID, not face.
-	Completely re-written to handle new fontset structure.  Caller
-	changed.
+	Complete re-write to handle new fontset structure.  Change caller.
 	(free_face_fontset): Use ASET istead of AREF (X) = Y.
 	(face_for_char): Don't call lookup_face.
 	(make_fontset_for_ascii_face): New arg FACE.
@@ -4442,33 +4582,32 @@ third arg it->window.
 	* lisp.h (CHAR_TABLE_REF): Remove unnecessary check (IDX >= 0).
 	(Fset_fotset_font): Fix arguments to 5.
 
-	* msdos.c (XMenuActivate): Adjuted for the change of
-	lookup_derived_face.
+	* msdos.c (XMenuActivate): Adjust for the change of lookup_derived_face.
 
 	* xdisp.c (message_dolog, set_message_1, extend_face_to_end_of_line):
 	Use ASCII_CHAR_P, not SINGLE_BYTE_CHAR_P.
-	(highlight_trailing_whitespace): Adjusted for the change of
+	(highlight_trailing_whitespace): Adjust for the change of
 	lookup_named_face.
 
 	* xfaces.c: Include charset.h.
-	(load_face_font): Argument C deleted.  Caller changed.
-	(generate_ascii_font_name): Renamed from generate_ascii_font.
+	(load_face_font): Delete argument C.  Change caller.
+	(generate_ascii_font_name): Rename from generate_ascii_font.
 	(font_name_registry): New function.
 	(cache_face): Store ascii faces before non-ascii faces in buckets.
-	(lookup_face): Arguments C and BASE_FACE deleted.  Caller changed.
+	(lookup_face): Delete arguments C and BASE_FACE.  Change caller.
 	Lookup only ascii faces.
 	(lookup_non_ascii_face): New function.
-	(lookup_named_face): Argument C deleted.  Caller changed.
-	(lookup_derived_face): Argument C deleted.  Caller changed.
-	(try_font_list): New arg PATTERN.  Caller changed.  If PATTERN is
+	(lookup_named_face): Delete argument C.  Change caller.
+	(lookup_derived_face): Delete argument C.  Change caller.
+	(try_font_list): New arg PATTERN.  Change caller.  If PATTERN is
 	a string, just call font_list with it.
-	(choose_face_font): Arguments FACE and C deleted.  New arg
-	FONT_SPEC.  Caller changed.
-	(realize_face): Arguments C and BASE_FACE deleted.  Caller
-	(realize_x_face): Likewise.
+	(choose_face_font): Delete arguments FACE and C.  New arg
+	FONT_SPEC.  Change caller.
+	(realize_face, realize_x_face): Delete arguments C and BASE_FACE.
+	Change caller.
 	(realize_non_ascii_face): New function.
 	(realize_x_face): Call load_face_font here.
-	(realize_tty_face): Argument C deleted.  Caller changed.
+	(realize_tty_face): Delete argument C.  Change caller.
 	(compute_char_face): If CH is not ascii, call FACE_FOR_CHAR to
 	get a face ID.
 	(dump_realized_face): Don't print charset of FACE.
@@ -4476,8 +4615,7 @@ third arg it->window.
 	* xfns.c (x_set_font): Always call x_new_fontset and
 	store_frame_parameter.
 	(Fx_create_frame): Call x_new_fontset, not x_new_font.
-	(syms_of_xfns): Set get_font_repertory_func to
-	x_get_font_repertory.
+	(syms_of_xfns): Set get_font_repertory_func to x_get_font_repertory.
 
 	* xterm.h (x_get_font_repertory): Extern it.
 
@@ -4500,16 +4638,15 @@ third arg it->window.
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* lread.c: Include "coding.h".
-	(Qget_emacs_mule_file_char, Qload_force_doc_strings,
-	load_each_byte, unread_char): New variables.
-	(readchar_backlog): This variable deleted.
+	(Qget_emacs_mule_file_char, Qload_force_doc_strings)
+	(load_each_byte, unread_char): New variables.
+	(readchar_backlog): Delete.
 	(readchar): Return a character unless load_each_byte is nonzero.
 	Handle the case that readcharfun is Qget_emacs_mule_file_char or a
 	cons.  If unread_char is not -1, simply return it.
 	(unreadchar): Handle the case that readcharfun is
-	Qget_emacs_mule_file_char or a cons.  Set unread_char if
-	necessary.
-	(read_multibyte): This function deleted.
+	Qget_emacs_mule_file_char or a cons.  Set unread_char if necessary.
+	(read_multibyte): Delete.
 	(readbyte_for_lambda, readbyte_from_file, readbyte_from_string)
 	(read_emacs_mule_char): New functions.
 	(Fload): Even if the file doesn't have the extention ".elc", if
@@ -4517,17 +4654,14 @@ third arg it->window.
 	file contains bytecompiled code.  If the version is less than 22,
 	load the file while decoding multibyte sequences by emacs-mule.
 	(readevalloop): Don't use readchar_backlog.
-	(Fread): Likewise.  Pay attention to the case that STREAM is a
-	cons.
-	(Fread_from_string): Pay attention to the case that STREAM is a
-	cons.
-	(read_escape): The arg BYTEREP deleted.
+	(Fread): Likewise.  Pay attention to the case that STREAM is a cons.
+	(Fread_from_string): Pay attention to the case that STREAM is a cons.
+	(read_escape): Delete the arg BYTEREP.
 	(read1): Set load_each_byte to 1 temporarily while handling
 	#@NUMBER.  Don't call read_multibyte.
 	(read_vector): Call Fread with a cons.  If readcharfun is
 	Qget_emacs_mule_file_char, decode the read string by emacs-mule.
-	(read_list): If doc_reference is 2, make the cdr part string as
-	unibyte.
+	(read_list): If doc_reference is 2, make the cdr part string as unibyte.
 	(syms_of_lread): Intern and staticpro Qget_emacs_mule_file_char
 	and Qload_force_doc_strings.
 
@@ -4539,14 +4673,13 @@ third arg it->window.
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* character.h (TRAILING_CODE_P): New macro.
-	(MAYBE_UNIFY_CHAR): Adjusted for the change of Funify_charset.
+	(MAYBE_UNIFY_CHAR): Adjust for the change of Funify_charset.
 	(string_char_with_unification): Fix prototype.
 	(Vscript_alist): Extern it.
 
 	* character.c (Vscript_alist): New variable.
-	(string_char_with_unification): Add `const' to local variables.
-	(str_as_unibyte): Likewise.
-	(string_escape_byte8): Likewise.
+	(string_char_with_unification, str_as_unibyte)
+	(string_escape_byte8): Add `const' to local variables.
 	(syms_of_character): Declare script-alist as a Lisp variable.
 
 	* charset.h (Vcharset_ordered_list): Extern it.
@@ -4555,29 +4688,26 @@ third arg it->window.
 	(EMACS_MULE_LEADING_CODE_PRIVATE_12)
 	(EMACS_MULE_LEADING_CODE_PRIVATE_21)
 	(EMACS_MULE_LEADING_CODE_PRIVATE_22): New macros
-	(Funify_charset): Adjusted for the change of Funify_charset.
+	(Funify_charset): Adjust for the change of Funify_charset.
 
 	* charset.c (charset_ordered_list_tick): New variable.
 	(Fdefine_charset_internal): Increment charset_ordered_list_tick.
 	(Funify_charset): New optional arg DEUNIFY.  If it is non-nil,
 	deunify intead of unify a charset.
 	(string_xstring_p): Add `const' to local variables.
-	(find_charsets_in_text): Add `const' to arguemnts and local
-	variables.
-	(encode_char): Adjusted for the change of Funify_charset.  Fix
+	(find_charsets_in_text): Add `const' to arguemnts and local variables.
+	(encode_char): Adjust for the change of Funify_charset.  Fix
 	detecting of invalid code.
 	(Fset_charset_priority): Increment charset_ordered_list_tick.
 	(Fmap_charset_chars): Fix handling of default value for FROM_CODE
 	and TO_CODE.
 
 	* coding.c (LEADING_CODE_PRIVATE_11, LEADING_CODE_PRIVATE_12)
-	(LEADING_CODE_PRIVATE_21, LEADING_CODE_PRIVATE_22): Macros
-	deleted.  Callers changed to use
-	EMACS_MULE_LEADING_CODE_PRIVATE_11, etc.
-	(decode_coding_ccl): Add `const' to local variables.
-	(consume_chars): Likewise.
-	(Ffind_coding_systems_region_internal): Likewise.
-	(Fcheck_coding_systems_region): Likewise.
+	(LEADING_CODE_PRIVATE_21, LEADING_CODE_PRIVATE_22): Delete macros.
+	Changed callers to use EMACS_MULE_LEADING_CODE_PRIVATE_11, etc.
+	(decode_coding_ccl, consume_chars)
+	(Ffind_coding_systems_region_internal)
+	(Fcheck_coding_systems_region): Add `const' to local variables.
 
 	* print.c (print_object): Use octal form for printing the
 	contents of a bool vector.
@@ -4592,9 +4722,9 @@ third arg it->window.
 	* fns.c: Move coding.h.
 	(Qcodeset, Qdays, Qmonths): New.
 	(concat): Use CHARACTERP instead of INTERGERP.
-	(Flocale_codeset): Deleted.
+	(Flocale_codeset): Delete.
 	(Flanginfo): New function.
-	(syms_of_fns): Changed accordingly.
+	(syms_of_fns): Change accordingly.
 
 	* coding.c (adjust_coding_eol_type): Fix eol_type/eol_seen mixup.
 
@@ -4621,7 +4751,7 @@ third arg it->window.
 
 	* coding.h (code_convert_region): Fix prototype.
 
-	* dispextern.h (redraw_frame, redraw_garbaged_frames): Removed.
+	* dispextern.h (redraw_frame, redraw_garbaged_frames): Remove.
 
 	* fontset.c (fontset_ref, fontset_set, fs_load_font)
 	(Ffontset_info): Convert Lisp types.
@@ -4679,7 +4809,7 @@ third arg it->window.
 	of category_set for characters out of the range.  Avoid
 	unnecessary modification.
 
-	* character.h (MAYBE_UNIFY_CHAR): Adjusted for the change of
+	* character.h (MAYBE_UNIFY_CHAR): Adjust for the change of
 	Vchar_unify_table.  The default value of the table is now nil.
 
 	* character.c (syms_of_character): Setup Vchar_width_table for
@@ -4692,37 +4822,36 @@ third arg it->window.
 	charset_subset and charset_superset.
 	(enum charset_method): Delete CHARSET_METHOD_INHERIT and add
 	CHARSET_METHOD_SUBSET and CHARSET_METHOD_SUPERSET.
-	(CHARSET_ATTR_PARENTS, CHARSET_PARENTS): Macros deleted.
+	(CHARSET_ATTR_PARENTS, CHARSET_PARENTS): Delete.
 	(CHARSET_ATTR_SUBSET, CHARSET_ATTR_SUPERSET, CHARSET_SUBSET)
 	(CHARSET_SUPERSET): New macros.
 	(charset_work): Extern it.
 	(ENCODE_CHAR): Use charset_work.
-	(CHAR_CHARSET_P): Adjusted for the change of encoder format.
+	(CHAR_CHARSET_P): Adjust for the change of encoder format.
 	(map_charset_chars): Extern it.
 
 	* charset.c (load_charset_map): Set the default value of encoder
 	and deunifier char-tables to nil.
-	(map_charset_chars): Argument changed.  Callers changed.  Use
+	(map_charset_chars): Change argument.  Change callers.  Use
 	map_char_table_for_charset instead of map_char_table.
 	(Fmap_charset_chars): New optional args from_code and to_code.
-	(Fdefine_charset_internal): Adjusted for the change of
+	(Fdefine_charset_internal): Adjust for the change of
 	`define-charset' (:parents -> :subset or :superset).
 	(charset_work): New variable.
-	(encode_char): Adjusted for the change of
+	(encode_char, syms_of_charset): Adjust for the change of
 	Fdefine_charset_internal.
-	(syms_of_charset): Likewise.
 	(Ffind_charset_string): Setup the vector `charsets' correctly.
 
-	* chartab.c (sub_char_table_ref_and_range): New arg defalt.  Fix
+	* chartab.c (sub_char_table_ref_and_range): New arg default.  Fix
 	the previous change.
-	(char_table_ref_and_range): Adjusted for the above change.
+	(char_table_ref_and_range): Adjust for the above change.
 	(map_sub_char_table_for_charset): New function.
 	(map_char_table_for_charset): New function.
 
 	* keymap.c (describe_vector): Handle a char-table directly here.
-	(describe_char_table): Deleted.
+	(describe_char_table): Delete.
 
-	* lisp.h (map_charset_chars): Deleted.
+	* lisp.h (map_charset_chars): Delete.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -4731,7 +4860,7 @@ third arg it->window.
 	(syms_of_fns): Defsubr it.
 
 	* config.in (HAVE_PTY_H, HAVE_SIZE_T, HAVE_LANGINFO_CODESET): New.
-	(size_t): Removed.
+	(size_t): Remove.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -4751,35 +4880,30 @@ third arg it->window.
 	* charset.c (load_charset_map): Handle the case that from < to
 	correctly.
 
-	* coding.c (encode_coding_emacs_mule): Pay attention to raw-8-bit
-	chars.
-	(encode_coding_iso_2022): Likewise.
-	(encode_coding_sjis): Likewise.
-	(encode_coding_big5): Likewise.
-	(encode_coding_charset): Likewise.
+	* coding.c (encode_coding_emacs_mule, encode_coding_iso_2022)
+	(encode_coding_sjis, encode_coding_big5, encode_coding_charset):
+	Pay attention to raw-8-bit chars.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* Makefile.in (lisp): Change chinese.elc to chinese.el.  They are
-	not bytecompiled now.
-	(shortlisp): Likewise.
+	* Makefile.in (lisp, shortlisp): Change chinese.elc to chinese.el.
+	It is not bytecompiled now.
 
 	* charset.c (charset_jisx0201_roman, charset_jisx0208_1978)
 	(charset_jisx0208): New variables.
 	(Fdefine_charset_internal): Setup them if appropriate.
 	(init_charset_once): Initialize them to -1.
 
-	* charset.h (charset_jisx0201_roman, charset_jisx0208_1978,
-	charset_jisx0208): Extern them.
+	* charset.h (charset_jisx0201_roman, charset_jisx0208_1978)
+	(charset_jisx0208): Extern them.
 
 	* coding.c (CODING_ISO_FLAG_USE_ROMAN): New macro
 	(CODING_ISO_FLAG_USE_OLDJIS): New macro.
-	(CODING_ISO_FLAG_FULL_SUPPORT): Macro definition changed.
-	(setup_iso_safe_charsets): Fix arguemtns to Fassq.
-	(DECODE_DESIGNATION): Pay attention to CODING_ISO_FLAG_USE_ROMAN
-	and CODING_ISO_FLAG_USE_OLDJIS.
-	(ENCODE_ISO_CHARACTER_DIMENSION1): Likewise.
-	(ENCODE_ISO_CHARACTER_DIMENSION2): Likewise.
+	(CODING_ISO_FLAG_FULL_SUPPORT): Change macro definition.
+	(setup_iso_safe_charsets): Fix arguments to Fassq.
+	(DECODE_DESIGNATION, ENCODE_ISO_CHARACTER_DIMENSION1)
+	(ENCODE_ISO_CHARACTER_DIMENSION2): Pay attention to
+	CODING_ISO_FLAG_USE_ROMAN and CODING_ISO_FLAG_USE_OLDJIS.
 	(encode_coding_iso_2022): Change the 1st arg to
 	ENCODE_ISO_CHARACTER to a variable.
 
@@ -4789,9 +4913,8 @@ third arg it->window.
 	charset_arg_min_code and charset_arg_max_code.
 	(struct charset): New member char_index_offset.
 
-	* charset.c (CODE_POINT_TO_INDEX): Take charset->char_index_offset
-	into account.
-	(INDEX_TO_CODE_POINT): Likewise.
+	* charset.c (CODE_POINT_TO_INDEX, INDEX_TO_CODE_POINT):
+	Take charset->char_index_offset into account.
 	(Fdefine_charset_internal): Handle args[charset_arg_min_code] and
 	args[charset_arg_max_code].  Setup charset.char_index_offset.
 	(syms_of_charset): Fix args to Fdefine_charset_internal.
@@ -4822,7 +4945,7 @@ third arg it->window.
 2008-02-01  Dave Love  <fx@gnu.org>
 
 	* term.c (costs_set): Declare static, non-initialized for pcc.
-	(encode_terminal_code): Remove ensued var.
+	(encode_terminal_code): Remove unused var.
 
 	* keyboard.c (kbd_buffer_store_event): Fix interrupt_signal decl
 	for K&R.
@@ -4830,10 +4953,9 @@ third arg it->window.
 	* xterm.c (xlwmenu_window_p): Fix prototype for K&R.
 
 	* coding.c (setup_iso_safe_charsets): Fix arg decl for K&R.
-	(suffixes): Moved out of make_subsidiaries for K&R.
+	(suffixes): Move out of make_subsidiaries for K&R.
 
-	* charset.c (map_charset_chars): Fix c_function declaration for
-	K&R.
+	* charset.c (map_charset_chars): Fix c_function declaration for K&R.
 
 	* lisp.h (DEFUN) [!PROTOTYPES]: Remove spurious `args'.
 
@@ -4841,46 +4963,40 @@ third arg it->window.
 
 	* data.c (Fchar_or_string_p): Doc fix.  Use CHARACTERP.
 
-	* category.c (Fmodify_category_entry): Doc fix.  Remove unused
-	vars.
+	* category.c (Fmodify_category_entry): Doc fix.  Remove unused vars.
 
 2008-02-01  Yong Lu <lyongu@asia-infonet.com>
 
 	* charset.c (Fdefine_charset_internal): Fix argument to bzero.
 
-	* coding.c (Fdefine_coding_system_internal): Fix previous change.
-	(decode_coding_charset): Workaround for the bug of GCC 2.96.
+	* coding.c (decode_coding_charset): Workaround for the bug of GCC 2.96.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* Makefile.in (lisp): Change cyrillic.elc to cyrillic.el,
+	* Makefile.in (lisp, shortlisp): Change cyrillic.elc to cyrillic.el,
 	vietnamese.elc to vietnamese.el.  They are not bytecompiled now.
-	(shortlisp): Likewise.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (decode_coding_charset): Adjusted for the change of
+	* coding.c (decode_coding_charset): Adjust for the change of
 	Fdefine_coding_system_internal.
 	(Fdefine_coding_system_internal): For a coding system of
 	`charset' type, store a list of charset IDs in
 	`charset_attr_charset_valids' element of coding attributes.
 
-	* charset.c (Fmake_char): Fix previous change.
-
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (ONE_MORE_BYTE_NO_CHECK): Increment consumed_chars.
-	(emacs_mule_char): New arg src.  Delete arg `composition'.  Caller
-	changed.  Handle 2-byte and 3-byte charsets correctly.
-	(DECODE_EMACS_MULE_COMPOSITION_RULE_20): Renamed from
-	DECODE_EMACS_MULE_COMPOSITION_RULE.  Caller changed.
+	(emacs_mule_char): New arg src.  Delete arg `composition'.  Change
+	caller.  Handle 2-byte and 3-byte charsets correctly.
+	(DECODE_EMACS_MULE_COMPOSITION_RULE_20): Rename from
+	DECODE_EMACS_MULE_COMPOSITION_RULE.  Change caller.
 	(DECODE_EMACS_MULE_COMPOSITION_RULE_21): New macro.
 	(DECODE_EMACS_MULE_21_COMPOSITION): Call
 	DECODE_EMACS_MULE_COMPOSITION_RULE_21.  Produce correct annotation
 	sequence.
 	(decode_coding_emacs_mule): Handle composition correctly.  Rewind
-	`src' and `consumed_chars' correctly before calling
-	emacs_mule_char.
+	`src' and `consumed_chars' correctly before calling emacs_mule_char.
 	(DECODE_COMPOSITION_START): Correctly handle the case of altchar
 	and alt&rule composition.
 	(decode_coding_iso_2022): Handle composition correctly.
@@ -4889,17 +5005,14 @@ third arg it->window.
 	* charset.c (Fdefine_charset_internal): Fix bug for the case of
 	re-defining a charset.  If the charset has :emacs-mule-id, setup
 	emacs_mule_bytes.
-	(Fmake_char): If CODE1 is nil, use the minimum code of the
-	charset.
+	(Fmake_char): If CODE1 is nil, use the minimum code of the charset.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (encode_coding_iso_2022): If coding requires safe
+	* coding.c (encode_coding_iso_2022, encode_coding_sjis)
+	(encode_coding_big5, encode_coding_charset): If coding requires safe
 	encoding, produce a character specified by
 	CODING_INHIBIT_CHARACTER_SUBSTITUTION.
-	(encode_coding_sjis): Likewise.
-	(encode_coding_big5): Likewise.
-	(encode_coding_charset): Likewise.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -4907,18 +5020,14 @@ third arg it->window.
 
 	* process.c: Conditionally include sys/wait.h, pty.h.
 
-	* print.c (print_object): Fix print format for 64-bit
-	systems.
+	* print.c (print_object): Fix print format for 64-bit systems.
 
-	* keyboard.c (modify_event_symbol): Fix print format for 64-bit
-	systems.
+	* keyboard.c (modify_event_symbol): Fix print format for 64-bit systems.
 
 	* buffer.c (emacs_strerror): Declare.
-	(MMAP_ALLOCATED_P, mmap_enlarge, syms_of_buffer): Import changes
-	from trunk.
 
 	* fontset.c (Fclear_face_cache): Declare.
-	(accumulate_font_info): Commented-out (unused).
+	(accumulate_font_info): Comment-out (unused).
 	(face_for_char, Fset_fontset_font, Ffontset_info): Remove unused
 	variables.
 
@@ -4929,8 +5038,7 @@ third arg it->window.
 	(Fdefine_charset_internal, Fsplit_char, syms_of_charset)
 	(Fmap_charset_chars): Doc fix.
 
-	* coding.c (Vchar_coding_system_table, Qchar_coding_system):
-	Removed.
+	* coding.c (Vchar_coding_system_table, Qchar_coding_system): Remove.
 	(Fset_coding_system_priority, Fset_coding_system_priority)
 	(Fdefine_coding_system_internal): Doc fix.
 
@@ -4986,20 +5094,17 @@ third arg it->window.
 
 2008-02-01  Yong Lu <lyongu@asia-infonet.com>
 
-	* charset.c (load_charset_map): Fix previous change.
-	(read_hex): Don't treat SPC as a comment starter.
-	(decode_char): If CODE_POINT_TO_INDEX retruns -1, always return
-	-1.
+	* charset.c (read_hex): Don't treat SPC as a comment starter.
+	(decode_char): If CODE_POINT_TO_INDEX retruns -1, always return -1.
 	(Fdecode_char): Fix typo.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* charset.h (struct charset): New member `code_space_mask'.
 
-	* coding.c (coding_set_source): Delete the local variable
-	beg_byte.
-	(encode_coding_charset): Delete the local variable charset.
-	(Fdefine_coding_system_internal): Likewise.
+	* coding.c (coding_set_source): Delete the local variable beg_byte.
+	(encode_coding_charset, Fdefine_coding_system_internal):
+	Delete the local variable charset.
 	(Fdefine_coding_system_internal): Setup
 	attrs[coding_attr_charset_valids] correctly.
 
@@ -5039,14 +5144,13 @@ third arg it->window.
 	* buffer.c (Fset_buffer_multibyte): Fix 8-bit char handling.
 
 	* callproc.c (Fcall_process): Be sure to give the current buffer
-	to decode_coding_c_string.  Update PT and PT_BYTE after the
-	insertion.
+	to decode_coding_c_string.  Update PT and PT_BYTE after the insertion.
 
 	* charset.c (struct charset_map_entries): New struct.
-	(load_charset_map): Renamed from parse_charset_map.  New args
-	entries and n_entries.  Caller changed.
-	(load_charset_map_from_file): Renamed from load_charset_map.
-	Caller changed.  New arg control_flag.  Call load_charset_map at
+	(load_charset_map): Rename from parse_charset_map.  New args
+	entries and n_entries.  Change caller.
+	(load_charset_map_from_file): Rename from load_charset_map.
+	Change caller.  New arg control_flag.  Call load_charset_map at
 	the tail.
 	(load_charset_map_from_vector): New function.
 	(Fdefine_charset_internal): Setup charset.compact_codes_p.
@@ -5094,8 +5198,7 @@ third arg it->window.
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encode_coding_utf_8): Initialize produced_chars to 0.
-	(decode_coding_utf_16): Fix converting high and low bytes to
-	code-point.
+	(decode_coding_utf_16): Fix converting high and low bytes to code-point.
 	(encode_coding_utf_16): Substitute coding->default_char for
 	non-Unicode characters.
 	(decode_coding): Don't call record_insert here.
@@ -5110,14 +5213,13 @@ third arg it->window.
 	* casefiddle.c (casify_region): Fix multibyte case.
 
 	* character.c (c_string_width): Add return type `int'.
-	(char_string_with_unification): Arg ADVANCED deleted.
+	(char_string_with_unification): Delete arg ADVANCED.
 
 	* character.h (CHAR_VALID_P): Don't call CHARACTERP.
-	(CHAR_STRING): Adjusted for the change of
-	char_string_with_unification.
+	(CHAR_STRING): Adjust for the change of char_string_with_unification.
 	(CHAR_STRING_ADVANCE): Make it do-while statement.
 
-	* chartab.c (sub_char_table_set_range): Optimized for the case
+	* chartab.c (sub_char_table_set_range): Optimize for the case
 	DEPTH == 3.  Add workaround code for a GCC optimization bug.
 
 	* charset.c (parse_charset_map): Remove an unused variable.
@@ -5136,8 +5238,7 @@ third arg it->window.
 	character model, and use UTF-8 format for buffer/string
 	representation.
 
-	* .gdbinit (xchartable): Adjusted for the change of char table
-	structure.
+	* .gdbinit (xchartable): Adjust for the change of char table structure.
 	(xsubchartable, xcoding, xcharset, xcurbuf): New commands.
 
 	* Makefile.in (obj): Add character.o and chartab.o.
@@ -5146,21 +5247,20 @@ third arg it->window.
 	character.h, and add dependency on character.h.
 	(character.o, chartab.o): New targets.
 
-	* abbrev.c, bytecode.c, casefiddle.c, cmds.c, dispnew.c, doc.c,
-	doprnt.c, dosfns.c, frame.c, marker.c, minibuf.c, msdos.c,
-	w16select.c, w32bdf.c, w32console.c: Include "character.h" instead
+	* abbrev.c, bytecode.c, casefiddle.c, cmds.c, dispnew.c, doc.c:
+	* doprnt.c, dosfns.c, frame.c, marker.c, minibuf.c, msdos.c:
+	* w16select.c, w32bdf.c, w32console.c: Include "character.h" instead
 	of "charset.h".
 
 	* dired.c, filelock.c: Include "character.h".
 
 	* alloc.c: Include "character.h" instead of "charset.h".
-	(Fmake_char_table): Moved to chartab.c.
-	(make_sub_char_table): Likewise.
+	(Fmake_char_table, make_sub_char_table): Move to chartab.c.
 	(syms_of_alloc): Remove defsubr for Smake_char_table.
 
 	* buffer.c: Include "character.h" instead of "charset.h", don't
 	include "coding.h".
-	(Fset_buffer_multibyte): Adjuted for UTF-8.
+	(Fset_buffer_multibyte): Adjust for UTF-8.
 
 	* buffer.h: EXFUN Fbuffer_live_p.
 
@@ -5168,7 +5268,7 @@ third arg it->window.
 	(Fcall_process): Big change for the new code-conversion APIs.
 
 	* casetab.c: Include "character.h" instead of "charset.h".
-	(set_canon, set_identity, shuffle): Adjusted for the new
+	(set_canon, set_identity, shuffle): Adjust for the new
 	map_char_table spec.
 	(init_casetab_once): Call CHAR_TABLE_SET instead of directly
 	accessing the char table structure.
@@ -5180,7 +5280,7 @@ third arg it->window.
 	(copy_category_table): Call map_char_table and copy_category_entry.
 	(Fmake_category_table): Initialize all top-vel slots.
 	(char_category_set): New function.
-	(modify_lower_category_set): Deleted.
+	(modify_lower_category_set): Delete.
 	(Fmodify_category_entry): Call char_table_ref_and_range.
 
 	* category.h (CATEGORY_SET): Just call char_category_set.
@@ -5189,50 +5289,48 @@ third arg it->window.
 	(Qccl, Qcclp): New variables.
 	(CCL_WRITE_CHAR): Alway treat the arg CH as a character even if
 	it's less than 256.
-	(CCL_WRITE_MULTIBYTE_CHAR): Deleted.
-	(CCL_WRITE_STRING, CCL_READ_CHAR): Adjusted for the change of SRC
+	(CCL_WRITE_MULTIBYTE_CHAR): Delete.
+	(CCL_WRITE_STRING, CCL_READ_CHAR): Adjust for the change of SRC
 	and DST type.
-	(ccl_driver): Types of arguments changed.  Code adjusted for that.
-	(Fccl_execute, Fccl_execute_on_string): Adjusted for the change of
+	(ccl_driver): Change types of argument, adjust code accordingly.
+	(Fccl_execute, Fccl_execute_on_string): Adjust for the change of
 	ccl_driver.
 	(syms_of_ccl): Intern and staticpro Qccl and Qcclp.
 
-	* ccl.h (struct ccl_program): Members eol_type and multibyte
-	deleted.  New members src_multibyte, dst_multibyte, consumed, and
-	produced.
-	(struct ccl_spec): Members decoder and encoder deleted.  New
-	memeber ccl.
+	* ccl.h (struct ccl_program): Delete members eol_type and multibyte.
+	New members src_multibyte, dst_multibyte, consumed, and produced.
+	(struct ccl_spec): Delete members decoder and encoder.  New member ccl.
 	(CODING_SPEC_CCL_PROGRAM): New macro.
-	(ccl_driver): Prototype updated.
+	(ccl_driver): Update prototype.
 	(Qccl, Qcclp, Fccl_program_p): Extern them.
 	(CHECK_CCL_PROGRAM): New macro.
 
 	* character.c, character.h, chartab.c: New files.
 
-	* charset.c: Mostly re-written.  Character and multibyte sequence
-	handling codes are moved to character.c.
+	* charset.c: Mostly re-written.  Move character and multibyte sequence
+	handling codes to character.c.
 
-	* charset.h: Mostly re-written.  Character and multibyte sequence
-	handling codes are moved to character.h.
+	* charset.h: Mostly re-written.  Move character and multibyte sequence
+	handling codes to character.h.
 
 	* coding.c, coding.h: Mostly re-written.
 
 	* composite.c: Include "character.h" instead of "charset.h".
-	(CHAR_WIDTH): Moved to character.h.
-	(HASH_KEY, HASH_VALUE): Deleted.
+	(CHAR_WIDTH): Move to character.h.
+	(HASH_KEY, HASH_VALUE): Delete.
 
-	* composite.h (enum composition_method): Order of enumeration
-	symbols changed.
+	* composite.h (enum composition_method): Change order of enumeration
+	symbols.
 
 	* data.c: Include "character.h" instead of "charset.h".
 	(Faref): Call CHAR_TABLE_REF for a char table.
 	(Faset): Call CHAR_TABLE_SET for a char table.
 
-	* dispextern.h (free_realized_face, check_face_attribytes,
-	generate_ascii_font): Extern them.
-	(free_realized_multibyte_face): Extern deleted.
+	* dispextern.h (free_realized_face, check_face_attribytes)
+	(generate_ascii_font): Extern them.
+	(free_realized_multibyte_face): Delete extern.
 
-	* disptab.h (DISP_CHAR_VECTOR): Adjusted for the change of char
+	* disptab.h (DISP_CHAR_VECTOR): Adjust for the change of char
 	table structure.
 
 	* editfns.c: Include "character.h" instead of "charset.h".
@@ -5242,44 +5340,40 @@ third arg it->window.
 	syms_of_chartab, and syms_of_character.
 
 	* fileio.c: Include "character.h" instead of "charset.h".
-	(Finsert_file_contents): Big change for the new code-conversion
-	API.
-	(choose_write_coding_system): Likewise.
-	(Fwrite_region): Likewise.
-	(build_annotations_2): Deleted.
+	(Finsert_file_contents): Big change for the new code-conversion API.
+	(choose_write_coding_system, Fwrite_region): Likewise.
+	(build_annotations_2): Delete.
 	(e_write): Big change for the new code-conversion API.
 
 	* fns.c: Include "character.h" instead of "charset.h".
-	(copy_sub_char_table): Moved to chartab.c.
+	(copy_sub_char_table): Move to chartab.c.
 	(Fcopy_sequence): Call copy_char_table for a char table.
 	(concat): Delete codes calling count_multibyte.
-	(string_char_to_byte): Adjusted for the new multibyte form.
-	(string_byte_to_char): Likewise.
-	(internal_equal): Adjusted for the change of char table structure.
-	(Fchar_table_subtype, Fchar_table_parent, Fset_char_table_parent,
-	Fchar_table_extra_slot, Fset_char_table_extra_slot,
-	Fchar_table_range, Fset_char_table_range, Fset_char_table_default,
-	char_table_translate, optimize_sub_char_table,
-	Foptimize_char_table, map_char_table, Fmap_char_table): Moved to
+	(string_char_to_byte, string_byte_to_char): Adjust for the new
+	multibyte form.
+	(internal_equal): Adjust for the change of char table structure.
+	(Fchar_table_subtype, Fchar_table_parent, Fset_char_table_parent)
+	(Fchar_table_extra_slot, Fset_char_table_extra_slot)
+	(Fchar_table_range, Fset_char_table_range, Fset_char_table_default)
+	(char_table_translate, optimize_sub_char_table)
+	(Foptimize_char_table, map_char_table, Fmap_char_table): Move to
 	chartab.c.
-	(char_table_ref_and_index): Deleted.
-	(HASH_KEY, HASH_VALUE): Moved to lisp.h.
+	(char_table_ref_and_index): Delete.
+	(HASH_KEY, HASH_VALUE): Move to lisp.h.
 	(Fmd5): Call preferred_coding_system instead of accessing
-	Vcoding_category_list.  Adjusted for the new code-conversion API.
-	(syms_of_fns): Defsubr for char table related functions moved to
+	Vcoding_category_list.  Adjust for the new code-conversion API.
+	(syms_of_fns): Move defsubr for char table related functions to
 	chartab.c.
 
 	* fontset.c: Mostly re-written.
 
-	* fontset.h (struct font_info): Type of the member encoding_type
-	changed.
+	* fontset.h (struct font_info): Change type of the member encoding_type.
 	(enum FONT_SPEC_INDEX): New enum.
-	(fontset_font_pattern, fs_load_font): Prototype updated.
-	(FS_LOAD_FONT): Adjusted for the change of fs_load_font.
+	(fontset_font_pattern, fs_load_font): Update prototype.
+	(FS_LOAD_FONT): Adjust for the change of fs_load_font.
 
 	* indent.c: Include "character.h" instead of "charset.h".
-	(MULTIBYTE_BYTES_WIDTH): Call CHAR_WIDTH instead of
-	WIDTH_BY_CHAR_HEAD.
+	(MULTIBYTE_BYTES_WIDTH): Call CHAR_WIDTH instead of WIDTH_BY_CHAR_HEAD.
 
 	* insdel.c: Include "character.h" instead of "charset.h".
 	(copy_text): Don't refer to Vnonascii_translation_table.
@@ -5289,13 +5383,13 @@ third arg it->window.
 	(command_loop_1): Never call direct_output_forward_char before
 	a non-ASCII character.
 	(read_char): If Vkeyboard_translate_table is a char table, always
-	translated a character.
+	translate a character.
 
 	* keymap.c: Include "character.h".
 	(store_in_keymap): Handle the case that IDX is a cons.
 	(Fdefine_key): Handle the case that KEY is a cons and the car part
 	is also a cons (range).
-	(push_key_description): Adjusted for the new character code.
+	(push_key_description): Adjust for the new character code.
 	(describe_vector): Call describe_char_table for a char table.
 	(describe_char_table): New function.
 
@@ -5303,113 +5397,108 @@ third arg it->window.
 
 	* lisp.h (enum pvec_type): New member PVEC_SUB_CHAR_TABLE.
 	(XSUB_CHAR_TABLE, XSETSUB_CHAR_TABLE): New macros.
-	(CHAR_TABLE_ORDINARY_SLOTS, CHAR_TABLE_SINGLE_BYTE_SLOTS,
-	SUB_CHAR_TABLE_ORDINARY_SLOTS, SUB_CHAR_TABLE_STANDARD_SLOTS):
-	Deleted.
-	(CHAR_TABLE_REF, CHAR_TABLE_SET): Adjusted for the new char table
+	(CHAR_TABLE_ORDINARY_SLOTS, CHAR_TABLE_SINGLE_BYTE_SLOTS)
+	(SUB_CHAR_TABLE_ORDINARY_SLOTS, SUB_CHAR_TABLE_STANDARD_SLOTS):
+	Delete.
+	(CHAR_TABLE_REF, CHAR_TABLE_SET): Adjust for the new char table
 	structure.
 	(CHAR_TABLE_TRANSLATE): Just call char_table_translate.
-	(CHARTAB_SIZE_BITS_0, CHARTAB_SIZE_BITS_1, CHARTAB_SIZE_BITS_2,
-	CHARTAB_SIZE_BITS_3): New macros.
+	(CHARTAB_SIZE_BITS_0, CHARTAB_SIZE_BITS_1, CHARTAB_SIZE_BITS_2)
+	(CHARTAB_SIZE_BITS_3): New macros.
 	(chartab_size): Extern it.
-	(struct Lisp_Char_Table): Re-designed.
+	(struct Lisp_Char_Table): Re-design.
 	(struct Lisp_Sub_Char_Table): New structure.
-	(HASH_KEY, HASH_VALUE): Moved from fns.c.
-	(CHARACTERBITS): Defined as 22.
-	(GLYPH_MASK_FACE, GLYPH_MASK_CHAR): Adjusted for the above change.
+	(HASH_KEY, HASH_VALUE): Move from fns.c.
+	(CHARACTERBITS): Define as 22.
+	(GLYPH_MASK_FACE, GLYPH_MASK_CHAR): Adjust for the above change.
 	(SUB_CHAR_TABLE_P): Check PVEC_CHAR_TABLE.
 	(GC_SUB_CHAR_TABLE_P): New macro.
-	(Fencode_coding_string, Fdecode_coding_string): EXFUN Updated.
-	(code_convert_string_norecord): Extern deleted.
-	(init_character_once, syms_of_character, init_charset,
-	syms_of_composite, Qeq, Fmakehash, insert_from_gap): Extern them.
+	(Fencode_coding_string, Fdecode_coding_string): Update EXFUN.
+	(code_convert_string_norecord): Deleted extern.
+	(init_character_once, syms_of_character, init_charset)
+	(syms_of_composite, Qeq, Fmakehash, insert_from_gap): Extern them.
 
 	* lread.c: Include "character.h".
 	(read_multibyte): New arg NBYTES.
-	(read_escape): The meaning of returned *BYTEREP changed.
-	(to_multibyte): Deleted.
-	(read1): Adjuted the handling of char table and string.
+	(read_escape): Change the meaning of returned *BYTEREP.
+	(to_multibyte): Delete.
+	(read1): Adjust the handling of char table and string.
 
 	* print.c: Include "character.h" instead of "charset.h".
 	(print_string): Convert 8-bit raw bytes to octal form by
 	string_escape_byte8.
-	(print_object): Adjusted for the new multibyte form.  Print 8-bit
+	(print_object): Adjust for the new multibyte form.  Print 8-bit
 	raw bytes always in octal form.  Handle sub char table correctly.
 
 	* process.c: Include "character.h" instead of "charset.h".
-	(read_process_output): Adjusted for the new code-conversion API.
-	(send_process): Likewise.
+	(read_process_output, send_process): Adjust for the new
+	code-conversion API.
 
-	* puresize.h (BASE_PURESIZE): Increased.
+	* puresize.h (BASE_PURESIZE): Increase.
 
 	* regex.c: Include "character.h" instead of "charset.h".
 	(BYTE8_TO_CHAR, CHAR_BYTE8_P) [not emacs]: New dummy macros.
 	(regex_compile): Accept a range whose starting and ending
 	character have different leading bytes.
-	(analyse_first): Adjusted for the above change.
+	(analyse_first): Adjust for the above change.
 
 	* search.c: Include "character.h" instead of "charset.h".
-	(search_buffer, boyer_moore): Adjusted for the new multibyte form.
-	(Freplace_match): Adjusted for the change of
-	multibyte_char_to_unibyte.
+	(search_buffer, boyer_moore): Adjust for the new multibyte form.
+	(Freplace_match): Adjust for the change of multibyte_char_to_unibyte.
 
 	* syntax.c: Include "character.h" instead of "charset.h".
-	(syntax_parent_lookup): Deleted.
+	(syntax_parent_lookup): Delete.
 	(Fmodify_syntax_entry): Accept a cons as CHAR.
-	(skip_chars): Adjusted for the new multibyte form.
+	(skip_chars): Adjust for the new multibyte form.
 	(init_syntax_once): Call char_table_set_range instead of directly
 	accessing the structure of a char table.
 
 	* syntax.h (SET_RAW_SYNTAX_ENTRY): Call CHAR_TABLE_SET.
-	(SYNTAX_ENTRY_FOLLOW_PARENT): Macro deleted.
+	(SYNTAX_ENTRY_FOLLOW_PARENT): Delete macro.
 	(SET_RAW_SYNTAX_ENTRY_RANGE): New macro.
 	(SYNTAX_ENTRY_INT): Call CHAR_TABLE_REF.
 
 	* term.c: Include "buffer.h" and "character.h".
-	(encode_terminal_code): Adjusted for the new code-conversion API.
-	(write_glyphs): Likewise.
+	(encode_terminal_code, write_glyphs): Adjust for the new
+	code-conversion API.
 	(produce_glyphs): Call CHAR_WIDTH instead of CHARSET_WIDTH.
 
-	* w32term.c (x_new_font): Adjusted for the change of FS_LOAD_FONT.
+	* w32term.c (x_new_font): Adjust for the change of FS_LOAD_FONT.
 
 	* xdisp.c: Include "character.h".
-	(get_next_display_element): Adjusted for the new multibyte form.
-	(disp_char_vector): Adjusted for the new char table structure.
-	(decode_mode_spec_coding): Adjusted for the new structure of
+	(get_next_display_element): Adjust for the new multibyte form.
+	(disp_char_vector): Adjust for the new char table structure.
+	(decode_mode_spec_coding): Adjust for the new structure of
 	coding system.
-	(decode_mode_spec): Adjusted for the new code-conversion API.
+	(decode_mode_spec): Adjust for the new code-conversion API.
 
 	* xfaces.c: Include "character.h" instead of "charset.h".
-	(load_face_font): Adjusted for the change of choose_face_font and
+	(load_face_font): Adjust for the change of choose_face_font and
 	FS_LOAD_FONT.
 	(generate_ascii_font): New function.
-	(set_lface_from_font_name): Adjusted for the change of
-	FS_LOAD_FONT.
-	(set_font_frame_param): Adjusted for the change of
-	choose_face_font.
+	(set_lface_from_font_name): Adjust for the change of FS_LOAD_FONT.
+	(set_font_frame_param): Adjust for the change of choose_face_font.
 	(free_realized_face): Make it public.
-	(free_realized_faces_for_fontset): Renamed from
+	(free_realized_faces_for_fontset): Rename from
 	free_realized_multibyte_face.  Free also faces realized for ASCII.
-	(choose_face_font): Argments changed.  Adjusted for the change of
+	(choose_face_font): Change arguments.  Adjust for the change of
 	fontset_font_pattern and FS_LOAD_FONT.
 
 	* xfns.c: Include "character.h".
-	(x_encode_text): Adjusted for the new code-conversion API.
+	(x_encode_text): Adjust for the new code-conversion API.
 
 	* xselect.c: Don't include "charset.h".
-	(selection_data_to_lisp_data): Adjusted for the new code
-	covnersion API.
+	(selection_data_to_lisp_data): Adjust for the new code conversion API.
 
 	* xterm.c: Include "character.h".
-	(x_encode_char): New argument CHARSET.  Caller changed.
-	(x_get_char_face_and_encoding): Call ENCODE_CHAR instead of
-	SPLIT_CHAR.
-	(x_get_glyph_face_and_encoding): Likewise.
+	(x_encode_char): New argument CHARSET.  Change caller.
+	(x_get_char_face_and_encoding, x_get_glyph_face_and_encoding):
+	Call ENCODE_CHAR instead of SPLIT_CHAR.
 	(x_produce_glyphs): Don't check Vnonascii_translation_table Call
 	CHAR_WIDTH instead of CHARSET_WIDTH.
-	(XTread_socket): Adjusted for the new code-conversion API.
-	(x_new_font): Adjusted for the change of FS_LOAD_FONT.
-	(x_load_font): Adjusted for the change of struct font.
+	(XTread_socket): Adjust for the new code-conversion API.
+	(x_new_font): Adjust for the change of FS_LOAD_FONT.
+	(x_load_font): Adjust for the change of struct font.
 
 2008-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -5417,8 +5506,20 @@ third arg it->window.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* ccl.c (CCL_WRITE_CHAR): Fix overflow checking.
-	(CCL_WRITE_MULTIBYTE_CHAR): Likewise.
+	* ccl.c (CCL_WRITE_CHAR, CCL_WRITE_MULTIBYTE_CHAR):
+	Fix overflow checking.
+
+2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* ccl.c (CCL_WRITE_CHAR, CCL_WRITE_MULTIBYTE_CHAR, ccl_driver):
+	Cancel previous change.
+
+2008-01-31  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* ccl.c (CCL_WRITE_CHAR): Increment extra_bytes only when
+	ccl->eight_bit_control.  Fix check for buffer overflow.
+	(CCL_WRITE_MULTIBYTE_CHAR): Fix check for buffer overflow.
+	(ccl_driver): Initialize extra_bytes to 0.
 
 2008-01-31  Kenichi Handa  <handa@ni.aist.go.jp>
 

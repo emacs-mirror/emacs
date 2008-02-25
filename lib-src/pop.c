@@ -21,7 +21,6 @@ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
 #ifdef HAVE_CONFIG_H
-#define NO_SHORTNAMES	/* Tell config not to load remap.h */
 #include <config.h>
 #else
 #define MAIL_USE_POP
@@ -1630,7 +1629,7 @@ pop_close (server)
  * Function: pop_trash
  *
  * Purpose: Like pop_close or pop_quit, but doesn't deallocate the
- * 	memory associated with the server.  It is legal to call
+ * 	memory associated with the server.  It is valid to call
  * 	pop_close or pop_quit after this function has been called.
  */
 static void

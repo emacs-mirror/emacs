@@ -303,6 +303,7 @@ fontset_id_valid_p (id)
 /* Macros to access special values of (realized) FONTSET.  */
 #define FONTSET_BASE(fontset)		XCHAR_TABLE (fontset)->extras[2]
 #define FONTSET_FRAME(fontset)		XCHAR_TABLE (fontset)->extras[3]
+#define FONTSET_OBJLIST(fontset)	XCHAR_TABLE (fontset)->extras[4]
 #define FONTSET_NOFONT_FACE(fontset)	XCHAR_TABLE (fontset)->extras[5]
 #define FONTSET_REPERTORY(fontset)	XCHAR_TABLE (fontset)->extras[6]
 #define FONTSET_DEFAULT(fontset)	XCHAR_TABLE (fontset)->extras[7]
@@ -694,6 +695,8 @@ fontset_find_font (fontset, c, face, id, fallback)
 		  FONT_ENTITY_SET_NOT_LOADABLE (font_entity);
 		  continue;
 		}
+	      FONTSET_OBJLIST (fontset)
+		= Fcons (font_object, FONTSET_OBJLIST (fontset));
 	      ASET (elt, 3, font_object);
 	      if (has_char < 0)
 		{
@@ -912,6 +915,21 @@ fontset_ascii (id)
   return elt;
 }
 
+void
+free_realized_fontset (f, fontset)
+     FRAME_PTR f;
+     Lisp_Object fontset;
+{
+  int i;
+  Lisp_Object tail;
+
+  return;
+  for (tail = FONTSET_OBJLIST (fontset); CONSP (tail); tail = XCDR (tail))
+    {
+      xassert (FONT_OBJECT_P (XCAR (tail)));
+      font_close_object (f, XCAR (tail));
+    }
+}
 
 /* Free fontset of FACE defined on frame F.  Called from
    free_realized_face.  */
@@ -923,9 +941,10 @@ free_face_fontset (f, face)
 {
   Lisp_Object fontset;
 
-  fontset = AREF (Vfontset_table, face->fontset);
+  fontset = FONTSET_FROM_ID (face->fontset);
   xassert (!NILP (fontset) && ! BASE_FONTSET_P (fontset));
   xassert (f == XFRAME (FONTSET_FRAME (fontset)));
+  free_realized_fontset (f, fontset);
   ASET (Vfontset_table, face->fontset, Qnil);
   if (face->fontset < next_fontset_id)
     next_fontset_id = face->fontset;
@@ -936,6 +955,7 @@ free_face_fontset (f, face)
       fontset = AREF (Vfontset_table, id);
       xassert (!NILP (fontset) && ! BASE_FONTSET_P (fontset));
       xassert (f == XFRAME (FONTSET_FRAME (fontset)));
+      free_realized_fontset (f, fontset);
       ASET (Vfontset_table, id, Qnil);
       if (id < next_fontset_id)
 	next_fontset_id = face->fontset;
@@ -1966,7 +1986,7 @@ If the named font is not yet loaded, return nil.  */)
   XVECTOR (info)->contents[6] = make_number (fontp->default_ascent);
 
 #ifdef USE_FONT_BACKEND
-  if (! NILP (font_object))
+  if (enable_font_backend && ! NILP (font_object))
     font_close_object (f, font_object);
 #endif	/* USE_FONT_BACKEND */
   return info;
@@ -2065,10 +2085,13 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
 	  struct font *font = XSAVE_VALUE (font_object)->pointer;
 	  unsigned code = font->driver->encode_char (font, c);
 	  Lisp_Object fontname = font_get_name (font_object);
+	  /* Assignment to EMACS_INT stops GCC whining about limited range
+	     of data type.  */
+	  EMACS_INT cod = code;
 
 	  if (code == FONT_INVALID_CODE)
 	    return Qnil;
-	  if (code <= MOST_POSITIVE_FIXNUM)
+	  if (cod <= MOST_POSITIVE_FIXNUM)
 	    return Fcons (fontname, make_number (code));
 	  return Fcons (fontname, Fcons (make_number (code >> 16),
 					 make_number (code & 0xFFFF)));
@@ -2432,7 +2455,7 @@ syms_of_fontset ()
   FONTSET_ID (Vdefault_fontset) = make_number (0);
   FONTSET_NAME (Vdefault_fontset)
     = build_string ("-*-*-*-*-*-*-*-*-*-*-*-*-fontset-default");
-  AREF (Vfontset_table, 0) = Vdefault_fontset;
+  ASET (Vfontset_table, 0, Vdefault_fontset);
   next_fontset_id = 1;
 
   auto_fontset_alist = Qnil;

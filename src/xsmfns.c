@@ -389,16 +389,9 @@ ice_conn_watch_CB (iceConn, clientData, opening, watchData)
     }
 
   ice_fd = IceConnectionNumber (iceConn);
-#ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
-#ifdef F_SETOWN_SOCK_NEG
-  /* stdin is a socket here */
-  fcntl (ice_fd, F_SETOWN, -getpid ());
-#else /* ! defined (F_SETOWN_SOCK_NEG) */
   fcntl (ice_fd, F_SETOWN, getpid ());
-#endif /* ! defined (F_SETOWN_SOCK_NEG) */
 #endif /* ! defined (F_SETOWN) */
-#endif /* F_SETOWN_BUG */
 
 #ifdef SIGIO
   if (interrupt_input)

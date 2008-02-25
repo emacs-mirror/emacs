@@ -262,9 +262,11 @@ the RCS command (in that order).
 
 Automatically retrieve a read-only version of the file with keywords
 expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
-  (let ((subdir (expand-file-name "RCS" (file-name-directory file))))
+  (let (subdir name)
     (dolist (file files)
-      (and (not (file-exists-p subdir))
+      (and (not (file-exists-p
+		 (setq subdir (expand-file-name "RCS"
+						(file-name-directory file)))))
 	   (not (directory-files (file-name-directory file)
 				 nil ".*,v$" t))
 	   (yes-or-no-p "Create RCS subdirectory? ")
@@ -277,26 +279,26 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
 	     (vc-switches 'RCS 'register))
       ;; parse output to find master file name and workfile version
       (with-current-buffer "*vc*"
-        (goto-char (point-min))
-        (let ((name (if (looking-at (concat "^\\(.*\\)  <--  "
-                                            (file-name-nondirectory file)))
-                        (match-string 1))))
-          (if (not name)
-              ;; if we couldn't find the master name,
-              ;; run vc-rcs-registered to get it
-              ;; (will be stored into the vc-name property)
-              (vc-rcs-registered file)
-            (vc-file-setprop file 'vc-name
-                             (if (file-name-absolute-p name)
-                                 name
-                               (expand-file-name
-                                name
-                                (file-name-directory file))))))
-        (vc-file-setprop file 'vc-working-revision
-                         (if (re-search-forward
-                              "^initial revision: \\([0-9.]+\\).*\n"
-                              nil t)
-                             (match-string 1)))))))
+	(goto-char (point-min))
+	(if (not (setq name
+		       (if (looking-at (concat "^\\(.*\\)  <--	"
+					       (file-name-nondirectory file)))
+			   (match-string 1))))
+	    ;; if we couldn't find the master name,
+	    ;; run vc-rcs-registered to get it
+	    ;; (will be stored into the vc-name property)
+	    (vc-rcs-registered file)
+	  (vc-file-setprop file 'vc-name
+			   (if (file-name-absolute-p name)
+			       name
+			     (expand-file-name
+			      name
+			      (file-name-directory file))))))
+      (vc-file-setprop file 'vc-working-revision
+		       (if (re-search-forward
+			    "^initial revision: \\([0-9.]+\\).*\n"
+			    nil t)
+			   (match-string 1))))))
 
 (defun vc-rcs-responsible-p (file)
   "Return non-nil if RCS thinks it would be responsible for registering FILE."
@@ -461,7 +463,7 @@ whether to remove it."
 		 (previous (if (vc-trunk-p discard) "" (vc-branch-part discard)))
 		 (config (current-window-configuration))
 		 (done nil))
-	    (if (null (yes-or-no-p (format "Remove version %s from %s history? " 
+	    (if (null (yes-or-no-p (format "Remove version %s from %s history? "
 					   discard file)))
 		(error "Aborted"))
 	    (message "Removing revision %s from %s." discard file)
@@ -513,7 +515,7 @@ Needs RCS 5.6.2 or later for -M."
 (defun vc-rcs-modify-change-comment (files rev comment)
   "Modify the change comments change on FILES on a specified REV."
   (dolist (file files)
-    (vc-do-command nil 0 "rcs" (vc-name file) 
+    (vc-do-command nil 0 "rcs" (vc-name file)
 		   (concat "-m" comment ":" rev))))
 
 
@@ -527,7 +529,7 @@ Needs RCS 5.6.2 or later for -M."
 
 (defun vc-rcs-diff (files &optional oldvers newvers buffer)
   "Get a difference report using RCS between two sets of files."
-  (apply 'vc-do-command (or buffer "*vc-diff*") 
+  (apply 'vc-do-command (or buffer "*vc-diff*")
 	 1		;; Always go synchronous, the repo is local
 	 "rcsdiff" (vc-expand-dirs files)
          (append (list "-q"
@@ -791,6 +793,9 @@ systime, or nil if there is none.  Also, reposition point."
 ;;;
 ;;; Internal functions
 ;;;
+
+(defun vc-rcs-root (dir)
+  (vc-find-root dir "RCS" t))
 
 (defun vc-rcs-workfile-is-newer (file)
   "Return non-nil if FILE is newer than its RCS master.

@@ -1846,6 +1846,7 @@ x_draw_glyph_string_background (s, force_p)
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
                || s->font->bdf
+	       || cleartype_active
 	       || force_p)
 	{
 	  x_clear_glyph_string_rect (s, s->x, s->y + box_line_width,
@@ -1874,7 +1875,8 @@ x_draw_glyph_string_foreground (s)
   else
     x = s->x;
 
-  if (s->for_overlaps || (s->background_filled_p && s->hl != DRAW_CURSOR))
+  if (s->for_overlaps || (s->background_filled_p && s->hl != DRAW_CURSOR)
+      || cleartype_active)
     SetBkMode (s->hdc, TRANSPARENT);
   else
     SetBkMode (s->hdc, OPAQUE);
@@ -7033,7 +7035,7 @@ w32_term_init (display_name, xrm_option, resource_name)
   dpyinfo->resx = GetDeviceCaps (hdc, LOGPIXELSX);
   dpyinfo->resy = GetDeviceCaps (hdc, LOGPIXELSY);
   dpyinfo->has_palette = GetDeviceCaps (hdc, RASTERCAPS) & RC_PALETTE;
-  dpyinfo->image_cache = make_image_cache ();
+  dpyinfo->terminal->image_cache = make_image_cache ();
   dpyinfo->height_in = dpyinfo->height / dpyinfo->resx;
   dpyinfo->width_in = dpyinfo->width / dpyinfo->resy;
   ReleaseDC (GetDesktopWindow (), hdc);
@@ -7057,16 +7059,9 @@ w32_term_init (display_name, xrm_option, resource_name)
      the bitmaps.  */
   w32_init_fringe (terminal->rif);
 
-#ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
-#ifdef F_SETOWN_SOCK_NEG
-  /* stdin is a socket here */
-  fcntl (connection, F_SETOWN, -getpid ());
-#else /* ! defined (F_SETOWN_SOCK_NEG) */
   fcntl (connection, F_SETOWN, getpid ());
-#endif /* ! defined (F_SETOWN_SOCK_NEG) */
 #endif /* ! defined (F_SETOWN) */
-#endif /* F_SETOWN_BUG */
 
 #ifdef SIGIO
   if (interrupt_input)

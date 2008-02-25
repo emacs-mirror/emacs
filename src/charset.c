@@ -2097,6 +2097,10 @@ syms_of_charset ()
   staticpro (&Vemacs_mule_charset_list);
   Vemacs_mule_charset_list = Qnil;
 
+  /* Don't staticpro them here.  It's done in syms_of_fns.  */
+  QCtest = intern (":test");
+  Qeq = intern ("eq");
+
   staticpro (&Vcharset_hash_table);
   {
     Lisp_Object args[2];

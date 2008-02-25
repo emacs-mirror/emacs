@@ -534,8 +534,9 @@ performed."
   :type '(choice (const :tag "disable" nil)
 		 (integer :format "%v")))
 
-(defcustom nnmail-message-id-cache-file "~/.nnmail-cache"
-  "*The file name of the nnmail Message-ID cache."
+(defcustom nnmail-message-id-cache-file
+  (nnheader-concat gnus-home-directory ".nnmail-cache")
+  "The file name of the nnmail Message-ID cache."
   :group 'nnmail-duplicate
   :group 'nnmail-files
   :type 'file)
@@ -1772,7 +1773,6 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 
 (defun nnmail-get-new-mail-1 (method exit-func temp
 			      group in-group spool-func)
-
   (let* ((sources mail-sources)
 	 fetching-sources
 	 (i 0)
@@ -1782,7 +1782,6 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
     (when (and (nnmail-get-value "%s-get-new-mail" method)
 	       sources)
       (while (setq source (pop sources))
-
 	;; Use group's parameter
 	(when (eq (car source) 'group)
 	  (let ((mail-sources
@@ -1793,7 +1792,6 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	    (nnmail-get-new-mail-1 method exit-func temp
 				   group group spool-func))
 	  (setq source nil))
-	  
 	;; Hack to only fetch the contents of a single group's spool file.
 	(when (and (eq (car source) 'directory)
 		   (null nnmail-scan-directory-mail-source-once)

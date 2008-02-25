@@ -1,3 +1,46 @@
+2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* org.texi (Setting tags, In-buffer settings):
+	* rcirc.texi (rcirc commands): Replace `legal' with `valid'.
+
+2008-02-24  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-news.texi: Mention that spaces and tabs are allowed in the
+	installation directory name.
+
+2008-02-12  Romain Francoise  <romain@orebokech.com>
+
+	* epa.texi (Overview): Fix typo.
+
+2008-02-11  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Quick start): Remove the .emacs setting.
+
+2008-02-10  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Quick start): Use the command `epa-enable' instead of
+	loading `epa-setup'.
+
+2008-02-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS, clean): Add epa.
+	($(infodir)/epa, epa.dvi): New targets.
+
+2008-02-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* Makefile.in: Add rules to build EasyPG Assistant User's Manual.
+
+	* epa.texi: New manual documenting the EasyPG Assistant.
+
+2008-02-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (all): Wrap Lisp code examples with @lisp ... @end lisp.
+	(Inspection): New function dbus-ping.
+
+2008-02-05  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Remote processes): Add `shell-command'.
+
 2008-01-28  Michael Sperber  <sperber@deinprogramm.de>
 
 	* gnus.texi (Mail Source Specifiers): Document `group' specifier.
@@ -17,9 +60,8 @@
 
 2008-01-24  Karl Berry  <karl@gnu.org>
 
-	* info.texi (Search Index),
-	 (Search Text): mention the command character in the section name,
-	 a la the (Go to node) node.
+	* info.texi (Search Index, Search Text): Mention the command
+	character in the section name, a la the (Go to node) node.
 
 2008-01-21  Michael Albinus  <michael.albinus@gmx.de>
 

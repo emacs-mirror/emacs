@@ -73,6 +73,7 @@
 ;; file-ownership-preserved-p		No way to know
 ;; file-readable-p			Finished
 ;; file-regular-p			!directory_p
+;; file-remote-p			Finished
 ;; file-symlink-p			Needs DAV bindings
 ;; file-truename			Needs DAV bindings
 ;; file-writable-p			Check for LOCK?
@@ -151,6 +152,7 @@ the arguments that would have been passed to OPERATION."
 (put 'expand-file-name 'url-file-handlers 'url-handler-expand-file-name)
 (put 'directory-file-name 'url-file-handlers 'url-handler-directory-file-name)
 (put 'unhandled-file-name-directory 'url-file-handlers 'url-handler-unhandled-file-name-directory)
+(put 'file-remote-p 'url-file-handlers 'url-handler-file-remote-p)
 ;; (put 'file-name-as-directory 'url-file-handlers 'url-handler-file-name-as-directory)
 
 ;; These are operations that we do not support yet (DAV!!!)
@@ -183,11 +185,35 @@ the arguments that would have been passed to OPERATION."
     (url-run-real-handler 'directory-file-name (list dir))))
 
 (defun url-handler-unhandled-file-name-directory (filename)
-  ;; Copied from tramp.el.  This is used as the cwd for subprocesses:
-  ;; without it running call-process or start-process in a URL directory
-  ;; signals an error.
-  ;; FIXME: we can do better if `filename' is a "file://" URL.
-  (expand-file-name "~/"))
+  (let ((url (url-generic-parse-url filename)))
+    (if (equal (url-type url) "file")
+        ;; `file' URLs are actually local.  The filename part may be ""
+        ;; which really stands for "/".
+        ;; FIXME: maybe we should check that the host part is "" or "localhost"
+        ;; or some name that represents the local host?
+        (or (file-name-directory (url-filename url)) "/")
+      ;; All other URLs are not expected to be directly accessible from
+      ;; a local process.
+      nil)))
+
+(defun url-handler-file-remote-p (filename &optional identification connected)
+  (let ((url (url-generic-parse-url filename)))
+    (if (and (url-type url) (not (equal (url-type url) "file")))
+	;; Maybe we can find a suitable check for CONNECTED.  For now,
+	;; we ignore it.
+	(cond
+	 ((eq identification 'method) (url-type url))
+	 ((eq identification 'user) (url-user url))
+	 ((eq identification 'host) (url-host url))
+	 ((eq identification 'localname) (url-filename url))
+	 (t (url-recreate-url
+	     (url-parse-make-urlobj (url-type url) (url-user url) nil
+				    (url-host url) (url-port url)))))
+      ;; If there is no URL type, or it is a "file://" URL, the
+      ;; filename is expected to be non remote.  A more subtle check
+      ;; for "file://" URLs could be applied, as said in
+      ;; `url-handler-unhandled-file-name-directory'.
+      nil)))
 
 ;; The actual implementation
 ;;;###autoload

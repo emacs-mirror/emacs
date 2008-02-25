@@ -2720,6 +2720,10 @@ x_window (f, window_prompting, minibuffer_only)
   XtManageChild (pane_widget);
   XtRealizeWidget (shell_widget);
 
+  if (FRAME_X_EMBEDDED_P (f))
+    XReparentWindow (FRAME_X_DISPLAY (f), XtWindow (shell_widget),
+		     f->output_data.x->parent_desc, 0, 0);
+
   FRAME_X_WINDOW (f) = XtWindow (frame_widget);
 
   validate_x_resource_name ();
@@ -3038,6 +3042,11 @@ x_make_gc (f)
      Note that many default values are used.  */
 
   /* Normal video */
+#ifdef USE_FONT_BACKEND
+  if (enable_font_backend)
+    gc_values.font = FRAME_X_DISPLAY_INFO (f)->font->fid;
+  else
+#endif
   gc_values.font = FRAME_FONT (f)->fid;
   gc_values.foreground = FRAME_FOREGROUND_PIXEL (f);
   gc_values.background = FRAME_BACKGROUND_PIXEL (f);
@@ -3317,7 +3326,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* With FRAME_X_DISPLAY_INFO set up, this unwind-protect is safe.  */
   record_unwind_protect (unwind_create_frame, frame);
 #if GLYPH_DEBUG
-  image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
+  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
 
@@ -3459,8 +3468,10 @@ else
   xlwmenu_default_font = FRAME_FONT (f);
 #endif
 
-  x_default_parameter (f, parms, Qborder_width, make_number (2),
-		       "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
+  /* Frame contents get displaced if an embedded X window has a border.  */
+  if (! FRAME_X_EMBEDDED_P (f))
+    x_default_parameter (f, parms, Qborder_width, make_number (2),
+			 "borderWidth", "BorderWidth", RES_TYPE_NUMBER);
 
   /* This defaults to 1 in order to match xterm.  We recognize either
      internalBorderWidth or internalBorder (which is what xterm calls
@@ -3530,8 +3541,6 @@ else
 		       "waitForWM", "WaitForWM", RES_TYPE_BOOLEAN);
   x_default_parameter (f, parms, Qfullscreen, Qnil,
                        "fullscreen", "Fullscreen", RES_TYPE_SYMBOL);
-
-  f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
 
   /* Compute the size of the X window.  */
   window_prompting = x_figure_window_size (f, parms, 1);
@@ -4921,7 +4930,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   f->icon_name = Qnil;
   FRAME_X_DISPLAY_INFO (f) = dpyinfo;
 #if GLYPH_DEBUG
-  image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
+  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
@@ -5308,6 +5317,9 @@ Text larger than the specified size is clipped.  */)
   GCPRO4 (string, parms, frame, timeout);
 
   CHECK_STRING (string);
+  if (SCHARS (string) == 0)
+    string = make_unibyte_string (" ", 1);
+
   f = check_x_frame (frame);
   if (NILP (timeout))
     timeout = make_number (5);

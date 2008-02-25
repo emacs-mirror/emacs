@@ -78,6 +78,7 @@
 (autoload 'netrc-parse "netrc")
 (autoload 'netrc-machine "netrc")
 (autoload 'netrc-get "netrc")
+(autoload 'password-read "password-cache")
 
 ;;;
 (defgroup smtpmail nil
@@ -86,32 +87,32 @@
 
 
 (defcustom smtpmail-default-smtp-server nil
-  "*Specify default SMTP server.
+  "Specify default SMTP server.
 This only has effect if you specify it before loading the smtpmail library."
   :type '(choice (const nil) string)
   :group 'smtpmail)
 
 (defcustom smtpmail-smtp-server
   (or (getenv "SMTPSERVER") smtpmail-default-smtp-server)
-  "*The name of the host running SMTP server."
+  "The name of the host running SMTP server."
   :type '(choice (const nil) string)
   :group 'smtpmail)
 
 (defcustom smtpmail-smtp-service 25
-  "*SMTP service port number.
+  "SMTP service port number.
 The default value would be \"smtp\" or 25."
   :type '(choice (integer :tag "Port") (string :tag "Service"))
   :group 'smtpmail)
 
 (defcustom smtpmail-local-domain nil
-  "*Local domain name without a host name.
+  "Local domain name without a host name.
 If the function `system-name' returns the full internet address,
 don't define this value."
   :type '(choice (const nil) string)
   :group 'smtpmail)
 
 (defcustom smtpmail-sendto-domain nil
-  "*Local domain name without a host name.
+  "Local domain name without a host name.
 This is appended (with an @-sign) to any specified recipients which do
 not include an @-sign, so that each RCPT TO address is fully qualified.
 \(Some configurations of sendmail require this.)
@@ -139,20 +140,22 @@ The commands enables verbose information from the SMTP server."
   :type 'boolean
   :group 'smtpmail)
 
-(defcustom smtpmail-code-conv-from nil ;; *junet*
-  "*smtpmail code convert from this code to *internal*..for tiny-mime.."
-  :type 'boolean
+(defcustom smtpmail-code-conv-from nil
+  "Coding system for encoding outgoing mail.
+Used for the value of `sendmail-coding-system' when
+`select-message-coding-system' is called. "
+  :type 'coding-system
   :group 'smtpmail)
 
 (defcustom smtpmail-queue-mail nil
-  "*If set, mail is queued; otherwise it is sent immediately.
+  "Non-nil means mail is queued; otherwise it is sent immediately.
 If queued, it is stored in the directory `smtpmail-queue-dir'
 and sent with `smtpmail-send-queued-mail'."
   :type 'boolean
   :group 'smtpmail)
 
 (defcustom smtpmail-queue-dir "~/Mail/queued-mail/"
-  "*Directory where `smtpmail.el' stores queued mail."
+  "Directory where `smtpmail.el' stores queued mail."
   :type 'directory
   :group 'smtpmail)
 
@@ -190,16 +193,21 @@ connections."
   :group 'smtpmail)
 
 (defcustom smtpmail-warn-about-unknown-extensions nil
-  "*If set, print warnings about unknown SMTP extensions.
+  "If set, print warnings about unknown SMTP extensions.
 This is mainly useful for development purposes, to learn about
 new SMTP extensions that might be useful to support."
   :type 'boolean
   :version "21.1"
   :group 'smtpmail)
 
-(defvar smtpmail-queue-index-file "index"
+(defcustom smtpmail-queue-index-file "index"
   "File name of queued mail index.
-This is relative to `smtpmail-queue-dir'.")
+This is relative to `smtpmail-queue-dir'."
+  :type 'string
+  :group 'smtpmail)
+
+;; End of customizable variables.
+
 
 (defvar smtpmail-address-buffer)
 (defvar smtpmail-recipient-address-list)
@@ -209,15 +217,8 @@ This is relative to `smtpmail-queue-dir'.")
 ;; Buffer-local variable.
 (defvar smtpmail-read-point)
 
-(defvar smtpmail-queue-index (concat smtpmail-queue-dir
-				     smtpmail-queue-index-file))
-
 (defconst smtpmail-auth-supported '(cram-md5 plain login)
   "List of supported SMTP AUTH mechanisms.")
-
-;;;
-;;;
-;;;
 
 (defvar smtpmail-mail-address nil
   "Value to use for envelope-from address for mail from ambient buffer.")
@@ -408,8 +409,8 @@ This is relative to `smtpmail-queue-dir'.")
 		(insert (concat file-data "\n"))
 		(append-to-file (point-min)
 				(point-max)
-				smtpmail-queue-index)
-		)
+                                (expand-file-name smtpmail-queue-index-file
+                                                  smtpmail-queue-dir)))
 	      (kill-buffer buffer-scratch)
 	      (kill-buffer buffer-data)
 	      (kill-buffer buffer-elisp))))
@@ -424,8 +425,10 @@ This is relative to `smtpmail-queue-dir'.")
   (with-temp-buffer
     ;;; Get index, get first mail, send it, update index, get second
     ;;; mail, send it, etc...
-    (let ((file-msg ""))
-      (insert-file-contents smtpmail-queue-index)
+    (let ((file-msg "")
+          (qfile (expand-file-name smtpmail-queue-index-file
+                                   smtpmail-queue-dir)))
+      (insert-file-contents qfile)
       (goto-char (point-min))
       (while (not (eobp))
 	(setq file-msg (buffer-substring (point) (line-end-position)))
@@ -447,7 +450,7 @@ This is relative to `smtpmail-queue-dir'.")
 	(delete-file file-msg)
 	(delete-file (concat file-msg ".el"))
 	(delete-region (point-at-bol) (point-at-bol 2)))
-      (write-region (point-min) (point-max) smtpmail-queue-index))))
+      (write-region (point-min) (point-max) qfile))))
 
 ;(defun smtpmail-via-smtp (host,port,sender,destination,smtpmail-text-buffer)
 
@@ -532,6 +535,9 @@ This is relative to `smtpmail-queue-dir'.")
 		 (list "--x509keyfile" cred-key "--x509certfile" cred-cert)))))
 	(starttls-open-stream "SMTP" process-buffer host port)))))
 
+;; password-read autoloads password-cache.
+(declare-function password-cache-add "password-cache" (key password))
+
 (defun smtpmail-try-auth-methods (process supported-extensions host port)
   (let* ((mechs (cdr-safe (assoc 'auth supported-extensions)))
 	 (mech (car (smtpmail-intersection smtpmail-auth-supported mechs)))
@@ -546,12 +552,12 @@ This is relative to `smtpmail-queue-dir'.")
                              (netrc-get hostentry "password"))))
 		 (smtpmail-find-credentials
 		  smtpmail-auth-credentials host port)))
+	 (prompt (when cred (format "SMTP password for %s:%s: "
+				    (smtpmail-cred-server cred)
+				    (smtpmail-cred-port cred))))
 	 (passwd (when cred
 		   (or (smtpmail-cred-passwd cred)
-		       (read-passwd
-			(format "SMTP password for %s:%s: "
-				(smtpmail-cred-server cred)
-				(smtpmail-cred-port cred))))))
+		       (password-read prompt prompt))))
 	 ret)
     (when (and cred mech)
       (cond
@@ -621,9 +627,8 @@ This is relative to `smtpmail-queue-dir'.")
        (t
 	(error "Mechanism %s not implemented" mech)))
       ;; Remember the password.
-      (when (and (not (stringp smtpmail-auth-credentials))
-		 (null (smtpmail-cred-passwd cred)))
-	(setcar (cdr (cdr (cdr cred))) passwd)))))
+      (when (null (smtpmail-cred-passwd cred))
+	(password-cache-add prompt passwd)))))
 
 (defun smtpmail-via-smtp (recipient smtpmail-text-buffer)
   (let ((process nil)

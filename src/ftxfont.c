@@ -1,6 +1,6 @@
 /* ftxfont.c -- FreeType font driver on X (without using XFT).
-   Copyright (C) 2006 Free Software Foundation, Inc.
-   Copyright (C) 2006
+   Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -8,7 +8,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
+the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -46,7 +46,6 @@ static int ftxfont_draw_bitmap P_ ((FRAME_PTR, GC, GC *, struct font *,
 				    int));
 static void ftxfont_draw_backgrond P_ ((FRAME_PTR, struct font *, GC,
 					int, int, int));
-static Font ftxfont_default_fid P_ ((FRAME_PTR));
 
 struct ftxfont_frame_data
 {
@@ -242,29 +241,6 @@ ftxfont_draw_backgrond (f, font, gc, x, y, width)
   XSetForeground (FRAME_X_DISPLAY (f), gc, xgcv.foreground);
 }
 
-/* Return the default Font ID on frame F.  */
-
-static Font
-ftxfont_default_fid (f)
-     FRAME_PTR f;
-{
-  static int fid_known;
-  static Font fid;
-
-  if (! fid_known)
-    {
-      fid = XLoadFont (FRAME_X_DISPLAY (f), "fixed");
-      if (! fid)
-	{
-	  fid = XLoadFont (FRAME_X_DISPLAY (f), "*");
-	  if (! fid)
-	    abort ();
-	}
-      fid_known = 1;
-    }
-  return fid;
-}
-
 /* Prototypes for font-driver methods.  */
 static Lisp_Object ftxfont_list P_ ((Lisp_Object, Lisp_Object));
 static Lisp_Object ftxfont_match P_ ((Lisp_Object, Lisp_Object));
@@ -321,8 +297,7 @@ ftxfont_open (f, entity, pixel_size)
       free (xfont);
       return NULL;
     }
-
-  xfont->fid = ftxfont_default_fid (f);
+  xfont->fid = (Font) 0;
   xfont->ascent = font->ascent;
   xfont->descent = font->descent;
   xfont->max_bounds.width = font->font.size;
@@ -351,6 +326,14 @@ ftxfont_open (f, entity, pixel_size)
 	dpyinfo->smallest_char_width = font->min_width, fonts_changed_p |= 1;
     }
 
+  if (fonts_changed_p)
+    {
+      if (dpyinfo->smallest_font_height == 0)
+	dpyinfo->smallest_font_height = 1;
+      if (dpyinfo->smallest_char_width == 0)
+	dpyinfo->smallest_char_width = 1;
+    }
+
   return font;
 }
 
@@ -370,13 +353,14 @@ ftxfont_draw (s, from, to, x, y, with_background)
 {
   FRAME_PTR f = s->f;
   struct face *face = s->face;
-  struct font *font = (struct font *) face->font_info;
+  struct font *font = (struct font *) s->font_info;
   XPoint p[0x700];
   int n[7];
   unsigned *code;
   int len = to - from;
   int i;
   GC *gcs;
+  int xadvance;
 
   n[0] = n[1] = n[2] = n[3] = n[4] = n[5] = n[6] = 0;
 
@@ -409,8 +393,11 @@ ftxfont_draw (s, from, to, x, y, with_background)
 			      s->clip, s->num_clips, Unsorted);
 
       for (i = 0; i < len; i++)
-	x += ftxfont_draw_bitmap (f, s->gc, gcs, font, code[i], x, y,
-				  p, 0x100, n, i + 1 == len);
+	{
+	  xadvance = ftxfont_draw_bitmap (f, s->gc, gcs, font, code[i], x, y,
+					  p, 0x100, n, i + 1 == len);
+	  x += (s->padding_p ? 1 : xadvance);
+	}
       if (s->num_clips)
 	for (i = 0; i < 6; i++)
 	  XSetClipMask (FRAME_X_DISPLAY (f), gcs[i], None);
@@ -420,8 +407,11 @@ ftxfont_draw (s, from, to, x, y, with_background)
       /* We can't draw with antialiasing.
 	 s->gc should already have a proper clipping setting. */
       for (i = 0; i < len; i++)
-	x += ftxfont_draw_bitmap (f, s->gc, NULL, font, code[i], x, y,
-				  p, 0x700, n, i + 1 == len);
+	{
+	  xadvance = ftxfont_draw_bitmap (f, s->gc, NULL, font, code[i], x, y,
+					  p, 0x700, n, i + 1 == len);
+	  x += (s->padding_p ? 1 : xadvance);
+	}
     }
 
   UNBLOCK_INPUT;
@@ -447,6 +437,7 @@ ftxfont_end_for_frame (f)
       data = next;
     }
   UNBLOCK_INPUT;
+  font_put_frame_data (f, &ftxfont_driver, NULL);
   return 0;
 }
 

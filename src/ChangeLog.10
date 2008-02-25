@@ -16497,8 +16497,8 @@
 
 2003-12-01  Kenichi Handa  <handa@m17n.org>
 
-	* composite.c (syms_of_composite): Don't make the compostion hash
-	table week.
+	* composite.c (syms_of_composite): Don't make the composition hash
+	table weak.
 
 2003-11-30  Luc Teirlinck  <teirllm@auburn.edu>
 

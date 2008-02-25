@@ -231,6 +231,22 @@ Default value, nil, means edit the string instead."
   :group 'basic-faces)
 (defvar isearch 'isearch)
 
+(defface isearch-fail
+  '((((class color) (min-colors 88) (background light))
+     (:background "RosyBrown1"))
+    (((class color) (min-colors 88) (background dark))
+     (:background "red4"))
+    (((class color) (min-colors 16))
+     (:background "red"))
+    (((class color) (min-colors 8))
+     (:background "red"))
+    (((class color grayscale))
+     :foreground "grey")
+    (t (:inverse-video t)))
+  "Face for highlighting failed part in Isearch echo-area message."
+  :version "23.1"
+  :group 'isearch)
+
 (defcustom isearch-lazy-highlight t
   "*Controls the lazy-highlighting during incremental search.
 When non-nil, all text in the buffer matching the current search
@@ -1482,7 +1498,7 @@ to the barrier."
 	;; removes all bracket-sets and groups that might be in the way, as
 	;; well as partial \{\} constructs that the code below leaves behind.
 	;; Also skip over postfix operators -- though horrid,
-	;; 'ab?\{5,6\}+\{1,2\}*' is perfectly legal.
+	;; 'ab?\{5,6\}+\{1,2\}*' is perfectly valid.
 	(while (and previous
 		    (or (isearch-error-state frame)
 			(let* ((string (isearch-string-state frame))
@@ -1955,21 +1971,28 @@ If there is no completion possible, say so and continue searching."
 (defun isearch-message (&optional c-q-hack ellipsis)
   ;; Generate and print the message string.
   (let ((cursor-in-echo-area ellipsis)
-	(m (concat
-	    (isearch-message-prefix c-q-hack ellipsis isearch-nonincremental)
-	    (if (and (not isearch-success)
-                     (string-match " +$" isearch-message))
-                (concat
-                 (substring isearch-message 0 (match-beginning 0))
-                 (propertize (substring isearch-message (match-beginning 0))
-                             'face 'trailing-whitespace))
-              isearch-message)
-	    (isearch-message-suffix c-q-hack ellipsis)
-	    )))
-    (if c-q-hack
-	m
-      (let ((message-log-max nil))
-	(message "%s" m)))))
+	(m isearch-message)
+	(cmds isearch-cmds)
+	succ-msg)
+    (when (or (not isearch-success) isearch-error)
+      ;; Highlight failed part
+      (while (or (not (isearch-success-state (car cmds)))
+		 (isearch-error-state (car cmds)))
+	(pop cmds))
+      (setq succ-msg (and cmds (isearch-message-state (car cmds)))
+	    m (copy-sequence m))
+      (when (and (stringp succ-msg) (< (length succ-msg) (length m)))
+	(add-text-properties (length succ-msg) (length m)
+			     '(face isearch-fail) m))
+      ;; Highlight failed trailing whitespace
+      (when (string-match " +$" m)
+	(add-text-properties (match-beginning 0) (match-end 0)
+			     '(face trailing-whitespace) m)))
+    (setq m (concat
+	     (isearch-message-prefix c-q-hack ellipsis isearch-nonincremental)
+	     m
+	     (isearch-message-suffix c-q-hack ellipsis)))
+    (if c-q-hack m (let ((message-log-max nil)) (message "%s" m)))))
 
 (defun isearch-message-prefix (&optional c-q-hack ellipsis nonincremental)
   ;; If about to search, and previous search regexp was invalid,

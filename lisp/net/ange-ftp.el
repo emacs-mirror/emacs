@@ -297,7 +297,7 @@
 ;; you would type:
 ;;  C-x C-f /anonymous@ymir.claremont.edu:CSV/POLICY/RULES.MEM
 ;;
-;; A legal VMS filename is of the form: FILE.TYPE;##
+;; A valid VMS filename is of the form: FILE.TYPE;##
 ;; where FILE can be up to 39 characters
 ;;       TYPE can be up to 39 characters
 ;;       ## is a version number (an integer between 1 and 32,767)
@@ -1523,19 +1523,13 @@ then kill the related ftp process."
 
 (defun ange-ftp-quote-string (string)
   "Quote any characters in STRING that may confuse the ftp process."
-  (apply 'concat
-	 (mapcar (lambda (char)
-		   ;; This is said to be wrong; ftp is said to
-		   ;; need quoting only for ", and that by doubling it.
-		   ;; But experiment says this kind of quoting is correct
-		   ;; when talking to ftp on GNU/Linux systems.
-		   (if (or (<= char ? )
-			   (> char ?\~)
-			   (= char ?\")
-			   (= char ?\\))
-		       (vector ?\\ char)
-		     (vector char)))
-		 string)))
+  ;; This is said to be wrong; ftp is said to need quoting only for ",
+  ;; and that by doubling it.  But experiment says UNIX-style kind of
+  ;; quoting is correct when talking to ftp on GNU/Linux systems, and
+  ;; W32-style kind of quoting on, yes, W32 systems.
+  (if (stringp string)
+      (shell-quote-argument string)
+    ""))
 
 (defun ange-ftp-barf-if-not-directory (directory)
   (or (file-directory-p directory)
@@ -3766,7 +3760,7 @@ Value is (0 0) if the modification time cannot be determined."
 	    (ange-ftp-send-cmd
 	     t-host
 	     t-user
-	     (list 'put (or temp2 filename) t-name)
+	     (list 'put (or temp2 (ange-ftp-quote-string filename)) t-name)
 	     (or msg
 		 (if (and temp2 f-parsed)
 		     (format "Putting %s" newname)
@@ -4172,7 +4166,7 @@ directory, so that Emacs will know its current contents."
 
 ;; Calculate default-unhandled-directory for a given ange-ftp buffer.
 (defun ange-ftp-unhandled-file-name-directory (filename)
-  (file-name-directory ange-ftp-tmp-name-template))
+  nil)
 
 
 ;; Need the following functions for making filenames of compressed

@@ -179,11 +179,11 @@ casify_region (flag, b, e)
   register int c;
   register int inword = flag == CASE_DOWN;
   register int multibyte = !NILP (current_buffer->enable_multibyte_characters);
-  int start, end;
-  int start_byte, end_byte;
-  int changed = 0;
-  int opoint = PT;
-  int opoint_byte = PT_BYTE;
+  EMACS_INT start, end;
+  EMACS_INT start_byte, end_byte;
+  EMACS_INT first = -1, last;	/* Position of first and last changes.  */
+  EMACS_INT opoint = PT;
+  EMACS_INT opoint_byte = PT_BYTE;
 
   if (EQ (b, e))
     /* Not modifying because nothing marked */
@@ -226,7 +226,10 @@ casify_region (flag, b, e)
 	inword = ((SYNTAX (c) == Sword) && (inword || !SYNTAX_PREFIX (c)));
       if (c != c2)
 	{
-	  changed = 1;
+	  last = start;
+	  if (first < 0)
+	    first = start;
+
 	  if (! multibyte)
 	    {
 	      MAKE_CHAR_UNIBYTE (c);
@@ -266,11 +269,10 @@ casify_region (flag, b, e)
   if (PT != opoint)
     TEMP_SET_PT_BOTH (opoint, opoint_byte);
 
-  if (changed)
+  if (first >= 0)
     {
-      start = XFASTINT (b);
-      signal_after_change (start, end - start, end - start);
-      update_compositions (start, end, CHECK_ALL);
+      signal_after_change (first, last + 1 - first, last + 1 - first);
+      update_compositions (first, last + 1, CHECK_ALL);
     }
 }
 

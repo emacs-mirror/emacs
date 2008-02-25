@@ -603,8 +603,61 @@ MANPATH_MAP[ \t]+\\(\\S-+\\)[ \t]+\\(\\S-+\\)\\)" nil t)
       (setq path (cdr path)))
     (nreverse manpath)))
 
+;; Autoload so set-locale-environment can operate on it.
+;;;###autoload
+(defcustom woman-locale nil
+  "String specifying a manual page locale, or nil.
+If a manual page is available in the specified locale
+\(e.g. \"sv_SE.ISO8859-1\"), it will be offered in preference to the
+default version.  Normally, `set-locale-environment' sets this at startup."
+  :type '(choice string (const nil))
+  :group 'woman-interface
+  :version "23.1")
+
+;; FIXME Is this a sensible list of alternatives?
+(defun woman-expand-locale (locale)
+  "Expand a locale into a list suitable for man page lookup.
+Expands a locale of the form LANGUAGE_TERRITORY.CHARSET into the list:
+LANGUAGE_TERRITORY.CHARSET LANGUAGE_TERRITORY LANGUAGE.CHARSET LANGUAGE.
+The TERRITORY and CHARSET portions may be absent."
+  (string-match "\\([^._]*\\)\\(_[^.]*\\)?\\(\\..*\\)?" locale)
+  (let ((lang (match-string 1 locale))
+        (terr (match-string 2 locale))
+        (charset (match-string 3 locale)))
+    (delq nil (list locale
+                    (and charset terr (concat lang terr))
+                    (and charset terr (concat lang charset))
+                    (if (or charset terr) lang)))))
+
+(defun woman-manpath-add-locales (manpath)
+  "Add locale-specific subdirectories to the elements of MANPATH.
+MANPATH is a list of the form of `woman-manpath'.  Returns a list
+with those locale-specific subdirectories specified by the action
+of `woman-expand-locale' on `woman-locale' added, where they exist."
+  (if (zerop (length woman-locale))
+      manpath
+    (let ((subdirs (woman-expand-locale woman-locale))
+          lst dir)
+      (dolist (elem manpath (nreverse lst))
+        (dolist (sub subdirs)
+          (when (file-directory-p
+                 (setq dir
+                       ;; Use f-n-a-d because parse-colon-path does.
+                       (file-name-as-directory
+                        (expand-file-name sub (substitute-in-file-name
+                                               (if (consp elem)
+                                                   (cdr elem)
+                                                 elem))))))
+            (add-to-list 'lst (if (consp elem)
+                                  (cons (car elem) dir)
+                                dir))))
+        ;; Non-locale-specific has lowest precedence.
+        (add-to-list 'lst elem)))))
+
 (defcustom woman-manpath
-  (or (woman-parse-colon-path (getenv "MANPATH"))
+  ;; Locales could also be added in woman-expand-directory-path.
+  (or (woman-manpath-add-locales
+       (woman-parse-colon-path (getenv "MANPATH")))
       '("/usr/man" "/usr/share/man" "/usr/local/man"))
   "List of DIRECTORY TREES to search for UN*X manual files.
 Each element should be the name of a directory that contains
@@ -636,6 +689,7 @@ I recommend including drive letters explicitly, e.g.
 The MANPATH environment variable may be set using DOS semi-colon-
 separated or UN*X/Cygwin colon-separated syntax (but not mixed)."
   :type '(repeat (choice string (cons string string)))
+  :version "23.1"                    ; added woman-manpath-add-locales
   :group 'woman-interface)
 
 (defcustom woman-manpath-man-regexp "[Mm][Aa][Nn]"

@@ -1,6 +1,6 @@
 /* xftfont.c -- XFT font driver.
-   Copyright (C) 2006 Free Software Foundation, Inc.
-   Copyright (C) 2006, 2007
+   Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -8,7 +8,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
+the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -67,7 +67,6 @@ struct xftface_info
 static void xftfont_get_colors P_ ((FRAME_PTR, struct face *, GC gc,
 				    struct xftface_info *,
 				    XftColor *fg, XftColor *bg));
-static Font xftfont_default_fid P_ ((FRAME_PTR));
 
 
 /* Setup foreground and background colors of GC into FG and BG.  If
@@ -133,31 +132,6 @@ xftfont_get_colors (f, face, gc, xftface_info, fg, bg)
 	}
       UNBLOCK_INPUT;
     }
-}
-
-/* Return the default Font ID on frame F.  The Returned Font ID is
-   stored in the GC of the frame F, but the font is never used.  So,
-   any ID is ok as long as it is valid.  */
-
-static Font
-xftfont_default_fid (f)
-     FRAME_PTR f;
-{
-  static int fid_known;
-  static Font fid;
-
-  if (! fid_known)
-    {
-      fid = XLoadFont (FRAME_X_DISPLAY (f), "fixed");
-      if (! fid)
-	{
-	  fid = XLoadFont (FRAME_X_DISPLAY (f), "*");
-	  if (! fid)
-	    abort ();
-	}
-      fid_known = 1;
-    }
-  return fid;
 }
 
 
@@ -342,7 +316,7 @@ xftfont_open (f, entity, pixel_size)
   font->font.vertical_centering = 0;
 
   /* Setup pseudo XFontStruct */
-  xfont->fid = xftfont_default_fid (f);
+  xfont->fid = 0;
   xfont->ascent = font->ascent;
   xfont->descent = font->descent;
   xfont->max_bounds.descent = font->descent;
@@ -548,8 +522,13 @@ xftfont_draw (s, from, to, x, y, with_background)
     code[i] = ((XCHAR2B_BYTE1 (s->char2b + from + i) << 8)
 	       | XCHAR2B_BYTE2 (s->char2b + from + i));
 
-  XftDrawGlyphs (xft_draw, &fg, xftfont_info->xftfont,
-		 x, y, code, len);
+  if (s->padding_p)
+    for (i = 0; i < len; i++)
+      XftDrawGlyphs (xft_draw, &fg, xftfont_info->xftfont,
+		     x + i, y, code + i, 1);
+  else
+    XftDrawGlyphs (xft_draw, &fg, xftfont_info->xftfont,
+		   x, y, code, len);
   UNBLOCK_INPUT;
 
   return len;

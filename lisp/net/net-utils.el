@@ -93,7 +93,7 @@ These options can be used to limit how many ICMP packets are emitted."
   :group 'net-utils
   :type  '(repeat string))
 
-(defcustom ipconfig-program
+(defcustom ifconfig-program
   (if (eq system-type 'windows-nt)
       "ipconfig"
     "ifconfig")
@@ -101,13 +101,30 @@ These options can be used to limit how many ICMP packets are emitted."
   :group 'net-utils
   :type  'string)
 
-(defcustom ipconfig-program-options
+(define-obsolete-variable-alias 'ipconfig-program 'ifconfig-program "22.2")
+
+(defcustom ifconfig-program-options
   (list
    (if (eq system-type 'windows-nt)
        "/all" "-a"))
-  "Options for ipconfig-program."
+  "Options for `ifconfig-program'."
   :group 'net-utils
   :type  '(repeat string))
+
+(defcustom iwconfig-program "iwconfig"
+  "Program to print wireless network configuration information."
+  :group 'net-utils
+  :type 'string
+  :version "23.1")
+
+(defcustom iwconfig-program-options nil
+ "Options for `iwconfig-program'."
+ :group 'net-utils
+ :type '(repeat string)
+ :version "23.1")
+
+(define-obsolete-variable-alias 'ipconfig-program-options
+  'ifconfig-program-options "22.2")
 
 (defcustom netstat-program  "netstat"
   "Program to print network statistics."
@@ -352,18 +369,28 @@ If your system's ping continues until interrupted, you can try setting
      options)))
 
 ;;;###autoload
-(defun ipconfig ()
-  "Run ipconfig program."
+(defun ifconfig ()
+  "Run ifconfig program."
   (interactive)
   (net-utils-run-program
-   "Ipconfig"
-   (concat "** Ipconfig ** " ipconfig-program " ** ")
-   ipconfig-program
-   ipconfig-program-options))
+   "Ifconfig"
+   (concat "** Ifconfig ** " ifconfig-program " ** ")
+   ifconfig-program
+   ifconfig-program-options))
 
-;; This is the normal name on most Unixes.
+;; Windows uses this name.
 ;;;###autoload
-(defalias 'ifconfig 'ipconfig)
+(defalias 'ipconfig 'ifconfig)
+
+;;;###autoload
+(defun iwconfig ()
+  "Run iwconfig program."
+  (interactive)
+  (net-utils-run-program
+   "Iwconfig"
+   (concat "** Iwconfig ** " iwconfig-program " ** ")
+   iwconfig-program
+   iwconfig-program-options))
 
 ;;;###autoload
 (defun netstat ()

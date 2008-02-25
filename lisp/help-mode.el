@@ -32,6 +32,7 @@
 
 (require 'button)
 (require 'view)
+(eval-when-compile (require 'easymenu))
 
 (defvar help-mode-map (make-sparse-keymap)
   "Keymap for help mode.")
@@ -44,6 +45,20 @@
 (define-key help-mode-map "\C-c\C-c" 'help-follow-symbol)
 ;; Documentation only, since we use minor-mode-overriding-map-alist.
 (define-key help-mode-map "\r" 'help-follow)
+
+(easy-menu-define help-mode-menu help-mode-map
+  "Menu for Help Mode."
+  '("Help-Mode"
+    ["Show Help for Symbol" help-follow-symbol
+     :help "Show the docs for the symbol at point"]
+    ["Previous Topic" help-go-back
+     :help "Go back to previous topic in this help buffer"]
+    ["Next Topic" help-go-forward
+     :help "Go back to next topic in this help buffer"]
+    ["Move to Previous Button" backward-button
+     :help "Move to the Next Button in the help buffer"]
+    ["Move to Next Button" forward-button
+      :help "Move to the Next Button in the help buffer"]))
 
 (defvar help-xref-stack nil
   "A stack of ways by which to return to help buffers after following xrefs.

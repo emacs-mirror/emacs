@@ -157,7 +157,7 @@ changed.  Anyway, the point is advanced one position, so, for example,
 you can keep the <x> key pressed to give execution permissions to
 everybody to that file.
 
-If `advanced, the bits are freely editable.  You can use
+If `advanced', the bits are freely editable.  You can use
 `string-rectangle', `query-replace', etc.  You can put any value (even
 newlines), but if you want your changes to be useful, you better put a
 intelligible value.

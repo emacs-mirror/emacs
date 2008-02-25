@@ -27,6 +27,11 @@
 
 # Don't try to replace the cpp processing using autoconf facilities,
 # says rms.
+# Replacing a particular part of the conditionals to work via autoconf
+# is OK.
+# Some of the conditionals might be dead now.  Finding them and
+# deleting them would be fine.
+
 
 # Here are the things that we expect ../configure to edit.
 # We use $(srcdir) explicitly in dependencies so as not to depend on VPATH.
@@ -73,7 +78,6 @@ C_SWITCH_SYSTEM=
 SHELL=/bin/sh
 
 #define THIS_IS_MAKEFILE
-#define NO_SHORTNAMES
 #define NOT_C_CODE
 #include "config.h"
 
@@ -98,10 +102,6 @@ SHELL=/bin/sh
 /* On some systems we may not be able to use the system make command. */
 #ifdef MAKE_COMMAND
 MAKE = MAKE_COMMAND
-#endif
-
-#ifdef C_COMPILER
-CC = C_COMPILER
 #endif
 
 /* GNU libc requires ORDINARY_LINK so that its own crt0 is used.
@@ -144,11 +144,11 @@ CC = C_COMPILER
 
 /* Some s/SYSTEM.h files define this to request special switches in ld.  */
 #ifndef LD_SWITCH_SYSTEM
-#if !defined (__GNUC__) && (defined(COFF_ENCAPSULATE) || (defined (BSD_SYSTEM) && !defined (COFF)))
+#if !defined (__GNUC__) && ((defined (BSD_SYSTEM) && !defined (COFF)))
 #define LD_SWITCH_SYSTEM -X
-#else /* ! defined(COFF_ENCAPSULATE) || (defined (BSD_SYSTEM) && !defined (COFF)) */
+#else /* (defined (BSD_SYSTEM) && !defined (COFF)) */
 #define LD_SWITCH_SYSTEM
-#endif /* ! defined(COFF_ENCAPSULATE) || (defined (BSD_SYSTEM) && !defined (COFF)) */
+#endif /* (defined (BSD_SYSTEM) && !defined (COFF)) */
 #endif /* LD_SWITCH_SYSTEM */
 
 /* This holds special options for linking temacs
@@ -218,16 +218,12 @@ CC = C_COMPILER
 #ifndef ORDINARY_LINK
 
 #ifndef CRT0_COMPILE
-#define CRT0_COMPILE $(CC) -c $(ALL_CFLAGS) C_SWITCH_ASM
+#define CRT0_COMPILE $(CC) -c $(ALL_CFLAGS)
 #endif
 
 #ifndef START_FILES
 #ifdef NO_REMAP
-#ifdef COFF_ENCAPSULATE
-#define START_FILES pre-crt0.o /usr/local/lib/gcc-crt0.o
-#else /* ! defined (COFF_ENCAPSULATE) */
 #define START_FILES pre-crt0.o /lib/crt0.o
-#endif /* ! defined (COFF_ENCAPSULATE) */
 #else /* ! defined (NO_REMAP) */
 #define START_FILES ecrt0.o
 #endif /* ! defined (NO_REMAP) */
@@ -243,12 +239,6 @@ STARTFILES = START_FILES
 
 #endif /* not ORDINARY_LINK */
 
-
-/* cc switches needed to make ``asm'' keyword work.
-   Nothing special needed on most machines.  */
-#ifndef C_SWITCH_ASM
-#define C_SWITCH_ASM
-#endif
 
 #if HAVE_GTK
 #define USE_GTK
@@ -286,10 +276,6 @@ DBUS_OBJ = dbusbind.o
 ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS_SOUND} ${RSVG_CFLAGS} ${DBUS_CFLAGS} ${CFLAGS} @FREETYPE_CFLAGS@ @FONTCONFIG_CFLAGS@ @LIBOTF_CFLAGS@ @M17N_FLT_CFLAGS@
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
-
-#ifndef LIBX11_MACHINE
-#define LIBX11_MACHINE
-#endif
 
 #ifndef LIBX11_SYSTEM
 #define LIBX11_SYSTEM
@@ -444,7 +430,7 @@ XFT_LIBS=@XFT_LIBS@
 /* LD_SWITCH_X_DEFAULT comes after everything else that specifies
    options for where to find X libraries, but before those libraries.  */
 X11_LDFLAGS = LD_SWITCH_X_SITE LD_SWITCH_X_DEFAULT
-LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIBTIFF LIBJPEG LIBPNG LIBGIF LIBXPM LIB_X11_LIB LIBX11_MACHINE LIBX11_SYSTEM $(XFT_LIBS)
+LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIBTIFF LIBJPEG LIBPNG LIBGIF LIBXPM LIB_X11_LIB LIBX11_SYSTEM $(XFT_LIBS)
 #else /* not HAVE_X11 */
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE
 #endif /* not HAVE_X11 */
@@ -476,8 +462,6 @@ RSVG_CFLAGS= @RSVG_CFLAGS@
 #ifndef ORDINARY_LINK
 /* Fix linking if compiled with GCC.  */
 #ifdef __GNUC__
-
-#if __GNUC__ > 1
 
 #ifdef LINKER
 #define LINKER_WAS_SPECIFIED
@@ -514,37 +498,20 @@ GNULIB_VAR = LIB_GCC
 #define YMF_PASS_LDFLAGS(flags) flags
 #endif
 
-#else /* __GNUC__ < 2 */
-
-#ifndef LIB_GCC
-#define LIB_GCC /usr/local/lib/gcc-gnulib
-#endif /* not LIB_GCC */
-GNULIB_VAR = `if [ -f LIB_GCC ] ; then echo LIB_GCC; else echo; fi`
-#endif /* __GNUC__ < 2 */
 #else /* not __GNUC__ */
 GNULIB_VAR =
 
 #endif /* not __GNUC__ */
 #endif /* not ORDINARY_LINK */
 
-/* Specify address for ld to start loading at,
-   if requested by configuration.  */
-#ifdef LD_TEXT_START_ADDR
-STARTFLAGS = -T LD_TEXT_START_ADDR -e __start
-#endif
-
 #ifdef ORDINARY_LINK
 LD = $(CC)
 #else
-#ifdef COFF_ENCAPSULATE
-LD=$(CC) -nostdlib
-#else /* not ORDINARY_LINK */
 #ifdef LINKER
 LD=LINKER
 #else /* not LINKER */
 LD=ld
 #endif /* not LINKER */
-#endif /* not COFF_ENCAPSULATE */
 #endif /* not ORDINARY_LINK */
 
 /* Flags to pass to LD only for temacs.  */
@@ -790,10 +757,7 @@ lisp= \
 	${lispsource}language/chinese.el \
 	${lispsource}language/cyrillic.el \
 	${lispsource}language/indian.el \
-	${lispsource}language/devanagari.el \
-	${lispsource}language/kannada.el \
-	${lispsource}language/malayalam.el \
-	${lispsource}language/tamil.el \
+	${lispsource}language/sinhala.el \
 	${lispsource}language/english.el \
 	${lispsource}language/ethiopic.elc \
 	${lispsource}language/european.elc \
@@ -882,10 +846,7 @@ shortlisp= \
 	../lisp/language/chinese.el \
 	../lisp/language/cyrillic.el \
 	../lisp/language/indian.el \
-	../lisp/language/devanagari.el \
-	../lisp/language/kannada.el \
-	../lisp/language/malayalam.el \
-	../lisp/language/tamil.el \
+	../lisp/language/sinhala.el \
 	../lisp/language/english.el \
 	../lisp/language/ethiopic.elc \
 	../lisp/language/european.elc \
@@ -1005,22 +966,7 @@ ${etc}DOC: ${libsrc}make-docfile${EXEEXT} ${obj} ${shortlisp} ${SOME_MACHINE_LIS
 ${libsrc}make-docfile${EXEEXT}:
 	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile${EXEEXT}
 
-#ifdef HAVE_UNIDATA
-UNIDATA=${admindir}unidata/UnicodeData.txt
-
-${lispsource}international/charprop.el: temacs${EXEEXT} ${UNIDATA}
-	RUNEMACS="$(RUN_TEMACS)"; \
-	cd ${admindir}unidata; \
-	$(MAKE) $(MFLAGS) \
-	  RUNEMACS="$${RUNEMACS}" DSTDIR=${lispsource}international
-#endif
-
-/* Some systems define this to cause parallel Make-ing.  */
-#ifndef MAKE_PARALLEL
-#define MAKE_PARALLEL
-#endif
-
-temacs${EXEEXT}: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
+temacs${EXEEXT}: $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
 	echo "${obj} ${otherobj} " OBJECTS_MACHINE > buildobj.lst
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
@@ -1043,9 +989,6 @@ stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU)
 /* Supply an ordering for parallel make.  */
 ../src/$(OLDXMENU): ${OLDXMENU}
 
-#ifdef USE_X_TOOLKIT
-$(OLDXMENU): really-lwlib
-
 /* Encode the values of these two macros in Make variables,
    so we can use $(...) to substitute their values within "...".  */
 C_SWITCH_MACHINE_1 = C_SWITCH_MACHINE
@@ -1054,6 +997,10 @@ C_SWITCH_SITE_1 = C_SWITCH_SITE
 C_SWITCH_X_SITE_1 = C_SWITCH_X_SITE
 C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
 C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
+
+#ifdef USE_X_TOOLKIT
+$(OLDXMENU): really-lwlib
+
 really-lwlib:
 	cd ${lwlibdir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \
@@ -1068,14 +1015,6 @@ really-lwlib:
 #else /* not USE_X_TOOLKIT */
 $(OLDXMENU): really-oldXMenu
 
-/* Encode the values of these two macros in Make variables,
-   so we can use $(...) to substitute their values within "...".  */
-C_SWITCH_MACHINE_1 = C_SWITCH_MACHINE
-C_SWITCH_SYSTEM_1 = C_SWITCH_SYSTEM
-C_SWITCH_SITE_1 = C_SWITCH_SITE
-C_SWITCH_X_SITE_1 = C_SWITCH_X_SITE
-C_SWITCH_X_MACHINE_1 = C_SWITCH_X_MACHINE
-C_SWITCH_X_SYSTEM_1 = C_SWITCH_X_SYSTEM
 really-oldXMenu:
 	cd ${oldXMenudir}; ${MAKE} ${MFLAGS} \
     CC='${CC}' CFLAGS='${CFLAGS}' MAKE='${MAKE}' \

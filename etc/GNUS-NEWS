@@ -1,7 +1,7 @@
 GNUS NEWS -- history of user-visible changes.
 
 Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005,
-   2006, 2007, 2008 Free Software Foundation, Inc.
+   2006, 2007, 2008  Free Software Foundation, Inc.
 See the end of the file for license conditions.
 
 Please send Gnus bug reports to bugs@gnus.org.
@@ -26,6 +26,8 @@ defaulted to `.../site-lisp/' formerly.  In addition to this, the new
 installer issues a warning if other Gnus installations which will shadow
 the latest one are detected.  You can then remove those shadows manually
 or remove them using `make remove-installed-shadows'.
+
+** The installation directory name is allowed to have spaces and/or tabs.
 
 
 * New packages and libraries within Gnus

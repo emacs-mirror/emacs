@@ -307,6 +307,7 @@
      (malayalam ,(font-spec :registry "iso10646-1" :otf '(mlym nil (akhn))))
 
      (lao ,(font-spec :registry "iso10646-1" :otf '(lao\  nil nil (mark)))
+	  ,(font-spec :registry "iso10646-1" :script 'lao)
 	  (nil . "MuleLao-1"))
 
      (tai-viet ("TaiViet" . "iso10646-1"))
@@ -330,7 +331,7 @@
 	       (nil . "koi8-r"))
 
      (arabic ,(font-spec :registry "iso10646-1"
-			 :otf '(arab (init medi fini liga)))
+			 :otf '(arab nil (init medi fini liga)))
 	     (nil . "MuleArabic-0")
 	     (nil . "MuleArabic-1")
 	     (nil . "MuleArabic-2")

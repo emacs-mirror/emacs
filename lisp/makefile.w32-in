@@ -93,11 +93,11 @@ WINS_ALMOST=\
 	nxml \
 	play \
 	progmodes \
-	term \
 	textmodes \
 	url
 
 WINS= $(WINS_ALMOST) \
+	term \
 	obsolete
 
 doit:
@@ -107,12 +107,12 @@ $(lisp)/cus-load.el:
 # WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
 custom-deps: $(lisp)/cus-load.el $(lisp)/loaddefs.el doit
-	@echo Directories: $(WINS)
-	-$(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hook nil)$(ARGQUOTE) -f custom-make-dependencies $(lisp) $(WINS)
+	@echo Directories: $(WINS_ALMOST)
+	-$(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hook nil)$(ARGQUOTE) -f custom-make-dependencies $(lisp) $(WINS_ALMOST)
 
 finder-data: $(lisp)/loaddefs.el doit
-	@echo Directories: $(WINS)
-	$(emacs) -l finder -f finder-compile-keywords-make-dist $(lisp) $(WINS)
+	@echo Directories: $(WINS_ALMOST)
+	$(emacs) -l finder -f finder-compile-keywords-make-dist $(lisp) $(WINS_ALMOST)
 
 $(lisp)/loaddefs.el:
 	$(MAKE) $(MFLAGS) loaddefs.el-$(SHELLTYPE)

@@ -311,17 +311,6 @@ Boston, MA 02110-1301, USA.  */
 #undef config_machfile
 #include "m/intel386.h"
 
-/* Load in the conversion definitions if this system
-   needs them and the source file being compiled has not
-   said to inhibit this.  There should be no need for you
-   to alter these lines.  */
-
-#ifdef SHORTNAMES
-#ifndef NO_SHORTNAMES
-#include "../shortnames/remap.h"
-#endif /* not NO_SHORTNAMES */
-#endif /* SHORTNAMES */
-
 /* If no remapping takes place, static variables cannot be dumped as
    pure, so don't worry about the `static' keyword. */
 #ifdef NO_REMAP

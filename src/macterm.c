@@ -12624,7 +12624,7 @@ mac_term_init (display_name, xrm_option, resource_name)
 
   dpyinfo->grabbed = 0;
   dpyinfo->root_window = NULL;
-  dpyinfo->image_cache = make_image_cache ();
+  dpyinfo->terminal->image_cache = make_image_cache ();
 
   dpyinfo->mouse_face_beg_row = dpyinfo->mouse_face_beg_col = -1;
   dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;

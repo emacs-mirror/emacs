@@ -167,6 +167,21 @@
 ;;   in older versions this method was not required to recurse into
 ;;   subdirectories.)
 ;;
+;; - dir-status (dir update-function status-buffer)
+;;
+;;   Produce RESULT: a list of conses of the form (file . vc-state)
+;;   for the files in DIR.  If a command needs to be run to compute
+;;   this list, it should be run asynchronously.  When RESULT is
+;;   computed, it should be passed back by doing:
+;;       (funcall UPDATE-FUNCTION RESULT STATUS-BUFFER)
+;;   Return the buffer used for the asynchronous call.  This buffer
+;;   is used to kill the status update process on demand.
+;;   This function is used by vc-status, a replacement for vc-dired.
+;;   vc-status is still under development, and is NOT feature
+;;   complete.  As such, the requirements for this function might
+;;   change.
+;;   This is a replacement for dir-state.
+;;
 ;; * working-revision (file)
 ;;
 ;;   Return the working revision of FILE.  This is the revision fetched
@@ -452,6 +467,12 @@
 ;;
 ;; MISCELLANEOUS
 ;;
+;; - root (dir)
+;;
+;;   Return DIR's "root" directory, that is, a parent directory of
+;;   DIR for which the same backend as used for DIR applies.  If no
+;;   such parent exists, this function should return DIR.
+;;
 ;; - make-version-backups-p (file)
 ;;
 ;;   Return non-nil if unmodified repository revisions of FILE should be
@@ -520,6 +541,15 @@
 ;;   you can provide menu entries for functionality that is specific
 ;;   to your backend and which does not map to any of the VC generic
 ;;   concepts.
+;;
+;; - extra-status-menu ()
+;;
+;;   Return a menu keymap, the items in the keymap will appear at the
+;;   end of the VC Status menu.  The goal is to allow backends to
+;;   specify extra menu items that appear in the VC Status menu.  This
+;;   makes it possible to provide menu entries for functionality that
+;;   is specific to a backend and which does not map to any of the VC
+;;   generic concepts.
 
 ;;; Todo:
 
@@ -557,12 +587,25 @@
 ;;
 ;; - decide if vc-status should replace vc-dired.
 ;;
-;; - vc-status needs a menu, mouse bindings and some color bling.
+;; - vc-status needs mouse bindings and some color bling.
 ;;
 ;; - vc-status needs to show missing files. It probably needs to have
 ;;   another state for those files. The user might want to restore
 ;;   them, or remove them from the VCS. C-x v v might also need
 ;;   adjustments.
+;;
+;; - when changing a file whose directory is shown in the vc-status
+;;   buffer, it should be added there are "modified".  (PCL-CVS does this).
+;;
+;; - vc-status needs a toolbar.
+;;
+;; - vc-status: refresh should not completely wipe out the current
+;;   contents of the vc-status buffer.
+;;
+;; - vc-diff, vc-annotate, etc. need to deal better with unregistered
+;;   files. Now that unregistered and ignored files are shown in
+;;   vc-dired/vc-status, it is possible that these commands are called
+;;   for unregistered/ignored files.
 ;;
 ;; - "snapshots" should be renamed to "branches", and thoroughly reworked.
 ;;
@@ -820,6 +863,7 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
   (let ((m (make-sparse-keymap)))
     (define-key m "A" 'vc-annotate-revision-previous-to-line)
     (define-key m "D" 'vc-annotate-show-diff-revision-at-line)
+    (define-key m "f" 'vc-annotate-find-revision-at-line)
     (define-key m "J" 'vc-annotate-revision-at-line)
     (define-key m "L" 'vc-annotate-show-log-revision-at-line)
     (define-key m "N" 'vc-annotate-next-revision)
@@ -1018,6 +1062,19 @@ BUF defaults to \"*vc*\", can be a string and will be created if necessary."
                   (with-selected-window win
                     (goto-char vc-sentinel-movepoint))))))))))
 
+(defun vc-set-mode-line-busy-indicator ()
+  (setq mode-line-process
+	;; Deliberate overstatement, but power law respected.
+	;; (The message is ephemeral, so we make it loud.)  --ttn
+	(propertize " (incomplete/in progress)"
+		    'face (if (featurep 'compile)
+			      ;; ttn's preferred loudness
+			      'compilation-warning
+			    ;; suitably available fallback
+			    font-lock-warning-face)
+		    'help-echo
+		    "A VC command is in progress in this buffer")))
+
 (defun vc-exec-after (code)
   "Eval CODE when the current buffer's process is done.
 If the current buffer has no process, just evaluate CODE.
@@ -1035,23 +1092,17 @@ Else, add CODE to the process' sentinel."
       (eval code))
      ;; If a process is running, add CODE to the sentinel
      ((eq (process-status proc) 'run)
-      (setq mode-line-process
-            ;; Deliberate overstatement, but power law respected.
-            ;; (The message is ephemeral, so we make it loud.)  --ttn
-            (propertize " (incomplete/in progress)"
-                        'face (if (featurep 'compile)
-                                  ;; ttn's preferred loudness
-                                  'compilation-warning
-                                ;; suitably available fallback
-                                font-lock-warning-face)
-			'help-echo
-			"A VC command is in progress in this buffer"))
+      (vc-set-mode-line-busy-indicator)
       (let ((previous (process-sentinel proc)))
         (unless (eq previous 'vc-process-sentinel)
           (process-put proc 'vc-previous-sentinel previous))
         (set-process-sentinel proc 'vc-process-sentinel))
       (process-put proc 'vc-sentinel-commands
-                   (cons code (process-get proc 'vc-sentinel-commands))))
+                   ;; We keep the code fragments in the order given
+                   ;; so that vc-diff-finish's message shows up in
+                   ;; the presence of non-nil vc-command-messages.
+                   (append (process-get proc 'vc-sentinel-commands)
+                           (list code))))
      (t (error "Unexpected process state"))))
   nil)
 
@@ -1991,19 +2042,22 @@ the buffer contents as a comment."
 (defmacro vc-diff-switches-list (backend) `(vc-switches ',backend 'diff))
 (make-obsolete 'vc-diff-switches-list 'vc-switches "22.1")
 
-(defun vc-diff-finish (buffer-name verbose)
+(defun vc-diff-finish (buffer messages)
   ;; The empty sync output case has already been handled, so the only
   ;; possibility of an empty output is for an async process.
-  (when (buffer-live-p buffer-name)
-    (with-current-buffer (get-buffer buffer-name)
-      (and verbose
-           (zerop (buffer-size))
-           (let ((inhibit-read-only t))
-             (insert "No differences found.\n")))
-      (goto-char (point-min))
-      (let ((window (get-buffer-window (current-buffer) t)))
+  (when (buffer-live-p buffer)
+    (let ((window (get-buffer-window buffer t))
+          (emptyp (zerop (buffer-size buffer))))
+      (with-current-buffer buffer
+        (and messages emptyp
+             (let ((inhibit-read-only t))
+               (insert (cdr messages) ".\n")
+               (message "%s" (cdr messages))))
+        (goto-char (point-min))
         (when window
-          (shrink-window-if-larger-than-buffer window))))))
+          (shrink-window-if-larger-than-buffer window)))
+      (when (and messages (not emptyp))
+        (message "%sdone" (car messages))))))
 
 (defvar vc-diff-added-files nil
   "If non-nil, diff added files by comparing them to /dev/null.")
@@ -2012,16 +2066,18 @@ the buffer contents as a comment."
   "Report diffs between two revisions of a fileset.
 Diff output goes to the *vc-diff* buffer.  The function
 returns t if the buffer had changes, nil otherwise."
-  (let* ((filenames (vc-delistify files))
-	 (rev1-name (or rev1 "working revision"))
-	 (rev2-name (or rev2 "workfile"))
+  (let* ((messages (cons (format "Finding changes in %s..."
+                                 (vc-delistify files))
+                         (format "No changes between %s and %s"
+                                 (or rev1 "working revision")
+                                 (or rev2 "workfile"))))
 	 ;; Set coding system based on the first file.  It's a kluge,
 	 ;; but the only way to set it for each file included would
 	 ;; be to call the back end separately for each file.
 	 (coding-system-for-read
 	  (if files (vc-coding-system-for-diff (car files)) 'undecided)))
     (vc-setup-buffer "*vc-diff*")
-    (message "Finding changes in %s..." filenames)
+    (message "%s" (car messages))
     ;; Many backends don't handle well the case of a file that has been
     ;; added but not yet committed to the repo (notably CVS and Subversion).
     ;; Do that work here so the backends don't have to futz with it.  --ESR
@@ -2055,14 +2111,15 @@ returns t if the buffer had changes, nil otherwise."
              (not (get-buffer-process (current-buffer))))
         ;; Treat this case specially so as not to pop the buffer.
         (progn
-          (message "No changes between %s and %s" rev1-name rev2-name)
+          (message "%s" (cdr messages))
           nil)
       (diff-mode)
       ;; Make the *vc-diff* buffer read only, the diff-mode key
       ;; bindings are nicer for read only buffers. pcl-cvs does the
       ;; same thing.
       (setq buffer-read-only t)
-      (vc-exec-after `(vc-diff-finish ,(buffer-name) ,verbose))
+      (vc-exec-after `(vc-diff-finish ,(current-buffer) ',(when verbose
+                                                            messages)))
       ;; Display the buffer, but at the end because it can change point.
       (pop-to-buffer (current-buffer))
       ;; In the async case, we return t even if there are no differences
@@ -2196,7 +2253,7 @@ If `F.~REV~' already exists, use it instead of checking it out again."
       (with-current-buffer result-buf
 	;; Set the parent buffer so that things like
 	;; C-x v g, C-x v l, ... etc work.
-	(setq vc-parent-buffer filebuf))
+	(set (make-local-variable 'vc-parent-buffer) filebuf))
       result-buf)))
 
 ;; Header-insertion code
@@ -2610,12 +2667,21 @@ With prefix arg READ-SWITCHES, specify a value to override
 
 (defun vc-status-printer (fileentry)
   "Pretty print FILEENTRY."
+  ;; If you change the layout here, change vc-status-move-to-goal-column.
   (insert
-   ;; If you change this, change vc-status-move-to-goal-column.
-   (format "%c   %-20s %s"
-	   (if (vc-status-fileinfo->marked fileentry) ?* ? )
-	   (vc-status-fileinfo->state fileentry)
-	   (vc-status-fileinfo->name fileentry))))
+   (propertize
+    (format "%c" (if (vc-status-fileinfo->marked fileentry) ?* ? ))
+    'face 'font-lock-type-face)
+   "   "
+   (propertize
+    (format "%-20s" (vc-status-fileinfo->state fileentry))
+    'face 'font-lock-variable-name-face
+    'mouse-face 'highlight)
+   " "
+   (propertize
+    (format "%s" (vc-status-fileinfo->name fileentry))
+    'face 'font-lock-function-name-face
+    'mouse-face 'highlight)))
 
 (defun vc-status-move-to-goal-column ()
   (beginning-of-line)
@@ -2631,13 +2697,80 @@ With prefix arg READ-SWITCHES, specify a value to override
   (cd dir)
   (vc-status-mode))
 
+(defvar vc-status-menu-map
+  (let ((map (make-sparse-keymap "VC-status")))
+    (define-key map [quit] 
+      '(menu-item "Quit" bury-buffer
+		  :help "Quit"))
+    (define-key map [refresh] 
+      '(menu-item "Refresh" vc-status-refresh
+		  :help "Refresh the contents of the VC status buffer"))
+
+    ;; VC commands.
+    (define-key map [separator-vc-commands] '("--"))
+    (define-key map [annotate] 
+      '(menu-item "Annotate" vc-annotate
+		  :help "Display the edit history of the current file using colors"))
+    (define-key map [diff] 
+      '(menu-item "Compare with Base Version" vc-diff
+		  :help "Compare file set with the base version"))
+    (define-key map [register] 
+      '(menu-item "Register" vc-status-register
+		  :help "Register file set into the version control system"))
+    ;; vc-print-log uses the current buffer, not a file.
+    ;; (define-key map [log] 
+    ;;  '(menu-item "Show history" vc-status-print-log
+    ;;  :help "List the change log of the current file set in a window"))
+
+    ;; Movement.
+    (define-key map [separator-movement] '("--"))
+    (define-key map [next-line] 
+      '(menu-item "Next line" vc-status-next-line
+		  :help "Go to the next line" :keys "n"))
+    (define-key map [previous-line] 
+      '(menu-item "Previous line" vc-status-previous-line
+		  :help "Go to the previous line"))
+    ;; Marking.
+    (define-key map [separator-marking] '("--"))
+    (define-key map [unmark-all] 
+      '(menu-item "Unmark All" vc-status-unmark-all-files
+		  :help "Unmark all files that are in the same state as the current file\
+\nWith prefix argument unmark all files"))
+    (define-key map [unmark-previous] 
+      '(menu-item "Unmark previous " vc-status-unmark-file-up
+		  :help "Move to the previous line and unmark the file"))
+
+    (define-key map [mark-all] 
+      '(menu-item "Marl All" vc-status-mark-all-files
+		  :help "Mark all files that are in the same state as the current file\
+\nWith prefix argument mark all files"))
+    (define-key map [unmark] 
+      '(menu-item "Unmark" vc-status-unmark
+		  :help "Unmark the current file or all files in the region"))
+
+    (define-key map [mark] 
+      '(menu-item "Mark" vc-status-mark
+		  :help "Mark the current file  or all files in the region"))
+
+    (define-key map [separator-open] '("--"))
+    (define-key map [open-other] 
+      '(menu-item "Open in other window" vc-status-find-file-other-window
+		  :help "Find the file on the current line, in another window"))
+    (define-key map [open] 
+      '(menu-item "Open file" vc-status-find-file
+		  :help "Find the file on the current line"))
+    map)
+  "Menu for VC status")
+
+(defalias 'vc-status-menu-map vc-status-menu-map)
+
 (defvar vc-status-mode-map
   (let ((map (make-keymap)))
     (suppress-keymap map)
     ;; Marking.
-    (define-key map "m" 'vc-status-mark-file)
+    (define-key map "m" 'vc-status-mark)
     (define-key map "M" 'vc-status-mark-all-files)
-    (define-key map "u" 'vc-status-unmark-file)
+    (define-key map "u" 'vc-status-unmark)
     (define-key map "\C-?" 'vc-status-unmark-file-up)
     (define-key map "\M-\C-?" 'vc-status-unmark-all-files)
     ;; Movement.
@@ -2658,8 +2791,39 @@ With prefix arg READ-SWITCHES, specify a value to override
     (define-key map "o" 'vc-status-find-file-other-window)
     (define-key map "q" 'bury-buffer)
     (define-key map "g" 'vc-status-refresh)
+    (define-key map "\C-c\C-c" 'vc-status-kill-dir-status-process)
+    ;; Not working yet.  Functions like vc-status-find-file need to
+    ;; find the file from the mouse position, not `point'.
+    ;; (define-key map [(down-mouse-3)] 'vc-status-menu)
+
+    ;; Hook up the menu.
+    (define-key map [menu-bar vc-status-mode]
+      '(menu-item
+	;; This is used to that VC backends could add backend specific
+	;; menu items to vc-status-menu-map.
+	"VC Status" vc-status-menu-map :filter vc-status-menu-map-filter))
     map)
   "Keymap for VC status")
+
+(defun vc-status-menu-map-filter (orig-binding)
+  (when (and (symbolp orig-binding) (fboundp orig-binding))
+    (setq orig-binding (indirect-function orig-binding)))
+  (let ((ext-binding
+	 (vc-call-backend (vc-responsible-backend default-directory)
+			  'extra-status-menu)))
+    (if (null ext-binding)
+        orig-binding
+      (append orig-binding
+	      '("----")
+              ext-binding))))
+
+(defun vc-status-menu (e)
+  "Popup the VC status menu."
+  (interactive "e")
+  (popup-menu vc-status-menu-map e))
+
+(defvar vc-status-process-buffer nil
+  "The buffer used for the asynchronous call that computes the VC status.")
 
 (defun vc-status-mode ()
   "Major mode for VC status.
@@ -2672,6 +2836,7 @@ With prefix arg READ-SWITCHES, specify a value to override
 	(backend (vc-responsible-backend default-directory))
 	entries)
     (erase-buffer)
+    (set (make-local-variable 'vc-status-process-buffer) nil)
     (set (make-local-variable 'vc-status)
 	 (ewoc-create #'vc-status-printer
 		      (vc-status-headers backend default-directory)))
@@ -2681,10 +2846,12 @@ With prefix arg READ-SWITCHES, specify a value to override
 
 (defun vc-update-vc-status-buffer (entries buffer)
   (with-current-buffer buffer
-    (dolist (entry entries)
-      (ewoc-enter-last vc-status
-		       (vc-status-create-fileinfo (cdr entry) (car entry))))
-    (ewoc-goto-node vc-status (ewoc-nth vc-status 0))))
+    (when entries
+      (dolist (entry entries)
+	(ewoc-enter-last vc-status
+			 (vc-status-create-fileinfo (cdr entry) (car entry))))
+      (ewoc-goto-node vc-status (ewoc-nth vc-status 0)))
+    (setq mode-line-process nil)))
 
 (defun vc-status-refresh ()
   "Refresh the contents of the VC status buffer."
@@ -2692,13 +2859,24 @@ With prefix arg READ-SWITCHES, specify a value to override
   ;; This is not very efficient; ewoc could use a new function here.
   (ewoc-filter vc-status (lambda (node) nil))
   (let ((backend (vc-responsible-backend default-directory)))
+    (vc-set-mode-line-busy-indicator)
     ;; Call the dir-status backend function. dir-status is supposed to
     ;; be asynchronous.  It should compute the results and call the
     ;; function passed as a an arg to update the vc-status buffer with
     ;; the results.
-    (vc-call-backend
-     backend 'dir-status default-directory
-     #'vc-update-vc-status-buffer (current-buffer))))
+    (setq vc-status-process-buffer
+	  (vc-call-backend
+	   backend 'dir-status default-directory
+	   #'vc-update-vc-status-buffer (current-buffer)))))
+
+(defun vc-status-kill-dir-status-process ()
+  "Kill the temporary buffer and associated process."
+  (interactive)
+  (when (and (bufferp vc-status-process-buffer) 
+	     (buffer-live-p vc-status-process-buffer))
+    (let ((proc (get-buffer-process vc-status-process-buffer)))
+      (when proc (delete-process proc))
+      (setq mode-line-process nil))))
 
 (defun vc-status-next-line (arg)
   "Go to the next line.
@@ -2714,33 +2892,74 @@ If a prefix argument is given, move by that many lines."
   (ewoc-goto-prev vc-status arg)
   (vc-status-move-to-goal-column))
 
+(defun vc-status-mark-unmark (mark-unmark-function)
+  (if (use-region-p)
+      (let ((firstl (line-number-at-pos (region-beginning)))
+	    (lastl (line-number-at-pos (region-end))))
+	(save-excursion
+	  (goto-char (region-beginning))
+	  (while (<= (line-number-at-pos) lastl)
+	    (funcall mark-unmark-function))))
+    (funcall mark-unmark-function)))
+
 (defun vc-status-mark-file ()
-  "Mark the current file and move to the next line."
-  (interactive)
+  ;; Mark the current file and move to the next line.
   (let* ((crt (ewoc-locate vc-status))
          (file (ewoc-data crt)))
     (setf (vc-status-fileinfo->marked file) t)
     (ewoc-invalidate vc-status crt)
     (vc-status-next-line 1)))
 
-(defun vc-status-mark-all-files ()
-  "Mark all files."
+(defun vc-status-mark ()
+  "Mark the current file or all files in the region.
+If the region is active, mark all the files in the region.
+Otherwise mark the file on the current line and move to the next
+line."
   (interactive)
-   (ewoc-map
-    (lambda (file)
-      (unless (vc-status-fileinfo->marked file)
-	(setf (vc-status-fileinfo->marked file) t)
-	t))
-    vc-status))
+  (vc-status-mark-unmark 'vc-status-mark-file))
+
+
+;; XXX: Should this take the region into consideration?
+(defun vc-status-mark-all-files (arg)
+  "Mark all files with the same state as the current one.
+With a prefix argument mark all files.
+
+The VC commands operate on files that are on the same state.
+This command is intended to make it easy to select all files that
+share the same state."
+  (interactive "P")
+  (if arg
+      (ewoc-map
+       (lambda (filearg)
+	 (unless (vc-status-fileinfo->marked filearg)
+	   (setf (vc-status-fileinfo->marked filearg) t)
+	   t))
+       vc-status)
+    (let* ((crt (ewoc-locate vc-status))
+	   (crt-state (vc-status-fileinfo->state (ewoc-data crt))))
+      (ewoc-map
+       (lambda (filearg)
+	 (when (and (not (vc-status-fileinfo->marked filearg))
+		    (eq (vc-status-fileinfo->state filearg) crt-state))
+	   (setf (vc-status-fileinfo->marked filearg) t)
+	   t))
+       vc-status))))
 
 (defun vc-status-unmark-file ()
-  "Unmark the current file and move to the next line."
-  (interactive)
+  ;; Unmark the current file and move to the next line.
   (let* ((crt (ewoc-locate vc-status))
          (file (ewoc-data crt)))
     (setf (vc-status-fileinfo->marked file) nil)
     (ewoc-invalidate vc-status crt)
     (vc-status-next-line 1)))
+
+(defun vc-status-unmark ()
+  "Unmark the current file or all files in the region.
+If the region is active, unmark all the files in the region.
+Otherwise mark the file on the current line and move to the next
+line."
+  (interactive)
+  (vc-status-mark-unmark 'vc-status-unmark-file))
 
 (defun vc-status-unmark-file-up ()
   "Move to the previous line and unmark the file."
@@ -2754,15 +2973,30 @@ If a prefix argument is given, move by that many lines."
     (ewoc-invalidate vc-status prev)
     (vc-status-move-to-goal-column)))
 
-(defun vc-status-unmark-all-files ()
-  "Unmark all files."
-  (interactive)
-   (ewoc-map
-    (lambda (file)
-      (when (vc-status-fileinfo->marked file)
-	(setf (vc-status-fileinfo->marked file) nil)
-	t))
-    vc-status))
+(defun vc-status-unmark-all-files (arg)
+  "Unmark all files with the same state as the current one.
+With a prefix argument mark all files.
+
+The VC commands operate on files that are on the same state.
+This command is intended to make it easy to deselect all files
+that share the same state."
+  (interactive "P")
+  (if arg
+      (ewoc-map
+       (lambda (filearg)
+	 (when (vc-status-fileinfo->marked filearg)
+	   (setf (vc-status-fileinfo->marked filearg) nil)
+	   t))
+       vc-status)
+    (let* ((crt (ewoc-locate vc-status))
+	   (crt-state (vc-status-fileinfo->state (ewoc-data crt))))
+      (ewoc-map
+       (lambda (filearg)
+	 (when (and (vc-status-fileinfo->marked filearg)
+		    (eq (vc-status-fileinfo->state filearg) crt-state))
+	   (setf (vc-status-fileinfo->marked filearg) nil)
+	   t))
+       vc-status))))
 
 (defun vc-status-register ()
   "Register the marked files, or the current file if no marks."
@@ -3614,22 +3848,39 @@ cover the range from the oldest annotation to the newest."
     ["Span to Oldest"
      (unless (eq vc-annotate-display-mode 'scale)
        (vc-annotate-display-select nil 'scale))
+     :help
+     "Use an autoscaled color map from the oldest annotation to the current time"
      :style toggle :selected
      (eq vc-annotate-display-mode 'scale)]
     ["Span Oldest->Newest"
      (unless (eq vc-annotate-display-mode 'fullscale)
        (vc-annotate-display-select nil 'fullscale))
+     :help
+     "Use an autoscaled color map from the oldest to the newest annotation"
      :style toggle :selected
      (eq vc-annotate-display-mode 'fullscale)]
     "--"
-    ["Toggle annotation visibility" vc-annotate-toggle-annotation-visibility]
-    ["Annotate previous revision" vc-annotate-prev-revision]
-    ["Annotate next revision" vc-annotate-next-revision]
-    ["Annotate revision at line" vc-annotate-revision-at-line]
-    ["Annotate revision previous to line" vc-annotate-revision-previous-to-line]
-    ["Annotate latest revision" vc-annotate-working-revision]
-    ["Show log of revision at line" vc-annotate-show-log-revision-at-line]
-    ["Show diff of revision at line" vc-annotate-show-diff-revision-at-line]))
+    ["Toggle annotation visibility" vc-annotate-toggle-annotation-visibility
+     :help
+     "Toggle whether the annotation is visible or not"]
+    ["Annotate previous revision" vc-annotate-prev-revision
+     :help "Visit the annotation of the revision previous to this one"]
+    ["Annotate next revision" vc-annotate-next-revision
+     :help "Visit the annotation of the revision after this one"]
+    ["Annotate revision at line" vc-annotate-revision-at-line
+     :help
+     "Visit the annotation of the revision identified in the current line"]
+    ["Annotate revision previous to line" vc-annotate-revision-previous-to-line
+     :help "Visit the annotation of the revision before the revision at line"]
+    ["Annotate latest revision" vc-annotate-working-revision
+     :help "Visit the annotation of the working revision of this file"]
+    ["Show log of revision at line" vc-annotate-show-log-revision-at-line
+     :help "Visit the log of the revision at line"]
+    ["Show diff of revision at line" vc-annotate-show-diff-revision-at-line
+     :help
+     "Visit the diff of the revision at line from its previous revision"]
+    ["Visit revision at line" vc-annotate-find-revision-at-line
+     :help "Visit the revision identified in the current line"]))
 
 (defun vc-annotate-display-select (&optional buffer mode)
   "Highlight the output of \\[vc-annotate].
@@ -3656,7 +3907,7 @@ use; you may override this using the second optional arg MODE."
 		  vc-annotate-display-mode))))
 
 ;;;###autoload
-(defun vc-annotate (file rev &optional display-mode buf)
+(defun vc-annotate (file rev &optional display-mode buf move-point-to)
   "Display the edit history of the current file using colors.
 
 This command creates a buffer that shows, for each line of the current
@@ -3674,6 +3925,8 @@ you are prompted for the time span in days which the color range
 should cover.  For example, a time span of 20 days means that changes
 over the past 20 days are shown in red to blue, according to their
 age, and everything that is older than that is shown in blue.
+
+If MOVE-POINT-TO is given, move the point to that line.
 
 Customization variables:
 
@@ -3702,7 +3955,7 @@ mode-specific menu.  `vc-annotate-color-map' and
          ;; If BUF is specified, we presume the caller maintains current line,
          ;; so we don't need to do it here.  This implementation may give
          ;; strange results occasionally in the case of REV != WORKFILE-REV.
-         (current-line (unless buf (line-number-at-pos))))
+         (current-line (or move-point-to (unless buf (line-number-at-pos)))))
     (message "Annotating...")
     ;; If BUF is specified it tells in which buffer we should put the
     ;; annotations.  This is used when switching annotations to another
@@ -3779,6 +4032,16 @@ revisions after."
 	(if (equal rev-at-line vc-annotate-parent-rev)
 	    (message "Already at revision %s" rev-at-line)
 	  (vc-annotate-warp-revision rev-at-line))))))
+
+(defun vc-annotate-find-revision-at-line ()
+  "Visit the revision identified in the current line."
+  (interactive)
+  (if (not (equal major-mode 'vc-annotate-mode))
+      (message "Cannot be invoked outside of a vc annotate buffer")
+    (let ((rev-at-line (vc-annotate-extract-revision-at-line)))
+      (if (not rev-at-line)
+	  (message "Cannot extract revision number from the current line")
+	(vc-revision-other-window rev-at-line)))))
 
 (defun vc-annotate-revision-previous-to-line ()
   "Visit the annotation of the revision before the revision at line."
@@ -3860,10 +4123,12 @@ revision."
       (when newrev
 	(vc-annotate vc-annotate-parent-file newrev
                      vc-annotate-parent-display-mode
-                     buf)
-	(goto-line (min oldline (progn (goto-char (point-max))
-				       (forward-line -1)
-				       (line-number-at-pos))) buf)))))
+                     buf
+		     ;; Pass the current line so that vc-annotate will
+		     ;; place the point in the line.
+		     (min oldline (progn (goto-char (point-max))
+					   (forward-line -1)
+					   (line-number-at-pos))))))))
 
 (defun vc-annotate-compcar (threshold a-list)
   "Test successive cons cells of A-LIST against THRESHOLD.

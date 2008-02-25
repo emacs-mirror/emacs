@@ -3586,7 +3586,9 @@ default part of the buffer's text.  Examples of such commands include
 Invoke \\[apropos-documentation] and type \"transient\" or
 \"mark.*active\" at the prompt, to see the documentation of
 commands which are sensitive to the Transient Mark mode."
-  :global t :group 'editing-basics)
+  :global t 
+  :init-value (not noninteractive)
+  :group 'editing-basics)
 
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.
@@ -5293,7 +5295,10 @@ to decide what to delete."
 Type \\<completion-list-mode-map>\\[choose-completion] in the completion list\
  to select the completion near point.
 Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
- with the mouse."
+ with the mouse.
+
+\\{completion-list-mode-map}"
+
   (interactive)
   (kill-all-local-variables)
   (use-local-map completion-list-mode-map)
@@ -5544,6 +5549,9 @@ PREFIX is the string that represents this modifier in an event type symbol."
 (defvar clone-buffer-hook nil
   "Normal hook to run in the new buffer at the end of `clone-buffer'.")
 
+(defvar clone-indirect-buffer-hook nil
+  "Normal hook to run in the new buffer at the end of `clone-indirect-buffer'.")
+
 (defun clone-process (process &optional newname)
   "Create a twin copy of PROCESS.
 If NEWNAME is nil, it defaults to PROCESS' name;
@@ -5689,6 +5697,8 @@ front of the list of recently selected ones."
       (setq newname (substring newname 0 (match-beginning 0))))
   (let* ((name (generate-new-buffer-name newname))
 	 (buffer (make-indirect-buffer (current-buffer) name t)))
+    (with-current-buffer buffer
+      (run-hooks 'clone-indirect-buffer-hook))
     (when display-flag
       (pop-to-buffer buffer norecord))
     buffer))

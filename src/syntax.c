@@ -2501,7 +2501,8 @@ scan_lists (from, count, depth, sexpflag)
 	    {
 	    case Sescape:
 	    case Scharquote:
-	      if (from == stop) goto lose;
+	      if (from == stop)
+		goto lose;
 	      INC_BOTH (from, from_byte);
 	      /* treat following character as a word constituent */
 	    case Sword:
@@ -2520,7 +2521,8 @@ scan_lists (from, count, depth, sexpflag)
 		    case Scharquote:
 		    case Sescape:
 		      INC_BOTH (from, from_byte);
-		      if (from == stop) goto lose;
+		      if (from == stop)
+			goto lose;
 		      break;
 		    case Sword:
 		    case Ssymbol:
@@ -2586,7 +2588,8 @@ scan_lists (from, count, depth, sexpflag)
 	      stringterm = FETCH_CHAR_AS_MULTIBYTE (temp_pos);
 	      while (1)
 		{
-		  if (from >= stop) goto lose;
+		  if (from >= stop)
+		    goto lose;
 		  UPDATE_SYNTAX_TABLE_FORWARD (from);
 		  c = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 		  if (code == Sstring
@@ -2615,7 +2618,8 @@ scan_lists (from, count, depth, sexpflag)
 	}
 
       /* Reached end of buffer.  Error if within object, return nil if between */
-      if (depth) goto lose;
+      if (depth)
+	goto lose;
 
       immediate_quit = 0;
       return Qnil;
@@ -2750,7 +2754,8 @@ scan_lists (from, count, depth, sexpflag)
 	    case Sstring_fence:
 	      while (1)
 		{
-		  if (from == stop) goto lose;
+		  if (from == stop)
+		    goto lose;
 		  DEC_BOTH (from, from_byte);
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from);
 		  if (!char_quoted (from, from_byte)
@@ -2765,7 +2770,8 @@ scan_lists (from, count, depth, sexpflag)
 	      stringterm = FETCH_CHAR_AS_MULTIBYTE (from_byte);
 	      while (1)
 		{
-		  if (from == stop) goto lose;
+		  if (from == stop)
+		    goto lose;
 		  DEC_BOTH (from, from_byte);
 		  UPDATE_SYNTAX_TABLE_BACKWARD (from);
 		  if (!char_quoted (from, from_byte)
@@ -2783,7 +2789,8 @@ scan_lists (from, count, depth, sexpflag)
 	}
 
       /* Reached start of buffer.  Error if within object, return nil if between */
-      if (depth) goto lose;
+      if (depth)
+	goto lose;
 
       immediate_quit = 0;
       return Qnil;

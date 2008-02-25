@@ -1,3 +1,7 @@
+2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* quail/indian.el: Don't require devan-util.
+
 2008-02-01  James Cloos  <cloos@jhcloos.com>
 
 	* quail/arabic.el: Update (sync with xkeyboard-config keyboard).

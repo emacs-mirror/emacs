@@ -158,6 +158,9 @@ int auto_saving;
    a new file with the same mode as the original */
 int auto_save_mode_bits;
 
+/* Set by auto_save_1 if an error occurred during the last auto-save. */
+int auto_save_error_occurred;
+
 /* The symbol bound to coding-system-for-read when
    insert-file-contents is called for recovering a file.  This is not
    an actual coding system name, but just an indicator to tell
@@ -532,6 +535,8 @@ A `directly usable' directory name is one that may be used without the
 intervention of any file handler.
 If FILENAME is a directly usable file itself, return
 \(file-name-directory FILENAME).
+If FILENAME refers to a file which is not accessible from a local process,
+then this should return nil.
 The `call-process' and `start-process' functions use this function to
 get a current directory to run processes in.  */)
      (filename)
@@ -4181,12 +4186,12 @@ variable `last-coding-system-used' to the coding system actually used.  */)
      in a more optimized way.  */
   if (!NILP (replace) && ! replace_handled && BEGV < ZV)
     {
-      int same_at_start = BEGV_BYTE;
-      int same_at_end = ZV_BYTE;
-      int same_at_start_charpos;
-      int inserted_chars;
-      int overlap;
-      int bufpos;
+      EMACS_INT same_at_start = BEGV_BYTE;
+      EMACS_INT same_at_end = ZV_BYTE;
+      EMACS_INT same_at_start_charpos;
+      EMACS_INT inserted_chars;
+      EMACS_INT overlap;
+      EMACS_INT bufpos;
       unsigned char *decoded;
       int temp;
       int this_count = SPECPDL_INDEX ();
@@ -4336,10 +4341,12 @@ variable `last-coding-system-used' to the coding system actually used.  */)
       SET_PT_BOTH (temp, same_at_start);
       same_at_start_charpos
 	= buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
-				  same_at_start);
+				  same_at_start - BEGV_BYTE
+				  + BUF_BEG_BYTE (XBUFFER (conversion_buffer)));
       inserted_chars
 	= (buf_bytepos_to_charpos (XBUFFER (conversion_buffer),
-				   same_at_start + inserted)
+				   same_at_start + inserted - BEGV_BYTE
+				  + BUF_BEG_BYTE (XBUFFER (conversion_buffer)))
 	   - same_at_start_charpos);
       /* This binding is to avoid ask-user-about-supersession-threat
 	 being called in insert_from_buffer (via in
@@ -5724,6 +5731,8 @@ auto_save_error (error)
   char *msgbuf;
   USE_SAFE_ALLOCA;
 
+  auto_save_error_occurred = 1;
+
   ring_bell (XFRAME (selected_frame));
 
   args[0] = build_string ("Auto-saving %s: %s");
@@ -5895,6 +5904,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 			 make_number (minibuffer_auto_raise));
   minibuffer_auto_raise = 0;
   auto_saving = 1;
+  auto_save_error_occurred = 0;
 
   /* On first pass, save all files that don't have handlers.
      On second pass, save all files that do have handlers.
@@ -6009,7 +6019,8 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	  sit_for (make_number (1), 0, 0);
 	  restore_message ();
 	}
-      else
+      else if (!auto_save_error_occurred)
+	/* Don't overwrite the error message if an error occurred.  */
 	/* If we displayed a message and then restored a state
 	   with no message, leave a "done" message on the screen.  */
 	message1 ("Auto-saving...done");
@@ -6608,19 +6619,25 @@ of file names regardless of the current language environment.  */);
 
   DEFVAR_BOOL ("insert-default-directory", &insert_default_directory,
 	       doc: /* *Non-nil means when reading a filename start with default dir in minibuffer.
-If the initial minibuffer contents are non-empty, you can usually
-request a default filename by typing RETURN without editing.  For some
-commands, exiting with an empty minibuffer has a special meaning,
-such as making the current buffer visit no file in the case of
-`set-visited-file-name'.
+
+When the initial minibuffer contents show a name of a file or a directory,
+typing RETURN without editing the initial contents is equivalent to typing
+the default file name.
+
 If this variable is non-nil, the minibuffer contents are always
-initially non-empty and typing RETURN without editing will fetch the
+initially non-empty, and typing RETURN without editing will fetch the
 default name, if one is provided.  Note however that this default name
-is not necessarily the name originally inserted in the minibuffer, if
-that is just the default directory.
+is not necessarily the same as initial contents inserted in the minibuffer,
+if the initial contents is just the default directory.
+
 If this variable is nil, the minibuffer often starts out empty.  In
 that case you may have to explicitly fetch the next history element to
-request the default name.  */);
+request the default name; typing RETURN without editing will leave
+the minibuffer empty.
+
+For some commands, exiting with an empty minibuffer has a special meaning,
+such as making the current buffer visit no file in the case of
+`set-visited-file-name'.  */);
   insert_default_directory = 1;
 
   DEFVAR_BOOL ("vms-stmlf-recfm", &vms_stmlf_recfm,

@@ -5,7 +5,7 @@
 	* xfns.c (Fx_display_grayscale_p): Return t or nil.
 	Return t for color displays.
 
-	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Increased to 68000.
+	* s/msdos.h (SYSTEM_PURESIZE_EXTRA): Increase to 68000.
 
 	* xdisp.c (decode_mode_spec) [!MULTI_FRAME]: Handle %F properly.
 
@@ -55,7 +55,7 @@
 	(Fdefine_key): Put new definition onto Vdefine_key_rebound_commands.
 
 	* xmenu.c (menu_item_equiv_key): Do reconsider a command that had
- 	no equivalent before, if it is in Vdefine_key_rebound_commands.
+	no equivalent before, if it is in Vdefine_key_rebound_commands.
 
 	* data.c (Flocal_variable_if_set_p): New function.
 	(syms_of_data): Call defsubr.
@@ -70,7 +70,7 @@
 	(do_switch_frame): No longer static.
 	* window.c (Fset_window_configuration): Use do_switch_frame directly.
 	* keyboard.c (quit_throw_to_read_char): Use do_switch_frame directly.
-	* lisp.h (do_switch_frame): Declared.
+	* lisp.h (do_switch_frame): Declare.
 
 1995-06-16  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
 
@@ -1900,39 +1900,39 @@
 	* lisp.h (struct KBOARD, MULTI_KBOARD, current_kboard, all_kboards):
 	(Lisp_Misc_Kboard_Objfwd, Lisp_Kboard_Objfwd, XKBOARD_OBJFWD):
 	(KBOARD_OBJFWDP, GC_KBOARD_OBJFWDP, kboard_locked, the_only_kboard):
-	(DEFVAR_KBOARD): Renamed from PERDISPLAY, MULTI_PERDISPLAY,
+	(DEFVAR_KBOARD): Rename from PERDISPLAY, MULTI_PERDISPLAY,
 	current_perdisplay, all_perdisplays, Lisp_Misc_Display_Objfwd,
 	Lisp_Display_Objfwd, XDISPLAY_OBJFWD, DISPLAY_OBJFWDP,
 	GC_DISPLAY_OBJFWDP, display_locked, the_only_perdisplay,
 	DEFVAR_DISPLAY.  All uses changed.
 	(struct KBOARD): New member reference_count.
 	(initial_kboard): Declare this var.
-	* .gdbinit (xkbobjfwd): Renamed from xdispobjfwd.
+	* .gdbinit (xkbobjfwd): Rename from xdispobjfwd.
 	* frame.h (struct frame): New member kboard.
 	(FRAME_KBOARD): Accessor macro for that member, replacing
 	get_perdisplay.
-	* xterm.h (struct x_display_info): member kboard (formerly
+	* xterm.h (struct x_display_info): Member kboard (formerly
 	perdisplay) is now a pointer, not an actual struct.
-	(get_perdisplay, get_perdisplay_macro): Deleted.
-	* xfns.c (Fx_create_frame): set the frame's kboard member.
-	* xterm.c (get_perdisplay): Deleted.
+	(get_perdisplay, get_perdisplay_macro): Delete.
+	* xfns.c (Fx_create_frame): Set the frame's kboard member.
+	* xterm.c (get_perdisplay): Delete.
 	(same_x_server): New function.
 	(x_term_init): If this display shares a keyboard with one we've
 	already opened, then share the structure.
 	(x_delete_display): Don't delete the kboard until the reference
 	count becomes zero.
-	* lread.c (defvar_kboard): Renamed from defvar_display.
-	* alloc.c (mark_kboards): Renamed from mark_perdisplays.
+	* lread.c (defvar_kboard): Rename from defvar_display.
+	* alloc.c (mark_kboards): Rename from mark_perdisplays.
 	* frame.c (make_frame): Initialize kboard member.
 	(make_terminal_frame): Create initial_kboard if not already set.
-	* keyboard.c (unlock_kboard): Renamed from unlock_display.
-	(wrong_kboard_jmpbuf): Renamed from wrong_display_jmpbuf.
-	(event_to_kboard): Renamed from event_to_perdisplay.
+	* keyboard.c (unlock_kboard): Rename from unlock_display.
+	(wrong_kboard_jmpbuf): Rename from wrong_display_jmpbuf.
+	(event_to_kboard): Rename from event_to_perdisplay.
 	(kbd_buffer_get_event): If no associated kboard, store
 	current_kboard rather than the first kboard in the global list.
-	(init_kboard): Renamed from init_perdisplay.  Initialize reference
+	(init_kboard): Rename from init_perdisplay.  Initialize reference
 	count.
-	(wipe_kboard): Renamed from wipe_perdisplay.
+	(wipe_kboard): Rename from wipe_perdisplay.
 	* data.c (find_symbol_value): current_perdisplay now is never null.
 	(store_symval_forwarding, do_symval_forwarding): Likewise.
 

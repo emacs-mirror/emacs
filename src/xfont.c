@@ -1,6 +1,6 @@
 /* xfont.c -- X core font driver.
-   Copyright (C) 2006 Free Software Foundation, Inc.
-   Copyright (C) 2006
+   Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -8,7 +8,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
+the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -775,42 +775,76 @@ xfont_draw (s, from, to, x, y, with_background)
   XFontStruct *xfont = s->face->font;
   int len = to - from;
   GC gc = s->gc;
+  int i;
 
   if (gc != s->face->gc)
     {
       XGCValues xgcv;
       Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (s->f);
 
+      BLOCK_INPUT;
       XGetGCValues (s->display, gc, GCFont, &xgcv);
       if (xgcv.font != xfont->fid)
 	XSetFont (s->display, gc, xfont->fid);
+      UNBLOCK_INPUT;
     }
 
   if (xfont->min_byte1 == 0 && xfont->max_byte1 == 0)
     {
       char *str;
-      int i;
       USE_SAFE_ALLOCA;
 
       SAFE_ALLOCA (str, char *, len);
       for (i = 0; i < len ; i++)
 	str[i] = XCHAR2B_BYTE2 (s->char2b + from + i);
+      BLOCK_INPUT;
       if (with_background > 0)
-	XDrawImageString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
-			  gc, x, y, str, len);
+	{
+	  if (s->padding_p)
+	    for (i = 0; i < len; i++)
+	      XDrawImageString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+				gc, x + i, y, str + i, 1);
+	  else
+	    XDrawImageString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+			      gc, x, y, str, len);
+	}
       else
-	XDrawString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
-		     gc, x, y, str, len);
+	{
+	  if (s->padding_p)
+	    for (i = 0; i < len; i++)
+	      XDrawString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+			   gc, x + i, y, str + i, 1);
+	  else
+	    XDrawString (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+			 gc, x, y, str, len);
+	}
+      UNBLOCK_INPUT;
       SAFE_FREE ();
       return s->nchars;
     }
 
+  BLOCK_INPUT;
   if (with_background > 0)
-    XDrawImageString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
-			gc, x, y, s->char2b + from, len);
+    {
+      if (s->padding_p)
+	for (i = 0; i < len; i++)
+	  XDrawImageString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+			      gc, x + i, y, s->char2b + from + i, 1);
+      else
+	XDrawImageString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+			    gc, x, y, s->char2b + from, len);
+    }
   else
-    XDrawString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
-		   gc, x, y, s->char2b + from, len);
+    {
+      if (s->padding_p)
+	for (i = 0; i < len; i++)
+	  XDrawString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+			 gc, x + i, y, s->char2b + from + i, 1);
+      else
+	XDrawString16 (FRAME_X_DISPLAY (s->f), FRAME_X_WINDOW (s->f),
+		       gc, x, y, s->char2b + from, len);
+    }
+  UNBLOCK_INPUT;
 
   return len;
 }

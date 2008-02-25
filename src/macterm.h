@@ -185,9 +185,6 @@ struct mac_display_info
      frame.  It differs from x_focus_frame when we're using a global
      minibuffer.  */
   struct frame *x_highlight_frame;
-
-  /* Cache of images.  */
-  struct image_cache *image_cache;
 };
 
 /* This checks to make sure we have a display.  */
@@ -394,11 +391,6 @@ typedef struct mac_output mac_output;
 
 #define FRAME_SMALLEST_FONT_HEIGHT(F) \
      FRAME_MAC_DISPLAY_INFO(F)->smallest_font_height
-
-/* Return a pointer to the image cache of frame F.  */
-
-#define FRAME_X_IMAGE_CACHE(F) FRAME_MAC_DISPLAY_INFO ((F))->image_cache
-
 
 /* Mac-specific scroll bar stuff.  */
 

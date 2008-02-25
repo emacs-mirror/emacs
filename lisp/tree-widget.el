@@ -403,19 +403,20 @@ Search first in current theme, then in parent themes (see also the
 function `tree-widget-set-parent-theme').
 Return the first image found having a supported format, or nil if not
 found."
-  (catch 'found
-    (dolist (default-directory (tree-widget-themes-path))
-      (dolist (dir (aref tree-widget--theme 0))
-        (dolist (fmt (tree-widget-image-formats))
-          (dolist (ext (cdr fmt))
-            (setq file (expand-file-name (concat name ext) dir))
-            (and (file-readable-p file)
-                 (file-regular-p file)
-                 (throw 'found
-                        (tree-widget-create-image
-                         (car fmt) file
-                         (tree-widget-image-properties name))))))))
-    nil))
+  (let (file)
+    (catch 'found
+      (dolist (default-directory (tree-widget-themes-path))
+        (dolist (dir (aref tree-widget--theme 0))
+          (dolist (fmt (tree-widget-image-formats))
+            (dolist (ext (cdr fmt))
+              (setq file (expand-file-name (concat name ext) dir))
+              (and (file-readable-p file)
+                   (file-regular-p file)
+                   (throw 'found
+                          (tree-widget-create-image
+                           (car fmt) file
+                           (tree-widget-image-properties name))))))))
+      nil)))
 
 (defun tree-widget-find-image (name)
   "Find the image with NAME in current theme.

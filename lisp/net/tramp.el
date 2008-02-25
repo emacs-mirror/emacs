@@ -5654,12 +5654,15 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
     ;; The "Connection closed" and "exit" messages disturb the output
     ;; for asynchronous processes. That's why we have echoed the Tramp
     ;; prompt at the end.  Trailing messages can be removed.
-    (with-current-buffer (process-buffer proc)
-      (goto-char (point-max))
-      (re-search-backward
-       (mapconcat 'identity (split-string tramp-end-of-output "\n") "\r?\n")
-       (line-beginning-position -8) t)
-      (delete-region (point) (point-max)))))
+    (let ((buf (process-buffer proc)))
+      (when (buffer-live-p buf)
+        (with-current-buffer buf
+          (goto-char (point-max))
+          (re-search-backward
+           (mapconcat 'identity (split-string tramp-end-of-output "\n")
+                      "\r?\n")
+           (line-beginning-position -8) t)
+          (delete-region (point) (point-max)))))))
 
 (defun tramp-open-connection-setup-interactive-shell (proc vec)
   "Set up an interactive shell.

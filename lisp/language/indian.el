@@ -1,4 +1,4 @@
-;;; indian.el --- Indian languages support -*- coding: iso-2022-7bit; -*-
+;;; indian.el --- Indian languages support -*- coding: utf-8; -*-
 
 ;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
 ;;   Free Software Foundation, Inc.
@@ -6,7 +6,8 @@
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H14PRO021
 
-;; Maintainer:  KAWABATA, Taichi <kawabata@m17n.org>
+;; Maintainer:  Kenichi Handa <handa@m17n.org>
+;;		KAWABATA, Taichi <kawabata@m17n.org>
 ;; Keywords: 	multilingual, i18n, Indian
 
 ;; This file is part of GNU Emacs.
@@ -28,8 +29,8 @@
 
 ;;; Commentary:
 
-;; This file defines in-is13194 coding system and relationship between
-;; indian-glyph character-set and various CDAC fonts.
+;; This file contains definitions of Indian language environments, and
+;; setups for displaying the scrtipts used there.
 
 ;;; Code:
 
@@ -44,120 +45,91 @@
 
 (define-coding-system-alias 'devanagari 'in-is13194-devanagari)
 
-(defvar indian-font-foundry 'cdac
-  "Font foundry for Indian characters.
-Currently supported foundries are `cdac' and `akruti'.")
+(set-language-info-alist
+ "Devanagari" '((charset unicode)
+		(coding-system utf-8)
+		(coding-priority utf-8)
+		(input-method . "dev-aiba")
+		(documentation . "\
+Such languages using Devanagari script as Hindi and Marathi
+are supported in this language environment."))
+ '("Indian"))
 
-(defvar indian-script-language-alist
-  '((devanagari (hindi sanskrit) nil)
-    (bengali (bengali assamese) nil)
-    (gurmukhi (punjabi) nil)
-    (gujarati (gujarati) nil)
-    (oriya (oriya) nil)
-    (tamil (tamil) nil)
-    (telugu (telugu) nil)
-    (kannada (kannada) nil)
-    (malayalam (malayalam) nil))
-  "Alist of Indian scripts vs the corresponding language list and font foundry.
-Each element has this form:
+(set-language-info-alist
+ "Bengali" '((charset unicode)
+	     (coding-system utf-8)
+	     (coding-priority utf-8)
+	     (input-method . "bengali-itrans")
+	     (documentation . "\
+Such languages using Bengali script as Bengali and Assamese
+are supported in this language environment."))
+ '("Indian"))
 
-  (SCRIPT LANGUAGE-LIST FONT-FOUNDRY)
+(set-language-info-alist
+ "Punjabi" '((charset unicode)
+	      (coding-system utf-8)
+	      (coding-priority utf-8)
+	      (input-method . "punjabi-itrans")
+	      (documentation . "\
+North Indian language Punjabi is supported in this language environment."))
+ '("Indian"))
 
-SCRIPT is one of Indian script names.
+(set-language-info-alist
+ "Gujarati" '((charset unicode)
+	      (coding-system utf-8)
+	      (coding-priority utf-8)
+	      (input-method . "gujarati-itrans")
+	      (documentation . "\
+North Indian language Gujarati is supported in this language environment."))
+ '("Indian"))
 
-LANGUAGE-LIST is a list of Indian langauge names SCRIPT is used for.
-The list is in the priority order.
+(set-language-info-alist
+ "Oriya" '((charset unicode)
+	      (coding-system utf-8)
+	      (coding-priority utf-8)
+	      (input-method . "oriya-itrans")
+	      (documentation . "\
+Such languages using Oriya script as Oriya, Khonti, and Santali
+are supported in this language environment."))
+ '("Indian"))
 
-FONT-FOUNDRY is a font foundry representing a group of Indian
-fonts.  If the value is nil, the value of `indian-font-foundry'
-is used.")
+(set-language-info-alist
+ "Tamil" '((charset unicode)
+	   (coding-system utf-8)
+	   (coding-priority utf-8)
+	   (input-method . "tamil-itrans")
+	   (documentation . "\
+South Indian Language Tamil is supported in this language environment."))
+ '("Indian"))
 
-(defconst indian-font-char-index-table
-  '(					; for which language(s)
-    ;; CDAC fonts
-    (#x0000 . cdac:dv-ttsurekh)		; hindi, etc
-    (#x0100 . cdac:sd-ttsurekh)		; sanskrit
-    (#x0200 . cdac:bn-ttdurga)		; bengali
-    (#x0300 . cdac:tm-ttvalluvar)	; tamil
-    (#x0400 . cdac:tl-tthemalatha)	; telugu
-    (#x0500 . cdac:as-ttdurga)		; assamese
-    (#x0600 . cdac:or-ttsarala)		; oriya
-    (#x0700 . cdac:kn-ttuma)		; kannada
-    (#x0800 . cdac:ml-ttkarthika)	; malayalam
-    (#x0900 . cdac:gj-ttavantika)	; gujarati
-    (#x0A00 . cdac:pn-ttamar)		; punjabi
+(set-language-info-alist
+ "Telugu" '((charset unicode)
+	    (coding-system utf-8)
+	    (coding-priority utf-8)
+	    (input-method . "telugu-itrans")
+	    (documentation . "\
+South Indian Language Telugu is supported in this language environment."))
+ '("Indian"))
 
-    ;; AKRUTI fonts
-    (#x0B00 . akruti:dev)		; hindi, etc
-    (#x0C00 . akruti:bng)		; bengali
-    (#x0D00 . akruti:pnj)		; punjabi
-    (#x0E00 . akruti:guj)		; gujarati
-    (#x0F00 . akruti:ori)		; oriya
-    (#x1000 . akruti:tml)		; tamil
-    (#x1100 . akruti:tlg)		; telugu
-    (#x1200 . akruti:knd)		; kannada
-    (#x1300 . akruti:mal)		; malayalam
-    )
-  "Alist of indices of `indian-glyph' character vs Indian font identifiers.
-Each element has this form: (INDEX . FONT-IDENTIFIER)
+(set-language-info-alist
+ "Kannada" '((charset unicode)
+	     (coding-system mule-utf-8)
+	     (coding-priority mule-utf-8)
+	     (input-method . "kannada-itrans")
+	     (sample-text . "Kannada (ಕನ್ನಡ)	ನಮಸ್ಕಾರ")
+	     (documentation . "\
+Kannada language and script is supported in this language
+environment.")) 
+ '("Indian"))
 
-INDEX is an index number of the first character in the charset
-`indian-glyph' assigned for glyphs in the font specified by
-FONT-IDENTIFIER.  Currently FONT-IDENTIFIERs are defined for CDAC
-and AKRUTI font groups.")
-
-(defun indian-font-char (index font-identifier)
-  "Return character of charset `indian-glyph' made from glyph index INDEX.
-FONT-IDENTIFIER is an identifier of an Indian font listed in the
-variable `indian-font-char-index-table'.  It specifies which
-font INDEX is for."
-  (if (or (< index 0) (> index 255))
-      (error "Invalid glyph index: %d" index))
-  (let ((start (car (rassq font-identifier indian-font-char-index-table))))
-    (if (not start)
-	(error "Unknown font identifier: %s" font-identifier))
-    (setq index (+ start index))
-    (make-char 'indian-glyph (+ (/ index 96) 32) (+ (% index 96) 32))))
-
-;; Return a range of characters (cons of min and max character) of the
-;; charset `indian-glyph' for displaying SCRIPT in LANGUAGE by a font
-;; of FOUNDRY.
-
-(defun indian-font-char-range (font-identifier)
-  (cons (indian-font-char 0 font-identifier)
-	(indian-font-char 255 font-identifier)))
-
-(defvar indian-script-table
-  '[
-    devanagari
-    sanskrit
-    bengali
-    tamil
-    telugu
-    assamese
-    oriya
-    kannada
-    malayalam
-    gujarati
-    punjabi
-    ]
-  "Vector of Indian script names.")
-
-(let ((len (length indian-script-table))
-      (i 0))
-  (while (< i len)
-    (put (aref indian-script-table i) 'indian-glyph-code-offset (* 256 i))
-    (setq i (1+ i))))
-
-(defvar indian-default-script 'devanagari
-  "Default script for Indian languages.
-Each Indian language environment sets this value
-to one of `indian-script-table' (which see).
-The default value is `devanagari'.")
-
-(defvar indian-composable-pattern
-  (make-char-table nil)
-  "Char table of regexps for composable Indian character sequence.")
+(set-language-info-alist
+ "Malayalam" '((charset unicode)
+	       (coding-system utf-8)
+	       (coding-priority utf-8)
+	       (input-method . "malayalam-itrans")
+	       (documentation . "\
+South Indian language Malayalam is supported in this language environment."))
+ '("Indian"))
 
 (let ((script-regexp-alist
        '((devanagari . "[\x900-\x9FF\x200C\x200D]+")
@@ -168,8 +140,7 @@ The default value is `devanagari'.")
 	 (tamil . "[\xB80-\xBFF\x200C\x200D]+")
 	 (telugu . "[\xC00-\xC7F\x200C\x200D]+")
 	 (kannada . "[\xC80-\xCFF\x200C\x200D]+")
-	 (malayalam . "[\xD00-\xD7F\x200C\x200D]+")
-	 (sinhala . "[\xD80-\xDFF\x200C\x200D]+"))))
+	 (malayalam . "[\xD00-\xD7F\x200C\x200D]+"))))
   (map-char-table #'(lambda (key val) 
 		      (let ((slot (assq val script-regexp-alist)))
 			(if slot
@@ -177,7 +148,6 @@ The default value is `devanagari'.")
 			     composition-function-table key
 			     (list (cons (cdr slot) 'font-shape-text))))))
 		  char-script-table))
-					      
 
 (provide 'indian)
 

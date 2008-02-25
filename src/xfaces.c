@@ -894,9 +894,10 @@ init_frame_faces (f)
   /* Make the image cache.  */
   if (FRAME_WINDOW_P (f))
     {
-      if (FRAME_X_IMAGE_CACHE (f) == NULL)
-	FRAME_X_IMAGE_CACHE (f) = make_image_cache ();
-      ++FRAME_X_IMAGE_CACHE (f)->refcount;
+      if (FRAME_IMAGE_CACHE (f) == NULL)
+	/* Is that ever possible??  --Stef  */
+	FRAME_IMAGE_CACHE (f) = make_image_cache ();
+      ++FRAME_IMAGE_CACHE (f)->refcount;
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 
@@ -933,7 +934,7 @@ free_frame_faces (f)
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f))
     {
-      struct image_cache *image_cache = FRAME_X_IMAGE_CACHE (f);
+      struct image_cache *image_cache = FRAME_IMAGE_CACHE (f);
       if (image_cache)
 	{
 	  --image_cache->refcount;
@@ -1008,11 +1009,9 @@ clear_face_cache (clear_fonts_p)
 	{
 	  f = XFRAME (frame);
 	  if (FRAME_WINDOW_P (f))
-	    {
 	      clear_face_gcs (FRAME_FACE_CACHE (f));
-	      clear_image_cache (f, 0);
-	    }
 	}
+      clear_image_caches (Qnil);
     }
 #endif /* HAVE_WINDOW_SYSTEM */
 }
@@ -4101,7 +4100,7 @@ Value is a vector of face attributes.  */)
     {
       global_lface = Fmake_vector (make_number (LFACE_VECTOR_SIZE),
 				   Qunspecified);
-      AREF (global_lface, 0) = Qface;
+      ASET (global_lface, 0, Qface);
       Vface_new_frame_defaults = Fcons (Fcons (face, global_lface),
 					Vface_new_frame_defaults);
 
@@ -4123,7 +4122,7 @@ Value is a vector of face attributes.  */)
     }
   else if (f == NULL)
     for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-      AREF (global_lface, i) = Qunspecified;
+      ASET (global_lface, i, Qunspecified);
 
   /* Add a frame-local definition.  */
   if (f)
@@ -4132,12 +4131,12 @@ Value is a vector of face attributes.  */)
 	{
 	  lface = Fmake_vector (make_number (LFACE_VECTOR_SIZE),
 				Qunspecified);
-	  AREF (lface, 0) = Qface;
+	  ASET (lface, 0, Qface);
 	  f->face_alist = Fcons (Fcons (face, lface), f->face_alist);
 	}
       else
 	for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
-	  AREF (lface, i) = Qunspecified;
+	  ASET (lface, i, Qunspecified);
     }
   else
     lface = global_lface;
@@ -5482,10 +5481,10 @@ lface_hash (v)
   return (hash_string_case_insensitive (v[LFACE_FAMILY_INDEX])
 	  ^ hash_string_case_insensitive (v[LFACE_FOREGROUND_INDEX])
 	  ^ hash_string_case_insensitive (v[LFACE_BACKGROUND_INDEX])
-	  ^ XFASTINT (v[LFACE_WEIGHT_INDEX])
-	  ^ XFASTINT (v[LFACE_SLANT_INDEX])
-	  ^ XFASTINT (v[LFACE_SWIDTH_INDEX])
-	  ^ XFASTINT (v[LFACE_HEIGHT_INDEX]));
+	  ^ XHASH (v[LFACE_WEIGHT_INDEX])
+	  ^ XHASH (v[LFACE_SLANT_INDEX])
+	  ^ XHASH (v[LFACE_SWIDTH_INDEX])
+	  ^ XHASH (v[LFACE_HEIGHT_INDEX]));
 }
 
 
@@ -5605,6 +5604,11 @@ prepare_face_for_display (f, face)
       if (face->font)
 	{
 #ifdef HAVE_X_WINDOWS
+#ifdef USE_FONT_BACKEND
+	  if (enable_font_backend)
+	    xgcv.font = FRAME_X_DISPLAY_INFO (f)->font->fid;
+	  else
+#endif
 	  xgcv.font = face->font->fid;
 #endif
 #ifdef WINDOWSNT
@@ -6710,7 +6714,8 @@ Value is ORDER.  */)
     }
 
 #ifdef USE_FONT_BACKEND
-  font_update_sort_order (font_sort_order);
+  if (enable_font_backend)
+    font_update_sort_order (font_sort_order);
 #endif	/* USE_FONT_BACKEND */
 
   return Qnil;
@@ -7658,7 +7663,7 @@ realize_non_ascii_face (f, font_id, base_face)
   face->gc = 0;
 #ifdef USE_FONT_BACKEND
   face->extra = NULL;
-#endif
+#endif	/* USE_FONT_BACKEND */
 
   /* Don't try to free the colors copied bitwise from BASE_FACE.  */
   face->colors_copied_bitwise_p = 1;
@@ -7720,7 +7725,8 @@ realize_x_face (cache, attrs)
       face->font = default_face->font;
       face->font_info_id = default_face->font_info_id;
 #ifdef USE_FONT_BACKEND
-      face->font_info = default_face->font_info;
+      if (enable_font_backend)
+	face->font_info = default_face->font_info;
 #endif	/* USE_FONT_BACKEND */
       face->font_name = default_face->font_name;
       face->fontset
@@ -7749,7 +7755,7 @@ realize_x_face (cache, attrs)
 	font_load_for_face (f, face);
       else
 #endif	/* USE_FONT_BACKEND */
-      load_face_font (f, face);
+	load_face_font (f, face);
       if (face->font)
 	face->fontset = make_fontset_for_ascii_face (f, fontset, face);
       else
@@ -8143,7 +8149,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
 
   /* Look at properties from overlays.  */
   {
-    int next_overlay;
+    EMACS_INT next_overlay;
 
     GET_OVERLAYS_AT (pos, overlay_vec, noverlays, &next_overlay, 0);
     if (next_overlay < endpos)

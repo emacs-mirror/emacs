@@ -326,6 +326,7 @@ Display options:\n\
 --title, -T TITLE               title for initial Emacs frame\n\
 --vertical-scroll-bars, -vb     enable vertical scroll bars\n\
 --xrm XRESOURCES                set additional X resources\n\
+--parent-id XID                 set parent window\n\
 --help                          display this help and exit\n\
 --version                       output version information and exit\n\
 \n"
@@ -422,11 +423,7 @@ memory_warning_signal (sig)
 
 #if ! defined (DOS_NT) && ! defined (NO_ABORT)
 
-#ifndef ABORT_RETURN_TYPE
-#define ABORT_RETURN_TYPE void
-#endif
-
-ABORT_RETURN_TYPE
+void
 abort ()
 {
   kill (getpid (), SIGABRT);
@@ -1085,10 +1082,6 @@ main (argc, argv
      fixup_locale must wait until later, since it builds strings.  */
   if (do_initial_setlocale)
     setlocale (LC_ALL, "");
-
-#ifdef EXTRA_INITIALIZE
-  EXTRA_INITIALIZE;
-#endif
 
   inhibit_window_system = 0;
 
@@ -1867,6 +1860,7 @@ struct standard_args standard_args[] =
   { "-title", 0, 10, 1 },
   { "-name", "--name", 10, 1 },
   { "-xrm", "--xrm", 10, 1 },
+  { "-parent-id", "--parent-id", 10, 1 },
   { "-r", "--reverse-video", 5, 0 },
   { "-rv", 0, 5, 0 },
   { "-reverse", 0, 5, 0 },

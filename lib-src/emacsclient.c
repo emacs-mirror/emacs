@@ -20,8 +20,6 @@ the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
 
-#define NO_SHORTNAMES
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -480,15 +478,6 @@ decode_options (argc, argv)
 {
   alternate_editor = egetenv ("ALTERNATE_EDITOR");
 
-  /* We used to set `display' to $DISPLAY by default, but this changed the
-     default behavior and is sometimes inconvenient.  So instead of forcing
-     users to say "--display ''" when they want to use Emacs's existing tty
-     or display connection, we force them to use "--display $DISPLAY" if
-     they want Emacs to connect to their current display.  */
-#if 0
-  display = egetenv ("DISPLAY");
-#endif
-
   while (1)
     {
       int opt = getopt_long (argc, argv,
@@ -566,13 +555,24 @@ decode_options (argc, argv)
 	}
     }
 
+  /* We used to set `display' to $DISPLAY by default, but this changed the
+     default behavior and is sometimes inconvenient.  So instead of forcing
+     users to say "--display ''" when they want to use Emacs's existing tty
+     or display connection, we force them to use "--display $DISPLAY" if
+     they want Emacs to connect to their current display.
+     -c still implicitly passes --display $DISPLAY unless -t was specified
+     so as to try and mimick the behavior of `emacs' which either uses
+     the current tty or the current $DISPLAY.  */
+  if (!current_frame && !tty && !display)
+    display = egetenv ("DISPLAY");
+
   if (display && strlen (display) == 0)
     display = NULL;
 
   if (!tty && display)
     window_system = 1;
 #if !defined (WINDOWSNT) && !defined (HAVE_CARBON)
-  else
+  else if (!current_frame)
     tty = 1;
 #endif
 
@@ -611,10 +611,8 @@ The following OPTIONS are accepted:\n\
 -c, --create-frame    	Create a new frame instead of trying to\n\
 			use the current Emacs frame\n\
 -e, --eval    		Evaluate the FILE arguments as ELisp expressions\n\
--n, --no-wait		Don't wait for the server to return\n"
-#ifndef WINDOWSNT
-"-d, --display=DISPLAY	Visit the file in the given display\n"
-#endif
+-n, --no-wait		Don't wait for the server to return\n\
+-d, --display=DISPLAY	Visit the file in the given display\n"
 #ifndef NO_SOCKETS_IN_FILE_SYSTEM
 "-s, --socket-name=FILENAME\n\
 			Set filename of the UNIX socket for communication\n"
@@ -848,38 +846,6 @@ file_name_absolute_p (filename)
 
   /* Both \xxx and \\xxx\yyy are absolute.  */
   if (filename[0] == '\\') return TRUE;
-
-  /*
-    FIXME:  There's a corner case not dealt with, "x:y", where:
-
-    1) x is a valid drive designation (usually a letter in the A-Z range)
-       and y is a path, relative to the current directory on drive x.  This
-       is absolute, *after* fixing the y part to include the current
-       directory in x.
-
-    2) x is a relative file name, and y is an NTFS stream name.  This is a
-       correct relative path, but it is very unusual.
-
-    The trouble is that first case items are also valid examples of the
-    second case, i.e., "c:test" can be understood as drive:path or as
-    file:stream.
-
-    The "right" fix would involve checking whether
-    - the current drive/partition is NTFS,
-    - x is a valid (and accesible) drive designator,
-    - x:y already exists as a file:stream in the current directory,
-    - y already exists on the current directory of drive x,
-    - the auspices are favorable,
-    and then taking an "informed decision" based on the above.
-
-    Whatever the result, Emacs currently does a very bad job of dealing
-    with NTFS file:streams: it cannot visit them, and the only way to
-    create one is by setting `buffer-file-name' to point to it (either
-    manually or with emacsclient). So perhaps resorting to 1) and ignoring
-    2) for now is the right thing to do.
-
-    Anyway, something to decide After the Release.
-  */
 #endif
 
   return FALSE;
@@ -1535,8 +1501,30 @@ main (argc, argv)
               else
                 relative = 1;
             }
-          else if (! file_name_absolute_p (argv[i]))
-            relative = 1;
+	  else if (! file_name_absolute_p (argv[i]))
+#ifndef WINDOWSNT
+	    relative = 1;
+#else
+	    /* Call GetFullPathName so filenames of the form X:Y, where X is
+	       a valid drive designator, are interpreted as drive:path, not
+	       file:stream, and treated as absolute.
+	       The user can still pass a file:stream if desired (for example,
+	       .\X:Y), but it is not very useful, as Emacs currently does a
+	       very bad job of dealing wih NTFS streams. */
+	    {
+	      char *filename = (char *) xmalloc (MAX_PATH);
+	      DWORD size;
+
+	      size = GetFullPathName (argv[i], MAX_PATH, filename, NULL);
+	      if (size > 0 && size < MAX_PATH)
+		argv[i] = filename;
+	      else
+		{
+		  relative = 1;
+		  free (filename);
+		}
+	    }
+#endif
 
           send_to_emacs (emacs_socket, "-file ");
           if (relative)

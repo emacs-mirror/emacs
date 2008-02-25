@@ -498,50 +498,50 @@ is visible (and the real data of the buffer is hidden)."
     (define-key map "M" 'tar-chmod-entry)
     (define-key map "G" 'tar-chgrp-entry)
     (define-key map "O" 'tar-chown-entry)
-
+
     ;; Make menu bar items.
 
     ;; Get rid of the Edit menu bar item to save space.
     (define-key map [menu-bar edit] 'undefined)
 
     (define-key map [menu-bar immediate]
-  (cons "Immediate" (make-sparse-keymap "Immediate")))
+      (cons "Immediate" (make-sparse-keymap "Immediate")))
 
     (define-key map [menu-bar immediate view]
-  '("View This File" . tar-view))
+      '("View This File" . tar-view))
     (define-key map [menu-bar immediate display]
-  '("Display in Other Window" . tar-display-other-window))
+      '("Display in Other Window" . tar-display-other-window))
     (define-key map [menu-bar immediate find-file-other-window]
-  '("Find in Other Window" . tar-extract-other-window))
+      '("Find in Other Window" . tar-extract-other-window))
     (define-key map [menu-bar immediate find-file]
-  '("Find This File" . tar-extract))
+      '("Find This File" . tar-extract))
 
     (define-key map [menu-bar mark]
-  (cons "Mark" (make-sparse-keymap "Mark")))
+      (cons "Mark" (make-sparse-keymap "Mark")))
 
     (define-key map [menu-bar mark unmark-all]
-  '("Unmark All" . tar-clear-modification-flags))
+      '("Unmark All" . tar-clear-modification-flags))
     (define-key map [menu-bar mark deletion]
-  '("Flag" . tar-flag-deleted))
+      '("Flag" . tar-flag-deleted))
     (define-key map [menu-bar mark unmark]
-  '("Unflag" . tar-unflag))
+      '("Unflag" . tar-unflag))
 
     (define-key map [menu-bar operate]
-  (cons "Operate" (make-sparse-keymap "Operate")))
+      (cons "Operate" (make-sparse-keymap "Operate")))
 
     (define-key map [menu-bar operate chown]
-  '("Change Owner..." . tar-chown-entry))
+      '("Change Owner..." . tar-chown-entry))
     (define-key map [menu-bar operate chgrp]
-  '("Change Group..." . tar-chgrp-entry))
+      '("Change Group..." . tar-chgrp-entry))
     (define-key map [menu-bar operate chmod]
-  '("Change Mode..." . tar-chmod-entry))
+      '("Change Mode..." . tar-chmod-entry))
     (define-key map [menu-bar operate rename]
-  '("Rename to..." . tar-rename-entry))
+      '("Rename to..." . tar-rename-entry))
     (define-key map [menu-bar operate copy]
-  '("Copy to..." . tar-copy))
+      '("Copy to..." . tar-copy))
     (define-key map [menu-bar operate expunge]
-  '("Expunge Marked Files" . tar-expunge))
-
+      '("Expunge Marked Files" . tar-expunge))
+    
     map)
   "Local keymap for Tar mode listings.")
 
@@ -678,8 +678,7 @@ appear on disk when you save the tar-file's buffer."
 (defun tar-mouse-extract (event)
   "Extract a file whose tar directory line you click on."
   (interactive "e")
-  (save-excursion
-    (set-buffer (window-buffer (posn-window (event-end event))))
+  (with-current-buffer (window-buffer (posn-window (event-end event)))
     (save-excursion
       (goto-char (posn-point (event-end event)))
       ;; Just make sure this doesn't get an error.
@@ -721,8 +720,7 @@ appear on disk when you save the tar-file's buffer."
 	   undo-list)
       (unless buffer
 	(setq buffer (generate-new-buffer bufname))
-	(save-excursion
-	  (set-buffer buffer)
+	(with-current-buffer buffer
 	  (setq undo-list buffer-undo-list
 		buffer-undo-list t))
 	(setq bufname (buffer-name buffer))
@@ -751,13 +749,11 @@ appear on disk when you save the tar-file's buffer."
 		  (setq coding (detect-coding-region start end t)))
 	      (if (and default-enable-multibyte-characters
 		       (coding-system-get coding :for-unibyte))
-		  (save-excursion
-		    (set-buffer buffer)
+		  (with-current-buffer buffer
 		    (set-buffer-multibyte nil)))
 	      (widen)
 	      (decode-coding-region start end coding buffer)
-	      (save-excursion
-		(set-buffer buffer)
+	      (with-current-buffer buffer
 		(goto-char (point-min))
 		(setq buffer-file-name new-buffer-file-name)
 		(setq buffer-file-truename
@@ -768,8 +764,7 @@ appear on disk when you save the tar-file's buffer."
 		;; Set the default-directory to the dir of the
 		;; superior buffer.
 		(setq default-directory
-		      (save-excursion
-			(set-buffer tar-buffer)
+		      (with-current-buffer tar-buffer
 			default-directory))
 		(normal-mode)  ; pick a mode.
 		(rename-buffer bufname)
@@ -1138,8 +1133,7 @@ to make your changes permanent."
 	  (delete-region (point-min) (point-max))
 	  ;; insert the new data...
 	  (goto-char data-start)
-	  (save-excursion
-	    (set-buffer subfile)
+	  (with-current-buffer subfile
 	    (save-restriction
 	      (widen)
 	      (encode-coding-region 1 (point-max) coding tar-superior-buffer)))

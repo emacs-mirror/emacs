@@ -19,16 +19,10 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
-#include "ibmps2-aix.h"
-
 #define AIX
 
 /* Include unistd.h, even though we don't define POSIX.  */
 #define NEED_UNISTD_H
-
-/* these were defined in "ibmps2-aix.h" */
-#undef INTEL386
-#undef aix386
 
 /* Define WORDS_BIG_ENDIAN if lowest-numbered byte in a word
    is the most significant byte.  */

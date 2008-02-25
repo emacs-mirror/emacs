@@ -1470,11 +1470,7 @@ for decoding and encoding files, process I/O, etc."
 (setq file-coding-system-alist
       '(("\\.elc\\'" . utf-8-emacs)
 	("\\.utf\\(-8\\)?\\'" . utf-8)
-	;; This is the defined default for XML documents.  It may be
-	;; overridden by a charset specification in the header.  That
-	;; should be grokked by the auto-coding mechanism, but rms
-	;; vetoed that.  -- fx
-	("\\.xml\\'" . utf-8)
+	("\\.xml\\'" . xml-find-file-coding-system)
 	;; We use raw-text for reading loaddefs.el so that if it
 	;; happens to have DOS or Mac EOLs, they are converted to
 	;; newlines.  This is required to make the special treatment

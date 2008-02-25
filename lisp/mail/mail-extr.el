@@ -850,7 +850,7 @@ consing a string.)"
 	      (setq char ?\() ; HAVE I NO SHAME??
 	      )
 	     ;; record the position of various interesting chars, determine
-	     ;; legality later.
+	     ;; validity later.
 	     ((setq record-pos-symbol
 		    (cdr (assq char
 			       '((?< . <-pos) (?> . >-pos) (?@ . @-pos)
@@ -862,9 +862,9 @@ consing a string.)"
 	     ((eq char ?.)
 	      (forward-char 1))
 	     ((memq char '(
-			   ;; comment terminator illegal
+			   ;; comment terminator invalid
 			   ?\)
-			   ;; domain literal terminator illegal
+			   ;; domain literal terminator invalid
 			   ?\]
 			   ;; \ allowed only within quoted strings,
 			   ;; domain literals, and comments

@@ -721,7 +721,7 @@ be after it."
 		  ((bobp) (setq pos (point-min)))
 		  ((not pos)
 		   (let ((distance (skip-chars-backward "^{")))
-		     ;; unbalanced parenthesis, while illegal C code,
+		     ;; unbalanced parenthesis, while invalid C code,
 		     ;; shouldn't cause an infloop!  See unbal.c
 		     (when (zerop distance)
 		       ;; Punt!
@@ -1028,6 +1028,39 @@ MODE is either a mode symbol or a list of mode symbols."
     ;; Emacs.
     `(remove-text-properties ,from ,to '(,property nil))))
 
+(defun c-clear-char-property-with-value-function (from to property value)
+  "Remove all text-properties PROPERTY from the region (FROM, TO)
+which have the value VALUE, as tested by `equal'.  These
+properties are assumed to be over individual characters, having
+been put there by c-put-char-property.  POINT remains unchanged."
+  (let ((place from) end-place)
+    (while			  ; loop round occurrances of (PROPERTY VALUE)
+	(progn
+	  (while	   ; loop round changes in PROPERTY till we find VALUE
+	      (and
+	       (< place to)
+	       (not (equal (get-text-property place property) value)))
+	    (setq place (next-single-property-change place property nil to)))
+	  (< place to))
+      (setq end-place (next-single-property-change place property nil to))
+      (put-text-property place end-place property nil)
+      ;; Do we have to do anything with stickiness here?
+      (setq place end-place))))
+
+(defmacro c-clear-char-property-with-value (from to property value)
+  "Remove all text-properties PROPERTY from the region [FROM, TO)
+which have the value VALUE, as tested by `equal'.  These
+properties are assumed to be over individual characters, having
+been put there by c-put-char-property.  POINT remains unchanged."
+  (if c-use-extents
+    ;; XEmacs
+      `(let ((-property- ,property))
+	 (map-extents (lambda (ext val)
+			(if (equal (extent-property ext -property-) val)
+			    (delete-extent ext)))
+		      nil ,from ,to ,value nil -property-))
+  ;; Gnu Emacs
+    `(c-clear-char-property-with-value-function ,from ,to ,property ,value)))
 
 ;; Macros to put overlays (Emacs) or extents (XEmacs) on buffer text.
 ;; For our purposes, these are characterized by being possible to

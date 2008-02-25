@@ -30,8 +30,8 @@ These don't need to be fixed before a release, but we call the
 attention of Windows users to fixing them.
 
 ** Drew Adams 12 Aug bug rpt: overlay display artifact: trace left behind
-Windows only bug. Bug appears only when Cleartype enabled, probably related
-to the hack introduced on 2005-07-01 to fix some other Cleartype problem.
+Verify that the new font backend eliminates this and other Cleartype related
+problems.
 
 ** henman@it.to-be.co.jp 09 Aug 2006: ispell.el problem on Cygwin.
   (Did we decide that is unreproducible?)
@@ -55,9 +55,8 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
 * BUGS
 
-** Document the changes introduced by multi-tty
-http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01639.html
-http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01602.html
+** vc-sccs-diff is broken (see FIXME).
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00121.html
 
 ** Does deleting frames run Lisp code?  If so, can we get rid of that?
 It is a dangerous design.
@@ -98,10 +97,6 @@ minimized.  I don't know what is left to do here.
 
 ** timh@insightful.com, 9 Nov: X-coding-system incompatibility, and workaround
 
-** Fix problem with mode-name in SGML mode.
-If mode-name stays non-string, add NEWS entry and doc fix.
-http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg02048.html
-
 ** multi-tty does not work correctly.
 If the server is started from a tty frame and emacsclient creates an
 X11 frame, the tty frame gets confused, it thinks it is an X11 frame
@@ -112,18 +107,40 @@ Also emacsclient does not work on Windows, it also worked with
 server.el version 1.136.
 http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00710.html
 
-** diff mode change for missing spaces in -u format.
-Installed 2008-01-08 fix does not work right.
-http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg01990.html
-http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01114.html
+** skeleton bug? Or is it now working as documented?
+http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg01335.html
+
+** move verilog-mode.el compile patterns into compile.el?
+http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00234.html
+
+** stack-trace-on-error segfaults infloop
+http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg02031.html
+
+** `make bootstrap; make install' dumps another emacs
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00311.html
+
+** unicode-merge issues:
 
 ** The data segment size increased after the unicode-2 merge.
 The "data" size increased for emacs from ~4MB to ~11MB on x86.
 The temacs sizes are comparable.
 http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00951.html
 
+** Xresource pane.menubar.*font no longer takes effect
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00314.html
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg01683.html
+
+** han@mijncomputer.nl, Feb 3: emacsclient misbehaves
 
 * DOCUMENTATION
+
+** Document multi-tty features
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01639.html
+http://lists.gnu.org/archive/html/emacs-devel/2007-08/msg01602.html
+
+** Document new font backend
+
+** Document XEmbed support
 
 ** Check the Emacs Tutorial.
 

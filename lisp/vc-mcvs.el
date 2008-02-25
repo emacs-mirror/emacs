@@ -216,7 +216,7 @@ COMMENT can be used to provide an initial description of FILE.
 the Meta-CVS command (in that order)."
   ;; FIXME: multiple-file case should be made to work
   (if (> (length files) 1) (error "Registering filesets is not yet supported."))
-  (let* ((file (car files)) 
+  (let* ((file (car files))
 	 (filename (file-name-nondirectory file))
 	 (extpos (string-match "\\." filename))
 	 (ext (if extpos (substring filename (1+ extpos))))
@@ -245,19 +245,19 @@ the Meta-CVS command (in that order)."
 	  (pp types (current-buffer))
 	  (save-buffer)
 	  (unless (get-buffer-window (current-buffer) t)
-	    (kill-buffer (current-buffer)))))))
-  ;; Now do the ADD.
-  (prog1 (apply 'vc-mcvs-command nil 0 file
-		"add"
-		(and comment (string-match "[^\t\n ]" comment)
-		     (concat "-m" comment))
-		(vc-switches 'MCVS 'register))
-    ;; I'm not sure exactly why, but if we don't setup the inode and root
-    ;; prop of the file, things break later on in vc-mode-line that
-    ;; ends up calling vc-mcvs-working-revision.
-    ;; We also need to set vc-checkout-time so that vc-workfile-unchanged-p
-    ;; doesn't try to call `mcvs diff' on the file.
-    (vc-mcvs-registered file)))
+	    (kill-buffer (current-buffer))))))
+    ;; Now do the ADD.
+    (prog1 (apply 'vc-mcvs-command nil 0 file
+                  "add"
+                  (and comment (string-match "[^\t\n ]" comment)
+                       (concat "-m" comment))
+                  (vc-switches 'MCVS 'register))
+      ;; I'm not sure exactly why, but if we don't setup the inode and root
+      ;; prop of the file, things break later on in vc-mode-line that
+      ;; ends up calling vc-mcvs-working-revision.
+      ;; We also need to set vc-checkout-time so that vc-workfile-unchanged-p
+      ;; doesn't try to call `mcvs diff' on the file.
+      (vc-mcvs-registered file))))
 
 (defalias 'vc-mcvs-responsible-p 'vc-mcvs-root
   "Return non-nil if CVS thinks it is responsible for FILE.")

@@ -1,3 +1,52 @@
+2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Remove references to obsolete variables and
+	systems.
+	* configure: Regenerate.
+
+2008-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (set_installuser): New.
+	(install-arch-indep): Use set_installuser to avoid duplicate code.
+
+	* README.unicode: Split into admin/notes/unicode,font-backend and
+	remove.
+
+2008-02-10  Matthew Luckie  <mjl@luckie.org.nz>  (tiny change)
+
+	* configure.in (arm*-*-freebsd*): Added.
+
+2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in (LIBX11_MACHINE, HAVE_XFREE386): Remove code
+	dealing with obsolete variables.
+
+2008-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* Makefile.in (check-info-dir): New target.
+
+2008-02-08  Michael Olson  <mwolson@gnu.org>
+
+	* Makefile.in (INFO_FILES): Add epa.
+
+	* info/dir: Add EasyPG Assistant manual to the "Emacs misc
+	features" section.
+
+2008-02-06  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (--with-gcc): Give an error saying this option has
+	been removed.
+	(--with-gtk): Remove this option.
+
+2008-02-06  Tom Tromey  <tromey@redhat.com>
+
+	* configure.in (--with-gcc): Remove.
+	* INSTALL (DETAILED BUILDING AND INSTALLATION): Remove --with-gcc.
+
+2008-02-05  Ulrich Mueller  <ulm@gentoo.org>
+
+	* INSTALL: Recommend giflib, not libungif.
+
 2008-02-05  Tom Tromey  <tromey@redhat.com>
 
 	* configure.in (--with-dbus): Default to enabled.
@@ -1355,7 +1404,7 @@
 
 2003-04-28  Francesco Potort,Al(B  <pot@gnu.org>
 
-	* configure.in:  Undo last (RMS') change, as it is useless, per
+	* configure.in: Undo last (RMS') change, as it is useless, per
 	Dave Love.
 
 2003-04-08  Richard M. Stallman  <rms@gnu.org>
@@ -1526,7 +1575,7 @@
 
 2002-10-30  Dave Love  <fx@gnu.org>
 
-	* configure.in:  Require autoconf 2.53.  Test for pty.h,
+	* configure.in: Require autoconf 2.53.  Test for pty.h,
 	sys/mman.h, sys/param.h, mremap, memmove.
 	(AH_BOTTOM): Maybe include strings.h.  Add local variables for mode.
 	(AC_PROG_YACC): Delete.
@@ -3313,7 +3362,7 @@
 
 1997-04-09  Marcus G. Daniels  <marcus@cathcart.sysc.pdx.edu>
 
-	* configure.in (doug_lea_malloc):  First check for SYSTEM_MALLOC,
+	* configure.in (doug_lea_malloc): First check for SYSTEM_MALLOC,
 	in case it is desirable to disable the GNU malloc features with glibc.
 
 1997-04-08  Marcus G. Daniels  <marcus@cathcart.sysc.pdx.edu>

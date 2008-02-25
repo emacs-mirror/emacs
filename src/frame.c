@@ -76,6 +76,7 @@ Lisp_Object Qx, Qw32, Qmac, Qpc;
 Lisp_Object Qvisible;
 Lisp_Object Qdisplay_type;
 Lisp_Object Qbackground_mode;
+Lisp_Object Qnoelisp;
 
 Lisp_Object Qx_frame_parameter;
 Lisp_Object Qx_resource_name;
@@ -1342,7 +1343,9 @@ but if the second optional argument FORCE is non-nil, you may do so.
 
 This function runs `delete-frame-functions' before actually deleting the
 frame, unless the frame is a tooltip.
-The functions are run with one arg, the frame to be deleted.  */)
+The functions are run with one arg, the frame to be deleted.
+But FORCE inhibits this too.  */)
+/* FORCE is non-nil when handling a disconnected terminal.  */
      (frame, force)
      Lisp_Object frame, force;
 {
@@ -1393,12 +1396,21 @@ The functions are run with one arg, the frame to be deleted.  */)
 	      && EQ (frame,
 		     WINDOW_FRAME (XWINDOW
 				   (FRAME_MINIBUF_WINDOW (XFRAME (this))))))
-	    error ("Attempt to delete a surrogate minibuffer frame");
+	    {
+	      /* If we MUST delete this frame, delete the other first.  */
+	      if (!NILP (force))
+		Fdelete_frame (this, force);
+	      else
+		error ("Attempt to delete a surrogate minibuffer frame");
+	    }
 	}
     }
 
-  /* Run `delete-frame-functions' unless frame is a tooltip.  */
-  if (!NILP (Vrun_hooks)
+  /* Run `delete-frame-functions'
+     unless FORCE is `noelisp' or frame is a tooltip.
+     FORCE is set to `noelisp' when handling a disconnect from the terminal,
+     so we don't dare call Lisp code.  */
+  if (!NILP (Vrun_hooks) && !EQ (force, Qnoelisp)
       && NILP (Fframe_parameter (frame, intern ("tooltip"))))
     {
       Lisp_Object args[2];
@@ -1417,6 +1429,9 @@ The functions are run with one arg, the frame to be deleted.  */)
   /* The hook may sometimes (indirectly) cause the frame to be deleted.  */
   if (! FRAME_LIVE_P (f))
     return Qnil;
+
+  /* At this point, we are committed to deleting the frame.
+     There is no more chance for errors to prevent it.  */
 
   minibuffer_selected = EQ (minibuf_window, selected_window);
 
@@ -1523,11 +1538,11 @@ The functions are run with one arg, the frame to be deleted.  */)
     terminal->reference_count--;
     if (terminal->reference_count == 0)
       {
+	Lisp_Object tmp;
+	XSETTERMINAL (tmp, terminal);
+
         kb = NULL;
-        if (terminal->delete_terminal_hook)
-          (*terminal->delete_terminal_hook) (terminal);
-        else
-          delete_terminal (terminal);
+	Fdelete_terminal (tmp, NILP (force) ? Qt : force);
       }
 #ifdef MULTI_KBOARD
     else
@@ -4381,6 +4396,8 @@ syms_of_frame ()
   staticpro (&Qdisplay_type);
   Qbackground_mode = intern ("background-mode");
   staticpro (&Qbackground_mode);
+  Qnoelisp = intern ("noelisp");
+  staticpro (&Qnoelisp);
   Qtty_color_mode = intern ("tty-color-mode");
   staticpro (&Qtty_color_mode);
   Qtty = intern ("tty");

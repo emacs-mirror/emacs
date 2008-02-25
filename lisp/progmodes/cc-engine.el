@@ -81,8 +81,9 @@
 ;; assume that these text properties are used as described here.
 ;;
 ;; 'syntax-table
-;;   Used to modify the syntax of some characters.  Currently used to
-;;   mark the "<" and ">" of angle bracket parens with paren syntax.
+;;   Used to modify the syntax of some characters.  It is used to
+;;   mark the "<" and ">" of angle bracket parens with paren syntax, and
+;;   to "hide" obtrusive characters in preprocessor lines.
 ;;
 ;;   This property is used on single characters and is therefore
 ;;   always treated as front and rear nonsticky (or start and end open

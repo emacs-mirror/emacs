@@ -289,6 +289,10 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      " at \\([^ \n]+\\) line \\([0-9]+\\)\\(?:[,.]\\|$\\| \
 during global destruction\\.$\\)" 1 2)
 
+    (php
+     "\\(?:Parse\\|Fatal\\) error: \\(.*\\) in \\(.*\\) on line \\([0-9]+\\)"
+     2 3 nil nil)
+
     (rxp
      "^\\(?:Error\\|Warnin\\(g\\)\\):.*\n.* line \\([0-9]+\\) char\
  \\([0-9]+\\) of file://\\(.+\\)"
@@ -346,7 +350,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      (0 'default t)
      (1 compilation-error-face prepend) (2 compilation-line-face prepend))
 
-    (compilation-perl--Pod::Checker
+    (perl--Pod::Checker
      ;; podchecker error messages, per Pod::Checker.
      ;; The style is from the Pod::Checker::poderror() function, eg.
      ;; *** ERROR: Spurious text after =cut at line 193 in file foo.pm
@@ -364,14 +368,14 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      "^\\*\\*\\* \\(?:ERROR\\|\\(WARNING\\)\\).* \\(?:at\\|on\\) line \
 \\([0-9]+\\) \\(?:.* \\)?in file \\([^ \t\n]+\\)"
      3 2 nil (1))
-    (compilation-perl--Test
+    (perl--Test
      ;; perl Test module error messages.
      ;; Style per the ok() function "$context", eg.
      ;; # Failed test 1 in foo.t at line 6
      ;;
      "^# Failed test [0-9]+ in \\([^ \t\r\n]+\\) at line \\([0-9]+\\)"
      1 2)
-    (compilation-perl--Test2
+    (perl--Test2
      ;; Or when comparing got/want values,
      ;; # Test 2 got: "xx" (t-compilation-perl-2.t at line 10)
      ;;
@@ -382,7 +386,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      "^\\(.*NOK.*\\)?# Test [0-9]+ got:.* (\\([^ \t\r\n]+\\) at line \
 \\([0-9]+\\))"
      2 3)
-    (compilation-perl--Test::Harness
+    (perl--Test::Harness
      ;; perl Test::Harness output, eg.
      ;; NOK 1# Test 1 got: "1234" (t/foo.t at line 46)
      ;;
@@ -393,7 +397,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
      ;;
      "^.*NOK.* \\([^ \t\r\n]+\\) at line \\([0-9]+\\)"
      1 2)
-    (compilation-weblint
+    (weblint
      ;; The style comes from HTML::Lint::Error::as_string(), eg.
      ;; index.html (13:1) Unknown element <fdjsk>
      ;;
@@ -762,7 +766,8 @@ from a different message."
 (defun compilation-auto-jump (buffer pos)
   (with-current-buffer buffer
     (goto-char pos)
-    (compile-goto-error)))
+    (if compilation-auto-jump-to-first-error
+	(compile-goto-error))))
 
 ;; This function is the central driver, called when font-locking to gather
 ;; all information needed to later jump to corresponding source code.
@@ -1054,8 +1059,13 @@ original use.  Otherwise, recompile using `compile-command'."
 
 Setting it causes the Compilation mode commands to put point at the
 end of their output window so that the end of the output is always
-visible rather than the beginning."
-  :type 'boolean
+visible rather than the beginning.
+
+The value `first-error' stops scrolling at the first error, and leaves
+point on its location in the *compilation* buffer."
+  :type '(choice (const :tag "No scrolling" nil)
+		 (const :tag "Scroll compilation output" t)
+		 (const :tag "Stop scrolling at the first error" first-error))
   :version "20.3"
   :group 'compilation)
 
@@ -1168,7 +1178,8 @@ Returns the compilation buffer created."
 	(if highlight-regexp
 	    (set (make-local-variable 'compilation-highlight-regexp)
 		 highlight-regexp))
-        (if compilation-auto-jump-to-first-error
+        (if (or compilation-auto-jump-to-first-error
+		(eq compilation-scroll-output 'first-error))
             (set (make-local-variable 'compilation-auto-jump-to-next) t))
 	;; Output a mode setter, for saving and later reloading this buffer.
 	(insert "-*- mode: " name-of-mode
@@ -1237,7 +1248,8 @@ Returns the compilation buffer created."
 		 (start-file-process-shell-command (downcase mode-name)
 						   outbuf command))))
 	  ;; Make the buffer's mode line show process state.
-	  (setq mode-line-process '(":%s"))
+	  (setq mode-line-process 
+		(list (propertize ":%s" 'face 'compilation-warning)))
 	  (set-process-sentinel proc 'compilation-sentinel)
 	  (set-process-filter proc 'compilation-filter)
 	  ;; Use (point-max) here so that output comes in
@@ -1535,7 +1547,15 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
     ;; Prevent that message from being recognized as a compilation error.
     (add-text-properties omax (point)
 			 (append '(compilation-handle-exit t) nil))
-    (setq mode-line-process (format ":%s [%s]" process-status (cdr status)))
+    (setq mode-line-process
+	  (let ((out-string (format ":%s [%s]" process-status (cdr status)))
+		(msg (format "%s %s" mode-name
+			     (replace-regexp-in-string "\n?$" "" (car status)))))
+	    (message "%s" msg)
+	    (propertize out-string
+			'help-echo msg 'face (if (> exit-status 0)
+						 'compilation-error
+					       'compilation-info))))
     ;; Force mode line redisplay soon.
     (force-mode-line-update)
     (if (and opoint (< opoint omax))
@@ -1618,14 +1638,19 @@ Just inserts the text, but uses `insert-before-markers'."
 
 (defun compilation-next-error (n &optional different-file pt)
   "Move point to the next error in the compilation buffer.
+This function does NOT find the source line like \\[next-error].
 Prefix arg N says how many error messages to move forwards (or
 backwards, if negative).
-Does NOT find the source line like \\[next-error]."
+Optional arg DIFFERENT-FILE, if non-nil, means find next error for a
+file that is different from the current one.
+Optional arg PT, if non-nil, specifies the value of point to start
+looking for the next message."
   (interactive "p")
   (or (compilation-buffer-p (current-buffer))
       (error "Not in a compilation buffer"))
   (or pt (setq pt (point)))
   (let* ((msg (get-text-property pt 'message))
+         ;; `loc' is used by the compilation-loop macro.
 	 (loc (car msg))
 	 last)
     (if (zerop n)
@@ -1931,13 +1956,17 @@ and overlay is highlighted between MK and END-MK."
 
 (defun compilation-find-file (marker filename directory &rest formats)
   "Find a buffer for file FILENAME.
+If FILENAME is not found at all, ask the user where to find it.
+Pop up the buffer containing MARKER and scroll to MARKER if we ask
+the user where to find the file.
 Search the directories in `compilation-search-path'.
 A nil in `compilation-search-path' means to try the
 \"current\" directory, which is passed in DIRECTORY.
 If DIRECTORY is relative, it is combined with `default-directory'.
 If DIRECTORY is nil, that means use `default-directory'.
-If FILENAME is not found at all, ask the user where to find it.
-Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
+FORMATS, if given, is a list of formats to reformat FILENAME when
+looking for it: for each element FMT in FORMATS, this function
+attempts to find a file whose name is produced by (format FMT FILENAME)."
   (or formats (setq formats '("%s")))
   (let ((dirs compilation-search-path)
         (spec-dir (if directory
@@ -2159,7 +2188,8 @@ The file-structure looks like this:
   ;; compilations, to set the beginning of "this compilation", it's a good
   ;; place to reset compilation-auto-jump-to-next.
   (set (make-local-variable 'compilation-auto-jump-to-next)
-       compilation-auto-jump-to-first-error))
+       (or compilation-auto-jump-to-first-error
+	   (eq compilation-scroll-output 'first-error))))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gcov\\'" . compilation-mode))

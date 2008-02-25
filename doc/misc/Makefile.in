@@ -49,6 +49,7 @@ INFO_TARGETS = \
 	$(infodir)/ebrowse \
 	$(infodir)/ediff \
 	$(infodir)/emacs-mime \
+	$(infodir)/epa \
 	$(infodir)/erc \
 	$(infodir)/eshell \
 	$(infodir)/eudc \
@@ -91,6 +92,7 @@ DVI_TARGETS = \
 	ebrowse.dvi \
 	ediff.dvi \
 	emacs-mime.dvi \
+	epa.dvi \
 	erc.dvi \
 	eshell.dvi \
 	eudc.dvi \
@@ -206,6 +208,12 @@ $(infodir)/emacs-mime: emacs-mime.texi
 	cd $(srcdir); $(MAKEINFO) --enable-encoding emacs-mime.texi
 emacs-mime.dvi: emacs-mime.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
+
+epa : $(infodir)/epa
+$(infodir)/epa: epa.texi
+	cd $(srcdir); $(MAKEINFO) epa.texi
+epa.dvi: epa.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/epa.texi
 
 erc : $(infodir)/erc
 $(infodir)/erc: erc.texi

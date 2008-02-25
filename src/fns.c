@@ -727,7 +727,10 @@ concat (nargs, args, target_type, last_special)
 		thisindex++;
 	      }
 	    else
-	      elt = AREF (this, thisindex++);
+	      {
+		elt = AREF (this, thisindex);
+		thisindex++;
+	      }
 
 	    /* Store this element into the result.  */
 	    if (toindex < 0)
@@ -737,7 +740,10 @@ concat (nargs, args, target_type, last_special)
 		tail = XCDR (tail);
 	      }
 	    else if (VECTORP (val))
-	      AREF (val, toindex++) = elt;
+	      {
+		ASET (val, toindex, elt);
+		toindex++;
+	      }
 	    else
 	      {
 		CHECK_NUMBER (elt);
@@ -780,8 +786,8 @@ concat (nargs, args, target_type, last_special)
 }
 
 static Lisp_Object string_char_byte_cache_string;
-static int string_char_byte_cache_charpos;
-static int string_char_byte_cache_bytepos;
+static EMACS_INT string_char_byte_cache_charpos;
+static EMACS_INT string_char_byte_cache_bytepos;
 
 void
 clear_string_char_byte_cache ()
@@ -789,16 +795,16 @@ clear_string_char_byte_cache ()
   string_char_byte_cache_string = Qnil;
 }
 
-/* Return the character index corresponding to CHAR_INDEX in STRING.  */
+/* Return the byte index corresponding to CHAR_INDEX in STRING.  */
 
-int
+EMACS_INT
 string_char_to_byte (string, char_index)
      Lisp_Object string;
-     int char_index;
+     EMACS_INT char_index;
 {
-  int i_byte;
-  int best_below, best_below_byte;
-  int best_above, best_above_byte;
+  EMACS_INT i_byte;
+  EMACS_INT best_below, best_below_byte;
+  EMACS_INT best_above, best_above_byte;
 
   best_below = best_below_byte = 0;
   best_above = SCHARS (string);
@@ -853,14 +859,14 @@ string_char_to_byte (string, char_index)
 
 /* Return the character index corresponding to BYTE_INDEX in STRING.  */
 
-int
+EMACS_INT
 string_byte_to_char (string, byte_index)
      Lisp_Object string;
-     int byte_index;
+     EMACS_INT byte_index;
 {
-  int i, i_byte;
-  int best_below, best_below_byte;
-  int best_above, best_above_byte;
+  EMACS_INT i, i_byte;
+  EMACS_INT best_below, best_below_byte;
+  EMACS_INT best_above, best_above_byte;
 
   best_below = best_below_byte = 0;
   best_above = SCHARS (string);
@@ -924,7 +930,7 @@ string_make_multibyte (string)
      Lisp_Object string;
 {
   unsigned char *buf;
-  int nbytes;
+  EMACS_INT nbytes;
   Lisp_Object ret;
   USE_SAFE_ALLOCA;
 
@@ -958,7 +964,7 @@ string_to_multibyte (string)
      Lisp_Object string;
 {
   unsigned char *buf;
-  int nbytes;
+  EMACS_INT nbytes;
   Lisp_Object ret;
   USE_SAFE_ALLOCA;
 
@@ -4241,7 +4247,7 @@ hash_clear (h)
 	}
 
       for (i = 0; i < ASIZE (h->index); ++i)
-	AREF (h->index, i) = Qnil;
+	ASET (h->index, i, Qnil);
 
       h->next_free = make_number (0);
       h->count = 0;

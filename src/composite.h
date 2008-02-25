@@ -230,6 +230,9 @@ extern void syms_of_composite P_ ((void));
 extern void compose_text P_ ((int, int, Lisp_Object, Lisp_Object,
 			      Lisp_Object));
 
+EXFUN (Fcompose_region_internal, 4);
+EXFUN (Fcompose_string_internal, 5);
+
 #endif /* not EMACS_COMPOSITE_H */
 
 /* arch-tag: 59524d89-c645-47bd-b5e6-65e861690118

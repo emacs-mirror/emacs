@@ -353,8 +353,6 @@ static void mark_face_cache P_ ((struct face_cache *));
 
 #ifdef HAVE_WINDOW_SYSTEM
 extern void mark_fringe_data P_ ((void));
-static void mark_image P_ ((struct image *));
-static void mark_image_cache P_ ((struct frame *));
 #endif /* HAVE_WINDOW_SYSTEM */
 
 static struct Lisp_String *allocate_string P_ ((void));
@@ -5385,34 +5383,6 @@ mark_face_cache (c)
 }
 
 
-#ifdef HAVE_WINDOW_SYSTEM
-
-/* Mark Lisp objects in image IMG.  */
-
-static void
-mark_image (img)
-     struct image *img;
-{
-  mark_object (img->spec);
-
-  if (!NILP (img->data.lisp_val))
-    mark_object (img->data.lisp_val);
-}
-
-
-/* Mark Lisp objects in image cache of frame F.  It's done this way so
-   that we don't have to include xterm.h here.  */
-
-static void
-mark_image_cache (f)
-     struct frame *f;
-{
-  forall_images_in_image_cache (f, mark_image);
-}
-
-#endif /* HAVE_X_WINDOWS */
-
-
 
 /* Mark reference to a Lisp_Object.
    If the object referred to has not been seen yet, recursively mark
@@ -5581,12 +5551,7 @@ mark_object (arg)
 	{
 	  register struct frame *ptr = XFRAME (obj);
 	  if (mark_vectorlike (XVECTOR (obj)))
-	    {
-	      mark_face_cache (ptr->face_cache);
-#ifdef HAVE_WINDOW_SYSTEM
-	      mark_image_cache (ptr);
-#endif /* HAVE_WINDOW_SYSTEM */
-	    }
+	    mark_face_cache (ptr->face_cache);
 	}
       else if (WINDOWP (obj))
 	{
@@ -5796,6 +5761,8 @@ mark_buffer (buf)
       mark_object (tmp);
     }
 
+  /* buffer-local Lisp variables start at `undo_list',
+     tho only the ones from `name' on are GC'd normally.  */
   for (ptr = &buffer->name;
        (char *)ptr < (char *)buffer + sizeof (struct buffer);
        ptr++)
@@ -5819,6 +5786,9 @@ mark_terminals (void)
   for (t = terminal_list; t; t = t->next_terminal)
     {
       eassert (t->name != NULL);
+#ifdef HAVE_WINDOW_SYSTEM
+      mark_image_cache (t->image_cache);
+#endif /* HAVE_WINDOW_SYSTEM */
       mark_vectorlike ((struct Lisp_Vector *)t);
     }
 }

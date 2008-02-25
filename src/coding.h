@@ -241,7 +241,7 @@ enum coding_attr_index
 	spec = CODING_SYSTEM_SPEC (x);			\
       }							\
     if (NILP (spec))					\
-      x = wrong_type_argument (Qcoding_system_p, (x));	\
+      wrong_type_argument (Qcoding_system_p, (x));	\
   } while (0)
 
 
@@ -258,7 +258,7 @@ enum coding_attr_index
 	  id = CODING_SYSTEM_ID (x);				\
 	}							\
       if (id < 0)						\
-	x = wrong_type_argument (Qcoding_system_p, (x));	\
+	wrong_type_argument (Qcoding_system_p, (x));	\
     } while (0)
 
 

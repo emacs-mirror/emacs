@@ -279,7 +279,6 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 
     (make-local-variable 'hexl-mode-old-font-lock-keywords)
     (setq hexl-mode-old-font-lock-keywords font-lock-defaults)
-    (make-local-variable 'font-lock-defaults)
     (setq font-lock-defaults '(hexl-font-lock-keywords t))
 
     ;; Add hooks to rehexlify or dehexlify on various events.

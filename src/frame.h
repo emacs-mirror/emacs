@@ -484,6 +484,9 @@ struct frame
 #define FRAME_KBOARD(f) (&the_only_kboard)
 #endif
 
+/* Return a pointer to the image cache of frame F.  */
+#define FRAME_IMAGE_CACHE(F) ((F)->terminal->image_cache)
+
 typedef struct frame *FRAME_PTR;
 
 #define XFRAME(p) (eassert (FRAMEP(p)),(struct frame *) XPNTR (p))
@@ -795,6 +798,7 @@ typedef struct frame *FRAME_PTR;
 extern Lisp_Object Qframep, Qframe_live_p;
 extern Lisp_Object Qtty, Qtty_type;
 extern Lisp_Object Qterminal, Qterminal_live_p;
+extern Lisp_Object Qnoelisp;
 
 extern struct frame *last_nonminibuf_frame;
 

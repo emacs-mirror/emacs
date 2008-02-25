@@ -291,9 +291,12 @@
 ;;;  User Configurable Variables
 ;;;
 (defcustom tpu-have-ispell t
-  "If non-nil (default), TPU-edt uses Ispell for spell checking."
+  "Non-nil means `tpu-spell-check' uses `ispell-region' for spell checking.
+Otherwise, use `spell-region'."
   :type 'boolean
   :group 'tpu)
+(make-obsolete-variable 'tpu-have-ispell "The `spell' package is obsolete."
+                        "23.1")
 
 (defcustom tpu-kill-buffers-silently nil
   "If non-nil, TPU-edt kills modified buffers without asking."
@@ -734,10 +737,6 @@ Otherwise sets the tpu-match markers to nil and returns nil."
 ;;;
 ;;;  Utilities
 ;;;
-(defun tpu-caar (thingy) (car (car thingy)))
-(defun tpu-cadr (thingy) (car (cdr thingy)))
-
-(defvar zmacs-regions)
 
 (defun tpu-mark nil
   "TPU-edt version of the mark function.
@@ -815,7 +814,7 @@ Top line is 0.  Counts each text line only once, even if it wraps."
   (interactive "p")
   (cond ((get tpu-breadcrumb-plist num)
 	 (switch-to-buffer (car (get tpu-breadcrumb-plist num)))
-	 (goto-char (tpu-cadr (get tpu-breadcrumb-plist num)))
+	 (goto-char (cadr (get tpu-breadcrumb-plist num)))
 	 (message "mark %d found." num))
 	(t
 	 (message "mark %d not found." num))))
@@ -895,11 +894,14 @@ With argument, fill and justify."
   "Check the spelling of the region, or of the entire buffer,
 if no region is selected."
   (interactive)
-  (cond (tpu-have-ispell
-	 (if (tpu-mark) (ispell-region (tpu-mark) (point)) (ispell-buffer)))
-	(t
-	 (if (tpu-mark) (spell-region (tpu-mark) (point)) (spell-buffer))))
-  (if (tpu-mark) (tpu-unselect t)))
+  (let ((m (tpu-mark)))
+    (apply (if tpu-have-ispell 'ispell-region
+             'spell-region)
+           (if m
+               (if (> m (point)) (list (point) m)
+                 (list m (point)))
+             (list (point-min) (point-max))))
+    (if m (tpu-unselect t))))
 
 (defun tpu-toggle-overwrite-mode nil
   "Switch in and out of overwrite mode."
@@ -916,7 +918,7 @@ if no region is selected."
   "Insert a character or control code according to its ASCII decimal value."
   (interactive "P")
   (if overwrite-mode (delete-char 1))
-  (insert (if num num 0)))
+  (insert (or num 0)))
 
 (defun tpu-quoted-insert (num)
   "Read next input character and insert it.

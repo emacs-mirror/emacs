@@ -1,3 +1,1238 @@
+2008-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-file-junk-re): New const.
+	(diff-beginning-of-file-and-junk): Use it.
+	(diff-file-kill): Make sure we were really inside a file diff.
+
+	* diff-mode.el: Make it more robust in the presence of empty context
+	lines in unified hunks.
+	(diff-valid-unified-empty-line): New var.
+	(diff-unified->context, diff-sanity-check-hunk): Obey it.
+	(diff-end-of-hunk): Obey it.  New arg `donttrustheader'.
+	(diff-fixup-modifs, diff-post-command-hook): Use this new arg.
+	(diff-hunk-header-re-unified): New const.
+	(diff-font-lock-keywords, diff-hunk-header-re, diff-split-hunk)
+	(diff-fixup-modifs, diff-unified->context, diff-next-complex-hunk)
+	(diff-sanity-check-hunk): Use it.
+
+	* diff-mode.el (diff-beginning-of-file-and-junk): If we're on the
+	Index: line, don't search backward for the previous one.
+
+2008-02-25  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (setup-default-fontset): Add non-OTF
+	lao font for lao script.
+
+	* language/tibetan.el: Register tibetan-composition-function in
+	composition-function-table.
+
+	* language/tibet-util.el (tibetan-composition-function):
+	Adjust for the new calling way (argument changed).  Try font-shape-text
+	if possible.
+
+	* language/lao.el: Register lao-composition-function in
+	composition-function-table.
+
+	* language/lao-util.el (lao-composition-function): Adjust for the new
+	calling way (argument changed).  Try font-shape-text if possible.
+
+2008-02-25  Jason Rumney  <jasonr@gnu.org>
+
+	* files.el (file-name-invalid-regexp): Fix octal/decimal confusion.
+
+2008-02-25  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-fail): Use "RosyBrown1" for a light
+	background, "red4" for a dark background, "red" for 16 and
+	8 colors, "grey" for grayscale, and inverse video otherwise.
+	Add :version tag.
+	(isearch-message): Keep the original isearch-message intact, and
+	add text properties to it where necessary.  Add `isearch-error' to
+	the condition that checks if isearch is unsuccessful.
+
+2008-02-24  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-handle-exit):
+	Use compilation-error face instead of font-lock-warning-face.
+	Display the same message in the minibuffer as is inserted
+	at the end of the compilation buffer.
+
+2008-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* vc-cvs.el (vc-cvs-register): Fix registering of directories in
+	multiple file case.
+
+	* vc-mcvs.el (vc-mcvs-register): Fix let-binding (for use of `file').
+
+	* vc-rcs.el (vc-rcs-register): Fix treatment of directories in
+	multiple file case.  Use a single `let' rather than two.
+
+2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/compile.el (compilation-start): Specify a face for
+	mode-line-process.
+	(compilation-handle-exit): Specify a face and a tooltip for
+	mode-line-process.
+
+2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hilit-chg.el: Remove spurious * in defcustom docstrings.
+	(hilit-chg-make-ov): Simplify.
+	(hilit-chg-fixup): Use remove-overlays.
+	(hilit-chg-set-face-on-change): Remove redundant call to
+	`remove-text-properties'.
+
+	* dired.el (dired-mark-prompt): Don't count/display the t element.
+	Reported by Carsten Blaauw <it-media.blaauw@daimler.com>.
+
+2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (eval-when-compile): Don't define
+	add-submenu.
+	(verilog-xemacs-menu): Add :keys for C-M-a, C-M-e and C-M-h.
+	Remove.  Move contents to the only use ...
+	(verilog-menu): ... here.
+	(verilog-statement-menu): Remove.  Move contents to the only use ...
+	(verilog-stmt-menu): ... here.
+	(verilog-mark-defun): Simply call mark-defun for emacs.
+	(occur-pos-list): Declare for byte compiler.
+	(mode-popup-menu): Don't defvar.
+	(verilog-add-statement-menu): Remove.
+	(verilog-mode-hook): Don't add verilog-add-statement-menu.
+	(verilog-mode): Call easy-menu-add and set mode-popup-menu for
+	XEmacs.
+
+2008-02-24  Michael McNamara  <mac@mail.brushroad.com>
+
+	* progmodes/verilog-mode.el (verilog-xemacs-menu): Remove XEmacs
+	conditional.
+	(verilog-font-grouping-keywords-face): Make the begin..end
+	keywords standout more than other verilog keywords.
+        (verilog-type-font-keywords): Move the begin..end out of this list
+	to facilitate making them to (potentially) stand out more.
+	(verilog-backward-token): Fix indent of bare always{_*}?, initial,
+	function & task blocks.
+        (verilog-behavioral-block-beg-re): Fix indent of bare always{_*}?,
+	initial, function & task blocks.
+	(verilog-forward-sexp): Handle the new "disable fork" statement of
+	IEEE-1800 Verilog.
+        (verilog-beg-block-re-ordered): Handle the new "disable fork"
+	statement of IEEE-1800 Verilog.
+        (verilog-calc-1): Handle the new "disable fork" statement of
+	IEEE-1800 Verilog.
+        (verilog-disable-fork-re): Add const to help handle the new
+	"disable fork" statement of IEEE-1800 Verilog.
+	(verilog-declaration-core-re): Add port directions by themselves,
+	with no qualification, as base item of a declaration.
+        (verilog-pretty-declarations): Add new flag to ask it to refrain
+	from printing to the message buffer.
+        (verilog-pretty-expr): Add a QUIET flag to ask it to refrain from
+	printing to the message buffer.  Improve handling of the many
+	types of expression line up.
+        (verilog-just-one-space): Remove printing of an empty message.
+        (verilog-get-lineup-indent): Rework to support the better handling
+	of expression lineup for verilog-pretty-expr.
+        (verilog-auto-wire): Pass the quiet flag to verilog-pretty-expr.
+
+2008-02-24  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-extend-region-for-CPP): Bug fix from
+	yesterday's commit.
+
+2008-02-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-mouse-set-clear-breakpoint): Fall back
+	to mouse-set-point in buffers that aren't associated with files.
+
+	* progmodes/gud.el: Rename menu item to "Show GUD tooltips".
+
+2008-02-24  Alan Mackenzie  <acm@muc.de>
+
+	Set of changes so that "obtrusive" syntactic elements in a
+	C/C++/ObjC preprocessor line (e.g. an unbalanced string quote or
+	unmatched paren) don't interact syntactically with stuff outside
+	the CPP line.
+
+	* progmodes/cc-awk.el (c-awk-beyond-logical-line, c-awk-old-ByLL):
+	Replace c-awk-end-of-logical-line and c-awk-old-EoLL to solve an
+	off-by-one bug.
+	(c-awk-record-region-clear-NL): Replaces c-awk-before-change, with
+	a bit of refactoring.
+	(c-awk-extend-and-syntax-tablify-region): Takes some of the
+	functionality of c-awk-advise-fl-for-awk-region, which has been
+	refactored away.
+
+	* progmodes/cc-defs.el (c-clear-char-property-with-value-function)
+	(c-clear-char-property-with-value): New function and macro which
+	remove text-properties `equal' to a supplied value.
+
+	* progmodes/cc-engine.el: Comment about text properties amended.
+
+	* progmodes/cc-fonts.el (c-cpp-matchers): Make it put regexp
+	parens around "error\\|warning".
+
+	* progmodes/cc-langs.el (c-get-state-before-change-function)
+	(c-before-font-lock-function, c-anchored-cpp-prefix):
+	New language variables.
+	(c-cpp-message-directives): Handle "#warning" in C, C++ and ObjC.
+
+	* progmodes/cc-mode.el (c-basic-common-init): C and ObjC now use
+	syntax-table text properties.
+	(c-common-init): Call language specific before/after-change
+	functions at mode initialisation.
+	(c-new-BEG, c-new-END, c-old-BOM, c-old-EOM): New variables.
+	(c-extend-region-for-CPP, c-neutralize-CPP-line)
+	(c-neutralize-syntax-in-CPP): New functions.
+	(c-before-change, c-after-change): Call the new language specific
+	change functions defined in cc-langs.el.
+	(c-advise-fl-for-region): New macro.
+	(awk-mode): Remove AWK specific stuff which has been refactored
+	into language independent stuff.
+
+2008-02-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdba): Recreate as an alias for gdb.
+	(gdb): (Re)set gdb-flush-pending-output to nil here...
+	(gdb-init-1): ...instead of here (before gdb-prompt).
+
+2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ada-mode.el (ada-font-lock-syntactic-keywords):
+	Recognize ''' just like any other char-constant.
+
+2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-find-root): Remove initial loop because it's not
+	careful enough.  Detect the uid-change all within the main loop.
+
+2008-02-24  Stefan Monnier  <monnier@pastel.home>
+
+	* textmodes/sgml-mode.el (sgml-mode): Fix comment syntax.
+
+2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* hilit-chg.el (highlight-save-buffer-state): New macro.
+	(highlight-save-buffer-state, hilit-chg-set-face-on-change)
+	(hilit-chg-clear): Use it to preserve the modified-p flag.
+	(highlight-changes-rotate-faces): Don't mess with the undo-list.
+
+2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-set-defaults): Unset previously set variables
+	when needed.
+
+2008-02-24  ,AFvar Arnfj,Avr,Ap Bjarmason  <avar@cpan.org>  (tiny change)
+
+	* net/rcirc.el (rcirc-url-regexp): Replace definition by copying
+	from gnus-button-url-regexp.
+
+2008-02-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/compile.el (compilation-next-error): Doc fix.
+	(compilation-find-file): Doc fix.
+
+2008-02-24  Glenn Morris  <rgm@gnu.org>
+
+	* net/net-utils.el (ipconfig-program, ipconfig-program-options):
+	Add obsolete aliases to the old names.
+
+2008-02-24  Richard Stallman  <rms@gnu.org>
+
+	* net/net-utils.el (ifconfig): Rename from ipconfig.
+	(ipconfig): Alias to ifconfig.
+	(ifconfig-program): Rename from ipconfig-program.
+	(ifconfig-program-options): Rename from ipconfig-program-options.
+
+2008-02-24  Michael McNamara  <mac@mail.brushroad.com>
+
+	* progmodes/verilog-mode.el (verilog-declaration-core-re):
+	Add port directions by themselves, with no qualification, as base
+	item of a declaration.
+	(verilog-pretty-declarations): Add new flag that inhibits printing
+	to the message buffer.
+	(verilog-pretty-expr): Add new flag that inhibits printing to the
+	message buffer.  Improve handling of the many types of expression
+	line up.
+	(verilog-just-one-space): Don't print an empty message.
+	(verilog-get-lineup-indent): Rework to support the better handling
+	of expression lineup for verilog-pretty-expr.
+	(verilog-auto-wire): Pass the quiet flag to verilog-pretty-expr.
+	(verilog-mode-version, verilog-mode-release-date): Update.
+
+2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (cancel-change-group): Don't move point.
+
+2008-02-23  Markus Triska  <markus.triska@gmx.at>
+
+	* linum.el (linum-after-config): Update all visible windows.
+
+2008-02-23  Glenn Morris  <rgm@gnu.org>
+
+	* menu-bar.el (menu-bar-games-menu): Add Bubbles and Pong.
+	Add :help for Solitaire and Tetris.
+
+	* tree-widget.el (tree-widget-lookup-image): Let-bind `file'.
+
+	* mail/smtpmail.el: Remove leading `*' from defcustom doc-strings.
+	(smtpmail-code-conv-from): Doc fix.  Fix custom type.
+	(smtpmail-queue-index-file): Make it a defcustom.
+	(smtpmail-queue-index): Delete.
+	(smtpmail-send-it, smtpmail-send-queued-mail):
+	Use smtpmail-queue-index-file and smtpmail-queue-dir rather than
+	smtpmail-queue-index.
+
+	* net/net-utils.el (iwconfig-program, iwconfig-program-options):
+	Add :version.
+
+2008-02-23  Yoni Rabkin  <yoni@rabkins.net>  (tiny change)
+
+	* net/net-utils.el (iwconfig-program, iwconfig-program-options):
+	New variables.
+	(iwconfig): New function.
+
+2008-02-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-find-revision): Make vc-parent-buffer local before
+	setting it.
+	(vc-status-menu-map): Do not define using easy-menu.
+	(vc-status-menu-map): New defalias.
+	(vc-status-mode-map): Hook up the menu.
+	(top-level): Update TODO.
+
+	* vc-hg.el (vc-hg-extra-status-menu): Return a keymap.
+
+	* vc-bzr.el (vc-bzr-init-version): Rename to ...
+	(vc-bzr-init-revision): ... this.
+
+2008-02-23  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (WINS_ALMOST): Remove term.
+	(WINS): Add term here.
+	(custom-deps, finder-data): Use WINS_ALMOST.
+
+2008-02-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (font-weight-table): Fix value of `semi-light'.
+
+2008-02-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* faces.el (font-weight-table, font-slant-table, font-swidth-table):
+	Make those tables bijective.
+
+2008-02-22  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	Finish pdbtrack integration cleanup, settling missing-functions
+	byte compiler warnings appropriately.
+
+	* progmodes/python.el (python-point): Remove this - beginning-of-line
+	was all that was necessary for `python-pdbtrack-overlay-arrow'.
+	(python-end-of-def-or-class, python-beginning-of-def-or-class)
+	(python-goto-initial-line): Drop these - they were only needed for
+	python-point.
+	(python-comint-output-filter-function): Use condition-case and
+	beginning-of-line directly, instead of python-mode.el functions
+	which require all sorts of baggage.
+	(point-safe): Unnecessary - we're using condition-case directly,
+	instead.
+	(python-execute-file): Include for python-shell, which I'm leaving
+	in keeping despite it being unnecessary for pdb tracking.
+
+2008-02-22  Peter Danenberg  <pcd@wikitex.org>  (tiny change)
+
+	* progmodes/scheme.el (scheme-font-lock-keywords-2):
+	Add SRFI 11 support.
+	(let-values, let*-values): Specify scheme-indent-function.
+
+2008-02-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-exec-after): Move setting mode-line-process in the
+	busy case ...
+	(vc-set-mode-line-busy-indicator): ... in this new function.
+	(vc-status-refresh): Call vc-set-mode-line-busy-indicator.
+	(vc-update-vc-status-buffer): Reset mode-line-process.
+	(vc-status-mark-all-files, vc-status-unmark-all-files): Change to
+	mark/unmark all the files with the same state as the current one.
+	With a prefix argument mark/unmark all files.
+	(vc-status-mode-menu): Adjust strings.
+	(vc-update-vc-status-buffer): Only do something when the argument
+	is not nil.
+	(vc-status-kill-dir-status-process): New function.
+	(vc-status-mode-map): Bind it.
+	(vc-status-process-buffer): New variable.
+	(vc-status-mode): Make it local.
+	(vc-status-refresh): Set it.
+
+	* vc-hg.el (vc-hg-dir-status):
+	* vc-git.el (vc-git-dir-status):
+	* vc-svn.el (vc-svn-dir-status): Return the buffer in which the
+	command is run.
+
+2008-02-22  Glenn Morris  <rgm@gnu.org>
+
+	* json.el (top-level): No need to require thingatpt.
+	(json-read-keyword): Use thing-at-point rather than word-at-point.
+
+	* time.el (top-level): No need to require time-date when compiling.
+
+	* emacs-lisp/copyright.el (copyright-update-year):
+	Fix subexpression numbering for the case when years are split over
+	lines, and for the replace case.
+
+	* emulation/tpu-edt.el (tpu-have-ispell): Doc fix.  Make obsolete.
+	(tpu-caar, tpu-cadr): Delete functions.
+	(zmacs-regions): No need to declare for compiler.
+	(tpu-goto-breadcrumb): Use cadr rather than tpu-cadr.
+	(tpu-spell-check): Rewrite, and handle mark after point.
+	(tpu-special-insert): Use or rather than if.
+
+	* emulation/vip.el (vip-special-prefix-com): Use ispell-region
+	rather than spell-region.
+
+	* textmodes/spell.el (spell-buffer, spell-word): Suppress compiler
+	warnings about spell-region.
+
+2008-02-22  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* ldefs-boot.el: Regenerated.
+
+	* loadup.el: Don't load language/devanagari, language/kannanda,
+	language/malayalam, and language/tamil.  Load language/sinhala.
+
+	* language/indian.el (indian-font-foundry)
+	(indian-script-language-alist, indian-font-char-index-table)
+	(indian-font-char, indian-font-char-range, indian-script-table)
+	(indian-default-script, indian-composable-pattern): Delete them.
+	("Devanagari", "Kannada", "Malayalam", "Tamil"): Definitions of
+	language environments moved to here.
+	("Bengali", "Punjabi", "Gujarati", "Oriya", "Telugu"):
+	New language environments.
+
+	* language/devanagari.el, language/devan-util.el,
+	* language/kannanda.el, language/knd-util.el, language/malayalam.el,
+	* language/mlm-util.el, language/tamil.el, language/tml-util.el:
+	Delete them.
+
+	* language/sinhala.el: New file.
+
+2008-02-21  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	Update Nick Robert's port of pdb tracking from python-mode.el.
+
+	* progmodes/python.el (python-pdbtrack-toggle-stack-tracking):
+	Clarify docstring.
+	(python-pdbtrack-minor-mode-string): A sign indicating that pdb
+	tracking is happening.
+	(python-pdbtrack-stack-entry-regexp): Better recognize stack traces.
+	(python-pdbtrack-input-prompt): Better recognize PDB prompts.
+	(comint-output-filter-functions): Add python-pdbtrack-track-stack-file.
+	Tracking is plugged in to all comint buffers once python.el is loaded.
+	(python-pdbtrack-overlay-arrow): Toggle activation of
+	`python-pdbtrack-minor-mode-string' in addition to the overlay arrow.
+	(python-pdbtrack-track-stack-file): Use new
+	`python-pdbtrack-get-source-buffer' for more flexible access to
+	debugging source files.
+	(python-pdbtrack-get-source-buffer): Identify debugging target buffer
+	according to pdb stack trace, optionally using new
+	`python-pdbtrack-grub-for-buffer' if file is not locally available.
+	(python-pdbtrack-grub-for-buffer): Find most recent python-mode
+	named buffer, or having function with indicated name.
+	(python-shell): Remove comint-output-filter-functions hook
+	addition, it's being done elsewhere.  Wrap long line.
+
+2008-02-21  Michael Olson  <mwolson@gnu.org>
+
+	* json.el: Replace XEmacs compatibility code to get rid of
+	compiler warnings.
+
+	* time.el: Fix compiler warning.
+
+2008-02-21  Edward O'Connor  <ted@oconnor.cx>
+
+	* json.el: New file (JavaScript Object Notation parser / generator).
+
+2008-02-21  Dave Love  <fx@gnu.org>
+
+	* progmodes/sym-comp.el: New file.
+
+	* progmodes/python.el: Merge from Dave Love's 2008-01-20 version.
+	Require sym-comp.  Add Python buffer to same-window-buffer-names.
+	Fixup whitespaces.
+	(python-font-lock-keywords): Add highlighting for Python builtins.
+	(python-font-lock-syntactic-keywords): Rewrite.
+	(python-quote-syntax): Use syntax-ppss-context instead of parsing
+	ppss directly.
+	(python-mode-map): Add binding for python-find-function.
+	(python-calculate-indentation): Clean up the logic.
+	(python-beginning-of-defun): Explicitly set return value.
+	(python-beginning-of-statement): Stop looping if we get stuck
+	going backwards.
+	(python-next-statement): Stop looping if we somehow end up inside
+	a string while advancing.
+	(python-preoutput-continuation, python-version-checked): New vars.
+	(python-check-version): New function.
+	(run-python): Set default command to python-command instead of
+	python-python-command.
+	(run-python): Use python-check-version.  Give PYTHONPATH
+	precedence over data-directory in the process environment.
+	Load function definitions in python process after.
+	(python-check-comint-prompt): New function.
+	(python-send-command, python-send-receive): Use it.
+	(python-complete-symbol, python-try-complete): Functions deleted.
+	Use symbol-complete instead of python-complete-symbol throughout.
+	(python-fill-paragraph): Further refine the fenced-string regexp.
+	(def-python-skeleton): Expand to the original abbrev instead if in
+	a comment or string.  Tweak skeletons for `if', `while', `for',
+	`try/except', `try/finally', `name'.
+	(python-pea-hook, python-abbrev-pc-hook): New functions.
+	(python-abbrev-syntax-table): New var.
+	(python-mode): Add python-pea-hook to pre-abbrev-expand-hook.
+	Use symbol-completion-try-complete for hippie expansion.
+	Turn on font lock unconditionally.
+	(python-mode-hook): Defcustom it.  No need to use make-local
+	variable on indent-tabs-mode in "Turn off Indent Tabs mode"
+	option, since it's buffer-local.
+
+2008-02-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* play/hanoi.el (hanoi-internal): Set `show-trailing-whitespace' to nil.
+
+2008-02-21  Drew Adams  <drew.adams@oracle.com>
+
+	* mouse.el (minor-mode-menu-from-indicator): Create a menu with a
+	"Turn off" and a "Help" entry when the minor mode has no menu.
+
+2008-02-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-status-mark, vc-status-unmark): New functions.
+	(vc-status-mode-map, vc-status-mode-menu): Bind them instead of
+	vc-status-mark-file and vc-status-unmark-file.
+	(vc-status-mark-unmark): New function.
+	(vc-status-previous-line, vc-status-next-line): No longer interactive.
+
+2008-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* composite.el (encode-composition-rule): Fix typo in error message.
+	(composition-function-table, auto-composition-mode): Doc fixes.
+
+	* subr.el (sit-for): Fix obsolete form for nil second argument.
+
+	* textmodes/spell.el (spell-buffer, spell-word, spell-region)
+	(spell-string): Make obsolete, in favor of ispell.
+
+2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* language/devanagari.el: Don't setup composition-function-table
+	here.
+	("Devanagari"): Change charset, coding-system, coding-priority to
+	Unicode-based ones.  Don't require the feature devan-util.
+
+	* composite.el (compose-chars-after): Fix arguments for a function
+	in composition-function-table.
+	(auto-compose-region): Likewise.
+
+	* ps-mule.el (ps-mule-font-info-database-bdf): Use ethio16f-uni.bdf
+	for Ethiopic.
+	(ps-mule-plot-string): Ignore glyph-string based compositions.
+
+2008-02-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el: Allow different windows to show different pages.
+	(doc-view-current-page, doc-view-current-slice, doc-view-current-info)
+	(doc-view-current-image, doc-view-current-overlay): Remove variables,
+	add them back as macros instead, using image-mode-winprops instead.
+	Update all users of those variables.
+	(doc-view-new-window-function): New function to create a new overlay
+	for each new window.
+	(doc-view-mode): Use it and image-mode-setup-winprops.
+	(doc-view-clone-buffer-hook): Rewrite accordingly.
+
+	* image-mode.el: Extend [hv]scroll support to per-window properties.
+	(image-mode-current-vscroll, image-mode-current-hscroll): Remove.
+	(image-mode-winprops-alist): New var to replace them.
+	(image-mode-new-window-functions): New hook.
+	(image-mode-winprops, image-mode-window-get, image-mode-window-put):
+	New funs.
+	(image-set-window-vscroll, image-set-window-hscroll): Use them.
+	Remove the `window' argument, update callers.
+	(image-mode-reapply-winprops): Rename image-reset-current-vhscroll.
+	Use the new functions.
+	(image-mode-reapply-winprops): New fun.
+	(image-mode): Use it.
+
+2008-02-20  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc-math.el (math-sin-raw): Add optional argument
+	to keep track of original argument.
+	(math-cos-raw): Use optional argument when calling math-sin-raw.
+	(math-sin-raw-2, math-cos-raw-2): Check for a zero argument
+	with close to original precision.
+
+2008-02-20  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-convert-alien): Do not use optional
+	args in calls of sit-for.
+
+2008-02-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vc-svn.el (vc-svn-program): Fix typo in docstring.
+	(vc-svn-checkin): Fix typo in error message.
+
+	* help-mode.el: Require easymenu when compiling.
+
+2008-02-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* help-mode.el (help-mode-menu): New menu.
+
+2008-02-20  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail.el (rmail-autodetect): Add .exe extension to movemail
+	on Windows.
+
+2008-02-20  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* ps-mule.el (ps-mule-encode-region): Return a single string.
+	(ps-mule-plot-string): Adjust for the above change.
+	(ps-mule-encode-header-string): Likewise.
+
+	* international/latin1-disp.el (latin1-display): Don't use
+	ucs-mule-8859-to-mule-unicode.  Fix the way of resetting
+	standard-display-table.
+	(latin1-display-identities): Adjust for the change of what is
+	returned by (get-language-info charset 'charset).
+
+	* international/mule-util.el (char-displayable-p): Fix for Latin-1
+	characters and terminal case.
+
+2008-02-19  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	Minor Adaptions by Nick Roberts <nickrob@snap.net.nz> for Emacs.
+
+	* progmodes/python.el: Also require comint when loading.
+	(python-mode-map): Bind python-pdbtrack-toggle-stack-tracking.
+	Replace python-shell with run-python on menu bar.
+	(python-shell-map): New map.
+	(python-default-interpreter, python-python-command-args)
+	(python-jython-command-args, python-pdbtrack-do-tracking-p):
+	New options.
+	(python-which-shell, python-which-args, python-which-bufname):
+	New buffer local variables.
+	(python-file-queue, python-pdbtrack-is-tracking-p):
+
+	* progmodes/python.el (python-pdbtrack-stack-entry-regexp)
+	(python-pdbtrack-input-prompt, python-pdbtrack-track-range):
+	New constants.
+
+	Pdbtrack features:
+
+	(python-point, python-end-of-def-or-class)
+	(python-beginning-of-def-or-class, python-goto-initial-line)
+	(python-comint-output-filter-function)
+	(python-pdbtrack-overlay-arrow)
+	(python-pdbtrack-track-stack-file, python-toggle-shells)
+	(python-shell, python-pdbtrack-toggle-stack-tracking)
+	(turn-on-pdbtrack, turn-off-pdbtrack, python-sentinel):
+	New functions.
+
+2008-02-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* net/ange-ftp.el (ange-ftp-quote-string): Return the null string
+	when the argument is nil.
+
+2008-02-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (dir-status): Add a brief description.
+
+2008-02-19  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc-hooks.el (vc-find-root): Take optional arg INVERT.
+	If non-nil, reverse the sense of the check.
+
+	* vc-rcs.el (vc-rcs-root): New func.
+	* vc-cvs.el (vc-cvs-root): New func.
+	* vc-svn.el (vc-svn-root): New func.
+	* vc-sccs.el (vc-sccs-root): New func.
+
+2008-02-18  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* language/japan-util.el (setup-japanese-environment-internal):
+	Call use-cjk-char-width-table.
+
+	* language/japanese.el ("Japanese"): Set exit-function to
+	use-default-char-width-table.
+
+	* international/characters.el: Delete occurrences of non-Unicode
+	tibetan and ethiopic characters.
+	(cjk-char-width-table): New variable.
+	(use-cjk-char-width-table, use-default-char-width-table):
+	New functions.
+
+2008-02-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-status-menu, vc-status-menu-map-filter): New functions.
+	(vc-status-mode-menu): Add a :filter.
+	(vc-status-printer): Add faces.
+
+	* vc-hg.el (vc-hg-extra-status-menu): New function.
+	(vc-hg-dir-status): Clean up the buffer before using it.
+
+2008-02-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/gdb-ui.el (gdb-output-sink): Define with an invalid value.
+	(gdb): Initialize it here instead.
+
+	* files.el (locate-dominating-file): Fix thinko in last change.
+	Reported by Bruce Stephens <bruce.stephens@isode.com>.
+
+2008-02-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-status-mode-menu): New menu for vc-status.
+
+2008-02-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/verilog-mode.el (customize): Fix typo in error message.
+	(verilog-mode, verilog-mode-indent, verilog-mode-actions)
+	(verilog-mode-auto, verilog-indent-level-module)
+	(verilog-minimum-comment-distance, verilog-library-flags)
+	(verilog-library-directories, verilog-library-files)
+	(verilog-auto-reset-widths, verilog-imenu-generic-expression)
+	(verilog-xemacs-menu, verilog-set-compile-command)
+	(verilog-set-compile-command, verilog-mode-syntax-table, verilog-mode)
+	(verilog-get-expr, verilog-strip-comments, verilog-one-line)
+	(verilog-lint-off, verilog-batch-auto, verilog-batch-delete-auto)
+	(verilog-batch-inject-auto, verilog-batch-indent)
+	(verilog-continued-line, verilog-type-keywords)
+	(verilog-read-sub-decls-sig, verilog-read-sub-decls-line)
+	(verilog-read-inst-pins, verilog-read-arg-pins)
+	(verilog-read-auto-template, verilog-read-signals, verilog-getopt-file)
+	(verilog-add-list-unique, verilog-symbol-detick, verilog-modi-filename)
+	(verilog-auto-star, verilog-auto-inst, verilog-auto-wire)
+	(verilog-enum-ascii, verilog-sk-begin, verilog-sk-fork)
+	(verilog-sk-datadef, verilog-colorize-include-files-buffer)
+	(verilog-mode-version, verilog-mode-release-date)
+	(verilog-mode-release-emacs, verilog-linter, verilog-coverage)
+	(verilog-simulator, verilog-compiler)
+	(verilog-auto-sense-defines-constant, verilog-company)
+	(verilog-project, verilog-mark-defun, verilog-submit-bug-report):
+	Fix typos in docstrings.
+	(verilog-set-auto-endcomments, verilog-calculate-indent)
+	(verilog-inject-auto, verilog-auto-arg, verilog-auto-inout-module):
+	Reflow docstrings.
+	(verilog-tab-always-indent, verilog-highlight-p1800-keywords)
+	(verilog-auto-star-save, verilog-auto-inst-vector, verilog-mode-hook)
+	(electric-verilog-forward-sexp, verilog-in-case-region-p)
+	(verilog-in-struct-region-p, verilog-in-generate-region-p)
+	(verilog-leap-to-head, verilog-current-indent-level)
+	(verilog-case-indent-level, verilog-cpp-keywords)
+	(verilog-defun-keywords, verilog-block-keywords, verilog-tf-keywords)
+	(verilog-case-keywords, verilog-separator-keywords, verilog-completion)
+	(verilog-signals-not-in, verilog-symbol-detick-text)
+	(verilog-modi-cache-preserve-tick, verilog-modi-cache-preserve-buffer)
+	(verilog-forward-close-paren, verilog-backward-open-paren)
+	(verilog-backward-open-bracket): Doc fixes.
+
+	* progmodes/gud.el (gud-def, gud-last-speedbar-stackframe): Doc fixes.
+	(gud-symbol, gud-expansion-speedbar-buttons, gud-speedbar-buttons)
+	(gud-gdb-run-command-fetch-lines, gud-dbx-use-stopformat-p)
+	(gud-jdb-classpath, gud-jdb-find-source-using-classpath, jdb)
+	(gud-find-class, gdb-script-mode, gud-tooltip-event, gud-tooltip-tips):
+	Fix typos in docstrings.
+
+	* w32-vars.el (w32-system-shells): Add TCC (new name for 4NT).
+
+2008-02-18  Bastien Guerry  <Bastien.Guerry@ens.fr>
+
+	* info.el (Info-read-node-name): Removed unused `default' arg.
+
+2008-02-18  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc-git.el (vc-git-after-dir-status, vc-git-dir-status): New funcs.
+
+2008-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image-mode.el (image-get-display-property): New fun.
+	(image-forward-hscroll, image-next-line, image-eol, image-eob)
+	(image-mode, image-minor-mode, image-toggle-display-text)
+	(image-toggle-display): Use it.
+
+2008-02-18  Jason Rumney  <jasonr@gnu.org>
+
+	* international/mule.el (xml-find-file-coding-system): Don't warn
+	about utf-16 with BOM.
+
+	* nxml/nxml-mode.el (nxml-mode): Don't add a write-contents-hook.
+
+	* international/mule.el (sgml-xml-auto-coding-function): Detect and
+	warn if file encoding is not utf-8 and encoding not specified.
+	(xml-find-file-coding-system): New function.
+	* international/mule-conf.el (file-coding-system-alist): Use it.
+
+2008-02-17  Glenn Morris  <rgm@gnu.org>
+
+	* international/mule-cmds.el (set-locale-environment):
+	Pass `frame' to getenv for LC_MESSAGES.
+
+2008-02-17  Juri Linkov  <juri@jurta.org>
+
+	* time.el (emacs-init-time): Use format instead of format-seconds.
+
+2008-02-17  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-search-entry): Rename from
+	bibtex-find-entry.  Add autoload cookie.
+	(bibtex-find-entry): Alias for bibtex-search-entry.
+	(bibtex-search-crossref): Rename from bibtex-find-crossref.
+	(bibtex-find-crossref): Alias for bibtex-search-crossref.
+	(bibtex-clean-entry): atomic-change-group removed.
+	(bibtex-format-entry): Use atomic-change-group.  Use unwind-protect
+	to locate buffer location where error occurred.
+	Make error messages more specific.
+	(bibtex-parse-keys): Only parse if buffer uses bibtex-mode.
+
+2008-02-17  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/hideshow.el (hs-minor-mode-map): Move menu creation to
+	top level.
+
+	* simple.el (transient-mark-mode): Add an :init-value.
+
+	* startup.el (command-line): Use custom-reevaluate-setting for
+	transient-mark-mode.
+
+2008-02-17  Michaël Cadilhac  <michael@cadilhac.name>
+
+	* wdired.el (wdired-allow-to-change-permissions): Fix typo.
+
+2008-02-16  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (after-init-time): New variable.
+	(command-line): Set `after-init-time' to the current time.
+
+	* time.el (emacs-init-time): New function.
+
+2008-02-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (locate-dominating-file): Remove initial loop because it's
+	not careful enough.  Detect the uid-change all within the main loop.
+
+2008-02-16  Lawrence Mitchell  <wence@gmx.li>  (tiny change)
+
+	* ielm.el (ielm-is-whitespace-or-comment): Docstring fix.
+
+2008-02-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-annotate): Add new argument.
+	(vc-annotate-warp-revision): Pass the current line to vc-annotate.
+
+	* progmodes/hideshow.el: Remove the minor-mode bookkeeping.
+	Move make-variable-buffer-local code after the corresponding defvar.
+	(hs-minor-mode-map): Define and initialize in one step.
+	(hs-minor-mode): Change from defun to define-minor-mode.
+
+2008-02-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-gdb): Don't reset gdb-ready.
+	(gdb-ready): Move declaration...
+
+	* progmodes/gdb-ui.el (gdb-ready): ...to here.
+	(gdb-early-user-input): New variable.
+	(gdb): Reset gdb-flush-pending-output to nil and set
+	comint-input-sender here (before gdb-prompt), instead of...
+	(gdb-init-1): ...here.
+	(gdb-send): If Emacs is not ready, defer user input to...
+	(gdb-prompt): ...here.
+
+2008-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* nxml/test.invalid.xml, nxml/test.valid.xml: Move to etc/nxml.
+
+	* startup.el (emacs-startup-time): Rename to `before-init-time'.
+	(before-init-time): New name for `emacs-startup-time'.
+	(command-line): Use before-init-time rather than emacs-startup-time.
+	* time.el (emacs-uptime): Use before-init-time rather than
+	emacs-startup-time.
+
+	* composite.el (composition-function-table): Doc fix.
+
+	* calendar/time-date.el (format-seconds): Remove `nonzero' argument
+	in favor of `%z' specifier.
+	(emacs-uptime): Move to time.el.
+	* time.el (emacs-uptime): Move here from time-date.el.  Add optional
+	`format' argument.  Doc fix.  Use `%z' rather than removed `nonzero'
+	argument of format-seconds.
+
+2008-02-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* bindings.el (mode-line-mule-info): Make the tooltips more explicit.
+
+2008-02-15  Lawrence Mitchell  <wence@gmx.li>  (tiny change)
+
+	* ielm.el (ielm-is-whitespace): Remove.
+	(ielm-is-whitespace-or-comment): New function.
+	(ielm-eval-input): Use it.
+
+2008-02-15  Jason Rumney  <jasonr@gnu.org>
+
+	* term/mac-win.el: Fix coding tag.
+
+2008-02-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-menu-map):
+	* bindings.el (mode-line-mode-menu): Add tooltips.
+
+	* bindings.el (help-echo): Add more tooltips.  Use a less
+	telegraphic style for existing tooltips.
+
+2008-02-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* frame.el (frame-notice-user-settings): Distinguish explicit parent-id
+	from the auto-generated one.
+
+2008-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* mail/rmail-spam-filter.el (rmail-spam-filter):
+	Let-bind message-spam-status.
+
+	* mail/smtpmail.el (password-cache-add): Declare as function.
+
+2008-02-14  Justus Piater  <Justus-bulk@Piater.name>  (tiny change)
+
+	* mail/smtpmail.el: Use password-cache.
+
+2008-02-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* uniquify.el (uniquify-buffer-base-name): New function.
+	Suggested by Stefan Monnier <monnier@iro.umontreal.ca>.
+
+	* desktop.el (uniquify-managed): Don't defvar.
+	(desktop-buffer-info): Use `uniquify-buffer-base-name', not
+	`uniquify-managed'.  Return also the buffer's base name.
+	(desktop-save): When saving the buffer info, filter out the base name,
+	and save it as buffer name if the buffer is managed by uniquify.
+	(uniquify-item-base): Don't declare; not called anymore.
+
+2008-02-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-annotate-find-revision-at-line): New function.
+	(vc-annotate-mode-map): Bind it.
+	(vc-annotate-mode-menu): Add a menu entry for it.  Add :help for
+	some entries.
+
+2008-02-14  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/time-date.el (format-seconds): New function.
+	(emacs-uptime): Use format-seconds.
+
+	* Makefile.in (custom-deps, finder-data, autoloads, recompile):
+	Remove `LC_ALL=C', since it's included in $(emacs) now.
+
+2008-02-14  Zhang Wei  <id.brep@gmail.com>
+
+	* textmodes/org-publish.el (org-publish-timestamp-filename):
+	Replace colon characters in filename too.
+
+2008-02-13  Bastien Guerry  <bzg@altern.org>
+
+	* mail/rmail.el (rmail-header-name): New face.
+	(rmail-font-lock-keywords): Use rmail-header-name.
+
+	* mail/rmail-spam-filter.el (rsf-definitions-alist): Allow check
+	against X-Spam-Status header field.
+	(rmail-spam-filter): Also check X-Spam-Status header field.
+
+2008-02-14  Mark A. Hershberger  <mah@everybody.org>
+
+	* progmodes/flymake.el (flymake-allowed-file-name-masks):
+	Add support for .pm files and .php files.
+	(flymake-err-line-patterns): Add pattern for PHP errors.
+	(flymake-php-init): New function.  PHP support for flymake.
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Add regular expression for PHP errors.
+
+2008-02-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-quote-string): Use `shell-quote-argument'.
+	This DTRT even on w32 machines.
+	(ange-ftp-cf1): Quote FILENAME.
+
+2008-02-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-auto-combine-max-separation): New var.
+	(smerge-auto-combine): New fun.
+
+2008-02-12  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (fancy-startup-screen, normal-splash-screen):
+	Set default-directory to command-line-default-directory.
+
+	* desktop.el (after-init-hook): Set inhibit-startup-screen to t
+	after reading the desktop.
+
+	* progmodes/compile.el (compilation-auto-jump):
+	Call compile-goto-error only when compilation-auto-jump-to-first-error
+	is non-nil.
+	(compilation-scroll-output): Replace :type 'boolean with a choice
+	that has three options including a third option `first-error'.
+	Doc fix.
+	(compilation-start, compilation-forget-errors): Add an alternate
+	condition comparing compilation-scroll-output with `first-error'
+	in addition to compilation-auto-jump-to-first-error (to call
+	compilation-auto-jump in the proper place).
+
+2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule.el (sgml-html-meta-auto-coding-function):
+	Make sure the search limit is ahead.
+
+	* tar-mode.el: Fix broken indentation.
+	(tar-mouse-extract, tar-extract, tar-subfile-save-buffer):
+	Use with-current-buffer.
+
+2008-02-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hexl.el (hexl-mode): Don't make `font-lock-defaults' buffer-local;
+	it is already automatically buffer-local.
+
+2008-02-11  Drew Adams  <drew.adams@oracle.com>
+
+	* help.el (describe-key): Join some split lines to facilitate filling.
+	* help-fns.el (describe-function-1): Fill text of overlong lines.
+
+2008-02-12  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* emacs-lisp/bytecomp.el (byte-compile-lapcode):
+	Use unibyte-string instead of string-make-unibyte.
+
+	* Makefile.in (AUTOGENEL): Remove charprop.el and uni-*.el.
+
+2008-02-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-display): Change file arg to buffer arg, so it
+	works also for buffers w/o buffer-file-name.  Update callers.
+	(doc-view-clone-buffer-hook): New fun.
+	(doc-view-mode): Use it for indirect clones.  Mark the overlays with
+	the `doc-view' property so they can be recognized.
+
+	* simple.el (clone-indirect-buffer-hook): New hook.
+	(clone-indirect-buffer): Run it.
+
+2008-02-11  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.el (epa-menu-mode): Merge into epa-mode.
+	(epa-menu-items): Rename the label "EasyPG Assistant" to
+	"Encryption/Decryption".
+
+	* epa-dired.el: Define a new minor-mode epa-dired-mode for dired.
+	(epa-dired-mode-map): Rename from epa-dired-map.
+	(epa-global-dired-mode): Rename the global minor mode.
+
+2008-02-11 Drew Adams  <drew.adams@oracle.com>
+
+	* isearch.el (isearch-fail): New face.
+	(isearch-message): Highlight failure part of input.
+
+2008-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* ibuffer.el (ibuffer-header-line-format): New var.
+	(ibuffer-mode): Set it instead of header-line-format.
+	(ibuffer-update): Use it to set header-line-format.
+
+	* international/mule-cmds.el (ucs-insert): Inherit surrounding
+	properties like self-insert-command.
+
+2008-02-11  Drew Adams  <drew.adams@oracle.com>
+
+	* progmodes/etags.el: Add many doc strings.
+
+2008-02-11  Jason Rumney  <jasonr@gnu.org>
+
+	* ldefs-boot.el: Regenerated.
+
+2008-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Shorten some names.
+
+	* ffap.el (ffap-rfc-directories): Add :version.
+
+2008-02-11  Chris Moore  <christopher.ian.moore@gmail.com>
+
+	* jka-cmpr-hook.el (jka-compr-compression-info-list): Handle .sifz
+	files, and backup files of same.
+
+2008-02-11  Kevin Ryde  <user42@zip.com.au>
+
+	* ffap.el (ffap-rfc-directories): New variable.
+	(ffap-rfc): Look in those dirs before offering ffap-rfc-path.
+
+	* info.el (Info-next-reference, Info-prev-reference)
+	(Info-try-follow-nearest-node): Move to and follow https:// links too.
+
+	* simple.el (completion-list-mode): Show full completion-list-mode-map
+	in the docstring.
+
+2008-02-11  Sam Steingold  <sds@gnu.org>
+
+	* vc-hooks.el (vc-prefix-key): Remove (undo 2008-02-06 patch).
+
+2008-02-11  Glenn Morris  <rgm@gnu.org>
+
+	* startup.el (emacs-startup-time): New variable.
+	(command-line): Set emacs-startup-time.
+
+	* calendar/time-date.el (emacs-uptime): New function.
+
+2008-02-10  Bastien Guerry  <bzg@altern.org>
+
+	* mail/rmail.el (rmail-nonignored-headers): Allow to be nil.
+	(rmail-clear-headers): Don't check `rmail-nonignored-headers' when
+	it is nil.
+
+2008-02-10  Daiki Ueno  <ueno@unixuser.org>
+
+	* epg-config.el: Expand the contents of epg-package-info.el.
+	(epg-package-name): New constant.
+	(epg-version-number): New constant.
+	(epg-bug-report-address): New constant.
+
+	* epa-mail.el (epa-mail-mode): Add autoload cookie.
+	(epa-global-mail-mode): New global minor mode.
+
+	* epa-file.el (epa-file-mode): New global minor mode.
+
+	* epa-dired.el (epa-dired-mode): New global minor mode.
+
+	* epa.el (epa-menu): New variable.
+	(epa-menu-items): New variable.
+	(epa-menu-mode): New global minor mode.
+	(epa-global-minor-modes): New user option.
+	(epa-mode): New global minor mode.
+
+2008-02-10  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el: Remove `no-byte-compile' cookie.
+	(dbus-call-method, dbus-register-signal, dbus-debug)
+	(dbus-registered-functions-table): Declare them with
+	`declare-function' or `defvar', respectively.
+	(top): Don't assert any longer.  Require 'cl when compiling.
+	Apply `ignore-errors' but `dbus-ignore-errors'.
+
+2008-02-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el (diff-add-change-log-entries-other-window):
+	Use add-change-log-entry.
+
+2008-02-09  Jason Rumney  <jasonr@gnu.org>
+
+	* button.el (button-map):
+	* wid-edit.el (widget-keymap): Avoid line-end confusion in autoloads.
+	* ldefs-boot.el: Regenerate.
+
+2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* epa.el (epa-faces, epa):
+	* epa-file.el (epa-file):
+	* epg-config.el (epg): Add :version.
+
+2008-02-09  Thien-Thi Nguyen  <ttn@gnuvola.org>
+
+	* vc.el (vc-exec-after): Append CODE to previous fragments.
+	(vc-diff-finish): Take BUFFER directly, not BUFFER-NAME;
+	take MESSAGES instead of VERBOSE; use it when non-nil.
+	(vc-diff-internal): Compute messages once; use them;
+	update call to vc-diff-finish.
+
+2008-02-09  Michael Olson  <mwolson@gnu.org>
+
+	* net/tramp.el (tramp-process-sentinel): Avoid error when process
+	buffer has been killed, such as by
+	`tramp-cleanup-all-connections'.
+
+2008-02-09  Miles Bader  <miles@gnu.org>
+
+	* net/rcirc.el (rcirc-omit-mode): Suppress invisibility ellipsis.
+
+2008-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-add-change-log-entries-other-window): Avoid the
+	splitter in context hunks.
+
+2008-02-08  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (setup-default-fontset): Fix arabic otf
+	font specification.
+
+2008-02-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-dired.el:
+	* epa-file.el:
+	* epa-mail.el:
+	* epa-setup.el:
+	* epa.el:
+	* epg-config.el:
+	* epg-package-info.el:
+	* epg.el: Initial check-in of EasyPG.
+
+2008-02-08  Glenn Morris  <rgm@gnu.org>
+
+	* woman.el (woman-locale): New defcustom.
+	(woman-expand-locale, woman-manpath-add-locales): New functions.
+	(woman-manpath): Call woman-manpath-add-locales.  Bump :version.
+
+	* international/mule-cmds.el (locale-translate): New function,
+	with old code extracted from set-locale-environment.
+	(set-locale-environment): Use locale-translate.  Set woman-locale.
+
+	* cus-start.el (selection-coding-system): Remove, since it's now
+	defined in select.el rather than in xselect.c.
+	* select.el (selection-coding-system): Make it a defcustom, and
+	add the properties from cus-start.el.  Bump :version.
+
+	* custom.el (custom-theme-set-variables): Sort symbols that are
+	dependencies before symbols that depend on them.
+	(custom-enabled-themes): Set after custom-theme-directory.
+
+	* pcmpl-unix.el (top-level): Move provide statement to end.
+	(pcmpl-unix-group-file, pcmpl-unix-passwd-file): Remove leading
+	`*' from doc-string.  Allow to be nil.
+	(pcmpl-ssh-known-hosts-file): Convert comment into expanded doc-string.
+	Allow to be nil.  Add :version.
+	(pcmpl-ssh-hosts): Move definition before use.  Handle lines
+	without hostnames, and multiple hostnames per line.
+
+	* term/x-win.el (x-handle-parent-id): Remove free variable `parent-id'.
+
+2008-02-08  Phil Hagelberg  <phil@evri.com>
+
+	* pcmpl-unix.el (pcmpl-ssh-known-hosts-file): New defcustom.
+	(pcomplete/ssh, pcomplete/scp, pcmpl-ssh-hosts): New functions.
+
+2008-02-07  Timo Savola  <timo.savola@iki.fi>
+
+	* startup.el (command-line-x-option-alist): Add --parent-id.
+
+	* term/x-win.el (x-handle-parent-id): New function.
+
+2008-02-07  Chris Moore  <christopher.ian.moore@gmail.com>
+
+	* mouse.el (x-fixed-font-alist): Use consistent capitalization for
+	"Font Menu".
+
+2008-02-06  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/dbus.el (dbus-interface-peer): New defconst.
+	(dbus-ping): New defun.
+
+2008-02-06  Sam Steingold  <sds@gnu.org>
+
+	* vc-hooks.el (vc-prefix-key): New user-customizable variable.
+
+2008-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-unhandled-file-name-directory):
+	Just return nil and let the C code provide a fallback.
+
 2008-02-05  Glenn Morris  <rgm@gnu.org>
 
 	* net/tramp-cmds.el (tramp-cleanup-connection): Update calls to
@@ -19,7 +1254,7 @@
 2008-02-04  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/mule-diag.el (print-fontset-element): Handle the
-	case of inhibitting the fallback fonts.
+	case of inhibiting the fallback fonts.
 
 2008-02-04  Kim F. Storm  <storm@cua.dk>
 
@@ -34,8 +1269,7 @@
 
 2008-02-03  Michael Albinus  <michael.albinus@gmx.de>
 
-	* ediff-util.el (ediff-compute-custom-diffs-maybe): Handle remote
-	files.
+	* ediff-util.el (ediff-compute-custom-diffs-maybe): Handle remote files.
 
 	* net/dbus.el (top): Check (featurep 'dbusbind).
 
@@ -52,8 +1286,8 @@
 	* net/tramp-cache.el (tramp-flush-connection-property): Remove EVENT.
 
 	* net/tramp-fish.el (tramp-fish-maybe-open-connection):
-	* net/tramp-smb.el (tramp-smb-maybe-open-connection): Use
-	`tramp-process-sentinel' as process sentinel.
+	* net/tramp-smb.el (tramp-smb-maybe-open-connection):
+	Use `tramp-process-sentinel' as process sentinel.
 
 2008-02-02  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -116,6 +1350,8 @@
 
 	* international/characters.el (script-list): Add cham.
 
+	* language/cham.el: New file.
+
 2008-02-01  Mark A. Hershberger  <mah@everybody.org>
 
 	* xml.el (xml-escape-string): Don't do any encoding changes on the
@@ -126,20 +1362,16 @@
 	* language/ind-util.el (in-is13194-post-read-conversion):
 	Delete unnecessary call of indian-compose-region.
 
-2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
-
-	* descr-text.el (describe-char-display): Fix previous change.
-
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Some face attributes (like :strike-through) were not
 	being recognised.  Reported by Leo <sdl.web@gmail.com>.
 	(ps-print-version): New version 7.3.2.
 	(ps-screen-to-bit-face): Fix code.  Call ps-face-strikout-p,
-	ps-face-overline-p and ps-face-box-p funs.
+	ps-face-overline-p and ps-face-box-p functions.
 
 	* ps-def.el (ps-face-strikout-p, ps-face-overline-p, ps-face-box-p):
-	New funs.
+	New functions.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -149,7 +1381,7 @@
 
 	* descr-text.el (describe-char-display): Convert a GLYPH-CODE to a
 	hexadigit string.
-	(describe-char): Adjusted for the above change.
+	(describe-char): Adjust for the above change.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -174,8 +1406,7 @@
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* composite.el (terminal-composition-function): Fix previous change.
-	(terminal-composition-modification): Delete it.
+	* composite.el (terminal-composition-modification): Delete it.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -188,9 +1419,9 @@
 	Initialize it.
 	(otf-script-alist): Fix typo of canadian-aboriginal.
 	(setup-default-fontset): Specify font-specs for many more scripts.
-	(x-complement-fontset-spec): The 1st argument changed to a
+	(x-complement-fontset-spec): Change the first argument to a
 	font-spec object.
-	(create-fontset-from-fontset-spec): Adjusted for the above change.
+	(create-fontset-from-fontset-spec): Adjust for the above change.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -214,19 +1445,16 @@
 	* language/kannada.el: Register font-shape-text in
 	composition-function-table.
 
-	* language/european.el (diacritic-composition-function): Fix
-	arguments.
+	* language/european.el (diacritic-composition-function): Fix arguments.
 
-	* language/ethio-util.el (ethio-composition-function): Fix
-	arguments.
+	* language/ethio-util.el (ethio-composition-function): Fix arguments.
 
-	* language/tv-util.el (tai-viet-composition-function): Fix
-	arguments.
+	* language/tv-util.el (tai-viet-composition-function): Fix arguments.
 
 	* composite.el (composition-function-table): Fix docstring.
 	(terminal-composition-function): Fix arguments.
 	(auto-compose-current-font): Delete it.
-	(auto-compose-chars): Adjusted for the change of
+	(auto-compose-chars): Adjust for the change of
 	composition-function-table.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
@@ -243,11 +1471,11 @@
 
 	* printing.el: Fix pr-interface-map initialization code.
 	(pr-version): New version 6.9.3.
-	(pr-f-set-keymap-parents): Replaced by pr-set-keymap-parents.
-	(pr-f-set-keymap-name): Replaced by pr-set-keymap-name.
-	(pr-f-read-string): Replaced by pr-read-string.
-	(pr-set-keymap-parents, pr-set-keymap-name, pr-read-string): New fun
-	name.
+	(pr-f-set-keymap-parents): Replace by pr-set-keymap-parents.
+	(pr-f-set-keymap-name): Replace by pr-set-keymap-name.
+	(pr-f-read-string): Replace by pr-read-string.
+	(pr-set-keymap-parents, pr-set-keymap-name, pr-read-string):
+	New function name.
 	(pr-interactive-n-up, pr-interactive-regexp): Code fix.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -255,16 +1483,10 @@
 	* language/tv-util.el (tai-viet-re): Include '-'.
 	(tai-viet-glyph-info): Handle '-'.
 
-	* descr-text.el (describe-char): Improve the previous change (show
-	font name).
-
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* language/devan-util.el (devanagari-composition-function): Fix
-	previous change.
-
 	* descr-text.el (describe-char): Handle a composition of the new
-	format.
+	format.  Show font name.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -287,15 +1509,13 @@
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* international/fontset.el (x-complement-fontset-spec): Use
-	font-spec.
+	* international/fontset.el (x-complement-fontset-spec): Use font-spec.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/fontset.el (otf-script-alist): Make all otf tags
 	4-letters.
-	(setup-default-fontset): Add OpenType fonts for devanagari and
-	tamil.
+	(setup-default-fontset): Add OpenType fonts for devanagari and tamil.
 
 	* language/tml-util.el (tamil-composition-function): Use
 	font-shape-text if auto-compose-current-font is non-nil.
@@ -303,13 +1523,13 @@
 	* language/devan-util.el (devanagari-composition-function): Use
 	font-shape-text if auto-compose-current-font is non-nil.
 
-	* composite.el (auto-compose-chars): Argument font-object changed
+	* composite.el (auto-compose-chars): Change argument font-object
 	to window.
 
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-lpr-switches): Docstring fix.
-	(ps-string-list): New fun.
+	(ps-string-list): New function.
 	(ps-do-despool): Code fix.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
@@ -323,8 +1543,7 @@
 
 	* term/x-win.el (x-selection-value): If x-select-request-type is
 	nil, try also STRING at last.
-	(x-select-request-type): Doc adjusted the change of
-	x-selection-value.
+	(x-select-request-type): Doc fix for the change of x-selection-value.
 
 	* select.el (selection-coding-system, next-selection-coding-system):
 	Move declarations from xselect.c.
@@ -350,23 +1569,11 @@
 	* international/mule-cmds.el (describe-language-environment):
 	Check if the specified input method exists or not.
 
-2008-02-01  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* ldefs-boot.el: Regenerate.
-
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.el (ps-do-despool): Do not force ps-lpr-switches to be a
-	list.
-	(ps-begin-job): Error if ps-lpr-switches is not a list.
+	* ps-print.el (ps-begin-job): Error if ps-lpr-switches is not a list.
 	(ps-face-background-name): Remove this function.  It's already defined
 	in ps-def.el file.
-
-2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-print.el (ps-do-despool): If ps-lpr-switches is not a list, force
-	it to be one.
-	(ps-print-version): New version 7.3.1.
 
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -381,15 +1588,15 @@
 	(ps-print-version): New version 7.3.
 	(ps-default-fg, ps-default-bg): Docstring fix.
 	(ps-fg-list, ps-fg-validate-p): New options.
-	(ps-foreground-list): New var.
+	(ps-foreground-list): New variable.
 	(ps-generate-header-line): Replace fboundp by functionp.
 	(ps-setup, ps-begin-job, ps-plot-region): Fix code.
 
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Pacify byte compiler, that is, no compiler warnings.
-	Move (again) some variable definitions before use, define some fun
-	aliases, no code change.
+	Move (again) some variable definitions before use, define some
+	function aliases, no code change.
 	(pr-version): New version 6.9.2.
 	(pr-path-style, pr-auto-region, pr-menu-char-height)
 	(pr-menu-char-width, pr-menu-lock, pr-ps-printer-alist)
@@ -399,10 +1606,10 @@
 	(pr-menu-get-item, pr-menu-set-item-name, pr-menu-set-utility-title)
 	(pr-menu-set-ps-title, pr-menu-set-txt-title, pr-region-active-p)
 	(pr-do-update-menus, pr-update-mode-line, pr-f-read-string)
-	(pr-f-set-keymap-parents, pr-keep-region-active): Fun aliases.
+	(pr-f-set-keymap-parents, pr-keep-region-active): Function aliases.
 	(pr-menu-print-item, pr-ps-printer-menu-modified)
 	(pr-txt-printer-menu-modified, pr-ps-utility-menu-modified)
-	(pr-even-or-odd-alist): Vars definition moved.
+	(pr-even-or-odd-alist): Move variable definitions.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -434,8 +1641,6 @@
 
 	* term/mac-win.el: Remove duplicate top-level code.
 
-	* ldefs-boot.el: Update.
-
 	* language/ethio-util.el:
 	* international/characters.el: Use utf-8 rather than utf-8-emacs
 	since it works as well and has the advantage of working with
@@ -447,8 +1652,8 @@
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el (ps-print-version): New version 7.2.5.
-	(ps-background, ps-begin-file, ps-build-reference-face-lists): Use
-	`mapc' rather than `mapcar'.
+	(ps-background, ps-begin-file, ps-build-reference-face-lists):
+	Use `mapc' rather than `mapcar'.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -457,8 +1662,8 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (inactivate-input-method): Set
-	input-method-function to nil before calling
+	* international/mule-cmds.el (inactivate-input-method):
+	Set input-method-function to nil before calling
 	inactivate-current-input-method-function.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -468,18 +1673,14 @@
 
 2008-02-01  Andreas Schwab  <schwab@suse.de>
 
-	* international/mule-diag.el (print-fontset-element): Use fontp
-	only if defined.
+	* international/mule-diag.el (print-fontset-element):
+	Use fontp only if defined.
 
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-mule.el (ps-mule-prepare-font, ps-mule-encode-region)
 	(ps-mule-plot-composition, ps-mule-encode-header-string): Docstring fix.
 	(ps-mule-prologue-generated): Code fix.
-
-2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-print.el (ps-print-version): New version 7.2.4.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -498,14 +1699,12 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el
-	(select-safe-coding-system-interactively): Fix printing of
-	rejected and unsafe coding-systems.
+	* international/mule-cmds.el (select-safe-coding-system-interactively):
+	Fix printing of rejected and unsafe coding-systems.
 
 	* international/fontset.el (setup-default-fontset): Add tai-viet.
 
-	* international/characters.el: Setup syntax/category table for Tai
-	Viet.
+	* international/characters.el: Setup syntax/category table for Tai Viet.
 	(script-list): Add tai-viet.
 
 	* loadup.el: Load "language/tai-viet".
@@ -536,10 +1735,8 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* disp-table.el (make-glyph-code): Fix for a new character code
-	space (22-bit).
-	(glyph-char): Likewise.
-	(glyph-face): Likewise.
+	* disp-table.el (make-glyph-code, glyph-char, glyph-face):
+	Fix for a new character code space (22-bit).
 
 2008-02-01  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -563,15 +1760,15 @@
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: Replace (defvar VAR nil) by (defvar VAR).
-	(ps-print-emacs-type): Var eliminated.
+	(ps-print-emacs-type): Eliminate variable.
 	(ps-setup): Remove ps-print-emacs-type.  Print which Emacsen is
 	running ps-print package.
 
 	* ps-def.el: Replace (defvar VAR nil) by (defvar VAR).
 	(ps-frame-parameter): Replace defun by defalias.
-	(mark-active): defvar eliminated.
+	(mark-active): Eliminate defvar.
 
-	* ps-samp.el (ps-prsc, ps-c-prsc, ps-s-prsc): Macros eliminated.
+	* ps-samp.el (ps-prsc, ps-c-prsc, ps-s-prsc): Eliminate macros.
 	(ps-rmail-mode-hook, ps-vm-mode-hook, ps-gnus-summary-setup)
 	(ps-jts-ps-setup): Replace macros by vector key definition.
 
@@ -587,8 +1784,8 @@
 
 	* progmodes/ebnf2ps.el: New command actions for EPS header and EPS
 	footer.  Fix some problems with one-or-more, zero-or-more and
-	alternative constructions generation.  Some log messages
-	implementation.  Doc fix.
+	alternative constructions generation.  Some implementation of log
+	messages.  Doc fix.
 	(ebnf-version): New version 4.4.
 	(ebnf-eps-header-font, ebnf-eps-header, ebnf-eps-footer-font)
 	(ebnf-eps-footer, ebnf-log): New options.
@@ -596,7 +1793,7 @@
 	(ebnf-eps-footer, ebnf-eps-string, ebnf-eps-header-footer-comment)
 	(ebnf-eps-header-footer-p, ebnf-eps-header-comment)
 	(ebnf-eps-footer-comment, ebnf-eps-header-footer-file)
-	(ebnf-eps-header-footer-set, ebnf-log-header, ebnf-log): New funs.
+	(ebnf-eps-header-footer-set, ebnf-log-header, ebnf-log): New functions.
 	(ebnf-style-custom-list, ebnf-style-database): Put new values.
 	(ebnf-print-directory, ebnf-print-file, ebnf-print-buffer)
 	(ebnf-print-region, ebnf-spool-directory, ebnf-spool-file)
@@ -609,8 +1806,8 @@
 	(ebnf-terminal-dimension1, ebnf-repeat-dimension)
 	(ebnf-except-dimension, ebnf-alternative-dimension)
 	(ebnf-optional-dimension, ebnf-one-or-more-dimension)
-	(ebnf-zero-or-more-dimension, ebnf-sequence-dimension): Insert log
-	message fun.
+	(ebnf-zero-or-more-dimension, ebnf-sequence-dimension):
+	Insert log message function.
 	(ebnf-setup, ebnf-generate-one-or-more, ebnf-generate-zero-or-more)
 	(ebnf-begin-job, ebnf-begin-file, ebnf-eps-finish-and-write)
 	(ebnf-insert-ebnf-prologue, ebnf-production-dimension)
@@ -621,22 +1818,19 @@
 	compatibility with Emacs 20 & 21.
 	(ebnf-eps-header-comment, ebnf-eps-footer-comment)
 	(ebnf-eps-file-alist, ebnf-basic-width-extra)
-	(ebnf-basic-empty-height): New vars.
+	(ebnf-basic-empty-height): New variables.
 	(ebnf-prologue): Fix PostScript code.
 	(ebnf-make-empty, ebnf-make-terminal1, ebnf-make-or-more1)
 	(ebnf-make-production, ebnf-make-alternative, ebnf-make-optional)
 	(ebnf-make-except, ebnf-make-repeat, ebnf-make-sequence)
 	(ebnf-make-dup-sequence, ebnf-token-alternative): Add comments.
 
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* international/titdic-cnv.el: Synch with HEAD.
-
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Group together all XEmacs/Emacs definitions.
 	(pr-version): New version 6.9.
-	(pr-global-menubar, pr-menu-char-height, pr-menu-char-width): New funs.
+	(pr-global-menubar, pr-menu-char-height, pr-menu-char-width):
+	New functions.
 	(pr-menu-char-height, pr-menu-char-width): Fix initialization code.
 	(pr-menu-bind): Fix code.
 	(pr-e-frame-char-height, pr-e-frame-char-width)
@@ -644,23 +1838,23 @@
 	(pr-x-event-object, pr-x-find-menu-item, pr-x-font-height)
 	(pr-x-font-width, pr-x-get-popup-menu-response, pr-x-make-event)
 	(pr-x-misc-user-event-p, pr-x-relabel-menu-item, pr-x-event-x-pixel)
-	(pr-x-event-y-pixel): Aliases eliminated.
-	(pr-xemacs-global-menubar): Macro moved.
+	(pr-x-event-y-pixel): Eliminate aliases.
+	(pr-xemacs-global-menubar): Move macro.
 	(current-menubar, current-mouse-event, zmacs-region-stays)
 	(deactivate-mark, pr-menu-position, pr-menu-state, pr-ps-name-old)
 	(pr-txt-name-old, pr-ps-utility-old, pr-even-or-odd-old, pr-temp-menu):
-	Vars moved.
+	Move variables.
 	(pr-region-active-p, pr-menu-position, pr-menu-lookup, pr-menu-lock)
 	(pr-update-mode-line, pr-do-update-menus, pr-menu-alist)
 	(pr-relabel-menu-item, pr-menu-set-ps-title, pr-menu-set-txt-title)
 	(pr-menu-set-utility-title, pr-even-or-odd-pages)
 	(pr-f-set-keymap-parents, pr-f-set-keymap-name, pr-f-read-string)
-	(pr-keep-region-active, pr-menu-get-item, pr-menu-set-item-name): Funs
-	moved.
+	(pr-keep-region-active, pr-menu-get-item, pr-menu-set-item-name):
+	Move functions.
 
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.ps: The ps-print commands without face printing should not
+	* ps-print.el: The ps-print commands without face printing should not
 	print background color.  Reported by Leo <sdl.web@gmail.com>.
 	(ps-print-version): New version 7.2.2.
 	(ps-begin-job): New arg.  Fix ps-default-background and
@@ -672,8 +1866,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-diag.el (list-character-sets-2): Don't print
-	width.
+	* international/mule-diag.el (list-character-sets-2): Don't print width.
 
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -686,48 +1879,48 @@
 	into separate files.
 	(ps-print-version): New version 7.2.
 	(ps-postscript-code-directory): Fix XEmacs initialization.
-	(ps-generate-postscript-with-faces): Call
-	ps-generate-postscript-with-faces1 (new fun).
-	(ps-color-format, ps-float-format): Vars moved to ps-def.el.
+	(ps-generate-postscript-with-faces):
+	Call ps-generate-postscript-with-faces1 (new function).
+	(ps-color-format, ps-float-format): Move variables to ps-def.el.
 	(ps-xemacs-color-name, ps-mapper, ps-extent-sorter)
 	(ps-xemacs-face-kind-p, ps-mark-active-p, ps-face-foreground-name)
 	(ps-face-background-name, ps-frame-parameter, ps-color-device)
-	(ps-color-values, ps-face-bold-p, ps-face-italic-p): Funs moved to
-	ps-def.el.
+	(ps-color-values, ps-face-bold-p, ps-face-italic-p):
+	Move functions to ps-def.el.
 	(ps-prsc, ps-c-prsc, ps-s-prsc, ps-rmail-mode-hook)
 	(ps-rmail-print-message-from-summary, ps-print-message-from-summary)
 	(ps-article-subject, ps-article-author, ps-gnus-article-prepare-hook)
 	(ps-vm-mode-hook, ps-gnus-print-article-from-summary)
 	(ps-vm-print-message-from-summary, ps-gnus-summary-setup, ps-info-file)
-	(ps-info-node, ps-info-mode-hook, ps-jts-ps-setup, ps-jack-setup): Funs
-	moved to ps-samp.el.
+	(ps-info-node, ps-info-mode-hook, ps-jts-ps-setup, ps-jack-setup):
+	Move functions to ps-samp.el.
 
-	* ps-bdf.el (installation-directory, coding-system-for-read): Vars
-	moved to ps-def.el.
+	* ps-bdf.el (installation-directory, coding-system-for-read):
+	Move variables to ps-def.el.
 
-	* ps-mule.el (leading-code-private-22): Var moved to ps-def.el.
+	* ps-mule.el (leading-code-private-22): Move variables to ps-def.el.
 	(charset-bytes, charset-dimension, charset-id, charset-width)
 	(find-charset-region, char-width, chars-in-region, forward-point)
 	(decompose-composite-char, encode-coding-string, coding-system-p)
 	(ccl-execute-on-string, define-ccl-program, multibyte-string-p)
-	(string-make-multibyte, encode-char): Funs moved to ps-def.el.
+	(string-make-multibyte, encode-char): Move functions to ps-def.el.
 
 	* ps-def.el: New file.  XEmacs/Emacs definitions.
-	(ps-generate-postscript-with-faces1): New fun.
-	(ps-color-format, ps-float-format): Vars moved from ps-print.el.
+	(ps-generate-postscript-with-faces1): New function.
+	(ps-color-format, ps-float-format): Move variables from ps-print.el.
 	(ps-xemacs-color-name, ps-mapper, ps-extent-sorter)
 	(ps-xemacs-face-kind-p, ps-mark-active-p, ps-face-foreground-name)
 	(ps-face-background-name, ps-frame-parameter, ps-color-device)
-	(ps-color-values, ps-face-bold-p, ps-face-italic-p): Funs moved from
-	ps-print.el.
-	(installation-directory, coding-system-for-read): Vars moved from
-	ps-bdf.el.
-	(leading-code-private-22): Var moved from ps-mule.el.
+	(ps-color-values, ps-face-bold-p, ps-face-italic-p):
+	Move functions from ps-print.el.
+	(installation-directory, coding-system-for-read):
+	Move variables from ps-bdf.el.
+	(leading-code-private-22): Move variable from ps-mule.el.
 	(charset-bytes, charset-dimension, charset-id, charset-width)
 	(find-charset-region, char-width, chars-in-region, forward-point)
 	(decompose-composite-char, encode-coding-string, coding-system-p)
 	(ccl-execute-on-string, define-ccl-program, multibyte-string-p)
-	(string-make-multibyte, encode-char): Funs moved from ps-mule.el.
+	(string-make-multibyte, encode-char): Move functions from ps-mule.el.
 
 	* ps-samp.el: New file.  Sample setup code.
 	(ps-prsc, ps-c-prsc, ps-s-prsc, ps-rmail-mode-hook)
@@ -735,8 +1928,8 @@
 	(ps-article-subject, ps-article-author, ps-gnus-article-prepare-hook)
 	(ps-vm-mode-hook, ps-gnus-print-article-from-summary)
 	(ps-vm-print-message-from-summary, ps-gnus-summary-setup, ps-info-file)
-	(ps-info-node, ps-info-mode-hook, ps-jts-ps-setup, ps-jack-setup): Funs
-	moved from ps-print.el.
+	(ps-info-node, ps-info-mode-hook, ps-jts-ps-setup, ps-jack-setup):
+	Move functions from ps-print.el.
 
 2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -744,7 +1937,7 @@
 	colors) changing dynamically.  Reported by Leo <sdl.web@gmail.com>.
 	(ps-print-version): New version 7.1.
 	(ps-x-frame-property, ps-e-frame-parameter): New aliases.
-	(ps-frame-parameter): New fun.
+	(ps-frame-parameter): New function.
 	(ps-default-fg, ps-default-bg): New default value ('frame-parameter).
 	Fix doc and customization.
 	(ps-begin-job): Get frame parameters (background and/or foreground
@@ -788,40 +1981,30 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/quail.el (quail-get-translations): Make
-	quail-current-key multibyte if not yet done.
+	* international/quail.el (quail-get-translations):
+	Make quail-current-key multibyte if not yet done.
 
 2008-02-01  Zhang Wei  <id.brep@gmail.com>
 
 	* language/chinese.el ("Chinese-GBK"): Add tutorial.
 	("Chinese-GB18030"): Add sample-text and tutorial.
 
-	* international/fontset.el (font-encoding-alist): Add gb18030.
-	(setup-default-fontset): Likewise.
-	(x-pixel-size-width-font-regexp, vertical-centering-font-regexp):
-	Add gbk and gb18030.
-	(charset-script-alist): Likewise.
+	* international/fontset.el (font-encoding-alist)
+	(setup-default-fontset): Add gb18030.
+	(x-pixel-size-width-font-regexp, vertical-centering-font-regexp)
+	(charset-script-alist): Add gbk and gb18030.
 
 	* international/characters.el: Put property
-	preferred-coding-system to gbk and gb18030.
+	preferred-coding-system on gbk and gb18030.
 
 	* international/mule-cmds.el (locale-language-names): Add an entry
 	for "zh_CN.UTF-8" and change "chs" to "Chinese-GBK".
 
 	* faces.el (face-font-registry-alternatives): Add gb18030.
 
-2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>  (tiny change)
+2008-02-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-mule.el: Fix maintainer email.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* language/european.el ("Turkish"): Sync with HEAD.
-
-	* international/characters.el: Sync with HEAD.
-
-	* international/mule-cmds.el (set-default-coding-systems): Sync
-	with HEAD.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -831,8 +2014,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* ruler-mode.el (ruler-mode-ruler): Make the string `ruler'
-	mulitbyte.
+	* ruler-mode.el (ruler-mode-ruler): Make the string `ruler' multibyte.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -844,15 +2026,15 @@
 	(terminal-composition-function): Create composition with the above
 	modification function.
 
-2008-02-01  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+2008-02-01  Zhang Wei  <id.brep@gmail.com>
 
 	* international/characters.el: Add more full-width characters in
 	char-width-table.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/fontset.el (create-fontset-from-fontset-spec): Fix
-	script name handling.
+	* international/fontset.el (create-fontset-from-fontset-spec):
+	Fix script name handling.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -867,8 +2049,8 @@
 	property nospace-between-words.  Fix setting up of
 	char-width-table.  Don't make ethiopic and tibetan double column.
 
-	* textmodes/fill.el (fill-find-break-point-function-table): Don't
-	setup it in defvar.
+	* textmodes/fill.el (fill-find-break-point-function-table):
+	 Don't set it up in defvar.
 	(fill-nospace-between-words-table): New variable.
 	(fill-delete-newlines): Check fill-nospace-between-words-table
 	instead of charset property nospcae-between-words.
@@ -881,8 +2063,7 @@
 	* textmodes/fill.el: Don't use charset property
 	`fill-find-break-point-function'.
 	(fill-find-break-point-function-table): New variable.
-	(fill-find-break-point): Lookup
-	fill-find-break-point-function-table.
+	(fill-find-break-point): Lookup fill-find-break-point-function-table.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -891,9 +2072,9 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* composite.el (auto-composition-after-change): Remove
-	`auto-composed' property instead of put nil to it.
-	(toggle-auto-composition): Likewise.
+	* composite.el (auto-composition-after-change)
+	(toggle-auto-composition): Remove `auto-composed' property instead
+	of setting it to nil.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -914,26 +2095,6 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/uni-bidi.el, international/uni-category.el,
-	international/uni-combining.el, international/uni-comment.el,
-	international/uni-decimal.el, international/uni-decomposition.el,
-	international/uni-digit.el, international/uni-lowercase.el,
-	international/uni-mirrored.el, international/uni-name.el,
-	international/uni-numeric.el, international/uni-old-name.el,
-	international/uni-titlecase.el, international/uni-uppercase.el:
-	Re-generated.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* international/mule-cmds.el (select-safe-coding-system): Fix
-	synching with head.
-
-2008-02-01  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* ldefs-boot.el: Delete the section for utf-7.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* composite.el (auto-compose-current-font): New variable.
 	(auto-compose-chars): New arg FONT-OBJECT.
 
@@ -944,14 +2105,8 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (set-language-info): Fix synching
-	with HEAD.
-	(set-language-environment): Likewise.
-	(standard-display-european-internal): Sync with HEAD.
-	(set-language-environment-nonascii-translation): Fix synching with
-	HEAD.
-	(set-language-environment-fontset): Delete it.
-	(set-language-environment-unibyte): Fix synching with HEAD.
+	* international/mule-cmds.el (set-language-environment-fontset):
+	Delete it.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -959,23 +2114,19 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/fontset.el (font-encoding-alist): Fix for
-	"ethiopic-unicode".
+	* international/fontset.el (font-encoding-alist):
+	Fix for "ethiopic-unicode".
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/fontset.el (script-representative-chars): Add an
-	entry for latin script.
+	* international/fontset.el (script-representative-chars):
+	Add an entry for latin script.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* faces.el (font-weight-table): Treat regular and normal as the
 	same as medium.
 	(font-slant-table): Add (roman . 100).
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* tar-mode.el (tar-extract): Sync with HEAD.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -988,20 +2139,10 @@
 	(script-representative-chars): Set the default value.
 	(create-fontset-from-x-resource): Delete `message'.
 
-2008-02-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
-
-	* term/mac-win.el (mac-utxt-to-string, mac-string-to-utxt)
-	(mac-TEXT-to-string, mac-string-to-TEXT): Sync with HEAD.
-
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/characters.el: Cancel unnecessary sync code for
-	HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* tar-mode.el (tar-untar-buffer, tar-summarize-buffer): Call
-	set-buffer-multibyte with arg `to'.
+	* tar-mode.el (tar-untar-buffer, tar-summarize-buffer):
+	Call set-buffer-multibyte with arg `to'.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1011,8 +2152,7 @@
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (ctext-pre-write-conversion): Produce
-	extra designation sequence for ASCII at the end off extended
-	segment.
+	extra designation sequence for ASCII at the end off extended segment.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1033,15 +2173,12 @@
 	* international/fontset.el (create-fontset-from-fontset-spec): Fix
 	for the case that a charset is specified as target.
 
-	* international/ccl.el (ccl-dump-write-const-string): Fix previous
-	change.
-
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/ccl.el (ccl-embed-string): Check string length.
 	Set special flag for multibyte character sequence.
-	(ccl-compile-write-string): Don't make str unibyte.
-	(ccl-compile-write-repeat): Likewise.
+	(ccl-compile-write-string, ccl-compile-write-repeat): Don't make
+	str unibyte.
 	(ccl-compile-write): If the character code doesn't fit in 22-bit
 	(ccl-dump-write-const-string): Check special flag for multibyte
 	character sequence.
@@ -1049,46 +2186,44 @@
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* ps-mule.el (ps-mule-eight-bit-char): Delete this function.
-	(ps-mule-encode-region): Don't use ps-mule-eight-bit-char.
-	(ps-mule-plot-composition): Likewise.
+	(ps-mule-encode-region, ps-mule-plot-composition): Don't use
+	ps-mule-eight-bit-char.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* language/chinese.el ("Chinese-BIG5"): Set
-	ctext-non-standard-encodings property to "big5-0".
+	* language/chinese.el ("Chinese-BIG5"):
+	Set ctext-non-standard-encodings property to "big5-0".
 
-	* international/mule.el (ctext-non-standard-encodings): Initialize
-	to nil.
+	* international/mule.el (ctext-non-standard-encodings):
+	Initialize to nil.
 	(ctext-non-standard-encodings-alist): Set charset `big5' in the
 	entry for "big5-0".
 	(ctext-non-standard-encodings-table): Return a list instead of
 	char-table.
-	(ctext-pre-write-conversion): Adjusted for the above change.
+	(ctext-pre-write-conversion): Adjust for the above change.
 
-2008-02-01  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+2008-02-01  Zhang Wei  <id.brep@gmail.com>
 
-	* international/mule.el (ctext-non-standard-encodings-alist): Add
-	an entry for gbk-0.
+	* international/mule.el (ctext-non-standard-encodings-alist):
+	Add an entry for gbk-0.
 	(ctext-post-read-conversion): Use multibyt-char-to-unibyte to read
 	a row 8-bit.
 
-	* language/chinese.el ("Chinese-GBK"): Set
-	ctext-non-standard-encodings property to "gbk-0".  Add sample-text
-	property.
+	* language/chinese.el ("Chinese-GBK"):
+	Set ctext-non-standard-encodings property to "gbk-0".
+	Add sample-text property.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/kkc.el (kkc-region): Use
-	this-single-command-raw-keys on pushing back an unhandled key
-	sequence.
+	this-single-command-raw-keys on pushing back an unhandled key sequence.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/encoded-kb.el (encoded-kbd-mode): Check
-	saved-input-mode on turing off Encoded Kbd mode.
+	* international/encoded-kb.el (encoded-kbd-mode):
+	Check saved-input-mode on turning off Encoded Kbd mode.
 
-	* composite.el (auto-composition-after-change): Use
-	save-buffer-state.
+	* composite.el (auto-composition-after-change): Use save-buffer-state.
 	(turn-on-auto-composition-if-enabled): Don't turn on
 	auto-composition-mode in a unibyte buffer.
 
@@ -1107,39 +2242,21 @@
 	* descr-text.el (describe-char): Use insert-text-button instead of
 	widget-create for "customize what to show" button.
 
-2008-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* tar-mode.el: Merge changes from the trunk:
-	(tar-header-block-tokenize): Tighten regexp.
-	(tar-summarize-buffer): Don't clear the modified-p bit if it wasn't
-	cleared before.  Obey default-enable-multibyte-characters.
-	Use mapconcat.
-	(tar-mode-map): Move initialization inside delcaration.
-	(tar-alter-one-field): Don't hardcode point-min==1.
-
 2008-02-01  Naoto Takahashi  <ntakahas@m17n.org>
 
-	* language/ethiopic.el: Copyright fixed.
-	(composition-function-table): Support a new character in Unicode
-	4.1.
+	* language/ethiopic.el: Fix copyright.
+	(composition-function-table): Support a new character in Unicode 4.1.
 
 	* language/ethio-util.el (ethio-fidel-to-tex-buffer)
 	(ethio-tex-to-fidel-buffer, ethio-composition-function)
 	("ethiopic-tex"): Support new characters in Unicode 4.1.
-
-	* descr-text.el (describe-char): Fix for sync with HEAD.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* international/mule.el (autoload-coding-system): Install the same
-	function as in HEAD.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Register characters in
 	auto-fill-chars.  Put nospace-between-words to more charsets.
 
-2008-02-01  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+2008-02-01  Zhang Wei  <id.brep@gmail.com>
 
 	* international/mule-cmds.el (locale-language-names): Add entries
 	for zh_CN.GB2312, zh_CN.GBK, and zh_CN.GB18030.
@@ -1169,8 +2286,6 @@
 	* international/mule-conf.el (cp1125): Set :ascii-compatible-p
 	property to t.
 
-	* descr-text.el (describe-char): Sync with the main trunk.
-
 	* international/mule.el (coding-system-get):
 	Check `ascii-incompatible' for backward compatiblity.
 	(set-file-name-coding-system): Signal an error for a coding system
@@ -1195,9 +2310,9 @@
 2008-02-01  Naoto Takahashi  <ntakahas@m17n.org>
 
 	* international/robin.el (robin-define-package): Make the
-	expaneded form shorter.
+	expanded form shorter.
 
-2008-02-01  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+2008-02-01  Zhang Wei  <id.brep@gmail.com>
 
 	* language/chinese.el (chinese-iso-8bit): Fix mime-charset of
 	chiense-iso-8bit.
@@ -1215,20 +2330,8 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/uni-bidi.el, international/uni-category.el,
-	international/uni-combining.el, international/uni-comment.el,
-	international/uni-decimal.el, international/uni-decomposition.el,
-	international/uni-digit.el, international/uni-lowercase.el,
-	international/uni-mirrored.el, international/uni-name.el,
-	international/uni-numeric.el, international/uni-old-name.el,
-	international/uni-titlecase.el, international/uni-uppercase.el,
-	international/charprop.el: Re-generated.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* term/mac-win.el: Sync with the main trunk.
-	(mac-centraleurroman, mac-cyrillic): New charsets and coding
-	systems.
+	* term/mac-win.el (mac-centraleurroman, mac-cyrillic):
+	New charsets and coding systems.
 	(mac-symbol, mac-dingbats): New charsets.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -1239,70 +2342,50 @@
 
 	* international/mule-cmds.el: Don't require wid-edit.
 
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* language/thai-util.el: Fix previous change.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* language/thai-util.el: Sync with the main trunk.
-
 2008-02-01  Naoto Takahashi  <ntakahas@m17n.org>
 
 	* international/robin.el: New file.
 
-	* language/ethiopic.el: Encoding changed to utf-8-emacs.
+	* language/ethiopic.el: Change encoding to utf-8-emacs.
 	Register ethio-composition-function in composition-function-table.
-	("Ethiopic"): Coding-systems changed to utf-8-emacs.
+	("Ethiopic"): Change coding-systems to utf-8-emacs.
 
-	* language/ethio-util.el: Encoding changed to utf-8-emacs.  All
-	transliteration functions rewritten to use robin.el.
+	* language/ethio-util.el: Change encoding to utf-8-emacs.
+	Rewrite all transliteration functions to use robin.el.
 	(ethio-fidel-to-sera-map, ethio-fidel-to-tex-map)
 	(ethio-sera-to-fidel-table, ethio-implicit-period-conversion)
-	(ethio-prefer-ascii-punctuation): Deleted variables.
+	(ethio-prefer-ascii-punctuation): Delete variables.
 	(ethio-char-to-ethiocode, ethio-convert-digit)
 	(ethio-ethiocode-to-char, ethio-fidel-to-sera-mail)
 	(ethio-fidel-to-sera-mail-or-marker, ethio-lone-consonant-p)
 	(ethio-sera-to-fidel-english, ethio-sera-to-fidel-ethio)
 	(ethio-sera-to-fidel-mail, ethio-sera-to-fidel-mail-or-marker)
-	(ethio-tilde-escape, ethio-toggle-punctuation): Deleted functions.
+	(ethio-tilde-escape, ethio-toggle-punctuation): Delete functions.
 	(ethio-adjust-robin, ethio-composition-function)
 	(ethio-get-consonant, ethio-prefer-amharic, ethio-process-digits)
 	(ethio-sera-to-fidel-region-ethio)
 	(ethio-sera-to-fidel-region-noethio)
-	(ethio-use-colon-for-colon, ethio-use-three-dot-question): New
-	functions.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* international/uni-name.el: Re-generated.
+	(ethio-use-colon-for-colon, ethio-use-three-dot-question):
+	New functions.
 
 2008-02-01  Miles Bader  <miles@gnu.org>
 
 	* international/mule.el (auto-coding-regexp-alist)
 	(ctext-pre-write-conversion): Replace embedded control characters
-	with octal escapes; this prevents diff from thinking the file is
-	binary.
+	with octal escapes; this prevents diff from thinking the file is binary.
 
 2008-02-01  Miles Bader  <miles@gnu.org>
 
-	* version.el (emacs-version): Change to "23.0.0".
-
 	* descr-text.el (describe-char-unidata-list):
-	Replace references to Emacs version "22" with "23".
 	* emacs-lisp/bytecomp.el (byte-compile-fix-header)
-	(byte-compile-insert-header): Likewise.
+	(byte-compile-insert-header):
 	* international/mule.el (charset-list, set-coding-priority)
-	(ignore-relative-composition): Likewise.
-	* international/mule-util.el (detect-coding-with-priority): Likewise.
-	* international/mule-diag.el: Likewise.
-	* international/mule-cmds.el (language-info-custom-alist): Likewise.
-	* international/codepage.el (codepage-setup): Likewise.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* case-table.el: Adjust code merged from trunk for unicode
-	branch (for the change on 2008-02-01).
+	(ignore-relative-composition):
+	* international/mule-util.el (detect-coding-with-priority):
+	* international/mule-diag.el:
+	* international/mule-cmds.el (language-info-custom-alist):
+	* international/codepage.el (codepage-setup):
+	Replace references to Emacs version "22" with "23".
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1313,23 +2396,21 @@
 	(setup-default-fontset): Add entries for microsoft-cp1251 and
 	koi8-r for cyrillic.
 
-	* international/mule-cmds.el (char-code-property-alist): New
-	variable.
+	* international/mule-cmds.el (char-code-property-alist): New variable.
 	(define-char-code-property): New function.
-	(get-char-code-property): Handle a char-table registerd in
-	char-code-property-alist.
-	(put-char-code-property): Likewise.
+	(get-char-code-property, put-char-code-property): Handle a
+	char-table registerd in char-code-property-alist.
 	(set-language-environment): Check :ascii-compatible-p property of
 	nonascii charset instead of its dimension.
 
-	* international/uni-bidi.el, international/uni-category.el,
-	international/uni-combining.el, international/uni-comment.el,
-	international/uni-decimal.el, international/uni-decomposition.el,
-	international/uni-digit.el, international/uni-lowercase.el,
-	international/uni-mirrored.el, international/uni-name.el,
-	international/uni-numeric.el, international/uni-old-name.el,
-	international/uni-titlecase.el, international/uni-uppercase.el,
-	international/charprop.el: New files automatically generated by
+	* international/uni-bidi.el, international/uni-category.el:
+	* international/uni-combining.el, international/uni-comment.el:
+	* international/uni-decimal.el, international/uni-decomposition.el:
+	* international/uni-digit.el, international/uni-lowercase.el:
+	* international/uni-mirrored.el, international/uni-name.el:
+	* international/uni-numeric.el, international/uni-old-name.el:
+	* international/uni-titlecase.el, international/uni-uppercase.el:
+	* international/charprop.el: New files automatically generated by
 	admin/unidata/Makefile.
 
 	* loadup.el: Load internationnal/charprop.el.
@@ -1344,11 +2425,7 @@
 	* textmodes/ispell.el: These changes are to fix the code merged
 	from trunk for the change on 2008-02-01.
 	(ispell-unified-chars-table): Delete it.
-	(ispell-get-decoded-string): Don't check
-	ispell-unified-chars-table.
-
-	* tar-mode.el (tar-extract): Adjust code merged from trunk for
-	unicode branch (for the change on 2008-02-01).
+	(ispell-get-decoded-string): Don't check ispell-unified-chars-table.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1359,7 +2436,7 @@
 
 	* international/mule-cmds.el (select-safe-coding-system-interactively):
 	Change 'mime-charset to :mime-charset.
-	(select-safe-coding-system): Use above (sync to HEAD).
+	(select-safe-coding-system): Use above.
 	(set-language-environment): Delete unnecessary code for handling
 	overriding-fontspec.
 
@@ -1388,17 +2465,17 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/encoded-kb.el (encoded-kbd-decode-code-list): New
-	function.
-	(encoded-kbd-self-insert-charset): Support multibyte charsets.
-	(encoded-kbd-setup-keymap): Likewise.
+	* international/encoded-kb.el (encoded-kbd-decode-code-list):
+	New function.
+	(encoded-kbd-self-insert-charset, encoded-kbd-setup-keymap):
+	Support multibyte charsets.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* language/china-util.el (hz-set-msb-table): Turn chars beyond 128
 	to eight-bit chars.
 
-	* international/mule-conf.el: Dont' define coding system
+	* international/mule-conf.el: Don't define coding system
 	`undecided' here.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -1413,11 +2490,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* language/chinese.el (chinese-gbk): Include ascii in
-	charset-list.
-
-	* international/encoded-kb.el (encoded-kbd-setup-keymap): Fix
-	previous change.
+	* language/chinese.el (chinese-gbk): Include ascii in charset-list.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1436,14 +2509,13 @@
 
 2008-02-01  Steven Tamm  <steventamm@mac.com>
 
-	* term/mac-win.el: Use mac-standard-fontset-spec to create
-	fontset-mac
-	(mac-standard-fontset-spec): Created.
+	* term/mac-win.el: Use mac-standard-fontset-spec to create fontset-mac.
+	(mac-standard-fontset-spec): Create.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-diag.el (unicode-data): Call
-	find-file-noselect with NOWARN t.
+	* international/mule-diag.el (unicode-data):
+	Call find-file-noselect with NOWARN t.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1455,23 +2527,13 @@
 	category `|'.
 
 	* descr-text.el (describe-char): Make it work on *Help* buffer.
-	Suppress auto-compostion on a region describing about composition.
+	Suppress auto-composition on a region describing about composition.
 
-	* language/european.el (diacritic-compose-region): Compose
-	diacritical marks only with a character whose syntax is word
-	constituent.
-	(diacritic-compose-string): Likewise.
-	(diacritic-composition-function): Likewise.
+	* language/european.el (diacritic-compose-region)
+	(diacritic-compose-string, diacritic-composition-function):
+	Compose diacritical marks only with a character whose syntax is
+	word constituent.
 	(diacritic-post-read-conversion): Delete it.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* international/characters.el: Fix invalid encoding caused by the
-	previous sync.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	Sync all files to HEAD.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1480,17 +2542,13 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* descr-text.el (describe-property-list): Sync to HEAD.
-
-	* international/mule-diag.el: Sync to HEAD.
-
-	* international/fontset.el (x-complement-fontset-spec): Don't
-	change CHARSET_REGISTRY and CHARSET_ENCODING fields.
+	* international/fontset.el (x-complement-fontset-spec):
+	Don't change CHARSET_REGISTRY and CHARSET_ENCODING fields.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/characters.el (next-word-boundary-kana): Handle
-	half-width kana.
+	* international/characters.el (next-word-boundary-kana):
+	Handle half-width kana.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1498,27 +2556,25 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* language/japanese.el (japanese-iso-8bit): Fix order of
-	:charset-list.
+	* language/japanese.el (japanese-iso-8bit): Fix order of :charset-list.
 
-	* mail/rmail.el (rmail-decode-babyl-format): Use
-	with-coding-priority instead of detect-coding-with-priority.
+	* mail/rmail.el (rmail-decode-babyl-format):
+	Use with-coding-priority instead of detect-coding-with-priority.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el (make-translation-table): Set the second
-	extra slot of the char table to 1.
-	(make-translation-table-from-vector): Likewise.
-	(make-translation-table-from-alist): Fix handling of multiple
-	entries.
+	* international/mule.el (make-translation-table)
+	(make-translation-table-from-vector): Set the second extra slot of
+	the char table to 1.
+	(make-translation-table-from-alist): Fix handling of multiple entries.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* language/japanese.el (jisx0213-to-unicode, unicode-to-jisx0213):
 	New translation tables.
 
-	* international/mule.el (make-translation-table-from-alist): New
-	function.
+	* international/mule.el (make-translation-table-from-alist):
+	New function.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1527,17 +2583,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* ps-mule.el (ps-mule-font-info-database): Typo in doc fixed.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* international/fontset.el (font-encoding-alist): Cancel previous
-	change.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* international/fontset.el (font-encoding-alist): Register
-	"iso10646-2" for unicode-sip.
+	* ps-mule.el (ps-mule-font-info-database): Doc fix.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1560,13 +2606,12 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/fontset.el (setup-default-fontset): Register
-	"JISX0213.2004-1".
-	(font-encoding-alist): Likewise.
+	* international/fontset.el (setup-default-fontset)
+	(font-encoding-alist): Register "JISX0213.2004-1".
 
 	* international/mule-diag.el (list-character-sets): Fix the first
 	line message.
-	(sort-listed-character-sets): Adjusted for the change of
+	(sort-listed-character-sets): Adjust for the change of
 	list-characters-sets-1.
 	(list-character-sets-1): List supplementary character sets in a
 	different section.
@@ -1574,39 +2619,35 @@
 
 	* international/characters.el: Fix `han' script range.
 
-	* international/mule-conf.el (japanese-jisx0213.2004-1): Specify
-	:code-space.
+	* international/mule-conf.el (japanese-jisx0213.2004-1):
+	Specify :code-space.
 	(cp932-2-byte): Fix :code-space.
 	(unicode-smp, unicode-sip, unicode-ssp): New charsets.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-conf.el (japanese-jisx0213.2004-1): Specify
-	:dimension 2.
+	* international/mule-conf.el (japanese-jisx0213.2004-1):
+	Specify :dimension 2.
 
 	* language/japanese.el (iso-2022-jp): Exclude japanese-jisx0212.
-	(japanese-ucs-cp932-to-jis-map): Fix previous change.
-	(japanese-ucs-jis-to-cp932-map): Likewise.
-	(iso-2022-jp-2004, euc-jis-2004, japanese-shift-jis-2004): New
-	coding systems.
+	(iso-2022-jp-2004, euc-jis-2004, japanese-shift-jis-2004):
+	New coding systems.
 	(iso-2022-jp-3, euc-jisx0213, shift_jis-2004): New coding system
 	aliases.
 	("Japanese"): Add new charsets and coding systems.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* language/japanese.el (japanese-ucs-cp932-to-jis-map): Renamed
-	from japanese-ucs-cp932-map.
-	(japanese-ucs-jis-to-cp932-map): Renamed from
-	japanese-ucs-jis-map.
-	(japanese-ucs-glibc-map): Delete this tranlastion table.
-	(japanese-ucs-glibc-to-jis-map): New tranlastion table.
-	(japanese-ucs-jis-to-glibc-map): New tranlastion table.
+	* language/japanese.el (japanese-ucs-cp932-to-jis-map):
+	Rename from japanese-ucs-cp932-map.
+	(japanese-ucs-jis-to-cp932-map): Rename from japanese-ucs-jis-map.
+	(japanese-ucs-glibc-map): Delete this translation table.
+	(japanese-ucs-glibc-to-jis-map, japanese-ucs-jis-to-glibc-map):
+	New translation tables.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* cus-start.el: Handle charset-map-path, not
-	charset-map-directory.
+	* cus-start.el: Handle charset-map-path, not charset-map-directory.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1633,8 +2674,7 @@
 	* international/mule.el (coding-system-put): Delete it.
 	It's implemented in C now.
 
-	* international/mule-conf.el (katakana-sjis): Fix :superset to
-	:subset.
+	* international/mule-conf.el (katakana-sjis): Fix :superset to :subset.
 	(japanese-jisx0213-a): New supplementary charset.
 	(japanese-jisx0213.2004-1): New charset.
 
@@ -1651,15 +2691,14 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* composite.el (reference-point-alist): Doc fixed.
-	(encode-composition-rule): Handle a rule (GREF NREF XOFF YOFF).
-	(decode-composition-rule): Likewise.
+	* composite.el (reference-point-alist): Doc fix.
+	(encode-composition-rule, decode-composition-rule):
+	Handle a rule (GREF NREF XOFF YOFF).
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* language/european.el (diacritic-composition-function): Fix for
-	the case that POS is at the head.  Allow combining with more
-	characters.
+	the case that POS is at the head.  Allow combining with more characters.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1676,16 +2715,15 @@
 
 	* international/encoded-kb.el (encoded-kbd-self-insert-utf-8):
 	New function.
-	(encoded-kbd-setup-keymap): Add code for handling utf-8.
-	(encoded-kbd-mode): Likewise.
+	(encoded-kbd-setup-keymap, encoded-kbd-mode): Add code for
+	handling utf-8.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* faces.el (read-face-font): Include fontsets in the completion
-	list.
+	* faces.el (read-face-font): Include fontsets in the completion list.
 
-	* international/mule-cmds.el (set-locale-environment): Insert
-	locale-translation-file-name in a unibyte buffer.
+	* international/mule-cmds.el (set-locale-environment):
+	Insert locale-translation-file-name in a unibyte buffer.
 
 	* international/characters.el: Fix setting of category `|'.
 
@@ -1695,15 +2733,9 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* composite.el (auto-compose-chars): Fix previous change.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
 	* international/mule-cmds.el (select-safe-coding-system): Fix for
 	the case that the first element of default-coding-system is t.
 	Fix a message when some coding systems are rejected.
-
-	* composite.el (auto-compose-chars): Fix previous change.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1718,8 +2750,8 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-conf.el (ctext-no-compositions): Remove
-	garbage arguments.
+	* international/mule-conf.el (ctext-no-compositions):
+	Remove garbage arguments.
 
 	* international/mule.el (make-coding-system): Fix generation of
 	properties.
@@ -1739,11 +2771,10 @@
 
 	* international/mule.el (private-char-area-1-min)
 	(private-char-area-1-max, private-char-area-2-min)
-	(private-char-area-2-max, emacs-mule-charset-table): New
-	variables.
+	(private-char-area-2-max, emacs-mule-charset-table): New variables.
 	(convert-define-charset-argument): New function.
-	(define-charset): Handle the old calling style.  Update
-	emacs-mule-charset-table.
+	(define-charset): Handle the old calling style.
+	Update emacs-mule-charset-table.
 	(make-char-internal): New function.
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
@@ -1777,7 +2808,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* composite.el (auto-composition-chunk-size): Variable deleted.
+	* composite.el (auto-composition-chunk-size): Delete variable.
 	(auto-compose-chars): Always stop after processing a newline.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -1787,30 +2818,27 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* ps-bdf.el: Mostly re-written.
+	* ps-bdf.el: Largely re-write.
 
-	* ps-mule.el: Mostly re-written.
+	* ps-mule.el: Largely re-write.
 
-	* ps-print.el (ps-generate-string-list): Function deleted.
-	(ps-rh-cache, ps-lf-cache, ps-rf-cache): Variables deleted.
-	(ps-header-footer-string): Function deleted.
-	(ps-encode-header-string-function): New variable
+	* ps-print.el (ps-generate-string-list): Delete function.
+	(ps-rh-cache, ps-lf-cache, ps-rf-cache): Delete variables.
+	(ps-header-footer-string): Delete function.
+	(ps-encode-header-string-function): New variable.
 	(ps-generate-header-line): Call ps-encode-header-string-function.
 	(ps-basic-plot-string-function): New variable
 	(ps-begin-job): Set ps-basic-plot-string-function and
 	ps-encode-header-string-function.  For setting up headers and
 	footers, don't use caches such as ps-rh-cache.  Don't call
 	ps-mule-begin-page.
-	(ps-basic-plot-str): Don't call ps-mule-prepare-ascii-font.
-	(ps-basic-plot-string): Likewise.
-	(ps-control-character): Likewise.
+	(ps-basic-plot-str, ps-basic-plot-string, ps-control-character):
+	Don't call ps-mule-prepare-ascii-font.
 	(ps-plot-region): Don't pay attention to composition and
 	non-ASCII characters.
 	(ps-generate): Call ps-mule-end-job.
-	(ps-mule-prepare-ascii-font): Delete autoload.
-	(ps-mule-set-ascii-font): Likewise.
-	(ps-mule-plot-string): Likewise.
-	(ps-mule-begin-page): Likewise.
+	(ps-mule-prepare-ascii-font, ps-mule-set-ascii-font)
+	(ps-mule-plot-string, ps-mule-begin-page): Delete autoload.
 	(ps-mule-end-job): Declare autoload.
 
 	* composite.el (auto-compose-region): New function.
@@ -1843,7 +2871,7 @@
 	* eshell/esh-opt.el (eshell-process-option):
 	* emulation/keypad.el (keypad-setup):
 	* emacs-lisp/lisp-mode.el (prin1-char):
-	* generic.el (generic-mode-set-comments):
+	* emacs-lisp/generic.el (generic-mode-set-comments):
 	* edmacro.el (edmacro-parse-keys):
 	* disp-table.el (standard-display-default): Use characterp.
 
@@ -1855,14 +2883,14 @@
 	(utf-16-be-with-signature, utf-16-le-with-signature): Remove these
 	coding system aliases.
 
-	* international/utf-7.el (utf-7-decode, utf-7-encode): Use
-	utf-16be, not utf-16-be.
+	* international/utf-7.el (utf-7-decode, utf-7-encode):
+	Use utf-16be, not utf-16-be.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (coding-system-category): New function.
-	(set-coding-priority): Re-written.
-	(make-translation-table): Re-written.
+	(set-coding-priority): Re-write.
+	(make-translation-table): Re-write.
 
 	* international/mule-cmds.el (universal-coding-system-argument):
 	Check the coding system type `undecided', not `t'.
@@ -1875,7 +2903,7 @@
 
 	* font-lock.el
 	(font-lock-match-c-style-declaration-item-and-skip-to-next):
-	Check (match-end 2) before goto there.
+	Check (match-end 2) before going there.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1888,10 +2916,10 @@
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (ctext-non-standard-encodings-alist):
-	Renamed from non-standard-icccm-encodings-alist.
+	Rename from non-standard-icccm-encodings-alist.
 	(ctext-non-standard-encodings-regexp): New variable
 	(ctext-post-read-conversion): Full rewrite.
-	(ctext-non-standard-designations-alist): Renamed from
+	(ctext-non-standard-designations-alist): Rename from
 	non-standard-designations-alist.
 	(ctext-pre-write-conversion): Full rewrite.
 	(define-coding-system): Doc fix (escape '"' by '\').
@@ -1900,8 +2928,8 @@
 
 	* international/mule-conf.el (utf-16le, utf-16be-16be)
 	(utf-16le-with-signature, utf-16be-with-signature, utf-16):
-	Define :mime-text-unsuitable.  `utf-16{b,l}e...' renamed from
-	`-16-{b,l}e-' and aliases defined for the old names.
+	Define :mime-text-unsuitable.  Rename `utf-16{b,l}e...' from
+	`-16-{b,l}e-' and define aliases for the old names.
 
 	* international/mule.el (define-coding-system): Doc fix.
 
@@ -1913,20 +2941,15 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-conf.el (utf-16-be)
-	(utf-16-be-with-signature): Cancel the previous change.
-	(utf-16): Add :endinan 'big.
+	* international/mule-conf.el (utf-16): Add :endian 'big.
 
 	* international/mule.el (define-coding-system): Fix docstring
 	about :bom and :endian.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* mule-conf.el (utf-16-be)
-	(utf-16-be-with-signature): Comment-out :endian.
-
-	* mule-diag.el (describe-character-set): Fix
-	printing dimensions.  Use `,AW', not `x'.
+	* international/mule-diag.el (describe-character-set):
+	Fix printing dimensions.  Use `,AW', not `x'.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1935,11 +2958,10 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-conf.el (utf-16-le): Renamed from
-	utf-16-le-nosig.
-	(utf-16-be): Renamed from utf-16-be-nosig.
-	(utf-16-le-with-signature): Renamed from utf-16-le.
-	(utf-16-be-with-signature): Renamed from utf-16-be.
+	* international/mule-conf.el (utf-16-le): Rename from utf-16-le-nosig.
+	(utf-16-be): Rename from utf-16-be-nosig.
+	(utf-16-le-with-signature): Rename from utf-16-le.
+	(utf-16-be-with-signature): Rename from utf-16-be.
 	(utf-16): Set :bom to (utf-16-le-with-signature .
 	utf-16-be-with-signature).
 
@@ -1951,16 +2973,16 @@
 	* language/chinese.el (chinese-big5-hkscs): New coding system.
 	(big5-hkscs, cn-big5-hkscs): New aliases.
 
-	* international/mule-conf.el (big5-hkscs, georgian-academy): New
-	charset.
+	* international/mule-conf.el (big5-hkscs, georgian-academy):
+	New charset.
 	(ibm1047): Doc fix.
 	(pt154): Add mime-charset.
 	(ptcp154, cp154): New aliases.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* international/mule.el (charset-iso-final-char)
-	(define-coding-system): Doc fix.
+	* international/mule.el (charset-iso-final-char, define-coding-system):
+	Doc fix.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1969,8 +2991,8 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-diag.el (list-block-of-chars): Use
-	decode-char instead of make-char.
+	* international/mule-diag.el (list-block-of-chars):
+	Use decode-char instead of make-char.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -1986,8 +3008,7 @@
 	* international/mule-conf.el (unicode-bmp): Delete duplicated
 	definition.  Give it :code-offset 0.
 
-	* international/mule-diag.el (print-fontset-element): New
-	function.
+	* international/mule-diag.el (print-fontset-element): New function.
 	(print-fontset): Use print-fontset-element to print the elements
 	of a fontset.  Use it also to print fonts fallen back to the
 	default fontsets.
@@ -2009,9 +3030,9 @@
 
 	* international/mule-cmds.el (find-coding-systems-for-charsets):
 	Use coding-system-type, coding-system-charset-list.
-	(standard-keyboard-coding-systems): Deleted.
-	(set-locale-environment): Maybe set keyboard coding system.  Avoid
-	typical warning about codeset in C locale.
+	(standard-keyboard-coding-systems): Delete.
+	(set-locale-environment): Maybe set keyboard coding system.
+	Avoid typical warning about codeset in C locale.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
@@ -2043,9 +3064,9 @@
 	automatically on displaying.
 
 	* composite.el: Remove all autoload cookies.
-	(composition-function-table): Variable declaration moved from
-	composite.c.  Format changed.
-	(save-buffer-state): Copied from font-lock.el.
+	(composition-function-table): Move variable declaration from
+	composite.c.  Change format.
+	(save-buffer-state): Copy from font-lock.el.
 	(auto-composition-chunk-size): New variable.
 	(auto-compose-chars): New function.  Set
 	auto-composition-function to it.
@@ -2084,8 +3105,7 @@
 	composition-function-table for Lao vowels and tones.
 	(lao): Don't use lao-post-read-conversion.
 
-	* language/lao-util.el (lao-post-read-conversion): Delete this
-	function.
+	* language/lao-util.el (lao-post-read-conversion): Delete this function.
 	(lao-composition-function): Change arguments to conform to
 	composition-function-table.
 
@@ -2093,16 +3113,15 @@
 	composition-function-table for Thai vowels and tones.
 	(thai-tis620): Don't use thai-post-read-conversion.
 
-	* language/thai-util.el (thai-post-read-conversion): Delete this
-	function.
+	* language/thai-util.el (thai-post-read-conversion): Delete function.
 	(thai-composition-function): Change arguments to conform to
 	composition-function-table.
 
 	* language/tibetan.el: Register tibetan-composition-function in
 	composition-function-table for Tibetan characters.
 
-	* language/tibet-util.el (tibetan-composition-function): Change
-	arguments to conform to composition-function-table.
+	* language/tibet-util.el (tibetan-composition-function):
+	Change arguments to conform to composition-function-table.
 
 	* loadup.el: Load composite.
 
@@ -2123,15 +3142,14 @@
 
 	* international/mule-conf.el (indian-is13194): Delete :unify-map
 	property.  Don't unify this charset.
-	(indian-2-column): Delete :superset property, add :code-offset
-	property.
+	(indian-2-column): Delete :superset property, add :code-offset property.
 
 	* language/devan-util.el: Delete the superfluous autoload cookie
 	near the head of the file.
 	(devanagari-compose-region): Add autoload cookie.
 
-	* language/ind-util.el (indian-2-column-to-ucs-region): Add
-	autoload cookie.
+	* language/ind-util.el (indian-2-column-to-ucs-region):
+	Add autoload cookie.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2158,8 +3176,8 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* language/indian.el (in-is13194-devanagari): Fix
-	:post-read-conversion and :pre-write-conversion.
+	* language/indian.el (in-is13194-devanagari):
+	Fix :post-read-conversion and :pre-write-conversion.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -2172,8 +3190,8 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (set-locale-environment): Delete
-	superfluous ')'s at the tail.
+	* international/mule-cmds.el (set-locale-environment):
+	Delete superfluous ')'s at the tail.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
@@ -2182,8 +3200,8 @@
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* emacs-lisp/byte-opt.el (side-effect-free-fns): Add
-	 string-make-unibyte string-make-multibyte string-to-multibyte
+	* emacs-lisp/byte-opt.el (side-effect-free-fns):
+	 Add string-make-unibyte string-make-multibyte string-to-multibyte
 	 string-as-multibyte string-as-unibyte.
 
 2008-02-01  Dave Love  <fx@gnu.org>
@@ -2195,20 +3213,19 @@
 	(ibm866): Change alias.
 	(ibm1047): New.
 
-	* language/cyrillic.el (cyrillic-alternativnyj): Remove
-	mime-charset.  Use alternativnj charset.
+	* language/cyrillic.el (cyrillic-alternativnyj):
+	Remove mime-charset.  Use alternativnj charset.
 	(cp866): Remove alias.  Define standalone.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
 	* language/european.el ("Latin-2", "Latin-5"): Doc fix.
 
-	* language/cyrillic.el ("Bulgarian"): Fix input method and
-	charset.
+	* language/cyrillic.el ("Bulgarian"): Fix input method and charset.
 	("Tajik", "Belarusian"): Fix charset.
 
-	* international/mule-cmds.el (describe-language-environment): Be
-	case-insensitive when looking for input methods.
+	* international/mule-cmds.el (describe-language-environment):
+	Be case-insensitive when looking for input methods.
 	(locale-name-match): Doc fix.
 	(locale-charset-match-p): New.
 	(set-locale-environment): Warn if coding system doesn't agree
@@ -2243,17 +3260,18 @@
 	* language/european.el: Remove unibyte-syntax properties.
 	Augment some coding-system properties.
 
-	* international/mule-cmds.el (set-language-environment): Check
-	for charset property of environment.
+	* international/mule-cmds.el (set-language-environment):
+	Check for charset property of environment.
 	(language-info-alist): Doc fix.
 
 	* Makefile.in (DONTCOMPILE): Remove latin-N.el.
 
 	* international/characters.el: Add Latin-1.
 
-	* international/latin-1, international/latin-2, international/latin-3:
-	* international/latin-4, international/latin-5, international/latin-8:
-	* international/latin-9: Deleted.
+	* international/latin-1.el, international/latin-2.el,
+	* international/latin-3.el, international/latin-4.el,
+	* international/latin-5.el, international/latin-8.el,
+	* international/latin-9.el: Delete.
 
 	* loadup.el: Remove international/latin-N.el.
 
@@ -2266,8 +3284,7 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* international/fontset.el (charset-script-alist): Fix script
-	names.
+	* international/fontset.el (charset-script-alist): Fix script names.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -2292,8 +3309,7 @@
 	* international/latin-9.el: Bind set-case-syntax-charset to
 	iso-8859-15.  Never provide latin-9.
 
-	* case-table.el (set-case-syntax-set-multibyte): This variable
-	deleted.
+	* case-table.el (set-case-syntax-set-multibyte): Delete variable.
 	(set-case-syntax-charset): New variable.
 	(set-case-syntax-1): New function.
 	(set-case-syntax-delims, set-case-syntax-pair, set-case-syntax):
@@ -2308,10 +3324,6 @@
 	default fontset.
 
 	* faces.el (describe-face): Describe :fontset property too.
-
-2008-02-01  Dave Love  <fx@gnu.org>
-
-	* international/characters.el: Fix last change.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -2340,16 +3352,10 @@
 
 	* language/ind-util.el (iscii-to-ucs-region): Fix typo.
 
-2008-02-01  Kenichi Handa  <handa@etl.go.jp>
-
-	* international/mule-conf.el (emacs-mule, iso-2022-7bit)
-	(iso-2022-7bit-ss2, iso-2022-7bit-lock, iso-2022-8bit-ss2)
-	(compound-text, ctext-no-compositions): Cancel provious change.
-
 2008-02-01  Dave Love  <fx@gnu.org>
 
 	* wid-edit.el (widget-string-complete): New.
-	(widget-coding-system-prompt-value-history): Deleted.
+	(widget-coding-system-prompt-value-history): Delete.
 	(coding-system): Use coding-system-value-history.
 
 	* international/mule-cmds.el (charset): New widget.
@@ -2368,16 +3374,12 @@
 	* language/indian.el (indian-script-table)
 	(ccl-encode-indian-glyph-font): Delete.
 
-	* international/mule-conf.el (emacs-mule, iso-2022-7bit)
-	(iso-2022-7bit-ss2, iso-2022-7bit-lock, iso-2022-8bit-ss2)
-	(compound-text, ctext-no-compositions): Remove :charset-list.
-
 	* international/mule-cmds.el (language-info-custom-alist): New.
 	(input-method-activate-hook, input-method-inactivate-hook)
 	(input-method-after-insert-chunk-hook)
 	(input-method-use-echo-area, set-language-environment-hook)
 	(exit-language-environment-hook): Customize.
-	(find-coding-systems-for-charsets): Rewritten.
+	(find-coding-systems-for-charsets): Rewrite.
 	(default-input-method): Add :link.
 
 2008-02-01  Dave Love  <fx@gnu.org>
@@ -2458,10 +3460,6 @@
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
-	* tar-mode.el (tar-extract): Fix previous change.
-
-2008-02-01  Kenichi Handa  <handa@etl.go.jp>
-
 	* international/characters.el (next-word-boundary-han):
 	Don't treat katakana following han characters as a part of a word.
 
@@ -2469,9 +3467,8 @@
 
 	* international/characters.el: Call map-charset-chars on big5 (not
 	chinese-big5-1/2) to set categories `c', `C', and `|'.
-	(next-word-boundary-han): New function.  Register it in
-	next-word-boundary-function-table.
-	(next-word-boundary-kana): Likewise.
+	(next-word-boundary-han, next-word-boundary-kana): New function.
+	Register it in next-word-boundary-function-table.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
@@ -2508,8 +3505,7 @@
 	call of position-bytes.
 	(tar-extract): Simplify by calling decode-coding-region with
 	DESTINATION argument.  Don't toggle multibyteness of tar buffer.
-	(tar-copy): Don't toggle multibyteness of tar buffer.
-	(tar-expunge): Likewise.
+	(tar-copy, tar-expunge): Don't toggle multibyteness of tar buffer.
 	(tar-clear-modification-flags): Delete unnecessary call of
 	position-bytes.
 	(tar-rename-entry): Call tar-alter-one-field with encoded new name.
@@ -2531,14 +3527,14 @@
 	* international/characters.el: Setup char-script-table.
 
 	* international/fontset.el: Setup the default fontset by the new
-	script based way.
+	script-based way.
 	(x-complement-fontset-spec): Change the format of arg FONTLIST to
 	an alist of charsets vs font name lists.
 	(charset-script-alist): New variable.
 	(create-fontset-from-fontset-spec): Allow script name in
 	FONTSET-SPEC.  If charset is specified in FONTSET-SPEC, change it
 	to the corresponding script name.
-	(create-fontset-from-ascii-font): Slightly tuned.
+	(create-fontset-from-ascii-font): Slight tuning.
 
 	* international/mule-conf.el (devanagari-glyph): New charset.
 	Unify these charsets: korean-ksc5601, ipa, tibetan, ethiopic,
@@ -2550,11 +3546,6 @@
 
 	* language/indian.el: Don't register ccl-encode-indian-glyph-font
 	and ccl-encode-unicode-font in font-ccl-encoder-alist.
-
-2008-02-01  Dave Love  <fx@gnu.org>
-
-	* startup.el (fancy-splash-head): Warn about status.
-	(fancy-splash-tail): Copyright up-date.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
@@ -2576,10 +3567,8 @@
 2008-02-01  Dave Love  <fx@gnu.org>
 
 	* international/mule-cmds.el (find-coding-systems-region)
-	(language-info-alist, reset-language-environment, princ-list): Doc
-	fix.
+	(language-info-alist, reset-language-environment, princ-list): Doc fix.
 	(input-method-verbose-flag): Fix :type.
-	(set-locale-environment): Revert last change.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -2603,8 +3592,7 @@
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* international/mule-util.el (detect-coding-with-priority):
-	Rewritten.
+	* international/mule-util.el (detect-coding-with-priority): Rewrite.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -2613,14 +3601,11 @@
 	* language/georgian.el ("Georgian"): Delete code-pages feature,
 	add nonascii-translation.
 
-	* language/european.el ("German", "French", "Spanish"): Add
-	latin-9 as alternative coding system.
-	("Slovenian", "Polish"): Add windows-1250 as alternative coding
-	system.
-	("Dutch"): Add latin-9 as alternative coding system.  Add input
-	method.
-	("Turkish"): Add windows-1254 and latin-3 as alternative coding
-	systems.
+	* language/european.el ("German", "French", "Spanish"):
+	Add latin-9 as alternative coding system.
+	("Slovenian", "Polish"): Add windows-1250 as alternative coding system.
+	("Dutch"): Add latin-9 as alternative coding system.  Add input method.
+	("Turkish"): Add windows-1254 and latin-3 as alternative coding systems.
 	("Lithuanian", "Latvian"): Add windows-1257 as alternative coding
 	system.
 
@@ -2646,22 +3631,16 @@
 
 	* international/characters.el: Make korean-ksc5601 double-width.
 
-	* international/mule.el (auto-coding-regexp-alist): Recognize
-	Emacs 20/1 byte-compiled files.
+	* international/mule.el (auto-coding-regexp-alist):
+	Recognize Emacs 20/1 byte-compiled files.
 
-	* international/mule-conf.el (file-coding-system-alist): Change
-	.elc to utf-8-emacs.
+	* international/mule-conf.el (file-coding-system-alist):
+	Change .elc to utf-8-emacs.
 
-	* emacs-lisp/bytecomp.el (byte-recompile-directory)
-	(batch-byte-recompile-directory): Update from trunk.
-	(byte-compile-fix-header): Adjust for use of utf-8-emacs.
+	* emacs-lisp/bytecomp.el (byte-compile-fix-header): Adjust for use
+	of utf-8-emacs.
 	(byte-compile-insert-header): Update magic number.  Add ballast.
 	(map-char-table): Use byte-compile-funarg-2.
-
-2008-02-01  Dave Love  <fx@gnu.org>
-
-	* international/mule-cmds.el (set-locale-environment): Use
-	locale-codeset.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -2677,29 +3656,27 @@
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* language/chinese.el (chinese-gbk, gbk, cp936, windows-936): New
-	coding systems.
+	* language/chinese.el (chinese-gbk, gbk, cp936, windows-936):
+	New coding systems.
 	("Chinese-GBK"): New environment.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* language/chinese.el (chinese-gbk, gbk, cp936, windows-936): New
-	coding systems.
+	* language/chinese.el (chinese-gbk, gbk, cp936, windows-936):
+	New coding systems.
 	("Chinese-GBK"): New environment.
 
-	* language/thai-util.el: Remove redundant unicodes in
-	category-setting.
+	* language/thai-util.el: Remove redundant unicodes in category-setting.
 
-	* language/lao-util.el: Remove redundant unicodes in
-	category-setting.
+	* language/lao-util.el: Remove redundant unicodes in category-setting.
 
 	* international/mule-conf.el (japanese-jisx0213-1)
 	(japanese-jisx0213-2): Add unify-map.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/quail.el (quail-update-leim-list-file): Force
-	writing the file by iso-2022-7bit.
+	* international/quail.el (quail-update-leim-list-file):
+	Force writing the file by iso-2022-7bit.
 
 	* international/titdic-cnv.el (miscdic-convert): Force writing the
 	file by iso-2022-7bit.
@@ -2707,7 +3684,7 @@
 	* international/mule.el (define-charset): Change the attribute
 	:parents to :subset or :superset.
 
-	* international/mule-conf.el: Adjusted for the change of
+	* international/mule-conf.el: Adjust for the change of
 	define-charset (:parent -> :subset or :superset).
 
 	* international/characters.el: Fix the last change.
@@ -2715,25 +3692,23 @@
 2008-02-01  Dave Love  <fx@gnu.org>
 
 	* language/cyril-util.el (cyrillic-encode-koi8-r-char)
-	(cyrillic-encode-alternativnyj-char): Fixed.
+	(cyrillic-encode-alternativnyj-char): Fix.
 	(standard-display-cyrillic-translit): Remove redundant unicodes.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* language/cyrillic.el ("Tajik", "Bulgarian", "Belarusian"): New
-	environments.
+	* language/cyrillic.el ("Tajik", "Bulgarian", "Belarusian"):
+	New environments.
 
 	* international/mule-conf.el (control-1): New charset.
-	(eight-bit-control, eight-bit-graphic): Redefined to use raw-bytes
-	space.
+	(eight-bit-control, eight-bit-graphic): Redefine to use raw-bytes space.
 	(korean-ksc5601): Redefine to use code-offset and unify-map.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
 	* international/mule-conf.el (tcvn-5712): New charset.
 
-	* language/vietnamese.el (vietnamese-tcvn, tcvn): New coding
-	system.
+	* language/vietnamese.el (vietnamese-tcvn, tcvn): New coding system.
 	("Vietnamese"): Doc fix.
 
 2008-02-01  Dave Love  <fx@gnu.org>
@@ -2746,17 +3721,14 @@
 	category setup.  Remove obsolete syntax setting in Greek section.
 	Optimize the char tables.
 
-	* language/thai.el ("Thai"): Add cp874, iso-8859-11 coding
-	systems.
+	* language/thai.el ("Thai"): Add cp874, iso-8859-11 coding systems.
 
-	* language/vietnamese.el ("Vietnamese"): Add windows-1258 coding
-	system.
+	* language/vietnamese.el ("Vietnamese"): Add windows-1258 coding system.
 
 	* language/greek.el ("Greek"): Add windows-1253, cp851, cp869
 	coding systems.
 
-	* language/romanian.el ("Romanian"): Add iso-latin-10 coding
-	system.
+	* language/romanian.el ("Romanian"): Add iso-latin-10 coding system.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
@@ -2766,16 +3738,15 @@
 
 	* cus-start.el: Add selection-coding-system.
 
-	* language/hebrew.el ("Hebrew"): Add windows-1255, cp862 coding
-	systems.
+	* language/hebrew.el ("Hebrew"): Add windows-1255, cp862 coding systems.
 
 	* language/china-util.el (post-read-decode-hz)
-	(pre-write-encode-hz): Moved from chinese.el.
+	(pre-write-encode-hz): Move from chinese.el.
 	(big5-to-flat-code, flat-code-to-big5, euc-to-flat-code)
-	(flat-code-to-euc, expand-euc-big5-alist, big5-to-cns): Deleted.
+	(flat-code-to-euc, expand-euc-big5-alist, big5-to-cns): Delete.
 
 	* language/chinese.el (post-read-decode-hz)
-	(pre-write-encode-hz): Moved to china-util.el.
+	(pre-write-encode-hz): Move to china-util.el.
 
 	* case-table.el (set-case-syntax-pair): Test again for equal byte
 	lengths of the pair.
@@ -2793,13 +3764,13 @@
 	(describe-current-coding-system): Add selection-coding-system.
 
 	* international/mule-cmds.el (unify-8859-on-encoding-mode)
-	(unify-8859-on-decoding-mode): Moved from mule.el.
+	(unify-8859-on-decoding-mode): Move from mule.el.
 
 	* international/mule.el (unify-8859-on-encoding-mode)
 	(unify-8859-on-decoding-mode): Remove :init-value.
 	(charset-chars): Add optional dimension arg.
-	(unify-8859-on-encoding-mode, unify-8859-on-decoding-mode): Moved
-	to mule-cmds.el.
+	(unify-8859-on-encoding-mode, unify-8859-on-decoding-mode):
+	Move to mule-cmds.el.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
@@ -2810,8 +3781,8 @@
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
-	* language/japanese.el (japanese-iso-7bit-1978-irv): Add
-	`designation' to :flags, `ascii' to :charset-list.
+	* language/japanese.el (japanese-iso-7bit-1978-irv):
+	Add `designation' to :flags, `ascii' to :charset-list.
 
 	* international/mule.el (define-charset): New args :min-code and
 	:max-code.
@@ -2819,9 +3790,8 @@
 
 	* international/mule-conf.el (chinese-gbk): Change :code-offset to
 	#x160000.
-	(gb18030-2-byte, gb18030-4-byte-bmp, gb18030-4-byte-smp,
-	gb18030-4-byte-ext-1, gb18030-4-byte-ext-2, gb18030): New
-	charsets.
+	(gb18030-2-byte, gb18030-4-byte-bmp, gb18030-4-byte-smp)
+	(gb18030-4-byte-ext-1, gb18030-4-byte-ext-2, gb18030): New charsets.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -2839,7 +3809,7 @@
 	* international/mule.el (unify-8859-on-encoding-mode)
 	(unify-8859-on-decoding-mode): Dummy versions.
 
-	* international/ucs-tables.el: Removed.
+	* international/ucs-tables.el: Remove.
 
 	* Makefile.in (DONTCOMPILE): Add language/chinese.el,
 	language/japanese.el.
@@ -2864,24 +3834,23 @@
 	* international/mule-util.el (coding-system-post-read-conversion)
 	(coding-system-pre-write-conversion)
 	(coding-system-translation-table-for-decode)
-	(coding-system-translation-table-for-encode): Get the right
-	properties.
+	(coding-system-translation-table-for-encode): Get the right properties.
 	(with-coding-priority): New macro.
 	(detect-coding-with-language-environment): Use it.
 	(coding-system-equal): Use coding-system-plist.
 
-	* encoded-kb.el (encoded-kbd-setup-keymap) <ccl>:
+	* international/encoded-kb.el (encoded-kbd-setup-keymap) <ccl>:
 	Use :valid property.
 
-	* mule-cmds.el (encode-coding-char): Use
-	find-coding-systems-string.  Don't use make-char.
+	* international/mule-cmds.el (encode-coding-char):
+	Use find-coding-systems-string.  Don't use make-char.
 	(describe-language-environment): Use coding-system-aliases.
 	(prefer-coding-system): Doc fix.
 
-	* mule-diag.el (describe-current-coding-system): Fix aliases
-	listing.
-	(print-iso-2022-flags): Deleted.
-	(print-designation): Partly re-written.
+	* international/mule-diag.el (describe-current-coding-system):
+	Fix aliases listing.
+	(print-iso-2022-flags): Delete.
+	(print-designation): Partial re-write.
 	(describe-coding-system): Deal with iso-2022 designations, flags.
 	Fix shift_jis case.
 	(describe-char-after): Use characterp.  Print explicit unicode.
@@ -2890,33 +3859,23 @@
 	(print-coding-system): Use coding-system-aliases.
 	(mule-diag): Don't list coding categories.
 
-	* mule-conf.el: Doc fixes.  Remove redundant
-	:long-name properties.  Re-order charset priorities.
+	* international/mule-conf.el: Doc fixes.  Remove redundant :long-name properties.
+	Re-order charset priorities.
 	(binary): New alias.
 	(iso-8859-16): Fix nickname.
 	(define-iso-single-byte-charset): Un-define after use.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* international/mule.el (coding-system-iso-2022-flags): Revert
-	last change.
+	* international/characters.el: Additional double width specifications.
 
-2008-02-01  Dave Love  <fx@gnu.org>
-
-	* international/characters.el: Additional double width
-	specifications.
-
-	* international/mule-diag.el (print-coding-system): Incomplete
-	updates.
+	* international/mule-diag.el (print-coding-system): Incomplete updates.
 	(describe-character-set): List more properties.
 	(print-fontset): Fix case of vector font-spec.
 	(describe-current-coding-system): Fix iso-7, iso-7-else.
 
 	* international/mule-conf.el (ibm866): Fix alias.
 	(iso-8859-16): Fix nickname.
-
-	* international/mule.el (coding-system-iso-2022-flags): Add
-	use-roman, use-oldjis.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -2941,8 +3900,7 @@
 
 	* language/hebrew.el (cp862, ibm862): New coding systems.
 
-	* language/greek.el (cp851, ibm851, cp869, ibm869): New coding
-	systems.
+	* language/greek.el (cp851, ibm851, cp869, ibm869): New coding systems.
 
 	* language/cyrillic.el (cp855, ibm855): New coding systems.
 
@@ -2952,15 +3910,13 @@
 	(cp860, cp861, cp862, cp863, cp864, cp865, cp869, cp874):
 	New charsets.
 
-	* international/characters.el: Various simplifications and
-	additions.
+	* international/characters.el: Various simplifications and additions.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* international/mule-conf.el (code-pages): Provide, for
-	compatibility.
+	* international/mule-conf.el (code-pages): Provide, for compatibility.
 
-	* international/code-pages.el: Removed.
+	* international/code-pages.el: Remove.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
@@ -2985,8 +3941,7 @@
 
 	* cus-start.el: Add charset-map-directory.
 
-	* international/fontset.el (font-encoding-alist): Add
-	adobe-symbol.
+	* international/fontset.el (font-encoding-alist): Add adobe-symbol.
 
 	* format.el (format-alist): Remove ibm, mac, hp entries (available
 	natively).
@@ -3020,9 +3975,8 @@
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* international/codepage.el: Most of code removed or commented
-	out.
-	(codepage-setup): Re-written as trivial, obsolete function.
+	* international/codepage.el: Remove or comment out most of code.
+	(codepage-setup): Re-write as trivial, obsolete function.
 
 	* language/utf-8-lang.el ("UTF-8"): Use utf-8, not mule-utf-8.
 	Remove setup function.
@@ -3032,15 +3986,13 @@
 	* Makefile.in (DONTCOMPILE): Add language/vietnamese.el,
 	language/cyrillic.el, language/czech.el.
 
-	* language/vietnamese.el (windows-1258, cp1258): New coding
-	systems.
+	* language/vietnamese.el (windows-1258, cp1258): New coding systems.
 	(font-ccl-encoder-alist): Remove viscii, vscii.
 
 	* language/hebrew.el (windows-1255, cp1255): New coding systems.
 
 	* language/european.el (windows-1254, cp1254, windows-1257)
-	(cp1257, next, iso-latin-7, iso-8859-13, latin-7): New coding
-	systems.
+	(cp1257, next, iso-latin-7, iso-8859-13, latin-7): New coding systems.
 	("Latin-7", "Lithuanian", "Latvian"): Don't require code-pages.
 
 	* language/greek.el (windows-1253, cp1253): New coding systems.
@@ -3050,19 +4002,18 @@
 	(windows-1253, windows-1254, windows-1255, windows-1256)
 	(windows-1257, windows-1258, next): New charsets.
 
-	* international/utf-8.el, international/utf-8-subst.el: Removed.
+	* international/utf-8.el, international/utf-8-subst.el: Remove.
 
 	* international/mule.el: Doc fixes.
-	(charset-list, generic-char-p, set-coding-priority): Make
-	obsolete.
+	(charset-list, generic-char-p, set-coding-priority): Make obsolete.
 	(coding-system-get): Try to convert old-style symbol to keyword.
 	(define-charset): Purecopy strings in property list.
 	(define-coding-system): Purecopy docstring.
 
 	* international/mule-diag.el (list-character-sets-2): Avoid
 	charset-bytes.
-	(list-iso-charset-chars, list-non-iso-charset-chars): Deleted.
-	(list-block-of-chars): Re-written.
+	(list-iso-charset-chars, list-non-iso-charset-chars): Delete.
+	(list-block-of-chars): Re-write.
 	(describe-character-set): Show more properties.
 	(describe-char-after): Correct codepoint display.
 	(print-coding-system): Use symbolic types.
@@ -3074,21 +4025,21 @@
 2008-02-01  Dave Love  <fx@gnu.org>
 
 	* international/mule-diag.el: Doc fixes.
-	(sort-charset-list, charset-multibyte-form-string): Removed.
+	(sort-charset-list, charset-multibyte-form-string): Remove.
 	(list-character-sets, list-character-sets-1)
-	(list-character-sets-2): Re-written.
+	(list-character-sets-2): Re-write.
 	(non-iso-charset-alist): Set to nil and made obsolete.
-	(decode-codepage-char): Re-written and made obsolete.
+	(decode-codepage-char): Re-write and made obsolete.
 	(read-charset): Don't use non-iso-charset-alist.
 	(describe-coding-system): Use keyword properties.
-	(describe-character-set): Re-written.
+	(describe-character-set): Re-write.
 
 	* international/mule-conf.el (koi8-u, koi8-t, georgian-ps)
 	(windows-1250, windows-1251, windows-1252, cp1125, ebcdic-us)
 	(ebcdic-uk): New charsets.
 
-	* language/cyrillic.el (koi8-u, koi8-t, windows-1251, cp1125): New
-	coding systems.
+	* language/cyrillic.el (koi8-u, koi8-t, windows-1251, cp1125):
+	New coding systems.
 
 	* language/european.el (windows-1252): New coding system.
 
@@ -3099,9 +4050,8 @@
 	* international/encoded-kb.el (encoded-kbd-handle-8bit): Call
 	encoded-kbd-self-insert-iso2022-8bit with argument 1.
 	(encoded-kbd-self-insert-charset): New function.
-	(encoded-kbd-setup-keymap): Handle a coding-system of type
-	charset.
-	(encoded-kbd-mode): Likewise.
+	(encoded-kbd-setup-keymap, encoded-kbd-mode): Handle a
+	coding-system of type charset.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -3110,16 +4060,14 @@
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule.el (define-coding-system): Docstring
-	fixed (sjis->shift-jis).
+	* international/mule.el (define-coding-system): Doc fix;
+	sjis->shift-jis.
 
-	* international/mule-conf.el: Use decode-char instead of
-	make-char.
+	* international/mule-conf.el: Use decode-char instead of make-char.
 
-	* international/encoded-kb.el
-	(encoded-kbd-self-insert-iso2022-8bit): New arg ARG.  Directly
-	call self-insert-command.  This is a temporary workaround to
-	make it work with latin-1.
+	* international/encoded-kb.el (encoded-kbd-self-insert-iso2022-8bit):
+	New arg ARG.  Directly call self-insert-command.  This is a
+	temporary workaround to make it work with latin-1.
 	(encoded-kbd-mode): Change `sjis' to `shift-jis'.
 
 	* international/characters.el: Setup char-width-table for CJK
@@ -3153,31 +4101,28 @@
 	(select-safe-coding-system, select-message-coding-system): Use
 	:mime-charset, not 'mime-charset.
 
-	* international/mule-conf.el: Add various :mime-charset
-	properties.
+	* international/mule-conf.el: Add various :mime-charset properties.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
 	* international/encoded-kb.el (encoded-kbd-self-insert-ccl): Fix
 	getting decoder.
-	(encoded-kbd-mode): Fix code for coding system type and
-	designations.
+	(encoded-kbd-mode): Fix code for coding system type and designations.
 
-	* international/mule-conf.el: Speling fixes.
+	* international/mule-conf.el: Spelling fixes.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/fontset.el (fontset-plain-name): Handle the case
 	that size, weight, slant are not specified in the fontset name.
 
-2008-02-01  Yong Lu <lyongu@asia-infonet.com>
+2008-02-01  Yong Lu  <lyongu@asia-infonet.com>
 
 	* language/greek.el (greek-iso-8bit): Fix typo.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
-	* language/chinese.el (chinese-big5): Change :coding-type to
-	`charset'.
+	* language/chinese.el (chinese-big5): Change :coding-type to `charset'.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
@@ -3198,9 +4143,8 @@
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
-	* international/mule-conf.el (utf-16-le): Use :bom attribute
+	* international/mule-conf.el (utf-16-le, utf-16-be): Use :bom attribute
 	instead of :signature.
-	(utf-16-be): Likewise.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
@@ -3211,16 +4155,15 @@
 
 	* language/slovak.el ("Slovak"): Likewise.
 
-	* international/characters.el: Optimize calls of
-	modify-category-entry.
+	* international/characters.el: Optimize calls of modify-category-entry.
 
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
 	* bindings.el: Don't bind multibyte characters to
 	self-insert-command here.  It's done in mule-conf.el.
 
-	* case-table.el (set-case-syntax-offset): Variable deleted.
-	(set-case-syntax-1): Function deleted.  Callers changed.
+	* case-table.el (set-case-syntax-offset): Delete variable.
+	(set-case-syntax-1): Delete function.  Change callers.
 	(set-case-syntax-delims): Don't check byte length of characters.
 
 	* isearch.el (isearch-mode-map): Call set-char-table-range to bind
@@ -3231,27 +4174,25 @@
 	`utf-8' while writing fns-XXX.el.  Call clear-charset-maps before
 	dumping.
 
-	* version.el (emacs-version): Set to "22.0.0".
-
-	* emacs-lisp/regexp-opt.el (regexp-opt-charset): Adjusted for the
+	* emacs-lisp/regexp-opt.el (regexp-opt-charset): Adjust for the
 	change of map-char-table.
 
-	* eshell/esh-mode.el: Adjusted for the change of map-char-table.
+	* eshell/esh-mode.el: Adjust for the change of map-char-table.
 
-	* international/characters.el: Adjusted for the deletion of
+	* international/characters.el: Adjust for the deletion of
 	generic characters.
 
-	* international/code-pages.el (cp-make-translation-table,
-	cp-valid-codes, cp-fix-safe-chars): Deleted.  Caller changed.
+	* international/code-pages.el (cp-make-translation-table)
+	(cp-valid-codes, cp-fix-safe-chars): Delete.  Change caller.
 	(cp-make-coding-system): Call define-coding-system.
 
-	* international/fontset.el: Mostly re-written.
+	* international/fontset.el: Rewrite most code.
 
 	* international/ja-dic-cnv.el (skkdic-get-kana-compact-codes):
 	Call encode-char instead of split-char.
 
 	* international/ja-dic-utl.el (skkdic-jisx0208-hiragana-block):
-	Value changed.
+	Change value.
 	(skkdic-lookup-key): Call encode-char instead of split-char.
 
 	* international/titdic-cnv.el (titdic-convert): Bind
@@ -3272,64 +4213,60 @@
 
 	* international/latin-9.el: Don't bind set-case-syntax-offset.
 
-	* international/mule-cmds.el: Don't use coding category.  Call
-	set-coding-system-priority instead of set-coding-priority.
-	(sort-coding-systems): Call coding-system-priority-list to get the
-	most preferred one.
-	(select-safe-coding-system): Likewise.
+	* international/mule-cmds.el: Don't use coding category.
+	Call set-coding-system-priority instead of set-coding-priority.
+	(sort-coding-systems, select-safe-coding-system):
+	Call coding-system-priority-list to get the most preferred one.
 	(reset-language-environment): Order of coding system priority
 	changed.  Set primary charset to iso-8859-1.
-	(set-language-environment-coding-systems): Call
-	set-coding-system-priority instead of set-coding-priority.
-	(get-charset-property, put-charset-property): Moved to mule.el.
+	(set-language-environment-coding-systems):
+	Call set-coding-system-priority instead of set-coding-priority.
+	(get-charset-property, put-charset-property): Move to mule.el.
 
-	* international/mule-conf.el: Fully Re-written.
+	* international/mule-conf.el: Ful re-write.
 
-	* international/mule-diag.el (print-designation): Arguments
-	changed.
+	* international/mule-diag.el (print-designation): Change arguments.
 	(print-iso-2022-flags): New function.
-	(describe-coding-system): Adjusted for the new structure of coding
-	system.
-	(describe-current-coding-system): Likewise.
+	(describe-coding-system, describe-current-coding-system):
+	Adjust for the new structure of coding system.
 
-	* international/mule.el (char-valid-p): Make it an alias of
-	characterp.
-	(define-charset): Fully re-designed.
-	(charset-quoted-standard-p): Deleted.
-	(charsetp): Moved to charset.c.
-	(charset-info, charset-id, charset-bytes, charset-width,
-	charset-directioin, charset-iso-graphic-plane,
-	charset-reverse-charset): Deleted.
-	(charset-dimension, charset-chars, charset-iso-final-char,
-	charset-description, charset-short-name, charset-long-name): Call
-	charset-plist instead of charset-info.
-	(charset-plist, set-charset-plist): Moved to charset.c.
-	(get-charset-property, put-charset-property): Moved from
+	* international/mule.el (char-valid-p): Make it an alias of characterp.
+	(define-charset): Full re-design.
+	(charset-quoted-standard-p): Delete.
+	(charsetp): Move to charset.c.
+	(charset-info, charset-id, charset-bytes, charset-width)
+	(charset-directioin, charset-iso-graphic-plane)
+	(charset-reverse-charset): Delete.
+	(charset-dimension, charset-chars, charset-iso-final-char)
+	(charset-description, charset-short-name, charset-long-name):
+	Call charset-plist instead of charset-info.
+	(charset-plist, set-charset-plist): Move to charset.c.
+	(get-charset-property, put-charset-property): Move from
 	mule-cmds.el.  Call charset-plist and set-charset-plist.
-	(make-char): Deleted.
+	(make-char): Delete.
 	(generic-char-p): Make it always return nil.
-	(decode-char, encode-char): Moved to charset.c.
-	(coding-spec-XXX-idx): Variables deleted.
+	(decode-char, encode-char): Move to charset.c.
+	(coding-spec-XXX-idx): Delete variables.
 	(coding-system-iso-2022-flags): New variable.
 	(define-coding-system): New function.
 	(transform-make-coding-system-args, make-coding-system): Delete.
 	(set-coding-priority): Make it obsolete.
-	(after-insert-file-set-buffer-file-coding-system): Adjust for
-	the new coding system structure.
-	(find-new-buffer-file-coding-system): Likewise.
+	(after-insert-file-set-buffer-file-coding-system)
+	(find-new-buffer-file-coding-system): Adjust for the new coding
+	system structure.
 
-	* language/chinese.el, language/cyrillic.el, language/european.el,
-	language/greek.el, language/hebrew.el, language/indian.el,
-	language/japanese.el, language/korean.el, language/lao.el,
-	language/thai.el, language/tibetan.el, language/vietnamese.el:
-	Call define-coding-system instead of make-coding-system.  All CCL
-	program deleted.
+	* language/chinese.el, language/cyrillic.el, language/european.el:
+	* language/greek.el, language/hebrew.el, language/indian.el:
+	* language/japanese.el, language/korean.el, language/lao.el:
+	* language/thai.el, language/tibetan.el, language/vietnamese.el:
+	Call define-coding-system instead of make-coding-system.
+	Delete all CCL program.
 
 	* textmodes/sgml-mode.el (sgml-mode-map): Use encode-char instead
 	of make-char.
-	(sgml-char-names-table): Iteration limit fixed.
+	(sgml-char-names-table): Fix iteration limit.
 
-	* term/mac-win.el: Deleted unnecessary calls of set-fontset-font.
+	* term/mac-win.el: Delete unnecessary calls of set-fontset-font.
 	(ccl-encode-mac-roman-font): Delete.
 
 	* Makefile.in (DONTCOMPILE): Add latin1-disp.el, ucs-tables.el,
@@ -3563,8 +4500,8 @@
 
 	* whitespace.el: Moved to obsolete dir.
 
-	* blank-mode.el: New version 9.2.  Replace whitespace funs by aliases
-	in blank-mode.
+	* blank-mode.el: New version 9.2.  Replace whitespace functions by
+	aliases in blank-mode.
 	(whitespace-buffer): New fun.
 	(whitespace-region): Alias for whitespace-buffer, because there is no
 	blank-region fun.
@@ -3626,8 +4563,7 @@
 	for a brace with syntax arglist-cont-nonempty.
 
 	* progmodes/cc-styles.el (c-style-alist): Add elements for
-	arglist-cont-nonempty into 5 styles (gnu, ellemtel, linux, python,
-	awk).
+	arglist-cont-nonempty into 5 styles (gnu, ellemtel, linux, python, awk).
 
 2008-01-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
@@ -3649,7 +4585,7 @@
 
 2008-01-20  Ulf Jasper  <ulf.jasper@web.de>
 
-	* icalendar.el (icalendar-version): Increase to "0.17".
+	* calendar/icalendar.el (icalendar-version): Increase to "0.17".
 	(icalendar-import-format): Doc fix.  Allow function type.
 	(icalendar--read-element): Doc fix.
 	(icalendar--parse-summary-and-rest): Doc fix.  Handle function
@@ -4565,7 +5501,7 @@
 
 	* mail/rmail.el (rmail-convert-to-babyl-format):
 	Remove save-excursion to avoid infinite looping.
-	Reported by: dnz <dnz@bk.ru>.
+	Reported by dnz <dnz@bk.ru>.
 
 2008-01-12  Glenn Morris  <rgm@gnu.org>
 
@@ -4651,7 +5587,7 @@
 
 2008-01-09  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* testmodes/sgml-mode.el (sgml-tag-syntax-table): Initialize this
+	* textmodes/sgml-mode.el (sgml-tag-syntax-table): Initialize this
 	constant with a computation on sgml-specials rather than a literal
 	list.  Without this change the syntax table is generated
 	incorrectly, and the mode will think it's in a comment following
@@ -4675,13 +5611,15 @@
 
 	* ediff-util (eqiff-quit): Autoraise minibuffer.
 
-	* ediff-diff (ediff-convert-fine-diffs-to-overlays): Make it a defun.
+	* ediff-diff.el (ediff-convert-fine-diffs-to-overlays): Make it a defun.
 
-	* viper*.el: Comment out declare-function -- not defined in XEmacs.
+	* emulation/viper*.el: Comment out declare-function -- not defined
+	in XEmacs.
 
-	* viper-ex.el (viper-info-on-file): Take care of indirect buffers.
+	* emulation/viper-ex.el (viper-info-on-file):
+	Take care of indirect buffers.
 
-	* viper.el (viper-set-hooks, set-cursor-color):
+	* emulation/viper.el (viper-set-hooks, set-cursor-color):
 	Set viper-vi-state-cursor-color.
 
 2008-01-09  Tom Tromey  <tromey@redhat.com>
@@ -4719,7 +5657,7 @@
 	* ps-print.el: Some face attributes (like :strike-through) were not
 	being recognised.  Reported by Leo <sdl.web@gmail.com>.
 	(ps-print-version): New version 6.8.2.
-	(ps-face-strikout-p, ps-face-overline-p, ps-face-box-p): New funs.
+	(ps-face-strikout-p, ps-face-overline-p, ps-face-box-p): New functions.
 	(ps-screen-to-bit-face): Fix code.
 
 2008-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -4879,7 +5817,7 @@
 2008-01-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-status-fileinfo): New defstruct.
-	(vc-status): New defvar
+	(vc-status): New defvar.
 	(vc-status-insert-headers, vc-status-printer, vc-status)
 	(vc-status-mode-map, vc-status-mode, vc-status-mark-file)
 	(vc-status-unmark-file, vc-status-marked-files): New functions.
@@ -5065,7 +6003,7 @@
 	* progmodes/grep.el (grep-find-ignored-directories):
 	Initialize from the value of vc-directory-exclusion-list.
 
-	* vc-hooks (vc-directory-exclusion-list): Include "_darcs",
+	* vc-hooks.el (vc-directory-exclusion-list): Include "_darcs",
 	even though we don't have a back end for darcs yet.
 
 2008-01-02  Karl Fogel  <kfogel@red-bean.com>
@@ -5074,18 +6012,18 @@
 	See http://lists.gnu.org/archive/html/emacs-devel/2007-12/msg01077.html
 	and its thread for discussion leading to this change.
 
-	* emacs-cvs/lisp/bookmark.el:
-	(bookmark-jump-noselect): Return an alist instead of a dotted pair.
+	* bookmark.el (bookmark-jump-noselect):
+	Return an alist instead of a dotted pair.
 	(bookmark-jump, bookmark-jump-other-window, bookmark-insert)
 	(bookmark-bmenu-2-window, bookmark-bmenu-other-window)
 	(bookmark-bmenu-switch-other-window): Adjust accordingly.
 	(bookmark-make-cell-function): Adjust documentation accordingly.
 
-	* emacs-cvs/lisp/image-mode.el
-	(image-bookmark-jump): Adjust return type accordingly; document.
+	* image-mode.el (image-bookmark-jump):
+	Adjust return type accordingly; document.
 
-	* emacs-cvs/lisp/doc-view.el
-	(doc-view-bookmark-jump): Adjust return type accordingly; document.
+	* doc-view.el (doc-view-bookmark-jump):
+	Adjust return type accordingly; document.
 
 2008-01-02  Miles Bader  <miles@gnu.org>
 
@@ -5421,7 +6359,7 @@
 
 2007-12-27  Eric S. Raymond  <esr@snark.thyrsus.com>
 
-	* vc.el, vc-sccs.el, vc-rcs.el, vc-cs.el, vc-mcvs.el:
+	* vc.el, vc-sccs.el, vc-rcs.el, vc-cvs.el, vc-mcvs.el:
 	Put new machinery in place to support editing of change comments
 	with 'e' in a log-view buffer.  Not documented yet as this
 	only works for SCCS, RCS, and maybe CVS if you have admin
@@ -6128,7 +7066,7 @@
 	* informat.el, emacs-lisp/bytecomp.el, emacs-lisp/gulp.el:
 	* emacs-lisp/tcover-ses.el, emacs-lisp/timer.el, emulation/edt.el:
 	* emulation/vi.el, emulation/viper-cmd.el:
-	* international/titdic-cnv.el, mail/emacsbug.el, progmodes/dcl.el:
+	* international/titdic-cnv.el, mail/emacsbug.el, progmodes/dcl-mode.el:
 	* progmodes/prolog.el, progmodes/ps-mode.el, progmodes/python.el:
 	* textmodes/fill.el: Remove directory part from filenames in
 	function declarations.
@@ -6275,8 +7213,8 @@
 	`dbus-registered-functions-table'.
 	(dbus-check-event, dbus-handle-event, dbus-event-bus-name)
 	(dbus-event-service-name, dbus-event-path-name)
-	(dbus-event-interface-name, dbus-event-member-name): Rewritten,
-	due to new structure of `dbus-event'.
+	(dbus-event-interface-name, dbus-event-member-name):
+	Rewrite, due to new structure of `dbus-event'.
 
 2007-12-04  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -6402,9 +7340,9 @@
 2007-12-02  Karl Fogel  <kfogel@red-bean.com>
 
 	Offer option for saveplace to be quiet about loading and saving.
-	Suggested by David Reitter <dreitter{_AT_}inf.ed.ac.uk>
+	Suggested by David Reitter <dreitter{_AT_}inf.ed.ac.uk>.
 
-	* lisp/saveplace.el (save-place-quiet): New customizable boolean.
+	* saveplace.el (save-place-quiet): New customizable boolean.
 	(save-place-alist-to-file, load-save-place-alist-from-file): Use it
 	to determine whether to print loading/saving messages.
 
@@ -8104,7 +9042,7 @@
 
 	* net/tramp.el (top): Don't autoload `tramp-cache-print'.
 
-	* net/tramp-cache (tramp-cache-print): Move down.
+	* net/tramp-cache.el (tramp-cache-print): Move down.
 	(tramp-cache-list-connections): New defun.
 
 	* net/tramp-cmds.el (tramp-cleanup-connection): Use it.
@@ -9251,7 +10189,7 @@
 
 2007-10-22  Bastien Guerry  <Bastien.Guerry@ens.fr>
 
-	* org-export-latex.el (org-export-latex-protect-string):
+	* textmodes/org-export-latex.el (org-export-latex-protect-string):
 	Renaming of `org-latex-protect'.
 	(org-export-latex-emphasis-alist): By default, don't protect
 	any emphasis formatter from further conversion.
@@ -15893,7 +16831,7 @@
 	* calc/calc-forms.el (math-format-date-part, math-parse-standard-date)
 	(calcFunc-julian): Use `math-read-number-simple' to insert bignums.
 
-	* calc/calc-func.el (math-besJ0, math-besJ1, math-besY0, math-besY1)
+	* calc/calc-funcs.el (math-besJ0, math-besJ1, math-besY0, math-besY1)
 	(math-bernoulli-b-cache): Use math-read-number-simple to insert
 	bignums.
 
@@ -16299,7 +17237,7 @@
 	(viper-inactivate-input-method-action):
 	Use viper-suppress-input-method-change-message.
 
-	* emulation/viper-kem.el (viper-vi-basic-map): Disable the bindings
+	* emulation/viper-keym.el (viper-vi-basic-map): Disable the bindings
 	for C-s, C-r.
 
 	* emulation/viper-util.el (viper-set-cursor-color-according-to-state):

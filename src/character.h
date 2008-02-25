@@ -380,32 +380,35 @@ extern char unibyte_has_multibyte_table[256];
    we increment them past the character fetched.  */
 
 #define FETCH_STRING_CHAR_ADVANCE(OUTPUT, STRING, CHARIDX, BYTEIDX)	\
-  if (1)								\
+  do                                                                    \
     {									\
       CHARIDX++;							\
       if (STRING_MULTIBYTE (STRING))					\
 	{								\
-	  unsigned char *ptr = &XSTRING (STRING)->data[BYTEIDX];	\
+	  unsigned char *ptr = &SDATA (STRING)[BYTEIDX];		\
 	  int len;							\
 									\
 	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, 0, len);		\
 	  BYTEIDX += len;						\
 	}								\
       else								\
-	OUTPUT = XSTRING (STRING)->data[BYTEIDX++];			\
+	{								\
+	  OUTPUT = SREF (STRING, BYTEIDX);				\
+	  BYTEIDX++;							\
+	}								\
     }									\
-  else
+  while (0)
 
 /* Like FETCH_STRING_CHAR_ADVANCE but return a multibyte character eve
    if STRING is unibyte.  */
 
 #define FETCH_STRING_CHAR_AS_MULTIBYTE_ADVANCE(OUTPUT, STRING, CHARIDX, BYTEIDX) \
-  if (1)								      \
+  do                                                                          \
     {									      \
       CHARIDX++;							      \
       if (STRING_MULTIBYTE (STRING))					      \
 	{								      \
-	  unsigned char *ptr = &XSTRING (STRING)->data[BYTEIDX];	      \
+	  unsigned char *ptr = &SDATA (STRING)[BYTEIDX];		      \
 	  int len;							      \
 									      \
 	  OUTPUT = STRING_CHAR_AND_LENGTH (ptr, 0, len);		      \
@@ -413,33 +416,34 @@ extern char unibyte_has_multibyte_table[256];
 	}								      \
       else								      \
 	{								      \
-	  OUTPUT = XSTRING (STRING)->data[BYTEIDX++];			      \
+	  OUTPUT = SREF (STRING, BYTEIDX);				      \
+	  BYTEIDX++;							      \
 	  MAKE_CHAR_MULTIBYTE (OUTPUT);					      \
 	}								      \
     }									      \
-  else
+  while (0)
 
 
 /* Like FETCH_STRING_CHAR_ADVANCE but assumes STRING is multibyte.  */
 
 #define FETCH_STRING_CHAR_ADVANCE_NO_CHECK(OUTPUT, STRING, CHARIDX, BYTEIDX) \
-  if (1)								     \
+  do    								     \
     {									     \
-      unsigned char *ptr = &XSTRING (STRING)->data[BYTEIDX];		     \
+      unsigned char *ptr = &SDATA (STRING)[BYTEIDX];			     \
       int len;								     \
 									     \
       OUTPUT = STRING_CHAR_AND_LENGTH (ptr, 0, len);			     \
       BYTEIDX += len;							     \
       CHARIDX++;							     \
     }									     \
-  else
+  while (0)
 
 
 /* Like FETCH_STRING_CHAR_ADVANCE but fetch character from the current
    buffer.  */
 
 #define FETCH_CHAR_ADVANCE(OUTPUT, CHARIDX, BYTEIDX)		\
-  if (1)							\
+  do    							\
     {								\
       CHARIDX++;						\
       if (!NILP (current_buffer->enable_multibyte_characters))	\
@@ -456,13 +460,13 @@ extern char unibyte_has_multibyte_table[256];
 	  BYTEIDX++;						\
 	}							\
     }								\
-  else
+  while (0)
 
 
 /* Like FETCH_CHAR_ADVANCE but assumes the current buffer is multibyte.  */
 
 #define FETCH_CHAR_ADVANCE_NO_CHECK(OUTPUT, CHARIDX, BYTEIDX)	\
-  if (1)							\
+  do    							\
     {								\
       unsigned char *ptr = BYTE_POS_ADDR (BYTEIDX);		\
       int len;							\
@@ -471,7 +475,7 @@ extern char unibyte_has_multibyte_table[256];
       BYTEIDX += len;						\
       CHARIDX++;						\
     }								\
-  else
+  while (0)
 
 
 /* Increase the buffer byte position POS_BYTE of the current buffer to
@@ -493,9 +497,9 @@ extern char unibyte_has_multibyte_table[256];
     						\
     pos_byte--;					\
     if (pos_byte < GPT_BYTE)			\
-      p = BEG_ADDR + pos_byte - 1;		\
+      p = BEG_ADDR + pos_byte - BEG_BYTE;	\
     else					\
-      p = BEG_ADDR + GAP_SIZE + pos_byte - 1;	\
+      p = BEG_ADDR + GAP_SIZE + pos_byte - BEG_BYTE;\
     while (!CHAR_HEAD_P (*p))			\
       {						\
 	p--;					\
@@ -551,9 +555,9 @@ extern char unibyte_has_multibyte_table[256];
     unsigned char *p;							\
     pos_byte--;								\
     if (pos_byte < BUF_GPT_BYTE (buf))					\
-      p = BUF_BEG_ADDR (buf) + pos_byte - 1;				\
+      p = BUF_BEG_ADDR (buf) + pos_byte - BEG_BYTE;			\
     else								\
-      p = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos_byte - 1;	\
+      p = BUF_BEG_ADDR (buf) + BUF_GAP_SIZE (buf) + pos_byte - BEG_BYTE;\
     while (!CHAR_HEAD_P (*p))						\
       {									\
 	p--;								\

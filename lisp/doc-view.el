@@ -99,6 +99,9 @@
 
 ;;; Todo:
 
+;; - fix behavior with clone-indirect-buffer
+;; - allow different windows showing the same buffer to change pages
+;;   independently.
 ;; - share more code with image-mode again.
 ;; - better menu.
 ;; - Bind slicing to a drag event.
@@ -211,10 +214,16 @@ has finished."
 
 ;;;; Internal Variables
 
-(defvar doc-view-current-files nil
-  "Only used internally.")
+(defun doc-view-new-window-function (winprops)
+  (let ((ol (image-mode-window-get 'overlay winprops)))
+    (if ol
+        (setq ol (copy-overlay ol))
+      (setq ol (make-overlay (point-min) (point-max) nil t))
+      (overlay-put ol 'doc-view t))
+    (overlay-put ol 'window (car winprops))
+    (image-mode-window-put 'overlay ol winprops)))
 
-(defvar doc-view-current-page nil
+(defvar doc-view-current-files nil
   "Only used internally.")
 
 (defvar doc-view-current-converter-process nil
@@ -223,25 +232,13 @@ has finished."
 (defvar doc-view-current-timer nil
   "Only used internally.")
 
-(defvar doc-view-current-slice nil
-  "Only used internally.")
-
 (defvar doc-view-current-cache-dir nil
   "Only used internally.")
 
 (defvar doc-view-current-search-matches nil
   "Only used internally.")
 
-(defvar doc-view-current-image nil
-  "Only used internally.")
-
-(defvar doc-view-current-overlay nil
-  "Only used internally.")
-
 (defvar doc-view-pending-cache-flush nil
-  "Only used internally.")
-
-(defvar doc-view-current-info nil
   "Only used internally.")
 
 (defvar doc-view-previous-major-mode nil
@@ -325,6 +322,12 @@ the (uncompressed, extracted) file residing in
 
 ;;;; Navigation Commands
 
+(defmacro doc-view-current-page () `(image-mode-window-get 'page))
+(defmacro doc-view-current-info () `(image-mode-window-get 'info))
+(defmacro doc-view-current-overlay () `(image-mode-window-get 'overlay))
+(defmacro doc-view-current-image () `(image-mode-window-get 'image))
+(defmacro doc-view-current-slice () `(image-mode-window-get 'slice))
+
 (defun doc-view-goto-page (page)
   "View the page given by PAGE."
   (interactive "nPage: ")
@@ -333,41 +336,39 @@ the (uncompressed, extracted) file residing in
 	(setq page 1)
       (when (> page len)
 	(setq page len)))
-    (setq doc-view-current-page page
-	  doc-view-current-info
+    (setf (doc-view-current-page) page
+	  (doc-view-current-info)
 	  (concat
 	   (propertize
-	    (format "Page %d of %d."
-		    doc-view-current-page
-		    len) 'face 'bold)
+	    (format "Page %d of %d." page len) 'face 'bold)
 	   ;; Tell user if converting isn't finished yet
 	   (if doc-view-current-converter-process
 	       " (still converting...)\n"
 	     "\n")
 	   ;; Display context infos if this page matches the last search
 	   (when (and doc-view-current-search-matches
-		      (assq doc-view-current-page
-			    doc-view-current-search-matches))
+		      (assq page doc-view-current-search-matches))
 	     (concat (propertize "Search matches:\n" 'face 'bold)
 		     (let ((contexts ""))
-		       (dolist (m (cdr (assq doc-view-current-page
+		       (dolist (m (cdr (assq page
 					     doc-view-current-search-matches)))
 			 (setq contexts (concat contexts "  - \"" m "\"\n")))
 		       contexts)))))
     ;; Update the buffer
     (doc-view-insert-image (nth (1- page) doc-view-current-files)
                            :pointer 'arrow)
-    (overlay-put doc-view-current-overlay 'help-echo doc-view-current-info)))
+    (overlay-put (doc-view-current-overlay)
+                 'help-echo (doc-view-current-info))))
 
 (defun doc-view-next-page (&optional arg)
   "Browse ARG pages forward."
   (interactive "p")
-  (doc-view-goto-page (+ doc-view-current-page (or arg 1))))
+  (doc-view-goto-page (+ (doc-view-current-page) (or arg 1))))
 
 (defun doc-view-previous-page (&optional arg)
   "Browse ARG pages backward."
   (interactive "p")
-  (doc-view-goto-page (- doc-view-current-page (or arg 1))))
+  (doc-view-goto-page (- (doc-view-current-page) (or arg 1))))
 
 (defun doc-view-first-page ()
   "View the first page."
@@ -383,18 +384,18 @@ the (uncompressed, extracted) file residing in
   "Scroll page up if possible, else goto next page."
   (interactive)
   (when (= (window-vscroll) (image-scroll-up nil))
-    (let ((cur-page doc-view-current-page))
+    (let ((cur-page (doc-view-current-page)))
       (doc-view-next-page)
-      (when (/= cur-page doc-view-current-page)
+      (when (/= cur-page (doc-view-current-page))
 	(set-window-vscroll nil 0)))))
 
 (defun doc-view-scroll-down-or-previous-page ()
   "Scroll page down if possible, else goto previous page."
   (interactive)
   (when (= (window-vscroll) (image-scroll-down nil))
-    (let ((cur-page doc-view-current-page))
+    (let ((cur-page (doc-view-current-page)))
       (doc-view-previous-page)
-      (when (/= cur-page doc-view-current-page)
+      (when (/= cur-page (doc-view-current-page))
 	(image-scroll-up nil)))))
 
 ;;;; Utility Functions
@@ -548,7 +549,7 @@ Should be invoked when the cached images aren't up-to-date."
         (cancel-timer doc-view-current-timer)
         (setq doc-view-current-timer nil))
       ;; Yippie, finished.  Update the display!
-      (doc-view-display buffer-file-name 'force))))
+      (doc-view-display (current-buffer) 'force))))
 
 (defun doc-view-pdf/ps->png (pdf-ps png)
   "Convert PDF-PS to PNG asynchronously."
@@ -572,7 +573,7 @@ Should be invoked when the cached images aren't up-to-date."
     (setq doc-view-current-timer
 	  (run-at-time "1 secs" doc-view-conversion-refresh-interval
 		       'doc-view-display
-		       buffer-file-name))))
+		       (current-buffer)))))
 
 (defun doc-view-pdf->txt-sentinel (proc event)
   (if (not (string-match "finished" event))
@@ -658,15 +659,15 @@ and Y) of the slice to display and its WIDTH and HEIGHT.
 See `doc-view-set-slice-using-mouse' for a more convenient way to
 do that.  To reset the slice use `doc-view-reset-slice'."
   (interactive
-   (let* ((size (image-size doc-view-current-image t))
+   (let* ((size (image-size (doc-view-current-image) t))
 	  (a (read-number (format "Top-left X (0..%d): " (car size))))
 	  (b (read-number (format "Top-left Y (0..%d): " (cdr size))))
 	  (c (read-number (format "Width (0..%d): " (- (car size) a))))
 	  (d (read-number (format "Height (0..%d): " (- (cdr size) b)))))
      (list a b c d)))
-  (setq doc-view-current-slice (list x y width height))
+  (setf (doc-view-current-slice) (list x y width height))
   ;; Redisplay
-  (doc-view-goto-page doc-view-current-page))
+  (doc-view-goto-page (doc-view-current-page)))
 
 (defun doc-view-set-slice-using-mouse ()
   "Set the slice of the images that should be displayed.
@@ -691,9 +692,9 @@ dragging it to its bottom-right corner.  See also
   "Reset the current slice.
 After calling this function whole pages will be visible again."
   (interactive)
-  (setq doc-view-current-slice nil)
+  (setf (doc-view-current-slice) nil)
   ;; Redisplay
-  (doc-view-goto-page doc-view-current-page))
+  (doc-view-goto-page (doc-view-current-page)))
 
 ;;;; Display
 
@@ -703,22 +704,21 @@ ARGS is a list of image descriptors."
   (when doc-view-pending-cache-flush
     (clear-image-cache)
     (setq doc-view-pending-cache-flush nil))
-  (if (null file)
-      ;; We're trying to display a page that doesn't exist.  Typically happens
-      ;; if the conversion process somehow failed.  Better not signal an
-      ;; error here because it could prevent a subsequent reconversion from
-      ;; fixing the problem.
-      (progn
-        (setq doc-view-current-image nil)
-        (move-overlay doc-view-current-overlay (point-min) (point-max))
-        (overlay-put doc-view-current-overlay 'display
-                     "Cannot display this page!  Probably a conversion failure!"))
-    (let ((image (apply 'create-image file 'png nil args)))
-      (setq doc-view-current-image image)
-      (move-overlay doc-view-current-overlay (point-min) (point-max))
-      (overlay-put doc-view-current-overlay 'display
-                   (if doc-view-current-slice
-                       (list (cons 'slice doc-view-current-slice) image)
+  (let ((ol (doc-view-current-overlay))
+        (image (if file (apply 'create-image file 'png nil args)))
+        (slice (doc-view-current-slice)))
+    (setf (doc-view-current-image) image)
+    (move-overlay ol (point-min) (point-max)) ;Probably redundant.
+    (overlay-put ol 'display
+                 (if (null image)
+                     ;; We're trying to display a page that doesn't exist.
+                     ;; Typically happens if the conversion process somehow
+                     ;; failed.  Better not signal an error here because it
+                     ;; could prevent a subsequent reconversion from fixing
+                     ;; the problem.
+                     "Cannot display this page!  Probably a conversion failure!"
+                   (if slice
+                       (list (cons 'slice slice) image)
                      image)))))
 
 (defun doc-view-sort (a b)
@@ -728,26 +728,26 @@ Predicate for sorting `doc-view-current-files'."
       (and (= (length a) (length b))
            (string< a b))))
 
-(defun doc-view-display (doc &optional force)
-  "Start viewing the document DOC.
+(defun doc-view-display (buffer &optional force)
+  "Start viewing the document in BUFFER.
 If FORCE is non-nil, start viewing even if the document does not
 have the page we want to view."
-  (with-current-buffer (get-file-buffer doc)
+  (with-current-buffer buffer
     (setq doc-view-current-files
           (sort (directory-files (doc-view-current-cache-dir) t
                                  "page-[0-9]+\\.png" t)
                 'doc-view-sort))
-    (when (or force
-              (>= (length doc-view-current-files)
-                  (or doc-view-current-page 1)))
-      (doc-view-goto-page doc-view-current-page))))
+    (let ((page (doc-view-current-page)))
+      (when (or force
+                (>= (length doc-view-current-files) (or page 1)))
+        (doc-view-goto-page page)))))
 
 (defun doc-view-buffer-message ()
   ;; Only show this message initially, not when refreshing the buffer (in which
   ;; case it's better to keep displaying the "stale" page while computing
   ;; the fresh new ones).
-  (unless (overlay-get doc-view-current-overlay 'display)
-    (overlay-put doc-view-current-overlay 'display
+  (unless (overlay-get (doc-view-current-overlay) 'display)
+    (overlay-put (doc-view-current-overlay) 'display
                  (concat (propertize "Welcome to DocView!" 'face 'bold)
                          "\n"
                          "
@@ -763,7 +763,7 @@ For now these keys are useful:
 
 (defun doc-view-show-tooltip ()
   (interactive)
-  (tooltip-show doc-view-current-info))
+  (tooltip-show (doc-view-current-info)))
 
 ;;;;; Toggle between editing and viewing
 
@@ -775,7 +775,8 @@ For now these keys are useful:
       (progn
 	(doc-view-kill-proc)
 	(setq buffer-read-only nil)
-        (delete-overlay doc-view-current-overlay)
+        (remove-overlays (point-min) (point-max) 'doc-view t)
+        (set (make-local-variable 'image-mode-winprops-alist) t)
 	;; Switch to the previously used major mode or fall back to fundamental
 	;; mode.
 	(if doc-view-previous-major-mode
@@ -886,7 +887,7 @@ If BACKWARD is non-nil, jump to the previous match."
   "Go to the ARGth next matching page."
   (interactive "p")
   (let* ((next-pages (doc-view-remove-if
-		      (lambda (i) (<= (car i) doc-view-current-page))
+		      (lambda (i) (<= (car i) (doc-view-current-page)))
 		      doc-view-current-search-matches))
 	 (page (car (nth (1- arg) next-pages))))
     (if page
@@ -900,7 +901,7 @@ If BACKWARD is non-nil, jump to the previous match."
   "Go to the ARGth previous matching page."
   (interactive "p")
   (let* ((prev-pages (doc-view-remove-if
-		      (lambda (i) (>= (car i) doc-view-current-page))
+		      (lambda (i) (>= (car i) (doc-view-current-page)))
 		      doc-view-current-search-matches))
 	 (page (car (nth (1- arg) (nreverse prev-pages)))))
     (if page
@@ -919,11 +920,11 @@ If BACKWARD is non-nil, jump to the previous match."
   (if (doc-view-mode-p (intern (file-name-extension doc-view-buffer-file-name)))
       (progn
 	(doc-view-buffer-message)
-	(setq doc-view-current-page (or doc-view-current-page 1))
+	(setf (doc-view-current-page) (or (doc-view-current-page) 1))
 	(if (file-exists-p (doc-view-current-cache-dir))
 	    (progn
 	      (message "DocView: using cached files!")
-	      (doc-view-display buffer-file-name 'force))
+	      (doc-view-display (current-buffer) 'force))
 	  (doc-view-convert-current-doc))
 	(message
 	 "%s"
@@ -938,6 +939,20 @@ If BACKWARD is non-nil, jump to the previous match."
 	      "Type \\[doc-view-toggle-display] to switch to an editing mode.")))))
 
 (defvar bookmark-make-cell-function)
+
+(defun doc-view-clone-buffer-hook ()
+  ;; FIXME: There are several potential problems linked with reconversion
+  ;; and auto-revert when we have indirect buffers because they share their
+  ;; /tmp cache directory.  This sharing is good (you'd rather not reconvert
+  ;; for each clone), but that means that clones need to collaborate a bit.
+  ;; I guess it mostly means: detect when a reconversion process is already
+  ;; running, and run the sentinel in all clones.
+  ;; 
+  ;; Maybe the clones should really have a separate /tmp directory
+  ;; so they could have a different resolution and you could use clones
+  ;; for zooming.
+  (remove-overlays (point-min) (point-max) 'doc-view t)
+  (if (consp image-mode-winprops-alist) (setq image-mode-winprops-alist nil)))
 
 ;;;###autoload
 (defun doc-view-mode ()
@@ -975,30 +990,24 @@ toggle between displaying the document or editing it as text.
     (write-region nil nil doc-view-buffer-file-name))
 
   (make-local-variable 'doc-view-current-files)
-  (make-local-variable 'doc-view-current-image)
-  (make-local-variable 'doc-view-current-page)
   (make-local-variable 'doc-view-current-converter-process)
   (make-local-variable 'doc-view-current-timer)
-  (make-local-variable 'doc-view-current-slice)
   (make-local-variable 'doc-view-current-cache-dir)
-  (make-local-variable 'doc-view-current-info)
   (make-local-variable 'doc-view-current-search-matches)
-  (set (make-local-variable 'doc-view-current-overlay)
-       (make-overlay (point-min) (point-max) nil t))
   (add-hook 'change-major-mode-hook
-	    (lambda () (delete-overlay doc-view-current-overlay))
+	    (lambda () (remove-overlays (point-min) (point-max) 'doc-view t))
 	    nil t)
+  (add-hook 'clone-indirect-buffer-hook 'doc-view-clone-buffer-hook nil t)
 
-  ;; Keep track of [vh]scroll when switching buffers
-  (make-local-variable 'image-mode-current-hscroll)
-  (make-local-variable 'image-mode-current-vscroll)
-  (image-set-window-hscroll (selected-window) (window-hscroll))
-  (image-set-window-vscroll (selected-window) (window-vscroll))
-  (add-hook 'window-configuration-change-hook
-	    'image-reset-current-vhscroll nil t)
-
+  (remove-overlays (point-min) (point-max) 'doc-view t) ;Just in case.
+  ;; Keep track of display info ([vh]scroll, page number, overlay, ...)
+  ;; for each window in which this document is shown.
+  (add-hook 'image-mode-new-window-functions
+            'doc-view-new-window-function nil t)
+  (image-mode-setup-winprops)
+  
   (set (make-local-variable 'mode-line-position)
-       '(" P" (:eval (number-to-string doc-view-current-page))
+       '(" P" (:eval (number-to-string (doc-view-current-page)))
 	 "/" (:eval (number-to-string (length doc-view-current-files)))))
   ;; Don't scroll unless the user specifically asked for it.
   (set (make-local-variable 'auto-hscroll-mode) nil)
@@ -1044,7 +1053,7 @@ See the command `doc-view-mode' for more information on this mode."
 (defun doc-view-bookmark-make-cell (annotation &rest args)
   (let ((the-record
          `((filename . ,buffer-file-name)
-           (page     . ,doc-view-current-page)
+           (page     . ,(doc-view-current-page))
            (handler  . doc-view-bookmark-jump))))
 
     ;; Take no chances with text properties

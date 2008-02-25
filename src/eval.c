@@ -3482,8 +3482,8 @@ DEFUN ("fetch-bytecode", Ffetch_bytecode, Sfetch_bytecode,
 	  else
 	    error ("Invalid byte code");
 	}
-      AREF (object, COMPILED_BYTECODE) = XCAR (tem);
-      AREF (object, COMPILED_CONSTANTS) = XCDR (tem);
+      ASET (object, COMPILED_BYTECODE, XCAR (tem));
+      ASET (object, COMPILED_CONSTANTS, XCDR (tem));
     }
   return object;
 }

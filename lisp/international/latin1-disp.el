@@ -101,24 +101,12 @@ use either \\[customize] or the function `latin1-display'."
 See option `latin1-display' for the method.  The members of the list
 must be in `latin1-display-sets'.  With no arguments, reset the
 display for all of `latin1-display-sets'. See also
-`latin1-display-setup'.  As well as iso-8859 characters, this treats
-some characters in the `mule-unicode-...' charsets if you don't have
-a Unicode font with which to display them."
+`latin1-display-setup'."
   (if sets
       (progn
 	(mapc #'latin1-display-setup sets)
 	(unless (char-displayable-p
 		 (make-char 'mule-unicode-0100-24ff 32 33))
-	  ;; It doesn't look as though we have a Unicode font.
-	  (map-char-table
-	   (lambda (c uc)
-	     (when (and (characterp c)
-			(characterp uc)
-			(not (aref standard-display-table uc)))
-	       (aset standard-display-table uc
-		     (or (aref standard-display-table c)
-			 (vector c)))))
-	   ucs-mule-8859-to-mule-unicode)
 	  ;; Extra stuff for windows-1252, in particular.
 	  (mapc
 	   (lambda (l)
@@ -138,12 +126,8 @@ a Unicode font with which to display them."
 	     )))
 	  (setq latin1-display t))
     (mapc #'latin1-display-reset latin1-display-sets)
-    (aset standard-display-table
-	  (make-char 'mule-unicode-0100-24ff) nil)
-    (aset standard-display-table
-	  (make-char 'mule-unicode-2500-33ff) nil)
-    (aset standard-display-table
-	  (make-char 'mule-unicode-e000-ffff) nil)
+    (set-char-table-range standard-display-table '(#x0100 #x33FF) nil)
+    (set-char-table-range standard-display-table '(#xE000 #xFFFF) nil)
     (setq latin1-display nil)
     (redraw-display)))
 
@@ -191,9 +175,10 @@ using an ISO8859 character set."
   (let ((i 32)
 	(set (car (remq 'ascii (get-language-info charset 'charset)))))
     (while (<= i 127)
-      (aset standard-display-table
-	    (make-char set i)
-	    (vector (make-char 'latin-iso8859-1 i)))
+      (let ((ch (decode-char set (+ i 128))))
+	(if ch
+	    (aset standard-display-table ch
+		  (vector (make-char 'latin-iso8859-1 i)))))
       (setq i (1+ i)))))
 
 (defun latin1-display-reset (language)

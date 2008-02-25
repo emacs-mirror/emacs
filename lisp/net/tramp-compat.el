@@ -197,6 +197,7 @@ Add the extension of FILENAME, if existing."
   (cond
    ((or (null id-format) (eq id-format 'integer))
     (file-attributes filename))
+   ;; FIXME: shouldn't that be tramp-file-p or somesuch?
    ((file-remote-p filename)
     (funcall (symbol-function 'tramp-handle-file-attributes)
 	     filename id-format))

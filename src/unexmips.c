@@ -149,20 +149,6 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
   if (new < 0) fatal_unexec ("creating %s", new_name);
 
   hdr = *((struct headers *)TEXT_START);
-#ifdef MIPS2
-  if (hdr.fhdr.f_magic != MIPSELMAGIC
-      && hdr.fhdr.f_magic != MIPSEBMAGIC
-      && hdr.fhdr.f_magic != (MIPSELMAGIC | 1)
-      && hdr.fhdr.f_magic != (MIPSEBMAGIC | 1))
-    {
-      fprintf (stderr,
-	       "unexec: input file magic number is %x, not %x, %x, %x or %x.\n",
-	       hdr.fhdr.f_magic,
-	       MIPSELMAGIC, MIPSEBMAGIC,
-	       MIPSELMAGIC | 1, MIPSEBMAGIC | 1);
-      exit(1);
-    }
-#else /* not MIPS2 */
   if (hdr.fhdr.f_magic != MIPSELMAGIC
       && hdr.fhdr.f_magic != MIPSEBMAGIC)
     {
@@ -170,7 +156,6 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
 	       hdr.fhdr.f_magic, MIPSELMAGIC, MIPSEBMAGIC);
       exit (1);
     }
-#endif /* not MIPS2 */
   if (hdr.fhdr.f_opthdr != sizeof (hdr.aout))
     {
       fprintf (stderr, "unexec: input a.out header is %d bytes, not %d.\n",

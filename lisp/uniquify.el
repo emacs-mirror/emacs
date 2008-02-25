@@ -28,7 +28,7 @@
 ;;; Commentary:
 
 ;; Emacs's standard method for making buffer names unique adds <2>, <3>,
-;; etc.. to the end of (all but one of) the buffers.  This file replaces
+;; etc. to the end of (all but one of) the buffers.  This file replaces
 ;; that behavior, for buffers visiting files and dired buffers, with a
 ;; uniquification that adds parts of the file name until the buffer names
 ;; are unique.  For instance, buffers visiting /u/mernst/tmp/Makefile and
@@ -190,6 +190,13 @@ contains the name of the directory which the buffer is visiting.")
 It actually holds the list of `uniquify-item's corresponding to the conflict.")
 (make-variable-buffer-local 'uniquify-managed)
 (put 'uniquify-managed 'permanent-local t)
+
+;; Used in desktop.el to save the non-uniquified buffer name
+(defun uniquify-buffer-base-name ()
+  "Return the base name of the current buffer.
+Return nil if the buffer is not managed by uniquify."
+  (and uniquify-managed
+       (uniquify-item-base (car uniquify-managed))))
 
 ;;; Main entry point.
 
@@ -491,7 +498,7 @@ For use on `kill-buffer-hook'."
       (dolist (buf buffers)
 	(set-buffer (car buf))
 	(rename-buffer (cdr buf) t))))
-  ;; continue standard uploading
+  ;; continue standard unloading
   nil)
 
 (provide 'uniquify)

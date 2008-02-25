@@ -35,7 +35,6 @@ Boston, MA 02110-1301, USA.  */
  Then comes the documentation for that function or variable.
  */
 
-#define NO_SHORTNAMES   /* Tell config not to load remap.h */
 #include <config.h>
 
 /* defined to be emacs_main, sys_fopen, etc. in config.h */

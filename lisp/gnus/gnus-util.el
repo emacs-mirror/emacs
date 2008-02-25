@@ -338,11 +338,43 @@ Symbols are also allowed; their print names are used instead."
 ;; Two silly functions to ensure that all `y-or-n-p' questions clear
 ;; the echo area.
 ;;
-;; Do we really need these aliases?  Workarounds for bugs in the corresponding
-;; Emacs functions?  Maybe these bug are no longer present in any supported
+;; Do we really need these functions?  Workarounds for bugs in the corresponding
+;; Emacs functions?  Maybe these bugs are no longer present in any supported
 ;; (X)Emacs version?  Alias them to the original functions and see if anyone
-;; reports a problem.  If not, replace with original functions.  --rsteib
+;; reports a problem.  If not, replace with original functions.  --rsteib,
+;; 2007-12-14
 ;;
+;; All supported Emacsen clear the echo area after `yes-or-no-p', so we can
+;; remove `yes-or-no-p'.  RMS says that not clearing after `y-or-n-p' is
+;; intentional (see below), so we could remove `gnus-y-or-n-p' too.
+;; Objections?  --rsteib, 2008-02-16
+;;
+;; ,----[ http://thread.gmane.org/gmane.emacs.gnus.general/65099/focus=66070 ]
+;; | From: Richard Stallman
+;; | Subject: Re: Do we need gnus-yes-or-no-p and gnus-y-or-n-p?
+;; | To: Katsumi Yamaoka [...]
+;; | Cc: emacs-devel@[...], xemacs-beta@[...], ding@[...]
+;; | Date: Mon, 07 Jan 2008 12:16:05 -0500
+;; | Message-ID: <E1JBva1-000528-VY@fencepost.gnu.org>
+;; |
+;; |     The behavior of `y-or-n-p' that it doesn't clear the question
+;; |     and the answer is not serious of course, but I feel it is not
+;; |     cool.
+;; |
+;; | It is intentional.
+;; |
+;; |     Currently, it is commented out in the trunk by Reiner Steib.  He
+;; |     also wrote the benefit of leaving the question and the answer in
+;; |     the echo area as follows:
+;; |
+;; |     (http://article.gmane.org/gmane.emacs.gnus.general/66061)
+;; |     > In contrast to yes-or-no-p it is much easier to type y, n,
+;; |     > SPC, DEL, etc accidentally, so it might be useful for the user
+;; |     > to see what he has typed.
+;; |
+;; | Yes, that is the reason.
+;; `----
+
 ;; (defun gnus-y-or-n-p (prompt)
 ;;   (prog1
 ;;       (y-or-n-p prompt)

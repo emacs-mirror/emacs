@@ -150,6 +150,7 @@ Start after n steps, where BITS is a big-endian list of the bits of n.
 BITS must be of length nrings.  Start at START-TIME."
   (switch-to-buffer "*Hanoi*")
   (buffer-disable-undo (current-buffer))
+  (setq show-trailing-whitespace nil)
   (unwind-protect
       (let*
 	  (;; These lines can cause Emacs to crash if you ask for too

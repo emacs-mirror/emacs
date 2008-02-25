@@ -426,7 +426,7 @@ Returned values:
   ;; (ffap-machine-p "mathcs" 5678 nil 'ping)
   ;; (ffap-machine-p "foo.bonk" nil nil 'ping)
   ;; (ffap-machine-p "foo.bonk.com" nil nil 'ping)
-  (if (or (string-match "[^-[:alnum:].]" host) ; Illegal chars (?)
+  (if (or (string-match "[^-[:alnum:].]" host) ; Invalid chars (?)
 	  (not (string-match "[^0-9]" host))) ; 1: a number? 2: quick reject
       nil
     (let* ((domain
@@ -956,12 +956,20 @@ If t, `ffap-tex-init' will initialize this when needed.")
 		      "/pub/gnu/emacs/elisp-archive/"))
     (substring name 2))))
 
+(defcustom ffap-rfc-directories nil
+  "A list of directories to look for RFC files.
+If a given RFC isn't in these then `ffap-rfc-path' is offered."
+  :type '(repeat directory)
+  :version "23.1"
+  :group 'ffap)
+
 (defvar ffap-rfc-path
   (concat (ffap-host-to-filename "ftp.rfc-editor.org") "/in-notes/rfc%s.txt"))
 
 (defun ffap-rfc (name)
-  (format ffap-rfc-path
-	  (substring name (match-beginning 1) (match-end 1))))
+  (let ((num (match-string 1 name)))
+    (or (ffap-locate-file (format "rfc%s.txt" num) t ffap-rfc-directories)
+        (format ffap-rfc-path num))))
 
 
 ;;; At-Point Functions:

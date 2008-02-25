@@ -212,8 +212,8 @@ static int window_initialized;
 
 /* Hook to run when window config changes.  */
 
-Lisp_Object Qwindow_configuration_change_hook;
-Lisp_Object Vwindow_configuration_change_hook;
+static Lisp_Object Qwindow_configuration_change_hook;
+static Lisp_Object Vwindow_configuration_change_hook;
 
 /* Non-nil means scroll commands try to put point
    at the same screen height as previously.  */
@@ -1483,11 +1483,13 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
      (window)
      register Lisp_Object window;
 {
+  struct frame *f;
+  if (NILP (window))
+    window = selected_window;
+  f = XFRAME (WINDOW_FRAME (XWINDOW (window)));
   delete_window (window);
 
-  if (! NILP (Vwindow_configuration_change_hook)
-      && ! NILP (Vrun_hooks))
-    call1 (Vrun_hooks, Qwindow_configuration_change_hook);
+  run_window_configuration_change_hook (f);
 
   return Qnil;
 }
@@ -1504,10 +1506,7 @@ delete_window (window)
   /* Because this function is called by other C code on non-leaf
      windows, the CHECK_LIVE_WINDOW macro would choke inappropriately,
      so we can't decode_window here.  */
-  if (NILP (window))
-    window = selected_window;
-  else
-    CHECK_WINDOW (window);
+  CHECK_WINDOW (window);
   p = XWINDOW (window);
 
   /* It's a no-op to delete an already-deleted window.  */
@@ -3310,6 +3309,8 @@ EXFUN (Fset_window_scroll_bars, 4);
 void
 run_window_configuration_change_hook (struct frame *f)
 {
+  /* FIXME: buffer-local values of Vwindow_configuration_change_hook
+     aren't handled properly.  */
   if (! NILP (Vwindow_configuration_change_hook)
       && ! NILP (Vrun_hooks))
     {
@@ -4187,8 +4188,7 @@ too small.  */)
   CHECK_NUMBER (arg);
   enlarge_window (selected_window, XINT (arg), !NILP (horizontal));
 
-  if (! NILP (Vwindow_configuration_change_hook))
-    call1 (Vrun_hooks, Qwindow_configuration_change_hook);
+  run_window_configuration_change_hook (SELECTED_FRAME ());
 
   return Qnil;
 }
@@ -4204,8 +4204,7 @@ Only siblings to the right or below are changed.  */)
   CHECK_NUMBER (arg);
   enlarge_window (selected_window, -XINT (arg), !NILP (side));
 
-  if (! NILP (Vwindow_configuration_change_hook))
-    call1 (Vrun_hooks, Qwindow_configuration_change_hook);
+  run_window_configuration_change_hook (SELECTED_FRAME ());
 
   return Qnil;
 }
@@ -4528,9 +4527,6 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
      validity.  */
   check_min_window_sizes ();
 
-  if (NILP (window))
-    window = Fselected_window ();
-
   CHECK_WINDOW (window);
 
   /* Give up if this window cannot be resized.  */
@@ -4664,10 +4660,12 @@ are not deleted; instead, we signal an error.  */)
   Lisp_Object window, delta, horizontal;
 {
   CHECK_NUMBER (delta);
+  if (NILP (window))
+    window = selected_window;
   adjust_window_trailing_edge (window, XINT (delta), !NILP (horizontal));
 
-  if (! NILP (Vwindow_configuration_change_hook))
-    call1 (Vrun_hooks, Qwindow_configuration_change_hook);
+  run_window_configuration_change_hook
+    (XFRAME (WINDOW_FRAME (XWINDOW (window))));
 
   return Qnil;
 }
@@ -6479,9 +6477,7 @@ the return value is nil.  Otherwise the value is t.  */)
       if (FRAME_LIVE_P (XFRAME (data->selected_frame)))
 	do_switch_frame (data->selected_frame, 0, 0);
 
-      if (! NILP (Vwindow_configuration_change_hook)
-	  && ! NILP (Vrun_hooks))
-	call1 (Vrun_hooks, Qwindow_configuration_change_hook);
+      run_window_configuration_change_hook (f);
     }
 
   if (!NILP (new_current_buffer))

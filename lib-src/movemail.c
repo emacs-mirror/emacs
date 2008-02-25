@@ -55,7 +55,6 @@ Boston, MA 02110-1301, USA.  */
  *
  */
 
-#define NO_SHORTNAMES   /* Tell config not to load remap.h */
 #include <config.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -692,7 +691,7 @@ char Errmsg[200];		/* POP errors, at least, can exceed
 				   the original length of 80.  */
 
 /*
- * The full legal syntax for a POP mailbox specification for movemail
+ * The full valid syntax for a POP mailbox specification for movemail
  * is "po:username:hostname".  The ":hostname" is optional; if it is
  * omitted, the MAILHOST environment variable will be consulted.  Note
  * that by the time popmail() is called the "po:" has been stripped

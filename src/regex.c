@@ -3,7 +3,7 @@
    internationalization features.)
 
    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-                 2002, 2003, 2004, 2005, 2006, 2007
+                 2002, 2003, 2004, 2005, 2006, 2007, 2008
                  Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
@@ -289,11 +289,7 @@ xrealloc (block, size)
 /* Sword must be nonzero for the wordchar pattern commands in re_match_2.  */
 enum syntaxcode { Swhitespace = 0, Sword = 1, Ssymbol = 2 };
 
-# ifdef SWITCH_ENUM_BUG
-#  define SWITCH_ENUM_CAST(x) ((int)(x))
-# else
 #  define SWITCH_ENUM_CAST(x) (x)
-# endif
 
 /* Dummy macros for non-Emacs environments.  */
 # define BASE_LEADING_CODE_P(c) (0)

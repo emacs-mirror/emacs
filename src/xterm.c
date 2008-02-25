@@ -1098,6 +1098,11 @@ x_set_cursor_gc (s)
 	}
 
       IF_DEBUG (x_check_font (s->f, s->font));
+#ifdef USE_FONT_BACKEND
+      if (enable_font_backend)
+	xgcv.font = FRAME_X_DISPLAY_INFO (s->f)->font->fid;
+      else
+#endif
       xgcv.font = s->font->fid;
       xgcv.graphics_exposures = False;
       mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
@@ -1154,6 +1159,11 @@ x_set_mouse_face_gc (s)
       xgcv.background = s->face->background;
       xgcv.foreground = s->face->foreground;
       IF_DEBUG (x_check_font (s->f, s->font));
+#ifdef USE_FONT_BACKEND
+      if (enable_font_backend)
+	xgcv.font = FRAME_X_DISPLAY_INFO (s->f)->font->fid;
+      else
+#endif
       xgcv.font = s->font->fid;
       xgcv.graphics_exposures = False;
       mask = GCForeground | GCBackground | GCFont | GCGraphicsExposures;
@@ -3609,6 +3619,15 @@ x_detect_focus_change (dpyinfo, event, bufp)
 		       (event->xfocus.detail == NotifyPointer ?
 			FOCUS_IMPLICIT : FOCUS_EXPLICIT),
 		       dpyinfo, frame, bufp);
+      break;
+
+    case ClientMessage:
+      if (event->xclient.message_type == dpyinfo->Xatom_XEMBED)
+	{
+	  enum xembed_message msg = event->xclient.data.l[1];
+	  x_focus_changed ((msg == XEMBED_FOCUS_IN ? FocusIn : FocusOut),
+			   FOCUS_EXPLICIT, dpyinfo, frame, bufp);
+	}
       break;
     }
 }
@@ -6201,6 +6220,18 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           }
 #endif /* USE_TOOLKIT_SCROLL_BARS */
 
+	/* XEmbed messages from the embedder (if any).  */
+        if (event.xclient.message_type
+	    == dpyinfo->Xatom_XEMBED)
+          {
+	    enum xembed_message msg = event.xclient.data.l[1];
+	    if (msg == XEMBED_FOCUS_IN || msg == XEMBED_FOCUS_OUT)
+	      x_detect_focus_change (dpyinfo, &event, &inev.ie);
+
+	    *finish = X_EVENT_GOTO_OUT;
+            goto done;
+          }
+
 	f = x_any_window_to_frame (dpyinfo, event.xclient.window);
 	if (!f)
 	  goto OTHER;
@@ -7086,6 +7117,9 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                   else
                     construct_mouse_click (&inev.ie, &event.xbutton, f);
                 }
+            if (FRAME_X_EMBEDDED_P (f))
+              xembed_send_message (f, event.xbutton.time,
+                                   XEMBED_REQUEST_FOCUS, 0, 0, 0);
           }
         else
           {
@@ -8038,7 +8072,7 @@ x_connection_closed (dpy, error_message)
 	  && FRAME_X_P (XFRAME (minibuf_frame))
 	  && ! EQ (frame, minibuf_frame)
 	  && FRAME_X_DISPLAY_INFO (XFRAME (minibuf_frame)) == dpyinfo)
-	Fdelete_frame (frame, Qt);
+	Fdelete_frame (frame, Qnoelisp);
     }
 
   /* Now delete all remaining frames on the dead display.
@@ -8051,7 +8085,7 @@ x_connection_closed (dpy, error_message)
 	/* Set this to t so that Fdelete_frame won't get confused
 	   trying to find a replacement.  */
 	FRAME_KBOARD (XFRAME (frame))->Vdefault_minibuffer_frame = Qt;
-	Fdelete_frame (frame, Qt);
+	Fdelete_frame (frame, Qnoelisp);
       }
 
   /* We have to close the display to inform Xt that it doesn't
@@ -8063,31 +8097,29 @@ x_connection_closed (dpy, error_message)
      M-x make-frame-on-display RET :1 RET
 
      will indefinitely wait in Xt for events for display `:1', opened
-     in the first class to make-frame-on-display.
+     in the first call to make-frame-on-display.
 
      Closing the display is reported to lead to a bus error on
      OpenWindows in certain situations.  I suspect that is a bug
      in OpenWindows.  I don't know how to circumvent it here.  */
 
-#ifdef USE_X_TOOLKIT
-  /* If DPYINFO is null, this means we didn't open the display
-     in the first place, so don't try to close it.  */
   if (dpyinfo)
     {
-      extern void (*fatal_error_signal_hook) P_ ((void));
-      fatal_error_signal_hook = x_fatal_error_signal;
-      XtCloseDisplay (dpy);
-      fatal_error_signal_hook = NULL;
-    }
+#ifdef USE_X_TOOLKIT
+      /* If DPYINFO is null, this means we didn't open the display
+	 in the first place, so don't try to close it.  */
+      {
+	extern void (*fatal_error_signal_hook) P_ ((void));
+	fatal_error_signal_hook = x_fatal_error_signal;
+	XtCloseDisplay (dpy);
+	fatal_error_signal_hook = NULL;
+      }
 #endif
 
 #ifdef USE_GTK
-  if (dpyinfo)
-    xg_display_close (dpyinfo->display);
+      xg_display_close (dpyinfo->display);
 #endif
 
-  if (dpyinfo)
-    {
       /* Indicate that this display is dead.  */
       dpyinfo->display = 0;
 
@@ -8252,12 +8284,17 @@ x_new_font (f, fontname)
   /* Now make the frame display the given font.  */
   if (FRAME_X_WINDOW (f) != 0)
     {
-      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->normal_gc,
-		FRAME_FONT (f)->fid);
-      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->reverse_gc,
-		FRAME_FONT (f)->fid);
-      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->cursor_gc,
-		FRAME_FONT (f)->fid);
+      Font fid;
+
+#ifdef USE_FONT_BACKEND
+      if (enable_font_backend)
+	fid = FRAME_X_DISPLAY_INFO (f)->font->fid;
+      else
+#endif
+      fid = FRAME_FONT (f)->fid;
+      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->normal_gc, fid);
+      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->reverse_gc, fid);
+      XSetFont (FRAME_X_DISPLAY (f), f->output_data.x->cursor_gc, fid);
 
       /* Don't change the size of a tip frame; there's no point in
 	 doing it because it's done in Fx_show_tip, and it leads to
@@ -8663,7 +8700,7 @@ x_set_offset (f, xoff, yoff, change_gravity)
 {
   int modified_top, modified_left;
 
-  if (change_gravity != 0)
+  if (change_gravity > 0)
     {
       FRAME_X_OUTPUT (f)->left_before_move = f->left_pos;
       FRAME_X_OUTPUT (f)->top_before_move = f->top_pos;
@@ -9285,6 +9322,51 @@ XTframe_raise_lower (f, raise_flag)
     x_lower_frame (f);
 }
 
+/* XEmbed implementation.  */
+
+void
+xembed_set_info (f, flags)
+     struct frame *f;
+     enum xembed_info flags;
+{
+  Atom atom;
+  unsigned long data[2];
+
+  atom = XInternAtom (FRAME_X_DISPLAY (f), "_XEMBED_INFO", False);
+
+  data[0] = XEMBED_VERSION;
+  data[1] = flags;
+
+  XChangeProperty (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), atom, atom,
+		   32, PropModeReplace, (unsigned char *) data, 2);
+}
+
+void
+xembed_send_message (f, time, message, detail, data1, data2)
+     struct frame *f;
+     Time time;
+     enum xembed_message message;
+     long detail;
+     long data1;
+     long data2;
+{
+  XEvent event;
+
+  event.xclient.type = ClientMessage;
+  event.xclient.window = FRAME_X_OUTPUT (f)->parent_desc;
+  event.xclient.message_type = FRAME_X_DISPLAY_INFO (f)->Xatom_XEMBED;
+  event.xclient.format = 32;
+  event.xclient.data.l[0] = time;
+  event.xclient.data.l[1] = message;
+  event.xclient.data.l[2] = detail;
+  event.xclient.data.l[3] = data1;
+  event.xclient.data.l[4] = data2;
+
+  XSendEvent (FRAME_X_DISPLAY (f), FRAME_X_OUTPUT (f)->parent_desc,
+	      False, NoEventMask, &event);
+  XSync (FRAME_X_DISPLAY (f), False);
+}
+
 /* Change of visibility.  */
 
 /* This tries to wait until the frame is really visible.
@@ -9317,6 +9399,7 @@ x_make_frame_visible (f)
 	 if we get to x_make_frame_visible a second time
 	 before the window gets really visible.  */
       if (! FRAME_ICONIFIED_P (f)
+	  && ! FRAME_X_EMBEDDED_P (f)
 	  && ! f->output_data.x->asked_for_visible)
 	x_set_offset (f, f->left_pos, f->top_pos, 0);
 
@@ -9325,14 +9408,22 @@ x_make_frame_visible (f)
       if (! EQ (Vx_no_window_manager, Qt))
 	x_wm_set_window_state (f, NormalState);
 #ifdef USE_X_TOOLKIT
-      /* This was XtPopup, but that did nothing for an iconified frame.  */
-      XtMapWidget (f->output_data.x->widget);
+      if (FRAME_X_EMBEDDED_P (f))
+	xembed_set_info (f, XEMBED_MAPPED);
+      else
+	{
+	  /* This was XtPopup, but that did nothing for an iconified frame.  */
+	  XtMapWidget (f->output_data.x->widget);
+	}
 #else /* not USE_X_TOOLKIT */
 #ifdef USE_GTK
       gtk_widget_show_all (FRAME_GTK_OUTER_WIDGET (f));
       gtk_window_deiconify (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)));
 #else
-      XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
+      if (FRAME_X_EMBEDDED_P (f))
+	xembed_set_info (f, XEMBED_MAPPED);
+      else
+	XMapRaised (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f));
 #endif /* not USE_GTK */
 #endif /* not USE_X_TOOLKIT */
 #if 0 /* This seems to bring back scroll bars in the wrong places
@@ -9373,7 +9464,9 @@ x_make_frame_visible (f)
        because the window manager may choose the position
        and we don't want to override it.  */
 
-    if (! FRAME_VISIBLE_P (f) && ! FRAME_ICONIFIED_P (f)
+    if (! FRAME_VISIBLE_P (f)
+	&& ! FRAME_ICONIFIED_P (f)
+	&& ! FRAME_X_EMBEDDED_P (f)
 	&& f->win_gravity == NorthWestGravity
 	&& previously_visible)
       {
@@ -9484,6 +9577,10 @@ x_make_frame_invisible (f)
   if (FRAME_GTK_OUTER_WIDGET (f))
     gtk_widget_hide (FRAME_GTK_OUTER_WIDGET (f));
   else
+#else
+  if (FRAME_X_EMBEDDED_P (f))
+    xembed_set_info (f, 0);
+  else
 #endif
   {
 
@@ -9588,7 +9685,9 @@ x_iconify_frame (f)
 
   /* Make sure the X server knows where the window should be positioned,
      in case the user deiconifies with the window manager.  */
-  if (! FRAME_VISIBLE_P (f) && !FRAME_ICONIFIED_P (f))
+  if (! FRAME_VISIBLE_P (f)
+      && ! FRAME_ICONIFIED_P (f)
+      && ! FRAME_X_EMBEDDED_P (f))
     x_set_offset (f, f->left_pos, f->top_pos, 0);
 
   /* Since we don't know which revision of X we're running, we'll use both
@@ -11272,6 +11371,13 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->font_table = NULL;
   dpyinfo->n_fonts = 0;
   dpyinfo->font_table_size = 0;
+#ifdef USE_FONT_BACKEND
+  dpyinfo->font = XLoadQueryFont (dpyinfo->display, "fixed");
+  if (! dpyinfo->font)
+    dpyinfo->font = XLoadQueryFont (dpyinfo->display, "*");
+  if (! dpyinfo->font)
+    abort ();
+#endif	/* USE_FONT_BACKEND */
   dpyinfo->bitmaps = 0;
   dpyinfo->bitmaps_size = 0;
   dpyinfo->bitmaps_last = 0;
@@ -11289,7 +11395,7 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->x_focus_frame = 0;
   dpyinfo->x_focus_event_frame = 0;
   dpyinfo->x_highlight_frame = 0;
-  dpyinfo->image_cache = make_image_cache ();
+  dpyinfo->terminal->image_cache = make_image_cache ();
   dpyinfo->wm_type = X_WMTYPE_UNKNOWN;
 
   /* See if we can construct pixel values from RGB values.  */
@@ -11399,6 +11505,9 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo->Xatom_Scrollbar = XInternAtom (dpyinfo->display, "SCROLLBAR",
 					  False);
 
+  dpyinfo->Xatom_XEMBED = XInternAtom (dpyinfo->display, "_XEMBED",
+				       False);
+
   dpyinfo->cut_buffers_initialized = 0;
 
   dpyinfo->x_dnd_atoms_size = 8;
@@ -11444,16 +11553,9 @@ x_term_init (display_name, xrm_option, resource_name)
     add_keyboard_wait_descriptor (connection);
 #endif
 
-#ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
-#ifdef F_SETOWN_SOCK_NEG
-  /* stdin is a socket here */
-  fcntl (connection, F_SETOWN, -getpid ());
-#else /* ! defined (F_SETOWN_SOCK_NEG) */
   fcntl (connection, F_SETOWN, getpid ());
-#endif /* ! defined (F_SETOWN_SOCK_NEG) */
 #endif /* ! defined (F_SETOWN) */
-#endif /* F_SETOWN_BUG */
 
 #ifdef SIGIO
   if (interrupt_input)
@@ -11730,28 +11832,35 @@ x_delete_terminal (struct terminal *terminal)
     return;
 
   BLOCK_INPUT;
+  /* If called from x_connection_closed, the display may already be closed
+     and dpyinfo->display was set to 0 to indicate that.  */
+  if (dpyinfo->display)
+    {
 #ifdef USE_FONT_BACKEND
-  if (! enable_font_backend)
+      if (enable_font_backend)
+	XFreeFont (dpyinfo->display, dpyinfo->font);
+      else
 #endif
-  /* Free the fonts in the font table.  */
-  for (i = 0; i < dpyinfo->n_fonts; i++)
-    if (dpyinfo->font_table[i].name)
-      {
-	XFreeFont (dpyinfo->display, dpyinfo->font_table[i].font);
-      }
+	/* Free the fonts in the font table.  */
+	for (i = 0; i < dpyinfo->n_fonts; i++)
+	  if (dpyinfo->font_table[i].name)
+	    {
+	      XFreeFont (dpyinfo->display, dpyinfo->font_table[i].font);
+	    }
 
-  x_destroy_all_bitmaps (dpyinfo);
-  XSetCloseDownMode (dpyinfo->display, DestroyAll);
+      x_destroy_all_bitmaps (dpyinfo);
+      XSetCloseDownMode (dpyinfo->display, DestroyAll);
 
 #ifdef USE_GTK
-  xg_display_close (dpyinfo->display);
+      xg_display_close (dpyinfo->display);
 #else
 #ifdef USE_X_TOOLKIT
-  XtCloseDisplay (dpyinfo->display);
+      XtCloseDisplay (dpyinfo->display);
 #else
-  XCloseDisplay (dpyinfo->display);
+      XCloseDisplay (dpyinfo->display);
 #endif
 #endif /* ! USE_GTK */
+    }
 
   x_delete_display (dpyinfo);
   UNBLOCK_INPUT;

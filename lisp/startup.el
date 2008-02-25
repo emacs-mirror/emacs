@@ -174,7 +174,8 @@ This is normally copied from `default-directory' when Emacs starts.")
     ("--vertical-scroll-bars" 0 x-handle-switch vertical-scroll-bars t)
     ("--line-spacing" 1 x-handle-numeric-switch line-spacing)
     ("--border-color" 1 x-handle-switch border-color)
-    ("--smid" 1 x-handle-smid))
+    ("--smid" 1 x-handle-smid)
+    ("--parent-id" 1 x-handle-parent-id))
   "Alist of X Windows options.
 Each element has the form
   (NAME NUMARGS HANDLER FRAME-PARAM VALUE)
@@ -192,6 +193,12 @@ and VALUE is the value which is given to that frame parameter
 There is no `condition-case' around the running of these functions;
 therefore, if you set `debug-on-error' non-nil in `.emacs',
 an error in one of these functions will invoke the debugger.")
+
+(defvar before-init-time nil
+  "Value of `current-time' before Emacs begins initialization.")
+
+(defvar after-init-time nil
+  "Value of `current-time' after loading the init files.")
 
 (defvar emacs-startup-hook nil
   "Normal hook run after loading init files and handling the command line.")
@@ -624,7 +631,8 @@ opening the first frame (e.g. open a connection to an X server).")
     (nreverse rest)))
 
 (defun command-line ()
-  (setq command-line-default-directory default-directory)
+  (setq before-init-time (current-time)
+        command-line-default-directory default-directory)
 
   ;; Choose a reasonable location for temporary files.
   (custom-reevaluate-setting 'temporary-file-directory)
@@ -839,6 +847,7 @@ opening the first frame (e.g. open a connection to an X server).")
   (custom-reevaluate-setting 'send-mail-function)
   (custom-reevaluate-setting 'focus-follows-mouse)
   (custom-reevaluate-setting 'global-auto-composition-mode)
+  (custom-reevaluate-setting 'transient-mark-mode)
 
   (normal-erase-is-backspace-setup-frame)
 
@@ -1092,6 +1101,7 @@ opening the first frame (e.g. open a connection to an X server).")
 		 (eq face-ignored-fonts old-face-ignored-fonts))
       (clear-face-cache)))
 
+  (setq after-init-time (current-time))
   (run-hooks 'after-init-hook)
 
   ;; Decode all default-directory.
@@ -1489,6 +1499,7 @@ splash screen in another window."
     (with-current-buffer splash-buffer
       (let ((inhibit-read-only t))
 	(erase-buffer)
+	(setq default-directory command-line-default-directory)
 	(make-local-variable 'startup-screen-inhibit-startup-screen)
 	(if pure-space-overflow
 	    (insert pure-space-overflow-message))
@@ -1587,6 +1598,7 @@ after Emacs starts.  If STARTUP is nil, display the About screen."
     (with-current-buffer (get-buffer-create "*About GNU Emacs*")
       (setq buffer-read-only nil)
       (erase-buffer)
+      (setq default-directory command-line-default-directory)
       (set (make-local-variable 'tab-width) 8)
       (if (not startup)
 	  (set (make-local-variable 'mode-line-format)

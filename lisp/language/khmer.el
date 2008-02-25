@@ -37,3 +37,4 @@
   (set-char-table-range composition-function-table '(#x19E0 . #x19FF) val))
 
 ;; arch-tag: 032890e4-a936-4584-ad44-79eb5f8bc98e
+;; khmer.el ends here

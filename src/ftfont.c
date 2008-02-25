@@ -1,6 +1,6 @@
 /* ftfont.c -- FreeType font driver.
-   Copyright (C) 2006 Free Software Foundation, Inc.
-   Copyright (C) 2006
+   Copyright (C) 2006, 2007, 2008 Free Software Foundation, Inc.
+   Copyright (C) 2006, 2007, 2008
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
 
@@ -8,7 +8,7 @@ This file is part of GNU Emacs.
 
 GNU Emacs is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
+the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
 GNU Emacs is distributed in the hope that it will be useful,
@@ -883,6 +883,7 @@ ftfont_open (f, entity, pixel_size)
     {
       int i;
 
+      font->font.average_width = font->font.space_width = 0;
       for (i = 32; i < 127; i++)
 	{
 	  if (FT_Load_Char (ft_face, i, FT_LOAD_DEFAULT) != 0)
@@ -1617,7 +1618,7 @@ ftfont_shape (lgstring)
   CHECK_FONT_GET_OBJECT (LGSTRING_FONT (lgstring), font);
   ftfont_info = (struct ftfont_info *) font;
   if (! ftfont_info->maybe_otf)
-    return 0;
+    return make_number (0);
   if (! ftfont_info->otf)
     {
       OTF *otf = OTF_open_ft_face (ftfont_info->ft_size->face);
@@ -1627,7 +1628,7 @@ ftfont_shape (lgstring)
 	  if (otf)
 	    OTF_close (otf);
 	  ftfont_info->maybe_otf = 0;
-	  return 0;
+	  return make_number (0);
 	}
 
       ftfont_info->otf = otf;

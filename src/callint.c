@@ -390,7 +390,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
   /* Set next_event to point to the first event with parameters.  */
   for (next_event = 0; next_event < key_count; next_event++)
-    if (EVENT_HAS_PARAMETERS (XVECTOR (keys)->contents[next_event]))
+    if (EVENT_HAS_PARAMETERS (AREF (keys, next_event)))
       break;
 
   /* Handle special starting chars `*' and `@'.  Also `-'.  */
@@ -428,7 +428,7 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  Lisp_Object event, tem;
 
 	  event = (next_event < key_count
-		   ? XVECTOR (keys)->contents[next_event]
+		   ? AREF (keys, next_event)
 		   : Qnil);
 	  if (EVENT_HAS_PARAMETERS (event)
 	      && (tem = XCDR (event), CONSP (tem))
@@ -647,13 +647,13 @@ invoke it.  If KEYS is omitted or nil, the return value of
 		   (SYMBOLP (function)
 		    ? (char *) SDATA (SYMBOL_NAME (function))
 		    : "command"));
-	  args[i] = XVECTOR (keys)->contents[next_event++];
+	  args[i] = AREF (keys, next_event);
+	  next_event++;
 	  varies[i] = -1;
 
 	  /* Find the next parameterized event.  */
 	  while (next_event < key_count
-		 && ! (EVENT_HAS_PARAMETERS
-		       (XVECTOR (keys)->contents[next_event])))
+		 && !(EVENT_HAS_PARAMETERS (AREF (keys, next_event))))
 	    next_event++;
 
 	  break;
@@ -960,7 +960,7 @@ This option makes a difference in Transient Mark mode.
 When the option is non-nil, deactivation of the mark
 turns off region highlighting, but commands that use the mark
 behave as if the mark were still active.  */);
-  Vmark_even_if_inactive = Qnil;
+  Vmark_even_if_inactive = Qt;
 
   DEFVAR_LISP ("mouse-leave-buffer-hook", &Vmouse_leave_buffer_hook,
 	       doc: /* Hook to run when about to switch windows with a mouse command.

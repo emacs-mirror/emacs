@@ -550,7 +550,11 @@ Many aspects this mode can be customized using
   (when nxml-syntax-highlight-flag
     (add-hook 'fontification-functions 'nxml-fontify nil t))
   (add-hook 'after-change-functions 'nxml-after-change nil t)
-  (add-hook 'write-contents-hooks 'nxml-prepare-to-save)
+  ;; Emacs 23 handles the encoding attribute on the xml declaration
+  ;; transparently to nxml-mode, so there is no longer a need for the below
+  ;; hook. The hook also had the drawback of overriding explicit user
+  ;; instruction to save as some encoding other than utf-8.
+;;;   (add-hook 'write-contents-hooks 'nxml-prepare-to-save)
   (when (not (and (buffer-file-name) (file-exists-p (buffer-file-name))))
     (when (and nxml-default-buffer-file-coding-system
 	       (not (local-variable-p 'buffer-file-coding-system)))

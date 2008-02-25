@@ -568,10 +568,10 @@ The returned value is 0 for left-to-right and 1 for right-to-left.  */)
    However, if the current buffer has enable-multibyte-characters =
    nil, we treat each byte as a character.  */
 
-int
+EMACS_INT
 chars_in_text (ptr, nbytes)
      const unsigned char *ptr;
-     int nbytes;
+     EMACS_INT nbytes;
 {
   /* current_buffer is null at early stages of Emacs initialization.  */
   if (current_buffer == 0
@@ -586,10 +586,10 @@ chars_in_text (ptr, nbytes)
    sequences while assuming that there's no invalid sequence.  It
    ignores enable-multibyte-characters.  */
 
-int
+EMACS_INT
 multibyte_chars_in_text (ptr, nbytes)
      const unsigned char *ptr;
-     int nbytes;
+     EMACS_INT nbytes;
 {
   const unsigned char *endp = ptr + nbytes;
   int chars = 0;

@@ -77,8 +77,8 @@ An empty list disables VC altogether."
   :group 'vc)
 
 ;; Note: we don't actually have a darcs back end yet.
-(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" 
-					 ".svn" ".git" ".hg" ".bzr" 
+(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS"
+					 ".svn" ".git" ".hg" ".bzr"
 					 "_MTN" "_darcs" "{arch}")
   "List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
@@ -325,17 +325,22 @@ non-nil if FILE exists and its contents were successfully inserted."
     (set-buffer-modified-p nil)
     t))
 
-(defun vc-find-root (file witness)
+(defun vc-find-root (file witness &optional invert)
   "Find the root of a checked out project.
 The function walks up the directory tree from FILE looking for WITNESS.
-If WITNESS if not found, return nil, otherwise return the root."
+If WITNESS if not found, return nil, otherwise return the root.
+Optional arg INVERT non-nil reverses the sense of the check;
+the root is the last directory for which WITNESS *is* found."
   ;; Represent /home/luser/foo as ~/foo so that we don't try to look for
   ;; witnesses in /home or in /.
-  (while (not (file-directory-p file))
-    (setq file (file-name-directory (directory-file-name file))))
   (setq file (abbreviate-file-name file))
   (let ((root nil)
-        (user (nth 2 (file-attributes file))))
+        (prev-file file)
+        ;; `user' is not initialized outside the loop because
+        ;; `file' may not exist, so we may have to walk up part of the
+        ;; hierarchy before we find the "initial UID".
+        (user nil)
+        try)
     (while (not (or root
                     (null file)
                     ;; As a heuristic, we stop looking up the hierarchy of
@@ -343,13 +348,21 @@ If WITNESS if not found, return nil, otherwise return the root."
                     ;; to another user.  This should save us from looking in
                     ;; things like /net and /afs.  This assumes that all the
                     ;; files inside a project belong to the same user.
-                    (not (equal user (nth 2 (file-attributes file))))
+                    (let ((prev-user user))
+                      (setq user (nth 2 (file-attributes file)))
+                      (and prev-user (not (equal user prev-user))))
                     (string-match vc-ignore-dir-regexp file)))
-      (if (file-exists-p (expand-file-name witness file))
-          (setq root file)
-        (if (equal file
-                   (setq file (file-name-directory (directory-file-name file))))
-            (setq file nil))))
+      (setq try (file-exists-p (expand-file-name witness file)))
+      (cond ((and invert (not try)) (setq root prev-file))
+            ((and (not invert) try) (setq root file))
+            ((equal file (setq prev-file file
+                               file (file-name-directory
+                                     (directory-file-name file))))
+             (setq file nil))))
+    ;; Handle the case where ~/WITNESS exists and the original FILE is "~".
+    ;; (This occurs, for example, when placing dotfiles under RCS.)
+    (when (and (not root) invert prev-file)
+      (setq root prev-file))
     root))
 
 ;; Access functions to file properties
@@ -505,22 +518,22 @@ For registered files, the value returned is one of:
                      with monotonic IDs like Subversion and Mercurial.
 
   'removed           Scheduled to be deleted from the repository on next commit.
- 
-  'ignored           The file showed up in a dir-state listing with a flag 
+
+  'ignored           The file showed up in a dir-state listing with a flag
                      indicating the version-control system is ignoring it,
-                     Note: This property is not set reliably (some VCSes 
-                     don't have useful directory-status commands) so assume 
+                     Note: This property is not set reliably (some VCSes
+                     don't have useful directory-status commands) so assume
                      that any file with vc-state nil might be ignorable
-                     without VC knowing it. 
+                     without VC knowing it.
 
-  'unregistered      The file showed up in a dir-state listing with a flag 
+  'unregistered      The file showed up in a dir-state listing with a flag
                      indicating that it is not under version control.
-                     Note: This property is not set reliably (some VCSes 
-                     don't have useful directory-status commands) so assume 
+                     Note: This property is not set reliably (some VCSes
+                     don't have useful directory-status commands) so assume
                      that any file with vc-state nil might be unregistered
-                     without VC knowing it. 
+                     without VC knowing it.
 
-A return of nil from this function means we have no information on the 
+A return of nil from this function means we have no information on the
 status of this file.
 "
   ;; Note: in Emacs 22 and older, return of nil meant the file was unregistered.
@@ -796,7 +809,7 @@ visiting FILE."
                  (propertize
                   ml-string
                   'mouse-face 'mode-line-highlight
-                  'help-echo 
+                  'help-echo
                   (concat (or ml-echo
                               (format "File under the %s version control system"
                                       backend))
@@ -968,6 +981,8 @@ Used in `find-file-not-found-functions'."
     (define-key map "+" 'vc-update)
     (define-key map "=" 'vc-diff)
     (define-key map "~" 'vc-revision-other-window)
+    ;; `vc-status' is a not-quite-ready replacement for `vc-directory'
+    ;; (define-key map "?" 'vc-status)
     map))
 (fset 'vc-prefix-map vc-prefix-map)
 (define-key global-map "\C-xv" 'vc-prefix-map)
@@ -977,29 +992,55 @@ Used in `find-file-not-found-functions'."
     ;;(define-key map [show-files]
     ;;  '("Show Files under VC" . (vc-directory t)))
     (define-key map [vc-retrieve-snapshot]
-      '("Retrieve Snapshot" . vc-retrieve-snapshot))
+      '(menu-item "Retrieve Snapshot" vc-retrieve-snapshot
+		  :help "Retrieve snapshot"))
     (define-key map [vc-create-snapshot]
-      '("Create Snapshot" . vc-create-snapshot))
-    (define-key map [vc-directory] '("VC Directory Listing" . vc-directory))
+      '(menu-item "Create Snapshot" vc-create-snapshot
+		  :help "Create Snapshot"))
+    (define-key map [vc-directory]
+      '(menu-item "VC Directory Listing"  vc-directory
+		  :help "Show the VC status of files in a directory"))
+    ;; `vc-status' is a not-quite-ready replacement for `vc-directory'
+    ;; (define-key map [vc-status] '("VC Status" . vc-status))
     (define-key map [separator1] '("----"))
-    (define-key map [vc-annotate] '("Annotate" . vc-annotate))
-    (define-key map [vc-rename-file] '("Rename File" . vc-rename-file))
+    (define-key map [vc-annotate]
+      '(menu-item "Annotate" vc-annotate
+		  :help "Display the edit history of the current file using colors"))
+    (define-key map [vc-rename-file]
+      '(menu-item "Rename File" vc-rename-file
+		  :help "Rename file"))
     (define-key map [vc-revision-other-window]
-      '("Show Other Version" . vc-revision-other-window))
-    (define-key map [vc-diff] '("Compare with Base Version" . vc-diff))
+      '(menu-item "Show Other Version" vc-revision-other-window
+		  :help "Visit another version of the current file in another window"))
+    (define-key map [vc-diff]
+      '(menu-item "Compare with Base Version" vc-diff
+		  :help "Compare file set with the base version"))
     (define-key map [vc-update-change-log]
-      '("Update ChangeLog" . vc-update-change-log))
-    (define-key map [vc-print-log] '("Show History" . vc-print-log))
+      '(menu-item "Update ChangeLog" vc-update-change-log
+		  :help "Find change log file and add entries from recent version control logs"))
+    (define-key map [vc-print-log]
+      '(menu-item "Show History" vc-print-log
+		  :help "List the change log of the current file set in a window"))
     (define-key map [separator2] '("----"))
     (define-key map [vc-insert-header]
-      '("Insert Header" . vc-insert-headers))
-    (define-key map [undo] '("Undo Last Check-In" . vc-rollback))
+      '(menu-item "Insert Header" vc-insert-headers
+		  :help "Insert headers into a file for use with a version control system.
+"))
+    (define-key map [undo]
+      '(menu-item "Undo Last Check-In" vc-rollback
+		  :help "Remove the most recent changeset committed to the repository"))
     (define-key map [vc-revert]
-      '("Revert to Base Version" . vc-revert))
+      '(menu-item "Revert to Base Version" vc-revert
+		  :help "Revert working copies of the selected file set to their repository contents"))
     (define-key map [vc-update]
-      '("Update to Latest Version" . vc-update))
-    (define-key map [vc-next-action] '("Check In/Out" . vc-next-action))
-    (define-key map [vc-register] '("Register" . vc-register))
+      '(menu-item "Update to Latest Version" vc-update
+		  :help "Update the current fileset's files to their tip revisions"))
+    (define-key map [vc-next-action]
+      '(menu-item "Check In/Out"  vc-next-action
+		  :help "Do the next logical version control operation on the current fileset"))
+    (define-key map [vc-register]
+      '(menu-item "Register" vc-register
+		  :help "Register file set into a version control system"))
     map))
 
 (defalias 'vc-menu-map vc-menu-map)

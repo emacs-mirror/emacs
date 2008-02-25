@@ -117,7 +117,7 @@ EXFUN (Fccl_program_p, 1);
 #define CHECK_CCL_PROGRAM(x)			\
   do {						\
     if (NILP (Fccl_program_p (x)))		\
-      x = wrong_type_argument (Qcclp, (x));	\
+      wrong_type_argument (Qcclp, (x));	\
   } while (0);
 
 #endif /* EMACS_CCL_H */

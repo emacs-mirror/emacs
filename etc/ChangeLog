@@ -1,11 +1,57 @@
+2008-02-22  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* NEWS: Mention the new language environments Bengali, Punjabi,
+	Gujarati, Oriya, Telugu, Sinhala.  Mention the removal of features
+	devanagari, devan-util, kannada, knd-util, malayalam, mlm-util,
+	tamil, and tml-util.
+
+2008-02-22  Michael Olson  <mwolson@gnu.org>
+
+	* NEWS: Describe nXML mode and json.el.
+
+2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* NEWS: Improve the description about the removal of cp-...-codepage
+	functions.  Describe the removal of the feature `devan-util'.
+
+2008-02-21  Glenn Morris  <rgm@gnu.org>
+
+	* NEWS.unicode: Merge into NEWS and remove file.
+
+2008-02-20  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* NEWS.unicode: Mention the removal of codepage related functions.
+
+2008-02-16  Glenn Morris  <rgm@gnu.org>
+
+	* nxml/test-invalid.xml, nxml/test-valid.xml: Move here from lisp/nxml.
+	Rename from "test." to "test-" for doschk.
+
+2008-02-10  Daiki Ueno  <ueno@unixuser.org>
+
+	* NEWS: Clarify EasyPG functionalities.
+
+2008-02-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* tutorials/TUTORIAL.ru: Remove redundant empty lines, insert a
+	magic line instead.
+
+2008-02-08  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS: Mention XEmbed and --parent-id.
+
+2008-02-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* NEWS: Mention EasyPG.
+
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
-	* TUTORIAL.ru: Restore copyright years.  Update tutorial.  Fix
-	wording.
+	* tutorials/TUTORIAL.ru: Restore copyright years.  Update
+	tutorial.  Fix wording.
 
 2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
 
-	* HELLO: Add Bengali, Gujarati, Khmer, Myanmar, Oriya, Sinhara,
+	* HELLO: Add Bengali, Gujarati, Khmer, Myanmar, Oriya, Sinhala,
 	Telugu.  Fix ISO-2022 desginations in Cantonese line.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
@@ -16,28 +62,6 @@
 
 	* TODO, PROBLEMS, NEWS: Replace references to Emacs version "22"
 	with "23".
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* charsets/CNS-[234567].map: Regenerate.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* charsets/JISX2131.map: Regenerate.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* charsets/JISX213A.map: New file.
-
-	* charsets/JISX0208.map: Regenerate.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* charsets/CP932-2BYTE.map: Update from ../admin/charsets.
-
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* CP932-2BYTE.map: New file.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -53,19 +77,17 @@
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* HELLO: Fix upcase and downcase for several languages.  Change
-	the two German lines into one.  Change "Nederlangs" to
-	"Dutch (Nederlands)".  Add original language names to several
-	entries.
+	* HELLO: Fix upcase and downcase for several languages.
+	Change the two German lines into one.  Change "Nederlangs" to
+	"Dutch (Nederlands)".  Add original language names to several entries.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* TUTORIAL.es: Add local variable coding: latin-1.
+	* tutorials/TUTORIAL.es: Add local variable coding: latin-1.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
-	* HELLO: Change indian-2-column chars of Hindi line to Unicode
-	chars.
+	* HELLO: Change indian-2-column chars of Hindi line to Unicode chars.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 

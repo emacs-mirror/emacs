@@ -1134,7 +1134,6 @@ set print sevenbit-strings
 
 show environment DISPLAY
 show environment TERM
-set args -geometry 80x40+0+0
 
 # People get bothered when they see messages about non-existent functions...
 xgetptr Vsystem_type

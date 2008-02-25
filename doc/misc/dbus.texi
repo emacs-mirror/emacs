@@ -158,12 +158,31 @@ string.
 
 @defun dbus-get-name-owner bus service
 For a given service, registered at D-Bus @var{bus} under the name
-@var{service}, the unique name of the name owner is returned.  The result is a
-string, or @code{nil} when there exist no name owner of @var{service}.
+@var{service}, the unique name of the name owner is returned.  The
+result is a string, or @code{nil} when there exist no name owner of
+@var{service}.
 
 @var{bus} must be either the symbol @code{:system} or the symbol
 @code{:session}.  @var{service} must be a known service name as
 string.
+@end defun
+
+@defun dbus-ping bus service
+Check whether the service name @var{service} is registered at D-Bus
+@var{bus}.  @var{service} might not have been started yet.  The result
+is either @code{t} or @code{nil}.
+
+@var{bus} must be either the symbol @code{:system} or the symbol
+@code{:session}.  @var{service} must be a string.  Example:
+
+@lisp
+(message
+   "%s screensaver on board."
+   (cond
+     ((dbus-ping :session "org.gnome.ScreenSaver") "Gnome")
+     ((dbus-ping :session "org.freedesktop.ScreenSaver") "KDE")
+     (t "No")))
+@end lisp
 @end defun
 
 @defun dbus-get-unique-name bus
@@ -185,7 +204,7 @@ returns all interfaces of @var{service}, registered at object path
 strings.  The result, the introspection data, is a string in XML
 format. Example:
 
-@example
+@lisp
 (dbus-introspect
   :system "org.freedesktop.Hal"
   "/org/freedesktop/Hal/devices/computer")
@@ -206,7 +225,7 @@ format. Example:
       </interface>
       @dots{}
     </node>"
-@end example
+@end lisp
 
 This example informs us, that the service @code{org.freedesktop.Hal}
 at object path @code{/org/freedesktop/Hal/devices/computer} offers the
@@ -422,20 +441,20 @@ The function returns the resulting values of @var{method} as a list of
 Lisp objects, according to the type conversion rules described in
 @ref{Type Conversion}.  Example:
 
-@example
+@lisp
 (dbus-call-method
   :session "org.gnome.seahorse" "/org/gnome/seahorse/keys/openpgp"
   "org.gnome.seahorse.Keys" "GetKeyField"
   "openpgp:657984B8C7A966DD" "simple-name")
 
 @result{} (t ("Philip R. Zimmermann"))
-@end example
+@end lisp
 
 If the result of the method call is just one value, the converted Lisp
 object is returned instead of a list containing this single Lisp
 object.  Example:
 
-@example
+@lisp
 (dbus-call-method
   :system "org.freedesktop.Hal"
   "/org/freedesktop/Hal/devices/computer"
@@ -443,7 +462,7 @@ object.  Example:
   "system.kernel.machine")
 
 @result{} "i686"
-@end example
+@end lisp
 
 With the @code{dbus-introspect} function it is possible to explore the
 interfaces of @samp{org.freedesktop.Hal} service. It offers the
@@ -454,7 +473,7 @@ path @samp{/org/freedesktop/Hal/devices}.  With the methods
 @samp{GetAllDevices} and @samp{GetAllProperties}, it is simple to
 emulate the @code{lshal} command on GNU/Linux systems:
 
-@example
+@lisp
 (dolist (device
           (dbus-call-method
             :system "org.freedesktop.Hal"
@@ -484,7 +503,7 @@ emulate the @code{lshal} command on GNU/Linux systems:
       system.chassis.type = \"Notebook\"
       system.firmware.release_date = \"03/19/2005\"
       @dots{}"
-@end example
+@end lisp
 @end defun
 
 
@@ -530,7 +549,7 @@ can be composed like the input parameters in @ref{Type Conversion}.
 as argument in @code{dbus-unregister-object} for removing the
 registration for @var{method}.  Example:
 
-@example
+@lisp
 (defun my-dbus-method-handler (filename)
   (let (result)
     (if (find-file filename)
@@ -548,7 +567,7 @@ registration for @var{method}.  Example:
 @result{} ((:system "org.freedesktop.TextEditor" "OpenFile")
     ("org.freedesktop.TextEditor" "/org/freedesktop/TextEditor"
      my-method-handler))
-@end example
+@end lisp
 
 If you invoke the method @code{org.freedesktop.TextEditor.OpenFile}
 from another D-Bus application with a filename as parameter, the file
@@ -592,11 +611,11 @@ All other arguments args are passed to @var{signal} as arguments.
 They are converted into D-Bus types as described in @ref{Type
 Conversion}.  Example:
 
-@example
+@lisp
 (dbus-send-signal
   :session "org.gnu.Emacs" "/org/gnu/Emacs"
   "org.gnu.Emacs.FileManager" "FileModified" "/home/albinus/.emacs")
-@end example
+@end lisp
 @end defun
 
 @defun dbus-register-signal bus service path interface signal handler
@@ -626,7 +645,7 @@ provide @var{signal}.
 received.  It must accept as arguments the output parameters
 @var{signal} is sending.  Example:
 
-@example
+@lisp
 (defun my-dbus-signal-handler (device)
   (message "Device %s added" device))
 
@@ -640,7 +659,7 @@ received.  It must accept as arguments the output parameters
 @result{} ((:system "org.freedesktop.Hal.Manager" "DeviceAdded")
     ("org.freedesktop.Hal" "/org/freedesktop/Hal/Manager"
      my-signal-handler))
-@end example
+@end lisp
 
 As we know from the inspection data of interface
 @code{org.freedesktop.Hal.Manager}, the signal @code{DeviceAdded}
@@ -687,9 +706,9 @@ errors can be made visible when variable @code{dbus-debug} is set to
 Incoming D-Bus messages are handled as Emacs events (see @pxref{Misc
 Events, , , elisp}).  The generated event has this form:
 
-@example
+@lisp
 (dbus-event @var{bus} @var{serial} @var{service} @var{path} @var{interface} @var{member} @var{handler} &rest @var{args})
-@end example
+@end lisp
 
 @var{bus} identifies the D-Bus the signal is coming from.  It is
 either the symbol @code{:system} or the symbol @code{:session}.
@@ -708,10 +727,10 @@ arrives, @var{handler} is called with @var{args} as arguments.
 In order to inspect the @code{dbus-event} data, you could extend the
 definition of the callback function in @ref{Signals}:
 
-@example
+@lisp
 (defun my-dbus-signal-handler (&rest args)
   (message "my-dbus-signal-handler: %S" last-input-event))
-@end example
+@end lisp
 
 There exist convenience functions which could be called inside a
 callback function in order to retrieve the information from the event.

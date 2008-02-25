@@ -1096,12 +1096,17 @@ mail status in mode line"))
   '(menu-item "Zone Out"  zone
 	      :help "Play tricks with Emacs display when Emacs is idle"))
 (define-key menu-bar-games-menu [tetris]
-  '(menu-item "Tetris"  tetris))
+  '(menu-item "Tetris"  tetris
+              :help "Falling blocks game"))
 (define-key menu-bar-games-menu [solitaire]
-  '(menu-item "Solitaire"  solitaire))
+  '(menu-item "Solitaire"  solitaire
+              :help "Get rid of all the stones"))
 (define-key menu-bar-games-menu [snake]
   '(menu-item "Snake"  snake
 	      :help "Move snake around avoiding collisions"))
+(define-key menu-bar-games-menu [pong]
+  '(menu-item "Pong" pong
+	      :help "Bounce the ball to your opponent"))
 (define-key menu-bar-games-menu [mult]
   '(menu-item "Multiplication Puzzle"  mpuz
 	      :help "Exercise brain with multiplication"))
@@ -1114,6 +1119,9 @@ mail status in mode line"))
 (define-key menu-bar-games-menu [gomoku]
   '(menu-item "Gomoku"  gomoku
 	      :help "Mark 5 contiguous squares (like tic-tac-toe)"))
+(define-key menu-bar-games-menu [bubbles]
+  '(menu-item "Bubbles" bubbles
+	      :help "Remove all bubbles using the fewest moves"))
 (define-key menu-bar-games-menu [black-box]
   '(menu-item "Blackbox"  blackbox
 	      :help "Find balls in a black box by shooting rays"))

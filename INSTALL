@@ -139,10 +139,7 @@ can be found:
                       Get version 6b -- 6a is reported to fail in
                       Emacs.
   . libtiff for TIFF: http://www.libtiff.org/
-  . libungif for GIF:
-      http://sourceforge.net/projects/libungif
-      Ensure you get version 4.1.0b1 or higher of libungif -- a bug in
-      4.1.0 can crash Emacs.
+  . libgif for GIF:   http://sourceforge.net/projects/giflib/
 
 Emacs will configure itself to build with these libraries if the
 `configure' script finds them on your system, unless you supply the
@@ -297,11 +294,6 @@ to search for GTK by specifying `--with-pkg-config-prog=PATH' where
 PATH is the pathname to pkg-config.  Note that GTK version 2.4 or
 newer is required for Emacs.
 
-The `--with-gcc' option specifies that the build process should
-compile Emacs using GCC.  If you don't want to use GCC, specify
-`--with-gcc=no'.  If you omit this option, `configure' will search
-for GCC in your path, and use it if present.
-
 The Emacs mail reader RMAIL is configured to be able to read mail from
 a POP3 server by default.  Versions of the POP protocol older than
 POP3 are not supported.  For Kerberos-authenticated POP add
@@ -396,7 +388,7 @@ before running `configure'.  CPP is the command which invokes the
 preprocessor, CPPFLAGS lists the options passed to it, CFLAGS are
 compilation options, LDFLAGS are options used when linking, LIBS are
 libraries to link against, and CC is the command which invokes the
-compiler.
+compiler.  By default, gcc is used if available.
 
 Here's an example of a `configure' invocation, assuming a Bourne-like
 shell such as Bash, which uses these variables:

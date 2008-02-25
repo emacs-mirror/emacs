@@ -356,8 +356,8 @@ On a multi-font display, the test is only whether there is an
 appropriate font from the selected frame's fontset to display CHAR's
 charset in general.  Since fonts may be specified on a per-character
 basis, this may not be accurate."
-  (cond ((< char 256)
-	 ;; Single byte characters are always displayable.
+  (cond ((< char 128)
+	 ;; ASCII characters are always displayable.
 	 t)
 	((not enable-multibyte-characters)
 	 ;; Maybe there's a font for it, but we can't put it in the buffer.
@@ -368,7 +368,9 @@ basis, this may not be accurate."
 	 ;; currently selected frame.
 	 (car (internal-char-font nil char)))
 	(t
-	 (let ((coding 'iso-2022-7bit))
+	 ;; On a terminal, a character is displayable if the coding
+	 ;; system for the terminal can encode it.
+	 (let ((coding (terminal-coding-system)))
 	   (if coding
 	       (let ((cs-list (coding-system-get coding :charset-list)))
 		 (cond

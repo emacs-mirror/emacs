@@ -72,7 +72,7 @@ int data_start = 0;
 int errno;
 #endif
 
-#ifndef DONT_NEED_ENVIRON
+#ifndef MSDOS
 char **environ;
 #endif
 

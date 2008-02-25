@@ -417,6 +417,9 @@ there (in decreasing order of priority)."
             ;; Get rid of `name' unless it was specified explicitly before.
 	    (or (assq 'name frame-initial-frame-alist)
 		(setq parms (delq (assq 'name parms) parms)))
+	    ;; An explicit parent-id is a request to XEmbed the frame.
+	    (or (assq 'parent-id frame-initial-frame-alist)
+                (setq parms (delq (assq 'parent-id parms) parms)))
 
 	    (setq parms (append initial-frame-alist
 				window-system-frame-alist

@@ -874,7 +874,9 @@ button end points."
     (define-key map [backtab] 'widget-backward)
     (define-key map [down-mouse-2] 'widget-button-click)
     (define-key map [down-mouse-1] 'widget-button-click)
-    (define-key map "\C-m" 'widget-button-press)
+    ;; The following definition needs to avoid using escape sequences that
+    ;; might get converted to ^M when building loaddefs.el
+    (define-key map [(control ?m)] 'widget-button-press)
     map)
   "Keymap containing useful binding for buffers containing widgets.
 Recommended as a parent keymap for modes using widgets.")

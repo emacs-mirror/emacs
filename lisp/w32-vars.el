@@ -53,7 +53,7 @@ X does.  See `w32-fixed-font-alist' for the font menu definition."
 
 (defcustom w32-system-shells '("cmd" "cmd.exe" "command" "command.com"
 			       "4nt" "4nt.exe" "4dos" "4dos.exe"
-			       "ndos" "ndos.exe")
+			       "tcc" "tcc.exe" "ndos" "ndos.exe")
   "*List of strings recognized as Windows NT/9X system shells."
   :type '(repeat string)
   :group 'w32)
@@ -134,7 +134,7 @@ X does.  See `w32-fixed-font-alist' for the font menu definition."
      ))
     "*Fonts suitable for use in Emacs.
 Initially this is a list of some fixed width fonts that most people
-will have like Terminal and Courier. These fonts are used in the font
+will have like Terminal and Courier.  These fonts are used in the font
 menu if the variable `w32-use-w32-font-dialog' is nil."
     :type '(list
 	    (string :tag "Menu Title")

@@ -73,6 +73,7 @@ Boston, MA 02110-1301, USA.
 #define _ANONYMOUS_STRUCT
 #endif
 #include <windows.h>
+#include <lmcons.h>
 #include <shlobj.h>
 
 #ifdef HAVE_SOCKETS	/* TCP connection support, if kernel can do it */
@@ -112,9 +113,15 @@ extern Lisp_Object Vw32_get_true_file_attributes;
 extern int w32_num_mouse_buttons;
 
 
-/*
-  Initialization states
- */
+/* Initialization states.
+
+   WARNING: If you add any more such variables for additional APIs,
+            you MUST add initialization for them to globals_of_w32
+            below.  This is because these variables might get set
+            to non-NULL values during dumping, but the dumped Emacs
+            cannot reuse those values, because it could be run on a
+            different version of the OS, where API addresses are
+            different.  */
 static BOOL g_b_init_is_windows_9x;
 static BOOL g_b_init_open_process_token;
 static BOOL g_b_init_get_token_information;
@@ -594,16 +601,20 @@ init_user_info ()
      the user-sid as the user id value (same for group id using the
      primary group sid from the process token). */
 
-  char         user_sid[256], name[256], domain[256];
+  char         name[UNLEN+1], domain[1025];
   DWORD        length = sizeof (name), dlength = sizeof (domain), trash;
   HANDLE       token = NULL;
   SID_NAME_USE user_type;
+  unsigned char buf[1024];
+  TOKEN_USER   user_token;
+  TOKEN_PRIMARY_GROUP group_token;
 
   if (open_process_token (GetCurrentProcess (), TOKEN_QUERY, &token)
       && get_token_information (token, TokenUser,
-				(PVOID) user_sid, sizeof (user_sid), &trash)
-      && lookup_account_sid (NULL, *((PSID *) user_sid), name, &length,
-			     domain, &dlength, &user_type))
+				(PVOID)buf, sizeof (buf), &trash)
+      && (memcpy (&user_token, buf, sizeof (user_token)),
+	  lookup_account_sid (NULL, user_token.User.Sid, name, &length,
+			      domain, &dlength, &user_type)))
     {
       strcpy (the_passwd.pw_name, name);
       /* Determine a reasonable uid value.  */
@@ -617,14 +628,14 @@ init_user_info ()
 	  /* Use the last sub-authority value of the RID, the relative
 	     portion of the SID, as user/group ID. */
 	  DWORD n_subauthorities =
-	    *get_sid_sub_authority_count (*((PSID *) user_sid));
+	    *get_sid_sub_authority_count (user_token.User.Sid);
 
 	  if (n_subauthorities < 1)
 	    the_passwd.pw_uid = 0;	/* the "World" RID */
 	  else
 	    {
 	      the_passwd.pw_uid =
-		*get_sid_sub_authority (*((PSID *) user_sid),
+		*get_sid_sub_authority (user_token.User.Sid,
 					n_subauthorities - 1);
 	      /* Restrict to conventional uid range for normal users.  */
 	      the_passwd.pw_uid %= 60001;
@@ -632,17 +643,18 @@ init_user_info ()
 
 	  /* Get group id */
 	  if (get_token_information (token, TokenPrimaryGroup,
-				     (PVOID) user_sid, sizeof (user_sid), &trash))
+				     (PVOID)buf, sizeof (buf), &trash))
 	    {
+	      memcpy (&group_token, buf, sizeof (group_token));
 	      n_subauthorities =
-		*get_sid_sub_authority_count (*((PSID *) user_sid));
+		*get_sid_sub_authority_count (group_token.PrimaryGroup);
 
 	      if (n_subauthorities < 1)
 		the_passwd.pw_gid = 0;	/* the "World" RID */
 	      else
 		{
 		  the_passwd.pw_gid =
-		    *get_sid_sub_authority (*((PSID *) user_sid),
+		    *get_sid_sub_authority (group_token.PrimaryGroup,
 					    n_subauthorities - 1);
 		  /* I don't know if this is necessary, but for safety...  */
 		  the_passwd.pw_gid %= 60001;
@@ -1689,7 +1701,7 @@ is_fat_volume (const char * name, const char ** pPath)
   return FALSE;
 }
 
-/* Map filename to a legal 8.3 name if necessary. */
+/* Map filename to a valid 8.3 name if necessary. */
 const char *
 map_w32_filename (const char * name, const char ** pPath)
 {
@@ -4288,6 +4300,8 @@ globals_of_w32 ()
   g_b_init_get_token_information = 0;
   g_b_init_lookup_account_sid = 0;
   g_b_init_get_sid_identifier_authority = 0;
+  g_b_init_get_sid_sub_authority = 0;
+  g_b_init_get_sid_sub_authority_count = 0;
   /* The following sets a handler for shutdown notifications for
      console apps. This actually applies to Emacs in both console and
      GUI modes, since we had to fool windows into thinking emacs is a

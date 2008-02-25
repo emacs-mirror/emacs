@@ -1186,18 +1186,20 @@ Select keys for signing.
 If no one is selected, default secret key is used.  "
 				    mml2015-signers t)
 		 (if mml2015-signers
-		     (mapcar
-		      (lambda (signer)
-			(setq signer-key (mml2015-epg-find-usable-key
-					  (epg-list-keys context signer t)
-					  'sign))
-			(unless (or signer-key
-				    (y-or-n-p
-				     (format "No secret key for %s; skip it? "
-					     signer)))
-			  (error "No secret key for %s" signer))
-			signer-key)
-		      mml2015-signers))))))
+		     (delq nil
+			   (mapcar
+			    (lambda (signer)
+			      (setq signer-key (mml2015-epg-find-usable-key
+						(epg-list-keys context signer t)
+						'sign))
+			      (unless (or signer-key
+					  (y-or-n-p
+					   (format
+					    "No secret key for %s; skip it? "
+					    signer)))
+				(error "No secret key for %s" signer))
+			      signer-key)
+			    mml2015-signers)))))))
 	 signature micalg)
     (epg-context-set-armor context t)
     (epg-context-set-textmode context t)
@@ -1267,18 +1269,19 @@ Select recipients for encryption.
 If no one is selected, symmetric encryption will be performed.  "
 				 recipients))
 	(setq recipients
-	      (mapcar
-	       (lambda (recipient)
-		 (setq recipient-key (mml2015-epg-find-usable-key
-				      (epg-list-keys context recipient)
-				      'encrypt))
-		 (unless (or recipient-key
-			     (y-or-n-p
-			      (format "No public key for %s; skip it? "
-				      recipient)))
-		   (error "No public key for %s" recipient))
-		 recipient-key)
-	       recipients))
+	      (delq nil
+		    (mapcar
+		     (lambda (recipient)
+		       (setq recipient-key (mml2015-epg-find-usable-key
+					    (epg-list-keys context recipient)
+					    'encrypt))
+		       (unless (or recipient-key
+				   (y-or-n-p
+				    (format "No public key for %s; skip it? "
+					    recipient)))
+			 (error "No public key for %s" recipient))
+		       recipient-key)
+		     recipients)))
 	(unless recipients
 	  (error "No recipient specified")))
       (message-options-set 'mml2015-epg-recipients recipients))
@@ -1293,19 +1296,20 @@ Select keys for signing.
 If no one is selected, default secret key is used.  "
 				      mml2015-signers t)
 		   (if mml2015-signers
-		       (mapcar
-			(lambda (signer)
-			  (setq signer-key (mml2015-epg-find-usable-key
-					    (epg-list-keys context signer t)
-					    'sign))
-			  (unless (or signer-key
-				      (y-or-n-p
-				       (format
-					"No secret key for %s; skip it? "
-					signer)))
-			    (error "No secret key for %s" signer))
-			  signer-key)
-			mml2015-signers))))))
+		       (delq nil
+			     (mapcar
+			      (lambda (signer)
+				(setq signer-key (mml2015-epg-find-usable-key
+						  (epg-list-keys context signer t)
+						  'sign))
+				(unless (or signer-key
+					    (y-or-n-p
+					     (format
+					      "No secret key for %s; skip it? "
+					      signer)))
+				  (error "No secret key for %s" signer))
+				signer-key)
+			      mml2015-signers)))))))
       (epg-context-set-signers context signers))
     (epg-context-set-armor context t)
     (epg-context-set-textmode context t)

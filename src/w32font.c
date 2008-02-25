@@ -290,23 +290,17 @@ w32font_text_extents (font, code, nglyphs, metrics)
      struct font_metrics *metrics;
 {
   int i;
-  HFONT old_font;
-  HDC dc;
+  HFONT old_font = NULL;
+  HDC dc = NULL;
   struct frame * f;
   int total_width = 0;
   WORD *wcode = alloca(nglyphs * sizeof (WORD));
   SIZE size;
 
-#if 0
-  /* Frames can come and go, and their fonts outlive them. This is
-     particularly troublesome with tooltip frames, and causes crashes.  */
-  f = ((struct w32font_info *)font)->owning_frame;
-#else
+  /* TODO: Frames can come and go, and their fonts outlive them. So we
+     can't cache the frame in the font structure.  Use selected_frame
+     until the API is updated to pass in a frame.  */
   f = XFRAME (selected_frame);
-#endif
-
-  dc = get_frame_dc (f);
-  old_font = SelectObject (dc, ((W32FontStruct *)(font->font.font))->hfont);
 
   if (metrics)
     {
@@ -320,35 +314,67 @@ w32font_text_extents (font, code, nglyphs, metrics)
       metrics->width = 0;
       metrics->ascent = 0;
       metrics->descent = 0;
+      metrics->lbearing = 0;
 
       for (i = 0; i < nglyphs; i++)
         {
-          if (GetGlyphOutlineW (dc, *(code + i), GGO_METRICS, &gm, 0,
-                                NULL, &transform) != GDI_ERROR)
+          if (*(code + i) < 128 && *(code + i) > 32)
             {
-              int new_val = metrics->width + gm.gmBlackBoxX
-                + gm.gmptGlyphOrigin.x;
+              /* Use cached metrics for ASCII.  */
+              struct font_metrics *char_metric
+                = &((struct w32font_info *)font)->ascii_metrics[*(code+i)-32];
 
-              metrics->rbearing = max (metrics->rbearing, new_val);
-              metrics->width += gm.gmCellIncX;
-              new_val = -gm.gmptGlyphOrigin.y;
-              metrics->ascent = max (metrics->ascent, new_val);
-              new_val = gm.gmBlackBoxY + gm.gmptGlyphOrigin.y;
-              metrics->descent = max (metrics->descent, new_val);
+              /* If we couldn't get metrics when caching, use fallback.  */
+              if (char_metric->width == 0)
+                break;
+
+              metrics->lbearing = max (metrics->lbearing,
+                                       char_metric->lbearing - metrics->width);
+              metrics->rbearing = max (metrics->rbearing,
+                                       metrics->width + char_metric->rbearing);
+              metrics->width += char_metric->width;
+              metrics->ascent = max (metrics->ascent, char_metric->ascent);
+              metrics->descent = max (metrics->descent, char_metric->descent);
             }
           else
             {
-              /* Rely on an estimate based on the overall font metrics.  */
-              break;
+              if (dc == NULL)
+                {
+                  dc = get_frame_dc (f);
+                  old_font = SelectObject (dc, ((W32FontStruct *)
+                                                (font->font.font))->hfont);
+                }
+              if (GetGlyphOutlineW (dc, *(code + i), GGO_METRICS, &gm, 0,
+                                    NULL, &transform) != GDI_ERROR)
+                {
+                  int new_val = metrics->width + gm.gmBlackBoxX
+                    + gm.gmptGlyphOrigin.x;
+                  metrics->rbearing = max (metrics->rbearing, new_val);
+                  new_val = -gm.gmptGlyphOrigin.x - metrics->width;
+                  metrics->lbearing = max (metrics->lbearing, new_val);
+                  metrics->width += gm.gmCellIncX;
+                  new_val = -gm.gmptGlyphOrigin.y;
+                  metrics->ascent = max (metrics->ascent, new_val);
+                  new_val = gm.gmBlackBoxY + gm.gmptGlyphOrigin.y;
+                  metrics->descent = max (metrics->descent, new_val);
+                }
+              else
+                {
+                  /* Rely on an estimate based on the overall font metrics.  */
+                  break;
+                }
             }
         }
 
       /* If we got through everything, return.  */
       if (i == nglyphs)
         {
-          /* Restore state and release DC.  */
-          SelectObject (dc, old_font);
-          release_frame_dc (f, dc);
+          if (dc != NULL)
+            {
+              /* Restore state and release DC.  */
+              SelectObject (dc, old_font);
+              release_frame_dc (f, dc);
+            }
 
           return metrics->width;
         }
@@ -363,6 +389,13 @@ w32font_text_extents (font, code, nglyphs, metrics)
           /* TODO: Convert to surrogate, reallocating array if needed */
           wcode[i] = 0xffff;
         }
+    }
+
+  if (dc == NULL)
+    {
+      dc = get_frame_dc (f);
+      old_font = SelectObject (dc, ((W32FontStruct *)
+                                    (font->font.font))->hfont);
     }
 
   if (GetTextExtentPoint32W (dc, wcode, nglyphs, &size))
@@ -454,7 +487,16 @@ w32font_draw (s, from, to, x, y, with_background)
       DeleteObject (brush);
     }
 
-  ExtTextOutW (s->hdc, x, y, options, NULL, s->char2b + from, to - from, NULL);
+  if (s->padding_p)
+    {
+      int len = to - from, i;
+
+      for (i = 0; i < len; i++)
+	ExtTextOutW (s->hdc, x + i, y, options, NULL,
+		     s->char2b + from + i, len, NULL);
+    }
+  else
+    ExtTextOutW (s->hdc, x, y, options, NULL, s->char2b + from, to - from, NULL);
 
   /* Restore clip region.  */
   if (s->num_clips > 0)
@@ -658,14 +700,39 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
   if (hfont == NULL)
     return 0;
 
-  w32_font->owning_frame = f;
-
   /* Get the metrics for this font.  */
   dc = get_frame_dc (f);
   old_font = SelectObject (dc, hfont);
 
   GetTextMetrics (dc, &w32_font->metrics);
 
+  /* Cache ASCII metrics.  */
+  {
+    GLYPHMETRICS gm;
+    MAT2 transform;
+    int i;
+
+    bzero (&transform, sizeof (transform));
+    transform.eM11.value = 1;
+    transform.eM22.value = 1;
+
+    for (i = 0; i < 96; i++)
+      {
+        struct font_metrics* char_metric = &w32_font->ascii_metrics[i];
+
+        if (GetGlyphOutlineW (dc, i + 32, GGO_METRICS, &gm, 0,
+                              NULL, &transform) != GDI_ERROR)
+          {
+            char_metric->lbearing = -gm.gmptGlyphOrigin.x;
+            char_metric->rbearing = gm.gmBlackBoxX + gm.gmptGlyphOrigin.x;
+            char_metric->width = gm.gmCellIncX;
+            char_metric->ascent = -gm.gmptGlyphOrigin.y;
+            char_metric->descent = gm.gmBlackBoxY + gm.gmptGlyphOrigin.y;
+          }
+        else
+          char_metric->width = 0;
+      }
+  }
   SelectObject (dc, old_font);
   release_frame_dc (f, dc);
   /* W32FontStruct - we should get rid of this, and use the w32font_info
@@ -724,10 +791,40 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
   font->file_name = NULL;
   font->encoding_charset = -1;
   font->repertory_charset = -1;
-  font->min_width = 0;
+  /* TODO: do we really want the minimum width here, which could be negative? */
+  font->min_width = font->font.space_width;
   font->ascent = w32_font->metrics.tmAscent;
   font->descent = w32_font->metrics.tmDescent;
   font->scalable = w32_font->metrics.tmPitchAndFamily & TMPF_VECTOR;
+
+  /* Set global flag fonts_changed_p to non-zero if the font loaded
+     has a character with a smaller width than any other character
+     before, or if the font loaded has a smaller height than any other
+     font loaded before.  If this happens, it will make a glyph matrix
+     reallocation necessary.  */
+  {
+    struct w32_display_info *dpyinfo = FRAME_W32_DISPLAY_INFO (f);
+    dpyinfo->n_fonts++;
+
+    if (dpyinfo->n_fonts == 1)
+      {
+        dpyinfo->smallest_font_height = font->font.height;
+        dpyinfo->smallest_char_width = font->min_width;
+      }
+    else
+      {
+        if (dpyinfo->smallest_font_height > font->font.height)
+          {
+            dpyinfo->smallest_font_height = font->font.height;
+            fonts_changed_p |= 1;
+          }
+        if (dpyinfo->smallest_char_width > font->min_width)
+          {
+            dpyinfo->smallest_char_width = font->min_width;
+            fonts_changed_p |= 1;
+          }
+      }
+  }
 
   return 1;
 }

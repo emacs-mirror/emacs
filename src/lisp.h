@@ -589,8 +589,12 @@ extern size_t pure_size;
 /* Convenience macros for dealing with Lisp arrays.  */
 
 #define AREF(ARRAY, IDX)	XVECTOR ((ARRAY))->contents[IDX]
-#define ASET(ARRAY, IDX, VAL)	(AREF ((ARRAY), (IDX)) = (VAL))
 #define ASIZE(ARRAY)		XVECTOR ((ARRAY))->size
+/* The IDX==IDX tries to detect when the macro argument is side-effecting.  */
+#define ASET(ARRAY, IDX, VAL)	\
+  (eassert ((IDX) == (IDX)),				\
+   eassert ((IDX) >= 0 && (IDX) < ASIZE (ARRAY)),	\
+   AREF ((ARRAY), (IDX)) = (VAL))
 
 /* Return the size of the psuedo-vector object FUNVEC.  */
 #define FUNVEC_SIZE(funvec)	(ASIZE (funvec) & PSEUDOVECTOR_SIZE_MASK)
@@ -1136,14 +1140,14 @@ struct Lisp_Hash_Table
 
 struct Lisp_Misc_Any		/* Supertype of all Misc types.  */
 {
-  int type : 16;		/* = Lisp_Misc_Marker */
+  enum Lisp_Misc_Type type : 16;		/* = Lisp_Misc_Marker */
   unsigned gcmarkbit : 1;
   int spacer : 15;
 };
 
 struct Lisp_Marker
 {
-  int type : 16;		/* = Lisp_Misc_Marker */
+  enum Lisp_Misc_Type type : 16;		/* = Lisp_Misc_Marker */
   unsigned gcmarkbit : 1;
   int spacer : 13;
   /* This flag is temporarily used in the functions
@@ -1295,7 +1299,7 @@ struct Lisp_Buffer_Local_Value
    PLIST is the overlay's property list.  */
 struct Lisp_Overlay
   {
-    int type : 16;	/* = Lisp_Misc_Overlay */
+    enum Lisp_Misc_Type type : 16;	/* = Lisp_Misc_Overlay */
     unsigned gcmarkbit : 1;
     int spacer : 15;
     struct Lisp_Overlay *next;
@@ -1306,7 +1310,7 @@ struct Lisp_Overlay
    current kboard.  */
 struct Lisp_Kboard_Objfwd
   {
-    int type : 16;	/* = Lisp_Misc_Kboard_Objfwd */
+    enum Lisp_Misc_Type type : 16;	/* = Lisp_Misc_Kboard_Objfwd */
     unsigned gcmarkbit : 1;
     int spacer : 15;
     int offset;
@@ -1316,7 +1320,7 @@ struct Lisp_Kboard_Objfwd
    This type of object is used in the arg to record_unwind_protect.  */
 struct Lisp_Save_Value
   {
-    int type : 16;	/* = Lisp_Misc_Save_Value */
+    enum Lisp_Misc_Type type : 16;	/* = Lisp_Misc_Save_Value */
     unsigned gcmarkbit : 1;
     int spacer : 14;
     /* If DOGC is set, POINTER is the address of a memory
@@ -1330,7 +1334,7 @@ struct Lisp_Save_Value
 /* A miscellaneous object, when it's on the free list.  */
 struct Lisp_Free
   {
-    int type : 16;	/* = Lisp_Misc_Free */
+    enum Lisp_Misc_Type type : 16;	/* = Lisp_Misc_Free */
     unsigned gcmarkbit : 1;
     int spacer : 15;
     union Lisp_Misc *chain;
@@ -1691,8 +1695,7 @@ typedef unsigned char UCHAR;
     A null string means call interactively with no arguments.
  `doc' is documentation for the user.  */
 
-#if (!defined (__STDC__) && !defined (PROTOTYPES)) \
-    || defined (USE_NONANSI_DEFUN)
+#if (!defined (__STDC__) && !defined (PROTOTYPES))
 
 #define DEFUN(lname, fnname, sname, minargs, maxargs, intspec, doc)	\
   Lisp_Object fnname ();						\
@@ -2141,8 +2144,7 @@ void staticpro P_ ((Lisp_Object *));
 
 /* Declare a Lisp-callable function.  The MAXARGS parameter has the same
    meaning as in the DEFUN macro, and is used to construct a prototype.  */
-#if (!defined (__STDC__) &&  !defined (PROTOTYPES)) \
-    || defined (USE_NONANSI_DEFUN)
+#if (!defined (__STDC__) &&  !defined (PROTOTYPES))
 #define EXFUN(fnname, maxargs) \
   extern Lisp_Object fnname ()
 #else
@@ -2305,8 +2307,8 @@ EXFUN (Ffind_operation_coding_system, MANY);
 EXFUN (Fupdate_coding_systems_internal, 0);
 EXFUN (Fencode_coding_string, 4);
 EXFUN (Fdecode_coding_string, 4);
-extern Lisp_Object detect_coding_system P_ ((const unsigned char *, int,
-					     int, int, int, Lisp_Object));
+extern Lisp_Object detect_coding_system P_ ((const unsigned char *, EMACS_INT,
+					     EMACS_INT, int, int, Lisp_Object));
 extern void init_coding P_ ((void));
 extern void init_coding_once P_ ((void));
 extern void syms_of_coding P_ ((void));
@@ -2320,8 +2322,8 @@ EXFUN (Funibyte_char_to_multibyte, 1);
 EXFUN (Fchar_bytes, 1);
 EXFUN (Fchar_width, 1);
 EXFUN (Fstring, MANY);
-extern int chars_in_text P_ ((const unsigned char *, int));
-extern int multibyte_chars_in_text P_ ((const unsigned char *, int));
+extern EMACS_INT chars_in_text P_ ((const unsigned char *, EMACS_INT));
+extern EMACS_INT multibyte_chars_in_text P_ ((const unsigned char *, EMACS_INT));
 extern int multibyte_char_to_unibyte P_ ((int, Lisp_Object));
 extern int multibyte_char_to_unibyte_safe P_ ((int));
 extern Lisp_Object Qcharset;
@@ -2427,8 +2429,8 @@ extern Lisp_Object nconc2 P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object assq_no_quit P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object assoc_no_quit P_ ((Lisp_Object, Lisp_Object));
 extern void clear_string_char_byte_cache P_ ((void));
-extern int string_char_to_byte P_ ((Lisp_Object, int));
-extern int string_byte_to_char P_ ((Lisp_Object, int));
+extern EMACS_INT string_char_to_byte P_ ((Lisp_Object, EMACS_INT));
+extern EMACS_INT string_byte_to_char P_ ((Lisp_Object, EMACS_INT));
 extern Lisp_Object string_make_multibyte P_ ((Lisp_Object));
 extern Lisp_Object string_to_multibyte P_ ((Lisp_Object));
 extern Lisp_Object string_make_unibyte P_ ((Lisp_Object));
@@ -2472,7 +2474,7 @@ extern void insert P_ ((const unsigned char *, int));
 extern void insert_and_inherit P_ ((const unsigned char *, int));
 extern void insert_1 P_ ((const unsigned char *, int, int, int, int));
 extern void insert_1_both P_ ((const unsigned char *, int, int, int, int, int));
-extern void insert_from_gap P_ ((int, int));
+extern void insert_from_gap P_ ((EMACS_INT, EMACS_INT));
 extern void insert_from_string P_ ((Lisp_Object, int, int, int, int, int));
 extern void insert_from_buffer P_ ((struct buffer *, int, int, int));
 extern void insert_char P_ ((int));
@@ -3289,6 +3291,7 @@ extern void syms_of_term P_ ((void));
 extern void fatal P_ ((const char *msgid, ...)) NO_RETURN;
 
 /* Defined in terminal.c */
+EXFUN (Fdelete_terminal, 2);
 extern void syms_of_terminal P_ ((void));
 
 #ifdef HAVE_WINDOW_SYSTEM
@@ -3398,11 +3401,7 @@ extern Lisp_Object Vdirectory_sep_char;
 #define IS_ANY_SEP(_c_) (IS_DIRECTORY_SEP (_c_))
 #endif
 
-#ifdef SWITCH_ENUM_BUG
-#define SWITCH_ENUM_CAST(x) ((int)(x))
-#else
 #define SWITCH_ENUM_CAST(x) (x)
-#endif
 
 /* Loop over Lisp list LIST.  Signal an error if LIST is not a proper
    list, or if it contains circles.

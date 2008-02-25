@@ -6063,6 +6063,12 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
 	    && lpef->logfont.lfCharSet == DEFAULT_CHARSET
 	    && strcmp (charset, w32_to_x_charset (DEFAULT_CHARSET, NULL)) != 0)
 	  return 1;
+
+        /* Reject raster fonts if we are looking for a unicode font.  */
+        if (charset
+            && FontType == RASTER_FONTTYPE
+            && strncmp (charset, "iso10646", 8) == 0)
+          return 1;
       }
 
     if (charset)
@@ -6078,6 +6084,12 @@ enum_font_cb2 (lplf, lptm, FontType, lpef)
       {
 	Lisp_Object this_charset = Fcar (charset_list);
 	charset = SDATA (this_charset);
+
+	/* Don't list  raster fonts as unicode.	 */
+	if (charset
+	    && FontType == RASTER_FONTTYPE
+	    && strncmp (charset, "iso10646", 8) == 0)
+	  continue;
 
 	enum_font_maybe_add_to_list (lpef, &(lplf->elfLogFont),
 				     charset, width);
@@ -7476,7 +7488,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   f->icon_name = Qnil;
 
 #if 0 /* GLYPH_DEBUG TODO: image support.  */
-  image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
+  image_cache_refcount = FRAME_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
 #ifdef MULTI_KBOARD
@@ -8346,9 +8358,12 @@ an integer representing a ShowWindow flag:
 
   CHECK_STRING (document);
 
-  /* Encode filename and current directory.  */
+  /* Encode filename, current directory and parameters.  */
   current_dir = ENCODE_FILE (current_buffer->directory);
   document = ENCODE_FILE (document);
+  if (STRINGP (parameters))
+    parameters = ENCODE_SYSTEM (parameters);
+
   if ((int) ShellExecute (NULL,
 			  (STRINGP (operation) ?
 			   SDATA (operation) : NULL),

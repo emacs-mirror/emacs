@@ -35,7 +35,6 @@
 
 (require 'quail)
 (require 'ind-util)
-(require 'devan-util)
 
 ;;;
 ;;; Input by transliteration

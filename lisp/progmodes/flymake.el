@@ -271,7 +271,8 @@ are the string substitutions (see `format')."
     ("\\.xml\\'" flymake-xml-init)
     ("\\.html?\\'" flymake-xml-init)
     ("\\.cs\\'" flymake-simple-make-init)
-    ("\\.pl\\'" flymake-perl-init)
+    ("\\.p[ml]\\'" flymake-perl-init)
+    ("\\.php[345]?\\'" flymake-php-init)
     ("\\.h\\'" flymake-master-make-header-init flymake-master-cleanup)
     ("\\.java\\'" flymake-simple-make-java-init flymake-simple-java-cleanup)
     ("[0-9]+\\.tex\\'" flymake-master-tex-init flymake-master-cleanup)
@@ -916,6 +917,8 @@ Convert it to flymake internal format."
       1 3 nil 4)
      ;; perl
      ("\\(.*\\) at \\([^ \n]+\\) line \\([0-9]+\\)[,.\n]" 2 3 nil 1)
+     ;; PHP
+     ("\\(?:Parse\\|Fatal\\) error: \\(.*\\) in \\(.*\\) on line \\([0-9]+\\)" 2 3 nil 1)
      ;; LaTeX warnings (fileless) ("\\(LaTeX \\(Warning\\|Error\\): .*\\) on input line \\([0-9]+\\)" 20 3 nil 1)
      ;; ant/javac
      (" *\\(\\[javac\\] *\\)?\\(\\([a-zA-Z]:\\)?[^:(\t\n]+\\)\:\\([0-9]+\\)\:[ \t\n]*\\(.+\\)"
@@ -1724,6 +1727,15 @@ Use CREATE-TEMP-F for creating temp copy."
                        temp-file
                        (file-name-directory buffer-file-name))))
     (list "perl" (list "-wc " local-file))))
+
+;;;; php-specific init-cleanup routines
+(defun flymake-php-init ()
+  (let* ((temp-file   (flymake-init-create-temp-buffer-copy
+                       'flymake-create-temp-inplace))
+	 (local-file  (file-relative-name
+                       temp-file
+                       (file-name-directory buffer-file-name))))
+    (list "php" (list "-f" local-file "-l"))))
 
 ;;;; tex-specific init-cleanup routines
 (defun flymake-get-tex-args (file-name)
