@@ -1,5 +1,9 @@
 2008-02-25  Kenichi Handa  <handa@ni.aist.go.jp>
 
+	* xdisp.c (fill_glyph_string): Pay attention to glyph->padding_p.
+	(append_glyph): Set glyph->pixel_width and glyph->padding_p to 1
+	if the glyph in the font is zero pixel with.
+
 	* dispextern.h (struct glyph_string): New member padding_p.
 
 	* w32font.c (w32font_draw): Pay attention to s->padding_p.
