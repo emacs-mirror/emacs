@@ -1,3 +1,22 @@
+2008-02-25  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* international/fontset.el (setup-default-fontset): Add non-OTF
+	lao font for lao script.
+
+	* language/tibetan.el: Register tibetan-composition-fucntion in
+	composition-function-table.
+
+	* language/tibet-util.el (tibetan-composition-function): Adjusted
+	for the new calling way (argument changed).  Try font-shape-text
+	if possible.
+
+	* language/lao.el: Register lao-composition-function in
+	composition-function-table.
+
+	* language/lao-util.el (lao-composition-function): Adjusted for
+	the new calling way (argument changed).  Try font-shape-text if
+	possible.
+
 2008-02-25  Jason Rumney  <jasonr@gnu.org>
 
 	* files.el (file-name-invalid-regexp): Fix octal/decimal confusion.
@@ -355,6 +374,8 @@
 	warnings about spell-region.
 
 2008-02-22  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* ldefs-boot.el: Regenerated.
 
 	* loadup.el: Don't load language/devanagari, language/kannanda,
 	language/malayalam, and language/tamil.  Load language/sinhala.
