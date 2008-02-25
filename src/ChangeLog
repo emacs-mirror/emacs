@@ -1,3 +1,18 @@
+2008-02-25  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* dispextern.h (struct glyph_string): New member padding_p.
+
+	* w32font.c (w32font_draw): Pay attention to s->padding_p.
+
+	* ftxfont.c (ftxfont_draw): Pay attention to s->padding_p.
+
+	* xfont.c (xfont_draw): Pay attention to s->padding_p.
+
+	* xftfont.c (xftfont_draw): Pay attention to s->padding_p.
+
+	* font.c: If the font driver doesn't have `shape' function, return
+	Qnil.
+
 2008-02-25  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (enum_font_cb2): Don't use raster fonts for Unicode.
