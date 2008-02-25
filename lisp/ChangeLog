@@ -1,3 +1,7 @@
+2008-02-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (shell-quote-wildcard-pattern): Quote ' and " as well.
+
 2008-02-25  Robert J. Chassell  <bob@rattlesnake.com>
 
 	* help-fns.el (describe-variable):  Add phrases about
