@@ -81,7 +81,7 @@ Display alphabetical listing of ABBREV-TABLE in buffer OUTPUT-BUFFER.
 ;;;***
 
 ;;;### (autoloads (ada-mode ada-add-extensions) "ada-mode" "progmodes/ada-mode.el"
-;;;;;;  (18335 54541))
+;;;;;;  (18369 28761))
 ;;; Generated autoloads from progmodes/ada-mode.el
 
 (autoload 'ada-add-extensions "ada-mode" "\
@@ -825,7 +825,7 @@ setup for auto-startup.
 ;;;***
 
 ;;;### (autoloads (ange-ftp-hook-function ange-ftp-reread-dir) "ange-ftp"
-;;;;;;  "net/ange-ftp.el" (18364 62105))
+;;;;;;  "net/ange-ftp.el" (18369 28760))
 ;;; Generated autoloads from net/ange-ftp.el
 
 (defalias 'ange-ftp-re-read-dir 'ange-ftp-reread-dir)
@@ -1890,18 +1890,6 @@ Major mode for editing BibTeX style files.
 
 ;;;***
 
-;;;### (autoloads (bibtex-style-mode) "bibtex-style" "textmodes/bibtex-style.el"
-;;;;;;  (18310 14604))
-;;; Generated autoloads from textmodes/bibtex-style.el
- (add-to-list 'auto-mode-alist '("\\.bst\\'" . bibtex-style-mode))
-
-(autoload (quote bibtex-style-mode) "bibtex-style" "\
-Major mode for editing BibTeX style files.
-
-\(fn)" t nil)
-
-;;;***
-
 ;;;### (autoloads (binhex-decode-region binhex-decode-region-external
 ;;;;;;  binhex-decode-region-internal) "binhex" "mail/binhex.el"
 ;;;;;;  (18335 54537))
@@ -2736,7 +2724,7 @@ Also see `make-text-button'.
 ;;;;;;  compile-defun byte-compile-file byte-recompile-directory
 ;;;;;;  byte-force-recompile byte-compile-enable-warning byte-compile-disable-warning
 ;;;;;;  byte-compile-warnings-safe-p) "bytecomp" "emacs-lisp/bytecomp.el"
-;;;;;;  (18353 32884))
+;;;;;;  (18353 36713))
 ;;; Generated autoloads from emacs-lisp/bytecomp.el
 (put 'byte-compile-dynamic 'safe-local-variable 'booleanp)
 (put 'byte-compile-disable-print-circle 'safe-local-variable 'booleanp)
@@ -3584,7 +3572,7 @@ it fails.
 ;;;***
 
 ;;;### (autoloads (capitalized-words-mode) "cap-words" "progmodes/cap-words.el"
-;;;;;;  (18339 61462))
+;;;;;;  (18340 25864))
 ;;; Generated autoloads from progmodes/cap-words.el
 
 (autoload 'capitalized-words-mode "cap-words" "\
@@ -3627,7 +3615,7 @@ Obsoletes `c-forward-into-nomenclature'.
 ;;;***
 
 ;;;### (autoloads (c-guess-basic-syntax) "cc-engine" "progmodes/cc-engine.el"
-;;;;;;  (18335 54542))
+;;;;;;  (18369 28762))
 ;;; Generated autoloads from progmodes/cc-engine.el
 
 (autoload 'c-guess-basic-syntax "cc-engine" "\
@@ -3639,7 +3627,7 @@ Return the syntactic context of the current line.
 
 ;;;### (autoloads (pike-mode idl-mode java-mode objc-mode c++-mode
 ;;;;;;  c-mode c-initialize-cc-mode) "cc-mode" "progmodes/cc-mode.el"
-;;;;;;  (18335 54542))
+;;;;;;  (18369 28762))
 ;;; Generated autoloads from progmodes/cc-mode.el
 
 (autoload 'c-initialize-cc-mode "cc-mode" "\
@@ -3797,7 +3785,7 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (c-set-offset c-add-style c-set-style) "cc-styles"
-;;;;;;  "progmodes/cc-styles.el" (18335 54542))
+;;;;;;  "progmodes/cc-styles.el" (18369 28762))
 ;;; Generated autoloads from progmodes/cc-styles.el
 
 (autoload 'c-set-style "cc-styles" "\
@@ -4663,7 +4651,7 @@ on third call it again advances points to the next difference and so on.
 ;;;;;;  compilation-shell-minor-mode compilation-mode compilation-start
 ;;;;;;  compile compilation-disable-input compile-command compilation-search-path
 ;;;;;;  compilation-ask-about-save compilation-window-height compilation-mode-hook)
-;;;;;;  "compile" "progmodes/compile.el" (18356 12618))
+;;;;;;  "compile" "progmodes/compile.el" (18370 636))
 ;;; Generated autoloads from progmodes/compile.el
 
 (defvar compilation-mode-hook nil "\
@@ -5128,7 +5116,7 @@ Randomly permute the elements of VECTOR (all permutations equally likely).
 ;;;***
 
 ;;;### (autoloads (copyright copyright-fix-years copyright-update)
-;;;;;;  "copyright" "emacs-lisp/copyright.el" (18341 12907))
+;;;;;;  "copyright" "emacs-lisp/copyright.el" (18367 13960))
 ;;; Generated autoloads from emacs-lisp/copyright.el
 
 (autoload 'copyright-update "copyright" "\
@@ -5156,7 +5144,7 @@ Insert a copyright by $ORGANIZATION notice at cursor.
 ;;;***
 
 ;;;### (autoloads (cperl-perldoc-at-point cperl-perldoc cperl-mode)
-;;;;;;  "cperl-mode" "progmodes/cperl-mode.el" (18335 54542))
+;;;;;;  "cperl-mode" "progmodes/cperl-mode.el" (18369 28763))
 ;;; Generated autoloads from progmodes/cperl-mode.el
 (put 'cperl-indent-level 'safe-local-variable 'integerp)
 (put 'cperl-brace-offset 'safe-local-variable 'integerp)
@@ -6605,7 +6593,7 @@ Revert to the last loaded desktop.
 
 ;;;### (autoloads (gnus-article-outlook-deuglify-article gnus-outlook-deuglify-article
 ;;;;;;  gnus-article-outlook-repair-attribution gnus-article-outlook-unwrap-lines)
-;;;;;;  "deuglify" "gnus/deuglify.el" (18335 54532))
+;;;;;;  "deuglify" "gnus/deuglify.el" (18369 28758))
 ;;; Generated autoloads from gnus/deuglify.el
 
 (autoload 'gnus-article-outlook-unwrap-lines "deuglify" "\
@@ -6750,7 +6738,7 @@ Minor mode for viewing/editing context diffs.
 ;;;;;;  dired dired-copy-preserve-time dired-dwim-target dired-keep-marker-symlink
 ;;;;;;  dired-keep-marker-hardlink dired-keep-marker-copy dired-keep-marker-rename
 ;;;;;;  dired-trivial-filenames dired-ls-F-marks-symlinks dired-listing-switches)
-;;;;;;  "dired" "dired.el" (18335 54512))
+;;;;;;  "dired" "dired.el" (18369 28746))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches "-al" "\
@@ -7624,7 +7612,7 @@ Locate SOA record and increment the serial field.
 ;;;***
 
 ;;;### (autoloads (doc-view-bookmark-jump doc-view-minor-mode doc-view-mode
-;;;;;;  doc-view-mode-p) "doc-view" "doc-view.el" (18365 8900))
+;;;;;;  doc-view-mode-p) "doc-view" "doc-view.el" (18365 56505))
 ;;; Generated autoloads from doc-view.el
 
 (autoload 'doc-view-mode-p "doc-view" "\
@@ -8427,7 +8415,7 @@ Not documented
 
 ;;;### (autoloads (edebug-all-forms edebug-all-defs edebug-eval-top-level-form
 ;;;;;;  edebug-basic-spec edebug-all-forms edebug-all-defs) "edebug"
-;;;;;;  "emacs-lisp/edebug.el" (18335 54522))
+;;;;;;  "emacs-lisp/edebug.el" (18369 28755))
 ;;; Generated autoloads from emacs-lisp/edebug.el
 
 (defvar edebug-all-defs nil "\
@@ -9006,7 +8994,7 @@ Prompts for bug subject.  Leaves you in a mail buffer.
 ;;;;;;  emerge-revisions emerge-files-with-ancestor-remote emerge-files-remote
 ;;;;;;  emerge-files-with-ancestor-command emerge-files-command emerge-buffers-with-ancestor
 ;;;;;;  emerge-buffers emerge-files-with-ancestor emerge-files) "emerge"
-;;;;;;  "emerge.el" (18200 26565))
+;;;;;;  "emerge.el" (18203 29181))
 ;;; Generated autoloads from emerge.el
 
 (defvar menu-bar-emerge-menu (make-sparse-keymap "Emerge"))
@@ -9694,7 +9682,7 @@ Look at CONFIG and try to expand GROUP.
 ;;;***
 
 ;;;### (autoloads (erc-handle-irc-url erc erc-select-read-args) "erc"
-;;;;;;  "erc/erc.el" (18335 54524))
+;;;;;;  "erc/erc.el" (18369 28756))
 ;;; Generated autoloads from erc/erc.el
 
 (autoload 'erc-select-read-args "erc" "\
@@ -9743,7 +9731,7 @@ Otherwise, connect to HOST:PORT as USER and /join CHANNEL.
 
 ;;;***
 
-;;;### (autoloads nil "erc-button" "erc/erc-button.el" (18335 54524))
+;;;### (autoloads nil "erc-button" "erc/erc-button.el" (18369 28755))
 ;;; Generated autoloads from erc/erc-button.el
  (autoload 'erc-button-mode "erc-button" nil t)
 
@@ -9762,7 +9750,7 @@ Otherwise, connect to HOST:PORT as USER and /join CHANNEL.
 ;;;***
 
 ;;;### (autoloads (erc-ctcp-query-DCC pcomplete/erc-mode/DCC erc-cmd-DCC)
-;;;;;;  "erc-dcc" "erc/erc-dcc.el" (18335 54524))
+;;;;;;  "erc-dcc" "erc/erc-dcc.el" (18368 43874))
 ;;; Generated autoloads from erc/erc-dcc.el
  (autoload 'erc-dcc-mode "erc-dcc")
 
@@ -9955,7 +9943,7 @@ You can save every individual message by putting this function on
 ;;;### (autoloads (erc-delete-dangerous-host erc-add-dangerous-host
 ;;;;;;  erc-delete-keyword erc-add-keyword erc-delete-fool erc-add-fool
 ;;;;;;  erc-delete-pal erc-add-pal) "erc-match" "erc/erc-match.el"
-;;;;;;  (18335 54524))
+;;;;;;  (18369 28756))
 ;;; Generated autoloads from erc/erc-match.el
  (autoload 'erc-match-mode "erc-match")
 
@@ -10131,7 +10119,7 @@ This will add a speedbar major display mode.
 ;;;***
 
 ;;;### (autoloads (erc-track-minor-mode) "erc-track" "erc/erc-track.el"
-;;;;;;  (18335 54524))
+;;;;;;  (18368 43876))
 ;;; Generated autoloads from erc/erc-track.el
 
 (defvar erc-track-minor-mode nil "\
@@ -11260,7 +11248,7 @@ you can set `feedmail-queue-reminder-alist' to nil.
 ;;;***
 
 ;;;### (autoloads (ffap-bindings dired-at-point ffap-at-mouse ffap-menu
-;;;;;;  find-file-at-point ffap-next) "ffap" "ffap.el" (18351 56654))
+;;;;;;  find-file-at-point ffap-next) "ffap" "ffap.el" (18369 28746))
 ;;; Generated autoloads from ffap.el
 
 (autoload 'ffap-next "ffap" "\
@@ -11886,7 +11874,7 @@ Flyspell whole buffer.
 
 ;;;### (autoloads (follow-delete-other-windows-and-split follow-mode
 ;;;;;;  turn-off-follow-mode turn-on-follow-mode) "follow" "follow.el"
-;;;;;;  (18335 54513))
+;;;;;;  (18369 28747))
 ;;; Generated autoloads from follow.el
 
 (autoload 'turn-on-follow-mode "follow" "\
@@ -12146,7 +12134,7 @@ and choose the directory as the fortune-file.
 ;;;***
 
 ;;;### (autoloads (gdb-enable-debug gdb) "gdb-ui" "progmodes/gdb-ui.el"
-;;;;;;  (18362 26779))
+;;;;;;  (18369 28763))
 ;;; Generated autoloads from progmodes/gdb-ui.el
 
 (autoload 'gdb "gdb-ui" "\
@@ -12208,7 +12196,7 @@ session.
 
 \(fn COMMAND-LINE)" t nil)
 
-(defalias (quote gdba) (quote gdb))
+(defalias 'gdba 'gdb)
 
 (defvar gdb-enable-debug nil "\
 Non-nil means record the process input and output in `gdb-debug-log'.")
@@ -12716,7 +12704,7 @@ FILE should be a PNG file that's 48x48 and smaller than or equal to
 ;;;***
 
 ;;;### (autoloads (gnus-fetch-group-other-frame gnus-fetch-group)
-;;;;;;  "gnus-group" "gnus/gnus-group.el" (18335 54532))
+;;;;;;  "gnus-group" "gnus/gnus-group.el" (18369 28758))
 ;;; Generated autoloads from gnus/gnus-group.el
 
 (autoload 'gnus-fetch-group "gnus-group" "\
@@ -13343,7 +13331,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful.
 ;;;***
 
 ;;;### (autoloads (gdb-script-mode jdb pdb perldb xdb dbx sdb gud-gdb)
-;;;;;;  "gud" "progmodes/gud.el" (18362 26779))
+;;;;;;  "gud" "progmodes/gud.el" (18369 28763))
 ;;; Generated autoloads from progmodes/gud.el
 
 (autoload 'gud-gdb "gud" "\
@@ -14148,7 +14136,7 @@ Unconditionally turn off `hs-minor-mode'.
 ;;;;;;  highlight-compare-buffers highlight-changes-rotate-faces
 ;;;;;;  highlight-changes-previous-change highlight-changes-next-change
 ;;;;;;  highlight-changes-mode highlight-changes-remove-highlight)
-;;;;;;  "hilit-chg" "hilit-chg.el" (18335 54513))
+;;;;;;  "hilit-chg" "hilit-chg.el" (18369 29113))
 ;;; Generated autoloads from hilit-chg.el
 
 (autoload 'highlight-changes-remove-highlight "hilit-chg" "\
@@ -15495,7 +15483,7 @@ DEF, if non-nil, is the default value.
 
 ;;;***
 
-;;;### (autoloads (ielm) "ielm" "ielm.el" (18360 55728))
+;;;### (autoloads (ielm) "ielm" "ielm.el" (18368 53909))
 ;;; Generated autoloads from ielm.el
  (add-hook 'same-window-buffer-names "*ielm*")
 
@@ -15906,7 +15894,7 @@ Image files are those whose name has an extension in
 ;;;***
 
 ;;;### (autoloads (image-bookmark-jump image-mode-maybe image-minor-mode
-;;;;;;  image-mode) "image-mode" "image-mode.el" (18365 8901))
+;;;;;;  image-mode) "image-mode" "image-mode.el" (18365 56507))
 ;;; Generated autoloads from image-mode.el
  (push '("\\.jpe?g\\'"    . image-mode) auto-mode-alist)
  (push '("\\.png\\'"      . image-mode) auto-mode-alist)
@@ -16627,7 +16615,7 @@ Add submenus to the File menu, to convert to and from various formats.
 ;;;;;;  ispell-region ispell-change-dictionary ispell-kill-ispell
 ;;;;;;  ispell-help ispell-pdict-save ispell-word ispell-local-dictionary-alist
 ;;;;;;  ispell-personal-dictionary) "ispell" "textmodes/ispell.el"
-;;;;;;  (18341 12919))
+;;;;;;  (18369 28764))
 ;;; Generated autoloads from textmodes/ispell.el
 (put 'ispell-check-comments 'safe-local-variable (lambda (a) (memq a '(nil t exclusive))))
 
@@ -17377,7 +17365,7 @@ coding system names is determined from `latex-inputenc-coding-alist'.
 ;;;***
 
 ;;;### (autoloads (latin1-display-ucs-per-lynx latin1-display latin1-display)
-;;;;;;  "latin1-disp" "international/latin1-disp.el" (18363 44328))
+;;;;;;  "latin1-disp" "international/latin1-disp.el" (18364 47319))
 ;;; Generated autoloads from international/latin1-disp.el
 
 (defvar latin1-display nil "\
@@ -17483,7 +17471,7 @@ generations (this defaults to 1).
 ;;;***
 
 ;;;### (autoloads (global-linum-mode linum-mode linum-format) "linum"
-;;;;;;  "linum.el" (18341 12905))
+;;;;;;  "linum.el" (18368 43684))
 ;;; Generated autoloads from linum.el
 
 (defvar linum-format 'dynamic "\
@@ -17898,7 +17886,7 @@ and then select the region of un-tablified names and use
 ;;;***
 
 ;;;### (autoloads (what-domain mail-extract-address-components) "mail-extr"
-;;;;;;  "mail/mail-extr.el" (18335 54537))
+;;;;;;  "mail/mail-extr.el" (18369 28759))
 ;;; Generated autoloads from mail/mail-extr.el
 
 (autoload 'mail-extract-address-components "mail-extr" "\
@@ -18317,8 +18305,8 @@ Returns non-nil if the new state is enabled.
 
 ;;;***
 
-;;;### (autoloads (menu-bar-mode) "menu-bar" "menu-bar.el" (18335
-;;;;;;  54514))
+;;;### (autoloads (menu-bar-mode) "menu-bar" "menu-bar.el" (18368
+;;;;;;  43872))
 ;;; Generated autoloads from menu-bar.el
 
 (put 'menu-bar-mode 'standard-value '(t))
@@ -18349,7 +18337,7 @@ turn on menu bars; otherwise, turn off menu bars.
 ;;;;;;  message-forward-make-body message-forward message-recover
 ;;;;;;  message-supersede message-cancel-news message-followup message-wide-reply
 ;;;;;;  message-reply message-news message-mail message-mode) "message"
-;;;;;;  "gnus/message.el" (18335 54533))
+;;;;;;  "gnus/message.el" (18369 28758))
 ;;; Generated autoloads from gnus/message.el
 
 (define-mail-user-agent 'message-user-agent 'message-mail 'message-send-and-exit 'message-kill-buffer 'message-send-hook)
@@ -18587,7 +18575,7 @@ redisplayed as output is inserted.
 
 ;;;### (autoloads (mh-fully-kill-draft mh-send-letter mh-user-agent-compose
 ;;;;;;  mh-smail-batch mh-smail-other-window mh-smail) "mh-comp"
-;;;;;;  "mh-e/mh-comp.el" (18362 26778))
+;;;;;;  "mh-e/mh-comp.el" (18368 43878))
 ;;; Generated autoloads from mh-e/mh-comp.el
 
 (autoload 'mh-smail "mh-comp" "\
@@ -18674,7 +18662,7 @@ delete the draft message.
 
 ;;;***
 
-;;;### (autoloads (mh-version) "mh-e" "mh-e/mh-e.el" (18362 26778))
+;;;### (autoloads (mh-version) "mh-e" "mh-e/mh-e.el" (18369 28760))
 ;;; Generated autoloads from mh-e/mh-e.el
 
 (put 'mh-progs 'risky-local-variable t)
@@ -18929,7 +18917,7 @@ Not documented
 
 ;;;### (autoloads (mml2015-self-encrypt mml2015-sign mml2015-encrypt
 ;;;;;;  mml2015-verify-test mml2015-verify mml2015-decrypt-test mml2015-decrypt)
-;;;;;;  "mml2015" "gnus/mml2015.el" (18335 54533))
+;;;;;;  "mml2015" "gnus/mml2015.el" (18369 28759))
 ;;; Generated autoloads from gnus/mml2015.el
 
 (autoload 'mml2015-decrypt "mml2015" "\
@@ -18970,7 +18958,7 @@ Not documented
 ;;;***
 
 ;;;### (autoloads (modula-2-mode) "modula2" "progmodes/modula2.el"
-;;;;;;  (18134 11941))
+;;;;;;  (18154 63989))
 ;;; Generated autoloads from progmodes/modula2.el
 
 (autoload 'modula-2-mode "modula2" "\
@@ -19107,7 +19095,7 @@ different buffer menu using the function `msb'.
 ;;;;;;  list-coding-systems describe-current-coding-system describe-current-coding-system-briefly
 ;;;;;;  describe-coding-system describe-character-set list-charset-chars
 ;;;;;;  read-charset list-character-sets) "mule-diag" "international/mule-diag.el"
-;;;;;;  (18342 53493))
+;;;;;;  (18343 28560))
 ;;; Generated autoloads from international/mule-diag.el
 
 (autoload 'list-character-sets "mule-diag" "\
@@ -19251,7 +19239,7 @@ The list is null if CHAR isn't found in `unicodedata-file'.
 ;;;;;;  coding-system-translation-table-for-decode coding-system-pre-write-conversion
 ;;;;;;  coding-system-post-read-conversion lookup-nested-alist set-nested-alist
 ;;;;;;  truncate-string-to-width store-substring string-to-sequence)
-;;;;;;  "mule-util" "international/mule-util.el" (18363 34169))
+;;;;;;  "mule-util" "international/mule-util.el" (18364 47319))
 ;;; Generated autoloads from international/mule-util.el
 
 (autoload 'string-to-sequence "mule-util" "\
@@ -19416,8 +19404,8 @@ Enable mouse wheel support.
 
 ;;;### (autoloads (network-connection network-connection-to-service
 ;;;;;;  whois-reverse-lookup whois finger ftp run-dig dns-lookup-host
-;;;;;;  nslookup nslookup-host route arp netstat ipconfig ping traceroute)
-;;;;;;  "net-utils" "net/net-utils.el" (18335 54538))
+;;;;;;  nslookup nslookup-host route arp netstat iwconfig ifconfig
+;;;;;;  ping traceroute) "net-utils" "net/net-utils.el" (18370 1627))
 ;;; Generated autoloads from net/net-utils.el
 
 (autoload 'traceroute "net-utils" "\
@@ -19432,12 +19420,17 @@ If your system's ping continues until interrupted, you can try setting
 
 \(fn HOST)" t nil)
 
-(autoload 'ipconfig "net-utils" "\
-Run ipconfig program.
+(autoload 'ifconfig "net-utils" "\
+Run ifconfig program.
 
 \(fn)" t nil)
 
-(defalias 'ifconfig 'ipconfig)
+(defalias 'ipconfig 'ifconfig)
+
+(autoload 'iwconfig "net-utils" "\
+Run iwconfig program.
+
+\(fn)" t nil)
 
 (autoload 'netstat "net-utils" "\
 Run netstat program.
@@ -20107,7 +20100,7 @@ including a reproducible test case and send the message.
 ;;;;;;  org-remember-insinuate org-open-at-point-global org-insert-link-global
 ;;;;;;  org-store-link orgtbl-mode turn-on-orgtbl org-run-like-in-org-mode
 ;;;;;;  turn-on-orgstruct++ turn-on-orgstruct orgstruct-mode org-global-cycle
-;;;;;;  org-cycle org-mode) "org" "textmodes/org.el" (18360 55743))
+;;;;;;  org-cycle org-mode) "org" "textmodes/org.el" (18360 56635))
 ;;; Generated autoloads from textmodes/org.el
 
 (autoload 'org-mode "org" "\
@@ -22209,8 +22202,8 @@ Typing \\<ps-run-mode-map>\\[ps-run-goto-error] when the cursor is at the number
 ;;;;;;  ps-spool-region ps-spool-buffer-with-faces ps-spool-buffer
 ;;;;;;  ps-print-region-with-faces ps-print-region ps-print-buffer-with-faces
 ;;;;;;  ps-print-buffer ps-print-customize ps-print-color-p ps-paper-type
-;;;;;;  ps-page-dimensions-database) "ps-print" "ps-print.el" (18366
-;;;;;;  8289))
+;;;;;;  ps-page-dimensions-database) "ps-print" "ps-print.el" (18367
+;;;;;;  13960))
 ;;; Generated autoloads from ps-print.el
 
 (defvar ps-page-dimensions-database (list (list 'a4 (/ (* 72 21.0) 2.54) (/ (* 72 29.7) 2.54) "A4") (list 'a3 (/ (* 72 29.7) 2.54) (/ (* 72 42.0) 2.54) "A3") (list 'letter (* 72 8.5) (* 72 11.0) "Letter") (list 'legal (* 72 8.5) (* 72 14.0) "Legal") (list 'letter-small (* 72 7.68) (* 72 10.16) "LetterSmall") (list 'tabloid (* 72 11.0) (* 72 17.0) "Tabloid") (list 'ledger (* 72 17.0) (* 72 11.0) "Ledger") (list 'statement (* 72 5.5) (* 72 8.5) "Statement") (list 'executive (* 72 7.5) (* 72 10.0) "Executive") (list 'a4small (* 72 7.47) (* 72 10.85) "A4Small") (list 'b4 (* 72 10.125) (* 72 14.33) "B4") (list 'b5 (* 72 7.16) (* 72 10.125) "B5")) "\
@@ -22407,7 +22400,7 @@ If EXTENSION is any other symbol, it is ignored.
 ;;;***
 
 ;;;### (autoloads (python-shell jython-mode python-mode run-python)
-;;;;;;  "python" "progmodes/python.el" (18366 7835))
+;;;;;;  "python" "progmodes/python.el" (18367 13962))
 ;;; Generated autoloads from progmodes/python.el
 
 (add-to-list 'interpreter-mode-alist '("jython" . jython-mode))
@@ -22850,7 +22843,7 @@ Display `quickurl-list' as a formatted list using `quickurl-list-mode'.
 ;;;***
 
 ;;;### (autoloads (rcirc-track-minor-mode rcirc-connect rcirc) "rcirc"
-;;;;;;  "net/rcirc.el" (18351 56657))
+;;;;;;  "net/rcirc.el" (18369 28761))
 ;;; Generated autoloads from net/rcirc.el
 
 (autoload 'rcirc "rcirc" "\
@@ -24099,7 +24092,7 @@ strings represent the same value, the returned objects must be equal.
 ;;;***
 
 ;;;### (autoloads (robin-use-package robin-modify-package robin-define-package)
-;;;;;;  "robin" "international/robin.el" (18339 61282))
+;;;;;;  "robin" "international/robin.el" (18340 25864))
 ;;; Generated autoloads from international/robin.el
 
 (autoload 'robin-define-package "robin" "\
@@ -24520,7 +24513,7 @@ which is probably undesirable.
 ;;;***
 
 ;;;### (autoloads (dsssl-mode scheme-mode) "scheme" "progmodes/scheme.el"
-;;;;;;  (18335 54543))
+;;;;;;  (18369 28763))
 ;;; Generated autoloads from progmodes/scheme.el
 
 (autoload 'scheme-mode "scheme" "\
@@ -24985,7 +24978,7 @@ These are active only in the minibuffer, when entering or editing a formula:
 ;;;***
 
 ;;;### (autoloads (html-mode sgml-mode) "sgml-mode" "textmodes/sgml-mode.el"
-;;;;;;  (18341 12919))
+;;;;;;  (18369 28764))
 ;;; Generated autoloads from textmodes/sgml-mode.el
 
 (autoload 'sgml-mode "sgml-mode" "\
@@ -25514,7 +25507,7 @@ interactively. If there's no argument, do it at the current buffer
 ;;;***
 
 ;;;### (autoloads (smtpmail-send-queued-mail smtpmail-send-it) "smtpmail"
-;;;;;;  "mail/smtpmail.el" (18357 34940))
+;;;;;;  "mail/smtpmail.el" (18368 43878))
 ;;; Generated autoloads from mail/smtpmail.el
 
 (autoload 'smtpmail-send-it "smtpmail" "\
@@ -25962,7 +25955,7 @@ selected.  If the speedbar frame is active, then select the attached frame.
 ;;;***
 
 ;;;### (autoloads (spell-string spell-region spell-word spell-buffer)
-;;;;;;  "spell" "textmodes/spell.el" (18366 7835))
+;;;;;;  "spell" "textmodes/spell.el" (18367 13963))
 ;;; Generated autoloads from textmodes/spell.el
 
 (put 'spell-filter 'risky-local-variable t)
@@ -26588,7 +26581,7 @@ Studlify-case the current buffer.
 
 ;;;***
 
-;;;### (autoloads (locate-library) "subr" "subr.el" (18366 7833))
+;;;### (autoloads (locate-library) "subr" "subr.el" (18369 28751))
 ;;; Generated autoloads from subr.el
 
 (autoload 'locate-library "subr" "\
@@ -26643,7 +26636,7 @@ before, and `sc-post-hook' is run after the guts of this function.
 ;;;***
 
 ;;;### (autoloads (symbol-completion-try-complete symbol-complete)
-;;;;;;  "sym-comp" "progmodes/sym-comp.el" (18365 44770))
+;;;;;;  "sym-comp" "progmodes/sym-comp.el" (18368 4866))
 ;;; Generated autoloads from progmodes/sym-comp.el
 
 (autoload 'symbol-complete "sym-comp" "\
@@ -28213,7 +28206,7 @@ This function performs no refilling of the changed text.
 
 ;;;### (autoloads (emacs-init-time emacs-uptime display-time-world
 ;;;;;;  display-time-mode display-time display-time-day-and-date)
-;;;;;;  "time" "time.el" (18366 7833))
+;;;;;;  "time" "time.el" (18367 13960))
 ;;; Generated autoloads from time.el
 
 (defvar display-time-day-and-date nil "\
@@ -28810,7 +28803,7 @@ holds a keymap.
 ;;;***
 
 ;;;### (autoloads (tpu-edt-on tpu-edt-mode) "tpu-edt" "emulation/tpu-edt.el"
-;;;;;;  (18335 54524))
+;;;;;;  (18367 13961))
 ;;; Generated autoloads from emulation/tpu-edt.el
 
 (defvar tpu-edt-mode nil "\
@@ -29086,7 +29079,7 @@ resumed later.
 ;;;***
 
 ;;;### (autoloads (tai-viet-composition-function) "tv-util" "language/tv-util.el"
-;;;;;;  (18339 61323))
+;;;;;;  (18340 25864))
 ;;; Generated autoloads from language/tv-util.el
 
 (autoload 'tai-viet-composition-function "tv-util" "\
@@ -30072,7 +30065,7 @@ If FILE-NAME is non-nil, save the result to FILE-NAME.
 ;;;;;;  vc-status vc-directory vc-merge vc-insert-headers vc-revision-other-window
 ;;;;;;  vc-diff vc-version-diff vc-register vc-next-action vc-do-command
 ;;;;;;  edit-vc-file with-vc-file vc-before-checkin-hook vc-checkin-hook
-;;;;;;  vc-checkout-hook) "vc" "vc.el" (18366 7833))
+;;;;;;  vc-checkout-hook) "vc" "vc.el" (18368 4863))
 ;;; Generated autoloads from vc.el
 
 (defvar vc-checkout-hook nil "\
@@ -30380,7 +30373,7 @@ mode-specific menu.  `vc-annotate-color-map' and
 
 ;;;***
 
-;;;### (autoloads nil "vc-bzr" "vc-bzr.el" (18335 54517))
+;;;### (autoloads nil "vc-bzr" "vc-bzr.el" (18368 4859))
 ;;; Generated autoloads from vc-bzr.el
 
 (defconst vc-bzr-admin-dirname ".bzr" "\
@@ -30395,7 +30388,7 @@ Name of the directory containing Bzr repository status files.")
 
 ;;;***
 
-;;;### (autoloads nil "vc-cvs" "vc-cvs.el" (18364 62105))
+;;;### (autoloads nil "vc-cvs" "vc-cvs.el" (18370 635))
 ;;; Generated autoloads from vc-cvs.el
  (defun vc-cvs-registered (f)
   (when (file-readable-p (expand-file-name
@@ -30405,7 +30398,7 @@ Name of the directory containing Bzr repository status files.")
 
 ;;;***
 
-;;;### (autoloads nil "vc-git" "vc-git.el" (18362 26778))
+;;;### (autoloads nil "vc-git" "vc-git.el" (18367 13960))
 ;;; Generated autoloads from vc-git.el
  (defun vc-git-registered (file)
   "Return non-nil if FILE is registered with git."
@@ -30416,7 +30409,7 @@ Name of the directory containing Bzr repository status files.")
 
 ;;;***
 
-;;;### (autoloads nil "vc-hg" "vc-hg.el" (18364 62105))
+;;;### (autoloads nil "vc-hg" "vc-hg.el" (18368 4862))
 ;;; Generated autoloads from vc-hg.el
  (defun vc-hg-registered (file)
   "Return non-nil if FILE is registered with hg."
@@ -30427,7 +30420,7 @@ Name of the directory containing Bzr repository status files.")
 
 ;;;***
 
-;;;### (autoloads nil "vc-mcvs" "vc-mcvs.el" (18335 54517))
+;;;### (autoloads nil "vc-mcvs" "vc-mcvs.el" (18370 635))
 ;;; Generated autoloads from vc-mcvs.el
  (defun vc-mcvs-registered (file)
   (if (vc-find-root file "MCVS/CVS")
@@ -30452,7 +30445,7 @@ Name of the directory containing Bzr repository status files.")
 ;;;***
 
 ;;;### (autoloads (vc-rcs-master-templates) "vc-rcs" "vc-rcs.el"
-;;;;;;  (18364 62105))
+;;;;;;  (18370 636))
 ;;; Generated autoloads from vc-rcs.el
 
 (defvar vc-rcs-master-templates '("%sRCS/%s,v" "%s%s,v" "%sRCS/%s") "\
@@ -30465,7 +30458,7 @@ For a description of possible values, see `vc-check-master-templates'.")
 ;;;***
 
 ;;;### (autoloads (vc-sccs-master-templates) "vc-sccs" "vc-sccs.el"
-;;;;;;  (18364 62105))
+;;;;;;  (18370 636))
 ;;; Generated autoloads from vc-sccs.el
 
 (defvar vc-sccs-master-templates '("%sSCCS/s.%s" "%ss.%s" vc-sccs-search-project-dir) "\
@@ -30482,7 +30475,7 @@ find any project directory." (let ((project-dir (getenv "PROJECTDIR")) dirs dir)
 
 ;;;***
 
-;;;### (autoloads nil "vc-svn" "vc-svn.el" (18364 62105))
+;;;### (autoloads nil "vc-svn" "vc-svn.el" (18367 13960))
 ;;; Generated autoloads from vc-svn.el
  (defun vc-svn-registered (f)
   (let ((admin-dir (cond ((and (eq system-type 'windows-nt)
@@ -30558,205 +30551,10 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (verilog-mode) "verilog-mode" "progmodes/verilog-mode.el"
-;;;;;;  (18362 26779))
+;;;;;;  (18369 28764))
 ;;; Generated autoloads from progmodes/verilog-mode.el
 
 (autoload 'verilog-mode "verilog-mode" "\
-Major mode for editing Verilog code.
-\\<verilog-mode-map>
-See \\[describe-function] verilog-auto (\\[verilog-auto]) for details on how
-AUTOs can improve coding efficiency.
-
-Use \\[verilog-faq] for a pointer to frequently asked questions.
-
-NEWLINE, TAB indents for Verilog code.
-Delete converts tabs to spaces as it moves back.
-
-Supports highlighting.
-
-Turning on Verilog mode calls the value of the variable `verilog-mode-hook'
-with no args, if that value is non-nil.
-
-Variables controlling indentation/edit style:
-
- variable `verilog-indent-level'      (default 3)
-   Indentation of Verilog statements with respect to containing block.
- `verilog-indent-level-module'        (default 3)
-   Absolute indentation of Module level Verilog statements.
-   Set to 0 to get initial and always statements lined up
-   on the left side of your screen.
- `verilog-indent-level-declaration'   (default 3)
-   Indentation of declarations with respect to containing block.
-   Set to 0 to get them list right under containing block.
- `verilog-indent-level-behavioral'    (default 3)
-   Indentation of first begin in a task or function block
-   Set to 0 to get such code to lined up underneath the task or
-   function keyword.
- `verilog-indent-level-directive'     (default 1)
-   Indentation of `ifdef/`endif blocks.
- `verilog-cexp-indent'              (default 1)
-   Indentation of Verilog statements broken across lines i.e.:
-      if (a)
-        begin
- `verilog-case-indent'              (default 2)
-   Indentation for case statements.
- `verilog-auto-newline'             (default nil)
-   Non-nil means automatically newline after semicolons and the punctuation
-   mark after an end.
- `verilog-auto-indent-on-newline'   (default t)
-   Non-nil means automatically indent line after newline.
- `verilog-tab-always-indent'        (default t)
-   Non-nil means TAB in Verilog mode should always reindent the current line,
-   regardless of where in the line point is when the TAB command is used.
- `verilog-indent-begin-after-if'    (default t)
-   Non-nil means to indent begin statements following a preceding
-   if, else, while, for and repeat statements, if any.  Otherwise,
-   the begin is lined up with the preceding token.  If t, you get:
-      if (a)
-         begin // amount of indent based on `verilog-cexp-indent'
-   otherwise you get:
-      if (a)
-      begin
- `verilog-auto-endcomments'         (default t)
-   Non-nil means a comment /* ... */ is set after the ends which ends
-   cases, tasks, functions and modules.
-   The type and name of the object will be set between the braces.
- `verilog-minimum-comment-distance' (default 10)
-   Minimum distance (in lines) between begin and end required before a comment
-   will be inserted.  Setting this variable to zero results in every
-   end acquiring a comment; the default avoids too many redundant
-   comments in tight quarters.
- `verilog-auto-lineup'              (default `(all))
-   List of contexts where auto lineup of code should be done.
-
-Variables controlling other actions:
-
- `verilog-linter'                   (default surelint)
-   Unix program to call to run the lint checker.  This is the default
-   command for \\[compile-command] and \\[verilog-auto-save-compile].
-
-See \\[customize] for the complete list of variables.
-
-AUTO expansion functions are, in part:
-
-    \\[verilog-auto]  Expand AUTO statements.
-    \\[verilog-delete-auto]  Remove the AUTOs.
-    \\[verilog-inject-auto]  Insert AUTOs for the first time.
-
-Some other functions are:
-
-    \\[verilog-complete-word]    Complete word with appropriate possibilities.
-    \\[verilog-mark-defun]  Mark function.
-    \\[verilog-beg-of-defun]  Move to beginning of current function.
-    \\[verilog-end-of-defun]  Move to end of current function.
-    \\[verilog-label-be]  Label matching begin ... end, fork ... join, etc statements.
-
-    \\[verilog-comment-region]  Put marked area in a comment.
-    \\[verilog-uncomment-region]  Uncomment an area commented with \\[verilog-comment-region].
-    \\[verilog-insert-block]  Insert begin ... end;.
-    \\[verilog-star-comment]    Insert /* ... */.
-
-    \\[verilog-sk-always]  Insert a always @(AS) begin .. end block.
-    \\[verilog-sk-begin]  Insert a begin .. end block.
-    \\[verilog-sk-case]  Insert a case block, prompting for details.
-    \\[verilog-sk-for]  Insert a for (...) begin .. end block, prompting for details.
-    \\[verilog-sk-generate]  Insert a generate .. endgenerate block.
-    \\[verilog-sk-header]  Insert a nice header block at the top of file.
-    \\[verilog-sk-initial]  Insert an initial begin .. end block.
-    \\[verilog-sk-fork]  Insert a fork begin .. end .. join block.
-    \\[verilog-sk-module]  Insert a module .. (/*AUTOARG*/);.. endmodule block.
-    \\[verilog-sk-primitive]  Insert a primitive .. (.. );.. endprimitive block.
-    \\[verilog-sk-repeat]  Insert a repeat (..) begin .. end block.
-    \\[verilog-sk-specify]  Insert a specify .. endspecify block.
-    \\[verilog-sk-task]  Insert a task .. begin .. end endtask block.
-    \\[verilog-sk-while]  Insert a while (...) begin .. end block, prompting for details.
-    \\[verilog-sk-casex]  Insert a casex (...) item: begin.. end endcase block, prompting for details.
-    \\[verilog-sk-casez]  Insert a casez (...) item: begin.. end endcase block, prompting for details.
-    \\[verilog-sk-if]  Insert an if (..) begin .. end block.
-    \\[verilog-sk-else-if]  Insert an else if (..) begin .. end block.
-    \\[verilog-sk-comment]  Insert a comment block.
-    \\[verilog-sk-assign]  Insert an assign .. = ..; statement.
-    \\[verilog-sk-function]  Insert a function .. begin .. end endfunction block.
-    \\[verilog-sk-input]  Insert an input declaration, prompting for details.
-    \\[verilog-sk-output]  Insert an output declaration, prompting for details.
-    \\[verilog-sk-state-machine]  Insert a state machine definition, prompting for details.
-    \\[verilog-sk-inout]  Insert an inout declaration, prompting for details.
-    \\[verilog-sk-wire]  Insert a wire declaration, prompting for details.
-    \\[verilog-sk-reg]  Insert a register declaration, prompting for details.
-    \\[verilog-sk-define-signal]  Define signal under point as a register at the top of the module.
-
-All key bindings can be seen in a Verilog-buffer with \\[describe-bindings].
-Key bindings specific to `verilog-mode-map' are:
-
-\\{verilog-mode-map}
-
-\(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads (vera-mode) "vera-mode" "progmodes/vera-mode.el"
-;;;;;;  (18310 14601))
-;;; Generated autoloads from progmodes/vera-mode.el
- (add-to-list 'auto-mode-alist '("\\.vr[hi]?\\'" . vera-mode))
-
-(autoload (quote vera-mode) "vera-mode" "\
-Major mode for editing Vera code.
-
-Usage:
-------
-
-  INDENTATION:  Typing `TAB' at the beginning of a line indents the line.
-    The amount of indentation is specified by option `vera-basic-offset'.
-    Indentation can be done for an entire region (`M-C-\\') or buffer (menu).
-    `TAB' always indents the line if option `vera-intelligent-tab' is nil.
-
-  WORD/COMMAND COMPLETION:  Typing `TAB' after a (not completed) word looks
-    for a word in the buffer or a Vera keyword that starts alike, inserts it
-    and adjusts case.  Re-typing `TAB' toggles through alternative word
-    completions.
-
-    Typing `TAB' after a non-word character inserts a tabulator stop (if not
-    at the beginning of a line).  `M-TAB' always inserts a tabulator stop.
-
-  COMMENTS:  `C-c C-c' comments out a region if not commented out, and
-    uncomments a region if already commented out.
-
-  HIGHLIGHTING (fontification):  Vera keywords, predefined types and
-    constants, function names, declaration names, directives, as well as
-    comments and strings are highlighted using different colors.
-
-  VERA VERSION:  OpenVera 1.4 and Vera version 6.2.8.
-
-
-Maintenance:
-------------
-
-To submit a bug report, use the corresponding menu entry within Vera Mode.
-Add a description of the problem and include a reproducible test case.
-
-Feel free to send questions and enhancement requests to <reto@gnu.org>.
-
-Official distribution is at
-<http://www.iis.ee.ethz.ch/~zimmi/emacs/vera-mode.html>.
-
-
-                                                  The Vera Mode Maintainer
-                                               Reto Zimmermann <reto@gnu.org>
-
-Key bindings:
--------------
-
-\\{vera-mode-map}
-
-\(fn)" t nil)
-
-;;;***
-
-;;;### (autoloads (verilog-mode) "verilog-mode" "progmodes/verilog-mode.el"
-;;;;;;  (18363 3872))
-;;; Generated autoloads from progmodes/verilog-mode.el
-
-(autoload (quote verilog-mode) "verilog-mode" "\
 Major mode for editing Verilog code.
 \\<verilog-mode-map>
 See \\[describe-function] verilog-auto (\\[verilog-auto]) for details on how
@@ -31780,8 +31578,8 @@ Exit View mode and make the current buffer editable.
 
 ;;;***
 
-;;;### (autoloads (vip-mode vip-setup) "vip" "emulation/vip.el" (18335
-;;;;;;  54524))
+;;;### (autoloads (vip-mode vip-setup) "vip" "emulation/vip.el" (18367
+;;;;;;  13961))
 ;;; Generated autoloads from emulation/vip.el
 
 (autoload 'vip-setup "vip" "\
@@ -32623,65 +32421,72 @@ Zone out, completely.
 ;;;;;;  "calendar/cal-julian.el" "calendar/cal-mayan.el" "calendar/cal-menu.el"
 ;;;;;;  "calendar/cal-move.el" "calendar/cal-persia.el" "calendar/cal-tex.el"
 ;;;;;;  "calendar/cal-x.el" "case-table.el" "cdl.el" "cus-dep.el"
-;;;;;;  "cus-load.el" "cus-start.el" "custom.el" "dframe.el" "dos-fns.el"
-;;;;;;  "dos-vars.el" "dos-w32.el" "ediff-diff.el" "ediff-init.el"
-;;;;;;  "ediff-merg.el" "ediff-ptch.el" "ediff-vers.el" "ediff-wind.el"
-;;;;;;  "electric.el" "emacs-lisp/assoc.el" "emacs-lisp/authors.el"
+;;;;;;  "cus-load.el" "cus-start.el" "custom.el" "dframe.el" "dired.el"
+;;;;;;  "doc-view.el" "dos-fns.el" "dos-vars.el" "dos-w32.el" "ediff-diff.el"
+;;;;;;  "ediff-init.el" "ediff-merg.el" "ediff-ptch.el" "ediff-vers.el"
+;;;;;;  "ediff-wind.el" "electric.el" "emacs-lisp/assoc.el" "emacs-lisp/authors.el"
 ;;;;;;  "emacs-lisp/avl-tree.el" "emacs-lisp/bindat.el" "emacs-lisp/byte-opt.el"
-;;;;;;  "emacs-lisp/byte-run.el" "emacs-lisp/cl-compat.el" "emacs-lisp/cl-extra.el"
-;;;;;;  "emacs-lisp/cl-loaddefs.el" "emacs-lisp/cl-macs.el" "emacs-lisp/cl-seq.el"
-;;;;;;  "emacs-lisp/cl-specs.el" "emacs-lisp/cust-print.el" "emacs-lisp/find-gc.el"
+;;;;;;  "emacs-lisp/byte-run.el" "emacs-lisp/bytecomp.el" "emacs-lisp/cl-compat.el"
+;;;;;;  "emacs-lisp/cl-extra.el" "emacs-lisp/cl-loaddefs.el" "emacs-lisp/cl-macs.el"
+;;;;;;  "emacs-lisp/cl-seq.el" "emacs-lisp/cl-specs.el" "emacs-lisp/copyright.el"
+;;;;;;  "emacs-lisp/cust-print.el" "emacs-lisp/edebug.el" "emacs-lisp/find-gc.el"
 ;;;;;;  "emacs-lisp/float-sup.el" "emacs-lisp/gulp.el" "emacs-lisp/levents.el"
 ;;;;;;  "emacs-lisp/lisp-mnt.el" "emacs-lisp/lisp-mode.el" "emacs-lisp/lisp.el"
 ;;;;;;  "emacs-lisp/lmenu.el" "emacs-lisp/lucid.el" "emacs-lisp/map-ynp.el"
 ;;;;;;  "emacs-lisp/regi.el" "emacs-lisp/sregex.el" "emacs-lisp/syntax.el"
 ;;;;;;  "emacs-lisp/tcover-ses.el" "emacs-lisp/tcover-unsafep.el"
-;;;;;;  "emacs-lock.el" "emulation/cua-gmrk.el" "emulation/cua-rect.el"
+;;;;;;  "emacs-lock.el" "emerge.el" "emulation/cua-gmrk.el" "emulation/cua-rect.el"
 ;;;;;;  "emulation/edt-lk201.el" "emulation/edt-mapper.el" "emulation/edt-pc.el"
-;;;;;;  "emulation/edt-vt100.el" "emulation/tpu-extras.el" "emulation/viper-cmd.el"
-;;;;;;  "emulation/viper-ex.el" "emulation/viper-init.el" "emulation/viper-keym.el"
-;;;;;;  "emulation/viper-macs.el" "emulation/viper-mous.el" "emulation/viper-util.el"
-;;;;;;  "env.el" "erc/erc-backend.el" "erc/erc-goodies.el" "erc/erc-ibuffer.el"
-;;;;;;  "erc/erc-lang.el" "eshell/em-alias.el" "eshell/em-banner.el"
-;;;;;;  "eshell/em-basic.el" "eshell/em-cmpl.el" "eshell/em-dirs.el"
-;;;;;;  "eshell/em-glob.el" "eshell/em-hist.el" "eshell/em-ls.el"
-;;;;;;  "eshell/em-pred.el" "eshell/em-prompt.el" "eshell/em-rebind.el"
-;;;;;;  "eshell/em-script.el" "eshell/em-smart.el" "eshell/em-term.el"
-;;;;;;  "eshell/em-unix.el" "eshell/em-xtra.el" "eshell/esh-arg.el"
-;;;;;;  "eshell/esh-cmd.el" "eshell/esh-ext.el" "eshell/esh-groups.el"
-;;;;;;  "eshell/esh-io.el" "eshell/esh-maint.el" "eshell/esh-module.el"
-;;;;;;  "eshell/esh-opt.el" "eshell/esh-proc.el" "eshell/esh-util.el"
-;;;;;;  "eshell/esh-var.el" "ezimage.el" "faces.el" "files.el" "finder-inf.el"
-;;;;;;  "foldout.el" "font-core.el" "font-lock.el" "format-spec.el"
-;;;;;;  "format.el" "forms-d2.el" "forms-pass.el" "frame.el" "fringe.el"
-;;;;;;  "generic-x.el" "gnus/compface.el" "gnus/gnus-async.el" "gnus/gnus-bcklg.el"
-;;;;;;  "gnus/gnus-cite.el" "gnus/gnus-cus.el" "gnus/gnus-demon.el"
-;;;;;;  "gnus/gnus-dup.el" "gnus/gnus-eform.el" "gnus/gnus-ems.el"
-;;;;;;  "gnus/gnus-int.el" "gnus/gnus-logic.el" "gnus/gnus-mh.el"
-;;;;;;  "gnus/gnus-salt.el" "gnus/gnus-score.el" "gnus/gnus-setup.el"
-;;;;;;  "gnus/gnus-srvr.el" "gnus/gnus-sum.el" "gnus/gnus-topic.el"
-;;;;;;  "gnus/gnus-undo.el" "gnus/gnus-util.el" "gnus/gnus-uu.el"
-;;;;;;  "gnus/gnus-vm.el" "gnus/ietf-drums.el" "gnus/legacy-gnus-agent.el"
-;;;;;;  "gnus/mail-parse.el" "gnus/mail-prsvr.el" "gnus/mail-source.el"
-;;;;;;  "gnus/mailcap.el" "gnus/messcompat.el" "gnus/mm-bodies.el"
-;;;;;;  "gnus/mm-decode.el" "gnus/mm-encode.el" "gnus/mm-util.el"
-;;;;;;  "gnus/mm-view.el" "gnus/mml-sec.el" "gnus/mml-smime.el" "gnus/mml.el"
-;;;;;;  "gnus/nnagent.el" "gnus/nnbabyl.el" "gnus/nndb.el" "gnus/nndir.el"
-;;;;;;  "gnus/nndraft.el" "gnus/nneething.el" "gnus/nngateway.el"
-;;;;;;  "gnus/nnheader.el" "gnus/nnimap.el" "gnus/nnlistserv.el"
-;;;;;;  "gnus/nnmail.el" "gnus/nnmaildir.el" "gnus/nnmbox.el" "gnus/nnmh.el"
-;;;;;;  "gnus/nnnil.el" "gnus/nnoo.el" "gnus/nnrss.el" "gnus/nnslashdot.el"
-;;;;;;  "gnus/nnspool.el" "gnus/nntp.el" "gnus/nnultimate.el" "gnus/nnvirtual.el"
-;;;;;;  "gnus/nnwarchive.el" "gnus/nnweb.el" "gnus/nnwfm.el" "gnus/pop3.el"
-;;;;;;  "gnus/rfc1843.el" "gnus/rfc2045.el" "gnus/rfc2047.el" "gnus/rfc2104.el"
-;;;;;;  "gnus/rfc2231.el" "gnus/sieve-manage.el" "gnus/smime.el"
-;;;;;;  "gnus/spam-stat.el" "gnus/spam-wash.el" "gnus/starttls.el"
-;;;;;;  "gnus/utf7.el" "gnus/webmail.el" "help.el" "hex-util.el"
+;;;;;;  "emulation/edt-vt100.el" "emulation/tpu-edt.el" "emulation/tpu-extras.el"
+;;;;;;  "emulation/vip.el" "emulation/viper-cmd.el" "emulation/viper-ex.el"
+;;;;;;  "emulation/viper-init.el" "emulation/viper-keym.el" "emulation/viper-macs.el"
+;;;;;;  "emulation/viper-mous.el" "emulation/viper-util.el" "env.el"
+;;;;;;  "erc/erc-backend.el" "erc/erc-button.el" "erc/erc-dcc.el"
+;;;;;;  "erc/erc-goodies.el" "erc/erc-ibuffer.el" "erc/erc-lang.el"
+;;;;;;  "erc/erc-match.el" "erc/erc-track.el" "erc/erc.el" "eshell/em-alias.el"
+;;;;;;  "eshell/em-banner.el" "eshell/em-basic.el" "eshell/em-cmpl.el"
+;;;;;;  "eshell/em-dirs.el" "eshell/em-glob.el" "eshell/em-hist.el"
+;;;;;;  "eshell/em-ls.el" "eshell/em-pred.el" "eshell/em-prompt.el"
+;;;;;;  "eshell/em-rebind.el" "eshell/em-script.el" "eshell/em-smart.el"
+;;;;;;  "eshell/em-term.el" "eshell/em-unix.el" "eshell/em-xtra.el"
+;;;;;;  "eshell/esh-arg.el" "eshell/esh-cmd.el" "eshell/esh-ext.el"
+;;;;;;  "eshell/esh-groups.el" "eshell/esh-io.el" "eshell/esh-maint.el"
+;;;;;;  "eshell/esh-module.el" "eshell/esh-opt.el" "eshell/esh-proc.el"
+;;;;;;  "eshell/esh-util.el" "eshell/esh-var.el" "ezimage.el" "faces.el"
+;;;;;;  "ffap.el" "files.el" "finder-inf.el" "foldout.el" "follow.el"
+;;;;;;  "font-core.el" "font-lock.el" "format-spec.el" "format.el"
+;;;;;;  "forms-d2.el" "forms-pass.el" "frame.el" "fringe.el" "generic-x.el"
+;;;;;;  "gnus/compface.el" "gnus/deuglify.el" "gnus/gnus-async.el"
+;;;;;;  "gnus/gnus-bcklg.el" "gnus/gnus-cite.el" "gnus/gnus-cus.el"
+;;;;;;  "gnus/gnus-demon.el" "gnus/gnus-dup.el" "gnus/gnus-eform.el"
+;;;;;;  "gnus/gnus-ems.el" "gnus/gnus-group.el" "gnus/gnus-int.el"
+;;;;;;  "gnus/gnus-logic.el" "gnus/gnus-mh.el" "gnus/gnus-salt.el"
+;;;;;;  "gnus/gnus-score.el" "gnus/gnus-setup.el" "gnus/gnus-srvr.el"
+;;;;;;  "gnus/gnus-sum.el" "gnus/gnus-topic.el" "gnus/gnus-undo.el"
+;;;;;;  "gnus/gnus-util.el" "gnus/gnus-uu.el" "gnus/gnus-vm.el" "gnus/ietf-drums.el"
+;;;;;;  "gnus/legacy-gnus-agent.el" "gnus/mail-parse.el" "gnus/mail-prsvr.el"
+;;;;;;  "gnus/mail-source.el" "gnus/mailcap.el" "gnus/message.el"
+;;;;;;  "gnus/messcompat.el" "gnus/mm-bodies.el" "gnus/mm-decode.el"
+;;;;;;  "gnus/mm-encode.el" "gnus/mm-util.el" "gnus/mm-view.el" "gnus/mml-sec.el"
+;;;;;;  "gnus/mml-smime.el" "gnus/mml.el" "gnus/mml2015.el" "gnus/nnagent.el"
+;;;;;;  "gnus/nnbabyl.el" "gnus/nndb.el" "gnus/nndir.el" "gnus/nndraft.el"
+;;;;;;  "gnus/nneething.el" "gnus/nngateway.el" "gnus/nnheader.el"
+;;;;;;  "gnus/nnimap.el" "gnus/nnlistserv.el" "gnus/nnmail.el" "gnus/nnmaildir.el"
+;;;;;;  "gnus/nnmbox.el" "gnus/nnmh.el" "gnus/nnnil.el" "gnus/nnoo.el"
+;;;;;;  "gnus/nnrss.el" "gnus/nnslashdot.el" "gnus/nnspool.el" "gnus/nntp.el"
+;;;;;;  "gnus/nnultimate.el" "gnus/nnvirtual.el" "gnus/nnwarchive.el"
+;;;;;;  "gnus/nnweb.el" "gnus/nnwfm.el" "gnus/pop3.el" "gnus/rfc1843.el"
+;;;;;;  "gnus/rfc2045.el" "gnus/rfc2047.el" "gnus/rfc2104.el" "gnus/rfc2231.el"
+;;;;;;  "gnus/sieve-manage.el" "gnus/smime.el" "gnus/spam-stat.el"
+;;;;;;  "gnus/spam-wash.el" "gnus/starttls.el" "gnus/utf7.el" "gnus/webmail.el"
+;;;;;;  "help.el" "hex-util.el" "hilit-chg.el" "ielm.el" "image-mode.el"
 ;;;;;;  "indent.el" "international/characters.el" "international/charprop.el"
 ;;;;;;  "international/cp51932.el" "international/eucjp-ms.el" "international/fontset.el"
 ;;;;;;  "international/iso-ascii.el" "international/ja-dic-cnv.el"
-;;;;;;  "international/ja-dic-utl.el" "international/mule-cmds.el"
-;;;;;;  "international/mule-conf.el" "international/mule.el" "international/ogonek.el"
+;;;;;;  "international/ja-dic-utl.el" "international/latin1-disp.el"
+;;;;;;  "international/mule-cmds.el" "international/mule-conf.el"
+;;;;;;  "international/mule-diag.el" "international/mule-util.el"
+;;;;;;  "international/mule.el" "international/ogonek.el" "international/robin.el"
 ;;;;;;  "international/uni-bidi.el" "international/uni-category.el"
 ;;;;;;  "international/uni-combining.el" "international/uni-comment.el"
 ;;;;;;  "international/uni-decimal.el" "international/uni-decomposition.el"
@@ -32689,7 +32494,7 @@ Zone out, completely.
 ;;;;;;  "international/uni-mirrored.el" "international/uni-name.el"
 ;;;;;;  "international/uni-numeric.el" "international/uni-old-name.el"
 ;;;;;;  "international/uni-titlecase.el" "international/uni-uppercase.el"
-;;;;;;  "isearch.el" "jit-lock.el" "jka-cmpr-hook.el" "kermit.el"
+;;;;;;  "isearch.el" "jit-lock.el" "jka-cmpr-hook.el" "json.el" "kermit.el"
 ;;;;;;  "language/burmese.el" "language/cham.el" "language/chinese.el"
 ;;;;;;  "language/cyrillic.el" "language/czech.el" "language/english.el"
 ;;;;;;  "language/ethiopic.el" "language/european.el" "language/georgian.el"
@@ -32698,57 +32503,67 @@ Zone out, completely.
 ;;;;;;  "language/lao.el" "language/misc-lang.el" "language/romanian.el"
 ;;;;;;  "language/sinhala.el" "language/slovak.el" "language/tai-viet.el"
 ;;;;;;  "language/thai-word.el" "language/thai.el" "language/tibetan.el"
-;;;;;;  "language/utf-8-lang.el" "language/vietnamese.el" "ldefs-boot.el"
-;;;;;;  "loadup.el" "mail/blessmail.el" "mail/mailheader.el" "mail/mailpost.el"
+;;;;;;  "language/tv-util.el" "language/utf-8-lang.el" "language/vietnamese.el"
+;;;;;;  "ldefs-boot.el" "linum.el" "loadup.el" "mail/blessmail.el"
+;;;;;;  "mail/mail-extr.el" "mail/mailheader.el" "mail/mailpost.el"
 ;;;;;;  "mail/mspools.el" "mail/rfc2368.el" "mail/rfc822.el" "mail/rmail-spam-filter.el"
-;;;;;;  "mail/uce.el" "mail/vms-pmail.el" "md4.el" "mh-e/mh-acros.el"
-;;;;;;  "mh-e/mh-alias.el" "mh-e/mh-buffers.el" "mh-e/mh-compat.el"
-;;;;;;  "mh-e/mh-funcs.el" "mh-e/mh-gnus.el" "mh-e/mh-identity.el"
-;;;;;;  "mh-e/mh-inc.el" "mh-e/mh-junk.el" "mh-e/mh-letter.el" "mh-e/mh-limit.el"
+;;;;;;  "mail/smtpmail.el" "mail/uce.el" "mail/vms-pmail.el" "md4.el"
+;;;;;;  "menu-bar.el" "mh-e/mh-acros.el" "mh-e/mh-alias.el" "mh-e/mh-buffers.el"
+;;;;;;  "mh-e/mh-comp.el" "mh-e/mh-compat.el" "mh-e/mh-e.el" "mh-e/mh-funcs.el"
+;;;;;;  "mh-e/mh-gnus.el" "mh-e/mh-identity.el" "mh-e/mh-inc.el"
+;;;;;;  "mh-e/mh-junk.el" "mh-e/mh-letter.el" "mh-e/mh-limit.el"
 ;;;;;;  "mh-e/mh-loaddefs.el" "mh-e/mh-mime.el" "mh-e/mh-print.el"
 ;;;;;;  "mh-e/mh-scan.el" "mh-e/mh-search.el" "mh-e/mh-seq.el" "mh-e/mh-show.el"
 ;;;;;;  "mh-e/mh-speed.el" "mh-e/mh-thread.el" "mh-e/mh-tool-bar.el"
 ;;;;;;  "mh-e/mh-utils.el" "mh-e/mh-xface.el" "misc.el" "mouse-copy.el"
-;;;;;;  "mouse-drag.el" "mouse.el" "net/dig.el" "net/dns.el" "net/eudc-vars.el"
-;;;;;;  "net/eudcb-bbdb.el" "net/eudcb-ldap.el" "net/eudcb-mab.el"
-;;;;;;  "net/eudcb-ph.el" "net/hmac-def.el" "net/hmac-md5.el" "net/imap.el"
-;;;;;;  "net/json.el" "net/ldap.el" "net/netrc.el" "net/ntlm.el"
-;;;;;;  "net/sasl-cram.el" "net/sasl-digest.el" "net/sasl-ntlm.el"
-;;;;;;  "net/sasl.el" "net/socks.el" "net/tls.el" "net/tramp-cache.el"
-;;;;;;  "net/tramp-cmds.el" "net/tramp-compat.el" "net/tramp-fish.el"
-;;;;;;  "net/tramp-gw.el" "net/tramp-smb.el" "net/tramp-uu.el" "net/trampver.el"
-;;;;;;  "nxml/char-name/subdirs.el" "nxml/nxml-enc.el" "nxml/nxml-maint.el"
+;;;;;;  "mouse-drag.el" "mouse.el" "net/ange-ftp.el" "net/dig.el"
+;;;;;;  "net/dns.el" "net/eudc-vars.el" "net/eudcb-bbdb.el" "net/eudcb-ldap.el"
+;;;;;;  "net/eudcb-mab.el" "net/eudcb-ph.el" "net/hmac-def.el" "net/hmac-md5.el"
+;;;;;;  "net/imap.el" "net/ldap.el" "net/net-utils.el" "net/netrc.el"
+;;;;;;  "net/ntlm.el" "net/rcirc.el" "net/sasl-cram.el" "net/sasl-digest.el"
+;;;;;;  "net/sasl-ntlm.el" "net/sasl.el" "net/socks.el" "net/tls.el"
+;;;;;;  "net/tramp-cache.el" "net/tramp-cmds.el" "net/tramp-compat.el"
+;;;;;;  "net/tramp-fish.el" "net/tramp-gw.el" "net/tramp-smb.el"
+;;;;;;  "net/tramp-uu.el" "net/trampver.el" "nxml/nxml-enc.el" "nxml/nxml-maint.el"
 ;;;;;;  "nxml/nxml-ns.el" "nxml/nxml-outln.el" "nxml/nxml-parse.el"
 ;;;;;;  "nxml/nxml-rap.el" "nxml/nxml-util.el" "nxml/rng-dt.el" "nxml/rng-loc.el"
 ;;;;;;  "nxml/rng-maint.el" "nxml/rng-match.el" "nxml/rng-parse.el"
 ;;;;;;  "nxml/rng-pttrn.el" "nxml/rng-uri.el" "nxml/rng-util.el"
-;;;;;;  "nxml/subdirs.el" "nxml/xsd-regexp.el" "password-cache.el"
-;;;;;;  "patcomp.el" "paths.el" "pcvs-info.el" "pcvs-parse.el" "pcvs-util.el"
-;;;;;;  "pgg-def.el" "pgg-parse.el" "pgg-pgp.el" "pgg-pgp5.el" "play/gamegrid.el"
-;;;;;;  "play/gametree.el" "play/meese.el" "progmodes/ada-prj.el"
-;;;;;;  "progmodes/cc-align.el" "progmodes/cc-awk.el" "progmodes/cc-bytecomp.el"
-;;;;;;  "progmodes/cc-cmds.el" "progmodes/cc-defs.el" "progmodes/cc-fonts.el"
-;;;;;;  "progmodes/cc-langs.el" "progmodes/cc-menus.el" "progmodes/ebnf-abn.el"
-;;;;;;  "progmodes/ebnf-bnf.el" "progmodes/ebnf-dtd.el" "progmodes/ebnf-ebx.el"
-;;;;;;  "progmodes/ebnf-iso.el" "progmodes/ebnf-otz.el" "progmodes/ebnf-yac.el"
+;;;;;;  "nxml/xsd-regexp.el" "password-cache.el" "patcomp.el" "paths.el"
+;;;;;;  "pcvs-info.el" "pcvs-parse.el" "pcvs-util.el" "pgg-def.el"
+;;;;;;  "pgg-parse.el" "pgg-pgp.el" "pgg-pgp5.el" "play/gamegrid.el"
+;;;;;;  "play/gametree.el" "play/meese.el" "progmodes/ada-mode.el"
+;;;;;;  "progmodes/ada-prj.el" "progmodes/cap-words.el" "progmodes/cc-align.el"
+;;;;;;  "progmodes/cc-awk.el" "progmodes/cc-bytecomp.el" "progmodes/cc-cmds.el"
+;;;;;;  "progmodes/cc-defs.el" "progmodes/cc-engine.el" "progmodes/cc-fonts.el"
+;;;;;;  "progmodes/cc-langs.el" "progmodes/cc-menus.el" "progmodes/cc-mode.el"
+;;;;;;  "progmodes/cc-styles.el" "progmodes/compile.el" "progmodes/cperl-mode.el"
+;;;;;;  "progmodes/ebnf-abn.el" "progmodes/ebnf-bnf.el" "progmodes/ebnf-dtd.el"
+;;;;;;  "progmodes/ebnf-ebx.el" "progmodes/ebnf-iso.el" "progmodes/ebnf-otz.el"
+;;;;;;  "progmodes/ebnf-yac.el" "progmodes/gdb-ui.el" "progmodes/gud.el"
 ;;;;;;  "progmodes/idlw-complete-structtag.el" "progmodes/idlw-help.el"
-;;;;;;  "progmodes/idlw-toolbar.el" "progmodes/mantemp.el" "progmodes/xscheme.el"
-;;;;;;  "ps-def.el" "ps-mule.el" "ps-samp.el" "register.el" "replace.el"
+;;;;;;  "progmodes/idlw-toolbar.el" "progmodes/mantemp.el" "progmodes/modula2.el"
+;;;;;;  "progmodes/python.el" "progmodes/scheme.el" "progmodes/sym-comp.el"
+;;;;;;  "progmodes/verilog-mode.el" "progmodes/xscheme.el" "ps-def.el"
+;;;;;;  "ps-mule.el" "ps-print.el" "ps-samp.el" "register.el" "replace.el"
 ;;;;;;  "rfn-eshadow.el" "s-region.el" "saveplace.el" "sb-image.el"
 ;;;;;;  "scroll-bar.el" "select.el" "soundex.el" "startup.el" "subdirs.el"
-;;;;;;  "tempo.el" "textmodes/bib-mode.el" "textmodes/makeinfo.el"
-;;;;;;  "textmodes/org-mouse.el" "textmodes/page-ext.el" "textmodes/page.el"
-;;;;;;  "textmodes/refbib.el" "textmodes/refer.el" "textmodes/reftex-auc.el"
-;;;;;;  "textmodes/reftex-dcr.el" "textmodes/reftex-ref.el" "textmodes/reftex-sel.el"
-;;;;;;  "textmodes/reftex-toc.el" "textmodes/texnfo-upd.el" "textmodes/text-mode.el"
-;;;;;;  "timezone.el" "tooltip.el" "tree-widget.el" "uniquify.el"
-;;;;;;  "url/url-about.el" "url/url-cookie.el" "url/url-dired.el"
-;;;;;;  "url/url-expand.el" "url/url-ftp.el" "url/url-history.el"
+;;;;;;  "subr.el" "tempo.el" "textmodes/bib-mode.el" "textmodes/ispell.el"
+;;;;;;  "textmodes/makeinfo.el" "textmodes/org-mouse.el" "textmodes/org.el"
+;;;;;;  "textmodes/page-ext.el" "textmodes/page.el" "textmodes/refbib.el"
+;;;;;;  "textmodes/refer.el" "textmodes/reftex-auc.el" "textmodes/reftex-dcr.el"
+;;;;;;  "textmodes/reftex-ref.el" "textmodes/reftex-sel.el" "textmodes/reftex-toc.el"
+;;;;;;  "textmodes/sgml-mode.el" "textmodes/spell.el" "textmodes/texnfo-upd.el"
+;;;;;;  "textmodes/text-mode.el" "time.el" "timezone.el" "tooltip.el"
+;;;;;;  "tree-widget.el" "uniquify.el" "url/url-about.el" "url/url-cookie.el"
+;;;;;;  "url/url-dired.el" "url/url-expand.el" "url/url-ftp.el" "url/url-history.el"
 ;;;;;;  "url/url-imap.el" "url/url-methods.el" "url/url-nfs.el" "url/url-proxy.el"
-;;;;;;  "url/url-vars.el" "url/vc-dav.el" "vc-hooks.el" "vcursor.el"
-;;;;;;  "version.el" "vms-patch.el" "vmsproc.el" "vt-control.el"
-;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "widget.el" "window.el"
-;;;;;;  "x-dnd.el") (18366 10004 954679))
+;;;;;;  "url/url-vars.el" "url/vc-dav.el" "vc-bzr.el" "vc-cvs.el"
+;;;;;;  "vc-git.el" "vc-hg.el" "vc-hooks.el" "vc-mcvs.el" "vc-rcs.el"
+;;;;;;  "vc-sccs.el" "vc-svn.el" "vc.el" "vcursor.el" "version.el"
+;;;;;;  "vms-patch.el" "vmsproc.el" "vt-control.el" "vt100-led.el"
+;;;;;;  "w32-fns.el" "w32-vars.el" "widget.el" "window.el" "x-dnd.el")
+;;;;;;  (18370 4500 578000))
 
 ;;;***
 
