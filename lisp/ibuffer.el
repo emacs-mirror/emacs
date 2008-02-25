@@ -1257,11 +1257,13 @@ a new window in the current frame, splitting vertically."
    :modifier-p t)
   (set-buffer-modified-p (not (buffer-modified-p))))
 
-(define-ibuffer-op ibuffer-do-toggle-read-only ()
-  "Toggle read only status in marked buffers."
+(define-ibuffer-op ibuffer-do-toggle-read-only (&optional arg)
+  "Toggle read only status in marked buffers.
+With ARG, set read-only iff arg is positive."
   (:opstring "toggled read only status in"
+   :interactive "P"
    :modifier-p t)
-  (toggle-read-only))
+  (toggle-read-only arg))
 
 (define-ibuffer-op ibuffer-do-delete ()
   "Kill marked buffers as with `kill-this-buffer'."
