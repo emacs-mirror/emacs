@@ -1291,19 +1291,6 @@ Auto-generated from `bibtex-sort-entry-class'.
 Used when `bibtex-maintain-sorted-entries' is `entry-class'.")
 
 
-;; Support for hideshow minor mode
-(defun bibtex-hs-forward-sexp (arg)
-  "Replacement for `forward-sexp' to be used by `hs-minor-mode'.
-ARG is ignored."
-  (if (looking-at "@\\S(*\\s(")
-      (goto-char (1- (match-end 0))))
-  (forward-sexp 1))
-
-(add-to-list
- 'hs-special-modes-alist
- '(bibtex-mode "@\\S(*\\s(" "\\s)" nil bibtex-hs-forward-sexp nil))
-
-
 (defun bibtex-parse-association (parse-lhs parse-rhs)
   "Parse a string of the format <left-hand-side = right-hand-side>.
 The functions PARSE-LHS and PARSE-RHS are used to parse the corresponding
