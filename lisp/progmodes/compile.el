@@ -73,6 +73,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+(require 'tool-bar)
 
 (defvar font-lock-extra-managed-props)
 (defvar font-lock-keywords)
@@ -1377,6 +1378,26 @@ Returns the compilation buffer created."
   "Keymap for compilation log buffers.
 `compilation-minor-mode-map' is a parent of this.")
 
+(defvar compilation-mode-tool-bar-map
+  (if (display-graphic-p)
+      (let ((map (butlast (copy-keymap tool-bar-map)))
+	    (help (last tool-bar-map))) ;; Keep Help last in tool bar
+	(tool-bar-local-item
+	 "right-arrow" 'next-error-no-select 'next-error-no-select map
+	 :rtl "left-arrow"
+	 :help "Goto next error")
+	(tool-bar-local-item 
+	 "left-arrow" 'previous-error-no-select 'previous-error-no-select map
+	 :rtl "right-arrow"
+	 :help "Goto previous error")
+	(tool-bar-local-item 
+	 "cancel" 'kill-compilation 'kill-compilation map
+	 :help "Stop compilation")
+	(tool-bar-local-item 
+	 "refresh" 'recompile 'recompile map
+	 :help "Restart compilation")
+	(append map help))))
+
 (put 'compilation-mode 'mode-class 'special)
 
 ;;;###autoload
@@ -1392,6 +1413,7 @@ Runs `compilation-mode-hook' with `run-mode-hooks' (which see).
   (interactive)
   (kill-all-local-variables)
   (use-local-map compilation-mode-map)
+  (set (make-local-variable 'tool-bar-map) compilation-mode-tool-bar-map)
   (setq major-mode 'compilation-mode
 	mode-name (or name-of-mode "Compilation"))
   (set (make-local-variable 'page-delimiter)
