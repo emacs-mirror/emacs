@@ -48,13 +48,8 @@
 	 (features lao-util)
 	 (documentation . t)))
 
-;; For automatic composition.
-;; (let ((chars "(1QTUVWXY[\hijklm(B"))
-;;  (dotimes (i (length chars))
-;;    (aset composition-function-table (aref chars i)
-;;	  'lao-composition-function)))
 (set-char-table-range composition-function-table '(#xE80 . #xEDF)
-		      '(("[\xE80-\xEDF]+" . font-shape-text)))
+		      '(("[\xE80-\xEDF]+" . lao-composition-function)))
 
 (provide 'lao)
 
