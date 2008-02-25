@@ -1,3 +1,7 @@
+2008-02-25  Glenn Morris  <rgm@gnu.org>
+
+	* vc-sccs.el (vc-sccs-diff): Fix setting of oldvers and newvers.
+
 2008-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-file-junk-re): New const.
