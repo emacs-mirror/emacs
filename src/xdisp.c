@@ -19409,7 +19409,7 @@ fill_glyph_string (s, face_id, start, end, overlaps)
   glyph = s->row->glyphs[s->area] + start;
   last = s->row->glyphs[s->area] + end;
   voffset = glyph->voffset;
-
+  s->padding_p = glyph->padding_p;
   glyph_not_available_p = glyph->glyph_not_available_p;
 
   while (glyph < last
@@ -19428,7 +19428,8 @@ fill_glyph_string (s, face_id, start, end, overlaps)
       ++s->nchars;
       xassert (s->nchars <= end - start);
       s->width += glyph->pixel_width;
-      ++glyph;
+      if (glyph++->padding_p != s->padding_p)
+	break;
     }
 
   s->font = s->face->font;
@@ -20181,7 +20182,18 @@ append_glyph (it)
     {
       glyph->charpos = CHARPOS (it->position);
       glyph->object = it->object;
-      glyph->pixel_width = it->pixel_width;
+      if (it->pixel_width > 0)
+	{
+	  glyph->pixel_width = it->pixel_width;
+	  glyph->padding_p = 0;
+	}
+      else
+	{
+	  /* Assure at least 1-pixel width.  Otherwise, cursor can't
+	     be displayed correctly.  */
+	  glyph->pixel_width = 1;
+	  glyph->padding_p = 1;
+	}
       glyph->ascent = it->ascent;
       glyph->descent = it->descent;
       glyph->voffset = it->voffset;
@@ -20191,7 +20203,6 @@ append_glyph (it)
       glyph->right_box_line_p = it->end_of_box_run_p;
       glyph->overlaps_vertically_p = (it->phys_ascent > it->ascent
 				      || it->phys_descent > it->descent);
-      glyph->padding_p = 0;
       glyph->glyph_not_available_p = it->glyph_not_available_p;
       glyph->face_id = it->face_id;
       glyph->u.ch = it->char_to_display;
