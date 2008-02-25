@@ -1257,6 +1257,30 @@ if test x"${opsys}" = x; then
   esac
 fi
 
+### Tests for sytems that we beleive are obsolete and should be desupported.
+
+case "${machine}" in
+     pmax | hp9000s300 | ibm370aix | ncr386 | ews4800 | mips-siemens | powerpcle | tandem-s2 )
+     	  echo "The system that you are configuring on: ${canonical} is considered to be obsolete"
+	  echo "and it is planned to be desupported in the next version of Emacs"
+	  echo "Please email emacs-devel@gnu.org as soon as possible if this system is still in use."
+	  echo "The code is still functional, but you need to edit the 'configure' script and remove the"
+	  echo "exit 33 line.  After that you can run configure again and 'complete' the build."
+	  exit 33
+	  ;;
+esac
+
+case "${opsys}" in
+     bsd386 | bsdos2-1 |  bsdos2 | bsdos3 | bsdos4 | bsd4-1 | bsd4-2 | bsd4-3 | usg5-0 | usg5-2-2 | usg5-2 | usg5-3 | ultrix4-3 | 386bsd | hpux | hpux8 | hpux9 | hpux9shr | hpux10 | hpux10-20 | aix3-1 | aix3-2-5 | aix3-2 | aix4-1 | nextstep | ux4800 | uxpds | uxpv )
+     	  echo "The system that you are configuring on: ${canonical} is considered to be obsolete"
+	  echo "and it is planned to be desupported in the next version of Emacs"
+	  echo "Please email emacs-devel@gnu.org as soon as possible if this system is still in use."
+	  echo "The code is still functional, but you need to edit the 'configure' script and remove the"
+	  echo "'exit 44' line.  After that you can run 'configure' again and complete the build."
+	  exit 44
+	  ;;
+esac
+
 ]
 dnl quotation ends
 

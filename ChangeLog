@@ -1,3 +1,10 @@
+2008-02-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* configure.in: Print an error for systems that we think are
+	obsolete and are proposed to be removed.
+
+	* configure: Regenerate.
+
 2008-02-10  Matthew Luckie  <mjl@luckie.org.nz>  (tiny change)
 
 	* configure.in (arm*-*-freebsd*): Added.

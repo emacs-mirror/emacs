@@ -153,6 +153,14 @@ of strings, undoing any quoting added by `combine-and-quote-strings'.
 (For some separator/string combinations, the original strings cannot
 be recovered.)
 
+* Systems that will not be supported in the future
+configure will print a warning and exit for a set of systems that are
+believed to not be in use anymore.  The support has not been removed
+yet, but configure will need to be edited in order to allow
+compilation to proceed on such a system.  If you are using such a
+system, please send a message to emacs-devel@gnu.org in order to take
+off the list of systems.
+
 
 * Installation Changes in Emacs 22.1
 
