@@ -1,3 +1,13 @@
+2008-02-25  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-fail): Use "RosyBrown1" for a light
+	background, "red4" for a dark background, "red" for 16 and
+	8 colors, "grey" for grayscale, and inverse video otherwise.
+	Add :version tag.
+	(isearch-message): Keep the original isearch-message intact, and
+	add text properties to it where necessary.  Add `isearch-error' to
+	the condition that checks if isearch is unsuccessful.
+
 2008-02-24  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/compile.el (compilation-handle-exit):
