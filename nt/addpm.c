@@ -32,6 +32,7 @@ Boston, MA 02110-1301, USA.  */
 #include <ddeml.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <malloc.h>
 
 HDDEDATA CALLBACK
 DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
@@ -87,7 +88,7 @@ add_registry (path)
      affect the general operation of other installations of Emacs, and we
      are blindly overwriting the Start Menu entries already.
   */
-  if (RegCreateKeyEx (HKEY_LOCAL_MACHINE, REG_APP_PATH, 0, "", 
+  if (RegCreateKeyEx (HKEY_LOCAL_MACHINE, REG_APP_PATH, 0, "",
                       REG_OPTION_NON_VOLATILE, KEY_WRITE, NULL,
                       &hrootkey, NULL) == ERROR_SUCCESS)
     {
@@ -96,7 +97,7 @@ add_registry (path)
       HKEY gtk_key = NULL;
 
       len = strlen (path) + 15; /* \bin\emacs.exe + terminator.  */
-      emacs_path = alloca (len);
+      emacs_path = (char *) alloca (len);
       sprintf (emacs_path, "%s\\bin\\emacs.exe", path);
 
       RegSetValueEx (hrootkey, NULL, 0, REG_SZ, emacs_path, len);
