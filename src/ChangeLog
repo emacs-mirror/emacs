@@ -1,3 +1,9 @@
+2008-02-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (Ffont_spec, Ffont_at): Fix typos in docstrings.
+	(Ffont_put, Flist_families, Ffont_fill_gstring, Ffont_drive_otf)
+	(Ffont_otf_alternates, Fquery_font): Doc fixes.
+
 2008-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (Fbuffer_swap_text): New function.
