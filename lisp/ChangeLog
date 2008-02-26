@@ -2,11 +2,6 @@
 
 	* doc-view.el (doc-view-current-page): Add a `win' argument.
 
-2008-02-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
-
-	* ibuffer.el (ibuffer-do-toggle-read-only): New optional arg as in
-	toggle-read-only.
-
 2008-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-conversion-buffer): Give it an internal name.
@@ -26,11 +21,12 @@
 
 2008-02-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
+	* ibuffer.el (ibuffer-do-toggle-read-only): New optional arg as in
+	toggle-read-only.
+
 	* textmodes/bibtex.el (bibtex-format-entry): Handle error message
 	refering to a missing required field with the OPT prefix.
 	Make unwindform more robust.
-
-2008-02-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el: Remove support for hideshow minor mode as
 	it duplicates the bibtex support in progmodes/hideshow.el.
