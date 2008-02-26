@@ -1,3 +1,7 @@
+2008-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-current-page): Add a `win' argument.
+
 2008-02-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* ibuffer.el (ibuffer-do-toggle-read-only): New optional arg as in
@@ -162,8 +166,7 @@
 	(mode-popup-menu): Don't defvar.
 	(verilog-add-statement-menu): Remove.
 	(verilog-mode-hook): Don't add verilog-add-statement-menu.
-	(verilog-mode): Call easy-menu-add and set mode-popup-menu for
-	XEmacs.
+	(verilog-mode): Call easy-menu-add and set mode-popup-menu for XEmacs.
 
 2008-02-24  Michael McNamara  <mac@mail.brushroad.com>
 
@@ -171,31 +174,31 @@
 	conditional.
 	(verilog-font-grouping-keywords-face): Make the begin..end
 	keywords standout more than other verilog keywords.
-        (verilog-type-font-keywords): Move the begin..end out of this list
+	(verilog-type-font-keywords): Move the begin..end out of this list
 	to facilitate making them to (potentially) stand out more.
 	(verilog-backward-token): Fix indent of bare always{_*}?, initial,
 	function & task blocks.
-        (verilog-behavioral-block-beg-re): Fix indent of bare always{_*}?,
+	(verilog-behavioral-block-beg-re): Fix indent of bare always{_*}?,
 	initial, function & task blocks.
 	(verilog-forward-sexp): Handle the new "disable fork" statement of
 	IEEE-1800 Verilog.
-        (verilog-beg-block-re-ordered): Handle the new "disable fork"
+	(verilog-beg-block-re-ordered): Handle the new "disable fork"
 	statement of IEEE-1800 Verilog.
-        (verilog-calc-1): Handle the new "disable fork" statement of
+	(verilog-calc-1): Handle the new "disable fork" statement of
 	IEEE-1800 Verilog.
-        (verilog-disable-fork-re): Add const to help handle the new
+	(verilog-disable-fork-re): Add const to help handle the new
 	"disable fork" statement of IEEE-1800 Verilog.
 	(verilog-declaration-core-re): Add port directions by themselves,
 	with no qualification, as base item of a declaration.
-        (verilog-pretty-declarations): Add new flag to ask it to refrain
+	(verilog-pretty-declarations): Add new flag to ask it to refrain
 	from printing to the message buffer.
-        (verilog-pretty-expr): Add a QUIET flag to ask it to refrain from
+	(verilog-pretty-expr): Add a QUIET flag to ask it to refrain from
 	printing to the message buffer.  Improve handling of the many
 	types of expression line up.
-        (verilog-just-one-space): Remove printing of an empty message.
-        (verilog-get-lineup-indent): Rework to support the better handling
+	(verilog-just-one-space): Remove printing of an empty message.
+	(verilog-get-lineup-indent): Rework to support the better handling
 	of expression lineup for verilog-pretty-expr.
-        (verilog-auto-wire): Pass the quiet flag to verilog-pretty-expr.
+	(verilog-auto-wire): Pass the quiet flag to verilog-pretty-expr.
 
 2008-02-24  Alan Mackenzie  <acm@muc.de>
 

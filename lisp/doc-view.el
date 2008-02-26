@@ -318,7 +318,8 @@ the (uncompressed, extracted) file residing in
 
 ;;;; Navigation Commands
 
-(defmacro doc-view-current-page () `(image-mode-window-get 'page))
+(defmacro doc-view-current-page (&optional win)
+  `(image-mode-window-get 'page ,win))
 (defmacro doc-view-current-info () `(image-mode-window-get 'info))
 (defmacro doc-view-current-overlay () `(image-mode-window-get 'overlay))
 (defmacro doc-view-current-image () `(image-mode-window-get 'image))
