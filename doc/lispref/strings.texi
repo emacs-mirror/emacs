@@ -823,58 +823,80 @@ operation} error.
 
 @cindex field width
 @cindex padding
-  A specification can have a @dfn{width}, which is a signed decimal
-number between the @samp{%} and the specification character.  If the
-printed representation of the object contains fewer characters than
-this width, @code{format} extends it with padding.  The padding goes
-on the left if the width is positive (or starts with zero) and on the
-right if the width is negative.  The padding character is normally a
-space, but it's @samp{0} if the width starts with a zero.
-
-  Some of these conventions are ignored for specification characters
-for which they do not make sense.  That is, @samp{%s}, @samp{%S} and
-@samp{%c} accept a width starting with 0, but still pad with
-@emph{spaces} on the left.  Also, @samp{%%} accepts a width, but
-ignores it.  Here are some examples of padding:
+  A specification can have a @dfn{width}, which is a decimal number
+between the @samp{%} and the specification character.  If the printed
+representation of the object contains fewer characters than this
+width, @code{format} extends it with padding.  The width specifier is
+ignored for the @samp{%%} specification.  Any padding introduced by
+the width specifier normally consists of spaces inserted on the left:
 
 @example
-(format "%06d is padded on the left with zeros" 123)
-     @result{} "000123 is padded on the left with zeros"
-
-(format "%-6d is padded on the right" 123)
-     @result{} "123    is padded on the right"
+(format "%5d is padded on the left with spaces" 123)
+     @result{} "  123 is padded on the left with spaces"
 @end example
 
 @noindent
 If the width is too small, @code{format} does not truncate the
 object's printed representation.  Thus, you can use a width to specify
 a minimum spacing between columns with no risk of losing information.
+In the following three examples, @samp{%7s} specifies a minimum width
+of 7.  In the first case, the string inserted in place of @samp{%7s}
+has only 3 letters, and needs 4 blank spaces as padding.  In the
+second case, the string @code{"specification"} is 13 letters wide but
+is not truncated.
 
-  In the following three examples, @samp{%7s} specifies a minimum
-width of 7.  In the first case, the string inserted in place of
-@samp{%7s} has only 3 letters, it needs 4 blank spaces as padding.  In
-the second case, the string @code{"specification"} is 13 letters wide
-but is not truncated.  In the third case, the padding is on the right.
-
-@smallexample
+@example
 @group
 (format "The word `%7s' actually has %d letters in it."
         "foo" (length "foo"))
      @result{} "The word `    foo' actually has 3 letters in it."
-@end group
-
-@group
 (format "The word `%7s' actually has %d letters in it."
         "specification" (length "specification"))
      @result{} "The word `specification' actually has 13 letters in it."
 @end group
+@end example
 
+@cindex flags in format specifications
+  Immediately after the @samp{%} and before the optional width
+specifier, you can also put certain @dfn{flag characters}.
+
+  The flag @samp{+} inserts a plus sign before a positive number, so
+that it always has a sign.  A space character as flag inserts a space
+before a positive number.  (Otherwise, positive numbers start with the
+first digit.)  These flags are useful for ensuring that positive
+numbers and negative numbers use the same number of columns.  They are
+ignored except for @samp{%d}, @samp{%e}, @samp{%f}, @samp{%g}, and if
+both flags are used, @samp{+} takes precedence.
+
+  The flag @samp{#} specifies an ``alternate form'' which depends on
+the format in use.  For @samp{%o}, it ensures that the result begins
+with a @samp{0}.  For @samp{%x} and @samp{%X}, it prefixes the result
+with @samp{0x} or @samp{0X}.  For @samp{%e}, @samp{%f}, and @samp{%g},
+the @samp{#} flag means include a decimal point even if the precision
+is zero.
+
+  The flag @samp{-} causes the padding inserted by the width
+specifier, if any, to be inserted on the right rather than the left.
+The flag @samp{0} ensures that the padding consists of @samp{0}
+characters instead of spaces, inserted on the left.  These flags are
+ignored for specification characters for which they do not make sense:
+@samp{%s}, @samp{%S} and @samp{%c} accept the @samp{0} flag, but still
+pad with @emph{spaces} on the left.  If both @samp{-} and @samp{0} are
+present and valid, @samp{-} takes precedence.
+
+@example
 @group
+(format "%06d is padded on the left with zeros" 123)
+     @result{} "000123 is padded on the left with zeros"
+
+(format "%-6d is padded on the right" 123)
+     @result{} "123    is padded on the right"
+
 (format "The word `%-7s' actually has %d letters in it."
         "foo" (length "foo"))
      @result{} "The word `foo    ' actually has 3 letters in it."
 @end group
-@end smallexample
+@end example
 
 @cindex precision in format specifications
   All the specification characters allow an optional @dfn{precision}
@@ -887,25 +909,6 @@ the precision truncates the string to the given width, so @samp{%.3s}
 shows only the first three characters of the representation for
 @var{object}.  Precision has no effect for other specification
 characters.
-
-@cindex flags in format specifications
-  Immediately after the @samp{%} and before the optional width and
-precision, you can put certain ``flag'' characters.
-
-  @samp{+} as a flag inserts a plus sign before a positive number, so
-that it always has a sign.  A space character as flag inserts a space
-before a positive number.  (Otherwise, positive numbers start with the
-first digit.)  Either of these two flags ensures that positive numbers
-and negative numbers use the same number of columns.  These flags are
-ignored except for @samp{%d}, @samp{%e}, @samp{%f}, @samp{%g}, and if
-both flags are used, the @samp{+} takes precedence.
-
-  The flag @samp{#} specifies an ``alternate form'' which depends on
-the format in use.  For @samp{%o} it ensures that the result begins
-with a @samp{0}.  For @samp{%x} and @samp{%X}, it prefixes the result
-with @samp{0x} or @samp{0X}.  For @samp{%e}, @samp{%f}, and @samp{%g},
-the @samp{#} flag means include a decimal point even if the precision
-is zero.
 
 @node Case Conversion
 @comment node-name, next, previous, up
