@@ -278,6 +278,7 @@ history element containing the search string becomes the current.
 * New Modes and Packages in Emacs 23.1
 
 ** FIXME add details of new packages imported from lisp/gnus.
+[Maybe some information from doc/misc/gnus-coding.texi can be reused]
 
 ** The package doc-view.el has been added.  It supports viewing of PDF,
 PostScript and DVI documents inside an Emacs buffer by converting the
@@ -500,6 +501,11 @@ rather than fortran-indent-comment.
 ** Gnus package
 
 *** The Gnus package has been updated
+
+*** In Emacs 23, Gnus uses Emacs' new internal coding system `utf-8-emacs' for
+saving articles drafts and ~/.newsrc.eld.  These file may not be read
+correctly in Emacs 22 and below.  If you want to Gnus across different Emacs
+versions, you may set `mm-auto-save-coding-system' to `emacs-mule'.
 
 *** There are many news features, bug fixes and improvements.
 
