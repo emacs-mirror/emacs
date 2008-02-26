@@ -107,32 +107,32 @@ These options can be used to limit how many ICMP packets are emitted."
   (list
    (if (eq system-type 'windows-nt)
        "/all" "-a"))
-  "Options for `ifconfig-program'."
+  "Options for the ifconfig program."
   :group 'net-utils
   :type  '(repeat string))
 
 (define-obsolete-variable-alias 'ipconfig-program-options
   'ifconfig-program-options "22.2")
 
-(defcustom netstat-program  "netstat"
+(defcustom netstat-program "netstat"
   "Program to print network statistics."
   :group 'net-utils
   :type  'string)
 
 (defcustom netstat-program-options
   (list "-a")
-  "Options for netstat-program."
+  "Options for the netstat program."
   :group 'net-utils
   :type  '(repeat string))
 
-(defcustom arp-program  "arp"
+(defcustom arp-program "arp"
   "Program to print IP to address translation tables."
   :group 'net-utils
   :type  'string)
 
 (defcustom arp-program-options
   (list "-a")
-  "Options for arp-program."
+  "Options for the arp program."
   :group 'net-utils
   :type  '(repeat string))
 
@@ -148,17 +148,17 @@ These options can be used to limit how many ICMP packets are emitted."
   (if (eq system-type 'windows-nt)
       (list "print")
     (list "-r"))
-  "Options for route-program."
+  "Options for the route program."
   :group 'net-utils
   :type  '(repeat string))
 
-(defcustom nslookup-program  "nslookup"
+(defcustom nslookup-program "nslookup"
   "Program to interactively query DNS information."
   :group 'net-utils
   :type  'string)
 
-(defcustom nslookup-program-options  nil
-  "List of options to pass to the nslookup program."
+(defcustom nslookup-program-options nil
+  "Options for the nslookup program."
   :group 'net-utils
   :type  '(repeat string))
 
@@ -170,18 +170,18 @@ This variable is only used if the variable
   :group 'net-utils
   :type  'regexp)
 
-(defcustom dig-program  "dig"
+(defcustom dig-program "dig"
   "Program to query DNS information."
   :group 'net-utils
   :type  'string)
 
 (defcustom ftp-program "ftp"
-  "Progam to run to do FTP transfers."
+  "Program to run to do FTP transfers."
   :group 'net-utils
   :type  'string)
 
 (defcustom ftp-program-options nil
-  "List of options to pass to the FTP program."
+  "Options for the ftp program."
   :group 'net-utils
   :type  '(repeat string))
 
@@ -199,7 +199,7 @@ This variable is only used if the variable
   :type  'string)
 
 (defcustom smbclient-program-options nil
-  "List of options to pass to the smbclient program."
+  "Options for the smbclient program."
   :group 'net-utils
   :type  '(repeat string))
 
@@ -211,17 +211,15 @@ This variable is only used if the variable
   :group 'net-utils
   :type  'regexp)
 
-(defcustom dns-lookup-program  "host"
+(defcustom dns-lookup-program "host"
   "Program to interactively query DNS information."
   :group 'net-utils
-  :type  'string
-  )
+  :type  'string)
 
-(defcustom dns-lookup-program-options  nil
-  "List of options to pass to the dns-lookup program."
+(defcustom dns-lookup-program-options nil
+  "Options for the dns-lookup program."
   :group 'net-utils
-  :type  '(repeat string)
-  )
+  :type  '(repeat string))
 
 ;; Internal variables
 (defvar network-connection-service nil)
@@ -382,7 +380,7 @@ If your system's ping continues until interrupted, you can try setting
 
 ;;;###autoload
 (defun arp ()
-  "Run the arp program."
+  "Run arp program."
   (interactive)
   (net-utils-run-program
    "Arp"
@@ -392,7 +390,7 @@ If your system's ping continues until interrupted, you can try setting
 
 ;;;###autoload
 (defun route ()
-  "Run the route program."
+  "Run route program."
   (interactive)
   (net-utils-run-program
    "Route"
@@ -462,8 +460,7 @@ If your system's ping continues until interrupted, you can try setting
 		(list "DNS Lookup" host dns-lookup-program)
 		" ** "))
      dns-lookup-program
-     options
-     )))
+     options)))
 
 ;;;###autoload
 (defun run-dig (host)
