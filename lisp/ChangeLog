@@ -1,3 +1,18 @@
+2008-02-26  Glenn Morris  <rgm@gnu.org>
+
+	* net/net-utils.el (top-level): Don't require comint when compiling.
+	(nslookup-font-lock-keywords): Don't require font-lock.
+	Use font-lock faces rather than variables.
+	(nslookup, ftp, smbclient, network-service-connection):
+	Don't require comint.
+	(comint-prompt-regexp, comint-input-autoexpand)
+	(comint-input-ring): Declare for compiler.
+	(comint-mode, ffap-string-at-point, comint-exec): Autoload.
+	(dns-lookup-host): Don't require ffap.  Remove `with-no-warnings'.
+
+	* ibuffer.el (ibuffer-do-toggle-read-only): Don't use `iff' in
+	doc-string.
+
 2008-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-current-page): Add a `win' argument.
