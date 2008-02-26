@@ -1,5 +1,11 @@
 2008-02-26  Juanma Barranquero  <lekktu@gmail.com>
 
+	* net/net-utils.el (ftp-program): Fix typo in docstring.
+	(ifconfig-program-options, netstat-program-options)
+	(arp-program-options, route-program-options, nslookup-program-options)
+	(ftp-program-options, smbclient-program-options)
+	(dns-lookup-program-options, arp, route): Doc fixes.
+
 	* progmodes/gdb-ui.el (gdb-pc-address, gdb-source-file-list)
 	(gdb-cpp-define-alist-program, gdb-mouse-jump, gdb-get-buffer-create)
 	(gdb-set-gud-minor-mode-existing-buffers-1, gdb-debug-log):
