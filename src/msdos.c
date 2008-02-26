@@ -1645,7 +1645,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 		/* Find the range of text around this char that
 		   should be active.  */
 		Lisp_Object before, after;
-		int ignore;
+		EMACS_INT ignore;
 
 		before = Foverlay_start (overlay);
 		after = Foverlay_end (overlay);
@@ -1672,7 +1672,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 		/* Find the range of text around this char that
 		   should be active.  */
 		Lisp_Object before, after, beginning, end;
-		int ignore;
+		EMACS_INT ignore;
 
 		beginning = Fmarker_position (w->start);
 		XSETINT (end, (BUF_Z (XBUFFER (w->buffer))

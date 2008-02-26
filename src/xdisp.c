@@ -922,7 +922,7 @@ static char *decode_mode_spec P_ ((struct window *, int, int, int, int *,
 static void display_menu_bar P_ ((struct window *));
 static int display_count_lines P_ ((int, int, int, int, int *));
 static int display_string P_ ((unsigned char *, Lisp_Object, Lisp_Object,
-			       int, int, struct it *, int, int, int, int));
+			       EMACS_INT, EMACS_INT, struct it *, int, int, int, int));
 static void compute_line_metrics P_ ((struct it *));
 static void run_redisplay_end_trigger_hook P_ ((struct it *));
 static int get_overlay_strings P_ ((struct it *, int));
@@ -964,7 +964,7 @@ static void compute_stop_pos P_ ((struct it *));
 static void compute_string_pos P_ ((struct text_pos *, struct text_pos,
 				    Lisp_Object));
 static int face_before_or_after_it_pos P_ ((struct it *, int));
-static int next_overlay_change P_ ((int));
+static EMACS_INT next_overlay_change P_ ((EMACS_INT));
 static int handle_single_display_spec P_ ((struct it *, Lisp_Object,
 					   Lisp_Object, Lisp_Object,
 					   struct text_pos *, int));
@@ -3224,9 +3224,9 @@ compute_stop_pos (it)
    follows.  This is like `next-overlay-change' but doesn't use
    xmalloc.  */
 
-static int
+static EMACS_INT
 next_overlay_change (pos)
-     int pos;
+     EMACS_INT pos;
 {
   int noverlays;
   EMACS_INT endpos;
@@ -3241,7 +3241,7 @@ next_overlay_change (pos)
   for (i = 0; i < noverlays; ++i)
     {
       Lisp_Object oend;
-      int oendpos;
+      EMACS_INT oendpos;
 
       oend = OVERLAY_END (overlays[i]);
       oendpos = OVERLAY_POSITION (oend);
@@ -3353,7 +3353,8 @@ static enum prop_handled
 handle_face_prop (it)
      struct it *it;
 {
-  int new_face_id, next_stop;
+  int new_face_id;
+  EMACS_INT next_stop;
 
   if (!STRINGP (it->string))
     {
@@ -3521,7 +3522,7 @@ face_before_or_after_it_pos (it, before_p)
      int before_p;
 {
   int face_id, limit;
-  int next_check_charpos;
+  EMACS_INT next_check_charpos;
   struct text_pos pos;
 
   xassert (it->s == NULL);
@@ -4743,6 +4744,7 @@ handle_composition_prop (it)
 #ifdef USE_FONT_BACKEND
 	  if (composition_table[id]->method == COMPOSITION_WITH_GLYPH_STRING)
 	    {
+	      /* FIXME: This doesn't do anything!?! */
 	      Lisp_Object lgstring = AREF (XHASH_TABLE (composition_hash_table)
 					   ->key_and_value,
 					   cmp->hash_index * 2);
@@ -18482,8 +18484,8 @@ display_string (string, lisp_string, face_string, face_string_pos,
      unsigned char *string;
      Lisp_Object lisp_string;
      Lisp_Object face_string;
-     int face_string_pos;
-     int start;
+     EMACS_INT face_string_pos;
+     EMACS_INT start;
      struct it *it;
      int field_width, precision, max_x;
      int multibyte;
@@ -18501,7 +18503,7 @@ display_string (string, lisp_string, face_string, face_string_pos,
      from LISP_STRING, if that's given.  */
   if (STRINGP (face_string))
     {
-      int endptr;
+      EMACS_INT endptr;
       struct face *face;
 
       it->face_id
@@ -23078,7 +23080,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	  int gpos;
 	  int gseq_length;
 	  int total_pixel_width;
-	  int ignore;
+	  EMACS_INT ignore;
 
 	  int vpos, hpos;
 
@@ -23430,7 +23432,7 @@ note_mouse_highlight (f, x, y)
 	      /* Find the range of text around this char that
 		 should be active.  */
 	      Lisp_Object before, after;
-	      int ignore;
+	      EMACS_INT ignore;
 
 	      before = Foverlay_start (overlay);
 	      after = Foverlay_end (overlay);
@@ -23464,7 +23466,7 @@ note_mouse_highlight (f, x, y)
 	      /* Find the range of text around this char that
 		 should be active.  */
 	      Lisp_Object before, after, beginning, end;
-	      int ignore;
+	      EMACS_INT ignore;
 
 	      beginning = Fmarker_position (w->start);
 	      end = make_number (BUF_Z (XBUFFER (object))
@@ -23504,7 +23506,7 @@ note_mouse_highlight (f, x, y)
 	  else if (!NILP (mouse_face) && STRINGP (object))
 	    {
 	      Lisp_Object b, e;
-	      int ignore;
+	      EMACS_INT ignore;
 
 	      b = Fprevious_single_property_change (make_number (pos + 1),
 						    Qmouse_face,
@@ -23551,7 +23553,7 @@ note_mouse_highlight (f, x, y)
 		{
 		  Lisp_Object before = Foverlay_start (overlay);
 		  Lisp_Object after = Foverlay_end (overlay);
-		  int ignore;
+		  EMACS_INT ignore;
 
 		  /* Note that we might not be able to find position
 		     BEFORE in the glyph matrix if the overlay is

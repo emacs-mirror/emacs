@@ -3138,7 +3138,7 @@ font_at (c, pos, face, w, string)
   if (! face)
     {
       int face_id;
-      int endptr;
+      EMACS_INT endptr;
 
       if (STRINGP (string))
 	face_id = face_at_string_position (w, string, pos, 0, -1, -1, &endptr,

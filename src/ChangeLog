@@ -1,3 +1,14 @@
+2008-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dispextern.h (face_at_buffer_position, face_for_overlay_string)
+	(face_at_string_position):
+	* xfaces.c (face_at_buffer_position, face_for_overlay_string)
+	(face_at_string_position):
+	* xdisp.c (display_string, next_overlay_change):
+	* buffer.h (overlays_at):
+	* buffer.c (overlays_at): Use EMACS_INT for buffer positions.
+	Update callers.
+
 2008-02-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* editfns.c (Fformat): Doc fix.

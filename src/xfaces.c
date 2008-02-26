@@ -8111,10 +8111,10 @@ int
 face_at_buffer_position (w, pos, region_beg, region_end,
 			 endptr, limit, mouse)
      struct window *w;
-     int pos;
-     int region_beg, region_end;
-     int *endptr;
-     int limit;
+     EMACS_INT pos;
+     EMACS_INT region_beg, region_end;
+     EMACS_INT *endptr;
+     EMACS_INT limit;
      int mouse;
 {
   struct frame *f = XFRAME (w->frame);
@@ -8123,7 +8123,7 @@ face_at_buffer_position (w, pos, region_beg, region_end,
   int i, noverlays;
   Lisp_Object *overlay_vec;
   Lisp_Object frame;
-  int endpos;
+  EMACS_INT endpos;
   Lisp_Object propname = mouse ? Qmouse_face : Qface;
   Lisp_Object limit1, end;
   struct face *default_face;
@@ -8216,10 +8216,10 @@ int
 face_for_overlay_string (w, pos, region_beg, region_end,
 			 endptr, limit, mouse, overlay)
      struct window *w;
-     int pos;
-     int region_beg, region_end;
-     int *endptr;
-     int limit;
+     EMACS_INT pos;
+     EMACS_INT region_beg, region_end;
+     EMACS_INT *endptr;
+     EMACS_INT limit;
      int mouse;
      Lisp_Object overlay;
 {
@@ -8310,9 +8310,9 @@ face_at_string_position (w, string, pos, bufpos, region_beg,
 			 region_end, endptr, base_face_id, mouse_p)
      struct window *w;
      Lisp_Object string;
-     int pos, bufpos;
-     int region_beg, region_end;
-     int *endptr;
+     EMACS_INT pos, bufpos;
+     EMACS_INT region_beg, region_end;
+     EMACS_INT *endptr;
      enum face_id base_face_id;
      int mouse_p;
 {
