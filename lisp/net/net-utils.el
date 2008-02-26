@@ -46,8 +46,6 @@
 
 
 ;;; Code:
-(eval-when-compile
-  (require 'comint))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Customization Variables
@@ -244,30 +242,25 @@ This variable is only used if the variable
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defconst nslookup-font-lock-keywords
-  (progn
-    (defvar font-lock-type-face)
-    (defvar font-lock-keyword-face)
-    (defvar font-lock-variable-name-face)
-    (require 'font-lock)
-    (list
-     (list "^[A-Za-z0-9 _]+:"     0 font-lock-type-face)
-     (list "\\<\\(SOA\\|NS\\|MX\\|A\\|CNAME\\)\\>"
-	   1 font-lock-keyword-face)
-     ;; Dotted quads
-     (list
-      (mapconcat 'identity
-		 (make-list 4 "[0-9]+")
-		 "\\.")
-      0 font-lock-variable-name-face)
-     ;; Host names
-     (list
-      (let ((host-expression "[-A-Za-z0-9]+"))
-	(concat
-	 (mapconcat 'identity
-		    (make-list 2 host-expression)
-		    "\\.")
-	 "\\(\\." host-expression "\\)*"))
-      0 font-lock-variable-name-face)))
+  (list
+   (list "^[A-Za-z0-9 _]+:" 0 'font-lock-type-face)
+   (list "\\<\\(SOA\\|NS\\|MX\\|A\\|CNAME\\)\\>"
+         1 'font-lock-keyword-face)
+   ;; Dotted quads
+   (list
+    (mapconcat 'identity
+               (make-list 4 "[0-9]+")
+               "\\.")
+    0 'font-lock-variable-name-face)
+   ;; Host names
+   (list
+    (let ((host-expression "[-A-Za-z0-9]+"))
+      (concat
+       (mapconcat 'identity
+                  (make-list 2 host-expression)
+                  "\\.")
+       "\\(\\." host-expression "\\)*"))
+    0 'font-lock-variable-name-face))
   "Expressions to font-lock for nslookup.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -323,7 +316,7 @@ This variable is only used if the variable
 
 (defmacro net-utils-run-program (name header program &rest args)
   "Run a network information program."
-  ` (let ((buf (get-buffer-create (concat "*" ,name "*"))))
+  ` (let ((buf (get-buffer-create (concat "*" ,name "*")))) 
       (set-buffer buf)
       (erase-buffer)
       (insert ,header "\n")
@@ -453,9 +446,13 @@ If your system's ping continues until interrupted, you can try setting
 (defun nslookup ()
   "Run nslookup program."
   (interactive)
-  (require 'comint)
   (comint-run nslookup-program)
   (nslookup-mode))
+
+(defvar comint-prompt-regexp)
+(defvar comint-input-autoexpand)
+
+(autoload 'comint-mode "comint" nil t)
 
 ;; Using a derived mode gives us keymaps, hooks, etc.
 (define-derived-mode nslookup-mode comint-mode "Nslookup"
@@ -484,20 +481,17 @@ If your system's ping continues until interrupted, you can try setting
 		(list "DNS Lookup" host dns-lookup-program)
 		" ** "))
      dns-lookup-program
-     options
-     )))
+     options)))
+
+(autoload 'ffap-string-at-point "ffap")
 
 ;;;###autoload
 (defun run-dig (host)
   "Run dig program."
   (interactive
    (list
-    (progn
-      (require 'ffap)
-      (read-from-minibuffer
-       "Lookup host: "
-       (with-no-warnings
-	 (or (ffap-string-at-point 'machine) ""))))))
+    (read-from-minibuffer "Lookup host: "
+                          (or (ffap-string-at-point 'machine) ""))))
   (net-utils-run-program
    "Dig"
    (concat "** "
@@ -507,6 +501,8 @@ If your system's ping continues until interrupted, you can try setting
    dig-program
    (list host)))
 
+(autoload 'comint-exec "comint")
+
 ;; This is a lot less than ange-ftp, but much simpler.
 ;;;###autoload
 (defun ftp (host)
@@ -515,7 +511,6 @@ If your system's ping continues until interrupted, you can try setting
    (list
     (read-from-minibuffer
      "Ftp to Host: " (net-utils-machine-at-point))))
-  (require 'comint)
   (let ((buf (get-buffer-create (concat "*ftp [" host "]*"))))
     (set-buffer buf)
     (ftp-mode)
@@ -550,7 +545,6 @@ If your system's ping continues until interrupted, you can try setting
     (read-from-minibuffer
      "Connect to Host: " (net-utils-machine-at-point))
     (read-from-minibuffer "SMB Service: ")))
-  (require 'comint)
   (let* ((name (format "smbclient [%s\\%s]" host service))
 	 (buf (get-buffer-create (concat "*" name "*")))
 	 (service-name (concat "\\\\" host "\\" service)))
@@ -827,7 +821,6 @@ from SEARCH-STRING.  With argument, prompt for whois server."
 
 (defun network-service-connection (host service)
   "Open a network connection to SERVICE on HOST."
-  (require 'comint)
   (let* ((process-name (concat "Network Connection [" host " " service "]"))
 	 (portnum (string-to-number service))
 	 (buf (get-buffer-create (concat "*" process-name "*"))))
@@ -839,6 +832,8 @@ from SEARCH-STRING.  With argument, prompt for whois server."
     (network-connection-mode)
     (network-connection-mode-setup host service)
     (pop-to-buffer buf)))
+
+(defvar comint-input-ring)
 
 (defun network-connection-reconnect  ()
   "Reconnect a network connection, preserving the old input ring."
