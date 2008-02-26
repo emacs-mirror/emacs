@@ -1,3 +1,8 @@
+2008-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (set-mark-command): Deactivate mark on second C-SPC C-SPC
+	when using transient-mark-mode.
+
 2008-02-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* progmodes/grep.el (grep-mode-tool-bar-map): Change place on next
