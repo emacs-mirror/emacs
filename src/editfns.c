@@ -3383,7 +3383,10 @@ DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
        doc: /* Format a string out of a format-string and arguments.
 The first argument is a format control string.
 The other arguments are substituted into it to make the result, a string.
-It may contain %-sequences meaning to substitute the next argument.
+
+The format control string may contain %-sequences meaning to substitute
+the next available argument:
+
 %s means print a string argument.  Actually, prints any object, with `princ'.
 %d means print as number in decimal (%o octal, %x hex).
 %X is like %x, but uses upper case.
@@ -3393,12 +3396,34 @@ It may contain %-sequences meaning to substitute the next argument.
   or decimal-point notation, whichever uses fewer characters.
 %c means print a number as a single character.
 %S means print any object as an s-expression (using `prin1').
-  The argument used for %d, %o, %x, %e, %f, %g or %c must be a number.
+
+The argument used for %d, %o, %x, %e, %f, %g or %c must be a number.
 Use %% to put a single % into the output.
 
-The basic structure of a %-sequence is
-  % <flags> <width> <precision> character
-where flags is [-+ #0]+, width is [0-9]+, and precision is .[0-9]+
+A %-sequence may contain optional flag, width, and precision
+specifiers, as follows:
+
+  %<flags><width><precision>character
+
+where flags is [+ #-0]+, width is [0-9]+, and precision is .[0-9]+
+
+The + flag character inserts a + before any positive number, while a
+space inserts a space before any positive number; these flags only
+affect %d, %e, %f, and %g sequences, and the + flag takes precedence.
+The # flag means to use an alternate display form for %o, %x, %X, %e,
+%f, and %g sequences.  The - and 0 flags affect the width specifier,
+as described below.
+
+The width specifier supplies a lower limit for the length of the
+printed representation.  The padding, if any, normally goes on the
+left, but it goes on the right if the - flag is present.  The padding
+character is normally a space, but it is 0 if the 0 flag is present.
+The - flag takes precedence over the 0 flag.
+
+For %e, %f, and %g sequences, the number after the "." in the
+precision specifier says how many decimal places to show; if zero, the
+decimal point itself is omitted.  For %s and %S, the precision
+specifier truncates the string to the given width.
 
 usage: (format STRING &rest OBJECTS)  */)
      (nargs, args)
