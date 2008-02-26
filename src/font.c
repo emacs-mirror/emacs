@@ -168,7 +168,7 @@ font_pixel_size (f, spec)
   double point_size;
   int pixel_size, dpi;
   Lisp_Object extra, val;
-      
+
   if (INTEGERP (size))
     return XINT (size);
   if (NILP (size))
@@ -327,7 +327,7 @@ font_registry_charsets (registry, encoding, repertory)
 		goto invalid_entry;
 	      repertory_id = XINT (CHARSET_SYMBOL_ID (XCDR (val)));
 	    }
-	}      
+	}
       else
 	goto invalid_entry;
       val = Fcons (make_number (encoding_id), make_number (repertory_id));
@@ -550,7 +550,7 @@ font_prop_validate (spec)
     }
   return spec;
 }
-      
+
 /* Store VAL as a value of extra font property PROP in FONT.  */
 
 Lisp_Object
@@ -752,7 +752,7 @@ font_expand_wildcards (field, n)
 	      else if (numeric <= 48)
 		from = to = XLFD_PIXEL_INDEX,
 		  mask = XLFD_PIXEL_MASK;
-	      else 
+	      else
 		from = XLFD_POINT_INDEX, to = XLFD_AVGWIDTH_INDEX,
 		  mask = XLFD_LARGENUM_MASK;
 	    }
@@ -982,7 +982,7 @@ font_parse_xlfd (name, font)
 
       p = f[XLFD_PIXEL_INDEX];
       if (*p == '[' && (pixel_size = parse_matrix (p)) >= 0)
-	ASET (font, FONT_SIZE_INDEX, make_number (pixel_size));	      
+	ASET (font, FONT_SIZE_INDEX, make_number (pixel_size));
       else
 	{
 	  i = XLFD_PIXEL_INDEX;
@@ -1332,7 +1332,7 @@ font_parse_fcname (name, font)
   if (! copy)
     return -1;
   name = copy;
-  
+
   /* Now parse ":KEY=VAL" patterns.  Store known keys and values in
      extra, copy unknown ones to COPY.  */
   while (*p0)
@@ -1731,7 +1731,7 @@ otf_open (entity, file)
 
 /* Return a list describing which scripts/languages FONT supports by
    which GSUB/GPOS features of OpenType tables.  See the comment of
-   (sturct font_driver).otf_capability.  */
+   (struct font_driver).otf_capability.  */
 
 Lisp_Object
 font_otf_capability (font)
@@ -2295,7 +2295,7 @@ font_clear_cache (f, cache, driver)
      struct font_driver *driver;
 {
   Lisp_Object tail, elt;
-	    
+
   /* CACHE = (DRIVER-TYPE NUM-FRAMES FONT-CACHE-DATA ...) */
   for (tail = XCDR (XCDR (cache)); CONSP (tail); tail = XCDR (tail))
     {
@@ -2371,7 +2371,7 @@ font_list_entities (frame, spec)
 
   xassert (ASIZE (spec) == FONT_SPEC_MAX);
   ftype = AREF (spec, FONT_TYPE_INDEX);
-  
+
   for (i = 0; driver_list; driver_list = driver_list->next)
     if (driver_list->on
 	&& (NILP (ftype) || EQ (driver_list->driver->type, ftype)))
@@ -3179,7 +3179,7 @@ valid font property name listed below:
 `:family', `:weight', `:slant', `:width'
 
 They are the same as face attributes of the same name.  See
-`set-face-attribute.
+`set-face-attribute'.
 
 `:foundry'
 
@@ -3264,7 +3264,7 @@ FONT is a font-spec, a font-entity, or a font-object.  */)
 
 
 DEFUN ("font-put", Ffont_put, Sfont_put, 3, 3, 0,
-       doc: /* Set one property of FONT-SPEC: give property KEY value VALUE.  */)
+       doc: /* Set one property of FONT-SPEC: give property PROP value VAL.  */)
      (font_spec, prop, val)
      Lisp_Object font_spec, prop, val;
 {
@@ -3336,7 +3336,7 @@ how they are close to PREFER.  */)
 
 DEFUN ("list-families", Flist_families, Slist_families, 0, 1, 0,
        doc: /* List available font families on the current frame.
-Optional 2nd argument FRAME specifies the target frame.  */)
+Optional argument FRAME specifies the target frame.  */)
      (frame)
      Lisp_Object frame;
 {
@@ -3426,7 +3426,7 @@ DEFUN ("clear-font-cache", Fclear_font_cache, Sclear_font_cache, 0, 0, 0,
 	  {
 	    Lisp_Object cache = driver_list->driver->get_cache (f);
 	    Lisp_Object val;
-	    
+
 	    val = XCDR (cache);
 	    while (! NILP (val)
 		   && ! EQ (XCAR (XCAR (val)), driver_list->driver->type))
@@ -3456,7 +3456,7 @@ sorted by numeric values.  */)
   int table_index;
   int numeric;
   Lisp_Object tail, val;
-  
+
   CHECK_SYMBOL (prop);
   table_index = (EQ (prop, QCweight) ? 0
 		 : EQ (prop, QCslant) ? 1
@@ -3482,7 +3482,7 @@ sorted by numeric values.  */)
   ASET (font_style_table, table_index, table);
   return Qnil;
 }
-  
+
 /* The following three functions are still expremental.  */
 
 DEFUN ("font-make-gstring", Ffont_make_gstring, Sfont_make_gstring, 2, 2, 0,
@@ -3529,9 +3529,9 @@ where
 }
 
 DEFUN ("font-fill-gstring", Ffont_fill_gstring, Sfont_fill_gstring, 4, 5, 0,
-       doc: /* Fillin glyph-string GSTRING by characters for FONT-OBJECT.
-START and END specifies the region to extract characters.
-If optional 3rd argument OBJECT is non-nil, it is a buffer or a string from
+       doc: /* Fill in glyph-string GSTRING by characters for FONT-OBJECT.
+START and END specify the region to extract characters.
+If optional 5rd argument OBJECT is non-nil, it is a buffer or a string from
 where to extract characters.
 FONT-OBJECT may be nil if GSTRING already already contains one.  */)
      (gstring, font_object, start, end, object)
@@ -3606,7 +3606,7 @@ FONT-OBJECT may be nil if GSTRING already already contains one.  */)
 	}
     }
   for (; i < LGSTRING_LENGTH (gstring); i++)
-    LGSTRING_SET_GLYPH (gstring, i, Qnil);    
+    LGSTRING_SET_GLYPH (gstring, i, Qnil);
   return Qnil;
 }
 
@@ -3650,7 +3650,7 @@ FONT-OBJECT.  */)
   len = end - start;
   gstring = Ffont_make_gstring (font_object, make_number (len));
   Ffont_fill_gstring (gstring, font_object, from, to, string);
-  
+
   /* Try at most three times with larger gstring each time.  */
   for (i = 0; i < 3; i++)
     {
@@ -3753,7 +3753,7 @@ FONT-OBJECT.  */)
 
 DEFUN ("font-drive-otf", Ffont_drive_otf, Sfont_drive_otf, 6, 6, 0,
        doc: /* Apply OpenType features on glyph-string GSTRING-IN.
-OTF-SPEC specifies which featuress to apply in this format:
+OTF-FEATURES specifies which features to apply in this format:
   (SCRIPT LANGSYS GSUB GPOS)
 where
   SCRIPT is a symbol specifying a script tag of OpenType,
@@ -3762,8 +3762,8 @@ where
 
 If LANGYS is nil, the default langsys is selected.
 
-The features are applied in the order appeared in the list.  The
-symbol `*' means to apply all available features not appeared in this
+The features are applied in the order they appear in the list.  The
+symbol `*' means to apply all available features not present in this
 list, and the remaining features are ignored.  For instance, (vatu
 pstf * haln) is to apply vatu and pstf in this order, then to apply
 all available features other than vatu, pstf, and haln.
@@ -3771,14 +3771,14 @@ all available features other than vatu, pstf, and haln.
 The features are applied to the glyphs in the range FROM and TO of
 the glyph-string GSTRING-IN.
 
-If some of a feature is actually applicable, the resulting glyphs are
+If some feature is actually applicable, the resulting glyphs are
 produced in the glyph-string GSTRING-OUT from the index INDEX.  In
 this case, the value is the number of produced glyphs.
 
 If no feature is applicable, no glyph is produced in GSTRING-OUT, and
 the value is 0.
 
-If GSTRING-OUT is too short to hold produced glyphs, no glyphs is
+If GSTRING-OUT is too short to hold produced glyphs, no glyphs are
 produced in GSTRING-OUT, and the value is nil.
 
 See the documentation of `font-make-gstring' for the format of
@@ -3824,7 +3824,7 @@ glyph-string.  */)
 DEFUN ("font-otf-alternates", Ffont_otf_alternates, Sfont_otf_alternates,
        3, 3, 0,
        doc: /* Return a list of alternate glyphs of CHARACTER in FONT-OBJECT.
-FEATURE-SPEC specifies which features of the font FONT-OBJECT to apply
+OTF-FEATURES specifies which features of the font FONT-OBJECT to apply
 in this format:
   (SCRIPT LANGSYS FEATURE ...)
 See the documentation of `font-otf-gsub' for more detail.
@@ -3889,7 +3889,7 @@ DEFUN ("open-font", Fopen_font, Sopen_font, 1, 3, 0,
   if (NILP (frame))
     frame = selected_frame;
   CHECK_LIVE_FRAME (frame);
-  
+
   isize = XINT (size);
   if (isize == 0)
     isize = 120;
@@ -3950,9 +3950,9 @@ SCRIPT is a symbol representing OpenType script tag.
 LANGSYS is a symbol representing OpenType langsys tag, or nil
 representing the default langsys.
 
-FEATURE is a symbol representing OpenType feature tag.  
+FEATURE is a symbol representing OpenType feature tag.
 
-If the font is not OpenType font, OTF-CAPABILITY is nil.  */)
+If the font is not OpenType font, CAPABILITY is nil.  */)
      (font_object)
      Lisp_Object font_object;
 {
@@ -4013,7 +4013,7 @@ Each element is a vector [GLYPH-CODE LBEARING RBEARING WIDTH ASCENT DESCENT].  *
       else
 	ASET (val, 0, Fcons (make_number (code >> 16),
 			     make_number (code & 0xFFFF)));
-      font->driver->text_extents (font, &code, 1, &metrics);      
+      font->driver->text_extents (font, &code, 1, &metrics);
       ASET (val, 1, make_number (metrics.lbearing));
       ASET (val, 2, make_number (metrics.rbearing));
       ASET (val, 3, make_number (metrics.width));
@@ -4040,7 +4040,7 @@ FONT is a font-spec, font-entity, or font-object. */)
 }
 
 DEFUN ("font-at", Ffont_at, Sfont_at, 1, 3, 0,
-       doc: /* Return a font-object for displaying a character at POSISTION.
+       doc: /* Return a font-object for displaying a character at POSITION.
 Optional second arg WINDOW, if non-nil, is a window displaying
 the current buffer.  It defaults to the currently selected window.  */)
      (position, window, string)
