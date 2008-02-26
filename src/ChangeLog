@@ -41,6 +41,24 @@
 
 	* w32fns.c (enum_font_cb2): Don't use raster fonts for Unicode.
 
+2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Allow fine-grained image-cache flushing.
+	* dispextern.h (struct image): Add `dependencies' field.
+	(clear_image_caches): Change arg to Lisp_Object.
+	* image.c (make_image): Initialize `dependencies' field.
+	(clear_image_cache): Change arg to allow fine-grained flushing.
+	Perform the flush even if image-cache-eviction-delay is nil.
+	(clear_image_caches): Change arg to Lisp_Object.
+	(Fclear_image_cache): Expand meaning of the argument.
+	(mark_image): Mark `dependencies' field.
+	* xfaces.c (clear_face_cache): Adapt arg to call to clear_image_caches.
+	(lface_hash): Use XHASH rather than XFASTINT.
+	(face_at_buffer_position): Fix int -> EMACS_INT position.
+	* xdisp.c (next_overlay_change): Fix int -> EMACS_INT position.
+	(select_frame_for_redisplay): Remove code duplication.
+	(redisplay_internal): Adapt arg to call to clear_image_caches.
+
 2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/vms4-0.h:
