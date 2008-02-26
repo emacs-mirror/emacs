@@ -2,6 +2,7 @@
 
 	* simple.el (set-mark-command): Deactivate mark on second C-SPC C-SPC
 	when using transient-mark-mode.
+	(default-indicate-unused-lines): Remove unused var.
 
 2008-02-26  Jan Djärv  <jan.h.d@swipnet.se>
 
