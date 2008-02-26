@@ -1259,7 +1259,7 @@ a new window in the current frame, splitting vertically."
 
 (define-ibuffer-op ibuffer-do-toggle-read-only (&optional arg)
   "Toggle read only status in marked buffers.
-With ARG, set read-only iff arg is positive."
+With optional ARG, make read-only only if ARG is positive."
   (:opstring "toggled read only status in"
    :interactive "P"
    :modifier-p t)
