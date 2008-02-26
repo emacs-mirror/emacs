@@ -1,3 +1,12 @@
+2008-02-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/gdb-ui.el (gdb-pc-address, gdb-source-file-list)
+	(gdb-cpp-define-alist-program, gdb-mouse-jump, gdb-get-buffer-create)
+	(gdb-set-gud-minor-mode-existing-buffers-1, gdb-debug-log):
+	Fix typos in docstrings.
+	(gdb-pending-triggers): Reflow docstring.
+	(gdb, gdb-init-1): Fix typos in docstrings of gud-def definitions.
+
 2008-02-25  Alan Mackenzie  <acm@muc.de>
 
 	* progmodes/cc-mode.el (c-neutralize-syntax-in-CPP): Fix a bug on
