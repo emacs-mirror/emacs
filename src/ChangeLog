@@ -1,3 +1,7 @@
+2008-02-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Fformat): Doc fix.
+
 2008-02-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* keyboard.c (command_loop_1): Revert 2006-10-09 change.
