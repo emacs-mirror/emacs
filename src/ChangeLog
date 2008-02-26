@@ -1,3 +1,7 @@
+2008-02-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Fformat): Doc fix.
+
 2008-02-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* font.c (Ffont_spec, Ffont_at): Fix typos in docstrings.
