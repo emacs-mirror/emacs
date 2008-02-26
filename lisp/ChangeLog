@@ -1,3 +1,8 @@
+2008-02-26  Jason Rumney  <jasonr@gnu.org>
+
+	* files.el (make-auto-save-file-name): Encode more characters in
+	non-file buffer names. Use url-encoding.
+
 2008-02-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/net-utils.el (ftp-program): Fix typo in docstring.
