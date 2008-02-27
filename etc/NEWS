@@ -333,6 +333,10 @@ It uses `auto-composition-function' (default `auto-compose-chars').
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
+** A new `whitespace' package has been installed, and the pre-existing one
+renamed to `old-whitespace'.
+[FIXME someone explain why this is good, if it is...]
+
 ** In Change Log mode, the new function `change-log-find-file', bound to
 C-c C-f, finds the file associated with the current log entry.
 
