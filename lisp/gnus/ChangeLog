@@ -1,3 +1,7 @@
+2008-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* nnmairix.el: Change defcustom :version from 23.0 to 23.1.
+
 2008-02-26  David Engster  <dengste@eml.cc>
 
 	* nnmairix.el: New file.  Mairix back end for Gnus.  Initial import of
