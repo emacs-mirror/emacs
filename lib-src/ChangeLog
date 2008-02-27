@@ -1,3 +1,7 @@
+2008-02-27  Yuri Shtil  <yuris@juniper.net>  (tiny change)
+
+	* etags.c (Perl_functions): Fix call to skip_spaces.
+
 2008-01-22  Chong Yidong  <cyd@stupidchicken.com>
 
 	* pop.c (pop_stat, pop_last): Fix last fix.
@@ -19,8 +23,8 @@
 
 	* etags.c (default_C_help) [CTAGS]: differentiate the help string,
 	as the defaults in ctags are different from etags.
-	(default_C_help, Cplusplus_help, PHP_help, print_help): Remove
-	text saying --members is the default: not true in Emacs 22.
+	(default_C_help, Cplusplus_help, PHP_help, print_help):
+	Remove text saying --members is the default: not true in Emacs 22.
 
 2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
 
