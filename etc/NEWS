@@ -203,6 +203,10 @@ This is a convenience alias, so that one can write `(pop argv)'
 inside of --eval command line arguments in order to access
 following arguments.
 
+** The new command-line option `--disable-font-backend' disables the
+new font backend code at runtime.  This option is only available if
+Emacs was compiled with font-backend support.
+
 ** The abbrev file is no longer read at startup in batch mode.
 
 * Incompatible Editing Changes in Emacs 23.1
