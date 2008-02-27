@@ -1,3 +1,8 @@
+2008-02-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-news.texi: Mention problem with coding system `utf-8-emacs' when
+	using different Emacs versions.
+
 2008-02-27  Glenn Morris  <rgm@gnu.org>
 
 	* sc.texi: Remove a lot of old and obsolete info.

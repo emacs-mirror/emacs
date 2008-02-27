@@ -32,6 +32,15 @@ file, where this release will store flags for nntp.  See a later entry
 for more information about nntp marks.  Note that downgrading isn't
 safe in general.
 
+@item Incompatibity when switching from Emacs 23 to Emacs 22 
+In Emacs 23, Gnus uses Emacs' new internal coding system @code{utf-8-emacs}
+for saving articles drafts and @file{~/.newsrc.eld}.  These file may not
+be read correctly in Emacs 22 and below.  If you want to Gnus across
+different Emacs versions, you may set @code{mm-auto-save-coding-system}
+to @code{emacs-mule}.
+@c FIXME: Untested.  (Or did anyone test it?)
+@c Cf. http://thread.gmane.org/gmane.emacs.gnus.general/66251/focus=66344
+
 @item Lisp files are now installed in @file{.../site-lisp/gnus/} by default.
 It defaulted to @file{.../site-lisp/} formerly.  In addition to this,
 the new installer issues a warning if other Gnus installations which

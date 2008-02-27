@@ -1,3 +1,16 @@
+2008-02-26  David Engster  <dengste@eml.cc>
+
+	* nnmairix.el: New file.  Mairix back end for Gnus.  Initial import of
+	version 0.5.
+
+2008-02-26  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-register-message-ids): Use `id'
+	instead of making an extra function call.  Don't add the current group
+	to articles only when they have the group.  Use
+	`gnus-registry-fetch-groups' instead of `gnus-registry-fetch-group'.
+	Reported by David <de_bb@arcor.de>.
+
 2008-02-24  Miles Bader  <miles@gnu.org>
 
 	* mm-util.el (mm-hack-charsets, mm-iso-8859-15-compatible)

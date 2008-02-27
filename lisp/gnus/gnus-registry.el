@@ -334,7 +334,6 @@ considered precious) will not be trimmed."
 
 (defun gnus-registry-trim (alist)
   "Trim alist to size, using gnus-registry-max-entries.
-Also, drop all gnus-registry-ignored-groups matches.
 Any entries with extra data (marks, currently) are left alone."
   (if (null gnus-registry-max-entries)      
       alist                             ; just return the alist
@@ -360,7 +359,7 @@ Any entries with extra data (marks, currently) are left alone."
        gnus-registry-hashtb)
 
       (dolist (item alist)
-	(let ((key (nth 0 item)))	      
+	(let ((key (nth 0 item)))
 	  (if (gethash key precious)
 	      (push item precious-list)
 	    (push item junk-list))))
@@ -578,11 +577,11 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
   (unless (gnus-parameter-registry-ignore gnus-newsgroup-name)
     (dolist (article gnus-newsgroup-articles)
       (let ((id (gnus-registry-fetch-message-id-fast article)))
-	(unless (gnus-registry-fetch-group id)
+	(unless (member gnus-newsgroup-name (gnus-registry-fetch-groups id))
 	  (gnus-message 9 "Registry: Registering article %d with group %s"
 			article gnus-newsgroup-name)
-	  (gnus-registry-add-group
-	   (gnus-registry-fetch-message-id-fast article)
+	  (gnus-registry-add-group 
+	   id 
 	   gnus-newsgroup-name
 	   (gnus-registry-fetch-simplified-message-subject-fast article)
 	   (gnus-registry-fetch-sender-fast article)))))))
