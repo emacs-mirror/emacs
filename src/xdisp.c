@@ -5809,29 +5809,29 @@ get_next_display_element (it)
 		 can be defined in the display table.  Fill
 		 IT->ctl_chars with glyphs for what we have to
 		 display.  Then, set IT->dpvec to these glyphs.  */
-	      GLYPH g;
+	      Lisp_Object gc;
 	      int ctl_len;
 	      int face_id, lface_id = 0 ;
-	      GLYPH escape_glyph;
+	      int escape_glyph;
 
 	      /* Handle control characters with ^.  */
 
 	      if (it->c < 128 && it->ctl_arrow_p)
 		{
+		  int g;
+
 		  g = '^';	     /* default glyph for Control */
 		  /* Set IT->ctl_chars[0] to the glyph for `^'.  */
 		  if (it->dp
-		      && INTEGERP (DISP_CTRL_GLYPH (it->dp))
-		      && GLYPH_CHAR_VALID_P (XINT (DISP_CTRL_GLYPH (it->dp))))
+		      && (gc = DISP_CTRL_GLYPH (it->dp), GLYPH_CODE_P (gc))
+		      && GLYPH_CODE_CHAR_VALID_P (gc))
 		    {
-		      g = XINT (DISP_CTRL_GLYPH (it->dp));
-		      lface_id = FAST_GLYPH_FACE (g);
+		      g = GLYPH_CODE_CHAR (gc);
+		      lface_id = GLYPH_CODE_FACE (gc);
 		    }
 		  if (lface_id)
 		    {
-		       g = FAST_GLYPH_CHAR (g);
-		       face_id = merge_faces (it->f, Qt, lface_id,
-					      it->face_id);
+		      face_id = merge_faces (it->f, Qt, lface_id, it->face_id);
 		    }
 		  else if (it->f == last_escape_glyph_frame
 			   && it->face_id == last_escape_glyph_face_id)
@@ -5849,8 +5849,7 @@ get_next_display_element (it)
 		    }
 
 		  XSETINT (it->ctl_chars[0], g);
-		  g = it->c ^ 0100;
-		  XSETINT (it->ctl_chars[1], g);
+		  XSETINT (it->ctl_chars[1], it->c ^ 0100);
 		  ctl_len = 2;
 		  goto display_control;
 		}
@@ -5865,8 +5864,8 @@ get_next_display_element (it)
 		  face_id = merge_faces (it->f, Qnobreak_space, 0,
 					 it->face_id);
 
-		  g = it->c = ' ';
-		  XSETINT (it->ctl_chars[0], g);
+		  it->c = ' ';
+		  XSETINT (it->ctl_chars[0], ' ');
 		  ctl_len = 1;
 		  goto display_control;
 		}
@@ -5877,17 +5876,16 @@ get_next_display_element (it)
 	      escape_glyph = '\\';
 
 	      if (it->dp
-		  && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
-		  && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
+		  && (gc = DISP_ESCAPE_GLYPH (it->dp), GLYPH_CODE_P (gc))
+		  && GLYPH_CODE_CHAR_VALID_P (gc))
 		{
-		  escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
-		  lface_id = FAST_GLYPH_FACE (escape_glyph);
+		  escape_glyph = GLYPH_CODE_CHAR (gc);
+		  lface_id = GLYPH_CODE_FACE (gc);
 		}
 	      if (lface_id)
 		{
 		  /* The display table specified a face.
 		     Merge it into face_id and also into escape_glyph.  */
-		  escape_glyph = FAST_GLYPH_CHAR (escape_glyph);
 		  face_id = merge_faces (it->f, Qt, lface_id,
 					 it->face_id);
 		}
@@ -5912,8 +5910,8 @@ get_next_display_element (it)
 	      if (EQ (Vnobreak_char_display, Qt)
 		  && it->c == 0xAD)
 		{
-		  g = it->c = '-';
-		  XSETINT (it->ctl_chars[0], g);
+		  it->c = '-';
+		  XSETINT (it->ctl_chars[0], '-');
 		  ctl_len = 1;
 		  goto display_control;
 		}
@@ -5924,8 +5922,8 @@ get_next_display_element (it)
 	      if (it->c == 0xA0 || it->c == 0xAD)
 		{
 		  XSETINT (it->ctl_chars[0], escape_glyph);
-		  g = it->c = (it->c == 0xA0 ? ' ' : '-');
-		  XSETINT (it->ctl_chars[1], g);
+		  it->c = (it->c == 0xA0 ? ' ' : '-');
+		  XSETINT (it->ctl_chars[1], it->c);
 		  ctl_len = 2;
 		  goto display_control;
 		}
@@ -5961,6 +5959,7 @@ get_next_display_element (it)
 
 		for (i = 0; i < len; i++)
 		  {
+		    int g;
 		    XSETINT (it->ctl_chars[i * 4], escape_glyph);
 		    /* Insert three more glyphs into IT->ctl_chars for
 		       the octal display of the character.  */
@@ -6200,18 +6199,20 @@ static int
 next_element_from_display_vector (it)
      struct it *it;
 {
+  Lisp_Object gc;
+
   /* Precondition.  */
   xassert (it->dpvec && it->current.dpvec_index >= 0);
 
   it->face_id = it->saved_face_id;
 
-  if (INTEGERP (*it->dpvec)
-      && GLYPH_CHAR_VALID_P (XFASTINT (*it->dpvec)))
-    {
-      GLYPH g;
+  /* KFS: This code used to check ip->dpvec[0] instead of the current element.
+          That seemed totally bogus - so I changed it...  */
 
-      g = XFASTINT (it->dpvec[it->current.dpvec_index]);
-      it->c = FAST_GLYPH_CHAR (g);
+  if ((gc = it->dpvec[it->current.dpvec_index], GLYPH_CODE_P (gc))
+      && GLYPH_CODE_CHAR_VALID_P (gc))
+    {
+      it->c = GLYPH_CODE_CHAR (gc);
       it->len = CHAR_BYTES (it->c);
 
       /* The entry may contain a face id to use.  Such a face id is
@@ -6221,7 +6222,7 @@ next_element_from_display_vector (it)
 	it->face_id = it->dpvec_face_id;
       else
 	{
-	  int lface_id = FAST_GLYPH_FACE (g);
+	  int lface_id = GLYPH_CODE_FACE (gc);
 	  if (lface_id > 0)
 	    it->face_id = merge_faces (it->f, Qt, lface_id,
 				       it->saved_face_id);
