@@ -1,3 +1,9 @@
+2008-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c (wait_reading_process_output): Check for window
+	changes caused by timers.
+	Suggested by Johan Bockg,Ae(Brd.
+
 2008-02-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* editfns.c (Fformat): Doc fix.
