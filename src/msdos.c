@@ -987,8 +987,8 @@ IT_write_glyphs (struct glyph *str, int str_len)
   /* Set up the unsupported character glyph */
   if (!NILP (Vdos_unsupported_char_glyph))
     {
-      unsupported_char = FAST_GLYPH_CHAR (XINT (Vdos_unsupported_char_glyph));
-      unsupported_face = FAST_GLYPH_FACE (XINT (Vdos_unsupported_char_glyph));
+      unsupported_char = GLYPH_CHAR (XINT (Vdos_unsupported_char_glyph));
+      unsupported_face = GLYPH_FACE (XINT (Vdos_unsupported_char_glyph));
     }
 
   screen_buf = screen_bp = alloca (str_len * 2);
@@ -1021,13 +1021,12 @@ IT_write_glyphs (struct glyph *str, int str_len)
 	}
       else
 	{
-	  register GLYPH g = GLYPH_FROM_CHAR_GLYPH (*str);
+	  GLYPH g;
 	  int glyph_not_in_table = 0;
 
-	  /* If g is negative, it means we have a multibyte character
-	     in *str.  That's what GLYPH_FROM_CHAR_GLYPH returns for
-	     multibyte characters.  */
-	  if (g < 0 || g >= tlen)
+	  SET_GLYPH_FROM_CHAR_GLYPH (g, *str);
+
+	  if (GLYPH_INVALID_P (g) || GLYPH_SIMPLE_P (tbase, tlen, g))
 	    {
 	      /* This glyph doesn't have an entry in Vglyph_table.  */
 	      ch = str->u.ch;
@@ -1038,7 +1037,7 @@ IT_write_glyphs (struct glyph *str, int str_len)
 	      /* This glyph has an entry in Vglyph_table, so process
 		 any aliases before testing for simpleness.  */
 	      GLYPH_FOLLOW_ALIASES (tbase, tlen, g);
-	      ch = FAST_GLYPH_CHAR (g);
+	      ch = GLYPH_CHAR (g);
 	    }
 
 	  /* Convert the character code to multibyte, if they
@@ -1054,10 +1053,10 @@ IT_write_glyphs (struct glyph *str, int str_len)
 	  /* Invalid characters are displayed with a special glyph.  */
 	  if (! CHAR_VALID_P (ch, 0))
 	    {
-	      g = !NILP (Vdos_unsupported_char_glyph)
+	      ch = !NILP (Vdos_unsupported_char_glyph)
 		? XINT (Vdos_unsupported_char_glyph)
-		: MAKE_GLYPH (sf, '\177', GLYPH_FACE (sf, g));
-	      ch = FAST_GLYPH_CHAR (g);
+		: '\177';
+	      SET_GLYPH_CHAR (g, ch);
 	    }
 
 	  /* If the face of this glyph is different from the current
