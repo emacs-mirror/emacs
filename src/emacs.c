@@ -263,6 +263,7 @@ Initialization options:\n\
 \n\
 --batch                     do not do interactive display; implies -q\n\
 --debug-init                enable Emacs Lisp debugger for init file\n\
+--disable-font-backend      do not use font backend (only if compiled)\n\
 --display, -d DISPLAY       use X server DISPLAY\n\
 --multibyte, --no-unibyte   inhibit the effect of EMACS_UNIBYTE\n\
 --no-desktop                do not load a saved desktop\n\
