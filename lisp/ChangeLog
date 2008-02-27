@@ -1,3 +1,10 @@
+2008-02-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* tool-bar.el (tool-bar-setup): Doc fix.
+
+	* mail/supercite.el (sc-describe):
+	Fix typos in obsolescence declaration.
+
 2008-02-27  Glenn Morris  <rgm@gnu.org>
 
 	* autoinsert.el (auto-insert-alist): Change permission text to
@@ -76,7 +83,7 @@
 
 2008-02-25  Robert J. Chassell  <bob@rattlesnake.com>
 
-	* help-fns.el (describe-variable):  Add phrases about
+	* help-fns.el (describe-variable): Add phrases about
 	initialization file with and without customization;
 	use new button type help-info-variable.
 
