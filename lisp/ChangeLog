@@ -1,5 +1,8 @@
 2008-02-27  Glenn Morris  <rgm@gnu.org>
 
+	* autoinsert.el (auto-insert-alist): Change permission text to
+	match FSF's GPLv3 form.
+
 	* mail/supercite.el (sc-cite-original): Doc fix.
 	(sc-version): Make obsolete.
 	(sc-describe): Show the SC info page.  Make obsolete.
