@@ -194,9 +194,11 @@ It actually holds the list of `uniquify-item's corresponding to the conflict.")
 ;; Used in desktop.el to save the non-uniquified buffer name
 (defun uniquify-buffer-base-name ()
   "Return the base name of the current buffer.
-Return nil if the buffer is not managed by uniquify."
+Return nil if the buffer is not managed by uniquify,
+or if the base name is empty."
   (and uniquify-managed
-       (uniquify-item-base (car uniquify-managed))))
+       (let ((base (uniquify-item-base (car uniquify-managed))))
+	 (if (string= base "") nil base))))
 
 ;;; Main entry point.
 
