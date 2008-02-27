@@ -1,3 +1,9 @@
+2008-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* mail/supercite.el (sc-cite-original): Doc fix.
+	(sc-version): Make obsolete.
+	(sc-describe): Show the SC info page.  Make obsolete.
+
 2008-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (set-mark-command): Deactivate mark on second C-SPC C-SPC
