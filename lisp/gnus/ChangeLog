@@ -1,6 +1,21 @@
 2008-02-27  Glenn Morris  <rgm@gnu.org>
 
 	* nnmairix.el: Change defcustom :version from 23.0 to 23.1.
+	(nnmairix-group-regexp, nnmairix-valid-backends): Convert from free
+	variables to defconsts.  Convert comments to doc-strings.
+	(nnmairix-last-server, nnmairix-current-server): Convert from free
+	variables to defvars.  Convert comments to doc-strings.
+	(gnus-registry-fetch-group): Autoload.
+	(nnmairix-replace-group-and-numbers): Use mapc rather than mapcar.
+	(nnmairix-widget-get-values, nnmairix-widget-make-query-from-widgets)
+	(nnmairix-widget-build-editable-fields): Use car cddr rather than caddr.
+	(nnmairix-request-group): Bind nnmairix-fast and nnmairix-group around
+	nnmairix-request-group-with-article-number-correction call.
+	(nnmairix-fast, nnmairix-group): New, less general names, for free
+	variables passed from nnmairix-request-group to
+	nnmairix-request-group-with-article-number-correction.  Declare.
+	(nnmairix-request-group-with-article-number-correction):
+	Use nnmairix-fast, nnmairix-group rather than fast, group.
 
 2008-02-26  David Engster  <dengste@eml.cc>
 
