@@ -1,3 +1,8 @@
+2008-02-27  Kim F. Storm  <storm@cua.dk>
+
+	* disp-table.el (make-glyph-code): Encode as cons if face id > 63.
+	(glyph-char, glyph-face): Handle cons encoding.
+
 2008-02-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* uniquify.el (uniquify-buffer-base-name): If the base name is an
