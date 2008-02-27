@@ -6,19 +6,21 @@
 ;; Keywords: mail searching
 ;; Version: 0.5
 
-;; This file is free software; you can redistribute it and/or modify
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 3, or (at your option)
 ;; any later version.
 
-;; This file is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
@@ -42,7 +44,7 @@
 ;; http://www.emacswiki.org/cgi-bin/wiki/GnusMairix
 ;;
 ;; The newest version of nnmairix.el can be found at
-;; 
+;;
 ;; http://www.emacswiki.org/cgi-bin/emacs/nnmairix.el
 
 ;; For impatient people, here's the setup in a nutshell:
@@ -96,14 +98,14 @@
 ;; * Support of more back ends (nnmh, nnfolder, nnmbox...)?
 ;; * Maybe use an active file instead of group parameters?
 ;; * Use "-a" when updating groups which are not newly created
- 
+
 ;;; Changelog:
 ;;
 ;; 02/06/2008 - version 0.5
-;; 
+;;
 ;;    * New function: nnmairix-goto-original-article. Uses the
 ;;      registry or the mail file path for determining original group.
-;; 
+;;
 ;;    * Deal with empty Xref header
 ;;
 ;;    * Changed summary mode keybindings since the old ones were
@@ -118,7 +120,7 @@
 ;; 18/11/2007 - version 0.3
 ;;
 ;;    * Fixed bugs when dealing with nnml and native servers
-;;     
+;;
 ;;    * Make variables customizable
 ;;
 ;; 10/10/2007 - version 0.2
@@ -215,19 +217,19 @@ server for each nnmairix search group.  The name on the back end
 server will be this prefix plus a random number.  You can delete
 unused nnmairix groups on the back end using
 `nnmairix-purge-old-groups'."
-  :version "23.0"
+  :version "23.1"
   :type 'string
   :group 'nnmairix)
 
 (defcustom nnmairix-mairix-output-buffer "*mairix output*"
   "Buffer used for mairix output."
-  :version "23.0"
+  :version "23.1"
   :type 'string
   :group 'nnmairix)
 
 (defcustom nnmairix-customize-query-buffer "*mairix query*"
   "Name of the buffer for customizing Mairix queries."
-  :version "23.0"
+  :version "23.1"
   :type 'string
   :group 'nnmairix)
 
@@ -236,13 +238,13 @@ unused nnmairix groups on the back end using
 The default is '-F' and '-Q' for making updates faster.  You
 should call mairix without these options from time to
 time (e.g. via cron job)."
-  :version "23.0"
+  :version "23.1"
   :type '(repeat string)
   :group 'nnmairix)
 
 (defcustom nnmairix-mairix-synchronous-update nil
   "Set this to t if you want Emacs to wait for mairix updating the database."
-  :version "23.0"
+  :version "23.1"
   :type 'boolean
   :group 'nnmairix)
 
@@ -252,7 +254,7 @@ When using nnml as backend, mairix might produce holes in the
 article numbers which will produce wrong article counts by
 Gnus.  This option controls whether nnmairix should rename the
 files consecutively."
-  :version "23.0"
+  :version "23.1"
   :type 'boolean
   :group 'nnmairix)
 
@@ -268,7 +270,7 @@ fields in interactive query customization.  The header specifies
 which header contents should be inserted into the editable field
 when creating a Mairix query based on the current message (can be
 nil for disabling this)."
-  :version "23.0"
+  :version "23.1"
   :type '(repeat (list
 		  (choice :tag "Field"
 			  (const :tag "none" nil)
@@ -285,7 +287,7 @@ nil for disabling this)."
   (lambda () (select-window (get-largest-window)))
   "Function for selecting the window for customizing the mairix query.
 The default chooses the largest window in the current frame."
-  :version "23.0"
+  :version "23.1"
   :type 'function
   :group 'nnmairix)
 
