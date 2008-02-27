@@ -1,5 +1,9 @@
 2008-02-27  Juanma Barranquero  <lekktu@gmail.com>
 
+	* uniquify.el (uniquify-buffer-base-name): If the base name is an
+	empty string, return nil to allow the caller to default to the
+	buffer name.  Reported by Martin Fischer <parozusa@web.de>.
+
 	* tool-bar.el (tool-bar-setup): Doc fix.
 
 	* mail/supercite.el (sc-describe):
