@@ -194,7 +194,8 @@ It actually holds the list of `uniquify-item's corresponding to the conflict.")
   "Return the base name of the current buffer.
 Return nil if the buffer is not managed by uniquify."
   (and uniquify-managed
-       (uniquify-item-base (car uniquify-managed))))
+       (let ((base (uniquify-item-base (car uniquify-managed))))
+	 (if (string= base "") nil base))))
 
 ;;; Main entry point.
 
