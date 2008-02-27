@@ -29,12 +29,57 @@
 
 SRCID(arenavm, "$Id$");
 
+/* @@@@ Arbitrary calculations (these should be in config.h) */
+/* VMArenaGangCount = the maximum number of distinct gangs (ie. */
+/*  distinct object sets, be they generations or some other group. */
+/* VMArenaGenCount = the maximum number of distinct generations. */
+enum {
+  VMArenaGangCount = MPS_WORD_WIDTH,
+  VMArenaGenCount = MPS_WORD_WIDTH/2,
+  GangIndexDefault = VMArenaGenCount + 0,
+  GangIndexAway = GangIndexDefault + 1
+};
 
-/* @@@@ Arbitrary calculation for the maximum number of distinct */
-/* object sets for generations.  Should be in config.h. */
-/* .gencount.const: Must be a constant suitable for use as an */
-/* array size. */
-#define VMArenaGenCount ((Count)(MPS_WORD_WIDTH/2))
+#define GangSig ((Sig)0x5199A499) /* SIGnature GANG */
+
+typedef struct GangStruct *Gang;
+
+extern Res GangDescribe(Gang gang, mps_lib_FILE *stream);
+
+enum {
+  GANGNAMELEN = 4
+};
+
+typedef struct GangStruct {
+  char name[GANGNAMELEN];
+  ZoneSet preferred;
+  ZoneSet in;
+  ZoneSet claimed;
+  ZoneSet unique;
+  Bool hasCollected;
+  Bool hasUncollected;
+  Sig sig;                      /* <design/sig/> */
+} GangStruct;
+
+
+/* Gangset -- set of gangs all trying to keep out of each others' way
+ *
+ * A gangset keeps track of the space being used by different gangs of 
+ * objects, with the aim of keeping each gang where it wants to be, 
+ * and away from other gangs.
+ */
+
+typedef struct Gangset {
+  GangStruct gangs[VMArenaGangCount];
+  Count gangCount;
+  Count gangGenCount;
+  Index gangIndexDefault;  /* index of the default gang */
+  Index gangIndexAway;     /* index of the away gang */
+  ZoneSet blacklist;       /* zones that are bad for GC segs */
+  ZoneSet freezones;         /* unassigned zones */
+  ZoneSet unpreferred;     /* zones not preferred by any gang */
+}
+
 
 /* VMChunk -- chunks for VM arenas */
 
@@ -74,6 +119,7 @@ typedef struct VMArenaStruct {  /* VM arena structure */
   ArenaStruct arenaStruct;
   VM vm;                        /* VM where the arena itself is stored */
   Size spareSize;              /* total size of spare pages */
+  GangsetStruct gangset;
   ZoneSet blacklist;             /* zones to use last */
   ZoneSet uncolZoneSet;          /* ! pref->isCollected */
   ZoneSet nogenZoneSet;
@@ -464,6 +510,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   Res res;
   VMArena vmArena;
   Arena arena;
+  Index i;
   Index gen;
   VM arenaVM;
   Chunk chunk;
@@ -496,6 +543,7 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   /* .blacklist: We blacklist the zones corresponding to small integers. */
   vmArena->blacklist =
     ZoneSetAdd(arena, ZoneSetAdd(arena, ZoneSetEMPTY, (Addr)1), (Addr)-1);
+
 
   vmArena->uncolZoneSet = ZoneSetEMPTY;
   vmArena->nogenZoneSet = ZoneSetEMPTY;
@@ -1115,24 +1163,43 @@ typedef Res (*VMAllocPolicyMethod)(Index *, VMChunk *, VMArena, SegPref, Size);
 static Res VMAllocPolicy(Index *baseIndexReturn, VMChunk *chunkReturn,
                          VMArena vmArena, SegPref pref, Size size)
 {
-  if (!pagesFindFreeWithSegPref(baseIndexReturn, chunkReturn,
-                                vmArena, pref, size, FALSE)) {
-    /* try and extend, but don't worry if we can't */
-    (void)vmArenaExtend(vmArena, size);
+  ZoneSet zones;
 
-    /* We may or may not have a new chunk at this point */
-    /* we proceed to try the allocation again anyway. */
-    /* We specify barging, but if we have got a new chunk */
-    /* then hopefully we won't need to barge. */
-    if (!pagesFindFreeWithSegPref(baseIndexReturn, chunkReturn,
-                                  vmArena, pref, size, TRUE)) {
-      /* .improve.alloc-fail: This could be because the request was */
-      /* too large, or perhaps the arena is fragmented.  We could */
-      /* return a more meaningful code. */
-      return ResRESOURCE;
+  for(SegPrefZonesOpen(pref, gangset);
+      SegPrefZonesNext(&zones, pref, TRUE);) {
+    if(pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
+                            zones, pref->high)) {
+      /* Range found, but allocation may still fail; therefore */
+      /* leave the SegPrefZones search unclosed. */
+      return ResOK;
     }
   }
-  return ResOK;
+  /* end this search, without having allocated */
+  SegPrefZonesClose(FALSE);
+  
+  /* try and extend, but don't worry if we can't */
+  (void)vmArenaExtend(vmArena, size);
+
+  /* We may or may not have a new chunk at this point */
+  /* we proceed to try the allocation again anyway. */
+  /* We specify barging, but if we have got a new chunk */
+  /* then hopefully we won't need to barge. */
+  for(SegPrefZonesOpen(pref, gangset);
+      SegPrefZonesNext(&zones, pref, FALSE);) {
+    if(pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
+                            zones, pref->high)) {
+      /* Range found, but allocation may still fail; therefore */
+      /* leave the SegPrefZones search unclosed. */
+      return ResOK;
+    }
+  }
+  /* end this search, without having allocated */
+  SegPrefZonesClose(FALSE);
+
+  /* .improve.alloc-fail: This could be because the request was */
+  /* too large, or perhaps the arena is fragmented.  We could */
+  /* return a more meaningful code. */
+  return ResRESOURCE;
 }
 
 static Res VMNZAllocPolicy(Index *baseIndexReturn, VMChunk *chunkReturn,
@@ -1354,8 +1421,10 @@ static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
   base = PageIndexBase(chunk, baseIndex);
   baseTract = PageTract(&chunk->pageTable[baseIndex]);
   limit = AddrAdd(base, size);
+  /* SegPrefGotRange */
   zones = ZoneSetOfRange(arena, base, limit);
 
+  GangUseZones(gang, zones);
   if (pref->isGen) {
     Serial gen = vmGenOfSegPref(vmArena, pref);
     zsRecord = &vmArena->genZoneSet[gen];
@@ -1690,6 +1759,503 @@ mps_arena_class_t mps_arena_class_vm(void)
 mps_arena_class_t mps_arena_class_vmnz(void)
 {
   return (mps_arena_class_t)VMNZArenaClassGet();
+}
+
+
+/* GANGS */
+
+/* GangCheck */
+
+static Bool GangCheck(Gang gang)
+{
+  CHECKS(Gang, gang);
+  CHECKL(gang->name[GANGNAMELEN - 1] == '\0');
+  CHECKL(gang->preferred != ZoneSetUNIV);
+  CHECKL(ZoneSetSub(gang->claimed, gang->in));
+  CHECKL(BoolCheck(gang->hasCollected));
+  CHECKL(BoolCheck(gang->hasUncollected));
+  return TRUE;
+}
+
+
+/* GangDescribe */
+ 
+Res GangDescribe(Gang gang, mps_lib_FILE *stream)
+{
+  Res res;
+
+  if(!CHECKT(Gang, gang))
+    return ResFAIL;
+  if(stream == NULL)
+    return ResFAIL;
+
+  res = WriteF(stream,
+    "Gang $P \"$S\" {\n", (WriteFP)gang, (WriteFS)gang->name,
+    "  preferred $B\n", (WriteFB)gang->preferred,
+    "  in        $B\n", (WriteFB)gang->in,
+    "  claimed   $B\n", (WriteFB)gang->claimed,
+    "  has  ", (gang->hasCollected ? "Collected " : ""),
+    (gang->hasUncollected ? "Uncollected " : ""), "\n",
+    " }\n",
+    NULL);
+  if(res != ResOK)
+    return res;
+
+  return ResOK;
+}
+
+
+/* GANGSET */
+
+static Bool GangsetCheck(Gang gang)
+{
+  return TRUE;
+}
+
+static Res GangsetInit(Gangset gangset)
+{
+  DIAG_FIRSTF(( "GangsetInit", NULL ));
+  for(i = 0; i < VMArenaGangCount; i += 1) {
+    Gang gang;
+    gang = &vmArena->gangs[i];
+    gang->name[0] = '\0';
+    gang->name[1] = '\0';
+    gang->name[2] = '\0';
+    gang->name[3] = '\0';
+    AVER(4 == GANGNAMELEN);
+    gang->preferred = ZoneSetEMPTY;
+    gang->in = ZoneSetEMPTY;
+    gang->claimed = ZoneSetEMPTY;
+    gang->hasCollected = FALSE;
+    gang->hasUncollected = FALSE;
+    if(i < VMArenaGenCount) {
+      /* pre-made gangs for generations */
+      gang->name[0] = 'g';
+      gang->name[1] = '0' + i;
+    } else if(i == GangIndexDefault) {
+      /* nogen default-zoneset: Gang Default */
+      gang->name[0] = 'd';
+      gang->name[1] = 'e';
+      gang->name[2] = 'f';
+      /* note: we do NOT set preferred to ArenaDefaultZONESET */
+    } else if(i == GangIndexAway) {
+      /* nogen non-default-zoneset: Gang Away */
+      gang->name[0] = 'a';
+      gang->name[1] = 'w';
+      gang->name[2] = 'y';
+      if(ArenaDefaultZONESET != ZoneSetUNIV)
+        gang->preferred = ZoneSetComp(ArenaDefaultZONESET);
+    } else {
+      /* unused gang */
+      gang->name[0] = 'x';
+    }
+    gang->sig = GangSig;
+    AVERT(Gang, gang);
+    DIAG( GangDescribe(gang, DIAG_STREAM); );
+  }
+  AVER(i == VMArenaGangCount);
+  gangset->gangCount = i;
+  DIAG_END("GangsetInit");
+}
+
+void SegPrefZonesOpen(SegPref pref, Gangset gangset)
+{
+  Index gangIndex;
+
+  AVERT(Gangset, gangset);
+  AVERT(SegPref, pref);
+
+  AVER(pref->gangset == NULL);
+  AVER(pref->gangIndex == NULL);
+  AVER(pref->trying == ZoneSetEMPTY);
+
+  if(pref->isGen) {
+    gangIndex = pref->gen;
+  } else if(pref->zones == ArenaDefaultZONESET) {
+    gangIndex = GangIndexDefault;
+  } else {
+    /* for now, all other preferences are lump together in */
+    /* the "Away" gang */
+    gangIndex = GangIndexAway;
+  }
+  AVERT(Gang, gangset->gangs[gangIndex]);
+  
+  pref->gangset = gangset;
+  pref->gangIndex = gangIndex;
+  pref->trying = ZoneSetEMPTY;
+}
+
+
+Bool SegPrefZonesNext(ZoneSet *zonesReturn, SegPref pref, Bool pregrow)
+{
+  Gangset gangset;
+  Index gangIndex;
+  Gang gang;
+  Bool newzones;
+
+  AVERT(SegPref, pref);
+  AVER(pref->gangset);
+  gangset = pref->gangset;
+  AVERT(Gangset, gangset);
+  AVER(pref->gangIndex < gangset->gangCount);
+  gang = gangset->gangs[pref->gangIndex];
+  AVERT(Gang, gang);
+
+  bl = gangset->blacklist;
+  zones = pref->trying;
+  newzones = TRUE;
+
+  /* For simplicity, we insist that each successive set of zones to 
+   * try must be a superset of the previous set.  This allows us to 
+   * remember what what we've tried so far in a simple ZoneSet.
+   *
+   * This is a compromise.  A more complex mechanism would make it 
+   * possible, after adding a new category (such as shared-claimed), 
+   * to still favour the gang's preferred zones, thereby encouraging
+   * merged gangs to separate out again.  This idea might be worth 
+   * re-considering when/if gang's "preferred" zoneset becomes 
+   * widely used by clients.
+   */
+
+  if(pref->isCollected) {
+    do {
+      /* Find a strategy that enlarges the zones to try.
+       *
+       * Collected Criteria:
+       * Most importantly: not blacklist.
+       * Then these categories of zone, according to who's using it:
+       *     - uniquely me,
+       *     - shared(claimed by me),
+       *     - free: preferred by me, unpreferred, some other gang's
+       *     - shared(borrowed, ie. not claimed by me),
+       *     - other owner: pick the zone with most free grains.
+       * Then whether it's one of our preferred zones.
+       *
+       * Attempt Phase-II Growth: before other.
+       */
+      
+      /* Unique */
+      t = "in my current unique zones (& my preferred)";
+      extra = ZoneSetInter(gang->unique, gang->preferred);
+      zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "in my current unique zones";
+      extra = gang->unique;
+      zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      /* Shared(claimed) */
+      t = "use a shared claimed zone (& my preferred)";
+      extra = ZoneSetInter(gang->claimed, gang->preferred);
+      zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "use a shared claimed zone";
+      extra = gang->claimed;
+      zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      /* Free zone -- these can be slow */
+      t = "add a free zone (my preferred)";
+      extra = ZoneSetInter(gangset->freezones, gang->preferred);
+      zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "add a free zone (unpreferred)";
+      extra = ZoneSetInter(gangset->freezones, gangset->unpreferred);
+      zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "add a free zone (even other gang's preferred)";
+      extra = gangset->freezones;
+      zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      /* Shared(borrowed) */
+      /* in but not claimed => borrowed */
+      t = "use a shared borrowed zone (& my preferred)";
+      extra = ZoneSetInter(gang->in, gang->preferred);
+      zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "use a shared borrowed zone";
+      extra = gang->in;
+      zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "grow";
+      if(pregrow) {
+        /* At this point, caller prefers to try to grow the arena, */
+        /* rather than barge into another gang's zone.  Ie. we are */
+        /* in phase II, not yet in phase III. */
+        newzones = FALSE;
+        break;
+      }
+
+      t = "barge into another gang's zone";
+      /* @@@@ should first try the zone with most free grains */
+      extra = ZoneSetUNIV;
+      zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+      
+      t = "allow blacklist";
+      zones = ZoneSetUNIV;
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+      
+      t = "no more zones to try";
+      AVER(zones == ZoneSetUNIV);
+      newzones = FALSE;
+
+    } while(FALSE);
+
+  } else {
+    do {
+      /* Find a strategy that enlarges the zones to try.
+       *
+       * Uncollected Criteria:
+       * Most importantly, categories of zone, according to who's using it:
+       *     - uniquely me,
+       *     - shared(claimed by me),
+       *     - free: preferred by me, unpreferred, some other gang's
+       *     - shared(borrowed, ie. not claimed by me),
+       *     - other owner: pick the zone with most free grains.
+       * Then whether it's one of our preferred zones.
+       * Lastly, using blacklist is good, because GC segs don't want it.
+       *
+       * Attempt Phase-II Growth: before other.
+       */
+       
+      /* Unique */
+      t = "in my current unique zones (& my preferred & blacklist)";
+      extra = ZoneSetInter(gang->unique, gang->preferred);
+      extra = ZoneSetInter(extra, bl);
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "in my current unique zones (& my preferred)";
+      extra = ZoneSetInter(gang->unique, gang->preferred);
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "in my current unique zones";
+      extra = gang->unique;
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      /* Shared(claimed) */
+      t = "use a shared claimed zone (& my preferred & blacklist)";
+      extra = ZoneSetInter(gang->claimed, gang->preferred);
+      extra = ZoneSetInter(extra, bl);
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "use a shared claimed zone (& my preferred)";
+      extra = ZoneSetInter(gang->claimed, gang->preferred);
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "use a shared claimed zone";
+      extra = gang->claimed;
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      /* Free zone -- these can be slow */
+      t = "add a free zone (my preferred & blacklist)";
+      extra = ZoneSetInter(gangset->freezones, gang->preferred);
+      extra = ZoneSetInter(extra, bl);
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "add a free zone (my preferred)";
+      extra = ZoneSetInter(gangset->freezones, gang->preferred);
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "add a free zone (unpreferred & blacklist)";
+      extra = ZoneSetInter(gangset->freezones, gangset->unpreferred);
+      extra = ZoneSetInter(extra, bl);
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "add a free zone (unpreferred)";
+      extra = ZoneSetInter(gangset->freezones, gangset->unpreferred);
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "add a free zone (even other gang's preferred, & blacklist)";
+      extra = gangset->freezones;
+      extra = ZoneSetInter(extra, bl);
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "add a free zone (even other gang's preferred)";
+      extra = gangset->freezones;
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      /* Shared(borrowed) */
+      /* in but not claimed => borrowed */
+      t = "use a shared borrowed zone (& my preferred & blacklist)";
+      extra = ZoneSetInter(gang->in, gang->preferred);
+      extra = ZoneSetInter(extra, bl);
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "use a shared borrowed zone (& my preferred)";
+      extra = ZoneSetInter(gang->in, gang->preferred);
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "use a shared borrowed zone (& blacklist)";
+      extra = gang->in;
+      extra = ZoneSetInter(extra, bl);
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "use a shared borrowed zone";
+      extra = gang->in;
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+
+      t = "grow";
+      if(pregrow) {
+        newzones = FALSE;
+        break;
+      }
+
+      t = "barge into another gang's zone (& blacklist)";
+      extra = ZoneSetUNIV;
+      extra = ZoneSetInter(extra, bl);
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+      
+      t = "barge into another gang's zone";
+      /* @@@@ should first try the zone with most free grains */
+      extra = ZoneSetUNIV;
+      zones = ZoneSetUnion(zones, extra);
+      if(!ZoneSetSub(zones, pref->trying))
+        break;
+      
+      t = "no more zones to try";
+      AVER(zones == ZoneSetUNIV);
+      newzones = FALSE;
+
+    } while(FALSE);
+
+  }
+  
+  if(newzones) {
+    /* AVER(zones > pref->trying) */
+    AVER(ZoneSetSuper(zones, pref->trying));
+    AVER(zones != pref->trying);
+    pref->trying = zones;
+    *zonesReturn = zones;
+  }
+  return newzones;
+}
+
+
+/* SegPrefZonesClose -- finished search for zones for this SegPref
+ *
+ * For each search started with SegPrefZonesOpen, there must be one
+ * matching call to SegPrefZonesClose, before the next call to
+ * SegPrefZonesOpen.
+ *
+ * If an allocation was made, pass allocated = TRUE, and the base and 
+ * limit of the range of memory that was allocated using this SegPref.  
+ * This function records that the zones in the range are in use for 
+ * pages allocated under this SegPref.
+ *
+ * If an allocation was not made, pass allocated = FALSE; pass NULL 
+ * for base and limit.  Typically, an allocation was not made because:
+ *   - search was abandoned because the caller chose to grow the arena
+ *     (and will then start a new search);
+ *   - search was abandoned because the caller chose to fail the 
+ *     allocation (commit-limit exceeded, phase IV, etc);
+ *   - an error occurred when attempting to allocate the found range
+ *     (eg. OS refuses to map more pages).
+ */
+
+void SegPrefZonesClose(Arena arena, SegPref pref, Bool allocated, Addr base, Addr limit)
+{
+  ZoneSet zones;
+  Gang gang;
+  
+  AVERT(SegPref, pref);
+  AVER(limit > base);
+
+  zones = ZoneSetOfRange(arena, base, limit);
+
+  AVER(pref->gangset);
+  gang = pref->gangset->gangs[pref->gangIndex];
+  AVERT(Gang, gang);
+
+  zsNew = ZoneSetDiff(zones, gang->in);
+  if(zsNew != ZoneSetEMPTY) {
+    /* using a new zone */
+
+    DIAG_FIRSTF(( "SegPrefGotRange_newzone", NULL));
+    DIAG( SegPrefDescribe(pref, DIAG_STREAM); );
+    if(pref->isGen) {
+      DIAG_MOREF(( "  gen: $U  ", (WriteFU)pref->gen, NULL));
+    } else {
+      DIAG_MOREF(( "  nogen  ", NULL));
+    }
+    DIAG_MOREF((
+      "was: $B  ", (WriteFB)gang->in,
+      "add: $B\n", (WriteFB)zsNew,
+      NULL));
+    if(!ZoneSetSub(zsNew, vmArena->freeSet)) {
+      DIAG_MOREF(( "BARGE!\n", NULL ));
+    }
+    DIAG_END("SegPrefGotRange_newzone");
+
+    gang->in = ZoneSetUnion(gang->in, zsNew);
+    gang->claimed = ZoneSetUnion(gang->claimed, zsNew);
+    gang->unique = ZoneSetUnion(gang->unique, zsNew);
+    for(i = 0; i < VMArenaGangCount; i += 1) {
+      Gang other;
+      other = &vmArena->gangs[i];
+      if(other == gang)
+        continue;
+      newclash = ZoneSetInter(zsNew, other->in);
+      if(newclash != ZoneSetEMPTY) {
+        gang->claimed = ZoneSetDiff(gang->claimed, newclash);
+        gang->unique = ZoneSetDiff(gang->unique, newclash);
+        other->unique = ZoneSetDiff(other->unique, newclash);
+      }
+    }
+    AVERT(Gangset, gangset);
+  }
 }
 
 
