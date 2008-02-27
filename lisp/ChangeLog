@@ -1,7 +1,13 @@
+2008-02-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* uniquify.el (uniquify-buffer-base-name): If the base name is an
+	empty string, return nil to allow the caller to default to the
+	buffer name.
+
 2008-02-26  Jason Rumney  <jasonr@gnu.org>
 
 	* files.el (make-auto-save-file-name): Encode more characters in
-	non-file buffer names. Use url-encoding.
+	non-file buffer names.  Use url-encoding.
 
 2008-02-26  Juanma Barranquero  <lekktu@gmail.com>
 
