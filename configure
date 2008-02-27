@@ -10992,6 +10992,19 @@ cat >>confdefs.h <<\_ACEOF
 _ACEOF
 
     USE_X_TOOLKIT=none
+    if $PKG_CONFIG --atleast-version=2.10 gtk+-2.0; then
+      :
+    else
+      { echo "$as_me:$LINENO: WARNING: Your version of Gtk+ will have problems with
+       closing open displays.  This is no problem if you just use
+       one display, but if you use more than one and close one of them
+       Emacs may crash." >&5
+echo "$as_me: WARNING: Your version of Gtk+ will have problems with
+       closing open displays.  This is no problem if you just use
+       one display, but if you use more than one and close one of them
+       Emacs may crash." >&2;}
+      sleep 3
+    fi
   fi
 
 fi
