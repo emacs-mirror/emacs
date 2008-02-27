@@ -1,3 +1,46 @@
+2008-02-27  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (GLYPH): Change type from int to struct with separate char
+	and face_id members.
+	(GLYPH_MASK_FACE, GLYPH_MASK_CHAR): Delete macros.
+	(GLYPH_CHAR, GLYPH_FACE): Remove slow versions with frame arg.
+	(FAST_GLYPH_CHAR, FAST_GLYPH_FACE): Rename macros to ...
+	(GLYPH_CHAR, GLYPH_FACE): ... these.  Change users.
+	(FAST_MAKE_GLYPH, MAKE_GLYPH): Remove.  Rewrite users to use ...
+	(SET_GLYPH, SET_GLYPH_CHAR, SET_GLYPH_FACE): ... these macros instead.
+	(GLYPH_CODE_CHAR, GLYPH_CODE_FACE, GLYPH_CODE_P)
+	(GLYPH_CODE_CHAR_VALID_P, SET_GLYPH_FROM_GLYPH_CODE): New macros to
+	handle new Lisp glyph code encoding, either an integer or a cons.
+
+	* disptab.h (GLYPH_SIMPLE_P): Rewrite.
+	(GLYPH_ALIAS): Delete.
+	(GLYPH_ALIAS_P, GLYPH_FOLLOW_ALIASES): Rewrite.
+	(GLYPH_LENGTH, GLYPH_STRING): Use GLYPH_CHAR.
+	(GLYPH_FROM_CHAR): Replace macro by ...
+	(SET_GLYPH_FROM_CHAR): ... this macro.  Change users.
+
+	* dispextern.h (CHAR_GLYPH_SPACE_P): Simplify.
+	(GLYPH_FROM_CHAR_GLYPH): Replace macro by ...
+	(SET_GLYPH_FROM_CHAR_GLYPH): ... this macro.  Change users.
+	(GLYPH_INVALID_P): New macro.
+	(spec_glyph_lookup_face): Update prototype.
+
+	* dispnew.c (line_draw_cost): Adapt to new glyph type.
+	(build_frame_matrix_from_leaf_window): Adapt to new glyph type and
+	new glyph code encoding.
+	(spec_glyph_lookup_face): No return value; update passed glyph instead.
+	(init_display): Use SET_CHAR_GLYPH to initialize space_glyph.
+
+	* xdisp.c (get_next_display_element, next_element_from_display_vector):
+	Adapt to new glyph type and new glyph code encoding.
+
+	* term.c (encode_terminal_code, produce_special_glyphs): Likewise.
+
+	* indent.c (current_column, current_column_1, Fmove_to_column)
+	(compute_motion): Adapt to new glyph code encoding.
+
+	* msdos.c (IT_write_glyphs): Adapt to new glyph type.
+
 2008-02-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* process.c (wait_reading_process_output): Check for window
