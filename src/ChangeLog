@@ -1,3 +1,8 @@
+2008-02-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Don't reset undo_list if no change
+	is made to the buffer.
+
 2008-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dispextern.h (face_at_buffer_position, face_for_overlay_string)
