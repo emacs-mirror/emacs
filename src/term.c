@@ -235,7 +235,7 @@ void
 tty_set_terminal_modes (struct terminal *terminal)
 {
   struct tty_display_info *tty = terminal->display_info.tty;
-  
+
   if (tty->output)
     {
       if (tty->TS_termcap_modes)
@@ -569,7 +569,6 @@ encode_terminal_code (src, src_len, coding)
      struct coding_system *coding;
 {
   struct glyph *src_end = src + src_len;
-  register GLYPH g;
   unsigned char *buf;
   int nchars, nbytes, required;
   register int tlen = GLYPH_TABLE_LENGTH;
@@ -615,7 +614,7 @@ encode_terminal_code (src, src_len, coding)
 	  for (i = 0; i < cmp->glyph_len; i++)
 	    {
 	      int c = COMPOSITION_GLYPH (cmp, i);
-	      
+
 	      if (! char_charset (c, charset_list, NULL))
 		break;
 	      buf += CHAR_STRING (c, buf);
@@ -631,13 +630,14 @@ encode_terminal_code (src, src_len, coding)
       /* We must skip glyphs to be padded for a wide character.  */
       else if (! CHAR_GLYPH_PADDING_P (*src))
 	{
+	  GLYPH g;
 	  int c;
 	  Lisp_Object string;
 
 	  string = Qnil;
-	  g = GLYPH_FROM_CHAR_GLYPH (src[0]);
+	  SET_GLYPH_FROM_CHAR_GLYPH (g, src[0]);
 
-	  if (g < 0 || g >= tlen)
+	  if (GLYPH_INVALID_P (g) || GLYPH_SIMPLE_P (tbase, tlen, g))
 	    {
 	      /* This glyph doesn't has an entry in Vglyph_table.  */
 	      c = src->u.ch;
@@ -651,10 +651,10 @@ encode_terminal_code (src, src_len, coding)
 	      if (GLYPH_SIMPLE_P (tbase, tlen, g))
 		/* We set the multi-byte form of a character in G
 		   (that should be an ASCII character) at WORKBUF.  */
-		c = FAST_GLYPH_CHAR (g);
+		c = GLYPH_CHAR (g);
 	      else
 		/* We have a string in Vglyph_table.  */
-		string = tbase[g];
+		string = tbase[GLYPH_CHAR (g)];
 	    }
 
 	  if (NILP (string))
@@ -1016,7 +1016,7 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
   if (!FRAME_MEMORY_BELOW_FRAME (f)
       && vpos + i >= FRAME_LINES (f))
     return;
-  
+
   if (multi)
     {
       raw_cursor_to (f, vpos, 0);
@@ -1046,7 +1046,7 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
         OUTPUTL (tty, scroll, tty->specified_window - vpos);
       tty_set_scroll_region (f, 0, tty->specified_window);
     }
-  
+
   if (!FRAME_SCROLL_REGION_OK (f)
       && FRAME_MEMORY_BELOW_FRAME (f)
       && n < 0)
@@ -1371,7 +1371,7 @@ term_get_fkeys_1 ()
 
   char **address = term_get_fkeys_address;
   KBOARD *kboard = term_get_fkeys_kboard;
-  
+
   /* This can happen if CANNOT_DUMP or with strange options.  */
   if (!KEYMAPP (kboard->Vinput_decode_map))
     kboard->Vinput_decode_map = Fmake_sparse_keymap (Qnil);
@@ -1792,6 +1792,7 @@ produce_special_glyphs (it, what)
      enum display_element_type what;
 {
   struct it temp_it;
+  Lisp_Object gc;
   GLYPH glyph;
 
   temp_it = *it;
@@ -1804,34 +1805,32 @@ produce_special_glyphs (it, what)
   if (what == IT_CONTINUATION)
     {
       /* Continuation glyph.  */
+      SET_GLYPH_FROM_CHAR (glyph, '\\');
       if (it->dp
-	  && INTEGERP (DISP_CONTINUE_GLYPH (it->dp))
-	  && GLYPH_CHAR_VALID_P (XINT (DISP_CONTINUE_GLYPH (it->dp))))
+	  && (gc = DISP_CONTINUE_GLYPH (it->dp), GLYPH_CODE_P (gc))
+	  && GLYPH_CODE_CHAR_VALID_P (gc))
 	{
-	  glyph = XINT (DISP_CONTINUE_GLYPH (it->dp));
-	  glyph = spec_glyph_lookup_face (XWINDOW (it->window), glyph);
+	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
+	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
 	}
-      else
-	glyph = '\\';
     }
   else if (what == IT_TRUNCATION)
     {
       /* Truncation glyph.  */
+      SET_GLYPH_FROM_CHAR (glyph, '$');
       if (it->dp
-	  && INTEGERP (DISP_TRUNC_GLYPH (it->dp))
-	  && GLYPH_CHAR_VALID_P (XINT (DISP_TRUNC_GLYPH (it->dp))))
+	  && (gc = DISP_TRUNC_GLYPH (it->dp), GLYPH_CODE_P (gc))
+	  && GLYPH_CODE_CHAR_VALID_P (gc))
 	{
-	  glyph = XINT (DISP_TRUNC_GLYPH (it->dp));
-	  glyph = spec_glyph_lookup_face (XWINDOW (it->window), glyph);
+	  SET_GLYPH_FROM_GLYPH_CODE (glyph, gc);
+	  spec_glyph_lookup_face (XWINDOW (it->window), &glyph);
 	}
-      else
-	glyph = '$';
     }
   else
     abort ();
 
-  temp_it.c = FAST_GLYPH_CHAR (glyph);
-  temp_it.face_id = FAST_GLYPH_FACE (glyph);
+  temp_it.c = GLYPH_CHAR (glyph);
+  temp_it.face_id = GLYPH_FACE (glyph);
   temp_it.len = CHAR_BYTES (temp_it.c);
 
   produce_glyphs (&temp_it);
@@ -2243,7 +2242,7 @@ get_tty_terminal (Lisp_Object terminal, int throw)
    This function ignores suspended devices.
 
    Returns NULL if the named terminal device is not opened.  */
- 
+
 struct terminal *
 get_named_tty (name)
      char *name;
@@ -2347,12 +2346,12 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
 {
   struct terminal *t = get_tty_terminal (tty, 1);
   FILE *f;
-  
+
   if (!t)
     error ("Unknown tty device");
 
   f = t->display_info.tty->input;
-  
+
   if (f)
     {
       /* First run `suspend-tty-functions' and then clean up the tty
@@ -2369,17 +2368,17 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
       reset_sys_modes (t->display_info.tty);
 
       delete_keyboard_wait_descriptor (fileno (f));
-      
+
       fclose (f);
       if (f != t->display_info.tty->output)
         fclose (t->display_info.tty->output);
-      
+
       t->display_info.tty->input = 0;
       t->display_info.tty->output = 0;
 
       if (FRAMEP (t->display_info.tty->top_frame))
         FRAME_SET_VISIBLE (XFRAME (t->display_info.tty->top_frame), 0);
-      
+
     }
 
   /* Clear display hooks to prevent further output.  */
@@ -2492,7 +2491,7 @@ term_show_mouse_face (enum draw_glyphs_face draw)
       /* write_glyphs writes at cursor position, so we need to
 	 temporarily move cursor coordinates to the beginning of
 	 the highlight region.  */
-      
+
       /* Save current cursor co-ordinates */
       save_y = curY (tty);
       save_x = curX (tty);
@@ -2536,7 +2535,7 @@ term_show_mouse_face (enum draw_glyphs_face draw)
 	  pos_y = row->y + WINDOW_TOP_EDGE_Y (w);
 	  pos_x = row->used[LEFT_MARGIN_AREA] + start_hpos
 	    + WINDOW_LEFT_EDGE_X (w);
-	  
+
 	  cursor_to (f, pos_y, pos_x);
 
 	  if (draw == DRAW_MOUSE_FACE)
@@ -2960,10 +2959,10 @@ term_mouse_click (struct input_event *result, Gpm_Event *event,
     result->modifiers = down_modifier;
   else
     result->modifiers = 0;
-  
+
   if (event->type & GPM_SINGLE)
     result->modifiers |= click_modifier;
-  
+
   if (event->type & GPM_DOUBLE)
     result->modifiers |= double_modifier;
 
@@ -2996,7 +2995,7 @@ term_mouse_click (struct input_event *result, Gpm_Event *event,
   return Qnil;
 }
 
-int 
+int
 handle_one_term_event (struct tty_display_info *tty, Gpm_Event *event, struct input_event* hold_quit)
 {
   struct frame *f = XFRAME (tty->top_frame);
@@ -3107,7 +3106,7 @@ DEFUN ("gpm-mouse-stop", Fgpm_mouse_stop, Sgpm_mouse_stop,
 
   if (!tty || gpm_tty != tty)
     return Qnil;       /* Not activated on this terminal, nothing to do.  */
-  
+
   if (gpm_fd >= 0)
     delete_gpm_wait_descriptor (gpm_fd);
   while (Gpm_Close()); /* close all the stack */
@@ -3211,7 +3210,7 @@ set_tty_hooks (struct terminal *terminal)
   terminal->delete_glyphs_hook = &tty_delete_glyphs;
 
   terminal->ring_bell_hook = &tty_ring_bell;
-  
+
   terminal->reset_terminal_modes_hook = &tty_reset_terminal_modes;
   terminal->set_terminal_modes_hook = &tty_set_terminal_modes;
   terminal->update_begin_hook = 0; /* Not needed. */
@@ -3229,7 +3228,7 @@ set_tty_hooks (struct terminal *terminal)
 
   terminal->read_socket_hook = &tty_read_avail_input; /* keyboard.c */
   terminal->frame_up_to_date_hook = 0; /* Not needed. */
-  
+
   terminal->delete_frame_hook = &delete_tty_output;
   terminal->delete_terminal_hook = &delete_tty;
 }
@@ -3859,7 +3858,7 @@ maybe_fatal (must_succeed, buffer, terminal, str1, str2, arg1, arg2)
 
   if (terminal)
     delete_tty (terminal);
-  
+
   if (must_succeed)
     fatal (str2, arg1, arg2);
   else
@@ -3890,7 +3889,7 @@ delete_tty (struct terminal *terminal)
   struct tty_display_info *tty;
   Lisp_Object tail, frame;
   int last_terminal;
-  
+
   /* Protect against recursive calls.  Fdelete_frame in
      delete_terminal calls us back when it deletes our last frame.  */
   if (!terminal->name)
@@ -3900,7 +3899,7 @@ delete_tty (struct terminal *terminal)
     abort ();
 
   tty = terminal->display_info.tty;
-  
+
   last_terminal = 1;
   FOR_EACH_FRAME (tail, frame)
     {
@@ -3913,7 +3912,7 @@ delete_tty (struct terminal *terminal)
     }
   if (last_terminal)
       error ("Attempt to delete the sole terminal device with live frames");
-  
+
   if (tty == tty_list)
     tty_list = tty->next;
   else
