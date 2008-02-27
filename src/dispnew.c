@@ -1468,9 +1468,11 @@ line_draw_cost (matrix, vpos)
       len = 0;
       while (beg < end)
 	{
-	  GLYPH g = GLYPH_FROM_CHAR_GLYPH (*beg);
+	  GLYPH g;
 
-	  if (g < 0
+	  SET_GLYPH_FROM_CHAR_GLYPH (g, *beg);
+
+	  if (GLYPH_INVALID_P (g) < 0
 	      || GLYPH_SIMPLE_P (glyph_table_base, glyph_table_len, g))
 	    len += 1;
 	  else
@@ -2175,7 +2177,7 @@ showing_window_margins_p (w)
       else if (!NILP (w->left_margin_cols)
 	       || !NILP (w->right_margin_cols))
 	return 1;
- 
+
       w = NILP (w->next) ? 0 : XWINDOW (w->next);
     }
   return 0;
@@ -2740,7 +2742,9 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
   struct glyph_matrix *window_matrix;
   int window_y, frame_y;
   /* If non-zero, a glyph to insert at the right border of W.  */
-  GLYPH right_border_glyph = 0;
+  GLYPH right_border_glyph;
+
+  SET_GLYPH_FROM_CHAR (right_border_glyph, 0);
 
   /* Set window_matrix to the matrix we have to add to FRAME_MATRIX.  */
   if (w->must_be_updated_p)
@@ -2751,15 +2755,19 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
       if (!WINDOW_RIGHTMOST_P (w))
 	{
 	  struct Lisp_Char_Table *dp = window_display_table (w);
+	  Lisp_Object gc;
 
-	  right_border_glyph
-	    = ((dp && INTEGERP (DISP_BORDER_GLYPH (dp)))
-	       ? spec_glyph_lookup_face (w, XINT (DISP_BORDER_GLYPH (dp)))
-	       : '|');
+	  SET_GLYPH_FROM_CHAR (right_border_glyph, '|');
+	  if (dp
+	      && (gc = DISP_BORDER_GLYPH (dp), GLYPH_CODE_P (gc))
+	      && GLYPH_CODE_CHAR_VALID_P (gc))
+	    {
+	      SET_GLYPH_FROM_GLYPH_CODE (right_border_glyph, gc);
+	      spec_glyph_lookup_face (w, &right_border_glyph);
+	    }
 
-	  if (FAST_GLYPH_FACE (right_border_glyph) <= 0)
-	    right_border_glyph
-	      = FAST_MAKE_GLYPH (right_border_glyph, VERTICAL_BORDER_FACE_ID);
+	  if (GLYPH_FACE (right_border_glyph) <= 0)
+	    SET_GLYPH_FACE (right_border_glyph, VERTICAL_BORDER_FACE_ID);
 	}
     }
   else
@@ -2809,7 +2817,7 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
 
           /* Maybe insert a vertical border between horizontally adjacent
 	     windows.  */
-          if (right_border_glyph)
+          if (GLYPH_CHAR (right_border_glyph) != 0)
 	    {
               struct glyph *border = window_row->glyphs[LAST_AREA] - 1;
 	      SET_CHAR_GLYPH_FROM_GLYPH (*border, right_border_glyph);
@@ -2845,21 +2853,19 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
    This is used for glyphs displayed specially and not part of the text;
    for instance, vertical separators, truncation markers, etc.  */
 
-GLYPH
+void
 spec_glyph_lookup_face (w, glyph)
      struct window *w;
-     GLYPH glyph;
+     GLYPH *glyph;
 {
-  int lface_id = FAST_GLYPH_FACE (glyph);
+  int lface_id = GLYPH_FACE (*glyph);
   /* Convert the glyph's specified face to a realized (cache) face.  */
   if (lface_id > 0)
     {
       int face_id = merge_faces (XFRAME (w->frame),
 				 Qt, lface_id, DEFAULT_FACE_ID);
-      glyph
-	= FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (glyph), face_id);
+      SET_GLYPH_FACE (*glyph, face_id);
     }
-  return glyph;
 }
 
 /* Add spaces to a glyph row ROW in a window matrix.
@@ -4058,7 +4064,7 @@ redraw_overlapped_rows (w, yb)
 {
   int i;
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  
+
   /* If rows overlapping others have been changed, the rows being
      overlapped have to be redrawn.  This won't draw lines that have
      already been drawn in update_window_line because overlapped_p in
@@ -4109,7 +4115,7 @@ redraw_overlapping_rows (w, yb)
   int i, bottom_y;
   struct glyph_row *row;
   struct redisplay_interface *rif = FRAME_RIF (XFRAME (WINDOW_FRAME (w)));
-  
+
   for (i = 0; i < w->current_matrix->nrows; ++i)
     {
       row = w->current_matrix->rows + i;
@@ -6196,10 +6202,10 @@ window_change_signal (signalnum) /* If we don't have an argument, */
       continue;
 
     get_tty_size (fileno (tty->input), &width, &height);
-    
+
     if (width > 5 && height > 2) {
       Lisp_Object tail, frame;
-      
+
       FOR_EACH_FRAME (tail, frame)
         if (FRAME_TERMCAP_P (XFRAME (frame)) && FRAME_TTY (XFRAME (frame)) == tty)
           /* Record the new sizes, but don't reallocate the data
@@ -6208,7 +6214,7 @@ window_change_signal (signalnum) /* If we don't have an argument, */
           change_frame_size (XFRAME (frame), height, width, 0, 1, 0);
     }
   }
-  
+
   errno = old_errno;
 }
 #endif /* SIGWINCH */
@@ -6453,7 +6459,7 @@ currently selected frame.  */)
     error ("Unknown terminal device");
 
   tty = t->display_info.tty;
-  
+
   if (tty->termscript)
     {
       fwrite (SDATA (string), 1, SBYTES (string), tty->termscript);
@@ -6792,7 +6798,7 @@ init_display ()
 
   /* Construct the space glyph.  */
   space_glyph.type = CHAR_GLYPH;
-  SET_CHAR_GLYPH_FROM_GLYPH (space_glyph, ' ');
+  SET_CHAR_GLYPH (space_glyph, ' ', DEFAULT_FACE_ID, 0);
   space_glyph.charpos = -1;
 
   inverse_video = 0;
@@ -6963,7 +6969,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
                                      Ftty_type (selected_frame)), Qnil));
     Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qtty, Qnil), Qnil));
   }
-  
+
   {
     struct frame *sf = SELECTED_FRAME ();
     int width = FRAME_TOTAL_COLS (sf);
