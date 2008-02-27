@@ -1904,9 +1904,9 @@ original message but it does require a few things:
 
      5) Mark is at the end of the body of text to be cited.
 
-For Emacs 19's, the region need not be active (and typically isn't
-when this function is called.  Also, the hook `sc-pre-hook' is run
-before, and `sc-post-hook' is run after the guts of this function."
+The region need not be active (and typically isn't when this
+function is called).  Also, the hook `sc-pre-hook' is run before,
+and `sc-post-hook' is run after the guts of this function."
   (run-hooks 'sc-pre-hook)
 
   (sc-minor-mode 1)
@@ -1983,8 +1983,7 @@ With numeric ARG, inserts that many new lines."
       (while (< 0 arg)
 	(insert prefix)
 	(forward-line 1)
-	(setq arg (1- arg))
-	))))
+	(setq arg (1- arg))))))
 
 (defun sc-insert-citation (arg)
   "Insert citation string at beginning of current line if not already cited.
@@ -2009,13 +2008,14 @@ inserts the version string in the current buffer instead."
 	(message verstr)
       (insert "`sc-version' says: " verstr))))
 
+(make-obsolete 'sc-version 'emacs-version "23.1")
+
 (defun sc-describe ()
-  "
-Supercite is a package which provides a flexible mechanism for citing
-email and news replies.  Please see the associated texinfo file for
-more information.  Info node `(SC)Top'."
+  "Read the Supercite info node."
   (interactive)
-  (describe-function 'sc-describe))
+  (info "(SC)top"))
+
+(make-obsolete 'sc-describe "Read the SC manual using `info'" "23.1")
 
 (define-obsolete-function-alias 'sc-submit-bug-report 'report-emacs-bug "23.1")
 
