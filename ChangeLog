@@ -1,3 +1,7 @@
+2008-02-27  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_GTK): Print a warning if gtk version is < 2.10.
+
 2008-02-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Print an error for systems that we think are
