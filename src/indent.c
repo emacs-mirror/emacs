@@ -447,9 +447,9 @@ current_column ()
 		 next_element_from_display_vector does it.  */
 	      Lisp_Object entry = AREF (charvec, i);
 
-	      if (INTEGERP (entry)
-		  && GLYPH_CHAR_VALID_P (XFASTINT (entry)))
-		c = FAST_GLYPH_CHAR (XFASTINT (entry));
+	      if (GLYPH_CODE_P (entry)
+		  && GLYPH_CODE_CHAR_VALID_P (entry))
+		c = GLYPH_CODE_CHAR (entry);
 	      else
 		c = ' ';
 	    }
@@ -583,12 +583,11 @@ current_column_1 ()
 	    {
 	      /* This should be handled the same as
 		 next_element_from_display_vector does it.  */
-	      Lisp_Object entry;
-	      entry = AREF (charvec, i);
+	      Lisp_Object entry = AREF (charvec, i);
 
-	      if (INTEGERP (entry)
-		  && GLYPH_CHAR_VALID_P (XFASTINT (entry)))
-		c = FAST_GLYPH_CHAR (XFASTINT (entry));
+	      if (GLYPH_CODE_P (entry)
+		  && GLYPH_CODE_CHAR_VALID_P (entry))
+		c = GLYPH_CODE_CHAR (entry);
 	      else
 		c = ' ';
 
@@ -1021,13 +1020,11 @@ The return value is the current column.  */)
 	    {
 	      /* This should be handled the same as
 		 next_element_from_display_vector does it.  */
+	      Lisp_Object entry = AREF (charvec, i);
 
-	      Lisp_Object entry;
-	      entry = AREF (charvec, i);
-
-	      if (INTEGERP (entry)
-		  && GLYPH_CHAR_VALID_P (XFASTINT (entry)))
-		c = FAST_GLYPH_CHAR (XFASTINT (entry));
+	      if (GLYPH_CODE_P (entry)
+		  && GLYPH_CODE_CHAR_VALID_P (entry))
+		c = GLYPH_CODE_CHAR (entry);
 	      else
 		c = ' ';
 
@@ -1627,9 +1624,9 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		     next_element_from_display_vector does it.  */
 		  Lisp_Object entry = AREF (charvec, i);
 
-		  if (INTEGERP (entry)
-		      && GLYPH_CHAR_VALID_P (XFASTINT (entry)))
-		    c = FAST_GLYPH_CHAR (XFASTINT (entry));
+		  if (GLYPH_CODE_P (entry)
+		      && GLYPH_CODE_CHAR_VALID_P (entry))
+		    c = GLYPH_CODE_CHAR (entry);
 		  else
 		    c = ' ';
 		}
