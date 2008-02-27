@@ -190,19 +190,27 @@ X frame."
   "Return a glyph code representing char CHAR with face FACE."
   ;; Due to limitations on Emacs integer values, faces with
   ;; face id greater that 512 are silently ignored.
-  (if (and face (<= (face-id face) #x1ff))
-      (logior char (lsh (face-id face) 22))
-    char))
+  (if (not face)
+      char
+    (let ((fid (face-id face)))
+      (cond
+       ((not fid) (error "unknown face"))
+       ((< fid 64) ; we have 32 - 3(LSB) - 1(SIGN) - 22(CHAR) = 6 bits for face id
+	(logior char (lsh fid 22)))
+       (t (cons char fid))))))
 
 ;;;###autoload
 (defun glyph-char (glyph)
   "Return the character of glyph code GLYPH."
-  (logand glyph #x3fffff))
+  (if (consp glyph)
+      (car glyph)
+    (logand glyph #x3fffff)))
 
 ;;;###autoload
 (defun glyph-face (glyph)
   "Return the face of glyph code GLYPH, or nil if glyph has default face."
-  (let ((face-id (lsh glyph -22)))
+
+  (let ((face-id (if (consp glyph) (cdr glyph) (lsh glyph -22))))
     (and (> face-id 0)
 	 (car (delq nil (mapcar (lambda (face)
 				  (and (eq (get face 'face) face-id)
