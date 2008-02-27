@@ -2015,7 +2015,7 @@ inserts the version string in the current buffer instead."
   (interactive)
   (info "(SC)top"))
 
-(make-obsolete 'sc-describe "Read the SC manual using `info'" "23.1")
+(make-obsolete 'sc-describe "read the SC manual using `info'." "23.1")
 
 (define-obsolete-function-alias 'sc-submit-bug-report 'report-emacs-bug "23.1")
 
