@@ -418,7 +418,7 @@ struct glyph
 /* Is GLYPH a space?  */
 
 #define CHAR_GLYPH_SPACE_P(GLYPH) \
-     (GLYPH_FROM_CHAR_GLYPH ((GLYPH)) == SPACEGLYPH)
+  ((GLYPH).u.ch == SPACEGLYPH)
 
 /* Are glyph slices of glyphs *X and *Y equal */
 
@@ -465,18 +465,25 @@ struct glyph
 
 #define SET_CHAR_GLYPH_FROM_GLYPH(GLYPH, FROM)			\
      SET_CHAR_GLYPH ((GLYPH),					\
-	 	     FAST_GLYPH_CHAR ((FROM)),			\
-		     FAST_GLYPH_FACE ((FROM)),			\
+	 	     GLYPH_CHAR ((FROM)),			\
+		     GLYPH_FACE ((FROM)),			\
 		     0)
 
 /* Construct a glyph code from a character glyph GLYPH.  If the
    character is multibyte, return -1 as we can't use glyph table for a
    multibyte character.  */
 
-#define GLYPH_FROM_CHAR_GLYPH(GLYPH)				\
-  ((GLYPH).u.ch < 256						\
-   ? ((GLYPH).u.ch | ((GLYPH).face_id << CHARACTERBITS))	\
-   : -1)
+#define SET_GLYPH_FROM_CHAR_GLYPH(G, GLYPH)			\
+  do								\
+    {								\
+      if ((GLYPH).u.ch < 256)					\
+	SET_GLYPH ((G), (GLYPH).u.ch, ((GLYPH).face_id));	\
+      else							\
+	SET_GLYPH ((G), -1, 0);					\
+    }								\
+  while (0)
+
+#define GLYPH_INVALID_P(GLYPH) (GLYPH_CHAR (GLYPH) < 0)
 
 /* Is GLYPH a padding glyph?  */
 
@@ -3017,7 +3024,7 @@ void bitch_at_user P_ ((void));
 void init_display P_ ((void));
 void syms_of_display P_ ((void));
 extern Lisp_Object Qredisplay_dont_pause;
-GLYPH spec_glyph_lookup_face P_ ((struct window *, GLYPH));
+void spec_glyph_lookup_face P_ ((struct window *, GLYPH *));
 
 /* Defined in terminal.c */
 
