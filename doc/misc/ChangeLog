@@ -1,3 +1,18 @@
+2008-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* sc.texi: Remove a lot of old and obsolete info.
+	(titlepage): Simplify.
+	(Emacs 19 MUAs, Emacs 18 MUAs, MH-E with any Emacsen)
+	(VM with any Emacsen, GNEWS with any Emacsen)
+	(Overloading for Non-conforming MUAs, Version 3 Changes)
+	(The Supercite Mailing List): Delete nodes.
+	(Introduction): Remove info about old packages.
+	(Getting Connected): Simplify.  Remove info about old packages.
+	(Citing Commands): Delete Emacs 19 info.
+	(Hints to MUA Authors): Simplify.
+	(Thanks and History): Merge in some info from the deleted node
+	"Version 3 Changes".
+
 2008-02-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* org.texi (Setting tags, In-buffer settings):
