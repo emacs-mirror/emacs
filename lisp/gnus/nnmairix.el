@@ -338,21 +338,22 @@ temporary searches, e.g. nnmairix-search.")
 
 ;;; === Internal variables
 
-;; Regexp for mairix groups on back end
-(setq nnmairix-group-regexp (format "%s-\\(.*\\)-[0-9]+" nnmairix-group-prefix))
+(defconst nnmairix-group-regexp
+  (format "%s-\\(.*\\)-[0-9]+" nnmairix-group-prefix)
+  "Regexp for mairix groups on back end.")
 
-;; Back ends (hopefully...) supported by nnmairix.
-;; Other backends might or might not work.
-(setq nnmairix-valid-backends '(nnimap nnml nnmaildir))
+(defconst nnmairix-valid-backends '(nnimap nnml nnmaildir)
+  "Backends supported by nnmairix.
+Other backends might or might not work.")
 
-;; Last chosen server
-(setq nnmairix-last-server nil)
+(defvar nnmairix-last-server nil
+  "Last chosen server.")
 
-;; Current server
-(setq nnmairix-current-server nil)
+(defvar nnmairix-current-server nil
+  "Current server.")
 
 ;;; === Gnus backend functions
-  
+
 (nnoo-define-basics nnmairix)
 
 (gnus-declare-backend "nnmairix" 'mail 'address)
@@ -537,7 +538,7 @@ temporary searches, e.g. nnmairix-search.")
 	t)
     nil))
 
-	         
+
 (nnoo-define-skeleton nnmairix)
 
 
@@ -678,7 +679,7 @@ All necessary information will be queried from the user."
 	    (gnus-group-set-parameter group 'query query)
 	    (nnmairix-update-and-clear-marks group)))
       (error "This is no nnmairix group"))))
-		  
+
 
 (defun nnmairix-group-toggle-threads-this-group (&optional threads)
   "Toggle threads parameter for this group.
@@ -699,7 +700,7 @@ If THREADS is a negative number, set it to nil."
 	    (message "Threads deacitavted for group %s" group))
 	  (nnmairix-update-and-clear-marks group))
       (error "This is no nnmairix group"))))
-        
+
 
 (defun nnmairix-search (query &optional server threads)
   "Sends QUERY to nnmairix backend SERVER, using default its search group.
@@ -845,6 +846,8 @@ with `nnmairix-mairix-update-options'."
 	  (set-process-sentinel (apply 'start-process args)
 				'nnmairix-sentinel-mairix-update-finished))))))
 
+(autoload 'gnus-registry-fetch-group "gnus-registry")
+
 (defun nnmairix-goto-original-article (&optional no-registry)
   "Jump to the original group and display article.
 The original group of the article is first determined with the
@@ -879,9 +882,9 @@ search in raw mode."
 	;; registry was not available or did not find article
 	;; so we search again with mairix in raw mode to get filename
 	(nnmairix-open-server server)
-	(setq rval 
-	      (nnmairix-call-mairix-binary-raw 
-	       (split-string nnmairix-mairix-command) 
+	(setq rval
+	      (nnmairix-call-mairix-binary-raw
+	       (split-string nnmairix-mairix-command)
 	       (list (concat "m:" mid))))
 	(if (zerop rval)
 	    ;; determine original group(s) from filename
@@ -893,12 +896,12 @@ search in raw mode."
 		      allgroups)
 		(forward-line 1))
 	      (if (> (length allgroups) 1)
-		  (setq group 
-			(completing-read 
-			 "Message exists in more than one group. Choose: " 
+		  (setq group
+			(completing-read
+			 "Message exists in more than one group. Choose: "
 			 allgroups nil t))
 		(setq group (car allgroups))))
-	  (error "Mairix could not find original article. See buffer %s for details" 
+	  (error "Mairix could not find original article. See buffer %s for details"
 		 nnmairix-mairix-output-buffer))))
     (if group
 	;; show article in summary buffer
@@ -915,10 +918,10 @@ search in raw mode."
     (setq maildirflag (string-match ".+\\..+\\..+" filename))
     (when maildirflag
       (setq path
-	    (replace-regexp-in-string 
+	    (replace-regexp-in-string
 	     ".*\\(/cur\\|/new\\|/tmp\\)$" "" path t t 1)))
     ;; we first check nnml and nnmaildir servers
-    (setq 
+    (setq
      group
      (catch 'found
        (dolist (cur gnus-opened-servers)
@@ -927,12 +930,12 @@ search in raw mode."
 		   (and maildirflag
 			(eq (caar cur) 'nnmaildir)))
 	   ;; get base path from server
-	   (if maildirflag 
-	       (setq serverbase (cadr (assoc 'directory (car cur))))		   
+	   (if maildirflag
+	       (setq serverbase (cadr (assoc 'directory (car cur))))
 	     (setq serverbase (cadr (assoc 'nnml-directory (car cur))))
 	     (when (not serverbase)
 	       (setq serverbase nnml-directory)))
-	   (setq serverbase (file-name-as-directory 
+	   (setq serverbase (file-name-as-directory
 			     (expand-file-name serverbase)))
 	   (when (string-match (concat serverbase "\\(.*\\)") path)
 	     ;; looks good - rest of the path should be the group
@@ -957,14 +960,14 @@ search in raw mode."
 	(setq group (replace-match "/" t t group)))
       (dolist (cur gnus-opened-servers)
 	(when (eq (caar cur) 'nnimap)
-	  (when (gnus-group-entry 
+	  (when (gnus-group-entry
 		 (gnus-group-prefixed-name group (car cur)))
-	    (push 
+	    (push
 	     (gnus-group-prefixed-name group (car cur))
 	     allgroups))))
       (if (> (length allgroups) 1)
-	  (setq group (completing-read 
-		       "Group %s exists on more than one IMAP server. Choose: " 
+	  (setq group (completing-read
+		       "Group %s exists on more than one IMAP server. Choose: "
 		       allgroups nil t))
 	(setq group (car allgroups))))
     group))
@@ -1169,25 +1172,24 @@ MAIRIXGROUP.  NUMC contains values for article number correction."
       (set-buffer nntp-server-buffer)
       (goto-char (point-min))
       (nnheader-message 7 "nnmairix: Rewriting headers...")
-      (mapcar
-       (function
-	(lambda (article)
-	  (when (or (looking-at (number-to-string article))
-		    (nnheader-find-nov-line article))
-	    (setq cur (nnheader-parse-nov))
-	    (when corr
-		  (setq article (+ (mail-header-number cur) numc))
-		  (mail-header-set-number cur article))
-	    (setq xref (mail-header-xref cur))
-	    (when (and (stringp xref)
-		       (string-match (format "[ \t]%s:[0-9]+" backendgroup) xref))
-	      (setq xref (replace-match (format " %s:%d" mairixgroup article) t nil xref))
-	      (mail-header-set-xref cur xref))
-	    (set-buffer buf)
-	    (nnheader-insert-nov cur)
-	    (set-buffer nntp-server-buffer)
-	    (when (not (eobp))
-	      (forward-line 1)))))
+      (mapc
+       (lambda (article)
+         (when (or (looking-at (number-to-string article))
+                   (nnheader-find-nov-line article))
+           (setq cur (nnheader-parse-nov))
+           (when corr
+             (setq article (+ (mail-header-number cur) numc))
+             (mail-header-set-number cur article))
+           (setq xref (mail-header-xref cur))
+           (when (and (stringp xref)
+                      (string-match (format "[ \t]%s:[0-9]+" backendgroup) xref))
+             (setq xref (replace-match (format " %s:%d" mairixgroup article) t nil xref))
+             (mail-header-set-xref cur xref))
+           (set-buffer buf)
+           (nnheader-insert-nov cur)
+           (set-buffer nntp-server-buffer)
+           (when (not (eobp))
+             (forward-line 1))))
        articles)
       (nnheader-message 7 "nnmairix: Rewriting headers... done")
       (kill-buffer nntp-server-buffer)
@@ -1278,7 +1280,7 @@ group."
 	  (when (gnus-group-jump-to-group group)
 	    (gnus-group-get-new-news-this-group)))
       (error "Nnmairix-update-and-clear-marks - Called with non-nnmairix group"))))
-  
+
 
 (defun nnmairix-sentinel-mairix-update-finished (proc status)
   "Sentinel for mairix update process PROC with STATUS."
@@ -1313,7 +1315,7 @@ See %s for details" proc nnmairix-mairix-output-buffer)))
     (gnus-summary-exit))
   (pop-to-buffer gnus-group-buffer)
   (gnus-group-jump-to-group group)
-  (gnus-summary-read-group group 1 t)	
+  (gnus-summary-read-group group 1 t)
   (gnus-summary-refer-article mid)
   (gnus-summary-limit-to-headers (format "message-id: <%s>" mid))
   (gnus-summary-select-article)
@@ -1344,13 +1346,13 @@ See %s for details" proc nnmairix-mairix-output-buffer)))
       (mapcar
        (function
 	(lambda (field)
-	  (list (caddr field)
+	  (list (car (cddr field))
 		(if (car field)
 		    (nnmairix-replace-illegal-chars
 		     (gnus-fetch-field (car field)))
 		  nil))))
        nnmairix-widget-fields-list))))
-  
+
 
 (defun nnmairix-widget-search (&optional mvalues)
   "Create mairix query interactively using graphical widgets.
@@ -1428,7 +1430,7 @@ If WITHVALUES is t, query is based on current article."
     (dolist (cur nnmairix-widget-fields-list)
       ;; See if checkbox is checked
       (when (widget-value
-	     (cadr (assoc (concat "c" (caddr cur)) widgets)))
+	     (cadr (assoc (concat "c" (car (cddr cur))) widgets)))
 	;; create query for the field
 	(push
 	 (concat
@@ -1436,7 +1438,7 @@ If WITHVALUES is t, query is based on current article."
 	  ":"
 	  (nnmairix-replace-illegal-chars
 	   (widget-value
-	   (cadr (assoc (concat "e" (caddr cur)) widgets)))))
+	   (cadr (assoc (concat "e" (car (cddr cur))) widgets)))))
 	 query)))
     ;; Flags
     (when (member 'flags nnmairix-widget-other)
@@ -1500,7 +1502,7 @@ VALUES may contain values for editable fields from current article."
     (mapc
      (function
       (lambda (field)
-	(setq field (caddr field))
+	(setq field (car (cddr field)))
 	(setq ret
 	      (nconc
 	       (list
