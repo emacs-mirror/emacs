@@ -434,7 +434,10 @@ Other backends might or might not work.")
 	 "request-scan" folder nnmairix-backend-server)
 	(if fast
 	    t
-	  (nnmairix-request-group-with-article-number-correction folder qualgroup)))
+          (let ((nnmairix-fast fast)
+                (nnmairix-group group))
+            (nnmairix-request-group-with-article-number-correction
+             folder qualgroup))))
        ((and (= rval 1)
 	     (save-excursion (set-buffer nnmairix-mairix-output-buffer)
 			     (goto-char (point-min))
@@ -975,11 +978,17 @@ search in raw mode."
 
 ;;; ==== Helper functions
 
+;; Set locally in nnmairix-request-group, which is the only caller of
+;; this function.
+(defvar nnmairix-fast)
+(defvar nnmairix-group)
+
 (defun nnmairix-request-group-with-article-number-correction (folder qualgroup)
   "Request FOLDER on backend for nnmairix QUALGROUP and article number correction."
   (save-excursion
+    ;; FIXME nnmairix-request-group only calls this when fast is nil (?).
     (nnmairix-call-backend
-     "request-group" folder nnmairix-backend-server fast)
+     "request-group" folder nnmairix-backend-server nnmairix-fast)
     (set-buffer nnmairix-mairix-output-buffer)
     (goto-char (point-min))
     (re-search-forward "^Matched.*messages")
@@ -1011,7 +1020,8 @@ search in raw mode."
 		(gnus-group-set-parameter
 		 qualgroup 'numcorr (list nil 0 high))))
 	    (erase-buffer)
-	    (insert (format "%d %d %d %d %s" status total low high group))
+	    (insert (format "%d %d %d %d %s" status total low high
+                            nnmairix-group))
 	    t)
 	(progn
 	  (nnheader-report
