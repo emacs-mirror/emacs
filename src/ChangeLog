@@ -1,3 +1,7 @@
+2008-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (USAGE1): Add `--disable-font-backend'.
+
 2008-02-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Finsert_file_contents): Don't reset undo_list if no change
