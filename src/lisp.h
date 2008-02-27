@@ -1424,43 +1424,54 @@ typedef unsigned char UCHAR;
 #define KEY_DESCRIPTION_SIZE ((2 * 6) + 1 + (CHARACTERBITS / 3) + 1 + 1)
 
 
-/* The glyph datatype, used to represent characters on the display.  */
+/* The glyph datatype, used to represent characters on the display.
+   It consists of a char code and a face id.  */
 
-/* Glyph code to use as an index to the glyph table.  If it is out of
-   range for the glyph table, or the corresonding element in the table
-   is nil, the low 8 bits are the single byte character code, and the
-   bits above are the numeric face ID.  If FID is the face ID of a
-   glyph on a frame F, then F->display.x->faces[FID] contains the
-   description of that face.  This is an int instead of a short, so we
-   can support a good bunch of face ID's (2^(31 - 8)); given that we
-   have no mechanism for tossing unused frame face ID's yet, we'll
-   probably run out of 255 pretty quickly.
-   This is always -1 for a multibyte character.  */
-#define GLYPH int
-
-/* Mask bits for face.  */
-#define GLYPH_MASK_FACE    0x7FC00000
- /* Mask bits for character code.  */
-#define GLYPH_MASK_CHAR    0x003FFFFF /* The lowest 22 bits */
-
-/* The FAST macros assume that we already know we're in an X window.  */
-
-/* Set a character code and a face ID in a glyph G.  */
-#define FAST_MAKE_GLYPH(char, face) ((char) | ((face) << CHARACTERBITS))
+typedef struct {
+  int ch;
+  int face_id;
+} GLYPH;
 
 /* Return a glyph's character code.  */
-#define FAST_GLYPH_CHAR(glyph) ((glyph) & GLYPH_MASK_CHAR)
+#define GLYPH_CHAR(glyph) ((glyph).ch)
 
 /* Return a glyph's face ID.  */
-#define FAST_GLYPH_FACE(glyph) (((glyph) & GLYPH_MASK_FACE) >> CHARACTERBITS)
+#define GLYPH_FACE(glyph) ((glyph).face_id)
 
-/* Slower versions that test the frame type first.  */
-#define MAKE_GLYPH(f, char, face) (FAST_MAKE_GLYPH (char, face))
-#define GLYPH_CHAR(f, g) (FAST_GLYPH_CHAR (g))
-#define GLYPH_FACE(f, g) (FAST_GLYPH_FACE (g))
+#define SET_GLYPH_CHAR(glyph, char) ((glyph).ch = (char))
+#define SET_GLYPH_FACE(glyph, face) ((glyph).face_id = (face))
+#define SET_GLYPH(glyph, char, face) ((glyph).ch = (char), (glyph).face_id = (face))
 
 /* Return 1 if GLYPH contains valid character code.  */
-#define GLYPH_CHAR_VALID_P(glyph) CHAR_VALID_P (FAST_GLYPH_CHAR (glyph), 1)
+#define GLYPH_CHAR_VALID_P(glyph) CHAR_VALID_P (GLYPH_CHAR (glyph), 1)
+
+
+/* Glyph Code from a display vector may either be an integer which
+   encodes a char code in the lower CHARACTERBITS bits and a (very small)
+   face-id in the upper bits, or it may be a cons (CHAR . FACE-ID).  */
+
+#define GLYPH_CODE_CHAR(gc) \
+  (CONSP (gc) ? XINT (XCAR (gc)) : INTEGERP (gc) ? (XINT (gc) & ((1 << CHARACTERBITS)-1)) : 0)
+
+#define GLYPH_CODE_FACE(gc) \
+  (CONSP (gc) ? XINT (XCDR (gc)) : INTEGERP (gc) ? (XINT (gc) >> CHARACTERBITS) : DEFAULT_FACE_ID)
+
+/* Return 1 if glyph code from display vector contains valid character code.  */
+#define GLYPH_CODE_CHAR_VALID_P(gc) CHAR_VALID_P (GLYPH_CODE_CHAR (gc), 1)
+
+#define GLYPH_CODE_P(gc) ((CONSP (gc) && INTEGERP (XCAR (gc)) && INTEGERP (XCDR (gc))) || INTEGERP (gc))
+
+/* Only called when GLYPH_CODE_P (gc) is true.  */
+#define SET_GLYPH_FROM_GLYPH_CODE(glyph, gc)				\
+  do									\
+    {									\
+      if (CONSP (gc))							\
+	SET_GLYPH (glyph, XINT (XCAR (gc)), XINT (XCDR (gc)));		\
+      else								\
+	SET_GLYPH (glyph, (XINT (gc) & ((1 << CHARACTERBITS)-1)),	\
+		   (XINT (gc) >> CHARACTERBITS));			\
+    }									\
+  while (0)
 
 /* The ID of the mode line highlighting face.  */
 #define GLYPH_MODE_LINE_FACE 1
