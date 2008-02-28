@@ -1,3 +1,10 @@
+2008-02-28  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* isearch.el (isearch-printing-char): Don't check
+	keyboard-coding-system.  Call
+	isearch-process-search-multibyte-characters only when
+	current-input-method is non-nil.
+
 2008-02-27  Kim F. Storm  <storm@cua.dk>
 
 	* disp-table.el (make-glyph-code): Encode as cons if face id > 63.
