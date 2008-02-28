@@ -1842,15 +1842,9 @@ Isearch mode."
   (let ((char last-command-char))
     (if (= char ?\S-\ )
 	(setq char ?\s))
-    (if (and enable-multibyte-characters
-	     (>= char ?\200)
-	     (<= char ?\377))
-	(if (keyboard-coding-system)
-	    (isearch-process-search-multibyte-characters char)
-	  (isearch-process-search-char (unibyte-char-to-multibyte char)))
-      (if current-input-method
-	  (isearch-process-search-multibyte-characters char)
-	(isearch-process-search-char char)))))
+    (if current-input-method
+	(isearch-process-search-multibyte-characters char)
+      (isearch-process-search-char char))))
 
 (defun isearch-process-search-char (char)
   ;; * and ? are special in regexps when not preceded by \.
