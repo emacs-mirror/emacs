@@ -482,6 +482,17 @@ This is called by `window-configuration-change-hook'."
  (list 'longlines "Automatically wrap long lines." nil nil
        'longlines-encode-region t nil))
 
+;; Unloading
+
+(defun longlines-unload-function ()
+  "Unload the longlines library."
+  (save-current-buffer
+    (dolist (buffer (buffer-list))
+      (set-buffer buffer)
+      (longlines-mode-off)))
+  ;; continue standard unloading
+  nil)
+
 (provide 'longlines)
 
 ;; arch-tag: 3489d225-5506-47b9-8659-d8807b77c624
