@@ -1,3 +1,12 @@
+2008-02-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/hideshow.el (hs-minor-mode-menu): Add some options to
+	the menu.
+
+	* vc.el (vc-deduce-fileset, vc-next-action, vc-start-entry)
+	(vc-finish-logentry): Check for vc-status-mode, not only for
+	vc-dired-mode.
+
 2008-02-28  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* isearch.el (isearch-printing-char): Don't check

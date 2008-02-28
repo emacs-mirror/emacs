@@ -595,7 +595,10 @@
 ;;   adjustments.
 ;;
 ;; - when changing a file whose directory is shown in the vc-status
-;;   buffer, it should be added there are "modified".  (PCL-CVS does this).
+;;   buffer, it should be added there as "modified".  (PCL-CVS does this).
+;;
+;; - Update the vc-status buffers after vc operations, implement the
+;;   equivalent of vc-dired-resynch-file.
 ;;
 ;; - vc-status needs a toolbar.
 ;;
@@ -1407,7 +1410,7 @@ Otherwise, throw an error."
 	 (list buffer-file-name))
 	((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
 				   (with-current-buffer vc-parent-buffer
-				     vc-dired-mode)))
+				     (or vc-dired-mode (eq major-mode 'vc-status-mode)))))
 	 (progn
 	   (set-buffer vc-parent-buffer)
 	   (vc-deduce-fileset)))
@@ -1541,7 +1544,7 @@ merge in the changes into your working copy."
     (dolist (file files)
       (let ((visited (get-file-buffer file)))
 	(when visited
-	  (if vc-dired-mode
+	  (if (or vc-dired-mode (eq major-mode 'vc-status-mode))
 	      (switch-to-buffer-other-window visited)
 	    (set-buffer visited))
 	  ;; Check relation of buffer and file, and make sure
@@ -1811,7 +1814,7 @@ empty comment.  Remember the file's buffer in `vc-parent-buffer'
 \(current one if no file).  AFTER-HOOK specifies the local value
 for `vc-log-after-operation-hook'."
   (let ((parent
-         (if (eq major-mode 'vc-dired-mode)
+         (if (or (eq major-mode 'vc-dired-mode) (eq major-mode 'vc-status-mode))
              ;; If we are called from VC dired, the parent buffer is
              ;; the current buffer.
              (current-buffer)
@@ -1951,7 +1954,7 @@ the buffer contents as a comment."
   ;; Sync parent buffer in case the user modified it while editing the comment.
   ;; But not if it is a vc-dired buffer.
   (with-current-buffer vc-parent-buffer
-    (or vc-dired-mode (vc-buffer-sync)))
+    (or vc-dired-mode (eq major-mode 'vc-status-mode) (vc-buffer-sync)))
   (if (not vc-log-operation)
       (error "No log operation is pending"))
   ;; save the parameters held in buffer-local variables
@@ -1983,7 +1986,7 @@ the buffer contents as a comment."
 	(mapc
 	 (lambda (file) (vc-resynch-buffer file vc-keep-workfiles t))
 	 log-fileset))
-    (if vc-dired-mode
+    (if (or vc-dired-mode (eq major-mode 'vc-status-mode))
       (dired-move-to-filename))
     (run-hooks after-hook 'vc-finish-logentry-hook)))
 
