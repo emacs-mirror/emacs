@@ -1714,8 +1714,7 @@ Initialized from `text-mode-syntax-table.")
 ;;; Macros for dealing with the article buffer.
 
 (defmacro gnus-with-article-headers (&rest forms)
-  `(save-excursion
-     (set-buffer gnus-article-buffer)
+  `(with-current-buffer gnus-article-buffer
      (save-restriction
        (let ((inhibit-read-only t)
 	     (inhibit-point-motion-hooks t)
@@ -1727,8 +1726,7 @@ Initialized from `text-mode-syntax-table.")
 (put 'gnus-with-article-headers 'edebug-form-spec '(body))
 
 (defmacro gnus-with-article-buffer (&rest forms)
-  `(save-excursion
-     (set-buffer gnus-article-buffer)
+  `(with-current-buffer gnus-article-buffer
      (let ((inhibit-read-only t))
        ,@forms)))
 
@@ -3718,8 +3716,7 @@ This format is defined by the `gnus-article-time-format' variable."
 	   (or (symbol-value (get gnus-default-article-saver :headers))
 	       gnus-saved-headers gnus-visible-headers))
 	  (gnus-article-buffer save-buffer))
-      (save-excursion
-	(set-buffer save-buffer)
+      (with-current-buffer save-buffer
 	(article-hide-headers 1 t))))
   (save-window-excursion
     (if (not gnus-default-article-saver)
@@ -4137,8 +4134,7 @@ If variable `gnus-use-long-file-name' is non-nil, it is
 	   `(lambda (&optional interactive &rest args)
 	      ,(documentation afunc t)
 	      (interactive (list t))
-	      (save-excursion
-		(set-buffer gnus-article-buffer)
+	      (with-current-buffer gnus-article-buffer
 		(if interactive
 		    (call-interactively ',afunc)
 		  (apply ',afunc args))))))))
@@ -4345,8 +4341,7 @@ Internal variable.")
 	(gnus-set-global-variables)))
     (gnus-article-setup-highlight-words)
     ;; Init original article buffer.
-    (save-excursion
-      (set-buffer (gnus-get-buffer-create gnus-original-article-buffer))
+    (with-current-buffer (gnus-get-buffer-create gnus-original-article-buffer)
       (mm-enable-multibyte)
       (setq major-mode 'gnus-original-article-mode)
       (make-local-variable 'gnus-original-article))
@@ -4361,8 +4356,7 @@ Internal variable.")
 			 nil)
 		     (error "Action aborted"))
 		 t)))
-	(save-excursion
-	  (set-buffer name)
+	(with-current-buffer name
 	  (set (make-local-variable 'gnus-article-edit-mode) nil)
 	  (when gnus-article-mime-handles
 	    (mm-destroy-parts gnus-article-mime-handles)
@@ -4376,8 +4370,7 @@ Internal variable.")
 	  (unless (eq major-mode 'gnus-article-mode)
 	    (gnus-article-mode))
 	  (current-buffer))
-      (save-excursion
-	(set-buffer (gnus-get-buffer-create name))
+      (with-current-buffer (gnus-get-buffer-create name)
 	(gnus-article-mode)
 	(make-local-variable 'gnus-summary-buffer)
 	(setq gnus-summary-buffer
@@ -4392,8 +4385,7 @@ Internal variable.")
     (when article-window
       (set-window-start
        article-window
-       (save-excursion
-	 (set-buffer gnus-article-buffer)
+       (with-current-buffer gnus-article-buffer
 	 (goto-char (point-min))
 	 (if (not line)
 	     (point-min)
@@ -4447,8 +4439,7 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 	  (if (or (eq result 'pseudo)
 		  (eq result 'nneething))
 	      (progn
-		(save-excursion
-		  (set-buffer summary-buffer)
+		(with-current-buffer summary-buffer
 		  (push article gnus-newsgroup-history)
 		  (setq gnus-last-article gnus-current-article
 			gnus-current-article 0
@@ -4468,8 +4459,7 @@ If ALL-HEADERS is non-nil, no headers are hidden."
 		       (not (eq article gnus-current-article)))
 	      ;; Seems like a new article has been selected.
 	      ;; `gnus-current-article' must be an article number.
-	      (save-excursion
-		(set-buffer summary-buffer)
+	      (with-current-buffer summary-buffer
 		(push article gnus-newsgroup-history)
 		(setq gnus-last-article gnus-current-article
 		      gnus-current-article article
@@ -6002,8 +5992,7 @@ the coding cookie."
 If given a numerical ARG, move forward ARG pages."
   (interactive "P")
   (setq arg (if arg (prefix-numeric-value arg) 0))
-  (save-excursion
-    (set-buffer gnus-article-buffer)
+  (with-current-buffer gnus-article-buffer
     (goto-char (point-min))
     (widen)
     ;; Remove any old next/prev buttons.
@@ -6247,8 +6236,7 @@ not have a face in `gnus-article-boring-faces'."
 	(up-to-top
 	 '("n" "Gn" "p" "Gp"))
 	keys new-sum-point)
-    (save-excursion
-      (set-buffer gnus-article-current-summary)
+    (with-current-buffer gnus-article-current-summary
       (let (gnus-pick-mode)
 	(setq unread-command-events (nconc unread-command-events
 					   (list (or key last-command-event)))
@@ -6359,8 +6347,7 @@ KEY is a string or a vector."
   (gnus-article-check-buffer)
   (if (memq (key-binding key t) '(gnus-article-read-summary-keys
 				  gnus-article-read-summary-send-keys))
-      (save-excursion
-	(set-buffer gnus-article-current-summary)
+      (with-current-buffer gnus-article-current-summary
 	(setq unread-command-events
 	      (if (featurep 'xemacs)
 		  (append key nil)
@@ -6382,8 +6369,7 @@ KEY is a string or a vector."
   (gnus-article-check-buffer)
   (if (memq (key-binding key t) '(gnus-article-read-summary-keys
 				  gnus-article-read-summary-send-keys))
-      (save-excursion
-	(set-buffer gnus-article-current-summary)
+      (with-current-buffer gnus-article-current-summary
 	(setq unread-command-events
 	      (if (featurep 'xemacs)
 		  (append key nil)
@@ -6428,8 +6414,7 @@ then we display only bindings that start with that prefix."
       (set (make-local-variable 'gnus-draft-mode) draft)
       (describe-bindings prefix))
     (let ((item `((lambda (prefix)
-		    (save-excursion
-		      (set-buffer ,(current-buffer))
+		    (with-current-buffer ,(current-buffer)
 		      (gnus-article-describe-bindings prefix)))
 		  ,prefix)))
       (with-current-buffer (if (fboundp 'help-buffer)
@@ -6533,8 +6518,7 @@ If given a prefix, show the hidden text instead."
 		     gnus-summary-buffer
 		     (get-buffer gnus-summary-buffer)
 		     (gnus-buffer-exists-p gnus-summary-buffer))
-	    (save-excursion
-	      (set-buffer gnus-summary-buffer)
+	    (with-current-buffer gnus-summary-buffer
 	      (let ((header (gnus-summary-article-header article)))
 		(when (< article 0)
 		  (cond
@@ -6826,9 +6810,8 @@ groups."
       (gnus-backlog-remove-article
        (car gnus-article-current) (cdr gnus-article-current)))
     ;; Flush original article as well.
-    (save-excursion
-      (when (get-buffer gnus-original-article-buffer)
-	(set-buffer gnus-original-article-buffer)
+    (when (get-buffer gnus-original-article-buffer)
+      (with-current-buffer gnus-original-article-buffer
 	(setq gnus-original-article nil)))
     (when gnus-use-cache
       (gnus-cache-update-article
@@ -7820,8 +7803,7 @@ url is put as the `gnus-button-url' overlay property on the button."
       (gnus-parse-news-url url)
     (cond
      (message-id
-      (save-excursion
-	(set-buffer gnus-summary-buffer)
+      (with-current-buffer gnus-summary-buffer
 	(if server
 	    (let ((gnus-refer-article-method
 		   (nconc (list (list 'nntp server))
@@ -8214,8 +8196,7 @@ For example:
 	(error "Can't encrypt the article in group %s"
 	       gnus-newsgroup-name))
     (gnus-summary-iterate n
-      (save-excursion
-	(set-buffer gnus-summary-buffer)
+      (with-current-buffer gnus-summary-buffer
 	(let ((mail-parse-charset gnus-newsgroup-charset)
 	      (mail-parse-ignored-charsets gnus-newsgroup-ignored-charsets)
 	      (summary-buffer gnus-summary-buffer)
@@ -8261,9 +8242,8 @@ For example:
 	  (when gnus-keep-backlog
 	    (gnus-backlog-remove-article
 	     (car gnus-article-current) (cdr gnus-article-current)))
-	  (save-excursion
-	    (when (get-buffer gnus-original-article-buffer)
-	      (set-buffer gnus-original-article-buffer)
+          (when (get-buffer gnus-original-article-buffer)
+            (with-current-buffer gnus-original-article-buffer
 	      (setq gnus-original-article nil)))
 	  (when gnus-use-cache
 	    (gnus-cache-update-article
@@ -8514,5 +8494,5 @@ For example:
 
 (run-hooks 'gnus-art-load-hook)
 
-;;; arch-tag: 2654516f-6279-48f9-a83b-05c1fa450c33
+;; arch-tag: 2654516f-6279-48f9-a83b-05c1fa450c33
 ;;; gnus-art.el ends here

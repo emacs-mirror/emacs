@@ -1,3 +1,7 @@
+2008-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-art.el: Use with-current-buffer.
+
 2008-02-27  Glenn Morris  <rgm@gnu.org>
 
 	* nnmairix.el: Change defcustom :version from 23.0 to 23.1.
