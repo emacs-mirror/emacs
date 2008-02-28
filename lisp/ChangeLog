@@ -1,3 +1,27 @@
+2008-02-28  Juri Linkov  <juri@jurta.org>
+
+	* cus-edit.el (custom-mode-map, custom-mode-link-map):
+	Rename `custom-mode' to `Custom-mode' in docstrings.
+	(custom-buffer-create-internal, customize-browse):
+	Rename `custom-mode' to `Custom-mode'.
+	(custom-mode-hook): Rename to `Custom-mode-hook'.
+	(Custom-mode-hook): Renamed from `custom-mode-hook'.
+	(custom-mode): Rename to `Custom-mode'.
+	(Custom-mode): Renamed from `custom-mode'.  Doc fix.
+	(custom-mode): Add backward-compatible non-interactive variant of
+	`Custom-mode' that simply calls `Custom-mode'.  Mark it obsoleted.
+	(custom-mode-hook): Mark it as obsolete alias of `Custom-mode-hook'.
+
+	* info-look.el: Rename `custom-mode' to `Custom-mode'.
+
+	* emulation/viper.el (viper-emacs-state-mode-list):
+	Rename `custom-mode' to `Custom-mode'.
+
+	* menu-bar.el (menu-bar-search-menu, menu-bar-replace-menu):
+	Capitalize "Tagged Files".
+	(minibuffer-local-map): Add menu items for next/previous
+	history elements and isearch history forward/backward.
+
 2008-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* uniquify.el (uniquify-buffer-base-name): Undo last change.  Should be
