@@ -1,3 +1,8 @@
+2008-02-28  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* xdisp.c (display_mode_element): Cancel the previous change.
+	(decode_mode_spec): Likewise.
+
 2008-02-27  Kim F. Storm  <storm@cua.dk>
 
 	* lisp.h (GLYPH): Change type from int to struct with separate char
@@ -97,6 +102,11 @@
 	(delete_window, adjust_window_trailing_edge): Don't handle nil any more.
 	(Fenlarge_window, Fshrink_window, Fset_window_configuration):
 	Use run_window_configuration_change_hook.
+
+2008-02-25  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* xdisp.c (x_produce_glyphs): For a visible glyph, assure at least
+	1-pixel width.
 
 2008-02-25  Kenichi Handa  <handa@ni.aist.go.jp>
 
