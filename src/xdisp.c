@@ -4634,7 +4634,7 @@ handle_auto_composed_prop (it)
 		val = Qnil;
 	    }
 	}
-      if (NILP (val))
+      if (NILP (val) && ! STRINGP (it->string))
 	{
 	  if (limit < 0)
 	    limit = (STRINGP (it->string) ? SCHARS (it->string)
