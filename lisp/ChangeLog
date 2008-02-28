@@ -1,3 +1,7 @@
+2008-02-28  Kim F. Storm  <storm@cua.dk>
+
+	* startup.el (startup-echo-area-message): Check for about-emacs.
+
 2008-02-28  Juri Linkov  <juri@jurta.org>
 
 	* startup.el: Always add initial message to *scratch* buffer if
