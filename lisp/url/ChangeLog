@@ -1,3 +1,9 @@
+2008-02-28  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* url-util.el (url-get-normalized-date): Simplify
+	to use `format-time-string'.  Always generate date in UTC, but
+	call it GMT for full compatibility with the RFCs.
+
 2008-02-25  John Wiegley  <johnw@newartisans.com>
 
 	* url-auth.el (url-digest-auth): If the 'opaque' argument is not
