@@ -24,10 +24,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00055.html
 
 * BUGS
 
-** Emacs fails to start properly if the current working directory is
-on a vfat or ntfs filesystem
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00033.html
-
 * Bugs and feature requests for 22.3 or later
 
 ** python.el changes by Dave Love?
