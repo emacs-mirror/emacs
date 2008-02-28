@@ -710,6 +710,14 @@ ftfont_match (frame, spec)
   pattern = FcNameParse (SDATA (XCDR (val)));
   if (pattern)
     {
+      if (INTEGERP (AREF (spec, FONT_SIZE_INDEX)))
+	{
+	  FcValue value;
+
+	  value.type = FcTypeDouble;
+	  value.u.d = XINT (AREF (spec, FONT_SIZE_INDEX));
+	  FcPatternAdd (pattern, FC_PIXEL_SIZE, value, FcFalse);
+	}
       if (FcConfigSubstitute (NULL, pattern, FcMatchPattern) == FcTrue)
 	{
 	  FcDefaultSubstitute (pattern);
