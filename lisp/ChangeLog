@@ -1,3 +1,12 @@
+2008-02-28  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (normal-splash-screen): Add argument `concise'.
+	Remove unused binding `prev-buffer'. Let-bind `splash-buffer'
+	to the created buffer.  If `concise' is non-nil, call
+	`display-buffer', otherwise `switch-to-buffer'.  Doc fix.
+	(display-startup-screen): Add argument `concise' to the call to
+	`normal-splash-screen'.
+
 2008-02-28  Kim F. Storm  <storm@cua.dk>
 
 	* startup.el (startup-echo-area-message): Check for about-emacs.
