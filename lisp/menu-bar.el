@@ -309,7 +309,7 @@ A large number or nil slows down menu responsiveness."
   '(menu-item "Continue Tags Search" tags-loop-continue
 	      :help "Continue last tags search operation"))
 (define-key menu-bar-search-menu [tags-srch]
-  '(menu-item "Search tagged files..." tags-search
+  '(menu-item "Search Tagged Files..." tags-search
 	      :help "Search for a regexp in all tagged files"))
 (define-key menu-bar-search-menu [separator-tag-search]
   '(menu-item "--"))
@@ -353,7 +353,7 @@ A large number or nil slows down menu responsiveness."
   '(menu-item "Continue Replace" tags-loop-continue
 	      :help "Continue last tags replace operation"))
 (define-key menu-bar-replace-menu [tags-repl]
-  '(menu-item "Replace in tagged files..." tags-query-replace
+  '(menu-item "Replace in Tagged Files..." tags-query-replace
 	      :help "Interactively replace a regexp in all tagged files"))
 (define-key menu-bar-replace-menu [separator-replace-tags]
   '(menu-item "--"))
@@ -1741,7 +1741,19 @@ Buffers menu is regenerated."
 	  :help "Abort input and exit minibuffer"))
   (define-key map [menu-bar minibuf return]
     (list 'menu-item "Enter" 'exit-minibuffer
-	  :help "Terminate input and exit minibuffer")))
+	  :help "Terminate input and exit minibuffer"))
+  (define-key map [menu-bar minibuf isearch-forward]
+    (list 'menu-item "Isearch History Forward" 'isearch-forward
+	  :help "Incrementally search minibuffer history forward"))
+  (define-key map [menu-bar minibuf isearch-backward]
+    (list 'menu-item "Isearch History Backward" 'isearch-backward
+	  :help "Incrementally search minibuffer history backward"))
+  (define-key map [menu-bar minibuf next]
+    (list 'menu-item "Next History Item" 'next-history-element
+	  :help "Put next minibuffer history element in the minibuffer"))
+  (define-key map [menu-bar minibuf previous]
+    (list 'menu-item "Previous History Item" 'previous-history-element
+	  :help "Put previous minibuffer history element in the minibuffer")))
 
 ;;;###autoload
 ;; This comment is taken from tool-bar.el near
