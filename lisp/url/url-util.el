@@ -185,33 +185,10 @@ Will not do anything if `url-show-status' is nil."
 
 ;;;###autoload
 (defun url-get-normalized-date (&optional specified-time)
-  "Return a 'real' date string that most HTTP servers can understand."
-  (require 'timezone)
-  (let* ((raw (if specified-time (current-time-string specified-time)
-		(current-time-string)))
-	 (gmt (timezone-make-date-arpa-standard raw
-						(current-time-zone)
-						"GMT"))
-	 (parsed (timezone-parse-date gmt))
-	 (day (cdr-safe (assoc (substring raw 0 3) url-weekday-alist)))
-	 (year nil)
-	 (month (car
-		 (rassoc
-		  (string-to-number (aref parsed 1)) url-monthabbrev-alist)))
-	 )
-    (setq day (or (car-safe (rassoc day url-weekday-alist))
-		  (substring raw 0 3))
-	  year (aref parsed 0))
-    ;; This is needed for plexus servers, or the server will hang trying to
-    ;; parse the if-modified-since header.  Hopefully, I can take this out
-    ;; soon.
-    (if (and year (> (length year) 2))
-	(setq year (substring year -2 nil)))
-
-    (concat day ", " (aref parsed 2) "-" month "-" year " "
-	    (aref parsed 3) " " (or (aref parsed 4)
-				    (concat "[" (nth 1 (current-time-zone))
-					    "]")))))
+ "Return a 'real' date string that most HTTP servers can understand."
+ (let ((system-time-locale "C"))
+  (format-time-string "%a, %d %b %Y %T GMT"
+   (or specified-time (current-time)) t)))
 
 ;;;###autoload
 (defun url-eat-trailing-space (x)
