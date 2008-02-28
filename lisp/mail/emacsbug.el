@@ -28,13 +28,11 @@
 ;;; Commentary:
 
 ;; `M-x report-emacs-bug' starts an email note to the Emacs maintainers
-;; describing a problem.  Here's how it's done...
+;; describing a problem.  You need to be able to send mail from Emacs
+;; to complete the process.  Alternatively, compose the bug report in
+;; Emacs then paste it into your normal mail client.
 
 ;;; Code:
-
-;; >> This should be an address which is accessible to your machine,
-;; >> otherwise you can't use this file.  It will only work on the
-;; >> internet with this address.
 
 (require 'sendmail)
 
@@ -44,27 +42,30 @@
   :group 'mail)
 
 (defcustom report-emacs-bug-address "bug-gnu-emacs@gnu.org"
-  "*Address of mailing list for GNU Emacs bugs."
+  "Address of mailing list for GNU Emacs bugs."
   :group 'emacsbug
   :type 'string)
 
 (defcustom report-emacs-bug-pretest-address "emacs-pretest-bug@gnu.org"
-  "*Address of mailing list for GNU Emacs pretest bugs."
+  "Address of mailing list for GNU Emacs pretest bugs."
   :group 'emacsbug
   :type 'string)
 
-(defvar report-emacs-bug-orig-text nil
-  "The automatically-created initial text of bug report.")
-
 (defcustom report-emacs-bug-no-confirmation nil
-  "*If non-nil, suppress the confirmations asked for the sake of novice users."
+  "If non-nil, suppress the confirmations asked for the sake of novice users."
   :group 'emacsbug
   :type 'boolean)
 
 (defcustom report-emacs-bug-no-explanations nil
-  "*If non-nil, suppress the explanations given for the sake of novice users."
+  "If non-nil, suppress the explanations given for the sake of novice users."
   :group 'emacsbug
   :type 'boolean)
+
+;; User options end here.
+
+
+(defvar report-emacs-bug-orig-text nil
+  "The automatically-created initial text of bug report.")
 
 ;;;###autoload
 (defun report-emacs-bug (topic &optional recent-keys)
@@ -231,16 +232,10 @@ Type SPC to scroll through this section and its subsections."))))
       (setq report-emacs-bug-orig-text (buffer-substring (point-min) (point))))
     (goto-char user-point)))
 
-(declare-function Info-menu "info" (menu-item &optional fork))
-(declare-function Info-goto-node "info" (nodename &optional fork))
-
 (defun report-emacs-bug-info ()
   "Go to the Info node on reporting Emacs bugs."
   (interactive)
-  (info)
-  (Info-directory)
-  (Info-menu "emacs")
-  (Info-goto-node "Bugs"))
+  (info "(emacs)Bugs"))
 
 (defun report-emacs-bug-hook ()
   (save-excursion
