@@ -30,27 +30,41 @@
 SRCID(arenavm, "$Id$");
 
 /* @@@@ Arbitrary calculations (these should be in config.h) */
-/* VMArenaGangCount = the maximum number of distinct gangs (ie. */
+/* ArenaGangCount = the maximum number of distinct gangs (ie. */
 /*  distinct object sets, be they generations or some other group. */
 /* VMArenaGenCount = the maximum number of distinct generations. */
 enum {
-  VMArenaGangCount = MPS_WORD_WIDTH,
-  VMArenaGenCount = MPS_WORD_WIDTH/2,
+  VMArenaGenCount = 3 /* @@@@ was MPS_WORD_WIDTH/2 @@@@@@@@@@@@@@@ */,
   GangIndexDefault = VMArenaGenCount + 0,
-  GangIndexAway = GangIndexDefault + 1
+  GangIndexAway,
+  ArenaGangCount
 };
-
-#define GangSig ((Sig)0x5199A499) /* SIGnature GANG */
 
 typedef struct GangStruct *Gang;
 
+typedef struct GangsetStruct *Gangset;
+
+extern void SegPrefZonesOpen(Arena arena, SegPref pref);
+extern Bool SegPrefZonesNext(ZoneSet *zonesReturn, Arena arena, SegPref pref, 
+  Bool pregrow);
+extern void SegPrefZonesClose(Arena arena, SegPref pref, Bool allocated, 
+  Addr base, Addr limit);
+
+extern Bool GangCheck(Gang gang);
 extern Res GangDescribe(Gang gang, mps_lib_FILE *stream);
+extern Bool GangsetCheck(Gangset gangset);
+
+extern Res GangsetDescribe(Gangset gangset, mps_lib_FILE *stream);
+static void GangsetInit(Arena arena, Gangset gangset);
 
 enum {
   GANGNAMELEN = 4
 };
 
+#define GangSig ((Sig)0x5199A499) /* SIGnature GANG */
+
 typedef struct GangStruct {
+  Index index;                  /* index in gangset */
   char name[GANGNAMELEN];
   ZoneSet preferred;
   ZoneSet in;
@@ -69,16 +83,23 @@ typedef struct GangStruct {
  * and away from other gangs.
  */
 
-typedef struct Gangset {
-  GangStruct gangs[VMArenaGangCount];
+#define GangsetSig ((Sig)0x5199A495) /* SIGnature GANGSet */
+
+typedef struct GangsetStruct {
+  GangStruct gangs[ArenaGangCount];
   Count gangCount;
   Count gangGenCount;
   Index gangIndexDefault;  /* index of the default gang */
   Index gangIndexAway;     /* index of the away gang */
   ZoneSet blacklist;       /* zones that are bad for GC segs */
-  ZoneSet freezones;         /* unassigned zones */
   ZoneSet unpreferred;     /* zones not preferred by any gang */
-}
+  ZoneSet freezones;       /* unassigned zones */
+  Bool trying;             /* is a search for zones in progress? */
+  Index tryingGangIndex;
+  ZoneSet tryingZones;
+  char *tryingWhat;
+  Sig sig;                 /* <design/sig/> */
+} GangsetStruct;
 
 
 /* VMChunk -- chunks for VM arenas */
@@ -221,6 +242,8 @@ static Bool VMArenaCheck(VMArena vmArena)
   /* spare pages are committed, so must be less spare than committed. */
   CHECKL(vmArena->spareSize <= arena->committed);
   CHECKL(vmArena->blacklist != ZoneSetUNIV);
+  
+  CHECKD(Gangset, &vmArena->gangset);
 
   allocSet = ZoneSetEMPTY;
   allocSet = ZoneSetUnion(allocSet, vmArena->uncolZoneSet);
@@ -249,7 +272,6 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
 {
   Res res;
   VMArena vmArena;
-  Index gen;
 
   if (!CHECKT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
@@ -266,6 +288,9 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
    *
   */
 
+#if 0
+{
+  Index gen;
   res = WriteF(stream,
                "   uncolZoneSet: $B\n",
                (WriteFB)vmArena->uncolZoneSet,
@@ -291,7 +316,13 @@ static Res VMArenaDescribe(Arena arena, mps_lib_FILE *stream)
                NULL);
   if(res != ResOK)
     return res;
+}
+#endif
 
+  res = GangsetDescribe(&vmArena->gangset, stream);
+  if(res != ResOK)
+    return res;
+  
   /* (incomplete: some fields are not Described) */
 
   return ResOK;
@@ -510,7 +541,6 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   Res res;
   VMArena vmArena;
   Arena arena;
-  Index i;
   Index gen;
   VM arenaVM;
   Chunk chunk;
@@ -540,10 +570,11 @@ static Res VMArenaInit(Arena *arenaReturn, ArenaClass class, va_list args)
   vmArena->vm = arenaVM;
   vmArena->spareSize = 0;
 
+  GangsetInit(arena, &vmArena->gangset);
+  
   /* .blacklist: We blacklist the zones corresponding to small integers. */
   vmArena->blacklist =
     ZoneSetAdd(arena, ZoneSetAdd(arena, ZoneSetEMPTY, (Addr)1), (Addr)-1);
-
 
   vmArena->uncolZoneSet = ZoneSetEMPTY;
   vmArena->nogenZoneSet = ZoneSetEMPTY;
@@ -987,7 +1018,10 @@ static Serial vmGenOfSegPref(VMArena vmArena, SegPref pref)
  *   by other SegPrefs should be considered (if it's FALSE then only
  *   zones already used by this segpref or free zones will be used).
  */
-static Bool pagesFindFreeWithSegPref(Index *baseReturn, VMChunk *chunkReturn,
+extern Bool pagesFindFreeWithSegPref(Index *baseReturn, VMChunk *chunkReturn,
+                                     VMArena vmArena, SegPref pref, Size size,
+                                     Bool barge);
+Bool pagesFindFreeWithSegPref(Index *baseReturn, VMChunk *chunkReturn,
                                      VMArena vmArena, SegPref pref, Size size,
                                      Bool barge)
 {
@@ -1163,11 +1197,14 @@ typedef Res (*VMAllocPolicyMethod)(Index *, VMChunk *, VMArena, SegPref, Size);
 static Res VMAllocPolicy(Index *baseIndexReturn, VMChunk *chunkReturn,
                          VMArena vmArena, SegPref pref, Size size)
 {
+  Arena arena;
   ZoneSet zones;
+  
+  arena = VMArena2Arena(vmArena);
 
-  for(SegPrefZonesOpen(pref, gangset);
-      SegPrefZonesNext(&zones, pref, TRUE);) {
-    if(pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
+  for(SegPrefZonesOpen(arena, pref);
+      SegPrefZonesNext(&zones, arena, pref, TRUE);) {
+    if(pagesFindFreeInZones(baseIndexReturn, chunkReturn, vmArena, size,
                             zones, pref->high)) {
       /* Range found, but allocation may still fail; therefore */
       /* leave the SegPrefZones search unclosed. */
@@ -1175,7 +1212,7 @@ static Res VMAllocPolicy(Index *baseIndexReturn, VMChunk *chunkReturn,
     }
   }
   /* end this search, without having allocated */
-  SegPrefZonesClose(FALSE);
+  SegPrefZonesClose(arena, pref, FALSE, NULL, NULL);
   
   /* try and extend, but don't worry if we can't */
   (void)vmArenaExtend(vmArena, size);
@@ -1184,9 +1221,9 @@ static Res VMAllocPolicy(Index *baseIndexReturn, VMChunk *chunkReturn,
   /* we proceed to try the allocation again anyway. */
   /* We specify barging, but if we have got a new chunk */
   /* then hopefully we won't need to barge. */
-  for(SegPrefZonesOpen(pref, gangset);
-      SegPrefZonesNext(&zones, pref, FALSE);) {
-    if(pagesFindFreeInZones(baseReturn, chunkReturn, vmArena, size,
+  for(SegPrefZonesOpen(arena, pref);
+      SegPrefZonesNext(&zones, arena, pref, FALSE);) {
+    if(pagesFindFreeInZones(baseIndexReturn, chunkReturn, vmArena, size,
                             zones, pref->high)) {
       /* Range found, but allocation may still fail; therefore */
       /* leave the SegPrefZones search unclosed. */
@@ -1194,7 +1231,7 @@ static Res VMAllocPolicy(Index *baseIndexReturn, VMChunk *chunkReturn,
     }
   }
   /* end this search, without having allocated */
-  SegPrefZonesClose(FALSE);
+  SegPrefZonesClose(arena, pref, FALSE, NULL, NULL);
 
   /* .improve.alloc-fail: This could be because the request was */
   /* too large, or perhaps the arena is fragmented.  We could */
@@ -1205,10 +1242,13 @@ static Res VMAllocPolicy(Index *baseIndexReturn, VMChunk *chunkReturn,
 static Res VMNZAllocPolicy(Index *baseIndexReturn, VMChunk *chunkReturn,
                            VMArena vmArena, SegPref pref, Size size)
 {
+  Arena arena = VMArena2Arena(vmArena);
+  SegPrefZonesOpen(arena, pref);
   if (pagesFindFreeInZones(baseIndexReturn, chunkReturn, vmArena, size,
                            ZoneSetUNIV, pref->high)) {
     return ResOK;
   }
+  SegPrefZonesClose(arena, pref, FALSE, NULL, NULL);
   return ResRESOURCE;
 }
 
@@ -1359,9 +1399,6 @@ static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
   Arena arena;
   Count pages;
   Index baseIndex;
-  ZoneSet zones;
-  ZoneSet *zsRecord;
-  ZoneSet zsNew;
   Res res;
   VMArena vmArena;
   VMChunk vmChunk;
@@ -1421,51 +1458,15 @@ static Res vmAllocComm(Addr *baseReturn, Tract *baseTractReturn,
   base = PageIndexBase(chunk, baseIndex);
   baseTract = PageTract(&chunk->pageTable[baseIndex]);
   limit = AddrAdd(base, size);
-  /* SegPrefGotRange */
-  zones = ZoneSetOfRange(arena, base, limit);
-
-  GangUseZones(gang, zones);
-  if (pref->isGen) {
-    Serial gen = vmGenOfSegPref(vmArena, pref);
-    zsRecord = &vmArena->genZoneSet[gen];
-  }
-  else {
-    zsRecord = &vmArena->nogenZoneSet;
-  }
   
-  zsNew = ZoneSetDiff(zones, *zsRecord);
-  if(zsNew != ZoneSetEMPTY) {
-    /* using a new zone */
-    DIAG_FIRSTF(( "vmAllocComm_newzone", NULL));
-    DIAG( SegPrefDescribe(pref, DIAG_STREAM); );
-    if(pref->isGen) {
-      DIAG_MOREF(( "  gen: $U  ", (WriteFU)pref->gen, NULL));
-    } else {
-      DIAG_MOREF(( "  nogen  ", NULL));
-    }
-    DIAG_MOREF((
-      "was: $B  ", (WriteFB)*zsRecord,
-      "add: $B\n", (WriteFB)zsNew,
-      NULL));
-    if(!ZoneSetSub(zsNew, vmArena->freeSet)) {
-      DIAG_MOREF(( "BARGE!\n", NULL ));
-    }
-    DIAG_END("vmAllocComm_newzone");
-
-    *zsRecord = ZoneSetUnion(*zsRecord, zones);
-  }
-
-  if(!pref->isCollected) {
-    vmArena->uncolZoneSet = ZoneSetUnion(vmArena->uncolZoneSet, zones);
-  }
-
-  vmArena->freeSet = ZoneSetDiff(vmArena->freeSet, zones);
+  SegPrefZonesClose(arena, pref, TRUE, base, limit);
  
   *baseReturn = base;
   *baseTractReturn = baseTract;
   return ResOK;
 
 failPagesMap:
+  SegPrefZonesClose(arena, pref, FALSE, NULL, NULL);
   return res;
 }
 
@@ -1766,7 +1767,7 @@ mps_arena_class_t mps_arena_class_vmnz(void)
 
 /* GangCheck */
 
-static Bool GangCheck(Gang gang)
+Bool GangCheck(Gang gang)
 {
   CHECKS(Gang, gang);
   CHECKL(gang->name[GANGNAMELEN - 1] == '\0');
@@ -1783,6 +1784,8 @@ static Bool GangCheck(Gang gang)
 Res GangDescribe(Gang gang, mps_lib_FILE *stream)
 {
   Res res;
+  Count zones = MPS_WORD_WIDTH;
+  Index zone;
 
   if(!CHECKT(Gang, gang))
     return ResFAIL;
@@ -1790,13 +1793,32 @@ Res GangDescribe(Gang gang, mps_lib_FILE *stream)
     return ResFAIL;
 
   res = WriteF(stream,
-    "Gang $P \"$S\" {\n", (WriteFP)gang, (WriteFS)gang->name,
-    "  preferred $B\n", (WriteFB)gang->preferred,
-    "  in        $B\n", (WriteFB)gang->in,
-    "  claimed   $B\n", (WriteFB)gang->claimed,
-    "  has  ", (gang->hasCollected ? "Collected " : ""),
-    (gang->hasUncollected ? "Uncollected " : ""), "\n",
-    " }\n",
+    "Gang $P ($U) \"$S\" ",
+    (WriteFP)gang, (WriteFS)gang->index, (WriteFS)gang->name, NULL);
+  if(res != ResOK)
+    return res;
+
+  zone = zones;
+  do {
+    ZoneSet z = 1 << --zone;
+    Bool in = (ZoneSetInter(z, gang->in) != ZoneSetEMPTY);
+    Bool claimed = (ZoneSetInter(z, gang->claimed) != ZoneSetEMPTY);
+    Bool unique = (ZoneSetInter(z, gang->unique) != ZoneSetEMPTY);
+    res = WriteF(stream,
+      "$S", unique ? (WriteFS)"1"
+            : claimed ? (WriteFS)"c"
+            : in ? (WriteFS)"b"
+            : (WriteFS)".",
+      NULL);
+    if(res != ResOK)
+      return res;
+  } while(zone > 0);
+
+  res = WriteF(stream,
+    "  has:", (gang->hasCollected ? "Collected " : ""),
+    (gang->hasUncollected ? "Uncollected " : ""), " ",
+    " (preferred $B)", (WriteFB)gang->preferred,
+    "\n",
     NULL);
   if(res != ResOK)
     return res;
@@ -1807,17 +1829,123 @@ Res GangDescribe(Gang gang, mps_lib_FILE *stream)
 
 /* GANGSET */
 
-static Bool GangsetCheck(Gang gang)
+Bool GangsetCheck(Gangset gangset)
 {
+  Index i;
+  ZoneSet preferred = ZoneSetEMPTY;
+  ZoneSet in = ZoneSetEMPTY;
+  ZoneSet shared = ZoneSetEMPTY;
+  ZoneSet claimed = ZoneSetEMPTY;
+  ZoneSet unique = ZoneSetEMPTY;
+
+  CHECKS(Gangset, gangset);
+
+  CHECKL(gangset->gangCount > 0);
+  for(i = 0; i < gangset->gangCount; i += 1) {
+    Gang gang = &gangset->gangs[i];
+    CHECKD(Gang, gang);
+    CHECKL(gang->index == i);
+
+    CHECKL(ZoneSetInter(preferred, gang->preferred) == ZoneSetEMPTY);
+    preferred = ZoneSetUnion(preferred, gang->preferred);
+
+    shared = ZoneSetUnion(shared, ZoneSetInter(in, gang->in));
+    in = ZoneSetUnion(in, gang->in);
+    
+    CHECKL(ZoneSetInter(claimed, gang->claimed) == ZoneSetEMPTY);
+    claimed = ZoneSetUnion(claimed, gang->claimed);
+    CHECKL(ZoneSetInter(unique, gang->unique) == ZoneSetEMPTY);
+    unique = ZoneSetUnion(unique, gang->unique);
+  }
+  CHECKL(ZoneSetInter(shared, unique) == ZoneSetEMPTY);
+  CHECKL(ZoneSetUnion(shared, unique) == in);
+  CHECKL(claimed == in);
+  
+  CHECKL(gangset->gangGenCount < gangset->gangCount);
+  CHECKL(gangset->gangIndexDefault >= gangset->gangGenCount);
+  CHECKL(gangset->gangIndexDefault < gangset->gangCount);
+  CHECKL(gangset->gangIndexAway >= gangset->gangGenCount);
+  CHECKL(gangset->gangIndexAway != gangset->gangIndexDefault);
+  CHECKL(gangset->gangIndexAway < gangset->gangCount);
+  CHECKL(gangset->blacklist != ZoneSetUNIV);
+  CHECKL(gangset->unpreferred == ZoneSetComp(preferred));
+  CHECKL(gangset->freezones == ZoneSetComp(in));
+
+  CHECKL(BoolCheck(gangset->trying));
+  if(gangset->trying) {
+    CHECKL(gangset->tryingGangIndex < gangset->gangCount);
+    /* no check for tryingZones */
+    /* no check for tryingWhat */
+  }
+  
   return TRUE;
 }
 
-static Res GangsetInit(Gangset gangset)
+Res GangsetDescribe(Gangset gangset, mps_lib_FILE *stream)
 {
+  Res res;
+  Index i;
+
+  if(!CHECKT(Gangset, gangset))
+    return ResFAIL;
+  if(stream == NULL)
+    return ResFAIL;
+
+  res = WriteF(stream,
+    "Gangset $P {\n", (WriteFP)gangset,
+    NULL);
+  if(res != ResOK)
+    return res;
+
+  for(i = 0; i < gangset->gangCount; i += 1) {
+    res = GangDescribe(&gangset->gangs[i], stream);
+    if(res != ResOK)
+      return res;
+  }
+
+  res = WriteF(stream,
+    "  blacklist:     $B\n", (WriteFB)gangset->blacklist,
+    "unpreferred:     $B\n", (WriteFB)gangset->unpreferred,
+    "  freezones:     $B\n", (WriteFB)gangset->freezones,
+    NULL);
+  if(res != ResOK)
+    return res;
+
+  if(gangset->trying) {
+    res = WriteF(stream,
+      "  Trying: GangIndex $U  Zones $B  $S\n",
+      (WriteFU)gangset->tryingGangIndex,
+      (WriteFB)gangset->tryingZones,
+      (WriteFS)(gangset->tryingWhat == NULL ? "" : gangset->tryingWhat),
+      NULL);
+  } else {
+    res = WriteF(stream,
+      "  (not trying)\n",
+      NULL);
+  }
+  if(res != ResOK)
+    return res;
+
+  res = WriteF(stream,
+    "}\n",
+    NULL);
+  if(res != ResOK)
+    return res;
+
+  return ResOK;
+}
+
+
+static void GangsetInit(Arena arena, Gangset gangset)
+{
+  ZoneSet preferred = ZoneSetEMPTY;
+  Index i;
+
   DIAG_FIRSTF(( "GangsetInit", NULL ));
-  for(i = 0; i < VMArenaGangCount; i += 1) {
+  for(i = 0; i < ArenaGangCount; i += 1) {
     Gang gang;
-    gang = &vmArena->gangs[i];
+    gang = &gangset->gangs[i];
+    gang->index = i;
     gang->name[0] = '\0';
     gang->name[1] = '\0';
     gang->name[2] = '\0';
@@ -1832,19 +1960,21 @@ static Res GangsetInit(Gangset gangset)
       /* pre-made gangs for generations */
       gang->name[0] = 'g';
       gang->name[1] = '0' + i;
+      gang->name[2] = ' ';
     } else if(i == GangIndexDefault) {
       /* nogen default-zoneset: Gang Default */
       gang->name[0] = 'd';
       gang->name[1] = 'e';
       gang->name[2] = 'f';
       /* note: we do NOT set preferred to ArenaDefaultZONESET */
+      gangset->gangIndexDefault = GangIndexDefault;
     } else if(i == GangIndexAway) {
       /* nogen non-default-zoneset: Gang Away */
       gang->name[0] = 'a';
       gang->name[1] = 'w';
       gang->name[2] = 'y';
-      if(ArenaDefaultZONESET != ZoneSetUNIV)
-        gang->preferred = ZoneSetComp(ArenaDefaultZONESET);
+      gang->preferred = ZoneSetComp(ArenaDefaultZONESET);
+      gangset->gangIndexAway = GangIndexAway;
     } else {
       /* unused gang */
       gang->name[0] = 'x';
@@ -1852,57 +1982,112 @@ static Res GangsetInit(Gangset gangset)
     gang->sig = GangSig;
     AVERT(Gang, gang);
     DIAG( GangDescribe(gang, DIAG_STREAM); );
+    preferred = ZoneSetUnion(preferred, gang->preferred);
   }
-  AVER(i == VMArenaGangCount);
+  AVER(i == ArenaGangCount);
   gangset->gangCount = i;
+  gangset->gangGenCount = VMArenaGenCount;
+
+  /* .blacklist: We blacklist the zones corresponding to small integers. */
+  gangset->blacklist =
+    ZoneSetAdd(arena, ZoneSetAdd(arena, ZoneSetEMPTY, (Addr)1), (Addr)-1);
+  
+  gangset->freezones = ZoneSetUNIV;
+  gangset->unpreferred = ZoneSetComp(preferred);
+  gangset->trying = FALSE;
+  
+  gangset->sig = GangsetSig;
+  AVERT(Gangset, gangset);
   DIAG_END("GangsetInit");
 }
 
-void SegPrefZonesOpen(SegPref pref, Gangset gangset)
+
+/* SegPrefZonesOpen -- start a search for zones for this SegPref
+ *
+ * Usage:
+ *   - for(SegPrefZonesOpen; SegPrefZonesNext(&zones); ) {
+ *   -   attempt to allocate in zones;
+ *   - SegPrefZonesClose, with allocated = True or False.
+ *
+ * Every search started with SegPrefZonesOpen must be ended with a 
+ * call to SegPrefZonesClose (once it is known whether or not a 
+ * range of memory has been successfully allocated).
+ *
+ * Currently, only one such search may be in progress at a time.
+ * This is sufficient and simple.  (It would be easy to allow 
+ * multiple simultaneous searches if that becomes necessary).
+ *
+ * The state of the search is recorded in the gangset.  This gives 
+ * us a place to store arbitrary state, and lets us verify that 
+ * each SegPrefZonesOpen is followed by a SegPrefZonesClose.
+ */
+
+void SegPrefZonesOpen(Arena arena, SegPref pref)
 {
+  VMArena vmArena;
+  Gangset gangset;
   Index gangIndex;
 
-  AVERT(Gangset, gangset);
+  AVERT(Arena, arena);
   AVERT(SegPref, pref);
+  vmArena = Arena2VMArena(arena);
+  AVERT(VMArena, vmArena);
+  gangset = &vmArena->gangset;
+  /* gangset = &arena->gangset; */
+  AVERT(Gangset, gangset);
 
-  AVER(pref->gangset == NULL);
-  AVER(pref->gangIndex == NULL);
-  AVER(pref->trying == ZoneSetEMPTY);
+  AVER(!gangset->trying);
 
   if(pref->isGen) {
     gangIndex = pref->gen;
+    if(gangIndex > VMArenaGenCount) {
+      gangIndex = VMArenaGenCount;
+    }
   } else if(pref->zones == ArenaDefaultZONESET) {
     gangIndex = GangIndexDefault;
   } else {
-    /* for now, all other preferences are lump together in */
+    /* for now, all other preferences are lumped together in */
     /* the "Away" gang */
     gangIndex = GangIndexAway;
   }
-  AVERT(Gang, gangset->gangs[gangIndex]);
+  AVERT(Gang, &gangset->gangs[gangIndex]);
   
-  pref->gangset = gangset;
-  pref->gangIndex = gangIndex;
-  pref->trying = ZoneSetEMPTY;
+  gangset->trying = TRUE;
+  gangset->tryingGangIndex = gangIndex;
+  gangset->tryingZones = ZoneSetEMPTY;
+  gangset->tryingWhat = NULL;
 }
 
 
-Bool SegPrefZonesNext(ZoneSet *zonesReturn, SegPref pref, Bool pregrow)
+Bool SegPrefZonesNext(ZoneSet *zonesReturn, Arena arena, SegPref pref, 
+                      Bool pregrow)
 {
+  VMArena vmArena;
   Gangset gangset;
-  Index gangIndex;
   Gang gang;
+  ZoneSet bl;
+  ZoneSet extra;
+  ZoneSet zones;
+  char *t;
   Bool newzones;
 
+  AVERT(Arena, arena);
   AVERT(SegPref, pref);
-  AVER(pref->gangset);
-  gangset = pref->gangset;
+  AVER(BoolCheck(pregrow));
+
+  vmArena = Arena2VMArena(arena);
+  AVERT(VMArena, vmArena);
+  gangset = &vmArena->gangset;
+  /* gangset = &arena->gangset; */
   AVERT(Gangset, gangset);
-  AVER(pref->gangIndex < gangset->gangCount);
-  gang = gangset->gangs[pref->gangIndex];
+
+  AVER(gangset->trying);
+  AVER(gangset->tryingGangIndex < gangset->gangCount);
+  gang = &gangset->gangs[gangset->tryingGangIndex];
   AVERT(Gang, gang);
 
   bl = gangset->blacklist;
-  zones = pref->trying;
+  zones = gangset->tryingZones;
   newzones = TRUE;
 
   /* For simplicity, we insist that each successive set of zones to 
@@ -1938,45 +2123,45 @@ Bool SegPrefZonesNext(ZoneSet *zonesReturn, SegPref pref, Bool pregrow)
       t = "in my current unique zones (& my preferred)";
       extra = ZoneSetInter(gang->unique, gang->preferred);
       zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "in my current unique zones";
       extra = gang->unique;
       zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       /* Shared(claimed) */
       t = "use a shared claimed zone (& my preferred)";
       extra = ZoneSetInter(gang->claimed, gang->preferred);
       zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "use a shared claimed zone";
       extra = gang->claimed;
       zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       /* Free zone -- these can be slow */
       t = "add a free zone (my preferred)";
       extra = ZoneSetInter(gangset->freezones, gang->preferred);
       zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "add a free zone (unpreferred)";
       extra = ZoneSetInter(gangset->freezones, gangset->unpreferred);
       zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "add a free zone (even other gang's preferred)";
       extra = gangset->freezones;
       zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       /* Shared(borrowed) */
@@ -1984,13 +2169,13 @@ Bool SegPrefZonesNext(ZoneSet *zonesReturn, SegPref pref, Bool pregrow)
       t = "use a shared borrowed zone (& my preferred)";
       extra = ZoneSetInter(gang->in, gang->preferred);
       zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "use a shared borrowed zone";
       extra = gang->in;
       zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "grow";
@@ -2006,12 +2191,12 @@ Bool SegPrefZonesNext(ZoneSet *zonesReturn, SegPref pref, Bool pregrow)
       /* @@@@ should first try the zone with most free grains */
       extra = ZoneSetUNIV;
       zones = ZoneSetUnion(zones, ZoneSetDiff(extra, bl));
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
       
       t = "allow blacklist";
       zones = ZoneSetUNIV;
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
       
       t = "no more zones to try";
@@ -2042,19 +2227,19 @@ Bool SegPrefZonesNext(ZoneSet *zonesReturn, SegPref pref, Bool pregrow)
       extra = ZoneSetInter(gang->unique, gang->preferred);
       extra = ZoneSetInter(extra, bl);
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "in my current unique zones (& my preferred)";
       extra = ZoneSetInter(gang->unique, gang->preferred);
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "in my current unique zones";
       extra = gang->unique;
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       /* Shared(claimed) */
@@ -2062,19 +2247,19 @@ Bool SegPrefZonesNext(ZoneSet *zonesReturn, SegPref pref, Bool pregrow)
       extra = ZoneSetInter(gang->claimed, gang->preferred);
       extra = ZoneSetInter(extra, bl);
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "use a shared claimed zone (& my preferred)";
       extra = ZoneSetInter(gang->claimed, gang->preferred);
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "use a shared claimed zone";
       extra = gang->claimed;
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       /* Free zone -- these can be slow */
@@ -2082,39 +2267,39 @@ Bool SegPrefZonesNext(ZoneSet *zonesReturn, SegPref pref, Bool pregrow)
       extra = ZoneSetInter(gangset->freezones, gang->preferred);
       extra = ZoneSetInter(extra, bl);
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "add a free zone (my preferred)";
       extra = ZoneSetInter(gangset->freezones, gang->preferred);
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "add a free zone (unpreferred & blacklist)";
       extra = ZoneSetInter(gangset->freezones, gangset->unpreferred);
       extra = ZoneSetInter(extra, bl);
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "add a free zone (unpreferred)";
       extra = ZoneSetInter(gangset->freezones, gangset->unpreferred);
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "add a free zone (even other gang's preferred, & blacklist)";
       extra = gangset->freezones;
       extra = ZoneSetInter(extra, bl);
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "add a free zone (even other gang's preferred)";
       extra = gangset->freezones;
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       /* Shared(borrowed) */
@@ -2123,29 +2308,29 @@ Bool SegPrefZonesNext(ZoneSet *zonesReturn, SegPref pref, Bool pregrow)
       extra = ZoneSetInter(gang->in, gang->preferred);
       extra = ZoneSetInter(extra, bl);
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "use a shared borrowed zone (& my preferred)";
       extra = ZoneSetInter(gang->in, gang->preferred);
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "use a shared borrowed zone (& blacklist)";
       extra = gang->in;
       extra = ZoneSetInter(extra, bl);
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
       t = "use a shared borrowed zone";
       extra = gang->in;
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
 
-      t = "grow";
+      t = "time to grow arena, to avoid barging";
       if(pregrow) {
         newzones = FALSE;
         break;
@@ -2155,14 +2340,14 @@ Bool SegPrefZonesNext(ZoneSet *zonesReturn, SegPref pref, Bool pregrow)
       extra = ZoneSetUNIV;
       extra = ZoneSetInter(extra, bl);
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
       
       t = "barge into another gang's zone";
       /* @@@@ should first try the zone with most free grains */
       extra = ZoneSetUNIV;
       zones = ZoneSetUnion(zones, extra);
-      if(!ZoneSetSub(zones, pref->trying))
+      if(!ZoneSetSub(zones, gangset->tryingZones))
         break;
       
       t = "no more zones to try";
@@ -2173,18 +2358,28 @@ Bool SegPrefZonesNext(ZoneSet *zonesReturn, SegPref pref, Bool pregrow)
 
   }
   
+  gangset->tryingWhat = t;
   if(newzones) {
-    /* AVER(zones > pref->trying) */
-    AVER(ZoneSetSuper(zones, pref->trying));
-    AVER(zones != pref->trying);
-    pref->trying = zones;
+    /* AVER(zones > gangset->tryingZones) */
+    AVER(ZoneSetSuper(zones, gangset->tryingZones));
+    AVER(zones != gangset->tryingZones);
+    gangset->tryingZones = zones;
     *zonesReturn = zones;
+
+    DIAG_SINGLEF(( "SegPrefZonesNext",
+      "gang \"$S\" ", (WriteFS)gang->name,
+      "$S: zones = $B", (WriteFS)t, (WriteFB)zones, NULL ));
+  } else {
+    DIAG_SINGLEF(( "SegPrefZonesNext",
+      "gang \"$S\" ", (WriteFS)gang->name,
+      "$S (newzones = Empty)\n", (WriteFS)t, NULL ));
   }
+  
   return newzones;
 }
 
 
-/* SegPrefZonesClose -- finished search for zones for this SegPref
+/* SegPrefZonesClose -- end the search for zones for this SegPref
  *
  * For each search started with SegPrefZonesOpen, there must be one
  * matching call to SegPrefZonesClose, before the next call to
@@ -2205,57 +2400,89 @@ Bool SegPrefZonesNext(ZoneSet *zonesReturn, SegPref pref, Bool pregrow)
  *     (eg. OS refuses to map more pages).
  */
 
-void SegPrefZonesClose(Arena arena, SegPref pref, Bool allocated, Addr base, Addr limit)
+void SegPrefZonesClose(Arena arena, SegPref pref, Bool allocated, 
+                       Addr base, Addr limit)
 {
+  VMArena vmArena;
   ZoneSet zones;
+  ZoneSet zonesNew;
+  Gangset gangset;
   Gang gang;
   
+  AVERT(Arena, arena);
   AVERT(SegPref, pref);
-  AVER(limit > base);
+  AVER(BoolCheck(allocated));
+  /* base & limit checked later */
 
+  vmArena = Arena2VMArena(arena);
+  AVERT(VMArena, vmArena);
+  gangset = &vmArena->gangset;
+  /* gangset = &arena->gangset; */
+  AVERT(Gangset, gangset);
+
+  AVER(gangset->trying);
+  AVER(gangset->tryingGangIndex < gangset->gangCount);
+  gang = &gangset->gangs[gangset->tryingGangIndex];
+  AVERT(Gang, gang);
+  
+  if(!allocated) {
+    /* this search was abandoned */
+    AVER(base == NULL);
+    AVER(limit == NULL);
+    gangset->trying = FALSE;
+    return;
+  }
+
+  AVER(base < limit);
   zones = ZoneSetOfRange(arena, base, limit);
 
-  AVER(pref->gangset);
-  gang = pref->gangset->gangs[pref->gangIndex];
-  AVERT(Gang, gang);
+  zonesNew = ZoneSetDiff(zones, gang->in);
+  if(zonesNew != ZoneSetEMPTY) {
+    Index i;
 
-  zsNew = ZoneSetDiff(zones, gang->in);
-  if(zsNew != ZoneSetEMPTY) {
-    /* using a new zone */
-
-    DIAG_FIRSTF(( "SegPrefGotRange_newzone", NULL));
+    /* Using a new zone. */
+    DIAG_FIRSTF(( "SegPrefZonesClose_newzone", NULL));
     DIAG( SegPrefDescribe(pref, DIAG_STREAM); );
-    if(pref->isGen) {
-      DIAG_MOREF(( "  gen: $U  ", (WriteFU)pref->gen, NULL));
-    } else {
-      DIAG_MOREF(( "  nogen  ", NULL));
-    }
     DIAG_MOREF((
       "was: $B  ", (WriteFB)gang->in,
-      "add: $B\n", (WriteFB)zsNew,
+      "add: $B\n", (WriteFB)zonesNew,
       NULL));
-    if(!ZoneSetSub(zsNew, vmArena->freeSet)) {
+    if(!ZoneSetSub(zonesNew, gangset->freezones)) {
       DIAG_MOREF(( "BARGE!\n", NULL ));
     }
-    DIAG_END("SegPrefGotRange_newzone");
+    DIAG_END("SegPrefZonesClose_newzone");
 
-    gang->in = ZoneSetUnion(gang->in, zsNew);
-    gang->claimed = ZoneSetUnion(gang->claimed, zsNew);
-    gang->unique = ZoneSetUnion(gang->unique, zsNew);
-    for(i = 0; i < VMArenaGangCount; i += 1) {
+    gang->in = ZoneSetUnion(gang->in, zonesNew);
+    /* Are zonesNew claimed and unique for this gang?  Assume yes... */
+    gang->claimed = ZoneSetUnion(gang->claimed, zonesNew);
+    gang->unique = ZoneSetUnion(gang->unique, zonesNew);
+    for(i = 0; i < ArenaGangCount; i += 1) {
+      /* ... unless we find some other gang already using them. */
       Gang other;
-      other = &vmArena->gangs[i];
+      ZoneSet newclash;
+      other = &gangset->gangs[i];
       if(other == gang)
         continue;
-      newclash = ZoneSetInter(zsNew, other->in);
+      newclash = ZoneSetInter(zonesNew, other->in);
       if(newclash != ZoneSetEMPTY) {
         gang->claimed = ZoneSetDiff(gang->claimed, newclash);
         gang->unique = ZoneSetDiff(gang->unique, newclash);
         other->unique = ZoneSetDiff(other->unique, newclash);
       }
     }
+    gangset->freezones = ZoneSetDiff(gangset->freezones, zonesNew);
+
     AVERT(Gangset, gangset);
   }
+  
+  if(pref->isCollected) {
+    gang->hasCollected = TRUE;
+  } else {
+    gang->hasUncollected = TRUE;
+  }
+
+  gangset->trying = FALSE;
+  return;
 }
 
 
