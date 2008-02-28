@@ -2,6 +2,8 @@
 
 	* xdisp.c (display_mode_element): Cancel the previous change.
 	(decode_mode_spec): Likewise.
+	(handle_auto_composed_prop): Don't make composition if it->string
+	is a string.
 
 2008-02-27  Kim F. Storm  <storm@cua.dk>
 
