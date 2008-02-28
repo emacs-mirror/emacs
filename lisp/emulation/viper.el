@@ -403,7 +403,7 @@ widget."
   :group 'viper-misc)
 
 (defcustom viper-emacs-state-mode-list
-  '(custom-mode
+  '(Custom-mode
 
     dired-mode
     efs-mode
