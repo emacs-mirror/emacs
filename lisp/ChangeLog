@@ -1,3 +1,8 @@
+2008-02-28  Daiki Ueno  <ueno@unixuser.org>
+
+	* international/utf-7.el (utf-7-encode): Never skip the trailing - for
+	the `imap' variant.
+
 2008-02-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* uniquify.el (uniquify-buffer-base-name): If the base name is an

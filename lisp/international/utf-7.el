@@ -126,7 +126,9 @@ ESC and SKIP-CHARS are adjusted for the normal and IMAP versions."
 	      ;; consistent with iconv, at least regarding `='.
 	      (skip-chars-forward "^= \t\n")
 	      (delete-region (point) (point-max))))
-	  (unless (eobp)
+          ;; RFC2060 stipulates that all names MUST end in US-ASCII (i.e.
+          ;; a name that ends with a Unicode octet MUST end with a "-").
+	  (if (or imap (not (eobp)))
 	    (insert ?-)))))
     nil))
 
