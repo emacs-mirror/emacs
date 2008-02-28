@@ -1544,12 +1544,14 @@ we put it on this frame."
 	  (> frame-height (+ image-height 19)))))))
 
 
-(defun normal-splash-screen (&optional startup)
+(defun normal-splash-screen (&optional startup concise)
   "Display non-graphic splash screen.
 If optional argument STARTUP is non-nil, display the startup screen
-after Emacs starts.  If STARTUP is nil, display the About screen."
-  (let ((prev-buffer (current-buffer)))
-    (with-current-buffer (get-buffer-create "*About GNU Emacs*")
+after Emacs starts.  If STARTUP is nil, display the About screen.
+If CONCISE is non-nil, display a concise version of the
+splash screen in another window."
+  (let ((splash-buffer (get-buffer-create "*About GNU Emacs*")))
+    (with-current-buffer splash-buffer
       (setq buffer-read-only nil)
       (erase-buffer)
       (setq default-directory command-line-default-directory)
@@ -1610,9 +1612,11 @@ after Emacs starts.  If STARTUP is nil, display the About screen."
       (setq buffer-read-only t)
       (if (and view-read-only (not view-mode))
 	  (view-mode-enter nil 'kill-buffer))
-      (switch-to-buffer "*About GNU Emacs*")
       (if startup (rename-buffer "*GNU Emacs*" t))
-      (goto-char (point-min)))))
+      (goto-char (point-min)))
+    (if concise
+	(display-buffer splash-buffer)
+      (switch-to-buffer splash-buffer))))
 
 (defun normal-mouse-startup-screen ()
   ;; The user can use the mouse to activate menus
@@ -1884,7 +1888,7 @@ screen."
   (if (not (get-buffer "*GNU Emacs*"))
       (if (use-fancy-splash-screens-p)
       	  (fancy-startup-screen concise)
-      	(normal-splash-screen t))))
+      	(normal-splash-screen t concise))))
 
 (defun display-about-screen ()
   "Display the *About GNU Emacs* buffer.
