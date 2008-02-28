@@ -1,3 +1,7 @@
+2008-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* uniquify.el (uniquify-buffer-base-name): Undo last change.
+
 2008-02-28  Daiki Ueno  <ueno@unixuser.org>
 
 	* international/utf-7.el (utf-7-encode): Never skip the trailing - for
