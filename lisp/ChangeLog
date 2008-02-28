@@ -1,5 +1,15 @@
 2008-02-28  Juri Linkov  <juri@jurta.org>
 
+	* startup.el: Always add initial message to *scratch* buffer if
+	`initial-scratch-message' is non-nil regardless of the value of
+	`inhibit-startup-screen'.
+	(inhibit-startup-screen, initial-scratch-message): Doc fix.
+	(command-line-1): Move code that inserts `initial-scratch-message'
+	up before the if-form that checks for `inhibit-startup-screen'.
+	Suggested by Jonathan Rockway <jon@jrock.us>.
+
+2008-02-28  Juri Linkov  <juri@jurta.org>
+
 	* cus-edit.el (custom-mode-map, custom-mode-link-map):
 	Rename `custom-mode' to `Custom-mode' in docstrings.
 	(custom-buffer-create-internal, customize-browse):
