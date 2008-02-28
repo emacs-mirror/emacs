@@ -22,6 +22,10 @@
 	(minibuffer-local-map): Add menu items for next/previous
 	history elements and isearch history forward/backward.
 
+	* progmodes/hideshow.el (hs-minor-mode-menu): Compare
+	`hs-isearch-open' with t instead of `comment' in :selected
+	for "Code and Comment blocks" menu item.
+
 2008-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* uniquify.el (uniquify-buffer-base-name): Undo last change.  Should be
