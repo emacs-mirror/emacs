@@ -1,5 +1,9 @@
 2008-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/fill.el (fill-comment-paragraph): Don't try to do
+	comment-paragraph filling if the commark doesn't match
+	comment-start-skip.
+
 	* uniquify.el (uniquify-buffer-base-name): Undo last change.
 
 2008-02-28  Daiki Ueno  <ueno@unixuser.org>
