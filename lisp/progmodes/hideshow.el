@@ -386,7 +386,7 @@ Use the command `hs-minor-mode' to toggle or set this variable.")
       :active t :style radio :selected (eq hs-isearch-open 'comment)]
      ["Code and Comment blocks" (setq hs-isearch-open t)
       :help "Show both hidden code and comment blocks when isearch matches inside them"
-      :active t :style radio :selected (eq hs-isearch-open 'comment)]
+      :active t :style radio :selected (eq hs-isearch-open t)]
      ["None" (setq hs-isearch-open nil)
       :help "Do not hidden code or comment blocks when isearch matches inside them"
       :active t :style radio :selected (eq hs-isearch-open nil)])))
