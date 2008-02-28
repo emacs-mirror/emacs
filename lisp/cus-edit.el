@@ -4701,9 +4701,9 @@ if that value is non-nil."
 (defun custom-mode ()
   "Non-interactive variant of `Custom-mode'."
   (Custom-mode))
-(make-obsolete 'custom-mode 'Custom-mode "23.0")
+(make-obsolete 'custom-mode 'Custom-mode "23.1")
 (put 'custom-mode 'mode-class 'special)
-(define-obsolete-variable-alias 'custom-mode-hook 'Custom-mode-hook "23.0")
+(define-obsolete-variable-alias 'custom-mode-hook 'Custom-mode-hook "23.1")
 
 (dolist (regexp
 	 '("^No user option defaults have been changed since Emacs "
