@@ -1,7 +1,14 @@
+2008-02-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cus-edit.el (custom-mode, custom-mode-hook): Use 23.1 as
+	version number of the next major Emacs release, not 23.0.
+
+	* longlines.el (longlines-unload-function): New function.
+
 2008-02-28  Juri Linkov  <juri@jurta.org>
 
 	* startup.el (normal-splash-screen): Add argument `concise'.
-	Remove unused binding `prev-buffer'. Let-bind `splash-buffer'
+	Remove unused binding `prev-buffer'.  Let-bind `splash-buffer'
 	to the created buffer.  If `concise' is non-nil, call
 	`display-buffer', otherwise `switch-to-buffer'.  Doc fix.
 	(display-startup-screen): Add argument `concise' to the call to
@@ -51,8 +58,8 @@
 
 2008-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* uniquify.el (uniquify-buffer-base-name): Undo last change.  Should be
-	done in desktop.el instead.
+	* uniquify.el (uniquify-buffer-base-name): Undo last change.
+	Should be done in desktop.el instead.
 
 2008-02-28  Glenn Morris  <rgm@gnu.org>
 
