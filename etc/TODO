@@ -46,9 +46,6 @@ I.e. mouse-set-font should use customize-face.
 ** Distribute a bar cursor of width > 1 evenly between the two glyphs
    on each side of the bar (what to do at the edges?).
 
-** Make vc-checkin avoid reverting the buffer if has not changed after
-   the checkin. Comparing (md5 BUFFER) to (md5 FILE) should be enough.
-
 ** buffer-offer-save should be a permanent local.
 
 ** revert-buffer should eliminate overlays and the mark.
