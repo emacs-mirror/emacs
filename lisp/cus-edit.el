@@ -480,7 +480,7 @@
     (define-key map "n" 'widget-forward)
     (define-key map "p" 'widget-backward)
     map)
-  "Keymap for `custom-mode'.")
+  "Keymap for `Custom-mode'.")
 
 (defvar custom-mode-link-map
   (let ((map (make-keymap)))
@@ -489,7 +489,7 @@
     (define-key map [down-mouse-1] 'mouse-drag-region)
     (define-key map [mouse-2] 'widget-move-and-invoke)
     map)
-  "Local keymap for links in `custom-mode'.")
+  "Local keymap for links in `Custom-mode'.")
 
 (defvar custom-field-keymap
   (let ((map (copy-keymap widget-field-keymap)))
@@ -1578,7 +1578,7 @@ Otherwise use brackets."
 		 'custom-button-pressed-unraised))))
 
 (defun custom-buffer-create-internal (options &optional description)
-  (custom-mode)
+  (Custom-mode)
   (let ((init-file (or custom-file user-init-file)))
     ;; Insert verbose help at the top of the custom buffer.
     (when custom-buffer-verbose-help
@@ -1684,7 +1684,7 @@ possibly because you started Emacs with `-q'.")
     (setq group 'emacs))
   (let ((name "*Customize Browser*"))
     (pop-to-buffer (custom-get-fresh-buffer name)))
-  (custom-mode)
+  (Custom-mode)
   (widget-insert (format "\
 %s buttons; type RET or click mouse-1
 on a button to invoke its action.
@@ -4595,7 +4595,7 @@ The format is suitable for use with `easy-menu-define'."
 
 ;;; `custom-tool-bar-map' used to be set up here.  This will fail to
 ;;; DTRT when `display-graphic-p' returns nil during compilation.  Hence
-;;; we set this up lazily in `custom-mode'.
+;;; we set this up lazily in `Custom-mode'.
 (defvar custom-tool-bar-map nil
   "Keymap for toolbar in Custom mode.")
 
@@ -4625,16 +4625,16 @@ If several parents are listed, go to the first of them."
 	       (parent (downcase (widget-get  button :tag))))
 	  (customize-group parent)))))
 
-(defcustom custom-mode-hook nil
+(defcustom Custom-mode-hook nil
   "Hook called when entering Custom mode."
   :type 'hook
-  :group 'custom-buffer )
+  :group 'custom-buffer)
 
 (defun custom-state-buffer-message (widget)
   (if (eq (widget-get (widget-get widget :parent) :custom-state) 'modified)
       (message "To install your edits, invoke [State] and choose the Set operation")))
 
-(define-derived-mode custom-mode nil "Custom"
+(define-derived-mode Custom-mode nil "Custom"
   "Major mode for editing customization buffers.
 
 The following commands are available:
@@ -4654,7 +4654,7 @@ Reset options to permanent settings.       \\[Custom-reset-saved]
 Erase customizations; set options
   and buffer text to the standard values.  \\[Custom-reset-standard]
 
-Entry to this mode calls the value of `custom-mode-hook'
+Entry to this mode calls the value of `Custom-mode-hook'
 if that value is non-nil."
   (use-local-map custom-mode-map)
   (easy-menu-add Custom-mode-menu)
@@ -4695,7 +4695,15 @@ if that value is non-nil."
     (set (make-local-variable 'widget-link-suffix) ""))
   (add-hook 'widget-edit-functions 'custom-state-buffer-message nil t))
 
+(put 'Custom-mode 'mode-class 'special)
+
+;; backward-compatibility
+(defun custom-mode ()
+  "Non-interactive variant of `Custom-mode'."
+  (Custom-mode))
+(make-obsolete 'custom-mode 'Custom-mode "23.0")
 (put 'custom-mode 'mode-class 'special)
+(define-obsolete-variable-alias 'custom-mode-hook 'Custom-mode-hook "23.0")
 
 (dolist (regexp
 	 '("^No user option defaults have been changed since Emacs "
