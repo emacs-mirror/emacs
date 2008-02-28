@@ -1,3 +1,8 @@
+2008-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* uniquify.el (uniquify-buffer-base-name): Undo last change.  Should be
+	done in desktop.el instead.
+
 2008-02-28  Glenn Morris  <rgm@gnu.org>
 
 	* autoinsert.el (auto-insert-alist): Update to FDL 1.2.

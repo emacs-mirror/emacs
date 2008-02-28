@@ -72,7 +72,7 @@
 ;; Add uniquify-list-buffers-directory-modes
 ;;   Stefan Monnier <monnier@cs.yale.edu> 17 Nov 2000
 ;; Algorithm and data structure changed to reduce consing with lots of buffers
-;;   Francesco Potortì <pot@gnu.org> (ideas by rms and monnier) 2001-07-18
+;;   Francesco PotortÃ¬ <pot@gnu.org> (ideas by rms and monnier) 2001-07-18
 
 ;; Valuable feedback was provided by
 ;; Paul Smith <psmith@baynetworks.com>,
@@ -194,11 +194,9 @@ It actually holds the list of `uniquify-item's corresponding to the conflict.")
 ;; Used in desktop.el to save the non-uniquified buffer name
 (defun uniquify-buffer-base-name ()
   "Return the base name of the current buffer.
-Return nil if the buffer is not managed by uniquify,
-or if the base name is empty."
+Return nil if the buffer is not managed by uniquify."
   (and uniquify-managed
-       (let ((base (uniquify-item-base (car uniquify-managed))))
-	 (if (string= base "") nil base))))
+       (uniquify-item-base (car uniquify-managed))))
 
 ;;; Main entry point.
 
