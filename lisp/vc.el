@@ -553,10 +553,6 @@
 
 ;;; Todo:
 
-;; - Make vc-checkin avoid reverting the buffer if has not changed
-;;   after the checkin.  Comparing (md5 BUFFER) to (md5 FILE) should
-;;   be enough.
-;;
 ;; - vc-update/vc-merge should deal with VC systems that don't
 ;;   update/merge on a file basis, but on a whole repository basis.
 ;;
