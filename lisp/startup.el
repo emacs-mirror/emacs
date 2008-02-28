@@ -42,7 +42,6 @@
 
 (defcustom inhibit-startup-screen nil
   "Non-nil inhibits the startup screen.
-It also inhibits display of the initial message in the `*scratch*' buffer.
 
 This is for use in your personal init file (but NOT site-start.el), once
 you are familiar with the contents of the startup screen."
@@ -1123,9 +1122,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
 ")
   "Initial message displayed in *scratch* buffer at startup.
-If this is nil, no message will be displayed.
-If `inhibit-startup-screen' is non-nil, then no message is displayed,
-regardless of the value of this variable."
+If this is nil, no message will be displayed."
   :type '(choice (text :tag "Message")
 		 (const :tag "none" nil))
   :group 'initialization)
@@ -2120,6 +2117,14 @@ A fancy display is used on graphic displays, normal otherwise."
 	    ;; abort later.
 	    (unless (frame-live-p (selected-frame)) (kill-emacs nil))))))
 
+    ;; If *scratch* exists and is empty, insert initial-scratch-message.
+    (and initial-scratch-message
+	 (get-buffer "*scratch*")
+	 (with-current-buffer "*scratch*"
+	   (when (zerop (buffer-size))
+	     (insert initial-scratch-message)
+	     (set-buffer-modified-p nil))))
+
     (if (or inhibit-startup-screen
 	    noninteractive
 	    emacs-quick-startup)
@@ -2163,14 +2168,6 @@ A fancy display is used on graphic displays, normal otherwise."
       ;; 	(precompute-menubar-bindings))
       ;; (with-no-warnings
       ;; 	(setq menubar-bindings-done t))
-
-      ;; If *scratch* exists and is empty, insert initial-scratch-message.
-      (and initial-scratch-message
-	   (get-buffer "*scratch*")
-	   (with-current-buffer "*scratch*"
-	     (when (zerop (buffer-size))
-	       (insert initial-scratch-message)
-	       (set-buffer-modified-p nil))))
 
       (if (> file-count 0)
 	  (display-startup-screen t)
