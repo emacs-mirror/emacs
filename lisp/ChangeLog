@@ -1,3 +1,26 @@
+2008-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* autoinsert.el (auto-insert-alist): Update to FDL 1.2.
+
+	* emacs-lisp/byte-run.el (make-obsolete): Doc fix.
+
+	* mail/emacsbug.el: Remove leading `*' from defcustom doc-strings.
+	(Info-menu, Info-goto-node): Remove declarations.
+	(report-emacs-bug-info): Use info rather than Info-goto-node.
+
+	* progmodes/idlwave.el (Info-goto-node): Remove declaration.
+	(idlwave-convert-xml-system-routine-info): Don't require xml.
+	(idlwave-show-commentary, idlwave-shell-show-commentary):
+	Don't require finder.
+	(idlwave-info): Don't require info.  Use info rather than
+	Info-goto-node.
+
+	* textmodes/org.el (Info-goto-node): Remove declaration.
+	(org-info): Use info rather than Info-goto-node.
+
+	* textmodes/reftex.el (reftex-show-commentary): Don't require finder.
+	(reftex-info): Don't require info.  Use info rather than Info-goto-node.
+
 2008-02-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/hideshow.el (hs-minor-mode-menu): Add some options to
