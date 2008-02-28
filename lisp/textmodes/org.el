@@ -4105,7 +4105,6 @@ If it is less than 8, the level-1 face gets re-used for level N+1 etc."
                   (date string specifier &optional marker globcolor literal))
 (declare-function table--at-cell-p "table" (position &optional object at-column))
 (declare-function Info-find-node "info" (filename nodename &optional no-going-back))
-(declare-function Info-goto-node "info" (nodename &optional fork))
 (declare-function bbdb "ext:bbdb-com" (string elidep))
 (declare-function bbdb-company "ext:bbdb-com" (string elidep))
 (declare-function bbdb-current-record "ext:bbdb-com" (&optional planning-on-modifying))
@@ -26976,8 +26975,7 @@ See the individual commands for more information."
   "Read documentation for Org-mode in the info system.
 With optional NODE, go directly to that node."
   (interactive)
-  (require 'info)
-  (Info-goto-node (format "(org)%s" (or node ""))))
+  (info (format "(org)%s" (or node ""))))
 
 (defun org-install-agenda-files-menu ()
   (let ((bl (buffer-list)))
