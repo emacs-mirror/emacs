@@ -4834,7 +4834,7 @@ next_overlay_string (it)
       /* If we're at the end of the buffer, record that we have
 	 processed the overlay strings there already, so that
 	 next_element_from_buffer doesn't try it again.  */
-      if (IT_CHARPOS (*it) >= it->end_charpos)
+      if (NILP (it->string) && IT_CHARPOS (*it) >= it->end_charpos)
 	it->overlay_strings_at_end_processed_p = 1;
 
       /* If we have to display `...' for invisible text, set
