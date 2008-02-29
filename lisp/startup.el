@@ -1177,7 +1177,7 @@ If this is nil, no message will be displayed."
 	   '("GNU/Linux"
 	     (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
 	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
-	 '("GNU" (lambda (button) (describe-project))
+	 '("GNU" (lambda (button) (describe-gnu-project))
 	   "Display info on the GNU project")))
      " operating system.\n"
      :face variable-pitch "To quit a partially entered command, type "
@@ -1236,7 +1236,7 @@ Each element in the list should be a list of strings or pairs
 	   '("GNU/Linux"
 	     (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
 	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
-	 '("GNU" (lambda (button) (describe-project))
+	 '("GNU" (lambda (button) (describe-gnu-project))
 	   "Display info on the GNU project.")))
      " operating system.\n"
      :face (lambda ()
@@ -1262,7 +1262,7 @@ Each element in the list should be a list of strings or pairs
 	      (goto-char (point-min))))
      "\tHow to contribute improvements to Emacs\n"
      "\n"
-     :link ("GNU and Freedom" (lambda (button) (describe-project)))
+     :link ("GNU and Freedom" (lambda (button) (describe-gnu-project)))
      "\tWhy we developed GNU Emacs, and the GNU operating system\n"
      :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
      "\tGNU Emacs comes with "
@@ -1872,7 +1872,7 @@ Type \\[describe-distribution] for information on "))
   (insert "\tHow to contribute improvements to Emacs\n\n")
 
   (insert-button "GNU and Freedom"
-		 'action (lambda (button) (describe-project))
+		 'action (lambda (button) (describe-gnu-project))
 		 'follow-link t)
   (insert "\t\tWhy we developed GNU Emacs and the GNU system\n")
 
