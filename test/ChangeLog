@@ -1,3 +1,7 @@
+2008-02-29  Glenn Morris  <rgm@gnu.org>
+
+	* README: New file.
+
 2008-02-29  Ulf Jasper  <ulf.jasper@web.de>
 
 	* icalendar-testsuite.el: New file.
