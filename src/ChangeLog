@@ -1,3 +1,7 @@
+2008-02-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (get_overlay_strings_1): Add missing argument type.
+
 2008-02-28  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* ftfont.c (ftfont_match): Explicitly set pixelsize in pattern.
