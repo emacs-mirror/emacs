@@ -1,3 +1,9 @@
+2008-02-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (next_overlay_string): Don't set
+	overlay_strings_at_end_processed_p if we're currently reading from
+	a display string.
+
 2008-02-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (get_overlay_strings_1): Fix typo.
