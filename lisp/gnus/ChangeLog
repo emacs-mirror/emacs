@@ -1,3 +1,11 @@
+2008-02-29  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-art.el, gnus-bookmark.el, gnus-dired.el, gnus-draft.el:
+	* gnus-group.el, gnus-msg.el, gnus-score.el, gnus-sum.el, gnus-util.el:
+	* gnus.el, mail-source.el, message.el, mm-decode.el, mm-uu.el, mml.el:
+	* nnmail.el, pop3.el, smiley.el, smime.el, spam-report.el:
+	Change defcustom :version from 23.0 to 23.1.
+
 2008-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-art.el: Use with-current-buffer.
