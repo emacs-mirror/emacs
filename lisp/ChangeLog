@@ -1,3 +1,18 @@
+2008-02-29  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (view-emacs-todo): Rename from view-todo.
+	(describe-gnu-project): Rename from describe-project.  Users changed.
+	(view-help-file): New helper function.
+	(describe-distribution, describe-copying, describe-gnu-project)
+	(view-todo, view-order-manuals, view-emacs-problems): Use it.
+	(view-emacs-debugging, view-external-packages): New commands.
+	(help-map): Move describe-distribution to C-h C-o (ordering).
+	Move view-emacs-problems to C-h C-p (problems).
+	Bind view-emacs-debugging to C-h C-d (debugging).
+	Bind view-external-packages to C-h C-e (extras).
+	(help-for-help-internal): Cleanup and align descriptions.
+	Remove command names to reduce clutter.
+
 2008-02-29  Nick Roberts  <nickrob@snap.net.nz>
 
 	* vc.el (vc-set-mode-line-busy-indicator): Use shorter message
