@@ -283,7 +283,7 @@ static void traceStartWhyToTextBuffer(char *s, size_t len, int why)
   size_t i;
 
   AVER(s);
-  /* len can be anything, including 0. */
+  AVER(len > 0);
   AVER(TraceStartWhyBASE <= why);
   AVER(why < TraceStartWhyLIMIT);
 
