@@ -1,3 +1,9 @@
+2008-02-29  Glenn Morris  <rgm@gnu.org>
+
+	* net/imap.el (imap-ping-server):
+	* net/tls.el (tls-checktrust, tls-untrusted, tls-hostmismatch):
+	Change defcustom :version from 23.0 to 23.1.
+
 2008-02-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-save): Save the buffer name if the
