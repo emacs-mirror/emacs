@@ -1,5 +1,11 @@
 2008-02-29  Kim F. Storm  <storm@cua.dk>
 
+	* emulation/cua-base.el (cua-remap-control-v)
+	(cua-remap-control-z): New defcustoms.
+	(cua-mode): Add them to set-after property.
+	(cua--init-keymaps): Use them.
+	Add C-x/C-c home, end, next, and prior to cua--prefix-repeat-keymap.
+
 	* help.el (view-emacs-todo): Rename from view-todo.
 	(describe-gnu-project): Rename from describe-project.  Users changed.
 	(view-help-file): New helper function.
