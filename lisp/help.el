@@ -55,7 +55,7 @@
 ;; `with-output-to-temp-buffer'.  `with-help-window' has this point
 ;; nowhere before exiting.  Currently used by `view-lossage' to assert
 ;; that the last keystrokes are always visible.
-(defvar help-window-point-marker (make-marker) 
+(defvar help-window-point-marker (make-marker)
   "Marker to override default `window-point' of `help-window'.")
 
 (defvar help-map
@@ -68,13 +68,14 @@
 
     (define-key map "\C-a" 'about-emacs)
     (define-key map "\C-c" 'describe-copying)
-    (define-key map "\C-d" 'describe-distribution)
-    (define-key map "\C-e" 'view-emacs-problems)
+    (define-key map "\C-d" 'view-emacs-debugging)
+    (define-key map "\C-e" 'view-external-packages)
     (define-key map "\C-f" 'view-emacs-FAQ)
     (define-key map "\C-m" 'view-order-manuals)
     (define-key map "\C-n" 'view-emacs-news)
-    (define-key map "\C-p" 'describe-project)
-    (define-key map "\C-t" 'view-todo)
+    (define-key map "\C-o" 'describe-distribution)
+    (define-key map "\C-p" 'view-emacs-problems)
+    (define-key map "\C-t" 'view-emacs-todo)
     (define-key map "\C-w" 'describe-no-warranty)
 
     ;; This does not fit the pattern, but it is natural given the C-\ command.
@@ -93,6 +94,7 @@
     (define-key map "d" 'apropos-documentation)
     (define-key map "e" 'view-echo-area-messages)
     (define-key map "f" 'describe-function)
+    (define-key map "g" 'describe-gnu-project)
     (define-key map "h" 'view-hello-file)
 
     (define-key map "i" 'info)
@@ -201,63 +203,52 @@ specifies what to do when the user exits the help buffer."
 (defalias 'help-for-help 'help-for-help-internal)
 ;; It can't find this, but nobody will look.
 (make-help-screen help-for-help-internal
-  "a b c C e f F i I k C-k l L m p r s t v w C-c C-d C-f C-n C-p C-t C-w . or ? :"
+  "Type a help option: [abcCdefFgiIkKlLmnprstvw.] C-[cdefmnoptw] or ?"
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
-a  command-apropos.  Type a list of words or a regexp; it shows a list of
-        commands whose names match.  See also the  apropos  command.
-b  describe-bindings.  Display a table of all key bindings.
-c  describe-key-briefly.  Type a key sequence;
-	it displays the command name run by that key sequence.
-C  describe-coding-system.  Type the name of the coding system to describe,
-        or just RET to describe the ones currently in use.
-d  apropos-documentation.  Type a pattern (a list of words or a regexp), and
-	it shows a list of functions, variables, and other items whose
-	documentation matches that pattern.  See also the apropos command.
-e  view-echo-area-messages.  Go to the buffer that logs echo-area messages.
-f  describe-function.  Type a function name and you see its documentation.
-F  Info-goto-emacs-command-node.  Type a command name;
-	it goes to the on-line manual's section that describes the command.
-h  Display the HELLO file which illustrates various scripts.
-i  info.  The Info documentation reader: read on-line manuals.
-I  describe-input-method.  Describe a specific input method (if you type
-	its name) or the current input method (if you type just RET).
-k  describe-key.  Type a key sequence;
-	it displays the full documentation for that key sequence.
-K  Info-goto-emacs-key-command-node.  Type a key sequence;
-	it goes to the on-line manual's section that describes
-	the command bound to that key.
-l  view-lossage.  Show last 100 characters you typed.
-L  describe-language-environment.  This describes either a
-	specific language environment (if you type its name)
-	or the current language environment (if you type just RET).
-m  describe-mode.  Display documentation of current minor modes,
-	and the current major mode, including their special commands.
-n  view-emacs-news.  Display news of recent Emacs changes.
-p  finder-by-keyword. Find packages matching a given topic keyword.
-r  info-emacs-manual.  Display the Emacs manual in Info mode.
-s  describe-syntax.  Display contents of syntax table, plus explanations.
-S  info-lookup-symbol.  Type a symbol; it goes to that symbol in the
-        on-line manual for the programming language used in this buffer.
-t  help-with-tutorial.  Select the Emacs learn-by-doing tutorial.
-v  describe-variable.  Type name of a variable;
-	it displays the variable's documentation and value.
-w  where-is.  Type a command name; it displays which keystrokes
-	invoke that command.
-.  display-local-help.  Display any available local help at point
-        in the echo area.
+a PATTERN   Show commands whose name matches the PATTERN (a list of words
+              or a regexp).  See also the `apropos' command.
+b           Display all key bindings.
+c KEYS      Display the command name run by the given key sequence.
+C CODING    Describe the given coding system, or RET for current ones.
+d PATTERN   Show a list of functions, variables, and other items whose
+              documentation matches the PATTERN (a list of words or a regexp).
+e           Go to the *Messages* buffer which logs echo-area messages.
+f FUNCTION  Display documentation for the given function.
+F COMMAND   Show the on-line manual's section that describes the command.
+g           Display information about the GNU project.
+h           Display the HELLO file which illustrates various scripts.
+i           Start the Info documentation reader: read on-line manuals.
+I METHOD    Describe a specific input method, or RET for current.
+k KEYS      Display the full documentation for the key sequence.
+K KEYS      Show the on-line manual's section for the command bound to KEYS.
+l           Show last 100 characters you typed (lossage).
+L LANG-ENV  Describes a specific language environment, or RET for current.
+m           Display documentation of current minor modes and current major mode,
+              including their special commands.
+n           Display news of recent Emacs changes.
+p TOPIC     Find packages matching a given topic keyword.
+r           Display the Emacs manual in Info mode.
+s           Display contents of current syntax table, plus explanations.
+S SYMBOL    Show the section for the given symbol in the on-line manual
+              for the programming language used in this buffer.
+t           Start the Emacs learn-by-doing tutorial.
+v VARIABLE  Display the given variable's documentation and value.
+w COMMAND   Display which keystrokes invoke the given command (where-is).
+.           Display any available local help at point in the echo area.
 
-C-a Display information about Emacs.
-C-c Display Emacs copying permission (GNU General Public License).
-C-d Display Emacs ordering information.
-C-e Display info about Emacs problems.
-C-f Display the Emacs FAQ.
-C-m Display how to order printed Emacs manuals.
-C-n Display news of recent Emacs changes.
-C-p Display information about the GNU project.
-C-t Display the Emacs TODO list.
-C-w Display information on absence of warranty for GNU Emacs."
+C-a         Information about Emacs.
+C-c         Emacs copying permission (GNU General Public License).
+C-d         Instructions for debugging GNU Emacs.
+C-e         External packages and information about Emacs.
+C-f         Emacs FAQ.
+C-m         How to order printed Emacs manuals.
+C-n         News of recent Emacs changes.
+C-o         Emacs ordering and distribution information.
+C-p         Info about known Emacs problems.
+C-t         Emacs TODO list.
+C-w         Information on absence of warranty for GNU Emacs."
   help-map)
 
 
@@ -303,22 +294,26 @@ If that doesn't give a function, return nil."
 
 ;;; `User' help functions
 
+(defun view-help-file (file &optional dir)
+  (view-file (expand-file-name file (or dir data-directory)))
+  (goto-address)
+  (goto-char (point-min)))
+
 (defun describe-distribution ()
   "Display info on how to obtain the latest version of GNU Emacs."
   (interactive)
-  (view-file (expand-file-name "DISTRIB" data-directory)))
+  (view-help-file "DISTRIB"))
 
 (defun describe-copying ()
   "Display info on how you may redistribute copies of GNU Emacs."
   (interactive)
-  (view-file (expand-file-name "COPYING" data-directory))
-  (goto-char (point-min)))
+  (view-help-file "COPYING"))
 
-(defun describe-project ()
+(defalias 'describe-project 'describe-gnu-project)
+(defun describe-gnu-project ()
   "Display info on the GNU project."
   (interactive)
-  (view-file (expand-file-name "THE-GNU-PROJECT" data-directory))
-  (goto-char (point-min)))
+  (view-help-file "THE-GNU-PROJECT"))
 
 (defun describe-no-warranty ()
   "Display info on all the kinds of warranty Emacs does NOT have."
@@ -417,11 +412,11 @@ With argument, display info only for the selected version."
 	   (beginning-of-line)
 	   (point)))))))
 
-
-(defun view-todo (&optional arg)
+(defalias 'view-todo 'view-emacs-todo)
+(defun view-emacs-todo (&optional arg)
   "Display the Emacs TODO list."
   (interactive "P")
-  (view-file (expand-file-name "TODO" data-directory)))
+  (view-help-file "TODO"))
 
 (defun view-echo-area-messages ()
   "View the log of recent echo-area messages: the `*Messages*' buffer.
@@ -433,8 +428,7 @@ is specified by the variable `message-log-max'."
 (defun view-order-manuals ()
   "Display the Emacs ORDERS file."
   (interactive)
-  (view-file (expand-file-name "ORDERS" data-directory))
-  (goto-address))
+  (view-help-file "ORDERS"))
 
 (defun view-emacs-FAQ ()
   "Display the Emacs Frequently Asked Questions (FAQ) file."
@@ -445,7 +439,17 @@ is specified by the variable `message-log-max'."
 (defun view-emacs-problems ()
   "Display info on known problems with Emacs and possible workarounds."
   (interactive)
-  (view-file (expand-file-name "PROBLEMS" data-directory)))
+  (view-help-file "PROBLEMS"))
+
+(defun view-emacs-debugging ()
+  "Display info on how to debug Emacs problems."
+  (interactive)
+  (view-help-file "DEBUG"))
+
+(defun view-external-packages ()
+  "Display external packages and information about Emacs."
+  (interactive)
+  (view-help-file "MORE.STUFF"))
 
 (defun view-lossage ()
   "Display last 100 input keystrokes.
