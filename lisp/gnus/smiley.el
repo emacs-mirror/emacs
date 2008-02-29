@@ -76,7 +76,7 @@
 	 (setq smiley-data-directory (smiley-directory))
 	 (smiley-update-cache))
   :initialize 'custom-initialize-default
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'smiley)
 
 ;; For compatibility, honor the variable `smiley-data-directory' if the user

@@ -77,7 +77,7 @@
   "Your preference for a mail composition package.
 See `mail-user-agent' for more information."
   :group 'mail ;; dired?
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :type '(radio (function-item :tag "Default Emacs mail"
 			       :format "%t\n"
 			       sendmail-user-agent)

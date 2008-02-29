@@ -521,7 +521,7 @@ If it is `log', add timestamps to only the messages that go into the
 \"*Messages*\" buffer (in XEmacs, it is the \" *Message-Log*\" buffer).
 If it is neither nil nor `log', add timestamps not only to log messages
 but also to the ones displayed in the echo area."
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group  'gnus-various
   :type '(choice :format "%{%t%}:\n %[Value Menu%] %v"
 		 (const :tag "Logged messages only" log)

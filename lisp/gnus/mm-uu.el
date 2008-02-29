@@ -89,7 +89,7 @@ This can be either \"inline\" or \"attachment\".")
 
 (defcustom mm-uu-tex-groups-regexp "\\.tex\\>"
   "*Regexp matching TeX groups."
-  :version "23.0"
+  :version "23.1"
   :type 'regexp
   :group 'gnus-article-mime)
 
@@ -245,7 +245,7 @@ The value should be nil on displays where the face
 `mm-uu-extract' isn't distinguishable to the face `default'."
   :type '(choice (const :tag "Hide" t)
 		 (const :tag "Don't hide" nil))
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'gnus-article-mime)
 
 (defface mm-uu-extract '(;; Colors from `gnus-cite-3' plus background:
@@ -261,7 +261,7 @@ The value should be nil on displays where the face
 			  ()))
   "Face for extracted buffers."
   ;; See `mm-uu-verbatim-marks-extract'.
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'gnus-article-mime)
 
 (defun mm-uu-copy-to-buffer (&optional from to properties)

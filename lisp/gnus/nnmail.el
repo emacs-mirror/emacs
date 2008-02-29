@@ -1296,7 +1296,7 @@ Return the number of characters in the body."
   "Header line matching mailer producing bogus References lines.
 See `nnmail-ignore-broken-references'."
   :group 'nnmail-prepare
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :type 'regexp)
 
 (defun nnmail-ignore-broken-references ()

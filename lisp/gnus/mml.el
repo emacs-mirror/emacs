@@ -97,7 +97,7 @@ type (e.g., text/plain) respectively, and DISPOSITION should be either
 the string \"attachment\" or the string \"inline\".  The value t for
 SUPERTYPE, SUBTYPE or TYPE matches any of those types.  The first
 match found will be used."
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :type (let ((dispositions '(radio :format "DISPOSITION: %v"
 				    :value "attachment"
 				    (const :format "%v " "attachment")
@@ -1110,7 +1110,7 @@ See Info node `(emacs-mime)Composing'.
   "The default directory where mml will find files.
 If not set, `default-directory' will be used."
   :type '(choice directory (const :tag "Default" nil))
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'message)
 
 (defun mml-minibuffer-read-file (prompt)

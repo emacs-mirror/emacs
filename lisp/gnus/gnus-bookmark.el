@@ -139,7 +139,7 @@ The default value is \(author subject date group annotation\)."
 (defface gnus-bookmark-menu-heading
   '((t (:inherit font-lock-type-face)))
   "Face used to highlight the heading in Gnus bookmark menu buffers."
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'gnus-bookmark)
 
 (defconst gnus-bookmark-end-of-version-stamp-marker

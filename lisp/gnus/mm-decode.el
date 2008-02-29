@@ -394,7 +394,7 @@ functions), `mm-file-name-delete-whitespace',
 	       (repeat :inline t
 		       :tag "Function"
 		       function)))
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'mime-display)
 
 

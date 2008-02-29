@@ -718,7 +718,7 @@ The following additional specs are available:
 (defcustom gnus-copy-article-ignored-headers nil
   "List of headers to be removed when copying an article.
 Each element is a regular expression."
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :type '(repeat regexp)
   :group 'gnus-article-various)
 
@@ -885,7 +885,7 @@ See the manual for the valid properties for various image types.
 Currently, `pbm' is used for X-Face images and `png' is used for Face
 images in Emacs.  Only the `:face' property is effective on the `xface'
 image type in XEmacs if it is built with the libcompface library."
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'gnus-article-headers
   :type '(repeat (cons :format "%v" (symbol :tag "Image type") plist)))
 
@@ -1057,7 +1057,7 @@ used."
 When 0, point will be placed on the same part as before.  When
 positive (negative), move point forward (backwards) this many
 parts.  When nil, redisplay article."
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'gnus-article-mime
   :type '(choice (const nil :tag "Redisplay article.")
 		 (const 1 :tag "Next part.")
@@ -1362,7 +1362,7 @@ If it is a regexp, only long headers matching this regexp are unfolded.
 If it is t, all long headers are unfolded.
 
 This variable has no effect if `gnus-treat-unfold-headers' is nil."
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'gnus-article-treat
   :type '(choice (const nil)
 		 (const :tag "all" t)
@@ -2227,7 +2227,7 @@ unfolded."
   "Value of `truncate-lines' in Gnus Article buffer.
 Valid values are nil, t, `head', `first', `last', an integer or a
 predicate.  See Info node `(gnus)Customizing Articles'."
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'gnus-article
   ;; :link '(custom-manual "(gnus)Customizing Articles")
   :type 'boolean)
@@ -2766,7 +2766,7 @@ exit from the summary buffer.  If it is the symbol `file', query
 on each file, if it is `ask' ask once when exiting from the
 summary buffer."
   :group 'gnus-article
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :type '(choice (const :tag "Don't delete" nil)
 		 (const :tag "Don't ask" t)
 		 (const :tag "Ask" ask)

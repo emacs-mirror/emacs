@@ -245,7 +245,7 @@ If nil, use system defaults."
 If needed search base, binddn, passwd, etc. for the LDAP host
 must be set in `ldap-host-parameters-alist'."
   :type '(repeat (string :tag "Host name"))
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'smime)
 
 (defvar smime-details-buffer "*OpenSSL output*")
