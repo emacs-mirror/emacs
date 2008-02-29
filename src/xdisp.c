@@ -5091,7 +5091,7 @@ static int
 get_overlay_strings_1 (it, charpos, compute_stop_p)
      struct it *it;
      int charpos;
-     int compute_stop_p
+     int compute_stop_p;
 {
   /* Get the first OVERLAY_STRING_CHUNK_SIZE overlay strings to
      process.  This fills IT->overlay_strings with strings, and sets

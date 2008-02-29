@@ -1,3 +1,7 @@
+2008-02-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (get_overlay_strings_1): Fix typo.
+
 2008-02-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (get_overlay_strings_1): Add missing argument type.
