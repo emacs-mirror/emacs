@@ -84,6 +84,11 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00058.html
 Fix is already in the trunk.
 2008-01-29 change to url-auth.el by John Wiegley.
 
+** Shell-script indenting of &&, |
+Patch here:
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02814.html
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02939.html
+
 * DOCUMENTATION
 
 ** Shouldn't directory-abbrev-alist be in Emacs manual?
