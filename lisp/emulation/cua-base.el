@@ -282,6 +282,17 @@ enabled."
 		 (other :tag "Enabled" t))
   :group 'cua)
 
+(defcustom cua-remap-control-v t
+  "*If non-nil, C-v binding is used for paste (yank).
+Also, M-v is mapped to `cua-repeat-replace-region'."
+  :type 'boolean
+  :group 'cua)
+
+(defcustom cua-remap-control-z t
+  "*If non-nil, C-v binding is used for undo."
+  :type 'boolean
+  :group 'cua)
+
 (defcustom cua-highlight-region-shift-only nil
   "*If non-nil, only highlight region if marked with S-<move>.
 When this is non-nil, CUA toggles `transient-mark-mode' on when the region
@@ -1432,24 +1443,21 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
   (define-key cua--cua-keys-keymap [(control x) timeout] 'kill-region)
   (define-key cua--cua-keys-keymap [(control c) timeout] 'copy-region-as-kill)
-  (define-key cua--cua-keys-keymap [(control z)] 'undo)
-  (define-key cua--cua-keys-keymap [(control v)] 'yank)
-  (define-key cua--cua-keys-keymap [(meta v)] 'cua-repeat-replace-region)
+  (when cua-remap-control-z
+    (define-key cua--cua-keys-keymap [(control z)] 'undo))
+  (when cua-remap-control-v
+    (define-key cua--cua-keys-keymap [(control v)] 'yank)
+    (define-key cua--cua-keys-keymap [(meta v)] 'cua-repeat-replace-region))
   (define-key cua--cua-keys-keymap [remap exchange-point-and-mark] 'cua-exchange-point-and-mark)
 
   (define-key cua--prefix-override-keymap [(control x)] 'cua--prefix-override-handler)
   (define-key cua--prefix-override-keymap [(control c)] 'cua--prefix-override-handler)
 
   (define-key cua--prefix-repeat-keymap [(control x) (control x)] 'cua--prefix-repeat-handler)
-  (define-key cua--prefix-repeat-keymap [(control x) up]    'cua--prefix-cut-handler)
-  (define-key cua--prefix-repeat-keymap [(control x) down]  'cua--prefix-cut-handler)
-  (define-key cua--prefix-repeat-keymap [(control x) left]  'cua--prefix-cut-handler)
-  (define-key cua--prefix-repeat-keymap [(control x) right] 'cua--prefix-cut-handler)
   (define-key cua--prefix-repeat-keymap [(control c) (control c)] 'cua--prefix-repeat-handler)
-  (define-key cua--prefix-repeat-keymap [(control c) up]    'cua--prefix-copy-handler)
-  (define-key cua--prefix-repeat-keymap [(control c) down]  'cua--prefix-copy-handler)
-  (define-key cua--prefix-repeat-keymap [(control c) left]  'cua--prefix-copy-handler)
-  (define-key cua--prefix-repeat-keymap [(control c) right] 'cua--prefix-copy-handler)
+  (dolist (key '(up down left right home end next prior))
+    (define-key cua--prefix-repeat-keymap (vector '(control x) key) 'cua--prefix-cut-handler)
+    (define-key cua--prefix-repeat-keymap (vector '(control c) key) 'cua--prefix-copy-handler))
 
   ;; Enable shifted fallbacks for C-x and C-c when region is active
   (define-key cua--region-keymap [(shift control x)] 'cua--shift-control-x-prefix)
@@ -1537,6 +1545,7 @@ shifted movement key, set `cua-highlight-region-shift-only'."
   :global t
   :group 'cua
   :set-after '(cua-enable-modeline-indications
+	       cua-remap-control-v cua-remap-control-z
 	       cua-rectangle-mark-key cua-rectangle-modifier-key)
   :require 'cua-base
   :link '(emacs-commentary-link "cua-base.el")
