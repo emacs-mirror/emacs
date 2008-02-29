@@ -895,8 +895,9 @@ See also `desktop-base-file-name'."
 			  "desktop-append-buffer-args")
 			" "
 			desktop-file-version)
-		;; If the base name is non-nil, we save it instead of the buffer name
-		(when base (setcar (nthcdr 1 l) base))
+		;; If there's a non-empty base name, we save it instead of the buffer name
+		(when (and base (not (string= base "")))
+		  (setcar (nthcdr 1 l) base))
 		(dolist (e l)
 		  (insert "\n  " (desktop-value-to-string e)))
 		(insert ")\n\n"))))
