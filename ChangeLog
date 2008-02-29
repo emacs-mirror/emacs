@@ -12,13 +12,10 @@
 	obsolete and are proposed to be removed.  Remove some more unused
 	systems.
 
-	* configure: Regenerate.
-
 2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Remove references to obsolete variables and
 	systems.
-	* configure: Regenerate.
 
 2008-02-21  Glenn Morris  <rgm@gnu.org>
 
@@ -239,21 +236,15 @@
 
 	* configure.in: Use PKG_CHECK_MODULES to check for D-Bus.
 
-	* configure: Regenerate.
-
 2007-12-03  Michael Albinus  <michael.albinus@gmx.de>
 
 	* configure.in: No need for DBUS_INFO anymore.
-
-	* configure: Regenerate.
 
 	* Makefile.in (INFO_FILES): Use dbus unconditionally.
 
 2007-12-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* configure.in: Add D-Bus checks.  D-Bus is disabled by default.
-
-	* configure: Regenerate.
 
 	* Makefile.in (INFO_FILES): Add dbus.
 
