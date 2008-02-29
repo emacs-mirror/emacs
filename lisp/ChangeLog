@@ -1,8 +1,12 @@
+2008-02-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-save): Save the buffer name if the
+	uniquified base name is empty.
+
 2008-02-29  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-info-stack-custom): Apply
-	function-name-face correctly when user has
-	"set print address off".
+	* progmodes/gdb-ui.el (gdb-info-stack-custom): Apply function-name-face
+	correctly when user has "set print address off".
 
 2008-02-28  Juanma Barranquero  <lekktu@gmail.com>
 
