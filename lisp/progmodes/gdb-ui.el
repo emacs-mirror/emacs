@@ -2202,10 +2202,7 @@ static char *magick[] = {
 		    (put-text-property bl (+ bl 4)
 				       'face '(:inverse-video t))
 		    (setq move-to bl)))
-		(when (re-search-forward
-		       (concat
-			(if (string-equal (match-string 1) "0") "" " in ")
-			"\\([^ ]+\\) (") el t)
+		(when (re-search-forward "\\([^ ]+\\) (" el t)
 		  (put-text-property (match-beginning 1) (match-end 1)
 				     'face font-lock-function-name-face)
 		  (setq bl (match-end 0))
