@@ -1,3 +1,8 @@
+2008-02-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-save): Save the buffer name if the
+	uniquified base name is empty.
+
 2008-02-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-sanity-check-hunk): Only accept an empty line if
@@ -6,7 +11,7 @@
 2008-02-28  Juri Linkov  <juri@jurta.org>
 
 	* startup.el (normal-splash-screen): Add argument `concise'.
-	Remove unused binding `prev-buffer'. Let-bind `splash-buffer'
+	Remove unused binding `prev-buffer'.  Let-bind `splash-buffer'
 	to the created buffer.  If `concise' is non-nil, call
 	`display-buffer', otherwise `switch-to-buffer'.  Doc fix.
 	(display-startup-screen): Add argument `concise' to the call to
