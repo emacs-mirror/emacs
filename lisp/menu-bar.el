@@ -1352,7 +1352,7 @@ key, a click, or a menu-item"))
 	      :help "Read the Introduction to Emacs Lisp Programming"))
 
 (define-key menu-bar-help-menu [about-gnu-project]
-  '(menu-item "About GNU" describe-project
+  '(menu-item "About GNU" describe-gnu-project
 	      :help "About the GNU System, GNU Project, and GNU/Linux"))
 (define-key menu-bar-help-menu [about-emacs]
   '(menu-item "About Emacs" about-emacs
