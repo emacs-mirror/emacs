@@ -584,7 +584,7 @@ formatted copy."
 (defcustom allout-topic-encryption-bullet "~"
   "*Bullet signifying encryption of the entry's body."
   :type '(choice (const nil) string)
-  :version "22.0"
+  :version "22.1"
   :group 'allout-encryption)
 ;;;_  = allout-passphrase-verifier-handling
 (defcustom allout-passphrase-verifier-handling t
@@ -593,7 +593,7 @@ formatted copy."
 See the docstring for the `allout-enable-file-variable-adjustment'
 variable for details about allout ajustment of file variables."
   :type 'boolean
-  :version "22.0"
+  :version "22.1"
   :group 'allout-encryption)
 (make-variable-buffer-local 'allout-passphrase-verifier-handling)
 ;;;_  = allout-passphrase-hint-handling
@@ -609,7 +609,7 @@ variable for details about allout ajustment of file variables."
   :type '(choice (const always)
                  (const needed)
                  (const disabled))
-  :version "22.0"
+  :version "22.1"
   :group 'allout-encryption)
 (make-variable-buffer-local 'allout-passphrase-hint-handling)
 ;;;_  = allout-encrypt-unencrypted-on-saves
@@ -642,7 +642,7 @@ disable auto-saves for that file."
   :type '(choice (const :tag "Yes" t)
                  (const :tag "All except current topic" except-current)
                  (const :tag "No" nil))
-  :version "22.0"
+  :version "22.1"
   :group 'allout-encryption)
 (make-variable-buffer-local 'allout-encrypt-unencrypted-on-saves)
 
@@ -1641,7 +1641,7 @@ the following two lines in your Emacs init file:
   ;; the _transient_ opening of invisible text during isearch -- is keyed to
   ;; presence of the isearch-open-invisible property -- even though this
   ;; property controls the isearch _arrival_ behavior.  This is the case at
-  ;; least in emacs 21, 22.0, and xemacs 21.4.
+  ;; least in emacs 21, 22.1, and xemacs 21.4.
   (put 'allout-exposure-category 'isearch-open-invisible
        'allout-isearch-end-handler)
   (if (featurep 'xemacs)
