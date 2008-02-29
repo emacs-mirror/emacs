@@ -591,22 +591,29 @@ is actually @kbd{C-M-h}, which marks a defun.)
 
   The Emacs help commands described above display dynamic help based
 on the current state within Emacs, or refer to manuals.  Other help
-commands display pre-written, static help files.  These commands all
-have the form @kbd{C-h C-@var{char}}; that is, @kbd{C-h} followed by a
-control character.
+commands display pre-written, static help files.
+
+  Except for @kbd{C-h g}, these commands all have the form @kbd{C-h
+C-@var{char}}; that is, @kbd{C-h} followed by a control character.
 
 @kindex C-h C-c
 @findex describe-copying
 @kindex C-h C-d
-@findex describe-distribution
+@findex view-emacs-debugging
 @kindex C-h C-e
-@findex view-emacs-problems
+@findex view-external-packages
 @kindex C-h C-f
 @findex view-emacs-FAQ
+@kindex C-h g
+@findex describe-gnu-project
+@kindex C-h C-m
+@findex view-order-manuals
 @kindex C-h C-n
 @findex view-emacs-news
+@kindex C-h C-o
+@findex describe-distribution
 @kindex C-h C-p
-@findex describe-project
+@findex view-emacs-problems
 @kindex C-h C-t
 @findex view-emacs-todo
 @kindex C-h C-w
@@ -617,21 +624,26 @@ control character.
 Display the Emacs copying conditions (@code{describe-copying}).
 These are the rules under which you can copy and redistribute Emacs.
 @item C-h C-d
-Display how to download or order the latest version of
-Emacs and other GNU software (@code{describe-distribution}).
-@item C-h C-e
-Display the list of known Emacs problems, sometimes with suggested
-workarounds (@code{view-emacs-problems}).
+Display how to debug Emacs problems (@code{view-emacs-debugging}).
 @item C-h C-f
 Display the Emacs frequently-answered-questions list (@code{view-emacs-FAQ}).
+@item C-h g
+Display general information about the GNU Project
+(@code{describe-gnu-project}).
+@item C-h C-m
+Display how to order printed copies of Emacs manuals
+(@code{view-order-manuals}).
 @item C-h C-n
 Display the Emacs ``news'' file, which lists new features in the most
 recent version of Emacs (@code{view-emacs-news}).
+@item C-h C-o
+Display how to order or download the latest version of
+Emacs and other GNU software (@code{describe-distribution}).
 @item C-h C-p
-Display general information about the GNU Project
-(@code{describe-project}).
+Display the list of known Emacs problems, sometimes with suggested
+workarounds (@code{view-emacs-problems}).
 @item C-h C-t
-Display the Emacs to-do list (@code{view-todo}).
+Display the Emacs to-do list (@code{view-emacs-todo}).
 @item C-h C-w
 Display the full details on the complete absence of warranty for GNU
 Emacs (@code{describe-no-warranty}).
