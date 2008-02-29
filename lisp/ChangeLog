@@ -1,3 +1,8 @@
+2008-02-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-sanity-check-hunk): Only accept an empty line if
+	we still expect more lines.
+
 2008-02-28  Juri Linkov  <juri@jurta.org>
 
 	* startup.el (normal-splash-screen): Add argument `concise'.
