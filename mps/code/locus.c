@@ -42,8 +42,8 @@ Res SegPrefDescribe(SegPref pref, mps_lib_FILE *stream)
     return ResFAIL;
   
   res = WriteF(stream,
-    "SegPref $P {", (WriteFP)pref,
-    (pref->isCollected ? "  COLLECTED" : "  not-collected"),
+    "SegPref $P ", (WriteFP)pref,
+    (pref->isCollected ? "COLLECTED" : "not-collected"),
     NULL);
   if(res != ResOK)
     return res;
@@ -67,7 +67,6 @@ Res SegPrefDescribe(SegPref pref, mps_lib_FILE *stream)
 
   res = WriteF(stream,
     "  (preferred-zones: $B)\n", (WriteFB)pref->zones,
-    " }\n",
     NULL);
   if(res != ResOK)
     return res;
