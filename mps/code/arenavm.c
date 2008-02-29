@@ -52,9 +52,13 @@ extern void SegPrefZonesClose(Arena arena, SegPref pref, Bool allocated,
 
 extern Bool GangCheck(Gang gang);
 extern Res GangDescribe(Gang gang, mps_lib_FILE *stream);
-extern Bool GangsetCheck(Gangset gangset);
+extern Res GangNewDescribe(Gang gang, Gang gangNew, ZoneSet zonesNew,
+  mps_lib_FILE *stream);
 
+extern Bool GangsetCheck(Gangset gangset);
 extern Res GangsetDescribe(Gangset gangset, mps_lib_FILE *stream);
+extern Res GangsetNewDescribe(Gangset gangset, Gang gangNew, ZoneSet zonesNew,
+  mps_lib_FILE *stream);
 static void GangsetInit(Arena arena, Gangset gangset);
 
 enum {
@@ -1783,6 +1787,12 @@ Bool GangCheck(Gang gang)
  
 Res GangDescribe(Gang gang, mps_lib_FILE *stream)
 {
+  return GangNewDescribe(gang, NULL, ZoneSetEMPTY, stream);
+}
+ 
+Res GangNewDescribe(Gang gang, Gang gangNew, ZoneSet zonesNew,
+                    mps_lib_FILE *stream)
+{
   Res res;
   Count zones = MPS_WORD_WIDTH;
   Index zone;
@@ -1793,14 +1803,13 @@ Res GangDescribe(Gang gang, mps_lib_FILE *stream)
     return ResFAIL;
 
   res = WriteF(stream,
-    "Gang $P ($U) \"$S\" ",
-    (WriteFP)gang, (WriteFS)gang->index, (WriteFS)gang->name, NULL);
+    "Gang $U \"$S\" ",
+    (WriteFS)gang->index, (WriteFS)gang->name, NULL);
   if(res != ResOK)
     return res;
 
-  zone = zones;
-  do {
-    ZoneSet z = 1 << --zone;
+  for(zone = zones; zone-- > 0;) {
+    ZoneSet z = 1 << zone;
     Bool in = (ZoneSetInter(z, gang->in) != ZoneSetEMPTY);
     Bool claimed = (ZoneSetInter(z, gang->claimed) != ZoneSetEMPTY);
     Bool unique = (ZoneSetInter(z, gang->unique) != ZoneSetEMPTY);
@@ -1812,16 +1821,40 @@ Res GangDescribe(Gang gang, mps_lib_FILE *stream)
       NULL);
     if(res != ResOK)
       return res;
-  } while(zone > 0);
+  }
 
   res = WriteF(stream,
     "  has:", (gang->hasCollected ? "Collected " : ""),
     (gang->hasUncollected ? "Uncollected " : ""), " ",
-    " (preferred $B)", (WriteFB)gang->preferred,
+    /* not interesting: " (preferred $B)", (WriteFB)gang->preferred, */
     "\n",
     NULL);
   if(res != ResOK)
     return res;
+
+  if(gang == gangNew) {
+    res = WriteF(stream,
+   /* "             ", */
+      "       (new: ",
+      NULL);
+    if(res != ResOK)
+      return res;
+    for(zone = zones; zone-- > 0;) {
+      ZoneSet z = 1 << zone;
+      Bool newzone = (ZoneSetInter(z, zonesNew) != ZoneSetEMPTY);
+      res = WriteF(stream,
+        "$S", newzone ? (WriteFS)"^"
+              : (WriteFS)" ",
+        NULL);
+      if(res != ResOK)
+        return res;
+    }
+    res = WriteF(stream,
+      ")\n",
+      NULL);
+    if(res != ResOK)
+      return res;
+  }
 
   return ResOK;
 }
@@ -1883,22 +1916,32 @@ Bool GangsetCheck(Gangset gangset)
 
 Res GangsetDescribe(Gangset gangset, mps_lib_FILE *stream)
 {
+  return GangsetNewDescribe(gangset, NULL, ZoneSetEMPTY, stream);
+}
+
+Res GangsetNewDescribe(Gangset gangset, Gang gangNew, ZoneSet zonesNew,
+                       mps_lib_FILE *stream)
+{
   Res res;
   Index i;
 
   if(!CHECKT(Gangset, gangset))
     return ResFAIL;
+  if(gangNew && !CHECKT(Gang, gangNew))
+    return ResFAIL;
+  /* no check for zonesNew */
   if(stream == NULL)
     return ResFAIL;
 
   res = WriteF(stream,
-    "Gangset $P {\n", (WriteFP)gangset,
+    "Gangset $P {", (WriteFP)gangset,
+    "[ key:  zones are...   1:unique to this gang  c:claimed by this gang (but now shared)  b:borrowed (barged into) ]\n",
     NULL);
   if(res != ResOK)
     return res;
 
   for(i = 0; i < gangset->gangCount; i += 1) {
-    res = GangDescribe(&gangset->gangs[i], stream);
+    res = GangNewDescribe(&gangset->gangs[i], gangNew, zonesNew, stream);
     if(res != ResOK)
       return res;
   }
@@ -2441,17 +2484,6 @@ void SegPrefZonesClose(Arena arena, SegPref pref, Bool allocated,
     Index i;
 
     /* Using a new zone. */
-    DIAG_FIRSTF(( "SegPrefZonesClose_newzone", NULL));
-    DIAG( SegPrefDescribe(pref, DIAG_STREAM); );
-    DIAG_MOREF((
-      "was: $B  ", (WriteFB)gang->in,
-      "add: $B\n", (WriteFB)zonesNew,
-      NULL));
-    if(!ZoneSetSub(zonesNew, gangset->freezones)) {
-      DIAG_MOREF(( "BARGE!\n", NULL ));
-    }
-    DIAG_END("SegPrefZonesClose_newzone");
-
     gang->in = ZoneSetUnion(gang->in, zonesNew);
     /* Are zonesNew claimed and unique for this gang?  Assume yes... */
     gang->claimed = ZoneSetUnion(gang->claimed, zonesNew);
@@ -2471,6 +2503,11 @@ void SegPrefZonesClose(Arena arena, SegPref pref, Bool allocated,
       }
     }
     gangset->freezones = ZoneSetDiff(gangset->freezones, zonesNew);
+
+    DIAG_FIRSTF(( "SegPrefZonesClose_newzone", NULL));
+    DIAG( SegPrefDescribe(pref, DIAG_STREAM); );
+    DIAG( GangsetNewDescribe(gangset, gang, zonesNew, DIAG_STREAM); );
+    DIAG_END("SegPrefZonesClose_newzone");
 
     AVERT(Gangset, gangset);
   }
