@@ -1153,7 +1153,7 @@ necessary.  If nil, the buffer name is generated."
 (defcustom imap-ping-server t
   "If non-nil, check if IMAP is open.
 See the function `imap-ping-server'."
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'imap
   :type 'boolean)
 
