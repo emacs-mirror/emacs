@@ -1,3 +1,8 @@
+2008-02-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc.el (vc-set-mode-line-busy-indicator): Use shorter message
+	and quieter face (not a warning).
+
 2008-02-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-status-crt-marked): New variable.
