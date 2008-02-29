@@ -1,3 +1,13 @@
+2008-02-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-status-crt-marked): New variable.
+	(vc-status-mode): Make it local.
+	(vc-status-refresh): Use it to save the marked files.
+	(vc-update-vc-status-buffer): Use it to restore the marked files.
+
+	* vc-svn.el (vc-svn-after-dir-status):
+	* vc-hg.el (vc-hg-after-dir-status): Clean up the temporary buffer.
+
 2008-02-29  Glenn Morris  <rgm@gnu.org>
 
 	* allout.el (allout-topic-encryption-bullet)

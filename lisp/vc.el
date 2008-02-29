@@ -2824,12 +2824,16 @@ With prefix arg READ-SWITCHES, specify a value to override
 (defvar vc-status-process-buffer nil
   "The buffer used for the asynchronous call that computes the VC status.")
 
+(defvar vc-status-crt-marked nil
+  "The list of marked files before `vc-status-refresh'.")
+
 (defun vc-status-mode ()
   "Major mode for VC status.
 \\{vc-status-mode-map}"
   (setq mode-name "*VC Status*")
   (setq major-mode 'vc-status-mode)
   (setq buffer-read-only t)
+  (set (make-local-variable 'vc-status-crt-marked) nil)
   (use-local-map vc-status-mode-map)
   (let ((buffer-read-only nil)
 	(backend (vc-responsible-backend default-directory))
@@ -2846,17 +2850,38 @@ With prefix arg READ-SWITCHES, specify a value to override
 (defun vc-update-vc-status-buffer (entries buffer)
   (with-current-buffer buffer
     (when entries
+      ;; Insert the entries we got into the ewoc.
       (dolist (entry entries)
 	(ewoc-enter-last vc-status
 			 (vc-status-create-fileinfo (cdr entry) (car entry))))
+      ;; If we had marked items before the refresh, try mark them here.
+      ;; XXX: there should be a better way to do this...
+      (when vc-status-crt-marked
+	(ewoc-map
+	 (lambda (arg)
+	   (when (member (vc-status-fileinfo->name arg) vc-status-crt-marked)
+	     (setf (vc-status-fileinfo->marked arg) t)))
+	 vc-status))
       (ewoc-goto-node vc-status (ewoc-nth vc-status 0)))
+    ;; We are done, turn of the in progress message in the mode-line.
     (setq mode-line-process nil)))
 
 (defun vc-status-refresh ()
   "Refresh the contents of the VC status buffer."
   (interactive)
+
   ;; This is not very efficient; ewoc could use a new function here.
+  ;; We clear the ewoc, but remember the marked files so that we can
+  ;; mark them after the refresh is done.
+  (setq vc-status-crt-marked 
+	(mapcar
+	 (lambda (elem)
+	   (vc-status-fileinfo->name elem))
+	 (ewoc-collect
+	  vc-status
+	  (lambda (crt) (vc-status-fileinfo->marked crt)))))
   (ewoc-filter vc-status (lambda (node) nil))
+
   (let ((backend (vc-responsible-backend default-directory)))
     (vc-set-mode-line-busy-indicator)
     ;; Call the dir-status backend function. dir-status is supposed to
