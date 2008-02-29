@@ -1063,14 +1063,8 @@ BUF defaults to \"*vc*\", can be a string and will be created if necessary."
 
 (defun vc-set-mode-line-busy-indicator ()
   (setq mode-line-process
-	;; Deliberate overstatement, but power law respected.
-	;; (The message is ephemeral, so we make it loud.)  --ttn
-	(propertize " (incomplete/in progress)"
-		    'face (if (featurep 'compile)
-			      ;; ttn's preferred loudness
-			      'compilation-warning
-			    ;; suitably available fallback
-			    font-lock-warning-face)
+	(propertize " [waiting...]"
+		    'face 'font-lock-variable-name-face
 		    'help-echo
 		    "A VC command is in progress in this buffer")))
 
