@@ -967,11 +967,11 @@ It returns t if a desktop file was loaded, nil otherwise."
 		   (or (null desktop-load-locked-desktop)
 		       (not (y-or-n-p (format "Warning: desktop file appears to be in use by PID %s.\n\
 Using it may cause conflicts.  Use it anyway? " owner)))))
-	      (progn
-		(let ((default-directory desktop-dirname))
-		  (run-hooks 'desktop-not-loaded-hook))
+	      (let ((default-directory desktop-dirname))
 		(setq desktop-dirname nil)
-		(message "Desktop file in use; not loaded."))
+		(run-hooks 'desktop-not-loaded-hook)
+		(unless desktop-dirname
+		  (message "Desktop file in use; not loaded.")))
 	    (desktop-lazy-abort)
 	    ;; Evaluate desktop buffer and remember when it was modified.
 	    (load (desktop-full-file-name) t t t)
