@@ -1462,9 +1462,10 @@ font_unparse_fcname (font, pixel_size, name, nbytes)
       if (INTEGERP (val))
 	{
 	  val = prop_numeric_to_name (i, XINT (val));
-	  len += (strlen (style_names[i - FONT_WEIGHT_INDEX])
-		  + 2 + SBYTES (SYMBOL_NAME (val))); /* :xxx=NAME */
 	}
+      if (SYMBOLP (val) && ! NILP (val))
+        len += (strlen (style_names[i - FONT_WEIGHT_INDEX])
+                + 2 + SBYTES (SYMBOL_NAME (val))); /* :xxx=NAME */
       styles[i - FONT_WEIGHT_INDEX] = val;
     }
 
