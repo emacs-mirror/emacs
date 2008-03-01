@@ -1,7 +1,12 @@
+2008-03-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-read): Set `desktop-dirname' to nil before
+	running `desktop-not-loaded-hook' to allow modifying it.
+	Don't show warning message if `desktop-dirname' was modified.
+
 2008-03-01  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-mode.el (c-neutralize-syntax-in-CPP): Fix coding
-	bug.
+	* progmodes/cc-mode.el (c-neutralize-syntax-in-CPP): Fix coding bug.
 
 	* progmodes/cc-langs.el (c-before-font-lock-function): Fix bug in
 	doc-string, "c-old-LEN" -> "c-old-END".
@@ -156,7 +161,7 @@
 	(verilog-pretty-declarations): Add new flag to ask it to refrain
 	from printing to the message buffer.
 	(verilog-pretty-expr): Add a QUIET flag to ask it to refrain from
-	printing to the message buffer.	 Improve handling of the many
+	printing to the message buffer.  Improve handling of the many
 	types of expression line up.
 	(verilog-just-one-space): Remove printing of an empty message.
 	(verilog-get-lineup-indent): Rework to support the better handling
