@@ -553,10 +553,6 @@
 
 ;;; Todo:
 
-;; - Make vc-checkin avoid reverting the buffer if has not changed
-;;   after the checkin.  Comparing (md5 BUFFER) to (md5 FILE) should
-;;   be enough.
-;;
 ;; - vc-update/vc-merge should deal with VC systems that don't
 ;;   update/merge on a file basis, but on a whole repository basis.
 ;;
@@ -595,7 +591,10 @@
 ;;   adjustments.
 ;;
 ;; - when changing a file whose directory is shown in the vc-status
-;;   buffer, it should be added there are "modified".  (PCL-CVS does this).
+;;   buffer, it should be added there as "modified".  (PCL-CVS does this).
+;;
+;; - Update the vc-status buffers after vc operations, implement the
+;;   equivalent of vc-dired-resynch-file.
 ;;
 ;; - vc-status needs a toolbar.
 ;;
@@ -1064,14 +1063,8 @@ BUF defaults to \"*vc*\", can be a string and will be created if necessary."
 
 (defun vc-set-mode-line-busy-indicator ()
   (setq mode-line-process
-	;; Deliberate overstatement, but power law respected.
-	;; (The message is ephemeral, so we make it loud.)  --ttn
-	(propertize " (incomplete/in progress)"
-		    'face (if (featurep 'compile)
-			      ;; ttn's preferred loudness
-			      'compilation-warning
-			    ;; suitably available fallback
-			    font-lock-warning-face)
+	(propertize " [waiting...]"
+		    'face 'font-lock-variable-name-face
 		    'help-echo
 		    "A VC command is in progress in this buffer")))
 
@@ -1407,7 +1400,7 @@ Otherwise, throw an error."
 	 (list buffer-file-name))
 	((and vc-parent-buffer (or (buffer-file-name vc-parent-buffer)
 				   (with-current-buffer vc-parent-buffer
-				     vc-dired-mode)))
+				     (or vc-dired-mode (eq major-mode 'vc-status-mode)))))
 	 (progn
 	   (set-buffer vc-parent-buffer)
 	   (vc-deduce-fileset)))
@@ -1541,7 +1534,7 @@ merge in the changes into your working copy."
     (dolist (file files)
       (let ((visited (get-file-buffer file)))
 	(when visited
-	  (if vc-dired-mode
+	  (if (or vc-dired-mode (eq major-mode 'vc-status-mode))
 	      (switch-to-buffer-other-window visited)
 	    (set-buffer visited))
 	  ;; Check relation of buffer and file, and make sure
@@ -1811,7 +1804,7 @@ empty comment.  Remember the file's buffer in `vc-parent-buffer'
 \(current one if no file).  AFTER-HOOK specifies the local value
 for `vc-log-after-operation-hook'."
   (let ((parent
-         (if (eq major-mode 'vc-dired-mode)
+         (if (or (eq major-mode 'vc-dired-mode) (eq major-mode 'vc-status-mode))
              ;; If we are called from VC dired, the parent buffer is
              ;; the current buffer.
              (current-buffer)
@@ -1951,7 +1944,7 @@ the buffer contents as a comment."
   ;; Sync parent buffer in case the user modified it while editing the comment.
   ;; But not if it is a vc-dired buffer.
   (with-current-buffer vc-parent-buffer
-    (or vc-dired-mode (vc-buffer-sync)))
+    (or vc-dired-mode (eq major-mode 'vc-status-mode) (vc-buffer-sync)))
   (if (not vc-log-operation)
       (error "No log operation is pending"))
   ;; save the parameters held in buffer-local variables
@@ -1983,7 +1976,7 @@ the buffer contents as a comment."
 	(mapc
 	 (lambda (file) (vc-resynch-buffer file vc-keep-workfiles t))
 	 log-fileset))
-    (if vc-dired-mode
+    (if (or vc-dired-mode (eq major-mode 'vc-status-mode))
       (dired-move-to-filename))
     (run-hooks after-hook 'vc-finish-logentry-hook)))
 
@@ -2825,12 +2818,16 @@ With prefix arg READ-SWITCHES, specify a value to override
 (defvar vc-status-process-buffer nil
   "The buffer used for the asynchronous call that computes the VC status.")
 
+(defvar vc-status-crt-marked nil
+  "The list of marked files before `vc-status-refresh'.")
+
 (defun vc-status-mode ()
   "Major mode for VC status.
 \\{vc-status-mode-map}"
   (setq mode-name "*VC Status*")
   (setq major-mode 'vc-status-mode)
   (setq buffer-read-only t)
+  (set (make-local-variable 'vc-status-crt-marked) nil)
   (use-local-map vc-status-mode-map)
   (let ((buffer-read-only nil)
 	(backend (vc-responsible-backend default-directory))
@@ -2847,17 +2844,38 @@ With prefix arg READ-SWITCHES, specify a value to override
 (defun vc-update-vc-status-buffer (entries buffer)
   (with-current-buffer buffer
     (when entries
+      ;; Insert the entries we got into the ewoc.
       (dolist (entry entries)
 	(ewoc-enter-last vc-status
 			 (vc-status-create-fileinfo (cdr entry) (car entry))))
+      ;; If we had marked items before the refresh, try mark them here.
+      ;; XXX: there should be a better way to do this...
+      (when vc-status-crt-marked
+	(ewoc-map
+	 (lambda (arg)
+	   (when (member (vc-status-fileinfo->name arg) vc-status-crt-marked)
+	     (setf (vc-status-fileinfo->marked arg) t)))
+	 vc-status))
       (ewoc-goto-node vc-status (ewoc-nth vc-status 0)))
+    ;; We are done, turn of the in progress message in the mode-line.
     (setq mode-line-process nil)))
 
 (defun vc-status-refresh ()
   "Refresh the contents of the VC status buffer."
   (interactive)
+
   ;; This is not very efficient; ewoc could use a new function here.
+  ;; We clear the ewoc, but remember the marked files so that we can
+  ;; mark them after the refresh is done.
+  (setq vc-status-crt-marked 
+	(mapcar
+	 (lambda (elem)
+	   (vc-status-fileinfo->name elem))
+	 (ewoc-collect
+	  vc-status
+	  (lambda (crt) (vc-status-fileinfo->marked crt)))))
   (ewoc-filter vc-status (lambda (node) nil))
+
   (let ((backend (vc-responsible-backend default-directory)))
     (vc-set-mode-line-busy-indicator)
     ;; Call the dir-status backend function. dir-status is supposed to

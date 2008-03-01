@@ -220,7 +220,7 @@ the function specified by `spam-report-url-ping-function'."
 This is initialized based on `user-mail-address'."
   :type '(choice string
 		 (const :tag "Don't expose address" nil))
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'spam-report)
 
 (defvar spam-report-user-agent

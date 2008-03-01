@@ -917,12 +917,11 @@ static int display_mode_lines P_ ((struct window *));
 static int display_mode_line P_ ((struct window *, enum face_id, Lisp_Object));
 static int display_mode_element P_ ((struct it *, int, int, int, Lisp_Object, Lisp_Object, int));
 static int store_mode_line_string P_ ((char *, Lisp_Object, int, int, int, Lisp_Object));
-static char *decode_mode_spec P_ ((struct window *, int, int, int, int *,
-				   Lisp_Object *));
+static char *decode_mode_spec P_ ((struct window *, int, int, int, int *));
 static void display_menu_bar P_ ((struct window *));
 static int display_count_lines P_ ((int, int, int, int, int *));
 static int display_string P_ ((unsigned char *, Lisp_Object, Lisp_Object,
-			       int, int, struct it *, int, int, int, int));
+			       EMACS_INT, EMACS_INT, struct it *, int, int, int, int));
 static void compute_line_metrics P_ ((struct it *));
 static void run_redisplay_end_trigger_hook P_ ((struct it *));
 static int get_overlay_strings P_ ((struct it *, int));
@@ -964,7 +963,7 @@ static void compute_stop_pos P_ ((struct it *));
 static void compute_string_pos P_ ((struct text_pos *, struct text_pos,
 				    Lisp_Object));
 static int face_before_or_after_it_pos P_ ((struct it *, int));
-static int next_overlay_change P_ ((int));
+static EMACS_INT next_overlay_change P_ ((EMACS_INT));
 static int handle_single_display_spec P_ ((struct it *, Lisp_Object,
 					   Lisp_Object, Lisp_Object,
 					   struct text_pos *, int));
@@ -3224,9 +3223,9 @@ compute_stop_pos (it)
    follows.  This is like `next-overlay-change' but doesn't use
    xmalloc.  */
 
-static int
+static EMACS_INT
 next_overlay_change (pos)
-     int pos;
+     EMACS_INT pos;
 {
   int noverlays;
   EMACS_INT endpos;
@@ -3241,7 +3240,7 @@ next_overlay_change (pos)
   for (i = 0; i < noverlays; ++i)
     {
       Lisp_Object oend;
-      int oendpos;
+      EMACS_INT oendpos;
 
       oend = OVERLAY_END (overlays[i]);
       oendpos = OVERLAY_POSITION (oend);
@@ -3353,7 +3352,8 @@ static enum prop_handled
 handle_face_prop (it)
      struct it *it;
 {
-  int new_face_id, next_stop;
+  int new_face_id;
+  EMACS_INT next_stop;
 
   if (!STRINGP (it->string))
     {
@@ -3521,7 +3521,7 @@ face_before_or_after_it_pos (it, before_p)
      int before_p;
 {
   int face_id, limit;
-  int next_check_charpos;
+  EMACS_INT next_check_charpos;
   struct text_pos pos;
 
   xassert (it->s == NULL);
@@ -4634,7 +4634,7 @@ handle_auto_composed_prop (it)
 		val = Qnil;
 	    }
 	}
-      if (NILP (val))
+      if (NILP (val) && ! STRINGP (it->string))
 	{
 	  if (limit < 0)
 	    limit = (STRINGP (it->string) ? SCHARS (it->string)
@@ -4743,6 +4743,7 @@ handle_composition_prop (it)
 #ifdef USE_FONT_BACKEND
 	  if (composition_table[id]->method == COMPOSITION_WITH_GLYPH_STRING)
 	    {
+	      /* FIXME: This doesn't do anything!?! */
 	      Lisp_Object lgstring = AREF (XHASH_TABLE (composition_hash_table)
 					   ->key_and_value,
 					   cmp->hash_index * 2);
@@ -4833,7 +4834,7 @@ next_overlay_string (it)
       /* If we're at the end of the buffer, record that we have
 	 processed the overlay strings there already, so that
 	 next_element_from_buffer doesn't try it again.  */
-      if (IT_CHARPOS (*it) >= it->end_charpos)
+      if (NILP (it->string) && IT_CHARPOS (*it) >= it->end_charpos)
 	it->overlay_strings_at_end_processed_p = 1;
 
       /* If we have to display `...' for invisible text, set
@@ -5090,6 +5091,7 @@ static int
 get_overlay_strings_1 (it, charpos, compute_stop_p)
      struct it *it;
      int charpos;
+     int compute_stop_p;
 {
   /* Get the first OVERLAY_STRING_CHUNK_SIZE overlay strings to
      process.  This fills IT->overlay_strings with strings, and sets
@@ -5807,29 +5809,29 @@ get_next_display_element (it)
 		 can be defined in the display table.  Fill
 		 IT->ctl_chars with glyphs for what we have to
 		 display.  Then, set IT->dpvec to these glyphs.  */
-	      GLYPH g;
+	      Lisp_Object gc;
 	      int ctl_len;
 	      int face_id, lface_id = 0 ;
-	      GLYPH escape_glyph;
+	      int escape_glyph;
 
 	      /* Handle control characters with ^.  */
 
 	      if (it->c < 128 && it->ctl_arrow_p)
 		{
+		  int g;
+
 		  g = '^';	     /* default glyph for Control */
 		  /* Set IT->ctl_chars[0] to the glyph for `^'.  */
 		  if (it->dp
-		      && INTEGERP (DISP_CTRL_GLYPH (it->dp))
-		      && GLYPH_CHAR_VALID_P (XINT (DISP_CTRL_GLYPH (it->dp))))
+		      && (gc = DISP_CTRL_GLYPH (it->dp), GLYPH_CODE_P (gc))
+		      && GLYPH_CODE_CHAR_VALID_P (gc))
 		    {
-		      g = XINT (DISP_CTRL_GLYPH (it->dp));
-		      lface_id = FAST_GLYPH_FACE (g);
+		      g = GLYPH_CODE_CHAR (gc);
+		      lface_id = GLYPH_CODE_FACE (gc);
 		    }
 		  if (lface_id)
 		    {
-		       g = FAST_GLYPH_CHAR (g);
-		       face_id = merge_faces (it->f, Qt, lface_id,
-					      it->face_id);
+		      face_id = merge_faces (it->f, Qt, lface_id, it->face_id);
 		    }
 		  else if (it->f == last_escape_glyph_frame
 			   && it->face_id == last_escape_glyph_face_id)
@@ -5847,8 +5849,7 @@ get_next_display_element (it)
 		    }
 
 		  XSETINT (it->ctl_chars[0], g);
-		  g = it->c ^ 0100;
-		  XSETINT (it->ctl_chars[1], g);
+		  XSETINT (it->ctl_chars[1], it->c ^ 0100);
 		  ctl_len = 2;
 		  goto display_control;
 		}
@@ -5863,8 +5864,8 @@ get_next_display_element (it)
 		  face_id = merge_faces (it->f, Qnobreak_space, 0,
 					 it->face_id);
 
-		  g = it->c = ' ';
-		  XSETINT (it->ctl_chars[0], g);
+		  it->c = ' ';
+		  XSETINT (it->ctl_chars[0], ' ');
 		  ctl_len = 1;
 		  goto display_control;
 		}
@@ -5875,17 +5876,16 @@ get_next_display_element (it)
 	      escape_glyph = '\\';
 
 	      if (it->dp
-		  && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
-		  && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
+		  && (gc = DISP_ESCAPE_GLYPH (it->dp), GLYPH_CODE_P (gc))
+		  && GLYPH_CODE_CHAR_VALID_P (gc))
 		{
-		  escape_glyph = XFASTINT (DISP_ESCAPE_GLYPH (it->dp));
-		  lface_id = FAST_GLYPH_FACE (escape_glyph);
+		  escape_glyph = GLYPH_CODE_CHAR (gc);
+		  lface_id = GLYPH_CODE_FACE (gc);
 		}
 	      if (lface_id)
 		{
 		  /* The display table specified a face.
 		     Merge it into face_id and also into escape_glyph.  */
-		  escape_glyph = FAST_GLYPH_CHAR (escape_glyph);
 		  face_id = merge_faces (it->f, Qt, lface_id,
 					 it->face_id);
 		}
@@ -5910,8 +5910,8 @@ get_next_display_element (it)
 	      if (EQ (Vnobreak_char_display, Qt)
 		  && it->c == 0xAD)
 		{
-		  g = it->c = '-';
-		  XSETINT (it->ctl_chars[0], g);
+		  it->c = '-';
+		  XSETINT (it->ctl_chars[0], '-');
 		  ctl_len = 1;
 		  goto display_control;
 		}
@@ -5922,8 +5922,8 @@ get_next_display_element (it)
 	      if (it->c == 0xA0 || it->c == 0xAD)
 		{
 		  XSETINT (it->ctl_chars[0], escape_glyph);
-		  g = it->c = (it->c == 0xA0 ? ' ' : '-');
-		  XSETINT (it->ctl_chars[1], g);
+		  it->c = (it->c == 0xA0 ? ' ' : '-');
+		  XSETINT (it->ctl_chars[1], it->c);
 		  ctl_len = 2;
 		  goto display_control;
 		}
@@ -5959,6 +5959,7 @@ get_next_display_element (it)
 
 		for (i = 0; i < len; i++)
 		  {
+		    int g;
 		    XSETINT (it->ctl_chars[i * 4], escape_glyph);
 		    /* Insert three more glyphs into IT->ctl_chars for
 		       the octal display of the character.  */
@@ -6198,18 +6199,20 @@ static int
 next_element_from_display_vector (it)
      struct it *it;
 {
+  Lisp_Object gc;
+
   /* Precondition.  */
   xassert (it->dpvec && it->current.dpvec_index >= 0);
 
   it->face_id = it->saved_face_id;
 
-  if (INTEGERP (*it->dpvec)
-      && GLYPH_CHAR_VALID_P (XFASTINT (*it->dpvec)))
-    {
-      GLYPH g;
+  /* KFS: This code used to check ip->dpvec[0] instead of the current element.
+          That seemed totally bogus - so I changed it...  */
 
-      g = XFASTINT (it->dpvec[it->current.dpvec_index]);
-      it->c = FAST_GLYPH_CHAR (g);
+  if ((gc = it->dpvec[it->current.dpvec_index], GLYPH_CODE_P (gc))
+      && GLYPH_CODE_CHAR_VALID_P (gc))
+    {
+      it->c = GLYPH_CODE_CHAR (gc);
       it->len = CHAR_BYTES (it->c);
 
       /* The entry may contain a face id to use.  Such a face id is
@@ -6219,7 +6222,7 @@ next_element_from_display_vector (it)
 	it->face_id = it->dpvec_face_id;
       else
 	{
-	  int lface_id = FAST_GLYPH_FACE (g);
+	  int lface_id = GLYPH_CODE_FACE (gc);
 	  if (lface_id > 0)
 	    it->face_id = merge_faces (it->f, Qt, lface_id,
 				       it->saved_face_id);
@@ -17220,14 +17223,13 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		    int multibyte;
 		    int bytepos, charpos;
 		    unsigned char *spec;
-		    Lisp_Object string;
 
 		    bytepos = percent_position;
 		    charpos = (STRING_MULTIBYTE (elt)
 			       ? string_byte_to_char (elt, bytepos)
 			       : bytepos);
-		    spec = decode_mode_spec (it->w, c, field, prec, &multibyte,
-					     &string);
+		    spec
+		      = decode_mode_spec (it->w, c, field, prec, &multibyte);
 
 		    switch (mode_line_target)
 		      {
@@ -17237,24 +17239,19 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 			break;
 		      case MODE_LINE_STRING:
 			{
-			  if (NILP (string))
-			    {
-			      int len = strlen (spec);
-			      string = make_string (spec, len);
-			    }
+			  int len = strlen (spec);
+			  Lisp_Object tem = make_string (spec, len);
 			  props = Ftext_properties_at (make_number (charpos), elt);
 			  /* Should only keep face property in props */
-			  n += store_mode_line_string (NULL, string, 0, field, prec, props);
+			  n += store_mode_line_string (NULL, tem, 0, field, prec, props);
 			}
 			break;
 		      case MODE_LINE_DISPLAY:
 			{
 			  int nglyphs_before, nwritten;
 
-			  if (STRINGP (string))
-			    spec = NULL;
 			  nglyphs_before = it->glyph_row->used[TEXT_AREA];
-			  nwritten = display_string (spec, string, elt,
+			  nwritten = display_string (spec, Qnil, elt,
 						     charpos, 0, it,
 						     field, prec, 0,
 						     multibyte);
@@ -17918,19 +17915,18 @@ decode_mode_spec_coding (coding_system, buf, eol_flag)
 static char lots_of_dashes[] = "--------------------------------------------------------------------------------------------------------------------------------------------";
 
 static char *
-decode_mode_spec (w, c, field_width, precision, multibyte, string)
+decode_mode_spec (w, c, field_width, precision, multibyte)
      struct window *w;
      register int c;
      int field_width, precision;
      int *multibyte;
-     Lisp_Object *string;
 {
   Lisp_Object obj;
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   char *decode_mode_spec_buf = f->decode_mode_spec_buffer;
   struct buffer *b = current_buffer;
 
-  *string = obj = Qnil;
+  obj = Qnil;
   *multibyte = 0;
 
   switch (c)
@@ -18323,7 +18319,6 @@ decode_mode_spec (w, c, field_width, precision, multibyte, string)
   if (STRINGP (obj))
     {
       *multibyte = STRING_MULTIBYTE (obj);
-      *string = obj;
       return (char *) SDATA (obj);
     }
   else
@@ -18482,8 +18477,8 @@ display_string (string, lisp_string, face_string, face_string_pos,
      unsigned char *string;
      Lisp_Object lisp_string;
      Lisp_Object face_string;
-     int face_string_pos;
-     int start;
+     EMACS_INT face_string_pos;
+     EMACS_INT start;
      struct it *it;
      int field_width, precision, max_x;
      int multibyte;
@@ -18501,7 +18496,7 @@ display_string (string, lisp_string, face_string, face_string_pos,
      from LISP_STRING, if that's given.  */
   if (STRINGP (face_string))
     {
-      int endptr;
+      EMACS_INT endptr;
       struct face *face;
 
       it->face_id
@@ -20925,6 +20920,10 @@ x_produce_glyphs (it)
 	      if (pcm && (pcm->lbearing < 0 || pcm->rbearing > pcm->width))
 		it->glyph_row->contains_overlapping_glyphs_p = 1;
 	    }
+	  if (! stretched_p && it->pixel_width == 0)
+	    /* We assure that all visible glyphs have at least 1-pixel
+	       width.  */
+	    it->pixel_width = 1;
 	}
       else if (it->char_to_display == '\n')
 	{
@@ -21109,6 +21108,10 @@ x_produce_glyphs (it)
 
 	  if (it->glyph_row)
 	    append_glyph (it);
+	  if (it->pixel_width == 0)
+	    /* We assure that all visible glyphs have at least 1-pixel
+	       width.  */
+	    it->pixel_width = 1;
 	}
       it->multibyte_p = saved_multibyte_p;
     }
@@ -23070,7 +23073,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	  int gpos;
 	  int gseq_length;
 	  int total_pixel_width;
-	  int ignore;
+	  EMACS_INT ignore;
 
 	  int vpos, hpos;
 
@@ -23422,7 +23425,7 @@ note_mouse_highlight (f, x, y)
 	      /* Find the range of text around this char that
 		 should be active.  */
 	      Lisp_Object before, after;
-	      int ignore;
+	      EMACS_INT ignore;
 
 	      before = Foverlay_start (overlay);
 	      after = Foverlay_end (overlay);
@@ -23456,7 +23459,7 @@ note_mouse_highlight (f, x, y)
 	      /* Find the range of text around this char that
 		 should be active.  */
 	      Lisp_Object before, after, beginning, end;
-	      int ignore;
+	      EMACS_INT ignore;
 
 	      beginning = Fmarker_position (w->start);
 	      end = make_number (BUF_Z (XBUFFER (object))
@@ -23496,7 +23499,7 @@ note_mouse_highlight (f, x, y)
 	  else if (!NILP (mouse_face) && STRINGP (object))
 	    {
 	      Lisp_Object b, e;
-	      int ignore;
+	      EMACS_INT ignore;
 
 	      b = Fprevious_single_property_change (make_number (pos + 1),
 						    Qmouse_face,
@@ -23543,7 +23546,7 @@ note_mouse_highlight (f, x, y)
 		{
 		  Lisp_Object before = Foverlay_start (overlay);
 		  Lisp_Object after = Foverlay_end (overlay);
-		  int ignore;
+		  EMACS_INT ignore;
 
 		  /* Note that we might not be able to find position
 		     BEFORE in the glyph matrix if the overlay is

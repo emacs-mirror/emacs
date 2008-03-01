@@ -476,7 +476,7 @@ function
 (defcustom message-kill-buffer-query t
   "*Non-nil means that killing a modified message buffer has to be confirmed.
 This is used by `message-kill-buffer'."
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'message-buffers
   :type 'boolean)
 
@@ -666,7 +666,7 @@ See also `send-mail-function'."
 			       :tag "Use Mailclient package")
  		(function :tag "Other"))
   :group 'message-sending
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :initialize 'custom-initialize-default
   :link '(custom-manual "(message)Mail Variables")
   :group 'message-mail)
@@ -809,7 +809,7 @@ If this is nil, use `user-mail-address'.  If it is the symbol
 (defcustom message-sendmail-extra-arguments nil
   "Additional arguments to `sendmail-program'."
   ;; E.g. '("-a" "account") for msmtp
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :type '(repeat string)
   ;; :link '(custom-manual "(message)Mail Variables")
   :group 'message-sending)
@@ -969,7 +969,7 @@ Please also read the note in the documentation of
 		 (const :tag "Include date" "On %a, %b %d %Y, %n wrote:")
 		 string)
   :link '(custom-manual "(message)Insertion Variables")
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'message-insertion)
 
 (defcustom message-yank-prefix "> "
@@ -4038,7 +4038,7 @@ not have PROP."
 
 (defcustom message-bogus-address-regexp nil ;; "noreply\\|nospam\\|invalid"
   "Regexp of potentially bogus mail addresses."
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'message-headers
   :type 'regexp)
 
@@ -7357,7 +7357,7 @@ Pre-defined symbols include `message-tool-bar-gnome' and
 		 (const :tag "Retro look"  message-tool-bar-retro)
 		 (repeat :tag "User defined list" gmm-tool-bar-item)
 		 (symbol))
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :initialize 'custom-initialize-default
   :set 'message-tool-bar-update
   :group 'message)
@@ -7386,7 +7386,7 @@ Pre-defined symbols include `message-tool-bar-gnome' and
 
 See `gmm-tool-bar-from-list' for details on the format of the list."
   :type '(repeat gmm-tool-bar-item)
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :initialize 'custom-initialize-default
   :set 'message-tool-bar-update
   :group 'message)
@@ -7406,7 +7406,7 @@ See `gmm-tool-bar-from-list' for details on the format of the list."
 
 See `gmm-tool-bar-from-list' for details on the format of the list."
   :type '(repeat gmm-tool-bar-item)
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :initialize 'custom-initialize-default
   :set 'message-tool-bar-update
   :group 'message)
@@ -7419,7 +7419,7 @@ These items are not displayed on the message mode tool bar.
 
 See `gmm-tool-bar-from-list' for the format of the list."
   :type 'gmm-tool-bar-zap-list
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :initialize 'custom-initialize-default
   :set 'message-tool-bar-update
   :group 'message)

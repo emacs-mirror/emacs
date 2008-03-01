@@ -106,7 +106,8 @@ The return value of this function is not used."
 (defun make-obsolete (obsolete-name current-name &optional when)
   "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
 The warning will say that CURRENT-NAME should be used instead.
-If CURRENT-NAME is a string, that is the `use instead' message.
+If CURRENT-NAME is a string, that is the `use instead' message
+\(it should end with a period, and not start with a capital).
 If provided, WHEN should be a string indicating when the function
 was first made obsolete, for example a date or a release number."
   (interactive "aMake function obsolete: \nxObsoletion replacement: ")

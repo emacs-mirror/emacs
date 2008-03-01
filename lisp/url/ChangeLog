@@ -1,3 +1,9 @@
+2008-02-28  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* url-util.el (url-get-normalized-date): Simplify
+	to use `format-time-string'.  Always generate date in UTC, but
+	call it GMT for full compatibility with the RFCs.
+
 2008-02-06  Michael Albinus  <michael.albinus@gmx.de>
 
 	* url-handlers.el (file-remote-p): Add handler.

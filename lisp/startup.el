@@ -56,7 +56,6 @@ directory using `find-file'.  If t, open the `*scratch*' buffer."
 
 (defcustom inhibit-startup-screen nil
   "Non-nil inhibits the startup screen.
-It also inhibits display of the initial message in the `*scratch*' buffer.
 
 This is for use in your personal init file (but NOT site-start.el), once
 you are familiar with the contents of the startup screen."
@@ -1155,9 +1154,7 @@ opening the first frame (e.g. open a connection to an X server).")
 
 ")
   "Initial message displayed in *scratch* buffer at startup.
-If this is nil, no message will be displayed.
-If `inhibit-startup-screen' is non-nil, then no message is displayed,
-regardless of the value of this variable."
+If this is nil, no message will be displayed."
   :type '(choice (text :tag "Message")
 		 (const :tag "none" nil))
   :group 'initialization)
@@ -1180,7 +1177,7 @@ regardless of the value of this variable."
 	   '("GNU/Linux"
 	     (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
 	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
-	 '("GNU" (lambda (button) (describe-project))
+	 '("GNU" (lambda (button) (describe-gnu-project))
 	   "Display info on the GNU project")))
      " operating system.\n"
      :face variable-pitch "To quit a partially entered command, type "
@@ -1239,7 +1236,7 @@ Each element in the list should be a list of strings or pairs
 	   '("GNU/Linux"
 	     (lambda (button) (browse-url "http://www.gnu.org/gnu/linux-and-gnu.html"))
 	     "Browse http://www.gnu.org/gnu/linux-and-gnu.html")
-	 '("GNU" (lambda (button) (describe-project))
+	 '("GNU" (lambda (button) (describe-gnu-project))
 	   "Display info on the GNU project.")))
      " operating system.\n"
      :face (lambda ()
@@ -1265,7 +1262,7 @@ Each element in the list should be a list of strings or pairs
 	      (goto-char (point-min))))
      "\tHow to contribute improvements to Emacs\n"
      "\n"
-     :link ("GNU and Freedom" (lambda (button) (describe-project)))
+     :link ("GNU and Freedom" (lambda (button) (describe-gnu-project)))
      "\tWhy we developed GNU Emacs, and the GNU operating system\n"
      :link ("Absence of Warranty" (lambda (button) (describe-no-warranty)))
      "\tGNU Emacs comes with "
@@ -1590,12 +1587,14 @@ we put it on this frame."
 	  (> frame-height (+ image-height 19)))))))
 
 
-(defun normal-splash-screen (&optional startup)
+(defun normal-splash-screen (&optional startup concise)
   "Display non-graphic splash screen.
 If optional argument STARTUP is non-nil, display the startup screen
-after Emacs starts.  If STARTUP is nil, display the About screen."
-  (let ((prev-buffer (current-buffer)))
-    (with-current-buffer (get-buffer-create "*About GNU Emacs*")
+after Emacs starts.  If STARTUP is nil, display the About screen.
+If CONCISE is non-nil, display a concise version of the
+splash screen in another window."
+  (let ((splash-buffer (get-buffer-create "*About GNU Emacs*")))
+    (with-current-buffer splash-buffer
       (setq buffer-read-only nil)
       (erase-buffer)
       (setq default-directory command-line-default-directory)
@@ -1656,9 +1655,11 @@ after Emacs starts.  If STARTUP is nil, display the About screen."
       (setq buffer-read-only t)
       (if (and view-read-only (not view-mode))
 	  (view-mode-enter nil 'kill-buffer))
-      (switch-to-buffer "*About GNU Emacs*")
       (if startup (rename-buffer "*GNU Emacs*" t))
-      (goto-char (point-min)))))
+      (goto-char (point-min)))
+    (if concise
+	(display-buffer splash-buffer)
+      (switch-to-buffer splash-buffer))))
 
 (defun normal-mouse-startup-screen ()
   ;; The user can use the mouse to activate menus
@@ -1871,7 +1872,7 @@ Type \\[describe-distribution] for information on "))
   (insert "\tHow to contribute improvements to Emacs\n\n")
 
   (insert-button "GNU and Freedom"
-		 'action (lambda (button) (describe-project))
+		 'action (lambda (button) (describe-gnu-project))
 		 'follow-link t)
   (insert "\t\tWhy we developed GNU Emacs and the GNU system\n")
 
@@ -1896,7 +1897,7 @@ Type \\[describe-distribution] for information on "))
   (insert "\tBuying printed manuals from the FSF\n"))
 
 (defun startup-echo-area-message ()
-  (if (eq (key-binding "\C-h\C-p") 'describe-project)
+  (if (eq (key-binding "\C-h\C-a") 'about-emacs)
       "For information about GNU Emacs and the GNU system, type C-h C-a."
     (substitute-command-keys
      "For information about GNU Emacs and the GNU system, type \
@@ -1946,7 +1947,7 @@ screen."
   (if (not (get-buffer "*GNU Emacs*"))
       (if (use-fancy-splash-screens-p)
       	  (fancy-startup-screen concise)
-      	(normal-splash-screen t))))
+      	(normal-splash-screen t concise))))
 
 (defun display-about-screen ()
   "Display the *About GNU Emacs* buffer.
@@ -2185,6 +2186,14 @@ A fancy display is used on graphic displays, normal otherwise."
 	    ((stringp initial-buffer-choice)
 	     (find-file initial-buffer-choice))))
 
+    ;; If *scratch* exists and is empty, insert initial-scratch-message.
+    (and initial-scratch-message
+	 (get-buffer "*scratch*")
+	 (with-current-buffer "*scratch*"
+	   (when (zerop (buffer-size))
+	     (insert initial-scratch-message)
+	     (set-buffer-modified-p nil))))
+
     (if (or inhibit-startup-screen
 	    initial-buffer-choice
 	    noninteractive
@@ -2229,14 +2238,6 @@ A fancy display is used on graphic displays, normal otherwise."
       ;; 	(precompute-menubar-bindings))
       ;; (with-no-warnings
       ;; 	(setq menubar-bindings-done t))
-
-      ;; If *scratch* exists and is empty, insert initial-scratch-message.
-      (and initial-scratch-message
-	   (get-buffer "*scratch*")
-	   (with-current-buffer "*scratch*"
-	     (when (zerop (buffer-size))
-	       (insert initial-scratch-message)
-	       (set-buffer-modified-p nil))))
 
       (if (> file-count 0)
 	  (display-startup-screen t)

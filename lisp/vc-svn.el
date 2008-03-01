@@ -175,6 +175,7 @@ If you want to force an empty list of arguments, use t."
            (filename (match-string 2)))
        (when state
          (setq result (cons (cons filename state) result)))))
+    (kill-buffer (current-buffer))
     (funcall callback result buffer)))
 
 (defun vc-svn-dir-status (dir callback buffer)

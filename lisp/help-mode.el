@@ -159,6 +159,12 @@ The format is (FUNCTION ARGS...).")
   'help-function #'help-xref-go-forward
   'help-echo (purecopy "mouse-2, RET: move forward to next help buffer"))
 
+(define-button-type 'help-info-variable
+  :supertype 'help-xref
+  ;; the name of the variable is put before the argument to Info
+  'help-function (lambda (a v) (info v))
+  'help-echo (purecopy "mouse-2, RET: read this Info node"))
+
 (define-button-type 'help-info
   :supertype 'help-xref
   'help-function #'info

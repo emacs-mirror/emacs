@@ -72,7 +72,7 @@ it will be killed sometime later."
 See `gnus-group-goto-unread'."
   :link '(custom-manual "(gnus)Group Maneuvering")
   :group 'gnus-summary-exit
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :type 'boolean)
 
 (defcustom gnus-fetch-old-headers nil
@@ -398,7 +398,7 @@ Valid values include:
 
 If it has any other value or there is no next (unread) article, the
 article selected before entering to the ephemeral group will appear."
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'gnus-summary-maneuvering
   :type '(choice :format "%{%t%}:\n %[Value Menu%] %v"
 		 (const next) (const next-unread)
@@ -2752,7 +2752,7 @@ Pre-defined symbols include `gnus-summary-tool-bar-gnome' and
 		 (const :tag "Retro look"  gnus-summary-tool-bar-retro)
 		 (repeat :tag "User defined list" gmm-tool-bar-item)
 		 (symbol))
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :initialize 'custom-initialize-default
   :set 'gnus-summary-tool-bar-update
   :group 'gnus-summary)
@@ -2803,7 +2803,7 @@ Pre-defined symbols include `gnus-summary-tool-bar-gnome' and
 
 See `gmm-tool-bar-from-list' for the format of the list."
   :type '(repeat gmm-tool-bar-item)
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :initialize 'custom-initialize-default
   :set 'gnus-summary-tool-bar-update
   :group 'gnus-summary)
@@ -2838,7 +2838,7 @@ See `gmm-tool-bar-from-list' for the format of the list."
 
 See `gmm-tool-bar-from-list' for the format of the list."
   :type '(repeat gmm-tool-bar-item)
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :initialize 'custom-initialize-default
   :set 'gnus-summary-tool-bar-update
   :group 'gnus-summary)
@@ -2849,7 +2849,7 @@ These items are not displayed in the Gnus summary mode tool bar.
 
 See `gmm-tool-bar-from-list' for the format of the list."
   :type 'gmm-tool-bar-zap-list
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :initialize 'custom-initialize-default
   :set 'gnus-summary-tool-bar-update
   :group 'gnus-summary)

@@ -136,6 +136,8 @@ the currently selected Emacs frame.
 
 ** Emacs now supports the SVG image format through librsvg2.
 
+** C-SPC C-SPC in transient-mark-mode pushes a mark without activating it.
+
 ** transient-mark-mode is now enabled by default.
 
 ** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
@@ -200,6 +202,10 @@ file or directory.
 This is a convenience alias, so that one can write `(pop argv)'
 inside of --eval command line arguments in order to access
 following arguments.
+
+** The new command-line option `--disable-font-backend' disables the
+new font backend code at runtime.  This option is only available if
+Emacs was compiled with font-backend support.
 
 ** The abbrev file is no longer read at startup in batch mode.
 
@@ -276,6 +282,7 @@ history element containing the search string becomes the current.
 * New Modes and Packages in Emacs 23.1
 
 ** FIXME add details of new packages imported from lisp/gnus.
+[Maybe some information from doc/misc/gnus-coding.texi can be reused]
 
 ** The package doc-view.el has been added.  It supports viewing of PDF,
 PostScript and DVI documents inside an Emacs buffer by converting the
@@ -325,6 +332,10 @@ It uses `auto-composition-function' (default `auto-compose-chars').
 
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
+
+** A new `whitespace' package has been installed, and the pre-existing one
+renamed to `old-whitespace'.
+[FIXME someone explain why this is good, if it is...]
 
 ** In Change Log mode, the new function `change-log-find-file', bound to
 C-c C-f, finds the file associated with the current log entry.
@@ -499,6 +510,11 @@ rather than fortran-indent-comment.
 
 *** The Gnus package has been updated
 
+*** In Emacs 23, Gnus uses Emacs' new internal coding system `utf-8-emacs' for
+saving articles drafts and ~/.newsrc.eld.  These file may not be read
+correctly in Emacs 22 and below.  If you want to Gnus across different Emacs
+versions, you may set `mm-auto-save-coding-system' to `emacs-mule'.
+
 *** There are many news features, bug fixes and improvements.
 
 See the file GNUS-NEWS or the node "No Gnus" in the Gnus manual for details.
@@ -596,6 +612,9 @@ functions and variables (formerly used for Tamil script).
 
 
 * Lisp Changes in Emacs 23.1
+
+** The new `buffer-swap-text' function can swap the text between two buffers.
+This can be useful for modes such as tar-mode, archive-mode, RMAIL.
 
 ** `clear-image-cache' can be told to flush only images of a specific file.
 

@@ -605,6 +605,8 @@ If FILE is not registered, this function always returns nil."
 ;; Backward compatibility.
 (define-obsolete-function-alias
   'vc-workfile-version 'vc-working-revision "23.1")
+(define-obsolete-function-alias
+  'vc-previous-version 'vc-previous-revision "23.1")
 (defun vc-default-working-revision (backend file)
   (message
    "`working-revision' not found: using the old `workfile-version' instead")

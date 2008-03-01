@@ -493,7 +493,7 @@ w32font_draw (s, from, to, x, y, with_background)
 
       for (i = 0; i < len; i++)
 	ExtTextOutW (s->hdc, x + i, y, options, NULL,
-		     s->char2b + from + i, len, NULL);
+		     s->char2b + from + i, 1, NULL);
     }
   else
     ExtTextOutW (s->hdc, x, y, options, NULL, s->char2b + from, to - from, NULL);

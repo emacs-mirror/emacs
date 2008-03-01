@@ -4656,15 +4656,18 @@ See also `auto-save-file-name-p'."
     (let ((buffer-name (buffer-name))
 	  (limit 0)
 	  file-name)
-      ;; Eliminate all slashes and backslashes by
-      ;; replacing them with sequences that start with %.
-      ;; Quote % also, to keep distinct names distinct.
-      (while (string-match "[/\\%]" buffer-name limit)
+      ;; Restrict the characters used in the file name to those which
+      ;; are known to be safe on all filesystems, url-encoding the
+      ;; rest.
+      ;; We do this on all platforms, because even if we are not
+      ;; running on DOS/Windows, the current directory may be on a
+      ;; mounted VFAT filesystem, such as a USB memory stick.
+      (while (string-match "[^A-Za-z0-9-_.~#+]" buffer-name limit)
 	(let* ((character (aref buffer-name (match-beginning 0)))
 	       (replacement
-		(cond ((eq character ?%) "%%")
-		      ((eq character ?/) "%+")
-		      ((eq character ?\\) "%-"))))
+                ;; For multibyte characters, this will produce more than
+                ;; 2 hex digits, so is not true URL encoding.
+                (format "%%%02X" character)))
 	  (setq buffer-name (replace-match replacement t t buffer-name))
 	  (setq limit (1+ (match-end 0)))))
       ;; Generate the file name.
@@ -4869,7 +4872,7 @@ and `list-directory-verbose-switches'."
 
 PATTERN is assumed to represent a file-name wildcard suitable for the
 underlying filesystem.  For Unix and GNU/Linux, the characters from the
-set [ \\t\\n;<>&|()#$] are quoted with a backslash; for DOS/Windows, all
+set [ \\t\\n;<>&|()'\"#$] are quoted with a backslash; for DOS/Windows, all
 the parts of the pattern which don't include wildcard characters are
 quoted with double quotes.
 Existing quote characters in PATTERN are left alone, so you can pass
@@ -4901,7 +4904,7 @@ PATTERN that already quotes some of the special characters."
 	  (concat result (substring pattern beg) "\""))))
      (t
       (let ((beg 0))
-	(while (string-match "[ \t\n;<>&|()#$]" pattern beg)
+	(while (string-match "[ \t\n;<>&|()'\"#$]" pattern beg)
 	  (setq pattern
 		(concat (substring pattern 0 (match-beginning 0))
 			"\\"

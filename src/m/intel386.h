@@ -179,5 +179,12 @@ NOTE-END */
 #define SEGMENT_MASK ((SEGMENT_SIZE)-1)
 #endif
 
+#if defined (MAC_OSX) || defined (DARWIN)
+#ifdef _LP64
+/* For Intel Mac, with CC='gcc -arch x86_64'.  */
+#define NO_ARG_ARRAY
+#endif
+#endif
+
 /* arch-tag: 746338f0-cb7b-4f49-a98c-cb50817cf2ec
    (do not change this comment) */

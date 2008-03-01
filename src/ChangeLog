@@ -1,3 +1,122 @@
+2008-03-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* m/intel386.h [MAC_OSX || DARWIN]: Define NO_ARG_ARRAY if _LP64.
+
+2008-02-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (next_overlay_string): Don't set
+	overlay_strings_at_end_processed_p if we're currently reading from
+	a display string.
+
+2008-02-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (get_overlay_strings_1): Fix typo.
+
+2008-02-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xdisp.c (get_overlay_strings_1): Add missing argument type.
+
+2008-02-28  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* ftfont.c (ftfont_match): Explicitly set pixelsize in pattern.
+
+	* xdisp.c (display_mode_element): Cancel the previous change.
+	(decode_mode_spec): Likewise.
+	(handle_auto_composed_prop): Don't make composition if it->string
+	is a string.
+
+2008-02-27  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (GLYPH): Change type from int to struct with separate char
+	and face_id members.
+	(GLYPH_MASK_FACE, GLYPH_MASK_CHAR): Delete macros.
+	(GLYPH_CHAR, GLYPH_FACE): Remove slow versions with frame arg.
+	(FAST_GLYPH_CHAR, FAST_GLYPH_FACE): Rename macros to ...
+	(GLYPH_CHAR, GLYPH_FACE): ... these.  Change users.
+	(FAST_MAKE_GLYPH, MAKE_GLYPH): Remove.  Rewrite users to use ...
+	(SET_GLYPH, SET_GLYPH_CHAR, SET_GLYPH_FACE): ... these macros instead.
+	(GLYPH_CODE_CHAR, GLYPH_CODE_FACE, GLYPH_CODE_P)
+	(GLYPH_CODE_CHAR_VALID_P, SET_GLYPH_FROM_GLYPH_CODE): New macros to
+	handle new Lisp glyph code encoding, either an integer or a cons.
+
+	* disptab.h (GLYPH_SIMPLE_P): Rewrite.
+	(GLYPH_ALIAS): Delete.
+	(GLYPH_ALIAS_P, GLYPH_FOLLOW_ALIASES): Rewrite.
+	(GLYPH_LENGTH, GLYPH_STRING): Use GLYPH_CHAR.
+	(GLYPH_FROM_CHAR): Replace macro by ...
+	(SET_GLYPH_FROM_CHAR): ... this macro.  Change users.
+
+	* dispextern.h (CHAR_GLYPH_SPACE_P): Simplify.
+	(GLYPH_FROM_CHAR_GLYPH): Replace macro by ...
+	(SET_GLYPH_FROM_CHAR_GLYPH): ... this macro.  Change users.
+	(GLYPH_INVALID_P): New macro.
+	(spec_glyph_lookup_face): Update prototype.
+
+	* dispnew.c (line_draw_cost): Adapt to new glyph type.
+	(build_frame_matrix_from_leaf_window): Adapt to new glyph type and
+	new glyph code encoding.
+	(spec_glyph_lookup_face): No return value; update passed glyph instead.
+	(init_display): Use SET_CHAR_GLYPH to initialize space_glyph.
+
+	* xdisp.c (get_next_display_element, next_element_from_display_vector):
+	Adapt to new glyph type and new glyph code encoding.
+
+	* term.c (encode_terminal_code, produce_special_glyphs): Likewise.
+
+	* indent.c (current_column, current_column_1, Fmove_to_column)
+	(compute_motion): Adapt to new glyph code encoding.
+
+	* msdos.c (IT_write_glyphs): Adapt to new glyph type.
+
+2008-02-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* process.c (wait_reading_process_output): Check for window
+	changes caused by timers.
+	Suggested by Johan Bockg,Ae(Brd.
+
+2008-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (USAGE1): Add `--disable-font-backend'.
+
+2008-02-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents): Don't reset undo_list if no change
+	is made to the buffer.
+
+2008-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dispextern.h (face_at_buffer_position, face_for_overlay_string)
+	(face_at_string_position):
+	* xfaces.c (face_at_buffer_position, face_for_overlay_string)
+	(face_at_string_position):
+	* xdisp.c (display_string, next_overlay_change):
+	* buffer.h (overlays_at):
+	* buffer.c (overlays_at): Use EMACS_INT for buffer positions.
+	Update callers.
+
+2008-02-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* editfns.c (Fformat): Doc fix.
+
+2008-02-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* font.c (Ffont_spec, Ffont_at): Fix typos in docstrings.
+	(Ffont_put, Flist_families, Ffont_fill_gstring, Ffont_drive_otf)
+	(Ffont_otf_alternates, Fquery_font): Doc fixes.
+
+2008-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (Fbuffer_swap_text): New function.
+	(syms_of_buffer): Defsubr it.
+
+2008-02-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* keyboard.c (command_loop_1): Revert 2006-10-09 change.
+
+2008-02-25  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_draw): Draw one character at a time when padding.
+
 2008-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (Fdelete_window, Fadjust_window_trailing_edge):
@@ -5,6 +124,11 @@
 	(delete_window, adjust_window_trailing_edge): Don't handle nil any more.
 	(Fenlarge_window, Fshrink_window, Fset_window_configuration):
 	Use run_window_configuration_change_hook.
+
+2008-02-25  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* xdisp.c (x_produce_glyphs): For a visible glyph, assure at least
+	1-pixel width.
 
 2008-02-25  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -27,6 +151,24 @@
 2008-02-25  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (enum_font_cb2): Don't use raster fonts for Unicode.
+
+2008-02-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	Allow fine-grained image-cache flushing.
+	* dispextern.h (struct image): Add `dependencies' field.
+	(clear_image_caches): Change arg to Lisp_Object.
+	* image.c (make_image): Initialize `dependencies' field.
+	(clear_image_cache): Change arg to allow fine-grained flushing.
+	Perform the flush even if image-cache-eviction-delay is nil.
+	(clear_image_caches): Change arg to Lisp_Object.
+	(Fclear_image_cache): Expand meaning of the argument.
+	(mark_image): Mark `dependencies' field.
+	* xfaces.c (clear_face_cache): Adapt arg to call to clear_image_caches.
+	(lface_hash): Use XHASH rather than XFASTINT.
+	(face_at_buffer_position): Fix int -> EMACS_INT position.
+	* xdisp.c (next_overlay_change): Fix int -> EMACS_INT position.
+	(select_frame_for_redisplay): Remove code duplication.
+	(redisplay_internal): Adapt arg to call to clear_image_caches.
 
 2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
 

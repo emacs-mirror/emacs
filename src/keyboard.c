@@ -1603,17 +1603,15 @@ command_loop_1 ()
 
       if (minibuf_level
 	  && !NILP (echo_area_buffer[0])
-	  && EQ (minibuf_window, echo_area_window))
+	  && EQ (minibuf_window, echo_area_window)
+	  && NUMBERP (Vminibuffer_message_timeout))
 	{
 	  /* Bind inhibit-quit to t so that C-g gets read in
 	     rather than quitting back to the minibuffer.  */
 	  int count = SPECPDL_INDEX ();
 	  specbind (Qinhibit_quit, Qt);
 
-	  if (NUMBERP (Vminibuffer_message_timeout))
-	    sit_for (Vminibuffer_message_timeout, 0, 2);
-	  else
-	    sit_for (Qt, 0, 2);
+	  sit_for (Vminibuffer_message_timeout, 0, 2);
 
 	  /* Clear the echo area.  */
 	  message2 (0, 0, 0);

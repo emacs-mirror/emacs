@@ -482,7 +482,7 @@ REV is the revision to check out into WORKFILE."
 (define-derived-mode vc-hg-incoming-mode vc-hg-log-view-mode "Hg-Incoming")
 
 ;; XXX Experimental function for the vc-dired replacement.
-(defun vc-hg-after-dir-status (update-function buff)
+(defun vc-hg-after-dir-status (update-function status-buffer)
   (let ((status-char nil)
 	(file nil)
 	(translation '((?= . up-to-date)
@@ -505,7 +505,9 @@ REV is the revision to check out into WORKFILE."
 	(when (and translated (not (eq (cdr translated) 'up-to-date)))
 	  (push (cons file (cdr translated)) result))
 	(forward-line))
-      (funcall update-function result buff)))
+      ;; Remove the temporary buffer.
+      (kill-buffer (current-buffer))
+      (funcall update-function result status-buffer)))
 
 ;; XXX Experimental function for the vc-dired replacement.
 (defun vc-hg-dir-status (dir update-function status-buffer)

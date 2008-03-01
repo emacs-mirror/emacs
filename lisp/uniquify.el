@@ -72,7 +72,7 @@
 ;; Add uniquify-list-buffers-directory-modes
 ;;   Stefan Monnier <monnier@cs.yale.edu> 17 Nov 2000
 ;; Algorithm and data structure changed to reduce consing with lots of buffers
-;;   Francesco Potortì <pot@gnu.org> (ideas by rms and monnier) 2001-07-18
+;;   Francesco PotortÃ¬ <pot@gnu.org> (ideas by rms and monnier) 2001-07-18
 
 ;; Valuable feedback was provided by
 ;; Paul Smith <psmith@baynetworks.com>,

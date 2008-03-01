@@ -1,3 +1,12 @@
+2008-02-28  Kim F. Storm  <storm@cua.dk>
+
+	* help.texi (Help Files): Move describe-gnu-project to C-h g.
+	Move describe-distribution to C-h C-o.
+	Move view-emacs-problems to C-h C-p.
+	Add view-emacs-debugging on C-h C-d.
+	Add view-external-packages on C-h C-e.
+        Add view-order-manuals on C-h C-m.
+
 2008-02-17  Ulrich Mueller <ulm@kph.uni-mainz.de>  (tiny change)
 
 	* msdog-xtra.texi (MS-DOS): Docstring fix.

@@ -326,7 +326,7 @@ If this variable is nil, exact matching will always be used."
   "If non-nil, adaptive score files fill are pretty printed."
   :group 'gnus-score-files
   :group 'gnus-score-adapt
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :type 'boolean)
 
 (defcustom gnus-score-default-header nil
@@ -429,7 +429,7 @@ If a regexp, scoring on headers or body is inhibited if the group
 matches the regexp.  If it is t, scoring on headers or body is
 inhibited for all groups."
   :group 'gnus-score-various
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :type '(choice (const :tag "All" nil)
 		 (const :tag "None" t)
 		 regexp))

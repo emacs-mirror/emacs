@@ -67,7 +67,7 @@
 This variable is a list of mail source specifiers.
 See Info node `(gnus)Mail Source Specifiers'."
   :group 'mail-source
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :link '(custom-manual "(gnus)Mail Source Specifiers")
   :type `(choice
 	  (const :tag "None" nil)

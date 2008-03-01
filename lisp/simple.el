@@ -3499,6 +3499,9 @@ purposes.  See the documentation of `set-mark' for more information."
 	 mark-active (null transient-mark-mode))
     (setq transient-mark-mode 'lambda)
     (message "Transient-mark-mode temporarily enabled"))
+   ((and (eq last-command 'set-mark-command)
+         transient-mark-mode)
+    (deactivate-mark))
    (t
     (push-mark-command nil))))
 
@@ -4598,7 +4601,6 @@ The variable `selective-display' has a separate value for each buffer."
   (princ "." t))
 
 (defvaralias 'indicate-unused-lines 'indicate-empty-lines)
-(defvaralias 'default-indicate-unused-lines 'default-indicate-empty-lines)
 
 (defun toggle-truncate-lines (&optional arg)
   "Toggle whether to fold or truncate long lines for the current buffer.

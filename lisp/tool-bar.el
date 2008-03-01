@@ -229,7 +229,7 @@ holds a keymap."
 ;;; Set up some global items.  Additions/deletions up for grabs.
 
 (defvar tool-bar-setup nil
-  "t if the tool-bar has been set up by `tool-bar-setup'.")
+  "Set to t if the tool-bar has been set up by `tool-bar-setup'.")
 
 (defun tool-bar-setup (&optional frame)
   (unless tool-bar-setup

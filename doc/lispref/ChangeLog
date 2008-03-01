@@ -1,3 +1,8 @@
+2008-02-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* strings.texi (Formatting Strings): Treat - and 0 as flag
+	characters.
+
 2008-02-22  Glenn Morris  <rgm@gnu.org>
 
 	* frames.texi (Position Parameters): Clarify the description of

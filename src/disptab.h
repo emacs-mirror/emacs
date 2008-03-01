@@ -74,38 +74,37 @@ extern Lisp_Object Vglyph_table;
 /* Given BASE and LEN returned by the two previous macros,
    return nonzero if the GLYPH code G should be output as a single
    character with code G.  Return zero if G has a string in the table.  */
-#define GLYPH_SIMPLE_P(base,len,g) ((g) >= (len) || !STRINGP (base[g]))
+#define GLYPH_SIMPLE_P(base,len,g) \
+  (GLYPH_FACE (g) != DEFAULT_FACE_ID || GLYPH_CHAR (g) >= (len) || !STRINGP (base[GLYPH_CHAR (g)]))
 
 /* Given BASE and LEN returned by the two previous macros,
    return nonzero if GLYPH code G is aliased to a different code.  */
-#define GLYPH_ALIAS_P(base,len,g) ((g) < (len) && INTEGERP (base[g]))
-
-/* Assuming that GLYPH_SIMPLE_P (BASE, LEN, G) is 1,
-   return the alias for G.  */
-#define GLYPH_ALIAS(base, g) XINT (base[g])
+#define GLYPH_ALIAS_P(base,len,g) \
+  (GLYPH_FACE (g) == DEFAULT_FACE_ID && GLYPH_CHAR (g) < (len) && INTEGERP (base[GLYPH_CHAR (g)]))
 
 /* Follow all aliases for G in the glyph table given by (BASE,
    LENGTH), and set G to the final glyph.  */
-#define GLYPH_FOLLOW_ALIASES(base, length, g)		\
-  do {							\
-    while (GLYPH_ALIAS_P ((base), (length), (g)))	\
-      (g) = GLYPH_ALIAS ((base), (g));			\
-    if (!GLYPH_CHAR_VALID_P (FAST_GLYPH_CHAR (g)))	\
-      g = FAST_MAKE_GLYPH (' ', FAST_GLYPH_FACE (g));	\
+#define GLYPH_FOLLOW_ALIASES(base, length, g)			\
+  do {								\
+    while (GLYPH_ALIAS_P ((base), (length), (g)))		\
+      SET_GLYPH_CHAR ((g), XINT ((base)[GLYPH_CHAR (g)]));	\
+    if (!GLYPH_CHAR_VALID_P (g))				\
+      SET_GLYPH_CHAR (g, ' ');					\
   } while (0)
 
 /* Assuming that GLYPH_SIMPLE_P (BASE, LEN, G) is 0,
    return the length and the address of the character-sequence
    used for outputting GLYPH G.  */
-#define GLYPH_LENGTH(base,g)   SCHARS (base[g])
-#define GLYPH_STRING(base,g)   SDATA (base[g])
+#define GLYPH_LENGTH(base,g)   SCHARS (base[GLYPH_CHAR (g)])
+#define GLYPH_STRING(base,g)   SDATA (base[GLYPH_CHAR (g)])
 
 /* GLYPH for a space character.  */
 
 #define SPACEGLYPH 040
 #define NULL_GLYPH 00
 
-#define GLYPH_FROM_CHAR(c) (c)
+#define SET_GLYPH_FROM_CHAR(glyph, c) \
+  SET_GLYPH (glyph, c, DEFAULT_FACE_ID)
 
 /* arch-tag: d7f792d2-f59c-4904-a91e-91522e3ab349
    (do not change this comment) */

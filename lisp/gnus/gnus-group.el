@@ -1031,7 +1031,7 @@ Pre-defined symbols include `gnus-group-tool-bar-gnome' and
 		 (const :tag "Retro look" gnus-group-tool-bar-retro)
 		 (repeat :tag "User defined list" gmm-tool-bar-item)
 		 (symbol))
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :initialize 'custom-initialize-default
   :set 'gnus-group-tool-bar-update
   :group 'gnus-group)
@@ -1074,7 +1074,7 @@ Pre-defined symbols include `gnus-group-tool-bar-gnome' and
 
 See `gmm-tool-bar-from-list' for the format of the list."
   :type '(repeat gmm-tool-bar-item)
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :initialize 'custom-initialize-default
   :set 'gnus-group-tool-bar-update
   :group 'gnus-group)
@@ -1093,7 +1093,7 @@ See `gmm-tool-bar-from-list' for the format of the list."
 
 See `gmm-tool-bar-from-list' for the format of the list."
   :type '(repeat gmm-tool-bar-item)
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :initialize 'custom-initialize-default
   :set 'gnus-group-tool-bar-update
   :group 'gnus-group)
@@ -1104,7 +1104,7 @@ These items are not displayed in the Gnus group mode tool bar.
 
 See `gmm-tool-bar-from-list' for the format of the list."
   :type 'gmm-tool-bar-zap-list
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :initialize 'custom-initialize-default
   :set 'gnus-group-tool-bar-update
   :group 'gnus-group)
@@ -2331,7 +2331,7 @@ Return the name of the group if selection was successful."
 It must contain three \"%s\".  They correspond to the group, the
 minimal and maximal article numbers, respectively."
   :group 'gnus-group-foreign
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :type 'string)
 
 (autoload 'url-insert-file-contents "url-handlers")

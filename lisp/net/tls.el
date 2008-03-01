@@ -148,7 +148,7 @@ consider trustworthy, e.g.:
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Never" nil)
 		 (const :tag "Ask" ask))
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'tls)
 
 (defcustom tls-untrusted
@@ -158,7 +158,7 @@ The default is what GNUTLS's \"gnutls-cli\" or OpenSSL's
 \"openssl s_client\" return in the event of unsuccessful
 verification."
   :type 'regexp
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'tls)
 
 (defcustom tls-hostmismatch
@@ -169,7 +169,7 @@ name of the host you are connecting to, gnutls-cli issues a
 warning to this effect.  There is no such feature in openssl.  Set
 this to nil if you want to ignore host name mismatches."
   :type 'regexp
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'tls)
 
 (defcustom tls-certtool-program (executable-find "certtool")

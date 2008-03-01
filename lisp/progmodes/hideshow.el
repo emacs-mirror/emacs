@@ -232,8 +232,6 @@
 
 ;;; Code:
 
-(require 'easymenu)
-
 ;;---------------------------------------------------------------------------
 ;; user-configurable variables
 
@@ -273,7 +271,7 @@ This has effect only if `search-invisible' is set to `open'."
 (defvar hs-special-modes-alist
   '((c-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning)
     (c++-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning)
-    (bibtex-mode ("^@\\S(*\\(\\s(\\)" 1))
+    (bibtex-mode ("@\\S(*\\(\\s(\\)" 1))
     (java-mode "{" "}" "/[*/]" nil hs-c-like-adjust-block-beginning))
   "*Alist for initializing the hideshow variables for different modes.
 Each element has the form
@@ -368,11 +366,30 @@ Use the command `hs-minor-mode' to toggle or set this variable.")
     ["Hide All"      hs-hide-all
      :help "Hide all the blocks in the buffer"]
     ["Show All"      hs-show-all
-     :help "Show all the clocks in the buffer"]
+     :help "Show all the blocks in the buffer"]
     ["Hide Level"    hs-hide-level
      :help "Hide all block at levels below the current block"]
     ["Toggle Hiding" hs-toggle-hiding
-     :help "Toggle the hiding state of the current block"]))
+     :help "Toggle the hiding state of the current block"]
+    "----"
+    ["Hide comments when hiding all" 
+     (setq hs-hide-comments-when-hiding-all
+    	   (not hs-hide-comments-when-hiding-all))
+     :help "If t also hide comment blocks when doing `hs-hide-all'"
+     :style toggle :selected hs-hide-comments-when-hiding-all]
+   ("Reveal on isearch"
+     ["Code blocks" (setq hs-isearch-open 'code)
+      :help "Show hidden code blocks when isearch matches inside them"
+      :active t :style radio   :selected (eq hs-isearch-open 'code)]
+     ["Comment blocks" (setq hs-isearch-open 'comment)
+      :help "Show hidden comment blocks when isearch matches inside them"
+      :active t :style radio :selected (eq hs-isearch-open 'comment)]
+     ["Code and Comment blocks" (setq hs-isearch-open t)
+      :help "Show both hidden code and comment blocks when isearch matches inside them"
+      :active t :style radio :selected (eq hs-isearch-open t)]
+     ["None" (setq hs-isearch-open nil)
+      :help "Do not hidden code or comment blocks when isearch matches inside them"
+      :active t :style radio :selected (eq hs-isearch-open nil)])))
 
 (defvar hs-c-start-regexp nil
   "Regexp for beginning of comments.

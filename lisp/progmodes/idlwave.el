@@ -177,7 +177,6 @@
 (declare-function idlwave-shell-is-running "idlw-shell")
 (declare-function widget-value "wid-edit" (widget))
 (declare-function comint-dynamic-complete-filename "comint" ())
-(declare-function Info-goto-node "info" (nodename &optional fork))
 
 (defgroup idlwave nil
   "Major mode for editing IDL .pro files."
@@ -4906,7 +4905,6 @@ Cache to disk for quick recovery."
 	(error "No such XML routine info file: %s" catalog-file)
       (if (not (file-readable-p catalog-file))
 	  (error "Cannot read XML routine info file: %s" catalog-file)))
-    (require 'xml)
     (message "Reading XML routine info...")
     (setq rinfo (xml-parse-file catalog-file))
     (message "Reading XML routine info...done")
@@ -9291,20 +9289,17 @@ Assumes that point is at the beginning of the unit as found by
 (defun idlwave-show-commentary ()
   "Use the finder to view the file documentation from `idlwave.el'."
   (interactive)
-  (require 'finder)
   (finder-commentary "idlwave.el"))
 
 (defun idlwave-shell-show-commentary ()
   "Use the finder to view the file documentation from `idlw-shell.el'."
   (interactive)
-  (require 'finder)
   (finder-commentary "idlw-shell.el"))
 
 (defun idlwave-info ()
   "Read documentation for IDLWAVE in the info system."
   (interactive)
-  (require 'info)
-  (Info-goto-node "(idlwave)"))
+  (info "idlwave"))
 
 (defun idlwave-list-abbrevs (arg)
   "Show the code abbreviations define in IDLWAVE mode.

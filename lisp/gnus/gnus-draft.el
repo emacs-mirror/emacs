@@ -244,7 +244,7 @@ Obeys the standard process/prefix convention."
 (defcustom gnus-draft-setup-hook nil
   "Hook run after setting up a draft buffer."
   :group 'gnus-message
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :type 'hook)
 
 ;;; Utility functions

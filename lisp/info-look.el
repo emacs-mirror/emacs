@@ -970,7 +970,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 	      "`" "(")))
 
 (info-lookup-maybe-add-help
- :mode 'custom-mode
+ :mode 'Custom-mode
  :ignore-case t
  :regexp "[^][()`',:\" \t\n]+"
  :parse-rule 'info-lookup-guess-custom-symbol

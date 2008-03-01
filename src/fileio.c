@@ -3716,6 +3716,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
   struct stat st;
   register int fd;
   int inserted = 0;
+  int nochange = 0;
   register int how_much;
   register int unprocessed;
   int count = SPECPDL_INDEX ();
@@ -4281,7 +4282,10 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 	{
 	  specpdl_ptr--;
 	  /* Truncate the buffer to the size of the file.  */
-	  del_range_byte (same_at_start, same_at_end, 0);
+	  if (same_at_start == same_at_end)
+	    nochange = 1;
+	  else
+	    del_range_byte (same_at_start, same_at_end, 0);
 	  inserted = 0;
 
 	  unbind_to (this_count, Qnil);
@@ -4628,7 +4632,7 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
   if (!NILP (visit))
     {
-      if (!EQ (current_buffer->undo_list, Qt))
+      if (!EQ (current_buffer->undo_list, Qt) && !nochange)
 	current_buffer->undo_list = Qnil;
 
       if (NILP (handler))

@@ -2025,7 +2025,7 @@ DEFUN ("internal-char-font", Finternal_char_font, Sinternal_char_font, 1, 2, 0,
      (position, ch)
      Lisp_Object position, ch;
 {
-  int pos, pos_byte, dummy;
+  EMACS_INT pos, pos_byte, dummy;
   int face_id;
   int c;
   struct frame *f;

@@ -86,6 +86,7 @@ There are several subdirectories:
             to building and running Emacs on Windows 9X/ME/NT/2000/XP.
 `mac'       holds instructions, sources, and other useful files for building
             and running Emacs on the Mac.
+`test'      holds tests for various aspects of Emacs's functionality.
 
    Building Emacs on non-Posix platforms requires to install tools
 that aren't part of the standard distribution of the OS.  The

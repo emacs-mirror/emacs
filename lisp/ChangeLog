@@ -1,3 +1,323 @@
+2008-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-sanity-check-hunk): Only accept an empty line if
+	we still expect more lines.
+
+2008-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/fill.el (fill-comment-paragraph): Don't try to do
+	comment-paragraph filling if the commark doesn't match
+	comment-start-skip.
+
+2008-03-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* international/utf-7.el (utf-7-encode): Never skip the trailing - for
+	the `imap' variant.
+
+2008-03-01  Jason Rumney  <jasonr@gnu.org>
+
+	* files.el (make-auto-save-file-name): Encode more characters in
+	non-file buffer names.  Use url-encoding.
+
+2008-03-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/net-utils.el (ftp-program): Fix typo in docstring.
+	(ifconfig-program-options, netstat-program-options)
+	(arp-program-options, route-program-options, nslookup-program-options)
+	(ftp-program-options, smbclient-program-options)
+	(dns-lookup-program-options, arp, route): Doc fixes.
+
+	* progmodes/gdb-ui.el (gdb-pc-address, gdb-source-file-list)
+	(gdb-cpp-define-alist-program, gdb-mouse-jump, gdb-get-buffer-create)
+	(gdb-set-gud-minor-mode-existing-buffers-1, gdb-debug-log):
+	Fix typos in docstrings.
+	(gdb-pending-triggers): Reflow docstring.
+	(gdb, gdb-init-1): Fix typos in docstrings of gud-def definitions.
+
+2008-03-01  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-neutralize-syntax-in-CPP): Fix a bug on
+	typing "#" at EOB.
+
+2008-03-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emulation/cua-base.el (cua-remap-control-z): Fix typo in docstring.
+
+2008-02-29  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-remap-control-v)
+	(cua-remap-control-z): New defcustoms.
+	(cua-mode): Add them to set-after property.
+	(cua--init-keymaps): Use them.
+	Add C-x/C-c home, end, next, and prior to cua--prefix-repeat-keymap.
+
+	* help.el (view-emacs-todo): Rename from view-todo.
+	(describe-gnu-project): Rename from describe-project.  Users changed.
+	(view-help-file): New helper function.
+	(describe-distribution, describe-copying, describe-gnu-project)
+	(view-todo, view-order-manuals, view-emacs-problems): Use it.
+	(view-emacs-debugging, view-external-packages): New commands.
+	(help-map): Move describe-distribution to C-h C-o (ordering).
+	Move view-emacs-problems to C-h C-p (problems).
+	Bind view-emacs-debugging to C-h C-d (debugging).
+	Bind view-external-packages to C-h C-e (extras).
+	(help-for-help-internal): Cleanup and align descriptions.
+	Remove command names to reduce clutter.
+
+2008-02-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* vc.el (vc-set-mode-line-busy-indicator): Use shorter message
+	and quieter face (not a warning).
+
+2008-02-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-status-crt-marked): New variable.
+	(vc-status-mode): Make it local.
+	(vc-status-refresh): Use it to save the marked files.
+	(vc-update-vc-status-buffer): Use it to restore the marked files.
+
+	* vc-svn.el (vc-svn-after-dir-status):
+	* vc-hg.el (vc-hg-after-dir-status): Clean up the temporary buffer.
+
+2008-02-29  Glenn Morris  <rgm@gnu.org>
+
+	* allout.el (allout-topic-encryption-bullet)
+	(allout-passphrase-verifier-handling, allout-passphrase-hint-handling)
+	(allout-encrypt-unencrypted-on-saves): Change defcustom :version
+	from 22.0 to 22.1.
+
+	* net/imap.el (imap-ping-server):
+	* net/tls.el (tls-checktrust, tls-untrusted, tls-hostmismatch):
+	Change defcustom :version from 23.0 to 23.1.
+
+2008-02-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-save): Save the buffer name if the
+	uniquified base name is empty.
+
+2008-02-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-stack-custom): Apply function-name-face
+	correctly when user has "set print address off".
+
+2008-02-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cus-edit.el (custom-mode, custom-mode-hook): Use 23.1 as
+	version number of the next major Emacs release, not 23.0.
+
+	* longlines.el (longlines-unload-function): New function.
+
+2008-02-28  Juri Linkov  <juri@jurta.org>
+
+	* startup.el (normal-splash-screen): Add argument `concise'.
+	Remove unused binding `prev-buffer'.  Let-bind `splash-buffer'
+	to the created buffer.  If `concise' is non-nil, call
+	`display-buffer', otherwise `switch-to-buffer'.  Doc fix.
+	(display-startup-screen): Add argument `concise' to the call to
+	`normal-splash-screen'.
+
+2008-02-28  Kim F. Storm  <storm@cua.dk>
+
+	* startup.el (startup-echo-area-message): Check for about-emacs.
+
+2008-02-28  Juri Linkov  <juri@jurta.org>
+
+	* startup.el: Always add initial message to *scratch* buffer if
+	`initial-scratch-message' is non-nil regardless of the value of
+	`inhibit-startup-screen'.
+	(inhibit-startup-screen, initial-scratch-message): Doc fix.
+	(command-line-1): Move code that inserts `initial-scratch-message'
+	up before the if-form that checks for `inhibit-startup-screen'.
+	Suggested by Jonathan Rockway <jon@jrock.us>.
+
+2008-02-28  Juri Linkov  <juri@jurta.org>
+
+	* cus-edit.el (custom-mode-map, custom-mode-link-map):
+	Rename `custom-mode' to `Custom-mode' in docstrings.
+	(custom-buffer-create-internal, customize-browse):
+	Rename `custom-mode' to `Custom-mode'.
+	(custom-mode-hook): Rename to `Custom-mode-hook'.
+	(Custom-mode-hook): Renamed from `custom-mode-hook'.
+	(custom-mode): Rename to `Custom-mode'.
+	(Custom-mode): Renamed from `custom-mode'.  Doc fix.
+	(custom-mode): Add backward-compatible non-interactive variant of
+	`Custom-mode' that simply calls `Custom-mode'.  Mark it obsoleted.
+	(custom-mode-hook): Mark it as obsolete alias of `Custom-mode-hook'.
+
+	* info-look.el: Rename `custom-mode' to `Custom-mode'.
+
+	* emulation/viper.el (viper-emacs-state-mode-list):
+	Rename `custom-mode' to `Custom-mode'.
+
+	* menu-bar.el (menu-bar-search-menu, menu-bar-replace-menu):
+	Capitalize "Tagged Files".
+	(minibuffer-local-map): Add menu items for next/previous
+	history elements and isearch history forward/backward.
+
+	* progmodes/hideshow.el (hs-minor-mode-menu): Compare
+	`hs-isearch-open' with t instead of `comment' in :selected
+	for "Code and Comment blocks" menu item.
+
+2008-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* uniquify.el (uniquify-buffer-base-name): Undo last change.
+	Should be done in desktop.el instead.
+
+2008-02-28  Glenn Morris  <rgm@gnu.org>
+
+	* autoinsert.el (auto-insert-alist): Update to FDL 1.2.
+
+	* emacs-lisp/byte-run.el (make-obsolete): Doc fix.
+
+	* mail/emacsbug.el: Remove leading `*' from defcustom doc-strings.
+	(Info-menu, Info-goto-node): Remove declarations.
+	(report-emacs-bug-info): Use info rather than Info-goto-node.
+
+	* progmodes/idlwave.el (Info-goto-node): Remove declaration.
+	(idlwave-convert-xml-system-routine-info): Don't require xml.
+	(idlwave-show-commentary, idlwave-shell-show-commentary):
+	Don't require finder.
+	(idlwave-info): Don't require info.  Use info rather than
+	Info-goto-node.
+
+	* textmodes/org.el (Info-goto-node): Remove declaration.
+	(org-info): Use info rather than Info-goto-node.
+
+	* textmodes/reftex.el (reftex-show-commentary): Don't require finder.
+	(reftex-info): Don't require info.  Use info rather than Info-goto-node.
+
+2008-02-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/hideshow.el (hs-minor-mode-menu): Add some options to
+	the menu.
+
+	* vc.el (vc-deduce-fileset, vc-next-action, vc-start-entry)
+	(vc-finish-logentry): Check for vc-status-mode, not only for
+	vc-dired-mode.
+
+2008-02-28  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* isearch.el (isearch-printing-char): Don't check
+	keyboard-coding-system.  Call
+	isearch-process-search-multibyte-characters only when
+	current-input-method is non-nil.
+
+2008-02-27  Kim F. Storm  <storm@cua.dk>
+
+	* disp-table.el (make-glyph-code): Encode as cons if face id > 63.
+	(glyph-char, glyph-face): Handle cons encoding.
+
+2008-02-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* uniquify.el (uniquify-buffer-base-name): If the base name is an
+	empty string, return nil to allow the caller to default to the
+	buffer name.  Reported by Martin Fischer <parozusa@web.de>.
+
+	* tool-bar.el (tool-bar-setup): Doc fix.
+
+	* mail/supercite.el (sc-describe):
+	Fix typos in obsolescence declaration.
+
+2008-02-27  Glenn Morris  <rgm@gnu.org>
+
+	* autoinsert.el (auto-insert-alist): Change permission text to
+	match FSF's GPLv3 form.
+
+	* mail/supercite.el (sc-cite-original): Doc fix.
+	(sc-version): Make obsolete.
+	(sc-describe): Show the SC info page.  Make obsolete.
+
+2008-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (set-mark-command): Deactivate mark on second C-SPC C-SPC
+	when using transient-mark-mode.
+	(default-indicate-unused-lines): Remove unused var.
+
+2008-02-26  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* progmodes/grep.el (grep-mode-tool-bar-map): Change place on next
+	and previous.
+
+	* progmodes/compile.el (compilation-mode-tool-bar-map): The same.
+
+2008-02-26  Glenn Morris  <rgm@gnu.org>
+
+	* net/net-utils.el (top-level): Don't require comint when compiling.
+	(nslookup-font-lock-keywords): Don't require font-lock.
+	Use font-lock faces rather than variables.
+	(nslookup, ftp, smbclient, network-service-connection):
+	Don't require comint.
+	(comint-prompt-regexp, comint-input-autoexpand)
+	(comint-input-ring): Declare for compiler.
+	(comint-mode, ffap-string-at-point, comint-exec): Autoload.
+	(dns-lookup-host): Don't require ffap.  Remove `with-no-warnings'.
+
+	* ibuffer.el (ibuffer-do-toggle-read-only): Don't use `iff' in
+	doc-string.
+
+2008-02-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-current-page): Add a `win' argument.
+
+2008-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-conversion-buffer): Give it an internal name.
+	Demote it to plain defvar.
+	(doc-view-conversion-refresh-interval): Reduce interval.
+	(doc-view-goto-page): Allow moving to pages not yet rendered.
+	(doc-view-goto-page): Construct a file name rather than extracting it
+	from doc-view-current-files.
+	(doc-view-kill-proc): Ignore errors from kill-process.
+	(doc-view-pdf/ps->png-sentinel): Die gracefully if the buffer is dead.
+	(doc-view-insert-image): Use appropriate text if the page hasn't been
+	rendered yet.  Adjust scrolling so the text is displayed.
+	(doc-view-display): Detect not just that a page is available, but also
+	that it wasn't available before, so as to avoid refreshing all pages
+	repeatedly.
+	(doc-view-mode): Make doc-view-cache-directory if needed.
+
+2008-02-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* ibuffer.el (ibuffer-do-toggle-read-only): New optional arg as in
+	toggle-read-only.
+
+	* textmodes/bibtex.el (bibtex-format-entry): Handle error message
+	refering to a missing required field with the OPT prefix.
+	Make unwindform more robust.
+
+	* textmodes/bibtex.el: Remove support for hideshow minor mode as
+	it duplicates the bibtex support in progmodes/hideshow.el.
+	* progmodes/hideshow.el (hs-special-modes-alist): Allow bibtex
+	entries that do not start at the beginning of a line.
+
+2008-02-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* files.el (shell-quote-wildcard-pattern): Quote ' and " as well.
+
+2008-02-25  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* help-fns.el (describe-variable): Add phrases about
+	initialization file with and without customization;
+	use new button type help-info-variable.
+
+	* help-mode.el (help-info-variable):
+	New button able to read Info files for help-fns.el.
+
+2008-02-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* progmodes/grep.el (grep-mode-tool-bar-map): New variable.
+	(grep-mode): Use grep-mode-tool-bar-map.
+
+	* progmodes/compile.el (tool-bar): Require tool-bar.
+	(compilation-mode-tool-bar-map): New variable.
+	(compilation-mode): Use compilation-mode-tool-bar-map.
+
+	* term/x-win.el (x-gtk-stock-map): Add cancel.  Remove extensions.
+
+2008-02-25  Glenn Morris  <rgm@gnu.org>
+
+	* vc-sccs.el (vc-sccs-diff): Fix setting of oldvers and newvers.
+
 2008-02-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-file-junk-re): New const.
@@ -99,8 +419,7 @@
 	(mode-popup-menu): Don't defvar.
 	(verilog-add-statement-menu): Remove.
 	(verilog-mode-hook): Don't add verilog-add-statement-menu.
-	(verilog-mode): Call easy-menu-add and set mode-popup-menu for
-	XEmacs.
+	(verilog-mode): Call easy-menu-add and set mode-popup-menu for XEmacs.
 
 2008-02-24  Michael McNamara  <mac@mail.brushroad.com>
 
@@ -108,31 +427,31 @@
 	conditional.
 	(verilog-font-grouping-keywords-face): Make the begin..end
 	keywords standout more than other verilog keywords.
-        (verilog-type-font-keywords): Move the begin..end out of this list
+	(verilog-type-font-keywords): Move the begin..end out of this list
 	to facilitate making them to (potentially) stand out more.
 	(verilog-backward-token): Fix indent of bare always{_*}?, initial,
 	function & task blocks.
-        (verilog-behavioral-block-beg-re): Fix indent of bare always{_*}?,
+	(verilog-behavioral-block-beg-re): Fix indent of bare always{_*}?,
 	initial, function & task blocks.
 	(verilog-forward-sexp): Handle the new "disable fork" statement of
 	IEEE-1800 Verilog.
-        (verilog-beg-block-re-ordered): Handle the new "disable fork"
+	(verilog-beg-block-re-ordered): Handle the new "disable fork"
 	statement of IEEE-1800 Verilog.
-        (verilog-calc-1): Handle the new "disable fork" statement of
+	(verilog-calc-1): Handle the new "disable fork" statement of
 	IEEE-1800 Verilog.
-        (verilog-disable-fork-re): Add const to help handle the new
+	(verilog-disable-fork-re): Add const to help handle the new
 	"disable fork" statement of IEEE-1800 Verilog.
 	(verilog-declaration-core-re): Add port directions by themselves,
 	with no qualification, as base item of a declaration.
-        (verilog-pretty-declarations): Add new flag to ask it to refrain
+	(verilog-pretty-declarations): Add new flag to ask it to refrain
 	from printing to the message buffer.
-        (verilog-pretty-expr): Add a QUIET flag to ask it to refrain from
+	(verilog-pretty-expr): Add a QUIET flag to ask it to refrain from
 	printing to the message buffer.  Improve handling of the many
 	types of expression line up.
-        (verilog-just-one-space): Remove printing of an empty message.
-        (verilog-get-lineup-indent): Rework to support the better handling
+	(verilog-just-one-space): Remove printing of an empty message.
+	(verilog-get-lineup-indent): Rework to support the better handling
 	of expression lineup for verilog-pretty-expr.
-        (verilog-auto-wire): Pass the quiet flag to verilog-pretty-expr.
+	(verilog-auto-wire): Pass the quiet flag to verilog-pretty-expr.
 
 2008-02-24  Alan Mackenzie  <acm@muc.de>
 

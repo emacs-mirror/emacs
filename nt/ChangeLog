@@ -1,3 +1,8 @@
+2008-02-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* addpm.c: Include malloc.h.
+	(add_registry): Cast return value of alloca.
+
 2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* config.nt (SHORTNAMES): Remove reference to obsolete variable.

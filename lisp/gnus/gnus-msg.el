@@ -265,7 +265,7 @@ This can also be a function receiving the group name as the only
 parameter, which should return non-nil if a confirmation is needed; or
 a regexp, in which case a confirmation is asked for if the group name
 matches the regexp."
-  :version "23.0" ;; No Gnus (default changed)
+  :version "23.1" ;; No Gnus (default changed)
   :group 'gnus-message
   :type '(choice (const :tag "No" nil)
 		 (const :tag "Yes" t)
@@ -293,7 +293,7 @@ If nil, the address field will always be empty after invoking
 (defcustom gnus-message-highlight-citation
   t ;; gnus-treat-highlight-citation ;; gnus-cite dependency
   "Enable highlighting of different citation levels in message-mode."
-  :version "23.0" ;; No Gnus
+  :version "23.1" ;; No Gnus
   :group 'gnus-cite
   :group 'gnus-message
   :type 'boolean)
