@@ -135,7 +135,15 @@ because they clash with commands provided by dirtrack.el.  Use
 * Lisp Changes in Emacs 22.2.
 
 ** Frame-local variables are deprecated and are slated for removal.
-Use frame parameters instead.
+They can easily be emulated.  Rather than calling `make-variable-frame-local'
+and accessing the variable value directly, explicitly check for a
+frame-parameter, and if there is one, use its value in preference to
+that of the variable. Eg:
+(let ((fp (assoc 'var (frame-parameters))))
+  ;; Use frame-parameter, even if nil.
+  (if fp (cdr fp)
+     ;; Else use normal variable value.
+     var))
 
 ** The function invisible-p returns non-nil if the character
 after a specified position is invisible.
