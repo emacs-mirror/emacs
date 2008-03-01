@@ -1,3 +1,7 @@
+2008-03-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emulation/cua-base.el (cua-remap-control-z): Fix typo in docstring.
+
 2008-02-29  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-remap-control-v)
