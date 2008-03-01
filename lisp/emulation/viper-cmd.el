@@ -41,7 +41,6 @@
 (defvar iso-accents-mode)
 (defvar quail-mode)
 (defvar quail-current-str)
-(defvar zmacs-region-stays)
 (defvar mark-even-if-inactive)
 (defvar init-message)
 (defvar initial)
@@ -177,31 +176,28 @@
 	(viper-set-replace-overlay (point-min) (point-min))
 	(viper-hide-replace-overlay)))
   (if (eq viper-current-state 'insert-state)
-      (let ((has-saved-cursor-color-in-insert-mode
-	     (stringp (viper-get-saved-cursor-color-in-insert-mode))))
-	(or has-saved-cursor-color-in-insert-mode
-	    (string= (viper-get-cursor-color) viper-insert-state-cursor-color)
+      (let ((icolor (viper-frame-value viper-insert-state-cursor-color)))
+	(or (stringp (viper-get-saved-cursor-color-in-insert-mode))
+	    (string= (viper-get-cursor-color) icolor)
 	    ;; save current color, if not already saved
 	    (viper-save-cursor-color 'before-insert-mode))
 	;; set insert mode cursor color
-	(viper-change-cursor-color viper-insert-state-cursor-color)))
-  (if (and viper-emacs-state-cursor-color (eq viper-current-state 'emacs-state))
-      (let ((has-saved-cursor-color-in-emacs-mode
-	     (stringp (viper-get-saved-cursor-color-in-emacs-mode))))
-	(or has-saved-cursor-color-in-emacs-mode
-	    (string= (viper-get-cursor-color) viper-emacs-state-cursor-color)
-	    ;; save current color, if not already saved
-	    (viper-save-cursor-color 'before-emacs-mode))
-	;; set emacs mode cursor color
-	(viper-change-cursor-color viper-emacs-state-cursor-color)))
+	(viper-change-cursor-color icolor)))
+  (let ((ecolor (viper-frame-value viper-emacs-state-cursor-color)))
+    (when (and ecolor (eq viper-current-state 'emacs-state))
+      (or (stringp (viper-get-saved-cursor-color-in-emacs-mode))
+	  (string= (viper-get-cursor-color) ecolor)
+	  ;; save current color, if not already saved
+	  (viper-save-cursor-color 'before-emacs-mode))
+      ;; set emacs mode cursor color
+      (viper-change-cursor-color ecolor)))
 
   (if (and (memq this-command '(dabbrev-expand hippie-expand))
 	   (integerp viper-pre-command-point)
 	   (markerp viper-insert-point)
 	   (marker-position viper-insert-point)
 	   (> viper-insert-point viper-pre-command-point))
-      (viper-move-marker-locally viper-insert-point viper-pre-command-point))
-  )
+      (viper-move-marker-locally viper-insert-point viper-pre-command-point)))
 
 (defsubst viper-preserve-cursor-color ()
   (or (memq this-command '(self-insert-command
@@ -231,9 +227,9 @@
   ;; will remain red.  Restoring the default, below, prevents this.
   (if (and (<= (viper-replace-start) (point))
 	   (<=  (point) (viper-replace-end)))
-      (viper-change-cursor-color viper-replace-overlay-cursor-color)
-    (viper-restore-cursor-color 'after-replace-mode)
-    ))
+      (viper-change-cursor-color
+       (viper-frame-value viper-replace-overlay-cursor-color))
+    (viper-restore-cursor-color 'after-replace-mode)))
 
 ;; to speed up, don't change cursor color before self-insert
 ;; and common move commands
@@ -284,14 +280,13 @@
 	(if (= viper-last-posn-in-replace-region (viper-replace-end))
 	    (viper-finish-change)))
 
-      (if (viper-pos-within-region
-	   (point) (viper-replace-start) replace-boundary)
-	  (progn
-	    ;; the state may have changed in viper-finish-change above
-	    (if (eq viper-current-state 'replace-state)
-		(viper-change-cursor-color viper-replace-overlay-cursor-color))
-	    (setq viper-last-posn-in-replace-region (point-marker))))
-      ))
+      (when (viper-pos-within-region
+	     (point) (viper-replace-start) replace-boundary)
+	;; the state may have changed in viper-finish-change above
+	(if (eq viper-current-state 'replace-state)
+	    (viper-change-cursor-color
+	     (viper-frame-value viper-replace-overlay-cursor-color)))
+	(setq viper-last-posn-in-replace-region (point-marker)))))
    ;; terminate replace mode if changed Viper states.
    (t (viper-finish-change))))
 
@@ -305,15 +300,11 @@
   ;; desirable that viper-pre-command-sentinel is the last hook and
   ;; viper-post-command-sentinel is the first hook.
 
-  (viper-cond-compile-for-xemacs-or-emacs
-   ;; xemacs
-   (progn
-     (make-local-hook 'viper-after-change-functions)
-     (make-local-hook 'viper-before-change-functions)
-     (make-local-hook 'viper-post-command-hooks)
-     (make-local-hook 'viper-pre-command-hooks))
-   nil ; emacs
-   )
+  (when (featurep 'xemacs)
+    (make-local-hook 'viper-after-change-functions)
+    (make-local-hook 'viper-before-change-functions)
+    (make-local-hook 'viper-post-command-hooks)
+    (make-local-hook 'viper-pre-command-hooks))
 
   (remove-hook 'post-command-hook 'viper-post-command-sentinel)
   (add-hook 'post-command-hook 'viper-post-command-sentinel)
@@ -662,12 +653,11 @@
       (viper-set-replace-overlay (point-min) (point-min)))
   (viper-hide-replace-overlay)
 
-  (let ((has-saved-cursor-color-in-insert-mode
-	 (stringp (viper-get-saved-cursor-color-in-insert-mode))))
-    (or has-saved-cursor-color-in-insert-mode
-	(string= (viper-get-cursor-color) viper-insert-state-cursor-color)
+  (let ((icolor (viper-frame-value viper-insert-state-cursor-color)))
+    (or (stringp (viper-get-saved-cursor-color-in-insert-mode))
+	(string= (viper-get-cursor-color) icolor)
 	(viper-save-cursor-color 'before-insert-mode))
-    (viper-change-cursor-color viper-insert-state-cursor-color))
+    (viper-change-cursor-color icolor))
 
   ;; Protect against user errors in hooks
   (condition-case conds
@@ -710,13 +700,12 @@
       (viper-set-replace-overlay (point-min) (point-min)))
   (viper-hide-replace-overlay)
 
-  (if viper-emacs-state-cursor-color
-      (let ((has-saved-cursor-color-in-emacs-mode
-	     (stringp (viper-get-saved-cursor-color-in-emacs-mode))))
-	(or has-saved-cursor-color-in-emacs-mode
-	    (string= (viper-get-cursor-color) viper-emacs-state-cursor-color)
-	    (viper-save-cursor-color 'before-emacs-mode))
-	(viper-change-cursor-color viper-emacs-state-cursor-color)))
+  (let ((ecolor (viper-frame-value viper-emacs-state-cursor-color)))
+    (when ecolor
+      (or (stringp (viper-get-saved-cursor-color-in-emacs-mode))
+	  (string= (viper-get-cursor-color) ecolor)
+	  (viper-save-cursor-color 'before-emacs-mode))
+      (viper-change-cursor-color ecolor)))
 
   (viper-change-state 'emacs-state)
 
@@ -779,16 +768,15 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 
 	  ;; this-command, last-command-char, last-command-event
 	  (setq this-command com)
-	  (viper-cond-compile-for-xemacs-or-emacs
-	   ;; XEmacs represents key sequences as vectors
-	   (setq last-command-event
-		 (viper-copy-event (viper-seq-last-elt key))
-		 last-command-char (event-to-character last-command-event))
-	   ;; Emacs represents them as sequences (str or vec)
-	   (setq last-command-event
-		 (viper-copy-event (viper-seq-last-elt key))
-		 last-command-char last-command-event)
-	   )
+	  (if (featurep 'xemacs)
+	      ;; XEmacs represents key sequences as vectors
+	      (setq last-command-event
+		    (viper-copy-event (viper-seq-last-elt key))
+		    last-command-char (event-to-character last-command-event))
+	    ;; Emacs represents them as sequences (str or vec)
+	    (setq last-command-event
+		  (viper-copy-event (viper-seq-last-elt key))
+		  last-command-char last-command-event))
 
 	  (if (commandp com)
 	      ;; pretend that current state is the state we excaped to
@@ -1850,7 +1838,7 @@ invokes the command before that, etc."
     (message " `.' runs  %s%s"
 	     (concat "`" (viper-array-to-string keys) "'")
 	     (viper-abbreviate-string
-	      (viper-cond-compile-for-xemacs-or-emacs
+	      (if (featurep 'xemacs)
 	       (replace-in-string ; xemacs
 		(cond ((characterp text) (char-to-string text))
 		      ((stringp text) text)
@@ -2170,7 +2158,7 @@ To turn this feature off, set this variable to nil."
 		  (setq cmd
 			(key-binding (setq key (read-key-sequence nil))))
 		  (cond ((eq cmd 'self-insert-command)
-			 (viper-cond-compile-for-xemacs-or-emacs
+			 (if (featurep 'xemacs)
 			  (insert (events-to-keys key)) ; xemacs
 			  (insert key) ; emacs
 			  ))
@@ -3462,11 +3450,8 @@ controlled by the sign of prefix numeric value."
 ;; (which is called from viper-search-forward/backward/next).  If the value of
 ;; viper-search-scroll-threshold is negative - don't scroll.
 (defun viper-adjust-window ()
-  (let ((win-height (viper-cond-compile-for-xemacs-or-emacs
-		     (window-displayed-height) ; xemacs
-		     ;; emacs
-		     (1- (window-height)) ; adjust for modeline
-		     ))
+  (let ((win-height (if (featurep 'xemacs) (window-displayed-height)
+		      (1- (window-height)))) ; adjust for modeline
 	(pt (point))
 	at-top-p at-bottom-p
 	min-scroll direction)
@@ -3477,8 +3462,7 @@ controlled by the sign of prefix numeric value."
 		viper-search-scroll-threshold))
       (move-to-window-line -1) ; bottom
       (setq at-bottom-p
-	    (<= (count-lines pt (point)) viper-search-scroll-threshold))
-      )
+	    (<= (count-lines pt (point)) viper-search-scroll-threshold)))
     (cond (at-top-p (setq min-scroll (1- viper-search-scroll-threshold)
 			  direction  1))
 	  (at-bottom-p (setq min-scroll (1+ viper-search-scroll-threshold)
