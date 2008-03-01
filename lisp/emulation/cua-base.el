@@ -289,7 +289,7 @@ Also, M-v is mapped to `cua-repeat-replace-region'."
   :group 'cua)
 
 (defcustom cua-remap-control-z t
-  "*If non-nil, C-v binding is used for undo."
+  "*If non-nil, C-z binding is used for undo."
   :type 'boolean
   :group 'cua)
 
