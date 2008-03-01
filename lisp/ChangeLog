@@ -1,3 +1,9 @@
+2008-03-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-read): Set `desktop-dirname' to nil before
+	running `desktop-not-loaded-hook' to allow modifying it.
+	Don't show warning message if `desktop-dirname' was modified.
+
 2008-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-sanity-check-hunk): Only accept an empty line if
