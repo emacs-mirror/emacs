@@ -367,7 +367,7 @@ Valid types include `google', `dejanews', and `gmane'.")
       (goto-char (point-max))
       (when
 	  (re-search-backward
-	   "^\\(?:\\(\\w+\\) \\([0-9]+\\)\\|\\S-+\\)\\(?: \\([0-9]\\{4\\}\\)\\)? by \\(.*\\)"
+ 	   "^\\(?:\\(\\w+\\) \\([0-9]+\\)\\|\\S-+\\)\\(?: \\([0-9]\\{4\\}\\)\\)? by ?\\(.*\\)"
 	   nil t)
 	(setq Date (if (match-string 1)
 		       (format "%s %s 00:00:00 %s"
