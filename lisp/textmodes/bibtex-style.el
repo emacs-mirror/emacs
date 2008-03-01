@@ -95,7 +95,9 @@
 
 (defcustom bibtex-style-indent-basic 2
   "Basic amount of indentation to use in BibTeX Style mode."
-  :type 'integer)
+  :version "22.2"
+  :type 'integer
+  :group 'bibtex)
 
 (defun bibtex-style-calculate-indentation (&optional virt)
   (or

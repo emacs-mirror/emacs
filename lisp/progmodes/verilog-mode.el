@@ -276,6 +276,7 @@ STRING should be given if the last search was by `string-match' on STRING."
 
 (defgroup verilog-mode nil
   "Facilitates easy editing of Verilog source text."
+  :version "22.2"
   :group 'languages)
 
 ; (defgroup verilog-mode-fonts nil
