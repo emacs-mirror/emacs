@@ -1,3 +1,50 @@
+2008-03-01  Glenn Morris  <rgm@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded): Restore
+	code commented out 2007-11-10.
+
+	* emulation/edt.el (zmacs-region-stays): Define for compiler once only.
+
+	* emulation/viper-init.el (viper-cond-compile-for-xemacs-or-emacs):
+	Delete macro.
+	* emulation/viper-cmd.el, emulation/viper-ex.el:
+	* emulation/viper-init.el, emulation/viper-keym.el:
+	* emulation/viper-mous.el, emulation/viper-util.el:
+	* emulation/viper.el:
+	Expand all viper-cond-compile-for-xemacs-or-emacs calls to a
+	featurep test.
+
+	Replace obselete frame-local variables with frame-parameters.
+	* emulation/viper-init.el (viper-replace-overlay-cursor-color)
+	(viper-insert-state-cursor-color, viper-emacs-state-cursor-color)
+	(viper-vi-state-cursor-color): Only call make-variable-frame-local
+	on XEmacs.
+	* emulation/viper-util.el (viper-frame-value): New macro.
+	* emulation/viper-cmd.el (viper-insert-state-post-command-sentinel)
+	(viper-R-state-post-command-sentinel)
+	(viper-replace-state-post-command-sentinel)
+	(viper-change-state-to-insert, viper-change-state-to-emacs):
+	* emulation/viper-util.el (viper-set-cursor-color-according-to-state)
+	(viper-save-cursor-color, viper-get-saved-cursor-color-in-replace-mode)
+	(viper-get-saved-cursor-color-in-insert-mode)
+	(viper-get-saved-cursor-color-in-emacs-mode, viper-set-replace-overlay):
+	Use viper-frame-value for viper-replace-overlay-cursor-color,
+	viper-emacs-state-cursor-color, viper-insert-state-cursor-color, and
+	viper-vi-state-cursor-color values.
+
+	* emulation/viper-cmd.el (zmacs-region-stays):
+	* emulation/viper-util.el (zmacs-region-stays): No need to define
+	for compiler.
+
+	* emulation/viper-keym.el (viper-add-keymap): Use mapc rather than
+	mapcar on Emacs.
+
+	* emulation/viper-mous.el (viper-counting-clicks-p): Only define
+	on XEmacs.
+
+	* emulation/viper-util.el (viper-set-minibuffer-overlay): Use when
+	rather than if.
+
 2008-03-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* whitespace.el: New version 9.3.  As the glyph code generation was
@@ -41,8 +88,6 @@
 
 	* diff-mode.el (diff-sanity-check-hunk): Only accept an empty line if
 	we still expect more lines.
-
-2008-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/fill.el (fill-comment-paragraph): Don't try to do
 	comment-paragraph filling if the commark doesn't match
