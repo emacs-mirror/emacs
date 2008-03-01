@@ -1,3 +1,7 @@
+2008-03-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_msg_pump): Disable debug code.
+
 2008-03-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* m/intel386.h [MAC_OSX || DARWIN]: Define NO_ARG_ARRAY if _LP64.
