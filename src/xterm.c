@@ -6988,13 +6988,20 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
     case ConfigureNotify:
       f = x_top_window_to_frame (dpyinfo, event.xconfigure.window);
+#ifdef USE_GTK
+      if (!f
+          && (f = x_any_window_to_frame (dpyinfo, event.xconfigure.window))
+          && event.xconfigure.window == FRAME_X_WINDOW (f))
+        {
+          xg_frame_resized (f, event.xconfigure.width,
+                            event.xconfigure.height);
+          f = 0;
+        }
+#endif  
       if (f)
         {
 #ifndef USE_X_TOOLKIT
-#ifdef USE_GTK
-          xg_resize_widgets (f, event.xconfigure.width,
-                             event.xconfigure.height);
-#else /* not USE_GTK */
+#ifndef USE_GTK
           /* If there is a pending resize for fullscreen, don't
              do this one, the right one will come later.
              The toolkit version doesn't seem to need this, but we
@@ -7024,11 +7031,11 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
               SET_FRAME_GARBAGED (f);
               cancel_mouse_face (f);
             }
-#endif /* not USE_GTK */
-#endif
 
           FRAME_PIXEL_WIDTH (f) = event.xconfigure.width;
           FRAME_PIXEL_HEIGHT (f) = event.xconfigure.height;
+#endif /* not USE_GTK */
+#endif
 
 #ifdef USE_GTK
           /* GTK creates windows but doesn't map them.
