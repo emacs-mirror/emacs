@@ -855,7 +855,13 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 	(goto-char comstart) (skip-chars-backward " \t")
 	(setq has-code-and-comment (not (bolp)))))
 
-    (if (not comstart)
+    (if (not (and comstart
+                  ;; Make sure the comment-start mark we found is accepted by
+                  ;; comment-start-skip.  If not, all bets are off, and
+                  ;; we'd better not mess with it.
+                  (string-match comment-start-skip
+                                (buffer-substring comstart comin))))
+
 	;; Return nil, so the normal filling will take place.
 	nil
 

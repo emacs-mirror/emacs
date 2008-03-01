@@ -4552,7 +4552,7 @@ Perl_functions (inf)
 
   LOOP_ON_INPUT_LINES (inf, lb, cp)
     {
-      skip_spaces(cp);
+      cp = skip_spaces (cp);
 
       if (LOOKING_AT (cp, "package"))
 	{

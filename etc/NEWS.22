@@ -53,6 +53,14 @@ like that, customize the value of the new option `find-name-arg'.
 than the window, the usual keys for moving the cursor cause the image
 to be scrolled horizontally or vertically instead.
 
+** Emacs can use stock icons in the tool bar when compiled with Gtk+.
+However, this feature is disabled by default.  To enable it, put
+
+  (setq icon-map-list '(x-gtk-stock-map))
+
+in your .emacs or some other startup file.  For more information, see
+the documentation for the two variables icon-map-list and x-gtk-stock-map.
+
 ** Scrollbars follow the system theme on Windows XP and later.
 Windows XP introduced themed scrollbars, but applications have to take
 special steps to use them. Emacs now has the appropriate resources linked
@@ -152,6 +160,14 @@ are escaped in the output.
 of strings, undoing any quoting added by `combine-and-quote-strings'.
 (For some separator/string combinations, the original strings cannot
 be recovered.)
+
+* Systems that will not be supported in the future
+configure will print a warning and exit for a set of systems that are
+believed to not be in use anymore.  The support has not been removed
+yet, but configure will need to be edited in order to allow
+compilation to proceed on such a system.  If you are using such a
+system, please send a message to emacs-devel@gnu.org in order to take
+off the list of systems.
 
 
 * Installation Changes in Emacs 22.1

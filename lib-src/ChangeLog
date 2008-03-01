@@ -1,3 +1,7 @@
+2008-02-27  Yuri Shtil  <yuris@juniper.net>  (tiny change)
+
+	* etags.c (Perl_functions): Fix call to skip_spaces.
+
 2008-02-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (NO_SHORTNAMES):

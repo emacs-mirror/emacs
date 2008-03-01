@@ -1,3 +1,44 @@
+2008-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-sanity-check-hunk): Only accept an empty line if
+	we still expect more lines.
+
+2008-03-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/fill.el (fill-comment-paragraph): Don't try to do
+	comment-paragraph filling if the commark doesn't match
+	comment-start-skip.
+
+2008-03-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* international/utf-7.el (utf-7-encode): Never skip the trailing - for
+	the `imap' variant.
+
+2008-03-01  Jason Rumney  <jasonr@gnu.org>
+
+	* files.el (make-auto-save-file-name): Encode more characters in
+	non-file buffer names.  Use url-encoding.
+
+2008-03-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/net-utils.el (ftp-program): Fix typo in docstring.
+	(ifconfig-program-options, netstat-program-options)
+	(arp-program-options, route-program-options, nslookup-program-options)
+	(ftp-program-options, smbclient-program-options)
+	(dns-lookup-program-options, arp, route): Doc fixes.
+
+	* progmodes/gdb-ui.el (gdb-pc-address, gdb-source-file-list)
+	(gdb-cpp-define-alist-program, gdb-mouse-jump, gdb-get-buffer-create)
+	(gdb-set-gud-minor-mode-existing-buffers-1, gdb-debug-log):
+	Fix typos in docstrings.
+	(gdb-pending-triggers): Reflow docstring.
+	(gdb, gdb-init-1): Fix typos in docstrings of gud-def definitions.
+
+2008-03-01  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-mode.el (c-neutralize-syntax-in-CPP): Fix a bug on
+	typing "#" at EOB.
+
 2008-03-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emulation/cua-base.el (cua-remap-control-z): Fix typo in docstring.

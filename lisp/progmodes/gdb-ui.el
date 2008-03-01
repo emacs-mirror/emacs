@@ -100,7 +100,7 @@
 (defvar speedbar-initial-expansion-list-name)
 
 (defvar gdb-pc-address nil "Initialization for Assembler buffer.
-Set to \"main\" at start if gdb-show-main is t.")
+Set to \"main\" at start if `gdb-show-main' is t.")
 (defvar gdb-frame-address nil "Identity of frame for watch expression.")
 (defvar gdb-previous-frame-address nil)
 (defvar gdb-memory-address "main")
@@ -109,7 +109,7 @@ Set to \"main\" at start if gdb-show-main is t.")
 (defvar gdb-frame-number nil)
 (defvar gdb-current-language nil)
 (defvar gdb-var-list nil
- "List of variables in watch window.
+  "List of variables in watch window.
 Each element has the form (VARNUM EXPRESSION NUMCHILD TYPE VALUE STATUS FP)
 where STATUS is nil (`unchanged'), `changed' or `out-of-scope', FP the frame
 address for root variables.")
@@ -176,14 +176,13 @@ gdba (gdb-ui.el) uses all five values, gdbmi (gdb-mi.el) only two
   "The most recent command item sent to gdb.")
 
 (defvar gdb-pending-triggers '()
-  "A list of trigger functions that have run later than their output
-handlers.")
+  "A list of trigger functions that have run later than their output handlers.")
 
 (defvar gdb-first-post-prompt nil)
 (defvar gdb-version nil)
 (defvar gdb-locals-font-lock-keywords nil)
 (defvar gdb-source-file-list nil
-  "List of source files for the current executable")
+  "List of source files for the current executable.")
 (defconst gdb-error-regexp "\\^error,msg=\"\\(.+\\)\"")
 
 (defvar gdb-locals-font-lock-keywords-1
@@ -291,7 +290,7 @@ session."
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
   (gud-def gud-tbreak "tbreak %f:%l" "\C-t"
 	   "Set temporary breakpoint at current line.")
-  (gud-def gud-remove "clear %f:%l" "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-remove "clear %f:%l" "\C-d" "Remove breakpoint at current line.")
   (gud-def gud-step   "step %p"     "\C-s" "Step one source line with display.")
   (gud-def gud-stepi  "stepi %p"    "\C-i" "Step one instruction with display.")
   (gud-def gud-next   "next %p"     "\C-n" "Step one line (skip functions).")
@@ -338,10 +337,9 @@ session."
   :version "22.1")
 
 (defvar gdb-debug-log nil
-  "List of commands sent to and replies received from GDB.  Most
-recent commands are listed first.  This list stores only the last
-'gdb-debug-log-max' values.  This variable is used to debug
-GDB-UI.")
+  "List of commands sent to and replies received from GDB.
+Most recent commands are listed first.  This list stores only the last
+`gdb-debug-log-max' values.  This variable is used to debug GDB-UI.")
 
 ;;;###autoload
 (defcustom gdb-enable-debug nil
@@ -354,7 +352,7 @@ GDB-UI.")
   "Shell command for generating a list of defined macros in a source file.
 This list is used to display the #define directive associated
 with an identifier as a tooltip.  It works in a debug session with
-GDB, when gud-tooltip-mode is t.
+GDB, when `gud-tooltip-mode' is t.
 
 Set `gdb-cpp-define-alist-flags' for any include paths or
 predefined macros."
@@ -555,7 +553,7 @@ otherwise do not."
 	     "pp1 " (if (eq (buffer-local-value
 			     'major-mode (window-buffer)) 'speedbar-mode)
 			(gdb-find-watch-expression) "%e")) arg)
-	   nil   "Print the emacs s-expression.")
+	   nil   "Print the Emacs s-expression.")
 
   (define-key gud-minor-mode-map [left-margin mouse-1]
     'gdb-mouse-set-clear-breakpoint)
@@ -689,7 +687,7 @@ with mouse-1 (default bindings)."
   "Set execution address/line.
 The destination source line can be selected either by clicking with C-mouse-3
 on the fringe/margin or dragging the arrow with C-mouse-1 (default bindings).
-Unlike gdb-mouse-until the destination address can be before the current
+Unlike `gdb-mouse-until' the destination address can be before the current
 line, and no execution takes place."
   (interactive "e")
   (let ((start (event-start event))
@@ -827,7 +825,7 @@ With arg, enter name of variable to be watched in the minibuffer."
 	 `(lambda () (gdb-var-list-children-handler ,varnum)))))
 
 (defconst gdb-var-list-children-regexp
- "child={.*?name=\"\\(.*?\\)\",.*?exp=\"\\(.*?\\)\",.*?\
+  "child={.*?name=\"\\(.*?\\)\",.*?exp=\"\\(.*?\\)\",.*?\
 numchild=\"\\(.*?\\)\"\\(}\\|,.*?\\(type=\"\\(.*?\\)\"\\)?.*?}\\)")
 
 (defun gdb-var-list-children-handler (varnum)
@@ -1035,7 +1033,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
     (gdb-look-for-tagged-buffer key (buffer-list))))
 
 (defun gdb-get-buffer-create (key)
-  "Create a new gdb  buffer of the type specified by KEY.
+  "Create a new gdb buffer of the type specified by KEY.
 The key should be one of the cars in `gdb-buffer-rules-assoc'."
   (or (gdb-get-buffer key)
       (let* ((rules (assoc key gdb-buffer-rules-assoc))
@@ -1351,7 +1349,7 @@ happens to be in effect."
   "An annotation handler for `prompt'.
 This sends the next command (if any) to gdb."
   (when gdb-first-prompt
-    (gdb-force-mode-line-update 
+    (gdb-force-mode-line-update
      (propertize "initializing..." 'face font-lock-variable-name-face))
     (gdb-init-1)
     (setq gdb-first-prompt nil))
@@ -2283,7 +2281,7 @@ static char *magick[] = {
   (kill-all-local-variables)
   (setq major-mode 'gdb-frames-mode)
   (setq mode-name "Frames")
-  (setq gdb-stack-position nil) 
+  (setq gdb-stack-position nil)
   (add-to-list 'overlay-arrow-variable-list 'gdb-stack-position)
   (setq truncate-lines t)  ;; Make it easier to see overlay arrow.
   (setq buffer-read-only t)
@@ -2612,10 +2610,10 @@ another GDB command e.g pwd, to see new frames")
   (let ((map (make-sparse-keymap)))
     (define-key map [header-line down-mouse-3] 'gdb-memory-format-menu-1)
     map)
- "Keymap to select format in the header line.")
+  "Keymap to select format in the header line.")
 
 (defvar gdb-memory-format-menu (make-sparse-keymap "Format")
- "Menu of display formats in the header line.")
+  "Menu of display formats in the header line.")
 
 (define-key gdb-memory-format-menu [binary]
   '(menu-item "Binary" gdb-memory-format-binary
@@ -2674,10 +2672,10 @@ another GDB command e.g pwd, to see new frames")
   (let ((map (make-sparse-keymap)))
     (define-key map [header-line down-mouse-3] 'gdb-memory-unit-menu-1)
     map)
- "Keymap to select units in the header line.")
+  "Keymap to select units in the header line.")
 
 (defvar gdb-memory-unit-menu (make-sparse-keymap "Unit")
- "Menu of units in the header line.")
+  "Menu of units in the header line.")
 
 (define-key gdb-memory-unit-menu [giantwords]
   '(menu-item "Giant words" gdb-memory-unit-giant
@@ -2840,7 +2838,7 @@ corresponding to the mode line clicked."
 				(beginning-of-line)
 				(gud-watch)))
     map)
- "Keymap to create watch expression of a complex data type local variable.")
+  "Keymap to create watch expression of a complex data type local variable.")
 
 (defconst gdb-struct-string
   (concat (propertize "[struct/union]"
@@ -3489,7 +3487,7 @@ BUFFER nil or omitted means use the current buffer."
 
 (defun gdb-set-gud-minor-mode-existing-buffers-1 ()
   "Create list of source files for current GDB session.
-If buffers already exist for any of these files, gud-minor-mode
+If buffers already exist for any of these files, `gud-minor-mode'
 is set in them."
   (goto-char (point-min))
   (while (re-search-forward gdb-source-file-regexp-1 nil t)
@@ -3700,7 +3698,7 @@ in_scope=\"\\(.*?\\)\".*?}")
     (define-key map "\r" 'gud-watch)
     (define-key map [mouse-2] 'gud-watch)
     map)
- "Keymap to create watch expression of a complex data type local variable.")
+  "Keymap to create watch expression of a complex data type local variable.")
 
 (defvar gdb-edit-locals-map-1
   (let ((map (make-sparse-keymap)))
@@ -3708,7 +3706,7 @@ in_scope=\"\\(.*?\\)\".*?}")
     (define-key map "\r" 'gdb-edit-locals-value)
     (define-key map [mouse-2] 'gdb-edit-locals-value)
     map)
- "Keymap to edit value of a simple data type local variable.")
+  "Keymap to edit value of a simple data type local variable.")
 
 (defun gdb-edit-locals-value (&optional event)
   "Assign a value to a variable displayed in the locals buffer."

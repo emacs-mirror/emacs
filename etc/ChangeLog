@@ -3,6 +3,10 @@
 	* NEWS (Gnus): Mention problem with coding system `utf-8-emacs'
 	when using different Emacs versions.
 
+2008-02-25  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* NEWS.22: Mention stock icons for Gtk+.
+
 2008-02-22  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* NEWS: Mention the new language environments Bengali, Punjabi,

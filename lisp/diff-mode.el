@@ -1363,7 +1363,8 @@ Only works for unified diffs."
                    (cond
                     ((and diff-valid-unified-empty-line
                           ;; Not just (eolp) so we don't infloop at eob.
-                          (eq (char-after) ?\n))
+                          (eq (char-after) ?\n)
+                          (> before 0) (> after 0))
                      (decf before) (decf after) t)
                     ((and (zerop before) (zerop after)) nil)
                     ((or (< before 0) (< after 0))
