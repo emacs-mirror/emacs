@@ -1,3 +1,7 @@
+2008-03-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_full_name): Report point size for scalable fonts.
+
 2008-03-01  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (CHAR_GLYPH_SPACE_P): Check for default face.
