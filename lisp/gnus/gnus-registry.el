@@ -79,17 +79,49 @@
   "*The article registry by Message ID.")
 
 (defcustom gnus-registry-marks
-  '(Important Work Personal To-Do Later)
-  "List of marks that `gnus-registry-mark-article' will offer for completion."
+  '((Important
+     (char . ?i)
+     (image . "summary_important"))
+    (Work
+     (char . ?w)
+     (image . "summary_work"))
+    (Personal
+     (char . ?p)
+     (image . "summary_personal"))
+    (To-Do
+     (char . ?t)
+     (image . "summary_todo"))
+    (Later
+     (char . ?l)
+     (image . "summary_later")))
+
+  "List of registry marks and their options.
+
+`gnus-registry-mark-article' will offer symbols from this list
+for completion.  
+
+Each entry must have a character to be useful for summary mode
+line display and for keyboard shortcuts.
+
+Each entry must have an image string to be useful for visual
+display."
   :group 'gnus-registry
-  :type '(repeat symbol))
+  :type '(alist :key-type symbol
+		:value-type (set :tag "Mark details"
+				  (cons :tag "Shortcut" 
+					(const :tag "Character code" char)
+					character)
+				  (cons :tag "Visual" 
+					(const :tag "Image" image) 
+					string))))
 
 (defcustom gnus-registry-default-mark 'To-Do
-  "The default mark."
+  "The default mark.  Should be a valid key for `gnus-registry-marks'."
   :group 'gnus-registry
   :type 'symbol)
 
-(defcustom gnus-registry-unfollowed-groups '("delayed$" "drafts$" "queue$" "INBOX$")
+(defcustom gnus-registry-unfollowed-groups 
+  '("delayed$" "drafts$" "queue$" "INBOX$")
   "List of groups that gnus-registry-split-fancy-with-parent won't return.
 The group names are matched, they don't have to be fully
 qualified.  This parameter tells the Registry 'never split a
@@ -197,7 +229,8 @@ considered precious) will not be trimmed."
     (if gnus-save-startup-file-via-temp-buffer
 	(let ((coding-system-for-write gnus-ding-file-coding-system)
 	      (standard-output (current-buffer)))
-	  (gnus-gnus-to-quick-newsrc-format t "gnus registry startup file" 'gnus-registry-alist)
+	  (gnus-gnus-to-quick-newsrc-format 
+	   t "gnus registry startup file" 'gnus-registry-alist)
 	  (gnus-registry-cache-whitespace file)
 	  (save-buffer))
       (let ((coding-system-for-write gnus-ding-file-coding-system)
@@ -221,7 +254,8 @@ considered precious) will not be trimmed."
 	(unwind-protect
 	    (progn
 	      (gnus-with-output-to-file working-file
-		(gnus-gnus-to-quick-newsrc-format t "gnus registry startup file" 'gnus-registry-alist))
+		(gnus-gnus-to-quick-newsrc-format 
+		 t "gnus registry startup file" 'gnus-registry-alist))
 
 	      ;; These bindings will mislead the current buffer
 	      ;; into thinking that it is visiting the startup
@@ -382,7 +416,8 @@ Any entries with extra data (marks, currently) are left alone."
 	 (subject (gnus-string-remove-all-properties
 		   (gnus-registry-simplify-subject
 		    (mail-header-subject data-header))))
-	 (sender (gnus-string-remove-all-properties (mail-header-from data-header)))
+	 (sender (gnus-string-remove-all-properties 
+		  (mail-header-from data-header)))
 	 (from (gnus-group-guess-full-name-from-command-method from))
 	 (to (if to (gnus-group-guess-full-name-from-command-method to) nil))
 	 (to-name (if to to "the Bit Bucket"))
@@ -425,119 +460,152 @@ messages.
 For a message to be split, it looks for the parent message in the
 References or In-Reply-To header and then looks in the registry
 to see which group that message was put in.  This group is
-returned, unless it matches one of the entries in
-gnus-registry-unfollowed-groups or
-nnmail-split-fancy-with-parent-ignore-groups.
+returned, unless `gnus-registry-follow-group-p' return nil for
+that group.
 
 See the Info node `(gnus)Fancy Mail Splitting' for more details."
-  (let* ((refstr (or (message-fetch-field "references") "")) ; guarantee string
-	 (reply-to (message-fetch-field "in-reply-to"))	     ; grab reply-to
+  (let* ((refstr (or (message-fetch-field "references") "")) ; guaranteed
+	 (reply-to (message-fetch-field "in-reply-to"))	     ; may be nil
 	 ;; now, if reply-to is valid, append it to the References
 	 (refstr (if reply-to 
 		     (concat refstr " " reply-to)
 		   refstr))
-	(nnmail-split-fancy-with-parent-ignore-groups
-	 (if (listp nnmail-split-fancy-with-parent-ignore-groups)
-	     nnmail-split-fancy-with-parent-ignore-groups
-	   (list nnmail-split-fancy-with-parent-ignore-groups)))
-	res)
-    ;; the references string must be valid and parse to valid references
-    (if (and refstr (gnus-extract-references refstr))
-	(dolist (reference (nreverse (gnus-extract-references refstr)))
-	  (setq res (or (gnus-registry-fetch-group reference) res))
-	  (when (or (gnus-registry-grep-in-list
-		     res
-		     gnus-registry-unfollowed-groups)
-		    (gnus-registry-grep-in-list
-		     res
-		     nnmail-split-fancy-with-parent-ignore-groups))
-	    (setq res nil)))
+	 ;; these may not be used, but the code is cleaner having them up here
+	 (sender (gnus-string-remove-all-properties
+		  (message-fetch-field "from")))
+	 (subject (gnus-string-remove-all-properties
+		   (gnus-registry-simplify-subject
+		    (message-fetch-field "subject"))))
 
-      ;; else: there were no references, now try the extra tracking
-      (let ((sender (gnus-string-remove-all-properties(message-fetch-field "from")))
-	    (subject (gnus-string-remove-all-properties
-		      (gnus-registry-simplify-subject
-		       (message-fetch-field "subject"))))
-	    (single-match t))
-	(when (and single-match
-		   (gnus-registry-track-sender-p)
-		   sender)
-	  (maphash
-	   (lambda (key value)
-	     (let ((this-sender (cdr
-				 (gnus-registry-fetch-extra key 'sender))))
-	       (when (and single-match
-			  this-sender
-			  (equal sender this-sender))
-		 ;; too many matches, bail
-		 (unless (equal res (gnus-registry-fetch-group key))
-		   (setq single-match nil))
-		 (setq res (gnus-registry-fetch-group key))
-		 (when (and sender res)
-		   (gnus-message
-		    ;; raise level of messaging if gnus-registry-track-extra
-		    (if gnus-registry-track-extra 7 9)
-		    "%s (extra tracking) traced sender %s to group %s"
-		    "gnus-registry-split-fancy-with-parent"
-		    sender
-		    res)))))
-	   gnus-registry-hashtb))
-	(when (and single-match
-		   (gnus-registry-track-subject-p)
-		   subject
-		   (< gnus-registry-minimum-subject-length (length subject)))
-	  (maphash
-	   (lambda (key value)
-	     (let ((this-subject (cdr
-				  (gnus-registry-fetch-extra key 'subject))))
-	       (when (and single-match
-			  this-subject
-			  (equal subject this-subject))
-		 ;; too many matches, bail
-		 (unless (equal res (gnus-registry-fetch-group key))
-		   (setq single-match nil))
-		 (setq res (gnus-registry-fetch-group key))
-		 (when (and subject res)
-		   (gnus-message
-		    ;; raise level of messaging if gnus-registry-track-extra
-		    (if gnus-registry-track-extra 7 9)
-		    "%s (extra tracking) traced subject %s to group %s"
-		    "gnus-registry-split-fancy-with-parent"
-		    subject
-		    res)))))
-	   gnus-registry-hashtb))
-	(unless single-match
-	  (gnus-message
-	   3
-	   "gnus-registry-split-fancy-with-parent: too many extra matches for %s"
-	   refstr)
-	  (setq res nil))))
-    (when (and refstr res)
-      (gnus-message
-       5
-       "gnus-registry-split-fancy-with-parent traced %s to group %s"
-       refstr res))
+	 (nnmail-split-fancy-with-parent-ignore-groups
+	  (if (listp nnmail-split-fancy-with-parent-ignore-groups)
+	      nnmail-split-fancy-with-parent-ignore-groups
+	    (list nnmail-split-fancy-with-parent-ignore-groups)))
+	 (log-agent "gnus-registry-split-fancy-with-parent")
+	 found)
 
-    (when (and res gnus-registry-use-long-group-names)
-      (let ((m1 (gnus-find-method-for-group res))
-	    (m2 (or gnus-command-method
-		    (gnus-find-method-for-group gnus-newsgroup-name)))
-	    (short-res (gnus-group-short-name res)))
-      (if (gnus-methods-equal-p m1 m2)
-	  (progn
-	    (gnus-message
-	     9
-	     "gnus-registry-split-fancy-with-parent stripped group %s to %s"
-	     res
-	     short-res)
-	    (setq res short-res))
-	;; else...
+    ;; this is a big if-else statement.  it uses
+    ;; gnus-registry-post-process-groups to filter the results after
+    ;; every step.
+    (cond
+     ;; the references string must be valid and parse to valid references
+     ((and refstr (gnus-extract-references refstr))
+      (dolist (reference (nreverse (gnus-extract-references refstr)))
 	(gnus-message
-	 7
-	 "gnus-registry-split-fancy-with-parent ignored foreign group %s"
-	 res)
-	(setq res nil))))
-    res))
+	 9
+	 "%s is looking for matches for reference %s from [%s]"
+	 log-agent reference refstr)
+	(dolist (group (gnus-registry-fetch-groups reference))
+	  (when (and group (gnus-registry-follow-group-p group))
+	    (gnus-message
+	     7
+	     "%s traced the reference %s from [%s] to group %s"
+	     log-agent reference refstr group)
+	    (push group found))))
+      ;; filter the found groups and return them
+      (setq found (gnus-registry-post-process-groups 
+		   "references" refstr found)))
+
+     ;; else: there were no matches, now try the extra tracking by sender
+     ((and (gnus-registry-track-sender-p) 
+	   sender)
+      (maphash
+       (lambda (key value)
+	 (let ((this-sender (cdr
+			     (gnus-registry-fetch-extra key 'sender)))
+	       matches)
+	   (when (and this-sender
+		      (equal sender this-sender))
+	     (setq found (append (gnus-registry-fetch-groups key) found))
+	     (push key matches)
+	     (gnus-message
+	      ;; raise level of messaging if gnus-registry-track-extra
+	      (if gnus-registry-track-extra 7 9)
+	      "%s (extra tracking) traced sender %s to groups %s (keys %s)"
+	      log-agent sender found matches))))
+       gnus-registry-hashtb)
+      ;; filter the found groups and return them
+      (setq found (gnus-registry-post-process-groups "sender" sender found)))
+      
+     ;; else: there were no matches, now try the extra tracking by subject
+     ((and (gnus-registry-track-subject-p)
+	   subject
+	   (< gnus-registry-minimum-subject-length (length subject)))
+      (maphash
+       (lambda (key value)
+	 (let ((this-subject (cdr
+			      (gnus-registry-fetch-extra key 'subject)))
+	       matches)
+	   (when (and this-subject
+		      (equal subject this-subject))
+	     (setq found (append (gnus-registry-fetch-groups key) found))
+	     (push key matches)
+	     (gnus-message
+	      ;; raise level of messaging if gnus-registry-track-extra
+	      (if gnus-registry-track-extra 7 9)
+	      "%s (extra tracking) traced subject %s to groups %s (keys %s)"
+	      log-agent subject found matches))))
+       gnus-registry-hashtb)
+      ;; filter the found groups and return them
+      (setq found (gnus-registry-post-process-groups 
+		   "subject" subject found))))))
+
+(defun gnus-registry-post-process-groups (mode key groups)
+  "Modifies GROUPS found by MODE for KEY to determine which ones to follow.
+
+MODE can be 'subject' or 'sender' for example.  The KEY is the
+value by which MODE was searched.
+
+Transforms each group name to the equivalent short name.
+
+Checks if the current Gnus method (from `gnus-command-method' or
+from `gnus-newsgroup-name') is the same as the group's method.
+This is not possible if gnus-registry-use-long-group-names is
+false.  Foreign methods are not supported so they are rejected.
+
+Reduces the list to a single group, or complains if that's not
+possible."
+  (let ((log-agent "gnus-registry-post-process-group")
+	out)
+    (if gnus-registry-use-long-group-names
+	(dolist (group groups)
+	  (let ((m1 (gnus-find-method-for-group group))
+		(m2 (or gnus-command-method
+			(gnus-find-method-for-group gnus-newsgroup-name)))
+		(short-name (gnus-group-short-name group)))
+	    (if (gnus-methods-equal-p m1 m2)
+		(progn
+		  ;; this is REALLY just for debugging
+		  (gnus-message
+		   10
+		   "%s stripped group %s to %s"
+		   log-agent group short-name)
+		  (unless (member short-name out)
+		    (push short-name out)))
+	      ;; else...
+	      (gnus-message
+	       7
+	       "%s ignored foreign group %s"
+	       log-agent group))))
+      (setq out groups))
+    (when (cdr-safe out)
+	(gnus-message
+	 5
+	 "%s: too many extra matches (%s) for %s %s.  Returning none."
+	 log-agent out mode key)
+	(setq out nil))
+    out))
+
+(defun gnus-registry-follow-group-p (group)
+  "Determines if a group name should be followed.
+Consults `gnus-registry-unfollowed-groups' and
+`nnmail-split-fancy-with-parent-ignore-groups'."
+  (not (or (gnus-registry-grep-in-list
+	    group
+	    gnus-registry-unfollowed-groups)
+	   (gnus-registry-grep-in-list
+	    group
+	    nnmail-split-fancy-with-parent-ignore-groups))))
 
 (defun gnus-registry-wash-for-keywords (&optional force)
   (interactive)
@@ -627,6 +695,78 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 		     (string-match word x))
 		   list)))))
 
+(defun gnus-registry-do-marks (type function)
+  "For each known mark, call FUNCTION for each cell of type TYPE.
+
+FUNCTION should take two parameters, a mark symbol and the cell value."
+  (dolist (mark-info gnus-registry-marks)
+    (let ((mark (car-safe mark-info))
+	  (data (cdr-safe mark-info)))
+      (dolist (cell data)
+	(let ((cell-type (car-safe cell))
+	      (cell-data (cdr-safe cell)))
+	  (when (equal type cell-type)
+	    (funcall function mark cell-data)))))))
+
+;;; this is ugly code, but I don't know how to do it better
+;;; TODO: clear the gnus-registry-mark-map before running
+(defun gnus-registry-install-shortcuts-and-menus ()
+  "Install the keyboard shortcuts and menus for the registry.
+Uses `gnus-registry-marks' to find what shortcuts to install."
+  (gnus-registry-do-marks 
+   'char
+   (lambda (mark data)
+     (let ((function-format
+	    (format "gnus-registry-%%s-article-%s-mark" mark)))
+
+;;; The following generates these functions:
+;;; (defun gnus-registry-set-article-Important-mark (&rest articles)
+;;;   "Apply the Important mark to process-marked ARTICLES."
+;;;   (interactive (gnus-summary-work-articles current-prefix-arg))
+;;;   (gnus-registry-set-article-mark-internal 'Important articles nil t))
+;;; (defun gnus-registry-remove-article-Important-mark (&rest articles)
+;;;   "Apply the Important mark to process-marked ARTICLES."
+;;;   (interactive (gnus-summary-work-articles current-prefix-arg))
+;;;   (gnus-registry-set-article-mark-internal 'Important articles t t))
+
+       (dolist (remove '(t nil))
+	 (let* ((variant-name (if remove "remove" "set"))
+		(function-name (format function-format variant-name))
+		(shortcut (format "%c" data))
+		(shortcut (if remove (upcase shortcut) shortcut)))
+	   (unintern function-name)
+	   (eval
+	    `(defun 
+	       ;; function name
+	       ,(intern function-name) 
+	       ;; parameter definition
+	       (&rest articles)
+	       ;; documentation
+	       ,(format 
+		 "%s the %s mark over process-marked ARTICLES."
+		 (upcase-initials variant-name)
+		 mark)
+	       ;; interactive definition
+	       (interactive 
+		(gnus-summary-work-articles current-prefix-arg))
+	       ;; actual code
+	       (gnus-registry-set-article-mark-internal 
+		;; all this just to get the mark, I must be doing it wrong
+		(intern ,(symbol-name mark))
+		articles ,remove t))))))))
+  ;; I don't know how to do this inside the loop above, because
+  ;; gnus-define-keys is a macro
+  (gnus-define-keys (gnus-registry-mark-map "M" gnus-summary-mark-map)
+    "i" gnus-registry-set-article-Important-mark
+    "I" gnus-registry-remove-article-Important-mark
+    "w" gnus-registry-set-article-Work-mark
+    "W" gnus-registry-remove-article-Work-mark
+    "l" gnus-registry-set-article-Later-mark
+    "L" gnus-registry-remove-article-Later-mark
+    "p" gnus-registry-set-article-Personal-mark
+    "P" gnus-registry-remove-article-Personal-mark
+    "t" gnus-registry-set-article-To-Do-mark
+    "T" gnus-registry-remove-article-To-Do-mark))
 
 (defun gnus-registry-read-mark ()
   "Read a mark name from the user with completion."
@@ -634,7 +774,7 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	       (symbol-name gnus-registry-default-mark)
 	       "Label" 
 	       (mapcar (lambda (x)	; completion list
-			 (cons (symbol-name x) x))
+			 (cons (symbol-name (car-safe x)) (car-safe x)))
 		       gnus-registry-marks))))
     (when (stringp mark)
       (intern mark))))
@@ -896,6 +1036,7 @@ Returns the first place where the trail finds a group name."
   (interactive)
   (setq gnus-registry-install t)
   (gnus-registry-install-hooks)
+  (gnus-registry-install-shortcuts-and-menus)
   (gnus-registry-read))
 
 ;;;###autoload

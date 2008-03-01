@@ -1,3 +1,20 @@
+2008-02-29  Andreas Seltenreich  <andreas@gate450.dyndns.org>
+
+	* nnweb.el (nnweb-google-parse-1): Fix date parsing on articles with
+	empty author.
+
+2008-02-29  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-marks): Add variable for
+	customization of marks and their appearance.
+	(gnus-registry-read-mark): Use it.
+	(gnus-registry-do-marks): Add utility function to loop through
+	`gnus-registry-marks'.
+	(gnus-registry-install-shortcuts-and-menus): Add function to install
+	shortcuts and menus.
+	(gnus-registry-initialize): Use it.
+	(gnus-registry-default-mark): Clarify documentation.
+
 2008-02-29  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-art.el, gnus-bookmark.el, gnus-dired.el, gnus-draft.el:
@@ -6,9 +23,37 @@
 	* nnmail.el, pop3.el, smiley.el, smime.el, spam-report.el:
 	Change defcustom :version from 23.0 to 23.1.
 
+2008-02-28  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-follow-group-p)
+	(gnus-registry-post-process-groups): Add functions to aid registry
+	splitting and improve logging.  Clarify behavior in function
+	documentation.
+	(gnus-registry-split-fancy-with-parent): Use them.
+
 2008-02-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-art.el: Use with-current-buffer.
+
+2008-02-27  David Engster  <dengste@eml.cc>
+
+	* nnmairix.el (nnmairix-request-group-with-article-number-correction):
+	Express real group name in the response.
+
+2008-02-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmairix.el (nnmairix-group-regexp, nnmairix-valid-backends)
+	(nnmairix-last-server, nnmairix-current-server): Defvar them.
+	(nnmairix-goto-original-article): Defvar gnus-registry-install and
+	autoload gnus-registry-fetch-group when compiling.
+	(nnmairix-request-group-with-article-number-correction): remove
+	unreferenced argument passed to nnmairix-call-backend.
+
+2008-02-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-uu.el (mm-uu-type-alist): Fix message-marks non-hide arguments.
+	(mm-uu-extract): Improve face for low color ttys.  Reported by Sascha
+	Wilde.
 
 2008-02-27  Glenn Morris  <rgm@gnu.org>
 
@@ -20,7 +65,8 @@
 	(gnus-registry-fetch-group): Autoload.
 	(nnmairix-replace-group-and-numbers): Use mapc rather than mapcar.
 	(nnmairix-widget-get-values, nnmairix-widget-make-query-from-widgets)
-	(nnmairix-widget-build-editable-fields): Use car cddr rather than caddr.
+	(nnmairix-widget-build-editable-fields): Use car cddr rather than
+	caddr.
 	(nnmairix-request-group): Bind nnmairix-fast and nnmairix-group around
 	nnmairix-request-group-with-article-number-correction call.
 	(nnmairix-fast, nnmairix-group): New, less general names, for free

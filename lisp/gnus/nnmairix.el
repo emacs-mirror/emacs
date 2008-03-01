@@ -434,10 +434,8 @@ Other backends might or might not work.")
 	 "request-scan" folder nnmairix-backend-server)
 	(if fast
 	    t
-          (let ((nnmairix-fast fast)
-                (nnmairix-group group))
-            (nnmairix-request-group-with-article-number-correction
-             folder qualgroup))))
+	  (nnmairix-request-group-with-article-number-correction
+	   folder qualgroup)))
        ((and (= rval 1)
 	     (save-excursion (set-buffer nnmairix-mairix-output-buffer)
 			     (goto-char (point-min))
@@ -849,7 +847,10 @@ with `nnmairix-mairix-update-options'."
 	  (set-process-sentinel (apply 'start-process args)
 				'nnmairix-sentinel-mairix-update-finished))))))
 
-(autoload 'gnus-registry-fetch-group "gnus-registry")
+;; Silence byte-compiler.
+(eval-when-compile
+  (defvar gnus-registry-install)
+  (autoload 'gnus-registry-fetch-group "gnus-registry"))
 
 (defun nnmairix-goto-original-article (&optional no-registry)
   "Jump to the original group and display article.
@@ -978,17 +979,10 @@ search in raw mode."
 
 ;;; ==== Helper functions
 
-;; Set locally in nnmairix-request-group, which is the only caller of
-;; this function.
-(defvar nnmairix-fast)
-(defvar nnmairix-group)
-
 (defun nnmairix-request-group-with-article-number-correction (folder qualgroup)
   "Request FOLDER on backend for nnmairix QUALGROUP and article number correction."
   (save-excursion
-    ;; FIXME nnmairix-request-group only calls this when fast is nil (?).
-    (nnmairix-call-backend
-     "request-group" folder nnmairix-backend-server nnmairix-fast)
+    (nnmairix-call-backend "request-group" folder nnmairix-backend-server)
     (set-buffer nnmairix-mairix-output-buffer)
     (goto-char (point-min))
     (re-search-forward "^Matched.*messages")
@@ -1021,7 +1015,7 @@ search in raw mode."
 		 qualgroup 'numcorr (list nil 0 high))))
 	    (erase-buffer)
 	    (insert (format "%d %d %d %d %s" status total low high
-                            nnmairix-group))
+			    (gnus-group-real-name qualgroup)))
 	    t)
 	(progn
 	  (nnheader-report

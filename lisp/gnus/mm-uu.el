@@ -167,7 +167,7 @@ This can be either \"inline\" or \"attachment\".")
      ;; dependency on `message.el'.
      "^-+[8<>]*-\\{9,\\}[a-z ]+-\\{9,\\}[a-z ]+-\\{9,\\}[8<>]*-+$"
      "^-+[8<>]*-\\{9,\\}[a-z ]+-\\{9,\\}[a-z ]+-\\{9,\\}[8<>]*-+$"
-     (lambda () (mm-uu-verbatim-marks-extract 0 -1 1 -1))
+     (lambda () (mm-uu-verbatim-marks-extract -1 0 1 -1))
      nil)
     ;; Omitting [a-z8<] leads to false positives (bogus signature separators
     ;; and mailing list banners).
@@ -248,11 +248,19 @@ The value should be nil on displays where the face
   :version "23.1" ;; No Gnus
   :group 'gnus-article-mime)
 
-(defface mm-uu-extract '(;; Colors from `gnus-cite-3' plus background:
+(defface mm-uu-extract '(;; Inspired by `gnus-cite-3'
+			 (((type tty)
+			   (class color)
+			   (background dark))
+			  (:background "dark blue"))
 			 (((class color)
 			   (background dark))
 			  (:foreground "light yellow"
 			   :background "dark green"))
+			 (((type tty)
+			   (class color)
+			   (background light))
+			  (:foreground "dark blue"))
 			 (((class color)
 			   (background light))
 			  (:foreground "dark green"
