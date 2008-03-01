@@ -1,3 +1,7 @@
+2008-03-01  Jason Rumney  <jasonr@gnu.org>
+
+	* font.c (font_unparse_fcname): Increase len when style is a symbol.
+
 2008-03-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): For Gtk+ and ConfigureNotify, call
