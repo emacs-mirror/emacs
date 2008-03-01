@@ -1,3 +1,8 @@
+2008-03-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_full_name): New function.
+	(w32font_open_internal): Use it.
+
 2008-03-01  Kim F. Storm  <storm@cua.dk>
 
 	* dispnew.c (line_draw_cost): Fix invalid glyph check.
