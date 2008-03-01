@@ -1573,35 +1573,40 @@ Files in subdirectories of DIRECTORY are processed also."
   (interactive "DByte force recompile (directory): ")
   (byte-recompile-directory directory nil t))
 
+;; The `bytecomp-' prefix is applied to all local variables with
+;; otherwise common names in this and similar functions for the sake
+;; of the boundp test in byte-compile-variable-ref.
+;; http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg00237.html
+;; http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00134.html
 ;;;###autoload
-(defun byte-recompile-directory (directory &optional arg force)
-  "Recompile every `.el' file in DIRECTORY that needs recompilation.
+(defun byte-recompile-directory (bytecomp-directory &optional bytecomp-arg
+                                                    bytecomp-force)
+  "Recompile every `.el' file in BYTECOMP-DIRECTORY that needs recompilation.
 This is if a `.elc' file exists but is older than the `.el' file.
-Files in subdirectories of DIRECTORY are processed also.
+Files in subdirectories of BYTECOMP-DIRECTORY are processed also.
 
 If the `.elc' file does not exist, normally this function *does not*
-compile the corresponding `.el' file.  However,
-if ARG (the prefix argument) is 0, that means do compile all those files.
-A nonzero ARG means ask the user, for each such `.el' file,
-whether to compile it.
+compile the corresponding `.el' file.  However, if the prefix argument
+BYTECOMP-ARG is 0, that means do compile all those files.  A nonzero
+BYTECOMP-ARG means ask the user, for each such `.el' file, whether to
+compile it.  A nonzero BYTECOMP-ARG also means ask about each subdirectory
+before scanning it.
 
-A nonzero ARG also means ask about each subdirectory before scanning it.
-
-If the third argument FORCE is non-nil,
-recompile every `.el' file that already has a `.elc' file."
+If the third argument BYTECOMP-FORCE is non-nil, recompile every `.el' file
+that already has a `.elc' file."
   (interactive "DByte recompile directory: \nP")
-  (if arg
-      (setq arg (prefix-numeric-value arg)))
+  (if bytecomp-arg
+      (setq bytecomp-arg (prefix-numeric-value bytecomp-arg)))
   (if noninteractive
       nil
     (save-some-buffers)
     (force-mode-line-update))
   (with-current-buffer (get-buffer-create "*Compile-Log*")
-    (setq default-directory (expand-file-name directory))
+    (setq default-directory (expand-file-name bytecomp-directory))
     ;; compilation-mode copies value of default-directory.
     (unless (eq major-mode 'compilation-mode)
       (compilation-mode))
-    (let ((directories (list default-directory))
+    (let ((bytecomp-directories (list default-directory))
 	  (default-directory default-directory)
 	  (skip-count 0)
 	  (fail-count 0)
@@ -1609,56 +1614,63 @@ recompile every `.el' file that already has a `.elc' file."
 	  (dir-count 0)
 	  last-dir)
       (displaying-byte-compile-warnings
-       (while directories
-	 (setq directory (car directories))
-	 (message "Checking %s..." directory)
-	 (let ((files (directory-files directory))
-	       source dest)
-	   (dolist (file files)
-	     (setq source (expand-file-name file directory))
-	     (if (and (not (member file '("RCS" "CVS")))
-		      (not (eq ?\. (aref file 0)))
-		      (file-directory-p source)
-		      (not (file-symlink-p source)))
+       (while bytecomp-directories
+	 (setq bytecomp-directory (car bytecomp-directories))
+	 (message "Checking %s..." bytecomp-directory)
+	 (let ((bytecomp-files (directory-files bytecomp-directory))
+	       bytecomp-source bytecomp-dest)
+	   (dolist (bytecomp-file bytecomp-files)
+	     (setq bytecomp-source
+                   (expand-file-name bytecomp-file bytecomp-directory))
+	     (if (and (not (member bytecomp-file '("RCS" "CVS")))
+		      (not (eq ?\. (aref bytecomp-file 0)))
+		      (file-directory-p bytecomp-source)
+		      (not (file-symlink-p bytecomp-source)))
 		 ;; This file is a subdirectory.  Handle them differently.
-		 (when (or (null arg)
-			   (eq 0 arg)
-			   (y-or-n-p (concat "Check " source "? ")))
-		   (setq directories
-			 (nconc directories (list source))))
+		 (when (or (null bytecomp-arg)
+			   (eq 0 bytecomp-arg)
+			   (y-or-n-p (concat "Check " bytecomp-source "? ")))
+		   (setq bytecomp-directories
+			 (nconc bytecomp-directories (list bytecomp-source))))
 	       ;; It is an ordinary file.  Decide whether to compile it.
-	       (if (and (string-match emacs-lisp-file-regexp source)
-			(file-readable-p source)
-			(not (auto-save-file-name-p source))
-			(setq dest (byte-compile-dest-file source))
-			(if (file-exists-p dest)
+	       (if (and (string-match emacs-lisp-file-regexp bytecomp-source)
+			(file-readable-p bytecomp-source)
+			(not (auto-save-file-name-p bytecomp-source))
+			(setq bytecomp-dest
+                              (byte-compile-dest-file bytecomp-source))
+			(if (file-exists-p bytecomp-dest)
 			    ;; File was already compiled.
-			    (or force (file-newer-than-file-p source dest))
+			    (or bytecomp-force
+                                (file-newer-than-file-p bytecomp-source
+                                                        bytecomp-dest))
 			  ;; No compiled file exists yet.
-			  (and arg
-			       (or (eq 0 arg)
-				   (y-or-n-p (concat "Compile " source "? "))))))
+			  (and bytecomp-arg
+			       (or (eq 0 bytecomp-arg)
+				   (y-or-n-p (concat "Compile "
+                                                     bytecomp-source "? "))))))
 		   (progn (if (and noninteractive (not byte-compile-verbose))
-			      (message "Compiling %s..." source))
-			  (let ((res (byte-compile-file source)))
-			    (cond ((eq res 'no-byte-compile)
+			      (message "Compiling %s..." bytecomp-source))
+			  (let ((bytecomp-res (byte-compile-file
+                                               bytecomp-source)))
+			    (cond ((eq bytecomp-res 'no-byte-compile)
 				   (setq skip-count (1+ skip-count)))
-				  ((eq res t)
+				  ((eq bytecomp-res t)
 				   (setq file-count (1+ file-count)))
-				  ((eq res nil)
+				  ((eq bytecomp-res nil)
 				   (setq fail-count (1+ fail-count)))))
 			  (or noninteractive
-			      (message "Checking %s..." directory))
-			  (if (not (eq last-dir directory))
-			      (setq last-dir directory
+			      (message "Checking %s..." bytecomp-directory))
+			  (if (not (eq last-dir bytecomp-directory))
+			      (setq last-dir bytecomp-directory
 				    dir-count (1+ dir-count)))
 			  )))))
-	 (setq directories (cdr directories))))
+	 (setq bytecomp-directories (cdr bytecomp-directories))))
       (message "Done (Total of %d file%s compiled%s%s%s)"
 	       file-count (if (= file-count 1) "" "s")
 	       (if (> fail-count 0) (format ", %d failed" fail-count) "")
 	       (if (> skip-count 0) (format ", %d skipped" skip-count) "")
-	       (if (> dir-count 1) (format " in %d directories" dir-count) "")))))
+	       (if (> dir-count 1)
+                   (format " in %d directories" dir-count) "")))))
 
 (defvar no-byte-compile nil
   "Non-nil to prevent byte-compiling of emacs-lisp code.
@@ -1668,45 +1680,45 @@ This is normally set in local file variables at the end of the elisp file:
 ;;;###autoload(put 'no-byte-compile 'safe-local-variable 'booleanp)
 
 ;;;###autoload
-(defun byte-compile-file (filename &optional load)
-  "Compile a file of Lisp code named FILENAME into a file of byte code.
-The output file's name is generated by passing FILENAME to the
+(defun byte-compile-file (bytecomp-filename &optional load)
+  "Compile a file of Lisp code named BYTECOMP-FILENAME into a file of byte code.
+The output file's name is generated by passing BYTECOMP-FILENAME to the
 `byte-compile-dest-file' function (which see).
 With prefix arg (noninteractively: 2nd arg), LOAD the file after compiling.
 The value is non-nil if there were no errors, nil if errors."
 ;;  (interactive "fByte compile file: \nP")
   (interactive
-   (let ((file buffer-file-name)
-	 (file-name nil)
-	 (file-dir nil))
-     (and file
+   (let ((bytecomp-file buffer-file-name)
+	 (bytecomp-file-name nil)
+	 (bytecomp-file-dir nil))
+     (and bytecomp-file
 	  (eq (cdr (assq 'major-mode (buffer-local-variables)))
 	      'emacs-lisp-mode)
-	  (setq file-name (file-name-nondirectory file)
-		file-dir (file-name-directory file)))
+	  (setq bytecomp-file-name (file-name-nondirectory bytecomp-file)
+		bytecomp-file-dir (file-name-directory bytecomp-file)))
      (list (read-file-name (if current-prefix-arg
 			       "Byte compile and load file: "
 			     "Byte compile file: ")
-			   file-dir file-name nil)
+			   bytecomp-file-dir bytecomp-file-name nil)
 	   current-prefix-arg)))
   ;; Expand now so we get the current buffer's defaults
-  (setq filename (expand-file-name filename))
+  (setq bytecomp-filename (expand-file-name bytecomp-filename))
 
   ;; If we're compiling a file that's in a buffer and is modified, offer
   ;; to save it first.
   (or noninteractive
-      (let ((b (get-file-buffer (expand-file-name filename))))
+      (let ((b (get-file-buffer (expand-file-name bytecomp-filename))))
 	(if (and b (buffer-modified-p b)
 		 (y-or-n-p (format "Save buffer %s first? " (buffer-name b))))
 	    (with-current-buffer b (save-buffer)))))
 
   ;; Force logging of the file name for each file compiled.
   (setq byte-compile-last-logged-file nil)
-  (let ((byte-compile-current-file filename)
+  (let ((byte-compile-current-file bytecomp-filename)
 	(set-auto-coding-for-load t)
 	target-file input-buffer output-buffer
 	byte-compile-dest-file)
-    (setq target-file (byte-compile-dest-file filename))
+    (setq target-file (byte-compile-dest-file bytecomp-filename))
     (setq byte-compile-dest-file target-file)
     (with-current-buffer
         (setq input-buffer (get-buffer-create " *Compiler Input*"))
@@ -1715,7 +1727,7 @@ The value is non-nil if there were no errors, nil if errors."
       ;; Always compile an Emacs Lisp file as multibyte
       ;; unless the file itself forces unibyte with -*-coding: raw-text;-*-
       (set-buffer-multibyte t)
-      (insert-file-contents filename)
+      (insert-file-contents bytecomp-filename)
       ;; Mimic the way after-insert-file-set-coding can make the
       ;; buffer unibyte when visiting this file.
       (when (or (eq last-coding-system-used 'no-conversion)
@@ -1725,7 +1737,7 @@ The value is non-nil if there were no errors, nil if errors."
 	(set-buffer-multibyte nil))
       ;; Run hooks including the uncompression hook.
       ;; If they change the file name, then change it for the output also.
-      (let ((buffer-file-name filename)
+      (let ((buffer-file-name bytecomp-filename)
 	    (default-major-mode 'emacs-lisp-mode)
 	    ;; Ignore unsafe local variables.
 	    ;; We only care about a few of them for our purposes.
@@ -1733,15 +1745,15 @@ The value is non-nil if there were no errors, nil if errors."
 	    (enable-local-eval nil))
 	;; Arg of t means don't alter enable-local-variables.
         (normal-mode t)
-        (setq filename buffer-file-name))
+        (setq bytecomp-filename buffer-file-name))
       ;; Set the default directory, in case an eval-when-compile uses it.
-      (setq default-directory (file-name-directory filename)))
+      (setq default-directory (file-name-directory bytecomp-filename)))
     ;; Check if the file's local variables explicitly specify not to
     ;; compile this file.
     (if (with-current-buffer input-buffer no-byte-compile)
 	(progn
 	  ;; (message "%s not compiled because of `no-byte-compile: %s'"
-	  ;; 	   (file-relative-name filename)
+	  ;; 	   (file-relative-name bytecomp-filename)
 	  ;; 	   (with-current-buffer input-buffer no-byte-compile))
 	  (when (file-exists-p target-file)
 	    (message "%s deleted because of `no-byte-compile: %s'"
@@ -1751,18 +1763,18 @@ The value is non-nil if there were no errors, nil if errors."
 	  ;; We successfully didn't compile this file.
 	  'no-byte-compile)
       (when byte-compile-verbose
-	(message "Compiling %s..." filename))
+	(message "Compiling %s..." bytecomp-filename))
       (setq byte-compiler-error-flag nil)
       ;; It is important that input-buffer not be current at this call,
       ;; so that the value of point set in input-buffer
       ;; within byte-compile-from-buffer lingers in that buffer.
       (setq output-buffer
 	    (save-current-buffer
-	      (byte-compile-from-buffer input-buffer filename)))
+	      (byte-compile-from-buffer input-buffer bytecomp-filename)))
       (if byte-compiler-error-flag
 	  nil
 	(when byte-compile-verbose
-	  (message "Compiling %s...done" filename))
+	  (message "Compiling %s...done" bytecomp-filename))
 	(kill-buffer input-buffer)
 	(with-current-buffer output-buffer
 	  (goto-char (point-max))
@@ -1791,9 +1803,10 @@ The value is non-nil if there were no errors, nil if errors."
 	  (kill-buffer (current-buffer)))
 	(if (and byte-compile-generate-call-tree
 		 (or (eq t byte-compile-generate-call-tree)
-		     (y-or-n-p (format "Report call tree for %s? " filename))))
+		     (y-or-n-p (format "Report call tree for %s? "
+                                       bytecomp-filename))))
 	    (save-excursion
-	      (display-call-tree filename)))
+	      (display-call-tree bytecomp-filename)))
 	(if load
 	    (load target-file))
 	t))))
@@ -4231,50 +4244,52 @@ already up-to-date."
     (while command-line-args-left
       (if (file-directory-p (expand-file-name (car command-line-args-left)))
 	  ;; Directory as argument.
-	  (let ((files (directory-files (car command-line-args-left)))
-		source dest)
-	    (dolist (file files)
-	      (if (and (string-match emacs-lisp-file-regexp file)
-		       (not (auto-save-file-name-p file))
-		       (setq source (expand-file-name file
-						      (car command-line-args-left)))
-		       (setq dest (byte-compile-dest-file source))
-		       (file-exists-p dest)
-		       (file-newer-than-file-p source dest))
-		  (if (null (batch-byte-compile-file source))
+	  (let ((bytecomp-files (directory-files (car command-line-args-left)))
+		bytecomp-source bytecomp-dest)
+	    (dolist (bytecomp-file bytecomp-files)
+	      (if (and (string-match emacs-lisp-file-regexp bytecomp-file)
+		       (not (auto-save-file-name-p bytecomp-file))
+		       (setq bytecomp-source
+                             (expand-file-name bytecomp-file
+                                               (car command-line-args-left)))
+		       (setq bytecomp-dest (byte-compile-dest-file
+                                            bytecomp-source))
+		       (file-exists-p bytecomp-dest)
+		       (file-newer-than-file-p bytecomp-source bytecomp-dest))
+		  (if (null (batch-byte-compile-file bytecomp-source))
 		      (setq error t)))))
 	;; Specific file argument
 	(if (or (not noforce)
-		(let* ((source (car command-line-args-left))
-		       (dest (byte-compile-dest-file source)))
-		  (or (not (file-exists-p dest))
-		      (file-newer-than-file-p source dest))))
+		(let* ((bytecomp-source (car command-line-args-left))
+		       (bytecomp-dest (byte-compile-dest-file bytecomp-source)))
+		  (or (not (file-exists-p bytecomp-dest))
+		      (file-newer-than-file-p bytecomp-source bytecomp-dest))))
 	    (if (null (batch-byte-compile-file (car command-line-args-left)))
 		(setq error t))))
       (setq command-line-args-left (cdr command-line-args-left)))
     (kill-emacs (if error 1 0))))
 
-(defun batch-byte-compile-file (file)
+(defun batch-byte-compile-file (bytecomp-file)
   (if debug-on-error
-      (byte-compile-file file)
+      (byte-compile-file bytecomp-file)
     (condition-case err
-	(byte-compile-file file)
+	(byte-compile-file bytecomp-file)
       (file-error
        (message (if (cdr err)
 		    ">>Error occurred processing %s: %s (%s)"
 		  ">>Error occurred processing %s: %s")
-		file
+		bytecomp-file
 		(get (car err) 'error-message)
 		(prin1-to-string (cdr err)))
-       (let ((destfile (byte-compile-dest-file file)))
-	 (if (file-exists-p destfile)
-	     (delete-file destfile)))
+       (let ((bytecomp-destfile (byte-compile-dest-file bytecomp-file)))
+	 (if (file-exists-p bytecomp-destfile)
+	     (delete-file bytecomp-destfile)))
        nil)
       (error
        (message (if (cdr err)
 		    ">>Error occurred processing %s: %s (%s)"
 		  ">>Error occurred processing %s: %s")
-		file
+		bytecomp-file
 		(get (car err) 'error-message)
 		(prin1-to-string (cdr err)))
        nil))))
