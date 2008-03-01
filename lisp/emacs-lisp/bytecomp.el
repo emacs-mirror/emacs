@@ -3562,10 +3562,16 @@ that suppresses all warnings during execution of BODY."
 	  ;; emacs/xemacs tests have been optimized away, so this is
 	  ;; not doing anything useful here, is should probably be
 	  ;; moved to a different place.
-	  ;; (byte-compile-warnings
-	  ;;  (if (member ,condition '((featurep 'xemacs)
-	  ;; 			    (not (featurep 'emacs))))
-	  ;;      nil byte-compile-warnings))
+	  ;; It is doing _something_. If this is commented out, then
+	  ;; compiling a file which requires another file which
+	  ;; defines a defsubst that uses (featurep 'xemacs) results
+	  ;; in a spurious compilation warning about the xemacs code. Eg:
+	  ;; (defsubst foo () (if (featurep 'xemacs) (setq foo t)))
+	  ;; where foo is a free variable.
+	  (byte-compile-warnings
+	   (if (member ,condition '((featurep 'xemacs)
+	   			    (not (featurep 'emacs))))
+	       nil byte-compile-warnings))
 	  )
      (unwind-protect
 	 (progn ,@body)
