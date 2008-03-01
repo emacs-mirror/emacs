@@ -6,7 +6,7 @@
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: data, wp
-;; Version: 9.2
+;; Version: 9.3
 ;; X-URL: http://www.emacswiki.org/cgi-bin/wiki/ViniciusJoseLatorre
 
 ;; This file is part of GNU Emacs.
@@ -162,14 +162,17 @@
 ;;
 ;; There are also the following useful commands:
 ;;
+;; `whitespace-report'
+;;    Report some blank problems in buffer.
+;;
+;; `whitespace-report-region'
+;;    Report some blank problems in a region.
+;;
 ;; `whitespace-cleanup'
 ;;    Cleanup some blank problems in all buffer or at region.
 ;;
 ;; `whitespace-cleanup-region'
 ;;    Cleanup some blank problems at region.
-;;
-;; `whitespace-buffer'
-;;    Turn on `whitespace-mode' forcing some settings.
 ;;
 ;; The problems, which are cleaned up, are:
 ;;
@@ -188,7 +191,7 @@
 ;;
 ;; 5. SPACEs or TABs at end of line.
 ;;    If `whitespace-chars' includes the value `trailing', remove all
-;;    SPACEs or TABs at end of line."
+;;    SPACEs or TABs at end of line.
 ;;
 ;; 6. 8 or more SPACEs after TAB.
 ;;    If `whitespace-chars' includes the value `space-after-tab',
@@ -280,9 +283,15 @@
 ;;				`whitespace-mode' is automagically
 ;;				turned on.
 ;;
+;; `whitespace-action'		Specify which action is taken when a
+;;				buffer is visited, killed or written.
+;;
 ;;
 ;; Acknowledgements
 ;; ----------------
+;;
+;; Thanks to Eric Cooper <ecc@cmu.edu> for the suggestion to have hook actions
+;; when buffer is written or killed as the original whitespace package had.
 ;;
 ;; Thanks to nschum (EmacsWiki) for the idea about highlight "long"
 ;; lines tail.  See EightyColumnRule (EmacsWiki).
@@ -786,9 +795,6 @@ and `whitespace-chars' includes `lines' or `lines-tail'."
 
 ;; Hacked from `visible-whitespace-mappings' in visws.el
 (defcustom whitespace-display-mappings
-  ;; Due to limitations of glyph representation, the char code can not
-  ;; be above ?\x1FFFF.  Probably, this will be fixed after Emacs
-  ;; unicode merging.
   '(
     (?\     [?\xB7]       [?.])		; space - centered dot
     (?\xA0  [?\xA4]       [?_])		; hard space - currency
@@ -797,8 +803,8 @@ and `whitespace-chars' includes `lines' or `lines-tail'."
     (?\xE20 [?\xE24]      [?_])		; hard space - currency
     (?\xF20 [?\xF24]      [?_])		; hard space - currency
     ;; NEWLINE is displayed using the face `whitespace-newline'
-    (?\n    [?$ ?\n])			; end-of-line - dollar sign
-    ;; (?\n    [?\u21B5 ?\n] [?$ ?\n])	; end-of-line - downwards arrow
+    (?\n    [?\u21B5 ?\n] [?$ ?\n])		; end-of-line - downwards arrow
+    ;; (?\n    [?$ ?\n])		; end-of-line - dollar sign
     ;; (?\n    [?\xB6 ?\n]   [?$ ?\n])	; end-of-line - pilcrow
     ;; (?\n    [?\x8AF ?\n]  [?$ ?\n])	; end-of-line - overscore
     ;; (?\n    [?\x8AC ?\n]  [?$ ?\n])	; end-of-line - negation
@@ -863,13 +869,49 @@ of the list is negated if it begins with `not'.  For example:
 
 means that `whitespace-mode' is turned on for buffers in C and
 C++ modes only."
-  :type '(choice (const :tag "None" nil)
+  :type '(choice :tag "Global Modes"
+		 (const :tag "None" nil)
 		 (const :tag "All" t)
 		 (set :menu-tag "Mode Specific" :tag "Modes"
 		      :value (not)
 		      (const :tag "Except" not)
 		      (repeat :inline t
 			      (symbol :tag "Mode"))))
+  :group 'whitespace)
+
+
+(defcustom whitespace-action nil
+  "*Specify which action is taken when a buffer is visited, killed or written.
+
+It's a list containing some or all of the following values:
+
+   nil			no action is taken.
+
+   cleanup		cleanup any bogus whitespace always when local
+			whitespace is turned on.
+			See `whitespace-cleanup' and
+			`whitespace-cleanup-region'.
+
+   report-on-bogus	report if there is any bogus whitespace always
+			when local whitespace is turned on.
+
+   auto-cleanup		cleanup any bogus whitespace when buffer is
+			written or killed. 
+			See `whitespace-cleanup' and
+			`whitespace-cleanup-region'.
+
+   abort-on-bogus	abort if there is any bogus whitespace and the
+			buffer is written or killed.
+
+Any other value is treated as nil."
+  :type '(choice :tag "Actions"
+		 (const :tag "None" nil)
+		 (repeat :tag "Action List"
+		  (choice :tag "Action"
+			  (const :tag "Cleanup When On" cleanup)
+			  (const :tag "Report On Bogus" report-on-bogus)
+			  (const :tag "Auto Cleanup" auto-cleanup)
+			  (const :tag "Abort On Bogus" abort-on-bogus))))
   :group 'whitespace)
 
 
@@ -893,7 +935,8 @@ Only useful with a windowing system."
    (noninteractive			; running a batch job
     (setq whitespace-mode nil))
    (whitespace-mode			; whitespace-mode on
-    (whitespace-turn-on))
+    (whitespace-turn-on)
+    (whitespace-action-when-on))
    (t					; whitespace-mode off
     (whitespace-turn-off))))
 
@@ -918,7 +961,7 @@ Only useful with a windowing system."
     (setq global-whitespace-mode nil))
    (global-whitespace-mode		; global-whitespace-mode on
     (save-excursion
-      (add-hook 'find-file-hook 'whitespace-turn-on-if-enabled t)
+      (add-hook 'find-file-hook 'whitespace-turn-on-if-enabled)
       (dolist (buffer (buffer-list))	; adjust all local mode
 	(set-buffer buffer)
 	(unless whitespace-mode
@@ -1259,14 +1302,14 @@ The problems cleaned up are:
 	  (while (re-search-forward
 		  whitespace-indentation-regexp rend t)
 	    (setq tmp (current-indentation))
+	    (goto-char (match-beginning 0))
 	    (delete-horizontal-space)
 	    (unless (eolp)
 	      (indent-to tmp))))
 	;; problem 3: SPACEs or TABs at eol
 	;; action: remove all SPACEs or TABs at eol
 	(when (memq 'trailing whitespace-chars)
-	  (let ((regexp (concat "\\(\\(" whitespace-trailing-regexp
-				"\\)+\\)$")))
+	  (let ((regexp (whitespace-trailing-regexp)))
 	    (goto-char rstart)
 	    (while (re-search-forward regexp rend t)
 	      (delete-region (match-beginning 1) (match-end 1)))))
@@ -1300,24 +1343,66 @@ The problems cleaned up are:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; User command - old whitespace compatibility
+;;;; User command - report
+
+
+(defun whitespace-trailing-regexp ()
+  "Make the `whitespace-trailing-regexp' regexp."
+  (concat "\\(\\(" whitespace-trailing-regexp "\\)+\\)$"))
+
+
+(defconst whitespace-report-list
+  (list
+   (cons 'empty            whitespace-empty-at-bob-regexp)
+   (cons 'empty            whitespace-empty-at-eob-regexp)
+   (cons 'indentation      whitespace-indentation-regexp)
+   (cons 'space-before-tab whitespace-space-before-tab-regexp)
+   (cons 'trailing         (whitespace-trailing-regexp))
+   (cons 'space-after-tab  whitespace-space-after-tab-regexp)
+   )
+   "List of whitespace bogus symbol and corresponding regexp.")
+
+
+(defconst whitespace-report-text
+  "\
+   Whitespace Report
+
+   Current Setting                Whitespace Problem
+
+   empty             []     []  empty lines at beginning of buffer.
+   empty             []     []  empty lines at end of buffer.
+   indentation       []     []  8 or more SPACEs at beginning of line.
+   space-before-tab  []     []  SPACEs before TAB.
+   trailing          []     []  SPACEs or TABs at end of line.
+   space-after-tab   []     []  8 or more SPACEs after TAB.\n\n"
+  "Text for whitespace bogus report.")
+
+
+(defconst whitespace-report-buffer-name "*Whitespace Report*"
+  "The buffer name for whitespace bogus report.")
 
 
 ;;;###autoload
-(defun whitespace-buffer ()
-  "Turn on `whitespace-mode' forcing some settings.
+(defun whitespace-report (&optional force report-if-bogus)
+  "Report some whitespace problems in buffer.
 
-It forces `whitespace-style' to have `color'.
+Return nil if there is no whitespace problem; otherwise, return
+non-nil.
 
-It also forces `whitespace-chars' to have:
+If FORCE is non-nil or \\[universal-argument] was pressed just before calling
+`whitespace-report' interactively, it forces `whitespace-chars' to
+have:
 
-   trailing
+   empty
    indentation
    space-before-tab
-   empty
+   trailing
    space-after-tab
 
-So, it is possible to visualize the following problems:
+If REPORT-IF-BOGUS is non-nil, it reports only when there are any
+whitespace problems in buffer.
+
+Report if some of the following whitespace problems exist:
 
    empty		1. empty lines at beginning of buffer.
    empty		2. empty lines at end of buffer.
@@ -1329,21 +1414,78 @@ So, it is possible to visualize the following problems:
 See `whitespace-chars' and `whitespace-style' for documentation.
 See also `whitespace-cleanup' and `whitespace-cleanup-region' for
 cleaning up these problems."
-  (interactive)
-  (whitespace-mode 0)			; assure is off
-  ;; keep original values
-  (let ((whitespace-style (copy-sequence whitespace-style))
-	(whitespace-chars (copy-sequence whitespace-chars)))
-    ;; adjust options for whitespace bogus blanks
-    (add-to-list 'whitespace-style 'color)
-    (mapc #'(lambda (option)
-	      (add-to-list 'whitespace-chars option))
-	  '(trailing
-	    indentation
-	    space-before-tab
-	    empty
-	    space-after-tab))
-    (whitespace-mode 1)))		; turn on
+  (interactive (list current-prefix-arg))
+  (whitespace-report-region (point-min) (point-max)
+			    force report-if-bogus))
+
+
+;;;###autoload
+(defun whitespace-report-region (start end &optional force report-if-bogus)
+  "Report some whitespace problems in a region.
+
+Return nil if there is no whitespace problem; otherwise, return
+non-nil.
+
+If FORCE is non-nil or \\[universal-argument] was pressed just before calling
+`whitespace-report-region' interactively, it forces `whitespace-chars'
+to have:
+
+   empty
+   indentation
+   space-before-tab
+   trailing
+   space-after-tab
+
+If REPORT-IF-BOGUS is non-nil, it reports only when there are any
+whitespace problems in buffer.
+
+Report if some of the following whitespace problems exist:
+
+   empty		1. empty lines at beginning of buffer.
+   empty		2. empty lines at end of buffer.
+   indentation		3. 8 or more SPACEs at beginning of line.
+   space-before-tab	4. SPACEs before TAB.
+   trailing		5. SPACEs or TABs at end of line.
+   space-after-tab	6. 8 or more SPACEs after TAB.
+
+See `whitespace-chars' and `whitespace-style' for documentation.
+See also `whitespace-cleanup' and `whitespace-cleanup-region' for
+cleaning up these problems."
+  (interactive "r")
+  (setq force (or current-prefix-arg force))
+  (save-excursion
+    (save-match-data
+      (let* (has-bogus
+	     (rstart (min start end))
+	     (rend   (max start end))
+	     (bogus-list (mapcar
+			  #'(lambda (option)
+			      (when force
+				(add-to-list 'whitespace-chars (car option)))
+			      (goto-char rstart)
+			      (and (re-search-forward (cdr option) rend t)
+				   (setq has-bogus t)))
+			  whitespace-report-list)))
+	(when (if report-if-bogus has-bogus t)
+	  (with-current-buffer (get-buffer-create
+				whitespace-report-buffer-name)
+	    (erase-buffer)
+	    (insert whitespace-report-text)
+	    (goto-char (point-min))
+	    (forward-line 3)
+	    (dolist (option whitespace-report-list)
+	      (forward-line 1)
+	      (whitespace-mark-x 22 (memq (car option) whitespace-chars))
+	      (whitespace-mark-x 7 (car bogus-list))
+	      (setq bogus-list (cdr bogus-list)))
+	    (when has-bogus
+	      (goto-char (point-max))
+	      (insert "   Type `M-x whitespace-cleanup'"
+		      " to cleanup the buffer.\n\n")
+	      (insert "   Type `M-x whitespace-cleanup-region'"
+		      " to cleanup a region.\n\n"))
+	    (whitespace-display-window (current-buffer))))
+	has-bogus))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1392,13 +1534,18 @@ cleaning up these problems."
   "The buffer name for whitespace toggle options.")
 
 
+(defun whitespace-mark-x (nchars condition)
+  "Insert the mark ('X' or ' ') after NCHARS depending on CONDITION."
+  (forward-char nchars)
+  (insert (if condition "X" " ")))
+
+
 (defun whitespace-insert-option-mark (the-list the-value)
   "Insert the option mark ('X' or ' ') in toggle options buffer."
   (forward-line 1)
   (dolist (sym  the-list)
     (forward-line 1)
-    (forward-char 2)
-    (insert (if (memq sym the-value) "X" " "))))
+    (whitespace-mark-x 2 (memq sym the-value))))
 
 
 (defun whitespace-help-on (chars style)
@@ -1415,17 +1562,22 @@ cleaning up these problems."
 	 whitespace-chars-value-list chars)
 	(whitespace-insert-option-mark
 	 whitespace-style-value-list style)
-	(goto-char (point-min))
-	(set-buffer-modified-p nil)
-	(let ((size (- (window-height)
-		       (max window-min-height
-			    (1+ (count-lines (point-min)
-					     (point-max)))))))
-	  (when (<= size 0)
-	    (kill-buffer buffer)
-	    (error "Frame height is too small; \
+	(whitespace-display-window buffer)))))
+
+
+(defun whitespace-display-window (buffer)
+  "Display BUFFER in a new window."
+  (goto-char (point-min))
+  (set-buffer-modified-p nil)
+  (let ((size (- (window-height)
+		 (max window-min-height
+		      (1+ (count-lines (point-min)
+				       (point-max)))))))
+    (when (<= size 0)
+      (kill-buffer buffer)
+      (error "Frame height is too small; \
 can't split window to display whitespace toggle options"))
-	  (set-window-buffer (split-window nil size) buffer))))))
+    (set-window-buffer (split-window nil size) buffer)))
 
 
 (defun whitespace-help-off ()
@@ -1538,6 +1690,7 @@ options are valid."
 
 (defun whitespace-turn-on ()
   "Turn on whitespace visualization."
+  (whitespace-add-local-hook)
   (setq whitespace-active-style (if (listp whitespace-style)
 				    whitespace-style
 				  (list whitespace-style)))
@@ -1552,6 +1705,7 @@ options are valid."
 
 (defun whitespace-turn-off ()
   "Turn off whitespace visualization."
+  (whitespace-remove-local-hook)
   (when (memq 'color whitespace-active-style)
     (whitespace-color-off))
   (when (memq 'mark  whitespace-active-style)
@@ -1590,8 +1744,7 @@ options are valid."
        nil
        (list
 	;; Show trailing blanks
-	(list (concat "\\(\\(" whitespace-trailing-regexp "\\)+\\)$")
-	      1 whitespace-trailing t))
+	(list (whitespace-trailing-regexp) 1 whitespace-trailing t))
        t))
     (when (or (memq 'lines      whitespace-active-chars)
 	      (memq 'lines-tail whitespace-active-chars))
@@ -1727,11 +1880,7 @@ options are valid."
 	    ;; faces, font-lock faces, etc.
 	    (when (memq 'color whitespace-active-style)
 	      (dotimes (i (length vec))
-		;; Due to limitations of glyph representation, the char
-		;; code can not be above ?\x1FFFF.  Probably, this will
-		;; be fixed after Emacs unicode merging.
 		(or (eq (aref vec i) ?\n)
-		    (> (aref vec i) #x1FFFF)
 		    (aset vec i
 			  (make-glyph-code (aref vec i)
 					   whitespace-newline)))))
@@ -1752,14 +1901,70 @@ options are valid."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Hook
+
+
+(defun whitespace-action-when-on ()
+  "Action to be taken always when local whitespace is turned on."
+  (cond ((memq 'cleanup whitespace-action)
+	 (whitespace-cleanup))
+	((memq 'report-on-bogus whitespace-action)
+	 (whitespace-report nil t))))
+
+
+(defun whitespace-add-local-hook ()
+  "Add some whitespace hooks locally."
+  (add-hook 'write-file-functions 'whitespace-write-file-hook nil t)
+  (add-hook 'kill-buffer-hook 'whitespace-kill-buffer-hook nil t))
+
+
+(defun whitespace-remove-local-hook ()
+  "Remove some whitespace hooks locally."
+  (remove-hook 'write-file-functions 'whitespace-write-file-hook t)
+  (remove-hook 'kill-buffer-hook 'whitespace-kill-buffer-hook t))
+
+
+(defun whitespace-write-file-hook ()
+  "Action to be taken when buffer is written.
+It should be added buffer-locally to `write-file-functions'."
+  (when (whitespace-action)
+    (error "Abort write due to whitespace problems in %s"
+	   (buffer-name)))
+  nil)					; continue hook processing
+
+
+(defun whitespace-kill-buffer-hook ()
+  "Action to be taken when buffer is killed.
+It should be added buffer-locally to `kill-buffer-hook'."
+  (whitespace-action)
+  nil)					; continue  hook processing
+
+
+(defun whitespace-action ()
+  "Action to be taken when buffer is killed or written.
+Return t when the action should be aborted."
+  (cond ((memq 'auto-cleanup whitespace-action)
+	 (whitespace-cleanup)
+	 nil)
+	((memq 'abort-on-bogus whitespace-action)
+	 (whitespace-report nil t))
+	(t
+	 nil)))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (defun whitespace-unload-function ()
-  "Unload the Whitespace library."
-  (let (whitespace-mode) ;; so g-w-m thinks it is nil in all buffers
-    (global-whitespace-mode -1))
-  ;; continue standard unloading
-  nil)
+  "Unload the whitespace library."
+  (global-whitespace-mode -1)
+  ;; be sure all local whitespace mode is turned off
+  (save-current-buffer
+    (dolist (buf (buffer-list))
+      (set-buffer buf)
+      (whitespace-mode -1)))
+  nil)					; continue standard unloading
+
 
 (provide 'whitespace)
 

@@ -1,3 +1,32 @@
+2008-03-01  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* whitespace.el: New version 9.3.  As the glyph code generation was
+	fixed, it is possible now to use character code above ?\x1FFFF in the
+	display table.  Fix `whitespace-indentation-regexp' to not include an
+	extra ending character.  Reported by Michael Welsh Duggan
+	<mwd@cert.org>.  Added hook actions when buffer is written or killed as
+	the original whitespace package had.  Suggested by Eric Cooper
+	<ecc@cmu.edu>.  Doc fix.
+	(whitespace-action): New option.
+	(whitespace-display-mappings): Changed default newline visualization to
+	display downwards arrow, as the glyph code generation was fixed.
+	(whitespace-unload-function): Assure that all local whitespace mode is
+	turned off.
+	(whitespace-global-modes): Fix type customization.
+	(whitespace-mode, global-whitespace-mode, whitespace-cleanup-region)
+	(whitespace-insert-option-mark, whitespace-help-on, whitespace-turn-on)
+	(whitespace-turn-off, whitespace-color-on, whitespace-display-char-on):
+	Fix code.
+	(whitespace-buffer): Command removed.
+	(whitespace-trailing-regexp, whitespace-mark-x)
+	(whitespace-display-window, whitespace-action-when-on)
+	(whitespace-add-local-hook, whitespace-remove-local-hook)
+	(whitespace-write-file-hook, whitespace-kill-buffer-hook)
+	(whitespace-action): New funs.
+	(whitespace-report-list, whitespace-report-text)
+	(whitespace-report-buffer-name): New consts.
+	(whitespace-report, whitespace-report-region): New commands.
+
 2008-03-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* disp-table.el (make-glyph-code): Don't test the result of
