@@ -345,6 +345,14 @@ typically due to pilot errors and should thus be in debug-ignored-errors.
   Check the assignments file for other packages which might go in and
   have been missed.
 
+** Possibly install python-mode in place of python.el, or combine the two.
+Someone needs to do the work of figuring out who all the non-trivial
+python-mode.el contributors are and getting assignments.
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02156.html
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02201.html
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02489.html
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02234.html
+
 ** Make keymaps a first-class Lisp object (this means a rewrite of
   keymap.c).  What should it do apart from being opaque ?
   multiple inheritance ?  faster where-is ?  no more fix_submap_inheritance ?
