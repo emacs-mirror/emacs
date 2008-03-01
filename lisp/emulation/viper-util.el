@@ -29,7 +29,6 @@
 ;; Compiler pacifier
 (defvar viper-overriding-map)
 (defvar pm-color-alist)
-(defvar zmacs-region-stays)
 (defvar viper-minibuffer-current-face)
 (defvar viper-minibuffer-insert-face)
 (defvar viper-minibuffer-vi-face)
@@ -61,31 +60,31 @@
       (fset 'x-color-defined-p (symbol-function 'ns-color-defined-p)))
 
 
-(defalias 'viper-overlay-p 
+(defalias 'viper-overlay-p
   (if (featurep 'xemacs) 'extentp 'overlayp))
-(defalias 'viper-make-overlay 
+(defalias 'viper-make-overlay
   (if (featurep 'xemacs) 'make-extent 'make-overlay))
-(defalias 'viper-overlay-live-p 
+(defalias 'viper-overlay-live-p
   (if (featurep 'xemacs) 'extent-live-p 'overlayp))
-(defalias 'viper-move-overlay 
+(defalias 'viper-move-overlay
   (if (featurep 'xemacs) 'set-extent-endpoints 'move-overlay))
-(defalias 'viper-overlay-start 
+(defalias 'viper-overlay-start
   (if (featurep 'xemacs) 'extent-start-position 'overlay-start))
-(defalias 'viper-overlay-end 
+(defalias 'viper-overlay-end
   (if (featurep 'xemacs) 'extent-end-position 'overlay-end))
-(defalias 'viper-overlay-get 
+(defalias 'viper-overlay-get
   (if (featurep 'xemacs) 'extent-property 'overlay-get))
-(defalias 'viper-overlay-put 
+(defalias 'viper-overlay-put
   (if (featurep 'xemacs) 'set-extent-property 'overlay-put))
-(defalias 'viper-read-event 
+(defalias 'viper-read-event
   (if (featurep 'xemacs) 'next-command-event 'read-event))
-(defalias 'viper-characterp 
+(defalias 'viper-characterp
   (if (featurep 'xemacs) 'characterp 'integerp))
-(defalias 'viper-int-to-char 
+(defalias 'viper-int-to-char
   (if (featurep 'xemacs) 'int-to-char 'identity))
-(defalias 'viper-get-face 
+(defalias 'viper-get-face
   (if (featurep 'xemacs) 'get-face 'internal-get-face))
-(defalias 'viper-color-defined-p 
+(defalias 'viper-color-defined-p
   (if (featurep 'xemacs) 'valid-color-name-p 'x-color-defined-p))
 (defalias 'viper-iconify
   (if (featurep 'xemacs) 'iconify-frame 'iconify-or-deiconify-frame))
@@ -115,18 +114,27 @@
 	(t nil)))
 
 (defsubst viper-color-display-p ()
-  (viper-cond-compile-for-xemacs-or-emacs
-   (eq (device-class (selected-device)) 'color) ; xemacs
-   (x-display-color-p)  ; emacs
-   ))
+  (if (featurep 'xemacs) (eq (device-class (selected-device)) 'color)
+    (x-display-color-p)))
 
 (defun viper-get-cursor-color (&optional frame)
-  (viper-cond-compile-for-xemacs-or-emacs
-   (color-instance-name
-    (frame-property (or frame (selected-frame)) 'cursor-color)) ; xemacs
-   (cdr (assoc 'cursor-color (frame-parameters))) ; emacs
-   ))
+  (if (featurep 'xemacs)
+      (color-instance-name
+       (frame-property (or frame (selected-frame)) 'cursor-color))
+    (cdr (assoc 'cursor-color (frame-parameters)))))
 
+(defmacro viper-frame-value (variable)
+  "Return the value of VARIABLE local to the current frame, if there is one.
+Otherwise return the normal value."
+  `(if (featurep 'xemacs)
+       ,variable
+     ;; Frame-local variables are obsolete from Emacs 22.2 onwards,
+     ;; so we do it by hand instead.
+     ;; Distinguish between no frame parameter and a frame parameter
+     ;; with a value of nil.
+     (let ((fp (assoc ',variable (frame-parameters))))
+       (if fp (cdr fp)
+	 ,variable))))
 
 ;; OS/2
 (cond ((eq (viper-device-type) 'pm)
@@ -139,26 +147,36 @@
   (if (and (viper-window-display-p)  (viper-color-display-p)
 	   (stringp new-color) (viper-color-defined-p new-color)
 	   (not (string= new-color (viper-get-cursor-color))))
-      (viper-cond-compile-for-xemacs-or-emacs
-       (set-frame-property
-	(or frame (selected-frame))
-	'cursor-color (make-color-instance new-color))
-       (modify-frame-parameters
-	(or frame (selected-frame))
-	(list (cons 'cursor-color new-color)))
-       )
-    ))
+      (if (featurep 'xemacs)
+          (set-frame-property
+           (or frame (selected-frame))
+           'cursor-color (make-color-instance new-color))
+        (modify-frame-parameters
+         (or frame (selected-frame))
+         (list (cons 'cursor-color new-color))))))
 
+;; Note that the colors this function uses might not be those
+;; associated with FRAME, if there are frame-local values.
+;; This was equally true before the advent of viper-frame-value.
+;; Now it could be changed by passing frame to v-f-v.
 (defun viper-set-cursor-color-according-to-state (&optional frame)
   (cond ((eq viper-current-state 'replace-state)
-	 (viper-change-cursor-color viper-replace-overlay-cursor-color frame))
+	 (viper-change-cursor-color
+	  (viper-frame-value viper-replace-overlay-cursor-color)
+	  frame))
 	((and (eq viper-current-state 'emacs-state)
-	      viper-emacs-state-cursor-color)
-	 (viper-change-cursor-color viper-emacs-state-cursor-color frame))
+	      (viper-frame-value viper-emacs-state-cursor-color))
+	 (viper-change-cursor-color
+	  (viper-frame-value viper-emacs-state-cursor-color)
+	  frame))
 	((eq viper-current-state 'insert-state)
-	 (viper-change-cursor-color viper-insert-state-cursor-color frame))
+	 (viper-change-cursor-color
+	  (viper-frame-value viper-insert-state-cursor-color)
+	  frame))
 	(t
-	 (viper-change-cursor-color viper-vi-state-cursor-color frame))))
+	 (viper-change-cursor-color
+	  (viper-frame-value viper-vi-state-cursor-color)
+	  frame))))
 
 ;; By default, saves current frame cursor color in the
 ;; viper-saved-cursor-color-in-replace-mode property of viper-replace-overlay
@@ -166,7 +184,9 @@
   (if (and (viper-window-display-p) (viper-color-display-p))
       (let ((color (viper-get-cursor-color)))
 	(if (and (stringp color) (viper-color-defined-p color)
-		 (not (string= color viper-replace-overlay-cursor-color)))
+		 (not (string= color
+			       (viper-frame-value
+				viper-replace-overlay-cursor-color))))
 	    (modify-frame-parameters
 	     (selected-frame)
 	     (list
@@ -177,8 +197,7 @@
 		      'viper-saved-cursor-color-in-emacs-mode)
 		     (t
 		      'viper-saved-cursor-color-in-insert-mode))
-	       color)))
-	  ))))
+	       color)))))))
 
 
 (defsubst viper-get-saved-cursor-color-in-replace-mode ()
@@ -187,9 +206,10 @@
     (if (featurep 'emacs) 'frame-parameter 'frame-property)
     (selected-frame)
     'viper-saved-cursor-color-in-replace-mode)
-   (if (and (eq viper-current-state 'emacs-mode) viper-emacs-state-cursor-color)
-       viper-emacs-state-cursor-color
-     viper-vi-state-cursor-color)))
+   (let ((ecolor (viper-frame-value viper-emacs-state-cursor-color)))
+     (or (and (eq viper-current-state 'emacs-mode)
+	      ecolor)
+	 (viper-frame-value viper-vi-state-cursor-color)))))
 
 (defsubst viper-get-saved-cursor-color-in-insert-mode ()
   (or
@@ -197,9 +217,10 @@
     (if (featurep 'emacs) 'frame-parameter 'frame-property)
     (selected-frame)
     'viper-saved-cursor-color-in-insert-mode)
-   (if (and (eq viper-current-state 'emacs-mode) viper-emacs-state-cursor-color)
-       viper-emacs-state-cursor-color
-     viper-vi-state-cursor-color)))
+   (let ((ecolor (viper-frame-value viper-emacs-state-cursor-color)))
+     (or (and (eq viper-current-state 'emacs-mode)
+	      ecolor)
+	 (viper-frame-value viper-vi-state-cursor-color)))))
 
 (defsubst viper-get-saved-cursor-color-in-emacs-mode ()
   (or
@@ -207,7 +228,7 @@
     (if (featurep 'emacs) 'frame-parameter 'frame-property)
     (selected-frame)
     'viper-saved-cursor-color-in-emacs-mode)
-   viper-vi-state-cursor-color))
+   (viper-frame-value viper-vi-state-cursor-color)))
 
 ;; restore cursor color from replace overlay
 (defun viper-restore-cursor-color(after-which-mode)
@@ -716,8 +737,7 @@
 	     (not (memq (vc-state file) '(edited needs-merge)))
 	     (not (stringp (vc-state file))))
 	 ;; XEmacs has no vc-state
-	 (if (featurep 'xemacs) (not (vc-locking-user file))))
-       ))
+	 (if (featurep 'xemacs) (not (vc-locking-user file))))))
 
 ;; checkout if visited file is checked in
 (defun viper-maybe-checkout (buf)
@@ -788,8 +808,8 @@
       (viper-overlay-put
        viper-replace-overlay 'face viper-replace-overlay-face))
   (viper-save-cursor-color 'before-replace-mode)
-  (viper-change-cursor-color viper-replace-overlay-cursor-color)
-  )
+  (viper-change-cursor-color
+   (viper-frame-value viper-replace-overlay-cursor-color)))
 
 
 (defun viper-set-replace-overlay-glyphs (before-glyph after-glyph)
@@ -820,24 +840,21 @@
 
 (defun viper-set-minibuffer-overlay ()
   (viper-check-minibuffer-overlay)
-  (if (viper-has-face-support-p)
-      (progn
-	(viper-overlay-put
-	 viper-minibuffer-overlay 'face viper-minibuffer-current-face)
-	(viper-overlay-put
-	 viper-minibuffer-overlay 'priority viper-minibuffer-overlay-priority)
-	;; never detach
-	(viper-overlay-put
-	 viper-minibuffer-overlay
-	 (if (featurep 'emacs) 'evaporate 'detachable)
-	 nil)
-	;; make viper-minibuffer-overlay open-ended
-	;; In emacs, it is made open ended at creation time
-	(if (featurep 'xemacs)
-	    (progn
-	      (viper-overlay-put viper-minibuffer-overlay 'start-open nil)
-	      (viper-overlay-put viper-minibuffer-overlay 'end-open nil)))
-	)))
+  (when (viper-has-face-support-p)
+    (viper-overlay-put
+     viper-minibuffer-overlay 'face viper-minibuffer-current-face)
+    (viper-overlay-put
+     viper-minibuffer-overlay 'priority viper-minibuffer-overlay-priority)
+    ;; never detach
+    (viper-overlay-put
+     viper-minibuffer-overlay
+     (if (featurep 'emacs) 'evaporate 'detachable)
+     nil)
+    ;; make viper-minibuffer-overlay open-ended
+    ;; In emacs, it is made open ended at creation time
+    (when (featurep 'xemacs)
+      (viper-overlay-put viper-minibuffer-overlay 'start-open nil)
+      (viper-overlay-put viper-minibuffer-overlay 'end-open nil))))
 
 (defun viper-check-minibuffer-overlay ()
   (if (viper-overlay-live-p viper-minibuffer-overlay)
@@ -852,8 +869,7 @@
 	    (viper-make-overlay
 	     (if (fboundp 'minibuffer-prompt-end) (minibuffer-prompt-end) 1)
 	     (1+ (buffer-size))
-	     (current-buffer) nil 'rear-advance)))
-    ))
+	     (current-buffer) nil 'rear-advance)))))
 
 
 (defsubst viper-is-in-minibuffer ()
@@ -865,12 +881,9 @@
 ;;; XEmacs compatibility
 
 (defun viper-abbreviate-file-name (file)
-  (viper-cond-compile-for-xemacs-or-emacs
-   ;; XEmacs requires addl argument
-   (abbreviate-file-name file t)
-   ;; emacs
-   (abbreviate-file-name file)
-   ))
+  (if (featurep 'xemacs)
+      (abbreviate-file-name file t)    ; XEmacs requires addl argument
+    (abbreviate-file-name file)))
 
 ;; Sit for VAL milliseconds.  XEmacs doesn't support the millisecond arg
 ;; in sit-for, so this function smoothes out the differences.
@@ -893,10 +906,8 @@
 	  (and (<= pos (point-max)) (<= (point-min) pos))))))
 
 (defsubst viper-mark-marker ()
-  (viper-cond-compile-for-xemacs-or-emacs
-   (mark-marker t) ; xemacs
-   (mark-marker) ; emacs
-   ))
+  (if (featurep 'xemacs) (mark-marker t)
+    (mark-marker)))
 
 ;; like (set-mark-command nil) but doesn't push twice, if (car mark-ring)
 ;; is the same as (mark t).
@@ -909,16 +920,12 @@
 ;; highlighted due to Viper's pushing marks.  So, we deactivate marks, unless
 ;; the user explicitly wants highlighting, e.g., by hitting '' or ``
 (defun viper-deactivate-mark ()
-  (viper-cond-compile-for-xemacs-or-emacs
-   (zmacs-deactivate-region)
-   (deactivate-mark)
-   ))
+  (if (featurep 'xemacs)
+      (zmacs-deactivate-region)
+    (deactivate-mark)))
 
 (defsubst viper-leave-region-active ()
-  (viper-cond-compile-for-xemacs-or-emacs
-   (setq zmacs-region-stays t)
-   nil
-   ))
+  (if (featurep 'xemacs) (setq zmacs-region-stays t)))
 
 ;; Check if arg is a valid character for register
 ;; TYPE is a list that can contain `letter', `Letter', and `digit'.
@@ -940,10 +947,8 @@
 ;; it is suggested that an event must be copied before it is assigned to
 ;; last-command-event in XEmacs
 (defun viper-copy-event (event)
-  (viper-cond-compile-for-xemacs-or-emacs
-   (copy-event event) ; xemacs
-   event ; emacs
-   ))
+  (if (featurep 'xemacs) (copy-event event)
+    event))
 
 ;; Uses different timeouts for ESC-sequences and others
 (defsubst viper-fast-keysequence-p ()
@@ -956,14 +961,12 @@
 ;; like read-event, but in XEmacs also try to convert to char, if possible
 (defun viper-read-event-convert-to-char ()
   (let (event)
-    (viper-cond-compile-for-xemacs-or-emacs
-     (progn
-       (setq event (next-command-event))
-       (or (event-to-character event)
-	   event))
-     (read-event)
-     )
-    ))
+    (if (featurep 'xemacs)
+        (progn
+          (setq event (next-command-event))
+          (or (event-to-character event)
+              event))
+      (read-event))))
 
 ;; Viperized read-key-sequence
 (defun viper-read-key-sequence (prompt &optional continue-echo)
@@ -1014,14 +1017,14 @@
 (defun viper-event-key (event)
   (or (and event (eventp event))
       (error "viper-event-key: Wrong type argument, eventp, %S" event))
-  (when (viper-cond-compile-for-xemacs-or-emacs
+  (when (if (featurep 'xemacs)
 	 (or (key-press-event-p event) (mouse-event-p event)) ; xemacs
 	 t ; emacs
 	 )
     (let ((mod (event-modifiers event))
 	  basis)
       (setq basis
-	    (viper-cond-compile-for-xemacs-or-emacs
+	    (if (featurep 'xemacs)
 	     ;; XEmacs
 	     (cond ((key-press-event-p event)
 		    (event-key event))
@@ -1051,7 +1054,7 @@
 		   ((and (null mod) (eq event 'backspace))
 		    (setq event ?\C-h))
 		   (t (event-basic-type event)))
-	     ) ; viper-cond-compile-for-xemacs-or-emacs
+	     ) ; (featurep 'xemacs)
 	    )
       (if (viper-characterp basis)
 	  (setq basis
@@ -1204,7 +1207,7 @@
 	  (t (prin1-to-string event-seq)))))
 
 (defun viper-key-press-events-to-chars (events)
-  (mapconcat (viper-cond-compile-for-xemacs-or-emacs
+  (mapconcat (if (featurep 'xemacs)
 	      (lambda (elt) (char-to-string (event-to-character elt))) ; xemacs
 	      'char-to-string ; emacs
 	      )
