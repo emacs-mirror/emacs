@@ -1472,7 +1472,7 @@ line_draw_cost (matrix, vpos)
 
 	  SET_GLYPH_FROM_CHAR_GLYPH (g, *beg);
 
-	  if (GLYPH_INVALID_P (g) < 0
+	  if (GLYPH_INVALID_P (g)
 	      || GLYPH_SIMPLE_P (glyph_table_base, glyph_table_len, g))
 	    len += 1;
 	  else
