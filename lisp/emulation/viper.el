@@ -1022,7 +1022,7 @@ It also can't undo some Viper settings."
       (setq global-mode-string
 	    (append '("" viper-mode-string) (cdr global-mode-string))))
 
-  (viper-cond-compile-for-xemacs-or-emacs
+  (if (featurep 'xemacs)
    ;; XEmacs
    (defadvice describe-key (before viper-describe-key-ad protect activate)
      "Force to read key via `viper-read-key-sequence'."
@@ -1052,9 +1052,9 @@ It also can't undo some Viper settings."
 					(eventp (aref key 1))
 					(memq 'down (event-modifiers (aref key 1)))))
 			       (read-event))))))
-   ) ; viper-cond-compile-for-xemacs-or-emacs
+   ) ; (if (featurep 'xemacs)
 
-  (viper-cond-compile-for-xemacs-or-emacs
+  (if (featurep 'xemacs)
    ;; XEmacs
    (defadvice describe-key-briefly
      (before viper-describe-key-briefly-ad protect activate)
@@ -1078,7 +1078,7 @@ It also can't undo some Viper settings."
 			  (if current-prefix-arg
 			      (prefix-numeric-value current-prefix-arg))
 			  1))))
-   ) ;; viper-cond-compile-for-xemacs-or-emacs
+   ) ; (if (featurep 'xemacs)
 
   (defadvice find-file (before viper-add-suffix-advice activate)
     "Use `read-file-name' for reading arguments."
