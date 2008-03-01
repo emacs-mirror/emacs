@@ -76,6 +76,8 @@ static BYTE w32_antialias_type P_ ((Lisp_Object type));
 static Lisp_Object lispy_antialias_type P_ ((BYTE type));
 
 static Lisp_Object font_supported_scripts P_ ((FONTSIGNATURE * sig));
+static int w32font_full_name P_ ((LOGFONT * font, Lisp_Object font_obj,
+                                  int pixel_size, char *name, int nbytes));
 
 /* From old font code in w32fns.c */
 char * w32_to_x_charset P_ ((int charset, char * matching));
@@ -757,7 +759,8 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
        96 bytes and go up in steps of 32.  */
     len = 96;
     name = xmalloc (len);
-    while (name && font_unparse_fcname (font_entity, pixel_size, name, len) < 0)
+    while (name && w32font_full_name (&logfont, font_entity, pixel_size,
+                                      name, len) < 0)
       {
         char *new = xrealloc (name, len += 32);
 
@@ -1539,6 +1542,59 @@ font_supported_scripts (FONTSIGNATURE * sig)
   return supported;
 }
 
+/* Generate a full name for a Windows font.
+   The full name is in fcname format, with weight, slant and antialiasing
+   specified if they are not "normal".  */
+static int
+w32font_full_name (font, font_obj, pixel_size, name, nbytes)
+  LOGFONT * font;
+  Lisp_Object font_obj;
+  int pixel_size;
+  char *name;
+  int nbytes;
+{
+  int len;
+  char *p;
+  Lisp_Object antialiasing, weight = Qnil;
+
+  len = strlen (font->lfFaceName) + 21; /* :pixelsize=SIZE */
+
+  if (font->lfItalic)
+    len += 7; /* :italic */
+
+  if (font->lfWeight && font->lfWeight != FW_NORMAL)
+    {
+      weight = font_symbolic_weight (font_obj);
+      len += 8 + SBYTES (SYMBOL_NAME (weight)); /* :weight=NAME */
+    }
+
+  antialiasing = lispy_antialias_type (font->lfQuality);
+  if (! NILP (antialiasing))
+    len += 11 + SBYTES (SYMBOL_NAME (antialiasing)); /* :antialias=NAME */
+
+  /* Check that the buffer is big enough  */
+  if (len > nbytes)
+    return -1;
+
+  p = name;
+  p += sprintf (p, "%s", font->lfFaceName);
+
+  if (font->lfHeight)
+    p += sprintf (p, ":pixelsize=%d", eabs (font->lfHeight));
+  else if (pixel_size > 0)
+    p += sprintf (p, ":pixelsize=%d", pixel_size);
+
+  if (font->lfItalic)
+    p += sprintf (p, ":italic");
+
+  if (SYMBOLP (weight) && ! NILP (weight))
+    p += sprintf (p, ":weight=%s", SDATA (SYMBOL_NAME (weight)));
+
+  if (SYMBOLP (antialiasing) && ! NILP (antialiasing))
+    p += sprintf (p, ":antialias=%s", SDATA (SYMBOL_NAME (antialiasing)));
+
+  return (p - name);
+}
 
 struct font_driver w32font_driver =
   {
