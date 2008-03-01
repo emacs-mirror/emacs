@@ -1,5 +1,9 @@
 2008-03-01  Juanma Barranquero  <lekktu@gmail.com>
 
+	* disp-table.el (make-glyph-code): Don't test the result of
+	`face-id', which already signals an error for invalid faces.
+	(glyph-face): Simplify.
+
 	* desktop.el (desktop-read): Set `desktop-dirname' to nil before
 	running `desktop-not-loaded-hook' to allow modifying it.
 	Don't show warning message if `desktop-dirname' was modified.
