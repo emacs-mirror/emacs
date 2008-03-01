@@ -334,7 +334,6 @@ This means that an edt-user.el file was found in the user's `load-path'.")
 (defvar edt-last-copied-word nil
   "Last word that the user copied.")
 
-(defvar zmacs-region-stays)
 
 ;;;;
 ;;;; EDT Emulation Commands
