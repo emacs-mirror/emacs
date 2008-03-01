@@ -2592,8 +2592,12 @@ w32_msg_pump (deferred_msg * msg_buf)
 		  abort ();
 	      }
 	      break;
+#ifdef MSG_DEBUG
+              /* Broadcast messages make it here, so you need to be looking
+                 for something in particular for this to be useful.  */
 	    default:
 	      DebPrint (("msg %x not expected by w32_msg_pump\n", msg.message));
+#endif
 	    }
 	}
       else
