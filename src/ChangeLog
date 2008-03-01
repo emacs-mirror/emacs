@@ -1,3 +1,22 @@
+2008-03-01  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): For Gtk+ and ConfigureNotify, call
+	xg_frame_resized when the event is for the edit widget.
+
+	* gtkutil.h (xg_frame_resized): Renamed from xg_resize_widgets.
+
+	* gtkutil.c (xg_resize_outer_widget): Only do one of set_geometry or
+	set_char_size.
+	(xg_frame_resized): Renamed from xg_resize_widgets.  Remove all
+	operations on widgets here.  Just set frame size if needed.
+	(flush_and_sync, x_wm_size_hint_off, xg_pack_tool_bar): New functions.
+	(xg_frame_set_char_size): Call x_wm_size_hint_off before resizing.
+	(x_wm_set_size_hint): Set size hints on the edit widget only, not
+	the whole frame.
+	(xg_create_tool_bar): Move attachement of the tool bar to
+	xg_pack_tool_bar.  Do not attach the tool bar if there are no items.
+	(free_frame_tool_bar): Remove call to SET_FRAME_GARBAGED.
+
 2008-03-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_msg_pump): Disable debug code.
