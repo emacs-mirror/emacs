@@ -418,7 +418,7 @@ struct glyph
 /* Is GLYPH a space?  */
 
 #define CHAR_GLYPH_SPACE_P(GLYPH) \
-  ((GLYPH).u.ch == SPACEGLYPH)
+  ((GLYPH).u.ch == SPACEGLYPH && (GLYPH).face_id == DEFAULT_FACE_ID)
 
 /* Are glyph slices of glyphs *X and *Y equal */
 
