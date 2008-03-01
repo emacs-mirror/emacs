@@ -2077,10 +2077,8 @@ Please contact your system administrator. "
 	      ;; create temp buffer for the region
 	      (setq temp-buf (get-buffer-create " *ex-write*"))
 	      (set-buffer temp-buf)
-	      (viper-cond-compile-for-xemacs-or-emacs
-	       (set-visited-file-name ex-file) ; xemacs
-	       (set-visited-file-name ex-file 'noquerry) ; emacs
-	       )
+	      (if (featurep 'xemacs) (set-visited-file-name ex-file)
+		(set-visited-file-name ex-file 'noquery))
 	      (erase-buffer)
 	      (if (and file-exists ex-append)
 		  (insert-file-contents ex-file))
