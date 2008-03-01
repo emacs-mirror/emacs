@@ -1553,11 +1553,20 @@ w32font_full_name (font, font_obj, pixel_size, name, nbytes)
   char *name;
   int nbytes;
 {
-  int len;
+  int len, height, outline;
   char *p;
   Lisp_Object antialiasing, weight = Qnil;
 
-  len = strlen (font->lfFaceName) + 21; /* :pixelsize=SIZE */
+  len = strlen (font->lfFaceName);
+
+  outline = EQ (AREF (font_obj, FONT_FOUNDRY_INDEX), Qoutline);
+
+  /* Represent size of scalable fonts by point size. But use pixelsize for
+     raster fonts to indicate that they are exactly that size.  */
+  if (outline)
+    len += 11; /* -SIZE */
+  else
+    len = strlen (font->lfFaceName) + 21;
 
   if (font->lfItalic)
     len += 7; /* :italic */
@@ -1579,10 +1588,20 @@ w32font_full_name (font, font_obj, pixel_size, name, nbytes)
   p = name;
   p += sprintf (p, "%s", font->lfFaceName);
 
-  if (font->lfHeight)
-    p += sprintf (p, ":pixelsize=%d", eabs (font->lfHeight));
-  else if (pixel_size > 0)
-    p += sprintf (p, ":pixelsize=%d", pixel_size);
+  height = font->lfHeight ? eabs (font->lfHeight) : pixel_size;
+
+  if (height > 0)
+    {
+      if (outline)
+        {
+          float pointsize = height * 72.0 / one_w32_display_info.resy;
+          /* Round to nearest half point.  */
+          pointsize = round (pointsize * 2) / 2;
+          p += sprintf (p, "-%1.1f", pointsize);
+        }
+      else
+        p += sprintf (p, ":pixelsize=%d", height);
+    }
 
   if (font->lfItalic)
     p += sprintf (p, ":italic");
