@@ -1,3 +1,12 @@
+2008-03-02  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding_utf_8): When eol-type of CODING is
+	`dos', don't decode '\r' if that is the last in the source.
+	(decode_coding_utf_16, decode_coding_emacs_mule)
+	(decode_coding_iso_2022, decode_coding_sjis, decode_coding_big5)
+	(decode_coding_raw_text, decode_coding_charset): Likewise.
+	(produce_chars): Don't decode EOL here.  Use EMACS_INT.
+
 2008-03-01  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32font_full_name): Report point size for scalable fonts.
