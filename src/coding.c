@@ -4264,7 +4264,7 @@ decode_coding_big5 (coding)
 	break;
 
       if (byte_after_cr >= 0)
-	c1 = byte_after_cr, byte_after_cr = -1;
+	c = byte_after_cr, byte_after_cr = -1;
       else
 	ONE_MORE_BYTE (c);
 
@@ -4272,7 +4272,7 @@ decode_coding_big5 (coding)
 	goto invalid_code;
       if (c < 0x80)
 	{
-	  if (eol_crlf && c1 == '\r')
+	  if (eol_crlf && c == '\r')
 	    ONE_MORE_BYTE (byte_after_cr);
 	  charset = charset_roman;
 	}
@@ -6108,7 +6108,7 @@ produce_chars (coding, translation_table, last_block)
 	    }
 	  produced_chars = coding->consumed_char;
 	  while (src < src_end)
-	    *dst += *src++;
+	    *dst++ = *src++;
 	}
     }
 
