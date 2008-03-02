@@ -955,6 +955,11 @@ record_conversion_result (struct coding_system *coding,
   } while (0)
 
 
+/* If there are at least BYTES length of room at dst, allocate memory
+   for coding->destination and update dst and dst_end.  We don't have
+   to take care of coding->source which will be relocated.  It is
+   handled by calling coding_set_source in encode_coding.  */
+
 #define ASSURE_DESTINATION(bytes)				\
   do {								\
     if (dst + (bytes) >= dst_end)				\
@@ -1225,6 +1230,8 @@ decode_coding_utf_8 (coding)
   int consumed_chars = 0, consumed_chars_base;
   int multibytep = coding->src_multibyte;
   Lisp_Object attr, charset_list;
+  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attr, charset_list);
 
@@ -1238,13 +1245,18 @@ decode_coding_utf_8 (coding)
       if (charbuf >= charbuf_end)
 	break;
 
-      ONE_MORE_BYTE (c1);
+      if (byte_after_cr >= 0)
+	c1 = byte_after_cr, byte_after_cr = -1;
+      else
+	ONE_MORE_BYTE (c1);
       if (c1 < 0)
 	{
 	  c = - c1;
 	}
       else if (UTF_8_1_OCTET_P(c1))
 	{
+	  if (eol_crlf && c1 == '\r')
+	    ONE_MORE_BYTE (byte_after_cr);
 	  c = c1;
 	}
       else
@@ -1458,6 +1470,8 @@ decode_coding_utf_16 (coding)
   enum utf_16_endian_type endian = CODING_UTF_16_ENDIAN (coding);
   int surrogate = CODING_UTF_16_SURROGATE (coding);
   Lisp_Object attr, charset_list;
+  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int byte_after_cr1 = -1, byte_after_cr2 = -1;
 
   CODING_GET_INFO (coding, attr, charset_list);
 
@@ -1497,13 +1511,19 @@ decode_coding_utf_16 (coding)
       if (charbuf + 2 >= charbuf_end)
 	break;
 
-      ONE_MORE_BYTE (c1);
+      if (byte_after_cr1 >= 0)
+	c1 = byte_after_cr1, byte_after_cr1 = -1;
+      else
+	ONE_MORE_BYTE (c1);
       if (c1 < 0)
 	{
 	  *charbuf++ = -c1;
 	  continue;
 	}
-      ONE_MORE_BYTE (c2);
+      if (byte_after_cr2 >= 0)
+	c2 = byte_after_cr2, byte_after_cr2 = -1;
+      else
+	ONE_MORE_BYTE (c2);
       if (c2 < 0)
 	{
 	  *charbuf++ = ASCII_BYTE_P (c1) ? c1 : BYTE8_TO_CHAR (c1);
@@ -1512,6 +1532,7 @@ decode_coding_utf_16 (coding)
 	}
       c = (endian == utf_16_big_endian
 	   ? ((c1 << 8) | c2) : ((c2 << 8) | c1));
+
       if (surrogate)
 	{
 	  if (! UTF_16_LOW_SURROGATE_P (c))
@@ -1540,7 +1561,14 @@ decode_coding_utf_16 (coding)
 	  if (UTF_16_HIGH_SURROGATE_P (c))
 	    CODING_UTF_16_SURROGATE (coding) = surrogate = c;
 	  else
-	    *charbuf++ = c;
+	    {
+	      if (eol_crlf && c == '\r')
+		{
+		  ONE_MORE_BYTE (byte_after_cr1);
+		  ONE_MORE_BYTE (byte_after_cr2);
+		}
+	      *charbuf++ = c;
+	    }
 	}
     }
 
@@ -2072,6 +2100,8 @@ decode_coding_emacs_mule (coding)
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
+  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
 
@@ -2085,7 +2115,10 @@ decode_coding_emacs_mule (coding)
       if (charbuf >= charbuf_end)
 	break;
 
-      ONE_MORE_BYTE (c);
+      if (byte_after_cr >= 0)
+	c = byte_after_cr, byte_after_cr = -1;
+      else
+	ONE_MORE_BYTE (c);
       if (c < 0)
 	{
 	  *charbuf++ = -c;
@@ -2093,6 +2126,8 @@ decode_coding_emacs_mule (coding)
 	}
       else if (c < 0x80)
 	{
+	  if (eol_crlf && c == '\r')
+	    ONE_MORE_BYTE (byte_after_cr);
 	  *charbuf++ = c;
 	  char_offset++;
 	}
@@ -2945,6 +2980,8 @@ decode_coding_iso_2022 (coding)
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
+  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
   setup_iso_safe_charsets (attrs);
@@ -2962,7 +2999,10 @@ decode_coding_iso_2022 (coding)
       if (charbuf >= charbuf_end)
 	break;
 
-      ONE_MORE_BYTE (c1);
+      if (byte_after_cr >= 0)
+	c1 = byte_after_cr, byte_after_cr = -1;
+      else
+	ONE_MORE_BYTE (c1);
       if (c1 < 0)
 	goto invalid_code;
 
@@ -3021,6 +3061,8 @@ decode_coding_iso_2022 (coding)
 	  break;
 
 	case ISO_control_0:
+	  if (eol_crlf && c1 == '\r')
+	    ONE_MORE_BYTE (byte_after_cr);
 	  MAYBE_FINISH_COMPOSITION ();
 	  charset = CHARSET_FROM_ID (charset_ascii);
 	  break;
@@ -4091,6 +4133,8 @@ decode_coding_sjis (coding)
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
+  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
 
@@ -4111,11 +4155,18 @@ decode_coding_sjis (coding)
       if (charbuf >= charbuf_end)
 	break;
 
-      ONE_MORE_BYTE (c);
+      if (byte_after_cr >= 0)
+	c = byte_after_cr, byte_after_cr = -1;
+      else
+	ONE_MORE_BYTE (c);
       if (c < 0)
 	goto invalid_code;
       if (c < 0x80)
-	charset = charset_roman;
+	{
+	  if (eol_crlf && c == '\r')
+	    ONE_MORE_BYTE (byte_after_cr);
+	  charset = charset_roman;
+	}
       else if (c == 0x80 || c == 0xA0)
 	goto invalid_code;
       else if (c >= 0xA1 && c <= 0xDF)
@@ -4193,6 +4244,8 @@ decode_coding_big5 (coding)
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
+  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
   val = charset_list;
@@ -4210,12 +4263,19 @@ decode_coding_big5 (coding)
       if (charbuf >= charbuf_end)
 	break;
 
-      ONE_MORE_BYTE (c);
+      if (byte_after_cr >= 0)
+	c1 = byte_after_cr, byte_after_cr = -1;
+      else
+	ONE_MORE_BYTE (c);
 
       if (c < 0)
 	goto invalid_code;
       if (c < 0x80)
-	charset = charset_roman;
+	{
+	  if (eol_crlf && c1 == '\r')
+	    ONE_MORE_BYTE (byte_after_cr);
+	  charset = charset_roman;
+	}
       else
 	{
 	  /* BIG5 -> Big5 */
@@ -4632,10 +4692,19 @@ static void
 decode_coding_raw_text (coding)
      struct coding_system *coding;
 {
+  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+
   coding->chars_at_source = 1;
-  coding->consumed_char = 0;
-  coding->consumed = 0;
-  record_conversion_result (coding, CODING_RESULT_SUCCESS);
+  coding->consumed_char = coding->src_chars;
+  coding->consumed = coding->src_bytes;
+  if (eol_crlf && coding->source[coding->src_bytes - 1] == '\r')
+    {
+      coding->consumed_char--;
+      coding->consumed--;
+      record_conversion_result (coding, CODING_RESULT_INSUFFICIENT_SRC);
+    }
+  else
+    record_conversion_result (coding, CODING_RESULT_SUCCESS);
 }
 
 static int
@@ -4829,6 +4898,8 @@ decode_coding_charset (coding)
   int char_offset = coding->produced_char;
   int last_offset = char_offset;
   int last_id = charset_ascii;
+  int eol_crlf = EQ (CODING_ID_EOL_TYPE (coding->id), Qdos);
+  int byte_after_cr = -1;
 
   CODING_GET_INFO (coding, attrs, charset_list);
   valids = AREF (attrs, coding_attr_charset_valids);
@@ -4848,7 +4919,17 @@ decode_coding_charset (coding)
       if (charbuf >= charbuf_end)
 	break;
 
-      ONE_MORE_BYTE (c);
+      if (byte_after_cr >= 0)
+	{
+	  c = byte_after_cr;
+	  byte_after_cr = -1;
+	}
+      else
+	{
+	  ONE_MORE_BYTE (c);
+	  if (eol_crlf && c == '\r')
+	    ONE_MORE_BYTE (byte_after_cr);
+	}
       if (c < 0)
 	goto invalid_code;
       code = c;
@@ -5880,13 +5961,13 @@ produce_chars (coding, translation_table, last_block)
 {
   unsigned char *dst = coding->destination + coding->produced;
   unsigned char *dst_end = coding->destination + coding->dst_bytes;
-  int produced;
-  int produced_chars = 0;
+  EMACS_INT produced;
+  EMACS_INT produced_chars = 0;
   int carryover = 0;
 
   if (! coding->chars_at_source)
     {
-      /* Characters are in coding->charbuf.  */
+      /* Source characters are in coding->charbuf.  */
       int *buf = coding->charbuf;
       int *buf_end = buf + coding->charbuf_used;
 
@@ -5945,18 +6026,16 @@ produce_chars (coding, translation_table, last_block)
     }
   else
     {
+      /* Source characters are at coding->source.  */
       const unsigned char *src = coding->source;
-      const unsigned char *src_end = src + coding->src_bytes;
-      Lisp_Object eol_type;
-
-      eol_type = CODING_ID_EOL_TYPE (coding->id);
+      const unsigned char *src_end = src + coding->consumed;
 
       if (coding->src_multibyte != coding->dst_multibyte)
 	{
 	  if (coding->src_multibyte)
 	    {
 	      int multibytep = 1;
-	      int consumed_chars;
+	      EMACS_INT consumed_chars;
 
 	      while (1)
 		{
@@ -5964,37 +6043,21 @@ produce_chars (coding, translation_table, last_block)
 		  int c;
 
 		  ONE_MORE_BYTE (c);
-		  if (c == '\r')
-		    {
-		      if (EQ (eol_type, Qdos))
-			{
-			  if (src == src_end)
-			    {
-			      record_conversion_result
-				(coding, CODING_RESULT_INSUFFICIENT_SRC);
-			      goto no_more_source;
-			    }
-			  if (*src == '\n')
-			    c = *src++;
-			}
-		      else if (EQ (eol_type, Qmac))
-			c = '\n';
-		    }
 		  if (dst == dst_end)
 		    {
-		      coding->consumed = src - coding->source;
+		      if (EQ (coding->src_object, coding->dst_object))
+			dst_end = (unsigned char *) src;
+		      if (dst == dst_end)
+			{
+			  EMACS_INT offset = src - coding->source;
 
-		    if (EQ (coding->src_object, coding->dst_object))
-		      dst_end = (unsigned char *) src;
-		    if (dst == dst_end)
-		      {
-			dst = alloc_destination (coding, src_end - src + 1,
-						 dst);
-			dst_end = coding->destination + coding->dst_bytes;
-			coding_set_source (coding);
-			src = coding->source + coding->consumed;
-			src_end = coding->source + coding->src_bytes;
-		      }
+			  dst = alloc_destination (coding, src_end - src + 1,
+						   dst);
+			  dst_end = coding->destination + coding->dst_bytes;
+			  coding_set_source (coding);
+			  src = coding->source + offset;
+			  src_end = coding->source + coding->src_bytes;
+			}
 		    }
 		  *dst++ = c;
 		  produced_chars++;
@@ -6008,30 +6071,19 @@ produce_chars (coding, translation_table, last_block)
 		int multibytep = 1;
 		int c = *src++;
 
-		if (c == '\r')
-		  {
-		    if (EQ (eol_type, Qdos))
-		      {
-			if (src < src_end
-			    && *src == '\n')
-			  c = *src++;
-		      }
-		    else if (EQ (eol_type, Qmac))
-		      c = '\n';
-		  }
 		if (dst >= dst_end - 1)
 		  {
-		    coding->consumed = src - coding->source;
-
 		    if (EQ (coding->src_object, coding->dst_object))
 		      dst_end = (unsigned char *) src;
 		    if (dst >= dst_end - 1)
 		      {
+			EMACS_INT offset = src - coding->source;
+
 			dst = alloc_destination (coding, src_end - src + 2,
 						 dst);
 			dst_end = coding->destination + coding->dst_bytes;
 			coding_set_source (coding);
-			src = coding->source + coding->consumed;
+			src = coding->source + offset;
 			src_end = coding->source + coding->src_bytes;
 		      }
 		  }
@@ -6042,7 +6094,7 @@ produce_chars (coding, translation_table, last_block)
 	{
 	  if (!EQ (coding->src_object, coding->dst_object))
 	    {
-	      int require = coding->src_bytes - coding->dst_bytes;
+	      EMACS_INT require = coding->src_bytes - coding->dst_bytes;
 
 	      if (require > 0)
 		{
@@ -6054,28 +6106,10 @@ produce_chars (coding, translation_table, last_block)
 		  src_end = coding->source + coding->src_bytes;
 		}
 	    }
-	  produced_chars = coding->src_chars;
+	  produced_chars = coding->consumed_char;
 	  while (src < src_end)
-	    {
-	      int c = *src++;
-
-	      if (c == '\r')
-		{
-		  if (EQ (eol_type, Qdos))
-		    {
-		      if (src < src_end
-			  && *src == '\n')
-			c = *src++;
-		      produced_chars--;
-		    }
-		  else if (EQ (eol_type, Qmac))
-		    c = '\n';
-		}
-	      *dst++ = c;
-	    }
+	    *dst += *src++;
 	}
-      coding->consumed = coding->src_bytes;
-      coding->consumed_char = coding->src_chars;
     }
 
   produced = dst - (coding->destination + coding->produced);
