@@ -107,7 +107,7 @@ ftfont_pattern_entity (p, frame, registry)
   Lisp_Object entity;
   FcChar8 *file, *fontformat;
   FcCharSet *charset;
-  char *str;
+  FcChar8 *str;
   int numeric;
   double dbl;
 
@@ -127,9 +127,9 @@ ftfont_pattern_entity (p, frame, registry)
   ASET (entity, FONT_FRAME_INDEX, frame);
   ASET (entity, FONT_OBJLIST_INDEX, Qnil);
 
-  if (FcPatternGetString (p, FC_FOUNDRY, 0, (FcChar8 **) &str) == FcResultMatch)
+  if (FcPatternGetString (p, FC_FOUNDRY, 0, &str) == FcResultMatch)
     ASET (entity, FONT_FOUNDRY_INDEX, intern_downcase (str, strlen (str)));
-  if (FcPatternGetString (p, FC_FAMILY, 0, (FcChar8 **) &str) == FcResultMatch)
+  if (FcPatternGetString (p, FC_FAMILY, 0, &str) == FcResultMatch)
     ASET (entity, FONT_FAMILY_INDEX, intern_downcase (str, strlen (str)));
   if (FcPatternGetInteger (p, FC_WEIGHT, 0, &numeric) == FcResultMatch)
     {

@@ -1,5 +1,7 @@
 2008-03-02  Andreas Schwab  <schwab@suse.de>
 
+	* ftfont.c (ftfont_pattern_entity): Fix aliasing violations.
+
 	* coding.c (decode_coding_big5, produce_chars): Fix typos in last
 	change.
 
