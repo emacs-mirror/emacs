@@ -1,3 +1,7 @@
+2008-03-02  Andreas Schwab  <schwab@suse.de>
+
+	* url-util.el: Require cl when compiling.
+
 2008-02-28  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* url-util.el (url-get-normalized-date): Simplify
