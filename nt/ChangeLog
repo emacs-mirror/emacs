@@ -1,3 +1,7 @@
+2008-03-02  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in ($(TRES)): Depend on icon and manifest.
+
 2008-03-02  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
 
 	* icons/README: Update.
