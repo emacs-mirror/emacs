@@ -1,3 +1,7 @@
+2008-03-02  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
+
+	* gnu.h: New icon.
+
 2008-03-02  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding_utf_8): When eol-type of CODING is
