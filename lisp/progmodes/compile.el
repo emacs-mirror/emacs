@@ -1288,9 +1288,40 @@ Returns the compilation buffer created."
 	     (enlarge-window (- height (window-height))))))))
 
 (defvar compilation-menu-map
-  (let ((map (make-sparse-keymap "Errors")))
+  (let ((map (make-sparse-keymap "Errors"))
+	(opt-map (make-sparse-keymap "Skip")))
     (define-key map [stop-subjob]
       '("Stop Compilation" . kill-compilation))
+    (define-key map [compilation-mode-separator3]
+      '("----" . nil))
+    (define-key map [compilation-next-error-follow-minor-mode]
+      '(menu-item
+	"Auto Error Display" next-error-follow-minor-mode
+	:help "Display the error under cursor when moving the cursor"
+	:button (:toggle . next-error-follow-minor-mode)))
+    (define-key map [compilation-skip]
+      (cons "Skip Less Important Messages" opt-map))
+    (define-key opt-map [compilation-skip-none]
+      '(menu-item "Don't Skip Any Messages"
+		  (lambda ()
+		    (interactive)
+		    (customize-set-variable 'compilation-skip-threshold 0))
+		  :help "Do not skip any type of messages"
+		  :button (:radio . (eq compilation-skip-threshold 0))))
+    (define-key opt-map [compilation-skip-info]
+      '(menu-item "Skip Info"
+		  (lambda ()
+		    (interactive)
+		    (customize-set-variable 'compilation-skip-threshold 1))
+		  :help "Skip anything less than warning"
+		  :button (:radio . (eq compilation-skip-threshold 1))))
+    (define-key opt-map [compilation-skip-warning-and-info]
+      '(menu-item "Skip Warnings and Info"
+		  (lambda ()
+		    (interactive)
+		    (customize-set-variable 'compilation-skip-threshold 2))
+		  :help "Skip over Warnings and Info, stop for errors"
+		  :button (:radio . (eq compilation-skip-threshold 2))))
     (define-key map [compilation-mode-separator2]
       '("----" . nil))
     (define-key map [compilation-first-error]

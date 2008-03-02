@@ -1,3 +1,8 @@
+2008-03-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/compile.el (compilation-menu-map): Add menu entries
+	for useful options.
+
 2008-03-01  Dan Nicolaescu  <dann@ics.uci.edu>
 	    Glenn Morris  <rgm@gnu.org>
 
