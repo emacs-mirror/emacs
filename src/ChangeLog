@@ -1,3 +1,22 @@
+2008-03-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.h (NTM_PS_OPENTYPE, NTM_TT_OPENTYPE, NTM_TYPE1): Define
+	if system headers don't.
+	(struct w32font_info): Enlarge ascii_metrics. Add glyph_idx.
+	(w32font_encode_char): Don't declare here.
+
+	* w32font.c (Quniscribe, QCformat): New symbols.
+	(syms_of_w32font): Define them.
+	(w32font_has_char): Indicate uncertainty.
+	(w32font_encode_char): Encode as glyph point. Make static.
+	(recompute_cached_metrics): New function.
+	(w32font_open_internal): Use it. Set font to use glyph points
+	initially. Set format based on type of font.
+	(w32font_text_extents, w32font_draw): Optionally use glyph points.
+	(w32_enumfont_pattern_entity): Accept backend arg. Set type based
+	on it. Set format based on information available here.
+	(add_font_entity_to_list): Identify backend based on opentype_only.
+
 2008-03-02  Andreas Schwab  <schwab@suse.de>
 
 	* ftfont.c (ftfont_pattern_entity): Fix aliasing violations.
