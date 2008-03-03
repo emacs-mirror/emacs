@@ -7,3 +7,11 @@ Files: hicolor/16x16/apps/emacs.png hicolor/24x24/apps/emacs.png
 Author: Kentaro Ohkouchi <nanasess@fsm.ne.jp>
 Copyright (C) 2007, 2008  Free Software Foundation, Inc.
 License: GNU General Public License version 3 or later (see COPYING)
+
+
+Files: hicolor/16x16/apps/emacs22.png hicolor/24x24/apps/emacs22.png
+       hicolor/32x32/apps/emacs22.png hicolor/48x48/apps/emacs22.png
+
+Author: Andrew Zhilin <andrew_zhilin@yahoo.com>
+Copyright (C) 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+License: GNU General Public License version 3 or later (see COPYING)
