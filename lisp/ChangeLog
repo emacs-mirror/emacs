@@ -1,5 +1,8 @@
 2008-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/byte-opt.el (byte-compile-trueconstp)
+	(byte-compile-nilconstp): Can't use recursion in a defsubst.
+
 	* textmodes/tex-mode.el (latex-mode): Remove % from paragraph-separate
 	so that M-q can fill comments.
 	(tex-executable-exists-p, tex-compile): Extend with special syntax for

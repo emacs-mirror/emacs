@@ -632,20 +632,28 @@
 
 (defsubst byte-compile-trueconstp (form)
   "Return non-nil if FORM always evaluates to a non-nil value."
+  (while (eq (car-safe form) 'progn)
+    (setq form (car (last (cdr form)))))
   (cond ((consp form)
          (case (car form)
            (quote (cadr form))
-           (progn (byte-compile-trueconstp (car (last (cdr form)))))))
+           ;; Can't use recursion in a defsubst.
+           ;; (progn (byte-compile-trueconstp (car (last (cdr form)))))
+           ))
         ((not (symbolp form)))
         ((eq form t))
         ((keywordp form))))
 
 (defsubst byte-compile-nilconstp (form)
   "Return non-nil if FORM always evaluates to a nil value."
+  (while (eq (car-safe form) 'progn)
+    (setq form (car (last (cdr form)))))
   (cond ((consp form)
          (case (car form)
            (quote (null (cadr form)))
-           (progn (byte-compile-nilconstp (car (last (cdr form)))))))
+           ;; Can't use recursion in a defsubst.
+           ;; (progn (byte-compile-nilconstp (car (last (cdr form)))))
+           ))
         ((not (symbolp form)) nil)
         ((null form))))
 
