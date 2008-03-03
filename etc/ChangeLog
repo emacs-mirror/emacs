@@ -1,5 +1,7 @@
 2008-03-03  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
 
+	* images/icons/hicolor/32x32/apps/emacs.png: Make transparency 8 bit.
+	* images/icons/hicolor/scalable/mimetypes/emacs-document.svg: New file.
 	* images/icons/hicolor/scalable/apps/emacs.svg: Fix format.
 
 2008-03-03  Andrew Zhilin  <andrew_zhilin@yahoo.com>
