@@ -6925,6 +6925,7 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 	    }
 	  saved_pt = PT, saved_pt_byte = PT_BYTE;
 	  TEMP_SET_PT_BOTH (from, from_byte);
+	  current_buffer->text->inhibit_shrinking = 1;
 	  del_range_both (from, from_byte, to, to_byte, 1);
 	  coding->src_pos = -chars;
 	  coding->src_pos_byte = -bytes;
@@ -7018,6 +7019,7 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 	 As we have moved PT while replacing the original buffer
 	 contents, we must recover it now.  */
       set_buffer_internal (XBUFFER (src_object));
+      current_buffer->text->inhibit_shrinking = 0;
       if (saved_pt < from)
 	TEMP_SET_PT_BOTH (saved_pt, saved_pt_byte);
       else if (saved_pt < from + chars)
