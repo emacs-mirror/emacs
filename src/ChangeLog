@@ -1,3 +1,9 @@
+2008-03-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (handle_single_display_spec): Undo 2007-10-16 changes.
+	Don't pretend as if characters with display property haven't been
+	consumed for string-replacing-string case.
+
 2008-02-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xdisp.c (get_overlay_strings_1): Add missing argument type.
