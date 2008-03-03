@@ -1,3 +1,15 @@
+2008-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (latex-mode): Remove % from paragraph-separate
+	so that M-q can fill comments.
+	(tex-executable-exists-p, tex-compile): Extend with special syntax for
+	commands implemented in elisp.
+	(tex-compile-commands): Add an entry to use doc-view for pdf files.
+	(tex-format-cmd): New function.
+	(tex-compile): Use it to let the user specify default arguments.
+	(tex-cmd-bibtex-args): New var.
+	(tex-cmd-doc-view): New function.
+
 2008-03-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* faces.el (face-spec-set): Fix typos in docstring.

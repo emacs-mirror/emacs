@@ -1042,7 +1042,7 @@ subshell is initiated, `tex-shell-hook' is run."
 		"\\>\\|\\\\[a-z]*" (regexp-opt '("space" "skip" "page") t)
 		"\\>\\)"))
   (setq paragraph-separate
-	(concat "[\f%]\\|[ \t]*\\($\\|"
+	(concat "[\f]\\|[ \t]*\\($\\|"
 		"\\\\[][]\\|"
 		"\\\\" (regexp-opt (append
 				    (mapcar 'car latex-section-alist)
@@ -1785,6 +1785,7 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 		     (shell-quote-argument tex-start-commands)) " %f")
      t "%r.dvi")
     ("xdvi %r &" "%r.dvi")
+    ("\\doc-view \"%r.pdf\"" "%r.pdf")
     ("xpdf %r.pdf &" "%r.pdf")
     ("gv %r.ps &" "%r.ps")
     ("yap %r &" "%r.dvi")
@@ -1900,11 +1901,11 @@ FILE is typically the output DVI or PDF file."
 	 (save-excursion
 	   (goto-char (point-max))
 	   (and (re-search-backward
-                 (concat
-                  "(see the transcript file for additional information)"
-                  "\\|^Output written on .*"
-                  (regexp-quote (file-name-nondirectory file))
-                  " (.*)\\.") nil t)
+                 (concat "(see the transcript file for additional information)"
+                         "\\|^Output written on .*"
+                         (regexp-quote (file-name-nondirectory file))
+                         " (.*)\\.")
+                 nil t)
 		(> (save-excursion
 		     (or (re-search-backward "\\[[0-9]+\\]" nil t)
 			 (point-min)))
@@ -1945,11 +1946,15 @@ FILE is typically the output DVI or PDF file."
 (defvar tex-executable-cache nil)
 (defun tex-executable-exists-p (name)
   "Like `executable-find' but with a cache."
-  (let ((cache (assoc name tex-executable-cache)))
-    (if cache (cdr cache)
-      (let ((executable (executable-find name)))
-	(push (cons name executable) tex-executable-cache)
-	executable))))
+  (let ((f (and (string-match "^\\\\\\([^ \t\n]+\\)" name)
+                (intern-soft (concat "tex-cmd-" (match-string 1 name))))))
+    (if (fboundp f)
+        f
+      (let ((cache (assoc name tex-executable-cache)))
+        (if cache (cdr cache)
+          (let ((executable (executable-find name)))
+            (push (cons name executable) tex-executable-cache)
+            executable))))))
 
 (defun tex-command-executable (cmd)
   (let ((s (if (stringp cmd) cmd (eval (car cmd)))))
@@ -1968,6 +1973,24 @@ FILE is typically the output DVI or PDF file."
       (when (and (eq in t) (stringp out))
 	(not (tex-uptodate-p (format-spec out fspec)))))))
 
+(defcustom tex-cmd-bibtex-args "--min-crossref=100"
+  "Extra args to pass to `bibtex' by default."
+  :type 'string)
+
+(defun tex-format-cmd (format fspec)
+  "Like `format-spec' but adds user-specified args to the command.
+Only applies the FSPEC to the args part of FORMAT."
+  (if (not (string-match "\\([^ /\\]+\\) " format))
+      (format-spec format fspec)
+    (let* ((prefix (substring format 0 (match-beginning 0)))
+           (cmd (match-string 1 format))
+           (args (substring format (match-end 0)))
+           (sym (intern-soft (format "tex-cmd-%s-args" cmd)))
+           (extra-args (and sym (symbol-value sym))))
+      (concat prefix cmd
+              (if extra-args (concat " " extra-args))
+              " " (format-spec args fspec)))))
+         
 (defun tex-compile-default (fspec)
   "Guess a default command given the `format-spec' FSPEC."
   ;; TODO: Learn to do latex+dvips!
@@ -2038,7 +2061,10 @@ FILE is typically the output DVI or PDF file."
 	  ;; The history command was already applied to the same file,
 	  ;; so just reuse it.
 	  hist-cmd
-	(if cmds (format-spec (caar cmds) fspec))))))
+	(if cmds (tex-format-cmd (caar cmds) fspec))))))
+
+(defun tex-cmd-doc-view (file)
+  (pop-to-buffer (find-file-noselect file)))
 
 (defun tex-compile (dir cmd)
   "Run a command CMD on current TeX buffer's file in DIR."
@@ -2056,14 +2082,24 @@ FILE is typically the output DVI or PDF file."
 	   (completing-read
 	    (format "Command [%s]: " (tex-summarize-command default))
 	    (mapcar (lambda (x)
-		      (list (format-spec (eval (car x)) fspec)))
+		      (list (tex-format-cmd (eval (car x)) fspec)))
 		    tex-compile-commands)
 	    nil nil nil 'tex-compile-history default))))
   (save-some-buffers (not compilation-ask-about-save) nil)
-  (if (tex-shell-running)
-      (tex-kill-job)
-    (tex-start-shell))
-  (tex-send-tex-command cmd dir))
+  (let ((f (and (string-match "^\\\\\\([^ \t\n]+\\)" cmd)
+                (intern-soft (concat "tex-cmd-" (match-string 1 cmd))))))
+    (if (functionp f)
+        (condition-case nil
+            (let ((default-directory dir))
+              (apply f (split-string-and-unquote
+                        (substring cmd (match-end 0)))))
+          (wrong-number-of-arguments
+           (error "Wrong number of arguments to %s"
+                  (substring (symbol-name f) 8))))
+      (if (tex-shell-running)
+          (tex-kill-job)
+        (tex-start-shell))
+      (tex-send-tex-command cmd dir))))
 
 (defun tex-start-tex (command file &optional dir)
   "Start a TeX run, using COMMAND on FILE."
