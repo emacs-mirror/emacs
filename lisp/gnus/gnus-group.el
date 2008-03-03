@@ -1188,8 +1188,8 @@ The following commands are available:
       (goto-char (point-min))
       (setq gnus-group-mark-positions
 	    (list (cons 'process (and (search-forward
-				       (mm-string-as-multibyte "\200") nil t)
-				      (- (point) 2))))))))
+				       (mm-string-to-multibyte "\200") nil t)
+				      (- (point) (point-min) 1))))))))
 
 (defun gnus-mouse-pick-group (e)
   "Enter the group under the mouse pointer."
@@ -4744,5 +4744,5 @@ Compacting group %s... (this may take a long time)"
 
 (provide 'gnus-group)
 
-;;; arch-tag: 2eb5440f-0bca-4091-814c-e37817536af6
+;; arch-tag: 2eb5440f-0bca-4091-814c-e37817536af6
 ;;; gnus-group.el ends here
