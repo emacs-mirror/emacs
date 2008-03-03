@@ -1,3 +1,7 @@
+2008-03-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (face-spec-set): Fix typos in docstring.
+
 2008-03-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* bindings.el (mode-line-column-line-number-mode-map): New variable.
@@ -10282,7 +10286,6 @@
 	(tramp-version, tramp-bug, tramp-reporter-dump-variable)
 	(tramp-load-report-modules, tramp-append-tramp-buffers):
 	Move to tramp-cmds.el.
-
 	* net/tramp-fish.el (tramp-fish-handle-copy-file)
 	(tramp-fish-do-copy-or-rename-file)
 	(tramp-fish-do-copy-or-rename-file-directly):
