@@ -1,5 +1,8 @@
 2008-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded):
+	Remove optimization that was working around the form-code-walker bug.
+
 	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
 	Walk into the body of lambdas after byte-compile-unfold-lambda.
 
