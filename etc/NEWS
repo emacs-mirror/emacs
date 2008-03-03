@@ -111,11 +111,9 @@ You can embed Emacs in another application on X11.  The new command line option
 http://standards.freedesktop.org/xembed-spec/xembed-spec-latest.html
 for details about XEmbed.
 
-** Emacs comes with a new set of icons for Mac OS X.
-OS-X-style icons (an application icon and a relevant document icon)
-were contributed by Kentaro Ohkouchi.
-Source files for these icons can be found in Emacs.app/Contents/Resources.
-PNG versions are available as etc/images/icons/emacs*_mac.png.
+** Emacs comes with a new set of default icons.
+Various resolutions are available as etc/images/icons/hicolor/*/apps/emacs.png.
+The Emacs 22 icon is available as `emacs22.png' in the same location.
 
 ** Built-in functions (subr) can now have an interactive specification
 that is not a prompt string.  If the `intspec' parameter of a `DEFUN'
