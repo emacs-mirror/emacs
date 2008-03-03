@@ -77,7 +77,7 @@ Boston, MA 02110-1301, USA.  */
 #include "termhooks.h"
 #include "termopts.h"
 #include "termchar.h"
-#include "gnu.h"
+#include "emacs-icon.h"
 #include "disptab.h"
 #include "buffer.h"
 #include "window.h"

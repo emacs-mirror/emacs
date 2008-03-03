@@ -1,3 +1,13 @@
+2008-03-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* w32term.c: Remove unused include "gnu.h".
+	* makefile.w32-in (w32term.o): Don't depend on gnu.h
+
+	* gnu.h: Rename to ...
+	* emacs-icon.h: ... this.
+	* xterm.c: Use emacs-icon.h instead of gnu.h.
+	* Makefile (xterm.o): Depend on emacs-icon.h, not gnu.h.
+
 2008-03-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32font.c: Include math.h.

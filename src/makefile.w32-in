@@ -1526,7 +1526,6 @@ $(BLD)/w32term.$(O): \
 	$(SRC)/font.h \
 	$(SRC)/fontset.h \
 	$(SRC)/frame.h \
-	$(SRC)/gnu.h \
 	$(SRC)/intervals.h \
 	$(SRC)/keyboard.h \
 	$(SRC)/keymap.h \

@@ -1205,7 +1205,7 @@ xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
    systime.h gtkutil.h msdos.h coding.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
    dispextern.h frame.h disptab.h blockinput.h atimer.h systime.h syssignal.h \
-   keyboard.h gnu.h character.h charset.h ccl.h fontset.h composite.h \
+   keyboard.h emacs-icon.h character.h charset.h ccl.h fontset.h composite.h \
    coding.h process.h gtkutil.h $(FONTSRC) $(config_h)
 xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
   buffer.h atimer.h systime.h termhooks.h $(config_h)
@@ -1267,7 +1267,7 @@ macmenu.o: macmenu.c termhooks.h frame.h window.h dispextern.h macgui.h \
   keyboard.h blockinput.h atimer.h systime.h buffer.h macterm.h $(config_h)
 macterm.o: blockinput.h atimer.h systime.h syssignal.h macterm.h macgui.h \
   frame.h charset.h ccl.h dispextern.h fontset.h termhooks.h termopts.h \
-  termchar.h gnu.h disptab.h buffer.h window.h keyboard.h $(INTERVAL_SRC) \
+  termchar.h disptab.h buffer.h window.h keyboard.h $(INTERVAL_SRC) \
   process.h coding.h $(config_h)
 macselect.o: blockinput.h atimer.h systime.h macterm.h macgui.h frame.h \
   keymap.h $(config_h)
