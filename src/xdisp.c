@@ -4301,15 +4301,13 @@ handle_single_display_spec (it, spec, object, overlay, position,
 	     `display' property yet.  The call to pop_it in
 	     set_iterator_to_next will clean this up.  */
 	  if (BUFFERP (object))
-	    it->current.pos = start_pos;
+	    *position = start_pos;
 	}
       else if (CONSP (value) && EQ (XCAR (value), Qspace))
 	{
 	  it->method = GET_FROM_STRETCH;
 	  it->object = value;
-	  it->position = start_pos;
-	  if (BUFFERP (object))
-	    it->current.pos = start_pos;
+	  *position = it->position = start_pos;
 	}
 #ifdef HAVE_WINDOW_SYSTEM
       else
@@ -4323,8 +4321,7 @@ handle_single_display_spec (it, spec, object, overlay, position,
 	  /* Say that we haven't consumed the characters with
 	     `display' property yet.  The call to pop_it in
 	     set_iterator_to_next will clean this up.  */
-	  if (BUFFERP (object))
-	    it->current.pos = start_pos;
+	  *position = start_pos;
 	}
 #endif /* HAVE_WINDOW_SYSTEM */
 
