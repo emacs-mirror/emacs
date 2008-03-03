@@ -538,7 +538,7 @@ If false, these words are in the font-lock-type-face; if True then they are in
 grouping constructs allow the structure of the code to be understood at a glance."
   :group 'verilog-mode-indent
   :type 'boolean)
-(put 'verilog-highlight-p1800-keywords 'safe-local-variable verilog-booleanp)
+(put 'verilog-highlight-grouping-keywords 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-auto-endcomments t
   "*True means insert a comment /* ... */ after 'end's.
@@ -1910,15 +1910,15 @@ See also `verilog-font-lock-extra-types'.")
 		       ;; And user/system tasks and functions
               "\\$[a-zA-Z][a-zA-Z0-9_\\$]*"
               "\\)\\>")
-    ;; Fontify all types
-     (if verilog-highlight-grouping-keywords
-         (cons (concat "\\<\\(" verilog-font-grouping-keywords "\\)\\>")
-           'verilog-font-lock-ams-face)
-       (cons (concat "\\<\\(" verilog-font-grouping-keywords "\\)\\>")
-         'font-lock-type-face))
-    (cons (concat "\\<\\(" verilog-type-font-keywords "\\)\\>")
+	 ;; Fontify all types
+	 (if verilog-highlight-grouping-keywords
+	     (cons (concat "\\<\\(" verilog-font-grouping-keywords "\\)\\>")
+		   'verilog-font-lock-ams-face)
+	   (cons (concat "\\<\\(" verilog-font-grouping-keywords "\\)\\>")
+		 'font-lock-type-face))
+	 (cons (concat "\\<\\(" verilog-type-font-keywords "\\)\\>")
           'font-lock-type-face)
-    ;; Fontify IEEE-P1800 keywords appropriately
+	 ;; Fontify IEEE-P1800 keywords appropriately
 	 (if verilog-highlight-p1800-keywords
 	     (cons (concat "\\<\\(" verilog-p1800-keywords "\\)\\>")
 		   'verilog-font-lock-p1800-face)
