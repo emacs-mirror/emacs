@@ -1,5 +1,9 @@
 2008-03-03  Jason Rumney  <jasonr@gnu.org>
 
+	* w32font.c (recompute_cached_metrics): Change font arg to w32font_info.
+	Compute options separately.
+	(w32font_open_internal): Set glyph_idx before caching metrics.
+
 	* w32font.h (NTM_PS_OPENTYPE, NTM_TT_OPENTYPE, NTM_TYPE1): Define
 	if system headers don't.
 	(struct w32font_info): Enlarge ascii_metrics. Add glyph_idx.
