@@ -203,10 +203,7 @@ If TYPE is `text/plain' CRLF->LF translation may occur."
 	       (when (re-search-backward "^[A-Za-z0-9+/]+=*[\t ]*$" nil t)
 		 (forward-line))
 	       (point))))
-	   ((memq encoding '(7bit 8bit binary))
-	    ;; Do nothing.
-	    t)
-	   ((null encoding)
+	   ((memq encoding '(nil 7bit 8bit binary))
 	    ;; Do nothing.
 	    t)
 	   ((memq encoding '(x-uuencode x-uue))
@@ -307,5 +304,5 @@ decoding.  If it is nil, default to `mail-parse-charset'."
 
 (provide 'mm-bodies)
 
-;;; arch-tag: 41104bb6-4443-4ca9-8d5c-ff87ecf27d8d
+;; arch-tag: 41104bb6-4443-4ca9-8d5c-ff87ecf27d8d
 ;;; mm-bodies.el ends here
