@@ -138,8 +138,6 @@ the currently selected Emacs frame.
 
 ** C-SPC C-SPC in transient-mark-mode pushes a mark without activating it.
 
-** transient-mark-mode is now enabled by default.
-
 ** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
 requires confirmation before opening a non-existent file.
 
