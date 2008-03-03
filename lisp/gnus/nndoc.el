@@ -689,7 +689,7 @@ from the document.")
   (looking-at "JMF"))
 
 (defun nndoc-oe-dbx-type-p ()
-  (looking-at (mm-string-as-multibyte "\317\255\022\376")))
+  (looking-at (mm-string-to-multibyte "\317\255\022\376")))
 
 (defun nndoc-read-little-endian ()
   (+ (prog1 (char-after) (forward-char 1))
@@ -1027,5 +1027,5 @@ symbol in the alist."
 
 (provide 'nndoc)
 
-;;; arch-tag: f5c2970e-0387-47ac-a0b3-6cc317dffabe
+;; arch-tag: f5c2970e-0387-47ac-a0b3-6cc317dffabe
 ;;; nndoc.el ends here
