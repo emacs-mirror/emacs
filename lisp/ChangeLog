@@ -1,5 +1,7 @@
 2008-03-03  Glenn Morris  <rgm@gnu.org>
 
+	* simple.el (transient-mark-mode): Don't turn on by default.
+
 	* net/tls.el (open-tls-stream): Restore the 2007-11-04 change
 	accidentally removed by the 2007-12-05 merge from Gnus.
 
