@@ -80,7 +80,7 @@ static Lisp_Object lispy_antialias_type P_ ((BYTE type));
 static Lisp_Object font_supported_scripts P_ ((FONTSIGNATURE * sig));
 static int w32font_full_name P_ ((LOGFONT * font, Lisp_Object font_obj,
                                   int pixel_size, char *name, int nbytes));
-static void recompute_cached_metrics P_ ((HDC dc, struct font * font));
+static void recompute_cached_metrics P_ ((HDC dc, struct w32font_info * font));
 
 static Lisp_Object w32_registry P_ ((LONG w32_charset));
 
@@ -324,7 +324,7 @@ w32font_encode_char (font, c)
       /* Mark this font as not supporting glyph indices. This can happen
          on Windows9x, and maybe with non-Truetype fonts on NT etc.  */
       w32_font->glyph_idx = 0;
-      recompute_cached_metrics (dc, font);
+      recompute_cached_metrics (dc, w32_font);
 
       return c;
     }
@@ -426,7 +426,7 @@ w32font_text_extents (font, code, nglyphs, metrics)
                          any problems should be caught when initialising the
                          metrics cache.  */
                       w32_font->glyph_idx = 0;
-                      recompute_cached_metrics (dc, font);
+                      recompute_cached_metrics (dc, w32_font);
                       SelectObject (dc, old_font);
                       release_frame_dc (f, dc);
                       return 0;
@@ -781,11 +781,11 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
   GetTextMetrics (dc, &w32_font->metrics);
 
   /* Cache ASCII metrics.  */
-  recompute_cached_metrics (dc, font);
+  w32_font->glyph_idx = ETO_GLYPH_INDEX;
+  recompute_cached_metrics (dc, w32_font);
+
   SelectObject (dc, old_font);
   release_frame_dc (f, dc);
-
-  w32_font->glyph_idx = ETO_GLYPH_INDEX;
 
   /* W32FontStruct - we should get rid of this, and use the w32font_info
      struct for any W32 specific fields. font->font.font can then be hfont.  */
@@ -1702,14 +1702,13 @@ w32font_full_name (font, font_obj, pixel_size, name, nbytes)
 
 
 static void
-recompute_cached_metrics (dc, font)
+recompute_cached_metrics (dc, w32_font)
      HDC dc;
-     struct font *font;
+     struct w32font_info *w32_font;
 {
   GLYPHMETRICS gm;
   MAT2 transform;
-  int i;
-  struct w32font_info *w32_font;
+  unsigned int i;
 
   bzero (&transform, sizeof (transform));
   transform.eM11.value = 1;
@@ -1718,10 +1717,12 @@ recompute_cached_metrics (dc, font)
   for (i = 0; i < 128; i++)
     {
       struct font_metrics* char_metric = &w32_font->ascii_metrics[i];
+      unsigned int options = GGO_METRICS;
+      if (w32_font->glyph_idx)
+        options |= GGO_GLYPH_INDEX;
 
-      if (GetGlyphOutlineW (dc, i + 32, GGO_METRICS
-                            | w32_font->glyph_idx ? GGO_GLYPH_INDEX : 0,
-                            &gm, 0, NULL, &transform) != GDI_ERROR)
+      if (GetGlyphOutlineW (dc, i, options, &gm, 0, NULL, &transform)
+          != GDI_ERROR)
         {
           char_metric->lbearing = -gm.gmptGlyphOrigin.x;
           char_metric->rbearing = gm.gmBlackBoxX + gm.gmptGlyphOrigin.x;
