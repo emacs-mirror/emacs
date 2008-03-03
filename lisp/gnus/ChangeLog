@@ -1,5 +1,10 @@
 2008-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* gnus-sum.el: Use inhibit-read-only and with-current-buffer.
+	(gnus-summary-jump-to-group): Consider windows on other displayed frames as
+	well.  Similar changes might be needed elsewhere, but that's the one I've
+	bumped into during my use.
+
 	* gnus-msg.el (gnus-debug):
 	* gnus-group.el (gnus-update-group-mark-positions):
 	Use mm-string-to-multibyte.
