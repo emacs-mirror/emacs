@@ -1524,7 +1524,7 @@ If SPEC is nil, return nil."
 
 
 (defun face-spec-set (face spec &optional for-defface)
-  "Set FACE's face spec, which controls its appearance, to SPEC>
+  "Set FACE's face spec, which controls its appearance, to SPEC.
 If FOR-DEFFACE is t, set the base spec, the one that `defface'
   and Custom set.  (In that case, the caller must put it in the
   appropriate property, because that depends on the caller.)
@@ -1533,7 +1533,7 @@ If FOR-DEFFACE is nil, set the overriding spec (and store it
 
 The appearance of FACE is controlled by the base spec,
 by any custom theme specs on top of that, and by the
-the overriding spec on top of all the rest.
+overriding spec on top of all the rest.
 
 FOR-DEFFACE can also be a frame, in which case we set the
 frame-specific attributes of FACE for that frame based on SPEC.
