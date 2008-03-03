@@ -1,5 +1,8 @@
 2008-03-03  Glenn Morris  <rgm@gnu.org>
 
+	* emulation/viper-util.el (viper-frame-value): Prefer buffer-local
+	value, if set, over frame value.
+
 	* simple.el (transient-mark-mode): Don't turn on by default.
 
 	* net/tls.el (open-tls-stream): Restore the 2007-11-04 change
