@@ -239,38 +239,55 @@ Fourth arg PORT is an integer specifying a port to connect to."
 		      (memq (process-status process) '(open run))
 		      (progn
 			(goto-char (point-min))
-			(not (setq done (re-search-forward tls-success nil t)))))
+			(not (setq done (re-search-forward
+					 tls-success nil t)))))
 	    (unless (accept-process-output process 1)
 	      (sit-for 1)))
 	  (message "Opening TLS connection with `%s'...%s" cmd
 		   (if done "done" "failed"))
-	  (if done
-	      (setq done process)
-	    (delete-process process))))
-      (when done
-	(save-excursion
-	  (set-buffer buffer)
-	  (when
-	      (or
-	       (and tls-checktrust
-		    (progn
-		      (goto-char (point-min))
-		      (re-search-forward tls-untrusted nil t))
-		    (or
-		     (and (not (eq tls-checktrust 'ask))
-			  (message "The certificate presented by `%s' is NOT trusted." host))
-		     (not (yes-or-no-p
-			   (format "The certificate presented by `%s' is NOT trusted. Accept anyway? " host)))))
-	       (and tls-hostmismatch
-		    (progn
-		      (goto-char (point-min))
-		      (re-search-forward tls-hostmismatch nil t))
-		    (not (yes-or-no-p
-			  (format "Host name in certificate doesn't match `%s'. Connect anyway? " host)))))
-	    (setq done nil)
-	    (delete-process process))))
-      (message "Opening TLS connection to `%s'...%s"
-	       host (if done "done" "failed")))
+	  (if (not done)
+	      (delete-process process)
+	    ;; advance point to after all informational messages that
+	    ;; `openssl s_client' and `gnutls' print
+	    (let ((start-of-data nil))
+	      (while
+		   (not (setq start-of-data
+			      ;; the string matching `tls-end-of-info'
+			      ;; might come in separate chunks from
+			      ;; `accept-process-output', so start the
+			      ;; search where `tls-success' ended
+			      (save-excursion
+				(if (re-search-forward tls-end-of-info nil t)
+				    (match-end 0)))))
+		(accept-process-output process 1))
+	      (if start-of-data
+		  ;; move point to start of client data
+		  (goto-char start-of-data)))
+	  (setq done process))))
+      (when (and done
+		 (or
+		  (and tls-checktrust
+		       (save-excursion
+			 (goto-char (point-min))
+			 (re-search-forward tls-untrusted nil t))
+		       (or
+			(and (not (eq tls-checktrust 'ask))
+			     (message "The certificate presented by `%s' is \
+NOT trusted." host))
+			(not (yes-or-no-p
+			      (format "The certificate presented by `%s' is \
+NOT trusted. Accept anyway? " host)))))
+		  (and tls-hostmismatch
+		       (save-excursion
+			 (goto-char (point-min))
+			 (re-search-forward tls-hostmismatch nil t))
+		       (not (yes-or-no-p
+			     (format "Host name in certificate doesn't \
+match `%s'. Connect anyway? " host))))))
+	(setq done nil)
+	(delete-process process)))
+    (message "Opening TLS connection to `%s'...%s"
+	     host (if done "done" "failed"))
     (when use-temp-buffer
       (if done (set-process-buffer process nil))
       (kill-buffer buffer))
