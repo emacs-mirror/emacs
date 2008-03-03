@@ -138,12 +138,9 @@ because they clash with commands provided by dirtrack.el.  Use
 They can easily be emulated.  Rather than calling `make-variable-frame-local'
 and accessing the variable value directly, explicitly check for a
 frame-parameter, and if there is one, use its value in preference to
-that of the variable. Eg:
-(let ((fp (assoc 'var (frame-parameters))))
-  ;; Use frame-parameter, even if nil.
-  (if fp (cdr fp)
-     ;; Else use normal variable value.
-     var))
+that of the variable.  Note that buffer-local values should take
+preference over frame-local ones, so you may wish to check `local-variable-p'
+first.
 
 ** The function invisible-p returns non-nil if the character
 after a specified position is invisible.
