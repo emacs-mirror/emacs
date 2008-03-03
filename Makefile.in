@@ -177,6 +177,9 @@ desktopdir=$(datarootdir)/applications
 # Where the etc/images/icons/hicolor directory is to be installed.
 icondir=$(datarootdir)/icons
 
+# The source directory for the icon files.
+iconsrcdir=$(srcdir)/etc/images/icons
+
 # ==================== Emacs-specific directories ====================
 
 # These variables hold the values Emacs will actually use.  They are
@@ -575,7 +578,8 @@ install-arch-indep: mkdir info install-etc
 install-etc: mkdir
 	${INSTALL_DATA} ${srcdir}/etc/emacs.desktop \
 	  $(DESTDIR)${desktopdir}/emacs.desktop
-	for icon in $(srcdir)/etc/images/icons/*/*x*/apps/*.*; do \
+	for icon in $(iconsrcdir)/*/*x*/apps/*.* \
+	  $(iconsrcdir)/*/scalable/apps/*.*; do \
 	  if [ -r $${icon} ]; then \
 	    iicon=`echo "$${icon}" | sed 's,$(srcdir)/etc/images/icons,$(DESTDIR)${icondir},'` ; \
 	    ${INSTALL_DATA} $${icon} $${iicon} ; \
@@ -603,7 +607,7 @@ mkdir: FRC
 	  chmod a+r $(DESTDIR)${datadir};\
 	fi
 	icondirs= ; \
-	for dir in $(srcdir)/etc/images/icons/*/*x*/apps; do \
+	for dir in $(iconsrcdir)/*/*x*/apps $(iconsrcdir)/*/scalable/apps; do \
 	  if [ -d $${dir} ]; then \
 	    icondirs="$${icondirs} $${dir}" ; \
 	  fi ; \
