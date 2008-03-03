@@ -1,3 +1,8 @@
+2008-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Walk into the body of lambdas after byte-compile-unfold-lambda.
+
 2008-03-03  Glenn Morris  <rgm@gnu.org>
 
 	* emulation/viper-util.el (viper-frame-value): Prefer buffer-local
