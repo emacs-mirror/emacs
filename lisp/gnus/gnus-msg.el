@@ -1562,7 +1562,7 @@ The source file has to be in the Emacs load path."
     ;; Remove any control chars - they seem to cause trouble for some
     ;; mailers.  (Byte-compiled output from the stuff above.)
     (goto-char point)
-    (while (re-search-forward (mm-string-as-multibyte
+    (while (re-search-forward (mm-string-to-multibyte
 			       "[\000-\010\013-\037\200-\237]") nil t)
       (replace-match (format "\\%03o" (string-to-char (match-string 0)))
 		     t t))))
@@ -2000,5 +2000,5 @@ this is a reply."
 
 (provide 'gnus-msg)
 
-;;; arch-tag: 9f22b2f5-1c0a-49de-916e-4c88e984852b
+;; arch-tag: 9f22b2f5-1c0a-49de-916e-4c88e984852b
 ;;; gnus-msg.el ends here

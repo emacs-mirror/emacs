@@ -1,5 +1,6 @@
 2008-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* gnus-msg.el (gnus-debug):
 	* gnus-group.el (gnus-update-group-mark-positions):
 	Use mm-string-to-multibyte.
 
