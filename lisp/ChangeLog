@@ -1,3 +1,9 @@
+2008-03-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* bindings.el (mode-line-column-line-number-mode-map): New variable.
+	(standard-mode-line-position): Use it to add a menu for toggling
+	column number and line number display.
+
 2008-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded):

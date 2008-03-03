@@ -299,6 +299,21 @@ Keymap to display on major mode.")
     map) "\
 Keymap to display on minor modes.")
 
+(defvar mode-line-column-line-number-mode-map
+  (let ((map (make-sparse-keymap))
+	(menu-map (make-sparse-keymap "Toggle Line and Column Number Display")))
+    (define-key menu-map [line-number-mode]
+      `(menu-item ,(purecopy "Display Line Numbers") line-number-mode
+		  :help "Toggle displaying line numbers in the mode-line"
+		  :button (:toggle . line-number-mode)))
+    (define-key menu-map [column-number-mode]
+      `(menu-item ,(purecopy "Display Column Numbers") column-number-mode
+		  :help "Toggle displaying column numbers in the mode-line"
+		  :button (:toggle . column-number-mode)))
+    (define-key map [mode-line down-mouse-1] menu-map)
+    map) "\
+Keymap to display on column and line numbers.")
+
 (let* ((help-echo
 	;; The multi-line message doesn't work terribly well on the
 	;; bottom mode line...  Better ideas?
@@ -352,27 +367,37 @@ mouse-3: Toggle minor modes"
 	 (propertize ")%]--" 'help-echo help-echo)))
 
        (standard-mode-line-position
-	`((-3 ,(propertize "%p" 'help-echo help-echo))
+	`((-3 ,(propertize
+		"%p"
+		'local-map mode-line-column-line-number-mode-map
+		;; XXX needs better description
+		'help-echo "Size indication mode\n\
+mouse-1: Display Line and Column Mode Menu"))
 	  (size-indication-mode
 	   (8 ,(propertize
 		" of %I"
+		'local-map mode-line-column-line-number-mode-map
 		;; XXX needs better description
-		'help-echo (format "Size indication mode\n%s" help-echo))))
+		'help-echo "Size indication mode\n\
+mouse-1: Display Line and Column Mode Menu")))
 	  (line-number-mode
 	   ((column-number-mode
 	     (10 ,(propertize
 		   " (%l,%c)"
-		   'help-echo
-		   (format "Line number and Column number\n%s" help-echo)))
+		   'local-map mode-line-column-line-number-mode-map
+		   'help-echo "Line number and Column number\n\
+mouse-1: Display Line and Column Mode Menu"))
 	     (6 ,(propertize
 		  " L%l"
-		  'help-echo
-		  (format "Line number\n%s" help-echo)))))
+		  'local-map mode-line-column-line-number-mode-map
+		  'help-echo "Line Number\n\
+mouse-1: Display Line and Column Mode Menu"))))
 	   ((column-number-mode
 	     (5 ,(propertize
 		  " C%c"
-		  'help-echo
-		  (format "Column number\n%s" help-echo)))))))))
+		  'local-map mode-line-column-line-number-mode-map
+		  'help-echo "Column number\n\
+mouse-1: Display Line and Column Mode Menu"))))))))
 
   (setq-default mode-line-format standard-mode-line-format)
   (put 'mode-line-format 'standard-value
