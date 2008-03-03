@@ -20,6 +20,7 @@ Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
 #include <windows.h>
+#include <math.h>
 
 #include "lisp.h"
 #include "w32term.h"
