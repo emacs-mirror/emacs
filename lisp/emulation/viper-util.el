@@ -130,11 +130,14 @@ Otherwise return the normal value."
        ,variable
      ;; Frame-local variables are obsolete from Emacs 22.2 onwards,
      ;; so we do it by hand instead.
-     ;; Distinguish between no frame parameter and a frame parameter
-     ;; with a value of nil.
-     (let ((fp (assoc ',variable (frame-parameters))))
-       (if fp (cdr fp)
-	 ,variable))))
+     ;; Buffer-local values take precedence over frame-local ones.
+     (if (local-variable-p ',variable)
+	 ,variable
+       ;; Distinguish between no frame parameter and a frame parameter
+       ;; with a value of nil.
+       (let ((fp (assoc ',variable (frame-parameters))))
+	 (if fp (cdr fp)
+	   ,variable)))))
 
 ;; OS/2
 (cond ((eq (viper-device-type) 'pm)
