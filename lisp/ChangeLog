@@ -10286,6 +10286,7 @@
 	(tramp-version, tramp-bug, tramp-reporter-dump-variable)
 	(tramp-load-report-modules, tramp-append-tramp-buffers):
 	Move to tramp-cmds.el.
+
 	* net/tramp-fish.el (tramp-fish-handle-copy-file)
 	(tramp-fish-do-copy-or-rename-file)
 	(tramp-fish-do-copy-or-rename-file-directly):
