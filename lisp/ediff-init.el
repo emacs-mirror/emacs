@@ -1540,8 +1540,8 @@ This default should work without changes."
 ;; this record is itself a vector
 (defsubst ediff-clear-fine-diff-vector (diff-record)
   (if diff-record
-      (mapcar 'ediff-delete-overlay
-	      (ediff-get-fine-diff-vector-from-diff-record diff-record))))
+      (mapc 'ediff-delete-overlay
+	    (ediff-get-fine-diff-vector-from-diff-record diff-record))))
 
 (defsubst ediff-clear-fine-differences-in-one-buffer (n buf-type)
   (ediff-clear-fine-diff-vector (ediff-get-difference n buf-type))
