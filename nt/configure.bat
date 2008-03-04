@@ -89,6 +89,7 @@ set userldflags=
 set doldflags=
 set sep1=
 set sep2=
+set usefontbackend=Y
 
 rem ----------------------------------------------------------------------
 rem   Handle arguments.
@@ -108,7 +109,7 @@ if "%1" == "--without-jpeg" goto withoutjpeg
 if "%1" == "--without-gif" goto withoutgif
 if "%1" == "--without-tiff" goto withouttiff
 if "%1" == "--without-xpm" goto withoutxpm
-if "%1" == "--enable-font-backend" goto withfont
+if "%1" == "--disable-font-backend" goto withoutfont
 if "%1" == "" goto checkutils
 :usage
 echo Usage: configure [options]
@@ -126,7 +127,7 @@ echo.   --without-jpeg          do not use JPEG library even if it is installed
 echo.   --without-gif           do not use GIF library even if it is installed
 echo.   --without-tiff          do not use TIFF library even if it is installed
 echo.   --without-xpm           do not use XPM library even if it is installed
-echo.   --enable-font-backend   build with font backend support
+echo.   --disable-font-backend  build without font backend support
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
@@ -213,10 +214,8 @@ set HAVE_XPM=
 shift
 goto again
 
-:withfont
-set usercflags=%usercflags%%sep1%-DUSE_FONT_BACKEND
-set sep1= %nothing%
-set usefontbackend=Y
+:withoutfont
+set usefontbackend=N
 shift
 goto again
 
