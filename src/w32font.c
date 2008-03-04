@@ -18,6 +18,8 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA 02110-1301, USA.  */
 
+#ifdef USE_FONT_BACKEND
+
 #include <config.h>
 #include <windows.h>
 #include <math.h>
@@ -1845,6 +1847,7 @@ syms_of_w32font ()
   w32font_driver.type = Qgdi;
   register_font_driver (&w32font_driver, NULL);
 }
+#endif /* USE_FONT_BACKEND  */
 
 /* arch-tag: 65b8a3cd-46aa-4c0d-a1f3-99e75b9c07ee
    (do not change this comment) */
