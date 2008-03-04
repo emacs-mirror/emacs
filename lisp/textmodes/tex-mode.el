@@ -1975,7 +1975,9 @@ FILE is typically the output DVI or PDF file."
 
 (defcustom tex-cmd-bibtex-args "--min-crossref=100"
   "Extra args to pass to `bibtex' by default."
-  :type 'string)
+  :type 'string
+  :version "23.1"
+  :group 'tex-run)
 
 (defun tex-format-cmd (format fspec)
   "Like `format-spec' but adds user-specified args to the command.
@@ -1990,7 +1992,7 @@ Only applies the FSPEC to the args part of FORMAT."
       (concat prefix cmd
               (if extra-args (concat " " extra-args))
               " " (format-spec args fspec)))))
-         
+
 (defun tex-compile-default (fspec)
   "Guess a default command given the `format-spec' FSPEC."
   ;; TODO: Learn to do latex+dvips!
