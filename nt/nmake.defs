@@ -128,14 +128,21 @@ WINMM		= winmm.lib
 WINSPOOL	= winspool.lib
 OLE32		= ole32.lib
 
+!ifdef USE_FONTBACKEND
+FONT_CFLAGS	= -DUSE_FONT_BACKEND=1
+!else
+FONT_CFLAGS	=
+!endif
+
 !ifdef NOOPT
 DEBUG_CFLAGS	= -DEMACSDEBUG
 !else
 DEBUG_CFLAGS	=
 !endif
-CFLAGS          = -I. -DWIN32_LEAN_AND_MEAN -D_WIN32_WINNT=0x0400 $(ARCH_CFLAGS) -D$(ARCH) \
-		  -D_CRTAPI1=_cdecl $(DEBUG_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
-EMACS_EXTRA_C_FLAGS =
+CFLAGS          = -I. -DWIN32_LEAN_AND_MEAN -D_WIN32_WINNT=0x0400 \
+		  $(ARCH_CFLAGS) -D$(ARCH) -D_CRTAPI1=_cdecl \
+		  $(DEBUG_CFLAGS) $(USER_CFLAGS) $(LOCAL_FLAGS)
+EMACS_EXTRA_C_FLAGS = $(FONT_CFLAGS)
 
 SYS_LDFLAGS	= -nologo -release -incremental:no -version:3.10 -swaprun:cd -swaprun:net setargv.obj
 
