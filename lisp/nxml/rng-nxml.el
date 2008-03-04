@@ -46,7 +46,9 @@
     ("http://www.w3.org/1999/02/22-rdf-syntax-ns#" . "rdf")
     ("http://www.w3.org/1999/xlink" . "xlink")
     ("http://www.w3.org/2001/XmlSchema" . "xsd")
-    ("http://www.w3.org/2001/XMLSchema-instance" . "xsi"))
+    ("http://www.w3.org/2001/XMLSchema-instance" . "xsi")
+    ("http://purl.org/dc/elements/1.1/" . "dc")
+    ("http://purl.org/dc/terms/" . "dcterms"))
   "*Alist of namespaces vs preferred prefixes."
   :type '(repeat (cons :tag "With"
 		       (string :tag "this namespace URI")
