@@ -15,6 +15,7 @@ emacs-*
 epaths.h
 gdb.ini
 obj
+oo
 prefix-args
 stamp-oldxmenu
 temacs
