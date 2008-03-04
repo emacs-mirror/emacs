@@ -1,3 +1,8 @@
+2008-03-04  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (clean): Remove emacs-*.*.* instead of emacs-*.
+	(versionclean): Likewise.
+
 2008-03-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .cvsignore: Add oo.
