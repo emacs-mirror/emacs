@@ -1,3 +1,8 @@
+2008-03-04  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in: Always include w32font.c in the build.
+	* w32font.c: Wrap in USE_FONT_BACKEND conditional.
+
 2008-03-04  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (clean): Remove emacs-*.*.* instead of emacs-*.
