@@ -1,3 +1,7 @@
+2008-03-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Add oo.
+
 2008-03-03  Andreas Schwab  <schwab@suse.de>
 
 	* coding.c (decode_coding_object): Inhibit gap shrinking while
@@ -6,7 +10,7 @@
 2008-03-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* w32term.c: Remove unused include "gnu.h".
-	* makefile.w32-in (w32term.o): Don't depend on gnu.h
+	* makefile.w32-in (w32term.o): Don't depend on gnu.h.
 
 	* gnu.h: Rename to ...
 	* emacs-icon.h: ... this.
@@ -687,7 +691,7 @@
 
 2008-02-07  Jim Meyering  <meyering@redhat.com>
 
-	Use "do...while (0)", not "if (1)..else" in macro definitions.
+	Use "do...while (0)", not "if (1)...else" in macro definitions.
 	The latter provokes a warning from gcc about the empty else, when
 	followed by ";".  Also, without that trailing semicolon, it would
 	silently swallow up any following statement.
@@ -1259,7 +1263,7 @@
 2008-02-01  CHENG Gao  <chenggao@gmail.com>  (tiny change)
 
 	* frame.c (Fdelete_frame): Call font_update_drivers only when
-	USE_FONT_BACKEND is defined..
+	USE_FONT_BACKEND is defined.
 
 2008-02-01  Kenichi Handa  <handa@ni.aist.go.jp>
 
@@ -1567,13 +1571,13 @@
 
 	* w32font.c (w32font_close): Delete the GDI font object.
 
-	* w32menu.c: Include character.h
+	* w32menu.c: Include character.h.
 
 	* w32proc.c: Likewise.
 
 	* w32select.c: Likewise.
 
-	* makefile.w32-in (w32proc.o): Depend on character.h
+	* makefile.w32-in (w32proc.o): Depend on character.h.
 
 2008-02-01  Jason Rumney  <jasonr@gnu.org>
 
@@ -1699,7 +1703,7 @@
 	Remove redundant loop and allocation.
 
 	* makefile.w32-in (font.o, w32font.o): New objects.
-	(fontset.o, xdisp.o, xfaces.o, w32fns.o, w32term.o): Depend on font.h
+	(fontset.o, xdisp.o, xfaces.o, w32fns.o, w32term.o): Depend on font.h.
 	(FONTOBJ): New group of objects conditioned on USE_FONT_BACKEND.
 
 	* xdisp.c (fill_composite_glyph_string): Make the first arg to
@@ -1758,7 +1762,7 @@
 	(reorder_font_vector): Check contents of font_def.
 
 	* font.c (struct otf_list): Delete it.
-	(otf_list): Make it a lisp variable..
+	(otf_list): Make it a lisp variable.
 	(otf_open): Use lispy otf_list.
 	(generate_otf_features): Rename from parse_gsub_gpos_spec.
 	(check_otf_features): New function.
@@ -3281,7 +3285,7 @@
 	* fileio.c (Finsert_file_contents): Avoid detecting a code twice.
 
 	* coding.c (detect_coding_iso_2022): Fix handling of SS2 and SS3.
-	(detect_coding, detect_coding_system): Treat '\0' as normal ASCII byte..
+	(detect_coding, detect_coding_system): Treat '\0' as normal ASCII byte.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -5112,7 +5116,7 @@
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
-	* Makefile.in (chartab.o): Depend on charset.h
+	* Makefile.in (chartab.o): Depend on charset.h.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -5862,7 +5866,7 @@
 
 	* mac.c (mac_emacs_pid) [MAC_OSX]: New variable.
 	[MAC_OSX] (init_mac_osx_environment): Initialize it.
-	[MAC_OSX] (mac_try_close_socket) [SELECT_USE_CFSOCKET]:	Return 0
+	[MAC_OSX] (mac_try_close_socket) [SELECT_USE_CFSOCKET]: Return 0
 	when used on child processes.
 
 2008-01-21  Michael Albinus  <michael.albinus@gmx.de>
@@ -6603,7 +6607,7 @@
 
 	* lisp.h (enum pvec_type): New tag PVEC_OTHER.
 	(allocate_pseudovector): Declare.
-	(ALLOCATE_PSEUDOVECTOR): Move from alloc.c
+	(ALLOCATE_PSEUDOVECTOR): Move from alloc.c.
 
 2007-11-15  Andreas Schwab  <schwab@suse.de>
 
