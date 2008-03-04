@@ -1578,7 +1578,6 @@ For example:
     (if (boundp 'gnus-newsgroup-variables)
         nil
       (load "gnus-sum.el" t t t))
-    (require 'gnus)
     (require 'gnus-art)))
 
 ;; MIME stuff.
@@ -5014,6 +5013,16 @@ If nil, use subject instead."
   :version "22.1"
   :type 'string
   :group 'gnus-thread)
+
+(defcustom gnus-summary-display-while-building nil
+  "If non-nil, show and update the summary buffer as it's being built.
+If the value is t, update the buffer after every line is inserted.  If
+the value is an integer (N), update the display every N lines."
+  :version "22.1"
+  :group 'gnus-thread
+  :type '(choice (const :tag "off" nil)
+		 number
+		 (const :tag "frequently" t)))
 
 (defun gnus-summary-prepare-threads (threads)
   "Prepare summary buffer from THREADS and indentation LEVEL.
@@ -9795,16 +9804,6 @@ re-spool using this method."
 If nil, use to the current newsgroup method."
   :type 'symbol
   :group 'gnus-summary-mail)
-
-(defcustom gnus-summary-display-while-building nil
-  "If non-nil, show and update the summary buffer as it's being built.
-If the value is t, update the buffer after every line is inserted.  If
-the value is an integer (N), update the display every N lines."
-  :version "22.1"
-  :group 'gnus-thread
-  :type '(choice (const :tag "off" nil)
-		 number
-		 (const :tag "frequently" t)))
 
 (defun gnus-summary-respool-article (&optional n method)
   "Respool the current article.
