@@ -138,10 +138,7 @@ WIN32OBJ = $(BLD)/w32term.$(O)		\
 	   $(BLD)/w32reg.$(O)		\
 	   $(BLD)/w32bdf.$(O)
 
-FONTOBJ =
-ifdef USE_FONTBACKEND
 FONTOBJ = $(BLD)/w32font.$(O)
-endif
 
 LIBS =  $(TLIB0)	\
 	$(TLIB1)	\
