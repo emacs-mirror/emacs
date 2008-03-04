@@ -1305,7 +1305,7 @@ mostlyclean:
 	rm -f bootstrap-emacs${EXEEXT} emacs-${version}${EXEEXT}
 	rm -f buildobj.lst
 clean: mostlyclean
-	rm -f emacs-*${EXEEXT} emacs${EXEEXT}
+	rm -f emacs-*.*.*${EXEEXT} emacs${EXEEXT}
 /**/# This is used in making a distribution.
 /**/# Do not use it on development directories!
 distclean: clean
@@ -1318,7 +1318,7 @@ maintainer-clean: distclean
 	@echo "it deletes files that may require special tools to rebuild."
 	rm -f TAGS
 versionclean:
-	-rm -f emacs${EXEEXT} emacs-* ../etc/DOC*
+	-rm -f emacs${EXEEXT} emacs-*.*.*${EXEEXT} ../etc/DOC*
 extraclean: distclean
 	-rm -f *~ \#* m/?*~ s/?*~
 
