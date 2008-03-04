@@ -1,11 +1,17 @@
+2008-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-sum.el (top-level): No need to require gnus when compiling,
+	since unconditionally required near start of file.
+	(gnus-summary-display-while-building): Move definition before use.
+
 2008-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mm-bodies.el (mm-decode-content-transfer-encoding): Simplify.
 
 	* gnus-sum.el: Use inhibit-read-only and with-current-buffer.
-	(gnus-summary-jump-to-group): Consider windows on other displayed frames as
-	well.  Similar changes might be needed elsewhere, but that's the one I've
-	bumped into during my use.
+	(gnus-summary-jump-to-group): Consider windows on other displayed
+	frames as well.  Similar changes might be needed elsewhere, but that's
+	the one I've bumped into during my use.
 
 	* nndoc.el (nndoc-oe-dbx-type-p):
 	* gnus-msg.el (gnus-debug):
