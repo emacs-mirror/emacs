@@ -1,3 +1,10 @@
+2008-03-04  Glenn Morris  <rgm@gnu.org>
+
+	* textmodes/tex-mode.el (tex-cmd-bibtex-args): Add :version and :group.
+
+	* ediff-init.el (ediff-clear-fine-diff-vector): Use mapc rather
+	than mapcar.
+
 2008-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/byte-opt.el (byte-compile-trueconstp)
