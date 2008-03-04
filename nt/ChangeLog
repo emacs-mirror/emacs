@@ -1,3 +1,11 @@
+2008-03-04  Jason Rumney  <jasonr@gnu.org>
+
+	* gmake.defs, nmake.defs (FONT_CFLAGS): New optional compiler flag.
+	(EMACS_EXTRA_C_FLAGS): Include it.
+	* configure.bat (usefontbackend): Default to Y.
+	(--enable-font-backend): Replace with --disable-font-backend.
+	(:withfont): Replace with :withoutfont.
+
 2008-03-03  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
 
 	* icons/emacs.ico: Full alpha for 32x32 full color.
