@@ -1,3 +1,8 @@
+2008-03-04  Jason Rumney  <jasonr@gnu.org>
+
+	* nxml/rng-nxml.el (rng-preferred-prefix-alist): Add dublin core
+	namespaces.
+
 2008-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/tex-mode.el (tex-cmd-bibtex-args): Add :version and :group.
