@@ -832,7 +832,7 @@ Note that the style variables are always made local to the buffer."
   ;; This function is the C/C++/ObjC value of `c-before-font-lock-function'.
   ;;
   ;; This function might do invisible changes.
-  (c-save-buffer-state (limits mbeg beg end)
+  (c-save-buffer-state (limits mbeg+1 beg end)
     ;; First calculate the region, possibly to be extended.
     (setq beg (min begg c-old-BOM))
     (goto-char endd)
@@ -844,15 +844,14 @@ Note that the style variables are always made local to the buffer."
     (c-clear-char-property-with-value beg end 'syntax-table '(1))
 
     (goto-char beg)
-    ;; If we're inside a string/comment, go to its end.
-    (if (setq limits (c-literal-limits))
-	(goto-char (cdr limits)))
-
-    (while (search-forward-regexp c-anchored-cpp-prefix end t)
-      (when (c-beginning-of-macro)    ; Guard against being in a string/comment.
-	(setq mbeg (point))
+    (while (and (< (point) end)
+		(search-forward-regexp c-anchored-cpp-prefix end t))
+      ;; If we've found a "#" inside a string/comment, ignore it.
+      (if (setq limits (c-literal-limits))
+	  (goto-char (cdr limits))
+	(setq mbeg+1 (point))
 	(c-end-of-macro)	  ; Do we need to go forward 1 char here?  No!
-	(c-neutralize-CPP-line mbeg (point)))))) ; We might still be in a comment - this is OK.
+	(c-neutralize-CPP-line mbeg+1 (point))))))
 
 (defun c-before-change (beg end)
   ;; Function to be put on `before-change-function'.  Primarily, this calls
