@@ -1700,11 +1700,6 @@ Initialized from `text-mode-syntax-table.")
 
 (defvar gnus-save-article-buffer nil)
 
-(defvar gnus-article-mode-line-format-alist
-  (nconc '((?w (gnus-article-wash-status) ?s)
-	   (?m (gnus-article-mime-part-status) ?s))
-	 gnus-summary-mode-line-format-alist))
-
 (defvar gnus-number-of-articles-to-be-saved nil)
 
 (defvar gnus-inhibit-hiding nil)
