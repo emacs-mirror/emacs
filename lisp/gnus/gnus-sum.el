@@ -1372,6 +1372,12 @@ the type of the variable (string, integer, character, etc).")
     (?E gnus-newsgroup-expunged-tally ?d)
     (?s (gnus-current-score-file-nondirectory) ?s)))
 
+;; This is here rather than in gnus-art for compilation reasons.
+(defvar gnus-article-mode-line-format-alist
+  (nconc '((?w (gnus-article-wash-status) ?s)
+	   (?m (gnus-article-mime-part-status) ?s))
+	 gnus-summary-mode-line-format-alist))
+
 (defvar gnus-last-search-regexp nil
   "Default regexp for article search command.")
 
@@ -1563,21 +1569,10 @@ For example:
 	 \"^From:\\\\|^Newsgroups:\\\\|^Subject:\\\\|^Date:\\\\|^To:\")))
 ")
 
-;; Byte-compiler warning.  Specifically, this is responsible for:
-;; "Warning: the following functions might not be defined at runtime:
-;; gnus-build-sparse-threads, gnus-dead-summary-mode, gnus-summary-mark-below".
 (eval-when-compile
   ;; Bind features so that require will believe that gnus-sum has
   ;; already been loaded (avoids infinite recursion)
   (let ((features (cons 'gnus-sum features)))
-    ;; Several of the declarations in gnus-sum are needed to load the
-    ;; following files. Right now, these definitions have been
-    ;; compiled but not defined (evaluated).  We could either do a
-    ;; eval-and-compile about all of the declarations or evaluate the
-    ;; source file.
-    (if (boundp 'gnus-newsgroup-variables)
-        nil
-      (load "gnus-sum.el" t t t))
     (require 'gnus-art)))
 
 ;; MIME stuff.
