@@ -1,3 +1,10 @@
+2008-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* gnus-art.el (gnus-article-mode-line-format-alist): Move to gnus-sum.
+	* gnus-sum.el (gnus-article-mode-line-format-alist): Move here from
+	gnus-art.
+	(top-level): No need to load own source when compiling.
+
 2008-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-sum.el (top-level): No need to require gnus when compiling,
