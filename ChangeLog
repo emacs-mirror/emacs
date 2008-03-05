@@ -1,6 +1,9 @@
 2008-03-05  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Enable font-backend by default.
+	(USE_FONT_BACKEND): Set to "no" in absence of X.
+	(PKG_CONFIG): Don't set multiple times, once is enough.
+	(HAVE_FREETYPE, HAVE_LIBOTF, HAVE_M17N_FLT): Tweak config.in text.
 
 2008-03-03  Glenn Morris  <rgm@gnu.org>
 
