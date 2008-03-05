@@ -1,3 +1,8 @@
+2008-03-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-print-buffer): Honor ps-print-color-p.
+	Suggested by <chris.anderton@zetnet.co.uk>.
+
 2008-02-29  Andreas Seltenreich  <andreas@gate450.dyndns.org>
 
 	* nnweb.el (nnweb-google-parse-1): Fix date parsing on articles with
