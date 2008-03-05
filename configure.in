@@ -1949,24 +1949,20 @@ either XPointer or XPointer*.])dnl
   CFLAGS=$late_CFLAGS
 fi
 
-#### For font-backend
-if test "${USE_FONT_BACKEND}" != "no"; then
+### Start of font-backend section.
+if test "${HAVE_X11}" != "yes"; then
+  USE_FONT_BACKEND=no
+fi
 
-AC_DEFINE(USE_FONT_BACKEND, 1,
-          [Define to 1 if we should use font-backend.])
+if test "${USE_FONT_BACKEND}" = "yes"; then
+  AC_DEFINE(USE_FONT_BACKEND, 1, [Define to 1 if we should use font-backend.])
 
-### Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
-HAVE_XFT=maybe
-if test "${HAVE_X11}" = "yes"; then
+  ## Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
+  HAVE_XFT=maybe
   if test "x${with_freetype}" = "xno"; then
     with_xft="no";
   fi
   if test "x${with_xft}" != "xno"; then
-
-    dnl Check if --with-pkg-config-prog has been given.
-    if test "X${with_pkg_config_prog}" != X; then
-      PKG_CONFIG="${with_pkg_config_prog}"
-    fi
 
     PKG_CHECK_MODULES(XFT, xft >= 0.13.0, , HAVE_XFT=no)
     if test "$HAVE_XFT" != no; then
@@ -1987,82 +1983,68 @@ if test "${HAVE_X11}" = "yes"; then
         CPPFLAGS="$OLD_CPPFLAGS"
         CFLAGS="$OLD_CFLAGS"
         LIBS="$OLD_LIBS"
+      fi                        # "${HAVE_XFT}" = "yes"
+    fi                          # "$HAVE_XFT" != no
+  fi                            # "x${with_xft}" != "xno"
+
+  dnl For the "Does Emacs use" message at the end.
+  if test "$HAVE_XFT" != "yes"; then
+     HAVE_XFT=no
+  fi
+  
+  
+  HAVE_FREETYPE=no
+  ### Use -lfreetype if available, unless `--with-freetype=no'.
+  if test "${HAVE_XFT}" = "yes"; then
+    dnl As we use Xft, we anyway use freetype.
+    dnl In this case, there's no need of additional CFLAGS and LIBS.
+    HAVE_FREETYPE=yes
+  elif test "x${with_freetype}" != "xno"; then
+  
+    PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes, HAVE_FREETYPE=no)
+    if test "${HAVE_FREETYPE}" = "yes"; then
+      PKG_CHECK_MODULES(FONTCONFIG, fontconfig, HAVE_FC=yes, HAVE_FC=no)
+      if test "${HAVE_FC}" = "no"; then
+        dnl Without fontconfig, we can't use freetype at the moment.
+        HAVE_FREETYPE=no
       fi
     fi
   fi
-fi
-dnl For the "Does Emacs use" message at the end.
-if test "$HAVE_XFT" != "yes"; then
-   HAVE_XFT=no
-fi
-
-
-HAVE_FREETYPE=no
-### Use -lfreetype if available, unless `--with-freetype=no'.
-if test "${HAVE_XFT}" = "yes"; then
-  dnl As we use Xft, we anyway use freetype.
-  dnl In this case, there's no need of additional CFLAGS and LIBS.
-  HAVE_FREETYPE=yes
-elif test "x${with_freetype}" != "xno"; then
-  dnl Check if --with-pkg-config-prog has been given.
-  if test "X${with_pkg_config_prog}" != X; then
-    PKG_CONFIG="${with_pkg_config_prog}"
-  fi
-
-  PKG_CHECK_MODULES(FREETYPE, freetype2, HAVE_FREETYPE=yes, HAVE_FREETYPE=no)
+  
+  HAVE_LIBOTF=no
   if test "${HAVE_FREETYPE}" = "yes"; then
-    PKG_CHECK_MODULES(FONTCONFIG, fontconfig, HAVE_FC=yes, HAVE_FC=no)
-    if test "${HAVE_FC}" = "no"; then
-      dnl Witout fontconfig, we can't use freetype at the moment.
-      HAVE_FREETYPE=no
+    AC_DEFINE(HAVE_FREETYPE, 1,
+              [Define to 1 if using the freetype and fontconfig libraries.])
+    if test "${with_libotf}" != "no"; then
+      PKG_CHECK_MODULES(LIBOTF, libotf, HAVE_LIBOTF=yes, 
+                        HAVE_LIBOTF=no)
+      if test "$HAVE_LIBOTF" = "yes"; then
+        AC_DEFINE(HAVE_LIBOTF, 1, [Define to 1 if using libotf.])
+      fi
+    fi
+dnl FIXME should there be an error if HAVE_FREETYPE != yes?
+dnl Does the new font backend require it, or can it work without it?
+  fi
+  
+  HAVE_M17N_FLT=no
+  if test "${with_m17n_flt}" != "no"; then
+    PKG_CHECK_MODULES(M17N_FLT, m17n-flt, HAVE_M17N_FLT=yes, HAVE_M17N_FLT=no)
+    if test "$HAVE_M17N_FLT" = "yes"; then
+      AC_DEFINE(HAVE_M17N_FLT, 1, [Define to 1 if using libm17n-flt.])
     fi
   fi
-fi
-
-HAVE_LIBOTF=no
-if test "${HAVE_FREETYPE}" = "yes"; then
-  AC_DEFINE(HAVE_FREETYPE, 1,
-            [Define to 1 if you have freetype and fontconfig libraries.])
-  if test "${with_libotf}" != "no"; then
-    dnl Check if --with-pkg-config-prog has been given.
-    if test "X${with_pkg_config_prog}" != X; then
-      PKG_CONFIG="${with_pkg_config_prog}"
-    fi
-    PKG_CHECK_MODULES(LIBOTF, libotf, HAVE_LIBOTF=yes, 
-                      HAVE_LIBOTF=no)
-    if test "$HAVE_LIBOTF" = "yes"; then
-      AC_DEFINE(HAVE_LIBOTF, 1,
-                [Define to 1 if you have libotf library.])
-    fi
-  fi
-fi
-
-HAVE_M17N_FLT=no
-if test "${with_m17n_flt}" != "no"; then
-  dnl Check if --with-pkg-config-prog has been given.
-  if test "X${with_pkg_config_prog}" != X; then
-    PKG_CONFIG="${with_pkg_config_prog}"
-  fi
-  dnl Checks for libraries.
-  PKG_CHECK_MODULES(M17N_FLT, m17n-flt, HAVE_M17N_FLT=yes, 
-                    HAVE_M17N_FLT=no)
-  if test "$HAVE_M17N_FLT" = "yes"; then
-    AC_DEFINE(HAVE_M17N_FLT, 1,
-              [Define to 1 if you have m17n-flt library.])
-  fi
-fi
-
-AC_SUBST(FREETYPE_CFLAGS)
-AC_SUBST(FREETYPE_LIBS)
-AC_SUBST(FONTCONFIG_CFLAGS)
-AC_SUBST(FONTCONFIG_LIBS)
-AC_SUBST(LIBOTF_CFLAGS)
-AC_SUBST(LIBOTF_LIBS)
-AC_SUBST(M17N_FLT_CFLAGS)
-AC_SUBST(M17N_FLT_LIBS)
-
-fi
-#### End for font-backend
+  
+  AC_SUBST(FREETYPE_CFLAGS)
+  AC_SUBST(FREETYPE_LIBS)
+  AC_SUBST(FONTCONFIG_CFLAGS)
+  AC_SUBST(FONTCONFIG_LIBS)
+  AC_SUBST(LIBOTF_CFLAGS)
+  AC_SUBST(LIBOTF_LIBS)
+  AC_SUBST(M17N_FLT_CFLAGS)
+  AC_SUBST(M17N_FLT_LIBS)
+  
+fi                              # "${USE_FONT_BACKEND}" = "yes"
+### End of font-backend section.
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
 HAVE_XPM=no
