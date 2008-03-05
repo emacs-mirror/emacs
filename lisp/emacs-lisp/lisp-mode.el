@@ -37,6 +37,8 @@
 
 (defvar lisp-mode-abbrev-table nil)
 
+(define-abbrev-table 'lisp-mode-abbrev-table ())
+
 (defvar emacs-lisp-mode-syntax-table
   (let ((table (make-syntax-table)))
     (let ((i 0))
@@ -87,8 +89,6 @@
     (modify-syntax-entry ?# "' 14b" table)
     (modify-syntax-entry ?| "\" 23bn" table)
     table))
-
-(define-abbrev-table 'lisp-mode-abbrev-table ())
 
 (defvar lisp-imenu-generic-expression
   (list
@@ -270,40 +270,51 @@
     map)
   "Keymap for commands shared by all sorts of Lisp modes.")
 
-(defvar emacs-lisp-mode-map ()
+(defvar emacs-lisp-mode-map 
+  (let ((map (make-sparse-keymap "Emacs-Lisp"))
+	(menu-map (make-sparse-keymap "Emacs-Lisp")))
+    (set-keymap-parent map lisp-mode-shared-map)
+    (define-key map "\e\t" 'lisp-complete-symbol)
+    (define-key map "\e\C-x" 'eval-defun)
+    (define-key map "\e\C-q" 'indent-pp-sexp)
+    (define-key map [menu-bar emacs-lisp] (cons "Emacs-Lisp" menu-map))
+    (define-key menu-map [edebug-defun]
+      '(menu-item "Instrument Function for Debugging" edebug-defun
+		  :help "Evaluate the top level form point is in, stepping through with Edebug"
+		  :keys "C-u C-M-x"))
+    (define-key menu-map [byte-recompile]
+      '(menu-item "Byte-recompile Directory..." byte-recompile-directory
+		  :help "Recompile every `.el' file in DIRECTORY that needs recompilation"))
+    (define-key menu-map [emacs-byte-compile-and-load]
+      '(menu-item "Byte-compile And Load" emacs-lisp-byte-compile-and-load
+		  :help "Byte-compile the current file (if it has changed), then load compiled code"))
+    (define-key menu-map [byte-compile]
+      '(menu-item "Byte-compile This File" emacs-lisp-byte-compile
+		  :help "Byte compile the file containing the current buffer"))
+    (define-key menu-map [separator-eval] '("--"))
+    (define-key menu-map [eval-buffer]
+      '(menu-item "Evaluate Buffer" eval-buffer
+		  :help "Execute the current buffer as Lisp code"))
+    (define-key menu-map [eval-region]
+      '(menu-item "Evaluate Region" eval-region
+		  :help "Execute the region as Lisp code"
+		  :enable (mark-active)))
+    (define-key menu-map [eval-sexp] 
+      '(menu-item "Evaluate Last S-expression" eval-last-sexp
+		  :help "Evaluate sexp before point; print value in minibuffer"))
+    (define-key menu-map [separator-format] '("--"))
+    (define-key menu-map [comment-region]
+      '(menu-item "Comment Out Region" comment-region
+		  :help "Comment or uncomment each line in the region"
+		  :enable (mark-active)))
+    (define-key menu-map [indent-region]
+      '(menu-item "Indent Region" indent-region
+		  :help "Indent each nonblank line in the region"
+		  :enable (mark-active)))
+    (define-key menu-map [indent-line] '("Indent Line" . lisp-indent-line))
+    map)
   "Keymap for Emacs Lisp mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")
-
-(if emacs-lisp-mode-map
-    ()
-  (let ((map (make-sparse-keymap "Emacs-Lisp")))
-    (setq emacs-lisp-mode-map (make-sparse-keymap))
-    (set-keymap-parent emacs-lisp-mode-map lisp-mode-shared-map)
-    (define-key emacs-lisp-mode-map "\e\t" 'lisp-complete-symbol)
-    (define-key emacs-lisp-mode-map "\e\C-x" 'eval-defun)
-    (define-key emacs-lisp-mode-map "\e\C-q" 'indent-pp-sexp)
-    (define-key emacs-lisp-mode-map [menu-bar] (make-sparse-keymap))
-    (define-key emacs-lisp-mode-map [menu-bar emacs-lisp]
-      (cons "Emacs-Lisp" map))
-    (define-key map [edebug-defun]
-      '("Instrument Function for Debugging" . edebug-defun))
-    (define-key map [byte-recompile]
-      '("Byte-recompile Directory..." . byte-recompile-directory))
-    (define-key map [emacs-byte-compile-and-load]
-      '("Byte-compile And Load" . emacs-lisp-byte-compile-and-load))
-    (define-key map [byte-compile]
-      '("Byte-compile This File" . emacs-lisp-byte-compile))
-    (define-key map [separator-eval] '("--"))
-    (define-key map [eval-buffer] '("Evaluate Buffer" . eval-buffer))
-    (define-key map [eval-region] '("Evaluate Region" . eval-region))
-    (define-key map [eval-sexp] '("Evaluate Last S-expression" . eval-last-sexp))
-    (define-key map [separator-format] '("--"))
-    (define-key map [comment-region] '("Comment Out Region" . comment-region))
-    (define-key map [indent-region] '("Indent Region" . indent-region))
-    (define-key map [indent-line] '("Indent Line" . lisp-indent-line))
-    (put 'eval-region 'menu-enable 'mark-active)
-    (put 'comment-region 'menu-enable 'mark-active)
-    (put 'indent-region 'menu-enable 'mark-active)))
 
 (defun emacs-lisp-byte-compile ()
   "Byte compile the file containing the current buffer."
@@ -417,12 +428,30 @@ if that value is non-nil."
   (error "Process lisp does not exist"))
 
 (defvar lisp-interaction-mode-map
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap))
+	(menu-map (make-sparse-keymap "Lisp-Interaction")))
     (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\C-x" 'eval-defun)
     (define-key map "\e\C-q" 'indent-pp-sexp)
     (define-key map "\e\t" 'lisp-complete-symbol)
     (define-key map "\n" 'eval-print-last-sexp)
+    (define-key map [menu-bar lisp-interaction] (cons "Lisp-Interaction" menu-map))
+    (define-key menu-map [eval-defun] 
+      '(menu-item "Evaluate Defun" eval-defun
+		  :help "Evaluate the top-level form containing point, or after point"))
+    (define-key menu-map [eval-print-last-sexp]
+      '(menu-item "Evaluate and print" eval-print-last-sexp
+		  :help "Evaluate sexp before point; print value into current buffer"))
+    (define-key map [edebug-defun-lisp-interaction]
+      '(menu-item "Instrument Function for Debugging" edebug-defun
+		  :help "Evaluate the top level form point is in, stepping through with Edebug"
+		  :keys "C-u C-M-x"))
+    (define-key menu-map [indent-pp-sexp]
+      '(menu-item "Indent or Pretty-Print" indent-pp-sexp
+		  :help "Indent each line of the list starting just after point, or prettyprint it"))
+    (define-key menu-map [lisp-complete-symbol]
+      '(menu-item "Complete Lisp Symbol" lisp-complete-symbol
+		  :help "Perform completion on Lisp symbol preceding point"))
     map)
   "Keymap for Lisp Interaction mode.
 All commands in `lisp-mode-shared-map' are inherited by this map.")

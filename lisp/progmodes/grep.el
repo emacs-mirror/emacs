@@ -197,25 +197,31 @@ See `compilation-error-screen-columns'"
       (cons "Grep" (make-sparse-keymap "Grep")))
 
     (define-key map [menu-bar grep compilation-kill-compilation]
-      '("Kill Grep" . kill-compilation))
-    (define-key map [menu-bar grep compilation-separator2]
-      '("----" . nil))
+      '(menu-item "Kill Grep" kill-compilation
+		  :help "Kill the currently running grep process"))
+    (define-key map [menu-bar grep compilation-separator2] '("----"))
     (define-key map [menu-bar grep compilation-compile]
-      '("Compile..." . compile))
+      '(menu-item "Compile..." compile
+		  :help "Compile the program including the current buffer.  Default: run `make'"))
     (define-key map [menu-bar grep compilation-grep]
-      '("Another grep..." . grep))
+      '(menu-item "Another grep..." grep
+		  :help "Run grep, with user-specified args, and collect output in a buffer."))
     (define-key map [menu-bar grep compilation-grep-find]
-      '("Recursive grep..." . grep-find))
+      '(menu-item "Recursive grep..." grep-find
+		  :help "Run grep via find, with user-specified args"))
     (define-key map [menu-bar grep compilation-recompile]
-      '("Repeat grep" . recompile))
-    (define-key map [menu-bar grep compilation-separator2]
-      '("----" . nil))
+      '(menu-item "Repeat grep" recompile
+		  :help "Run grep again"))
+    (define-key map [menu-bar grep compilation-separator2] '("----"))
     (define-key map [menu-bar grep compilation-first-error]
-      '("First Match" . first-error))
+      '(menu-item "First Match" first-error
+		  :help "Restart at the first match, visit corresponding location"))
     (define-key map [menu-bar grep compilation-previous-error]
-      '("Previous Match" . previous-error))
+      '(menu-item "Previous Match" previous-error
+		  :help "Visit the previous match and corresponding location"))
     (define-key map [menu-bar grep compilation-next-error]
-      '("Next Match" . next-error))
+      '(menu-item "Next Match" next-error
+		  :help "Visit the next match and corresponding location"))
     map)
   "Keymap for grep buffers.
 `compilation-minor-mode-map' is a cdr of this.")

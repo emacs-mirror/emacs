@@ -795,12 +795,9 @@ to temp files when Ediff needs to find fine differences."
 
 (defun ediff-color-display-p ()
   (condition-case nil
-      (ediff-cond-compile-for-xemacs-or-emacs
-       (eq (device-class (selected-device)) 'color) ; xemacs form
-       (if (fboundp 'display-color-p) ; emacs form
-	   (display-color-p)
-	 (x-display-color-p))
-	)
+      (if (featurep 'xemacs)
+	  (eq (device-class (selected-device)) 'color) ; xemacs form
+	(display-color-p)) ; emacs form
     (error nil)))
 
 
@@ -1822,9 +1819,6 @@ Unless optional argument INPLACE is non-nil, return a new string."
   "Don't skip difference regions."
   nil)
 
-(defsubst Xor (a b)
-  (or (and a (not b)) (and (not a) b)))
-
 (defsubst ediff-message-if-verbose (string &rest args)
   (if ediff-verbose-p
       (apply 'message string args)))
@@ -1846,22 +1840,23 @@ Unless optional argument INPLACE is non-nil, return a new string."
       (convert-standard-filename fname)
     fname))
 
-
-(if (fboundp 'with-syntax-table)
+(if (featurep 'emacs)
     (defalias 'ediff-with-syntax-table 'with-syntax-table)
-  ;; stolen from subr.el in emacs 21
-  (defmacro ediff-with-syntax-table (table &rest body)
-    (let ((old-table (make-symbol "table"))
-	  (old-buffer (make-symbol "buffer")))
-      `(let ((,old-table (syntax-table))
-	     (,old-buffer (current-buffer)))
-	 (unwind-protect
-	     (progn
-	       (set-syntax-table (copy-syntax-table ,table))
-	       ,@body)
-	   (save-current-buffer
-	     (set-buffer ,old-buffer)
-	     (set-syntax-table ,old-table)))))))
+  (if (fboundp 'with-syntax-table)
+      (defalias 'ediff-with-syntax-table 'with-syntax-table)
+    ;; stolen from subr.el in emacs 21
+    (defmacro ediff-with-syntax-table (table &rest body)
+      (let ((old-table (make-symbol "table"))
+	    (old-buffer (make-symbol "buffer")))
+	`(let ((,old-table (syntax-table))
+	       (,old-buffer (current-buffer)))
+	   (unwind-protect
+	       (progn
+		 (set-syntax-table (copy-syntax-table ,table))
+		 ,@body)
+	     (save-current-buffer
+	       (set-buffer ,old-buffer)
+	       (set-syntax-table ,old-table))))))))
 
 
 (provide 'ediff-init)

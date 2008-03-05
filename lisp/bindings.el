@@ -260,15 +260,16 @@ Normally nil in most modes, since there is no process to display.")
 (defvar mode-line-remote
   (list (propertize
 	 "%1@"
+	 'mouse-face 'mode-line-highlight
 	 'help-echo (purecopy (lambda (window object point)
  				(format "%s"
 					(save-selected-window
 					  (select-window window)
 					  (concat
-					  (if (file-remote-p default-directory)
-					      "Remote: "
-					    "Local: ")
-					  default-directory)))))))
+					   (if (file-remote-p default-directory)
+					       "Current directory is remote: "
+					     "Current directory is local: ")
+					   default-directory)))))))
   "Mode-line flag to show if default-directory for current buffer is remote.")
 
 (make-variable-buffer-local 'mode-line-remote)
@@ -370,6 +371,7 @@ mouse-3: Toggle minor modes"
 	`((-3 ,(propertize
 		"%p"
 		'local-map mode-line-column-line-number-mode-map
+		'mouse-face 'mode-line-highlight
 		;; XXX needs better description
 		'help-echo "Size indication mode\n\
 mouse-1: Display Line and Column Mode Menu"))
@@ -377,6 +379,7 @@ mouse-1: Display Line and Column Mode Menu"))
 	   (8 ,(propertize
 		" of %I"
 		'local-map mode-line-column-line-number-mode-map
+		'mouse-face 'mode-line-highlight
 		;; XXX needs better description
 		'help-echo "Size indication mode\n\
 mouse-1: Display Line and Column Mode Menu")))
@@ -385,17 +388,20 @@ mouse-1: Display Line and Column Mode Menu")))
 	     (10 ,(propertize
 		   " (%l,%c)"
 		   'local-map mode-line-column-line-number-mode-map
+		   'mouse-face 'mode-line-highlight
 		   'help-echo "Line number and Column number\n\
 mouse-1: Display Line and Column Mode Menu"))
 	     (6 ,(propertize
 		  " L%l"
 		  'local-map mode-line-column-line-number-mode-map
+		  'mouse-face 'mode-line-highlight
 		  'help-echo "Line Number\n\
 mouse-1: Display Line and Column Mode Menu"))))
 	   ((column-number-mode
 	     (5 ,(propertize
 		  " C%c"
 		  'local-map mode-line-column-line-number-mode-map
+		  'mouse-face 'mode-line-highlight
 		  'help-echo "Column number\n\
 mouse-1: Display Line and Column Mode Menu"))))))))
 

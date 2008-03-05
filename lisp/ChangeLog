@@ -1,3 +1,26 @@
+2008-03-05  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* bindings.el (mode-line-remote): Add mouse-face.  Improve tooltip.
+	(standard-mode-line-position): Add mouse-face.
+
+	* progmodes/compile.el (compilation-menu-map):
+	(compilation-mode-map):
+	* progmodes/grep.el (grep-mode-map):  Add :help.
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Define and
+	initialize in one step.  Add :help.  Use :enable to activate menu
+	items. Show the key binding for edebug-defun.
+	(lisp-interaction-mode-map): Add a menu.
+
+	* term.el (term-mode-map): Define and initialize in one step.
+
+	* ediff-init.el (ediff-color-display-p): Simplify.
+	(Xor): Remove unused function.
+	(ediff-with-syntax-table): Simplify for emacs.
+
+	* ediff-hook.el (menu-bar-ediff-menu): Don't depend on the
+	menu-bar being loaded, it always is.
+
 2008-03-05  Glenn Morris  <rgm@gnu.org>
 
 	* textmodes/tex-mode.el (tex-mode): Suppress warning about

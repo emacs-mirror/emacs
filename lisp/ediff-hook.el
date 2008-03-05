@@ -154,9 +154,8 @@
 	    (not (featurep 'ediff-hook)))
 	   (ediff-xemacs-init-menus)))
 
- ;; Emacs--only if menu-bar is loaded
- (if (featurep 'menu-bar)
-     (progn
+ ;; Emacs
+ (progn
        ;; initialize menu bar keymaps
        (defvar menu-bar-ediff-misc-menu
 	 (make-sparse-keymap "Ediff Miscellanea"))
@@ -251,8 +250,6 @@
 	 '("Customize Ediff" . ediff-customize))
        (define-key menu-bar-ediff-misc-menu [ediff-doc]
 	 '("Ediff Manual" . ediff-documentation))
-       )
-
       ) ; emacs case
  ) ; ediff-cond-compile-for-xemacs-or-emacs
 
