@@ -13,9 +13,9 @@
 	Move view-emacs-problems to C-h C-p.
 	Add view-emacs-debugging on C-h C-d.
 	Add view-external-packages on C-h C-e.
-        Add view-order-manuals on C-h C-m.
+	Add view-order-manuals on C-h C-m.
 
-2008-02-17  Ulrich Mueller <ulm@kph.uni-mainz.de>
+2008-02-17  Ulrich Mueller  <ulm@kph.uni-mainz.de>
 
 	* msdog-xtra.texi (MS-DOS): Docstring fix.
 
@@ -107,7 +107,7 @@
 
 	* mule.texi (Communication Coding): Fix wording of last change.
 
-2007-11-16  Werner Lemberg <wl@gnu.org>
+2007-11-16  Werner Lemberg  <wl@gnu.org>
 
 	* custom.texi (Specifying File Variables):
 	* major.texi (Choosing Modes): Mention '\" in man pages.
@@ -4230,7 +4230,7 @@
 	`winner-redo'.
 
 	* ack.texi (Acknowledgments): Use `@unnumbered'.
-	* misc.texi : Adapt sectioning in Info to the node structure.
+	* misc.texi: Adapt sectioning in Info to the node structure.
 	(Invoking emacsclient): Make "Invoking emacsclient" a subsection
 	of "Using Emacs as a Server".
 	* building.texi (Building): Interchange nodes (for correct numbering).
