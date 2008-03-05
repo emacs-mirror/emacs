@@ -646,7 +646,7 @@ adjust_glyph_matrix (w, matrix, x, y, dim)
   int header_line_changed_p = 0;
   int header_line_p = 0;
   int left = -1, right = -1;
-  int window_width = -1, window_height;
+  int window_width = -1, window_height = -1;
 
   /* See if W had a header line that has disappeared now, or vice versa.
      Get W's size.  */
