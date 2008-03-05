@@ -771,10 +771,13 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
 DEFUN ("read-char", Fread_char, Sread_char, 0, 3, 0,
        doc: /* Read a character from the command input (keyboard or macro).
 It is returned as a number.
+If the character has modifiers, they are resolved and reflected to the
+character code if possible (e.g. C-SPC -> 0).
+
 If the user generates an event which is not a character (i.e. a mouse
 click or function key event), `read-char' signals an error.  As an
-exception, switch-frame events are put off until non-ASCII events can
-be read.
+exception, switch-frame events are put off until non-character events
+can be read.
 If you want to read non-character events, or ignore them, call
 `read-event' or `read-char-exclusive' instead.
 
@@ -789,9 +792,14 @@ floating-point value.  */)
      (prompt, inherit_input_method, seconds)
      Lisp_Object prompt, inherit_input_method, seconds;
 {
+  Lisp_Object val;
+  int c;
+
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
-  return read_filtered_event (1, 1, 1, ! NILP (inherit_input_method), seconds);
+  val = read_filtered_event (1, 1, 1, ! NILP (inherit_input_method), seconds);
+  c = XINT (val);
+  return make_number (char_resolve_modifier_mask (c));
 }
 
 DEFUN ("read-event", Fread_event, Sread_event, 0, 3, 0,
@@ -815,6 +823,8 @@ floating-point value.  */)
 DEFUN ("read-char-exclusive", Fread_char_exclusive, Sread_char_exclusive, 0, 3, 0,
        doc: /* Read a character from the command input (keyboard or macro).
 It is returned as a number.  Non-character events are ignored.
+If the character has modifiers, they are resolved and reflected to the
+character code if possible (e.g. C-SPC -> 0).
 
 If the optional argument PROMPT is non-nil, display that as a prompt.
 If the optional argument INHERIT-INPUT-METHOD is non-nil and some
@@ -827,9 +837,14 @@ floating-point value.  */)
      (prompt, inherit_input_method, seconds)
      Lisp_Object prompt, inherit_input_method, seconds;
 {
+  Lisp_Object val;
+  int c;
+
   if (! NILP (prompt))
     message_with_string ("%s", prompt, 0);
-  return read_filtered_event (1, 1, 0, ! NILP (inherit_input_method), seconds);
+  val = read_filtered_event (1, 1, 0, ! NILP (inherit_input_method), seconds);
+  c = XINT (val);
+  return make_number (char_resolve_modifier_mask (c));
 }
 
 DEFUN ("get-file-char", Fget_file_char, Sget_file_char, 0, 0, 0,
