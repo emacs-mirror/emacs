@@ -244,11 +244,6 @@
 
 ;;; Code:
 
-;; CL needed for cadr and last
-(if (not (and (fboundp 'cadr)
-	      (fboundp 'last)))
-    (require 'cl))
-
 (require 'font-lock)
 
 ;;; User Variables
@@ -526,9 +521,7 @@ selected.")
 
 ;;; ISWITCHB KEYMAP
 (defun iswitchb-define-mode-map ()
-  "Set up the keymap for `iswitchb-buffer'.
-This is obsolete.  Use \\[iswitchb-mode] or customize the
-variable `iswitchb-mode'."
+  "Set up the keymap for `iswitchb-buffer'."
   (interactive)
   (let (map)
     ;; generated every time so that it can inherit new functions.
@@ -548,6 +541,10 @@ variable `iswitchb-mode'."
     (define-key map "\C-m" 'iswitchb-exit-minibuffer)
     (setq iswitchb-mode-map map)
     (run-hooks 'iswitchb-define-mode-map-hook)))
+
+(make-obsolete 'iswitchb-define-mode-map
+	       "use M-x iswitchb-mode or customize the variable `iswitchb-mode'."
+	       "21.1")
 
 ;;; MAIN FUNCTION
 (defun iswitchb ()
@@ -688,7 +685,7 @@ the selection process begins.  Used by isearchb.el."
   "Find common completion of `iswitchb-text' in `iswitchb-matches'.
 The result is stored in `iswitchb-common-match-string'."
 
-  (let* (val)
+  (let (val)
     (setq  iswitchb-common-match-string nil)
     (if (and iswitchb-matches
 	     (not iswitchb-regexp) ;; testing
@@ -778,8 +775,7 @@ If no buffer exactly matching the prompt exists, maybe create a new one."
   (setq iswitchb-exit 'findfile)
   (exit-minibuffer))
 
-(eval-when-compile
-  (defvar recentf-list))
+(defvar recentf-list)
 
 (defun iswitchb-next-match ()
   "Put first element of `iswitchb-matches' at the end of the list."
@@ -888,7 +884,7 @@ current frame, rather than all frames, regardless of value of
   "Set `iswitchb-matches' to the list of buffers matching prompt."
   (if iswitchb-rescan
       (setq iswitchb-matches
-	    (let* ((buflist iswitchb-buflist))
+	    (let ((buflist iswitchb-buflist))
 	      (iswitchb-get-matched-buffers iswitchb-text iswitchb-regexp
 					    buflist))
 	    iswitchb-virtual-buffers nil)))
@@ -898,7 +894,7 @@ current frame, rather than all frames, regardless of value of
   "Return buffers matching REGEXP.
 If STRING-FORMAT is nil, consider REGEXP as just a string.
 BUFFER-LIST can be list of buffers or list of strings."
-  (let* ((case-fold-search (iswitchb-case))
+  (let ((case-fold-search (iswitchb-case))
          name ret)
     (if (null string-format) (setq regexp (regexp-quote regexp)))
     (setq iswitchb-invalid-regexp nil)
@@ -1051,7 +1047,7 @@ Return the modified list with the last element prepended to it."
 ;;; VISIT CHOSEN BUFFER
 (defun iswitchb-visit-buffer (buffer)
   "Visit buffer named BUFFER according to `iswitchb-method'."
-  (let* (win  newframe)
+  (let (win newframe)
     (cond
      ((eq iswitchb-method 'samewindow)
       (switch-to-buffer buffer))
@@ -1123,15 +1119,15 @@ If BUFFER is visible in the current frame, return nil."
 (defun iswitchb-default-keybindings ()
   "Set up default keybindings for `iswitchb-buffer'.
 Call this function to override the normal bindings.  This function also
-adds a hook to the minibuffer.
-
-Obsolescent.  Use `iswitchb-mode'."
+adds a hook to the minibuffer."
   (interactive)
   (add-hook 'minibuffer-setup-hook 'iswitchb-minibuffer-setup)
   (global-set-key "\C-xb" 'iswitchb-buffer)
   (global-set-key "\C-x4b" 'iswitchb-buffer-other-window)
   (global-set-key "\C-x4\C-o" 'iswitchb-display-buffer)
   (global-set-key "\C-x5b" 'iswitchb-buffer-other-frame))
+
+(make-obsolete 'iswitchb-default-keybindings 'iswitchb-mode "21.1")
 
 (defun iswitchb-buffer ()
   "Switch to another buffer.
@@ -1235,9 +1231,8 @@ Copied from `icomplete-exhibit' with two changes:
 	  (insert (iswitchb-completions
 		   contents))))))
 
-(eval-when-compile
-  (defvar most-len)
-  (defvar most-is-exact))
+(defvar most-len)
+(defvar most-is-exact)
 
 (defun iswitchb-output-completion (com)
   (if (= (length com) most-len)
