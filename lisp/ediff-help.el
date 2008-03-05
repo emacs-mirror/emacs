@@ -190,15 +190,12 @@ the value of this variable and the variables `ediff-help-message-*' in
   (let ((pos (ediff-event-point last-command-event))
 	overl cmd)
 
-    (ediff-cond-compile-for-xemacs-or-emacs
-     ;; xemacs
-     (setq overl (extent-at pos (current-buffer) 'ediff-help-info)
-	   cmd   (ediff-overlay-get overl 'ediff-help-info))
-     ;; emacs
-     (setq cmd (car (mapcar (lambda (elt)
-			      (overlay-get elt 'ediff-help-info))
-			    (overlays-at pos))))
-     )
+    (if (featurep 'xemacs)
+	(setq overl (extent-at pos (current-buffer) 'ediff-help-info)
+	      cmd   (ediff-overlay-get overl 'ediff-help-info))
+      (setq cmd (car (mapcar (lambda (elt)
+			       (overlay-get elt 'ediff-help-info))
+			     (overlays-at pos)))))
 
     (if (not (stringp cmd))
 	(error "Hmm...  I don't see an Ediff command around here..."))
