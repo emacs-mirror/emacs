@@ -1693,7 +1693,10 @@ any other non-digit terminates the character code and is then used as input."))
       ;; We could try and use read-key-sequence instead, but then C-q ESC
       ;; or C-q C-x might not return immediately since ESC or C-x might be
       ;; bound to some prefix in function-key-map or key-translation-map.
-      (setq translated char)
+      (setq translated
+	    (if (integerp char)
+		(char-resolve-modifers char)
+	      char))
       (let ((translation (lookup-key local-function-key-map (vector char))))
 	(if (arrayp translation)
 	    (setq translated (aref translation 0))))
