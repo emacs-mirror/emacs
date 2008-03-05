@@ -1,3 +1,8 @@
+2008-03-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/lisp.el (parens-require-spaces): Doc fix.
+	Reported by Drew Adams <drew.adams@oracle.com>.
+
 2008-03-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* iswitchb.el (iswitchb-use-faces): Doc fix.
