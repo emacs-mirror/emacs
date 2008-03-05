@@ -21,9 +21,9 @@
 2008-02-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-topic.el (gnus-topic-select-group, gnus-topic-read-group):
-	Document negativ prefix.
+	Document negative prefix.
 
-	* gnus-group.el (gnus-group-read-group): Document negativ prefix.
+	* gnus-group.el (gnus-group-read-group): Document negative prefix.
 
 2008-02-03  Reiner Steib  <Reiner.Steib@gmx.de>
 
