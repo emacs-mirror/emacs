@@ -1,3 +1,7 @@
+2008-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in: Enable font-backend by default.
+
 2008-03-03  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (iconsrcdir): New variable.
