@@ -1332,7 +1332,7 @@ Optional Features:
   --enable-carbon-app[=DIR]
                           specify install directory for Emacs.app on Mac OS X
                           [DIR=/Application]
-  --enable-font-backend   compile code of font-backend support
+  --disable-font-backend  don't compile font-backend support
   --enable-asserts        compile code with asserts enabled
   --enable-maintainer-mode
                           enable make rules and dependencies not useful (and
@@ -2127,11 +2127,12 @@ if test "${enable_carbon_app+set}" = set; then
 fi
 
 
+## Enabled by default.
 # Check whether --enable-font-backend was given.
 if test "${enable_font_backend+set}" = set; then
   enableval=$enable_font_backend; USE_FONT_BACKEND=$enableval
 else
-  USE_FONT_BACKEND=no
+  USE_FONT_BACKEND=yes
 fi
 
 
@@ -12390,7 +12391,7 @@ _ACEOF
 fi
 
 #### For font-backend
-if test "${USE_FONT_BACKEND}" = "yes"; then
+if test "${USE_FONT_BACKEND}" != "no"; then
 
 
 cat >>confdefs.h <<\_ACEOF
