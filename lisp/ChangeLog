@@ -1,9 +1,37 @@
+2008-03-05  Glenn Morris  <rgm@gnu.org>
+
+	* ediff-hook.el (ediff-cond-compile-for-xemacs-or-emacs): Remove.
+	* ediff-init.el (ediff-cond-compile-for-xemacs-or-emacs): Remove.
+	* ediff-diff.el, ediff-help.el, ediff-hook.el, ediff-init.el:
+	* ediff-mult.el, ediff-util.el, ediff-wind.el: Expand all
+	ediff-cond-compile-for-xemacs-or-emacs calls to a featurep test.
+
+	* ediff-hook.el (ediff-window-setup-function): Don't autoload
+	declaration for compiler.
+	(ediff-xemacs-init-menus): Use when rather than if.
+
+	* ediff-init.el (top-level, ediff-frame-iconified-p): Simplify
+	if+and to just and.
+	(ediff-read-event, ediff-overlayp, ediff-make-overlay)
+	(ediff-delete-overlay): Move the XEmacs test inside the definition.
+
+	* ediff-mult.el (ediff-get-meta-info): Use or and unless rather than if.
+
+	* ediff-util.el (ediff-kill-bottom-toolbar): Place (ediff-use-toolbar-p)
+	test inside XEmacs test.
+	(ediff-make-bottom-toolbar): Place whole cond inside XEmacs test,
+	since it was doing nothing on Emacs.
+	(ediff-make-bullet-proof-overlay): Use when rather than if.
+
+	* ediff-wind.el (ediff-select-lowest-window): Use when rather than if.
+	(ediff-setup-control-frame): Remove
+	ediff-cond-compile-for-xemacs-or-emacs, since it is already inside
+	a (featurep 'xemacs) test.
+
 2008-03-05  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-ext.el (calc-extended-command-history):
-	New variable.
-	(calc-exectute-extended-command): Use
-	`calc-extended-command-history'.
+	* calc/calc-ext.el (calc-extended-command-history): New variable.
+	(calc-exectute-extended-command): Use `calc-extended-command-history'.
 
 2008-03-05  Dan Nicolaescu  <dann@ics.uci.edu>
 
