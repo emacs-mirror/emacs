@@ -286,39 +286,32 @@ into icons, regardless of the window manager."
 	  (beep 1))
       (message "Please click on Window %d " wind-number))
     (ediff-read-event) ; discard event
-    (setq wind (ediff-cond-compile-for-xemacs-or-emacs
-		(event-window event) ; xemacs
-		(posn-window (event-start event)) ; emacs
-		)
-	  )
-    ))
+    (setq wind (if (featurep 'xemacs)
+		   (event-window event)
+		 (posn-window (event-start event))))))
 
 
 ;; Select the lowest window on the frame.
 (defun ediff-select-lowest-window ()
-  (ediff-cond-compile-for-xemacs-or-emacs
-   (select-window (frame-lowest-window)) ; xemacs
-   ;; emacs
-   (let* ((lowest-window (selected-window))
-	  (bottom-edge (car (cdr (cdr (cdr (window-edges))))))
-	  (last-window (save-excursion
-			 (other-window -1) (selected-window)))
-	  (window-search t))
-     (while window-search
-       (let* ((this-window (next-window))
-	      (next-bottom-edge
-	       (car (cdr (cdr (cdr (window-edges this-window)))))))
-	 (if (< bottom-edge next-bottom-edge)
-	     (progn
-	       (setq bottom-edge next-bottom-edge)
-	       (setq lowest-window this-window)))
-
-	 (select-window this-window)
-	 (if (eq last-window this-window)
-	     (progn
-	       (select-window lowest-window)
-	       (setq window-search nil))))))
-   ))
+  (if (featurep 'xemacs)
+      (select-window (frame-lowest-window)) ; xemacs
+    ;; emacs
+    (let* ((lowest-window (selected-window))
+	   (bottom-edge (car (cdr (cdr (cdr (window-edges))))))
+	   (last-window (save-excursion
+			  (other-window -1) (selected-window)))
+	   (window-search t))
+      (while window-search
+	(let* ((this-window (next-window))
+	       (next-bottom-edge
+		(car (cdr (cdr (cdr (window-edges this-window)))))))
+	  (if (< bottom-edge next-bottom-edge)
+	      (setq bottom-edge next-bottom-edge
+		    lowest-window this-window))
+	  (select-window this-window)
+	  (when (eq last-window this-window)
+	    (select-window lowest-window)
+	    (setq window-search nil)))))))
 
 
 ;;; Common window setup routines
@@ -915,10 +908,8 @@ into icons, regardless of the window manager."
 	fheight fwidth adjusted-parameters)
 
     (ediff-with-current-buffer ctl-buffer
-      (ediff-cond-compile-for-xemacs-or-emacs
-       (when (featurep 'menubar) (set-buffer-menubar nil)) ; xemacs
-       nil ; emacs
-       )
+      (if (featurep 'xemacs)
+	  (if (featurep 'menubar) (set-buffer-menubar nil)))
       ;;(setq user-grabbed-mouse (ediff-user-grabbed-mouse))
       (run-hooks 'ediff-before-setup-control-frame-hook))
 
@@ -930,13 +921,10 @@ into icons, regardless of the window manager."
 	    ediff-control-frame ctl-frame)
       ;; protect against undefined face-attribute
       (condition-case nil
-	  (ediff-cond-compile-for-xemacs-or-emacs
-	   nil ; xemacs
-	   (when (face-attribute 'mode-line :box)
-	     (set-face-attribute 'mode-line ctl-frame :box nil))
-	   )
-	(error))
-      )
+	  (unless (featurep 'xemacs)
+	    (when (face-attribute 'mode-line :box)
+	      (set-face-attribute 'mode-line ctl-frame :box nil)))
+	(error)))
 
     (setq ctl-frame-iconified-p (ediff-frame-iconified-p ctl-frame))
     (select-frame ctl-frame)
@@ -985,19 +973,14 @@ into icons, regardless of the window manager."
     ;; In XEmacs, buffer menubar needs to be killed before frame parameters
     ;; are changed.
     (if (ediff-has-toolbar-support-p)
-	(ediff-cond-compile-for-xemacs-or-emacs
-	 (progn ; xemacs
-	   (if (ediff-has-gutter-support-p)
-	       (set-specifier top-gutter (list ctl-frame nil)))
-	   (sit-for 0)
-	   (set-specifier top-toolbar-height (list ctl-frame 0))
-	   ;;(set-specifier bottom-toolbar-height (list ctl-frame 0))
-	   (set-specifier left-toolbar-width (list ctl-frame 0))
-	   (set-specifier right-toolbar-width (list ctl-frame 0))
-	   )
-	 nil ; emacs
-	 )
-      )
+	(when (featurep 'xemacs)
+	  (if (ediff-has-gutter-support-p)
+	      (set-specifier top-gutter (list ctl-frame nil)))
+	  (sit-for 0)
+	  (set-specifier top-toolbar-height (list ctl-frame 0))
+	  ;;(set-specifier bottom-toolbar-height (list ctl-frame 0))
+	  (set-specifier left-toolbar-width (list ctl-frame 0))
+	  (set-specifier right-toolbar-width (list ctl-frame 0))))
 
     ;; Under OS/2 (emx) we have to call modify frame parameters twice, in order
     ;; to make sure that at least once we do it for non-iconified frame.  If
@@ -1051,33 +1034,24 @@ into icons, regardless of the window manager."
 			   (or (eq this-command 'ediff-quit)
 			       (not (eq ediff-grab-mouse t)))))
 
-    (if (featurep 'xemacs)
-	(ediff-with-current-buffer ctl-buffer
-	  (ediff-cond-compile-for-xemacs-or-emacs
-	   (make-local-hook 'select-frame-hook) ; xemacs
-	   nil     ; emacs
-	   )
-	  (add-hook
-	   'select-frame-hook 'ediff-xemacs-select-frame-hook nil 'local)
-	  ))
+    (when (featurep 'xemacs)
+      (ediff-with-current-buffer ctl-buffer
+	(make-local-hook 'select-frame-hook)
+	(add-hook 'select-frame-hook
+		  'ediff-xemacs-select-frame-hook nil 'local)))
 
     (ediff-with-current-buffer ctl-buffer
-      (run-hooks 'ediff-after-setup-control-frame-hook))
-    ))
+      (run-hooks 'ediff-after-setup-control-frame-hook))))
 
 
 (defun ediff-destroy-control-frame (ctl-buffer)
   (ediff-with-current-buffer ctl-buffer
     (if (and (ediff-window-display-p) (frame-live-p ediff-control-frame))
 	(let ((ctl-frame ediff-control-frame))
-	  (ediff-cond-compile-for-xemacs-or-emacs
-	   (when (featurep 'menubar)
-	     (set-buffer-menubar default-menubar)) ; xemacs
-	   nil ; emacs
-	   )
+	  (if (featurep 'xemacs)
+	      (if (featurep 'menubar) (set-buffer-menubar default-menubar)))
 	  (setq ediff-control-frame nil)
-	  (delete-frame ctl-frame)
-	  )))
+	  (delete-frame ctl-frame))))
   (ediff-skip-unsuitable-frames)
   ;;(ediff-reset-mouse nil)
   )
