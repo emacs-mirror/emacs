@@ -1,3 +1,7 @@
+2008-03-05  Drew Adams <drew.adams@oracle.com>  (tiny change)
+
+	* dired.texi (Hiding Subdirectories): Documented `dired-hide-subdir'.
+
 2008-02-28  Kim F. Storm  <storm@cua.dk>
 
 	* help.texi (Help Files): Move describe-gnu-project to C-h g.

@@ -919,7 +919,8 @@ describing that subdirectory).
 
 Use the @kbd{l} command (@code{dired-do-redisplay}) to update the
 subdirectory's contents.  Use @kbd{C-u k} on the subdirectory header
-line to delete the subdirectory.  @xref{Dired Updating}.
+line to delete the subdirectory.  @xref{Dired Updating}.  You can also
+hide and show inserted subdirectories @xref{Hiding Subdirectories}.
 
 
 
@@ -981,8 +982,9 @@ Move down to the next directory-file line (@code{dired-prev-dirline}).
 
 @node Hiding Subdirectories
 @section Hiding Subdirectories
+@cindex hiding subdirectories (Dired)
+@cindex showing hidden subdirectories (Dired)
 
-@cindex hiding in Dired (Dired)
   @dfn{Hiding} a subdirectory means to make it invisible, except for its
 header line.
 
@@ -990,9 +992,9 @@ header line.
 @item $
 @findex dired-hide-subdir
 @kindex $ @r{(Dired)}
-Hide or reveal the subdirectory that point is in, and move point to the
-next subdirectory (@code{dired-hide-subdir}).  A numeric argument serves
-as a repeat count.
+Hide or show the subdirectory that point is in, and move point to the
+next subdirectory (@code{dired-hide-subdir}).  This is a toggle.  A
+numeric argument serves as a repeat count.
 
 @item M-$
 @findex dired-hide-all
@@ -1010,6 +1012,9 @@ ignore files in hidden directories even if they are marked.  Thus you
 can use hiding to temporarily exclude subdirectories from operations
 without having to remove the Dired marks on files in those
 subdirectories.
+
+@xref{Dired Updating} about inserting or deleting a subdirectory
+listing.
 
 @node Dired Updating
 @section Updating the Dired Buffer
