@@ -103,16 +103,11 @@ int
 char_resolve_modifier_mask (c)
      int c;
 {
-  /* An non-ASCII character can't reflect modifier bits to the code.  */
+  /* A non-ASCII character can't reflect modifier bits to the code.  */
   if (! ASCII_CHAR_P ((c & ~CHAR_MODIFIER_MASK)))
     return c;
 
   /* For Meta, Shift, and Control modifiers, we need special care.  */
-  if (c & CHAR_META)
-    {
-      /* Move the meta bit to the right place for a string.  */
-      c = (c & ~CHAR_META) | 0x80;
-    }
   if (c & CHAR_SHIFT)
     {
       /* Shift modifier is valid only with [A-Za-z].  */
@@ -120,6 +115,15 @@ char_resolve_modifier_mask (c)
 	c &= ~CHAR_SHIFT;
       else if ((c & 0377) >= 'a' && (c & 0377) <= 'z')
 	c = (c & ~CHAR_SHIFT) - ('a' - 'A');
+      /* Shift modifier with ASCII control characters should be
+	 ignored.  */
+      else if ((c & ~CHAR_MODIFIER_MASK) < 0x20)
+	c &= ~CHAR_SHIFT;
+    }
+  if (c & CHAR_META)
+    {
+      /* Move the meta bit to the right place for a string.  */
+      c = (c & ~CHAR_META) | 0x80;
     }
   if (c & CHAR_CTL)
     {
@@ -967,6 +971,22 @@ usage: (unibyte-string &rest BYTES)  */)
   return make_string_from_bytes ((char *) buf, n, p - buf);
 }
 
+DEFUN ("char-resolve-modifers", Fchar_resolve_modifiers,
+       Schar_resolve_modifiers, 1, 1, 0,
+       doc: /* Resolve modifiers in the character CHAR.
+The value is a character with modifiers resolved into the character
+code.  Unresolved modifiers are kept in the value.
+usage: (char-resolve-modifers CHAR)  */)
+     (character)
+     Lisp_Object character;
+{
+  int c;
+
+  CHECK_NUMBER (character);
+  c = XINT (character);
+  return make_number (char_resolve_modifier_mask (c));
+}
+
 void
 init_character_once ()
 {
@@ -993,6 +1013,7 @@ syms_of_character ()
   defsubr (&Schar_direction);
   defsubr (&Sstring);
   defsubr (&Sunibyte_string);
+  defsubr (&Schar_resolve_modifiers);
 
   DEFVAR_LISP ("translation-table-vector",  &Vtranslation_table_vector,
 	       doc: /*
