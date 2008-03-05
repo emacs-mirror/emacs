@@ -28,18 +28,19 @@ so we will look at it and add it to the manual.
 
 ** The default X toolkit is now Gtk+, rather than Lucid.
 
-** The new configuration option "--enable-font-backend" enables new code
-for handling fonts by multiple backends (the old font handling codes
-still exist).  This requires the freetype and fontconfig libraries, and
-supports local fonts (fonts installed on the machine where Emacs is running).
-Additionally, the Xft library can be used for antialiasing support.
-Fontconfig-like font names (e.g. monospace-12) are also accepted.
+** Fonts are handled by new code capable of dealing with multiple font
+backends.  This requires the freetype and fontconfig libraries, and
+supports local fonts (fonts installed on the machine where Emacs is
+running).  Additionally, the Xft library can be used for antialiasing
+support.  Fontconfig-like font names (e.g. monospace-12) are also
+accepted.  The old font handling code can be used by passing the
+configure option `--disable-font-backend'.
 
 ** The new configuration option "--with-dbus" enables D-Bus language
 bindings for Emacs.
 
 ** The Mac Carbon port is no longer supported.
-Instead, use... [what?]
+Instead, use... [FIXME what?]
 
 ** configure now checks for libgif before libungif when searching for
 a GIF library.
@@ -200,8 +201,8 @@ inside of --eval command line arguments in order to access
 following arguments.
 
 ** The new command-line option `--disable-font-backend' disables the
-new font backend code at runtime.  This option is only available if
-Emacs was compiled with font-backend support.
+new font backend code at runtime.  This option is not available if
+Emacs was compiled without font-backend support.
 
 ** The abbrev file is no longer read at startup in batch mode.
 
