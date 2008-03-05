@@ -167,10 +167,11 @@ AC_ARG_ENABLE(carbon-app,
 		 [DIR=/Application]])],
 [ carbon_appdir_x=${enableval}])
 
+## Enabled by default.
 AC_ARG_ENABLE(font-backend,
-[  --enable-font-backend   compile code of font-backend support],
+[AS_HELP_STRING([--disable-font-backend],[don't compile font-backend support])],
       USE_FONT_BACKEND=$enableval,
-      USE_FONT_BACKEND=no)
+      USE_FONT_BACKEND=yes)
 
 AC_ARG_ENABLE(asserts,
 [AS_HELP_STRING([--enable-asserts], [compile code with asserts enabled])],
@@ -1949,7 +1950,7 @@ either XPointer or XPointer*.])dnl
 fi
 
 #### For font-backend
-if test "${USE_FONT_BACKEND}" = "yes"; then
+if test "${USE_FONT_BACKEND}" != "no"; then
 
 AC_DEFINE(USE_FONT_BACKEND, 1,
           [Define to 1 if we should use font-backend.])
