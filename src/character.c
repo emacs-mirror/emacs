@@ -115,30 +115,29 @@ char_resolve_modifier_mask (c)
 	c &= ~CHAR_SHIFT;
       else if ((c & 0377) >= 'a' && (c & 0377) <= 'z')
 	c = (c & ~CHAR_SHIFT) - ('a' - 'A');
-      /* Shift modifier with ASCII control characters should be
-	 ignored.  */
-      else if ((c & ~CHAR_MODIFIER_MASK) < 0x20)
+      /* Shift modifier for control characters and SPC is ignored.  */
+      else if ((c & ~CHAR_MODIFIER_MASK) <= 0x20)
 	c &= ~CHAR_SHIFT;
-    }
-  if (c & CHAR_META)
-    {
-      /* Move the meta bit to the right place for a string.  */
-      c = (c & ~CHAR_META) | 0x80;
     }
   if (c & CHAR_CTL)
     {
       /* Simulate the code in lread.c.  */
       /* Allow `\C- ' and `\C-?'.  */
-      if ((c & ~CHAR_CTL) == ' ')
-	c = 0;
-      else if ((c & ~CHAR_CTL) == '?')
-	c = 127;
+      if ((c & 0377) == ' ')
+	c &= ~0177 & ~ CHAR_CTL;
+      else if ((c & 0377) == '?')
+	c = 0177 | (c & ~0177 & ~CHAR_CTL);
       /* ASCII control chars are made from letters (both cases),
 	 as well as the non-letters within 0100...0137.  */
       else if ((c & 0137) >= 0101 && (c & 0137) <= 0132)
 	c &= (037 | (~0177 & ~CHAR_CTL));
       else if ((c & 0177) >= 0100 && (c & 0177) <= 0137)
 	c &= (037 | (~0177 & ~CHAR_CTL));
+    }
+  if (c & CHAR_META)
+    {
+      /* Move the meta bit to the right place for a string.  */
+      c = (c & ~CHAR_META) | 0x80;
     }
 
   return c;
