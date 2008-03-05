@@ -12390,26 +12390,24 @@ _ACEOF
   CFLAGS=$late_CFLAGS
 fi
 
-#### For font-backend
-if test "${USE_FONT_BACKEND}" != "no"; then
+### Start of font-backend section.
+if test "${HAVE_X11}" != "yes"; then
+  USE_FONT_BACKEND=no
+fi
 
+if test "${USE_FONT_BACKEND}" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define USE_FONT_BACKEND 1
 _ACEOF
 
 
-### Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
-HAVE_XFT=maybe
-if test "${HAVE_X11}" = "yes"; then
+  ## Use -lXft if available, unless `--with-freetype=no' nor `--with-xft=no'.
+  HAVE_XFT=maybe
   if test "x${with_freetype}" = "xno"; then
     with_xft="no";
   fi
   if test "x${with_xft}" != "xno"; then
-
-        if test "X${with_pkg_config_prog}" != X; then
-      PKG_CONFIG="${with_pkg_config_prog}"
-    fi
 
 
   succeeded=no
@@ -12719,23 +12717,20 @@ _ACEOF
         CPPFLAGS="$OLD_CPPFLAGS"
         CFLAGS="$OLD_CFLAGS"
         LIBS="$OLD_LIBS"
-      fi
-    fi
+      fi                        # "${HAVE_XFT}" = "yes"
+    fi                          # "$HAVE_XFT" != no
+  fi                            # "x${with_xft}" != "xno"
+
+    if test "$HAVE_XFT" != "yes"; then
+     HAVE_XFT=no
   fi
-fi
-if test "$HAVE_XFT" != "yes"; then
-   HAVE_XFT=no
-fi
 
 
-HAVE_FREETYPE=no
-### Use -lfreetype if available, unless `--with-freetype=no'.
-if test "${HAVE_XFT}" = "yes"; then
-      HAVE_FREETYPE=yes
-elif test "x${with_freetype}" != "xno"; then
-    if test "X${with_pkg_config_prog}" != X; then
-    PKG_CONFIG="${with_pkg_config_prog}"
-  fi
+  HAVE_FREETYPE=no
+  ### Use -lfreetype if available, unless `--with-freetype=no'.
+  if test "${HAVE_XFT}" = "yes"; then
+            HAVE_FREETYPE=yes
+  elif test "x${with_freetype}" != "xno"; then
 
 
   succeeded=no
@@ -12831,7 +12826,7 @@ echo "${ECHO_T}no" >&6; }
      HAVE_FREETYPE=no
   fi
 
-  if test "${HAVE_FREETYPE}" = "yes"; then
+    if test "${HAVE_FREETYPE}" = "yes"; then
 
   succeeded=no
 
@@ -12926,23 +12921,20 @@ echo "${ECHO_T}no" >&6; }
      HAVE_FC=no
   fi
 
-    if test "${HAVE_FC}" = "no"; then
-            HAVE_FREETYPE=no
+      if test "${HAVE_FC}" = "no"; then
+                HAVE_FREETYPE=no
+      fi
     fi
   fi
-fi
 
-HAVE_LIBOTF=no
-if test "${HAVE_FREETYPE}" = "yes"; then
+  HAVE_LIBOTF=no
+  if test "${HAVE_FREETYPE}" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_FREETYPE 1
 _ACEOF
 
-  if test "${with_libotf}" != "no"; then
-        if test "X${with_pkg_config_prog}" != X; then
-      PKG_CONFIG="${with_pkg_config_prog}"
-    fi
+    if test "${with_libotf}" != "no"; then
 
   succeeded=no
 
@@ -13037,21 +13029,18 @@ echo "${ECHO_T}no" >&6; }
      HAVE_LIBOTF=no
   fi
 
-    if test "$HAVE_LIBOTF" = "yes"; then
+      if test "$HAVE_LIBOTF" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_LIBOTF 1
 _ACEOF
 
+      fi
     fi
   fi
-fi
 
-HAVE_M17N_FLT=no
-if test "${with_m17n_flt}" != "no"; then
-    if test "X${with_pkg_config_prog}" != X; then
-    PKG_CONFIG="${with_pkg_config_prog}"
-  fi
+  HAVE_M17N_FLT=no
+  if test "${with_m17n_flt}" != "no"; then
 
   succeeded=no
 
@@ -13146,14 +13135,14 @@ echo "${ECHO_T}no" >&6; }
      HAVE_M17N_FLT=no
   fi
 
-  if test "$HAVE_M17N_FLT" = "yes"; then
+    if test "$HAVE_M17N_FLT" = "yes"; then
 
 cat >>confdefs.h <<\_ACEOF
 #define HAVE_M17N_FLT 1
 _ACEOF
 
+    fi
   fi
-fi
 
 
 
@@ -13164,8 +13153,8 @@ fi
 
 
 
-fi
-#### End for font-backend
+fi                              # "${USE_FONT_BACKEND}" = "yes"
+### End of font-backend section.
 
 ### Use -lXpm if available, unless `--with-xpm=no'.
 HAVE_XPM=no
