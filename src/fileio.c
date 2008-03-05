@@ -1408,6 +1408,19 @@ See also the function `substitute-in-file-name'.  */)
 	}
     }
 
+  /* Environment variables and pwnam entries may need decoding.  */
+  if (newdir)
+    {
+      Lisp_Object orig, decoded;
+      orig = make_unibyte_string (newdir, strlen (newdir));
+      decoded = DECODE_FILE (orig);
+      if (decoded != orig)
+        {
+          newdir = SDATA (decoded);
+          multibyte = 1;
+        }
+    }
+
 #ifdef DOS_NT
   /* On DOS and Windows, nm is absolute if a drive name was specified;
      use the drive's current directory as the prefix if needed.  */
@@ -2149,10 +2162,13 @@ duplicates what `expand-file-name' does.  */)
   unsigned char *target = NULL;
   int total = 0;
   int substituted = 0;
+  int multibyte;
   unsigned char *xnm;
   Lisp_Object handler;
 
   CHECK_STRING (filename);
+
+  multibyte = STRING_MULTIBYTE (filename);
 
   /* If the file name has special constructs in it,
      call the corresponding file handler.  */
@@ -2175,8 +2191,7 @@ duplicates what `expand-file-name' does.  */)
        again.  Important with filenames like "/home/foo//:/hello///there"
        which whould substitute to "/:/hello///there" rather than "/there".  */
     return Fsubstitute_in_file_name
-      (make_specified_string (p, -1, endp - p,
-			      STRING_MULTIBYTE (filename)));
+      (make_specified_string (p, -1, endp - p, multibyte));
 
 #ifdef VMS
   return filename;
@@ -2227,7 +2242,10 @@ duplicates what `expand-file-name' does.  */)
 	o = (unsigned char *) egetenv (target);
 	if (o)
 	  {
-	    total += strlen (o);
+            Lisp_Object orig, decoded;
+            orig = make_unibyte_string (o, strlen (o));
+            decoded = DECODE_FILE (orig);
+	    total += SBYTES (decoded);
 	    substituted = 1;
 	  }
 	else if (*p == '}')
@@ -2285,21 +2303,26 @@ duplicates what `expand-file-name' does.  */)
 	    *x++ = '$';
 	    strcpy (x, target); x+= strlen (target);
 	  }
-	else if (STRING_MULTIBYTE (filename))
+	else
 	  {
-	    /* If the original string is multibyte,
-	       convert what we substitute into multibyte.  */
-	    while (*o)
-	      {
-		int c = unibyte_char_to_multibyte (*o++);
-		x += CHAR_STRING (c, x);
-	      }
+            Lisp_Object orig, decoded;
+            orig = make_unibyte_string (o, strlen (o));
+            decoded = DECODE_FILE (orig);
+            strncpy (x, SDATA (decoded), SBYTES (decoded));
+            x += SBYTES (decoded);
+
+            /* If environment variable needed decoding, return value
+               needs to be multibyte.  */
+            if (decoded != orig)
+              multibyte = 1;
 	  }
+#if 0
 	else
 	  {
 	    strcpy (x, o);
 	    x += strlen (o);
 	  }
+#endif
       }
 
   *x = 0;
@@ -2311,7 +2334,7 @@ duplicates what `expand-file-name' does.  */)
        need to quote some $ to $$ first.  */
     xnm = p;
 
-  return make_specified_string (xnm, -1, x - xnm, STRING_MULTIBYTE (filename));
+  return make_specified_string (xnm, -1, x - xnm, multibyte);
 
  badsubst:
   error ("Bad format environment-variable substitution");
