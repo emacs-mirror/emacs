@@ -1,3 +1,8 @@
+2008-03-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* iswitchb.el (iswitchb-use-faces): Doc fix.
+	(iswitchb-buffer-ignore, iswitchb-read-buffer): Fix typos in docstrings.
+
 2008-03-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/verilog-mode.el (verilog-highlight-grouping-keywords):
