@@ -89,6 +89,10 @@ Patch here:
 http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02814.html
 http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02939.html
 
+** Bug in etags ".." code
+Patch available at
+http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-03/msg00014.html
+
 * DOCUMENTATION
 
 ** Shouldn't directory-abbrev-alist be in Emacs manual?
