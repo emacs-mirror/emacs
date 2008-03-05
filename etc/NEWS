@@ -32,9 +32,11 @@ so we will look at it and add it to the manual.
 backends.  This requires the freetype and fontconfig libraries, and
 supports local fonts (fonts installed on the machine where Emacs is
 running).  Additionally, the Xft library can be used for antialiasing
-support.  Fontconfig-like font names (e.g. monospace-12) are also
-accepted.  The old font handling code can be used by passing the
-configure option `--disable-font-backend'.
+support, the otf library for complex text layout by OpenType fonts,
+and the m17n library for text shaping.  Fontconfig-like font names
+(e.g. monospace-12) are accepted.  The old font handling code can
+be used by passing the configure option `--disable-font-backend'
+(also available as a run-time option).
 
 ** The new configuration option "--with-dbus" enables D-Bus language
 bindings for Emacs.
