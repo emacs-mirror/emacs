@@ -1,5 +1,14 @@
 2008-03-05  Juanma Barranquero  <lekktu@gmail.com>
 
+	* epg.el (epg-context-include-certs): Reflow docstring.
+	(epg-start-sign-keys, epg-sign-keys, epg-context-armor)
+	(epg-context-signers, epg-context-sig-notations, epg-context-set-armor)
+	(epg-context-set-signers, epg-context-set-sig-notations)
+	(epg-make-import-status, epg-make-import-result)
+	(epg-start-delete-keys): Fix typos in docstrings.
+	(epg-start-sign-keys, epg-sign-keys):
+	Fix typos in obsolescence declarations.
+
 	* iswitchb.el: Don't check for `cadr' and `last'.
 	(iswitchb-define-mode-map, iswitchb-default-keybindings):
 	Add obsolescence declaration and remove redundant info from docstring.
