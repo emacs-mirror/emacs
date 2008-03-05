@@ -919,8 +919,8 @@ describing that subdirectory).
 
 Use the @kbd{l} command (@code{dired-do-redisplay}) to update the
 subdirectory's contents.  Use @kbd{C-u k} on the subdirectory header
-line to delete the subdirectory.  @xref{Dired Updating}.  You can also
-hide and show inserted subdirectories @xref{Hiding Subdirectories}.
+line to delete the subdirectory (@pxref{Dired Updating}).  You can also
+hide and show inserted subdirectories (@pxref{Hiding Subdirectories}).
 
 
 
@@ -1013,8 +1013,7 @@ can use hiding to temporarily exclude subdirectories from operations
 without having to remove the Dired marks on files in those
 subdirectories.
 
-@xref{Dired Updating} about inserting or deleting a subdirectory
-listing.
+@xref{Dired Updating}, for how to insert or delete a subdirectory listing.
 
 @node Dired Updating
 @section Updating the Dired Buffer
