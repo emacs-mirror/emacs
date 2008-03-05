@@ -1,5 +1,7 @@
 2008-03-05  Jason Rumney  <jasonr@gnu.org>
 
+	* dispnew.c (adjust_glyph_matrix): Initialize window_height.
+
 	* fileio.c (Fexpand_file_name): Decode home directory names.
 	(Fsubstitute_in_file_name): Decode substituted variables.
 
