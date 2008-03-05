@@ -1,6 +1,10 @@
-2008-03-05  Drew Adams <drew.adams@oracle.com>  (tiny change)
+2008-03-05  Glenn Morris  <rgm@gnu.org>
 
-	* dired.texi (Hiding Subdirectories): Documented `dired-hide-subdir'.
+	* dired.texi (Hiding Subdirectories): Fix previous change.
+
+2008-03-05  Drew Adams  <drew.adams@oracle.com>
+
+	* dired.texi (Hiding Subdirectories): Document `dired-hide-subdir'.
 
 2008-02-28  Kim F. Storm  <storm@cua.dk>
 
@@ -11,7 +15,7 @@
 	Add view-external-packages on C-h C-e.
         Add view-order-manuals on C-h C-m.
 
-2008-02-17  Ulrich Mueller <ulm@kph.uni-mainz.de>  (tiny change)
+2008-02-17  Ulrich Mueller <ulm@kph.uni-mainz.de>
 
 	* msdog-xtra.texi (MS-DOS): Docstring fix.
 
