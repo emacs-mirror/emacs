@@ -906,6 +906,15 @@ Inherits `shell-mode-map' with a few additions.")
 ;; and we need to define it a second time for `autoload' to get the
 ;; proper docstring.
 (defalias 'tex-mode-internal (symbol-function 'tex-mode))
+
+;; Suppress the byte-compiler warning about multiple definitions.
+;; This is a) ugly, and b) cheating, but this was the last
+;; remaining warning from byte-compiling all of Emacs...
+(eval-when-compile
+  (setq byte-compile-function-environment
+        (delq (assq 'tex-mode byte-compile-function-environment)
+              byte-compile-function-environment)))
+
 ;;;###autoload
 (defun tex-mode ()
   "Major mode for editing files of input for TeX, LaTeX, or SliTeX.
