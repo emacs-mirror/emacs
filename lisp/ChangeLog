@@ -1,3 +1,9 @@
+2008-03-06  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (view-emacs-todo): Rename from view-todo. Change users.
+	(describe-gnu-project): Rename from describe-project. Change users.
+	Define obsolete function aliases for the old names.
+
 2008-03-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/lisp.el (parens-require-spaces): Doc fix.
