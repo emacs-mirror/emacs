@@ -3361,7 +3361,7 @@ Org-mode file."
 Since there are different ways of setting style information, this variable
 needs to contain the full HTML structure to provide a style, including the
 surrounding HTML tags.  The style specifications should include definitions
-for new classes todo, done, title, and deadline.  For example, legal values
+for new classes todo, done, title, and deadline.  For example, valid values
 would be:
 
    <style type=\"text/css\">
@@ -6195,7 +6195,7 @@ in the region."
 (defun org-reduced-level (l)
   (if org-odd-levels-only (1+ (floor (/ l 2))) l))
 
-(defun org-get-legal-level (level &optional change)
+(defun org-get-valid-level (level &optional change)
   "Rectify a level change under the influence of `org-odd-levels-only'
 LEVEL is a current level, CHANGE is by how much the level should be
 modified.  Even if CHANGE is nil, LEVEL may be returned modified because
@@ -6206,13 +6206,16 @@ even level numbers will become the next higher odd number."
 	    ((< change 0) (max 1 (1+ (* 2 (/ (+ level (* 2 change)) 2))))))
     (max 1 (+ level change))))
 
+(define-obsolete-function-alias 'org-get-legal-level
+    'org-get-valid-level "23.1")
+
 (defun org-promote ()
   "Promote the current heading higher up the tree.
 If the region is active in `transient-mark-mode', promote all headings
 in the region."
   (org-back-to-heading t)
   (let* ((level (save-match-data (funcall outline-level)))
-	 (up-head (concat (make-string (org-get-legal-level level -1) ?*) " "))
+	 (up-head (concat (make-string (org-get-valid-level level -1) ?*) " "))
 	 (diff (abs (- level (length up-head) -1))))
     (if (= level 1) (error "Cannot promote to level 0. UNDO to recover if necessary"))
     (replace-match up-head nil t)
@@ -6226,7 +6229,7 @@ If the region is active in `transient-mark-mode', demote all headings
 in the region."
   (org-back-to-heading t)
   (let* ((level (save-match-data (funcall outline-level)))
-	 (down-head (concat (make-string (org-get-legal-level level 1) ?*) " "))
+	 (down-head (concat (make-string (org-get-valid-level level 1) ?*) " "))
 	 (diff (abs (- level (length down-head) -1))))
     (replace-match down-head nil t)
     ;; Fixup tag positioning
@@ -7787,7 +7790,7 @@ this heading."
 	    ;; No specific heading, just go to end of file.
 	    (goto-char (point-max)) (insert "\n"))
 	  ;; Paste
-	  (org-paste-subtree (org-get-legal-level level 1))
+	  (org-paste-subtree (org-get-valid-level level 1))
 
 	  ;; Mark the entry as done
 	  (when (and org-archive-mark-done
@@ -13704,7 +13707,7 @@ See also the variable `org-reverse-note-order'."
 			     (end-of-line 1)
 			     (insert "\n"))))
 		     (bookmark-set "org-remember-last-stored")
-		     (org-paste-subtree (org-get-legal-level level 1) txt))
+		     (org-paste-subtree (org-get-valid-level level 1) txt))
 		    ((eq exitcmd 'left)
 		     ;; before current
 		     (bookmark-set "org-remember-last-stored")
@@ -13723,7 +13726,7 @@ See also the variable `org-reverse-note-order'."
 		     (goto-char (point-max))
 		     (if (not (bolp)) (newline))
 		     (bookmark-set "org-remember-last-stored")
-		     (org-paste-subtree (org-get-legal-level 1 1) txt)))
+		     (org-paste-subtree (org-get-valid-level 1 1) txt)))
 
 		  ((and (bobp) reversed)
 		   ;; Put it at the start, as level 1
@@ -13912,7 +13915,7 @@ variable for the duration of the command."
 		(error "Cannot find target location - try again with `C-u' prefix."))
 	      (goto-char (match-beginning 0))
 	      (looking-at outline-regexp)
-	      (setq level (org-get-legal-level (funcall outline-level) 1))
+	      (setq level (org-get-valid-level (funcall outline-level) 1))
 	      (goto-char (or (save-excursion
 			       (if reversed
 				   (outline-next-heading)
@@ -18526,7 +18529,7 @@ If LEVEL is given, prefix time with a corresponding number of stars.
 This creates a new overlay and stores it in `org-clock-overlays', so that it
 will be easy to remove."
   (let* ((c 60) (h (floor (/ time 60))) (m (- time (* 60 h)))
-	 (l (if level (org-get-legal-level level 0) 0))
+	 (l (if level (org-get-valid-level level 0) 0))
 	 (off 0)
 	 ov tx)
     (move-to-column c)
