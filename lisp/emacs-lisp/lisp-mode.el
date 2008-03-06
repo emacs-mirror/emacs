@@ -298,7 +298,7 @@
     (define-key menu-map [eval-region]
       '(menu-item "Evaluate Region" eval-region
 		  :help "Execute the region as Lisp code"
-		  :enable (mark-active)))
+		  :enable mark-active))
     (define-key menu-map [eval-sexp] 
       '(menu-item "Evaluate Last S-expression" eval-last-sexp
 		  :help "Evaluate sexp before point; print value in minibuffer"))
@@ -306,11 +306,11 @@
     (define-key menu-map [comment-region]
       '(menu-item "Comment Out Region" comment-region
 		  :help "Comment or uncomment each line in the region"
-		  :enable (mark-active)))
+		  :enable mark-active))
     (define-key menu-map [indent-region]
       '(menu-item "Indent Region" indent-region
 		  :help "Indent each nonblank line in the region"
-		  :enable (mark-active)))
+		  :enable mark-active))
     (define-key menu-map [indent-line] '("Indent Line" . lisp-indent-line))
     map)
   "Keymap for Emacs Lisp mode.

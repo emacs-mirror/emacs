@@ -1,3 +1,8 @@
+2008-03-06  Lennart Borgman  <lennart.borgman@gmail.com>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Bugfix: replaced
+	:enable (mark-active) with :enable mark-active.
+
 2008-03-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* vms-patch.el (make-legal-file-name): New obsolete alias.
