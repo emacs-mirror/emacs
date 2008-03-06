@@ -53,8 +53,8 @@
     (define-key map "\C-f" 'view-emacs-FAQ)
     (define-key map "\C-m" 'view-order-manuals)
     (define-key map "\C-n" 'view-emacs-news)
-    (define-key map "\C-p" 'describe-project)
-    (define-key map "\C-t" 'view-todo)
+    (define-key map "\C-p" 'describe-gnu-project)
+    (define-key map "\C-t" 'view-emacs-todo)
     (define-key map "\C-w" 'describe-no-warranty)
 
     ;; This does not fit the pattern, but it is natural given the C-\ command.
@@ -292,11 +292,13 @@ If that doesn't give a function, return nil."
   (view-file (expand-file-name "COPYING" data-directory))
   (goto-char (point-min)))
 
-(defun describe-project ()
+(defun describe-gnu-project ()
   "Display info on the GNU project."
   (interactive)
   (view-file (expand-file-name "THE-GNU-PROJECT" data-directory))
   (goto-char (point-min)))
+
+(define-obsolete-function-alias 'describe-project 'describe-gnu-project "22.2")
 
 (defun describe-no-warranty ()
   "Display info on all the kinds of warranty Emacs does NOT have."
@@ -396,10 +398,13 @@ With argument, display info only for the selected version."
 	   (point)))))))
 
 
-(defun view-todo (&optional arg)
+(defun view-emacs-todo (&optional arg)
   "Display the Emacs TODO list."
   (interactive "P")
   (view-file (expand-file-name "TODO" data-directory)))
+
+(define-obsolete-function-alias 'view-todo 'view-emacs-todo "22.2")
+
 
 (defun view-echo-area-messages ()
   "View the log of recent echo-area messages: the `*Messages*' buffer.
