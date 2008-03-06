@@ -43,9 +43,9 @@ FILENAME (sans directory) is used unchanged if that name is free;
 otherwise a string <2> or <3> or ... is appended to get an unused name."
   (generate-new-buffer (downcase (file-name-nondirectory filename))))
 
-;;; Given a string FN, return a similar name which is a legal VMS filename.
+;;; Given a string FN, return a similar name which is a valid VMS filename.
 ;;; This is used to avoid invalid auto save file names.
-(defun make-legal-file-name (fn)
+(defun make-valid-file-name (fn)
   (setq fn (copy-sequence fn))
   (let ((dot nil) (indx 0) (len (length fn)) chr)
     (while (< indx len)
@@ -58,6 +58,8 @@ otherwise a string <2> or <3> or ... is appended to get an unused name."
 	(aset fn indx ?_)))
       (setq indx (1+ indx))))
   fn)
+
+(define-obsolete-function-alias 'make-legal-file-name 'make-valid-file-name "23.1")
 
 ;;; Auto save filesnames start with _$ and end with $.
 
@@ -73,7 +75,7 @@ See also `auto-save-file-name-p'."
 	      "_$"
 	      (file-name-nondirectory buffer-file-name)
 	      "$")
-    (expand-file-name (concat "_$_" (make-legal-file-name (buffer-name)) "$"))))
+    (expand-file-name (concat "_$_" (make-valid-file-name (buffer-name)) "$"))))
 
 (defun auto-save-file-name-p (filename)
   "Return t if FILENAME can be yielded by `make-auto-save-file-name'.
