@@ -1676,7 +1676,7 @@ to be replaced by asterisks to highlight it whenever it is in the window."
          (month (extract-calendar-month date))
          (year (extract-calendar-year date)))
     ;; (calendar-read-date t) returns a date with day = nil, which is
-    ;; not a legal date for the visible test in the diary section.
+    ;; not a valid date for the visible test in the diary section.
     (if arg (setcar (cdr date) 1))
     (increment-calendar-month month year (- calendar-offset))
     ;; Display the buffer before calling generate-calendar-window so that it
@@ -2092,7 +2092,7 @@ Or, for optional MON, YR."
 	     font-lock-mode)
 	(font-lock-fontify-buffer))
     (and mark-holidays-in-calendar
-;;;         (calendar-date-is-legal-p today) ; useful for BC dates
+;;;         (calendar-date-is-valid-p today) ; useful for BC dates
          (mark-calendar-holidays)
          (and in-calendar-window (sit-for 0)))
     (unwind-protect
@@ -2352,7 +2352,7 @@ movement commands will not work correctly."
     (easy-menu-define nil map nil cal-menu-holidays-menu)
     (easy-menu-define nil map nil cal-menu-goto-menu)
     (easy-menu-define nil map nil cal-menu-scroll-menu)
-  
+
     (define-key map [down-mouse-3]
       (easy-menu-binding cal-menu-context-mouse-menu))
     (define-key map [down-mouse-2]
@@ -2927,9 +2927,9 @@ interpreted as BC; -1 being 1 BC, and so on."
   (let ((gap (calendar-interval
               displayed-month displayed-year
               (extract-calendar-month date) (extract-calendar-year date))))
-    (and (calendar-date-is-legal-p date) (> 2 gap) (< -2 gap))))
+    (and (calendar-date-is-valid-p date) (> 2 gap) (< -2 gap))))
 
-(defun calendar-date-is-legal-p (date)
+(defun calendar-date-is-valid-p (date)
   "Return t if DATE is a valid date."
   (let ((month (extract-calendar-month date))
         (day (extract-calendar-day date))
@@ -2945,6 +2945,9 @@ interpreted as BC; -1 being 1 BC, and so on."
          ;; Note there are side effects on calendar navigation.
          (<= 1 year))))
 
+(define-obsolete-function-alias 'calendar-date-is-legal-p
+    'calendar-date-is-valid-p "23.1")
+
 (defun calendar-date-equal (date1 date2)
   "Return t if the DATE1 and DATE2 are the same."
   (and
@@ -2956,7 +2959,7 @@ interpreted as BC; -1 being 1 BC, and so on."
   "Mark DATE in the calendar window with MARK.
 MARK is a single-character string, a list of face attributes/values, or a face.
 MARK defaults to `diary-entry-marker'."
-  (if (calendar-date-is-legal-p date)
+  (if (calendar-date-is-valid-p date)
       (with-current-buffer calendar-buffer
         (save-excursion
           (calendar-cursor-to-visible-date date)
