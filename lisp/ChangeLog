@@ -1,5 +1,8 @@
 2008-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-bzr.el (vc-bzr-resolve-when-done, vc-bzr-find-file-hook):
+	New functions.
+
 	* info.el (Info-bookmark-make-cell): Don't use the info-node argument.
 
 2008-03-06  Lennart Borgman  <lennart.borgman@gmail.com>  (tiny change)

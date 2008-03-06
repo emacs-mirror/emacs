@@ -232,6 +232,33 @@ If any error occurred in running `bzr status', then return nil."
                    (unknown . nil)
                    (unchanged . up-to-date)))))))
 
+(defun vc-bzr-resolve-when-done ()
+  "Call \"bzr resolve\" if the conflict markers have been removed."
+  (save-excursion
+    (goto-char (point-min))
+    (unless (re-search-forward "^<<<<<<< " nil t)
+      (vc-bzr-command "resolve" nil 0 buffer-file-name)
+      ;; Remove the hook so that it is not called multiple times.
+      (remove-hook 'after-save-hook 'vc-bzr-resolve-when-done t))))
+
+(defun vc-bzr-find-file-hook ()
+  (when (and buffer-file-name
+             ;; FIXME: We should check that "bzr status" says "conflict".
+             (file-exists-p (concat buffer-file-name ".BASE"))
+             (file-exists-p (concat buffer-file-name ".OTHER"))
+             (file-exists-p (concat buffer-file-name ".THIS"))
+             ;; If "bzr status" says there's a conflict but there are no
+             ;; conflict markers, it's not clear what we should do.
+             (save-excursion
+               (goto-char (point-min))
+               (re-search-forward "^<<<<<<< " nil t)))
+    ;; TODO: the merge algorithm used in `bzr merge' is nicely configurable,
+    ;; but the one in `bzr pull' isn't, so it would be good to provide an
+    ;; elisp function to remerge from the .BASE/OTHER/THIS files.
+    (smerge-start-session)
+    (add-hook 'after-save-hook 'vc-bzr-resolve-when-done nil t)
+    (message "There are unresolved conflicts in this file")))
+
 (defun vc-bzr-workfile-unchanged-p (file)
   (eq 'unchanged (car (vc-bzr-status file))))
 
