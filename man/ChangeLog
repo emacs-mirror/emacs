@@ -1,3 +1,8 @@
+2008-03-06  Kim F. Storm  <storm@cua.dk>
+
+	* help.texi (Help Files): Rename view-todo to view-emacs-toto.
+	Rename describe-project to describe-gnu-project.
+
 2008-02-17  Ulrich Mueller  <ulm@kph.uni-mainz.de>  (tiny change)
 
 	* msdog-xtra.texi (MS-DOS): Fix omission bug: Close quotes.
