@@ -7013,6 +7013,7 @@
 	of `mark' for error checking.
 
 2007-12-26  Tassilo Horn  <tassilo@member.fsf.org>
+
 	* image-mode.el (image-bookmark-make-cell, image-bookmark-jump):
 	New functions.
 	(image-mode): Set bookmark-make-cell-function appropriately.
