@@ -1,3 +1,11 @@
+2008-03-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* images/README: Update with bookmark_add.
+
+	* images/bookmark_add.pbm: New file
+
+	* images/bookmark_add.xpm: New file
+
 2008-03-03  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
 
 	* images/icons/hicolor/32x32/apps/emacs.png: Make transparency 8 bit.
