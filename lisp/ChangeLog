@@ -1,3 +1,19 @@
+2008-03-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* vms-patch.el (make-legal-file-name): New obsolete alias.
+	(make-valid-file-name): Rename from `make-legal-file-name'.
+	(make-auto-save-file-name): Use it.
+
+	* calendar/calendar.el (calendar-date-is-legal-p): New obsolete alias.
+	(calendar-date-is-valid-p): Rename from `calendar-date-is-legal-p'.
+	(calendar-date-is-visible-p, mark-visible-calendar-date): Use it.
+
+	* textmodes/org.el (org-export-html-style): Doc fix.
+	(org-get-legal-level): New obsolete alias.
+	(org-get-valid-level): Rename from `org-get-legal-level'.
+	(org-promote, org-demote, org-archive-subtree)
+	(org-remember-handler, org-refile, org-put-clock-overlay): Use it.
+
 2008-03-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): Add bookmark_add.
@@ -1189,7 +1205,7 @@
 	New options.
 	(python-which-shell, python-which-args, python-which-bufname):
 	New buffer local variables.
-	(python-file-queue, python-pdbtrack-is-tracking-p):
+	(python-file-queue, python-pdbtrack-is-tracking-p): New variables.
 
 	* progmodes/python.el (python-pdbtrack-stack-entry-regexp)
 	(python-pdbtrack-input-prompt, python-pdbtrack-track-range):
@@ -6997,7 +7013,6 @@
 	of `mark' for error checking.
 
 2007-12-26  Tassilo Horn  <tassilo@member.fsf.org>
-
 	* image-mode.el (image-bookmark-make-cell, image-bookmark-jump):
 	New functions.
 	(image-mode): Set bookmark-make-cell-function appropriately.
