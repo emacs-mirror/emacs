@@ -137,7 +137,7 @@ was mistakenly scrolled on compiles after the first.  Customize
 
 *** VC backends can provide completion of revision names.
 
-*** VC backends can provide extra menu entries to be added to the "Version Control" menu.
+*** VC backends can provide extra menu entries to the "Version Control" menu.
 This can be used to add menu entries for backend specific functions.
 
 *** VC has some support for Mercurial (Hg).
