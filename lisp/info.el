@@ -4326,7 +4326,7 @@ BUFFER is the buffer speedbar is requesting buttons for."
 ;; This is only called from bookmark.el.
 (declare-function bookmark-buffer-file-name "bookmark" ())
 
-(defun Info-bookmark-make-cell (annotation &optional info-node)
+(defun Info-bookmark-make-cell (annotation &rest args)
   (let ((the-record
          `((filename . ,(bookmark-buffer-file-name))
            (front-context-string
