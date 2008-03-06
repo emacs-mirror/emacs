@@ -4342,7 +4342,7 @@ BUFFER is the buffer speedbar is requesting buttons for."
                     (- (point) bookmark-search-size))
 		 nil))
            (position . ,(point))
-	   (info-node . ,info-node)
+	   (info-node . ,Info-current-node)
 	   (handler . Info-bookmark-jump))))
 
     ;; Now fill in the optional parts:
