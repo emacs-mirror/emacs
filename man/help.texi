@@ -606,7 +606,7 @@ control character.
 @kindex C-h C-n
 @findex view-emacs-news
 @kindex C-h C-p
-@findex describe-project
+@findex describe-gnu-project
 @kindex C-h C-t
 @findex view-emacs-todo
 @kindex C-h C-w
@@ -629,9 +629,9 @@ Display the Emacs ``news'' file, which lists new features in the most
 recent version of Emacs (@code{view-emacs-news}).
 @item C-h C-p
 Display general information about the GNU Project
-(@code{describe-project}).
+(@code{describe-gnu-project}).
 @item C-h C-t
-Display the Emacs to-do list (@code{view-todo}).
+Display the Emacs to-do list (@code{view-emacs-todo}).
 @item C-h C-w
 Display the full details on the complete absence of warranty for GNU
 Emacs (@code{describe-no-warranty}).
