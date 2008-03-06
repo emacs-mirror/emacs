@@ -1,5 +1,9 @@
 2008-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* arc-mode.el (archive-ar-file-header-re): New const.
+	(archive-ar-summarize, archive-ar-extract): New funs.
+	(archive-find-type): Recognize ar archives.
+
 	* vc-bzr.el (vc-bzr-resolve-when-done, vc-bzr-find-file-hook):
 	New functions.
 
@@ -7,8 +11,8 @@
 
 2008-03-06  Lennart Borgman  <lennart.borgman@gmail.com>  (tiny change)
 
-	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Bugfix: replaced
-	:enable (mark-active) with :enable mark-active.
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map):
+	Replace :enable (mark-active) with :enable mark-active.
 
 2008-03-06  Juanma Barranquero  <lekktu@gmail.com>
 
