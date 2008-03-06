@@ -44,6 +44,10 @@ below.  Emacs tries to warn you about these through `bad-packages-alist'.
 
 * Changes in Emacs 22.2
 
+** `describe-project' is renamed to `describe-gnu-project'.
+
+** `view-todo' is renamed to `view-emacs-todo'.
+
 ** `find-name-dired' now uses -iname rather than -name
 for case-insensitive filesystems.  The default behavior is determined
 by the value of `read-file-name-completion-ignore-case'; if you don't
