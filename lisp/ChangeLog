@@ -1,3 +1,11 @@
+2008-03-06  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el (x-gtk-stock-map): Add bookmark_add.
+
+	* vc.el (vc-status-tool-bar-map, vc-status-toggle-mark-file)
+	(vc-status-toggle-mark): New functions.
+	(vc-status-mode): Set tool bar map.
+
 2008-03-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs-lisp/lisp.el (parens-require-spaces): Doc fix.
