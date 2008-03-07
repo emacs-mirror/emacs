@@ -1,3 +1,19 @@
+2008-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bookmark.el (bookmark-map, bookmark-read-annotation-mode-map):
+	Move initialization into declaration.
+	(bookmark-get-info-node, bookmark-set-info-node): Remove.
+	(bookmark-make, bookmark-make-cell-for-text-file): Remove info-node arg.
+	(bookmark-info-current-node): Remove.
+	(bookmark-jump-noselect): Rename from bookmark-jump-internal.
+	Add relocation fallback.  Set bookmark-current-bookmark.
+	(bookmark-default-handler): Rename from bookmark-jump-noselect.
+	Remove relocation fallback.  Don't set bookmark-current-bookmark.
+	(bookmark-set): Let it be used even if there's no buffer-file-name
+	as long as there is a bookmark-make-cell-function.
+	* info.el (Info-bookmark-jump): Remove relocation fallback.
+	Don't set bookmark-current-bookmark.
+
 2008-03-07  Glenn Morris  <rgm@gnu.org>
 
 	* mail/supercite.el: Remove leading `*' from defcustom doc-strings.

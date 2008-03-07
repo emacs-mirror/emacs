@@ -4373,8 +4373,7 @@ BUFFER is the buffer speedbar is requesting buttons for."
          (forward-str            (bookmark-get-front-context-string bmk))
          (behind-str             (bookmark-get-rear-context-string bmk))
          (place                  (bookmark-get-position bmk))
-	 (info-node              (bookmark-get-info-node bmk))
-	 (orig-file              file))
+	 (info-node              (bookmark-get-info-node bmk)))
     (if (setq file (bookmark-file-or-variation-thereof file))
         (save-excursion
           (save-window-excursion
@@ -4391,24 +4390,7 @@ BUFFER is the buffer speedbar is requesting buttons for."
             (if behind-str
                 (if (search-backward behind-str (point-min) t)
                     (goto-char (match-end 0))))
-            ;; added by db
-            (setq bookmark-current-bookmark bmk)
-	    `((buffer ,(current-buffer)) (position ,(point)))))
-
-      ;; Else unable to find the marked file, so ask if user wants to
-      ;; relocate the bookmark, else remind them to consider deletion.
-      (ding)
-      (if (y-or-n-p (concat (file-name-nondirectory orig-file)
-                            " nonexistent.  Relocate \""
-                            bmk
-                            "\"? "))
-          (progn
-            (bookmark-relocate bmk)
-            ;; gasp!  It's a recursive function call in Emacs Lisp!
-            (bookmark-jump-noselect bmk))
-        (message
-         "Bookmark not relocated; consider removing it \(%s\)." bmk)
-        nil))))
+	    `((buffer ,(current-buffer)) (position ,(point))))))))
 
 (provide 'info)
 
