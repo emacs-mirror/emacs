@@ -1082,7 +1082,7 @@ See the command `doc-view-mode' for more information on this mode."
 
 ;;;; Bookmark integration
 
-(defun doc-view-bookmark-make-record (annotation &rest args)
+(defun doc-view-bookmark-make-record (annotation)
   (let ((the-record
          `((filename . ,buffer-file-name)
            (page     . ,(doc-view-current-page))
