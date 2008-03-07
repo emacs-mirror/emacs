@@ -85,7 +85,7 @@ static int w32font_full_name P_ ((LOGFONT * font, Lisp_Object font_obj,
                                   int pixel_size, char *name, int nbytes));
 static void recompute_cached_metrics P_ ((HDC dc, struct w32font_info * font));
 
-static Lisp_Object w32_registry P_ ((LONG w32_charset));
+static Lisp_Object w32_registry P_ ((LONG w32_charset, DWORD font_type));
 
 /* EnumFontFamiliesEx callbacks.  */
 static int CALLBACK add_font_entity_to_list P_ ((ENUMLOGFONTEX *,
@@ -942,7 +942,7 @@ w32_enumfont_pattern_entity (frame, logical_font, physical_font,
 
   ASET (entity, FONT_TYPE_INDEX, backend);
   ASET (entity, FONT_FRAME_INDEX, frame);
-  ASET (entity, FONT_REGISTRY_INDEX, w32_registry (lf->lfCharSet));
+  ASET (entity, FONT_REGISTRY_INDEX, w32_registry (lf->lfCharSet, font_type));
   ASET (entity, FONT_OBJLIST_INDEX, Qnil);
 
   /* Foundry is difficult to get in readable form on Windows.
@@ -1218,6 +1218,33 @@ font_matches_spec (type, font, spec)
   return 1;
 }
 
+static int
+w32font_coverage_ok (coverage, charset)
+     FONTSIGNATURE * coverage;
+     BYTE charset;
+{
+  DWORD subrange1 = coverage->fsUsb[1];
+
+#define SUBRANGE1_HAN_MASK 0x08000000
+#define SUBRANGE1_HANGEUL_MASK 0x01000000
+#define SUBRANGE1_JAPANESE_MASK (0x00060000 | SUBRANGE1_HAN_MASK)
+
+  if (charset == GB2312_CHARSET || charset == CHINESEBIG5_CHARSET)
+    {
+      return (subrange1 & SUBRANGE1_HAN_MASK) == SUBRANGE1_HAN_MASK;
+    }
+  else if (charset == SHIFTJIS_CHARSET)
+    {
+      return (subrange1 & SUBRANGE1_JAPANESE_MASK) == SUBRANGE1_JAPANESE_MASK;
+    }
+  else if (charset == HANGEUL_CHARSET)
+    {
+      return (subrange1 & SUBRANGE1_HANGEUL_MASK) == SUBRANGE1_HANGEUL_MASK;
+    }
+
+  return 1;
+}
+
 /* Callback function for EnumFontFamiliesEx.
  * Checks if a font matches everything we are trying to check agaist,
  * and if so, adds it to a list. Both the data we are checking against
@@ -1238,6 +1265,8 @@ add_font_entity_to_list (logical_font, physical_font, font_type, lParam)
       && logfonts_match (&logical_font->elfLogFont, &match_data->pattern)
       && font_matches_spec (font_type, physical_font,
                             match_data->orig_font_spec)
+      && w32font_coverage_ok (&physical_font->ntmFontSig,
+                              match_data->pattern.lfCharSet)
       /* Avoid substitutions involving raster fonts (eg Helv -> MS Sans Serif)
          We limit this to raster fonts, because the test can catch some
          genuine fonts (eg the full name of DejaVu Sans Mono Light is actually
@@ -1297,10 +1326,15 @@ registry_to_w32_charset (charset)
 }
 
 static Lisp_Object
-w32_registry (w32_charset)
+w32_registry (w32_charset, font_type)
      LONG w32_charset;
+     DWORD font_type;
 {
-  if (w32_charset == ANSI_CHARSET)
+  /* If charset is defaulted, use ANSI (unicode for truetype fonts).  */
+  if (w32_charset == DEFAULT_CHARSET)
+    w32_charset = ANSI_CHARSET;
+
+  if (font_type == TRUETYPE_FONTTYPE && w32_charset == ANSI_CHARSET)
     return Qiso10646_1;
   else
     {
