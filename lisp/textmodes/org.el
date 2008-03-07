@@ -22728,12 +22728,17 @@ the cursor position."
   (interactive)
   (org-agenda-execute-calendar-command 'list-calendar-holidays))
 
+(defvar calendar-longitude)
+(defvar calendar-latitude)
+(defvar calendar-location-name)
+
 (defun org-agenda-sunrise-sunset (arg)
   "Display sunrise and sunset for the cursor date.
 Latitude and longitude can be specified with the variables
 `calendar-latitude' and `calendar-longitude'.  When called with prefix
 argument, latitude and longitude will be prompted for."
   (interactive "P")
+  (require 'solar)
   (let ((calendar-longitude (if arg nil calendar-longitude))
 	(calendar-latitude  (if arg nil calendar-latitude))
 	(calendar-location-name
