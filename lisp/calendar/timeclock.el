@@ -85,17 +85,17 @@
 ;;; User Variables:
 
 (defcustom timeclock-file (convert-standard-filename "~/.timelog")
-  "*The file used to store timeclock data in."
+  "The file used to store timeclock data in."
   :type 'file
   :group 'timeclock)
 
 (defcustom timeclock-workday (* 8 60 60)
-  "*The length of a work period."
+  "The length of a work period."
   :type 'integer
   :group 'timeclock)
 
 (defcustom timeclock-relative t
-  "*Whether to make reported time relative to `timeclock-workday'.
+  "Whether to make reported time relative to `timeclock-workday'.
 For example, if the length of a normal workday is eight hours, and you
 work four hours on Monday, then the amount of time \"remaining\" on
 Tuesday is twelve hours -- relative to an averaged work period of
@@ -106,7 +106,7 @@ previous days.  This only affects the timeclock modeline display."
   :group 'timeclock)
 
 (defcustom timeclock-get-project-function 'timeclock-ask-for-project
-  "*The function used to determine the name of the current project.
+  "The function used to determine the name of the current project.
 When clocking in, and no project is specified, this function will be
 called to determine what is the current project to be worked on.
 If this variable is nil, no questions will be asked."
@@ -114,7 +114,7 @@ If this variable is nil, no questions will be asked."
   :group 'timeclock)
 
 (defcustom timeclock-get-reason-function 'timeclock-ask-for-reason
-  "*A function used to determine the reason for clocking out.
+  "A function used to determine the reason for clocking out.
 When clocking out, and no reason is specified, this function will be
 called to determine what is the reason.
 If this variable is nil, no questions will be asked."
@@ -122,7 +122,7 @@ If this variable is nil, no questions will be asked."
   :group 'timeclock)
 
 (defcustom timeclock-get-workday-function nil
-  "*A function used to determine the length of today's workday.
+  "A function used to determine the length of today's workday.
 The first time that a user clocks in each day, this function will be
 called to determine what is the length of the current workday.  If
 the return value is nil, or equal to `timeclock-workday', nothing special
@@ -133,7 +133,7 @@ that day has a length that is different from the norm."
   :group 'timeclock)
 
 (defcustom timeclock-ask-before-exiting t
-  "*If non-nil, ask if the user wants to clock out before exiting Emacs.
+  "If non-nil, ask if the user wants to clock out before exiting Emacs.
 This variable only has effect if set with \\[customize]."
   :set (lambda (symbol value)
 	 (if value
@@ -151,7 +151,7 @@ This variable only has effect if set with \\[customize]."
 (defvar timeclock-modeline-display)
 
 (defcustom timeclock-use-display-time t
-  "*If non-nil, use `display-time-hook' for doing modeline updates.
+  "If non-nil, use `display-time-hook' for doing modeline updates.
 The advantage of this is that one less timer has to be set running
 amok in Emacs' process space.  The disadvantage is that it requires
 you to have `display-time' running.  If you don't want to use
@@ -187,7 +187,7 @@ a positive argument to force an update."
   :require 'time)
 
 (defcustom timeclock-first-in-hook nil
-  "*A hook run for the first \"in\" event each day.
+  "A hook run for the first \"in\" event each day.
 Note that this hook is run before recording any events.  Thus the
 value of `timeclock-hours-today', `timeclock-last-event' and the
 return value of function `timeclock-last-period' are relative previous
@@ -196,34 +196,34 @@ to today."
   :group 'timeclock)
 
 (defcustom timeclock-load-hook nil
-  "*Hook that gets run after timeclock has been loaded."
+  "Hook that gets run after timeclock has been loaded."
   :type 'hook
   :group 'timeclock)
 
 (defcustom timeclock-in-hook nil
-  "*A hook run every time an \"in\" event is recorded."
+  "A hook run every time an \"in\" event is recorded."
   :type 'hook
   :group 'timeclock)
 
 (defcustom timeclock-day-over-hook nil
-  "*A hook that is run when the workday has been completed.
+  "A hook that is run when the workday has been completed.
 This hook is only run if the current time remaining is being displayed
 in the modeline.  See the variable `timeclock-modeline-display'."
   :type 'hook
   :group 'timeclock)
 
 (defcustom timeclock-out-hook nil
-  "*A hook run every time an \"out\" event is recorded."
+  "A hook run every time an \"out\" event is recorded."
   :type 'hook
   :group 'timeclock)
 
 (defcustom timeclock-done-hook nil
-  "*A hook run every time a project is marked as completed."
+  "A hook run every time a project is marked as completed."
   :type 'hook
   :group 'timeclock)
 
 (defcustom timeclock-event-hook nil
-  "*A hook run every time any event is recorded."
+  "A hook run every time any event is recorded."
   :type 'hook
   :group 'timeclock)
 
