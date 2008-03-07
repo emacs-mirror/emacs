@@ -3374,7 +3374,7 @@ With a zero prefix arg, put the name inside a function call to `info'."
 (put 'Info-mode 'no-clone-indirect t)
 
 (defvar tool-bar-map)
-(defvar bookmark-make-cell-function)
+(defvar bookmark-make-record-function)
 
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
@@ -3487,8 +3487,8 @@ Advanced commands:
   (set (make-local-variable 'revert-buffer-function)
        'Info-revert-buffer-function)
   (Info-set-mode-line)
-  (set (make-local-variable 'bookmark-make-cell-function)
-       'Info-bookmark-make-cell)
+  (set (make-local-variable 'bookmark-make-record-function)
+       'Info-bookmark-make-record)
   (run-mode-hooks 'Info-mode-hook))
 
 ;; When an Info buffer is killed, make sure the associated tags buffer
@@ -4326,7 +4326,7 @@ BUFFER is the buffer speedbar is requesting buttons for."
 ;; This is only called from bookmark.el.
 (declare-function bookmark-buffer-file-name "bookmark" ())
 
-(defun Info-bookmark-make-cell (annotation &rest args)
+(defun Info-bookmark-make-record (annotation &rest args)
   (let ((the-record
          `((filename . ,(bookmark-buffer-file-name))
            (front-context-string
@@ -4368,7 +4368,7 @@ BUFFER is the buffer speedbar is requesting buttons for."
 ;;;###autoload
 (defun Info-bookmark-jump (bmk)
   ;; This implements the `handler' function interface for record type returned
-  ;; by `Info-make-cell-function', which see.
+  ;; by `Info-bookmark-make-record', which see.
   (let* ((file (expand-file-name (bookmark-get-filename bmk)))
          (forward-str            (bookmark-get-front-context-string bmk))
          (behind-str             (bookmark-get-rear-context-string bmk))

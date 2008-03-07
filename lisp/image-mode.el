@@ -278,7 +278,7 @@ This variable is used to display the current image type in the mode line.")
     map)
   "Major mode keymap for viewing images as text in Image mode.")
 
-(defvar bookmark-make-cell-function)
+(defvar bookmark-make-record-function)
 
 ;;;###autoload
 (defun image-mode ()
@@ -290,8 +290,8 @@ to toggle between display as an image and display as text."
   (setq mode-name "Image[text]")
   (setq major-mode 'image-mode)
   ;; Use our own bookmarking function for images.
-  (set (make-local-variable 'bookmark-make-cell-function)
-       'image-bookmark-make-cell)
+  (set (make-local-variable 'bookmark-make-record-function)
+       'image-bookmark-make-record)
 
   ;; Keep track of [vh]scroll when switching buffers
   (image-mode-setup-winprops)
@@ -431,7 +431,7 @@ and showing the image as an image."
 
 ;;; Support for bookmark.el
 
-(defun image-bookmark-make-cell (annotation &rest args)
+(defun image-bookmark-make-record (annotation &rest args)
   (let ((the-record
          `((filename   . ,(buffer-file-name))
 	   (image-type . ,image-type)
@@ -454,7 +454,7 @@ and showing the image as an image."
 ;;;###autoload
 (defun image-bookmark-jump (bmk)
   ;; This implements the `handler' function interface for record type
-  ;; returned by `bookmark-make-cell-function', which see.
+  ;; returned by `bookmark-make-record-function', which see.
   (save-window-excursion
     (let ((filename (bookmark-get-filename bmk))
 	  (type (cdr (assq 'image-type (bookmark-get-bookmark-record bmk))))

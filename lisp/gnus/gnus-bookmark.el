@@ -207,13 +207,13 @@ So the cdr of each bookmark is an alist too.")
       (setq gnus-bookmark-alist
 	    (cons
 	     (list (gnus-bookmark-remove-properties bmk-name)
-		   (gnus-bookmark-make-cell
+		   (gnus-bookmark-make-record
 		    group message-id author date subject annotation))
 	     gnus-bookmark-alist))))
   (gnus-bookmark-bmenu-surreptitiously-rebuild-list)
   (gnus-bookmark-write-file))
 
-(defun gnus-bookmark-make-cell
+(defun gnus-bookmark-make-record
   (group message-id author date subject annotation)
   "Return the record part of a new bookmark, given GROUP MESSAGE-ID AUTHOR DATE SUBJECT and ANNOTATION."
   (let ((the-record
@@ -288,9 +288,9 @@ So the cdr of each bookmark is an alist too.")
   (let* ((bookmark (or bmk-name
 	  (completing-read "Jump to bookmarked article: "
 			   gnus-bookmark-alist)))
-	 (bmk-cell (cadr (assoc bookmark gnus-bookmark-alist)))
-	 (group (cdr (assoc 'group bmk-cell)))
-	 (message-id (cdr (assoc 'message-id bmk-cell))))
+	 (bmk-record (cadr (assoc bookmark gnus-bookmark-alist)))
+	 (group (cdr (assoc 'group bmk-record)))
+	 (message-id (cdr (assoc 'message-id bmk-record))))
     (when group
       (unless (get-buffer gnus-group-buffer)
 	(gnus-no-server))

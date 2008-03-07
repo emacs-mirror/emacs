@@ -463,13 +463,14 @@ menus, so `completing-read' never gets a chance to set `bookmark-history'."
     (interactive-p)
     (setq bookmark-history (cons ,string bookmark-history))))
 
-(defvar bookmark-make-cell-function 'bookmark-make-cell-for-text-file
-  "A function that should be called to create the bookmark
-record.  Modes may set this variable buffer-locally to enable
-bookmarking of non-text files like images or pdf documents.
+(defvar bookmark-make-record-function 'bookmark-make-record-for-text-file
+  "A function that should be called to create a bookmark record.
+Modes may set this variable buffer-locally to enable bookmarking of
+locations that should be treated specially, such as Info nodes,
+news posts, images, pdf documents, etc.
 
 The function will be called with one argument: ANNOTATION.
-See `bookmark-make-cell-for-text-file' for a description.
+See `bookmark-make-record-for-text-file' for a description.
 
 The returned record may contain a special cons (handler . SOME-FUNCTION)
 which sets the handler function that should be used to open this
@@ -492,7 +493,7 @@ this name."
         ;; already existing bookmark under that name and
         ;; no prefix arg means just overwrite old bookmark
         (setcdr (bookmark-get-bookmark stripped-name)
-                (list (funcall bookmark-make-cell-function annotation)))
+                (list (funcall bookmark-make-record-function annotation)))
 
       ;; otherwise just cons it onto the front (either the bookmark
       ;; doesn't exist already, or there is no prefix arg.  In either
@@ -501,7 +502,7 @@ this name."
       (setq bookmark-alist
             (cons
              (list stripped-name
-                   (funcall bookmark-make-cell-function annotation))
+                   (funcall bookmark-make-record-function annotation))
              bookmark-alist)))
 
     ;; Added by db
@@ -512,12 +513,10 @@ this name."
         (bookmark-save))))
 
 
-(defun bookmark-make-cell-for-text-file (annotation)
+(defun bookmark-make-record-for-text-file (annotation)
   "Return the record part of a new bookmark, given ANNOTATION.
 Must be at the correct position in the buffer in which the bookmark is
-being set.  This might change someday.
-Optional second arg INFO-NODE means this bookmark is at info node
-INFO-NODE, so record this fact in the bookmark's entry."
+being set (this might change someday)."
   (let ((the-record
          `((filename . ,(bookmark-buffer-file-name))
            (front-context-string
@@ -807,11 +806,12 @@ the bookmark (and file, and point) specified in buffer local variables."
 	(bookmark bookmark-annotation-name)
 	(pt bookmark-annotation-point)
 	(buf bookmark-annotation-buffer))
-    ;; for bookmark-make-cell to work, we need to be
+    ;; for bookmark-make-record-function to work, we need to be
     ;; in the relevant buffer, at the relevant point.
-    ;; Actually, bookmark-make-cell should probably be re-written,
-    ;; to avoid this need.  Should I handle the error if a buffer is
-    ;; killed between "C-x r m" and a "C-c C-c" in the annotation buffer?
+    ;; Actually, the bookmark-make-record-function spec should
+    ;; probably be changed to avoid this need.  Should I handle the
+    ;; error if a buffer is killed between "C-x r m" and a "C-c C-c"
+    ;; in the annotation buffer?
     (save-excursion
       (pop-to-buffer buf)
       (goto-char pt)

@@ -1,3 +1,9 @@
+2008-03-07  Karl Fogel  <kfogel@red-bean.com>
+
+	* lisp/gnus/gnus-bookmark.el: Adjust for renames in bookmark.el.
+	(gnus-bookmark-make-record): Was `gnus-bookmark-make-cell'.
+	(gnus-bookmark-jump): Adjust some variable names.
+
 2008-03-05  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-art.el (gnus-article-mode-line-format-alist): Move to gnus-sum.
