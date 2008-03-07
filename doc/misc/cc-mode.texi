@@ -6760,6 +6760,14 @@ templates do not fare so well.  Sometimes a workaround is to refontify
 the expression after typing the closing @samp{>}.
 
 @item
+In a @dfn{k&r region} (the part of an old-fashioned C function
+declaration which specifies the types of its parameters, coming
+between the parameter list and the opening brace), there should be at
+most 20 top-level parenthesis and bracket pairs.  This limit has been
+imposed for performance reasons.  If it is violated, the source file
+might be incorrectly indented or fontified.
+
+@item
 On loading @ccmode{}, sometimes this error message appears:
 
 @example
