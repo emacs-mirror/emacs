@@ -93,6 +93,10 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02939.html
 Patch available at
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-03/msg00014.html
 
+** slow editing in .h files
+Patch available at
+http://lists.gnu.org/archive/html/emacs-devel/2008-03/msg00658.html
+
 * DOCUMENTATION
 
 ** Shouldn't directory-abbrev-alist be in Emacs manual?
