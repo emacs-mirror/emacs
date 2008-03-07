@@ -1,3 +1,13 @@
+2008-03-07  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-bookmark-make-record): Delete obsolete
+	second arg.
+
+	* image-mode.el (image-bookmark-make-record): Delete obsolete
+	second arg.
+
+	* info.el (Info-bookmark-make-record): Delete obsolete second arg.
+
 2008-03-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* vc.el (vc-status-menu-map-filter): Return orig-binding if
