@@ -518,7 +518,7 @@ A replacement function for `newline-and-indent', aligning as it goes.
 ;;;***
 
 ;;;### (autoloads (outlineify-sticky allout-mode) "allout" "allout.el"
-;;;;;;  (18335 29122))
+;;;;;;  (18376 17137))
 ;;; Generated autoloads from allout.el
 
 (put (quote allout-show-bodies) (quote safe-local-variable) (if (fboundp (quote booleanp)) (quote booleanp) (quote (lambda (x) (member x (quote (t nil)))))))
@@ -1789,8 +1789,8 @@ non-interactive use see also `benchmark-run' and
 
 ;;;***
 
-;;;### (autoloads (bibtex-mode) "bibtex" "textmodes/bibtex.el" (18310
-;;;;;;  14604))
+;;;### (autoloads (bibtex-mode) "bibtex" "textmodes/bibtex.el" (18368
+;;;;;;  33141))
 ;;; Generated autoloads from textmodes/bibtex.el
 
 (autoload (quote bibtex-mode) "bibtex" "\
@@ -1851,7 +1851,7 @@ if that value is non-nil.
 ;;;***
 
 ;;;### (autoloads (bibtex-style-mode) "bibtex-style" "textmodes/bibtex-style.el"
-;;;;;;  (18310 14604))
+;;;;;;  (18383 1614))
 ;;; Generated autoloads from textmodes/bibtex-style.el
  (add-to-list 'auto-mode-alist '("\\.bst\\'" . bibtex-style-mode))
 
@@ -3499,7 +3499,7 @@ it fails.
 ;;;***
 
 ;;;### (autoloads (c-guess-basic-syntax) "cc-engine" "progmodes/cc-engine.el"
-;;;;;;  (18336 60140))
+;;;;;;  (18368 29740))
 ;;; Generated autoloads from progmodes/cc-engine.el
 
 (autoload (quote c-guess-basic-syntax) "cc-engine" "\
@@ -3511,7 +3511,7 @@ Return the syntactic context of the current line.
 
 ;;;### (autoloads (pike-mode idl-mode java-mode objc-mode c++-mode
 ;;;;;;  c-mode c-initialize-cc-mode) "cc-mode" "progmodes/cc-mode.el"
-;;;;;;  (18310 14597))
+;;;;;;  (18383 1613))
 ;;; Generated autoloads from progmodes/cc-mode.el
 
 (autoload (quote c-initialize-cc-mode) "cc-mode" "\
@@ -4401,7 +4401,7 @@ Return an updated `non-iso-charset-alist'.
 
 ;;;### (autoloads (codepage-setup cp-supported-codepages cp-offset-for-codepage
 ;;;;;;  cp-language-for-codepage cp-charset-for-codepage cp-make-coding-systems-for-codepage)
-;;;;;;  "codepage" "international/codepage.el" (18310 14589))
+;;;;;;  "codepage" "international/codepage.el" (18368 29739))
 ;;; Generated autoloads from international/codepage.el
 
 (autoload (quote cp-make-coding-systems-for-codepage) "codepage" "\
@@ -5534,8 +5534,8 @@ INHERIT-INPUT-METHOD.
 
 ;;;***
 
-;;;### (autoloads (css-mode) "css-mode" "textmodes/css-mode.el" (18310
-;;;;;;  14604))
+;;;### (autoloads (css-mode) "css-mode" "textmodes/css-mode.el" (18383
+;;;;;;  1614))
 ;;; Generated autoloads from textmodes/css-mode.el
  (add-to-list 'auto-mode-alist '("\\.css\\'" . css-mode))
 
@@ -6510,7 +6510,7 @@ as well as widgets, buttons, overlays, and text properties.
 ;;;### (autoloads (desktop-revert desktop-save-in-desktop-dir desktop-change-dir
 ;;;;;;  desktop-load-default desktop-read desktop-remove desktop-save
 ;;;;;;  desktop-clear desktop-locals-to-save desktop-save-mode) "desktop"
-;;;;;;  "desktop.el" (18355 36598))
+;;;;;;  "desktop.el" (18383 1604))
 ;;; Generated autoloads from desktop.el
 
 (defvar desktop-save-mode nil "\
@@ -6825,7 +6825,7 @@ With prefix arg, prompt for diff switches.
 ;;;***
 
 ;;;### (autoloads (diff-minor-mode diff-mode) "diff-mode" "diff-mode.el"
-;;;;;;  (18355 36598))
+;;;;;;  (18376 17137))
 ;;; Generated autoloads from diff-mode.el
 
 (autoload (quote diff-mode) "diff-mode" "\
@@ -6857,7 +6857,7 @@ Minor mode for viewing/editing context diffs.
 ;;;;;;  dired dired-copy-preserve-time dired-dwim-target dired-keep-marker-symlink
 ;;;;;;  dired-keep-marker-hardlink dired-keep-marker-copy dired-keep-marker-rename
 ;;;;;;  dired-trivial-filenames dired-ls-F-marks-symlinks dired-listing-switches)
-;;;;;;  "dired" "dired.el" (18310 14568))
+;;;;;;  "dired" "dired.el" (18368 40261))
 ;;; Generated autoloads from dired.el
 
 (defvar dired-listing-switches "-al" "\
@@ -10918,7 +10918,7 @@ Set up hooks, load the cache file -- if existing -- and build the menu.
 
 ;;;***
 
-;;;### (autoloads nil "fill" "textmodes/fill.el" (18310 14604))
+;;;### (autoloads nil "fill" "textmodes/fill.el" (18376 17138))
 ;;; Generated autoloads from textmodes/fill.el
 (put 'colon-double-space 'safe-local-variable 'booleanp)
 
@@ -11685,7 +11685,7 @@ and choose the directory as the fortune-file.
 ;;;***
 
 ;;;### (autoloads (gdb-enable-debug gdb) "gdb-ui" "progmodes/gdb-ui.el"
-;;;;;;  (18363 3872))
+;;;;;;  (18372 16113))
 ;;; Generated autoloads from progmodes/gdb-ui.el
 
 (autoload (quote gdb) "gdb-ui" "\
@@ -12218,7 +12218,7 @@ FILE should be a PNG file that's 48x48 and smaller than or equal to
 ;;;***
 
 ;;;### (autoloads (gnus-fetch-group-other-frame gnus-fetch-group)
-;;;;;;  "gnus-group" "gnus/gnus-group.el" (18310 14585))
+;;;;;;  "gnus-group" "gnus/gnus-group.el" (18370 58910))
 ;;; Generated autoloads from gnus/gnus-group.el
 
 (autoload (quote gnus-fetch-group) "gnus-group" "\
@@ -12839,7 +12839,7 @@ the form \"WINDOW-ID PIXMAP-ID\".  Value is non-nil if successful.
 ;;;***
 
 ;;;### (autoloads (gdb-script-mode jdb pdb perldb xdb dbx sdb gud-gdb)
-;;;;;;  "gud" "progmodes/gud.el" (18363 3872))
+;;;;;;  "gud" "progmodes/gud.el" (18368 29740))
 ;;; Generated autoloads from progmodes/gud.el
 
 (autoload (quote gud-gdb) "gud" "\
@@ -16333,8 +16333,8 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 
 ;;;***
 
-;;;### (autoloads (iswitchb-mode) "iswitchb" "iswitchb.el" (18310
-;;;;;;  14572))
+;;;### (autoloads (iswitchb-mode) "iswitchb" "iswitchb.el" (18383
+;;;;;;  1606))
 ;;; Generated autoloads from iswitchb.el
 
 (defvar iswitchb-mode nil "\
@@ -17685,8 +17685,8 @@ yourself the value of `master-of' by calling `master-show-slave'.
 
 ;;;***
 
-;;;### (autoloads (menu-bar-mode) "menu-bar" "menu-bar.el" (18310
-;;;;;;  14574))
+;;;### (autoloads (menu-bar-mode) "menu-bar" "menu-bar.el" (18384
+;;;;;;  14919))
 ;;; Generated autoloads from menu-bar.el
 
 (put (quote menu-bar-mode) (quote standard-value) (quote (t)))
@@ -18925,7 +18925,7 @@ Enable mouse wheel support.
 ;;;### (autoloads (network-connection network-connection-to-service
 ;;;;;;  whois-reverse-lookup whois finger ftp run-dig dns-lookup-host
 ;;;;;;  nslookup nslookup-host route arp netstat ifconfig ping traceroute)
-;;;;;;  "net-utils" "net/net-utils.el" (18355 36599))
+;;;;;;  "net-utils" "net/net-utils.el" (18372 16112))
 ;;; Generated autoloads from net/net-utils.el
 
 (autoload (quote traceroute) "net-utils" "\
@@ -18953,12 +18953,12 @@ Run netstat program.
 \(fn)" t nil)
 
 (autoload (quote arp) "net-utils" "\
-Run the arp program.
+Run arp program.
 
 \(fn)" t nil)
 
 (autoload (quote route) "net-utils" "\
-Run the route program.
+Run route program.
 
 \(fn)" t nil)
 
@@ -19021,7 +19021,7 @@ Open a network connection to HOST on PORT.
 ;;;;;;  uncomment-region comment-kill comment-set-column comment-indent
 ;;;;;;  comment-indent-default comment-normalize-vars comment-multi-line
 ;;;;;;  comment-padding comment-style comment-column) "newcomment"
-;;;;;;  "newcomment.el" (18355 41016))
+;;;;;;  "newcomment.el" (18383 1607))
 ;;; Generated autoloads from newcomment.el
 
 (defalias (quote indent-for-comment) (quote comment-indent))
@@ -19138,7 +19138,7 @@ With any other arg, set comment column to indentation of the previous comment
 \(fn ARG)" t nil)
 
 (autoload (quote comment-kill) "newcomment" "\
-Kill the comment on this line, if any.
+Kill the first comment on this line, if any.
 With prefix ARG, kill comments on that many lines starting with this one.
 
 \(fn ARG)" t nil)
@@ -22698,8 +22698,8 @@ variable.
 ;;;;;;  rmail-mail-new-frame rmail-primary-inbox-list rmail-delete-after-output
 ;;;;;;  rmail-highlight-face rmail-highlighted-headers rmail-retry-ignored-headers
 ;;;;;;  rmail-displayed-headers rmail-ignored-headers rmail-dont-reply-to-names
-;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (18339
-;;;;;;  43353))
+;;;;;;  rmail-movemail-variant-p) "rmail" "mail/rmail.el" (18368
+;;;;;;  29739))
 ;;; Generated autoloads from mail/rmail.el
 
 (autoload (quote rmail-movemail-variant-p) "rmail" "\
@@ -24142,7 +24142,7 @@ To work around that, do:
 ;;;***
 
 ;;;### (autoloads (sh-mode) "sh-script" "progmodes/sh-script.el"
-;;;;;;  (18326 18336))
+;;;;;;  (18368 29740))
 ;;; Generated autoloads from progmodes/sh-script.el
 (put 'sh-shell 'safe-local-variable 'symbolp)
 
@@ -24308,7 +24308,7 @@ Set up file shadowing.
 ;;;***
 
 ;;;### (autoloads (shell shell-dumb-shell-regexp) "shell" "shell.el"
-;;;;;;  (18310 14577))
+;;;;;;  (18376 17161))
 ;;; Generated autoloads from shell.el
 
 (defvar shell-dumb-shell-regexp "cmd\\(proxy\\)?\\.exe" "\
@@ -25656,7 +25656,7 @@ Studlify-case the current buffer.
 
 ;;;***
 
-;;;### (autoloads (locate-library) "subr" "subr.el" (18355 36598))
+;;;### (autoloads (locate-library) "subr" "subr.el" (18368 29739))
 ;;; Generated autoloads from subr.el
 
 (autoload (quote locate-library) "subr" "\
@@ -28419,7 +28419,7 @@ no further processing).  URL is either a string or a parsed URL.
 ;;;***
 
 ;;;### (autoloads (url-register-auth-scheme url-get-authentication)
-;;;;;;  "url-auth" "url/url-auth.el" (18310 14608))
+;;;;;;  "url-auth" "url/url-auth.el" (18370 62979))
 ;;; Generated autoloads from url/url-auth.el
 
 (autoload (quote url-get-authentication) "url-auth" "\
@@ -28826,7 +28826,7 @@ Setup variables that expose info about you and your system.
 ;;;;;;  url-pretty-length url-strip-leading-spaces url-eat-trailing-space
 ;;;;;;  url-get-normalized-date url-lazy-message url-normalize-url
 ;;;;;;  url-insert-entities-in-string url-parse-args url-debug url-debug)
-;;;;;;  "url-util" "url/url-util.el" (18310 14608))
+;;;;;;  "url-util" "url/url-util.el" (18375 10572))
 ;;; Generated autoloads from url/url-util.el
 
 (defvar url-debug nil "\
@@ -28988,7 +28988,7 @@ The buffer in question is current when this function is called.
 
 ;;;***
 
-;;;### (autoloads nil "utf-7" "international/utf-7.el" (18310 14591))
+;;;### (autoloads nil "utf-7" "international/utf-7.el" (18375 10572))
 ;;; Generated autoloads from international/utf-7.el
 (autoload-coding-system 'utf-7 '(require 'utf-7))
 
@@ -29381,7 +29381,7 @@ Name of the directory containing Bzr repository status files.")
 
 ;;;***
 
-;;;### (autoloads nil "vc-mtn" "vc-mtn.el" (18310 14578))
+;;;### (autoloads nil "vc-mtn" "vc-mtn.el" (18383 1610))
 ;;; Generated autoloads from vc-mtn.el
 
 (defconst vc-mtn-admin-dir "_MTN")
@@ -29502,7 +29502,7 @@ Key bindings:
 ;;;***
 
 ;;;### (autoloads (verilog-mode) "verilog-mode" "progmodes/verilog-mode.el"
-;;;;;;  (18363 3872))
+;;;;;;  (18383 1614))
 ;;; Generated autoloads from progmodes/verilog-mode.el
 
 (autoload (quote verilog-mode) "verilog-mode" "\
@@ -31314,7 +31314,7 @@ Zone out, completely.
 ;;;;;;  "url/url-vars.el" "url/vc-dav.el" "vc-hooks.el" "vcursor.el"
 ;;;;;;  "version.el" "vms-patch.el" "vmsproc.el" "vt-control.el"
 ;;;;;;  "vt100-led.el" "w32-fns.el" "w32-vars.el" "widget.el" "window.el"
-;;;;;;  "x-dnd.el") (18363 6667 679295))
+;;;;;;  "x-dnd.el") (18385 28669 600418))
 
 ;;;***
 
