@@ -2226,8 +2226,8 @@ duplicates what `expand-file-name' does.  */)
 	/* Get variable value */
 	o = (unsigned char *) egetenv (target);
 	if (o)
-	  {
-	    total += strlen (o);
+	  { /* Eight-bit chars occupy upto 2 bytes in multibyte.  */
+	    total += strlen (o) * (STRING_MULTIBYTE (filename) ? 2 : 1);
 	    substituted = 1;
 	  }
 	else if (*p == '}')

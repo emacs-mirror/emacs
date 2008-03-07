@@ -1,3 +1,8 @@
+2008-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fsubstitute_in_file_name): Fix up computation of maximum
+	size of resulting string.
+
 2008-03-05  Jason Rumney  <jasonr@gnu.org>
 
 	* dispnew.c (adjust_glyph_matrix): Initialize window_height.
