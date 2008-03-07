@@ -2801,25 +2801,28 @@ With prefix arg READ-SWITCHES, specify a value to override
   "Keymap for VC status")
 
 (defun vc-status-menu-map-filter (orig-binding)
-  (when (and (symbolp orig-binding) (fboundp orig-binding))
-    (setq orig-binding (indirect-function orig-binding)))
-  (let ((ext-binding
-	 (vc-call-backend (vc-responsible-backend default-directory)
-			  'extra-status-menu)))
-    (if (null ext-binding)
-        orig-binding
-      (append orig-binding
-	      '("----")
-              ext-binding))))
+  (if (boundp 'vc-ignore-menu-filter)
+      orig-binding
+    (when (and (symbolp orig-binding) (fboundp orig-binding))
+      (setq orig-binding (indirect-function orig-binding)))
+    (let ((ext-binding
+	   (vc-call-backend (vc-responsible-backend default-directory)
+			    'extra-status-menu)))
+      (if (null ext-binding)
+	  orig-binding
+	(append orig-binding
+		'("----")
+		ext-binding)))))
 
 (defun vc-status-menu (e)
   "Popup the VC status menu."
   (interactive "e")
   (popup-menu vc-status-menu-map e))
 
-(defun vc-status-tool-bar-map ()
+(defvar vc-status-tool-bar-map
   (if (display-graphic-p)
-      (let ((map (make-sparse-keymap)))
+      (let ((map (make-sparse-keymap))
+	    (vc-ignore-menu-filter t)) ;; Backend may not support vc-status
 	(tool-bar-local-item-from-menu 'vc-status-find-file "open" 
 				       map vc-status-mode-map)
 	(tool-bar-local-item "bookmark_add" 
@@ -2854,7 +2857,7 @@ With prefix arg READ-SWITCHES, specify a value to override
   (setq buffer-read-only t)
   (set (make-local-variable 'vc-status-crt-marked) nil)
   (use-local-map vc-status-mode-map)
-  (set (make-local-variable 'tool-bar-map) (vc-status-tool-bar-map))
+  (set (make-local-variable 'tool-bar-map) vc-status-tool-bar-map)
   (let ((buffer-read-only nil)
 	(backend (vc-responsible-backend default-directory))
 	entries)
@@ -3051,7 +3054,7 @@ that share the same state."
 
 (defun vc-status-toggle-mark ()
   (interactive)
-  (vc-status-mark-unmark 'toggle-mark-file))
+  (vc-status-mark-unmark 'vc-status-toggle-mark-file))
 
 (defun vc-status-register ()
   "Register the marked files, or the current file if no marks."
