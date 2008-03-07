@@ -19,7 +19,7 @@
 
 	* makefile.w32-in (MOUSE_SUPPORT): Remove duplicate tooltip.elc.
 	(MSDOS_SUPPORT, VMS_SUPPORT): Remove.
-	(OTHER_PLATFORM_SUPPORT): Replace above. Add X specific files too.
+	(OTHER_PLATFORM_SUPPORT): Replace above.  Add X specific files too.
 	(lisp2): Add new languages.
 	($(DOC)): Use OTHER_PLATFORM_SUPPORT.
 
@@ -75,7 +75,7 @@
 
 2008-02-01  Zhang Wei  <id.brep@gmail.com>  (tiny change)
 
-	* lib-src/makefile.w32-in (lisp1): Delete ucs-tables.elc,
+	* makefile.w32-in (lisp1): Delete ucs-tables.elc,
 	utf-8.elc, and latin-*.el.
 
 2008-01-26  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -2277,7 +2277,7 @@
 
 2001-01-03  Paul Eggert  <eggert@twinsun.com>
 
-	* lib-src/rcs2log: Avoid security hole allowing attacker to
+	* rcs2log: Avoid security hole allowing attacker to
 	cause user of rcs2log to overwrite arbitrary files, fixing
 	a bug reported by Morten Welinder.
 
@@ -2930,7 +2930,7 @@
 
 1998-07-30  Paul Eggert  <eggert@twinsun.com>
 
-	* lib-src/Makefile.in (REGEXPDEPS, regex.o):
+	* Makefile.in (REGEXPDEPS, regex.o):
 	Prepend $(srcdir)/ to rule dependencies outside this dir.
 
 1998-06-09  Andrew Innes  <andrewi@harlequin.co.uk>
@@ -5958,10 +5958,10 @@
 
 1992-04-08  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
 
-	* lib-src/etags.c: "--no-warning" option renamed to "--no-warn",
+	* etags.c: "--no-warning" option renamed to "--no-warn",
 	to be consistent with other GNU programs, like makeinfo.
 
-	* lib-src/Makefile: Renamed to Makefile.in; the configure script
+	* Makefile: Renamed to Makefile.in; the configure script
 	will edit this to produce Makefile.
 
 1992-04-07  Jim Blandy  (jimb@pogo.cs.oberlin.edu)
