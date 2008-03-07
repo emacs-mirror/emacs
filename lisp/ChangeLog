@@ -1,3 +1,8 @@
+2008-03-07  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-engine.el (c-in-knr-argdecl): Limit number of
+	paren/bracket pairs parsed, to solve performance problem.
+
 2008-03-07  Bastien Guerry  <bzg@altern.org>
 
 	* bookmark.el (bookmark-set): Don't check for
