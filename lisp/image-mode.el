@@ -431,7 +431,7 @@ and showing the image as an image."
 
 ;;; Support for bookmark.el
 
-(defun image-bookmark-make-record (annotation &rest args)
+(defun image-bookmark-make-record (annotation)
   (let ((the-record
          `((filename   . ,(buffer-file-name))
 	   (image-type . ,image-type)
