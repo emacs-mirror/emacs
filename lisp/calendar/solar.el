@@ -61,16 +61,16 @@
 
 (if (fboundp 'atan)
     (require 'lisp-float-type)
-  (error "Solar/lunar calculations impossible since floating point is unavailable"))
+  (error "Solar calculations impossible since floating point is unavailable"))
 
 (require 'cal-dst)
 (require 'cal-julian)
 
-;;;###autoload
+
 (defcustom calendar-time-display-form
   '(12-hours ":" minutes am-pm
     (if time-zone " (") time-zone (if time-zone ")"))
-  "*The pseudo-pattern that governs the way a time of day is formatted.
+  "The pseudo-pattern that governs the way a time of day is formatted.
 
 A pseudo-pattern is a list of expressions that can involve the keywords
 `12-hours', `24-hours', and `minutes', all numbers in string form,
@@ -85,9 +85,8 @@ would give military-style times like `21:07 (UTC)'."
   :type 'sexp
   :group 'calendar)
 
-;;;###autoload
 (defcustom calendar-latitude nil
-  "*Latitude of `calendar-location-name' in degrees.
+  "Latitude of `calendar-location-name' in degrees.
 
 The value can be either a decimal fraction (one place of accuracy is
 sufficient), + north, - south, such as 40.7 for New York City, or the value
@@ -105,9 +104,8 @@ This variable should be set in `site-start'.el."
 				 (const south))))
   :group 'calendar)
 
-;;;###autoload
 (defcustom calendar-longitude nil
-  "*Longitude of `calendar-location-name' in degrees.
+  "Longitude of `calendar-location-name' in degrees.
 
 The value can be either a decimal fraction (one place of accuracy is
 sufficient), + east, - west, such as -73.9 for New York City, or the value
@@ -124,6 +122,73 @@ This variable should be set in `site-start'.el."
 				 (const east)
 				 (const west))))
   :group 'calendar)
+
+(defcustom calendar-location-name
+  '(let ((float-output-format "%.1f"))
+     (format "%s%s, %s%s"
+             (if (numberp calendar-latitude)
+                 (abs calendar-latitude)
+               (+ (aref calendar-latitude 0)
+                  (/ (aref calendar-latitude 1) 60.0)))
+             (if (numberp calendar-latitude)
+                 (if (> calendar-latitude 0) "N" "S")
+               (if (equal (aref calendar-latitude 2) 'north) "N" "S"))
+             (if (numberp calendar-longitude)
+                 (abs calendar-longitude)
+               (+ (aref calendar-longitude 0)
+                  (/ (aref calendar-longitude 1) 60.0)))
+             (if (numberp calendar-longitude)
+                 (if (> calendar-longitude 0) "E" "W")
+               (if (equal (aref calendar-longitude 2) 'east) "E" "W"))))
+  "Expression evaluating to name of `calendar-longitude', `calendar-latitude'.
+For example, \"New York City\".  Default value is just the latitude, longitude
+pair.
+
+This variable should be set in `site-start'.el."
+  :type 'sexp
+  :group 'calendar)
+
+(defcustom solar-error 0.5
+"Tolerance (in minutes) for sunrise/sunset calculations.
+
+A larger value makes the calculations for sunrise/sunset faster, but less
+accurate.  The default is half a minute (30 seconds), so that sunrise/sunset
+times will be correct to the minute.
+
+It is useless to set the value smaller than 4*delta, where delta is the
+accuracy in the longitude of the sun (given by the function
+`solar-ecliptic-coordinates') in degrees since (delta/360) x (86400/60) = 4 x
+delta.  At present, delta = 0.01 degrees, so the value of the variable
+`solar-error' should be at least 0.04 minutes (about 2.5 seconds)."
+  :type 'number
+  :group 'calendar)
+
+(defcustom diary-sabbath-candles-minutes 18
+  "Number of minutes before sunset for sabbath candle lighting."
+  :group 'diary
+  :type 'integer
+  :version "21.1")
+
+
+;;; End of user options.
+
+
+(defvar solar-n-hemi-seasons
+  '("Vernal Equinox" "Summer Solstice" "Autumnal Equinox" "Winter Solstice")
+  "List of season changes for the northern hemisphere.")
+
+(defvar solar-s-hemi-seasons
+  '("Autumnal Equinox" "Winter Solstice" "Vernal Equinox" "Summer Solstice")
+  "List of season changes for the southern hemisphere.")
+
+(defvar solar-sidereal-time-greenwich-midnight
+   nil
+   "Sidereal time at Greenwich at midnight (universal time).")
+
+(defvar solar-northern-spring-or-summer-season nil
+  "Non-nil if northern spring or summer and nil otherwise.
+Needed for polar areas, in order to know whether the day lasts 0 or 24 hours.")
+
 
 (defsubst calendar-latitude ()
   "Convert calendar-latitude to a signed decimal fraction, if needed."
@@ -145,78 +210,22 @@ This variable should be set in `site-start'.el."
           long
         (- long)))))
 
-;;;###autoload
-(defcustom calendar-location-name
-  '(let ((float-output-format "%.1f"))
-     (format "%s%s, %s%s"
-             (if (numberp calendar-latitude)
-                 (abs calendar-latitude)
-               (+ (aref calendar-latitude 0)
-                  (/ (aref calendar-latitude 1) 60.0)))
-             (if (numberp calendar-latitude)
-                 (if (> calendar-latitude 0) "N" "S")
-               (if (equal (aref calendar-latitude 2) 'north) "N" "S"))
-             (if (numberp calendar-longitude)
-                 (abs calendar-longitude)
-               (+ (aref calendar-longitude 0)
-                  (/ (aref calendar-longitude 1) 60.0)))
-             (if (numberp calendar-longitude)
-                 (if (> calendar-longitude 0) "E" "W")
-               (if (equal (aref calendar-longitude 2) 'east) "E" "W"))))
-  "*Expression evaluating to name of `calendar-longitude', `calendar-latitude'.
-For example, \"New York City\".  Default value is just the latitude, longitude
-pair.
-
-This variable should be set in `site-start'.el."
-  :type 'sexp
-  :group 'calendar)
-
-(defcustom solar-error 0.5
-"*Tolerance (in minutes) for sunrise/sunset calculations.
-
-A larger value makes the calculations for sunrise/sunset faster, but less
-accurate.  The default is half a minute (30 seconds), so that sunrise/sunset
-times will be correct to the minute.
-
-It is useless to set the value smaller than 4*delta, where delta is the
-accuracy in the longitude of the sun (given by the function
-`solar-ecliptic-coordinates') in degrees since (delta/360) x (86400/60) = 4 x
-delta.  At present, delta = 0.01 degrees, so the value of the variable
-`solar-error' should be at least 0.04 minutes (about 2.5 seconds)."
-  :type 'number
-  :group 'calendar)
-
-(defvar solar-n-hemi-seasons
-  '("Vernal Equinox" "Summer Solstice" "Autumnal Equinox" "Winter Solstice")
-  "List of season changes for the northern hemisphere.")
-
-(defvar solar-s-hemi-seasons
-  '("Autumnal Equinox" "Winter Solstice" "Vernal Equinox" "Summer Solstice")
-  "List of season changes for the southern hemisphere.")
-
-(defvar solar-sidereal-time-greenwich-midnight
-   nil
-   "Sidereal time at Greenwich at midnight (universal time).")
-
-(defvar solar-northern-spring-or-summer-season nil
-  "Non-nil if northern spring or summer and nil otherwise.
-Needed for polar areas, in order to know whether the day lasts 0 or 24 hours.")
-
 (defun solar-setup ()
   "Prompt user for latitude, longitude, and time zone."
   (beep)
-  (if (not calendar-longitude)
+  (or calendar-longitude
       (setq calendar-longitude
             (solar-get-number
              "Enter longitude (decimal fraction; + east, - west): ")))
-  (if (not calendar-latitude)
+  (or calendar-latitude
       (setq calendar-latitude
             (solar-get-number
              "Enter latitude (decimal fraction; + north, - south): ")))
-  (if (not calendar-time-zone)
+  (or calendar-time-zone
       (setq calendar-time-zone
             (solar-get-number
-             "Enter difference from Coordinated Universal Time (in minutes): "))))
+             "Enter difference from Coordinated Universal Time (in \
+minutes): "))))
 
 (defun solar-get-number (prompt)
   "Return a number from the minibuffer, prompting with PROMPT.
@@ -225,20 +234,14 @@ Returns nil if nothing was entered."
     (if (not (string-equal x ""))
         (string-to-number x))))
 
-;; The condition-case stuff is needed to catch bogus arithmetic
-;; exceptions that occur on some machines (like Sparcs)
 (defun solar-sin-degrees (x)
-  (condition-case nil
-      (sin (degrees-to-radians (mod x 360.0)))
-    (solar-sin-degrees x)))
+  (sin (degrees-to-radians (mod x 360.0))))
+
 (defun solar-cosine-degrees (x)
-   (condition-case nil
-       (cos (degrees-to-radians (mod x 360.0)))
-     (solar-cosine-degrees x)))
+  (cos (degrees-to-radians (mod x 360.0))))
+
 (defun solar-tangent-degrees (x)
-  (condition-case nil
-      (tan (degrees-to-radians (mod x 360.0)))
-    (solar-tangent-degrees x)))
+  (tan (degrees-to-radians (mod x 360.0))))
 
 (defun solar-xy-to-quadrant (x y)
   "Determines the quadrant of the point X, Y."
@@ -260,20 +263,19 @@ Returns nil if nothing was entered."
 
 (defun solar-atn2 (x y)
    "Arctan of point X, Y."
-   (if (= x 0)
+   (if (zerop x)
        (if (> y 0) 90 270)
      (solar-arctan (/ y x) (solar-xy-to-quadrant x y))))
 
 (defun solar-arccos (x)
-     "Arcos of X."
-     (let ((y (sqrt (- 1 (* x x)))))
-       (solar-atn2 x y)))
+  "Arcos of X."
+  (let ((y (sqrt (- 1 (* x x)))))
+    (solar-atn2 x y)))
 
 (defun solar-arcsin (y)
-     "Arcsin of Y."
-     (let ((x (sqrt (- 1 (* y y)))))
-       (solar-atn2 x y)
-       ))
+  "Arcsin of Y."
+  (let ((x (sqrt (- 1 (* y y)))))
+    (solar-atn2 x y)))
 
 (defsubst solar-degrees-to-hours (degrees)
   "Convert DEGREES to hours."
@@ -914,12 +916,6 @@ Accurate to a few seconds."
       (solar-setup))
   (solar-sunrise-sunset-string date))
 
-(defcustom diary-sabbath-candles-minutes 18
-  "*Number of minutes before sunset for sabbath candle lighting."
-  :group 'diary
-  :type 'integer
-  :version "21.1")
-
 (defun diary-sabbath-candles (&optional mark)
   "Local time of candle lighting diary entry--applies if date is a Friday.
 No diary entry if there is no sunset on that date.
@@ -1044,9 +1040,8 @@ solstice.  These formulas are only to be used between 1000 BC and 3000 AD."
                                    (* -0.00823 z z z)
                                    (* 0.00032 z z z z)))))))
 
-;;;###autoload
 (defun solar-equinoxes-solstices ()
-  "*local* date and time of equinoxes and solstices, if visible in the calendar window.
+  "Local date and time of equinoxes and solstices, if visible in the calendar.
 Requires floating point."
   (let ((m displayed-month)
         (y displayed-year))
