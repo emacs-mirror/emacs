@@ -168,7 +168,6 @@ first.
 ** The function invisible-p returns non-nil if the character
 after a specified position is invisible.
 
-+++
 ** inhibit-modification-hooks is bound to t while running modification hooks.
 As a happy consequence, after-change-functions and before-change-functions
 are not bound to nil any more while running an (after|before)-change-function.
