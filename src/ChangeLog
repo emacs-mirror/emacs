@@ -615,22 +615,22 @@
 
 2008-02-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* src/Makefile.in:
-	* src/emacs.c:
-	* src/gmalloc.c:
-	* src/keyboard.c:
-	* src/lisp.h:
-	* src/m/ibm370aix.h:
-	* src/process.c:
-	* src/regex.c:
-	* src/s/hpux.h:
-	* src/sysdep.c:
-	* src/sysselect.h:
-	* src/systty.h:
-	* src/unexec.c:
-	* src/w32term.c:
-	* src/xsmfns.c:
-	* src/xterm.c: Remove code that deals with obsolete variables.
+	* Makefile.in:
+	* emacs.c:
+	* gmalloc.c:
+	* keyboard.c:
+	* lisp.h:
+	* m/ibm370aix.h:
+	* process.c:
+	* regex.c:
+	* s/hpux.h:
+	* sysdep.c:
+	* sysselect.h:
+	* systty.h:
+	* unexec.c:
+	* w32term.c:
+	* xsmfns.c:
+	* xterm.c: Remove code that deals with obsolete variables.
 
 	* s/msdos.h (DONT_NEED_ENVIRON): Don't define.
 
@@ -1381,7 +1381,7 @@
 
 2008-02-01  Miles Bader  <miles@gnu.org>
 
-	* src/dispextern.h (struct glyph_row): Only define "clip" field if
+	* dispextern.h (struct glyph_row): Only define "clip" field if
 	HAVE_WINDOW_SYSTEM is defined.
 
 2008-02-01  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -1531,24 +1531,24 @@
 	(GC_EQ): Remove since they've been identical to their non-GC_
 	alter-egos ever since the markbit was eradicated.
 
-	* src/alloc.c:
-	* src/buffer.c:
-	* src/buffer.h:
-	* src/data.c:
-	* src/fileio.c:
-	* src/filelock.c:
-	* src/fns.c:
-	* src/frame.h:
-	* src/lisp.h:
-	* src/macterm.c:
-	* src/print.c:
-	* src/process.c:
-	* src/w32fns.c:
-	* src/w32menu.c:
-	* src/w32term.c:
-	* src/xfns.c:
-	* src/xmenu.c:
-	* src/xterm.c: Replace uses of GC_* macros with the non-GC_ versions.
+	* alloc.c:
+	* buffer.c:
+	* buffer.h:
+	* data.c:
+	* fileio.c:
+	* filelock.c:
+	* fns.c:
+	* frame.h:
+	* lisp.h:
+	* macterm.c:
+	* print.c:
+	* process.c:
+	* w32fns.c:
+	* w32menu.c:
+	* w32term.c:
+	* xfns.c:
+	* xmenu.c:
+	* xterm.c: Replace uses of GC_* macros with the non-GC_ versions.
 
 2008-02-01  Kenichi Handa  <handa@m17n.org>
 
@@ -5968,8 +5968,8 @@
 
 	* unexsunos4.c: Remove file, system not supported anymore.
 
-	* src/m/mips.h:
-	* src/m/intel386.h:
+	* m/mips.h:
+	* m/intel386.h:
 	* callproc.c:
 	* config.in:
 	* ecrt0.c:
