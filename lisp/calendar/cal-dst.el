@@ -36,6 +36,13 @@
 (require 'calendar)
 (require 'cal-persia)
 
+
+(defgroup calendar-dst nil
+  "Options related to Daylight Saving Time."
+  :prefix "calendar-"
+  :group 'calendar)
+
+
 (defcustom calendar-dst-check-each-year-flag t
   "Non-nil means to check each year for DST transitions as needed.
 Otherwise assume the next two transitions found after the
@@ -46,9 +53,51 @@ change."
   :version "22.1"
   :group 'calendar)
 
+;;;###autoload
+(put 'calendar-daylight-savings-starts 'risky-local-variable t)
+(defcustom calendar-daylight-savings-starts '(calendar-dst-starts year)
+  "Sexp giving the date on which daylight saving time starts.
+This is an expression in the variable `year' whose value gives the Gregorian
+date in the form (month day year) on which daylight saving time starts.  It is
+used to determine the starting date of daylight saving time for the holiday
+list and for correcting times of day in the solar and lunar calculations.
+
+For example, if daylight saving time is mandated to start on October 1,
+you would set `calendar-daylight-savings-starts' to
+
+      '(10 1 year)
+
+If it starts on the first Sunday in April, you would set it to
+
+      '(calendar-nth-named-day 1 0 4 year)
+
+If the locale never uses daylight saving time, set this to nil."
+  :type 'sexp
+  :group 'calendar-dst)
+
+;;;###autoload
+(put 'calendar-daylight-savings-ends 'risky-local-variable t)
+(defcustom calendar-daylight-savings-ends '(calendar-dst-ends year)
+  "Sexp giving the date on which daylight saving time ends.
+This is an expression in the variable `year' whose value gives the Gregorian
+date in the form (month day year) on which daylight saving time ends.  It is
+used to determine the starting date of daylight saving time for the holiday
+list and for correcting times of day in the solar and lunar calculations.
+
+For example, if daylight saving time ends on the last Sunday in October:
+
+      '(calendar-nth-named-day -1 0 10 year)
+
+If the locale never uses daylight saving time, set this to nil."
+  :type 'sexp
+  :group 'calendar-dst)
+
+;;; More defcustoms below.
+
+
 (defvar calendar-current-time-zone-cache nil
   "Cache for result of `calendar-current-time-zone'.")
-(put 'calendar-current-time-zone-cache 'risky-local-variable t)
+(put 'calendar-current-time-zone-cache 'risky-local-variable t) ; why?
 
 (defvar calendar-system-time-basis
   (calendar-absolute-from-gregorian '(1 1 1970))
@@ -310,35 +359,53 @@ it can't find."
   (unless calendar-current-time-zone-cache
     (setq calendar-current-time-zone-cache (calendar-dst-find-data))))
 
-;;; The following eight defvars relating to daylight saving time should NOT be
-;;; marked to go into loaddefs.el where they would be evaluated when Emacs is
-;;; dumped.  These variables' appropriate values depend on the conditions under
-;;; which the code is INVOKED; so it's inappropriate to initialize them when
-;;; Emacs is dumped---they should be initialized when calendar.el is loaded.
-;;; They default to US Eastern time if time zone info is not available.
+
+;; Following options should be set based on conditions when the code
+;; is invoked, so are not suitable for dumping into loaddefs.el.  They
+;; default to US Eastern time if time zone info is not available.
 
 (calendar-current-time-zone)
 
-(defvar calendar-time-zone (or (car calendar-current-time-zone-cache) -300)
-  "*Number of minutes difference between local standard time at
-`calendar-location-name' and Coordinated Universal (Greenwich) Time.  For
-example, -300 for New York City, -480 for Los Angeles.")
+(defcustom calendar-time-zone (or (car calendar-current-time-zone-cache) -300)
+  "Number of minutes difference between local standard time at
+`calendar-location-name' and Coordinated Universal (Greenwich) Time.
+For example, -300 for New York City, -480 for Los Angeles."
+  :type 'integer
+  :group 'calendar-dst)
 
-(defvar calendar-daylight-time-offset
+(defcustom calendar-daylight-time-offset
   (or (car (cdr calendar-current-time-zone-cache)) 60)
-  "*Number of minutes difference between daylight saving and standard time.
+  "Number of minutes difference between daylight saving and standard time.
+If the locale never uses daylight saving time, set this to 0."
+  :type 'integer
+  :group 'calendar-dst)
 
-If the locale never uses daylight saving time, set this to 0.")
-
-(defvar calendar-standard-time-zone-name
+(defcustom calendar-standard-time-zone-name
   (or (car (nthcdr 2 calendar-current-time-zone-cache)) "EST")
-  "*Abbreviated name of standard time zone at `calendar-location-name'.
-For example, \"EST\" in New York City, \"PST\" for Los Angeles.")
+  "Abbreviated name of standard time zone at `calendar-location-name'.
+For example, \"EST\" in New York City, \"PST\" for Los Angeles."
+  :type 'string
+  :group 'calendar-dst)
 
-(defvar calendar-daylight-time-zone-name
+(defcustom calendar-daylight-time-zone-name
   (or (car (nthcdr 3 calendar-current-time-zone-cache)) "EDT")
-  "*Abbreviated name of daylight saving time zone at `calendar-location-name'.
-For example, \"EDT\" in New York City, \"PDT\" for Los Angeles.")
+  "Abbreviated name of daylight saving time zone at `calendar-location-name'.
+For example, \"EDT\" in New York City, \"PDT\" for Los Angeles."
+  :type 'string
+  :group 'calendar-dst)
+
+(defcustom calendar-daylight-savings-starts-time
+  (or (car (nthcdr 6 calendar-current-time-zone-cache)) 120)
+  "Number of minutes after midnight that daylight saving time starts."
+  :type 'integer
+  :group 'calendar-dst)
+
+(defcustom calendar-daylight-savings-ends-time
+  (or (car (nthcdr 7 calendar-current-time-zone-cache))
+      calendar-daylight-savings-starts-time)
+  "Number of minutes after midnight that daylight saving time ends."
+  :type 'integer
+  :group 'calendar-dst)
 
 
 (defun calendar-dst-starts (year)
@@ -362,53 +429,6 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
       ;; New US rules commencing 2007.	ftp://elsie.nci.nih.gov/pub/.
       (and (not (zerop calendar-daylight-time-offset))
            (calendar-nth-named-day 1 0 11 year))))
-
-
-;;;###autoload
-(put 'calendar-daylight-savings-starts 'risky-local-variable t)
-(defvar calendar-daylight-savings-starts
-  '(calendar-dst-starts year)
-  "*Sexp giving the date on which daylight saving time starts.
-This is an expression in the variable `year' whose value gives the Gregorian
-date in the form (month day year) on which daylight saving time starts.  It is
-used to determine the starting date of daylight saving time for the holiday
-list and for correcting times of day in the solar and lunar calculations.
-
-For example, if daylight saving time is mandated to start on October 1,
-you would set `calendar-daylight-savings-starts' to
-
-      '(10 1 year)
-
-If it starts on the first Sunday in April, you would set it to
-
-      '(calendar-nth-named-day 1 0 4 year)
-
-If the locale never uses daylight saving time, set this to nil.")
-
-;;;###autoload
-(put 'calendar-daylight-savings-ends 'risky-local-variable t)
-(defvar calendar-daylight-savings-ends
-  '(calendar-dst-ends year)
-  "*Sexp giving the date on which daylight saving time ends.
-This is an expression in the variable `year' whose value gives the Gregorian
-date in the form (month day year) on which daylight saving time ends.  It is
-used to determine the starting date of daylight saving time for the holiday
-list and for correcting times of day in the solar and lunar calculations.
-
-For example, if daylight saving time ends on the last Sunday in October:
-
-      '(calendar-nth-named-day -1 0 10 year)
-
-If the locale never uses daylight saving time, set this to nil.")
-
-(defvar calendar-daylight-savings-starts-time
-  (or (car (nthcdr 6 calendar-current-time-zone-cache)) 120)
-  "*Number of minutes after midnight that daylight saving time starts.")
-
-(defvar calendar-daylight-savings-ends-time
-  (or (car (nthcdr 7 calendar-current-time-zone-cache))
-      calendar-daylight-savings-starts-time)
-  "*Number of minutes after midnight that daylight saving time ends.")
 
 (defun dst-in-effect (date)
   "True if on absolute DATE daylight saving time is in effect.
