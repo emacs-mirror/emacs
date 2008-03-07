@@ -1,3 +1,8 @@
+2008-03-07  Alan Mackenzie  <acm@muc.de>
+
+	* cc-mode.texi (Limitations and Known Bugs): State that the number of
+	parens/brackets in a k&r region is limited.
+
 2008-02-27  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-news.texi: Mention problem with coding system `utf-8-emacs' when
