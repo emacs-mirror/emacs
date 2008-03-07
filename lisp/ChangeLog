@@ -16,6 +16,67 @@
 
 2008-03-07  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/appt.el (appt-issue-message)
+	(appt-message-warning-time, appt-audible, appt-visible)
+	(appt-msg-window, appt-display-mode-line, appt-display-duration)
+	(appt-display-diary): Remove autoload cookies.
+
+	* calendar/cal-china.el, calendar/timeclock.el, calendar/todo-mode.el:
+	Remove leading `*' from defcustom doc-strings.
+
+	* calendar/cal-dst.el (calendar-dst): New custom group.
+	(calendar-daylight-savings-starts, calendar-daylight-savings-ends)
+	(calendar-time-zone, calendar-daylight-time-offset)
+	(calendar-standard-time-zone-name, calendar-daylight-time-zone-name)
+	(calendar-daylight-savings-starts-time)
+	(calendar-daylight-savings-ends-time): Convert from defvar to defcustom.
+	(calendar-daylight-savings-starts, calendar-daylight-savings-ends):
+	Move to start.
+
+	* calendar/cal-menu.el (holidays-in-diary-buffer): Declare for compiler.
+
+	* calendar/calendar.el (calendar-version): Use emacs-version and
+	make it obsolete.  Move to end.
+	(calendar-offset, view-diary-entries-initially)
+	(mark-diary-entries-in-calendar, calendar-remove-frame-by-deleting)
+	(view-calendar-holidays-initially, all-hebrew-calendar-holidays)
+	(all-christian-calendar-holidays, all-islamic-calendar-holidays)
+	(all-bahai-calendar-holidays, calendar-load-hook)
+	(initial-calendar-window-hook, today-visible-calendar-hook)
+	(today-invisible-calendar-hook, calendar-move-hook)
+	(diary-nonmarking-symbol, hebrew-diary-entry-symbol)
+	(islamic-diary-entry-symbol, bahai-diary-entry-symbol)
+	(diary-include-string, sexp-diary-entry-symbol)
+	(abbreviated-calendar-year, american-date-diary-pattern)
+	(european-date-diary-pattern, european-calendar-display-form)
+	(american-calendar-display-form, print-diary-entries-hook)
+	(list-diary-entries-hook, diary-hook, diary-display-hook)
+	(nongregorian-diary-listing-hook, mark-diary-entries-hook)
+	(nongregorian-diary-marking-hook, diary-list-include-blanks)
+	(holidays-in-diary-buffer, general-holidays, oriental-holidays)
+	(local-holidays, other-holidays, hebrew-holidays-1)
+	(hebrew-holidays-2, hebrew-holidays-3, hebrew-holidays-4)
+	(hebrew-holidays, christian-holidays, islamic-holidays)
+	(bahai-holidays, solar-holidays, calendar-setup)
+	(calendar-week-start-day): Remove autoload cookies.
+	(diary-glob-file-regexp-prefix): Doc fix.
+	(calendar-goto-info-node): Use `info' rather than `Info-find-node'.
+	(Info-find-emacs-command-nodes, Info-find-node): Remove declarations.
+	(calendar-week-start-day, calendar-debug-sexp): Move to start.
+
+	* calendar/solar.el: Remove leading `*' from defcustom doc-strings.
+	(calendar-time-display-form, calendar-latitude)
+	(calendar-longitude, solar-equinoxes-solstices): Remove autoload
+	cookies.
+	(calendar-latitude, calendar-longitude): Move functions after
+	variables.
+	(diary-sabbath-candles-minutes): Move to start.
+	(solar-setup): Use or rather than if.
+	(solar-sin-degrees, solar-cosine-degrees, solar-tangent-degrees):
+	Remove condition-case.
+	(solar-atn2): Use zerop.
+	(solar-equinoxes-solstices): Doc fix.
+
 	* mail/supercite.el: Remove leading `*' from defcustom doc-strings.
 	(sc-mode-map-prefix): Doc fix.  Make it a defcustom.
 
