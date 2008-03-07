@@ -80,7 +80,6 @@
 
 (defvar diary-selective-display)
 
-;;;###autoload
 (defcustom appt-issue-message t
   "Non-nil means check for appointments in the diary buffer.
 To be detected, the diary entry must have the format described in the
@@ -92,19 +91,16 @@ documentation of the function `appt-check'."
                         "use the function `appt-activate', and the \
 variable `appt-display-format' instead." "22.1")
 
-;;;###autoload
 (defcustom appt-message-warning-time 12
   "Time in minutes before an appointment that the warning begins."
   :type 'integer
   :group 'appt)
 
-;;;###autoload
 (defcustom appt-audible t
   "Non-nil means beep to indicate appointment."
   :type 'boolean
   :group 'appt)
 
-;;;###autoload
 (defcustom appt-visible t
   "Non-nil means display appointment message in echo area.
 This variable is only relevant if `appt-msg-window' is nil."
@@ -113,7 +109,6 @@ This variable is only relevant if `appt-msg-window' is nil."
 
 (make-obsolete-variable 'appt-visible 'appt-display-format "22.1")
 
-;;;###autoload
 (defcustom appt-msg-window t
   "Non-nil means display appointment message in another window.
 If non-nil, this variable overrides `appt-visible'."
@@ -142,21 +137,18 @@ of the (obsolete) variables `appt-msg-window' and `appt-visible'."
   :group 'appt
   :version "22.1")
 
-;;;###autoload
 (defcustom appt-display-mode-line t
   "Non-nil means display minutes to appointment and time on the mode line.
 This is in addition to any other display of appointment messages."
   :type 'boolean
   :group 'appt)
 
-;;;###autoload
 (defcustom appt-display-duration 10
   "The number of seconds an appointment message is displayed.
 Only relevant if reminders are to be displayed in their own window."
   :type 'integer
   :group 'appt)
 
-;;;###autoload
 (defcustom appt-display-diary t
   "Non-nil displays the diary when the appointment list is first initialized.
 This will occur at midnight when the appointment list is updated."
