@@ -1,3 +1,11 @@
+2008-03-07  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* vc.el (vc-status-menu-map-filter): Return orig-binding if
+	boundp 'vc-ignore-menu-filter.
+	(vc-status-tool-bar-map): Make it defvar.
+	(vc-status-mode): vc-status-tool-bar-map now variable.
+	(vc-status-toggle-mark): toggle-mark-file => vc-status-toggle-mark-file.
+
 2008-03-07  Karl Fogel  <kfogel@red-bean.com>
 
 	Give a better name to part of the bookmark interface.
