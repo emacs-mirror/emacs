@@ -1,3 +1,12 @@
+2008-03-07  Glenn Morris  <rgm@gnu.org>
+
+	* mail/supercite.el: Remove leading `*' from defcustom doc-strings.
+	(sc-mode-map-prefix): Doc fix.  Make it a defcustom.
+
+	* textmodes/org.el (org-agenda-sunrise-sunset): Require solar.
+	(calendar-longitude, calendar-latitude, calendar-location-name):
+	Declare for compiler.
+
 2008-03-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* arc-mode.el (archive-ar-file-header-re): New const.
@@ -9,7 +18,7 @@
 
 	* info.el (Info-bookmark-make-cell): Don't use the info-node argument.
 
-2008-03-06  Lennart Borgman  <lennart.borgman@gmail.com>  (tiny change)
+2008-03-06  Lennart Borgman  <lennart.borgman@gmail.com>
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map):
 	Replace :enable (mark-active) with :enable mark-active.
