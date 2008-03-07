@@ -270,7 +270,7 @@
   :group 'calendar)
 
 (defcustom todo-prefix     "*/*"
-  "*TODO mode prefix for entries.
+  "TODO mode prefix for entries.
 
 This is useful in conjunction with `calendar' and `diary' if you use
 
@@ -285,23 +285,23 @@ the diary file somewhat."
   :type 'string
   :group 'todo)
 (defcustom todo-file-do    "~/.todo-do"
-  "*TODO mode list file."
+  "TODO mode list file."
   :type 'file
   :group 'todo)
 (defcustom todo-file-done  "~/.todo-done"
-  "*TODO mode archive file."
+  "TODO mode archive file."
   :type 'file
   :group 'todo)
 (defcustom todo-mode-hook  nil
-  "*TODO mode hooks."
+  "TODO mode hooks."
   :type 'hook
   :group 'todo)
 (defcustom todo-edit-mode-hook nil
-  "*TODO Edit mode hooks."
+  "TODO Edit mode hooks."
   :type 'hook
   :group 'todo)
 (defcustom todo-insert-threshold 0
-  "*TODO mode insertion accuracy.
+  "TODO mode insertion accuracy.
 
 If you have 8 items in your TODO list, then you may get asked 4
 questions by the binary insertion algorithm.  However, you may not
@@ -319,7 +319,7 @@ window."
 (defvar todo-edit-buffer " *TODO Edit*"
   "TODO Edit buffer name.")
 (defcustom todo-file-top "~/.todo-top"
-  "*TODO mode top priorities file.
+  "TODO mode top priorities file.
 
 Not in TODO format, but diary compatible.
 Automatically generated when `todo-save-top-priorities' is non-nil."
@@ -327,26 +327,26 @@ Automatically generated when `todo-save-top-priorities' is non-nil."
   :group 'todo)
 
 (defcustom todo-print-function 'ps-print-buffer-with-faces
-  "*Function to print the current buffer."
+  "Function to print the current buffer."
   :type 'symbol
   :group 'todo)
 (defcustom todo-show-priorities 1
-  "*Default number of priorities to show by \\[todo-top-priorities].
+  "Default number of priorities to show by \\[todo-top-priorities].
 0 means show all entries."
   :type 'integer
   :group 'todo)
 (defcustom todo-print-priorities 0
-  "*Default number of priorities to print by \\[todo-print].
+  "Default number of priorities to print by \\[todo-print].
 0 means print all entries."
   :type 'integer
   :group 'todo)
 (defcustom todo-remove-separator t
-  "*Non-nil to remove category separators in\
+  "Non-nil to remove category separators in\
 \\[todo-top-priorities] and \\[todo-print]."
   :type 'boolean
   :group 'todo)
 (defcustom todo-save-top-priorities-too t
-  "*Non-nil makes `todo-save' automatically save top-priorities in `todo-file-top'."
+  "Non-nil makes `todo-save' automatically save top-priorities in `todo-file-top'."
   :type 'boolean
   :group 'todo)
 
@@ -355,17 +355,17 @@ Automatically generated when `todo-save-top-priorities' is non-nil."
 ;;
 (defcustom todo-time-string-format
   "%:y-%02m-%02d %02H:%02M"
-  "*TODO mode time string format for done entries.
+  "TODO mode time string format for done entries.
 For details see the variable `time-stamp-format'."
   :type 'string
   :group 'todo)
 
 (defcustom todo-entry-prefix-function 'todo-entry-timestamp-initials
-  "*Function producing text to insert at start of todo entry."
+  "Function producing text to insert at start of todo entry."
   :type 'symbol
   :group 'todo)
 (defcustom todo-initials (or (getenv "INITIALS") (user-login-name))
-  "*Initials of todo item author."
+  "Initials of todo item author."
   :type 'string
   :group 'todo)
 
