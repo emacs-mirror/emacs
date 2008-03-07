@@ -314,6 +314,7 @@ through a file easier.")
 ;; know anything about the format of bookmark-alist entries.
 ;; Everyone else should go through them.
 
+
 (defun bookmark-name-from-full-record (full-record)
   "Return name of FULL-RECORD \(an alist element instead of a string\)."
   (car full-record))
@@ -462,6 +463,13 @@ menus, so `completing-read' never gets a chance to set `bookmark-history'."
   `(or
     (interactive-p)
     (setq bookmark-history (cons ,string bookmark-history))))
+
+(defvar bookmark-make-name-function nil
+  "A function that should be called to return the name of the bookmark.
+When called with an argument, the function should return a file
+name -- or whatever is required to jump to the location.  Modes
+may set this variable buffer-locally to enable a default name to
+be proposed when calling `bookmark-set'.")
 
 (defvar bookmark-make-record-function 'bookmark-make-record-for-text-file
   "A function that should be called to create a bookmark record.
@@ -738,7 +746,6 @@ and it removes only the first instance of a bookmark with that name from
 the list of bookmarks.\)"
   (interactive (list nil current-prefix-arg))
   (or
-   (local-variable-p 'bookmark-make-record-function)
    (bookmark-buffer-file-name)
    (error "Buffer not visiting a file or directory"))
 
@@ -947,8 +954,9 @@ The directory part of the file name is not used."
   "Return the name of the current buffer's file, non-directory.
 In Info, return the current node."
   (cond
-   ;; Are we in Info?
-   ((derived-mode-p 'Info-mode) Info-current-node)
+   ;; Is the mode defining the bookmark buffer name?
+   (bookmark-make-name-function
+    (funcall bookmark-make-name-function))
    ;; Or are we a file?
    (buffer-file-name (file-name-nondirectory buffer-file-name))
    ;; Or are we a directory?
@@ -988,8 +996,10 @@ In Info, return the current node."
   "Return the current buffer's file in a way useful for bookmarks.
 For example, if this is a Info buffer, return the Info file's name."
   (cond
-   ((eq major-mode 'Info-mode)
-    Info-current-file)
+   ;; Return the location the handler should jump to
+   ;; E.g. the Info file name for the Info handler
+   (bookmark-make-name-function
+    (funcall bookmark-make-name-function t))
    (buffer-file-name
     ;; Abbreviate the path, both so it's shorter and so it's more
     ;; portable.  E.g., the user's home dir might be a different

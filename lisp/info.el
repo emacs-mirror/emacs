@@ -3489,6 +3489,8 @@ Advanced commands:
   (Info-set-mode-line)
   (set (make-local-variable 'bookmark-make-record-function)
        'Info-bookmark-make-record)
+  (set (make-local-variable 'bookmark-make-name-function)
+       'Info-bookmark-make-name)
   (run-mode-hooks 'Info-mode-hook))
 
 ;; When an Info buffer is killed, make sure the associated tags buffer
@@ -4326,6 +4328,13 @@ BUFFER is the buffer speedbar is requesting buttons for."
 ;; This is only called from bookmark.el.
 (declare-function bookmark-buffer-file-name "bookmark" ())
 
+
+(defun Info-bookmark-make-name (&optional file)
+  "Return the default name for the bookmark.
+When FILE is non-nil, return the Info file instead."
+  (if file Info-current-file Info-current-node))
+
+
 (defun Info-bookmark-make-record (annotation)
   (let ((the-record
          `((filename . ,(bookmark-buffer-file-name))
@@ -4356,14 +4365,18 @@ BUFFER is the buffer speedbar is requesting buttons for."
     ;; Finally, return the completed record.
     the-record))
 
+
 (defvar bookmark-current-bookmark)
 (declare-function bookmark-get-filename              "bookmark" (bookmark))
 (declare-function bookmark-get-front-context-string  "bookmark" (bookmark))
 (declare-function bookmark-get-rear-context-string   "bookmark" (bookmark))
 (declare-function bookmark-get-position              "bookmark" (bookmark))
-(declare-function bookmark-get-info-node             "bookmark" (bookmark))
 (declare-function bookmark-file-or-variation-thereof "bookmark" (file))
 (declare-function bookmark-jump-noselect             "bookmark" (str))
+
+(defun bookmark-get-info-node (bookmark)
+  "Get the info node associated with BOOKMARK."
+  (cdr (assq 'info-node (bookmark-get-bookmark-record bookmark))))
 
 ;;;###autoload
 (defun Info-bookmark-jump (bmk)

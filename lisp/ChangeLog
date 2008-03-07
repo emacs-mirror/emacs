@@ -1,3 +1,19 @@
+2008-03-07  Bastien Guerry  <bzg@altern.org>
+
+	* bookmark.el (bookmark-set): Don't check for
+	`bookmark-make-name-function' since `bookmark-buffer-file-name'
+	already takes care of this.
+	(bookmark-buffer-name): Removed Info-mode specific code.
+	(bookmark-buffer-file-name): Removed Info-mode specific code.
+
+	* info.el (bookmark-get-info-node): Define this function in
+	info.el, not in bookmark.el.
+	(Info-mode): Set `bookmark-make-name-function' to
+	`Info-bookmark-make-name' locally.
+	(Info-bookmark-make-name): New function.
+
+	* bookmark.el (bookmark-make-name-function): New variable.
+
 2008-03-07  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-set): Make `bookmark-make-record-function'
