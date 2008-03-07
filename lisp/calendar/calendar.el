@@ -98,10 +98,6 @@
 (defvar calendar-month-name-array)
 (defvar calendar-starred-day)
 
-(defun calendar-version ()
-  (interactive)
-  (message "Version 6, October 12, 1995"))
-
 (defgroup calendar nil
   "Calendar and time management support."
   :group 'applications)
@@ -138,7 +134,6 @@
 (defconst calendar-buffer "*Calendar*"
   "Name of the buffer used for the calendar.")
 
-;;;###autoload
 (defcustom calendar-offset 0
   "The offset of the principal month from the center of the calendar window.
 0 means the principal month is in the center (default), -1 means on the left,
@@ -147,7 +142,6 @@ the screen."
   :type 'integer
   :group 'calendar)
 
-;;;###autoload
 (defcustom view-diary-entries-initially nil
   "Non-nil means display current date's diary entries on entry to calendar.
 The diary is displayed in another window when the calendar is first displayed,
@@ -157,14 +151,12 @@ be overridden by the value of `calendar-setup'."
   :type 'boolean
   :group 'diary)
 
-;;;###autoload
 (defcustom mark-diary-entries-in-calendar nil
   "Non-nil means mark dates with diary entries, in the calendar window.
 The marking symbol is specified by the variable `diary-entry-marker'."
   :type 'boolean
   :group 'diary)
 
-;;;###autoload
 (defcustom calendar-remove-frame-by-deleting nil
   "Determine how the calendar mode removes a frame no longer needed.
 If nil, make an icon of the frame.  If non-nil, delete the frame."
@@ -237,7 +229,6 @@ The value can be either a single-character string or a face."
   :type '(choice string face)
   :group 'calendar)
 
-;;;###autoload
 (defcustom view-calendar-holidays-initially nil
   "Non-nil means display holidays for current three month period on entry.
 The holidays are displayed in another window when the calendar is first
@@ -245,14 +236,12 @@ displayed."
   :type 'boolean
   :group 'holidays)
 
-;;;###autoload
 (defcustom mark-holidays-in-calendar nil
   "Non-nil means mark dates of holidays in the calendar window.
 The marking symbol is specified by the variable `calendar-holiday-marker'."
   :type 'boolean
   :group 'holidays)
 
-;;;###autoload
 (defcustom all-hebrew-calendar-holidays nil
   "If nil, show only major holidays from the Hebrew calendar.
 This means only those Jewish holidays that appear on secular calendars.
@@ -261,7 +250,6 @@ If t, show all the holidays that would appear in a complete Hebrew calendar."
   :type 'boolean
   :group 'holidays)
 
-;;;###autoload
 (defcustom all-christian-calendar-holidays nil
   "If nil, show only major holidays from the Christian calendar.
 This means only those Christian holidays that appear on secular calendars.
@@ -271,7 +259,6 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
-;;;###autoload
 (defcustom all-islamic-calendar-holidays nil
   "If nil, show only major holidays from the Islamic calendar.
 This means only those Islamic holidays that appear on secular calendars.
@@ -286,7 +273,6 @@ calendar."
   :type 'function
   :group 'diary)
 
-;;;###autoload
 (defcustom all-bahai-calendar-holidays nil
   "If nil, show only major holidays from the Baha'i calendar.
 These are the days on which work and school must be suspended.
@@ -301,14 +287,12 @@ calendar."
   :type 'hook
   :group 'calendar-hooks)
 
-;;;###autoload
 (defcustom calendar-load-hook nil
   "List of functions to be called after the calendar is first loaded.
 This is the place to add key bindings to `calendar-mode-map'."
   :type 'hook
   :group 'calendar-hooks)
 
-;;;###autoload
 (defcustom initial-calendar-window-hook nil
   "List of functions to be called when the calendar window is first opened.
 The functions invoked are called after the calendar window is opened, but
@@ -317,7 +301,6 @@ and reentering it will cause these functions to be called again."
   :type 'hook
   :group 'calendar-hooks)
 
-;;;###autoload
 (defcustom today-visible-calendar-hook nil
   "List of functions called whenever the current date is visible.
 This can be used, for example, to replace today's date with asterisks; a
@@ -337,7 +320,6 @@ functions that move by days and weeks."
   :type 'hook
   :group 'calendar-hooks)
 
-;;;###autoload
 (defcustom today-invisible-calendar-hook nil
   "List of functions called whenever the current date is not visible.
 
@@ -351,7 +333,6 @@ functions that move by days and weeks."
   :type 'hook
   :group 'calendar-hooks)
 
-;;;###autoload
 (defcustom calendar-move-hook nil
   "List of functions called whenever the cursor moves in the calendar.
 
@@ -471,31 +452,26 @@ details, see the documentation for the variable `list-diary-entries-hook'."
   :type 'file
   :group 'diary)
 
-;;;###autoload
 (defcustom diary-nonmarking-symbol "&"
   "Symbol indicating that a diary entry is not to be marked in the calendar."
   :type 'string
   :group 'diary)
 
-;;;###autoload
 (defcustom hebrew-diary-entry-symbol "H"
   "Symbol indicating a diary entry according to the Hebrew calendar."
   :type 'string
   :group 'diary)
 
-;;;###autoload
 (defcustom islamic-diary-entry-symbol "I"
   "Symbol indicating a diary entry according to the Islamic calendar."
   :type 'string
   :group 'diary)
 
-;;;###autoload
 (defcustom bahai-diary-entry-symbol "B"
   "Symbol indicating a diary entry according to the Baha'i calendar."
   :type 'string
   :group 'diary)
 
-;;;###autoload
 (defcustom diary-include-string "#include"
   "The string indicating inclusion of another file of diary entries.
 See the documentation for the function `include-other-diary-files'."
@@ -503,7 +479,7 @@ See the documentation for the function `include-other-diary-files'."
   :group 'diary)
 
 (defcustom diary-glob-file-regexp-prefix "^\\#"
-  "The regular expression that gets pre-pended to each of the attribute-regexp's for file-wide specifiers."
+  "Regular expression prepended to attribute-regexps for file-wide specifiers."
   :type 'regexp
   :group 'diary)
 
@@ -537,14 +513,12 @@ modified."
   :type 'boolean
   :group 'diary)
 
-;;;###autoload
 (defcustom sexp-diary-entry-symbol "%%"
   "The string used to indicate a sexp diary entry in `diary-file'.
 See the documentation for the function `list-sexp-diary-entries'."
   :type 'string
   :group 'diary)
 
-;;;###autoload
 (defcustom abbreviated-calendar-year t
   "Interpret a two-digit year DD in a diary entry as either 19DD or 20DD.
 For the Gregorian calendar; similarly for the Hebrew, Islamic and
@@ -584,7 +558,6 @@ calendar package is already loaded).  Rather, use either
            (american-calendar)))
   :group 'diary)
 
-;;;###autoload
 (defcustom american-date-diary-pattern
   '((month "/" day "[^/0-9]")
     (month "/" day "/" year "[^0-9]")
@@ -604,7 +577,6 @@ See the documentation of `diary-date-forms' for an explanation."
 				       (choice symbol regexp)))))
   :group 'diary)
 
-;;;###autoload
 (defcustom european-date-diary-pattern
   '((day "/" month "[^/0-9]")
     (day "/" month "/" year "[^0-9]")
@@ -676,7 +648,6 @@ a portion of the first word of the diary entry."
                 (diary))))
   :group 'diary)
 
-;;;###autoload
 (defcustom european-calendar-display-form
   '((if dayname (concat dayname ", ")) day " " monthname " " year)
   "Pseudo-pattern governing the way a date appears in the European style.
@@ -684,7 +655,6 @@ See the documentation of `calendar-date-display-form' for an explanation."
   :type 'sexp
   :group 'calendar)
 
-;;;###autoload
 (defcustom american-calendar-display-form
   '((if dayname (concat dayname ", ")) monthname " " day ", " year)
   "Pseudo-pattern governing the way a date appears in the American style.
@@ -735,7 +705,6 @@ See the documentation of the function `calendar-date-string'."
   (setq diary-date-forms american-date-diary-pattern)
   (update-calendar-mode-line))
 
-;;;###autoload
 (defcustom print-diary-entries-hook 'lpr-buffer
   "List of functions called after a temporary diary buffer is prepared.
 The buffer shows only the diary entries currently visible in the diary
@@ -745,7 +714,6 @@ instead of deleting it, or changing the function used to do the printing."
   :type 'hook
   :group 'diary)
 
-;;;###autoload
 (defcustom list-diary-entries-hook nil
   "List of functions called after diary file is culled for relevant entries.
 It is to be used for diary entries that are not found in the diary file.
@@ -776,7 +744,6 @@ lexicographic order."
   :options '(include-other-diary-files sort-diary-entries)
   :group 'diary)
 
-;;;###autoload
 (defcustom diary-hook nil
   "List of functions called after the display of the diary.
 Can be used for appointment notification."
@@ -785,7 +752,6 @@ Can be used for appointment notification."
 
 (autoload 'diary-set-maybe-redraw "diary-lib")
 
-;;;###autoload
 (defcustom diary-display-hook nil
   "List of functions that handle the display of the diary.
 If nil (the default), `simple-diary-display' is used.  Use `ignore' for no
@@ -813,7 +779,6 @@ diary buffer, set the variable `diary-list-include-blanks' to t."
   :set 'diary-set-maybe-redraw
   :group 'diary)
 
-;;;###autoload
 (defcustom nongregorian-diary-listing-hook nil
   "List of functions called for listing diary file and included files.
 As the files are processed for diary entries, these functions are used
@@ -827,7 +792,6 @@ describes the style of such diary entries."
 	     diary-bahai-list-entries)
   :group 'diary)
 
-;;;###autoload
 (defcustom mark-diary-entries-hook nil
   "List of functions called after marking diary entries in the calendar.
 
@@ -845,7 +809,6 @@ function `include-other-diary-files' as part of `list-diary-entries-hook'."
   :options '(mark-included-diary-files)
   :group 'diary)
 
-;;;###autoload
 (defcustom nongregorian-diary-marking-hook nil
   "List of functions called for marking diary file and included files.
 As the files are processed for diary entries, these functions are used
@@ -859,7 +822,6 @@ describes the style of such diary entries."
 	     diary-bahai-mark-entries)
   :group 'diary)
 
-;;;###autoload
 (defcustom diary-list-include-blanks nil
   "If nil, do not include days with no diary entry in the list of diary entries.
 Such days will then not be shown in the fancy diary buffer, even if they
@@ -867,7 +829,6 @@ are holidays."
   :type 'boolean
   :group 'diary)
 
-;;;###autoload
 (defcustom holidays-in-diary-buffer t
   "Non-nil means include holidays in the diary display.
 The holidays appear in the mode line of the diary buffer, or in the
@@ -880,7 +841,6 @@ somewhat; setting it to nil makes the diary display faster."
 
 ;;;###autoload
 (put 'general-holidays 'risky-local-variable t)
-;;;###autoload
 (defcustom general-holidays
   '((holiday-fixed 1 1 "New Year's Day")
     (holiday-float 1 1 3 "Martin Luther King Day")
@@ -906,7 +866,6 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (put 'oriental-holidays 'risky-local-variable t)
-;;;###autoload
 (defcustom oriental-holidays
   '((if (fboundp 'atan)
 	(holiday-chinese-new-year)))
@@ -917,7 +876,6 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (put 'local-holidays 'risky-local-variable t)
-;;;###autoload
 (defcustom local-holidays nil
   "Local holidays.
 See the documentation for `calendar-holidays' for details."
@@ -926,7 +884,6 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (put 'other-holidays 'risky-local-variable t)
-;;;###autoload
 (defcustom other-holidays nil
   "User defined holidays.
 See the documentation for `calendar-holidays' for details."
@@ -935,7 +892,6 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (put 'hebrew-holidays-1 'risky-local-variable t)
-;;;###autoload
 (defvar hebrew-holidays-1
   '((holiday-rosh-hashanah-etc)
     (if all-hebrew-calendar-holidays
@@ -955,7 +911,6 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (put 'hebrew-holidays-2 'risky-local-variable t)
-;;;###autoload
 (defvar hebrew-holidays-2
   '((if all-hebrew-calendar-holidays
         (holiday-hanukkah)
@@ -977,7 +932,6 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (put 'hebrew-holidays-3 'risky-local-variable t)
-;;;###autoload
 (defvar hebrew-holidays-3
   '((if all-hebrew-calendar-holidays
         (holiday-hebrew
@@ -1010,7 +964,6 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (put 'hebrew-holidays-4 'risky-local-variable t)
-;;;###autoload
 (defvar hebrew-holidays-4
   '((holiday-passover-etc)
     (if (and all-hebrew-calendar-holidays
@@ -1029,7 +982,6 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (put 'hebrew-holidays 'risky-local-variable t)
-;;;###autoload
 (defcustom hebrew-holidays (append hebrew-holidays-1 hebrew-holidays-2
 				hebrew-holidays-3 hebrew-holidays-4)
   "Jewish holidays.
@@ -1039,7 +991,6 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (put 'christian-holidays 'risky-local-variable t)
-;;;###autoload
 (defcustom christian-holidays
   '((if all-christian-calendar-holidays
         (holiday-fixed 1 6 "Epiphany"))
@@ -1090,7 +1041,6 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (put 'islamic-holidays 'risky-local-variable t)
-;;;###autoload
 (defcustom islamic-holidays
   '((holiday-islamic
      1 1
@@ -1125,7 +1075,6 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (put 'bahai-holidays 'risky-local-variable t)
-;;;###autoload
 (defcustom bahai-holidays
   '((holiday-fixed
      3 21
@@ -1167,7 +1116,6 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (put 'solar-holidays 'risky-local-variable t)
-;;;###autoload
 (defcustom solar-holidays
   '((if (fboundp 'atan)
 	(solar-equinoxes-solstices))
@@ -1575,7 +1523,6 @@ return negative results."
 (autoload 'calendar-two-frame-setup "cal-x"
   "Start calendar and diary in separate, dedicated frames.")
 
-;;;###autoload
 (defcustom calendar-setup nil
   "The frame setup of the calendar.
 The choices are: `one-frame' (calendar and diary together in one separate,
@@ -1595,6 +1542,30 @@ three options overrides the value of `view-diary-entries-initially'."
   :type 'integer
   :version "22.1"
   :group 'calendar)
+
+(defcustom calendar-week-start-day 0
+  "The day of the week on which a week in the calendar begins.
+0 means Sunday (default), 1 means Monday, and so on.
+
+If you change this variable directly (without using customize)
+after starting `calendar', you should call `redraw-calendar' to
+update the calendar display to reflect the change, otherwise
+movement commands will not work correctly."
+  :type 'integer
+  ;; Change the initialize so that if you reload calendar.el, it will not
+  ;; cause a redraw (which may fail, e.g. with "invalid byte-code in
+  ;; calendar.elc" because of the "byte-compile-dynamic").
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val)
+         (set sym val)
+         (redraw-calendar))
+  :group 'calendar)
+
+(defcustom calendar-debug-sexp nil
+  "Turn debugging on when evaluating a sexp in the diary or holiday list."
+  :type 'boolean
+  :group 'calendar)
+
 
 ;;;###autoload
 (defun calendar (&optional arg)
@@ -2189,30 +2160,6 @@ the inserted text.  Value is always t."
           (generate-calendar-window displayed-month displayed-year)
           (calendar-cursor-to-visible-date cursor-date)))))
 
-;;;###autoload
-(defcustom calendar-week-start-day 0
-  "The day of the week on which a week in the calendar begins.
-0 means Sunday (default), 1 means Monday, and so on.
-
-If you change this variable directly (without using customize)
-after starting `calendar', you should call `redraw-calendar' to
-update the calendar display to reflect the change, otherwise
-movement commands will not work correctly."
-  :type 'integer
-  ;; Change the initialize so that if you reload calendar.el, it will not
-  ;; cause a redraw (which may fail, e.g. with "invalid byte-code in
-  ;; calendar.elc" because of the "byte-compile-dynamic").
-  :initialize 'custom-initialize-default
-  :set (lambda (sym val)
-         (set sym val)
-         (redraw-calendar))
-  :group 'calendar)
-
-(defcustom calendar-debug-sexp nil
-  "Turn debugging on when evaluating a sexp in the diary or holiday list."
-  :type 'boolean
-  :group 'calendar)
-
 (require 'cal-menu)
 
 (defvar calendar-mode-map
@@ -2445,24 +2392,10 @@ under the cursor:
     (select-window (posn-window (event-start event)))
     (call-interactively 'calendar-other-month)))
 
-;; (require 'info) will define these.
-(declare-function Info-find-emacs-command-nodes "info" (command))
-(declare-function Info-find-node "info"
-                  (filename nodename &optional no-going-back))
-
 (defun calendar-goto-info-node ()
   "Go to the info node for the calendar."
   (interactive)
-  (require 'info)
-  (let ((where (save-window-excursion
-		 (Info-find-emacs-command-nodes 'calendar))))
-    (if (not where)
-        (error "Couldn't find documentation for the calendar")
-      (let (same-window-buffer-names)
-	(info))
-      (Info-find-node (car (car where)) (car (cdr (car where)))))))
-
-
+  (info "(emacs)Calendar/Diary"))
 
 (defun calendar-mode ()
   "A major mode for the calendar window.
@@ -3174,6 +3107,14 @@ Defaults to today's date if DATE is not given."
 (defun calendar-mod (m n)
   "Non-negative remainder of M/N with N instead of 0."
   (1+ (mod (1- m) n)))
+
+
+(defun calendar-version ()
+  (interactive)
+  (message "GNU Emacs %s" emacs-version))
+
+(make-obsolete 'calendar-version 'emacs-version "23.1")
+
 
 (run-hooks 'calendar-load-hook)
 
