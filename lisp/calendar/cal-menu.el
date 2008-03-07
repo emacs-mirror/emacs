@@ -265,6 +265,8 @@ ERROR is t, otherwise just returns nil."
              (if l l '("None")))))))
     (and selection (call-interactively selection))))
 
+(defvar holidays-in-diary-buffer)       ; only called from calendar.el
+
 (defun calendar-mouse-view-diary-entries (&optional date diary event)
   "Pop up menu of diary entries for mouse-selected date.
 Use optional DATE and alternative file DIARY.
