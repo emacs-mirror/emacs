@@ -15,19 +15,19 @@
 	It looks like he anticipated the new name too, because he used
 	`the-record' instead of `the-cell' for some internal variable names.
 
-	* lisp/bookmark.el
+	* bookmark.el
 	(bookmark-make-record-function): Was `bookmark-make-cell-function'.
 	(bookmark-make, bookmark-send-annotation): Update for above.
-	(bookmark-make-record-for-text-file): Was
-	`bookmark-make-cell-for-text-file.  Fix doc string re rev 1.102.
+	(bookmark-make-record-for-text-file):
+	Was `bookmark-make-cell-for-text-file.  Fix doc string re rev 1.102.
 
-	* lisp/info.el: Adjust accordingly.
+	* info.el: Adjust accordingly.
 	(Info-bookmark-make-record): Was `Info-bookmark-make-cell'.
 
-	* lisp/image-mode.el: Adjust accordingly.
+	* image-mode.el: Adjust accordingly.
 	(image-bookmark-make-record): Was `image-bookmark-make-cell'.
 
-	* lisp/doc-view.el: Adjust accordingly.
+	* doc-view.el: Adjust accordingly.
 	(doc-view-bookmark-make-record): Was `doc-view-bookmark-make-cell'.
 
 2008-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
