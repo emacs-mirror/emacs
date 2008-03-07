@@ -14323,15 +14323,13 @@
 	* vc-svn.el (vc-svn-diff): If the repository version of all the
 	files is the same as the specified OLDVERS, do a local diff.
 
-2007-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+2007-08-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* uniquify.el (uniquify-rationalize-file-buffer-names): Check liveness
 	of buffers in uniquify-managed.
 
 	* simple.el (invisible-p): Rename from text-invisible-p.
 	Update callers.
-
-2007-08-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cperl-mode.el (defcustom, x-color-defined-p, cperl-is-face)
 	(cperl-is-face, cperl-force-face, cperl-etags-snarf-tag, cperl-mode)
@@ -14375,6 +14373,33 @@
 	post-command-idle-hook.
 
 	* emacs-lisp/byte-opt.el (byte-optimize-featurep): Handle `sxemacs'.
+
+	* emacs-lisp/bytecomp.el (byte-compile-from-buffer): Display a big fat
+	warning if the file uses old style backquotes.
+
+	* emacs-lisp/bytecomp.el (byte-compile-log-file)
+	(byte-recompile-directory, byte-compile-file)
+	(byte-compile-from-buffer): Use with-current-buffer.
+
+	* simple.el (text-invisible-p): Rename from line-move-invisible-p.
+	(line-move-invisible-p): Keep as an obsolete alias, just to be safe.
+	(line-move-1, line-move-finish, line-move-to-column)
+	(move-end-of-line, move-beginning-of-line): Use new name.
+
+	* emacs-lisp/backquote.el (backquote-delay-process): Fix last change.
+
+	* progmodes/ada-mode.el: Fix up comment style in header.
+	(ada-check-emacs-version): Remove.
+	(ada-mode): Set parse-sexp-* even if they don't exist: can't hurt.
+	(ada-region-selected): Use (featurep 'xemacs) rather than contortions
+	to try and quieten the byte-compiler.
+	(ada-create-keymap): Use [(..)] keys, which work on both (X)Emacs.
+
+	* vc.el (vc-annotate-warp-version): Don't use previous-line.
+
+2007-08-27  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* net/browse-url.el (browse-url-emacs): New function.
 
 2007-08-27  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
