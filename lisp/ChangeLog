@@ -1,3 +1,8 @@
+2008-03-07  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-set): Make `bookmark-make-record-function'
+	buffer-local, not `bookmark-make-cell-function' (the old name).
+
 2008-03-07  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-bookmark-make-record): Delete obsolete

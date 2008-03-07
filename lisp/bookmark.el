@@ -738,7 +738,7 @@ and it removes only the first instance of a bookmark with that name from
 the list of bookmarks.\)"
   (interactive (list nil current-prefix-arg))
   (or
-   (local-variable-p 'bookmark-make-cell-function)
+   (local-variable-p 'bookmark-make-record-function)
    (bookmark-buffer-file-name)
    (error "Buffer not visiting a file or directory"))
 
