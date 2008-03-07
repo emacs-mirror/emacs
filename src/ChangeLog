@@ -1,3 +1,11 @@
+2008-03-06  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32_registry): Take font_type argument. Use ANSI
+	when charset not specified. Only translate ANSI to unicode when
+	font_type is truetype.
+	(w32font_coverage_ok): New function.
+	(add_font_entity_to_list): Use it to filter unsuitable fonts.
+
 2008-03-04  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in: Always include w32font.c in the build.
