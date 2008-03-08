@@ -53,7 +53,7 @@
   "Absolute date of start of Islamic calendar = August 29, 284 A.D. (Julian).")
 
 (defun islamic-calendar-leap-year-p (year)
-  "Returns t if YEAR is a leap year on the Islamic calendar."
+  "Return t if YEAR is a leap year on the Islamic calendar."
   (memq (% year 30)
         (list 2 5 7 10 13 16 18 21 24 26 29)))
 
@@ -204,13 +204,14 @@ nil if it is not visible in the current calendar window."
 
 (defun list-islamic-diary-entries ()
   "Add any Islamic date entries from the diary file to `diary-entries-list'.
-Islamic date diary entries must be prefaced by an `islamic-diary-entry-symbol'
-\(normally an `I').  The same diary date forms govern the style of the Islamic
-calendar entries, except that the Islamic month names must be spelled in full.
-The Islamic months are numbered from 1 to 12 with Muharram being 1 and 12 being
-Dhu al-Hijjah.  If an Islamic date diary entry begins with a
-`diary-nonmarking-symbol', the entry will appear in the diary listing, but will
-not be marked in the calendar.  This function is provided for use with the
+Islamic date diary entries must be prefaced by `islamic-diary-entry-symbol'
+\(normally an `I').  The same diary date forms govern the style
+of the Islamic calendar entries, except that the Islamic month
+names must be spelled in full.  The Islamic months are numbered
+from 1 to 12 with Muharram being 1 and 12 being Dhu al-Hijjah.
+If an Islamic date diary entry begins with `diary-nonmarking-symbol',
+the entry will appear in the diary listing, but will not be
+marked in the calendar.  This function is provided for use with
 `nongregorian-diary-listing-hook'."
   (if (< 0 number)
       (let ((buffer-read-only nil)
@@ -296,14 +297,14 @@ not be marked in the calendar.  This function is provided for use with the
 
 (defun mark-islamic-diary-entries ()
   "Mark days in the calendar window that have Islamic date diary entries.
-Each entry in diary-file (or included files) visible in the calendar window
-is marked.  Islamic date entries are prefaced by a islamic-diary-entry-symbol
-\(normally an `I').  The same diary-date-forms govern the style of the Islamic
+Each entry in `diary-file' (or included files) visible in the calendar window
+is marked.  Islamic date entries are prefaced by `islamic-diary-entry-symbol'
+\(normally an `I').  The same `diary-date-forms' govern the style of the Islamic
 calendar entries, except that the Islamic month names must be spelled in full.
 The Islamic months are numbered from 1 to 12 with Muharram being 1 and 12 being
 Dhu al-Hijjah.  Islamic date diary entries that begin with a
-diary-nonmarking-symbol will not be marked in the calendar.  This function is
-provided for use as part of the nongregorian-diary-marking-hook."
+`diary-nonmarking-symbol' will not be marked in the calendar.  This function is
+provided for use as part of the `nongregorian-diary-marking-hook'."
   (let ((d diary-date-forms))
     (while d
       (let*
@@ -459,7 +460,7 @@ A value of 0 in any position is a wildcard."
 (defun insert-islamic-diary-entry (arg)
   "Insert a diary entry.
 For the Islamic date corresponding to the date indicated by point.
-Prefix arg will make the entry nonmarking."
+Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (let* ((calendar-month-name-array calendar-islamic-month-name-array))
     (make-diary-entry
@@ -476,7 +477,7 @@ Prefix arg will make the entry nonmarking."
 (defun insert-monthly-islamic-diary-entry (arg)
   "Insert a monthly diary entry.
 For the day of the Islamic month corresponding to the date indicated by point.
-Prefix arg will make the entry nonmarking."
+Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (let* ((calendar-date-display-form
           (if european-calendar-style '(day " * ") '("* " day )))
@@ -494,7 +495,7 @@ Prefix arg will make the entry nonmarking."
 (defun insert-yearly-islamic-diary-entry (arg)
   "Insert an annual diary entry.
 For the day of the Islamic year corresponding to the date indicated by point.
-Prefix arg will make the entry nonmarking."
+Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (let* ((calendar-date-display-form
           (if european-calendar-style
