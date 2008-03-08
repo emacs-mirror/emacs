@@ -73,14 +73,17 @@
    "de la Re'volution"])
 
 (defun french-calendar-month-name-array ()
+  "Return the array of month names, depending on whether accents are available."
   (if (french-calendar-accents)
       french-calendar-multibyte-month-name-array
     french-calendar-month-name-array))
 
 (defun french-calendar-day-name-array ()
+  "Return the array of day names."
   french-calendar-day-name-array)
 
 (defun french-calendar-special-days-array ()
+  "Return the special day names, depending on whether accents are available."
   (if (french-calendar-accents)
       french-calendar-multibyte-special-days-array
     french-calendar-special-days-array))
