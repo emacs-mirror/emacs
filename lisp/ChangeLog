@@ -67,6 +67,11 @@
 	(diary-bahai-insert-yearly-entry):
 	* calendar/cal-dst.el (calendar-next-time-zone-transition)
 	(calendar-time-zone):
+	* calendar/cal-hebrew.el (hebrew-calendar-leap-year-p)
+	(hebrew-calendar-elapsed-days, hebrew-calendar-long-heshvan-p)
+	(hebrew-calendar-short-kislev-p, mark-hebrew-diary-entries)
+	(insert-hebrew-diary-entry, insert-monthly-hebrew-diary-entry)
+	(insert-yearly-hebrew-diary-entry, diary-yahrzeit): Doc fixes.
 	* calendar/cal-islam.el (islamic-calendar-leap-year-p)
 	(list-islamic-diary-entries, mark-islamic-diary-entries)
 	(insert-islamic-diary-entry, insert-monthly-islamic-diary-entry)
