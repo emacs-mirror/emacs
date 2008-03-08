@@ -5,7 +5,7 @@
 
 ;;;### (autoloads (diary-bahai-insert-yearly-entry diary-bahai-insert-monthly-entry
 ;;;;;;  diary-bahai-insert-entry calendar-bahai-goto-date calendar-bahai-print-date
-;;;;;;  calendar-bahai-date-string) "cal-bahai" "cal-bahai.el" "0fc5baf2a624bece16bd8392fb915fed")
+;;;;;;  calendar-bahai-date-string) "cal-bahai" "cal-bahai.el" "57647d548ada7136e713b79855c83f39")
 ;;; Generated autoloads from cal-bahai.el
 
 (autoload 'calendar-bahai-date-string "cal-bahai" "\
@@ -50,7 +50,7 @@ Prefix arg will make the entry nonmarking.
 
 ;;;### (autoloads (calendar-goto-chinese-date calendar-print-chinese-date
 ;;;;;;  calendar-chinese-date-string) "cal-china" "cal-china.el"
-;;;;;;  "8a3ff01c5cfd2aaca61229497c244d5e")
+;;;;;;  "537d922793e5aaaaecb43336d2a476cf")
 ;;; Generated autoloads from cal-china.el
 
 (autoload 'calendar-chinese-date-string "cal-china" "\
@@ -75,7 +75,7 @@ Echo Chinese date unless NOECHO is t.
 ;;;### (autoloads (calendar-goto-ethiopic-date calendar-print-ethiopic-date
 ;;;;;;  calendar-ethiopic-date-string calendar-goto-coptic-date calendar-print-coptic-date
 ;;;;;;  calendar-coptic-date-string) "cal-coptic" "cal-coptic.el"
-;;;;;;  "f4c546baa1ce2fc6a5dea4dc99230a8c")
+;;;;;;  "b2d8b9f621544c44d4b298d75789409a")
 ;;; Generated autoloads from cal-coptic.el
 
 (autoload 'calendar-coptic-date-string "cal-coptic" "\
@@ -118,7 +118,7 @@ Echo Ethiopic date unless NOECHO is t.
 
 ;;;### (autoloads (calendar-goto-french-date calendar-print-french-date
 ;;;;;;  calendar-french-date-string) "cal-french" "cal-french.el"
-;;;;;;  "2781842bc761ee549a3bcae9eaee6f41")
+;;;;;;  "56b16db7f28080b25b47630a942cabf8")
 ;;; Generated autoloads from cal-french.el
 
 (autoload 'calendar-french-date-string "cal-french" "\
@@ -142,7 +142,7 @@ Echo French Revolutionary date unless NOECHO is t.
 ;;;***
 
 ;;;### (autoloads (cal-html-cursor-year cal-html-cursor-month) "cal-html"
-;;;;;;  "cal-html.el" "a29583aa0522599cc9b7ca62a2aa6622")
+;;;;;;  "cal-html.el" "3b1f91234619ffe6af854c3cafe7a855")
 ;;; Generated autoloads from cal-html.el
 
 (autoload 'cal-html-cursor-month "cal-html" "\
@@ -166,7 +166,7 @@ existing output files are overwritten.
 ;;;### (autoloads (insert-yearly-islamic-diary-entry insert-monthly-islamic-diary-entry
 ;;;;;;  insert-islamic-diary-entry calendar-goto-islamic-date calendar-print-islamic-date
 ;;;;;;  calendar-islamic-date-string) "cal-islam" "cal-islam.el"
-;;;;;;  "88dad86314c76a48567c9808fae55ba1")
+;;;;;;  "c7032e739f28d96220d9297182962611")
 ;;; Generated autoloads from cal-islam.el
 
 (autoload 'calendar-islamic-date-string "cal-islam" "\
@@ -212,7 +212,7 @@ Prefix arg will make the entry nonmarking.
 
 ;;;### (autoloads (calendar-goto-iso-week calendar-goto-iso-date
 ;;;;;;  calendar-print-iso-date calendar-iso-date-string) "cal-iso"
-;;;;;;  "cal-iso.el" "677650b79e62e9e779fa148e87025385")
+;;;;;;  "cal-iso.el" "17d81911282d3fcf3db98c5feea84bdc")
 ;;; Generated autoloads from cal-iso.el
 
 (autoload 'calendar-iso-date-string "cal-iso" "\
@@ -243,7 +243,7 @@ Interactively, goes to the first day of the specified week.
 ;;;;;;  calendar-astro-date-string calendar-astro-from-absolute calendar-absolute-from-astro
 ;;;;;;  calendar-goto-julian-date calendar-print-julian-date calendar-julian-date-string
 ;;;;;;  calendar-julian-from-absolute) "cal-julian" "cal-julian.el"
-;;;;;;  "752356fd7ee3344b15b3bf4d12d6af31")
+;;;;;;  "0d289ec51112315cd7a7e238fc06238c")
 ;;; Generated autoloads from cal-julian.el
 
 (autoload 'calendar-julian-from-absolute "cal-julian" "\
@@ -303,7 +303,7 @@ Echo astronomical (Julian) day number unless NOECHO is t.
 ;;;;;;  calendar-mayan-date-string calendar-previous-calendar-round-date
 ;;;;;;  calendar-next-calendar-round-date calendar-previous-tzolkin-date
 ;;;;;;  calendar-next-tzolkin-date calendar-previous-haab-date calendar-next-haab-date)
-;;;;;;  "cal-mayan" "cal-mayan.el" "b55fbd09b18257419dd93850389b21d4")
+;;;;;;  "cal-mayan" "cal-mayan.el" "5713952aeb0e2ba73ecd81736f4a7630")
 ;;; Generated autoloads from cal-mayan.el
 
 (autoload 'calendar-next-haab-date "cal-mayan" "\
@@ -509,7 +509,7 @@ Negative DAY counts backward from end of year.
 
 ;;;### (autoloads (calendar-goto-persian-date calendar-print-persian-date
 ;;;;;;  calendar-persian-date-string) "cal-persia" "cal-persia.el"
-;;;;;;  "f359d6e737ec86250c6b1b409476ba91")
+;;;;;;  "b132a22d38fb382143c555d21fb3d62f")
 ;;; Generated autoloads from cal-persia.el
 
 (autoload 'calendar-persian-date-string "cal-persia" "\
@@ -648,7 +648,7 @@ the 24-hour clock if `cal-tex-24' is non-nil.
 ;;;***
 
 ;;;### (autoloads (calendar-two-frame-setup calendar-only-one-frame-setup
-;;;;;;  calendar-one-frame-setup) "cal-x" "cal-x.el" "c75b5b1ea674d2cf344faa37d5e825c2")
+;;;;;;  calendar-one-frame-setup) "cal-x" "cal-x.el" "50a3f20db4e121a3a6ae3ab75b9730b6")
 ;;; Generated autoloads from cal-x.el
 
 (autoload 'calendar-one-frame-setup "cal-x" "\
@@ -676,7 +676,7 @@ This function requires a display capable of multiple frames, else
 
 (provide 'cal-loaddefs)
 
-;; Local variables:
+;; Local Variables:
 ;; coding: utf-8
 ;; version-control: never
 ;; no-byte-compile: t
