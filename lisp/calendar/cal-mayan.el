@@ -93,7 +93,7 @@ but some use 1137140.  Using 1232041 gives you Spinden's correlation; using
   (apply 'format (cons "%s.%s.%s.%s.%s" mayan-long-count)))
 
 (defun calendar-string-to-mayan-long-count (str)
-  "Given STR, a string of format \"%d.%d.%d.%d.%d\", return list of nums."
+  "Given STR, a string of format \"%d.%d.%d.%d.%d\", return list of numbers."
   (let ((rlc nil)
         (c (length str))
         (cc 0))
@@ -162,7 +162,7 @@ Echo Mayan date if NOECHO is t."
   (or noecho (calendar-print-mayan-date)))
 
 (defun calendar-mayan-haab-to-string (haab)
-  "Convert Mayan haab date (a pair) into its traditional written form."
+  "Convert Mayan HAAB date (a pair) into its traditional written form."
   (let ((month (cdr haab))
         (day (car haab)))
   ;; 19th month consists of 5 special days
@@ -226,7 +226,7 @@ Echo Mayan date if NOECHO is t."
   (or noecho (calendar-print-mayan-date)))
 
 (defun calendar-mayan-tzolkin-to-string (tzolkin)
-  "Convert Mayan tzolkin date (a pair) into its traditional written form."
+  "Convert Mayan TZOLKIN date (a pair) into its traditional written form."
   (format "%d %s"
           (car tzolkin)
           (aref calendar-mayan-tzolkin-names-array (1- (cdr tzolkin)))))
@@ -252,7 +252,7 @@ Returns nil if such a tzolkin-haab combination is impossible."
       nil)))
 
 (defun calendar-read-mayan-haab-date ()
-  "Prompt for a Mayan haab date"
+  "Prompt for a Mayan haab date."
   (let* ((completion-ignore-case t)
          (haab-day (calendar-read
                     "Haab kin (0-19): "
@@ -268,7 +268,7 @@ Returns nil if such a tzolkin-haab combination is impossible."
     (cons haab-day haab-month)))
 
 (defun calendar-read-mayan-tzolkin-date ()
-  "Prompt for a Mayan tzolkin date"
+  "Prompt for a Mayan tzolkin date."
   (let* ((completion-ignore-case t)
          (tzolkin-count (calendar-read
                          "Tzolkin kin (1-13): "
@@ -283,10 +283,10 @@ Returns nil if such a tzolkin-haab combination is impossible."
     (cons tzolkin-count tzolkin-name)))
 
 ;;;###autoload
-(defun calendar-next-calendar-round-date
-  (tzolkin-date haab-date &optional noecho)
-  "Move cursor to next instance of Mayan HAAB-DATE TZOLKIN-DATE combination.
-Echo Mayan date if NOECHO is t."
+(defun calendar-next-calendar-round-date (tzolkin-date haab-date
+                                                       &optional noecho)
+  "Move cursor to next instance of Mayan TZOLKIN-DATE HAAB-DATE combination.
+Echo Mayan date unless NOECHO is non-nil."
   (interactive (list (calendar-read-mayan-tzolkin-date)
                      (calendar-read-mayan-haab-date)))
   (let ((date (calendar-mayan-tzolkin-haab-on-or-before
@@ -372,7 +372,7 @@ Defaults to today's date if DATE is not given."
   (or noecho (calendar-print-mayan-date)))
 
 (defun calendar-mayan-long-count-common-era (lc)
-  "T if long count represents date in the Common Era."
+  "Return non-nil if long count LC represents a date in the Common Era."
   (let ((base (calendar-mayan-long-count-from-absolute 1)))
     (while (and (not (null base)) (= (car lc) (car base)))
       (setq lc (cdr lc)
