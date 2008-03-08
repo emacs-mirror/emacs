@@ -36,9 +36,9 @@
 
 ;;; Code:
 
-(defvar date)
-
 (require 'cal-julian)
+
+;; Not constants because they get let-bound.
 
 (defvar coptic-calendar-month-name-array
   ["Tut" "Babah" "Hatur" "Kiyahk" "Tubah" "Amshir" "Baramhat" "Barmundah"
@@ -47,7 +47,8 @@
 (defvar coptic-calendar-epoch (calendar-absolute-from-julian '(8 29 284))
   "Absolute date of start of Coptic calendar = August 29, 284 A.D. (Julian).")
 
-(defvar coptic-name "Coptic")
+(defvar coptic-name "Coptic"
+  "Used in some message strings.")
 
 (defun coptic-calendar-leap-year-p (year)
   "True if YEAR is a leap year on the Coptic calendar."
@@ -229,6 +230,9 @@ Echo Ethiopic date unless NOECHO is t."
                        (calendar-absolute-from-ethiopic date)))
   (or noecho (calendar-print-ethiopic-date)))
 
+(defvar date)
+
+;; To be called from list-sexp-diary-entries, where DATE is bound.
 (defun diary-ethiopic-date ()
   "Ethiopic calendar equivalent of date diary entry."
   (let ((coptic-calendar-epoch ethiopic-calendar-epoch)
