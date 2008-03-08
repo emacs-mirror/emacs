@@ -51,11 +51,9 @@
 
 (require 'lunar)
 
-(defvar chinese-calendar-celestial-stem
-  ["Jia" "Yi" "Bing" "Ding" "Wu" "Ji" "Geng" "Xin" "Ren" "Gui"])
-
-(defvar chinese-calendar-terrestrial-branch
-  ["Zi" "Chou" "Yin" "Mao" "Chen" "Si" "Wu" "Wei" "Shen" "You" "Xu" "Hai"])
+(defgroup chinese-calendar nil
+  "Chinese calendar support."
+  :group 'calendar)
 
 (defcustom chinese-calendar-time-zone
   '(if (< year 1928)
@@ -130,6 +128,15 @@ Chinese calendar.  Default is for no daylight saving time."
 Chinese calendar.  Default is for no daylight saving time."
   :type 'integer
   :group 'chinese-calendar)
+
+;;; End of user options.
+
+
+(defconst chinese-calendar-celestial-stem
+  ["Jia" "Yi" "Bing" "Ding" "Wu" "Ji" "Geng" "Xin" "Ren" "Gui"])
+
+(defconst chinese-calendar-terrestrial-branch
+  ["Zi" "Chou" "Yin" "Mao" "Chen" "Si" "Wu" "Wei" "Shen" "You" "Xu" "Hai"])
 
 (defun chinese-zodiac-sign-on-or-after (d)
   "Absolute date of first new Zodiac sign on or after absolute date d.
@@ -374,6 +381,7 @@ Gregorian date Sunday, December 31, 1 BC."
                  (format "Chinese New Year (%s)"
                          (calendar-chinese-sexagesimal-name (+ y 57))))))))))
 
+;;;###autoload
 (defun calendar-chinese-date-string (&optional date)
   "String of Chinese date of Gregorian DATE.
 Defaults to today's date if DATE is not given."
@@ -415,6 +423,7 @@ N congruent to 1 gives the first name, N congruent to 2 gives the second name,
           (aref chinese-calendar-celestial-stem (% (1- n) 10))
           (aref chinese-calendar-terrestrial-branch (% (1- n) 12))))
 
+;;;###autoload
 (defun calendar-print-chinese-date ()
   "Show the Chinese date equivalents of date."
   (interactive)
@@ -422,6 +431,7 @@ N congruent to 1 gives the first name, N congruent to 2 gives the second name,
   (message "Chinese date: %s"
            (calendar-chinese-date-string (calendar-cursor-to-date t))))
 
+;;;###autoload
 (defun calendar-goto-chinese-date (date &optional noecho)
   "Move cursor to Chinese date DATE.
 Echo Chinese date unless NOECHO is t."
@@ -431,11 +441,11 @@ Echo Chinese date unless NOECHO is t."
                (calendar-current-date))))
           (cycle (calendar-read
                   "Chinese calendar cycle number (>44): "
-                  '(lambda (x) (> x 44))
+                  (lambda (x) (> x 44))
                   (int-to-string (car c))))
           (year (calendar-read
                  "Year in Chinese cycle (1..60): "
-                 '(lambda (x) (and (<= 1 x) (<= x 60)))
+                 (lambda (x) (and (<= 1 x) (<= x 60)))
                  (int-to-string (car (cdr c)))))
           (month-list (make-chinese-month-assoc-list
                        (chinese-months cycle year)))
@@ -453,7 +463,7 @@ Echo Chinese date unless NOECHO is t."
                   29))
           (day (calendar-read
                 (format "Chinese calendar day (1-%d): " last)
-                '(lambda (x) (and (<= 1 x) (<= x last))))))
+                (lambda (x) (and (<= 1 x) (<= x last))))))
      (list (list cycle year month day))))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-chinese date)))
@@ -462,13 +472,13 @@ Echo Chinese date unless NOECHO is t."
 (defun chinese-months (c y)
   "A list of the months in cycle C, year Y of the Chinese calendar."
   (let* ((l (memq 1 (append
-                     (mapcar '(lambda (x)
+                     (mapcar (lambda (x)
                                 (car x))
                              (chinese-year (extract-calendar-year
                                             (calendar-gregorian-from-absolute
                                              (calendar-absolute-from-chinese
                                               (list c y 1 1))))))
-                     (mapcar '(lambda (x)
+                     (mapcar (lambda (x)
                                 (if (> (car x) 11) (car x)))
                              (chinese-year (extract-calendar-year
                                             (calendar-gregorian-from-absolute
@@ -498,5 +508,9 @@ Echo Chinese date unless NOECHO is t."
 
 (provide 'cal-china)
 
-;;; arch-tag: 7e5b7e0d-676c-47e3-8696-93e7ea0ab644
+;; Local Variables:
+;; generated-autoload-file: "cal-loaddefs.el"
+;; End:
+
+;; arch-tag: 7e5b7e0d-676c-47e3-8696-93e7ea0ab644
 ;;; cal-china.el ends here
