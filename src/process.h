@@ -123,7 +123,7 @@ struct Lisp_Process
        This is to avoid consing in a signal handler.  The `raw_status_new'
        flag indicates that `raw_status' contains a new status that still
        needs to be synced to `status'.  */
-    int raw_status_new : 1;
+    unsigned int raw_status_new : 1;
     int raw_status;
 };
 
