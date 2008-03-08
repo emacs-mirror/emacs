@@ -224,8 +224,7 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
 ;;;###autoload
 (defun phases-of-moon (&optional arg)
   "Display the quarters of the moon for last month, this month, and next month.
-If called with an optional prefix argument, prompts for month and year.
-
+If called with an optional prefix argument ARG, prompts for month and year.
 This function is suitable for execution in a .emacs file."
   (interactive "P")
   (save-excursion
@@ -238,7 +237,6 @@ This function is suitable for execution in a .emacs file."
 
 (defun diary-phases-of-moon (&optional mark)
 "Moon phases diary entry.
-
 An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (let* ((index (* 4
@@ -256,10 +254,8 @@ use when highlighting the day in the calendar."
         (cons mark (concat (lunar-phase-name (car (cdr (cdr phase)))) " "
                 (car (cdr phase)))))))
 
-
 ;;  For the Chinese calendar the calculations for the new moon need to be more
 ;;  accurate than those above, so we use more terms in the approximation.
-
 (defun lunar-new-moon-time (k)
   "Astronomical (Julian) day number of K th new moon."
   (let* ((T (/ k 1236.85))
@@ -368,8 +364,8 @@ use when highlighting the day in the calendar."
        (/ calendar-time-zone 60.0 24.0))))
 
 (defun lunar-new-moon-on-or-after (d)
-  "Astronomical (Julian) day number of first new moon on or after astronomical
-\(Julian) day number d.  The fractional part is the time of day.
+  "Julian day number of first new moon on or after Julian day number D.
+The fractional part is the time of day.
 
 The date and time are local time, including any daylight saving rules,
 as governed by the values of calendar-daylight-savings-starts,
