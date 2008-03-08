@@ -20658,9 +20658,11 @@ MATCH is being ignored."
 ;;; Diary integration
 
 (defvar org-disable-agenda-to-diary nil)          ;Dynamically-scoped param.
+(defvar list-diary-entries-hook)
 
 (defun org-get-entries-from-diary (date)
   "Get the (Emacs Calendar) diary entries for DATE."
+  (require 'diary-lib)
   (let* ((fancy-diary-buffer "*temporary-fancy-diary-buffer*")
 	 (diary-display-hook '(fancy-diary-display))
 	 (pop-up-frames nil)
