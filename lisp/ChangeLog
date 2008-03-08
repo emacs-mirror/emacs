@@ -32,6 +32,9 @@
 
 	* calendar/cal-iso.el (calendar-iso-read-args): Doc fix.
 
+	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right):
+	Doc fix.
+
 	* calendar/cal-persia.el (persian-calendar-month-name-array)
 	(persian-calendar-epoch): Make constants.
 
