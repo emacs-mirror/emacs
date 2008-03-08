@@ -141,7 +141,7 @@ midnight UTC on absolute date ABS-DATE."
 
 (defun calendar-next-time-zone-transition (time)
   "Return the time of the next time zone transition after TIME.
-Both TIME and the result are acceptable arguments to current-time-zone.
+Both TIME and the result are acceptable arguments to `current-time-zone'.
 Return nil if no such transition can be found."
   (let* ((base 65536);; 2^16 = base of current-time output
 	 (quarter-multiple 120);; approx = (seconds per quarter year) / base
@@ -300,7 +300,7 @@ for `calendar-current-time-zone'."
   "Internal cal-dst variable storing date of daylight saving time transitions.
 Value is a list with elements of the form (YEAR START END), where
 START and END are expressions that when evaluated return the
-start and end dates (respectively) for DST in YEAR. Used by the
+start and end dates (respectively) for DST in YEAR.  Used by the
 function `calendar-dst-find-startend'.")
 
 (defun calendar-dst-find-startend (year)
@@ -367,8 +367,7 @@ it can't find."
 (calendar-current-time-zone)
 
 (defcustom calendar-time-zone (or (car calendar-current-time-zone-cache) -300)
-  "Number of minutes difference between local standard time at
-`calendar-location-name' and Coordinated Universal (Greenwich) Time.
+  "Number of minutes difference between local standard time and UTC.
 For example, -300 for New York City, -480 for Los Angeles."
   :type 'integer
   :group 'calendar-dst)
