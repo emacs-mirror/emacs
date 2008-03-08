@@ -1,3 +1,7 @@
+2008-03-08  Andreas Schwab  <schwab@suse.de>
+
+	* process.h (struct Lisp_Process): Declare bit fields as unsigned.
+
 2008-03-06  Jason Rumney  <jasonr@gnu.org>
 
 	* w32font.c (w32_registry): Take font_type argument.  Use ANSI
