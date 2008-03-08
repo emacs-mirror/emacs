@@ -1695,13 +1695,13 @@ For use in `add-log-current-defun-function'."
 	 (line-nb (and (or (looking-at "[^0-9]+\\([0-9]+\\)")
 			   (error "Can't find line number"))
 		       (string-to-number (match-string 1))))
+	 (inhibit-read-only t)
 	 (hunk (delete-and-extract-region
 		(point) (save-excursion (diff-end-of-hunk) (point))))
 	 (lead (make-string (1- line-nb) ?\n)) ;Line nums start at 1.
 	 (file1 (make-temp-file "diff1"))
 	 (file2 (make-temp-file "diff2"))
 	 (coding-system-for-read buffer-file-coding-system)
-	 (inhibit-read-only t)
 	 old new)
     (unwind-protect
 	(save-excursion

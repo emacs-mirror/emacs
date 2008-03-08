@@ -1,3 +1,8 @@
+2008-03-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el (diff-ignore-whitespace-hunk): Bind
+	inhibit-read-only before trying to change the buffer.
+
 2008-03-08  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el (appt): Move custom group here from calendar.el.
