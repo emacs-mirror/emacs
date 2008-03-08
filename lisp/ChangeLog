@@ -102,6 +102,9 @@
 	* calendar/cal-hebrew.el, calendar/holidays.el, calendar/lunar.el:
 	* calendar/solar.el: Unquote lambda functions.
 
+	* calendar/time-date.el (date-to-time, time-subtract, time-add)
+	(safe-date-to-time): Doc fixes.
+
 	* calendar/todo-mode.el: Remove un-needed eval-when-compile.
 
 	* textmodes/org.el (list-diary-entries-hook): Declare for compiler.
