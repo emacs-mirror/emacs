@@ -227,7 +227,7 @@ Driven by the variable `calendar-date-display-form'."
    (let* ((today (calendar-current-date))
           (year (calendar-read
                  "Hebrew calendar year (>3760): "
-                 '(lambda (x) (> x 3760))
+                 (lambda (x) (> x 3760))
                  (int-to-string
                   (extract-calendar-year
                    (calendar-hebrew-from-absolute
@@ -241,7 +241,7 @@ Driven by the variable `calendar-date-display-form'."
                         "Hebrew calendar month name: "
                         (mapcar 'list (append month-array nil))
                         (if (= year 3761)
-                            '(lambda (x)
+                            (lambda (x)
                                (let ((m (cdr
                                          (assoc-string
                                           (car x)
@@ -261,7 +261,7 @@ Driven by the variable `calendar-date-display-form'."
           (day (calendar-read
                 (format "Hebrew calendar day (%d-%d): "
                         first last)
-                '(lambda (x) (and (<= first x) (<= x last))))))
+                (lambda (x) (and (<= first x) (<= x last))))))
      (list (list month day year))))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-hebrew date)))
@@ -848,7 +848,7 @@ from the cursor position."
              (let* ((today (calendar-current-date))
                     (year (calendar-read
                            "Year of death (>0): "
-                           '(lambda (x) (> x 0))
+                           (lambda (x) (> x 0))
                            (int-to-string (extract-calendar-year today))))
                     (month-array calendar-month-name-array)
                     (completion-ignore-case t)
@@ -861,18 +861,18 @@ from the cursor position."
                     (last (calendar-last-day-of-month month year))
                     (day (calendar-read
                           (format "Day of death (1-%d): " last)
-                          '(lambda (x) (and (< 0 x) (<= x last))))))
+                          (lambda (x) (and (< 0 x) (<= x last))))))
                (list month day year))))
           (death-year (extract-calendar-year death-date))
           (start-year (calendar-read
                        (format "Starting year of Yahrzeit table (>%d): "
                                death-year)
-                       '(lambda (x) (> x death-year))
+                       (lambda (x) (> x death-year))
                        (int-to-string (1+ death-year))))
           (end-year (calendar-read
                      (format "Ending year of Yahrzeit table (>=%d): "
                              start-year)
-                       '(lambda (x) (>= x start-year)))))
+                       (lambda (x) (>= x start-year)))))
    (list death-date start-year end-year)))
   (message "Computing yahrzeits...")
   (let* ((yahrzeit-buffer "*Yahrzeits*")
@@ -1218,5 +1218,5 @@ have 30 days), and has Passover start on Tuesday.")
 
 (provide 'cal-hebrew)
 
-;;; arch-tag: aaab6718-7712-42ac-a32d-28fe1f944f3c
+;; arch-tag: aaab6718-7712-42ac-a32d-28fe1f944f3c
 ;;; cal-hebrew.el ends here
