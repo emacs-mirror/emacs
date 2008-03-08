@@ -46,10 +46,10 @@
 ;;; documentation of that function.
 ;;;
 ;;; Today's appointment list is initialized from the diary when this
-;;; package is activated. Additionally, the appointments list is
+;;; package is activated.  Additionally, the appointments list is
 ;;; recreated automatically at 12:01am for those who do not logout
-;;; every day or are programming late. It is also updated when the
-;;; `diary-file' is saved. Calling `appt-check' with an argument forces
+;;; every day or are programming late.  It is also updated when the
+;;; `diary-file' is saved.  Calling `appt-check' with an argument forces
 ;;; a re-initialization at any time.
 ;;;
 ;;; In order to add or delete items from today's list, without
@@ -410,9 +410,9 @@ displayed in a window:
 		     (sit-for 0)))))))))
 
 (defun appt-disp-window (min-to-app new-time appt-msg)
-  "Display appointment message APPT-MSG in a separate buffer.
-The appointment is due in MIN-TO-APP (a string) minutes.
-NEW-TIME is a string giving the date."
+  "Display appointment due in MIN-TO-APP (a string) minutes.
+NEW-TIME is a string giving the date.  Displays the appointment
+message APPT-MSG in a separate buffer."
   ;; Make sure we're not in the minibuffer before splitting the window.
   ;; FIXME this seems needlessly complicated?
   (when (minibufferp)
@@ -601,7 +601,7 @@ APPT-LIST is a list of the same format as `appt-time-msg-list'."
 
 
 (defun appt-convert-time (time2conv)
-  "Convert hour:min[am/pm] format to minutes from midnight.
+  "Convert hour:min[am/pm] format TIME2CONV to minutes from midnight.
 A period (.) can be used instead of a colon (:) to separate the
 hour and minute parts."
   ;; Formats that should be accepted:
