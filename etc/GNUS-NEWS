@@ -139,6 +139,8 @@ instead of real group names in 5.8.  Users who customize these variables
 should change those regexps accordingly.  For example:
 ("^han\\>" euc-kr) -> ("\\(^\\|:\\)han\\>" euc-kr)
 
+** Old intermediate incoming mail files (`Incoming*') are deleted after a
+couple of days, not immediately.  *Note Mail Source Customization::.
 
 
 * Changes in summary and article mode
