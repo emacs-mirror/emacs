@@ -2478,7 +2478,7 @@ If BODY finishes, `while-no-input' returns whatever value BODY produced."
        (catch ',catch-sym
 	 (let ((throw-on-input ',catch-sym))
 	   (or (input-pending-p)
-	       ,@body))))))
+	       (progn ,@body)))))))
 
 (defmacro combine-after-change-calls (&rest body)
   "Execute BODY, but don't call the after-change functions till the end.
