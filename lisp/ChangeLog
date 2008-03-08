@@ -23,6 +23,14 @@
 	calendar.el.
 	(chinese-calendar-celestial-stem, chinese-calendar-terrestrial-branch):
 	Make constants.
+	* calendar/cal-china.el (chinese-calendar-time-zone)
+	(chinese-calendar-daylight-time-offset)
+	(chinese-calendar-daylight-savings-starts)
+	(chinese-calendar-daylight-savings-ends)
+	(chinese-calendar-daylight-savings-starts-time)
+	(chinese-calendar-daylight-savings-ends-time)
+	(chinese-zodiac-sign-on-or-after, chinese-new-moon-on-or-after):
+	Doc fixes.
 
 	* calendar/cal-coptic.el (coptic-name): Add doc string.
 
