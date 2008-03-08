@@ -165,7 +165,7 @@ Echo Bahá'í date unless NOECHO is t."
   (let* ((today (calendar-current-date))
          (year (calendar-read
                 "Bahá'í calendar year (not 0): "
-                (lambda (x) (/= x 0))
+                (lambda (x) (not (zerop x)))
                 (int-to-string
                  (extract-calendar-year
                   (calendar-bahai-from-absolute
@@ -418,8 +418,8 @@ nongregorian-diary-marking-hook."
 A value of 0 in any position is a wildcard."
   (save-excursion
     (set-buffer calendar-buffer)
-    (if (and (/= 0 month) (/= 0 day))
-        (if (/= 0 year)
+    (if (and (not (zerop month)) (not (zerop day)))
+        (if (not (zerop year))
             ;; Fully specified Bahá'í date.
             (let ((date (calendar-gregorian-from-absolute
                          (calendar-absolute-from-bahai
