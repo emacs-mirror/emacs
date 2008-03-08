@@ -30,16 +30,15 @@
 	(french-calendar-day-name-array, french-calendar-special-days-array):
 	Add doc strings.
 
-	* calendar/cal-iso.el (calendar-iso-read-args): Doc fix.
-
+	* calendar/cal-iso.el (calendar-iso-read-args):
+	* calendar/lunar.el (phases-of-moon, lunar-new-moon-on-or-after):
 	* calendar/cal-mayan.el (calendar-string-to-mayan-long-count)
 	(calendar-mayan-haab-to-string, calendar-mayan-tzolkin-to-string)
 	(calendar-read-mayan-haab-date, calendar-read-mayan-tzolkin-date)
 	(calendar-next-calendar-round-date)
-	(calendar-mayan-long-count-common-era): Doc fixes.
-
+	(calendar-mayan-long-count-common-era):
 	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right):
-	Doc fix.
+	Doc fixes.
 
 	* calendar/cal-persia.el (persian-calendar-month-name-array)
 	(persian-calendar-epoch): Make constants.
