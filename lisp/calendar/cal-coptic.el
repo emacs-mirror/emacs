@@ -167,6 +167,9 @@ Echo Coptic date unless NOECHO is t."
                (lambda (x) (and (< 0 x) (<= x last))))))
     (list (list month day year))))
 
+(defvar date)
+
+;; To be called from list-sexp-diary-entries, where DATE is bound.
 (defun diary-coptic-date ()
   "Coptic calendar equivalent of date diary entry."
   (let ((f (calendar-coptic-date-string date)))
@@ -229,8 +232,6 @@ Echo Ethiopic date unless NOECHO is t."
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-ethiopic date)))
   (or noecho (calendar-print-ethiopic-date)))
-
-(defvar date)
 
 ;; To be called from list-sexp-diary-entries, where DATE is bound.
 (defun diary-ethiopic-date ()
