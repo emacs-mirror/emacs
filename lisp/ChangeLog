@@ -157,6 +157,24 @@
 	* calendar/cal-hebrew.el, calendar/holidays.el, calendar/lunar.el:
 	* calendar/solar.el: Unquote lambda functions.
 
+	* calendar/solar.el (calendar-location-name, calendar-latitude)
+	(calendar-longitude, solar-setup, solar-sin-degrees)
+	(solar-cosine-degrees, solar-tangent-degrees, solar-xy-to-quadrant)
+	(solar-degrees-to-quadrant, solar-atn2, solar-arccos)
+	(solar-sunrise-and-sunset, solar-moment, solar-daylight)
+	(solar-exact-local-noon, solar-julian-ut-centuries)
+	(solar-ephemeris-time, solar-date-next-longitude)
+	(solar-horizontal-coordinates, solar-equatorial-coordinates)
+	(solar-ecliptic-coordinates, solar-data-list, solar-longitude)
+	(solar-ephemeris-correction, solar-sidereal-time, solar-date-to-et)
+	(sunrise-sunset, solar-seasons-data, solar-equinoxes/solstices):
+	Doc fixes.
+	(solar-horizontal-coordinates, solar-equatorial-coordinates)
+	(solar-ecliptic-coordinates): Rename argument `for-sunrise-sunset'.
+	(solar-ecliptic-coordinates): Use unless.
+	(calendar-sunrise-sunset, diary-sunrise-sunset, diary-sabbath-candles):
+	Use or.
+
 	* calendar/todo-mode.el: Remove un-needed eval-when-compile.
 
 	* textmodes/org.el (list-diary-entries-hook): Declare for compiler.
