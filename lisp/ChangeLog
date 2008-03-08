@@ -1,5 +1,13 @@
 2008-03-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calendar/diary-lib.el (diary-list-entries)
+	(include-other-diary-files, mark-diary-entries)
+	(mark-sexp-diary-entries, mark-included-diary-files)
+	(diary-entry-time, list-sexp-diary-entries): Remove the special
+	handling of ^M that dates back to the use of selective-display.
+	(simple-diary-display): Obey setting of pop-up-frames.
+	(body, entry): Remove unnecessary declarations.
+
 	* bookmark.el (bookmark-prop-get, bookmark-prop-set): New funs.
 	(bookmark-get-annotation, bookmark-set-annotation)
 	(bookmark-get-filename, bookmark-set-filename, bookmark-get-position)

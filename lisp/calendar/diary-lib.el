@@ -118,9 +118,9 @@ function `mark-included-diary-files' as part of `mark-diary-entries-hook'.
 
 For example, you could use
 
-     (setq list-diary-entries-hook
-       '(include-other-diary-files sort-diary-entries))
-     (setq diary-display-hook 'fancy-diary-display)
+     (add-hook 'list-diary-entries-hook 'include-other-diary-files)
+     (add-hook 'list-diary-entries-hook 'sort-diary-entries)
+     (add-hook 'diary-display-hook 'fancy-diary-display)
 
 in your `.emacs' file to cause the fancy diary buffer to be displayed with
 diary entries from various included files, each day's entries sorted into
@@ -413,7 +413,6 @@ syntax of `*' and `:' changed to be word constituents.")
 (defvar diary-entries-list)
 (defvar displayed-year)
 (defvar displayed-month)
-(defvar entry)
 (defvar date)
 (defvar number)
 (defvar date-string)
@@ -722,38 +721,28 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
                                "")))
                            (regexp
                             (concat
-                             "\\(\\`\\|\^M\\|\n\\)" mark "?\\("
+                             "^" mark "?\\("
                              (mapconcat 'eval date-form "\\)\\(?:")
                              "\\)"))
                            (case-fold-search t))
                         (goto-char (point-min))
                         (while (re-search-forward regexp nil t)
                           (if backup (re-search-backward "\\<" nil t))
-                          (if (and (or (char-equal (preceding-char) ?\^M)
-                                       (char-equal (preceding-char) ?\n))
-                                   (not (looking-at " \\|\^I")))
+                         (if (and (bolp) (not (looking-at "[ \t]")))
                               ;;  Diary entry that consists only of date.
                               (backward-char 1)
                             ;; Found a nonempty diary entry--make it
                             ;; visible and add it to the list.
                             (setq entry-found t)
+                           (if (looking-at "[ \t]*\n[ \t]") (forward-line 1))
                             (let ((entry-start (point))
                                   date-start temp)
-                              (re-search-backward "\^M\\|\n\\|\\`")
-                              (setq date-start (point))
-                              ;; When selective display (rather than
-                              ;; overlays) was used, diary file used to
-                              ;; start in a blank line and end in a
-                              ;; newline. Now that neither of these
-                              ;; need be true, 'move handles the latter
-                              ;; and 1/2 kludge the former.
-                              (re-search-forward
-                               "\^M\\|\n" nil 'move
-                               (if (and (bobp) (not (looking-at "\^M\\|\n")))
-                                   1
-                                 2))
-                              (while (looking-at " \\|\^I")
-                                (re-search-forward "\^M\\|\n" nil 'move))
+                             (setq date-start
+                                   (line-end-position
+                                    (if (and (bolp) (> number 1)) -1 0)))
+                             (forward-line 1)
+                             (while (looking-at "[ \t]")
+                               (forward-line 1))
                               (unless (and (eobp) (not (bolp)))
                                 (backward-char 1))
                               (unless list-only
@@ -802,7 +791,7 @@ changing the variable `diary-include-string'."
   (goto-char (point-min))
   (while (re-search-forward
           (concat
-           "\\(?:\\`\\|\^M\\|\n\\)"
+           "^"
            (regexp-quote diary-include-string)
            " \"\\([^\"]*\\)\"")
           nil t)
@@ -839,7 +828,8 @@ changing the variable `diary-include-string'."
          (msg (format "No diary entries for %s" hol-string))
          ;; If selected window is dedicated (to the calendar),
          ;; need a new one to display the diary.
-         (pop-up-frames (window-dedicated-p (selected-window))))
+         (pop-up-frames (or pop-up-frames
+                            (window-dedicated-p (selected-window)))))
     (calendar-set-mode-line (format "Diary for %s" hol-string))
     (if (or (not diary-entries-list)
             (and (not (cdr diary-entries-list))
@@ -1209,18 +1199,18 @@ diary entries."
                    (year "[0-9]+\\|\\*")
                    (l (length date-form))
                    (d-name-pos (- l (length (memq 'dayname date-form))))
-                   (d-name-pos (if (/= l d-name-pos) (+ 2 d-name-pos)))
+                   (d-name-pos (if (/= l d-name-pos) (+ 1 d-name-pos)))
                    (m-name-pos (- l (length (memq 'monthname date-form))))
-                   (m-name-pos (if (/= l m-name-pos) (+ 2 m-name-pos)))
+                   (m-name-pos (if (/= l m-name-pos) (+ 1 m-name-pos)))
                    (d-pos (- l (length (memq 'day date-form))))
-                   (d-pos (if (/= l d-pos) (+ 2 d-pos)))
+                   (d-pos (if (/= l d-pos) (+ 1 d-pos)))
                    (m-pos (- l (length (memq 'month date-form))))
-                   (m-pos (if (/= l m-pos) (+ 2 m-pos)))
+                   (m-pos (if (/= l m-pos) (+ 1 m-pos)))
                    (y-pos (- l (length (memq 'year date-form))))
-                   (y-pos (if (/= l y-pos) (+ 2 y-pos)))
+                   (y-pos (if (/= l y-pos) (+ 1 y-pos)))
                    (regexp
                     (concat
-                     "\\(\\`\\|\^M\\|\n\\)\\("
+                     "^\\("
                      (mapconcat 'eval date-form "\\)\\(")
                      "\\)"))
                    (case-fold-search t))
@@ -1289,7 +1279,7 @@ diary entries."
 Each entry in the diary file (or included files) visible in the calendar window
 is marked.  See the documentation for the function `list-sexp-diary-entries'."
   (let* ((sexp-mark (regexp-quote sexp-diary-entry-symbol))
-         (s-entry (concat "\\(\\`\\|\^M\\|\n\\)\\("
+         (s-entry (concat "^\\("
                           sexp-mark "(\\)\\|\\("
                           (regexp-quote diary-nonmarking-symbol)
                           sexp-mark "(diary-remind\\)"))
@@ -1310,31 +1300,21 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
       (setq marking-diary-entry (char-equal (preceding-char) ?\())
       (re-search-backward "(")
       (let ((sexp-start (point))
-            sexp entry entry-start line-start marks)
+            sexp entry entry-start marks)
         (forward-sexp)
         (setq sexp (buffer-substring-no-properties sexp-start (point)))
-        (save-excursion
-          (re-search-backward "\^M\\|\n\\|\\`")
-          (setq line-start (point)))
         (forward-char 1)
-        (if (and (or (char-equal (preceding-char) ?\^M)
-                     (char-equal (preceding-char) ?\n))
-                 (not (looking-at " \\|\^I")))
+        (if (and (bolp) (not (looking-at "[ \t]")))
             (progn;; Diary entry consists only of the sexp
               (backward-char 1)
               (setq entry ""))
           (setq entry-start (point))
           ;; Find end of entry
-          (re-search-forward "\^M\\|\n" nil t)
-          (while (looking-at " \\|\^I")
- 	    (or (re-search-forward "\^M\\|\n" nil t)
- 		(re-search-forward "$" nil t)))
-          (if (or (char-equal (preceding-char) ?\^M)
- 		  (char-equal (preceding-char) ?\n))
- 	      (backward-char 1))
-          (setq entry (buffer-substring-no-properties entry-start (point)))
-          (while (string-match "[\^M]" entry)
-            (aset entry (match-beginning 0) ?\n )))
+          (forward-line 1)
+          (while (looking-at "[ \t]")
+            (forward-line 1))
+          (if (bolp) (backward-char 1))
+          (setq entry (buffer-substring-no-properties entry-start (point))))
         (calendar-for-loop date from first-date to last-date do
           (if (setq mark (diary-sexp-entry sexp entry
                                 (calendar-gregorian-from-absolute date)))
@@ -1360,7 +1340,7 @@ changing the variable `diary-include-string'."
   (goto-char (point-min))
   (while (re-search-forward
           (concat
-           "\\(?:\\`\\|\^M\\|\n\\)"
+           "^"
            (regexp-quote diary-include-string)
            " \"\\([^\"]*\\)\"")
           nil t)
@@ -1450,17 +1430,17 @@ XXAM, XXpm, XXPM, XX:XXam, XX:XXAM XX:XXpm, or XX:XXPM.  A period (.) can
 be used instead of a colon (:) to separate the hour and minute parts."
   (let ((case-fold-search nil))
     (cond ((string-match        ; Military time
-	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\)[:.]?\\([0-9][0-9]\\)\\(\\>\\|[^ap]\\)"
+	    "\\`[ \t\n]*\\([0-9]?[0-9]\\)[:.]?\\([0-9][0-9]\\)\\(\\>\\|[^ap]\\)"
             s)
 	   (+ (* 100 (string-to-number (match-string 1 s)))
 	      (string-to-number (match-string 2 s))))
 	  ((string-match        ; Hour only  XXam or XXpm
-	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\)\\([ap]\\)m\\>" s)
+	    "\\`[ \t\n]*\\([0-9]?[0-9]\\)\\([ap]\\)m\\>" s)
 	   (+ (* 100 (% (string-to-number (match-string 1 s)) 12))
 	      (if (equal ?a (downcase (aref s (match-beginning 2))))
 		  0 1200)))
 	  ((string-match        ; Hour and minute  XX:XXam or XX:XXpm
-	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\)[:.]\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
+	    "\\`[ \t\n]*\\([0-9]?[0-9]\\)[:.]\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
 	   (+ (* 100 (% (string-to-number (match-string 1 s)) 12))
 	      (string-to-number (match-string 2 s))
 	      (if (equal ?a (downcase (aref s (match-beginning 3))))
@@ -1630,7 +1610,7 @@ A number of built-in functions are available for this type of diary entry:
 
 Marking these entries is *extremely* time consuming, so these entries are
 best if they are nonmarking."
-  (let ((s-entry (concat "\\(\\`\\|\^M\\|\n\\)"
+  (let ((s-entry (concat "^"
                          (regexp-quote diary-nonmarking-symbol)
                          "?"
                          (regexp-quote sexp-diary-entry-symbol)
@@ -1645,27 +1625,21 @@ best if they are nonmarking."
             sexp entry specifier entry-start line-start)
         (forward-sexp)
         (setq sexp (buffer-substring-no-properties sexp-start (point)))
-        (save-excursion
-          (re-search-backward "\^M\\|\n\\|\\`")
-          (setq line-start (point)))
+        (setq line-start (line-end-position 0))
         (setq specifier
               (buffer-substring-no-properties (1+ line-start) (point))
               entry-start (1+ line-start))
         (forward-char 1)
-        (if (and (or (char-equal (preceding-char) ?\^M)
-                     (char-equal (preceding-char) ?\n))
-                 (not (looking-at " \\|\^I")))
+        (if (and (bolp) (not (looking-at "[ \t]")))
             (progn;; Diary entry consists only of the sexp
               (backward-char 1)
               (setq entry ""))
           (setq entry-start (point))
-          (re-search-forward "\^M\\|\n" nil t)
-          (while (looking-at " \\|\^I")
-            (re-search-forward "\^M\\|\n" nil t))
+          (forward-line 1)
+          (while (looking-at "[ \t]")
+            (forward-line 1))
           (backward-char 1)
-          (setq entry (buffer-substring-no-properties entry-start (point)))
-          (while (string-match "[\^M]" entry)
-            (aset entry (match-beginning 0) ?\n )))
+          (setq entry (buffer-substring-no-properties entry-start (point))))
         (let ((diary-entry (diary-sexp-entry sexp entry date))
               temp literal)
           (setq literal entry           ; before evaluation
@@ -2255,7 +2229,6 @@ names."
 ;; `diary-outlook-formats'.
 
 ;; Dynamically bound.
-(defvar body)
 (defvar subject)
 
 (defun diary-from-outlook-internal (&optional test-only)
