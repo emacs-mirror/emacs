@@ -721,7 +721,7 @@ calendar-time-zone are used to interpret local time."
              (* 62833.1961680 U)
              (* 0.0000001
                 (apply '+
-                       (mapcar '(lambda (x)
+                       (mapcar (lambda (x)
                                   (* (car x)
                                      (sin (mod
                                            (+ (car (cdr x))
@@ -974,7 +974,7 @@ Accurate to less than a minute between 1951 and 2050."
          (W (- (* 35999.373 T) 2.47))
          (Delta-lambda (+ 1 (* 0.0334 (solar-cosine-degrees W))
                             (* 0.0007 (solar-cosine-degrees (* 2 W)))))
-         (S (apply '+ (mapcar '(lambda(x)
+         (S (apply '+ (mapcar (lambda(x)
                                  (* (car x) (solar-cosine-degrees
                                              (+ (* (car (cdr (cdr x))) T)
                                                   (car (cdr x))))))
@@ -1088,5 +1088,5 @@ Requires floating point."
 
 (provide 'solar)
 
-;;; arch-tag: bc0ff693-df58-4666-bde4-2a7837ccb8fe
+;; arch-tag: bc0ff693-df58-4666-bde4-2a7837ccb8fe
 ;;; solar.el ends here
