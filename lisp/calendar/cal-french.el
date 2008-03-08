@@ -93,9 +93,9 @@ and 11 were leap years; 15 and 20 would have been leap years).  For later
 years uses the proposed rule of Romme (never adopted)--leap years fall every
 four years except century years not divisible 400 and century years that are
 multiples of 4000."
-  (or (memq year '(3 7 11));; Actual practice--based on equinoxes
-      (memq year '(15 20)) ;; Anticipated practice--based on equinoxes
-      (and (> year 20)     ;; Romme's proposal--never adopted
+  (or (memq year '(3 7 11)) ; actual practice--based on equinoxes
+      (memq year '(15 20))  ; anticipated practice--based on equinoxes
+      (and (> year 20)      ; Romme's proposal--never adopted
            (zerop (% year 4))
            (not (memq (% year 400) '(100 200 300)))
            (not (zerop (% year 4000))))))
@@ -117,18 +117,18 @@ Gregorian date Sunday, December 31, 1 BC."
   (let ((month (extract-calendar-month date))
         (day (extract-calendar-day date))
         (year (extract-calendar-year date)))
-    (+ (* 365 (1- year));; Days in prior years
-       ;; Leap days in prior years
+    (+ (* 365 (1- year))                ; days in prior years
+       ;; Leap days in prior years.
        (if (< year 20)
-           (/ year 4);; Actual and anticipated practice (years 3, 7, 11, 15)
-         ;; Romme's proposed rule (using the Principle of Inclusion/Exclusion)
-         (+ (/ (1- year) 4);; Luckily, there were 4 leap years before year 20
+           (/ year 4) ; actual and anticipated practice (years 3, 7, 11, 15)
+         ;; Romme's proposed rule (using the Principle of Inclusion/Exclusion).
+         (+ (/ (1- year) 4) ; luckily, there were 4 leap years before year 20
             (- (/ (1- year) 100))
             (/ (1- year) 400)
             (- (/ (1- year) 4000))))
-       (* 30 (1- month));; Days in prior months this year
-       day;; Days so far this month
-       (1- french-calendar-epoch))));; Days before start of calendar
+       (* 30 (1- month))              ; days in prior months this year
+       day                            ; days so far this month
+       (1- french-calendar-epoch))))  ; days before start of calendar
 
 (defun calendar-french-from-absolute (date)
   "Compute the French Revolutionary equivalent for absolute date DATE.
@@ -136,15 +136,15 @@ The result is a list of the form (MONTH DAY YEAR).
 The absolute date is the number of days elapsed since the
 \(imaginary) Gregorian date Sunday, December 31, 1 BC."
   (if (< date french-calendar-epoch)
-      (list 0 0 0);; pre-French Revolutionary date
-    (let* ((approx              ;; Approximation from below.
+      (list 0 0 0)                     ; pre-French Revolutionary date
+    (let* ((approx                     ; approximation from below
             (/ (- date french-calendar-epoch) 366))
-           (year                ;; Search forward from the approximation.
+           (year               ; search forward from the approximation
             (+ approx
                (calendar-sum y approx
                  (>= date (calendar-absolute-from-french (list 1 1 (1+ y))))
                  1)))
-           (month               ;; Search forward from Vendemiaire.
+           (month                    ; search forward from Vendemiaire
             (1+ (calendar-sum m 1
                   (> date
                      (calendar-absolute-from-french
@@ -152,7 +152,7 @@ The absolute date is the number of days elapsed since the
                             (french-calendar-last-day-of-month m year)
                             year)))
                   1)))
-           (day                   ;; Calculate the day by subtraction.
+           (day                     ; calculate the day by subtraction
             (- date
                (1- (calendar-absolute-from-french (list month 1 year))))))
     (list month day year))))
@@ -220,7 +220,7 @@ Echo French Revolutionary date unless NOECHO is t."
 				  (lambda (x) (concat "Jour " x))
 				  french-calendar-special-days-array)
 			       (reverse
-				(cdr;; we don't want rev. day in a non-leap yr.
+				(cdr ; we don't want rev. day in a non-leap yr
 				 (reverse
 				  (mapcar
 				   (lambda (x)
