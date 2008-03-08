@@ -45,7 +45,6 @@
 
 ;;; Code:
 
-(defvar date)
 (defvar displayed-month)
 (defvar displayed-year)
 
@@ -502,6 +501,9 @@ Echo Chinese date unless NOECHO is t."
              (make-chinese-month-assoc-list (cdr l))))
         (list (cons (int-to-string (car l)) (car l))))))
 
+(defvar date)
+
+;; To be called from list-sexp-diary-entries, where DATE is bound.
 (defun diary-chinese-date ()
   "Chinese calendar equivalent of date diary entry."
   (format "Chinese date: %s" (calendar-chinese-date-string date)))
