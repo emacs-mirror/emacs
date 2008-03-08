@@ -1,7 +1,7 @@
 ;;; cal-x.el --- calendar windows in dedicated frames in X
 
-;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;;      Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -43,7 +43,7 @@ Location and color should be set in .Xdefaults."
   :type 'sexp
   :group 'calendar)
 
-(defvar calendar-frame-parameters
+(defcustom calendar-frame-parameters
   '((name . "Calendar") (title . "Calendar") (minibuffer . nil)
     (height . 10) (width . 80) (unsplittable . t) (vertical-scroll-bars . nil))
   "Parameters of the calendar frame, if the calendar is in a separate frame.
@@ -51,7 +51,7 @@ Location and color should be set in .Xdefaults."
   :type 'sexp
   :group 'calendar)
 
-(defvar calendar-and-diary-frame-parameters
+(defcustom calendar-and-diary-frame-parameters
   '((name . "Calendar") (title . "Calendar") (height . 28) (width . 80)
     (minibuffer . nil))
   "Parameters of the frame that displays both the calendar and the diary.
@@ -80,7 +80,8 @@ Can be used to change frame parameters, such as font, color, location, etc."
 (defun calendar-one-frame-setup (&optional arg)
   "Start calendar and display it in a dedicated frame together with the diary.
 This function requires a display capable of multiple frames, else
-`calendar-basic-setup' is used instead."
+`calendar-basic-setup' is used instead.  The optional argument ARG is
+passed to `calendar-basic-setup'."
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
@@ -111,7 +112,8 @@ This function requires a display capable of multiple frames, else
 (defun calendar-only-one-frame-setup (&optional arg)
   "Start calendar and display it in a dedicated frame.
 This function requires a display capable of multiple frames, else
-`calendar-basic-setup' is used instead."
+`calendar-basic-setup' is used instead.  The optional argument
+ARG is passed to `calendar-basic-setup'"
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
@@ -133,7 +135,8 @@ This function requires a display capable of multiple frames, else
 (defun calendar-two-frame-setup (&optional arg)
   "Start calendar and diary in separate, dedicated frames.
 This function requires a display capable of multiple frames, else
-`calendar-basic-setup' is used instead."
+`calendar-basic-setup' is used instead.  The optional argument
+ARG is passed to `calendar-basic-setup'"
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
