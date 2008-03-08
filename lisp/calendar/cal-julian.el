@@ -1,7 +1,7 @@
 ;;; cal-julian.el --- calendar functions for the Julian calendar
 
-;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -36,7 +36,6 @@
 
 ;;; Code:
 
-(defvar date)
 (defvar displayed-month)
 (defvar displayed-year)
 
@@ -75,7 +74,7 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
         (day (extract-calendar-day date))
         (year (extract-calendar-year date)))
     (+ (calendar-day-number date)
-       (if (and (= (% year 100) 0)
+       (if (and (zerop (% year 100))
                 (/= (% year 400) 0)
                 (> month 2))
            1 0);; Correct for Julian but not Gregorian leap year.
@@ -164,6 +163,9 @@ nil if it is not visible in the current calendar window."
         (if (calendar-date-is-visible-p date)
             (list (list date string)))))))
 
+(defvar date)
+
+;; To be called from list-sexp-diary-entries, where DATE is bound.
 (defun diary-julian-date ()
   "Julian calendar equivalent of date diary entry."
   (format "Julian date: %s" (calendar-julian-date-string date)))
@@ -209,6 +211,7 @@ Echo astronomical (Julian) day number unless NOECHO is t."
      (calendar-absolute-from-astro daynumber))))
   (or noecho (calendar-print-astro-day-number)))
 
+;; To be called from list-sexp-diary-entries, where DATE is bound.
 (defun diary-astro-day-number ()
   "Astronomical (Julian) day number diary entry."
   (format "Astronomical (Julian) day number at noon UTC: %s.0"
