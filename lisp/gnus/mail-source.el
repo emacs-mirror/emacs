@@ -286,11 +286,11 @@ You may also set this variable to nil and call
 		 (const :tag "never" nil)
 		 (integer :tag "days")))
 
-(defcustom mail-source-delete-old-incoming-confirm t
-  "*If non-nil, ask for confirmation before deleting old incoming files.
+(defcustom mail-source-delete-old-incoming-confirm nil
+  "If non-nil, ask for confirmation before deleting old incoming files.
 This variable only applies when `mail-source-delete-incoming' is a positive
 number."
-  :version "22.1"
+  :version "22.2" ;; No Gnus / Gnus 5.10.10 (default changed)
   :group 'mail-source
   :type 'boolean)
 
@@ -548,10 +548,13 @@ If CONFIRM is non-nil, ask for confirmation before removing a file."
 	     (fileday (+ fileday (* low2days (nth 1 filetime)))))
 	(setq files (cdr files))
 	(when (and (> (- currday fileday) diff)
-		   (gnus-message 8 "File `%s' is older than %s day(s)"
-				 bfile diff)
-		   (or (not confirm)
-		       (y-or-n-p (concat "Remove file `" bfile "'? "))))
+		   (if confirm
+		       (y-or-n-p
+			(format "\
+Delete old (> %s day(s)) incoming mail file `%s'? " diff bfile))
+		     (gnus-message 8 "\
+Deleting old (> %s day(s)) incoming mail file `%s'." diff bfile)
+		     t))
 	  (delete-file ffile))))))
 
 (defun mail-source-callback (callback info)
