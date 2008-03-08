@@ -67,6 +67,7 @@ Can be used to change frame parameters, such as font, color, location, etc.")
 ;; calendar-basic-setup is called first, and will autoload diary-lib.
 (declare-function make-fancy-diary-buffer "diary-lib" nil)
 
+;;;###autoload
 (defun calendar-one-frame-setup (&optional arg)
   "Start calendar and display it in a dedicated frame together with the diary.
 This function requires a display capable of multiple frames, else
@@ -97,6 +98,7 @@ This function requires a display capable of multiple frames, else
               fancy-diary-buffer))
            t))))))
 
+;;;###autoload
 (defun calendar-only-one-frame-setup (&optional arg)
   "Start calendar and display it in a dedicated frame.
 This function requires a display capable of multiple frames, else
@@ -118,6 +120,7 @@ This function requires a display capable of multiple frames, else
           (calendar-basic-setup arg)
           (set-window-dedicated-p (selected-window) t))))))
 
+;;;###autoload
 (defun calendar-two-frame-setup (&optional arg)
   "Start calendar and diary in separate, dedicated frames.
 This function requires a display capable of multiple frames, else
@@ -166,6 +169,10 @@ This function requires a display capable of multiple frames, else
 (run-hooks 'cal-x-load-hook)
 
 (provide 'cal-x)
+
+;; Local Variables:
+;; generated-autoload-file: "cal-loaddefs.el"
+;; End:
 
 ;; arch-tag: c6dbddca-ae84-442d-87fc-244b76e38e17
 ;;; cal-x.el ends here
