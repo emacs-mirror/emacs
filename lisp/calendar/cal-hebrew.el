@@ -1,7 +1,7 @@
 ;;; cal-hebrew.el --- calendar functions for the Hebrew calendar
 
-;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Nachum Dershowitz <nachum@cs.uiuc.edu>
 ;;      Edward M. Reingold <reingold@cs.uiuc.edu>
@@ -599,8 +599,8 @@ not be marked in the calendar.  This function is provided for use with the
 A value of 0 in any position is a wildcard."
   (save-excursion
     (set-buffer calendar-buffer)
-    (if (and (/= 0 month) (/= 0 day))
-        (if (/= 0 year)
+    (if (and (not (zerop month)) (not (zerop day)))
+        (if (not (zerop year))
             ;; Fully specified Hebrew date.
             (let ((date (calendar-gregorian-from-absolute
                          (calendar-absolute-from-hebrew
