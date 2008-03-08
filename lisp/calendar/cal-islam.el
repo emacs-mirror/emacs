@@ -85,27 +85,27 @@ Gregorian date Sunday, December 31, 1 BC."
            ((< y 3) 0)  ((< y 6) 1)  ((< y 8) 2)  ((< y 11) 3) ((< y 14) 4)
            ((< y 17) 5) ((< y 19) 6) ((< y 22) 7) ((< y 25) 8) ((< y 27) 9)
            (t 10))))
-    (+ (islamic-calendar-day-number date);; days so far this year
-       (* (1- year) 354)                 ;; days in all non-leap years
-       (* 11 (/ year 30))                ;; leap days in complete cycles
-       leap-years-in-cycle               ;; leap days this cycle
-       (1- calendar-islamic-epoch))))    ;; days before start of calendar
+    (+ (islamic-calendar-day-number date) ; days so far this year
+       (* (1- year) 354)                  ; days in all non-leap years
+       (* 11 (/ year 30))             ; leap days in complete cycles
+       leap-years-in-cycle            ; leap days this cycle
+       (1- calendar-islamic-epoch)))) ; days before start of calendar
 
 (defun calendar-islamic-from-absolute (date)
   "Compute the Islamic date (month day year) corresponding to absolute DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
   (if (< date calendar-islamic-epoch)
-      (list 0 0 0);; pre-Islamic date
+      (list 0 0 0)                      ; pre-Islamic date
     (let* ((approx (/ (- date calendar-islamic-epoch)
-                      355));; Approximation from below.
-           (year           ;; Search forward from the approximation.
+                      355))  ; approximation from below
+           (year             ; search forward from the approximation
             (+ approx
                (calendar-sum y approx
                              (>= date (calendar-absolute-from-islamic
                                        (list 1 1 (1+ y))))
                              1)))
-           (month          ;; Search forward from Muharram.
+           (month                       ; search forward from Muharram
             (1+ (calendar-sum m 1
                               (> date
                                  (calendar-absolute-from-islamic
@@ -114,7 +114,7 @@ Gregorian date Sunday, December 31, 1 BC."
                                          m year)
                                         year)))
                               1)))
-           (day            ;; Calculate the day by subtraction.
+           (day                    ; calculate the day by subtraction
             (- date
                (1- (calendar-absolute-from-islamic (list month 1 year))))))
       (list month day year))))
@@ -190,9 +190,9 @@ nil if it is not visible in the current calendar window."
          (y (extract-calendar-year islamic-date))
         (date))
     (if (< m 1)
-        nil;;   Islamic calendar doesn't apply.
+        nil                        ;   Islamic calendar doesn't apply
       (increment-calendar-month m y (- 10 month))
-      (if (> m 7);;  Islamic date might be visible
+      (if (> m 7)                     ;  Islamic date might be visible
           (let ((date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-islamic (list month day y)))))
             (if (calendar-date-is-visible-p date)
@@ -262,10 +262,10 @@ not be marked in the calendar.  This function is provided for use with the
                   (if (and (or (char-equal (preceding-char) ?\^M)
                                (char-equal (preceding-char) ?\n))
                            (not (looking-at " \\|\^I")))
-                      ;;  Diary entry that consists only of date.
+                      ;; Diary entry that consists only of date.
                       (backward-char 1)
-                    ;;  Found a nonempty diary entry--make it visible and
-                    ;;  add it to the list.
+                    ;; Found a nonempty diary entry--make it visible and
+                    ;; add it to the list.
                     (let ((entry-start (point))
                           (date-start))
                       (re-search-backward "\^M\\|\n\\|\\`")
@@ -309,7 +309,7 @@ provided for use as part of the nongregorian-diary-marking-hook."
       (let*
           ((date-form (if (equal (car (car d)) 'backup)
                           (cdr (car d))
-                        (car d)));; ignore 'backup directive
+                        (car d)))       ; ignore 'backup directive
            (dayname (diary-name-pattern calendar-day-name-array
                                         calendar-day-abbrev-array))
            (monthname
@@ -418,9 +418,9 @@ A value of 0 in any position is a wildcard."
                  (y (extract-calendar-year islamic-date))
                  (date))
             (if (< m 1)
-                nil;;   Islamic calendar doesn't apply.
+                nil                ;   Islamic calendar doesn't apply
               (increment-calendar-month m y (- 10 month))
-              (if (> m 7);;  Islamic date might be visible
+              (if (> m 7)             ;  Islamic date might be visible
                   (let ((date (calendar-gregorian-from-absolute
                                (calendar-absolute-from-islamic
                                 (list month day y)))))
