@@ -26,6 +26,8 @@
 
 	* calendar/cal-coptic.el (coptic-name): Add doc string.
 
+	* calendar/cal-iso.el (calendar-iso-read-args): Doc fix.
+
 	* calendar/cal-persia.el (persian-calendar-month-name-array)
 	(persian-calendar-epoch): Make constants.
 
