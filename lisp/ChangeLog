@@ -1,3 +1,74 @@
+2008-03-08  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/appt.el (appt): Move custom group here from calendar.el.
+
+	* calendar/cal-china.el (chinese-calendar): Move custom group here from
+	calendar.el.
+	(chinese-calendar-celestial-stem, chinese-calendar-terrestrial-branch):
+	Make constants.
+
+	* calendar/cal-tex.el (calendar-tex): Move custom group here from
+	calendar.el.
+
+	* calendar/cal-loaddefs.el: New file.
+
+	* calendar/cal-bahai.el, calendar/cal-china.el, calendar/cal-coptic.el:
+	* calendar/cal-french.el, calendar/cal-html.el:
+	* calendar/cal-islam.el, calendar/cal-iso.el, calendar/cal-julian.el:
+	* calendar/cal-mayan.el, calendar/cal-move.el, calendar/cal-persia.el:
+	* calendar/cal-tex.el, calendar/cal-x.el:
+	Unquote lambda functions.  Add autoload cookies to functions formerly
+	autoloaded in calendar.el.  Set `generated-autoload-file' to
+	"cal-loaddefs.el".
+
+	* calendar/calendar.el: Move many autoloads to separate file,
+	cal-loaddefs.el.  Move defcustoms to start and re-order.
+	(calendar-month-name-array, calendar-starred-day): No need to
+	declare for compiler.
+	(cal-loaddefs): Require it.
+	(appt, chinese-calendar, calendar-tex): Move custom groups to the
+	appropriate file.
+	(diary-entry-marker, calendar-today-marker, calendar-holiday-marker):
+	Reverse logic.
+	(diary-face, diary-file-name-prefix-function, diary-include-string)
+	(diary-glob-file-regexp-prefix, diary-face-attrs)
+	(diary-file-name-prefix, sexp-diary-entry-symbol)
+	(print-diary-entries-hook, list-diary-entries-hook)
+	(nongregorian-diary-listing-hook, mark-diary-entries-hook)
+	(nongregorian-diary-marking-hook, diary-list-include-blanks):
+	Move to diary-lib.
+	(all-christian-calendar-holidays, all-islamic-calendar-holidays)
+	(all-bahai-calendar-holidays): Doc fix.
+	(calendar-mark-ring): Add doc-string.
+	(calendar-starred-day): Defvar it.
+	(calendar-mode): Make calendar-starred-day local.
+	(calendar-star-date): No need to make calendar-starred-day local.
+
+	* calendar/diary-lib.el: Move defcustoms to start.
+	(diary-include-string, diary-list-include-blanks)
+	(diary-glob-file-regexp-prefix, diary-face, diary-face-attrs)
+	(diary-file-name-prefix, diary-file-name-prefix-function)
+	(sexp-diary-entry-symbol, list-diary-entries-hook)
+	(mark-diary-entries-hook, nongregorian-diary-listing-hook)
+	(nongregorian-diary-marking-hook, print-diary-entries-hook):
+	Move here from calendar.el.
+	(diary-face): Make it a defcustom, and mark as obsolete.
+	(top-level): No need to require cal-hebrew, cal-islam when
+	compiling.
+	(calendar-hebrew-month-name-array-leap-year)
+	(calendar-islamic-month-name-array, calendar-bahai-month-name-array):
+	Define for compiler.
+	(diary-font-lock-keywords): Use format rather than concat. Add
+	bahai-diary-entry-symbol.
+
+	* calendar/cal-hebrew.el, calendar/holidays.el, calendar/lunar.el:
+	* calendar/solar.el: Unquote lambda functions.
+
+	* calendar/todo-mode.el: Remove un-needed eval-when-compile.
+
+	* textmodes/org.el (list-diary-entries-hook): Declare for compiler.
+	(org-get-entries-from-diary): Require diary-lib.
+
 2008-03-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* info.el (bookmark-make-name-function, bookmark-get-bookmark-record):
@@ -13,8 +84,8 @@
 	* bookmark.el (bookmark-set): Don't check for
 	`bookmark-make-name-function' since `bookmark-buffer-file-name'
 	already takes care of this.
-	(bookmark-buffer-name): Removed Info-mode specific code.
-	(bookmark-buffer-file-name): Removed Info-mode specific code.
+	(bookmark-buffer-name, bookmark-buffer-file-name): Remove
+	Info-mode specific code.
 
 	* info.el (bookmark-get-info-node): Define this function in
 	info.el, not in bookmark.el.
@@ -31,12 +102,8 @@
 
 2008-03-07  Tassilo Horn  <tassilo@member.fsf.org>
 
-	* doc-view.el (doc-view-bookmark-make-record): Delete obsolete
-	second arg.
-
-	* image-mode.el (image-bookmark-make-record): Delete obsolete
-	second arg.
-
+	* doc-view.el (doc-view-bookmark-make-record):
+	* image-mode.el (image-bookmark-make-record):
 	* info.el (Info-bookmark-make-record): Delete obsolete second arg.
 
 2008-03-07  Jan Djärv  <jan.h.d@swipnet.se>
@@ -56,8 +123,8 @@
 	It looks like he anticipated the new name too, because he used
 	`the-record' instead of `the-cell' for some internal variable names.
 
-	* bookmark.el
-	(bookmark-make-record-function): Was `bookmark-make-cell-function'.
+	* bookmark.el (bookmark-make-record-function): Was
+	`bookmark-make-cell-function'.
 	(bookmark-make, bookmark-send-annotation): Update for above.
 	(bookmark-make-record-for-text-file):
 	Was `bookmark-make-cell-for-text-file.  Fix doc string re rev 1.102.
