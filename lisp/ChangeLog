@@ -37,6 +37,9 @@
 	(french-calendar-day-name-array, french-calendar-special-days-array):
 	Add doc strings.
 
+	* calendar/cal-bahai.el (diary-bahai-mark-entries)
+	(diary-bahai-insert-entry, diary-bahai-insert-monthly-entry)
+	(diary-bahai-insert-yearly-entry):
 	* calendar/cal-dst.el (calendar-next-time-zone-transition)
 	(calendar-time-zone):
 	* calendar/cal-islam.el (islamic-calendar-leap-year-p)
