@@ -1,3 +1,9 @@
+2008-03-08  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (GET_NEXT_DISPLAY_ELEMENT): New macro.
+	(get_next_display_element, next_element_from_string)
+	(next_element_from_ellipsis, next_element_from_buffer): Use it.
+
 2008-03-08  Andreas Schwab  <schwab@suse.de>
 
 	* process.h (struct Lisp_Process): Declare bit fields as unsigned.
