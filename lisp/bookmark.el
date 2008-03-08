@@ -348,85 +348,73 @@ That is, all information but the name."
    (if (stringp bookmark) (bookmark-get-bookmark bookmark) bookmark)
    newname))
 
+(defun bookmark-prop-get (bookmark prop)
+  "Return the property PROP of BOOKMARK, or nil if none."
+  (cdr (assq prop (bookmark-get-bookmark-record bookmark))))
+
+(defun bookmark-prop-set (bookmark prop val)
+  "Set the property PROP of BOOKMARK to VAL."
+  (let ((cell (assq prop (bookmark-get-bookmark-record bookmark))))
+    (if cell
+        (setcdr cell val)
+      (nconc (bookmark-get-bookmark-record bookmark)
+             (list (cons prop val))))))
 
 (defun bookmark-get-annotation (bookmark)
   "Return the annotation of BOOKMARK, or nil if none."
-  (cdr (assq 'annotation (bookmark-get-bookmark-record bookmark))))
-
+  (bookmark-prop-get bookmark 'annotation))
 
 (defun bookmark-set-annotation (bookmark ann)
   "Set the annotation of BOOKMARK to ANN."
-  (let ((cell (assq 'annotation (bookmark-get-bookmark-record bookmark))))
-    (if cell
-        (setcdr cell ann)
-      (nconc (bookmark-get-bookmark-record bookmark)
-             (list (cons 'annotation ann))))))
+  (bookmark-prop-set bookmark 'annotation ann))
 
 
 (defun bookmark-get-filename (bookmark)
   "Return the full filename of BOOKMARK."
-  (cdr (assq 'filename (bookmark-get-bookmark-record bookmark))))
+  (bookmark-prop-get bookmark 'filename))
 
 
 (defun bookmark-set-filename (bookmark filename)
   "Set the full filename of BOOKMARK to FILENAME."
-  (let ((cell (assq 'filename (bookmark-get-bookmark-record bookmark))))
-    (if cell
-        (setcdr cell filename)
-      (nconc (bookmark-get-bookmark-record bookmark)
-             (list (cons 'filename filename))))
-    (setq bookmark-alist-modification-count
-          (1+ bookmark-alist-modification-count))
-    (if (bookmark-time-to-save-p)
-        (bookmark-save))))
+  (bookmark-prop-set bookmark 'filename filename)
+  (setq bookmark-alist-modification-count
+        (1+ bookmark-alist-modification-count))
+  (if (bookmark-time-to-save-p)
+      (bookmark-save)))
 
 
 (defun bookmark-get-position (bookmark)
   "Return the position \(i.e.: point\) of BOOKMARK."
-  (cdr (assq 'position (bookmark-get-bookmark-record bookmark))))
+  (bookmark-prop-get bookmark 'position))
 
 
 (defun bookmark-set-position (bookmark position)
   "Set the position \(i.e.: point\) of BOOKMARK to POSITION."
-  (let ((cell (assq 'position (bookmark-get-bookmark-record bookmark))))
-    (if cell
-        (setcdr cell position)
-      (nconc (bookmark-get-bookmark-record bookmark)
-             (list (cons 'position position))))))
+  (bookmark-prop-set bookmark 'position position))
 
 
 (defun bookmark-get-front-context-string (bookmark)
   "Return the front-context-string of BOOKMARK."
-  (cdr (assq 'front-context-string (bookmark-get-bookmark-record bookmark))))
+  (bookmark-prop-get bookmark 'front-context-string))
 
 
 (defun bookmark-set-front-context-string (bookmark string)
   "Set the front-context-string of BOOKMARK to STRING."
-  (let ((cell (assq 'front-context-string
-                    (bookmark-get-bookmark-record bookmark))))
-    (if cell
-        (setcdr cell string)
-      (nconc (bookmark-get-bookmark-record bookmark)
-             (list (cons 'front-context-string string))))))
+  (bookmark-prop-set bookmark 'front-context-string string))
 
 
 (defun bookmark-get-rear-context-string (bookmark)
   "Return the rear-context-string of BOOKMARK."
-  (cdr (assq 'rear-context-string (bookmark-get-bookmark-record bookmark))))
+  (bookmark-prop-get bookmark 'rear-context-string))
 
 
 (defun bookmark-set-rear-context-string (bookmark string)
   "Set the rear-context-string of BOOKMARK to STRING."
-  (let ((cell (assq 'rear-context-string
-                    (bookmark-get-bookmark-record bookmark))))
-    (if cell
-        (setcdr cell string)
-      (nconc (bookmark-get-bookmark-record bookmark)
-             (list (cons 'rear-context-string string))))))
+  (bookmark-prop-set bookmark 'rear-context-string string))
 
 
 (defun bookmark-get-handler (bookmark)
-  (cdr (assq 'handler (bookmark-get-bookmark-record bookmark))))
+  (bookmark-prop-get bookmark 'handler))
 
 (defvar bookmark-history nil
   "The history list for bookmark functions.")

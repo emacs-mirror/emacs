@@ -1,3 +1,19 @@
+2008-03-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bookmark.el (bookmark-prop-get, bookmark-prop-set): New funs.
+	(bookmark-get-annotation, bookmark-set-annotation)
+	(bookmark-get-filename, bookmark-set-filename, bookmark-get-position)
+	(bookmark-set-position, bookmark-get-front-context-string)
+	(bookmark-set-front-context-string, bookmark-get-rear-context-string)
+	(bookmark-set-rear-context-string, bookmark-get-handler): Use them.
+	* info.el (Info-bookmark-make-record): Don't bother recording point.
+	(bookmark-get-filename, bookmark-get-front-context-string)
+	(bookmark-get-rear-context-string, bookmark-get-position):
+	Don't declare any more.
+	(bookmark-get-info-node): Remove.
+	(bookmark-prop-get): Declare.
+	(Info-bookmark-jump): Use it.
+
 2008-03-08  Johan Bockgård  <bojohan@gnu.org>
 
 	* subr.el (while-no-input): Don't splice BODY directly into the
@@ -5,8 +21,8 @@
 
 2008-03-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* diff-mode.el (diff-ignore-whitespace-hunk): Bind
-	inhibit-read-only before trying to change the buffer.
+	* diff-mode.el (diff-ignore-whitespace-hunk):
+	Bind inhibit-read-only before trying to change the buffer.
 
 2008-03-08  Glenn Morris  <rgm@gnu.org>
 

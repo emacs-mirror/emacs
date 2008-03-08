@@ -4351,7 +4351,6 @@ When FILE is non-nil, return the Info file instead."
                     (point)
                     (- (point) bookmark-search-size))
 		 nil))
-           (position . ,(point))
 	   (info-node . ,Info-current-node)
 	   (handler . Info-bookmark-jump))))
 
@@ -4368,27 +4367,19 @@ When FILE is non-nil, return the Info file instead."
 
 
 (defvar bookmark-current-bookmark)
-(declare-function bookmark-get-filename              "bookmark" (bookmark))
-(declare-function bookmark-get-front-context-string  "bookmark" (bookmark))
-(declare-function bookmark-get-rear-context-string   "bookmark" (bookmark))
-(declare-function bookmark-get-position              "bookmark" (bookmark))
+(declare-function bookmark-prop-get                  "bookmark" (bookmark prop))
 (declare-function bookmark-file-or-variation-thereof "bookmark" (file))
 (declare-function bookmark-jump-noselect             "bookmark" (str))
 (declare-function bookmark-get-bookmark-record       "bookmark" (bookmark))
-
-(defun bookmark-get-info-node (bookmark)
-  "Get the info node associated with BOOKMARK."
-  (cdr (assq 'info-node (bookmark-get-bookmark-record bookmark))))
 
 ;;;###autoload
 (defun Info-bookmark-jump (bmk)
   ;; This implements the `handler' function interface for record type returned
   ;; by `Info-bookmark-make-record', which see.
-  (let* ((file (expand-file-name (bookmark-get-filename bmk)))
-         (forward-str            (bookmark-get-front-context-string bmk))
-         (behind-str             (bookmark-get-rear-context-string bmk))
-         (place                  (bookmark-get-position bmk))
-	 (info-node              (bookmark-get-info-node bmk)))
+  (let* ((file (expand-file-name (bookmark-prop-get bmk 'filename)))
+         (forward-str            (bookmark-prop-get bmk 'front-context-string))
+         (behind-str             (bookmark-prop-get bmk 'rear-context-string))
+	 (info-node              (bookmark-prop-get bmk 'info-node)))
     (if (setq file (bookmark-file-or-variation-thereof file))
         (save-excursion
           (save-window-excursion
