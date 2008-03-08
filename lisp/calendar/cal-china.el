@@ -1,7 +1,7 @@
 ;;; cal-china.el --- calendar functions for the Chinese calendar
 
-;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -71,9 +71,9 @@ UT+7:45:40 to UT+8."
   :group 'chinese-calendar)
 
 (defcustom chinese-calendar-daylight-time-offset 0
-; The correct value is as follows, but the Chinese calendrical
-; authorities do NOT use DST in determining astronomical events:
-;  60
+;; The correct value is as follows, but the Chinese calendrical
+;; authorities do NOT use DST in determining astronomical events:
+;;  60
   "Number of minutes difference between daylight saving and standard time
 for Chinese calendar.  Default is for no daylight saving time."
   :type 'integer
@@ -95,11 +95,11 @@ at 1928-01-01 00:00:00 from `PMT' to `CST'."
   :group 'chinese-calendar)
 
 (defcustom chinese-calendar-daylight-savings-starts nil
-; The correct value is as follows, but the Chinese calendrical
-; authorities do NOT use DST in determining astronomical events:
-;  '(cond ((< 1986 year) (calendar-nth-named-day 1 0 4 year 10))
-;         ((= 1986 year) '(5 4 1986))
-;         (t nil))
+;; The correct value is as follows, but the Chinese calendrical
+;; authorities do NOT use DST in determining astronomical events:
+;;  '(cond ((< 1986 year) (calendar-nth-named-day 1 0 4 year 10))
+;;         ((= 1986 year) '(5 4 1986))
+;;         (t nil))
   "Sexp giving the date on which daylight saving time starts for Chinese
 calendar.  Default is for no daylight saving time.  See documentation of
 `calendar-daylight-savings-starts'."
@@ -107,9 +107,9 @@ calendar.  Default is for no daylight saving time.  See documentation of
   :group 'chinese-calendar)
 
 (defcustom chinese-calendar-daylight-savings-ends nil
-; The correct value is as follows, but the Chinese calendrical
-; authorities do NOT use DST in determining astronomical events:
-;  '(if (<= 1986 year) (calendar-nth-named-day 1 0 9 year 11))
+;; The correct value is as follows, but the Chinese calendrical
+;; authorities do NOT use DST in determining astronomical events:
+;;  '(if (<= 1986 year) (calendar-nth-named-day 1 0 9 year 11))
   "Sexp giving the date on which daylight saving time ends for Chinese
 calendar.  Default is for no daylight saving time.  See documentation of
 `calendar-daylight-savings-ends'."
@@ -267,20 +267,20 @@ numbers used for leap months.
 First month of list will never be a leap month, nor will the last."
   (if list
       (if (zerop (- 12 start (length list)))
-          ;; List is too short for a leap month
+          ;; List is too short for a leap month.
           (cons (list start (car list))
                 (number-chinese-months (cdr list) (1+ start)))
         (cons
-         ;; First month
+         ;; First month.
          (list start (car list))
-         ;; Remaining months
-         (if (and (cdr (cdr list));; at least two more months...
+         ;; Remaining months.
+         (if (and (cdr (cdr list))      ; at least two more months...
                   (<= (car (cdr (cdr list)))
                       (chinese-zodiac-sign-on-or-after (car (cdr list)))))
-             ;; Next month is a leap month
+             ;; Next month is a leap month.
              (cons (list (+ start 0.5) (car (cdr list)))
                    (number-chinese-months (cdr (cdr list)) (1+ start)))
-           ;; Next month is not a leap month
+           ;; Next month is not a leap month.
            (number-chinese-months (cdr list) (1+ start)))))))
 
 (defun chinese-month-list (start end)
@@ -305,24 +305,24 @@ Gregorian year Y-1 to the Chinese month of the solstice of Gregorian year Y."
                                    next-solstice))
          (next-sign (chinese-zodiac-sign-on-or-after (car list))))
     (if (= (length list) 12)
-        ;; No room for a leap month, just number them 12, 1, 2, ..., 11
+        ;; No room for a leap month, just number them 12, 1, 2, ..., 11.
         (cons (list 12 (car list))
               (number-chinese-months (cdr list) 1))
-      ;; Now we can assign numbers to the list for y
-      ;; The first month or two are special
+      ;; Now we can assign numbers to the list for y.
+      ;; The first month or two are special.
       (if (or (> (car list) next-sign) (>= next-sign (car (cdr list))))
-          ;; First month on list is a leap month, second is not
+          ;; First month on list is a leap month, second is not.
           (append (list (list 11.5 (car list))
                         (list 12 (car (cdr list))))
                   (number-chinese-months (cdr (cdr list)) 1))
-        ;; First month on list is not a leap month
+        ;; First month on list is not a leap month.
         (append (list (list 12 (car list)))
                 (if (>= (chinese-zodiac-sign-on-or-after (car (cdr list)))
                         (car (cdr (cdr list))))
-                    ;; Second month on list is a leap month
+                    ;; Second month on list is a leap month.
                     (cons (list 12.5 (car (cdr list)))
                           (number-chinese-months (cdr (cdr list)) 1))
-                  ;; Second month on list is not a leap month
+                  ;; Second month on list is not a leap month.
                   (number-chinese-months (cdr list) 1)))))))
 
 (defun calendar-absolute-from-chinese (date)
@@ -332,12 +332,12 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
          (year (car (cdr date)))
          (month (car (cdr (cdr date))))
          (day (car (cdr (cdr (cdr date)))))
-         (g-year (+ (* (1- cycle) 60);; years in prior cycles
-                    (1- year)        ;; prior years this cycle
-                    -2636)))         ;; years before absolute date 0
-    (+ (1- day);; prior days this month
+         (g-year (+ (* (1- cycle) 60)  ; years in prior cycles
+                    (1- year)          ; prior years this cycle
+                    -2636)))           ; years before absolute date 0
+    (+ (1- day)                        ; prior days this month
        (car
-        (cdr    ;; absolute date of start of this month
+        (cdr                    ; absolute date of start of this month
          (assoc month (append (memq (assoc 1 (chinese-year g-year))
                                     (chinese-year g-year))
                               (chinese-year (1+ g-year)))))))))
@@ -353,12 +353,12 @@ Gregorian date Sunday, December 31, 1 BC."
                        (chinese-year g-year)
                        (chinese-year (1+ g-year)))))
     (while (<= (car (cdr (car (cdr list)))) date)
-      ;; the first month on the list is in Chinese year c-year
-      ;; date is on or after start of second month on list...
+      ;; The first month on the list is in Chinese year c-year.
+      ;; Date is on or after start of second month on list...
       (if (= 1 (car (car (cdr list))))
-          ;; second month on list is a new Chinese year
+          ;; Second month on list is a new Chinese year...
           (setq c-year (1+ c-year)))
-      ;; ...so first month on list is of no interest
+      ;; ...so first month on list is of no interest.
       (setq list (cdr list)))
     (list (/ (1- c-year) 60)
           (calendar-mod c-year 60)
