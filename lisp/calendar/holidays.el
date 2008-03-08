@@ -135,13 +135,13 @@ The optional LABEL is used to label the buffer created."
   (interactive
    (let* ((start-year (calendar-read
                        "Starting year of holidays (>0): "
-                       '(lambda (x) (> x 0))
+                       (lambda (x) (> x 0))
                        (int-to-string (extract-calendar-year
                                        (calendar-current-date)))))
           (end-year (calendar-read
                        (format "Ending year (inclusive) of holidays (>=%s): "
                                start-year)
-                       '(lambda (x) (>= x start-year))
+                       (lambda (x) (>= x start-year))
                        (int-to-string start-year)))
           (completion-ignore-case t)
           (lists
@@ -199,7 +199,7 @@ The optional LABEL is used to label the buffer created."
       (goto-char (point-min))
       (insert
        (mapconcat
-        '(lambda (x) (concat (calendar-date-string (car x))
+        (lambda (x) (concat (calendar-date-string (car x))
                              ": " (car (cdr x))))
         holiday-list "\n"))
       (goto-char (point-min))
@@ -285,7 +285,7 @@ holidays are found, nil if not."
       (erase-buffer)
       (insert
        (mapconcat
-        '(lambda (x) (concat (calendar-date-string (car x))
+        (lambda (x) (concat (calendar-date-string (car x))
                              ": " (car (cdr x))))
         holiday-list "\n"))
       (goto-char (point-min))
