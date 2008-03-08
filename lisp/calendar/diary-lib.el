@@ -748,9 +748,10 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
                               (unless list-only
                                 (remove-overlays date-start (point)
                                                  'invisible 'diary))
-                              (setq entry (buffer-substring entry-start (point))
-                                    temp (diary-pull-attrs entry file-glob-attrs)
-                                    entry (nth 0 temp))
+			      ; FIXME free variable entry?
+			      (setq entry (buffer-substring entry-start (point))
+				    temp (diary-pull-attrs entry file-glob-attrs)
+				    entry (nth 0 temp))
                               (add-to-diary-list
                                date
                                entry
@@ -971,6 +972,7 @@ This function is provided for optional use as the `diary-display-hook'."
                                        (concat "\n" (make-string l ? ))))
                     (insert ?\n (make-string (+ l longest) ?=) ?\n)))))
 
+	  ;; FIXME free variable entry?
 	  (setq entry (car (cdr (car entry-list))))
 	  (if (< 0 (length entry))
               (let ((this-entry (car entry-list))
@@ -984,6 +986,7 @@ This function is provided for optional use as the `diary-display-hook'."
                                                   (or (nth 2 this-loc)
                                                       (nth 1 this-entry)))
 				   :type 'diary-entry)
+		  ; FIXME free variable entry?
 		  (insert entry ?\n))
 		(save-excursion
                   (let* ((marks (nth 4 this-entry))
@@ -1251,6 +1254,7 @@ diary entries."
                   (let ((tmp (diary-pull-attrs (buffer-substring-no-properties
                                                 (point) (line-end-position))
                                                file-glob-attrs)))
+		    ;; FIXME free variable entry.
                     (setq entry (nth 0 tmp)
                           marks (nth 1 tmp)))
                   (if dd-name
@@ -1682,6 +1686,9 @@ best if they are nonmarking."
 	  (result entry)
           (t nil))))
 
+(defvar entry)
+
+;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-date (month day year &optional mark)
   "Specific date(s) diary entry.
 Entry applies if date is MONTH, DAY, YEAR if `european-calendar-style' is nil,
@@ -1712,6 +1719,7 @@ use when highlighting the day in the calendar."
              (eq year t)))
         (cons mark entry))))
 
+;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-block (m1 d1 y1 m2 d2 y2 &optional mark)
   "Block diary entry.
 Entry applies if date is between, or on one of, two dates.
@@ -1734,6 +1742,7 @@ use when highlighting the day in the calendar."
     (if (and (<= date1 d) (<= d date2))
         (cons mark entry))))
 
+;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-float (month dayname n &optional day mark)
   "Floating diary entry--entry applies if date is the nth dayname of month.
 Parameters are MONTH, DAYNAME, N.  MONTH can be a list of months, the constant
@@ -1798,7 +1807,7 @@ highlighting the day in the calendar."
 				d2)))))
 	     (cons mark entry)))))
 
-
+;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-anniversary (month day &optional year mark)
   "Anniversary diary entry.
 Entry applies if date is the anniversary of MONTH, DAY, YEAR if
@@ -1825,6 +1834,7 @@ use when highlighting the day in the calendar."
     (if (and (> diff 0) (calendar-date-equal (list m d y) date))
         (cons mark (format entry diff (diary-ordinal-suffix diff))))))
 
+;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-cyclic (n month day year &optional mark)
   "Cycle diary entry--entry applies every N days starting at MONTH, DAY, YEAR.
 If `european-calendar-style' is t, parameters are N, DAY, MONTH, YEAR.
