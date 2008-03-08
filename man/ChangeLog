@@ -1,3 +1,8 @@
+2008-03-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Mail Source Customization, Gnus Development, Oort Gnus):
+	Update for change of `mail-source-delete-incoming'.
+
 2008-03-06  Kim F. Storm  <storm@cua.dk>
 
 	* help.texi (Help Files): Rename view-todo to view-emacs-toto.

@@ -14076,14 +14076,17 @@ variables.
 File where mail will be stored while processing it.  The default is@*
 @file{~/.emacs-mail-crash-box}.
 
+@cindex Incoming*
 @item mail-source-delete-incoming
 @vindex mail-source-delete-incoming
 If non-@code{nil}, delete incoming files after handling them.  If
 @code{t}, delete the files immediately, if @code{nil}, never delete any
 files.  If a positive number, delete files older than number of days
-(This will only happen, when receiving new mail).  You may also set
-@code{mail-source-delete-incoming} to @code{nil} and call
+(the deletion will only happen when receiving new mail).  You may also
+set @code{mail-source-delete-incoming} to @code{nil} and call
 @code{mail-source-delete-old-incoming} from a hook or interactively.
+@code{mail-source-delete-incoming} defaults to @code{2} in alpha Gnusae
+and @code{10} in released Gnusae.  @xref{Gnus Development}.
 
 @item mail-source-delete-old-incoming-confirm
 @vindex mail-source-delete-old-incoming-confirm
@@ -25591,10 +25594,10 @@ supposed to be able to use these, and these are mostly discussed on the
 
 @cindex Incoming*
 @vindex mail-source-delete-incoming
-Some variable defaults differ between alpha Gnusae and released Gnusae.
-In particular, @code{mail-source-delete-incoming} defaults to @code{nil} in
-alpha Gnusae and @code{t} in released Gnusae.  This is to prevent
+Some variable defaults differ between alpha Gnusae and released Gnusae,
+in particular, @code{mail-source-delete-incoming}.  This is to prevent
 lossage of mail if an alpha release hiccups while handling the mail.
+@xref{Mail Source Customization}.
 
 The division of discussion between the ding mailing list and the Gnus
 newsgroup is not purely based on publicity concerns.  It's true that
@@ -25607,6 +25610,9 @@ either discarded or totally rewritten.  People reading the mailing list
 usually keep up with these rapid changes, while people on the newsgroup
 can't be assumed to do so.
 
+@c FIXME:
+@c ding = gmane.emacs.gnus.general
+@c newsgroup = gnu.emacs.gnus = gmane.emacs.gnus.user = info-gnus-english
 
 
 @node Contributors
@@ -26836,6 +26842,11 @@ variables should change those regexps accordingly.  For example:
 @lisp
 ("^han\\>" euc-kr) -> ("\\(^\\|:\\)han\\>" euc-kr)
 @end lisp
+
+@item
+Old intermediate incoming mail files (@file{Incoming*}) are deleted
+after a couple of days, not immediately.  @xref{Mail Source
+Customization}.  (New in Gnus 5.10.10)
 
 @end itemize
 
