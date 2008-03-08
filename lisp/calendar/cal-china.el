@@ -58,10 +58,8 @@
   '(if (< year 1928)
        (+ 465 (/ 40.0 60.0))
      480)
-  "Number of minutes difference between local standard time for Chinese
-calendar and Coordinated Universal (Greenwich) Time.  Default is for Beijing.
-This is an expression in `year' since it changed at 1928-01-01 00:00:00 from
-UT+7:45:40 to UT+8."
+  "Minutes difference between local standard time for Chinese calendar and UTC.
+Default is for Beijing.  This is an expression in `year' since it changed at 1928-01-01 00:00:00 from UT+7:45:40 to UT+8."
   :type 'sexp
   :group 'chinese-calendar)
 
@@ -74,8 +72,8 @@ UT+7:45:40 to UT+8."
 ;; The correct value is as follows, but the Chinese calendrical
 ;; authorities do NOT use DST in determining astronomical events:
 ;;  60
-  "Number of minutes difference between daylight saving and standard time
-for Chinese calendar.  Default is for no daylight saving time."
+  "Minutes difference between daylight saving and standard time.
+Default is for no daylight saving time."
   :type 'integer
   :group 'chinese-calendar)
 
@@ -100,8 +98,8 @@ at 1928-01-01 00:00:00 from `PMT' to `CST'."
 ;;  '(cond ((< 1986 year) (calendar-nth-named-day 1 0 4 year 10))
 ;;         ((= 1986 year) '(5 4 1986))
 ;;         (t nil))
-  "Sexp giving the date on which daylight saving time starts for Chinese
-calendar.  Default is for no daylight saving time.  See documentation of
+  "Sexp giving the date on which daylight saving time starts.
+Default is for no daylight saving time.  See documentation of
 `calendar-daylight-savings-starts'."
   :type 'sexp
   :group 'chinese-calendar)
@@ -110,21 +108,21 @@ calendar.  Default is for no daylight saving time.  See documentation of
 ;; The correct value is as follows, but the Chinese calendrical
 ;; authorities do NOT use DST in determining astronomical events:
 ;;  '(if (<= 1986 year) (calendar-nth-named-day 1 0 9 year 11))
-  "Sexp giving the date on which daylight saving time ends for Chinese
-calendar.  Default is for no daylight saving time.  See documentation of
+  "Sexp giving the date on which daylight saving time ends.
+Default is for no daylight saving time.  See documentation of
 `calendar-daylight-savings-ends'."
   :type 'sexp
   :group 'chinese-calendar)
 
 (defcustom chinese-calendar-daylight-savings-starts-time 0
-  "Number of minutes after midnight that daylight saving time starts for
-Chinese calendar.  Default is for no daylight saving time."
+  "Number of minutes after midnight that daylight saving time starts.
+Default is for no daylight saving time."
   :type 'integer
   :group 'chinese-calendar)
 
 (defcustom chinese-calendar-daylight-savings-ends-time 0
-  "Number of minutes after midnight that daylight saving time ends for
-Chinese calendar.  Default is for no daylight saving time."
+  "Number of minutes after midnight that daylight saving time ends.
+Default is for no daylight saving time."
   :type 'integer
   :group 'chinese-calendar)
 
@@ -138,7 +136,7 @@ Chinese calendar.  Default is for no daylight saving time."
   ["Zi" "Chou" "Yin" "Mao" "Chen" "Si" "Wu" "Wei" "Shen" "You" "Xu" "Hai"])
 
 (defun chinese-zodiac-sign-on-or-after (d)
-  "Absolute date of first new Zodiac sign on or after absolute date d.
+  "Absolute date of first new Zodiac sign on or after absolute date D.
 The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
  (let* ((year (extract-calendar-year
                 (calendar-gregorian-from-absolute d)))
@@ -164,7 +162,7 @@ The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
       30)))))
 
 (defun chinese-new-moon-on-or-after (d)
-  "Absolute date of first new moon on or after absolute date d."
+  "Absolute date of first new moon on or after absolute date D."
   (let* ((year (extract-calendar-year
                 (calendar-gregorian-from-absolute d)))
          (calendar-time-zone (eval chinese-calendar-time-zone))
