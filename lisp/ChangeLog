@@ -180,6 +180,11 @@
 	(calendar-sunrise-sunset, diary-sunrise-sunset, diary-sabbath-candles):
 	Use or.
 
+	* calendar/timeclock.el: Add doc-strings to all functions.
+	(timeclock-workday, timeclock-in, timeclock-completing-read): Doc fixes.
+	(timeclock-entry-list-length, timeclock-entry-list-projects)
+	(timeclock-day-list-projects, timeclock-day-list): Use dolist.
+
 	* calendar/todo-mode.el: Remove un-needed eval-when-compile.
 
 	* textmodes/org.el (list-diary-entries-hook): Declare for compiler.
