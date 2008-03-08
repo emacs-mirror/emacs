@@ -2,13 +2,29 @@
 
 	* calendar/appt.el (appt): Move custom group here from calendar.el.
 
+	* calendar/cal-bahai.el (calendar-bahai-prompt-for-date)
+	(calendar-bahai-mark-date-pattern):
+	* calendar/cal-hebrew.el (mark-hebrew-calendar-date-pattern):
+	* calendar/cal-islam.el (mark-islamic-calendar-date-pattern):
+	* calendar/cal-julian.el (calendar-absolute-from-julian):
+	* calendar/cal-persia.el (persian-prompt-for-date): Use zerop.
+
 	* calendar/cal-china.el (chinese-calendar): Move custom group here from
 	calendar.el.
 	(chinese-calendar-celestial-stem, chinese-calendar-terrestrial-branch):
 	Make constants.
 
+	* calendar/cal-coptic.el (coptic-name): Add doc string.
+
+	* calendar/cal-persia.el (persian-calendar-month-name-array)
+	(persian-calendar-epoch): Make constants.
+
 	* calendar/cal-tex.el (calendar-tex): Move custom group here from
 	calendar.el.
+
+	* calendar/cal-x.el (diary-frame-parameters)
+	(calendar-frame-parameters, calendar-and-diary-frame-parameters)
+	(calendar-after-frame-setup-hooks): Make defcustoms.
 
 	* calendar/cal-loaddefs.el: New file.
 
