@@ -96,8 +96,7 @@ Requires floating point."
 ;;;###autoload
 (defun holidays (&optional arg)
   "Display the holidays for last month, this month, and next month.
-If called with an optional prefix argument, prompts for month and year.
-
+If called with an optional prefix argument ARG, prompts for month and year.
 This function is suitable for execution in a .emacs file."
   (interactive "P")
   (save-excursion
