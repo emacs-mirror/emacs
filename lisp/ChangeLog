@@ -50,6 +50,10 @@
 	(calendar-read-mayan-haab-date, calendar-read-mayan-tzolkin-date)
 	(calendar-next-calendar-round-date)
 	(calendar-mayan-long-count-common-era):
+	* calendar/cal-menu.el (cal-menu-holiday-window-suffix)
+	(cal-menu-x-popup-menu, calendar-mouse-holidays)
+	(calendar-mouse-view-diary-entries, calendar-mouse-print-dates)
+	(calendar-mouse-goto-date):
 	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right):
 	* calendar/lunar.el (phases-of-moon, lunar-new-moon-on-or-after):
 	Doc fixes.
