@@ -140,6 +140,7 @@ Gregorian date Sunday, December 31, 1 BC."
                        (list month 1 year))))))
     (list month day year)))
 
+;;;###autoload
 (defun calendar-persian-date-string (&optional date)
   "String of Persian date of Gregorian DATE.
 Defaults to today's date if DATE is not given."
@@ -155,12 +156,14 @@ Defaults to today's date if DATE is not given."
           (year (int-to-string y)))
       (mapconcat 'eval calendar-date-display-form ""))))
 
+;;;###autoload
 (defun calendar-print-persian-date ()
   "Show the Persian calendar equivalent of the selected date."
   (interactive)
   (message "Persian date: %s"
            (calendar-persian-date-string (calendar-cursor-to-date t))))
 
+;;;###autoload
 (defun calendar-goto-persian-date (date &optional noecho)
   "Move cursor to Persian date DATE.
 Echo Persian date unless NOECHO is t."
@@ -174,7 +177,7 @@ Echo Persian date unless NOECHO is t."
   (let* ((today (calendar-current-date))
          (year (calendar-read
                 "Persian calendar year (not 0): "
-                '(lambda (x) (/= x 0))
+                (lambda (x) (/= x 0))
                 (int-to-string
                  (extract-calendar-year
                   (calendar-persian-from-absolute
@@ -191,7 +194,7 @@ Echo Persian date unless NOECHO is t."
          (last (persian-calendar-last-day-of-month month year))
          (day (calendar-read
                (format "Persian calendar day (1-%d): " last)
-               '(lambda (x) (and (< 0 x) (<= x last))))))
+               (lambda (x) (and (< 0 x) (<= x last))))))
     (list (list month day year))))
 
 (defun diary-persian-date ()
@@ -200,5 +203,9 @@ Echo Persian date unless NOECHO is t."
 
 (provide 'cal-persia)
 
-;;; arch-tag: 2832383c-e4b4-4dc2-8ee9-cfbdd53e5e2d
+;; Local Variables:
+;; generated-autoload-file: "cal-loaddefs.el"
+;; End:
+
+;; arch-tag: 2832383c-e4b4-4dc2-8ee9-cfbdd53e5e2d
 ;;; cal-persia.el ends here
