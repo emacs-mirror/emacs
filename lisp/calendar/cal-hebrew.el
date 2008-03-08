@@ -47,7 +47,7 @@
 (require 'calendar)
 
 (defun hebrew-calendar-leap-year-p (year)
-  "t if YEAR is a Hebrew calendar leap year."
+  "Non-nil if YEAR is a Hebrew calendar leap year."
   (< (% (1+ (* 7 year)) 19) 7))
 
 (defun hebrew-calendar-last-month-of-year (year)
@@ -57,7 +57,7 @@
     12))
 
 (defun hebrew-calendar-elapsed-days (year)
-  "Days from Sun. prior to start of Hebrew calendar to mean conjunction of Tishri of Hebrew YEAR."
+  "Days from Sunday before start of Hebrew calendar to mean conjunction of Tishri of Hebrew YEAR."
   (let* ((months-elapsed
           (+ (* 235 (/ (1- year) 19)) ; months in complete cycles so far
              (* 12 (% (1- year) 19))  ; regular months in this cycle
@@ -98,11 +98,11 @@
      (hebrew-calendar-elapsed-days year)))
 
 (defun hebrew-calendar-long-heshvan-p (year)
-  "t if Heshvan is long in Hebrew YEAR."
+  "Non-nil if Heshvan is long in Hebrew YEAR."
   (= (% (hebrew-calendar-days-in-year year) 10) 5))
 
 (defun hebrew-calendar-short-kislev-p (year)
-  "t if Kislev is short in Hebrew YEAR."
+  "Non-nil if Kislev is short in Hebrew YEAR."
   (= (% (hebrew-calendar-days-in-year year) 10) 3))
 
 (defun hebrew-calendar-last-day-of-month (month year)
@@ -680,15 +680,15 @@ A value of 0 in any position is a wildcard."
 
 (defun mark-hebrew-diary-entries ()
   "Mark days in the calendar window that have Hebrew date diary entries.
-Each entry in diary-file (or included files) visible in the calendar window
-is marked.  Hebrew date entries are prefaced by a hebrew-diary-entry-symbol
-\(normally an `H').  The same diary-date-forms govern the style of the Hebrew
+Each entry in `diary-file' (or included files) visible in the calendar window
+is marked.  Hebrew date entries are prefaced by `hebrew-diary-entry-symbol'
+\(normally an `H').  The same `diary-date-forms' govern the style of the Hebrew
 calendar entries, except that the Hebrew month names must be spelled in full.
 The Hebrew months are numbered from 1 to 13 with Nisan being 1, 12 being
 Adar I and 13 being Adar II; you must use `Adar I' if you want Adar of a
-common Hebrew year.  Hebrew date diary entries that begin with a
-diary-nonmarking symbol will not be marked in the calendar.  This function
-is provided for use as part of the nongregorian-diary-marking-hook."
+common Hebrew year.  Hebrew date diary entries that begin with
+`diary-nonmarking-symbol' will not be marked in the calendar.  This function
+is provided for use as part of `nongregorian-diary-marking-hook'."
   (let ((d diary-date-forms))
     (while d
       (let*
@@ -788,7 +788,7 @@ is provided for use as part of the nongregorian-diary-marking-hook."
 (defun insert-hebrew-diary-entry (arg)
   "Insert a diary entry.
 For the Hebrew date corresponding to the date indicated by point.
-Prefix arg will make the entry nonmarking."
+Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (let* ((calendar-month-name-array
           calendar-hebrew-month-name-array-leap-year))
@@ -805,7 +805,7 @@ Prefix arg will make the entry nonmarking."
 (defun insert-monthly-hebrew-diary-entry (arg)
   "Insert a monthly diary entry.
 For the day of the Hebrew month corresponding to the date indicated by point.
-Prefix arg will make the entry nonmarking."
+Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (let* ((calendar-date-display-form
           (if european-calendar-style '(day " * ") '("* " day )))
@@ -823,7 +823,7 @@ Prefix arg will make the entry nonmarking."
 (defun insert-yearly-hebrew-diary-entry (arg)
   "Insert an annual diary entry.
 For the day of the Hebrew year corresponding to the date indicated by point.
-Prefix arg will make the entry nonmarking."
+Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (let* ((calendar-date-display-form
           (if european-calendar-style
@@ -878,7 +878,7 @@ from the cursor position."
                              start-year)
                        (lambda (x) (>= x start-year)))))
    (list death-date start-year end-year)))
-  (message "Computing yahrzeits...")
+  (message "Computing Yahrzeits...")
   (let* ((yahrzeit-buffer "*Yahrzeits*")
          (h-date (calendar-hebrew-from-absolute
                   (calendar-absolute-from-gregorian death-date)))
@@ -910,7 +910,7 @@ from the cursor position."
     (set-buffer-modified-p nil)
     (setq buffer-read-only t)
     (display-buffer yahrzeit-buffer)
-    (message "Computing yahrzeits...done")))
+    (message "Computing Yahrzeits...done")))
 
 (defun diary-hebrew-date ()
   "Hebrew calendar equivalent of date diary entry."
@@ -943,11 +943,11 @@ use when highlighting the day in the calendar."
 					  day (if (= day 1) "" "s"))))))))))
 
 (defun diary-yahrzeit (death-month death-day death-year &optional mark)
-  "Yahrzeit diary entry--entry applies if date is yahrzeit or the day before.
+  "Yahrzeit diary entry--entry applies if date is Yahrzeit or the day before.
 Parameters are DEATH-MONTH, DEATH-DAY, DEATH-YEAR; the diary entry is assumed
 to be the name of the person.  Date of death is on the *civil* calendar;
 although the date of death is specified by the civil calendar, the proper
-Hebrew calendar yahrzeit is determined.  If `european-calendar-style' is t, the
+Hebrew calendar Yahrzeit is determined.  If `european-calendar-style' is t, the
 order of the parameters is changed to DEATH-DAY, DEATH-MONTH, DEATH-YEAR.
 
 An optional parameter MARK specifies a face or single-character string to
@@ -1058,7 +1058,6 @@ use when highlighting the day in the calendar."
 
 (defun diary-parasha (&optional mark)
   "Parasha diary entry--entry applies if date is a Saturday.
-
 An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (let ((d (calendar-absolute-from-gregorian date)))
