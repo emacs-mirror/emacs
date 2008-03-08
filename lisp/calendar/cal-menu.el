@@ -116,6 +116,7 @@
      ["Yearly" insert-yearly-hebrew-diary-entry])))
 
 (defun cal-menu-holiday-window-suffix ()
+  "Return a string suffix for the \"Window\" entry in `cal-menu-holidays-menu'."
   (let ((my1 (calendar-increment-month -1))
         (my2 (calendar-increment-month 1)))
     (if (= (cdr my1) (cdr my2))
@@ -200,8 +201,8 @@
     ["Backward 1 Year" "4\ev"]))
 
 (defun cal-menu-x-popup-menu (position menu)
-  "Like `x-popup-menu', but prints an error message if popup menus are
-not available."
+  "Like `x-popup-menu', but print an error message if popups are unavailable.
+POSITION and MENU are passed to `x-popup-menu'."
   (if (display-popup-menus-p)
       (x-popup-menu position menu)
     (error "Popup menus are not available on this system")))
@@ -251,7 +252,8 @@ ERROR is t, otherwise just returns nil."
 (autoload 'diary-list-entries "diary-lib")
 
 (defun calendar-mouse-holidays (&optional event)
-  "Pop up menu of holidays for mouse selected date."
+  "Pop up menu of holidays for mouse selected date.
+EVENT is the event that invoked this command."
   (interactive "e")
   (let* ((date (calendar-event-to-date))
          (l (mapcar 'list (calendar-check-holidays date)))
@@ -269,9 +271,9 @@ ERROR is t, otherwise just returns nil."
 
 (defun calendar-mouse-view-diary-entries (&optional date diary event)
   "Pop up menu of diary entries for mouse-selected date.
-Use optional DATE and alternative file DIARY.
-
-Any holidays are shown if `holidays-in-diary-buffer' is t."
+Use optional DATE and alternative file DIARY.  EVENT is the event
+that invoked this command.  Shows holidays if `holidays-in-diary-buffer'
+is non-nil."
   (interactive "i\ni\ne")
   (let* ((date (or date (calendar-event-to-date)))
          (diary-file (if diary diary diary-file))
@@ -418,7 +420,8 @@ The output is in landscape format, one month to a page."
     (cal-tex-cursor-year-landscape nil)))
 
 (defun calendar-mouse-print-dates (&optional event)
-  "Pop up menu of equivalent dates to mouse selected date."
+  "Pop up menu of equivalent dates to mouse selected date.
+EVENT is the event that invoked this command."
   (interactive "e")
   (let* ((date (calendar-event-to-date))
         (selection
@@ -476,8 +479,14 @@ The output is in landscape format, one month to a page."
     (calendar-print-chinese-date)))
 
 (defun calendar-mouse-goto-date (date)
+  "Goto DATE in the buffer specified by `last-input-event'."
   (set-buffer (window-buffer (posn-window (event-start last-input-event))))
   (calendar-goto-date date))
+
+(defun cal-menu-set-date-title (menu)
+  "Convert date of last event to title suitable for MENU."
+  (easy-menu-filter-return
+   menu (calendar-date-string (calendar-event-to-date t) t nil)))
 
 (easy-menu-define cal-menu-context-mouse-menu nil
   "Pop up menu for Mouse-2 for selected date in the calendar window."
@@ -505,10 +514,6 @@ The output is in landscape format, one month to a page."
     ["Diary entries" calendar-mouse-view-diary-entries]
     ["Insert diary entry" calendar-mouse-insert-diary-entry]
     ["Other diary file entries" calendar-mouse-view-other-diary-entries]))
-
-(defun cal-menu-set-date-title (menu)
-  (easy-menu-filter-return
-   menu (calendar-date-string (calendar-event-to-date t) t nil)))
 
 (easy-menu-define cal-menu-global-mouse-menu nil
   "Menu bound to a mouse event, not specific to the mouse-click location."
