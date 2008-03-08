@@ -1592,7 +1592,7 @@ line."
   "Insert STRING at column INDENT.
 If the optional parameter NEWLINE is t, leave point at start of next line,
 inserting a newline if there was no next line; otherwise, leave point after
-the inserted text.  Value is always t."
+the inserted text.  Returns t."
   ;; Try to move to that column.
   (move-to-column indent)
   ;; If line is too short, indent out to that column.
@@ -1600,12 +1600,11 @@ the inserted text.  Value is always t."
       (indent-to indent))
   (insert string)
   ;; Advance to next line, if requested.
-  (if newline
-      (progn
-	(end-of-line)
-	(if (eobp)
-            (newline)
-	  (forward-line 1))))
+  (when newline
+    (end-of-line)
+    (if (eobp)
+        (newline)
+      (forward-line 1)))
   t)
 
 (defun redraw-calendar ()
@@ -1955,10 +1954,10 @@ the STRINGS are just concatenated and the result truncated."
             (not (buffer-modified-p diary-buffer))
             (yes-or-no-p
              "Diary modified; do you really want to exit the calendar? "))
-      ;; Need to do this multiple times because one time can replace some
-      ;; calendar-related buffers with other calendar-related buffers
-      (mapcar (lambda (x)
-                (mapcar 'calendar-hide-window (calendar-window-list)))
+        ;; Need to do this multiple times because one time can replace some
+        ;; calendar-related buffers with other calendar-related buffers
+        (mapc (lambda (x)
+                (mapc 'calendar-hide-window (calendar-window-list)))
               (calendar-window-list)))))
 
 (defun calendar-hide-window (window)
@@ -1991,10 +1990,10 @@ If cursor is not on a specific date, signals an error if optional parameter
 ERROR is t, otherwise just returns nil."
   (let* ((segment (/ (current-column) 25))
          (month (% (+ displayed-month segment -1) 12))
-         (month (if (= 0 month) 12 month))
+         (month (if (zerop month) 12 month))
          (year
           (cond
-           ((and (=  12 month) (= segment 0)) (1- displayed-year))
+           ((and (=  12 month) (zerop segment)) (1- displayed-year))
            ((and (=   1 month) (= segment 2)) (1+ displayed-year))
            (t displayed-year))))
     (if (and (looking-at "[ 0-9]?[0-9][^0-9]")
