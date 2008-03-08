@@ -42,6 +42,7 @@
 
 (require 'calendar)
 
+;;;###autoload
 (defun calendar-julian-from-absolute (date)
   "Compute the Julian (month day year) corresponding to the absolute DATE.
 The absolute date is the number of days elapsed since the (imaginary)
@@ -82,6 +83,7 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
        (/ (1- year) 4)
        -2)))
 
+;;;###autoload
 (defun calendar-julian-date-string (&optional date)
   "String of Julian date of Gregorian DATE.
 Defaults to today's date if DATE is not given.
@@ -92,19 +94,21 @@ Driven by the variable `calendar-date-display-form'."
      (or date (calendar-current-date))))
    nil t))
 
+;;;###autoload
 (defun calendar-print-julian-date ()
   "Show the Julian calendar equivalent of the date under the cursor."
   (interactive)
   (message "Julian date: %s"
            (calendar-julian-date-string (calendar-cursor-to-date t))))
 
+;;;###autoload
 (defun calendar-goto-julian-date (date &optional noecho)
   "Move cursor to Julian DATE; echo Julian date unless NOECHO is t."
   (interactive
    (let* ((today (calendar-current-date))
           (year (calendar-read
                  "Julian calendar year (>0): "
-                 '(lambda (x) (> x 0))
+                 (lambda (x) (> x 0))
                  (int-to-string
                   (extract-calendar-year
                    (calendar-julian-from-absolute
@@ -125,7 +129,7 @@ Driven by the variable `calendar-date-display-form'."
           (day (calendar-read
                 (format "Julian calendar day (%d-%d): "
                         (if (and (= year 1) (= month 1)) 3 1) last)
-                '(lambda (x)
+                (lambda (x)
                    (and (< (if (and (= year 1) (= month 1)) 2 0) x)
                         (<= x last))))))
      (list (list month day year))))
@@ -164,14 +168,17 @@ nil if it is not visible in the current calendar window."
   "Julian calendar equivalent of date diary entry."
   (format "Julian date: %s" (calendar-julian-date-string date)))
 
+;;;###autoload
 (defun calendar-absolute-from-astro (d)
   "Absolute date of astronomical (Julian) day number D."
   (- d 1721424.5))
 
+;;;###autoload
 (defun calendar-astro-from-absolute (d)
   "Astronomical (Julian) day number of absolute date D."
   (+ d 1721424.5))
 
+;;;###autoload
 (defun calendar-astro-date-string (&optional date)
   "String of astronomical (Julian) day number after noon UTC of Gregorian DATE.
 Defaults to today's date if DATE is not given."
@@ -181,6 +188,7 @@ Defaults to today's date if DATE is not given."
      (calendar-absolute-from-gregorian
       (or date (calendar-current-date)))))))
 
+;;;###autoload
 (defun calendar-print-astro-day-number ()
   "Show astronomical (Julian) day number after noon UTC on date shown by cursor."
   (interactive)
@@ -188,12 +196,13 @@ Defaults to today's date if DATE is not given."
    "Astronomical (Julian) day number (at noon UTC): %s.0"
    (calendar-astro-date-string (calendar-cursor-to-date t))))
 
+;;;###autoload
 (defun calendar-goto-astro-day-number (daynumber &optional noecho)
   "Move cursor to astronomical (Julian) DAYNUMBER.
 Echo astronomical (Julian) day number unless NOECHO is t."
   (interactive (list (calendar-read
                       "Astronomical (Julian) day number (>1721425): "
-                      '(lambda (x) (> x 1721425)))))
+                      (lambda (x) (> x 1721425)))))
   (calendar-goto-date
    (calendar-gregorian-from-absolute
     (floor
@@ -207,5 +216,9 @@ Echo astronomical (Julian) day number unless NOECHO is t."
 
 (provide 'cal-julian)
 
-;;; arch-tag: 0520acdd-1c60-4188-9aa8-9b8c24d856ae
+;; Local Variables:
+;; generated-autoload-file: "cal-loaddefs.el"
+;; End:
+
+;; arch-tag: 0520acdd-1c60-4188-9aa8-9b8c24d856ae
 ;;; cal-julian.el ends here
