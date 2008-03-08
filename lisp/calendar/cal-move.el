@@ -94,7 +94,8 @@ Movement is forward is ARG is negative."
 (defun calendar-scroll-left (&optional arg event)
   "Scroll the displayed calendar left by ARG months.
 If ARG is negative the calendar is scrolled right.  Maintains the relative
-position of the cursor with respect to the calendar as well as possible."
+position of the cursor with respect to the calendar as well as possible.
+EVENT is an event like `last-nonmenu-event'."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
   (unless arg (setq arg 1))
@@ -119,7 +120,8 @@ position of the cursor with respect to the calendar as well as possible."
 (defun calendar-scroll-right (&optional arg event)
   "Scroll the displayed calendar window right by ARG months.
 If ARG is negative the calendar is scrolled left.  Maintains the relative
-position of the cursor with respect to the calendar as well as possible."
+position of the cursor with respect to the calendar as well as possible.
+EVENT is an event like `last-nonmenu-event'."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      last-nonmenu-event))
   (calendar-scroll-left (- (or arg 1)) event))
