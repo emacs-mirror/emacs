@@ -33,6 +33,239 @@
 
 (require 'calendar)
 
+(defcustom diary-include-string "#include"
+  "The string indicating inclusion of another file of diary entries.
+See the documentation for the function `include-other-diary-files'."
+  :type 'string
+  :group 'diary)
+
+(defcustom diary-list-include-blanks nil
+  "If nil, do not include days with no diary entry in the list of diary entries.
+Such days will then not be shown in the fancy diary buffer, even if they
+are holidays."
+  :type 'boolean
+  :group 'diary)
+
+(defcustom diary-glob-file-regexp-prefix "^\\#"
+  "Regular expression prepended to attribute-regexps for file-wide specifiers."
+  :type 'regexp
+  :group 'diary)
+
+(defcustom diary-face 'diary
+  "Face name to use for diary entries."
+  :type 'face
+  :group 'diary)
+(make-obsolete-variable 'diary-face "customize the face `diary' instead."
+			"23.1")
+
+(defcustom diary-face-attrs
+  '((" *\\[foreground:\\([-a-z]+\\)\\]$" 1 :foreground string)
+    (" *\\[background:\\([-a-z]+\\)\\]$" 1 :background string)
+    (" *\\[width:\\([-a-z]+\\)\\]$" 1 :width symbol)
+    (" *\\[height:\\([-0-9a-z]+\\)\\]$" 1 :height int)
+    (" *\\[weight:\\([-a-z]+\\)\\]$" 1 :weight symbol)
+    (" *\\[slant:\\([-a-z]+\\)\\]$" 1 :slant symbol)
+    (" *\\[underline:\\([-a-z]+\\)\\]$" 1 :underline stringtnil)
+    (" *\\[overline:\\([-a-z]+\\)\\]$" 1 :overline stringtnil)
+    (" *\\[strike-through:\\([-a-z]+\\)\\]$" 1 :strike-through stringtnil)
+    (" *\\[inverse-video:\\([-a-z]+\\)\\]$" 1 :inverse-video tnil)
+    (" *\\[face:\\([-0-9a-z]+\\)\\]$" 1 :face string)
+    (" *\\[font:\\([-a-z0-9]+\\)\\]$" 1 :font string)
+    ;; Unsupported.
+;;;    (" *\\[box:\\([-a-z]+\\)\\]$" 1 :box)
+;;;    (" *\\[stipple:\\([-a-z]+\\)\\]$" 1 :stipple)
+    )
+  "A list of (regexp regnum attr attrtype) lists where the
+regexp says how to find the tag, the regnum says which
+parenthetical sub-regexp this regexp looks for, and the attr says
+which attribute of the face (or that this _is_ a face) is being
+modified."
+  :type 'sexp
+  :group 'diary)
+
+(defcustom diary-file-name-prefix nil
+  "Non-nil means prefix each diary entry with the name of the file defining it."
+  :type 'boolean
+  :group 'diary)
+
+(defcustom diary-file-name-prefix-function 'identity
+  "The function that will take a diary file name and return the desired prefix."
+  :type 'function
+  :group 'diary)
+
+(defcustom sexp-diary-entry-symbol "%%"
+  "The string used to indicate a sexp diary entry in `diary-file'.
+See the documentation for the function `list-sexp-diary-entries'."
+  :type 'string
+  :group 'diary)
+
+(defcustom list-diary-entries-hook nil
+  "List of functions called after diary file is culled for relevant entries.
+It is to be used for diary entries that are not found in the diary file.
+
+A function `include-other-diary-files' is provided for use as the value of
+this hook.  This function enables you to use shared diary files together
+with your own.  The files included are specified in the diary file by lines
+of the form
+
+        #include \"filename\"
+
+This is recursive; that is, #include directives in files thus included are
+obeyed.  You can change the \"#include\" to some other string by changing
+the variable `diary-include-string'.  When you use `include-other-diary-files'
+as part of the list-diary-entries-hook, you will probably also want to use the
+function `mark-included-diary-files' as part of `mark-diary-entries-hook'.
+
+For example, you could use
+
+     (setq list-diary-entries-hook
+       '(include-other-diary-files sort-diary-entries))
+     (setq diary-display-hook 'fancy-diary-display)
+
+in your `.emacs' file to cause the fancy diary buffer to be displayed with
+diary entries from various included files, each day's entries sorted into
+lexicographic order."
+  :type 'hook
+  :options '(include-other-diary-files sort-diary-entries)
+  :group 'diary)
+
+(defcustom mark-diary-entries-hook nil
+  "List of functions called after marking diary entries in the calendar.
+
+A function `mark-included-diary-files' is also provided for use as the
+`mark-diary-entries-hook'; it enables you to use shared diary files together
+with your own.  The files included are specified in the diary file by lines
+of the form
+        #include \"filename\"
+This is recursive; that is, #include directives in files thus included are
+obeyed.  You can change the \"#include\" to some other string by changing the
+variable `diary-include-string'.  When you use `mark-included-diary-files' as
+part of the mark-diary-entries-hook, you will probably also want to use the
+function `include-other-diary-files' as part of `list-diary-entries-hook'."
+  :type 'hook
+  :options '(mark-included-diary-files)
+  :group 'diary)
+
+(defcustom nongregorian-diary-listing-hook nil
+  "List of functions called for listing diary file and included files.
+As the files are processed for diary entries, these functions are used
+to cull relevant entries.  You can use either or both of
+`list-hebrew-diary-entries', `list-islamic-diary-entries' and
+`diary-bahai-list-entries'.  The documentation for these functions
+describes the style of such diary entries."
+  :type 'hook
+  :options '(list-hebrew-diary-entries
+	     list-islamic-diary-entries
+	     diary-bahai-list-entries)
+  :group 'diary)
+
+(defcustom nongregorian-diary-marking-hook nil
+  "List of functions called for marking diary file and included files.
+As the files are processed for diary entries, these functions are used
+to cull relevant entries.  You can use either or both of
+`mark-hebrew-diary-entries', `mark-islamic-diary-entries' and
+`mark-bahai-diary-entries'.  The documentation for these functions
+describes the style of such diary entries."
+  :type 'hook
+  :options '(mark-hebrew-diary-entries
+	     mark-islamic-diary-entries
+	     diary-bahai-mark-entries)
+  :group 'diary)
+
+(defcustom print-diary-entries-hook 'lpr-buffer
+  "List of functions called after a temporary diary buffer is prepared.
+The buffer shows only the diary entries currently visible in the diary
+buffer.  The default just does the printing.  Other uses might include, for
+example, rearranging the lines into order by day and time, saving the buffer
+instead of deleting it, or changing the function used to do the printing."
+  :type 'hook
+  :group 'diary)
+
+(defcustom diary-unknown-time -9999
+  "Value returned by diary-entry-time when no time is found.
+The default value -9999 causes entries with no recognizable time to be placed
+before those with times; 9999 would place entries with no recognizable time
+after those with times."
+  :type 'integer
+  :group 'diary
+  :version "20.3")
+
+(defcustom diary-mail-addr
+  (if (boundp 'user-mail-address) user-mail-address "")
+  "Email address that `diary-mail-entries' will send email to."
+  :group 'diary
+  :type  'string
+  :version "20.3")
+
+(defcustom diary-mail-days 7
+  "Default number of days for `diary-mail-entries' to check."
+  :group 'diary
+  :type 'integer
+  :version "20.3")
+
+(defcustom diary-remind-message
+  '("Reminder: Only "
+    (if (= 0 (% days 7))
+        (concat (int-to-string (/ days 7)) (if (= 7 days) " week" " weeks"))
+      (concat (int-to-string days) (if (= 1 days) " day" " days")))
+    " until "
+    diary-entry)
+  "Pseudo-pattern giving form of reminder messages in the fancy diary display.
+
+Used by the function `diary-remind', a pseudo-pattern is a list of
+expressions that can involve the keywords `days' (a number), `date' (a list of
+month, day, year), and `diary-entry' (a string)."
+  :type 'sexp
+  :group 'diary)
+
+(defcustom diary-outlook-formats
+  '(
+    ;; When: 11 October 2001 12:00-14:00 (GMT) Greenwich Mean Time : Dublin, ...
+    ;; [Current UK format?  The timezone is meaningless.  Sometimes the
+    ;; Where is missing.]
+    ("When: \\([0-9]+ [[:alpha:]]+ [0-9]+\\) \
+\\([^ ]+\\) [^\n]+
+\[^\n]+
+\\(?:Where: \\([^\n]+\\)\n+\\)?
+\\*~\\*~\\*~\\*~\\*~\\*~\\*~\\*~\\*~\\*"
+     . "\\1\n \\2 %s, \\3")
+    ;; When: Tuesday, April 30, 2002 03:00 PM-03:30 PM (GMT) Greenwich Mean ...
+    ;; [Old UK format?]
+    ("^When: [[:alpha:]]+, \\([[:alpha:]]+\\) \\([0-9][0-9]*\\), \\([0-9]\\{4\\}\\) \
+\\([^ ]+\\) [^\n]+
+\[^\n]+
+\\(?:Where: \\([^\n]+\\)\\)?\n+"
+     . "\\2 \\1 \\3\n \\4 %s, \\5")
+    (
+     ;; German format, apparently.
+     "^Zeit: [^ ]+, +\\([0-9]+\\)\. +\\([[:upper:]][[:lower:]][[:lower:]]\\)[^ ]* +\\([0-9]+\\) +\\([^ ]+\\).*$"
+     . "\\1 \\2 \\3\n \\4 %s"))
+  "Alist of regexps matching message text and replacement text.
+
+The regexp must match the start of the message text containing an
+appointment, but need not include a leading `^'.  If it matches the
+current message, a diary entry is made from the corresponding
+template.  If the template is a string, it should be suitable for
+passing to `replace-match', and so will have occurrences of `\\D' to
+substitute the match for the Dth subexpression.  It must also contain
+a single `%s' which will be replaced with the text of the message's
+Subject field.  Any other `%' characters must be doubled, so that the
+template can be passed to `format'.
+
+If the template is actually a function, it is called with the message
+body text as argument, and may use `match-string' etc. to make a
+template following the rules above."
+  :type '(alist :key-type (regexp :tag "Regexp matching time/place")
+		:value-type (choice
+			     (string :tag "Template for entry")
+			     (function :tag
+				       "Unary function providing template")))
+  :version "22.1"
+  :group 'diary)
+
+;;; More user options below and in calendar.el.
+
+
 (defun diary-check-diary-file ()
   "Check that the file specified by `diary-file' exists and is readable.
 If so, return the expanded file name, otherwise signal an error."
@@ -870,19 +1103,6 @@ is created."
       (diary-unhide-everything)
       (display-buffer (current-buffer)))))
 
-(defcustom diary-mail-addr
-  (if (boundp 'user-mail-address) user-mail-address "")
-  "Email address that `diary-mail-entries' will send email to."
-  :group 'diary
-  :type  'string
-  :version "20.3")
-
-(defcustom diary-mail-days 7
-  "Default number of days for `diary-mail-entries' to check."
-  :group 'diary
-  :type 'integer
-  :version "20.3")
-
 ;;;###autoload
 (defun diary-mail-entries (&optional ndays)
   "Send a mail message showing diary entries for next NDAYS days.
@@ -1219,16 +1439,6 @@ A value of 0 in any position of the pattern is a wildcard."
              (or (< t1 t2)
                  (and (= t1 t2)
                       (string-lessp ts1 ts2)))))))
-
-(defcustom diary-unknown-time
-  -9999
-  "Value returned by diary-entry-time when no time is found.
-The default value -9999 causes entries with no recognizable time to be placed
-before those with times; 9999 would place entries with no recognizable time
-after those with times."
-  :type 'integer
-  :group 'diary
-  :version "20.3")
 
 (defun diary-entry-time (s)
   "Return time at the beginning of the string S as a military-style integer.
@@ -1677,22 +1887,6 @@ use when highlighting the day in the calendar."
   "Day of year and number of days remaining in the year of date diary entry."
   (calendar-day-of-year-string date))
 
-(defcustom diary-remind-message
-  '("Reminder: Only "
-    (if (= 0 (% days 7))
-        (concat (int-to-string (/ days 7)) (if (= 7 days) " week" " weeks"))
-      (concat (int-to-string days) (if (= 1 days) " day" " days")))
-    " until "
-    diary-entry)
-  "Pseudo-pattern giving form of reminder messages in the fancy diary
-display.
-
-Used by the function `diary-remind', a pseudo-pattern is a list of
-expressions that can involve the keywords `days' (a number), `date' (a list of
-month, day, year), and `diary-entry' (a string)."
-  :type 'sexp
-  :group 'diary)
-
 (defun diary-remind (sexp days &optional marking)
   "Provide a reminder of a diary entry.
 SEXP is a diary-sexp.  DAYS is either a single number or a list of numbers
@@ -1996,8 +2190,9 @@ names."
                 '(1 diary-face)))
             diary-date-forms)))
 
-(eval-when-compile (require 'cal-hebrew)
-                   (require 'cal-islam))
+(defvar calendar-hebrew-month-name-array-leap-year)
+(defvar calendar-islamic-month-name-array)
+(defvar calendar-bahai-month-name-array)
 
 (defun diary-font-lock-keywords ()
   "Return a value for the variable `diary-font-lock-keywords'."
@@ -2010,38 +2205,43 @@ names."
                    nongregorian-diary-listing-hook))
      (require 'cal-hebrew)
      (diary-font-lock-date-forms
-      calendar-hebrew-month-name-array-leap-year
-      hebrew-diary-entry-symbol))
+      calendar-hebrew-month-name-array-leap-year hebrew-diary-entry-symbol))
    (when (or (memq 'mark-islamic-diary-entries
                    nongregorian-diary-marking-hook)
              (memq 'list-islamic-diary-entries
                    nongregorian-diary-listing-hook))
      (require 'cal-islam)
      (diary-font-lock-date-forms
-      calendar-islamic-month-name-array
-      islamic-diary-entry-symbol))
+      calendar-islamic-month-name-array islamic-diary-entry-symbol))
+   (when (or (memq 'diary-bahai-mark-entries
+		   nongregorian-diary-marking-hook)
+	     (memq 'diary-bahai-list-entries
+		   nongregorian-diary-marking-hook))
+     (require 'cal-bahai)
+     (diary-font-lock-date-forms
+      calendar-bahai-month-name-array bahai-diary-entry-symbol))
    (list
     (cons
-     (concat "^" (regexp-quote diary-include-string) ".*$")
+     (format "^%s.*$" (regexp-quote diary-include-string))
      'font-lock-keyword-face)
     (cons
-     (concat "^" (regexp-quote diary-nonmarking-symbol)
-             "?\\(" (regexp-quote sexp-diary-entry-symbol) "\\)")
+     (format "^%s?\\(%s\\)" (regexp-quote diary-nonmarking-symbol)
+	     (regexp-quote sexp-diary-entry-symbol))
      '(1 font-lock-reference-face))
     (cons
-     (concat "^" (regexp-quote diary-nonmarking-symbol))
+     (format "^%s" (regexp-quote diary-nonmarking-symbol))
      'font-lock-reference-face)
     (cons
-     (concat "^" (regexp-quote diary-nonmarking-symbol)
-             "?\\(" (regexp-quote hebrew-diary-entry-symbol) "\\)")
-     '(1 font-lock-reference-face))
-    (cons
-     (concat "^" (regexp-quote diary-nonmarking-symbol)
-             "?\\(" (regexp-quote islamic-diary-entry-symbol) "\\)")
+     (format "^%s?%s" (regexp-quote diary-nonmarking-symbol)
+	     (regexp-opt (mapcar 'regexp-quote
+				 (list hebrew-diary-entry-symbol
+				       islamic-diary-entry-symbol
+				       bahai-diary-entry-symbol))
+			 t))
      '(1 font-lock-reference-face))
     '(diary-font-lock-sexps . font-lock-keyword-face)
-    `(,(concat "\\(^\\|\\s-\\)"
-               diary-time-regexp "\\(-" diary-time-regexp "\\)?")
+    `(,(format "\\(^\\|\\s-\\)%s\\(-%s\\)?" diary-time-regexp
+	       diary-time-regexp)
       . 'diary-time))))
 
 (defvar diary-font-lock-keywords (diary-font-lock-keywords)
@@ -2055,51 +2255,6 @@ names."
 ;; which case they will prompt about adding to the diary).  The
 ;; message formats recognized are customizable through
 ;; `diary-outlook-formats'.
-
-(defcustom diary-outlook-formats
-  '(
-    ;; When: 11 October 2001 12:00-14:00 (GMT) Greenwich Mean Time : Dublin, ...
-    ;; [Current UK format?  The timezone is meaningless.  Sometimes the
-    ;; Where is missing.]
-    ("When: \\([0-9]+ [[:alpha:]]+ [0-9]+\\) \
-\\([^ ]+\\) [^\n]+
-\[^\n]+
-\\(?:Where: \\([^\n]+\\)\n+\\)?
-\\*~\\*~\\*~\\*~\\*~\\*~\\*~\\*~\\*~\\*"
-     . "\\1\n \\2 %s, \\3")
-    ;; When: Tuesday, April 30, 2002 03:00 PM-03:30 PM (GMT) Greenwich Mean ...
-    ;; [Old UK format?]
-    ("^When: [[:alpha:]]+, \\([[:alpha:]]+\\) \\([0-9][0-9]*\\), \\([0-9]\\{4\\}\\) \
-\\([^ ]+\\) [^\n]+
-\[^\n]+
-\\(?:Where: \\([^\n]+\\)\\)?\n+"
-     . "\\2 \\1 \\3\n \\4 %s, \\5")
-    (
-     ;; German format, apparently.
-     "^Zeit: [^ ]+, +\\([0-9]+\\)\. +\\([[:upper:]][[:lower:]][[:lower:]]\\)[^ ]* +\\([0-9]+\\) +\\([^ ]+\\).*$"
-     . "\\1 \\2 \\3\n \\4 %s"))
-  "Alist of regexps matching message text and replacement text.
-
-The regexp must match the start of the message text containing an
-appointment, but need not include a leading `^'.  If it matches the
-current message, a diary entry is made from the corresponding
-template.  If the template is a string, it should be suitable for
-passing to `replace-match', and so will have occurrences of `\\D' to
-substitute the match for the Dth subexpression.  It must also contain
-a single `%s' which will be replaced with the text of the message's
-Subject field.  Any other `%' characters must be doubled, so that the
-template can be passed to `format'.
-
-If the template is actually a function, it is called with the message
-body text as argument, and may use `match-string' etc. to make a
-template following the rules above."
-  :type '(alist :key-type (regexp :tag "Regexp matching time/place")
-		:value-type (choice
-			     (string :tag "Template for entry")
-			     (function :tag "Unary function providing template")))
-  :version "22.1"
-  :group 'diary)
-
 
 ;; Dynamically bound.
 (defvar body)
