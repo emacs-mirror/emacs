@@ -3375,6 +3375,8 @@ With a zero prefix arg, put the name inside a function call to `info'."
 
 (defvar tool-bar-map)
 (defvar bookmark-make-record-function)
+(defvar bookmark-make-name-function)
+(declare-function bookmark-get-bookmark-record "bookmark" (bookmark))
 
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
@@ -3745,7 +3747,7 @@ the variable `Info-file-list-for-emacs'."
            (case-fold-search t)
            paragraph-markers
            (not-fontified-p ; the node hasn't already been fontified
-            (not (let ((where (next-single-property-change (point-min) 
+            (not (let ((where (next-single-property-change (point-min)
 							   'font-lock-face)))
                    (and where (not (= where (point-max)))))))
            (fontify-visited-p ; visited nodes need to be re-fontified
