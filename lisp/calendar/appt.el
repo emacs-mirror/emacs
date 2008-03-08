@@ -80,6 +80,11 @@
 
 (defvar diary-selective-display)
 
+
+(defgroup appt nil
+  "Appointment notification."
+  :group 'calendar)
+
 (defcustom appt-issue-message t
   "Non-nil means check for appointments in the diary buffer.
 To be detected, the diary entry must have the format described in the
