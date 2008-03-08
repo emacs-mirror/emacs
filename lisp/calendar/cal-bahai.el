@@ -305,16 +305,15 @@ calendar.  This function is provided for use with the
 
 (defun diary-bahai-mark-entries ()
   "Mark days in the calendar window that have Bahá'í date diary entries.
-Each entry in diary-file (or included files) visible in the calendar
-window is marked.  Bahá'í date entries are prefaced by a
-bahai-diary-entry-symbol \(normally a B`I').  The same
-diary-date-forms govern the style of the Bahá'í calendar entries,
+Each entry in `diary-file' (or included files) visible in the calendar
+window is marked.  Bahá'í date entries are prefaced by
+`bahai-diary-entry-symbol' (normally a \"B\").  The same
+`diary-date-forms' govern the style of the Bahá'í calendar entries,
 except that the Bahá'í month names must be spelled in full.  The
 Bahá'í months are numbered from 1 to 12 with Bahá being 1 and 12 being
-`Alá.  Bahá'í date diary entries that begin with a
-diary-nonmarking-symbol will not be marked in the calendar.  This
-function is provided for use as part of the
-nongregorian-diary-marking-hook."
+`Alá.  Bahá'í date diary entries that begin with `diary-nonmarking-symbol'
+will not be marked in the calendar.  This function is provided for use as
+part of `nongregorian-diary-marking-hook'."
   (let ((d diary-date-forms))
     (while d
       (let*
@@ -475,7 +474,7 @@ A value of 0 in any position is a wildcard."
 (defun diary-bahai-insert-entry (arg)
   "Insert a diary entry.
 For the Bahá'í date corresponding to the date indicated by point.
-Prefix arg will make the entry nonmarking."
+Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (let* ((calendar-month-name-array calendar-bahai-month-name-array))
     (make-diary-entry
@@ -492,7 +491,7 @@ Prefix arg will make the entry nonmarking."
 (defun diary-bahai-insert-monthly-entry (arg)
   "Insert a monthly diary entry.
 For the day of the Bahá'í month corresponding to the date indicated by point.
-Prefix arg will make the entry nonmarking."
+Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
   (let* ((calendar-date-display-form
           (if european-calendar-style '(day " * ") '("* " day )))
@@ -510,7 +509,7 @@ Prefix arg will make the entry nonmarking."
 (defun diary-bahai-insert-yearly-entry (arg)
   "Insert an annual diary entry.
 For the day of the Bahá'í year corresponding to the date indicated by point.
-Prefix arg will make the entry nonmarking."
+Prefix argument ARG will make the entry nonmarking."
   (interactive "P")
   (let* ((calendar-date-display-form
           (if european-calendar-style
