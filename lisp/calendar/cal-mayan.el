@@ -53,8 +53,6 @@
 
 ;;; Code:
 
-(defvar date)
-
 (require 'calendar)
 
 (defconst calendar-mayan-days-before-absolute-zero 1137142
@@ -381,6 +379,9 @@ Defaults to today's date if DATE is not given."
             base (cdr base)))
     (or (null lc) (> (car lc) (car base)))))
 
+(defvar date)
+
+;; To be called from list-sexp-diary-entries, where DATE is bound.
 (defun diary-mayan-date ()
   "Show the Mayan long count, haab, and tzolkin dates as a diary entry."
   (format "Mayan date: %s" (calendar-mayan-date-string date)))
