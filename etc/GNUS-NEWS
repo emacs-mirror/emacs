@@ -21,6 +21,12 @@ this release will store flags for nntp.  See a later entry for more
 information about nntp marks.  Note that downgrading isn't safe in
 general.
 
+** Incompatibity when switching from Emacs 23 to Emacs 22 In Emacs 23, Gnus
+uses Emacs' new internal coding system `utf-8-emacs' for saving articles
+drafts and `~/.newsrc.eld'.  These file may not be read correctly in
+Emacs 22 and below.  If you want to Gnus across different Emacs
+versions, you may set `mm-auto-save-coding-system' to `emacs-mule'.
+
 ** Lisp files are now installed in `.../site-lisp/gnus/' by default.  It
 defaulted to `.../site-lisp/' formerly.  In addition to this, the new
 installer issues a warning if other Gnus installations which will shadow
@@ -52,6 +58,12 @@ for ManageSieve connections are managed by this mechanism, after
 querying the user about whether to do so.
 
 
+* Changes in group mode
+
+** Old intermediate incoming mail files (`Incoming*') are deleted after a
+couple of days, not immediately.  *Note Mail Source Customization::.
+
+
 * Changes in summary and article mode
 
 ** Gnus now supports sticky article buffers.  Those are article buffers
@@ -60,7 +72,7 @@ Articles::.
 
 ** International host names (IDNA) can now be decoded inside article bodies
 using `W i' (`gnus-summary-idna-message').  This requires that GNU Libidn
-(`http://www.gnu.org/software/libidn/') has been installed.
+(<http://www.gnu.org/software/libidn/>) has been installed.
 
 ** The non-ASCII group names handling has been much improved.  The back
 ends that fully support non-ASCII group names are now `nntp', `nnml',
@@ -108,7 +120,7 @@ From Newsgroups::.
 
 ** You can replace MIME parts with external bodies.  See
 `gnus-mime-replace-part' and `gnus-article-replace-part'.  *Note MIME
-Commands::, *note Using MIME::.
+Commands::, *Note Using MIME::.
 
 ** The option `mm-fill-flowed' can be used to disable treatment of
 format=flowed messages.  Also, flowed text is disabled when sending
