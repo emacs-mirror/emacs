@@ -39,6 +39,9 @@
 	Move to diary-lib.
 	(all-christian-calendar-holidays, all-islamic-calendar-holidays)
 	(all-bahai-calendar-holidays): Doc fix.
+	(calendar-insert-indented): Doc fix.  Use when rather than if.
+	(exit-calendar): Use mapc rather than mapcar.
+	(calendar-cursor-to-date): Use zerop.
 	(calendar-mark-ring): Add doc-string.
 	(calendar-starred-day): Defvar it.
 	(calendar-mode): Make calendar-starred-day local.
@@ -52,6 +55,7 @@
 	(mark-diary-entries-hook, nongregorian-diary-listing-hook)
 	(nongregorian-diary-marking-hook, print-diary-entries-hook):
 	Move here from calendar.el.
+	(diary-file-name-prefix-function): Use 'identity.
 	(diary-face): Make it a defcustom, and mark as obsolete.
 	(top-level): No need to require cal-hebrew, cal-islam when
 	compiling.
