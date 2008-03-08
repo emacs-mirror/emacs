@@ -2599,7 +2599,7 @@ If BODY finishes, `while-no-input' returns whatever value BODY produced."
        (catch ',catch-sym
 	 (let ((throw-on-input ',catch-sym))
 	   (or (input-pending-p)
-	       ,@body))))))
+	       (progn ,@body)))))))
 
 (defmacro condition-case-no-debug (var bodyform &rest handlers)
   "Like `condition-case' except that it does not catch anything when debugging.

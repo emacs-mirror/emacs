@@ -1,3 +1,8 @@
+2008-03-08  Johan Bockgård  <bojohan@gnu.org>
+
+	* subr.el (while-no-input): Don't splice BODY directly into the
+	`or' form.
+
 2008-03-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* diff-mode.el (diff-ignore-whitespace-hunk): Bind
