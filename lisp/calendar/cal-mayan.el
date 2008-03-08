@@ -138,6 +138,7 @@ but some use 1137140.  Using 1232041 gives you Spinden's correlation; using
 	    (calendar-mayan-haab-from-absolute 0) haab-date))
 	365)))
 
+;;;###autoload
 (defun calendar-next-haab-date (haab-date &optional noecho)
   "Move cursor to next instance of Mayan HAAB-DATE.
 Echo Mayan date if NOECHO is t."
@@ -150,6 +151,7 @@ Echo Mayan date if NOECHO is t."
         (calendar-absolute-from-gregorian (calendar-cursor-to-date))))))
   (or noecho (calendar-print-mayan-date)))
 
+;;;###autoload
 (defun calendar-previous-haab-date (haab-date &optional noecho)
   "Move cursor to previous instance of Mayan HAAB-DATE.
 Echo Mayan date if NOECHO is t."
@@ -200,6 +202,7 @@ Echo Mayan date if NOECHO is t."
 		 tzolkin-date))
 	260)))
 
+;;;###autoload
 (defun calendar-next-tzolkin-date (tzolkin-date &optional noecho)
   "Move cursor to next instance of Mayan TZOLKIN-DATE.
 Echo Mayan date if NOECHO is t."
@@ -212,6 +215,7 @@ Echo Mayan date if NOECHO is t."
         (calendar-absolute-from-gregorian (calendar-cursor-to-date))))))
   (or noecho (calendar-print-mayan-date)))
 
+;;;###autoload
 (defun calendar-previous-tzolkin-date (tzolkin-date &optional noecho)
   "Move cursor to previous instance of Mayan TZOLKIN-DATE.
 Echo Mayan date if NOECHO is t."
@@ -254,7 +258,7 @@ Returns nil if such a tzolkin-haab combination is impossible."
   (let* ((completion-ignore-case t)
          (haab-day (calendar-read
                     "Haab kin (0-19): "
-                    '(lambda (x) (and (>= x 0) (< x 20)))))
+                    (lambda (x) (and (>= x 0) (< x 20)))))
          (haab-month-list (append calendar-mayan-haab-month-name-array
                                   (and (< haab-day 5) '("Uayeb"))))
          (haab-month (cdr
@@ -270,7 +274,7 @@ Returns nil if such a tzolkin-haab combination is impossible."
   (let* ((completion-ignore-case t)
          (tzolkin-count (calendar-read
                          "Tzolkin kin (1-13): "
-                         '(lambda (x) (and (> x 0) (< x 14)))))
+                         (lambda (x) (and (> x 0) (< x 14)))))
          (tzolkin-name-list (append calendar-mayan-tzolkin-names-array nil))
          (tzolkin-name (cdr
                         (assoc-string
@@ -280,6 +284,7 @@ Returns nil if such a tzolkin-haab combination is impossible."
                          (calendar-make-alist tzolkin-name-list 1) t))))
     (cons tzolkin-count tzolkin-name)))
 
+;;;###autoload
 (defun calendar-next-calendar-round-date
   (tzolkin-date haab-date &optional noecho)
   "Move cursor to next instance of Mayan HAAB-DATE TZOLKIN-DATE combination.
@@ -297,6 +302,7 @@ Echo Mayan date if NOECHO is t."
       (calendar-goto-date (calendar-gregorian-from-absolute date))
       (or noecho (calendar-print-mayan-date)))))
 
+;;;###autoload
 (defun calendar-previous-calendar-round-date
   (tzolkin-date haab-date &optional noecho)
   "Move to previous instance of Mayan TZOLKIN-DATE HAAB-DATE combination.
@@ -325,6 +331,7 @@ Long count is a list (baktun katun tun uinal kin)"
      (-                          ; days before absolute date 0
       calendar-mayan-days-before-absolute-zero)))
 
+;;;###autoload
 (defun calendar-mayan-date-string (&optional date)
   "String of Mayan date of Gregorian DATE.
 Defaults to today's date if DATE is not given."
@@ -338,12 +345,14 @@ Defaults to today's date if DATE is not given."
               (calendar-mayan-tzolkin-to-string tzolkin)
               (calendar-mayan-haab-to-string haab))))
 
+;;;###autoload
 (defun calendar-print-mayan-date ()
   "Show the Mayan long count, tzolkin, and haab equivalents of date."
   (interactive)
   (message "Mayan date: %s"
            (calendar-mayan-date-string (calendar-cursor-to-date t))))
 
+;;;###autoload
 (defun calendar-goto-mayan-long-count-date (date &optional noecho)
   "Move cursor to Mayan long count DATE.  Echo Mayan date unless NOECHO is t."
   (interactive
@@ -378,5 +387,9 @@ Defaults to today's date if DATE is not given."
 
 (provide 'cal-mayan)
 
-;;; arch-tag: 54f35144-cd0f-4873-935a-a60129de07df
+;; Local Variables:
+;; generated-autoload-file: "cal-loaddefs.el"
+;; End:
+
+;; arch-tag: 54f35144-cd0f-4873-935a-a60129de07df
 ;;; cal-mayan.el ends here
