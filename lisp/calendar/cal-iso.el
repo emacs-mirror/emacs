@@ -1,7 +1,7 @@
 ;;; cal-iso.el --- calendar functions for the ISO calendar
 
-;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -135,6 +135,7 @@ Interactively, goes to the first day of the specified week."
 
 (defvar date)
 
+;; To be called from list-sexp-diary-entries, where DATE is bound.
 (defun diary-iso-date ()
   "ISO calendar equivalent of date diary entry."
   (format "ISO date: %s" (calendar-iso-date-string date)))
