@@ -40,6 +40,10 @@
 
 	* calendar/cal-dst.el (calendar-next-time-zone-transition)
 	(calendar-time-zone):
+	* calendar/cal-islam.el (islamic-calendar-leap-year-p)
+	(list-islamic-diary-entries, mark-islamic-diary-entries)
+	(insert-islamic-diary-entry, insert-monthly-islamic-diary-entry)
+	(insert-yearly-islamic-diary-entry):
 	* calendar/cal-iso.el (calendar-iso-read-args):
 	* calendar/cal-mayan.el (calendar-string-to-mayan-long-count)
 	(calendar-mayan-haab-to-string, calendar-mayan-tzolkin-to-string)
