@@ -86,34 +86,34 @@ Gregorian date Sunday, December 31, 1 BC."
 	 (day (extract-calendar-day date))
 	 (year (extract-calendar-year date))
 	 (prior-years (+ (1- year) 1844))
-	 (leap-days (- (+ (/ prior-years 4) ; Leap days in prior years.
+	 (leap-days (- (+ (/ prior-years 4) ; leap days in prior years
 			  (- (/ prior-years 100))
 			  (/ prior-years 400))
 		       calendar-bahai-leap-base)))
-    (+ (1- calendar-bahai-epoch)	; Days before epoch
-       (* 365 (1- year))		; Days in prior years.
+    (+ (1- calendar-bahai-epoch)	; days before epoch
+       (* 365 (1- year))		; days in prior years
        leap-days
        (calendar-sum m 1 (< m month) 19)
        (if (= month 19) 4 0)
-       day)))				; Days so far this month.
+       day)))				; days so far this month
 
 (defun calendar-bahai-from-absolute (date)
   "Bahá'í year corresponding to the absolute DATE."
   (if (< date calendar-bahai-epoch)
-      (list 0 0 0) ;; pre-Bahá'í date
+      (list 0 0 0)                      ; pre-Bahá'í date
     (let* ((greg (calendar-gregorian-from-absolute date))
 	   (year (+ (- (extract-calendar-year greg) 1844)
 		    (if (or (> (extract-calendar-month greg) 3)
 			    (and (= (extract-calendar-month greg) 3)
 				 (>= (extract-calendar-day greg) 21)))
 			1 0)))
-           (month ;; Search forward from Baha.
+           (month                       ; search forward from Baha
             (1+ (calendar-sum m 1
 			      (> date
 				 (calendar-absolute-from-bahai
 				  (list m 19 year)))
 			      1)))
-           (day	;; Calculate the day by subtraction.
+           (day                     ; calculate the day by subtraction
             (- date
                (1- (calendar-absolute-from-bahai (list month 1 year))))))
       (list month day year))))
@@ -199,9 +199,9 @@ nil if it is not visible in the current calendar window."
          (y (extract-calendar-year bahai-date))
 	 (date))
     (if (< m 1)
-        nil ;;   Bahá'í calendar doesn't apply.
+        nil                         ; Bahá'í calendar doesn't apply
       (increment-calendar-month m y (- 10 month))
-      (if (> m 7) ;;  Bahá'í date might be visible
+      (if (> m 7)                      ; Bahá'í date might be visible
           (let ((date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-bahai (list month day y)))))
             (if (calendar-date-is-visible-p date)
@@ -272,10 +272,10 @@ calendar.  This function is provided for use with the
                   (if (and (or (char-equal (preceding-char) ?\^M)
                                (char-equal (preceding-char) ?\n))
                            (not (looking-at " \\|\^I")))
-                      ;;  Diary entry that consists only of date.
+                      ;; Diary entry that consists only of date.
                       (backward-char 1)
-                    ;;  Found a nonempty diary entry--make it visible and
-                    ;;  add it to the list.
+                    ;; Found a nonempty diary entry--make it visible and
+                    ;; add it to the list.
                     (let ((entry-start (point))
                           (date-start))
                       (re-search-backward "\^M\\|\n\\|\\`")
@@ -320,7 +320,7 @@ nongregorian-diary-marking-hook."
       (let*
           ((date-form (if (equal (car (car d)) 'backup)
                           (cdr (car d))
-                        (car d)));; ignore 'backup directive
+                        (car d)))       ; ignore 'backup directive
            (dayname (diary-name-pattern calendar-day-name-array))
            (monthname
             (concat
@@ -434,9 +434,9 @@ A value of 0 in any position is a wildcard."
                  (y (extract-calendar-year bahai-date))
                  (date))
             (if (< m 1)
-                nil;;   Bahá'í calendar doesn't apply.
+                nil                   ; Bahá'í calendar doesn't apply
               (increment-calendar-month m y (- 10 month))
-              (if (> m 7);;  Bahá'í date might be visible
+              (if (> m 7)              ; Bahá'í date might be visible
                   (let ((date (calendar-gregorian-from-absolute
                                (calendar-absolute-from-bahai
                                 (list month day y)))))
