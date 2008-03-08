@@ -57,7 +57,7 @@
 (defun coptic-calendar-last-day-of-month (month year)
   "Return last day of MONTH, YEAR on the Coptic calendar.
 The 13th month is not really a month, but the 5 (6 in leap years) day period of
-Nisi (Kebus)  at the end of the year."
+Nisi (Kebus) at the end of the year."
   (if (< month 13)
       30
     (if (coptic-calendar-leap-year-p year)
@@ -71,11 +71,11 @@ Gregorian date Sunday, December 31, 1 BC."
   (let ((month (extract-calendar-month date))
         (day (extract-calendar-day date))
         (year (extract-calendar-year date)))
-    (+ (1- coptic-calendar-epoch);; Days before start of calendar
-       (* 365 (1- year))         ;; Days in prior years
-       (/ year 4)                ;; Leap days in prior years
-       (* 30 (1- month))         ;; Days in prior months this year
-       day)))                    ;; Days so far this month
+    (+ (1- coptic-calendar-epoch)    ; days before start of calendar
+       (* 365 (1- year))             ; days in prior years
+       (/ year 4)                    ; leap days in prior years
+       (* 30 (1- month))             ; days in prior months this year
+       day)))                        ; days so far this month
 
 
 (defun calendar-coptic-from-absolute (date)
@@ -84,15 +84,15 @@ The result is a list of the form (MONTH DAY YEAR).
 The absolute date is the number of days elapsed since the imaginary
 Gregorian date Sunday, December 31, 1 BC."
   (if (< date coptic-calendar-epoch)
-      (list 0 0 0);; pre-Coptic date
+      (list 0 0 0)                      ; pre-Coptic date
     (let* ((approx (/ (- date coptic-calendar-epoch)
-                      366))   ;; Approximation from below.
-           (year              ;; Search forward from the approximation.
+                      366))  ; approximation from below
+           (year             ; search forward from the approximation
             (+ approx
                (calendar-sum y approx
                  (>= date (calendar-absolute-from-coptic (list 1 1 (1+ y))))
                  1)))
-           (month             ;; Search forward from Tot.
+           (month                       ; search forward from Tot
             (1+ (calendar-sum m 1
                   (> date
                      (calendar-absolute-from-coptic
@@ -100,7 +100,7 @@ Gregorian date Sunday, December 31, 1 BC."
                             (coptic-calendar-last-day-of-month m year)
                             year)))
                   1)))
-           (day                ;; Calculate the day by subtraction.
+           (day                     ; calculate the day by subtraction
             (- date
                (1- (calendar-absolute-from-coptic (list month 1 year))))))
     (list month day year))))
