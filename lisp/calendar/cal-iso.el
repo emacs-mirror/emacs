@@ -95,7 +95,9 @@ Defaults to today's date if DATE is not given."
            (calendar-iso-date-string (calendar-cursor-to-date t))))
 
 (defun calendar-iso-read-args (&optional dayflag)
-  "Interactively read the arguments for an iso date command."
+  "Interactively read the arguments for an iso date command.
+Reads a year and week, and if DAYFLAG is non-nil a day (otherwise
+taken to be 1)."
   (let* ((today (calendar-current-date))
          (year (calendar-read
                 "ISO calendar year (>0): "
