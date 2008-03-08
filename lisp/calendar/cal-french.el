@@ -159,6 +159,7 @@ The absolute date is the number of days elapsed since the
                (1- (calendar-absolute-from-french (list month 1 year))))))
     (list month day year))))
 
+;;;###autoload
 (defun calendar-french-date-string (&optional date)
   "String of French Revolutionary date of Gregorian DATE.
 Returns the empty string if DATE is pre-French Revolutionary.
@@ -184,6 +185,7 @@ Defaults to today's date if DATE is not given."
          (aref (french-calendar-month-name-array) (1- m))
          y)))))
 
+;;;###autoload
 (defun calendar-print-french-date ()
   "Show the French Revolutionary calendar equivalent of the selected date."
   (interactive)
@@ -192,6 +194,7 @@ Defaults to today's date if DATE is not given."
         (message "Date is pre-French Revolution")
       (message "French Revolutionary date: %s" f))))
 
+;;;###autoload
 (defun calendar-goto-french-date (date &optional noecho)
   "Move cursor to French Revolutionary date DATE.
 Echo French Revolutionary date unless NOECHO is t."
@@ -205,7 +208,7 @@ Echo French Revolutionary date unless NOECHO is t."
 		(if accents
 	            "Année de la Révolution (>0): "
 		   "Anne'e de la Re'volution (>0): ")
-		'(lambda (x) (> x 0))
+		(lambda (x) (> x 0))
 		(int-to-string
 		 (extract-calendar-year
 		  (calendar-french-from-absolute
@@ -216,13 +219,13 @@ Echo French Revolutionary date unless NOECHO is t."
 		     (append months
 			     (if (french-calendar-leap-year-p year)
 				 (mapcar
-				  '(lambda (x) (concat "Jour " x))
+				  (lambda (x) (concat "Jour " x))
 				  french-calendar-special-days-array)
 			       (reverse
 				(cdr;; we don't want rev. day in a non-leap yr.
 				 (reverse
 				  (mapcar
-				   '(lambda (x)
+				   (lambda (x)
 				      (concat "Jour " x))
 				   special-days))))))))
 	    (completion-ignore-case t)
@@ -236,7 +239,7 @@ Echo French Revolutionary date unless NOECHO is t."
 		     (- month 12)
 		   (calendar-read
 		    "Jour (1-30): "
-		    '(lambda (x) (and (<= 1 x) (<= x 30))))))
+		    (lambda (x) (and (<= 1 x) (<= x 30))))))
 	    (month (if (> month 12) 13 month)))
        (list (list month day year)))))
   (calendar-goto-date (calendar-gregorian-from-absolute
@@ -252,5 +255,9 @@ Echo French Revolutionary date unless NOECHO is t."
 
 (provide 'cal-french)
 
-;;; arch-tag: 7e8045a3-8609-46b5-9cde-cf40ce541cf9
+;; Local Variables:
+;; generated-autoload-file: "cal-loaddefs.el"
+;; End:
+
+;; arch-tag: 7e8045a3-8609-46b5-9cde-cf40ce541cf9
 ;;; cal-french.el ends here
