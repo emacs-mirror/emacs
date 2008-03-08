@@ -205,7 +205,7 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
     (erase-buffer)
     (insert
      (mapconcat
-      '(lambda (x)
+      (lambda (x)
          (let ((date (car x))
                (time (car (cdr x)))
                (phase (car (cdr (cdr x)))))
@@ -395,5 +395,5 @@ calendar-time-zone."
 
 (provide 'lunar)
 
-;;; arch-tag: 72f0b8a4-7bcc-4a1b-b67a-ff53c4a1d222
+;; arch-tag: 72f0b8a4-7bcc-4a1b-b67a-ff53c4a1d222
 ;;; lunar.el ends here
