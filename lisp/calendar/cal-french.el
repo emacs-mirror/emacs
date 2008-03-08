@@ -39,8 +39,6 @@
 
 ;;; Code:
 
-(defvar date)
-
 (require 'calendar)
 
 (defun french-calendar-accents ()
@@ -246,6 +244,9 @@ Echo French Revolutionary date unless NOECHO is t."
                        (calendar-absolute-from-french date)))
   (or noecho (calendar-print-french-date)))
 
+(defvar date)
+
+;; To be called from list-sexp-diary-entries, where DATE is bound.
 (defun diary-french-date ()
   "French calendar equivalent of date diary entry."
   (let ((f (calendar-french-date-string date)))
