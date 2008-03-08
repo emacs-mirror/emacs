@@ -3376,7 +3376,6 @@ With a zero prefix arg, put the name inside a function call to `info'."
 (defvar tool-bar-map)
 (defvar bookmark-make-record-function)
 (defvar bookmark-make-name-function)
-(declare-function bookmark-get-bookmark-record "bookmark" (bookmark))
 
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
@@ -4375,6 +4374,7 @@ When FILE is non-nil, return the Info file instead."
 (declare-function bookmark-get-position              "bookmark" (bookmark))
 (declare-function bookmark-file-or-variation-thereof "bookmark" (file))
 (declare-function bookmark-jump-noselect             "bookmark" (str))
+(declare-function bookmark-get-bookmark-record       "bookmark" (bookmark))
 
 (defun bookmark-get-info-node (bookmark)
   "Get the info node associated with BOOKMARK."
