@@ -5713,6 +5713,7 @@ static int (* get_next_element[NUM_IT_METHODS]) P_ ((struct it *it)) =
   next_element_from_stretch
 };
 
+#define GET_NEXT_DISPLAY_ELEMENT(it) (*get_next_element[(it)->method]) (it)
 
 /* Load IT's display element fields with information about the next
    display element from the current position of IT.  Value is zero if
@@ -5733,7 +5734,7 @@ get_next_display_element (it)
   int success_p;
 
  get_next:
-  success_p = (*get_next_element[it->method]) (it);
+  success_p = GET_NEXT_DISPLAY_ELEMENT (it);
 
   if (it->what == IT_CHARACTER)
     {
@@ -6263,7 +6264,7 @@ next_element_from_string (it)
 
       /* Since a handler may have changed IT->method, we must
 	 recurse here.  */
-      return get_next_display_element (it);
+      return GET_NEXT_DISPLAY_ELEMENT (it);
     }
 
   if (it->current.overlay_string_index >= 0)
@@ -6401,7 +6402,7 @@ next_element_from_ellipsis (it)
       it->face_before_selective_p = 1;
     }
 
-  return get_next_display_element (it);
+  return GET_NEXT_DISPLAY_ELEMENT (it);
 }
 
 
@@ -6465,7 +6466,7 @@ next_element_from_buffer (it)
 	    }
 
 	  if (overlay_strings_follow_p)
-	    success_p = get_next_display_element (it);
+	    success_p = GET_NEXT_DISPLAY_ELEMENT (it);
 	  else
 	    {
 	      it->what = IT_EOB;
@@ -6476,7 +6477,7 @@ next_element_from_buffer (it)
       else
 	{
 	  handle_stop (it);
-	  return get_next_display_element (it);
+	  return GET_NEXT_DISPLAY_ELEMENT (it);
 	}
     }
   else
