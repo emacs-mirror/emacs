@@ -119,6 +119,7 @@ Gregorian date Sunday, December 31, 1 BC."
                (1- (calendar-absolute-from-islamic (list month 1 year))))))
       (list month day year))))
 
+;;;###autoload
 (defun calendar-islamic-date-string (&optional date)
   "String of Islamic date before sunset of Gregorian DATE.
 Returns the empty string if DATE is pre-Islamic.
@@ -132,6 +133,7 @@ Driven by the variable `calendar-date-display-form'."
         ""
       (calendar-date-string islamic-date nil t))))
 
+;;;###autoload
 (defun calendar-print-islamic-date ()
   "Show the Islamic calendar equivalent of the date under the cursor."
   (interactive)
@@ -140,13 +142,14 @@ Driven by the variable `calendar-date-display-form'."
         (message "Date is pre-Islamic")
       (message "Islamic date (until sunset): %s" i))))
 
+;;;###autoload
 (defun calendar-goto-islamic-date (date &optional noecho)
   "Move cursor to Islamic DATE; echo Islamic date unless NOECHO is t."
   (interactive
    (let* ((today (calendar-current-date))
           (year (calendar-read
                  "Islamic calendar year (>0): "
-                 '(lambda (x) (> x 0))
+                 (lambda (x) (> x 0))
                  (int-to-string
                   (extract-calendar-year
                    (calendar-islamic-from-absolute
@@ -162,7 +165,7 @@ Driven by the variable `calendar-date-display-form'."
           (last (islamic-calendar-last-day-of-month month year))
           (day (calendar-read
                 (format "Islamic calendar day (1-%d): " last)
-                '(lambda (x) (and (< 0 x) (<= x last))))))
+                (lambda (x) (and (< 0 x) (<= x last))))))
      (list (list month day year))))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-islamic date)))
@@ -452,6 +455,7 @@ A value of 0 in any position is a wildcard."
                  (mark-visible-calendar-date
                   (calendar-gregorian-from-absolute date)))))))))
 
+;;;###autoload
 (defun insert-islamic-diary-entry (arg)
   "Insert a diary entry.
 For the Islamic date corresponding to the date indicated by point.
@@ -468,6 +472,7 @@ Prefix arg will make the entry nonmarking."
        nil t))
      arg)))
 
+;;;###autoload
 (defun insert-monthly-islamic-diary-entry (arg)
   "Insert a monthly diary entry.
 For the day of the Islamic month corresponding to the date indicated by point.
@@ -485,6 +490,7 @@ Prefix arg will make the entry nonmarking."
          (calendar-cursor-to-date t)))))
      arg)))
 
+;;;###autoload
 (defun insert-yearly-islamic-diary-entry (arg)
   "Insert an annual diary entry.
 For the day of the Islamic year corresponding to the date indicated by point.
@@ -506,5 +512,9 @@ Prefix arg will make the entry nonmarking."
 
 (provide 'cal-islam)
 
-;;; arch-tag: a951b6c1-6f47-48d5-bac3-1b505cd719f7
+;; Local Variables:
+;; generated-autoload-file: "cal-loaddefs.el"
+;; End:
+
+;; arch-tag: a951b6c1-6f47-48d5-bac3-1b505cd719f7
 ;;; cal-islam.el ends here
