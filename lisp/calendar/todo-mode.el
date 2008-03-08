@@ -912,9 +912,8 @@ Number of entries for each category is given by `todo-print-priorities'."
   (easy-menu-add todo-menu)
   (run-mode-hooks 'todo-mode-hook))
 
-(eval-when-compile
-  (defvar date)
-  (defvar entry))
+(defvar date)
+(defvar entry)
 
 ;; t-c should be used from diary code, which requires calendar.
 (declare-function calendar-current-date "calendar" nil)
