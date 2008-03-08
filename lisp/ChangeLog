@@ -32,6 +32,12 @@
 
 	* calendar/cal-iso.el (calendar-iso-read-args): Doc fix.
 
+	* calendar/cal-mayan.el (calendar-string-to-mayan-long-count)
+	(calendar-mayan-haab-to-string, calendar-mayan-tzolkin-to-string)
+	(calendar-read-mayan-haab-date, calendar-read-mayan-tzolkin-date)
+	(calendar-next-calendar-round-date)
+	(calendar-mayan-long-count-common-era): Doc fixes.
+
 	* calendar/cal-move.el (calendar-scroll-left, calendar-scroll-right):
 	Doc fix.
 
