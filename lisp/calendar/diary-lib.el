@@ -1467,8 +1467,6 @@ be used instead of a colon (:) to separate the hour and minute parts."
 		  0 1200)))
 	  (t diary-unknown-time)))) ; Unrecognizable
 
-;; Unrecognizable
-
 (defun list-sexp-diary-entries (date)
   "Add sexp entries for DATE from the diary file to `diary-entries-list'.
 Also, Make them visible in the diary file.  Returns t if any entries were
