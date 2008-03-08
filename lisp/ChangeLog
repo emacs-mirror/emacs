@@ -35,6 +35,8 @@
 	* calendar/cal-x.el (diary-frame-parameters)
 	(calendar-frame-parameters, calendar-and-diary-frame-parameters)
 	(calendar-after-frame-setup-hooks): Make defcustoms.
+	(calendar-one-frame-setup, calendar-only-one-frame-setup)
+	(calendar-two-frame-setup): Doc fix.
 
 	* calendar/cal-loaddefs.el: New file.
 
