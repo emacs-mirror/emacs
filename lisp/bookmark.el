@@ -465,9 +465,7 @@ Modes may set this variable buffer-locally to enable bookmarking of
 locations that should be treated specially, such as Info nodes,
 news posts, images, pdf documents, etc.
 
-The function will be called with one argument: ANNOTATION.
-See `bookmark-make-record-for-text-file' for a description.
-
+The function will be called with no arguments.
 The returned record may contain a special cons (handler . SOME-FUNCTION)
 which sets the handler function that should be used to open this
 bookmark instead of `bookmark-default-handler'.  The handler should
@@ -489,17 +487,20 @@ this name."
         ;; already existing bookmark under that name and
         ;; no prefix arg means just overwrite old bookmark
         (setcdr (bookmark-get-bookmark stripped-name)
-                (list (funcall bookmark-make-record-function annotation)))
+                (list (funcall bookmark-make-record-function)))
 
       ;; otherwise just cons it onto the front (either the bookmark
       ;; doesn't exist already, or there is no prefix arg.  In either
       ;; case, we want the new bookmark consed onto the alist...)
 
-      (setq bookmark-alist
-            (cons
-             (list stripped-name
-                   (funcall bookmark-make-record-function annotation))
-             bookmark-alist)))
+      (push (list stripped-name
+                  (funcall bookmark-make-record-function))
+            bookmark-alist))
+
+    (when annotation
+      ;; Take no chances with text properties.
+      (set-text-properties 0 (length annotation) nil annotation)
+      (bookmark-prop-set stripped-name 'annotation annotation))
 
     ;; Added by db
     (setq bookmark-current-bookmark stripped-name)
@@ -509,37 +510,24 @@ this name."
         (bookmark-save))))
 
 
-(defun bookmark-make-record-for-text-file (annotation)
-  "Return the record part of a new bookmark, given ANNOTATION.
+(defun bookmark-make-record-for-text-file ()
+  "Return the record describing the location of a new bookmark.
 Must be at the correct position in the buffer in which the bookmark is
 being set (this might change someday)."
-  (let ((the-record
-         `((filename . ,(bookmark-buffer-file-name))
-           (front-context-string
-            . ,(if (>= (- (point-max) (point)) bookmark-search-size)
-                   (buffer-substring-no-properties
-                    (point)
-                    (+ (point) bookmark-search-size))
-                   nil))
-           (rear-context-string
-            . ,(if (>= (- (point) (point-min)) bookmark-search-size)
-                   (buffer-substring-no-properties
-                    (point)
-                    (- (point) bookmark-search-size))
-                   nil))
-           (position . ,(point)))))
-
-    ;; Now fill in the optional parts:
-
-    ;; Take no chances with text properties
-    (set-text-properties 0 (length annotation) nil annotation)
-
-    (if annotation
-        (nconc the-record (list (cons 'annotation annotation))))
-
-    ;; Finally, return the completed record.
-    the-record))
-
+  `((filename . ,(bookmark-buffer-file-name))
+    (front-context-string
+     . ,(if (>= (- (point-max) (point)) bookmark-search-size)
+            (buffer-substring-no-properties
+             (point)
+             (+ (point) bookmark-search-size))
+          nil))
+    (rear-context-string
+     . ,(if (>= (- (point) (point-min)) bookmark-search-size)
+            (buffer-substring-no-properties
+             (point)
+             (- (point) bookmark-search-size))
+          nil))
+    (position . ,(point))))
 
 
 ;;; File format stuff

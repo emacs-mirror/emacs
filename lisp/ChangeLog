@@ -1,3 +1,12 @@
+2008-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+
+	* bookmark.el (bookmark-make): Don't pass the `annotation' to the
+	make-record function, instead paste it in afterwards.
+	(bookmark-make-record-for-text-file):
+	* doc-view.el (doc-view-bookmark-make-record):
+	* info.el (Info-bookmark-make-record): Don't mess with annotations.
+
 2008-03-08  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (entry): Declare for compiler part-way

@@ -1082,20 +1082,10 @@ See the command `doc-view-mode' for more information on this mode."
 
 ;;;; Bookmark integration
 
-(defun doc-view-bookmark-make-record (annotation)
-  (let ((the-record
-         `((filename . ,buffer-file-name)
-           (page     . ,(doc-view-current-page))
-           (handler  . doc-view-bookmark-jump))))
-
-    ;; Take no chances with text properties
-    (set-text-properties 0 (length annotation) nil annotation)
-
-    (when annotation
-      (nconc the-record (list (cons 'annotation annotation))))
-
-    ;; Finally, return the completed record.
-    the-record))
+(defun doc-view-bookmark-make-record ()
+  `((filename . ,buffer-file-name)
+    (page     . ,(doc-view-current-page))
+    (handler  . doc-view-bookmark-jump)))
 
 
 (declare-function bookmark-get-filename        "bookmark" (bookmark))

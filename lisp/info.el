@@ -4336,34 +4336,22 @@ When FILE is non-nil, return the Info file instead."
   (if file Info-current-file Info-current-node))
 
 
-(defun Info-bookmark-make-record (annotation)
-  (let ((the-record
-         `((filename . ,(bookmark-buffer-file-name))
-           (front-context-string
-            . ,(if (>= (- (point-max) (point)) bookmark-search-size)
-                   (buffer-substring-no-properties
-                    (point)
-                    (+ (point) bookmark-search-size))
-		 nil))
-           (rear-context-string
-            . ,(if (>= (- (point) (point-min)) bookmark-search-size)
-                   (buffer-substring-no-properties
-                    (point)
-                    (- (point) bookmark-search-size))
-		 nil))
-	   (info-node . ,Info-current-node)
-	   (handler . Info-bookmark-jump))))
-
-    ;; Now fill in the optional parts:
-
-    ;; Take no chances with text properties
-    (set-text-properties 0 (length annotation) nil annotation)
-
-    (if annotation
-        (nconc the-record (list (cons 'annotation annotation))))
-
-    ;; Finally, return the completed record.
-    the-record))
+(defun Info-bookmark-make-record ()
+  `((filename . ,(bookmark-buffer-file-name))
+    (front-context-string
+     . ,(if (>= (- (point-max) (point)) bookmark-search-size)
+            (buffer-substring-no-properties
+             (point)
+             (+ (point) bookmark-search-size))
+          nil))
+    (rear-context-string
+     . ,(if (>= (- (point) (point-min)) bookmark-search-size)
+            (buffer-substring-no-properties
+             (point)
+             (- (point) bookmark-search-size))
+          nil))
+    (info-node . ,Info-current-node)
+    (handler . Info-bookmark-jump)))
 
 
 (defvar bookmark-current-bookmark)
