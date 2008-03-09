@@ -249,14 +249,6 @@ functions have a binding in this keymap.")
 
 ;;;###autoload (fset 'bookmark-map bookmark-map)
 
-;;; The annotation maps.
-(defvar bookmark-read-annotation-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map text-mode-map)
-    (define-key map "\C-c\C-c" 'bookmark-send-annotation)
-    map)
-  "Keymap for composing an annotation for a bookmark.")
-
 
 ;;; Core variables and data structures:
 (defvar bookmark-alist ()
@@ -749,15 +741,15 @@ the list of bookmarks.\)"
                (format "Set bookmark (%s): " default)
                nil
                bookmark-minibuffer-read-name-map
-               nil nil default)))
-	 (annotation nil))
+               nil nil default))))
     (and (string-equal str "") (setq str default))
+    ;; Make the bookmark.
+    (bookmark-make str nil parg)
+    (setq bookmark-current-bookmark str)
+    (bookmark-bmenu-surreptitiously-rebuild-list)
     ;; Ask for an annotation buffer for this bookmark
     (if bookmark-use-annotations
-	(bookmark-read-annotation parg str)
-      (bookmark-make str annotation parg)
-      (setq bookmark-current-bookmark str)
-      (bookmark-bmenu-surreptitiously-rebuild-list)
+	(bookmark-edit-annotation str)
       (goto-char bookmark-current-point))))
 
 
@@ -772,45 +764,10 @@ Does not affect the kill ring."
 
 
 ;; Defvars to avoid compilation warnings:
-(defvar bookmark-annotation-paragraph nil)
-(defvar bookmark-annotation-name nil)
-(defvar bookmark-annotation-buffer nil)
-(defvar bookmark-annotation-file nil)
-(defvar bookmark-annotation-point nil)
-
-
-(defun bookmark-send-annotation ()
-  "Use buffer contents as the annotation for a bookmark.
-Exclude lines that begin with `#'.
-Store the annotation text in the bookmark list with
-the bookmark (and file, and point) specified in buffer local variables."
-  (interactive)
-  (if (not (eq major-mode 'bookmark-read-annotation-mode))
-      (error "Not in bookmark-read-annotation-mode"))
-  (goto-char (point-min))
-  (while (< (point) (point-max))
-    (if (looking-at "^#")
-        (bookmark-kill-line t)
-      (forward-line 1)))
-  (let ((annotation (buffer-string))
-	(parg bookmark-annotation-paragraph)
-	(bookmark bookmark-annotation-name)
-	(pt bookmark-annotation-point)
-	(buf bookmark-annotation-buffer))
-    ;; for bookmark-make-record-function to work, we need to be
-    ;; in the relevant buffer, at the relevant point.
-    ;; Actually, the bookmark-make-record-function spec should
-    ;; probably be changed to avoid this need.  Should I handle the
-    ;; error if a buffer is killed between "C-x r m" and a "C-c C-c"
-    ;; in the annotation buffer?
-    (save-excursion
-      (pop-to-buffer buf)
-      (goto-char pt)
-      (bookmark-make bookmark annotation parg)
-      (setq bookmark-current-bookmark bookmark))
-    (bookmark-bmenu-surreptitiously-rebuild-list)
-    (goto-char bookmark-current-point))
-  (kill-buffer (current-buffer)))
+(defvar bookmark-annotation-name nil
+  "Variable holding the name of the bookmark.
+This is used in `bookmark-edit-annotation' to record the bookmark
+whose annotation is being edited.")
 
 
 (defun bookmark-default-annotation-text (bookmark)
@@ -822,50 +779,18 @@ the bookmark (and file, and point) specified in buffer local variables."
 	  "#  Date:    " (current-time-string) "\n"))
 
 
-(defvar bookmark-read-annotation-text-func 'bookmark-default-annotation-text
+(defvar bookmark-edit-annotation-text-func 'bookmark-default-annotation-text
   "Function to return default text to use for a bookmark annotation.
 It takes one argument, the name of the bookmark, as a string.")
+(define-obsolete-variable-alias 'bookmark-read-annotation-text-func
+  'bookmark-edit-annotation-text-func "23.1")
 
-(defun bookmark-read-annotation-mode (buf point parg bookmark)
-  "Mode for composing annotations for a bookmark.
-Wants BUF, POINT, PARG, and BOOKMARK.
-When you have finished composing, type \\[bookmark-send-annotation] to send
-the annotation.
-
-\\{bookmark-read-annotation-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (make-local-variable 'bookmark-annotation-paragraph)
-  (make-local-variable 'bookmark-annotation-name)
-  (make-local-variable 'bookmark-annotation-buffer)
-  (make-local-variable 'bookmark-annotation-file)
-  (make-local-variable 'bookmark-annotation-point)
-  (setq bookmark-annotation-paragraph parg)
-  (setq bookmark-annotation-name bookmark)
-  (setq bookmark-annotation-buffer buf)
-  (setq bookmark-annotation-file (buffer-file-name buf))
-  (setq bookmark-annotation-point point)
-  (use-local-map bookmark-read-annotation-mode-map)
-  (setq major-mode 'bookmark-read-annotation-mode)
-  (insert (funcall bookmark-read-annotation-text-func bookmark))
-  (run-mode-hooks 'text-mode-hook))
-
-
-(defun bookmark-read-annotation (parg bookmark)
-  "Pop up a buffer for entering a bookmark annotation.
-Text surrounding the bookmark is PARG; the bookmark name is BOOKMARK."
-  (let ((buf (current-buffer))
-	(point (point)))
-    (pop-to-buffer (generate-new-buffer-name "*Bookmark Annotation Compose*"))
-    (bookmark-read-annotation-mode buf point parg bookmark)))
-
-
-(defvar bookmark-edit-annotation-mode-map (copy-keymap text-mode-map)
+(defvar bookmark-edit-annotation-mode-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map text-mode-map)
+    (define-key map "\C-c\C-c" 'bookmark-send-edited-annotation)
+    map)
   "Keymap for editing an annotation of a bookmark.")
-
-
-(define-key bookmark-edit-annotation-mode-map "\C-c\C-c"
-  'bookmark-send-edited-annotation)
 
 
 (defun bookmark-edit-annotation-mode (bookmark)
@@ -880,7 +805,7 @@ When you have finished composing, type \\[bookmark-send-annotation].
   (use-local-map bookmark-edit-annotation-mode-map)
   (setq major-mode 'bookmark-edit-annotation-mode
         mode-name "Edit Bookmark Annotation")
-  (insert (funcall bookmark-read-annotation-text-func bookmark))
+  (insert (funcall bookmark-edit-annotation-text-func bookmark))
   (let ((annotation (bookmark-get-annotation bookmark)))
     (if (and annotation (not (string-equal annotation "")))
 	(insert annotation)))

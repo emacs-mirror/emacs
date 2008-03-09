@@ -1,5 +1,15 @@
 2008-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* bookmark.el (bookmark-set): Make the bookmark before reading annotations.
+	I.e. use bookmark-edit-annotation rather than bookmark-read-annotation.
+	(bookmark-read-annotation-mode-map, bookmark-annotation-paragraph)
+	(bookmark-annotation-buffer, bookmark-annotation-file)
+	(bookmark-annotation-point, bookmark-send-annotation)
+	(bookmark-read-annotation-mode, bookmark-read-annotation): Remove.
+	(bookmark-edit-annotation-text-func): Rename from
+	bookmark-read-annotation-text-func.  Keep old name as an obsolete alias.
+	(bookmark-edit-annotation-mode-map): Move initialization into declaration.
+
 	* bookmark.el: Add spurious * in docstrings.
 	(bookmark-minibuffer-read-name-map): New var.
 	(bookmark-set): Use it.  Also pass the default value as it should.
