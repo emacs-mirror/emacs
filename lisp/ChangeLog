@@ -1,5 +1,10 @@
 2008-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* doc-view.el (bookmark-buffer-file-name, bookmark-prop-get): Declare.
+	(doc-view-bookmark-make-record): Use them.
+	(doc-view-bookmark-jump): Use them.  Fix find-file -> find-file-noselect.
+	(bookmark-get-filename, bookmark-get-bookmark-record): Remove.
+
 	* bookmark.el (bookmark-make-record-function): Change expected return value
 	to include a suggested bookmark name.
 	(bookmark-make): Split into bookmark-make-record and bookmark-store.
