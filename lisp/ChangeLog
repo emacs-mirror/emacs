@@ -1,3 +1,13 @@
+2008-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bookmark.el: Add spurious * in docstrings.
+	(bookmark-minibuffer-read-name-map): New var.
+	(bookmark-set): Use it.  Also pass the default value as it should.
+	(bookmark-send-edited-annotation): Take no chances with text properties.
+	(bookmark-insert-current-bookmark): Inline bookmark-insert-buffer-name.
+	(bookmark-insert-buffer-name): Remove.
+	(bookmark-buffer-file-name): Signal an error rather than returning nil.
+
 2008-03-09  Thomas Hühn  <xf27@arcor.de>  (tiny change)
 
 	* tutorial.el (tutorial--default-keys): Update `C-l' binding.

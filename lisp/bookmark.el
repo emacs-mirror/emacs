@@ -100,13 +100,13 @@
 
 
 (defcustom bookmark-use-annotations nil
-  "*If non-nil, saving a bookmark queries for an annotation in a buffer."
+  "If non-nil, saving a bookmark queries for an annotation in a buffer."
   :type 'boolean
   :group 'bookmark)
 
 
 (defcustom bookmark-save-flag t
-  "*Controls when Emacs saves bookmarks to a file.
+  "Controls when Emacs saves bookmarks to a file.
 --> nil means never save bookmarks, except when `bookmark-save' is
     explicitly called \(\\[bookmark-save]\).
 --> t means save bookmarks when Emacs is killed.
@@ -139,13 +139,13 @@ To specify the file in which to save them, modify the variable
       ;; In case user set `bookmark-file' in her .emacs:
       bookmark-file
     (convert-standard-filename "~/.emacs.bmk"))
-  "*File in which to save bookmarks by default."
+  "File in which to save bookmarks by default."
   :type 'file
   :group 'bookmark)
 
 
 (defcustom bookmark-version-control 'nospecial
-  "*Whether or not to make numbered backups of the bookmark file.
+  "Whether or not to make numbered backups of the bookmark file.
 It can have four values: t, nil, `never', and `nospecial'.
 The first three have the same meaning that they do for the
 variable `version-control', and the final value `nospecial' means just
@@ -156,13 +156,13 @@ use the value of `version-control'."
 
 
 (defcustom bookmark-completion-ignore-case t
-  "*Non-nil means bookmark functions ignore case in completion."
+  "Non-nil means bookmark functions ignore case in completion."
   :type 'boolean
   :group 'bookmark)
 
 
 (defcustom bookmark-sort-flag t
-  "*Non-nil means that bookmarks will be displayed sorted by bookmark name.
+  "Non-nil means that bookmarks will be displayed sorted by bookmark name.
 Otherwise they will be displayed in LIFO order (that is, most
 recently set ones come first, oldest ones come last)."
   :type 'boolean
@@ -170,20 +170,20 @@ recently set ones come first, oldest ones come last)."
 
 
 (defcustom bookmark-automatically-show-annotations t
-  "*Non-nil means show annotations when jumping to a bookmark."
+  "Non-nil means show annotations when jumping to a bookmark."
   :type 'boolean
   :group 'bookmark)
 
 
 (defcustom bookmark-bmenu-file-column 30
-  "*Column at which to display filenames in a buffer listing bookmarks.
+  "Column at which to display filenames in a buffer listing bookmarks.
 You can toggle whether files are shown with \\<bookmark-bmenu-mode-map>\\[bookmark-bmenu-toggle-filenames]."
   :type 'integer
   :group 'bookmark)
 
 
 (defcustom bookmark-bmenu-toggle-filenames t
-  "*Non-nil means show filenames when listing bookmarks.
+  "Non-nil means show filenames when listing bookmarks.
 This may result in truncated bookmark names.  To disable this, put the
 following in your `.emacs' file:
 
@@ -193,7 +193,7 @@ following in your `.emacs' file:
 
 
 (defcustom bookmark-menu-length 70
-  "*Maximum length of a bookmark name displayed on a popup menu."
+  "Maximum length of a bookmark name displayed on a popup menu."
   :type 'integer
   :group 'bookmark)
 
@@ -271,11 +271,11 @@ The format of the alist is
 where each BOOKMARK is typically of the form
 
 \(NAME
-  \(filename . FILE\)
+ (\(filename . FILE\)
   \(front-context-string . FRONT-STR\)
   \(rear-context-string  . REAR-STR\)
   \(position . POS\)
-  \(annotation . ANNOTATION\)\)
+  \(annotation . ANNOTATION\)\))
 
 So the cdr of each bookmark is an alist too.")
 
@@ -697,6 +697,16 @@ This expects to be called from `point-min' in a bookmark file."
 
 ;;; Core code:
 
+(defvar bookmark-minibuffer-read-name-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-map)
+    (define-key map "\C-w" 'bookmark-yank-word)
+    ;; This C-u binding might not be very useful any more now that we
+    ;; provide access to the default via the standard M-n binding.
+    ;; Maybe we should just remove it?  --Stef-08
+    (define-key map "\C-u" 'bookmark-insert-current-bookmark)
+    map))
+
 ;;;###autoload
 (defun bookmark-set (&optional name parg)
   "Set a bookmark named NAME inside a file.
@@ -738,10 +748,8 @@ the list of bookmarks.\)"
               (read-from-minibuffer
                (format "Set bookmark (%s): " default)
                nil
-               (let ((now-map (copy-keymap minibuffer-local-map)))
-                 (define-key now-map "\C-w" 'bookmark-yank-word)
-                 (define-key now-map "\C-u" 'bookmark-insert-current-bookmark)
-                 now-map))))
+               bookmark-minibuffer-read-name-map
+               nil nil default)))
 	 (annotation nil))
     (and (string-equal str "") (setq str default))
     ;; Ask for an annotation buffer for this bookmark
@@ -890,7 +898,8 @@ Lines beginning with `#' are ignored."
     (if (looking-at "^#")
         (bookmark-kill-line t)
       (forward-line 1)))
-  (let ((annotation (buffer-string))
+  ;; Take no chances with text properties.
+  (let ((annotation (buffer-substring-no-properties (point-min) (point-max)))
 	(bookmark bookmark-annotation-name))
     (bookmark-set-annotation bookmark annotation)
     (bookmark-bmenu-surreptitiously-rebuild-list)
@@ -909,20 +918,9 @@ Lines beginning with `#' are ignored."
 Default to file name if it's nil."
   (interactive)
   (let ((str
-	 (save-excursion
-	   (set-buffer bookmark-current-buffer)
-	   bookmark-current-bookmark)))
-    (if str (insert str) (bookmark-insert-buffer-name))))
-
-
-(defun bookmark-insert-buffer-name ()
-  "Insert the current file name into the bookmark name being set.
-The directory part of the file name is not used."
-  (interactive)
-  (let ((str
-         (save-excursion
-           (set-buffer bookmark-current-buffer)
-           (bookmark-buffer-name))))
+	 (with-current-buffer bookmark-current-buffer
+	   (or bookmark-current-bookmark
+               (bookmark-buffer-name)))))
     (insert str)))
 
 
@@ -984,7 +982,8 @@ For example, if this is a Info buffer, return the Info file's name."
    ((and (boundp 'dired-directory) dired-directory)
     (if (stringp dired-directory)
         dired-directory
-      (car dired-directory)))))
+      (car dired-directory)))
+   (t (error "Buffer not visiting a file or directory"))))
 
 
 (defun bookmark-maybe-load-default-file ()
