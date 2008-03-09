@@ -36,10 +36,8 @@
 
 ;;; Code:
 
-(defvar date)
 (defvar displayed-month)
 (defvar displayed-year)
-(defvar number)
 (defvar original-date)
 
 (require 'cal-julian)
@@ -171,13 +169,6 @@ Driven by the variable `calendar-date-display-form'."
                        (calendar-absolute-from-islamic date)))
   (or noecho (calendar-print-islamic-date)))
 
-(defun diary-islamic-date ()
-  "Islamic calendar equivalent of date diary entry."
-  (let ((i (calendar-islamic-date-string date)))
-    (if (string-equal i "")
-        "Date is pre-Islamic"
-      (format "Islamic date (until sunset): %s" i))))
-
 (defun holiday-islamic (month day string)
   "Holiday on MONTH, DAY (Islamic) called STRING.
 If MONTH, DAY (Islamic) is visible, the value returned is corresponding
@@ -201,6 +192,8 @@ nil if it is not visible in the current calendar window."
 ;; l-i-d-e should be called from diary code.
 (declare-function add-to-diary-list "diary-lib"
                   (date string specifier &optional marker globcolor literal))
+
+(defvar number)                         ; from diary-list-entries
 
 (defun list-islamic-diary-entries ()
   "Add any Islamic date entries from the diary file to `diary-entries-list'.
@@ -510,6 +503,16 @@ Prefix argument ARG makes the entry nonmarking."
         (calendar-absolute-from-gregorian
          (calendar-cursor-to-date t)))))
      arg)))
+
+(defvar date)
+
+;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
+(defun diary-islamic-date ()
+  "Islamic calendar equivalent of date diary entry."
+  (let ((i (calendar-islamic-date-string date)))
+    (if (string-equal i "")
+        "Date is pre-Islamic"
+      (format "Islamic date (until sunset): %s" i))))
 
 (provide 'cal-islam)
 
