@@ -680,6 +680,7 @@ somewhat; setting it to nil makes the diary display faster."
   :type 'boolean
   :group 'calendar)
 
+;;;###autoload
 (defcustom general-holidays
   '((holiday-fixed 1 1 "New Year's Day")
     (holiday-float 1 1 3 "Martin Luther King Day")
@@ -705,6 +706,7 @@ See the documentation for `calendar-holidays' for details."
 ;;;###autoload
 (put 'general-holidays 'risky-local-variable t)
 
+;;;###autoload
 (defcustom oriental-holidays
   '((if (fboundp 'atan)
 	(holiday-chinese-new-year)))
@@ -715,6 +717,7 @@ See the documentation for `calendar-holidays' for details."
 ;;;###autoload
 (put 'oriental-holidays 'risky-local-variable t)
 
+;;;###autoload
 (defcustom local-holidays nil
   "Local holidays.
 See the documentation for `calendar-holidays' for details."
@@ -723,6 +726,7 @@ See the documentation for `calendar-holidays' for details."
 ;;;###autoload
 (put 'local-holidays 'risky-local-variable t)
 
+;;;###autoload
 (defcustom other-holidays nil
   "User defined holidays.
 See the documentation for `calendar-holidays' for details."
@@ -739,6 +743,7 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
+;;;###autoload
 (defvar hebrew-holidays-1
   '((holiday-rosh-hashanah-etc)
     (if all-hebrew-calendar-holidays
@@ -758,6 +763,7 @@ calendar."
 ;;;###autoload
 (put 'hebrew-holidays-1 'risky-local-variable t)
 
+;;;###autoload
 (defvar hebrew-holidays-2
   '((if all-hebrew-calendar-holidays
         (holiday-hanukkah)
@@ -779,6 +785,7 @@ calendar."
 ;;;###autoload
 (put 'hebrew-holidays-2 'risky-local-variable t)
 
+;;;###autoload
 (defvar hebrew-holidays-3
   '((if all-hebrew-calendar-holidays
         (holiday-hebrew
@@ -811,6 +818,7 @@ calendar."
 ;;;###autoload
 (put 'hebrew-holidays-3 'risky-local-variable t)
 
+;;;###autoload
 (defvar hebrew-holidays-4
   '((holiday-passover-etc)
     (if (and all-hebrew-calendar-holidays
@@ -829,6 +837,7 @@ calendar."
 ;;;###autoload
 (put 'hebrew-holidays-4 'risky-local-variable t)
 
+;;;###autoload
 (defcustom hebrew-holidays (append hebrew-holidays-1 hebrew-holidays-2
 				hebrew-holidays-3 hebrew-holidays-4)
   "Jewish holidays.
@@ -846,6 +855,7 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
+;;;###autoload
 (defcustom christian-holidays
   '((if all-christian-calendar-holidays
         (holiday-fixed 1 6 "Epiphany"))
@@ -904,6 +914,7 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
+;;;###autoload
 (defcustom islamic-holidays
   '((holiday-islamic
      1 1
@@ -946,6 +957,7 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
+;;;###autoload
 (defcustom bahai-holidays
   '((holiday-fixed
      3 21
@@ -987,6 +999,7 @@ See the documentation for `calendar-holidays' for details."
 ;;;###autoload
 (put 'bahai-holidays 'risky-local-variable t)
 
+;;;###autoload
 (defcustom solar-holidays
   '((if (fboundp 'atan)
 	(solar-equinoxes-solstices))
@@ -1016,6 +1029,7 @@ See the documentation for `calendar-holidays' for details."
 ;;;###autoload
 (put 'solar-holidays 'risky-local-variable t)
 
+;;;###autoload
 (defcustom calendar-holidays
   (append general-holidays local-holidays other-holidays
           christian-holidays hebrew-holidays islamic-holidays
