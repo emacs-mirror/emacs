@@ -1,3 +1,7 @@
+2008-03-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el (diff-mode-menu): Add :help.
+
 2008-03-09  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (nongregorian-diary-marking-hook)

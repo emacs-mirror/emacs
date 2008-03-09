@@ -172,28 +172,45 @@ when editing big diffs)."
 (easy-menu-define diff-mode-menu diff-mode-map
   "Menu for `diff-mode'."
   '("Diff"
-    ["Jump to Source"		diff-goto-source	t]
-    ["Apply hunk"		diff-apply-hunk		t]
-    ["Test applying hunk"	diff-test-hunk		t]
-    ["Apply diff with Ediff"	diff-ediff-patch	t]
+    ["Jump to Source"		diff-goto-source
+     :help "Jump to the corresponding source line"]
+    ["Apply hunk"		diff-apply-hunk
+     :help "Apply the current hunk to the source file and go to the next"]
+    ["Test applying hunk"	diff-test-hunk
+     :help "See whether it's possible to apply the current hunk"]
+    ["Apply diff with Ediff"	diff-ediff-patch
+     :help "Call `ediff-patch-file' on the current buffer"]
     ["Create Change Log entries" diff-add-change-log-entries-other-window
      :help "Create ChangeLog entries for the changes in the diff buffer"]
     "-----"
-    ["Reverse direction"	diff-reverse-direction	t]
-    ["Context -> Unified"	diff-context->unified	t]
-    ["Unified -> Context"	diff-unified->context	t]
+    ["Reverse direction"	diff-reverse-direction
+     :help "Reverse the direction of the diffs"]
+    ["Context -> Unified"	diff-context->unified
+     :help "Convert context diffs to unified diffs"]
+    ["Unified -> Context"	diff-unified->context
+     :help "Convert unified diffs to context diffs"]
     ;;["Fixup Headers"		diff-fixup-modifs	(not buffer-read-only)]
     "-----"
-    ["Split hunk"		diff-split-hunk		(diff-splittable-p)]
-    ["Ignore whitespace changes" diff-ignore-whitespace-hunk t]
-    ["Highlight fine changes"	diff-refine-hunk	t]
-    ["Kill current hunk"	diff-hunk-kill   	t]
-    ["Kill current file's hunks" diff-file-kill   	t]
+    ["Split hunk"		diff-split-hunk
+     :active (diff-splittable-p)
+     :help "Split the current (unified diff) hunk at point into two hunks"]
+    ["Ignore whitespace changes" diff-ignore-whitespace-hunk
+     :help "Re-diff the current hunk, ignoring whitespace differences"]
+    ["Highlight fine changes"	diff-refine-hunk
+     :help "Highlight changes of hunk at point at a finer granularity"]
+    ["Kill current hunk"	diff-hunk-kill
+     :help "Kill current hunk"]
+    ["Kill current file's hunks" diff-file-kill
+     :help "Kill all current file's hunks"]
     "-----"
-    ["Previous Hunk"		diff-hunk-prev  	t]
-    ["Next Hunk"		diff-hunk-next  	t]
-    ["Previous File"		diff-file-prev  	t]
-    ["Next File"		diff-file-next  	t]
+    ["Previous Hunk"		diff-hunk-prev
+     :help "Go to the previous count'th hunk"]
+    ["Next Hunk"		diff-hunk-next
+     :help "Go to the next count'th hunk"]
+    ["Previous File"		diff-file-prev
+     :help "Go to the previous count'th file"]
+    ["Next File"		diff-file-next
+     :help "Go to the next count'th file"]
     ))
 
 (defcustom diff-minor-mode-prefix "\C-c="
