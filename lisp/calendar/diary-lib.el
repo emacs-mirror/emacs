@@ -653,7 +653,7 @@ These hooks have the following distinct roles:
 Functions called by these hooks may use the variables ORIGINAL-DATE
 and NUMBER, which are the arguments with which this function was called.
 Note that hook functions should _not_ use DATE, but ORIGINAL-DATE.
-\(Sexp diary entries may use DATE - see `list-sexp-diary-entries').
+\(Sexp diary entries may use DATE - see `list-sexp-diary-entries'.)
 
 If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
   (unless number
