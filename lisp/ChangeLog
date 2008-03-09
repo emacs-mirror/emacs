@@ -1,5 +1,19 @@
 2008-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* bookmark.el (bookmark-make-record-function): Change expected return value
+	to include a suggested bookmark name.
+	(bookmark-make): Split into bookmark-make-record and bookmark-store.
+	Fix reversed `overwrite' semantics.
+	(bookmark-set): Call bookmark-make-record before prompting the user.
+	Then pass the result to bookmark-store later on.
+	(bookmark-make-name-function): Remove.
+	(bookmark-buffer-file-name, bookmark-buffer-name): Don't use it.
+	* info.el (bookmark-make-name-function): Remove.
+	(Info-mode): Don't set it.
+	(Info-bookmark-make-name): Remove.
+	(Info-bookmark-make-record): Use Info-current-node as suggested default
+	bookmark name.
+
 	* bookmark.el (bookmark-set): Make the bookmark before reading annotations.
 	I.e. use bookmark-edit-annotation rather than bookmark-read-annotation.
 	(bookmark-read-annotation-mode-map, bookmark-annotation-paragraph)

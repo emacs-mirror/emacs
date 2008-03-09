@@ -3375,7 +3375,6 @@ With a zero prefix arg, put the name inside a function call to `info'."
 
 (defvar tool-bar-map)
 (defvar bookmark-make-record-function)
-(defvar bookmark-make-name-function)
 
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
@@ -3490,8 +3489,6 @@ Advanced commands:
   (Info-set-mode-line)
   (set (make-local-variable 'bookmark-make-record-function)
        'Info-bookmark-make-record)
-  (set (make-local-variable 'bookmark-make-name-function)
-       'Info-bookmark-make-name)
   (run-mode-hooks 'Info-mode-hook))
 
 ;; When an Info buffer is killed, make sure the associated tags buffer
@@ -4329,15 +4326,9 @@ BUFFER is the buffer speedbar is requesting buttons for."
 ;; This is only called from bookmark.el.
 (declare-function bookmark-buffer-file-name "bookmark" ())
 
-
-(defun Info-bookmark-make-name (&optional file)
-  "Return the default name for the bookmark.
-When FILE is non-nil, return the Info file instead."
-  (if file Info-current-file Info-current-node))
-
-
 (defun Info-bookmark-make-record ()
-  `((filename . ,(bookmark-buffer-file-name))
+  `(,Info-current-node
+    (filename . ,(bookmark-buffer-file-name))
     (front-context-string
      . ,(if (>= (- (point-max) (point)) bookmark-search-size)
             (buffer-substring-no-properties

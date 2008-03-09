@@ -444,13 +444,6 @@ menus, so `completing-read' never gets a chance to set `bookmark-history'."
     (interactive-p)
     (setq bookmark-history (cons ,string bookmark-history))))
 
-(defvar bookmark-make-name-function nil
-  "A function that should be called to return the name of the bookmark.
-When called with an argument, the function should return a file
-name -- or whatever is required to jump to the location.  Modes
-may set this variable buffer-locally to enable a default name to
-be proposed when calling `bookmark-set'.")
-
 (defvar bookmark-make-record-function 'bookmark-make-record-for-text-file
   "A function that should be called to create a bookmark record.
 Modes may set this variable buffer-locally to enable bookmarking of
@@ -458,49 +451,62 @@ locations that should be treated specially, such as Info nodes,
 news posts, images, pdf documents, etc.
 
 The function will be called with no arguments.
-The returned record may contain a special cons (handler . SOME-FUNCTION)
-which sets the handler function that should be used to open this
-bookmark instead of `bookmark-default-handler'.  The handler should
-return an alist like the one that function returns, and (of course)
-should likewise not select the buffer.")
 
-(defun bookmark-make (name &optional annotation overwrite)
-  "Make a bookmark named NAME.
-Optional second arg ANNOTATION gives it an annotation.
-Optional third arg OVERWRITE means replace any existing bookmarks with
-this name."
+The returned record should be a cons cell of the form (NAME . ALIST)
+where ALIST is as described in `bookmark-alist' and may typically contain
+a special cons (handler . SOME-FUNCTION) which sets the handler function
+that should be used to open this bookmark instead of
+`bookmark-default-handler'.  The handler should return an alist like the
+one that function returns, and (of course) should likewise
+not select the buffer.
+It should signal a user error if it is unable to construct a record for the current
+location.
+
+NAME is a suggested name for the constructed bookmark.  It can be nil
+in which case a default heuristic will be used.")
+
+(defun bookmark-make-record ()
+  "Return a new bookmark record (NAME . ALIST) for the current location."
+  (let ((record (funcall bookmark-make-record-function)))
+    ;; Set up default name.
+    (if (stringp (car record))
+        ;; The function already provided a default name.
+        record
+      (if (car record) (push nil record))
+      (setcar record (or bookmark-current-bookmark (bookmark-buffer-name)))
+      record)))
+
+(defun bookmark-store (name alist no-overwrite)
+  "Store the bookmark NAME with data ALIST.
+If NO-OVERWRITE is non-nil and another bookmark of the same name already
+exists in `bookmark-alist', record the new bookmark without throwing away the
+old one."
   (bookmark-maybe-load-default-file)
   (let ((stripped-name (copy-sequence name)))
     (or (featurep 'xemacs)
         ;; XEmacs's `set-text-properties' doesn't work on
         ;; free-standing strings, apparently.
         (set-text-properties 0 (length stripped-name) nil stripped-name))
-    (if (and (bookmark-get-bookmark stripped-name) (not overwrite))
+    (if (and (bookmark-get-bookmark stripped-name) (not no-overwrite))
         ;; already existing bookmark under that name and
         ;; no prefix arg means just overwrite old bookmark
-        (setcdr (bookmark-get-bookmark stripped-name)
-                (list (funcall bookmark-make-record-function)))
+        (setcdr (bookmark-get-bookmark stripped-name) (list alist))
 
       ;; otherwise just cons it onto the front (either the bookmark
       ;; doesn't exist already, or there is no prefix arg.  In either
       ;; case, we want the new bookmark consed onto the alist...)
 
-      (push (list stripped-name
-                  (funcall bookmark-make-record-function))
-            bookmark-alist))
-
-    (when annotation
-      ;; Take no chances with text properties.
-      (set-text-properties 0 (length annotation) nil annotation)
-      (bookmark-prop-set stripped-name 'annotation annotation))
+      (push (list stripped-name alist) bookmark-alist))
 
     ;; Added by db
     (setq bookmark-current-bookmark stripped-name)
     (setq bookmark-alist-modification-count
           (1+ bookmark-alist-modification-count))
     (if (bookmark-time-to-save-p)
-        (bookmark-save))))
+        (bookmark-save))
 
+    (setq bookmark-current-bookmark stripped-name)
+    (bookmark-bmenu-surreptitiously-rebuild-list)))
 
 (defun bookmark-make-record-for-text-file ()
   "Return the record describing the location of a new bookmark.
@@ -723,35 +729,29 @@ Use \\[bookmark-delete] to remove bookmarks \(you give it a name,
 and it removes only the first instance of a bookmark with that name from
 the list of bookmarks.\)"
   (interactive (list nil current-prefix-arg))
-  (or
-   (bookmark-buffer-file-name)
-   (error "Buffer not visiting a file or directory"))
+  (let* ((record (bookmark-make-record))
+         (default (car record)))
 
-  (bookmark-maybe-load-default-file)
+    (bookmark-maybe-load-default-file)
 
-  (setq bookmark-current-point (point))
-  (setq bookmark-yank-point (point))
-  (setq bookmark-current-buffer (current-buffer))
+    (setq bookmark-current-point (point))
+    (setq bookmark-yank-point (point))
+    (setq bookmark-current-buffer (current-buffer))
 
-  (let* ((default (or bookmark-current-bookmark
-                      (bookmark-buffer-name)))
-	 (str
-	  (or name
-              (read-from-minibuffer
-               (format "Set bookmark (%s): " default)
-               nil
-               bookmark-minibuffer-read-name-map
-               nil nil default))))
-    (and (string-equal str "") (setq str default))
-    ;; Make the bookmark.
-    (bookmark-make str nil parg)
-    (setq bookmark-current-bookmark str)
-    (bookmark-bmenu-surreptitiously-rebuild-list)
-    ;; Ask for an annotation buffer for this bookmark
-    (if bookmark-use-annotations
-	(bookmark-edit-annotation str)
-      (goto-char bookmark-current-point))))
-
+    (let ((str
+           (or name
+               (read-from-minibuffer
+                (format "Set bookmark (%s): " default)
+                nil
+                bookmark-minibuffer-read-name-map
+                nil nil default))))
+      (and (string-equal str "") (setq str default))
+      (bookmark-store str (cdr record) parg)
+      
+      ;; Ask for an annotation buffer for this bookmark
+      (if bookmark-use-annotations
+          (bookmark-edit-annotation str)
+        (goto-char bookmark-current-point)))))
 
 (defun bookmark-kill-line (&optional newline-too)
   "Kill from point to end of line.
@@ -853,9 +853,6 @@ Default to file name if it's nil."
   "Return the name of the current buffer's file, non-directory.
 In Info, return the current node."
   (cond
-   ;; Is the mode defining the bookmark buffer name?
-   (bookmark-make-name-function
-    (funcall bookmark-make-name-function))
    ;; Or are we a file?
    (buffer-file-name (file-name-nondirectory buffer-file-name))
    ;; Or are we a directory?
@@ -895,10 +892,6 @@ In Info, return the current node."
   "Return the current buffer's file in a way useful for bookmarks.
 For example, if this is a Info buffer, return the Info file's name."
   (cond
-   ;; Return the location the handler should jump to
-   ;; E.g. the Info file name for the Info handler
-   (bookmark-make-name-function
-    (funcall bookmark-make-name-function t))
    (buffer-file-name
     ;; Abbreviate the path, both so it's shorter and so it's more
     ;; portable.  E.g., the user's home dir might be a different
