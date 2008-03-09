@@ -650,7 +650,10 @@ These hooks have the following distinct roles:
     `diary-hook' is run last.  This can be used for an appointment
         notification function.
 
-Functions called by these hooks may use DATE and NUMBER.
+Functions called by these hooks may use the variables ORIGINAL-DATE
+and NUMBER, which are the arguments with which this function was called.
+Note that hook functions should _not_ use DATE, but ORIGINAL-DATE.
+\(Sexp diary entries may use DATE - see `list-sexp-diary-entries').
 
 If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
   (unless number
@@ -658,7 +661,7 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
                      (aref number-of-diary-entries (calendar-day-of-week date))
                    number-of-diary-entries)))
   (when (> number 0)
-    (let ((original-date date);; save for possible use in the hooks
+    (let ((original-date date)	  ; save for possible use in the hooks
           diary-entries-list
           file-glob-attrs
           (date-string (calendar-date-string date))
@@ -701,10 +704,9 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
                         (year (extract-calendar-year date))
                         (entry-found (list-sexp-diary-entries date)))
                     (dolist (date-form diary-date-forms)
-                      (let*
-                          ((backup (when (eq (car date-form) 'backup)
-                                     (setq date-form (cdr date-form))
-                                     t))
+                      (let ((backup (when (eq (car date-form) 'backup)
+				      (setq date-form (cdr date-form))
+				      t))
                            (dayname
                             (format "%s\\|%s\\.?"
                                     (calendar-day-name date)
@@ -797,12 +799,12 @@ changing the variable `diary-include-string'."
            (regexp-quote diary-include-string)
            " \"\\([^\"]*\\)\"")
           nil t)
-    (let* ((diary-file (substitute-in-file-name
-                        (match-string-no-properties 1)))
-           (diary-list-include-blanks nil)
-           (list-diary-entries-hook 'include-other-diary-files)
-           (diary-display-hook 'ignore)
-           (diary-hook nil))
+    (let ((diary-file (substitute-in-file-name
+		       (match-string-no-properties 1)))
+	  (diary-list-include-blanks nil)
+	  (list-diary-entries-hook 'include-other-diary-files)
+	  (diary-display-hook 'ignore)
+	  (diary-hook nil))
       (if (file-exists-p diary-file)
           (if (file-readable-p diary-file)
               (unwind-protect
@@ -951,20 +953,16 @@ This function is provided for optional use as the `diary-display-hook'."
                              (calendar-holiday-list)))
                      (increment-calendar-month
                       holiday-list-last-month holiday-list-last-year 1))
-                (let* ((date-string (calendar-date-string date))
-                       (date-holiday-list
-                        (let ((h holiday-list)
-                              (d))
-                          ;; Make a list of all holidays for date.
-                          (while h
-                            (if (calendar-date-equal date (car (car h)))
-                                (setq d (append d (cdr (car h)))))
-                            (setq h (cdr h)))
-                          d)))
-                  (insert (if (bobp) "" ?\n) date-string)
+                (let (date-holiday-list)
+		  ;; Make a list of all holidays for date.
+		  (dolist (h holiday-list)
+		    (if (calendar-date-equal date (car h))
+			(setq date-holiday-list (append date-holiday-list
+							(cdr h)))))
+                  (insert (if (bobp) "" ?\n) (calendar-date-string date))
                   (if date-holiday-list (insert ":  "))
-                  (let* ((l (current-column))
-                         (longest 0))
+                  (let ((l (current-column))
+			(longest 0))
                     (insert (mapconcat (lambda (x)
 					 (if (< longest (length x))
 					     (setq longest (length x)))
@@ -1185,7 +1183,7 @@ diary entries."
         (with-syntax-table diary-syntax-table
           (dolist (date-form diary-date-forms)
             (if (eq (car date-form) 'backup)
-                (setq date-form (cdr date-form))) ;; ignore 'backup directive
+                (setq date-form (cdr date-form))) ; ignore 'backup directive
             (let* ((dayname
                     (diary-name-pattern calendar-day-name-array
                                         calendar-day-abbrev-array))
