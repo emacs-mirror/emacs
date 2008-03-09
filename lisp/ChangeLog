@@ -22,7 +22,10 @@
 	(list-sexp-diary-entries): Doc fixes.
 	(diary-list-entries): Doc fix.  Remove free variable `entry'.
 	(fancy-diary-display): Use dolist, bobp.  Remove free variable `entry'.
+	Simplify setting of `date-holiday-list'.
 	(mark-diary-entries): Remove free variable `entry'.
+	(diary-list-entries, include-other-diary-files, fancy-diary-display):
+	Use let where let* is not needed.
 
 2008-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
