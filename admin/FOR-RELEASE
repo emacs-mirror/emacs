@@ -97,6 +97,16 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-03/msg00014.html
 Patch available at
 http://lists.gnu.org/archive/html/emacs-devel/2008-03/msg00658.html
 
+* WINDOWS SUPPORT BUGS (for 22.3 or later).
+
+** Description in the "Open with..." dialog should tell about the purpose
+of the binary (or at least display name of the executable).
+http://thread.gmane.org/v9myprs3u4.fsf@marauder.physik.uni-ulm.de
+
+** `locate' and drive letter ("C:") on Windows
+For a recipe to reproduce the problem on GNU/Linux, see 
+<http://thread.gmane.org/gmane.emacs.devel/88971/focus=89106>
+
 * DOCUMENTATION
 
 ** Shouldn't directory-abbrev-alist be in Emacs manual?
