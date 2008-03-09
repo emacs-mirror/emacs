@@ -1,3 +1,7 @@
+2008-03-09  Thomas Hühn  <xf27@arcor.de>  (tiny change)
+
+	* tutorial.el (tutorial--default-keys): Update `C-l' binding.
+
 2008-03-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* diff-mode.el (diff-mode-menu): Add :help.
