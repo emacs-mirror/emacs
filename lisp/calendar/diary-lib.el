@@ -164,7 +164,7 @@ describes the style of such diary entries."
 As the files are processed for diary entries, these functions are used
 to cull relevant entries.  You can use either or both of
 `mark-hebrew-diary-entries', `mark-islamic-diary-entries' and
-`mark-bahai-diary-entries'.  The documentation for these functions
+`bahai-mark-diary-entries'.  The documentation for these functions
 describes the style of such diary entries."
   :type 'hook
   :options '(mark-hebrew-diary-entries
@@ -650,6 +650,8 @@ These hooks have the following distinct roles:
     `diary-hook' is run last.  This can be used for an appointment
         notification function.
 
+Functions called by these hooks may use DATE and NUMBER.
+
 If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
   (unless number
     (setq number (if (vectorp number-of-diary-entries)
@@ -748,13 +750,12 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
                               (unless list-only
                                 (remove-overlays date-start (point)
                                                  'invisible 'diary))
-			      ; FIXME free variable entry?
-			      (setq entry (buffer-substring entry-start (point))
-				    temp (diary-pull-attrs entry file-glob-attrs)
-				    entry (nth 0 temp))
+			      (setq temp (diary-pull-attrs
+					  (buffer-substring entry-start (point))
+					  file-glob-attrs))
                               (add-to-diary-list
                                date
-                               entry
+                               (car temp)
                                (buffer-substring
                                 (1+ date-start) (1- entry-start))
                                (copy-marker entry-start) (nth 1 temp)))))))
@@ -923,10 +924,10 @@ This function is provided for optional use as the `diary-display-hook'."
             (holiday-list-last-month 1)
             (holiday-list-last-year 1)
             (date (list 0 0 0)))
-        (while entry-list
-          (if (not (calendar-date-equal date (car (car entry-list))))
+	(dolist (entry entry-list)
+          (if (not (calendar-date-equal date (car entry)))
               (progn
-                (setq date (car (car entry-list)))
+                (setq date (car entry))
                 (and holidays-in-diary-buffer
                      (calendar-date-compare
                       (list (list holiday-list-last-month
@@ -937,8 +938,8 @@ This function is provided for optional use as the `diary-display-hook'."
                       (list date))
                      ;; We need to get the holidays for the next 3 months.
                      (setq holiday-list-last-month
-                           (extract-calendar-month date))
-                     (setq holiday-list-last-year
+                           (extract-calendar-month date)
+			   holiday-list-last-year
                            (extract-calendar-year date))
                      (progn
                        (increment-calendar-month
@@ -960,7 +961,7 @@ This function is provided for optional use as the `diary-display-hook'."
                                 (setq d (append d (cdr (car h)))))
                             (setq h (cdr h)))
                           d)))
-                  (insert (if (= (point) (point-min)) "" ?\n) date-string)
+                  (insert (if (bobp) "" ?\n) date-string)
                   (if date-holiday-list (insert ":  "))
                   (let* ((l (current-column))
                          (longest 0))
@@ -971,51 +972,46 @@ This function is provided for optional use as the `diary-display-hook'."
                                        date-holiday-list
                                        (concat "\n" (make-string l ? ))))
                     (insert ?\n (make-string (+ l longest) ?=) ?\n)))))
-
-	  ;; FIXME free variable entry?
-	  (setq entry (car (cdr (car entry-list))))
-	  (if (< 0 (length entry))
-              (let ((this-entry (car entry-list))
-                    this-loc)
-		(if (setq this-loc (nth 3 this-entry))
-		    (insert-button (concat entry "\n")
-                                   ;; (MARKER FILENAME SPECIFIER LITERAL)
-                                   'locator (list (car this-loc)
-                                                  (cadr this-loc)
-                                                  (nth 2 this-entry)
-                                                  (or (nth 2 this-loc)
-                                                      (nth 1 this-entry)))
-				   :type 'diary-entry)
-		  ; FIXME free variable entry?
-		  (insert entry ?\n))
-		(save-excursion
-                  (let* ((marks (nth 4 this-entry))
-                         (faceinfo marks)
-                         temp-face)
-                    (when marks
-                      (setq temp-face (make-symbol
-                                       (apply
-                                        'concat "temp-face-"
-                                        (mapcar (lambda (sym)
-                                                  (if (stringp sym)
-                                                      sym
-                                                    (symbol-name sym)))
-                                                marks))))
-                      (make-face temp-face)
-                      ;; Remove :face info from the marks,
-                      ;; copy the face info into temp-face
-                      (while (setq faceinfo (memq :face faceinfo))
-                        (copy-face (read (nth 1 faceinfo)) temp-face)
-                        (setcar faceinfo nil)
-                        (setcar (cdr faceinfo) nil))
-                      (setq marks (delq nil marks))
-                      ;; Apply the font aspects.
-                      (apply 'set-face-attribute temp-face nil marks)
-                      (search-backward entry)
-                      (overlay-put
-                       (make-overlay (match-beginning 0) (match-end 0))
-                       'face temp-face))))))
-	  (setq entry-list (cdr entry-list))))
+	  (let ((this-entry (cadr entry))
+		this-loc)
+	    (unless (zerop (length this-entry))
+	      (if (setq this-loc (nth 3 entry))
+		  (insert-button (concat this-entry "\n")
+				 ;; (MARKER FILENAME SPECIFIER LITERAL)
+				 'locator (list (car this-loc)
+						(cadr this-loc)
+						(nth 2 entry)
+						(or (nth 2 this-loc)
+						    (nth 1 entry)))
+				 :type 'diary-entry)
+		(insert this-entry ?\n))
+	      (save-excursion
+		(let* ((marks (nth 4 entry))
+		       (faceinfo marks)
+		       temp-face)
+		  (when marks
+		    (setq temp-face (make-symbol
+				     (apply
+				      'concat "temp-face-"
+				      (mapcar (lambda (sym)
+						(if (stringp sym)
+						    sym
+						  (symbol-name sym)))
+					      marks))))
+		    (make-face temp-face)
+		    ;; Remove :face info from the marks,
+		    ;; copy the face info into temp-face
+		    (while (setq faceinfo (memq :face faceinfo))
+		      (copy-face (read (nth 1 faceinfo)) temp-face)
+		      (setcar faceinfo nil)
+		      (setcar (cdr faceinfo) nil))
+		    (setq marks (delq nil marks))
+		    ;; Apply the font aspects.
+		    (apply 'set-face-attribute temp-face nil marks)
+		    (search-backward this-entry)
+		    (overlay-put
+		     (make-overlay (match-beginning 0) (match-end 0))
+		     'face temp-face))))))))
       (set-buffer-modified-p nil)
       (goto-char (point-min))
       (setq buffer-read-only t)
@@ -1251,12 +1247,10 @@ diary entries."
                                          (+ y 100)
                                        y)))
                                (string-to-number y-str)))))
-                  (let ((tmp (diary-pull-attrs (buffer-substring-no-properties
-                                                (point) (line-end-position))
-                                               file-glob-attrs)))
-		    ;; FIXME free variable entry.
-                    (setq entry (nth 0 tmp)
-                          marks (nth 1 tmp)))
+		  (setq marks (nth 1
+				   (diary-pull-attrs (buffer-substring-no-properties
+						      (point) (line-end-position))
+						     file-glob-attrs)))
                   (if dd-name
                       (mark-calendar-days-named
                        (cdr (assoc-string
@@ -1453,7 +1447,7 @@ be used instead of a colon (:) to separate the hour and minute parts."
 
 (defun list-sexp-diary-entries (date)
   "Add sexp entries for DATE from the diary file to `diary-entries-list'.
-Also, Make them visible in the diary file.  Returns t if any entries were
+Also, make them visible in the diary file.  Returns t if any entries were
 found.
 
 Sexp diary entries must be prefaced by a `sexp-diary-entry-symbol' (normally
