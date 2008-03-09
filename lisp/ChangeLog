@@ -8,6 +8,16 @@
 
 2008-03-09  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/calendar.el (general-holidays, oriental-holidays)
+	(local-holidays, other-holidays, hebrew-holidays-1, hebrew-holidays-2)
+	(hebrew-holidays-3, hebrew-holidays-4, hebrew-holidays)
+	(christian-holidays, islamic-holidays, bahai-holidays, solar-holidays)
+	(calendar-holidays): Restore autoload cookies, because people are
+	used to using these variables without loading calendar.el.
+
+	* calendar/cal-islam.el (diary-islamic-date): Move to end.
+	(date, number): Declare where needed.
+
 	* calendar/diary-lib.el (nongregorian-diary-marking-hook)
 	(list-sexp-diary-entries): Doc fixes.
 	(diary-list-entries): Doc fix.  Remove free variable `entry'.
