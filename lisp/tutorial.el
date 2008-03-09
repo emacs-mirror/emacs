@@ -220,7 +220,7 @@ LEFT and RIGHT are the elements to compare."
              ;; * SUMMARY
              (scroll-up [?\C-v])
              (scroll-down [?\M-v])
-             (recenter [?\C-l])
+             (recenter-top-bottom [?\C-l])
 
              ;; * BASIC CURSOR CONTROL
              (forward-char [?\C-f])
