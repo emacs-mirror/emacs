@@ -77,6 +77,19 @@ connections are managed by this mechanism, after querying the user
 about whether to do so.
 @end itemize
 
+@item Changes in group mode
+@c ************************
+
+@itemize @bullet
+@item
+Old intermediate incoming mail files (@file{Incoming*}) are deleted
+after a couple of days, not immediately.  @xref{Mail Source
+Customization}.
+@c New in Gnus 5.10.10 / No Gnus 0.8
+@c This entry is also present in the node "Oort Gnus".
+
+@end itemize
+
 @item Changes in summary and article mode
 
 @itemize @bullet

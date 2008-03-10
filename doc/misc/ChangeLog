@@ -1,5 +1,12 @@
 2008-03-10  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* gnus.texi (Mail Source Customization, Gnus Development, Oort Gnus):
+	Update for change of `mail-source-delete-incoming'.
+
+	* gnus-news.texi: Ditto.
+
+2008-03-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
 	* gnus-coding.texi (Gnus Maintainance Guide): Update conventions for
 	custom versions.
 
