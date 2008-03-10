@@ -4,6 +4,15 @@
 	default to nil.
 	(mail-source-delete-old-incoming): Make confirmation prompt more clear.
 
+2008-03-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-narrow-to-page): Position point properly.
+	(gnus-article-goto-prev-page): Work for articles having ^L's.
+
+	* gnus-sum.el (gnus-summary-end-of-article): Remove needless narrowing.
+
+	* mm-view.el (mm-w3m-standalone-supports-m17n-p): Fix typo.
+
 2008-03-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-sum.el (gnus-print-buffer): Honor ps-print-color-p.

@@ -8842,8 +8842,6 @@ article.  If BACKWARD (the prefix) is non-nil, search backward instead."
     (goto-char (point-max))
     (recenter -3)
     (when gnus-break-pages
-      (when (re-search-backward page-delimiter nil t)
-	(narrow-to-region (match-end 0) (point-max)))
       (gnus-narrow-to-page))))
 
 (defun gnus-summary-print-truncate-and-quote (string &optional len)
