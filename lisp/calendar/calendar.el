@@ -94,7 +94,7 @@
 ;;; Code:
 
 
-(require 'cal-loaddefs)
+(load "cal-loaddefs" nil 'quiet)
 (require 'cal-menu)
 
 
