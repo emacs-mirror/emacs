@@ -2245,7 +2245,7 @@ fontset.  The format is the same as abobe.  */)
 			      {
 				struct font *font
 				  = XSAVE_VALUE (font_object)->pointer;
-				char *name = font->font.full_name;;
+				char *name = font->font.full_name;
 				int len = strlen (name);
 				Lisp_Object slot;
 
