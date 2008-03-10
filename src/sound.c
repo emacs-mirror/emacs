@@ -1105,9 +1105,9 @@ alsa_configure (sd)
               {
                 if (snd_mixer_selem_has_playback_volume (e))
                   {
-                    long pmin, pmax;
+                    long pmin, pmax, vol;
                     snd_mixer_selem_get_playback_volume_range (e, &pmin, &pmax);
-                    long vol = pmin + (sd->volume * (pmax - pmin)) / 100;
+                    vol = pmin + (sd->volume * (pmax - pmin)) / 100;
 
                     for (chn = 0; chn <= SND_MIXER_SCHN_LAST; chn++)
                       snd_mixer_selem_set_playback_volume (e, chn, vol);
