@@ -27,6 +27,19 @@ AC_PREREQ(2.61)dnl
 AC_INIT(src/lisp.h)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 
+cat 1>&2 <<EOF
+******************************************************************
+*                                                                *
+*  This branch is obsolete, please use the CVS trunk instead.    *
+*  All Xft features are present in the CVS trunk.                *
+*                                                                *
+*  To switch a CVS checkout to the trunk, use the command:       *
+*                                                                *
+*    cvs update -A                                               *
+*                                                                *
+******************************************************************
+EOF
+exit 1
 dnl Support for --program-prefix, --program-suffix and
 dnl --program-transform-name options
 AC_ARG_PROGRAM
