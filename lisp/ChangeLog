@@ -1,3 +1,8 @@
+2008-03-10  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/make-mode.el (makefile-mode-abbrev-table): Add menu
+	entries and add :help to the existing ones.
+
 2008-03-10  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-hebrew.el (date, entry, number): Move declarations

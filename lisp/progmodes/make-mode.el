@@ -582,7 +582,8 @@ The function must satisfy this calling convention:
   (define-abbrev-table 'makefile-mode-abbrev-table ()))
 
 (defvar makefile-mode-map
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap))
+	(opt-map (make-sparse-keymap)))
     ;; set up the keymap
     (define-key map "\C-c:" 'makefile-insert-target-ref)
     (if makefile-electric-keys
@@ -612,17 +613,64 @@ The function must satisfy this calling convention:
     (define-key map [menu-bar makefile-mode]
       (cons "Makefile" (make-sparse-keymap "Makefile")))
 
+    (define-key map [menu-bar makefile-mode makefile-type]
+      (cons "Switch Makefile Type" opt-map))
+    (define-key opt-map [makefile-makepp-mode]
+      '(menu-item "Makepp" makefile-makepp-mode
+		  :help "An adapted `makefile-mode' that knows about makepp"
+		  :button (:radio . (eq major-mode 'makefile-makepp-mode))))
+    (define-key opt-map [makefile-imake-mode]
+      '(menu-item "Imake" makefile-imake-mode
+		  :help "An adapted `makefile-mode' that knows about imake"
+		  :button (:radio . (eq major-mode 'makefile-imake-mode))))
+    (define-key opt-map [makefile-mode]
+      '(menu-item "Classic" makefile-mode
+		  :help "`makefile-mode' with no special functionality"
+		  :button (:radio . (eq major-mode 'makefile-mode))))
+    (define-key opt-map [makefile-bsdmake-mode]
+      '(menu-item "BSD" makefile-bsdmake-mode
+		  :help "An adapted `makefile-mode' that knows about BSD make"
+		  :button (:radio . (eq major-mode 'makefile-bsdmake-mode))))
+    (define-key opt-map [makefile-automake-mode]
+      '(menu-item "Automake" makefile-automake-mode
+		  :help "An adapted `makefile-mode' that knows about automake"
+		  :button (:radio . (eq major-mode 'makefile-automake-mode))))
+    (define-key opt-map [makefile-gmake-mode]
+      '(menu-item "GNU make" makefile-gmake-mode
+		  :help "An adapted `makefile-mode' that knows about GNU make"
+		  :button (:radio . (eq major-mode 'makefile-gmake-mode))))
     (define-key map [menu-bar makefile-mode browse]
-      '("Pop up Makefile Browser" . makefile-switch-to-browser))
-    (define-key map [menu-bar makefile-mode complete]
-      '("Complete Target or Macro" . makefile-complete))
+      '(menu-item "Pop up Makefile Browser" makefile-switch-to-browser
+		  ;; XXX: this needs a better string, the function is not documented...
+		  :help "Pop up Makefile Browser"))
+    (define-key map [menu-bar makefile-mode overview]
+      '(menu-item "Up To Date Overview" makefile-create-up-to-date-overview
+		  :help "Create a buffer containing an overview of the state of all known targets"))
+    ;; Target related
+    (define-key map [menu-bar makefile-mode separator1]  '("----"))
+    (define-key map [menu-bar makefile-mode pickup-file]
+      '(menu-item "Pick File Name as Target" makefile-pickup-filenames-as-targets
+		  :help "Scan the current directory for filenames to use as targets"))
+    (define-key map [menu-bar makefile-mode function]
+      '(menu-item "Insert GNU make function" makefile-insert-gmake-function
+		  :help "Insert a GNU make function call"))
     (define-key map [menu-bar makefile-mode pickup]
-      '("Find Targets and Macros" . makefile-pickup-everything))
-
+      '(menu-item "Find Targets and Macros" makefile-pickup-everything
+		  :help "Notice names of all macros and targets in Makefile"))
+    (define-key map [menu-bar makefile-mode complete]
+      '(menu-item "Complete Target or Macro" makefile-complete
+		  :help "Perform completion on Makefile construct preceding point"))
+    (define-key map [menu-bar makefile-mode backslash]
+      '(menu-item "Backslash Region" makefile-backslash-region
+		  :help "Insert, align, or delete end-of-line backslashes on the lines in the region"))
+    ;; Motion
+    (define-key map [menu-bar makefile-mode separator]  '("----"))
     (define-key map [menu-bar makefile-mode prev]
-      '("Move to Previous Dependency" . makefile-previous-dependency))
+      '(menu-item "Move to Previous Dependency" makefile-previous-dependency
+		  :help "Move point to the beginning of the previous dependency line"))
     (define-key map [menu-bar makefile-mode next]
-      '("Move to Next Dependency" . makefile-next-dependency))
+      '(menu-item "Move to Next Dependency" makefile-next-dependency
+		  :help "Move point to the beginning of the next dependency line"))
     map)
   "The keymap that is used in Makefile mode.")
 
