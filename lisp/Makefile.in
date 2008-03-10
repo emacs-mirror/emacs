@@ -297,8 +297,7 @@ bootstrap-prepare:
 	fi
 	chmod +w $(lisp)/loaddefs.el		\
 	  $(lisp)/ps-print.el			\
-	  $(lisp)/emacs-lisp/cl-loaddefs.el	\
-	  $(lisp)/calendar/cal-loaddefs.el
+	  $(lisp)/emacs-lisp/cl-loaddefs.el
 
 maintainer-clean: distclean bootstrap-clean
 	cd $(lisp); rm -f $(AUTOGENEL)

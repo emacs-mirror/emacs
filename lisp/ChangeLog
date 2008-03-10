@@ -1,5 +1,7 @@
 2008-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* Makefile.in (bootstrap-prepare): Don't chmod cal-loaddefs.el.
+
 	* emacs-lisp/autoload.el (autoload-find-destination): Don't force raw-text.
 
 	* calendar/calendar.el ("cal-loaddefs"): Load, rather than require.
