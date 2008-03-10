@@ -1,8 +1,8 @@
-2008-03-10  dhruva <dhruvakm@gmail.com>  (tiny change)
+2008-03-10  dhruva  <dhruvakm@gmail.com>  (tiny change)
 
 	* sound.c (alsa_configure): Declare vol at beginning of block.
 
-	* fontset.c (Ffontset_info): Remove extra ;
+	* fontset.c (Ffontset_info): Remove extra semicolon.
 
 2008-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
