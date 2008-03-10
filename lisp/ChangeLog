@@ -1,3 +1,27 @@
+2008-03-10  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary-file, hebrew-holidays-1)
+	(hebrew-holidays-2, hebrew-holidays-3, hebrew-holidays-4)
+	(calendar, calendar-basic-setup, calendar-mode-map, calendar-set-mark)
+	(calendar-version): Doc fixes.
+	(calendar-absolute-from-gregorian): Use zerop.
+	(calendar-mode-line-format): Make it a defcustom.
+
+	* calendar/diary-lib.el (diary-face-attrs): Fix custom :type.
+	(diary-face-attrs, diary-glob-file-regexp-prefix, diary-unknown-time)
+	(diary-pull-attrs, diary-header-line-flag, diary-list-entries)
+	(diary-unhide-everything, include-other-diary-files, diary-goto-entry)
+	(mark-included-diary-files, mark-calendar-days-named)
+	(mark-calendar-date-pattern, mark-calendar-month, diary-entry-compare)
+	(diary-remind, insert-diary-entry, insert-weekly-diary-entry)
+	(insert-monthly-diary-entry, insert-yearly-diary-entry)
+	(insert-anniversary-diary-entry, insert-block-diary-entry)
+	(insert-cyclic-diary-entry, fancy-diary-font-lock-keywords)
+	(diary-font-lock-sexps): Doc fixes.
+	(diary-remind-message, mark-calendar-month): Use zerop.
+	(diary-attrtype-convert, diary-pull-attrs): Simplify.
+	(diary-list-entries): Revert let to let* (previous change).
+
 2008-03-10  Kim F. Storm  <storm@cua.dk>
 
 	* help.el (view-emacs-todo, describe-gnu-project): Define obsolete
@@ -42,11 +66,11 @@
 
 	* doc-view.el (bookmark-buffer-file-name, bookmark-prop-get): Declare.
 	(doc-view-bookmark-make-record): Use them.
-	(doc-view-bookmark-jump): Use them.  Fix find-file -> find-file-noselect.
+	(doc-view-bookmark-jump): Use them.  Fix find-file ->find-file-noselect.
 	(bookmark-get-filename, bookmark-get-bookmark-record): Remove.
 
-	* bookmark.el (bookmark-make-record-function): Change expected return value
-	to include a suggested bookmark name.
+	* bookmark.el (bookmark-make-record-function): Change expected return
+	value to include a suggested bookmark name.
 	(bookmark-make): Split into bookmark-make-record and bookmark-store.
 	Fix reversed `overwrite' semantics.
 	(bookmark-set): Call bookmark-make-record before prompting the user.
@@ -59,7 +83,7 @@
 	(Info-bookmark-make-record): Use Info-current-node as suggested default
 	bookmark name.
 
-	* bookmark.el (bookmark-set): Make the bookmark before reading annotations.
+	* bookmark.el (bookmark-set): Make bookmark before reading annotations.
 	I.e. use bookmark-edit-annotation rather than bookmark-read-annotation.
 	(bookmark-read-annotation-mode-map, bookmark-annotation-paragraph)
 	(bookmark-annotation-buffer, bookmark-annotation-file)
@@ -67,9 +91,10 @@
 	(bookmark-read-annotation-mode, bookmark-read-annotation): Remove.
 	(bookmark-edit-annotation-text-func): Rename from
 	bookmark-read-annotation-text-func.  Keep old name as an obsolete alias.
-	(bookmark-edit-annotation-mode-map): Move initialization into declaration.
+	(bookmark-edit-annotation-mode-map): Move initialization into
+	declaration.
 
-	* bookmark.el: Add spurious * in docstrings.
+	* bookmark.el: Remove spurious * in docstrings.
 	(bookmark-minibuffer-read-name-map): New var.
 	(bookmark-set): Use it.  Also pass the default value as it should.
 	(bookmark-send-edited-annotation): Take no chances with text properties.
