@@ -77,6 +77,14 @@
 
 ;; and compiling with -DUNBUFFERED while debugging.
 
+;; If you are using Cygwin GDB and find that the source is not being displayed
+;; in Emacs when you step through it, possible solutions are to:
+
+;;   1) Use Cygwin X Windows and Cygwin Emacs.
+;;        (Since 22.1 Emacs builds under Cygwin.)
+;;   2) Use MinGW GDB instead.
+;;   3) Use cygwin-mount.el
+
 ;;; Known Bugs:
 
 ;; 1) Cannot handle multiple debug sessions.
