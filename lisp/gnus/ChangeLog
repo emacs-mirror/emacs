@@ -1,13 +1,40 @@
+2008-03-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-narrow-to-page): Position point properly.
+	(gnus-article-goto-prev-page): Work for articles having ^L's.
+
+	* gnus-sum.el (gnus-summary-end-of-article): Remove needless narrowing.
+
+	* mm-view.el (mm-w3m-standalone-supports-m17n-p): Fix typo.
+
 2008-03-07  Karl Fogel  <kfogel@red-bean.com>
 
 	* gnus-bookmark.el: Adjust for renames in bookmark.el.
 	(gnus-bookmark-make-record): Was `gnus-bookmark-make-cell'.
 	(gnus-bookmark-jump): Adjust some variable names.
 
-2008-03-05  Reiner Steib  <Reiner.Steib@gmx.de>
+2008-03-06  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* gnus-sum.el (gnus-print-buffer): Honor ps-print-color-p.
-	Suggested by <chris.anderton@zetnet.co.uk>.
+	* auth-source.el: New package.
+	(auth-source-choices): Add customization entry point variable.
+
+	* gnus-registry.el (gnus-registry-user-format-function-M): Fix concat
+	bug.
+
+2008-03-05  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-install): Allow 'ask as an option.
+	(gnus-registry-initialize, gnus-registry-install-p): Use it.
+	(gnus-registry-install-shortcuts): Renamed from
+	gnus-registry-install-shortcuts-and-menus.  Installs the shortcuts in
+	the `gnus-registry-mark-map' keymap dynamically from
+	`gnus-registry-marks'.  The generated functions update the summary line
+	when a registry mark is added or deleted, and will call
+	`gnus-registry-install-p' (see the comments in the code).
+	(gnus-registry-user-format-function-M): Use concat intelligently.
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Add menu entries for all
+	the registry mark functions.
 
 2008-03-05  Glenn Morris  <rgm@gnu.org>
 
@@ -16,11 +43,33 @@
 	gnus-art.
 	(top-level): No need to load own source when compiling.
 
+2008-03-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-print-buffer): Honor ps-print-color-p.
+	Suggested by <chris.anderton@zetnet.co.uk>.
+
 2008-03-04  Glenn Morris  <rgm@gnu.org>
 
 	* gnus-sum.el (top-level): No need to require gnus when compiling,
 	since unconditionally required near start of file.
 	(gnus-summary-display-while-building): Move definition before use.
+
+2008-03-04  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-user-format-function-M): Add
+	formatting function.
+
+2008-03-03  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-marks): Changed format to be nicer
+	with plists.
+	(gnus-registry-do-marks, gnus-registry-install-shortcuts-and-menus):
+	Use new format.
+
+2008-03-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-describe-bindings): Work for the version of
+	`where-is-internal' that returns a range of key sequences.
 
 2008-03-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -35,6 +84,31 @@
 	* gnus-msg.el (gnus-debug):
 	* gnus-group.el (gnus-update-group-mark-positions):
 	Use mm-string-to-multibyte.
+
+2008-03-02  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mml2015.el (mml2015-extract-cleartext-signature): Explain that it
+	doesn't handle NotDashEscaped.
+
+	* mml.el (mml-menu): Improve help entries.  Move Sign/Encrypt Part.
+	(mml-dnd-attach-options): Fix typo in custom choice.
+
+	* gnus-group.el (gnus-group-read-ephemeral-gmane-group): Change
+	nndoc-article-type to mbox.
+	(gnus-group-read-ephemeral-gmane-group-url): Support permalink.
+
+	* mm-decode.el (mm-text-html-renderer): Prefer w3m over w3.  Fall back
+	to nil, instead of html2text.
+
+	* imap.el (imap-debug): Add `imap-ping-server'.
+
+	* gnus-bookmark.el: Add FIXMEs.
+
+	* message.el (message-form-letter-separator)
+	(message-send-form-letter-delay): New variables.
+	(message-send-form-letter): Use them.  New command to send form
+	letters.  Requested by Uwe Siart.
+	(message-send-mail-function): Doc fix.  Add "Other" custom option.
 
 2008-02-29  Andreas Seltenreich  <andreas@gate450.dyndns.org>
 

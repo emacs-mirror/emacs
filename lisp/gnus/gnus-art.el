@@ -5988,39 +5988,51 @@ If given a numerical ARG, move forward ARG pages."
   (interactive "P")
   (setq arg (if arg (prefix-numeric-value arg) 0))
   (with-current-buffer gnus-article-buffer
-    (goto-char (point-min))
     (widen)
     ;; Remove any old next/prev buttons.
     (when (gnus-visual-p 'page-marker)
       (let ((inhibit-read-only t))
 	(gnus-remove-text-with-property 'gnus-prev)
 	(gnus-remove-text-with-property 'gnus-next)))
-    (if
-	(cond ((< arg 0)
-	       (re-search-backward page-delimiter nil 'move (1+ (abs arg))))
-	      ((> arg 0)
-	       (re-search-forward page-delimiter nil 'move arg)))
-	(goto-char (match-end 0))
-      (save-excursion
-	(goto-char (point-min))
-	(setq gnus-page-broken
-	      (and (re-search-forward page-delimiter nil t) t))))
-    (when gnus-page-broken
-      (narrow-to-region
-       (point)
-       (if (re-search-forward page-delimiter nil 'move)
-	   (match-beginning 0)
-	 (point)))
-      (when (and (gnus-visual-p 'page-marker)
-		 (> (point-min) (save-restriction (widen) (point-min))))
-	(save-excursion
-	  (goto-char (point-min))
-	  (gnus-insert-prev-page-button)))
-      (when (and (gnus-visual-p 'page-marker)
-		 (< (point-max) (save-restriction (widen) (point-max))))
-	(save-excursion
-	  (goto-char (point-max))
-	  (gnus-insert-next-page-button))))))
+    (let (st nd pt)
+      (when (save-excursion
+	      (cond ((< arg 0)
+		     (if (re-search-backward page-delimiter nil 'move (abs arg))
+			 (prog1
+			     (setq nd (match-beginning 0)
+				   pt nd)
+			   (when (re-search-backward page-delimiter nil t)
+			     (setq st (match-end 0))))
+		       (when (re-search-forward page-delimiter nil t)
+			 (setq nd (match-beginning 0)
+			       pt (point-min)))))
+		    ((> arg 0)
+		     (if (re-search-forward page-delimiter nil 'move arg)
+			 (prog1
+			     (setq st (match-end 0)
+				   pt st)
+			   (when (re-search-forward page-delimiter nil t)
+			     (setq nd (match-beginning 0))))
+		       (when (re-search-backward page-delimiter nil t)
+			 (setq st (match-end 0)
+			       pt (point-max)))))
+		    (t
+		     (when (re-search-backward page-delimiter nil t)
+		       (goto-char (setq st (match-end 0))))
+		     (when (re-search-forward page-delimiter nil t)
+		       (setq nd (match-beginning 0)))
+		     (or st nd))))
+	(setq gnus-page-broken t)
+	(when pt (goto-char pt))
+	(narrow-to-region (or st (point-min)) (or nd (point-max)))
+	(when (gnus-visual-p 'page-marker)
+	  (save-excursion
+	    (when nd
+	      (goto-char nd)
+	      (gnus-insert-next-page-button))
+	    (when st
+	      (goto-char st)
+	      (gnus-insert-prev-page-button))))))))
 
 ;; Article mode commands
 
@@ -6035,7 +6047,7 @@ If given a numerical ARG, move forward ARG pages."
 (defun gnus-article-goto-prev-page ()
   "Show the previous page of the article."
   (interactive)
-  (if (bobp)
+  (if (save-restriction (widen) (bobp)) ;; Real beginning-of-buffer?
       (gnus-article-read-summary-keys nil (gnus-character-to-event ?p))
     (gnus-article-prev-page nil)))
 
@@ -6395,10 +6407,21 @@ then we display only bindings that start with that prefix."
     (define-key map [t] nil)
     (with-current-buffer gnus-article-current-summary
       (set-keymap-parent map (key-binding "S"))
-      (let (def gnus-pick-mode)
-	(dolist (key sumkeys)
-	  (when (setq def (key-binding key))
-	    (define-key keymap key def))))
+      (let (key def gnus-pick-mode)
+	(while sumkeys
+	  (setq key (pop sumkeys))
+	  (cond ((and (vectorp key) (= (length key) 1)
+		      (consp (setq def (aref key 0)))
+		      (numberp (car def)) (numberp (cdr def)))
+		 (when (< (max (car def) (cdr def)) 128)
+		   (setq sumkeys
+			 (append (mapcar
+				  #'vector
+				  (nreverse (gnus-uncompress-range def)))
+				 sumkeys))))
+		((setq def (key-binding key))
+		 (unless (eq def 'undefined)
+		   (define-key keymap key def))))))
       (when (boundp 'gnus-agent-summary-mode)
 	(setq agent gnus-agent-summary-mode))
       (when (boundp 'gnus-draft-mode)

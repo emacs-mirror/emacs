@@ -62,6 +62,14 @@
 ;; (define-key global-map "\C-crj" 'gnus-bookmark-jump)
 ;; (define-key global-map "\C-crl" 'gnus-bookmark-bmenu-list)
 
+;; FIXME: Add keybindings, see
+;; http://thread.gmane.org/gmane.emacs.gnus.general/63101/focus=63379
+;; http://thread.gmane.org/v9fxx9fkm4.fsf@marauder.physik.uni-ulm.de
+
+;; FIXME: Check if `gnus-bookmark.el' should use
+;; `bookmark-make-cell-function'.
+;; Cf. http://article.gmane.org/gmane.emacs.gnus.general/66076
+
 (defgroup gnus-bookmark nil
   "Setting, annotation and jumping to Gnus bookmarks."
   :group 'gnus)

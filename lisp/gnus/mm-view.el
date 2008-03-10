@@ -289,7 +289,7 @@
 	     (let ((coding-system-for-write 'iso-2022-jp)
 		   (coding-system-for-read 'iso-2022-jp)
 		   (str (mm-decode-coding-string "\
-\e$B#D#o#e#s!!#w#3#m!!#s#u#p#p#o#r#t#s!!#m#1#7#n!)\e(B" 'iso-2022-jp)))
+\e$B#D#o#e#s!!#w#3#m!!#s#u#p#p#o#r#t!!#m#1#7#n!)\e(B" 'iso-2022-jp)))
 	       (mm-with-multibyte-buffer
 		 (insert str)
 		 (call-process-region

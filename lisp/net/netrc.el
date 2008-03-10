@@ -61,7 +61,7 @@
 
 (defun netrc-parse (file)
   (interactive "fFile to Parse: ")
-  "Parse FILE and return an list of all entries in the file."
+  "Parse FILE and return a list of all entries in the file."
   (when (file-exists-p file)
     (with-temp-buffer
       (let ((tokens '("machine" "default" "login"

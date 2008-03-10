@@ -1,3 +1,8 @@
+2008-03-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-coding.texi (Gnus Maintainance Guide): Update conventions for
+	custom versions.
+
 2008-03-07  Alan Mackenzie  <acm@muc.de>
 
 	* cc-mode.texi (Limitations and Known Bugs): State that the number of

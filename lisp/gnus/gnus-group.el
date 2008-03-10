@@ -2363,7 +2363,7 @@ specified by `gnus-group-gmane-group-download-format'."
       (gnus-group-read-ephemeral-group
        (format "%s.start-%s.range-%s" group start range)
        `(nndoc ,tmpfile
-	       (nndoc-article-type guess))))
+	       (nndoc-article-type mbox))))
     (delete-file tmpfile)))
 
 (defun gnus-group-read-ephemeral-gmane-group-url (url)
@@ -2397,7 +2397,7 @@ Valid input formats include:
      ;; URLs providing `group' and `start':
      ((or (string-match
 	   ;; http://article.gmane.org/gmane.comp.gnu.make.bugs/3584
-	   "^http://\\(?:thread\\|article\\)\.gmane\.org/\\([^/]+\\)/\\([0-9]+\\)"
+	   "^http://\\(?:thread\\|article\\|permalink\\)\.gmane\.org/\\([^/]+\\)/\\([0-9]+\\)"
 	   url)
 	  (string-match
 	   ;; Don't advertize these in the doc string yet:

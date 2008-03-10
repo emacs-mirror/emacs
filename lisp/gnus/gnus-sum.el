@@ -2582,6 +2582,17 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	 ["Set expirable mark" gnus-summary-mark-as-expirable t]
 	 ["Set bookmark" gnus-summary-set-bookmark t]
 	 ["Remove bookmark" gnus-summary-remove-bookmark t])
+	("Registry Mark"
+	 ["Important"     gnus-registry-set-article-Important-mark    t]
+	 ["Not Important" gnus-registry-remove-article-Important-mark t]
+	 ["Work"          gnus-registry-set-article-Work-mark         t]
+	 ["Not Work"      gnus-registry-remove-article-Work-mark      t]
+	 ["Later"         gnus-registry-set-article-Later-mark        t]
+	 ["Not Later"     gnus-registry-remove-article-Later-mark     t]
+	 ["Personal"      gnus-registry-set-article-Personal-mark     t]
+	 ["Not Personal"  gnus-registry-remove-article-Personal-mark  t]
+	 ["To Do"         gnus-registry-set-article-To-Do-mark        t]
+	 ["Not To Do"     gnus-registry-remove-article-To-Do-mark     t])
 	("Limit to"
 	 ["Marks..." gnus-summary-limit-to-marks t]
 	 ["Subject..." gnus-summary-limit-to-subject t]
@@ -9210,8 +9221,6 @@ article.  If BACKWARD (the prefix) is non-nil, search backward instead."
     (goto-char (point-max))
     (recenter -3)
     (when gnus-break-pages
-      (when (re-search-backward page-delimiter nil t)
-	(narrow-to-region (match-end 0) (point-max)))
       (gnus-narrow-to-page))))
 
 (defun gnus-summary-print-truncate-and-quote (string &optional len)
