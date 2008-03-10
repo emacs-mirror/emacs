@@ -37,11 +37,8 @@
 
 ;;; Code:
 
-(defvar date)
 (defvar displayed-month)
 (defvar displayed-year)
-(defvar entry)
-(defvar number)
 (defvar original-date)
 
 (require 'calendar)
@@ -509,6 +506,8 @@ nil if it is not visible in the current calendar window."
 (declare-function add-to-diary-list "diary-lib"
                   (date string specifier &optional marker globcolor literal))
 
+(defvar number)				; from diary-list-entries
+
 (defun list-hebrew-diary-entries ()
   "Add any Hebrew date entries from the diary file to `diary-entries-list'.
 Hebrew date diary entries must be prefaced by `hebrew-diary-entry-symbol'
@@ -912,6 +911,8 @@ from the cursor position."
     (display-buffer yahrzeit-buffer)
     (message "Computing Yahrzeits...done")))
 
+(defvar date)
+
 (defun diary-hebrew-date ()
   "Hebrew calendar equivalent of date diary entry."
   (format "Hebrew date (until sunset): %s" (calendar-hebrew-date-string date)))
@@ -941,6 +942,8 @@ use when highlighting the day in the calendar."
 				    ""
 				  (format " and %d day%s"
 					  day (if (= day 1) "" "s"))))))))))
+
+(defvar entry)
 
 (defun diary-yahrzeit (death-month death-day death-year &optional mark)
   "Yahrzeit diary entry--entry applies if date is Yahrzeit or the day before.
