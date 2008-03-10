@@ -1,8 +1,13 @@
 2008-03-07  Karl Fogel  <kfogel@red-bean.com>
 
-	* lisp/gnus/gnus-bookmark.el: Adjust for renames in bookmark.el.
+	* gnus-bookmark.el: Adjust for renames in bookmark.el.
 	(gnus-bookmark-make-record): Was `gnus-bookmark-make-cell'.
 	(gnus-bookmark-jump): Adjust some variable names.
+
+2008-03-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-sum.el (gnus-print-buffer): Honor ps-print-color-p.
+	Suggested by <chris.anderton@zetnet.co.uk>.
 
 2008-03-05  Glenn Morris  <rgm@gnu.org>
 
@@ -144,9 +149,9 @@
 2008-02-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-topic.el (gnus-topic-select-group, gnus-topic-read-group):
-	Document negativ prefix.
+	Document negative prefix.
 
-	* gnus-group.el (gnus-group-read-group): Document negativ prefix.
+	* gnus-group.el (gnus-group-read-group): Document negative prefix.
 
 2008-02-10  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

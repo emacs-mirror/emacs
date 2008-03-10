@@ -115,9 +115,9 @@
 ;;; Code:
 
 ;; This variable will always hold the version number of the mode
-(defconst verilog-mode-version "399"
+(defconst verilog-mode-version "404"
   "Version of this Verilog mode.")
-(defconst verilog-mode-release-date "2008-02-19-GNU"
+(defconst verilog-mode-release-date "2008-03-02-GNU"
   "Release date of this Verilog mode.")
 (defconst verilog-mode-release-emacs t
   "If non-nil, this version of Verilog mode was released with Emacs itself.")
@@ -276,6 +276,7 @@ STRING should be given if the last search was by `string-match' on STRING."
 
 (defgroup verilog-mode nil
   "Facilitates easy editing of Verilog source text."
+  :version "22.2"
   :group 'languages)
 
 ; (defgroup verilog-mode-fonts nil
@@ -529,6 +530,15 @@ to see the effect as font color choices are cached by Emacs."
   :group 'verilog-mode-indent
   :type 'boolean)
 (put 'verilog-highlight-p1800-keywords 'safe-local-variable 'verilog-booleanp)
+
+(defcustom verilog-highlight-grouping-keywords nil
+  "*True means highlight grouping keywords 'begin' and 'end' more dramatically.
+If false, these words are in the font-lock-type-face; if True then they are in
+`verilog-font-lock-ams-face'. Some find that special highlighting on these
+grouping constructs allow the structure of the code to be understood at a glance."
+  :group 'verilog-mode-indent
+  :type 'boolean)
+(put 'verilog-highlight-grouping-keywords 'safe-local-variable 'verilog-booleanp)
 
 (defcustom verilog-auto-endcomments t
   "*True means insert a comment /* ... */ after 'end's.
@@ -1898,13 +1908,16 @@ See also `verilog-font-lock-extra-types'.")
 	 ;; Fontify all builtin keywords
 	 (concat "\\<\\(" verilog-font-keywords "\\|"
 		       ;; And user/system tasks and functions
-		       "\\$[a-zA-Z][a-zA-Z0-9_\\$]*"
-		       "\\)\\>")
+              "\\$[a-zA-Z][a-zA-Z0-9_\\$]*"
+              "\\)\\>")
 	 ;; Fontify all types
-	 (cons (concat "\\(\\<" verilog-font-grouping-keywords "\\)\\>") 
-	       'verilog-font-lock-ams-face)
-	 (cons (concat "\\<\\(" verilog-type-font-keywords "\\)\\>") 
-	       'font-lock-type-face)
+	 (if verilog-highlight-grouping-keywords
+	     (cons (concat "\\<\\(" verilog-font-grouping-keywords "\\)\\>")
+		   'verilog-font-lock-ams-face)
+	   (cons (concat "\\<\\(" verilog-font-grouping-keywords "\\)\\>")
+		 'font-lock-type-face))
+	 (cons (concat "\\<\\(" verilog-type-font-keywords "\\)\\>")
+          'font-lock-type-face)
 	 ;; Fontify IEEE-P1800 keywords appropriately
 	 (if verilog-highlight-p1800-keywords
 	     (cons (concat "\\<\\(" verilog-p1800-keywords "\\)\\>")

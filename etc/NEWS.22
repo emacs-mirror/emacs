@@ -42,7 +42,30 @@ below.  Emacs tries to warn you about these through `bad-packages-alist'.
 
 ** Support for GNU/kFreeBSD (GNU userland and FreeBSD kernel) was added.
 
+** Deprecated machine types and operating systems
+
+Certain machine types and operating systems have been deprecated.  On
+these systems, configure will print a warning and exit, and you must
+edit the configure script for compilation to proceed.  The deprecated
+systems will not be supported at all in Emacs 23.  We are not aware of
+anyone running Emacs on these systems; if you are, please email
+emacs-devel@gnu.org to take it off the list of deprecated systems.
+
+*** Deprecated machine types
+pmax, hp9000s300, ibm370aix, ncr386, ews4800, mips-siemens, powerpcle,
+and tandem-s2
+
+*** Deprecated operating systems
+bsd386, bsdos2-1, bsdos2, bsdos3, bsdos4, bsd4-1, bsd4-2, bsd4-3,
+usg5-0, usg5-2-2, usg5-2, usg5-3, ultrix4-3, 386bsd, hpux, hpux8,
+hpux9, hpux9shr, hpux10, hpux10-20, aix3-1, aix3-2-5, aix3-2, aix4-1,
+nextstep, ux4800, uxpds, and uxpv
+
 * Changes in Emacs 22.2
+
+** `describe-project' is renamed to `describe-gnu-project'.
+
+** `view-todo' is renamed to `view-emacs-todo'.
 
 ** `find-name-dired' now uses -iname rather than -name
 for case-insensitive filesystems.  The default behavior is determined
@@ -114,7 +137,7 @@ was mistakenly scrolled on compiles after the first.  Customize
 
 *** VC backends can provide completion of revision names.
 
-*** VC backends can provide extra menu entries to be added to the "Version Control" menu.
+*** VC backends can provide extra menu entries to the "Version Control" menu.
 This can be used to add menu entries for backend specific functions.
 
 *** VC has some support for Mercurial (Hg).
@@ -145,7 +168,6 @@ first.
 ** The function invisible-p returns non-nil if the character
 after a specified position is invisible.
 
-+++
 ** inhibit-modification-hooks is bound to t while running modification hooks.
 As a happy consequence, after-change-functions and before-change-functions
 are not bound to nil any more while running an (after|before)-change-function.
@@ -165,14 +187,6 @@ are escaped in the output.
 of strings, undoing any quoting added by `combine-and-quote-strings'.
 (For some separator/string combinations, the original strings cannot
 be recovered.)
-
-* Systems that will not be supported in the future
-configure will print a warning and exit for a set of systems that are
-believed to not be in use anymore.  The support has not been removed
-yet, but configure will need to be edited in order to allow
-compilation to proceed on such a system.  If you are using such a
-system, please send a message to emacs-devel@gnu.org in order to take
-off the list of systems.
 
 
 * Installation Changes in Emacs 22.1

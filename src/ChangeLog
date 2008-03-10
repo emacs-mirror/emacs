@@ -1,3 +1,18 @@
+2008-03-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fsubstitute_in_file_name): Fix up computation of maximum
+	size of resulting string.
+
+2008-03-05  Jason Rumney  <jasonr@gnu.org>
+
+	* dispnew.c (adjust_glyph_matrix): Initialize window_height.
+
+2008-03-03  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (handle_single_display_spec): Undo 2007-10-16 changes.
+	Don't pretend as if characters with display property haven't been
+	consumed for string-replacing-string case.
+
 2008-03-08  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (GET_NEXT_DISPLAY_ELEMENT): New macro.

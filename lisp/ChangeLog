@@ -1,3 +1,43 @@
+2008-03-06  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (view-emacs-todo, describe-gnu-project): Define obsolete
+	function aliases for the old names.
+
+2008-03-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* iswitchb.el (iswitchb-use-faces): Doc fix.
+	(iswitchb-buffer-ignore, iswitchb-read-buffer): Fix typos in
+	docstrings.
+
+2008-03-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/verilog-mode.el (verilog-highlight-grouping-keywords):
+	Fix typo.
+	(verilog-type-font-keywords): Reindent.
+
+2008-03-03  Michael McNamara  <mac@mail.brushroad.com>
+
+	* verilog-mode.el (verilog-font-grouping-keywords): Fix bug in the
+	grouping-keyword regular expression.
+	(verilog-font-lock-keywords): Allow users to toggle special
+	highlight of grouping-keywords.
+	(verilog-highlight-grouping-keywords): The toggle for special
+	highlighting of grouping keywords.
+
+2008-03-02  Juri Linkov  <juri@jurta.org>
+
+	* startup.el: Revert 2008-02-28 change that adds initial message
+	to *scratch* buffer regardless of the value of
+	`inhibit-startup-screen'.
+
+2008-03-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/css-mode.el (css-indent-offset, css-electric-keys):
+	* textmodes/bibtex-style.el (bibtex-style-indent-basic):
+	* progmodes/verilog-mode.el (verilog-mode):
+	* net/socks.el (socks):
+	* vc-mtn.el (vc-mtn-mode-line-rewrite): Add :version.
+
 2008-03-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (bookmark-buffer-file-name, bookmark-prop-get): Declare.

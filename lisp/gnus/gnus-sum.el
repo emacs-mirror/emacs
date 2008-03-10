@@ -9277,7 +9277,7 @@ to save in."
 			  (mail-header-date gnus-current-headers) ")"))))
 	    (gnus-run-hooks 'gnus-ps-print-hook)
 	    (save-excursion
-	      (if window-system
+	      (if ps-print-color-p
 		  (ps-spool-buffer-with-faces)
 		(ps-spool-buffer)))))
       (kill-buffer buffer))))

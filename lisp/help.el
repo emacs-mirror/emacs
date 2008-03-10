@@ -315,6 +315,8 @@ If that doesn't give a function, return nil."
   (interactive)
   (view-help-file "THE-GNU-PROJECT"))
 
+(define-obsolete-function-alias 'describe-project 'describe-gnu-project "22.2")
+
 (defun describe-no-warranty ()
   "Display info on all the kinds of warranty Emacs does NOT have."
   (interactive)
@@ -417,6 +419,9 @@ With argument, display info only for the selected version."
   "Display the Emacs TODO list."
   (interactive "P")
   (view-help-file "TODO"))
+
+(define-obsolete-function-alias 'view-todo 'view-emacs-todo "22.2")
+
 
 (defun view-echo-area-messages ()
   "View the log of recent echo-area messages: the `*Messages*' buffer.

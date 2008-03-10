@@ -177,6 +177,7 @@
 
 (defcustom css-electric-keys '(?\} ?\;) ;; '()
   "Self inserting keys which should trigger re-indentation."
+  :version "22.2"
   :type '(repeat character)
   :options '((?\} ?\;))
   :group 'css)
@@ -399,6 +400,7 @@
 
 (defcustom css-indent-offset 4
   "Basic size of one indentation step."
+  :version "22.2"
   :type 'integer
   :group 'css)
 

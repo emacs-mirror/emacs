@@ -270,7 +270,7 @@ is temporarily case sensitive."
   "*List of regexps or functions matching buffer names to ignore.
 For example, traditional behavior is not to list buffers whose names begin
 with a space, for which the regexp is `^ '.  See the source file for
-example functions that filter buffernames."
+example functions that filter buffer names."
   :type '(repeat (choice regexp function))
   :group 'iswitchb)
 (put 'iswitchb-buffer-ignore 'risky-local-variable t)
@@ -354,7 +354,7 @@ See also `iswitchb-newbuffer'."
   :group 'iswitchb)
 
 (defcustom iswitchb-use-faces t
-  "*Non-nil means use font-lock fonts for showing first match."
+  "*Non-nil means use font-lock faces for showing first match."
   :type 'boolean
   :group 'iswitchb)
 (define-obsolete-variable-alias 'iswitchb-use-fonts 'iswitchb-use-faces "22.1")
@@ -606,7 +606,7 @@ Return the name of a buffer selected.
 PROMPT is the prompt to give to the user.
 DEFAULT if given is the default buffer to be selected, which will
 go to the front of the list.
-If REQUIRE-MATCH is non-nil, an existing-buffer must be selected.
+If REQUIRE-MATCH is non-nil, an existing buffer must be selected.
 If START is a string, the selection process is started with that
 string.
 If MATCHES-SET is non-nil, the buflist is not updated before
