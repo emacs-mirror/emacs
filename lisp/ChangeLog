@@ -22,6 +22,8 @@
 	(diary-attrtype-convert, diary-pull-attrs): Simplify.
 	(diary-list-entries): Revert let to let* (previous change).
 
+	* Makefile.in (bootstrap-prepare): Also chmod cal-loaddefs.el.
+
 2008-03-10  Kim F. Storm  <storm@cua.dk>
 
 	* help.el (view-emacs-todo, describe-gnu-project): Define obsolete
