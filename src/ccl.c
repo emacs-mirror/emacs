@@ -1909,7 +1909,8 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	  break;
 
 	case CCL_STAT_QUIT:
-	  sprintf(msg, "\nCCL: Quited.");
+	  if (! ccl->quit_silently)
+	    sprintf(msg, "\nCCL: Quited.");
 	  break;
 
 	default:
@@ -2112,6 +2113,7 @@ setup_ccl_program (ccl, ccl_prog)
   ccl->eol_type = CODING_EOL_LF;
   ccl->suppress_error = 0;
   ccl->eight_bit_control = 0;
+  ccl->quit_silently = 0;
   return 0;
 }
 
