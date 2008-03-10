@@ -1,5 +1,8 @@
 2008-03-10  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-hebrew.el (date, entry, number): Move declarations
+	to where they are needed.
+
 	* calendar/calendar.el (diary-file, hebrew-holidays-1)
 	(hebrew-holidays-2, hebrew-holidays-3, hebrew-holidays-4)
 	(calendar, calendar-basic-setup, calendar-mode-map, calendar-set-mark)
