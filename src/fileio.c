@@ -4632,8 +4632,19 @@ actually used.  */)
     {
       if (CODING_MAY_REQUIRE_DECODING (&coding))
 	{
+	  if (coding.type == coding_type_ccl)
+	    coding.spec.ccl.decoder.quit_silently = 1;
 	  code_convert_region (PT, PT_BYTE, PT + inserted, PT_BYTE + inserted,
 			       &coding, 0, 0);
+	  if (coding.type == coding_type_ccl)
+	    coding.spec.ccl.decoder.quit_silently = 0;
+	  if (coding.result == CODING_FINISH_INTERRUPT)
+	    {
+	      /* Fixme: It is better that we report that the decoding
+		 was interruppted by the user, and the current buffer
+		 contents doesn't reflect the file correctly.  */
+	      Fsignal (Qquit, Qnil);
+	    }
 	  inserted = coding.produced_char;
 	}
       else
