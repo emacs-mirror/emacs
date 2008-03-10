@@ -1,5 +1,7 @@
 2008-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/autoload.el (autoload-find-destination): Don't force raw-text.
+
 	* calendar/calendar.el ("cal-loaddefs"): Load, rather than require.
 	* calendar/cal-loaddefs.el: Don't version control.
 
