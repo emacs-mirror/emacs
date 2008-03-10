@@ -1,3 +1,9 @@
+2008-03-10  dhruva <dhruvakm@gmail.com>  (tiny change)
+
+	* sound.c (alsa_configure): Declare vol at beginning of block.
+
+	* fontset.c (Ffontset_info): Remove extra ;
+
 2008-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Fsubstitute_in_file_name): Fix up computation of maximum
