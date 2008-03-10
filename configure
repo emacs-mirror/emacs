@@ -1798,6 +1798,19 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 ac_config_headers="$ac_config_headers src/config.h:src/config.in"
 
 
+cat 1>&2 <<EOF
+******************************************************************
+*                                                                *
+*  This branch is obsolete, please use the CVS trunk instead.    *
+*  All Xft features are present in the CVS trunk.                *
+*                                                                *
+*  To switch a CVS checkout to the trunk, use the command:       *
+*                                                                *
+*    cvs update -A                                               *
+*                                                                *
+******************************************************************
+EOF
+exit 1
 test "$program_prefix" != NONE &&
   program_transform_name="s&^&$program_prefix&;$program_transform_name"
 # Use a double $ so make ignores it.
@@ -12683,13 +12696,13 @@ echo "${ECHO_T}yes" >&6; }
 
             { echo "$as_me:$LINENO: checking XFT_CFLAGS" >&5
 echo $ECHO_N "checking XFT_CFLAGS... $ECHO_C" >&6; }
-            XFT_CFLAGS=`$PKG_CONFIG --cflags "xft >= 0.13.0"`
+            XFT_CFLAGS=`$PKG_CONFIG --cflags "xft >= 0.13.0"|sed -e 's,///*,/,g'`
             { echo "$as_me:$LINENO: result: $XFT_CFLAGS" >&5
 echo "${ECHO_T}$XFT_CFLAGS" >&6; }
 
             { echo "$as_me:$LINENO: checking XFT_LIBS" >&5
 echo $ECHO_N "checking XFT_LIBS... $ECHO_C" >&6; }
-            XFT_LIBS=`$PKG_CONFIG --libs "xft >= 0.13.0"`
+            XFT_LIBS=`$PKG_CONFIG --libs "xft >= 0.13.0"|sed -e 's,///*,/,g'`
             { echo "$as_me:$LINENO: result: $XFT_LIBS" >&5
 echo "${ECHO_T}$XFT_LIBS" >&6; }
         else

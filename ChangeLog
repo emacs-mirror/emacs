@@ -1,3 +1,7 @@
+2008-03-10  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Add "this branch is obsolete" error message
+
 2007-06-20  Jan Dj,Adrv  <jan.h.d@swipnet.se>
 
 	* configure.in: Complain if X seems to be installed but no
