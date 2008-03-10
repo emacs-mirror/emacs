@@ -1,3 +1,15 @@
+2008-03-10  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* fileio.c (Finsert_file_contents): Don't make CCL program to
+	append "CCL: Quitted" when the decoding is quitted, but just
+	signal `quit'.
+
+	* ccl.c (ccl_driver): If ccl->quit_silently is nonzero, don't
+	append "CCL: Quitted" when the CCL program is quitted.
+	(setup_ccl_program): Initialize ccl->quit_silently to zero.
+
+	* ccl.h (struct ccl_program): New member quit_silently.
+
 2008-03-08  Andreas Schwab  <schwab@suse.de>
 
 	* process.h (struct Lisp_Process): Declare bit field as unsigned.
