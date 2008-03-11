@@ -1,3 +1,7 @@
+2008-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* make-dist: Handle icons/hicolor/scalable directory.
+
 2008-03-05  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in: Enable font-backend by default.
