@@ -1,3 +1,7 @@
+2008-03-11  Jason Rumney  <jasonr@gnu.org>
+
+	* w32font.c (w32font_full_name): Use floor to round.
+
 2008-03-10  dhruva  <dhruvakm@gmail.com>  (tiny change)
 
 	* sound.c (alsa_configure): Declare vol at beginning of block.
