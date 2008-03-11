@@ -1,3 +1,10 @@
+2008-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* faces.el (mode-line-emphasis): New face.
+	* vc.el (vc-set-mode-line-busy-indicator): Use mode-line-emphasis face.
+
+	* calendar/calendar.el (top-level): Load cal-loaddefs when compiling.
+
 2008-03-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (set-mark-command): Doc fix.
