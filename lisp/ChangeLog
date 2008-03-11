@@ -1,3 +1,8 @@
+2008-03-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/net-utils.el (iwconfig-program-options): Doc fix.
+	(net-utils-run-program, run-network-program): Define as functions.
+
 2008-03-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emacs-lisp/lisp-mode.el (lisp-interaction-mode-map): Fix typo.
@@ -17,7 +22,8 @@
 
 	* Makefile.in (bootstrap-prepare): Don't chmod cal-loaddefs.el.
 
-	* emacs-lisp/autoload.el (autoload-find-destination): Don't force raw-text.
+	* emacs-lisp/autoload.el (autoload-find-destination):
+	Don't force raw-text.
 
 	* calendar/calendar.el ("cal-loaddefs"): Load, rather than require.
 	* calendar/cal-loaddefs.el: Don't version control.
@@ -64,8 +70,8 @@
 2008-03-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* iswitchb.el (iswitchb-use-faces): Doc fix.
-	(iswitchb-buffer-ignore, iswitchb-read-buffer): Fix typos in
-	docstrings.
+	(iswitchb-buffer-ignore, iswitchb-read-buffer):
+	Fix typos in docstrings.
 
 2008-03-10  Dan Nicolaescu  <dann@ics.uci.edu>
 
