@@ -93,8 +93,11 @@
 
 ;;; Code:
 
+;; (elisp) Eval During Compile: "Effectively `require' is
+;; automatically `eval-and-compile'" [but `load' is not]
+(eval-and-compile
+  (load "cal-loaddefs" nil 'quiet))
 
-(load "cal-loaddefs" nil 'quiet)
 (require 'cal-menu)
 
 
