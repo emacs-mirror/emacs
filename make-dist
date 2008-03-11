@@ -332,7 +332,7 @@ for subdir in lisp site-lisp \
 	      etc/images etc/images/ezimage etc/images/gnus etc/images/gud \
 	      etc/images/icons etc/images/icons/hicolor \
 	      etc/images/icons/hicolor/*x* etc/images/icons/hicolor/scalable \
-	      etc/images/icons/hicolor/*/apps \
+	      etc/images/icons/hicolor/*/apps etc/images/icons/hicolor/*/mimetypes \
 	      etc/images/low-color etc/images/mail \
 	      etc/images/smilies etc/images/smilies/grayscale \
 	      etc/images/smilies/medium etc/images/tree-widget \
@@ -638,7 +638,8 @@ for dir in etc/images/tree-widget/default etc/images/tree-widget/folder \
      rm -f *~ \#*\# *,v =* core)
 done
 
-for dir in etc/images/icons/hicolor/*/apps; do
+for dir in etc/images/icons/hicolor/*/apps \
+    etc/images/icons/hicolor/*/mimetypes; do
     echo "Making links to \`${dir}'"
     (cd ${dir}
      ln `ls -d * | grep -v CVS | grep -v RCS` ../../../../../../${tempdir}/${dir}
