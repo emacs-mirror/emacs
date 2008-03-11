@@ -1,5 +1,8 @@
 2008-03-11  Glenn Morris  <rgm@gnu.org>
 
+	* Makefile.in (install-etc, mkdir): Handle directory
+	etc/images/icons/hicolor/*/mimetypes/.
+
 	* make-dist: Handle icons/hicolor/scalable directory.
 
 2008-03-05  Glenn Morris  <rgm@gnu.org>
