@@ -8110,7 +8110,7 @@ x_connection_closed (dpy, error_message)
      OpenWindows in certain situations.  I suspect that is a bug
      in OpenWindows.  I don't know how to circumvent it here.  */
 
-  if (dpyinfo)
+  if (dpyinfo && terminal_list->next_terminal != NULL)
     {
 #ifdef USE_X_TOOLKIT
       /* If DPYINFO is null, this means we didn't open the display
@@ -8124,6 +8124,14 @@ x_connection_closed (dpy, error_message)
 #endif
 
 #ifdef USE_GTK
+      /* Due to bugs in some Gtk+ versions, just exit here if this
+         is the last display/terminal. */
+      if (terminal_list->next_terminal == NULL)
+        {
+          fprintf (stderr, "%s\n", error_msg);
+          shut_down_emacs (0, 0, Qnil);
+          exit (70);
+        }
       xg_display_close (dpyinfo->display);
 #endif
 
