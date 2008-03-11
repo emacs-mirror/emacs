@@ -3228,7 +3228,8 @@ With no prefix argument, set the mark at point, and push the
 old mark position on local mark ring.  Also push the old mark on
 global mark ring, if the previous mark was set in another buffer.
 
-Immediately repeating this command activates `transient-mark-mode' temporarily.
+When Transient Mark Mode is off, immediately repeating this
+command activates `transient-mark-mode' temporarily.
 
 With prefix argument \(e.g., \\[universal-argument] \\[set-mark-command]\), \
 jump to the mark, and set the mark from
