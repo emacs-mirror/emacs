@@ -1,10 +1,19 @@
+2008-03-11  Glenn Morris  <rgm@gnu.org>
+
+	* images/icons/hicolor/128x128/apps/emacs.png:
+	* images/icons/hicolor/16x16/apps/emacs.png:
+	* images/icons/hicolor/24x24/apps/emacs.png:
+	* images/icons/hicolor/32x32/apps/emacs.png:
+	* images/icons/hicolor/48x48/apps/emacs.png:
+	* images/icons/hicolor/scalable/apps/emacs.svg:
+	* images/icons/hicolor/scalable/mimetypes/emacs-document.svg:
+	Remove `creator' metadata.
+
 2008-03-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* images/README: Update with bookmark_add.
 
-	* images/bookmark_add.pbm: New file
-
-	* images/bookmark_add.xpm: New file
+	* images/bookmark_add.pbm, images/bookmark_add.xpm: New files.
 
 2008-03-03  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
 
