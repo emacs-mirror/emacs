@@ -173,6 +173,11 @@ AC_ARG_ENABLE(font-backend,
       USE_FONT_BACKEND=$enableval,
       USE_FONT_BACKEND=yes)
 
+AC_ARG_ENABLE(sync-input,
+[AS_HELP_STRING([--enable-sync-input], [compile code with sync-input])],
+      USE_SYNC_INPUT=$enableval,
+      USE_SYNC_INPUT=yes)
+
 AC_ARG_ENABLE(asserts,
 [AS_HELP_STRING([--enable-asserts], [compile code with asserts enabled])],
       USE_XASSERTS=$enableval,
@@ -3001,8 +3006,14 @@ echo
 if test $USE_XASSERTS = yes; then
    echo "  Compiling with asserts turned on."
    CPPFLAGS="$CPPFLAGS -DXASSERTS=1"
-   echo
 fi
+
+if test $USE_SYNC_INPUT = yes; then
+   echo "  Compiling with sync input."
+   CPPFLAGS="$CPPFLAGS -DSYNC_INPUT=1"
+fi
+
+echo
 
 if test "$USE_X_TOOLKIT" = GTK; then
   case "$canonical" in
