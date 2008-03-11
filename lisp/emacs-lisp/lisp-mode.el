@@ -442,7 +442,7 @@ if that value is non-nil."
     (define-key menu-map [eval-print-last-sexp]
       '(menu-item "Evaluate and print" eval-print-last-sexp
 		  :help "Evaluate sexp before point; print value into current buffer"))
-    (define-key map [edebug-defun-lisp-interaction]
+    (define-key menu-map [edebug-defun-lisp-interaction]
       '(menu-item "Instrument Function for Debugging" edebug-defun
 		  :help "Evaluate the top level form point is in, stepping through with Edebug"
 		  :keys "C-u C-M-x"))
