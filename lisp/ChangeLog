@@ -1,3 +1,7 @@
+2008-03-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (set-mark-command): Doc fix.
+
 2008-03-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* Makefile.in (bootstrap-prepare): Don't chmod cal-loaddefs.el.
