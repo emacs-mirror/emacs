@@ -2393,6 +2393,14 @@ terminal type to a different value."
   :group 'mode-line-faces
   :group 'basic-faces)
 
+(defface mode-line-emphasis
+  '((t (:weight bold)))
+  "Face used to emphasize certain mode line features.
+Use the face `mode-line-highlight' for features that can be selected."
+  :version "23.1"
+  :group 'mode-line-faces
+  :group 'basic-faces)
+
 (defface mode-line-buffer-id
   '((t (:weight bold)))
   "Face used for buffer identification parts of the mode line."
