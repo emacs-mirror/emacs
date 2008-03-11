@@ -1065,10 +1065,10 @@ BUF defaults to \"*vc*\", can be a string and will be created if necessary."
 
 (defun vc-set-mode-line-busy-indicator ()
   (setq mode-line-process
-	(propertize " [waiting...]"
-		    'face 'font-lock-variable-name-face
-		    'help-echo
-		    "A VC command is in progress in this buffer")))
+	(concat " " (propertize "[waiting...]"
+                                'face 'mode-line-emphasis
+                                'help-echo
+                                "A VC command is in progress in this buffer"))))
 
 (defun vc-exec-after (code)
   "Eval CODE when the current buffer's process is done.
