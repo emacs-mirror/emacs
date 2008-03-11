@@ -187,6 +187,9 @@ value of `current-time' before and after Emacs loads the init files.
 ** The new function `emacs-init-time' returns the duration of the
 Emacs initialization.
 
+** The new face `mode-line-emphasis' is used to highlight certain mode-line
+information; for example while waiting for a VC command to finish.
+
 ** The minor modes unify-8859-on-encoding-mode, unify-8859-on-decoding-mode
 are obsolete.
 
