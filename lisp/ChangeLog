@@ -1,5 +1,7 @@
 2008-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (display-buffer-other-frame): Eliminate problematic code.
+
 	* menu-bar.el (menu-bar-update-buffers-maxbuf): Remove.
 	(menu-bar-select-buffer): Remove.
 	(menu-bar-select-frame): Make non-interactive and take a frame arg.

@@ -1078,9 +1078,18 @@ documentation for additional customization information."
         (old-window (selected-window))
 	new-window)
     (setq new-window (display-buffer buffer t))
-    (lower-frame (window-frame new-window))
-    (make-frame-invisible (window-frame old-window))
-    (make-frame-visible (window-frame old-window))))
+    ;; This may have been here in order to prevent the new frame from hiding
+    ;; the old frame.  But it does more harm than good.
+    ;; Maybe we should call `raise-window' on the old-frame instead?  --Stef
+    ;;(lower-frame (window-frame new-window))
+
+    ;; This may have been here in order to make sure the old-frame gets the
+    ;; focus.  But not only can it cause an annoying flicker, with some
+    ;; window-managers it just makes the window invisible, with no easy
+    ;; way to recover it.  --Stef
+    ;;(make-frame-invisible (window-frame old-window))
+    ;;(make-frame-visible (window-frame old-window))
+    ))
 
 (defvar find-file-default nil
   "Used within `find-file-read-args'.")
