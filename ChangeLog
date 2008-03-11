@@ -1,3 +1,7 @@
+2008-03-11  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* configure.in: Add --enable-sync-input, default yes.
+
 2008-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* Makefile.in (install-etc, mkdir): Handle directory
