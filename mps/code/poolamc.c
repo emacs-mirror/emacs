@@ -736,7 +736,13 @@ static void amcSegDestroyNailboard(Seg seg, Pool pool)
   AVERT(amcNailboard, board);
 
   arena = PoolArena(pool);
+#if 0
+  /* Believed bug; see job001784 */
   bits = SegSize(seg) >> board->markShift;
+#else
+  /* See d.m.p.Nailboard.size. */
+  bits = (SegSize(seg) + pool->format->headerSize) >> board->markShift;
+#endif
   ControlFree(arena, board->mark, BTSize(bits));
   board->sig = SigInvalid;
   ControlFree(arena, board, sizeof(amcNailboardStruct));
