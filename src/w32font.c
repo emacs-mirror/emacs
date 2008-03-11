@@ -783,8 +783,9 @@ w32font_open_internal (f, font_entity, pixel_size, w32_font)
 
   GetTextMetrics (dc, &w32_font->metrics);
 
-  /* Cache ASCII metrics.  */
   w32_font->glyph_idx = ETO_GLYPH_INDEX;
+
+  /* Cache ASCII metrics.  */
   recompute_cached_metrics (dc, w32_font);
 
   SelectObject (dc, old_font);
@@ -1717,8 +1718,9 @@ w32font_full_name (font, font_obj, pixel_size, name, nbytes)
       if (outline)
         {
           float pointsize = height * 72.0 / one_w32_display_info.resy;
-          /* Round to nearest half point.  */
-          pointsize = round (pointsize * 2) / 2;
+          /* Round to nearest half point.  floor is used, since round is not
+	     supported in MS library.  */
+          pointsize = floor (pointsize * 2 + 0.5) / 2;
           p += sprintf (p, "-%1.1f", pointsize);
         }
       else
