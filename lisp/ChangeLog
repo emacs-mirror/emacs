@@ -1,5 +1,7 @@
 2008-03-11  Juanma Barranquero  <lekktu@gmail.com>
 
+	* icomplete.el (icomplete-completions): Remove obsolete code.
+
 	* net/net-utils.el (iwconfig-program-options): Doc fix.
 	(net-utils-run-program, run-network-program): Define as functions.
 
