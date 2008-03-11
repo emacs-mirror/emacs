@@ -1333,6 +1333,7 @@ Optional Features:
                           specify install directory for Emacs.app on Mac OS X
                           [DIR=/Application]
   --disable-font-backend  don't compile font-backend support
+  --enable-sync-input     compile code with sync-input
   --enable-asserts        compile code with asserts enabled
   --enable-maintainer-mode
                           enable make rules and dependencies not useful (and
@@ -2133,6 +2134,14 @@ if test "${enable_font_backend+set}" = set; then
   enableval=$enable_font_backend; USE_FONT_BACKEND=$enableval
 else
   USE_FONT_BACKEND=yes
+fi
+
+
+# Check whether --enable-sync-input was given.
+if test "${enable_sync_input+set}" = set; then
+  enableval=$enable_sync_input; USE_SYNC_INPUT=$enableval
+else
+  USE_SYNC_INPUT=yes
 fi
 
 
@@ -23900,8 +23909,14 @@ echo
 if test $USE_XASSERTS = yes; then
    echo "  Compiling with asserts turned on."
    CPPFLAGS="$CPPFLAGS -DXASSERTS=1"
-   echo
 fi
+
+if test $USE_SYNC_INPUT = yes; then
+   echo "  Compiling with sync input."
+   CPPFLAGS="$CPPFLAGS -DSYNC_INPUT=1"
+fi
+
+echo
 
 if test "$USE_X_TOOLKIT" = GTK; then
   case "$canonical" in
