@@ -1714,10 +1714,11 @@ Buffers menu is regenerated."
 
 (let ((map minibuffer-local-map))
   (define-key map [menu-bar minibuf quit]
-    (list 'menu-item "Quit" 'keyboard-escape-quit
+    (list 'menu-item "Quit" 'abort-recursive-edit
 	  :help "Abort input and exit minibuffer"))
   (define-key map [menu-bar minibuf return]
     (list 'menu-item "Enter" 'exit-minibuffer
+          :key-sequence "\r"
 	  :help "Terminate input and exit minibuffer"))
   (define-key map [menu-bar minibuf isearch-forward]
     (list 'menu-item "Isearch History Forward" 'isearch-forward

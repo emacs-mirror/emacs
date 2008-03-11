@@ -1,5 +1,9 @@
 2008-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* menu-bar.el (minibuffer-local-map): Use the same command for the
+	"Quit" menu as used for the C-g key, so the shortcut displayed is C-g.
+	Prefer RET over C-j for exit-minibuffer.
+
 	* files.el (display-buffer-other-frame): Eliminate problematic code.
 
 	* menu-bar.el (menu-bar-update-buffers-maxbuf): Remove.
