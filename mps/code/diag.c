@@ -30,6 +30,10 @@ typedef struct RuleStruct {
 struct RuleStruct RulesGlobal[] = {
   { "+", "*", "*", "*" },
   { "-", "DIAGTEST_", "*", "*" },
+  { "-", "*", "*", "*" },
+  { "+", "amcSegCreateNailboard", "*", "*" },
+  { "+", "amcSegDestroyNailboard", "*", "*" },
+  { "+", "TraceDestroy", "*", "*" },
   { NULL, "", "", "" }
 };
 
