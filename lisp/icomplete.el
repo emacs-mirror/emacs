@@ -282,11 +282,6 @@ The displays for unambiguous matches have ` [Matched]' appended
 matches exist.  \(Keybindings for uniquely matched commands
 are exhibited within the square braces.)"
 
-  ;; 'all-completions' doesn't like empty
-  ;; minibuffer-completion-table's (ie: (nil))
-  (if (and (listp candidates) (null (car candidates)))
-      (setq candidates nil))
-
   (let ((comps (all-completions name candidates predicate))
                                         ; "-determined" - only one candidate
         (open-bracket-determined (if require-match "(" "["))
