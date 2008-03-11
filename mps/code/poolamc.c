@@ -705,6 +705,8 @@ static Res amcSegCreateNailboard(Seg seg, Pool pool)
   /* [I wonder what this comment is referring to?  2007-07-11 DRJ] */
   /* See d.m.p.Nailboard.size. */
   bits = (SegSize(seg) + pool->format->headerSize) >> board->markShift;
+  DIAG_SINGLEF(( "amcSegCreateNailboard",
+		"Alloc $W", (WriteFW)BTSize(bits), NULL ));
   res = ControlAlloc(&p, arena, BTSize(bits), FALSE);
   if(res != ResOK)
     goto failMarkTable;
@@ -743,6 +745,8 @@ static void amcSegDestroyNailboard(Seg seg, Pool pool)
   /* See d.m.p.Nailboard.size. */
   bits = (SegSize(seg) + pool->format->headerSize) >> board->markShift;
 #endif
+  DIAG_SINGLEF(( "amcSegDestroyNailboard",
+		"Free $W", (WriteFW)BTSize(bits), NULL ));
   ControlFree(arena, board->mark, BTSize(bits));
   board->sig = SigInvalid;
   ControlFree(arena, board, sizeof(amcNailboardStruct));
