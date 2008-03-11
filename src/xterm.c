@@ -8110,7 +8110,7 @@ x_connection_closed (dpy, error_message)
      OpenWindows in certain situations.  I suspect that is a bug
      in OpenWindows.  I don't know how to circumvent it here.  */
 
-  if (dpyinfo && terminal_list->next_terminal != NULL)
+  if (dpyinfo)
     {
 #ifdef USE_X_TOOLKIT
       /* If DPYINFO is null, this means we didn't open the display
