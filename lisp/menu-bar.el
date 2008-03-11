@@ -1537,23 +1537,10 @@ Buffers menu is regenerated."
 
 (defvar list-buffers-directory nil)
 
-(defvar menu-bar-update-buffers-maxbuf)
-
-(defun menu-bar-select-buffer ()
-  (interactive)
-  (switch-to-buffer last-command-event))
-
-(defun menu-bar-select-frame ()
-  (interactive)
-  (let (frame)
-    (dolist (f (frame-list))
-      (when (equal last-command-event (frame-parameter f 'name))
-	(setq frame f)))
-    ;; FRAME can be nil when user specifies the selected frame.
-    (setq frame (or frame (selected-frame)))
-    (make-frame-visible frame)
-    (raise-frame frame)
-    (select-frame frame)))
+(defun menu-bar-select-frame (frame)
+  (make-frame-visible frame)
+  (raise-frame frame)
+  (select-frame frame))
 
 (defun menu-bar-update-buffers-1 (elt)
   (let* ((buf (car elt))
@@ -1597,60 +1584,50 @@ Buffers menu is regenerated."
 
 	 ;; Make the menu of buffers proper.
 	 (setq buffers-menu
-	       (let* ((buffer-list
-		       (mapcar 'list buffers))
-		      (menu-bar-update-buffers-maxbuf 0)
-		      alist)
+	       (let (alist)
 		 ;; Put into each element of buffer-list
 		 ;; the name for actual display,
 		 ;; perhaps truncated in the middle.
-		 (dolist (buf buffer-list)
-		   (let ((name (buffer-name (car buf))))
-		     (setcdr buf
-			     (if (> (length name) 27)
-				 (concat (substring name 0 12)
-					 "..."
-					 (substring name -12))
-			       name))))
-		 ;; Compute the maximum length of any name.
-		 (dolist (buf buffer-list)
-		   (unless (eq ?\s (aref (cdr buf) 0))
-		     (setq menu-bar-update-buffers-maxbuf
-			   (max menu-bar-update-buffers-maxbuf
-				(length (cdr buf))))))
-		 ;; Set ALIST to an alist of the form
-		 ;; ITEM-STRING . BUFFER
-		 (dolist (buf buffer-list)
-		   (unless (eq ?\s (aref (cdr buf) 0))
-		     (push (menu-bar-update-buffers-1 buf) alist)))
-		 ;; Now make the actual list of items, and add
-		 ;; some miscellaneous buffer commands to the end.
-		 (mapcar (lambda (pair)
-			   ;; This is somewhat risque, to use
-			   ;; the buffer name itself as the event
-			   ;; type to define, but it works.
-			   ;; It would not work to use the buffer
-			   ;; since a buffer as an event has its
-			   ;; own meaning.
-			   (nconc (list (buffer-name (cdr pair))
-					(car pair)
+		 (dolist (buf buffers)
+		   (let ((name (buffer-name buf)))
+                     (unless (eq ?\s (aref name 0))
+                       (push (menu-bar-update-buffers-1
+                              (cons buf
+                                    (if (> (length name) 27)
+                                        (concat (substring name 0 12)
+                                                "..."
+                                                (substring name -12))
+                                      name)))
+                             alist))))
+		 ;; Now make the actual list of items.
+                 (let ((buffers-vec (make-vector (length alist) nil))
+                       (i (length alist)))
+                   (dolist (pair alist)
+                     (setq i (1- i))
+                     (aset buffers-vec i
+			   (nconc (list (car pair)
 					(cons nil nil))
-				  'menu-bar-select-buffer))
-			 (nreverse alist))))
+				  `(lambda ()
+                                     (interactive)
+                                     (switch-to-buffer ,(cdr pair))))))
+                   (list buffers-vec))))
 
 	 ;; Make a Frames menu if we have more than one frame.
 	 (when (cdr frames)
-	   (let ((frames-menu
-		  (cons 'keymap
-			(cons "Select Frame"
-			      (mapcar
-			       (lambda (frame)
-				 (nconc
-				  (list (frame-parameter frame 'name)
-					(frame-parameter frame 'name)
-					(cons nil nil))
-				  'menu-bar-select-frame))
-			       frames)))))
+	   (let* ((frames-vec (make-vector (length frames) nil))
+                  (frames-menu
+                   (cons 'keymap
+                         (list "Select Frame" frames-vec)))
+                  (i 0))
+             (dolist (frame frames)
+               (aset frames-vec i
+                     (nconc
+                      (list
+                       (frame-parameter frame 'name)
+                       (cons nil nil))
+                      `(lambda ()
+                         (interactive) (menu-bar-select-frame ,frame))))
+               (setq i (1+ i)))
 	     ;; Put it after the normal buffers
 	     (setq buffers-menu
 		   (nconc buffers-menu

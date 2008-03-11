@@ -1,3 +1,10 @@
+2008-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* menu-bar.el (menu-bar-update-buffers-maxbuf): Remove.
+	(menu-bar-select-buffer): Remove.
+	(menu-bar-select-frame): Make non-interactive and take a frame arg.
+	(menu-bar-update-buffers): Don't use buffer-names or frame names as events.
+
 2008-03-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* icomplete.el (icomplete-completions): Remove obsolete code.
@@ -1018,8 +1025,8 @@
 2008-02-28  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* isearch.el (isearch-printing-char): Don't check
-	keyboard-coding-system.  Call
-	isearch-process-search-multibyte-characters only when
+	keyboard-coding-system.
+	Call isearch-process-search-multibyte-characters only when
 	current-input-method is non-nil.
 
 2008-02-27  Kim F. Storm  <storm@cua.dk>
