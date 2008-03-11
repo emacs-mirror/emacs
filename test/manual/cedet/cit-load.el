@@ -3,7 +3,7 @@
 ;; Copyright (C) 2008 Eric M. Ludlam
 
 ;; Author: Eric M. Ludlam <eric@siege-engine.com>
-;; X-RCS: $Id: cit-load.el,v 1.2 2008-02-24 18:24:42 zappo Exp $
+;; X-RCS: $Id: cit-load.el,v 1.3 2008-03-11 02:35:54 zappo Exp $
 
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
@@ -32,6 +32,8 @@
     (add-to-list 'load-path dir)
     dir)
   "Src dir to CIT testing suite.")
+
+(setq inhibit-splash-screen t)
 
 (require 'cedet-integ-test)
 
