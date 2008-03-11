@@ -95,6 +95,13 @@
 
   ;; Do some texinfo documentation.
   (cit-srecode-fill-texi)
+
+  ;; Leave a message
+  (let ((b (set-buffer (get-buffer-create "*PASSED*"))))
+    (erase-buffer)
+    (insert "\n\n  PASSED!\n")
+    (switch-to-buffer b)
+    )
   )
 
 (defun cit-make-dir (dir)
