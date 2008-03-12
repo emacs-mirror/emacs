@@ -1802,7 +1802,10 @@ the window-buffer correspondences.  */)
     }
 
   err = no_switch_window (selected_window);
-  if (err) error (err);
+  if (err)
+    /* If can't display in current window, let pop-to-buffer
+       try some other window. */
+    return call3 (intern ("pop-to-buffer"), buffer, Qnil, norecord);
 
   return switch_to_buffer_1 (buffer, norecord);
 }
