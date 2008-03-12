@@ -1,5 +1,6 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* net/dns.el (dns-read-string-name, dns-read, dns-read-type, query-dns):
 	* sha1.el (sha1-string-external): Use set-buffer-multibyte rather than
 	setting default-enable-multibyte-characters.
 
