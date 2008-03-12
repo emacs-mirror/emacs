@@ -1,5 +1,9 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* nnmh.el: Use with-current-buffer.
+	(nnmh-request-list-1): Use mm-string-to-multibyte rather than
+	mm-string-as-multibyte on the output of mm-encode-coding-string.
+
 	* nnimap.el (nnimap-retrieve-headers-progress): Use a unibyte temp buffer.
 	(nnimap-request-move-article): Use with-current-buffer.
 

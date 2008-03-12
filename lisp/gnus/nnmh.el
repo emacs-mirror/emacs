@@ -77,8 +77,7 @@ as unread by Gnus.")
 (nnoo-define-basics nnmh)
 
 (deffoo nnmh-retrieve-headers (articles &optional newsgroup server fetch-old)
-  (save-excursion
-    (set-buffer nntp-server-buffer)
+  (with-current-buffer nntp-server-buffer
     (erase-buffer)
     (let* ((file nil)
 	   (number (length articles))
@@ -225,8 +224,7 @@ as unread by Gnus.")
     (let ((files (mapcar 'string-to-number
 			 (directory-files dir nil "^[0-9]+$" t))))
       (when files
-	(save-excursion
-	  (set-buffer nntp-server-buffer)
+	(with-current-buffer nntp-server-buffer
 	  (goto-char (point-max))
 	  (insert
 	   (format
@@ -237,7 +235,7 @@ as unread by Gnus.")
 		(file-truename (file-name-as-directory
 				(expand-file-name nnmh-toplev))))
 	       dir)
-	      (mm-string-as-multibyte
+	      (mm-string-to-multibyte   ;Why?  Isn't it multibyte already?
 	       (mm-encode-coding-string
 		(nnheader-replace-chars-in-string
 		 (substring dir (match-end 0))
@@ -295,8 +293,7 @@ as unread by Gnus.")
     (and
      (nnmh-deletable-article-p group article)
      (nnmh-request-article article group server)
-     (save-excursion
-       (set-buffer buf)
+     (with-current-buffer buf
        (erase-buffer)
        (insert-buffer-substring nntp-server-buffer)
        (setq result (eval accept-form))
@@ -336,8 +333,7 @@ as unread by Gnus.")
 
 (deffoo nnmh-request-replace-article (article group buffer)
   (nnmh-possibly-change-directory group)
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (nnmh-possibly-create-directory group)
     (ignore-errors
       (nnmail-write-region
@@ -577,5 +573,5 @@ as unread by Gnus.")
 
 (provide 'nnmh)
 
-;;; arch-tag: 36c12a98-3bad-44b3-9953-628078ef0e04
+;; arch-tag: 36c12a98-3bad-44b3-9953-628078ef0e04
 ;;; nnmh.el ends here
