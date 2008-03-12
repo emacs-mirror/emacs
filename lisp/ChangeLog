@@ -1,3 +1,8 @@
+2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/sgml-mode.el (sgml-font-lock-syntactic-keywords):
+	Mark " outside of tags as punctuation.
+
 2008-03-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* menu-bar.el (minibuffer-local-map): Use the same command for the
