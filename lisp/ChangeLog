@@ -13,7 +13,7 @@
 
 2008-03-12  Tassilo Horn  <tassilo@member.fsf.org>
 
-	* lisp/doc-view.el (doc-view-doc->txt, doc-view-open-text)
+	* doc-view.el (doc-view-doc->txt, doc-view-open-text)
 	(doc-view-already-converted-p): New functions.
 	(doc-view-clear-cache): Don't recreate doc-view-cache-directory.
 	(doc-view-mode-map): Bind C-c C-t to doc-view-open-text.
