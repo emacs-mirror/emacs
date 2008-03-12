@@ -217,14 +217,14 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 			  result))))
 	  (skip-chars-forward non-data-chars end))
 	(if file-name
-	    (let (default-enable-multibyte-characters)
-	      (with-temp-file file-name
-		(insert (apply 'concat (nreverse result)))))
+            (with-temp-file file-name
+              (set-buffer-multibyte nil)
+              (insert (apply 'concat (nreverse result))))
 	  (or (markerp end) (setq end (set-marker (make-marker) end)))
 	  (goto-char start)
 	  (if enable-multibyte-characters
-	      (mapc #'(lambda (x) (insert (uudecode-string-to-multibyte x)))
-		    (nreverse result))
+	      (dolist (x (nreverse result))
+                (insert (uudecode-string-to-multibyte x)))
 	    (insert (apply 'concat (nreverse result))))
 	  (delete-region (point) end))))))
 
@@ -238,5 +238,5 @@ If FILE-NAME is non-nil, save the result to FILE-NAME."
 
 (provide 'uudecode)
 
-;;; arch-tag: e1f09ed5-62b4-4677-9f13-4e81c4fe8ce3
+;; arch-tag: e1f09ed5-62b4-4677-9f13-4e81c4fe8ce3
 ;;; uudecode.el ends here
