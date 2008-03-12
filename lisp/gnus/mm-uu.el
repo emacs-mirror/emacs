@@ -280,11 +280,14 @@ If PROPERTIES is non-nil, PROPERTIES are applied to the buffer,
 see `set-text-properties'.  If PROPERTIES equals t, this means to
 apply the face `mm-uu-extract'."
   (let ((obuf (current-buffer))
+        (multi (and (boundp 'enable-multibyte-characters)
+                    enable-multibyte-characters))
 	(coding-system
          ;; Might not exist in non-MULE XEmacs
          (when (boundp 'buffer-file-coding-system)
            buffer-file-coding-system)))
     (with-current-buffer (generate-new-buffer " *mm-uu*")
+      (if multi (mm-enable-multibyte) (mm-disable-multibyte))
       (setq buffer-file-coding-system coding-system)
       (insert-buffer-substring obuf from to)
       (cond ((eq properties  t)
@@ -441,8 +444,7 @@ apply the face `mm-uu-extract'."
   ;; This might not be exactly correct, but we sure can't get the
   ;; binary data from the article buffer, since that's already in a
   ;; non-binary charset.  So get it from the original article buffer. 
-  (mm-make-handle (save-excursion
-		    (set-buffer gnus-original-article-buffer)
+  (mm-make-handle (with-current-buffer gnus-original-article-buffer
 		    (mm-uu-copy-to-buffer start-point end-point))
 		  (list (or (and file-name
 				 (string-match "\\.[^\\.]+$" file-name)

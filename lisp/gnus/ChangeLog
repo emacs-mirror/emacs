@@ -1,5 +1,8 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mm-uu.el (mm-uu-copy-to-buffer): Preserve (uni/multi)byteness.
+	(mm-uu-yenc-extract): Use with-current-buffer.
+
 	* gnus-soup.el (gnus-soup-send-packet): Don't use
 	mm-with-unibyte-current-buffer since the buffer is unibyte anyway.
 
