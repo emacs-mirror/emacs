@@ -1,6 +1,6 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* international/quail.el (quail-setup-completion-buf):
+	* international/quail.el (quail-setup-completion-buf, quail-help):
 	* mail/binhex.el (binhex-decode-region-internal):
 	* mail/uudecode.el (uudecode-decode-region-internal):
 	* net/dns.el (dns-read-string-name, dns-read, dns-read-type, query-dns):

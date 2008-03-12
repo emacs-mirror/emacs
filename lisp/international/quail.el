@@ -2448,7 +2448,7 @@ package to describe."
   (interactive)
   (quail-help-init)
   (let ((help-xref-mule-regexp help-xref-mule-regexp-template)
-	(default-enable-multibyte-characters enable-multibyte-characters)
+	(mb enable-multibyte-characters)
 	(package-def
 	 (if package
 	     (assoc package quail-package-alist)
@@ -2457,6 +2457,7 @@ package to describe."
     (let ((temp-buffer-show-hook nil))
       (with-output-to-temp-buffer (help-buffer)
 	(with-current-buffer standard-output
+          (set-buffer-multibyte mb)
 	  (setq quail-current-package package-def))))
     ;; Then, insert text in the help buffer while paying attention to
     ;; the width of the window in which the buffer displayed.
