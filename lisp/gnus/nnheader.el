@@ -572,10 +572,9 @@ the line could be found."
 
 (defun nnheader-init-server-buffer ()
   "Initialize the Gnus-backend communication buffer."
-  (save-excursion
-    (unless (gnus-buffer-live-p nntp-server-buffer)
-      (setq nntp-server-buffer (get-buffer-create " *nntpd*")))
-    (set-buffer nntp-server-buffer)
+  (unless (gnus-buffer-live-p nntp-server-buffer)
+    (setq nntp-server-buffer (get-buffer-create " *nntpd*")))
+  (with-current-buffer nntp-server-buffer
     (mm-enable-multibyte)
     (erase-buffer)
     (kill-all-local-variables)
@@ -1060,7 +1059,6 @@ See `find-file-noselect' for the arguments."
 
 (defalias 'nnheader-cancel-timer 'cancel-timer)
 (defalias 'nnheader-cancel-function-timers 'cancel-function-timers)
-(defalias 'nnheader-string-as-multibyte 'string-as-multibyte)
 
 (defun nnheader-accept-process-output (process)
   (accept-process-output
@@ -1077,5 +1075,5 @@ See `find-file-noselect' for the arguments."
 
 (provide 'nnheader)
 
-;;; arch-tag: a9c4b7d9-52ae-4ec9-b196-dfd93124d202
+;; arch-tag: a9c4b7d9-52ae-4ec9-b196-dfd93124d202
 ;;; nnheader.el ends here

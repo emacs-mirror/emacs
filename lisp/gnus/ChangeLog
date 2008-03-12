@@ -1,5 +1,8 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* nnheader.el (nnheader-init-server-buffer): Use with-current-buffer.
+	(nnheader-string-as-multibyte): Remove.
+
 	* mm-view.el: Use inhibit-read-only.
 	(mm-inline-text-html-render-with-w3, mm-inline-message): Use dolist.
 	(mm-pkcs7-signed-magic, mm-pkcs7-enveloped-magic): Use just string
