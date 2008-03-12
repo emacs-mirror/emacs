@@ -1,5 +1,9 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mm-decode.el (mm-with-part): Set the buffer to unibyte before inserting
+	the handle-buffer's text, so the implicit multibyte->unibyte conversion
+	uses string-make-unibyte rather than string-as-unibyte.
+
 	* gnus-msg.el: Use with-current-buffer.
 
 	* message.el (message-ignored-resent-headers): Add "Delivered-To".

@@ -663,11 +663,11 @@ Postpone undisplaying of viewers for types in
 
 (defun mm-copy-to-buffer ()
   "Copy the contents of the current buffer to a fresh buffer."
-    (let ((obuf (current-buffer))
-	  beg)
-      (goto-char (point-min))
-      (search-forward-regexp "^\n" nil t)
-      (setq beg (point))
+  (let ((obuf (current-buffer))
+        beg)
+    (goto-char (point-min))
+    (search-forward-regexp "^\n" nil t)
+    (setq beg (point))
     (with-current-buffer
        ;; Preserve the data's unibyteness (for url-insert-file-contents).
        (let ((default-enable-multibyte-characters (mm-multibyte-p)))
@@ -1127,17 +1127,15 @@ in HANDLE."
 
 (defmacro mm-with-part (handle &rest forms)
   "Run FORMS in the temp buffer containing the contents of HANDLE."
-  `(let* ((handle ,handle)
-	  ;; The multibyteness of the temp buffer should be turned on
-	  ;; if inserting a multibyte string.  Contrarily, the buffer's
-	  ;; multibyteness should be off if inserting a unibyte string,
-	  ;; especially if a string contains 8bit data.
-	  (default-enable-multibyte-characters
-	    (with-current-buffer (mm-handle-buffer handle)
-	      (mm-multibyte-p))))
+  ;; The handle-buffer's content is a sequence of bytes, not a sequence of
+  ;; chars, so the buffer should be unibyte.  It may happen that the
+  ;; handle-buffer is multibyte for some reason, in which case now is a good
+  ;; time to adjust it, since we know at this point that it should
+  ;; be unibyte.
+  `(let* ((handle ,handle))
      (with-temp-buffer
-       (insert-buffer-substring (mm-handle-buffer handle))
        (mm-disable-multibyte)
+       (insert-buffer-substring (mm-handle-buffer handle))
        (mm-decode-content-transfer-encoding
 	(mm-handle-encoding handle)
 	(mm-handle-media-type handle))
