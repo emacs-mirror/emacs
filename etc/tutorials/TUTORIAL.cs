@@ -519,13 +519,6 @@ v pøípadì pádu systému.
 >> Stisknìte C-x C-s pro ulo¾ení va¹í kopie tutoriálu.
    Mìlo by to zobrazit "Wrote ...TUTORIAL.cs" ve spodním øádku obrazovky.
 
-POZNÁMKA: Na nìkterých systémech zpùsobí stisk C-x C-s ztuhnutí
-obrazovky a nevidíte ¾ádný dal¹í výstup z Emacsu.  To znamená, ¾e
-"vlastnost" operaèního systému zvaná "flow control" zachycuje C-s a
-nepropustí jej k Emacsu.  Pro odtuhnutí obrazovky stisknìte C-q.  Pak
-v sekci "Spontaneous Entry to Incremental Search" v manuálu Emacsu
-vyhledejte radu, jak se vypoøádat s touto "vlastností".
-
 Existující soubor mù¾ete vyhledat, abyste jej mohli prohlí¾et nebo
 editovat.  Mù¾ete také vyhledat soubor, který je¹tì neexistuje.  To je
 zpùsob, jakým lze vytvoøit soubor v Emacsu: vyhledejte soubor, který

@@ -677,19 +677,6 @@ verloren geht.
    Die Ausgabe am unteren Bildschirmrand sollte `Wrote ...TUTORIAL.de'
    sein.
 
-Anmerkung: Bei einigen Systemen scheint es, als ob das Ausführen von
-C-x C-s Emacs abstürzen ließe (Emacs reagiert mit keinen Meldungen
-mehr; der Bildschirm scheint eingefroren).  Dieser Effekt tritt auf,
-wenn das Betriebssystem das Zeichen C-s abfängt (es wird für `flow
-control' verwendet) und nicht an Emacs weiterreicht.  Um den
-Bildschirm wieder zum Leben zu erwecken, geben Sie C-q ein, und lesen
-Sie dann den Abschnitt `Spontaneous Entry to Incremental Search' im
-Emacs-Handbuch, was man am besten tun kann.  Das Emacs-Handbuch ist
-übrigens auch online verfügbar mittels C-h i, und zwar im Abschnitt
-`Emacs' (unter der Voraussetzung natürlich, daß die Info-Dateien von
-Emacs auch installiert wurden.  Wenn nicht, beschweren Sie sich bei
-Ihrem System-Administrator).
-
 [Eine erste Abhilfe zur Umschiffung des C-s-Problems schafft die
 Befehlsfolge `M-x save-buffer', welche exakt das gleiche wie C-x C-s
 bewirkt.]

@@ -548,14 +548,6 @@ non perdere troppo lavoro se per caso il sistema dovesse bloccarsi.
    dovrebbe mostrare il messaggio "Wrote ...TUTORIAL.it" nella parte bassa
    dello schermo.
 
-NOTA: su alcuni sistemi il comando C-x C-s bloccherà lo schermo e poi non
-si vedrà più alcun altro messaggio da Emacs.  Questo significa che una
-caratteristica del sistema operativo chiamata "controllo di flusso" sta
-intercettando il carattere C-s e non gli permette di arrivare fino ad
-Emacs.  Per sbloccare lo schermo si può usare C-q.  Poi si legga la
-sezione "Spontaneous Entry to Incremental Search" nel manuale di Emacs per
-suggerimenti su come gestire questa caratteristica del proprio sistema.
-
 Si può aprire un file già esistente per leggerlo o modificarlo.  Si può
 anche "visitare" un file che ancora non esiste.  Questo è un modo per
 creare un nuovo file con Emacs: si apre il file che sarà inizialmente
