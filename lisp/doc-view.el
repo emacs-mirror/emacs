@@ -470,6 +470,7 @@ It's a subdirectory of `doc-view-cache-directory'."
 		    "-"
 		    (let ((file doc-view-buffer-file-name))
 		      (with-temp-buffer
+			(set-buffer-multibyte nil)
 			(insert-file-contents-literally file)
 			(md5 (current-buffer)))))
             doc-view-cache-directory)))))
