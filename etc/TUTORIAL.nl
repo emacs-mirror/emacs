@@ -580,14 +580,6 @@ crasht.
    goed is verschijnt "Wrote ...TUTORIAL.nl" op de onderste
    schermregel.
 
-OPMERKING: Op sommige systemen gebeurt er helemaal niets als je C-x
-C-s tikt, en daarna ook niets meer.  Dit komt door een eigenschap van
-de machine waarop je werkt die te maken heeft met "flow control".  Met
-C-s stopt de "flow" en komt niets meer van wat je tikt bij Emacs
-terecht.  Om deze situatie te herstellen, tik C-q.  Lees daarna het
-hoofdstuk "Spontaneous Entry to Incremental Search" in het
-Emacs-handboek over hoe je moet omgaan met deze situatie.
-
 Je kan een bestaand bestand bezoeken om het te bekijken of het te
 wijzigen.  Je kan ook een bestand bezoeken dat nog niet bestaat.  Dit
 is de manier om met Emacs een nieuw bestand te maken: bezoek het
