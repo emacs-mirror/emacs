@@ -1,3 +1,8 @@
+2008-03-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* custom.texi, dired.texi, mini.texi, mule.texi: Add `referenced in the
+	tutorial' comments.
+
 2008-03-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* org.texi: Update to new org-mode website.

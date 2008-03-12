@@ -175,6 +175,8 @@ minibuffer, set the variable @code{enable-recursive-minibuffers} to
 
 @node Completion
 @section Completion
+@c This node is referenced in the tutorial.  When renaming or deleting
+@c it, the tutorial needs to be adjusted.
 @cindex completion
   
   Some arguments allow @dfn{completion} to enter their value.  This
