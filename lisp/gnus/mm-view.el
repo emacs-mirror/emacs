@@ -86,14 +86,14 @@
 
 (defun mm-inline-image-emacs (handle)
   (let ((b (point-marker))
-	buffer-read-only)
+	(inhibit-read-only t))
     (put-image (mm-get-image handle) b)
     (insert "\n\n")
     (mm-handle-set-undisplayer
      handle
      `(lambda ()
 	(let ((b ,b)
-	      buffer-read-only)
+	      (inhibit-read-only t))
 	  (remove-images b b)
 	  (delete-region b (+ b 2)))))))
 
@@ -102,12 +102,12 @@
     (insert "\n\n")
     (forward-char -2)
     (let ((annot (make-annotation (mm-get-image handle) nil 'text))
-	  buffer-read-only)
+	(inhibit-read-only t))
       (mm-handle-set-undisplayer
        handle
        `(lambda ()
 	  (let ((b ,(point-marker))
-		buffer-read-only)
+	      (inhibit-read-only t))
 	    (delete-annotation ,annot)
 	    (delete-region (- b 2) b))))
       (set-extent-property annot 'mm t)
@@ -194,13 +194,12 @@
 	(mm-handle-set-undisplayer
 	 handle
 	 `(lambda ()
-	    (let (buffer-read-only)
+	    (let ((inhibit-read-only t))
 	      ,@(if (functionp 'remove-specifier)
-		    '((mapcar (lambda (prop)
-				(remove-specifier
-				 (face-property 'default prop)
-				 (current-buffer)))
-			      '(background background-pixmap foreground))))
+                    '((dolist (prop '(background background-pixmap foreground))
+                        (remove-specifier
+                         (face-property 'default prop)
+                         (current-buffer)))))
 	      (delete-region ,(point-min-marker)
 			     ,(point-max-marker)))))))))
 
@@ -389,7 +388,7 @@
 (defun mm-inline-text-html (handle)
   (let* ((func (or mm-inline-text-html-renderer mm-text-html-renderer))
 	 (entry (assq func mm-text-html-renderer-alist))
-	 buffer-read-only)
+	 (inhibit-read-only t))
     (if entry
 	(setq func (cdr entry)))
     (cond
@@ -399,7 +398,7 @@
       (apply (car func) handle (cdr func))))))
 
 (defun mm-inline-text-vcard (handle)
-  (let (buffer-read-only)
+  (let ((inhibit-read-only t))
     (mm-insert-inline
      handle
      (concat "\n-- \n"
@@ -415,7 +414,7 @@
 	(type (mm-handle-media-subtype handle))
 	(charset (mail-content-type-get
 		  (mm-handle-type handle) 'charset))
-	buffer-read-only)
+	(inhibit-read-only t))
     (if (or (eq charset 'gnus-decoded)
 	    ;; This is probably not entirely correct, but
 	    ;; makes rfc822 parts with embedded multiparts work.
@@ -437,15 +436,14 @@
 	(goto-char (point-max))))
     (save-restriction
       (narrow-to-region b (point))
-      (when (or (equal type "enriched")
-		(equal type "richtext"))
-	(set-text-properties (point-min) (point-max) nil)
+      (when (member type '("enriched" "richtext"))
+        (set-text-properties (point-min) (point-max) nil)
 	(ignore-errors
 	  (enriched-decode (point-min) (point-max))))
       (mm-handle-set-undisplayer
        handle
        `(lambda ()
-	  (let (buffer-read-only)
+          (let ((inhibit-read-only t))
 	    (delete-region ,(point-min-marker)
 			   ,(point-max-marker))))))))
 
@@ -458,9 +456,9 @@
     (mm-handle-set-undisplayer
      handle
      `(lambda ()
-	(let (buffer-read-only)
-	  (delete-region ,(set-marker (make-marker) b)
-			 ,(set-marker (make-marker) (point))))))))
+	(let ((inhibit-read-only t))
+	  (delete-region ,(copy-marker b)
+			 ,(copy-marker (point))))))))
 
 (defun mm-inline-audio (handle)
   (message "Not implemented"))
@@ -527,13 +525,12 @@
 	(mm-handle-set-undisplayer
 	 handle
 	 `(lambda ()
-	    (let (buffer-read-only)
+	    (let ((inhibit-read-only t))
 	      (if (fboundp 'remove-specifier)
 		  ;; This is only valid on XEmacs.
-		  (mapcar (lambda (prop)
-			    (remove-specifier
-			     (face-property 'default prop) (current-buffer)))
-			  '(background background-pixmap foreground)))
+		  (dolist (prop '(background background-pixmap foreground))
+		    (remove-specifier
+		     (face-property 'default prop) (current-buffer))))
 	      (delete-region ,(point-min-marker) ,(point-max-marker)))))))))
 
 (defun mm-display-inline-fontify (handle mode)
@@ -605,22 +602,20 @@
 ;;      id-signedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)
 ;;          us(840) rsadsi(113549) pkcs(1) pkcs7(7) 2 }
 (defvar mm-pkcs7-signed-magic
-  (mm-string-as-unibyte
-   (mapconcat 'char-to-string
-	      (list ?\x30 ?\x5c ?\x28 ?\x80 ?\x5c ?\x7c ?\x81 ?\x2e ?\x5c
-		    ?\x7c ?\x82 ?\x2e ?\x2e ?\x5c ?\x7c ?\x83 ?\x2e ?\x2e
-		    ?\x2e ?\x5c ?\x29 ?\x06 ?\x09 ?\x5c ?\x2a ?\x86 ?\x48
-		    ?\x86 ?\xf7 ?\x0d ?\x01 ?\x07 ?\x02) "")))
+  (funcall (if (fboundp 'unibyte-string) 'unibyte-string 'string)
+   ?\x30 ?\x5c ?\x28 ?\x80 ?\x5c ?\x7c ?\x81 ?\x2e ?\x5c
+   ?\x7c ?\x82 ?\x2e ?\x2e ?\x5c ?\x7c ?\x83 ?\x2e ?\x2e
+   ?\x2e ?\x5c ?\x29 ?\x06 ?\x09 ?\x5c ?\x2a ?\x86 ?\x48
+   ?\x86 ?\xf7 ?\x0d ?\x01 ?\x07 ?\x02))
 
 ;;      id-envelopedData OBJECT IDENTIFIER ::= { iso(1) member-body(2)
 ;;          us(840) rsadsi(113549) pkcs(1) pkcs7(7) 3 }
 (defvar mm-pkcs7-enveloped-magic
-  (mm-string-as-unibyte
-   (mapconcat 'char-to-string
-	      (list ?\x30 ?\x5c ?\x28 ?\x80 ?\x5c ?\x7c ?\x81 ?\x2e ?\x5c
-		    ?\x7c ?\x82 ?\x2e ?\x2e ?\x5c ?\x7c ?\x83 ?\x2e ?\x2e
-		    ?\x2e ?\x5c ?\x29 ?\x06 ?\x09 ?\x5c ?\x2a ?\x86 ?\x48
-		    ?\x86 ?\xf7 ?\x0d ?\x01 ?\x07 ?\x03) "")))
+  (funcall (if (fboundp 'unibyte-string) 'unibyte-string 'string)
+   ?\x30 ?\x5c ?\x28 ?\x80 ?\x5c ?\x7c ?\x81 ?\x2e ?\x5c
+   ?\x7c ?\x82 ?\x2e ?\x2e ?\x5c ?\x7c ?\x83 ?\x2e ?\x2e
+   ?\x2e ?\x5c ?\x29 ?\x06 ?\x09 ?\x5c ?\x2a ?\x86 ?\x48
+   ?\x86 ?\xf7 ?\x0d ?\x01 ?\x07 ?\x03))
 
 (defun mm-view-pkcs7-get-type (handle)
   (mm-with-unibyte-buffer
@@ -681,5 +676,5 @@
 
 (provide 'mm-view)
 
-;;; arch-tag: b60e749a-d05c-47f2-bccd-bdaa59327cb2
+;; arch-tag: b60e749a-d05c-47f2-bccd-bdaa59327cb2
 ;;; mm-view.el ends here

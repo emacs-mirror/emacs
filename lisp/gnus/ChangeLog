@@ -1,5 +1,10 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mm-view.el: Use inhibit-read-only.
+	(mm-inline-text-html-render-with-w3, mm-inline-message): Use dolist.
+	(mm-pkcs7-signed-magic, mm-pkcs7-enveloped-magic): Use just string
+	or unibyte-string.
+
 	* mm-uu.el (mm-uu-copy-to-buffer): Preserve (uni/multi)byteness.
 	(mm-uu-yenc-extract): Use with-current-buffer.
 
@@ -10,12 +15,12 @@
 	(nnmh-request-list-1): Use mm-string-to-multibyte rather than
 	mm-string-as-multibyte on the output of mm-encode-coding-string.
 
-	* nnimap.el (nnimap-retrieve-headers-progress): Use a unibyte temp buffer.
+	* nnimap.el (nnimap-retrieve-headers-progress): Use a unibyte buffer.
 	(nnimap-request-move-article): Use with-current-buffer.
 
-	* mm-decode.el (mm-with-part): Set the buffer to unibyte before inserting
-	the handle-buffer's text, so the implicit multibyte->unibyte conversion
-	uses string-make-unibyte rather than string-as-unibyte.
+	* mm-decode.el (mm-with-part): Set the buffer to unibyte before
+	inserting the handle-buffer's text, so the implicit multibyte->unibyte
+	conversion uses string-make-unibyte rather than string-as-unibyte.
 
 	* gnus-msg.el: Use with-current-buffer.
 
