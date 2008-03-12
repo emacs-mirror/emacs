@@ -332,6 +332,9 @@ lightweight data-interchange format.
 automatically when they are displayed.  It is globally on by default.
 It uses `auto-composition-function' (default `auto-compose-chars').
 
+** The package linum.el is now included with Emacs.  It it a new minor
+mode to display line numbers for the current buffer.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
