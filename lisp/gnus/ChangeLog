@@ -1,5 +1,7 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* gnus-msg.el: Use with-current-buffer.
+
 	* message.el (message-ignored-resent-headers): Add "Delivered-To".
 
 2008-03-08  Reiner Steib  <Reiner.Steib@gmx.de>
