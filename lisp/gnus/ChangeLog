@@ -1,7 +1,11 @@
+2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-ignored-resent-headers): Add "Delivered-To".
+
 2008-03-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* mail-source.el (mail-source-delete-old-incoming-confirm): Change
-	default to nil.
+	* mail-source.el (mail-source-delete-old-incoming-confirm):
+	Change default to nil.
 	(mail-source-delete-old-incoming): Make confirmation prompt more clear.
 
 2008-03-07  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -31,7 +35,7 @@
 
 	* gnus-registry.el (gnus-registry-install): Allow 'ask as an option.
 	(gnus-registry-initialize, gnus-registry-install-p): Use it.
-	(gnus-registry-install-shortcuts): Renamed from
+	(gnus-registry-install-shortcuts): Rename from
 	gnus-registry-install-shortcuts-and-menus.  Installs the shortcuts in
 	the `gnus-registry-mark-map' keymap dynamically from
 	`gnus-registry-marks'.  The generated functions update the summary line

@@ -561,7 +561,13 @@ Done before generating the new subject of a forward."
   :link '(custom-manual "(message)Forwarding")
   :type 'boolean)
 
-(defcustom message-ignored-resent-headers "^Return-receipt\\|^X-Gnus\\|^Gnus-Warning:\\|^>?From "
+(defcustom message-ignored-resent-headers
+  ;; `Delivered-To' needs to be removed because some mailers use it to
+  ;; detect loops, so if you resend a message to an address that ultimately
+  ;; comes back to you (e.g. a mailing-list to which you subscribe, in which
+  ;; case you may be removed from the list on the grounds that mail to you
+  ;; bounced with a "mailing loop" error).
+  "^Return-receipt\\|^X-Gnus\\|^Gnus-Warning:\\|^>?From \\|^Delivered-To:"
   "*All headers that match this regexp will be deleted when resending a message."
   :group 'message-interface
   :link '(custom-manual "(message)Resending")
