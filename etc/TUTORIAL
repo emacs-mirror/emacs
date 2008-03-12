@@ -539,13 +539,6 @@ work if the system should crash.
 >> Type C-x C-s, saving your copy of the tutorial.
    This should show "Wrote ...TUTORIAL" at the bottom of the screen.
 
-NOTE: On some systems, typing C-x C-s will freeze the screen and you
-will see no further output from Emacs.  This indicates that an
-operating system "feature" called "flow control" is intercepting the
-C-s and not letting it get through to Emacs.  To unfreeze the screen,
-type C-q.  Then see the section "Spontaneous Entry to Incremental
-Search" in the Emacs manual for advice on dealing with this "feature".
-
 You can find an existing file, to view it or edit it.  You can also
 find a file which does not already exist.  This is the way to create a
 file with Emacs: find the file, which will start out empty, and then

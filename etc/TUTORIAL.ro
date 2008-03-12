@@ -552,15 +552,6 @@ sistemului.
    Aceasta ar trebui sã afiºeze "Wrote ...TUTORIAL.ro" la marginea de
    jos a ecranului.
 
-OBSERVAÞIE: În unele sisteme, tastarea comenzii C-x C-s va bloca
-ecranul ºi nu veþi mai primi nici un de rãspuns din partea Emacs-ului.
-Aceasta indicã faptul cã o facilitate a sistemului de operare numitã
-"controlul fluxului" ("flow control" în limba englezã) intercepteazã
-C-s, nelasându-l sã ajungã la Emacs.  Pentru deblocarea ecranului,
-tastaþi C-q.  Puteþi gãsi detalii referitoare la aceastã aºa-numitã
-"facilitate" în secþiunea "Spontaneous Entry to Incremental Search"
-din manualul Emacs-ului.
-
 Puteþi deschide un fiºier existent, pentru a-l vedea sau edita.
 Puteþi de asemenea deschide un fiºier care nu existã.  Aceasta este
 modalitatea în care creaþi noi fiºiere cu Emacs-ul: deschideþi
