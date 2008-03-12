@@ -291,6 +291,8 @@ the (uncompressed, extracted) file residing in
     (define-key map (kbd "C-t")       'doc-view-show-tooltip)
     ;; Toggle between text and image display or editing
     (define-key map (kbd "C-c C-c")   'doc-view-toggle-display)
+    ;; Open a new buffer with doc's text contents
+    (define-key map (kbd "C-c C-t")   'doc-view-open-text)
     ;; Reconvert the current document
     (define-key map (kbd "g")         'revert-buffer)
     (define-key map (kbd "r")         'revert-buffer)
@@ -523,16 +525,14 @@ Should be invoked when the cached images aren't up-to-date."
   (if (not (string-match "finished" event))
       (message "DocView: dvi->pdf process changed status to %s." event)
     (with-current-buffer (process-get proc 'buffer)
-      (setq doc-view-current-converter-process nil
-            mode-line-process nil)
-      ;; Now go on converting this PDF to a set of PNG files.
-      (let* ((pdf (process-get proc 'pdf-file))
-             (png (expand-file-name "page-%d.png"
-                                    (doc-view-current-cache-dir))))
-        (doc-view-pdf/ps->png pdf png)))))
+      (let ((callback (process-get proc 'callback))
+	    (cb-args  (process-get proc 'cb-args)))
+	(setq doc-view-current-converter-process nil
+	      mode-line-process nil)
+	(apply callback cb-args)))))
 
-(defun doc-view-dvi->pdf (dvi pdf)
-  "Convert DVI to PDF asynchronously."
+(defun doc-view-dvi->pdf (dvi pdf callback &rest cb-args)
+  "Convert DVI to PDF asynchronously and call CALLBACK with CB-ARGS when finished."
   (setq doc-view-current-converter-process
 	(start-process "dvi->pdf" doc-view-conversion-buffer
 		       doc-view-dvipdfm-program
@@ -541,7 +541,8 @@ Should be invoked when the cached images aren't up-to-date."
   (set-process-sentinel doc-view-current-converter-process
 			'doc-view-dvi->pdf-sentinel)
   (process-put doc-view-current-converter-process 'buffer   (current-buffer))
-  (process-put doc-view-current-converter-process 'pdf-file pdf))
+  (process-put doc-view-current-converter-process 'callback callback)
+  (process-put doc-view-current-converter-process 'cb-args  cb-args))
 
 (defun doc-view-pdf/ps->png-sentinel (proc event)
   "If PDF/PS->PNG conversion was successful, update the display."
@@ -588,15 +589,17 @@ Should be invoked when the cached images aren't up-to-date."
     (let ((current-buffer (current-buffer))
 	  (proc-buffer    (process-get proc 'buffer)))
       (with-current-buffer proc-buffer
-        (setq doc-view-current-converter-process nil
-              mode-line-process nil)
-        ;; If the user looks at the DocView buffer where the conversion was
-        ;; performed, search anew.  This time it will be queried for a regexp.
-        (when (eq current-buffer proc-buffer)
-          (doc-view-search nil))))))
+        (let ((callback (process-get doc-view-current-converter-process 'callback))
+	      (cb-args  (process-get doc-view-current-converter-process 'cb-args)))
+	  (setq doc-view-current-converter-process nil
+		mode-line-process nil)
+	  ;; If the user looks at the DocView buffer where the conversion was
+	  ;; performed, call callback.
+	  (when (eq current-buffer proc-buffer)
+	    (apply callback cb-args)))))))
 
-(defun doc-view-pdf->txt (pdf txt)
-  "Convert PDF to TXT asynchronously."
+(defun doc-view-pdf->txt (pdf txt callback &rest cb-args)
+  "Convert PDF to TXT asynchronously and call CALLBACK with CB-ARGS when finished."
   (setq doc-view-current-converter-process
 	(start-process "pdf->txt" doc-view-conversion-buffer
 		       doc-view-pdftotext-program "-raw"
@@ -604,21 +607,54 @@ Should be invoked when the cached images aren't up-to-date."
 	mode-line-process (list (format ":%s" doc-view-current-converter-process)))
   (set-process-sentinel doc-view-current-converter-process
 			'doc-view-pdf->txt-sentinel)
-  (process-put doc-view-current-converter-process 'buffer (current-buffer)))
+  (process-put doc-view-current-converter-process 'buffer (current-buffer))
+  (process-put doc-view-current-converter-process 'callback callback)
+  (process-put doc-view-current-converter-process 'cb-args cb-args))
+
+(defun doc-view-doc->txt (callback &rest cb-args)
+  "Convert the current document to text and call CALLBACK with CB-ARGS when done."
+  (make-directory (doc-view-current-cache-dir))
+  (let ((ext (file-name-extension doc-view-buffer-file-name)))
+    (cond
+     ((string= ext "pdf")
+      ;; Doc is a PDF, so convert it to TXT
+      (if cb-args
+	  (doc-view-pdf->txt doc-view-buffer-file-name txt callback cb-args)
+	(doc-view-pdf->txt doc-view-buffer-file-name txt callback)))
+     ((string= ext "ps")
+      ;; Doc is a PS, so convert it to PDF (which will be converted to
+      ;; TXT thereafter).
+      (let ((pdf (expand-file-name "doc.pdf"
+				   (doc-view-current-cache-dir))))
+	(if cb-args
+	    (doc-view-ps->pdf doc-view-buffer-file-name pdf
+			      'doc-view-pdf->txt
+			      pdf txt callback cb-args)
+	  (doc-view-ps->pdf doc-view-buffer-file-name pdf
+			    'doc-view-pdf->txt
+			    pdf txt callback))))
+     ((string= ext "dvi")
+      ;; Doc is a DVI.  This means that a doc.pdf already exists in its
+      ;; cache subdirectory.
+      (if cb-args
+	  (doc-view-pdf->txt (expand-file-name "doc.pdf"
+					       (doc-view-current-cache-dir))
+			     txt callback cb-args)
+	(doc-view-pdf->txt (expand-file-name "doc.pdf"
+					     (doc-view-current-cache-dir))
+			   txt callback)))
+     (t (error "DocView doesn't know what to do")))))
 
 (defun doc-view-ps->pdf-sentinel (proc event)
   (if (not (string-match "finished" event))
       (message "DocView: converter process changed status to %s." event)
     (with-current-buffer (process-get proc 'buffer)
       (setq doc-view-current-converter-process nil
-            mode-line-process nil)
-      ;; Now we can transform to plain text.
-      (doc-view-pdf->txt (process-get proc 'pdf-file)
-                         (expand-file-name "doc.txt"
-                                           (doc-view-current-cache-dir))))))
+	    mode-line-process nil)
+      (apply (process-get proc 'callback) (process-get proc 'cb-args)))))
 
-(defun doc-view-ps->pdf (ps pdf)
-  "Convert PS to PDF asynchronously."
+(defun doc-view-ps->pdf (ps pdf callback &rest cb-args)
+  "Convert PS to PDF asynchronously and call CALLBACK with CB-ARGS when finished."
   (setq doc-view-current-converter-process
 	(start-process "ps->pdf" doc-view-conversion-buffer
 		       doc-view-ps2pdf-program
@@ -631,7 +667,8 @@ Should be invoked when the cached images aren't up-to-date."
   (set-process-sentinel doc-view-current-converter-process
 			'doc-view-ps->pdf-sentinel)
   (process-put doc-view-current-converter-process 'buffer   (current-buffer))
-  (process-put doc-view-current-converter-process 'pdf-file pdf))
+  (process-put doc-view-current-converter-process 'callback callback)
+  (process-put doc-view-current-converter-process 'cb-args  cb-args))
 
 (defun doc-view-convert-current-doc ()
   "Convert `doc-view-buffer-file-name' to a set of png files, one file per page.
@@ -651,9 +688,9 @@ Those files are saved in the directory given by the function
 	(doc-view-pdf/ps->png doc-view-buffer-file-name png-file)
       ;; DVI files have to be converted to PDF before Ghostscript can process
       ;; it.
-      (doc-view-dvi->pdf doc-view-buffer-file-name
-			 (expand-file-name "doc.pdf"
-                                           doc-view-current-cache-dir)))))
+      (let ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir)))
+	(doc-view-dvi->pdf doc-view-buffer-file-name
+			   pdf 'doc-view-pdf/ps->png pdf png-file)))))
 
 ;;;; Slicing
 
@@ -796,7 +833,18 @@ For now these keys are useful:
   (interactive)
   (tooltip-show (doc-view-current-info)))
 
+(defun doc-view-open-text ()
+  "Open a buffer with the current doc's contents as text."
+  (interactive)
+  (if doc-view-current-converter-process
+      (message "DocView: please wait till conversion finished.")
+    (let ((txt (expand-file-name "doc.txt" (doc-view-current-cache-dir))))
+      (if (file-readable-p txt)
+	  (find-file txt)
+	(doc-view-doc->txt 'doc-view-open-text)))))
+
 ;;;;; Toggle between editing and viewing
+
 
 (defun doc-view-toggle-display ()
   "Toggle between editing a document as text or viewing it."
@@ -806,8 +854,8 @@ For now these keys are useful:
       (progn
 	(doc-view-kill-proc)
 	(setq buffer-read-only nil)
-        (remove-overlays (point-min) (point-max) 'doc-view t)
-        (set (make-local-variable 'image-mode-winprops-alist) t)
+	(remove-overlays (point-min) (point-max) 'doc-view t)
+	(set (make-local-variable 'image-mode-winprops-alist) t)
 	;; Switch to the previously used major mode or fall back to fundamental
 	;; mode.
 	(if doc-view-previous-major-mode
@@ -821,6 +869,7 @@ For now these keys are useful:
     (doc-view-mode)))
 
 ;;;; Searching
+
 
 (defun doc-view-search-internal (regexp file)
   "Return a list of FILE's pages that contain text matching REGEXP.
@@ -837,10 +886,10 @@ the pagenumber and CONTEXTS are all lines of text containing a match."
 	(when (match-string 2)
 	  (if (/= page lastpage)
 	      (push (cons page
-                          (list (buffer-substring
-                                 (line-beginning-position)
-                                 (line-end-position))))
-                    matches)
+			  (list (buffer-substring
+				 (line-beginning-position)
+				 (line-end-position))))
+		    matches)
 	    (setq matches (cons
 			   (append
 			    (or
@@ -895,24 +944,7 @@ If BACKWARD is non-nil, jump to the previous match."
 	;; We must convert to TXT first!
 	(if doc-view-current-converter-process
 	    (message "DocView: please wait till conversion finished.")
-	  (let ((ext (file-name-extension doc-view-buffer-file-name)))
-	    (cond
-	     ((string= ext "pdf")
-	      ;; Doc is a PDF, so convert it to TXT
-	      (doc-view-pdf->txt doc-view-buffer-file-name txt))
-	     ((string= ext "ps")
-	      ;; Doc is a PS, so convert it to PDF (which will be converted to
-	      ;; TXT thereafter).
-	      (doc-view-ps->pdf doc-view-buffer-file-name
-				(expand-file-name "doc.pdf"
-						  (doc-view-current-cache-dir))))
-	     ((string= ext "dvi")
-	      ;; Doc is a DVI.  This means that a doc.pdf already exists in its
-	      ;; cache subdirectory.
-	      (doc-view-pdf->txt (expand-file-name "doc.pdf"
-						   (doc-view-current-cache-dir))
-				 txt))
-	     (t (error "DocView doesn't know what to do")))))))))
+	  (doc-view-doc->txt 'doc-view-search nil))))))
 
 (defun doc-view-search-next-match (arg)
   "Go to the ARGth next matching page."
@@ -946,13 +978,18 @@ If BACKWARD is non-nil, jump to the previous match."
 
 ;; (put 'doc-view-mode 'mode-class 'special)
 
+(defun doc-view-already-converted-p ()
+  "Return non-nil if the current doc was already converted."
+  (and (file-exists-p (doc-view-current-cache-dir))
+       (> 0 (length (directory-files (doc-view-current-cache-dir) nil "\\.png$")))))
+
 (defun doc-view-initiate-display ()
   ;; Switch to image display if possible
   (if (doc-view-mode-p (intern (file-name-extension doc-view-buffer-file-name)))
       (progn
 	(doc-view-buffer-message)
 	(setf (doc-view-current-page) (or (doc-view-current-page) 1))
-	(if (file-exists-p (doc-view-current-cache-dir))
+	(if (doc-view-already-converted-p)
 	    (progn
 	      (message "DocView: using cached files!")
 	      (doc-view-display (current-buffer) 'force))
@@ -967,7 +1004,8 @@ If BACKWARD is non-nil, jump to the previous match."
      (substitute-command-keys
       (concat "No image (png) support available or some conversion utility for "
 	      (file-name-extension doc-view-buffer-file-name)" files is missing.  "
-	      "Type \\[doc-view-toggle-display] to switch to an editing mode.")))))
+	      "Type \\[doc-view-toggle-display] to switch to an editing mode or "
+	      "\\[doc-view-open-text] to open a buffer showing the doc as text.")))))
 
 (defvar bookmark-make-record-function)
 
@@ -978,7 +1016,7 @@ If BACKWARD is non-nil, jump to the previous match."
   ;; for each clone), but that means that clones need to collaborate a bit.
   ;; I guess it mostly means: detect when a reconversion process is already
   ;; running, and run the sentinel in all clones.
-  ;; 
+  ;;
   ;; Maybe the clones should really have a separate /tmp directory
   ;; so they could have a different resolution and you could use clones
   ;; for zooming.
@@ -1037,7 +1075,7 @@ toggle between displaying the document or editing it as text.
   (add-hook 'image-mode-new-window-functions
             'doc-view-new-window-function nil t)
   (image-mode-setup-winprops)
-  
+
   (set (make-local-variable 'mode-line-position)
        '(" P" (:eval (number-to-string (doc-view-current-page)))
 	 "/" (:eval (number-to-string (length doc-view-current-files)))))
@@ -1071,8 +1109,7 @@ See the command `doc-view-mode' for more information on this mode."
 (defun doc-view-clear-cache ()
   "Delete the whole cache (`doc-view-cache-directory')."
   (interactive)
-  (dired-delete-file doc-view-cache-directory 'always)
-  (make-directory doc-view-cache-directory))
+  (dired-delete-file doc-view-cache-directory 'always))
 
 (defun doc-view-dired-cache ()
   "Open `dired' in `doc-view-cache-directory'."
