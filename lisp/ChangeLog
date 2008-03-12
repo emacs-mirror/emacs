@@ -1,5 +1,8 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* sha1.el (sha1-string-external): Use set-buffer-multibyte rather than
+	setting default-enable-multibyte-characters.
+
 	* emulation/viper-util.el (viper-file-remote-p): Remove, unused.
 
 	* comint.el: Fix up indentation and comment style.  Remove `function'.
