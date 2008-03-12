@@ -1,5 +1,7 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* comint.el: Fix up indentation and comment style.  Remove `function'.
+
 	* international/mule-cmds.el (reset-language-environment)
 	(set-language-environment-nonascii-translation): Don't set-unibyte-charset.
 
