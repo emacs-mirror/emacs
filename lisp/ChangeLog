@@ -1,3 +1,19 @@
+2008-03-12  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* lisp/doc-view.el (doc-view-doc->txt, doc-view-open-text)
+	(doc-view-already-converted-p): New functions.
+	(doc-view-clear-cache): Don't recreate doc-view-cache-directory.
+	(doc-view-mode-map): Bind C-c C-t to doc-view-open-text.
+	(doc-view-dvi->pdf-sentinel, doc-view-dvi->pdf)
+	(doc-view-pdf->txt-sentinel, doc-view-pdf->txt)
+	(doc-view-ps->pdf-sentinel, doc-view-ps->pdf)
+	(doc-view-convert-current-doc): Don't hardwire the functions the
+	sentinels call.  Now they're provided by two args CALLBACK and
+	CB-ARGS to the functions.
+	(doc-view-search): Use doc-view-doc->txt.
+	(doc-view-initiate-display): Use doc-view-already-converted-p.
+	Mention new binding C-c C-t if doc-view-mode doesn't work.
+
 2008-03-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* diff-mode.el (diff-refine-change): Adjust colors to be more visible.
