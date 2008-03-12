@@ -1,5 +1,15 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* nntp.el: Use with-current-buffer.
+	(nntp-send-buffer): Just set the buffer to unibyte rather than use the
+	dubious mm-with-unibyte-current-buffer.
+	(nntp-with-open-group-function): New function extracted from
+	nntp-with-open-group macro.
+	(nntp-with-open-group): Use the function, so it's easier to debug.
+	Add indentation and debugging info.
+	(nntp-open-telnet-stream, nntp-open-via-rlogin-and-telnet): Recommend the
+	use of the netcat alternatives.
+
 	* rfc2047.el (rfc2047-decode-string): Don't use `m'.
 	Avoid mm-string-as-multibyte as well.
 
