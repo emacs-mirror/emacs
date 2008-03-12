@@ -1,3 +1,7 @@
+2008-03-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el (diff-refine-change): Adjust colors to be more visible.
+
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/sgml-mode.el (sgml-font-lock-syntactic-keywords):

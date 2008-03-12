@@ -1752,9 +1752,9 @@ For use in `add-log-current-defun-function'."
 
 (defface diff-refine-change
   '((((class color) (min-colors 88) (background light))
-     :background "grey90")
+     :background "grey70")
     (((class color) (min-colors 88) (background dark))
-     :background "grey40")
+     :background "grey60")
     (((class color) (background light))
      :background "yellow")
     (((class color) (background dark))
