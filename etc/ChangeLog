@@ -1,3 +1,7 @@
+2008-03-12  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Describe linum.el.
+
 2008-03-11  Glenn Morris  <rgm@gnu.org>
 
 	* images/icons/hicolor/128x128/apps/emacs.png:
@@ -105,8 +109,8 @@
 
 2008-02-02  Eli Zaretskii  <eliz@gnu.org>
 
-	* tutorials/TUTORIAL.ru: Restore copyright years.  Update
-	tutorial.  Fix wording.
+	* tutorials/TUTORIAL.ru: Restore copyright years.  Update tutorial.
+	Fix wording.
 
 2008-02-02  Kenichi Handa  <handa@ni.aist.go.jp>
 
