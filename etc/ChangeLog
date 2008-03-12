@@ -1,6 +1,7 @@
 2008-03-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* TUTORIAL.de: Remove even more discussion of flow control.
+	* TUTORIAL.de: Remove even more discussion of flow control.  Refer
+	to node name `Init Rebinding' instead of title.
 
 2008-03-12  Chong Yidong  <cyd@stupidchicken.com>
 

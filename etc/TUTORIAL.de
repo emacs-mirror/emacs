@@ -390,9 +390,9 @@ Allgemein gesprochen löscht <Delete> das Zeichen unmittelbar vor der
 aktuellen Cursorposition.
 
 [Beachten Sie, daß <Delete> ein logischer Befehlsname ist, der auf die
-jeweilige Tastatur abgebildet wird.  Lesen Sie im Abschnitt `Rebinding
-Keys in Your Init File' des Emacs-Handbuches nach, wie Sie
-gegebenenfalls die Tastaturbelegung verändern können.]
+jeweilige Tastatur abgebildet wird.  Lesen Sie im Abschnitt `Init
+Rebinding' des Emacs-Handbuches nach, wie Sie gegebenenfalls die
+Tastaturbelegung verändern können.]
 
 >> Probieren Sie das jetzt aus: Geben Sie ein paar Zeichen ein und
    löschen Sie sie wieder mit <Delete>.  Sie brauchen sich keine
