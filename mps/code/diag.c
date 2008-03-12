@@ -34,6 +34,7 @@ struct RuleStruct RulesGlobal[] = {
   { "+", "amcSegCreateNailboard", "*", "*" },
   { "+", "amcSegDestroyNailboard", "*", "*" },
   { "+", "TraceDestroy", "*", "*" },
+  { "+", "ArenaDestroy", "*", "*" },
   { NULL, "", "", "" }
 };
 

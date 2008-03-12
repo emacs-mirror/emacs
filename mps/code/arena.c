@@ -271,6 +271,10 @@ void ArenaDestroy(Arena arena)
   /* Empty the reservoir - see <code/reserv.c#reservoir.finish> */
   ReservoirSetLimit(ArenaReservoir(arena), 0);
 
+	DIAG_FIRSTF(( "ArenaDestroy", NULL ));
+	DIAG( ControlPoolDescribe(arena, DIAG_STREAM); );
+	DIAG_END("ArenaDestroy");
+
   arena->poolReady = FALSE;
   ControlFinish(arena);
 

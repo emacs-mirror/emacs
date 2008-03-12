@@ -447,8 +447,6 @@ extern Res ArenaDescribe(Arena arena, mps_lib_FILE *stream);
 extern Res ArenaDescribeTracts(Arena arena, mps_lib_FILE *stream);
 extern Bool ArenaAccess(Addr addr, AccessSet mode, MutatorFaultContext context);
 
-extern Res ControlPoolDescribe(Arena arena, mps_lib_FILE *stream);
-
 extern Bool GlobalsCheck(Globals arena);
 extern Res GlobalsInit(Globals arena);
 extern void GlobalsFinish(Globals arena);
@@ -503,6 +501,7 @@ extern void ControlFinish(Arena arena);
 extern Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
                         Bool withReservoirPermit);
 extern void ControlFree(Arena arena, void *base, size_t size);
+extern Res ControlPoolDescribe(Arena arena, mps_lib_FILE *stream);
 
 
 /* Peek/Poke
