@@ -1,3 +1,11 @@
+2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el (doc-view-new-window-function): Add assertion.
+	(doc-view-doc-type): New var.
+	(doc-view-convert-current-doc, doc-view-doc->txt): Use it.
+	(doc-view-intersection): New fun.
+	(doc-view-mode): Use it to set the new var.
+
 2008-03-12  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* lisp/doc-view.el (doc-view-doc->txt, doc-view-open-text)

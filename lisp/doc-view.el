@@ -103,7 +103,7 @@
 ;; - share more code with image-mode.
 ;; - better menu.
 ;; - Bind slicing to a drag event.
-;; - doc-view-fit-doc-to-window and doc-view-fit-window-to-doc.
+;; - doc-view-fit-doc-to-window and doc-view-fit-window-to-doc?
 ;; - zoom the region around the cursor (like xdvi).
 ;; - get rid of the silly arrow in the fringe.
 ;; - improve anti-aliasing (pdf-utils gets it better).
@@ -214,6 +214,7 @@ has finished."
   (let ((ol (image-mode-window-get 'overlay winprops)))
     (if ol
         (setq ol (copy-overlay ol))
+      (assert (not (get-char-property (point-min) 'display (car winprops))))
       (setq ol (make-overlay (point-min) (point-max) nil t))
       (overlay-put ol 'doc-view t))
     (overlay-put ol 'window (car winprops))
@@ -247,6 +248,10 @@ The file name used for conversion.  Normally it's the same as
 files inside an archive it is a temporary copy of
 the (uncompressed, extracted) file residing in
 `doc-view-cache-directory'.")
+
+(defvar doc-view-doc-type nil
+  "The type of document in the current buffer.
+Can be `dvi', `pdf', or `ps'.")
 
 ;;;; DocView Keymaps
 
@@ -615,13 +620,13 @@ Should be invoked when the cached images aren't up-to-date."
   "Convert the current document to text and call CALLBACK with CB-ARGS when done."
   (make-directory (doc-view-current-cache-dir))
   (let ((ext (file-name-extension doc-view-buffer-file-name)))
-    (cond
-     ((string= ext "pdf")
+    (case doc-view-doc-type
+     (pdf
       ;; Doc is a PDF, so convert it to TXT
       (if cb-args
 	  (doc-view-pdf->txt doc-view-buffer-file-name txt callback cb-args)
 	(doc-view-pdf->txt doc-view-buffer-file-name txt callback)))
-     ((string= ext "ps")
+     (ps
       ;; Doc is a PS, so convert it to PDF (which will be converted to
       ;; TXT thereafter).
       (let ((pdf (expand-file-name "doc.pdf"
@@ -633,7 +638,7 @@ Should be invoked when the cached images aren't up-to-date."
 	  (doc-view-ps->pdf doc-view-buffer-file-name pdf
 			    'doc-view-pdf->txt
 			    pdf txt callback))))
-     ((string= ext "dvi")
+     (dvi
       ;; Doc is a DVI.  This means that a doc.pdf already exists in its
       ;; cache subdirectory.
       (if cb-args
@@ -683,14 +688,16 @@ Those files are saved in the directory given by the function
   (let ((png-file (expand-file-name "page-%d.png"
                                     (doc-view-current-cache-dir))))
     (make-directory (doc-view-current-cache-dir))
-    (if (not (string= (file-name-extension doc-view-buffer-file-name) "dvi"))
-	;; Convert to PNG images.
-	(doc-view-pdf/ps->png doc-view-buffer-file-name png-file)
-      ;; DVI files have to be converted to PDF before Ghostscript can process
-      ;; it.
-      (let ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir)))
-	(doc-view-dvi->pdf doc-view-buffer-file-name
-			   pdf 'doc-view-pdf/ps->png pdf png-file)))))
+    (case doc-view-doc-type
+      (dvi
+       ;; DVI files have to be converted to PDF before Ghostscript can process
+       ;; it.
+       (let ((pdf (expand-file-name "doc.pdf" doc-view-current-cache-dir)))
+         (doc-view-dvi->pdf doc-view-buffer-file-name
+                            pdf 'doc-view-pdf/ps->png pdf png-file)))
+      (t
+       ;; Convert to PNG images.
+       (doc-view-pdf/ps->png doc-view-buffer-file-name png-file)))))
 
 ;;;; Slicing
 
@@ -1023,6 +1030,11 @@ If BACKWARD is non-nil, jump to the previous match."
   (remove-overlays (point-min) (point-max) 'doc-view t)
   (if (consp image-mode-winprops-alist) (setq image-mode-winprops-alist nil)))
 
+(defun doc-view-intersection (l1 l2)
+  (let ((l ()))
+    (dolist (x l1) (if (memq x l2) (push x l)))
+    l))
+
 ;;;###autoload
 (defun doc-view-mode ()
   "Major mode in DocView buffers.
@@ -1037,6 +1049,30 @@ toggle between displaying the document or editing it as text.
     (kill-all-local-variables)
     (set (make-local-variable 'doc-view-previous-major-mode) prev-major-mode))
 
+  ;; Figure out the document type.
+  (let ((name-types
+         (when buffer-file-name
+           (cdr (assoc (file-name-extension buffer-file-name)
+                       '(("dvi" dvi)
+                         ("pdf" pdf)
+                         ("epdf" pdf)
+                         ("ps" ps)
+                         ("eps" ps))))))
+        (content-types
+         (save-excursion
+           (goto-char (point-min))
+           (cond
+            ((looking-at "%!") '(ps))
+            ((looking-at "%PDF") '(pdf))
+            ((looking-at "\367\002") '(dvi))))))
+    (set (make-local-variable 'doc-view-doc-type)
+         (car (or (doc-view-intersection name-types content-types)
+                  (when (and name-types content-types)
+                    (error "Conflicting types: name says %s but content says %s"
+                           name-types content-types))
+                  name-types content-types
+                  (error "Cannot determine the document type")))))
+                  
   (doc-view-make-safe-dir doc-view-cache-directory)
   ;; Handle compressed files, remote files, files inside archives
   (set (make-local-variable 'doc-view-buffer-file-name)
