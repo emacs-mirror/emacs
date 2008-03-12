@@ -1,3 +1,11 @@
+2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el: Remove all cb-args, use closures instead.
+	(doc-view-sentinel): Merge doc-view-dvi->pdf-sentinel,
+	doc-view-ps->pdf-sentinel, and doc-view-pdf->txt-sentinel (which was
+	doing an incorrect check).  Update all callers to use the new name.
+	(doc-view-doc->txt): Add missing `txt' argument.
+
 2008-03-12  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-current-cache-dir): Set buffer used for
