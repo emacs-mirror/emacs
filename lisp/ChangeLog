@@ -1,5 +1,8 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* international/mule-cmds.el (reset-language-environment)
+	(set-language-environment-nonascii-translation): Don't set-unibyte-charset.
+
 	* doc-view.el: Remove all cb-args, use closures instead.
 	(doc-view-sentinel): Merge doc-view-dvi->pdf-sentinel,
 	doc-view-ps->pdf-sentinel, and doc-view-pdf->txt-sentinel (which was

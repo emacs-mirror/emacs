@@ -1775,7 +1775,11 @@ The default status is as follows:
   ;; (set-terminal-coding-system-internal nil)
   ;; (set-keyboard-coding-system-internal nil)
 
-  (set-unibyte-charset 'iso-8859-1))
+  ;; Back in Emacs-20, it was necessary to provide some fallback implicit
+  ;; conversion, because almost no packages handled coding-system issues.
+  ;; Nowadays it'd just paper over bugs.
+  ;; (set-unibyte-charset 'iso-8859-1)
+  )
 
 (reset-language-environment)
 
@@ -1964,7 +1968,11 @@ Setting this variable directly does not take effect.  See
     (or (and (charsetp nonascii)
 	     (get-charset-property nonascii :ascii-compatible-p))
 	(setq nonascii 'iso-8859-1))
-    (set-unibyte-charset nonascii)))
+    ;; Back in Emacs-20, it was necessary to provide some fallback implicit
+    ;; conversion, because almost no packages handled coding-system issues.
+    ;; Nowadays it'd just paper over bugs.
+    ;; (set-unibyte-charset nonascii)
+    ))
 
 (defun set-language-environment-charset (language-name)
   "Do various charset setups for language environment LANGUAGE-NAME."
