@@ -677,10 +677,6 @@ verloren geht.
    Die Ausgabe am unteren Bildschirmrand sollte `Wrote ...TUTORIAL.de'
    sein.
 
-[Eine erste Abhilfe zur Umschiffung des C-s-Problems schafft die
-Befehlsfolge `M-x save-buffer', welche exakt das gleiche wie C-x C-s
-bewirkt.]
-
 Sie können eine existierende Datei anschauen (`view') oder editieren.
 Sie können aber auch eine Datei laden, die noch gar nicht existiert,
 um so eine neue Datei zu erzeugen: Sie öffnen dazu die
@@ -1036,16 +1032,6 @@ Position zu suchen, wo `Cursor' steht, genügt es, noch einmal C-s zu
 betätigen.  Wenn es keine nächste Position gibt, dann ertönt ein
 kurzer Ton, und Emacs sagt Ihnen, daß die Suche im Augenblick
 fehlschlägt (`failing').  C-g beendet ebenfalls einen Suchvorgang.
-
-Anmerkung: Wie weiter oben schon einmal erwähnt, scheint es bei
-einigen Systemen, als ob das Ausführen von C-s Emacs abstürzen läßt
-(Emacs reagiert mit keinen Meldungen mehr; der Bildschirm wirkt
-eingefroren).  Dieser Effekt tritt auf, wenn das Betriebssystem das
-Zeichen C-s abfängt (es wird für `flow control' verwendet) und nicht
-an Emacs weiterreicht.  Um den Bildschirm wieder zum Leben zu
-erwecken, geben Sie C-q ein, und lesen Sie dann den Abschnitt
-`Spontaneous Entry to Incremental Search' im Emacs-Handbuch, was man
-am besten tun kann.
 
 Wenn Sie sich mitten in einer inkrementellen Suche befinden und
 <Delete> drücken, wird das letzte Zeichen im Suchstring gelöscht, und
