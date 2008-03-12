@@ -1,3 +1,15 @@
+2008-03-12  Juri Linkov  <juri@jurta.org>
+
+	* help.el (describe-project): Remove defaliases for view-todo and
+	describe-project that are now unnecessary after the merge from
+	emacs--rel--22 that added define-obsolete-function-alias.
+
+	* startup.el (inhibit-startup-screen): Revert incomplete
+	2008-03-10 merge from emacs--rel--22 that partly reverted
+	2008-02-28 change that added initial message to *scratch* buffer
+	regardless of the value of `inhibit-startup-screen'.
+	Now keep this change in the trunk, but not in the 22 branch.
+
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/quail.el (quail-setup-completion-buf, quail-help):
