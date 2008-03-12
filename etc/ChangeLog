@@ -1,4 +1,12 @@
-2008-02-25  Jan Djärv  <jan.h.d@swipnet.se>
+2008-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* TUTORIAL, TUTORIAL.fr, TUTORIAL.ro, TUTORIAL.bg, TUTORIAL.it:
+	* TUTORIAL.ru, TUTORIAL.cn, TUTORIAL.ja, TUTORIAL.sk:
+	* TUTORIAL.cs, TUTORIAL.ko, TUTORIAL.sl, TUTORIAL.de:
+	* TUTORIAL.nl, TUTORIAL.sv, TUTORIAL.eo, TUTORIAL.pl, TUTORIAL.th:
+	* TUTORIAL.es, TUTORIAL.pt_BR: Remove discussion of flow control.
+	
+2008-02-25  Jan Dj,Adrv  <jan.h.d@swipnet.se>
 
 	* NEWS: Mention stock icons for Gtk+.
 
