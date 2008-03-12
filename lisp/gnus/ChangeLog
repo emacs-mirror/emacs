@@ -1,5 +1,8 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* gnus-soup.el (gnus-soup-send-packet): Don't use
+	mm-with-unibyte-current-buffer since the buffer is unibyte anyway.
+
 	* nnmh.el: Use with-current-buffer.
 	(nnmh-request-list-1): Use mm-string-to-multibyte rather than
 	mm-string-as-multibyte on the output of mm-encode-coding-string.
