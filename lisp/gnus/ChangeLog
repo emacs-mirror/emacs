@@ -1,5 +1,8 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* nnweb.el (nnweb-insert-html):
+	Remove use of nnheader-string-as-multibyte.
+
 	* nnheader.el (nnheader-init-server-buffer): Use with-current-buffer.
 	(nnheader-string-as-multibyte): Remove.
 
