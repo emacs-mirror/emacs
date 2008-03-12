@@ -5,11 +5,18 @@
  * Portions copyright (c) 2002 Global Graphics Software.
  */
 
+#define AUTO_HEADER 1
+
 #include "testlib.h"
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "mpscmv.h"
+
+#if AUTO_HEADER
+#include "fmthe.h"
+#endif
 #include "fmtdy.h"
+
 #include "fmtdytst.h"
 #include "mps.h"
 #include "mpstd.h"
@@ -37,7 +44,38 @@ static mps_gen_param_s testChain[genCOUNT] = {
 
 
 static mps_pool_t amcpool;
+
 static mps_ap_t ap;
+/* For this ap.... */
+#if AUTO_HEADER
+/* Auto_header format
+ *
+ *   [ auto_header ][===object===]
+ *   ^pMps          ^pCli
+ *   <-----------sizeMps--------->
+ *                  <---sizeCli-->
+ *
+ * Note: pMps < pCli; sizeMps > sizeCli.
+ */
+#define PtrMps2Cli(n) ((char*)n + headerSIZE)
+#define PtrCli2Mps(n) ((char*)n - headerSIZE)
+#define SizeMps2Cli(n) (n - headerSIZE)
+#define SizeCli2Mps(n) (n + headerSIZE)
+#define HeaderInit(pMps) do {                                          \
+    mps_addr_t pMpsTEMP = (pMps);  /* macro hygiene */                 \
+    ((int*)pMpsTEMP)[0] = realHeader;                                  \
+    ((int*)pMpsTEMP)[1] = 0xED0ED;                                     \
+ } while(0)
+#else
+#include "fmtdy.h"
+#define PtrMps2Cli(n) (n)
+#define PtrCli2Mps(n) (n)
+#define SizeMps2Cli(n) (n)
+#define SizeCli2Mps(n) (n)
+#define HeaderInit(pMps) do {                                          \
+ } while(0)
+#endif
+
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
@@ -103,18 +141,22 @@ static void alignmentTest(mps_arena_t arena)
 
 static mps_addr_t make(void)
 {
-  size_t length = rnd() % 20, size = (length+2)*sizeof(mps_word_t);
-  mps_addr_t p;
+	size_t length = rnd() % 20;
+	size_t sizeCli = (length+2)*sizeof(mps_word_t);
+	size_t sizeMps = SizeCli2Mps(sizeCli);
+	mps_addr_t pMps, pCli;
   mps_res_t res;
 
   do {
-    MPS_RESERVE_BLOCK(res, p, ap, size);
+    MPS_RESERVE_BLOCK(res, pMps, ap, sizeMps);
     if (res != MPS_RES_OK) die(res, "MPS_RESERVE_BLOCK");
-    res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
+		HeaderInit(pMps);
+		pCli = PtrMps2Cli(pMps);
+    res = dylan_init(pCli, sizeCli, exactRoots, exactRootsCOUNT);
     if (res != MPS_RES_OK) die(res, "dylan_init");
-  } while(!mps_commit(ap, p, size));
+  } while(!mps_commit(ap, pMps, sizeMps));
 
-  return p;
+  return pCli;
 }
 
 
@@ -122,18 +164,22 @@ static mps_addr_t make(void)
 
 static mps_addr_t make_with_permit(void)
 {
-  size_t length = rnd() % 20, size = (length+2)*sizeof(mps_word_t);
-  mps_addr_t p;
+	size_t length = rnd() % 20;
+	size_t sizeCli = (length+2)*sizeof(mps_word_t);
+	size_t sizeMps = SizeCli2Mps(sizeCli);
+	mps_addr_t pMps, pCli;
   mps_res_t res;
 
   do {
-    MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(res, p, ap, size);
+    MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(res, pMps, ap, sizeMps);
     if (res != MPS_RES_OK) die(res, "MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK");
-    res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
+    HeaderInit(pMps);
+		pCli = PtrMps2Cli(pMps);
+    res = dylan_init(pCli, sizeCli, exactRoots, exactRootsCOUNT);
     if (res != MPS_RES_OK) die(res, "dylan_init");
-  } while(!mps_commit(ap, p, size));
+  } while(!mps_commit(ap, pMps, sizeMps));
 
-  return p;
+  return pCli;
 }
 
 
@@ -141,18 +187,22 @@ static mps_addr_t make_with_permit(void)
 
 static mps_addr_t make_no_inline(void)
 {
-  size_t length = rnd() % 20, size = (length+2)*sizeof(mps_word_t);
-  mps_addr_t p;
+	size_t length = rnd() % 20;
+	size_t sizeCli = (length+2)*sizeof(mps_word_t);
+	size_t sizeMps = SizeCli2Mps(sizeCli);
+	mps_addr_t pMps, pCli;
   mps_res_t res;
 
   do {
-    res = (mps_reserve)(&p, ap, size);
+    res = (mps_reserve)(&pMps, ap, sizeMps);
     if (res != MPS_RES_OK) die(res, "(mps_reserve)");
-    res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
+    HeaderInit(pMps);
+		pCli = PtrMps2Cli(pMps);
+    res = dylan_init(pCli, sizeCli, exactRoots, exactRootsCOUNT);
     if (res != MPS_RES_OK) die(res, "dylan_init");
-  } while(!(mps_commit)(ap, p, size));
+  } while(!(mps_commit)(ap, pMps, sizeMps));
 
-  return p;
+  return pCli;
 }
 
 
@@ -290,7 +340,12 @@ static void *test(void *arg, size_t s)
   arena = (mps_arena_t)arg;
   testlib_unused(s);
 
+#if AUTO_HEADER
+  EnsureHeaderFormat(&format, arena);
+#else
   die(dylan_fmt(&format, arena), "fmt_create");
+#endif
+
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
   die(mps_pool_create(&mv, arena, mps_class_mv(), 0x10000, 32, 0x10000),
