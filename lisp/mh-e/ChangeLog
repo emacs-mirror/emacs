@@ -1,3 +1,10 @@
+2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-xface.el (mh-uncompface, mh-picon-file-contents):
+	Use set-buffer-multibyte...
+	(mh-face-display-function, mh-x-image-display): ...rather than bind
+	default-enable-multibyte-characters.
+
 2008-02-24  Bill Wohler  <wohler@newt.com>
 
 	* mh-comp.el (mh-send-letter): Call split-string on mh-send-args
