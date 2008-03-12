@@ -21,7 +21,7 @@
 	* images/icons/hicolor/scalable/mimetypes/emacs-document.svg:
 	Remove `creator' metadata.
 
-2008-03-06  Jan Djärv  <jan.h.d@swipnet.se>
+2008-03-06  Jan Dj,Adrv  <jan.h.d@swipnet.se>
 
 	* images/README: Update with bookmark_add.
 
@@ -65,7 +65,7 @@
 	* NEWS (Gnus): Mention problem with coding system `utf-8-emacs'
 	when using different Emacs versions.
 
-2008-02-25  Jan Djärv  <jan.h.d@swipnet.se>
+2008-02-25  Jan Dj,Adrv  <jan.h.d@swipnet.se>
 
 	* NEWS.22: Mention stock icons for Gtk+.
 
@@ -107,7 +107,7 @@
 	* tutorials/TUTORIAL.ru: Remove redundant empty lines, insert a
 	magic line instead.
 
-2008-02-08  Jan Djärv  <jan.h.d@swipnet.se>
+2008-02-08  Jan Dj,Adrv  <jan.h.d@swipnet.se>
 
 	* NEWS: Mention XEmbed and --parent-id.
 
