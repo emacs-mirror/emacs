@@ -1,3 +1,8 @@
+2008-03-12  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-current-cache-dir): Set buffer used for
+	md5 sum calculation to single-byte.
+
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* doc-view.el (doc-view-new-window-function): Add assertion.
