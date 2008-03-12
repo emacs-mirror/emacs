@@ -1,5 +1,8 @@
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* nnimap.el (nnimap-retrieve-headers-progress): Use a unibyte temp buffer.
+	(nnimap-request-move-article): Use with-current-buffer.
+
 	* mm-decode.el (mm-with-part): Set the buffer to unibyte before inserting
 	the handle-buffer's text, so the implicit multibyte->unibyte conversion
 	uses string-make-unibyte rather than string-as-unibyte.
