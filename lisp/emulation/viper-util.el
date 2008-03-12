@@ -700,11 +700,6 @@ Otherwise return the normal value."
     ))
 
 
-;; define remote file test
-(defun viper-file-remote-p (file-name)
-  (file-remote-p file-name))
-
-
 ;; This is a simple-minded check for whether a file is under version control.
 ;; If file,v exists but file doesn't, this file is considered to be not checked
 ;; in and not checked out for the purpose of patching (since patch won't be
