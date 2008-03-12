@@ -1,3 +1,11 @@
+2008-03-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* TUTORIAL, TUTORIAL.fr, TUTORIAL.ro, TUTORIAL.bg, TUTORIAL.it:
+	* TUTORIAL.ru, TUTORIAL.cn, TUTORIAL.ja, TUTORIAL.sk:
+	* TUTORIAL.cs, TUTORIAL.ko, TUTORIAL.sl, TUTORIAL.de:
+	* TUTORIAL.nl, TUTORIAL.sv, TUTORIAL.eo, TUTORIAL.pl, TUTORIAL.th:
+	* TUTORIAL.es, TUTORIAL.pt_BR: Remove discussion of flow control.
+
 2008-03-12  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: Describe linum.el.
