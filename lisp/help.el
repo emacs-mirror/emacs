@@ -309,7 +309,6 @@ If that doesn't give a function, return nil."
   (interactive)
   (view-help-file "COPYING"))
 
-(defalias 'describe-project 'describe-gnu-project)
 (defun describe-gnu-project ()
   "Display info on the GNU project."
   (interactive)
@@ -414,7 +413,6 @@ With argument, display info only for the selected version."
 	   (beginning-of-line)
 	   (point)))))))
 
-(defalias 'view-todo 'view-emacs-todo)
 (defun view-emacs-todo (&optional arg)
   "Display the Emacs TODO list."
   (interactive "P")
