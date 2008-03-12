@@ -12,7 +12,7 @@
 @end direntry
 
 @c Version and Contact Info
-@set MAINTAINERSITE @uref{http://www.astro.uva.nl/~dominik/Tools/org/,maintainers webpage}
+@set MAINTAINERSITE @uref{http://orgmode.org/,maintainers webpage}
 @set AUTHOR Carsten Dominik
 @set MAINTAINER Carsten Dominik
 @set MAINTAINEREMAIL @email{dominik at science dot uva dot nl}
@@ -377,7 +377,7 @@ tables in arbitray file types, for example in LaTeX.
 There is a website for Org-mode which provides links to the newest
 version of Org-mode, as well as additional information, frequently asked
 questions (FAQ), links to tutorials etc.  This page is located at
-@uref{http://www.astro.uva.nl/~dominik/Tools/org/}.
+@uref{http://orgmode.org/}.
 
 @page
 
@@ -1989,7 +1989,7 @@ no space after the colon.  The following list shows examples for each
 link type.
 
 @example
-http://www.astro.uva.nl/~dominik          @r{on the web}
+http://orgmode.org/                       @r{on the web}
 file:/home/dominik/images/jupiter.jpg     @r{file, absolute path}
 file:papers/last.pdf                      @r{file, relative path}
 news:comp.emacs                           @r{Usenet link}
