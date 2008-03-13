@@ -1,7 +1,8 @@
 ;;; font-lock.el --- Electric font lock mode
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008  Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
+;;   Free Software Foundation, Inc.
 
 ;; Author: jwz, then rms, then sm
 ;; Maintainer: FSF
@@ -2147,7 +2148,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 ;; `cpp-font-lock-keywords' is handy for modes for the files.
 ;;
 ;; Here we cannot use `regexp-opt' because because regex-opt is not preloaded
-;; while font-lock.el is preloaded to emacs. So values pre-calculated with 
+;; while font-lock.el is preloaded to emacs. So values pre-calculated with
 ;; regexp-opt are used here.
 
 ;; `cpp-font-lock-keywords-source-directives' is calculated from:
@@ -2183,16 +2184,16 @@ Used in `cpp-font-lock-keywords'.")
        1 font-lock-string-face prepend)
      ;;
      ;; Fontify function macro names.
-     '("^#[ \t]*define[ \t]+\\([[:alpha:]_][[:alnum:]_$]*\\)(" 
+     '("^#[ \t]*define[ \t]+\\([[:alpha:]_][[:alnum:]_$]*\\)("
        (1 font-lock-function-name-face prepend)
        ;;
        ;; Macro arguments.
        ((lambda (limit)
 	  (re-search-forward
-	   "\\(?:\\([[:alpha:]_][[:alnum:]_]*\\)[,]?\\)" 
-	   (or (save-excursion (re-search-forward ")" limit t)) 
+	   "\\(?:\\([[:alpha:]_][[:alnum:]_]*\\)[,]?\\)"
+	   (or (save-excursion (re-search-forward ")" limit t))
 	       limit)
-	   t)) 
+	   t))
 	nil nil (1 font-lock-variable-name-face prepend)))
      ;;
      ;; Fontify symbol names in #elif or #if ... defined preprocessor directives.
@@ -2240,8 +2241,9 @@ other modes in which C preprocessor directives are used. e.g. `asm-mode' and
 		((match-beginning 6) font-lock-variable-name-face)
 		(t font-lock-type-face))
 	  nil t))
-      ;; Emacs Lisp autoload cookies.
-      ("^;;;###\\(autoload\\)" 1 font-lock-warning-face prepend)
+      ;; Emacs Lisp autoload cookies.  Supports the slightly different
+      ;; forms used by mh-e, calendar, etc.
+      ("^;;;###\\([-a-z]*autoload\\)" 1 font-lock-warning-face prepend)
       ;; Regexp negated char group.
       ("\\[\\(\\^\\)" 1 font-lock-negation-char-face prepend)))
   "Subdued level highlighting for Lisp modes.")
