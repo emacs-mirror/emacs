@@ -1,3 +1,7 @@
+2008-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.texi (EMACSVER): Set to 23.0.60.
+
 2008-03-05  Glenn Morris  <rgm@gnu.org>
 
 	* dired.texi (Hiding Subdirectories): Fix previous change.
