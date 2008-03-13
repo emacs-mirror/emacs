@@ -1,3 +1,7 @@
+2008-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.rc: Set version to 23.0.60.
+
 2008-03-04  Jason Rumney  <jasonr@gnu.org>
 
 	* gmake.defs, nmake.defs (FONT_CFLAGS): New optional compiler flag.
