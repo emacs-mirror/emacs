@@ -1,3 +1,8 @@
+2008-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings:
+	* src/Emacs.r: Set version to 23.0.60.
+
 2008-03-02  Kentaro Ohkouchi  <nanasess@fsm.ne.jp>
 
 	* Emacs.app/Contents/Resources/Emacs.icns:
@@ -5,31 +10,14 @@
 
 2008-02-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* README:
-	* INSTALL: Only mention MacOSX.
+	* INSTALL, README: Only mention MacOSX.
 
-        * cw6-mcp.xml:
-        * make-package:
-        * makefile.MPW:
-        * inc/alloca.h:
-        * inc/config.h:
-        * inc/defs-cw6.h:
-        * inc/dirent.h:
-        * inc/epaths.h:
-        * inc/grp.h:
-        * inc/m-mac.h:
-        * inc/pwd.h:
-        * inc/s-mac.h:
-        * inc/termio.h:
-        * inc/utime.h:
-        * inc/utsname.h:
-        * inc/sys/file.h:
-        * inc/sys/ioctl.h:
-        * inc/sys/param.h:
-        * inc/sys/stat.h:
-        * inc/sys/time.h:
-        * inc/sys/types.h:
-        * src/EmacsMPW.r: Remove files for no longer supported pre-MacOSX
+	* cw6-mcp.xml, make-package, makefile.MPW, inc/alloca.h:
+	* inc/config.h, inc/defs-cw6.h, inc/dirent.h, inc/epaths.h:
+	* inc/grp.h, inc/m-mac.h, inc/pwd.h, inc/s-mac.h, inc/termio.h:
+	* inc/utime.h, inc/utsname.h, inc/sys/file.h, inc/sys/ioctl.h:
+	* inc/sys/param.h, inc/sys/stat.h, inc/sys/time.h, inc/sys/types.h:
+	* src/EmacsMPW.r: Remove files for no longer supported pre-MacOSX
 	systems.
 	* inc: Remove directory.
 
