@@ -166,6 +166,7 @@ Gregorian date Sunday, December 31, 1 BC."
    "Heshvan" "Kislev" "Teveth" "Shevat" "Adar I" "Adar II"]
 "Array of strings giving the names of the Hebrew months in a leap year.")
 
+;;;###cal-autoload
 (defun calendar-hebrew-date-string (&optional date)
   "String of Hebrew date before sunset of Gregorian DATE.
 Defaults to today's date if DATE is not given.
@@ -179,6 +180,7 @@ Driven by the variable `calendar-date-display-form'."
             calendar-hebrew-month-name-array-common-year)))
     (calendar-date-string hebrew-date nil t)))
 
+;;;###cal-autoload
 (defun calendar-print-hebrew-date ()
   "Show the Hebrew calendar equivalent of the date under the cursor."
   (interactive)
@@ -218,6 +220,7 @@ Driven by the variable `calendar-date-display-form'."
      (t (calendar-absolute-from-hebrew
          (list death-month death-day year))))))
 
+;;;###cal-autoload
 (defun calendar-goto-hebrew-date (date &optional noecho)
   "Move cursor to Hebrew DATE; echo Hebrew date unless NOECHO is t."
   (interactive
@@ -264,6 +267,7 @@ Driven by the variable `calendar-date-display-form'."
                        (calendar-absolute-from-hebrew date)))
   (or noecho (calendar-print-hebrew-date)))
 
+;;;###holiday-autoload
 (defun holiday-hebrew (month day string)
   "Holiday on MONTH, DAY (Hebrew) called STRING.
 If MONTH, DAY (Hebrew) is visible, the value returned is corresponding
@@ -302,6 +306,7 @@ nil if it is not visible in the current calendar window."
 ;; h-r-h-e should be called from holidays code.
 (declare-function holiday-filter-visible-calendar "holidays" (l))
 
+;;;###holiday-autoload
 (defun holiday-rosh-hashanah-etc ()
   "List of dates related to Rosh Hashanah, as visible in calendar window."
   (if (or (< displayed-month 8)
@@ -361,6 +366,7 @@ nil if it is not visible in the current calendar window."
                  output-list)))
       output-list)))
 
+;;;###holiday-autoload
 (defun holiday-hanukkah ()
   "List of dates related to Hanukkah, as visible in calendar window."
   ;; This test is only to speed things up a bit, it works fine without it.
@@ -395,6 +401,7 @@ nil if it is not visible in the current calendar window."
 	    (list (calendar-gregorian-from-absolute (+ abs-h 7))
 		  "Hanukkah (eighth day)")))))))
 
+;;;###holiday-autoload
 (defun holiday-passover-etc ()
   "List of dates related to Passover, as visible in calendar window."
  (if (< 7 displayed-month)
@@ -479,6 +486,7 @@ nil if it is not visible in the current calendar window."
                  output-list)))
       output-list)))
 
+;;;###holiday-autoload
 (defun holiday-tisha-b-av-etc ()
   "List of dates around Tisha B'Av, as visible in calendar window."
   (if (or (< displayed-month 5)
@@ -508,6 +516,7 @@ nil if it is not visible in the current calendar window."
 
 (defvar number)				; from diary-list-entries
 
+;;;###diary-autoload
 (defun list-hebrew-diary-entries ()
   "Add any Hebrew date entries from the diary file to `diary-entries-list'.
 Hebrew date diary entries must be prefaced by `hebrew-diary-entry-symbol'
@@ -595,6 +604,7 @@ not be marked in the calendar.  This function is provided for use with the
         (set-buffer-modified-p diary-modified))
     (goto-char (point-min))))
 
+;;;###diary-autoload
 (defun mark-hebrew-calendar-date-pattern (month day year)
   "Mark dates in calendar window that conform to Hebrew date MONTH/DAY/YEAR.
 A value of 0 in any position is a wildcard."
@@ -677,6 +687,7 @@ A value of 0 in any position is a wildcard."
 (declare-function mark-calendar-days-named "diary-lib"
                   (dayname &optional color))
 
+;;;###diary-autoload
 (defun mark-hebrew-diary-entries ()
   "Mark days in the calendar window that have Hebrew date diary entries.
 Each entry in `diary-file' (or included files) visible in the calendar window
@@ -784,6 +795,7 @@ is provided for use as part of `nongregorian-diary-marking-hook'."
               (mark-hebrew-calendar-date-pattern mm dd yy)))))
       (setq d (cdr d)))))
 
+;;;###cal-autoload
 (defun insert-hebrew-diary-entry (arg)
   "Insert a diary entry.
 For the Hebrew date corresponding to the date indicated by point.
@@ -801,6 +813,7 @@ Prefix argument ARG makes the entry nonmarking."
        nil t))
      arg)))
 
+;;;###cal-autoload
 (defun insert-monthly-hebrew-diary-entry (arg)
   "Insert a monthly diary entry.
 For the day of the Hebrew month corresponding to the date indicated by point.
@@ -819,6 +832,7 @@ Prefix argument ARG makes the entry nonmarking."
          (calendar-cursor-to-date t)))))
      arg)))
 
+;;;###cal-autoload
 (defun insert-yearly-hebrew-diary-entry (arg)
   "Insert an annual diary entry.
 For the day of the Hebrew year corresponding to the date indicated by point.
@@ -912,10 +926,13 @@ from the cursor position."
 
 (defvar date)
 
+;; To be called from list-sexp-diary-entries, where DATE is bound.
+;;;###diary-autoload
 (defun diary-hebrew-date ()
   "Hebrew calendar equivalent of date diary entry."
   (format "Hebrew date (until sunset): %s" (calendar-hebrew-date-string date)))
 
+;;;###diary-autoload
 (defun diary-omer (&optional mark)
   "Omer count diary entry.
 Entry applies if date is within 50 days after Passover.
@@ -944,6 +961,7 @@ use when highlighting the day in the calendar."
 
 (defvar entry)
 
+;;;###diary-autoload
 (defun diary-yahrzeit (death-month death-day death-year &optional mark)
   "Yahrzeit diary entry--entry applies if date is Yahrzeit or the day before.
 Parameters are DEATH-MONTH, DEATH-DAY, DEATH-YEAR; the diary entry is assumed
@@ -977,6 +995,7 @@ use when highlighting the day in the calendar."
 			    ((= (% diff 10) 3) "rd")
 			    (t "th")))))))
 
+;;;###diary-autoload
 (defun diary-rosh-hodesh (&optional mark)
   "Rosh Hodesh diary entry.
 Entry applies if date is Rosh Hodesh, the day before, or the Saturday before.
@@ -1058,6 +1077,7 @@ use when highlighting the day in the calendar."
               (aref hebrew-calendar-parashiot-names (aref p 1)))
     (aref hebrew-calendar-parashiot-names p)))
 
+;;;###diary-autoload
 (defun diary-parasha (&optional mark)
   "Parasha diary entry--entry applies if date is a Saturday.
 An optional parameter MARK specifies a face or single-character string to
