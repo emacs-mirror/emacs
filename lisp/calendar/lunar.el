@@ -184,6 +184,7 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
         ((= 2 phase) "Full Moon")
         ((= 3 phase) "Last Quarter Moon")))
 
+;;;###cal-autoload
 (defun calendar-phases-of-moon ()
   "Create a buffer with the lunar phases for the current calendar window."
   (interactive)
@@ -235,6 +236,7 @@ This function is suitable for execution in a .emacs file."
            (displayed-year (extract-calendar-year date)))
       (calendar-phases-of-moon))))
 
+;;;###diary-autoload
 (defun diary-phases-of-moon (&optional mark)
 "Moon phases diary entry.
 An optional parameter MARK specifies a face or single-character string to
