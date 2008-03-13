@@ -1,3 +1,7 @@
+2008-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.1: Fix Emacs version.
+
 2008-01-08  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.1: Update Emacs version.
