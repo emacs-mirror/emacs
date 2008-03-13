@@ -55,12 +55,6 @@
 
 ;;; Code:
 
-(defvar date)
-(defvar displayed-month)
-(defvar displayed-year)
-(defvar number)
-(defvar original-date)
-
 (require 'cal-julian)
 
 (defconst calendar-bahai-month-name-array
@@ -118,7 +112,7 @@ Gregorian date Sunday, December 31, 1 BC."
                (1- (calendar-absolute-from-bahai (list month 1 year))))))
       (list month day year))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-bahai-date-string (&optional date)
   "String of Bahá'í date of Gregorian DATE.
 Defaults to today's date if DATE is not given."
@@ -144,14 +138,14 @@ Defaults to today's date if DATE is not given."
 	  (year (int-to-string y)))
       (mapconcat 'eval calendar-date-display-form ""))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-bahai-print-date ()
   "Show the Bahá'í calendar equivalent of the selected date."
   (interactive)
   (message "Bahá'í date: %s"
            (calendar-bahai-date-string (calendar-cursor-to-date t))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-bahai-goto-date (date &optional noecho)
   "Move cursor to Bahá'í date DATE.
 Echo Bahá'í date unless NOECHO is t."
@@ -183,10 +177,10 @@ Echo Bahá'í date unless NOECHO is t."
 			     (lambda (x) (and (< 0 x) (<= x 19))))))
     (list (list month day year))))
 
-(defun diary-bahai-date ()
-  "Bahá'í calendar equivalent of date diary entry."
-  (format "Bahá'í date: %s" (calendar-bahai-date-string date)))
+(defvar displayed-month)
+(defvar displayed-year)
 
+;;;###holiday-autoload
 (defun holiday-bahai (month day string)
   "Holiday on MONTH, DAY (Bahá'í) called STRING.
 If MONTH, DAY (Bahá'í) is visible, the value returned is corresponding
@@ -207,10 +201,14 @@ nil if it is not visible in the current calendar window."
             (if (calendar-date-is-visible-p date)
                 (list (list date string))))))))
 
+(defvar number)
+(defvar original-date)
+
 ;; d-b-l-e should be called from diary code.
 (declare-function add-to-diary-list "diary-lib"
                   (date string specifier &optional marker globcolor literal))
 
+;;;###diary-autoload
 (defun diary-bahai-list-entries ()
   "Add any Bahá'í date entries from the diary file to `diary-entries-list'.
 Bahá'í date diary entries must be prefaced by an
@@ -303,6 +301,7 @@ calendar.  This function is provided for use with the
 (declare-function mark-calendar-days-named "diary-lib"
                   (dayname &optional color))
 
+;;;###diary-autoload
 (defun diary-bahai-mark-entries ()
   "Mark days in the calendar window that have Bahá'í date diary entries.
 Each entry in `diary-file' (or included files) visible in the calendar
@@ -412,6 +411,7 @@ part of `nongregorian-diary-marking-hook'."
               (calendar-bahai-mark-date-pattern mm dd yy)))))
       (setq d (cdr d)))))
 
+;;;###diary-autoload
 (defun calendar-bahai-mark-date-pattern (month day year)
   "Mark dates in calendar window that conform to Bahá'í date MONTH/DAY/YEAR.
 A value of 0 in any position is a wildcard."
@@ -470,7 +470,7 @@ A value of 0 in any position is a wildcard."
                  (mark-visible-calendar-date
                   (calendar-gregorian-from-absolute date)))))))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun diary-bahai-insert-entry (arg)
   "Insert a diary entry.
 For the Bahá'í date corresponding to the date indicated by point.
@@ -487,7 +487,7 @@ Prefix argument ARG makes the entry nonmarking."
        nil t))
      arg)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun diary-bahai-insert-monthly-entry (arg)
   "Insert a monthly diary entry.
 For the day of the Bahá'í month corresponding to the date indicated by point.
@@ -505,7 +505,7 @@ Prefix argument ARG makes the entry nonmarking."
          (calendar-cursor-to-date t)))))
      arg)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun diary-bahai-insert-yearly-entry (arg)
   "Insert an annual diary entry.
 For the day of the Bahá'í year corresponding to the date indicated by point.
@@ -524,6 +524,15 @@ Prefix argument ARG will make the entry nonmarking."
         (calendar-absolute-from-gregorian
          (calendar-cursor-to-date t)))))
      arg)))
+
+(defvar date)
+
+;; To be called from list-sexp-diary-entries, where DATE is bound.
+;;;###diary-autoload
+(defun diary-bahai-date ()
+  "Bahá'í calendar equivalent of date diary entry."
+  (format "Bahá'í date: %s" (calendar-bahai-date-string date)))
+
 
 ;; Backward compatibility.
 (define-obsolete-function-alias
@@ -547,7 +556,6 @@ Prefix argument ARG will make the entry nonmarking."
 
 ;; Local Variables:
 ;; coding: utf-8
-;; generated-autoload-file: "cal-loaddefs.el"
 ;; End:
 
 ;; arch-tag: c1cb1d67-862a-4264-a01c-41cb4df01f14
