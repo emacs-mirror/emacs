@@ -203,6 +203,7 @@ so calling `appt-make-list' again should preserve it.")
   "String being displayed in the mode line saying you have an appointment.
 The actual string includes the amount of time till the appointment.
 Only used if `appt-display-mode-line' is non-nil.")
+(put 'appt-mode-string 'risky-local-variable t) ; for 'face property
 
 (defvar appt-prev-comp-time nil
   "Time of day (mins since midnight) at which we last checked appointments.
@@ -390,7 +391,9 @@ displayed in a window:
                                           min-to-app))
 		  (when appt-display-mode-line
 		    (setq appt-mode-string
-                          (format " App't in %s min." min-to-app)))
+                          (concat " " (propertize
+                                       (format "App't in %s min." min-to-app)
+                                       'face 'mode-line-emphasis))))
 		  ;; When an appointment is reached, delete it from
 		  ;; the list.  Reset the count to 0 in case we
 		  ;; display another appointment on the next cycle.
