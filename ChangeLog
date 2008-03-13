@@ -1,3 +1,8 @@
+2008-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* configure.in (AC_INIT): Fix version number.
+	(sync-input): Reword the option, since it's on by default.
+
 2008-03-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Add --enable-sync-input, default yes.
