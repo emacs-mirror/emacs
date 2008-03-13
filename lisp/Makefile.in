@@ -1,6 +1,6 @@
 # Maintenance productions for the Lisp directory
-# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005,
-#   2006, 2007, 2008 Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+#   2008  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -46,8 +46,13 @@ lisptagsfiles1 = $(lisp)/[a-zA-Z]*.el
 lisptagsfiles2 = $(lisp)/[a-zA-Z]*/[a-zA-Z]*.el
 ETAGS = ../lib-src/etags
 
+# Automatically generated autoload files, apart from lisp/loaddefs.el.
+LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
+	$(lisp)/calendar/diary-loaddefs.el $(lisp)/calendar/hol-loaddefs.el
+
 # Elisp files auto-generated.
 AUTOGENEL = loaddefs.el \
+	$(LOADDEFS) \
 	cus-load.el \
 	finder-inf.el \
 	subdirs.el \
@@ -107,17 +112,7 @@ finder-data: $(lisp)/subdirs.el autoloads doit
 	echo Directories: $$wins; \
 	$(emacs) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
 
-$(lisp)/loaddefs.el:
-	echo ";;; loaddefs.el --- automatically extracted autoloads" >> $@
-	echo ";;" >> $@; echo ";;; Code:" >> $@
-	echo "" >> $@
-	echo ";; Local Variables:" >> $@
-	echo ";; version-control: never" >> $@
-	echo ";; no-byte-compile: t" >> $@
-	echo ";; no-update-autoloads: t" >> $@
-	echo ";; End:" >> $@
-	echo ";;; loaddefs.el ends here" >> $@
-autoloads: $(lisp)/subdirs.el $(lisp)/loaddefs.el doit
+autoloads: $(lisp)/subdirs.el $(LOADDEFS) doit
 	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
 	$(emacs) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
@@ -232,31 +227,14 @@ $(lisp)/progmodes/cc-mode.elc: \
 	$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $(lisp)/progmodes/cc-mode.el
 
 # Update MH-E internal autoloads. These are not to be confused with
-# the autoloads for the MH-E entry points, which are already in
-# loaddefs.el.
-MH_E_SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
-	$(lisp)/mh-e/mh-buffers.el $(lisp)/mh-e/mh-compat.el	\
-	$(lisp)/mh-e/mh-comp.el $(lisp)/mh-e/mh-e.el		\
-	$(lisp)/mh-e/mh-folder.el $(lisp)/mh-e/mh-funcs.el	\
-	$(lisp)/mh-e/mh-gnus.el $(lisp)/mh-e/mh-identity.el	\
-	$(lisp)/mh-e/mh-inc.el $(lisp)/mh-e/mh-junk.el		\
-	$(lisp)/mh-e/mh-letter.el $(lisp)/mh-e/mh-limit.el	\
-	$(lisp)/mh-e/mh-mime.el $(lisp)/mh-e/mh-print.el	\
-	$(lisp)/mh-e/mh-scan.el $(lisp)/mh-e/mh-search.el	\
-	$(lisp)/mh-e/mh-seq.el $(lisp)/mh-e/mh-show.el		\
-	$(lisp)/mh-e/mh-speed.el $(lisp)/mh-e/mh-thread.el	\
-	$(lisp)/mh-e/mh-tool-bar.el $(lisp)/mh-e/mh-utils.el	\
-	$(lisp)/mh-e/mh-xface.el
-
+# the autoloads for the MH-E entry points, which are already in loaddefs.el.
 mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
-$(lisp)/mh-e/mh-loaddefs.el: $(lisp)/subdirs.el $(MH_E_SRC)
+$(lisp)/mh-e/mh-loaddefs.el: $(lisp)/subdirs.el
+## The only non-standard part of this is the provide.
+## All these echos can be removed if mh-e.el changes to use
+## (load "mh-loaddefs" nil 'quiet).
 	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@
-	echo "" >> $@
-	echo ";; Copyright (C) 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc." >> $@
-	echo ";; Author: Bill Wohler <wohler@newt.com>" >> $@
-	echo ";; Keywords: mail" >> $@
-	echo ";;; Commentary:" >> $@
-	echo ";;; Change Log:" >> $@
+	echo ";;" >> $@
 	echo ";;; Code:" >> $@
 	echo "" >> $@
 	echo "(provide 'mh-loaddefs)" >> $@
@@ -266,12 +244,32 @@ $(lisp)/mh-e/mh-loaddefs.el: $(lisp)/subdirs.el $(MH_E_SRC)
 	echo ";; no-update-autoloads: t" >> $@
 	echo ";; End:" >> $@
 	echo ";;; mh-loaddefs.el ends here" >> $@
-	$(emacs) \
-	   -l autoload \
+	$(emacs) -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \
+	   --eval "(setq generated-autoload-file \"$@\")" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(lisp)/mh-e
+
+$(lisp)/calendar/cal-loaddefs.el:
+	$(emacs) -l autoload \
+	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
+	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq make-backup-files nil)" \
+	   -f batch-update-autoloads $(lisp)/calendar
+
+$(lisp)/calendar/diary-loaddefs.el:
+	$(emacs) -l autoload \
+	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
+	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq make-backup-files nil)" \
+	   -f batch-update-autoloads $(lisp)/calendar
+
+$(lisp)/calendar/hol-loaddefs.el:
+	$(emacs) -l autoload \
+	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
+	   --eval "(setq generated-autoload-file \"$@\")" \
+	   --eval "(setq make-backup-files nil)" \
+	   -f batch-update-autoloads $(lisp)/calendar
 
 # Prepare a bootstrap in the lisp subdirectory.
 #
