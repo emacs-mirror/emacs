@@ -165,14 +165,14 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
                            ((= phase 2) (- adjustment adj))
                            (t adjustment)))
          (date (+ date adjustment))
-	 (date (+ date (/ (- calendar-time-zone
-			     (solar-ephemeris-correction
+         (date (+ date (/ (- calendar-time-zone
+                             (solar-ephemeris-correction
                               (extract-calendar-year
                                (calendar-gregorian-from-absolute
                                 (truncate date)))))
-			  60.0 24.0)))
+                          60.0 24.0)))
          (time (* 24 (- date (truncate date))))
-	 (date (calendar-gregorian-from-absolute (truncate date)))
+         (date (calendar-gregorian-from-absolute (truncate date)))
          (adj (dst-adjust-time date time)))
     (list (car adj) (apply 'solar-time-string (cdr adj)) phase)))
 
@@ -261,103 +261,103 @@ use when highlighting the day in the calendar."
 (defun lunar-new-moon-time (k)
   "Astronomical (Julian) day number of K th new moon."
   (let* ((T (/ k 1236.85))
-	 (T2 (* T T))
-	 (T3 (* T T T))
-	 (T4 (* T2 T2))
-	 (JDE (+ 2451550.09765
-		 (* 29.530588853 k)
-		 (* 0.0001337 T2)
-		 (* -0.000000150 T3)
-		 (* 0.00000000073 T4)))
-	 (E (- 1 (* 0.002516 T) (* 0.0000074 T2)))
-	 (sun-anomaly (+ 2.5534
-			 (* 29.10535669 k)
-			 (* -0.0000218 T2)
-			 (* -0.00000011 T3)))
-	 (moon-anomaly (+ 201.5643
-			  (* 385.81693528 k)
-			  (* 0.0107438 T2)
-			  (* 0.00001239 T3)
-			  (* -0.000000058 T4)))
-	 (moon-argument (+ 160.7108
-			   (* 390.67050274 k)
-			   (* -0.0016341 T2)
-			   (* -0.00000227 T3)
-			   (* 0.000000011 T4)))
-	 (omega (+ 124.7746
-		   (* -1.56375580 k)
-		   (* 0.0020691 T2)
-		   (* 0.00000215 T3)))
-	 (A1  (+ 299.77 (*  0.107408 k) (* -0.009173 T2)))
-	 (A2  (+ 251.88 (*  0.016321 k)))
-	 (A3  (+ 251.83 (* 26.641886 k)))
-	 (A4  (+ 349.42 (* 36.412478 k)))
-	 (A5  (+  84.66 (* 18.206239 k)))
-	 (A6  (+ 141.74 (* 53.303771 k)))
-	 (A7  (+ 207.14 (*  2.453732 k)))
-	 (A8  (+ 154.84 (*  7.306860 k)))
-	 (A9  (+  34.52 (* 27.261239 k)))
-	 (A10 (+ 207.19 (*  0.121824 k)))
-	 (A11 (+ 291.34 (*  1.844379 k)))
-	 (A12 (+ 161.72 (* 24.198154 k)))
-	 (A13 (+ 239.56 (* 25.513099 k)))
-	 (A14 (+ 331.55 (*  3.592518 k)))
-	 (correction
-	    (+ (* -0.40720   (solar-sin-degrees moon-anomaly))
-	       (*  0.17241 E (solar-sin-degrees sun-anomaly))
-	       (*  0.01608   (solar-sin-degrees (* 2 moon-anomaly)))
-	       (*  0.01039   (solar-sin-degrees (* 2 moon-argument)))
-	       (*  0.00739 E (solar-sin-degrees (- moon-anomaly sun-anomaly)))
-	       (* -0.00514 E (solar-sin-degrees (+ moon-anomaly sun-anomaly)))
-	       (*  0.00208 E E (solar-sin-degrees (* 2 sun-anomaly)))
-	       (* -0.00111   (solar-sin-degrees
-			       (- moon-anomaly (* 2 moon-argument))))
-	       (* -0.00057   (solar-sin-degrees
-			       (+ moon-anomaly (* 2 moon-argument))))
-	       (*  0.00056 E (solar-sin-degrees
-			       (+ (* 2 moon-anomaly) sun-anomaly)))
-	       (* -0.00042   (solar-sin-degrees (* 3 moon-anomaly)))
-	       (*  0.00042 E (solar-sin-degrees
-			       (+ sun-anomaly (* 2 moon-argument))))
-	       (*  0.00038 E (solar-sin-degrees
-			       (- sun-anomaly (* 2 moon-argument))))
-	       (* -0.00024 E (solar-sin-degrees
-			       (- (* 2 moon-anomaly) sun-anomaly)))
-	       (* -0.00017   (solar-sin-degrees omega))
-	       (* -0.00007   (solar-sin-degrees
-			       (+ moon-anomaly (* 2 sun-anomaly))))
-	       (*  0.00004   (solar-sin-degrees
-			       (- (* 2 moon-anomaly) (* 2 moon-argument))))
-	       (*  0.00004   (solar-sin-degrees (* 3 sun-anomaly)))
-	       (*  0.00003   (solar-sin-degrees (+ moon-anomaly sun-anomaly
-						   (* -2 moon-argument))))
-	       (*  0.00003   (solar-sin-degrees
-			       (+ (* 2 moon-anomaly) (* 2 moon-argument))))
-	       (* -0.00003   (solar-sin-degrees (+ moon-anomaly sun-anomaly
-						   (* 2 moon-argument))))
-	       (*  0.00003   (solar-sin-degrees (- moon-anomaly sun-anomaly
-						   (* -2 moon-argument))))
-	       (* -0.00002   (solar-sin-degrees (- moon-anomaly sun-anomaly
-						   (* 2 moon-argument))))
-	       (* -0.00002   (solar-sin-degrees
-			       (+ (* 3 moon-anomaly) sun-anomaly)))
-	       (*  0.00002   (solar-sin-degrees (* 4 moon-anomaly)))))
-	 (additional
-	    (+ (* 0.000325 (solar-sin-degrees A1))
-	       (* 0.000165 (solar-sin-degrees A2))
-	       (* 0.000164 (solar-sin-degrees A3))
-	       (* 0.000126 (solar-sin-degrees A4))
-	       (* 0.000110 (solar-sin-degrees A5))
-	       (* 0.000062 (solar-sin-degrees A6))
-	       (* 0.000060 (solar-sin-degrees A7))
-	       (* 0.000056 (solar-sin-degrees A8))
-	       (* 0.000047 (solar-sin-degrees A9))
-	       (* 0.000042 (solar-sin-degrees A10))
-	       (* 0.000040 (solar-sin-degrees A11))
-	       (* 0.000037 (solar-sin-degrees A12))
-	       (* 0.000035 (solar-sin-degrees A13))
-	       (* 0.000023 (solar-sin-degrees A14))))
-	 (newJDE (+ JDE correction additional)))
+         (T2 (* T T))
+         (T3 (* T T T))
+         (T4 (* T2 T2))
+         (JDE (+ 2451550.09765
+                 (* 29.530588853 k)
+                 (* 0.0001337 T2)
+                 (* -0.000000150 T3)
+                 (* 0.00000000073 T4)))
+         (E (- 1 (* 0.002516 T) (* 0.0000074 T2)))
+         (sun-anomaly (+ 2.5534
+                         (* 29.10535669 k)
+                         (* -0.0000218 T2)
+                         (* -0.00000011 T3)))
+         (moon-anomaly (+ 201.5643
+                          (* 385.81693528 k)
+                          (* 0.0107438 T2)
+                          (* 0.00001239 T3)
+                          (* -0.000000058 T4)))
+         (moon-argument (+ 160.7108
+                           (* 390.67050274 k)
+                           (* -0.0016341 T2)
+                           (* -0.00000227 T3)
+                           (* 0.000000011 T4)))
+         (omega (+ 124.7746
+                   (* -1.56375580 k)
+                   (* 0.0020691 T2)
+                   (* 0.00000215 T3)))
+         (A1  (+ 299.77 (*  0.107408 k) (* -0.009173 T2)))
+         (A2  (+ 251.88 (*  0.016321 k)))
+         (A3  (+ 251.83 (* 26.641886 k)))
+         (A4  (+ 349.42 (* 36.412478 k)))
+         (A5  (+  84.66 (* 18.206239 k)))
+         (A6  (+ 141.74 (* 53.303771 k)))
+         (A7  (+ 207.14 (*  2.453732 k)))
+         (A8  (+ 154.84 (*  7.306860 k)))
+         (A9  (+  34.52 (* 27.261239 k)))
+         (A10 (+ 207.19 (*  0.121824 k)))
+         (A11 (+ 291.34 (*  1.844379 k)))
+         (A12 (+ 161.72 (* 24.198154 k)))
+         (A13 (+ 239.56 (* 25.513099 k)))
+         (A14 (+ 331.55 (*  3.592518 k)))
+         (correction
+            (+ (* -0.40720   (solar-sin-degrees moon-anomaly))
+               (*  0.17241 E (solar-sin-degrees sun-anomaly))
+               (*  0.01608   (solar-sin-degrees (* 2 moon-anomaly)))
+               (*  0.01039   (solar-sin-degrees (* 2 moon-argument)))
+               (*  0.00739 E (solar-sin-degrees (- moon-anomaly sun-anomaly)))
+               (* -0.00514 E (solar-sin-degrees (+ moon-anomaly sun-anomaly)))
+               (*  0.00208 E E (solar-sin-degrees (* 2 sun-anomaly)))
+               (* -0.00111   (solar-sin-degrees
+                               (- moon-anomaly (* 2 moon-argument))))
+               (* -0.00057   (solar-sin-degrees
+                               (+ moon-anomaly (* 2 moon-argument))))
+               (*  0.00056 E (solar-sin-degrees
+                               (+ (* 2 moon-anomaly) sun-anomaly)))
+               (* -0.00042   (solar-sin-degrees (* 3 moon-anomaly)))
+               (*  0.00042 E (solar-sin-degrees
+                               (+ sun-anomaly (* 2 moon-argument))))
+               (*  0.00038 E (solar-sin-degrees
+                               (- sun-anomaly (* 2 moon-argument))))
+               (* -0.00024 E (solar-sin-degrees
+                               (- (* 2 moon-anomaly) sun-anomaly)))
+               (* -0.00017   (solar-sin-degrees omega))
+               (* -0.00007   (solar-sin-degrees
+                               (+ moon-anomaly (* 2 sun-anomaly))))
+               (*  0.00004   (solar-sin-degrees
+                               (- (* 2 moon-anomaly) (* 2 moon-argument))))
+               (*  0.00004   (solar-sin-degrees (* 3 sun-anomaly)))
+               (*  0.00003   (solar-sin-degrees (+ moon-anomaly sun-anomaly
+                                                   (* -2 moon-argument))))
+               (*  0.00003   (solar-sin-degrees
+                               (+ (* 2 moon-anomaly) (* 2 moon-argument))))
+               (* -0.00003   (solar-sin-degrees (+ moon-anomaly sun-anomaly
+                                                   (* 2 moon-argument))))
+               (*  0.00003   (solar-sin-degrees (- moon-anomaly sun-anomaly
+                                                   (* -2 moon-argument))))
+               (* -0.00002   (solar-sin-degrees (- moon-anomaly sun-anomaly
+                                                   (* 2 moon-argument))))
+               (* -0.00002   (solar-sin-degrees
+                               (+ (* 3 moon-anomaly) sun-anomaly)))
+               (*  0.00002   (solar-sin-degrees (* 4 moon-anomaly)))))
+         (additional
+            (+ (* 0.000325 (solar-sin-degrees A1))
+               (* 0.000165 (solar-sin-degrees A2))
+               (* 0.000164 (solar-sin-degrees A3))
+               (* 0.000126 (solar-sin-degrees A4))
+               (* 0.000110 (solar-sin-degrees A5))
+               (* 0.000062 (solar-sin-degrees A6))
+               (* 0.000060 (solar-sin-degrees A7))
+               (* 0.000056 (solar-sin-degrees A8))
+               (* 0.000047 (solar-sin-degrees A9))
+               (* 0.000042 (solar-sin-degrees A10))
+               (* 0.000040 (solar-sin-degrees A11))
+               (* 0.000037 (solar-sin-degrees A12))
+               (* 0.000035 (solar-sin-degrees A13))
+               (* 0.000023 (solar-sin-degrees A14))))
+         (newJDE (+ JDE correction additional)))
     (+ newJDE
        (- (solar-ephemeris-correction
            (extract-calendar-year
@@ -377,8 +377,8 @@ calendar-time-zone."
   (let* ((date (calendar-gregorian-from-absolute
                 (floor (calendar-absolute-from-astro d))))
          (year (+ (extract-calendar-year date)
-		  (/ (calendar-day-number date) 365.25)))
-	 (k (floor (* (- year 2000.0) 12.3685)))
+                  (/ (calendar-day-number date) 365.25)))
+         (k (floor (* (- year 2000.0) 12.3685)))
          (date (lunar-new-moon-time k)))
     (while (< date d)
       (setq k (1+ k))
