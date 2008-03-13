@@ -1,3 +1,9 @@
+2008-03-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Exporting Agenda Views): Document agenda export to
+	iCalendar.
+	(Progress logging): Document the new progress logging stuff.
+
 2008-03-10  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Mail Source Customization, Gnus Development, Oort Gnus):
