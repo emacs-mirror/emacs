@@ -1133,9 +1133,10 @@ main (argc, argv
   if (argmatch (argv, argc, "-script", "--script", 3, &junk, &skip_args))
     {
       noninteractive = 1;	/* Set batch mode.  */
-      /* Convert --script to --scriptload, un-skip it, and sort again
+      /* Convert --script to -internal-script, un-skip it, and sort again
 	 so that it will be handled in proper sequence.  */
-      argv[skip_args - 1] = "-scriptload";
+      /* FIXME broken for --script=FILE - is that supposed to work?  */
+      argv[skip_args - 1] = "-internal-script";
       skip_args -= 2;
       sort_args (argc, argv);
     }
@@ -1427,12 +1428,8 @@ main (argc, argv
 
 #ifdef USE_FONT_BACKEND
   enable_font_backend = 1;
-  if (argmatch (argv, argc, "-enable-font-backend", "--enable-font-backend",
-		4, NULL, &skip_args))
-    enable_font_backend = 1;
-  else if (argmatch (argv, argc,
-		     "-disable-font-backend", "--disable-font-backend",
-		     4, NULL, &skip_args))
+  if (argmatch (argv, argc, "-disable-font-backend", "--disable-font-backend",
+                4, NULL, &skip_args))
     enable_font_backend = 0;
 #endif	/* USE_FONT_BACKEND */
 
@@ -1822,7 +1819,6 @@ struct standard_args standard_args[] =
   { "-unibyte", "--unibyte", 81, 0 },
   { "-no-multibyte", "--no-multibyte", 80, 0 },
   { "-nl", "--no-loadup", 70, 0 },
-  { "-enable-font-backend", "--enable-font-backend", 65, 0 },
   { "-disable-font-backend", "--disable-font-backend", 65, 0 },
   /* -d must come last before the options handled in startup.el.  */
   { "-d", "--display", 60, 1 },
@@ -1876,7 +1872,11 @@ struct standard_args standard_args[] =
   { "-directory", 0, 0, 1 },
   { "-l", "--load", 0, 1 },
   { "-load", 0, 0, 1 },
-  { "-scriptload", "--scriptload", 0, 1 },
+  /* This was --scriptload, but that confuses sort_args, because then
+     the --script long option seems to match twice; ie you can't have
+     a long option which is a prefix of another long option.
+     In any case, this is entirely an internal option.  */
+  { "-internal-script", "--internal-script", 0, 1 },
   { "-f", "--funcall", 0, 1 },
   { "-funcall", 0, 0, 1 },
   { "-eval", "--eval", 0, 1 },
@@ -1987,6 +1987,9 @@ sort_args (argc, argv)
 		    fatal ("Option `%s' requires an argument\n", argv[from]);
 		  from += options[from];
 		}
+	      /* FIXME When match < 0, shouldn't there be some error,
+		 or at least indication to the user that there was a
+		 problem?  */
 	    }
 	done: ;
 	}
