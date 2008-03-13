@@ -60,10 +60,6 @@
 
 (require 'calendar)
 
-(autoload 'diary-list-entries "diary-lib" nil t)
-(autoload 'calendar-holiday-list "holidays" nil t)
-(autoload 'calendar-iso-from-absolute "cal-iso" nil t)
-
 ;;;
 ;;; Customizable variables
 ;;;
@@ -241,6 +237,8 @@ The names are taken from `calendar-day-name-array'.")
   "LaTeX code to insert one box with date info in calendar.
 This definition is the heart of the calendar!")
 
+(autoload 'calendar-holiday-list "holidays")
+
 (defun cal-tex-list-holidays (d1 d2)
   "Generate a list of all holidays from absolute date D1 to D2."
   (let* ((start (calendar-gregorian-from-absolute d1))
@@ -264,6 +262,8 @@ This definition is the heart of the calendar!")
            (and (<= d1 a) (<= a d2))
            (setq in-range (append (list hol) in-range))))
     in-range))
+
+(autoload 'diary-list-entries "diary-lib")
 
 (defun cal-tex-list-diary-entries (d1 d2)
   "Generate a list of all diary-entries from absolute date D1 to D2."
@@ -312,7 +312,7 @@ Optional string ARGS are included as options for the article document class."
 ;;;  Yearly calendars
 ;;;
 
-;;;###autoload
+;;;###cal-autoload
 (defun cal-tex-cursor-year (&optional arg)
   "Make a buffer with LaTeX commands for the year cursor is on.
 Optional prefix argument ARG specifies number of years."
@@ -320,7 +320,7 @@ Optional prefix argument ARG specifies number of years."
   (cal-tex-year (extract-calendar-year (calendar-cursor-to-date t))
                 (or arg 1)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun cal-tex-cursor-year-landscape (&optional arg)
   "Make a buffer with LaTeX commands for the year cursor is on.
 Optional prefix argument ARG specifies number of years."
@@ -364,7 +364,7 @@ landscape mode with three rows of four months each."
     (run-hooks 'cal-tex-year-hook))
   (run-hooks 'cal-tex-hook))
 
-;;;###autoload
+;;;###cal-autoload
 (defun cal-tex-cursor-filofax-year (&optional arg)
   "Make a Filofax one page yearly calendar of year indicated by cursor.
 Optional prefix argument ARG specifies number of years."
@@ -417,7 +417,7 @@ Optional prefix argument ARG specifies number of years."
 ;;;  Monthly calendars
 ;;;
 
-;;;###autoload
+;;;###cal-autoload
 (defun cal-tex-cursor-month-landscape (&optional arg)
   "Make a LaTeX calendar buffer for the month the cursor is on.
 Optional prefix argument ARG specifies number of months to be
@@ -486,7 +486,7 @@ month to a page.  It shows holiday and diary entries if
       (cal-tex-end-document)
       (run-hooks 'cal-tex-hook))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun cal-tex-cursor-month (arg)
   "Make a LaTeX calendar buffer for the month the cursor is on.
 Optional prefix argument ARG specifies number of months to be
@@ -672,7 +672,7 @@ this is only an upper bound."
 
 ;; TODO cal-tex-diary-support.
 ;; TODO respect cal-tex-daily-start,end (see cal-tex-week-hours).
-;;;###autoload
+;;;###cal-autoload
 (defun cal-tex-cursor-week (&optional arg)
   "Make a LaTeX calendar buffer for a two-page one-week calendar.
 It applies to the week that point is in.  The optional prefix
@@ -725,7 +725,7 @@ entries are not shown).  The calendar shows the hours 8-12am, 1-5pm."
 
 ;; TODO cal-tex-diary support.
 ;; TODO respect cal-tex-daily-start,end (see cal-tex-week-hours).
-;;;###autoload
+;;;###cal-autoload
 (defun cal-tex-cursor-week2 (&optional arg)
   "Make a LaTeX calendar buffer for a two-page one-week calendar.
 It applies to the week that point is in.  Optional prefix
@@ -805,7 +805,9 @@ entries are not shown).  The calendar shows the hours 8-12am, 1-5pm"
     (cal-tex-end-document)
     (run-hooks 'cal-tex-hook)))
 
-;;;###autoload
+(autoload 'calendar-iso-from-absolute "cal-iso")
+
+;;;###cal-autoload
 (defun cal-tex-cursor-week-iso (&optional arg)
   "Make a LaTeX calendar buffer for a one page ISO-style weekly calendar.
 Optional prefix argument ARG specifies number of weeks (default 1).
@@ -937,7 +939,7 @@ shown are hard-coded to 8-12, 13-17."
 
 ;; TODO cal-tex-diary support.
 ;; TODO respect cal-tex-daily-start,end (see cal-tex-weekly4-box).
-;;;###autoload
+;;;###cal-autoload
 (defun cal-tex-cursor-week-monday (&optional arg)
   "Make a LaTeX calendar buffer for a two-page one-week calendar.
 It applies to the week that point is in, and starts on Monday.
@@ -1018,7 +1020,7 @@ shown are hard-coded to 8-12, 13-17."
      (cal-tex-e-framebox)
      (cal-tex-hspace "1cm")))
 
-;;;###autoload
+;;;###cal-autoload
 (defun cal-tex-cursor-filofax-2week (&optional arg)
   "Two-weeks-at-a-glance Filofax style calendar for week cursor is in.
 Optional prefix argument ARG specifies number of weeks (default 1).
@@ -1113,7 +1115,7 @@ The calendar shows holiday and diary entries if
     (cal-tex-end-document)
     (run-hooks 'cal-tex-hook)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun cal-tex-cursor-filofax-week (&optional arg)
   "One-week-at-a-glance Filofax style calendar for week indicated by cursor.
 Optional prefix argument ARG specifies number of weeks (default 1),
@@ -1253,7 +1255,7 @@ if `cal-tex-holidays' and `cal-tex-diary', respectively, are non-nil."
     (cal-tex-end-document)
     (run-hooks 'cal-tex-hook)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun cal-tex-cursor-filofax-daily (&optional arg)
   "Day-per-page Filofax style calendar for week indicated by cursor.
 Optional prefix argument ARG specifies number of weeks (default 1),
@@ -1367,7 +1369,7 @@ are non-nil.  Pages are ruled if `cal-tex-rules' is non-nil."
 ;;;  Daily calendars
 ;;;
 
-;;;###autoload
+;;;###cal-autoload
 (defun cal-tex-cursor-day (&optional arg)
   "Make a buffer with LaTeX commands for the day cursor is on.
 Optional prefix argument ARG specifies number of days.  The calendar shows
@@ -1805,10 +1807,6 @@ Add trailing COMMENT if present."
 
 
 (provide 'cal-tex)
-
-;; Local Variables:
-;; generated-autoload-file: "cal-loaddefs.el"
-;; End:
 
 ;; arch-tag: ca8168a4-5a00-4508-a565-17e3bccce6d0
 ;;; cal-tex.el ends here
