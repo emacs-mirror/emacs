@@ -24,7 +24,7 @@ dnl  Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 dnl  Boston, MA 02110-1301, USA.
 
 AC_PREREQ(2.61)dnl
-AC_INIT(emacs, 23.0.50)
+AC_INIT(emacs, 23.0.60)
 AC_CONFIG_HEADER(src/config.h:src/config.in)
 AC_CONFIG_SRCDIR(src/lisp.h)
 
@@ -173,8 +173,9 @@ AC_ARG_ENABLE(font-backend,
       USE_FONT_BACKEND=$enableval,
       USE_FONT_BACKEND=yes)
 
+## Enabled by default.
 AC_ARG_ENABLE(sync-input,
-[AS_HELP_STRING([--enable-sync-input], [compile code with sync-input])],
+[AS_HELP_STRING([--disable-sync-input], [don't compile code with sync-input])],
       USE_SYNC_INPUT=$enableval,
       USE_SYNC_INPUT=yes)
 
