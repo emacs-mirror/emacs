@@ -4,7 +4,7 @@
 ;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
-;;      Edward M. Reingold <reingold@cs.uiuc.edu>
+;;         Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: calendar, dedicated frames, X Window System
@@ -91,11 +91,11 @@ passed to `calendar-basic-setup'."
       (save-window-excursion
         (save-excursion
           (setq calendar-frame
-		(make-frame calendar-and-diary-frame-parameters))
+                (make-frame calendar-and-diary-frame-parameters))
           (run-hooks 'calendar-after-frame-setup-hooks)
           (select-frame calendar-frame)
           (if (eq 'icon (cdr (assoc 'visibility
-                                     (frame-parameters calendar-frame))))
+                                    (frame-parameters calendar-frame))))
               (iconify-or-deiconify-frame))
           (calendar-basic-setup arg)
           (set-window-dedicated-p (selected-window) t)
@@ -122,11 +122,11 @@ ARG is passed to `calendar-basic-setup'."
       (save-window-excursion
         (save-excursion
           (setq calendar-frame
-		(make-frame calendar-frame-parameters))
+                (make-frame calendar-frame-parameters))
           (run-hooks 'calendar-after-frame-setup-hooks)
           (select-frame calendar-frame)
           (if (eq 'icon (cdr (assoc 'visibility
-                                     (frame-parameters calendar-frame))))
+                                    (frame-parameters calendar-frame))))
               (iconify-or-deiconify-frame))
           (calendar-basic-setup arg)
           (set-window-dedicated-p (selected-window) t))))))
