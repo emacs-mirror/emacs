@@ -5,8 +5,24 @@
 
 	* startup.el (command-line-1): Rename -scriptload to -internal-script.
 
+	* calendar/cal-bahai.el, calendar/cal-china.el, calendar/cal-coptic.el:
+	* calendar/cal-french.el, calendar/cal-hebrew.el, calendar/cal-html.el:
+	* calendar/cal-islam.el, calendar/cal-iso.el, calendar/cal-julian.el:
+	* calendar/cal-mayan.el, calendar/cal-move.el, calendar/cal-persia.el:
+	* calendar/cal-tex.el, calendar/cal-x.el, calendar/diary-lib.el:
+	* calendar/holidays.el, calendar/lunar.el, calendar/solar.el:
+	Add calendar-specific autoload cookies, and remove any setting of
+	generated-autoload-file.
+	* calendar/calendar.el: Remove explicit autoloads now in cal-loaddefs.
+	* calendar/diary-lib.el: Replace explicit autoloads with reading of
+	diary-loaddefs.
+	* calendar/holidays.el: Replace explicit autoloads with reading of
+	hol-loaddefs.
+
 	* calendar/calendar.el (cal-hebrew-yahrzeit-buffer): New constant.
 	(calendar-buffer-list): Simplify.
+	(generate-calendar-window): Use calendar-mark-holidays rather than
+	obsolete alias.
 
 	* calendar/cal-hebrew.el (list-yahrzeit-dates): Use
 	cal-hebrew-yahrzeit-buffer.
@@ -17,6 +33,10 @@
 
 	* calendar/appt.el (appt-mode-string): Mark as risky.
 	(appt-check): Apply mode-line-emphasis face to appt-mode-string.
+
+	* calendar/cal-html.el (diary-list-entries):
+	* calendar/cal-tex.el (calendar-holiday-list, diary-list-entries)
+	(calendar-iso-from-absolute): Fix autoloads.
 
 	* calendar/cal-iso.el (calendar-absolute-from-iso)
 	(calendar-iso-read-args): Simplify.
@@ -30,6 +50,8 @@
 	* calendar/cal-persia.el (persian-calendar-month-name-array)
 	(persian-calendar-epoch, calendar-persian-date-string): Doc fixes.
 	(persian-prompt-for-date): Remove local variable `today'.
+
+	* calendar/diary-lib.el (mark-calendar-month): Use zerop.
 
 	* calendar/solar.el (solar-moment, solar-exact-local-noon)
 	(solar-sunrise-sunset, solar-sunrise-sunset-string)
