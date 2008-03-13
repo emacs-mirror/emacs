@@ -1,3 +1,8 @@
+2008-03-13  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-doc->txt, doc-view-convert-current-doc):
+	Create cache dir only if it doesn't already exist.
+
 2008-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-font-lock-quoted-subshell): Fix handling
