@@ -1,3 +1,8 @@
+2008-03-13  Johan Bockgård  <bojohan@gnu.org>
+
+	* net/browse-url.el (browse-url-text-xterm): Unquote
+	browse-url-text-browser.
+
 2008-03-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org-mouse.el: Version number change.
