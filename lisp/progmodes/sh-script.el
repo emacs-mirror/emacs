@@ -1001,11 +1001,11 @@ subshells can nest."
           (state (if (eq (char-before) ?`) 'backquote 'code))
           ;; Stacked states in the context.
           (states '(double-quote)))
-      (while (and state (progn (skip-chars-forward "^'\\\"`$()" limit)
+      (while (and state (progn (skip-chars-forward "^'\\\\\"`$()" limit)
                                (< (point) limit)))
         ;; unescape " inside a $( ... ) construct.
         (case (char-after)
-          (?\' (skip-chars-forward "^'" limit))
+          (?\' (forward-char 1) (skip-chars-forward "^'" limit))
           (?\\ (forward-char 1))
           (?\" (case state
                  (double-quote (setq state (pop states)))

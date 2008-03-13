@@ -1,7 +1,12 @@
+2008-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-quoted-subshell): Fix handling
+	of \ and '.
+
 2008-03-13  Johan Bockgård  <bojohan@gnu.org>
 
-	* net/browse-url.el (browse-url-text-xterm): Unquote
-	browse-url-text-browser.
+	* net/browse-url.el (browse-url-text-xterm):
+	Unquote browse-url-text-browser.
 
 2008-03-13  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -9,15 +14,13 @@
 
 	* textmodes/org-publish.el: (org-publish-expand-components):
 	Remove null projects from the list of components.
-	(org-publish-attachment): Bugfix: handle the mandatory argument
-	pub-dir.  Removed unused retrieval of the :publishing-directory
-	property.
+	(org-publish-attachment): Bugfix: handle mandatory argument pub-dir.
+	Remove unused retrieval of the :publishing-directory property.
 	(org-publish-file): Bugfix: when using a relative directory as the
 	publishing directory, convert it to a directory filename.
 	(org-publish-project): New alias.
 	(org-publish-get-files): Protect against empty p.
-	(org-publish-file): Send an error when file is not part of any
-	project.
+	(org-publish-file): Send an error when file is not part of any project.
 	(org-publish-file): Offer to refresh the list of files in known
 	project when the current file is not part of any project.
 	(org-publish-before-export-hook)
@@ -35,8 +38,8 @@
 
 	* textmodes/org.el (org-ctrl-c-star): Implement a missing branch
 	in the decision tree.
-	(org-select-remember-template): Cleaned the code.
-	(org-prepare-dblock): Added the extra :content parameter.
+	(org-select-remember-template): Clean the code.
+	(org-prepare-dblock): Add the extra :content parameter.
 	(org-write-agenda): New output type ".ics" files.
 	(org-write-agenda): Call `org-icalendar-verify-function', both for
 	time stamps and for TODO entries.
@@ -45,37 +48,35 @@
 	(org-agenda-marker-table): New variable.
 	(org-export-as-html): Revert the change that killed the html
 	buffer.  Side effects first need to be studied carefully.
-	(org-get-tags-at): Fix the structure of the condition-case
-	statement.
+	(org-get-tags-at): Fix the structure of the condition-case statement.
 	(org-ts-regexp0, org-repeat-re, org-display-custom-time)
 	(org-timestamp-change): Fix regulear expressions to swallow the
 	extra character for repeat-shift control.
 	(org-auto-repeat-maybe): Implement the new repeater mechanisms.
-	(org-get-legal-level): Aliased to `org-get-valid-level'.
-	(org-dblock-write:clocktable): Added a :link parameter, linking
+	(org-get-legal-level): Alias to `org-get-valid-level'.
+	(org-dblock-write:clocktable): Add a :link parameter, linking
 	headlines to their location in the Org agenda files.
 	(org-get-tags-at): Bugfix: prevent `org-back-to-heading' from
 	throwing an error when getting tags before headlines.
 	(org-timestamp-change, org-modify-ts-extra)
 	(org-ts-regexp1): Fix timestamp editing.
 	(org-agenda-custom-commands-local-options): New constant.
-	(org-agenda-custom-commands): Use
-	`org-agenda-custom-commands-local-options' to improve customize
+	(org-agenda-custom-commands):
+	Use `org-agenda-custom-commands-local-options' to improve customize
 	type.  "htmlize": Removed hack to fix face problem with htmlize,
 	it no longer seem necessary.
 	(org-follow-link-hook): New hook.
-	(org-agenda-custom-commands): Added "Component" as a tag for each
+	(org-agenda-custom-commands): Add "Component" as a tag for each
 	item in a command serie.
 	(org-open-at-point): Run `org-follow-link-hook'.
 	(org-agenda-schedule): Bugfix: don't display marker type when it
-	is `nil'.
+	is nil.
 	(org-store-link): org-irc required.
 	(org-set-regexps-and-options): Parse the new logging options.
 	(org-extract-log-state-settings): New function.
 	(org-todo): Handle the new ways of recording state change stuff.
 	(org-local-logging): New function.
-	(org-columns-open-link): Fixed bug with opening link in column
-	view.
+	(org-columns-open-link): Fix bug with opening link in column view.
 	(org-local-logging): New function
 	(org-todo): Make sure that LOGGING properties are honoured.
 	(org-todo-keywords): Improve docstring.
@@ -87,8 +88,8 @@
 	should be done and also overrides PURPOSE.  Add a docstring.
 	(org-add-log-note): Check if we really need to ask for a note.
 	(org-get-current-options): Digest the new keyword.
-	(org-agenda-reset-markers): Renamed from
-	`org-agenda-maybe-reset-markers'.  FORCE argument removed.
+	(org-agenda-reset-markers): Rename from
+	`org-agenda-maybe-reset-markers'.  Remove FORCE argument.
 	(org-diary, org-agenda-quit, org-prepare-agenda): Call the renamed
 	function, without force argument.
 	(org-buffer-property-keys): Bind local variables s and p.
@@ -110,10 +111,8 @@
 	(org-cleaned-string-for-export): Get rid of drawers first, so that
 	they will be removed also in the text before the first headline.
 	(org-clock-report): Show the clocktable when found.
-	(org-refile): Fix positioning bug when `org-reverse-note-order' is
-	nil.
-	(org-version): With prefix argument, insert `org-version' at
-	point.
+	(org-refile): Fix positioning bug when `org-reverse-note-order' is nil.
+	(org-version): With prefix argument, insert `org-version' at point.
 	(org-agenda-goto): Recenter the window after finding the target
 	location, to make sure the correct position will be displayed.
 	(org-agenda-get-deadlines): Don't scale priority with the warning
@@ -121,16 +120,16 @@
 	(org-insert-heading): Don't break line in the middle of the line.
 	(org-agenda-get-deadlines): Allow `org-deadline-warning-days' to
 	be 0.
-	(org-update-checkbox-count): Revamped to deal with hierarchical
+	(org-update-checkbox-count): Revamp to deal with hierarchical
 	beckboxes.  This was a patch from Miguel A. Figueroa-Villanueva.
 	(org-remove-timestamp-with-keyword): New function.
-	(org-schedule, org-deadline): Use
-	`org-remove-timestamp-with-keyword' to make sure all such time
+	(org-schedule, org-deadline):
+	Use `org-remove-timestamp-with-keyword' to make sure all such time
 	stamps are removed.
 	(org-mode): Support for `align'.
 	(org-agenda-get-deadlines): Make sure priorities increase as the
 	due date approaches and is passed.
-	(org-remember-apply-template): Fixed problem with tags that
+	(org-remember-apply-template): Fix problem with tags that
 	contain "_" or "@".
 	(org-make-link-regexps): Improve the regular expression for plain
 	links.
@@ -138,7 +137,7 @@
 	(org-set-tags): Only tabify before tags if indent-tabs-mode is t.
 	(org-special-ctrl-k): New option.
 	(org-kill-line): New function.
-	(org-archive-all-done): Fixed incorrect number of stars in regexp.
+	(org-archive-all-done): Fix incorrect number of stars in regexp.
 	(org-refile-get-location): New function.
 	(org-refile-goto-last-stored): New function.
 	(org-global-tags-completion-table): Add the value of org-tag-alist
@@ -156,7 +155,6 @@
 	(org-goto-local-search-forward-headings)
 	(org-goto-local-auto-isearch): New functions
 
-
 2008-03-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* font-lock.el (font-lock-comment-face): Set the foreground for
@@ -171,8 +169,8 @@
 
 	* Makefile.in ($(lisp)/loaddefs.el): Remove this target.
 	(MH_E_SRC): Remove variable.
-	($(lisp)/mh-e/mh-loaddefs.el): Remove $MH_E_SRC dependency.  Simplify
-	file header.  Use $@ for generated-autoload-file.
+	($(lisp)/mh-e/mh-loaddefs.el): Remove $MH_E_SRC dependency.
+	Simplify file header.  Use $@ for generated-autoload-file.
 
 	* Makefile.in (LOADDEFS): New variable.
 	(AUTOGENEL): Use $LOADDEFS.
@@ -198,8 +196,8 @@
 	(generate-calendar-window): Use calendar-mark-holidays rather than
 	obsolete alias.
 
-	* calendar/cal-hebrew.el (list-yahrzeit-dates): Use
-	cal-hebrew-yahrzeit-buffer.
+	* calendar/cal-hebrew.el (list-yahrzeit-dates):
+	Use cal-hebrew-yahrzeit-buffer.
 
 	* calendar/cal-x.el (calendar-only-one-frame-setup)
 	(calendar-two-frame-setup): Doc fixes.
