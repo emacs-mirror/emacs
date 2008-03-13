@@ -4,7 +4,7 @@
 ;;   2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Paul Eggert <eggert@twinsun.com>
-;;	Edward M. Reingold <reingold@cs.uiuc.edu>
+;;         Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: daylight saving time, calendar, diary, holidays
@@ -113,15 +113,15 @@ high and low 16 bits, respectively, of the number of seconds since
 Returns the pair (ABS-DATE . SECONDS) where SECONDS after local midnight on
 absolute date ABS-DATE is the equivalent moment to X."
   (let* ((h (car x))
-	 (xtail (cdr x))
+         (xtail (cdr x))
          (l (+ utc-diff (if (numberp xtail) xtail (car xtail))))
          (u (+ (* 512 (mod h 675)) (floor l 128))))
     ;; Overflow is a terrible thing!
     (cons (+ calendar-system-time-basis
-	     ;; floor((2^16 h +l) / (60*60*24))
-	     (* 512 (floor h 675)) (floor u 675))
-	  ;; (2^16 h +l) mod (60*60*24)
-	  (+ (* (mod u 675) 128) (mod l 128)))))
+             ;; floor((2^16 h +l) / (60*60*24))
+             (* 512 (floor h 675)) (floor u 675))
+          ;; (2^16 h +l) mod (60*60*24)
+          (+ (* (mod u 675) 128) (mod l 128)))))
 
 (defun calendar-time-from-absolute (abs-date s)
   "Time of absolute date ABS-DATE, S seconds after midnight.
@@ -143,12 +143,12 @@ midnight UTC on absolute date ABS-DATE."
   "Return the time of the next time zone transition after TIME.
 Both TIME and the result are acceptable arguments to `current-time-zone'.
 Return nil if no such transition can be found."
-  (let* ((base 65536);; 2^16 = base of current-time output
-	 (quarter-multiple 120);; approx = (seconds per quarter year) / base
-	 (time-zone (current-time-zone time))
-	 (time-utc-diff (car time-zone))
+  (let* ((base 65536)           ;; 2^16 = base of current-time output
+         (quarter-multiple 120) ;; approx = (seconds per quarter year) / base
+         (time-zone (current-time-zone time))
+         (time-utc-diff (car time-zone))
          hi
-	 hi-zone
+         hi-zone
          (hi-utc-diff time-utc-diff)
          (quarters '(2 1 3)))
     ;; Heuristic: probe the time zone offset in the next three calendar
@@ -166,21 +166,21 @@ Return nil if no such transition can be found."
      ;; Set LO to TIME, and then binary search to increase LO and decrease HI
      ;; until LO is just before and HI is just after the time zone transition.
      (let* ((tail (cdr time))
-	    (lo (cons (car time) (if (numberp tail) tail (car tail))))
-	    probe)
+            (lo (cons (car time) (if (numberp tail) tail (car tail))))
+            probe)
        (while
-	   ;; Set PROBE to halfway between LO and HI, rounding down.
-	   ;; If PROBE equals LO, we are done.
-	   (let* ((lsum (+ (cdr lo) (cdr hi)))
-		  (hsum (+ (car lo) (car hi) (/ lsum base)))
-		  (hsumodd (logand 1 hsum)))
-	     (setq probe (cons (/ (- hsum hsumodd) 2)
-			       (/ (+ (* hsumodd base) (% lsum base)) 2)))
-	     (not (equal lo probe)))
-	 ;; Set either LO or HI to PROBE, depending on probe results.
-	 (if (eq (car (current-time-zone probe)) hi-utc-diff)
-	     (setq hi probe)
-	   (setq lo probe)))
+           ;; Set PROBE to halfway between LO and HI, rounding down.
+           ;; If PROBE equals LO, we are done.
+           (let* ((lsum (+ (cdr lo) (cdr hi)))
+                  (hsum (+ (car lo) (car hi) (/ lsum base)))
+                  (hsumodd (logand 1 hsum)))
+             (setq probe (cons (/ (- hsum hsumodd) 2)
+                               (/ (+ (* hsumodd base) (% lsum base)) 2)))
+             (not (equal lo probe)))
+         ;; Set either LO or HI to PROBE, depending on probe results.
+         (if (eq (car (current-time-zone probe)) hi-utc-diff)
+             (setq hi probe)
+           (setq lo probe)))
        hi))))
 
 (defun calendar-time-zone-daylight-rules (abs-date utc-diff)
@@ -188,69 +188,70 @@ Return nil if no such transition can be found."
 ABS-DATE must specify a day that contains a daylight saving transition.
 The result has the proper form for `calendar-daylight-savings-starts'."
   (let* ((date (calendar-gregorian-from-absolute abs-date))
-	 (weekday (% abs-date 7))
-	 (m (extract-calendar-month date))
-	 (d (extract-calendar-day date))
-	 (y (extract-calendar-year date))
+         (weekday (% abs-date 7))
+         (m (extract-calendar-month date))
+         (d (extract-calendar-day date))
+         (y (extract-calendar-year date))
          (last (calendar-last-day-of-month m y))
-	 (candidate-rules
-	  (append
-	   ;; Day D of month M.
-	   (list (list 'list m d 'year))
-	   ;; The first WEEKDAY of month M.
+         (candidate-rules
+          (append
+           ;; Day D of month M.
+           (list (list 'list m d 'year))
+           ;; The first WEEKDAY of month M.
            (if (< d 8)
                (list (list 'calendar-nth-named-day 1 weekday m 'year)))
-	   ;; The last WEEKDAY of month M.
+           ;; The last WEEKDAY of month M.
            (if (> d (- last 7))
                (list (list 'calendar-nth-named-day -1 weekday m 'year)))
-	   ;; The first WEEKDAY after day J of month M, for D-6 < J <= D.
+           ;; The first WEEKDAY after day J of month M, for D-6 < J <= D.
            (let (l)
              (calendar-for-loop j from (max 2 (- d 6)) to (min d (- last 8)) do
-		(setq l
-		      (cons
-		       (list 'calendar-nth-named-day 1 weekday m 'year j)
-		       l)))
-	     l)
-	   ;; 01-01 and 07-01 for this year's Persian calendar.
-	   (if (and (= m 3) (<= 20 d) (<= d 21))
-	       '((calendar-gregorian-from-absolute
-		  (calendar-absolute-from-persian
-		   (list 1 1 (- year 621))))))
-	   (if (and (= m 9) (<= 22 d) (<= d 23))
-	       '((calendar-gregorian-from-absolute
-		  (calendar-absolute-from-persian
-		   (list 7 1 (- year 621))))))))
-	 (prevday-sec (- -1 utc-diff)) ;; last sec of previous local day
-	 (year (1+ y)))
+                                (setq l
+                                      (cons
+                                       (list 'calendar-nth-named-day
+                                             1 weekday m 'year j)
+                                       l)))
+             l)
+           ;; 01-01 and 07-01 for this year's Persian calendar.
+           (if (and (= m 3) (<= 20 d) (<= d 21))
+               '((calendar-gregorian-from-absolute
+                  (calendar-absolute-from-persian
+                   (list 1 1 (- year 621))))))
+           (if (and (= m 9) (<= 22 d) (<= d 23))
+               '((calendar-gregorian-from-absolute
+                  (calendar-absolute-from-persian
+                   (list 7 1 (- year 621))))))))
+         (prevday-sec (- -1 utc-diff)) ;; last sec of previous local day
+         (year (1+ y)))
     ;; Scan through the next few years until only one rule remains.
     (while
-	(let ((rules candidate-rules)
-	      new-rules)
-	  (while
-	      (let*
-		  ((rule (car rules))
-		   (date
-		    ;; The following is much faster than
-		    ;; (calendar-absolute-from-gregorian (eval rule)).
-		    (cond ((eq (car rule) 'calendar-nth-named-day)
-			   (eval (cons 'calendar-nth-named-absday (cdr rule))))
-			  ((eq (car rule) 'calendar-gregorian-from-absolute)
-			   (eval (car (cdr rule))))
-			  (t (let ((g (eval rule)))
-			       (calendar-absolute-from-gregorian g))))))
-		(or (equal
-		     (current-time-zone
-		      (calendar-time-from-absolute date prevday-sec))
-		     (current-time-zone
-		      (calendar-time-from-absolute (1+ date) prevday-sec)))
-		    (setq new-rules (cons rule new-rules)))
-		(setq rules (cdr rules))))
-	  ;; If no rules remain, just use the first candidate rule;
-	  ;; it's wrong in general, but it's right for at least one year.
-	  (setq candidate-rules (if new-rules (nreverse new-rules)
-				  (list (car candidate-rules))))
-	  (setq year (1+ year))
-	  (cdr candidate-rules)))
+        (let ((rules candidate-rules)
+              new-rules)
+          (while
+              (let*
+                  ((rule (car rules))
+                   (date
+                    ;; The following is much faster than
+                    ;; (calendar-absolute-from-gregorian (eval rule)).
+                    (cond ((eq (car rule) 'calendar-nth-named-day)
+                           (eval (cons 'calendar-nth-named-absday (cdr rule))))
+                          ((eq (car rule) 'calendar-gregorian-from-absolute)
+                           (eval (car (cdr rule))))
+                          (t (let ((g (eval rule)))
+                               (calendar-absolute-from-gregorian g))))))
+                (or (equal
+                     (current-time-zone
+                      (calendar-time-from-absolute date prevday-sec))
+                     (current-time-zone
+                      (calendar-time-from-absolute (1+ date) prevday-sec)))
+                    (setq new-rules (cons rule new-rules)))
+                (setq rules (cdr rules))))
+          ;; If no rules remain, just use the first candidate rule;
+          ;; it's wrong in general, but it's right for at least one year.
+          (setq candidate-rules (if new-rules (nreverse new-rules)
+                                  (list (car candidate-rules))))
+          (setq year (1+ year))
+          (cdr candidate-rules)))
     (car candidate-rules)))
 
 ;; TODO it might be better to extract this information directly from
@@ -414,7 +415,7 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
                       (cadr (calendar-dst-find-startend year))
                     (nth 4 calendar-current-time-zone-cache))))
         (if expr (eval expr)))
-      ;; New US rules commencing 2007.	ftp://elsie.nci.nih.gov/pub/.
+      ;; New US rules commencing 2007.  ftp://elsie.nci.nih.gov/pub/.
       (and (not (zerop calendar-daylight-time-offset))
            (calendar-nth-named-day 2 0 3 year))))
 
@@ -425,7 +426,7 @@ This function respects the value of `calendar-dst-check-each-year-flag'."
                       (nth 2 (calendar-dst-find-startend year))
                     (nth 5 calendar-current-time-zone-cache))))
         (if expr (eval expr)))
-      ;; New US rules commencing 2007.	ftp://elsie.nci.nih.gov/pub/.
+      ;; New US rules commencing 2007.  ftp://elsie.nci.nih.gov/pub/.
       (and (not (zerop calendar-daylight-time-offset))
            (calendar-nth-named-day 1 0 11 year))))
 
@@ -469,12 +470,12 @@ Conversion to daylight saving time is done according to
 `calendar-daylight-savings-offset'."
 
   (let* ((rounded-abs-date (+ (calendar-absolute-from-gregorian date)
-			      (/ (round (* 60 time)) 60.0 24.0)))
+                              (/ (round (* 60 time)) 60.0 24.0)))
          (dst (dst-in-effect rounded-abs-date))
-	 (time-zone (if dst
-			calendar-daylight-time-zone-name
-			calendar-standard-time-zone-name))
-	 (time (+ rounded-abs-date
+         (time-zone (if dst
+                        calendar-daylight-time-zone-name
+                      calendar-standard-time-zone-name))
+         (time (+ rounded-abs-date
                   (if dst (/ calendar-daylight-time-offset 24.0 60.0) 0))))
     (list (calendar-gregorian-from-absolute (truncate time))
           (* 24.0 (- time (truncate time)))
