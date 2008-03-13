@@ -1,2 +1,4 @@
 *.elc
 cal-loaddefs.el
+diary-loaddefs.el
+hol-loaddefs.el
