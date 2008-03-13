@@ -600,7 +600,8 @@ Should be invoked when the cached images aren't up-to-date."
 
 (defun doc-view-doc->txt (txt callback)
   "Convert the current document to text and call CALLBACK when done."
-  (make-directory (doc-view-current-cache-dir))
+  (unless (file-exists-p (doc-view-current-cache-dir))
+    (make-directory (doc-view-current-cache-dir)))
   (case doc-view-doc-type
     (pdf
      ;; Doc is a PDF, so convert it to TXT
@@ -649,7 +650,8 @@ Those files are saved in the directory given by the function
   (setq doc-view-pending-cache-flush t)
   (let ((png-file (expand-file-name "page-%d.png"
                                     (doc-view-current-cache-dir))))
-    (make-directory (doc-view-current-cache-dir))
+    (unless (file-exists-p (doc-view-current-cache-dir))
+      (make-directory (doc-view-current-cache-dir)))
     (case doc-view-doc-type
       (dvi
        ;; DVI files have to be converted to PDF before Ghostscript can process
@@ -1036,7 +1038,7 @@ toggle between displaying the document or editing it as text.
                            name-types content-types))
                   name-types content-types
                   (error "Cannot determine the document type")))))
-                  
+
   (doc-view-make-safe-dir doc-view-cache-directory)
   ;; Handle compressed files, remote files, files inside archives
   (set (make-local-variable 'doc-view-buffer-file-name)
