@@ -1165,6 +1165,9 @@ with descriptive strings such as
 (defconst lunar-phases-buffer "*Phases of Moon*"
   "Name of the buffer used for the lunar phases.")
 
+(defconst cal-hebrew-yahrzeit-buffer "*Yahrzeits*"
+  "Name of the buffer used by `list-yahrzeit-dates'.")
+
 (defmacro increment-calendar-month (mon yr n)
   "Increment the variables MON and YR by N months.
 Forward if N is positive or backward if N is negative.
@@ -1958,17 +1961,14 @@ the STRINGS are just concatenated and the result truncated."
 
 (defun calendar-buffer-list ()
   "List of all calendar-related buffers."
-  (let* ((diary-buffer (get-file-buffer diary-file))
-         (buffers (list "*Yahrzeits*" lunar-phases-buffer holiday-buffer
-                        fancy-diary-buffer diary-buffer calendar-buffer
-                        other-calendars-buffer))
-         (buffer-list nil))
-    (dolist (b buffers)
-      (setq b (cond ((stringp b) (get-buffer b))
-                    ((bufferp b) b)
-                    (t nil)))
-      (if b (push b buffer-list)))
-    buffer-list))
+  (let (buffs)
+    (dolist (b (list cal-hebrew-yahrzeit-buffer lunar-phases-buffer
+                     holiday-buffer fancy-diary-buffer
+                     (get-file-buffer diary-file)
+                     calendar-buffer other-calendars-buffer))
+      (and b (get-buffer b)
+           (push b buffs)))
+    buffs))
 
 (defun exit-calendar ()
   "Get out of the calendar window and hide it and related buffers."
