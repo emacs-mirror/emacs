@@ -1,3 +1,7 @@
+2008-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* makefile.w32-in (VERSION): Set to 23.0.60.
+
 2008-03-04  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .cvsignore: Add oo.
