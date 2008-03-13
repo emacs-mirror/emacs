@@ -1642,7 +1642,10 @@ regardless of where you click."
   ;; Give temporary modes such as isearch a chance to turn off.
   (run-hooks 'mouse-leave-buffer-hook)
   (or mouse-yank-at-point (mouse-set-point click))
-  (insert (x-get-selection 'SECONDARY)))
+  (let ((secondary (x-get-selection 'SECONDARY)))
+    (if secondary
+        (insert (x-get-selection 'SECONDARY))
+      (error "No secondary selection"))))
 
 (defun mouse-kill-secondary ()
   "Kill the text in the secondary selection.
