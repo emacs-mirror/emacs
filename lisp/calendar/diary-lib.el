@@ -611,50 +611,50 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
                         (entry-found (list-sexp-diary-entries date)))
                     (dolist (date-form diary-date-forms)
                       (let* ((backup (when (eq (car date-form) 'backup)
-				       (setq date-form (cdr date-form))
-				       t))
-			     (dayname
-			      (format "%s\\|%s\\.?"
-				      (calendar-day-name date)
-				      (calendar-day-name date 'abbrev)))
-			     (monthname
-			      (format "\\*\\|%s\\|%s\\.?"
-				      (calendar-month-name month)
-				      (calendar-month-name month 'abbrev)))
-			     (month (concat "\\*\\|0*" (int-to-string month)))
-			     (day (concat "\\*\\|0*" (int-to-string day)))
-			     (year
-			      (concat
-			       "\\*\\|0*" (int-to-string year)
-			       (if abbreviated-calendar-year
-				   (concat "\\|" (format "%02d" (% year 100)))
-				 "")))
-			     (regexp
-			      (concat
-			       "^" mark "?\\("
-			       ;; This must be let* so that date-form
-			       ;; can use day etc.
-			       (mapconcat 'eval date-form "\\)\\(?:")
-			       "\\)"))
-			     (case-fold-search t))
+                                       (setq date-form (cdr date-form))
+                                       t))
+                             (dayname
+                              (format "%s\\|%s\\.?"
+                                      (calendar-day-name date)
+                                      (calendar-day-name date 'abbrev)))
+                             (monthname
+                              (format "\\*\\|%s\\|%s\\.?"
+                                      (calendar-month-name month)
+                                      (calendar-month-name month 'abbrev)))
+                             (month (concat "\\*\\|0*" (int-to-string month)))
+                             (day (concat "\\*\\|0*" (int-to-string day)))
+                             (year
+                              (concat
+                               "\\*\\|0*" (int-to-string year)
+                               (if abbreviated-calendar-year
+                                   (concat "\\|" (format "%02d" (% year 100)))
+                                 "")))
+                             (regexp
+                              (concat
+                               "^" mark "?\\("
+                               ;; This must be let* so that date-form
+                               ;; can use day etc.
+                               (mapconcat 'eval date-form "\\)\\(?:")
+                               "\\)"))
+                             (case-fold-search t))
                         (goto-char (point-min))
                         (while (re-search-forward regexp nil t)
                           (if backup (re-search-backward "\\<" nil t))
-			  (if (and (bolp) (not (looking-at "[ \t]")))
+                          (if (and (bolp) (not (looking-at "[ \t]")))
                               ;;  Diary entry that consists only of date.
                               (backward-char 1)
                             ;; Found a nonempty diary entry--make it
                             ;; visible and add it to the list.
                             (setq entry-found t)
-			    (if (looking-at "[ \t]*\n[ \t]") (forward-line 1))
+                            (if (looking-at "[ \t]*\n[ \t]") (forward-line 1))
                             (let ((entry-start (point))
                                   date-start temp)
-			      (setq date-start
-				    (line-end-position
-				     (if (and (bolp) (> number 1)) -1 0)))
-			      (forward-line 1)
-			      (while (looking-at "[ \t]")
-				(forward-line 1))
+                              (setq date-start
+                                    (line-end-position
+                                     (if (and (bolp) (> number 1)) -1 0)))
+                              (forward-line 1)
+                              (while (looking-at "[ \t]")
+                                (forward-line 1))
                               (unless (and (eobp) (not (bolp)))
                                 (backward-char 1))
                               (unless list-only
@@ -681,8 +681,8 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
                        'list-diary-entries-hook)
             (unless list-only
               (if diary-display-hook
-		  (run-hooks 'diary-display-hook)
-		(simple-diary-display)))
+                  (run-hooks 'diary-display-hook)
+                (simple-diary-display)))
             (run-hooks 'diary-hook)
             diary-entries-list))))))
 
@@ -1238,17 +1238,21 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
           (if (bolp) (backward-char 1))
           (setq entry (buffer-substring-no-properties entry-start (point))))
         (calendar-for-loop date from first-date to last-date do
-			   (if (setq mark (diary-sexp-entry sexp entry
-							    (calendar-gregorian-from-absolute date)))
-			       (progn
-				 (setq marks (diary-pull-attrs entry file-glob-attrs)
-				       marks (nth 1 (diary-pull-attrs entry file-glob-attrs)))
-				 (mark-visible-calendar-date
-				  (calendar-gregorian-from-absolute date)
-				  (if (< 0 (length marks))
-				      marks
-				    (if (consp mark)
-					(car mark)))))))))))
+                           (if (setq mark
+                                     (diary-sexp-entry sexp entry
+                                                       (calendar-gregorian-from-absolute date)))
+                               (progn
+                                 ;; FIXME what?
+                                 (setq marks (diary-pull-attrs
+                                              entry file-glob-attrs)
+                                       marks (nth 1 (diary-pull-attrs
+                                                     entry file-glob-attrs)))
+                                 (mark-visible-calendar-date
+                                  (calendar-gregorian-from-absolute date)
+                                  (if (< 0 (length marks))
+                                      marks
+                                    (if (consp mark)
+                                        (car mark)))))))))))
 
 (defun mark-included-diary-files ()
   "Mark the diary entries from other diary files with those of the diary file.
@@ -1300,7 +1304,7 @@ Optional argument COLOR is passed to `mark-visible-calendar-date' as MARK."
       (setq day (calendar-absolute-from-gregorian
                  (calendar-nth-named-day 1 dayname prev-month prev-year))
             last-day (calendar-absolute-from-gregorian
-		      (calendar-nth-named-day -1 dayname succ-month succ-year)))
+                      (calendar-nth-named-day -1 dayname succ-month succ-year)))
       (while (<= day last-day)
         (mark-visible-calendar-date (calendar-gregorian-from-absolute day)
                                     color)
@@ -1328,8 +1332,8 @@ Optional argument COLOR is passed to `mark-visible-calendar-date' as MARK."
                (or (zerop p-year) (= year p-year))))
       (if (zerop p-day)
           (calendar-for-loop
-	   i from 1 to (calendar-last-day-of-month month year) do
-	   (mark-visible-calendar-date (list month i year) color))
+           i from 1 to (calendar-last-day-of-month month year) do
+           (mark-visible-calendar-date (list month i year) color))
         (mark-visible-calendar-date (list month p-day year) color))))
 
 (defun sort-diary-entries ()
@@ -1365,7 +1369,7 @@ be used instead of a colon (:) to separate the hour and minute parts."
            (+ (* 100 (% (string-to-number (match-string 1 s)) 12))
               (if (equal ?a (downcase (aref s (match-beginning 2))))
                   0 1200)))
-          ((string-match	; hour and minute (XX:XXam or XX:XXpm)
+          ((string-match        ; hour and minute (XX:XXam or XX:XXpm)
             "\\`[ \t\n]*\\([0-9]?[0-9]\\)[:.]\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
            (+ (* 100 (% (string-to-number (match-string 1 s)) 12))
               (string-to-number (match-string 2 s))
@@ -1926,21 +1930,21 @@ Prefix argument ARG makes the entry nonmarking."
          (if european-calendar-style
              '(day " " month " " year)
            '(month " " day " " year)))
-	(cursor (calendar-cursor-to-date t))
-	(mark (or (car calendar-mark-ring)
-		  (error "No mark set in this buffer")))
-	start end)
+        (cursor (calendar-cursor-to-date t))
+        (mark (or (car calendar-mark-ring)
+                  (error "No mark set in this buffer")))
+        start end)
     (if (< (calendar-absolute-from-gregorian mark)
            (calendar-absolute-from-gregorian cursor))
         (setq start mark
               end cursor)
       (setq start cursor
-	    end mark))
+            end mark))
     (make-diary-entry
      (format "%s(diary-block %s %s)"
-	     sexp-diary-entry-symbol
-	     (calendar-date-string start nil t)
-	     (calendar-date-string end nil t))
+             sexp-diary-entry-symbol
+             (calendar-date-string start nil t)
+             (calendar-date-string end nil t))
      arg)))
 
 ;;;###cal-autoload
@@ -2088,21 +2092,21 @@ names."
         (day "\\([0-9]+\\|\\*\\)")
         (year "-?\\([0-9]+\\|\\*\\)"))
     (mapcar (lambda (x)
-	      (cons
-	       (concat "^" (regexp-quote diary-nonmarking-symbol) "?"
-		       (if symbol (regexp-quote symbol) "") "\\("
-		       (mapconcat 'eval
-				  ;; If backup, omit first item (backup)
-				  ;; and last item (not part of date).
-				  (if (equal (car x) 'backup)
+              (cons
+               (concat "^" (regexp-quote diary-nonmarking-symbol) "?"
+                       (if symbol (regexp-quote symbol) "") "\\("
+                       (mapconcat 'eval
+                                  ;; If backup, omit first item (backup)
+                                  ;; and last item (not part of date).
+                                  (if (equal (car x) 'backup)
                                       (nreverse (cdr (reverse (cdr x))))
-				    x)
-				  "")
-		       ;; With backup, last item is not part of date.
-		       (if (equal (car x) 'backup)
-			   (concat "\\)" (eval (car (reverse x))))
-			 "\\)"))
-	       '(1 diary-face)))
+                                    x)
+                                  "")
+                       ;; With backup, last item is not part of date.
+                       (if (equal (car x) 'backup)
+                           (concat "\\)" (eval (car (reverse x))))
+                         "\\)"))
+               '(1 diary-face)))
             diary-date-forms)))
 
 (defvar calendar-hebrew-month-name-array-leap-year)
