@@ -160,7 +160,7 @@ The absolute date is the number of days elapsed since the
                (1- (calendar-absolute-from-french (list month 1 year))))))
     (list month day year))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-french-date-string (&optional date)
   "String of French Revolutionary date of Gregorian DATE.
 Returns the empty string if DATE is pre-French Revolutionary.
@@ -186,7 +186,7 @@ Defaults to today's date if DATE is not given."
          (aref (french-calendar-month-name-array) (1- m))
          y)))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-print-french-date ()
   "Show the French Revolutionary calendar equivalent of the selected date."
   (interactive)
@@ -195,7 +195,7 @@ Defaults to today's date if DATE is not given."
         (message "Date is pre-French Revolution")
       (message "French Revolutionary date: %s" f))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-goto-french-date (date &optional noecho)
   "Move cursor to French Revolutionary date DATE.
 Echo French Revolutionary date unless NOECHO is t."
@@ -250,6 +250,7 @@ Echo French Revolutionary date unless NOECHO is t."
 (defvar date)
 
 ;; To be called from list-sexp-diary-entries, where DATE is bound.
+;;;###diary-autoload
 (defun diary-french-date ()
   "French calendar equivalent of date diary entry."
   (let ((f (calendar-french-date-string date)))
@@ -258,10 +259,6 @@ Echo French Revolutionary date unless NOECHO is t."
       (format "French Revolutionary date: %s" f))))
 
 (provide 'cal-french)
-
-;; Local Variables:
-;; generated-autoload-file: "cal-loaddefs.el"
-;; End:
 
 ;; arch-tag: 7e8045a3-8609-46b5-9cde-cf40ce541cf9
 ;;; cal-french.el ends here
