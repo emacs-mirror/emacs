@@ -1,3 +1,8 @@
+2008-03-13  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* font-lock.el (font-lock-comment-face): Set the foreground for
+	the light background 8 colors case.
+
 2008-03-13  Glenn Morris  <rgm@gnu.org>
 
 	* font-lock.el (lisp-font-lock-keywords-1): Support wider range of
