@@ -1,3 +1,23 @@
+2008-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* font-lock.el (lisp-font-lock-keywords-1): Support wider range of
+	generate-autoload-cookie patterns.
+
+	* startup.el (command-line-1): Rename -scriptload to -internal-script.
+
+	* mail/supercite.el: Remove the `function' in `(function (lambda'.
+	Replace `(car (cdr' with cadr'.
+
+	* progmodes/f90.el (f90-font-lock-n): New function.
+	(f90-font-lock-1, f90-font-lock-2, f90-font-lock-3, f90-font-lock-4):
+	Use f90-font-lock-n.
+	(f90-indent-region, f90-indent-subprogram, f90-match-end): Use cadr.
+
+	* progmodes/f90.el (f90-mode-abbrev-table):
+	* progmodes/fortran.el (fortran-mode-abbrev-table):
+	Use newer form of define-abbrev, where supported.  No need to bind
+	abbrevs-changed for system abbrevs.
+
 2008-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term/xterm.el (terminal-init-xterm): delete-frame-hook ->
