@@ -878,13 +878,12 @@ from the cursor position."
                        (lambda (x) (>= x start-year)))))
    (list death-date start-year end-year)))
   (message "Computing Yahrzeits...")
-  (let* ((yahrzeit-buffer "*Yahrzeits*")
-         (h-date (calendar-hebrew-from-absolute
+  (let* ((h-date (calendar-hebrew-from-absolute
                   (calendar-absolute-from-gregorian death-date)))
          (h-month (extract-calendar-month h-date))
          (h-day (extract-calendar-day h-date))
          (h-year (extract-calendar-year h-date)))
-    (set-buffer (get-buffer-create yahrzeit-buffer))
+    (set-buffer (get-buffer-create cal-hebrew-yahrzeit-buffer))
     (setq buffer-read-only nil)
     (calendar-set-mode-line
      (format "Yahrzeit dates for %s = %s"
@@ -908,7 +907,7 @@ from the cursor position."
     (goto-char (point-min))
     (set-buffer-modified-p nil)
     (setq buffer-read-only t)
-    (display-buffer yahrzeit-buffer)
+    (display-buffer cal-hebrew-yahrzeit-buffer)
     (message "Computing Yahrzeits...done")))
 
 (defvar date)
