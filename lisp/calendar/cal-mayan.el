@@ -4,7 +4,7 @@
 ;;   2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Stewart M. Clamen <clamen@cs.cmu.edu>
-;;	Edward M. Reingold <reingold@cs.uiuc.edu>
+;;         Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: Mayan calendar, Maya, calendar, diary
@@ -100,12 +100,12 @@ but some use 1137140.  Using 1232041 gives you Spinden's correlation; using
     (condition-case condition
         (progn
           (while (< cc c)
-	    (let* ((start (string-match "[0-9]+" str cc))
-		   (end (match-end 0))
-		   datum)
-	      (setq datum (read (substring str start end)))
-	      (setq rlc (cons datum rlc))
-	      (setq cc end)))
+            (let* ((start (string-match "[0-9]+" str cc))
+                   (end (match-end 0))
+                   datum)
+              (setq datum (read (substring str start end)))
+              (setq rlc (cons datum rlc))
+              (setq cc end)))
           (if (not (= (length rlc) 5)) (signal 'invalid-read-syntax nil)))
       (invalid-read-syntax nil))
     (reverse rlc)))
@@ -125,16 +125,16 @@ but some use 1137140.  Using 1232041 gives you Spinden's correlation; using
 (defun calendar-mayan-haab-difference (date1 date2)
   "Number of days from Mayan haab DATE1 to next occurrence of haab date DATE2."
   (mod (+ (* 20 (- (cdr date2) (cdr date1)))
-	  (- (car date2) (car date1)))
+          (- (car date2) (car date1)))
        365))
 
 (defun calendar-mayan-haab-on-or-before (haab-date date)
   "Absolute date of latest HAAB-DATE on or before absolute DATE."
   (- date
      (% (- date
-	   (calendar-mayan-haab-difference
-	    (calendar-mayan-haab-from-absolute 0) haab-date))
-	365)))
+           (calendar-mayan-haab-difference
+            (calendar-mayan-haab-from-absolute 0) haab-date))
+        365)))
 
 ;;;###cal-autoload
 (defun calendar-next-haab-date (haab-date &optional noecho)
@@ -165,12 +165,12 @@ Echo Mayan date if NOECHO is t."
   "Convert Mayan HAAB date (a pair) into its traditional written form."
   (let ((month (cdr haab))
         (day (car haab)))
-  ;; 19th month consists of 5 special days
-  (if (= month 19)
-      (format "%d Uayeb" day)
-    (format "%d %s"
-            day
-            (aref calendar-mayan-haab-month-name-array (1- month))))))
+    ;; 19th month consists of 5 special days
+    (if (= month 19)
+        (format "%d Uayeb" day)
+      (format "%d %s"
+              day
+              (aref calendar-mayan-haab-month-name-array (1- month))))))
 
 (defun calendar-mayan-tzolkin-from-absolute (date)
   "Convert absolute DATE into a Mayan tzolkin date (a pair)."
@@ -188,17 +188,17 @@ Echo Mayan date if NOECHO is t."
   (let ((number-difference (- (car date2) (car date1)))
         (name-difference (- (cdr date2) (cdr date1))))
     (mod (+ number-difference
-	    (* 13 (mod (* 3 (- number-difference name-difference))
-		       20)))
-	 260)))
+            (* 13 (mod (* 3 (- number-difference name-difference))
+                       20)))
+         260)))
 
 (defun calendar-mayan-tzolkin-on-or-before (tzolkin-date date)
   "Absolute date of latest TZOLKIN-DATE on or before absolute DATE."
   (- date
      (% (- date (calendar-mayan-tzolkin-difference
-		 (calendar-mayan-tzolkin-from-absolute 0)
-		 tzolkin-date))
-	260)))
+                 (calendar-mayan-tzolkin-from-absolute 0)
+                 tzolkin-date))
+        260)))
 
 ;;;###cal-autoload
 (defun calendar-next-tzolkin-date (tzolkin-date &optional noecho)
@@ -247,8 +247,8 @@ Returns nil if such a tzolkin-haab combination is impossible."
     (if (= (% difference 5) 0)
         (- date
            (mod (- date
-		   (+ haab-difference (* 365 difference)))
-		18980))
+                   (+ haab-difference (* 365 difference)))
+                18980))
       nil)))
 
 (defun calendar-read-mayan-haab-date ()
@@ -276,9 +276,9 @@ Returns nil if such a tzolkin-haab combination is impossible."
          (tzolkin-name-list (append calendar-mayan-tzolkin-names-array nil))
          (tzolkin-name (cdr
                         (assoc-string
-                          (completing-read "Tzolkin uinal: "
-                                           (mapcar 'list tzolkin-name-list)
-                                           nil t)
+                         (completing-read "Tzolkin uinal: "
+                                          (mapcar 'list tzolkin-name-list)
+                                          nil t)
                          (calendar-make-alist tzolkin-name-list 1) t))))
     (cons tzolkin-count tzolkin-name)))
 
@@ -321,12 +321,12 @@ Echo Mayan date if NOECHO is t."
 (defun calendar-absolute-from-mayan-long-count (c)
   "Compute the absolute date corresponding to the Mayan Long Count C.
 Long count is a list (baktun katun tun uinal kin)"
-  (+ (* (nth 0 c) 144000)        ; baktun
-     (* (nth 1 c) 7200)          ; katun
-     (* (nth 2 c) 360)           ; tun
-     (* (nth 3 c) 20)            ; uinal
-     (nth 4 c)                   ; kin (days)
-     (-                          ; days before absolute date 0
+  (+ (* (nth 0 c) 144000)               ; baktun
+     (* (nth 1 c) 7200)                 ; katun
+     (* (nth 2 c) 360)                  ; tun
+     (* (nth 3 c) 20)                   ; uinal
+     (nth 4 c)                          ; kin (days)
+     (-                                 ; days before absolute date 0
       calendar-mayan-days-before-absolute-zero)))
 
 ;;;###cal-autoload
@@ -338,10 +338,10 @@ Defaults to today's date if DATE is not given."
          (tzolkin (calendar-mayan-tzolkin-from-absolute d))
          (haab (calendar-mayan-haab-from-absolute d))
          (long-count (calendar-mayan-long-count-from-absolute d)))
-      (format "Long count = %s; tzolkin = %s; haab = %s"
-              (calendar-mayan-long-count-to-string long-count)
-              (calendar-mayan-tzolkin-to-string tzolkin)
-              (calendar-mayan-haab-to-string haab))))
+    (format "Long count = %s; tzolkin = %s; haab = %s"
+            (calendar-mayan-long-count-to-string long-count)
+            (calendar-mayan-tzolkin-to-string tzolkin)
+            (calendar-mayan-haab-to-string haab))))
 
 ;;;###cal-autoload
 (defun calendar-print-mayan-date ()
@@ -361,8 +361,8 @@ Defaults to today's date if DATE is not given."
                (read-string "Mayan long count (baktun.katun.tun.uinal.kin): "
                             (calendar-mayan-long-count-to-string
                              (calendar-mayan-long-count-from-absolute
-                               (calendar-absolute-from-gregorian
-                                (calendar-current-date))))))))
+                              (calendar-absolute-from-gregorian
+                               (calendar-current-date))))))))
          (if (calendar-mayan-long-count-common-era datum)
              (setq lc datum))))
      (list lc)))
