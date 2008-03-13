@@ -363,6 +363,7 @@ Gregorian date Sunday, December 31, 1 BC."
           (car (car list))
           (1+ (- date (car (cdr (car list))))))))
 
+;;;###holiday-autoload
 (defun holiday-chinese-new-year ()
   "Date of Chinese New Year."
   (let ((m displayed-month)
@@ -378,7 +379,7 @@ Gregorian date Sunday, December 31, 1 BC."
                  (format "Chinese New Year (%s)"
                          (calendar-chinese-sexagesimal-name (+ y 57))))))))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-chinese-date-string (&optional date)
   "String of Chinese date of Gregorian DATE.
 Defaults to today's date if DATE is not given."
@@ -420,7 +421,7 @@ N congruent to 1 gives the first name, N congruent to 2 gives the second name,
           (aref chinese-calendar-celestial-stem (% (1- n) 10))
           (aref chinese-calendar-terrestrial-branch (% (1- n) 12))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-print-chinese-date ()
   "Show the Chinese date equivalents of date."
   (interactive)
@@ -428,7 +429,7 @@ N congruent to 1 gives the first name, N congruent to 2 gives the second name,
   (message "Chinese date: %s"
            (calendar-chinese-date-string (calendar-cursor-to-date t))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-goto-chinese-date (date &optional noecho)
   "Move cursor to Chinese date DATE.
 Echo Chinese date unless NOECHO is t."
@@ -502,15 +503,12 @@ Echo Chinese date unless NOECHO is t."
 (defvar date)
 
 ;; To be called from list-sexp-diary-entries, where DATE is bound.
+;;;###diary-autoload
 (defun diary-chinese-date ()
   "Chinese calendar equivalent of date diary entry."
   (format "Chinese date: %s" (calendar-chinese-date-string date)))
 
 (provide 'cal-china)
-
-;; Local Variables:
-;; generated-autoload-file: "cal-loaddefs.el"
-;; End:
 
 ;; arch-tag: 7e5b7e0d-676c-47e3-8696-93e7ea0ab644
 ;;; cal-china.el ends here
