@@ -4,11 +4,10 @@
 ;;   2006, 2007, 2008  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
-;;	Denis B. Roegel <Denis.Roegel@loria.fr>
+;;         Denis B. Roegel <Denis.Roegel@loria.fr>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
-;; Human-Keywords: sunrise, sunset, equinox, solstice, calendar, diary,
-;;	holidays
+;; Human-Keywords: sunrise, sunset, equinox, solstice, calendar, diary, holidays
 
 ;; This file is part of GNU Emacs.
 
@@ -68,7 +67,7 @@
 
 (defcustom calendar-time-display-form
   '(12-hours ":" minutes am-pm
-    (if time-zone " (") time-zone (if time-zone ")"))
+             (if time-zone " (") time-zone (if time-zone ")"))
   "The pseudo-pattern that governs the way a time of day is formatted.
 
 A pseudo-pattern is a list of expressions that can involve the keywords
@@ -93,13 +92,13 @@ York City.
 
 This variable should be set in `site-start'.el."
   :type '(choice (const nil)
-		 (number :tag "Exact")
-		 (vector :value [0 0 north]
-			 (integer :tag "Degrees")
-			 (integer :tag "Minutes")
-			 (choice :tag "Position"
-				 (const north)
-				 (const south))))
+                 (number :tag "Exact")
+                 (vector :value [0 0 north]
+                         (integer :tag "Degrees")
+                         (integer :tag "Minutes")
+                         (choice :tag "Position"
+                                 (const north)
+                                 (const south))))
   :group 'calendar)
 
 (defcustom calendar-longitude nil
@@ -111,13 +110,13 @@ York City.
 
 This variable should be set in `site-start'.el."
   :type '(choice (const nil)
-		 (number :tag "Exact")
-		 (vector :value [0 0 west]
-			 (integer :tag "Degrees")
-			 (integer :tag "Minutes")
-			 (choice :tag "Position"
-				 (const east)
-				 (const west))))
+                 (number :tag "Exact")
+                 (vector :value [0 0 west]
+                         (integer :tag "Degrees")
+                         (integer :tag "Minutes")
+                         (choice :tag "Position"
+                                 (const east)
+                                 (const west))))
   :group 'calendar)
 
 (defcustom calendar-location-name
@@ -146,7 +145,7 @@ This variable should be set in `site-start'.el."
   :group 'calendar)
 
 (defcustom solar-error 0.5
-"Tolerance (in minutes) for sunrise/sunset calculations.
+  "Tolerance (in minutes) for sunrise/sunset calculations.
 
 A larger value makes the calculations for sunrise/sunset faster, but less
 accurate.  The default is half a minute (30 seconds), so that sunrise/sunset
@@ -179,8 +178,8 @@ delta.  At present, delta = 0.01 degrees, so the value of the variable
   "List of season changes for the southern hemisphere.")
 
 (defvar solar-sidereal-time-greenwich-midnight
-   nil
-   "Sidereal time at Greenwich at midnight (universal time).")
+  nil
+  "Sidereal time at Greenwich at midnight (universal time).")
 
 (defvar solar-northern-spring-or-summer-season nil
   "Non-nil if northern spring or summer and nil otherwise.
@@ -202,7 +201,7 @@ Needed for polar areas, in order to know whether the day lasts 0 or 24 hours.")
   (if (numberp calendar-longitude)
       calendar-longitude
     (let ((long (+ (aref calendar-longitude 0)
-                  (/ (aref calendar-longitude 1) 60.0))))
+                   (/ (aref calendar-longitude 1) 60.0))))
       (if (equal (aref calendar-longitude 2) 'east)
           long
         (- long)))))
@@ -221,8 +220,8 @@ Needed for polar areas, in order to know whether the day lasts 0 or 24 hours.")
   (or calendar-time-zone
       (setq calendar-time-zone
             (solar-get-number
-             "Enter difference from Coordinated Universal Time (in \
-minutes): "))))
+             "Enter difference from Coordinated Universal Time (in minutes): ")
+            )))
 
 (defun solar-get-number (prompt)
   "Return a number from the minibuffer, prompting with PROMPT.
@@ -247,7 +246,7 @@ Returns nil if nothing was entered."
   "Determine the quadrant of the point X, Y."
   (if (> x 0)
       (if (> y 0) 1 4)
-      (if (> y 0) 2 3)))
+    (if (> y 0) 2 3)))
 
 (defun solar-degrees-to-quadrant (angle)
   "Determine the quadrant of ANGLE degrees."
@@ -256,16 +255,16 @@ Returns nil if nothing was entered."
 (defun solar-arctan (x quad)
   "Arctangent of X in quadrant QUAD."
   (let ((deg (radians-to-degrees (atan x))))
-    (cond ((equal quad 2)   (+ deg 180))
-	  ((equal quad 3)   (+ deg 180))
-	  ((equal quad 4)   (+ deg 360))
-	  (t                deg))))
+    (cond ((equal quad 2) (+ deg 180))
+          ((equal quad 3) (+ deg 180))
+          ((equal quad 4) (+ deg 360))
+          (t              deg))))
 
 (defun solar-atn2 (x y)
-   "Arctangent of point X, Y."
-   (if (zerop x)
-       (if (> y 0) 90 270)
-     (solar-arctan (/ y x) (solar-xy-to-quadrant x y))))
+  "Arctangent of point X, Y."
+  (if (zerop x)
+      (if (> y 0) 90 270)
+    (solar-arctan (/ y x) (solar-xy-to-quadrant x y))))
 
 (defun solar-arccos (x)
   "Arccosine of X."
@@ -325,7 +324,7 @@ degrees to find out if polar regions have 24 hours of sun or only night."
                 (and (< latitude 0)
                      (not solar-northern-spring-or-summer-season)))
             (setq day-length 24)
-	  (setq day-length 0))
+          (setq day-length 0))
       (setq day-length (- set-time rise-time)))
     (list (if rise-time (+ rise-time (/ calendar-time-zone 60.0)) nil)
           (if set-time (+ set-time (/ calendar-time-zone 60.0)) nil)
@@ -347,7 +346,7 @@ we are trying to find.  For sunrise and sunset, it is usually -0.61 degrees,
 accounting for the edge of the sun being on the horizon.
 
 Uses binary search."
-  (let* ((ut (car (cdr time)))
+  (let* ((ut (cadr time))
          (possible t)        ; we assume that rise or set are possible
          (utmin (+ ut (* direction 12.0)))
          (utmax ut)     ; the time searched is between utmin and utmax
@@ -356,41 +355,37 @@ Uses binary search."
          (utmoment 1.0)                 ; rise or set approximation
          (hut 0)                        ; sun height at utmoment
          (t0 (car time))
-         (hmin (car (cdr
-               (solar-horizontal-coordinates (list t0 utmin)
-                                                latitude longitude t))))
-         (hmax (car (cdr
-               (solar-horizontal-coordinates (list t0 utmax)
-                                                latitude longitude t)))))
+         (hmin (cadr (solar-horizontal-coordinates (list t0 utmin)
+                                                   latitude longitude t)))
+         (hmax (cadr (solar-horizontal-coordinates (list t0 utmax)
+                                                   latitude longitude t))))
     ;; -0.61 degrees is the height of the middle of the sun, when it
     ;; rises or sets.
-     (if (< hmin height)
-              (if (> hmax height)
-                  (while ;;; (< i 20)   ; we perform a simple dichotomy
-                         ;;; (> (abs (- hut height)) epsilon)
-                         (>= (abs (- utmoment utmoment-old))
-                             (/ solar-error 60))
-                    (setq utmoment-old utmoment)
-                    (setq utmoment (/ (+ utmin utmax) 2))
-                    (setq hut (car (cdr
-                                    (solar-horizontal-coordinates
-                                   (list t0 utmoment) latitude longitude t))))
-                    (if (< hut height) (setq utmin utmoment))
-                    (if (> hut height) (setq utmax utmoment))
-                   )
-                (setq possible nil))    ; the sun never rises
-                (setq possible nil))    ; the sun never sets
-     (if (not possible) nil utmoment)))
+    (if (< hmin height)
+        (if (> hmax height)
+            (while ;;; (< i 20)   ; we perform a simple dichotomy
+;;; (> (abs (- hut height)) epsilon)
+                (>= (abs (- utmoment utmoment-old))
+                    (/ solar-error 60))
+              (setq utmoment-old utmoment
+                    utmoment (/ (+ utmin utmax) 2)
+                    hut (cadr (solar-horizontal-coordinates
+                               (list t0 utmoment) latitude longitude t)))
+              (if (< hut height) (setq utmin utmoment))
+              (if (> hut height) (setq utmax utmoment)))
+          (setq possible nil))          ; the sun never rises
+      (setq possible nil))              ; the sun never sets
+    (if possible utmoment)))
 
 (defun solar-time-string (time time-zone)
   "Printable form for decimal fraction TIME in TIME-ZONE.
 Format used is given by `calendar-time-display-form'."
   (let* ((time (round (* 60 time)))
-	 (24-hours (/ time 60))
-	 (minutes (format "%02d" (% time 60)))
-	 (12-hours (format "%d" (1+ (% (+ 24-hours 11) 12))))
-	 (am-pm (if (>= 24-hours 12) "pm" "am"))
-	 (24-hours (format "%02d" 24-hours)))
+         (24-hours (/ time 60))
+         (minutes (format "%02d" (% time 60)))
+         (12-hours (format "%d" (1+ (% (+ 24-hours 11) 12))))
+         (am-pm (if (>= 24-hours 12) "pm" "am"))
+         (24-hours (format "%02d" 24-hours)))
     (mapconcat 'eval calendar-time-display-form "")))
 
 
@@ -409,18 +404,15 @@ local date.  The second component of date should be an integer."
          (te (solar-time-equation date ut)))
     (setq ut (- ut te))
     (if (>= ut 24)
-        (progn
-          (setq nd (list (car date) (+ 1 (car (cdr date)))
-                         (car (cdr (cdr date)))))
-          (setq ut (- ut 24))))
+        (setq nd (list (car date) (1+ (cadr date))
+                       (nth 2 date))
+              ut (- ut 24)))
     (if (< ut 0)
-        (progn
-          (setq nd (list (car date) (- (car (cdr date)) 1)
-                         (car (cdr (cdr date)))))
-          (setq ut (+ ut 24))))
-    (setq nd (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-gregorian nd)))
-        ; date standardization
+        (setq nd (list (car date) (1- (cadr date))
+                       (nth 2 date))
+              ut (+ ut 24)))
+    (setq nd (calendar-gregorian-from-absolute ; date standardization
+              (calendar-absolute-from-gregorian nd)))
     (list nd ut)))
 
 (defun solar-sunrise-sunset (date)
@@ -436,7 +428,7 @@ Corresponding value is nil if there is no sunrise/sunset."
           (progn (setq solar-sidereal-time-greenwich-midnight
                        (solar-sidereal-time t0))
                  (solar-sunrise-and-sunset
-                  (list t0 (car (cdr exact-local-noon)))
+                  (list t0 (cadr exact-local-noon))
                   1.0
                   (calendar-longitude) 0)))
          ;; Store the spring/summer information, compute sunrise and
@@ -446,16 +438,16 @@ Corresponding value is nil if there is no sunrise/sunset."
          (rise-set
           (progn
             (setq solar-northern-spring-or-summer-season
-                  (if (> (car (cdr (cdr equator-rise-set))) 12) t nil))
+                  (> (nth 2 equator-rise-set) 12))
             (solar-sunrise-and-sunset
-             (list t0 (car (cdr exact-local-noon)))
+             (list t0 (cadr exact-local-noon))
              (calendar-latitude)
              (calendar-longitude) -0.61)))
          (rise (car rise-set))
-         (adj-rise (if rise (dst-adjust-time date rise) nil))
-         (set (car (cdr rise-set)))
-         (adj-set (if set (dst-adjust-time date set) nil))
-         (length  (car (cdr (cdr rise-set)))) )
+         (adj-rise (if rise (dst-adjust-time date rise)))
+         (set (cadr rise-set))          ; FIXME ?
+         (adj-set (if set (dst-adjust-time date set)))
+         (length (nth 2 rise-set)))
     (list
      (and rise (calendar-date-equal date (car adj-rise)) (cdr adj-rise))
      (and set (calendar-date-equal date (car adj-set)) (cdr adj-set))
@@ -469,11 +461,11 @@ Corresponding value is nil if there is no sunrise/sunset."
      (if (car l)
          (concat "Sunrise " (apply 'solar-time-string (car l)))
        "No sunrise")
-     (if (car (cdr l))
-         (concat "sunset " (apply 'solar-time-string (car (cdr l))))
+     (if (cadr l)
+         (concat "sunset " (apply 'solar-time-string (cadr l)))
        "no sunset")
      (eval calendar-location-name)
-     (car (cdr (cdr l))))))
+     (nth 2 l))))
 
 (defun solar-julian-ut-centuries (date)
   "Number of Julian centuries since 1 Jan, 2000 at noon UT for Gregorian DATE."
@@ -491,11 +483,11 @@ Jan 1, 2000 at 12 UT and November 28, 1995 at 0 UT.
 
 Result is in Julian centuries of ephemeris time."
   (let* ((t0 (car time))
-         (ut (car (cdr time)))
+         (ut (cadr time))
          (t1 (+ t0 (/ (/ ut 24.0) 36525)))
          (y (+ 2000 (* 100 t1)))
          (dt (* 86400 (solar-ephemeris-correction (floor y)))))
-      (+ t1 (/ (/ dt 86400) 36525))))
+    (+ t1 (/ (/ dt 86400) 36525))))
 
 (defun solar-date-next-longitude (d l)
   "First time after day D when solar longitude is a multiple of L degrees.
@@ -518,15 +510,14 @@ and `calendar-time-zone' are used to interpret local time."
       ;; start-long <= next < end-long when next != 0
       ;; when next = 0, we look for the discontinuity (start-long is near 360
       ;;                and end-long is small (less than l).
-      (setq d (/ (+ start end) 2.0))
-      (setq long (solar-longitude d))
-      (if (or (and (/= next 0) (< long next))
-              (and (= next 0) (< l long)))
-          (progn
-            (setq start d)
-            (setq start-long long))
-        (setq end d)
-        (setq end-long long)))
+      (setq d (/ (+ start end) 2.0)
+            long (solar-longitude d))
+      (if (or (and (not (zerop next)) (< long next))
+              (and (zerop next) (< l long)))
+          (setq start d
+                start-long long)
+        (setq end d
+              end-long long)))
     (/ (+ start end) 2.0)))
 
 (defun solar-horizontal-coordinates (time latitude longitude sunrise-flag)
@@ -547,9 +538,9 @@ height (between -180 and 180) are both in degrees."
          (ah (- (* st 15) (* 15 (car ec)) (* -1 (calendar-longitude))))
          (de (cadr ec))
          (azimuth (solar-atn2 (- (* (solar-cosine-degrees ah)
-                                   (solar-sin-degrees latitude))
-                                (* (solar-tangent-degrees de)
-                                   (solar-cosine-degrees latitude)))
+                                    (solar-sin-degrees latitude))
+                                 (* (solar-tangent-degrees de)
+                                    (solar-cosine-degrees latitude)))
                               (solar-sin-degrees ah)))
          (height (solar-arcsin
                   (+ (* (solar-sin-degrees latitude) (solar-sin-degrees de))
@@ -568,10 +559,10 @@ corresponding to November 28, 1995 at 16 UT is (-0.040945 16),
 -0.040945 being the number of Julian centuries elapsed between
 Jan 1, 2000 at 12 UT and November 28, 1995 at 0 UT.  SUNRISE-FLAG is passed
 to `solar-ecliptic-coordinates'."
-   (let* ((tm (solar-ephemeris-time time))
-          (ec (solar-ecliptic-coordinates tm sunrise-flag)))
-     (list (solar-right-ascension (car ec) (car (cdr ec)))
-           (solar-declination (car ec) (car (cdr ec))))))
+  (let* ((tm (solar-ephemeris-time time))
+         (ec (solar-ecliptic-coordinates tm sunrise-flag)))
+    (list (solar-right-ascension (car ec) (car (cdr ec)))
+          (solar-declination (car ec) (car (cdr ec))))))
 
 (defun solar-ecliptic-coordinates (time sunrise-flag)
   "Return solar longitude, ecliptic inclination, equation of time, nutation.
@@ -623,12 +614,12 @@ If SUNRISE-FLAG is non-nil, only calculate longitude and inclination."
          ;; Equation of time, in hours.
          (time-eq (unless sunrise-flag
                     (/ (* 12 (+ (* y (solar-sin-degrees (* 2 l)))
-                     (* -2 ecc (solar-sin-degrees m))
-                     (* 4 ecc y (solar-sin-degrees m)
-                                (solar-cosine-degrees (* 2 l)))
-                     (* -0.5 y y  (solar-sin-degrees (* 4 l)))
-                     (* -1.25 ecc ecc (solar-sin-degrees (* 2 m)))))
-                      3.1415926535))))
+                                (* -2 ecc (solar-sin-degrees m))
+                                (* 4 ecc y (solar-sin-degrees m)
+                                   (solar-cosine-degrees (* 2 l)))
+                                (* -0.5 y y  (solar-sin-degrees (* 4 l)))
+                                (* -1.25 ecc ecc (solar-sin-degrees (* 2 m)))))
+                       3.1415926535))))
     (list app i time-eq nut)))
 
 (defconst solar-data-list
@@ -712,11 +703,11 @@ The values of `calendar-daylight-savings-starts',
              (* 0.0000001
                 (apply '+
                        (mapcar (lambda (x)
-                                  (* (car x)
-                                     (sin (mod
-                                           (+ (car (cdr x))
-                                              (* (car (cdr (cdr x))) U))
-                                           (* 2 pi)))))
+                                 (* (car x)
+                                    (sin (mod
+                                          (+ (car (cdr x))
+                                             (* (car (cdr (cdr x))) U))
+                                          (* 2 pi)))))
                                solar-data-list)))))
          (aberration
           (* 0.0000001 (- (* 17 (cos (+ 3.10 (* 62830.14 U)))) 973)))
@@ -787,30 +778,27 @@ Result is in days.  For the years 1800-1987, the maximum error is
 (defun solar-sidereal-time (t0)
   "Sidereal time (in hours) in Greenwich at T0 Julian centuries.
 T0 must correspond to 0 hours UT."
-   (let* ((mean-sid-time (+ 6.6973746
+  (let* ((mean-sid-time (+ 6.6973746
                            (* 2400.051337 t0)
                            (* 0.0000258622 t0 t0)
                            (* -0.0000000017222 t0 t0 t0)))
-          (et (solar-ephemeris-time (list t0 0.0)))
-          (nut-i (solar-ecliptic-coordinates et nil))
-          (nut (car (cdr (cdr (cdr nut-i))))) ; nutation
-          (i (car (cdr nut-i))))              ; inclination
-       (mod (+ (mod (+ mean-sid-time
+         (et (solar-ephemeris-time (list t0 0.0)))
+         (nut-i (solar-ecliptic-coordinates et nil))
+         (nut (nth 3 nut-i))            ; nutation
+         (i (cadr nut-i)))              ; inclination
+    (mod (+ (mod (+ mean-sid-time
                     (/ (/ (* nut (solar-cosine-degrees i)) 15) 3600)) 24.0)
-               24.0)
-            24.0)))
+            24.0)
+         24.0)))
 
 (defun solar-time-equation (date ut)
   "Equation of time expressed in hours at Gregorian DATE at Universal time UT."
-  (let* ((et (solar-date-to-et date ut))
-         (ec (solar-ecliptic-coordinates et nil)))
-     (car (cdr (cdr ec)))))
+  (nth 2 (solar-ecliptic-coordinates (solar-date-to-et date ut) nil)))
 
 (defun solar-date-to-et (date ut)
   "Ephemeris Time at Gregorian DATE at Universal Time UT (in hours).
 Expressed in Julian centuries of Ephemeris Time."
-    (let ((t0 (solar-julian-ut-centuries date)))
-      (solar-ephemeris-time (list t0 ut))))
+  (solar-ephemeris-time (list (solar-julian-ut-centuries date) ut)))
 
 ;;;###autoload
 (defun sunrise-sunset (&optional arg)
@@ -820,68 +808,68 @@ If called with an optional double prefix argument, prompt for
 longitude, latitude, time zone, and date, and always use standard time.
 
 This function is suitable for execution in a .emacs file."
- (interactive "p")
- (or arg (setq arg 1))
- (if (and (< arg 16)
-          (not (and calendar-latitude calendar-longitude calendar-time-zone)))
-     (solar-setup))
- (let* ((calendar-longitude
-         (if (< arg 16) calendar-longitude
-           (solar-get-number
-            "Enter longitude (decimal fraction; + east, - west): ")))
-        (calendar-latitude
-         (if (< arg 16) calendar-latitude
-           (solar-get-number
-            "Enter latitude (decimal fraction; + north, - south): ")))
-        (calendar-time-zone
-         (if (< arg 16) calendar-time-zone
-           (solar-get-number
-            "Enter difference from Coordinated Universal Time (in minutes): ")))
-        (calendar-location-name
-         (if (< arg 16) calendar-location-name
-           (let ((float-output-format "%.1f"))
-             (format "%s%s, %s%s"
-                     (if (numberp calendar-latitude)
-                         (abs calendar-latitude)
-                       (+ (aref calendar-latitude 0)
-                          (/ (aref calendar-latitude 1) 60.0)))
-                     (if (numberp calendar-latitude)
-                         (if (> calendar-latitude 0) "N" "S")
-                       (if (equal (aref calendar-latitude 2) 'north) "N" "S"))
-                     (if (numberp calendar-longitude)
-                         (abs calendar-longitude)
-                       (+ (aref calendar-longitude 0)
-                          (/ (aref calendar-longitude 1) 60.0)))
-                     (if (numberp calendar-longitude)
-                         (if (> calendar-longitude 0) "E" "W")
-                       (if (equal (aref calendar-longitude 2) 'east)
-                           "E" "W"))))))
-        (calendar-standard-time-zone-name
-         (if (< arg 16) calendar-standard-time-zone-name
-           (cond ((= calendar-time-zone 0) "UTC")
-                 ((< calendar-time-zone 0)
-                     (format "UTC%dmin" calendar-time-zone))
-                 (t  (format "UTC+%dmin" calendar-time-zone)))))
-        (calendar-daylight-savings-starts
-         (if (< arg 16) calendar-daylight-savings-starts))
-        (calendar-daylight-savings-ends
-         (if (< arg 16) calendar-daylight-savings-ends))
-        (date (if (< arg 4) (calendar-current-date) (calendar-read-date)))
-        (date-string (calendar-date-string date t))
-        (time-string (solar-sunrise-sunset-string date))
-        (msg (format "%s: %s" date-string time-string))
-        (one-window (one-window-p t)))
-   (if (<= (length msg) (frame-width))
-       (message "%s" msg)
-     (with-output-to-temp-buffer "*temp*"
-       (princ (concat date-string "\n" time-string)))
-     (message "%s"
-	      (substitute-command-keys
-               (if one-window
-                   (if pop-up-windows
-                       "Type \\[delete-other-windows] to remove temp window."
-                     "Type \\[switch-to-buffer] RET to remove temp window.")
-                 "Type \\[switch-to-buffer-other-window] RET to restore old \
+  (interactive "p")
+  (or arg (setq arg 1))
+  (if (and (< arg 16)
+           (not (and calendar-latitude calendar-longitude calendar-time-zone)))
+      (solar-setup))
+  (let* ((calendar-longitude
+          (if (< arg 16) calendar-longitude
+            (solar-get-number
+             "Enter longitude (decimal fraction; + east, - west): ")))
+         (calendar-latitude
+          (if (< arg 16) calendar-latitude
+            (solar-get-number
+             "Enter latitude (decimal fraction; + north, - south): ")))
+         (calendar-time-zone
+          (if (< arg 16) calendar-time-zone
+            (solar-get-number
+             "Enter difference from Coordinated Universal Time (in minutes): ")))
+         (calendar-location-name
+          (if (< arg 16) calendar-location-name
+            (let ((float-output-format "%.1f"))
+              (format "%s%s, %s%s"
+                      (if (numberp calendar-latitude)
+                          (abs calendar-latitude)
+                        (+ (aref calendar-latitude 0)
+                           (/ (aref calendar-latitude 1) 60.0)))
+                      (if (numberp calendar-latitude)
+                          (if (> calendar-latitude 0) "N" "S")
+                        (if (equal (aref calendar-latitude 2) 'north) "N" "S"))
+                      (if (numberp calendar-longitude)
+                          (abs calendar-longitude)
+                        (+ (aref calendar-longitude 0)
+                           (/ (aref calendar-longitude 1) 60.0)))
+                      (if (numberp calendar-longitude)
+                          (if (> calendar-longitude 0) "E" "W")
+                        (if (equal (aref calendar-longitude 2) 'east)
+                            "E" "W"))))))
+         (calendar-standard-time-zone-name
+          (if (< arg 16) calendar-standard-time-zone-name
+            (cond ((= calendar-time-zone 0) "UTC")
+                  ((< calendar-time-zone 0)
+                   (format "UTC%dmin" calendar-time-zone))
+                  (t  (format "UTC+%dmin" calendar-time-zone)))))
+         (calendar-daylight-savings-starts
+          (if (< arg 16) calendar-daylight-savings-starts))
+         (calendar-daylight-savings-ends
+          (if (< arg 16) calendar-daylight-savings-ends))
+         (date (if (< arg 4) (calendar-current-date) (calendar-read-date)))
+         (date-string (calendar-date-string date t))
+         (time-string (solar-sunrise-sunset-string date))
+         (msg (format "%s: %s" date-string time-string))
+         (one-window (one-window-p t)))
+    (if (<= (length msg) (frame-width))
+        (message "%s" msg)
+      (with-output-to-temp-buffer "*temp*"
+        (princ (concat date-string "\n" time-string)))
+      (message "%s"
+               (substitute-command-keys
+                (if one-window
+                    (if pop-up-windows
+                        "Type \\[delete-other-windows] to remove temp window."
+                      "Type \\[switch-to-buffer] RET to remove temp window.")
+                  "Type \\[switch-to-buffer-other-window] RET to restore old \
 contents of temp window."))))))
 
 (defun calendar-sunrise-sunset ()
@@ -914,16 +902,16 @@ An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (or (and calendar-latitude calendar-longitude calendar-time-zone)
       (solar-setup))
-  (if (= (% (calendar-absolute-from-gregorian date) 7) 5) ;  Friday
-      (let* ((sunset (car (cdr (solar-sunrise-sunset date))))
+  (if (= (% (calendar-absolute-from-gregorian date) 7) 5) ; Friday
+      (let* ((sunset (cadr (solar-sunrise-sunset date)))
              (light (if sunset
                         (cons (- (car sunset)
                                  (/ diary-sabbath-candles-minutes 60.0))
                               (cdr sunset)))))
         (if sunset
             (cons mark
-		  (format "%s Sabbath candle lighting"
-                    (apply 'solar-time-string light)))))))
+                  (format "%s Sabbath candle lighting"
+                          (apply 'solar-time-string light)))))))
 
 ;; From Meeus, 1991, page 167.
 (defconst solar-seasons-data
@@ -962,22 +950,20 @@ Accurate to within a minute between 1951 and 2050."
          (T (/ (- JDE0 2451545.0) 36525))
          (W (- (* 35999.373 T) 2.47))
          (Delta-lambda (+ 1 (* 0.0334 (solar-cosine-degrees W))
-                            (* 0.0007 (solar-cosine-degrees (* 2 W)))))
+                          (* 0.0007 (solar-cosine-degrees (* 2 W)))))
          (S (apply '+ (mapcar (lambda(x)
-                                 (* (car x) (solar-cosine-degrees
-                                             (+ (* (car (cdr (cdr x))) T)
-                                                  (car (cdr x))))))
+                                (* (car x) (solar-cosine-degrees
+                                            (+ (* (nth 2 x) T) (cadr x)))))
                               solar-seasons-data)))
          (JDE (+ JDE0 (/ (* 0.00001 S) Delta-lambda)))
          ;; Ephemeris time correction.
          (correction (+ 102.3 (* 123.5 T) (* 32.5 T T)))
          (JD (- JDE (/ correction 86400)))
          (date (calendar-gregorian-from-absolute (floor (- JD 1721424.5))))
-         (time (- (- JD 0.5) (floor (- JD 0.5))))
-         )
-      (list (car date) (+ (car (cdr date)) time
-                          (/ (/ calendar-time-zone 60.0) 24.0))
-            (car (cdr (cdr date))))))
+         (time (- (- JD 0.5) (floor (- JD 0.5)))))
+    (list (car date) (+ (cadr date) time
+                        (/ (/ calendar-time-zone 60.0) 24.0))
+          (nth 2 date))))
 
 ;; From Meeus, 1991, page 166.
 (defun solar-mean-equinoxes/solstices (k year)
@@ -987,47 +973,47 @@ solstice.  These formulas are only to be used between 1000 BC and 3000 AD."
   (let ((y (/ year 1000.0))
         (z (/ (- year 2000) 1000.0)))
     (if (< year 1000)                ; actually between -1000 and 1000
-             (cond ((equal k 0) (+ 1721139.29189
-                                   (*  365242.13740 y)
-                                   (* 0.06134 y y)
-                                   (* 0.00111 y y y)
-                                   (* -0.00071 y y y y)))
-                   ((equal k 1) (+ 1721233.25401
-                                   (* 365241.72562 y)
-                                   (* -0.05323 y y)
-                                   (* 0.00907 y y y)
-                                   (* 0.00025 y y y y)))
-                   ((equal k 2) (+ 1721325.70455
-                                   (* 365242.49558 y)
-                                   (* -0.11677 y y)
-                                   (* -0.00297 y y y)
-                                   (* 0.00074 y y y y)))
-                   ((equal k 3) (+ 1721414.39987
-                                   (* 365242.88257 y)
-                                   (* -0.00769 y y)
-                                   (* -0.00933 y y y)
-                                   (* -0.00006 y y y y))))
+        (cond ((equal k 0) (+ 1721139.29189
+                              (*  365242.13740 y)
+                              (* 0.06134 y y)
+                              (* 0.00111 y y y)
+                              (* -0.00071 y y y y)))
+              ((equal k 1) (+ 1721233.25401
+                              (* 365241.72562 y)
+                              (* -0.05323 y y)
+                              (* 0.00907 y y y)
+                              (* 0.00025 y y y y)))
+              ((equal k 2) (+ 1721325.70455
+                              (* 365242.49558 y)
+                              (* -0.11677 y y)
+                              (* -0.00297 y y y)
+                              (* 0.00074 y y y y)))
+              ((equal k 3) (+ 1721414.39987
+                              (* 365242.88257 y)
+                              (* -0.00769 y y)
+                              (* -0.00933 y y y)
+                              (* -0.00006 y y y y))))
                                         ; actually between 1000 and 3000
-             (cond ((equal k 0) (+ 2451623.80984
-                                   (* 365242.37404  z)
-                                   (* 0.05169 z z)
-                                   (* -0.00411 z z z)
-                                   (* -0.00057 z z z z)))
-                   ((equal k 1) (+ 2451716.56767
-                                   (* 365241.62603 z)
-                                   (* 0.00325 z z)
-                                   (* 0.00888 z z z)
-                                   (* -0.00030 z z z z)))
-                   ((equal k 2) (+ 2451810.21715
-                                   (* 365242.01767 z)
-                                   (* -0.11575 z z)
-                                   (* 0.00337 z z z)
-                                   (* 0.00078 z z z z)))
-                   ((equal k 3) (+ 2451900.05952
-                                   (* 365242.74049 z)
-                                   (* -0.06223 z z)
-                                   (* -0.00823 z z z)
-                                   (* 0.00032 z z z z)))))))
+      (cond ((equal k 0) (+ 2451623.80984
+                            (* 365242.37404  z)
+                            (* 0.05169 z z)
+                            (* -0.00411 z z z)
+                            (* -0.00057 z z z z)))
+            ((equal k 1) (+ 2451716.56767
+                            (* 365241.62603 z)
+                            (* 0.00325 z z)
+                            (* 0.00888 z z z)
+                            (* -0.00030 z z z z)))
+            ((equal k 2) (+ 2451810.21715
+                            (* 365242.01767 z)
+                            (* -0.11575 z z)
+                            (* 0.00337 z z z)
+                            (* 0.00078 z z z z)))
+            ((equal k 3) (+ 2451900.05952
+                            (* 365242.74049 z)
+                            (* -0.06223 z z)
+                            (* -0.00823 z z z)
+                            (* 0.00032 z z z z)))))))
 
 (defun solar-equinoxes-solstices ()
   "Local date and time of equinoxes and solstices, if visible in the calendar.
@@ -1035,8 +1021,8 @@ Requires floating point."
   (let ((m displayed-month)
         (y displayed-year))
     (increment-calendar-month m y (cond ((= 1 (% m 3)) -1)
-					((= 2 (% m 3))  1)
-					(t              0)))
+                                        ((= 2 (% m 3))  1)
+                                        (t              0)))
     (let* ((calendar-standard-time-zone-name
             (if calendar-time-zone calendar-standard-time-zone-name "UTC"))
            (calendar-daylight-savings-starts
@@ -1049,12 +1035,12 @@ Requires floating point."
            (d1 (list (car d0) (floor (car (cdr d0))) (car (cdr (cdr d0)))))
            (h0 (* 24 (- (car (cdr d0)) (floor (car (cdr d0))))))
            (adj (dst-adjust-time d1 h0))
-           (d (list (car (car adj))
-                    (+ (car (cdr (car adj))  )
-                       (/ (car (cdr adj)) 24.0))
-                    (car (cdr (cdr (car adj))))))
+           (d (list (caar adj)
+                    (+ (car (cdar adj))
+                       (/ (cadr adj) 24.0))
+                    (cadr (cdar adj))))
            ;; The following is nearly as accurate, but not quite:
-	   ;; (d0 (solar-date-next-longitude
+           ;; (d0 (solar-date-next-longitude
            ;;     (calendar-astro-from-absolute
            ;;      (calendar-absolute-from-gregorian
            ;;       (list (+ 3 (* k 3)) 15 y)))
