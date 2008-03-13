@@ -74,7 +74,7 @@ date Sunday, December 31, 1 BC."
      (% date 7)
      year)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-iso-date-string (&optional date)
   "String of ISO date of Gregorian DATE, default today."
   (let* ((d (calendar-absolute-from-gregorian
@@ -86,7 +86,7 @@ date Sunday, December 31, 1 BC."
             (extract-calendar-month iso-date)
             (extract-calendar-year iso-date))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-print-iso-date ()
   "Show equivalent ISO date for the date under the cursor."
   (interactive)
@@ -117,7 +117,7 @@ taken to be 1)."
                 1)))
     (list (list week day year))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-goto-iso-date (date &optional noecho)
   "Move cursor to ISO DATE; echo ISO date unless NOECHO is non-nil."
   (interactive (calendar-iso-read-args t))
@@ -125,7 +125,7 @@ taken to be 1)."
                        (calendar-absolute-from-iso date)))
   (or noecho (calendar-print-iso-date)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-goto-iso-week (date &optional noecho)
   "Move cursor to ISO DATE; echo ISO date unless NOECHO is non-nil.
 Interactively, goes to the first day of the specified week."
@@ -137,15 +137,12 @@ Interactively, goes to the first day of the specified week."
 (defvar date)
 
 ;; To be called from list-sexp-diary-entries, where DATE is bound.
+;;;###diary-autoload
 (defun diary-iso-date ()
   "ISO calendar equivalent of date diary entry."
   (format "ISO date: %s" (calendar-iso-date-string date)))
 
 (provide 'cal-iso)
-
-;; Local Variables:
-;; generated-autoload-file: "cal-loaddefs.el"
-;; End:
 
 ;; arch-tag: 3c0154cc-d30f-4981-9f60-42bdf7a468f6
 ;;; cal-iso.el ends here
