@@ -494,14 +494,14 @@ calendar package is already loaded).  Rather, use either
   "List of pseudo-patterns describing the American patterns of date used.
 See the documentation of `diary-date-forms' for an explanation."
   :type '(repeat (choice (cons :tag "Backup"
-			       :value (backup . nil)
-			       (const backup)
-			       (repeat (list :inline t :format "%v"
-					     (symbol :tag "Keyword")
-					     (choice symbol regexp))))
-			 (repeat (list :inline t :format "%v"
-				       (symbol :tag "Keyword")
-				       (choice symbol regexp)))))
+                               :value (backup . nil)
+                               (const backup)
+                               (repeat (list :inline t :format "%v"
+                                             (symbol :tag "Keyword")
+                                             (choice symbol regexp))))
+                         (repeat (list :inline t :format "%v"
+                                       (symbol :tag "Keyword")
+                                       (choice symbol regexp)))))
   :group 'diary)
 
 (defcustom european-date-diary-pattern
@@ -513,14 +513,14 @@ See the documentation of `diary-date-forms' for an explanation."
   "List of pseudo-patterns describing the European patterns of date used.
 See the documentation of `diary-date-forms' for an explanation."
   :type '(repeat (choice (cons :tag "Backup"
-			       :value (backup . nil)
-			       (const backup)
-			       (repeat (list :inline t :format "%v"
-					     (symbol :tag "Keyword")
-					     (choice symbol regexp))))
-			 (repeat (list :inline t :format "%v"
-				       (symbol :tag "Keyword")
-				       (choice symbol regexp)))))
+                               :value (backup . nil)
+                               (const backup)
+                               (repeat (list :inline t :format "%v"
+                                             (symbol :tag "Keyword")
+                                             (choice symbol regexp))))
+                         (repeat (list :inline t :format "%v"
+                                       (symbol :tag "Keyword")
+                                       (choice symbol regexp)))))
   :group 'diary)
 
 (defvar diary-font-lock-keywords)
@@ -554,14 +554,14 @@ directive causes the date recognizer to back up to the beginning of the
 current word of the diary entry, so in no case can the pattern match more than
 a portion of the first word of the diary entry."
   :type '(repeat (choice (cons :tag "Backup"
-			       :value (backup . nil)
-			       (const backup)
-			       (repeat (list :inline t :format "%v"
-					     (symbol :tag "Keyword")
-					     (choice symbol regexp))))
-			 (repeat (list :inline t :format "%v"
-				       (symbol :tag "Keyword")
-				       (choice symbol regexp)))))
+                               :value (backup . nil)
+                               (const backup)
+                               (repeat (list :inline t :format "%v"
+                                             (symbol :tag "Keyword")
+                                             (choice symbol regexp))))
+                         (repeat (list :inline t :format "%v"
+                                       (symbol :tag "Keyword")
+                                       (choice symbol regexp)))))
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)
          (unless (equal value (eval symbol))
@@ -706,7 +706,7 @@ See the documentation for `calendar-holidays' for details."
 ;;;###autoload
 (defcustom oriental-holidays
   '((if (fboundp 'atan)
-	(holiday-chinese-new-year)))
+        (holiday-chinese-new-year)))
   "Oriental holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
@@ -965,24 +965,24 @@ calendar."
      (format "Baha'i New Year (Naw-Ruz) %d" (- displayed-year (1- 1844))))
     (holiday-fixed  4 21 "First Day of Ridvan")
     (if all-bahai-calendar-holidays
-	(holiday-fixed  4 22 "Second Day of Ridvan"))
+        (holiday-fixed  4 22 "Second Day of Ridvan"))
     (if all-bahai-calendar-holidays
-	(holiday-fixed  4 23 "Third Day of Ridvan"))
+        (holiday-fixed  4 23 "Third Day of Ridvan"))
     (if all-bahai-calendar-holidays
-	(holiday-fixed  4 24 "Fourth Day of Ridvan"))
+        (holiday-fixed  4 24 "Fourth Day of Ridvan"))
     (if all-bahai-calendar-holidays
-	(holiday-fixed  4 25 "Fifth Day of Ridvan"))
+        (holiday-fixed  4 25 "Fifth Day of Ridvan"))
     (if all-bahai-calendar-holidays
-	(holiday-fixed  4 26 "Sixth Day of Ridvan"))
+        (holiday-fixed  4 26 "Sixth Day of Ridvan"))
     (if all-bahai-calendar-holidays
-	(holiday-fixed  4 27 "Seventh Day of Ridvan"))
+        (holiday-fixed  4 27 "Seventh Day of Ridvan"))
     (if all-bahai-calendar-holidays
-	(holiday-fixed  4 28 "Eighth Day of Ridvan"))
+        (holiday-fixed  4 28 "Eighth Day of Ridvan"))
     (holiday-fixed  4 29 "Ninth Day of Ridvan")
     (if all-bahai-calendar-holidays
-	(holiday-fixed  4 30 "Tenth Day of Ridvan"))
+        (holiday-fixed  4 30 "Tenth Day of Ridvan"))
     (if all-bahai-calendar-holidays
-	(holiday-fixed  5  1 "Eleventh Day of Ridvan"))
+        (holiday-fixed  5  1 "Eleventh Day of Ridvan"))
     (holiday-fixed  5  2 "Twelfth Day of Ridvan")
     (holiday-fixed  5 23 "Declaration of the Bab")
     (holiday-fixed  5 29 "Ascension of Baha'u'llah")
@@ -990,9 +990,9 @@ calendar."
     (holiday-fixed 10 20 "Birth of the Bab")
     (holiday-fixed 11 12 "Birth of Baha'u'llah")
     (if all-bahai-calendar-holidays
-	(holiday-fixed 11 26 "Day of the Covenant"))
+        (holiday-fixed 11 26 "Day of the Covenant"))
     (if all-bahai-calendar-holidays
-	(holiday-fixed 11 28 "Ascension of `Abdu'l-Baha")))
+        (holiday-fixed 11 28 "Ascension of `Abdu'l-Baha")))
   "Baha'i holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
@@ -1003,7 +1003,7 @@ See the documentation for `calendar-holidays' for details."
 ;;;###autoload
 (defcustom solar-holidays
   '((if (fboundp 'atan)
-	(solar-equinoxes-solstices))
+        (solar-equinoxes-solstices))
     (if (require 'cal-dst)
       (funcall
        'holiday-sexp
@@ -1431,8 +1431,8 @@ Or, for optional MON, YR."
         (fit-window-to-buffer nil nil calendar-minimum-window-height))
       (sit-for 0))
     (if (and (boundp 'font-lock-mode)
-	     font-lock-mode)
-	(font-lock-fontify-buffer))
+             font-lock-mode)
+        (font-lock-fontify-buffer))
     (and mark-holidays-in-calendar
 ;;;         (calendar-date-is-valid-p today) ; useful for BC dates
          (calendar-mark-holidays)
@@ -1470,7 +1470,7 @@ line."
            (- (calendar-day-of-week (list month 1 year))
               calendar-week-start-day)
            7))
-	 (last (calendar-last-day-of-month month year)))
+         (last (calendar-last-day-of-month month year)))
    (goto-char (point-min))
    (calendar-insert-indented
     (calendar-string-spread
@@ -1496,7 +1496,7 @@ line."
       (add-text-properties
        (- (point) 3) (1- (point))
        '(mouse-face highlight
-	 help-echo "mouse-2: menu of operations for this date"))
+         help-echo "mouse-2: menu of operations for this date"))
       (and (zerop (mod (+ i blank-days) 7))
            (/= i last)
            (calendar-insert-indented "" 0 t) ; force onto following line
@@ -1696,10 +1696,10 @@ the inserted text.  Returns t."
 (defcustom calendar-mode-line-format
   (list
    (propertize "<"
-	       'help-echo "mouse-1: previous month"
-	       'mouse-face 'mode-line-highlight
-	       'keymap (make-mode-line-mouse-map 'mouse-1
-						 'calendar-scroll-right))
+               'help-echo "mouse-1: previous month"
+               'mouse-face 'mode-line-highlight
+               'keymap (make-mode-line-mouse-map 'mouse-1
+                                                 'calendar-scroll-right))
    "Calendar"
    (concat
     (propertize
@@ -1715,7 +1715,7 @@ the inserted text.  Returns t."
      'help-echo "mouse-1: choose another month"
      'mouse-face 'mode-line-highlight
      'keymap (make-mode-line-mouse-map
-	      'mouse-1 'mouse-calendar-other-month))
+              'mouse-1 'mouse-calendar-other-month))
     " / "
     (propertize
      (substitute-command-keys
@@ -1725,10 +1725,10 @@ the inserted text.  Returns t."
      'keymap (make-mode-line-mouse-map 'mouse-1 #'calendar-goto-today)))
    '(calendar-date-string (calendar-current-date) t)
    (propertize ">"
-	       'help-echo "mouse-1: next month"
-	       'mouse-face 'mode-line-highlight
-	       'keymap (make-mode-line-mouse-map
-			'mouse-1 'calendar-scroll-left)))
+               'help-echo "mouse-1: next month"
+               'mouse-face 'mode-line-highlight
+               'keymap (make-mode-line-mouse-map
+                        'mouse-1 'calendar-scroll-left)))
   "The mode line of the calendar buffer.
 
 This must be a list of items that evaluate to strings--those strings are
@@ -1845,8 +1845,8 @@ the STRINGS are just concatenated and the result truncated."
   (let ((calendar-buffers (calendar-buffer-list))
         list)
     (walk-windows (lambda (w)
-		    (if (memq (window-buffer w) calendar-buffers)
-			(push w list)))
+                    (if (memq (window-buffer w) calendar-buffers)
+                        (push w list)))
                   nil t)
     list))
 
@@ -2122,7 +2122,7 @@ If optional NODAY is t, does not ask for day, but just returns
           (list month year))
       (list month
             (calendar-read (format "Day (1-%d): " last)
-			   (lambda (x) (and (< 0 x) (<= x last))))
+                           (lambda (x) (and (< 0 x) (<= x last))))
             year))))
 
 (defun calendar-interval (mon1 yr1 mon2 yr2)
@@ -2153,11 +2153,11 @@ each element returned has a final `.' character."
 
 (defvar calendar-font-lock-keywords
   `((,(concat (regexp-opt (mapcar 'identity calendar-month-name-array) t)
-	      " -?[0-9]+")
+              " -?[0-9]+")
      . font-lock-function-name-face) ; month and year
     (,(regexp-opt
        (list (substring (aref calendar-day-name-array 6) 0 2)
-	     (substring (aref calendar-day-name-array 0) 0 2)))
+             (substring (aref calendar-day-name-array 0) 0 2)))
      ;; Saturdays and Sundays are highlighted differently.
      . font-lock-comment-face)
     ;; First two chars of each day are used in the calendar.
@@ -2383,17 +2383,17 @@ If N>0, return the Nth DAYNAME after MONTH DAY, YEAR (inclusive).
 If DAY is omitted, it defaults to 1 if N>0, and MONTH's last day otherwise."
   (if (> n 0)
       (+ (* 7 (1- n))
-	 (calendar-dayname-on-or-before
-	  dayname
-	  (+ 6 (calendar-absolute-from-gregorian
-		(list month (or day 1) year)))))
+         (calendar-dayname-on-or-before
+          dayname
+          (+ 6 (calendar-absolute-from-gregorian
+                (list month (or day 1) year)))))
     (+ (* 7 (1+ n))
        (calendar-dayname-on-or-before
-	dayname
-	(calendar-absolute-from-gregorian
-	 (list month
-	       (or day (calendar-last-day-of-month month year))
-	       year))))))
+        dayname
+        (calendar-absolute-from-gregorian
+         (list month
+               (or day (calendar-last-day-of-month month year))
+               year))))))
 
 (defun calendar-nth-named-day (n dayname month year &optional day)
   "The date of Nth DAYNAME in MONTH, YEAR before/after optional DAY.
