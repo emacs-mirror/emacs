@@ -872,6 +872,7 @@ This function is suitable for execution in a .emacs file."
                   "Type \\[switch-to-buffer-other-window] RET to restore old \
 contents of temp window."))))))
 
+;;;###cal-autoload
 (defun calendar-sunrise-sunset ()
   "Local time of sunrise and sunset for date under cursor.
 Accurate to a few seconds."
@@ -886,6 +887,7 @@ Accurate to a few seconds."
 (defvar date)
 
 ;; To be called from list-sexp-diary-entries, where DATE is bound.
+;;;###diary-autoload
 (defun diary-sunrise-sunset ()
   "Local time of sunrise and sunset as a diary entry.
 Accurate to a few seconds."
@@ -894,6 +896,7 @@ Accurate to a few seconds."
   (solar-sunrise-sunset-string date))
 
 ;; To be called from list-sexp-diary-entries, where DATE is bound.
+;;;###diary-autoload
 (defun diary-sabbath-candles (&optional mark)
   "Local time of candle lighting diary entry--applies if date is a Friday.
 No diary entry if there is no sunset on that date.
@@ -1015,6 +1018,7 @@ solstice.  These formulas are only to be used between 1000 BC and 3000 AD."
                             (* -0.00823 z z z)
                             (* 0.00032 z z z z)))))))
 
+;;;###holiday-autoload
 (defun solar-equinoxes-solstices ()
   "Local date and time of equinoxes and solstices, if visible in the calendar.
 Requires floating point."
