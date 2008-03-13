@@ -117,7 +117,7 @@ Gregorian date Sunday, December 31, 1 BC."
                (1- (calendar-absolute-from-islamic (list month 1 year))))))
       (list month day year))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-islamic-date-string (&optional date)
   "String of Islamic date before sunset of Gregorian DATE.
 Returns the empty string if DATE is pre-Islamic.
@@ -131,7 +131,7 @@ Driven by the variable `calendar-date-display-form'."
         ""
       (calendar-date-string islamic-date nil t))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-print-islamic-date ()
   "Show the Islamic calendar equivalent of the date under the cursor."
   (interactive)
@@ -140,7 +140,7 @@ Driven by the variable `calendar-date-display-form'."
         (message "Date is pre-Islamic")
       (message "Islamic date (until sunset): %s" i))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-goto-islamic-date (date &optional noecho)
   "Move cursor to Islamic DATE; echo Islamic date unless NOECHO is t."
   (interactive
@@ -169,6 +169,7 @@ Driven by the variable `calendar-date-display-form'."
                        (calendar-absolute-from-islamic date)))
   (or noecho (calendar-print-islamic-date)))
 
+;;;###holiday-autoload
 (defun holiday-islamic (month day string)
   "Holiday on MONTH, DAY (Islamic) called STRING.
 If MONTH, DAY (Islamic) is visible, the value returned is corresponding
@@ -195,6 +196,7 @@ nil if it is not visible in the current calendar window."
 
 (defvar number)                         ; from diary-list-entries
 
+;;;###diary-autoload
 (defun list-islamic-diary-entries ()
   "Add any Islamic date entries from the diary file to `diary-entries-list'.
 Islamic date diary entries must be prefaced by `islamic-diary-entry-symbol'
@@ -288,6 +290,7 @@ marked in the calendar.  This function is provided for use with
 (declare-function mark-calendar-days-named "diary-lib"
                   (dayname &optional color))
 
+;;;###diary-autoload
 (defun mark-islamic-diary-entries ()
   "Mark days in the calendar window that have Islamic date diary entries.
 Each entry in `diary-file' (or included files) visible in the calendar window
@@ -391,6 +394,7 @@ provided for use as part of the `nongregorian-diary-marking-hook'."
               (mark-islamic-calendar-date-pattern mm dd yy)))))
       (setq d (cdr d)))))
 
+;;;###diary-autoload
 (defun mark-islamic-calendar-date-pattern (month day year)
   "Mark dates in calendar window that conform to Islamic date MONTH/DAY/YEAR.
 A value of 0 in any position is a wildcard."
@@ -449,7 +453,7 @@ A value of 0 in any position is a wildcard."
                  (mark-visible-calendar-date
                   (calendar-gregorian-from-absolute date)))))))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun insert-islamic-diary-entry (arg)
   "Insert a diary entry.
 For the Islamic date corresponding to the date indicated by point.
@@ -466,7 +470,7 @@ Prefix argument ARG makes the entry nonmarking."
        nil t))
      arg)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun insert-monthly-islamic-diary-entry (arg)
   "Insert a monthly diary entry.
 For the day of the Islamic month corresponding to the date indicated by point.
@@ -484,7 +488,7 @@ Prefix argument ARG makes the entry nonmarking."
          (calendar-cursor-to-date t)))))
      arg)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun insert-yearly-islamic-diary-entry (arg)
   "Insert an annual diary entry.
 For the day of the Islamic year corresponding to the date indicated by point.
@@ -507,6 +511,7 @@ Prefix argument ARG makes the entry nonmarking."
 (defvar date)
 
 ;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
+;;;###diary-autoload
 (defun diary-islamic-date ()
   "Islamic calendar equivalent of date diary entry."
   (let ((i (calendar-islamic-date-string date)))
@@ -515,10 +520,6 @@ Prefix argument ARG makes the entry nonmarking."
       (format "Islamic date (until sunset): %s" i))))
 
 (provide 'cal-islam)
-
-;; Local Variables:
-;; generated-autoload-file: "cal-loaddefs.el"
-;; End:
 
 ;; arch-tag: a951b6c1-6f47-48d5-bac3-1b505cd719f7
 ;;; cal-islam.el ends here
