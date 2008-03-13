@@ -1,5 +1,8 @@
 2008-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term/xterm.el (terminal-init-xterm): delete-frame-hook ->
+	delete-frame-functions.
+
 	* bookmark.el (Info-current-node): Remove.
 
 2008-03-12  Juri Linkov  <juri@jurta.org>

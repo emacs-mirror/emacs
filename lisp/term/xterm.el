@@ -500,7 +500,7 @@
 	      (add-hook 'suspend-hook 'xterm-turn-off-modify-other-keys)
 	      (add-hook 'suspend-resume-hook 'xterm-turn-on-modify-other-keys)
 	      (add-hook 'kill-emacs-hook 'xterm-remove-modify-other-keys)
-	      (add-hook 'delete-frame-hook 'xterm-remove-modify-other-keys)
+	      (add-hook 'delete-frame-functions 'xterm-remove-modify-other-keys)
 	      ;; Add the selected frame to the list of frames that
 	      ;; need to deal with modify-other-keys.
 	      (push (frame-terminal (selected-frame))
