@@ -1,3 +1,7 @@
+2008-03-13  Richard Stallman  <rms@gnu.org>
+
+	* emacs-lisp/advice.el (defadvice): Add usage pattern.
+
 2008-03-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (set-mark-command): Doc fix.
