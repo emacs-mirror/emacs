@@ -113,7 +113,7 @@ passed to `calendar-basic-setup'."
   "Start calendar and display it in a dedicated frame.
 This function requires a display capable of multiple frames, else
 `calendar-basic-setup' is used instead.  The optional argument
-ARG is passed to `calendar-basic-setup'"
+ARG is passed to `calendar-basic-setup'."
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
@@ -136,7 +136,7 @@ ARG is passed to `calendar-basic-setup'"
   "Start calendar and diary in separate, dedicated frames.
 This function requires a display capable of multiple frames, else
 `calendar-basic-setup' is used instead.  The optional argument
-ARG is passed to `calendar-basic-setup'"
+ARG is passed to `calendar-basic-setup'."
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
@@ -172,10 +172,11 @@ ARG is passed to `calendar-basic-setup'"
 
 ;; Formerly (get-file-buffer diary-file) was added to the list here,
 ;; but that isn't clean, and the value could even be nil.
+;; FIXME is this really our business?
 (setq special-display-buffer-names
       (append special-display-buffer-names
-              (list "*Yahrzeits*" lunar-phases-buffer holiday-buffer
-                    fancy-diary-buffer
+              (list cal-hebrew-yahrzeit-buffer
+                    lunar-phases-buffer holiday-buffer fancy-diary-buffer
                     other-calendars-buffer calendar-buffer)))
 
 (run-hooks 'cal-x-load-hook)
