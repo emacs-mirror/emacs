@@ -341,7 +341,7 @@ DATE-LIST is a list of diary entries.  Return only those matching DATE."
 ;;  Monthly calendar
 ;;------------------------------------------------------------
 
-(autoload 'diary-list-entries "diary-lib" nil t)
+(autoload 'diary-list-entries "diary-lib")
 
 (defun cal-html-list-diary-entries (d1 d2)
   "Generate a list of all diary-entries from absolute date D1 to D2."
@@ -411,7 +411,7 @@ four-digit YEAR.  Diary entries in DIARY-LIST are included."
 
 ;;; User commands.
 
-;;;###autoload
+;;;###cal-autoload
 (defun cal-html-cursor-month (month year dir)
   "Write an HTML calendar file for numeric MONTH of four-digit YEAR.
 The output directory DIR is created if necessary.  Interactively,
@@ -424,7 +424,7 @@ that any existing output files are overwritten."
   (make-directory dir t)
   (cal-html-one-month month year dir))
 
-;;;###autoload
+;;;###cal-autoload
 (defun cal-html-cursor-year (year dir)
   "Write HTML calendar files (index and monthly pages) for four-digit YEAR.
 The output directory DIR is created if necessary.  Interactively,
@@ -442,10 +442,6 @@ existing output files are overwritten."
 
 
 (provide 'cal-html)
-
-;; Local Variables:
-;; generated-autoload-file: "cal-loaddefs.el"
-;; End:
 
 ;; arch-tag: 4e73377d-d2c1-46ea-a103-02c111da5f57
 ;;; cal-html.el ends here
