@@ -318,21 +318,21 @@ Moves forward if ARG is negative."
 (defun calendar-cursor-to-visible-date (date)
   "Move the cursor to DATE that is on the screen."
   (let* ((month (extract-calendar-month date))
-	 (day (extract-calendar-day date))
-	 (year (extract-calendar-year date))
-	 (first-of-month-weekday (calendar-day-of-week (list month 1 year))))
+         (day (extract-calendar-day date))
+         (year (extract-calendar-year date))
+         (first-of-month-weekday (calendar-day-of-week (list month 1 year))))
     (goto-line (+ 3
-		  (/ (+ day  -1
+                  (/ (+ day  -1
                         (mod
                          (- (calendar-day-of-week (list month 1 year))
                             calendar-week-start-day)
                          7))
                      7)))
     (move-to-column (+ 6
-		       (* 25
-			  (1+ (calendar-interval
-			       displayed-month displayed-year month year)))
-		       (* 3 (mod
+                       (* 25
+                          (1+ (calendar-interval
+                               displayed-month displayed-year month year)))
+                       (* 3 (mod
                              (- (calendar-day-of-week date)
                                 calendar-week-start-day)
                              7))))))
