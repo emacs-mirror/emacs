@@ -1,3 +1,8 @@
+2008-03-13  Glenn Morris  <rgm@gnu.org>
+
+	* emacs.c (main, standard_args): Rename -scriptload to -internal-script.
+	Remove option -enable-font-backend.
+
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.c (Fswitch_to_buffer): Fall back on pop-to-buffer.
