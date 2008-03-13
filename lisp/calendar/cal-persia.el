@@ -137,7 +137,7 @@ Gregorian date Sunday, December 31, 1 BC."
                        (list month 1 year))))))
     (list month day year)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-persian-date-string (&optional date)
   "String of Persian date of Gregorian DATE, default today."
   (let* ((persian-date (calendar-persian-from-absolute
@@ -152,14 +152,14 @@ Gregorian date Sunday, December 31, 1 BC."
           (year (int-to-string y)))
       (mapconcat 'eval calendar-date-display-form ""))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-print-persian-date ()
   "Show the Persian calendar equivalent of the selected date."
   (interactive)
   (message "Persian date: %s"
            (calendar-persian-date-string (calendar-cursor-to-date t))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-goto-persian-date (date &optional noecho)
   "Move cursor to Persian date DATE.
 Echo Persian date unless NOECHO is t."
@@ -196,15 +196,12 @@ Echo Persian date unless NOECHO is t."
 (defvar date)
 
 ;; To be called from list-sexp-diary-entries, where DATE is bound.
+;;;###diary-autoload
 (defun diary-persian-date ()
   "Persian calendar equivalent of date diary entry."
   (format "Persian date: %s" (calendar-persian-date-string date)))
 
 (provide 'cal-persia)
-
-;; Local Variables:
-;; generated-autoload-file: "cal-loaddefs.el"
-;; End:
 
 ;; arch-tag: 2832383c-e4b4-4dc2-8ee9-cfbdd53e5e2d
 ;;; cal-persia.el ends here
