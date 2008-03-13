@@ -5,6 +5,16 @@
 
 	* startup.el (command-line-1): Rename -scriptload to -internal-script.
 
+	* Makefile.in ($(lisp)/loaddefs.el): Remove this target.
+	(MH_E_SRC): Remove variable.
+	($(lisp)/mh-e/mh-loaddefs.el): Remove $MH_E_SRC dependency.  Simplify
+	file header.  Use $@ for generated-autoload-file.
+
+	* Makefile.in (LOADDEFS): New variable.
+	(AUTOGENEL): Use $LOADDEFS.
+	(autoloads): Remove $(lisp)/loaddefs.el dependency; add $LOADDEFS.
+	($(lisp)/calendar/cal-loaddefs.el, $(lisp)/calendar/diary-loaddefs.el):
+	($(lisp)/calendar/hol-loaddefs.el): New targets.
 	* calendar/cal-bahai.el, calendar/cal-china.el, calendar/cal-coptic.el:
 	* calendar/cal-french.el, calendar/cal-hebrew.el, calendar/cal-html.el:
 	* calendar/cal-islam.el, calendar/cal-iso.el, calendar/cal-julian.el:
