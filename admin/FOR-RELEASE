@@ -116,23 +116,32 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-01/msg02031.html
 ** `make bootstrap; make install' dumps another emacs
 http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00311.html
 
-** unicode-merge issues:
-
-** The data segment size increased after the unicode-2 merge.
-The "data" size increased for emacs from ~4MB to ~11MB on x86.
-The temacs sizes are comparable.
-http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00951.html
-
-** Xresource pane.menubar.*font no longer takes effect
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00314.html
-http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg01683.html
-
 ** han@mijncomputer.nl, Feb 3: emacsclient misbehaves
 
 ** Mouse clicks on the menubar don't currently work with a console
 Following the direct use of Gpm, the menubar now needs to be
 considered a special part of the screen in Emacs on a console.
 http://lists.gnu.org/archive/html/emacs-devel/2007-06/msg00277.html
+
+** unicode-merge issues:
+
+*** The data segment size increased after the unicode-2 merge.
+The "data" size increased for emacs from ~4MB to ~11MB on x86.
+The temacs sizes are comparable.
+http://lists.gnu.org/archive/html/emacs-devel/2007-10/msg00951.html
+
+** font-backend problems:
+
+*** Xresource pane.menubar.*font no longer takes effect
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00314.html
+http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg01683.html
+
+*** font-lock faces use different font with font-backend
+http://lists.gnu.org/archive/html/emacs-devel/2008-03/msg00651.html
+
+*** font height problems with font-backend
+http://lists.gnu.org/archive/html/emacs-devel/2008-03/msg00620.html
+
 
 * DOCUMENTATION
 
