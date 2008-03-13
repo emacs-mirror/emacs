@@ -1280,7 +1280,7 @@ are non-nil.  Pages are ruled if `cal-tex-rules' is non-nil."
                          (cal-tex-list-diary-entries
                           ;; FIXME d1?
                           (calendar-absolute-from-gregorian (list month 1 year))
-			  d2))))
+                          d2))))
     (cal-tex-preamble "twoside")
     (cal-tex-cmd "\\textwidth 3.25in")
     (cal-tex-cmd "\\textheight 6.5in")
