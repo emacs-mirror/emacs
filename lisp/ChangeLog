@@ -1,5 +1,7 @@
 2008-03-13  Carsten Dominik  <dominik@science.uva.nl>
 
+	* textmodes/org-mouse.el: Version number change.
+
 	* textmodes/org-publish.el: (org-publish-expand-components):
 	Remove null projects from the list of components.
 	(org-publish-attachment): Bugfix: handle the mandatory argument
