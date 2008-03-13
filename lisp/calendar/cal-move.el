@@ -37,7 +37,7 @@
 
 (require 'calendar)
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-goto-today ()
   "Reposition the calendar window so the current date is visible."
   (interactive)
@@ -48,7 +48,7 @@
       (calendar-cursor-to-visible-date today)))
   (run-hooks 'calendar-move-hook))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-forward-month (arg)
   "Move the cursor forward ARG months.
 Movement is backward if ARG is negative."
@@ -69,28 +69,28 @@ Movement is backward if ARG is negative."
       (calendar-cursor-to-visible-date new-cursor-date)))
   (run-hooks 'calendar-move-hook))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-forward-year (arg)
   "Move the cursor forward by ARG years.
 Movement is backward if ARG is negative."
   (interactive "p")
   (calendar-forward-month (* 12 arg)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-backward-month (arg)
   "Move the cursor backward by ARG months.
 Movement is forward if ARG is negative."
   (interactive "p")
   (calendar-forward-month (- arg)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-backward-year (arg)
   "Move the cursor backward ARG years.
 Movement is forward is ARG is negative."
   (interactive "p")
   (calendar-forward-month (* -12 arg)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-scroll-left (&optional arg event)
   "Scroll the displayed calendar left by ARG months.
 If ARG is negative the calendar is scrolled right.  Maintains the relative
@@ -116,7 +116,7 @@ EVENT is an event like `last-nonmenu-event'."
               (t (list month 1 year)))))))
     (run-hooks 'calendar-move-hook)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-scroll-right (&optional arg event)
   "Scroll the displayed calendar window right by ARG months.
 If ARG is negative the calendar is scrolled left.  Maintains the relative
@@ -126,7 +126,7 @@ EVENT is an event like `last-nonmenu-event'."
                      last-nonmenu-event))
   (calendar-scroll-left (- (or arg 1)) event))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-scroll-left-three-months (arg)
   "Scroll the displayed calendar window left by 3*ARG months.
 If ARG is negative the calendar is scrolled right.  Maintains the relative
@@ -134,7 +134,7 @@ position of the cursor with respect to the calendar as well as possible."
   (interactive "p")
   (calendar-scroll-left (* 3 arg)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-scroll-right-three-months (arg)
   "Scroll the displayed calendar window right by 3*ARG months.
 If ARG is negative the calendar is scrolled left.  Maintains the relative
@@ -142,7 +142,7 @@ position of the cursor with respect to the calendar as well as possible."
   (interactive "p")
   (calendar-scroll-left (* -3 arg)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-cursor-to-nearest-date ()
   "Move the cursor to the closest date.
 The position of the cursor is unchanged if it is already on a date.
@@ -168,7 +168,7 @@ Returns the list (month day year) giving the cursor position."
             (re-search-backward "[0-9]" nil t)))
       (calendar-cursor-to-date))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-forward-day (arg)
   "Move the cursor forward ARG days.
 Moves backward if ARG is negative."
@@ -191,28 +191,28 @@ Moves backward if ARG is negative."
         (calendar-cursor-to-visible-date new-cursor-date)))
   (run-hooks 'calendar-move-hook))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-backward-day (arg)
   "Move the cursor back ARG days.
 Moves forward if ARG is negative."
   (interactive "p")
   (calendar-forward-day (- arg)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-forward-week (arg)
   "Move the cursor forward ARG weeks.
 Moves backward if ARG is negative."
   (interactive "p")
   (calendar-forward-day (* arg 7)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-backward-week (arg)
   "Move the cursor back ARG weeks.
 Moves forward if ARG is negative."
   (interactive "p")
   (calendar-forward-day (* arg -7)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-beginning-of-week (arg)
   "Move the cursor back ARG calendar-week-start-day's."
   (interactive "p")
@@ -224,7 +224,7 @@ Moves forward if ARG is negative."
        (+ (mod (- day calendar-week-start-day) 7)
           (* 7 (1- arg)))))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-end-of-week (arg)
   "Move the cursor forward ARG calendar-week-start-day+6's."
   (interactive "p")
@@ -236,7 +236,7 @@ Moves forward if ARG is negative."
        (+ (- 6 (mod (- day calendar-week-start-day) 7))
           (* 7 (1- arg)))))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-beginning-of-month (arg)
   "Move the cursor backward ARG month beginnings."
   (interactive "p")
@@ -250,7 +250,7 @@ Moves forward if ARG is negative."
       (calendar-cursor-to-visible-date (list month 1 year))
       (calendar-backward-month (1- arg)))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-end-of-month (arg)
   "Move the cursor forward ARG month ends."
   (interactive "p")
@@ -274,7 +274,7 @@ Moves forward if ARG is negative."
       (calendar-cursor-to-visible-date last-day))))
   (run-hooks 'calendar-move-hook))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-beginning-of-year (arg)
   "Move the cursor backward ARG year beginnings."
   (interactive "p")
@@ -294,7 +294,7 @@ Moves forward if ARG is negative."
         (calendar-cursor-to-visible-date (list 1 1 displayed-year)))))
   (run-hooks 'calendar-move-hook))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-end-of-year (arg)
   "Move the cursor forward ARG year beginnings."
   (interactive "p")
@@ -314,7 +314,7 @@ Moves forward if ARG is negative."
         (calendar-cursor-to-visible-date (list 12 31 displayed-year)))))
   (run-hooks 'calendar-move-hook))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-cursor-to-visible-date (date)
   "Move the cursor to DATE that is on the screen."
   (let* ((month (extract-calendar-month date))
@@ -336,7 +336,7 @@ Moves forward if ARG is negative."
                              (- (calendar-day-of-week date)
                                 calendar-week-start-day)
                              7))))))
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-goto-date (date)
   "Move cursor to DATE."
   (interactive (list (calendar-read-date)))
@@ -351,7 +351,7 @@ Moves forward if ARG is negative."
   (calendar-cursor-to-visible-date date)
   (run-hooks 'calendar-move-hook))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-goto-day-of-year (year day &optional noecho)
   "Move cursor to YEAR, DAY number; echo DAY/YEAR unless NOECHO is t.
 Negative DAY counts backward from end of year."
@@ -384,10 +384,6 @@ Negative DAY counts backward from end of year."
   'scroll-calendar-right-three-months 'calendar-scroll-right-three-months "23.1")
 
 (provide 'cal-move)
-
-;; Local Variables:
-;; generated-autoload-file: "cal-loaddefs.el"
-;; End:
 
 ;; arch-tag: d0883c46-7e16-4914-8ff8-8f67e699b781
 ;;; cal-move.el ends here
