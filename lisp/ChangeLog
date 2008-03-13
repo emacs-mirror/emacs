@@ -5,6 +5,39 @@
 
 	* startup.el (command-line-1): Rename -scriptload to -internal-script.
 
+	* calendar/calendar.el (cal-hebrew-yahrzeit-buffer): New constant.
+	(calendar-buffer-list): Simplify.
+
+	* calendar/cal-hebrew.el (list-yahrzeit-dates): Use
+	cal-hebrew-yahrzeit-buffer.
+
+	* calendar/cal-x.el (calendar-only-one-frame-setup)
+	(calendar-two-frame-setup): Doc fixes.
+	(special-display-buffer-names): Use cal-hebrew-yahrzeit-buffer.
+
+	* calendar/appt.el (appt-mode-string): Mark as risky.
+	(appt-check): Apply mode-line-emphasis face to appt-mode-string.
+
+	* calendar/cal-iso.el (calendar-absolute-from-iso)
+	(calendar-iso-read-args): Simplify.
+	(calendar-iso-date-string, calendar-iso-read-args)
+	(calendar-goto-iso-date, calendar-goto-iso-week): Doc fixes.
+
+	* calendar/cal-julian.el (calendar-julian-from-absolute): Use zerop.
+	(displayed-month, displayed-year): Move declarations where needed.
+	(calendar-print-astro-day-number): Doc fix.
+
+	* calendar/cal-persia.el (persian-calendar-month-name-array)
+	(persian-calendar-epoch, calendar-persian-date-string): Doc fixes.
+	(persian-prompt-for-date): Remove local variable `today'.
+
+	* calendar/solar.el (solar-moment, solar-exact-local-noon)
+	(solar-sunrise-sunset, solar-sunrise-sunset-string)
+	(solar-ephemeris-time, solar-date-next-longitude, solar-sidereal-time):
+	(diary-sabbath-candles, solar-equinoxes/solstices)
+	(solar-equinoxes-solstices): Use cadr, cdar, nth, zerop.
+	(solar-time-equation, solar-date-to-et): Simplify.
+
 	* mail/supercite.el: Remove the `function' in `(function (lambda'.
 	Replace `(car (cdr' with cadr'.
 
