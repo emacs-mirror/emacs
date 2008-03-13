@@ -1,5 +1,7 @@
 2008-03-13  Richard Stallman  <rms@gnu.org>
 
+	* mouse.el (mouse-yank-secondary): Nice error msg if no secondary sel.
+
 	* emacs-lisp/advice.el (defadvice): Add usage pattern.
 
 2008-03-11  Chong Yidong  <cyd@stupidchicken.com>
