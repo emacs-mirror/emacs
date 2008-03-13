@@ -136,7 +136,7 @@ but some use 1137140.  Using 1232041 gives you Spinden's correlation; using
 	    (calendar-mayan-haab-from-absolute 0) haab-date))
 	365)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-next-haab-date (haab-date &optional noecho)
   "Move cursor to next instance of Mayan HAAB-DATE.
 Echo Mayan date if NOECHO is t."
@@ -149,7 +149,7 @@ Echo Mayan date if NOECHO is t."
         (calendar-absolute-from-gregorian (calendar-cursor-to-date))))))
   (or noecho (calendar-print-mayan-date)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-previous-haab-date (haab-date &optional noecho)
   "Move cursor to previous instance of Mayan HAAB-DATE.
 Echo Mayan date if NOECHO is t."
@@ -200,7 +200,7 @@ Echo Mayan date if NOECHO is t."
 		 tzolkin-date))
 	260)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-next-tzolkin-date (tzolkin-date &optional noecho)
   "Move cursor to next instance of Mayan TZOLKIN-DATE.
 Echo Mayan date if NOECHO is t."
@@ -213,7 +213,7 @@ Echo Mayan date if NOECHO is t."
         (calendar-absolute-from-gregorian (calendar-cursor-to-date))))))
   (or noecho (calendar-print-mayan-date)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-previous-tzolkin-date (tzolkin-date &optional noecho)
   "Move cursor to previous instance of Mayan TZOLKIN-DATE.
 Echo Mayan date if NOECHO is t."
@@ -282,7 +282,7 @@ Returns nil if such a tzolkin-haab combination is impossible."
                          (calendar-make-alist tzolkin-name-list 1) t))))
     (cons tzolkin-count tzolkin-name)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-next-calendar-round-date (tzolkin-date haab-date
                                                        &optional noecho)
   "Move cursor to next instance of Mayan TZOLKIN-DATE HAAB-DATE combination.
@@ -300,7 +300,7 @@ Echo Mayan date unless NOECHO is non-nil."
       (calendar-goto-date (calendar-gregorian-from-absolute date))
       (or noecho (calendar-print-mayan-date)))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-previous-calendar-round-date
   (tzolkin-date haab-date &optional noecho)
   "Move to previous instance of Mayan TZOLKIN-DATE HAAB-DATE combination.
@@ -329,7 +329,7 @@ Long count is a list (baktun katun tun uinal kin)"
      (-                          ; days before absolute date 0
       calendar-mayan-days-before-absolute-zero)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-mayan-date-string (&optional date)
   "String of Mayan date of Gregorian DATE.
 Defaults to today's date if DATE is not given."
@@ -343,14 +343,14 @@ Defaults to today's date if DATE is not given."
               (calendar-mayan-tzolkin-to-string tzolkin)
               (calendar-mayan-haab-to-string haab))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-print-mayan-date ()
   "Show the Mayan long count, tzolkin, and haab equivalents of date."
   (interactive)
   (message "Mayan date: %s"
            (calendar-mayan-date-string (calendar-cursor-to-date t))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-goto-mayan-long-count-date (date &optional noecho)
   "Move cursor to Mayan long count DATE.  Echo Mayan date unless NOECHO is t."
   (interactive
@@ -382,15 +382,12 @@ Defaults to today's date if DATE is not given."
 (defvar date)
 
 ;; To be called from list-sexp-diary-entries, where DATE is bound.
+;;;###diary-autoload
 (defun diary-mayan-date ()
   "Show the Mayan long count, haab, and tzolkin dates as a diary entry."
   (format "Mayan date: %s" (calendar-mayan-date-string date)))
 
 (provide 'cal-mayan)
-
-;; Local Variables:
-;; generated-autoload-file: "cal-loaddefs.el"
-;; End:
 
 ;; arch-tag: 54f35144-cd0f-4873-935a-a60129de07df
 ;;; cal-mayan.el ends here
