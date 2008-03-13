@@ -77,36 +77,36 @@
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
   (let* ((month (extract-calendar-month date))
-	 (day (extract-calendar-day date))
-	 (year (extract-calendar-year date))
-	 (prior-years (+ (1- year) 1844))
-	 (leap-days (- (+ (/ prior-years 4) ; leap days in prior years
-			  (- (/ prior-years 100))
-			  (/ prior-years 400))
-		       calendar-bahai-leap-base)))
-    (+ (1- calendar-bahai-epoch)	; days before epoch
-       (* 365 (1- year))		; days in prior years
+         (day (extract-calendar-day date))
+         (year (extract-calendar-year date))
+         (prior-years (+ (1- year) 1844))
+         (leap-days (- (+ (/ prior-years 4) ; leap days in prior years
+                          (- (/ prior-years 100))
+                          (/ prior-years 400))
+                       calendar-bahai-leap-base)))
+    (+ (1- calendar-bahai-epoch)        ; days before epoch
+       (* 365 (1- year))                ; days in prior years
        leap-days
        (calendar-sum m 1 (< m month) 19)
        (if (= month 19) 4 0)
-       day)))				; days so far this month
+       day)))                           ; days so far this month
 
 (defun calendar-bahai-from-absolute (date)
   "Bahá'í year corresponding to the absolute DATE."
   (if (< date calendar-bahai-epoch)
       (list 0 0 0)                      ; pre-Bahá'í date
     (let* ((greg (calendar-gregorian-from-absolute date))
-	   (year (+ (- (extract-calendar-year greg) 1844)
-		    (if (or (> (extract-calendar-month greg) 3)
-			    (and (= (extract-calendar-month greg) 3)
-				 (>= (extract-calendar-day greg) 21)))
-			1 0)))
+           (year (+ (- (extract-calendar-year greg) 1844)
+                    (if (or (> (extract-calendar-month greg) 3)
+                            (and (= (extract-calendar-month greg) 3)
+                                 (>= (extract-calendar-day greg) 21)))
+                        1 0)))
            (month                       ; search forward from Baha
             (1+ (calendar-sum m 1
-			      (> date
-				 (calendar-absolute-from-bahai
-				  (list m 19 year)))
-			      1)))
+                              (> date
+                                 (calendar-absolute-from-bahai
+                                  (list m 19 year)))
+                              1)))
            (day                     ; calculate the day by subtraction
             (- date
                (1- (calendar-absolute-from-bahai (list month 1 year))))))
@@ -117,25 +117,25 @@ Gregorian date Sunday, December 31, 1 BC."
   "String of Bahá'í date of Gregorian DATE.
 Defaults to today's date if DATE is not given."
   (let* ((bahai-date (calendar-bahai-from-absolute
-                       (calendar-absolute-from-gregorian
-                        (or date (calendar-current-date)))))
+                      (calendar-absolute-from-gregorian
+                       (or date (calendar-current-date)))))
          (y (extract-calendar-year bahai-date))
          (m (extract-calendar-month bahai-date))
          (d (extract-calendar-day bahai-date)))
     (let ((monthname
-	   (if (and (= m 19)
-		    (<= d 0))
-	       "Ayyám-i-Há"
-	     (aref calendar-bahai-month-name-array (1- m))))
-	  (day (int-to-string
-		(if (<= d 0)
-		    (if (calendar-bahai-leap-year-p y)
-			(+ d 5)
-		      (+ d 4))
-		  d)))
-	  (dayname nil)
-	  (month (int-to-string m))
-	  (year (int-to-string y)))
+           (if (and (= m 19)
+                    (<= d 0))
+               "Ayyám-i-Há"
+             (aref calendar-bahai-month-name-array (1- m))))
+          (day (int-to-string
+                (if (<= d 0)
+                    (if (calendar-bahai-leap-year-p y)
+                        (+ d 5)
+                      (+ d 4))
+                  d)))
+          (dayname nil)
+          (month (int-to-string m))
+          (year (int-to-string y)))
       (mapconcat 'eval calendar-date-display-form ""))))
 
 ;;;###cal-autoload
@@ -166,15 +166,15 @@ Echo Bahá'í date unless NOECHO is t."
                    (calendar-absolute-from-gregorian today))))))
          (completion-ignore-case t)
          (month (cdr (assoc
-                       (completing-read
-                        "Bahá'í calendar month name: "
-                        (mapcar 'list
-                                (append calendar-bahai-month-name-array nil))
-                        nil t)
+                      (completing-read
+                       "Bahá'í calendar month name: "
+                       (mapcar 'list
+                               (append calendar-bahai-month-name-array nil))
+                       nil t)
                       (calendar-make-alist calendar-bahai-month-name-array
                                            1))))
          (day (calendar-read "Bahá'í calendar day (1-19): "
-			     (lambda (x) (and (< 0 x) (<= x 19))))))
+                             (lambda (x) (and (< 0 x) (<= x 19))))))
     (list (list month day year))))
 
 (defvar displayed-month)
@@ -187,15 +187,15 @@ If MONTH, DAY (Bahá'í) is visible, the value returned is corresponding
 Gregorian date in the form of the list (((month day year) STRING)).  Returns
 nil if it is not visible in the current calendar window."
   (let* ((bahai-date (calendar-bahai-from-absolute
-		      (calendar-absolute-from-gregorian
-		       (list displayed-month 15 displayed-year))))
+                      (calendar-absolute-from-gregorian
+                       (list displayed-month 15 displayed-year))))
          (m (extract-calendar-month bahai-date))
          (y (extract-calendar-year bahai-date))
-	 (date))
+         (date))
     (if (< m 1)
-        nil                         ; Bahá'í calendar doesn't apply
+        nil                            ; Bahá'í calendar doesn't apply
       (increment-calendar-month m y (- 10 month))
-      (if (> m 7)                      ; Bahá'í date might be visible
+      (if (> m 7)                       ; Bahá'í date might be visible
           (let ((date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-bahai (list month day y)))))
             (if (calendar-date-is-visible-p date)
@@ -406,7 +406,7 @@ part of `nongregorian-diary-marking-hook'."
                           (cdr (assoc-string
                                 mm-name
                                 (calendar-make-alist
-                                  calendar-bahai-month-name-array)
+                                 calendar-bahai-month-name-array)
                                 t)))))
               (calendar-bahai-mark-date-pattern mm dd yy)))))
       (setq d (cdr d)))))
@@ -427,15 +427,15 @@ A value of 0 in any position is a wildcard."
                   (mark-visible-calendar-date date)))
           ;; Month and day in any year--this taken from the holiday stuff.
           (let* ((bahai-date (calendar-bahai-from-absolute
-                                (calendar-absolute-from-gregorian
-                                 (list displayed-month 15 displayed-year))))
+                              (calendar-absolute-from-gregorian
+                               (list displayed-month 15 displayed-year))))
                  (m (extract-calendar-month bahai-date))
                  (y (extract-calendar-year bahai-date))
                  (date))
             (if (< m 1)
-                nil                   ; Bahá'í calendar doesn't apply
+                nil                    ; Bahá'í calendar doesn't apply
               (increment-calendar-month m y (- 10 month))
-              (if (> m 7)              ; Bahá'í date might be visible
+              (if (> m 7)               ; Bahá'í date might be visible
                   (let ((date (calendar-gregorian-from-absolute
                                (calendar-absolute-from-bahai
                                 (list month day y)))))
@@ -457,18 +457,19 @@ A value of 0 in any position is a wildcard."
               (calendar-absolute-from-gregorian
                (list m (calendar-last-day-of-month m y) y)))
         (calendar-for-loop date from first-date to last-date do
-          (let* ((b-date (calendar-bahai-from-absolute date))
-                 (i-month (extract-calendar-month b-date))
-                 (i-day (extract-calendar-day b-date))
-                 (i-year (extract-calendar-year b-date)))
-            (and (or (zerop month)
-                     (= month i-month))
-                 (or (zerop day)
-                     (= day i-day))
-                 (or (zerop year)
-                     (= year i-year))
-                 (mark-visible-calendar-date
-                  (calendar-gregorian-from-absolute date)))))))))
+                           (let* ((b-date (calendar-bahai-from-absolute date))
+                                  (i-month (extract-calendar-month b-date))
+                                  (i-day (extract-calendar-day b-date))
+                                  (i-year (extract-calendar-year b-date)))
+                             (and (or (zerop month)
+                                      (= month i-month))
+                                  (or (zerop day)
+                                      (= day i-day))
+                                  (or (zerop year)
+                                      (= year i-year))
+                                  (mark-visible-calendar-date
+                                   (calendar-gregorian-from-absolute
+                                    date)))))))))
 
 ;;;###cal-autoload
 (defun diary-bahai-insert-entry (arg)
