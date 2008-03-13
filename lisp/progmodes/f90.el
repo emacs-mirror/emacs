@@ -604,8 +604,7 @@ logical\\|double[ \t]*precision\\|type[ \t]*(\\sw+)\\|none\\)[ \t]*"
            (list f90-procedures-re '(1 font-lock-keyword-face keep))
            "\\<real\\>"                 ; avoid overwriting real defs
            ;; As an attribute, but not as an optional argument.
-           '("\\<\\(asynchronous\\)[ \t]*[^=]" . 1)
-           ))
+           '("\\<\\(asynchronous\\)[ \t]*[^=]" . 1)))
   "Highlights all F90 keywords and intrinsic procedures.")
 
 (defvar f90-font-lock-keywords-4
@@ -726,34 +725,32 @@ Can be overridden by the value of `font-lock-maximum-decoration'.")
   "Keymap used in F90 mode.")
 
 
+(defun f90-font-lock-n (n)
+  "Set `font-lock-keywords' to F90 level N keywords."
+  (font-lock-mode 1)
+  (setq font-lock-keywords
+        (symbol-value (intern-soft (format "f90-font-lock-keywords-%d" n))))
+  (font-lock-fontify-buffer))
+
 (defun f90-font-lock-1 ()
   "Set `font-lock-keywords' to `f90-font-lock-keywords-1'."
   (interactive)
-  (font-lock-mode 1)
-  (setq font-lock-keywords f90-font-lock-keywords-1)
-  (font-lock-fontify-buffer))
+  (f90-font-lock-n 1))
 
 (defun f90-font-lock-2 ()
   "Set `font-lock-keywords' to `f90-font-lock-keywords-2'."
   (interactive)
-  (font-lock-mode 1)
-  (setq font-lock-keywords f90-font-lock-keywords-2)
-  (font-lock-fontify-buffer))
+  (f90-font-lock-n 2))
 
 (defun f90-font-lock-3 ()
   "Set `font-lock-keywords' to `f90-font-lock-keywords-3'."
   (interactive)
-  (font-lock-mode 1)
-  (setq font-lock-keywords f90-font-lock-keywords-3)
-  (font-lock-fontify-buffer))
+  (f90-font-lock-n 3))
 
 (defun f90-font-lock-4 ()
   "Set `font-lock-keywords' to `f90-font-lock-keywords-4'."
   (interactive)
-  (font-lock-mode 1)
-  (setq font-lock-keywords f90-font-lock-keywords-4)
-  (font-lock-fontify-buffer))
-
+  (f90-font-lock-n 4))
 
 ;; Regexps for finding program structures.
 (defconst f90-blocks-re
@@ -931,77 +928,74 @@ Set subexpression 1 in the match-data to the name of the type."
     f90-mode-abbrev-table)
   "Abbrev table for F90 mode.")
 
-(let (abbrevs-changed)
-  ;; Use the 6th arg (SYSTEM-FLAG) of define-abbrev if possible.
-  ;; A little baroque to quieten the byte-compiler.
-  (mapc
-   (function (lambda (element)
-               (condition-case nil
-                   (apply 'define-abbrev f90-mode-abbrev-table
-                          (append element '(nil 0 t)))
-                 (wrong-number-of-arguments
-                  (apply 'define-abbrev f90-mode-abbrev-table
-                         (append element '(nil 0)))))))
-   '(("`al"  "allocate"     )
-     ("`ab"  "allocatable"  )
-     ("`ai"  "abstract interface")
-     ("`as"  "assignment"   )
-     ("`asy" "asynchronous" )
-     ("`ba"  "backspace"    )
-     ("`bd"  "block data"   )
-     ("`c"   "character"    )
-     ("`cl"  "close"        )
-     ("`cm"  "common"       )
-     ("`cx"  "complex"      )
-     ("`cn"  "contains"     )
-     ("`cy"  "cycle"        )
-     ("`de"  "deallocate"   )
-     ("`df"  "define"       )
-     ("`di"  "dimension"    )
-     ("`dp"  "double precision")
-     ("`dw"  "do while"     )
-     ("`el"  "else"         )
-     ("`eli" "else if"      )
-     ("`elw" "elsewhere"    )
-     ("`em"  "elemental"    )
-     ("`e"   "enumerator"   )
-     ("`eq"  "equivalence"  )
-     ("`ex"  "external"     )
-     ("`ey"  "entry"        )
-     ("`fl"  "forall"       )
-     ("`fo"  "format"       )
-     ("`fu"  "function"     )
-     ("`fa"  ".false."      )
-     ("`im"  "implicit none")
-     ("`in"  "include"      )
-     ("`i"   "integer"      )
-     ("`it"  "intent"       )
-     ("`if"  "interface"    )
-     ("`lo"  "logical"      )
-     ("`mo"  "module"       )
-     ("`na"  "namelist"     )
-     ("`nu"  "nullify"      )
-     ("`op"  "optional"     )
-     ("`pa"  "parameter"    )
-     ("`po"  "pointer"      )
-     ("`pr"  "print"        )
-     ("`pi"  "private"      )
-     ("`pm"  "program"      )
-     ("`pr"  "protected"    )
-     ("`pu"  "public"       )
-     ("`r"   "real"         )
-     ("`rc"  "recursive"    )
-     ("`rt"  "return"       )
-     ("`rw"  "rewind"       )
-     ("`se"  "select"       )
-     ("`sq"  "sequence"     )
-     ("`su"  "subroutine"   )
-     ("`ta"  "target"       )
-     ("`tr"  ".true."       )
-     ("`t"   "type"         )
-     ("`vo"  "volatile"     )
-     ("`wh"  "where"        )
-     ("`wr"  "write"        ))))
+;; Not in defvar because user abbrevs may be restored before this file loads.
+(mapc
+ (lambda (e)
+   (condition-case nil
+       (define-abbrev f90-mode-abbrev-table (car e) (cdr e) nil :count 0
+         :system t)
+     (wrong-number-of-arguments         ; Emacs 22
+      (define-abbrev f90-mode-abbrev-table (car e) (cdr e) nil 0 t))))
+ '(("`al"  . "allocate"     )
+   ("`ab"  . "allocatable"  )
+   ("`ai"  . "abstract interface")
+   ("`as"  . "assignment"   )
+   ("`asy" . "asynchronous" )
+   ("`ba"  . "backspace"    )
+   ("`bd"  . "block data"   )
+   ("`c"   . "character"    )
+   ("`cl"  . "close"        )
+   ("`cm"  . "common"       )
+   ("`cx"  . "complex"      )
+   ("`cn"  . "contains"     )
+   ("`cy"  . "cycle"        )
+   ("`de"  . "deallocate"   )
+   ("`df"  . "define"       )
+   ("`di"  . "dimension"    )
+   ("`dp"  . "double precision")
+   ("`dw"  . "do while"     )
+   ("`el"  . "else"         )
+   ("`eli" . "else if"      )
+   ("`elw" . "elsewhere"    )
+   ("`em"  . "elemental"    )
+   ("`e"   . "enumerator"   )
+   ("`eq"  . "equivalence"  )
+   ("`ex"  . "external"     )
+   ("`ey"  . "entry"        )
+   ("`fl"  . "forall"       )
+   ("`fo"  . "format"       )
+   ("`fu"  . "function"     )
+   ("`fa"  . ".false."      )
+   ("`im"  . "implicit none")
+   ("`in"  . "include"      )
+   ("`i"   . "integer"      )
+   ("`it"  . "intent"       )
+   ("`if"  . "interface"    )
+   ("`lo"  . "logical"      )
+   ("`mo"  . "module"       )
+   ("`na"  . "namelist"     )
+   ("`nu"  . "nullify"      )
+   ("`op"  . "optional"     )
+   ("`pa"  . "parameter"    )
+   ("`po"  . "pointer"      )
+   ("`pr"  . "print"        )
+   ("`pi"  . "private"      )
+   ("`pm"  . "program"      )
+   ("`pr"  . "protected"    )
+   ("`pu"  . "public"       )
+   ("`r"   . "real"         )
+   ("`rc"  . "recursive"    )
+   ("`rt"  . "return"       )
+   ("`rw"  . "rewind"       )
+   ("`se"  . "select"       )
+   ("`sq"  . "sequence"     )
+   ("`su"  . "subroutine"   )
+   ("`ta"  . "target"       )
+   ("`tr"  . ".true."       )
+   ("`t"   . "type"         )
+   ("`vo"  . "volatile"     )
+   ("`wh"  . "where"        )
+   ("`wr"  . "write"        )))
 
 
 ;;;###autoload
@@ -1452,8 +1446,7 @@ Does not check type and subprogram indentation."
                                (setq icol (- icol f90-associate-indent)))
                               ((or (looking-at "contains[ \t]*\\(!\\|$\\)")
                                    (f90-looking-at-program-block-end))
-                               (setq icol (- icol f90-program-indent))))))
-                 ))))
+                               (setq icol (- icol f90-program-indent))))))))))
     icol))
 
 (defun f90-previous-statement ()
@@ -1837,8 +1830,8 @@ If run in the middle of a line, the line is not broken."
                    block-list (cdr block-list))
              (if f90-smart-end
                  (save-excursion
-                   (f90-block-match (car beg-struct) (car (cdr beg-struct))
-                                    (car end-struct) (car (cdr end-struct)))))
+                   (f90-block-match (car beg-struct) (cadr beg-struct)
+                                    (car end-struct) (cadr end-struct))))
              (setq ind-b
                    (cond ((looking-at f90-end-if-re) f90-if-indent)
                          ((looking-at "end[ \t]*do\\>")  f90-do-indent)
@@ -1878,10 +1871,10 @@ If run in the middle of a line, the line is not broken."
       (if program
           (progn
             (message "Indenting %s %s..."
-                     (car program) (car (cdr program)))
+                     (car program) (cadr program))
             (indent-region (point) (mark) nil)
             (message "Indenting %s %s...done"
-                     (car program) (car (cdr program))))
+                     (car program) (cadr program)))
         (message "Indenting the whole file...")
         (indent-region (point) (mark) nil)
         (message "Indenting the whole file...done")))))
@@ -2028,7 +2021,7 @@ Leave point at the end of line."
     (when (save-excursion (beginning-of-line) (skip-chars-forward " \t0-9")
                           (setq end-struct (f90-looking-at-program-block-end)))
       (setq end-block (car end-struct)
-            end-name  (car (cdr end-struct)))
+            end-name  (cadr end-struct))
       (save-excursion
         (beginning-of-line)
         (while (and (> count 0)
@@ -2069,7 +2062,7 @@ Leave point at the end of line."
                             (line-end-position)))
                 (sit-for blink-matching-delay)))
           (setq beg-block (car matching-beg)
-                beg-name (car (cdr matching-beg)))
+                beg-name (cadr matching-beg))
           (goto-char end-point)
           (beginning-of-line)
           (f90-block-match beg-block beg-name end-block end-name))))))
