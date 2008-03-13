@@ -996,6 +996,15 @@ fontification in Info, remove `turn-on-font-lock' from
 `Info-mode-hook'.
 
 *** New standard font-lock face `font-lock-comment-delimiter-face'.
+This is used for the characters that indicate the start of a comment,
+e.g. `;' in Lisp mode.
+
+*** `font-lock-comment-face' no longer differs from the default on
+displays with fewer than 16 colors (e.g. older xterms and the Linux console).
+On such displays, only the comment delimiters will appear to be fontified
+(in the new face `font-lock-comment-delimiter-face').  To restore the
+old appearance, customize `font-lock-comment-face', or use a newer terminal
+emulator that supports more colors (256 is now common).
 
 *** New standard font-lock face `font-lock-preprocessor-face'.
 
