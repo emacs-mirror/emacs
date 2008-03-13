@@ -1,3 +1,7 @@
+2008-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bookmark.el (Info-current-node): Remove.
+
 2008-03-12  Juri Linkov  <juri@jurta.org>
 
 	* help.el (describe-project): Remove defaliases for view-todo and
@@ -24,7 +28,8 @@
 	* comint.el: Fix up indentation and comment style.  Remove `function'.
 
 	* international/mule-cmds.el (reset-language-environment)
-	(set-language-environment-nonascii-translation): Don't set-unibyte-charset.
+	(set-language-environment-nonascii-translation):
+	Don't set-unibyte-charset.
 
 	* doc-view.el: Remove all cb-args, use closures instead.
 	(doc-view-sentinel): Merge doc-view-dvi->pdf-sentinel,
