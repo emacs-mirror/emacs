@@ -105,7 +105,7 @@ Gregorian date Sunday, December 31, 1 BC."
                (1- (calendar-absolute-from-coptic (list month 1 year))))))
     (list month day year))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-coptic-date-string (&optional date)
   "String of Coptic date of Gregorian DATE.
 Returns the empty string if DATE is pre-Coptic calendar.
@@ -124,7 +124,7 @@ Defaults to today's date if DATE is not given."
             (year (int-to-string y)))
         (mapconcat 'eval calendar-date-display-form "")))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-print-coptic-date ()
   "Show the Coptic calendar equivalent of the selected date."
   (interactive)
@@ -133,7 +133,7 @@ Defaults to today's date if DATE is not given."
         (message "Date is pre-%s calendar" coptic-name)
       (message "%s date: %s" coptic-name f))))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-goto-coptic-date (date &optional noecho)
   "Move cursor to Coptic date DATE.
 Echo Coptic date unless NOECHO is t."
@@ -170,6 +170,7 @@ Echo Coptic date unless NOECHO is t."
 (defvar date)
 
 ;; To be called from list-sexp-diary-entries, where DATE is bound.
+;;;###diary-autoload
 (defun diary-coptic-date ()
   "Coptic calendar equivalent of date diary entry."
   (let ((f (calendar-coptic-date-string date)))
@@ -201,7 +202,7 @@ Gregorian date Sunday, December 31, 1 BC."
   (let ((coptic-calendar-epoch ethiopic-calendar-epoch))
     (calendar-coptic-from-absolute date)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-ethiopic-date-string (&optional date)
   "String of Ethiopic date of Gregorian DATE.
 Returns the empty string if DATE is pre-Ethiopic calendar.
@@ -211,7 +212,7 @@ Defaults to today's date if DATE is not given."
         (coptic-calendar-month-name-array ethiopic-calendar-month-name-array))
     (calendar-coptic-date-string date)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-print-ethiopic-date ()
   "Show the Ethiopic calendar equivalent of the selected date."
   (interactive)
@@ -220,7 +221,7 @@ Defaults to today's date if DATE is not given."
         (coptic-calendar-month-name-array ethiopic-calendar-month-name-array))
     (call-interactively 'calendar-print-coptic-date)))
 
-;;;###autoload
+;;;###cal-autoload
 (defun calendar-goto-ethiopic-date (date &optional noecho)
   "Move cursor to Ethiopic date DATE.
 Echo Ethiopic date unless NOECHO is t."
@@ -234,6 +235,7 @@ Echo Ethiopic date unless NOECHO is t."
   (or noecho (calendar-print-ethiopic-date)))
 
 ;; To be called from list-sexp-diary-entries, where DATE is bound.
+;;;###diary-autoload
 (defun diary-ethiopic-date ()
   "Ethiopic calendar equivalent of date diary entry."
   (let ((coptic-calendar-epoch ethiopic-calendar-epoch)
@@ -242,10 +244,6 @@ Echo Ethiopic date unless NOECHO is t."
     (diary-coptic-date)))
 
 (provide 'cal-coptic)
-
-;; Local Variables:
-;; generated-autoload-file: "cal-loaddefs.el"
-;; End:
 
 ;; arch-tag: 72d49161-25df-4072-9312-b182cdca7627
 ;;; cal-coptic.el ends here
