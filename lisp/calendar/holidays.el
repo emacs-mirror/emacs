@@ -52,46 +52,8 @@
 
 (require 'calendar)
 
-(autoload 'holiday-julian "cal-julian"
-  "Holiday on MONTH, DAY  (Julian) called STRING."
-  t)
-
-(autoload 'holiday-hebrew "cal-hebrew"
-  "Holiday on MONTH, DAY (Hebrew) called STRING."
-  t)
-
-(autoload 'holiday-rosh-hashanah-etc "cal-hebrew"
-  "List of dates related to Rosh Hashanah, as visible in calendar window."
-  t)
-
-(autoload 'holiday-hanukkah "cal-hebrew"
-  "List of dates related to Hanukkah, as visible in calendar window."
-  t)
-
-(autoload 'holiday-passover-etc "cal-hebrew"
-  "List of dates related to Passover, as visible in calendar window."
-  t)
-
-(autoload 'holiday-tisha-b-av-etc "cal-hebrew"
-  "List of dates around Tisha B'Av, as visible in calendar window."
-  t)
-
-(autoload 'holiday-islamic "cal-islam"
-  "Holiday on MONTH, DAY (Islamic) called STRING."
-  t)
-
-(autoload 'holiday-bahai "cal-bahai"
-  "Holiday on MONTH, DAY (Baha'i) called STRING."
-  t)
-
-(autoload 'holiday-chinese-new-year "cal-china"
-  "Date of Chinese New Year."
-  t)
-
-(autoload 'solar-equinoxes-solstices "solar"
-  "Date and time of equinoxes and solstices, if visible in the calendar window.
-Requires floating point."
-  t)
+(eval-and-compile
+  (load "hol-loaddefs" nil 'quiet))
 
 ;;;###autoload
 (defun holidays (&optional arg)
@@ -210,6 +172,7 @@ The optional LABEL is used to label the buffer created."
 ;;;###autoload
 (defalias 'holiday-list 'list-holidays)
 
+;;;###diary-autoload
 (defun calendar-check-holidays (date)
   "Check the list of holidays for any that occur on DATE.
 The value returned is a list of strings of relevant holiday descriptions.
@@ -222,6 +185,7 @@ The holidays are those in the list `calendar-holidays'."
           (setq holiday-list (append holiday-list (cdr h)))))
     holiday-list))
 
+;;;###cal-autoload
 (defun calendar-cursor-holidays ()
   "Find holidays for the date specified by the cursor in the calendar window."
   (interactive)
@@ -246,6 +210,7 @@ The holidays are those in the list `calendar-holidays'."
         (display-buffer holiday-buffer)
         (message "Checking holidays...done")))))
 
+;;;###cal-autoload
 (defun calendar-mark-holidays ()
   "Mark notable days in the calendar window."
   (interactive)
@@ -256,6 +221,7 @@ The holidays are those in the list `calendar-holidays'."
      (car holiday) calendar-holiday-marker))
   (message "Marking holidays...done"))
 
+;;;###cal-autoload
 (defun calendar-list-holidays ()
   "Create a buffer containing the holidays for the current calendar window.
 The holidays are those in the list `calendar-notable-days'.  Returns t if any
@@ -294,10 +260,11 @@ holidays are found, nil if not."
       (message "Looking up holidays...done")
       t)))
 
+;;;###diary-autoload
 (defun calendar-holiday-list ()
   "Form the list of holidays that occur on dates in the calendar window.
 The holidays are those in the list `calendar-holidays'."
-  (let ((holiday-list ()))
+  (let (holiday-list)
     (dolist (p calendar-holidays)
       (let* ((holidays
               (if calendar-debug-sexp
