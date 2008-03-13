@@ -44,10 +44,10 @@
 (defun french-calendar-accents ()
   "True if diacritical marks are available."
   (and (or window-system
-	   (terminal-coding-system))
+           (terminal-coding-system))
        (or enable-multibyte-characters
-	   (and (char-table-p standard-display-table)
-		(equal (aref standard-display-table 161) [161])))))
+           (and (char-table-p standard-display-table)
+                (equal (aref standard-display-table 161) [161])))))
 
 (defconst french-calendar-epoch (calendar-absolute-from-gregorian '(9 22 1792))
   "Absolute date of start of French Revolutionary calendar = September 22, 1792.")
@@ -145,20 +145,22 @@ The absolute date is the number of days elapsed since the
            (year               ; search forward from the approximation
             (+ approx
                (calendar-sum y approx
-                 (>= date (calendar-absolute-from-french (list 1 1 (1+ y))))
-                 1)))
+                             (>= date (calendar-absolute-from-french
+                                       (list 1 1 (1+ y))))
+                             1)))
            (month                    ; search forward from Vendemiaire
             (1+ (calendar-sum m 1
-                  (> date
-                     (calendar-absolute-from-french
-                      (list m
-                            (french-calendar-last-day-of-month m year)
-                            year)))
-                  1)))
+                              (> date
+                                 (calendar-absolute-from-french
+                                  (list m
+                                        (french-calendar-last-day-of-month
+                                         m year)
+                                        year)))
+                              1)))
            (day                     ; calculate the day by subtraction
             (- date
                (1- (calendar-absolute-from-french (list month 1 year))))))
-    (list month day year))))
+      (list month day year))))
 
 ;;;###cal-autoload
 (defun calendar-french-date-string (&optional date)
@@ -201,47 +203,47 @@ Defaults to today's date if DATE is not given."
 Echo French Revolutionary date unless NOECHO is t."
   (interactive
    (let ((accents (french-calendar-accents))
-	 (months (french-calendar-month-name-array))
-	 (special-days (french-calendar-special-days-array)))
+         (months (french-calendar-month-name-array))
+         (special-days (french-calendar-special-days-array)))
      (let* ((year
-	     (progn
-	       (calendar-read
-		(if accents
-	            "Année de la Révolution (>0): "
-		   "Anne'e de la Re'volution (>0): ")
-		(lambda (x) (> x 0))
-		(int-to-string
-		 (extract-calendar-year
-		  (calendar-french-from-absolute
-		   (calendar-absolute-from-gregorian
-		    (calendar-current-date))))))))
-	    (month-list
-	     (mapcar 'list
-		     (append months
-			     (if (french-calendar-leap-year-p year)
-				 (mapcar
-				  (lambda (x) (concat "Jour " x))
-				  french-calendar-special-days-array)
-			       (reverse
-				(cdr ; we don't want rev. day in a non-leap yr
-				 (reverse
-				  (mapcar
-				   (lambda (x)
-				      (concat "Jour " x))
-				   special-days))))))))
-	    (completion-ignore-case t)
-	    (month (cdr (assoc-string
+             (progn
+               (calendar-read
+                (if accents
+                    "Année de la Révolution (>0): "
+                  "Anne'e de la Re'volution (>0): ")
+                (lambda (x) (> x 0))
+                (int-to-string
+                 (extract-calendar-year
+                  (calendar-french-from-absolute
+                   (calendar-absolute-from-gregorian
+                    (calendar-current-date))))))))
+            (month-list
+             (mapcar 'list
+                     (append months
+                             (if (french-calendar-leap-year-p year)
+                                 (mapcar
+                                  (lambda (x) (concat "Jour " x))
+                                  french-calendar-special-days-array)
+                               (reverse
+                                (cdr ; we don't want rev. day in a non-leap yr
+                                 (reverse
+                                  (mapcar
+                                   (lambda (x)
+                                     (concat "Jour " x))
+                                   special-days))))))))
+            (completion-ignore-case t)
+            (month (cdr (assoc-string
                          (completing-read
                           "Mois ou Sansculottide: "
                           month-list
                           nil t)
-			 (calendar-make-alist month-list 1 'car) t)))
-	    (day (if (> month 12)
-		     (- month 12)
-		   (calendar-read
-		    "Jour (1-30): "
-		    (lambda (x) (and (<= 1 x) (<= x 30))))))
-	    (month (if (> month 12) 13 month)))
+                         (calendar-make-alist month-list 1 'car) t)))
+            (day (if (> month 12)
+                     (- month 12)
+                   (calendar-read
+                    "Jour (1-30): "
+                    (lambda (x) (and (<= 1 x) (<= x 30))))))
+            (month (if (> month 12) 13 month)))
        (list (list month day year)))))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-french date)))
