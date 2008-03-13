@@ -182,8 +182,8 @@ See the variable `sc-cite-frame-alist' for details."
 		   (concat "\\("
 			   (sc-cite-regexp "")
 			   "\\)"
-			   (sc-cite-regexp sc-citation-nonnested-root-regexp))
-		   )))
+			   (sc-cite-regexp
+			    sc-citation-nonnested-root-regexp)))))
     ;; blank lines mean paragraph separators, so fill the last cited
     ;; paragraph, unless sc-cite-blank-lines-p is non-nil, in which
     ;; case we treat blank lines just like any other line.
@@ -210,8 +210,7 @@ See the variable `sc-cite-frame-alist' for details."
     ;; citations, so cite it with a non-nested citation
     (t                          (sc-cite-line))
     ;; be sure when we're done that we fill the last cited paragraph.
-    (end                        (sc-fill-if-different ""))
-    )
+    (end                        (sc-fill-if-different "")))
   "Default REGI frame for citing a region."
   :type '(repeat (repeat sexp))
   :group 'supercite-frames)
@@ -221,8 +220,7 @@ See the variable `sc-cite-frame-alist' for details."
   '(;; do nothing on a blank line
     ("^[ \t]*$"       nil)
     ;; if the line is cited, uncite it
-    ((sc-cite-regexp) (sc-uncite-line))
-    )
+    ((sc-cite-regexp) (sc-uncite-line)))
   "Default REGI frame for unciting a region."
   :type '(repeat (repeat sexp))
   :group 'supercite-frames)
@@ -238,8 +236,7 @@ See the variable `sc-cite-frame-alist' for details."
     ;; otherwise, the line is uncited, so just cite it
     (t                (sc-cite-line))
     ;; be sure when we're done that we fill the last cited paragraph.
-    (end              (sc-fill-if-different ""))
-    )
+    (end              (sc-fill-if-different "")))
   "Default REGI frame for reciting a region."
   :type '(repeat (repeat sexp))
   :group 'supercite-frames)
@@ -479,8 +476,7 @@ Index zero accesses the first function in the list."
     (sc-header-attributed-writes)
     (sc-header-author-writes)
     (sc-header-verbose)
-    (sc-no-blank-line-or-header)
-    )
+    (sc-no-blank-line-or-header))
   "List of reference header rewrite functions.
 The variable `sc-preferred-header-style' controls which function in
 this list is chosen for automatic reference header insertions.
@@ -619,11 +615,10 @@ selected letter is returned, or nil if the question was not answered.
 Note that WORD is a string and LETTER is a character.  All LETTERs in
 the list should be unique."
   (let* ((prompt (concat
-		  (mapconcat (function (lambda (elt) (car elt))) alist ", ")
+		  (mapconcat (lambda (elt) (car elt)) alist ", ")
 		  "? ("
 		  (mapconcat
-		   (function
-		    (lambda (elt) (char-to-string (cdr elt)))) alist "/")
+		   (lambda (elt) (char-to-string (cdr elt))) alist "/")
 		  ") "))
 	 (p prompt)
 	 (event
@@ -677,7 +672,7 @@ the list should be unique."
       (let* ((elem    (car alist))
 	     (infokey (car elem))
 	     (infoval (sc-mail-field infokey))
-	     (mlist   (car (cdr elem))))
+	     (mlist   (cadr elem)))
 	(while mlist
 	  (let* ((ml-elem (car mlist))
 		 (regexp  (car ml-elem))
@@ -688,10 +683,8 @@ the list should be unique."
 		      mlist nil
 		      alist nil)
 	      ;; else we didn't find a match
-	      (setq mlist (cdr mlist))
-	      )))			;end of mlist loop
-	(setq alist (cdr alist))
-	))				;end of alist loop
+	      (setq mlist (cdr mlist))))) ;end of mlist loop
+	(setq alist (cdr alist))))	  ;end of alist loop
     rtnvalue))
 
 
@@ -802,8 +795,7 @@ The number of lines left is specified by `sc-blank-lines-after-headers'."
      ;; we never get far enough to interpret a frame if s-n-m-h == 'none
      ((eq sc-nuke-mail-headers 'none))
      (t (error "Invalid value for sc-nuke-mail-headers: %s"
-	       sc-nuke-mail-headers))
-     )					; end-cond
+	       sc-nuke-mail-headers)))	; end-cond
     (append
      (and entry-func
 	  (regi-mapcar sc-nuke-mail-header-list entry-func nil t))
@@ -812,8 +804,7 @@ The number of lines left is specified by `sc-blank-lines-after-headers'."
 	  '(("^[ \t]+" (sc-mail-nuke-continuation-line))))
      '((begin     (setq sc-mail-last-header-zapped-p nil)))
      '((end       (sc-mail-cleanup-blank-lines)))
-     (and every-func (list (list 'every every-func)))
-     )))
+     (and every-func (list (list 'every every-func))))))
 
 ;; mail processing and zapping. this is the top level entry defun to
 ;; all header processing.
@@ -834,8 +825,7 @@ error occurs."
 	  (setq sc-mail-info info
 		sc-attributions attribs))
       (regi-interpret (sc-mail-build-nuke-frame)
-		      sc-mail-headers-start sc-mail-headers-end)
-      )))
+		      sc-mail-headers-start sc-mail-headers-end))))
 
 
 ;; let the user change mail field information
@@ -877,8 +867,7 @@ Action can be one of: View, Modify, Add, or Delete."
 			  (concat key ": ") (cdr keyval)
 			  'sc-mail-field-modification-history))))
        ((eq action ?a)
-	(push (cons key (read-string (concat key ": "))) sc-mail-info))
-       ))))
+	(push (cons key (read-string (concat key ": "))) sc-mail-info))))))
 
 
 ;; ======================================================================
@@ -908,8 +897,7 @@ Match addresses of the style ``[stuff]![stuff]...!name[stuff].''"
 			      from 0))
 	(mend (match-end 0)))
     (and mstart
-	 (substring from (1+ mstart) (- mend (if (= mend eos) 0 1)))
-	 )))
+	 (substring from (1+ mstart) (- mend (if (= mend eos) 0 1))))))
 
 (defun sc-attribs-<>-addresses (from)
   "Extract the author's email terminus from email address FROM.
@@ -930,8 +918,7 @@ AUTHOR is the author's name (which is removed from the address)."
 	    address))
       (if (string-match "[-[:alnum:]!@%._]+" from 0)
 	  (match-string 0 from)
-	"")
-      )))
+	""))))
 
 (defun sc-attribs-emailname (from)
   "Get the email terminus name from FROM."
@@ -951,8 +938,7 @@ substring."
        (let ((sos (+ start extend))
 	     (eos (- end extend)))
 	 (substring string sos
-		    (or (string-match sc-titlecue-regexp string sos) eos)
-		    ))))
+		    (or (string-match sc-titlecue-regexp string sos) eos)))))
 
 (defun sc-attribs-extract-namestring (from)
   "Extract the name string from FROM.
@@ -997,16 +983,14 @@ example: (sc-attribs-chop-namestring \"John Xavier Doe\")
          => (\"John\" \"Xavier\" \"Doe\")"
   (if (string-match "\\([ \t]*\\)\\([^ \t._]+\\)\\([ \t]*\\)" namestring)
       (cons (match-string 2 namestring)
-	    (sc-attribs-chop-namestring (substring namestring (match-end 3)))
-	    )))
+	    (sc-attribs-chop-namestring (substring namestring (match-end 3))))))
 
 (defun sc-attribs-strip-initials (namelist)
   "Extract the author's initials from the NAMELIST."
   (mapconcat
-   (function
-    (lambda (name)
-      (if (< 0 (length name))
-	  (substring name 0 1))))
+   (lambda (name)
+     (if (< 0 (length name))
+	 (substring name 0 1)))
    namelist ""))
 
 (defun sc-guess-attribution (&optional string)
@@ -1034,33 +1018,28 @@ supplied, is used instead of the line point is on in the current buffer."
 	(position -1)
 	keepers filtered-list)
     (mapc
-     (function
-      (lambda (name)
-	(setq position (1+ position))
-	(let ((keep-p t))
-	  (mapc
-	   (function
-	    (lambda (filter)
-	      (let ((regexp (car filter))
-		    (pos (cdr filter)))
-		(if (and (string-match regexp name)
-			 (or (and (numberp pos)
-				  (= pos position))
-			     (and (eq pos 'last)
-				  (= position (1- elements)))
-			     (eq pos 'any)))
-		    (setq keep-p nil))
-		)))
-	   sc-name-filter-alist)
-	  (if keep-p
-	      (setq keepers (cons position keepers)))
-	  )))
+     (lambda (name)
+       (setq position (1+ position))
+       (let ((keep-p t))
+	 (mapc
+	  (function
+	   (lambda (filter)
+	     (let ((regexp (car filter))
+		   (pos (cdr filter)))
+	       (if (and (string-match regexp name)
+			(or (and (numberp pos)
+				 (= pos position))
+			    (and (eq pos 'last)
+				 (= position (1- elements)))
+			    (eq pos 'any)))
+		   (setq keep-p nil)))))
+	  sc-name-filter-alist)
+	 (if keep-p
+	     (setq keepers (cons position keepers)))))
      namelist)
     (mapc
-     (function
-      (lambda (position)
-	(setq filtered-list (cons (nth position namelist) filtered-list))
-	))
+     (lambda (position)
+       (setq filtered-list (cons (nth position namelist) filtered-list)))
      keepers)
     filtered-list))
 
@@ -1086,14 +1065,13 @@ This populates the `sc-attributions' with the list of possible attributions."
 	(setq
 	 ;; put middle names and build sc-author entry
 	 middlenames (mapconcat
-		      (function
-		       (lambda (midname)
-			 (let ((key-attribs (format "middlename-%d" n))
-			       (key-mail    (format "sc-middlename-%d" n)))
-			   (push (cons key-attribs midname) sc-attributions)
-			   (push (cons key-mail midname) sc-mail-info)
-			   (setq n (1+ n))
-			   midname)))
+		      (lambda (midname)
+			(let ((key-attribs (format "middlename-%d" n))
+			      (key-mail    (format "sc-middlename-%d" n)))
+			  (push (cons key-attribs midname) sc-attributions)
+			  (push (cons key-mail midname) sc-mail-info)
+			  (setq n (1+ n))
+			  midname))
 		      midnames " ")
 
 	 author (concat firstname " " middlenames (and midnames " ") lastname)
@@ -1121,10 +1099,8 @@ This populates the `sc-attributions' with the list of possible attributions."
 						  namestring))
 			(cons "sc-sender-address" (sc-get-address
 						   (sc-mail-field "sender")
-						   namestring))
-			)
-		       sc-mail-info)
-	 ))
+						   namestring)))
+		       sc-mail-info)))
     ;; from string is empty
     (push (cons "sc-author" sc-default-author-name) sc-mail-info)))
 
@@ -1185,13 +1161,11 @@ to the auto-selected attribution string."
                 (setq attribution nil
                       attriblist (cdr attriblist))))
 	     (t (error "%s did not evaluate to a string or list!"
-		       "sc-attrib-selection-list"))
-	     )))
+		       "sc-attrib-selection-list")))))
 	 ((setq attribution (cdr (assoc preferred sc-attributions)))
 	  (setq attriblist nil))
 	 (t
-	  (setq attriblist (cdr attriblist)))
-	 )))
+	  (setq attriblist (cdr attriblist))))))
 
     ;; if preference was not found, we may use a secondary method to
     ;; find a valid attribution
@@ -1226,8 +1200,7 @@ to the auto-selected attribution string."
 
     ;; query for confirmation
     (if query-p
-	(let* ((query-alist (mapcar (function (lambda (entry)
-						(list (cdr entry))))
+	(let* ((query-alist (mapcar (lambda (entry) (list (cdr entry)))
 				    sc-attributions))
 	       (minibuffer-local-completion-map
 		sc-minibuffer-local-completion-map)
@@ -1249,8 +1222,7 @@ to the auto-selected attribution string."
 			   "Complete attribution name: "
 			   query-alist nil nil
 			   (cons initial 0)
-			   'sc-attribution-confirmation-history)
-			  ))
+			   'sc-attribution-confirmation-history)))
 		  nil)))
 	  (if sc-attrib-or-cite
 	      ;; since the citation was chosen, we have to guess at
@@ -1260,8 +1232,7 @@ to the auto-selected attribution string."
 				    citation))
 
 	    (setq citation (sc-make-citation choice)
-		  attribution choice))
-	  ))
+		  attribution choice))))
 
     ;; its possible that the user wants to downcase the citation and
     ;; attribution
@@ -1286,8 +1257,7 @@ to the auto-selected attribution string."
 	   (lastchoice (assoc lkey sc-attributions)))
       (if lastchoice
 	  (setcdr lastchoice attribution)
-	(push (cons lkey attribution) sc-attributions)))
-    ))
+	(push (cons lkey attribution) sc-attributions)))))
 
 
 ;; ======================================================================
@@ -1348,8 +1318,7 @@ not supplied, initialize fill variables.  This is useful for a regi
 	  (if (not (string= fill-prefix ""))
 	      (fill-region sc-fill-begin (line-beginning-position)))
 	  (setq sc-fill-line-prefix prefix
-		sc-fill-begin (line-beginning-position))))
-    )
+		sc-fill-begin (line-beginning-position)))))
   nil)
 
 (defun sc-cite-coerce-cited-line ()
@@ -1598,8 +1567,7 @@ Treats these fields in a similar manner to `sc-header-on-said'."
 			(sc-mail-field "subject") "\n")
 		(sc-hdr (concat tag "(see ")
 			(sc-mail-field "references")
-			" for more details)\n")
-		))))
+			" for more details)\n")))))
 
 
 ;; ======================================================================
@@ -1635,10 +1603,8 @@ error occurs."
       (void-function
        (progn (message
 	       "Symbol's function definition is void: %s (Header %d)"
-	       (car (cdr err)) sc-eref-style)
-	      (beep)
-	      ))
-      )))
+	       (cadr err) sc-eref-style)
+	      (beep))))))
 
 (defun sc-electric-mode (&optional arg)
   "
@@ -1671,13 +1637,11 @@ header style to use, unless not supplied or invalid, in which case
 	  (use-local-map sc-electric-mode-map)
 	  (sc-eref-show sc-eref-style)
 	  (run-mode-hooks 'sc-electric-mode-hook)
-	  (recursive-edit)
-	  )))
+	  (recursive-edit))))
 
     (and sc-eref-style
 	 (sc-eref-insert-selected))
-    (kill-buffer sc-electric-bufname)
-    ))
+    (kill-buffer sc-electric-bufname)))
 
 ;; functions for electric reference mode
 (defun sc-eref-show (index)
@@ -1694,8 +1658,7 @@ header style to use, unless not supplied or invalid, in which case
 	   ((>= index last)
 	    (if sc-electric-circular-p
 		0
-	      (progn (error msg "follow") (1- last))))
-	   ))
+	      (progn (error msg "follow") (1- last))))))
     (save-excursion
      (set-buffer sc-electric-bufname)
      (let ((buffer-read-only nil))
@@ -1711,9 +1674,8 @@ header style to use, unless not supplied or invalid, in which case
 		 ;; we have to enlarge the window
 		 (enlarge-window (- hdrlines winlines))
 	       ;; we have to shrink the window
-	       (shrink-window (- winlines (max hdrlines window-min-height)))
-	       )))
-       ))))
+	       (shrink-window (- winlines (max hdrlines
+					       window-min-height))))))))))
 
 (defun sc-eref-next ()
   "Display next reference in other buffer."
@@ -1739,8 +1701,7 @@ nil."
   (if (sc-valid-index-p refnum)
       (sc-eref-show refnum)
     (error "Invalid reference: %d. (Range: [%d .. %d])"
-	   refnum 0 (1- (length sc-rewrite-header-list)))
-    ))
+	   refnum 0 (1- (length sc-rewrite-header-list)))))
 
 (defun sc-eref-jump ()
   "Set reference header to preferred header."
@@ -1776,8 +1737,7 @@ entered, regardless of the value of `sc-electric-references-p'.  See
 			  0)))
       (if sc-electric-references-p
 	  (sc-electric-mode preference)
-	(sc-eref-insert-selected t)
-	))))
+	(sc-eref-insert-selected t)))))
 
 
 ;; ======================================================================
@@ -1960,8 +1920,7 @@ and `sc-post-hook' is run after the guts of this function."
 
     ;; finally, free the point-marker
     (set-marker point nil)
-    (set-marker mark nil)
-    )
+    (set-marker mark nil))
   (run-hooks 'sc-post-hook))
 
 
