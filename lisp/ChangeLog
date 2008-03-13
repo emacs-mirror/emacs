@@ -1,5 +1,8 @@
 2008-03-13  Carsten Dominik  <dominik@science.uva.nl>
 
+	* textmodes/org-export-latex.el (org-export-as-latex): Revert the
+	change that killed the LaTeX buffer.
+
 	* textmodes/org.el (org-ctrl-c-star): Implement a missing branch
 	in the decision tree.
 	(org-select-remember-template): Cleaned the code.
