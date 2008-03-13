@@ -1,5 +1,28 @@
 2008-03-13  Carsten Dominik  <dominik@science.uva.nl>
 
+	* textmodes/org-publish.el: (org-publish-expand-components):
+	Remove null projects from the list of components.
+	(org-publish-attachment): Bugfix: handle the mandatory argument
+	pub-dir.  Removed unused retrieval of the :publishing-directory
+	property.
+	(org-publish-file): Bugfix: when using a relative directory as the
+	publishing directory, convert it to a directory filename.
+	(org-publish-project): New alias.
+	(org-publish-get-files): Protect against empty p.
+	(org-publish-file): Send an error when file is not part of any
+	project.
+	(org-publish-file): Offer to refresh the list of files in known
+	project when the current file is not part of any project.
+	(org-publish-before-export-hook)
+	(org-publish-after-export-hook): New hooks.
+	(org-publish-org-to): Use new hooks and kill buffers.
+	(org-publish-file): Remove the code for killing buffers.
+	(org-publish-initialize-files-alist): Use interactive.
+	(org-publish-file): If the publishing function creates a new
+	buffer, kill it after publishing.
+	(org-publish-timestamp-filename): Protect ":" in file name path
+	under windows.
+
 	* textmodes/org-export-latex.el (org-export-as-latex): Revert the
 	change that killed the LaTeX buffer.
 
