@@ -33,6 +33,9 @@
 
 (require 'calendar)
 
+(eval-and-compile
+  (load "diary-loaddefs" nil 'quiet))
+
 (defcustom diary-include-string "#include"
   "The string indicating inclusion of another file of diary entries.
 See the documentation for the function `include-other-diary-files'."
@@ -307,6 +310,7 @@ does nothing.  This function is suitable for execution in a `.emacs' file."
     (diary-list-entries date (if arg (prefix-numeric-value arg)))))
 
 (define-obsolete-function-alias 'view-diary-entries 'diary-view-entries)
+;;;###cal-autoload
 (defun diary-view-entries (&optional arg)
   "Prepare and display a buffer with diary entries.
 Searches the file named in `diary-file' for entries that
@@ -316,6 +320,7 @@ in the displayed three-month calendar."
   (diary-check-diary-file)
   (diary-list-entries (calendar-cursor-to-date t) arg))
 
+;;;###cal-autoload
 (defun view-other-diary-entries (arg d-file)
   "Prepare and display buffer of diary entries from an alternative diary file.
 Searches for entries that match ARG days, starting with the date indicated
@@ -326,99 +331,6 @@ D-FILE specifies the file to use as the diary file."
          (read-file-name "Enter diary file name: " default-directory nil t)))
   (let ((diary-file d-file))
     (diary-view-entries arg)))
-
-(autoload 'calendar-check-holidays "holidays"
-  "Check the list of holidays for any that occur on DATE.
-The value returned is a list of strings of relevant holiday descriptions.
-The holidays are those in the list `calendar-holidays'.")
-
-(autoload 'calendar-holiday-list "holidays"
-  "Form the list of holidays that occur on dates in the calendar window.
-The holidays are those in the list `calendar-holidays'.")
-
-(autoload 'diary-french-date "cal-french"
-  "French calendar equivalent of date diary entry.")
-
-(autoload 'diary-mayan-date "cal-mayan"
-  "Mayan calendar equivalent of date diary entry.")
-
-(autoload 'diary-iso-date "cal-iso"
-  "ISO calendar equivalent of date diary entry.")
-
-(autoload 'diary-julian-date "cal-julian"
-  "Julian calendar equivalent of date diary entry.")
-
-(autoload 'diary-astro-day-number "cal-julian"
-  "Astronomical (Julian) day number diary entry.")
-
-(autoload 'diary-chinese-date "cal-china"
-  "Chinese calendar equivalent of date diary entry.")
-
-(autoload 'diary-islamic-date "cal-islam"
-  "Islamic calendar equivalent of date diary entry.")
-
-(autoload 'list-islamic-diary-entries "cal-islam"
-  "Add any Islamic date entries from the diary file to `diary-entries-list'.")
-
-(autoload 'mark-islamic-diary-entries "cal-islam"
-  "Mark days in the calendar window that have Islamic date diary entries.")
-
-(autoload 'mark-islamic-calendar-date-pattern "cal-islam"
-   "Mark dates in calendar window that conform to Islamic date MONTH/DAY/YEAR.")
-
-(autoload 'diary-bahai-date "cal-bahai"
-  "Baha'i calendar equivalent of date diary entry.")
-
-(autoload 'diary-bahai-list-entries "cal-bahai"
-  "Add any Baha'i date entries from the diary file to `diary-entries-list'.")
-
-(autoload 'diary-bahai-mark-entries "cal-bahai"
-  "Mark days in the calendar window that have Baha'i date diary entries.")
-
-(autoload 'calendar-bahai-mark-date-pattern "cal-bahai"
-   "Mark dates in calendar window that conform to Baha'i date MONTH/DAY/YEAR.")
-
-(autoload 'diary-hebrew-date "cal-hebrew"
-  "Hebrew calendar equivalent of date diary entry.")
-
-(autoload 'diary-omer "cal-hebrew"
-  "Omer count diary entry.")
-
-(autoload 'diary-yahrzeit "cal-hebrew"
-  "Yahrzeit diary entry--entry applies if date is yahrzeit or the day before.")
-
-(autoload 'diary-parasha "cal-hebrew"
-  "Parasha diary entry--entry applies if date is a Saturday.")
-
-(autoload 'diary-rosh-hodesh "cal-hebrew"
-  "Rosh Hodesh diary entry.")
-
-(autoload 'list-hebrew-diary-entries "cal-hebrew"
-  "Add any Hebrew date entries from the diary file to `diary-entries-list'.")
-
-(autoload 'mark-hebrew-diary-entries "cal-hebrew"
-  "Mark days in the calendar window that have Hebrew date diary entries.")
-
-(autoload 'mark-hebrew-calendar-date-pattern "cal-hebrew"
-   "Mark dates in calendar window that conform to Hebrew date MONTH/DAY/YEAR.")
-
-(autoload 'diary-coptic-date "cal-coptic"
-  "Coptic calendar equivalent of date diary entry.")
-
-(autoload 'diary-ethiopic-date "cal-coptic"
-  "Ethiopic calendar equivalent of date diary entry.")
-
-(autoload 'diary-persian-date "cal-persia"
-  "Persian calendar equivalent of date diary entry.")
-
-(autoload 'diary-phases-of-moon "lunar" "Moon phases diary entry.")
-
-(autoload 'diary-sunrise-sunset "solar"
-  "Local time of sunrise and sunset as a diary entry.")
-
-(autoload 'diary-sabbath-candles "solar"
-  "Local time of candle lighting diary entry--applies if date is a Friday.
-No diary entry if there is no sunset on that date.")
 
 (defvar diary-syntax-table
   (let ((st (copy-syntax-table (standard-syntax-table))))
@@ -481,6 +393,7 @@ pairs."
 	     (setq ret-attr (append ret-attr (list attrname attrvalue))))))
     (list entry ret-attr)))
 
+;;;###cal-autoload
 (defun diary-set-maybe-redraw (symbol value)
   "Set SYMBOL's value to VALUE, and redraw the diary if necessary.
 Redraws the diary if it is being displayed (note this is not the same as
@@ -533,6 +446,7 @@ Only used if `diary-header-line-flag' is non-nil."
 ;; So the check for selective-display was dropped. This means the
 ;; diary will be displayed if one customizes a diary variable while
 ;; just visiting the diary-file. This is i) unlikely, and ii) no great loss.
+;;;###cal-autoload
 (defun diary-live-p ()
   "Return non-nil if the diary is being displayed."
   (or (get-buffer fancy-diary-buffer)
@@ -1081,6 +995,7 @@ the actual printing."
         (error "You don't have a diary buffer!")))))
 
 (define-obsolete-function-alias 'show-all-diary-entries 'diary-show-all-entries)
+;;;###cal-autoload
 (defun diary-show-all-entries ()
   "Show all of the diary entries in the diary file.
 This function gets rid of the selective display of the diary file so that
@@ -1158,6 +1073,7 @@ argument PAREN is non-nil, the regexp is surrounded by parentheses."
 (defvar marking-diary-entry nil
   "True during the marking of diary entries, if current entry is marking.")
 
+;;;###cal-autoload
 (defun mark-diary-entries (&optional redraw)
   "Mark days in the calendar window that have diary entries.
 Each entry in the diary file visible in the calendar window is
@@ -1408,7 +1324,7 @@ A value of 0 in any position of the pattern is a wildcard.
 Optional argument COLOR is passed to `mark-visible-calendar-date' as MARK."
   (if (or (and (= month p-month)
                (or (zerop p-year) (= year p-year)))
-          (and (= p-month 0)
+          (and (zerop p-month)
                (or (zerop p-year) (= year p-year))))
       (if (zerop p-day)
           (calendar-for-loop
@@ -1923,6 +1839,7 @@ marked on the calendar."
   ;; Return value suitable for `write-contents-functions'.
   nil)
 
+;;;###cal-autoload
 (defun make-diary-entry (string &optional nonmarking file)
   "Insert a diary entry STRING which may be NONMARKING in FILE.
 If omitted, NONMARKING defaults to nil and FILE defaults to
@@ -1945,6 +1862,7 @@ If omitted, NONMARKING defaults to nil and FILE defaults to
    (if nonmarking diary-nonmarking-symbol "")
    string " "))
 
+;;;###cal-autoload
 (defun insert-diary-entry (arg)
   "Insert a diary entry for the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
@@ -1952,6 +1870,7 @@ Prefix argument ARG makes the entry nonmarking."
   (make-diary-entry (calendar-date-string (calendar-cursor-to-date t) t t)
                     arg))
 
+;;;###cal-autoload
 (defun insert-weekly-diary-entry (arg)
   "Insert a weekly diary entry for the day of the week indicated by point.
 Prefix argument ARG makes the entry nonmarking."
@@ -1959,6 +1878,7 @@ Prefix argument ARG makes the entry nonmarking."
   (make-diary-entry (calendar-day-name (calendar-cursor-to-date t))
                     arg))
 
+;;;###cal-autoload
 (defun insert-monthly-diary-entry (arg)
   "Insert a monthly diary entry for the day of the month indicated by point.
 Prefix argument ARG makes the entry nonmarking."
@@ -1970,6 +1890,7 @@ Prefix argument ARG makes the entry nonmarking."
     (make-diary-entry (calendar-date-string (calendar-cursor-to-date t) t)
                       arg)))
 
+;;;###cal-autoload
 (defun insert-yearly-diary-entry (arg)
   "Insert an annual diary entry for the day of the year indicated by point.
 Prefix argument ARG makes the entry nonmarking."
@@ -1981,6 +1902,7 @@ Prefix argument ARG makes the entry nonmarking."
     (make-diary-entry (calendar-date-string (calendar-cursor-to-date t) t)
                       arg)))
 
+;;;###cal-autoload
 (defun insert-anniversary-diary-entry (arg)
   "Insert an anniversary diary entry for the date given by point.
 Prefix argument ARG makes the entry nonmarking."
@@ -1995,6 +1917,7 @@ Prefix argument ARG makes the entry nonmarking."
              (calendar-date-string (calendar-cursor-to-date t) nil t))
      arg)))
 
+;;;###cal-autoload
 (defun insert-block-diary-entry (arg)
   "Insert a block diary entry for the days between the point and marked date.
 Prefix argument ARG makes the entry nonmarking."
@@ -2020,6 +1943,7 @@ Prefix argument ARG makes the entry nonmarking."
       (calendar-date-string end nil t))
      arg)))
 
+;;;###cal-autoload
 (defun insert-cyclic-diary-entry (arg)
   "Insert a cyclic diary entry starting at the date given by point.
 Prefix argument ARG makes the entry nonmarking."
@@ -2185,6 +2109,7 @@ names."
 (defvar calendar-islamic-month-name-array)
 (defvar calendar-bahai-month-name-array)
 
+;;;###cal-autoload
 (defun diary-font-lock-keywords ()
   "Return a value for the variable `diary-font-lock-keywords'."
   (append
