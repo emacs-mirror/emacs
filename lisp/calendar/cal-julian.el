@@ -36,9 +36,6 @@
 
 ;;; Code:
 
-(defvar displayed-month)
-(defvar displayed-year)
-
 (require 'calendar)
 
 ;;;###autoload
@@ -46,24 +43,24 @@
   "Compute the Julian (month day year) corresponding to the absolute DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-  (let* ((approx (/ (+ date 2) 366));; Approximation from below.
-         (year        ;; Search forward from the approximation.
+  (let* ((approx (/ (+ date 2) 366))    ; approximation from below
+         (year                 ; search forward from the approximation
           (+ approx
              (calendar-sum y approx
                 (>= date (calendar-absolute-from-julian (list 1 1 (1+ y))))
                 1)))
-         (month       ;; Search forward from January.
+         (month                         ; search forward from January
           (1+ (calendar-sum m 1
                  (> date
                     (calendar-absolute-from-julian
                      (list m
-                           (if (and (= m 2) (= (% year 4) 0))
+                           (if (and (= m 2) (zerop (% year 4)))
                                29
                              (aref [31 28 31 30 31 30 31 31 30 31 30 31]
                                    (1- m)))
                            year)))
                  1)))
-         (day         ;; Calculate the day by subtraction.
+         (day                       ; calculate the day by subtraction
           (- date (1- (calendar-absolute-from-julian (list month 1 year))))))
     (list month day year)))
 
@@ -77,7 +74,7 @@ The Gregorian date Sunday, December 31, 1 BC is imaginary."
        (if (and (zerop (% year 100))
                 (/= (% year 400) 0)
                 (> month 2))
-           1 0);; Correct for Julian but not Gregorian leap year.
+           1 0)       ; correct for Julian but not Gregorian leap year
        (* 365 (1- year))
        (/ (1- year) 4)
        -2)))
@@ -136,8 +133,11 @@ Driven by the variable `calendar-date-display-form'."
                        (calendar-absolute-from-julian date)))
   (or noecho (calendar-print-julian-date)))
 
+(defvar displayed-month)
+(defvar displayed-year)
+
 (defun holiday-julian (month day string)
-  "Holiday on MONTH, DAY  (Julian) called STRING.
+  "Holiday on MONTH, DAY (Julian) called STRING.
 If MONTH, DAY (Julian) is visible, the value returned is corresponding
 Gregorian date in the form of the list (((month day year) STRING)).  Returns
 nil if it is not visible in the current calendar window."
@@ -192,7 +192,7 @@ Defaults to today's date if DATE is not given."
 
 ;;;###autoload
 (defun calendar-print-astro-day-number ()
-  "Show astronomical (Julian) day number after noon UTC on date shown by cursor."
+  "Show astronomical (Julian) day number after noon UTC on cursor date."
   (interactive)
   (message
    "Astronomical (Julian) day number (at noon UTC): %s.0"
