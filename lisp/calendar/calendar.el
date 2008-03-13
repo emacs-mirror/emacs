@@ -523,8 +523,6 @@ See the documentation of `diary-date-forms' for an explanation."
 				       (choice symbol regexp)))))
   :group 'diary)
 
-(autoload 'diary-font-lock-keywords "diary-lib")
-(autoload 'diary-live-p "diary-lib")
 (defvar diary-font-lock-keywords)
 
 (defcustom diary-date-forms
@@ -638,8 +636,6 @@ See the documentation of the function `calendar-date-string'."
 Can be used for appointment notification."
   :type 'hook
   :group 'diary)
-
-(autoload 'diary-set-maybe-redraw "diary-lib")
 
 (defcustom diary-display-hook nil
   "List of functions that handle the display of the diary.
@@ -1335,19 +1331,6 @@ See the documentation of that function for more information."
          (calendar-only-one-frame-setup arg))
         (t (calendar-basic-setup arg))))
 
-(autoload 'diary-view-entries "diary-lib"
-  "Prepare and display a buffer with diary entries.
-Searches your diary file for entries that match ARG days starting with
-the date indicated by the cursor position in the displayed three-month
-calendar."
-  t)
-
-(autoload 'calendar-list-holidays "holidays"
-  "Create a buffer containing the holidays for the current calendar window.
-The holidays are those in the list `calendar-notable-days'.  Returns t if any
-holidays are found, nil if not."
-  t)
-
 (defun calendar-basic-setup (&optional arg)
   "Display a three-month calendar in another window.
 The three months appear side by side, with the current month in the middle
@@ -1417,98 +1400,6 @@ to be replaced by asterisks to highlight it whenever it is in the window."
         (calendar-list-holidays)))
   (run-hooks 'initial-calendar-window-hook))
 
-(autoload 'view-other-diary-entries "diary-lib"
-  "Prepare and display buffer of diary entries from an alternative diary file.
-Searches for entries that match ARG days, starting with the date indicated
-by the cursor position in the displayed three-month calendar.
-D-FILE specifies the file to use as the diary file."
-  t)
-
-(autoload 'calendar-sunrise-sunset "solar"
-  "Local time of sunrise and sunset for date under cursor."
-  t)
-
-(autoload 'calendar-phases-of-moon "lunar"
-  "Create a buffer of the phases of the moon for the current calendar window."
-  t)
-
-(autoload 'calendar-goto-hebrew-date "cal-hebrew"
-  "Move cursor to Hebrew date."
-  t)
-
-(autoload 'calendar-print-hebrew-date "cal-hebrew"
-  "Show the Hebrew date equivalents of date."
-  t)
-
-(autoload 'calendar-hebrew-date-string "cal-hebrew"
-  "String of Hebrew date of Gregorian date.")
-
-(autoload 'diary-show-all-entries "diary-lib"
-  "Show all of the diary entries in the diary file.
-This function gets rid of the selective display of the diary file so that
-all entries, not just some, are visible.  If there is no diary buffer, one
-is created."
-  t)
-
-(autoload 'mark-diary-entries "diary-lib"
-  "Mark days in the calendar window that have diary entries.
-Each entry in diary file visible in the calendar window is marked."
-  t)
-
-(autoload 'make-diary-entry "diary-lib"
-  "Insert a diary entry STRING which may be NONMARKING in FILE.")
-
-(autoload 'insert-diary-entry "diary-lib"
-  "Insert a diary entry for the date indicated by point."
-  t)
-
-(autoload 'insert-weekly-diary-entry "diary-lib"
-  "Insert a weekly diary entry for the day of the week indicated by point."
-  t)
-
-(autoload 'insert-monthly-diary-entry "diary-lib"
-  "Insert a monthly diary entry for the day of the month indicated by point."
-  t)
-
-(autoload 'insert-yearly-diary-entry "diary-lib"
-  "Insert an annual diary entry for the day of the year indicated by point."
-  t)
-
-(autoload 'insert-anniversary-diary-entry "diary-lib"
-  "Insert an anniversary diary entry for the date indicated by point."
-  t)
-
-(autoload 'insert-block-diary-entry "diary-lib"
-  "Insert a block diary entry for the dates indicated by point and mark."
-  t)
-
-(autoload 'insert-cyclic-diary-entry "diary-lib"
-  "Insert a cyclic diary entry starting at the date indicated by point."
-  t)
-
-(autoload 'insert-hebrew-diary-entry "cal-hebrew"
-  "Insert a diary entry for the Hebrew date corresponding to the date
-indicated by point."
-  t)
-
-(autoload 'insert-monthly-hebrew-diary-entry "cal-hebrew"
-  "Insert a monthly diary entry for the day of the Hebrew month corresponding
-to the date indicated by point."
-  t)
-
-(autoload 'insert-yearly-hebrew-diary-entry "cal-hebrew"
-  "Insert an annual diary entry for the day of the Hebrew year corresponding
-to the date indicated by point."
-  t)
-
-(autoload 'mark-calendar-holidays "holidays"
-  "Mark notable days in the calendar window."
-  t)
-
-(autoload 'calendar-cursor-holidays "holidays"
-  "Find holidays for the date specified by the cursor in the calendar window."
-  t)
-
 (defun generate-calendar-window (&optional mon yr)
   "Generate the calendar window for the current date.
 Or, for optional MON, YR."
@@ -1544,7 +1435,7 @@ Or, for optional MON, YR."
 	(font-lock-fontify-buffer))
     (and mark-holidays-in-calendar
 ;;;         (calendar-date-is-valid-p today) ; useful for BC dates
-         (mark-calendar-holidays)
+         (calendar-mark-holidays)
          (and in-calendar-window (sit-for 0)))
     (unwind-protect
         (if mark-diary-entries-in-calendar (mark-diary-entries))
