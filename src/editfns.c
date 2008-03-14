@@ -2011,6 +2011,11 @@ the data it can't find.  */)
    has never been called.  */
 static char **environbuf;
 
+/* This holds the startup value of the TZ environment variable so it
+   can be restored if the user calls set-time-zone-rule with a nil
+   argument.  */
+static char *initial_tz;
+
 DEFUN ("set-time-zone-rule", Fset_time_zone_rule, Sset_time_zone_rule, 1, 1, 0,
        doc: /* Set the local time zone using TZ, a string specifying a time zone rule.
 If TZ is nil, use implementation-defined default time zone information.
@@ -2020,8 +2025,12 @@ If TZ is t, use Universal Time.  */)
 {
   char *tzstring;
 
+  /* When called for the first time, save the original TZ.  */
+  if (!environbuf)
+    initial_tz = (char *) getenv ("TZ");
+
   if (NILP (tz))
-    tzstring = 0;
+    tzstring = initial_tz;
   else if (EQ (tz, Qt))
     tzstring = "UTC0";
   else
@@ -4588,6 +4597,7 @@ void
 syms_of_editfns ()
 {
   environbuf = 0;
+  initial_tz = 0;
 
   Qbuffer_access_fontify_functions
     = intern ("buffer-access-fontify-functions");
