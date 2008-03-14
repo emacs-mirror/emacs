@@ -38,6 +38,20 @@
 
 (require 'calendar)
 
+(defun calendar-absolute-from-julian (date)
+  "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
+The Gregorian date Sunday, December 31, 1 BC is imaginary."
+  (let ((month (extract-calendar-month date))
+        (year (extract-calendar-year date)))
+    (+ (calendar-day-number date)
+       (if (and (zerop (% year 100))
+                (not (zerop (% year 400)))
+                (> month 2))
+           1 0)       ; correct for Julian but not Gregorian leap year
+       (* 365 (1- year))
+       (/ (1- year) 4)
+       -2)))
+
 ;;;###cal-autoload
 (defun calendar-julian-from-absolute (date)
   "Compute the Julian (month day year) corresponding to the absolute DATE.
@@ -47,37 +61,24 @@ Gregorian date Sunday, December 31, 1 BC."
          (year                 ; search forward from the approximation
           (+ approx
              (calendar-sum y approx
-                (>= date (calendar-absolute-from-julian (list 1 1 (1+ y))))
-                1)))
+                           (>= date (calendar-absolute-from-julian
+                                     (list 1 1 (1+ y))))
+                           1)))
          (month                         ; search forward from January
           (1+ (calendar-sum m 1
-                 (> date
-                    (calendar-absolute-from-julian
-                     (list m
-                           (if (and (= m 2) (zerop (% year 4)))
-                               29
-                             (aref [31 28 31 30 31 30 31 31 30 31 30 31]
-                                   (1- m)))
-                           year)))
-                 1)))
+                            (> date
+                               (calendar-absolute-from-julian
+                                (list m
+                                      (if (and (= m 2) (zerop (% year 4)))
+                                          29
+                                        (aref [31 28 31 30 31 30 31
+                                                  31 30 31 30 31]
+                                              (1- m)))
+                                      year)))
+                            1)))
          (day                       ; calculate the day by subtraction
           (- date (1- (calendar-absolute-from-julian (list month 1 year))))))
     (list month day year)))
-
-(defun calendar-absolute-from-julian (date)
-  "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
-The Gregorian date Sunday, December 31, 1 BC is imaginary."
-  (let ((month (extract-calendar-month date))
-        (day (extract-calendar-day date))
-        (year (extract-calendar-year date)))
-    (+ (calendar-day-number date)
-       (if (and (zerop (% year 100))
-                (/= (% year 400) 0)
-                (> month 2))
-           1 0)       ; correct for Julian but not Gregorian leap year
-       (* 365 (1- year))
-       (/ (1- year) 4)
-       -2)))
 
 ;;;###cal-autoload
 (defun calendar-julian-date-string (&optional date)
@@ -86,8 +87,7 @@ Defaults to today's date if DATE is not given.
 Driven by the variable `calendar-date-display-form'."
   (calendar-date-string
    (calendar-julian-from-absolute
-    (calendar-absolute-from-gregorian
-     (or date (calendar-current-date))))
+    (calendar-absolute-from-gregorian (or date (calendar-current-date))))
    nil t))
 
 ;;;###cal-autoload
@@ -99,7 +99,7 @@ Driven by the variable `calendar-date-display-form'."
 
 ;;;###cal-autoload
 (defun calendar-goto-julian-date (date &optional noecho)
-  "Move cursor to Julian DATE; echo Julian date unless NOECHO is t."
+  "Move cursor to Julian DATE; echo Julian date unless NOECHO is non-nil."
   (interactive
    (let* ((today (calendar-current-date))
           (year (calendar-read
@@ -113,10 +113,10 @@ Driven by the variable `calendar-date-display-form'."
           (month-array calendar-month-name-array)
           (completion-ignore-case t)
           (month (cdr (assoc-string
-                        (completing-read
-                         "Julian calendar month name: "
-                         (mapcar 'list (append month-array nil))
-                         nil t)
+                       (completing-read
+                        "Julian calendar month name: "
+                        (mapcar 'list (append month-array nil))
+                        nil t)
                        (calendar-make-alist month-array 1) t)))
           (last
            (if (and (zerop (% year 4)) (= month 2))
@@ -126,8 +126,8 @@ Driven by the variable `calendar-date-display-form'."
                 (format "Julian calendar day (%d-%d): "
                         (if (and (= year 1) (= month 1)) 3 1) last)
                 (lambda (x)
-                   (and (< (if (and (= year 1) (= month 1)) 2 0) x)
-                        (<= x last))))))
+                  (and (< (if (and (= year 1) (= month 1)) 2 0) x)
+                       (<= x last))))))
      (list (list month day year))))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-julian date)))
@@ -181,8 +181,7 @@ Defaults to today's date if DATE is not given."
   (int-to-string
    (ceiling
     (calendar-astro-from-absolute
-     (calendar-absolute-from-gregorian
-      (or date (calendar-current-date)))))))
+     (calendar-absolute-from-gregorian (or date (calendar-current-date)))))))
 
 ;;;###cal-autoload
 (defun calendar-print-astro-day-number ()
@@ -195,7 +194,7 @@ Defaults to today's date if DATE is not given."
 ;;;###cal-autoload
 (defun calendar-goto-astro-day-number (daynumber &optional noecho)
   "Move cursor to astronomical (Julian) DAYNUMBER.
-Echo astronomical (Julian) day number unless NOECHO is t."
+Echo astronomical (Julian) day number unless NOECHO is non-nil."
   (interactive (list (calendar-read
                       "Astronomical (Julian) day number (>1721425): "
                       (lambda (x) (> x 1721425)))))
