@@ -3,6 +3,13 @@
 	* startup.el (command-line-1): Rename -internal-script back to
 	-scriptload (reverts previous change).
 
+	* calendar/cal-coptic.el (coptic-calendar-month-name-array):
+	(ethiopic-calendar-month-name-array, ethiopic-name): Add doc strings.
+	(coptic-prompt-for-date): Move definition before use.
+
+	* calendar/diary-lib.el (mark-diary-entries): Move some constant
+	variables outside the diary-date-forms loop.
+
 	* calendar/calendar.el (diary-file): Doc fix.
 	(calendar-buffer-list): Return buffers rather than strings (fixes
 	previous change).
