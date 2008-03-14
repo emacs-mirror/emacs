@@ -3,6 +3,10 @@
 	* startup.el (command-line-1): Rename -internal-script back to
 	-scriptload (reverts previous change).
 
+	* calendar/calendar.el (diary-file): Doc fix.
+	(calendar-buffer-list): Return buffers rather than strings (fixes
+	previous change).
+
 	* textmodes/org-irc.el (top-level): CL not required when compiling.
 	(org-irc-visit-erc): Replace runtime CL functions.
 
