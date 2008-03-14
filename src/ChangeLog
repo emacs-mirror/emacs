@@ -1,3 +1,7 @@
+2008-03-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (globals_of_w32fns, Fx_create_frame): Fix last change.
+
 2008-03-14  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (MONITOR_DEFAULT_TO_NEAREST, struct MONITOR_INFO)
