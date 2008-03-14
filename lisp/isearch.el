@@ -1096,12 +1096,15 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 	    ;; Only the string actually used should be saved.
 	    ))
 
-	;; Push the state as of before this C-s.
-	(isearch-push-state)
+	;; This used to push the state as of before this C-s, but it adds
+	;; an inconsistent state where part of variables are from the
+	;; previous search (e.g. `isearch-success'), and part of variables
+	;; are just entered from the minibuffer (e.g. `isearch-string').
+	;; (isearch-push-state)
 
 	;; Reinvoke the pending search.
 	(isearch-search)
-	(isearch-push-state)
+	(isearch-push-state)		; this pushes the correct state
 	(isearch-update)
 	(if isearch-nonincremental
 	    (progn
@@ -1895,10 +1898,12 @@ Isearch mode."
   (if search-ring-update
       (progn
 	(isearch-search)
+	(isearch-push-state)
 	(isearch-update))
-    (isearch-edit-string)
-    )
-  (isearch-push-state))
+    ;; Otherwise, edit the search string instead.  Note that there is
+    ;; no need to push the search state after isearch-edit-string here
+    ;; since isearch-edit-string already pushes its state
+    (isearch-edit-string)))
 
 (defun isearch-ring-advance ()
   "Advance to the next search string in the ring."
@@ -1975,9 +1980,13 @@ If there is no completion possible, say so and continue searching."
 	(pop cmds))
       (setq succ-msg (and cmds (isearch-message-state (car cmds)))
 	    m (copy-sequence m))
-      (when (and (stringp succ-msg) (< (length succ-msg) (length m)))
-	(add-text-properties (length succ-msg) (length m)
-			     '(face isearch-fail) m))
+      (add-text-properties
+       (if (and (stringp succ-msg)
+		(< (length succ-msg) (length m))
+		(equal succ-msg (substring m 0 (length succ-msg))))
+	   (length succ-msg)
+	 0)
+       (length m) '(face isearch-fail) m)
       ;; Highlight failed trailing whitespace
       (when (string-match " +$" m)
 	(add-text-properties (match-beginning 0) (match-end 0)
