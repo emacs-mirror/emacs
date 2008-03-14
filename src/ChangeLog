@@ -6,6 +6,11 @@
 
 2008-03-14  Jason Rumney  <jasonr@gnu.org>
 
+	* editfns.c (initial_tz): New variable.
+	(syms_of_editfns): Initialize it.
+	(Fset_time_zone_rule): Set it when first called.
+	Use it when TZSTRING is nil.
+
 	* w32fns.c (MONITOR_DEFAULT_TO_NEAREST, struct MONITOR_INFO)
 	(MonitorFromPoint_Proc, GetMonitorInfo_Proc): New definitions.
 	(monitor_from_point_fn, get_monitor_info_fn): New globals.
