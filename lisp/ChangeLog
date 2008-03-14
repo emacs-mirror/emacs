@@ -3,6 +3,15 @@
 	* startup.el (command-line-1): Rename -internal-script back to
 	-scriptload (reverts previous change).
 
+	* calendar/cal-bahai.el (calendar-bahai-month-name-array)
+	(calendar-bahai-leap-base): Add doc strings.
+	(calendar-bahai-prompt-for-date, calendar-bahai-mark-date-pattern):
+	Move definition before use.
+	(calendar-bahai-goto-date, diary-bahai-list-entries): Doc fix.
+	(diary-bahai-list-entries, diary-bahai-mark-entries): Move some constant
+	variables outside the loop.  Use dolist.
+	(holiday-bahai, calendar-bahai-mark-date-pattern): Use unless.
+
 	* calendar/cal-china.el: Re-order so that functions are defined before
 	use.
 	(displayed-month, displayed-year): Move declarations where needed.
