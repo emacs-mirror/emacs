@@ -13027,16 +13027,17 @@ Here's the method for a public spool:
 
 If you are behind a firewall and only have access to the @acronym{NNTP}
 server from the firewall machine, you can instruct Gnus to @code{rlogin}
-on the firewall machine and telnet from there to the @acronym{NNTP} server.
+on the firewall machine and connect with
+@uref{http://netcat.sourceforge.net/, netcat} from there to the
+@acronym{NNTP} server.
 Doing this can be rather fiddly, but your virtual server definition
 should probably look something like this:
 
 @lisp
 (nntp "firewall"
-      (nntp-open-connection-function nntp-open-via-rlogin-and-telnet)
+      (nntp-open-connection-function nntp-open-via-rlogin-and-netcat)
       (nntp-via-address "the.firewall.machine")
-      (nntp-address "the.real.nntp.host")
-      (nntp-end-of-line "\n"))
+      (nntp-address "the.real.nntp.host"))
 @end lisp
 
 If you want to use the wonderful @code{ssh} program to provide a
@@ -13056,21 +13057,19 @@ an indirect connection:
              (nntp-via-user-name "intermediate_user_name")
              (nntp-via-address "intermediate.host.example")
              (nntp-via-rlogin-command "ssh")
-             (nntp-end-of-line "\n")
-             (nntp-via-rlogin-command-switches ("-C" "-t" "-e" "none"))
-             (nntp-open-connection-function nntp-open-via-rlogin-and-telnet)))
+             (nntp-via-rlogin-command-switches ("-C"))
+             (nntp-open-connection-function nntp-open-via-rlogin-and-netcat)))
 @end lisp
 
 If you're behind a firewall, but have direct access to the outside world
 through a wrapper command like "runsocks", you could open a socksified
-telnet connection to the news server as follows:
+netcat connection to the news server as follows:
 
 @lisp
 (nntp "outside"
       (nntp-pre-command "runsocks")
-      (nntp-open-connection-function nntp-open-via-telnet)
-      (nntp-address "the.news.server")
-      (nntp-end-of-line "\n"))
+      (nntp-open-connection-function nntp-open-via-netcat)
+      (nntp-address "the.news.server"))
 @end lisp
 
 This means that you have to have set up @code{ssh-agent} correctly to
@@ -13544,11 +13543,11 @@ then define a server as follows:
       (nntp-address "snews.bar.com"))
 @end lisp
 
-@findex nntp-open-telnet-stream
-@item nntp-open-telnet-stream
-Opens a connection to an @acronym{NNTP} server by simply @samp{telnet}'ing
-it.  You might wonder why this function exists, since we have the
-default @code{nntp-open-network-stream} which would do the job.  (One
+@findex nntp-open-via-netcat
+@item nntp-open-via-netcat
+Opens a connection to an @acronym{NNTP} server using the @code{netcat}
+program.  You might wonder why this function exists, since we have
+the default @code{nntp-open-network-stream} which would do the job.  (One
 of) the reason(s) is that if you are behind a firewall but have direct
 connections to the outside world thanks to a command wrapper like
 @code{runsocks}, you can use it like this:
@@ -13556,12 +13555,27 @@ connections to the outside world thanks to a command wrapper like
 @lisp
 (nntp "socksified"
       (nntp-pre-command "runsocks")
-      (nntp-open-connection-function nntp-open-telnet-stream)
+      (nntp-open-connection-function nntp-open-via-netcat)
       (nntp-address "the.news.server"))
 @end lisp
 
 With the default method, you would need to wrap your whole Emacs
 session, which is not a good idea.
+
+@findex nntp-open-telnet-stream
+@item nntp-open-telnet-stream
+Like @code{nntp-open-via-netcat}, but uses @code{telnet} rather than
+@code{netcat}.  @code{telnet} is a bit less robust because of things
+like line-end-conversion, but sometimes netcat is simply
+not available.  The previous example would turn into:
+
+@lisp
+(nntp "socksified"
+      (nntp-pre-command "runsocks")
+      (nntp-open-connection-function nntp-open-telnet-stream)
+      (nntp-address "the.news.server")
+      (nntp-end-of-line "\n"))
+@end lisp
 @end table
 
 
@@ -13577,13 +13591,13 @@ things cleaner.  The behavior of these functions is also affected by
 commonly understood variables (@pxref{Common Variables}).
 
 @table @code
-@item nntp-open-via-rlogin-and-telnet
-@findex nntp-open-via-rlogin-and-telnet
-Does an @samp{rlogin} on a remote system, and then does a @samp{telnet}
+@item nntp-open-via-rlogin-and-netcat
+@findex nntp-open-via-rlogin-and-netcat
+Does an @samp{rlogin} on a remote system, and then uses @code{netcat} to connect
 to the real @acronym{NNTP} server from there.  This is useful for instance if
 you need to connect to a firewall machine first.
 
-@code{nntp-open-via-rlogin-and-telnet}-specific variables:
+@code{nntp-open-via-rlogin-and-netcat}-specific variables:
 
 @table @code
 @item nntp-via-rlogin-command
@@ -13596,35 +13610,30 @@ Command used to log in on the intermediate host.  The default is
 List of strings to be used as the switches to
 @code{nntp-via-rlogin-command}.  The default is @code{nil}.  If you use
 @samp{ssh} for @code{nntp-via-rlogin-command}, you may set this to
-@samp{("-C")} in order to compress all data connections, otherwise set
-this to @samp{("-t" "-e" "none")} or @samp{("-C" "-t" "-e" "none")} if
-the telnet command requires a pseudo-tty allocation on an intermediate
-host.
+@samp{("-C")} in order to compress all data connections.
 @end table
 
-Note that you may want to change the value for @code{nntp-end-of-line}
-to @samp{\n} (@pxref{Common Variables}).
-
-@item nntp-open-via-rlogin-and-netcat
-@findex nntp-open-via-rlogin-and-netcat
-Does essentially the same, but uses
-@uref{http://netcat.sourceforge.net/, netcat} instead of @samp{telnet}
+@item nntp-open-via-rlogin-and-telnet
+@findex nntp-open-via-rlogin-and-telnet
+Does essentially the same, but uses @code{telnet} instead of @samp{netcat}
 to connect to the real @acronym{NNTP} server from the intermediate host.
+@code{telnet} is a bit less robust because of things like
+line-end-conversion, but sometimes @code{netcat} is simply not available.  
 
-@code{nntp-open-via-rlogin-and-netcat}-specific variables:
+@code{nntp-open-via-rlogin-and-telnet}-specific variables:
 
 @table @code
-@item nntp-via-netcat-command
-@vindex nntp-via-netcat-command
+@item nntp-telnet-command
+@vindex nntp-telnet-command
 Command used to connect to the real @acronym{NNTP} server from the
 intermediate host.  The default is @samp{nc}.  You can also use other
 programs like @uref{http://www.imasy.or.jp/~gotoh/ssh/connect.html,
 connect} instead.
 
-@item nntp-via-netcat-switches
-@vindex nntp-via-netcat-switches
+@item nntp-telnet-switches
+@vindex nntp-telnet-switches
 List of strings to be used as the switches to the
-@code{nntp-via-telnet-command} command.  The default is @code{nil}.
+@code{nntp-telnet-command} command.  The default is @code{("-8")}.
 
 @item nntp-via-rlogin-command
 @vindex nntp-via-rlogin-command
@@ -13634,8 +13643,14 @@ Command used to log in on the intermediate host.  The default is
 @item nntp-via-rlogin-command-switches
 @vindex nntp-via-rlogin-command-switches
 List of strings to be used as the switches to
-@code{nntp-via-rlogin-command}.  The default is @code{nil}.
+@code{nntp-via-rlogin-command}.  If you use @samp{ssh},  you may need to set
+this to @samp{("-t" "-e" "none")} or @samp{("-C" "-t" "-e" "none")} if
+the telnet command requires a pseudo-tty allocation on an intermediate
+host.  The default is @code{nil}.
 @end table
+
+Note that you may want to change the value for @code{nntp-end-of-line}
+to @samp{\n} (@pxref{Common Variables}).
 
 @item nntp-open-via-telnet-and-telnet
 @findex nntp-open-via-telnet-and-telnet
@@ -13730,17 +13745,17 @@ String to use as end-of-line marker when talking to the @acronym{NNTP}
 server.  This is @samp{\r\n} by default, but should be @samp{\n} when
 using a non native telnet connection function.
 
-@item nntp-telnet-command
-@vindex nntp-telnet-command
+@item nntp-via-netcat-command
+@vindex nntp-via-netcat-command
 Command to use when connecting to the @acronym{NNTP} server through
-@samp{telnet}.  This is @emph{not} for an intermediate host.  This is
+@samp{netcat}.  This is @emph{not} for an intermediate host.  This is
 just for the real @acronym{NNTP} server.  The default is
-@samp{telnet}.
+@samp{nc}.
 
-@item nntp-telnet-switches
-@vindex nntp-telnet-switches
-A list of switches to pass to @code{nntp-telnet-command}.  The default
-is @samp{("-8")}.
+@item nntp-via-netcat-switches
+@vindex nntp-via-netcat-switches
+A list of switches to pass to @code{nntp-via-netcat-command}.  The default
+is @samp{()}.
 
 @end table
 

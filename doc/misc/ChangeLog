@@ -1,3 +1,9 @@
+2008-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus.texi (Example Methods, Direct Functions, Indirect Functions)
+	(Common Variables): Give precedence to the netcat methods over the telnet
+	methods, and mention that they are more reliable.
+
 2008-03-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Exporting Agenda Views): Document agenda export to
