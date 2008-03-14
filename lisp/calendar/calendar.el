@@ -335,7 +335,7 @@ with the remainder of the line being the diary entry string for
 that date.  MONTH and DAY are one or two digit numbers, YEAR is a
 number and may be written in full or abbreviated to the final two
 digits (if `abbreviated-calendar-year' is non-nil).  MONTHNAME
-and DAYNAME can be spelt in full (as specified by the variables
+and DAYNAME can be spelled in full (as specified by the variables
 `calendar-month-name-array' and `calendar-day-name-array'),
 abbreviated (as specified by `calendar-month-abbrev-array' and
 `calendar-day-abbrev-array') with or without a period,
@@ -1851,13 +1851,13 @@ the STRINGS are just concatenated and the result truncated."
     list))
 
 (defun calendar-buffer-list ()
-  "List of all calendar-related buffers."
+  "List of all calendar-related buffers (as buffers, not strings)."
   (let (buffs)
     (dolist (b (list cal-hebrew-yahrzeit-buffer lunar-phases-buffer
                      holiday-buffer fancy-diary-buffer
                      (get-file-buffer diary-file)
                      calendar-buffer other-calendars-buffer))
-      (and b (get-buffer b)
+      (and b (setq b (get-buffer b))
            (push b buffs)))
     buffs))
 
