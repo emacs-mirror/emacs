@@ -98,7 +98,7 @@ Gregorian date Sunday, December 31, 1 BC."
           (floor d1 280506))
          (d2                         ; prior days not in n2820 or n768
           (mod d1 280506))
-         (n1           ; years not in n2820 or n768
+         (n1        ; years not in n2820 or n768
           ;; Want:
           ;; (floor (+ (* 2820 d2) (* 2820 366)) 1029983))
           ;; but that causes overflow, so use the following.
@@ -141,8 +141,8 @@ Gregorian date Sunday, December 31, 1 BC."
 (defun calendar-persian-date-string (&optional date)
   "String of Persian date of Gregorian DATE, default today."
   (let* ((persian-date (calendar-persian-from-absolute
-                       (calendar-absolute-from-gregorian
-                        (or date (calendar-current-date)))))
+                        (calendar-absolute-from-gregorian
+                         (or date (calendar-current-date)))))
          (y (extract-calendar-year persian-date))
          (m (extract-calendar-month persian-date)))
     (let ((monthname (aref persian-calendar-month-name-array (1- m)))
@@ -162,7 +162,7 @@ Gregorian date Sunday, December 31, 1 BC."
 ;;;###cal-autoload
 (defun calendar-goto-persian-date (date &optional noecho)
   "Move cursor to Persian date DATE.
-Echo Persian date unless NOECHO is t."
+Echo Persian date unless NOECHO is non-nil."
   (interactive (persian-prompt-for-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-persian date)))
@@ -180,11 +180,11 @@ Echo Persian date unless NOECHO is t."
                     (calendar-current-date)))))))
          (completion-ignore-case t)
          (month (cdr (assoc
-                       (completing-read
-                        "Persian calendar month name: "
-                        (mapcar 'list
-                                (append persian-calendar-month-name-array nil))
-                        nil t)
+                      (completing-read
+                       "Persian calendar month name: "
+                       (mapcar 'list
+                               (append persian-calendar-month-name-array nil))
+                       nil t)
                       (calendar-make-alist persian-calendar-month-name-array
                                            1))))
          (last (persian-calendar-last-day-of-month month year))
