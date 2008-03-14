@@ -828,7 +828,7 @@ calendar."
                (increment-calendar-month m y -1)
                (let ((year (extract-calendar-year
                             (calendar-julian-from-absolute
-                            cd - (calendar-absolute-from-gregorian
+                             (calendar-absolute-from-gregorian
                               (list m 1 y))))))
                  (= 21 (% year 28)))))
         (holiday-julian 3 26 "Kiddush HaHamah"))
