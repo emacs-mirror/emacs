@@ -38,6 +38,10 @@
 	(french-calendar-day-name-array, french-calendar-special-days-array):
 	Add doc strings.
 
+	* calendar/cal-julian.el (calendar-absolute-from-julian): Move
+	definition before use.  Remove un-needed local `day'.
+	(calendar-goto-julian-date, calendar-goto-astro-day-number): Doc fix.
+
 	* calendar/cal-menu.el (displayed-year): Move declaration where needed.
 	(calendar-event-to-date, cal-tex-mouse-week, cal-tex-mouse-week-iso):
 	Doc fix.
