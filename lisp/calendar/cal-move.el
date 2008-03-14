@@ -32,16 +32,63 @@
 
 ;;; Code:
 
-(defvar displayed-month)
+(require 'calendar)
+
+;;;###cal-autoload
+(defun calendar-cursor-to-nearest-date ()
+  "Move the cursor to the closest date.
+The position of the cursor is unchanged if it is already on a date.
+Returns the list (month day year) giving the cursor position."
+  (let ((date (calendar-cursor-to-date))
+        (column (current-column)))
+    (or date
+        (when (> 3 (count-lines (point-min) (point)))
+          (goto-line 3)
+          (move-to-column column))
+        (if (not (looking-at "[0-9]"))
+            (if (and (not (looking-at " *$"))
+                     (or (< column 25)
+                         (and (> column 27)
+                              (< column 50))
+                         (and (> column 52)
+                              (< column 75))))
+                (progn
+                  (re-search-forward "[0-9]" nil t)
+                  (backward-char 1))
+              (re-search-backward "[0-9]" nil t)))
+        (calendar-cursor-to-date))))
+
+(defvar displayed-month)                ; from generate-calendar
 (defvar displayed-year)
 
-(require 'calendar)
+;;;###cal-autoload
+(defun calendar-cursor-to-visible-date (date)
+  "Move the cursor to DATE that is on the screen."
+  (let* ((month (extract-calendar-month date))
+         (day (extract-calendar-day date))
+         (year (extract-calendar-year date))
+         (first-of-month-weekday (calendar-day-of-week (list month 1 year))))
+    (goto-line (+ 3
+                  (/ (+ day  -1
+                        (mod
+                         (- (calendar-day-of-week (list month 1 year))
+                            calendar-week-start-day)
+                         7))
+                     7)))
+    (move-to-column (+ 6
+                       (* 25
+                          (1+ (calendar-interval
+                               displayed-month displayed-year month year)))
+                       (* 3 (mod
+                             (- (calendar-day-of-week date)
+                                calendar-week-start-day)
+                             7))))))
 
 ;;;###cal-autoload
 (defun calendar-goto-today ()
   "Reposition the calendar window so the current date is visible."
   (interactive)
-  (let ((today (calendar-current-date)));; The date might have changed.
+  (let ((today (calendar-current-date))) ; the date might have changed
     (if (not (calendar-date-is-visible-p today))
         (generate-calendar-window)
       (update-calendar-mode-line)
@@ -61,7 +108,7 @@ Movement is backward if ARG is negative."
     (increment-calendar-month month year arg)
     (let ((last (calendar-last-day-of-month month year)))
       (if (< last day)
-        (setq day last)))
+          (setq day last)))
     ;; Put the new month on the screen, if needed, and go to the new date.
     (let ((new-cursor-date (list month day year)))
       (if (not (calendar-date-is-visible-p new-cursor-date))
@@ -102,19 +149,22 @@ EVENT is an event like `last-nonmenu-event'."
   (save-selected-window
     (select-window (posn-window (event-start event)))
     (calendar-cursor-to-nearest-date)
-    (let ((old-date (calendar-cursor-to-date))
-          (today (calendar-current-date)))
-      (if (/= arg 0)
-          (let ((month displayed-month)
-                (year displayed-year))
-            (increment-calendar-month month year arg)
-            (generate-calendar-window month year)
-            (calendar-cursor-to-visible-date
-             (cond
-              ((calendar-date-is-visible-p old-date) old-date)
-              ((calendar-date-is-visible-p today) today)
-              (t (list month 1 year)))))))
+    (unless (zerop arg)
+      (let ((old-date (calendar-cursor-to-date))
+            (today (calendar-current-date))
+            (month displayed-month)
+            (year displayed-year))
+        (increment-calendar-month month year arg)
+        (generate-calendar-window month year)
+        (calendar-cursor-to-visible-date
+         (cond
+          ((calendar-date-is-visible-p old-date) old-date)
+          ((calendar-date-is-visible-p today) today)
+          (t (list month 1 year))))))
     (run-hooks 'calendar-move-hook)))
+
+(define-obsolete-function-alias
+  'scroll-calendar-left 'calendar-scroll-left "23.1")
 
 ;;;###cal-autoload
 (defun calendar-scroll-right (&optional arg event)
@@ -126,6 +176,9 @@ EVENT is an event like `last-nonmenu-event'."
                      last-nonmenu-event))
   (calendar-scroll-left (- (or arg 1)) event))
 
+(define-obsolete-function-alias
+  'scroll-calendar-right 'calendar-scroll-right "23.1")
+
 ;;;###cal-autoload
 (defun calendar-scroll-left-three-months (arg)
   "Scroll the displayed calendar window left by 3*ARG months.
@@ -133,6 +186,9 @@ If ARG is negative the calendar is scrolled right.  Maintains the relative
 position of the cursor with respect to the calendar as well as possible."
   (interactive "p")
   (calendar-scroll-left (* 3 arg)))
+
+(define-obsolete-function-alias 'scroll-calendar-left-three-months
+  'calendar-scroll-left-three-months "23.1")
 
 ;;;###cal-autoload
 (defun calendar-scroll-right-three-months (arg)
@@ -142,53 +198,28 @@ position of the cursor with respect to the calendar as well as possible."
   (interactive "p")
   (calendar-scroll-left (* -3 arg)))
 
-;;;###cal-autoload
-(defun calendar-cursor-to-nearest-date ()
-  "Move the cursor to the closest date.
-The position of the cursor is unchanged if it is already on a date.
-Returns the list (month day year) giving the cursor position."
-  (let ((date (calendar-cursor-to-date))
-        (column (current-column)))
-    (if date
-        date
-      (if (> 3 (count-lines (point-min) (point)))
-          (progn
-            (goto-line 3)
-            (move-to-column column)))
-      (if (not (looking-at "[0-9]"))
-          (if (and (not (looking-at " *$"))
-                   (or (< column 25)
-                       (and (> column 27)
-                            (< column 50))
-                       (and (> column 52)
-                            (< column 75))))
-              (progn
-                (re-search-forward "[0-9]" nil t)
-                (backward-char 1))
-            (re-search-backward "[0-9]" nil t)))
-      (calendar-cursor-to-date))))
+(define-obsolete-function-alias 'scroll-calendar-right-three-months
+  'calendar-scroll-right-three-months "23.1")
 
 ;;;###cal-autoload
 (defun calendar-forward-day (arg)
   "Move the cursor forward ARG days.
 Moves backward if ARG is negative."
   (interactive "p")
-  (if (/= 0 arg)
-      (let*
-          ((cursor-date (calendar-cursor-to-date))
-           (cursor-date (if cursor-date
-                            cursor-date
-                          (if (> arg 0) (setq arg (1- arg)))
-                          (calendar-cursor-to-nearest-date)))
+  (unless (zerop arg)
+    (let* ((cursor-date (or (calendar-cursor-to-date)
+                            (progn
+                              (if (> arg 0) (setq arg (1- arg)))
+                              (calendar-cursor-to-nearest-date))))
            (new-cursor-date
             (calendar-gregorian-from-absolute
              (+ (calendar-absolute-from-gregorian cursor-date) arg)))
            (new-display-month (extract-calendar-month new-cursor-date))
            (new-display-year (extract-calendar-year new-cursor-date)))
-        ;; Put the new month on the screen, if needed, and go to the new date.
-        (if (not (calendar-date-is-visible-p new-cursor-date))
-            (calendar-other-month new-display-month new-display-year))
-        (calendar-cursor-to-visible-date new-cursor-date)))
+      ;; Put the new month on the screen, if needed, and go to the new date.
+      (if (not (calendar-date-is-visible-p new-cursor-date))
+          (calendar-other-month new-display-month new-display-year))
+      (calendar-cursor-to-visible-date new-cursor-date)))
   (run-hooks 'calendar-move-hook))
 
 ;;;###cal-autoload
@@ -260,10 +291,9 @@ Moves forward if ARG is negative."
          (day (extract-calendar-day date))
          (year (extract-calendar-year date))
          (last-day (calendar-last-day-of-month month year)))
-    (if (/= day last-day)
-        (progn
-          (calendar-cursor-to-visible-date (list month last-day year))
-          (setq arg (1- arg))))
+    (unless (= day last-day)
+      (calendar-cursor-to-visible-date (list month last-day year))
+      (setq arg (1- arg)))
     (increment-calendar-month month year arg)
     (let ((last-day (list
                      month
@@ -271,7 +301,7 @@ Moves forward if ARG is negative."
                      year)))
       (if (not (calendar-date-is-visible-p last-day))
           (calendar-other-month month year)
-      (calendar-cursor-to-visible-date last-day))))
+        (calendar-cursor-to-visible-date last-day))))
   (run-hooks 'calendar-move-hook))
 
 ;;;###cal-autoload
@@ -315,28 +345,6 @@ Moves forward if ARG is negative."
   (run-hooks 'calendar-move-hook))
 
 ;;;###cal-autoload
-(defun calendar-cursor-to-visible-date (date)
-  "Move the cursor to DATE that is on the screen."
-  (let* ((month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date))
-         (first-of-month-weekday (calendar-day-of-week (list month 1 year))))
-    (goto-line (+ 3
-                  (/ (+ day  -1
-                        (mod
-                         (- (calendar-day-of-week (list month 1 year))
-                            calendar-week-start-day)
-                         7))
-                     7)))
-    (move-to-column (+ 6
-                       (* 25
-                          (1+ (calendar-interval
-                               displayed-month displayed-year month year)))
-                       (* 3 (mod
-                             (- (calendar-day-of-week date)
-                                calendar-week-start-day)
-                             7))))))
-;;;###cal-autoload
 (defun calendar-goto-date (date)
   "Move cursor to DATE."
   (interactive (list (calendar-read-date)))
@@ -353,7 +361,7 @@ Moves forward if ARG is negative."
 
 ;;;###cal-autoload
 (defun calendar-goto-day-of-year (year day &optional noecho)
-  "Move cursor to YEAR, DAY number; echo DAY/YEAR unless NOECHO is t.
+  "Move cursor to YEAR, DAY number; echo DAY/YEAR unless NOECHO is non-nil.
 Negative DAY counts backward from end of year."
   (interactive
    (let* ((year (calendar-read
@@ -372,16 +380,6 @@ Negative DAY counts backward from end of year."
         (+ -1 day (calendar-absolute-from-gregorian (list 1 1 year)))
       (+ 1 day (calendar-absolute-from-gregorian (list 12 31 year))))))
   (or noecho (calendar-print-day-of-year)))
-
-;; Backward compatibility.
-(define-obsolete-function-alias
-  'scroll-calendar-left 'calendar-scroll-left "23.1")
-(define-obsolete-function-alias
-  'scroll-calendar-right 'calendar-scroll-right "23.1")
-(define-obsolete-function-alias
-  'scroll-calendar-left-three-months 'calendar-scroll-left-three-months "23.1")
-(define-obsolete-function-alias
-  'scroll-calendar-right-three-months 'calendar-scroll-right-three-months "23.1")
 
 (provide 'cal-move)
 
