@@ -251,9 +251,8 @@ of allocating a new one."
 	nil)
     (error "Invalid or uninitialized timer")))
 
-;;;###autoload
 (defalias 'disable-timeout 'cancel-timer)
-;;;###autoload
+
 (defun cancel-timer (timer)
   "Remove TIMER from the list of active timers."
   (or (timerp timer)
@@ -274,7 +273,6 @@ that was removed from the timer list."
 	(setq timer-idle-list (delq timer timer-idle-list)))
     (or cell1 cell2)))
 
-;;;###autoload
 (defun cancel-function-timers (function)
   "Cancel all timers which would run FUNCTION.
 This affects ordinary timers such as are scheduled by `run-at-time',
@@ -359,7 +357,6 @@ This function is called, by name, directly by the C code."
 
 (declare-function diary-entry-time "diary-lib" (s))
 
-;;;###autoload
 (defun run-at-time (time repeat function &rest args)
   "Perform an action at time TIME.
 Repeat the action every REPEAT seconds, if REPEAT is non-nil.
@@ -421,7 +418,6 @@ This function returns a timer object which you can use in `cancel-timer'."
     (timer-activate timer)
     timer))
 
-;;;###autoload
 (defun run-with-timer (secs repeat function &rest args)
   "Perform an action after a delay of SECS seconds.
 Repeat the action every REPEAT seconds, if REPEAT is non-nil.
@@ -432,14 +428,12 @@ This function returns a timer object which you can use in `cancel-timer'."
   (interactive "sRun after delay (seconds): \nNRepeat interval: \naFunction: ")
   (apply 'run-at-time secs repeat function args))
 
-;;;###autoload
 (defun add-timeout (secs function object &optional repeat)
   "Add a timer to run SECS seconds from now, to call FUNCTION on OBJECT.
 If REPEAT is non-nil, repeat the timer every REPEAT seconds.
 This function is for compatibility; see also `run-with-timer'."
   (run-with-timer secs repeat function object))
 
-;;;###autoload
 (defun run-with-idle-timer (secs repeat function &rest args)
   "Perform an action the next time Emacs is idle for SECS seconds.
 The action is to call FUNCTION with arguments ARGS.
@@ -466,12 +460,11 @@ This function returns a timer object which you can use in `cancel-timer'."
   "This is the timer function used for the timer made by `with-timeout'."
   (throw tag 'timeout))
 
-;;;###autoload (put 'with-timeout 'lisp-indent-function 1)
+(put 'with-timeout 'lisp-indent-function 1)
 
 (defvar with-timeout-timers nil
   "List of all timers used by currently pending `with-timeout' calls.")
 
-;;;###autoload
 (defmacro with-timeout (list &rest body)
   "Run BODY, but if it doesn't finish in SECONDS seconds, give up.
 If we give up, we run the TIMEOUT-FORMS and return the value of the last one.

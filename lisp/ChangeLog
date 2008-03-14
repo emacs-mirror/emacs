@@ -1,3 +1,24 @@
+2008-03-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* faces.el (xw-defined-colors):
+	* simple.el (widget-convert, shell-mode): Declare as functions
+	instead of autoloading.
+
+	* abbrev.el:
+	* button.el:
+	* cus-face.el:
+	* ediff-hook.el:
+	* emacs-lisp/backquote.el:
+	* emacs-lisp/timer.el:
+	* facemenu.el:
+	* faces.el:
+	* menu-bar.el:
+	* simple.el:
+	* subr.el:
+	* textmodes/fill.el:
+	* textmodes/paragraphs.el: Remove autoloads, redundant when the
+	files are preloaded.
+
 2008-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* desktop.el (desktop-create-buffer): Don't catch errors if

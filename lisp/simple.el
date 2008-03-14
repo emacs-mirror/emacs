@@ -31,9 +31,8 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (autoload 'widget-convert "wid-edit")
-  (autoload 'shell-mode "shell"))
+(declare-function widget-convert "wid-edit" (type &rest args))
+(declare-function shell-mode "shell" ())
 
 (defvar compilation-current-error)
 
@@ -4392,7 +4391,7 @@ If optional arg REALLY-WORD is non-nil, it finds just a word."
 		 string)
   :group 'fill)
 (make-variable-buffer-local 'fill-prefix)
-;;;###autoload(put 'fill-prefix 'safe-local-variable 'string-or-null-p)
+(put 'fill-prefix 'safe-local-variable 'string-or-null-p)
 
 (defcustom auto-fill-inhibit-regexp nil
   "*Regexp to match lines which should not be auto-filled."

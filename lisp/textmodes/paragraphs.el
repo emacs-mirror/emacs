@@ -98,7 +98,7 @@ If the variable `use-hard-newlines' is non-nil, then only lines following a
 hard newline are considered to match."
   :group 'paragraphs
   :type 'regexp)
-;;;###autoload(put 'paragraph-start 'safe-local-variable 'stringp)
+(put 'paragraph-start 'safe-local-variable 'stringp)
 
 ;; paragraph-start requires a hard newline, but paragraph-separate does not:
 ;; It is assumed that paragraph-separate is distinctive enough to be believed
@@ -116,7 +116,7 @@ ensures that the paragraph functions will work equally within a region of
 text indented by a margin setting."
   :group 'paragraphs
   :type 'regexp)
-;;;###autoload(put 'paragraph-separate 'safe-local-variable 'stringp)
+(put 'paragraph-separate 'safe-local-variable 'stringp)
 
 (defcustom sentence-end-double-space t
   "Non-nil means a single space does not end a sentence.
@@ -128,7 +128,7 @@ regexp describing the end of a sentence, when the value of the variable
 `sentence-end' is nil.  See Info node `(elisp)Standard Regexps'."
   :type 'boolean
   :group 'fill)
-;;;###autoload(put 'sentence-end-double-space 'safe-local-variable 'booleanp)
+(put 'sentence-end-double-space 'safe-local-variable 'booleanp)
 
 (defcustom sentence-end-without-period nil
   "Non-nil means a sentence will end without a period.
@@ -140,7 +140,7 @@ regexp describing the end of a sentence, when the value of the variable
 `sentence-end' is nil.  See Info node `(elisp)Standard Regexps'."
   :type 'boolean
   :group 'fill)
-;;;###autoload(put 'sentence-end-without-period 'safe-local-variable 'booleanp)
+(put 'sentence-end-without-period 'safe-local-variable 'booleanp)
 
 (defcustom sentence-end-without-space
   "$B!#!%!)!*$A!##.#?#!$(0!$!%!)!*$(G!$!%!)!*(B"
@@ -151,7 +151,7 @@ regexp describing the end of a sentence, when the value of the variable
 `sentence-end' is nil.  See Info node `(elisp)Standard Regexps'."
   :group 'paragraphs
   :type 'string)
-;;;###autoload(put 'sentence-end-without-space 'safe-local-variable 'stringp)
+(put 'sentence-end-without-space 'safe-local-variable 'stringp)
 
 (defcustom sentence-end nil
   "Regexp describing the end of a sentence.
@@ -163,14 +163,14 @@ function `sentence-end'.  You should always use this function
 to obtain the value of this variable."
   :group 'paragraphs
   :type '(choice regexp (const :tag "Use default value" nil)))
-;;;###autoload(put 'sentence-end 'safe-local-variable 'string-or-null-p)
+(put 'sentence-end 'safe-local-variable 'string-or-null-p)
 
 (defcustom sentence-end-base "[.?!][]\"'$B!I$,1r}(B)}]*"
   "Regexp matching the basic end of a sentence, not including following space."
   :group 'paragraphs
   :type 'string
   :version "22.1")
-;;;###autoload(put 'sentence-end-base 'safe-local-variable 'stringp)
+(put 'sentence-end-base 'safe-local-variable 'stringp)
 
 (defun sentence-end ()
   "Return the regexp describing the end of a sentence.
@@ -198,14 +198,14 @@ in between.  See Info node `(elisp)Standard Regexps'."
   "Regexp describing line-beginnings that separate pages."
   :group 'paragraphs
   :type 'regexp)
-;;;###autoload(put 'page-delimiter 'safe-local-variable 'stringp)
+(put 'page-delimiter 'safe-local-variable 'stringp)
 
 (defcustom paragraph-ignore-fill-prefix nil
   "Non-nil means the paragraph commands are not affected by `fill-prefix'.
 This is desirable in modes where blank lines are the paragraph delimiters."
   :group 'paragraphs
   :type 'boolean)
-;;;###autoload(put 'paragraph-ignore-fill-prefix 'safe-local-variable 'booleanp)
+(put 'paragraph-ignore-fill-prefix 'safe-local-variable 'booleanp)
 
 (defun forward-paragraph (&optional arg)
   "Move forward to end of paragraph.

@@ -1441,7 +1441,6 @@ definition only or variable definition only.
 	(setq files (cdr files)))
       file)))
 
-;;;###autoload
 (defun locate-library (library &optional nosuffix path interactive-call)
   "Show the precise file name of Emacs library LIBRARY.
 This command searches the directories in `load-path' like `\\[load-library]'

@@ -70,7 +70,7 @@ Interactively, use the command `abbrev-mode'
 to enable or disable Abbrev mode in the current buffer."
   :type 'boolean
   :group 'abbrev-mode)
-;;;###autoload(put 'abbrev-mode 'safe-local-variable 'booleanp)
+(put 'abbrev-mode 'safe-local-variable 'booleanp)
 
 
 (defvar edit-abbrevs-map

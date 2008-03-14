@@ -91,7 +91,6 @@ For example (backquote-list* 'a 'b 'c) => (a b . c)"
 (defconst backquote-splice-symbol '\,@
   "Symbol used to represent a splice inside a backquote.")
 
-;;;###autoload
 (defmacro backquote (structure)
   "Argument STRUCTURE describes a template to build.
 
@@ -110,7 +109,6 @@ Vectors work just like lists.  Nested backquotes are permitted."
 
 ;; GNU Emacs has no reader macros
 
-;;;###autoload
 (defalias '\` (symbol-function 'backquote))
 
 ;; backquote-process returns a dotted-pair of a tag (0, 1, or 2) and

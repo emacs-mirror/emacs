@@ -28,9 +28,9 @@
 ;;; Code:
 
 (eval-when-compile
-  (require 'cl)
-  ;; Warning suppression -- can't require x-win in batch:
-  (autoload 'xw-defined-colors "x-win"))
+  (require 'cl))
+
+(declare-function xw-defined-colors "term/x-win" (&optional frame))
 
 (defvar help-xref-stack-item)
 

@@ -1742,7 +1742,6 @@ Buffers menu is regenerated."
 ;; that would overwrite disabling the tool bar from X resources.
 (put 'menu-bar-mode 'standard-value '(t))
 
-;;;###autoload
 (define-minor-mode menu-bar-mode
   "Toggle display of a menu bar on each frame.
 This command applies to all frames that exist and frames to be
