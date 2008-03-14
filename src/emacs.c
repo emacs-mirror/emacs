@@ -1133,10 +1133,10 @@ main (argc, argv
   if (argmatch (argv, argc, "-script", "--script", 3, &junk, &skip_args))
     {
       noninteractive = 1;	/* Set batch mode.  */
-      /* Convert --script to -internal-script, un-skip it, and sort again
+      /* Convert --script to -scriptload, un-skip it, and sort again
 	 so that it will be handled in proper sequence.  */
       /* FIXME broken for --script=FILE - is that supposed to work?  */
-      argv[skip_args - 1] = "-internal-script";
+      argv[skip_args - 1] = "-scriptload";
       skip_args -= 2;
       sort_args (argc, argv);
     }
@@ -1872,11 +1872,11 @@ struct standard_args standard_args[] =
   { "-directory", 0, 0, 1 },
   { "-l", "--load", 0, 1 },
   { "-load", 0, 0, 1 },
-  /* This was --scriptload, but that confuses sort_args, because then
-     the --script long option seems to match twice; ie you can't have
-     a long option which is a prefix of another long option.
-     In any case, this is entirely an internal option.  */
-  { "-internal-script", "--internal-script", 0, 1 },
+  /* This has no longname, because using --scriptload confuses sort_args,
+     because then the --script long option seems to match twice; ie
+     you can't have a long option which is a prefix of another long
+     option.  In any case, this is entirely an internal option.  */
+  { "-scriptload", NULL, 0, 1 },
   { "-f", "--funcall", 0, 1 },
   { "-funcall", 0, 0, 1 },
   { "-eval", "--eval", 0, 1 },
