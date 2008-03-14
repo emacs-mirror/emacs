@@ -186,6 +186,14 @@
 	(org-goto-local-search-forward-headings)
 	(org-goto-local-auto-isearch): New functions
 
+2008-03-13  Philip Jackson  <emacs@shellarchive.co.uk>
+
+	* textmodes/org-irc.el: New file.
+
+2008-03-13  John Wiegley  <johnw@gnu.org>
+
+	* textmodes/org-mac-message.el: New file.
+
 2008-03-13  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* font-lock.el (font-lock-comment-face): Set the foreground for
