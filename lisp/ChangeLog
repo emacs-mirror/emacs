@@ -22,6 +22,8 @@
 	(ethiopic-calendar-month-name-array, ethiopic-name): Add doc strings.
 	(coptic-prompt-for-date): Move definition before use.
 
+	* calendar/cal-persia.el (calendar-goto-persian-date): Doc fix.
+
 	* calendar/diary-lib.el (mark-diary-entries): Move some constant
 	variables outside the diary-date-forms loop.
 
