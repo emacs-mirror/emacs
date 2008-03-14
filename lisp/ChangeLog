@@ -51,6 +51,19 @@
 	(list-hebrew-diary-entries, mark-hebrew-diary-entries): Move some
 	constant variables outside the loop.  Use dolist.
 
+	* calendar/cal-islam.el (displayed-month, displayed-year)
+	(original-date): Move declarations where needed.
+	(islamic-calendar-day-number): Remove unused local variable `day'.
+	(calendar-goto-islamic-date): Doc fix.
+	(holiday-islamic): Use unless.
+	(list-islamic-diary-entries, mark-islamic-diary-entries): Move some
+	constant variables outside the loop.  Use dolist.
+	(mark-islamic-calendar-date-pattern): Move definition before use.
+	Use unless.
+	(mark-islamic-diary-entries): Doc fix.
+	(insert-islamic-diary-entry, insert-monthly-islamic-diary-entry)
+	(insert-yearly-islamic-diary-entry): Use let rather than let*.
+
 	* calendar/cal-julian.el (calendar-absolute-from-julian): Move
 	definition before use.  Remove un-needed local `day'.
 	(calendar-goto-julian-date, calendar-goto-astro-day-number): Doc fix.
