@@ -261,16 +261,36 @@ static unsigned mouse_move_timer = 0;
 /* Window that is tracking the mouse.  */
 static HWND track_mouse_window;
 
+/* Multi-monitor API definitions that are not pulled from the headers
+   since we are compiling for NT 4.  */
+#ifndef MONITOR_DEFAULT_TO_NEAREST
+#define MONITOR_DEFAULT_TO_NEAREST 2
+#endif
+/* MinGW headers define MONITORINFO unconditionally, but MSVC ones don't.
+   To avoid a compile error on one or the other, redefine with a new name.  */
+struct MONITOR_INFO
+{
+    DWORD   cbSize;
+    RECT    rcMonitor;
+    RECT    rcWork;
+    DWORD   dwFlags;
+};
+
 typedef BOOL (WINAPI * TrackMouseEvent_Proc)
   (IN OUT LPTRACKMOUSEEVENT lpEventTrack);
 typedef LONG (WINAPI * ImmGetCompositionString_Proc)
   (IN HIMC context, IN DWORD index, OUT LPVOID buffer, IN DWORD bufLen);
 typedef HIMC (WINAPI * ImmGetContext_Proc) (IN HWND window);
+typedef HMONITOR (WINAPI * MonitorFromPoint_Proc) (IN POINT pt, IN DWORD flags);
+typedef BOOL (WINAPI * GetMonitorInfo_Proc)
+  (IN HMONITOR monitor, OUT struct MONITOR_INFO* info);
 
 TrackMouseEvent_Proc track_mouse_event_fn = NULL;
 ClipboardSequence_Proc clipboard_sequence_fn = NULL;
 ImmGetCompositionString_Proc get_composition_string_fn = NULL;
 ImmGetContext_Proc get_ime_context_fn = NULL;
+MonitorFromPoint_Proc monitor_from_point_fn = NULL;
+GetMonitorInfo_Proc get_monitor_info_fn = NULL;
 
 extern AppendMenuW_Proc unicode_append_menu;
 
@@ -314,6 +334,12 @@ static HWND w32_visible_system_caret_hwnd;
 /* From w32menu.c  */
 extern HMENU current_popup_menu;
 static int menubar_in_use = 0;
+
+/* From w32uniscribe.h  */
+#ifdef USE_FONT_BACKEND
+extern void syms_of_w32uniscribe ();
+extern int uniscribe_available;
+#endif
 
 
 /* Error if we are not connected to MS-Windows.  */
@@ -4391,6 +4417,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
     {
       /* Perhaps, we must allow frame parameter, say `font-backend',
 	 to specify which font backends to use.  */
+      if (uniscribe_available)
+        register_font_driver (&uniscribe_font_driver, f);
       register_font_driver (&w32font_driver, f);
 
       x_default_parameter (f, parameters, Qfont_backend, Qnil,
@@ -4910,7 +4938,7 @@ w32_load_font (f, fontname, size)
       bdf_pair = Fassoc (XCAR (bdf_fonts), Vw32_bdf_filename_alist);
       bdf_file = SDATA (XCDR (bdf_pair));
 
-      // If the font is already loaded, do not load it again.
+      /* If the font is already loaded, do not load it again.  */
       for (i = 0; i < dpyinfo->n_fonts; i++)
 	{
 	  if ((dpyinfo->font_table[i].name
@@ -7705,6 +7733,7 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
      int *root_x, *root_y;
 {
   Lisp_Object left, top;
+  int min_x, min_y, max_x, max_y;
 
   /* User-specified position?  */
   left = Fcdr (Fassq (Qleft, parms));
@@ -7716,40 +7745,68 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
     {
       POINT pt;
 
+      /* Default min and max values.  */
+      min_x = 0;
+      min_y = 0;
+      max_x = FRAME_W32_DISPLAY_INFO (f)->width;
+      max_y = FRAME_W32_DISPLAY_INFO (f)->height;
+
       BLOCK_INPUT;
       GetCursorPos (&pt);
       *root_x = pt.x;
       *root_y = pt.y;
       UNBLOCK_INPUT;
+
+      /* If multiple monitor support is available, constrain the tip onto
+	 the current monitor. This improves the above by allowing negative
+	 co-ordinates if monitor positions are such that they are valid, and
+	 snaps a tooltip onto a single monitor if we are close to the edge
+	 where it would otherwise flow onto the other monitor (or into
+	 nothingness if there is a gap in the overlap).  */
+      if (monitor_from_point_fn && get_monitor_info_fn)
+	{
+	  struct MONITOR_INFO info;
+	  HMONITOR monitor
+	    = monitor_from_point_fn (pt, MONITOR_DEFAULT_TO_NEAREST);
+	  info.cbSize = sizeof (info);
+
+	  if (get_monitor_info_fn (monitor, &info))
+	    {
+	      min_x = info.rcWork.left;
+	      min_y = info.rcWork.top;
+	      max_x = info.rcWork.right;
+	      max_y = info.rcWork.bottom;
+	    }
+	}
     }
 
   if (INTEGERP (top))
     *root_y = XINT (top);
-  else if (*root_y + XINT (dy) <= 0)
-    *root_y = 0; /* Can happen for negative dy */
-  else if (*root_y + XINT (dy) + height <= FRAME_W32_DISPLAY_INFO (f)->height)
+  else if (*root_y + XINT (dy) <= min_y)
+    *root_y = min_y; /* Can happen for negative dy */
+  else if (*root_y + XINT (dy) + height <= max_y)
     /* It fits below the pointer */
       *root_y += XINT (dy);
-  else if (height + XINT (dy) <= *root_y)
+  else if (height + XINT (dy) + min_y <= *root_y)
     /* It fits above the pointer.  */
     *root_y -= height + XINT (dy);
   else
     /* Put it on the top.  */
-    *root_y = 0;
+    *root_y = min_y;
 
   if (INTEGERP (left))
     *root_x = XINT (left);
-  else if (*root_x + XINT (dx) <= 0)
+  else if (*root_x + XINT (dx) <= min_x)
     *root_x = 0; /* Can happen for negative dx */
-  else if (*root_x + XINT (dx) + width <= FRAME_W32_DISPLAY_INFO (f)->width)
+  else if (*root_x + XINT (dx) + width <= max_x)
     /* It fits to the right of the pointer.  */
     *root_x += XINT (dx);
-  else if (width + XINT (dx) <= *root_x)
+  else if (width + XINT (dx) + min_x <= *root_x)
     /* It fits to the left of the pointer.  */
     *root_x -= width + XINT (dx);
   else
     /* Put it left justified on the screen -- it ought to fit that way.  */
-    *root_x = 0;
+    *root_x = min_x;
 }
 
 
@@ -9311,6 +9368,12 @@ globals_of_w32fns ()
   /* ditto for GetClipboardSequenceNumber.  */
   clipboard_sequence_fn = (ClipboardSequence_Proc)
     GetProcAddress (user32_lib, "GetClipboardSequenceNumber");
+
+  monitor_from_point_fn = (MonitorFromPoint_Proc)
+    GetProcAddress (user32_lib, "MonitorFromPoint");
+  get_monitor_info_fn = (GetMonitorInfo_Proc)
+    GetProcAddress (user32_lib, "GetMonitorInfoA");
+
   {
     HMODULE imm32_lib = GetModuleHandle ("imm32.dll");
     get_composition_string_fn = (ImmGetCompositionString_Proc)
@@ -9325,6 +9388,9 @@ globals_of_w32fns ()
 
   /* MessageBox does not work without this when linked to comctl32.dll 6.0.  */
   InitCommonControls ();
+#ifdef USE_FONT_BACKEND
+  syms_of_w32uniscribe ();
+#endif
 }
 
 #undef abort
