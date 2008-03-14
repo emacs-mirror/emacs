@@ -375,8 +375,7 @@ EDITABLE is ignored."
 (define-derived-mode vc-bzr-log-view-mode log-view-mode "Bzr-Log-View"
   (remove-hook 'log-view-mode-hook 'vc-bzr-log-view-mode) ;Deactivate the hack.
   (require 'add-log)
-  ;; Don't have file markers, so use impossible regexp.
-  (set (make-local-variable 'log-view-file-re) "\\'\\`")
+  (set (make-local-variable 'log-view-file-re) "^Working file:[ \t]+\\(.+\\)")
   (set (make-local-variable 'log-view-message-re)
        "^ *-+\n *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)")
   (set (make-local-variable 'log-view-font-lock-keywords)
@@ -392,13 +391,23 @@ EDITABLE is ignored."
 
 (defun vc-bzr-print-log (files &optional buffer) ; get buffer arg in Emacs 22
   "Get bzr change log for FILES into specified BUFFER."
-  ;; FIXME: `vc-bzr-command' runs `bzr log' with `LC_MESSAGES=C', so
-  ;; the log display may not what the user wants - but I see no other
-  ;; way of getting the above regexps working.
-  (apply 'vc-bzr-command "log" buffer 0 files 
-         (if (stringp vc-bzr-log-switches)
-             (list vc-bzr-log-switches)
-           vc-bzr-log-switches))
+  ;; `vc-do-command' creates the buffer, but we need it before running
+  ;; the command.
+  (vc-setup-buffer buffer)
+  ;; If the buffer exists from a previous invocation it might be
+  ;; read-only.
+  (let ((inhibit-read-only t))
+    ;; FIXME: `vc-bzr-command' runs `bzr log' with `LC_MESSAGES=C', so
+    ;; the log display may not what the user wants - but I see no other
+    ;; way of getting the above regexps working.
+    (dolist (file files)
+      (with-current-buffer buffer
+	;; Insert the file name so that log-view.el can find it.
+	(insert "Working file: " file "\n")) ;; Like RCS/CVS.
+      (apply 'vc-bzr-command "log" buffer 0 file
+	     (if (stringp vc-bzr-log-switches)
+		 (list vc-bzr-log-switches)
+	       vc-bzr-log-switches))))
   ;; FIXME: Until Emacs-23, VC was missing a hook to sort out the mode for
   ;; the buffer, or at least set the regexps right.
   (unless (fboundp 'vc-default-log-view-mode)
