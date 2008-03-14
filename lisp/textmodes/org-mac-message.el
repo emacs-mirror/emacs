@@ -1,13 +1,13 @@
-;;; org-mac-message.el - Support for links to Apple Mail messages by Message-ID
-;; Carstens outline-mode for keeping track of everything.
+;;; org-mac-message.el --- Support for links to Apple Mail messages by Message-ID
+
 ;; Copyright (C) 2008 Free Software Foundation, Inc.
-;;
-;; Author: John Wiegey <johnw@gnu.org>
+
+;; Author: John Wiegley <johnw@gnu.org>
 ;; Version: 1.2
 ;; Keywords: outlines, hypermedia, calendar, wp
-;;
+
 ;; This file is part of GNU Emacs.
-;;
+
 ;; Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
@@ -22,7 +22,8 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;; Code:
 
 (require 'org)
 
