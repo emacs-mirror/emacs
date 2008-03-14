@@ -1094,6 +1094,16 @@ diary entries."
     (setq mark-diary-entries-in-calendar nil)
     (redraw-calendar))
   (let ((marking-diary-entries t)
+        (dayname
+         (diary-name-pattern calendar-day-name-array
+                             calendar-day-abbrev-array))
+        (monthname
+         (format "%s\\|\\*"
+                 (diary-name-pattern calendar-month-name-array
+                                     calendar-month-abbrev-array)))
+        (month "[0-9]+\\|\\*")
+        (day "[0-9]+\\|\\*")
+        (year "[0-9]+\\|\\*")
         file-glob-attrs marks)
     (with-current-buffer (find-file-noselect (diary-check-diary-file) t)
       (save-excursion
@@ -1105,17 +1115,7 @@ diary entries."
           (dolist (date-form diary-date-forms)
             (if (eq (car date-form) 'backup)
                 (setq date-form (cdr date-form))) ; ignore 'backup directive
-            (let* ((dayname
-                    (diary-name-pattern calendar-day-name-array
-                                        calendar-day-abbrev-array))
-                   (monthname
-                    (format "%s\\|\\*"
-                            (diary-name-pattern calendar-month-name-array
-                                                calendar-month-abbrev-array)))
-                   (month "[0-9]+\\|\\*")
-                   (day "[0-9]+\\|\\*")
-                   (year "[0-9]+\\|\\*")
-                   (l (length date-form))
+            (let* ((l (length date-form))
                    (d-name-pos (- l (length (memq 'dayname date-form))))
                    (d-name-pos (if (/= l d-name-pos) (+ 1 d-name-pos)))
                    (m-name-pos (- l (length (memq 'monthname date-form))))
