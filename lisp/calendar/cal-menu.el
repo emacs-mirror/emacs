@@ -80,8 +80,6 @@
 (declare-function calendar-print-chinese-date    "cal-china"  nil)
 (declare-function calendar-goto-date             "cal-move"   (date))
 
-(defvar displayed-year)
-
 (defconst cal-menu-moon-menu
   '("Moon"
     ["Lunar Phases" calendar-phases-of-moon]))
@@ -129,6 +127,8 @@
               (cdr my1)
               (calendar-month-name (car my2) 'abbrev)
               (cdr my2)))))
+
+(defvar displayed-year)                 ; from generate-calendar
 
 (defconst cal-menu-holidays-menu
   `("Holidays"
@@ -228,11 +228,16 @@ POSITION and MENU are passed to `x-popup-menu'."
 (defun calendar-event-to-date (&optional error)
   "Date of last event.
 If event is not on a specific date, signals an error if optional parameter
-ERROR is t, otherwise just returns nil."
+ERROR is non-nil, otherwise just returns nil."
   (with-current-buffer
       (window-buffer (posn-window (event-start last-input-event)))
     (goto-char (posn-point (event-start last-input-event)))
     (calendar-cursor-to-date error)))
+
+(defun calendar-mouse-goto-date (date)
+  "Goto DATE in the buffer specified by `last-input-event'."
+  (set-buffer (window-buffer (posn-window (event-start last-input-event))))
+  (calendar-goto-date date))
 
 (defun calendar-mouse-sunrise/sunset ()
   "Show sunrise/sunset times for mouse-selected date."
@@ -332,7 +337,7 @@ is non-nil."
 
 (defun cal-tex-mouse-week ()
   "One page calendar for week indicated by cursor.
-Holidays are included if `cal-tex-holidays' is t."
+Holidays are included if `cal-tex-holidays' is non-nil."
   (interactive)
   (save-excursion
     (calendar-mouse-goto-date (calendar-event-to-date))
@@ -348,7 +353,7 @@ The printed output will be on two pages."
 
 (defun cal-tex-mouse-week-iso ()
   "One page calendar for week indicated by cursor.
-Holidays are included if `cal-tex-holidays' is t."
+Holidays are included if `cal-tex-holidays' is non-nil."
   (interactive)
   (save-excursion
     (calendar-mouse-goto-date (calendar-event-to-date))
@@ -477,11 +482,6 @@ EVENT is the event that invoked this command."
   (save-excursion
     (calendar-mouse-goto-date (calendar-event-to-date))
     (calendar-print-chinese-date)))
-
-(defun calendar-mouse-goto-date (date)
-  "Goto DATE in the buffer specified by `last-input-event'."
-  (set-buffer (window-buffer (posn-window (event-start last-input-event))))
-  (calendar-goto-date date))
 
 (defun cal-menu-set-date-title (menu)
   "Convert date of last event to title suitable for MENU."
