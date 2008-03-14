@@ -1,5 +1,12 @@
 2008-03-14  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/solar.el: Reorder so that functions are defined before use.
+	(displayed-month, displayed-year): Move declarations where needed.
+	(solar-get-number): Move definition before use.  Use unless.
+	(solar-equatorial-coordinates): Simplify.
+	(solar-sunrise-and-sunset): Use let rather than let*.
+	(solar-longitude, solar-equinoxes-solstices): Use cadr, nth
+
 	* startup.el (command-line-1): Rename -internal-script back to
 	-scriptload (reverts previous change).
 
