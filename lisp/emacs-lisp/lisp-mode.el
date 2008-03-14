@@ -272,16 +272,45 @@
 
 (defvar emacs-lisp-mode-map 
   (let ((map (make-sparse-keymap "Emacs-Lisp"))
-	(menu-map (make-sparse-keymap "Emacs-Lisp")))
+	(menu-map (make-sparse-keymap "Emacs-Lisp"))
+	(prof-map (make-sparse-keymap)))
     (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\t" 'lisp-complete-symbol)
     (define-key map "\e\C-x" 'eval-defun)
     (define-key map "\e\C-q" 'indent-pp-sexp)
     (define-key map [menu-bar emacs-lisp] (cons "Emacs-Lisp" menu-map))
+    (define-key menu-map [profiling] (cons "Profiling" prof-map))
+    (define-key prof-map [prof-restall]
+      '(menu-item "Remove Instrumentation for All Functions" elp-restore-all
+		  :help "Restore the original definitions of all functions being profiled"))
+    (define-key prof-map [prof-restfunc]
+      '(menu-item "Remove Instrumentation for Function" elp-restore-function
+		  :help "Restore an instrumented function to its original definition"))
+
+    (define-key prof-map [sep-rem] '("--"))
+    (define-key prof-map [prof-resall]
+      '(menu-item "Remove Instrumentation for All Functions" elp-reset-all
+		  :help "Reset the profiling information for all functions being profiled"))
+    (define-key prof-map [prof-resfunc]
+      '(menu-item "Remove Instrumentation for Function" elp-reset-function
+		  :help "Reset the profiling information for a function"))
+    (define-key prof-map [prof-res]
+      '(menu-item "Show Profiling Results" elp-results
+		  :help "Display current profiling results"))
+    (define-key prof-map [prof-pack]
+      '(menu-item "Instrument Package" elp-instrument-package
+		  :help "Instrument for profiling all function that start with a prefix"))
+    (define-key prof-map [prof-func]
+      '(menu-item "Instrument Function" elp-instrument-function
+		  :help "Instrument a function for profiling"))
+    (define-key menu-map [checkdoc]
+      '(menu-item "Check Documentation Strings" checkdock
+		  :help "Check documentation strings for style requirements"))
     (define-key menu-map [edebug-defun]
       '(menu-item "Instrument Function for Debugging" edebug-defun
 		  :help "Evaluate the top level form point is in, stepping through with Edebug"
 		  :keys "C-u C-M-x"))
+    (define-key menu-map [separator-byte] '("--"))
     (define-key menu-map [byte-recompile]
       '(menu-item "Byte-recompile Directory..." byte-recompile-directory
 		  :help "Recompile every `.el' file in DIRECTORY that needs recompilation"))

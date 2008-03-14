@@ -1,3 +1,8 @@
+2008-03-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Add menu entries
+	for checkdoc and profiling.
+
 2008-03-14  Bastien Guerry  <bzg@altern.org>
 
 	* textmodes/flyspell.el (nxml-mode): Add the right.
