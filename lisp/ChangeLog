@@ -1,3 +1,9 @@
+2008-03-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-log-view-mode): "." can be part of a revno.
+	(vc-bzr-show-log-entry): Make regexp match more cases.
+	(vc-diff-switches-list): Remove autoload, not needed.
+
 2008-03-14  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-edit-string): Remove one call to

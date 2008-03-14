@@ -378,7 +378,7 @@ EDITABLE is ignored."
   ;; Don't have file markers, so use impossible regexp.
   (set (make-local-variable 'log-view-file-re) "\\'\\`")
   (set (make-local-variable 'log-view-message-re)
-       "^ *-+\n *\\(?:revno: \\([0-9]+\\)\\|merged: .+\\)")
+       "^ *-+\n *\\(?:revno: \\([0-9.]+\\)\\|merged: .+\\)")
   (set (make-local-variable 'log-view-font-lock-keywords)
        ;; log-view-font-lock-keywords is careful to use the buffer-local
        ;; value of log-view-message-re only since Emacs-23.
@@ -408,11 +408,14 @@ EDITABLE is ignored."
   "Find entry for patch name REVISION in bzr change log buffer."
   (goto-char (point-min))
   (let (case-fold-search)
-    (if (re-search-forward (concat "^-+\nrevno: " revision "$") nil t)
+    (if (re-search-forward
+	 ;; "revno:" can appear either at the beginning of a line, or indented.
+	 (concat "^[ ]*-+\n[ ]*revno: " 
+		 ;; The revision can contain ".", quote it so that it
+		 ;; does not interfere with regexp matching.
+		 (regexp-quote revision) "$") nil t)
         (beginning-of-line 0)
       (goto-char (point-min)))))
-
-(autoload 'vc-diff-switches-list "vc" nil nil t)
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
