@@ -67,8 +67,9 @@ date Sunday, December 31, 1 BC."
                   (calendar-gregorian-from-absolute (- date 3))))
          (year (+ approx
                   (calendar-sum y approx
-                      (>= date (calendar-absolute-from-iso (list 1 1 (1+ y))))
-                      1))))
+                                (>= date (calendar-absolute-from-iso
+                                          (list 1 1 (1+ y))))
+                                1))))
     (list
      (1+ (/ (- date (calendar-absolute-from-iso (list 1 1 year))) 7))
      (% date 7)
