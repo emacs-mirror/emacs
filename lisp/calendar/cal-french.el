@@ -41,6 +41,34 @@
 
 (require 'calendar)
 
+(defconst french-calendar-epoch (calendar-absolute-from-gregorian '(9 22 1792))
+  "Absolute date of start of French Revolutionary calendar = Sept 22, 1792.")
+
+(defconst french-calendar-month-name-array
+  ["Vende'miaire" "Brumaire" "Frimaire" "Nivo^se" "Pluvio^se" "Vento^se"
+   "Germinal" "Flore'al" "Prairial" "Messidor" "Thermidor" "Fructidor"]
+  "Array of month names in the French calendar.")
+
+(defconst french-calendar-multibyte-month-name-array
+  ["Vendémiaire" "Brumaire" "Frimaire" "Nivôse" "Pluviôse" "Ventôse"
+   "Germinal" "Floréal" "Prairial" "Messidor" "Thermidor" "Fructidor"]
+  "Array of multibyte month names in the French calendar.")
+
+(defconst french-calendar-day-name-array
+  ["Primidi" "Duodi" "Tridi" "Quartidi" "Quintidi" "Sextidi" "Septidi"
+   "Octidi" "Nonidi" "Decadi"]
+  "Array of day names in the French calendar.")
+
+(defconst french-calendar-special-days-array
+  ["de la Vertu" "du Ge'nie" "du Travail" "de la Raison" "des Re'compenses"
+   "de la Re'volution"]
+  "Array of special day names in the French calendar.")
+
+(defconst french-calendar-multibyte-special-days-array
+  ["de la Vertu" "du Génie" "du Travail" "de la Raison" "des Récompenses"
+   "de la Révolution"]
+  "Array of multibyte special day names in the French calendar.")
+
 (defun french-calendar-accents ()
   "True if diacritical marks are available."
   (and (or window-system
@@ -48,29 +76,6 @@
        (or enable-multibyte-characters
            (and (char-table-p standard-display-table)
                 (equal (aref standard-display-table 161) [161])))))
-
-(defconst french-calendar-epoch (calendar-absolute-from-gregorian '(9 22 1792))
-  "Absolute date of start of French Revolutionary calendar = September 22, 1792.")
-
-(defconst french-calendar-month-name-array
-  ["Vende'miaire" "Brumaire" "Frimaire" "Nivo^se" "Pluvio^se" "Vento^se"
-   "Germinal" "Flore'al" "Prairial" "Messidor" "Thermidor" "Fructidor"])
-
-(defconst french-calendar-multibyte-month-name-array
-  ["Vendémiaire" "Brumaire" "Frimaire" "Nivôse" "Pluviôse" "Ventôse"
-   "Germinal" "Floréal" "Prairial" "Messidor" "Thermidor" "Fructidor"])
-
-(defconst french-calendar-day-name-array
-  ["Primidi" "Duodi" "Tridi" "Quartidi" "Quintidi" "Sextidi" "Septidi"
-   "Octidi" "Nonidi" "Decadi"])
-
-(defconst french-calendar-multibyte-special-days-array
-  ["de la Vertu" "du Génie" "du Travail" "de la Raison" "des Récompenses"
-   "de la Révolution"])
-
-(defconst french-calendar-special-days-array
-  ["de la Vertu" "du Ge'nie" "du Travail" "de la Raison" "des Re'compenses"
-   "de la Re'volution"])
 
 (defun french-calendar-month-name-array ()
   "Return the array of month names, depending on whether accents are available."
@@ -200,7 +205,7 @@ Defaults to today's date if DATE is not given."
 ;;;###cal-autoload
 (defun calendar-goto-french-date (date &optional noecho)
   "Move cursor to French Revolutionary date DATE.
-Echo French Revolutionary date unless NOECHO is t."
+Echo French Revolutionary date unless NOECHO is non-nil."
   (interactive
    (let ((accents (french-calendar-accents))
          (months (french-calendar-month-name-array))
