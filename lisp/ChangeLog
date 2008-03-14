@@ -1,3 +1,8 @@
+2008-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* desktop.el (desktop-create-buffer): Don't catch errors if
+	debug-on-error is set.
+
 2008-03-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(lisp)/calendar/cal-loaddefs.el)
