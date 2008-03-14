@@ -1281,10 +1281,6 @@ delimit the region to fontify."
 	      (font-lock-fontify-region (point) (mark)))
 	  ((error quit) (message "Fontifying block...%s" error-data)))))))
 
-(unless (featurep 'facemenu)
-  (error "facemenu must be loaded before font-lock"))
-(define-key facemenu-keymap "\M-o" 'font-lock-fontify-block)
-
 ;;; End of Fontification functions.
 
 ;;; Additional text property functions.

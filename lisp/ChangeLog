@@ -1,5 +1,9 @@
 2008-03-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* font-lock.el (featurep): Remove test, not useful anymore.
+	(facemenu-keymap): Move key binding ...
+	* facemenu.el (facemenu-keymap): ... here.
+
 	* vc-bzr.el (vc-bzr-print-log): Insert a file marker.  Run the log
 	for each file in the list.
 	(vc-bzr-log-view-mode): Recognize the file marker.
