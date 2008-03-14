@@ -37,10 +37,6 @@
 
 ;;; Code:
 
-(defvar displayed-month)
-(defvar displayed-year)
-(defvar original-date)
-
 (require 'calendar)
 
 (defun hebrew-calendar-leap-year-p (year)
@@ -222,7 +218,7 @@ Driven by the variable `calendar-date-display-form'."
 
 ;;;###cal-autoload
 (defun calendar-goto-hebrew-date (date &optional noecho)
-  "Move cursor to Hebrew DATE; echo Hebrew date unless NOECHO is t."
+  "Move cursor to Hebrew DATE; echo Hebrew date unless NOECHO is non-nil."
   (interactive
    (let* ((today (calendar-current-date))
           (year (calendar-read
@@ -266,6 +262,9 @@ Driven by the variable `calendar-date-display-form'."
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-hebrew date)))
   (or noecho (calendar-print-hebrew-date)))
+
+(defvar displayed-month)                ; from generate-calendar
+(defvar displayed-year)
 
 ;;;###holiday-autoload
 (defun holiday-hebrew (month day string)
@@ -515,63 +514,64 @@ nil if it is not visible in the current calendar window."
                   (date string specifier &optional marker globcolor literal))
 
 (defvar number)                         ; from diary-list-entries
+(defvar original-date)
 
 ;;;###diary-autoload
 (defun list-hebrew-diary-entries ()
   "Add any Hebrew date entries from the diary file to `diary-entries-list'.
 Hebrew date diary entries must be prefaced by `hebrew-diary-entry-symbol'
-\(normally an `H').  The same diary date forms govern the style of the Hebrew
-calendar entries, except that the Hebrew month names must be spelled in full.
-The Hebrew months are numbered from 1 to 13 with Nisan being 1, 12 being
-Adar I and 13 being Adar II; you must use `Adar I' if you want Adar of a
-common Hebrew year.  If a Hebrew date diary entry begins with a
-`diary-nonmarking-symbol', the entry will appear in the diary listing, but will
-not be marked in the calendar.  This function is provided for use with the
-`nongregorian-diary-listing-hook'."
+\(normally an `H').  The same diary date forms govern the style
+of the Hebrew calendar entries, except that the Hebrew month
+names must be spelled in full.  The Hebrew months are numbered
+from 1 to 13 with Nisan being 1, 12 being Adar I and 13 being
+Adar II; you must use `Adar I' if you want Adar of a common
+Hebrew year.  If a Hebrew date diary entry begins with
+`diary-nonmarking-symbol', the entry will appear in the diary
+listing, but will not be marked in the calendar.  This function
+is provided for use with `nongregorian-diary-listing-hook'."
+  ;; FIXME this is very similar to the islamic and bahai functions.
   (if (< 0 number)
       (let ((buffer-read-only nil)
             (diary-modified (buffer-modified-p))
             (gdate original-date)
             (mark (regexp-quote diary-nonmarking-symbol)))
         (dotimes (idummy number)
-          (let* ((d diary-date-forms)
-                 (hdate (calendar-hebrew-from-absolute
+          (let* ((hdate (calendar-hebrew-from-absolute
                          (calendar-absolute-from-gregorian gdate)))
                  (month (extract-calendar-month hdate))
                  (day (extract-calendar-day hdate))
-                 (year (extract-calendar-year hdate)))
-            (while d
-              (let*
-                  ((date-form (if (equal (car (car d)) 'backup)
-                                  (cdr (car d))
-                                (car d)))
-                   (backup (equal (car (car d)) 'backup))
-                   (dayname
-                    (format "%s\\|%s\\.?"
-                            (calendar-day-name gdate)
-                            (calendar-day-name gdate 'abbrev)))
-                   (calendar-month-name-array
-                    calendar-hebrew-month-name-array-leap-year)
-                   (monthname
-                    (concat
-                     "\\*\\|"
-                     (calendar-month-name month)))
-                   (month (concat "\\*\\|0*" (int-to-string month)))
-                   (day (concat "\\*\\|0*" (int-to-string day)))
-                   (year
-                    (concat
-                     "\\*\\|0*" (int-to-string year)
-                     (if abbreviated-calendar-year
-                         (concat "\\|" (int-to-string (% year 100)))
-                       "")))
-                   (regexp
-                    (concat
-                     "\\(\\`\\|\^M\\|\n\\)" mark "?"
-                     (regexp-quote hebrew-diary-entry-symbol)
-                     "\\("
-                     (mapconcat 'eval date-form "\\)\\(")
-                     "\\)"))
-                   (case-fold-search t))
+                 (year (extract-calendar-year hdate))
+                 backup)
+            (dolist (date-form diary-date-forms)
+              (if (setq backup (eq (car date-form) 'backup))
+                  (setq date-form (cdr date-form)))
+              (let* ((dayname
+                      (format "%s\\|%s\\.?"
+                              (calendar-day-name gdate)
+                              (calendar-day-name gdate 'abbrev)))
+                     (calendar-month-name-array
+                      calendar-hebrew-month-name-array-leap-year)
+                     (monthname
+                      (concat
+                       "\\*\\|"
+                       (calendar-month-name month)))
+                     (month (concat "\\*\\|0*" (int-to-string month)))
+                     (day (concat "\\*\\|0*" (int-to-string day)))
+                     (year
+                      (concat
+                       "\\*\\|0*" (int-to-string year)
+                       (if abbreviated-calendar-year
+                           (concat "\\|" (int-to-string (% year 100)))
+                         "")))
+                     ;; FIXME get rid of ^M stuff.
+                     (regexp
+                      (concat
+                       "\\(\\`\\|\^M\\|\n\\)" mark "?"
+                       (regexp-quote hebrew-diary-entry-symbol)
+                       "\\("
+                       (mapconcat 'eval date-form "\\)\\(")
+                       "\\)"))
+                     (case-fold-search t))
                 (goto-char (point-min))
                 (while (re-search-forward regexp nil t)
                   (if backup (re-search-backward "\\<" nil t))
@@ -596,8 +596,7 @@ not be marked in the calendar.  This function is provided for use with the
                        (buffer-substring-no-properties entry-start (point))
                        (buffer-substring-no-properties
                         (1+ date-start) (1- entry-start))
-                       (copy-marker entry-start))))))
-              (setq d (cdr d))))
+                       (copy-marker entry-start))))))))
           (setq gdate
                 (calendar-gregorian-from-absolute
                  (1+ (calendar-absolute-from-gregorian gdate)))))
@@ -700,40 +699,38 @@ Adar I and 13 being Adar II; you must use `Adar I' if you want Adar of a
 common Hebrew year.  Hebrew date diary entries that begin with
 `diary-nonmarking-symbol' will not be marked in the calendar.  This function
 is provided for use as part of `nongregorian-diary-marking-hook'."
-  (let ((d diary-date-forms))
-    (while d
-      (let*
-          ((date-form (if (equal (car (car d)) 'backup)
-                          (cdr (car d))
-                        (car d)))       ; ignore 'backup directive
-           (dayname (diary-name-pattern calendar-day-name-array
-                                        calendar-day-abbrev-array))
-           (monthname
-            (format "%s\\|\\*"
-                    (diary-name-pattern
-                     calendar-hebrew-month-name-array-leap-year)))
-           (month "[0-9]+\\|\\*")
-           (day "[0-9]+\\|\\*")
-           (year "[0-9]+\\|\\*")
-           (l (length date-form))
-           (d-name-pos (- l (length (memq 'dayname date-form))))
-           (d-name-pos (if (/= l d-name-pos) (+ 2 d-name-pos)))
-           (m-name-pos (- l (length (memq 'monthname date-form))))
-           (m-name-pos (if (/= l m-name-pos) (+ 2 m-name-pos)))
-           (d-pos (- l (length (memq 'day date-form))))
-           (d-pos (if (/= l d-pos) (+ 2 d-pos)))
-           (m-pos (- l (length (memq 'month date-form))))
-           (m-pos (if (/= l m-pos) (+ 2 m-pos)))
-           (y-pos (- l (length (memq 'year date-form))))
-           (y-pos (if (/= l y-pos) (+ 2 y-pos)))
-           (regexp
-            (concat
-             "\\(\\`\\|\^M\\|\n\\)"
-             (regexp-quote hebrew-diary-entry-symbol)
-             "\\("
-             (mapconcat 'eval date-form "\\)\\(")
-             "\\)"))
-           (case-fold-search t))
+  ;; FIXME this is very similar to the islamic and bahai functions.
+  (let ((dayname (diary-name-pattern calendar-day-name-array
+                                     calendar-day-abbrev-array))
+        (monthname
+         (format "%s\\|\\*"
+                 (diary-name-pattern
+                  calendar-hebrew-month-name-array-leap-year)))
+        (month "[0-9]+\\|\\*")
+        (day "[0-9]+\\|\\*")
+        (year "[0-9]+\\|\\*")
+        (case-fold-search t))
+    (dolist (date-form diary-date-forms)
+      (if (eq (car date-form) 'backup)  ; ignore 'backup directive
+          (setq date-form (cdr date-form)))
+      (let* ((l (length date-form))
+             (d-name-pos (- l (length (memq 'dayname date-form))))
+             (d-name-pos (if (/= l d-name-pos) (+ 2 d-name-pos)))
+             (m-name-pos (- l (length (memq 'monthname date-form))))
+             (m-name-pos (if (/= l m-name-pos) (+ 2 m-name-pos)))
+             (d-pos (- l (length (memq 'day date-form))))
+             (d-pos (if (/= l d-pos) (+ 2 d-pos)))
+             (m-pos (- l (length (memq 'month date-form))))
+             (m-pos (if (/= l m-pos) (+ 2 m-pos)))
+             (y-pos (- l (length (memq 'year date-form))))
+             (y-pos (if (/= l y-pos) (+ 2 y-pos)))
+             (regexp
+              (concat
+               "\\(\\`\\|\^M\\|\n\\)"
+               (regexp-quote hebrew-diary-entry-symbol)
+               "\\("
+               (mapconcat 'eval date-form "\\)\\(")
+               "\\)")))
         (goto-char (point-min))
         (while (re-search-forward regexp nil t)
           (let* ((dd-name
@@ -793,8 +790,7 @@ is provided for use as part of `nongregorian-diary-marking-hook'."
                             mm-name
                             (calendar-make-alist
                              calendar-hebrew-month-name-array-leap-year) t)))))
-              (mark-hebrew-calendar-date-pattern mm dd yy)))))
-      (setq d (cdr d)))))
+              (mark-hebrew-calendar-date-pattern mm dd yy))))))))
 
 ;;;###cal-autoload
 (defun insert-hebrew-diary-entry (arg)
@@ -969,8 +965,9 @@ use when highlighting the day in the calendar."
 Parameters are DEATH-MONTH, DEATH-DAY, DEATH-YEAR; the diary entry is assumed
 to be the name of the person.  Date of death is on the *civil* calendar;
 although the date of death is specified by the civil calendar, the proper
-Hebrew calendar Yahrzeit is determined.  If `european-calendar-style' is t, the
-order of the parameters is changed to DEATH-DAY, DEATH-MONTH, DEATH-YEAR.
+Hebrew calendar Yahrzeit is determined.  If `european-calendar-style' is
+non-nil, the order of the parameters is changed to DEATH-DAY, DEATH-MONTH,
+DEATH-YEAR.
 
 An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
@@ -1126,6 +1123,8 @@ use when highlighting the day in the calendar."
                                    (hebrew-calendar-parasha-name
                                     (cdr parasha))))
                        (hebrew-calendar-parasha-name parasha)))))))))
+
+;; FIXME none of the following are used for anything. ?
 
 ;; The seven ordinary year types (keviot).
 (defconst hebrew-calendar-year-Saturday-incomplete-Sunday
