@@ -55,6 +55,20 @@
 	definition before use.  Remove un-needed local `day'.
 	(calendar-goto-julian-date, calendar-goto-astro-day-number): Doc fix.
 
+	* calendar/cal-mayan.el (calendar-mayan-haab-month-name-array)
+	(calendar-mayan-tzolkin-names-array): Add doc strings.
+	(calendar-mayan-long-count-from-absolute): Use a single let.
+	(calendar-string-to-mayan-long-count): Simplify.
+	(calendar-next-haab-date, calendar-previous-haab-date)
+	(calendar-next-tzolkin-date, calendar-previous-tzolkin-date)
+	(calendar-previous-calendar-round-date)
+	(calendar-goto-mayan-long-count-date, calendar-mayan-date-string):
+	Doc fix.
+	(calendar-mayan-tzolkin-haab-on-or-before): Use zerop.
+	(calendar-mayan-date-string, calendar-print-mayan-date)
+	(calendar-read-mayan-haab-date, calendar-read-mayan-tzolkin-date)
+	(calendar-mayan-long-count-common-era): Move definitions before use.
+
 	* calendar/cal-menu.el (displayed-year): Move declaration where needed.
 	(calendar-event-to-date, cal-tex-mouse-week, cal-tex-mouse-week-iso):
 	Doc fix.
