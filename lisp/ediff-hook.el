@@ -64,7 +64,7 @@
 	 '("Tools") ediff-misc-menu "OO-Browser...")
 	(add-menu-button
 	 '("Tools") "-------" "OO-Browser...")
-	)))
+	))
       (defvar ediff-menu
 	'("Compare"
 	  ["Two Files..."  ediff-files t]
