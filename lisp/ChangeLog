@@ -3,6 +3,21 @@
 	* startup.el (command-line-1): Rename -internal-script back to
 	-scriptload (reverts previous change).
 
+	* calendar/cal-china.el: Re-order so that functions are defined before
+	use.
+	(displayed-month, displayed-year): Move declarations where needed.
+	(chinese-calendar-time-zone, calendar-goto-chinese-date): Doc fix.
+	(chinese-calendar-celestial-stem, chinese-calendar-terrestrial-branch):
+	Add doc strings.
+	(chinese-year-cache): Recenter on 2010.  Doc fix.
+	(chinese-year, number-chinese-months, calendar-absolute-from-chinese):
+	Doc fix.  Simplify.
+	(chinese-year-cache-init): New function.
+	(compute-chinese-year, holiday-chinese-new-year)
+	(calendar-chinese-date-string, calendar-goto-chinese-date)
+	(make-chinese-month-assoc-list): Use cadr, nth.
+	(chinese-months): Remove un-needed let.
+
 	* calendar/cal-coptic.el (coptic-calendar-month-name-array):
 	(ethiopic-calendar-month-name-array, ethiopic-name): Add doc strings.
 	(coptic-prompt-for-date): Move definition before use.
