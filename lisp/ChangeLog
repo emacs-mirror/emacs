@@ -1,3 +1,8 @@
+2008-03-14  Nick Roberts  <nickrob@snap.net.nz>
+
+	* buff-menu.el (list-buffers-noselect): Display buffer name in
+	tooltip instead of mouse binding when it doesn't fit in the list.
+
 2008-03-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* faces.el (xw-defined-colors):
