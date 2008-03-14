@@ -153,6 +153,10 @@
 (eval-when-compile
   (require 'cl))
 
+(eval-and-compile
+  (unless (fboundp 'declare-function)
+    (defmacro declare-function (fn file &optional arglist fileonly))))
+
 (require 'dired-aux)
 
 (defgroup org-publish nil
@@ -367,6 +371,8 @@ This is a compatibility function for Emacsen without `delete-dups'."
 	(setcdr tail (delete (car tail) (cdr tail)))
 	(setq tail (cdr tail))))
     list))
+
+(declare-function org-publish-delete-dups "org-publish" (list))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Getting project information out of org-publish-project-alist
