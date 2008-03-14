@@ -1,3 +1,11 @@
+2008-03-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(lisp)/calendar/cal-loaddefs.el)
+	($(lisp)/calendar/diary-loaddefs.el)
+	($(lisp)/calendar/hol-loaddefs.el): New targets.
+	(LOADDEFS): New macro.
+	(autoloads): Depend on $(LOADDEFS).
+
 2008-03-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* font-lock.el (featurep): Remove test, not useful anymore.
