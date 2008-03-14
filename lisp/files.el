@@ -4152,7 +4152,7 @@ or multiple mail buffers, etc."
 
 (defun make-directory (dir &optional parents)
   "Create the directory DIR and any nonexistent parent dirs.
-If DIR already exists as a directory, do nothing.
+If DIR already exists as a directory, signal an error, unless PARENTS is set.
 
 Interactively, the default choice of directory to create
 is the current default directory for file names.
