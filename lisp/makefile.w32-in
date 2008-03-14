@@ -56,6 +56,10 @@ lisptagsfiles1 = $(lisp)/*.el
 lisptagsfiles2 = $(lisp)/*/*.el
 ETAGS = "../lib-src/$(BLD)/etags"
 
+# Automatically generated autoload files, apart from lisp/loaddefs.el.
+LOADDEFS = $(lisp)/calendar/cal-loaddefs.el \
+	$(lisp)/calendar/diary-loaddefs.el $(lisp)/calendar/hol-loaddefs.el
+
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  The CC files are compiled first
 # because CC mode tweaks the compilation process, and requiring
@@ -162,7 +166,7 @@ loaddefs.el-CMD:
 #
 # WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
 #          this can break with GNU Make 3.81 and later if sh.exe is used.
-autoloads: $(lisp)/loaddefs.el doit
+autoloads: $(lisp)/loaddefs.el $(LOADDEFS) doit
 	@echo Directories: . $(WINS_ALMOST)
 	$(emacs) -l autoload \
 		--eval $(ARGQUOTE)(setq find-file-hook nil find-file-suppress-same-file-warnings t)$(ARGQUOTE) \
@@ -309,6 +313,30 @@ $(lisp)/progmodes/cc-mode.elc: \
 	$(lisp)/progmodes/cc-langs.el \
 	$(lisp)/progmodes/cc-defs.el
 	$(emacs) $(BYTE_COMPILE_EXTRA_FLAGS) -f batch-byte-compile $(lisp)/progmodes/cc-mode.el
+
+$(lisp)/calendar/cal-loaddefs.el:
+	"$(EMACS)" $(EMACSOPT) -l autoload \
+	   --eval "(setq generate-autoload-cookie \";;;###cal-autoload\")" \
+	   --eval "(setq find-file-suppress-same-file-warnings t)" \
+	   --eval "(setq make-backup-files nil)" \
+	   -f w32-batch-update-autoloads "$(lisp)/calendar/cal-loaddefs.el" \
+	      ./calendar
+
+$(lisp)/calendar/diary-loaddefs.el:
+	"$(EMACS)" $(EMACSOPT) -l autoload \
+	   --eval "(setq generate-autoload-cookie \";;;###diary-autoload\")" \
+	   --eval "(setq find-file-suppress-same-file-warnings t)" \
+	   --eval "(setq make-backup-files nil)" \
+	   -f w32-batch-update-autoloads $(lisp)/calendar/diary-loaddefs.el \
+	      ./calendar
+
+$(lisp)/calendar/hol-loaddefs.el:
+	"$(EMACS)" $(EMACSOPT) -l autoload \
+	   --eval "(setq generate-autoload-cookie \";;;###holiday-autoload\")" \
+	   --eval "(setq find-file-suppress-same-file-warnings t)" \
+	   --eval "(setq make-backup-files nil)" \
+	   -f w32-batch-update-autoloads $(lisp)/calendar/hol-loaddefs.el \
+	      ./calendar
 
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in
