@@ -31,6 +31,12 @@
 	(ethiopic-calendar-month-name-array, ethiopic-name): Add doc strings.
 	(coptic-prompt-for-date): Move definition before use.
 
+	* calendar/cal-dst.el (calendar-time-zone-daylight-rules): Simplify.
+	(calendar-dst-find-data, calendar-daylight-time-offset)
+	(calendar-standard-time-zone-name, calendar-daylight-time-zone-name)
+	(calendar-daylight-savings-starts-time)
+	(calendar-daylight-savings-ends-time): Use cadr, nth.
+
 	* calendar/cal-french.el (french-calendar-epoch)
 	(calendar-goto-french-date): Doc fix.
 	(french-calendar-month-name-array)
