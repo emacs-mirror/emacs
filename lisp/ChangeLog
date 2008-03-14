@@ -29,6 +29,11 @@
 	(french-calendar-day-name-array, french-calendar-special-days-array):
 	Add doc strings.
 
+	* calendar/cal-menu.el (displayed-year): Move declaration where needed.
+	(calendar-event-to-date, cal-tex-mouse-week, cal-tex-mouse-week-iso):
+	Doc fix.
+	(calendar-mouse-goto-date): Move definition before use.
+
 	* calendar/cal-persia.el (calendar-goto-persian-date): Doc fix.
 
 	* calendar/diary-lib.el (mark-diary-entries): Move some constant
