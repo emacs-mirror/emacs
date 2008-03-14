@@ -1,13 +1,13 @@
 ;;; org-irc.el --- Store links to IRC sessions
-;;
+
 ;; Copyright (C) 2008  Free Software Foundation, Inc.
-;;
+
 ;; Author: Philip Jackson <emacs@shellarchive.co.uk>
 ;; Keywords: erc, irc, link, org
 ;; Version: 1.3
-;;
+
 ;; This file is part of GNU Emacs.
-;;
+
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 3, or (at your option)
@@ -22,9 +22,9 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
-;;
+
 ;;; Commentary:
-;;
+
 ;; Link to an IRC session. Only ERC has been implemented at the
 ;; moment.
 ;;
@@ -47,12 +47,8 @@
 ;;
 ;; If, when the resulting link is visited, there is no connection to a
 ;; requested server then one will be created.
-;;
+
 ;;; Code:
-
-
-(eval-when-compile
-  (require 'cl))
 
 (require 'org)
 (require 'erc)
@@ -203,10 +199,10 @@ the session itself."
         (let ((chan-name (pop link)))
           ;; if we got a channel name then switch to it or join it
           (if chan-name
-              (let ((chan-buf (find-if
-                               (lambda (x)
-                                 (string= (buffer-name x) chan-name))
-                               buffer-list)))
+              (let ((chan-buf (catch 'found
+                                (dolist (x buffer-list)
+                                  (if (string= (buffer-name x) chan-name)
+                                      (throw 'found x))))))
                 (if chan-buf
                     (progn
                       (switch-to-buffer chan-buf)
@@ -214,8 +210,7 @@ the session itself."
                       ;; then start a chat with them
                       (let ((nick (pop link)))
                         (when nick
-                          (if (find nick (erc-get-server-nickname-list)
-                                    :test 'string=)
+                          (if (member nick (erc-get-server-nickname-list))
                               (progn
                                 (goto-char (point-max))
                                 (insert (concat nick ": ")))
