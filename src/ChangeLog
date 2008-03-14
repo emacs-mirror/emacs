@@ -1,5 +1,7 @@
 2008-03-14  Eli Zaretskii  <eliz@gnu.org>
 
+	* dired.c (Ffile_attributes) [WINDOWSNT]: Force inode be positive.
+
 	* w32fns.c (globals_of_w32fns, Fx_create_frame): Fix last change.
 
 2008-03-14  Jason Rumney  <jasonr@gnu.org>
