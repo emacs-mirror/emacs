@@ -93,6 +93,13 @@
 	(calendar-buffer-list): Return buffers rather than strings (fixes
 	previous change).
 
+	* calendar/holidays.el (displayed-month, displayed-year):
+	Move declarations where needed.
+	(calendar-holiday-list, calendar-list-holidays)
+	(holiday-filter-visible-calendar): Move definitions before use.
+	(list-holidays): Use cadr.
+	Relocate obsolete aliases after their replacements.
+
 	* textmodes/org-irc.el (top-level): CL not required when compiling.
 	(org-irc-visit-erc): Replace runtime CL functions.
 
