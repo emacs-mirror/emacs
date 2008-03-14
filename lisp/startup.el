@@ -2086,7 +2086,7 @@ A fancy display is used on graphic displays, normal otherwise."
 
 		  ;; This is used to handle -script.  It's not clear
 		  ;; we need to document it (it is totally internal).
-		  ((member argi '("-internal-script"))
+		  ((member argi '("-scriptload"))
 		   (let* ((file (command-line-normalize-file-name
 				 (or argval (pop command-line-args-left))))
 			  ;; Take file from default dir.
