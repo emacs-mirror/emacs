@@ -100,6 +100,13 @@
 	(list-holidays): Use cadr.
 	Relocate obsolete aliases after their replacements.
 
+	* calendar/lunar.el (date, displayed-month, displayed-year):
+	Move declarations where needed.
+	(lunar-phase-list): Move definition after functions it uses.
+	(calendar-phases-of-moon, diary-phases-of-moon)
+	(lunar-new-moon-on-or-after): Use cadr, nth.
+	(lunar-new-moon-on-or-after): Doc fix.
+
 	* textmodes/org-irc.el (top-level): CL not required when compiling.
 	(org-irc-visit-erc): Replace runtime CL functions.
 
