@@ -43,10 +43,11 @@
 ;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
 ;; and Nachum Dershowitz, Cambridge University Press (2001).
 
-;;; Code:
+;; Note to maintainers:
+;; Use `chinese-year-cache-init' every few years to recenter the default
+;; value of `chinese-year-cache'.
 
-(defvar displayed-month)
-(defvar displayed-year)
+;;; Code:
 
 (require 'lunar)
 
@@ -59,7 +60,8 @@
        (+ 465 (/ 40.0 60.0))
      480)
   "Minutes difference between local standard time for Chinese calendar and UTC.
-Default is for Beijing.  This is an expression in `year' since it changed at 1928-01-01 00:00:00 from UT+7:45:40 to UT+8."
+Default is for Beijing.  This is an expression in `year' since it changed at
+1928-01-01 00:00:00 from UT+7:45:40 to UT+8."
   :type 'sexp
   :group 'chinese-calendar)
 
@@ -130,17 +132,26 @@ Default is for no daylight saving time."
 
 
 (defconst chinese-calendar-celestial-stem
-  ["Jia" "Yi" "Bing" "Ding" "Wu" "Ji" "Geng" "Xin" "Ren" "Gui"])
+  ["Jia" "Yi" "Bing" "Ding" "Wu" "Ji" "Geng" "Xin" "Ren" "Gui"]
+  "Prefixes used by `calendar-chinese-sexagesimal-name'.")
 
 (defconst chinese-calendar-terrestrial-branch
-  ["Zi" "Chou" "Yin" "Mao" "Chen" "Si" "Wu" "Wei" "Shen" "You" "Xu" "Hai"])
+  ["Zi" "Chou" "Yin" "Mao" "Chen" "Si" "Wu" "Wei" "Shen" "You" "Xu" "Hai"]
+  "Suffixes used by `calendar-chinese-sexagesimal-name'.")
+
+(defun calendar-chinese-sexagesimal-name (n)
+  "The N-th name of the Chinese sexagesimal cycle.
+N congruent to 1 gives the first name, N congruent to 2 gives the second name,
+..., N congruent to 60 gives the sixtieth name."
+  (format "%s-%s"
+          (aref chinese-calendar-celestial-stem (% (1- n) 10))
+          (aref chinese-calendar-terrestrial-branch (% (1- n) 12))))
 
 (defun chinese-zodiac-sign-on-or-after (d)
   "Absolute date of first new Zodiac sign on or after absolute date D.
 The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
- (let* ((year (extract-calendar-year
-                (calendar-gregorian-from-absolute d)))
-         (calendar-time-zone (eval chinese-calendar-time-zone))
+ (let* ((year (extract-calendar-year (calendar-gregorian-from-absolute d)))
+         (calendar-time-zone (eval chinese-calendar-time-zone)) ; uses year
          (calendar-daylight-time-offset
           chinese-calendar-daylight-time-offset)
          (calendar-standard-time-zone-name
@@ -157,14 +168,11 @@ The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
           chinese-calendar-daylight-savings-ends-time))
    (floor
     (calendar-absolute-from-astro
-     (solar-date-next-longitude
-      (calendar-astro-from-absolute d)
-      30)))))
+     (solar-date-next-longitude (calendar-astro-from-absolute d) 30)))))
 
 (defun chinese-new-moon-on-or-after (d)
   "Absolute date of first new moon on or after absolute date D."
-  (let* ((year (extract-calendar-year
-                (calendar-gregorian-from-absolute d)))
+  (let* ((year (extract-calendar-year (calendar-gregorian-from-absolute d)))
          (calendar-time-zone (eval chinese-calendar-time-zone))
          (calendar-daylight-time-offset
           chinese-calendar-daylight-time-offset)
@@ -182,35 +190,74 @@ The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
           chinese-calendar-daylight-savings-ends-time))
     (floor
      (calendar-absolute-from-astro
-      (lunar-new-moon-on-or-after
-       (calendar-astro-from-absolute d))))))
+      (lunar-new-moon-on-or-after (calendar-astro-from-absolute d))))))
+
+(defun chinese-month-list (start end)
+  "List of starting dates of Chinese months from START to END."
+  (if (<= start end)
+      (let ((new-moon (chinese-new-moon-on-or-after start)))
+        (if (<= new-moon end)
+            (cons new-moon
+                  (chinese-month-list (1+ new-moon) end))))))
+
+(defun number-chinese-months (list start)
+  "Assign month numbers to the lunar months in LIST, starting with START.
+Numbers are assigned sequentially, START, START+1, ..., 11, with
+half numbers used for leap months.  First and last months of list
+are never leap months."
+  (when list
+    (cons (list start (car list))       ; first month
+          ;; Remaining months.
+          (if (zerop (- 12 start (length list)))
+              ;; List is too short for a leap month.
+              (number-chinese-months (cdr list) (1+ start))
+            (if (and (cddr list)        ; at least two more months...
+                     (<= (car (cddr list))
+                         (chinese-zodiac-sign-on-or-after (cadr list))))
+                ;; Next month is a leap month.
+                (cons (list (+ start 0.5) (cadr list))
+                      (number-chinese-months (cddr list) (1+ start)))
+              ;; Next month is not a leap month.
+              (number-chinese-months (cdr list) (1+ start)))))))
+
+(defun compute-chinese-year (y)
+  "Compute the structure of the Chinese year for Gregorian year Y.
+The result is a list of pairs (i d), where month i begins on absolute date d,
+of the Chinese months from the Chinese month following the solstice in
+Gregorian year Y-1 to the Chinese month of the solstice of Gregorian year Y."
+  (let* ((next-solstice (chinese-zodiac-sign-on-or-after
+                         (calendar-absolute-from-gregorian
+                          (list 12 15 y))))
+         (list (chinese-month-list (1+ (chinese-zodiac-sign-on-or-after
+                                        (calendar-absolute-from-gregorian
+                                         (list 12 15 (1- y)))))
+                                   next-solstice))
+         (next-sign (chinese-zodiac-sign-on-or-after (car list))))
+    (if (= (length list) 12)
+        ;; No room for a leap month, just number them 12, 1, 2, ..., 11.
+        (cons (list 12 (car list))
+              (number-chinese-months (cdr list) 1))
+      ;; Now we can assign numbers to the list for y.
+      ;; The first month or two are special.
+      (if (or (> (car list) next-sign) (>= next-sign (cadr list)))
+          ;; First month on list is a leap month, second is not.
+          (append (list (list 11.5 (car list))
+                        (list 12 (cadr list)))
+                  (number-chinese-months (cddr list) 1))
+        ;; First month on list is not a leap month.
+        (append (list (list 12 (car list)))
+                (if (>= (chinese-zodiac-sign-on-or-after (cadr list))
+                        (nth 2 list))
+                    ;; Second month on list is a leap month.
+                    (cons (list 12.5 (cadr list))
+                          (number-chinese-months (cddr list) 1))
+                  ;; Second month on list is not a leap month.
+                  (number-chinese-months (cdr list) 1)))))))
 
 (defvar chinese-year-cache
-  '((1990 (12 726464) (1 726494) (2 726523) (3 726553) (4 726582) (5 726611)
-          (5.5 726641) (6 726670) (7 726699) (8 726729) (9 726758) (10 726788)
-          (11 726818))
-    (1991 (12 726848) (1 726878) (2 726907) (3 726937) (4 726966) (5 726995)
-          (6 727025) (7 727054) (8 727083) (9 727113) (10 727142) (11 727172))
-    (1992 (12 727202) (1 727232) (2 727261) (3 727291) (4 727321) (5 727350)
-          (6 727379) (7 727409) (8 727438) (9 727467) (10 727497) (11 727526))
-    (1993 (12 727556) (1 727586) (2 727615) (3 727645) (3.5 727675) (4 727704)
-          (5 727734) (6 727763) (7 727793) (8 727822) (9 727851) (10 727881)
-          (11 727910))
-    (1994 (12 727940) (1 727969) (2 727999) (3 728029) (4 728059) (5 728088)
-          (6 728118) (7 728147) (8 728177) (9 728206) (10 728235) (11 728265))
-    (1995 (12 728294) (1 728324) (2 728353) (3 728383) (4 728413) (5 728442)
-          (6 728472) (7 728501) (8 728531) (8.5 728561) (9 728590) (10 728619)
-          (11 728649))
-    (1996 (12 728678) (1 728708) (2 728737) (3 728767) (4 728796) (5 728826)
-          (6 728856) (7 728885) (8 728915) (9 728944) (10 728974) (11 729004))
-    (1997 (12 729033) (1 729062) (2 729092) (3 729121) (4 729151) (5 729180)
-          (6 729210) (7 729239) (8 729269) (9 729299) (10 729328) (11 729358))
-    (1998 (12 729388) (1 729417) (2 729447) (3 729476) (4 729505) (5 729535)
-          (5.5 729564) (6 729593) (7 729623) (8 729653) (9 729682) (10 729712)
-          (11 729742))
-    (1999 (12 729771) (1 729801) (2 729831) (3 729860) (4 729889) (5 729919)
-          (6 729948) (7 729977) (8 730007) (9 730036) (10 730066) (11 730096))
-    (2000 (12 730126) (1 730155) (2 730185) (3 730215) (4 730244) (5 730273)
+  ;; Maintainers: delete existing value, position point at start of
+  ;; empty line, then call  M-: (chinese-year-cache-init N)
+  '((2000 (12 730126) (1 730155) (2 730185) (3 730215) (4 730244) (5 730273)
           (6 730303) (7 730332) (8 730361) (9 730391) (10 730420) (11 730450))
     (2001 (12 730480) (1 730509) (2 730539) (3 730569) (4 730598) (4.5 730628)
           (5 730657) (6 730687) (7 730716) (8 730745) (9 730775) (10 730804)
@@ -235,110 +282,84 @@ The Zodiac signs begin when the sun's longitude is a multiple of 30 degrees."
           (5.5 733581) (6 733610) (7 733639) (8 733669) (9 733698) (10 733728)
           (11 733757))
     (2010 (12 733787) (1 733817) (2 733847) (3 733876) (4 733906) (5 733935)
-          (6 733965) (7 733994) (8 734023) (9 734053) (10 734082) (11 734112)))
-  "An assoc list of Chinese year structures as determined by `chinese-year'.
-
-Values are computed as needed, but to save time, the initial value consists
-of the precomputed years 1990-2010.  The code works just as well with this
-set to nil initially (which is how the value for 1990-2010 was computed).")
+          (6 733965) (7 733994) (8 734023) (9 734053) (10 734082) (11 734112))
+    (2011 (12 734141) (1 734171) (2 734201) (3 734230) (4 734260) (5 734290)
+          (6 734319) (7 734349) (8 734378) (9 734407) (10 734437) (11 734466))
+    (2012 (12 734496) (1 734525) (2 734555) (3 734584) (4 734614) (4.5 734644)
+          (5 734673) (6 734703) (7 734732) (8 734762) (9 734791) (10 734821)
+          (11 734850))
+    (2013 (12 734880) (1 734909) (2 734939) (3 734968) (4 734998) (5 735027)
+          (6 735057) (7 735087) (8 735116) (9 735146) (10 735175) (11 735205))
+    (2014 (12 735234) (1 735264) (2 735293) (3 735323) (4 735352) (5 735382)
+          (6 735411) (7 735441) (8 735470) (9 735500) (9.5 735530) (10 735559)
+          (11 735589))
+    (2015 (12 735618) (1 735648) (2 735677) (3 735707) (4 735736) (5 735765)
+          (6 735795) (7 735824) (8 735854) (9 735884) (10 735914) (11 735943))
+    (2016 (12 735973) (1 736002) (2 736032) (3 736061) (4 736091) (5 736120)
+          (6 736149) (7 736179) (8 736208) (9 736238) (10 736268) (11 736297))
+    (2017 (12 736327) (1 736357) (2 736386) (3 736416) (4 736445) (5 736475)
+          (6 736504) (6.5 736533) (7 736563) (8 736592) (9 736622) (10 736651)
+          (11 736681))
+    (2018 (12 736711) (1 736741) (2 736770) (3 736800) (4 736829) (5 736859)
+          (6 736888) (7 736917) (8 736947) (9 736976) (10 737006) (11 737035))
+    (2019 (12 737065) (1 737095) (2 737125) (3 737154) (4 737184) (5 737213)
+          (6 737243) (7 737272) (8 737301) (9 737331) (10 737360) (11 737389))
+    (2020 (12 737419) (1 737449) (2 737478) (3 737508) (4 737538) (4.5 737568)
+          (5 737597) (6 737627) (7 737656) (8 737685) (9 737715) (10 737744)
+          (11 737774)))
+  "Alist of Chinese year structures as determined by `chinese-year'.
+The default can be nil, but some values are precomputed for efficiency.")
 
 (defun chinese-year (y)
   "The structure of the Chinese year for Gregorian year Y.
 The result is a list of pairs (i d), where month i begins on absolute date d,
 of the Chinese months from the Chinese month following the solstice in
 Gregorian year Y-1 to the Chinese month of the solstice of Gregorian year Y.
-
-The list is cached for further use."
+The list is cached in `chinese-year-cache' for further use."
   (let ((list (cdr (assoc y chinese-year-cache))))
-    (if (not list)
-        (progn
-          (setq list (compute-chinese-year y))
-          (setq chinese-year-cache
-                (append chinese-year-cache (list (cons y list))))))
+    (or list
+        (setq list (compute-chinese-year y)
+              chinese-year-cache (append chinese-year-cache
+                                         (list (cons y list)))))
     list))
 
-(defun number-chinese-months (list start)
-  "Assign month numbers to the lunar months in LIST, starting with START.
-Numbers are assigned sequentially, START, START+1, ..., 11, with half
-numbers used for leap months.
-
-First month of list will never be a leap month, nor will the last."
-  (if list
-      (if (zerop (- 12 start (length list)))
-          ;; List is too short for a leap month.
-          (cons (list start (car list))
-                (number-chinese-months (cdr list) (1+ start)))
-        (cons
-         ;; First month.
-         (list start (car list))
-         ;; Remaining months.
-         (if (and (cdr (cdr list))      ; at least two more months...
-                  (<= (car (cdr (cdr list)))
-                      (chinese-zodiac-sign-on-or-after (car (cdr list)))))
-             ;; Next month is a leap month.
-             (cons (list (+ start 0.5) (car (cdr list)))
-                   (number-chinese-months (cdr (cdr list)) (1+ start)))
-           ;; Next month is not a leap month.
-           (number-chinese-months (cdr list) (1+ start)))))))
-
-(defun chinese-month-list (start end)
-  "List of starting dates of Chinese months from START to END."
-  (if (<= start end)
-      (let ((new-moon (chinese-new-moon-on-or-after start)))
-        (if (<= new-moon end)
-            (cons new-moon
-                  (chinese-month-list (1+ new-moon) end))))))
-
-(defun compute-chinese-year (y)
-  "Compute the structure of the Chinese year for Gregorian year Y.
-The result is a list of pairs (i d), where month i begins on absolute date d,
-of the Chinese months from the Chinese month following the solstice in
-Gregorian year Y-1 to the Chinese month of the solstice of Gregorian year Y."
-  (let* ((next-solstice (chinese-zodiac-sign-on-or-after
-                         (calendar-absolute-from-gregorian
-                          (list 12 15 y))))
-         (list (chinese-month-list (1+ (chinese-zodiac-sign-on-or-after
-                                        (calendar-absolute-from-gregorian
-                                         (list 12 15 (1- y)))))
-                                   next-solstice))
-         (next-sign (chinese-zodiac-sign-on-or-after (car list))))
-    (if (= (length list) 12)
-        ;; No room for a leap month, just number them 12, 1, 2, ..., 11.
-        (cons (list 12 (car list))
-              (number-chinese-months (cdr list) 1))
-      ;; Now we can assign numbers to the list for y.
-      ;; The first month or two are special.
-      (if (or (> (car list) next-sign) (>= next-sign (car (cdr list))))
-          ;; First month on list is a leap month, second is not.
-          (append (list (list 11.5 (car list))
-                        (list 12 (car (cdr list))))
-                  (number-chinese-months (cdr (cdr list)) 1))
-        ;; First month on list is not a leap month.
-        (append (list (list 12 (car list)))
-                (if (>= (chinese-zodiac-sign-on-or-after (car (cdr list)))
-                        (car (cdr (cdr list))))
-                    ;; Second month on list is a leap month.
-                    (cons (list 12.5 (car (cdr list)))
-                          (number-chinese-months (cdr (cdr list)) 1))
-                  ;; Second month on list is not a leap month.
-                  (number-chinese-months (cdr list) 1)))))))
+;; Maintainer use.
+(defun chinese-year-cache-init (year)
+  "Insert an initialization value for `chinese-year-cache' after point.
+Computes values for 10 years either side of YEAR."
+  (setq year (- year 10))
+  (let (chinese-year-cache end)
+    (save-excursion
+      (insert "'(")
+      (dotimes (n 21)
+	(princ (cons year (compute-chinese-year year)) (current-buffer))
+	(insert (if (= n 20) ")" "\n"))
+	(setq year (1+ year)))
+      (setq end (point)))
+    (save-excursion
+      ;; fill-column -/+ 5.
+      (while (and (< (point) end)
+                  (re-search-forward "^.\\{65,75\\})" end t))
+        (delete-char 1)
+        (insert "\n")))
+    (indent-region (point) end)))
 
 (defun calendar-absolute-from-chinese (date)
   "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
-The Gregorian date Sunday, December 31, 1 BC is imaginary."
+DATE is a Chinese date (cycle year month day).  The Gregorian date
+Sunday, December 31, 1 BC is imaginary."
   (let* ((cycle (car date))
-         (year (car (cdr date)))
-         (month (car (cdr (cdr date))))
-         (day (car (cdr (cdr (cdr date)))))
+         (year (cadr date))
+         (month (nth 2 date))
+         (day (nth 3 date))
          (g-year (+ (* (1- cycle) 60)  ; years in prior cycles
                     (1- year)          ; prior years this cycle
                     -2636)))           ; years before absolute date 0
     (+ (1- day)                        ; prior days this month
-       (car
-        (cdr                    ; absolute date of start of this month
-         (assoc month (append (memq (assoc 1 (chinese-year g-year))
-                                    (chinese-year g-year))
-                              (chinese-year (1+ g-year)))))))))
+       (cadr                    ; absolute date of start of this month
+        (assoc month (append (memq (assoc 1 (chinese-year g-year))
+                                   (chinese-year g-year))
+                             (chinese-year (1+ g-year))))))))
 
 (defun calendar-chinese-from-absolute (date)
   "Compute Chinese date (cycle year month day) corresponding to absolute DATE.
@@ -363,6 +384,10 @@ Gregorian date Sunday, December 31, 1 BC."
           (car (car list))
           (1+ (- date (car (cdr (car list))))))))
 
+;; Bound in generate-calendar.
+(defvar displayed-month)
+(defvar displayed-year)
+
 ;;;###holiday-autoload
 (defun holiday-chinese-new-year ()
   "Date of Chinese New Year."
@@ -372,7 +397,7 @@ Gregorian date Sunday, December 31, 1 BC."
     (if (< m 5)
         (let ((chinese-new-year
                (calendar-gregorian-from-absolute
-                (car (cdr (assoc 1 (chinese-year y)))))))
+                (cadr (assoc 1 (chinese-year y))))))
           (if (calendar-date-is-visible-p chinese-new-year)
           (list
            (list chinese-new-year
@@ -387,9 +412,9 @@ Defaults to today's date if DATE is not given."
                   (or date (calendar-current-date))))
          (c-date (calendar-chinese-from-absolute a-date))
          (cycle (car c-date))
-         (year (car (cdr c-date)))
-         (month (car (cdr (cdr c-date))))
-         (day (car (cdr (cdr (cdr c-date)))))
+         (year (cadr c-date))
+         (month (nth 2 c-date))
+         (day (nth 3 c-date))
          (this-month (calendar-absolute-from-chinese
                       (list cycle year month 1)))
          (next-month (calendar-absolute-from-chinese
@@ -413,14 +438,6 @@ Defaults to today's date if DATE is not given."
               "")
             day (calendar-chinese-sexagesimal-name (+ a-date 15)))))
 
-(defun calendar-chinese-sexagesimal-name (n)
-  "The N-th name of the Chinese sexagesimal cycle.
-N congruent to 1 gives the first name, N congruent to 2 gives the second name,
-..., N congruent to 60 gives the sixtieth name."
-  (format "%s-%s"
-          (aref chinese-calendar-celestial-stem (% (1- n) 10))
-          (aref chinese-calendar-terrestrial-branch (% (1- n) 12))))
-
 ;;;###cal-autoload
 (defun calendar-print-chinese-date ()
   "Show the Chinese date equivalents of date."
@@ -429,14 +446,45 @@ N congruent to 1 gives the first name, N congruent to 2 gives the second name,
   (message "Chinese date: %s"
            (calendar-chinese-date-string (calendar-cursor-to-date t))))
 
+(defun make-chinese-month-assoc-list (l)
+  "Make list of months L into an assoc list."
+  (and l (car l)
+       (if (and (cdr l) (cadr l))
+           (if (= (car l) (floor (cadr l)))
+               (append
+                (list (cons (format "%s (first)" (car l)) (car l))
+                      (cons (format "%s (second)" (car l)) (cadr l)))
+                (make-chinese-month-assoc-list (cddr l)))
+             (append
+              (list (cons (int-to-string (car l)) (car l)))
+              (make-chinese-month-assoc-list (cdr l))))
+         (list (cons (int-to-string (car l)) (car l))))))
+
+(defun chinese-months (c y)
+  "A list of the months in cycle C, year Y of the Chinese calendar."
+  (memq 1 (append
+           (mapcar (lambda (x)
+                     (car x))
+                   (chinese-year (extract-calendar-year
+                                  (calendar-gregorian-from-absolute
+                                   (calendar-absolute-from-chinese
+                                    (list c y 1 1))))))
+           (mapcar (lambda (x)
+                     (if (> (car x) 11) (car x)))
+                   (chinese-year (extract-calendar-year
+                                  (calendar-gregorian-from-absolute
+                                   (calendar-absolute-from-chinese
+                                    (list (if (= y 60) (1+ c) c)
+                                          (if (= y 60) 1 y)
+                                          1 1)))))))))
+
 ;;;###cal-autoload
 (defun calendar-goto-chinese-date (date &optional noecho)
   "Move cursor to Chinese date DATE.
-Echo Chinese date unless NOECHO is t."
+Echo Chinese date unless NOECHO is non-nil."
   (interactive
    (let* ((c (calendar-chinese-from-absolute
-              (calendar-absolute-from-gregorian
-               (calendar-current-date))))
+              (calendar-absolute-from-gregorian (calendar-current-date))))
           (cycle (calendar-read
                   "Chinese calendar cycle number (>44): "
                   (lambda (x) (> x 44))
@@ -444,7 +492,7 @@ Echo Chinese date unless NOECHO is t."
           (year (calendar-read
                  "Year in Chinese cycle (1..60): "
                  (lambda (x) (and (<= 1 x) (<= x 60)))
-                 (int-to-string (car (cdr c)))))
+                 (int-to-string (cadr c))))
           (month-list (make-chinese-month-assoc-list
                        (chinese-months cycle year)))
           (month (cdr (assoc
@@ -452,11 +500,11 @@ Echo Chinese date unless NOECHO is t."
                                         month-list nil t)
                        month-list)))
           (last (if (= month
-                       (car (cdr (cdr
-                                  (calendar-chinese-from-absolute
-                                   (+ 29
-                                      (calendar-absolute-from-chinese
-                                       (list cycle year month 1))))))))
+                       (nth 2
+                            (calendar-chinese-from-absolute
+                             (+ 29
+                                (calendar-absolute-from-chinese
+                                 (list cycle year month 1))))))
                     30
                   29))
           (day (calendar-read
@@ -466,39 +514,6 @@ Echo Chinese date unless NOECHO is t."
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-chinese date)))
   (or noecho (calendar-print-chinese-date)))
-
-(defun chinese-months (c y)
-  "A list of the months in cycle C, year Y of the Chinese calendar."
-  (let* ((l (memq 1 (append
-                     (mapcar (lambda (x)
-                                (car x))
-                             (chinese-year (extract-calendar-year
-                                            (calendar-gregorian-from-absolute
-                                             (calendar-absolute-from-chinese
-                                              (list c y 1 1))))))
-                     (mapcar (lambda (x)
-                                (if (> (car x) 11) (car x)))
-                             (chinese-year (extract-calendar-year
-                                            (calendar-gregorian-from-absolute
-                                             (calendar-absolute-from-chinese
-                                              (list (if (= y 60) (1+ c) c)
-                                                    (if (= y 60) 1 y)
-                                                    1 1))))))))))
-    l))
-
-(defun make-chinese-month-assoc-list (l)
-  "Make list of months L into an assoc list."
-  (if (and l (car l))
-      (if (and (cdr l) (car (cdr l)))
-          (if (= (car l) (floor (car (cdr l))))
-              (append
-               (list (cons (format "%s (first)" (car l)) (car l))
-                     (cons (format "%s (second)" (car l)) (car (cdr l))))
-               (make-chinese-month-assoc-list (cdr (cdr l))))
-            (append
-             (list (cons (int-to-string (car l)) (car l)))
-             (make-chinese-month-assoc-list (cdr l))))
-        (list (cons (int-to-string (car l)) (car l))))))
 
 (defvar date)
 
