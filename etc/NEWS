@@ -191,9 +191,6 @@ value of `current-time' before and after Emacs loads the init files.
 ** The new function `emacs-init-time' returns the duration of the
 Emacs initialization.
 
-** The new face `mode-line-emphasis' is used to highlight certain mode-line
-information; for example while waiting for a VC command to finish.
-
 ** The minor modes unify-8859-on-encoding-mode, unify-8859-on-decoding-mode
 are obsolete.
 
@@ -263,7 +260,7 @@ other window applications).  If you enable this, you might want to bind
 also updates the selection or clipboard to the current yank,
 just as M-w would do so with the text it copies to the kill ring.
 
-** Minibuffer changes:
+** Minibuffer changes
 
 *** In C-x d, if you type M-n you get the visited file name of the
 current buffer.
@@ -283,6 +280,22 @@ next history elements.  When the reverse search reaches the first history
 element, it wraps to the last history element, and the forward search
 wraps to the first history element.  When the search is terminated, the
 history element containing the search string becomes the current.
+
+** New faces
+
+*** `mode-line-emphasis' is used to highlight certain mode-line information;
+for example while waiting for a VC command to finish.
+
+** Font-Lock (syntax highlighting) changes
+
+*** `font-lock-comment-face' once again differs from the default on displays
+with fewer than 16 colors (e.g. older xterms and the Linux console), 
+but only in the light background case.
+
+** Face changes
+
+*** The new function `face-all-attributes' returns an alist describing
+all the basic attributes of a given face.
 
 
 * New Modes and Packages in Emacs 23.1
@@ -363,7 +376,7 @@ C-c C-f, finds the file associated with the current log entry.
     `:parents', `:case-fixed', `:enable-function', `:regexp',
     `abbrev-table-modiff'.
 
-** Help mode.
+** Help mode
 *** New macro `with-help-window' should set up help windows better
 than `with-output-to-temp-buffer' with `print-help-return-message'.
 *** New option `help-window-select' permits to customize whether help
@@ -423,7 +436,7 @@ See option `hide-ifdef-shadow' and function `hide-ifdef-toggle-shadowing'.
 ** defcustom accepts new keyword arguments, `:safe' and `:risky', which
 set a variable's `safe-local-variable' and `risky-local-variable' property.
 
-** Etags changes.
+** Etags changes
 *** The --members option is now the default.
 
 Use --no-members if you want the old default behaviour of not tagging
@@ -456,7 +469,7 @@ See the documentation of the variables: tex-fontify-script,
 tex-font-script-display, tex-suscript-height-ratio, and
 tex-suscript-height-minimum.
 
-** BibTeX mode:
+** BibTeX mode
 
 *** New command `bibtex-initialize' (re)initializes BibTeX buffers.
 
@@ -677,9 +690,6 @@ the specified files).
 
 ** The new function `read-color' reads a color name using the minibuffer.
 
-** The new function `face-all-attributes' returns an alist
-describing all the basic attributes of a given face.
-
 ** `interprogram-paste-function' can now return one string or a list
 of strings.  In the latter case, Emacs puts the second and following
 strings on the kill ring.
@@ -758,7 +768,7 @@ character is printable or not.
 accepts a cons of characters as the first argument, and modify all
 entries in that range of characters.
 
-** Code conversion changes.
+** Code conversion changes
 
 *** The new function `define-coding-system' should be used to define a
 coding system instead of `make-coding-system' (which is now obsolete).
@@ -805,7 +815,7 @@ robin rule can hold the original ASCII sequence as a char-code-property)
 *** The new function `robin-use-package' starts using a Robin package
 as an input method.
 
-** Changes related to the new font backend.
+** Changes related to the new font backend
 
 Which font backends to use can be specified by the X resource "FontBackend".
 For instance, to use both X core fonts and Xft fonts:
@@ -845,7 +855,7 @@ the given specification.
 second argument, and has an optional 5th argument to control how to
 set the font.
 
-** Changes related to multiple tty support.
+** Changes related to multiple tty support
 
 *** $TERM is now set to `dumb' for subprocesses.  If you want to know the
 $TERM inherited by Emacs you will have to look inside initial-environment.
