@@ -45,44 +45,11 @@
 
 ;;; Code:
 
-(defvar date)
-(defvar displayed-month)
-(defvar displayed-year)
-
 (if (fboundp 'atan)
     (require 'lisp-float-type)
   (error "Lunar calculations impossible since floating point is unavailable"))
 
 (require 'solar)
-
-(defun lunar-phase-list (month year)
-  "List of lunar phases for three months starting with Gregorian MONTH, YEAR."
-  (let ((end-month month)
-        (end-year year)
-        (start-month month)
-        (start-year year))
-    (increment-calendar-month end-month end-year 3)
-    (increment-calendar-month start-month start-year -1)
-    (let* ((end-date (list (list end-month 1 end-year)))
-           (start-date (list (list start-month
-                                   (calendar-last-day-of-month
-                                    start-month start-year)
-                                   start-year)))
-           (index (* 4
-                     (truncate
-                      (* 12.3685
-                         (+ year
-                            ( / (calendar-day-number (list month 1 year))
-                                366.0)
-                            -1900)))))
-           (new-moon (lunar-phase index))
-           (list))
-      (while (calendar-date-compare new-moon end-date)
-        (if (calendar-date-compare start-date new-moon)
-            (setq list (append list (list new-moon))))
-        (setq index (1+ index))
-        (setq new-moon (lunar-phase index)))
-      list)))
 
 (defun lunar-phase (index)
   "Local date and time of lunar phase INDEX.
@@ -155,7 +122,7 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
                (* 0.0004 (solar-sin-degrees
                           (- sun-anomaly (* 2 moon-anomaly))))
                (* -0.0003 (solar-sin-degrees
-                          (+ (* 2 sun-anomaly) moon-anomaly))))))
+                           (+ (* 2 sun-anomaly) moon-anomaly))))))
          (adj (+ 0.0028
                  (* -0.0004 (solar-cosine-degrees
                              sun-anomaly))
@@ -176,6 +143,35 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
          (adj (dst-adjust-time date time)))
     (list (car adj) (apply 'solar-time-string (cdr adj)) phase)))
 
+(defun lunar-phase-list (month year)
+  "List of lunar phases for three months starting with Gregorian MONTH, YEAR."
+  (let ((end-month month)
+        (end-year year)
+        (start-month month)
+        (start-year year))
+    (increment-calendar-month end-month end-year 3)
+    (increment-calendar-month start-month start-year -1)
+    (let* ((end-date (list (list end-month 1 end-year)))
+           (start-date (list (list start-month
+                                   (calendar-last-day-of-month
+                                    start-month start-year)
+                                   start-year)))
+           (index (* 4
+                     (truncate
+                      (* 12.3685
+                         (+ year
+                            ( / (calendar-day-number (list month 1 year))
+                                366.0)
+                            -1900)))))
+           (new-moon (lunar-phase index))
+           (list))
+      (while (calendar-date-compare new-moon end-date)
+        (if (calendar-date-compare start-date new-moon)
+            (setq list (append list (list new-moon))))
+        (setq index (1+ index)
+              new-moon (lunar-phase index)))
+      list)))
+
 (defun lunar-phase-name (phase)
   "Name of lunar PHASE.
 0 = new moon, 1 = first quarter, 2 = full moon, 3 = last quarter."
@@ -183,6 +179,9 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
         ((= 1 phase) "First Quarter Moon")
         ((= 2 phase) "Full Moon")
         ((= 3 phase) "Last Quarter Moon")))
+
+(defvar displayed-month)                ; from generate-calendar
+(defvar displayed-year)
 
 ;;;###cal-autoload
 (defun calendar-phases-of-moon ()
@@ -207,14 +206,14 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
     (insert
      (mapconcat
       (lambda (x)
-         (let ((date (car x))
-               (time (car (cdr x)))
-               (phase (car (cdr (cdr x)))))
-           (concat (calendar-date-string date)
-                   ": "
-                   (lunar-phase-name phase)
-                   " "
-                   time)))
+        (let ((date (car x))
+              (time (cadr x))
+              (phase (nth 2 x)))
+          (concat (calendar-date-string date)
+                  ": "
+                  (lunar-phase-name phase)
+                  " "
+                  time)))
       (lunar-phase-list m1 y1) "\n"))
     (goto-char (point-min))
     (set-buffer-modified-p nil)
@@ -229,16 +228,19 @@ If called with an optional prefix argument ARG, prompts for month and year.
 This function is suitable for execution in a .emacs file."
   (interactive "P")
   (save-excursion
-    (let* ((date (if arg
-                     (calendar-read-date t)
+    (let* ((date (if arg (calendar-read-date t)
                    (calendar-current-date)))
            (displayed-month (extract-calendar-month date))
            (displayed-year (extract-calendar-year date)))
       (calendar-phases-of-moon))))
 
+(defvar date)
+
+;; To be called from list-sexp-diary-entries, where DATE is bound.
+
 ;;;###diary-autoload
 (defun diary-phases-of-moon (&optional mark)
-"Moon phases diary entry.
+  "Moon phases diary entry.
 An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (let* ((index (* 4
@@ -250,14 +252,14 @@ use when highlighting the day in the calendar."
                           -1900)))))
          (phase (lunar-phase index)))
     (while (calendar-date-compare phase (list date))
-      (setq index (1+ index))
-      (setq phase (lunar-phase index)))
+      (setq index (1+ index)
+            phase (lunar-phase index)))
     (if (calendar-date-equal (car phase) date)
-        (cons mark (concat (lunar-phase-name (car (cdr (cdr phase)))) " "
-                (car (cdr phase)))))))
+        (cons mark (concat (lunar-phase-name (nth 2 phase)) " "
+                           (cadr phase))))))
 
-;;  For the Chinese calendar the calculations for the new moon need to be more
-;;  accurate than those above, so we use more terms in the approximation.
+;; For the Chinese calendar the calculations for the new moon need to be more
+;; accurate than those above, so we use more terms in the approximation.
 (defun lunar-new-moon-time (k)
   "Astronomical (Julian) day number of K th new moon."
   (let* ((T (/ k 1236.85))
@@ -303,60 +305,60 @@ use when highlighting the day in the calendar."
          (A13 (+ 239.56 (* 25.513099 k)))
          (A14 (+ 331.55 (*  3.592518 k)))
          (correction
-            (+ (* -0.40720   (solar-sin-degrees moon-anomaly))
-               (*  0.17241 E (solar-sin-degrees sun-anomaly))
-               (*  0.01608   (solar-sin-degrees (* 2 moon-anomaly)))
-               (*  0.01039   (solar-sin-degrees (* 2 moon-argument)))
-               (*  0.00739 E (solar-sin-degrees (- moon-anomaly sun-anomaly)))
-               (* -0.00514 E (solar-sin-degrees (+ moon-anomaly sun-anomaly)))
-               (*  0.00208 E E (solar-sin-degrees (* 2 sun-anomaly)))
-               (* -0.00111   (solar-sin-degrees
-                               (- moon-anomaly (* 2 moon-argument))))
-               (* -0.00057   (solar-sin-degrees
-                               (+ moon-anomaly (* 2 moon-argument))))
-               (*  0.00056 E (solar-sin-degrees
-                               (+ (* 2 moon-anomaly) sun-anomaly)))
-               (* -0.00042   (solar-sin-degrees (* 3 moon-anomaly)))
-               (*  0.00042 E (solar-sin-degrees
-                               (+ sun-anomaly (* 2 moon-argument))))
-               (*  0.00038 E (solar-sin-degrees
-                               (- sun-anomaly (* 2 moon-argument))))
-               (* -0.00024 E (solar-sin-degrees
-                               (- (* 2 moon-anomaly) sun-anomaly)))
-               (* -0.00017   (solar-sin-degrees omega))
-               (* -0.00007   (solar-sin-degrees
-                               (+ moon-anomaly (* 2 sun-anomaly))))
-               (*  0.00004   (solar-sin-degrees
-                               (- (* 2 moon-anomaly) (* 2 moon-argument))))
-               (*  0.00004   (solar-sin-degrees (* 3 sun-anomaly)))
-               (*  0.00003   (solar-sin-degrees (+ moon-anomaly sun-anomaly
-                                                   (* -2 moon-argument))))
-               (*  0.00003   (solar-sin-degrees
-                               (+ (* 2 moon-anomaly) (* 2 moon-argument))))
-               (* -0.00003   (solar-sin-degrees (+ moon-anomaly sun-anomaly
-                                                   (* 2 moon-argument))))
-               (*  0.00003   (solar-sin-degrees (- moon-anomaly sun-anomaly
-                                                   (* -2 moon-argument))))
-               (* -0.00002   (solar-sin-degrees (- moon-anomaly sun-anomaly
-                                                   (* 2 moon-argument))))
-               (* -0.00002   (solar-sin-degrees
-                               (+ (* 3 moon-anomaly) sun-anomaly)))
-               (*  0.00002   (solar-sin-degrees (* 4 moon-anomaly)))))
+          (+ (* -0.40720   (solar-sin-degrees moon-anomaly))
+             (*  0.17241 E (solar-sin-degrees sun-anomaly))
+             (*  0.01608   (solar-sin-degrees (* 2 moon-anomaly)))
+             (*  0.01039   (solar-sin-degrees (* 2 moon-argument)))
+             (*  0.00739 E (solar-sin-degrees (- moon-anomaly sun-anomaly)))
+             (* -0.00514 E (solar-sin-degrees (+ moon-anomaly sun-anomaly)))
+             (*  0.00208 E E (solar-sin-degrees (* 2 sun-anomaly)))
+             (* -0.00111   (solar-sin-degrees
+                            (- moon-anomaly (* 2 moon-argument))))
+             (* -0.00057   (solar-sin-degrees
+                            (+ moon-anomaly (* 2 moon-argument))))
+             (*  0.00056 E (solar-sin-degrees
+                            (+ (* 2 moon-anomaly) sun-anomaly)))
+             (* -0.00042   (solar-sin-degrees (* 3 moon-anomaly)))
+             (*  0.00042 E (solar-sin-degrees
+                            (+ sun-anomaly (* 2 moon-argument))))
+             (*  0.00038 E (solar-sin-degrees
+                            (- sun-anomaly (* 2 moon-argument))))
+             (* -0.00024 E (solar-sin-degrees
+                            (- (* 2 moon-anomaly) sun-anomaly)))
+             (* -0.00017   (solar-sin-degrees omega))
+             (* -0.00007   (solar-sin-degrees
+                            (+ moon-anomaly (* 2 sun-anomaly))))
+             (*  0.00004   (solar-sin-degrees
+                            (- (* 2 moon-anomaly) (* 2 moon-argument))))
+             (*  0.00004   (solar-sin-degrees (* 3 sun-anomaly)))
+             (*  0.00003   (solar-sin-degrees (+ moon-anomaly sun-anomaly
+                                                 (* -2 moon-argument))))
+             (*  0.00003   (solar-sin-degrees
+                            (+ (* 2 moon-anomaly) (* 2 moon-argument))))
+             (* -0.00003   (solar-sin-degrees (+ moon-anomaly sun-anomaly
+                                                 (* 2 moon-argument))))
+             (*  0.00003   (solar-sin-degrees (- moon-anomaly sun-anomaly
+                                                 (* -2 moon-argument))))
+             (* -0.00002   (solar-sin-degrees (- moon-anomaly sun-anomaly
+                                                 (* 2 moon-argument))))
+             (* -0.00002   (solar-sin-degrees
+                            (+ (* 3 moon-anomaly) sun-anomaly)))
+             (*  0.00002   (solar-sin-degrees (* 4 moon-anomaly)))))
          (additional
-            (+ (* 0.000325 (solar-sin-degrees A1))
-               (* 0.000165 (solar-sin-degrees A2))
-               (* 0.000164 (solar-sin-degrees A3))
-               (* 0.000126 (solar-sin-degrees A4))
-               (* 0.000110 (solar-sin-degrees A5))
-               (* 0.000062 (solar-sin-degrees A6))
-               (* 0.000060 (solar-sin-degrees A7))
-               (* 0.000056 (solar-sin-degrees A8))
-               (* 0.000047 (solar-sin-degrees A9))
-               (* 0.000042 (solar-sin-degrees A10))
-               (* 0.000040 (solar-sin-degrees A11))
-               (* 0.000037 (solar-sin-degrees A12))
-               (* 0.000035 (solar-sin-degrees A13))
-               (* 0.000023 (solar-sin-degrees A14))))
+          (+ (* 0.000325 (solar-sin-degrees A1))
+             (* 0.000165 (solar-sin-degrees A2))
+             (* 0.000164 (solar-sin-degrees A3))
+             (* 0.000126 (solar-sin-degrees A4))
+             (* 0.000110 (solar-sin-degrees A5))
+             (* 0.000062 (solar-sin-degrees A6))
+             (* 0.000060 (solar-sin-degrees A7))
+             (* 0.000056 (solar-sin-degrees A8))
+             (* 0.000047 (solar-sin-degrees A9))
+             (* 0.000042 (solar-sin-degrees A10))
+             (* 0.000040 (solar-sin-degrees A11))
+             (* 0.000037 (solar-sin-degrees A12))
+             (* 0.000035 (solar-sin-degrees A13))
+             (* 0.000023 (solar-sin-degrees A14))))
          (newJDE (+ JDE correction additional)))
     (+ newJDE
        (- (solar-ephemeris-correction
@@ -370,10 +372,10 @@ use when highlighting the day in the calendar."
 The fractional part is the time of day.
 
 The date and time are local time, including any daylight saving rules,
-as governed by the values of calendar-daylight-savings-starts,
-calendar-daylight-savings-starts-time, calendar-daylight-savings-ends,
-calendar-daylight-savings-ends-time, calendar-daylight-time-offset, and
-calendar-time-zone."
+as governed by the values of `calendar-daylight-savings-starts',
+`calendar-daylight-savings-starts-time', `calendar-daylight-savings-ends',
+`calendar-daylight-savings-ends-time', `calendar-daylight-time-offset', and
+`calendar-time-zone'."
   (let* ((date (calendar-gregorian-from-absolute
                 (floor (calendar-absolute-from-astro d))))
          (year (+ (extract-calendar-year date)
@@ -381,15 +383,15 @@ calendar-time-zone."
          (k (floor (* (- year 2000.0) 12.3685)))
          (date (lunar-new-moon-time k)))
     (while (< date d)
-      (setq k (1+ k))
-      (setq date (lunar-new-moon-time k)))
+      (setq k (1+ k)
+            date (lunar-new-moon-time k)))
     (let* ((a-date (calendar-absolute-from-astro date))
            (time (* 24 (- a-date (truncate a-date))))
            (date (calendar-gregorian-from-absolute (truncate a-date)))
            (adj (dst-adjust-time date time)))
       (calendar-astro-from-absolute
        (+ (calendar-absolute-from-gregorian (car adj))
-          (/ (car (cdr adj)) 24.0))))))
+          (/ (cadr adj) 24.0))))))
 
 (provide 'lunar)
 
