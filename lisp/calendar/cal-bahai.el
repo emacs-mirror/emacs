@@ -194,8 +194,7 @@ nil if it is not visible in the current calendar window."
          (m (extract-calendar-month bahai-date))
          (y (extract-calendar-year bahai-date))
          (date))
-    (if (< m 1)
-        nil                            ; Bahá'í calendar doesn't apply
+    (unless (< m 1)                    ; Bahá'í calendar doesn't apply
       (increment-calendar-month m y (- 10 month))
       (if (> m 7)                       ; Bahá'í date might be visible
           (let ((date (calendar-gregorian-from-absolute
@@ -314,8 +313,7 @@ A value of 0 in any position is a wildcard."
                  (m (extract-calendar-month bahai-date))
                  (y (extract-calendar-year bahai-date))
                  (date))
-            (if (< m 1)
-                nil                    ; Bahá'í calendar doesn't apply
+            (unless (< m 1)            ; Bahá'í calendar doesn't apply
               (increment-calendar-month m y (- 10 month))
               (if (> m 7)               ; Bahá'í date might be visible
                   (let ((date (calendar-gregorian-from-absolute
