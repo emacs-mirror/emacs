@@ -1773,7 +1773,7 @@ If END is omitted, it defaults to the length of LIST."
   "An embedded link."
   :button-prefix 'widget-link-prefix
   :button-suffix 'widget-link-suffix
-  :follow-link "\C-m"
+  :follow-link 'mouse-face
   :help-echo "Follow the link."
   :format "%[%t%]")
 

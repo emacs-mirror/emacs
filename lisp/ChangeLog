@@ -1,3 +1,10 @@
+2008-03-14  Bastien Guerry  <bzg@altern.org>
+
+	* textmodes/flyspell.el (nxml-mode): Add the right.
+	`flyspell-mode-predicate'.
+
+	* wid-edit.el (link): Use 'mouse-face for :follow-link.
+
 2008-03-14  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/solar.el: Reorder so that functions are defined before use.
