@@ -47,13 +47,74 @@
 
 ;;; Code:
 
-(defvar displayed-month)
-(defvar displayed-year)
-
 (require 'calendar)
 
 (eval-and-compile
   (load "hol-loaddefs" nil 'quiet))
+
+(defvar displayed-month)                ; from generate-calendar
+(defvar displayed-year)
+
+;;;###diary-autoload
+(defun calendar-holiday-list ()
+  "Form the list of holidays that occur on dates in the calendar window.
+The holidays are those in the list `calendar-holidays'."
+  (let (holiday-list)
+    (dolist (p calendar-holidays)
+      (let* ((holidays
+              (if calendar-debug-sexp
+                  (let ((stack-trace-on-error t))
+                    (eval p))
+                (condition-case nil
+                    (eval p)
+                  (error (beep)
+                         (message "Bad holiday list item: %s" p)
+                         (sleep-for 2))))))
+        (if holidays
+            (setq holiday-list (append holidays holiday-list)))))
+    (setq holiday-list (sort holiday-list 'calendar-date-compare))))
+
+;;;###cal-autoload
+(defun calendar-list-holidays ()
+  "Create a buffer containing the holidays for the current calendar window.
+The holidays are those in the list `calendar-notable-days'.  Returns t if any
+holidays are found, nil if not."
+  (interactive)
+  (message "Looking up holidays...")
+  (let ((holiday-list (calendar-holiday-list))
+        (m1 displayed-month)
+        (y1 displayed-year)
+        (m2 displayed-month)
+        (y2 displayed-year))
+    (if (not holiday-list)
+        (progn
+          (message "Looking up holidays...none found")
+          nil)
+      (set-buffer (get-buffer-create holiday-buffer))
+      (setq buffer-read-only nil)
+      (increment-calendar-month m1 y1 -1)
+      (increment-calendar-month m2 y2 1)
+      (calendar-set-mode-line
+       (if (= y1 y2)
+           (format "Notable Dates from %s to %s, %d%%-"
+                   (calendar-month-name m1) (calendar-month-name m2) y2)
+         (format "Notable Dates from %s, %d to %s, %d%%-"
+                 (calendar-month-name m1) y1 (calendar-month-name m2) y2)))
+      (erase-buffer)
+      (insert
+       (mapconcat
+        (lambda (x) (concat (calendar-date-string (car x))
+                            ": " (cadr x)))
+        holiday-list "\n"))
+      (goto-char (point-min))
+      (set-buffer-modified-p nil)
+      (setq buffer-read-only t)
+      (display-buffer holiday-buffer)
+      (message "Looking up holidays...done")
+      t)))
+
+(define-obsolete-function-alias
+  'list-calendar-holidays 'calendar-list-holidays "23.1")
 
 ;;;###autoload
 (defun holidays (&optional arg)
@@ -63,8 +124,7 @@ This function is suitable for execution in a .emacs file."
   (interactive "P")
   (save-excursion
     (let* ((completion-ignore-case t)
-           (date (if arg
-                     (calendar-read-date t)
+           (date (if arg (calendar-read-date t)
                    (calendar-current-date)))
            (displayed-month (extract-calendar-month date))
            (displayed-year (extract-calendar-year date)))
@@ -100,10 +160,10 @@ The optional LABEL is used to label the buffer created."
                        (int-to-string (extract-calendar-year
                                        (calendar-current-date)))))
           (end-year (calendar-read
-                       (format "Ending year (inclusive) of holidays (>=%s): "
-                               start-year)
-                       (lambda (x) (>= x start-year))
-                       (int-to-string start-year)))
+                     (format "Ending year (inclusive) of holidays (>=%s): "
+                             start-year)
+                     (lambda (x) (>= x start-year))
+                     (int-to-string start-year)))
           (completion-ignore-case t)
           (lists
            (list
@@ -161,7 +221,7 @@ The optional LABEL is used to label the buffer created."
       (insert
        (mapconcat
         (lambda (x) (concat (calendar-date-string (car x))
-                             ": " (car (cdr x))))
+                            ": " (cadr x)))
         holiday-list "\n"))
       (goto-char (point-min))
       (set-buffer-modified-p nil)
@@ -184,6 +244,9 @@ The holidays are those in the list `calendar-holidays'."
       (if (calendar-date-equal date (car h))
           (setq holiday-list (append holiday-list (cdr h)))))
     holiday-list))
+
+(define-obsolete-function-alias
+  'check-calendar-holidays 'calendar-check-holidays "23.1")
 
 ;;;###cal-autoload
 (defun calendar-cursor-holidays ()
@@ -217,67 +280,11 @@ The holidays are those in the list `calendar-holidays'."
   (setq mark-holidays-in-calendar t)
   (message "Marking holidays...")
   (dolist (holiday (calendar-holiday-list))
-    (mark-visible-calendar-date
-     (car holiday) calendar-holiday-marker))
+    (mark-visible-calendar-date (car holiday) calendar-holiday-marker))
   (message "Marking holidays...done"))
 
-;;;###cal-autoload
-(defun calendar-list-holidays ()
-  "Create a buffer containing the holidays for the current calendar window.
-The holidays are those in the list `calendar-notable-days'.  Returns t if any
-holidays are found, nil if not."
-  (interactive)
-  (message "Looking up holidays...")
-  (let ((holiday-list (calendar-holiday-list))
-        (m1 displayed-month)
-        (y1 displayed-year)
-        (m2 displayed-month)
-        (y2 displayed-year))
-    (if (not holiday-list)
-        (progn
-          (message "Looking up holidays...none found")
-          nil)
-      (set-buffer (get-buffer-create holiday-buffer))
-      (setq buffer-read-only nil)
-      (increment-calendar-month m1 y1 -1)
-      (increment-calendar-month m2 y2 1)
-      (calendar-set-mode-line
-       (if (= y1 y2)
-           (format "Notable Dates from %s to %s, %d%%-"
-                   (calendar-month-name m1) (calendar-month-name m2) y2)
-         (format "Notable Dates from %s, %d to %s, %d%%-"
-                 (calendar-month-name m1) y1 (calendar-month-name m2) y2)))
-      (erase-buffer)
-      (insert
-       (mapconcat
-        (lambda (x) (concat (calendar-date-string (car x))
-                             ": " (car (cdr x))))
-        holiday-list "\n"))
-      (goto-char (point-min))
-      (set-buffer-modified-p nil)
-      (setq buffer-read-only t)
-      (display-buffer holiday-buffer)
-      (message "Looking up holidays...done")
-      t)))
-
-;;;###diary-autoload
-(defun calendar-holiday-list ()
-  "Form the list of holidays that occur on dates in the calendar window.
-The holidays are those in the list `calendar-holidays'."
-  (let (holiday-list)
-    (dolist (p calendar-holidays)
-      (let* ((holidays
-              (if calendar-debug-sexp
-                  (let ((stack-trace-on-error t))
-                    (eval p))
-                (condition-case nil
-                    (eval p)
-                  (error (beep)
-                         (message "Bad holiday list item: %s" p)
-                         (sleep-for 2))))))
-        (if holidays
-            (setq holiday-list (append holidays holiday-list)))))
-    (setq holiday-list (sort holiday-list 'calendar-date-compare))))
+(define-obsolete-function-alias
+  'mark-calendar-holidays 'calendar-mark-holidays "23.1")
 
 ;; Below are the functions that calculate the dates of holidays; these
 ;; are eval'ed in the function calendar-holiday-list.  If you
@@ -293,7 +300,7 @@ STRING)).  Returns nil if it is not visible in the current calendar window."
         (y displayed-year))
     (increment-calendar-month m y (- 11 month))
     (if (> m 9)
-      (list (list (list month day y) string)))))
+        (list (list (list month day y) string)))))
 
 (defun holiday-float (month dayname n string &optional day)
   "Holiday on MONTH, DAYNAME (Nth occurrence) called STRING.
@@ -305,18 +312,18 @@ If N<0, count backward from the end of MONTH.
 An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY.
 
 Returns nil if it is not visible in the current calendar window."
-;; This is messy because the holiday may be visible, while the date on which
-;; it is based is not.  For example, the first Monday after December 30 may be
-;; visible when January is not.  For large values of |n| the problem is more
-;; grotesque.  If we didn't have to worry about such cases, we could just use
+  ;; This is messy because the holiday may be visible, while the date on which
+  ;; it is based is not.  For example, the first Monday after December 30 may be
+  ;; visible when January is not.  For large values of |n| the problem is more
+  ;; grotesque.  If we didn't have to worry about such cases, we could just use
 
-;;  (let ((m displayed-month)
-;;        (y displayed-year))
-;;    (increment-calendar-month m y (- 11 month))
-;;    (if (> m 9); month in year y is visible
-;;      (list (list (calendar-nth-named-day n dayname month y day) string)))))
+  ;;  (let ((m displayed-month)
+  ;;        (y displayed-year))
+  ;;    (increment-calendar-month m y (- 11 month))
+  ;;    (if (> m 9); month in year y is visible
+  ;;      (list (list (calendar-nth-named-day n dayname month y day) string)))))
 
-;; which is the way the function was originally written.
+  ;; which is the way the function was originally written.
 
   (let* ((m1 displayed-month)
          (y1 displayed-year)
@@ -336,8 +343,8 @@ Returns nil if it is not visible in the current calendar window."
            (y2 (extract-calendar-year (calendar-gregorian-from-absolute d2)))
            (y                           ; year of base date
             (if (or (= y1 y2) (> month 9))
-                  y1
-                y2))
+                y1
+              y2))
            (d                           ; day of base date
             (or day (if (> n 0)
                         1
@@ -347,6 +354,18 @@ Returns nil if it is not visible in the current calendar window."
       (if (and (<= d1 date) (<= date d2))
           (list (list (calendar-nth-named-day n dayname month y d)
                       string))))))
+
+(defun holiday-filter-visible-calendar (l)
+  "Return a list of all visible holidays of those on L."
+  (let ((visible ()))
+    (dolist (p l)
+      (and (car p)
+           (calendar-date-is-visible-p (car p))
+           (push p visible)))
+    visible))
+
+(define-obsolete-function-alias
+  'filter-visible-calendar-holidays 'holiday-filter-visible-calendar "23.1")
 
 (defun holiday-sexp (sexp string)
   "Sexp holiday for dates in the calendar window.
@@ -437,7 +456,7 @@ is non-nil)."
             (% (+ 14 (* 11 (% displayed-year 19)) ;     ...by Nicaean rule
                   (-     ; ...corrected for the Gregorian century rule
                    (/ (* 3 century) 4))
-                  (/      ; ...corrected for Metonic cycle inaccuracy
+                  (/       ; ...corrected for Metonic cycle inaccuracy
                    (+ 5 (* 8 century)) 25)
                   (* 30 century))  ;              keeps value positive
                30))
@@ -479,25 +498,6 @@ is non-nil)."
              (calendar-dayname-on-or-before 0 (+ paschal-moon 7)))))
       (if (calendar-date-is-visible-p nicaean-easter)
           (list (list nicaean-easter "Pascha (Greek Orthodox Easter)"))))))
-
-(defun holiday-filter-visible-calendar (l)
-  "Return a list of all visible holidays of those on L."
-  (let ((visible ()))
-    (dolist (p l)
-      (and (car p)
-           (calendar-date-is-visible-p (car p))
-           (push p visible)))
-    visible))
-
-;; Backward compatibility.
-(define-obsolete-function-alias
-  'filter-visible-calendar-holidays 'holiday-filter-visible-calendar "23.1")
-(define-obsolete-function-alias
-  'list-calendar-holidays 'calendar-list-holidays "23.1")
-(define-obsolete-function-alias
-  'mark-calendar-holidays 'calendar-mark-holidays "23.1")
-(define-obsolete-function-alias
-  'check-calendar-holidays 'calendar-check-holidays "23.1")
 
 (provide 'holidays)
 
