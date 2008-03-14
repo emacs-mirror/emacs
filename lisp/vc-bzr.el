@@ -146,13 +146,19 @@ running `vc-bzr-state'."
                 (vc-bzr-state file)     ; Some other unknown format?
               (let* ((relfile (file-relative-name file root))
                      (reldir (file-name-directory relfile)))
-                (re-search-forward
-                 (concat "^\0"
-                         (if reldir (regexp-quote (directory-file-name reldir)))
-                         "\0"
-                         (regexp-quote (file-name-nondirectory relfile))
-                         "\0")
-                 nil t)))))))))
+                (when (re-search-forward
+                       (concat "^\0"
+                               (if reldir (regexp-quote
+                                           (directory-file-name reldir)))
+                               "\0"
+                               (regexp-quote (file-name-nondirectory relfile))
+                               "\0")
+                       nil t)
+                  ;; Make sure `bzr' agrees that this file is under Bzr's
+                  ;; control.  This is important because if `bzr' is not
+                  ;; installed vc-find-file may otherwise get an error in
+                  ;; the subsequent call to `vc-state'.
+                  (vc-bzr-state file))))))))))
 
 (defconst vc-bzr-state-words
   "added\\|ignored\\|kind changed\\|modified\\|removed\\|renamed\\|unknown"
@@ -430,7 +436,7 @@ property containing author and date information."
     ;; to allow saving space by sharing the text properties.
     (setq vc-bzr-annotation-table (make-hash-table :test 'equal))
     (goto-char (point-min))
-    (while (re-search-forward "^\\( *[0-9]+\\) +\\(.+\\) +\\([0-9]\\{8\\}\\) |"
+    (while (re-search-forward "^\\( *[0-9]+ *\\) \\([^\n ]+\\) +\\([0-9]\\{8\\}\\) |"
                               nil t)
       (let* ((rev (match-string 1))
              (author (match-string 2))
@@ -446,7 +452,7 @@ property containing author and date information."
         (insert tag " |")))))
 
 (defun vc-bzr-annotate-time ()
-  (when (re-search-forward "^ *[0-9]+ |" nil t)
+  (when (re-search-forward "^ *[0-9]+ +|" nil t)
     (let ((prop (get-text-property (line-beginning-position) 'help-echo)))
       (string-match "[0-9]+\\'" prop)
       (vc-annotate-convert-time

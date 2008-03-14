@@ -1,3 +1,9 @@
+2008-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-registered): Fail if `bzr' is not installed.
+	(vc-bzr-annotate-command): Preserve line alignment.
+	(vc-bzr-annotate-time): Accept space used to preserve alignment.
+
 2008-03-13  Richard Stallman  <rms@gnu.org>
 
 	* mouse.el (mouse-yank-secondary): Nice error msg if no secondary sel.
