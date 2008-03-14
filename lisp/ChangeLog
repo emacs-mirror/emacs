@@ -44,6 +44,13 @@
 	(french-calendar-day-name-array, french-calendar-special-days-array):
 	Add doc strings.
 
+	* calendar/cal-hebrew.el (displayed-month, displayed-year)
+	(original-date): Move declarations where needed.
+	(calendar-goto-hebrew-date, list-hebrew-diary-entries, diary-yahrzeit):
+	Doc fix.
+	(list-hebrew-diary-entries, mark-hebrew-diary-entries): Move some
+	constant variables outside the loop.  Use dolist.
+
 	* calendar/cal-julian.el (calendar-absolute-from-julian): Move
 	definition before use.  Remove un-needed local `day'.
 	(calendar-goto-julian-date, calendar-goto-astro-day-number): Doc fix.
