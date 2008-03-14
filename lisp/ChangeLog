@@ -112,6 +112,7 @@
 	* calendar/calendar.el (diary-file): Doc fix.
 	(calendar-buffer-list): Return buffers rather than strings (fixes
 	previous change).
+	(hebrew-holidays-4): Fix typo.
 
 	* calendar/holidays.el (displayed-month, displayed-year):
 	Move declarations where needed.
