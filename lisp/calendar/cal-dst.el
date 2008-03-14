@@ -154,10 +154,10 @@ Return nil if no such transition can be found."
     ;; Heuristic: probe the time zone offset in the next three calendar
     ;; quarters, looking for a time zone offset different from TIME.
     (while (and quarters (eq time-utc-diff hi-utc-diff))
-      (setq hi (cons (+ (car time) (* (car quarters) quarter-multiple)) 0))
-      (setq hi-zone (current-time-zone hi))
-      (setq hi-utc-diff (car hi-zone))
-      (setq quarters (cdr quarters)))
+      (setq hi (cons (+ (car time) (* (car quarters) quarter-multiple)) 0)
+            hi-zone (current-time-zone hi)
+            hi-utc-diff (car hi-zone)
+            quarters (cdr quarters)))
     (and
      time-utc-diff
      hi-utc-diff
@@ -224,34 +224,31 @@ The result has the proper form for `calendar-daylight-savings-starts'."
          (prevday-sec (- -1 utc-diff)) ;; last sec of previous local day
          (year (1+ y)))
     ;; Scan through the next few years until only one rule remains.
-    (while
-        (let ((rules candidate-rules)
-              new-rules)
-          (while
-              (let*
-                  ((rule (car rules))
-                   (date
-                    ;; The following is much faster than
-                    ;; (calendar-absolute-from-gregorian (eval rule)).
-                    (cond ((eq (car rule) 'calendar-nth-named-day)
-                           (eval (cons 'calendar-nth-named-absday (cdr rule))))
-                          ((eq (car rule) 'calendar-gregorian-from-absolute)
-                           (eval (car (cdr rule))))
-                          (t (let ((g (eval rule)))
-                               (calendar-absolute-from-gregorian g))))))
-                (or (equal
-                     (current-time-zone
-                      (calendar-time-from-absolute date prevday-sec))
-                     (current-time-zone
-                      (calendar-time-from-absolute (1+ date) prevday-sec)))
-                    (setq new-rules (cons rule new-rules)))
-                (setq rules (cdr rules))))
-          ;; If no rules remain, just use the first candidate rule;
-          ;; it's wrong in general, but it's right for at least one year.
-          (setq candidate-rules (if new-rules (nreverse new-rules)
-                                  (list (car candidate-rules))))
-          (setq year (1+ year))
-          (cdr candidate-rules)))
+    (while (let ((rules candidate-rules)
+                 new-rules)
+             (dolist (rule rules)
+               (let ((date
+                      ;; The following is much faster than
+                      ;; (calendar-absolute-from-gregorian (eval rule)).
+                      (cond ((eq (car rule) 'calendar-nth-named-day)
+                             (eval (cons 'calendar-nth-named-absday
+                                         (cdr rule))))
+                            ((eq (car rule) 'calendar-gregorian-from-absolute)
+                             (eval (cadr rule)))
+                            (t (calendar-absolute-from-gregorian
+                                (eval rule))))))
+                 (or (equal
+                      (current-time-zone
+                       (calendar-time-from-absolute date prevday-sec))
+                      (current-time-zone
+                       (calendar-time-from-absolute (1+ date) prevday-sec)))
+                     (setq new-rules (cons rule new-rules)))))
+             ;; If no rules remain, just use the first candidate rule;
+             ;; it's wrong in general, but it's right for at least one year.
+             (setq candidate-rules (if new-rules (nreverse new-rules)
+                                     (list (car candidate-rules)))
+                   year (1+ year))
+             (cdr candidate-rules)))
     (car candidate-rules)))
 
 ;; TODO it might be better to extract this information directly from
@@ -265,7 +262,7 @@ for `calendar-current-time-zone'."
   (let* ((t0 (or time (current-time)))
          (t0-zone (current-time-zone t0))
          (t0-utc-diff (car t0-zone))
-         (t0-name (car (cdr t0-zone))))
+         (t0-name (cadr t0-zone)))
     (if (not t0-utc-diff)
         ;; Little or no time zone information is available.
         (list nil nil t0-name t0-name nil nil nil nil)
@@ -277,7 +274,7 @@ for `calendar-current-time-zone'."
           ;; Use heuristics to find daylight saving parameters.
           (let* ((t1-zone (current-time-zone t1))
                  (t1-utc-diff (car t1-zone))
-                 (t1-name (car (cdr t1-zone)))
+                 (t1-name (cadr t1-zone))
                  (t1-date-sec (calendar-absolute-from-time t1 t0-utc-diff))
                  (t2-date-sec (calendar-absolute-from-time t2 t1-utc-diff))
                  ;; TODO When calendar-dst-check-each-year-flag is non-nil,
@@ -374,34 +371,34 @@ For example, -300 for New York City, -480 for Los Angeles."
   :group 'calendar-dst)
 
 (defcustom calendar-daylight-time-offset
-  (or (car (cdr calendar-current-time-zone-cache)) 60)
+  (or (cadr calendar-current-time-zone-cache) 60)
   "Number of minutes difference between daylight saving and standard time.
 If the locale never uses daylight saving time, set this to 0."
   :type 'integer
   :group 'calendar-dst)
 
 (defcustom calendar-standard-time-zone-name
-  (or (car (nthcdr 2 calendar-current-time-zone-cache)) "EST")
+  (or (nth 2 calendar-current-time-zone-cache) "EST")
   "Abbreviated name of standard time zone at `calendar-location-name'.
 For example, \"EST\" in New York City, \"PST\" for Los Angeles."
   :type 'string
   :group 'calendar-dst)
 
 (defcustom calendar-daylight-time-zone-name
-  (or (car (nthcdr 3 calendar-current-time-zone-cache)) "EDT")
+  (or (nth 3 calendar-current-time-zone-cache) "EDT")
   "Abbreviated name of daylight saving time zone at `calendar-location-name'.
 For example, \"EDT\" in New York City, \"PDT\" for Los Angeles."
   :type 'string
   :group 'calendar-dst)
 
 (defcustom calendar-daylight-savings-starts-time
-  (or (car (nthcdr 6 calendar-current-time-zone-cache)) 120)
+  (or (nth 6 calendar-current-time-zone-cache) 120)
   "Number of minutes after midnight that daylight saving time starts."
   :type 'integer
   :group 'calendar-dst)
 
 (defcustom calendar-daylight-savings-ends-time
-  (or (car (nthcdr 7 calendar-current-time-zone-cache))
+  (or (nth 7 calendar-current-time-zone-cache)
       calendar-daylight-savings-starts-time)
   "Number of minutes after midnight that daylight saving time ends."
   :type 'integer
