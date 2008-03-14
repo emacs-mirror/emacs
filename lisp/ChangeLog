@@ -53,6 +53,16 @@
 	Doc fix.
 	(calendar-mouse-goto-date): Move definition before use.
 
+	* calendar/cal-move.el (calendar-cursor-to-nearest-date): Use or, when.
+	Move definition before use.
+	(calendar-cursor-to-visible-date): Move definition before use.
+	(calendar-scroll-left): Use unless and zerop.  Combine lets into one,
+	and place inside the conditional.
+	(calendar-forward-day): Simplify.
+	(calendar-end-of-month): Use unless.
+	(calendar-goto-day-of-year): Doc fix.
+	Relocate obsolete aliases after their replacements.
+
 	* calendar/cal-persia.el (calendar-goto-persian-date): Doc fix.
 
 	* calendar/diary-lib.el (mark-diary-entries): Move some constant
