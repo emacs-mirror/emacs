@@ -38,13 +38,13 @@
 
 (require 'cal-julian)
 
-(defvar calendar-islamic-month-name-array
+(defconst calendar-islamic-month-name-array
   ["Muharram" "Safar" "Rabi I" "Rabi II" "Jumada I" "Jumada II"
    "Rajab" "Sha'ban" "Ramadan" "Shawwal" "Dhu al-Qada" "Dhu al-Hijjah"]
 "Array of strings giving the names of the Islamic months.")
 
-(defvar calendar-islamic-epoch (calendar-absolute-from-julian '(7 16 622))
-  "Absolute date of start of Islamic calendar = August 29, 284 A.D. (Julian).")
+(defconst calendar-islamic-epoch (calendar-absolute-from-julian '(7 16 622))
+  "Absolute date of start of Islamic calendar = August 29, 284 AD (Julian).")
 
 (defun islamic-calendar-leap-year-p (year)
   "Return t if YEAR is a leap year on the Islamic calendar."
@@ -194,18 +194,13 @@ nil if it is not visible in the current calendar window."
             (if (calendar-date-is-visible-p date)
                 (list (list date string))))))))
 
-;; l-i-d-e should be called from diary code.
-(declare-function add-to-diary-list "diary-lib"
-                  (date string specifier &optional marker globcolor literal))
-
-(defvar number)                         ; from diary-list-entries
-(defvar original-date)
+(autoload 'diary-list-entries-1 "diary-lib")
 
 ;;;###diary-autoload
 (defun list-islamic-diary-entries ()
   "Add any Islamic date entries from the diary file to `diary-entries-list'.
 Islamic date diary entries must be prefaced by `islamic-diary-entry-symbol'
-\(normally an `I').  The same diary date forms govern the style
+\(normally an `I').  The same `diary-date-forms' govern the style
 of the Islamic calendar entries, except that the Islamic month
 names must be spelled in full.  The Islamic months are numbered
 from 1 to 12 with Muharram being 1 and 12 being Dhu al-Hijjah.
@@ -213,75 +208,9 @@ If an Islamic date diary entry begins with `diary-nonmarking-symbol',
 the entry will appear in the diary listing, but will not be
 marked in the calendar.  This function is provided for use with
 `nongregorian-diary-listing-hook'."
-  (if (< 0 number)
-      (let ((buffer-read-only nil)
-            (diary-modified (buffer-modified-p))
-            (gdate original-date)
-            (mark (regexp-quote diary-nonmarking-symbol)))
-        (dotimes (idummy number)
-          (let* ((idate (calendar-islamic-from-absolute
-                         (calendar-absolute-from-gregorian gdate)))
-                 (month (extract-calendar-month idate))
-                 (day (extract-calendar-day idate))
-                 (year (extract-calendar-year idate))
-                 backup)
-            (dolist (date-form diary-date-forms)
-              (if (setq backup (eq (car date-form) 'backup))
-                  (setq date-form (cdr date-form)))
-              (let* ((dayname
-                      (format "%s\\|%s\\.?"
-                              (calendar-day-name gdate)
-                              (calendar-day-name gdate 'abbrev)))
-                     (calendar-month-name-array
-                      calendar-islamic-month-name-array)
-                     (monthname
-                      (concat "\\*\\|" (calendar-month-name month)))
-                     (month (concat "\\*\\|0*" (int-to-string month)))
-                     (day (concat "\\*\\|0*" (int-to-string day)))
-                     (year
-                      (concat "\\*\\|0*" (int-to-string year)
-                              (if abbreviated-calendar-year
-                                  (concat "\\|" (int-to-string (% year 100)))
-                                "")))
-                     ;; FIXME ^M can go now.
-                     (regexp
-                      (concat
-                       "\\(\\`\\|\^M\\|\n\\)" mark "?"
-                       (regexp-quote islamic-diary-entry-symbol)
-                       "\\("
-                       (mapconcat 'eval date-form "\\)\\(")
-                       "\\)"))
-                     (case-fold-search t))
-                (goto-char (point-min))
-                (while (re-search-forward regexp nil t)
-                  (if backup (re-search-backward "\\<" nil t))
-                  (if (and (or (char-equal (preceding-char) ?\^M)
-                               (char-equal (preceding-char) ?\n))
-                           (not (looking-at " \\|\^I")))
-                      ;; Diary entry that consists only of date.
-                      (backward-char 1)
-                    ;; Found a nonempty diary entry--make it visible and
-                    ;; add it to the list.
-                    (let ((entry-start (point))
-                          (date-start))
-                      (re-search-backward "\^M\\|\n\\|\\`")
-                      (setq date-start (point))
-                      (re-search-forward "\^M\\|\n" nil t 2)
-                      (while (looking-at " \\|\^I")
-                        (re-search-forward "\^M\\|\n" nil t))
-                      (backward-char 1)
-                      (subst-char-in-region date-start (point) ?\^M ?\n t)
-                      (add-to-diary-list
-                       gdate
-                       (buffer-substring-no-properties entry-start (point))
-                       (buffer-substring-no-properties
-                        (1+ date-start) (1- entry-start))
-                       (copy-marker entry-start))))))))
-          (setq gdate
-                (calendar-gregorian-from-absolute
-                 (1+ (calendar-absolute-from-gregorian gdate)))))
-        (set-buffer-modified-p diary-modified))
-    (goto-char (point-min))))
+  (diary-list-entries-1 calendar-islamic-month-name-array
+                        islamic-diary-entry-symbol
+                        'calendar-islamic-from-absolute))
 
 ;;;###diary-autoload
 (defun mark-islamic-calendar-date-pattern (month day year)
@@ -341,112 +270,17 @@ A value of 0 in any position is a wildcard."
                  (mark-visible-calendar-date
                   (calendar-gregorian-from-absolute date)))))))))
 
-(declare-function diary-name-pattern "diary-lib"
-                  (string-array &optional abbrev-array paren))
-
-(declare-function mark-calendar-days-named "diary-lib"
-                  (dayname &optional color))
+(autoload 'diary-mark-entries-1 "diary-lib")
 
 ;;;###diary-autoload
 (defun mark-islamic-diary-entries ()
   "Mark days in the calendar window that have Islamic date diary entries.
-Mark each entry in `diary-file' (or included files) visible in the calendar
-window.  Islamic date entries are prefaced by `islamic-diary-entry-symbol'
-\(normally an `I').  The same `diary-date-forms' govern the style
-of the Islamic calendar entries, except that the Islamic month
-names must be spelled in full.  The Islamic months are numbered
-from 1 to 12 with Muharram being 1 and 12 being Dhu al-Hijjah.
-Islamic date diary entries that begin with `diary-nonmarking-symbol'
-are not marked.  This function is provided for use as part of
-`nongregorian-diary-marking-hook'."
-  (let ((dayname (diary-name-pattern calendar-day-name-array
-                                     calendar-day-abbrev-array))
-        (monthname
-         (format "%s\\|\\*"
-                 (diary-name-pattern calendar-islamic-month-name-array)))
-        (month "[0-9]+\\|\\*")
-        (day "[0-9]+\\|\\*")
-        (year "[0-9]+\\|\\*")
-        (case-fold-search t))
-    (dolist (date-form diary-date-forms)
-      (if (eq (car date-form) 'backup)  ; ignore 'backup directive
-          (setq date-form (cdr date-form)))
-      (let* ((l (length date-form))
-             (d-name-pos (- l (length (memq 'dayname date-form))))
-             (d-name-pos (if (/= l d-name-pos) (+ 2 d-name-pos)))
-             (m-name-pos (- l (length (memq 'monthname date-form))))
-             (m-name-pos (if (/= l m-name-pos) (+ 2 m-name-pos)))
-             (d-pos (- l (length (memq 'day date-form))))
-             (d-pos (if (/= l d-pos) (+ 2 d-pos)))
-             (m-pos (- l (length (memq 'month date-form))))
-             (m-pos (if (/= l m-pos) (+ 2 m-pos)))
-             (y-pos (- l (length (memq 'year date-form))))
-             (y-pos (if (/= l y-pos) (+ 2 y-pos)))
-             (regexp
-              (concat
-               "\\(\\`\\|\^M\\|\n\\)"
-               (regexp-quote islamic-diary-entry-symbol)
-               "\\("
-               (mapconcat 'eval date-form "\\)\\(")
-               "\\)")))
-        (goto-char (point-min))
-        (while (re-search-forward regexp nil t)
-          (let* ((dd-name
-                  (if d-name-pos
-                      (buffer-substring
-                       (match-beginning d-name-pos)
-                       (match-end d-name-pos))))
-                 (mm-name
-                  (if m-name-pos
-                      (buffer-substring
-                       (match-beginning m-name-pos)
-                       (match-end m-name-pos))))
-                 (mm (string-to-number
-                      (if m-pos
-                      (buffer-substring
-                       (match-beginning m-pos)
-                       (match-end m-pos))
-                      "")))
-                 (dd (string-to-number
-                      (if d-pos
-                      (buffer-substring
-                       (match-beginning d-pos)
-                       (match-end d-pos))
-                      "")))
-                 (y-str (if y-pos
-                            (buffer-substring
-                             (match-beginning y-pos)
-                             (match-end y-pos))))
-                 (yy (if (not y-str)
-                         0
-                       (if (and (= (length y-str) 2)
-                                abbreviated-calendar-year)
-                       (let* ((current-y
-                               (extract-calendar-year
-                                (calendar-islamic-from-absolute
-                                 (calendar-absolute-from-gregorian
-                                  (calendar-current-date)))))
-                              (y (+ (string-to-number y-str)
-                                    (* 100 (/ current-y 100)))))
-                         (if (> (- y current-y) 50)
-                             (- y 100)
-                           (if (> (- current-y y) 50)
-                               (+ y 100)
-                             y)))
-                       (string-to-number y-str)))))
-            (if dd-name
-                (mark-calendar-days-named
-                 (cdr (assoc-string dd-name
-                 (calendar-make-alist
-                  calendar-day-name-array
-                  0 nil calendar-day-abbrev-array) t)))
-              (if mm-name
-                  (setq mm (if (string-equal mm-name "*") 0
-                             (cdr (assoc-string
-                                   mm-name
-                                   (calendar-make-alist
-                                    calendar-islamic-month-name-array) t)))))
-              (mark-islamic-calendar-date-pattern mm dd yy))))))))
+Marks each entry in `diary-file' (or included files) visible in the calendar
+window.  See `list-islamic-diary-entries' for more information."
+  (diary-mark-entries-1 calendar-islamic-month-name-array
+                        islamic-diary-entry-symbol
+                        'calendar-islamic-from-absolute
+                        'mark-islamic-calendar-date-pattern))
 
 ;;;###cal-autoload
 (defun insert-islamic-diary-entry (arg)
