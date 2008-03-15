@@ -212,7 +212,7 @@ are never leap months."
               ;; List is too short for a leap month.
               (number-chinese-months (cdr list) (1+ start))
             (if (and (cddr list)        ; at least two more months...
-                     (<= (car (cddr list))
+                     (<= (nth 2 list)
                          (chinese-zodiac-sign-on-or-after (cadr list))))
                 ;; Next month is a leap month.
                 (cons (list (+ start 0.5) (cadr list))
@@ -371,18 +371,18 @@ Gregorian date Sunday, December 31, 1 BC."
          (list (append (chinese-year (1- g-year))
                        (chinese-year g-year)
                        (chinese-year (1+ g-year)))))
-    (while (<= (car (cdr (car (cdr list)))) date)
+    (while (<= (cadr (cadr list)) date)
       ;; The first month on the list is in Chinese year c-year.
       ;; Date is on or after start of second month on list...
-      (if (= 1 (car (car (cdr list))))
+      (if (= 1 (caar (cdr list)))
           ;; Second month on list is a new Chinese year...
           (setq c-year (1+ c-year)))
       ;; ...so first month on list is of no interest.
       (setq list (cdr list)))
     (list (/ (1- c-year) 60)
           (calendar-mod c-year 60)
-          (car (car list))
-          (1+ (- date (car (cdr (car list))))))))
+          (caar list)
+          (1+ (- date (cadr (car list)))))))
 
 ;; Bound in generate-calendar.
 (defvar displayed-month)
