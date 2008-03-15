@@ -78,8 +78,6 @@
 ;; Make sure calendar is loaded when we compile this.
 (require 'calendar)
 
-(defvar diary-selective-display)
-
 
 (defgroup appt nil
   "Appointment notification."
@@ -248,6 +246,8 @@ The variable `appt-audible' controls the audible reminder."
     (if appt-audible (beep 1))))
 
 
+(defvar diary-selective-display)
+
 (defun appt-check (&optional force)
   "Check for an appointment and update any reminder display.
 If optional argument FORCE is non-nil, reparse the diary file for
@@ -358,7 +358,7 @@ displayed in a window:
 	  ;; message issued, get the first time off of the list and
 	  ;; calculate the number of minutes until the appointment.
 	  (if (and appt-issue-message appt-time-msg-list)
-	      (let ((appt-comp-time (car (car (car appt-time-msg-list)))))
+	      (let ((appt-comp-time (caar (car appt-time-msg-list))))
 		(setq min-to-app (- appt-comp-time cur-comp-time))
 
 		(while (and appt-time-msg-list
@@ -366,7 +366,7 @@ displayed in a window:
 		  (setq appt-time-msg-list (cdr appt-time-msg-list))
 		  (if appt-time-msg-list
 		      (setq appt-comp-time
-			    (car (car (car appt-time-msg-list))))))
+			    (caar (car appt-time-msg-list)))))
 		;; If we have an appointment between midnight and
 		;; `appt-message-warning-time' minutes after midnight,
 		;; we must begin to issue a message before midnight.
@@ -494,7 +494,7 @@ The time should be in either 24 hour format or am/pm format."
 				    ;; doublequotes around it.
                                     (prin1-to-string
 				     (substring-no-properties
-				      (car (cdr element)) 0))
+				      (cadr element) 0))
                                     " from list? "))
              (test-input (y-or-n-p prompt-string)))
         (setq tmp-msg-list (cdr tmp-msg-list))
@@ -556,7 +556,7 @@ appointment package (if it is not already active)."
                 ;; Parse the entries for today.
                 (while (and entry-list
                             (calendar-date-equal
-                             (calendar-current-date) (car (car entry-list))))
+                             (calendar-current-date) (caar entry-list)))
                   (let ((time-string (cadr (car entry-list))))
                     (while (string-match appt-time-regexp time-string)
                       (let* ((beg (match-beginning 0))
@@ -589,12 +589,12 @@ appointment package (if it is not already active)."
                  (cur-hour (nth 2 now))
                  (cur-min (nth 1 now))
                  (cur-comp-time (+ (* cur-hour 60) cur-min))
-                 (appt-comp-time (car (caar appt-time-msg-list))))
+                 (appt-comp-time (caar (car appt-time-msg-list))))
 
             (while (and appt-time-msg-list (< appt-comp-time cur-comp-time))
               (setq appt-time-msg-list (cdr appt-time-msg-list))
               (if appt-time-msg-list
-                  (setq appt-comp-time (car (caar appt-time-msg-list))))))))))
+                  (setq appt-comp-time (caar (car appt-time-msg-list))))))))))
 
 
 (defun appt-sort-list (appt-list)
