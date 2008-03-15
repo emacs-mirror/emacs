@@ -4,7 +4,7 @@
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Steve Fisk <fisk@bowdoin.edu>
-;;      Edward M. Reingold <reingold@cs.uiuc.edu>
+;;         Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: Calendar, LaTeX
@@ -150,7 +150,7 @@ For example, to include extra packages:
 
 (defcustom cal-tex-hook nil
   "List of functions called after any LaTeX calendar buffer is generated.
-You can use this to do postprocessing on the buffer.  For example, to change
+You can use this to do post-processing on the buffer.  For example, to change
 characters with diacritical marks to their LaTeX equivalents, use
     (add-hook 'cal-tex-hook
               (lambda () (iso-iso2tex (point-min) (point-max))))"
@@ -523,12 +523,11 @@ It shows holiday and diary entries if `cal-tex-holidays' and
         (setq other-month month
               other-year year)
         (cal-tex-insert-days month year diary-list holidays cal-tex-day-prefix)
-        (when (= (mod (calendar-absolute-from-gregorian
-                       (list month
-                             (calendar-last-day-of-month month year)
-                             year))
-                      7)
-                 6)                   ; last day of month was Saturday
+        (when (= 6 (mod (calendar-absolute-from-gregorian
+                         (list month
+                               (calendar-last-day-of-month month year)
+                               year))
+                        7))           ; last day of month was Saturday
           (cal-tex-hfill)
           (cal-tex-nl))
         (increment-calendar-month month year 1))
@@ -637,7 +636,7 @@ in the calendar starting in MONTH YEAR."
   (let ((last-day (calendar-last-day-of-month month year))
         any-days the-sunday)          ; the day of week of last Sunday
     (calendar-for-loop i from (- last-day 6) to last-day do
-       (if (= 0 (calendar-day-of-week (list month i year)))
+       (if (zerop (calendar-day-of-week (list month i year)))
            (setq the-sunday i)))
     (calendar-for-loop i from the-sunday to last-day do
        (if (memq (calendar-day-of-week (list month i year))
@@ -1579,7 +1578,7 @@ informative header, and run HOOK."
   "Initialize the output LaTeX calendar buffer, `cal-tex-buffer'.
 Select the output buffer, and insert the preamble for a calendar
 of WEEKS weeks.  Insert code for landscape mode if LANDSCAPE is
-non-nil.  Use pointsize SIZE.  Optional argument APPEND, if
+non-nil.  Use point-size SIZE.  Optional argument APPEND, if
 non-nil, means add to end of buffer without erasing current contents."
   (let ((width "18cm")
         (height "24cm"))
@@ -1645,7 +1644,7 @@ non-nil, means add to end of buffer without erasing current contents."
       head)))
 
 (defun cal-tex-month-name (month)
-  "The name of MONTH, LaTeXified."
+  "The name of MONTH, LaTeX-ified."
   (cal-tex-LaTeXify-string (calendar-month-name month)))
 
 (defun cal-tex-hfill ()
