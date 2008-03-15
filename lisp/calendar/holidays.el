@@ -52,9 +52,6 @@
 (eval-and-compile
   (load "hol-loaddefs" nil 'quiet))
 
-(defvar displayed-month)                ; from generate-calendar
-(defvar displayed-year)
-
 ;;;###diary-autoload
 (defun calendar-holiday-list ()
   "Form the list of holidays that occur on dates in the calendar window.
@@ -74,11 +71,14 @@ The holidays are those in the list `calendar-holidays'."
             (setq holiday-list (append holidays holiday-list)))))
     (setq holiday-list (sort holiday-list 'calendar-date-compare))))
 
+(defvar displayed-month)                ; from generate-calendar
+(defvar displayed-year)
+
 ;;;###cal-autoload
 (defun calendar-list-holidays ()
   "Create a buffer containing the holidays for the current calendar window.
 The holidays are those in the list `calendar-notable-days'.  Returns t if any
-holidays are found, nil if not."
+holidays are found, otherwise nil."
   (interactive)
   (message "Looking up holidays...")
   (let ((holiday-list (calendar-holiday-list))
@@ -331,11 +331,11 @@ Returns nil if it is not visible in the current calendar window."
          (y2 y1))
     (increment-calendar-month m1 y1 -1)
     (increment-calendar-month m2 y2 1)
-    (let* ((d1                 ;  first possible base date for holiday
+    (let* ((d1                 ; first possible base date for holiday
             (+ (calendar-nth-named-absday 1 dayname m1 y1)
                (* -7 n)
                (if (> n 0) 1 -7)))
-           (d2                  ;  last possible base date for holiday
+           (d2                  ; last possible base date for holiday
             (+ (calendar-nth-named-absday -1 dayname m2 y2)
                (* -7 n)
                (if (> n 0) 7 -1)))
@@ -453,14 +453,14 @@ is non-nil)."
               (setq res-list (append res res-list)))))
     (let* ((century (1+ (/ displayed-year 100)))
            (shifted-epact               ; age of moon for April 5...
-            (% (+ 14 (* 11 (% displayed-year 19)) ;     ...by Nicaean rule
+            (% (+ 14 (* 11 (% displayed-year 19)) ; ...by Nicaean rule
                   (-     ; ...corrected for the Gregorian century rule
                    (/ (* 3 century) 4))
                   (/       ; ...corrected for Metonic cycle inaccuracy
                    (+ 5 (* 8 century)) 25)
-                  (* 30 century))  ;              keeps value positive
+                  (* 30 century))       ; keeps value positive
                30))
-           (adjusted-epact              ;  adjust for 29.5 day month
+           (adjusted-epact              ; adjust for 29.5 day month
             (if (or (zerop shifted-epact)
                     (and (= shifted-epact 1) (< 10 (% displayed-year 19))))
                 (1+ shifted-epact)
