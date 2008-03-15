@@ -1,3 +1,8 @@
+2008-03-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* buffer.c (overlays_in, Foverlays_in): Include empty overlays
+	at end of range when it coincides with the end of the buffer.
+
 2008-03-14  Eli Zaretskii  <eliz@gnu.org>
 
 	* dired.c (Ffile_attributes) [WINDOWSNT]: Force inode be positive.
