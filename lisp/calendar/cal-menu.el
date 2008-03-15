@@ -1,7 +1,7 @@
 ;;; cal-menu.el --- calendar functions for menu bar and popup menu support
 
-;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;;         Lara Rios <lrios@coewl.cen.uiuc.edu>
@@ -161,7 +161,7 @@
     ["Mark Holidays" mark-calendar-holidays]))
 
 (defconst cal-menu-goto-menu
-  '("Goto"
+  '("Go To"
     ["Today" calendar-goto-today]
     ["Beginning of Week" calendar-beginning-of-week]
     ["End of Week" calendar-end-of-week]
@@ -235,7 +235,7 @@ ERROR is non-nil, otherwise just returns nil."
     (calendar-cursor-to-date error)))
 
 (defun calendar-mouse-goto-date (date)
-  "Goto DATE in the buffer specified by `last-input-event'."
+  "Go to DATE in the buffer specified by `last-input-event'."
   (set-buffer (window-buffer (posn-window (event-start last-input-event))))
   (calendar-goto-date date))
 
