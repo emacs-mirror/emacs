@@ -1542,7 +1542,9 @@ This function returns a list of the overlays that overlap the region
 @var{beg} through @var{end}.  ``Overlap'' means that at least one
 character is contained within the overlay and also contained within the
 specified region; however, empty overlays are included in the result if
-they are located at @var{beg}, or strictly between @var{beg} and @var{end}.
+they are located at @var{beg}, strictly between @var{beg} and @var{end},
+or at @var{end} when @var{end} denotes the position at the end of the
+buffer.
 @end defun
 
 @defun next-overlay-change pos
