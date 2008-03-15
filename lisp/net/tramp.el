@@ -1265,28 +1265,32 @@ updated after changing this variable.
 Also see `tramp-file-name-structure'.")
 
 ;;;###autoload
-(defconst tramp-completion-file-name-regexp-unified
+(defconst tramp-root-regexp
   (if (memq system-type '(cygwin windows-nt))
-      "^\\([a-zA-Z]:\\)?/$\\|^\\([a-zA-Z]:\\)?/[^/:][^/]*$"
-    "^/$\\|^/[^/:][^/]*$")
+      "^/$\\|^\\([a-zA-Z]:\\)?\\(/\\|\\\\\\(\\\\\\)?\\)"
+    "^/$\\|^/")
+  "Beginning of an incomplete Tramp file name.
+Usually, it is just \"^/\".  On W32 systems, there might be a
+volume letter, which will be removed by `tramp-drop-volume-letter'.
+It could be either \"^x:/\", either \"^x:\\\\\".")
+
+;;;###autoload
+(defconst tramp-completion-file-name-regexp-unified
+  (concat tramp-root-regexp "[^/]*$")
   "Value for `tramp-completion-file-name-regexp' for unified remoting.
-Emacs (not XEmacs) uses a unified filename syntax for Ange-FTP and
-Tramp.  See `tramp-file-name-structure' for more explanations.")
+GNU Emacs uses a unified filename syntax for Tramp and Ange-FTP.
+See `tramp-file-name-structure' for more explanations.")
 
 ;;;###autoload
 (defconst tramp-completion-file-name-regexp-separate
-  (if (memq system-type '(cygwin windows-nt))
-      "^\\([a-zA-Z]:\\)?/\\([[][^]]*\\)?$"
-    "^/\\([[][^]]*\\)?$")
+  (concat tramp-root-regexp "[[][^]]*$")
   "Value for `tramp-completion-file-name-regexp' for separate remoting.
 XEmacs uses a separate filename syntax for Tramp and EFS.
 See `tramp-file-name-structure' for more explanations.")
 
 ;;;###autoload
 (defconst tramp-completion-file-name-regexp-url
-  (if (memq system-type '(cygwin windows-nt))
-      "^\\([a-zA-Z]:\\)?/$\\|^\\([a-zA-Z]:\\)?/[^/:]+\\(:\\(/\\(/[^/]*\\)?\\)?\\)?$"
-    "^/$\\|^/[^/:]+\\(:\\(/\\(/[^/]*\\)?\\)?\\)?$")
+  (concat tramp-root-regexp "[^/:]+\\(:\\(/\\(/[^/]*\\)?\\)?\\)?$")
   "Value for `tramp-completion-file-name-regexp' for URL-like remoting.
 See `tramp-file-name-structure' for more explanations.")
 
@@ -3051,23 +3055,24 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
 First arg OP is either `copy' or `rename' and indicates the operation.
 FILENAME is the source file, NEWNAME the target file.
 KEEP-DATE is non-nil if NEWNAME should have the same timestamp as FILENAME."
-  (let ((modtime (nth 5 (file-attributes filename))))
-    (unwind-protect
-	(with-temp-buffer
-	  (let ((coding-system-for-read 'binary))
-	    (insert-file-contents-literally filename))
-	  ;; We don't want the target file to be compressed, so we
-	  ;; let-bind `jka-compr-inhibit' to t.
-	  (let ((coding-system-for-write 'binary)
-		(jka-compr-inhibit t))
-	    (write-region (point-min) (point-max) newname))))
-    ;; KEEP-DATE handling.
-    (when keep-date (set-file-times newname modtime))
-    ;; Set the mode.
-    (set-file-modes newname (file-modes filename))
-    ;; If the operation was `rename', delete the original file.
-    (unless (eq op 'copy)
-      (delete-file filename))))
+  (with-temp-buffer
+    ;; We must disable multibyte, because binary data shall not be
+    ;; converted.
+    (set-buffer-multibyte nil)
+    (let ((coding-system-for-read 'binary)
+	  (jka-compr-inhibit t))
+      (insert-file-contents-literally filename))
+    ;; We don't want the target file to be compressed, so we let-bind
+    ;; `jka-compr-inhibit' to t.
+    (let ((coding-system-for-write 'binary)
+	  (jka-compr-inhibit t))
+      (write-region (point-min) (point-max) newname)))
+  ;; KEEP-DATE handling.
+  (when keep-date (set-file-times newname (nth 5 (file-attributes filename))))
+  ;; Set the mode.
+  (set-file-modes newname (file-modes filename))
+  ;; If the operation was `rename', delete the original file.
+  (unless (eq op 'copy) (delete-file filename)))
 
 (defun tramp-do-copy-or-rename-file-directly
  (op filename newname ok-if-already-exists keep-date preserve-uid-gid)
@@ -3485,13 +3490,15 @@ This is like `dired-recursive-delete-directory' for Tramp files."
        (with-current-buffer (tramp-get-buffer v)
 	 (buffer-string))))))
 
-;; CCC is this the right thing to do?
 (defun tramp-handle-unhandled-file-name-directory (filename)
   "Like `unhandled-file-name-directory' for Tramp files."
+  ;; With Emacs 23, we could simply return `nil'.  But we must keep it
+  ;; for backward compatibility.
   (expand-file-name "~/"))
 
 ;; Canonicalization of file names.
 
+;;;###autoload
 (defun tramp-drop-volume-letter (name)
   "Cut off unnecessary drive letter from file NAME.
 The function `tramp-handle-expand-file-name' calls `expand-file-name'
@@ -3500,13 +3507,10 @@ but the remote system is Unix, this introduces a superfluous drive
 letter into the file name.  This function removes it.
 
 Doesn't do anything if the NAME does not start with a drive letter."
-  (if (and (> (length name) 1)
-           (char-equal (aref name 1) ?:)
-           (let ((c1 (aref name 0)))
-             (or (and (>= c1 ?A) (<= c1 ?Z))
-                 (and (>= c1 ?a) (<= c1 ?z)))))
-      (substring name 2)
-    name))
+  (save-match-data
+    (if (and (stringp name) (string-match tramp-root-regexp name))
+	(replace-match "/" nil nil name)
+      name)))
 
 (defun tramp-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files.
@@ -4489,20 +4493,25 @@ Fall back to normal file name handler if no Tramp handler exists."
       (setq tramp-locked tl))))
 
 ;;;###autoload
+(defconst tramp-completion-file-name-handler-post-function
+  (if (and (featurep 'xemacs) (memq system-type '(cygwin windows-nt)))
+      'tramp-drop-volume-letter
+    'identity)
+  "Function to be called on the result of `tramp-completion-file-name-handler'.
+For GNU Emacs, handling of `file-name-all-completions' and
+`file-name-completion' is sufficient.  In the XEmacs case, there
+are more disturbing drive letters.")
+
+;;;###autoload
 (progn (defun tramp-completion-file-name-handler (operation &rest args)
   "Invoke Tramp file name completion handler.
 Falls back to normal file name handler if no Tramp file name handler exists."
-;;  (setq edebug-trace t)
-;;  (edebug-trace "%s" (with-output-to-string (backtrace)))
-
-;;  (mapcar 'trace-function-background
-;;	  (mapcar 'intern
-;;		  (all-completions "tramp-" obarray 'functionp)))
-
-  (let ((fn (assoc operation tramp-completion-file-name-handler-alist)))
-    (if fn
-	(save-match-data (apply (cdr fn) args))
-      (tramp-completion-run-real-handler operation args)))))
+  (funcall
+   tramp-completion-file-name-handler-post-function
+   (let ((fn (assoc operation tramp-completion-file-name-handler-alist)))
+     (if fn
+	 (save-match-data (apply (cdr fn) args))
+       (tramp-completion-run-real-handler operation args))))))
 
 ;;;###autoload
 (defsubst tramp-register-file-name-handler ()
@@ -5652,8 +5661,8 @@ seconds.  If not, it produces an error message with the given ERROR-ARGS."
   (when (memq (process-status proc) '(stop exit signal))
     (tramp-flush-connection-property proc)
     ;; The "Connection closed" and "exit" messages disturb the output
-    ;; for asynchronous processes. That's why we have echoed the Tramp
-    ;; prompt at the end.  Trailing messages can be removed.
+    ;; for asynchronous processes.  That's why we have echoed the
+    ;; Tramp prompt at the end.  Trailing messages can be removed.
     (let ((buf (process-buffer proc)))
       (when (buffer-live-p buf)
         (with-current-buffer buf
@@ -6149,8 +6158,8 @@ connection if a previous connection has died for some reason."
 	    ;; The error will be catched locally.
 	    (tramp-error vec 'file-error "Awake did fail")))
       (file-error
-       (tramp-flush-connection-property vec nil)
-       (tramp-flush-connection-property p nil)
+       (tramp-flush-connection-property vec)
+       (tramp-flush-connection-property p)
        (delete-process p)
        (setq p nil)))
 
