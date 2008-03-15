@@ -1,7 +1,7 @@
 ;;; cal-coptic.el --- calendar functions for the Coptic/Ethiopic calendars
 
-;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 2001, 2002, 2003, 2004, 2005, 2006, 2007,
+;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -46,7 +46,7 @@
   "Array of the month names in the Coptic calendar.")
 
 (defvar coptic-calendar-epoch (calendar-absolute-from-julian '(8 29 284))
-  "Absolute date of start of Coptic calendar = August 29, 284 A.D. (Julian).")
+  "Absolute date of start of Coptic calendar = August 29, 284 AD (Julian).")
 
 (defvar coptic-name "Coptic"
   "Used in some message strings.")
