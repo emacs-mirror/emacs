@@ -548,7 +548,7 @@ non-nil, the amount returned will be relative to past time worked."
   "Convert TIME to a floating point number."
   (+ (* (car time) 65536.0)
      (cadr time)
-     (/ (or (car (cdr (cdr time))) 0) 1000000.0)))
+     (/ (or (nth 2 time) 0) 1000000.0)))
 
 (defsubst timeclock-seconds-to-time (seconds)
   "Convert SECONDS (a floating point number) to an Emacs time structure."
@@ -632,7 +632,7 @@ PROMPT, ALIST and DEFAULT are used for the PROMPT, COLLECTION and DEF
 arguments of `completing-read'."
   (if (featurep 'xemacs)
       (let ((str (completing-read prompt alist)))
-	(if (or (null str) (= (length str) 0))
+	(if (or (null str) (zerop (length str)))
 	    default
 	  str))
     (completing-read prompt alist nil nil nil nil default)))
@@ -839,8 +839,8 @@ This is only provided for coherency when used by
   "Template for summing the result of FUNC on each element of DAY-LIST."
   `(let ((length 0))
      (while day-list
-       (setq length (+ length (,(eval func) (car day-list))))
-       (setq day-list (cdr day-list)))
+       (setq length (+ length (,(eval func) (car day-list)))
+	     day-list (cdr day-list)))
      length))
 
 (defun timeclock-day-list-required (day-list)
@@ -1091,7 +1091,7 @@ See the documentation for the given function if more info is needed."
 		   (if (null proj)
 		       (setcar (cddr log-data)
 			       (cons (cons desc (list entry))
-				     (car (cddr log-data))))
+				     (nth 2 log-data)))
 		     (nconc (cdr proj) (list entry)))))))
 	(forward-line))
       (if day
@@ -1210,13 +1210,12 @@ If optional argument TIME is non-nil, use that instead of the current time."
   "Compute the arithmetic mean of the values in the list L."
   (let ((total 0)
 	(count 0))
-    (while l
-      (setq total (+ total (car l))
-	    count (1+ count)
-	    l (cdr l)))
-    (if (> count 0)
-	(/ total count)
-      0)))
+    (dolist (thisl l)
+      (setq total (+ total thisl)
+	    count (1+ count)))
+    (if (zerop count)
+	0
+      (/ total count))))
 
 (defun timeclock-generate-report (&optional html-p)
   "Generate a summary report based on the current timelog file.
@@ -1232,7 +1231,7 @@ HTML-P is non-nil, HTML markup is added."
 	  done)
       (if (timeclock-currently-in-p)
 	  (insert "IN")
-	(if (or (null project) (= (length project) 0))
+	(if (zerop (length project))
 	    (progn (insert "Done Working Today")
 		   (setq done t))
 	  (insert "OUT")))
@@ -1319,22 +1318,22 @@ HTML-P is non-nil, HTML markup is added."
 	       (lengths  (vector '(0 0) thirty-days-ago three-months-ago
 				 six-months-ago one-year-ago)))
 	  ;; collect statistics from complete timelog
-	  (while day-list
+	  (dolist (day day-list)
 	    (let ((i 0) (l 5))
 	      (while (< i l)
 		(unless (time-less-p
-			 (timeclock-day-begin (car day-list))
+			 (timeclock-day-begin day)
 			 (aref lengths i))
 		  (let ((base (timeclock-time-to-seconds
 			       (timeclock-day-base
-				(timeclock-day-begin (car day-list))))))
+				(timeclock-day-begin day)))))
 		    (nconc (aref time-in i)
 			   (list (- (timeclock-time-to-seconds
-				     (timeclock-day-begin (car day-list)))
+				     (timeclock-day-begin day))
 				    base)))
-		    (let ((span (timeclock-day-span (car day-list)))
-			  (len (timeclock-day-length (car day-list)))
-			  (req (timeclock-day-required (car day-list))))
+		    (let ((span (timeclock-day-span day))
+			  (len (timeclock-day-length day))
+			  (req (timeclock-day-required day)))
 		      ;; If the day's actual work length is less than
 		      ;; 70% of its span, then likely the exit time
 		      ;; and break amount are not worthwhile adding to
@@ -1343,14 +1342,13 @@ HTML-P is non-nil, HTML markup is added."
 				 (> (/ (float len) (float span)) 0.70))
 			(nconc (aref time-out i)
 			       (list (- (timeclock-time-to-seconds
-					 (timeclock-day-end (car day-list)))
+					 (timeclock-day-end day))
 					base)))
 			(nconc (aref breaks i) (list (- span len))))
 		      (if req
 			  (setq len (+ len (- timeclock-workday req))))
 		      (nconc (aref workday i) (list len)))))
-		(setq i (1+ i))))
-	    (setq day-list (cdr day-list)))
+		(setq i (1+ i)))))
 	  ;; average statistics
 	  (let ((i 0) (l 5))
 	    (while (< i l)
