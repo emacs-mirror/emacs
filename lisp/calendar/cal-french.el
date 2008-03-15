@@ -70,7 +70,7 @@
   "Array of multibyte special day names in the French calendar.")
 
 (defun french-calendar-accents ()
-  "True if diacritical marks are available."
+  "Return non-nil if diacritical marks are available."
   (and (or window-system
            (terminal-coding-system))
        (or enable-multibyte-characters
