@@ -1,3 +1,19 @@
+2008-03-15  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-root-regexp): New defconst.
+	(tramp-completion-file-name-regexp-unified)
+	(tramp-completion-file-name-regexp-separate)
+	(tramp-completion-file-name-regexp-url): Use it.
+	(tramp-do-copy-or-rename-file-via-buffer): Set
+	`enable-multibyte-characters' to nil.  Set `jka-compr-inhibit' to
+	t for `insert-file-contents-literally'.
+	(tramp-drop-volume-letter): Rewrite, using `tramp-root-regexp'.
+	Autoload it.
+	(tramp-completion-file-name-handler-post-function): New defconst.
+	(tramp-completion-file-name-handler): Use it.
+	(tramp-maybe-open-connection): Update calls to
+	`tramp-flush-connection-property' for removed 2nd argument.
+
 2008-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-diff): Use a faster invocation when possible.
