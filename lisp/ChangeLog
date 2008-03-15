@@ -1,3 +1,100 @@
+2008-03-15  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-list-entries-1, diary-mark-entries-1):
+	New functions.
+	* calendar/cal-bahai.el (number, original-date, add-to-diary-list)
+	(diary-name-pattern, mark-calendar-days-named): Remove declarations.
+	(diary-list-entries-1, diary-mark-entries-1): Autoload.
+	(diary-bahai-list-entries): Use diary-list-entries-1.
+	(diary-bahai-mark-entries): Doc fix.  Use diary-mark-entries-1.
+	* calendar/cal-hebrew.el (number, original-date, add-to-diary-list)
+	(diary-name-pattern, mark-calendar-days-named): Remove declarations.
+	(diary-list-entries-1, diary-mark-entries-1): Autoload.
+	(list-hebrew-diary-entries): Use diary-list-entries-1.
+	(mark-hebrew-diary-entries): Doc fix.  Use diary-mark-entries-1.
+	* calendar/cal-islam.el (number, original-date, add-to-diary-list)
+	(diary-name-pattern, mark-calendar-days-named): Remove declarations.
+	(diary-list-entries-1, diary-mark-entries-1): Autoload.
+	(list-islamic-diary-entries): Use diary-list-entries-1.
+	(mark-islamic-diary-entries): Doc fix.  Use diary-mark-entries-1.
+
+	* calendar/appt.el (appt-check, appt-delete, appt-make-list): Use caar.
+
+	* calendar/cal-bahai.el (calendar-bahai-epoch): Doc fix.
+
+	* calendar/cal-china.el (number-chinese-months)
+	(calendar-chinese-from-absolute): Use nth, caar.
+
+	* calendar/cal-coptic.el (coptic-calendar-epoch): Doc fix.
+
+	* calendar/cal-french.el (french-calendar-accents): Doc fix.
+
+	* calendar/cal-hebrew.el (calendar-hebrew-month-name-array-common-year)
+	(calendar-hebrew-month-name-array-leap-year)
+	(hebrew-calendar-parashiot-names): Make constants.
+	(diary-parasha): Move definition after constants it uses.
+
+	* calendar/cal-html.el (cal-html-insert-link-yearpage)
+	(cal-html-htmlify-list): Doc fix.
+	(cal-html-htmlify-entry): Use nth.
+
+	* calendar/cal-islam.el (calendar-islamic-month-name-array)
+	(calendar-islamic-epoch): Make constants.
+	(calendar-islamic-epoch): Doc fix.
+
+	* calendar/cal-menu.el (cal-menu-goto-menu): Use "Go To".
+
+	* calendar/cal-tex.el (cal-tex-hook, cal-tex-insert-preamble)
+	(cal-tex-month-name): Doc fix.
+	(cal-tex-last-blank-p): Use zerop.
+
+	* calendar/calendar.el (european-calendar-style, calendar-for-loop)
+	(calendar-sum, calendar-insert-indented, mouse-calendar-other-month)
+	(calendar-cursor-to-date): Doc fix.
+	(hebrew-holidays-1, hebrew-holidays-4): Simplify.
+	(extract-calendar-day, extract-calendar-year): Use cadr, nth.
+	(calendar-day-number): Use when.
+	(generate-calendar-month): Use dotimes.
+	(exit-calendar, calendar-print-other-dates): Use let rather than let*.
+	(calendar-set-mark): Reverse conditional.
+	(calendar-make-alist): Move definition before use.
+
+	* calendar/diary-lib.el (diary-face-attrs)
+	(diary-glob-file-regexp-prefix, diary-selective-display)
+	(number-of-diary-entries, diary-list-entries, diary-goto-entry):
+	(list-sexp-diary-entries, diary-date, diary-block, diary-float)
+	(diary-anniversary, diary-cyclic)
+	(diary-fancy-font-lock-fontify-region-function): Doc fixes.
+	(diary-header-line-format): Change wording.
+	(diary-list-entries): Set `date-start' in let.
+	(include-other-diary-files, mark-included-diary-files): Use format.
+	(simple-diary-display, fancy-diary-display): Use cadr, unless.
+	(mark-diary-entries): Use 1+.
+	(mark-sexp-diary-entries, list-sexp-diary-entries): Use when.
+	(mark-calendar-month): Use dotimes.
+
+	* calendar/holidays.el (displayed-month, displayed-year): Move
+	declarations where needed.
+	(calendar-list-holidays): Doc fix.
+
+	* calendar/parse-time.el (parse-time-string): Simplify.
+
+	* calendar/solar.el (solar-n-hemi-seasons, solar-s-hemi-seasons):
+	Make constants.
+	(solar-sunrise-sunset): Rename some local variables for clarity.
+	(sunrise-sunset): Use zerop.
+	(solar-mean-equinoxes/solstices): Doc fix.
+
+	* calendar/timeclock.el (timeclock-time-to-seconds, timeclock-log-data):
+	Use nth.
+	(timeclock-completing-read, timeclock-generate-report): Use zerop.
+	(timeclock-mean, timeclock-generate-report): Use dolist.
+
+	* calendar/todo-mode.el (todo-add-category): Simplify.
+	(todo-more-important-p, todo-delete-item, todo-file-item): Use unless,
+	when.
+	(todo-top-priorities): Use zerop.
+
 2008-03-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* buff-menu.el (list-buffers-noselect): Display buffer name in
