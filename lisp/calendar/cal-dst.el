@@ -143,8 +143,8 @@ midnight UTC on absolute date ABS-DATE."
   "Return the time of the next time zone transition after TIME.
 Both TIME and the result are acceptable arguments to `current-time-zone'.
 Return nil if no such transition can be found."
-  (let* ((base 65536)           ;; 2^16 = base of current-time output
-         (quarter-multiple 120) ;; approx = (seconds per quarter year) / base
+  (let* ((base 65536)           ; 2^16 = base of current-time output
+         (quarter-multiple 120) ; approx = (seconds per quarter year) / base
          (time-zone (current-time-zone time))
          (time-utc-diff (car time-zone))
          hi
@@ -221,7 +221,7 @@ The result has the proper form for `calendar-daylight-savings-starts'."
                '((calendar-gregorian-from-absolute
                   (calendar-absolute-from-persian
                    (list 7 1 (- year 621))))))))
-         (prevday-sec (- -1 utc-diff)) ;; last sec of previous local day
+         (prevday-sec (- -1 utc-diff)) ; last sec of previous local day
          (year (1+ y)))
     ;; Scan through the next few years until only one rule remains.
     (while (let ((rules candidate-rules)
