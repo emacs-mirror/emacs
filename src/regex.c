@@ -5590,6 +5590,8 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		    if (buf_ch < 0)
 		      buf_ch = *d;
 		  }
+		else
+		  buf_ch = *d;
 		if (buf_ch != pat_ch)
 		  {
 		    d = dfail;

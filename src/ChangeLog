@@ -1,3 +1,8 @@
+2008-03-15  Andreas Schwab  <schwab@suse.de>
+
+	* regex.c (re_match_2_internal): Correct matching of eight bit
+	characters in unibyte strings.
+
 2008-03-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* buffer.c (overlays_in, Foverlays_in): Include empty overlays
