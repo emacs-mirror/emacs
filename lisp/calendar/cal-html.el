@@ -182,7 +182,7 @@ the link points to a different year and so has a directory part."
 
 
 (defun cal-html-insert-link-yearpage (month year)
-  "Insert a link to index page for four-digit YEAR, tagged using MONTH name."
+  "Insert a link tagged with MONTH name, to index page for four-digit YEAR."
   (insert (cal-html-h1
            (format "%s %s"
                    (calendar-month-name month)
@@ -314,11 +314,11 @@ Characters are replaced according to `cal-html-html-subst-list'."
   "Convert a diary entry ENTRY to html with the appropriate class specifier."
   (let ((start
          (cond
-          ((string-match "block" (car (cddr entry))) "BLOCK")
-          ((string-match "anniversary" (car (cddr entry))) "ANN")
+          ((string-match "block" (nth 2 entry)) "BLOCK")
+          ((string-match "anniversary" (nth 2 entry)) "ANN")
           ((not (string-match
-                 (number-to-string (car (cddr (car entry))))
-                 (car (cddr entry))))
+                 (number-to-string (nth 2 (car entry)))
+                 (nth 2 entry)))
            "NO-YEAR")
           (t "NORMAL"))))
     (format "<span class=%s>%s</span>" start
@@ -326,7 +326,7 @@ Characters are replaced according to `cal-html-html-subst-list'."
 
 
 (defun cal-html-htmlify-list (date-list date)
-  "Return a string of concatenated, HTMLified diary entries.
+  "Return a string of concatenated, HTML-ified diary entries.
 DATE-LIST is a list of diary entries.  Return only those matching DATE."
   (mapconcat (lambda (x) (cal-html-htmlify-entry x))
              (let (result)
