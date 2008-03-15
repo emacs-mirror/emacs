@@ -1,3 +1,8 @@
+2008-03-15  Martin Rudalics  <rudalics@gmx.at>
+
+	* display.texi (Finding Overlays): Say that empty overlays at
+	the end of the buffer are reported too.
+
 2008-03-13  Glenn Morris  <rgm@gnu.org>
 
 	* elisp.texi (EMACSVER): Set to 23.0.60.
