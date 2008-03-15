@@ -91,6 +91,24 @@
 ;; reingold@cs.uiuc.edu with the SUBJECT "send-paper-cal" (no quotes) and
 ;; the message BODY containing your mailing address (snail).
 
+
+;; A note on free variables:
+
+;; The calendar passes around a few dynamically bound variables, which
+;; unfortunately have rather common names.  They are meant to be
+;; available for external functions, so the names can't be changed.
+
+;; displayed-month, displayed-year: bound in generate-calendar, the
+;;   central month of the 3 month calendar window
+;; original-date, number: bound in diary-list-entries, the arguments
+;;   with which that function was called.
+;; date, entry: bound in list-sexp-diary-entries (qv)
+
+;; Bound in diary-list-entries:
+;; diary-entries-list: use in d-l, appt.el, and by add-to-diary-list
+;; diary-saved-point: only used in diary-lib.el, passed to the display func
+;; date-string: only used in diary-lib.el FIXME could be removed?
+
 ;;; Code:
 
 ;; (elisp) Eval During Compile: "Effectively `require' is
@@ -457,9 +475,9 @@ full."
 ;;;###autoload
 (defcustom european-calendar-style nil
   "Use the European style of dates in the diary and in any displays.
-If this variable is t, a date 1/2/1990 would be interpreted as February 1,
-1990.  The default European date styles (see `european-date-diary-pattern')
-are
+If this variable is non-nil, a date 1/2/1990 would be interpreted as
+February 1, 1990.  The default European date styles (see
+`european-date-diary-pattern') are
 
             DAY/MONTH
             DAY/MONTH/YEAR
@@ -746,17 +764,16 @@ calendar."
     (if all-hebrew-calendar-holidays
         (holiday-julian
          11
-         (let* ((m displayed-month)
-                (y displayed-year)
-                (year))
+         (let ((m displayed-month)
+               (y displayed-year)
+               year)
            (increment-calendar-month m y -1)
-           (let ((year (extract-calendar-year
-                        (calendar-julian-from-absolute
-                         (calendar-absolute-from-gregorian
-                          (list m 1 y))))))
-             (if (zerop (% (1+ year) 4))
-                 22
-               21))) "\"Tal Umatar\" (evening)")))
+           (setq year (extract-calendar-year
+                       (calendar-julian-from-absolute
+                        (calendar-absolute-from-gregorian (list m 1 y)))))
+           (if (zerop (% (1+ year) 4))
+               22
+             21)) "\"Tal Umatar\" (evening)")))
   "Component of the default value of `hebrew-holidays'.")
 ;;;###autoload
 (put 'hebrew-holidays-1 'risky-local-variable t)
@@ -773,9 +790,8 @@ calendar."
                       (calendar-hebrew-from-absolute
                        (calendar-absolute-from-gregorian
                         (list displayed-month 28 displayed-year))))))
-         (if (= (% (calendar-absolute-from-hebrew (list 10 10 h-year))
-                   7)
-                6)
+         (if (= 6 (% (calendar-absolute-from-hebrew (list 10 10 h-year))
+                     7))
              11 10))
        "Tzom Teveth"))
     (if all-hebrew-calendar-holidays
@@ -800,11 +816,10 @@ calendar."
                                    y)))))
                   (s-s
                    (calendar-hebrew-from-absolute
-                    (if (=
-                         (% (calendar-absolute-from-hebrew
-                             (list 7 1 h-year))
-                            7)
-                         6)
+                    (if (= 6
+                           (% (calendar-absolute-from-hebrew
+                               (list 7 1 h-year))
+                              7))
                         (calendar-dayname-on-or-before
                          6 (calendar-absolute-from-hebrew
                             (list 11 17 h-year)))
@@ -822,15 +837,15 @@ calendar."
 (defvar hebrew-holidays-4
   '((holiday-passover-etc)
     (if (and all-hebrew-calendar-holidays
-             (let* ((m displayed-month)
-                    (y displayed-year)
-                    (year))
+             (let ((m displayed-month)
+                   (y displayed-year)
+                   year)
                (increment-calendar-month m y -1)
-               (let ((year (extract-calendar-year
-                            (calendar-julian-from-absolute
-                             (calendar-absolute-from-gregorian
-                              (list m 1 y))))))
-                 (= 21 (% year 28)))))
+               (setq year (extract-calendar-year
+                           (calendar-julian-from-absolute
+                            (calendar-absolute-from-gregorian
+                             (list m 1 y)))))
+               (= 21 (% year 28))))
         (holiday-julian 3 26 "Kiddush HaHamah"))
     (if all-hebrew-calendar-holidays
         (holiday-tisha-b-av-etc)))
@@ -1191,20 +1206,20 @@ MON defaults to `displayed-month'.  YR defaults to `displayed-year'."
 (defmacro calendar-for-loop (var from init to final do &rest body)
   "Execute a for loop.
 Evaluate BODY with VAR bound to successive integers from INIT to FINAL,
-inclusive."
+inclusive.  The standard macro `dotimes' is preferable in most cases."
   (declare (debug (symbolp "from" form "to" form "do" body)))
   `(let ((,var (1- ,init)))
     (while (>= ,final (setq ,var (1+ ,var)))
       ,@body)))
 
 (defmacro calendar-sum (index initial condition expression)
-  "For INDEX = INITIAL et seq, as long as CONDITION holds, sum EXPRESSION."
+  "For INDEX = INITIAL, +1, ... (as long as CONDITION holds), sum EXPRESSION."
   (declare (debug (symbolp form form form)))
   `(let ((,index ,initial)
          (sum 0))
     (while ,condition
-      (setq sum (+ sum ,expression))
-      (setq ,index (1+ ,index)))
+      (setq sum (+ sum ,expression)
+            ,index (1+ ,index)))
     sum))
 
 ;; The following are in-line for speed; they can be called thousands of times
@@ -1242,11 +1257,11 @@ inclusive."
 ;; Note gives wrong answer for result of (calendar-read-date 'noday).
 (defsubst extract-calendar-day (date)
   "Extract the day part of DATE which has the form (month day year)."
-  (car (cdr date)))
+  (cadr date))
 
 (defsubst extract-calendar-year (date)
   "Extract the year part of DATE which has the form (month day year)."
-  (car (cdr (cdr date))))
+  (nth 2 date))
 
 (defsubst calendar-leap-year-p (year)
   "Return t if YEAR is a Gregorian leap year.
@@ -1279,16 +1294,15 @@ A negative year is interpreted as BC; -1 being 1 BC, and so on."
   "Return the day number within the year of the date DATE.
 For example, (calendar-day-number '(1 1 1987)) returns the value 1,
 while (calendar-day-number '(12 31 1980)) returns 366."
-    (let* ((month (extract-calendar-month date))
-           (day (extract-calendar-day date))
-           (year (extract-calendar-year date))
+  (let* ((month (extract-calendar-month date))
+         (day (extract-calendar-day date))
+         (year (extract-calendar-year date))
          (day-of-year (+ day (* 31 (1- month)))))
-      (if (> month 2)
-          (progn
-            (setq day-of-year (- day-of-year (/ (+ 23 (* 4 month)) 10)))
-            (if (calendar-leap-year-p year)
-                (setq day-of-year (1+ day-of-year)))))
-      day-of-year))
+    (when (> month 2)
+      (setq day-of-year (- day-of-year (/ (+ 23 (* 4 month)) 10)))
+      (if (calendar-leap-year-p year)
+          (setq day-of-year (1+ day-of-year))))
+    day-of-year))
 
 (defsubst calendar-absolute-from-gregorian (date)
   "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
@@ -1378,8 +1392,7 @@ to be replaced by asterisks to highlight it whenever it is in the window."
   (calendar-mode)
   (let* ((pop-up-windows t)
          (split-height-threshold 1000)
-         (date (if arg
-                   (calendar-read-date t)
+         (date (if arg (calendar-read-date t)
                  (calendar-current-date)))
          (month (extract-calendar-month date))
          (year (extract-calendar-year date)))
@@ -1465,11 +1478,11 @@ The calendar is inserted at the top of the buffer in which point is currently
 located, but indented INDENT spaces.  The indentation is done from the first
 character on the line and does not disturb the first INDENT characters on the
 line."
-  (let* ((blank-days                    ; at start of month
-          (mod
-           (- (calendar-day-of-week (list month 1 year))
-              calendar-week-start-day)
-           7))
+  (let ((blank-days                     ; at start of month
+         (mod
+          (- (calendar-day-of-week (list month 1 year))
+             calendar-week-start-day)
+          7))
          (last (calendar-last-day-of-month month year)))
    (goto-char (point-min))
    (calendar-insert-indented
@@ -1491,22 +1504,22 @@ line."
    ;; Add blank days before the first of the month.
    (dotimes (idummy blank-days) (insert "   "))
    ;; Put in the days of the month.
-   (calendar-for-loop i from 1 to last do
-      (insert (format "%2d " i))
-      (add-text-properties
-       (- (point) 3) (1- (point))
-       '(mouse-face highlight
-         help-echo "mouse-2: menu of operations for this date"))
-      (and (zerop (mod (+ i blank-days) 7))
-           (/= i last)
-           (calendar-insert-indented "" 0 t) ; force onto following line
-           (calendar-insert-indented "" indent))))) ; go to proper spot
+   (dotimes (i last)
+     (insert (format "%2d " (1+ i)))
+     (add-text-properties
+      (- (point) 3) (1- (point))
+      '(mouse-face highlight
+                   help-echo "mouse-2: menu of operations for this date"))
+     (and (zerop (mod (+ i 1 blank-days) 7))
+          (/= i (1- last))
+          (calendar-insert-indented "" 0 t) ; force onto following line
+          (calendar-insert-indented "" indent))))) ; go to proper spot
 
 (defun calendar-insert-indented (string indent &optional newline)
   "Insert STRING at column INDENT.
-If the optional parameter NEWLINE is t, leave point at start of next line,
-inserting a newline if there was no next line; otherwise, leave point after
-the inserted text.  Returns t."
+If the optional parameter NEWLINE is non-nil, leave point at start of next
+line, inserting a newline if there was no next line; otherwise, leave point
+after the inserted text.  Returns t."
   ;; Try to move to that column.
   (move-to-column indent)
   ;; If line is too short, indent out to that column.
@@ -1758,7 +1771,8 @@ under the cursor:
   :group 'calendar)
 
 (defun mouse-calendar-other-month (event)
-  "Display a three-month calendar centered around a specified month and year."
+  "Display a three-month calendar centered around a specified month and year.
+EVENT is the last mouse event."
   (interactive "e")
   (save-selected-window
     (select-window (posn-window (event-start event)))
@@ -1864,7 +1878,7 @@ the STRINGS are just concatenated and the result truncated."
 (defun exit-calendar ()
   "Get out of the calendar window and hide it and related buffers."
   (interactive)
-  (let* ((diary-buffer (get-file-buffer diary-file)))
+  (let ((diary-buffer (get-file-buffer diary-file)))
     (if (or (not diary-buffer)
             (not (buffer-modified-p diary-buffer))
             (yes-or-no-p
@@ -1902,7 +1916,7 @@ the STRINGS are just concatenated and the result truncated."
 (defun calendar-cursor-to-date (&optional error)
   "Return a list (month day year) of current cursor position.
 If cursor is not on a specific date, signals an error if optional parameter
-ERROR is t, otherwise just returns nil."
+ERROR is non-nil, otherwise just returns nil."
   (let* ((segment (/ (current-column) 25))
          (month (% (+ displayed-month segment -1) 12))
          (month (if (zerop month) 12 month))
@@ -2002,20 +2016,19 @@ With no prefix argument, push current date onto marked date ring.
 With argument ARG, jump to mark, pop it, and put point at end of ring."
   (interactive "P")
   (let ((date (calendar-cursor-to-date t)))
-    (if (null arg)
-        (progn
-          (push date calendar-mark-ring)
-          ;; Since the top of the mark ring is the marked date in the
-          ;; calendar, the mark ring in the calendar is one longer than
-          ;; in other buffers to get the same effect.
-          (if (> (length calendar-mark-ring) (1+ mark-ring-max))
-              (setcdr (nthcdr mark-ring-max calendar-mark-ring) nil))
-          (message "Mark set"))
-      (if (null calendar-mark-ring)
-          (error "No mark set in this buffer")
-        (calendar-goto-date (car calendar-mark-ring))
-        (setq calendar-mark-ring
-              (cdr (nconc calendar-mark-ring (list date))))))))
+    (if arg
+        (if (null calendar-mark-ring)
+            (error "No mark set in this buffer")
+          (calendar-goto-date (car calendar-mark-ring))
+          (setq calendar-mark-ring
+                (cdr (nconc calendar-mark-ring (list date)))))
+      (push date calendar-mark-ring)
+      ;; Since the top of the mark ring is the marked date in the
+      ;; calendar, the mark ring in the calendar is one longer than
+      ;; in other buffers to get the same effect.
+      (if (> (length calendar-mark-ring) (1+ mark-ring-max))
+          (setcdr (nthcdr mark-ring-max calendar-mark-ring) nil))
+      (message "Mark set"))))
 
 (defun calendar-exchange-point-and-mark ()
   "Exchange the current cursor position with the marked date."
@@ -2096,6 +2109,34 @@ element of this array is nil, then the abbreviation will be
 constructed as the first `calendar-abbrev-length' characters of the
 corresponding full name.")
 
+(defun calendar-make-alist (sequence &optional start-index filter abbrevs)
+  "Make an assoc list corresponding to SEQUENCE.
+Each element of sequence will be associated with an integer, starting
+from 1, or from START-INDEX if that is non-nil.  If a sequence ABBREVS
+is supplied, the function `calendar-abbrev-construct' is used to
+construct abbreviations corresponding to the elements in SEQUENCE.
+Each abbreviation is entered into the alist with the same
+association index as the full name it represents.
+If FILTER is provided, apply it to each key in the alist."
+  (let ((index 0)
+        (offset (or start-index 1))
+        (aseq (if abbrevs (calendar-abbrev-construct abbrevs sequence)))
+        (aseqp (if abbrevs (calendar-abbrev-construct abbrevs sequence
+                                                      'period)))
+        alist elem)
+    (dotimes (i (length sequence) (reverse alist))
+      (setq index (+ i offset)
+            elem (elt sequence i)
+            alist
+            (cons (cons (if filter (funcall filter elem) elem) index) alist))
+      (if aseq
+          (setq elem (elt aseq i)
+                alist (cons (cons (if filter (funcall filter elem) elem)
+                                  index) alist)))
+      (if aseqp
+          (setq elem (elt aseqp i)
+                alist (cons (cons (if filter (funcall filter elem) elem)
+                                  index) alist))))))
 
 (defun calendar-read-date (&optional noday)
   "Prompt for Gregorian date.  Return a list (month day year).
@@ -2179,35 +2220,6 @@ the variable `calendar-day-abbrev-array' is used."
                                        calendar-day-name-array)
           calendar-day-name-array)
         (if absolute date (calendar-day-of-week date))))
-
-(defun calendar-make-alist (sequence &optional start-index filter abbrevs)
-  "Make an assoc list corresponding to SEQUENCE.
-Each element of sequence will be associated with an integer, starting
-from 1, or from START-INDEX if that is non-nil.  If a sequence ABBREVS
-is supplied, the function `calendar-abbrev-construct' is used to
-construct abbreviations corresponding to the elements in SEQUENCE.
-Each abbreviation is entered into the alist with the same
-association index as the full name it represents.
-If FILTER is provided, apply it to each key in the alist."
-  (let ((index 0)
-        (offset (or start-index 1))
-        (aseq (if abbrevs (calendar-abbrev-construct abbrevs sequence)))
-        (aseqp (if abbrevs (calendar-abbrev-construct abbrevs sequence
-                                                      'period)))
-        alist elem)
-    (dotimes (i (length sequence) (reverse alist))
-      (setq index (+ i offset)
-            elem (elt sequence i)
-            alist
-            (cons (cons (if filter (funcall filter elem) elem) index) alist))
-      (if aseq
-          (setq elem (elt aseq i)
-                alist (cons (cons (if filter (funcall filter elem) elem)
-                                  index) alist)))
-      (if aseqp
-          (setq elem (elt aseqp i)
-                alist (cons (cons (if filter (funcall filter elem) elem)
-                                  index) alist))))))
 
 (defun calendar-month-name (month &optional abbrev)
   "Return a string with the name of month number MONTH.
@@ -2354,9 +2366,7 @@ and day names to be abbreviated as specified by
 `calendar-month-abbrev-array' and `calendar-day-abbrev-array',
 respectively.  An optional parameter NODAYNAME, when t, omits the
 name of the day of the week."
-  (let* ((dayname
-          (unless nodayname
-            (calendar-day-name date abbreviate)))
+  (let* ((dayname (unless nodayname (calendar-day-name date abbreviate)))
          (month (extract-calendar-month date))
          (monthname (calendar-month-name month abbreviate))
          (day (int-to-string (extract-calendar-day date)))
@@ -2418,7 +2428,7 @@ Defaults to today's date if DATE is not given."
 (defun calendar-print-other-dates ()
   "Show dates on other calendars for date under the cursor."
   (interactive)
-  (let* ((date (calendar-cursor-to-date t)))
+  (let ((date (calendar-cursor-to-date t)))
     (with-current-buffer (get-buffer-create other-calendars-buffer)
       (let ((inhibit-read-only t)
             (modified (buffer-modified-p)))
@@ -2473,7 +2483,7 @@ Defaults to today's date if DATE is not given."
   "Set mode line to STR, centered, surrounded by dashes."
   (let* ((edges (window-edges))
          ;; As per doc of window-width, total visible mode-line length.
-         (width (- (nth 2 edges) (nth 0 edges))))
+         (width (- (nth 2 edges) (car edges))))
     (setq mode-line-format
           (if buffer-file-name
               `("-" mode-line-modified
