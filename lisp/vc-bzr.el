@@ -428,14 +428,17 @@ EDITABLE is ignored."
 
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
-  ;; `bzr diff' exits with code 1 if diff is non-empty
+  ;; `bzr diff' exits with code 1 if diff is non-empty.
   (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*") 1 files
-       "--diff-options" (mapconcat 'identity 
-				   (vc-diff-switches-list bzr)
+         "--diff-options" (mapconcat 'identity 
+                                     (vc-diff-switches-list bzr)
 				     " ")
-       (list "-r" (format "%s..%s" 
-			  (or rev1 "revno:-1") 
-			  (or rev2 "")))))
+         ;; This `when' is just an optimization because bzr-1.2 is *much*
+         ;; faster when the revision argument is not given.
+         (when (or rev1 rev2)
+           (list "-r" (format "%s..%s"
+                              (or rev1 "revno:-1") 
+                              (or rev2 ""))))))
 
 
 ;; FIXME: vc-{next,previous}-revision need fixing in vc.el to deal with
@@ -604,6 +607,57 @@ Optional argument LOCALP is always ignored."
                                      'edited)) ")")
     ;; else fall back to default vc.el representation
     (vc-default-dired-state-info 'Bzr file)))
+
+;;; Revision completion
+
+(defun vc-bzr-complete-with-prefix (prefix action table string pred)
+  (let ((comp (complete-with-action action table string pred)))
+    (if (stringp comp)
+        (concat prefix comp)
+      comp)))
+
+(defun vc-bzr-revision-completion-table (files)
+  (lexical-let ((files files))
+    ;; What about using `files'?!?  --Stef
+    (lambda (string pred action)
+      (cond
+       ((string-match "\\`\\(ancestor\\|branch\\|\\(revno:\\)?[-0-9]+:\\):"
+                      string)
+        (vc-bzr-complete-with-prefix (substring string 0 (match-end 0))
+                                     action
+                                     'read-file-name-internal
+                                     (substring string (match-end 0))
+                                     ;; Dropping `pred'.   Maybe we should just
+                                     ;; stash it in `read-file-name-predicate'?
+                                     nil))
+       ((string-match "\\`\\(before\\):" string)
+        (vc-bzr-complete-with-prefix (substring string 0 (match-end 0))
+                                     action
+                                     (vc-bzr-revision-completion-table files)
+                                     (substring string (match-end 0))
+                                     pred))
+       ((string-match "\\`\\(tag\\):" string)
+        (let ((prefix (substring string 0 (match-end 0)))
+              (tag (substring string (match-end 0)))
+              (table nil))
+          (with-temp-buffer
+            ;; "bzr-1.2 tags" is much faster with --show-ids.
+            (call-process vc-bzr-program nil '(t) nil "tags" "--show-ids")
+            ;; The output is ambiguous, unless we assume that revids do not
+            ;; contain spaces.
+            (goto-char (point-min))
+            (while (re-search-forward "^\\(.*[^ \n]\\) +[^ \n]*$" nil t)
+              (push (match-string-no-properties 1) table)))
+          (vc-bzr-complete-with-prefix prefix action table tag pred)))
+
+       ((string-match "\\`\\(revid\\):" string)
+        ;; FIXME: How can I get a list of revision ids?
+        )
+       (t
+        (complete-with-action action '("revno:" "revid:" "last:" "before:"
+                                       "tag:" "date:" "ancestor:" "branch:"
+                                       "submit:")
+                              string pred))))))
 
 (eval-after-load "vc"
   '(add-to-list 'vc-directory-exclusion-list vc-bzr-admin-dirname t))

@@ -1,3 +1,9 @@
+2008-03-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-diff): Use a faster invocation when possible.
+	(vc-bzr-complete-with-prefix, vc-bzr-revision-completion-table):
+	New functions.
+
 2008-03-15  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-list-entries-1, diary-mark-entries-1):
