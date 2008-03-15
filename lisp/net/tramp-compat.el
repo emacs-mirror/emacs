@@ -217,9 +217,9 @@ Add the extension of FILENAME, if existing."
     (copy-file filename newname ok-if-already-exists keep-date)))
 
 ;; `copy-tree' is a built-in function in XEmacs.  In Emacs 21, it is
-;; an auoloaded function in cl-extra.el.  Since Emacs 22, it is part
+;; an autoloaded function in cl-extra.el.  Since Emacs 22, it is part
 ;; of subr.el.  There are problems when autoloading, therefore we test
-;; for for `subrp' and `symbol-file'.  Implementation is taken from Emacs23.
+;; for `subrp' and `symbol-file'.  Implementation is taken from Emacs23.
 (defun tramp-compat-copy-tree (tree)
   "Make a copy of TREE (compat function)."
   (if (or (subrp 'copy-tree) (symbol-file 'copy-tree))
