@@ -166,11 +166,11 @@ delta.  At present, delta = 0.01 degrees, so the value of the variable
 ;;; End of user options.
 
 
-(defvar solar-n-hemi-seasons
+(defconst solar-n-hemi-seasons
   '("Vernal Equinox" "Summer Solstice" "Autumnal Equinox" "Winter Solstice")
   "List of season changes for the northern hemisphere.")
 
-(defvar solar-s-hemi-seasons
+(defconst solar-s-hemi-seasons
   '("Autumnal Equinox" "Winter Solstice" "Vernal Equinox" "Summer Solstice")
   "List of season changes for the southern hemisphere.")
 
@@ -647,14 +647,14 @@ Corresponding value is nil if there is no sunrise/sunset."
              (list t0 (cadr exact-local-noon))
              (calendar-latitude)
              (calendar-longitude) -0.61)))
-         (rise (car rise-set))
-         (adj-rise (if rise (dst-adjust-time date rise)))
-         (set (cadr rise-set))          ; FIXME ?
-         (adj-set (if set (dst-adjust-time date set)))
+         (rise-time (car rise-set))
+         (adj-rise (if rise-time (dst-adjust-time date rise-time)))
+         (set-time (cadr rise-set))
+         (adj-set (if set-time (dst-adjust-time date set-time)))
          (length (nth 2 rise-set)))
     (list
-     (and rise (calendar-date-equal date (car adj-rise)) (cdr adj-rise))
-     (and set (calendar-date-equal date (car adj-set)) (cdr adj-set))
+     (and rise-time (calendar-date-equal date (car adj-rise)) (cdr adj-rise))
+     (and set-time (calendar-date-equal date (car adj-set)) (cdr adj-set))
      (solar-daylight length))))
 
 (defun solar-sunrise-sunset-string (date)
@@ -842,7 +842,7 @@ This function is suitable for execution in a .emacs file."
                             "E" "W"))))))
          (calendar-standard-time-zone-name
           (if (< arg 16) calendar-standard-time-zone-name
-            (cond ((= calendar-time-zone 0) "UTC")
+            (cond ((zerop calendar-time-zone) "UTC")
                   ((< calendar-time-zone 0)
                    (format "UTC%dmin" calendar-time-zone))
                   (t  (format "UTC+%dmin" calendar-time-zone)))))
@@ -968,7 +968,7 @@ Accurate to within a minute between 1951 and 2050."
 (defun solar-mean-equinoxes/solstices (k year)
   "Julian day of mean equinox/solstice K for YEAR.
 K=0, spring equinox; K=1, summer solstice; K=2, fall equinox; K=3, winter
-solstice.  These formulas are only to be used between 1000 BC and 3000 AD."
+solstice.  These formulae are only to be used between 1000 BC and 3000 AD."
   (let ((y (/ year 1000.0))
         (z (/ (- year 2000) 1000.0)))
     (if (< year 1000)                ; actually between -1000 and 1000
