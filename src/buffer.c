@@ -1634,7 +1634,7 @@ record_buffer (buf)
   Vbuffer_alist = link;
 
   /* Effectively do a delq on buried_buffer_list.  */
-  
+
   prev = Qnil;
   for (link = XFRAME (frame)->buried_buffer_list; CONSP (link);
        link = XCDR (link))
@@ -2813,8 +2813,9 @@ overlays_at (pos, extend, vec_ptr, len_ptr, next_ptr, prev_ptr, change_req)
   return idx;
 }
 
-/* Find all the overlays in the current buffer that overlap the range BEG-END
-   or are empty at BEG.
+/* Find all the overlays in the current buffer that overlap the range
+   BEG-END, or are empty at BEG, or are empty at END provided END
+   denotes the position at the end of the current buffer.
 
    Return the number found, and store them in a vector in *VEC_PTR.
    Store in *LEN_PTR the size allocated for the vector.
@@ -2849,6 +2850,7 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
   int next = ZV;
   int prev = BEGV;
   int inhibit_storing = 0;
+  int end_is_Z = end == Z;
 
   for (tail = current_buffer->overlays_before; tail; tail = tail->next)
     {
@@ -2866,10 +2868,12 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 	  break;
 	}
       startpos = OVERLAY_POSITION (ostart);
-      /* Count an interval if it either overlaps the range
-	 or is empty at the start of the range.  */
+      /* Count an interval if it overlaps the range, is empty at the
+	 start of the range, or is empty at END provided END denotes the
+	 end of the buffer.  */
       if ((beg < endpos && startpos < end)
-	  || (startpos == endpos && beg == endpos))
+	  || (startpos == endpos
+	      && (beg == endpos || (end_is_Z && endpos == end))))
 	{
 	  if (idx == len)
 	    {
@@ -2914,10 +2918,12 @@ overlays_in (beg, end, extend, vec_ptr, len_ptr, next_ptr, prev_ptr)
 	  break;
 	}
       endpos = OVERLAY_POSITION (oend);
-      /* Count an interval if it either overlaps the range
-	 or is empty at the start of the range.  */
+      /* Count an interval if it overlaps the range, is empty at the
+	 start of the range, or is empty at END provided END denotes the
+	 end of the buffer.  */
       if ((beg < endpos && startpos < end)
-	  || (startpos == endpos && beg == endpos))
+	  || (startpos == endpos
+	      && (beg == endpos || (end_is_Z && endpos == end))))
 	{
 	  if (idx == len)
 	    {
@@ -4113,8 +4119,9 @@ DEFUN ("overlays-in", Foverlays_in, Soverlays_in, 2, 2, 0,
        doc: /* Return a list of the overlays that overlap the region BEG ... END.
 Overlap means that at least one character is contained within the overlay
 and also contained within the specified region.
-Empty overlays are included in the result if they are located at BEG
-or between BEG and END.  */)
+Empty overlays are included in the result if they are located at BEG,
+between BEG and END, or at END provided END denotes the position at the
+end of the buffer.  */)
      (beg, end)
      Lisp_Object beg, end;
 {
