@@ -111,9 +111,9 @@
   "Absolute date of Hebrew DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
-  (let* ((month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date)))
+  (let ((month (extract-calendar-month date))
+        (day (extract-calendar-day date))
+        (year (extract-calendar-year date)))
     (+ day                              ; days so far this month
        (if (< month 7)                  ; before Tishri
            ;; Then add days in prior months this year before and after Nisan.
@@ -135,10 +135,10 @@ Gregorian date Sunday, December 31, 1 BC."
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
   (let* ((greg-date (calendar-gregorian-from-absolute date))
+         (year (+ 3760 (extract-calendar-year greg-date)))
          (month (aref [9 10 11 12 1 2 3 4 7 7 7 8]
                       (1- (extract-calendar-month greg-date))))
-         (day)
-         (year (+ 3760 (extract-calendar-year greg-date))))
+         day)
     (while (>= date (calendar-absolute-from-hebrew (list 7 1 (1+ year))))
       (setq year (1+ year)))
     (let ((length (hebrew-calendar-last-month-of-year year)))
@@ -185,9 +185,9 @@ Driven by the variable `calendar-date-display-form'."
 
 (defun hebrew-calendar-yahrzeit (death-date year)
   "Absolute date of the anniversary of Hebrew DEATH-DATE in Hebrew YEAR."
-  (let* ((death-day (extract-calendar-day death-date))
-         (death-month (extract-calendar-month death-date))
-         (death-year (extract-calendar-year death-date)))
+  (let ((death-day (extract-calendar-day death-date))
+        (death-month (extract-calendar-month death-date))
+        (death-year (extract-calendar-year death-date)))
     (cond
      ;; If it's Heshvan 30 it depends on the first anniversary; if
      ;; that was not Heshvan 30, use the day before Kislev 1.
@@ -216,49 +216,52 @@ Driven by the variable `calendar-date-display-form'."
      (t (calendar-absolute-from-hebrew
          (list death-month death-day year))))))
 
+(defun calendar-hebrew-prompt-for-date ()
+  "Ask for a Hebrew date."
+  (let* ((today (calendar-current-date))
+         (year (calendar-read
+                "Hebrew calendar year (>3760): "
+                (lambda (x) (> x 3760))
+                (int-to-string
+                 (extract-calendar-year
+                  (calendar-hebrew-from-absolute
+                   (calendar-absolute-from-gregorian today))))))
+         (month-array (if (hebrew-calendar-leap-year-p year)
+                          calendar-hebrew-month-name-array-leap-year
+                        calendar-hebrew-month-name-array-common-year))
+         (completion-ignore-case t)
+         (month (cdr (assoc-string
+                      (completing-read
+                       "Hebrew calendar month name: "
+                       (mapcar 'list (append month-array nil))
+                       (if (= year 3761)
+                           (lambda (x)
+                             (let ((m (cdr
+                                       (assoc-string
+                                        (car x)
+                                        (calendar-make-alist month-array)
+                                        t))))
+                               (< 0
+                                  (calendar-absolute-from-hebrew
+                                   (list m
+                                         (hebrew-calendar-last-day-of-month
+                                          m year)
+                                         year))))))
+                       t)
+                      (calendar-make-alist month-array 1) t)))
+         (last (hebrew-calendar-last-day-of-month month year))
+         (first (if (and (= year 3761) (= month 10))
+                    18 1))
+         (day (calendar-read
+               (format "Hebrew calendar day (%d-%d): "
+                       first last)
+               (lambda (x) (and (<= first x) (<= x last))))))
+    (list (list month day year))))
+
 ;;;###cal-autoload
 (defun calendar-goto-hebrew-date (date &optional noecho)
   "Move cursor to Hebrew DATE; echo Hebrew date unless NOECHO is non-nil."
-  (interactive
-   (let* ((today (calendar-current-date))
-          (year (calendar-read
-                 "Hebrew calendar year (>3760): "
-                 (lambda (x) (> x 3760))
-                 (int-to-string
-                  (extract-calendar-year
-                   (calendar-hebrew-from-absolute
-                    (calendar-absolute-from-gregorian today))))))
-          (month-array (if (hebrew-calendar-leap-year-p year)
-                           calendar-hebrew-month-name-array-leap-year
-                         calendar-hebrew-month-name-array-common-year))
-          (completion-ignore-case t)
-          (month (cdr (assoc-string
-                       (completing-read
-                        "Hebrew calendar month name: "
-                        (mapcar 'list (append month-array nil))
-                        (if (= year 3761)
-                            (lambda (x)
-                              (let ((m (cdr
-                                        (assoc-string
-                                         (car x)
-                                         (calendar-make-alist month-array)
-                                         t))))
-                                (< 0
-                                   (calendar-absolute-from-hebrew
-                                    (list m
-                                          (hebrew-calendar-last-day-of-month
-                                           m year)
-                                          year))))))
-                        t)
-                       (calendar-make-alist month-array 1) t)))
-          (last (hebrew-calendar-last-day-of-month month year))
-          (first (if (and (= year 3761) (= month 10))
-                     18 1))
-          (day (calendar-read
-                (format "Hebrew calendar day (%d-%d): "
-                        first last)
-                (lambda (x) (and (<= first x) (<= x last))))))
-     (list (list month day year))))
+  (interactive (calendar-hebrew-prompt-for-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-hebrew date)))
   (or noecho (calendar-print-hebrew-date)))
@@ -308,9 +311,8 @@ nil if it is not visible in the current calendar window."
 ;;;###holiday-autoload
 (defun holiday-rosh-hashanah-etc ()
   "List of dates related to Rosh Hashanah, as visible in calendar window."
-  (if (or (< displayed-month 8)
-          (> displayed-month 11))
-      nil                               ; none of the dates is visible
+  (unless (or (< displayed-month 8)     ; none of the dates is visible
+              (> displayed-month 11))
     (let* ((abs-r-h (calendar-absolute-from-hebrew
                      (list 7 1 (+ displayed-year 3761))))
            (mandatory
@@ -403,8 +405,7 @@ nil if it is not visible in the current calendar window."
 ;;;###holiday-autoload
 (defun holiday-passover-etc ()
   "List of dates related to Passover, as visible in calendar window."
-  (if (< 7 displayed-month)
-      nil                               ; none of the dates is visible
+  (unless (< 7 displayed-month)         ; none of the dates is visible
     (let* ((abs-p (calendar-absolute-from-hebrew
                    (list 1 15 (+ displayed-year 3760))))
            (mandatory
@@ -488,12 +489,10 @@ nil if it is not visible in the current calendar window."
 ;;;###holiday-autoload
 (defun holiday-tisha-b-av-etc ()
   "List of dates around Tisha B'Av, as visible in calendar window."
-  (if (or (< displayed-month 5)
-          (> displayed-month 9))
-      nil                               ; none of the dates is visible
-    (let* ((abs-t-a (calendar-absolute-from-hebrew
-                     (list 5 9 (+ displayed-year 3760)))))
-
+  (unless (or (< displayed-month 5)     ; none of the dates is visible
+              (> displayed-month 9))
+    (let ((abs-t-a (calendar-absolute-from-hebrew
+                    (list 5 9 (+ displayed-year 3760)))))
       (holiday-filter-visible-calendar
        (list
         (list (calendar-gregorian-from-absolute
@@ -528,10 +527,15 @@ is provided for use with `nongregorian-diary-listing-hook'."
                         hebrew-diary-entry-symbol
                         'calendar-hebrew-from-absolute))
 
+(autoload 'calendar-mark-complex "diary-lib")
+
 ;;;###diary-autoload
-(defun mark-hebrew-calendar-date-pattern (month day year)
+(defun mark-hebrew-calendar-date-pattern (month day year &optional color)
   "Mark dates in calendar window that conform to Hebrew date MONTH/DAY/YEAR.
-A value of 0 in any position is a wildcard."
+A value of 0 in any position is a wildcard.  Optional argument COLOR is
+passed to `mark-visible-calendar-date' as MARK."
+  ;; FIXME not the same as the Bahai and Islamic cases, so can't use
+  ;; calendar-mark-1.
   (save-excursion
     (set-buffer calendar-buffer)
     (if (and (not (zerop month)) (not (zerop day)))
@@ -541,7 +545,7 @@ A value of 0 in any position is a wildcard."
                          (calendar-absolute-from-hebrew
                           (list month day year)))))
               (if (calendar-date-is-visible-p date)
-                  (mark-visible-calendar-date date)))
+                  (mark-visible-calendar-date date color)))
           ;; Month and day in any year--this taken from the holiday stuff.
           ;; This test is only to speed things up a bit, it works
           ;; fine without it.
@@ -556,7 +560,7 @@ A value of 0 in any position is a wildcard."
                     (y1 displayed-year)
                     (m2 displayed-month)
                     (y2 displayed-year)
-                    (year))
+                    year)
                 (increment-calendar-month m1 y1 -1)
                 (increment-calendar-month m2 y2 1)
                 (let* ((start-date (calendar-absolute-from-gregorian
@@ -565,8 +569,7 @@ A value of 0 in any position is a wildcard."
                                   (list m2
                                         (calendar-last-day-of-month m2 y2)
                                         y2)))
-                       (hebrew-start
-                        (calendar-hebrew-from-absolute start-date))
+                       (hebrew-start (calendar-hebrew-from-absolute start-date))
                        (hebrew-end (calendar-hebrew-from-absolute end-date))
                        (hebrew-y1 (extract-calendar-year hebrew-start))
                        (hebrew-y2 (extract-calendar-year hebrew-end)))
@@ -575,36 +578,9 @@ A value of 0 in any position is a wildcard."
                                (calendar-absolute-from-hebrew
                                 (list month day year)))))
                     (if (calendar-date-is-visible-p date)
-                        (mark-visible-calendar-date date)))))))
-      ;; Not one of the simple cases--check all visible dates for match.
-      ;; Actually, the following code takes care of ALL of the cases, but
-      ;; it's much too slow to be used for the simple (common) cases.
-      (let ((m displayed-month)
-            (y displayed-year)
-            (first-date)
-            (last-date))
-        (increment-calendar-month m y -1)
-        (setq first-date
-              (calendar-absolute-from-gregorian
-               (list m 1 y)))
-        (increment-calendar-month m y 2)
-        (setq last-date
-              (calendar-absolute-from-gregorian
-               (list m (calendar-last-day-of-month m y) y)))
-        (calendar-for-loop date from first-date to last-date do
-                           (let* ((h-date (calendar-hebrew-from-absolute date))
-                                  (h-month (extract-calendar-month h-date))
-                                  (h-day (extract-calendar-day h-date))
-                                  (h-year (extract-calendar-year h-date)))
-                             (and (or (zerop month)
-                                      (= month h-month))
-                                  (or (zerop day)
-                                      (= day h-day))
-                                  (or (zerop year)
-                                      (= year h-year))
-                                  (mark-visible-calendar-date
-                                   (calendar-gregorian-from-absolute date)))))
-        ))))
+                        (mark-visible-calendar-date date color)))))))
+      (calendar-mark-complex month day year
+                             'calendar-hebrew-from-absolute color))))
 
 (autoload 'diary-mark-entries-1 "diary-lib")
 
@@ -624,16 +600,13 @@ window.  See `list-hebrew-diary-entries' for more information."
 For the Hebrew date corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let* ((calendar-month-name-array
-          calendar-hebrew-month-name-array-leap-year))
+  (let ((calendar-month-name-array calendar-hebrew-month-name-array-leap-year))
     (make-diary-entry
-     (concat
-      hebrew-diary-entry-symbol
-      (calendar-date-string
-       (calendar-hebrew-from-absolute
-        (calendar-absolute-from-gregorian
-         (calendar-cursor-to-date t)))
-       nil t))
+     (concat hebrew-diary-entry-symbol
+             (calendar-date-string
+              (calendar-hebrew-from-absolute
+               (calendar-absolute-from-gregorian (calendar-cursor-to-date t)))
+              nil t))
      arg)))
 
 ;;;###cal-autoload
@@ -642,17 +615,15 @@ Prefix argument ARG makes the entry nonmarking."
 For the day of the Hebrew month corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let* ((calendar-date-display-form
-          (if european-calendar-style '(day " * ") '("* " day )))
-         (calendar-month-name-array
-          calendar-hebrew-month-name-array-leap-year))
+  (let ((calendar-date-display-form (if european-calendar-style
+                                        '(day " * ")
+                                      '("* " day )))
+        (calendar-month-name-array calendar-hebrew-month-name-array-leap-year))
     (make-diary-entry
-     (concat
-      hebrew-diary-entry-symbol
-      (calendar-date-string
-       (calendar-hebrew-from-absolute
-        (calendar-absolute-from-gregorian
-         (calendar-cursor-to-date t)))))
+     (concat hebrew-diary-entry-symbol
+             (calendar-date-string
+              (calendar-hebrew-from-absolute
+               (calendar-absolute-from-gregorian (calendar-cursor-to-date t)))))
      arg)))
 
 ;;;###cal-autoload
@@ -661,19 +632,15 @@ Prefix argument ARG makes the entry nonmarking."
 For the day of the Hebrew year corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let* ((calendar-date-display-form
-          (if european-calendar-style
-              '(day " " monthname)
-            '(monthname " " day)))
-         (calendar-month-name-array
-          calendar-hebrew-month-name-array-leap-year))
+  (let ((calendar-date-display-form (if european-calendar-style
+                                         '(day " " monthname)
+                                       '(monthname " " day)))
+         (calendar-month-name-array calendar-hebrew-month-name-array-leap-year))
     (make-diary-entry
-     (concat
-      hebrew-diary-entry-symbol
-      (calendar-date-string
-       (calendar-hebrew-from-absolute
-        (calendar-absolute-from-gregorian
-         (calendar-cursor-to-date t)))))
+     (concat hebrew-diary-entry-symbol
+             (calendar-date-string
+              (calendar-hebrew-from-absolute
+               (calendar-absolute-from-gregorian (calendar-cursor-to-date t)))))
      arg)))
 
 ;;;###autoload
