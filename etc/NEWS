@@ -262,6 +262,12 @@ just as M-w would do so with the text it copies to the kill ring.
 
 ** Minibuffer changes
 
+*** Many commands that read a buffer name now provide a list of all buffers
+sorted by recency in the list of minibuffer default values available
+via M-n or down-arrow.  It is also possible to search this buffer list
+in the minibuffer using incremental search commands C-s and C-M-s
+(for instance, `C-x b C-s buf-name RET RET' to select a buffer by name).
+
 *** In C-x d, if you type M-n you get the visited file name of the
 current buffer.
 
