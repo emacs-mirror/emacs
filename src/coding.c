@@ -972,6 +972,66 @@ record_conversion_result (struct coding_system *coding,
   } while (0)
 
 
+/* Store multibyte form of the character C in P, and advance P to the
+   end of the multibyte form.  This is like CHAR_STRING_ADVANCE but it
+   never calls MAYBE_UNIFY_CHAR.  */
+
+#define CHAR_STRING_ADVANCE_NO_UNIFY(c, p)	\
+  do {						\
+    if ((c) <= MAX_1_BYTE_CHAR)			\
+      *(p)++ = (c);				\
+    else if ((c) <= MAX_2_BYTE_CHAR)		\
+      *(p)++ = (0xC0 | ((c) >> 6)),		\
+	*(p)++ = (0x80 | ((c) & 0x3F));		\
+    else if ((c) <= MAX_3_BYTE_CHAR)		\
+      *(p)++ = (0xE0 | ((c) >> 12)),		\
+	*(p)++ = (0x80 | (((c) >> 6) & 0x3F)),	\
+	*(p)++ = (0x80 | ((c) & 0x3F));		\
+    else if ((c) <= MAX_4_BYTE_CHAR)		\
+      *(p)++ = (0xF0 | (c >> 18)),		\
+	*(p)++ = (0x80 | ((c >> 12) & 0x3F)),	\
+	*(p)++ = (0x80 | ((c >> 6) & 0x3F)),	\
+	*(p)++ = (0x80 | (c & 0x3F));		\
+    else if ((c) <= MAX_5_BYTE_CHAR)		\
+      *(p)++ = 0xF8,				\
+	*(p)++ = (0x80 | ((c >> 18) & 0x0F)),	\
+	*(p)++ = (0x80 | ((c >> 12) & 0x3F)),	\
+	*(p)++ = (0x80 | ((c >> 6) & 0x3F)),	\
+	*(p)++ = (0x80 | (c & 0x3F));		\
+    else					\
+      (p) += BYTE8_STRING ((c) - 0x3FFF80, p);	\
+  } while (0)
+
+
+/* Return the character code of character whose multibyte form is at
+   P, and advance P to the end of the multibyte form.  This is like
+   STRING_CHAR_ADVANCE, but it never calls MAYBE_UNIFY_CHAR.  */
+
+#define STRING_CHAR_ADVANCE_NO_UNIFY(p)				\
+  (!((p)[0] & 0x80)						\
+   ? *(p)++							\
+   : ! ((p)[0] & 0x20)						\
+   ? ((p) += 2,							\
+      ((((p)[-2] & 0x1F) << 6)					\
+       | ((p)[-1] & 0x3F)					\
+       | ((unsigned char) ((p)[-2]) < 0xC2 ? 0x3FFF80 : 0)))	\
+   : ! ((p)[0] & 0x10)						\
+   ? ((p) += 3,							\
+      ((((p)[-3] & 0x0F) << 12)					\
+       | (((p)[-2] & 0x3F) << 6)				\
+       | ((p)[-1] & 0x3F)))					\
+   : ! ((p)[0] & 0x08)						\
+   ? ((p) += 4,							\
+      ((((p)[-4] & 0xF) << 18)					\
+       | (((p)[-3] & 0x3F) << 12)				\
+       | (((p)[-2] & 0x3F) << 6)				\
+       | ((p)[-1] & 0x3F)))					\
+   : ((p) += 5,							\
+      ((((p)[-4] & 0x3F) << 18)					\
+       | (((p)[-3] & 0x3F) << 12)				\
+       | (((p)[-2] & 0x3F) << 6)				\
+       | ((p)[-1] & 0x3F))))
+
 
 static void
 coding_set_source (coding)
@@ -1037,20 +1097,23 @@ coding_alloc_by_realloc (coding, bytes)
 }
 
 static void
-coding_alloc_by_making_gap (coding, offset, bytes)
+coding_alloc_by_making_gap (coding, gap_head_used, bytes)
      struct coding_system *coding;
-     EMACS_INT offset, bytes;
+     EMACS_INT gap_head_used, bytes;
 {
-  if (BUFFERP (coding->dst_object)
-      && EQ (coding->src_object, coding->dst_object))
+  if (EQ (coding->src_object, coding->dst_object))
     {
-      EMACS_INT add = offset + (coding->src_bytes - coding->consumed);
+      /* The gap may contain the produced data at the head and not-yet
+	 consumed data at the tail.  To preserve those data, we at
+	 first make the gap size to zero, then increase the gap
+	 size.  */
+      EMACS_INT add = GAP_SIZE;
 
-      GPT += offset, GPT_BYTE += offset;
-      GAP_SIZE -= add; ZV += add; Z += add; ZV_BYTE += add; Z_BYTE += add;
+      GPT += gap_head_used, GPT_BYTE += gap_head_used;
+      GAP_SIZE = 0; ZV += add; Z += add; ZV_BYTE += add; Z_BYTE += add;
       make_gap (bytes);
       GAP_SIZE += add; ZV -= add; Z -= add; ZV_BYTE -= add; Z_BYTE -= add;
-      GPT -= offset, GPT_BYTE -= offset;
+      GPT -= gap_head_used, GPT_BYTE -= gap_head_used;
     }
   else
     {
@@ -1073,7 +1136,11 @@ alloc_destination (coding, nbytes, dst)
   EMACS_INT offset = dst - coding->destination;
 
   if (BUFFERP (coding->dst_object))
-    coding_alloc_by_making_gap (coding, offset, nbytes);
+    {
+      struct buffer *buf = XBUFFER (coding->dst_object);
+
+      coding_alloc_by_making_gap (coding, dst - BUF_GPT_ADDR (buf), nbytes);
+    }
   else
     coding_alloc_by_realloc (coding, nbytes);
   record_conversion_result (coding, CODING_RESULT_SUCCESS);
@@ -1365,7 +1432,7 @@ encode_coding_utf_8 (coding)
 	    }
 	  else
 	    {
-	      CHAR_STRING_ADVANCE (c, pend);
+	      CHAR_STRING_ADVANCE_NO_UNIFY (c, pend);
 	      for (p = str; p < pend; p++)
 		EMIT_ONE_BYTE (*p);
 	    }
@@ -1382,7 +1449,7 @@ encode_coding_utf_8 (coding)
 	  if (CHAR_BYTE8_P (c))
 	    *dst++ = CHAR_TO_BYTE8 (c);
 	  else
-	    dst += CHAR_STRING (c, dst);
+	    CHAR_STRING_ADVANCE_NO_UNIFY (c, dst);
 	  produced_chars++;
 	}
     }
@@ -5971,9 +6038,11 @@ produce_chars (coding, translation_table, last_block)
       int *buf = coding->charbuf;
       int *buf_end = buf + coding->charbuf_used;
 
-      if (BUFFERP (coding->src_object)
-	  && EQ (coding->src_object, coding->dst_object))
-	dst_end = ((unsigned char *) coding->source) + coding->consumed;
+      if (EQ (coding->src_object, coding->dst_object))
+	{
+	  coding_set_source (coding);
+	  dst_end = ((unsigned char *) coding->source) + coding->consumed;
+	}
 
       while (buf < buf_end)
 	{
@@ -6000,7 +6069,13 @@ produce_chars (coding, translation_table, last_block)
 					   buf_end - buf
 					   + MAX_MULTIBYTE_LENGTH * to_nchars,
 					   dst);
-		  dst_end = coding->destination + coding->dst_bytes;
+		  if (EQ (coding->src_object, coding->dst_object))
+		    {
+		      coding_set_source (coding);
+		      dst_end = ((unsigned char *) coding->source) + coding->consumed;
+		    }
+		  else
+		    dst_end = coding->destination + coding->dst_bytes;
 		}
 
 	      for (i = 0; i < to_nchars; i++)
@@ -6009,7 +6084,7 @@ produce_chars (coding, translation_table, last_block)
 		    c = XINT (AREF (trans, i));
 		  if (coding->dst_multibyte
 		      || ! CHAR_BYTE8_P (c))
-		    CHAR_STRING_ADVANCE (c, dst);
+		    CHAR_STRING_ADVANCE_NO_UNIFY (c, dst);
 		  else
 		    *dst++ = CHAR_TO_BYTE8 (c);
 		}
@@ -6030,6 +6105,8 @@ produce_chars (coding, translation_table, last_block)
       const unsigned char *src = coding->source;
       const unsigned char *src_end = src + coding->consumed;
 
+      if (EQ (coding->dst_object, coding->src_object))
+	dst_end = (unsigned char *) src;
       if (coding->src_multibyte != coding->dst_multibyte)
 	{
 	  if (coding->src_multibyte)
@@ -6057,6 +6134,8 @@ produce_chars (coding, translation_table, last_block)
 			  coding_set_source (coding);
 			  src = coding->source + offset;
 			  src_end = coding->source + coding->src_bytes;
+			  if (EQ (coding->src_object, coding->dst_object))
+			    dst_end = (unsigned char *) src;
 			}
 		    }
 		  *dst++ = c;
@@ -6078,13 +6157,19 @@ produce_chars (coding, translation_table, last_block)
 		    if (dst >= dst_end - 1)
 		      {
 			EMACS_INT offset = src - coding->source;
+			EMACS_INT more_bytes;
 
-			dst = alloc_destination (coding, src_end - src + 2,
-						 dst);
+			if (EQ (coding->src_object, coding->dst_object))
+			  more_bytes = ((src_end - src) / 2) + 2;
+			else
+			  more_bytes = src_end - src + 2;
+			dst = alloc_destination (coding, more_bytes, dst);
 			dst_end = coding->destination + coding->dst_bytes;
 			coding_set_source (coding);
 			src = coding->source + offset;
 			src_end = coding->source + coding->src_bytes;
+			if (EQ (coding->src_object, coding->dst_object))
+			  dst_end = (unsigned char *) src;
 		      }
 		  }
 		EMIT_ONE_BYTE (c);
@@ -6572,12 +6657,12 @@ consume_chars (coding, translation_table, max_lookup)
 	  if (coding->encoder == encode_coding_raw_text)
 	    c = *src++, pos++;
 	  else if ((bytes = MULTIBYTE_LENGTH (src, src_end)) > 0)
-	    c = STRING_CHAR_ADVANCE (src), pos += bytes;
+	    c = STRING_CHAR_ADVANCE_NO_UNIFY (src), pos += bytes;
 	  else
 	    c = BYTE8_TO_CHAR (*src), src++, pos++;
 	}
       else
-	c = STRING_CHAR_ADVANCE (src), pos++;
+	c = STRING_CHAR_ADVANCE_NO_UNIFY (src), pos++;
       if ((c == '\r') && (coding->mode & CODING_MODE_SELECTIVE_DISPLAY))
 	c = '\n';
       if (! EQ (eol_type, Qunix))
