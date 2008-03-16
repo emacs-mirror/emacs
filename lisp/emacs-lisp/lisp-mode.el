@@ -289,10 +289,10 @@
 
     (define-key prof-map [sep-rem] '("--"))
     (define-key prof-map [prof-resall]
-      '(menu-item "Remove Instrumentation for All Functions" elp-reset-all
+      '(menu-item "Reset Counters for All Functions" elp-reset-all
 		  :help "Reset the profiling information for all functions being profiled"))
     (define-key prof-map [prof-resfunc]
-      '(menu-item "Remove Instrumentation for Function" elp-reset-function
+      '(menu-item "Reset Counters for Function" elp-reset-function
 		  :help "Reset the profiling information for a function"))
     (define-key prof-map [prof-res]
       '(menu-item "Show Profiling Results" elp-results
