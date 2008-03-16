@@ -1,3 +1,8 @@
+2008-03-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (auto-coding-alist): Use
+	no-conversion-multibyte for archive files.
+
 2008-03-16  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (calendar-mark-complex, calendar-mark-1):
