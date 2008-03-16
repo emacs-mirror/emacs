@@ -215,24 +215,22 @@ Echo Mayan date unless NOECHO is non-nil."
 
 (defun calendar-mayan-haab-to-string (haab)
   "Convert Mayan HAAB date (a pair) into its traditional written form."
-  (let ((month (cdr haab))
-        (day (car haab)))
-    ;; 19th month consists of 5 special days
-    (if (= month 19)
-        (format "%d Uayeb" day)
-      (format "%d %s"
-              day
+  (let ((month (cdr haab)))
+    (format "%d %s" (car haab)          ; day
+            ;; 19th month consists of 5 special days
+            (if (= month 19) "Uayeb"
               (aref calendar-mayan-haab-month-name-array (1- month))))))
 
 (defun calendar-mayan-tzolkin-from-absolute (date)
   "Convert absolute DATE into a Mayan tzolkin date (a pair)."
   (let* ((long-count (+ date calendar-mayan-days-before-absolute-zero))
-         (day (calendar-mod
-               (+ long-count (car calendar-mayan-tzolkin-at-epoch))
-               13))
-         (name (calendar-mod
-                (+ long-count (cdr calendar-mayan-tzolkin-at-epoch))
-                20)))
+         ;; Remainder on division by 13,20 with 13,20 instead of zero.
+         (day (1+ (mod
+                   (1- (+ long-count (car calendar-mayan-tzolkin-at-epoch)))
+                   13)))
+         (name (1+ (mod
+                    (1- (+ long-count (cdr calendar-mayan-tzolkin-at-epoch)))
+                    20))))
     (cons day name)))
 
 (defun calendar-mayan-tzolkin-difference (date1 date2)
