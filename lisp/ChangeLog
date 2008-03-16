@@ -20,6 +20,8 @@
 	* calendar/calendar.el (calendar-mod): Remove.
 	* calendar/cal-china.el (calendar-chinese-from-absolute)
 	(calendar-chinese-date-string): Expand calendar-mod calls.
+	* calendar/cal-mayan.el (calendar-mayan-tzolkin-from-absolute):
+	Expand calendar-mod calls.
 
 	* calendar/cal-bahai.el (calendar-bahai-date-string): Use a single let.
 	(diary-bahai-insert-entry, diary-bahai-insert-monthly-entry)
@@ -36,6 +38,8 @@
 
 	* calendar/cal-islam.el (calendar-islamic-prompt-for-date): New func.
 	(calendar-goto-islamic-date): Use calendar-islamic-prompt-for-date.
+
+	* calendar/cal-mayan.el (calendar-mayan-haab-to-string): Simplify.
 
 	* calendar/calendar.el (calendar-for-loop): Add indent spec.
 
