@@ -1,3 +1,9 @@
+2008-03-16  Juri Linkov  <juri@jurta.org>
+
+	* callint.c (Fcall_interactively): For interactive code letters
+	'b' and 'B' put the buffer list into the list of default "future"
+	values of the minibuffer.
+
 2008-03-16  Andreas Schwab  <schwab@suse.de>
 
 	* keyboard.c (read_key_sequence): Fix downcasing of letters with
