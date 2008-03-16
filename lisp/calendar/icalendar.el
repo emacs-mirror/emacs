@@ -105,7 +105,7 @@
 
 ;;; Code:
 
-(defconst icalendar-version "0.17"
+(defconst icalendar-version "0.18"
   "Version number of icalendar.el.")
 
 ;; ======================================================================
@@ -202,6 +202,15 @@ Some calendar browsers only propagate recurring events for
 several years beyond the start time.  Set this string to a year
 just before the start of your personal calendar."
   :type 'integer
+  :group 'icalendar)
+
+
+(defcustom icalendar-export-hidden-diary-entries
+  t
+  "Determines whether hidden diary entries are exported.
+If non-nil hidden diary entries (starting with `&') get exported,
+if nil they are ignored."
+  :type 'boolean
   :group 'icalendar)
 
 (defvar icalendar-debug nil
@@ -847,8 +856,10 @@ FExport diary data into iCalendar file: ")
     (save-excursion
       (goto-char min)
       (while (re-search-forward
-              ;; ignores hidden entries beginning with "&"
-              "^\\([^ \t\n&#].+\\)\\(\\(\n[ \t].*\\)*\\)" max t)
+              ;; possibly ignore hidden entries beginning with "&"
+              (if icalendar-export-hidden-diary-entries
+                  "^\\([^ \t\n#].+\\)\\(\\(\n[ \t].*\\)*\\)"
+                "^\\([^ \t\n&#].+\\)\\(\\(\n[ \t].*\\)*\\)") max t)
         (setq entry-main (match-string 1))
         (if (match-beginning 2)
             (setq entry-rest (match-string 2))
@@ -894,7 +905,7 @@ FExport diary data into iCalendar file: ")
              (set-buffer (get-buffer-create "*icalendar-errors*"))
              (insert (format "Error in line %d -- %s: `%s'\n"
                              (count-lines (point-min) (point))
-                             (cadr error-val)
+                             error-val
                              entry-main))))))
 
       ;; we're done, insert everything into the file
@@ -1116,15 +1127,18 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
     ;; no match
     nil))
 
-(defun icalendar-first-weekday-of-year (abbrevweekday year &optional offset)
-  "Find the first WEEKDAY in a given YEAR."
-  (let* ((j2000 (calendar-absolute-from-gregorian '(1 2 2000)))
-         (juser (calendar-absolute-from-gregorian (list 1 1 year)))
-         (wdayjan1 (mod (- juser j2000) 7))
-         (wdayuser (icalendar--get-weekday-number abbrevweekday))
-         (dayoff (+ wdayuser 1 (- wdayjan1) (or offset 0))))
-    (if (<= dayoff 0) (setq dayoff (+ dayoff 7)))
-    (list year 1 dayoff)))
+(defun icalendar-first-weekday-of-year (abbrevweekday year)
+  "Find the first ABBREVWEEKDAY in a given YEAR.
+Returns day number."
+  (let* ((day-of-week-jan01 (calendar-day-of-week (list 1 1 year)))
+         (result (+ 1
+                    (- (icalendar--get-weekday-number abbrevweekday)
+                       day-of-week-jan01))))
+    (cond ((<= result 0)
+           (setq result (+ result 7)))
+          ((> result 7)
+           (setq result (- result 7))))
+    result))
 
 (defun icalendar--convert-weekly-to-ical (nonmarker entry-main)
   "Convert weekly diary entry to icalendar format.
@@ -1186,20 +1200,20 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                         "VALUE=DATE:")
                       ;; Find the first requested weekday of the
                       ;; start year
-                      (apply 'format
-                       "%04d%02d%02d"
-                       (icalendar-first-weekday-of-year day
-                         icalendar-recurring-start-year))
+                      (funcall 'format "%04d%02d%02d"
+                               icalendar-recurring-start-year 1
+                               (icalendar-first-weekday-of-year
+                                day icalendar-recurring-start-year))
                       (or starttimestring "")
                       "\nDTEND;"
                       (if endtimestring
                           "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
-                      (apply 'format
-                       "%04d%02d%02d"
+                      (funcall 'format "%04d%02d%02d"
                        ;; end is non-inclusive!
-                       (icalendar-first-weekday-of-year day
-                          icalendar-recurring-start-year
+                               icalendar-recurring-start-year 1
+                               (+ (icalendar-first-weekday-of-year
+                                   day icalendar-recurring-start-year)
                           (if endtimestring 0 1)))
                       (or endtimestring "")
                       "\nRRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY="
@@ -1281,8 +1295,6 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                        (if endtimestring 0 1))
                       (or endtimestring "")
                       "\nRRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH="
-                      ;; Removed %2d formatting string since spaces
-                      ;; are not allowed
                       (format "%d" month)
                       ";BYMONTHDAY="
                       (format "%d" day))
