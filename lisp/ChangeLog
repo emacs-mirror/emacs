@@ -1,3 +1,78 @@
+2008-03-16  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (calendar-mark-complex, calendar-mark-1):
+	New functions.
+	* calendar/cal-bahai.el (calendar-mark-1): Autoload it.
+	(calendar-bahai-mark-date-pattern): Add optional argument `color'.
+	Use calendar-mark-1.
+	* calendar/cal-hebrew.el (calendar-mark-complex): Autoload it.
+	(mark-hebrew-calendar-date-pattern): Add optional argument `color'.
+	Use calendar-mark-complex.
+	* calendar/cal-islam.el (calendar-mark-1): Autoload it.
+	(mark-islamic-calendar-date-pattern): Add optional argument `color'.
+	Use calendar-mark-1.
+
+	* calendar/calendar.el (calendar-mod): Remove.
+	* calendar/cal-china.el (calendar-chinese-from-absolute)
+	(calendar-chinese-date-string): Expand calendar-mod calls.
+
+	* calendar/cal-bahai.el (calendar-bahai-date-string): Use a single let.
+	(diary-bahai-insert-entry, diary-bahai-insert-monthly-entry)
+	(diary-bahai-insert-yearly-entry): Use let rather than let*.
+	Move obsolete aliases after the functions that replaced them.
+
+	* calendar/cal-hebrew.el (calendar-absolute-from-hebrew)
+	(hebrew-calendar-yahrzeit, insert-hebrew-diary-entry)
+	(insert-monthly-hebrew-diary-entry, insert-yearly-hebrew-diary-entry):
+	Use let rather than let*.
+	(calendar-hebrew-prompt-for-date): New function.
+	(calendar-goto-hebrew-date): Use calendar-hebrew-prompt-for-date.
+	(holiday-tisha-b-av-etc): Use unless, let.
+
+	* calendar/cal-islam.el (calendar-islamic-prompt-for-date): New func.
+	(calendar-goto-islamic-date): Use calendar-islamic-prompt-for-date.
+
+	* calendar/calendar.el (calendar-for-loop): Add indent spec.
+
+	* calendar/diary-lib.el (diary-remind-message, mark-sexp-diary-entries)
+	(list-sexp-diary-entries, diary-font-lock-sexps): Use format rather
+	than concat.
+	(diary): Remove un-needed let.
+	(view-other-diary-entries): Rename argument.
+	(diary-list-entries-2): New function.
+	(diary-list-entries-1, diary-list-entries): Use diary-list-entries-2.
+	(print-diary-entries): Use unless.
+	(diary-mark-entries-1): Change argument order, make all but
+	markfunc optional.  Handle the standard (Gregorian) case.  Use
+	match-string-no-properties.  Handle marks.
+	(mark-diary-entries): Use diary-mark-entries-1.
+	(diary-font-lock-keywords-1): New macro.
+	(diary-font-lock-keywords): Use diary-font-lock-keywords-1.
+
+2008-03-16  Ulf Jasper  <ulf.jasper@web.de>
+
+	* icalendar.el (icalendar-version): Increase to 0.18.
+	(icalendar-export-hidden-diary-entries): New variable.
+	(icalendar-export-region): Use icalendar-export-hidden-diary-entries.
+	In case of error, insert full error-val.
+	(icalendar-first-weekday-of-year): Remove `offset' argument.  Doc fix.
+	Use calendar-day-of-week.  Return the day number.
+	(icalendar--convert-weekly-to-ical): Use funcall rather than apply.
+
+2008-03-16  Craig Markwardt  <Craig.Markwardt@nasa.gov>
+
+	* icalendar.el (icalendar-recurring-start-year): New variable.
+	(icalendar--diarytime-to-isotime): Fix treatment of 12:00pm - 12:59pm.
+	(icalendar-export-region): Ignore hidden diary entries.
+	(icalendar--convert-ordinary-to-ical): Fix case where event
+	spans across midnight boundary.
+	(icalendar-first-weekday-of-year): New function.
+	(icalendar--convert-weekly-to-ical): Allow user-selectable start
+	year for recurring events (Mozilla calendars do not propagate
+	recurring events forever, so year 2000 start date was not working).
+	(icalendar--convert-yearly-to-ical): Remove extra spaces in
+	formatting of BYMONTH and BYMONTHDAY (not allowed by ical spec).
+
 2008-03-15  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.el (tramp-root-regexp): New defconst.
