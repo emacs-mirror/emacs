@@ -1,5 +1,8 @@
 2008-03-16  Andreas Schwab  <schwab@suse.de>
 
+	* keyboard.c (read_key_sequence): Fix downcasing of letters with
+	modifiers.
+
 	* regex.c (re_match_2_internal): Correct matching of a charset
 	against latin-1 characters.
 

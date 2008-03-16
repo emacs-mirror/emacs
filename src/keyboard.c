@@ -10105,7 +10105,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    XSETINT (new_key, XINT (key) & ~shift_modifier);
 	  else
 	    XSETINT (new_key, (DOWNCASE (XINT (key) & ~CHAR_MODIFIER_MASK)
-			       | (XINT (key) & ~CHAR_MODIFIER_MASK)));
+			       | (XINT (key) & CHAR_MODIFIER_MASK)));
 
 	  /* We have to do this unconditionally, regardless of whether
 	     the lower-case char is defined in the keymaps, because they
