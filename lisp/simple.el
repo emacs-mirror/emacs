@@ -819,10 +819,11 @@ that uses or sets the mark."
 
 (defun goto-line (arg &optional buffer)
   "Goto line ARG, counting from line 1 at beginning of buffer.
-Normally, move point in the current buffer.
-With just \\[universal-argument] as argument, move point in the most recently
-displayed other buffer, and switch to it.  When called from Lisp code,
-the optional argument BUFFER specifies a buffer to switch to.
+Normally, move point in the current buffer, and leave mark at previous
+position.  With just \\[universal-argument] as argument, move point
+in the most recently displayed other buffer, and switch to it.
+When called from Lisp code, the optional argument BUFFER specifies
+a buffer to switch to.
 
 If there's a number in the buffer at point, it is the default for ARG."
   (interactive
@@ -859,6 +860,9 @@ If there's a number in the buffer at point, it is the default for ARG."
       (let ((window (get-buffer-window buffer)))
 	(if window (select-window window)
 	  (switch-to-buffer-other-window buffer))))
+  ;; Leave mark at previous position
+  (or (and transient-mark-mode mark-active)
+      (push-mark))
   ;; Move to the specified line number in that buffer.
   (save-restriction
     (widen)
