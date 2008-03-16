@@ -344,13 +344,15 @@ Subexpression 2 must end right before the \\n or \\r.")
 (defvar dired-warning-face 'dired-warning
   "Face name used for a part of a buffer that needs user attention.")
 
-(defface dired-warn-writable
+(defface dired-perm-write
   '((((type w32 pc)) :inherit default)  ;; These default to rw-rw-rw.
-    (t (:inherit font-lock-warning-face)))
+    ;; Inherit from font-lock-comment-delimiter-face since with min-colors 8
+    ;; font-lock-comment-face is not colored any more.
+    (t (:inherit font-lock-comment-delimiter-face)))
   "Face used to highlight permissions of group- and world-writable files."
   :group 'dired-faces
   :version "22.2")
-(defvar dired-warn-writable-face 'dired-warn-writable
+(defvar dired-perm-write-face 'dired-perm-write
   "Face name used for permissions of group- and world-writable files.")
 
 (defface dired-directory
@@ -414,10 +416,10 @@ Subexpression 2 must end right before the \\n or \\r.")
    ;; fields with keymaps to frob the permissions, somewhat a la XEmacs.
    (list (concat dired-re-maybe-mark dired-re-inode-size
 		 "[-d]....\\(w\\)....")	; group writable
-	 '(1 dired-warn-writable-face))
+	 '(1 dired-perm-write-face))
    (list (concat dired-re-maybe-mark dired-re-inode-size
 		 "[-d].......\\(w\\).")	; world writable
-	 '(1 dired-warn-writable-face))
+	 '(1 dired-perm-write-face))
    ;;
    ;; Subdirectories.
    (list dired-re-dir
