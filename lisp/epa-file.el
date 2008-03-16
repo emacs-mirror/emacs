@@ -285,10 +285,13 @@ If no one is selected, symmetric encryption will be performed.  "
   (interactive)
   (make-local-variable 'epa-file-encrypt-to)
   (setq epa-file-encrypt-to
+	(mapcar
+	 (lambda (key)
+	   (epg-sub-key-id (car (epg-key-sub-key-list key))))
 	(epa-select-keys
 	 (epg-make-context)
 	 "Select recipents for encryption.
-If no one is selected, symmetric encryption will be performed.  ")))
+If no one is selected, symmetric encryption will be performed.  "))))
 
 ;;;###autoload
 (defun epa-file-enable ()
