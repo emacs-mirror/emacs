@@ -1,3 +1,9 @@
+2008-03-16  Tassilo Horn  <tassilo@member.fsf.org>
+
+	* doc-view.el (doc-view-doc->txt, doc-view-convert-current-doc):
+	Use non-nil PARENTS attribute of make-directory instead of
+	explicitly checking existence the current cache directory.
+
 2008-03-16  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa-file.el (epa-file-select-keys): Fix bug with C-x C-s after
