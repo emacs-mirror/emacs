@@ -513,16 +513,35 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  break;
 
 	case 'b':   		/* Name of existing buffer */
-	  args[i] = Fcurrent_buffer ();
-	  if (EQ (selected_window, minibuf_window))
-	    args[i] = Fother_buffer (args[i], Qnil, Qnil);
-	  args[i] = Fread_buffer (callint_message, args[i], Qt);
-	  break;
-
 	case 'B':		/* Name of buffer, possibly nonexistent */
-	  args[i] = Fread_buffer (callint_message,
-				  Fother_buffer (Fcurrent_buffer (), Qnil, Qnil),
-				  Qnil);
+	  {
+	    Lisp_Object tema, temb, temc;
+	    int skip_current = 1;
+
+	    if (*tem == 'b' && !EQ (selected_window, minibuf_window))
+	      skip_current = 0;
+
+	    /* Get a list of buffer names (except the current buffer and
+	       internal buffers), and use this list for default values.  */
+	    tema = Qnil;
+	    temc = Fcurrent_buffer ();
+	    teml = Fbuffer_list (selected_frame);
+	    for (; CONSP (teml); teml = XCDR (teml))
+	      {
+		temb = XCAR (teml);
+		if (skip_current && EQ (temb, temc))
+		  continue;
+		if (NILP (temb))
+		  continue;
+		if (NILP (XBUFFER (temb)->name))
+		  continue;
+		if (SREF (XBUFFER (temb)->name, 0) == ' ')
+		  continue;
+		tema = Fcons (XBUFFER (temb)->name, tema);
+	      }
+	    args[i] = Fread_buffer (callint_message, Fnreverse (tema),
+				    *tem == 'b' ? Qt : Qnil);
+	  }
 	  break;
 
         case 'c':		/* Character */
