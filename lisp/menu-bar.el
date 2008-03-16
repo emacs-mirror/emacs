@@ -1439,9 +1439,13 @@ for the definition of the menu frame."
     (not (window-minibuffer-p (frame-selected-window menu-frame)))))
 
 (defun kill-this-buffer ()	; for the menu bar
-  "Kill the current buffer."
+  "Kill the current buffer.
+When called in the minibuffer, get out of the minibuffer
+using `abort-recursive-edit'."
   (interactive)
-  (kill-buffer (current-buffer)))
+  (if (menu-bar-non-minibuffer-window-p)
+      (kill-buffer (current-buffer))
+    (abort-recursive-edit)))
 
 (defun kill-this-buffer-enabled-p ()
   (let ((count 0)
@@ -1450,8 +1454,8 @@ for the definition of the menu frame."
       (or (string-match "^ " (buffer-name (car buffers)))
 	  (setq count (1+ count)))
       (setq buffers (cdr buffers)))
-    (and (menu-bar-non-minibuffer-window-p)
-	 (> count 1))))
+    (or (not (menu-bar-non-minibuffer-window-p))
+	(> count 1))))
 
 (put 'dired 'menu-enable '(menu-bar-non-minibuffer-window-p))
 
