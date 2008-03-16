@@ -107,7 +107,9 @@
 ;; Bound in diary-list-entries:
 ;; diary-entries-list: use in d-l, appt.el, and by add-to-diary-list
 ;; diary-saved-point: only used in diary-lib.el, passed to the display func
-;; date-string: only used in diary-lib.el FIXME could be removed?
+;; date-string: only used in diary-lib.el
+;; list-only: don't modify the diary-buffer, just return a list of entries
+;; file-glob-attrs: yuck
 
 ;;; Code:
 
@@ -226,7 +228,7 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
      :weight bold))
   "Face for highlighting diary entries."
   :group 'diary)
-;; Backward-compatibility alias. FIXME make obsolete.
+;; Backward-compatibility alias.  FIXME make obsolete.
 (put 'diary-face 'face-alias 'diary)
 
 (defface holiday
@@ -635,17 +637,17 @@ See the documentation of the function `calendar-date-string'."
 (defun european-calendar ()
   "Set the interpretation and display of dates to the European style."
   (interactive)
-  (setq european-calendar-style t)
-  (setq calendar-date-display-form european-calendar-display-form)
-  (setq diary-date-forms european-date-diary-pattern)
+  (setq european-calendar-style t
+        calendar-date-display-form european-calendar-display-form
+        diary-date-forms european-date-diary-pattern)
   (update-calendar-mode-line))
 
 (defun american-calendar ()
   "Set the interpretation and display of dates to the American style."
   (interactive)
-  (setq european-calendar-style nil)
-  (setq calendar-date-display-form american-calendar-display-form)
-  (setq diary-date-forms american-date-diary-pattern)
+  (setq european-calendar-style nil
+        calendar-date-display-form american-calendar-display-form
+        diary-date-forms american-date-diary-pattern)
   (update-calendar-mode-line))
 
 ;; FIXME move to diary-lib and adjust appt.
@@ -1207,7 +1209,8 @@ MON defaults to `displayed-month'.  YR defaults to `displayed-year'."
   "Execute a for loop.
 Evaluate BODY with VAR bound to successive integers from INIT to FINAL,
 inclusive.  The standard macro `dotimes' is preferable in most cases."
-  (declare (debug (symbolp "from" form "to" form "do" body)))
+  (declare (debug (symbolp "from" form "to" form "do" body))
+           (indent defun))
   `(let ((,var (1- ,init)))
     (while (>= ,final (setq ,var (1+ ,var)))
       ,@body)))
@@ -1837,8 +1840,8 @@ the STRINGS are just concatenated and the result truncated."
     (dolist (string strings)
       (setq s (concat s
                       (make-string (max 0 (/ (+ n i) m)) char)
-                      string))
-      (setq i (1+ i)))
+                      string)
+            i (1+ i)))
     (substring s 0 length)))
 
 (defun update-calendar-mode-line ()
@@ -1998,9 +2001,8 @@ handle dates in years BC."
 (defun calendar-other-month (month year)
   "Display a three-month calendar centered around MONTH and YEAR."
   (interactive (calendar-read-date 'noday))
-  (if (and (= month displayed-month)
-           (= year displayed-year))
-      nil
+  (unless (and (= month displayed-month)
+               (= year displayed-year))
     (let ((old-date (calendar-cursor-to-date))
           (today (calendar-current-date)))
       (generate-calendar-window month year)
@@ -2242,8 +2244,8 @@ interpreted as BC; -1 being 1 BC, and so on."
 (defun calendar-unmark ()
   "Delete all diary/holiday marks/highlighting from the calendar."
   (interactive)
-  (setq mark-holidays-in-calendar nil)
-  (setq mark-diary-entries-in-calendar nil)
+  (setq mark-holidays-in-calendar nil
+        mark-diary-entries-in-calendar nil)
   (redraw-calendar))
 
 (defun calendar-date-is-visible-p (date)
@@ -2452,22 +2454,22 @@ Defaults to today's date if DATE is not given."
                 (format "Persian date: %s\n"
                         (calendar-persian-date-string date))
                 (let ((i (calendar-islamic-date-string date)))
-                  (if (not (string-equal i ""))
+                  (unless (string-equal i "")
                       (format "Islamic date (before sunset): %s\n" i)))
                 (let ((b (calendar-bahai-date-string date)))
-                  (if (not (string-equal b ""))
+                  (unless (string-equal b "")
                       (format "Baha'i date (before sunset): %s\n" b)))
                 (format "Chinese date: %s\n"
                         (calendar-chinese-date-string date))
                 (let ((c (calendar-coptic-date-string date)))
-                  (if (not (string-equal c ""))
-                      (format "Coptic date: %s\n" c)))
+                  (unless (string-equal c "")
+                    (format "Coptic date: %s\n" c)))
                 (let ((e (calendar-ethiopic-date-string date)))
-                  (if (not (string-equal e ""))
-                      (format "Ethiopic date: %s\n" e)))
+                  (unless (string-equal e "")
+                    (format "Ethiopic date: %s\n" e)))
                 (let ((f (calendar-french-date-string date)))
-                  (if (not (string-equal f ""))
-                      (format "French Revolutionary date: %s\n" f)))
+                  (unless (string-equal f "")
+                    (format "French Revolutionary date: %s\n" f)))
                 (format "Mayan date: %s\n"
                         (calendar-mayan-date-string date)))))
         (goto-char (point-min))
@@ -2490,11 +2492,6 @@ Defaults to today's date if DATE is not given."
                 ,(calendar-string-spread (list str) ?- (- width 6))
                 "---")
             (calendar-string-spread (list str) ?- width)))))
-
-(defun calendar-mod (m n)
-  "Non-negative remainder of M/N with N instead of 0."
-  (1+ (mod (1- m) n)))
-
 
 (defun calendar-version ()
   "Display the Calendar version."
