@@ -105,10 +105,10 @@ Gregorian date Sunday, December 31, 1 BC."
                         1 0)))
            (month                       ; search forward from Baha
             (1+ (calendar-sum m 1
-                              (> date
-                                 (calendar-absolute-from-bahai
-                                  (list m 19 year)))
-                              1)))
+                  (> date
+                     (calendar-absolute-from-bahai
+                      (list m 19 year)))
+                  1)))
            (day                     ; calculate the day by subtraction
             (- date
                (1- (calendar-absolute-from-bahai (list month 1 year))))))
@@ -123,22 +123,21 @@ Defaults to today's date if DATE is not given."
                        (or date (calendar-current-date)))))
          (y (extract-calendar-year bahai-date))
          (m (extract-calendar-month bahai-date))
-         (d (extract-calendar-day bahai-date)))
-    (let ((monthname
-           (if (and (= m 19)
-                    (<= d 0))
-               "Ayyám-i-Há"
-             (aref calendar-bahai-month-name-array (1- m))))
-          (day (int-to-string
-                (if (<= d 0)
-                    (if (calendar-bahai-leap-year-p y)
-                        (+ d 5)
-                      (+ d 4))
-                  d)))
-          (dayname nil)
-          (month (int-to-string m))
-          (year (int-to-string y)))
-      (mapconcat 'eval calendar-date-display-form ""))))
+         (d (extract-calendar-day bahai-date))
+         (monthname (if (and (= m 19)
+                             (<= d 0))
+                        "Ayyám-i-Há"
+                      (aref calendar-bahai-month-name-array (1- m))))
+         (day (int-to-string
+               (if (<= d 0)
+                   (if (calendar-bahai-leap-year-p y)
+                       (+ d 5)
+                     (+ d 4))
+                 d)))
+         (year (int-to-string y))
+         (month (int-to-string m))
+         dayname)
+    (mapconcat 'eval calendar-date-display-form "")))
 
 ;;;###cal-autoload
 (defun calendar-bahai-print-date ()
@@ -146,6 +145,9 @@ Defaults to today's date if DATE is not given."
   (interactive)
   (message "Bahá'í date: %s"
            (calendar-bahai-date-string (calendar-cursor-to-date t))))
+
+(define-obsolete-function-alias
+  'calendar-print-bahai-date 'calendar-bahai-print-date "23.1")
 
 (defun calendar-bahai-prompt-for-date ()
   "Ask for a Bahá'í date."
@@ -172,12 +174,14 @@ Defaults to today's date if DATE is not given."
 
 ;;;###cal-autoload
 (defun calendar-bahai-goto-date (date &optional noecho)
-  "Move cursor to Bahá'í date DATE.
-Echo Bahá'í date unless NOECHO is non-nil."
+  "Move cursor to Bahá'í date DATE; echo Bahá'í date unless NOECHO is non-nil."
   (interactive (calendar-bahai-prompt-for-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-bahai date)))
   (or noecho (calendar-bahai-print-date)))
+
+(define-obsolete-function-alias
+  'calendar-goto-bahai-date 'calendar-bahai-goto-date "23.1")
 
 (defvar displayed-month)
 (defvar displayed-year)
@@ -216,68 +220,26 @@ numerically.  The Bahá'í months are numbered from 1 to 19 with Bahá being
 `diary-nonmarking-symbol', the entry will appear in the diary listing, but
 will not be marked in the calendar.  This function is provided for use with
 `nongregorian-diary-listing-hook'."
-    (diary-list-entries-1 calendar-bahai-month-name-array
-                          bahai-diary-entry-symbol
-                          'calendar-bahai-from-absolute))
+  (diary-list-entries-1 calendar-bahai-month-name-array
+                        bahai-diary-entry-symbol
+                        'calendar-bahai-from-absolute))
+(define-obsolete-function-alias
+  'list-bahai-diary-entries 'diary-bahai-list-entries "23.1")
+
+
+(autoload 'calendar-mark-1 "diary-lib")
 
 ;;;###diary-autoload
-(defun calendar-bahai-mark-date-pattern (month day year)
+(defun calendar-bahai-mark-date-pattern (month day year &optional color)
   "Mark dates in calendar window that conform to Bahá'í date MONTH/DAY/YEAR.
-A value of 0 in any position is a wildcard."
-  (save-excursion
-    (set-buffer calendar-buffer)
-    (if (and (not (zerop month)) (not (zerop day)))
-        (if (not (zerop year))
-            ;; Fully specified Bahá'í date.
-            (let ((date (calendar-gregorian-from-absolute
-                         (calendar-absolute-from-bahai
-                          (list month day year)))))
-              (if (calendar-date-is-visible-p date)
-                  (mark-visible-calendar-date date)))
-          ;; Month and day in any year--this taken from the holiday stuff.
-          (let* ((bahai-date (calendar-bahai-from-absolute
-                              (calendar-absolute-from-gregorian
-                               (list displayed-month 15 displayed-year))))
-                 (m (extract-calendar-month bahai-date))
-                 (y (extract-calendar-year bahai-date))
-                 (date))
-            (unless (< m 1)            ; Bahá'í calendar doesn't apply
-              (increment-calendar-month m y (- 10 month))
-              (if (> m 7)               ; Bahá'í date might be visible
-                  (let ((date (calendar-gregorian-from-absolute
-                               (calendar-absolute-from-bahai
-                                (list month day y)))))
-                    (if (calendar-date-is-visible-p date)
-                        (mark-visible-calendar-date date)))))))
-      ;; Not one of the simple cases--check all visible dates for match.
-      ;; Actually, the following code takes care of ALL of the cases, but
-      ;; it's much too slow to be used for the simple (common) cases.
-      (let ((m displayed-month)
-            (y displayed-year)
-            (first-date)
-            (last-date))
-        (increment-calendar-month m y -1)
-        (setq first-date
-              (calendar-absolute-from-gregorian
-               (list m 1 y)))
-        (increment-calendar-month m y 2)
-        (setq last-date
-              (calendar-absolute-from-gregorian
-               (list m (calendar-last-day-of-month m y) y)))
-        (calendar-for-loop date from first-date to last-date do
-                           (let* ((b-date (calendar-bahai-from-absolute date))
-                                  (i-month (extract-calendar-month b-date))
-                                  (i-day (extract-calendar-day b-date))
-                                  (i-year (extract-calendar-year b-date)))
-                             (and (or (zerop month)
-                                      (= month i-month))
-                                  (or (zerop day)
-                                      (= day i-day))
-                                  (or (zerop year)
-                                      (= year i-year))
-                                  (mark-visible-calendar-date
-                                   (calendar-gregorian-from-absolute
-                                    date)))))))))
+A value of 0 in any position is a wildcard.  Optional argument COLOR is
+passed to `mark-visible-calendar-date' as MARK."
+  (calendar-mark-1 month day year 'calendar-bahai-from-absolute
+                   'calendar-absolute-from-bahai color))
+
+(define-obsolete-function-alias
+  'mark-bahai-calendar-date-pattern 'calendar-bahai-mark-date-pattern "23.1")
+
 
 (autoload 'diary-mark-entries-1 "diary-lib")
 
@@ -291,13 +253,16 @@ window.  See `diary-bahai-list-entries' for more information."
                         'calendar-bahai-from-absolute
                         'calendar-bahai-mark-date-pattern))
 
+(define-obsolete-function-alias
+  'mark-bahai-diary-entries 'diary-bahai-mark-entries "23.1")
+
 ;;;###cal-autoload
 (defun diary-bahai-insert-entry (arg)
   "Insert a diary entry.
 For the Bahá'í date corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let* ((calendar-month-name-array calendar-bahai-month-name-array))
+  (let ((calendar-month-name-array calendar-bahai-month-name-array))
     (make-diary-entry
      (concat bahai-diary-entry-symbol
              (calendar-date-string
@@ -306,16 +271,19 @@ Prefix argument ARG makes the entry nonmarking."
               nil t))
      arg)))
 
+(define-obsolete-function-alias
+  'insert-bahai-diary-entry 'diary-bahai-insert-entry "23.1")
+
 ;;;###cal-autoload
 (defun diary-bahai-insert-monthly-entry (arg)
   "Insert a monthly diary entry.
 For the day of the Bahá'í month corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let* ((calendar-date-display-form (if european-calendar-style
-                                         '(day " * ")
-                                       '("* " day )))
-         (calendar-month-name-array calendar-bahai-month-name-array))
+  (let ((calendar-date-display-form (if european-calendar-style
+                                        '(day " * ")
+                                      '("* " day )))
+        (calendar-month-name-array calendar-bahai-month-name-array))
     (make-diary-entry
      (concat bahai-diary-entry-symbol
              (calendar-date-string
@@ -323,22 +291,28 @@ Prefix argument ARG makes the entry nonmarking."
                (calendar-absolute-from-gregorian (calendar-cursor-to-date t)))))
      arg)))
 
+(define-obsolete-function-alias
+  'insert-monthly-bahai-diary-entry 'diary-bahai-insert-monthly-entry "23.1")
+
 ;;;###cal-autoload
 (defun diary-bahai-insert-yearly-entry (arg)
   "Insert an annual diary entry.
 For the day of the Bahá'í year corresponding to the date indicated by point.
 Prefix argument ARG will make the entry nonmarking."
   (interactive "P")
-  (let* ((calendar-date-display-form (if european-calendar-style
-                                         '(day " " monthname)
-                                       '(monthname " " day)))
-         (calendar-month-name-array calendar-bahai-month-name-array))
+  (let ((calendar-date-display-form (if european-calendar-style
+                                        '(day " " monthname)
+                                      '(monthname " " day)))
+        (calendar-month-name-array calendar-bahai-month-name-array))
     (make-diary-entry
      (concat bahai-diary-entry-symbol
              (calendar-date-string
               (calendar-bahai-from-absolute
                (calendar-absolute-from-gregorian (calendar-cursor-to-date t)))))
      arg)))
+
+(define-obsolete-function-alias
+  'insert-yearly-bahai-diary-entry 'diary-bahai-insert-yearly-entry "23.1")
 
 (defvar date)
 
@@ -348,24 +322,6 @@ Prefix argument ARG will make the entry nonmarking."
   "Bahá'í calendar equivalent of date diary entry."
   (format "Bahá'í date: %s" (calendar-bahai-date-string date)))
 
-
-;; Backward compatibility.
-(define-obsolete-function-alias
-  'list-bahai-diary-entries 'diary-bahai-list-entries "23.1")
-(define-obsolete-function-alias
-  'mark-bahai-diary-entries 'diary-bahai-mark-entries "23.1")
-(define-obsolete-function-alias
-  'insert-bahai-diary-entry 'diary-bahai-insert-entry "23.1")
-(define-obsolete-function-alias
-  'insert-monthly-bahai-diary-entry 'diary-bahai-insert-monthly-entry "23.1")
-(define-obsolete-function-alias
-  'insert-yearly-bahai-diary-entry 'diary-bahai-insert-yearly-entry "23.1")
-(define-obsolete-function-alias
-  'mark-bahai-calendar-date-pattern 'calendar-bahai-mark-date-pattern "23.1")
-(define-obsolete-function-alias
-  'calendar-goto-bahai-date 'calendar-bahai-goto-date "23.1")
-(define-obsolete-function-alias
-  'calendar-print-bahai-date 'calendar-bahai-print-date "23.1")
 
 (provide 'cal-bahai)
 
