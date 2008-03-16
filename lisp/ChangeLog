@@ -1,3 +1,8 @@
+2008-03-16  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa-file.el (epa-file-select-keys): Fix bug with C-x C-s after
+	M-x epa-file-select-keys.
+
 2008-03-16  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (auto-coding-alist): Use
