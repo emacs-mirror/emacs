@@ -195,6 +195,15 @@ the class."
   :type 'string
   :group 'icalendar)
 
+(defcustom icalendar-recurring-start-year
+  2005
+  "Start year for recurring events.
+Some calendar browsers only propagate recurring events for
+several years beyond the start time.  Set this string to a year
+just before the start of your personal calendar."
+  :type 'integer
+  :group 'icalendar)
+
 (defvar icalendar-debug nil
   "Enable icalendar debug messages.")
 
@@ -771,7 +780,8 @@ would be \"pm\"."
   (if timestring
       (let ((starttimenum (read (icalendar--rris ":" "" timestring))))
         ;; take care of am/pm style
-        (if (and ampmstring (string= "pm" ampmstring))
+        ;; Be sure *not* to convert 12:00pm - 12:59pm to 2400-2459
+        (if (and ampmstring (string= "pm" ampmstring) (< starttimenum 1200))
             (setq starttimenum (+ starttimenum 1200)))
         (format "T%04d00" starttimenum))
     nil))
@@ -837,7 +847,8 @@ FExport diary data into iCalendar file: ")
     (save-excursion
       (goto-char min)
       (while (re-search-forward
-              "^\\([^ \t\n].+\\)\\(\\(\n[ \t].*\\)*\\)" max t)
+              ;; ignores hidden entries beginning with "&"
+              "^\\([^ \t\n&#].+\\)\\(\\(\n[ \t].*\\)*\\)" max t)
         (setq entry-main (match-string 1))
         (if (match-beginning 2)
             (setq entry-rest (match-string 2))
@@ -1040,6 +1051,7 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                               datetime))
              (endisostring (icalendar--datestring-to-isodate
                             datetime 1))
+             (endisostring1)
              (starttimestring (icalendar--diarytime-to-isotime
                                (if (match-beginning 3)
                                    (substring entry-main
@@ -1069,13 +1081,27 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
 
         (unless startisostring
           (error "Could not parse date"))
+
+        ;; If only start-date is specified, then end-date is next day,
+        ;; otherwise it is same day.
+        (setq endisostring1 (if starttimestring
+                                startisostring
+                              endisostring))
+
         (when starttimestring
           (unless endtimestring
             (let ((time
                    (read (icalendar--rris "^T0?" ""
                                           starttimestring))))
+              (if (< time 230000)
+                  ;; Case: ends on same day
               (setq endtimestring (format "T%06d"
-                                          (+ 10000 time))))))
+                                              (+ 10000 time)))
+                ;; Case: ends on next day
+                (setq endtimestring (format "T%06d"
+                                              (- time 230000)))
+                (setq endisostring1 endisostring)) )))
+
         (list (concat "\nDTSTART;"
                       (if starttimestring "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
@@ -1084,13 +1110,21 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                       "\nDTEND;"
                       (if endtimestring "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
-                      (if starttimestring
-                          startisostring
-                        endisostring)
+                      endisostring1
                       (or endtimestring ""))
               summary))
     ;; no match
     nil))
+
+(defun icalendar-first-weekday-of-year (abbrevweekday year &optional offset)
+  "Find the first WEEKDAY in a given YEAR."
+  (let* ((j2000 (calendar-absolute-from-gregorian '(1 2 2000)))
+         (juser (calendar-absolute-from-gregorian (list 1 1 year)))
+         (wdayjan1 (mod (- juser j2000) 7))
+         (wdayuser (icalendar--get-weekday-number abbrevweekday))
+         (dayoff (+ wdayuser 1 (- wdayjan1) (or offset 0))))
+    (if (<= dayoff 0) (setq dayoff (+ dayoff 7)))
+    (list year 1 dayoff)))
 
 (defun icalendar--convert-weekly-to-ical (nonmarker entry-main)
   "Convert weekly diary entry to icalendar format.
@@ -1150,21 +1184,23 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                       (if starttimestring
                           "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
-                      ;; find the correct week day,
-                      ;; 1st january 2000 was a saturday
-                      (format
-                       "200001%02d"
-                       (+ (icalendar--get-weekday-number day) 2))
+                      ;; Find the first requested weekday of the
+                      ;; start year
+                      (apply 'format
+                       "%04d%02d%02d"
+                       (icalendar-first-weekday-of-year day
+                         icalendar-recurring-start-year))
                       (or starttimestring "")
                       "\nDTEND;"
                       (if endtimestring
                           "VALUE=DATE-TIME:"
                         "VALUE=DATE:")
-                      (format
-                       "200001%02d"
+                      (apply 'format
+                       "%04d%02d%02d"
                        ;; end is non-inclusive!
-                       (+ (icalendar--get-weekday-number day)
-                          (if endtimestring 2 3)))
+                       (icalendar-first-weekday-of-year day
+                          icalendar-recurring-start-year
+                          (if endtimestring 0 1)))
                       (or endtimestring "")
                       "\nRRULE:FREQ=WEEKLY;INTERVAL=1;BYDAY="
                       day)
@@ -1245,9 +1281,11 @@ entries.  ENTRY-MAIN is the first line of the diary entry."
                        (if endtimestring 0 1))
                       (or endtimestring "")
                       "\nRRULE:FREQ=YEARLY;INTERVAL=1;BYMONTH="
-                      (format "%2d" month)
+                      ;; Removed %2d formatting string since spaces
+                      ;; are not allowed
+                      (format "%d" month)
                       ";BYMONTHDAY="
-                      (format "%2d" day))
+                      (format "%d" day))
               summary))
     ;; no match
     nil))
