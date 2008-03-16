@@ -1055,7 +1055,11 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
                        (isearch-message-prefix nil nil isearch-nonincremental)
                        isearch-string
                        minibuffer-local-isearch-map nil
-                       (if isearch-regexp 'regexp-search-ring 'search-ring)
+                       (if isearch-regexp
+			   (cons 'regexp-search-ring
+				 (1+ (or regexp-search-ring-yank-pointer -1)))
+			 (cons 'search-ring
+			       (1+ (or search-ring-yank-pointer -1))))
                        nil t)
 		      isearch-new-message
 		      (mapconcat 'isearch-text-char-description
