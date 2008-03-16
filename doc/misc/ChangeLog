@@ -1,3 +1,8 @@
+2008-03-16  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Preface): Add Gnus to requirements.
+	(Forwarding): Note that forwarded MIME messages are now inline.
+
 2008-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus.texi (Example Methods, Direct Functions, Indirect Functions)
