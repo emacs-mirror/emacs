@@ -1,3 +1,8 @@
+2008-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-service-open-file): Use file URL instead of
+	file name string.
+
 2008-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-registered): Fail if `bzr' is not installed.
