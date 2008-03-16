@@ -5648,6 +5648,9 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	       in the initial byte-length of the command.  */
 	    int count = 0;
 
+	    /* Whether matching against a unibyte character.  */
+	    boolean unibyte_char = false;
+
 	    DEBUG_PRINT2 ("EXECUTING charset%s.\n", not ? "_not" : "");
 
 	    range_table_exists = CHARSET_RANGE_TABLE_EXISTS_P (&p[-1]);
@@ -5667,7 +5670,10 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		c = TRANSLATE (c);
 		c1 = RE_CHAR_TO_UNIBYTE (c);
 		if (c1 >= 0)
-		  c = c1;
+		  {
+		    unibyte_char = true;
+		    c = c1;
+		  }
 	      }
 	    else
 	      {
@@ -5678,11 +5684,14 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 		    c1 = TRANSLATE (c1);
 		    c1 = RE_CHAR_TO_UNIBYTE (c1);
 		    if (c1 >= 0)
-		      c = c1;
+		      {
+			unibyte_char = true;
+			c = c1;
+		      }
 		  }
 	      }
 
-	    if (c < (1 << BYTEWIDTH))
+	    if (unibyte_char && c < (1 << BYTEWIDTH))
 	      {			/* Lookup bitmap.  */
 		/* Cast to `unsigned' instead of `unsigned char' in
 		   case the bit list is a full 32 bytes long.  */

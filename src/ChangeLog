@@ -1,3 +1,8 @@
+2008-03-16  Andreas Schwab  <schwab@suse.de>
+
+	* regex.c (re_match_2_internal): Correct matching of a charset
+	against latin-1 characters.
+
 2008-03-16  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (CHAR_STRING_ADVANCE_NO_UNIFY)
