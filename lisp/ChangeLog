@@ -1,3 +1,19 @@
+2008-03-16  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-edit-string): Use search-ring-yank-pointer
+	and regexp-search-ring-yank-pointer for the HISTPOS argument of
+	read-from-minibuffer to provide the correct initial minibuffer
+	history position in isearch-edit-string when it is called from
+	isearch-ring-adjust.
+
+	* menu-bar.el (kill-this-buffer): Use menu-bar-non-minibuffer-window-p
+	to check if the current buffer is the minibuffer, and in this case
+	call abort-recursive-edit to kill the minibuffer.  Doc fix.
+	(kill-this-buffer-enabled-p): Allow this function to return non-nil
+	when the current buffer is the minibuffer.
+
+	* simple.el (goto-line): Leave mark at previous position.  Doc fix.
+
 2008-03-16  Tassilo Horn  <tassilo@member.fsf.org>
 
 	* doc-view.el (doc-view-doc->txt, doc-view-convert-current-doc):
