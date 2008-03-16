@@ -380,7 +380,8 @@ Gregorian date Sunday, December 31, 1 BC."
       ;; ...so first month on list is of no interest.
       (setq list (cdr list)))
     (list (/ (1- c-year) 60)
-          (calendar-mod c-year 60)
+          ;; Remainder of c-year/60 with 60 instead of 0.
+          (1+ (mod (1- c-year) 60))
           (caar list)
           (1+ (- date (cadr (car list)))))))
 
@@ -420,7 +421,9 @@ Defaults to today's date if DATE is not given."
          (next-month (calendar-absolute-from-chinese
                       (list (if (= year 60) (1+ cycle) cycle)
                             (if (= (floor month) 12) (1+ year) year)
-                            (calendar-mod (1+ (floor month)) 12)
+                            ;; Remainder of (1+(floor month))/12, with
+                            ;; 12 instead of 0.
+                            (1+ (mod (floor month) 12))
                             1)))
          (m-cycle (% (+ (* year 5) (floor month)) 60)))
     (format "Cycle %s, year %s (%s), %smonth %s%s, day %s (%s)"
