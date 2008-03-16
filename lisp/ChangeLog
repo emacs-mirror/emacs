@@ -1,3 +1,14 @@
+2008-03-16  Juri Linkov  <juri@jurta.org>
+
+	* dired.el (dired-warn-writable): Rename to `dired-perm-write'.
+	(dired-perm-write): Renamed from `dired-warn-writable'.
+	Change parent face from `font-lock-warning-face' to
+	`font-lock-comment-delimiter-face'.
+	(dired-warn-writable-face): Rename to `dired-perm-write-face'.
+	(dired-perm-write-face): Renamed from `dired-warn-writable-face'.
+	(dired-font-lock-keywords): Replace `dired-warn-writable-face'
+	with `dired-perm-write-face'.
+
 2008-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-service-open-file): Use file URL instead of
