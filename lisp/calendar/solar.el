@@ -174,8 +174,7 @@ delta.  At present, delta = 0.01 degrees, so the value of the variable
   '("Autumnal Equinox" "Winter Solstice" "Vernal Equinox" "Summer Solstice")
   "List of season changes for the southern hemisphere.")
 
-(defvar solar-sidereal-time-greenwich-midnight
-  nil
+(defvar solar-sidereal-time-greenwich-midnight nil
   "Sidereal time at Greenwich at midnight (universal time).")
 
 (defvar solar-northern-spring-or-summer-season nil
