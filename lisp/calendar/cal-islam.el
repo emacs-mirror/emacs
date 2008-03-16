@@ -73,18 +73,17 @@ Gregorian date Sunday, December 31, 1 BC."
          (day (extract-calendar-day date))
          (year (extract-calendar-year date))
          (y (% year 30))
-         (leap-years-in-cycle
-          (cond ((< y 3) 0)
-                ((< y 6) 1)
-                ((< y 8) 2)
-                ((< y 11) 3)
-                ((< y 14) 4)
-                ((< y 17) 5)
-                ((< y 19) 6)
-                ((< y 22) 7)
-                ((< y 25) 8)
-                ((< y 27) 9)
-                (t 10))))
+         (leap-years-in-cycle (cond ((< y 3) 0)
+                                    ((< y 6) 1)
+                                    ((< y 8) 2)
+                                    ((< y 11) 3)
+                                    ((< y 14) 4)
+                                    ((< y 17) 5)
+                                    ((< y 19) 6)
+                                    ((< y 22) 7)
+                                    ((< y 25) 8)
+                                    ((< y 27) 9)
+                                    (t 10))))
     (+ (islamic-calendar-day-number date) ; days so far this year
        (* (1- year) 354)                  ; days in all non-leap years
        (* 11 (/ year 30))             ; leap days in complete cycles
@@ -142,31 +141,34 @@ Driven by the variable `calendar-date-display-form'."
         (message "Date is pre-Islamic")
       (message "Islamic date (until sunset): %s" i))))
 
+(defun calendar-islamic-prompt-for-date ()
+  "Ask for an Islamic date."
+  (let* ((today (calendar-current-date))
+         (year (calendar-read
+                "Islamic calendar year (>0): "
+                (lambda (x) (> x 0))
+                (int-to-string
+                 (extract-calendar-year
+                  (calendar-islamic-from-absolute
+                   (calendar-absolute-from-gregorian today))))))
+         (month-array calendar-islamic-month-name-array)
+         (completion-ignore-case t)
+         (month (cdr (assoc-string
+                      (completing-read
+                       "Islamic calendar month name: "
+                       (mapcar 'list (append month-array nil))
+                       nil t)
+                      (calendar-make-alist month-array 1) t)))
+         (last (islamic-calendar-last-day-of-month month year))
+         (day (calendar-read
+               (format "Islamic calendar day (1-%d): " last)
+               (lambda (x) (and (< 0 x) (<= x last))))))
+    (list (list month day year))))
+
 ;;;###cal-autoload
 (defun calendar-goto-islamic-date (date &optional noecho)
   "Move cursor to Islamic DATE; echo Islamic date unless NOECHO is non-nil."
-  (interactive
-   (let* ((today (calendar-current-date))
-          (year (calendar-read
-                 "Islamic calendar year (>0): "
-                 (lambda (x) (> x 0))
-                 (int-to-string
-                  (extract-calendar-year
-                   (calendar-islamic-from-absolute
-                    (calendar-absolute-from-gregorian today))))))
-          (month-array calendar-islamic-month-name-array)
-          (completion-ignore-case t)
-          (month (cdr (assoc-string
-                        (completing-read
-                         "Islamic calendar month name: "
-                         (mapcar 'list (append month-array nil))
-                         nil t)
-                       (calendar-make-alist month-array 1) t)))
-          (last (islamic-calendar-last-day-of-month month year))
-          (day (calendar-read
-                (format "Islamic calendar day (1-%d): " last)
-                (lambda (x) (and (< 0 x) (<= x last))))))
-     (list (list month day year))))
+  (interactive (calendar-islamic-prompt-for-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-islamic date)))
   (or noecho (calendar-print-islamic-date)))
@@ -212,63 +214,15 @@ marked in the calendar.  This function is provided for use with
                         islamic-diary-entry-symbol
                         'calendar-islamic-from-absolute))
 
+(autoload 'calendar-mark-1 "diary-lib")
+
 ;;;###diary-autoload
-(defun mark-islamic-calendar-date-pattern (month day year)
+(defun mark-islamic-calendar-date-pattern (month day year &optional color)
   "Mark dates in calendar window that conform to Islamic date MONTH/DAY/YEAR.
-A value of 0 in any position is a wildcard."
-  (save-excursion
-    (set-buffer calendar-buffer)
-    (if (and (not (zerop month)) (not (zerop day)))
-        (if (not (zerop year))
-            ;; Fully specified Islamic date.
-            (let ((date (calendar-gregorian-from-absolute
-                         (calendar-absolute-from-islamic
-                          (list month day year)))))
-              (if (calendar-date-is-visible-p date)
-                  (mark-visible-calendar-date date)))
-          ;; Month and day in any year--this taken from the holiday stuff.
-          (let* ((islamic-date (calendar-islamic-from-absolute
-                                (calendar-absolute-from-gregorian
-                                 (list displayed-month 15 displayed-year))))
-                 (m (extract-calendar-month islamic-date))
-                 (y (extract-calendar-year islamic-date))
-                 (date))
-            (unless (< m 1)           ; Islamic calendar doesn't apply
-              (increment-calendar-month m y (- 10 month))
-              (if (> m 7)              ; Islamic date might be visible
-                  (let ((date (calendar-gregorian-from-absolute
-                               (calendar-absolute-from-islamic
-                                (list month day y)))))
-                    (if (calendar-date-is-visible-p date)
-                        (mark-visible-calendar-date date)))))))
-      ;; Not one of the simple cases--check all visible dates for match.
-      ;; Actually, the following code takes care of ALL of the cases, but
-      ;; it's much too slow to be used for the simple (common) cases.
-      (let ((m displayed-month)
-            (y displayed-year)
-            (first-date)
-            (last-date))
-        (increment-calendar-month m y -1)
-        (setq first-date
-              (calendar-absolute-from-gregorian
-               (list m 1 y)))
-        (increment-calendar-month m y 2)
-        (setq last-date
-              (calendar-absolute-from-gregorian
-               (list m (calendar-last-day-of-month m y) y)))
-        (calendar-for-loop date from first-date to last-date do
-          (let* ((i-date (calendar-islamic-from-absolute date))
-                 (i-month (extract-calendar-month i-date))
-                 (i-day (extract-calendar-day i-date))
-                 (i-year (extract-calendar-year i-date)))
-            (and (or (zerop month)
-                     (= month i-month))
-                 (or (zerop day)
-                     (= day i-day))
-                 (or (zerop year)
-                     (= year i-year))
-                 (mark-visible-calendar-date
-                  (calendar-gregorian-from-absolute date)))))))))
+A value of 0 in any position is a wildcard.  Optional argument COLOR is
+passed to `mark-visible-calendar-date' as MARK."
+  (calendar-mark-1 month day year 'calendar-islamic-from-absolute
+                   'calendar-absolute-from-islamic color))
 
 (autoload 'diary-mark-entries-1 "diary-lib")
 
