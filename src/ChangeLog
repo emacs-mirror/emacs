@@ -1,3 +1,8 @@
+2008-03-17  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (free_frame_tool_bar): Only call gtk_container_remove if
+	handlebox_widget is != 0.
+
 2008-03-16  Juri Linkov  <juri@jurta.org>
 
 	* callint.c (Fcall_interactively): For interactive code letters
