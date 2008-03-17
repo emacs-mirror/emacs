@@ -1,3 +1,7 @@
+2008-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.h (Fbuffer_list): Declare (for use in callint.c).
+
 2008-03-17  Andreas Schwab  <schwab@suse.de>
 
 	* regex.c (re_match_2_internal): Properly match raw 8-bit bytes
@@ -28,10 +32,8 @@
 
 	* coding.c (CHAR_STRING_ADVANCE_NO_UNIFY)
 	(STRING_CHAR_ADVANCE_NO_UNIFY): New macros.
-	(coding_alloc_by_making_gap): Fix the way to preserve data in the
-	gap.
-	(alloc_destination): Fix the 2nd arg to
-	coding_alloc_by_making_gap.
+	(coding_alloc_by_making_gap): Fix the way to preserve data in the gap.
+	(alloc_destination): Fix the 2nd arg to coding_alloc_by_making_gap.
 	(encode_coding_utf_8): Use CHAR_STRING_ADVANCE_NO_UNIFY instead of
 	CHAR_STRING_ADVANCE.
 	(produce_chars): Fix for the case that the source and the

@@ -868,6 +868,7 @@ extern void mmap_set_vars P_ ((int));
       }									\
   } while (0)
 
+EXFUN (Fbuffer_list, 1);
 EXFUN (Fbuffer_live_p, 1);
 EXFUN (Fbuffer_name, 1);
 EXFUN (Fget_file_buffer, 1);
