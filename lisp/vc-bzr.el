@@ -464,26 +464,45 @@ EDITABLE is ignored."
 Each line is tagged with the revision number, which has a `help-echo'
 property containing author and date information."
   (apply #'vc-bzr-command "annotate" buffer 0 file "--long" "--all"
-         (when revision (list "-r" revision))))
+         (if revision (list "-r" revision)))
+  (with-current-buffer buffer
+    ;; Store the tags for the annotated source lines in a hash table
+    ;; to allow saving space by sharing the text properties.
+    (setq vc-bzr-annotation-table (make-hash-table :test 'equal))
+    (goto-char (point-min))
+    (while (re-search-forward "^\\( *[0-9]+\\) +\\(.+\\) +\\([0-9]\\{8\\}\\) |"
+                              nil t)
+      (let* ((rev (match-string 1))
+             (author (match-string 2))
+             (date (match-string 3))
+             (key (match-string 0))
+             (tag (gethash key vc-bzr-annotation-table)))
+        (unless tag
+          (setq tag (propertize rev 'help-echo (concat "Author: " author
+                                                       ", date: " date)
+                                'mouse-face 'highlight))
+          (puthash key tag vc-bzr-annotation-table))
+        (replace-match "")
+        (insert tag " |")))))
 
 (defun vc-bzr-annotate-time ()
-  (when (re-search-forward "^[0-9]+.* \\([0-9]+ | \\)" nil t)
-    (goto-char (match-end 1))
-    (let ((str (buffer-substring-no-properties 
-		 (match-beginning 1) (match-end 1))))
+  (when (re-search-forward "^ *[0-9]+ |" nil t)
+    (let ((prop (get-text-property (line-beginning-position) 'help-echo)))
+      (string-match "[0-9]+\\'" prop)
       (vc-annotate-convert-time
        (encode-time 0 0 0
-                    (string-to-number (substring str 6 8))
-                    (string-to-number (substring str 4 6))
-                    (string-to-number (substring str 0 4)))))))
+                    (string-to-number (substring (match-string 0 prop) 6 8))
+                    (string-to-number (substring (match-string 0 prop) 4 6))
+                    (string-to-number (substring (match-string 0 prop) 0 4))
+                    )))))
 
 (defun vc-bzr-annotate-extract-revision-at-line ()
   "Return revision for current line of annoation buffer, or nil.
 Return nil if current line isn't annotated."
   (save-excursion
     (beginning-of-line)
-    (when (looking-at "\\([0-9.]+\\) ")
-      (match-string-no-properties 1))))
+    (if (looking-at " *\\([0-9]+\\) | ")
+        (match-string-no-properties 1))))
 
 (defun vc-bzr-command-discarding-stderr (command &rest args)
   "Execute shell command COMMAND (with ARGS); return its output and exitcode.
