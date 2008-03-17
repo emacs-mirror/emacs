@@ -2800,6 +2800,9 @@ With prefix arg READ-SWITCHES, specify a value to override
     map)
   "Keymap for VC status")
 
+(defun vc-default-extra-status-menu (backend)
+  nil)
+
 (defun vc-status-menu-map-filter (orig-binding)
   (if (boundp 'vc-ignore-menu-filter)
       orig-binding
@@ -2888,6 +2891,29 @@ With prefix arg READ-SWITCHES, specify a value to override
       (ewoc-goto-node vc-status (ewoc-nth vc-status 0)))
     ;; We are done, turn of the in progress message in the mode-line.
     (setq mode-line-process nil)))
+
+(defun vc-add-to-vc-status-buffer (entry buffer)
+  ;; Add one ENTRY to the vc-status buffer BUFFER.  
+  ;; This will be used to automatically add files with the "modified"
+  ;; state when saving them.
+
+  ;; ENTRY is (FILENAME . STATE)
+  (with-current-buffer buffer
+    (let ((crt (ewoc-nth vc-status 0))
+	  (fname (car entry)))
+      ;; First try to see if there's already an entry with that name
+      ;; in the ewoc.
+      (while (and crt (not (string= (vc-status-fileinfo->name 
+				     (ewoc-data crt)) fname)))
+	(setq crt (ewoc-next vc-status crt)))
+      (if crt
+	  (progn 
+	    ;; Found the file, just update the status.
+	    (setf (vc-status-fileinfo->state (ewoc-data crt)) (cdr entry))
+	    (ewoc-invalidate vc-status crt))
+	;; Could not find the file, insert a new entry.
+	(ewoc-enter-last
+	 vc-status (vc-status-create-fileinfo (cdr entry) (car entry)))))))
 
 (defun vc-status-refresh ()
   "Refresh the contents of the VC status buffer."

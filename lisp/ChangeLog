@@ -1,5 +1,11 @@
 2008-03-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-bzr.el (vc-bzr-dir-status, vc-bzr-after-dir-status):
+	New functions to implement vc-status support.
+
+	* vc.el (vc-default-extra-status-menu)
+	(vc-add-to-vc-status-buffer): New functions.
+
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Add menu entries
 	for eldoc and ielm.
 

@@ -464,45 +464,26 @@ EDITABLE is ignored."
 Each line is tagged with the revision number, which has a `help-echo'
 property containing author and date information."
   (apply #'vc-bzr-command "annotate" buffer 0 file "--long" "--all"
-         (if revision (list "-r" revision)))
-  (with-current-buffer buffer
-    ;; Store the tags for the annotated source lines in a hash table
-    ;; to allow saving space by sharing the text properties.
-    (setq vc-bzr-annotation-table (make-hash-table :test 'equal))
-    (goto-char (point-min))
-    (while (re-search-forward "^\\( *[0-9]+\\) +\\(.+\\) +\\([0-9]\\{8\\}\\) |"
-                              nil t)
-      (let* ((rev (match-string 1))
-             (author (match-string 2))
-             (date (match-string 3))
-             (key (match-string 0))
-             (tag (gethash key vc-bzr-annotation-table)))
-        (unless tag
-          (setq tag (propertize rev 'help-echo (concat "Author: " author
-                                                       ", date: " date)
-                                'mouse-face 'highlight))
-          (puthash key tag vc-bzr-annotation-table))
-        (replace-match "")
-        (insert tag " |")))))
+         (when revision (list "-r" revision))))
 
 (defun vc-bzr-annotate-time ()
-  (when (re-search-forward "^ *[0-9]+ |" nil t)
-    (let ((prop (get-text-property (line-beginning-position) 'help-echo)))
-      (string-match "[0-9]+\\'" prop)
+  (when (re-search-forward "^[0-9]+.* \\([0-9]+ | \\)" nil t)
+    (goto-char (match-end 1))
+    (let ((str (buffer-substring-no-properties 
+		 (match-beginning 1) (match-end 1))))
       (vc-annotate-convert-time
        (encode-time 0 0 0
-                    (string-to-number (substring (match-string 0 prop) 6 8))
-                    (string-to-number (substring (match-string 0 prop) 4 6))
-                    (string-to-number (substring (match-string 0 prop) 0 4))
-                    )))))
+                    (string-to-number (substring str 6 8))
+                    (string-to-number (substring str 4 6))
+                    (string-to-number (substring str 0 4)))))))
 
 (defun vc-bzr-annotate-extract-revision-at-line ()
   "Return revision for current line of annoation buffer, or nil.
 Return nil if current line isn't annotated."
   (save-excursion
     (beginning-of-line)
-    (if (looking-at " *\\([0-9]+\\) | ")
-        (match-string-no-properties 1))))
+    (when (looking-at "\\([0-9.]+\\) ")
+      (match-string-no-properties 1))))
 
 (defun vc-bzr-command-discarding-stderr (command &rest args)
   "Execute shell command COMMAND (with ARGS); return its output and exitcode.
@@ -607,6 +588,47 @@ Optional argument LOCALP is always ignored."
                                      'edited)) ")")
     ;; else fall back to default vc.el representation
     (vc-default-dired-state-info 'Bzr file)))
+
+;; XXX Experimental function for the vc-dired replacement.
+;; XXX: this needs testing, it's probably incomplete. 
+(defun vc-bzr-after-dir-status (update-function status-buffer)
+  (let ((status-str nil)
+	(file nil)
+	(translation '(("+N" . added)
+		       ("-D" . removed)
+		       (" M" . edited)
+		       ;; XXX: what about ignored files?
+		       (" D" . deleted)
+		       ("? " . unregistered)))
+	(translated nil)
+	(result nil))
+      (goto-char (point-min))
+      (while (not (eobp))
+	(setq status-str
+	      (buffer-substring-no-properties (point) (+ (point) 2)))
+	(setq file
+	      (buffer-substring-no-properties (+ (point) 4)
+					      (line-end-position)))
+	(setq translated (assoc status-str translation))
+	(push (cons file (cdr translated)) result)
+	(forward-line))
+      ;; Remove the temporary buffer.
+      (kill-buffer (current-buffer))
+      (funcall update-function result status-buffer)))
+
+;; XXX Experimental function for the vc-dired replacement.
+;; XXX This probably needs some further refinement and testing.
+(defun vc-bzr-dir-status (dir update-function status-buffer)
+  "Return a list of conses (file . state) for DIR."
+  (with-current-buffer
+      (get-buffer-create
+       (expand-file-name " *VC-bzr* tmp status" dir))
+    (erase-buffer)
+    ;; XXX: Is this the right command to use?
+    (vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S")
+    (vc-exec-after
+     `(vc-bzr-after-dir-status (quote ,update-function) ,status-buffer))
+    (current-buffer)))
 
 ;;; Revision completion
 
