@@ -687,32 +687,24 @@ from the cursor position."
          (h-month (extract-calendar-month h-date))
          (h-day (extract-calendar-day h-date))
          (h-year (extract-calendar-year h-date)))
-    (set-buffer (get-buffer-create cal-hebrew-yahrzeit-buffer))
-    (setq buffer-read-only nil)
-    (calendar-set-mode-line
-     (format "Yahrzeit dates for %s = %s"
-             (calendar-date-string death-date)
-             (let ((calendar-month-name-array
-                    (if (hebrew-calendar-leap-year-p h-year)
-                        calendar-hebrew-month-name-array-leap-year
-                      calendar-hebrew-month-name-array-common-year)))
-               (calendar-date-string h-date nil t))))
-    (erase-buffer)
-    (goto-char (point-min))
-    (calendar-for-loop i from start-year to end-year do
-                       (insert
-                        (calendar-date-string
-                         (calendar-gregorian-from-absolute
-                          (hebrew-calendar-yahrzeit
-                           h-date
-                           (extract-calendar-year
-                            (calendar-hebrew-from-absolute
-                             (calendar-absolute-from-gregorian
-                              (list 1 1 i))))))) "\n"))
-    (goto-char (point-min))
-    (set-buffer-modified-p nil)
-    (setq buffer-read-only t)
-    (display-buffer cal-hebrew-yahrzeit-buffer)
+    (calendar-in-read-only-buffer cal-hebrew-yahrzeit-buffer
+      (calendar-set-mode-line
+       (format "Yahrzeit dates for %s = %s"
+               (calendar-date-string death-date)
+               (let ((calendar-month-name-array
+                      (if (hebrew-calendar-leap-year-p h-year)
+                          calendar-hebrew-month-name-array-leap-year
+                        calendar-hebrew-month-name-array-common-year)))
+                 (calendar-date-string h-date nil t))))
+      (calendar-for-loop i from start-year to end-year do
+        (insert
+         (calendar-date-string
+          (calendar-gregorian-from-absolute
+           (hebrew-calendar-yahrzeit
+            h-date
+            (extract-calendar-year
+             (calendar-hebrew-from-absolute
+              (calendar-absolute-from-gregorian (list 1 1 i))))))) "\n")))
     (message "Computing Yahrzeits...done")))
 
 (defvar date)
