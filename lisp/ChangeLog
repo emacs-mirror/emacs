@@ -1,3 +1,43 @@
+2008-03-17  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-x.el (diary-frame-parameters)
+	(calendar-frame-parameters, calendar-and-diary-frame-parameters):
+	Fix custom type; add options.
+	(calendar-frame, diary-frame): Doc fixes.
+	(calendar-dedicate-diary, calendar-frame-1): Extract common code into
+	new functions.
+	(calendar-one-frame-setup, calendar-two-frame-setup): Doc fixes.
+	Use calendar-frame-1 and calendar-dedicate-diary.
+	(calendar-one-frame-setup): Also handle only-one-frame case.
+	(calendar-only-one-frame-setup): Doc fix.  Just call
+	calendar-one-frame-setup.
+
+	* calendar/diary-lib.el: Re-order some definitions before their use.
+	(nongregorian-diary-listing-hook, nongregorian-diary-marking-hook)
+	(diary-list-entries): Doc fixes.
+	(make-fancy-diary-display): Remove function.
+
+	* calendar/calendar.el (calendar-today-marker)
+	(initial-calendar-window-hook, today-visible-calendar-hook)
+	(today-invisible-calendar-hook, diary-file, calendar-basic-setup):
+	(calendar-star-date, calendar-mark-today): Doc fixes.
+	(today-visible-calendar-hook): Add options.
+	(calendar-in-read-only-buffer): New macro.
+	(calendar-basic-setup): Adapt for change in calendar-read-date.
+	Place holiday let inside if.
+	(calendar-day-name-array, calendar-month-name-array): Make defcustoms.
+	(calendar-read-date): Set day to 1 rather than nil in the NODAY case.
+	(calendar-print-other-dates): Use one let rather than many.
+
+	* calendar/calendar.el (calendar-in-read-only-buffer): New macro.
+	(calendar-print-other-dates):
+	* calendar/cal-hebrew.el (list-yahrzeit-dates):
+	* calendar/diary-lib.el (simple-diary-display, fancy-diary-display):
+	* calendar/holidays.el (calendar-list-holidays, list-holidays)
+	(calendar-cursor-holidays):
+	* calendar/lunar.el (calendar-phases-of-moon): Use
+	calendar-in-read-only-buffer to replace previous code and disable undo.
+
 2008-03-16  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-edit-string): Use search-ring-yank-pointer
