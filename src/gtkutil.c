@@ -4139,9 +4139,16 @@ free_frame_tool_bar (f)
 
   if (x->toolbar_widget)
     {
+      int is_packed = x->handlebox_widget != 0;
       BLOCK_INPUT;
-      gtk_container_remove (GTK_CONTAINER (x->vbox_widget),
-                            x->handlebox_widget);
+      /* We may have created the toolbar_widget in xg_create_tool_bar, but
+         not the x->handlebox_widget which is created in xg_pack_tool_bar.  */
+      if (is_packed)
+        gtk_container_remove (GTK_CONTAINER (x->vbox_widget),
+                              x->handlebox_widget);
+      else
+        gtk_widget_destroy (x->toolbar_widget);
+
       x->toolbar_widget = 0;
       x->handlebox_widget = 0;
       FRAME_TOOLBAR_HEIGHT (f) = 0;
