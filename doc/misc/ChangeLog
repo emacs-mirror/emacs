@@ -1,3 +1,8 @@
+2008-03-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.texi (Viewing): Update URL for adding header fields to
+	mh-invisible-header-fields-default.
+
 2008-03-16  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Preface): Add Gnus to requirements.
