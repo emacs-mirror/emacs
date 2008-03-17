@@ -252,8 +252,7 @@ The value can be either a single-character string or a face."
 (defcustom calendar-today-marker (if (display-color-p) 'calendar-today "=")
   "How to mark today's date in the calendar.
 The value can be either a single-character string or a face.
-Marking today's date is done only if you set up `today-visible-calendar-hook'
-to request that."
+Used by `calendar-mark-today'."
   :type '(choice string face)
   :group 'calendar)
 
@@ -288,48 +287,33 @@ This is the place to add key bindings to `calendar-mode-map'."
   :group 'calendar-hooks)
 
 (defcustom initial-calendar-window-hook nil
-  "List of functions to be called when the calendar window is first opened.
-The functions invoked are called after the calendar window is opened, but
-once opened is never called again.  Leaving the calendar with the `q' command
-and reentering it will cause these functions to be called again."
+  "List of functions to be called when the calendar window is created.
+Qutting the calendar and re-entering it will cause these functions
+to be called again."
   :type 'hook
   :group 'calendar-hooks)
 
 (defcustom today-visible-calendar-hook nil
   "List of functions called whenever the current date is visible.
-This can be used, for example, to replace today's date with asterisks; a
-function `calendar-star-date' is included for this purpose:
-    (setq today-visible-calendar-hook 'calendar-star-date)
-It can also be used to mark the current date with `calendar-today-marker';
-a function is also provided for this:
-    (setq today-visible-calendar-hook 'calendar-mark-today)
+To mark today's date, add the function `calendar-mark-today'.
+To replace the date with asterisks, add the function `calendar-star-date'.
 
-The corresponding variable `today-invisible-calendar-hook' is the list of
-functions called when the calendar function was called when the current
-date is not visible in the window.
+See also `today-invisible-calendar-hook'.
 
-Other than the use of the provided functions, the changing of any
-characters in the calendar buffer by the hooks may cause the failure of the
-functions that move by days and weeks."
+Changing characters in the calendar buffer, except via the provided
+functions, may cause the calendar movement commands to fail."
   :type 'hook
+  :options '(calendar-mark-today calendar-star-date)
   :group 'calendar-hooks)
 
 (defcustom today-invisible-calendar-hook nil
   "List of functions called whenever the current date is not visible.
-
-The corresponding variable `today-visible-calendar-hook' is the list of
-functions called when the calendar function was called when the current
-date is visible in the window.
-
-Other than the use of the provided functions, the changing of any
-characters in the calendar buffer by the hooks may cause the failure of the
-functions that move by days and weeks."
+See also `today-visible-calendar-hook'."
   :type 'hook
   :group 'calendar-hooks)
 
 (defcustom calendar-move-hook nil
   "List of functions called whenever the cursor moves in the calendar.
-
 For example,
 
   (add-hook 'calendar-move-hook (lambda () (diary-view-entries 1)))
@@ -439,13 +423,14 @@ Diary entries based on the Hebrew, the Islamic and/or the Baha'i
 calendar are also possible, but because these are somewhat slow, they
 are ignored unless you set the `nongregorian-diary-listing-hook' and
 the `nongregorian-diary-marking-hook' appropriately.  See the
-documentation for these functions for details.
+documentation of these hooks for details.
 
 Diary files can contain directives to include the contents of other files; for
 details, see the documentation for the variable `list-diary-entries-hook'."
   :type 'file
   :group 'diary)
 
+;; FIXME do these have to be single characters?
 (defcustom diary-nonmarking-symbol "&"
   "Symbol indicating that a diary entry is not to be marked in the calendar."
   :type 'string
@@ -466,6 +451,8 @@ details, see the documentation for the variable `list-diary-entries-hook'."
   :type 'string
   :group 'diary)
 
+;; FIXME explain range. FIXME tweak range to always be +-50 of
+;; present, if not already.
 (defcustom abbreviated-calendar-year t
   "Interpret a two-digit year DD in a diary entry as either 19DD or 20DD.
 For the Gregorian calendar; similarly for the Hebrew, Islamic and
@@ -651,6 +638,7 @@ See the documentation of the function `calendar-date-string'."
   (update-calendar-mode-line))
 
 ;; FIXME move to diary-lib and adjust appt.
+;; Add appt-make-list as an option?
 (defcustom diary-hook nil
   "List of functions called after the display of the diary.
 Can be used for appointment notification."
@@ -1225,6 +1213,22 @@ inclusive.  The standard macro `dotimes' is preferable in most cases."
             ,index (1+ ,index)))
     sum))
 
+(defmacro calendar-in-read-only-buffer (buffer &rest body)
+  "Switch to BUFFER and executes the forms in BODY.
+First creates or erases BUFFER as needed.  Leaves BUFFER read-only,
+with disabled undo.  Leaves point at point-min, displays BUFFER."
+  (declare (indent 1) (debug t))
+  `(progn
+     (set-buffer (get-buffer-create ,buffer))
+     (setq buffer-read-only nil
+           buffer-undo-list t)
+     (erase-buffer)
+     ,@body
+     (goto-char (point-min))
+     (set-buffer-modified-p nil)
+     (setq buffer-read-only t)
+     (display-buffer ,buffer)))
+
 ;; The following are in-line for speed; they can be called thousands of times
 ;; when looking up holidays or processing the diary.  Here, for example, are
 ;; the numbers of calls to calendar/diary/holiday functions in preparing the
@@ -1257,7 +1261,8 @@ inclusive.  The standard macro `dotimes' is preferable in most cases."
   "Extract the month part of DATE which has the form (month day year)."
   (car date))
 
-;; Note gives wrong answer for result of (calendar-read-date 'noday).
+;; Note gives wrong answer for result of (calendar-read-date 'noday),
+;; but that is only used by `calendar-other-month'.
 (defsubst extract-calendar-day (date)
   "Extract the day part of DATE which has the form (month day year)."
   (cadr date))
@@ -1381,15 +1386,12 @@ After loading the calendar, the hooks given by the variable
 `calendar-load-hook' are run.  This is the place to add key bindings to the
 `calendar-mode-map'.
 
-After preparing the calendar window initially, the hooks given by the variable
-`initial-calendar-window-hook' are run.
-
 The hooks given by the variable `today-visible-calendar-hook' are run
 every time the calendar window gets scrolled, if the current date is visible
 in the window.  If it is not visible, the hooks given by the variable
-`today-invisible-calendar-hook' are run.  Thus, for example, setting
-`today-visible-calendar-hook' to 'calendar-star-date will cause today's date
-to be replaced by asterisks to highlight it whenever it is in the window."
+`today-invisible-calendar-hook' are run.
+
+Finally this command runs `initial-calendar-window-hook'."
   (interactive "P")
   (set-buffer (get-buffer-create calendar-buffer))
   (calendar-mode)
@@ -1399,9 +1401,6 @@ to be replaced by asterisks to highlight it whenever it is in the window."
                  (calendar-current-date)))
          (month (extract-calendar-month date))
          (year (extract-calendar-year date)))
-    ;; (calendar-read-date t) returns a date with day = nil, which is
-    ;; not a valid date for the visible test in the diary section.
-    (if arg (setcar (cdr date) 1))
     (increment-calendar-month month year (- calendar-offset))
     ;; Display the buffer before calling generate-calendar-window so that it
     ;; can get a chance to adjust the window sizes to the frame size.
@@ -1409,10 +1408,11 @@ to be replaced by asterisks to highlight it whenever it is in the window."
     (generate-calendar-window month year)
     (if (and view-diary-entries-initially (calendar-date-is-visible-p date))
         (diary-view-entries)))
-  (let* ((diary-buffer (get-file-buffer diary-file))
-         (diary-window (if diary-buffer (get-buffer-window diary-buffer)))
-         (split-height-threshold (if diary-window 2 1000)))
-    (if view-calendar-holidays-initially
+  (if view-calendar-holidays-initially
+      (let* ((diary-buffer (get-file-buffer diary-file))
+             (diary-window (if diary-buffer (get-buffer-window diary-buffer)))
+             (split-height-threshold (if diary-window 2 1000)))
+        ;; FIXME display buffer?
         (calendar-list-holidays)))
   (run-hooks 'initial-calendar-window-hook))
 
@@ -2075,12 +2075,21 @@ is a string to insert in the minibuffer before reading."
   "*Length of abbreviations to be used for day and month names.
 See also `calendar-day-abbrev-array' and `calendar-month-abbrev-array'.")
 
-(defvar calendar-day-name-array
+;; FIXME does it have to start from Sunday?
+(defcustom calendar-day-name-array
   ["Sunday" "Monday" "Tuesday" "Wednesday" "Thursday" "Friday" "Saturday"]
-  "*Array of capitalized strings giving, in order, the day names.
+  "Array of capitalized strings giving, in order, the day names.
 The first two characters of each string will be used to head the
 day columns in the calendar.  See also the variable
-`calendar-day-abbrev-array'.")
+`calendar-day-abbrev-array'."
+  :group 'calendar
+  :type '(vector (string :tag "Sunday")
+                 (string :tag "Monday")
+                 (string :tag "Tuesday")
+                 (string :tag "Wednesday")
+                 (string :tag "Thursday")
+                 (string :tag "Friday")
+                 (string :tag "Saturday")))
 
 (defvar calendar-day-abbrev-array
   [nil nil nil nil nil nil nil]
@@ -2093,11 +2102,24 @@ you may use such in the diary file.  If any element of this array
 is nil, then the abbreviation will be constructed as the first
 `calendar-abbrev-length' characters of the corresponding full name.")
 
-(defvar calendar-month-name-array
+(defcustom calendar-month-name-array
   ["January" "February" "March"     "April"   "May"      "June"
    "July"    "August"   "September" "October" "November" "December"]
-  "*Array of capitalized strings giving, in order, the month names.
-See also the variable `calendar-month-abbrev-array'.")
+  "Array of capitalized strings giving, in order, the month names.
+See also the variable `calendar-month-abbrev-array'."
+  :group 'calendar
+  :type '(vector (string :tag "January")
+                 (string :tag "February")
+                 (string :tag "March")
+                 (string :tag "April")
+                 (string :tag "May")
+                 (string :tag "June")
+                 (string :tag "July")
+                 (string :tag "August")
+                 (string :tag "September")
+                 (string :tag "October")
+                 (string :tag "November")
+                 (string :tag "December")))
 
 (defvar calendar-month-abbrev-array
   [nil nil nil nil nil nil nil nil nil nil nil nil]
@@ -2143,7 +2165,7 @@ If FILTER is provided, apply it to each key in the alist."
 (defun calendar-read-date (&optional noday)
   "Prompt for Gregorian date.  Return a list (month day year).
 If optional NODAY is t, does not ask for day, but just returns
-\(month nil year); if NODAY is any other non-nil value the value returned is
+\(month 1 year); if NODAY is any other non-nil value the value returned is
 \(month year)"
   (let* ((year (calendar-read
                 "Year (>0): "
@@ -2161,7 +2183,7 @@ If optional NODAY is t, does not ask for day, but just returns
          (last (calendar-last-day-of-month month year)))
     (if noday
         (if (eq noday t)
-            (list month nil year)
+            (list month 1 year)
           (list month year))
       (list month
             (calendar-read (format "Day (1-%d): " last)
@@ -2261,7 +2283,7 @@ interpreted as BC; -1 being 1 BC, and so on."
         (day (extract-calendar-day date))
         (year (extract-calendar-year date)))
     (and (<= 1 month) (<= month 12)
-         ;; (calendar-read-date t) returns a date with day = nil.
+         ;; (calendar-read-date t) used to return a date with day = nil.
          ;; Should not be valid (?), since many funcs prob assume integer.
          ;; (calendar-read-date 'noday) returns (month year), which
          ;; currently results in extract-calendar-year returning nil.
@@ -2332,8 +2354,7 @@ MARK defaults to `diary-entry-marker'."
 
 (defun calendar-star-date ()
   "Replace the date under the cursor in the calendar window with asterisks.
-This function can be used with the `today-visible-calendar-hook' run after the
-calendar window has been prepared."
+You might want to add this function to `today-visible-calendar-hook'."
   (let ((inhibit-read-only t)
         (modified (buffer-modified-p)))
     (forward-char 1)
@@ -2348,12 +2369,9 @@ calendar window has been prepared."
 
 (defun calendar-mark-today ()
   "Mark the date under the cursor in the calendar window.
-The date is marked with `calendar-today-marker'.  This function can be used with
-the `today-visible-calendar-hook' run after the calendar window has been
-prepared."
-  (mark-visible-calendar-date
-   (calendar-cursor-to-date)
-   calendar-today-marker))
+The date is marked with `calendar-today-marker'.  You might want to add
+this function to `today-visible-calendar-hook'."
+  (mark-visible-calendar-date (calendar-cursor-to-date) calendar-today-marker))
 
 (defun calendar-date-compare (date1 date2)
   "Return t if DATE1 is before DATE2, nil otherwise.
@@ -2430,51 +2448,51 @@ Defaults to today's date if DATE is not given."
 (defun calendar-print-other-dates ()
   "Show dates on other calendars for date under the cursor."
   (interactive)
-  (let ((date (calendar-cursor-to-date t)))
-    (with-current-buffer (get-buffer-create other-calendars-buffer)
-      (let ((inhibit-read-only t)
-            (modified (buffer-modified-p)))
-        (calendar-set-mode-line
-         (concat (calendar-date-string date) " (Gregorian)"))
-        (erase-buffer)
-        (apply
-         'insert
-         (delq nil
-               (list
-                (calendar-day-of-year-string date) "\n"
-                (format "ISO date: %s\n" (calendar-iso-date-string date))
-                (format "Julian date: %s\n"
-                        (calendar-julian-date-string date))
-                (format "Astronomical (Julian) day number (at noon UTC): %s.0\n"
-                        (calendar-astro-date-string date))
-                (format "Fixed (RD) date: %s\n"
-                        (calendar-absolute-from-gregorian date))
-                (format "Hebrew date (before sunset): %s\n"
-                        (calendar-hebrew-date-string date))
-                (format "Persian date: %s\n"
-                        (calendar-persian-date-string date))
-                (let ((i (calendar-islamic-date-string date)))
-                  (unless (string-equal i "")
-                      (format "Islamic date (before sunset): %s\n" i)))
-                (let ((b (calendar-bahai-date-string date)))
-                  (unless (string-equal b "")
-                      (format "Baha'i date (before sunset): %s\n" b)))
-                (format "Chinese date: %s\n"
-                        (calendar-chinese-date-string date))
-                (let ((c (calendar-coptic-date-string date)))
-                  (unless (string-equal c "")
-                    (format "Coptic date: %s\n" c)))
-                (let ((e (calendar-ethiopic-date-string date)))
-                  (unless (string-equal e "")
-                    (format "Ethiopic date: %s\n" e)))
-                (let ((f (calendar-french-date-string date)))
-                  (unless (string-equal f "")
-                    (format "French Revolutionary date: %s\n" f)))
-                (format "Mayan date: %s\n"
-                        (calendar-mayan-date-string date)))))
-        (goto-char (point-min))
-        (restore-buffer-modified-p modified))
-      (display-buffer other-calendars-buffer))))
+  (let ((date (calendar-cursor-to-date t))
+        odate)
+    (calendar-in-read-only-buffer other-calendars-buffer
+      (calendar-set-mode-line (format "%s (Gregorian)"
+                                      (calendar-date-string date)))
+      (apply
+       'insert
+       (delq nil
+             (list
+              (calendar-day-of-year-string date) "\n"
+              (format "ISO date: %s\n" (calendar-iso-date-string date))
+              (format "Julian date: %s\n"
+                      (calendar-julian-date-string date))
+              (format "Astronomical (Julian) day number (at noon UTC): %s.0\n"
+                      (calendar-astro-date-string date))
+              (format "Fixed (RD) date: %s\n"
+                      (calendar-absolute-from-gregorian date))
+              (format "Hebrew date (before sunset): %s\n"
+                      (calendar-hebrew-date-string date))
+              (format "Persian date: %s\n"
+                      (calendar-persian-date-string date))
+              (unless (string-equal
+                       (setq odate (calendar-islamic-date-string date))
+                       "")
+                (format "Islamic date (before sunset): %s\n" odate))
+              (unless (string-equal
+                       (setq odate (calendar-bahai-date-string date))
+                       "")
+                (format "Baha'i date (before sunset): %s\n" odate))
+              (format "Chinese date: %s\n"
+                      (calendar-chinese-date-string date))
+              (unless (string-equal
+                       (setq odate (calendar-coptic-date-string date))
+                       "")
+                (format "Coptic date: %s\n" odate))
+              (unless (string-equal
+                       (setq odate (calendar-ethiopic-date-string date))
+                       "")
+                (format "Ethiopic date: %s\n" e))
+              (unless (string-equal
+                       (setq odate (calendar-french-date-string date))
+                       "")
+                (format "French Revolutionary date: %s\n" odate))
+              (format "Mayan date: %s\n"
+                      (calendar-mayan-date-string date))))))))
 
 (defun calendar-print-day-of-year ()
   "Show day number in year/days remaining in year for date under the cursor."
