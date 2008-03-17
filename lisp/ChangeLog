@@ -5502,7 +5502,7 @@
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
 	* international/mule-util.el (detect-coding-with-priority):
-	Fix the place of using `,' marker in backguote form.
+	Fix the place of using `,' marker in backquote form.
 
 2008-02-01  Dave Love  <fx@gnu.org>
 
@@ -13534,7 +13534,6 @@
 	* vc-mtn.el: New file.
 
 	* vc-hooks.el (vc-handled-backends): Add Mtn.
-
 2007-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (find-file, find-file-other-window)
