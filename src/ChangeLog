@@ -120,6 +120,17 @@
 	(w32font_coverage_ok): New function.
 	(add_font_entity_to_list): Use it to filter unsuitable fonts.
 
+2008-03-05  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* lread.c (Fread_char): Resolve modifiers.
+	(Fread_char_exclusive): Likewise.
+
+	* character.c (char_resolve_modifier_mask): New function.
+	(char_string): Use char_resolve_modifier_mask.
+	(Fchar_resolve_modifiers): New function.
+	(syms_of_character): Declare Fchar_resolve_modifiers as Lisp
+	function.
+
 2008-03-04  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in: Always include w32font.c in the build.
