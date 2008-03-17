@@ -2849,6 +2849,7 @@ extern void report_overlay_modification P_ ((Lisp_Object, Lisp_Object, int,
 					     Lisp_Object, Lisp_Object, Lisp_Object));
 extern int overlay_touches_p P_ ((int));
 extern Lisp_Object Vbuffer_alist, Vinhibit_read_only;
+EXFUN (Fbuffer_list, 1);
 EXFUN (Fget_buffer, 1);
 EXFUN (Fget_buffer_create, 1);
 EXFUN (Fgenerate_new_buffer_name, 2);
