@@ -1,3 +1,22 @@
+2008-03-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-root-regexp): Simplify.
+	(tramp-completion-file-name-regexp-separate): Don't insist on
+	leading "[".  This prevents method or user or host completion.
+	(tramp-let-maybe): Autoload it.
+	(tramp-drop-volume-letter): Don't autoload.  When not on W32, it is
+	an alias for `identity'.
+	(tramp-handle-write-region): Protect `last-coding-system-used'
+	over the trailing statements.
+	(tramp-completion-file-name-handler-post-function): Removed.
+	(tramp-completion-file-name-handler): Let-bind
+	`directory-sep-char' instead of calling
+	`tramp-drop-volume-letter'.
+
+	* net/tramp.el (top):
+	* net/tramp-uu.el (top):
+	* net/trampver.el (top): Move coding cookie at the end.
+
 2008-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/tramp.el (tramp-completion-mode-p): Don't use char-equal for
@@ -167,7 +186,7 @@
 
 2008-03-15  Michael Albinus  <michael.albinus@gmx.de>
 
-	* tramp.el (tramp-root-regexp): New defconst.
+	* net/tramp.el (tramp-root-regexp): New defconst.
 	(tramp-completion-file-name-regexp-unified)
 	(tramp-completion-file-name-regexp-separate)
 	(tramp-completion-file-name-regexp-url): Use it.
