@@ -90,26 +90,20 @@ holidays are found, otherwise nil."
         (progn
           (message "Looking up holidays...none found")
           nil)
-      (set-buffer (get-buffer-create holiday-buffer))
-      (setq buffer-read-only nil)
-      (increment-calendar-month m1 y1 -1)
-      (increment-calendar-month m2 y2 1)
-      (calendar-set-mode-line
-       (if (= y1 y2)
-           (format "Notable Dates from %s to %s, %d%%-"
-                   (calendar-month-name m1) (calendar-month-name m2) y2)
-         (format "Notable Dates from %s, %d to %s, %d%%-"
-                 (calendar-month-name m1) y1 (calendar-month-name m2) y2)))
-      (erase-buffer)
-      (insert
-       (mapconcat
-        (lambda (x) (concat (calendar-date-string (car x))
-                            ": " (cadr x)))
-        holiday-list "\n"))
-      (goto-char (point-min))
-      (set-buffer-modified-p nil)
-      (setq buffer-read-only t)
-      (display-buffer holiday-buffer)
+      (calendar-in-read-only-buffer holiday-buffer
+        (increment-calendar-month m1 y1 -1)
+        (increment-calendar-month m2 y2 1)
+        (calendar-set-mode-line
+         (if (= y1 y2)
+             (format "Notable Dates from %s to %s, %d%%-"
+                     (calendar-month-name m1) (calendar-month-name m2) y2)
+           (format "Notable Dates from %s, %d to %s, %d%%-"
+                   (calendar-month-name m1) y1 (calendar-month-name m2) y2)))
+        (insert
+         (mapconcat
+          (lambda (x) (concat (calendar-date-string (car x))
+                              ": " (cadr x)))
+          holiday-list "\n")))
       (message "Looking up holidays...done")
       t)))
 
@@ -204,29 +198,22 @@ The optional LABEL is used to label the buffer created."
          (displayed-month 2)
          (displayed-year y1))
     (while (or never (<= d e))
-      (setq holiday-list (append holiday-list (calendar-holiday-list)))
-      (setq never nil)
+      (setq holiday-list (append holiday-list (calendar-holiday-list))
+            never nil)
       (increment-calendar-month displayed-month displayed-year 3)
       (setq d (calendar-absolute-from-gregorian
                (list displayed-month 1 displayed-year))))
     (save-excursion
-      (set-buffer (get-buffer-create holiday-buffer))
-      (setq buffer-read-only nil)
-      (calendar-set-mode-line
-       (if (= y1 y2)
-           (format "%s for %s" title y1)
-         (format "%s for %s-%s" title y1 y2)))
-      (erase-buffer)
-      (goto-char (point-min))
-      (insert
-       (mapconcat
-        (lambda (x) (concat (calendar-date-string (car x))
-                            ": " (cadr x)))
-        holiday-list "\n"))
-      (goto-char (point-min))
-      (set-buffer-modified-p nil)
-      (setq buffer-read-only t)
-      (display-buffer holiday-buffer)
+      (calendar-in-read-only-buffer holiday-buffer
+        (calendar-set-mode-line
+         (if (= y1 y2)
+             (format "%s for %s" title y1)
+           (format "%s for %s-%s" title y1 y2)))
+        (insert
+         (mapconcat
+          (lambda (x) (concat (calendar-date-string (car x))
+                              ": " (cadr x)))
+          holiday-list "\n")))
       (message "Computing holidays...done"))))
 
 ;;;###autoload
@@ -262,15 +249,9 @@ The holidays are those in the list `calendar-holidays'."
         (message "No holidays known for %s" date-string)
       (if (<= (length msg) (frame-width))
           (message "%s" msg)
-        (set-buffer (get-buffer-create holiday-buffer))
-        (setq buffer-read-only nil)
-        (calendar-set-mode-line date-string)
-        (erase-buffer)
-        (insert (mapconcat 'identity holiday-list "\n"))
-        (goto-char (point-min))
-        (set-buffer-modified-p nil)
-        (setq buffer-read-only t)
-        (display-buffer holiday-buffer)
+        (calendar-in-read-only-buffer holiday-buffer
+          (calendar-set-mode-line date-string)
+          (insert (mapconcat 'identity holiday-list "\n")))
         (message "Checking holidays...done")))))
 
 ;;;###cal-autoload
