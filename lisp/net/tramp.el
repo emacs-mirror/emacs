@@ -6,7 +6,7 @@
 
 ;; (copyright statements below in code to be updated with the above notice)
 
-;; Author: Kai Groﬂjohann <kai.grossjohann@gmx.net>
+;; Author: Kai Gro√üjohann <kai.grossjohann@gmx.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 
@@ -4614,10 +4614,10 @@ should never be set globally, the intention is to let-bind it.")
    (and (natnump last-input-event)
 	(or
 	 ;; ?\t has event-modifier 'control.
-	 (char-equal last-input-event ?\t)
+	 (equal last-input-event ?\t)
 	 (and (not (event-modifiers last-input-event))
-	      (or (char-equal last-input-event ?\?)
-		  (char-equal last-input-event ?\ )))))
+	      (or (equal last-input-event ?\?)
+		  (equal last-input-event ?\ )))))
    ;; XEmacs.
    (and (featurep 'xemacs)
 	;; `last-input-event' might be nil.
@@ -4626,14 +4626,14 @@ should never be set globally, the intention is to let-bind it.")
 	(funcall (symbol-function 'event-to-character) last-input-event)
 	(or
 	 ;; ?\t has event-modifier 'control.
-	 (char-equal
+	 (equal
 	  (funcall (symbol-function 'event-to-character)
 		   last-input-event) ?\t)
 	 (and (not (event-modifiers last-input-event))
-	      (or (char-equal
+	      (or (equal
 		   (funcall (symbol-function 'event-to-character)
 			    last-input-event) ?\?)
-		  (char-equal
+		  (equal
 		   (funcall (symbol-function 'event-to-character)
 			    last-input-event) ?\ )))))))
 
@@ -7383,7 +7383,7 @@ Only works for Bourne-like shells."
 ;;   transfer method to use.  (Greg Stark)
 ;; * Remove unneeded parameters from methods.
 ;; * Invoke rsync once for copying a whole directory hierarchy.
-;;   (Francesco PotortÏ)
+;;   (Francesco Potort√¨)
 ;; * Make it work for different encodings, and for different file name
 ;;   encodings, too.  (Daniel Pittman)
 ;; * Progress reports while copying files.  (Michael Kifer)

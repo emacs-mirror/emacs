@@ -1,3 +1,8 @@
+2008-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/tramp.el (tramp-completion-mode-p): Don't use char-equal for
+	elements which may be something else than characters.
+
 2008-03-17  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-dir-status, vc-bzr-after-dir-status):
@@ -166,8 +171,8 @@
 	(tramp-completion-file-name-regexp-unified)
 	(tramp-completion-file-name-regexp-separate)
 	(tramp-completion-file-name-regexp-url): Use it.
-	(tramp-do-copy-or-rename-file-via-buffer): Set
-	`enable-multibyte-characters' to nil.  Set `jka-compr-inhibit' to
+	(tramp-do-copy-or-rename-file-via-buffer):
+	Set `enable-multibyte-characters' to nil.  Set `jka-compr-inhibit' to
 	t for `insert-file-contents-literally'.
 	(tramp-drop-volume-letter): Rewrite, using `tramp-root-regexp'.
 	Autoload it.
@@ -333,7 +338,7 @@
 
 2008-03-14  Bastien Guerry  <bzg@altern.org>
 
-	* textmodes/flyspell.el (nxml-mode): Add the right.
+	* textmodes/flyspell.el (nxml-mode): Add the right
 	`flyspell-mode-predicate'.
 
 	* wid-edit.el (link): Use 'mouse-face for :follow-link.
@@ -411,8 +416,8 @@
 	(insert-islamic-diary-entry, insert-monthly-islamic-diary-entry)
 	(insert-yearly-islamic-diary-entry): Use let rather than let*.
 
-	* calendar/cal-julian.el (calendar-absolute-from-julian): Move
-	definition before use.  Remove un-needed local `day'.
+	* calendar/cal-julian.el (calendar-absolute-from-julian):
+	Move definition before use.  Remove un-needed local `day'.
 	(calendar-goto-julian-date, calendar-goto-astro-day-number): Doc fix.
 
 	* calendar/cal-mayan.el (calendar-mayan-haab-month-name-array)
@@ -492,11 +497,11 @@
 	if the original message starts with the last successful message.
 
 	* dired.el (dired-warn-writable): Rename to `dired-perm-write'.
-	(dired-perm-write): Renamed from `dired-warn-writable'.
+	(dired-perm-write): Rename from `dired-warn-writable'.
 	Change parent face from `font-lock-warning-face' to
 	`font-lock-comment-delimiter-face'.
 	(dired-warn-writable-face): Rename to `dired-perm-write-face'.
-	(dired-perm-write-face): Renamed from `dired-warn-writable-face'.
+	(dired-perm-write-face): Rename from `dired-warn-writable-face'.
 	(dired-font-lock-keywords): Replace `dired-warn-writable-face'
 	with `dired-perm-write-face'.
 
@@ -638,8 +643,7 @@
 	due date approaches and is passed.
 	(org-remember-apply-template): Fix problem with tags that
 	contain "_" or "@".
-	(org-make-link-regexps): Improve the regular expression for plain
-	links.
+	(org-make-link-regexps): Improve the regular expression for plain links.
 	(org-agenda-get-closed): List each clocking entry.
 	(org-set-tags): Only tabify before tags if indent-tabs-mode is t.
 	(org-special-ctrl-k): New option.
@@ -1038,8 +1042,7 @@
 
 2008-03-08  Glenn Morris  <rgm@gnu.org>
 
-	* calendar/diary-lib.el (entry): Declare for compiler part-way
-	through.
+	* calendar/diary-lib.el (entry): Declare for compiler part-way through.
 
 2008-03-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -1194,13 +1197,12 @@
 	Move here from calendar.el.
 	(diary-file-name-prefix-function): Use 'identity.
 	(diary-face): Make it a defcustom, and mark as obsolete.
-	(top-level): No need to require cal-hebrew, cal-islam when
-	compiling.
+	(top-level): No need to require cal-hebrew, cal-islam when compiling.
 	(calendar-hebrew-month-name-array-leap-year)
 	(calendar-islamic-month-name-array, calendar-bahai-month-name-array):
 	Define for compiler.
-	(diary-font-lock-keywords): Use format rather than concat. Add
-	bahai-diary-entry-symbol.
+	(diary-font-lock-keywords): Use format rather than concat.
+	Add bahai-diary-entry-symbol.
 
 	* calendar/cal-hebrew.el, calendar/holidays.el, calendar/lunar.el:
 	* calendar/solar.el: Unquote lambda functions.
@@ -1248,8 +1250,8 @@
 	* bookmark.el (bookmark-set): Don't check for
 	`bookmark-make-name-function' since `bookmark-buffer-file-name'
 	already takes care of this.
-	(bookmark-buffer-name, bookmark-buffer-file-name): Remove
-	Info-mode specific code.
+	(bookmark-buffer-name, bookmark-buffer-file-name):
+	Remove Info-mode specific code.
 
 	* info.el (bookmark-get-info-node): Define this function in
 	info.el, not in bookmark.el.
