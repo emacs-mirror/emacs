@@ -1,5 +1,7 @@
 2008-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* editfns.c (Fchar_equal): Check they are valid characters.
+
 	* buffer.h (Fbuffer_list): Declare (for use in callint.c).
 
 2008-03-17  Andreas Schwab  <schwab@suse.de>

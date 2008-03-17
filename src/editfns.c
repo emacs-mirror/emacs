@@ -4185,8 +4185,10 @@ Case is ignored if `case-fold-search' is non-nil in the current buffer.  */)
      register Lisp_Object c1, c2;
 {
   int i1, i2;
-  CHECK_NUMBER (c1);
-  CHECK_NUMBER (c2);
+  /* Check they're chars, not just integers, otherwise we could get array
+     bounds violations in DOWNCASE.  */
+  CHECK_CHARACTER (c1);
+  CHECK_CHARACTER (c2);
 
   if (XINT (c1) == XINT (c2))
     return Qt;
