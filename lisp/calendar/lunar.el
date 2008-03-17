@@ -194,31 +194,25 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
         (y2 displayed-year))
     (increment-calendar-month m1 y1 -1)
     (increment-calendar-month m2 y2 1)
-    (set-buffer (get-buffer-create lunar-phases-buffer))
-    (setq buffer-read-only nil)
-    (calendar-set-mode-line
-     (if (= y1 y2)
-         (format "Phases of the Moon from %s to %s, %d%%-"
-                 (calendar-month-name m1) (calendar-month-name m2) y2)
-       (format "Phases of the Moon from %s, %d to %s, %d%%-"
-               (calendar-month-name m1) y1 (calendar-month-name m2) y2)))
-    (erase-buffer)
-    (insert
-     (mapconcat
-      (lambda (x)
-        (let ((date (car x))
-              (time (cadr x))
-              (phase (nth 2 x)))
-          (concat (calendar-date-string date)
-                  ": "
-                  (lunar-phase-name phase)
-                  " "
-                  time)))
-      (lunar-phase-list m1 y1) "\n"))
-    (goto-char (point-min))
-    (set-buffer-modified-p nil)
-    (setq buffer-read-only t)
-    (display-buffer lunar-phases-buffer)
+    (calendar-in-read-only-buffer lunar-phases-buffer
+      (calendar-set-mode-line
+       (if (= y1 y2)
+           (format "Phases of the Moon from %s to %s, %d%%-"
+                   (calendar-month-name m1) (calendar-month-name m2) y2)
+         (format "Phases of the Moon from %s, %d to %s, %d%%-"
+                 (calendar-month-name m1) y1 (calendar-month-name m2) y2)))
+      (insert
+       (mapconcat
+        (lambda (x)
+          (let ((date (car x))
+                (time (cadr x))
+                (phase (nth 2 x)))
+            (concat (calendar-date-string date)
+                    ": "
+                    (lunar-phase-name phase)
+                    " "
+                    time)))
+        (lunar-phase-list m1 y1) "\n")))
     (message "Computing phases of the moon...done")))
 
 ;;;###autoload
