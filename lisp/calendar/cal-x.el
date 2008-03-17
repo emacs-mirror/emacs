@@ -39,16 +39,22 @@
   '((name . "Diary") (title . "Diary") (height . 10) (width . 80)
     (unsplittable . t) (minibuffer . nil))
   "Parameters of the diary frame, if the diary is in its own frame.
-Location and color should be set in .Xdefaults."
-  :type 'sexp
+Location and color should be set in .Xdefaults." ; why?
+  :type 'alist
+  :options '((name string) (title string) (height integer) (width integer)
+             (unsplittable boolean) (minibuffer boolean)
+             (vertical-scroll-bars boolean))
   :group 'calendar)
 
 (defcustom calendar-frame-parameters
-  '((name . "Calendar") (title . "Calendar") (minibuffer . nil)
-    (height . 10) (width . 80) (unsplittable . t) (vertical-scroll-bars . nil))
+  '((name . "Calendar") (title . "Calendar") (height . 10) (width . 80)
+    (unsplittable . t) (minibuffer . nil) (vertical-scroll-bars . nil))
   "Parameters of the calendar frame, if the calendar is in a separate frame.
 Location and color should be set in .Xdefaults."
-  :type 'sexp
+  :type 'alist
+  :options '((name string) (title string) (height integer) (width integer)
+             (unsplittable boolean) (minibuffer boolean)
+             (vertical-scroll-bars boolean))
   :group 'calendar)
 
 (defcustom calendar-and-diary-frame-parameters
@@ -56,7 +62,10 @@ Location and color should be set in .Xdefaults."
     (minibuffer . nil))
   "Parameters of the frame that displays both the calendar and the diary.
 Location and color should be set in .Xdefaults."
-  :type 'sexp
+  :type 'alist
+  :options '((name string) (title string) (height integer) (width integer)
+             (unsplittable boolean) (minibuffer boolean)
+             (vertical-scroll-bars boolean))
   :group 'calendar)
 
 (defcustom calendar-after-frame-setup-hooks nil
@@ -68,75 +77,73 @@ Can be used to change frame parameters, such as font, color, location, etc."
 ;;; End of user options.
 
 (defvar calendar-frame nil
-  "Frame in which to display the calendar.")
+  "Frame in which the calendar was last displayed.")
 
 (defvar diary-frame nil
-  "Frame in which to display the diary.")
+  "Frame in which the diary was last displayed.")
+
+(defun calendar-frame-1 (frame)
+  "Subroutine used by `calendar-one-frame-setup' etc."
+  (run-hooks 'calendar-after-frame-setup-hooks)
+  (select-frame frame)
+  (if (eq 'icon (cdr (assoc 'visibility (frame-parameters frame))))
+      (iconify-or-deiconify-frame)))
 
 ;; calendar-basic-setup is called first, and will autoload diary-lib.
 (declare-function make-fancy-diary-buffer "diary-lib" nil)
 
+(defun calendar-dedicate-diary ()
+  "Dedicate the window associated with the diary buffer."
+  (set-window-dedicated-p
+   (display-buffer
+    (if (not (memq 'fancy-diary-display diary-display-hook))
+        (get-file-buffer diary-file)
+      (or (buffer-live-p fancy-diary-buffer)
+          (make-fancy-diary-buffer))
+      fancy-diary-buffer))
+   t))
+
+;;; FIXME ../../src/emacs -Q  --eval "(setq calendar-setup 'calendar-only)"  -f calendar
 ;;;###cal-autoload
-(defun calendar-one-frame-setup (&optional arg)
-  "Start calendar and display it in a dedicated frame together with the diary.
-This function requires a display capable of multiple frames, else
-`calendar-basic-setup' is used instead.  The optional argument ARG is
-passed to `calendar-basic-setup'."
+(defun calendar-one-frame-setup (&optional arg only)
+  "Start calendar and display it in a dedicated frame.
+Also show the diary in that frame, unless ONLY is non-nil.  The optional
+argument ARG is passed to `calendar-basic-setup'.  If the display
+is not capable of multiple frames, `calendar-basic-setup' is all
+that is used."
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
-    (if (frame-live-p diary-frame) (delete-frame diary-frame))
+    (unless only
+      (if (frame-live-p diary-frame) (delete-frame diary-frame)))
     (let ((special-display-buffer-names nil)
-          (view-diary-entries-initially t))
+          (view-diary-entries-initially (not only)))
       (save-window-excursion
         (save-excursion
-          (setq calendar-frame
-                (make-frame calendar-and-diary-frame-parameters))
-          (run-hooks 'calendar-after-frame-setup-hooks)
-          (select-frame calendar-frame)
-          (if (eq 'icon (cdr (assoc 'visibility
-                                    (frame-parameters calendar-frame))))
-              (iconify-or-deiconify-frame))
-          (calendar-basic-setup arg)
+          (calendar-frame-1
+           (setq calendar-frame
+                 (make-frame (if only
+                                 calendar-frame-parameters
+                               calendar-and-diary-frame-parameters))))
+          (calendar-basic-setup arg)    ; FIXME move?
+          ;; FIXME display-buffer?
           (set-window-dedicated-p (selected-window) t)
-          (set-window-dedicated-p
-           (display-buffer
-            (if (not (memq 'fancy-diary-display diary-display-hook))
-                (get-file-buffer diary-file)
-              (if (not (bufferp (get-buffer fancy-diary-buffer)))
-                  (make-fancy-diary-buffer))
-              fancy-diary-buffer))
-           t))))))
+          (unless only (calendar-dedicate-diary)))))))
 
 ;;;###cal-autoload
 (defun calendar-only-one-frame-setup (&optional arg)
   "Start calendar and display it in a dedicated frame.
-This function requires a display capable of multiple frames, else
-`calendar-basic-setup' is used instead.  The optional argument
-ARG is passed to `calendar-basic-setup'."
-  (if (not (display-multi-frame-p))
-      (calendar-basic-setup arg)
-    (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
-    (let ((special-display-buffer-names nil)
-          (view-diary-entries-initially nil))
-      (save-window-excursion
-        (save-excursion
-          (setq calendar-frame
-                (make-frame calendar-frame-parameters))
-          (run-hooks 'calendar-after-frame-setup-hooks)
-          (select-frame calendar-frame)
-          (if (eq 'icon (cdr (assoc 'visibility
-                                    (frame-parameters calendar-frame))))
-              (iconify-or-deiconify-frame))
-          (calendar-basic-setup arg)
-          (set-window-dedicated-p (selected-window) t))))))
+The optional argument ARG is passed to `calendar-basic-setup'.
+If the display is not capable of multiple frames, `calendar-basic-setup'
+is all that is used."
+  (calendar-one-frame-setup arg t))
 
 ;;;###cal-autoload
 (defun calendar-two-frame-setup (&optional arg)
   "Start calendar and diary in separate, dedicated frames.
-This function requires a display capable of multiple frames, else
-`calendar-basic-setup' is used instead.  The optional argument
-ARG is passed to `calendar-basic-setup'."
+The optional argument ARG is passed to `calendar-basic-setup'.
+If the display is not capable of multiple frames, `calendar-basic-setup'
+is all that is used."
   (if (not (display-multi-frame-p))
       (calendar-basic-setup arg)
     (if (frame-live-p calendar-frame) (delete-frame calendar-frame))
@@ -145,30 +152,17 @@ ARG is passed to `calendar-basic-setup'."
           (view-diary-entries-initially nil)
           (special-display-buffer-names nil))
       (save-window-excursion
+        ;; FIXME why does this do things in a slightly different order
+        ;; to calendar-one-frame-setup?
         (save-excursion (calendar-basic-setup arg))
-        (setq calendar-frame (make-frame calendar-frame-parameters))
-        (run-hooks 'calendar-after-frame-setup-hooks)
-        (select-frame calendar-frame)
-        (if (eq 'icon (cdr (assoc 'visibility
-                                  (frame-parameters calendar-frame))))
-            (iconify-or-deiconify-frame))
+        (calendar-frame-1
+         (setq calendar-frame (make-frame calendar-frame-parameters)))
         (display-buffer calendar-buffer)
         (set-window-dedicated-p (selected-window) t)
-        (setq diary-frame (make-frame diary-frame-parameters))
-        (run-hooks 'calendar-after-frame-setup-hooks)
-        (select-frame diary-frame)
-        (if (eq 'icon (cdr (assoc 'visibility
-                                  (frame-parameters diary-frame))))
-            (iconify-or-deiconify-frame))
+        (calendar-frame-1
+         (setq diary-frame (make-frame diary-frame-parameters)))
         (save-excursion (diary))
-        (set-window-dedicated-p
-         (display-buffer
-          (if (not (memq 'fancy-diary-display diary-display-hook))
-              (get-file-buffer diary-file)
-            (if (not (bufferp (get-buffer fancy-diary-buffer)))
-                (make-fancy-diary-buffer))
-            fancy-diary-buffer))
-         t)))))
+        (calendar-dedicate-diary)))))
 
 ;; Formerly (get-file-buffer diary-file) was added to the list here,
 ;; but that isn't clean, and the value could even be nil.
