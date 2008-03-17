@@ -279,6 +279,13 @@
     (define-key map "\e\C-x" 'eval-defun)
     (define-key map "\e\C-q" 'indent-pp-sexp)
     (define-key map [menu-bar emacs-lisp] (cons "Emacs-Lisp" menu-map))
+    (define-key menu-map [eldoc]
+      '(menu-item "Auto-Display Documentation Strings" eldoc-mode
+		  :button (:toggle . eldoc-mode)
+		  :help "Display the documentation string for the item under cursor"))
+    (define-key menu-map [checkdoc]
+      '(menu-item "Check Documentation Strings" checkdoc
+		  :help "Check documentation strings for style requirements"))
     (define-key menu-map [profiling] (cons "Profiling" prof-map))
     (define-key prof-map [prof-restall]
       '(menu-item "Remove Instrumentation for All Functions" elp-restore-all
@@ -303,9 +310,6 @@
     (define-key prof-map [prof-func]
       '(menu-item "Instrument Function" elp-instrument-function
 		  :help "Instrument a function for profiling"))
-    (define-key menu-map [checkdoc]
-      '(menu-item "Check Documentation Strings" checkdock
-		  :help "Check documentation strings for style requirements"))
     (define-key menu-map [edebug-defun]
       '(menu-item "Instrument Function for Debugging" edebug-defun
 		  :help "Evaluate the top level form point is in, stepping through with Edebug"
@@ -321,6 +325,9 @@
       '(menu-item "Byte-compile This File" emacs-lisp-byte-compile
 		  :help "Byte compile the file containing the current buffer"))
     (define-key menu-map [separator-eval] '("--"))
+    (define-key menu-map [ielm]
+      '(menu-item "Interactive Expression Evaluation" ielm
+		  :help "Interactively evaluate Emacs Lisp expressions"))
     (define-key menu-map [eval-buffer]
       '(menu-item "Evaluate Buffer" eval-buffer
 		  :help "Execute the current buffer as Lisp code"))
