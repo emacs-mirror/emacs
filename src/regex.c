@@ -5689,6 +5689,8 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 			c = c1;
 		      }
 		  }
+		else
+		  unibyte_char = true;
 	      }
 
 	    if (unibyte_char && c < (1 << BYTEWIDTH))

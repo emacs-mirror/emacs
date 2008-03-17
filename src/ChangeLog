@@ -1,5 +1,8 @@
 2008-03-17  Andreas Schwab  <schwab@suse.de>
 
+	* regex.c (re_match_2_internal): Properly match raw 8-bit bytes
+	against a charset.
+
 	* lisp.h (Fbuffer_list): Declare.
 
 2008-03-17  Jan Djärv  <jan.h.d@swipnet.se>
