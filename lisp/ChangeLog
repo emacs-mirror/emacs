@@ -13534,6 +13534,7 @@
 	* vc-mtn.el: New file.
 
 	* vc-hooks.el (vc-handled-backends): Add Mtn.
+
 2007-10-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (find-file, find-file-other-window)
