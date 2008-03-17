@@ -12,8 +12,8 @@
 @c Edition of the manual. It is either empty for the first edition or
 @c has the form ", nth Edition" (without the quotes).
 @set EDITION
-@set UPDATED 2007-09-25
-@set UPDATE-MONTH September, 2007
+@set UPDATED 2008-03-16
+@set UPDATE-MONTH March, 2008
 
 @c Other variables.
 @set MH-BOOK-HOME http://rand-mh.sourceforge.net/book/mh
@@ -2079,8 +2079,9 @@ would like to hide that aren't listed can be added to the option
 expressions are not allowed. Unique fields should have a @samp{:}
 suffix; otherwise, the element can be used to render invisible an
 entire class of fields that start with the same prefix. If you think a
-header field should be generally ignored, report a bug (@pxref{Bug
-Reports}).
+header field should be generally ignored, please update
+@uref{https://sourceforge.net/tracker/index.php?func=detail&aid=1916032&group_id=13357&atid=113357,
+SF #1916032}.
 
 @cindex header field, @samp{Face:}
 @cindex header field, @samp{X-Face:}
