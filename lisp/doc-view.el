@@ -133,6 +133,7 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
 (require 'dired)
 (require 'image-mode)
 (require 'jka-compr)
