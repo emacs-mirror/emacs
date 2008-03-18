@@ -5,7 +5,7 @@
 
 ;; (copyright statements below in code to be updated with the above notice)
 
-;; Author: Kai Groﬂjohann <kai.grossjohann@gmx.net>
+;; Author: Kai Gro√üjohann <kai.grossjohann@gmx.net>
 ;;         Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 
@@ -7368,7 +7368,7 @@ Only works for Bourne-like shells."
 ;;   transfer method to use.  (Greg Stark)
 ;; * Remove unneeded parameters from methods.
 ;; * Invoke rsync once for copying a whole directory hierarchy.
-;;   (Francesco PotortÏ)
+;;   (Francesco Potort√¨)
 ;; * Make it work for different encodings, and for different file name
 ;;   encodings, too.  (Daniel Pittman)
 ;; * Progress reports while copying files.  (Michael Kifer)
