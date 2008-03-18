@@ -2392,6 +2392,7 @@ of citations entirely, choose \"None\"."
 (defvar mh-invisible-header-fields-internal
   '(
     "Abuse-Reports-To:"                 ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
+    "Accreditor:"                       ; Habeas
     "Also-Control:"                     ; H. Spencer: News Article Format and Transmission, June 1994
     "Alternate-recipient:"              ; RFC 2156
     "Approved-By:"                      ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
@@ -2488,6 +2489,7 @@ of citations entirely, choose \"None\"."
     "Return-Receipt-Requested:"         ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Return-Receipt-To:"                ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "See-Also:"                         ; H. Spencer: News Article Format and Transmission, June 1994
+    "Seal-Send-Time:"
     "Sensitivity:"                      ; RFC 2156, 2421
     "Speach-Act:"                       ; http://people.dsv.su.se/~jpalme/ietf/mail-headers/
     "Status:"                           ; sendmail
@@ -2685,9 +2687,11 @@ Header fields that you would like to hide that aren't listed in
 with a couple of caveats. Regular expressions are not allowed.
 Unique fields should have a \":\" suffix; otherwise, the element
 can be used to render invisible an entire class of fields that
-start with the same prefix. If you think a header field should be
-generally ignored, report a bug (see URL
-`https://sourceforge.net/tracker/?group_id=13357&atid=113357').
+start with the same prefix.
+
+If you think a header field should be generally ignored, please
+update SF #1916032 (see URL
+`https://sourceforge.net/tracker/index.php?func=detail&aid=1916032&group_id=13357&atid=113357').
 
 See also `mh-clean-message-header-flag'."
 
@@ -2707,7 +2711,11 @@ can check off any field that you would like to see.
 Header fields that you would like to hide that aren't listed can
 be added to the option `mh-invisible-header-fields'.
 
-See also `mh-clean-message-header-flag'."
+See also `mh-clean-message-header-flag'.
+
+If you think a header field should be added to this list, please
+update SF #1916032 (see URL
+`https://sourceforge.net/tracker/index.php?func=detail&aid=1916032&group_id=13357&atid=113357')."
   :type `(set ,@(mapcar (lambda (x) `(const ,x))
                         mh-invisible-header-fields-internal))
   :set (lambda (symbol value)
