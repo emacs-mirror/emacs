@@ -1,5 +1,11 @@
 2008-03-18  Tassilo Horn  <tassilo@member.fsf.org>
 
+	* doc-view.el (doc-view-initiate-display): Use doc-view-doc-type
+	instead of file name extension to make docs with uncommon
+	extensions work.
+
+2008-03-18  Tassilo Horn  <tassilo@member.fsf.org>
+
 	* doc-view.el (require): Require cl at compile time because
 	`assert' needs it.
 
