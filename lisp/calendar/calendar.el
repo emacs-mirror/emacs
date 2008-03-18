@@ -288,7 +288,7 @@ This is the place to add key bindings to `calendar-mode-map'."
 
 (defcustom initial-calendar-window-hook nil
   "List of functions to be called when the calendar window is created.
-Qutting the calendar and re-entering it will cause these functions
+Quitting the calendar and re-entering it will cause these functions
 to be called again."
   :type 'hook
   :group 'calendar-hooks)
@@ -297,11 +297,10 @@ to be called again."
   "List of functions called whenever the current date is visible.
 To mark today's date, add the function `calendar-mark-today'.
 To replace the date with asterisks, add the function `calendar-star-date'.
-
 See also `today-invisible-calendar-hook'.
 
-Changing characters in the calendar buffer, except via the provided
-functions, may cause the calendar movement commands to fail."
+In general, be careful about changing characters in the calendar buffer,
+since it may cause the movement commands to fail."
   :type 'hook
   :options '(calendar-mark-today calendar-star-date)
   :group 'calendar-hooks)
