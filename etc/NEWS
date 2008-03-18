@@ -197,6 +197,12 @@ are obsolete.
 
 * Startup Changes in Emacs 23.1
 
+** The option `inhibit-startup-screen' (with aliases to old names
+`inhibit-splash-screen' and `inhibit-startup-message') doesn't inhibit
+display of the initial message in the *scratch* buffer.  If you don't
+want to display the initial message in the *scratch* buffer at startup,
+you can set the option `initial-scratch-message' to nil.
+
 ** New user option `initial-buffer-choice' specifies what to display
 after starting Emacs: startup screen, *scratch* buffer, visiting a
 file or directory.
@@ -266,7 +272,8 @@ just as M-w would do so with the text it copies to the kill ring.
 sorted by recency in the list of minibuffer default values available
 via M-n or down-arrow.  It is also possible to search this buffer list
 in the minibuffer using incremental search commands C-s and C-M-s
-(for instance, `C-x b C-s buf-name RET RET' to select a buffer by name).
+(for instance, `C-x b C-s substr RET RET' to select a buffer by part
+of the buffer name).
 
 *** In C-x d, if you type M-n you get the visited file name of the
 current buffer.
