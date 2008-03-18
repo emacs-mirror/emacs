@@ -1,5 +1,9 @@
 2008-03-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-bzr.el (vc-bzr-log-view-mode, vc-bzr-annotate-command)
+	(vc-bzr-annotate-time, vc-bzr-annotate-extract-revision-at-line):
+	Revision numbers can include ".".
+
 	* diff-mode.el (diff-end-of-hunk): Be careful not to overlook trailing
 	"+" lines not accounted for by counting "-" and context lines.
 
