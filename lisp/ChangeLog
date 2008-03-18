@@ -1,3 +1,8 @@
+2008-03-18  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (initial-calendar-window-hook)
+	(today-visible-calendar-hook): Doc fixes.
+
 2008-03-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-root-regexp): Simplify.
