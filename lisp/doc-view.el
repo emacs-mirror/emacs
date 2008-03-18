@@ -957,7 +957,7 @@ If BACKWARD is non-nil, jump to the previous match."
 
 (defun doc-view-initiate-display ()
   ;; Switch to image display if possible
-  (if (doc-view-mode-p (intern (file-name-extension doc-view-buffer-file-name)))
+  (if (doc-view-mode-p doc-view-doc-type)
       (progn
 	(doc-view-buffer-message)
 	(setf (doc-view-current-page) (or (doc-view-current-page) 1))
