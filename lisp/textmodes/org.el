@@ -172,7 +172,7 @@ With prefix arg HERE, insert it at point."
 ;
 ;(defun org-load-default-extensions ()
 ;  "Load all extensions listed in `org-default-extensions'."
-;  (mapc (lambda (ext) 
+;  (mapc (lambda (ext)
 ;	  (condition-case nil (require ext)
 ;	    (error (message "Problems while trying to load feature `%s'" ext))))
 ;	org-default-extensions))
@@ -1173,7 +1173,7 @@ Changing this variable requires a restart of Emacs to become effective."
 	      (const :tag "Timestamps" date)))
 
 (defgroup org-link-store nil
-  "Options concerning storing links in Org-mode"
+  "Options concerning storing links in Org-mode."
   :tag "Org Store Link"
   :group 'org-link)
 
@@ -1241,7 +1241,7 @@ negates this setting for the duration of the command."
   :type 'boolean)
 
 (defgroup org-link-follow nil
-  "Options concerning following links in Org-mode"
+  "Options concerning following links in Org-mode."
   :tag "Org Follow Link"
   :group 'org-link)
 
@@ -1551,7 +1551,7 @@ given in the variable `org-remember-default-headline'.
 An optional sixth element specifies the contexts in which the user can
 select the template.  This element can be either a list of major modes
 or a function.  `org-remember' will first check whether the function
-returns `t' or if we are in any of the listed major mode, and select 
+returns `t' or if we are in any of the listed major modes, and select
 the template accordingly.
 
 The template specifies the structure of the remember buffer.  It should have
@@ -1986,7 +1986,7 @@ It is not recommended to change this constant.")
 These are two values, the first applies when first creating a time stamp.
 The second applies when changing it with the commands `S-up' and `S-down'.
 When changing the time stamp, this means that it will change in steps
-of N minues, as given by the second value. 
+of N minutes, as given by the second value.
 
 When a setting is 0 or 1, insert the time unmodified.  Useful rounding
 numbers should be factors of 60, so for example 5, 10, 15.
@@ -2427,7 +2427,7 @@ you can \"misuse\" it to also add other text to the header.  However,
 		  (const org-agenda-files)
 		  (list
 		   (const :format "" quote)
-		   (repeat 
+		   (repeat
 			   (file))))
 	    (list :tag "Sorting strategy"
 		  (const org-agenda-sorting-strategy)
@@ -2593,7 +2593,7 @@ should provide a description for the prefix, like
 		   (list :tag "Stuck projects"
 			 (const :format "" stuck)
 			 (const :tag "" :format "" "")
-			 ,org-agenda-custom-commands-local-options)	   
+			 ,org-agenda-custom-commands-local-options)
 		   (list :tag "Tags search"
 			 (const :format "" tags)
 			 (string :tag "Match")
@@ -3170,7 +3170,7 @@ a names face, or a list like `(:background \"Red\")'."
 			(sexp :tag "face")))))
 
 (defgroup org-latex nil
-  "Options for embedding LaTeX code into Org-mode"
+  "Options for embedding LaTeX code into Org-mode."
   :tag "Org LaTeX"
   :group 'org)
 
@@ -13707,12 +13707,12 @@ RET at beg-of-buf -> Append to file as level 2 headline
 	   ;; If no template at this point, add the default templates:
 	   (pre-selected-templates1
 	    (if (not (delq nil pre-selected-templates))
-		(mapcar (lambda(x) (if (not (nth 5 x)) x)) 
+		(mapcar (lambda(x) (if (not (nth 5 x)) x))
 			org-remember-templates)
 	      pre-selected-templates))
 	   ;; Then unconditionnally add template for any contexts
 	   (pre-selected-templates2
-	    (append (mapcar (lambda(x) (if (eq (nth 5 x) t) x)) 
+	    (append (mapcar (lambda(x) (if (eq (nth 5 x) t) x))
 			    org-remember-templates)
 		    (delq nil pre-selected-templates1)))
 	   (templates (mapcar (lambda (x)
@@ -14464,7 +14464,7 @@ the property list including an extra property :name with the block name."
       (error "Dynamic block not terminated"))
     (setq params
 	  (append params
-		  (list :content (buffer-substring 
+		  (list :content (buffer-substring
 				  begdel (match-beginning 0)))))
     (delete-region begdel (match-beginning 0))
     (goto-char begdel)
@@ -15071,7 +15071,7 @@ This function is run automatically after each state change to a DONE state."
 	      (while (< (time-to-days time) (time-to-days (current-time)))
 		(when (= (incf nshift) nshiftmax)
 		  (or (y-or-n-p (message "%d repeater intervals were not enough to shift date past today.  Continue? " nshift))
-		      (error "Abort")))		      
+		      (error "Abort")))
 		(org-timestamp-change n (cdr (assoc what whata)))
 		(sit-for .0001) ;; so we can watch the date shifting
 		(org-at-timestamp-p t)
@@ -17238,7 +17238,7 @@ Where possible, use the standard interface for changing this line."
 	      cache)))))
 
 (defun org-columns-new (&optional prop title width op fmt &rest rest)
-  "Insert a new column, to the leeft o the current column."
+  "Insert a new column, to the left of the current column."
   (interactive)
   (let ((editp (and prop (assoc prop org-columns-current-fmt-compiled)))
 	cell)
@@ -18800,12 +18800,12 @@ in the timestamp determines what will be changed."
 	(setq ng 6 new (car (rassoc (+ n (cdr (assoc (match-string 6 s) idx))) idx))))
        ((org-pos-in-match-range pos 5)
 	(setq ng 5 new (format "%d" (max 1 (+ n (string-to-number (match-string 5 s)))))))
-       
+
        ((org-pos-in-match-range pos 9)
 	(setq ng 9 new (car (rassoc (+ n (cdr (assoc (match-string 9 s) idx))) idx))))
        ((org-pos-in-match-range pos 8)
 	(setq ng 8 new (format "%d" (max 0 (+ n (string-to-number (match-string 8 s))))))))
-      
+
       (when ng
 	(setq s (concat
 		 (substring s 0 (match-beginning ng))
@@ -25568,7 +25568,7 @@ PUB-DIR is set, use this as the publishing directory."
 		   (>= (org-end-of-subtree t t) (region-end))))))
 	 ;; The following two are dynamically scoped into other
 	 ;; routines below.
-	 (org-current-export-dir 
+	 (org-current-export-dir
 	  (or pub-dir (org-export-directory :html opt-plist)))
 	 (org-current-export-file buffer-file-name)
          (level 0) (line "") (origline "") txt todo
@@ -27802,7 +27802,7 @@ to normal lines."
 	    (if (looking-at "\\([ \t]*\\)\\(\\S-\\)")
 		(replace-match "\\1- \\2")))
 	  (beginning-of-line 2))))))
-			
+
 (defun org-toggle-region-headings (beg end)
   "Convert all lines in region to list items.
 If the first line is already an item, convert all list items in the region
@@ -27831,7 +27831,7 @@ to normal lines."
 	      (if (looking-at "\\([ \t]*\\)\\(\\S-\\)")
 		  (replace-match rpl)))
 	    (beginning-of-line 2)))))))
-  
+
 (defun org-meta-return (&optional arg)
   "Insert a new heading or wrap a region in a table.
 Calls `org-insert-heading' or `org-table-wrap-region', depending on context.
@@ -28299,7 +28299,7 @@ really on, so that the block visually is on the match."
 
 (defun org-back-over-empty-lines ()
   "Move backwards over witespace, to the beginning of the first empty line.
-Returns the number o empty lines passed."
+Returns the number of empty lines passed."
   (let ((pos (point)))
     (skip-chars-backward " \t\n\r")
     (beginning-of-line 2)
@@ -28397,7 +28397,7 @@ Counting starts at 1."
 
 (defun org-find-base-buffer-visiting (file)
   "Like `find-buffer-visiting' but alway return the base buffer and
-not an indirect buffer"
+not an indirect buffer."
   (let ((buf (find-buffer-visiting file)))
     (if buf
 	(or (buffer-base-buffer buf) buf)
