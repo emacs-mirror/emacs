@@ -154,6 +154,11 @@ Lisp_Object Vx_no_window_manager;
 
 int display_hourglass_p;
 
+/* If non-zero, a w32 timer that, when it expires, displays an
+   hourglass cursor on all frames.  */
+static unsigned hourglass_timer = 0;
+static HWND hourglass_hwnd = NULL;
+
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
 
@@ -304,6 +309,7 @@ unsigned int msh_mousewheel = 0;
 #define MOUSE_BUTTON_ID	1
 #define MOUSE_MOVE_ID	2
 #define MENU_FREE_ID 3
+#define HOURGLASS_ID 4
 /* The delay (milliseconds) before a menu is freed after WM_EXITMENULOOP
    is received.  */
 #define MENU_FREE_DELAY 1000
@@ -334,6 +340,11 @@ static HWND w32_visible_system_caret_hwnd;
 /* From w32menu.c  */
 extern HMENU current_popup_menu;
 static int menubar_in_use = 0;
+
+/* Function prototypes for hourglass support.  */
+static void show_hourglass P_ ((struct frame *));
+static void hide_hourglass P_ ((void));
+
 
 
 /* Error if we are not connected to MS-Windows.  */
@@ -423,8 +434,6 @@ x_window_to_frame (dpyinfo, wdesc)
       f = XFRAME (frame);
       if (!FRAME_W32_P (f) || FRAME_W32_DISPLAY_INFO (f) != dpyinfo)
 	continue;
-      if (f->output_data.w32->hourglass_window == wdesc)
-        return f;
 
       if (FRAME_W32_WINDOW (f) == wdesc)
         return f;
@@ -3525,6 +3534,12 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
               menubar_in_use = 0;
 	    }
 	}
+      else if (wParam == hourglass_timer)
+	{
+	  KillTimer (hwnd, hourglass_timer);
+	  hourglass_timer = 0;
+	  show_hourglass (x_window_to_frame (dpyinfo, hwnd));
+	}
       return 0;
 
     case WM_NCACTIVATE:
@@ -3590,6 +3605,11 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
       */
       if (f && menubar_in_use && current_popup_menu == NULL)
 	menu_free_timer = SetTimer (hwnd, MENU_FREE_ID, MENU_FREE_DELAY, NULL);
+
+      /* If hourglass cursor should be displayed, display it now.  */
+      if (f && f->output_data.w32->hourglass_p)
+	SetCursor (f->output_data.w32->hourglass_cursor);
+
       goto dflt;
 
     case WM_MENUSELECT:
@@ -3858,15 +3878,27 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 
     case WM_SETCURSOR:
       if (LOWORD (lParam) == HTCLIENT)
-	return 0;
-
+	{
+	  f = x_window_to_frame (dpyinfo, hwnd);
+	  if (f->output_data.w32->hourglass_p && !menubar_in_use
+	      && !current_popup_menu)
+	    SetCursor (f->output_data.w32->hourglass_cursor);
+	  else
+	    SetCursor (f->output_data.w32->current_cursor);
+	  return 0;
+	}
       goto dflt;
 
     case WM_EMACS_SETCURSOR:
       {
 	Cursor cursor = (Cursor) wParam;
-	if (cursor)
-	  SetCursor (cursor);
+	f = x_window_to_frame (dpyinfo, hwnd);
+	if (f && cursor)
+	  {
+	    f->output_data.w32->current_cursor = cursor;
+	    if (!f->output_data.w32->hourglass_p)
+	      SetCursor (cursor);
+	  }
 	return 0;
       }
 
@@ -4527,6 +4559,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   f->output_data.w32->hand_cursor = w32_load_cursor (IDC_HAND);
   f->output_data.w32->hourglass_cursor = w32_load_cursor (IDC_WAIT);
   f->output_data.w32->horizontal_drag_cursor = w32_load_cursor (IDC_SIZEWE);
+
+  f->output_data.w32->current_cursor = f->output_data.w32->nontext_cursor;
 
   window_prompting = x_figure_window_size (f, parameters, 1);
 
@@ -7216,11 +7250,6 @@ value.  */)
 				Busy cursor
  ***********************************************************************/
 
-/* If non-null, an asynchronous timer that, when it expires, displays
-   an hourglass cursor on all frames.  */
-
-static struct atimer *hourglass_atimer;
-
 /* Non-zero means an hourglass cursor is currently shown.  */
 
 static int hourglass_shown_p;
@@ -7234,20 +7263,22 @@ static Lisp_Object Vhourglass_delay;
 
 #define DEFAULT_HOURGLASS_DELAY 1
 
-/* Function prototypes.  */
+/* Return non-zero if houglass timer has been started or hourglass is shown.  */
 
-static void show_hourglass P_ ((struct atimer *));
-static void hide_hourglass P_ ((void));
-
+int
+hourglass_started ()
+{
+  return hourglass_shown_p || hourglass_timer;
+}
 
 /* Cancel a currently active hourglass timer, and start a new one.  */
 
 void
 start_hourglass ()
 {
-#if 0 /* TODO: cursor shape changes.  */
-  EMACS_TIME delay;
-  int secs, usecs = 0;
+  DWORD delay;
+  int secs, msecs = 0;
+  struct frame * f = SELECTED_FRAME ();
 
   cancel_hourglass ();
 
@@ -7260,15 +7291,14 @@ start_hourglass ()
       Lisp_Object tem;
       tem = Ftruncate (Vhourglass_delay, Qnil);
       secs = XFASTINT (tem);
-      usecs = (XFLOAT_DATA (Vhourglass_delay) - secs) * 1000000;
+      msecs = (XFLOAT_DATA (Vhourglass_delay) - secs) * 1000;
     }
   else
     secs = DEFAULT_HOURGLASS_DELAY;
 
-  EMACS_SET_SECS_USECS (delay, secs, usecs);
-  hourglass_atimer = start_atimer (ATIMER_RELATIVE, delay,
-				   show_hourglass, NULL);
-#endif
+  delay = secs * 1000 + msecs;
+  hourglass_hwnd = FRAME_W32_WINDOW (f);
+  hourglass_timer = SetTimer (hourglass_hwnd, HOURGLASS_ID, delay, NULL);
 }
 
 
@@ -7278,10 +7308,10 @@ start_hourglass ()
 void
 cancel_hourglass ()
 {
-  if (hourglass_atimer)
+  if (hourglass_timer)
     {
-      cancel_atimer (hourglass_atimer);
-      hourglass_atimer = NULL;
+      KillTimer (hourglass_hwnd, hourglass_timer);
+      hourglass_timer = 0;
     }
 
   if (hourglass_shown_p)
@@ -7289,62 +7319,22 @@ cancel_hourglass ()
 }
 
 
-/* Timer function of hourglass_atimer.  TIMER is equal to
-   hourglass_atimer.
+/* Timer function of hourglass_timer.
 
-   Display an hourglass cursor on all frames by mapping the frames'
-   hourglass_window.  Set the hourglass_p flag in the frames'
-   output_data.x structure to indicate that an hourglass cursor is
-   shown on the frames.  */
+   Display an hourglass cursor.  Set the hourglass_p flag in display info
+   to indicate that an hourglass cursor is shown.  */
 
 static void
-show_hourglass (timer)
-     struct atimer *timer;
+show_hourglass (f)
+     struct frame *f;
 {
-#if 0  /* TODO: cursor shape changes.  */
-  /* The timer implementation will cancel this timer automatically
-     after this function has run.  Set hourglass_atimer to null
-     so that we know the timer doesn't have to be canceled.  */
-  hourglass_atimer = NULL;
-
   if (!hourglass_shown_p)
     {
-      Lisp_Object rest, frame;
-
-      BLOCK_INPUT;
-
-      FOR_EACH_FRAME (rest, frame)
-	if (FRAME_W32_P (XFRAME (frame)))
-	  {
-	    struct frame *f = XFRAME (frame);
-
-	    f->output_data.w32->hourglass_p = 1;
-
-	    if (!f->output_data.w32->hourglass_window)
-	      {
-		unsigned long mask = CWCursor;
-		XSetWindowAttributes attrs;
-
-		attrs.cursor = f->output_data.w32->hourglass_cursor;
-
-		f->output_data.w32->hourglass_window
-		  = XCreateWindow (FRAME_X_DISPLAY (f),
-				   FRAME_OUTER_WINDOW (f),
-				   0, 0, 32000, 32000, 0, 0,
-				   InputOnly,
-				   CopyFromParent,
-				   mask, &attrs);
-	      }
-
-	    XMapRaised (FRAME_X_DISPLAY (f),
-			f->output_data.w32->hourglass_window);
-	    XFlush (FRAME_X_DISPLAY (f));
-	  }
-
+      f->output_data.w32->hourglass_p = 1;
+      if (!menubar_in_use && !current_popup_menu)
+	SetCursor (f->output_data.w32->hourglass_cursor);
       hourglass_shown_p = 1;
-      UNBLOCK_INPUT;
     }
-#endif
 }
 
 
@@ -7353,33 +7343,15 @@ show_hourglass (timer)
 static void
 hide_hourglass ()
 {
-#if 0 /* TODO: cursor shape changes.  */
   if (hourglass_shown_p)
     {
-      Lisp_Object rest, frame;
+      struct frame *f = x_window_to_frame (&one_w32_display_info,
+					   hourglass_hwnd);
 
-      BLOCK_INPUT;
-      FOR_EACH_FRAME (rest, frame)
-	{
-	  struct frame *f = XFRAME (frame);
-
-	  if (FRAME_W32_P (f)
-	      /* Watch out for newly created frames.  */
-	      && f->output_data.x->hourglass_window)
-	    {
-	      XUnmapWindow (FRAME_X_DISPLAY (f),
-			    f->output_data.x->hourglass_window);
-	      /* Sync here because XTread_socket looks at the
-		 hourglass_p flag that is reset to zero below.  */
-	      XSync (FRAME_X_DISPLAY (f), False);
-	      f->output_data.x->hourglass_p = 0;
-	    }
-	}
-
+      f->output_data.w32->hourglass_p = 0;
+      SetCursor (f->output_data.w32->current_cursor);
       hourglass_shown_p = 0;
-      UNBLOCK_INPUT;
     }
-#endif
 }
 
 
@@ -9323,7 +9295,8 @@ versions of Windows) characters.  */);
   check_window_system_func = check_w32;
 
 
-  hourglass_atimer = NULL;
+  hourglass_timer = 0;
+  hourglass_hwnd = NULL;
   hourglass_shown_p = 0;
   defsubr (&Sx_show_tip);
   defsubr (&Sx_hide_tip);
