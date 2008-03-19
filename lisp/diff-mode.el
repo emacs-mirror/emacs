@@ -229,7 +229,7 @@ when editing big diffs)."
 
 (defface diff-header
   '((((class color) (min-colors 88) (background light))
-     :background "grey85")
+     :background "grey80")
     (((class color) (min-colors 88) (background dark))
      :background "grey45")
     (((class color) (background light))
@@ -1752,7 +1752,7 @@ For use in `add-log-current-defun-function'."
 
 (defface diff-refine-change
   '((((class color) (min-colors 88) (background light))
-     :background "grey70")
+     :background "grey85")
     (((class color) (min-colors 88) (background dark))
      :background "grey60")
     (((class color) (background light))

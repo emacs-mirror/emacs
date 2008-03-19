@@ -1,3 +1,8 @@
+2008-03-19  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* diff-mode.el (diff-header): Make the color louder.
+	(diff-refine-change): Tone the color down.
+
 2008-03-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* descr-text.el (describe-char): When `describe-char-unidata-list'
