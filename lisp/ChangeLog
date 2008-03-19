@@ -1,5 +1,8 @@
 2008-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* help-fns.el (describe-function-1): Don't signal "missing arglist"
+	for autoloaded keymaps.
+
 	* progmodes/verilog-mode.el (verilog-syntax-ppss): New function.
 	(electric-verilog-terminate-line, verilog-in-struct-region-p)
 	(verilog-backward-ws&directives, verilog-forward-ws&directives)

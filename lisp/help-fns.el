@@ -396,7 +396,7 @@ face (according to `face-differs-from-default-p')."
 	   (usage (help-split-fundoc doc function)))
       (with-current-buffer standard-output
         ;; If definition is a keymap, skip arglist note.
-        (unless (keymapp def)
+        (unless (keymapp function)
           (let* ((use (cond
                         (usage (setq doc (cdr usage)) (car usage))
                         ((listp arglist)
