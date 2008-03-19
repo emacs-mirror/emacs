@@ -255,8 +255,11 @@ as unread by Gnus.")
 (deffoo nnmh-request-expire-articles (articles newsgroup
 					       &optional server force)
   (nnmh-possibly-change-directory newsgroup server)
-  (let* ((is-old t)
-	 article rest mod-time)
+  (let ((is-old t)
+	(nnmail-expiry-target
+	 (or (gnus-group-find-parameter newsgroup 'expiry-target t)
+	     nnmail-expiry-target))
+	article rest mod-time)
     (nnheader-init-server-buffer)
 
     (while (and articles is-old)

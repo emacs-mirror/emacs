@@ -5797,7 +5797,7 @@ are not included."
   "Disassociate the message buffer from the drafts directory."
   (when message-draft-article
     (nndraft-request-expire-articles
-     (list message-draft-article) "drafts" nil t)))
+     (list message-draft-article) "nndraft:drafts" nil t)))
 
 (defun message-insert-headers ()
   "Generate the headers for the article."

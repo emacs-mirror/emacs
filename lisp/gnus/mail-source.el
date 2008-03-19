@@ -536,7 +536,8 @@ If CONFIRM is non-nil, ask for confirmation before removing a file."
 	 currday files)
     (setq files (directory-files
 		 mail-source-directory t
-		 (concat mail-source-incoming-file-prefix "*"))
+		 (concat "\\`"
+			 (regexp-quote mail-source-incoming-file-prefix)))
 	  currday (* (car (current-time)) high2days)
 	  currday (+ currday (* low2days (nth 1 (current-time)))))
     (while files
