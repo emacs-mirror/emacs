@@ -1,3 +1,8 @@
+2008-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule.el (load-with-code-conversion): Avoid setting
+	default-enable-multibyte-characters.
+
 2008-03-19  Gustav Hållberg  <gustav@virtutech.com>  (tiny change)
 
 	* vc.el (vc-annotate-background): Fix custom type.

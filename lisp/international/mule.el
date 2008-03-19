@@ -310,12 +310,7 @@ Return t if file exists."
     (let* ((buffer
 	    ;; To avoid any autoloading, set default-major-mode to
 	    ;; fundamental-mode.
-	    ;; So that we don't get completely screwed if the
-	    ;; file is encoded in some complicated character set,
-	    ;; read it with real decoding, as a multibyte buffer,
-	    ;; even if this is a --unibyte Emacs session.
-	    (let ((default-major-mode 'fundamental-mode)
-		  (default-enable-multibyte-characters t))
+	    (let ((default-major-mode 'fundamental-mode))
 	      ;; We can't use `generate-new-buffer' because files.el
 	      ;; is not yet loaded.
 	      (get-buffer-create (generate-new-buffer-name " *load*"))))
@@ -332,6 +327,11 @@ Return t if file exists."
 		(set-auto-coding-for-load t)
 		(inhibit-file-name-operation nil))
 	    (with-current-buffer buffer
+              ;; So that we don't get completely screwed if the
+              ;; file is encoded in some complicated character set,
+              ;; read it with real decoding, as a multibyte buffer,
+              ;; even if this is a --unibyte Emacs session.
+              (set-buffer-multibyte t)
 	      ;; Don't let deactivate-mark remain set.
 	      (let (deactivate-mark)
 		(insert-file-contents fullname))
