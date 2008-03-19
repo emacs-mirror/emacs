@@ -1,3 +1,10 @@
+2008-03-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-print-log): Insert a file marker.  Run the log
+	command for each file in the list.
+	(vc-bzr-log-view-mode): Recognize the file marker.
+	(vc-bzr-show-log-entry): Make regexp match more cases.
+
 2008-03-18  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* verilog-mode.el (verilog-read-decls): Fix AUTOINPUT/AUTOOUTPUT
