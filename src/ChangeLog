@@ -1,12 +1,29 @@
-2008-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+2008-03-19  Jason Rumney  <jasonr@gnu.org>
 
-	* window.c (run_funs): New fun.
-	(run_window_configuration_change_hook): Use it to run the buffer-local
-	and the global part of the hook.
+	* w32fns.c (hourglass_timer, hourglass_hwnd): New variables.
+	(syms_of_w32fns): Initialize them.
+	(HOURGLASS_ID): New constant.
+	(x_window_to_frame): Don't check hourglass_window.
+	(w32_wnd_proc) <WM_TIMER>: Handle hourglass_timer.
+	(w32_wnd_proc) <WM_EXITMENULOOP>: Set pending hourglass cursor.
+	(w32_wnd_proc) <WM_SETCURSOR>: Set the hourglass or current cursor.
+	(w32_wnd_proc) <WM_EMACS_SETCURSOR>: Set frame's current_cursor.
+	Only change the cursor if hourglass is not active.
+	(Fx_create_frame): Initialize frame's current_cursor.
+	(hourglass_atimer): Remove.
+	(hourglass_started): New function.
+	(start_hourglass, cancel_hourglass, hide_hourglass): Adapt to w32.
+	(show_hourglass): Adapt to w32, changing argument to frame.
 
-	* xdisp.c (format_mode_line_unwind_data): Add window argument.
-	(unwind_format_mode_line): Restore selected window.
-	(x_consider_frame_title, Fformat_mode_line): Set selected window.
+	* w32term.h (struct w32_output): Remove hourglass_window.
+	Add current_cursor.
+
+	* eval.c (call_debugger, Fsignal):
+	* keyboard.c (recursive_edit_1, cmd_error, Ftop_level)
+	(command_loop_1, Fread_key_sequence, Fread_key_sequence_vector)
+	(Fexecute_extended_command, cancel_hourglass_unwind):
+	* minibuf.c (read_minibuf):
+	* fns.c (Fy_or_n_p): Enable hourglass when HAVE_WINDOW_SYSTEM.
 
 2008-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
