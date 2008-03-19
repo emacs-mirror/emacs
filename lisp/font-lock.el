@@ -1838,7 +1838,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (min-colors 16) (background dark))
      (:foreground "red1"))
     (((class color) (min-colors 8) (background light))
-     )
+     (:foreground "red"))
     (((class color) (min-colors 8) (background dark))
      )
     (t (:weight bold :slant italic)))

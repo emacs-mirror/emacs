@@ -1,5 +1,8 @@
 2008-03-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* font-lock.el (font-lock-comment-face): Set the foreground for
+	the light background 8 colors case.
+
 	* vc-bzr.el (vc-bzr-print-log): Insert a file marker.  Run the log
 	command for each file in the list.
 	(vc-bzr-log-view-mode): Recognize the file marker.
