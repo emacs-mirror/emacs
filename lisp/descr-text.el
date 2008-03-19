@@ -517,7 +517,7 @@ as well as widgets, buttons, overlays, and text properties."
 	    ,@(let ((unicodedata (describe-char-unicode-data char)))
 		(if unicodedata
 		    (cons (list "Unicode data" " ") unicodedata)))))
-    (setq max-width (apply #'max (mapcar #'(lambda (x) 
+    (setq max-width (apply #'max (mapcar #'(lambda (x)
 					     (if (cadr x) (length (car x)) 0))
 					 item-list)))
     (help-setup-xref nil (interactive-p))
@@ -639,7 +639,7 @@ as well as widgets, buttons, overlays, and text properties."
 		    'describe-char-unidata-list)))
 	(insert "\n")
 	(dolist (elt (if (eq describe-char-unidata-list t)
-                         (mapcar 'car char-code-property-alist)
+                         (nreverse (mapcar 'car char-code-property-alist))
                        describe-char-unidata-list))
 	  (let ((val (get-char-code-property char elt))
 		description)
