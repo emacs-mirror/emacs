@@ -391,7 +391,7 @@ people should be empowered to do what they want by using (or abusing)
 the program.
 
 @c Adjust ../Makefile.in if you change the following line:
-This manual corresponds to Gnus v5.10.9.
+This manual corresponds to Gnus v5.11.
 
 @heading Other related manuals
 @itemize
