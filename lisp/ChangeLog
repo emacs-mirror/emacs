@@ -1,3 +1,7 @@
+2008-03-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* net/tls.el (open-tls-stream): Reindent.
+
 2008-03-19  Glenn Morris  <rgm@gnu.org>
 
 	* net/tls.el: Don't require rx when compiling.
