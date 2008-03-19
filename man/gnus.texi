@@ -26865,7 +26865,7 @@ variables should change those regexps accordingly.  For example:
 @item
 Old intermediate incoming mail files (@file{Incoming*}) are deleted
 after a couple of days, not immediately.  @xref{Mail Source
-Customization}.
+Customization}.  (New in Gnus 5.10.10 / Emacs 22.2)
 
 @end itemize
 

@@ -4,6 +4,7 @@
 	`iftex' output.
 	(Formatting Fonts): Add index entries for gnus-mouse-face, gnus-face-0,
 	gnus-balloon-face-0 and the corresponding format specifiers.
+	(Oort Gnus): Add version info WRT `mail-source-delete-incoming'.
 
 2008-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
