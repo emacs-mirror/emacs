@@ -1,3 +1,10 @@
+2008-03-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/org.el (org-link-store, org-link-follow, org-latex)
+	(org-remember-templates, org-time-stamp-rounding-minutes)
+	(org-back-over-empty-lines, org-find-base-buffer-visiting)
+	(org-columns-new): Fix typos in docstrings.
+
 2008-03-19  Glenn Morris  <rgm@gnu.org>
 
 	* net/tramp.el (tramp-drop-volume-letter): Evaluate when compiling.
