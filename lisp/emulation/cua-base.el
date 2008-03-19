@@ -909,7 +909,7 @@ If global mark is active, copy from register or one character."
 	  (cua--insert-at-global-mark (filter-buffer-substring (point) (+ (point) count)))
 	  (forward-char count))))
      (buffer-read-only
-      (message "Cannot paste into a read-only buffer"))
+      (error "Cannot paste into a read-only buffer"))
      (t
       ;; Must save register here, since delete may override reg 0.
       (if mark-active
