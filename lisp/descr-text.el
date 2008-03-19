@@ -187,22 +187,23 @@ otherwise."
   "List of Unicode-based character property names shown by `describe-char'."
   :group 'mule
   :version "23.1"
-  :type '(set
-	  (const :tag "Unicode Name" name)
-	  (const :tag "Unicode general category " general-category)
-	  (const :tag "Unicode canonical combining class"
-		 canonical-combining-class)
-	  (const :tag "Unicode bidi class" bidi-class)
-	  (const :tag "Unicode decomposition mapping" decomposition)
-	  (const :tag "Unicode decimal digit value" decimal-digit-value)
-	  (const :tag "Unicode digit value" digit-value)
-	  (const :tag "Unicode numeric value" numeric-value)
-	  (const :tag "Unicode mirrored" mirrored)
-	  (const :tag "Unicode old name" old-name)
-	  (const :tag "Unicode ISO 10646 comment" iso-10646-comment)
-	  (const :tag "Unicode simple uppercase mapping" uppercase)
-	  (const :tag "Unicode simple lowercase mapping" lowercase)
-	  (const :tag "Unicode simple titlecase mapping" titlecase)))
+  :type '(choice (const :tag "All properties" t)
+          (set
+           (const :tag "Unicode Name" name)
+           (const :tag "Unicode general category " general-category)
+           (const :tag "Unicode canonical combining class"
+                  canonical-combining-class)
+           (const :tag "Unicode bidi class" bidi-class)
+           (const :tag "Unicode decomposition mapping" decomposition)
+           (const :tag "Unicode decimal digit value" decimal-digit-value)
+           (const :tag "Unicode digit value" digit-value)
+           (const :tag "Unicode numeric value" numeric-value)
+           (const :tag "Unicode mirrored" mirrored)
+           (const :tag "Unicode old name" old-name)
+           (const :tag "Unicode ISO 10646 comment" iso-10646-comment)
+           (const :tag "Unicode simple uppercase mapping" uppercase)
+           (const :tag "Unicode simple lowercase mapping" lowercase)
+           (const :tag "Unicode simple titlecase mapping" titlecase))))
 
 (defcustom describe-char-unicodedata-file nil
   "Location of Unicode data file.
@@ -628,23 +629,25 @@ as well as widgets, buttons, overlays, and text properties."
 	    (insert "\nSee the variable `reference-point-alist' for "
 		    "the meaning of the rule.\n")))
 
-	(if (not describe-char-unidata-list)
-	    (insert "\nCharacter code properties are not shown: ")
-	  (insert "\nCharacter code properties: "))
+	(insert (if (not describe-char-unidata-list)
+                    "\nCharacter code properties are not shown: "
+                  "\nCharacter code properties: "))
 	(insert-text-button
 	 "customize what to show"
 	 'action (lambda (&rest ignore)
 		   (customize-variable
 		    'describe-char-unidata-list)))
 	(insert "\n")
-	(dolist (elt describe-char-unidata-list)
+	(dolist (elt (if (eq describe-char-unidata-list t)
+                         (mapcar 'car char-code-property-alist)
+                       describe-char-unidata-list))
 	  (let ((val (get-char-code-property char elt))
 		description)
 	    (when val
 	      (setq description (char-code-property-description elt val))
-	      (if description
-		  (insert (format "  %s: %s (%s)\n" elt val description))
-		(insert (format "  %s: %s\n" elt val))))))
+	      (insert (if description
+                          (format "  %s: %s (%s)\n" elt val description)
+                        (format "  %s: %s\n" elt val))))))
 
         (if text-props-desc (insert text-props-desc))
 	(setq help-xref-stack-item (list 'help-insert-string (buffer-string)))

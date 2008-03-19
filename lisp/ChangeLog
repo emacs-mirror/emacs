@@ -1,5 +1,9 @@
 2008-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* descr-text.el (describe-char-unidata-list): Allow specifying
+	just all properties.
+	(describe-char): Handle that new value.
+
 	* emulation/cua-base.el (cua-paste): Signal an error in read-only buf.
 
 2008-03-18  Tassilo Horn  <tassilo@member.fsf.org>
