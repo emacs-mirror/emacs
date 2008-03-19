@@ -3306,25 +3306,62 @@ Fset_window_buffer_unwind (obuf)
 EXFUN (Fset_window_fringes, 4);
 EXFUN (Fset_window_scroll_bars, 4);
 
+static void
+run_funs (Lisp_Object funs)
+{
+  for (; CONSP (funs); funs = XCDR (funs))
+    if (!EQ (XCAR (funs), Qt))
+      call0 (XCAR (funs));
+}
+
+static Lisp_Object select_window_norecord (Lisp_Object window);
+
 void
 run_window_configuration_change_hook (struct frame *f)
 {
-  /* FIXME: buffer-local values of Vwindow_configuration_change_hook
-     aren't handled properly.  */
-  if (! NILP (Vwindow_configuration_change_hook)
-      && ! NILP (Vrun_hooks))
-    {
       int count = SPECPDL_INDEX ();
+  Lisp_Object frame, global_wcch
+    = Fdefault_value (Qwindow_configuration_change_hook);
+  XSETFRAME (frame, f);
+
+  if (NILP (Vrun_hooks))
+    return;
+
       if (SELECTED_FRAME () != f)
 	{
-	  Lisp_Object frame;
-	  XSETFRAME (frame, f);
 	  record_unwind_protect (Fselect_frame, Fselected_frame ());
 	  Fselect_frame (frame);
 	}
-      call1 (Vrun_hooks, Qwindow_configuration_change_hook);
+
+  /* Use the right buffer.  Matters when running the local hooks.  */
+  if (current_buffer != XBUFFER (Fwindow_buffer (Qnil)))
+    {
+      record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
+      Fset_buffer (Fwindow_buffer (Qnil));
+    }
+
+  /* Look for buffer-local values.  */
+  {
+    Lisp_Object windows = Fwindow_list (frame, Qlambda, Qnil);
+    for (; CONSP (windows); windows = XCDR (windows))
+      {
+	Lisp_Object window = XCAR (windows);
+	Lisp_Object buffer = Fwindow_buffer (window);
+	if (!NILP (Flocal_variable_p (Qwindow_configuration_change_hook,
+				      buffer)))
+	  {
+	    int count = SPECPDL_INDEX ();
+	    record_unwind_protect (select_window_norecord, Fselected_window ());
+	    select_window_norecord (window);
+	    run_funs (Fbuffer_local_value (Qwindow_configuration_change_hook,
+					   buffer));
       unbind_to (count, Qnil);
     }
+      }
+  }
+  
+  run_funs (global_wcch);
+  unbind_to (count, Qnil);
 }
 
 /* Make WINDOW display BUFFER as its contents.  RUN_HOOKS_P non-zero
@@ -7586,7 +7623,9 @@ Any other value means point always keeps its screen position.  */);
   DEFVAR_LISP ("window-configuration-change-hook",
 	       &Vwindow_configuration_change_hook,
 	       doc: /* Functions to call when window configuration changes.
-The selected frame is the one whose configuration has changed.  */);
+The buffer-local part is run once per window, with the relevant window
+selected; while the global part is run only once for the modified frame,
+with the relevant frame selected.  */);
   Vwindow_configuration_change_hook = Qnil;
 
   defsubr (&Sselected_window);
