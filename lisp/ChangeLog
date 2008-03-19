@@ -1,3 +1,15 @@
+2008-03-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-let-maybe): Removed.
+	(tramp-drop-volume-letter): Don't use `replace-regexp-in-string'.
+	It does not exist under XEmacs.
+	(tramp-handle-file-truename, tramp-handle-expand-file-name)
+	(tramp-completion-file-name-handler): Let-bind
+	`directory-sep-char'.
+
+	* net/tramp-fish.el (tramp-fish-handle-expand-file-name): Let-bind
+	`directory-sep-char'.
+
 2008-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* help-fns.el (describe-function-1): Don't signal "missing arglist"
