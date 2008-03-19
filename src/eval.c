@@ -283,7 +283,7 @@ call_debugger (arg)
   if (SPECPDL_INDEX () + 100 > max_specpdl_size)
     max_specpdl_size = SPECPDL_INDEX () + 100;
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
@@ -1640,7 +1640,7 @@ See also the function `condition-case'.  */)
 
 #if 0 /* rms: I don't know why this was here,
 	 but it is surely wrong for an error that is handled.  */
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
