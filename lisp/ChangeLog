@@ -1,3 +1,8 @@
+2008-03-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* descr-text.el (describe-char): When `describe-char-unidata-list'
+	is set to show all properties, list them in the right order.
+
 2008-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule.el (load-with-code-conversion): Avoid setting
