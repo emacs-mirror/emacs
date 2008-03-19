@@ -1,3 +1,7 @@
+2008-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* cl.texi (For Clauses): Fix loop over key-seq to match code.
+
 2008-03-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* custom.texi, dired.texi, mini.texi, mule.texi: Add `referenced in the
