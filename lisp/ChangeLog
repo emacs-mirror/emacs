@@ -7,7 +7,7 @@
 	(verilog-in-slash-comment-p, verilog-skip-backward-comments)
 	(verilog-parenthesis-depth, verilog-skip-backward-comment-or-string)
 	(verilog-skip-forward-comment-or-string, verilog-in-paren)
-	(verilog-skip-forward-comment-p): Use it,
+	(verilog-skip-forward-comment-p): Use it.
 
 2008-03-19  Juanma Barranquero  <lekktu@gmail.com>
 
