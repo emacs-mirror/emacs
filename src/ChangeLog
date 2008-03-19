@@ -1,3 +1,9 @@
+2008-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (format_mode_line_unwind_data): Add window argument.
+	(unwind_format_mode_line): Restore selected window.
+	(x_consider_frame_title, Fformat_mode_line): Set selected window.
+
 2008-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* editfns.c (Fchar_equal): Check they are valid characters.

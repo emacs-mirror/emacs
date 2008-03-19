@@ -9092,8 +9092,9 @@ static Lisp_Object mode_line_string_face_prop;
 static Lisp_Object Vmode_line_unwind_vector;
 
 static Lisp_Object
-format_mode_line_unwind_data (obuf, save_proptrans)
-     struct buffer *obuf;
+format_mode_line_unwind_data (struct buffer *obuf,
+			      Lisp_Object owin,
+			      int save_proptrans)
 {
   Lisp_Object vector, tmp;
 
@@ -9103,7 +9104,7 @@ format_mode_line_unwind_data (obuf, save_proptrans)
   Vmode_line_unwind_vector = Qnil;
 
   if (NILP (vector))
-    vector = Fmake_vector (make_number (7), Qnil);
+    vector = Fmake_vector (make_number (8), Qnil);
 
   ASET (vector, 0, make_number (mode_line_target));
   ASET (vector, 1, make_number (MODE_LINE_NOPROP_LEN (0)));
@@ -9117,6 +9118,7 @@ format_mode_line_unwind_data (obuf, save_proptrans)
   else
     tmp = Qnil;
   ASET (vector, 6, tmp);
+  ASET (vector, 7, owin);
 
   return vector;
 }
@@ -9132,6 +9134,10 @@ unwind_format_mode_line (vector)
     mode_line_proptrans_alist = AREF (vector, 3);
   mode_line_string_face = AREF (vector, 4);
   mode_line_string_face_prop = AREF (vector, 5);
+
+  if (!NILP (AREF (vector, 7)))
+    /* Select window before buffer, since it may change the buffer.  */
+    Fselect_window (AREF (vector, 7), Qt);
 
   if (!NILP (AREF (vector, 6)))
     {
@@ -9252,8 +9258,10 @@ x_consider_frame_title (frame)
 	 mode_line_target so that display_mode_element will output into
 	 mode_line_noprop_buf; then display the title.  */
       record_unwind_protect (unwind_format_mode_line,
-			     format_mode_line_unwind_data (current_buffer, 0));
+			     format_mode_line_unwind_data
+			        (current_buffer, selected_window, 0));
 
+      Fselect_window (f->selected_window, Qt);
       set_buffer_internal_1 (XBUFFER (XWINDOW (f->selected_window)->buffer));
       fmt = FRAME_ICONIFIED_P (f) ? Vicon_title_format : Vframe_title_format;
 
@@ -16924,7 +16932,7 @@ display_mode_line (w, face_id, format)
     it.base_face_id = it.face_id = DEFAULT_FACE_ID;
 
   record_unwind_protect (unwind_format_mode_line,
-			 format_mode_line_unwind_data (NULL, 0));
+			 format_mode_line_unwind_data (NULL, Qnil, 0));
 
   mode_line_target = MODE_LINE_DISPLAY;
 
@@ -17626,9 +17634,11 @@ are the selected window and the window's buffer).  */)
   /* Save things including mode_line_proptrans_alist,
      and set that to nil so that we don't alter the outer value.  */
   record_unwind_protect (unwind_format_mode_line,
-			 format_mode_line_unwind_data (old_buffer, 1));
+			 format_mode_line_unwind_data
+			     (old_buffer, selected_window, 1));
   mode_line_proptrans_alist = Qnil;
 
+  Fselect_window (window, Qt);
   if (old_buffer)
     set_buffer_internal_1 (XBUFFER (buffer));
 
