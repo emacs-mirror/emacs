@@ -25,13 +25,6 @@
 
 ;;; Commentary:
 
-;; (August 12, 1993)
-;; Created.
-
-;; (November 21, 1994)
-;; [C-M-backspace] defined.
-;; mode-line-format defined to show buffer file type.
-;; audio bell initialized.
 
 ;;; Code:
 (require 'w32-vars)
@@ -59,6 +52,7 @@
     (define-key map [M-escape] [?\M-\e])
     (define-key map [iso-lefttab] [backtab])
     (define-key map [S-iso-lefttab] [backtab])
+    (define-key map [S-tab] [backtab])
     map)
   "Keymap of possible alternative meanings for some keys.")
 
