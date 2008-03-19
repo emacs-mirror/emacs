@@ -3497,16 +3497,17 @@ This is like `dired-recursive-delete-directory' for Tramp files."
 
 ;; Canonicalization of file names.
 
-(if (memq system-type '(cygwin windows-nt))
-    (defun tramp-drop-volume-letter (name)
-      "Cut off unnecessary drive letter from file NAME.
+(eval-and-compile			; silence compiler
+  (if (memq system-type '(cygwin windows-nt))
+      (defun tramp-drop-volume-letter (name)
+	"Cut off unnecessary drive letter from file NAME.
 The function `tramp-handle-expand-file-name' calls `expand-file-name'
 locally on a remote file name.  When the local system is a W32 system
 but the remote system is Unix, this introduces a superfluous drive
 letter into the file name.  This function removes it."
-      (save-match-data (replace-regexp-in-string tramp-root-regexp "/" name)))
+	(save-match-data (replace-regexp-in-string tramp-root-regexp "/" name)))
 
-  (defalias 'tramp-drop-volume-letter 'identity))
+    (defalias 'tramp-drop-volume-letter 'identity)))
 
 (defun tramp-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files.
@@ -3810,7 +3811,9 @@ Lisp error raised when PROGRAM is nil is trapped also, returning 1."
     ;; support 2 (asynchronous) processes in parallel.
     (when p
       (if (yes-or-no-p "A command is running.  Kill it? ")
-	  (ignore-errors (kill-process p))
+	  (condition-case nil
+	      (kill-process p)
+	    (error nil))
 	(error "Shell command in progress")))
 
     (with-current-buffer output-buffer
