@@ -497,7 +497,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   if (EQ (Vminibuffer_completing_file_name, Qlambda))
     Vminibuffer_completing_file_name = Qnil;
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
     cancel_hourglass ();
 #endif
