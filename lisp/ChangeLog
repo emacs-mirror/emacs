@@ -1,3 +1,7 @@
+2008-03-19  Gustav Hållberg  <gustav@virtutech.com>  (tiny change)
+
+	* vc.el (vc-annotate-background): Fix custom type.
+
 2008-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* descr-text.el (describe-char-unidata-list): Allow specifying

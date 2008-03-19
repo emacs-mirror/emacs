@@ -851,7 +851,7 @@ all other colors between (excluding black and white)."
 (defcustom vc-annotate-background "black"
   "Background color for \\[vc-annotate].
 Default color is used if nil."
-  :type 'string
+  :type '(choice (const :tag "Default background" nil) (color))
   :group 'vc)
 
 (defcustom vc-annotate-menu-elements '(2 0.5 0.1 0.01)
