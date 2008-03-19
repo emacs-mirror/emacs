@@ -1,3 +1,7 @@
+2008-03-19  Jason Rumney  <jasonr@gnu.org>
+
+	* w32-fns.el (x-alternatives-map): Add S-tab mapping.
+
 2008-03-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* net/tls.el (open-tls-stream): Reindent.
