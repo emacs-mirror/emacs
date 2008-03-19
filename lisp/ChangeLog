@@ -2,6 +2,7 @@
 
 	* net/tls.el: Don't require rx when compiling.
 	(tls-end-of-info): Rewrite without using rx.
+	(open-tls-stream): Use with-current-buffer.
 
 2008-03-18  Dan Nicolaescu  <dann@ics.uci.edu>
 

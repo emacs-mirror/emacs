@@ -153,8 +153,7 @@ Fourth arg PORT is an integer specifying a port to connect to."
 	process	cmd done)
     (if use-temp-buffer
 	(setq buffer (generate-new-buffer " TLS")))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (message "Opening TLS connection to `%s'..." host)
     (while (and (not done) (setq cmd (pop cmds)))
       (message "Opening TLS connection with `%s'..." cmd)
