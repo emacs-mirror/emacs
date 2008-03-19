@@ -361,6 +361,7 @@ luck.
 
 @c Adjust ../Makefile.in if you change the following line:
 This manual corresponds to Gnus v5.11.
+@c See also below in the iftex branch...
 
 @end ifinfo
 
@@ -388,6 +389,17 @@ allowed to do.  Users are encouraged to extend Gnus to make it behave
 like they want it to behave.  A program should not control people;
 people should be empowered to do what they want by using (or abusing)
 the program.
+
+@c Adjust ../Makefile.in if you change the following line:
+This manual corresponds to Gnus v5.10.9.
+
+@heading Other related manuals
+@itemize
+@item Message manual: Composing messages
+@item Emacs-MIME:     Composing messages; @acronym{MIME}-specific parts.
+@item Sieve:          Managing Sieve scripts in Emacs.
+@item PGG:            @acronym{PGP/MIME} with Gnus.
+@end itemize
 
 @end iftex
 
@@ -21766,12 +21778,16 @@ inserted.
 @node Formatting Fonts
 @subsection Formatting Fonts
 
+@cindex %(, %)
+@vindex gnus-mouse-face
 There are specs for highlighting, and these are shared by all the format
 variables.  Text inside the @samp{%(} and @samp{%)} specifiers will get
 the special @code{mouse-face} property set, which means that it will be
 highlighted (with @code{gnus-mouse-face}) when you put the mouse pointer
 over it.
 
+@cindex %@{, %@}
+@vindex gnus-face-0
 Text inside the @samp{%@{} and @samp{%@}} specifiers will have their
 normal faces set using @code{gnus-face-0}, which is @code{bold} by
 default.  If you say @samp{%1@{}, you'll get @code{gnus-face-1} instead,
@@ -21779,6 +21795,9 @@ and so on.  Create as many faces as you wish.  The same goes for the
 @code{mouse-face} specs---you can say @samp{%3(hello%)} to have
 @samp{hello} mouse-highlighted with @code{gnus-mouse-face-3}.
 
+@cindex %<<, %>>, guillemets
+@c @cindex %<<, %>>, %«, %», guillemets
+@vindex gnus-balloon-face-0
 Text inside the @samp{%<<} and @samp{%>>} specifiers will get the
 special @code{balloon-help} property set to
 @code{gnus-balloon-face-0}.  If you say @samp{%1<<}, you'll get
@@ -26846,7 +26865,7 @@ variables should change those regexps accordingly.  For example:
 @item
 Old intermediate incoming mail files (@file{Incoming*}) are deleted
 after a couple of days, not immediately.  @xref{Mail Source
-Customization}.  (New in Gnus 5.10.10)
+Customization}.
 
 @end itemize
 

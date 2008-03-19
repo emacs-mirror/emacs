@@ -1,3 +1,10 @@
+2008-03-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Top): Add "Other related manuals" and version info in
+	`iftex' output.
+	(Formatting Fonts): Add index entries for gnus-mouse-face, gnus-face-0,
+	gnus-balloon-face-0 and the corresponding format specifiers.
+
 2008-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* cl.texi (For Clauses): Fix loop over key-seq to match code.
