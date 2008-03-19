@@ -1,3 +1,14 @@
+2008-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/verilog-mode.el (verilog-syntax-ppss): New function.
+	(electric-verilog-terminate-line, verilog-in-struct-region-p)
+	(verilog-backward-ws&directives, verilog-forward-ws&directives)
+	(verilog-in-comment-p, verilog-in-star-comment-p)
+	(verilog-in-slash-comment-p, verilog-skip-backward-comments)
+	(verilog-parenthesis-depth, verilog-skip-backward-comment-or-string)
+	(verilog-skip-forward-comment-or-string, verilog-in-paren)
+	(verilog-skip-forward-comment-p): Use it,
+
 2008-03-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/org.el (org-link-store, org-link-follow, org-latex)

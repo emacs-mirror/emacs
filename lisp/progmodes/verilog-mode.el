@@ -274,6 +274,10 @@ STRING should be given if the last search was by `string-match' on STRING."
  This function may be removed when Emacs 21 is no longer supported."
   (or (equal value t) (equal value nil)))
 
+(defalias 'verilog-syntax-ppss
+  (if (fboundp 'syntax-ppss) 'syntax-ppss
+    (lambda (&optional pos) (parse-partial-sexp (point-min) (or pos (point))))))
+
 (defgroup verilog-mode nil
   "Facilitates easy editing of Verilog source text."
   :version "22.2"
@@ -1742,7 +1746,7 @@ find the errors."
 	  (modify-syntax-entry ?/  ". 1456" table)
 	  (modify-syntax-entry ?*  ". 23"   table)
 	  (modify-syntax-entry ?\n "> b"    table))
-      ;; Emacs 19 does things differently, but we can work with it
+      ;; Emacs does things differently, but we can work with it
       (modify-syntax-entry ?/  ". 124b" table)
       (modify-syntax-entry ?*  ". 23"   table)
       (modify-syntax-entry ?\n "> b"    table))
@@ -2381,7 +2385,7 @@ Key bindings specific to `verilog-mode-map' are:
     (easy-menu-add verilog-menu)
     (setq mode-popup-menu (cons "Verilog Mode" verilog-stmt-menu)))
 
-  ;; Stuff for GNU emacs
+  ;; Stuff for GNU Emacs
   (set (make-local-variable 'font-lock-defaults)
        '((verilog-font-lock-keywords verilog-font-lock-keywords-1
                                      verilog-font-lock-keywords-2
@@ -2392,10 +2396,10 @@ Key bindings specific to `verilog-mode-map' are:
   ;; all buffer local:
   (when (featurep 'xemacs)
     (make-local-hook 'font-lock-mode-hook)
-    (make-local-hook 'font-lock-after-fontify-buffer-hook); doesn't exist in emacs 20
+    (make-local-hook 'font-lock-after-fontify-buffer-hook); doesn't exist in Emacs
     (make-local-hook 'after-change-functions))
   (add-hook 'font-lock-mode-hook 'verilog-colorize-include-files-buffer t t)
-  (add-hook 'font-lock-after-fontify-buffer-hook 'verilog-colorize-include-files-buffer t t) ; not in emacs 20
+  (add-hook 'font-lock-after-fontify-buffer-hook 'verilog-colorize-include-files-buffer t t) ; not in Emacs
   (add-hook 'after-change-functions 'verilog-colorize-include-files t t)
 
   ;; Tell imenu how to handle Verilog.
@@ -2423,9 +2427,7 @@ Key bindings specific to `verilog-mode-map' are:
 With optional ARG, remove existing end of line comments."
   (interactive)
   ;; before that see if we are in a comment
-  (let ((state
-	 (save-excursion
-	   (parse-partial-sexp (point-min) (point)))))
+  (let ((state (save-excursion (verilog-syntax-ppss))))
     (cond
      ((nth 7 state)			; Inside // comment
       (if (eolp)
@@ -2936,7 +2938,7 @@ More specifically, point @ in the line foo : @ begin"
 More specifically, in a list after a struct|union keyword."
   (interactive)
   (save-excursion
-    (let* ((state (parse-partial-sexp (point-min) (point)))
+    (let* ((state (verilog-syntax-ppss))
 	   (depth (nth 0 state)))
       (if depth
 	  (progn (backward-up-list depth)
@@ -3692,7 +3694,7 @@ This lets programs calling batch mode to easily extract error messages."
        (progn ,@body)
      (error
       (error "%%Error: %s%s" (error-message-string err)
-	     (if (featurep 'xemacs) "\n" "")))))  ;; xemacs forgets to add a newline
+	     (if (featurep 'xemacs) "\n" "")))))  ;; XEmacs forgets to add a newline
 
 (defun verilog-batch-execute-func (funref)
   "Internal processing of a batch command, running FUNREF on all command arguments."
@@ -4273,9 +4275,7 @@ Optional BOUND limits search."
 	   (p nil) )
       (if (< bound (point))
 	  (progn
-	    (let ((state
-		   (save-excursion
-		     (parse-partial-sexp (point-min) (point)))))
+	    (let ((state (save-excursion (verilog-syntax-ppss))))
 	      (cond
 	       ((nth 7 state) ;; in // comment
 		(verilog-re-search-backward "//" nil 'move)
@@ -4307,9 +4307,7 @@ Optional BOUND limits search."
 	   jump)
       (if (> bound (point))
 	  (progn
-	    (let ((state
-		   (save-excursion
-		     (parse-partial-sexp (point-min) (point)))))
+	    (let ((state (save-excursion (verilog-syntax-ppss))))
 	      (cond
 	       ((nth 7 state) ;; in // comment
 		(verilog-re-search-forward "//" nil 'move))
@@ -4329,16 +4327,12 @@ Optional BOUND limits search."
 
 (defun verilog-in-comment-p ()
  "Return true if in a star or // comment."
- (let ((state
-	(save-excursion
-	  (parse-partial-sexp (point-min) (point)))))
+ (let ((state (save-excursion (verilog-syntax-ppss))))
    (or (nth 4 state) (nth 7 state))))
 
 (defun verilog-in-star-comment-p ()
  "Return true if in a star comment."
- (let ((state
-	(save-excursion
-	  (parse-partial-sexp (point-min) (point)))))
+ (let ((state (save-excursion (verilog-syntax-ppss))))
    (and
     (nth 4 state)			; t if in a comment of style a // or b /**/
 	(not
@@ -4347,16 +4341,12 @@ Optional BOUND limits search."
 
 (defun verilog-in-slash-comment-p ()
  "Return true if in a slash comment."
- (let ((state
-	(save-excursion
-	  (parse-partial-sexp (point-min) (point)))))
+ (let ((state (save-excursion (verilog-syntax-ppss))))
    (nth 7 state)))
 
 (defun verilog-in-comment-or-string-p ()
  "Return true if in a string or comment."
- (let ((state
-	(save-excursion
-	  (parse-partial-sexp (point-min) (point)))))
+ (let ((state (save-excursion (verilog-syntax-ppss))))
    (or (nth 3 state) (nth 4 state) (nth 7 state)))) ; Inside string or comment)
 
 (defun verilog-in-escaped-name-p ()
@@ -4370,9 +4360,7 @@ Optional BOUND limits search."
 
 (defun verilog-in-paren ()
  "Return true if in a parenthetical expression."
- (let ((state
-	(save-excursion
-	  (parse-partial-sexp (point-min) (point)))))
+ (let ((state (save-excursion (verilog-syntax-ppss))))
    (> (nth 0 state) 0 )))
 
 (defun verilog-in-coverage ()
@@ -4413,15 +4401,12 @@ Optional BOUND limits search."
 
 (defun verilog-parenthesis-depth ()
  "Return non zero if in parenthetical-expression."
- (save-excursion
-   (nth 1 (parse-partial-sexp (point-min) (point)))))
+ (save-excursion (nth 1 (verilog-syntax-ppss))))
 
 
 (defun verilog-skip-forward-comment-or-string ()
  "Return true if in a string or comment."
- (let ((state
-	(save-excursion
-	  (parse-partial-sexp (point-min) (point)))))
+ (let ((state (save-excursion (verilog-syntax-ppss))))
    (cond
     ((nth 3 state)			;Inside string
      (goto-char (nth 3 state))
@@ -4436,9 +4421,7 @@ Optional BOUND limits search."
 
 (defun verilog-skip-backward-comment-or-string ()
  "Return true if in a string or comment."
- (let ((state
-	(save-excursion
-	  (parse-partial-sexp (point-min) (point)))))
+ (let ((state (save-excursion (verilog-syntax-ppss))))
    (cond
     ((nth 3 state)			;Inside string
      (search-backward "\"")
@@ -4458,9 +4441,7 @@ Optional BOUND limits search."
  (let ((more t))
    (while more
      (setq more
-	   (let ((state
-		  (save-excursion
-		    (parse-partial-sexp (point-min) (point)))))
+	   (let ((state (save-excursion (verilog-syntax-ppss))))
 	     (cond
 	      ((nth 7 state)			;Inside // comment
 	       (search-backward "//")
@@ -4484,9 +4465,7 @@ Optional BOUND limits search."
   "If in comment, move to end and return true."
   (let (state)
     (progn
-      (setq state
-	    (save-excursion
-	      (parse-partial-sexp (point-min) (point))))
+      (setq state (save-excursion (verilog-syntax-ppss)))
       (cond
        ((nth 3 state)
 	t)
@@ -5935,7 +5914,7 @@ Ignore width if optional NO-WIDTH is set."
       (verilog-re-search-backward-quick "\\b[a-zA-Z0-9`_\$]" nil nil))
     (skip-chars-backward "a-zA-Z0-9'_$")
     (looking-at "[a-zA-Z0-9`_\$]+")
-    ;; Important: don't use match string, this must work with emacs 19 font-lock on
+    ;; Important: don't use match string, this must work with Emacs 19 font-lock on
     (buffer-substring-no-properties (match-beginning 0) (match-end 0))))
 
 (defun verilog-read-inst-name ()
@@ -5943,7 +5922,7 @@ Ignore width if optional NO-WIDTH is set."
   (save-excursion
     (verilog-read-inst-backward-name)
     (looking-at "[a-zA-Z0-9`_\$]+")
-    ;; Important: don't use match string, this must work with emacs 19 font-lock on
+    ;; Important: don't use match string, this must work with Emacs 19 font-lock on
     (buffer-substring-no-properties (match-beginning 0) (match-end 0))))
 
 (defun verilog-read-module-name ()
@@ -5953,7 +5932,7 @@ Ignore width if optional NO-WIDTH is set."
     (verilog-re-search-backward-quick "\\b[a-zA-Z0-9`_\$]" nil nil)
     (skip-chars-backward "a-zA-Z0-9`_$")
     (looking-at "[a-zA-Z0-9`_\$]+")
-    ;; Important: don't use match string, this must work with emacs 19 font-lock on
+    ;; Important: don't use match string, this must work with Emacs 19 font-lock on
     (buffer-substring-no-properties (match-beginning 0) (match-end 0))))
 
 (defun verilog-read-auto-params (num-param &optional max-param)
@@ -6594,7 +6573,7 @@ list of ( (signal_name connection_name)... )."
 		      (goto-char (match-end 0)))
 		     ;; Regexp form??
 		     ((looking-at
-		       ;; Regexp bug in xemacs disallows ][ inside [], and wants + last
+		       ;; Regexp bug in XEmacs disallows ][ inside [], and wants + last
 		       "\\s-*\\.\\(\\([a-zA-Z0-9`_$+@^.*?|---]+\\|[][]\\|\\\\[()|]\\)+\\)\\s-*(\\(.*\\))\\s-*\\(,\\|)\\s-*;\\)")
 		      (setq rep (match-string-no-properties 3))
 		      (goto-char (match-end 0))
@@ -7190,7 +7169,7 @@ Cache the output of function so next call may have faster access."
 	     (setq func-returns (nth 3 fass)))
 	    (t
 	     ;; Read from file
-	     ;; Clear then restore any hilighting to make emacs19 happy
+	     ;; Clear then restore any hilighting to make Emacs 19 happy
 	     (let ((fontlocked (when (and (boundp 'font-lock-mode)
 					  font-lock-mode)
 				 (font-lock-mode nil)
