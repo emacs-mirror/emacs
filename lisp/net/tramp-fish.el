@@ -380,13 +380,13 @@ pass to the OPERATION."
       ;; would otherwise use backslash.  `default-directory' is
       ;; bound, because on Windows there would be problems with UNC
       ;; shares or Cygwin mounts.
-      (tramp-let-maybe directory-sep-char ?/
-	(let ((default-directory (tramp-compat-temporary-file-directory)))
-	  (tramp-make-tramp-file-name
-	   method user host
-	   (tramp-drop-volume-letter
-	    (tramp-run-real-handler 'expand-file-name
-				    (list localname)))))))))
+      (let ((directory-sep-char ?/)
+	    (default-directory (tramp-compat-temporary-file-directory)))
+	(tramp-make-tramp-file-name
+	 method user host
+	 (tramp-drop-volume-letter
+	  (tramp-run-real-handler 'expand-file-name
+				  (list localname))))))))
 
 (defun tramp-fish-handle-file-attributes (filename &optional id-format)
   "Like `file-attributes' for Tramp files."
