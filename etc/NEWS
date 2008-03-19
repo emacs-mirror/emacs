@@ -126,9 +126,10 @@ displays with fewer than 16 colors and dark background (e.g. older
 xterms and the Linux console).  On such displays, only the comment
 delimiters will appear to be fontified (in the new face
 `font-lock-comment-delimiter-face').  To restore the old appearance,
-customize `font-lock-comment-face', or use a newer terminal emulator
-that supports more colors (256 is now common).  For example for xterm
-compatible emulators you can run emacs like this: 
+customize `font-lock-comment-face'. Another alternative is to use a
+newer terminal emulator that supports more colors (256 is now common).
+For example, for xterm compatible emulators that support 256 colors,
+you can run emacs like this: 
 env TERM=xterm-256color emacs -nw
 (This was new in Emacs 22.1, but was not described.  In Emacs 22.1
 this also happened for terminals with a light background, that is not
