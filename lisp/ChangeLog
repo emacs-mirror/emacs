@@ -1,3 +1,8 @@
+2008-03-19  Glenn Morris  <rgm@gnu.org>
+
+	* net/tls.el: Don't require rx when compiling.
+	(tls-end-of-info): Rewrite without using rx.
+
 2008-03-18  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* font-lock.el (font-lock-comment-face): Set the foreground for
