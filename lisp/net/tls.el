@@ -51,37 +51,25 @@
   (autoload 'format-spec "format-spec")
   (autoload 'format-spec-make "format-spec"))
 
-(eval-when-compile
-  (require 'rx))
-
 (defgroup tls nil
   "Transport Layer Security (TLS) parameters."
   :group 'comm)
 
 (defcustom tls-end-of-info
-  (rx
-   (or
-    ;; `openssl s_client` regexp
-    (sequence
-     ;; see ssl/ssl_txt.c lines 219--220
-     line-start
-     "    Verify return code: "
-     (one-or-more not-newline)
-     "\n"
-     ;; according to apps/s_client.c line 1515 this is always the last
-     ;; line that is printed by s_client before the real data
-     "---\n")
-    ;; `gnutls` regexp
-    (sequence
-     ;; see src/cli.c lines 721--
-     (sequence line-start "- Simple Client Mode:\n")
-     (zero-or-more
-      (or
-       "\n"                             ; ignore blank lines
-       ;; XXX: we have no way of knowing if the STARTTLS handshake
-       ;; sequence has completed successfully, because `gnutls` will
-       ;; only report failure.
-       (sequence line-start "\*\*\* Starting TLS handshake\n"))))))
+  (concat
+   "\\("
+   ;; `openssl s_client' regexp.  See ssl/ssl_txt.c lines 219-220.
+   ;; According to apps/s_client.c line 1515 `---' is always the last
+   ;; line that is printed by s_client before the real data.
+   "^    Verify return code: .+\n---\n\\|"
+   ;; `gnutls' regexp. See src/cli.c lines 721-.
+   "^- Simple Client Mode:\n"
+   "\\(\n\\|"                           ; ignore blank lines
+   ;; According to GnuTLS v2.1.5 src/cli.c lines 640-650 and 705-715
+   ;; in `main' the handshake will start after this message.  If the
+   ;; handshake fails, the programs will abort.
+   "^\\*\\*\\* Starting TLS handshake\n\\)*"
+   "\\)")
   "Regexp matching end of TLS client informational messages.
 Client data stream begins after the last character matched by
 this.  The default matches `openssl s_client' (version 0.9.8c)
