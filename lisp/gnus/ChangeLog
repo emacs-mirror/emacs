@@ -897,13 +897,13 @@
 
 	* gnus-cache.el (gnus-jog-cache): Ditto.
 
-	* gnus-msg.el (gnus-summary-reply): Ignore
-	gnus-confirm-mail-reply-to-news for wide and very wide replies.
+	* gnus-msg.el (gnus-summary-reply):
+	Ignore gnus-confirm-mail-reply-to-news for wide and very wide replies.
 
 2007-11-24  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-cache.el (gnus-cache-generate-nov-databases): Use
-	nnml-generate-nov-databases-directory instead of
+	* gnus-cache.el (gnus-cache-generate-nov-databases):
+	Use nnml-generate-nov-databases-directory instead of
 	nnml-generate-nov-databases-1.
 
 2007-11-24  Glenn Morris  <rgm@gnu.org>
@@ -2011,8 +2011,8 @@
 
 2007-05-24  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* message.el (message-narrow-to-headers-or-head): Ignore
-	mail-header-separator in the body.
+	* message.el (message-narrow-to-headers-or-head):
+	Ignore mail-header-separator in the body.
 
 2007-05-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -5788,7 +5788,7 @@
 	* gnus-group.el (gnus-group-compact-group): Invalidate original
 	article buffer.
 	* gnus-srvr.el (gnus-server-compact-server): Ditto.
-	* nnml.el (nnml-request-compact-group): handle self Xref: field in
+	* nnml.el (nnml-request-compact-group): Handle self Xref: field in
 	NOV database and in article itself.
 	Invalidate article backlog.
 
@@ -5809,8 +5809,7 @@
 
 2005-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
-	* imap.el (imap-open): Handle case where buffer is a buffer
-	object.
+	* imap.el (imap-open): Handle case where buffer is a buffer object.
 
 2005-10-24  Eli Zaretskii  <eliz@gnu.org>
 
@@ -6280,8 +6279,7 @@
 
 2005-09-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* message.el (message-tab-body-function): Fixed mismatched custom
-	type.
+	* message.el (message-tab-body-function): Fix mismatched custom type.
 
 	* gnus.el (gnus-group-change-level-function): Ditto.
 
@@ -7841,8 +7839,8 @@
 
 2005-01-03  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* gnus-score.el (gnus-decay-scores, gnus-score-load-file): Allow
-	to apply decay on score files matching a regexp.
+	* gnus-score.el (gnus-decay-scores, gnus-score-load-file):
+	Allow to apply decay on score files matching a regexp.
 
 2004-12-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -9299,8 +9297,7 @@
 
 2004-08-26  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* nndoc.el (nndoc-type-alist): Fix regexp in the rfc822-forward
-	entry.
+	* nndoc.el (nndoc-type-alist): Fix regexp in the rfc822-forward entry.
 
 	* gnus-group.el (gnus-group-line-format-alist): Convert the value
 	of gnus-tmp-news-method into string under XEmacs.  It will be
@@ -9314,8 +9311,8 @@
 	(gnus-pp): New function.
 	(gnus-pp-to-string): New function.
 
-	* gnus-cus.el (gnus-agent-cat-prepare-category-field): Replace
-	pp-to-string with gnus-pp-to-string.
+	* gnus-cus.el (gnus-agent-cat-prepare-category-field):
+	Replace pp-to-string with gnus-pp-to-string.
 	* gnus-eform.el (gnus-edit-form): Replace pp with gnus-pp.
 	* gnus-group.el (gnus-group-make-kiboze-group): Ditto.
 	* gnus-msg.el (gnus-debug): Ditto.
@@ -9329,13 +9326,13 @@
 
 2004-08-23  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-art.el (article-display-face, article-display-x-face): Use
-	buffer-read-only.
+	* gnus-art.el (article-display-face, article-display-x-face):
+	Use buffer-read-only.
 
 2004-08-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-art.el (article-hide-list-identifiers): Bind
-	inhibit-read-only as t.
+	* gnus-art.el (article-hide-list-identifiers):
+	Bind inhibit-read-only as t.
 
 2004-08-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -10446,52 +10443,30 @@
 
 2004-04-25  Jesper Harder  <harder@ifa.au.dk>
 
+	* sieve-manage.el (sieve-manage-open):
+	* nnweb.el (nnweb-insert-html):
+	* nnvirtual.el (nnvirtual-catchup-group, nnvirtual-partition-sequence)
+	(nnvirtual-partition-sequence, nnvirtual-create-mapping):
+	* nnspool.el (nnspool-request-group):
+	* nnrss.el (nnrss-opml-export, nnrss-find-el, nnrss-order-hrefs):
+	* nnml.el (nnml-request-update-info):
+	* nnmh.el (nnmh-request-group, nnmh-request-list-1, nnmh-active-number)
+	(nnmh-request-create-group, nnmh-update-gnus-unreads):
+	* nnimap.el (nnimap-request-close, nnimap-acl-edit)
+	(nnimap-request-set-mark):
+	* nnfolder.el (nnfolder-request-update-info):
+	* mm-view.el (mm-pkcs7-signed-magic, mm-pkcs7-enveloped-magic):
+	* mml.el (mml-destroy-buffers, mml-compute-boundary-1):
+	* gnus-uu.el (gnus-uu-find-articles-matching):
+	* gnus-topic.el (gnus-topic-check-topology, gnus-topic-remove-group):
+	* gnus-sum.el (gnus-summary-fetch-faq, gnus-read-move-group-name):
+	* gnus-score.el (gnus-score-load-file, gnus-sort-score-files):
+	* gnus-nocem.el (gnus-nocem-scan-groups):
+	* gnus-int.el (gnus-start-news-server):
+	* gnus-group.el (gnus-group-make-kiboze-group)
+	(gnus-group-browse-foreign-server):
 	* spam-stat.el (spam-stat-score-buffer): Simplify mapcar usage.
 	Use mapc when appropriate.
-
-	* sieve-manage.el (sieve-manage-open): do.
-
-	* nnweb.el (nnweb-insert-html): do.
-
-	* nnvirtual.el (nnvirtual-catchup-group, nnvirtual-partition-sequence)
-	(nnvirtual-partition-sequence, nnvirtual-create-mapping): do.
-
-	* nnspool.el (nnspool-request-group): do.
-
-	* nnrss.el (nnrss-opml-export, nnrss-find-el, nnrss-order-hrefs):
-	do.
-
-	* nnml.el (nnml-request-update-info): do.
-
-	* nnmh.el (nnmh-request-group, nnmh-request-list-1, nnmh-active-number)
-	(nnmh-request-create-group, nnmh-update-gnus-unreads): do.
-
-	* nnimap.el (nnimap-request-close, nnimap-acl-edit)
-	(nnimap-request-set-mark): do.
-
-	* nnfolder.el (nnfolder-request-update-info): do.
-
-	* mm-view.el (mm-pkcs7-signed-magic, mm-pkcs7-enveloped-magic):
-	do.
-
-	* mml.el (mml-destroy-buffers, mml-compute-boundary-1): do.
-
-	* gnus-uu.el (gnus-uu-find-articles-matching): do.
-
-	* gnus-topic.el (gnus-topic-check-topology, gnus-topic-remove-group):
-	do.
-
-	* gnus-sum.el (gnus-summary-fetch-faq, gnus-read-move-group-name):
-	do.
-
-	* gnus-score.el (gnus-score-load-file, gnus-sort-score-files): do.
-
-	* gnus-nocem.el (gnus-nocem-scan-groups): do.
-
-	* gnus-int.el (gnus-start-news-server): do.
-
-	* gnus-group.el (gnus-group-make-kiboze-group)
-	(gnus-group-browse-foreign-server): do.
 
 2004-04-22  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -10511,7 +10486,7 @@
 	header.
 	(spam-summary-score): Add function to  get a numeric score from the
 	headers.
-	(spam-generic-score): Fixed function doc, was in wrong place.
+	(spam-generic-score): Fix function doc, was in wrong place.
 	(spam-initialize): Take symbols when it's run, and install the
 	extra headers that spam-necessary-extra-headers thinks we need.
 
@@ -10527,8 +10502,8 @@
 	(gnus-article-get-xrefs, gnus-summary-best-group)
 	(gnus-summary-next-article, gnus-summary-enter-digest-group)
 	(gnus-summary-set-bookmark, gnus-offer-save-summaries)
-	(gnus-summary-update-info, gnus-kill-or-deaden-summary): Use
-	with-current-buffer.
+	(gnus-summary-update-info, gnus-kill-or-deaden-summary):
+	Use with-current-buffer.
 
 2004-04-16  Teodor Zlatanov  <tzz@lifelogs.com>
 
@@ -10682,15 +10657,15 @@
 	(gnus-group-list-active): Let the agent store a server's active
 	list if currently plugged.
 
-	* gnus-int.el (gnus-request-delete-group): Use
-	gnus-cache-delete-group and gnus-agent-delete-group to keep the
+	* gnus-int.el (gnus-request-delete-group):
+	Use gnus-cache-delete-group and gnus-agent-delete-group to keep the
 	local disk in sync with the server.
-	(gnus-request-rename-group): Use
-	gnus-cache-rename-group and gnus-agent-rename-group to keep the
+	(gnus-request-rename-group):
+	Use gnus-cache-rename-group and gnus-agent-rename-group to keep the
 	local disk in sync with the server.
 
-	* gnus-start.el (gnus-get-unread-articles): Cosmetic
-	simplification to logic.
+	* gnus-start.el (gnus-get-unread-articles):
+	Cosmetic simplification to logic.
 
 	* gnus-util.el (gnus-rename-file): New function.
 
@@ -11666,8 +11641,7 @@
 
 2004-01-11  Jesper Harder  <harder@ifa.au.dk>
 
-	* gnus.sum.el (gnus-remove-odd-characters): Don't cons two new
-	strings.
+	* gnus.sum.el (gnus-remove-odd-characters): Don't cons two new strings.
 
 	* mm-util.el (mm-subst-char-in-string): Support inplace.
 
@@ -11676,24 +11650,11 @@
 
 2004-01-10  Jesper Harder  <harder@ifa.au.dk>
 
-	* gnus-start.el (gnus-subscribe-newsgroup, gnus-start-draft-setup)
-	(gnus-group-change-level, gnus-kill-newsgroup)
-	(gnus-check-bogus-newsgroups, gnus-get-unread-articles-in-group)
-	(gnus-get-unread-articles, gnus-make-articles-unread)
-	(gnus-make-ascending-articles-unread): Use accessor
-	macros (gnus-group-entry, gnus-group-unread, gnus-info-marks etc.)
-	to get group information for improved readability.
-
-	* gnus-srvr.el (gnus-browse-unsubscribe-group): do.
-
-	* gnus-soup.el (gnus-soup-group-brew): do.
-
-	* gnus-msg.el (gnus-put-message): do.
-
-	* gnus-move.el (gnus-group-move-group-to-server): do.
-
-	* gnus-kill.el (gnus-batch-score): do.
-
+	* gnus-srvr.el (gnus-browse-unsubscribe-group):
+	* gnus-soup.el (gnus-soup-group-brew):
+	* gnus-msg.el (gnus-put-message):
+	* gnus-move.el (gnus-group-move-group-to-server):
+	* gnus-kill.el (gnus-batch-score):
 	* gnus-group.el (gnus-group-prepare-flat, gnus-group-delete-group)
 	(gnus-group-update-group-line, gnus-group-insert-group-line-info)
 	(gnus-group-update-group, gnus-group-read-group)
@@ -11703,24 +11664,25 @@
 	(gnus-group-sort-by-unread, gnus-group-catchup)
 	(gnus-group-unsubscribe-group, gnus-group-kill-group)
 	(gnus-group-yank-group, gnus-group-set-info)
-	(gnus-group-list-groups): do.
-
-	* gnus.el (gnus-generate-new-group-name): do.
-
-	* gnus-delay.el (gnus-delay-send-queue): do.
-
-	* nnvirtual.el (nnvirtual-catchup-group): do.
-
+	(gnus-group-list-groups):
+	* gnus.el (gnus-generate-new-group-name):
+	* gnus-delay.el (gnus-delay-send-queue):
+	* nnvirtual.el (nnvirtual-catchup-group):
 	* nnkiboze.el (nnkiboze-generate-group, nnkiboze-generate-group):
-	do.
-
 	* gnus-topic.el (gnus-topic-find-groups, gnus-topic-clean-alist)
-	(gnus-group-prepare-topics, gnus-topic-check-topology): do.
-
+	(gnus-group-prepare-topics, gnus-topic-check-topology):
 	* gnus-sum.el (gnus-update-read-articles, gnus-select-newsgroup)
 	(gnus-mark-xrefs-as-read, gnus-compute-read-articles)
 	(gnus-summary-walk-group-buffer, gnus-summary-move-article)
-	(gnus-group-make-articles-read): do.
+	(gnus-group-make-articles-read):
+	* gnus-start.el (gnus-subscribe-newsgroup, gnus-start-draft-setup)
+	(gnus-group-change-level, gnus-kill-newsgroup)
+	(gnus-check-bogus-newsgroups, gnus-get-unread-articles-in-group)
+	(gnus-get-unread-articles, gnus-make-articles-unread)
+	(gnus-make-ascending-articles-unread): Use accessor
+	macros (gnus-group-entry, gnus-group-unread, gnus-info-marks etc.)
+	to get group information for improved readability.
+
 
 2004-01-09  Jesper Harder  <harder@ifa.au.dk>
 

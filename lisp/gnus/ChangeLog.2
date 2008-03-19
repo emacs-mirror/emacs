@@ -4464,22 +4464,22 @@
 	performed by gnus-agent-request-article.
 	* gnus-cus.el (gnus-agent-parameters): New variable.  List of
 	customizable group/topic parameters that regulate the agent.
-	(gnus-group-customize): Uses gnus-agent-parameters.  Replaced
+	(gnus-group-customize): Uses gnus-agent-parameters.  Replace
 	kill-buffer with gnus-kill-buffer to remove the killed buffer from
 	the list of gnus buffers.
 	(gnus-trim-whitespace): Removes leading and trailing whitespace
 	from multiline strings.
-	(gnus-agent-cat-prepare-category-field,
-	gnus-agent-customize-category): Constructs a category
+	(gnus-agent-cat-prepare-category-field)
+	(gnus-agent-customize-category): Constructs a category
 	customization buffer.
-	* gnus-int.el (gnus-retrieve-headers,
-	gnus-request-expire-articles): No longer checks gnus-agent-cache
+	* gnus-int.el (gnus-retrieve-headers)
+	(gnus-request-expire-articles): No longer checks gnus-agent-cache
 	as it is handled internally by the agent.
 	(gnus-request-head, gnus-request-body): Conditional checks
 	surrounding gnus-agent-request-article removed; now performed by
 	gnus-agent-request-article.
 
-	* gnus-start.el (): Added defvar statements to resolve compilation
+	* gnus-start.el (): Add defvar statements to resolve compilation
 	warnings.
 	(gnus-long-file-names): New function.  Isolates platform dependent
 	msdos-long-file-names.
@@ -4488,17 +4488,17 @@
 	errors when .newsrc.eld is huge.
 	(gnus-save-newsrc-file): Uses new
 	gnus-save-startup-file-via-temp-buffer.
-	(gnus-gnus-to-quick-newsrc-format): Rewritten to write to
+	(gnus-gnus-to-quick-newsrc-format): Rewrite to write to
 	standard-output.
-	(gnus-display-time-event-handler): Changed to alias from a defun
+	(gnus-display-time-event-handler): Change to alias from a defun
 	to avoid a compile-time warning when display-time-event-handler is
 	not defined.
-	* gnus-util.el (gnus-with-output-to-file): New macro.  Binds
-	standard-output such that prin1 and princ will write directly to a
-	file.
+	* gnus-util.el (gnus-with-output-to-file): New macro.
+	Binds standard-output such that prin1 and princ will write directly
+	to a file.
 
-	* gnus.el (gnus-agent-cache): Expanded documentation.
-	(gnus-summary-high-undownloaded-face): Removed second bold keyword
+	* gnus.el (gnus-agent-cache): Expand documentation.
+	(gnus-summary-high-undownloaded-face): Remove second bold keyword
 	so that this face is actually bold.
 
 	* nnkiboze.el (nnkiboze-request-article): Only use the cache when
@@ -9162,8 +9162,8 @@
 
 2002-04-19  Jesper Harder  <harder@ifa.au.dk>
 
-	* nnkiboze.el (nnkiboze-request-scan): Call
-	nnkiboze-possibly-change-group.
+	* nnkiboze.el (nnkiboze-request-scan):
+	Call nnkiboze-possibly-change-group.
 	(nnkiboze-generate-group): Use mm-with-unibyte to avoid encoding
 	problems.
 	(nnkiboze-generate-group): Set newsrc to the *highest* article
