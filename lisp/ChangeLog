@@ -1,3 +1,9 @@
+2008-03-19  Glenn Morris  <rgm@gnu.org>
+
+	* net/tramp.el (tramp-drop-volume-letter): Evaluate when compiling.
+	(tramp-handle-shell-command): Use condition-case rather than
+	ignore-errors.
+
 2008-03-19  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* diff-mode.el (diff-header): Make the color louder.
