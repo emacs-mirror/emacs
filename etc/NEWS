@@ -299,12 +299,6 @@ history element containing the search string becomes the current.
 *** `mode-line-emphasis' is used to highlight certain mode-line information;
 for example while waiting for a VC command to finish.
 
-** Font-Lock (syntax highlighting) changes
-
-*** `font-lock-comment-face' once again differs from the default on displays
-with fewer than 16 colors (e.g. older xterms and the Linux console), 
-but only in the light background case.
-
 ** Face changes
 
 *** The new function `face-all-attributes' returns an alist describing
