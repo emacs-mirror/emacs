@@ -25,6 +25,16 @@
 	* minibuf.c (read_minibuf):
 	* fns.c (Fy_or_n_p): Enable hourglass when HAVE_WINDOW_SYSTEM.
 
+2008-03-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (run_funs): New fun.
+	(run_window_configuration_change_hook): Use it to run the buffer-local
+	and the global part of the hook.
+
+	* xdisp.c (format_mode_line_unwind_data): Add window argument.
+	(unwind_format_mode_line): Restore selected window.
+	(x_consider_frame_title, Fformat_mode_line): Set selected window.
+
 2008-03-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* editfns.c (Fchar_equal): Check they are valid characters.
