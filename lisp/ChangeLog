@@ -1,3 +1,7 @@
+2008-03-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* net/tls.el (open-tls-stream): Reindent.
+
 2008-03-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-let-maybe): Removed.

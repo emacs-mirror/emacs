@@ -251,19 +251,19 @@ Fourth arg PORT is an integer specifying a port to connect to."
 	    ;; `openssl s_client' and `gnutls' print
 	    (let ((start-of-data nil))
 	      (while
-		   (not (setq start-of-data
-			      ;; the string matching `tls-end-of-info'
-			      ;; might come in separate chunks from
-			      ;; `accept-process-output', so start the
-			      ;; search where `tls-success' ended
-			      (save-excursion
-				(if (re-search-forward tls-end-of-info nil t)
-				    (match-end 0)))))
+		  (not (setq start-of-data
+			     ;; the string matching `tls-end-of-info'
+			     ;; might come in separate chunks from
+			     ;; `accept-process-output', so start the
+			     ;; search where `tls-success' ended
+			     (save-excursion
+			       (if (re-search-forward tls-end-of-info nil t)
+				   (match-end 0)))))
 		(accept-process-output process 1))
 	      (if start-of-data
 		  ;; move point to start of client data
 		  (goto-char start-of-data)))
-	  (setq done process))))
+	    (setq done process))))
       (when (and done
 		 (or
 		  (and tls-checktrust
