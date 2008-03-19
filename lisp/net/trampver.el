@@ -1,5 +1,4 @@
 ;;; trampver.el --- Transparent Remote Access, Multiple Protocol
-;;; -*- mode: Emacs-Lisp; coding: utf-8; -*-
 ;;; lisp/trampver.el.  Generated from trampver.el.in by configure.
 
 ;; Copyright (C) 2003, 2004, 2005, 2006, 2007,
@@ -45,3 +44,8 @@
 
 ;;; arch-tag: 443576ca-f8f1-4bb1-addc-5c70861e93b1
 ;;; trampver.el ends here
+
+;; Local Variables:
+;; mode: Emacs-Lisp
+;; coding: utf-8
+;; End:
