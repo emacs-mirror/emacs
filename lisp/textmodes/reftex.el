@@ -613,16 +613,15 @@ on the menu bar.
 ;;; =========================================================================
 ;;;
 ;;; Silence warnings about variables in other packages.
-(eval-when-compile
-  (defvar TeX-master)
-  (defvar LaTeX-section-hook)
-  (defvar LaTeX-label-function)
-  (defvar tex-main-file)
-  (defvar outline-minor-mode)
-  (defvar font-lock-mode)
-  (defvar font-lock-keywords)
-  (defvar font-lock-fontify-region-function)
-  (defvar font-lock-syntactic-keywords))
+(defvar TeX-master)
+(defvar LaTeX-section-hook)
+(defvar LaTeX-label-function)
+(defvar tex-main-file)
+(defvar outline-minor-mode)
+(defvar font-lock-mode)
+(defvar font-lock-keywords)
+(defvar font-lock-fontify-region-function)
+(defvar font-lock-syntactic-keywords)
 
 ;;; =========================================================================
 ;;;

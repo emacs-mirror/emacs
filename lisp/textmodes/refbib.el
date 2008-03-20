@@ -223,17 +223,16 @@ This is in addition to the `r2b-capitalize-title-stop-words'.")
 
 (defvar r2b-error-found nil)
 
-(eval-when-compile
-  (defvar r2b-variables) (defvar r2bv-address)    (defvar r2bv-annote)
-  (defvar r2bv-author)   (defvar r2bv-booktitle)  (defvar r2bv-date)
-  (defvar r2bv-decade)   (defvar r2bv-editor)     (defvar r2bv-entry-kind)
-  (defvar r2bv-institution) (defvar r2bv-journal) (defvar r2bv-keywords)
-  (defvar r2bv-kn)       (defvar r2bv-month)      (defvar r2bv-note)
-  (defvar r2bv-number)   (defvar r2bv-ordering)   (defvar r2bv-organization)
-  (defvar r2bv-pages)    (defvar r2bv-primary-author) (defvar r2bv-publisher)
-  (defvar r2bv-school)   (defvar r2bv-title)      (defvar r2bv-title-first-word)
-  (defvar r2bv-tr)       (defvar r2bv-type)       (defvar r2bv-volume)
-  (defvar r2bv-where)    (defvar r2bv-year))
+(defvar r2b-variables) (defvar r2bv-address)    (defvar r2bv-annote)
+(defvar r2bv-author)   (defvar r2bv-booktitle)  (defvar r2bv-date)
+(defvar r2bv-decade)   (defvar r2bv-editor)     (defvar r2bv-entry-kind)
+(defvar r2bv-institution) (defvar r2bv-journal) (defvar r2bv-keywords)
+(defvar r2bv-kn)       (defvar r2bv-month)      (defvar r2bv-note)
+(defvar r2bv-number)   (defvar r2bv-ordering)   (defvar r2bv-organization)
+(defvar r2bv-pages)    (defvar r2bv-primary-author) (defvar r2bv-publisher)
+(defvar r2bv-school)   (defvar r2bv-title)      (defvar r2bv-title-first-word)
+(defvar r2bv-tr)       (defvar r2bv-type)       (defvar r2bv-volume)
+(defvar r2bv-where)    (defvar r2bv-year)
 
 (setq r2b-variables '(
                       r2b-error-found

@@ -35,7 +35,6 @@
 
 ;; START remove for XEmacs release
 (defvar mark-active)
-(defvar zmacs-regions)
 (defvar transient-mark-mode)
 (defvar TeX-master)
 ;; END remove for XEmacs release

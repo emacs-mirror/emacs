@@ -27,7 +27,7 @@
 ;;; Commentary:
 
 ;;; Code:
-(eval-when-compile (defvar reftex-tables-dirty))
+(defvar reftex-tables-dirty)
 (eval-when-compile (require 'cl))
 (eval-and-compile
   (defun reftex-set-dirty (symbol value)

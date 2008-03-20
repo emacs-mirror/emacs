@@ -102,9 +102,8 @@ No active TAGS table is required."
     (tags-query-replace from to (or delimited current-prefix-arg)
                         (list 'reftex-all-document-files))))
 
-(eval-when-compile
-  (defvar TeX-master)
-  (defvar isearch-next-buffer-function))
+(defvar TeX-master)
+(defvar isearch-next-buffer-function)
 
 (defun reftex-find-duplicate-labels ()
   "Produce a list of all duplicate labels in the document."
