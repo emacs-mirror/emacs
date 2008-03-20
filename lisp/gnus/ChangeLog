@@ -1,3 +1,8 @@
+2008-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-win.el (gnus-configure-frame, gnus-all-windows-visible-p):
+	Prefer fboundp to functionp so it works with macros as well.
+
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nntp.el: Use with-current-buffer.

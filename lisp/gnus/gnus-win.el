@@ -317,7 +317,7 @@ See the Gnus manual for an explanation of the syntax used.")
     ;; The SPLIT might be something that is to be evaled to
     ;; return a new SPLIT.
     (while (and (not (assq (car split) gnus-window-to-buffer))
-		(functionp (car split)))
+		(fboundp (car split)))
       (setq split (eval split)))
     (let* ((type (car split))
 	   (subs (cddr split))
@@ -380,7 +380,7 @@ See the Gnus manual for an explanation of the syntax used.")
 	  (while subs
 	    (setq sub (append (pop subs) nil))
 	    (while (and (not (assq (car sub) gnus-window-to-buffer))
-			(functionp (car sub)))
+			(fboundp (car sub)))
 	      (setq sub (eval sub)))
 	    (when sub
 	      (push sub comp-subs)
@@ -520,7 +520,7 @@ should have point."
       ;; The SPLIT might be something that is to be evaled to
       ;; return a new SPLIT.
       (while (and (not (assq (car split) gnus-window-to-buffer))
-		  (functionp (car split)))
+		  (fboundp (car split)))
 	(setq split (eval split)))
 
       (setq type (elt split 0))
@@ -592,5 +592,5 @@ should have point."
 
 (provide 'gnus-win)
 
-;;; arch-tag: ccd5a394-2ddf-4397-b8f8-6d80d3e46e2b
+;; arch-tag: ccd5a394-2ddf-4397-b8f8-6d80d3e46e2b
 ;;; gnus-win.el ends here
