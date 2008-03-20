@@ -1,3 +1,7 @@
+2008-03-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Emacsen): Remove obsolete stuff.
+
 2008-03-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Top): Add "Other related manuals" and version info in

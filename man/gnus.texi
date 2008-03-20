@@ -25587,11 +25587,6 @@ that.  Not reliably, at least.  Older versions of Gnus may work on older
 Emacs versions.  Particularly, Gnus 5.10.8 should also work on Emacs
 20.7 and XEmacs 21.1.
 
-There are some vague differences between Gnus on the various
-platforms---XEmacs features more graphics (a logo and a toolbar)---but
-other than that, things should look pretty much the same under all
-Emacsen.
-
 
 @node Gnus Development
 @subsection Gnus Development
