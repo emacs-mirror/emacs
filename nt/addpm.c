@@ -97,7 +97,7 @@ add_registry (path)
       HKEY gtk_key = NULL;
 
       len = strlen (path) + 15; /* \bin\emacs.exe + terminator.  */
-      emacs_path = alloca (len);
+      emacs_path = (char *) alloca (len);
       sprintf (emacs_path, "%s\\bin\\emacs.exe", path);
 
       RegSetValueEx (hrootkey, NULL, 0, REG_SZ, emacs_path, len);
