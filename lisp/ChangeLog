@@ -1,3 +1,7 @@
+2008-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* sort.el (sort-reorder-buffer): Preserve the buffer's multibyteness.
+
 2008-03-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* icomplete.el (icomplete-prospects-length, icomplete-max-delay-chars)
@@ -9548,7 +9552,7 @@
 
 	* progmodes/python.el (top-level): Don't require cl when compiling.
 
-2007-12-02  Agust$(Q)c(Bn Mart$(Q)c(Bn  <agustin.martin@hispalinux.es>
+2007-12-02  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-large-region): Explicitly set
 	encoding for aspell process and for communication with it.
@@ -10292,7 +10296,7 @@
 	(x-send-client-message):
 	* emulation/cua-base.el (x-clipboard-yank): Declare as functions.
 
-2007-11-22  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2007-11-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-map-stock): Check if FILE is a string.
 
@@ -11211,7 +11215,7 @@
 
 	* emulation/tpu-mapper.el (tpu-map-key): Remove un-needed cond branch.
 
-2007-11-07  Johan Bockg$(Q)[(Brd  <bojohan@gnu.org>
+2007-11-07  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
 
 	* eshell/esh-mode.el (eshell-output-filter):
 	* eshell/esh-proc.el (eshell-insertion-filter, eshell-sentinel):
@@ -12909,7 +12913,7 @@
 	* help-fns.el (describe-function-1): Don't use the advice origname
 	if it has no function definition.
 
-2007-10-18  Johan Bockg$(Q)[(Brd  <bojohan@gnu.org>
+2007-10-18  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
 
 	* net/tramp.el (tramp-rfn-eshadow-update-overlay): Save excursion.
 	Use `save-restriction' rather than `widen'.
@@ -13623,7 +13627,7 @@
 	(bs--get-mode-name, bs-mode): Fix typos in docstrings.
 	(bs--format-aux): Doc fix.
 
-2007-10-08  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-10-08  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* progmodes/gud.el (gud-gud-gdb-command-name): Fix typo in docstring.
 
@@ -13669,11 +13673,11 @@
 	* progmodes/gud.el (gud-display-line): Find source buffer even when
 	GUD buffer has its own frame.
 
-2007-10-08  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2007-10-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (icon-map-list): Set to nil for 22.1 compatibility.
 
-2007-10-08  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2007-10-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): Version is 22.2.
 
@@ -14051,7 +14055,7 @@
 	* emacs-lisp/copyright.el (copyright-update): Don't update if the file
 	already uses a more recent copyright version than the "current" one.
 
-2007-10-03  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-10-03  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* doc-view.el (doc-view-dvi->pdf-sentinel, doc-view-reset-slice)
 	(doc-view-insert-image): Minor aesthetical docstring changes.
@@ -14156,7 +14160,7 @@
 
 	* play/zone.el (zone-hiding-modeline): Use mode-line-format.
 
-2007-09-29  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2007-09-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): Version is 22.2.
 
@@ -14426,7 +14430,7 @@
 	* indent.el (indent-for-tab-command): First check if the region is
 	active.
 
-2007-09-24  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-09-24  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* whitespace.el (whitespace-tickle-timer): Don't install the timer if
 	whitespace-rescan-timer-time is 0.
@@ -14546,7 +14550,7 @@
 	* indent.el (indent-for-tab-command): Indent the region if
 	transient-mark-mode and the region is active.
 
-2007-09-21  Francesco Potort$(Q)b(B  <pot@gnu.org>
+2007-09-21  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* progmodes/octave-inf.el (inferior-octave-mode): Use add-hook to
 	add inferior-octave-directory-tracker to the buffer-local value
@@ -14710,7 +14714,7 @@
 	(browse-url-elinks-sentinel): Use browse-url-elinks-new-window.
 	Improve error message.
 
-2007-09-19  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-09-19  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* net/browse-url.el (browse-url-url-encode-chars): Use the right
 	parameter name in the function body.
@@ -14746,7 +14750,7 @@
 	* newcomment.el (comment-add): New arg EXTRA.
 	(comment-region-default): Pass EXTRA if not indenting lines.
 
-2007-09-17  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-09-17  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* net/browse-url.el (browse-url-url-encode-chars): New function.
 	URL-encode some chars in a string.
@@ -14795,7 +14799,7 @@
 	(move-beginning-of-line): Remove unused var `start'.
 	(blink-matching-open): Restructure in a more functional style.
 
-2007-09-16  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-09-16  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* calendar/holidays.el (list-holidays): Remove the cyclic alias.
 
@@ -14953,7 +14957,7 @@
 
 	* term/rxvt.el (rxvt-function-map): Initialize in the declaration.
 
-2007-09-12  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-09-12  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* net/browse-url.el (browse-url-encode-url): Fix an infinite loop.
 	New argument `filename-p' to use one set of confusing chars or another.
@@ -14996,7 +15000,7 @@
 2007-09-10  Thien-Thi Nguyen  <ttn@gnuvola.org>
 
 	* net/browse-url.el (browse-url-encode-url): Use copy-sequence.
-	Reported by Jan Dj$(Q)Z(Brv <jan.h.d@swipnet.se>.
+	Reported by Jan Dj,Ad(Brv <jan.h.d@swipnet.se>.
 
 2007-09-10  Dave Love  <fx@gnu.org>
 
@@ -15004,7 +15008,7 @@
 	Move font-lock-builtin-face down from 4 to 7 to better keep the
 	progression of color brightness, and to better match Org-mode's faces.
 
-2007-09-10  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-09-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* progmodes/meta-mode.el (meta-font-lock-keywords)
 	(font-lock-match-meta-declaration-item-and-skip-to-next)
@@ -15172,7 +15176,7 @@
 
 	* vc-arch.el (vc-arch-checkin): Fix typo.
 
-2007-09-07  Johan Bockg$(Q)[(Brd  <bojohan@gnu.org>
+2007-09-07  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
 
 	* cus-face.el (custom-theme-set-faces): Set face attributes
 	locally for each frame.
@@ -15241,7 +15245,7 @@
 	* complete.el (PC-do-completion): Don't try to treat
 	empty string as an abbreviation.
 
-2007-09-06  Johan Bockg$(Q)[(Brd  <bojohan@dd.chalmers.se>
+2007-09-06  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* help-fns.el (describe-variable): Keep doc's text properties.
 
@@ -15268,7 +15272,7 @@
 	(normal-no-mouse-startup-screen): New fn, broken out.
 	(normal-about-screen): New function, contents all new.
 
-2007-09-05  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-09-05  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* emacs-lisp/rx.el (rx): Fix typo in docstring.
 
@@ -15277,7 +15281,7 @@
 	* cus-edit.el (custom-buffer-create-internal): Check tool-bar-mode
 	is bound.
 
-2007-09-05  Johan Bockg$(Q)[(Brd  <bojohan@dd.chalmers.se>
+2007-09-05  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* emacs-lisp/advice.el (ad-make-advised-docstring): Highlight note
 	in doc string.
@@ -15349,7 +15353,7 @@
 	(terminal-init-xterm): Use it.  Deal with delete-frame hook.
 	Add the selected frame to xterm-modify-other-keys-terminal-list.
 
-2007-09-02  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): Map diropen to system-file-manager.
 	(icon-map-list): New variable.
@@ -15395,7 +15399,7 @@
 
 	* vc-svn.el (vc-svn-diff-tree): Pass a list to vc-svn-diff.
 
-2007-08-31  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-08-31  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* textmodes/flyspell.el (flyspell-mark-duplications-exceptions):
 	New variable.  List of exceptions for the duplicated word rule.
@@ -15405,7 +15409,7 @@
 	* files.el (create-file-buffer): If the filename sans directory starts
 	with spaces, remove them.
 
-2007-08-31  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2007-08-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): Add etc/images to keys.
 	(x-gtk-map-stock): Use two directory elements when matching
@@ -15512,7 +15516,7 @@
 
 	* version.el (emacs-version): Increase to 23.0.50.
 
-2007-08-29  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2007-08-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): :version changed to 23.1.
 
@@ -15568,7 +15572,7 @@
 
 	* env.el (getenv): Pass frame to getenv-internal.
 
-2007-08-29  K$(Q)W(Broly L$(Q*S(Brentey  <lorentey@elte.hu>
+2007-08-29  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
 
 	* version.el (emacs-version): Show if multi-tty is present.
 
@@ -15869,7 +15873,7 @@
 	(display-time-world-timer-second, display-time-world-mode-map):
 	New variables.
 
-2007-08-28  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2007-08-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-gtk-stock-map): New variable.
 	(x-gtk-map-stock): New function.
@@ -15877,7 +15881,7 @@
 	* info.el (info-tool-bar-map): Add :rtl keyword to right/left-arrow and
 	prev/next-node.
 
-2007-08-28  Johan Bockg$(Q)[(Brd  <bojohan@dd.chalmers.se>  (tiny change)
+2007-08-28  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>  (tiny change)
 
 	* play/gamegrid.el (gamegrid-init): Set line-spacing to 0.
 
@@ -15977,7 +15981,7 @@
 
 	* vc.el (vc-annotate-warp-version): Don't use previous-line.
 
-2007-08-27  Johan Bockg$(Q)[(Brd  <bojohan@dd.chalmers.se>
+2007-08-27  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* net/browse-url.el (browse-url-emacs): New function.
 
@@ -15985,7 +15989,7 @@
 
 	* emacs-lisp/avl-tree.el: New file.
 
-2007-08-26  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-08-26  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* hi-lock.el (hi-lock-unface-buffer): Show a x-menu only if the mouse
 	was used.
@@ -16433,7 +16437,7 @@
 	undo-list when setting syntax-table properties.
 	(ada-after-change-function): Use ada-set-syntax-table-properties.
 
-2007-08-18  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-08-18  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* progmodes/meta-mode.el (meta-indent-calculate-last): Remove.
 	(meta-indent-current-nesting): Use a computation of the nesting
@@ -16486,7 +16490,7 @@
 	(cperl-find-pods-heres): Fix an error when typing expressions like
 	`s{a}{b}'.
 
-2007-08-17  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-08-17  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* mail/emacsbug.el (report-emacs-bug): Remove the last number of
 	`emacs-version', use the topic prefix ``version; ''.  Make MS-DOS
@@ -16577,7 +16581,7 @@
 	sloppier, for the sake of GNU Mailman.
 	(rmail-digest-rfc1153): Initialize `result' correctly.
 
-2007-08-15  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-08-15  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* mail/emacsbug.el (report-emacs-bug): Put `Bug: emacs-version; '
 	in the mail title.  Suggested by Reiner Steib.
@@ -17729,7 +17733,7 @@
 
 	* net/trampver.el: Update release number.
 
-2007-07-22  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2007-07-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* startup.el (command-line-x-option-alist): Use x-handle-no-bitmap-icon.
 
@@ -18374,7 +18378,7 @@
 	* isearch.el (isearch-edit-string): Call to isearch-push-state
 	after the search.
 
-2007-07-09  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2007-07-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* window.el (fit-window-to-buffer): Remove setting of window-min-height
 	to 1 as enlarge-window uses the value to resize/shrink windows other
@@ -18757,7 +18761,7 @@
 	* font-lock.el (lisp-font-lock-keywords-2): Recognize the new \(?1:..\)
 	syntax as well.  Reported by Juri Linkov <juri@jurta.org>.
 
-2007-06-28  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2007-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* dnd.el (dnd-get-local-file-name): Set fixcase to t in call to
 	replace-regexp-in-string.
@@ -19370,7 +19374,7 @@
 
 	* diff-mode.el (diff-font-lock-keywords): Fix M. Kifer's last change.
 
-2007-06-13  Johan Bockg$(Q)[(Brd  <bojohan@dd.chalmers.se>  (tiny change)
+2007-06-13  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>  (tiny change)
 
 	* term/xterm.el (terminal-init-xterm): Escape parens in character
 	constants.
@@ -19549,7 +19553,7 @@
 	* emacs-lisp/bytecomp.el (byte-compile-find-cl-functions):
 	Match against file-name-nondirectory.
 	Fix text on user customization variables.
-	Reported by Johan Bockg$(Q)[(Brd <bojohan@dd.chalmers.se>.
+	Reported by Johan Bockg,Ae(Brd <bojohan@dd.chalmers.se>.
 
 2007-06-09  Alfred M. Szmidt  <ams@gnu.org>  (tiny change)
 
@@ -19957,7 +19961,7 @@
 
 	* files.el (set-auto-mode): Doc fix.
 
-2007-05-22  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2007-05-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* help-fns.el (find-source-lisp-file): New function.
 	(describe-function-1): Use find-source-lisp-file to find source
@@ -20191,7 +20195,7 @@
 	* dabbrev.el (dabbrev-eliminate-newlines):
 	Renamed from dabbrev--eliminate-newlines.  All uses changed.
 
-2007-05-10  Micha$(Q)a(Bl Cadilhac  <michael@cadilhac.name>
+2007-05-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
 
 	* man.el (Man-next-section): Don't consider the last line of the page
 	as being part of any section.
@@ -20374,7 +20378,7 @@
 	* image-dired.el (image-dired-display-image): Derive image-type from
 	filename rather than assuming jpeg, in case no resizing was needed.
 
-2007-04-25  Johan Bockg$(Q)[(Brd  <bojohan@dd.chalmers.se>
+2007-04-25  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* custom.el (defface): Doc fix.
 

@@ -157,8 +157,10 @@ it defaults to `<', otherwise it defaults to `string<'."
   (let ((last (point-min))
 	(min (point-min)) (max (point-max))
 	(old-buffer (current-buffer))
+        (mb enable-multibyte-characters)
 	temp-buffer)
     (with-temp-buffer
+      (set-buffer-multibyte mb)
       ;; Record the temporary buffer.
       (setq temp-buffer (current-buffer))
 
