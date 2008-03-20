@@ -1,6 +1,7 @@
 2008-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mm-util.el (mm-set-buffer-multibyte): New function.
+	* mm-decode.el (mm-copy-to-buffer): Use it.
 
 	* gnus-win.el (gnus-configure-frame, gnus-all-windows-visible-p):
 	Prefer fboundp to functionp so it works with macros as well.
