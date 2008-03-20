@@ -553,6 +553,8 @@
 
 ;;; Todo:
 
+;; - vc-state needs a new state for `added'.
+;;
 ;; - vc-update/vc-merge should deal with VC systems that don't
 ;;   update/merge on a file basis, but on a whole repository basis.
 ;;
@@ -2869,6 +2871,7 @@ With prefix arg READ-SWITCHES, specify a value to override
     (set (make-local-variable 'vc-status)
 	 (ewoc-create #'vc-status-printer
 		      (vc-status-headers backend default-directory)))
+    (add-hook 'after-save-hook 'vc-status-mark-buffer-changed)
     (vc-status-refresh)))
 
 (put 'vc-status-mode 'mode-class 'special)
@@ -2892,7 +2895,7 @@ With prefix arg READ-SWITCHES, specify a value to override
     ;; We are done, turn of the in progress message in the mode-line.
     (setq mode-line-process nil)))
 
-(defun vc-add-to-vc-status-buffer (entry buffer)
+(defun vc-status-add-entry (entry buffer)
   ;; Add one ENTRY to the vc-status buffer BUFFER.  
   ;; This will be used to automatically add files with the "modified"
   ;; state when saving them.
@@ -3114,6 +3117,36 @@ that share the same state."
    (ewoc-collect
     vc-status
     (lambda (crt) (vc-status-fileinfo->marked crt)))))
+
+(defun vc-status-mark-buffer-changed ()
+  (let* ((file (expand-file-name buffer-file-name))
+	 (version (and (vc-backend file) (vc-working-revision file)))
+	 (found-vc-status-buf nil))
+    (save-excursion
+      (dolist (status-buf (buffer-list))
+	(set-buffer status-buf)
+	;; look for a vc-status buffer that might show this file.
+	(when (eq major-mode 'vc-status-mode)
+	  (setq found-vc-status-buf t)
+	  (let ((def-dir (expand-file-name default-directory)))
+	    ;; This test is cvs-string-prefix-p
+	    (when (eq t (compare-strings file nil (length def-dir) def-dir nil nil))
+	      (let* ((file-short
+		      (substring file (length def-dir)))
+		     (entry
+		      (cons
+		       file-short
+		       (if version
+			   ;; This it not the correct test to check if
+			   ;; the files is "added" for all backends.
+			   ;; It does not work for git for example.
+			   ;; vc-state needs a new state: `added'.
+			   (if (string= "0" version) 'added 'modified)
+			 'unregistered))))
+		(vc-status-add-entry entry status-buf))))))
+      ;; We didn't find any vc-status buffers, remove the hook, it is
+      ;; not needed.
+      (unless found-vc-status-buf (remove-hook 'after-save-hook 'vc-status-mark-buffer-changed)))))
 
 ;;; End experimental code.
 
