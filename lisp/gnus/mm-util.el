@@ -105,6 +105,7 @@
      (multibyte-string-p . ignore)
      (insert-byte . insert-char)
      (multibyte-char-to-unibyte . identity)
+     (set-buffer-multibyte . ignore)
      (special-display-p
       . (lambda (buffer-name)
 	  "Returns non-nil if a buffer named BUFFER-NAME gets a special frame."
