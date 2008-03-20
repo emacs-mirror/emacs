@@ -6,6 +6,8 @@
 	(icomplete-compute-delay): Fix docstring and remove spurious *.
 	(icomplete-delay-completions-threshold): Fix typo in docstring and
 	remove spurious *.
+	(icomplete-completions): While collecting the list of prospective
+	candidates, don't overshoot `icomplete-prospects-length'.
 
 2008-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
