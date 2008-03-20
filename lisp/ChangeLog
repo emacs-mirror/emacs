@@ -1,3 +1,30 @@
+2008-03-20  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-other-dates): New function.
+	(calendar-print-other-dates): Use calendar-other-dates.
+	* calendar/cal-menu.el (calendar-other-dates): Declare it, and removes
+	the declarations it replaces.
+	(calendar-mouse-print-dates): Use calendar-other-dates.
+
+	* calendar/cal-bahai.el (calendar-bahai-leap-year-p)
+	(calendar-bahai-leap-base, calendar-bahai-from-absolute): Doc fixes.
+	(calendar-absolute-from-bahai): Fix the leap-year case.
+	(calendar-bahai-from-absolute): Re-use the Gregorian month.
+	(calendar-bahai-date-string, calendar-bahai-print-date): Handle
+	pre-Bahai dates.
+
+	* calendar/cal-china.el (chinese-calendar-celestial-stem)
+	(chinese-calendar-terrestrial-branch): Make defcustoms.
+
+	* calendar/cal-menu.el (calendar-mouse-holidays): Re-use the title.
+	(calendar-mouse-view-diary-entries): Use or.
+	(calendar-mouse-chinese-date): Remove unused command.
+	(cal-menu-load-hook): Mark as obsolete.
+
+	* calendar/solar.el (calendar-location-name, calendar-latitude)
+	(calendar-longitude, solar-arctan, sunrise-sunset)
+	(solar-mean-equinoxes/solstices): Use the appropriate equality test.
+
 2008-03-20  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el: Remove outdated comments.
