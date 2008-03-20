@@ -216,8 +216,6 @@ Boston, MA 02110-1301, USA.  */
 #define TEMP_SET_PT_BOTH(position, byte) \
   (temp_set_point_both (current_buffer, (position), (byte)))
 
-#define BUF_SET_PT(buffer, position) \
-  (set_point ((buffer), (position)))
 #define BUF_TEMP_SET_PT(buffer, position) \
   (temp_set_point ((buffer), (position)))
 

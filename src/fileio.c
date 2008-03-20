@@ -4237,8 +4237,8 @@ variable `last-coding-system-used' to the coding system actually used.  */)
 
 	  how_much += this;
 
-	  BUF_SET_PT (XBUFFER (conversion_buffer),
-		      BUF_Z (XBUFFER (conversion_buffer)));
+	  BUF_TEMP_SET_PT (XBUFFER (conversion_buffer),
+			   BUF_Z (XBUFFER (conversion_buffer)));
 	  decode_coding_c_string (&coding, read_buf, unprocessed + this,
 				  conversion_buffer);
 	  unprocessed = coding.carryover_bytes;

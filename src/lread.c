@@ -1850,7 +1850,7 @@ This function preserves the position of point.  */)
   specbind (Qeval_buffer_list, Fcons (buf, Veval_buffer_list));
   specbind (Qstandard_output, tem);
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
-  BUF_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
+  BUF_TEMP_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
   readevalloop (buf, 0, filename, Feval,
 		!NILP (printflag), unibyte, Qnil, Qnil, Qnil);
   unbind_to (count, Qnil);

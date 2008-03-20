@@ -1,3 +1,10 @@
+2008-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents):
+	* lread.c (Feval_buffer): Use BUF_TEMP_SET_PT.
+	* buffer.h (BUF_SET_PT): Remove.  set_point_both doesn't work right
+	when buffer != current_buffer anyway.
+
 2008-03-20  Andreas Schwab  <schwab@suse.de>
 
 	* callint.c (Fcall_interactively) [case 'B']: Use other-buffer
