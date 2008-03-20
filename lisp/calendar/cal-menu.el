@@ -54,31 +54,17 @@
 (declare-function cal-tex-cursor-week      "cal-tex"   (&optional arg))
 (declare-function cal-tex-cursor-week2     "cal-tex"   (&optional arg))
 (declare-function cal-tex-cursor-week-iso  "cal-tex"   (&optional arg))
-(declare-function cal-tex-cursor-week-monday     "cal-tex"    (&optional arg))
-(declare-function cal-tex-cursor-filofax-daily   "cal-tex"    (&optional arg))
-(declare-function cal-tex-cursor-filofax-2week   "cal-tex"    (&optional arg))
-(declare-function cal-tex-cursor-filofax-week    "cal-tex"    (&optional arg))
-(declare-function cal-tex-cursor-month           "cal-tex"    (arg))
-(declare-function cal-tex-cursor-month-landscape "cal-tex"    (&optional arg))
-(declare-function cal-tex-cursor-year            "cal-tex"    (&optional arg))
-(declare-function cal-tex-cursor-filofax-year    "cal-tex"    (&optional arg))
-(declare-function cal-tex-cursor-year-landscape  "cal-tex"    (&optional arg))
-(declare-function calendar-day-of-year-string    "calendar"   (&optional date))
-(declare-function calendar-iso-date-string       "cal-iso"    (&optional date))
-(declare-function calendar-julian-date-string    "cal-julian" (&optional date))
-(declare-function calendar-astro-date-string     "cal-julian" (&optional date))
-(declare-function calendar-absolute-from-gregorian "calendar" (date))
-(declare-function calendar-hebrew-date-string    "cal-hebrew" (&optional date))
-(declare-function calendar-persian-date-string   "cal-persia" (&optional date))
-(declare-function calendar-bahai-date-string     "cal-bahai"  (&optional date))
-(declare-function calendar-islamic-date-string   "cal-islam"  (&optional date))
-(declare-function calendar-chinese-date-string   "cal-china"  (&optional date))
-(declare-function calendar-coptic-date-string    "cal-coptic" (&optional date))
-(declare-function calendar-ethiopic-date-string  "cal-coptic" (&optional date))
-(declare-function calendar-french-date-string    "cal-french" (&optional date))
-(declare-function calendar-mayan-date-string     "cal-mayan"  (&optional date))
-(declare-function calendar-print-chinese-date    "cal-china"  nil)
-(declare-function calendar-goto-date             "cal-move"   (date))
+(declare-function cal-tex-cursor-week-monday     "cal-tex"  (&optional arg))
+(declare-function cal-tex-cursor-filofax-daily   "cal-tex"  (&optional arg))
+(declare-function cal-tex-cursor-filofax-2week   "cal-tex"  (&optional arg))
+(declare-function cal-tex-cursor-filofax-week    "cal-tex"  (&optional arg))
+(declare-function cal-tex-cursor-month           "cal-tex"  (arg))
+(declare-function cal-tex-cursor-month-landscape "cal-tex"  (&optional arg))
+(declare-function cal-tex-cursor-year            "cal-tex"  (&optional arg))
+(declare-function cal-tex-cursor-filofax-year    "cal-tex"  (&optional arg))
+(declare-function cal-tex-cursor-year-landscape  "cal-tex"  (&optional arg))
+(declare-function calendar-other-dates           "calendar" (date))
+(declare-function calendar-goto-date             "cal-move" (date))
 
 (defconst cal-menu-moon-menu
   '("Moon"
@@ -262,14 +248,12 @@ EVENT is the event that invoked this command."
   (interactive "e")
   (let* ((date (calendar-event-to-date))
          (l (mapcar 'list (calendar-check-holidays date)))
+         (title (format "Holidays for %s" (calendar-date-string date)))
          (selection
           (cal-menu-x-popup-menu
            event
-           (list
-            (format "Holidays for %s" (calendar-date-string date))
-            (append
-             (list (format "Holidays for %s" (calendar-date-string date)))
-             (if l l '("None")))))))
+           (list title
+                 (append (list title) (or l '("None")))))))
     (and selection (call-interactively selection))))
 
 (defvar holidays-in-diary-buffer)       ; only called from calendar.el
@@ -281,7 +265,7 @@ that invoked this command.  Shows holidays if `holidays-in-diary-buffer'
 is non-nil."
   (interactive "i\ni\ne")
   (let* ((date (or date (calendar-event-to-date)))
-         (diary-file (if diary diary diary-file))
+         (diary-file (or diary diary-file))
          (diary-list-include-blanks nil)
          (diary-display-hook 'ignore)
          (diary-entries
@@ -429,59 +413,14 @@ The output is in landscape format, one month to a page."
 EVENT is the event that invoked this command."
   (interactive "e")
   (let* ((date (calendar-event-to-date))
-        (selection
-         (cal-menu-x-popup-menu
-          event
-          (list
-           (concat (calendar-date-string date) " (Gregorian)")
-           (append
-            (list
-             (concat (calendar-date-string date) " (Gregorian)")
-             (list (calendar-day-of-year-string date))
-             (list (format "ISO date: %s" (calendar-iso-date-string date)))
-             (list (format "Julian date: %s"
-                           (calendar-julian-date-string date)))
-             (list
-              (format "Astronomical (Julian) day number (at noon UTC): %s.0"
-                           (calendar-astro-date-string date)))
-             (list
-              (format "Fixed (RD) date: %s"
-                      (calendar-absolute-from-gregorian date)))
-             (list (format "Hebrew date (before sunset): %s"
-                           (calendar-hebrew-date-string date)))
-             (list (format "Persian date: %s"
-                           (calendar-persian-date-string date)))
-             (list (format "Baha'i date (before sunset): %s"
-                           (calendar-bahai-date-string date))))
-            (let ((i (calendar-islamic-date-string date)))
-              (if (not (string-equal i ""))
-                  (list (list (format "Islamic date (before sunset): %s" i)))))
-            (list
-             (list (format "Chinese date: %s"
-                           (calendar-chinese-date-string date))))
-            ;; (list '("Chinese date (select to echo Chinese date)"
-            ;;         . calendar-mouse-chinese-date))
-            (let ((c (calendar-coptic-date-string date)))
-              (if (not (string-equal c ""))
-                  (list (list (format "Coptic date: %s" c)))))
-            (let ((e (calendar-ethiopic-date-string date)))
-              (if (not (string-equal e ""))
-                  (list (list (format "Ethiopic date: %s" e)))))
-            (let ((f (calendar-french-date-string date)))
-              (if (not (string-equal f ""))
-                  (list (list (format "French Revolutionary date: %s" f)))))
-            (list
-             (list
-              (format "Mayan date: %s"
-                      (calendar-mayan-date-string date)))))))))
-        (and selection (call-interactively selection))))
-
-(defun calendar-mouse-chinese-date ()
-  "Show Chinese equivalent for mouse-selected date."
-  (interactive)
-  (save-excursion
-    (calendar-mouse-goto-date (calendar-event-to-date))
-    (calendar-print-chinese-date)))
+         (title (format "%s (Gregorian)" (calendar-date-string date)))
+         (selection
+          (cal-menu-x-popup-menu
+           event
+           (list title
+                 (append (list title)
+                         (mapcar 'list (calendar-other-dates date)))))))
+    (and selection (call-interactively selection))))
 
 (defun cal-menu-set-date-title (menu)
   "Convert date of last event to title suitable for MENU."
@@ -527,6 +466,12 @@ EVENT is the event that invoked this command."
     ["Lunar phases" calendar-phases-of-moon]
     ["Show diary" diary-show-all-entries]
     ["Exit calendar" exit-calendar]))
+
+;; Undocumented and probably useless.
+(defvar cal-menu-load-hook nil
+  "Hook run on loading of the `cal-menu' package.")
+(make-obsolete-variable 'cal-menu-load-hook
+                        "it will be removed in future." "23.1")
 
 (run-hooks 'cal-menu-load-hook)
 
