@@ -1,3 +1,17 @@
+2008-03-20  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* progmodes/verilog-mode.el (verilog-easy-menu-filter): New
+	function.
+	(verilog-stmt-menu, verilog-menu): Add :help and filter it.
+	(verilog-customize, verilog-font-customize)
+	(electric-verilog-backward-sexp, electric-verilog-forward-sexp)
+	(verilog-mode): Update documentation strings to match tool tips.
+	(verilog-auto-search-do, verilog-auto-re-search-do)
+	(verilog-skip-forward-comment-or-string): Fix verilog-auto
+	expansion when a .* appears inside a string.
+	(verilog-re-search-forward, verilog-re-search-backward): Add
+	comment to recall how this works.
+
 2008-03-20  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-other-dates): New function.

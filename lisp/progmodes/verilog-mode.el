@@ -257,13 +257,35 @@ STRING should be given if the last search was by `string-match' on STRING."
     "Call 'regexp-opt' with word delimiters for the words A."
     (concat "\\<" (verilog-regexp-opt a t) "\\>")))
 
+(defun verilog-easy-menu-filter (menu)
+  "Filter a easy-menu-define to support new features."
+  (cond ((not (featurep 'xemacs))
+	 menu) ;; GNU Emacs - passthru
+	;; Xemacs doesn't support :help.  Strip it.
+	;; Recursively filter the a submenu
+	((listp menu)
+	 (mapcar 'verilog-easy-menu-filter menu))
+	;; Look for [:help "blah"] and remove
+	((vectorp menu)
+	 (let ((i 0) (out []))
+	   (while (< i (length menu))
+	     (if (equal `:help (aref menu i))
+		 (setq i (+ 2 i))
+	       (setq out (vconcat out (vector (aref menu i)))
+		     i (1+ i))))
+	   out))
+	(t menu))) ;; Default - ok
+;;(verilog-easy-menu-filter
+;;  `("Verilog" ("MA" ["SAA" nil :help "Help SAA"] ["SAB" nil :help "Help SAA"])
+;;     "----" ["MB" nil :help "Help MB"]))
+
 (defun verilog-customize ()
-  "Link to customize screen for Verilog."
+  "Customize variables and other settings used by Verilog-Mode."
   (interactive)
   (customize-group 'verilog-mode))
 
 (defun verilog-font-customize ()
-  "Link to customize fonts used for Verilog."
+  "Customize fonts used by Verilog-Mode."
   (interactive)
   (if (fboundp 'customize-apropos)
       (customize-apropos "font-lock-*" 'faces)))
@@ -966,137 +988,221 @@ If set will become buffer local.")
 ;; menus
 (easy-menu-define
   verilog-menu verilog-mode-map "Menu for Verilog mode"
-  `("Verilog"
-    ("Choose Compilation Action"
-     ["None"
-      (progn
-	(setq verilog-tool nil)
-	(verilog-set-compile-command))
-      :style radio
-      :selected (equal verilog-tool nil)]
-     ["Lint"
-      (progn
-	(setq verilog-tool 'verilog-linter)
-	(verilog-set-compile-command))
-      :style radio
-      :selected (equal verilog-tool `verilog-linter)]
-     ["Coverage"
-      (progn
-	(setq verilog-tool 'verilog-coverage)
-	(verilog-set-compile-command))
-      :style radio
-      :selected (equal verilog-tool `verilog-coverage)]
-     ["Simulator"
-      (progn
-	(setq verilog-tool 'verilog-simulator)
-	(verilog-set-compile-command))
-      :style radio
-      :selected (equal verilog-tool `verilog-simulator)]
-     ["Compiler"
-      (progn
-	(setq verilog-tool 'verilog-compiler)
-	(verilog-set-compile-command))
-      :style radio
-      :selected (equal verilog-tool `verilog-compiler)]
-     )
-    ("Move"
-     ["Beginning of function"           verilog-beg-of-defun
-      :keys "C-M-a"]
-     ["End of function"                 verilog-end-of-defun
-      :keys "C-M-e"]
-     ["Mark function"                   verilog-mark-defun
-      :keys "C-M-h"]
-     ["Goto function/module"		verilog-goto-defun t]
-     ["Move to beginning of block"	electric-verilog-backward-sexp t]
-     ["Move to end of block"		electric-verilog-forward-sexp t]
-     )
-    ("Comments"
-     ["Comment Region"			verilog-comment-region t]
-     ["UnComment Region"			verilog-uncomment-region t]
-     ["Multi-line comment insert"	verilog-star-comment t]
-     ["Lint error to comment"		verilog-lint-off t]
-     )
-    "----"
-    ["Compile"				compile t]
-    ["AUTO, Save, Compile"		verilog-auto-save-compile t]
-    ["Next Compile Error"		next-error t]
-    ["Ignore Lint Warning at point"	verilog-lint-off t]
-    "----"
-    ["Line up declarations around point"	verilog-pretty-declarations t]
-    ["Line up equations around point"		verilog-pretty-expr t]
-    ["Redo/insert comments on every end"	verilog-label-be t]
-    ["Expand [x:y] vector line"		verilog-expand-vector t]
-    ["Insert begin-end block"		verilog-insert-block t]
-    ["Complete word"			verilog-complete-word t]
-    "----"
-    ["Recompute AUTOs"			verilog-auto t]
-    ["Kill AUTOs"			verilog-delete-auto t]
-    ["Inject AUTOs"			verilog-inject-auto t]
-    ("AUTO Help..."
-     ["AUTO General"			(describe-function 'verilog-auto) t]
-     ["AUTO Library Flags"		(describe-variable 'verilog-library-flags) t]
-     ["AUTO Library Path"		(describe-variable 'verilog-library-directories) t]
-     ["AUTO Library Files"		(describe-variable 'verilog-library-files) t]
-     ["AUTO Library Extensions"		(describe-variable 'verilog-library-extensions) t]
-     ["AUTO `define Reading"		(describe-function 'verilog-read-defines) t]
-     ["AUTO `include Reading"		(describe-function 'verilog-read-includes) t]
-     ["AUTOARG"				(describe-function 'verilog-auto-arg) t]
-     ["AUTOASCIIENUM"			(describe-function 'verilog-auto-ascii-enum) t]
-     ["AUTOINOUTMODULE"			(describe-function 'verilog-auto-inout-module) t]
-     ["AUTOINOUT"			(describe-function 'verilog-auto-inout) t]
-     ["AUTOINPUT"			(describe-function 'verilog-auto-input) t]
-     ["AUTOINST"			(describe-function 'verilog-auto-inst) t]
-     ["AUTOINST (.*)"			(describe-function 'verilog-auto-star) t]
-     ["AUTOINSTPARAM"			(describe-function 'verilog-auto-inst-param) t]
-     ["AUTOOUTPUT"			(describe-function 'verilog-auto-output) t]
-     ["AUTOOUTPUTEVERY"			(describe-function 'verilog-auto-output-every) t]
-     ["AUTOREG"				(describe-function 'verilog-auto-reg) t]
-     ["AUTOREGINPUT"			(describe-function 'verilog-auto-reg-input) t]
-     ["AUTORESET"			(describe-function 'verilog-auto-reset) t]
-     ["AUTOSENSE"			(describe-function 'verilog-auto-sense) t]
-     ["AUTOTIEOFF"			(describe-function 'verilog-auto-tieoff) t]
-     ["AUTOUNUSED"			(describe-function 'verilog-auto-unused) t]
-     ["AUTOWIRE"			(describe-function 'verilog-auto-wire) t]
-     )
-    "----"
-    ["Submit bug report"		verilog-submit-bug-report t]
-    ["Version and FAQ"			verilog-faq t]
-    ["Customize Verilog Mode..."	verilog-customize t]
-    ["Customize Verilog Fonts & Colors"	verilog-font-customize t]))
+  (verilog-easy-menu-filter
+   '("Verilog"
+     ("Choose Compilation Action"
+      ["None"
+       (progn
+	 (setq verilog-tool nil)
+	 (verilog-set-compile-command))
+       :style radio
+       :selected (equal verilog-tool nil)
+       :help "When invoking compilation, use compile-command"]
+      ["Lint"
+       (progn
+	 (setq verilog-tool 'verilog-linter)
+	 (verilog-set-compile-command))
+       :style radio
+       :selected (equal verilog-tool `verilog-linter)
+       :help "When invoking compilation, use lint checker"]
+      ["Coverage"
+       (progn
+	 (setq verilog-tool 'verilog-coverage)
+	 (verilog-set-compile-command))
+       :style radio
+       :selected (equal verilog-tool `verilog-coverage)
+       :help "When invoking compilation, annotate for coverage"]
+      ["Simulator"
+       (progn
+	 (setq verilog-tool 'verilog-simulator)
+	 (verilog-set-compile-command))
+       :style radio
+       :selected (equal verilog-tool `verilog-simulator)
+       :help "When invoking compilation, interpret Verilog source"]
+      ["Compiler"
+       (progn
+	 (setq verilog-tool 'verilog-compiler)
+	 (verilog-set-compile-command))
+       :style radio
+       :selected (equal verilog-tool `verilog-compiler)
+       :help "When invoking compilation, compile Verilog source"]
+      )
+     ("Move"
+      ["Beginning of function"		verilog-beg-of-defun
+       :keys "C-M-a"
+       :help		"Move backward to the beginning of the current function or procedure"]
+      ["End of function"		verilog-end-of-defun
+       :keys "C-M-e"
+       :help		"Move forward to the end of the current function or procedure"]
+      ["Mark function"			verilog-mark-defun
+       :keys "C-M-h"
+       :help		"Mark the current Verilog function or procedure"]
+      ["Goto function/module"		verilog-goto-defun
+       :help		"Move to specified Verilog module/task/function"]
+      ["Move to beginning of block"	electric-verilog-backward-sexp
+       :help		"Move backward over one balanced expression"]
+      ["Move to end of block"		electric-verilog-forward-sexp
+       :help		"Move forward over one balanced expression"]
+      )
+     ("Comments"
+      ["Comment Region"			verilog-comment-region
+       :help		"Put marked area into a comment"]
+      ["UnComment Region"		verilog-uncomment-region
+       :help		"Uncomment an area commented with Comment Region"]
+      ["Multi-line comment insert"	verilog-star-comment
+       :help		"Insert Verilog /* */ comment at point"]
+      ["Lint error to comment"		verilog-lint-off
+       :help		"Convert a Verilog linter warning line into a disable statement"]
+      )
+     "----"
+     ["Compile"				compile
+      :help		"Perform compilation-action (above) on the current buffer"]
+     ["AUTO, Save, Compile"		verilog-auto-save-compile
+      :help		"Recompute AUTOs, save buffer, and compile"]
+     ["Next Compile Error"		next-error
+      :help		"Visit next compilation error message and corresponding source code"]
+     ["Ignore Lint Warning at point"	verilog-lint-off
+      :help		"Convert a Verilog linter warning line into a disable statement"]
+     "----"
+     ["Line up declarations around point"	verilog-pretty-declarations
+      :help		"Line up declarations around point"]
+     ["Line up equations around point"		verilog-pretty-expr
+      :help		"Line up expressions around point"]
+     ["Redo/insert comments on every end"	verilog-label-be
+      :help		"Label matching begin ... end statements"]
+     ["Expand [x:y] vector line"	verilog-expand-vector
+      :help		"Take a signal vector on the current line and expand it to multiple lines"]
+     ["Insert begin-end block"		verilog-insert-block
+      :help		"Insert begin ... end"]
+     ["Complete word"			verilog-complete-word
+      :help		"Complete word at point"]
+     "----"
+     ["Recompute AUTOs"			verilog-auto
+      :help		"Expand AUTO meta-comment statements"]
+     ["Kill AUTOs"			verilog-delete-auto
+      :help		"Remove AUTO expansions"]
+     ["Inject AUTOs"			verilog-inject-auto
+      :help		"Inject AUTOs into legacy non-AUTO buffer"]
+     ("AUTO Help..."
+      ["AUTO General"			(describe-function 'verilog-auto)
+       :help		"Help introduction on AUTOs"]
+      ["AUTO Library Flags"		(describe-variable 'verilog-library-flags)
+       :help		"Help on verilog-library-flags"]
+      ["AUTO Library Path"		(describe-variable 'verilog-library-directories)
+       :help		"Help on verilog-library-directories"]
+      ["AUTO Library Files"		(describe-variable 'verilog-library-files)
+       :help		"Help on verilog-library-files"]
+      ["AUTO Library Extensions"	(describe-variable 'verilog-library-extensions)
+       :help		"Help on verilog-library-extensions"]
+      ["AUTO `define Reading"		(describe-function 'verilog-read-defines)
+       :help		"Help on reading `defines"]
+      ["AUTO `include Reading"		(describe-function 'verilog-read-includes)
+       :help		"Help on parsing `includes"]
+      ["AUTOARG"			(describe-function 'verilog-auto-arg)
+       :help		"Help on AUTOARG - declaring module port list"]
+      ["AUTOASCIIENUM"			(describe-function 'verilog-auto-ascii-enum)
+       :help		"Help on AUTOASCIIENUM - creating ASCII for enumerations"]
+      ["AUTOINOUTMODULE"		(describe-function 'verilog-auto-inout-module)
+       :help		"Help on AUTOINOUTMODULE - copying i/o from another file"]
+      ["AUTOINOUT"			(describe-function 'verilog-auto-inout)
+       :help		"Help on AUTOINOUT - adding inouts from cells"]
+      ["AUTOINPUT"			(describe-function 'verilog-auto-input)
+       :help		"Help on AUTOINPUT - adding inputs from cells"]
+      ["AUTOINST"			(describe-function 'verilog-auto-inst)
+       :help		"Help on AUTOINST - adding pins for cells"]
+      ["AUTOINST (.*)"			(describe-function 'verilog-auto-star)
+       :help		"Help on expanding Verilog-2001 .* pins"]
+      ["AUTOINSTPARAM"			(describe-function 'verilog-auto-inst-param)
+       :help		"Help on AUTOINSTPARAM - adding parameter pins to cells"]
+      ["AUTOOUTPUT"			(describe-function 'verilog-auto-output)
+       :help		"Help on AUTOOUTPUT - adding outputs from cells"]
+      ["AUTOOUTPUTEVERY"		(describe-function 'verilog-auto-output-every)
+       :help		"Help on AUTOOUTPUTEVERY - adding outputs of all signals"]
+      ["AUTOREG"			(describe-function 'verilog-auto-reg)
+       :help		"Help on AUTOREG - declaring registers for non-wires"]
+      ["AUTOREGINPUT"			(describe-function 'verilog-auto-reg-input)
+       :help		"Help on AUTOREGINPUT - declaring inputs for non-wires"]
+      ["AUTORESET"			(describe-function 'verilog-auto-reset)
+       :help		"Help on AUTORESET - resetting always blocks"]
+      ["AUTOSENSE"			(describe-function 'verilog-auto-sense)
+       :help		"Help on AUTOSENSE - sensitivity lists for always blocks"]
+      ["AUTOTIEOFF"			(describe-function 'verilog-auto-tieoff)
+       :help		"Help on AUTOTIEOFF - tieing off unused outputs"]
+      ["AUTOUNUSED"			(describe-function 'verilog-auto-unused)
+       :help		"Help on AUTOUNUSED - terminating unused inputs"]
+      ["AUTOWIRE"			(describe-function 'verilog-auto-wire)
+       :help		"Help on AUTOWIRE - declaring wires for cells"]
+      )
+     "----"
+     ["Submit bug report"		verilog-submit-bug-report
+      :help		"Submit via mail a bug report on verilog-mode.el"]
+     ["Version and FAQ"			verilog-faq
+      :help		"Show the current version, and where to get the FAQ etc"]
+     ["Customize Verilog Mode..."	verilog-customize
+      :help		"Customize variables and other settings used by Verilog-Mode"]
+     ["Customize Verilog Fonts & Colors"	verilog-font-customize
+      :help		"Customize fonts used by Verilog-Mode."])))
 
 (easy-menu-define
   verilog-stmt-menu verilog-mode-map "Menu for statement templates in Verilog."
-  '("Statements"
-    ["Header"		verilog-sk-header  t]
-    ["Comment"		verilog-sk-comment t]
-    "----"
-    ["Module"		verilog-sk-module t]
-    ["Primitive"	verilog-sk-primitive t]
-    "----"
-    ["Input"		verilog-sk-input t]
-    ["Output"		verilog-sk-output t]
-    ["Inout"		verilog-sk-inout t]
-    ["Wire"		verilog-sk-wire t]
-    ["Reg"		verilog-sk-reg t]
-    ["Define thing under point as a register" verilog-sk-define-signal t]
-    "----"
-    ["Initial"		verilog-sk-initial t]
-    ["Always"		verilog-sk-always t]
-    ["Function"		verilog-sk-function t]
-    ["Task"		verilog-sk-task t]
-    ["Specify"		verilog-sk-specify t]
-    ["Generate"		verilog-sk-generate t]
-    "----"
-    ["Begin"		verilog-sk-begin t]
-    ["If"		verilog-sk-if t]
-    ["(if) else"	verilog-sk-else-if t]
-    ["For"		verilog-sk-for t]
-    ["While"		verilog-sk-while t]
-    ["Fork"		verilog-sk-fork t]
-    ["Repeat"		verilog-sk-repeat t]
-    ["Case"		verilog-sk-case t]
-    ["Casex"		verilog-sk-casex t]
-    ["Casez"		verilog-sk-casez t]))
+  (verilog-easy-menu-filter
+   '("Statements"
+     ["Header"		verilog-sk-header
+      :help		"Insert a header block at the top of file"]
+     ["Comment"		verilog-sk-comment
+      :help		"Insert a comment block"]
+     "----"
+     ["Module"		verilog-sk-module
+      :help		"Insert a module .. (/*AUTOARG*/);.. endmodule block"]
+     ["Primitive"	verilog-sk-primitive
+      :help		"Insert a primitive .. (.. );.. endprimitive block"]
+     "----"
+     ["Input"		verilog-sk-input
+      :help		"Insert an input declaration"]
+     ["Output"		verilog-sk-output
+      :help		"Insert an output declaration"]
+     ["Inout"		verilog-sk-inout
+      :help		"Insert an inout declaration"]
+     ["Wire"		verilog-sk-wire
+      :help		"Insert a wire declaration"]
+     ["Reg"		verilog-sk-reg
+      :help		"Insert a register declaration"]
+     ["Define thing under point as a register" verilog-sk-define-signal
+      :help		"Define signal under point as a register at the top of the module"]
+     "----"
+     ["Initial"		verilog-sk-initial
+      :help		"Insert an initial begin .. end block"]
+     ["Always"		verilog-sk-always
+      :help		"Insert an always @(AS) begin .. end block"]
+     ["Function"	verilog-sk-function
+      :help		"Insert a function .. begin .. end endfunction block"]
+     ["Task"		verilog-sk-task
+      :help		"Insert a task .. begin .. end endtask block"]
+     ["Specify"		verilog-sk-specify
+      :help		"Insert a specify .. endspecify block"]
+     ["Generate"	verilog-sk-generate
+      :help		"Insert a generate .. endgenerate block"]
+     "----"
+     ["Begin"		verilog-sk-begin
+      :help		"Insert a begin .. end block"]
+     ["If"		verilog-sk-if
+      :help		"Insert an if (..) begin .. end block"]
+     ["(if) else"	verilog-sk-else-if
+      :help		"Insert an else if (..) begin .. end block"]
+     ["For"		verilog-sk-for
+      :help		"Insert a for (...) begin .. end block"]
+     ["While"		verilog-sk-while
+      :help		"Insert a while (...) begin .. end block"]
+     ["Fork"		verilog-sk-fork
+      :help		"Insert a fork begin .. end .. join block"]
+     ["Repeat"		verilog-sk-repeat
+      :help		"Insert a repeat (..) begin .. end block"]
+     ["Case"		verilog-sk-case
+      :help		"Insert a case block, prompting for details"]
+     ["Casex"		verilog-sk-casex
+      :help		"Insert a casex (...) item: begin.. end endcase block"]
+     ["Casez"		verilog-sk-casez
+      :help		"Insert a casez (...) item: begin.. end endcase block"])))
 
 (defvar verilog-mode-abbrev-table nil
   "Abbrev table in use in Verilog-mode buffers.")
@@ -1129,7 +1235,7 @@ will break, as the o's continuously replace.  xa -> x works ok though."
 (defsubst verilog-re-search-forward (REGEXP BOUND NOERROR)
   ; checkdoc-params: (REGEXP BOUND NOERROR)
   "Like `re-search-forward', but skips over match in comments or strings."
-  (store-match-data '(nil nil))
+  (store-match-data '(nil nil))  ;; So match-end will return nil if no matches found
   (while (and
 	  (re-search-forward REGEXP BOUND NOERROR)
 	  (and (verilog-skip-forward-comment-or-string)
@@ -1143,7 +1249,7 @@ will break, as the o's continuously replace.  xa -> x works ok though."
 (defsubst verilog-re-search-backward (REGEXP BOUND NOERROR)
   ; checkdoc-params: (REGEXP BOUND NOERROR)
   "Like `re-search-backward', but skips over match in comments or strings."
-  (store-match-data '(nil nil))
+  (store-match-data '(nil nil))  ;; So match-end will return nil if no matches found
   (while (and
 	  (re-search-backward REGEXP BOUND NOERROR)
 	  (and (verilog-skip-backward-comment-or-string)
@@ -2008,13 +2114,13 @@ Use filename, if current buffer being edited shorten to just buffer name."
 	  ":" (int-to-string (count-lines (point-min) (or pointnum (point))))))
 
 (defun electric-verilog-backward-sexp ()
-  "Move backward over a sexp."
+  "Move backward over one balanced expression."
   (interactive)
   ;; before that see if we are in a comment
   (verilog-backward-sexp))
 
 (defun electric-verilog-forward-sexp ()
-  "Move forward over a sexp."
+  "Move forward over one balanced expression."
   (interactive)
   ;; before that see if we are in a comment
   (verilog-forward-sexp))
@@ -2312,15 +2418,15 @@ Some other functions are:
 
     \\[verilog-comment-region]  Put marked area in a comment.
     \\[verilog-uncomment-region]  Uncomment an area commented with \\[verilog-comment-region].
-    \\[verilog-insert-block]  Insert begin ... end;.
+    \\[verilog-insert-block]  Insert begin ... end.
     \\[verilog-star-comment]    Insert /* ... */.
 
-    \\[verilog-sk-always]  Insert a always @(AS) begin .. end block.
+    \\[verilog-sk-always]  Insert an always @(AS) begin .. end block.
     \\[verilog-sk-begin]  Insert a begin .. end block.
     \\[verilog-sk-case]  Insert a case block, prompting for details.
     \\[verilog-sk-for]  Insert a for (...) begin .. end block, prompting for details.
     \\[verilog-sk-generate]  Insert a generate .. endgenerate block.
-    \\[verilog-sk-header]  Insert a nice header block at the top of file.
+    \\[verilog-sk-header]  Insert a header block at the top of file.
     \\[verilog-sk-initial]  Insert an initial begin .. end block.
     \\[verilog-sk-fork]  Insert a fork begin .. end .. join block.
     \\[verilog-sk-module]  Insert a module .. (/*AUTOARG*/);.. endmodule block.
@@ -4409,7 +4515,7 @@ Optional BOUND limits search."
  (let ((state (save-excursion (verilog-syntax-ppss))))
    (cond
     ((nth 3 state)			;Inside string
-     (goto-char (nth 3 state))
+     (search-forward "\"")
      t)
     ((nth 7 state)			;Inside // comment
      (forward-line 1)
@@ -6258,7 +6364,7 @@ Outputs comments above subcell signals, for example:
 	  ;; below 3 modified by verilog-read-sub-decls-line
 	  sigs-out sigs-inout sigs-in)
       (verilog-beg-of-defun)
-      (while (re-search-forward "\\(/\\*AUTOINST\\*/\\|\\.\\*\\)" end-mod-point t)
+      (while (verilog-re-search-forward "\\(/\\*AUTOINST\\*/\\|\\.\\*\\)" end-mod-point t)
 	(save-excursion
 	  (goto-char (match-beginning 0))
 	  (unless (verilog-inside-comment-p)
@@ -7275,23 +7381,15 @@ and invalidating the cache."
 ;; Auto creation utilities
 ;;
 
+(defun verilog-auto-re-search-do (search-for func)
+  "Search for the given auto text regexp SEARCH-FOR, and perform FUNC where it occurs."
+  (goto-char (point-min))
+  (while (verilog-re-search-forward search-for nil t)
+    (funcall func)))
+
 (defun verilog-auto-search-do (search-for func)
   "Search for the given auto text SEARCH-FOR, and perform FUNC where it occurs."
-  (goto-char (point-min))
-  (while (search-forward search-for nil t)
-    (if (not (save-excursion
-	       (goto-char (match-beginning 0))
-	       (verilog-inside-comment-p)))
-	(funcall func))))
-
-(defun verilog-auto-re-search-do (search-for func)
-  "Search for the given auto text SEARCH-FOR, and perform FUNC where it occurs."
-  (goto-char (point-min))
-  (while (re-search-forward search-for nil t)
-    (if (not (save-excursion
-	       (goto-char (match-beginning 0))
-	       (verilog-inside-comment-p)))
-	(funcall func))))
+  (verilog-auto-re-search-do (regexp-quote search-for) func))
 
 (defun verilog-insert-one-definition (sig type indent-pt)
   "Print out a definition for SIG of the given TYPE,
