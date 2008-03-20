@@ -11,6 +11,8 @@
 	expansion when a .* appears inside a string.
 	(verilog-re-search-forward, verilog-re-search-backward): Add
 	comment to recall how this works.
+	(verilog-read-decls): Fix AUTOINPUT/AUTOOUTPUT mis-including
+	genvars.
 
 2008-03-20  Glenn Morris  <rgm@gnu.org>
 

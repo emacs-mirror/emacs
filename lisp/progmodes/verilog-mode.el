@@ -6156,7 +6156,8 @@ Return a array of [outputs inouts inputs wire reg assign const]."
 		((or (equal keywd "supply0")
 		     (equal keywd "supply1")
 		     (equal keywd "supply")
-		     (equal keywd "localparam"))
+		     (equal keywd "localparam")
+		     (equal keywd "genvar"))
 		 (unless io (setq vec nil  enum nil  rvalue nil  signed nil  typedefed nil  multidim nil  sig-paren paren
 				  expect-signal 'sigs-const)))
 		((or (equal keywd "parameter"))
