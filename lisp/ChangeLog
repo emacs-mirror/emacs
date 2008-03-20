@@ -1,3 +1,9 @@
+2008-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-bzr.el (vc-bzr-print-log): Ensure it works when passed a
+	single file argument.
+	(vc-bzr-show-log-entry): Fix typo.
+
 2008-03-19  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el (verilog-easy-menu-filter): New

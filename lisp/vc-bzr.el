@@ -375,13 +375,16 @@ EDITABLE is ignored."
   (vc-setup-buffer buffer)
   ;; If the buffer exists from a previous invocation it might be
   ;; read-only.
-  (let ((inhibit-read-only t))
+  (let ((inhibit-read-only t)
+	;; Support both the old print-log interface that passes a
+	;; single file, and the new one that passes a file list.
+	(flist (if (listp files) files (list files))))
     ;; FIXME: `vc-bzr-command' runs `bzr log' with `LC_MESSAGES=C', so
     ;; the log display may not what the user wants - but I see no other
     ;; way of getting the above regexps working.
     ;; "bzr log" (as of bzr-1.1) can only take a single file argument.
     ;; Loop through the file list.
-    (dolist (file files)
+    (dolist (file flist)
       (with-current-buffer buffer
 	;; Insert the file name so that log-view.el can find it.
 	(insert "Working file: " file "\n")) ;; Like RCS/CVS.
@@ -403,7 +406,7 @@ EDITABLE is ignored."
 	 (concat "^[ ]*-+\n[ ]*revno: " 
 		 ;; The revision can contain ".", quote it so that it
 		 ;; does not interfere with regexp matching.
-		 (regexp-quote revision) "$") nil t)
+		 (regexp-quote version) "$") nil t)
         (beginning-of-line 0)
       (goto-char (point-min)))))
 
