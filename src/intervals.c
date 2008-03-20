@@ -1926,9 +1926,7 @@ lookup_char_property (plist, prop, textprop)
 /* Set point "temporarily", without checking any text properties.  */
 
 INLINE void
-temp_set_point (buffer, charpos)
-     struct buffer *buffer;
-     int charpos;
+temp_set_point (struct buffer *buffer, EMACS_INT charpos)
 {
   temp_set_point_both (buffer, charpos,
 		       buf_charpos_to_bytepos (buffer, charpos));
@@ -1938,9 +1936,8 @@ temp_set_point (buffer, charpos)
    byte position BYTEPOS.  */
 
 INLINE void
-temp_set_point_both (buffer, charpos, bytepos)
-     int charpos, bytepos;
-     struct buffer *buffer;
+temp_set_point_both (struct buffer *buffer,
+		     EMACS_INT charpos, EMACS_INT bytepos)
 {
   /* In a single-byte buffer, the two positions must be equal.  */
   if (BUF_ZV (buffer) == BUF_ZV_BYTE (buffer)
@@ -1961,11 +1958,9 @@ temp_set_point_both (buffer, charpos, bytepos)
    before an intangible character, move to an ok place.  */
 
 void
-set_point (buffer, charpos)
-     register struct buffer *buffer;
-     register int charpos;
+set_point (EMACS_INT charpos)
 {
-  set_point_both (buffer, charpos, buf_charpos_to_bytepos (buffer, charpos));
+  set_point_both (charpos, buf_charpos_to_bytepos (current_buffer, charpos));
 }
 
 /* If there's an invisible character at position POS + TEST_OFFS in the
@@ -2019,72 +2014,66 @@ adjust_for_invis_intang (pos, test_offs, adj, test_intang)
    before an intangible character, move to an ok place.  */
 
 void
-set_point_both (buffer, charpos, bytepos)
-     register struct buffer *buffer;
-     register int charpos, bytepos;
+set_point_both (EMACS_INT charpos, EMACS_INT bytepos)
 {
   register INTERVAL to, from, toprev, fromprev;
-  int buffer_point;
-  int old_position = BUF_PT (buffer);
+  EMACS_INT buffer_point;
+  EMACS_INT old_position = PT;
   /* This ensures that we move forward past intangible text when the
      initial position is the same as the destination, in the rare
      instances where this is important, e.g. in line-move-finish
      (simple.el).  */
   int backwards = (charpos < old_position ? 1 : 0);
   int have_overlays;
-  int original_position;
+  EMACS_INT original_position;
 
-  buffer->point_before_scroll = Qnil;
+  current_buffer->point_before_scroll = Qnil;
 
-  if (charpos == BUF_PT (buffer))
+  if (charpos == PT)
     return;
 
   /* In a single-byte buffer, the two positions must be equal.  */
-  if (BUF_ZV (buffer) == BUF_ZV_BYTE (buffer)
-      && charpos != bytepos)
-    abort ();
+  eassert (ZV != ZV_BYTE || charpos == bytepos);
 
   /* Check this now, before checking if the buffer has any intervals.
      That way, we can catch conditions which break this sanity check
      whether or not there are intervals in the buffer.  */
-  if (charpos > BUF_ZV (buffer) || charpos < BUF_BEGV (buffer))
-    abort ();
+  eassert (charpos <= ZV && charpos >= BEGV);
 
-  have_overlays = (buffer->overlays_before || buffer->overlays_after);
+  have_overlays = (current_buffer->overlays_before
+		   || current_buffer->overlays_after);
 
   /* If we have no text properties and overlays,
      then we can do it quickly.  */
-  if (NULL_INTERVAL_P (BUF_INTERVALS (buffer)) && ! have_overlays)
+  if (NULL_INTERVAL_P (BUF_INTERVALS (current_buffer)) && ! have_overlays)
     {
-      temp_set_point_both (buffer, charpos, bytepos);
+      temp_set_point_both (current_buffer, charpos, bytepos);
       return;
     }
 
   /* Set TO to the interval containing the char after CHARPOS,
      and TOPREV to the interval containing the char before CHARPOS.
      Either one may be null.  They may be equal.  */
-  to = find_interval (BUF_INTERVALS (buffer), charpos);
-  if (charpos == BUF_BEGV (buffer))
+  to = find_interval (BUF_INTERVALS (current_buffer), charpos);
+  if (charpos == BEGV)
     toprev = 0;
   else if (to && to->position == charpos)
     toprev = previous_interval (to);
   else
     toprev = to;
 
-  buffer_point = (BUF_PT (buffer) == BUF_ZV (buffer)
-		  ? BUF_ZV (buffer) - 1
-		  : BUF_PT (buffer));
+  buffer_point = (PT == ZV ? ZV - 1 : PT);
 
   /* Set FROM to the interval containing the char after PT,
      and FROMPREV to the interval containing the char before PT.
      Either one may be null.  They may be equal.  */
   /* We could cache this and save time.  */
-  from = find_interval (BUF_INTERVALS (buffer), buffer_point);
-  if (buffer_point == BUF_BEGV (buffer))
+  from = find_interval (BUF_INTERVALS (current_buffer), buffer_point);
+  if (buffer_point == BEGV)
     fromprev = 0;
-  else if (from && from->position == BUF_PT (buffer))
+  else if (from && from->position == PT)
     fromprev = previous_interval (from);
-  else if (buffer_point != BUF_PT (buffer))
+  else if (buffer_point != PT)
     fromprev = from, from = 0;
   else
     fromprev = from;
@@ -2093,7 +2082,7 @@ set_point_both (buffer, charpos, bytepos)
   if (to == from && toprev == fromprev && INTERVAL_VISIBLE_P (to)
       && ! have_overlays)
     {
-      temp_set_point_both (buffer, charpos, bytepos);
+      temp_set_point_both (current_buffer, charpos, bytepos);
       return;
     }
 
@@ -2130,7 +2119,7 @@ set_point_both (buffer, charpos, bytepos)
 
 	  if (! NILP (intangible_propval))
 	    {
-	      while (XINT (pos) > BUF_BEGV (buffer)
+	      while (XINT (pos) > BEGV
 		     && EQ (Fget_char_property (make_number (XINT (pos) - 1),
 						Qintangible, Qnil),
 			    intangible_propval))
@@ -2163,7 +2152,7 @@ set_point_both (buffer, charpos, bytepos)
 
 	  if (! NILP (intangible_propval))
 	    {
-	      while (XINT (pos) < BUF_ZV (buffer)
+	      while (XINT (pos) < ZV
 		     && EQ (Fget_char_property (pos, Qintangible, Qnil),
 			    intangible_propval))
 		pos = Fnext_char_property_change (pos, Qnil);
@@ -2177,7 +2166,7 @@ set_point_both (buffer, charpos, bytepos)
 	    }
 	}
 
-      bytepos = buf_charpos_to_bytepos (buffer, charpos);
+      bytepos = buf_charpos_to_bytepos (current_buffer, charpos);
     }
 
   if (charpos != original_position)
@@ -2185,8 +2174,8 @@ set_point_both (buffer, charpos, bytepos)
       /* Set TO to the interval containing the char after CHARPOS,
 	 and TOPREV to the interval containing the char before CHARPOS.
 	 Either one may be null.  They may be equal.  */
-      to = find_interval (BUF_INTERVALS (buffer), charpos);
-      if (charpos == BUF_BEGV (buffer))
+      to = find_interval (BUF_INTERVALS (current_buffer), charpos);
+      if (charpos == BEGV)
 	toprev = 0;
       else if (to && to->position == charpos)
 	toprev = previous_interval (to);
@@ -2198,7 +2187,7 @@ set_point_both (buffer, charpos, bytepos)
      and TOPREV is the interval before the stopping point.
      One or the other may be null.  */
 
-  temp_set_point_both (buffer, charpos, bytepos);
+  temp_set_point_both (current_buffer, charpos, bytepos);
 
   /* We run point-left and point-entered hooks here, if the
      two intervals are not equivalent.  These hooks take

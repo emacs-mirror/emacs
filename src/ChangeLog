@@ -1,5 +1,17 @@
 2008-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* intervals.c (temp_set_point, temp_set_point_both): Use EMACS_INT.
+	(set_point, set_point_both): Use EMACS_INT.  Remove `buffer' arg,
+	work on current_buffer only instead (that was already the case
+	for some of the code anyway).
+	* buffer.h (set_point, set_point_both): Remove buffer arg, use long int.
+	(temp_set_point, temp_set_point_both): Use EMACS_INT.
+	(SET_PT, SET_PT_BOTH): Adjust.
+	* intervals.h (set_point, temp_set_point, set_point_both)
+	(temp_set_point_both): Remove redundant declarations.
+
+2008-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* fileio.c (Finsert_file_contents):
 	* lread.c (Feval_buffer): Use BUF_TEMP_SET_PT.
 	* buffer.h (BUF_SET_PT): Remove.  set_point_both doesn't work right

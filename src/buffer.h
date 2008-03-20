@@ -208,22 +208,22 @@ Boston, MA 02110-1301, USA.  */
 
 /* Macros to set PT in the current buffer, or another buffer.  */
 
-#define SET_PT(position) (set_point (current_buffer, (position)))
+#define SET_PT(position) (set_point (position))
 #define TEMP_SET_PT(position) (temp_set_point (current_buffer, (position)))
 
-#define SET_PT_BOTH(position, byte) \
-  (set_point_both (current_buffer, (position), (byte)))
+#define SET_PT_BOTH(position, byte) (set_point_both (position, byte))
 #define TEMP_SET_PT_BOTH(position, byte) \
   (temp_set_point_both (current_buffer, (position), (byte)))
 
 #define BUF_TEMP_SET_PT(buffer, position) \
   (temp_set_point ((buffer), (position)))
 
-extern void set_point P_ ((struct buffer *, int));
-extern INLINE void temp_set_point P_ ((struct buffer *, int));
-extern void set_point_both P_ ((struct buffer *, int, int));
-extern INLINE void temp_set_point_both P_ ((struct buffer *, int, int));
-extern void enlarge_buffer_text P_ ((struct buffer *, int));
+extern void set_point P_ ((EMACS_INT));
+extern INLINE void temp_set_point P_ ((struct buffer *, EMACS_INT));
+extern void set_point_both P_ ((EMACS_INT, EMACS_INT));
+extern INLINE void temp_set_point_both P_ ((struct buffer *,
+					    EMACS_INT, EMACS_INT));
+extern void enlarge_buffer_text P_ ((struct buffer *, EMACS_INT));
 
 
 /* Macros for setting the BEGV, ZV or PT of a given buffer.
