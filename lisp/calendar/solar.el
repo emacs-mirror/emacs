@@ -125,14 +125,14 @@ This variable should be set in `site-start'.el."
                   (/ (aref calendar-latitude 1) 60.0)))
              (if (numberp calendar-latitude)
                  (if (> calendar-latitude 0) "N" "S")
-               (if (equal (aref calendar-latitude 2) 'north) "N" "S"))
+               (if (eq (aref calendar-latitude 2) 'north) "N" "S"))
              (if (numberp calendar-longitude)
                  (abs calendar-longitude)
                (+ (aref calendar-longitude 0)
                   (/ (aref calendar-longitude 1) 60.0)))
              (if (numberp calendar-longitude)
                  (if (> calendar-longitude 0) "E" "W")
-               (if (equal (aref calendar-longitude 2) 'east) "E" "W"))))
+               (if (eq (aref calendar-longitude 2) 'east) "E" "W"))))
   "Expression evaluating to the name of the calendar location.
 For example, \"New York City\".  The default value is just the
 variable `calendar-latitude' paired with the variable `calendar-longitude'.
@@ -188,7 +188,7 @@ Needed for polar areas, in order to know whether the day lasts 0 or 24 hours.")
       calendar-latitude
     (let ((lat (+ (aref calendar-latitude 0)
                   (/ (aref calendar-latitude 1) 60.0))))
-      (if (equal (aref calendar-latitude 2) 'north)
+      (if (eq (aref calendar-latitude 2) 'north)
           lat
         (- lat)))))
 
@@ -198,7 +198,7 @@ Needed for polar areas, in order to know whether the day lasts 0 or 24 hours.")
       calendar-longitude
     (let ((long (+ (aref calendar-longitude 0)
                    (/ (aref calendar-longitude 1) 60.0))))
-      (if (equal (aref calendar-longitude 2) 'east)
+      (if (eq (aref calendar-longitude 2) 'east)
           long
         (- long)))))
 
@@ -251,10 +251,10 @@ Returns nil if nothing was entered."
 (defun solar-arctan (x quad)
   "Arctangent of X in quadrant QUAD."
   (let ((deg (radians-to-degrees (atan x))))
-    (cond ((equal quad 2) (+ deg 180))
-          ((equal quad 3) (+ deg 180))
-          ((equal quad 4) (+ deg 360))
-          (t              deg))))
+    (cond ((= quad 2) (+ deg 180))
+          ((= quad 3) (+ deg 180))
+          ((= quad 4) (+ deg 360))
+          (t          deg))))
 
 (defun solar-atn2 (x y)
   "Arctangent of point X, Y."
@@ -830,14 +830,14 @@ This function is suitable for execution in a .emacs file."
                            (/ (aref calendar-latitude 1) 60.0)))
                       (if (numberp calendar-latitude)
                           (if (> calendar-latitude 0) "N" "S")
-                        (if (equal (aref calendar-latitude 2) 'north) "N" "S"))
+                        (if (eq (aref calendar-latitude 2) 'north) "N" "S"))
                       (if (numberp calendar-longitude)
                           (abs calendar-longitude)
                         (+ (aref calendar-longitude 0)
                            (/ (aref calendar-longitude 1) 60.0)))
                       (if (numberp calendar-longitude)
                           (if (> calendar-longitude 0) "E" "W")
-                        (if (equal (aref calendar-longitude 2) 'east)
+                        (if (eq (aref calendar-longitude 2) 'east)
                             "E" "W"))))))
          (calendar-standard-time-zone-name
           (if (< arg 16) calendar-standard-time-zone-name
@@ -971,47 +971,47 @@ solstice.  These formulae are only to be used between 1000 BC and 3000 AD."
   (let ((y (/ year 1000.0))
         (z (/ (- year 2000) 1000.0)))
     (if (< year 1000)                ; actually between -1000 and 1000
-        (cond ((equal k 0) (+ 1721139.29189
-                              (*  365242.13740 y)
-                              (* 0.06134 y y)
-                              (* 0.00111 y y y)
-                              (* -0.00071 y y y y)))
-              ((equal k 1) (+ 1721233.25401
-                              (* 365241.72562 y)
-                              (* -0.05323 y y)
-                              (* 0.00907 y y y)
-                              (* 0.00025 y y y y)))
-              ((equal k 2) (+ 1721325.70455
-                              (* 365242.49558 y)
-                              (* -0.11677 y y)
-                              (* -0.00297 y y y)
-                              (* 0.00074 y y y y)))
-              ((equal k 3) (+ 1721414.39987
-                              (* 365242.88257 y)
-                              (* -0.00769 y y)
-                              (* -0.00933 y y y)
-                              (* -0.00006 y y y y))))
+        (cond ((= k 0) (+ 1721139.29189
+                          (*  365242.13740 y)
+                          (* 0.06134 y y)
+                          (* 0.00111 y y y)
+                          (* -0.00071 y y y y)))
+              ((= k 1) (+ 1721233.25401
+                          (* 365241.72562 y)
+                          (* -0.05323 y y)
+                          (* 0.00907 y y y)
+                          (* 0.00025 y y y y)))
+              ((= k 2) (+ 1721325.70455
+                          (* 365242.49558 y)
+                          (* -0.11677 y y)
+                          (* -0.00297 y y y)
+                          (* 0.00074 y y y y)))
+              ((= k 3) (+ 1721414.39987
+                          (* 365242.88257 y)
+                          (* -0.00769 y y)
+                          (* -0.00933 y y y)
+                          (* -0.00006 y y y y))))
                                         ; actually between 1000 and 3000
-      (cond ((equal k 0) (+ 2451623.80984
-                            (* 365242.37404  z)
-                            (* 0.05169 z z)
-                            (* -0.00411 z z z)
-                            (* -0.00057 z z z z)))
-            ((equal k 1) (+ 2451716.56767
-                            (* 365241.62603 z)
-                            (* 0.00325 z z)
-                            (* 0.00888 z z z)
-                            (* -0.00030 z z z z)))
-            ((equal k 2) (+ 2451810.21715
-                            (* 365242.01767 z)
-                            (* -0.11575 z z)
-                            (* 0.00337 z z z)
-                            (* 0.00078 z z z z)))
-            ((equal k 3) (+ 2451900.05952
-                            (* 365242.74049 z)
-                            (* -0.06223 z z)
-                            (* -0.00823 z z z)
-                            (* 0.00032 z z z z)))))))
+      (cond ((= k 0) (+ 2451623.80984
+                        (* 365242.37404  z)
+                        (* 0.05169 z z)
+                        (* -0.00411 z z z)
+                        (* -0.00057 z z z z)))
+            ((= k 1) (+ 2451716.56767
+                        (* 365241.62603 z)
+                        (* 0.00325 z z)
+                        (* 0.00888 z z z)
+                        (* -0.00030 z z z z)))
+            ((= k 2) (+ 2451810.21715
+                        (* 365242.01767 z)
+                        (* -0.11575 z z)
+                        (* 0.00337 z z z)
+                        (* 0.00078 z z z z)))
+            ((= k 3) (+ 2451900.05952
+                        (* 365242.74049 z)
+                        (* -0.06223 z z)
+                        (* -0.00823 z z z)
+                        (* 0.00032 z z z z)))))))
 
 (defvar displayed-month)                ; from generate-calendar
 (defvar displayed-year)
