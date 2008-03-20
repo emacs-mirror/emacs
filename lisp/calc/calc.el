@@ -142,66 +142,6 @@
 ;;   Note: Probably a good idea to call math-simplify-extended before
 ;;   measuring a formula's simplicity.
 
-;; From: "Robert J. Chassell" <bob@rattlesnake.com>
-;; Subject: Re: fix for `Cannot open load file: calc-alg-3'
-;; To: walters@debian.org
-;; Date: Sat, 24 Nov 2001 21:44:21 +0000 (UTC)
-;;
-;; Could you add logistic curve fitting to the current list?
-;;
-;; (I guess the key binding for a logistic curve would have to be `s'
-;; since a logistic curve is an `s' curve; both `l' and `L' are already
-;; taken for logarithms.)
-;;
-;; Here is the current list for curve fitting;
-;;
-;;     `1'
-;;          Linear or multilinear.  a + b x + c y + d z.
-;;
-;;     `2-9'
-;;          Polynomials.  a + b x + c x^2 + d x^3.
-;;
-;;     `e'
-;;          Exponential.  a exp(b x) exp(c y).
-;;
-;;     `E'
-;;          Base-10 exponential.  a 10^(b x) 10^(c y).
-;;
-;;     `x'
-;;          Exponential (alternate notation).  exp(a + b x + c y).
-;;
-;;     `X'
-;;          Base-10 exponential (alternate).  10^(a + b x + c y).
-;;
-;;     `l'
-;;          Logarithmic.  a + b ln(x) + c ln(y).
-;;
-;;     `L'
-;;          Base-10 logarithmic.  a + b log10(x) + c log10(y).
-;;
-;;     `^'
-;;          General exponential.  a b^x c^y.
-;;
-;;     `p'
-;;          Power law.  a x^b y^c.
-;;
-;;     `q'
-;;          Quadratic.  a + b (x-c)^2 + d (x-e)^2.
-;;
-;;     `g'
-;;          Gaussian.  (a / b sqrt(2 pi)) exp(-0.5*((x-c)/b)^2).
-;;
-;;
-;; Logistic curves are used a great deal in ecology, and in predicting
-;; human actions, such as use of different kinds of energy in a country
-;; (wood, coal, oil, natural gas, etc.) or the number of scientific
-;; papers a person publishes, or the number of movies made.
-;;
-;; (The less information on which to base the curve, the higher the error
-;; rate.  Theodore Modis ran some Monte Carlo simulations and produced
-;; what may be useful set of confidence levels for different amounts of
-;; initial information.)
-
 ;;; Code:
 
 (require 'calc-macs)
@@ -524,15 +464,20 @@ scientific notation in calc-mode.")
   "List of variables used in customizing GNU Calc.")
 
 (defmacro defcalcmodevar (var defval &optional doc)
+  "Declare VAR as a Calc variable, with default value DEFVAL
+and doc-string DOC.
+The variable VAR will be added to `calc-mode-var-list'."
   `(progn
      (defvar ,var ,defval ,doc)
      (add-to-list 'calc-mode-var-list (list (quote ,var) ,defval))))
 
 (defun calc-mode-var-list-restore-default-values ()
+  "Restore the default values of the variables in `calc-mode-var-list'."
   (mapcar (function (lambda (v) (set (car v) (nth 1 v))))
           calc-mode-var-list))
 
 (defun calc-mode-var-list-restore-saved-values ()
+  "Restore the user-saved values of the variables in `calc-mode-var-list'."
   (let ((newvarlist '()))
     (save-excursion
       (let (pos
@@ -790,7 +735,8 @@ If nil, selections displayed but ignored.")
     "j<, h:mm:SS>"
     "YYddd< hh:mm:ss>"))
 
-(defcalcmodevar calc-autorange-units nil)
+(defcalcmodevar calc-autorange-units nil
+  "If non-nil, automatically set unit prefixes to keep units in a reasonable range.")
 
 (defcalcmodevar calc-was-keypad-mode nil)
 
