@@ -1031,11 +1031,10 @@ to a function that generates a unique name."
    (list
     (let ((command (eval compile-command)))
       (if (or compilation-read-command current-prefix-arg)
-	  (read-from-minibuffer "Compile command: "
-				command nil nil
-				(if (equal (car compile-history) command)
-				    '(compile-history . 1)
-				  'compile-history))
+	  (read-shell-command "Compile command: " command
+                              (if (equal (car compile-history) command)
+                                  '(compile-history . 1)
+                                'compile-history))
 	command))
     (consp current-prefix-arg)))
   (unless (equal command (eval compile-command))

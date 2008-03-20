@@ -1,3 +1,12 @@
+2008-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compile):
+	* progmodes/grep.el (grep, grep-find): Use read-shell-command.
+
+	* simple.el	(minibuffer-local-shell-command-map): New var.
+	(minibuffer-complete-shell-command, read-shell-command): New funs.
+	(shell-command, shell-command-on-region): Use them.
+
 2008-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-status-mark-buffer-changed): New function to implement

@@ -644,11 +644,10 @@ list is empty)."
    (progn
      (grep-compute-defaults)
      (let ((default (grep-default-command)))
-       (list (read-from-minibuffer "Run grep (like this): "
-				   (if current-prefix-arg
-				       default grep-command)
-				   nil nil 'grep-history
-				   (if current-prefix-arg nil default))))))
+       (list (read-shell-command "Run grep (like this): "
+                                 (if current-prefix-arg default grep-command)
+                                 'grep-history
+                                 (if current-prefix-arg nil default))))))
 
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
@@ -671,9 +670,8 @@ easily repeat a find command."
    (progn
      (grep-compute-defaults)
      (if grep-find-command
-	 (list (read-from-minibuffer "Run find (like this): "
-				     grep-find-command nil nil
-                                     'grep-find-history))
+	 (list (read-shell-command "Run find (like this): "
+                                   grep-find-command 'grep-find-history))
        ;; No default was set
        (read-string
         "compile.el: No `grep-find-command' command available. Press RET.")
