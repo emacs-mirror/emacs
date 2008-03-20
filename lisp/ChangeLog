@@ -1,3 +1,15 @@
+2008-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/refbib.el:
+	* textmodes/reftex.el:
+	* textmodes/reftex-global.el:
+	* textmodes/reftex-vars.el:
+	* textmodes/reftex-toc.el: Don't use eval-and-compile for byte
+	compiler pacifying defvars.
+	(reftex-toc-mode): Only make zmacs-regions local on XEmacs.
+	* textmodes/reftex-index.el (zmacs-regions): Remove pacifier, not
+	needed.
+
 2008-03-20  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el (verilog-easy-menu-filter): New
