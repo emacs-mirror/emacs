@@ -299,17 +299,19 @@ are exhibited within the square braces.)"
 				  (substring most (length name))
 				  close-bracket-determined)))
 	     ;;"-prospects" - more than one candidate
-	     (prospects-len 0)
-	     prospects most-is-exact comp)
+	     (prospects-len (+ (length determ) 6)) ;; take {,...} into account
+	     prospects most-is-exact comp limit)
 	(if (eq most-try t)
 	    (setq prospects nil)
-	  (while (and comps (< prospects-len icomplete-prospects-length))
+	  (while (and comps (not limit))
 	    (setq comp (substring (car comps) most-len)
 		  comps (cdr comps))
 	    (cond ((string-equal comp "") (setq most-is-exact t))
 		  ((member comp prospects))
-		  (t (setq prospects (cons comp prospects)
-			   prospects-len (+ (length comp) 1 prospects-len))))))
+		  (t (setq prospects-len (+ (length comp) 1 prospects-len))
+		     (if (< prospects-len icomplete-prospects-length)
+			 (setq prospects (cons comp prospects))
+		       (setq limit t))))))
 	(if prospects
 	    (concat determ
 		    "{"
