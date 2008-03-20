@@ -67,12 +67,13 @@
   "Absolute date of start of Bahá'í calendar = March 19, 622 AD (Julian).")
 
 (defun calendar-bahai-leap-year-p (year)
-  "True if YEAR is a leap year on the Bahá'í calendar."
+  "True if Bahá'í YEAR is a leap year in the Bahá'í calendar."
   (calendar-leap-year-p (+ year 1844)))
 
 (defconst calendar-bahai-leap-base
   (+ (/ 1844 4) (- (/ 1844 100)) (/ 1844 400))
-  "Used by `calendar-absolute-from-bahai'.")
+  "Number of leap years between 1 and 1844 AD, inclusive.
+Used by `calendar-absolute-from-bahai'.")
 
 (defun calendar-absolute-from-bahai (date)
   "Compute absolute date from Bahá'í date DATE.
@@ -90,24 +91,25 @@ Gregorian date Sunday, December 31, 1 BC."
        (* 365 (1- year))                ; days in prior years
        leap-days
        (calendar-sum m 1 (< m month) 19)
-       (if (= month 19) 4 0)
+       (if (= month 19)
+           (if (calendar-bahai-leap-year-p year) 5 4)
+         0)
        day)))                           ; days so far this month
 
 (defun calendar-bahai-from-absolute (date)
-  "Bahá'í year corresponding to the absolute DATE."
+  "Bahá'í date (month day year) corresponding to the absolute DATE."
   (if (< date calendar-bahai-epoch)
       (list 0 0 0)                      ; pre-Bahá'í date
     (let* ((greg (calendar-gregorian-from-absolute date))
+           (gmonth (extract-calendar-month greg))
            (year (+ (- (extract-calendar-year greg) 1844)
-                    (if (or (> (extract-calendar-month greg) 3)
-                            (and (= (extract-calendar-month greg) 3)
+                    (if (or (> gmonth 3)
+                            (and (= gmonth 3)
                                  (>= (extract-calendar-day greg) 21)))
                         1 0)))
            (month                       ; search forward from Baha
             (1+ (calendar-sum m 1
-                  (> date
-                     (calendar-absolute-from-bahai
-                      (list m 19 year)))
+                  (> date (calendar-absolute-from-bahai (list m 19 year)))
                   1)))
            (day                     ; calculate the day by subtraction
             (- date
@@ -130,21 +132,24 @@ Defaults to today's date if DATE is not given."
                       (aref calendar-bahai-month-name-array (1- m))))
          (day (int-to-string
                (if (<= d 0)
-                   (if (calendar-bahai-leap-year-p y)
-                       (+ d 5)
-                     (+ d 4))
+                   (+ d (if (calendar-bahai-leap-year-p y) 5 4))
                  d)))
          (year (int-to-string y))
          (month (int-to-string m))
          dayname)
-    (mapconcat 'eval calendar-date-display-form "")))
+    (if (< y 1)
+        ""
+      ;; Can't call calendar-date-string because of monthname oddity.
+      (mapconcat 'eval calendar-date-display-form ""))))
 
 ;;;###cal-autoload
 (defun calendar-bahai-print-date ()
   "Show the Bahá'í calendar equivalent of the selected date."
   (interactive)
-  (message "Bahá'í date: %s"
-           (calendar-bahai-date-string (calendar-cursor-to-date t))))
+  (let ((s (calendar-bahai-date-string (calendar-cursor-to-date t))))
+   (if (string-equal s "")
+       (message "Date is pre-Bahá'í")
+     (message "Bahá'í date: %s" s))))
 
 (define-obsolete-function-alias
   'calendar-print-bahai-date 'calendar-bahai-print-date "23.1")
