@@ -2444,54 +2444,57 @@ Defaults to today's date if DATE is not given."
     (format "Day %d of %d; %d day%s remaining in the year"
             day year days-remaining (if (= days-remaining 1) "" "s"))))
 
+(defun calendar-other-dates (date)
+  "Return a list of strings giving Gregorian DATE in other calendars.
+DATE is (month day year).  Calendars that do not apply are omitted."
+  (let (odate)
+    (delq nil
+          (list
+           (calendar-day-of-year-string date)
+           (format "ISO date: %s" (calendar-iso-date-string date))
+           (format "Julian date: %s"
+                   (calendar-julian-date-string date))
+           (format "Astronomical (Julian) day number (at noon UTC): %s.0"
+                   (calendar-astro-date-string date))
+           (format "Fixed (RD) date: %s"
+                   (calendar-absolute-from-gregorian date))
+           (format "Hebrew date (before sunset): %s"
+                   (calendar-hebrew-date-string date))
+           (format "Persian date: %s"
+                   (calendar-persian-date-string date))
+           (unless (string-equal
+                    (setq odate (calendar-islamic-date-string date))
+                    "")
+             (format "Islamic date (before sunset): %s" odate))
+           (unless (string-equal
+                    (setq odate (calendar-bahai-date-string date))
+                    "")
+             (format "Baha'i date: %s" odate))
+           (format "Chinese date: %s"
+                   (calendar-chinese-date-string date))
+           (unless (string-equal
+                    (setq odate (calendar-coptic-date-string date))
+                    "")
+             (format "Coptic date: %s" odate))
+           (unless (string-equal
+                    (setq odate (calendar-ethiopic-date-string date))
+                    "")
+             (format "Ethiopic date: %s" odate))
+           (unless (string-equal
+                    (setq odate (calendar-french-date-string date))
+                    "")
+             (format "French Revolutionary date: %s" odate))
+           (format "Mayan date: %s"
+                   (calendar-mayan-date-string date))))))
+
 (defun calendar-print-other-dates ()
   "Show dates on other calendars for date under the cursor."
   (interactive)
-  (let ((date (calendar-cursor-to-date t))
-        odate)
+  (let ((date (calendar-cursor-to-date t)))
     (calendar-in-read-only-buffer other-calendars-buffer
       (calendar-set-mode-line (format "%s (Gregorian)"
                                       (calendar-date-string date)))
-      (apply
-       'insert
-       (delq nil
-             (list
-              (calendar-day-of-year-string date) "\n"
-              (format "ISO date: %s\n" (calendar-iso-date-string date))
-              (format "Julian date: %s\n"
-                      (calendar-julian-date-string date))
-              (format "Astronomical (Julian) day number (at noon UTC): %s.0\n"
-                      (calendar-astro-date-string date))
-              (format "Fixed (RD) date: %s\n"
-                      (calendar-absolute-from-gregorian date))
-              (format "Hebrew date (before sunset): %s\n"
-                      (calendar-hebrew-date-string date))
-              (format "Persian date: %s\n"
-                      (calendar-persian-date-string date))
-              (unless (string-equal
-                       (setq odate (calendar-islamic-date-string date))
-                       "")
-                (format "Islamic date (before sunset): %s\n" odate))
-              (unless (string-equal
-                       (setq odate (calendar-bahai-date-string date))
-                       "")
-                (format "Baha'i date (before sunset): %s\n" odate))
-              (format "Chinese date: %s\n"
-                      (calendar-chinese-date-string date))
-              (unless (string-equal
-                       (setq odate (calendar-coptic-date-string date))
-                       "")
-                (format "Coptic date: %s\n" odate))
-              (unless (string-equal
-                       (setq odate (calendar-ethiopic-date-string date))
-                       "")
-                (format "Ethiopic date: %s\n" e))
-              (unless (string-equal
-                       (setq odate (calendar-french-date-string date))
-                       "")
-                (format "French Revolutionary date: %s\n" odate))
-              (format "Mayan date: %s\n"
-                      (calendar-mayan-date-string date))))))))
+      (insert (mapconcat 'identity (calendar-other-dates date) "\n")))))
 
 (defun calendar-print-day-of-year ()
   "Show day number in year/days remaining in year for date under the cursor."
