@@ -1,3 +1,12 @@
+2008-03-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* icomplete.el (icomplete-prospects-length, icomplete-max-delay-chars)
+	(icomplete-show-key-bindings, icomplete-minibuffer-setup-hook):
+	Remove spurious * from defcustom docstrings.
+	(icomplete-compute-delay): Fix docstring and remove spurious *.
+	(icomplete-delay-completions-threshold): Fix typo in docstring and
+	remove spurious *.
+
 2008-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* textmodes/refbib.el:
@@ -7,13 +16,12 @@
 	* textmodes/reftex-toc.el: Don't use eval-and-compile for byte
 	compiler pacifying defvars.
 	(reftex-toc-mode): Only make zmacs-regions local on XEmacs.
-	* textmodes/reftex-index.el (zmacs-regions): Remove pacifier, not
-	needed.
+	* textmodes/reftex-index.el (zmacs-regions): Remove pacifier,
+	not needed.
 
 2008-03-20  Wilson Snyder  <wsnyder@wsnyder.org>
 
-	* progmodes/verilog-mode.el (verilog-easy-menu-filter): New
-	function.
+	* progmodes/verilog-mode.el (verilog-easy-menu-filter): New function.
 	(verilog-stmt-menu, verilog-menu): Add :help and filter it.
 	(verilog-customize, verilog-font-customize)
 	(electric-verilog-backward-sexp, electric-verilog-forward-sexp)
@@ -21,10 +29,9 @@
 	(verilog-auto-search-do, verilog-auto-re-search-do)
 	(verilog-skip-forward-comment-or-string): Fix verilog-auto
 	expansion when a .* appears inside a string.
-	(verilog-re-search-forward, verilog-re-search-backward): Add
-	comment to recall how this works.
-	(verilog-read-decls): Fix AUTOINPUT/AUTOOUTPUT mis-including
-	genvars.
+	(verilog-re-search-forward, verilog-re-search-backward):
+	Add comment to recall how this works.
+	(verilog-read-decls): Fix AUTOINPUT/AUTOOUTPUT mis-including genvars.
 
 2008-03-20  Glenn Morris  <rgm@gnu.org>
 
@@ -38,8 +45,8 @@
 	(calendar-bahai-leap-base, calendar-bahai-from-absolute): Doc fixes.
 	(calendar-absolute-from-bahai): Fix the leap-year case.
 	(calendar-bahai-from-absolute): Re-use the Gregorian month.
-	(calendar-bahai-date-string, calendar-bahai-print-date): Handle
-	pre-Bahai dates.
+	(calendar-bahai-date-string, calendar-bahai-print-date):
+	Handle pre-Bahai dates.
 
 	* calendar/cal-china.el (chinese-calendar-celestial-stem)
 	(chinese-calendar-terrestrial-branch): Make defcustoms.
