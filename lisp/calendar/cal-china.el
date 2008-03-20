@@ -128,16 +128,40 @@ Default is for no daylight saving time."
   :type 'integer
   :group 'chinese-calendar)
 
+(defcustom chinese-calendar-celestial-stem
+  ["Jia" "Yi" "Bing" "Ding" "Wu" "Ji" "Geng" "Xin" "Ren" "Gui"]
+  "Prefixes used by `calendar-chinese-sexagesimal-name'."
+  :group 'chinese-calendar
+  :type '(vector (string :tag "Jia")
+                 (string :tag "Yi")
+                 (string :tag "Bing")
+                 (string :tag "Ding")
+                 (string :tag "Wu")
+                 (string :tag "Ji")
+                 (string :tag "Geng")
+                 (string :tag "Xin")
+                 (string :tag "Ren")
+                 (string :tag "Gui")))
+
+(defcustom chinese-calendar-terrestrial-branch
+  ["Zi" "Chou" "Yin" "Mao" "Chen" "Si" "Wu" "Wei" "Shen" "You" "Xu" "Hai"]
+  "Suffixes used by `calendar-chinese-sexagesimal-name'."
+  :group 'chinese-calendar
+  :type '(vector (string :tag "Zi")
+                 (string :tag "Chou")
+                 (string :tag "Yin")
+                 (string :tag "Mao")
+                 (string :tag "Chen")
+                 (string :tag "Si")
+                 (string :tag "Wu")
+                 (string :tag "Wei")
+                 (string :tag "Shen")
+                 (string :tag "You")
+                 (string :tag "Xu")
+                 (string :tag "Hai")))
+
 ;;; End of user options.
 
-
-(defconst chinese-calendar-celestial-stem
-  ["Jia" "Yi" "Bing" "Ding" "Wu" "Ji" "Geng" "Xin" "Ren" "Gui"]
-  "Prefixes used by `calendar-chinese-sexagesimal-name'.")
-
-(defconst chinese-calendar-terrestrial-branch
-  ["Zi" "Chou" "Yin" "Mao" "Chen" "Si" "Wu" "Wei" "Shen" "You" "Xu" "Hai"]
-  "Suffixes used by `calendar-chinese-sexagesimal-name'.")
 
 (defun calendar-chinese-sexagesimal-name (n)
   "The N-th name of the Chinese sexagesimal cycle.
