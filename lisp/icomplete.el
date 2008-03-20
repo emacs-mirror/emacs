@@ -71,33 +71,33 @@
 
 ;;;_* User Customization variables
 (defcustom icomplete-prospects-length 80
-  "*Length of string displaying the prospects."
+  "Length of string displaying the prospects."
   :type 'integer
   :group 'icomplete)
 
 (defcustom icomplete-compute-delay .3
-  "*Completions-computation stall, used only with large-number
-completions - see `icomplete-delay-completions-threshold'."
+  "Completions-computation stall, used only with large-number completions.
+See `icomplete-delay-completions-threshold'."
   :type 'number
   :group 'icomplete)
 
 (defcustom icomplete-delay-completions-threshold 400
-  "*Pending-completions number over which to apply icomplete-compute-delay."
+  "Pending-completions number over which to apply `icomplete-compute-delay'."
   :type 'integer
   :group 'icomplete)
 
 (defcustom icomplete-max-delay-chars 3
-  "*Maximum number of initial chars to apply icomplete compute delay."
+  "Maximum number of initial chars to apply icomplete compute delay."
   :type 'integer
   :group 'icomplete)
 
 (defcustom icomplete-show-key-bindings t
-  "*If non-nil, show key bindings as well as completion for sole matches."
+  "If non-nil, show key bindings as well as completion for sole matches."
   :type 'boolean
   :group 'icomplete)
 
 (defcustom icomplete-minibuffer-setup-hook nil
-  "*Icomplete-specific customization of minibuffer setup.
+  "Icomplete-specific customization of minibuffer setup.
 
 This hook is run during minibuffer setup if icomplete is active.
 It is intended for use in customizing icomplete for interoperation
