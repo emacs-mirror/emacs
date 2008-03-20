@@ -1,3 +1,8 @@
+2008-03-20  Andreas Schwab  <schwab@suse.de>
+
+	* callint.c (Fcall_interactively) [case 'B']: Use other-buffer
+	as default.
+
 2008-03-19  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (hourglass_timer, hourglass_hwnd): New variables.

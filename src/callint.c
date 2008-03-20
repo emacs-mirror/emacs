@@ -516,20 +516,20 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	case 'B':		/* Name of buffer, possibly nonexistent */
 	  {
 	    Lisp_Object tema, temb, temc;
-	    int skip_current = 1;
 
-	    if (*tem == 'b' && !EQ (selected_window, minibuf_window))
-	      skip_current = 0;
-
-	    /* Get a list of buffer names (except the current buffer and
-	       internal buffers), and use this list for default values.  */
+	    /* Get a list of buffer names (except internal buffers), and
+	       use this list for default values.  Put either current
+	       buffer or other-buffer in front.  */
 	    tema = Qnil;
 	    temc = Fcurrent_buffer ();
+	    if (*tem == 'B' || EQ (selected_window, minibuf_window))
+	      temc = Fother_buffer (temc, Qnil, Qnil);
+	    tema = Fcons (XBUFFER (temc)->name, tema);
 	    teml = Fbuffer_list (selected_frame);
 	    for (; CONSP (teml); teml = XCDR (teml))
 	      {
 		temb = XCAR (teml);
-		if (skip_current && EQ (temb, temc))
+		if (EQ (temb, temc))
 		  continue;
 		if (NILP (temb))
 		  continue;
