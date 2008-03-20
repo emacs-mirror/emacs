@@ -1921,6 +1921,29 @@ This buffer is used when `shell-command' or `shell-command-on-region'
 is run interactively.  A value of nil means that output to stderr and
 stdout will be intermixed in the output stream.")
 
+(defun minibuffer-complete-shell-command ()
+  "Dynamically complete shell command at point."
+  (interactive)
+  (require 'shell)
+  (run-hook-with-args-until-success 'shell-dynamic-complete-functions))
+
+(defvar minibuffer-local-shell-command-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map minibuffer-local-map)
+    (define-key map "\t" 'minibuffer-complete-shell-command)
+    map)
+  "Keymap used for completiing shell commands in minibufffer.")
+
+(defun read-shell-command (prompt &optional initial-contents hist &rest args)
+  "Read a shell command from the minibuffer.
+The arguments are the same as the ones of `read-from-minibuffer',
+except READ and KEYMAP are missing and HIST defaults
+to `shell-command-history'."
+  (apply 'read-from-minibuffer prompt initial-contents
+         (or keymap minibuffer-local-shell-command-map)
+         (or hist 'shell-command-history)
+         args))
+
 (defun shell-command (command &optional output-buffer error-buffer)
   "Execute string COMMAND in inferior shell; display output, if any.
 With prefix argument, insert the COMMAND's output at point.
@@ -1971,8 +1994,7 @@ If it is nil, error output is mingled with regular output.
 In an interactive call, the variable `shell-command-default-error-buffer'
 specifies the value of ERROR-BUFFER."
 
-  (interactive (list (read-from-minibuffer "Shell command: "
-					   nil nil nil 'shell-command-history)
+  (interactive (list (read-shell-command "Shell command: ")
 		     current-prefix-arg
 		     shell-command-default-error-buffer))
   ;; Look for a handler in case default-directory is a remote file name.
@@ -2190,9 +2212,7 @@ specifies the value of ERROR-BUFFER."
 		 ;; Do this before calling region-beginning
 		 ;; and region-end, in case subprocess output
 		 ;; relocates them while we are in the minibuffer.
-		 (setq string (read-from-minibuffer "Shell command on region: "
-						    nil nil nil
-						    'shell-command-history))
+		 (setq string (read-shell-command "Shell command on region: "))
 		 ;; call-interactively recognizes region-beginning and
 		 ;; region-end specially, leaving them in the history.
 		 (list (region-beginning) (region-end)

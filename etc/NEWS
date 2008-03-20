@@ -65,6 +65,8 @@ default toolkit, but you can use --with-x-toolkit=gtk if necessary.
 
 * Changes in Emacs 23.1
 
+** Minibuffer input of shell commands now comes with completion.
+
 ** Operations like C-x b and C-x C-f which use switch-to-buffer do not fail
 any more when used in a minibuffer or a dedicated window.  Instead, they
 fallback on using pop-to-buffer which will use some other window.
@@ -642,7 +644,10 @@ functions and variables (formerly used for Tamil script).
 
 * Lisp Changes in Emacs 23.1
 
-** The new `buffer-swap-text' function can swap the text between two buffers.
+** The `read-shell-command' function does what its name says, with completion.
+It uses the minibuffer-local-shell-command-map for that.
+
+** The `buffer-swap-text' function can swap the text between two buffers.
 This can be useful for modes such as tar-mode, archive-mode, RMAIL.
 
 ** `clear-image-cache' can be told to flush only images of a specific file.
