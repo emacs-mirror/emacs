@@ -32,6 +32,7 @@ Boston, MA 02110-1301, USA.  */
 #include <ddeml.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <malloc.h>
 
 HDDEDATA CALLBACK
 DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
