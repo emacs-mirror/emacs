@@ -1940,7 +1940,7 @@ The arguments are the same as the ones of `read-from-minibuffer',
 except READ and KEYMAP are missing and HIST defaults
 to `shell-command-history'."
   (apply 'read-from-minibuffer prompt initial-contents
-         (or keymap minibuffer-local-shell-command-map)
+         minibuffer-local-shell-command-map
          nil
          (or hist 'shell-command-history)
          args))
