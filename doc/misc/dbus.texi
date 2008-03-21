@@ -545,6 +545,10 @@ of @var{method}.  @var{handler} must return a list, which elements are
 used as arguments for the reply message of @var{method}.  This list
 can be composed like the input parameters in @ref{Type Conversion}.
 
+The default D-Bus timeout when waiting for a message reply is 25
+seconds.  Therefore, @var{handler} shall not last longer than
+absolutely necessary.
+
 @code{dbus-register-method} returns a Lisp symbol, which can be used
 as argument in @code{dbus-unregister-object} for removing the
 registration for @var{method}.  Example:
