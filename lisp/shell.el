@@ -965,7 +965,8 @@ Returns t if successful."
 	     (save-match-data (not (string-match "[~/]" filename)))
 	     (eq (match-beginning 0)
 		 (save-excursion (shell-backward-command 1) (point))))
-	(prog2 (message "Completing command name...")
+	(prog2 (unless (window-minibuffer-p (selected-window))
+		 (message "Completing command name..."))
 	    (shell-dynamic-complete-as-command)))))
 
 
@@ -1040,7 +1041,8 @@ Returns non-nil if successful."
   (interactive)
   (let ((variable (shell-match-partial-variable)))
     (if (and variable (string-match "^\\$" variable))
-	(prog2 (message "Completing variable name...")
+	(prog2 (unless (window-minibuffer-p (selected-window))
+		 (message "Completing variable name..."))
 	    (shell-dynamic-complete-as-environment-variable)))))
 
 
