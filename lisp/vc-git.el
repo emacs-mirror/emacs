@@ -199,14 +199,6 @@
       (propertize def-ml
                   'help-echo (concat help-echo "\nCurrent branch: " branch)))))
 
-(defun vc-git-dired-state-info (file)
-  "Git-specific version of `vc-dired-state-info'."
-  (let ((git-state (vc-state file)))
-    (if (eq git-state 'edited)
-	"(modified)"
-      ;; fall back to the default VC representation
-      (vc-default-dired-state-info 'Git file))))
-
 ;; Variable used to keep the intermediate results for vc-git-status.
 (defvar vc-git-status-result nil)
 

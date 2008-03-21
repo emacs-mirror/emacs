@@ -856,6 +856,9 @@ This function assumes that the file is registered."
 	   ((stringp state)
 	    (setq state-echo (concat "File locked by" state))
 	    (concat backend ":" state ":" rev))
+           ((eq state 'added)
+            (setq state-echo "Locally added file")
+            (concat backend "@" rev))
 	   (t
 	    ;; Not just for the 'edited state, but also a fallback
 	    ;; for all other states.  Think about different symbols

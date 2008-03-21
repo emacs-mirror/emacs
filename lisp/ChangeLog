@@ -1,3 +1,15 @@
+2008-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-hooks.el (vc-default-mode-line-string): Add case for added files.
+	* vc.el (vc-default-dired-state-info): Use just "modified".
+	* vc-cvs.el (vc-cvs-state-heuristic): Turn rev 0 into `added'.
+	(vc-cvs-mode-line-string): Make use of the better default.
+	(vc-cvs-parse-entry): Use the new `added'.
+	(vc-cvs-dired-state-info): Remove.
+	* vc-svn.el (vc-svn-dired-state-info): Remove.
+	* vc-hg.el (vc-hg-dired-state-info): Remove.
+	* vc-git.el (vc-git-dired-state-info): Remove.
+
 2008-03-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el (vc-git-status-result): New variable.

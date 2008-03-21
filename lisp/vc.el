@@ -3736,7 +3736,7 @@ to provide the `find-revision' operation instead."
 	(statestring
 	 (cond
 	  ((stringp state) (concat "(" state ")"))
-	  ((eq state 'edited) (concat "(" (vc-user-login-name file) ")"))
+	  ((eq state 'edited) "(modified)")
 	  ((eq state 'needs-merge) "(merge)")
 	  ((eq state 'needs-patch) "(patch)")
 	  ((eq state 'added) "(added)")

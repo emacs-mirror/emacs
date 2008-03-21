@@ -207,9 +207,10 @@ See also variable `vc-cvs-sticky-date-format-string'."
   ;; Otherwise consider it `edited'.
   (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
         (lastmod (nth 5 (file-attributes file))))
-    (if (equal checkout-time lastmod)
-        'up-to-date
-      'edited)))
+    (cond
+     ((equal checkout-time lastmod) 'up-to-date)
+     ((string= (vc-working-revision file) "0") 'added)
+     (t 'edited))))
 
 (defun vc-cvs-dir-state (dir)
   "Find the CVS state of all files in DIR and subdirectories."
@@ -261,16 +262,11 @@ Handle the special case of a CVS file that is added but not yet
 committed and support display of sticky tags."
   (let* ((sticky-tag (vc-file-getprop file 'vc-cvs-sticky-tag))
 	 help-echo
-	 (string 
-	  (if (string= (vc-working-revision file) "0")
-	      ;; A file that is added but not yet committed.
-	      (progn
-		(setq help-echo "Added file (needs commit) under CVS")
-		"CVS @@")
-	    (let ((def-ml (vc-default-mode-line-string 'CVS file)))
-	      (setq help-echo 
-		    (get-text-property 0 'help-echo def-ml))
-	      def-ml))))
+	 (string
+          (let ((def-ml (vc-default-mode-line-string 'CVS file)))
+            (setq help-echo 
+                  (get-text-property 0 'help-echo def-ml))
+            def-ml)))
     (propertize 
      (if (zerop (length sticky-tag))
 	 string
@@ -279,14 +275,6 @@ committed and support display of sticky tags."
        (concat string "[" sticky-tag "]"))
      'help-echo help-echo)))
 
-(defun vc-cvs-dired-state-info (file)
-  "CVS-specific version of `vc-dired-state-info'."
-  (let ((cvs-state (vc-state file)))
-    (cond ((eq cvs-state 'edited)
-	   (if (equal (vc-working-revision file) "0")
-	       "(added)" "(modified)"))
-	  (t
-	   (vc-default-dired-state-info 'CVS file)))))
 
 ;;;
 ;;; State-changing functions
@@ -960,7 +948,7 @@ is non-nil."
     (vc-file-setprop file 'vc-backend 'CVS)
     (vc-file-setprop file 'vc-checkout-time 0)
     (vc-file-setprop file 'vc-working-revision "0")
-    (if set-state (vc-file-setprop file 'vc-state 'edited)))
+    (if set-state (vc-file-setprop file 'vc-state 'added)))
    ;; normal entry
    ((looking-at
      (concat "/[^/]+"

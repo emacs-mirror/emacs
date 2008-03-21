@@ -449,15 +449,6 @@ REV is the revision to check out into WORKFILE."
 (defun vc-hg-workfile-unchanged-p (file)
   (eq 'up-to-date (vc-hg-state file)))
 
-(defun vc-hg-dired-state-info (file)
-  "Hg-specific version of `vc-dired-state-info'."
-  (let ((hg-state (vc-state file)))
-    (if (eq hg-state 'edited)
-	(if (equal (vc-working-revision file) "0")
-	    "(added)" "(modified)")
-      ;; fall back to the default VC representation
-      (vc-default-dired-state-info 'Hg file))))
-
 ;; Modelled after the similar function in vc-bzr.el
 (defun vc-hg-revert (file &optional contents-done)
   (unless contents-done
@@ -465,8 +456,8 @@ REV is the revision to check out into WORKFILE."
 
 ;;; Hg specific functionality.
 
-;;; XXX This functionality is experimental/work in progress. It might
-;;; change without notice.
+;; XXX This functionality is experimental/work in progress. It might
+;; change without notice.
 (defvar vc-hg-extra-menu-map
   (let ((map (make-sparse-keymap)))
     (define-key map [incoming] '(menu-item "Show incoming" vc-hg-incoming))

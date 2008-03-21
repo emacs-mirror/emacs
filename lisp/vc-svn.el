@@ -205,17 +205,6 @@ RESULT is a list of conses (FILE . STATE) for directory DIR."
 ;; vc-svn-mode-line-string doesn't exist because the default implementation
 ;; works just fine.
 
-(defun vc-svn-dired-state-info (file)
-  "SVN-specific version of `vc-dired-state-info'."
-  (let ((svn-state (vc-state file)))
-    (cond ((eq svn-state 'edited)
-	   (if (equal (vc-working-revision file) "0")
-	       "(added)" "(modified)"))
-	  (t
-	   ;; fall back to the default VC representation
-	   (vc-default-dired-state-info 'SVN file)))))
-
-
 (defun vc-svn-previous-revision (file rev)
   (let ((newrev (1- (string-to-number rev))))
     (when (< 0 newrev)
