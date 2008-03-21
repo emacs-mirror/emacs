@@ -1,3 +1,7 @@
+2008-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.c (enlarge_buffer_text): Fix int -> EMACS_INT.
+
 2008-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* intervals.c (temp_set_point, temp_set_point_both): Use EMACS_INT.

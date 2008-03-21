@@ -5081,9 +5081,7 @@ alloc_buffer_text (b, nbytes)
    shrink it.  */
 
 void
-enlarge_buffer_text (b, delta)
-     struct buffer *b;
-     int delta;
+enlarge_buffer_text (struct buffer *b, EMACS_INT delta)
 {
   POINTER_TYPE *p;
   size_t nbytes = (BUF_Z_BYTE (b) - BUF_BEG_BYTE (b) + BUF_GAP_SIZE (b) + 1
