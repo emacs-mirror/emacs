@@ -1011,7 +1011,7 @@ Leaves point at the location of the start of the expansion."
 		(cons found-string dabbrev--last-table))
 	  result)))))
 
-(dolist (mess '("^No dynamic expansion for .* found$"
+(dolist (mess '("^No dynamic expansion for .* found"
 		"^No further dynamic expansion for .* found$"
 		"^No possible abbreviation preceding point$"))
   (add-to-list 'debug-ignored-errors mess))
