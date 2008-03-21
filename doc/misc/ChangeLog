@@ -1,3 +1,7 @@
+2008-03-21  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Receiving Method Calls): Mention default D-Bus timeout.
+
 2008-03-17  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.texi (Viewing): Update URL for adding header fields to
