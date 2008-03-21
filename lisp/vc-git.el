@@ -207,6 +207,36 @@
       ;; fall back to the default VC representation
       (vc-default-dired-state-info 'Git file))))
 
+;; Variable used to keep the intermediate results for vc-git-status.
+(defvar vc-git-status-result nil)
+
+(defun vc-git-after-dir-status-stage2 (update-function status-buffer)
+  (goto-char (point-min))
+  (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
+    (push (cons (match-string 1) 'unregistered) vc-git-status-result))
+  (funcall update-function (nreverse vc-git-status-result) status-buffer)
+  ;; Remove the temporary buffer.
+  (kill-buffer (current-buffer)))
+
+(defun vc-git-after-dir-status-stage1 (update-function status-buffer)
+  (goto-char (point-min))
+  (while (re-search-forward
+	  ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0\\([^\0]+\\)\0"
+	  nil t 1)
+    (let ((filename (match-string 2))
+	  (status (case (string-to-char( match-string 1))
+		    (?M 'edited)
+		    (?A 'added)
+		    (?D 'removed)
+		    (?U 'edited)      ;; FIXME
+		    (?T 'edited))))   ;; FIXME
+      (push (cons filename status) vc-git-status-result)))
+  (erase-buffer)
+  (vc-git-command (current-buffer) 'async nil "ls-files" "-z" "-o"
+		  "--directory" "--no-empty-directory" "--exclude-standard")
+  (vc-exec-after
+   `(vc-git-after-dir-status-stage2 (quote ,update-function) ,status-buffer)))
+
 (defun vc-git-dir-status (dir update-function status-buffer)
   "Return a list of conses (file . state) for DIR."
   ;; Further things that would have to be fixed later:
@@ -216,29 +246,12 @@
   (with-current-buffer
       (get-buffer-create
        (expand-file-name " *VC-Git* tmp status" dir))
+    (set (make-local-variable 'vc-git-status-result) nil)
     (cd dir)
-    (let (result)
-      (erase-buffer)
-      (vc-git-command (current-buffer) 0 nil "diff-index" "-z" "HEAD")
-      (goto-char (point-min))
-      (while (re-search-forward
-              ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0\\([^\0]+\\)\0"
-              nil t 1)
-        (let ((filename (match-string 2))
-              (status (case (string-to-char( match-string 1))
-                        (?M 'edited)
-                        (?A 'added)
-                        (?D 'removed)
-                        (?U 'edited)    ;; FIXME
-                        (?T 'edited)))) ;; FIXME
-          (push (cons filename status) result)))
-      (erase-buffer)
-      (vc-git-command (current-buffer) 0 nil "ls-files" "-z" "-o"
-                      "--directory" "--no-empty-directory" "--exclude-standard")
-      (goto-char (point-min))
-      (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
-        (push (cons (match-string 1) 'unregistered) result))
-      (funcall update-function (nreverse result) status-buffer))
+    (erase-buffer)
+    (vc-git-command (current-buffer) 'async nil "diff-index" "-z" "HEAD")
+    (vc-exec-after
+     `(vc-git-after-dir-status-stage1 (quote ,update-function) ,status-buffer))
     (current-buffer)))
 
 ;;; STATE-CHANGING FUNCTIONS

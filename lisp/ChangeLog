@@ -1,3 +1,10 @@
+2008-03-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-git.el (vc-git-status-result): New variable.
+	(vc-git-dir-status): Split out ...
+	(vc-git-after-dir-status-stage1, vc-git-after-dir-status-stage2):
+	... these new functions and work asynchronously.
+
 2008-03-21  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git-after-dir-status): Remove.
