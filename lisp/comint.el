@@ -2871,7 +2871,9 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 	 (directory (if filedir (comint-directory filedir) default-directory))
 	 (completion (file-name-completion filenondir directory)))
     (cond ((null completion)
-	   (message "No completions of %s" filename)
+	   (if minibuffer-p
+	       (minibuffer-message (format " [No completions of %s]" filename))
+	     (message "No completions of %s" filename))
 	   (setq success nil))
 	  ((eq completion t)            ; Means already completed "file".
 	   (insert filesuffix)
@@ -2935,19 +2937,24 @@ Returns `listed' if a completion listing was shown.
 
 See also `comint-dynamic-complete-filename'."
   (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
+	 (minibuffer-p (window-minibuffer-p (selected-window)))
 	 (suffix (cond ((not comint-completion-addsuffix) "")
 		       ((not (consp comint-completion-addsuffix)) " ")
 		       (t (cdr comint-completion-addsuffix))))
 	 (completions (all-completions stub candidates)))
     (cond ((null completions)
-	   (message "No completions of %s" stub)
+	   (if minibuffer-p
+	       (minibuffer-message (format " [No completions of %s]" stub))
+	     (message "No completions of %s" stub))
 	   nil)
 	  ((= 1 (length completions))	; Gotcha!
 	   (let ((completion (car completions)))
 	     (if (string-equal completion stub)
-		 (message "Sole completion")
+		 (unless minibuffer-p
+		   (message "Sole completion"))
 	       (insert (substring completion (length stub)))
-	       (message "Completed"))
+	       (unless minibuffer-p
+		 (message "Completed")))
 	     (insert suffix)
 	     'sole))
 	  (t				; There's no unique completion.
@@ -2959,7 +2966,8 @@ See also `comint-dynamic-complete-filename'."
 			 (member completion completions))
 		    ;; It's not unique, but user wants shortest match.
 		    (insert suffix)
-		    (message "Completed shortest")
+		    (unless minibuffer-p
+		      (message "Completed shortest"))
 		    'shortest)
 		   ((or comint-completion-autolist
 			(string-equal stub completion))
@@ -2967,7 +2975,8 @@ See also `comint-dynamic-complete-filename'."
 		    (comint-dynamic-list-completions completions)
 		    'listed)
 		   (t
-		    (message "Partially completed")
+		    (unless minibuffer-p
+		      (message "Partially completed"))
 		    'partial)))))))
 
 
@@ -2985,7 +2994,9 @@ See also `comint-dynamic-complete-filename'."
 	 (directory (if filedir (comint-directory filedir) default-directory))
 	 (completions (file-name-all-completions filenondir directory)))
     (if (not completions)
-	(message "No completions of %s" filename)
+	(if (window-minibuffer-p (selected-window))
+	    (minibuffer-message (format " [No completions of %s]" filename))
+	  (message "No completions of %s" filename))
       (comint-dynamic-list-completions
        (mapcar 'comint-quote-filename completions)))))
 
@@ -3031,7 +3042,9 @@ Typing SPC flushes the help buffer."
 	    (current-window-configuration))
       (with-output-to-temp-buffer "*Completions*"
 	(display-completion-list completions))
-      (message "Type space to flush; repeat completion command to scroll"))
+      (if (window-minibuffer-p (selected-window))
+	  (minibuffer-message " [Type space to flush; repeat completion command to scroll]")
+	(message "Type space to flush; repeat completion command to scroll")))
 
     ;; Read the next key, to process SPC.
     (let (key first)
