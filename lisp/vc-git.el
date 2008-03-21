@@ -207,52 +207,38 @@
       ;; fall back to the default VC representation
       (vc-default-dired-state-info 'Git file))))
 
-;;; vc-dir-status support (EXPERIMENTAL)
-;;; If vc-directory (which is not half bad under Git, w/ some tweaking)
-;;; is to go away, vc-dir-status must at least support the same operations.
-;;; At the moment, vc-dir-status design is still fluid (a kind way to say
-;;; half-baked, undocumented, and spottily-supported), so the following
-;;; should be considered likewise ripe for sudden unannounced change.
-;;; YHBW, HAND.  --ttn
-
-(defun vc-git-after-dir-status (callback buffer)
-  (sort-regexp-fields t "^. \\(.+\\)$" "\\1" (point-min) (point-max))
-  (let ((map '((?H . cached)
-               (?M . unmerged)
-               (?R . removed)
-               (?C . edited)
-               (?K . removed)           ; ??? "to be killed"
-               (?? . unregistered)))
-        status filename result)
-    (goto-char (point-min))
-    (while (> (point-max) (point))
-      (setq status (string-to-char (buffer-substring (point) (1+ (point))))
-            status (cdr (assq status map))
-            filename (buffer-substring (+ 2 (point)) (line-end-position)))
-      ;; TODO: Add dynamic selection of which status(es) to display, and
-      ;; bubble that up to vc-dir-status.  For now, we consider `cached'
-      ;; to be uninteresting, to mimic vc-directory (somewhat).
-      (unless (eq 'cached status)
-        (push (cons filename status) result))
-      (forward-line 1))
-    (funcall callback result buffer)))
-
 (defun vc-git-dir-status (dir update-function status-buffer)
   "Return a list of conses (file . state) for DIR."
+  ;; Further things that would have to be fixed later:
+  ;; - support for an empty repository (with no initial commit)
+  ;; - how to handle unregistered directories
+  ;; - how to support vc-status on a subdir of the project tree
   (with-current-buffer
       (get-buffer-create
        (expand-file-name " *VC-Git* tmp status" dir))
-    (erase-buffer)
-    (vc-git-command (current-buffer) 'async dir "ls-files" "-t"
-                    "-c"                ; cached
-                    "-d"                ; deleted
-                    "-k"                ; killed
-                    "-m"                ; modified
-                    "-o"                ; others
-                    "--directory"
-                    "--exclude-per-directory=.gitignore")
-    (vc-exec-after
-     `(vc-git-after-dir-status (quote ,update-function) ,status-buffer))
+    (cd dir)
+    (let (result)
+      (erase-buffer)
+      (vc-git-command (current-buffer) 0 nil "diff-index" "-z" "HEAD")
+      (goto-char (point-min))
+      (while (re-search-forward
+              ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0\\([^\0]+\\)\0"
+              nil t 1)
+        (let ((filename (match-string 2))
+              (status (case (string-to-char( match-string 1))
+                        (?M 'edited)
+                        (?A 'added)
+                        (?D 'removed)
+                        (?U 'edited)    ;; FIXME
+                        (?T 'edited)))) ;; FIXME
+          (push (cons filename status) result)))
+      (erase-buffer)
+      (vc-git-command (current-buffer) 0 nil "ls-files" "-z" "-o"
+                      "--directory" "--no-empty-directory" "--exclude-standard")
+      (goto-char (point-min))
+      (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
+        (push (cons (match-string 1) 'unregistered) result))
+      (funcall update-function (nreverse result) status-buffer))
     (current-buffer)))
 
 ;;; STATE-CHANGING FUNCTIONS

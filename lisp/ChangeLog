@@ -1,3 +1,8 @@
+2008-03-21  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-after-dir-status): Remove.
+	(vc-git-dired-state-info): Reimplement.
+
 2008-03-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* replace.el (occur-mode-map): Add :help.
