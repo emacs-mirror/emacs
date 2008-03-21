@@ -1,5 +1,7 @@
 2008-03-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* replace.el (occur-mode-map): Add :help.
+
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Add menu entry
 	for disassemble.
 
