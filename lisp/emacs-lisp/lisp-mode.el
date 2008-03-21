@@ -315,6 +315,9 @@
 		  :help "Evaluate the top level form point is in, stepping through with Edebug"
 		  :keys "C-u C-M-x"))
     (define-key menu-map [separator-byte] '("--"))
+    (define-key menu-map [disas]
+      '(menu-item "Disassemble byte compiled object" disassemble
+		  :help "Print disassembled code for OBJECT in a buffer"))
     (define-key menu-map [byte-recompile]
       '(menu-item "Byte-recompile Directory..." byte-recompile-directory
 		  :help "Recompile every `.el' file in DIRECTORY that needs recompilation"))

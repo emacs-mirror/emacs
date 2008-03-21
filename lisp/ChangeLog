@@ -1,5 +1,8 @@
 2008-03-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Add menu entry
+	for disassemble.
+
 	* vc.el (vc-status-mark-buffer-changed): Better deal with files in
 	the 'added state.
 	(vc-status-remove-up-to-date): New function.
