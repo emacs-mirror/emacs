@@ -3,7 +3,7 @@
 ;; Copyright (C) 2002, 2003, 2004, 2005, 2006, 2007,
 ;;   2008 Free Software Foundation, Inc.
 
-;; Author: Kai Groﬂjohann <kai.grossjohann@gmx.net>
+;; Author: Kai Gro√üjohann <kai.grossjohann@gmx.net>
 ;; Keywords: comm, terminals
 
 ;; This file is free software; you can redistribute it and/or modify
