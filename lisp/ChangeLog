@@ -1,5 +1,13 @@
 2008-03-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el (vc-status-mark-buffer-changed): Better deal with files in
+	the 'added state.
+	(vc-status-remove-up-to-date): New function.
+	(vc-status-mode-map, vc-status-menu-map): Bind it.
+	(vc-status-printer): Use a different face up-to-date files.
+	(vc-resynch-buffer): Update the vc-status buffer if it exists.
+	(Todo): Remove solved entries.
+
 	* vc-hg.el (vc-hg-state):
 	* vc-git.el (vc-git-state):
 	* vc-cvs.el (vc-cvs-parse-status):

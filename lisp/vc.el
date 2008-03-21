@@ -553,8 +553,6 @@
 
 ;;; Todo:
 
-;; - vc-state needs a new state for `added'.
-;;
 ;; - vc-update/vc-merge should deal with VC systems that don't
 ;;   update/merge on a file basis, but on a whole repository basis.
 ;;
@@ -591,12 +589,6 @@
 ;;   another state for those files. The user might want to restore
 ;;   them, or remove them from the VCS. C-x v v might also need
 ;;   adjustments.
-;;
-;; - when changing a file whose directory is shown in the vc-status
-;;   buffer, it should be added there as "modified".  (PCL-CVS does this).
-;;
-;; - Update the vc-status buffers after vc operations, implement the
-;;   equivalent of vc-dired-resynch-file.
 ;;
 ;; - vc-status needs a toolbar.
 ;;
@@ -1791,10 +1783,15 @@ rather than user editing!"
   (if (string= buffer-file-name file)
       (vc-resynch-window file keep noquery)
     (let ((buffer (get-file-buffer file)))
-      (if buffer
-	  (with-current-buffer buffer
-	    (vc-resynch-window file keep noquery)))))
-  (vc-dired-resynch-file file))
+      (when buffer
+	(with-current-buffer buffer
+	  (vc-resynch-window file keep noquery)))))
+  (vc-dired-resynch-file file)
+  (when (memq 'vc-status-mark-buffer-changed after-save-hook)
+    (let ((buffer (get-file-buffer file)))
+      (with-current-buffer buffer
+	(when buffer (vc-status-mark-buffer-changed))))))
+
 
 (defun vc-start-entry (files rev comment initial-contents msg action &optional after-hook)
   "Accept a comment for an operation on FILES revision REV.
@@ -2665,20 +2662,23 @@ With prefix arg READ-SWITCHES, specify a value to override
 (defun vc-status-printer (fileentry)
   "Pretty print FILEENTRY."
   ;; If you change the layout here, change vc-status-move-to-goal-column.
-  (insert
-   (propertize
-    (format "%c" (if (vc-status-fileinfo->marked fileentry) ?* ? ))
-    'face 'font-lock-type-face)
-   "   "
-   (propertize
-    (format "%-20s" (vc-status-fileinfo->state fileentry))
-    'face 'font-lock-variable-name-face
-    'mouse-face 'highlight)
-   " "
-   (propertize
-    (format "%s" (vc-status-fileinfo->name fileentry))
-    'face 'font-lock-function-name-face
-    'mouse-face 'highlight)))
+  (let ((state (vc-status-fileinfo->state fileentry)))
+    (insert
+     (propertize
+      (format "%c" (if (vc-status-fileinfo->marked fileentry) ?* ? ))
+      'face 'font-lock-type-face)
+     "   "
+     (propertize
+      (format "%-20s" state)
+      'face (if (eq state 'up-to-date) 
+		'font-lock-builtin-face
+	      'font-lock-variable-name-face)
+      'mouse-face 'highlight)
+     " "
+     (propertize
+      (format "%s" (vc-status-fileinfo->name fileentry))
+      'face 'font-lock-function-name-face
+      'mouse-face 'highlight))))
 
 (defun vc-status-move-to-goal-column ()
   (beginning-of-line)
@@ -2702,7 +2702,9 @@ With prefix arg READ-SWITCHES, specify a value to override
     (define-key map [refresh] 
       '(menu-item "Refresh" vc-status-refresh
 		  :help "Refresh the contents of the VC status buffer"))
-
+    (define-key map [remup] 
+      '(menu-item "Remove up-to-date" vc-status-remove-up-to-date
+		  :help "Remove up-to-date items from display"))
     ;; VC commands.
     (define-key map [separator-vc-commands] '("--"))
     (define-key map [annotate] 
@@ -2786,6 +2788,7 @@ With prefix arg READ-SWITCHES, specify a value to override
     ;; The remainder.
     (define-key map "f" 'vc-status-find-file)
     (define-key map "o" 'vc-status-find-file-other-window)
+    (define-key map "x" 'vc-status-remove-up-to-date)
     (define-key map "q" 'bury-buffer)
     (define-key map "g" 'vc-status-refresh)
     (define-key map "\C-c\C-c" 'vc-status-kill-dir-status-process)
@@ -3118,9 +3121,16 @@ that share the same state."
     vc-status
     (lambda (crt) (vc-status-fileinfo->marked crt)))))
 
+(defun vc-status-remove-up-to-date ()
+  "Remove up-to-date items from display."
+  (interactive)
+  (ewoc-filter
+   vc-status
+   (lambda (crt) (not (eq (vc-status-fileinfo->state crt) 'up-to-date)))))
+
 (defun vc-status-mark-buffer-changed ()
   (let* ((file (expand-file-name buffer-file-name))
-	 (version (and (vc-backend file) (vc-working-revision file)))
+	 (state (and (vc-backend file) (vc-state file)))
 	 (found-vc-status-buf nil))
     (save-excursion
       (dolist (status-buf (buffer-list))
@@ -3128,21 +3138,11 @@ that share the same state."
 	;; look for a vc-status buffer that might show this file.
 	(when (eq major-mode 'vc-status-mode)
 	  (setq found-vc-status-buf t)
-	  (let ((def-dir (expand-file-name default-directory)))
+	  (let ((ddir (expand-file-name default-directory)))
 	    ;; This test is cvs-string-prefix-p
-	    (when (eq t (compare-strings file nil (length def-dir) def-dir nil nil))
-	      (let* ((file-short
-		      (substring file (length def-dir)))
-		     (entry
-		      (cons
-		       file-short
-		       (if version
-			   ;; This it not the correct test to check if
-			   ;; the files is "added" for all backends.
-			   ;; It does not work for git for example.
-			   ;; vc-state needs a new state: `added'.
-			   (if (string= "0" version) 'added 'modified)
-			 'unregistered))))
+	    (when (eq t (compare-strings file nil (length ddir) ddir nil nil))
+	      (let* ((file-short (substring file (length ddir)))
+		     (entry (cons file-short (if state state 'unregistered))))
 		(vc-status-add-entry entry status-buf))))))
       ;; We didn't find any vc-status buffers, remove the hook, it is
       ;; not needed.
