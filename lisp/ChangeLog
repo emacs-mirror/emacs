@@ -1,6 +1,6 @@
 2008-03-21  Michael Albinus  <michael.albinus@gmx.de>
 
-	* tramp.el (tramp-methods): Fix tramp-copy-args of "pscp" and
+	* net/tramp.el (tramp-methods): Fix tramp-copy-args of "pscp" and
 	"psftp".
 
 2008-03-21  Stefan Monnier  <monnier@iro.umontreal.ca>
