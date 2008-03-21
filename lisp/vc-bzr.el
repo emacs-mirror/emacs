@@ -223,7 +223,7 @@ If any error occurred in running `bzr status', then return nil."
       (if (cdr result)
           (message "Warnings in `bzr' output: %s" (cdr result)))
       (cdr (assq (car result)
-                 '((added . edited)
+                 '((added . added)
                    (kindchanged . edited)
                    (renamed . edited)
                    (modified . edited)

@@ -146,9 +146,9 @@
   ;; FIXME: This can't set 'ignored yet
   (vc-git--call nil "add" "--refresh" "--" (file-relative-name file))
   (let ((diff (vc-git--run-command-string file "diff-index" "-z" "HEAD" "--")))
-    (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} [ADMU]\0[^\0]+\0"
+    (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMU]\\)\0[^\0]+\0"
                                 diff))
-        'edited
+	(if (string= (match-string 1 diff) "A") 'added 'edited)
       'up-to-date)))
 
 (defun vc-git--ls-files-state (state &rest args)

@@ -173,7 +173,7 @@
 	  (let ((state (aref out 0)))
 	    (cond
 	     ((eq state ?=) 'up-to-date)
-	     ((eq state ?A) 'edited)
+	     ((eq state ?A) 'added)
 	     ((eq state ?M) 'edited)
 	     ((eq state ?I) 'ignored)
 	     ((eq state ?R) 'unregistered)

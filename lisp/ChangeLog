@@ -1,3 +1,11 @@
+2008-03-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hg.el (vc-hg-state):
+	* vc-git.el (vc-git-state):
+	* vc-cvs.el (vc-cvs-parse-status):
+	* vc-bzr.el (vc-bzr-state): Return 'added when the file is in that
+	state.
+
 2008-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compile):

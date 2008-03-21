@@ -860,6 +860,7 @@ state."
             ((string-match "Locally Modified" status)             'edited)
             ((string-match "Needs Merge" status)                  'needs-merge)
             ((string-match "Needs \\(Checkout\\|Patch\\)" status) 'needs-patch)
+            ((string-match "Locally Added" status)                'added)
             (t 'edited))))))))
 
 (defun vc-cvs-dir-state-heuristic (dir)
