@@ -3,7 +3,7 @@
 	* progmodes/compile.el (compile):
 	* progmodes/grep.el (grep, grep-find): Use read-shell-command.
 
-	* simple.el	(minibuffer-local-shell-command-map): New var.
+	* simple.el (minibuffer-local-shell-command-map): New var.
 	(minibuffer-complete-shell-command, read-shell-command): New funs.
 	(shell-command, shell-command-on-region): Use them.
 
