@@ -345,7 +345,8 @@ mouse-3: Remove current window from display")
 	 (propertize "-%-" 'help-echo help-echo)))
        (standard-mode-line-modes
 	(list
-	 (propertize "%[(" 'help-echo help-echo)
+	 (propertize "%[" 'help-echo "Recursive edit, type C-M-c to get out")
+	 (propertize "(" 'help-echo help-echo)
 	 `(:propertize ("" mode-name)
 		       help-echo "Major mode\n\
 mouse-1: Display major mode menu\n\
@@ -365,7 +366,9 @@ mouse-3: Toggle minor modes"
 		     'mouse-face 'mode-line-highlight
 		     'local-map (make-mode-line-mouse-map
 				 'mouse-2 #'mode-line-widen))
-	 (propertize ")%]--" 'help-echo help-echo)))
+	 (propertize ")" 'help-echo help-echo)
+	 (propertize "%]" 'help-echo "Recursive edit, type C-M-c to get out")
+	 (propertize "--" 'help-echo help-echo)))
 
        (standard-mode-line-position
 	`((-3 ,(propertize
