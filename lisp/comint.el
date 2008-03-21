@@ -2972,7 +2972,7 @@ See also `comint-dynamic-complete-filename'."
 		   ((or comint-completion-autolist
 			(string-equal stub completion))
 		    ;; It's not unique, list possible completions.
-		    (comint-dynamic-list-completions completions)
+		    (comint-dynamic-list-completions completions stub)
 		    'listed)
 		   (t
 		    (unless minibuffer-p
@@ -2998,7 +2998,8 @@ See also `comint-dynamic-complete-filename'."
 	    (minibuffer-message (format " [No completions of %s]" filename))
 	  (message "No completions of %s" filename))
       (comint-dynamic-list-completions
-       (mapcar 'comint-quote-filename completions)))))
+       (mapcar 'comint-quote-filename completions)
+       filenondir))))
 
 
 ;; This is bound locally in a *Completions* buffer to the list of
@@ -3008,8 +3009,9 @@ See also `comint-dynamic-complete-filename'."
 
 (defvar comint-dynamic-list-completions-config nil)
 
-(defun comint-dynamic-list-completions (completions)
+(defun comint-dynamic-list-completions (completions &optional common-substring)
   "List in help buffer sorted COMPLETIONS.
+The meaning of COMMON-SUBSTRING is the same as in `display-completion-list'.
 Typing SPC flushes the help buffer."
   (let ((window (get-buffer-window "*Completions*" 0)))
     (setq completions (sort completions 'string-lessp))
@@ -3041,7 +3043,7 @@ Typing SPC flushes the help buffer."
       (setq comint-dynamic-list-completions-config
 	    (current-window-configuration))
       (with-output-to-temp-buffer "*Completions*"
-	(display-completion-list completions))
+	(display-completion-list completions common-substring))
       (if (window-minibuffer-p (selected-window))
 	  (minibuffer-message " [Type space to flush; repeat completion command to scroll]")
 	(message "Type space to flush; repeat completion command to scroll")))
