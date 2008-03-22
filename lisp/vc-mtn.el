@@ -76,10 +76,11 @@
     (with-temp-buffer
       (vc-mtn-command t 0 file "status")
       (goto-char (point-min))
-      (re-search-forward "^  \\(?:patched \\(.*\\)\\|no changes$\\)")
-      (if (match-end 1)
-          'edited
-        'up-to-date))))
+      (re-search-forward
+       "^  \\(?:\\(patched\\)\\|\\(added\\) \\(?:.*\\)\\)\\|no changes$")
+      (cond  ((match-end 1) 'edited)
+	     ((match-end 2) 'added)
+	     (t 'up-to-date)))))
 
 (defun vc-mtn-working-revision (file)
   ;; If `mtn' fails or returns status>0, or if the search fails, just
