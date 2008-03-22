@@ -1,3 +1,17 @@
+2008-03-22  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org: New directory for Org-mode.
+
+	* org/org-export-latex.el: Moved from lisp/texmodes.
+
+	* org/org-irc.el: Moved from lisp/texmodes.
+
+	* org/org-mac-message.el: Moved from lisp/texmodes.
+
+	* org/org-mouse.el: Moved from lisp/texmodes.
+
+	* org/org-publish.el: Moved from lisp/texmodes.
+
 2008-03-21  Juri Linkov  <juri@jurta.org>
 
 	* comint.el (comint-dynamic-simple-complete):
