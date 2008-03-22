@@ -1,3 +1,8 @@
+2008-03-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Add ... where
+	appropriate.
+
 2008-03-22  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git--empty-db-p)

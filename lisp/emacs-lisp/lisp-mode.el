@@ -291,7 +291,7 @@
       '(menu-item "Remove Instrumentation for All Functions" elp-restore-all
 		  :help "Restore the original definitions of all functions being profiled"))
     (define-key prof-map [prof-restfunc]
-      '(menu-item "Remove Instrumentation for Function" elp-restore-function
+      '(menu-item "Remove Instrumentation for Function..." elp-restore-function
 		  :help "Restore an instrumented function to its original definition"))
 
     (define-key prof-map [sep-rem] '("--"))
@@ -299,16 +299,16 @@
       '(menu-item "Reset Counters for All Functions" elp-reset-all
 		  :help "Reset the profiling information for all functions being profiled"))
     (define-key prof-map [prof-resfunc]
-      '(menu-item "Reset Counters for Function" elp-reset-function
+      '(menu-item "Reset Counters for Function..." elp-reset-function
 		  :help "Reset the profiling information for a function"))
     (define-key prof-map [prof-res]
       '(menu-item "Show Profiling Results" elp-results
 		  :help "Display current profiling results"))
     (define-key prof-map [prof-pack]
-      '(menu-item "Instrument Package" elp-instrument-package
+      '(menu-item "Instrument Package..." elp-instrument-package
 		  :help "Instrument for profiling all function that start with a prefix"))
     (define-key prof-map [prof-func]
-      '(menu-item "Instrument Function" elp-instrument-function
+      '(menu-item "Instrument Function..." elp-instrument-function
 		  :help "Instrument a function for profiling"))
     (define-key menu-map [edebug-defun]
       '(menu-item "Instrument Function for Debugging" edebug-defun
@@ -316,7 +316,7 @@
 		  :keys "C-u C-M-x"))
     (define-key menu-map [separator-byte] '("--"))
     (define-key menu-map [disas]
-      '(menu-item "Disassemble byte compiled object" disassemble
+      '(menu-item "Disassemble byte compiled object..." disassemble
 		  :help "Print disassembled code for OBJECT in a buffer"))
     (define-key menu-map [byte-recompile]
       '(menu-item "Byte-recompile Directory..." byte-recompile-directory
