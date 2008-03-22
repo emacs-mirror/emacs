@@ -1889,6 +1889,8 @@ closedir (DIR *dirp)
 struct direct *
 readdir (DIR *dirp)
 {
+  int downcase = !NILP (Vw32_downcase_file_names);
+
   if (wnet_enum_handle != INVALID_HANDLE_VALUE)
     {
       if (!read_unc_volume (wnet_enum_handle,
@@ -1923,14 +1925,23 @@ readdir (DIR *dirp)
      value returned by stat().  */
   dir_static.d_ino = 1;
 
+  strcpy (dir_static.d_name, dir_find_data.cFileName);
+
+  /* If the file name in cFileName[] includes `?' characters, it means
+     the original file name used characters that cannot be represented
+     by the current ANSI codepage.  To avoid total lossage, retrieve
+     the short 8+3 alias of the long file name.  */
+  if (_mbspbrk (dir_static.d_name, "?"))
+    {
+      strcpy (dir_static.d_name, dir_find_data.cAlternateFileName);
+      downcase = 1;	/* 8+3 aliases are returned in all caps */
+    }
+  dir_static.d_namlen = strlen (dir_static.d_name);
   dir_static.d_reclen = sizeof (struct direct) - MAXNAMLEN + 3 +
     dir_static.d_namlen - dir_static.d_namlen % 4;
-
-  dir_static.d_namlen = strlen (dir_find_data.cFileName);
-  strcpy (dir_static.d_name, dir_find_data.cFileName);
   if (dir_is_fat)
     _strlwr (dir_static.d_name);
-  else if (!NILP (Vw32_downcase_file_names))
+  else if (downcase)
     {
       register char *p;
       for (p = dir_static.d_name; *p; p++)
