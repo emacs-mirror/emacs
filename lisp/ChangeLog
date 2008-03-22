@@ -1,3 +1,37 @@
+2008-03-21  Juri Linkov  <juri@jurta.org>
+
+	* comint.el (comint-dynamic-simple-complete):
+	Use variable `stub' for the second arg `common-substring'
+	of `comint-dynamic-list-completions'.
+	(comint-dynamic-list-filename-completions):
+	Use variable `filenondir' for the second arg `common-substring'
+	of `comint-dynamic-list-completions'.
+	(comint-dynamic-list-completions): Add new optional arg
+	`common-substring'.  Add `common-substring' as the second arg of
+	the call to `display-completion-list'.  Doc fix.
+
+	* comint.el (comint-dynamic-complete-as-filename)
+	(comint-dynamic-list-filename-completions)
+	(comint-dynamic-simple-complete): Use `minibuffer-message'
+	to display message "No completions of %s" when a command
+	is called in the minibuffer.
+	(comint-dynamic-simple-complete): Don't display other
+	completion messages when a command is called in the minibuffer.
+	(comint-dynamic-list-completions): Use `minibuffer-message'
+	to display message " [Type space to flush ...]" when a command
+	is called in the minibuffer.
+
+	* shell.el (shell-dynamic-complete-command)
+	(shell-dynamic-complete-environment-variable): Don't display
+	completion messages when command is called in the minibuffer.
+
+	* bindings.el (standard-mode-line-modes): Put special help-echo
+	tooltip on recursive edit %[ %] mode-line constructs.
+
+	* dabbrev.el (debug-ignored-errors): Remove $ from the end of
+	"^No dynamic expansion for .* found$" to allow error messages like
+	"No dynamic expansion for \"%s\" found in this-buffer".
+
 2008-03-21  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-methods): Fix tramp-copy-args of "pscp" and
