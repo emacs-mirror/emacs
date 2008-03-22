@@ -2685,13 +2685,29 @@ With prefix arg READ-SWITCHES, specify a value to override
   ;; Must be in sync with vc-status-printer.
   (forward-char 25))
 
+(defun vc-status-prepare-status-buffer (dir &optional create-new)
+  "Find a *vc-status* buffer showing DIR, or create a new one."
+  (setq dir (expand-file-name dir))
+  (let ((bname "*vc-status*"))
+    ;; Look for another *vc-status* buffer visiting the same directory.
+    (save-excursion
+      (unless create-new
+	(dolist (buffer (buffer-list))
+	  (set-buffer buffer)
+	  (when (and (eq major-mode 'vc-status-mode)
+		     (string= default-directory dir))
+	    (return buffer)))))
+    ;; Create a new *vc-status* buffer.
+    (with-current-buffer (create-file-buffer bname)
+      (cd dir)
+      (vc-setup-buffer (current-buffer))
+      (current-buffer))))
+
 ;;;###autoload
 (defun vc-status (dir)
   "Show the VC status for DIR."
   (interactive "DVC status for directory: ")
-  (vc-setup-buffer "*vc-status*")
-  (switch-to-buffer "*vc-status*")
-  (cd dir)
+  (switch-to-buffer (vc-status-prepare-status-buffer dir))
   (vc-status-mode))
 
 (defvar vc-status-menu-map

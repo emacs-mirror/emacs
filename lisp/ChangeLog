@@ -1,5 +1,8 @@
 2008-03-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc.el (vc-status-prepare-status-buffer): New function.
+	(vc-status): Use it.
+
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Add ... where
 	appropriate.
 
