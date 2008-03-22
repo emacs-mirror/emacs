@@ -25,6 +25,10 @@
 	(shell-dynamic-complete-environment-variable): Don't display
 	completion messages when command is called in the minibuffer.
 
+	* emacs-lisp/lisp.el (lisp-complete-symbol):
+	Use `minibuffer-message' to display message "No completions of %s"
+	when this command is called in the minibuffer.
+
 	* bindings.el (standard-mode-line-modes): Put special help-echo
 	tooltip on recursive edit %[ %] mode-line constructs.
 
