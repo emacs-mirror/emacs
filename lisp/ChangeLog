@@ -1,5 +1,8 @@
 2008-03-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-git.el (vc-git-annotate-extract-revision-at-line):
+	Allow "^" in a version name.
+
 	* vc-mtn.el (vc-mtn-state): Support the added state.
 
 2008-03-22  Carsten Dominik  <dominik@science.uva.nl>

@@ -400,7 +400,7 @@ or BRANCH^ (where \"^\" can be repeated)."
 (defun vc-git-annotate-extract-revision-at-line ()
   (save-excursion
     (move-beginning-of-line 1)
-    (and (looking-at "[0-9a-f]+")
+    (and (looking-at "[0-9a-f^][0-9a-f]+")
          (buffer-substring-no-properties (match-beginning 0) (match-end 0)))))
 
 ;;; SNAPSHOT SYSTEM
