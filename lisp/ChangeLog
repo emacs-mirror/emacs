@@ -1,3 +1,10 @@
+2008-03-22  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git--empty-db-p)
+	(vc-git-after-dir-status-stage1-empty-db): New functions.
+	(vc-git-dir-status, vc-git-after-dir-status-stage1, vc-git-state):
+	Add support for empty repositories.
+
 2008-03-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-git.el (vc-git-annotate-extract-revision-at-line):
