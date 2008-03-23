@@ -35,6 +35,15 @@ to use it.
 
 * Small but important fixes needed in existing features:
 
+** Flymake's customization mechanism needs to be both simpler (fewer
+levels of indirection) and better documented, so it is easier to
+understand.  I find it quite hard to figure out what compilation
+command it will use.
+
+I suggest totally rewriting that part of Flymake, using the simplest
+mechanism that sufficies for the specific needs.  That will be easy
+for users to customize.
+
 ** Make "emacs --daemon" start emacs without showing any frame. 
 Use emacsclient later to open frames.
 
@@ -131,6 +140,32 @@ Change them to use report-emacs-bug.
 ** Allow fringe indicators to display a tooltip (provide a help-echo property?)
 
 * Important features:
+
+** Having tabs above a window to switch buffers in it.
+
+** "Perspectives" are named persistent window configurations.  We have
+had the window configuration mechanism in GNU Emacs since the
+beginning but we have never developed a good user interface to take
+advantage of them.  Eclipse's user interface seems to be good.
+
+Perspectives work well even if you do the equivalent of C-x 4 C-f
+because of the distinction between view windows vs file windows.  In
+Emacs this is more or less the "dedicated window" feature, but we have
+never really made it work for this.
+
+Perspectives also need to interact with the tabs.
+
+** Imenu could be extended into a file-structure browsing mechanism
+using code like that of customize-groups.
+
+** Display something in the margin on lines that have compilation
+errors.
+
+** Compilation error navigation bar, parallel to the scroll bar,
+indicating where in the buffer there are compilation errors.
+Perhaps we could arrange to display these error indications on top
+of the scroll bar itself.  That depends on to what extent toolkit
+scroll bars are extensible.
 
 ** Provide user-friendly ways to list all available font families,
    list fonts, display a font as a sample, etc.  [fx is looking at
