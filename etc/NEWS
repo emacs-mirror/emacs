@@ -143,6 +143,8 @@ the currently selected Emacs frame.
 
 ** Emacs now supports the SVG image format through librsvg2.
 
+** Transient Mark Mode is now on by default.
+
 ** C-SPC C-SPC in transient-mark-mode pushes a mark without activating it.
 
 ** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
