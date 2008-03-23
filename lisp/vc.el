@@ -2670,7 +2670,7 @@ With prefix arg READ-SWITCHES, specify a value to override
      "   "
      (propertize
       (format "%-20s" state)
-      'face (if (eq state 'up-to-date) 
+      'face (if (eq state 'up-to-date)
 		'font-lock-builtin-face
 	      'font-lock-variable-name-face)
       'mouse-face 'highlight)
@@ -2688,90 +2688,99 @@ With prefix arg READ-SWITCHES, specify a value to override
 (defun vc-status-prepare-status-buffer (dir &optional create-new)
   "Find a *vc-status* buffer showing DIR, or create a new one."
   (setq dir (expand-file-name dir))
-  (let ((bname "*vc-status*"))
-    ;; Look for another *vc-status* buffer visiting the same directory.
-    (save-excursion
-      (unless create-new
-	(dolist (buffer (buffer-list))
-	  (set-buffer buffer)
-	  (when (and (eq major-mode 'vc-status-mode)
-		     (string= default-directory dir))
-	    (return buffer)))))
-    ;; Create a new *vc-status* buffer.
-    (with-current-buffer (create-file-buffer bname)
-      (cd dir)
-      (vc-setup-buffer (current-buffer))
-      (current-buffer))))
+  (let* ((bname "*vc-status*")
+	 ;; Look for another *vc-status* buffer visiting the same directory.
+	 (buf (save-excursion
+		(unless create-new
+		  (dolist (buffer (buffer-list))
+		    (set-buffer buffer)
+		    (when (and (eq major-mode 'vc-status-mode)
+			       (string= (expand-file-name default-directory) dir))
+		      (return buffer)))))))
+    (if buf
+	buf
+      ;; Create a new *vc-status* buffer.
+      (with-current-buffer (create-file-buffer bname)
+	(cd dir)
+	(vc-setup-buffer (current-buffer))
+	(current-buffer)))))
 
 ;;;###autoload
 (defun vc-status (dir)
   "Show the VC status for DIR."
   (interactive "DVC status for directory: ")
   (switch-to-buffer (vc-status-prepare-status-buffer dir))
-  (vc-status-mode))
+  (if (eq major-mode 'vc-status-mode)
+      (vc-status-refresh)
+    (vc-status-mode)))
 
 (defvar vc-status-menu-map
   (let ((map (make-sparse-keymap "VC-status")))
-    (define-key map [quit] 
+    (define-key map [quit]
       '(menu-item "Quit" bury-buffer
 		  :help "Quit"))
-    (define-key map [refresh] 
+    (define-key map [kill]
+      '(menu-item "Kill Update Command" vc-status-kill-dir-status-process
+		  :enable vc-status-process-buffer
+		  :help "Kill the command that updates VC status buffer"))
+    (define-key map [refresh]
       '(menu-item "Refresh" vc-status-refresh
+		  :enable (not vc-status-process-buffer)
 		  :help "Refresh the contents of the VC status buffer"))
-    (define-key map [remup] 
+    (define-key map [remup]
       '(menu-item "Remove up-to-date" vc-status-remove-up-to-date
 		  :help "Remove up-to-date items from display"))
     ;; VC commands.
     (define-key map [separator-vc-commands] '("--"))
-    (define-key map [annotate] 
+    (define-key map [annotate]
       '(menu-item "Annotate" vc-annotate
 		  :help "Display the edit history of the current file using colors"))
-    (define-key map [diff] 
+    (define-key map [diff]
       '(menu-item "Compare with Base Version" vc-diff
 		  :help "Compare file set with the base version"))
-    (define-key map [register] 
+    (define-key map [register]
       '(menu-item "Register" vc-status-register
 		  :help "Register file set into the version control system"))
     ;; vc-print-log uses the current buffer, not a file.
-    ;; (define-key map [log] 
+    ;; (define-key map [log]
     ;;  '(menu-item "Show history" vc-status-print-log
     ;;  :help "List the change log of the current file set in a window"))
 
     ;; Movement.
     (define-key map [separator-movement] '("--"))
-    (define-key map [next-line] 
+    (define-key map [next-line]
       '(menu-item "Next line" vc-status-next-line
 		  :help "Go to the next line" :keys "n"))
-    (define-key map [previous-line] 
+    (define-key map [previous-line]
       '(menu-item "Previous line" vc-status-previous-line
 		  :help "Go to the previous line"))
     ;; Marking.
     (define-key map [separator-marking] '("--"))
-    (define-key map [unmark-all] 
+    (define-key map [unmark-all]
       '(menu-item "Unmark All" vc-status-unmark-all-files
 		  :help "Unmark all files that are in the same state as the current file\
 \nWith prefix argument unmark all files"))
-    (define-key map [unmark-previous] 
+    (define-key map [unmark-previous]
       '(menu-item "Unmark previous " vc-status-unmark-file-up
 		  :help "Move to the previous line and unmark the file"))
 
-    (define-key map [mark-all] 
+    (define-key map [mark-all]
       '(menu-item "Mark All" vc-status-mark-all-files
 		  :help "Mark all files that are in the same state as the current file\
 \nWith prefix argument mark all files"))
-    (define-key map [unmark] 
+    (define-key map [unmark]
       '(menu-item "Unmark" vc-status-unmark
 		  :help "Unmark the current file or all files in the region"))
 
-    (define-key map [mark] 
+    (define-key map [mark]
       '(menu-item "Mark" vc-status-mark
 		  :help "Mark the current file or all files in the region"))
 
     (define-key map [separator-open] '("--"))
-    (define-key map [open-other] 
+    (define-key map [open-other]
       '(menu-item "Open in other window" vc-status-find-file-other-window
 		  :help "Find the file on the current line, in another window"))
-    (define-key map [open] 
+    (define-key map [open]
       '(menu-item "Open file" vc-status-find-file
 		  :help "Find the file on the current line"))
     map)
@@ -2825,18 +2834,16 @@ With prefix arg READ-SWITCHES, specify a value to override
   nil)
 
 (defun vc-status-menu-map-filter (orig-binding)
-  (if (boundp 'vc-ignore-menu-filter)
-      orig-binding
-    (when (and (symbolp orig-binding) (fboundp orig-binding))
-      (setq orig-binding (indirect-function orig-binding)))
-    (let ((ext-binding
-	   (vc-call-backend (vc-responsible-backend default-directory)
-			    'extra-status-menu)))
-      (if (null ext-binding)
-	  orig-binding
-	(append orig-binding
-		'("----")
-		ext-binding)))))
+  (when (and (symbolp orig-binding) (fboundp orig-binding))
+    (setq orig-binding (indirect-function orig-binding)))
+  (let ((ext-binding
+	 (vc-call-backend (vc-responsible-backend default-directory)
+			  'extra-status-menu)))
+    (if (null ext-binding)
+	orig-binding
+      (append orig-binding
+	      '("----")
+	      ext-binding))))
 
 (defun vc-status-menu (e)
   "Popup the VC status menu."
@@ -2844,29 +2851,28 @@ With prefix arg READ-SWITCHES, specify a value to override
   (popup-menu vc-status-menu-map e))
 
 (defvar vc-status-tool-bar-map
-  (if (display-graphic-p)
-      (let ((map (make-sparse-keymap))
-	    (vc-ignore-menu-filter t)) ;; Backend may not support vc-status
-	(tool-bar-local-item-from-menu 'vc-status-find-file "open" 
-				       map vc-status-mode-map)
-	(tool-bar-local-item "bookmark_add" 
-			     'vc-status-toggle-mark 'vc-status-toggle-mark map
-			     :help "Toggle mark on current item")
-	(tool-bar-local-item-from-menu 'vc-status-previous-line "left-arrow" 
-				       map vc-status-mode-map
-				       :rtl "right-arrow")
-	(tool-bar-local-item-from-menu 'vc-status-next-line "right-arrow" 
-				       map vc-status-mode-map
-				       :rtl "left-arrow")
-	(tool-bar-local-item-from-menu 'vc-status-refresh "refresh" 
-				       map vc-status-mode-map)
-	(tool-bar-local-item-from-menu 'nonincremental-search-forward
-				       "search" map)
-	(tool-bar-local-item-from-menu 'bury-buffer "exit" 
-				       map vc-status-mode-map)
-	map)))
+  (let ((map (make-sparse-keymap)))
+    (tool-bar-local-item-from-menu 'vc-status-find-file "open"
+				   map vc-status-mode-map)
+    (tool-bar-local-item "bookmark_add"
+			 'vc-status-toggle-mark 'vc-status-toggle-mark map
+			 :help "Toggle mark on current item")
+    (tool-bar-local-item-from-menu 'vc-status-previous-line "left-arrow"
+				   map vc-status-mode-map
+				   :rtl "right-arrow")
+    (tool-bar-local-item-from-menu 'vc-status-next-line "right-arrow"
+				   map vc-status-mode-map
+				   :rtl "left-arrow")
+    (tool-bar-local-item-from-menu 'vc-status-refresh "refresh"
+				   map vc-status-mode-map)
+    (tool-bar-local-item-from-menu 'nonincremental-search-forward
+				   "search" map)
+    (tool-bar-local-item-from-menu 'vc-status-kill-dir-status-process "cancel"
+				   map vc-status-mode-map)
+    (tool-bar-local-item-from-menu 'bury-buffer "exit"
+				   map vc-status-mode-map)
+    map))
 
-		
 (defvar vc-status-process-buffer nil
   "The buffer used for the asynchronous call that computes the VC status.")
 
@@ -2911,11 +2917,12 @@ With prefix arg READ-SWITCHES, specify a value to override
 	     (setf (vc-status-fileinfo->marked arg) t)))
 	 vc-status))
       (ewoc-goto-node vc-status (ewoc-nth vc-status 0)))
-    ;; We are done, turn of the in progress message in the mode-line.
+    (setq vc-status-process-buffer nil)
+    ;; We are done, turn off the mode-line "in progress" message.
     (setq mode-line-process nil)))
 
 (defun vc-status-add-entry (entry buffer)
-  ;; Add one ENTRY to the vc-status buffer BUFFER.  
+  ;; Add one ENTRY to the vc-status buffer BUFFER.
   ;; This will be used to automatically add files with the "modified"
   ;; state when saving them.
 
@@ -2925,11 +2932,11 @@ With prefix arg READ-SWITCHES, specify a value to override
 	  (fname (car entry)))
       ;; First try to see if there's already an entry with that name
       ;; in the ewoc.
-      (while (and crt (not (string= (vc-status-fileinfo->name 
+      (while (and crt (not (string= (vc-status-fileinfo->name
 				     (ewoc-data crt)) fname)))
 	(setq crt (ewoc-next vc-status crt)))
       (if crt
-	  (progn 
+	  (progn
 	    ;; Found the file, just update the status.
 	    (setf (vc-status-fileinfo->state (ewoc-data crt)) (cdr entry))
 	    (ewoc-invalidate vc-status crt))
@@ -2938,39 +2945,42 @@ With prefix arg READ-SWITCHES, specify a value to override
 	 vc-status (vc-status-create-fileinfo (cdr entry) (car entry)))))))
 
 (defun vc-status-refresh ()
-  "Refresh the contents of the VC status buffer."
+  "Refresh the contents of the VC status buffer.
+Throw an error if another update process is in progress."
   (interactive)
+  (if vc-status-process-buffer
+      (error "Another update process is in progress, cannot run two at a time")
+    ;; This is not very efficient; ewoc could use a new function here.
+    ;; We clear the ewoc, but remember the marked files so that we can
+    ;; mark them after the refresh is done.
+    (setq vc-status-crt-marked
+	  (mapcar
+	   (lambda (elem)
+	     (vc-status-fileinfo->name elem))
+	   (ewoc-collect
+	    vc-status
+	    (lambda (crt) (vc-status-fileinfo->marked crt)))))
+    (ewoc-filter vc-status (lambda (node) nil))
 
-  ;; This is not very efficient; ewoc could use a new function here.
-  ;; We clear the ewoc, but remember the marked files so that we can
-  ;; mark them after the refresh is done.
-  (setq vc-status-crt-marked 
-	(mapcar
-	 (lambda (elem)
-	   (vc-status-fileinfo->name elem))
-	 (ewoc-collect
-	  vc-status
-	  (lambda (crt) (vc-status-fileinfo->marked crt)))))
-  (ewoc-filter vc-status (lambda (node) nil))
-
-  (let ((backend (vc-responsible-backend default-directory)))
-    (vc-set-mode-line-busy-indicator)
-    ;; Call the dir-status backend function. dir-status is supposed to
-    ;; be asynchronous.  It should compute the results and call the
-    ;; function passed as a an arg to update the vc-status buffer with
-    ;; the results.
-    (setq vc-status-process-buffer
-	  (vc-call-backend
-	   backend 'dir-status default-directory
-	   #'vc-update-vc-status-buffer (current-buffer)))))
+    (let ((backend (vc-responsible-backend default-directory)))
+      (vc-set-mode-line-busy-indicator)
+      ;; Call the dir-status backend function. dir-status is supposed to
+      ;; be asynchronous.  It should compute the results and call the
+      ;; function passed as a an arg to update the vc-status buffer with
+      ;; the results.
+      (setq vc-status-process-buffer
+	    (vc-call-backend
+	     backend 'dir-status default-directory
+	     #'vc-update-vc-status-buffer (current-buffer))))))
 
 (defun vc-status-kill-dir-status-process ()
   "Kill the temporary buffer and associated process."
   (interactive)
-  (when (and (bufferp vc-status-process-buffer) 
+  (when (and (bufferp vc-status-process-buffer)
 	     (buffer-live-p vc-status-process-buffer))
     (let ((proc (get-buffer-process vc-status-process-buffer)))
       (when proc (delete-process proc))
+      (setq vc-status-process-buffer nil)
       (setq mode-line-process nil))))
 
 (defun vc-status-next-line (arg)

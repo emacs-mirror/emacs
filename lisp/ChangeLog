@@ -1,3 +1,16 @@
+2008-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-status-prepare-status-buffer): Fix thinko.
+	(vc-status-menu-map): Add binding for
+	vc-status-kill-dir-status-process.  Add :enable for vc-status-refresh.
+	(vc-status-menu-map-filter): Remove vc-ignore-menu-filter test.
+	(vc-status-tool-bar-map): Add binding for vc-status-kill-dir-status-process.
+	Don't test display-graphic-p and don't bind vc-ignore-menu-filter.
+	(vc-update-vc-status-buffer, vc-status-kill-dir-status-process):
+	Reset vc-status-process-buffer.
+	(vc-status-refresh): Don't run two refreshes at a time.
+	(vc-status): If the buffer is already in vc-status-mode only refresh.
+
 2008-03-23  Andreas Schwab  <schwab@suse.de>
 
 	* menu-bar.el (menu-bar-showhide-fringe-ind-menu) [mixed]: Fix
