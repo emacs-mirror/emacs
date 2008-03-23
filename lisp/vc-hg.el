@@ -176,7 +176,7 @@
 	     ((eq state ?A) 'added)
 	     ((eq state ?M) 'edited)
 	     ((eq state ?I) 'ignored)
-	     ((eq state ?R) 'unregistered)
+	     ((eq state ?R) 'edited)
 	     ((eq state ??) 'unregistered)
 	     ((eq state ?C) 'up-to-date) ;; Older mercurials use this
 	     (t 'up-to-date)))))))
