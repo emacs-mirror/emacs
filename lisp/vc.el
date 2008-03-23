@@ -1789,8 +1789,7 @@ rather than user editing!"
   (vc-dired-resynch-file file)
   (when (memq 'vc-status-mark-buffer-changed after-save-hook)
     (let ((buffer (get-file-buffer file)))
-      (with-current-buffer buffer
-	(when buffer (vc-status-mark-buffer-changed))))))
+      (vc-status-mark-buffer-changed file))))
 
 
 (defun vc-start-entry (files rev comment initial-contents msg action &optional after-hook)
@@ -3154,8 +3153,8 @@ that share the same state."
    vc-status
    (lambda (crt) (not (eq (vc-status-fileinfo->state crt) 'up-to-date)))))
 
-(defun vc-status-mark-buffer-changed ()
-  (let* ((file (expand-file-name buffer-file-name))
+(defun vc-status-mark-buffer-changed (&optional fname)
+  (let* ((file (or fname (expand-file-name buffer-file-name)))
 	 (state (and (vc-backend file) (vc-state file)))
 	 (found-vc-status-buf nil))
     (save-excursion
@@ -3529,6 +3528,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
 (defun vc-delete-file (file)
   "Delete file and mark it as such in the version control system."
   (interactive "fVC delete file: ")
+  (setq file (expand-file-name file))
   (let ((buf (get-file-buffer file))
         (backend (vc-backend file)))
     (unless backend
@@ -3544,10 +3544,17 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
     (unless (or (file-directory-p file) (null make-backup-files))
       (with-current-buffer (or buf (find-file-noselect file))
 	(let ((backup-inhibited nil))
-	  (backup-buffer))))
+	  (backup-buffer))
+	;; If we didn't have a buffer visiting the file before this
+	;; command, kill the buffer created by the above
+	;; `find-file-noselect' call.
+	(unless buf (kill-buffer (current-buffer)))))
     (vc-call delete-file file)
     ;; If the backend hasn't deleted the file itself, let's do it for him.
-    (if (file-exists-p file) (delete-file file))))
+    (if (file-exists-p file) (delete-file file))
+    ;; Forget what VC knew about the file.
+    (vc-file-clearprops file)
+    (vc-resynch-buffer file buf t)))
 
 ;;;###autoload
 (defun vc-rename-file (old new)

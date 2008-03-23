@@ -20,6 +20,11 @@
 	Reset vc-status-process-buffer.
 	(vc-status-refresh): Don't run two refreshes at a time.
 	(vc-status): If the buffer is already in vc-status-mode only refresh.
+	(vc-status-mark-buffer-changed): Add an optional file parameter.
+	(vc-resynch-buffer): Use it.
+	(vc-delete-file): Expand the file name before using it.  Be
+	careful to not create a new buffer with the old file contents.
+	Update the VC state after performing the operation.
 
 2008-03-23  Andreas Schwab  <schwab@suse.de>
 
