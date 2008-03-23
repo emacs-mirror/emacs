@@ -39,7 +39,7 @@
 ;;; Code:
 
 ;; this is what I was using during testing:
-;; (define-key ctl-x-map "p" 'toggle-save-place)
+;; (define-key ctl-x-map "p" 'toggle-save-place-globally)
 
 (defgroup save-place nil
   "Automatically save place in files."
