@@ -1,6 +1,6 @@
 2008-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-hg.el (vc-hg-state): Return 'edited for removed files.
+	* vc-hg.el (vc-hg-state): Return 'removed for removed files.
 
 	* bindings.el (standard-mode-line-modes): Avoid duplicating a string.
 
