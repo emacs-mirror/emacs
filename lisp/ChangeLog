@@ -3,6 +3,7 @@
 	* menu-bar.el (menu-bar-showhide-fringe-ind-menu) [mixed]: Fix
 	radio button condition.
 	[box]: Likewise.
+	[customize]: Add radio button.
 
 2008-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
 

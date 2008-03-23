@@ -745,7 +745,11 @@ mail status in mode line"))
   '(menu-item "Other (Customize)"
 	      menu-bar-showhide-fringe-ind-customize
 	      :help "Additional choices available through Custom buffer"
-	      :visible (display-graphic-p)))
+	      :visible (display-graphic-p)
+	      :button (:radio . (not (member indicate-buffer-boundaries
+					     '(nil left right
+					       ((top . left) (bottom . right))
+					       ((t . right) (top . left))))))))
 
 (defun menu-bar-showhide-fringe-ind-mixed ()
   "Display top and bottom indicators in opposite fringes, arrows in right."
