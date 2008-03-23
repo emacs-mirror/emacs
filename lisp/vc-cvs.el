@@ -864,6 +864,72 @@ state."
 	    (vc-cvs-parse-entry file t))))
       (forward-line 1))))
 
+;; XXX Experimental function for the vc-dired replacement.
+(defun vc-cvs-after-dir-status (update-function status-buffer)
+  ;; Heavily inspired by vc-cvs-parse-status. AKA a quick hack.
+  ;; It needs a lot of testing.
+  (let ((status nil)
+	(status-str nil)
+	(file nil)
+	(result nil)
+	(subdir default-directory))
+    (goto-char (point-min))
+    (while
+	;; Look for either a file entry, an unregistered file, or a
+	;; directory change.
+	(re-search-forward
+	 "\\(^=+\n\\([^=c?\n].*\n\\|\n\\)+\\)\\|\\(\\(^?? .*\n\\)+\\)\\|\\(^cvs status: Examining .*\n\\)"
+	 nil t)
+      ;; XXX: get rid of narrowing here.
+      (narrow-to-region (match-beginning 0) (match-end 0))
+      (goto-char (point-min))
+      ;; The subdir
+      (when (looking-at "cvs status: Examining \\(.+\\)")
+	(setq subdir (expand-file-name (match-string 1))))
+      ;; Unregistered files
+      (while (looking-at "? \\(.*\\)")
+	(setq file (file-relative-name 
+		    (expand-file-name (match-string 1) subdir)))
+	(push (cons file 'unregistered) result)
+	(forward-line 1))
+      ;; A file entry.
+      (when (re-search-forward "^File: " nil t)
+	(cond
+	 ((looking-at "no file") nil)
+	 ((re-search-forward "\\=\\([^ \t]+\\)" nil t)
+	  (setq file (file-relative-name 
+		      (expand-file-name (match-string 1) subdir)))
+	  (if (not (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t))
+	      (push (cons file 'unregistered) result)
+	    (setq status-str (match-string 1))
+	    (setq status
+		  (cond
+		   ((string-match "Up-to-date" status-str) 'up-to-date)
+		   ((string-match "Locally Modified" status-str) 'edited)
+		   ((string-match "Needs Merge" status-str) 'needs-merge)
+		   ((string-match "Needs \\(Checkout\\|Patch\\)" status-str)
+		    'needs-patch)
+		   ((string-match "Locally Added" status-str) 'added)
+		   (t 'edited)))
+	    (unless (eq status 'up-to-date)
+	      (push (cons file status) result))))))
+      (goto-char (point-max))
+      (widen))
+      ;; Remove the temporary buffer.
+      (kill-buffer (current-buffer))
+      (funcall update-function result status-buffer)))
+
+;; XXX Experimental function for the vc-dired replacement.
+(defun vc-cvs-dir-status (dir update-function status-buffer)
+  "Create a list of conses (file . state) for DIR."
+  (with-current-buffer
+      (get-buffer-create (expand-file-name " *VC-cvs* tmp status" dir))
+    (erase-buffer)
+    (vc-cvs-command (current-buffer) 'async dir "status")
+    (vc-exec-after
+     `(vc-cvs-after-dir-status (quote ,update-function) ,status-buffer))
+    (current-buffer)))
+
 (defun vc-cvs-get-entries (dir)
   "Insert the CVS/Entries file from below DIR into the current buffer.
 This function ensures that the correct coding system is used for that,

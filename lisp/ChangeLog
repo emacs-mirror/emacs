@@ -1,3 +1,8 @@
+2008-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-cvs.el (vc-cvs-after-dir-status, vc-cvs-dir-status):
+	New functions to implement vc-status support.
+
 2008-03-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-status-prepare-status-buffer): New function.
