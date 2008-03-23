@@ -324,6 +324,7 @@ Keymap to display on column and line numbers.")
 	"mouse-1: Select (drag to resize)\n\
 mouse-2: Make current window occupy the whole frame\n\
 mouse-3: Remove current window from display")
+       (recursive-edit-help-echo "Recursive edit, type C-M-c to get out")
        (dashes (propertize "--" 'help-echo help-echo))
        (standard-mode-line-format
 	(list
@@ -345,7 +346,7 @@ mouse-3: Remove current window from display")
 	 (propertize "-%-" 'help-echo help-echo)))
        (standard-mode-line-modes
 	(list
-	 (propertize "%[" 'help-echo "Recursive edit, type C-M-c to get out")
+	 (propertize "%[" 'help-echo recursive-edit-help-echo)
 	 (propertize "(" 'help-echo help-echo)
 	 `(:propertize ("" mode-name)
 		       help-echo "Major mode\n\
@@ -367,7 +368,7 @@ mouse-3: Toggle minor modes"
 		     'local-map (make-mode-line-mouse-map
 				 'mouse-2 #'mode-line-widen))
 	 (propertize ")" 'help-echo help-echo)
-	 (propertize "%]" 'help-echo "Recursive edit, type C-M-c to get out")
+	 (propertize "%]" 'help-echo recursive-edit-help-echo)
 	 (propertize "--" 'help-echo help-echo)))
 
        (standard-mode-line-position

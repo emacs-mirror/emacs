@@ -1,5 +1,7 @@
 2008-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* bindings.el (standard-mode-line-modes): Avoid duplicating a string.
+
 	* vc-cvs.el (vc-cvs-parse-status): Note there are problems with
 	subdirectories.
 
