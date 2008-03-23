@@ -165,7 +165,7 @@ Lisp_Object Vdbus_debug;
    : DBUS_TYPE_INVALID)
 
 /* Return a list pointer which does not have a Lisp symbol as car.  */
-#define XD_NEXT_VALUE(object)					\
+#define XD_NEXT_VALUE(object)						\
   ((XD_DBUS_TYPE_P (CAR_SAFE (object))) ? CDR_SAFE (object) : object)
 
 /* Compute SIGNATURE of OBJECT.  It must have a form that it can be
@@ -1140,10 +1140,7 @@ xd_read_message (bus)
   DBusMessageIter iter;
   unsigned int dtype;
   int mtype;
-  char uname[DBUS_MAXIMUM_NAME_LENGTH];
-  char path[DBUS_MAXIMUM_MATCH_RULE_LENGTH]; /* Unlimited in D-Bus spec.  */
-  char interface[DBUS_MAXIMUM_NAME_LENGTH];
-  char member[DBUS_MAXIMUM_NAME_LENGTH];
+  const char *uname, *path, *interface, *member;
 
   /* Open a connection to the bus.  */
   connection = xd_initialize (bus);
@@ -1175,11 +1172,15 @@ xd_read_message (bus)
 
   /* Read message type, unique name, object path, interface and member
      from the message.  */
-  mtype =            dbus_message_get_type (dmessage);
-  strcpy (uname,     dbus_message_get_sender (dmessage));
-  strcpy (path,      dbus_message_get_path (dmessage));
-  strcpy (interface, dbus_message_get_interface (dmessage));
-  strcpy (member,    dbus_message_get_member (dmessage));
+  mtype     = dbus_message_get_type (dmessage);
+  uname     = dbus_message_get_sender (dmessage);
+  path      = dbus_message_get_path (dmessage);
+  interface = dbus_message_get_interface (dmessage);
+  member    = dbus_message_get_member (dmessage);
+
+  /* dbus-registered-functions-table requires non nil interface and member. */
+  if ((NULL == interface) || (NULL == member))
+    goto cleanup;
 
   XD_DEBUG_MESSAGE ("Event received: %d %s %s %s %s %s",
 		    mtype, uname, path, interface, member,
@@ -1210,11 +1211,8 @@ xd_read_message (bus)
 			     args);
 
 	  /* Add uname, path, interface and member to the event.  */
-	  event.arg = Fcons ((member == NULL ? Qnil : build_string (member)),
-			     event.arg);
-	  event.arg = Fcons ((interface == NULL
-			      ? Qnil : build_string (interface)),
-			     event.arg);
+	  event.arg = Fcons (build_string (member), event.arg);
+	  event.arg = Fcons (build_string (interface), event.arg);
 	  event.arg = Fcons ((path == NULL ? Qnil : build_string (path)),
 			     event.arg);
 	  event.arg = Fcons ((uname == NULL ? Qnil : build_string (uname)),
@@ -1235,7 +1233,7 @@ xd_read_message (bus)
      value = CDR_SAFE (value);
     }
 
-  /* Cleanup.  */
+ cleanup:
   dbus_message_unref (dmessage);
   RETURN_UNGCPRO (Qnil);
 }
