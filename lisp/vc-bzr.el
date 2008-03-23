@@ -227,9 +227,9 @@ If any error occurred in running `bzr status', then return nil."
                    (kindchanged . edited)
                    (renamed . edited)
                    (modified . edited)
-                   (removed . edited)
-                   (ignored . nil)
-                   (unknown . nil)
+                   (removed . removed)
+                   (ignored . unregistered)
+                   (unknown . unregistered)
                    (unchanged . up-to-date)))))))
 
 (defun vc-bzr-resolve-when-done ()
