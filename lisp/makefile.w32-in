@@ -95,6 +95,7 @@ WINS_ALMOST=\
 	mh-e \
 	net \
 	nxml \
+	org \
 	play \
 	progmodes \
 	textmodes \
