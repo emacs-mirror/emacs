@@ -1,3 +1,8 @@
+2008-03-23  David Hansen  <david.hansen@gmx.net>  (tiny change)
+
+	* dbusbind.c (xd_read_message): Removed extra copying of message
+	strings.  Check for NULL `interface' or `member'.
+
 2008-03-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (readdir): If FindFirstFile/FindNextFile return in
