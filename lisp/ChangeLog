@@ -1,8 +1,9 @@
 2008-03-23  Andreas Schwab  <schwab@suse.de>
 
-	* menu-bar.el (menu-bar-showhide-fringe-ind-menu): Fix radio
-	button condition.
-	(menu-bar-showhide-fringe-ind-menu): Likewise.
+	* menu-bar.el (menu-bar-showhide-fringe-ind-menu) [mixed]: Fix
+	radio button condition.
+	[box]: Likewise.
+	[customize]: Add radio button.
 
 2008-03-23  Jay Belanger  <jay.p.belanger@gmail.com>
 
