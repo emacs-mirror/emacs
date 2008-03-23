@@ -758,8 +758,8 @@ mail status in mode line"))
 	      :help
 	      "Show top/bottom indicators in opposite fringes, arrows in right"
 	      :visible (display-graphic-p)
-	      :button (:radio . (eq indicate-buffer-boundaries
-				    '((t . right) (top . left))))))
+	      :button (:radio . (equal indicate-buffer-boundaries
+				       '((t . right) (top . left))))))
 
 (defun menu-bar-showhide-fringe-ind-box ()
   "Display top and bottom indicators in opposite fringes."
@@ -771,8 +771,8 @@ mail status in mode line"))
   '(menu-item "Opposite, No Arrows" menu-bar-showhide-fringe-ind-box
 	      :help "Show top/bottom indicators in opposite fringes, no arrows"
 	      :visible (display-graphic-p)
-	      :button (:radio . (eq indicate-buffer-boundaries
-				    '((top . left) (bottom . right))))))
+	      :button (:radio . (equal indicate-buffer-boundaries
+				       '((top . left) (bottom . right))))))
 
 (defun menu-bar-showhide-fringe-ind-right ()
   "Display buffer boundaries and arrows in the right fringe."

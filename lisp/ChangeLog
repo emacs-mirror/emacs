@@ -1,3 +1,9 @@
+2008-03-23  Andreas Schwab  <schwab@suse.de>
+
+	* menu-bar.el (menu-bar-showhide-fringe-ind-menu): Fix radio
+	button condition.
+	(menu-bar-showhide-fringe-ind-menu): Likewise.
+
 2008-03-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-print-log): Ensure it works when passed a
