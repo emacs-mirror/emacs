@@ -3615,7 +3615,7 @@ Invoke \\[apropos-documentation] and type \"transient\" or
 \"mark.*active\" at the prompt, to see the documentation of
 commands which are sensitive to the Transient Mark mode."
   :global t
-;;;  :init-value (not noninteractive)
+  :init-value (not noninteractive)
   :group 'editing-basics)
 
 (defvar widen-automatically t
