@@ -1,3 +1,22 @@
+2008-03-23  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el (calc-was-keypad-mode, calc-full-mode)
+	(calc-user-parse-tables, calc-gnuplot-default-device)
+	(calc-gnuplot-default-output, calc-gnuplot-print-device)
+	(calc-gnuplot-print-output, calc-gnuplot-geometry)
+	(calc-graph-default-resolution, calc-graph-default-resolution-3d)
+	(calc-invocation-macro, calc-trail-pointer, calc-trail-overlay)
+	(calc-undo-list, calc-redo-list, calc-main-buffer)
+	(calc-trail-buffer, calc-why, calc-last-kill, calc-dollar-values)
+	(calc-dollar-used, calc-hashes-used, calc-quick-prev-results)
+	(calc-said-hello, calc-executing-macro, calc-any-selections)
+	(calc-help-phase, calc-full-help-flag, calc-refresh-count)
+	(calc-display-dirty, calc-embedded-info, calc-embedded-active)
+	(calc-standalone-flag, var-EvalRules, math-expr-function-mapping)
+	(math-expr-variable-mapping, calc-mode-map, calc-digit-map)
+	(calc-dispatch-map, calc-do-dispatch, calc-read-key-sequence)
+	(calc-create-buffer, calc-quit): Add docstrings.
+
 2008-03-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (WINS_ALMOST): Add org.
