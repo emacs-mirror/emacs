@@ -1,3 +1,7 @@
+2008-03-23  Xavier Maillard  <xma@gnu.org>
+
+	* saveplace.el: fix a typo in the commentary section.
+
 2008-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-state): Return 'removed for removed files and
