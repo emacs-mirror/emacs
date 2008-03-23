@@ -812,6 +812,12 @@ For an empty string, nil is returned (invalid CVS root)."
           ;; Normalize CVS root record
           (list method user host root)))))
 
+;; XXX: This does not work correctly for subdirectories.  "cvs status"
+;; information is context sensitive, it contains lines like:
+;; cvs status: Examining DIRNAME
+;; and the file entries after that don't show the full path.
+;; Because of this vc-dired only shows changed files at the top level
+;; for CVS.
 (defun vc-cvs-parse-status (&optional full)
   "Parse output of \"cvs status\" command in the current buffer.
 Set file properties accordingly.  Unless FULL is t, parse only
