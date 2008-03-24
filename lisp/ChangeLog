@@ -1,3 +1,10 @@
+2008-03-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-status-printer): Use a different face for missing files.
+	(vc-status-hide-up-to-date): Rename from
+	vc-status-remove-up-to-date.  Update all callers.
+	(vc-status-mode-map): Bind C-m.
+
 2008-03-24  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el (vc-git-after-dir-status-stage1): Move state matching

@@ -585,12 +585,14 @@
 ;;
 ;; - vc-status needs mouse bindings and some color bling.
 ;;
+;; - vc-status-header should be made backend specific.
+;;
 ;; - vc-status needs to show missing files. It probably needs to have
 ;;   another state for those files. The user might want to restore
 ;;   them, or remove them from the VCS. C-x v v might also need
 ;;   adjustments.
 ;;
-;; - vc-status needs a toolbar.
+;; - vc-status toolbar needs more icons.
 ;;
 ;; - vc-status: refresh should not completely wipe out the current
 ;;   contents of the vc-status buffer.
@@ -2669,9 +2671,9 @@ With prefix arg READ-SWITCHES, specify a value to override
      "   "
      (propertize
       (format "%-20s" state)
-      'face (if (eq state 'up-to-date)
-		'font-lock-builtin-face
-	      'font-lock-variable-name-face)
+      'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
+		  ((eq state 'missing) 'font-lock-warning-face)
+		  (t 'font-lock-variable-name-face))
       'mouse-face 'highlight)
      " "
      (propertize
@@ -2727,8 +2729,8 @@ With prefix arg READ-SWITCHES, specify a value to override
 		  :enable (not vc-status-process-buffer)
 		  :help "Refresh the contents of the VC status buffer"))
     (define-key map [remup]
-      '(menu-item "Remove up-to-date" vc-status-remove-up-to-date
-		  :help "Remove up-to-date items from display"))
+      '(menu-item "Hide up-to-date" vc-status-hide-up-to-date
+		  :help "Hide up-to-date items from display"))
     ;; VC commands.
     (define-key map [separator-vc-commands] '("--"))
     (define-key map [annotate]
@@ -2811,8 +2813,9 @@ With prefix arg READ-SWITCHES, specify a value to override
     ;; (define-key map "l" 'vc-status-print-log)
     ;; The remainder.
     (define-key map "f" 'vc-status-find-file)
+    (define-key map "\C-m" 'vc-status-find-file)
     (define-key map "o" 'vc-status-find-file-other-window)
-    (define-key map "x" 'vc-status-remove-up-to-date)
+    (define-key map "x" 'vc-status-hide-up-to-date)
     (define-key map "q" 'bury-buffer)
     (define-key map "g" 'vc-status-refresh)
     (define-key map "\C-c\C-c" 'vc-status-kill-dir-status-process)
@@ -3146,8 +3149,8 @@ that share the same state."
     vc-status
     (lambda (crt) (vc-status-fileinfo->marked crt)))))
 
-(defun vc-status-remove-up-to-date ()
-  "Remove up-to-date items from display."
+(defun vc-status-hide-up-to-date ()
+  "Hide up-to-date items from display."
   (interactive)
   (ewoc-filter
    vc-status
