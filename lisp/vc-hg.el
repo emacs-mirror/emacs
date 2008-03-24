@@ -482,7 +482,7 @@ REV is the revision to check out into WORKFILE."
 		       (?R . removed)
 		       (?M . edited)
 		       (?I . ignored)
-		       (?! . deleted)
+		       (?! . missing)
 		       (?? . unregistered)))
 	(translated nil)
 	  (result nil))

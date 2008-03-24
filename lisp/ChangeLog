@@ -1,5 +1,8 @@
 2008-03-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-hg.el (vc-hg-after-dir-status):
+	* vc-bzr.el (vc-bzr-after-dir-status): Detect missing files.
+
 	* vc-cvs.el (vc-cvs-after-dir-status, vc-cvs-parse-status): Detect
 	removed files.
 

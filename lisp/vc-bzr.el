@@ -617,7 +617,7 @@ Optional argument LOCALP is always ignored."
 		       ("-D" . removed)
 		       (" M" . edited)
 		       ;; XXX: what about ignored files?
-		       (" D" . deleted)
+		       (" D" . missing)
 		       ("? " . unregistered)))
 	(translated nil)
 	(result nil))
