@@ -855,6 +855,7 @@ state."
             ((string-match "Needs Merge" status)                  'needs-merge)
             ((string-match "Needs \\(Checkout\\|Patch\\)" status) 'needs-patch)
             ((string-match "Locally Added" status)                'added)
+            ((string-match "Locally Removed" status)              'removed)
             (t 'edited))))))))
 
 (defun vc-cvs-dir-state-heuristic (dir)
@@ -916,6 +917,7 @@ state."
 		   ((string-match "Needs \\(Checkout\\|Patch\\)" status-str)
 		    'needs-patch)
 		   ((string-match "Locally Added" status-str) 'added)
+		   ((string-match "Locally Removed" status-str) 'removed)
 		   (t 'edited)))
 	    (unless (eq status 'up-to-date)
 	      (push (cons file status) result))))))

@@ -1,5 +1,8 @@
 2008-03-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-cvs.el (vc-cvs-after-dir-status, vc-cvs-parse-status): Detect
+	removed files.
+
 	* vc.el (vc-status-printer): Use a different face for missing files.
 	(vc-status-hide-up-to-date): Rename from
 	vc-status-remove-up-to-date.  Update all callers.
