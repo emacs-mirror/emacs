@@ -1,3 +1,10 @@
+2008-03-24  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el (vc-git-after-dir-status-stage1): Move state matching
+	code ...
+	(vc-git--state-code): ... to this new function.
+	(vc-git-state): Use it.
+
 2008-03-24  Trent Buck  <trentbuck@gmail.com>  (tiny change)
 
 	* textmodes/remember.el (remember-mail-date)

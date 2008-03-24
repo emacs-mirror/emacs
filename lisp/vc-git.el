@@ -141,14 +141,23 @@
 		    (string= (substring str 0 (1+ (length name)))
                              (concat name "\0")))))))))
 
+(defun vc-git--state-code (code)
+  "Convert from a string to a added/deleted/modified state."
+  (case (string-to-char code)
+    (?M 'edited)
+    (?A 'added)
+    (?D 'removed)
+    (?U 'edited)     ;; FIXME
+    (?T 'edited)))   ;; FIXME
+
 (defun vc-git-state (file)
   "Git-specific version of `vc-state'."
   ;; FIXME: This can't set 'ignored yet
   (vc-git--call nil "add" "--refresh" "--" (file-relative-name file))
   (let ((diff (vc-git--run-command-string file "diff-index" "-z" "HEAD" "--")))
-    (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMU]\\)\0[^\0]+\0"
+    (if (and diff (string-match ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0[^\0]+\0"
                                 diff))
-	(if (string= (match-string 1 diff) "A") 'added 'edited)
+        (vc-git--state-code (match-string 1 diff))
       (if (vc-git--empty-db-p) 'added 'up-to-date))))
 
 (defun vc-git--ls-files-state (state &rest args)
@@ -216,12 +225,7 @@
 	  ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0\\([^\0]+\\)\0"
 	  nil t 1)
     (let ((filename (match-string 2))
-	  (status (case (string-to-char( match-string 1))
-		    (?M 'edited)
-		    (?A 'added)
-		    (?D 'removed)
-		    (?U 'edited)      ;; FIXME
-		    (?T 'edited))))   ;; FIXME
+	  (status (vc-git--state-code (match-string 1))))
       (push (cons filename status) vc-git-status-result)))
   (erase-buffer)
   (vc-git-command (current-buffer) 'async nil "ls-files" "-z" "-o"
