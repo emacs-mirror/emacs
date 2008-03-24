@@ -168,7 +168,10 @@
 		       ((= type 11)
 			(format "mouse-%d" (- xterm-mouse-last 7)))
 		       ((= type 3)
-			(format "mouse-%d" (+ 1 xterm-mouse-last)))
+			;; For buttons > 5 xterm only reports a
+			;; button-release event.  Avoid error by mapping
+			;; them all to mouse-1.
+			(format "mouse-%d" (+ 1 (or xterm-mouse-last 0))))
 		       (t
 			(setq xterm-mouse-last type)
 			(format "down-mouse-%d" (+ 1 type))))))
