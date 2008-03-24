@@ -3376,7 +3376,8 @@ prefix, and don't delete any headers."
     (nreverse buffers)))
 
 (defun message-cite-original-without-signature ()
-  "Cite function in the standard Message manner."
+  "Cite function in the standard Message manner.
+This function strips off the signature from the original message."
   (let* ((start (point))
 	 (end (mark t))
 	 (functions

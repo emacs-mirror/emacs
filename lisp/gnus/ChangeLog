@@ -1,3 +1,8 @@
+2008-03-24  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-cite-original-without-signature): Mention
+	stripping of the signatur in doc string.
+
 2008-03-19  Nils Ackermann  <nils@ackermath.info>  (tiny change)
 
 	* nnmh.el (nnmh-request-expire-articles): Prefer expiry-target group
