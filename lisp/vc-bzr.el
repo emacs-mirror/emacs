@@ -396,22 +396,19 @@ EDITABLE is ignored."
   (vc-setup-buffer buffer)
   ;; If the buffer exists from a previous invocation it might be
   ;; read-only.
-  (let ((inhibit-read-only t))
     ;; FIXME: `vc-bzr-command' runs `bzr log' with `LC_MESSAGES=C', so
     ;; the log display may not what the user wants - but I see no other
     ;; way of getting the above regexps working.
     (dolist (file files)
+    (vc-exec-after
+     `(let ((inhibit-read-only t))
       (with-current-buffer buffer
 	;; Insert the file name so that log-view.el can find it.
-	(insert "Working file: " file "\n")) ;; Like RCS/CVS.
-      (apply 'vc-bzr-command "log" buffer 0 file
-	     (if (stringp vc-bzr-log-switches)
+          (insert "Working file: " ',file "\n")) ;; Like RCS/CVS.
+        (apply 'vc-bzr-command "log" ',buffer 'async ',file
+               ',(if (stringp vc-bzr-log-switches)
 		 (list vc-bzr-log-switches)
-	       vc-bzr-log-switches))))
-  ;; FIXME: Until Emacs-23, VC was missing a hook to sort out the mode for
-  ;; the buffer, or at least set the regexps right.
-  (unless (fboundp 'vc-default-log-view-mode)
-    (add-hook 'log-view-mode-hook 'vc-bzr-log-view-mode)))
+                   vc-bzr-log-switches))))))
 
 (defun vc-bzr-show-log-entry (revision)
   "Find entry for patch name REVISION in bzr change log buffer."
@@ -429,7 +426,7 @@ EDITABLE is ignored."
 (defun vc-bzr-diff (files &optional rev1 rev2 buffer)
   "VC bzr backend for diff."
   ;; `bzr diff' exits with code 1 if diff is non-empty.
-  (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*") 1 files
+  (apply #'vc-bzr-command "diff" (or buffer "*vc-diff*") 'async files
          "--diff-options" (mapconcat 'identity 
                                      (vc-diff-switches-list bzr)
 				     " ")

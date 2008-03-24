@@ -1,3 +1,7 @@
+2008-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-print-log, vc-bzr-diff): Do it asynchronously.
+
 2008-03-22  Drew Adams  <drew.adams@oracle.com>
 
 	* finder.el (finder-mode-syntax-table, finder-font-lock-keywords):
