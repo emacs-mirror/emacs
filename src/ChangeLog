@@ -1,6 +1,13 @@
+2008-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* casefiddle.c (casify_object): Avoid pathological N^2 worst case if
+	every char is changed and has a different byte-length.
+	(Fupcase_word, Fdowncase_word, Fcapitalize_word, operate_on_word):
+	Fix int -> EMACS_INT.
+
 2008-03-23  David Hansen  <david.hansen@gmx.net>  (tiny change)
 
-	* dbusbind.c (xd_read_message): Removed extra copying of message
+	* dbusbind.c (xd_read_message): Remove extra copying of message
 	strings.  Check for NULL `interface' or `member'.
 
 2008-03-22  Eli Zaretskii  <eliz@gnu.org>

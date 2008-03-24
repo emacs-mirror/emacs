@@ -75,23 +75,18 @@ casify_object (flag, obj)
       return obj;
     }
 
-  if (STRINGP (obj))
+  if (!STRINGP (obj))
+    wrong_type_argument (Qchar_or_string_p, obj);
+  else if (!STRING_MULTIBYTE (obj))
     {
-      int multibyte = STRING_MULTIBYTE (obj);
-      int i, i_byte, len;
-      int size = SCHARS (obj);
+      EMACS_INT i;
+      EMACS_INT size = SCHARS (obj);
 
       obj = Fcopy_sequence (obj);
-      for (i = i_byte = 0; i < size; i++, i_byte += len)
+      for (i = 0; i < size; i++)
 	{
-	  if (multibyte)
-	    c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, 0, len);
-	  else
-	    {
-	      c = SREF (obj, i_byte);
-	      len = 1;
+	  c = SREF (obj, i);
 	      MAKE_CHAR_MULTIBYTE (c);
-	    }
 	  c1 = c;
 	  if (inword && flag != CASE_CAPITALIZE_UP)
 	    c = DOWNCASE (c);
@@ -102,24 +97,52 @@ casify_object (flag, obj)
 	    inword = (SYNTAX (c) == Sword);
 	  if (c != c1)
 	    {
-	      if (! multibyte)
-		{
 		  MAKE_CHAR_UNIBYTE (c);
-		  SSET (obj, i_byte, c);
-		}
-	      else if (ASCII_CHAR_P (c1) && ASCII_CHAR_P (c))
-		SSET (obj, i_byte,  c);
-	      else
-		{
-		  Faset (obj, make_number (i), make_number (c));
-		  i_byte += CHAR_BYTES (c) - len;
-		}
+	      /* If the char can't be converted to a valid byte, just don't
+		 change it.  */
+	      if (c >= 0 && c < 256)
+		SSET (obj, i, c);
 	    }
 	}
       return obj;
-    }
+		}
+	      else
+		{
+      EMACS_INT i, i_byte, len;
+      EMACS_INT size = SCHARS (obj);
+      USE_SAFE_ALLOCA;
+      unsigned char *dst, *o;
+      /* Over-allocate by 12%: this is a minor overhead, but should be
+	 sufficient in 99.999% of the cases to avoid a reallocation.  */
+      EMACS_INT o_size = SBYTES (obj) + SBYTES (obj) / 8 + MAX_MULTIBYTE_LENGTH;
+      SAFE_ALLOCA (dst, void *, o_size);
+      o = dst;
 
-  wrong_type_argument (Qchar_or_string_p, obj);
+      for (i = i_byte = 0; i < size; i++, i_byte += len)
+	{
+	  if ((o - dst) + MAX_MULTIBYTE_LENGTH > o_size)
+	    { /* Not enough space for the next char: grow the destination.  */
+	      unsigned char *old_dst = dst;
+	      o_size += o_size;	/* Probably overkill, but extremely rare.  */
+	      SAFE_ALLOCA (dst, void *, o_size);
+	      bcopy (old_dst, dst, o - old_dst);
+	      o = dst + (o - old_dst);
+	    }
+	  c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i_byte, 0, len);
+	  if (inword && flag != CASE_CAPITALIZE_UP)
+	    c = DOWNCASE (c);
+	  else if (!UPPERCASEP (c)
+		   && (!inword || flag != CASE_CAPITALIZE_UP))
+	    c = UPCASE1 (c);
+	  if ((int) flag >= (int) CASE_CAPITALIZE)
+	    inword = (SYNTAX (c) == Sword);
+	  o += CHAR_STRING (c, o);
+	}
+      eassert (o - dst <= o_size);
+      obj = make_multibyte_string (dst, size, o - dst);
+      SAFE_FREE ();
+      return obj;
+    }
 }
 
 DEFUN ("upcase", Fupcase, Supcase, 1, 1, 0,
@@ -329,10 +352,10 @@ character positions to operate on.  */)
   return Qnil;
 }
 
-Lisp_Object
+static Lisp_Object
 operate_on_word (arg, newpoint)
      Lisp_Object arg;
-     int *newpoint;
+     EMACS_INT *newpoint;
 {
   Lisp_Object val;
   int farend;
@@ -358,7 +381,7 @@ See also `capitalize-word'.  */)
      Lisp_Object arg;
 {
   Lisp_Object beg, end;
-  int newpoint;
+  EMACS_INT newpoint;
   XSETFASTINT (beg, PT);
   end = operate_on_word (arg, &newpoint);
   casify_region (CASE_UP, beg, end);
@@ -373,7 +396,7 @@ With negative argument, convert previous words but do not move.  */)
      Lisp_Object arg;
 {
   Lisp_Object beg, end;
-  int newpoint;
+  EMACS_INT newpoint;
   XSETFASTINT (beg, PT);
   end = operate_on_word (arg, &newpoint);
   casify_region (CASE_DOWN, beg, end);
@@ -390,7 +413,7 @@ With negative argument, capitalize previous words but do not move.  */)
      Lisp_Object arg;
 {
   Lisp_Object beg, end;
-  int newpoint;
+  EMACS_INT newpoint;
   XSETFASTINT (beg, PT);
   end = operate_on_word (arg, &newpoint);
   casify_region (CASE_CAPITALIZE, beg, end);
