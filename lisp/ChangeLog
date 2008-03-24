@@ -1,3 +1,11 @@
+2008-03-22  Drew Adams  <drew.adams@oracle.com>
+
+	* finder.el (finder-mode-syntax-table, finder-font-lock-keywords):
+	New variables.
+	(finder-mode): Use finder-mode-syntax-table.  Set font-lock-defaults.
+	(finder-exit): Ignore errors rather than avoiding them.
+	Kill *Finder-package* buffer also.
+
 2008-03-24  Andreas Schwab  <schwab@suse.de>
 
 	* xt-mouse.el (xterm-mouse-event): Avoid error with buttons > 5.
@@ -7,8 +15,8 @@
 	* vc-hg.el (vc-hg-after-dir-status):
 	* vc-bzr.el (vc-bzr-after-dir-status): Detect missing files.
 
-	* vc-cvs.el (vc-cvs-after-dir-status, vc-cvs-parse-status): Detect
-	removed files.
+	* vc-cvs.el (vc-cvs-after-dir-status, vc-cvs-parse-status):
+	Detect removed files.
 
 	* vc.el (vc-status-printer): Use a different face for missing files.
 	(vc-status-hide-up-to-date): Rename from

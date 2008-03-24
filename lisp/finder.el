@@ -110,6 +110,16 @@
     (define-key map "d"	'finder-list-keywords)
     map))
 
+(defvar finder-mode-syntax-table
+  (let ((st (make-syntax-table emacs-lisp-mode-syntax-table)))
+    (modify-syntax-entry ?\; ".   " st)
+    st)
+  "Syntax table used while in `finder-mode'.")
+
+(defvar finder-font-lock-keywords
+  '(("`\\([^']+\\)'" 1 font-lock-constant-face prepend))
+  "Font-lock keywords for Finder mode.")
+
 
 ;;; Code for regenerating the keyword list.
 
@@ -343,7 +353,9 @@ FILE should be in a form suitable for passing to `locate-library'."
   (interactive)
   (kill-all-local-variables)
   (use-local-map finder-mode-map)
-  (set-syntax-table emacs-lisp-mode-syntax-table)
+  (set-syntax-table finder-mode-syntax-table)
+  (setq font-lock-defaults '(finder-font-lock-keywords nil nil
+                             (("+-*/.<>=!?$%_&~^:@" . "w")) nil))
   (setq mode-name "Finder")
   (setq major-mode 'finder-mode)
   (set (make-local-variable 'finder-headmark) nil)
@@ -359,15 +371,13 @@ FILE should be in a form suitable for passing to `locate-library'."
 finder directory, \\[finder-exit] = quit, \\[finder-summary] = help")))
 
 (defun finder-exit ()
-  "Exit Finder mode and kill the buffer."
+  "Exit Finder mode.
+Delete the window and kill the buffer."
   (interactive)
-  (or (one-window-p t)
-      (delete-window))
-  ;; Can happen in either buffer -- kill each of the two that exists
-  (and (get-buffer "*Finder*")
-       (kill-buffer "*Finder*"))
-  (and (get-buffer "*Finder Category*")
-       (kill-buffer "*Finder Category*")))
+  (condition-case nil (delete-window) (error nil))
+  (when (get-buffer "*Finder*") (kill-buffer "*Finder*"))
+  (when (get-buffer "*Finder-package*") (kill-buffer "*Finder-package*"))
+  (when (get-buffer "*Finder Category*") (kill-buffer "*Finder Category*")))
 
 
 (provide 'finder)
