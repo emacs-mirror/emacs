@@ -1,3 +1,9 @@
+2008-03-24  Trent Buck  <trentbuck@gmail.com>  (tiny change)
+
+	* textmodes/remember.el (remember-mail-date)
+	(remember-store-in-mailbox): Write date and From line in such a
+	way that Mutt can read it.
+
 2008-03-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (transient-mark-mode): Turn on by default.
