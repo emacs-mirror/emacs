@@ -329,7 +329,7 @@ With a prefix or a visible region, use the region as INITIAL."
   "Return a simple date.  Nothing fancy."
   (if rfc822-p
       (format-time-string "%a, %e %b %Y %T %z" (current-time))
-    (format-time-string "%c" (current-time))))
+    (format-time-string "%a %b %e %T %Y" (current-time))))
 
 (defun remember-buffer-desc ()
   "Using the first line of the current buffer, create a short description."
@@ -364,8 +364,7 @@ field, for the purpose of appropriate splitting."
         (desc (remember-buffer-desc))
         (text (buffer-string)))
     (with-temp-buffer
-      (insert (format "
-From %s  %s
+      (insert (format "From %s  %s
 Date: %s
 From: %s
 Message-Id: <remember-%s@%s>
