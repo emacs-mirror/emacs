@@ -1,3 +1,7 @@
+2008-03-25  Johan Bockgård  <bojohan@gnu.org>
+
+	* info.el (Info-isearch-search): Always return point.
+
 2008-03-23  Andreas Schwab  <schwab@suse.de>
 
 	* menu-bar.el (menu-bar-showhide-fringe-ind-menu) [mixed]: Fix

@@ -1829,8 +1829,8 @@ If DIRECTION is `backward', search in the reverse direction."
 			 (unless isearch-forward 'backward))
 	  (Info-search (if isearch-regexp string (regexp-quote string))
 		       bound noerror count
-		       (unless isearch-forward 'backward))
-	  (point)))
+		       (unless isearch-forward 'backward)))
+	(point))
     (let ((isearch-search-fun-function nil))
       (isearch-search-fun))))
 
