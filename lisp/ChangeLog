@@ -1,3 +1,12 @@
+2008-03-25  Juri Linkov  <juri@jurta.org>
+
+	* battery.el: Add file cookie coding:iso-8859-1 for the degree sign
+	in battery-mode-line-format.
+
+	* bindings.el (minibuffer-local-map): For the command
+	file-cache-minibuffer-complete replace keymap minibuffer-local-map
+	with map which is already locally bound to minibuffer-local-map.
+
 2008-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (map-keymap-sorted): Rename from map-keymap-internal.
