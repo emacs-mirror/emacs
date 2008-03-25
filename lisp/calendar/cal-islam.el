@@ -141,8 +141,9 @@ Driven by the variable `calendar-date-display-form'."
         (message "Date is pre-Islamic")
       (message "Islamic date (until sunset): %s" i))))
 
-(defun calendar-islamic-prompt-for-date ()
-  "Ask for an Islamic date."
+(defun calendar-islamic-read-date ()
+  "Interactively read the arguments for an Islamic date command.
+Reads a year, month, and day."
   (let* ((today (calendar-current-date))
          (year (calendar-read
                 "Islamic calendar year (>0): "
@@ -168,7 +169,7 @@ Driven by the variable `calendar-date-display-form'."
 ;;;###cal-autoload
 (defun calendar-goto-islamic-date (date &optional noecho)
   "Move cursor to Islamic DATE; echo Islamic date unless NOECHO is non-nil."
-  (interactive (calendar-islamic-prompt-for-date))
+  (interactive (calendar-islamic-read-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-islamic date)))
   (or noecho (calendar-print-islamic-date)))
