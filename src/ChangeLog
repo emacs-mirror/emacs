@@ -1,5 +1,10 @@
 2008-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keymap.c (map_keymap_internal): New fun.
+	(map_keymap): Use it.
+	(Fmap_keymap_internal): New fun.
+	(Fmap_keymap): Remove left-out test from before make_save_value.
+
 	* keymap.c (Fmap_keymap): Use `map-keymap-sorted.
 
 	* frame.c (Fmodify_frame_parameters, x_set_frame_parameters):
