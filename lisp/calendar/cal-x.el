@@ -122,7 +122,7 @@ If PROMPT is non-nil, prompt for the month and year to use."
     (unless (eq config 'calendar-only)
       (if (frame-live-p diary-frame) (delete-frame diary-frame)))
     (let ((view-diary-entries-initially (eq config 'one-frame))
-          ;; For final calendar-dedicate-diary in two-frames case.
+          ;; For calendar-dedicate-diary in two-frames case.
           (pop-up-windows nil))
       (save-window-excursion
         ;; Do diary first so that calendar is always left current.
@@ -158,8 +158,8 @@ See `calendar-frame-setup' for more information."
 See `calendar-frame-setup' for more information."
   (calendar-frame-setup 'calendar-only prompt))
 
-
 (make-obsolete 'calendar-only-one-frame-setup 'calendar-frame-setup "23.1")
+
 
 ;;;###cal-autoload
 (defun calendar-two-frame-setup (&optional prompt)
