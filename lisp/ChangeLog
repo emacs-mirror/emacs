@@ -1,8 +1,47 @@
+2008-03-25  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-bahai.el (calendar-bahai-read-date): New name for
+	calendar-bahai-prompt-for-date.  Update callers, make old name an
+	obsolete alias.  Doc fix.
+	* calendar/cal-coptic.el (calendar-coptic-read-date): New name for
+	coptic-prompt-for-date.  Update callers, make old name an
+	obsolete alias.  Doc fix.
+	* calendar/cal-hebrew.el (calendar-hebrew-read-date): New name for
+	calendar-hebrew-prompt-for-date.  Update callers.  Doc fix.
+	* calendar/cal-islam.el (calendar-islamic-read-date): New name for
+	calendar-islamic-prompt-for-date.  Update callers.  Doc fix.
+	* calendar/cal-iso.el (calendar-iso-read-date): New name for
+	calendar-iso-read-args.  Update callers, make old name an obsolete
+	alias.
+	* calendar/cal-persia.el (calendar-persian-read-date): New name for
+	persian-prompt-for-date.  Update callers, make old name an
+	obsolete alias.  Doc fix.  Move definition before use.
+
+	* calendar/cal-x.el (diary-frame-parameters)
+	(calendar-frame-parameters, calendar-and-diary-frame-parameters):
+	Doc fixes.
+	(make-fancy-diary-buffer): Remove declaration.
+	(calendar-dedicate-diary): Replace call to deleted function
+	make-fancy-diary-buffer.
+	(calendar-frame-setup): New function.
+	(calendar-one-frame-setup, calendar-only-one-frame-setup)
+	(calendar-two-frame-setup): Call calendar-frame-setup to do the actual
+	work, and mark as obsolete.
+	(special-display-buffer-names): Don't mess with this; it's not our
+	business.
+	(cal-x-load-hook): Defvar it, and mark as obsolete.
+
+	* calendar/calendar.el (calendar-remove-frame-by-deleting):
+	Default to t.  Add to 'calendar group.
+	(calendar): Doc fix.  Use calendar-frame-setup.
+	(calendar-basic-setup): Doc fix.  Add optional NODISPLAY argument.
+	(generate-calendar-window): Doc fix.
+
 2008-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-print-log, vc-bzr-diff): Do it asynchronously.
 
-2008-03-22  Drew Adams  <drew.adams@oracle.com>
+2008-03-24  Drew Adams  <drew.adams@oracle.com>
 
 	* finder.el (finder-mode-syntax-table, finder-font-lock-keywords):
 	New variables.
