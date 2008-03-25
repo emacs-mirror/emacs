@@ -159,17 +159,9 @@ Gregorian date Sunday, December 31, 1 BC."
   (message "Persian date: %s"
            (calendar-persian-date-string (calendar-cursor-to-date t))))
 
-;;;###cal-autoload
-(defun calendar-goto-persian-date (date &optional noecho)
-  "Move cursor to Persian date DATE.
-Echo Persian date unless NOECHO is non-nil."
-  (interactive (persian-prompt-for-date))
-  (calendar-goto-date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-persian date)))
-  (or noecho (calendar-print-persian-date)))
-
-(defun persian-prompt-for-date ()
-  "Ask for a Persian date."
+(defun calendar-persian-read-date ()
+  "Interactively read the arguments for a Persian date command.
+Reads a year, month, and day."
   (let* ((year (calendar-read
                 "Persian calendar year (not 0): "
                 (lambda (x) (not (zerop x)))
@@ -192,6 +184,18 @@ Echo Persian date unless NOECHO is non-nil."
                (format "Persian calendar day (1-%d): " last)
                (lambda (x) (and (< 0 x) (<= x last))))))
     (list (list month day year))))
+
+(define-obsolete-function-alias
+  'persian-prompt-for-date 'calendar-persian-read-date "23.1")
+
+;;;###cal-autoload
+(defun calendar-goto-persian-date (date &optional noecho)
+  "Move cursor to Persian date DATE.
+Echo Persian date unless NOECHO is non-nil."
+  (interactive (calendar-persian-read-date))
+  (calendar-goto-date (calendar-gregorian-from-absolute
+                       (calendar-absolute-from-persian date)))
+  (or noecho (calendar-print-persian-date)))
 
 (defvar date)
 
