@@ -154,8 +154,9 @@ Defaults to today's date if DATE is not given."
 (define-obsolete-function-alias
   'calendar-print-bahai-date 'calendar-bahai-print-date "23.1")
 
-(defun calendar-bahai-prompt-for-date ()
-  "Ask for a Bahá'í date."
+(defun calendar-bahai-read-date ()
+ "Interactively read the arguments for a Bahá'í date command.
+Reads a year, month and day."
   (let* ((today (calendar-current-date))
          (year (calendar-read
                 "Bahá'í calendar year (not 0): "
@@ -177,10 +178,13 @@ Defaults to today's date if DATE is not given."
                              (lambda (x) (and (< 0 x) (<= x 19))))))
     (list (list month day year))))
 
+(define-obsolete-function-alias
+  'calendar-bahai-prompt-for-date 'calendar-bahai-read-date "23.1")
+
 ;;;###cal-autoload
 (defun calendar-bahai-goto-date (date &optional noecho)
   "Move cursor to Bahá'í date DATE; echo Bahá'í date unless NOECHO is non-nil."
-  (interactive (calendar-bahai-prompt-for-date))
+  (interactive (calendar-bahai-read-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-bahai date)))
   (or noecho (calendar-bahai-print-date)))
