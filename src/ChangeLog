@@ -1,5 +1,15 @@
 2008-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* process.h (struct Lisp_Process): Remove filter_multibyte.
+	* process.c (QCfilter_multibyte): Remove.
+	(setup_process_coding_systems): Don't use filter_multibyte.
+	(Fstart_process, Fmake_network_process): Don't set filter_multibyte.
+	(read_process_output): Don't adjust multibyteness to filter_multibyte.
+	(Fset_process_filter_multibyte): Change the coding-system to
+	approximate the previous behavior.
+	(Fprocess_filter_multibyte_p): Get the multibyteness straight from the
+	coding-system.
+
 	* coding.c (decode_coding_object): When not decoding into a buffer,
 	obey the coding system's preference of (uni|multi)byte.
 
