@@ -1219,7 +1219,7 @@
 	 char-equal char-to-string char-width
 	 compare-strings concat coordinates-in-window-p
 	 copy-alist copy-sequence copy-marker cos count-lines
-	 decdoe-char
+	 decode-char
 	 decode-time default-boundp default-value documentation downcase
 	 elt encode-char exp expt encode-time error-message-string
 	 fboundp fceiling featurep ffloor
