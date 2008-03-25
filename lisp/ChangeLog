@@ -1,5 +1,8 @@
 2008-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (map-keymap-sorted): Rename from map-keymap-internal.
+	Remove `sort-first' argument.
+
 	* subr.el (redisplay-end-trigger-functions)
 	(window-redisplay-end-trigger, set-window-redisplay-end-trigger)
 	(process-filter-multibyte-p, set-process-filter-multibyte):

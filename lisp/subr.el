@@ -532,25 +532,23 @@ The order of bindings in a keymap matters when it is used as a menu."
 	    (setq inserted t)))
       (setq tail (cdr tail)))))
 
-(defun map-keymap-internal (function keymap &optional sort-first)
+(defun map-keymap-sorted (function keymap)
   "Implement `map-keymap' with sorting.
 Don't call this function; it is for internal use only."
-  (if sort-first
-      (let (list)
-	(map-keymap (lambda (a b) (push (cons a b) list))
-		    keymap)
-	(setq list (sort list
-			 (lambda (a b)
-			   (setq a (car a) b (car b))
-			   (if (integerp a)
-			       (if (integerp b) (< a b)
-				 t)
-			     (if (integerp b) t
-                               ;; string< also accepts symbols.
-			       (string< a b))))))
-	(dolist (p list)
-	  (funcall function (car p) (cdr p))))
-    (map-keymap function keymap)))
+  (let (list)
+    (map-keymap (lambda (a b) (push (cons a b) list))
+                keymap)
+    (setq list (sort list
+                     (lambda (a b)
+                       (setq a (car a) b (car b))
+                       (if (integerp a)
+                           (if (integerp b) (< a b)
+                             t)
+                         (if (integerp b) t
+                           ;; string< also accepts symbols.
+                           (string< a b))))))
+    (dolist (p list)
+      (funcall function (car p) (cdr p)))))
 
 (put 'keyboard-translate-table 'char-table-extra-slots 0)
 

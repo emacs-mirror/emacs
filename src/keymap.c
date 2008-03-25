@@ -735,7 +735,7 @@ usage: (map-keymap FUNCTION KEYMAP)  */)
        significance.  */
     xsignal1 (Qinvalid_function, function);
   if (! NILP (sort_first))
-    return call3 (intern ("map-keymap-internal"), function, keymap, Qt);
+    return call2 (intern ("map-keymap-sorted"), function, keymap);
 
   map_keymap (keymap, map_keymap_call, function, NULL, 1);
   return Qnil;

@@ -1,5 +1,7 @@
 2008-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keymap.c (Fmap_keymap): Use `map-keymap-sorted.
+
 	* frame.c (Fmodify_frame_parameters, x_set_frame_parameters):
 	Use XCAR/XCDR.
 
