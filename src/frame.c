@@ -2573,11 +2573,11 @@ enabled such bindings for that variable with `make-variable-frame-local'.  */)
       /* Extract parm names and values into those vectors.  */
 
       i = 0;
-      for (tail = alist; CONSP (tail); tail = Fcdr (tail))
+      for (tail = alist; CONSP (tail); tail = XCDR (tail))
 	{
 	  Lisp_Object elt;
 
-	  elt = Fcar (tail);
+	  elt = XCAR (tail);
 	  parms[i] = Fcar (elt);
 	  values[i] = Fcdr (elt);
 	  i++;
@@ -2956,11 +2956,11 @@ x_set_frame_parameters (f, alist)
   /* Extract parm names and values into those vectors.  */
 
   i = 0;
-  for (tail = alist; CONSP (tail); tail = Fcdr (tail))
+  for (tail = alist; CONSP (tail); tail = XCDR (tail))
     {
       Lisp_Object elt;
 
-      elt = Fcar (tail);
+      elt = XCAR (tail);
       parms[i] = Fcar (elt);
       values[i] = Fcdr (elt);
       i++;

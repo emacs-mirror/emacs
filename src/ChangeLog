@@ -1,5 +1,8 @@
 2008-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* frame.c (Fmodify_frame_parameters, x_set_frame_parameters):
+	Use XCAR/XCDR.
+
 	* process.h (struct Lisp_Process): Remove filter_multibyte.
 	* process.c (QCfilter_multibyte): Remove.
 	(setup_process_coding_systems): Don't use filter_multibyte.
