@@ -777,7 +777,7 @@ language you are using."
   ;; indent-for-tab-command).  The alignment that indent-relative tries to
   ;; do doesn't make much sense here since the prompt messes it up.
   (define-key map "\t"    'self-insert-command)
-  (define-key minibuffer-local-map [C-tab] 'file-cache-minibuffer-complete))
+  (define-key map [C-tab] 'file-cache-minibuffer-complete))
 
 (define-key global-map "\C-u" 'universal-argument)
 (let ((i ?0))
