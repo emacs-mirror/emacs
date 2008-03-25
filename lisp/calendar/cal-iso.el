@@ -94,7 +94,7 @@ date Sunday, December 31, 1 BC."
   (message "ISO date: %s"
            (calendar-iso-date-string (calendar-cursor-to-date t))))
 
-(defun calendar-iso-read-args (&optional dayflag)
+(defun calendar-iso-read-date (&optional dayflag)
   "Interactively read the arguments for an ISO date command.
 Reads a year and week, and if DAYFLAG is non-nil a day (otherwise
 taken to be 1)."
@@ -118,10 +118,13 @@ taken to be 1)."
                 1)))
     (list (list week day year))))
 
+(define-obsolete-function-alias
+  'calendar-iso-read-args 'calendar-iso-read-date "23.1")
+
 ;;;###cal-autoload
 (defun calendar-goto-iso-date (date &optional noecho)
   "Move cursor to ISO DATE; echo ISO date unless NOECHO is non-nil."
-  (interactive (calendar-iso-read-args t))
+  (interactive (calendar-iso-read-date t))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-iso date)))
   (or noecho (calendar-print-iso-date)))
@@ -130,7 +133,7 @@ taken to be 1)."
 (defun calendar-goto-iso-week (date &optional noecho)
   "Move cursor to ISO DATE; echo ISO date unless NOECHO is non-nil.
 Interactively, goes to the first day of the specified week."
-  (interactive (calendar-iso-read-args))
+  (interactive (calendar-iso-read-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-iso date)))
   (or noecho (calendar-print-iso-date)))
