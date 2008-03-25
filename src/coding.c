@@ -7033,7 +7033,7 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
       coding->dst_object = code_conversion_save (1, 1);
       coding->dst_pos = BEG;
       coding->dst_pos_byte = BEG_BYTE;
-      coding->dst_multibyte = 1;
+      coding->dst_multibyte = !CODING_FOR_UNIBYTE (coding);
     }
   else if (BUFFERP (dst_object))
     {
@@ -7048,7 +7048,7 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
     {
       code_conversion_save (0, 0);
       coding->dst_object = Qnil;
-      coding->dst_multibyte = 1;
+      coding->dst_multibyte = !CODING_FOR_UNIBYTE (coding);
     }
 
   decode_coding (coding);

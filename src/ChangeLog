@@ -1,3 +1,8 @@
+2008-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* coding.c (decode_coding_object): When not decoding into a buffer,
+	obey the coding system's preference of (uni|multi)byte.
+
 2008-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* casefiddle.c (casify_object): Avoid pathological N^2 worst case if
