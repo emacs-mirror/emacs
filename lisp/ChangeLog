@@ -1,3 +1,10 @@
+2008-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (redisplay-end-trigger-functions)
+	(window-redisplay-end-trigger, set-window-redisplay-end-trigger)
+	(process-filter-multibyte-p, set-process-filter-multibyte):
+	Mark as obsolete.
+
 2008-03-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/re-builder.el (reb-mode-common): Remove reference to

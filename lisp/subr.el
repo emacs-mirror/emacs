@@ -988,6 +988,13 @@ is converted into a string by expressing it in decimal."
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
+(make-obsolete-variable 'redisplay-end-trigger-functions 'jit-lock-register "23.1")
+(make-obsolete 'window-redisplay-end-trigger nil "23.1")
+(make-obsolete 'set-window-redisplay-end-trigger nil "23.1")
+
+(make-obsolete 'process-filter-multibyte-p nil "23.1")
+(make-obsolete 'set-process-filter-multibyte nil "23.1")
+
 (make-obsolete-variable 'directory-sep-char "do not use it." "21.1")
 (make-obsolete-variable
  'mode-line-inverse-video
