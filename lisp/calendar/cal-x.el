@@ -83,7 +83,7 @@ Can be used to change frame parameters, such as font, color, location, etc."
   "Frame in which the diary was last displayed.")
 
 (defun calendar-frame-1 (frame)
-  "Subroutine used by `calendar-one-frame-setup' etc."
+  "Subroutine used by `calendar-frame-setup'."
   (run-hooks 'calendar-after-frame-setup-hooks)
   (select-frame frame)
   (if (eq 'icon (cdr (assoc 'visibility (frame-parameters frame))))
