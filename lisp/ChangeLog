@@ -1,3 +1,19 @@
+2008-03-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/re-builder.el (reb-mode-common): Remove reference to
+	bogus variable `reb-kill-buffer'; don't make hooks buffer-local,
+	use the LOCAL arg of `add-hook'.
+	(reb-blink-delay, reb-mode-hook, reb-re-syntax, reb-auto-match-limit):
+	Remove spurious * from defcustom docstrings.
+	(reb-next-match, reb-prev-match, reb-enter-subexp-mode):
+	Fix typos in messages.
+	(reb-mode-buffer-p): New function.
+	(re-builder, reb-kill-buffer): Use `reb-mode-buffer-p'.  Use `when'.
+	(top, reb-show-subexp, reb-auto-update, reb-auto-update)
+	(reb-delete-overlays, reb-cook-regexp, reb-update-regexp)
+	(reb-update-overlays): Use `unless', `when'.
+	(re-builder-unload-function): New function.
+
 2008-03-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hooks.el (vc-state): Add documentation for 'missing.
@@ -105,10 +121,6 @@
 
 	* simple.el (transient-mark-mode): Turn on by default.
 
-2008-03-23  Xavier Maillard  <xma@gnu.org>
-
-	* saveplace.el: fix a typo in the commentary section.
-
 2008-03-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-bzr.el (vc-bzr-state): Return 'removed for removed files and
@@ -122,10 +134,11 @@
 	subdirectories.
 
 	* vc.el (vc-status-prepare-status-buffer): Fix thinko.
-	(vc-status-menu-map): Add binding for
-	vc-status-kill-dir-status-process.  Add :enable for vc-status-refresh.
+	(vc-status-menu-map): Add binding for vc-status-kill-dir-status-process.
+	Add :enable for vc-status-refresh.
 	(vc-status-menu-map-filter): Remove vc-ignore-menu-filter test.
-	(vc-status-tool-bar-map): Add binding for vc-status-kill-dir-status-process.
+	(vc-status-tool-bar-map): Add binding for
+	vc-status-kill-dir-status-process.
 	Don't test display-graphic-p and don't bind vc-ignore-menu-filter.
 	(vc-update-vc-status-buffer, vc-status-kill-dir-status-process):
 	Reset vc-status-process-buffer.
@@ -133,14 +146,14 @@
 	(vc-status): If the buffer is already in vc-status-mode only refresh.
 	(vc-status-mark-buffer-changed): Add an optional file parameter.
 	(vc-resynch-buffer): Use it.
-	(vc-delete-file): Expand the file name before using it.  Be
-	careful to not create a new buffer with the old file contents.
+	(vc-delete-file): Expand the file name before using it.
+	Be careful to not create a new buffer with the old file contents.
 	Update the VC state after performing the operation.
 
 2008-03-23  Andreas Schwab  <schwab@suse.de>
 
-	* menu-bar.el (menu-bar-showhide-fringe-ind-menu) [mixed]: Fix
-	radio button condition.
+	* menu-bar.el (menu-bar-showhide-fringe-ind-menu) [mixed]:
+	Fix radio button condition.
 	[box]: Likewise.
 	[customize]: Add radio button.
 
