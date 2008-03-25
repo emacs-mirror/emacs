@@ -519,6 +519,9 @@ For registered files, the value returned is one of:
 
   'removed           Scheduled to be deleted from the repository on next commit.
 
+  'missing           The file is not present in the file system, but the VC 
+                     system still tracks it.
+
   'ignored           The file showed up in a dir-state listing with a flag
                      indicating the version-control system is ignoring it,
                      Note: This property is not set reliably (some VCSes
