@@ -672,6 +672,7 @@ data such as \"Index: ...\" and such."
 ;;;;
 
 (defvar diff-remembered-files-alist nil)
+(defvar diff-remembered-defdir nil)
 
 (defun diff-filename-drop-dir (file)
   (when (string-match "/" file) (substring file (match-end 0))))
@@ -745,6 +746,10 @@ Non-nil OLD means that we want the old file.
 Non-nil BATCH means to prefer returning an incorrect answer than to prompt
 the user.
 PREFIX is only used internally: don't use it."
+  (unless (equal diff-remembered-defdir default-directory)
+    ;; Flush diff-remembered-files-alist if the default-directory is changed.
+    (set (make-local-variable 'diff-remembered-defdir) default-directory)
+    (set (make-local-variable 'diff-remembered-files-alist) nil))
   (save-excursion
     (unless (looking-at diff-file-header-re)
       (or (ignore-errors (diff-beginning-of-file))

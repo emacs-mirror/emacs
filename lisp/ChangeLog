@@ -1,3 +1,8 @@
+2008-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-remembered-defdir): New var.
+	(diff-find-file-name): Use it to flush diff-remembered-files-alist.
+
 2008-03-25  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-bahai.el (calendar-bahai-read-date): New name for
