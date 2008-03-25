@@ -1,3 +1,8 @@
+2008-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* processes.texi (Decoding Output): Remove process-filter-multibyte
+	functions.
+
 2008-03-15  Martin Rudalics  <rudalics@gmx.at>
 
 	* display.texi (Finding Overlays): Say that empty overlays at

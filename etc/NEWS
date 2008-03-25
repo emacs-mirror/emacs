@@ -600,6 +600,10 @@ for the list of extra keys that are available.
 
 * Incompatible Lisp Changes in Emacs 23.1
 
+** The multibyteness of process filters is determined by the coding-system
+used for decoding.  The functions `process-filter-multibyte-p' and
+`set-process-filter-multibyte' are obsolete.
+
 ** The behavior of map-char-table has changed.  It may call the
 specified function with a cons (FROM . TO) as a key if characters in
 that range have the same value.
