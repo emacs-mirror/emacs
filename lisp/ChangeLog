@@ -1,3 +1,7 @@
+2008-03-25  Johan Bockgård  <bojohan@gnu.org>
+
+	* info.el (Info-isearch-search): Always return point.
+
 2008-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* diff-mode.el (diff-remembered-defdir): New var.
