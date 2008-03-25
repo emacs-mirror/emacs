@@ -202,11 +202,13 @@ The marking symbol is specified by the variable `diary-entry-marker'."
   :type 'boolean
   :group 'diary)
 
-(defcustom calendar-remove-frame-by-deleting nil
+(defcustom calendar-remove-frame-by-deleting t
   "Determine how the calendar mode removes a frame no longer needed.
 If nil, make an icon of the frame.  If non-nil, delete the frame."
   :type 'boolean
-  :group 'view)
+  :version "23.1"                       ; changed from nil to t
+  :group 'view
+  :group 'calendar)
 
 (defface calendar-today
   '((t (:underline t)))
@@ -1340,57 +1342,52 @@ return negative results."
 
 ;;;###autoload
 (defun calendar (&optional arg)
-  "Choose between the one frame, two frame, or basic calendar displays.
-If called with an optional prefix argument ARG, prompts for month and year.
+  "Display a three-month Gregorian calendar.
+The three months appear side by side, with the current month in
+the middle surrounded by the previous and next months.  The
+cursor is put on today's date.  If optional prefix argument ARG
+is non-nil, prompts for the central month and year.
 
-The original function `calendar' has been renamed `calendar-basic-setup'.
-See the documentation of that function for more information."
+Once in the calendar window, future or past months can be moved
+into view.  Arbitrary months can be displayed, or the calendar
+can be scrolled forward or backward.  The cursor can be moved
+forward or backward by one day, one week, one month, or one year.
+All of these commands take prefix arguments which, when negative,
+cause movement in the opposite direction.  For convenience, the
+digit keys and the minus sign are automatically prefixes.  Use
+\\[describe-mode] for details of the key bindings in the calendar
+window.
+
+Displays the calendar in a separate window, or optionally in a
+separate frame, depending on the value of `calendar-setup'.
+
+If `view-diary-entries-initially' is non-nil, also displays the
+diary entries for the current date (or however many days
+`number-of-diary-entries' specifies).  This variable can be
+overridden by `calendar-setup'.  As well as being displayed,
+diary entries can also be marked on the calendar (see
+`mark-diary-entries-in-calendar').
+
+Runs the following hooks:
+
+`calendar-load-hook' - after loading calendar.el
+`today-visible-calendar-hook', `today-invisible-calendar-hook' - after
+   generating a calendar, if today's date is visible or not, respectively
+`initial-calendar-window-hook' - after first creating a calendar
+
+This function is suitable for execution in a .emacs file."
   (interactive "P")
-  (cond ((equal calendar-setup 'one-frame) (calendar-one-frame-setup arg))
-        ((equal calendar-setup 'two-frames) (calendar-two-frame-setup arg))
-        ((equal calendar-setup 'calendar-only)
-         (calendar-only-one-frame-setup arg))
-        (t (calendar-basic-setup arg))))
+  ;; Avoid loading cal-x unless it will be used.
+  (if (and (memq calendar-setup '(one-frame two-frames calendar-only))
+           (display-multi-frame-p))
+      (calendar-frame-setup calendar-setup arg)
+    (calendar-basic-setup arg)))
 
-(defun calendar-basic-setup (&optional arg)
-  "Display a three-month calendar in another window.
-The three months appear side by side, with the current month in the middle
-surrounded by the previous and next months.  The cursor is put on today's date.
-
-If called with an optional prefix argument ARG, prompts for month and year.
-
-This function is suitable for execution in a .emacs file; appropriate setting
-of the variable `view-diary-entries-initially' will cause the diary entries for
-the current date to be displayed in another window.  The value of the variable
-`number-of-diary-entries' controls the number of days of diary entries
-displayed upon initial display of the calendar.
-
-Once in the calendar window, future or past months can be moved into view.
-Arbitrary months can be displayed, or the calendar can be scrolled forward
-or backward.
-
-The cursor can be moved forward or backward by one day, one week, one month,
-or one year.  All of these commands take prefix arguments which, when negative,
-cause movement in the opposite direction.  For convenience, the digit keys
-and the minus sign are automatically prefixes.  The window is replotted as
-necessary to display the desired date.
-
-Diary entries can be marked on the calendar or displayed in another window.
-
-Use \\[describe-mode] for details of the key bindings in the calendar window.
-
-The Gregorian calendar is assumed.
-
-After loading the calendar, the hooks given by the variable
-`calendar-load-hook' are run.  This is the place to add key bindings to the
-`calendar-mode-map'.
-
-The hooks given by the variable `today-visible-calendar-hook' are run
-every time the calendar window gets scrolled, if the current date is visible
-in the window.  If it is not visible, the hooks given by the variable
-`today-invisible-calendar-hook' are run.
-
-Finally this command runs `initial-calendar-window-hook'."
+(defun calendar-basic-setup (&optional arg nodisplay)
+  "Create a three-month calendar.
+If optional prefix argument ARG is non-nil, prompts for the month
+and year, else uses the current date.  If NODISPLAY is non-nil, don't
+display the generated calendar."
   (interactive "P")
   (set-buffer (get-buffer-create calendar-buffer))
   (calendar-mode)
@@ -1403,7 +1400,7 @@ Finally this command runs `initial-calendar-window-hook'."
     (increment-calendar-month month year (- calendar-offset))
     ;; Display the buffer before calling generate-calendar-window so that it
     ;; can get a chance to adjust the window sizes to the frame size.
-    (pop-to-buffer calendar-buffer)
+    (or nodisplay (pop-to-buffer calendar-buffer))
     (generate-calendar-window month year)
     (if (and view-diary-entries-initially (calendar-date-is-visible-p date))
         (diary-view-entries)))
@@ -1417,7 +1414,7 @@ Finally this command runs `initial-calendar-window-hook'."
 
 (defun generate-calendar-window (&optional mon yr)
   "Generate the calendar window for the current date.
-Or, for optional MON, YR."
+Optional integers MON and YR are used instead of today's date."
   (let* ((inhibit-read-only t)
          (today (calendar-current-date))
          (month (extract-calendar-month today))
