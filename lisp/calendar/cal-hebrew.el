@@ -216,8 +216,9 @@ Driven by the variable `calendar-date-display-form'."
      (t (calendar-absolute-from-hebrew
          (list death-month death-day year))))))
 
-(defun calendar-hebrew-prompt-for-date ()
-  "Ask for a Hebrew date."
+(defun calendar-hebrew-read-date ()
+  "Interactively read the arguments for a Hebrew date command.
+Reads a year, month, and day."
   (let* ((today (calendar-current-date))
          (year (calendar-read
                 "Hebrew calendar year (>3760): "
@@ -261,7 +262,7 @@ Driven by the variable `calendar-date-display-form'."
 ;;;###cal-autoload
 (defun calendar-goto-hebrew-date (date &optional noecho)
   "Move cursor to Hebrew DATE; echo Hebrew date unless NOECHO is non-nil."
-  (interactive (calendar-hebrew-prompt-for-date))
+  (interactive (calendar-hebrew-read-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-hebrew date)))
   (or noecho (calendar-print-hebrew-date)))
