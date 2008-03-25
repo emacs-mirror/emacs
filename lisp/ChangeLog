@@ -24,7 +24,7 @@
 
 	* calendar/cal-x.el (diary-frame-parameters)
 	(calendar-frame-parameters, calendar-and-diary-frame-parameters):
-	Doc fixes.
+	(calendar-frame-1): Doc fixes.
 	(make-fancy-diary-buffer): Remove declaration.
 	(calendar-dedicate-diary): Replace call to deleted function
 	make-fancy-diary-buffer.
