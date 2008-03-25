@@ -135,8 +135,9 @@ Defaults to today's date if DATE is not given."
         (message "Date is pre-%s calendar" coptic-name)
       (message "%s date: %s" coptic-name f))))
 
-(defun coptic-prompt-for-date ()
-  "Ask for a Coptic date."
+(defun calendar-coptic-read-date ()
+  "Interactively read the arguments for a Coptic date command.
+Reads a year, month, and day."
   (let* ((today (calendar-current-date))
          (year (calendar-read
                 (format "%s calendar year (>0): " coptic-name)
@@ -160,11 +161,14 @@ Defaults to today's date if DATE is not given."
                (lambda (x) (and (< 0 x) (<= x last))))))
     (list (list month day year))))
 
+(define-obsolete-function-alias
+  'coptic-prompt-for-date 'calendar-coptic-read-date "23.1")
+
 ;;;###cal-autoload
 (defun calendar-goto-coptic-date (date &optional noecho)
   "Move cursor to Coptic date DATE.
 Echo Coptic date unless NOECHO is t."
-  (interactive (coptic-prompt-for-date))
+  (interactive (calendar-coptic-read-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-coptic date)))
   (or noecho (calendar-print-coptic-date)))
@@ -233,7 +237,7 @@ Echo Ethiopic date unless NOECHO is t."
    (let ((coptic-calendar-epoch ethiopic-calendar-epoch)
          (coptic-name ethiopic-name)
          (coptic-calendar-month-name-array ethiopic-calendar-month-name-array))
-     (coptic-prompt-for-date)))
+     (calendar-coptic-read-date)))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-ethiopic date)))
   (or noecho (calendar-print-ethiopic-date)))
