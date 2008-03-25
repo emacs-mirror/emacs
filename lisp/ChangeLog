@@ -1,3 +1,12 @@
+2008-03-25  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* progmodes/verilog-mode.el (verilog-auto-output)
+	(verilog-auto-input, verilog-auto-inout, verilog-auto)
+	(verilog-delete-auto): Add optional regular expression to
+	AUTOINPUT/AUTOOUTPUT/AUTOINOUT.
+	(verilog-signals-matching-regexp): New internal function for
+	signal matching.
+
 2008-03-25  Johan Bockgård  <bojohan@gnu.org>
 
 	* info.el (Info-isearch-search): Always return point.

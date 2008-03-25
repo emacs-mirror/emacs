@@ -7333,6 +7333,17 @@ and invalidating the cache."
 	(setq enumlist (cdr enumlist))))
     (nreverse out-list)))
 
+(defun verilog-signals-matching-regexp (in-list regexp)
+  "Return all signals in IN-LIST matching the given REGEXP, if non-nil."
+  (if (not regexp)
+      in-list
+    (let (out-list)
+      (while in-list
+	(if (string-match regexp (verilog-sig-name (car in-list)))
+	    (setq out-list (cons (car in-list) out-list)))
+	(setq in-list (cdr in-list)))
+      (nreverse out-list))))
+
 (defun verilog-signals-not-matching-regexp (in-list regexp)
   "Return all signals in IN-LIST not matching the given REGEXP, if non-nil."
   (if (not regexp)
@@ -7643,15 +7654,28 @@ called before and after this function, respectively."
     ;; Allow user to customize
     (run-hooks 'verilog-before-delete-auto-hook)
 
-    ;; Remove those that have multi-line insertions
-    (verilog-auto-re-search-do "/\\*AUTO\\(OUTPUTEVERY\\|CONCATCOMMENT\\|WIRE\\|REG\\|DEFINEVALUE\\|REGINPUT\\|INPUT\\|OUTPUT\\|INOUT\\|RESET\\|TIEOFF\\|UNUSED\\)\\*/"
-			       'verilog-delete-autos-lined)
-    ;; Remove those that have multi-line insertions with parameters
-    (verilog-auto-re-search-do "/\\*AUTO\\(INOUTMODULE\\|ASCIIENUM\\)([^)]*)\\*/"
-			       'verilog-delete-autos-lined)
+    ;; Remove those that have multi-line insertions, possibly with parameters
+    (verilog-auto-re-search-do 
+     (concat "/\\*"
+	     (eval-when-compile
+	       (verilog-regexp-words
+		`("AUTOASCIIENUM" "AUTOCONCATCOMMENT" "AUTODEFINEVALUE"
+		  "AUTOINOUT" "AUTOINOUTMODULE" "AUTOINPUT" "AUTOOUTPUT"
+		  "AUTOOUTPUTEVERY"
+		  "AUTOREG" "AUTOREGINPUT" "AUTORESET" "AUTOTIEOFF"
+		  "AUTOUNUSED" "AUTOWIRE")))
+	     "\\(\\|([^)]*)\\|(\"[^\"]*\")\\)" ; Optional parens or quoted parameter
+	     "\\*/")
+     'verilog-delete-autos-lined)
     ;; Remove those that are in parenthesis
-    (verilog-auto-re-search-do "/\\*\\(AS\\|AUTO\\(ARG\\|CONCATWIDTH\\|INST\\|INSTPARAM\\|SENSE\\)\\)\\*/"
-			       'verilog-delete-to-paren)
+    (verilog-auto-re-search-do
+     (concat "/\\*"
+	     (eval-when-compile
+	       (verilog-regexp-words
+		`("AS" "AUTOARG" "AUTOCONCATWIDTH" "AUTOINST" "AUTOINSTPARAM"
+		  "AUTOSENSE")))
+	     "\\*/")
+     'verilog-delete-to-paren)
     ;; Do .* instantiations, but avoid removing any user pins by looking for our magic comments
     (verilog-auto-re-search-do "\\.\\*"
 			       'verilog-delete-auto-star-all)
@@ -8636,7 +8660,7 @@ Typing \\[verilog-auto] will make this into:
 	  (goto-char pnt)
 	  (verilog-pretty-expr "//"))))))
 
-(defun verilog-auto-output ()
+(defun verilog-auto-output (&optional with-params)
   "Expand AUTOOUTPUT statements, as part of \\[verilog-auto].
 Make output statements for any output signal from an /*AUTOINST*/ that
 isn't a input to another AUTOINST.  This is useful for modules which
@@ -8676,10 +8700,18 @@ Typing \\[verilog-auto] will make this into:
 		      .ov			(ov[31:0]),
 		      // Inputs
 		      .i			(i));
-	endmodule"
+	endmodule
+
+You may also provide an optional regular expression, in which case only
+signals matching the regular expression will be included.  For example the
+same expansion will result from only extracting outputs starting with ov:
+
+	   /*AUTOOUTPUT(\"^ov\")*/"
   (save-excursion
     ;; Point must be at insertion point.
     (let* ((indent-pt (current-indentation))
+	   (regexp (and with-params
+			(nth 0 (verilog-read-auto-params 1))))
 	   (v2k  (verilog-in-paren))
 	   (modi (verilog-modi-current))
 	   (sig-list (verilog-signals-not-in
@@ -8688,6 +8720,9 @@ Typing \\[verilog-auto] will make this into:
 			      (verilog-modi-get-inouts modi)
 			      (verilog-modi-get-sub-inputs modi)
 			      (verilog-modi-get-sub-inouts modi)))))
+      (when regexp
+	(setq sig-list (verilog-signals-matching-regexp
+			sig-list regexp)))
       (setq sig-list (verilog-signals-not-matching-regexp
 		      sig-list verilog-auto-output-ignore-regexp))
       (forward-line 1)
@@ -8749,7 +8784,7 @@ Typing \\[verilog-auto] will make this into:
 	(verilog-insert-indent "// End of automatics\n"))
       (when v2k (verilog-repair-close-comma)))))
 
-(defun verilog-auto-input ()
+(defun verilog-auto-input (&optional with-params)
   "Expand AUTOINPUT statements, as part of \\[verilog-auto].
 Make input statements for any input signal into an /*AUTOINST*/ that
 isn't declared elsewhere inside the module.  This is useful for modules which
@@ -8789,9 +8824,17 @@ Typing \\[verilog-auto] will make this into:
 		      .ov			(ov[31:0]),
 		      // Inputs
 		      .i			(i));
-	endmodule"
+	endmodule
+
+You may also provide an optional regular expression, in which case only
+signals matching the regular expression will be included.  For example the
+same expansion will result from only extracting inputs starting with i:
+
+	   /*AUTOINPUT(\"^i\")*/"
   (save-excursion
     (let* ((indent-pt (current-indentation))
+	   (regexp (and with-params
+			(nth 0 (verilog-read-auto-params 1))))
 	   (v2k  (verilog-in-paren))
 	   (modi (verilog-modi-current))
 	   (sig-list (verilog-signals-not-in
@@ -8804,6 +8847,9 @@ Typing \\[verilog-auto] will make this into:
 			      (verilog-modi-get-gparams modi)
 			      (verilog-modi-get-sub-outputs modi)
 			      (verilog-modi-get-sub-inouts modi)))))
+      (when regexp
+	(setq sig-list (verilog-signals-matching-regexp
+			sig-list regexp)))
       (setq sig-list (verilog-signals-not-matching-regexp
 		      sig-list verilog-auto-input-ignore-regexp))
       (forward-line 1)
@@ -8815,7 +8861,7 @@ Typing \\[verilog-auto] will make this into:
 	(verilog-insert-indent "// End of automatics\n"))
       (when v2k (verilog-repair-close-comma)))))
 
-(defun verilog-auto-inout ()
+(defun verilog-auto-inout (&optional with-params)
   "Expand AUTOINOUT statements, as part of \\[verilog-auto].
 Make inout statements for any inout signal in an /*AUTOINST*/ that
 isn't declared elsewhere inside the module.
@@ -8854,10 +8900,18 @@ Typing \\[verilog-auto] will make this into:
 		      .ov			(ov[31:0]),
 		      // Inputs
 		      .i			(i));
-	endmodule"
+	endmodule
+
+You may also provide an optional regular expression, in which case only
+signals matching the regular expression will be included.  For example the
+same expansion will result from only extracting inouts starting with i:
+
+	   /*AUTOINOUT(\"^i\")*/"
   (save-excursion
     ;; Point must be at insertion point.
     (let* ((indent-pt (current-indentation))
+	   (regexp (and with-params
+			(nth 0 (verilog-read-auto-params 1))))
 	   (v2k  (verilog-in-paren))
 	   (modi (verilog-modi-current))
 	   (sig-list (verilog-signals-not-in
@@ -8867,6 +8921,9 @@ Typing \\[verilog-auto] will make this into:
 			      (verilog-modi-get-inputs modi)
 			      (verilog-modi-get-sub-inputs modi)
 			      (verilog-modi-get-sub-outputs modi)))))
+      (when regexp
+	(setq sig-list (verilog-signals-matching-regexp
+			sig-list regexp)))
       (setq sig-list (verilog-signals-not-matching-regexp
 		      sig-list verilog-auto-inout-ignore-regexp))
       (forward-line 1)
@@ -9556,9 +9613,15 @@ Wilson Snyder (wsnyder@wsnyder.org), and/or see http://www.veripool.com."
 	   ;; first in/outs from other files
 	   (verilog-auto-re-search-do "/\\*AUTOINOUTMODULE([^)]*)\\*/" 'verilog-auto-inout-module)
 	   ;; next in/outs which need previous sucked inputs first
-	   (verilog-auto-search-do "/*AUTOOUTPUT*/" 'verilog-auto-output)
-	   (verilog-auto-search-do "/*AUTOINPUT*/" 'verilog-auto-input)
-	   (verilog-auto-search-do "/*AUTOINOUT*/" 'verilog-auto-inout)
+	   (verilog-auto-re-search-do "/\\*AUTOOUTPUT\\((\"[^\"]*\")\\)\\*/"
+				      '(lambda () (verilog-auto-output t)))
+	   (verilog-auto-re-search-do "/\\*AUTOOUTPUT\\*/" 'verilog-auto-output)
+	   (verilog-auto-re-search-do "/\\*AUTOINPUT\\((\"[^\"]*\")\\)\\*/"
+				      '(lambda () (verilog-auto-input t)))
+	   (verilog-auto-re-search-do "/\\*AUTOINPUT\\*/"  'verilog-auto-input)
+	   (verilog-auto-re-search-do "/\\*AUTOINOUT\\((\"[^\"]*\")\\)\\*/"
+				      '(lambda () (verilog-auto-inout t)))
+	   (verilog-auto-re-search-do "/\\*AUTOINOUT\\*/" 'verilog-auto-inout)
 	   ;; Then tie off those in/outs
 	   (verilog-auto-search-do "/*AUTOTIEOFF*/" 'verilog-auto-tieoff)
 	   ;; Wires/regs must be after inputs/outputs
