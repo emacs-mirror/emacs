@@ -1,3 +1,7 @@
+2008-03-25  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
+
+	* emacs-lisp/byte-opt.el (side-effect-free-fns): Fix typo.
+
 2008-03-25  Juri Linkov  <juri@jurta.org>
 
 	* battery.el: Add file cookie coding:iso-8859-1 for the degree sign
