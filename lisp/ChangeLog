@@ -1,3 +1,8 @@
+2008-03-26  Johan Bockgård  <bojohan@gnu.org>
+
+	* emacs-lisp/lisp-mnt.el (lm-with-file): Use mode and syntax table
+	for Emacs Lisp, not Lisp.
+
 2008-03-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/bytecomp.el (byte-compile-obsolete): If no
