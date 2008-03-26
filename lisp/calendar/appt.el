@@ -30,48 +30,48 @@
 ;; appt.el - visible and/or audible notification of
 ;;           appointments from diary file.
 ;;
-;;;
-;;; Thanks to  Edward M. Reingold for much help and many suggestions,
-;;; And to many others for bug fixes and suggestions.
-;;;
-;;;
-;;; This functions in this file will alert the user of a
-;;; pending appointment based on his/her diary file.  This package
-;;; is documented in the Emacs manual.
-;;;
-;;; To activate this package, simply use (appt-activate 1).
-;;; A `diary-file' with appointments of the format described in the
-;;; documentation of the function `appt-check' is required.
-;;; Relevant customizable variables are also listed in the
-;;; documentation of that function.
-;;;
-;;; Today's appointment list is initialized from the diary when this
-;;; package is activated.  Additionally, the appointments list is
-;;; recreated automatically at 12:01am for those who do not logout
-;;; every day or are programming late.  It is also updated when the
-;;; `diary-file' is saved.  Calling `appt-check' with an argument forces
-;;; a re-initialization at any time.
-;;;
-;;; In order to add or delete items from today's list, without
-;;; changing the diary file, use `appt-add' and `appt-delete'.
-;;;
+;;
+;; Thanks to  Edward M. Reingold for much help and many suggestions,
+;; And to many others for bug fixes and suggestions.
+;;
+;;
+;; This functions in this file will alert the user of a
+;; pending appointment based on his/her diary file.  This package
+;; is documented in the Emacs manual.
+;;
+;; To activate this package, simply use (appt-activate 1).
+;; A `diary-file' with appointments of the format described in the
+;; documentation of the function `appt-check' is required.
+;; Relevant customizable variables are also listed in the
+;; documentation of that function.
+;;
+;; Today's appointment list is initialized from the diary when this
+;; package is activated. Additionally, the appointments list is
+;; recreated automatically at 12:01am for those who do not logout
+;; every day or are programming late. It is also updated when the
+;; `diary-file' is saved. Calling `appt-check' with an argument forces
+;; a re-initialization at any time.
+;;
+;; In order to add or delete items from today's list, without
+;; changing the diary file, use `appt-add' and `appt-delete'.
+;;
 
-;;; Brief internal description - Skip this if you are not interested!
-;;;
-;;; The function `appt-make-list' creates the appointments list which
-;;; `appt-check' reads.
-;;;
-;;; You can change the way the appointment window is created/deleted by
-;;; setting the variables
-;;;
-;;;	     appt-disp-window-function
-;;; and
-;;; 	     appt-delete-window-function
-;;;
-;;; For instance, these variables could be set to functions that display
-;;; appointments in pop-up frames, which are lowered or iconified after
-;;; `appt-display-interval' minutes.
-;;;
+;; Brief internal description - Skip this if you are not interested!
+;;
+;; The function `appt-make-list' creates the appointments list which
+;; `appt-check' reads.
+;;
+;; You can change the way the appointment window is created/deleted by
+;; setting the variables
+;;
+;;	     appt-disp-window-function
+;; and
+;; 	     appt-delete-window-function
+;;
+;; For instance, these variables could be set to functions that display
+;; appointments in pop-up frames, which are lowered or iconified after
+;; `appt-display-interval' minutes.
+;;
 
 ;;; Code:
 
@@ -180,7 +180,7 @@ Only relevant if reminders are being displayed in a window."
 
 ;;; Internal variables below this point.
 
-(defconst appt-buffer-name " *appt-buf*"
+(defconst appt-buffer-name "*appt-buf*"
   "Name of the appointments buffer.")
 
 (defvar appt-time-msg-list nil
@@ -436,6 +436,7 @@ message APPT-MSG in a separate buffer."
       (switch-to-buffer appt-disp-buf))
     (calendar-set-mode-line
      (format " Appointment in %s minutes. %s " min-to-app new-time))
+    (buffer-disable-undo)
     (erase-buffer)
     (insert appt-msg)
     (shrink-window-if-larger-than-buffer (get-buffer-window appt-disp-buf t))

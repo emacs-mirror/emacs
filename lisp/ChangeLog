@@ -1,5 +1,10 @@
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calendar/appt.el (appt-buffer-name): Don't use a leading space for
+	buffers shown to the user.
+	(appt-disp-window): Disable undo explicitly now that the leading space
+	is gone.
+
 	* simple.el (activate-mark): New function.
 	(set-mark-command): Use it with region-active-p to clean up the code.
 	(exchange-point-and-mark): Invert the meaning of C-u when
