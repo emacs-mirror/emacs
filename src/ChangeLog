@@ -2540,11 +2540,6 @@
 	* xftfont.c (xftfont_done_face): Call XftDrawDestroy only if
 	xftface_info is non-NULL.
 
-2008-02-01  Kenichi Handa  <handa@m17n.org>
-
-	* ftfont.c (ftfont_list): Fix typo.
-	(ftfont_build_basic_charsets): Don't include letters with diactrics.
-
 2008-02-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* ftfont.c (ftfont_list): Move misplaced #endif.
@@ -6241,11 +6236,6 @@
 2008-01-11  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* coding.c (detect_coding_mask): Fix previous change.
-
-2008-01-10  Chong Yidong  <cyd@stupidchicken.com>
-
-	* process.c (wait_reading_process_output): Check for window
-	changes caused by timers.
 
 2008-01-09  Kenichi Handa  <handa@ni.aist.go.jp>
 
