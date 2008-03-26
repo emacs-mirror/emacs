@@ -1,5 +1,7 @@
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* autorevert.el (auto-revert-buffers): Use buffer-live-p.
+
 	* help-fns.el (describe-function-1, describe-variable): If no
 	replacement is provided, don't print "use nil instead".
 
