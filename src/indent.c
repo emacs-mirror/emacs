@@ -504,6 +504,47 @@ current_column ()
   return col;
 }
 
+extern Lisp_Object Qspace, QCwidth, QCalign_to;
+
+/* Check the presence of a display property and compute its width.
+   If a property was found and its width was found as well, return
+   its width (>= 0) and set the position of the end of the property
+   in ENDPOS.
+   Otherwise just return -1.  */
+static int
+check_display_width (EMACS_INT pos, EMACS_INT col, EMACS_INT *endpos)
+{
+  Lisp_Object val, overlay;
+
+  if (CONSP (val = get_char_property_and_overlay
+	     (make_number (pos), Qdisplay, Qnil, &overlay))
+      && EQ (Qspace, XCAR (val)))
+    { /* FIXME: Use calc_pixel_width_or_height, as in term.c.  */
+      Lisp_Object plist = XCDR (val), prop;
+      int width = -1;
+
+      if ((prop = Fplist_get (plist, QCwidth), NATNUMP (prop)))
+	width = XINT (prop);
+      else if (FLOATP (prop))
+	width = (int)(XFLOAT_DATA (prop) + 0.5);
+      else if ((prop = Fplist_get (plist, QCalign_to), NATNUMP (prop)))
+	width = XINT (prop) - col;
+      else if (FLOATP (prop))
+	width = (int)(XFLOAT_DATA (prop) + 0.5) - col;
+	    
+      if (width >= 0)
+	{
+	  EMACS_INT start;
+	  if (OVERLAYP (overlay))
+	    *endpos = OVERLAY_POSITION (OVERLAY_END (overlay));
+	  else
+	    get_property_and_range (pos, Qdisplay, &val, &start, endpos, Qnil);
+	  return width;
+	}
+    }
+  return -1;
+}
+
 /* Scanning from the beginning of the current line, stop at the buffer
    position ENDPOS or at the column GOALCOL or at the end of line, whichever
    comes first.
@@ -560,8 +601,7 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 	break;
       prev_col = col;
 
-      /* Check composition sequence.  */
-      {
+      { /* Check composition sequence.  */
 	int len, len_byte, width;
 
 	if (check_composition (scan, scan_byte, end,
@@ -572,6 +612,20 @@ scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 	    if (scan <= end)
 	      col += width;
 	    continue;
+	  }
+      }
+
+      { /* Check display property.  */
+	EMACS_INT end;
+	int width = check_display_width (scan, col, &end);
+	if (width >= 0)
+	  {
+	    col += width;
+	    if (end > scan) /* Avoid infinite loops with 0-width overlays.  */
+	      {
+		scan = end; scan_byte = charpos_to_bytepos (scan);
+		continue;
+	      }
 	  }
       }
 

@@ -1,5 +1,8 @@
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* indent.c (check_display_width): New fun.
+	(scan_for_column): Use it.
+
 	* data.c (syms_of_data): Mark most-positive-fixnum and
 	most-negative-fixnum as constants.
 
