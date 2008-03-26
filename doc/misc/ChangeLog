@@ -1,3 +1,8 @@
+2008-03-26  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.texi (Filename completion): Remove footnote about let-bind
+	of `partial-completion-mode'.  It doesn't work this way.
+
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcl-cvs.texi (Contributors): Update my email.
