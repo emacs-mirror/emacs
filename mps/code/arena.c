@@ -272,7 +272,7 @@ void ArenaDestroy(Arena arena)
   ReservoirSetLimit(ArenaReservoir(arena), 0);
 
   DIAG_FIRSTF(( "ArenaDestroy", NULL ));
-  DIAG( ControlPoolDescribe(arena, DIAG_STREAM); );
+  DIAG( ControlDescribe(arena, DIAG_STREAM); );
   DIAG_END("ArenaDestroy");
 
   arena->poolReady = FALSE;
