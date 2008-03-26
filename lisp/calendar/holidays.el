@@ -127,7 +127,7 @@ This function is suitable for execution in a .emacs file."
 ;; rms: "Emacs commands to display a list of something generally start
 ;; with `list-'.  Please make `list-holidays' the principal name."
 ;;;###autoload
-(defun list-holidays (y1 y2 &optional l label)
+(defun list-holidays (y1 &optional y2 l label)
   "Display holidays for years Y1 to Y2 (inclusive).
 
 The optional list of holidays L defaults to `calendar-holidays'.
@@ -185,9 +185,9 @@ The optional LABEL is used to label the buffer created."
                       "Holidays"
                     (format "%s Holidays" choice)))))
      (list start-year end-year which name)))
+  (unless y2 (setq y2 y1))
   (message "Computing holidays...")
-  (let* ((holiday-buffer "*Holidays*")
-         (calendar-holidays (if l l calendar-holidays))
+  (let* ((calendar-holidays (if l l calendar-holidays))
          (title (or label "Holidays"))
          (holiday-list nil)
          (s (calendar-absolute-from-gregorian (list 2 1 y1)))

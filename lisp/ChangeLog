@@ -1,5 +1,7 @@
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calendar/holidays.el (list-holidays): Make Y2 optional.
+
 	* calendar/appt.el (appt-buffer-name): Don't use a leading space for
 	buffers shown to the user.
 	(appt-disp-window): Disable undo explicitly now that the leading space
