@@ -9,6 +9,9 @@
 
 2008-03-26  Juanma Barranquero  <lekktu@gmail.com>
 
+	* help-fns.el (describe-function-1, describe-variable):
+	If CURRENT-NAME is nil, don't end obsolescence info with semicolon.
+
 	* emacs-lisp/bytecomp.el (byte-compile-obsolete): If no
 	replacement is provided, don't print "use nil instead".
 
@@ -1931,7 +1934,7 @@
 	`bookmark-make-cell-function'.
 	(bookmark-make, bookmark-send-annotation): Update for above.
 	(bookmark-make-record-for-text-file):
-	Was `bookmark-make-cell-for-text-file.  Fix doc string re rev 1.102.
+	Was `bookmark-make-cell-for-text-file'.  Fix doc string re rev 1.102.
 
 	* info.el: Adjust accordingly.
 	(Info-bookmark-make-record): Was `Info-bookmark-make-cell'.
