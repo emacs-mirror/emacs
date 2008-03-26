@@ -1,5 +1,7 @@
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* xdisp.c (redisplay_internal): Reset selected_frame earlier.
+
 	* indent.c (scan_for_column): Extract from current_column_1.
 	Merge with the same code from Fmove_to_column.
 	(current_column_1, Fmove_to_column): Use it.

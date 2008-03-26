@@ -11636,6 +11636,14 @@ redisplay_internal (preserve_echo_area)
 	    }
 	}
 
+      if (!EQ (old_frame, selected_frame)
+	  && FRAME_LIVE_P (XFRAME (old_frame)))
+	/* We played a bit fast-and-loose above and allowed selected_frame
+	   and selected_window to be temporarily out-of-sync but let's make
+	   sure this stays contained.  */
+	select_frame_for_redisplay (old_frame);
+      eassert (EQ (XFRAME (selected_frame)->selected_window, selected_window));
+
       if (!pause)
 	{
 	  /* Do the mark_window_display_accurate after all windows have
