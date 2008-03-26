@@ -32,14 +32,18 @@
 
 ;;; Code:
 
-(require 'cal-julian)
+(require 'calendar)
 
 (defconst persian-calendar-month-name-array
   ["Farvardin" "Ordibehest" "Xordad" "Tir" "Mordad" "Sahrivar" "Mehr" "Aban"
    "Azar" "Dey" "Bahman" "Esfand"]
   "Names of the months in the Persian calendar.")
 
-(defconst persian-calendar-epoch (calendar-absolute-from-julian '(3 19 622))
+(eval-and-compile
+  (autoload 'calendar-absolute-from-julian "cal-julian"))
+
+(defconst persian-calendar-epoch
+  (eval-when-compile (calendar-absolute-from-julian '(3 19 622)))
   "Absolute date of start of Persian calendar = March 19, 622 AD (Julian).")
 
 (defun persian-calendar-leap-year-p (year)
