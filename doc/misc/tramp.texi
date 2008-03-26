@@ -2204,17 +2204,7 @@ Filename completion works with @value{tramp} for completion of method
 names, of user names and of machine names as well as for completion of
 file names on remote machines.
 @ifset emacs
-In order to enable this, Partial Completion mode must be set
-on@footnote{If you don't use Partial Completion mode, but want to
-keep full completion, load @value{tramp} like this in your
-@file{.emacs}:
-
-@lisp
-;; Preserve Tramp's completion features.
-(let ((partial-completion-mode t))
-  (require 'tramp))
-@end lisp
-}.
+In order to enable this, Partial Completion mode must be set on.
 @ifinfo
 @xref{Completion Options, , , @value{emacsdir}}.
 @end ifinfo
