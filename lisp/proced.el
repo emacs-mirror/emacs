@@ -451,4 +451,5 @@ Killed processes cannot be recovered by Emacs."))
 
 (provide 'proced)
 
+;; arch-tag: a6e312ad-9032-45aa-972d-31a8cfc545af
 ;;; proced.el ends here.
