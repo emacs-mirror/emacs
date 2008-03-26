@@ -68,11 +68,13 @@ Relevant if `calendar-setup' has the value `one-frame'."
              (vertical-scroll-bars boolean))
   :group 'calendar)
 
-(defcustom calendar-after-frame-setup-hooks nil
-  "Hooks to be run just after setting up a calendar frame.
-Can be used to change frame parameters, such as font, color, location, etc."
+(defcustom calendar-after-frame-setup-hook nil
+  "List of functions to be run after creating a calendar and/or diary frame."
   :type 'hook
   :group 'calendar-hooks)
+
+(define-obsolete-variable-alias 'calendar-after-frame-setup-hooks
+  'calendar-after-frame-setup-hook "23.1")
 
 ;;; End of user options.
 
@@ -83,8 +85,9 @@ Can be used to change frame parameters, such as font, color, location, etc."
   "Frame in which the diary was last displayed.")
 
 (defun calendar-frame-1 (frame)
-  "Subroutine used by `calendar-frame-setup'."
-  (run-hooks 'calendar-after-frame-setup-hooks)
+  "Subroutine used by `calendar-frame-setup'.
+Runs `calendar-after-frame-setup-hook', selects frame, iconifies if needed."
+  (run-hooks 'calendar-after-frame-setup-hook)
   (select-frame frame)
   (if (eq 'icon (cdr (assoc 'visibility (frame-parameters frame))))
       (iconify-or-deiconify-frame)))
