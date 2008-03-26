@@ -1,3 +1,7 @@
+2008-03-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el: New file.
+
 2008-03-25  Tetsurou Okazaki  <okazaki@be.to>  (tiny change)
 
 	* emacs-lisp/byte-opt.el (side-effect-free-fns): Fix typo.
