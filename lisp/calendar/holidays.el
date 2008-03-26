@@ -162,9 +162,8 @@ The optional LABEL is used to label the buffer created."
           (lists
            (list
             (cons "All" calendar-holidays)
-            (if (fboundp 'atan)
-                (cons "Equinoxes/Solstices"
-                      (list (list 'solar-equinoxes-solstices))))
+            (cons "Equinoxes/Solstices"
+                  (list (list 'solar-equinoxes-solstices)))
             (if general-holidays (cons "General" general-holidays))
             (if local-holidays (cons "Local" local-holidays))
             (if other-holidays (cons "Other" other-holidays))
