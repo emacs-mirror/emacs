@@ -1,4 +1,4 @@
-2008-03-25  Johan Bockgård  <bojohan@gnu.org>
+2008-03-25  Johan Bockg,Aerd  <bojohan@gnu.org>
 
 	* info.el (Info-isearch-search): Always return point.
 
