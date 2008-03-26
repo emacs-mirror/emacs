@@ -2850,8 +2850,6 @@
 
 1999-02-26  Richard Stallman  <rms@gnu.org>
 
-	* Version 20.4 released.
-
 	* Makefile.in (yow): Depend on epaths.h, not paths.h.
 
 	* yow.c: Refer to epaths.h.
@@ -2997,12 +2995,6 @@
 	* b2m.c: Include <stdlib.h> if available.
 	(main): Explicitly declare return type.
 
-1998-04-03  Richard Stallman  <rms@delysid.gnu.org>
-
-	* etags.c (put_entries): Use %ld.
-
-	* b2m.c (fatal): Declare the arg.
-
 1998-04-03  Richard Stallman  <rms@psilocin.gnu.org>
 
 	* etags.c (put_entries): Use %ld.
@@ -3030,17 +3022,11 @@
 	* movemail.c (main): Fix interwoven brace and cpp conditional
 	nesting.
 
-1997-12-04  Karl Heuer  <kwzh@delysid.gnu.org>
-
-	* movemail.c, pop.c, pop.h: Allow messages retrieved from the POP
-	server to contain embedded nulls.
-
 1997-12-03  Paul Eggert  <eggert@delysid.gnu.org>
 
-	* movemail.c:
-	(mbx_write) [MAIL_USE_POP]: Disable the code which quotes with a
-	'>' any lines starting with "From " read from the POP server, but
-	leave the code in place, wrapped in #ifdef
+	* movemail.c (mbx_write) [MAIL_USE_POP]: Disable the code which quotes
+	with a '>' any lines starting with "From " read from the POP server,
+	but leave the code in place, wrapped in #ifdef
 	MOVEMAIL_QUOTE_POP_FROM_LINES, in case we have to restore it later
 	because it turns out that something is depending on it.  Change
 	suggested by Paul Eggert <eggert@twinsun.com>.
@@ -3825,12 +3811,6 @@
 1996-01-19  Karl Heuer  <kwzh@gnu.ai.mit.edu>
 
 	* etags.c (enum sym_type, anonymous enum): Delete final comma.
-
-1996-01-15  Paul Eggert  <eggert@twinsun.com>
-
-	* rcs2log (initialize_fullname): Add support for NIS+.
-	(hostname): Fully qualify the default hostname with the domainname
-	if the hostname lacks a `.'.
 
 1996-01-15  Paul Eggert  <eggert@twinsun.com>
 
