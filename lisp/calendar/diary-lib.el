@@ -305,7 +305,100 @@ template following the rules above."
   :version "22.1"
   :group 'diary)
 
-;;; More user options below and in calendar.el.
+
+;; The first version of this also checked for diary-selective-display
+;; in the non-fancy case. This was an attempt to distinguish between
+;; displaying the diary and just visiting the diary file. However,
+;; when using fancy diary, calling diary when there are no entries to
+;; display does not create the fancy buffer, nor does it set
+;; diary-selective-display in the diary buffer. This means some
+;; customizations will not take effect, eg:
+;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-03/msg00466.html
+;; So the check for diary-selective-display was dropped. This means the
+;; diary will be displayed if one customizes a diary variable while
+;; just visiting the diary-file. This is i) unlikely, and ii) no great loss.
+;;;###cal-autoload
+(defun diary-live-p ()
+  "Return non-nil if the diary is being displayed."
+  (or (get-buffer fancy-diary-buffer)
+      (and diary-file
+           (find-buffer-visiting (substitute-in-file-name diary-file)))))
+
+;;;###cal-autoload
+(defun diary-set-maybe-redraw (symbol value)
+  "Set SYMBOL's value to VALUE, and redraw the diary if necessary.
+Redraws the diary if it is being displayed (note this is not the same as
+just visiting the `diary-file'), and SYMBOL's value is to be changed."
+  (let ((oldvalue (eval symbol)))       ; FIXME symbol-value?
+    (custom-set-default symbol value)
+    (and (not (equal value oldvalue))
+         (diary-live-p)
+         ;; Note this assumes diary was called without prefix arg.
+         (diary))))
+
+(defvar diary-selective-display nil
+  "Internal diary variable; non-nil if some diary text is hidden.")
+
+
+;; This can be removed once the kill/yank treatment of invisible text
+;; (see etc/TODO) is fixed. -- gm
+(defcustom diary-header-line-flag t
+  "Non-nil means `simple-diary-display' will show a header line.
+The format of the header is specified by `diary-header-line-format'."
+  :group   'diary
+  :type    'boolean
+  :initialize 'custom-initialize-default
+  ;; FIXME overkill.
+  :set 'diary-set-maybe-redraw
+  :version "22.1")
+
+(defcustom diary-header-line-format
+  '(:eval (calendar-string-spread
+           (list (if diary-selective-display
+                     "Some text is hidden - press \"s\" in calendar \
+before edit/copy"
+                   "Diary"))
+           ?\s (frame-width)))
+  "Format of the header line displayed by `simple-diary-display'.
+Only used if `diary-header-line-flag' is non-nil."
+  :group 'diary
+  :type 'sexp
+  :initialize 'custom-initialize-default
+  ;; FIXME overkill.
+  :set 'diary-set-maybe-redraw
+  :version "22.1")
+
+(defcustom number-of-diary-entries 1
+  "Specifies how many days of diary entries are to be displayed initially.
+This variable affects the diary display when the command \\[diary] is used,
+or if the value of the variable `view-diary-entries-initially' is non-nil.
+For example, if the default value 1 is used, then only the current day's diary
+entries will be displayed.  If the value 2 is used, then both the current
+day's and the next day's entries will be displayed.
+
+The value can also be a vector such as [0 2 2 2 2 4 1]; this value
+says to display no diary entries on Sunday, the entries for
+the current date and the day after on Monday through Thursday,
+Friday through Monday's entries on Friday, and only Saturday's
+entries on Saturday.
+
+This variable does not affect the diary display with the `d' command
+from the calendar; in that case, the prefix argument controls the
+number of days of diary entries displayed."
+  :type '(choice (integer :tag "Entries")
+                 (vector :value [0 0 0 0 0 0 0]
+                         (integer :tag "Sunday")
+                         (integer :tag "Monday")
+                         (integer :tag "Tuesday")
+                         (integer :tag "Wednesday")
+                         (integer :tag "Thursday")
+                         (integer :tag "Friday")
+                         (integer :tag "Saturday")))
+  :initialize 'custom-initialize-default
+  :set 'diary-set-maybe-redraw
+  :group 'diary)
+
+;;; More user options in calendar.el.
 
 
 (defun diary-check-diary-file ()
@@ -329,7 +422,6 @@ does nothing.  This function is suitable for execution in a `.emacs' file."
   (diary-list-entries (calendar-current-date)
                       (if arg (prefix-numeric-value arg))))
 
-(define-obsolete-function-alias 'view-diary-entries 'diary-view-entries)
 ;;;###cal-autoload
 (defun diary-view-entries (&optional arg)
   "Prepare and display a buffer with diary entries.
@@ -339,6 +431,9 @@ in the displayed three-month calendar."
   (interactive "p")
   (diary-check-diary-file)
   (diary-list-entries (calendar-cursor-to-date t) arg))
+
+(define-obsolete-function-alias 'view-diary-entries 'diary-view-entries)
+
 
 ;;;###cal-autoload
 (defun view-other-diary-entries (arg dfile)
@@ -413,96 +508,6 @@ pairs."
              (setq ret-attr (append ret-attr (list attrname attrvalue))))))
     (list entry ret-attr)))
 
-;; The first version of this also checked for diary-selective-display
-;; in the non-fancy case. This was an attempt to distinguish between
-;; displaying the diary and just visiting the diary file. However,
-;; when using fancy diary, calling diary when there are no entries to
-;; display does not create the fancy buffer, nor does it set
-;; diary-selective-display in the diary buffer. This means some
-;; customizations will not take effect, eg:
-;; http://lists.gnu.org/archive/html/emacs-pretest-bug/2007-03/msg00466.html
-;; So the check for diary-selective-display was dropped. This means the
-;; diary will be displayed if one customizes a diary variable while
-;; just visiting the diary-file. This is i) unlikely, and ii) no great loss.
-;;;###cal-autoload
-(defun diary-live-p ()
-  "Return non-nil if the diary is being displayed."
-  (or (get-buffer fancy-diary-buffer)
-      (and diary-file
-           (find-buffer-visiting (substitute-in-file-name diary-file)))))
-
-;;;###cal-autoload
-(defun diary-set-maybe-redraw (symbol value)
-  "Set SYMBOL's value to VALUE, and redraw the diary if necessary.
-Redraws the diary if it is being displayed (note this is not the same as
-just visiting the `diary-file'), and SYMBOL's value is to be changed."
-  (let ((oldvalue (eval symbol)))       ; FIXME symbol-value?
-    (custom-set-default symbol value)
-    (and (not (equal value oldvalue))
-         (diary-live-p)
-         ;; Note this assumes diary was called without prefix arg.
-         (diary))))
-
-;; This can be removed once the kill/yank treatment of invisible text
-;; (see etc/TODO) is fixed. -- gm
-(defcustom diary-header-line-flag t
-  "Non-nil means `simple-diary-display' will show a header line.
-The format of the header is specified by `diary-header-line-format'."
-  :group   'diary
-  :type    'boolean
-  :initialize 'custom-initialize-default
-  ;; FIXME overkill.
-  :set 'diary-set-maybe-redraw
-  :version "22.1")
-
-(defvar diary-selective-display nil
-  "Internal diary variable; non-nil if some diary text is hidden.")
-
-(defcustom diary-header-line-format
-  '(:eval (calendar-string-spread
-           (list (if diary-selective-display
-                     "Some text is hidden - press \"s\" in calendar \
-before edit/copy"
-                   "Diary"))
-           ?\s (frame-width)))
-  "Format of the header line displayed by `simple-diary-display'.
-Only used if `diary-header-line-flag' is non-nil."
-  :group 'diary
-  :type 'sexp
-  :initialize 'custom-initialize-default
-  ;; FIXME overkill.
-  :set 'diary-set-maybe-redraw
-  :version "22.1")
-
-(defcustom number-of-diary-entries 1
-  "Specifies how many days of diary entries are to be displayed initially.
-This variable affects the diary display when the command \\[diary] is used,
-or if the value of the variable `view-diary-entries-initially' is non-nil.
-For example, if the default value 1 is used, then only the current day's diary
-entries will be displayed.  If the value 2 is used, then both the current
-day's and the next day's entries will be displayed.
-
-The value can also be a vector such as [0 2 2 2 2 4 1]; this value
-says to display no diary entries on Sunday, the entries for
-the current date and the day after on Monday through Thursday,
-Friday through Monday's entries on Friday, and only Saturday's
-entries on Saturday.
-
-This variable does not affect the diary display with the `d' command
-from the calendar; in that case, the prefix argument controls the
-number of days of diary entries displayed."
-  :type '(choice (integer :tag "Entries")
-                 (vector :value [0 0 0 0 0 0 0]
-                         (integer :tag "Sunday")
-                         (integer :tag "Monday")
-                         (integer :tag "Tuesday")
-                         (integer :tag "Wednesday")
-                         (integer :tag "Thursday")
-                         (integer :tag "Friday")
-                         (integer :tag "Saturday")))
-  :initialize 'custom-initialize-default
-  :set 'diary-set-maybe-redraw
-  :group 'diary)
 
 
 (defvar diary-modify-entry-list-string-function nil
@@ -1221,6 +1226,26 @@ diary entries."
                      'mark-diary-entries-hook))
         (message "Marking diary entries...done")))))
 
+
+(defun diary-sexp-entry (sexp entry date)
+  "Process a SEXP diary ENTRY for DATE."
+  (let ((result (if calendar-debug-sexp
+                    (let ((stack-trace-on-error t))
+                      (eval (car (read-from-string sexp))))
+                  (condition-case nil
+                      (eval (car (read-from-string sexp)))
+                    (error
+                     (beep)
+                     (message "Bad sexp at line %d in %s: %s"
+                              (count-lines (point-min) (point))
+                              diary-file sexp)
+                     (sleep-for 2))))))
+    (cond ((stringp result) result)
+          ((and (consp result)
+                (stringp (cdr result))) result)
+          (result entry)
+          (t nil))))
+
 (defvar displayed-year)                 ; bound in generate-calendar
 (defvar displayed-month)
 
@@ -1462,25 +1487,6 @@ be used instead of a colon (:) to separate the hour and minute parts."
   (setq diary-entries-list (sort diary-entries-list 'diary-entry-compare)))
 
 
-(defun diary-sexp-entry (sexp entry date)
-  "Process a SEXP diary ENTRY for DATE."
-  (let ((result (if calendar-debug-sexp
-                    (let ((stack-trace-on-error t))
-                      (eval (car (read-from-string sexp))))
-                  (condition-case nil
-                      (eval (car (read-from-string sexp)))
-                    (error
-                     (beep)
-                     (message "Bad sexp at line %d in %s: %s"
-                              (count-lines (point-min) (point))
-                              diary-file sexp)
-                     (sleep-for 2))))))
-    (cond ((stringp result) result)
-          ((and (consp result)
-                (stringp (cdr result))) result)
-          (result entry)
-          (t nil))))
-
 (defun list-sexp-diary-entries (date)
   "Add sexp entries for DATE from the diary file to `diary-entries-list'.
 Also, make them visible in the diary file.  Returns t if any entries were
@@ -1654,9 +1660,9 @@ best if they are nonmarking."
       (let ((sexp-start (point))
             sexp entry specifier entry-start line-start)
         (forward-sexp)
-        (setq sexp (buffer-substring-no-properties sexp-start (point)))
-        (setq line-start (line-end-position 0))
-        (setq specifier
+        (setq sexp (buffer-substring-no-properties sexp-start (point))
+              line-start (line-end-position 0)
+              specifier
               (buffer-substring-no-properties (1+ line-start) (point))
               entry-start (1+ line-start))
         (forward-char 1)
@@ -1691,6 +1697,9 @@ best if they are nonmarking."
                              literal)
           (setq entry-found (or entry-found diary-entry)))))
     entry-found))
+
+
+;;; Sexp diary functions.
 
 (defvar date)
 (defvar entry)
@@ -1912,13 +1921,8 @@ marked on the calendar."
       (or (diary-remind sexp (car days) marking)
           (diary-remind sexp (cdr days) marking))))))
 
-(defun diary-redraw-calendar ()
-  "If `calendar-buffer' is live and diary entries are marked, redraw it."
-  (and mark-diary-entries-in-calendar
-       (save-excursion
-         (redraw-calendar)))
-  ;; Return value suitable for `write-contents-functions'.
-  nil)
+
+;;; Diary insertion functions.
 
 ;;;###cal-autoload
 (defun make-diary-entry (string &optional nonmarking file)
@@ -1939,7 +1943,6 @@ If omitted, NONMARKING defaults to nil and FILE defaults to
     (beginning-of-line)
     (insert "\n")
     (forward-line -1))
-
   (insert
    (if (bolp) "" "\n")
    (if nonmarking diary-nonmarking-symbol "")
@@ -2044,6 +2047,14 @@ Prefix argument ARG makes the entry nonmarking."
      arg)))
 
 ;;; Diary mode.
+
+(defun diary-redraw-calendar ()
+  "If `calendar-buffer' is live and diary entries are marked, redraw it."
+  (and mark-diary-entries-in-calendar
+       (save-excursion
+         (redraw-calendar)))
+  ;; Return value suitable for `write-contents-functions'.
+  nil)
 
 (defvar diary-mode-map
   (let ((map (make-sparse-keymap)))
