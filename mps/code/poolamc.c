@@ -705,8 +705,6 @@ static Res amcSegCreateNailboard(Seg seg, Pool pool)
   /* [I wonder what this comment is referring to?  2007-07-11 DRJ] */
   /* See d.m.p.Nailboard.size. */
   bits = (SegSize(seg) + pool->format->headerSize) >> board->markShift;
-  DIAG_SINGLEF(( "amcSegCreateNailboard",
-		"Alloc $W", (WriteFW)BTSize(bits), NULL ));
   res = ControlAlloc(&p, arena, BTSize(bits), FALSE);
   if(res != ResOK)
     goto failMarkTable;
@@ -738,15 +736,8 @@ static void amcSegDestroyNailboard(Seg seg, Pool pool)
   AVERT(amcNailboard, board);
 
   arena = PoolArena(pool);
-#if 0
-  /* Believed bug; see job001784 */
-  bits = SegSize(seg) >> board->markShift;
-#else
   /* See d.m.p.Nailboard.size. */
   bits = (SegSize(seg) + pool->format->headerSize) >> board->markShift;
-#endif
-  DIAG_SINGLEF(( "amcSegDestroyNailboard",
-		"Free $W", (WriteFW)BTSize(bits), NULL ));
   ControlFree(arena, board->mark, BTSize(bits));
   board->sig = SigInvalid;
   ControlFree(arena, board, sizeof(amcNailboardStruct));
@@ -2290,7 +2281,7 @@ static Bool AMCCheck(AMC amc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
