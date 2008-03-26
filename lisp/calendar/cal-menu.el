@@ -33,38 +33,7 @@
 
 ;;; Code:
 
-;; The code in this file is only called from calendar.el, but can't
-;; require it (to supress undefined function warnings from compiler)
-;; without a recursive require.
-;; All these functions are either autoloaded, or autoloaded or defined
-;; in calendar.el.
-(declare-function calendar-increment-month "calendar" (n &optional mon yr))
-(declare-function calendar-month-name      "calendar" (month &optional abbrev))
-(declare-function extract-calendar-year    "calendar" (date))
-(declare-function calendar-cursor-to-date  "calendar" (&optional error))
-(declare-function holiday-list             "holidays" (y1 y2 &optional l label))
-(declare-function calendar-sunrise-sunset  "solar"    nil)
-(declare-function calendar-current-date    "calendar" nil)
-(declare-function calendar-cursor-holidays "holidays" nil)
-(declare-function calendar-date-string     "calendar"
-                  (date &optional abbreviate nodayname))
-(declare-function insert-diary-entry       "diary-lib" (arg))
-(declare-function calendar-set-mark        "calendar"  (arg))
-(declare-function cal-tex-cursor-day       "cal-tex"   (&optional arg))
-(declare-function cal-tex-cursor-week      "cal-tex"   (&optional arg))
-(declare-function cal-tex-cursor-week2     "cal-tex"   (&optional arg))
-(declare-function cal-tex-cursor-week-iso  "cal-tex"   (&optional arg))
-(declare-function cal-tex-cursor-week-monday     "cal-tex"  (&optional arg))
-(declare-function cal-tex-cursor-filofax-daily   "cal-tex"  (&optional arg))
-(declare-function cal-tex-cursor-filofax-2week   "cal-tex"  (&optional arg))
-(declare-function cal-tex-cursor-filofax-week    "cal-tex"  (&optional arg))
-(declare-function cal-tex-cursor-month           "cal-tex"  (arg))
-(declare-function cal-tex-cursor-month-landscape "cal-tex"  (&optional arg))
-(declare-function cal-tex-cursor-year            "cal-tex"  (&optional arg))
-(declare-function cal-tex-cursor-filofax-year    "cal-tex"  (&optional arg))
-(declare-function cal-tex-cursor-year-landscape  "cal-tex"  (&optional arg))
-(declare-function calendar-other-dates           "calendar" (date))
-(declare-function calendar-goto-date             "cal-move" (date))
+(require 'calendar)
 
 (defconst cal-menu-moon-menu
   '("Moon"
@@ -84,17 +53,14 @@
     ["Insert Block" insert-block-diary-entry]
     ["Insert Cyclic" insert-cyclic-diary-entry]
     ("Insert Baha'i"
-     [" " nil :suffix (calendar-bahai-date-string (calendar-cursor-to-date))]
      ["One time" diary-bahai-insert-entry]
      ["Monthly" diary-bahai-insert-monthly-entry]
      ["Yearly" diary-bahai-insert-yearly-entry])
     ("Insert Islamic"
-     [" " nil :suffix (calendar-islamic-date-string (calendar-cursor-to-date))]
      ["One time" insert-islamic-diary-entry]
      ["Monthly" insert-monthly-islamic-diary-entry]
      ["Yearly" insert-yearly-islamic-diary-entry])
     ("Insert Hebrew"
-     [" " nil :suffix (calendar-hebrew-date-string (calendar-cursor-to-date))]
      ["One time" insert-hebrew-diary-entry]
      ["Monthly" insert-monthly-hebrew-diary-entry]
      ["Yearly" insert-yearly-hebrew-diary-entry])))
