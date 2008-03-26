@@ -1,3 +1,7 @@
+2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.2 released.
+
 2008-03-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* addpm.c: Include malloc.h.

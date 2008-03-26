@@ -1,3 +1,7 @@
+2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.2 released.
+
 2008-02-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* strings.texi (Formatting Strings): Treat - and 0 as flag

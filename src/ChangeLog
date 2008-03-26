@@ -1,3 +1,7 @@
+2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.2 released.
+
 2008-03-10  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* fileio.c (Finsert_file_contents): Don't make CCL program to

@@ -1,3 +1,7 @@
+2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.2 released.
+
 2008-01-14  Aidan Kehoe  <kehoea@parhasard.net>  (tiny change)
 
         * quail/latin-ltx.el ("TeX"): Correct the mappings for \v{k} and

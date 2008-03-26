@@ -1,3 +1,7 @@
+2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.2 released.
+
 2008-02-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* configure.in: Print an error for systems that we think are

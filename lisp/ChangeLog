@@ -1,3 +1,7 @@
+2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* Version 22.2 released.
+
 2008-03-25  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
 
 	* info.el (Info-isearch-search): Always return point.
