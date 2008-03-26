@@ -3347,6 +3347,13 @@ Also runs the hook `deactivate-mark-hook'."
     (setq mark-active nil)
     (run-hooks 'deactivate-mark-hook))))
 
+(defun activate-mark ()
+  "Activate the mark."
+  (when (mark t)
+    (setq mark-active t)
+    (unless transient-mark-mode
+      (setq transient-mark-mode 'lambda))))
+
 (defcustom select-active-regions nil
   "If non-nil, an active region automatically becomes the window selection."
   :type 'boolean
@@ -3520,13 +3527,13 @@ purposes.  See the documentation of `set-mark' for more information."
    (arg
     (setq this-command 'pop-to-mark-command)
     (pop-to-mark-command))
-   ((and (eq last-command 'set-mark-command)
-	 mark-active (null transient-mark-mode))
-    (setq transient-mark-mode 'lambda)
-    (message "Transient-mark-mode temporarily enabled"))
-   ((and (eq last-command 'set-mark-command)
-         transient-mark-mode)
-    (deactivate-mark))
+   ((eq last-command 'set-mark-command)
+    (if (region-active-p)
+        (progn
+          (deactivate-mark)
+          (message "Mark deactivated"))
+      (activate-mark)
+      (message "Mark activated")))
    (t
     (push-mark-command nil))))
 
@@ -3580,18 +3587,17 @@ This command works even when the mark is not active,
 and it reactivates the mark.
 With prefix arg, `transient-mark-mode' is enabled temporarily."
   (interactive "P")
-  (if arg
-      (if mark-active
-	  (if (null transient-mark-mode)
-	      (setq transient-mark-mode 'lambda))
-	(setq arg nil)))
-  (unless arg
-    (let ((omark (mark t)))
-      (if (null omark)
-	  (error "No mark set in this buffer"))
-      (set-mark (point))
-      (goto-char omark)
-      nil)))
+  (deactivate-mark)
+  (let ((omark (mark t)))
+    (if (null omark)
+        (error "No mark set in this buffer"))
+    (set-mark (point))
+    (goto-char omark)
+    (if (or (and arg (region-active-p)) ; (xor arg (not (region-active-p)))
+            (not (or arg (region-active-p))))
+        (deactivate-mark)
+      (activate-mark))
+    nil))
 
 (define-minor-mode transient-mark-mode
   "Toggle Transient Mark mode.

@@ -1,5 +1,10 @@
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* simple.el (activate-mark): New function.
+	(set-mark-command): Use it with region-active-p to clean up the code.
+	(exchange-point-and-mark): Invert the meaning of C-u when
+	transient-mark-mode is active.
+
 	* dired-aux.el (dired-create-files): Use dolist.
 
 	* bindings.el (mode-line-change-eol): Use with-selected-window.
