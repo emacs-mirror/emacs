@@ -54,12 +54,10 @@
 
 ;;; Code:
 
-(if (fboundp 'atan)
-    (require 'lisp-float-type)
-  (error "Solar calculations impossible since floating point is unavailable"))
-
+(require 'calendar)
 (require 'cal-dst)
-(require 'cal-julian)
+;; calendar-absolute-from-astro and v versa are cal-autoloads.
+;;;(require 'cal-julian)
 
 
 (defcustom calendar-time-display-form
