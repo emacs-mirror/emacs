@@ -1,3 +1,7 @@
+2008-03-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* proced.el: Add arch-tag.
+
 2008-03-26  Johan Bockgård  <bojohan@gnu.org>
 
 	* emacs-lisp/lisp-mnt.el (lm-with-file): Use mode and syntax table
