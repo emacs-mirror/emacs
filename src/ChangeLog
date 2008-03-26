@@ -1,3 +1,9 @@
+2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* indent.c (scan_for_column): Extract from current_column_1.
+	Merge with the same code from Fmove_to_column.
+	(current_column_1, Fmove_to_column): Use it.
+
 2008-03-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymap.c (map_keymap_internal): New fun.

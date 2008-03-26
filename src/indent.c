@@ -504,13 +504,14 @@ current_column ()
   return col;
 }
 
-/* Return the column number of position POS
-   by scanning forward from the beginning of the line.
-   This function handles characters that are invisible
-   due to text properties or overlays.  */
-
-static double
-current_column_1 ()
+/* Scanning from the beginning of the current line, stop at the buffer
+   position ENDPOS or at the column GOALCOL or at the end of line, whichever
+   comes first.
+   Return the resulting buffer position and column in ENDPOS and GOALCOL.
+   PREVCOL gets set to the column of the previous position (it's always
+   strictly smaller than the goal column).  */
+static void
+scan_for_column (EMACS_INT *endpos, EMACS_INT *goalcol, EMACS_INT *prevcol)
 {
   register EMACS_INT tab_width = XINT (current_buffer->tab_width);
   register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
@@ -518,53 +519,66 @@ current_column_1 ()
   int multibyte = !NILP (current_buffer->enable_multibyte_characters);
 
   /* Start the scan at the beginning of this line with column number 0.  */
-  register EMACS_INT col = 0;
+  register EMACS_INT col = 0, prev_col = 0;
+  EMACS_INT goal = goalcol ? *goalcol : MOST_POSITIVE_FIXNUM;
+  EMACS_INT end = endpos ? *endpos : PT;
   EMACS_INT scan, scan_byte;
   EMACS_INT next_boundary;
+  {
   EMACS_INT opoint = PT, opoint_byte = PT_BYTE;
-
   scan_newline (PT, PT_BYTE, BEGV, BEGV_BYTE, -1, 1);
   current_column_bol_cache = PT;
   scan = PT, scan_byte = PT_BYTE;
   SET_PT_BOTH (opoint, opoint_byte);
   next_boundary = scan;
+  }
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
   /* Scan forward to the target position.  */
-  while (scan < opoint)
+  while (scan < end)
     {
       int c;
 
       /* Occasionally we may need to skip invisible text.  */
       while (scan == next_boundary)
 	{
-	  int old_scan = scan;
+	  EMACS_INT old_scan = scan;
 	  /* This updates NEXT_BOUNDARY to the next place
 	     where we might need to skip more invisible text.  */
-	  scan = skip_invisible (scan, &next_boundary, opoint, Qnil);
-	  if (scan >= opoint)
-	    goto endloop;
+	  scan = skip_invisible (scan, &next_boundary, end, Qnil);
 	  if (scan != old_scan)
 	    scan_byte = CHAR_TO_BYTE (scan);
+	  if (scan >= end)
+	    goto endloop;
 	}
+
+      /* Test reaching the goal column.  We do this after skipping
+	 invisible characters, so that we put point before the
+	 character on which the cursor will appear.  */
+      if (col >= goal)
+	break;
+      prev_col = col;
 
       /* Check composition sequence.  */
       {
 	int len, len_byte, width;
 
-	if (check_composition (scan, scan_byte, opoint,
+	if (check_composition (scan, scan_byte, end,
 			       &len, &len_byte, &width))
 	  {
 	    scan += len;
 	    scan_byte += len_byte;
-	    if (scan <= opoint)
+	    if (scan <= end)
 	      col += width;
 	    continue;
 	  }
       }
 
       c = FETCH_BYTE (scan_byte);
+
+      /* See if there is a display table and it relates
+	 to this character.  */
 
       if (dp != 0
 	  && ! (multibyte && BASE_LEADING_CODE_P (c))
@@ -574,7 +588,7 @@ current_column_1 ()
 	  EMACS_INT i, n;
 
 	  /* This character is displayed using a vector of glyphs.
-	     Update the column based on those glyphs.  */
+	     Update the column/position based on those glyphs.  */
 
 	  charvec = DISP_CHAR_VECTOR (dp, c);
 	  n = ASIZE (charvec);
@@ -606,8 +620,8 @@ current_column_1 ()
 	}
       else
 	{
-	  /* The display table says nothing for this character.
-	     Display it as itself.  */
+	  /* The display table doesn't affect this character;
+	     it displays as itself.  */
 
 	  if (c == '\n')
 	    goto endloop;
@@ -620,15 +634,15 @@ current_column_1 ()
 	    }
 	  else if (multibyte && BASE_LEADING_CODE_P (c))
 	    {
+	      /* Start of multi-byte form.  */
 	      unsigned char *ptr;
 	      int bytes, width, wide_column;
 
 	      ptr = BYTE_POS_ADDR (scan_byte);
 	      MULTIBYTE_BYTES_WIDTH (ptr, dp);
-	      scan_byte += bytes;
 	      /* Subtract one to compensate for the increment
 		 that is going to happen below.  */
-	      scan_byte--;
+	      scan_byte += bytes - 1;
 	      col += width;
 	    }
 	  else if (ctl_arrow && (c < 040 || c == 0177))
@@ -648,6 +662,26 @@ current_column_1 ()
   last_known_column_point = PT;
   last_known_column_modified = MODIFF;
 
+  if (goalcol)
+    *goalcol = col;
+  if (endpos)
+    *endpos = scan;
+  if (prevcol)
+    *prevcol = prev_col;
+}
+
+/* Return the column number of position POS
+   by scanning forward from the beginning of the line.
+   This function handles characters that are invisible
+   due to text properties or overlays.  */
+
+static double
+current_column_1 ()
+{
+  EMACS_INT col = MOST_POSITIVE_FIXNUM;
+  EMACS_INT opoint = PT;
+
+  scan_for_column (&opoint, &col, NULL);
   return col;
 }
 
@@ -933,179 +967,47 @@ The return value is the current column.  */)
      (column, force)
      Lisp_Object column, force;
 {
-  register EMACS_INT pos;
-  register EMACS_INT col = current_column ();
-  register EMACS_INT goal;
-  register EMACS_INT end;
-  register int tab_width = XINT (current_buffer->tab_width);
-  register int ctl_arrow = !NILP (current_buffer->ctl_arrow);
-  register struct Lisp_Char_Table *dp = buffer_display_table ();
-  register int multibyte = !NILP (current_buffer->enable_multibyte_characters);
+  EMACS_INT pos;
+  EMACS_INT col, prev_col;
+  EMACS_INT goal;
 
-  Lisp_Object val;
-  EMACS_INT prev_col = 0;
-  int c = 0;
-  EMACS_INT next_boundary, pos_byte;
-
-  if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
   CHECK_NATNUM (column);
   goal = XINT (column);
 
-  pos = PT;
-  pos_byte = PT_BYTE;
-  end = ZV;
+  col = goal;
+  pos = ZV;
+  scan_for_column (&pos, &col, &prev_col);
 
-  /* If we're starting past the desired column,
-     back up to beginning of line and scan from there.  */
-  if (col > goal)
-    {
-      end = pos;
-      pos = current_column_bol_cache;
-      pos_byte = CHAR_TO_BYTE (pos);
-      col = 0;
-    }
-
-  next_boundary = pos;
-
-  while (pos < end)
-    {
-      while (pos == next_boundary)
-	{
-	  EMACS_INT prev = pos;
-	  pos = skip_invisible (pos, &next_boundary, end, Qnil);
-	  if (pos != prev)
-	    pos_byte = CHAR_TO_BYTE (pos);
-	  if (pos >= end)
-	    goto endloop;
-	}
-
-      /* Test reaching the goal column.  We do this after skipping
-	 invisible characters, so that we put point before the
-	 character on which the cursor will appear.  */
-      if (col >= goal)
-	break;
-
-      /* Check composition sequence.  */
-      {
-	int len, len_byte, width;
-
-	if (check_composition (pos, pos_byte, Z, &len, &len_byte, &width))
-	  {
-	    pos += len;
-	    pos_byte += len_byte;
-	    col += width;
-	    continue;
-	  }
-      }
-
-      c = FETCH_BYTE (pos_byte);
-
-      /* See if there is a display table and it relates
-	 to this character.  */
-
-      if (dp != 0
-	  && ! (multibyte && BASE_LEADING_CODE_P (c))
-	  && VECTORP (DISP_CHAR_VECTOR (dp, c)))
-	{
-	  Lisp_Object charvec;
-	  EMACS_INT i, n;
-
-	  /* This character is displayed using a vector of glyphs.
-	     Update the position based on those glyphs.  */
-
-	  charvec = DISP_CHAR_VECTOR (dp, c);
-	  n = ASIZE (charvec);
-
-	  for (i = 0; i < n; i++)
-	    {
-	      /* This should be handled the same as
-		 next_element_from_display_vector does it.  */
-	      Lisp_Object entry = AREF (charvec, i);
-
-	      if (GLYPH_CODE_P (entry)
-		  && GLYPH_CODE_CHAR_VALID_P (entry))
-		c = GLYPH_CODE_CHAR (entry);
-	      else
-		c = ' ';
-
-	      if (c == '\n')
-		goto endloop;
-	      if (c == '\r' && EQ (current_buffer->selective_display, Qt))
-		goto endloop;
-	      if (c == '\t')
-		{
-		  prev_col = col;
-		  col += tab_width;
-		  col = col / tab_width * tab_width;
-		}
-	      else
-		++col;
-	    }
-	}
-      else
-	{
-	  /* The display table doesn't affect this character;
-	     it displays as itself.  */
-
-	  if (c == '\n')
-	    goto endloop;
-	  if (c == '\r' && EQ (current_buffer->selective_display, Qt))
-	    goto endloop;
-	  if (c == '\t')
-	    {
-	      prev_col = col;
-	      col += tab_width;
-	      col = col / tab_width * tab_width;
-	    }
-	  else if (ctl_arrow && (c < 040 || c == 0177))
-	    col += 2;
-	  else if (c < 040 || c == 0177)
-	    col += 4;
-	  else if (c < 0177)
-	    col++;
-	  else if (multibyte && BASE_LEADING_CODE_P (c))
-	    {
-	      /* Start of multi-byte form.  */
-	      unsigned char *ptr;
-	      int bytes, width, wide_column;
-
-	      ptr = BYTE_POS_ADDR (pos_byte);
-	      MULTIBYTE_BYTES_WIDTH (ptr, dp);
-	      pos_byte += bytes - 1;
-	      col += width;
-	    }
-	  else
-	    col += 4;
-	}
-
-      pos++;
-      pos_byte++;
-    }
- endloop:
-
-  SET_PT_BOTH (pos, pos_byte);
+  SET_PT (pos);
 
   /* If a tab char made us overshoot, change it to spaces
      and scan through it again.  */
-  if (!NILP (force) && col > goal && c == '\t' && prev_col < goal)
+  if (!NILP (force) && col > goal)
     {
-      EMACS_INT goal_pt, goal_pt_byte;
+      EMACS_INT pos_byte = PT_BYTE;
+      DEC_POS (pos_byte);
+      int c = FETCH_CHAR (pos_byte);
 
-      /* Insert spaces in front of the tab to reach GOAL.  Do this
-	 first so that a marker at the end of the tab gets
-	 adjusted.  */
-      SET_PT_BOTH (PT - 1, PT_BYTE - 1);
-      Finsert_char (make_number (' '), make_number (goal - prev_col), Qt);
+      if (c == '\t' && prev_col < goal)
+	{
+	  EMACS_INT goal_pt, goal_pt_byte;
 
-      /* Now delete the tab, and indent to COL.  */
-      del_range (PT, PT + 1);
-      goal_pt = PT;
-      goal_pt_byte = PT_BYTE;
-      Findent_to (make_number (col), Qnil);
-      SET_PT_BOTH (goal_pt, goal_pt_byte);
+	  /* Insert spaces in front of the tab to reach GOAL.  Do this
+	     first so that a marker at the end of the tab gets
+	     adjusted.  */
+	  SET_PT_BOTH (PT - 1, PT_BYTE - 1);
+	  Finsert_char (make_number (' '), make_number (goal - prev_col), Qt);
 
-      /* Set the last_known... vars consistently.  */
-      col = goal;
+	  /* Now delete the tab, and indent to COL.  */
+	  del_range (PT, PT + 1);
+	  goal_pt = PT;
+	  goal_pt_byte = PT_BYTE;
+	  Findent_to (make_number (col), Qnil);
+	  SET_PT_BOTH (goal_pt, goal_pt_byte);
+
+	  /* Set the last_known... vars consistently.  */
+	  col = goal;
+	}
     }
 
   /* If line ends prematurely, add space to the end.  */
@@ -1116,8 +1018,7 @@ The return value is the current column.  */)
   last_known_column_point = PT;
   last_known_column_modified = MODIFF;
 
-  XSETFASTINT (val, col);
-  return val;
+  return make_number (col);
 }
 
 /* compute_motion: compute buffer posn given screen posn and vice versa */
