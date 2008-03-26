@@ -363,6 +363,11 @@ It uses `auto-composition-function' (default `auto-compose-chars').
 ** The package linum.el is now included with Emacs.  It it a new minor
 mode to display line numbers for the current buffer.
 
+** proced.el has been added.  It operates on processes like dired.
+Proced makes an Emacs buffer containing a listing of the current processes
+(using ps(1)).  You can use the normal Emacs commands to move around in
+this buffer, and special Proced commands to operate on the processes listed.
+
 
 * Changes in Specialized Modes and Packages in Emacs 23.1
 
