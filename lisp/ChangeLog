@@ -1,5 +1,9 @@
 2008-03-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-git.el (vc-git-extra-menu-map): New key map.
+	(vc-git-extra-menu, vc-git-extra-status-menu, vc-git-grep):
+	New functions.
+
 	* vc-hooks.el (vc-default-mode-line-string): Deal with 'removed
 	and 'missing files.
 
