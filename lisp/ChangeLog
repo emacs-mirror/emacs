@@ -1,5 +1,8 @@
 2008-03-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-cvs.el (vc-cvs-parse-status, vc-cvs-after-dir-status): Detect
+	missing files.
+
 	* vc-git.el (vc-git-extra-menu-map): New key map.
 	(vc-git-extra-menu, vc-git-extra-status-menu, vc-git-grep):
 	New functions.

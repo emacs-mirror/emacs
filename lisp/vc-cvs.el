@@ -823,40 +823,42 @@ For an empty string, nil is returned (invalid CVS root)."
 Set file properties accordingly.  Unless FULL is t, parse only
 essential information. Note that this can never set the 'ignored
 state."
-  (let (file status)
+  (let (file status missing)
     (goto-char (point-min))
     (while (looking-at "? \\(.*\\)")
       (setq file (expand-file-name (match-string 1)))
       (vc-file-setprop file 'vc-state 'unregistered)
       (forward-line 1))
-    (if (re-search-forward "^File: " nil t)
-        (cond
-         ((looking-at "no file") nil)
-         ((re-search-forward "\\=\\([^ \t]+\\)" nil t)
-	  (setq file (expand-file-name (match-string 1)))
-          (vc-file-setprop file 'vc-backend 'CVS)
-          (if (not (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t))
-              (setq status "Unknown")
-            (setq status (match-string 1)))
-          (if (and full
-                   (re-search-forward
-                    "\\(RCS Version\\|RCS Revision\\|Repository revision\\):\
+    (when (re-search-forward "^File: " nil t)
+      (when (setq missing (looking-at "no file "))
+	(goto-char (match-end 0)))
+      (cond
+       ((re-search-forward "\\=\\([^ \t]+\\)" nil t)
+	(setq file (expand-file-name (match-string 1)))
+	(vc-file-setprop file 'vc-backend 'CVS)
+	(if (not (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t))
+	    (setq status "Unknown")
+	  (setq status (match-string 1)))
+	(if (and full
+		 (re-search-forward
+		  "\\(RCS Version\\|RCS Revision\\|Repository revision\\):\
 \[\t ]+\\([0-9.]+\\)"
-                    nil t))
-              (vc-file-setprop file 'vc-latest-revision (match-string 2)))
-          (vc-file-setprop
-           file 'vc-state
-           (cond
-            ((string-match "Up-to-date" status)
-             (vc-file-setprop file 'vc-checkout-time
-                              (nth 5 (file-attributes file)))
-             'up-to-date)
-            ((string-match "Locally Modified" status)             'edited)
-            ((string-match "Needs Merge" status)                  'needs-merge)
-            ((string-match "Needs \\(Checkout\\|Patch\\)" status) 'needs-patch)
-            ((string-match "Locally Added" status)                'added)
-            ((string-match "Locally Removed" status)              'removed)
-            (t 'edited))))))))
+		  nil t))
+	    (vc-file-setprop file 'vc-latest-revision (match-string 2)))
+	(vc-file-setprop
+	 file 'vc-state
+	 (cond
+	  ((string-match "Up-to-date" status)
+	   (vc-file-setprop file 'vc-checkout-time
+			    (nth 5 (file-attributes file)))
+	   'up-to-date)
+	  ((string-match "Locally Modified" status)             'edited)
+	  ((string-match "Needs Merge" status)                  'needs-merge)
+	  ((string-match "Needs \\(Checkout\\|Patch\\)" status)
+	   (if missing 'missing 'needs-patch))
+	  ((string-match "Locally Added" status)                'added)
+	  ((string-match "Locally Removed" status)              'removed)
+	  (t 'edited))))))))
 
 (defun vc-cvs-dir-state-heuristic (dir)
   "Find the CVS state of all files in DIR, using only local information."
@@ -879,6 +881,7 @@ state."
 	(status-str nil)
 	(file nil)
 	(result nil)
+	(missing nil)
 	(subdir default-directory))
     (goto-char (point-min))
     (while
@@ -901,8 +904,9 @@ state."
 	(forward-line 1))
       ;; A file entry.
       (when (re-search-forward "^File: " nil t)
+	(when (setq missing (looking-at "no file "))
+	  (goto-char (match-end 0)))
 	(cond
-	 ((looking-at "no file") nil)
 	 ((re-search-forward "\\=\\([^ \t]+\\)" nil t)
 	  (setq file (file-relative-name 
 		      (expand-file-name (match-string 1) subdir)))
@@ -915,7 +919,7 @@ state."
 		   ((string-match "Locally Modified" status-str) 'edited)
 		   ((string-match "Needs Merge" status-str) 'needs-merge)
 		   ((string-match "Needs \\(Checkout\\|Patch\\)" status-str)
-		    'needs-patch)
+		    (if missing 'missing 'needs-patch))
 		   ((string-match "Locally Added" status-str) 'added)
 		   ((string-match "Locally Removed" status-str) 'removed)
 		   (t 'edited)))
