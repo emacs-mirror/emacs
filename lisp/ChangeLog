@@ -6311,12 +6311,6 @@
 	New coding systems.
 	("Chinese-GBK"): New environment.
 
-2008-02-01  Dave Love  <fx@gnu.org>
-
-	* language/chinese.el (chinese-gbk, gbk, cp936, windows-936):
-	New coding systems.
-	("Chinese-GBK"): New environment.
-
 	* language/thai-util.el: Remove redundant unicodes in category-setting.
 
 	* language/lao-util.el: Remove redundant unicodes in category-setting.
@@ -8303,14 +8297,6 @@
 
 	* play/blackbox.el (blackbox-mode-map): Add `q' and [return] bindings.
 
-2008-01-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-print.el: Some face attributes (like :strike-through) were not
-	being recognised.  Reported by Leo <sdl.web@gmail.com>.
-	(ps-print-version): New version 6.8.2.
-	(ps-face-strikout-p, ps-face-overline-p, ps-face-box-p): New functions.
-	(ps-screen-to-bit-face): Fix code.
-
 2008-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* ffap.el (ffap-read-file-or-url): Don't use let-binding to temporarily
@@ -9543,17 +9529,6 @@
 	* emacs-lisp/lisp-mnt.el (lm-verify): Make it work with
 	directories.  Not sure anybody uses this anymore, though.
 
-2007-12-09  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* printing.el: Fix pr-interface-map initialization code.
-	(pr-version): New version 6.9.3.
-	(pr-f-set-keymap-parents): Replace by pr-set-keymap-parents.
-	(pr-f-set-keymap-name): Replace by pr-set-keymap-name.
-	(pr-f-read-string): Replace by pr-read-string.
-	(pr-set-keymap-parents, pr-set-keymap-name, pr-read-string): New fun
-	name.
-	(pr-interactive-n-up, pr-interactive-regexp): Code fix.
-
 2007-12-09  Glenn Morris  <rgm@gnu.org>
 
 	* emulation/viper-init.el (top-level): Use dolist rather than mapc
@@ -9910,12 +9885,6 @@
 
 	* textmodes/reftex-toc.el (reftex-make-separate-toc-frame):
 	Try x-focus-frame before focus-frame.  Only try focus-frame on XEmacs.
-
-2007-12-03  Nathan J. Williams  <nathanw@MIT.EDU>  (tiny change)
-
-	* net/imap.el (imap-mailbox-status-asynch): Upcase STATUS items.
-	(imap-parse-status): Upcase status-att for servers that sends them
-	lower-case (e.g., MS Exchange 2007).
 
 2007-12-03  Karl Fogel  <kfogel@red-bean.com>
 
@@ -10810,12 +10779,6 @@
 2007-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-mode): Set defun-prompt-regexp.
-
-2007-11-21  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-print.el (ps-lpr-switches): Docstring fix.
-	(ps-string-list): New fun.
-	(ps-do-despool): Code fix.
 
 2007-11-21  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -12444,18 +12407,6 @@
 	* cus-start.el: Remove abbrev-all-caps and pre-abbrev-expand-hook.
 	* loadup.el: Load "abbrev.el" before "lisp-mode.el".
 
-2007-10-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* ps-print.el: Now detect if text foreground and background colors are
-	equal and replace the foreground color by another color, so the text
-	becomes visible.  Doc fix.
-	(ps-print-version): New version 6.8.
-	(ps-default-fg, ps-default-bg): Docstring fix.
-	(ps-postscript-code-directory): Fix default value code.
-	(ps-fg-list, ps-fg-validate-p): New options.
-	(ps-foreground-list): New var.
-	(ps-setup, ps-begin-job, ps-plot-region): Fix code.
-
 2007-10-27  Glenn Morris  <rgm@gnu.org>
 
 	* shell.el (shell-dirtrack-verbose, shell-directory-tracker): Doc fix.
@@ -12507,25 +12458,6 @@
 	New defcustoms.
 	(display-time-world-list): Use them as appropriate for the current
 	value of `system-type'.
-
-2007-10-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* printing.el: Pacify byte compiler, that is, no compiler warnings.
-	Move (again) some variable definitions before use, define some fun
-	aliases, no code change.
-	(pr-version): New version 6.9.2.
-	(pr-path-style, pr-auto-region, pr-menu-char-height)
-	(pr-menu-char-width, pr-menu-lock, pr-ps-printer-alist)
-	(pr-txt-printer-alist, pr-ps-utility-alist): Options declaration
-	via (defvar VAR).
-	(pr-menu-lookup, pr-menu-lock, pr-menu-alist, pr-even-or-odd-pages)
-	(pr-menu-get-item, pr-menu-set-item-name, pr-menu-set-utility-title)
-	(pr-menu-set-ps-title, pr-menu-set-txt-title, pr-region-active-p)
-	(pr-do-update-menus, pr-update-mode-line, pr-f-read-string)
-	(pr-f-set-keymap-parents, pr-keep-region-active): Fun aliases.
-	(pr-menu-print-item, pr-ps-printer-menu-modified)
-	(pr-txt-printer-menu-modified, pr-ps-utility-menu-modified)
-	(pr-even-or-odd-alist): Vars definition moved.
 
 2007-10-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -13945,17 +13877,6 @@
 	(org-remember-apply-template): Respect the dynamically scoped
 	selection character.
 
-2007-10-10  Bastien Guerry  <Bastien.Guerry@ens.fr>
-
-	* textmodes/org-export-latex.el (org-export-latex-protect-string):
-	Renaming of `org-latex-protect'.
-	(org-export-latex-emphasis-alist): By default, don't protect
-	any emphasis formatter from further conversion.
-	(org-export-latex-tables): Honor column grouping for tables.
-	(org-export-latex-title-command): New option.
-	(org-export-latex-treat-backslash-char): Use \textbackslash{} to
-	export backslash character.
-
 2007-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.el (frame-inherited-parameters): Remove unused `environment'
@@ -14622,10 +14543,6 @@
 2007-09-30  Richard Stallman  <rms@gnu.org>
 
 	* play/zone.el (zone-hiding-modeline): Use mode-line-format.
-
-2007-09-29  Jan Djärv  <jan.h.d@swipnet.se>
-
-	* term/x-win.el (x-gtk-stock-map): Version is 22.2.
 
 2007-09-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -17760,59 +17677,6 @@
 	* vc-git.el (vc-git-revision-table)
 	(vc-git-revision-completion-table): New functions.
 
-2007-07-26  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* progmodes/ebnf-abn.el (ebnf-abn-skip-comment):
-	* progmodes/ebnf-bnf.el (ebnf-bnf-skip-comment):
-	* progmodes/ebnf-dtd.el (ebnf-dtd-skip-comment):
-	* progmodes/ebnf-ebx.el (ebnf-ebx-skip-comment):
-	* progmodes/ebnf-iso.el (ebnf-iso-skip-comment):
-	* progmodes/ebnf-yac.el (ebnf-yac-skip-comment): New version.
-	New command actions for EPS header and EPS footer.
-
-	* progmodes/ebnf2ps.el: New command actions for EPS header and EPS
-	footer.  Fix some problems with one-or-more, zero-or-more and
-	alternative constructions generation.  Some log messages
-	implementation.  Doc fix.
-	(ebnf-version): New version 4.4.
-	(ebnf-eps-header-font, ebnf-eps-header, ebnf-eps-footer-font)
-	(ebnf-eps-footer, ebnf-log): New options.
-	(ebnf-find-style, ebnf-eps-header-footer, ebnf-eps-header)
-	(ebnf-eps-footer, ebnf-eps-string, ebnf-eps-header-footer-comment)
-	(ebnf-eps-header-footer-p, ebnf-eps-header-comment)
-	(ebnf-eps-footer-comment, ebnf-eps-header-footer-file)
-	(ebnf-eps-header-footer-set, ebnf-log-header, ebnf-log): New funs.
-	(ebnf-style-custom-list, ebnf-style-database): Put new values.
-	(ebnf-print-directory, ebnf-print-file, ebnf-print-buffer)
-	(ebnf-print-region, ebnf-spool-directory, ebnf-spool-file)
-	(ebnf-spool-buffer, ebnf-spool-region, ebnf-eps-directory)
-	(ebnf-eps-file, ebnf-eps-buffer, ebnf-eps-region)
-	(ebnf-syntax-directory, ebnf-syntax-file, ebnf-syntax-buffer)
-	(ebnf-syntax-region, ebnf-parse-and-sort, ebnf-begin-job)
-	(ebnf-dimensions, ebnf-production-dimension, ebnf-terminal-dimension)
-	(ebnf-non-terminal-dimension, ebnf-special-dimension)
-	(ebnf-terminal-dimension1, ebnf-repeat-dimension)
-	(ebnf-except-dimension, ebnf-alternative-dimension)
-	(ebnf-optional-dimension, ebnf-one-or-more-dimension)
-	(ebnf-zero-or-more-dimension, ebnf-sequence-dimension): Insert log
-	message fun.
-	(ebnf-setup, ebnf-generate-one-or-more, ebnf-generate-zero-or-more)
-	(ebnf-begin-job, ebnf-begin-file, ebnf-eps-finish-and-write)
-	(ebnf-insert-ebnf-prologue, ebnf-production-dimension)
-	(ebnf-terminal-dimension1, ebnf-alternative-dimension)
-	(ebnf-one-or-more-dimension, ebnf-zero-or-more-dimension)
-	(ebnf-eps-add-context, ebnf-eps-add-production): Fix code.
-	(ebnf-eps-filename, ebnf-trim-right): Replace `?\s' by `?\ ' to keep
-	compatibility with Emacs 20 & 21.
-	(ebnf-eps-header-comment, ebnf-eps-footer-comment)
-	(ebnf-eps-file-alist, ebnf-basic-width-extra)
-	(ebnf-basic-empty-height): New vars.
-	(ebnf-prologue): Fix PostScript code.
-	(ebnf-make-empty, ebnf-make-terminal1, ebnf-make-or-more1)
-	(ebnf-make-production, ebnf-make-alternative, ebnf-make-optional)
-	(ebnf-make-except, ebnf-make-repeat, ebnf-make-sequence)
-	(ebnf-make-dup-sequence, ebnf-token-alternative): Add comments.
-
 2007-07-25  Glenn Morris  <rgm@gnu.org>
 
 	* Relicense all FSF files to GPLv3 or later.
@@ -18857,10 +18721,6 @@
 	modified.
 	(longlines-auto-wrap, longlines-window-change-function):
 	Remove unnecessary calls to set-buffer-modified-p.
-
-2007-07-08  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* cus-start.el (file-coding-system-alist): Fix custom type.
 
 2007-07-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -20093,16 +19953,6 @@
 
 2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
-	* international/mule-cmds.el (toggle-enable-multibyte-characters)
-	(sort-coding-systems, search-unencodable-char): Doc fixes.
-	(coding-system-change-eol-conversion, set-default-coding-systems)
-	(prefer-coding-system, find-multibyte-characters, princ-list)
-	(leim-list-entry-regexp, set-input-method, locale-language-names)
-	(input-method-exit-on-first-char, exit-language-environment-hook)
-	(locale-charset-language-names): Fix typos in docstrings.
-
-2007-06-06  Juanma Barranquero  <lekktu@gmail.com>
-
 	* pgg.el (pgg-sign-region, pgg-sign):
 	* ses.el (ses-call-printer):
 	* calendar/icalendar.el (icalendar--diarytime-to-isotime):
@@ -20525,32 +20375,6 @@
 	* textmodes/ispell.el (ispell-get-word): Return markers
 	for start and end positions.
 	(ispell-word): Assume END is a marker.
-
-2007-05-17  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
-
-	* printing.el: Group together all XEmacs/Emacs definitions.
-	(pr-version): New version 6.9.
-	(pr-global-menubar, pr-menu-char-height, pr-menu-char-width): New funs.
-	(pr-menu-char-height, pr-menu-char-width): Fix initialization code.
-	(pr-menu-bind): Fix code.
-	(pr-e-frame-char-height, pr-e-frame-char-width)
-	(pr-e-mouse-pixel-position, pr-x-add-submenu, pr-x-event-function)
-	(pr-x-event-object, pr-x-find-menu-item, pr-x-font-height)
-	(pr-x-font-width, pr-x-get-popup-menu-response, pr-x-make-event)
-	(pr-x-misc-user-event-p, pr-x-relabel-menu-item, pr-x-event-x-pixel)
-	(pr-x-event-y-pixel): Aliases eliminated.
-	(pr-xemacs-global-menubar): Macro moved.
-	(current-menubar, current-mouse-event, zmacs-region-stays)
-	(deactivate-mark, pr-menu-position, pr-menu-state, pr-ps-name-old)
-	(pr-txt-name-old, pr-ps-utility-old, pr-even-or-odd-old, pr-temp-menu):
-	Vars moved.
-	(pr-region-active-p, pr-menu-position, pr-menu-lookup, pr-menu-lock)
-	(pr-update-mode-line, pr-do-update-menus, pr-menu-alist)
-	(pr-relabel-menu-item, pr-menu-set-ps-title, pr-menu-set-txt-title)
-	(pr-menu-set-utility-title, pr-even-or-odd-pages)
-	(pr-f-set-keymap-parents, pr-f-set-keymap-name, pr-f-read-string)
-	(pr-keep-region-active, pr-menu-get-item, pr-menu-set-item-name): Funs
-	moved.
 
 2007-05-17  Christian Plate  <cplate@web.de>  (tiny change)
 
