@@ -49,7 +49,13 @@
 
 ;;; Code:
 
-(require 'lunar)
+(require 'calendar)
+(require 'lunar)                        ; lunar-new-moon-on-or-after
+;; solar-date-next-longitude brought in by lunar.
+;;;(require 'solar)
+;; calendar-absolute-from-astro and v versa are cal-autoloads.
+;;;(require 'cal-julian)
+
 
 (defgroup chinese-calendar nil
   "Chinese calendar support."
