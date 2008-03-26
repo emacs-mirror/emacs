@@ -9,6 +9,7 @@
 #include "mpscamc.h"
 #include "mpsavm.h"
 #include "mpscmv.h"
+#include "fmthe.h"
 #include "fmtdy.h"
 #include "fmtdytst.h"
 #include "mps.h"
@@ -38,6 +39,29 @@ static mps_gen_param_s testChain[genCOUNT] = {
 
 static mps_pool_t amcpool;
 static mps_ap_t ap;
+static size_t ap_headerSIZE = 0;
+/* For this ap.... */
+/* Auto_header format
+ *
+ *   [ auto_header ][===object===]
+ *   ^pMps          ^pCli
+ *   <-----------sizeMps--------->
+ *                  <---sizeCli-->
+ *
+ * Note: pMps < pCli; sizeMps > sizeCli.
+ */
+#define PtrMps2Cli(n) ((char*)n + ap_headerSIZE)
+#define PtrCli2Mps(n) ((char*)n - ap_headerSIZE)
+#define SizeMps2Cli(n) (n - ap_headerSIZE)
+#define SizeCli2Mps(n) (n + ap_headerSIZE)
+#define HeaderInit(pMps) do {                                          \
+  if(ap_headerSIZE != 0) {                                             \
+    mps_addr_t pMps_MACROCOPY = (pMps);  /* macro hygiene */           \
+    ((int*)pMps_MACROCOPY)[0] = realHeader;                            \
+    ((int*)pMps_MACROCOPY)[1] = 0xED0ED;                               \
+  }                                                                    \
+ } while(0)
+
 static mps_addr_t exactRoots[exactRootsCOUNT];
 static mps_addr_t ambigRoots[ambigRootsCOUNT];
 
@@ -103,18 +127,22 @@ static void alignmentTest(mps_arena_t arena)
 
 static mps_addr_t make(void)
 {
-  size_t length = rnd() % 20, size = (length+2)*sizeof(mps_word_t);
-  mps_addr_t p;
+  size_t length = rnd() % 20;
+  size_t sizeCli = (length+2)*sizeof(mps_word_t);
+  size_t sizeMps = SizeCli2Mps(sizeCli);
+  mps_addr_t pMps, pCli;
   mps_res_t res;
 
   do {
-    MPS_RESERVE_BLOCK(res, p, ap, size);
+    MPS_RESERVE_BLOCK(res, pMps, ap, sizeMps);
     if (res != MPS_RES_OK) die(res, "MPS_RESERVE_BLOCK");
-    res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
+    HeaderInit(pMps);
+    pCli = PtrMps2Cli(pMps);
+    res = dylan_init(pCli, sizeCli, exactRoots, exactRootsCOUNT);
     if (res != MPS_RES_OK) die(res, "dylan_init");
-  } while(!mps_commit(ap, p, size));
+  } while(!mps_commit(ap, pMps, sizeMps));
 
-  return p;
+  return pCli;
 }
 
 
@@ -122,18 +150,22 @@ static mps_addr_t make(void)
 
 static mps_addr_t make_with_permit(void)
 {
-  size_t length = rnd() % 20, size = (length+2)*sizeof(mps_word_t);
-  mps_addr_t p;
+  size_t length = rnd() % 20;
+  size_t sizeCli = (length+2)*sizeof(mps_word_t);
+  size_t sizeMps = SizeCli2Mps(sizeCli);
+  mps_addr_t pMps, pCli;
   mps_res_t res;
 
   do {
-    MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(res, p, ap, size);
+    MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK(res, pMps, ap, sizeMps);
     if (res != MPS_RES_OK) die(res, "MPS_RESERVE_WITH_RESERVOIR_PERMIT_BLOCK");
-    res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
+    HeaderInit(pMps);
+    pCli = PtrMps2Cli(pMps);
+    res = dylan_init(pCli, sizeCli, exactRoots, exactRootsCOUNT);
     if (res != MPS_RES_OK) die(res, "dylan_init");
-  } while(!mps_commit(ap, p, size));
+  } while(!mps_commit(ap, pMps, sizeMps));
 
-  return p;
+  return pCli;
 }
 
 
@@ -141,18 +173,22 @@ static mps_addr_t make_with_permit(void)
 
 static mps_addr_t make_no_inline(void)
 {
-  size_t length = rnd() % 20, size = (length+2)*sizeof(mps_word_t);
-  mps_addr_t p;
+  size_t length = rnd() % 20;
+  size_t sizeCli = (length+2)*sizeof(mps_word_t);
+  size_t sizeMps = SizeCli2Mps(sizeCli);
+  mps_addr_t pMps, pCli;
   mps_res_t res;
 
   do {
-    res = (mps_reserve)(&p, ap, size);
+    res = (mps_reserve)(&pMps, ap, sizeMps);
     if (res != MPS_RES_OK) die(res, "(mps_reserve)");
-    res = dylan_init(p, size, exactRoots, exactRootsCOUNT);
+    HeaderInit(pMps);
+    pCli = PtrMps2Cli(pMps);
+    res = dylan_init(pCli, sizeCli, exactRoots, exactRootsCOUNT);
     if (res != MPS_RES_OK) die(res, "dylan_init");
-  } while(!(mps_commit)(ap, p, size));
+  } while(!(mps_commit)(ap, pMps, sizeMps));
 
-  return p;
+  return pCli;
 }
 
 
@@ -290,7 +326,16 @@ static void *test(void *arg, size_t s)
   arena = (mps_arena_t)arg;
   testlib_unused(s);
 
-  die(dylan_fmt(&format, arena), "fmt_create");
+  if (rnd() & 1) {
+    printf("Using auto_header format.\n");
+    EnsureHeaderFormat(&format, arena);
+    ap_headerSIZE = headerSIZE;  /* from fmthe.h */
+  } else {
+    printf("Using normal format (no implicit object header: client pointers point at start of storage).\n");
+    die(dylan_fmt(&format, arena), "fmt_create");
+    ap_headerSIZE = 0;
+  }
+
   die(mps_chain_create(&chain, arena, genCOUNT, testChain), "chain_create");
 
   die(mps_pool_create(&mv, arena, mps_class_mv(), 0x10000, 32, 0x10000),
@@ -402,8 +447,8 @@ static void *test(void *arg, size_t s)
         cdie(rampCount > 0 ? res == MPS_RES_OK : res == MPS_RES_FAIL,
              "alloc_pattern_end");
         if (rampCount > 0) {
-	  --rampCount;
-	}
+          --rampCount;
+        }
         break;
       case 3:
         die(mps_ap_alloc_pattern_reset(ap), "alloc_pattern_reset");
@@ -483,7 +528,7 @@ int main(int argc, char **argv)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 

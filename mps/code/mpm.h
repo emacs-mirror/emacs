@@ -501,6 +501,7 @@ extern void ControlFinish(Arena arena);
 extern Res ControlAlloc(void **baseReturn, Arena arena, size_t size,
                         Bool withReservoirPermit);
 extern void ControlFree(Arena arena, void *base, size_t size);
+extern Res ControlDescribe(Arena arena, mps_lib_FILE *stream);
 
 
 /* Peek/Poke
