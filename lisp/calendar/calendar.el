@@ -118,6 +118,8 @@
 (eval-and-compile
   (load "cal-loaddefs" nil 'quiet))
 
+;; Avoid recursive load of calendar when loading cal-menu.
+(provide 'calendar)
 (require 'cal-menu)
 
 
@@ -714,8 +716,7 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (defcustom oriental-holidays
-  '((if (fboundp 'atan)
-        (holiday-chinese-new-year)))
+  '((holiday-chinese-new-year))
   "Oriental holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
@@ -1008,27 +1009,17 @@ See the documentation for `calendar-holidays' for details."
 
 ;;;###autoload
 (defcustom solar-holidays
-  '((if (fboundp 'atan)
-        (solar-equinoxes-solstices))
-    (if (require 'cal-dst)
-      (funcall
-       'holiday-sexp
-        calendar-daylight-savings-starts
-        '(format "Daylight Saving Time Begins %s"
-                  (if (fboundp 'atan)
-                      (solar-time-string
-                       (/ calendar-daylight-savings-starts-time (float 60))
-                       calendar-standard-time-zone-name)
-                    ""))))
-    (funcall
-     'holiday-sexp
-     calendar-daylight-savings-ends
-     '(format "Daylight Saving Time Ends %s"
-              (if (fboundp 'atan)
-                  (solar-time-string
-                   (/ calendar-daylight-savings-ends-time (float 60))
-                   calendar-daylight-time-zone-name)
-                ""))))
+  '((solar-equinoxes-solstices)
+    (holiday-sexp calendar-daylight-savings-starts
+                  (format "Daylight Saving Time Begins %s"
+                          (solar-time-string
+                           (/ calendar-daylight-savings-starts-time (float 60))
+                           calendar-standard-time-zone-name)))
+    (holiday-sexp calendar-daylight-savings-ends
+                  (format "Daylight Saving Time Ends %s"
+                          (solar-time-string
+                           (/ calendar-daylight-savings-ends-time (float 60))
+                           calendar-daylight-time-zone-name))))
   "Sun-related holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
