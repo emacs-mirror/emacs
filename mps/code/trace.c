@@ -1028,9 +1028,9 @@ void TraceDestroy(Trace trace)
   trace->arena->flippedTraces = TraceSetDel(trace->arena->flippedTraces, trace);
   EVENT_P(TraceDestroy, trace);
 
-	DIAG_FIRSTF(( "TraceDestroy", NULL ));
-  DIAG( ControlPoolDescribe(trace->arena, DIAG_STREAM); );
-	DIAG_END("TraceDestroy");
+  DIAG_FIRSTF(( "TraceDestroy", NULL ));
+  DIAG( ControlDescribe(trace->arena, DIAG_STREAM); );
+  DIAG_END("TraceDestroy");
 }
 
 
