@@ -1389,51 +1389,48 @@ Special value `always' suppresses confirmation."
 	skipped (success-count 0) (total (length fn-list)))
     (let (to overwrite-query
 	     overwrite-backup-query)	; for dired-handle-overwrite
-      (mapc
-       (function
-	(lambda (from)
-	  (setq to (funcall name-constructor from))
-	  (if (equal to from)
-	      (progn
-		(setq to nil)
-		(dired-log "Cannot %s to same file: %s\n"
-			   (downcase operation) from)))
-	  (if (not to)
-	      (setq skipped (cons (dired-make-relative from) skipped))
-	    (let* ((overwrite (file-exists-p to))
-		   (dired-overwrite-confirmed	; for dired-handle-overwrite
-		    (and overwrite
-			 (let ((help-form '(format "\
+      (dolist (from fn-list)
+        (setq to (funcall name-constructor from))
+        (if (equal to from)
+            (progn
+              (setq to nil)
+              (dired-log "Cannot %s to same file: %s\n"
+                         (downcase operation) from)))
+        (if (not to)
+            (setq skipped (cons (dired-make-relative from) skipped))
+          (let* ((overwrite (file-exists-p to))
+                 (dired-overwrite-confirmed ; for dired-handle-overwrite
+                  (and overwrite
+                       (let ((help-form '(format "\
 Type SPC or `y' to overwrite file `%s',
 DEL or `n' to skip to next,
 ESC or `q' to not overwrite any of the remaining files,
 `!' to overwrite all remaining files with no more questions." to)))
-			   (dired-query 'overwrite-query
-					"Overwrite `%s'?" to))))
-		   ;; must determine if FROM is marked before file-creator
-		   ;; gets a chance to delete it (in case of a move).
-		   (actual-marker-char
-		    (cond  ((integerp marker-char) marker-char)
-			   (marker-char (dired-file-marker from)) ; slow
-			   (t nil))))
-	      (condition-case err
-		  (progn
-		    (funcall file-creator from to dired-overwrite-confirmed)
-		    (if overwrite
-			;; If we get here, file-creator hasn't been aborted
-			;; and the old entry (if any) has to be deleted
-			;; before adding the new entry.
-			(dired-remove-file to))
-		    (setq success-count (1+ success-count))
-		    (message "%s: %d of %d" operation success-count total)
-		    (dired-add-file to actual-marker-char))
-		(file-error		; FILE-CREATOR aborted
-		 (progn
-		   (push (dired-make-relative from)
-			 failures)
-		   (dired-log "%s `%s' to `%s' failed:\n%s\n"
-			      operation from to err))))))))
-       fn-list))
+                         (dired-query 'overwrite-query
+                                      "Overwrite `%s'?" to))))
+                 ;; must determine if FROM is marked before file-creator
+                 ;; gets a chance to delete it (in case of a move).
+                 (actual-marker-char
+                  (cond  ((integerp marker-char) marker-char)
+                         (marker-char (dired-file-marker from)) ; slow
+                         (t nil))))
+            (condition-case err
+                (progn
+                  (funcall file-creator from to dired-overwrite-confirmed)
+                  (if overwrite
+                      ;; If we get here, file-creator hasn't been aborted
+                      ;; and the old entry (if any) has to be deleted
+                      ;; before adding the new entry.
+                      (dired-remove-file to))
+                  (setq success-count (1+ success-count))
+                  (message "%s: %d of %d" operation success-count total)
+                  (dired-add-file to actual-marker-char))
+              (file-error		; FILE-CREATOR aborted
+               (progn
+                 (push (dired-make-relative from)
+                       failures)
+                 (dired-log "%s `%s' to `%s' failed:\n%s\n"
+                            operation from to err))))))))
     (cond
      (dired-create-files-failures
       (setq failures (nconc failures dired-create-files-failures))

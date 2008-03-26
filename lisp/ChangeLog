@@ -1,5 +1,7 @@
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* dired-aux.el (dired-create-files): Use dolist.
+
 	* bindings.el (mode-line-change-eol): Use with-selected-window.
 
 	* apropos.el (apropos-command): Include macros.
