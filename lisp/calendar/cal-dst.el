@@ -34,7 +34,6 @@
 ;;; Code:
 
 (require 'calendar)
-(require 'cal-persia)
 
 
 (defgroup calendar-dst nil
@@ -182,6 +181,8 @@ Return nil if no such transition can be found."
              (setq hi probe)
            (setq lo probe)))
        hi))))
+
+(autoload 'calendar-absolute-from-persian "cal-persia")
 
 (defun calendar-time-zone-daylight-rules (abs-date utc-diff)
   "Return daylight transition rule for ABS-DATE, UTC-DIFF sec offset from UTC.
@@ -463,8 +464,7 @@ value is 'standard and daylight saving time (if available) when its value is
 Conversion to daylight saving time is done according to
 `calendar-daylight-savings-starts', `calendar-daylight-savings-ends',
 `calendar-daylight-savings-starts-time',
-`calendar-daylight-savings-ends-time', and
-`calendar-daylight-savings-offset'."
+`calendar-daylight-savings-ends-time', and `calendar-daylight-time-offset'."
 
   (let* ((rounded-abs-date (+ (calendar-absolute-from-gregorian date)
                               (/ (round (* 60 time)) 60.0 24.0)))
