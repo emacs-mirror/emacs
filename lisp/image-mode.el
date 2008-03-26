@@ -94,19 +94,14 @@ A winprops object has the shape (WINDOW . ALIST)."
   (set-window-hscroll (selected-window) ncol))
 
 (defun image-mode-reapply-winprops ()
-  (walk-windows
-   (lambda (win)
-     (with-current-buffer (window-buffer win)
-       ;; When set-window-buffer, set hscroll and vscroll to what they were
-       ;; last time the image was displayed in this window.
-       (when (listp image-mode-winprops-alist)
-         (let* ((winprops (image-mode-winprops win))
-                (hscroll (image-mode-window-get 'hscroll winprops))
-                (vscroll (image-mode-window-get 'vscroll winprops)))
-           (if hscroll (set-window-hscroll win hscroll))
-           (if vscroll (set-window-vscroll win vscroll))))))
-   'nomini
-   (selected-frame)))
+  ;; When set-window-buffer, set hscroll and vscroll to what they were
+  ;; last time the image was displayed in this window.
+  (when (listp image-mode-winprops-alist)
+    (let* ((winprops (image-mode-winprops win))
+           (hscroll (image-mode-window-get 'hscroll winprops))
+           (vscroll (image-mode-window-get 'vscroll winprops)))
+      (if hscroll (set-window-hscroll win hscroll))
+      (if vscroll (set-window-vscroll win vscroll)))))
 
 (defun image-mode-setup-winprops ()
   ;; Record current scroll settings.

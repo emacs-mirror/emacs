@@ -1,3 +1,8 @@
+2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image-mode.el (image-mode-reapply-winprops): Simplify now that
+	window-configuration-change-hook works buffer-locally.
+
 2008-03-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* proced.el: Add arch-tag.
