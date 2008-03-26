@@ -1,11 +1,16 @@
+2008-03-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-obsolete): If no
+	replacement is provided, don't print "use nil instead".
+
 2008-03-26  Johan Bockgård  <bojohan@gnu.org>
 
 	* complete.el (PC-do-completion): Use regexp-quote.
 
 2008-03-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-cvs.el (vc-cvs-parse-status, vc-cvs-after-dir-status): Detect
-	missing files.
+	* vc-cvs.el (vc-cvs-parse-status, vc-cvs-after-dir-status):
+	Detect missing files.
 
 	* vc-git.el (vc-git-extra-menu-map): New key map.
 	(vc-git-extra-menu, vc-git-extra-status-menu, vc-git-grep):
