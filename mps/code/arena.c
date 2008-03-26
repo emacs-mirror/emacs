@@ -461,6 +461,21 @@ void ControlFree(Arena arena, void* base, size_t size)
 }
 
 
+/* ControlDescribe -- describe the arena's control pool */
+
+Res ControlDescribe(Arena arena, mps_lib_FILE *stream)
+{
+  Res res;
+
+  if (!CHECKT(Arena, arena)) return ResFAIL;
+  if (stream == NULL) return ResFAIL;
+
+  res = PoolDescribe(ArenaControlPool(arena), stream);
+
+  return res;
+}
+
+
 /* ArenaAlloc -- allocate some tracts from the arena */
 
 Res ArenaAlloc(Addr *baseReturn, SegPref pref, Size size, Pool pool,

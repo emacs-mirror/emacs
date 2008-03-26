@@ -53,12 +53,31 @@ record of changes.  In a release of the MPS-Kit, this section becomes
 the summary of what is new for that release.)
 
 [
-......Post 1.108.0 changes:
+......Post 1.108.1 changes:
 
 This is release A.BBB.C, made on YYYY-MM-DD.
 Changes from release A.BBB.C-1:
 
 Functional changes to MPS code:
+
+<http://www.ravenbrook.com/project/mps/issue/job001784/>
+Defect discovered:
+  - when using an auto_header format (mps_fmt_create_auto_header) 
+    with AMC pools (mps_class_amc), the MPS leaks a small amount of 
+    memory on each collection.
+Impact:
+  - the leak is likely to be a few bytes per collection, and at most 
+    one byte per page (typically 2^12 bytes) of the address-space 
+    currently in use for objects in AMC pools;
+  - the leak is of temporary memory that the MPS uses to process 
+    ambiguous references (typically references on the stack and in 
+    registers), so a larger stack when a collection starts will 
+    tend to cause a larger leak;
+  - the leaked bytes are widely-spaced single bytes which therefore 
+    also cause fragmentation;
+  - the leaked bytes are not reclaimed until the client calls 
+    mps_arena_destroy().
+Fixed: correctly release all of this temporary memory.
 
 Other changes:
 
@@ -449,7 +468,7 @@ B. DOCUMENT HISTORY
 
 C. COPYRIGHT AND LICENSE
 
-Copyright (C) 2001-2002, 2006-2007 Ravenbrook Limited.  
+Copyright (C) 2001-2002, 2006-2007, 2008 Ravenbrook Limited.  
 All rights reserved.  <http://www.ravenbrook.com/>.  
 This is an open source license.  
 Contact Ravenbrook for commercial licensing options.
