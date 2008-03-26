@@ -3231,10 +3231,12 @@ syms_of_data ()
   DEFVAR_LISP ("most-positive-fixnum", &Vmost_positive_fixnum,
 	       doc: /* The largest value that is representable in a Lisp integer.  */);
   Vmost_positive_fixnum = make_number (MOST_POSITIVE_FIXNUM);
+  XSYMBOL (intern ("most-positive-fixnum"))->constant = 1;
 
   DEFVAR_LISP ("most-negative-fixnum", &Vmost_negative_fixnum,
 	       doc: /* The smallest value that is representable in a Lisp integer.  */);
   Vmost_negative_fixnum = make_number (MOST_NEGATIVE_FIXNUM);
+  XSYMBOL (intern ("most-negative-fixnum"))->constant = 1;
 }
 
 SIGTYPE

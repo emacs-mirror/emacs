@@ -1,5 +1,8 @@
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* data.c (syms_of_data): Mark most-positive-fixnum and
+	most-negative-fixnum as constants.
+
 	* xdisp.c (redisplay_internal): Reset selected_frame earlier.
 
 	* indent.c (scan_for_column): Extract from current_column_1.
