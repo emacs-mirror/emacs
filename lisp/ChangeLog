@@ -1,3 +1,8 @@
+2008-03-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-default-mode-line-string): Deal with 'removed
+	and 'missing files.
+
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calendar/holidays.el (list-holidays): Make Y2 optional.
