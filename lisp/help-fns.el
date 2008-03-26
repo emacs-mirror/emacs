@@ -421,19 +421,19 @@ face (according to `face-differs-from-default-p')."
 	      (insert (car high) "\n")
 	      (fill-region fill-begin (point)))
             (setq doc (cdr high))))
-        (let ((obsolete (and
-                         ;; function might be a lambda construct.
-                         (symbolp function)
-                         (get function 'byte-obsolete-info))))
+        (let* ((obsolete (and
+			  ;; function might be a lambda construct.
+			  (symbolp function)
+			  (get function 'byte-obsolete-info)))
+	       (use (car obsolete)))
           (when obsolete
             (princ "\nThis function is obsolete")
             (when (nth 2 obsolete)
               (insert (format " since %s" (nth 2 obsolete))))
-            (insert ";\n"
-                    (if (stringp (car obsolete)) (car obsolete)
-                      (if (null (car obsolete)) ""
-                        (format "use `%s' instead." (car obsolete))))
-                    "\n"))
+	    (insert (cond ((stringp use) (concat ";\n" use))
+			  (use (format ";\nuse `%s' instead." use))
+			  (t "."))
+		    "\n"))
           (insert "\n"
                   (or doc "Not documented.")))))))
 
@@ -640,6 +640,7 @@ it is displayed along with the global value."
                               (indirect-variable variable)
                             (error variable)))
                    (obsolete (get variable 'byte-obsolete-variable))
+		   (use (car obsolete))
 		   (safe-var (get variable 'safe-local-variable))
                    (doc (or (documentation-property variable 'variable-documentation)
                             (documentation-property alias 'variable-documentation)))
@@ -661,10 +662,9 @@ it is displayed along with the global value."
                 (setq extra-line t)
                 (princ "  This variable is obsolete")
                 (if (cdr obsolete) (princ (format " since %s" (cdr obsolete))))
-                (princ ";\n  ")
-                (princ (if (stringp (car obsolete)) (car obsolete)
-                         (if (null (car obsolete)) ""
-                           (format "use `%s' instead." (car obsolete)))))
+		(princ (cond ((stringp use) (concat ";\n  " use))
+			     (use (format ";\n  use `%s' instead." (car obsolete)))
+			     (t ".")))
                 (terpri))
 	      (when safe-var
                 (setq extra-line t)
