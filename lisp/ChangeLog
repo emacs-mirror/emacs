@@ -1,13 +1,51 @@
+2008-03-26  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-bahai.el: Require calendar, not cal-julian.
+	(calendar-bahai-epoch): Doc fix.
+
+	* calendar/cal-china.el: Explicitly require calendar.
+
+	* calendar/cal-coptic.el, calendar/cal-islam.el, calendar/cal-persia.el:
+	Require calendar rather than cal-julian.
+	Autoload calendar-absolute-from-julian.
+	* calendar/cal-coptic.el (coptic-calendar-epoch):
+	* calendar/cal-islam.el (calendar-islamic-epoch):
+	* calendar/cal-persia.el (persian-calendar-epoch): Set when compiling.
+
+	* calendar/cal-islam.el (calendar-islamic-epoch): Doc fix.
+
+	* calendar/cal-dst.el: Don't require cal-persia.
+	(calendar-absolute-from-persian): Autoload it.
+	(dst-adjust-time): Doc fix.
+
+	* calendar/cal-menu.el (cal-menu-diary-menu): Remove menu headings that
+	cause cal-bahai, cal-islam, cal-hebrew to be loaded on starting the
+	calendar.
+
+	* calendar/cal-menu.el: Require calendar rather than declaring
+	functions.
+	* calendar/calendar.el: Provide calendar before requiring cal-menu.
+
+	* calendar/cal-x.el (calendar-after-frame-setup-hook): New name for
+	calendar-after-frame-setup-hooks.  Update callers, make old name an
+	obsolete alias.  Doc fix.
+	(calendar-frame-1): Doc fix.
+
+	* calendar/calendar.el (solar-holidays): Simplify holiday-sexp calls.
+
+	* calendar/calendar.el (oriental-holidays, solar-holidays):
+	* calendar/holidays.el (list-holidays): Assume atan always bound.
+
+	* calendar/lunar.el, calendar/solar.el: Remove floating-point check.
+	Explicitly require calendar, not cal-julian.
+	* calendar/lunar.el: Explicitly require cal-dst.
+
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* autorevert.el (auto-revert-buffers): Use buffer-live-p.
 
 	* help-fns.el (describe-function-1, describe-variable): If no
 	replacement is provided, don't print "use nil instead".
-
-2008-03-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
-
-	* proced.el: Update copyright.
 
 2008-03-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
