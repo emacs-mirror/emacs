@@ -1,5 +1,7 @@
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* bindings.el (mode-line-change-eol): Use with-selected-window.
+
 	* apropos.el (apropos-command): Include macros.
 
 2008-03-26  Glenn Morris  <rgm@gnu.org>
