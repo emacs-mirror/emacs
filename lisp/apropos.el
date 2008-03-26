@@ -456,7 +456,10 @@ while a list of strings is used as a word list."
     (setq apropos-accumulator
 	  (apropos-internal apropos-regexp
 			    (or var-predicate
-				(if do-all 'functionp 'commandp))))
+                                ;; We used to use `functionp' here, but this
+                                ;; rules out macros.  `fboundp' rules in
+                                ;; keymaps, but it seems harmless.
+				(if do-all 'fboundp 'commandp))))
     (let ((tem apropos-accumulator))
       (while tem
 	(if (or (get (car tem) 'apropos-inhibit)
@@ -470,7 +473,7 @@ while a list of strings is used as a word list."
 		   (setq symbol (car p))
 		   (setq score (apropos-score-symbol symbol))
 		   (unless var-predicate
-		     (if (functionp symbol)
+		     (if (fboundp symbol)
 			 (if (setq doc (documentation symbol t))
 			     (progn
 			       (setq score (+ score (apropos-score-doc doc)))
