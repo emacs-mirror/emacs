@@ -36,15 +36,19 @@
 
 ;;; Code:
 
-(require 'cal-julian)
+(require 'calendar)
 
 (defconst calendar-islamic-month-name-array
   ["Muharram" "Safar" "Rabi I" "Rabi II" "Jumada I" "Jumada II"
    "Rajab" "Sha'ban" "Ramadan" "Shawwal" "Dhu al-Qada" "Dhu al-Hijjah"]
 "Array of strings giving the names of the Islamic months.")
 
-(defconst calendar-islamic-epoch (calendar-absolute-from-julian '(7 16 622))
-  "Absolute date of start of Islamic calendar = August 29, 284 AD (Julian).")
+(eval-and-compile
+  (autoload 'calendar-absolute-from-julian "cal-julian"))
+
+(defconst calendar-islamic-epoch
+  (eval-when-compile (calendar-absolute-from-julian '(7 16 622)))
+  "Absolute date of start of Islamic calendar = July 16, 622 AD (Julian).")
 
 (defun islamic-calendar-leap-year-p (year)
   "Return t if YEAR is a leap year on the Islamic calendar."
