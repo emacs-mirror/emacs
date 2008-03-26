@@ -431,7 +431,8 @@ face (according to `face-differs-from-default-p')."
               (insert (format " since %s" (nth 2 obsolete))))
             (insert ";\n"
                     (if (stringp (car obsolete)) (car obsolete)
-                      (format "use `%s' instead." (car obsolete)))
+                      (if (null (car obsolete)) ""
+                        (format "use `%s' instead." (car obsolete))))
                     "\n"))
           (insert "\n"
                   (or doc "Not documented.")))))))
@@ -662,7 +663,8 @@ it is displayed along with the global value."
                 (if (cdr obsolete) (princ (format " since %s" (cdr obsolete))))
                 (princ ";\n  ")
                 (princ (if (stringp (car obsolete)) (car obsolete)
-                         (format "use `%s' instead." (car obsolete))))
+                         (if (null (car obsolete)) ""
+                           (format "use `%s' instead." (car obsolete)))))
                 (terpri))
 	      (when safe-var
                 (setq extra-line t)
