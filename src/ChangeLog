@@ -1,3 +1,9 @@
+2008-03-26  Alexandre Oliva  <aoliva@redhat.com>  (tiny change)
+
+	* regex.c (EXTEND_BUFFER): Change order of pointer addition
+	operations, to avoid having the difference between pointers
+	overflow.
+
 2008-03-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (readdir): If FindFirstFile/FindNextFile return in
