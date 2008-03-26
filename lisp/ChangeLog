@@ -1,3 +1,7 @@
+2008-03-26  Johan Bockgård  <bojohan@gnu.org>
+
+	* complete.el (PC-do-completion): Use regexp-quote.
+
 2008-03-26  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-cvs.el (vc-cvs-parse-status, vc-cvs-after-dir-status): Detect

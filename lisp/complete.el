@@ -621,8 +621,10 @@ GOTO-END is non-nil, however, it instead replaces up to END."
                                                    (match-string 2 str)
                                                    "[A-Za-z0-9]*[^A-Za-z0-9]"))
                           p (1+ (length (match-string 1 str))))))
-                (setq regex (concat "\\`" (mapconcat #'list str "[^-]*-"))
-                      p 1))))
+	      (setq regex (concat "\\`" (mapconcat (lambda (c)
+						     (regexp-quote (string c)))
+						   str "[^-]*-"))
+		    p 1))))
         (when p
 	;; Use all-completions to do an initial cull.  This is a big win,
 	;; since all-completions is written in C!
