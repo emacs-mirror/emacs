@@ -1,3 +1,9 @@
+2008-03-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (readdir): If FindFirstFile/FindNextFile return in
+	cFileName a file name that includes `?' characters, use the 8+3
+	alias in cAlternateFileName instead.
+
 2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.2 released.
