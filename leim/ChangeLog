@@ -94,15 +94,6 @@
 	* quail/uni-input.el (utf-8-ccl-encode): Delete.
 	(ucs-input-method): Modify.
 
-2008-02-01  Dave Love  <fx@gnu.org>
-
-	* quail/cyrillic.el: Doc fixes.
-	("cyrillic-beylorussian"): Comment-out.
-	("cyrillic-translit-bulgarian"): Delete.
-	("cyrillic-ukrainian"): Fix `q', `Q', `W', `w' bindings.
-	("ukrainian-computer", "belarusian", "bulgarian-standard"): New.
-	("bulgarian-pho"): Add ,A'(B, ,Lp(B, ,LN(B.
-
 2008-02-01  Kenichi Handa  <handa@etl.go.jp>
 
 	* Makefile.in (RUN-EMACS): Add LC_ALL=C.
@@ -1062,8 +1053,6 @@
 	* makefile.w32-in (LATIN): Include $(srcdir)/quail/latin-alt.elc.
 
 2001-02-01  Kenichi Handa  <handa@etl.go.jp>
-
-	* Makefile.in (LATIN): Include ${srcdir}/quail/latin-alt.elc.
 
 	* quail/greek.el ("greek-mizuochi"): New input method for
 	classical Greek.
