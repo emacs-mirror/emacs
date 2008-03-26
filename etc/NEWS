@@ -470,6 +470,8 @@ as a single changeset.
 *** In VC Annotate mode, you can type f to show the file revision on
 the current line.
 
+*** vc-git supports the "git grep" command.
+
 ** log-edit now has a command bound to C-c C-d to show the diff for
 the files involved.
 
