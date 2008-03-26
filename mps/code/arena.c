@@ -271,9 +271,9 @@ void ArenaDestroy(Arena arena)
   /* Empty the reservoir - see <code/reserv.c#reservoir.finish> */
   ReservoirSetLimit(ArenaReservoir(arena), 0);
 
-	DIAG_FIRSTF(( "ArenaDestroy", NULL ));
-	DIAG( ControlPoolDescribe(arena, DIAG_STREAM); );
-	DIAG_END("ArenaDestroy");
+  DIAG_FIRSTF(( "ArenaDestroy", NULL ));
+  DIAG( ControlPoolDescribe(arena, DIAG_STREAM); );
+  DIAG_END("ArenaDestroy");
 
   arena->poolReady = FALSE;
   ControlFinish(arena);
@@ -464,17 +464,21 @@ void ControlFree(Arena arena, void* base, size_t size)
   PoolFree(ArenaControlPool(arena), (Addr)base, (Size)size);
 }
 
-Res ControlPoolDescribe(Arena arena, mps_lib_FILE *stream)
+
+/* ControlDescribe -- describe the arena's control pool */
+
+Res ControlDescribe(Arena arena, mps_lib_FILE *stream)
 {
   Res res;
 
   if (!CHECKT(Arena, arena)) return ResFAIL;
   if (stream == NULL) return ResFAIL;
 
-	res = PoolDescribe(ArenaControlPool(arena), stream);
+  res = PoolDescribe(ArenaControlPool(arena), stream);
 
   return res;
 }
+
 
 /* ArenaAlloc -- allocate some tracts from the arena */
 
