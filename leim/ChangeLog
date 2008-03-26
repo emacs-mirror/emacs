@@ -1,3 +1,7 @@
+2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* quail/latin-ltx.el: Don't use single-char mapping from ~ to NBSP.
+
 2008-02-21  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* quail/indian.el: Don't require devan-util.

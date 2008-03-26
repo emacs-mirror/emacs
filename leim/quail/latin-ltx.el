@@ -903,7 +903,10 @@ system, including many technical ones.  Examples:
  ("\\Bbb{Z}" ?ℤ)
  ("--" ?–)
  ("---" ?—)
- ("~" ? )				; nbsp
+ ;; We used to use ~ for NBSP but that's inconvenient and may even look like
+ ;; a bug where the user finds his ~ key doesn't insert a ~ any more.
+ ("\\ " ? )
+ ("\\\\" ?\\)
  ("\\mu" ?μ)
  ("\\rho" ?ρ)
  ("\\mathscr{I}" ?ℐ)			; moment of inertia
@@ -912,24 +915,24 @@ system, including many technical ones.  Examples:
  ("\\Frowny" ?☹)
  ("\\Letter" ?✉)
  ("\\permil" ?‰)
-;;;  Probably not useful enough:
-;;;  ("\\Telefon" ?☎)			; there are other possibilities
-;;;  ("\\Radioactivity" ?☢)
-;;;  ("\Biohazard" ?☣)
-;;;  ("\\Male" ?♂)
-;;;  ("\\Female" ?♀)
-;;;  ("\\Lightning" ?☇)
-;;;  ("\\Mercury" ?☿)
-;;;  ("\\Earth" ?♁)
-;;;  ("\\Jupiter" ?♃)
-;;;  ("\\Saturn" ?♄)
-;;;  ("\\Uranus" ?♅)
-;;;  ("\\Neptune" ?♆)
-;;;  ("\\Pluto" ?♇)
-;;;  ("\\Sun" ?☉)
-;;;  ("\\Writinghand" ?✍)
-;;;  ("\\\\Yinyang" ?☯)
-;;;  ("\\Heart" ?♡)
+ ;; Probably not useful enough:
+ ;; ("\\Telefon" ?☎)			; there are other possibilities
+ ;; ("\\Radioactivity" ?☢)
+ ;; ("\Biohazard" ?☣)
+ ;; ("\\Male" ?♂)
+ ;; ("\\Female" ?♀)
+ ;; ("\\Lightning" ?☇)
+ ;; ("\\Mercury" ?☿)
+ ;; ("\\Earth" ?♁)
+ ;; ("\\Jupiter" ?♃)
+ ;; ("\\Saturn" ?♄)
+ ;; ("\\Uranus" ?♅)
+ ;; ("\\Neptune" ?♆)
+ ;; ("\\Pluto" ?♇)
+ ;; ("\\Sun" ?☉)
+ ;; ("\\Writinghand" ?✍)
+ ;; ("\\Yinyang" ?☯)
+ ;; ("\\Heart" ?♡)
  ("\\registered" ?®)
  ("\\currency" ?¤)
  ("\\dh" ?ð)
@@ -947,11 +950,11 @@ system, including many technical ones.  Examples:
  ("\\rdq" ?\”)
  ("\\minus" ?−)
  ("\\defs" ?≙)				; per fuzz/zed
-;;  ("\\sqrt[3]" ?∛)
+ ;; ("\\sqrt[3]" ?∛)
  ("\\llbracket" ?\〚) 			; stmaryrd
  ("\\rrbracket" ?\〛) 
-;;  ("\\lbag" ?\〚) 			; fuzz
-;;  ("\\rbag" ?\〛) 
+ ;; ("\\lbag" ?\〚) 			; fuzz
+ ;; ("\\rbag" ?\〛)
  ("\\ldata" ?\《) 			; fuzz/zed
  ("\\rdata" ?\》)
  ;; From Karl Eichwalder.
