@@ -736,7 +736,8 @@ static void amcSegDestroyNailboard(Seg seg, Pool pool)
   AVERT(amcNailboard, board);
 
   arena = PoolArena(pool);
-  bits = SegSize(seg) >> board->markShift;
+  /* See d.m.p.Nailboard.size. */
+  bits = (SegSize(seg) + pool->format->headerSize) >> board->markShift;
   ControlFree(arena, board->mark, BTSize(bits));
   board->sig = SigInvalid;
   ControlFree(arena, board, sizeof(amcNailboardStruct));
@@ -2280,7 +2281,7 @@ static Bool AMCCheck(AMC amc)
 
 /* C. COPYRIGHT AND LICENSE
  *
- * Copyright (C) 2001-2002 Ravenbrook Limited <http://www.ravenbrook.com/>.
+ * Copyright (C) 2001-2002, 2008 Ravenbrook Limited <http://www.ravenbrook.com/>.
  * All rights reserved.  This is an open source license.  Contact
  * Ravenbrook for commercial licensing options.
  * 
