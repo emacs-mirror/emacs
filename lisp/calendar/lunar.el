@@ -45,11 +45,11 @@
 
 ;;; Code:
 
-(if (fboundp 'atan)
-    (require 'lisp-float-type)
-  (error "Lunar calculations impossible since floating point is unavailable"))
-
+(require 'calendar)
 (require 'solar)
+(require 'cal-dst)
+;; calendar-absolute-from-astro and v versa are cal-autoloads.
+;;;(require 'cal-julian)
 
 (defun lunar-phase (index)
   "Local date and time of lunar phase INDEX.
