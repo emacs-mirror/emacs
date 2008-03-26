@@ -55,7 +55,7 @@
 
 ;;; Code:
 
-(require 'cal-julian)
+(require 'calendar)
 
 (defconst calendar-bahai-month-name-array
   ["Bahá" "Jalál" "Jamál" "`Azamat" "Núr" "Rahmat" "Kalimát" "Kamál"
@@ -64,7 +64,7 @@
   "Array of the month names in the Bahá'í calendar.")
 
 (defconst calendar-bahai-epoch (calendar-absolute-from-gregorian '(3 21 1844))
-  "Absolute date of start of Bahá'í calendar = March 19, 622 AD (Julian).")
+  "Absolute date of start of Bahá'í calendar = March 21, 1844 AD.")
 
 (defun calendar-bahai-leap-year-p (year)
   "True if Bahá'í YEAR is a leap year in the Bahá'í calendar."
