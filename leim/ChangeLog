@@ -87,8 +87,8 @@
 
 	* quail/latin-pre.el: Recode to utf-8.
 	("latin-1-prefix", "latin-8-prefix", "latin-9-prefix"): Add nbsp.
-	("latin-3-prefix"): Remove bogus Latin-3 characters and ~o -> ,Cu(B,
-	~O -> ,CU(B.
+	("latin-3-prefix"): Remove bogus Latin-3 characters and ~o -> ġ,
+	~O -> Ġ.
 	("latin-prefix"): New method.
 
 	* quail/uni-input.el (utf-8-ccl-encode): Delete.
@@ -243,7 +243,7 @@
 	* COPYING: Replace "Library Public License" by "Lesser Public
 	License" throughout.
 
-2006-09-06  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-09-06  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* quail/uni-input.el (ucs-input-method): Don't make the action of
 	a key not in [0-9a-zA-Z] when it was expected to be.  Let the Emacs
@@ -476,7 +476,7 @@
 	(clean, mostlyclean): Don't delete *.elc distributed with tarball.
 	(maintainer-clean): Delete files that are not in CVS repository.
 
-2004-02-16  J,Ai(Br,At(Bme Marant  <jmarant@nerim.net>  (tiny change)
+2004-02-16  Jérôme Marant  <jmarant@nerim.net>  (tiny change)
 
 	* Makefile.in (distclean maintainer-clean): Depend on clean.
 
@@ -614,13 +614,13 @@
 	("cyrillic-ukrainian"): Fix `q', `Q', `W', `w' bindings.
 	("ukrainian-computer", "belarusian", "bulgarian-bds")
 	("russian-computer"): New.
-	("bulgarian-phonetic"): Rename from bulgarian-pho.  Add ,A'(B, $,1uV(B, $,1(N(B.
+	("bulgarian-phonetic"): Rename from bulgarian-pho.  Add §, №, Ю.
 	("russian-typewriter"): Rename from cyrillic-jcuken.
 
 2002-06-20  Dave Love  <fx@gnu.org>
 
 	* quail/latin-pre.el ("latin-3-prefix"): Remove bogus Latin-3
-	characters and ~o -> $,1 A(B, ~O -> $,1 @(B.
+	characters and ~o -> ġ, ~O -> Ġ.
 
 2002-05-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -673,9 +673,9 @@
 	* quail/latin-pre.el (french-prefix): ", " => "," and "~ " => "~".
 	Don't define "~," at all.
 
-2002-01-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-29  Pavel Janík  <Pavel@Janik.cz>
 
-	* quail/latin-pre.el (latin-2-prefix): Add $,1 :(B and $,1 ;(B.
+	* quail/latin-pre.el (latin-2-prefix): Add Ě and ě.
 	From "Dr. Eduard Werner" <edi.werner@gmx.de>.
 
 2002-01-10  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -728,7 +728,7 @@
 	("dutch"): Assign to Dutch.  Use chars, not strings.
 	("lithuanian-numeric", "lithuanian-keyboard", "latvian-keyboard"): New.
 
-2001-12-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: New file.
 
@@ -833,7 +833,7 @@
 	"chinese-py".
 	("chinese-tonepy-punct"): Copy the QUAIL-MAP of "chinese-tonepy".
 
-2001-07-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-07-16  Pavel Janík  <Pavel@Janik.cz>
 
 	* ja-dic/ja-dic.el, quail/cyril-jis.el, quail/cyrillic.el
 	* quail/czech.el, quail/devanagari.el, quail/ethiopic.el
@@ -900,13 +900,13 @@
 2001-05-17  Gerd Moellmann  <gerd@gnu.org>
 
 	* quail/slovak.el, quail/czech.el: Set guidance to t for czech and
-	slovak input methods. New maintainer.  From Pavel Jan,Am(Bk
+	slovak input methods. New maintainer.  From Pavel Janík
 	<Pavel@Janik.cz>.
 
 2001-04-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* quail/latin-ltx.el: Add more translations.  From
-	jsbien@mimuw.edu.pl (Janusz S. Bie$,1 d(B).
+	jsbien@mimuw.edu.pl (Janusz S. Bień).
 
 2001-04-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -989,7 +989,7 @@
 
 	* quail/slovak.el ("slovak"): Translate "=q" to "`".
 
-2001-03-16  Pavel Jan,Am(Bk ml.  <Pavel@Janik.cz>
+2001-03-16  Pavel Janík ml.  <Pavel@Janik.cz>
 
 	* quail/slovak.el ("slovak"): Delete translations of "q", "Q",
 	"=q", "+q", "=Q", and "+Q".
@@ -1073,8 +1073,8 @@
 
 2000-12-18  Dave Love  <fx@gnu.org>
 
-	* quail/latin-pre.el <latin-9-prefix>: Delete duplicate $,1!!(B entry.
-	Change $,1 s(B, $,1 r(B, ,A6(B.
+	* quail/latin-pre.el <latin-9-prefix>: Delete duplicate š entry.
+	Change œ, Œ, ¶.
 
 2000-12-16  Kenichi Handa  <handa@etl.go.jp>
 
@@ -1199,7 +1199,7 @@
 
 2000-08-29  Dave Love  <fx@gnu.org>
 
-	* quail/latin-pre.el ("latin-9-prefix"): Change entries for $,1 s(B and $,1 r(B.
+	* quail/latin-pre.el ("latin-9-prefix"): Change entries for œ and Œ.
 
 	* Makefile.in: ja-dic <- skk in several places.
 
@@ -1218,8 +1218,8 @@
 
 2000-08-23  Dave Love  <fx@gnu.org>
 
-	* quail/latin-pre.el ("latin-1-prefix"): Change ~s to give ,A'(B and
-	add ~p for ,A6(B.
+	* quail/latin-pre.el ("latin-1-prefix"): Change ~s to give § and
+	add ~p for ¶.
 
 2000-07-18  Kenichi Handa  <handa@etl.go.jp>
 
@@ -1837,7 +1837,7 @@
 	* quail/latin-post.el: Likewise.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 
