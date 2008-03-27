@@ -26,19 +26,19 @@
 	* XMakeAssoc.c: Remove license text in favour of including
 	copyright.h, as was done in original X11 source.
 
-2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Activate.c (XMenuActivate): Return XM_NO_SELECT if Escape or C-g
 	was pressed.
 
-2004-11-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* XMenu.h (XMenuActivateSetWaitFunction): New function.
 
 	* Activate.c (XMenuActivateSetWaitFunction): New function.
 	(XMenuActivate): Call wait_func if set, before XNextEvent.
 
-2002-04-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-04-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Activate.c: Add calls to GrabKeyboard to remove strange
 	interactions with window managers that steal keypresses.
@@ -468,7 +468,7 @@
 
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 
