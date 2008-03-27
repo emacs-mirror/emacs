@@ -1,5 +1,7 @@
 2008-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-hooks.el (vc-before-save): Don't prevent saving the file.
+
 	* image-mode.el (image-mode-reapply-winprops): Fix last change.
 
 2008-03-27  Kenichi Handa  <handa@ni.aist.go.jp>

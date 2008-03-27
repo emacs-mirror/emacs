@@ -750,11 +750,12 @@ Before doing that, check if there are any old backups and get rid of them."
   ;; and version backups should be made, copy the file to
   ;; another name.  This enables local diffs and local reverting.
   (let ((file buffer-file-name))
-    (and (vc-backend file)
-	 (vc-up-to-date-p file)
-	 (eq (vc-checkout-model file) 'implicit)
-	 (vc-call make-version-backups-p file)
-         (vc-make-version-backup file))))
+    (ignore-errors               ;Be careful not to prevent saving the file.
+      (and (vc-backend file)
+           (vc-up-to-date-p file)
+           (eq (vc-checkout-model file) 'implicit)
+           (vc-call make-version-backups-p file)
+           (vc-make-version-backup file)))))
 
 (declare-function vc-dired-resynch-file "vc" (file))
 
