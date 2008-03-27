@@ -268,7 +268,7 @@
 	(outline-show-current-subtree, outline-hide-current-subtree)
 	(outline-hide-current-leaves, outline-new-exposure): Doc fix.
 
-1996-07-13  Francois Pinard  <pinard@iro.umontreal.ca>
+1996-07-13  François Pinard  <pinard@iro.umontreal.ca>
 
 	* allout.el (outline-resolve-xref): Do not mistake a blank line
 	following an xref (@) bullet as part of the rerefenced file name.
@@ -382,7 +382,7 @@
 	* ps-print.el (ps-article-subject): Don't die if header is missing.
 	(ps-article-author, ps-info-file, ps-info-node): Likewise.
 
-1996-07-07  Francois Pinard  <pinard@iro.umontreal.ca>
+1996-07-07  François Pinard  <pinard@iro.umontreal.ca>
 
 	* timezone.el (timezone-parse-date): Handle ISO 8601 dates, so
 	rmailsort does the right thing with them.
@@ -478,14 +478,14 @@
 	* mail-hist.el (mail-hist-current-header-name):
 	Use buffer-substring-no-properties.
 
-1996-07-01  Francois Pinard  <pinard@iro.umontreal.ca>
+1996-07-01  François Pinard  <pinard@iro.umontreal.ca>
 
 	* rmailsum.el (rmail-make-basic-summary-line): Accept ISO 8601
 	dates as well.
 
 1996-06-30  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* viper-util.el (vip-read-key): inhibit quit added.
+	* viper-util.el (vip-read-key): Inhibit quit added.
 
 1996-06-30  Lars Magne Ingebrigtsen  <larsi@ifi.uio.no>
 
@@ -555,7 +555,7 @@
 	* mh-utils.el (mail-user-agent): Replaces mua-paradigm.
 	(mh-find-path): Set mail-user-agent.
 
-1996-06-27  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+1996-06-27  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
 	* profile.el (profile-functions): No need to assume that the
 	current buffer is writable.
@@ -630,7 +630,7 @@
 	* noutline.el (outline-minor-mode): Using change-major-mode-hook,
 	turn this mode off if we change major modes.
 
-1996-06-24  <Daniel.Pfeiffer@Informatik.START.db.de>
+1996-06-24  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.db.de>
 
 	* skeleton.el (local-variables-section): Adapted comment to outline
 	minor mode.
@@ -694,7 +694,7 @@
 	* gnus-ems.el (gnus-background-mode): Set threshold for "light color"
 	at .6 of the total for white.
 
-	* font-lock.el (font-lock-make-faces):  Set threshold for "light color"
+	* font-lock.el (font-lock-make-faces): Set threshold for "light color"
 	at .6 of the total for white.
 
 	* faces.el (x-create-frame-with-faces): Set threshold for "light color"
@@ -703,7 +703,7 @@
 	* simple.el (choose-completion-string): Don't exit the minibuffer
 	when a directory name is chosen.
 
-1996-06-22  <Daniel.Pfeiffer@Informatik.START.db.de>
+1996-06-22  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.db.de>
 
 	* skeleton.el (skeleton-autowrap): New variable.
 	(skeleton-abbrev-cleanup): Added variable documentation.
@@ -714,10 +714,10 @@
 1996-06-21  Michael Kifer  <kifer@cs.sunysb.edu>
 
 	* ediff-diff.el (ediff-setup-fine-diff-regions):
-	allow diff options to be passed to the diff program.
+	Allow diff options to be passed to the diff program.
 	(ediff-make-diff2-buffer): Don't run Posix diff on remote files.
 	(ediff-make-diff2-buffer): Refuses to diff remote files.
-	(ediff-make-diff2-buffer,ediff-setup-diff-regions): Changed functions.
+	(ediff-make-diff2-buffer, ediff-setup-diff-regions): Changed functions.
 	(ediff-make-diff2-buffer): New function.
 	Added ^\C-m$ to ok-lines regexps
 
@@ -734,21 +734,21 @@
 
 1996-06-21  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* viper-ex.el: Fixed the :e command for NT
+	* viper-ex.el: Fixed the :e command for NT.
 
-	* viper.el: replaced all checks for (or (numberp ...)
-	(characterp ...)) with vip-characterp
+	* viper.el: Replaced all checks for (or (numberp ...)
+	(characterp ...)) with vip-characterp.
 	(vip-change): Now hides replace overlay even for multiline changes.
 	(vip-paren-match): Goes to closing paren first.
 
-	* viper.el (vip-find-char-forward,vip-find-char-backward,
-	vip-goto-char-forward,vip-goto-char-backward):
+	* viper.el (vip-find-char-forward, vip-find-char-backward)
+	(vip-goto-char-forward, vip-goto-char-backward)
 	(viper-mode): Don't delete the startup message.
 	(vip-set-hooks): Added fortran-mode to viper.
 
 	* viper-util.el (vip-ex-nontrivial-find-file-unix)
-	(vip-ex-nontrivial-find-file-ms,vip-get-filenames-from-buffer)
-	(vip-wildcard-to-regexp,vip-glob-ms-windows-files): New functions.
+	(vip-ex-nontrivial-find-file-ms, vip-get-filenames-from-buffer)
+	(vip-wildcard-to-regexp, vip-glob-ms-windows-files): New functions.
 
 1996-06-21  Richard Stallman  <rms@psilocin.gnu.ai.mit.edu>
 
@@ -812,7 +812,7 @@
 
 	* pp.el (pp-to-string): Treat #( like (.
 
-1996-06-18  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+1996-06-18  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
 	* files.el (auto-mode-alist): Add uppercase version of archive
 	mode file name extensions ARC, ZIP, LXH, ZOO.
@@ -1131,7 +1131,7 @@
 	Insert newline instead of space at end, for proprocessors which
 	don't like truncated lines.
 
-1996-05-21  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+1996-05-21  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
 	* cmacexp.el (c-macro-expansion): Correct bug in creating tempname.
 
@@ -1162,9 +1162,9 @@
 
 1996-05-17  Per Bothner  <bothner@deneb.cygnus.com>
 
-	* term.el (term-send-raw-string):  send-string -> process-send-string.
-	(term-arguments):  Remove unused local `values'.
-	(term-handle-deferred-scroll):  Fix off-by-one bug.
+	* term.el (term-send-raw-string): send-string -> process-send-string.
+	(term-arguments): Remove unused local `values'.
+	(term-handle-deferred-scroll): Fix off-by-one bug.
 
 1996-05-17  Richard Stallman  <rms@whiz-bang.gnu.ai.mit.edu>
 
@@ -1210,7 +1210,7 @@
 
 1995-05-10  Per Bothner  <bothner@kalessin.cygnus.com>
 
-	* term.el (term-emulate-terminal):  On CR, set term-current-column
+	* term.el (term-emulate-terminal): On CR, set term-current-column
 	to term-start-line-column, not 0.
 
 1996-05-10  Richard Stallman  <rms@delasyd.gnu.ai.mit.edu>
@@ -1253,17 +1253,17 @@
 
 1996-05-07  Karl Fogel  <kfogel@floss.red-bean.com>
 
-	* bookmark.el (bookmark-make): take optional arg `info-node', pass
+	* bookmark.el (bookmark-make): Take optional arg `info-node', pass
 	it on to bookmark-make-cell.
-	(bookmark-make-cell): if new optional arg `info-node' is non-nil,
+	(bookmark-make-cell): If new optional arg `info-node' is non-nil,
 	make it be the bookmark's info-node.
-	(bookmark-info-current-node): new func.
-	(bookmark-set): call bookmark-make, passing result from above
+	(bookmark-info-current-node): New func.
+	(bookmark-set): Call bookmark-make, passing result from above
 	bookmark-info-current-node.
-	(bookmark-send-annotation): same as above.
+	(bookmark-send-annotation): Same as above.
 	(bookmark-locate): defalias to bookmark-insert-location for
 	backward compatibility.
-	(bookmark-version): upped to 2.6.3.
+	(bookmark-version): Upped to 2.6.3.
 
 1996-05-07  Noah Friedman  <friedman@splode.com>
 
@@ -1418,7 +1418,7 @@
 	(simula-label-offset, simula-if-indent, simula-inspect-indent)
 	(simula-electric-indent, simula-abbrev-keyword, simula-abbrev-stdproc):
 	Added default constants.
-	(simula-emacs-features): new constant to hold information
+	(simula-emacs-features): New constant to hold information
 	on which flavor if emacs is running (from cc-mode.el).
 	(simula-mode-menu): Menu definition for Lucid Emacs
 	(simula-mode-map): Bound new command simula-indent-exp to C-M-q
@@ -1472,7 +1472,7 @@
 
 1996-04-18  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
-	* term/win32-win.el (x-select-text):  Remember selected text.
+	* term/win32-win.el (x-select-text): Remember selected text.
 	(x-get-selection-value): Return nil if the clipboard data is
 	is the same as the remembered selected text.
 
@@ -1489,7 +1489,7 @@
 	* replace.el (occur): Fix up interactive code.
 	Strip text properties from regexp.
 
-1996-04-16  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+1996-04-16  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
 	* vc.el (vc-comment-ring): Initialise using make-ring.
 	(vc-clear-context): Initialise vc-comment-ring using make-ring.
@@ -1556,7 +1556,7 @@
 	* ehelp.el (electric-help-mode): Use add-hook mouse-leave-buffer-hook.
 	(electric-help-retain): Use remove-hook.
 
-1996-04-05  <Daniel.Pfeiffer@Informatik.START.dbp.de>
+1996-04-05  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.dbp.de>
 
 	* gomoku.el (gomoku-click): Position on nearest square.  Adapt keymap
 	accordingly.
@@ -1657,22 +1657,21 @@
 
 	* diary-lib.el, calendar.el: Add Persian calendar.
 
-	* cal-menu.el (calendar-mode-map,calendar-mouse-print-dates): Add
-	Persian calendar.
+	* cal-menu.el (calendar-mode-map, calendar-mouse-print-dates):
+	Add Persian calendar.
 
 1996-03-28  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* viper.el and related files: copyright message updated.
+	* viper.el and related files: Copyright message updated.
 	Also, added eval-when-compile's to reduce the number of warnings.
 	* viper.el (vip-add-newline-at-eob-if-necessary):
-	don't add newline for read-only files.
-	* viper-util.el (vip-set-replace-overlay): made non-detachable
+	Don't add newline for read-only files.
+	* viper-util.el (vip-set-replace-overlay): Made non-detachable
 	under XEmacs.
-	* viper-ex.el (ex-next): bug fix.
+	* viper-ex.el (ex-next): Bug fix.
 	* viper-macs.el (vip-events-to-macro):
-	discard events represented as lists in macro
-	definitions.
-	* viper-mous.el (vip-mouse-click-insert-word): fixed a typo.
+	Discard events represented as lists in macro definitions.
+	* viper-mous.el (vip-mouse-click-insert-word): Fixed a typo.
 
 1996-03-28  Richard Stallman  <rms@charlie-brown.gnu.ai.mit.edu>
 
@@ -1787,14 +1786,14 @@
 	* add-log.el (add-log-full-name, add-log-mailing-address):
 	Add autoload cookies.
 
-1996-03-22  <Daniel.Pfeiffer@Informatik.START.dbp.de>
+1996-03-22  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.dbp.de>
 
 	* gomoku.el: Ancient leading comment removed.
 	(gomoku-mode-map): Added numeric keypad for 8 directions, changed
 	comments to lowercase (C-c rather than C-C), added SPC to play and
 	undo's binding to go back.
 	(gomoku-emacs-won, gomoku-font-lock-O-face, gomoku-font-lock-X-face)
-	(gomoku-font-lock-keywords):  New variables.
+	(gomoku-font-lock-keywords): New variables.
 	(gomoku-mode): Use it and make buffer read-only for user.
 	(gomoku-terminate-game): Remove (ding) -- maybe should be optonal.
 	(gomoku-init-display): Rewritten, makes fields intangible so you
@@ -1844,7 +1843,7 @@
 
 	* window.el (count-windows): Doc fix.
 
-1996-03-18  Francesco Potorti`  <F.Potorti@cnuce.cnr.it>
+1996-03-18  Francesco Potortì  <F.Potorti@cnuce.cnr.it>
 
 	* simple.el (insert-buffer): Interactive default changed to a more
 	reasonable one.
@@ -1902,7 +1901,7 @@
 1996-03-08  Gregory Neil Shapiro  <gshapiro@scooter.WPI.EDU>
 
 	* mailabbrev.el (mail-abbrev-modtime): New variable.
-	(mail-abbrevs-sync-alaises): New function. Updates mail-abbrevs if
+	(mail-abbrevs-sync-aliases): New function.  Updates mail-abbrevs if
 	modtime of mail-personal-alias-file is different than
 	mail-abbrev-modtime.
 	(mail-abbrevs-setup): Call mail-abbrevs-sync-aliases.
@@ -2074,7 +2073,7 @@
 1996-03-01  Johan Vromans  <jvromans@squirrel.nl>
 
 	* forms.el (forms-insert-after):
-	New variable. Non-nil means: inserts of new
+	New variable.  Non-nil means: inserts of new
 	records go after current record, also initial position is at last
 	record.
 	(forms-mode, forms-insert-record): Use it.
@@ -2140,7 +2139,7 @@
 
 	* time.el (display-time): Just use run-at-time to start the timer.
 
-	* paren.el: (show-paren-delay): New variable.
+	* paren.el (show-paren-delay): New variable.
 	(show-paren-mode): New command.  Use it.  Call it at the top-level.
 	(show-paren-mode, show-paren-idle-timer): New variables.
 	(show-paren-function): Renamed from show-paren-command-hook.
@@ -2267,7 +2266,7 @@
 
 1996-02-22  Andre Spiegel  <spiegel@berlin.informatik.uni-stuttgart.de>
 
-	* vc-hooks.el: (vc-follow-link): New function.
+	* vc-hooks.el (vc-follow-link): New function.
 	(vc-find-file-hook): Use it.
 
 1996-02-22  Erik Naggum  <erik@naggum.no>
@@ -2408,13 +2407,12 @@
 
 	* viper-mous.el (vip-mouse-click-insert-word): Fixed a typo.
 
-	* viper-macs.el (ex-map-read-args,ex-unmap-read-args): Fixed messages.
+	* viper-macs.el (ex-map-read-args, ex-unmap-read-args): Fixed messages.
 	(vip-events-to-macro): Delete nil in macro definitions.
 	(vip-events-to-macro): Discard events represented as lists in
 	macro definitions.
 
-	* menu-bar.el: Added [ediff-doc] and [eregistry] to
-	menu-bar-tools-menu.
+	* menu-bar.el: Added [ediff-doc] and [eregistry] to menu-bar-tools-menu.
 
 	* ediff-util.el: Changed file name length from 8 to 7 under DOS.
 	(ediff-make-temp-file): Should work with DOS now.
@@ -2424,7 +2422,7 @@
 	Added face support for XEmacs TTY and DOS.
 
 	* ediff-util.el, ediff-wind.el, ediff-init.el
-	(ediff-prefer-long-help-message): renamed into
+	(ediff-prefer-long-help-message): Renamed into
 	ediff-use-long-help-message.
 
 	* ediff-init.el, ediff-wind.el: Fixed make-ctl-frame for xemacs.
@@ -2450,8 +2448,8 @@
 	temp file names correctly.
 	(ediff-intersection, ediff-union, ediff-set-difference,
 	ediff-copy-list): Functions modified.
-	(ediff-union, ediff-intersection, ediff-set-difference): New
-	functions.  Moved ediff-documentation to ediff.el.
+	(ediff-union, ediff-intersection, ediff-set-difference): New functions.
+	Moved ediff-documentation to ediff.el.
 
 	* ediff.el: Made all Ediff faces hidden from facemenu.
 
@@ -2467,8 +2465,8 @@
 	advantage of advance-front/rear features of overlays.  Works
 	synchronously for DOS, Windows.
 
-	* ediff-util.el (ediff-copy-diff,ediff-pop-diff,
-	ediff-make-bullet-proof-overlay): These now take advantage of
+	* ediff-util.el (ediff-copy-diff, ediff-pop-diff)
+	(ediff-make-bullet-proof-overlay): These now take advantage of
 	advance-front/rear features of overlays.
 
 	* ediff.el (ediff-patch-file): Epatch now ignores VERSION_CONTROL
@@ -2492,11 +2490,11 @@
 	intersection/union and cl.el.
 
 	* viper.el: Added face support for devices that have faces.
-	(vip-forward-paragraph,vip-backward-paragraph): Now work
+	(vip-forward-paragraph, vip-backward-paragraph): Now work
 	corretly when they are used as motion specs in other commands.
 	(vip-set-hooks): Added viper to tcl-mode-hook.
 
-	* viper-util.el (vip-has-face-support-p,vip-abbreviate-file-name):
+	* viper-util.el (vip-has-face-support-p, vip-abbreviate-file-name):
 	New functions.
 	(vip-force-faces): New variable.
 
@@ -2532,7 +2530,7 @@
 	(decipher--after): Renamed from after-array.
 	(decipher--freqs): Renamed from freq-array.
 
-1996-02-15  Francesco Potorti`  <pot@cnuce.cnr.it>
+1996-02-15  Francesco Potortì  <pot@cnuce.cnr.it>
 
 	* hanoi.el (hanoi): Compute height and width of the window in the
 	correct way, give the correct error message if the window is too
@@ -2557,7 +2555,7 @@
 	* startup.el (command-line-1): Don't explain recover-session if
 	auto-save-list-file-prefix is nil.
 
-1996-02-13  Francesco Potorti`  <pot@cnuce.cnr.it>
+1996-02-13  Francesco Potortì  <pot@cnuce.cnr.it>
 
 	* hanoi.el (hanoi): Don't show line and column numbers.
 
@@ -2566,7 +2564,7 @@
 	* compile.el (compilation-parse-errors): Detect doubled slashes in
 	file names matched and fix them up in the buffer.
 
-1996-02-12  <Daniel.Pfeiffer@Informatik.START.dbp.de>
+1996-02-12  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.dbp.de>
 
 	* mailalias.el (mail-names, mail-local-names, mail-directory-names)
 	(mail-address-field-regexp, mail-complete-alist)
@@ -2720,7 +2718,7 @@
 	Restore old CASE 3 logic -- checking for at a c-conditional-key.
 
 	(c-guess-basic-syntax): CASE 5A.2: watch out for enum function
-	return types. CASE 15D: check for landing on a brace that opens a
+	return types.  CASE 15D: check for landing on a brace that opens a
 	nested function.
 
 1996-02-06  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -2733,7 +2731,7 @@
 
 	* lisp-mnt.el (lm-header-prefix): New variable.
 	(lm-comment-column): defvar moved.
-	(lm-history-header, lm-commentary-header):  New variables.
+	(lm-history-header, lm-commentary-header): New variables.
 	(lm-get-header-re, lm-get-package-name): New functions.
 	(lm-code-mark): defun --> defsubst.
 	(lm-history-mark, lm-commentary-mark): New functions.
@@ -2744,7 +2742,7 @@
 	(lm-keywords, lm-adapted-by): Comments made into doc strings.
 	(lm-commentary): Added more tolerant 'cond' case.
 	Now uses functions lm-commentary-mark, lm-... to get points.
-	(lm-verify): Made interactive. Added more check points in the last
+	(lm-verify): Made interactive.  Added more check points in the last
 	prog1 statement.
 	(lm-synopsis): Made interactive.
 
@@ -2866,7 +2864,7 @@
 
 	* winnt.el (mode-line-format): Include column-number-mode.
 
-1996-01-30  David K�gedal  <davidk@lysator.liu.se>
+1996-01-30  David Kågedal  <davidk@lysator.liu.se>
 
 	* sendmail.el (mail-setup): For mail-self-blind, use user-mail-address.
 
@@ -3200,7 +3198,7 @@
 	(f90-fill-region): Bind f90-auto-hilit19 to nil.
 	(f90-update-line): Rehilight if appropriate.
 
-1996-01-24  <Daniel.Pfeiffer@Informatik.START.dbp.de>
+1996-01-24  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.dbp.de>
 
 	* sgml-mode.el (sgml-quick-keys): New variable.
 	(sgml-mode-map): Use it, defined additional long keys to compensate.
@@ -3313,9 +3311,9 @@
 
 1996-01-20  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* viper.el (vip-auto-indent,vip-electric-mode): Are now local
+	* viper.el (vip-auto-indent, vip-electric-mode): Are now local
 	variables.
-	(vip-open-line,vip-Open-line,vip-autoindent): Are now electrified
+	(vip-open-line, vip-Open-line, vip-autoindent): Are now electrified
 	functions.
 	(vip-set-hooks): Viperized awk, ksh, makefile, and html-helper modes.
 	(vip-custom-file-name): Adapted to non-Unix systems.
@@ -3492,7 +3490,7 @@
 	* page.el (forward-page): Simplify how we avoid getting stuck
 	when moving backwards.
 
-1996-01-12  <Daniel.Pfeiffer@Informatik.START.dbp.de>
+1996-01-12  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.dbp.de>
 
 	* sgml-mode.el: Also load for .sgm and .dtd files.
 	(sgml-specials, sgml-name-8bit-mode, sgml-char-names)
@@ -3535,8 +3533,8 @@
 
 1996-01-10  Andre Spiegel  <spiegel@berlin.informatik.uni-stuttgart.de>
 
-	* vc.el (vc-cancel-version): Use search-forward to scan error
-	message. Added comments.
+	* vc.el (vc-cancel-version): Use search-forward to scan error message.
+	Added comments.
 
 	* vc-hooks.el (vc-follow-symlinks): New variable.
 	(vc-find-file-hook): Use it.
@@ -3673,7 +3671,7 @@
 
 1996-01-05  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
-	* time-stamp.el (time-stamp-line-limit): negative value counts
+	* time-stamp.el (time-stamp-line-limit): Negative value counts
 	from end of file.
 
 1996-01-05  Richard Stallman  <rms@whiz-bang.gnu.ai.mit.edu>
@@ -3951,7 +3949,7 @@
 	* completion.el (save-completions-file-name): Under MS-DOS set to
 	a filename without a leading dot.
 
-	* custom.el (custom-file):  Under MS-DOS set to a filename without
+	* custom.el (custom-file): Under MS-DOS set to a filename without
 	a leading dot.
 
 	* vip.el (vip-startup-file): New variable.
@@ -3959,7 +3957,7 @@
 
 	* ffap.el (ffap-list-env): Use `path-separator' rather than ":".
 
-	* startup.el (auto-save-list-file-prefix):  Under MS-DOS, use `.s-'.
+	* startup.el (auto-save-list-file-prefix): Under MS-DOS, use `.s-'.
 	(normal-top-level): Under MS-DOS, use `make-temp-name' to produce
 	a unique `auto-save-list-file-name' (PID is not unique enough).
 	(command-line-1): Delete explicit test for msdos and windowsnt;
@@ -3994,7 +3992,7 @@
 
 	* lpr.el (lpr-page-header-switches, lpr-headers-switches): Doc fixes.
 
-1995-12-30  <Daniel.Pfeiffer@Informatik.START.dbp.de>
+1995-12-30  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.dbp.de>
 
 	* facemenu.el (facemenu-add-face-function, facemenu-end-add-face)
 	(facemenu-remove-face-function): New variables.
@@ -4119,11 +4117,11 @@
 	* bookmark.el: Removed all `bookmark-xemacsp' conditional code
 	relating to menus.  Do ";;;###autoloads" the as they were done in
 	2.6.13.
-	(bookmark-version): new var, set to 2.6.19.
-	(baud-rate): set to 19200 if not already bound.
-	(bookmark-make): don't call `set-text-properties' on a Lisp string
+	(bookmark-version): New var, set to 2.6.19.
+	(baud-rate): Set to 19200 if not already bound.
+	(bookmark-make): Don't call `set-text-properties' on a Lisp string
 	if this is XEmacs, because it won't work.
-	(buffer-substring-no-properties): if this is not fboundp, then
+	(buffer-substring-no-properties): If this is not fboundp, then
 	fset it to `buffer-substring-without-properties'.
 
 1995-12-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -4179,7 +4177,7 @@
 
 	* files.el (save-buffer): Doc fix.
 
-1995-12-21  <Daniel.Pfeiffer@Informatik.START.dbp.de>
+1995-12-21  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.dbp.de>
 
 	* sendmail.el (mail-setup): Put text property on mail-header-separator.
 	(mail-header-separator): Set it up for use as a category property.
@@ -4349,12 +4347,12 @@
 	(isearch-repeat): If isearch-just-started, don't test for empty match.
 	(isearch-unread): Use store-kbd-macro-event.
 
-1995-12-01  Francesco Potorti`  <pot@cnuce.cnr.it>
+1995-12-01  Francesco Potortì  <pot@cnuce.cnr.it>
 
 	* gud.el (gud-sdb-marker-filter): Modify the regexp for sysVR3 to
 	take care of the asterisk prompt.  Correctly set gud-marker-acc.
 
-1995-12-01  Francesco Potorti`  <pot@cnuce.cnr.it>
+1995-12-01  Francesco Potortì  <pot@cnuce.cnr.it>
 
 	* make-mode.el: Add faces to menu only if window-system.
 	(makefile-mode): Do not check if makefile-define-space-face is
@@ -4534,7 +4532,7 @@
 	(bibtex-find-entry-location): Now uses binary search. As before,
 	it assumes that the buffer is sorted without duplicates (but as
 	before it is only called when bibtex-maintain-sorted-entries is
-	t). Ignores `@String' entries if told so via variable
+	t).  Ignores `@String' entries if told so via variable
 	bibtex-sort-ignore-string-entries.
 
 	* bibtex.el (bibtex-clean-entry): Respect
@@ -4597,7 +4595,7 @@
 	If BOLD-P, ITALIC-P or UNDERLINE-P not nil or t, don't change the
 	display attribute corresponding to that arg.  Doc fix.
 
-1995-12-12  David K�gedal  <davidk@lysator.liu.se>
+1995-12-12  David Kågedal  <davidk@lysator.liu.se>
 
 	* sendmail.el (sendmail-send-it): Added support for Resent-CC and
 	Resent-BCC headers.
@@ -4693,10 +4691,10 @@
 
 1995-12-02  Erik Naggum  <erik@naggum.no>
 
-	* disp-table.el (display-table-slot,set-display-table-slot):
+	* disp-table.el (display-table-slot, set-display-table-slot):
 	Document the slot names.
 
-1995-12-01  Francesco Potorti`  <pot@cnuce.cnr.it>
+1995-12-01  Francesco Potortì  <pot@cnuce.cnr.it>
 
 	* gud.el (gud-sdb-marker-filter): start may be nil, so check it
 	with numberp before using it.
@@ -4714,14 +4712,14 @@
 	calendar-chinese-sexagisimal-name to fix misspelling.
 	* cal-hebrew.el (holiday-rosh-hashanah-etc): Fix misspelled var.
 	* holidays.el (holiday-easter-etc): Fix misspelling of "Whitmonday".
-	* calendar.el (calendar-setup, calendar-basic-setup,
-	calendar-next-calendar-round-date,
-	calendar-previous-calendar-round-date, cal-tex-cursor-year),
-	cal-julian.el (calendar-absolute-from-astro),
-	cal-mayan.el: (calendar-next-calendar-round-date,
-	calendar-previous-calendar-round-date),
-	diary-lib.el (list-sexp-diary-entries),
-	solar.el (solar-longitude): Doc fixes to fix misspellings.
+	* calendar.el (calendar-setup, calendar-basic-setup)
+	(calendar-next-calendar-round-date)
+	(calendar-previous-calendar-round-date, cal-tex-cursor-year)
+	* cal-julian.el (calendar-absolute-from-astro)
+	* cal-mayan.el (calendar-next-calendar-round-date)
+	(calendar-previous-calendar-round-date)
+	* diary-lib.el (list-sexp-diary-entries)
+	* solar.el (solar-longitude): Doc fixes to fix misspellings.
 
 1995-11-29  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -5089,7 +5087,7 @@
 	"^" from paragraph-start and paragraph-separate.  Moved
 	page-delimiter first in case it has a "^" also.
 
-	* sh-script.el (sh-mode): as above.  Use page-delimiter rather than
+	* sh-script.el (sh-mode): As above.  Use page-delimiter rather than
 	literal "^L".
 
 	* fill.el (fill-region-as-paragraph): Since adaptive-fill-regexp
@@ -5201,8 +5199,8 @@
 	* startup.el [win32] (normal-top-level, command-line, command-line-1):
 	* mouse.el [win32] (mouse-set-region):
 	* faces.el [win32] (make-face, make-face-x-resource-internal):
-	* facemenu.el [win32] (face-menu-read-color, list-colors-display,
-		facemenu-color-equal, face-menu-get-face):
+	* facemenu.el [win32] (face-menu-read-color, list-colors-display)
+	(facemenu-color-equal, face-menu-get-face):
 	Test for 'win32 window system as well as 'x.
 
 	* makefile.nt (install): Change same-dir test to create test file in
@@ -5310,10 +5308,10 @@
 
 1995-11-02  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
-	* mh-e.el (mh-make-folder-mode-line): support mh-msg-count.
-	(mh-delete-scan-msgs): use fast new mh-goto-msg.
-	* mh-utils.el (mh-goto-msg): binary search (much faster!).
-	(mh-prompt-for-folder): error if regular file.
+	* mh-e.el (mh-make-folder-mode-line): Support mh-msg-count.
+	(mh-delete-scan-msgs): Use fast new mh-goto-msg.
+	* mh-utils.el (mh-goto-msg): Binary search (much faster!).
+	(mh-prompt-for-folder): Error if regular file.
 	* mh-comp.el: reporter.el support.
 
 1995-11-02  Richard Stallman  <rms@whiz-bang.gnu.ai.mit.edu>
@@ -5452,7 +5450,7 @@
 	of file in the first line, part number syntax of ISO standards,
 	and `provide' clause.  Register file with RCS.
 
-	* ange-ftp.el (ange-ftp-ftp-name,ange-ftp-replace-name-component):
+	* ange-ftp.el (ange-ftp-ftp-name, ange-ftp-replace-name-component):
 	Use posix-string-match for complex regexp in `ange-ftp-name-format'.
 	(ange-ftp-process-sentinel): Quote final * in buffer name match.
 
@@ -5470,7 +5468,7 @@
 
 	* cal-chinese.el (calendar-chinese-sexagisimal-name): New
 	function.
-	(holiday-chinese-new-year,calendar-chinese-date-string): Use it.
+	(holiday-chinese-new-year, calendar-chinese-date-string): Use it.
 
 1995-10-26  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -5702,7 +5700,7 @@
 
 1995-10-13  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* ediff.el (ediff-version): is now autoloaded.
+	* ediff.el (ediff-version): Is now autoloaded.
 	* ediff-init.el: Moved defsubsts up.
 	* ediff-hook.el: Now defines [window] in menu-bar-ediff-menu.
 
@@ -5715,13 +5713,13 @@
 	Added (vip-leave-region-active) to all simple movement commands.
 	Viper now understands syntactic tables.
 	Harnessed view-minor-mode.
-	(vip-read-string-with-history,vip-search): won't pause inside
+	(vip-read-string-with-history, vip-search): Won't pause inside
 	macros any more.
-	* viper-mous.el (vip-surrounding-word): modified to understand
+	* viper-mous.el (vip-surrounding-word): Modified to understand
 	tripple clicks.
-	* viper-util.el (vip-leave-region-active): new function.
-	* viper-ex.el (ex-write): uses better defaults.
-	* viper-macs.el (vip-record-kbd-macro): correctly escapes `.' and
+	* viper-util.el (vip-leave-region-active): New function.
+	* viper-ex.el (ex-write): Uses better defaults.
+	* viper-macs.el (vip-record-kbd-macro): Correctly escapes `.' and
 	`[' now.
 
 1995-10-13  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -5740,17 +5738,17 @@
 	(he-capitalize-first): New function, defining new "case".
 	(he-transfer-case): New function.
 	(he-transfer-case-ok): Function removed.
-	(he-substitute-string,he-ordinary-case-p,he-string-member): Use the
+	(he-substitute-string, he-ordinary-case-p, he-string-member): Use the
 	new functions above, for the new case handling.
 	(he-file-name-chars): New variable.
 	(he-file-name-beg): Use `he-file-name-chars'.
-	(he-file-name-nondirectory,he-file-name-directory,
-	he-file-directory-p,he-concat-directory-file-name): New functions
+	(he-file-name-nondirectory, he-file-name-directory)
+	(he-file-directory-p, he-concat-directory-file-name): New functions
 	to handle VMS and PC filename formats more accurately.
-	(try-complete-file-name,try-complete-file-name-partially): Use the
+	(try-complete-file-name, try-complete-file-name-partially): Use the
 	new functions above.
-	(try-expand-line-all-buffers,try-expand-list-all-buffers,
-	try-expand-dabbrev-all-buffers): Use `case-fold-search' from the
+	(try-expand-line-all-buffers, try-expand-list-all-buffers)
+	(try-expand-dabbrev-all-buffers): Use `case-fold-search' from the
 	original buffer.
 	(he-line-beg): Removed bug that made point move.
 	(try-expand-all-abbrevs): Check that abbrev tables exist before use.
@@ -5761,9 +5759,9 @@
 	(he-dabbrev-search): Find only whole matching symbols.
 	(he-dabbrev-skip-space): New variable.
 	(he-dabbrev-beg): Use `he-dabbrev-skip-space'.
-	(try-expand-dabbrev-from-kill,he-dabbrev-kill-search): New try
+	(try-expand-dabbrev-from-kill, he-dabbrev-kill-search): New try
 	function, with requisites.
-	(try-expand-whole-kill,he-whole-kill-search,he-kill-beg): New try
+	(try-expand-whole-kill, he-whole-kill-search, he-kill-beg): New try
 	function, with requisites.
 	(he-search-loc2): New variable, used by `try-expand-whole-kill'
 	and `try-expand-dabbrev-from-kill'.
@@ -5884,34 +5882,34 @@
 
 1995-10-05  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* ediff-meta.el: new file.
-	* ediff-hook.el: new file.
+	* ediff-meta.el: New file.
+	* ediff-hook.el: New file.
 	* ediff.el: Moved menubar definitions to a new file, ediff-hook.el
-	(ediff-files,ediff-merge-files): better file-name defaults.
-	(ediff-split-string): new function.
-	(ediff-exec-process): now handles diff args separated by space.
-	(ediff-backup-extension): new variable.
+	(ediff-files, ediff-merge-files): Better file-name defaults.
+	(ediff-split-string): New function.
+	(ediff-exec-process): Now handles diff args separated by space.
+	(ediff-backup-extension): New variable.
 	Replaced -hooks with -hook.
-	(ediff-revision-key): variable deleted.
-	* ediff-util.el (ediff-toggle-read-only,ediff-read-file-name):
-	replaced abbreviate-file-name with ediff-abbreviate-file-name.
-	(ediff-documentation): bug fix.
-	(ediff-setup,ediff-really-quit): modified to work with Ediff
+	(ediff-revision-key): Variable deleted.
+	* ediff-util.el (ediff-toggle-read-only, ediff-read-file-name):
+	Replaced abbreviate-file-name with ediff-abbreviate-file-name.
+	(ediff-documentation): Bug fix.
+	(ediff-setup, ediff-really-quit): Modified to work with Ediff
 	session groups.
-	(ediff-quit,ediff-really-quit): now ask if the user wants to delete
+	(ediff-quit, ediff-really-quit): Now ask if the user wants to delete
 	buffers.
-	* ediff-init.el (ediff-abbreviate-file-name): function modified.
-	(ediff-truncate-string-left): new function.
-	(ediff-strip-last-dir,ediff-key-press-event-p,ediff-event-point,
-	ediff-event-buffer): new functions.
-	(ediff-frame-has-menubar,ediff-protect-meta-chars): functions deleted.
-	* ediff-wind.el (ediff-make-frame-position): fixed bugs.
-	(ediff-control-frame-parameters): fixed defaults.
-	* ediff-diff.el (ediff-setup-diff-regions,ediff-setup-diff-regions3,
-	ediff-setup-fine-diff-regions): functions modified.
-	(ediff-shell-command,ediff-shell-command-sentinel,
-	ediff-shell-command-filter): deleted.
-	(ediff-exec-process,ediff-process-sentinel,ediff-process-filter): new.
+	* ediff-init.el (ediff-abbreviate-file-name): Function modified.
+	(ediff-truncate-string-left): New function.
+	(ediff-strip-last-dir, ediff-key-press-event-p, ediff-event-point)
+	(ediff-event-buffer): New functions.
+	(ediff-frame-has-menubar, ediff-protect-meta-chars): Functions deleted.
+	* ediff-wind.el (ediff-make-frame-position): Fixed bugs.
+	(ediff-control-frame-parameters): Fixed defaults.
+	* ediff-diff.el (ediff-setup-diff-regions, ediff-setup-diff-regions3)
+	(ediff-setup-fine-diff-regions): Functions modified.
+	(ediff-shell-command, ediff-shell-command-sentinel)
+	(ediff-shell-command-filter): Deleted.
+	(ediff-exec-process, ediff-process-sentinel, ediff-process-filter): New.
 
 1995-10-05  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -6110,11 +6108,11 @@
 	* cal-iso.el: New file.  All ISO calendar related code moved here
 	from calendar.el and diary-lib.el.
 
-	* cal-islamic.el: New file. All Islamic calendar related code
+	* cal-islamic.el: New file.  All Islamic calendar related code
 	moved here from calendar.el, holiday.el, diary-lib.el, and
 	diary-ins.el.
 
-	* cal-hebrew.el: New file. All Hebrew calendar related code
+	* cal-hebrew.el: New file.  All Hebrew calendar related code
 	moved here from calendar.el, holiday.el, diary-lib.el, and
 	diary-ins.el.
 
@@ -6124,11 +6122,11 @@
 	* diary.el: New file.  Functions related to the diary moved from
 	diary-lib.el and diary-ins.el.
 
-	* holidays.el (holiday-hebrew):  Moved to cal-hebrew.
+	* holidays.el (holiday-hebrew): Moved to cal-hebrew.
 	(holiday-islamic): Moved to cal-islamic.
 	(holiday-julian): Moved to cal-julian.
 
-	* cal-x.el (calendar-setup):  Moved to calendar.el.
+	* cal-x.el (calendar-setup): Moved to calendar.el.
 
 	* diary-lib.el: Deleted.
 	(diary-date, diary-remind): New functions.
@@ -6214,7 +6212,6 @@
 
 	* lunar.el (lunar-new-moon-time, lunar-new-moon-on-or-after) New
 	functions.
-
 
 1995-09-18  Richard Stallman  <rms@whiz-bang.gnu.ai.mit.edu>
 
@@ -6600,7 +6597,7 @@
 	non-strict locking.  Under CVS in CVSREAD-mode, learn the locking
 	state from the permissions.
 	(vc-find-cvs-master): Use vc-insert-file, rather than
-	find-file-noselect. Greatly speeds up things.
+	find-file-noselect.  Greatly speeds up things.
 	(vc-consult-rcs-headers): Bug fix, return status in all cases.
 
 	* vc.el: Removed the comment that said we assume strict locking.
@@ -6630,23 +6627,23 @@
 	(vc-locking-user): Under RCS with non-strict locking, don't trust
 	the file permissions.  CVS case: change which states count as
 	"locked".
-	(vc-consult-rcs-headers): Streamlined. Don't set vc-locking-user if
+	(vc-consult-rcs-headers): Streamlined.  Don't set vc-locking-user if
 	this is called under CVS.  Under RCS, use a heuristic to find the
 	value of vc-checkout-model without examining the master file.
 	(vc-parse-locks): Set vc-checkout-model.
 	(vc-status): Comment change.
-	(vc-after-save-hook, vc-after-save): The former renamed to the
-	latter. Now unconditionally called by `basic-save-buffer', determines
+	(vc-after-save-hook, vc-after-save): The former renamed to the latter.
+	Now unconditionally called by `basic-save-buffer', determines
 	whether the buffer should be "locked" or not.
 	(vc-checkout-model): Values are now `manual' and `implicit'.  Derive
 	the property on a per-file basis, supporting all possible modes.
-	(vc-mode-line): No longer use dynamic after-save-hook. Changed
+	(vc-mode-line): No longer use dynamic after-save-hook.  Changed
 	references to `automatic' into `implicit'.
 
 	* vc.el (vc-latest-on-branch-p): Under CVS, handle the case when
 	the file is added, but not yet committed.
 	(vc-backend-checkout): RCS case: In non-strict locking mode, force
-	to overwrite the writable workfile. CVS case: Do the right thing in
+	to overwrite the writable workfile.  CVS case: Do the right thing in
 	CVSREAD-mode.
 
 1995-08-21  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -6691,9 +6688,9 @@
 	waits for the user to type, if there are unread events.
 	Harnessed view-minor-mode.
 	Added (vip-leave-region-active) to all simple movement commands.
-	* viper-mous.el (vip-surrounding-word): modified to understand
+	* viper-mous.el (vip-surrounding-word): Modified to understand
 	tripple clicks.
-	* viper-util.el (vip-leave-region-active): new function.
+	* viper-util.el (vip-leave-region-active): New function.
 
 1995-08-19  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -6765,15 +6762,14 @@
 	(vc-locking-user): Count cvs status `unresolved-conflict' as "locked".
 
 	* vc.el (vc-finish-logentry):
-	Delete the *VC-log* buffer *before* doing the
-	actual check-in. That leads to a better display in case the check-in
-	fails.
+	Delete the *VC-log* buffer *before* doing the actual check-in.
+	That leads to a better display in case the check-in fails.
 
 	* vc.el (vc-latest-on-branch-p): Defined it for CVS in the obvious way.
-	(vc-next-action-on-file): Removed special CVS cases. At this level,
+	(vc-next-action-on-file): Removed special CVS cases.  At this level,
 	CVS is now mostly handled like the other backends.
 	(vc-backend-checkout): CVS case: Clear sticky tag as default when
-	doing a verbose checkout. (This used to be done in
+	doing a verbose checkout.  (This used to be done in
 	vc-next-action-on-file.)
 
 	* vc-hooks.el (vc-checkout-model):
@@ -6960,7 +6956,7 @@
 	* help.el (help-font-lock-keywords): New keywords.
 	(help-mode): Set up font-lock-defaults.
 
-1995-08-09  Francesco Potorti`  (pot@cnuce.cnr.it)
+1995-08-09  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* man.el (Man-translate-references): Anchor the regexps.
 
@@ -7069,9 +7065,9 @@
 
 	* two-column.el (2C-toggle-autoscroll, 2C-autoscroll):
 	Only (sit-for 0) once for smoother scrolling.
-	(2C-associated-buffer): go to same line and column.
-	(2C-newline): new function.
-	(2C-other): optional arg to signal missing other buffer.
+	(2C-associated-buffer): Go to same line and column.
+	(2C-newline): New function.
+	(2C-other): Optional arg to signal missing other buffer.
 
 1995-08-01  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -7154,10 +7150,10 @@
 1995-07-28  Andre Spiegel  <spiegel@berlin.informatik.uni-stuttgart.de>
 
 	* vc.el (vc-resynch-buffer): New function.
-	(vc-locked-example): Renamed to vc-snapshot-precondition. It now also
-	checks whether any of the files are visited.
+	(vc-locked-example): Renamed to vc-snapshot-precondition.
+	It now also checks whether any of the files are visited.
 	(vc-retrieve-snapshot): If any files are visited, ask whether to
-	revert their buffers. Use vc-backend-checkout and vc-resynch-buffer
+	revert their buffers.  Use vc-backend-checkout and vc-resynch-buffer
 	to do that, instead of vc-checkout.
 
 	* vc.el (vc-backend-checkout): Adjust default-directory so that the
@@ -7180,7 +7176,7 @@
 
 1995-07-27  Karl Heuer  <kwzh@nutrimat.gnu.ai.mit.edu>
 
-	* imenu.el: (imenu-generic-lisp-expression)
+	* imenu.el (imenu-generic-lisp-expression)
 	(imenu-generic-c++-expression, imenu-generic-c-expression)
 	(imenu-generic-ada-expression, imenu-generic-texinfo-expression)
 	(imenu-generic-latex-expression): Vars deleted; now handled by the
@@ -7306,20 +7302,20 @@
 
 	* apropos.el: Add latest changes of old library and some more.
 	(apropos): Only show unbound symbols when do-all
-	(apropos-documentation-check-elc-file): new copied function.
-	(apropos-command): also use `apropos-do-all' when called as function.
-	(apropos-print-doc): renamed from `apropos-print-documentation', i
+	(apropos-documentation-check-elc-file): New copied function.
+	(apropos-command): Also use `apropos-do-all' when called as function.
+	(apropos-print-doc): Renamed from `apropos-print-documentation', i
 	is numeric index, replaces parameter tem.
-	(apropos-macrop): new function.
-	(apropos-print): use it to differentiate macros.
+	(apropos-macrop): New function.
+	(apropos-print): Use it to differentiate macros.
 	(apropos-symbol-face, apropos-keybinding-face, apropos-label-face)
-	(apropos-property-face, apropos-match-face): new variables
+	(apropos-property-face, apropos-match-face): New variables
 	replace and extend the effect of `apropos-use-faces'.
-	(apropos-safe-documentation): renames `safe-documentation', also
+	(apropos-safe-documentation): Renames `safe-documentation', also
 	returns a cons.
 	(apropos-regexp, apropos-files-scanned, apropos-accumulator)
-	(apropos-item): new variables to prevent compiler warnings.
-	(apropos-value-internal, apropos-documentation-internal): new fns.
+	(apropos-item): New variables to prevent compiler warnings.
+	(apropos-value-internal, apropos-documentation-internal): New fns.
 
 1995-07-21  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -7422,7 +7418,7 @@
 1995-07-18  Andre Spiegel  <spiegel@berlin.informatik.uni-stuttgart.de>
 
 	* vc.el (vc-do-command): Added parameter BUFFER (the default,
-	if nil, is *vc*). Updated all callers.
+	if nil, is *vc*).  Updated all callers.
 	(vc-next-action-on-file, vc-diff, vc-version-diff, vc-backend-diff):
 	Use buffer *vc-diff* for diff output instead of *vc*.
 
@@ -7533,7 +7529,7 @@
 	* sendmail.el (mail-setup-hook): New defvar.
 	(mail): Doc fix.
 
-1995-07-06  Francesco Potorti`  <pot@cnuce.cnr.it>
+1995-07-06  Francesco Potortì  <pot@cnuce.cnr.it>
 
 	* simple.el (shell-command): Use save-match-data.
 	Put the buffer in shell mode, don't use shell-command-filter.
@@ -7626,7 +7622,7 @@
 
 	* forms.el (forms-mode): Treat local-write-file-hooks as a list.
 
-1995-07-07  Francesco Potorti`  <pot@cnuce.cnr.it>
+1995-07-07  Francesco Potortì  <pot@cnuce.cnr.it>
 
 	* mailalias.el (build-mail-aliases): Fixed the regexp for "^group".
 
@@ -7640,13 +7636,13 @@
 	(apropos-follow, apropos-mouse-follow): New commands for hypertext.
 	(apropos-describe-plist): New function.
 
-	* help.el: (command-apropos): Deleted function.  This is replaced by
+	* help.el (command-apropos): Deleted function.  This is replaced by
 	apropos-command in apropos.el.
 
-	* autoload.el: (make-autoload): Generate `(autoload ...)' form for
+	* autoload.el (make-autoload): Generate `(autoload ...)' form for
 	`(define-skeleton ...)'
 
-	* skeleton.el: partly rewritten and extended.
+	* skeleton.el: Partly rewritten and extended.
 	(skeleton-filter, skeleton-untabify, skeleton-further-elements)
 	(skeleton-abbrev-cleanup): New variables
 	(skeleton-proxy, skeleton-abbrev-cleanup): New functions
@@ -7657,24 +7653,24 @@
 	be useful in skeletons.
 	(local-variables-section): New skeleton command, might go to simple.el.
 
-	* autoinsert.el: extended to use skeletons or call functions
-	(auto-insert, auto-insert-query, auto-insert-prompt): New variables
-	(auto-insert-alist): New features
-	(auto-insert): New name for `insert-auto-insert-files'
-	(define-auto-insert): New function
+	* autoinsert.el: Extended to use skeletons or call functions.
+	(auto-insert, auto-insert-query, auto-insert-prompt): New variables.
+	(auto-insert-alist): New features.
+	(auto-insert): New name for `insert-auto-insert-files'.
+	(define-auto-insert): New function.
 
-	* copyright.el: New name for generalized upd-copyr.el
-	(copyright-limit, copyright-regexp): New variables
-	(copyright-query): New name for `inhibit-update-copyright'
-	(copyright-current-year): New name for `current-year'
-	(copyright-current-gpl-version): New name for `current-gpl-version'
+	* copyright.el: New name for generalized upd-copyr.el.
+	(copyright-limit, copyright-regexp): New variables.
+	(copyright-query): New name for `inhibit-update-copyright'.
+	(copyright-current-year): New name for `current-year'.
+	(copyright-current-gpl-version): New name for `current-gpl-version'.
 	(copyright-update): New name for `update-copyright' and
-	`ask-to-update-copyright'
-	(copyright): New skeleton command
+	`ask-to-update-copyright'.
+	(copyright): New skeleton command.
 
-	* executable.el: New file extracted and optimized from sh-script.el
+	* executable.el: New file extracted and optimized from sh-script.el.
 
-	* sh-script.el: restructured, largely rewritten without the bugs and
+	* sh-script.el: Restructured, largely rewritten without the bugs and
 	extended to cover over 15 shells.  Most variables can now work as a
 	lookup table, and, unless set by user, do.
 	(sh-mode-syntax-table): Possibly multiple tables.
@@ -7758,7 +7754,7 @@
 	* font-lock.el (font-lock-make-faces): On grayscale screen,
 	use grays for background, not foreground.
 
-	* faces.el (describe-face): new function.
+	* faces.el (describe-face): New function.
 
 1995-06-30  Andre Spiegel  <spiegel@berlin.informatik.uni-stuttgart.de>
 
@@ -7807,7 +7803,7 @@
 
 1995-06-29  Bryan O'Sullivan  <bos@Eng.Sun.COM>
 
-	* ange-ftp.el (ange-ftp-normal-login): if ange-ftp-smart-gateway
+	* ange-ftp.el (ange-ftp-normal-login): If ange-ftp-smart-gateway
 	is set but ange-ftp-gateway-host is nil, use user@host
 	proxy protocol.
 
@@ -7820,7 +7816,7 @@
 
 1995-06-29  Karl Fogel  (kfogel@wombat.gnu.ai.mit.edu)
 
-	* bookmark.el: use "Save" and "Save As" instead of the nonstandard
+	* bookmark.el: Use "Save" and "Save As" instead of the nonstandard
 	"Save" and "Write", in menu item titles.
 
 1995-06-29  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -7956,7 +7952,7 @@
 
 	* mail-hist.el (mail-hist-text-size-limit): New var.
 	(mail-hist-text-too-long-p): New func.
-	(mail-hist-add-header-contents-to-ring): call above; if the text is
+	(mail-hist-add-header-contents-to-ring): Call above; if the text is
 	too long, then store the empty string in the history.
 
 1995-06-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
@@ -7997,7 +7993,7 @@
 1995-06-22  Andre Spiegel  <spiegel@berlin.informatik.uni-stuttgart.de>
 
 	* vc-hooks.el (vc-fetch-master-properties): Pass an absolute
-	pathname to the cvs status command. This is required to make
+	pathname to the cvs status command.  This is required to make
 	recursive vc-directory listings work.
 
 1995-06-22  Ethan Bradford  <ethanb@phys.washington.edu>
@@ -8021,6 +8017,10 @@
 	if it has just one argument.
 
 See ChangeLog.5 for earlier changes.
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
     Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004, 2005, 2006,
       2007, 2008  Free Software Foundation, Inc.
