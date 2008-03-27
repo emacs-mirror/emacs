@@ -517,7 +517,7 @@ nil if it is not visible in the current calendar window."
 Hebrew date diary entries must be prefaced by `hebrew-diary-entry-symbol'
 \(normally an `H').  The same diary date forms govern the style
 of the Hebrew calendar entries, except that the Hebrew month
-names must be spelled in full.  The Hebrew months are numbered
+names cannot be abbreviated.  The Hebrew months are numbered
 from 1 to 13 with Nisan being 1, 12 being Adar I and 13 being
 Adar II; you must use `Adar I' if you want Adar of a common
 Hebrew year.  If a Hebrew date diary entry begins with
