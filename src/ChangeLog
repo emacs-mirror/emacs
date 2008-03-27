@@ -1,3 +1,7 @@
+2008-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* coding.c (decode_coding_object): Fix last change.
+
 2008-03-27  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (start_hourglass): Suppress hourglass on tty frames.
