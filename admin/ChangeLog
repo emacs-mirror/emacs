@@ -209,7 +209,7 @@
 
 	* admin.el: Provide self.
 
-2007-08-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-08-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* FOR-RELEASE (http): Add Gtk+ tool bar and GUD focus problem.
 
@@ -234,7 +234,7 @@
 	* nt/makedist.bat: Change EOL format to DOS.  Don't use
 	redirection characters in REM lines.
 
-2007-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-01-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* FOR-RELEASE: Removed Gtk/Xft issue.
 
@@ -442,7 +442,7 @@
 	* nt/makedist.bat: Do not rely on non-standard behaviour of
 	tar --exclude.
 
-2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* FOR-RELEASE (Indications): Remove two stage update for toolbar (Done).
 
@@ -466,12 +466,12 @@
 
 	* FOR-RELEASE (Documentation): Add man/ack.texi and AUTHORS.
 
-2004-08-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-08-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* FOR-RELEASE (Indications): Remove entry about GTK and geometry,
 	(now behaves as well as other ports).
 
-2004-06-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-06-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* FOR-RELEASE: Remove entry about GTK and monochrome displays (done).
 
@@ -526,19 +526,19 @@
 	* nt/README-UNDUMP.W32: Remove personal email address and update
 	wording.
 
-2003-02-10  Francesco Potort,Al(B  <pot@gnu.org>
+2003-02-10  Francesco Potortì  <pot@gnu.org>
 
 	* make-changelog-diff: New script, code stolen from make-announcement.
 
 	* make-announcement: Use make-changelog-diff.
 
-2003-01-20  Francesco Potort,Al(B  <pot@gnu.org>
+2003-01-20  Francesco Potortì  <pot@gnu.org>
 
 	* make-tarball.txt: Step-by-step instructions for making a tarball.
 
 	* make-announcement: A script for creating pretest annuncements.
 
-2003-01-17  Francesco Potort,Al(B  <pot@gnu.org>
+2003-01-17  Francesco Potortì  <pot@gnu.org>
 
 	* admin.el (add-release-logs): Expand the directory name before
 	calling find(1).
@@ -564,7 +564,7 @@
 	* quick-install-emacs (VERSION): Calculate using the same method
 	that configure.in uses.
 
-2002-04-26  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-26  Pavel Janík  <Pavel@Janik.cz>
 
 	* emacs-pretesters: New file with information for Emacs
 	pretesters.
@@ -641,7 +641,7 @@
 	version of tar used.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 
