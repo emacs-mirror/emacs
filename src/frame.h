@@ -72,6 +72,17 @@ enum text_cursor_kinds
   HBAR_CURSOR
 };
 
+enum fullscreen_type
+{
+  /* Values used as a bit mask, BOTH == WIDTH | HEIGHT.  */
+  FULLSCREEN_NONE       = 0,
+  FULLSCREEN_WIDTH      = 1,
+  FULLSCREEN_HEIGHT     = 2,
+  FULLSCREEN_BOTH       = 3,
+  FULLSCREEN_WAIT       = 4
+};
+
+
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->background_pixel)
 
@@ -339,7 +350,7 @@ struct frame
   int left_fringe_width, right_fringe_width;
 
   /* See FULLSCREEN_ enum below */
-  int want_fullscreen;
+  enum fullscreen_type want_fullscreen;
 
   /* Number of lines of menu bar.  */
   int menu_bar_lines;
@@ -347,11 +358,11 @@ struct frame
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
     || defined (USE_GTK)
   /* Nonzero means using a menu bar that comes from the X toolkit.  */
-  int external_menu_bar;
+  unsigned int external_menu_bar : 1;
 #endif
 
   /* Nonzero if last attempt at redisplay on this frame was preempted.  */
-  char display_preempted;
+  unsigned char display_preempted : 1;
 
   /* visible is nonzero if the frame is currently displayed; we check
      it to see if we should bother updating the frame's contents.
@@ -381,7 +392,10 @@ struct frame
 
      These two are mutually exclusive.  They might both be zero, if the
      frame has been made invisible without an icon.  */
-  char visible, iconified;
+  unsigned char visible : 1;
+  unsigned char iconified : 1;
+
+  /* Let's not use bitfields for volatile variables.  */
 
   /* Asynchronous input handlers change these, and
      FRAME_SAMPLE_VISIBILITY copies them into visible and iconified.
@@ -393,37 +407,37 @@ struct frame
 
   /* True if frame actually has a minibuffer window on it.
      0 if using a minibuffer window that isn't on this frame.  */
-  char has_minibuffer;
+  unsigned char has_minibuffer : 1;
 
   /* 0 means, if this frame has just one window,
      show no modeline for that window.  */
-  char wants_modeline;
+  unsigned char wants_modeline : 1;
 
   /* Non-zero if the hardware device this frame is displaying on can
      support scroll bars.  */
   char can_have_scroll_bars;
 
   /* Non-0 means raise this frame to the top of the heap when selected.  */
-  char auto_raise;
+  unsigned char auto_raise : 1;
 
   /* Non-0 means lower this frame to the bottom of the stack when left.  */
-  char auto_lower;
+  unsigned char auto_lower : 1;
 
   /* True if frame's root window can't be split.  */
-  char no_split;
+  unsigned char no_split : 1;
 
   /* If this is set, then Emacs won't change the frame name to indicate
      the current buffer, etcetera.  If the user explicitly sets the frame
      name, this gets set.  If the user sets the name to Qnil, this is
      cleared.  */
-  char explicit_name;
+  unsigned char explicit_name : 1;
 
   /* Nonzero if size of some window on this frame has changed.  */
-  char window_sizes_changed;
+  unsigned char window_sizes_changed : 1;
 
   /* Nonzero if the mouse has moved on this display device
      since the last time we checked.  */
-  char mouse_moved;
+  unsigned char mouse_moved :1;
 
   /* If can_have_scroll_bars is non-zero, this is non-zero if we should
      actually display them on this frame.  */
@@ -1040,17 +1054,6 @@ extern Lisp_Object Qdisplay;
 
 /* The class of this X application.  */
 #define EMACS_CLASS "Emacs"
-
-enum
-{
-  /* Values used as a bit mask, BOTH == WIDTH | HEIGHT.  */
-  FULLSCREEN_NONE       = 0,
-  FULLSCREEN_WIDTH      = 1,
-  FULLSCREEN_HEIGHT     = 2,
-  FULLSCREEN_BOTH       = 3,
-  FULLSCREEN_WAIT       = 4
-};
-
 
 /* These are in xterm.c, w32term.c, etc.  */
 

@@ -1,5 +1,8 @@
 2008-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* frame.h (enum fullscreen_type): Give it a name.  Move it before use.
+	(struct frame): Use bit fields for boolean vars.
+
 	* process.c (server_accept_connection): Simplify naming.
 	(emacs_get_tty_pgrp): Use SDATA.
 
