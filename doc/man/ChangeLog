@@ -6,12 +6,12 @@
 
 	* emacs.1: Update Emacs version.
 
-2007-11-22  Francesco Potort,Al(B  <pot@gnu.org>
+2007-11-22  Francesco Potortì  <pot@gnu.org>
 
 	* etags.1: Ctags and Etags now share the same defaults, so remove
 	--defines, --globals, --members, --typedefs, --typedefs-and-c++.
 
-2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
+2007-11-15  Francesco Potortì  <pot@gnu.org>
 
 	* etags.1: Note that you can use "-" for stdout with -o.
 
@@ -21,7 +21,7 @@
 	doc/man/.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; fill-column: 79
 ;; add-log-time-zone-rule: t
 ;; End:
