@@ -1,3 +1,7 @@
+2008-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* image-mode.el (image-mode-reapply-winprops): Fix last change.
+
 2008-03-27  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* international/mule-conf.el (define-iso-single-byte-charset):

@@ -97,11 +97,11 @@ A winprops object has the shape (WINDOW . ALIST)."
   ;; When set-window-buffer, set hscroll and vscroll to what they were
   ;; last time the image was displayed in this window.
   (when (listp image-mode-winprops-alist)
-    (let* ((winprops (image-mode-winprops win))
+    (let* ((winprops (image-mode-winprops))
            (hscroll (image-mode-window-get 'hscroll winprops))
            (vscroll (image-mode-window-get 'vscroll winprops)))
-      (if hscroll (set-window-hscroll win hscroll))
-      (if vscroll (set-window-vscroll win vscroll)))))
+      (if hscroll (set-window-hscroll (selected-window) hscroll))
+      (if vscroll (set-window-vscroll (selected-window) vscroll)))))
 
 (defun image-mode-setup-winprops ()
   ;; Record current scroll settings.
