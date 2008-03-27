@@ -44,7 +44,7 @@
 	* windows.texi (Window Start): Mention the feature of moving
 	window-start to start of line.
 
-2008-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2008-02-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keymaps.texi (Tool Bar): Document rtl property.
 
@@ -1103,7 +1103,7 @@
 
 	* modes.texi (Multiline Font Lock): Rephrase some parts for clarity.
 
-2006-11-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-11-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Window System Selections): Remove clipboard from
 	description of selection-coding-system.
@@ -2040,7 +2040,7 @@
 	* internals.texi (Pure Storage): Mention the pure overflow message
 	at startup.
 
-2006-05-05  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2006-05-05  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* keymaps.texi (Active Keymaps): Fix pseudo-Lisp syntax.
 	(Searching Keymaps): Fix pseudo-Lisp description of keymap
@@ -2281,7 +2281,7 @@
 	Clarify remarks about that moving point and mark.
 	Put string case before list case.
 
-2006-02-16  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2006-02-16  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* display.texi (Other Display Specs, Image Descriptors):
 	Revert erroneous changes.  The previous description of
@@ -5018,7 +5018,7 @@
 
 	* keymaps.texi (Tool Bar): tool-bar-item => tool-bar-button.
 
-2004-02-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-02-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Parameter Access): frame-parameters arg is optional.
 	modify-frame-parameters handles nil for FRAME.
@@ -5092,7 +5092,7 @@
 	* tips.texi (Comment Tips): Document the new conventions for
 	commenting out code.
 
-2004-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-02-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* positions.texi (Text Lines): Added missing end defun.
 
@@ -5953,7 +5953,7 @@
 
 	* hash.texi (Creating Hash): Fix description of :weakness.
 
-2003-06-13  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-06-13  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* files.texi (Changing Files): copy-file copies file modes, too.
 
@@ -6021,7 +6021,7 @@
 
 	* variables.texi (File Local Variables): Fix typo.
 
-2002-10-23  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2002-10-23  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	From Michael Albinus <Michael.Albinus@alcatel.de>.
 
@@ -6060,7 +6060,7 @@
 	* variables.texi (Intro to Buffer-Local): Updated warning and
 	example relating to changing buffer inside let.
 
-2002-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-03-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* os.texi (Session Management): New node about X Session management.
 
@@ -6123,7 +6123,7 @@
 	(info): Add target.
 	(installall): Target removed.
 
-2001-10-31  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-31  Pavel Janík  <Pavel@Janik.cz>
 
 	* tips.texi (Coding Conventions): Fix typo.
 
@@ -6553,7 +6553,7 @@
 	for the Project GNU development environment.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 
