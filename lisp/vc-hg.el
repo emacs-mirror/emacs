@@ -177,6 +177,7 @@
 	     ((eq state ?M) 'edited)
 	     ((eq state ?I) 'ignored)
 	     ((eq state ?R) 'removed)
+	     ((eq state ?!) 'missing)
 	     ((eq state ??) 'unregistered)
 	     ((eq state ?C) 'up-to-date) ;; Older mercurials use this
 	     (t 'up-to-date)))))))
@@ -222,7 +223,8 @@
 	  (vc-file-setprop file 'vc-backend 'none)
 	  (vc-file-setprop file 'vc-state 'unregistered))
 	 ((eq status-char ?!)
-	  nil)
+	  (vc-file-setprop file 'vc-backend 'Hg)
+	  (vc-file-setprop file 'vc-state 'missing))
 	 (t	;; Presently C, might change to = in 0.9.6
 	  (vc-file-setprop file 'vc-backend 'Hg)
 	  (vc-file-setprop file 'vc-state 'up-to-date)))

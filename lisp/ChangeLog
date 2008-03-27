@@ -1,5 +1,8 @@
 2008-03-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-hg.el (vc-hg-state, vc-hg-dir-state): Deal with 'missing 
+	files.
+
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Fix predicate.
 
 2008-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
