@@ -1,4 +1,4 @@
-2007-08-29  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
+2007-08-29  Károly Lőrentey  <lorentey@elte.hu>
 
 	* xlwmenu.c (XlwMenuRealize): Ignore X errors while setting up
 	cursor shape.
@@ -22,7 +22,7 @@
 	* Makefile.in (distclean): Delete Makefile.
 	(maintainer-clean): Delete TAGS.
 
-2007-01-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-01-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.c (xlwMenuResources): Add XtNleaveCallback, XtNenterCallback.
 	(display_menu, map_event_to_widget_value): Generate enter and
@@ -47,7 +47,7 @@
 	* COPYING: Replace "Library Public License" by "Lesser Public
 	License" throughout.
 
-2006-05-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-05-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.c: Include xterm.h if emacs instead of declaring functions
 	used.
@@ -67,7 +67,7 @@
 	* xlwmenu.c: Fix the return type for x_clear_errors and
 	x_uncatch_errors.
 
-2005-07-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-07-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* lwlib-Xm.c (make_menu_in_widget): Disable drag and drop for
 	labels in menu bar.
@@ -76,7 +76,7 @@
 
 	Update FSF's address in GPL notices.
 
-2005-04-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-04-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	Reenable support for I18N to Lucid menus.
 
@@ -89,7 +89,7 @@
 	font for !HAVE_X_I18N.
 	(xlwMenuResources): Add fontSet resource.
 
-2005-03-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-03-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xlwmenuP.h: Temporary #undef HAVE_X_I18N until FontSet for UTF-8
 	on XFree86 is investigated.
@@ -124,30 +124,30 @@
 	* xlwmenuP.h:
 	* xlwmenu.h: Add missing copyright and license notice.
 
-2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.c (xlwMenuActionsList): Install MenuGadgetEscape as an
 	action procedure for compatibility with Lesstif/Motif.
 
 	* Makefile.in (mostlyclean): Don't remove *~ on clean.
 
-2004-12-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* lwlib-Xaw.c: Put <KeyPress>Escape in dialogOverride so dialogs only
 	pops down on Escape, not any keypress.
 
-2004-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.c (find_first_selectable, find_next_selectable)
 	(find_prev_selectable): Rename parameter skip_no_call_data to
 	skip_titles.  Recognize titles as having no call_data and no contents.
 	(Down, Up): Comment update.
 
-2004-08-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-08-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* lwlib.h (_widget_value): Add lname and lkey.
 
-2004-01-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-01-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xlwmenuP.h (_XlwMenu_part): Add top_depth.
 
@@ -189,7 +189,7 @@
 	* Makefile.in: Make things function properly in case both LessTif
 	and Open Motif are installed.
 
-2003-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* lwlib-Xm.c (update_one_menu_entry): Deallocate widget_list.
 	(destroy_all_children): Call it self to destroy sub menu children.
@@ -223,7 +223,7 @@
 	Always base disabled foreground on the normal foreground.
 	Don't use the temporary variable `temp'.
 
-2002-05-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-05-06  Pavel Janík  <Pavel@Janik.cz>
 
 	* xlwmenu.c (xlwMenuResources): New resource.
 	(find_next_selectable): Return current item when the menu is not
@@ -239,17 +239,17 @@
 	* xlwmenuP.h (_XlwMenu_part): Add new member `disabled_foreground'.
 	Rename `inactive_gc' to `disabled_gc'.
 
-2002-04-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-29  Pavel Janík  <Pavel@Janik.cz>
 
 	* xlwmenu.c <XtNmargin, XtNverticalSpacing, XmNshadowThickness>:
 	Change default values.
 
-2002-04-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-04-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.c: Do not grab keyboard if installation-directory is
 	non-nil (not installed Emacs).  To simplify debugging.
 
-2002-04-28  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-28  Pavel Janík  <Pavel@Janik.cz>
 
 	* Makefile.in: Remove OpenLook file dependencies.
 	(xrdb-cpp.o): Remove target.
@@ -260,12 +260,12 @@
 
 	* lwlib.c (instantiate_widget_instance): Remove duplicated prototype.
 
-2002-04-25  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-25  Pavel Janík  <Pavel@Janik.cz>
 
 	* lwlib-Xol.c, lwlib-Xol.h, lwlib-Xolmb.c, lwlib-Xolmb.h
 	* lwlib-XolmbP.h: Remove file.
 
-2002-04-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-04-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* lwlib-Xm.c: Removed compiler warning.
 
@@ -275,14 +275,14 @@
 	(pop_up_menu): Add call to XtGrabKeyboard.
 	(ungrab_all): New function.
 
-2002-04-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-20  Pavel Janík  <Pavel@Janik.cz>
 
 	* xlwmenu.c (find_next_selectable): New function.
 	(Down, Up, Right): Use it.
 	(find_next_selectable): Prevent endless loops when only one item
 	is enabled in the menu.
 
-2002-04-19  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-04-19  Pavel Janík  <Pavel@Janik.cz>
 
 	These changes allow moving in menu via keyboard.
 
@@ -305,21 +305,21 @@
 
 	* lwlib.c (P_): Don't define if already defined.
 
-2002-01-27  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-27  Pavel Janík  <Pavel@Janik.cz>
 
 	* lwlib-Xaw.c (xaw_update_scrollbar, xaw_scrollbar_scroll)
 	(xaw_scrollbar_jump): Put whole functions in #if 0.
 
-2002-01-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-09  Pavel Janík  <Pavel@Janik.cz>
 
 	* lwlib-Xaw.c (xaw_create_dialog): Initialize icon_name to
 	suppress compiler warnings.
 
-2001-12-18  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-18  Pavel Janík  <Pavel@Janik.cz>
 
 	* lwlib.c (separator_names): Add missing braces around initializers.
 
-2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: New file.
 
@@ -1352,7 +1352,7 @@
 
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 
