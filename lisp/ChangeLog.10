@@ -1044,13 +1044,13 @@
 	(gdb-view-source): Rename gdb-view-source-function.
 	Set uninitialised variables (defvars) to nil.
 
-2003-06-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-06-29  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* international/mule-cmds.el
 	(set-display-table-and-terminal-coding-system): Remove CVS
 	conflict markers and some code.
 
-2003-06-27  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-06-27  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* international/mule-cmds.el (menu-bar-options-menu):
 	Move `mouse-set-fonts' here from Options/Mule submenu.
@@ -1201,7 +1201,7 @@
 
 	* progmodes/sql.el: Add support for SQLite interpreter.
 
-2003-06-17  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-06-17  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	Version 2.0.35 of Tramp released.
 
@@ -2023,7 +2023,7 @@
 	* gud.el (gud-gdb-goto-stackframe, gud-gdb-get-stackframe):
 	Add server prefix to the gdb commands used by the speedbar.
 
-2003-05-28  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-05-28  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* simple.el (kill-region): If nothing was killed, and the
 	previous command was not a kill, break kill sequence.
@@ -2117,7 +2117,7 @@
 	(eval-last-sexp-1): Use it.  Use with-syntax-table as well.
 	(eval-defun-1): Don't replace `defvar' with `defconst'.
 
-2003-05-27  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-05-27  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* bindings.el (global-map): Bind M-S-<backspace to kill-whole-line.
 
@@ -2136,7 +2136,7 @@
 	* faces.el (display-supports-face-attributes-p): Doc fix.
 	(x-create-frame-with-faces): Call `face-set-after-frame-default'.
 
-2003-05-26  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-05-26  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* bindings.el (global-map): Don't bind S-<backspace>.  Too many
 	people hit it by mistake.
@@ -2211,7 +2211,7 @@
 
 	* frame.el (iconify-or-deiconify-frame): Move from term/x-win.el.
 
-2003-05-24  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-05-24  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* net/tramp.el: Version 2.0.34 released.
 	(tramp-handle-file-symlink-p): If target of symlink is absolute,
@@ -2496,7 +2496,7 @@
 	(xml-debug-print-internal): Simplify insertions.
 	(xml-parse-file): Avoid finding file in xml-mode.
 
-2003-05-19  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-05-19  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* simple.el (kill-whole-line): New function.
 	* bindings.el (global-map): Bind it.
@@ -3280,7 +3280,7 @@
 	* recentf.el (recentf-cleanup): Swap tests for exclusion and
 	accessibility.
 
-2003-05-01  Eduardo Mu,Aq(Boz  <emufer@terra.es>  (tiny change)
+2003-05-01  Eduardo Muñoz  <emufer@terra.es>  (tiny change)
 
 	* ls-lisp.el (ls-lisp-format-file-size): New function to implement
 	"-h" switch.
@@ -4039,7 +4039,7 @@
 	(list-coding-systems-1): Sort coding systems.
 	Call print-coding-system-briefly with the arg DOC-STRING `tightly'.
 
-2003-04-08  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-04-08  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* net/tramp.el: Version 2.0.33 released.
 	Change coding cookie to `iso-2022-7bit' for XEmacs
@@ -4080,13 +4080,13 @@
 	to match symbols.  This makes CC Mode cope with the full range
 	of identifier characters in e.g. Java.
 
-2003-04-07  Francesco Potort,Al(B  <pot@gnu.org>
+2003-04-07  Francesco Potortì  <pot@gnu.org>
 
 	* xt-mouse.el (xterm-mouse-event-read): New function.
 	(xterm-mouse-event): Use it to get xterm sequences above #x7f.
 	Suggested by Aman Bhargava <emacs-bug@amanb.net>.
 
-2003-04-07  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-04-07  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* man.el (Man-getpage-in-background): Set GROFF_NO_SGR env var in
 	all cases, whether or not start-process is fboundp.
@@ -4321,7 +4321,7 @@
 	(asm-colon): Don't tab if colon is not after a label.
 	(asm-line-matches, asm-pop-comment-level): Remove.
 
-2003-04-02  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-04-02  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* emulation/crisp.el (top-level): Quote second arg to
 	`eval-after-load'.
@@ -4389,7 +4389,7 @@
 	* help.el (describe-minor-mode, describe-minor-mode-from-indicator)
 	(lookup-minor-mode-from-indicator): New functions.
 
-2003-03-31  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-03-31  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* files.el (file-relative-name): Remove superfluous `and'.
 	Clarify docstring.  From Lars Hansen.
@@ -4406,7 +4406,7 @@
 
 	* info-look.el (sh-mode): Add doc-specs for commands and variables.
 
-2003-03-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-03-29  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* international/utf-8.el (utf-translate-cjk-mode): Minor mode,
 	replaces variable utf-translate-cjk which must be set via Custom.
@@ -4804,7 +4804,7 @@
 	(x-last-selected-text-primary): Doc fixes.
 	(x-win-suspend-error): Use proper noun in error message.
 
-2003-03-09  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-03-09  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* man.el (Man-getpage-in-background): Always use `setenv' for
 	environment variables, instead of modifying process-environment
@@ -4823,7 +4823,7 @@
 	* emulation/cua-base.el (cua--standard-movement-commands):
 	Fix docstring.
 
-2003-03-07  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-03-07  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* man.el (Man-getpage-in-background): Only change
 	default-directory if necessary.
@@ -5191,14 +5191,14 @@
 	Add "`(" to same so that function and macro bodies beginning with a
 	backquote do not get disturbed.  Revise the comments.
 
-2003-03-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-03-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* startup.el (command-line): Call menu-bar-mode with 1 instead of t.
 
 	* menu-bar.el (menu-bar-mode): Change to define-minor-mode
 	and initialize as for tool-bar-mode.
 
-2003-02-28  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-02-28  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* net/tramp.el: Version 2.0.30 released.
 	Replace term "path" with "localname" unless it is used for a
@@ -5363,12 +5363,12 @@
 	in some earlier merge.
 	(cperl-tags-hier-init): Use display-popup-menus-p.
 
-2003-02-22  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-02-22  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* files.el (abbreviate-file-name): Shorten docstring: variables
 	are now hyperlinks and `C-h v' need not be mentioned explicitly.
 
-2003-02-21  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-02-21  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* files.el (abbreviate-file-name): Document removal of
 	automounter prefixes.  Reported by Lars Hansen.
@@ -5403,7 +5403,7 @@
 	* info.el (Info-extract-menu-node-name): Stop if colon is
 	followed by open paren.
 
-2003-02-20  Francesco Potort,Al(B  <pot@gnu.org>
+2003-02-20  Francesco Potortì  <pot@gnu.org>
 
 	* mail/undigest.el (unforward-rmail-message): Allow nested
 	unforwarding, that is, preserve old Forwarded-From/Date headers.
@@ -5825,7 +5825,7 @@
 
 	* printing.el: New file.
 
-2003-02-07  Francesco Potort,Al(B  <pot@gnu.org>
+2003-02-07  Francesco Potortì  <pot@gnu.org>
 
 	* language/european.el ("French", "Slovenian"): Fix doc strings.
 
@@ -5836,7 +5836,7 @@
 	(rmail-summary-next-labeled-message, rmail-summary-resend)
 	(rmail-summary-override-mail-send-and-exit): Doc fixes.
 
-2003-02-06  Francesco Potort,Al(B  <pot@gnu.org>
+2003-02-06  Francesco Potortì  <pot@gnu.org>
 
 	* language/european.el ("Italian"): New.
 
@@ -5873,11 +5873,11 @@
 	Undo last change (duplicates part of 2003-02-04 change).
 	Remap `viper' delete commands only in file or dir mode.
 
-2003-02-05  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-02-05  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* ido.el (ido-define-mode-map): Interact with Viper.
 
-2003-02-05  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-02-05  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* net/tramp.el: Version 2.0.29 released.
 	(tramp-send-region): Protect against tramp-chunksize being nil.
@@ -6015,7 +6015,7 @@
 
 	* ruler-mode.el (ruler-mode-margins-char): Likewise.
 
-2003-02-04  Francesco Potort,Al(B  <pot@gnu.org>
+2003-02-04  Francesco Potortì  <pot@gnu.org>
 
 	* mail/rmailout.el (rmail-output): If preserving MIME-version,
 	preserve Content-type too.
@@ -6195,7 +6195,7 @@
 	* shell.el:
 	* woman.el: Added cygwin to system-type comparisons.
 
-2003-01-31  Francesco Potort,Al(B  <pot@gnu.org>
+2003-01-31  Francesco Potortì  <pot@gnu.org>
 
 	* mail/undigest.el (rmail-forward-separator-regex): New custom
 	variable.
@@ -6332,7 +6332,7 @@
 	(c-require-final-newline): Add a variable to make the
 	initialization of `require-final-newline' more configurable.
 
-2003-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* emacs-lisp/authors.el (authors-aliases): Add Jan D.
 	Set iso-2022-7bit coding: cookie.
@@ -6493,7 +6493,7 @@
 	* Makefile.in (bootstrap-after): New target.
 	(bootstrap): Move finder-data, custom-deps to bootstrap-after.
 
-2003-01-22  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-01-22  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* info.el (Info-index-next): Use "(`,' tries to find next)" for
 	more matches for consistency with standalone info browser.
@@ -6865,7 +6865,7 @@
 
 	* international/code-pages.el (cp-make-coding-system): Fix last change.
 
-2003-01-10  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-01-10  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* dired.el (dired-garbage-files-regexp): Use \\' instead of $ and
 	use regexp-opt for readability.
@@ -6929,7 +6929,7 @@
 	* mail/undigest.el (unforward-rmail-message): Don't use global
 	variable `n'.
 
-2003-01-08  Francesco Potort,Al(B  <pot@gnu.org>
+2003-01-08  Francesco Potortì  <pot@gnu.org>
 
 	* mail/undigest.el (unforward-rmail-message): Simplified.
 	No functional change.
@@ -6952,14 +6952,14 @@
 	(custom-save-variables): Use custom-variable-p to detect
 	non-rogue variables.
 
-2003-01-07  Francesco Potort,Al(B  <pot@gnu.org>
+2003-01-07  Francesco Potortì  <pot@gnu.org>
 
 	* mail/undigest.el (unforward-rmail-message): Skip all newlines
 	after the initial separator.
 	(unforward-rmail-message): Forwarded-From: and Forwarded-Date:
 	instead of Forwarded-from: and Forwarded-date:.
 
-2003-01-07  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2003-01-07  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* dired.el (dired-garbage-files-regexp): Add `.aux$'.  These are
 	produced by TeX.
@@ -7201,7 +7201,7 @@
 	(customize-variable-other-window, customize-option-other-window):
 	Definitions moved up.
 
-2002-12-26  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2002-12-26  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* net/tramp*.el: Sync with upstream version 2.0.28.  Bugfixes.
 	* net/tramp-ftp.el: Glue code with Ange-FTP, broken out of
@@ -7241,7 +7241,7 @@
 
 	* cus-edit.el (custom-save-faces): Fix typo.
 
-2002-12-23  Francesco Potort,Al(B  <pot@gnu.org>
+2002-12-23  Francesco Potortì  <pot@gnu.org>
 
 	* mail/undigest.el (unforward-rmail-message): Do not assume that
 	the forwarded message's Date: header comes after From:.  Use a
@@ -7411,7 +7411,7 @@
 	* dired.el (dired-insert-directory): Preserve text properties
 	when quoting.
 
-2002-12-20  Francesco Potort,Al(B  <pot@gnu.org>
+2002-12-20  Francesco Potortì  <pot@gnu.org>
 
 	* mail/undigest.el (rmail-mail-separator): Renamed from
 	rmail-digest-mail-separator.  All users changed.
@@ -7472,7 +7472,7 @@
 	coding-system to allow users to specify unsafe coding system on
 	their risk.
 
-2002-12-16  Francesco Potort,Al(B  <pot@gnu.org>
+2002-12-16  Francesco Potortì  <pot@gnu.org>
 
 	* mail/undigest.el (rmail-digest-methods)
 	(rmail-digest-mail-separator): New variables.
@@ -7540,7 +7540,7 @@
 	Add :set-after.
 	(ccl-decode-mule-utf-8): Consider CJK translation for r3<#x3400.
 
-2002-12-15  Gustav H,Ae(Bllberg  <gustav@virtutech.se>  (tiny change)
+2002-12-15  Gustav Hållberg  <gustav@virtutech.se>  (tiny change)
 
 	* progmodes/compile.el (compile-reinitialize-errors): Don't mark the
 	buffer as modified unless it really is.
@@ -7607,7 +7607,7 @@
 	Update custom-type of `current-language-environment'.
 	(current-language-environment): Fix custom type.
 
-2002-12-11  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-12-11  Pavel Janík  <Pavel@Janik.cz>
 
 	* progmodes/antlr-mode.el (antlr): New URL.
 
@@ -7957,7 +7957,7 @@
 
 	* font-lock.el (c++-font-lock-extra-types): Fix previous change.
 
-2002-12-02  Fran,Ag(Bois Pinard  <pinard@iro.umontreal.ca>
+2002-12-02  François Pinard  <pinard@iro.umontreal.ca>
 
 	* progmodes/make-mode.el (makefile-font-lock-keywords): Highlight
 	more make keywords: defined, endef, override, export, unexport
@@ -8211,7 +8211,7 @@
 	* register.el (describe-register-1): Don't assign to val the value
 	returned by `remove-list-of-text-properties'.
 
-2002-11-18  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+2002-11-18  Kai Großjohann  <kai.grossjohann@uni-duisburg.de>
 
 	* calendar/diary-lib.el (fancy-diary-font-lock-keywords):
 	Grok month numbers, too.
@@ -9353,7 +9353,7 @@
 	* textmodes/fill.el (fill-paragraph): Go to BOL before calling
 	forward-paragraph to make sure its return value is meaningful.
 
-2002-10-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-10-06  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.25 released.
 	(tramp-handle-file-truename): If it's a directory,
@@ -9685,7 +9685,7 @@
 	once Emacs is started up; initialize to "" at loadup time.
 	(command-line): "", not nil, means user-mail-address not set yet.
 
-2002-09-29  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-29  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.24 released.
 	(tramp-methods, tramp-completion-function-alist):
@@ -10073,7 +10073,7 @@
 	* mail/sendmail.el (sendmail-send-it): If user's buffer
 	is unibyte, make tembuf unibyte.
 
-2002-09-22  Kai Gro,A_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
+2002-09-22  Kai Großjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
 
 	* net/tramp.el: Version 2.0.22 released.
 	(tramp-parse-rhosts, tramp-parse-shosts)
@@ -10090,7 +10090,7 @@
 	(tramp-completion-function-alist): Add completion function for "ftp".
 	From Michael Albinus <Michael.Albinus@alcatel.de>.
 
-2002-09-22  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-22  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.21 released.
 	(tramp-handle-file-newer-than-file-p): If mtime of both files is
@@ -10104,11 +10104,11 @@
 	(tramp-method-out-of-band-p): Correct number of args for
 	`tramp-get-rsh-program' and similar functions.
 
-2002-09-22  Kai Gro,A_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
+2002-09-22  Kai Großjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
 
 	* net/tramp.el: Version 2.0.20 released.
 
-2002-09-20  Kai Gro,A_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
+2002-09-20  Kai Großjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
 
 	* net/tramp.el (tramp-completion-function-alist): Escape open
 	paren in docstring.
@@ -10137,24 +10137,24 @@
 	`tramp-find-method'.  Update callers.
 	(tramp-find-method): New function.
 
-2002-09-20  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-20  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-handle-insert-directory): Handle "--dired"
 	in SWITCHES (by removing it).
 
-2002-09-18  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-18  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-file-name-handler): Add `file-remote-p' property.
 
-2002-09-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-17  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (top-level): Maybe autoload uudecode-decode-region.
 
-2002-09-16  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-16  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-bug): Add tramp-methods.
 
-2002-09-16  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-16  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-methods): Update docstring:
 	tramp-encoding-command, tramp-decoding-command,
@@ -10162,7 +10162,7 @@
 	parameters anymore.
 	(tramp-uuencode-region): Autoload it.
 
-2002-09-13  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-13  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.19 released.
 
@@ -10172,11 +10172,11 @@
 	Use `tramp-uuencode-region' as local encoder for the uuencode based
 	entries.
 
-2002-09-13  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-13  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-handle-write-region): Wrong parens.
 
-2002-09-13  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-13  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.18 released.
 
@@ -10184,14 +10184,14 @@
 	older versions of Perl.  Now tested with 5.004.  Suggestion from
 	Michael Albinus.
 
-2002-09-12  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-12  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-find-inline-encoding):
 	Call tramp-call-local-coding-command with nil for INPUT and OUTPUT.
 	(tramp-call-local-coding-command): OUTPUT equals nil means to
 	discard the output.  INPUT equals nil means /dev/null.
 
-2002-09-12  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-12  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-encoding-shell): Default to environment
 	variable COMSPEC on Windows.
@@ -10204,7 +10204,7 @@
 	Define `result1'.
 	(tramp-parse-hosts-group): Discard IPv6 entries.
 
-2002-09-11  Kai Gro,A_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
+2002-09-11  Kai Großjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
 
 	* net/tramp.el (tramp-post-connection): Only send Perl
 	mime-encode/decode implementations when using inline method.
@@ -10227,7 +10227,7 @@
 	(tramp-get-decoding-function, tramp-set-decoding-function):
 	Old functions, removed.
 
-2002-09-10  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-10  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-open-connection-setup-interactive-shell):
 	Change command to invoke /bin/sh slightly to make it compatible
@@ -10238,7 +10238,7 @@
 	* net/tramp.el (tramp-handle-write-region): Added missing
 	`)'.  Hope it's the right place.
 
-2002-09-09  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-09  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-open-connection-setup-interactive-shell):
 	Do "exec env PS1='$ ' /bin/sh" instead of just "exec /bin/sh" in
@@ -10291,7 +10291,7 @@
 	`tramp-get-completion-su' (the previous place for this stuff)
 	doesn't exist any longer.
 
-2002-09-07  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-07  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-enter-password):
 	Use `tramp-password-end-of-line' to terminate the line.
@@ -10303,7 +10303,7 @@
 	(tramp-wait-for-output, tramp-post-connection): Allow "\r" at end
 	of line of the output delimiter.
 
-2002-09-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-06  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-handle-file-local-copy, tramp-find-shell)
 	(tramp-open-connection-setup-interactive-shell): Add some comments
@@ -10321,7 +10321,7 @@
 	(tramp-completion-mode): Replace `last-input-char' by modern
 	`last-input-event'.  Check for `event-modifiers'.
 
-2002-09-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-06  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (file-expand-wildcards): Corrected check to see if
 	advising is necessary.
@@ -10521,13 +10521,13 @@
 	list in order to avoid nested lists, f.e. when invoked from
 	`tramp-handle-dired-call-process'.
 
-2002-09-05  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-05  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-chunksize): New kluge variable.
 	(tramp-send-region): If tramp-chunksize is non-nil, send region in
 	parts and sleep 0.1 seconds between chunks.
 
-2002-09-03  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-03  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-handle-insert-directory):
 	Use `insert-buffer-substring' instead of `insert-buffer', which is not
@@ -10538,12 +10538,12 @@
 	(file-expand-wildcards): Don't advise unless "[" and "]" are used
 	in the filename format.
 
-2002-09-01  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-01  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-methods): Remove duplicate definition of
 	ssh1-old and ssh2-old.
 
-2002-09-22  Kai Gro,A_(Bjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
+2002-09-22  Kai Großjohann  <grossjoh@ls6.informatik.uni-dortmund.de>
 
 	* dired.el (dired-insert-directory): Always add "--dired" to to
 	SWITCHES for remote files.
@@ -10669,7 +10669,7 @@
 	Don't unbind compilation-last-buffer after autoloading compile.el.
 	Hide the compilation-minor-mode bindings altogether.
 
-2002-09-18  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-18  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* dired.el (dired-insert-directory): Never add "--dired" when
 	listing remote directories.
@@ -10724,7 +10724,7 @@
 	hack-one-local-variable so unsafep can use it.  Add \|-history$ to
 	the list of disallowed local variable names (malicious user could
 	stuff a `display' property in there that would be activated when
-	na,Ao(Bve user called up the history).
+	naïve user called up the history).
 
 2002-09-16  Markus Rost  <rost@math.ohio-state.edu>
 
@@ -10892,7 +10892,7 @@
 	(transient-mark-mode, line-number-mode, column-number-mode):
 	Pass an explicit `:require nil' argument.
 
-2002-09-13  Francesco Potort,Al(B  <pot@gnu.org>
+2002-09-13  Francesco Potortì  <pot@gnu.org>
 
 	* play/tetris.el (tetris-blank-options, tetris-cell-options):
 	Remove various redundant `(t nil)'.
@@ -11100,7 +11100,7 @@
 	(ps-print-color-p, ps-page-dimensions-database): Autoload var.
 	(ps-print-code, ps-print-preprint-region): Adjust code.
 
-2002-09-10  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-10  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* files.el (auto-mode-alist): ~/.gnus, ~/.viper are in
 	emacs-lisp-mode, like ~/.emacs.
@@ -11429,7 +11429,7 @@
 	* mail/sendmail.el (mail-mode): Don't set local-abbrev-table.
 	(mail-mode-abbrev-table): Set to text-mode-abbrev-table.
 
-2002-09-02  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-02  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.15 released.
 	(require 'base64): Most modern Emacsen have the base64
@@ -11677,7 +11677,7 @@
 
 	* comint.el (comint-carriage-motion): Start at START.
 
-2002-08-27  Francesco Potort,Al(B  <pot@gnu.org>
+2002-08-27  Francesco Potortì  <pot@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-skip-msgs): Skip the 530 response
 	given by vsFTPd when accessed with a kerberised FTP client.
@@ -11811,7 +11811,7 @@
 	Always call x-focus-frame, if using x.
 	Use set-mouse-position on all systems, if focus-follows-mouse.
 
-2002-08-22  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-22  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.14 released.
 	(tramp-shell-prompt-pattern): New variable.
@@ -11846,7 +11846,7 @@
 	pushing mark.
 	(f90-abbrev-start): unread-command-event is obsolete in XEmacs.
 
-2002-08-21  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-21  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.13 released.
 	(tramp-handle-write-region): Don't check to see if remote end is
@@ -12137,7 +12137,7 @@
 
 	* wid-browse.el (widget-minor-mode): Fix doc typo.
 
-2002-08-07  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-07  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.12 released.
 	(tramp-find-shell, tramp-open-connection-setup-interactive-shell):
@@ -12215,7 +12215,7 @@
 
 	* image.el (image-jpeg-p): Accept "Exif" marker.
 
-2002-08-05  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-05  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.11 released.
 	(tramp-perl-file-attributes): Print uid and gid as signed integers.
@@ -12237,7 +12237,7 @@
 
 	* startup.el (fancy-splash-frame): Check selected frame last.
 
-2002-08-04  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-04  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.10 released.
 	(tramp-uudecode): New shell function `tramp_uudecode' to decode to
@@ -12250,7 +12250,7 @@
 	(tramp-coding-commands): Add an alternative for `tramp_uudecode'.
 	(tramp-bug): Include more variables in the report.
 
-2002-08-04  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-04  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.9 released.
 	(tramp-bug): Add wording about additional info to include in bug
@@ -12274,12 +12274,12 @@
 
 	* term/mac-win.el: Set keys to enable mouse wheel support.
 
-2002-08-03  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-03  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.8.
 	(tramp-perl-encode, tramp-perl-encode): Double the backslashes.
 
-2002-08-03  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-03  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.7.
 	(tramp-perl-encode-with-module, tramp-perl-decode-with-module)
@@ -12293,7 +12293,7 @@
 	(f90-font-lock-keywords-2): Fix `implicit type(foo)' case.
 	(f90-type-def-re): Fix value.
 
-2002-08-03  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-08-03  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Version 2.0.6.
 	(tramp-default-method): Change to "ssh" from "sm".
@@ -12384,7 +12384,7 @@
 	don't work on MSVC/nmake builds.
 	(update-subdirs-CMD): Generate the right list of subdirectories.
 
-2002-07-30  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-07-30  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: New version 2.0.5.
 	(tramp-methods): Remove inline encoding method parameters.
@@ -12525,7 +12525,7 @@
 	* ps-print.el: Update copyright year.
 	(ps-begin-cut-regexp, ps-end-cut-regexp): Fix type.
 
-2002-07-26  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-07-26  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* eshell/eshell.el (eshell): Numeric prefix arg means to switch
 	to the session with that number.  Old behavior still available
@@ -12789,7 +12789,7 @@
 	* bindings.el (last-buffer): Use buffer-list with frame arg.
 	Create *scratch* if no other choice exists.  Fix bugs.
 
-2002-07-21  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-07-21  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el: Bump version to 2.0.2.
 	(tramp-methods): Rename methods invoking "ssh1" or "ssh2" to
@@ -12944,7 +12944,7 @@
 	(encode-char): Use ucs-mule-to-mule-unicode.
 
 	* international/characters.el: Fix settings of U+2000-U+2027.
-	Remove $(C'Y(B.
+	Remove Ω.
 
 	* international/mule-cmds.el (locale-language-names): Fix be, add
 	sr_YU@cyrillic, modify tg.
@@ -13173,7 +13173,7 @@
 	* calendar/timeclock.el (timeclock-in): Handle the case where no
 	log file exists (ie the very first call).
 
-2002-07-13  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-07-13  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/ange-ftp.el: Do not hook into file-name-handler-alist, this
 	is done by Tramp.
@@ -13249,7 +13249,7 @@
 	(Macedoninan), "ru" (Russian), and "sp" (Serbian with Cyrillic
 	alphabet) to "Cyrillic-ISO".
 
-2002-07-11  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-07-11  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-default-method): New default method "sm"
 	which I guess to be good for most people.
@@ -13410,7 +13410,7 @@
 
 	* bindings.el (completion-ignored-extensions): Add .gmo and .mo.
 
-2002-07-06  Francesco Potort,Al(B  <pot@gnu.org>
+2002-07-06  Francesco Potortì  <pot@gnu.org>
 
 	* dos-w32.el (file-name-buffer-file-type-alist): Add knowledge of
 	.sx[dmicw] file suffixes for Open office data files.
@@ -13661,7 +13661,7 @@
 	(uniquify-delayed-rationalize-file-buffer-names):
 	Rename from delayed-uniquify-rationalize-file-buffer-names.
 
-2002-06-27  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-27  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-file-name-structure)
 	(tramp-multi-file-name-hop-structure): Split for easier readability.
@@ -13710,7 +13710,7 @@
 
 	* dired.el (dired-find-alternate-file): Mark as disabled.
 
-2002-06-25  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-25  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/tramp.el (tramp-ftp-method): New user option.
 	(tramp-invoke-ange-ftp): New function to forward calls to Ange-FTP.
@@ -13798,7 +13798,7 @@
 	* progmodes/f90.el (f90-do-auto-fill): Respect the value of
 	comment-auto-fill-only-comments.
 
-2002-06-21  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-21  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* net/ange-ftp.el (backup-buffer): Delete `ange-ftp' property.
 	This is not a handled operation.
@@ -13899,7 +13899,7 @@
 	21 dialogs to select the file, since we want a directory name only.
 	(ada-customize): Add support for the new GNAT project files.
 
-2002-06-20  Francesco Potort,Al(B  <pot@gnu.org>
+2002-06-20  Francesco Potortì  <pot@gnu.org>
 
 	* progmodes/etags.el (tag-implicit-name-match-p): New function.
 	(etags-recognize-tags-table): Use it for implicit tag names.
@@ -14284,7 +14284,7 @@
 	* select.el (xselect-convert-to-string): If VALUE is a string,
 	return a cons of TYPE and the string.
 
-2002-06-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-06-05  Pavel Janík  <Pavel@Janik.cz>
 
 	* language/cyrillic.el (cyrillic-alternativnyj-decode-table):
 	Fix the table to contain correct characters.
@@ -14720,7 +14720,7 @@
 	(mail-default-directory): New user option.
 	(mail, mail-recover): Use that option.
 
-2002-05-20  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-05-20  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* international/mule.el (auto-coding-alist): Use emacs-mule
 	for auto-save files.
@@ -14898,7 +14898,7 @@
 	(dabbrev-upcase-means-case-search): Doc fix.
 	(dabbrev-case-replace): Fix custom tags and docs.
 
-2002-05-14  Jochen K,A|(Bpper  <jochen@jochen-kuepper.de>
+2002-05-14  Jochen Küpper  <jochen@jochen-kuepper.de>
 
 	* calc/calc-units.el (math-standard-units): Update from CODATA.
 
@@ -14915,7 +14915,7 @@
 	* textmodes/sgml-mode.el (sgml-tag):
 	Default skeleton-transformation to `identity'.
 
-2002-05-14  Francesco Potort,Al(B  <pot@gnu.org>
+2002-05-14  Francesco Potortì  <pot@gnu.org>
 
 	* shell.el (shell-mode): Make second part of initialisation
 	depend on whether comint-input-ring is empty, rather than depend
@@ -14960,7 +14960,7 @@
 	(occur-engine): If there are no more matches, then finish
 	searching the current buffer.
 
-2002-05-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-05-12  Pavel Janík  <Pavel@Janik.cz>
 
 	* net/ange-ftp.el (ange-ftp-try-passive-mode)
 	(ange-ftp-passive-host-alist): Change :version attributes to be
@@ -15002,7 +15002,7 @@
 
 	* subr.el (functionp): Catch errors in indirect-function.
 
-2002-05-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-05-12  Pavel Janík  <Pavel@Janik.cz>
 
 	* net/ldap.el (ldap-search-internal): Unfold folded lines before
 	parsing.
@@ -15085,7 +15085,7 @@
 
 	* wid-edit.el (checkbox): New check-mark image.
 
-2002-05-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-05-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* filesets.el (filesets-running-xemacs): Fix last change.
 
@@ -15105,7 +15105,7 @@
 	(filesets-menu-path, filesets-menu-before, filesets-menu-in-menu):
 	Defvar them to nil if running in Emacs.
 
-2002-05-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-05-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* textmodes/flyspell.el (make-flyspell-overlay): Add help text
 	to flyspell overlays.
@@ -15194,7 +15194,7 @@
 	* emacs-lisp/find-func.el (find-function-search-for-symbol):
 	Use with-syntax-table.
 
-2002-05-06  Francesco Potort,Al(B  <pot@gnu.org>
+2002-05-06  Francesco Potortì  <pot@gnu.org>
 
 	* mail/rmail.el (rmail-font-lock-keywords): Highlight Resent-[Ff]rom:.
 
@@ -15359,7 +15359,7 @@
 	Only interpret delete-selection property if mark-active.
 	(cua-mode): Fix require in defcustom.
 
-2002-05-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-05-01  Pavel Janík  <Pavel@Janik.cz>
 
 	* calendar/cal-menu.el (cal-menu-x-popup-menu): Fix argument of
 	error call.
@@ -15494,7 +15494,7 @@
 
 	* language/viet-util.el: Update Commentary section.
 
-2002-04-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-29  Pavel Janík  <Pavel@Janik.cz>
 
 	* filesets.el (filesets-data): Doc fix.
 	(filesets-running-xemacs): Define even when compiling.
@@ -15559,7 +15559,7 @@
 	* replace.el (occur-revert-arguments):
 	Renamed from occur-revert-properties.  All uses changed.
 
-2002-04-28  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-28  Pavel Janík  <Pavel@Janik.cz>
 
 	* recentf.el (recentf-menu-before): Use string to specify path in
 	the menu.
@@ -15935,7 +15935,7 @@
 	when finding the end.  Take more care in analyzing the results
 	of intangibility after line-move-to-column.
 
-2002-04-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-22  Pavel Janík  <Pavel@Janik.cz>
 
 	* international/mule-diag.el (list-input-methods-1): Doc fix (LEIM is
 	now part of the standard distribution).
@@ -16893,7 +16893,7 @@
 	* simple.el (pop-to-mark-command): Do not set this-command.
 	(set-mark-command): Always jump to mark when called with arg.
 
-2002-04-18  Francesco Potort,Al(B  <pot@gnu.org>
+2002-04-18  Francesco Potortì  <pot@gnu.org>
 
 	* comint.el (comint-watch-for-password-prompt): Remove whitespace
 	at the beginning of password prompts.
@@ -16910,7 +16910,7 @@
 	(ibuffer-current-state-list): Reinstate optional argument; now
 	just call `point' inside the mapping function.
 
-2002-04-17  Francesco Potort,Al(B  <pot@gnu.org>
+2002-04-17  Francesco Potortì  <pot@gnu.org>
 
 	* dired-aux.el (dired-star-subst-regexp)
 	(dired-quark-subst-regexp): New constants.
@@ -16931,7 +16931,7 @@
 
 	* term.el (term-emulate-terminal): Fix last change.
 
-2002-04-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-16  Pavel Janík  <Pavel@Janik.cz>
 
 	* bindings.el (mode-line-mode-menu): Update names to reflect
 	latest changes.
@@ -17007,7 +17007,7 @@
 	(exchange-point-and-mark): Temporarily enable transient-mark-mode
 	if prefix arg.
 
-2002-04-14  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-14  Pavel Janík  <Pavel@Janik.cz>
 
 	* speedbar.el (speedbar-tag-hierarchy-method)
 	(speedbar-toggle-updates, speedbar-toggle-images): Doc fixes.
@@ -17017,7 +17017,7 @@
 	* textmodes/sgml-mode.el (sgml-parse-tag-backward): Fix to work at
 	beginning of buffer.
 
-2002-04-14  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-14  Pavel Janík  <Pavel@Janik.cz>
 
 	* speedbar.el (speedbar-generic-item-info)
 	(speedbar-sort-tags): Doc fix.
@@ -17046,7 +17046,7 @@
 	(gamegrid-add-score): Just dispatch on `system-type' to one of the
 	previous two functions.
 
-2002-04-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-13  Pavel Janík  <Pavel@Janik.cz>
 
 	* iswitchb.el: Update commentary to include new function
 	iswitchb-exclude-nonmatching.
@@ -17065,7 +17065,7 @@
 
 	* help.el (string-key-binding): Deal with margin events.
 
-2002-04-12  Francesco Potort,Al(B  <pot@gnu.org>
+2002-04-12  Francesco Potortì  <pot@gnu.org>
 
 	* comint.el (comint-password-prompt-regexp): Match " SMB password".
 
@@ -17111,7 +17111,7 @@
 	(fill-region-as-paragraph): Compare to `to' rather than eobp.
 	(fill-paragraph): Don't rebind fill-paragraph-function.
 
-2002-04-11  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-11  Pavel Janík  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-adv-search-menu): Add incremental search.
 
@@ -17225,7 +17225,7 @@
 	Use sgml-parse-tag-backward to find start point.
 	(sgml-looking-back-at): Doc fix.
 
-2002-04-09  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-09  Pavel Janík  <Pavel@Janik.cz>
 
 	* isearch.el (isearch-message-prefix): Use minibuffer-prompt face
 	for prompt.
@@ -17274,7 +17274,7 @@
 	* vc-cvs.el (vc-cvs-valid-version-number-p): New function.
 	(vc-cvs-checkin): Use it.
 
-2002-04-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* files.el (display-time-string): Fix last change.
 
@@ -17289,7 +17289,7 @@
 	default-process-coding-system.
 	(coding-system-change-text-conversion): Fix case where CODING is nil.
 
-2002-04-07  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-07  Pavel Janík  <Pavel@Janik.cz>
 
 	* subr.el (play-sound): Move here from simple.el.
 
@@ -17316,7 +17316,7 @@
 
 	* textmodes/xml-lite.el: Remove.
 
-2002-04-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-05  Pavel Janík  <Pavel@Janik.cz>
 
 	* simple.el (play-sound): New function (uses play-sound-internal).
 
@@ -17340,7 +17340,7 @@
 	* textmodes/sgml-mode.el: Add missing require.
 	(sgml-lexical-context): Fix up CDATA detection for boundary cases.
 
-2002-04-03  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-04-03  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* pcvs.el (cvs-mode-previous-line, cvs-mode-next-line): Move to
 	spot indicated by text property `cvs-goal-column', if present.
@@ -17408,7 +17408,7 @@
 	(sgml-parse-tag-backward): Extend support for CDATA to include
 	conditional sections.
 
-2002-04-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-03  Pavel Janík  <Pavel@Janik.cz>
 
 	* cus-start.el: Rename `autoselect-window' to
 	`mouse-autoselect-window'.
@@ -17482,7 +17482,7 @@
 	(xml-lite-parse-tag-backward): Simplify parsing by assuming we
 	always start within text.  Make use of sgml-unclosed-tag-p.
 
-2002-04-01  Ville Skytt,Ad(B  <ville.skytta@xemacs.org>
+2002-04-01  Ville Skyttä  <ville.skytta@xemacs.org>
 
 	* tcl.el (tcl-imenu-generic-expression): New value.
 	(tcl-imenu-create-index-function): Function deleted.
@@ -17492,7 +17492,7 @@
 	(inferior-tcl-mode): Doc fix.
 	Change not legally significant.
 
-2002-04-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-01  Pavel Janík  <Pavel@Janik.cz>
 
 	* cus-start.el: Rename `x-autoselect-window' to `autoselect-window'.
 
@@ -17693,7 +17693,7 @@
 	for comments.
 	(xml-lite-in-string-p): Simplify.
 
-2002-03-27  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-27  Pavel Janík  <Pavel@Janik.cz>
 
 	* allout.el (outline-layout): Doc fix.
 
@@ -17761,7 +17761,7 @@
 
 	* subr.el (substring-no-properties): Function deleted (now in C).
 
-2002-03-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-25  Pavel Janík  <Pavel@Janik.cz>
 
 	* mwheel.el (mouse-wheel-mode): Use global-set-key and
 	global-unset-key.
@@ -17802,7 +17802,7 @@
 	fore- and background colors of the faces we create, since facemenu
 	doesn't.
 
-2002-03-24  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-24  Pavel Janík  <Pavel@Janik.cz>
 
 	* mwheel.el (mouse-wheel-mode): Use the result of
 	current-global-map instead of the variable `global-map'.
@@ -17857,7 +17857,7 @@
 	* mail/emacsbug.el (report-emacs-bug-hook): Remove submitter
 	directions as the last action.
 
-2002-03-21  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-21  Pavel Janík  <Pavel@Janik.cz>
 
 	* startup.el (fancy-splash-tail, normal-splash-screen):
 	Update copyright.
@@ -18045,7 +18045,7 @@
 	<top-level>: Remove the setup for all known codepages: it seems
 	to cause crashes in the CCL driver.
 
-2002-03-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-16  Pavel Janík  <Pavel@Janik.cz>
 
 	* textmodes/bibtex.el (bibtex-sort-ignore-string-entries)
 	(bibtex-entry-field-alist): Doc fix.
@@ -18063,7 +18063,7 @@
 	* files.el (load-completion): New function.
 	(load-library): Use it.
 
-2002-03-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-15  Pavel Janík  <Pavel@Janik.cz>
 
 	* calendar/cal-french.el (calendar-goto-french-date): Fix prompt
 	to match the actual code.
@@ -18142,7 +18142,7 @@
 	(fortran-fill): Don't be confused by ! inside a comment.
 	(fortran-break-line): Minor cleanup and simplification.
 
-2002-03-13  Francesco Potort,Al(B  <pot@gnu.org>
+2002-03-13  Francesco Potortì  <pot@gnu.org>
 
 	* progmodes/etags.el (tag-exact-file-name-match-p)
 	(tag-file-name-match-p, tag-partial-file-name-match-p): Use a
@@ -18153,7 +18153,7 @@
 	* ibuffer.el (ibuffer-redisplay-current): Don't move point when
 	redisplaying a line.
 
-2002-03-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-03-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (emacs-session-restore): Take previous id as
 	an argument.
@@ -18174,7 +18174,7 @@
 	(lisp-indent-defmethod): Use car/cdr instead of first/rest.
 	(lisp-backquote-indentation): New user option.
 
-2002-03-12  Francesco Potort,Al(B  <pot@gnu.org>
+2002-03-12  Francesco Potortì  <pot@gnu.org>
 
 	* progmodes/etags.el (tag-exact-file-name-match-p)
 	(tag-file-name-match-p, tag-partial-file-name-match-p):
@@ -18206,7 +18206,7 @@
 
 	* comint.el: Remove documentation on setting up pcomplete.
 
-2002-03-11  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-11  Pavel Janík  <Pavel@Janik.cz>
 
 	* font-lock.el (java-font-lock-extra-types): Add "URL" as separate
 	item.  Doc fix.
@@ -18225,7 +18225,7 @@
 
 	* play/mpuz.el: Use defface instead of facemenu-get-face.
 
-2002-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-03-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* startup.el (command-line): Add call to emacs-session-restore if
 	both x-session-id and x-session-previous-id are strings.
@@ -18326,7 +18326,7 @@
 	(hif-conditional): New function to evaluate a conditional
 	expression.
 
-2002-03-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-06  Pavel Janík  <Pavel@Janik.cz>
 
 	* language/czech.el ("Czech"): Fix the documentation.
 
@@ -18389,7 +18389,7 @@
 	(mode-line-inactive, header-line): Move the `t' section to the
 	beginning so the `:inherit' setting can be shared.
 
-2002-03-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-03-04  Pavel Janík  <Pavel@Janik.cz>
 
 	* net/snmp-mode.el: Require tempo when compiling to prevent
 	warnings.  Update copyright notice.
@@ -18509,7 +18509,7 @@
 	* font-lock.el (java-font-lock-extra-types):
 	Match java.net.URL, etc.
 
-2002-02-28  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-28  Pavel Janík  <Pavel@Janik.cz>
 
 	* hexl.el (hexl-options): Doc fix.
 	Update Commentary section.
@@ -18789,7 +18789,7 @@
 	* progmodes/tcl.el (tcl-do-fill-paragraph): Find and fill on more
 	natural paragraph boundaries.  Don't fail at beginning of buffer.
 
-2002-02-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-20  Pavel Janík  <Pavel@Janik.cz>
 
 	* tar-mode.el (tar-next-line, tar-previous-line): Add doc string,
 	call the argument "arg" to match plain next-line and
@@ -18853,7 +18853,7 @@
 	* mail/uce.el (uce-reply-to-uce): Fix incorrect behavior when
 	invoked from Rmail with full headers displayed.
 
-2002-02-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-02-17  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* emacs-lisp/lisp.el (mark-defun): Don't leave multiple marks
 	when repeated.
@@ -18869,7 +18869,7 @@
 
 	* textmodes/flyspell.el (flyspell): Add to ispell group.
 
-2002-02-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-02-17  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* emacs-lisp/lisp.el (mark-sexp): Don't leave multiple marks when
 	repeated.
@@ -18893,7 +18893,7 @@
 	* cus-start.el: Add automatic-hscroll-margin and
 	automatic-hscroll-step.
 
-2002-02-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-16  Pavel Janík  <Pavel@Janik.cz>
 
 	* cus-start.el (x-autoselect-window): Allow customization.
 
@@ -18990,7 +18990,7 @@
 
 	* menu-bar.el (menu-bar-tools-menu): Add an item for Calculator.
 
-2002-02-15  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-02-15  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* simple.el (mark-word): Mark more if repeated.
 	* textmodes/paragraphs.el (mark-paragraph): Ditto.
@@ -19090,7 +19090,7 @@
 	* cus-start.el: Don't warn about "x-*" symbols when building a
 	non-GUI version.
 
-2002-02-11  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-11  Pavel Janík  <Pavel@Janik.cz>
 
 	* strokes.el (strokes-do-stroke, strokes-do-complex-stroke):
 	Doc fix.
@@ -19115,7 +19115,7 @@
 	(dump-charsets, dump-codings): Deleted (obsolete).
 	From Dave Love <fx@gnu.org>.
 
-2002-02-10  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-10  Pavel Janík  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-showhide-menu): Rename functions for toggling.
 
@@ -19140,7 +19140,7 @@
 
 	* ediff.el: Typo in comment.
 
-2002-02-09  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-09  Pavel Janík  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-options-save): Take care of
 	line-number-mode and column-number-mode variables.
@@ -19217,7 +19217,7 @@
 	* subr.el (global-set-key, local-set-key): Accept a symbol for the
 	KEY argument (like define-key).
 
-2002-02-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-06  Pavel Janík  <Pavel@Janik.cz>
 
 	* textmodes/flyspell.el (flyspell-insert-function): Doc fix.
 
@@ -19298,7 +19298,7 @@
 	* cus-edit.el (customize-mark-to-save): New function.
 	* menu-bar.el (menu-bar-options-save): Rewrote.
 
-2002-02-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-05  Pavel Janík  <Pavel@Janik.cz>
 
 	* cus-start.el (x-use-underline-position-properties):
 	Allow customization.
@@ -19331,11 +19331,11 @@
 	* window.el (save-selected-window): Move macro before first use.
 	(balance-windows): Fix misplaced parenthesis.
 
-2002-02-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-03  Pavel Janík  <Pavel@Janik.cz>
 
 	* calculator.el (calculator-displayers): Doc fixes.
 
-2002-02-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-03  Pavel Janík  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-help-menu): Use different text for tool-tip.
 	(menu-bar-options-save): Save also the value of `display-time-mode'.
@@ -19374,7 +19374,7 @@
 	looking for X-Coding-System header, and restore the pruned state
 	before returning.
 
-2002-02-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-02-02  Pavel Janík  <Pavel@Janik.cz>
 
 	* cus-edit.el (customize-save-variable): Fix typo in prompt.
 
@@ -19463,7 +19463,7 @@
 	* emulation/pc-select.el (pc-select-save-and-set-mode):
 	Properly use MODE-VAR.
 
-2002-01-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-29  Pavel Janík  <Pavel@Janik.cz>
 
 	* menu-bar.el (menu-bar-help-menu): Change menu-item "Show Emacs
 	Version" to "About Emacs".
@@ -19480,7 +19480,7 @@
 
 	* calendar/calendar.el (generate-calendar-month): Doc fix.
 
-2002-01-27  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-27  Pavel Janík  <Pavel@Janik.cz>
 
 	* time.el (display-time-mail-directory): New option.
 	(display-time-mail-function): Update doc-string.
@@ -19652,7 +19652,7 @@
 	* ibuffer.el: Don't require ibuf-ext at load time.
 	(ibuffer): Require ibuf-ext here.
 
-2002-01-21  Francesco Potort,Al(B  <pot@gnu.org>
+2002-01-21  Francesco Potortì  <pot@gnu.org>
 
 	* generic-x.el (apache-conf-generic-mode): Highlight the first
 	word in a line even if preceded by blanks.
@@ -19695,7 +19695,7 @@
 	with `byte-compile-dynamic'.
 	(ibuffer-default-directory, toplevel): Doc files.
 
-2002-01-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-20  Pavel Janík  <Pavel@Janik.cz>
 
 	* tempo.el (tempo-define-template): Doc fix.
 
@@ -19712,7 +19712,7 @@
 
 	* term/w32-win.el (mouse-set-font): Use w32-list-proportional-fonts.
 
-2002-01-19  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-19  Pavel Janík  <Pavel@Janik.cz>
 
 	* language/tibet-util.el (tibetan-decompose-region)
 	(tibetan-decompose-string): Fix typo in docstring.
@@ -19804,7 +19804,7 @@
 
 	* mail/feedmail.el (feedmail): Fix :link spec.
 
-2002-01-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-16  Pavel Janík  <Pavel@Janik.cz>
 
 	* net/ldap.el (ldap-ldapsearch-prog): Default to OpenLDAP version
 	2 ldapsearch.
@@ -19886,7 +19886,7 @@
 
 	* dired-aux.el (dired-do-shell-command): Doc fix.
 
-2002-01-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-01-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* startup.el (command-line-x-option-alist): New options "-fs",
 	"-fw", "-fh", "--fullscreen", "--fullwidth", and "--fullheight".
@@ -19921,7 +19921,7 @@
 	(comint-send-input): New arg NO-NEWLINE.
 	(comint-send-eof): Call comint-send-eof with NO-NEWLINE.
 
-2002-01-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-12  Pavel Janík  <Pavel@Janik.cz>
 
 	* textmodes/flyspell.el (flyspell-check-pre-word-p):
 	Prevent delaying when executing keyboard macros.
@@ -20006,7 +20006,7 @@
 
 	* textmodes/flyspell.el (flyspell-mode-line-string): Fix custom type.
 
-2002-01-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* progmodes/ada-mode.el (ada-initialize-properties, ada-mode):
 	Do not use make-local-hook.
@@ -20022,7 +20022,7 @@
 
 	* ediff-hook.el: Add an autoload cookie.
 
-2002-01-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* net/eudcb-ph.el, net/ldap.el: New maintainer.  New e-mail
 	address of the author.
@@ -20134,7 +20134,7 @@
 	* help-fns.el (describe-variable, describe-function):
 	Do save-excursion.
 
-2002-01-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-06  Pavel Janík  <Pavel@Janik.cz>
 
 	* net/ldap.el (ldap-search-internal): Skip error message from
 	ldapsearch.  Allow listing attribute names only.  Do not open
@@ -20158,7 +20158,7 @@
 	* net/eudcb-ldap.el (eudc-attribute-display-method-alist):
 	Use proper attribute name labeledUri instead of deprecated labeledUrl.
 
-2002-01-05  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-05  Pavel Janík  <Pavel@Janik.cz>
 
 	* net/eudc-hotlist.el (eudc-edit-hotlist): Avoid error when
 	editing an empty hotlist.
@@ -20219,7 +20219,7 @@
 
 	* mail/sendmail.el (mail-recover-1, mail-recover): Doc fix.
 
-2002-01-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-04  Pavel Janík  <Pavel@Janik.cz>
 
 	* net/ldap.el (ldap-host-parameters-alist): Remove duplicated entry.
 	(ldap-ignore-attribute-codings): Change the default value to allow
@@ -20249,7 +20249,7 @@
 	does not exist, call mail-recover-1 to allow recovery from past
 	auto-saved drafts.
 
-2002-01-03  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-03  Pavel Janík  <Pavel@Janik.cz>
 
 	* time.el (display-time-load-average-threshold):
 	Fix defcustom (add type and group).
@@ -20368,7 +20368,7 @@
 	* bindings.el (function-key-map): Don't bind shifted keypad
 	numeric keys.
 
-2002-01-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-01-02  Pavel Janík  <Pavel@Janik.cz>
 
 	* enriched.el (enriched-handle-display-prop): Remove unused variables.
 	(enriched-mode): Doc fix.
@@ -20404,7 +20404,7 @@
 	* cus-edit.el (custom-face-edit-fix-value): New function.
 	(custom-face-edit): Use it, to convert :italic and :bold to new forms.
 
-2001-12-30  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-30  Pavel Janík  <Pavel@Janik.cz>
 
 	* progmodes/octave-mod.el (octave-abbrev-table):
 	* progmodes/idlwave.el (idlwave-mode-abbrev-table):
@@ -20534,7 +20534,7 @@
 
 	* international/fontset.el: Don't require ind-util when compiling.
 
-2001-12-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-25  Pavel Janík  <Pavel@Janik.cz>
 
 	* emulation/tpu-edt.el (tpu-reset-screen-size):
 	Use set-frame-height and set-frame-width instead of set-screen-height
@@ -20622,7 +20622,7 @@
 	* play/yow.el (yow): Use an arg to distinguish interactive calls,
 	not interactive-p.
 
-2001-12-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-22  Pavel Janík  <Pavel@Janik.cz>
 
 	* emacs-lisp/elint.el (elint-unknown-builtin-args):
 	Remove mocklisp entries.
@@ -20648,7 +20648,7 @@
 	* textmodes/refill.el (refill-mode): Don't barf when redundantly
 	turning refill-mode off.
 
-2001-12-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-22  Pavel Janík  <Pavel@Janik.cz>
 
 	* time.el (display-time-load-average-threshold): New variable.
 	(display-time-update): Use it.
@@ -20791,7 +20791,7 @@
 	(print-coding-system-briefly): Make printed output have a similar
 	format as describe-character-set.
 
-2001-12-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-20  Pavel Janík  <Pavel@Janik.cz>
 
 	* play/blackbox.el (bb-member): Remove, use member instead.
 	(bb-delete): Remove, use delete instead.
@@ -20825,7 +20825,7 @@
 
 	* international/fontset.el: Require `ind-util' when compiling.
 
-2001-12-18  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-18  Pavel Janík  <Pavel@Janik.cz>
 
 	* language/ethio-util.el (ethio-modify-vowel): Use char-to-string
 	instead of decompose-composite-char.
@@ -21043,7 +21043,7 @@
 
 	* newcomment.el (comment-indent): Jump to the middle of empty comments.
 
-2001-12-14  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-14  Pavel Janík  <Pavel@Janik.cz>
 
 	* select.el (xselect-convert-to-class, xselect-convert-to-name):
 	Document.
@@ -21091,7 +21091,7 @@
 	* international/mule.el (set-auto-coding): Don't search for
 	"unibyte:" or "coding:" if set-auto-mode-1 returns nil.
 
-2001-12-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-13  Pavel Janík  <Pavel@Janik.cz>
 
 	* mail/mailabbrev.el (mail-abbrevs-setup): Do not use make-local-hook.
 
@@ -21147,7 +21147,7 @@
 	* language/european.el: Remove autoload cookies.  Fix registration
 	of diacritic composition function.
 
-2001-12-11  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-11  Pavel Janík  <Pavel@Janik.cz>
 
 	* calendar/todo-mode.el: Require time-stamp.
 
@@ -21204,7 +21204,7 @@
 	Use `select-frame-set-input-focus'--needed when window manager
 	uses "click to focus" policy.
 
-2001-12-09  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-09  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: Moved back.
 
@@ -21353,7 +21353,7 @@
 	* textmodes/picture.el (picture-mode-map): Don't use defconst
 	for a variable.
 
-2001-12-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-02  Pavel Janík  <Pavel@Janik.cz>
 
 	* textmodes/reftex-index.el (reftex-index-mode):
 	Remove make-local-hook.
@@ -21418,12 +21418,12 @@
 
 	* man.el (Man-build-section-alist): Remove last Man-match-substring.
 
-2001-11-30  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2001-11-30  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* textmodes/paragraphs.el (mark-paragraph): Clarify doc.
 	Clarify error message.
 
-2001-11-29  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2001-11-29  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* textmodes/paragraphs.el (mark-paragraph): Allow prefix arg.
 
@@ -21477,7 +21477,7 @@
 	(Info-index): Use it.  Add completion to the interactive spec.
 	(Info-menu-update): Simplify call to `Info-complete-menu-item'.
 
-2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: Removed.
 
@@ -21494,7 +21494,7 @@
 	(register-char-codings): Use it to cope with generic chars in
 	safe-chars.
 
-2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Janík  <Pavel@Janik.cz>
 
 	* play/blackbox.el (blackbox-mode, blackbox): Doc fix.
 
@@ -21638,7 +21638,7 @@
 	* frame.el (show-trailing-whitespace): Remove :set argument (the
 	value was essentially identical to the defalt).
 
-2001-11-26  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-26  Pavel Janík  <Pavel@Janik.cz>
 
 	* hexl.el (hexl-mode, hexl-follow-ascii): Remove make-local-hook.
 
@@ -21702,7 +21702,7 @@
 
 	* help-funs.el (describe-syntax): Put (interactive) after doc string.
 
-2001-11-26  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-26  Pavel Janík  <Pavel@Janik.cz>
 
 	* international/quail.el (quail-help): Require help-mode in
 	top-level instead.
@@ -21773,12 +21773,12 @@
 	* language/devan-util.el: Comment out parts of the file
 	which apparently are garbled.
 
-2001-11-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-25  Pavel Janík  <Pavel@Janik.cz>
 
 	* mail/smtpmail.el (smtpmail-deduce-address-list): Don't use
 	insert-string.
 
-2001-11-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-25  Pavel Janík  <Pavel@Janik.cz>
 
 	* play/snake.el (snake-mode): Remove make-local-hook.
 
@@ -21856,7 +21856,7 @@
 	to avoid name clashes.  Fix `lisp-indent-function' property for
 	both.
 
-2001-11-23  Francesco Potort,Al(B  <pot@gnu.org>
+2001-11-23  Francesco Potortì  <pot@gnu.org>
 
 	* generic-x.el (mailrc-generic-mode): Highlight the `source' keyword.
 
@@ -21905,7 +21905,7 @@
 
 	* international/encoded-kb.el: Don't alter minor-map-alist.
 
-2001-11-20  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2001-11-20  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* files.el (auto-save-file-name-transforms): Put remote files in
 	temporary-file-directory rather than /tmp.
@@ -22263,7 +22263,7 @@
 	Don't recognize a "telephone number" at the beginning of the name.
 	(mail-extr-leading-garbage): Match non-word characters only.
 
-2001-11-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-16  Pavel Janík  <Pavel@Janik.cz>
 
 	* startup.el (command-line-processed): Doc fix.
 
@@ -22291,7 +22291,7 @@
 	(multiple-value-apply, nth-value): Use defsubst rather than defalias
 	to get better doc strings.
 
-2001-11-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-15  Pavel Janík  <Pavel@Janik.cz>
 
 	* derived.el: Fix autoload cookie.
 
@@ -22486,7 +22486,7 @@
 	(log-view-current-tag): Take an optional `where' arg.
 	(log-view-diff): New user command.
 
-2001-11-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-12  Pavel Janík  <Pavel@Janik.cz>
 
 	* progmodes/cpp.el (cpp-choose-face): Fix typo.
 
@@ -22526,7 +22526,7 @@
 	* calc/calc-ext.el (calc-init-extensions): Update autoload names
 	to match files renamed on initial calc import.
 
-2001-11-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-12  Pavel Janík  <Pavel@Janik.cz>
 
 	* textmodes/flyspell.el (flyspell-default-dictionary):
 	Fix previous change.
@@ -22569,7 +22569,7 @@
 2001-11-11  Colin Walters  <walters@verbum.org>
 
 	The following changes are based on patches from
-	Eli Zaretskii <eliz@is.elta.co.il>, Kai Gro,A_(Bjohann
+	Eli Zaretskii <eliz@is.elta.co.il>, Kai Großjohann
 	<Kai.Grossjohann@CS.Uni-Dortmund.DE>, and others.
 
 	* calc/calc.el (toplevel): Require calc-macs.
@@ -22638,7 +22638,7 @@
 	(radio-button-choice): Ditto.
 	(editable-list): Ditto.
 
-2001-11-09  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-09  Pavel Janík  <Pavel@Janik.cz>
 
 	* play/gomoku.el: Move definitions of constants to the beginning
 	of file, before their use.
@@ -22914,7 +22914,7 @@
 	(debugger-setup-buffer): Call it.
 	(debugger-mode-map): Bind RET and mouse-2.
 
-2001-10-31  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-31  Pavel Janík  <Pavel@Janik.cz>
 
 	* startup.el: Document command line option --no-window-system
 	instead of --no-windows.
@@ -23058,7 +23058,7 @@
 	Report numbers of files skipped and failed too.
 	(byte-compile-file): Return 'no-byte-compile for skipped files.
 
-2001-10-29  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2001-10-29  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* log-view.el (log-view-mode-map): Bind `M-n' and `M-p', not `M n'
 	and `M p'.
@@ -23408,7 +23408,7 @@
 	* progmodes/compile.el (compilation-set-window-height):
 	Select old window only if it's still live.
 
-2001-10-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-10-22  Pavel Janík  <Pavel@Janik.cz>
 
 	* help-mode.el (help-buffer): Remove debugging code.
 	From Stefan Monnier <monnier@cs.yale.edu>.
@@ -23531,7 +23531,7 @@
 See ChangeLog.9 for earlier changes.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; End:
 
     Copyright (C) 2001, 2002, 2003, 2004, 2005, 2006,
