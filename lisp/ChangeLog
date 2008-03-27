@@ -9,6 +9,8 @@
 	* calendar/cal-hebrew.el (list-hebrew-diary-entries):
 	* calendar/cal-islam.el (list-islamic-diary-entries): Doc fix.
 
+	* calendar/calendar.el (diary-file): Doc fix.
+
 	* calendar/diary-lib.el (diary-face-attrs): Fix `height' regexp.
 	(list-diary-entries-hook, mark-diary-entries-hook)
 	(include-other-diary-files, mark-included-diary-files): Doc fixes.
