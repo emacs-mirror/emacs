@@ -159,7 +159,6 @@
 	   :long-name (format "RHP of %s (%s)" ,name ,nickname)
 	   :iso-final-char ,iso-final
 	   :emacs-mule-id ,emacs-mule-id
-	   :supplementary-p t
 	   :code-space [32 127]
 	   :subset (list ,symbol 160 255 -128)))))
 
@@ -1510,11 +1509,6 @@ for decoding and encoding files, process I/O, etc."
 (aset latin-extra-code-table ?\224 t)
 (aset latin-extra-code-table ?\225 t)
 (aset latin-extra-code-table ?\226 t)
-
-;; Move least specific charsets to end of priority list
-
-(apply #'set-charset-priority
-       (delq 'unicode (delq 'emacs (charset-priority-list))))
 
 ;; The old code-pages library is obsoleted by coding systems based on
 ;; the charsets defined in this file but might be required by user
