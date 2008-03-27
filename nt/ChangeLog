@@ -104,7 +104,7 @@
 	* gmake.defs (CYGWIN) [USING_SH]: Disable mapping of file
 	permissions to NTFS ACLs.
 
-2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* config.nt: Remove HAVE_X11R5.
 
@@ -544,7 +544,7 @@
 
 	* multi-install-info.bat: New file.
 
-2003-06-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-06-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* config.nt (my_strftime): New define.
 
@@ -651,7 +651,7 @@
 	* makefile.w32-in (bootstrap): Build addsection program before
 	bootstrap (required for post-processing temacs.exe).
 
-2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: New file.
 
@@ -1558,7 +1558,7 @@
 	* _emacs: New file.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 
