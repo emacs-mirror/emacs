@@ -281,7 +281,7 @@
     (define-key map [menu-bar emacs-lisp] (cons "Emacs-Lisp" menu-map))
     (define-key menu-map [eldoc]
       '(menu-item "Auto-Display Documentation Strings" eldoc-mode
-		  :button (:toggle . eldoc-mode)
+		  :button (:toggle . (bound-and-true-p eldoc-mode))
 		  :help "Display the documentation string for the item under cursor"))
     (define-key menu-map [checkdoc]
       '(menu-item "Check Documentation Strings" checkdoc

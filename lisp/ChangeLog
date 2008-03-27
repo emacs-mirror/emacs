@@ -1,3 +1,7 @@
+2008-03-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Fix predicate.
+
 2008-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-hooks.el (vc-before-save): Don't prevent saving the file.
