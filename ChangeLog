@@ -3,7 +3,7 @@
 	* configure.in (AC_INIT): Fix version number.
 	(sync-input): Reword the option, since it's on by default.
 
-2008-03-11  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2008-03-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Add --enable-sync-input, default yes.
 
@@ -31,7 +31,7 @@
 
 	* test/: New directory.
 
-2008-02-27  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2008-02-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_GTK): Print a warning if gtk version is < 2.10.
 
@@ -252,12 +252,12 @@
 
 	* configure.in: D-Bus is not enabled by default.
 
-2007-12-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-12-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Add AC_CONFIG_SRCDIR which was lost in the previous
 	change.
 
-2007-12-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-12-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Give package name and verision to AC_INIT.
 
@@ -314,7 +314,7 @@
 
 	* configure.in: Deprecate Mac Carbon port.
 
-2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Remove HAVE_X11R5 check.
 
@@ -407,7 +407,7 @@
 	* configure.in: Use AS_HELP_STRING throughout.
 	* configure: Regenerate.
 
-2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Require Gtk/Glib 2.6.
 
@@ -433,7 +433,7 @@
 
 	* README.multi-tty: Move to admin/notes/multi-tty, with some edits.
 
-2007-08-29  K,Aa(Broly L$,1 q(Brentey  <karoly@lorentey.hu>
+2007-08-29  Károly Lőrentey  <karoly@lorentey.hu>
 
 	* README.multi-tty: New file.
 
@@ -441,7 +441,7 @@
 
 	* README: Increase version to 23.0.50.
 
-2007-08-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-08-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: New option: --without-xaw3d.
 
@@ -476,7 +476,7 @@
 
 	* COPYING, info/COPYING: Switch to GPLv3.
 
-2007-06-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-06-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Complain if X seems to be installed but no
 	development files were found.
@@ -485,11 +485,11 @@
 
 	* configure.in: Prefer libgif over libungif.
 
-2007-06-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-06-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Check for all image libraries before exiting.
 
-2007-06-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-06-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Exit with error if image libraries aren't found.
 
@@ -502,7 +502,7 @@
 
 	* configure.in (HAVE_GIF): If -lungif fails, try -lgif.
 
-2007-06-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-06-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Change wording about yes/gtk and lucid/athena
 	being synonyms.
@@ -614,7 +614,7 @@
 
 	* configure: Regenerate.
 
-2007-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-03-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Warning for Gtk+ and Cygwin added.
 	(HAVE_XFT): OLD_CFLAGS changed to OLD_CPPFLAGS.
@@ -650,7 +650,7 @@
 
 	* configure: Regenerate.
 
-2007-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-01-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Add check for libXft.
 
@@ -683,12 +683,12 @@
 
 	* configure: Regenerate with autoconf 2.61.
 
-2006-12-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-12-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Detect alsa/asoundlib.h also.
 	* configure: Regenerate.
 
-2006-12-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-12-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Check if GTK+ compiles at all.
 
@@ -701,7 +701,7 @@
 
 	* configure.in: Add support for Solaris 10 on x86-64.
 
-2006-12-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-12-08  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* INSTALL (DETAILED BUILDING AND INSTALLATION): Document usage
 	of PKG_CONFIG_PATH.
@@ -734,7 +734,7 @@
 2006-11-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* configure.in: Prefer X11 to Carbon only when some X-specific
-	option is specified (Thanks to Jan Dj,Ad(Brv and Andreas Schwab).
+	option is specified (Thanks to Jan Djärv and Andreas Schwab).
 
 2006-11-04  Romain Francoise  <romain@orebokech.com>
 
@@ -843,7 +843,7 @@
 
 	* INSTALL: Mention www.nongnu.org pages that list free Unicode fonts.
 
-2006-05-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-05-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Add check for ALSA.
 
@@ -884,7 +884,7 @@
 
 	* configure.in (s390x-*-linux-gnu*): New configuration.
 
-2006-01-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-01-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Require GTK 2.4 or newer.
 
@@ -1024,7 +1024,7 @@
 
 	Update FSF's address in GPL notices.
 
-2005-06-19  J,Ai(Br,At(Bme Marant  <jerome@marant.org>
+2005-06-19  Jérôme Marant  <jerome@marant.org>
 
 	* Makefile.in (epaths-force): Protect both lisppath and
 	buildlisppath from whitespace.
@@ -1033,11 +1033,11 @@
 
 	* configure.in: Support Darwin/MacOSX on Intel
 
-2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-06-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_CANCELMENUTRACKING): New test.
 
-2005-05-11  J,Ai(Br,At(Bme Marant  <jmarant@marant.org>
+2005-05-11  Jérôme Marant  <jmarant@marant.org>
 
 	* configure.in: Add --enable-locallisppath.
 
@@ -1047,7 +1047,7 @@
 	Check HAVE_CARBON before USE_TOOLKIT_SCROLL_BARS.  Define
 	USE_TOOLKIT_SCROLL_BARS by default if HAVE_CARBON is set to yes.
 
-2005-05-07  J,Ai(Br,At(Bme Marant  <jerome@marant.org>
+2005-05-07  Jérôme Marant  <jerome@marant.org>
 
 	* make-dist: Remove references to makefile.nt and makefile.def.
 	Include widgets and images subdirectories of etc.  Do not exclude
@@ -1077,11 +1077,11 @@
 	* configure.in <Motif>: Don't let a special LessTif/Motif1.2 install
 	shadow the main Lesstif/Motif-2.1 libs and includes.
 
-2005-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-03-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Only add XASSERTS to cppflags.
 
-2005-03-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-03-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Added --enable-asserts.
 
@@ -1109,7 +1109,7 @@
 	* configure.in (INLINE, RE_TRANSLATE_P): Move patches mistakenly
 	committed to src/config.in.
 
-2004-12-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: If $HAVE_GTK_FILE_CHOOSER = yes, check for
 	pthreads and define HAVE_GTK_AND_PTHREAD.
@@ -1147,14 +1147,14 @@
 
 	* configure.in: Add check for getrusage.
 
-2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_GTK_FILE_CHOOSER, $HAVE_GTK_FILE_SELECTION):
 	New tests for new and old GTK file dialogs.
 	(HAVE_GTK): Only set with_toolkit_scroll_bars if not explicitly set
 	to no.
 
-2004-10-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-10-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_PERSONALITY_LINUX32): New test if PER_LINUX32
 	can be set.  Remove SETARCH test.
@@ -1163,12 +1163,12 @@
 
 	* configure.in (HAVE_MALLOC_MALLOC_H): Test for malloc/malloc.h
 
-2004-10-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-10-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_RANDOM_HEAPSTART): Change AC_MSG_ERROR to
 	AC_MSG_WARN.  Move output of warning message to end of configure run.
 
-2004-10-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-10-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_RANDOM_HEAPSTART): Rename HAVE_EXECSHIELD.
 	Run test to see if heap start address is random.
@@ -1178,11 +1178,11 @@
 	* configure.in (HAVE_EXECSHIELD): Test correct env variable to see
 	if setarch is present.
 
-2004-09-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-09-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_EXECSHIELD): Only define on x86.
 
-2004-09-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-09-24  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Check for exec-shield.
 
@@ -1288,7 +1288,7 @@
 
 	* configure.in <darwin>: Use fink packages if available.
 
-2004-01-25  J,Ai(Br,At(Bme Marant  <jmarant@free.fr>  (tiny change)
+2004-01-25  Jérôme Marant  <jmarant@free.fr>  (tiny change)
 
 	* make-dist (lispref): Do include lispref/index.texi.
 
@@ -1310,7 +1310,7 @@
 	* configure.in: Check for <sys/socket.h>.  Include it before
 	including <net/if.h>.  Move check for <net/if.h> before its use.
 
-2003-12-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-12-24  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in (install-arch-dep): Don't let cd output go into
 	pipe for carbon_appdir.
@@ -1324,7 +1324,7 @@
 	* configure.in (powerpc-apple-darwin*): Use ${CC-cc} instead of
 	hardcoding gcc.
 
-2003-11-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-11-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_GTK_MULTIDISPLAY): Check if GTK can handle
 	multiple displays.
@@ -1438,7 +1438,7 @@
 
 	* configure.in: Handle system types sysv5uw* and sysv5OpenUNIX*.
 
-2003-04-28  Francesco Potort,Al(B  <pot@gnu.org>
+2003-04-28  Francesco Potortì  <pot@gnu.org>
 
 	* configure.in: Undo last (RMS') change, as it is useless, per
 	Dave Love.
@@ -1447,7 +1447,7 @@
 
 	* configure.in: Put #include of jpeglib.h at start of line.
 
-2003-04-30  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-04-30  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* INSTALL (* GNU/Linux development packages): Mention Debian and
 	RedHat package names.
@@ -1456,12 +1456,12 @@
 
 	* configure.in: Handle system types sysv5uw* and sysv5OpenUNIX*.
 
-2003-04-30  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-04-30  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* INSTALL (* GNU/Linux development packages): Tell people to
 	install additional packages for compiling Emacs.
 
-2003-04-06  Francesco Potort,Al(B  <pot@gnu.org>
+2003-04-06  Francesco Potortì  <pot@gnu.org>
 
 	* configure.in: Use the same configuration for all aix5, not just
 	aix5.1.
@@ -1510,17 +1510,17 @@
 
 	* Makefile.in (bootstrap): Make bootstrap-after.
 
-2003-01-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Fix --with-gtk.
 
-2003-01-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Add --with-gtk, --with-x-toolkit=gtk
 
 	* INSTALL (DETAILED BUILDING AND INSTALLATION): Add text about GTK.
 
-2003-01-14  Francesco Potort,Al(B  <pot@gnu.org>
+2003-01-14  Francesco Potortì  <pot@gnu.org>
 
 	* configure.in (m68k-motorola-sysv): Remove (obsolete).
 
@@ -1586,7 +1586,7 @@
 
 	* configure.in (*-sunos5*, *-solaris*): Use sol2-8.
 
-2002-11-14  Francesco Potort,Al(B  <pot@gnu.org>
+2002-11-14  Francesco Potortì  <pot@gnu.org>
 
 	* configure.in (*-sunos5.8*, *-solaris2.8*): New configurations.
 
@@ -1648,7 +1648,7 @@
 	(*-sunos5.6*, *-solaris2.6*): New alternative.
 	(*-sunos5*): Use version 2.6 as default.
 
-2002-09-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-09-06  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* configure.in: Fix typo.
 
@@ -1683,15 +1683,15 @@
 	* configure.in (gamedir): Handle it like lispdir.
 	(--with-game-dir option): Delete.
 
-2002-06-21  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-06-21  Pavel Janík  <Pavel@Janik.cz>
 
 	* configure.in: Add support for mipseb-*-netbsd* machines.
 
-2002-06-18  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-18  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* Makefile.in (install-arch-indep, uninstall): Add Tramp.
 
-2002-06-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-17  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* info/dir (File): Add an entry for Tramp.
 
@@ -1715,7 +1715,7 @@
 
 	* configure.in (emacs_cv_speed_t): Add square brackets for clarity.
 
-2002-05-04  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-05-04  Pavel Janík  <Pavel@Janik.cz>
 
 	* make-dist: Do not distribute lock/ directory.
 
@@ -1729,7 +1729,7 @@
 
 	* configure.in: Delete configure check for access to the game user.
 
-2002-04-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-29  Pavel Janík  <Pavel@Janik.cz>
 
 	* make-dist: lwlib/Imakefile is removed.
 
@@ -1740,7 +1740,7 @@
 
 	* make-dist: Create directories in mac/Emacs.app.
 
-2002-04-25  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-25  Pavel Janík  <Pavel@Janik.cz>
 
 	* make-dist: lwlib-Xol* are removed.
 
@@ -1767,7 +1767,7 @@
 	* configure.in: Add --game-dir, --game-user.  Test to see if we
 	can use them.
 
-2002-04-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2002-04-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* configure.in: Add --with-sound.
 
@@ -1780,7 +1780,7 @@
 
 	* configure.in: Support AIX 5.1.
 
-2002-03-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2002-03-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* configure.in: Added test for X Session Management (HAVE_X_SM).
 
@@ -1855,7 +1855,7 @@
 
 	* configure.in (hppa*-*-linux-gnu*): New alternative.
 
-2001-12-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* make-dist: Copy COPYING to leim/, lwlib/, mac/ and nt/ when
 	creating distribution.
@@ -1868,12 +1868,12 @@
 	(HAVE_DES_H, HAVE_KRB5_H): Properly quote args of AC_CHECK_HEADERS;
 	this is required by recent Autoconf versions.
 
-2001-12-02  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-02  Pavel Janík  <Pavel@Janik.cz>
 
 	* make-dist: Do not try to link removed files (aclocal.m4, _emacs,
 	TODO, vms-pp.trans and others).
 
-2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Janík  <Pavel@Janik.cz>
 
 	* make-dist: Use COPYING from the top-level directory.
 
@@ -1881,7 +1881,7 @@
 
 	* configure.in: Add support for FreeBSD/Alpha.
 
-2001-11-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Janík  <Pavel@Janik.cz>
 
 	* make-dist: Add COPYING to the top-level directory of the
 	distribution.  Simplify the logic behind copying.
@@ -1926,7 +1926,7 @@
 2001-11-22  Colin Walters  <walters@debian.org>
 
 	* Makefile.in (install-arch-indep): Install the calc .info files.
-	(uninstall): Handle deletion of calc .info files (thanks Pavel Jan,Am(Bk).
+	(uninstall): Handle deletion of calc .info files (thanks Pavel Janík).
 
 2001-11-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -1937,14 +1937,14 @@
 
 	* configure.in: Add coff.h to the list in AC_CHECK_HEADERS.
 
-2001-11-15  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-15  Pavel Janík  <Pavel@Janik.cz>
 
 	* Makefile.in (uninstall): Fix previous change.
 
 	* configure.in, Makefile.in: Add support for --program-prefix,
 	--program-suffix and --program-transform-name options.
 
-2001-11-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-13  Pavel Janík  <Pavel@Janik.cz>
 
 	* Makefile.in (install-arch-indep): Use `${manext}' instead of `.1'.
 	(install-arch-indep): Install emacsclient manual page.
@@ -1953,9 +1953,9 @@
 2001-11-12  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* make-dist: Add lispref/index.*perm files to the distribution.
-	From Pavel Jan,Am(Bk <Pavel@Janik.cz>.
+	From Pavel Janík <Pavel@Janik.cz>.
 
-2001-11-12  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-12  Pavel Janík  <Pavel@Janik.cz>
 
 	* Makefile.in (uninstall): Remove gfdl.1 when uninstalling.
 
@@ -1992,7 +1992,7 @@
 
 	* configure.in: Added a check for <nlist.h>.
 
-2001-11-01  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-01  Pavel Janík  <Pavel@Janik.cz>
 
 	* configure.in: Reindent --help output.
 	From Per Starback (starback@ling.uu.se).
@@ -2289,7 +2289,7 @@
 	them into a single category.  Add menu items for RefTeX and
 	Widget.
 
-2000-10-29  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2000-10-29  Kai Großjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* Makefile.in (install-arch-indep): Use --info-dir instead of
 	--dir-file, and a simple argument instead of --info-file, so that
@@ -4245,7 +4245,7 @@
 	* configure.in (*-sun-sunos4.1.3*): Use shared libraries,
 	since that's what the header file expects.
 
-1995-04-24  Francesco Potort,Al(B  (pot@cnuce.cnr.it)
+1995-04-24  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* configure.in (m68k-motorola-sysv*): Distinguish between 68030
 	and 68040 based machines when choosing options for gnucc.
@@ -7022,7 +7022,7 @@
 	to match build-install and paths.h.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 
