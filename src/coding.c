@@ -7048,7 +7048,10 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
     {
       code_conversion_save (0, 0);
       coding->dst_object = Qnil;
-      coding->dst_multibyte = !CODING_FOR_UNIBYTE (coding);
+      /* Most callers presume this will return a multibyte result, and they
+	 won't use `binary' or `raw-text' anyway, so let's not worry about
+	 CODING_FOR_UNIBYTE.  */
+      coding->dst_multibyte = Qt;
     }
 
   decode_coding (coding);
