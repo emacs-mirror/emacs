@@ -1037,25 +1037,23 @@ is created."
 If no prefix argument is given, NDAYS is set to `diary-mail-days'.
 Mail is sent to the address specified by `diary-mail-addr'.
 
-You can call `diary-mail-entries' every night using an at/cron job.
-For example, this script will run the program at 2am daily.  Since
-`emacs -batch' does not load your `.emacs' file, you must ensure that
-all relevant variables are set, as done here.
+Here is an example of a script to call `diary-mail-entries',
+suitable for regular scheduling using cron (or at).  Note that
+since `emacs -script' does not load your `.emacs' file, you
+should ensure that all relevant variables are set.
 
-#!/bin/sh
-# diary-rem.sh -- repeatedly run the Emacs diary-reminder
-emacs -batch \\
--eval \"(setq diary-mail-days 3 \\
-             diary-file \\\"/path/to/diary.file\\\" \\
-             european-calendar-style t \\
-             diary-mail-addr \\\"user@host.name\\\" )\" \\
--l diary-lib -f diary-mail-entries
-at -f diary-rem.sh 0200 tomorrow
+#!/usr/bin/emacs -script
+;; diary-rem.el - run the Emacs diary-reminder
 
-You may have to tweak the syntax of the `at' command to suit your
-system.  Alternatively, you can specify a cron entry:
-0 1 * * * diary-rem.sh
-to run it every morning at 1am."
+\(setq diary-mail-days 3
+      diary-file \"/path/to/diary.file\"
+      european-calendar-style t
+      diary-mail-addr \"user@host.name\")
+
+\(diary-mail-entries)
+
+# diary-rem.el ends here
+"
   (interactive "P")
   (if (string-equal diary-mail-addr "")
       (error "You must set `diary-mail-addr' to use this command")
