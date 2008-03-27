@@ -217,14 +217,13 @@ nil if it is not visible in the current calendar window."
 
 (autoload 'diary-list-entries-1 "diary-lib")
 
-;; FIXME diary-bahai-mark-entries said the names could be spelled in full.
 ;;;###diary-autoload
 (defun diary-bahai-list-entries ()
   "Add any Bahá'í date entries from the diary file to `diary-entries-list'.
 Bahá'í date diary entries must be prefaced by `bahai-diary-entry-symbol'
 \(normally a `B').  The same diary date forms govern the style of the
-Bahá'í calendar entries, except that the Bahá'í month names must be given
-numerically.  The Bahá'í months are numbered from 1 to 19 with Bahá being
+Bahá'í calendar entries, except that the Bahá'í month names cannot be
+abbreviated.  The Bahá'í months are numbered from 1 to 19 with Bahá being
 1 and 19 being `Alá.  If a Bahá'í date diary entry begins with
 `diary-nonmarking-symbol', the entry will appear in the diary listing, but
 will not be marked in the calendar.  This function is provided for use with
