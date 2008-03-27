@@ -4055,7 +4055,7 @@ server_accept_connection (server, channel)
 #endif
     default:
       caller = Fnumber_to_string (make_number (connect_counter));
-      caller = concat3 (build_string (" <*"), caller, build_string ("*>"));
+      caller = concat3 (build_string (" <"), caller, build_string (">"));
       break;
     }
 
@@ -5709,7 +5709,7 @@ emacs_get_tty_pgrp (p)
       int fd;
       /* Some OS:es (Solaris 8/9) does not allow TIOCGPGRP from the
 	 master side.  Try the slave side.  */
-      fd = emacs_open (XSTRING (p->tty_name)->data, O_RDONLY, 0);
+      fd = emacs_open (SDATA (p->tty_name), O_RDONLY, 0);
 
       if (fd != -1)
 	{
@@ -5892,7 +5892,7 @@ process_send_signal (process, signo, current_group, nomsg)
 	 you'd better be using one of the alternatives above!  */
 #endif /* ! defined (TCGETA) */
 #endif /* ! defined (TIOCGLTC) && defined (TIOCGETC) */
-	/* In this case, the code above should alway returns.  */
+	/* In this case, the code above should alway return.  */
 	abort ();
 #endif /* ! defined HAVE_TERMIOS */
 
