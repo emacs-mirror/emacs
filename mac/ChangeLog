@@ -30,7 +30,7 @@
 
 	* INSTALL: Also build and run on Mac OS X 10.5.
 
-2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* inc/config.h: Remove HAVE_X11R5.
 
@@ -644,7 +644,7 @@
 	cursor row is invisible.  This can happen if cursor is on top line
 	of a window, and we switch to a buffer with a header line.
 
-2001-12-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-22  Pavel Janík  <Pavel@Janik.cz>
 
 	* cw5-mcp.xml, cw6-mcp.xml, makefile.MPW: Remove mocklisp files.
 
@@ -653,7 +653,7 @@
 	* src/macfns.c (x_report_frame_params): Make the scroll-bar-width
 	frame parameter have a numeric value all the time.
 
-2001-12-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-12-08  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: New file.
 
@@ -671,7 +671,7 @@
 	* src/macterm.c: Merged changes from xterm.c.
 	* src/macfns.c: Merged changes from xfns.c.
 
-2001-11-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-11-16  Pavel Janík  <Pavel@Janik.cz>
 
 	* src/macterm.c (waiting_for_input): Remove unnecessary declaration.
 
@@ -775,7 +775,7 @@
 
 	* inc/macterm.h (x_display_list): Declare extern.
 
-2001-07-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
+2001-07-20  Pavel Janík  <Pavel@Janik.cz>
 
 	* src/macterm.c (xim_open_dpy): Fix typo.
 
@@ -965,7 +965,7 @@
 	* src/macterm.c: New file.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 
