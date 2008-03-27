@@ -1,3 +1,7 @@
+2008-03-27  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (start_hourglass): Suppress hourglass on tty frames.
+
 2008-03-27  Kenichi Handa  <handa@ni.aist.go.jp>
 
 	* charset.c (Fdefine_charset_internal): Change the way of
