@@ -330,7 +330,8 @@ redisplays the diary for whatever date the cursor is moved to."
   "Name of the file in which one's personal diary of dates is kept.
 
 The file's entries are lines beginning with any of the forms
-specified by the variable `american-date-diary-pattern', by default:
+specified by the variable `diary-date-forms', which by default
+uses the forms of `american-date-diary-pattern':
 
             MONTH/DAY
             MONTH/DAY/YEAR
@@ -343,14 +344,13 @@ that date.  MONTH and DAY are one or two digit numbers, YEAR is a
 number and may be written in full or abbreviated to the final two
 digits (if `abbreviated-calendar-year' is non-nil).  MONTHNAME
 and DAYNAME can be spelled in full (as specified by the variables
-`calendar-month-name-array' and `calendar-day-name-array'),
+`calendar-month-name-array' and `calendar-day-name-array'), or
 abbreviated (as specified by `calendar-month-abbrev-array' and
-`calendar-day-abbrev-array') with or without a period,
-capitalized or not.  Any of DAY, MONTH, or MONTHNAME, YEAR can be
-`*' which matches any day, month, or year, respectively.  If the
-date does not contain a year, it is generic and applies to any
-year.  A DAYNAME entry applies to the appropriate day of the week
-in every week.
+`calendar-day-abbrev-array') with or without a period.  Case is
+ignored.  Any of DAY, MONTH, or MONTHNAME, YEAR can be `*' which
+matches any day, month, or year, respectively.  If the date does
+not contain a year, it is generic and applies to any year.  A
+DAYNAME entry applies to the appropriate day of the week in every week.
 
 The European style (in which the day precedes the month) can be
 used instead, if you execute `european-calendar' when in the
@@ -366,10 +366,9 @@ file.  The European forms (see `european-date-diary-pattern') are
 To revert to the default American style from the European style, execute
 `american-calendar' in the calendar.
 
-A diary entry can be preceded by the character
-`diary-nonmarking-symbol' (ordinarily `&') to make that entry
-nonmarking--that is, it will not be marked on dates in the calendar
-window but will appear in a diary window.
+A diary entry can be preceded by the character `diary-nonmarking-symbol'
+\(ordinarily `&') to make that entry nonmarking--that is, it will not be
+marked on dates in the calendar window but will appear in a diary window.
 
 Multiline diary entries are made by indenting lines after the first with
 either a TAB or one or more spaces.
@@ -411,16 +410,8 @@ Diary entries can be based on Lisp sexps.  For example, the diary entry
       %%(diary-block 11 1 1990 11 10 1990) Vacation
 
 causes the diary entry \"Vacation\" to appear from November 1 through
-November 10, 1990.  Other functions available are `diary-float',
-`diary-anniversary', `diary-cyclic', `diary-day-of-year',
-`diary-iso-date', `diary-french-date', `diary-hebrew-date',
-`diary-islamic-date', `diary-bahai-date', `diary-mayan-date',
-`diary-chinese-date', `diary-coptic-date', `diary-ethiopic-date',
-`diary-persian-date', `diary-yahrzeit', `diary-sunrise-sunset',
-`diary-phases-of-moon', `diary-parasha', `diary-omer',
-`diary-rosh-hodesh', and `diary-sabbath-candles'.  See the
-documentation for the function `list-sexp-diary-entries' for more
-details.
+November 10, 1990.  See the documentation for the function
+`list-sexp-diary-entries' for more details.
 
 Diary entries based on the Hebrew, the Islamic and/or the Baha'i
 calendar are also possible, but because these are somewhat slow, they
