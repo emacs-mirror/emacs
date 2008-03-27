@@ -1,3 +1,9 @@
+2008-03-27  Kenichi Handa  <handa@ni.aist.go.jp>
+
+	* charset.c (Fdefine_charset_internal): Change the way of
+	registering charsets in Vcharset_order_list.
+	(syms_of_charset): Make the charset `eight-bit' supplementary.
+
 2008-03-26  Alexandre Oliva  <aoliva@redhat.com>  (tiny change)
 
 	* regex.c (EXTEND_BUFFER): Change order of pointer addition
@@ -139,7 +145,7 @@
 
 	* lisp.h (Fbuffer_list): Declare.
 
-2008-03-17  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2008-03-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (free_frame_tool_bar): Only call gtk_container_remove if
 	handlebox_widget is != 0.
@@ -216,7 +222,7 @@
 
 	* buffer.c (Fswitch_to_buffer): Fall back on pop-to-buffer.
 
-2008-03-11  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2008-03-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (x_connection_closed): For GTK: If this is the last
 	terminal just exit without closing the display.
@@ -372,7 +378,7 @@
 
 	* font.c (font_unparse_fcname): Increase len when style is a symbol.
 
-2008-03-01  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2008-03-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): For Gtk+ and ConfigureNotify, call
 	xg_frame_resized when the event is for the edit widget.
@@ -469,7 +475,7 @@
 
 	* process.c (wait_reading_process_output): Check for window
 	changes caused by timers.
-	Suggested by Johan Bockg,Ae(Brd.
+	Suggested by Johan Bockgård.
 
 2008-02-27  Glenn Morris  <rgm@gnu.org>
 
@@ -706,7 +712,7 @@
 
 	* font.c (font_unparse_xlfd): Don't ignore integer pixel size specs.
 
-2008-02-18  Jan Dj$(Q)Z(Brv  <jan.h.d@swipnet.se>
+2008-02-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_show_tip): Set string to " " if empty.
 
@@ -972,7 +978,7 @@
 	* emacs.c (USAGE3): Add --parent-id
 	(standard_args): Ditto.
 
-2008-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2008-02-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* coding.c (DECODE_EMACS_MULE_COMPOSITION_CHAR): Use "do...while (0)".
 
@@ -2553,14 +2559,14 @@
 	* ftfont.c (ftfont_list): Fix typo.
 	(ftfont_build_basic_charsets): Don't include letters with diacritics.
 
-2008-02-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2008-02-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfaces.c (realize_non_ascii_face): Set face->extra to NULL.
 
 	* xftfont.c (xftfont_done_face): Call XftDrawDestroy only if
 	xftface_info is non-NULL.
 
-2008-02-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2008-02-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* ftfont.c (ftfont_list): Move misplaced #endif.
 
@@ -2695,7 +2701,7 @@
 	* xftfont.c (xftfont_open): For generating a name, start from
 	96-byte buffer.
 
-2008-02-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2008-02-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frame.h (x_new_fontset2): Fix prototype.
 
@@ -6664,7 +6670,7 @@
 	Rewrite in order to manage registered functions by hash table
 	Vdbus_registered_functions_table.
 
-2007-12-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-12-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c: Update URL to Window Manager Specification in comment.
 
@@ -6771,7 +6777,7 @@
 	* keymap.c (Fsingle_key_description): Likewise.
 	* print.c (print_object): Likewise.
 
-2007-11-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-11-22  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Don't call x-gtk-map-stock if
 	file for image is nil.
@@ -6832,7 +6838,7 @@
 	* fns.c (Fmd5): Use find_symbol_value rather than SYMBOL_VALUE
 	Since we do not want to see internal Lisp_*fwd objects here.
 
-2007-11-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-11-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* sysdep.c (init_system_name): Use getaddrinfo if available.
 
@@ -7036,12 +7042,12 @@
 
 	* s/windows95.h: Remove.
 
-2007-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-11-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_menu_proxy): Handle GTK_IMAGE_ICON_NAME and
 	abort with a message on unhandled store_type values.
 
-2007-11-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-11-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c, xfns.c, xselect.c, xterm.h, s/msdos.h, s/sco4.h, s/sco5.h:
 	Remove HAVE_X11R5 and HAVE_X11R4.
@@ -7050,7 +7056,7 @@
 
 	* Makefile.in: Remove references to sunfns.c and sunfns.o.
 
-2007-11-01  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
+2007-11-01  Johan Bockgård  <bojohan@gnu.org>
 
 	* macterm.c, w32term.c, xterm.c (x_draw_stretch_glyph_string):
 	Don't set s->stippled_p here, since it has already been set by
@@ -7602,7 +7608,7 @@
 
 	* lread.c (Fload): Fix typo in docstring.
 
-2007-10-01  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-10-01  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* floatfns.c (Fexpt): Manually check for overflows, so that a power
 	of a non-zero value can't yield zero.
@@ -7823,7 +7829,7 @@
 
 	* dispextern.h (w32_init_fringe, mac_init_fringe): Declare rif argument.
 
-2007-09-19  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-09-19  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* coding.c (detect_eol_type, detect_eol_type_in_2_octet_form):
 	Fix a C warning regarding variable constness.
@@ -7834,14 +7840,14 @@
 
 	* w32fns.c (Fx_focus_frame): Rename from Fw32_focus_frame.
 
-2007-09-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-09-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (gdpy_def): New variable.
 	(xg_initialize): Initialize gdpy_def.
 	(xg_display_close): If no other display exists, set gdpy_def to a
 	new connection.
 
-2007-09-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-09-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): Always create a GdkPixbuf
 	when we have no file name for the icon.
@@ -7880,7 +7886,7 @@
 
 	* s/hpux.h: No longer define `static' as nothing.
 
-2007-09-13  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
+2007-09-13  Johan Bockgård  <bojohan@gnu.org>
 
 	* callint.c (Fcall_interactively): Remove unused var `fun'.
 
@@ -7927,7 +7933,7 @@
 
 	* xterm.c (x_term_init): Give error if can't open DISPLAY_NAME.
 
-2007-09-10  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-09-10  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* lisp.h (struct Lisp_Subr): Rename `prompt' field to `intspec'.
 	(DEFUN): Document `intspec', use it instead of `prompt'.
@@ -8047,12 +8053,12 @@
 	and resume-tty-function to resume-tty-hook.
 	(Fsuspend_tty, Fresume_tty): Use new names.
 
-2007-09-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-09-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Handle stock name as a named icon
 	if it starts with "n:".
 
-2007-08-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-08-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Initialize wbutton to NULL.
 
@@ -8239,7 +8245,7 @@
 
 	* term.c (tty_insert_glyphs): Add missing first parameter.
 
-2007-08-29  K,Aa(Broly L$,1 q(Brentey  <karoly@lorentey.hu>
+2007-08-29  Károly Lőrentey  <karoly@lorentey.hu>
 
 	* buffer.c (Fbuffer_list, Fbury_buffer):
 	Take frame->buried_buffer_list into account.
@@ -8689,7 +8695,7 @@
 	(tty_delete_glyphs, tty_ins_del_lines, turn_on_face): Update for
 	renames.
 
-2007-08-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-08-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* keyboard.c: Qrtl is new.
 	(parse_tool_bar_item): Handle :rtl keyword.
@@ -8813,7 +8819,7 @@
 
 	* alloc.c (pure): Round PURESIZE up.
 
-2007-08-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-08-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): Remove check that mouse click is in
 	active frame.
@@ -8831,7 +8837,7 @@
 	* term.c (tty_default_color_capabilities): Declare static
 	variables in file scope, to avoid HPUX compiler problem.
 
-2007-08-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-08-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (update_frame_tool_bar): Use -1 as index
 	to gtk_toolbar_insert.
@@ -8953,7 +8959,7 @@
 	(Fx_selection_owner_p): Don't use get_scrap_private_timestamp.
 	Detect ownership change with OWNERSHIP-INFO in Vselection_alist instead.
 
-2007-08-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-08-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_tool_bar_callback): Generate two TOOL_BAR_EVENT:s,
 	add comment explaining why.
@@ -8979,7 +8985,7 @@
 
 	* lread.c (readevalloop, read1): Treat NBSP as whitespace.
 
-2007-07-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-07-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gmalloc.c (__malloc_initialize): Remove pthread_once.  Not needed.
 
@@ -9064,9 +9070,9 @@
 
 	* coding.c (Ffind_operation_coding_system):
 	* eval.c (For, Fand): Doc fixes.
-	Reported by Johan Bockg,Ae(Brd.
+	Reported by Johan Bockgård.
 
-2007-07-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-07-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_focus_frame): Call x_ewmh_activate_frame.
 
@@ -9692,7 +9698,7 @@
 	* image.c (uncache_image): New function.
 	(Fimage_refresh): New function.
 
-2007-05-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-05-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in: Move GPM check outside HAVE_X_WINDOWS.
 
@@ -9828,7 +9834,7 @@
 
 	* lread.c (read_escape): In a string, \s is always space.
 
-2007-04-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-04-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (xdialog_show): Call Fredisplay before showing the dialog.
 
@@ -9838,7 +9844,7 @@
 See ChangeLog.10 for earlier changes.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 
