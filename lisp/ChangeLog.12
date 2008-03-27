@@ -117,7 +117,7 @@
 	(vhdl-template-break, vhdl-regress-line, vhdl-electric-tab):
 	Use delete-region instead of kill-word and kill-line.
 
-2007-04-21  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2007-04-21  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* dired-x.el (dired-virtual-mode): Doc fix.
 
@@ -150,7 +150,7 @@
 	* textmodes/fill.el (fill-move-to-break-point): Don't inhibit
 	fill-nobreak-predicate when the break is past fill-column.
 
-2007-04-20  Francesco Potort,Al(B  <pot@gnu.org>
+2007-04-20  Francesco Potortì  <pot@gnu.org>
 
 	* locate.el (locate): Output from shell-command should go in the
 	current buffer rather than *Shell Command Output*.
@@ -434,7 +434,7 @@
 
 	* cus-start.el <scroll-preserve-screen-position>: Add choices.
 
-2007-04-08  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2007-04-08  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* term/xterm.el (terminal-init-xterm): Fix key definitions.
 	Add binding for C-M-SPC.
@@ -792,7 +792,7 @@
 	* textmodes/flyspell.el (flyspell-large-region):
 	Use ispell-call-process-region.
 
-2007-03-26  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2007-03-26  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* emacs-lisp/bytecomp.el (byte-compile-file-form-defmumble):
 	Use prin1 instead of princ.
@@ -978,7 +978,7 @@
 	2007-01-04 changes by Kevin Rodgers.
 
 	* mouse.el (mouse-drag-track): Remove spurious input-pending-p test.
-	Suggested by Johan Bockg,Ae(Brd.
+	Suggested by Johan Bockgård.
 
 2007-03-19  Martin Rudalics  <rudalics@gmx.at>
 
@@ -1158,7 +1158,7 @@
 	(rcirc-nick-prefix-chars): Add variable.
 	(rcirc-user-nick): Use above variable.
 
-2007-03-10  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2007-03-10  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* icomplete.el (icomplete-tidy, icomplete-exhibit):
 	Bind deactivate-mark to nil.
@@ -1244,7 +1244,7 @@
 	* complete.el (PC-bindings): Remap lisp-complete-symbol to
 	PC-lisp-complete-symbol instead of binding M-TAB in global-map.
 
-2007-03-07  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-03-07  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* complete.el (PC-do-completion): Delete duplicates in the list of
 	possible completions.
@@ -1506,7 +1506,7 @@
 	* mouse.el (mouse-show-mark): Run hooks and perform command
 	remapping for mouse-region-delete-keys.
 
-2007-02-26  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2007-02-26  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* font-core.el (font-lock-mode): Doc fix.
 
@@ -1523,7 +1523,7 @@
 2007-02-25  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (hack-one-local-variable-eval-safep): Correct handling
-	of edebug-form-spec property value.  Reported by Johan Bockg,Ae(Brd.
+	of edebug-form-spec property value.  Reported by Johan Bockgård.
 
 2007-02-25  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -2939,7 +2939,7 @@
 	XEmacs case on Windows.
 	(tramp-touch): UTC handling is not possible for XEmacs.
 
-2006-12-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-12-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* scroll-bar.el (previous-scroll-bar-mode): New variable
 	(set-scroll-bar-mode): Set previous-scroll-bar-mode.
@@ -2975,7 +2975,7 @@
 	* dired.el (dired-sort-other): Move test for dired-mode...
 	(dired-sort-set-modeline): ...to here.
 
-2006-12-29  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-12-29  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* textmodes/fill.el (fill-comment-paragraph): Document 2006-12-24
 	change.  Suggested by Stefan Monnier.
@@ -3033,7 +3033,7 @@
 	(gdb-info-breakpoints-custom, gdb-reset): Handle space in above
 	buffer name.
 
-2006-12-26  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-12-26  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* mail/footnote.el (Footnote-insert-footnote): Fix the search of the
 	last footnote when `footnote-spaced-footnotes' is nil.
@@ -3093,7 +3093,7 @@
 	(mac-ts-update-active-input-area, mac-ts-unicode-for-key-event):
 	Use mac-unread-string.
 
-2006-12-24  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-12-24  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* textmodes/fill.el (fill-comment-paragraph): Prevent the use of
 	an optimized comment regexp if `comment-start-skip' uses a ^.
@@ -3436,7 +3436,7 @@
 
 	* cmuscheme.el (scheme-start-file): Use `let*', not `let'.
 
-2006-12-09  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-12-09  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* textmodes/flyspell.el (flyspell-hack-local-variables-hook): New.
 	Force buffer local defs evaluation on local variables loading.
@@ -3487,7 +3487,7 @@
 	pasting the head of the kill-ring, and prefix arg C-u M-y inserts the
 	text inserted by the last M-y command.
 
-2006-12-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-12-05  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* cmuscheme.el (run-scheme, scheme-start-file): Search the start
 	file in ~/.emacs.d as `init_SCHEMENAME.scm' instead.
@@ -3694,7 +3694,7 @@
 	(hexl-address-region, hexl-ascii-region, hexl-highlight-line-range):
 	Fix typos in docstrings.
 
-2006-11-30  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-11-30  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* ido.el (ido-local-file-exists-p): New.  Tell if a file exists
 	locally, i.e. without using file name handlers.
@@ -3875,7 +3875,7 @@
 	* progmodes/gud.el (gud-install-speedbar-variables): Remove bindings:
 	speedbar-expand-line-descendants, speedbar-contract-line-descendants.
 
-2006-11-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-11-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* progmodes/cc-vars.el (c-backslash-column): Add . at end of sentence.
 
@@ -3905,7 +3905,7 @@
 	* progmodes/flymake.el (flymake-posn-at-point-as-event): New function.
 	(flymake-popup-menu): Use it instead of posn-at-point.
 
-2006-11-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-11-25  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* progmodes/cc-vars.el (c-backslash-column):
 	Mention c-backslash-max-column in documentation for c-backslash-column.
@@ -4019,7 +4019,7 @@
 	(tutorial--find-changed-keys): Check ESC-prefix binding specially.
 	Improve search pattern for occurrences of changed keys.
 
-2006-11-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-11-20  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-last-cut-buffer-coding): New variable.
 	(x-select-text): Set it.
@@ -4033,7 +4033,7 @@
 
 	* emacs-lisp/regexp-opt.el (regexp-opt): Doc fix.
 
-2006-11-19  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-11-19  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* progmodes/glasses.el (glasses-separate-parentheses-exceptions): New.
 	Exceptions to the rule "add a space between an identifier and an
@@ -4068,7 +4068,7 @@
 
 	* net/tramp.el (top): cl and custom are always required.
 
-2006-11-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-11-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-cut-buffer-or-selection-value): Decode text from
 	cut-buffers with next-selection-coding-system if not nil.
@@ -4456,7 +4456,7 @@
 	(org-export-remove-timestamps-from-toc, org-export-with-tags)
 	(org-read-date): Doc fix (Nil -> nil).
 
-2006-11-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-11-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-select-text, x-cut-buffer-or-selection-value):
 	Encode/decode text to/from cut buffers to/from iso-latin-1 only.
@@ -4732,7 +4732,7 @@
 	* dired-aux.el (dired-copy-file-recursive): Catch errors
 	from recursive copies in the loop, around the recursive call.
 
-2006-11-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-11-05  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* battery.el (battery-linux-proc-acpi): Search an ac_adapter in
 	`/proc/acpi/ac_adapter/*'.  Ditto for the thermometers in
@@ -5118,7 +5118,7 @@
 
 	* term/macterm.el (res-geometry): Apply 2006-10-18 change for x-win.el.
 
-2006-10-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-10-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* select.el (ccl-check-utf-8, string-utf-8-p): New functions (by
 	Kenichi Handa).
@@ -5136,7 +5136,7 @@
 	Fix typos in error messages.
 	(ada-goto-matching-end, ada-narrow-to-defun): Doc fixes.
 
-2006-10-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-10-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (res-geometry): Don't set geometry from Xresources
 	to default-frame-alist if default-frame-alist already contains
@@ -5193,7 +5193,7 @@
 	* progmodes/ada-xref.el (ada-find-in-src-path): Likewise.
 	Use grep -E rather than egrep.
 
-2006-10-15  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-10-15  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* ido.el (ido-exhibit): Allow `-', `_', and trailing `$' in user id.
 
@@ -5669,7 +5669,7 @@
 
 	* autoinsert.el (auto-insert-alist): Doc fix.
 
-2006-10-07  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2006-10-07  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* mouse-sel.el (mouse-insert-selection-internal):
 	Use insert-for-yank, so that yank handlers are run.
@@ -5731,7 +5731,7 @@
 	* emacs-lisp/cl.el (pushnew-internal): Remove defvar.
 	(pushnew): Fix last change.
 
-2006-10-03  Denis St,A|(Bnkel  <dstuenkel@googlemail.com>  (tiny change)
+2006-10-03  Denis Stünkel  <dstuenkel@googlemail.com>  (tiny change)
 
 	* ibuf-ext.el (eval, view-and-eval) <define-ibuffer-op>:
 	Use the interactive spec of `eval-expression'.
@@ -5753,7 +5753,7 @@
 
 	* dired.el (dired-build-subdir-alist): Fix previous change.
 
-2006-10-01  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2006-10-01  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* simple.el (undo-elt-crosses-region): Fix the inequalities.
 
@@ -5806,7 +5806,7 @@
 
 	* files.el (find-file-existing): Modify to not allow wildcards.
 
-2006-09-30  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2006-09-30  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* simple.el (undo-more): When undo information for the region is
 	exhausted, say "No further undo information FOR REGION".
@@ -5830,7 +5830,7 @@
 	* progmodes/cperl-mode.el (cperl-after-expr-p): Don't move point
 	to nil if there is no previous property change.
 
-2006-09-29  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-09-29  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* cus-edit.el (custom-save-all): Switch to emacs-lisp mode before
 	saving anything to be sure that `forward-sexp' behaves correctly.
@@ -6118,7 +6118,7 @@
 	(conf-space-keywords): Add autoload cookie.
 	Fix typo (`keywords', not `keyword').
 
-2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-09-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Rename x-gtk-show-chooser-help-text to
 	x-gtk-file-dialog-help-text.  Rename x-use-old-gtk-file-dialog
@@ -6172,14 +6172,14 @@
 	* font-lock.el (font-lock-compile-keywords): Rename optional arg
 	to SYNTACTIC-KEYWORDS and reverse the sense.  All callers changed.
 
-2006-09-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-09-16  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add x-gtk-show-chooser-help-text.
 
 	* select.el (xselect-convert-to-string): If UTF8_STRING is requested
 	and the data doesn't look like UTF8, send STRING instead.
 
-2006-09-16  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
+2006-09-16  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-check-region-doublons):
 	New function to detect duplicated words.
@@ -6336,7 +6336,7 @@
 	* COPYING: Replace "Library Public License" by "Lesser Public
 	License" throughout.
 
-2006-09-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-09-15  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (x-menu-bar-open): New function for F10.
 
@@ -6401,7 +6401,7 @@
 	* bindings.el (mode-line-buffer-identification-keymap):
 	Remove duplicate line.
 
-2006-09-14  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-09-14  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* ido.el (ido-ignore-item-p): Allow any kind of functions in
 	ignore lists.
@@ -6411,7 +6411,7 @@
 	* jit-lock.el (jit-lock-fontify-again): New function.
 	(jit-lock-fontify-now): Use it instead of lambda form.
 
-2006-09-13  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
+2006-09-13  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-word, flyspell-correct-word)
 	(flyspell-auto-correct-word): Make ispell-filter local to these
@@ -6508,7 +6508,7 @@
 	* ido.el (ido-edit-input, ido-complete, ido-take-first-match)
 	(ido-push-dir-first, ido-kill-buffer-at-head, ido-exhibit)
 	(ido-delete-file-at-head): Pass head of ido-matches through ido-name
-	in case of merged directories.  Reported by Micha,Ak(Bl Cadilhac.
+	in case of merged directories.  Reported by Michaël Cadilhac.
 
 2006-09-10  Richard Stallman  <rms@gnu.org>
 
@@ -6565,7 +6565,7 @@
 
 	* net/ldap.el (ldap-search-internal): Doc fix.
 
-2006-09-09  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-09-09  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* play/life.el (life-display-generation): Test for input manually if
 	`sleeptime' is negative or null.
@@ -6645,7 +6645,7 @@
 	* net/rcirc.el (rcirc-activity-string): Don't quote value in case
 	clause.
 
-2006-09-07  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-09-07  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* info.el (Info-index): Bind completion-ignore-case.
 
@@ -6665,11 +6665,11 @@
 
 	* international/code-pages.el: Add cp858.
 
-2006-09-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-09-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* dnd.el: Fix bootstrapping.
 
-2006-09-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-09-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* dnd.el (dnd-protocol-alist): Add what url-handler-mode can handle.
 	(dnd-open-remote-url): New function.
@@ -7204,7 +7204,7 @@
 	(whitespace-cleanup-region): Call whitespace-cleanup-internal with
 	a non-nil argument.
 
-2006-08-18  Gustav H,Ae(Bllberg  <gustav@gmail.com>  (tiny change)
+2006-08-18  Gustav Hållberg  <gustav@gmail.com>  (tiny change)
 
 	* rect.el (spaces-string): Simplify and add doc string.
 
@@ -7302,7 +7302,7 @@
 	Add to overlay-arrow-variable-list
 	(gdb-reset): Delete gdb-stack-position from above list.
 
-2006-08-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-08-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el (menu-bar-edit-menu): Disable paste if buffer is
 	read only.
@@ -7426,7 +7426,7 @@
 	* emacs-lisp/bindat.el (bindat-ip-to-string):
 	Use `format-network-address' if possible.
 
-2006-08-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-08-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-init-frame): Call x-register-dnd-atom.
 
@@ -7565,7 +7565,7 @@
 	doesn't look like a file name.
 
 	* complete.el (PC-expand-many-files): Avoid signalling an error when
-	the current directory doesn't exist.  Reported by Micha,Ak(Bl Cadilhac.
+	the current directory doesn't exist.  Reported by Michaël Cadilhac.
 
 2006-08-02  Andreas Schwab  <schwab@suse.de>
 
@@ -7773,7 +7773,7 @@
 
 	* pgg-def.el (pgg-truncate-key-identifier): Truncate the key ID to 8
 	letters from the end.  Thanks to "David Smith" <davidsmith@acm.org>
-	and andreas@altroot.de (Andreas V,Av(Bgele).
+	and andreas@altroot.de (Andreas Vögele).
 
 2006-07-23  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -7798,7 +7798,7 @@
 
 	* progmodes/delphi.el (delphi-fill-comment): Use save-restriction.
 
-2006-07-22  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-07-22  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* startup.el (user-mail-address): Initialize from the `EMAIL'
 	environment variable first.  Document this.
@@ -8059,7 +8059,7 @@
 	repertoire of unit tests.  Called just before the provide iff user
 	has customized `allout-run-unit-tests-on-load' non-nil.
 
-2006-07-14  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
+2006-07-14  Károly Lőrentey  <lorentey@elte.hu>
 
 	* emacs-lisp/authors.el (authors-aliases): Update.
 
@@ -8796,7 +8796,7 @@
 	* progmodes/make-mode.el (makefile-fill-paragraph): Don't remove
 	spaces after the comment start.
 
-2006-06-09  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-06-09  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* play/pong.el (pong-init-buffer):
 	Fill buffer with spaces instead of ^A.
@@ -9001,7 +9001,7 @@
 	* comint.el (comint-send-input): Do not add help-echo and
 	mouse-face to input if `comint-use-prompt-regexp' is non-nil.
 
-2006-06-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-06-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el: Change x-menu-bar-start to menu-bar-open.
 
@@ -9092,7 +9092,7 @@
 
 	* subr.el (with-current-buffer): Doc fix.
 
-2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-05-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el: Bind F10 to menu-bar-start if available.
 
@@ -9577,7 +9577,7 @@
 	have non-nil values.  Speed up by using add-to-list instead of
 	manual consing.
 
-2006-05-20  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-05-20  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* progmodes/make-mode.el (makefile-mode): Doc fix.
 
@@ -9852,7 +9852,7 @@
 	(cal-tex-cursor-year-landscape, cal-tex-cursor-filofax-year)
 	(cal-tex-cursor-filofax-daily, cal-tex-cursor-year): Interactive.
 
-2006-05-11  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2006-05-11  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* calendar/calendar.el (calendar-french-date-string)
 	(calendar-mayan-date-string, calendar-chinese-date-string)
@@ -10141,7 +10141,7 @@
 	reference to the Lisp manual to the warning about pure space
 	overflow.
 
-2006-05-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-05-05  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* textmodes/ispell.el (ispell-buffer-local-dict): Add a `no-reload'
 	argument to avoid the call to `ispell-internal-change-dictionary'
@@ -10692,7 +10692,7 @@
 	Sync with Tramp 2.0.53.
 
 	* net/tramp.el (tramp-completion-mode): ?\t has event-modifier
-	'control.  Reported by Matthias F,Av(Brste <slashdevslashnull@gmx.net>.
+	'control.  Reported by Matthias Förste <slashdevslashnull@gmx.net>.
 	(tramp-completion-file-name-handler): Add autoload cookie for
 	adding to `file-name-handler-alist'.
 
@@ -10998,7 +10998,7 @@
 	* files.el (hack-local-variables-confirm) <offer-save>:
 	Clarify message text.  Suggested by Ralf Angeli.
 
-2006-04-08  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-04-08  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* rect.el (kill-rectangle): Don't barf if `kill-read-only-ok' is set.
 	(delete-extract-rectangle-line): Use `filter-buffer-substring'
@@ -11561,7 +11561,7 @@
 	* isearch.el (isearch-other-meta-char): Handle user bindings for
 	shifted control characters.
 
-2006-03-18  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
+2006-03-18  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-skip-region-alist): Add "_+" to the
 	part that matches email addresses, file names, etc.
@@ -11856,7 +11856,7 @@
 	* progmodes/octave-mod.el (octave-indent-for-comment):
 	Behave according to do string.
 
-2006-03-11  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
+2006-03-11  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-menu-map-needed) [ispell-message]:
 	Be visible only if major mode is Mail Mode.
@@ -12022,7 +12022,7 @@
 	(t-mouse-tty, t-mouse-make-event): Doc fix; use imperative.
 	(t-mouse-mode): Remove period from end of error message.
 
-2006-03-03  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
+2006-03-03  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-process-localwords):
 	Be case-sensitive.
@@ -12813,7 +12813,7 @@
 	(remove-from-invisibility-spec, allout-hide-current-subtree):
 	Ditched unused variables.
 
-2006-02-17  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
+2006-02-17  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-change-dictionary): Call
 	ispell-buffer-local-dict instead of
@@ -12904,7 +12904,7 @@
 	* files.el (hack-local-variables): Remove ignored variables before
 	checking if any variables need setting.
 
-2006-02-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-02-14  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add x-gtk-whole-detached-tool-bar.
 
@@ -13558,7 +13558,7 @@
 	described in the docstring for `bs-attributes-list'.
 	(bs--get-name): Simplify.  Don't pad the buffer name.
 
-2006-01-27  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
+2006-01-27  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-find-aspell-dictionaries): If no
 	English aspell dictionary is installed, use the first entry of
@@ -13579,7 +13579,7 @@
 	* international/latexenc.el: Add a suitable `coding:' tag.
 	(latexenc-find-file-coding-system): Undo last change.
 
-2006-01-27  Arne J,Ax(Brgensen  <arne@arnested.dk>
+2006-01-27  Arne Jørgensen  <arne@arnested.dk>
 
 	* international/latexenc.el (latexenc-find-file-coding-system):
 	Make sure latexenc-main-file is a regular file and is readable.
@@ -13726,7 +13726,7 @@
 	* term/w32-win.el (image-library-alist): Add additional names for
 	GIF library.
 
-2006-01-23  Arne J,Ax(Brgensen  <arne@arnested.dk>
+2006-01-23  Arne Jørgensen  <arne@arnested.dk>
 
 	* international/latexenc.el (latexenc-find-file-coding-system):
 	Add file-regular-p check.
@@ -13845,11 +13845,11 @@
 	(find-variable-other-frame, find-variable-at-point):
 	Fix docstrings.
 
-2006-01-21  Francesco Potort,Al(B  <pot@gnu.org>
+2006-01-21  Francesco Potortì  <pot@gnu.org>
 
 	* mail/rmailout.el (rmail-output): Don't use content-type if it is nil.
 
-2006-01-21  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
+2006-01-21  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-emacs-popup, flypell-xemacs-popup):
 	Default to disabling the "Save affix" question.
@@ -14005,7 +14005,7 @@
 
 	* files.el (auto-mode-alist): Add Imakefile.
 
-2006-01-17  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
+2006-01-17  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (ispell-kill-ispell-hook): Add to the hook when
 	loading the file rather than when turning on flyspell-mode.
@@ -14152,7 +14152,7 @@
 	(org-get-time-of-day): Fix bug with times before 1am.
 	(org-agenda-menu): Add tags commands.
 
-2006-01-13  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
+2006-01-13  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/ispell.el (ispell-init-process): Include the used
 	dictionary in ispell process start message.
@@ -14842,7 +14842,7 @@
 	Use local var buffer-scan-pos to advance scan for next misspelling.
 	Advance it only after we find the misspelling.
 
-2005-12-27  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
+2005-12-27  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-external-point-words):
 	New criteria for finding the misspelling in the buffer.
@@ -14863,7 +14863,7 @@
 	* descr-text.el (describe-char): Set help-xref-stack-item
 	explicitly after buffer has been generated.
 
-2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-12-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add x-gtk-show-hidden-files.
 
@@ -15018,7 +15018,7 @@
 	New variables.
 	(hi-lock-string-serialize): New function.
 
-2005-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-12-23  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* menu-bar.el (menu-find-file-existing): New function.
 	(menu-bar-file-menu): Use menu-find-file-existing for Open.
@@ -15278,7 +15278,7 @@
 	Let term-handle-ansi-terminal-messages override what Bash says about
 	its current directory.
 
-2005-12-16  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
+2005-12-16  Károly Lőrentey  <lorentey@elte.hu>
 
 	* bindings.el (last-buffer): Move to simple.el.
 	* simple.el (last-buffer): Move here.
@@ -15445,7 +15445,7 @@
 	* vc-svn.el (vc-svn-registered): Use it to avoid popping up a spurious
 	frame in case of errors.
 
-2005-12-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-12-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* menu-bar.el (menu-bar-showhide-fringe-menu): Move "On the Right"
 	so it comes after "On the Left" in the menu.
@@ -15486,7 +15486,7 @@
 	(org-log-done): New function.
 	(org-log-done, org-closed-string): New options.
 
-2005-12-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-12-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* tooltip.el (tooltip-y-offset): Change default to 20.
 
@@ -15560,7 +15560,7 @@
 
 	* help.el (help-for-help-internal): Add `r' in doc string.
 
-2005-12-10  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2005-12-10  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* align.el (align-regexp, align-highlight-rule):
 	Use region-beginning and region-end instead of point and mark, so that
@@ -17035,7 +17035,7 @@
 	prompts work for AUTH PLAIN.  Also reported by Steve Allan
 	<seallan@verizon.net>.
 
-2005-12-06  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
+2005-12-06  Károly Lőrentey  <lorentey@elte.hu>
 
 	* frame.el (set-frame-parameter): Add doc string.
 
@@ -17198,7 +17198,7 @@
 	whereby names of length one or names starting with a
 	symbol-constituent character would not be returned.
 
-2005-12-03  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2005-12-03  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* subr.el (atomic-change-group): Add edebug and indentation spec.
 
@@ -17206,7 +17206,7 @@
 
 	* completion.el (save-completions-file-name): Fix typo in last change.
 
-2005-12-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-12-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* info.el: Move back/forward history to the beginning of the tool bar.
 
@@ -17232,7 +17232,7 @@
 
 	* international/latexenc.el (latex-inputenc-coding-alist): Doc fix.
 
-2005-12-02  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
+2005-12-02  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-external-point-words):
 	Consider a misspelling as found in the string search if: (a) misspelling
@@ -17419,7 +17419,7 @@
 	(flyspell-post-command-hook): Check input-pending-p while processing
 	the potentially long list of buffer changes.
 
-2005-11-28  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
+2005-11-28  Károly Lőrentey  <lorentey@elte.hu>
 
 	* buff-menu.el (list-buffers-noselect): Display the selected
 	frame's buffer list, not the global one.
@@ -17819,7 +17819,7 @@
 	since the last ping.
 	(rcirc-mode): Give rcirc-topic a local binding here.
 
-2005-11-19  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2005-11-19  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* subr.el (read-passwd): Fontify the prompt as we do with other
 	prompts.
@@ -18221,7 +18221,7 @@
 	* textmodes/flyspell.el (flyspell-large-region):
 	Call flyspell-accept-buffer-local-defs.
 
-2005-11-13  Agust,Am(Bn Mart,Am(Bn  <agustin.martin@hispalinux.es>
+2005-11-13  Agustín Martín  <agustin.martin@hispalinux.es>
 
 	* textmodes/flyspell.el (flyspell-notify-misspell):
 	Fix misspelling of "Misspelling".
@@ -18562,7 +18562,7 @@
 	* newcomment.el (comment-region-internal): Box more tightly in the
 	common case where there's no TAB in the boxed text.
 
-2005-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-11-04  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* info.el (info-tool-bar-map): Use images prev-node, next-node and
 	up-node.
@@ -19430,7 +19430,7 @@
 
 	* dired-x.el (dired-virtual): Don't use `dired-insert-headerline'.
 
-2005-10-25  Micha,Ak(Bl Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>
+2005-10-25  Michaël Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>
 
 	* play/blackbox.el (blackbox-redefine-key): New function.
 	(blackbox-mode-map): Use it to remap existing bindings for cursor
@@ -20351,7 +20351,7 @@
 	(recentf-dialog-mode-map): Map follow-link to RET, so dialogs obey
 	mouse-1-click-follows-link.
 
-2005-10-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-10-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* toolbar/diropen.xpm, toolbar/diropen.pbm: New versions made from
 	Gnome file-manager.png.  Suggested by
@@ -20404,7 +20404,7 @@
 	(mixal-font-lock-syntactic-keywords): New var.
 	(mixal-mode): Use it.  Fix comment-start-skip.
 
-2005-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-10-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* startup.el (command-line-x-option-alist): -nb => -nbi.
 
@@ -20579,7 +20579,7 @@
 
 	* textmodes/ispell.el (ispell-check-version): Fix last change.
 
-2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-10-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el: Remove -i, --icon-type from comment.
 
@@ -20694,7 +20694,7 @@
 	* progmodes/gdb-ui.el (gdb-fringe-width -> gdb-buffer-fringe-width):
 	Typo.
 
-2005-10-06  Micha,Ak(Bl Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>
+2005-10-06  Michaël Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>
 
 	* play/zone.el (zone): Wrap body with save-window-excursion.
 
@@ -20727,7 +20727,7 @@
 	Fix bug introduced 2005-07-03: Use (car (last ...))
 	to faithfully reproduce replaced artist-last.
 	(artist-set-arrow-points-for-poly): Likewise.
-	Suggested by Johan Bockg,Ae(Brd.
+	Suggested by Johan Bockgård.
 
 2005-10-06  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -20917,7 +20917,7 @@
 	(vhdl-speedbar-rescan-hierarchy): Call speedbar-line-directory
 	instead of speedbar-line-path.
 
-2005-10-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-10-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-drop-data): Don't set dnd-open-file-other-window
 	to nil if dropping on a window.  Handle dropping on a minibuffer window
@@ -21458,7 +21458,7 @@
 
 	* net/newsticker.el: Get rid of CVS keyword.
 
-2005-09-19  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2005-09-19  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* dired-aux.el (dired-handle-overwrite): Don't use `format' here.
 	The prompt is formatted later.
@@ -21606,7 +21606,7 @@
 	(ispell-valid-dictionary-list): Call ispell-find-aspell-dictionaries
 	only if ispell-aspell-supports-utf8 is non-nil.
 
-2005-09-17  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2005-09-17  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* progmodes/scheme.el (scheme-mode-variables): Use setq to assign
 	buffer-local value to lisp-indent-function.
@@ -23589,7 +23589,7 @@
 	* image-file.el (insert-image-file, image-file-yank-handler):
 	Fix last change to maintain a (unique) yank-handler on yanked images.
 
-2005-07-22  Eduardo Mu,Aq(Boz  <emufer@terra.es>  (tiny change)
+2005-07-22  Eduardo Muñoz  <emufer@terra.es>  (tiny change)
 
 	* dired.el (dired-move-to-filename-regexp): Recognize the B suffix
 	of the file size (as in "177B" for 177 bytes).  This happens with
@@ -24115,7 +24115,7 @@
 	* server.el: Bind "C-x #" in a way that works even if C-x is
 	redefined to a command key, not a prefix key.
 
-2005-07-16  Johan Bockg,Ae(Brd  <bojohan@users.sourceforge.net>  (tiny change)
+2005-07-16  Johan Bockgård  <bojohan@users.sourceforge.net>  (tiny change)
 
 	* emacs-lisp/cl-macs.el (cl-make-type-test): Defer evaluation of
 	cl-make-type-test till execution time.
@@ -24125,7 +24125,7 @@
 	* dired-x.el (dired-do-relsymlink-regexp): Add missing optional
 	arg ARG and use it.
 
-2005-07-16  Johan Bockg,Ae(Brd  <bojohan@users.sourceforge.net>  (tiny change)
+2005-07-16  Johan Bockgård  <bojohan@users.sourceforge.net>  (tiny change)
 
 	* emacs-lisp/cl-macs.el (cl-make-type-test): Add `atom' type.
 
@@ -25010,7 +25010,7 @@
 	* emacs-lisp/crm.el (crm-do-completion): Handle minibuffer prompt.
 	(crm-find-current-element): Likewise.
 
-2005-06-30  Johan Bockg,Ae(Brd  <bojohan@users.sourceforge.net>
+2005-06-30  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* help-fns.el (help-do-arg-highlight): Regexp-quote argument names.
 
@@ -26673,7 +26673,7 @@
 
 	* mail/supercite.el (sc-mail-glom-frame): Mark as risky.
 
-2005-06-06  Matthias F,Av(Brste  <slashdevslashnull@gmx.net>
+2005-06-06  Matthias Förste  <slashdevslashnull@gmx.net>
 
 	* files.el (hack-local-variables-confirm): New arg FLAG-TO-CHECK.
 	(hack-one-local-variable, hack-local-variables)
@@ -28127,7 +28127,7 @@
 	<kifer@cs.sunysb.edu> (and a lot of other people all the years).
 	(tramp-handle-shell-command): `insert-buffer' cannot be used
 	because the contents of the Tramp buffer is changed before
-	insertion (`expand-file' and alike).  Reported by Fr,Ai(Bd,Ai(Bric Bothamy
+	insertion (`expand-file' and alike).  Reported by Frédéric Bothamy
 	<frederic.bothamy@free.fr>.
 	(tramp-set-auto-save): Actions should be done for Tramp file name
 	handler only.  Ange-FTP has its own auto-save mechanism.
@@ -28193,7 +28193,7 @@
 
 	* emacs-lisp/easymenu.el (easy-menu-define): Doc fixes.
 
-2005-05-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-05-13  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* dired.el (dired-mode): make-variable-buffer-local =>
 	make-local-variable.
@@ -28275,7 +28275,7 @@
 	* add-log.el (find-change-log): Fix typos in the docstring
 	of function.
 
-2005-05-11  Arne J,Ax(Brgensen  <arne@arnested.dk>
+2005-05-11  Arne Jørgensen  <arne@arnested.dk>
 
 	* international/latexenc.el (latexenc-find-file-coding-system):
 	Avoid `re-search-forward' when looking for input encoding because
@@ -28422,7 +28422,7 @@
 	* international/mule.el (sgml-xml-auto-coding-function):
 	Recognize encoding='FOO' in single quotes as well as in double quotes.
 
-2005-05-07  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2005-05-07  Johan Bockgård  <bojohan@dd.chalmers.se>
 
 	* emacs-lisp/cl-macs.el (cl-transform-lambda): Recognize `declare'
 	as well as `interactive', so that defmacro* would recognize
@@ -28866,7 +28866,7 @@
 
 	* ido.el (ido-everywhere): Fix last change.
 
-2005-04-28  Arne J,Ax(Brgensen  <arne@arnested.dk>
+2005-04-28  Arne Jørgensen  <arne@arnested.dk>
 
 	* international/latexenc.el: New file.
 	* international/mule-conf.el (file-coding-system-alist): For .tex,
@@ -29533,7 +29533,7 @@
 
 	* emulation/cua-rect.el (cua--init-rectangles): Remove face setup.
 
-2005-04-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-04-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* startup.el (command-line): Turn off blinking cursor if
 	cursorBlink in resources is off or false.
@@ -29601,7 +29601,7 @@
 	* faces.el (secondary-selection): Use yellow1, not yellow.
 	(trailing-whitespace): Use red1, not red.
 
-2005-04-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-04-11  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* dired.el (dired-mode): Use dnd-* instead of x-dnd-*
 	(dired-dnd-handle-local-file): Call dnd-get-local-file-name.
@@ -30528,7 +30528,7 @@
 	(mail-directory-process defvar): Doc fix.
 	(mail-names): Doc fix.
 
-2005-03-25  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>  (tiny change)
+2005-03-25  Johan Bockgård  <bojohan@dd.chalmers.se>  (tiny change)
 
 	* textmodes/flyspell.el (mail-mode-flyspell-verify): Fix regexp syntax.
 
@@ -30620,7 +30620,7 @@
 	* progmodes/flymake.el (flymake-get-file-name-mode-and-masks)
 	(flymake-find-buildfile, flymake-find-possible-master-files)
 	(flymake-check-include, flymake-parse-line): Replace loops over the
-	length of lists, by loops over lists, to remove silly O(n,A2(B) behavior.
+	length of lists, by loops over lists, to remove silly O(n²) behavior.
 
 	* progmodes/flymake.el (flymake-ensure-ends-with-slash): Remove.
 	Substitute file-name-as-directory in the rest of the file.
@@ -31429,7 +31429,7 @@
 
 	* facemenu.el (global-map): Bind M-o, not M-g.
 
-2005-03-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-03-06  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* menu-bar.el (menu-bar-file-menu): Add the same :enable to
 	"Open Directory" as for "Open File".
@@ -32199,13 +32199,13 @@
 
 	* emacs-lisp/lisp.el (buffer-end): Doc fix.
 
-2005-02-05  Arne J,Ax(Brgensen  <arne@arnested.dk>  (tiny change)
+2005-02-05  Arne Jørgensen  <arne@arnested.dk>  (tiny change)
 
 	* net/ldap.el (ldap-search-internal): Support attributes with
 	optional descriptions separated by a semi-colon, as in
 	"userCertificate;binary".
 
-2005-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-02-05  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-handle-xdnd): Handle the case where the flags
 	isn't a cons (i.e. the version is 0).
@@ -32596,7 +32596,7 @@
 	(line-move): New function that adjusts vscroll for partially
 	visible rows, and calls line-move-1 otherwise.
 
-2005-01-21  Ren,Ai(B Kyllingstad  <listmailxemacs@kyllingstad.com>
+2005-01-21  René Kyllingstad  <listmailxemacs@kyllingstad.com>
 
 	* pcomplete.el: Define pcomplete-read-event instead of read-event,
 	since it's not a complete read-event implementation.
@@ -32922,7 +32922,7 @@
 	(ispell-get-casechars, ispell-get-not-casechars)
 	(ispell-get-otherchars): Call ispell-get-decoded-string.
 
-2005-01-12  Johan Bockg,Ae(Brd  <bojohan@users.sourceforge.net>
+2005-01-12  Johan Bockgård  <bojohan@users.sourceforge.net>
 
 	* custom.el (custom-declare-variable): Just put symbol instead
 	of (defvar . symbol) in `current-load-list'.
@@ -33345,7 +33345,7 @@
 See ChangeLog.11 for earlier changes.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 
