@@ -84,7 +84,7 @@ are holidays."
 (defcustom diary-face-attrs
   '((" *\\[foreground:\\([-a-z]+\\)\\]$" 1 :foreground string)
     (" *\\[background:\\([-a-z]+\\)\\]$" 1 :background string)
-    (" *\\[width:\\([-a-z]+\\)\\]$" 1 :width symbol)
+    (" *\\[width:\\([-a-z]+\\)\\]$" 1 :width int)
     (" *\\[height:\\([-0-9a-z]+\\)\\]$" 1 :height int)
     (" *\\[weight:\\([-a-z]+\\)\\]$" 1 :weight symbol)
     (" *\\[slant:\\([-a-z]+\\)\\]$" 1 :slant symbol)
@@ -139,25 +139,11 @@ See the documentation for the function `list-sexp-diary-entries'."
   :type 'string
   :group 'diary)
 
-;; FIXME
 (defcustom list-diary-entries-hook nil
   "List of functions called after diary file is culled for relevant entries.
-It is to be used for diary entries that are not found in the diary file.
-
-A function `include-other-diary-files' is provided for use as the value of
-this hook.  This function enables you to use shared diary files together
-with your own.  The files included are specified in the diary file by lines
-of the form
-
-        #include \"filename\"
-
-This is recursive; that is, #include directives in files thus included are
-obeyed.  You can change the \"#include\" to some other string by changing
-the variable `diary-include-string'.  When you use `include-other-diary-files'
-as part of the list-diary-entries-hook, you will probably also want to use the
-function `mark-included-diary-files' as part of `mark-diary-entries-hook'.
-
-For example, you could use
+You might wish to add `include-other-diary-files', in which case
+you will probably also want to add `mark-included-diary-files' to
+`mark-diary-entries-hook'.  For example, you could use
 
      (add-hook 'list-diary-entries-hook 'include-other-diary-files)
      (add-hook 'list-diary-entries-hook 'sort-diary-entries)
@@ -170,20 +156,11 @@ lexicographic order."
   :options '(include-other-diary-files sort-diary-entries)
   :group 'diary)
 
-;; FIXME
 (defcustom mark-diary-entries-hook nil
   "List of functions called after marking diary entries in the calendar.
-
-A function `mark-included-diary-files' is also provided for use as the
-`mark-diary-entries-hook'; it enables you to use shared diary files together
-with your own.  The files included are specified in the diary file by lines
-of the form
-        #include \"filename\"
-This is recursive; that is, #include directives in files thus included are
-obeyed.  You can change the \"#include\" to some other string by changing the
-variable `diary-include-string'.  When you use `mark-included-diary-files' as
-part of the mark-diary-entries-hook, you will probably also want to use the
-function `include-other-diary-files' as part of `list-diary-entries-hook'."
+You might wish to add `mark-included-diary-files', in which case
+you will probably also want to add `include-other-diary-files' to
+`list-diary-entries-hook'."
   :type 'hook
   :options '(mark-included-diary-files)
   :group 'diary)
@@ -306,6 +283,49 @@ template following the rules above."
   :group 'diary)
 
 
+(defun diary-set-header (symbol value)
+  "Set SYMBOL's value to VALUE, and redraw the diary header if necessary."
+  (let ((oldvalue (symbol-value symbol))
+        (dbuff (and diary-file
+                    (find-buffer-visiting
+                     (substitute-in-file-name diary-file)))))
+    (custom-set-default symbol value)
+    (and dbuff
+         (not (equal value oldvalue))
+         (with-current-buffer dbuff
+           (if (eq major-mode 'diary-mode)
+               (setq header-line-format (and diary-header-line-flag
+                                             diary-header-line-format)))))))
+
+;; This can be removed once the kill/yank treatment of invisible text
+;; (see etc/TODO) is fixed. -- gm
+(defcustom diary-header-line-flag t
+  "Non-nil means `simple-diary-display' will show a header line.
+The format of the header is specified by `diary-header-line-format'."
+  :group   'diary
+  :type    'boolean
+  :initialize 'custom-initialize-default
+  :set 'diary-set-header
+  :version "22.1")
+
+(defvar diary-selective-display nil
+  "Internal diary variable; non-nil if some diary text is hidden.")
+
+(defcustom diary-header-line-format
+  '(:eval (calendar-string-spread
+           (list (if diary-selective-display
+                     "Some text is hidden - press \"s\" in calendar \
+before edit/copy"
+                   "Diary"))
+           ?\s (frame-width)))
+  "Format of the header line displayed by `simple-diary-display'.
+Only used if `diary-header-line-flag' is non-nil."
+  :group 'diary
+  :type 'sexp
+  :initialize 'custom-initialize-default
+  :set 'diary-set-header
+  :version "22.1")
+
 ;; The first version of this also checked for diary-selective-display
 ;; in the non-fancy case. This was an attempt to distinguish between
 ;; displaying the diary and just visiting the diary file. However,
@@ -329,44 +349,12 @@ template following the rules above."
   "Set SYMBOL's value to VALUE, and redraw the diary if necessary.
 Redraws the diary if it is being displayed (note this is not the same as
 just visiting the `diary-file'), and SYMBOL's value is to be changed."
-  (let ((oldvalue (eval symbol)))       ; FIXME symbol-value?
+  (let ((oldvalue (symbol-value symbol)))
     (custom-set-default symbol value)
     (and (not (equal value oldvalue))
          (diary-live-p)
          ;; Note this assumes diary was called without prefix arg.
          (diary))))
-
-(defvar diary-selective-display nil
-  "Internal diary variable; non-nil if some diary text is hidden.")
-
-
-;; This can be removed once the kill/yank treatment of invisible text
-;; (see etc/TODO) is fixed. -- gm
-(defcustom diary-header-line-flag t
-  "Non-nil means `simple-diary-display' will show a header line.
-The format of the header is specified by `diary-header-line-format'."
-  :group   'diary
-  :type    'boolean
-  :initialize 'custom-initialize-default
-  ;; FIXME overkill.
-  :set 'diary-set-maybe-redraw
-  :version "22.1")
-
-(defcustom diary-header-line-format
-  '(:eval (calendar-string-spread
-           (list (if diary-selective-display
-                     "Some text is hidden - press \"s\" in calendar \
-before edit/copy"
-                   "Diary"))
-           ?\s (frame-width)))
-  "Format of the header line displayed by `simple-diary-display'.
-Only used if `diary-header-line-flag' is non-nil."
-  :group 'diary
-  :type 'sexp
-  :initialize 'custom-initialize-default
-  ;; FIXME overkill.
-  :set 'diary-set-maybe-redraw
-  :version "22.1")
 
 (defcustom number-of-diary-entries 1
   "Specifies how many days of diary entries are to be displayed initially.
@@ -460,7 +448,7 @@ syntax of `*' and `:' changed to be word constituents.")
   "Convert string ATTRVALUE to TYPE appropriate for a face description.
 Valid TYPEs are: string, symbol, int, stringtnil, tnil."
   (cond ((eq type 'string) attrvalue)
-        ((eq type 'symbol) (read attrvalue)) ; FIXME intern-soft?
+        ((eq type 'symbol) (intern-soft attrvalue))
         ((eq type 'int) (string-to-number attrvalue))
         ((eq type 'stringtnil)
          (cond ((string-equal "t" attrvalue) t)
@@ -713,7 +701,7 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
         ;; d-s-p is passed to the diary display function.
         (let ((diary-saved-point (point)))
           (save-excursion
-            ;; FIXME move after goto?
+            ;; FIXME move after goto? Syntax?
             (setq file-glob-attrs (cadr (diary-pull-attrs nil "")))
             (with-syntax-table diary-syntax-table
               (goto-char (point-min))
@@ -754,7 +742,7 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
 
 (defun include-other-diary-files ()
   "Include the diary entries from other diary files with those of `diary-file'.
-This function is suitable for use in `list-diary-entries-hook';
+This function is suitable for use with `list-diary-entries-hook';
 it enables you to use shared diary files together with your own.
 The files included are specified in the `diary-file' by lines of this form:
         #include \"filename\"
@@ -787,36 +775,58 @@ changing the variable `diary-include-string'."
         (sleep-for 2))))
   (goto-char (point-min)))
 
-;; Bound in diary-list-entries.
-(defvar date-string)
-(defvar diary-saved-point)
+(defvar date-string)                    ; bound in diary-list-entries
 
-;; FIXME common code with fancy-diary-display.
+(defun diary-display-no-entries ()
+  "Common subroutine of `simple-diary-display' and `fancy-diary-display'.
+Handles the case where there are no diary entries.
+Returns a cons (NOENTRIES . HOLIDAY-STRING)."
+    (let* ((holiday-list (if holidays-in-diary-buffer
+                             (calendar-check-holidays original-date)))
+           (hol-string (format "%s%s%s"
+                               date-string
+                               (if holiday-list ": " "")
+                               (mapconcat 'identity holiday-list "; ")))
+           (msg (format "No diary entries for %s" hol-string))
+           ;; Empty list, or single item with no text.
+           ;; FIXME multiple items with no text?
+           (noentries (or (not diary-entries-list)
+                          (and (not (cdr diary-entries-list))
+                               (string-equal "" (cadr
+                                                 (car diary-entries-list)))))))
+      ;; Inconsistency: whether or not the holidays are displayed in a
+      ;; separate buffer depends on if there are diary entries.
+      (when noentries
+        (if (or (< (length msg) (frame-width))
+                (not holiday-list))
+            (message "%s" msg)
+          ;; holiday-list which is too wide for a message gets a buffer.
+          (calendar-in-read-only-buffer holiday-buffer
+            (calendar-set-mode-line (format "Holidays for %s" date-string))
+            (insert (mapconcat 'identity holiday-list "\n")))
+          (message "No diary entries for %s" date-string)))
+      (cons noentries hol-string)))
+
+
+(defvar diary-saved-point)              ; bound in diary-list-entries
+
 (defun simple-diary-display ()
   "Display the diary buffer if there are any relevant entries or holidays."
-  (let* ((holiday-list (if holidays-in-diary-buffer
-                           (calendar-check-holidays original-date)))
-         (hol-string (format "%s%s%s"
-                             date-string
-                             (if holiday-list ": " "")
-                             (mapconcat 'identity holiday-list "; ")))
-         (msg (format "No diary entries for %s" hol-string))
-         ;; If selected window is dedicated (to the calendar),
-         ;; need a new one to display the diary.
-         (pop-up-frames (or pop-up-frames
-                            (window-dedicated-p (selected-window)))))
-    (calendar-set-mode-line (format "Diary for %s" hol-string))
-    (if (or (not diary-entries-list)
-            (and (not (cdr diary-entries-list))
-                 (string-equal (cadr (car diary-entries-list)) "")))
-        (if (< (length msg) (frame-width))
-            (message "%s" msg)
-          (calendar-in-read-only-buffer holiday-buffer
-            (calendar-set-mode-line date-string)
-            (insert (mapconcat 'identity holiday-list "\n")))
-          (message  "No diary entries for %s" date-string))
-      (with-current-buffer
-          (find-buffer-visiting (substitute-in-file-name diary-file))
+  ;; If selected window is dedicated (to the calendar), need a new one
+  ;; to display the diary.
+  (let* ((pop-up-frames (or pop-up-frames
+                            (window-dedicated-p (selected-window))))
+         (dbuff (find-buffer-visiting (substitute-in-file-name diary-file)))
+         (empty (diary-display-no-entries)))
+    ;; This may be too wide, but when simple diary is used there is
+    ;; nowhere else for the holidays to go.  Also, it is documented in
+    ;; holidays-in-diary-buffer that the holidays go in the mode-line.
+    ;; FIXME however if there are no diary entries a separate buffer
+    ;; is displayed - this is inconsistent.
+    (with-current-buffer dbuff
+      (calendar-set-mode-line (format "Diary for %s" (cdr empty))))
+    (unless (car empty)                 ; no entries
+      (with-current-buffer dbuff
         (let ((window (display-buffer (current-buffer))))
           ;; d-s-p is passed from diary-list-entries.
           (set-window-point window diary-saved-point)
@@ -853,33 +863,20 @@ changing the variable `diary-include-string'."
 
 (defun fancy-diary-display ()
   "Prepare a diary buffer with relevant entries in a fancy, noneditable form.
-This function is provided for optional use as the `diary-display-hook'."
+To use this function, add it to `diary-display-hook'."
   ;; Turn off selective-display in the diary file's buffer.
   (with-current-buffer
       (find-buffer-visiting (substitute-in-file-name diary-file))
     (diary-unhide-everything))
-  (if (or (not diary-entries-list)
-          (and (not (cdr diary-entries-list))
-               (string-equal (cadr (car diary-entries-list)) "")))
-      (let* ((holiday-list (if holidays-in-diary-buffer
-                               (calendar-check-holidays original-date)))
-             (msg (format "No diary entries for %s %s"
-                          (concat date-string (if holiday-list ":" ""))
-                          (mapconcat 'identity holiday-list "; "))))
-        (if (<= (length msg) (frame-width))
-            (message "%s" msg)
-          (calendar-in-read-only-buffer holiday-buffer
-            (insert (mapconcat 'identity holiday-list "\n")))
-          (message  "No diary entries for %s" date-string)))
+  (unless (car (diary-display-no-entries)) ; no entries
     ;; Prepare the fancy diary buffer.
     (calendar-in-read-only-buffer fancy-diary-buffer
       (calendar-set-mode-line "Diary Entries")
-      (let ((entry-list diary-entries-list)
-            (holiday-list)
-            (holiday-list-last-month 1)
+      (let ((holiday-list-last-month 1)
             (holiday-list-last-year 1)
-            (date (list 0 0 0)))
-        (dolist (entry entry-list)
+            (date (list 0 0 0))
+            holiday-list)
+        (dolist (entry diary-entries-list)
           (unless (calendar-date-equal date (car entry))
             (setq date (car entry))
             (and holidays-in-diary-buffer
@@ -1305,7 +1302,7 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
 
 (defun mark-included-diary-files ()
   "Mark the diary entries from other diary files with those of the diary file.
-This function is suitable for use as the `mark-diary-entries-hook'; it enables
+This function is suitable for use with `mark-diary-entries-hook'; it enables
 you to use shared diary files together with your own.  The files included are
 specified in the `diary-file' by lines of this form:
         #include \"filename\"
