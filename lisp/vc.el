@@ -1189,9 +1189,10 @@ that is inserted into the command line before the filename."
 	    (when (and (not (eq t okstatus))
 		       (or (not (integerp status))
 			   (and okstatus (< okstatus status))))
-	      (pop-to-buffer (current-buffer))
-	      (goto-char (point-min))
-	      (shrink-window-if-larger-than-buffer)
+              (unless (eq ?\s (aref (buffer-name (current-buffer)) 0))
+                (pop-to-buffer (current-buffer))
+                (goto-char (point-min))
+                (shrink-window-if-larger-than-buffer))
 	      (error "Running %s...FAILED (%s)" full-command
 		     (if (integerp status) (format "status %d" status) status))))
 	  ;; We're done.  But don't emit a status message if running

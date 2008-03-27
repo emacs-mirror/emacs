@@ -1,3 +1,8 @@
+2008-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-do-command): Don't pop to the buffer if it's an internal
+	temp buffer.
+
 2008-03-27  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-bahai.el (diary-bahai-list-entries):
