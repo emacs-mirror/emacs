@@ -13,7 +13,8 @@
 
 	* calendar/diary-lib.el (diary-face-attrs): Fix `height' regexp.
 	(list-diary-entries-hook, mark-diary-entries-hook)
-	(include-other-diary-files, mark-included-diary-files): Doc fixes.
+	(include-other-diary-files, mark-included-diary-files)
+	(list-sexp-diary-entries): Doc fixes.
 	(diary-set-header): New function.
 	(diary-header-line-flag, diary-header-line-format):
 	Use diary-set-header for custom :set function.
