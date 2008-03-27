@@ -3030,6 +3030,7 @@
   Boston, MA 02110-1301, USA.
 
 ;; Local Variables:
+;; coding: utf-8
 ;; sentence-end-double-space: nil
 ;; add-log-time-zone-rule: t
 ;; End:
