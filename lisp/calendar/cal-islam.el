@@ -209,7 +209,7 @@ nil if it is not visible in the current calendar window."
 Islamic date diary entries must be prefaced by `islamic-diary-entry-symbol'
 \(normally an `I').  The same `diary-date-forms' govern the style
 of the Islamic calendar entries, except that the Islamic month
-names must be spelled in full.  The Islamic months are numbered
+names cannot be abbreviated.  The Islamic months are numbered
 from 1 to 12 with Muharram being 1 and 12 being Dhu al-Hijjah.
 If an Islamic date diary entry begins with `diary-nonmarking-symbol',
 the entry will appear in the diary listing, but will not be
