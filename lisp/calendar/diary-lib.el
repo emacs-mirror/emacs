@@ -84,8 +84,8 @@ are holidays."
 (defcustom diary-face-attrs
   '((" *\\[foreground:\\([-a-z]+\\)\\]$" 1 :foreground string)
     (" *\\[background:\\([-a-z]+\\)\\]$" 1 :background string)
-    (" *\\[width:\\([-a-z]+\\)\\]$" 1 :width int)
-    (" *\\[height:\\([-0-9a-z]+\\)\\]$" 1 :height int)
+    (" *\\[width:\\([-a-z]+\\)\\]$" 1 :width symbol)
+    (" *\\[height:\\([.0-9]+\\)\\]$" 1 :height int)
     (" *\\[weight:\\([-a-z]+\\)\\]$" 1 :weight symbol)
     (" *\\[slant:\\([-a-z]+\\)\\]$" 1 :slant symbol)
     (" *\\[underline:\\([-a-z]+\\)\\]$" 1 :underline stringtnil)
