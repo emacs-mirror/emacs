@@ -49,7 +49,7 @@
 
 	* sed1.inp: Revert last change.
 
-2004-11-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* sed1v2.inp: Use djecho for buildobj.lst.
 
@@ -159,7 +159,7 @@
 
 	* sed1v2.inp: Delete _gdbinit in distclean target.
 
-2001-12-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-09  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: Moved back.
 
@@ -168,7 +168,7 @@
 	* sed2.inp (HAVE_VFORK): Don't define: the fragment in sysdep.c
 	which needed it is gone.
 
-2001-11-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-29  Pavel Janík  <Pavel@Janik.cz>
 
 	* COPYING: Removed.
 
@@ -647,7 +647,7 @@
 	* sed1.inp: New file for changing src/makefile.in.in into src/makefile.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 
