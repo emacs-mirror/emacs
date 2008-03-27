@@ -20,6 +20,7 @@
 	(diary-display-no-entries): New function.
 	(simple-diary-display, fancy-diary-display): Use it.
 	(fancy-diary-display): Doc fix.  Remove unneeded local entry-list.
+	(diary-mark-entries-1): Fix position offsets in non-gregorian case.
 
 2008-03-26  Jay Belanger  <jay.p.belanger@gmail.com>
 
