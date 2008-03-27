@@ -7280,6 +7280,10 @@ start_hourglass ()
   int secs, msecs = 0;
   struct frame * f = SELECTED_FRAME ();
 
+  /* No cursors on non GUI frames.  */
+  if (!FRAME_W32_P (f))
+    return;
+
   cancel_hourglass ();
 
   if (INTEGERP (Vhourglass_delay)
