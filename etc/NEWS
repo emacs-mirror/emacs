@@ -145,6 +145,8 @@ the currently selected Emacs frame.
 
 ** Transient Mark Mode is now on by default.
 
+** mark-even-if-inactive now defaults to t
+
 ** C-SPC C-SPC in transient-mark-mode pushes a mark without activating it.
 
 ** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
