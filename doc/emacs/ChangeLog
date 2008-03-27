@@ -122,7 +122,7 @@
 
 	* frames.texi (Cut/Paste Other App): Mention x-select-request-type.
 
-2007-11-15  Francesco Potort,Al(B  <pot@gnu.org>
+2007-11-15  Francesco Potortì  <pot@gnu.org>
 
 	* maintaining.texi (TEXTAGS): Note that you can use "-" for stdout with
 	--output=file.
@@ -415,7 +415,7 @@
 
 	* maintaining.texi (Create Tags Table): Clean up previous change.
 
-2007-05-05  Francesco Potort,Al(B  <pot@gnu.org>
+2007-05-05  Francesco Potortì  <pot@gnu.org>
 
 	* maintaining.texi (Create Tags Table): Add text about the dangers of
 	making symbolic links to tags files.
@@ -625,7 +625,7 @@
 
 	* back.texi: Remove unused file.
 
-2007-02-05  Francesco Potort,Al(B  <pot@gnu.org>
+2007-02-05  Francesco Potortì  <pot@gnu.org>
 
 	* maintaining.texi (Tag Syntax): Now --members is the default for
 	etags, not for ctags yet.
@@ -686,7 +686,7 @@
 
 	* xresources.texi (Resources): Minor fix.
 
-2007-01-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2007-01-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (Table of Resources): Add scrollBarWidth resource.
 
@@ -815,7 +815,7 @@
 	* text.texi (Outline Format): Say to set outline-regexp
 	and outline-level with major modes and file local variables.
 
-2006-12-05  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-12-05  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* anti.texi (Antinews): Mention the alternative to
 	`~/.emacs_SHELLNAME', which is `~/.emacs.d/init_SHELLNAME.sh'.
@@ -868,7 +868,7 @@
 
 	* makefile.w32-in (emacs.dvi): Remove xresmini.texi.
 
-2006-11-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-11-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* Makefile.in (emacs.dvi): Remove xresmini.texi.
 
@@ -876,7 +876,7 @@
 
 	* xresources.texi: Merge text from xresmini.texi.
 
-2006-11-12  Roberto Rodr,Am(Bguez  <lanubeblanca@googlemail.com>  (tiny change)
+2006-11-12  Roberto Rodríguez  <lanubeblanca@googlemail.com>  (tiny change)
 
 	* glossary.texi: Fix typos.
 
@@ -957,7 +957,7 @@
 	* frames.texi (Dialog Boxes): Clean up wording: avoid passive,
 	stick to present tense.
 
-2006-09-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-09-18  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Dialog Boxes): Rename x-use-old-gtk-file-dialog
 	to x-gtk-use-old-file-dialog.
@@ -1291,7 +1291,7 @@
 	* misc.texi (Shell History Copying): Update descriptions of `C-c RET'
 	and Mouse-2.
 
-2006-06-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-06-01  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* screen.texi (Menu Bar): Change menu-bar-start to menu-bar-open.
 
@@ -1299,7 +1299,7 @@
 
 	* basic.texi (Moving Point): Fix previous change.
 
-2006-05-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-05-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* screen.texi (Menu Bar): F10 for Gtk+/Lesstif/Lucid menus.
 
@@ -1373,7 +1373,7 @@
 	* mule.texi (Coding Systems, Text Coding): More indexing.
 	Mention that C-x RET f can set eol conversion.
 
-2006-05-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2006-05-07  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xresmini.texi (GTK resources): Insert GTK description.
 
@@ -1841,7 +1841,7 @@
 
 	* building.texi (Watch Expressions): Update and be more precise.
 
-2006-02-15  Francesco Potort,Al(B  <pot@gnu.org>
+2006-02-15  Francesco Potortì  <pot@gnu.org>
 
 	* maintaining.texi (Create Tags Table): Explain why the
 	exception when etags writes to files under the /dev tree.
@@ -2231,7 +2231,7 @@
 
 	* basic.texi (Position Info): Update example.
 
-2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-12-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Dialog Boxes): Add x-gtk-show-hidden-files.
 
@@ -2293,7 +2293,7 @@
 	* killing.texi (Killing by Lines): Document `kill-whole-line'
 	function.
 
-2005-12-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+2005-12-16  Lőrentey Károly  <lorentey@elte.hu>
 
 	* buffers.texi (Select Buffer): Change `prev-buffer' to
 	`previous-buffer'.  Indicate that these functions use a frame
@@ -2457,7 +2457,7 @@
 	* help.texi (Help Echo): By default, help echos are only shown on
 	mouse-over, not on point-over.
 
-2005-11-04  J,Ai(Br,At(Bme Marant  <jerome@marant.org>
+2005-11-04  Jérôme Marant  <jerome@marant.org>
 
 	* misc.texi (Shell Mode): Describe how to activate password echoing.
 
@@ -2547,7 +2547,7 @@
 
 	* basic.texi (Position Info): Fix previous change.
 
-2005-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-10-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cmdargs.texi (Icons X): Fix typo.
 
@@ -2556,7 +2556,7 @@
 	* basic.texi (Position Info): Describe the case that Emacs shows
 	"part of display ...".
 
-2005-10-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-10-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cmdargs.texi (Icons X): -nb => -nbi.
 
@@ -2580,7 +2580,7 @@
 	dismissing the speedbar, and buffer display mode.  Link to
 	speedbar manual.
 
-2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-10-09  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* cmdargs.texi (Icons X): Removed options -i, -itype, --icon-type,
 	added -nb, --no-bitmap-icon.
@@ -2590,7 +2590,7 @@
 	* building.texi (GDB Graphical Interface): Add variables and
 	functions to indices.  Be more precise.
 
-2005-10-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-10-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Drag and Drop): Remove the x- from
 	x-dnd-open-file-other-window and xdnd-protocol-alist.
@@ -3150,7 +3150,7 @@
 
 	* frames.texi (XTerm Mouse): Xterm Mouse mode is now enabled by default.
 
-2005-04-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-04-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (Table of Resources): Add cursorBlink.
 
@@ -3180,7 +3180,7 @@
 	(Rmail Attributes): Correct pxref.  Mention `stored' attribute.
 	(Rmail Summary Edit): Describe `j' and RET.
 
-2005-04-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2005-04-10  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (Lucid Resources): Add fontSet resource.
 
@@ -3944,7 +3944,7 @@
 
 	* custom.texi (File Variables): Clarify previous change.
 
-2004-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-12-27  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Dialog Boxes): Mention Gtk+ 2.6 also, as that version is
 	out now.
@@ -4033,7 +4033,7 @@
 	* mule.texi (Enabling Multibyte): Refer to File Variables.
 	Suggested by Simon Krahnke <overlord@gmx.li>.
 
-2004-11-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-26  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Dialog Boxes): Rename use-old-gtk-file-dialog to
 	x-use-old-gtk-file-dialog.
@@ -4058,11 +4058,11 @@
 	to Alex Ott, Karl Fogel, Stefan Monnier, and David Kastrup for
 	suggestions.
 
-2004-11-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Dialog Boxes): Replace non-nil with non-@code{nil}.
 
-2004-11-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-11-02  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Dialog Boxes): Document use-old-gtk-file-dialog.
 
@@ -4201,7 +4201,7 @@
 	`apply-macro-to-region-lines' now operates on all lines that begin
 	in the region, rather than on all complete lines in the region.
 
-2004-08-31  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-08-31  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Drag and drop): Add documentation about
 	x-dnd-test-function and x-dnd-known-types.
@@ -4560,12 +4560,12 @@
 	(Title X): Remove alias -title.
 	(Misc X): New node.
 
-2004-02-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-02-15  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Drag and drop): Add Motif to list of supported
 	protocols.
 
-2004-02-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2004-02-03  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Drag and drop): New section.
 
@@ -4594,7 +4594,7 @@
 	* files.texi: Say how to disable VC.  Suggested by Alan Mackenzie
 	<acm@muc.de>.
 
-2003-11-29  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-11-29  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Dialog Boxes): Add use-file-dialog.
 
@@ -4632,7 +4632,7 @@
 
 	* xresources.texi (GTK resources): Clean up previous change.
 
-2003-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-10-12  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (GTK resources): Add a note that some themes
 	disallow customizations.  Add scroll theme example.
@@ -4648,7 +4648,7 @@
 
 	* misc.texi: Section "Saving Emacs Sessions" rewritten.
 
-2003-09-29  Jan Dj,Ad(Brv.  <jan.h.d@swipnet.se>
+2003-09-29  Jan Djärv.  <jan.h.d@swipnet.se>
 
 	* xresources.texi (GTK names in Emacs): Correct typo.
 
@@ -4788,13 +4788,13 @@
 	* building.texi (GDB Graphical Interface): New node.
 	(Rewritten somewhat by RMS.)
 
-2003-05-28  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-05-28  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* custom.texi (Init Rebinding): Xref Non-ASCII Rebinding, for
 	non-English letters.  Explain how to set coding systems correctly
 	and how to include the right coding cookie in the file.
 
-2003-05-22  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+2003-05-22  Kai Großjohann  <kai.grossjohann@gmx.net>
 
 	* indent.texi (Indentation): Explain the concepts.
 	(Just Spaces): Explain why preventing tabs for indentation might
@@ -4820,7 +4820,7 @@
 
 	* sending.texi (Mail Methods): Add node about SMTP.
 
-2003-02-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-02-17  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (GTK names in Emacs): Add emacs-toolbar - GtkToolbar.
 
@@ -4832,14 +4832,14 @@
 
 	* killing.texi (Rectangles): Document C-x c r.
 
-2003-01-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+2003-01-19  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (GTK resources): New node.
 	(GTK widget names): New node.
 	(GTK names in Emacs): New node.
 	(GTK styles): New node.
 
-2003-01-09  Francesco Potort,Al(B  <pot@gnu.org>
+2003-01-09  Francesco Potortì  <pot@gnu.org>
 
 	* maintaining.texi (Create Tags Table): Add reference to the new
 	`etags --help --lang=LANG' option.
@@ -5162,7 +5162,7 @@
 	University of Washington.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; fill-column: 79
 ;; add-log-time-zone-rule: t
 ;; End:
