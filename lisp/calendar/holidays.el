@@ -129,10 +129,9 @@ This function is suitable for execution in a .emacs file."
 ;;;###autoload
 (defun list-holidays (y1 &optional y2 l label)
   "Display holidays for years Y1 to Y2 (inclusive).
-
-The optional list of holidays L defaults to `calendar-holidays'.
-If you want to control what holidays are displayed, use a
-different list.  For example,
+Y2 defaults to Y1.  The optional list of holidays L defaults to
+`calendar-holidays'.  If you want to control what holidays are
+displayed, use a different list.  For example,
 
   (list-holidays 2006 2006
     (append general-holidays local-holidays other-holidays))
