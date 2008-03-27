@@ -536,7 +536,7 @@
 	(gnus-mime-delete-part): Don't write description line if empty.
 	(gnus-article-encrypt-body): Add confirmation for gnus-novice-user.
 
-2007-12-14  Johan Bockg,Ae(Brd  <bojohan@gnu.org>
+2007-12-14  Johan Bockgård  <bojohan@gnu.org>
 
 	* gnus-sum.el (gnus-summary-mark-unread-as-read)
 	(gnus-summary-mark-read-and-unread-as-read)
@@ -1202,7 +1202,7 @@
 2007-10-26  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-remove-blank-cited-lines): New function.
-	Suggested by Karl Pl,Ad(Bsterer.
+	Suggested by Karl Plästerer.
 
 2007-10-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -1674,7 +1674,7 @@
 	* mm-uu.el (mm-uu-type-alist): Refer to mm-uu-configure-list in doc
 	string.
 
-2007-07-20  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-07-20  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* nnrss.el (nnrss-ignore-article-fields): New variable.  List of fields
 	that should be ignored when comparing distant RSS articles with local
@@ -2033,7 +2033,7 @@
 	face for "X-Foo", its apparent intended purpose.  Move "X-" pattern
 	ahead of the anything pattern, to get it recognised.
 
-2007-05-12  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-05-12  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* gnus-sum.el (gnus-articles-to-read)
 	(gnus-summary-insert-old-articles): Don't truncate group name for
@@ -2044,7 +2044,7 @@
 	* gnus-sum.el (gnus-simplify-subject-fully): Use
 	`truncate-string-to-width' instead.
 
-2007-05-11  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-05-11  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* gnus-sum.el (gnus-summary-next-group-on-exit): New variable.  Tell
 	if, on summary exit, the next group has to be selected.
@@ -2367,7 +2367,7 @@
 
 	* smiley.el (smiley-regexp-alist): Add "dead" smiley.
 
-2007-02-14  Micha,Ak(Bl Cadilhac  <michael@cadilhac.name>
+2007-02-14  Michaël Cadilhac  <michael@cadilhac.name>
 
 	* nntp.el (nntp-send-command): Don't wait for echoes when
 	nntp-open-ssl-stream is used.
@@ -2599,7 +2599,7 @@
 
 	* gnus-cite.el (gnus-message-citation-mode): Don't define in XEmacs.
 
-2006-12-29  Jouni K. Sepp,Ad(Bnen  <jks@iki.fi>
+2006-12-29  Jouni K. Seppänen  <jks@iki.fi>
 
 	* nnimap.el (nnimap-expunge-search-string): Mention
 	nnimap-search-uids-not-since-is-evil in docstring.
@@ -2751,7 +2751,7 @@
 	* gnus-sum.el (gnus-sort-threads, gnus-summary-limit-children):
 	Use `max' to avoid the value of `max-lisp-eval-depth' decreasing.
 
-2006-12-04  Jouni K. Sepp,Ad(Bnen  <jks@iki.fi>
+2006-12-04  Jouni K. Seppänen  <jks@iki.fi>
 
 	* mm-url.el (mm-url-predefined-programs): Call curl with correct
 	options.
@@ -3349,7 +3349,7 @@
 
 	* pgg-def.el (pgg-truncate-key-identifier): Truncate the key ID to 8
 	letters from the end.  Thanks to "David Smith" <davidsmith@acm.org> and
-	andreas@altroot.de (Andreas V,Av(Bgele).
+	andreas@altroot.de (Andreas Vögele).
 
 	FIXME: Use `tiny change'?
 
@@ -3700,7 +3700,7 @@
 
 	* nnrss.el (nnrss-check-group): Bind hash-index.
 
-2006-05-23  Micha,Ak(Bl Cadilhac  <michael.cadilhac@lrde.org>
+2006-05-23  Michaël Cadilhac  <michael.cadilhac@lrde.org>
 
 	* nnrss.el (nnrss-check-group): Use the md5sum of the whole RSS item as
 	its hash index.  Store this hash in `nnrss-group-data'.
@@ -4071,7 +4071,7 @@
 	* gnus-topic.el (gnus-topic-display-missing-topic): Skip past
 	groups in the parent topic.
 
-2006-04-16  Jo,Ac(Bo Cachopo  <joao.cachopo@inesc-id.pt>  (tiny change)
+2006-04-16  João Cachopo  <joao.cachopo@inesc-id.pt>  (tiny change)
 
 	* spam.el (spam-necessary-extra-headers): Add X-CRM114-Status.
 	(spam-extra-header-to-number): Return the CRM114 number as a
@@ -4272,7 +4272,7 @@
 	* gnus-art.el (gnus-button-valid-localpart-regexp): Exclude `@'.
 	(gnus-article-browse-delete-temp): Add :version.
 
-2006-04-11  Arne J,Ax(Brgensen  <arne@arnested.dk>
+2006-04-11  Arne Jørgensen  <arne@arnested.dk>
 
 	* gnus-sieve.el (gnus-sieve-generate): Delete from the start of
 	the sieve region.
@@ -4900,7 +4900,7 @@
 	Lisp error; give up parsing of parameters if it failed in
 	extracting type.
 
-2006-02-14  Arne J,Ax(Brgensen  <arne@arnested.dk>
+2006-02-14  Arne Jørgensen  <arne@arnested.dk>
 
 	* smime.el (smime-cert-by-ldap-1): Fix bug where
 	`smime-ldap-search' returns results without userCertificates.
@@ -5783,7 +5783,7 @@
 	whitespace removed in revision 7.8.  Use concatenated string to
 	protect trailing whitespace.
 
-2005-10-27  Jouni K. Sepp,Ad(Bnen  <jks@iki.fi>
+2005-10-27  Jouni K. Seppänen  <jks@iki.fi>
 
 	* nnimap.el (nnimap-search-uids-not-since-is-evil): Add variable.
 	(nnimap-request-expire-articles): Use it to avoid sending 'UID
@@ -6070,7 +6070,7 @@
 
 	* message.el (message-idna-to-ascii-rhs-1): Reformat.
 
-2005-09-27  Arne J,Ax(Brgensen  <arne@arnested.dk>
+2005-09-27  Arne Jørgensen  <arne@arnested.dk>
 
 	* message.el (message-remove-duplicates): New function.
 	Implementation borrowed from `gnus-remove-duplicates'.
@@ -6712,7 +6712,7 @@
 	* mm-extern.el (mm-extern-local-file, mm-inline-external-body):
 	* pop3.el (pop3-user): Don't use `format' on `error' arguments.
 
-2005-06-16  Arne J,Ax(Brgensen  <arne@arnested.dk>
+2005-06-16  Arne Jørgensen  <arne@arnested.dk>
 
 	* smime.el (smime-cert-by-ldap-1): Detect PEM format without
 	header by looking for magic "MII" at the beginnig.
@@ -6932,7 +6932,7 @@
 	* smime.el (smime-cert-by-ldap-1): Don't use
 	replace-regexp-in-string.
 
-2005-05-31  Arne J,Ax(Brgensen  <arne@arnested.dk>
+2005-05-31  Arne Jørgensen  <arne@arnested.dk>
 
 	* smime-ldap.el (smime-ldap-search): Add compatibility for XEmacs.
 
@@ -7353,7 +7353,7 @@
 
 	* nnimap.el (nnimap-retrieve-headers-from-server): Fix last change.
 
-2005-03-10  Arne J,Ax(Brgensen  <arne@arnested.dk>  (tiny change)
+2005-03-10  Arne Jørgensen  <arne@arnested.dk>  (tiny change)
 
 	* nnimap.el (nnimap-retrieve-headers-from-server): Fix off-by-one flaw.
 
@@ -7468,7 +7468,7 @@
 	* gnus-sum.el (gnus-summary-exit): Move point after displaying the
 	buffer, so it moves the window's cursor.
 
-2005-02-26  Arne J,Ax(Brgensen  <arne@arnested.dk>
+2005-02-26  Arne Jørgensen  <arne@arnested.dk>
 
 	* mm-decode.el (mm-dissect-buffer): Pass the from field on to
 	`mm-dissect-multipart' and receive the from field as an (optional)
@@ -7504,12 +7504,12 @@
 2005-02-22  Simon Josefsson  <jas@extundo.com>
 
 	* encrypt.el (encrypt-password-cache-expiry): Remove (use
-	`password-cache-expiry' instead).  Reported by Arne J,Ax(Brgensen
+	`password-cache-expiry' instead).  Reported by Arne Jørgensen
 	<arne@arnested.dk>.
 	(encrypt): Add password-cache and password-cache-expiry as group
 	members.
 
-2005-02-22  Arne J,Ax(Brgensen  <arne@arnested.dk>
+2005-02-22  Arne Jørgensen  <arne@arnested.dk>
 
 	* smime.el (smime-ldap-host-list): Doc fix.
 	(smime-ask-passphrase): Use `password-read-and-add' to read (and
@@ -7529,7 +7529,7 @@
 
 	* mml.el (mml-parse-1): Use them.
 
-2005-02-21  Arne J,Ax(Brgensen  <arne@arnested.dk>
+2005-02-21  Arne Jørgensen  <arne@arnested.dk>
 
 	* nnrss.el (nnrss-verbose): Removed.
 	(nnrss-request-group): Use `nnheader-message' instead.
@@ -7593,7 +7593,7 @@
 	mml-smime-get-dns-ldap.
 	(mml-smime-encrypt-query): Use new function.  Default to ldap.
 
-2005-02-14  Arne J,Ax(Brgensen  <arne@arnested.dk>
+2005-02-14  Arne Jørgensen  <arne@arnested.dk>
 
 	* smime.el: Require smime-ldap.
 	(smime-ldap-host-list): New variable.
@@ -8223,7 +8223,7 @@
 
 	* gnus-art.el (gnus-header-button-alist): Handle URLs in OpenPGP:
 	headers separately.
-	(gnus-button-openpgp): New function, inspired by Jochen K,A|(Bpper
+	(gnus-button-openpgp): New function, inspired by Jochen Küpper
 	<jochen-+It19tn3Rl9sbm7dSapR3bNAH6kLmebB@public.gmane.org>.
 
 2004-11-14  Reiner Steib  <Reiner.Steib@gmx.de>
@@ -9937,7 +9937,7 @@
 	(spam-mark-junk-as-spam-routine): Use it.  Allow to disable
 	assigning the spam-mark to new messages.
 
-2004-05-26  Adam Sj,Ax(Bgren  <asjo@koldfront.dk>  (tiny change)
+2004-05-26  Adam Sjøgren  <asjo@koldfront.dk>  (tiny change)
 
 	(spam-ham-copy-or-move-routine): Don't declare `todo' twice.
 
@@ -10076,7 +10076,7 @@
 	(spam-crm114-unregister-spam-routine)
 	(spam-crm114-register-ham-routine)
 	(spam-crm114-unregister-ham-routine): Add CRM114 support.  From
-	asjo@koldfront.dk (Adam Sj,Ax(Bgren).
+	asjo@koldfront.dk (Adam Sjøgren).
 
 	* gnus.el: Add spam-use-crm114.
 
@@ -10481,7 +10481,7 @@
 	FIXME: Make separate entries for each person.
 
 	From Dan Christensen <jdc@uwo.ca>, asjo@koldfront.dk (Adam
-	Sj,Ax(Bgren), Wes Hardaker <wes@hardakers.net>, and Michael Shields
+	Sjøgren), Wes Hardaker <wes@hardakers.net>, and Michael Shields
 	<shields@msrl.com>:
 
 	* spam.el (spam-necessary-extra-headers): Get the extra headers we
@@ -10501,7 +10501,7 @@
 2004-04-21  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* spam.el (spam-summary-prepare-exit): Add logic and message fix.
-	Reported by bojohan+news@dd.chalmers.se (Johan Bockg,Ae(Brd).
+	Reported by bojohan+news@dd.chalmers.se (Johan Bockgård).
 
 2004-04-17  Jesper Harder  <harder@ifa.au.dk>
 
@@ -11614,7 +11614,7 @@
 
 	* gnus-score.el (gnus-score-edit-all-score): Fix prototype.
 	Invoke gnus-score-mode.  Reported by
-	bojohan+news@dd.chalmers.se (Johan Bockg,Ae(Brd).
+	bojohan+news@dd.chalmers.se (Johan Bockgård).
 
 	* gnus-range.el (gnus-compress-sequence): Doc fix.  Suggested by
 	Jim Blandy <jimb@redhat.com> (tiny change).
@@ -11948,7 +11948,7 @@
 
 	* password.el: Removed definition of run-at-time.
 
-2004-01-05  Karl Pfl,Ad(Bsterer  <sigurd@12move.de>  (tiny change)
+2004-01-05  Karl Pflästerer  <sigurd@12move.de>  (tiny change)
 
 	* mml.el (mml-minibuffer-read-disposition): Show attachment type
 	in prompt.
@@ -12243,7 +12243,7 @@ See ChangeLog.2 for earlier changes.
   Boston, MA 02110-1301, USA.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; fill-column: 79
 ;; add-log-time-zone-rule: t
 ;; End:
