@@ -7,7 +7,7 @@
 	* icalendar-testsuite.el: New file.
 
 ;; Local Variables:
-;; coding: iso-2022-7bit
+;; coding: utf-8
 ;; add-log-time-zone-rule: t
 ;; End:
 
