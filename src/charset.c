@@ -1058,8 +1058,29 @@ usage: (define-charset-internal ...)  */)
 	Vcharset_ordered_list = nconc2 (Vcharset_ordered_list,
 					Fcons (make_number (id), Qnil));
       else
-	Vcharset_ordered_list = Fcons (make_number (id),
-				       Vcharset_ordered_list);
+	{
+	  Lisp_Object tail;
+
+	  for (tail = Vcharset_ordered_list; CONSP (tail); tail = XCDR (tail))
+	    {
+	      struct charset *cs = CHARSET_FROM_ID (XINT (XCAR (tail)));
+
+	      if (cs->supplementary_p)
+		break;
+	    }
+	  if (EQ (tail, Vcharset_ordered_list))
+	    Vcharset_ordered_list = Fcons (make_number (id),
+					   Vcharset_ordered_list);
+	  else if (NILP (tail))
+	    Vcharset_ordered_list = nconc2 (Vcharset_ordered_list,
+					    Fcons (make_number (id), Qnil));
+	  else
+	    {
+	      val = Fcons (XCAR (tail), XCDR (tail));
+	      XSETCDR (tail, val);
+	      XSETCAR (tail, make_number (id));
+	    }
+	}
       charset_ordered_list_tick++;
     }
 
@@ -2161,7 +2182,7 @@ syms_of_charset ()
 			       0, MAX_UNICODE_CHAR, -1, 0, -1, 1, 0, 0);
   charset_eight_bit
     = define_charset_internal (Qeight_bit, 1, "\x80\xFF\x00\x00\x00\x00",
-			       128, 255, -1, 0, -1, 0, 0,
+			       128, 255, -1, 0, -1, 0, 1,
 			       MAX_5_BYTE_CHAR + 1);
 }
 
