@@ -578,17 +578,21 @@ entries of the desired type.  Returns non-nil if any entries were found."
         (goto-char (point-min))
         (while (re-search-forward regexp nil t)
           (if backup (re-search-backward "\\<" nil t))
+          ;; regexp moves us past the end of date, onto the next line.
+          ;; Trailing whitespace after date not allowed (see diary-file).
           (if (and (bolp) (not (looking-at "[ \t]")))
               ;;  Diary entry that consists only of date.
               (backward-char 1)
             ;; Found a nonempty diary entry--make it
             ;; visible and add it to the list.
             ;; Actual entry starts on the next-line?
+            ;; FIXME not a valid case AFAICS.
             (if (looking-at "[ \t]*\n[ \t]") (forward-line 1))
             (setq entry-found t
                   entry-start (point)
                   ;; If bolp, must have done (forward-line 1).
                   ;; FIXME Why number > 1?
+                  ;; FIXME why not set before f-l 1?
                   date-start (line-end-position (if (and (bolp) (> number 1))
                                                     -1 0)))
             (forward-line 1)
@@ -1483,21 +1487,22 @@ be used instead of a colon (:) to separate the hour and minute parts."
 
 (defun list-sexp-diary-entries (date)
   "Add sexp entries for DATE from the diary file to `diary-entries-list'.
-Also, make them visible in the diary file.  Returns t if any entries were
-found.
+Also, make them visible in the diary.  Returns t if any entries are found.
 
-Sexp diary entries must be prefaced by a `sexp-diary-entry-symbol' (normally
-`%%').  The form of a sexp diary entry is
+Sexp diary entries must be prefaced by a `sexp-diary-entry-symbol'
+\(normally `%%').  The form of a sexp diary entry is
 
                   %%(SEXP) ENTRY
 
-Both ENTRY and DATE are globally available when the SEXP is evaluated.  If the
-SEXP yields the value nil, the diary entry does not apply.  If it yields a
-non-nil value, ENTRY will be taken to apply to DATE; if the non-nil value is a
-string, that string will be the diary entry in the fancy diary display.
+Both ENTRY and DATE are available when the SEXP is evaluated.  If
+the SEXP returns nil, the diary entry does not apply.  If it
+returns a non-nil value, ENTRY will be taken to apply to DATE; if
+the value is a string, that string will be the diary entry in the
+fancy diary display.
 
-For example, the following diary entry will apply to the 21st of the month
-if it is a weekday and the Friday before if the 21st is on a weekend:
+For example, the following diary entry will apply to the 21st of
+the month if it is a weekday and the Friday before if the 21st is
+on a weekend:
 
       &%%(let ((dayname (calendar-day-of-week date))
                (day (extract-calendar-day date)))
@@ -1506,143 +1511,93 @@ if it is a weekday and the Friday before if the 21st is on a weekend:
              (and (memq day '(19 20)) (= dayname 5)))
          ) UIUC pay checks deposited
 
-A number of built-in functions are available for this type of diary entry:
+A number of built-in functions are available for this type of
+diary entry.  In the following, the optional parameter MARK
+specifies a face or single-character string to use when
+highlighting the day in the calendar.
 
-      %%(diary-date MONTH DAY YEAR &optional MARK) text
-                  Entry applies if date is MONTH, DAY, YEAR if
-                  `european-calendar-style' is nil (otherwise DAY, MONTH,
-                  YEAR).  DAY, MONTH, and YEAR can be lists of integers,
-                  `t' (meaning all values), or an integer.  An optional
-                  parameter MARK specifies a face or single-character string
-                  to use when highlighting the day in the calendar.
+  %%(diary-date MONTH DAY YEAR &optional MARK) text
+    Entry applies if date is MONTH, DAY, YEAR.  (If
+    `european-calendar-style' is non-nil, the parameter order
+    should be changed to DAY, MONTH, YEAR).  DAY, MONTH, and YEAR can
+    be a list of integers, `t' (meaning all values), or an integer.
 
-      %%(diary-float MONTH DAYNAME N &optional DAY MARK) text
-                  Entry will appear on the Nth DAYNAME of MONTH.
-                  (DAYNAME=0 means Sunday, 1 means Monday, and so on;
-                  if N is negative it counts backward from the end of
-                  the month.  MONTH can be a list of months, a single
-                  month, or t to specify all months.  Optional DAY means
-                  Nth DAYNAME of MONTH on or after/before DAY.  DAY defaults
-                  to 1 if N>0 and the last day of the month if N<0.  An
-                  optional parameter MARK specifies a face or single-character
-                  string to use when highlighting the day in the calendar.
+  %%(diary-float MONTH DAYNAME N &optional DAY MARK) text
+    Entry will appear on the Nth DAYNAME of MONTH (0 being Sunday,
+    1 Monday, etc; if N is negative it counts backward from the end
+    of the month.  MONTH can be a list of months, a single month, or `t'
+    to specify all months.  Optional DAY means the Nth DAYNAME of MONTH
+    on or after/before DAY.  DAY defaults to 1 if N>0 and the last day of
+    the month if N<0.
 
-      %%(diary-block M1 D1 Y1 M2 D2 Y2 &optional MARK) text
-                  Entry will appear on dates between M1/D1/Y1 and M2/D2/Y2,
-                  inclusive.  (If `european-calendar-style' is non-nil, the
-                  order of the parameters should be changed to D1, M1, Y1,
-                  D2, M2, Y2.)  An optional parameter MARK specifies a face
-                  or single-character string to use when highlighting the
-                  day in the calendar.
+  %%(diary-block M1 D1 Y1 M2 D2 Y2 &optional MARK) text
+    Entry will appear on dates between M1/D1/Y1 and M2/D2/Y2,
+    inclusive.  (If `european-calendar-style' is non-nil, the
+    parameter order should be changed to D1, M1, Y1, D2, M2, Y2.)
 
-      %%(diary-anniversary MONTH DAY YEAR &optional MARK) text
-                  Entry will appear on anniversary dates of MONTH DAY, YEAR.
-                  (If `european-calendar-style' is non-nil, the order of the
-                  parameters should be changed to DAY, MONTH, YEAR.)  Text
-                  can contain %d or %d%s; %d will be replaced by the number
-                  of years since the MONTH DAY, YEAR and %s will be replaced
-                  by the ordinal ending of that number (that is, `st', `nd',
-                  `rd' or `th', as appropriate.  The anniversary of February
-                  29 is considered to be March 1 in a non-leap year.  An
-                  optional parameter MARK specifies a face or single-character
-                  string to use when highlighting the day in the calendar.
+  %%(diary-anniversary MONTH DAY YEAR &optional MARK) text
+    Entry will appear on anniversary dates of MONTH DAY,
+    YEAR.  (If `european-calendar-style' is non-nil, the parameter
+    order should be changed to DAY, MONTH, YEAR.)  Text
+    can contain `%d' or `%d%s'; `%d' will be replaced by the number of
+    years since the MONTH DAY, YEAR, and `%s' by the ordinal ending of
+    that number (i.e. `st', `nd', `rd' or `th', as appropriate).  The
+    anniversary of February 29 is considered to be March 1 in a non-leap year.
 
-      %%(diary-cyclic N MONTH DAY YEAR &optional MARK) text
-                  Entry will appear every N days, starting MONTH DAY, YEAR.
-                  (If `european-calendar-style' is non-nil, the order of the
-                  parameters should be changed to N, DAY, MONTH, YEAR.)  Text
-                  can contain %d or %d%s; %d will be replaced by the number
-                  of repetitions since the MONTH DAY, YEAR and %s will
-                  be replaced by the ordinal ending of that number (that is,
-                  `st', `nd', `rd' or `th', as appropriate.  An optional
-                  parameter MARK specifies a face or single-character string
-                  to use when highlighting the day in the calendar.
+  %%(diary-cyclic N MONTH DAY YEAR &optional MARK) text
+    Entry will appear every N days, starting MONTH DAY, YEAR. (If
+    `european-calendar-style' is non-nil, the parameter order
+    should be changed to N, DAY, MONTH, YEAR.)  Text
+    can contain `%d' or `%d%s'; `%d' will be replaced by the number of
+    repetitions since the MONTH DAY, YEAR and `%s' by the ordinal ending
+    of that number (i.e. `st', `nd', `rd' or `th', as appropriate).
 
-      %%(diary-remind SEXP DAYS &optional MARKING) text
-                  Entry is a reminder for diary sexp SEXP.  DAYS is either a
-                  single number or a list of numbers indicating the number(s)
-                  of days before the event that the warning(s) should occur.
-                  If the current date is (one of) DAYS before the event
-                  indicated by EXPR, then a suitable message (as specified
-                  by `diary-remind-message') appears.  In addition to the
-                  reminders beforehand, the diary entry also appears on
-                  the date itself.  If optional MARKING is non-nil then the
-                  *reminders* are marked on the calendar.  Marking of
-                  reminders is independent of whether the entry *itself* is
-                  a marking or nonmarking one.
+  %%(diary-remind SEXP DAYS &optional MARKING) text
+    Entry is a reminder for diary sexp SEXP.  DAYS is either a
+    single number or a list of numbers indicating the number(s)
+    of days before the event that the warning(s) should occur.  If
+    the current date is (one of) DAYS before the event indicated
+    by EXPR, then a suitable message (as specified by
+    `diary-remind-message') appears.  In addition to the
+    reminders beforehand, the diary entry also appears on the
+    date itself.  If optional MARKING is non-nil then the
+    *reminders* are marked on the calendar.  Marking of reminders
+    is independent of whether the entry *itself* is a marking or
+    non-marking one.
 
-      %%(diary-day-of-year)
-                  Diary entries giving the day of the year and the number of
-                  days remaining in the year will be made every day.  Note
-                  that since there is no text, it makes sense only if the
-                  fancy diary display is used.
+  %%(diary-yahrzeit MONTH DAY YEAR) text
+    Text is assumed to be the name of the person; the date is the
+    date of death on the *civil* calendar.  The diary entry will
+    appear on the proper Hebrew-date anniversary and on the day
+    before.  (If `european-calendar-style' is non-nil, the
+    parameter order should be changed to DAY, MONTH, YEAR.)
 
-      %%(diary-iso-date)
-                  Diary entries giving the corresponding ISO commercial date
-                  will be made every day.  Note that since there is no text,
-                  it makes sense only if the fancy diary display is used.
+All the remaining functions do not accept any text, and so only
+make sense with `fancy-diary-display'.  Most produce output every day.
 
-      %%(diary-french-date)
-                  Diary entries giving the corresponding French Revolutionary
-                  date will be made every day.  Note that since there is no
-                  text, it makes sense only if the fancy diary display is used.
+`diary-day-of-year'      - day of year and number of days remaining
+`diary-iso-date'         - ISO commercial date
+`diary-astro-day-number' - astronomical (Julian) day number
+`diary-sunrise-sunset'   - local times of sunrise and sunset
 
-      %%(diary-islamic-date)
-                  Diary entries giving the corresponding Islamic date will be
-                  made every day.  Note that since there is no text, it
-                  makes sense only if the fancy diary display is used.
+These functions give the date in alternative calendrical systems:
 
-      %%(diary-hebrew-date)
-                  Diary entries giving the corresponding Hebrew date will be
-                  made every day.  Note that since there is no text, it
-                  makes sense only if the fancy diary display is used.
+`diary-bahai-date', `diary-chinese-date', `diary-coptic-date',
+`diary-ethiopic-date', `diary-french-date', `diary-hebrew-date',
+`diary-islamic-date', `diary-julian-date', `diary-mayan-date',
+`diary-persian-date'
 
-      %%(diary-astro-day-number) Diary entries giving the corresponding
-                  astronomical (Julian) day number will be made every day.
-                  Note that since there is no text, it makes sense only if the
-                  fancy diary display is used.
+Theses functions only produce output on certain dates:
 
-      %%(diary-julian-date) Diary entries giving the corresponding
-                 Julian date will be made every day.  Note that since
-                 there is no text, it makes sense only if the fancy diary
-                 display is used.
+`diary-phases-of-moon'  - phases of moon (on the appropriate days)
+`diary-omer'            - Omer count, within 50 days after Passover
+`diary-parasha'         - weekly parasha, every Saturday
+`diary-rosh-hodesh'     - Rosh Hodesh, or the day or Saturday before
+`diary-sabbath-candles' - local time of candle lighting, on Fridays
 
-      %%(diary-sunrise-sunset)
-                  Diary entries giving the local times of sunrise and sunset
-                  will be made every day.  Note that since there is no text,
-                  it makes sense only if the fancy diary display is used.
-                  Floating point required.
 
-      %%(diary-phases-of-moon)
-                  Diary entries giving the times of the phases of the moon
-                  will be when appropriate.  Note that since there is no text,
-                  it makes sense only if the fancy diary display is used.
-                  Floating point required.
-
-      %%(diary-yahrzeit MONTH DAY YEAR) text
-                  Text is assumed to be the name of the person; the date is
-                  the date of death on the *civil* calendar.  The diary entry
-                  will appear on the proper Hebrew-date anniversary and on the
-                  day before.  (If `european-calendar-style' is non-nil, the
-                  parameter order should be changed to DAY, MONTH, YEAR.)
-
-      %%(diary-rosh-hodesh)
-                  Diary entries will be made on the dates of Rosh Hodesh on
-                  the Hebrew calendar.  Note that since there is no text, it
-                  makes sense only if the fancy diary display is used.
-
-      %%(diary-parasha)
-                  Diary entries giving the weekly parasha will be made on
-                  every Saturday.  Note that since there is no text, it
-                  makes sense only if the fancy diary display is used.
-
-      %%(diary-omer)
-                  Diary entries giving the omer count will be made every day
-                  from Passover to Shavuot.  Note that since there is no text,
-                  it makes sense only if the fancy diary display is used.
-
-Marking these entries is *extremely* time consuming, so these entries are
-best if they are nonmarking."
+Marking these entries is *extremely* time consuming, so it is
+best if they are non-marking."
   (let ((s-entry (format "^%s?%s(" (regexp-quote diary-nonmarking-symbol)
                          (regexp-quote sexp-diary-entry-symbol)))
         entry-found file-glob-attrs marks)
