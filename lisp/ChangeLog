@@ -1,3 +1,21 @@
+2008-03-27  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-bahai.el (diary-bahai-list-entries):
+	* calendar/cal-hebrew.el (list-hebrew-diary-entries):
+	* calendar/cal-islam.el (list-islamic-diary-entries): Doc fix.
+
+	* calendar/diary-lib.el (diary-face-attrs): Fix type of `width'.
+	(list-diary-entries-hook, mark-diary-entries-hook)
+	(include-other-diary-files, mark-included-diary-files): Doc fixes.
+	(diary-set-header): New function.
+	(diary-header-line-flag, diary-header-line-format):
+	Use diary-set-header for custom :set function.
+	(diary-set-maybe-redraw): Use symbol-value rather than eval.
+	(diary-attrtype-convert): Use intern-soft rather than read.
+	(diary-display-no-entries): New function.
+	(simple-diary-display, fancy-diary-display): Use it.
+	(fancy-diary-display): Doc fix.  Remove unneeded local entry-list.
+
 2008-03-26  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc-store.el (calc-read-var-name-history):
@@ -8,10 +26,6 @@
 
 	* image-mode.el (image-mode-reapply-winprops): Simplify now that
 	window-configuration-change-hook works buffer-locally.
-
-2008-03-25  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
-
-	* proced.el: Add arch-tag.
 
 2008-03-26  Johan Bockgård  <bojohan@gnu.org>
 
