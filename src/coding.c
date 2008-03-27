@@ -7051,7 +7051,7 @@ decode_coding_object (coding, src_object, from, from_byte, to, to_byte,
       /* Most callers presume this will return a multibyte result, and they
 	 won't use `binary' or `raw-text' anyway, so let's not worry about
 	 CODING_FOR_UNIBYTE.  */
-      coding->dst_multibyte = Qt;
+      coding->dst_multibyte = 1;
     }
 
   decode_coding (coding);
