@@ -42,7 +42,7 @@
 	on things like "cdump".
 	Don't use \\s patterns inside brackets.
 
-1995-06-19  David K�gedal  <davidk@lysator.liu.se>
+1995-06-19  David Kågedal  <davidk@lysator.liu.se>
 
 	* tempo.el: Documented the `l' tag.
 	(tempo-insert-template): Check for zmacs-regions.
@@ -770,7 +770,7 @@
 	* dired.el (dired-mode-map): Rename menubar bindings and use the
 	new function names `dired-do-query-replace' and `dired-do-search'.
 
-1995-05-29  Francesco Potorti`  (pot@cnuce.cnr.it)
+1995-05-29  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* man.el (Man-init-defvars): Don't remove lines containing
 	"No such file or directory".
@@ -2142,7 +2142,7 @@
 	(jka-compr-uninstall): Delete entries that jka-compr-install
 	added to inhibit-first-line-modes-suffixes.
 
-1995-04-03  David K�gedal  <davidk@lysator.liu.se>
+1995-04-03  David Kågedal  <davidk@lysator.liu.se>
 
 	* tempo.el (tempo-insert):
 	Added the P tag and modified the s tag accordingly
@@ -2792,7 +2792,7 @@
 	* term.el (term-send-input): Don't move process-mark until
 	after possible 'history processing.
 
-1995-03-07  Francesco Potorti`  (pot@cnuce.cnr.it)
+1995-03-07  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* cmacexp.el (c-macro-expansion): Put the unique string before the
 	first #line directive (instead of after), preceded by a newline.
@@ -3490,7 +3490,7 @@
 	* lpr.el (print-region-1): Use lpr-page-header-switches,
 	not ...-options.
 
-1995-02-03  Francesco Potorti`  (pot@cnuce.cnr.it)
+1995-02-03  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* man.el (Man-default-man-entry): Remove text properties from result.
 
@@ -3765,7 +3765,7 @@
 
 	* bytecomp.el (byte-compile-defvar): Add the var to current-load-list.
 
-1994-01-21  David K�gedal  <davidk@lysator.liu.se>
+1994-01-21  David Kågedal  <davidk@lysator.liu.se>
 
 	* tempo.el (tempo-insert-template): Quoted transient-mark-mode
 	Expansion around region now puts point at the first mark.
@@ -4126,7 +4126,7 @@
 
 	* files.el (revert-buffer): Recompute buffer-file-truename.
 
-	* c-mode.el (indent-c-exp): Handle `{ if (x)\n	foo;\n	bar;' case.
+	* c-mode.el (indent-c-exp): Handle `{ if (x)\n  foo;\n  bar;' case.
 	* cplus-md.el (indent-c++-exp): Handle `{ if (x)\n  foo;\n  bar;' case.
 
 	* etags.el (etags-goto-tag-location): Add 1 to char positions in TAGS.
@@ -5247,7 +5247,7 @@
 	* compile.el (compilation-error-regexp-alist):
 	Add an element for Irix 5.2 warnings.
 
-1994-11-09  Francesco Potorti`  (pot@cnuce.cnr.it)
+1994-11-09  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* man.el (Man-berkeley-sed-script, Man-sysv-sed-script,
 	Man-cleanup-manpage, Man-fontify-manpage): Handle the "+\bo" form
@@ -5301,7 +5301,7 @@
 	* solar.el (solar-sunrise-sunset): Check for nil time before
 	trying to adjust it for dst.
 
-1994-11-07  Francesco Potorti`  (pot@cnuce.cnr.it)
+1994-11-07  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* man.el (Man-reuse-okay-flag): Deleted.
 	(man, Man-getpage-in-background): Second arg deleted.
@@ -5481,7 +5481,7 @@
 
 	* files.el (find-file-noselect): Call set-buffer-major-mode here.
 
-1994-10-27  Francesco Potorti`  (pot@cnuce.cnr.it)
+1994-10-27  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* man.el (Man-fontify-manpage-flag): defvar put at outer level.
 	(manual-program, Man-untabify-command, Man-untabify-command-args,
@@ -5585,7 +5585,7 @@
 
 	* term/x-win.el: Make previous change conditional.
 
-1994-10-24  Francesco Potorti`  (pot@cnuce.cnr.it)
+1994-10-24  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* man.el (Man-init-defvars): Do not delete empty lines.
 
@@ -5593,7 +5593,7 @@
 
 	* enriched.el: New file.
 
-1994-10-24  Francesco Potorti`  (pot@cnuce.cnr.it)
+1994-10-24  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* man.el (Man-cleanup-manpage): Do all the work if called
 	interactively.
@@ -5726,7 +5726,7 @@
 
 	* facemenu.el (facemenu-get-face): Don't add to menu here.
 
-1994-10-14  Francesco Potorti`  (pot@cnuce.cnr.it)
+1994-10-14  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* man.el (Man-init-defvars): Corrections to Man-filter-list.
 	(Man-fontify-manpage): Added cleaning of ksh manpage daggers.
@@ -6226,7 +6226,7 @@
 	(font-lock-face-attributes): New variables, use it.
 	(font-lock-make-face): New function, use them.
 
-1994-10-05  Francesco Potorti`  (pot@cnuce.cnr.it)
+1994-10-05  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* man.el (Man-notify, Man-current-page, Man-page-list,
 	Man-filter-list, Man-original-frame, Man-arguments,
@@ -6382,7 +6382,7 @@
 	(read-envvar-name-history): New variable.
 	(read-envvar-name): New function.
 
-1994-09-30  Francesco Potorti`  (pot@cnuce.cnr.it)
+1994-09-30  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* man.el (Man-init-defvars, Man-cleanup-manpage)
 	(Man-fontify-manpage): Fix previous fix.
@@ -6423,7 +6423,7 @@
 	* texinfmt.el (texinfo-format-region, texinfo-format-buffer-1):
 	Search back for the @include.
 
-1994-09-29  Francesco Potorti`  (pot@cnuce.cnr.it)
+1994-09-29  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* man.el
 	(Man-init-defvars, Man-cleanup-manpage, Man-fontify-manpage):
@@ -6767,7 +6767,7 @@
 	* sendmail.el (sendmail-synch-aliases): Renamed from
 	synch-mail-aliases.  All callers changed.
 
-1994-09-22  Francesco Potorti`  <pot@cnuce.cnr.it>
+1994-09-22  Francesco Potortì  <pot@cnuce.cnr.it>
 
 	* man.el (Man-notify-method): New name for old Man-notify-flag
 	user options.  All functions using it updated.
@@ -6841,7 +6841,7 @@
 	* sendmail.el (mail-default-reply-to): Initialize to t.
 	(mail-setup): If it's t, set it from envvar REPLYTO.
 
-1994-09-19  Francesco Potorti`  <pot@cnuce.cnr.it>
+1994-09-19  Francesco Potortì  <pot@cnuce.cnr.it>
 
 	* man.el (Man-notify-flag): Replaces the old Man-notify
 	variable, use the old one if it is bound as initial value.
@@ -6913,7 +6913,7 @@
 	* sendmail.el (mail-bury-selects-summary): New variable.
 	(mail-bury): Test it.
 
-1994-09-20  Francesco Potorti`  <pot@cnuce.cnr.it>
+1994-09-20  Francesco Potortì  <pot@cnuce.cnr.it>
 
 	* vc-hooks.el (vc-status): Use vc-path when calling prs.
 
@@ -6953,7 +6953,7 @@
 	standard-display-underline): Use display-table-len, instead of
 	hard-coding the display table length.
 
-1994-09-19  Francesco Potorti`  <pot@cnuce.cnr.it>
+1994-09-19  Francesco Potortì  <pot@cnuce.cnr.it>
 
 	* rlogin.el (rlogin): Recognise the `-l user' option to rlogin and
 	let comint and ange-ftp know about the correct home directory.
@@ -7060,7 +7060,7 @@
 
 	* rmail.el (rmail-forward): Insert separator before and after message.
 
-1994-09-18  Francesco Potorti`  <pot@cnuce.cnr.it>
+1994-09-18  Francesco Potortì  <pot@cnuce.cnr.it>
 
 	* vc-hooks.el (vc-status): Renamed from vc-rcs-status.  Handle SCCS.
 	(vc-display-status): Renamed from vc-rcs-status.
@@ -7339,7 +7339,7 @@
 
 	* tcl-mode.el: Call provide.
 
-1994-09-01  Francesco Potorti`  (pot@cnuce.cnr.it)
+1994-09-01  Francesco Potortì  (pot@cnuce.cnr.it)
 
 	* cmacexp.el (c-macro-prompt-flag): Set default to t.
 	(c-macro-expand): buffer-flush-undo is outdated.
@@ -9260,6 +9260,10 @@
 	* menu-bar.el (menu-bar-mode): Fix previous change.
 
 See ChangeLog.4 for earlier changes.
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
     Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005, 2006,
       2007, 2008  Free Software Foundation, Inc.
