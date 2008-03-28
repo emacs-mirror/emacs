@@ -1429,6 +1429,8 @@ Returns the compilation buffer created."
 	 :help "Goto next error")
 	(tool-bar-local-item 
 	 "cancel" 'kill-compilation 'kill-compilation map
+	 :enable '(let ((buffer (compilation-find-buffer)))
+		    (get-buffer-process buffer))
 	 :help "Stop compilation")
 	(tool-bar-local-item 
 	 "refresh" 'recompile 'recompile map
