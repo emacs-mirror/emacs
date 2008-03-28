@@ -308,7 +308,7 @@ argument (@kbd{C-u C-y}), it instead leaves the cursor in front of the
 text, and adds the position of the end of the text to the mark ring.
 Using other sort of prefix argument specifies an earlier kill; for
 example, @kbd{C-u 4 C-y} reinserts the fourth most recent kill.
-@xref{Earlier Kills}).
+@xref{Earlier Kills}.
 
 @cindex yanking and text properties
 @vindex yank-excluded-properties
