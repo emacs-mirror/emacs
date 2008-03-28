@@ -1,3 +1,15 @@
+2008-03-28  Wilson Snyder  <wsnyder@wsnyder.org>
+
+	* progmodes/verilog-mode.el (verilog-auto-inout-module):
+	Add optional regular expression to AUTOINOUTMODULE.
+	(verilog-inject-auto, verilog-auto-arg, verilog-auto-inst)
+	(verilog-auto-inst-param, verilog-auto-reg)
+	(verilog-auto-reg-input, verilog-auto-wire, verilog-auto-output)
+	(verilog-auto-output-every, verilog-auto-input)
+	(verilog-auto-inout, verilog-auto-sense, verilog-auto-tieoff)
+	(verilog-auto-unused, verilog-auto): Update documentation to use
+	more obvious instance module names versus cell names.
+
 2008-03-28  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* progmodes/compile.el (compilation-mode-tool-bar-map): Only enable

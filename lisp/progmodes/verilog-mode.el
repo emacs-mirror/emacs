@@ -6354,7 +6354,7 @@ component library to determine connectivity of the design.
 One work around for this problem is to manually create // Inputs and //
 Outputs comments above subcell signals, for example:
 
-	module1 instance1x (
+	module ModuleName (
 	    // Outputs
 	    .out (out),
 	    // Inputs
@@ -7705,29 +7705,31 @@ support adding new ports.  You may wish to delete older ports yourself.
 
 For example:
 
-	module ex_inject (i, o);
+	module ExampInject (i, o);
 	  input i;
 	  input j;
 	  output o;
 	  always @ (i or j)
 	     o = i | j;
-	  cell cell (.foobar(baz),
-		     .j(j));
+	  InstModule instName
+            (.foobar(baz),
+	     j(j));
 	endmodule
 
 Typing \\[verilog-inject-auto] will make this into:
 
-	module ex_inject (i, o/*AUTOARG*/
+	module ExampInject (i, o/*AUTOARG*/
 	  // Inputs
 	  j);
 	  input i;
 	  output o;
 	  always @ (/*AS*/i or j)
 	     o = i | j;
-	  cell cell (.foobar(baz),
-		     /*AUTOINST*/
-		     // Outputs
-		     .j(j));
+	  InstModule instName
+            (.foobar(baz),
+	     /*AUTOINST*/
+	     // Outputs
+	     j(j));
 	endmodule"
   (interactive)
   (verilog-auto t))
@@ -7893,14 +7895,14 @@ Limitations:
 
 For example:
 
-	module ex_arg (/*AUTOARG*/);
+	module ExampArg (/*AUTOARG*/);
 	  input i;
 	  output o;
 	endmodule
 
 Typing \\[verilog-auto] will make this into:
 
-	module ex_arg (/*AUTOARG*/
+	module ExampArg (/*AUTOARG*/
 	  // Outputs
 	  o,
 	  // Inputs
@@ -8082,9 +8084,9 @@ Limitations:
 
   SystemVerilog multidimensional input/output has only experimental support.
 
-For example, first take the submodule inst.v:
+For example, first take the submodule InstModule.v:
 
-	module inst (o,i)
+	module InstModule (o,i)
 	   output [31:0] o;
 	   input i;
 	   wire [31:0] o = {32{i}};
@@ -8092,22 +8094,24 @@ For example, first take the submodule inst.v:
 
 This is then used in a upper level module:
 
-	module ex_inst (o,i)
+	module ExampInst (o,i)
 	   output o;
 	   input i;
-	   inst inst (/*AUTOINST*/);
+	   InstModule instName
+	     (/*AUTOINST*/);
 	endmodule
 
 Typing \\[verilog-auto] will make this into:
 
-	module ex_inst (o,i)
+	module ExampInst (o,i)
 	   output o;
 	   input i;
-	   inst inst (/*AUTOINST*/
-		      // Outputs
-		      .ov			(ov[31:0]),
-		      // Inputs
-		      .i			(i));
+	   InstModule instName
+	     (/*AUTOINST*/
+	      // Outputs
+	      .ov	(ov[31:0]),
+	      // Inputs
+	      .i	(i));
 	endmodule
 
 Where the list of inputs and outputs came from the inst module.
@@ -8129,11 +8133,12 @@ Exceptions:
   you have the appropriate // Input or // Output comment, and exactly the
   same line formatting as AUTOINST itself uses.
 
-	inst inst (// Inputs
-		   .i		(my_i_dont_mess_with_it),
-		   /*AUTOINST*/
-		   // Outputs
-		   .ov		(ov[31:0]));
+	InstModule instName
+          (// Inputs
+	   .i		(my_i_dont_mess_with_it),
+	   /*AUTOINST*/
+	   // Outputs
+	   .ov		(ov[31:0]));
 
 
 Templates:
@@ -8141,7 +8146,7 @@ Templates:
   For multiple instantiations based upon a single template, create a
   commented out template:
 
-	/* instantiating_module_name AUTO_TEMPLATE (
+	/* InstModule AUTO_TEMPLATE (
 		.sig3	(sigz[]),
 		);
 	*/
@@ -8170,15 +8175,15 @@ Templates:
 
   For example:
 
-	/* psm_mas AUTO_TEMPLATE (
+	/* InstModule AUTO_TEMPLATE (
 		.ptl_bus	(ptl_busnew[]),
 		);
 	*/
-	psm_mas ms2m (/*AUTOINST*/);
+	InstModule ms2m (/*AUTOINST*/);
 
   Typing \\[verilog-auto] will make this into:
 
-	psm_mas ms2m (/*AUTOINST*/
+	InstModule ms2m (/*AUTOINST*/
 	    // Outputs
 	    .NotInTemplate	(NotInTemplate),
 	    .ptl_bus		(ptl_busnew[3:0]),  // Templated
@@ -8189,7 +8194,7 @@ Templates:
   It is common to instantiate a cell multiple times, so templates make it
   trivial to substitute part of the cell name into the connection name.
 
-	/* cell_type AUTO_TEMPLATE <optional \"REGEXP\"> (
+	/* InstName AUTO_TEMPLATE <optional \"REGEXP\"> (
 		.sig1	(sigx[@]),
 		.sig2	(sigy[@\"(% (+ 1 @) 4)\"]),
 		);
@@ -8211,16 +8216,16 @@ Templates:
 
   For example:
 
-	/* psm_mas AUTO_TEMPLATE (
+	/* InstModule AUTO_TEMPLATE (
 		.ptl_mapvalidx		(ptl_mapvalid[@]),
 		.ptl_mapvalidp1x	(ptl_mapvalid[@\"(% (+ 1 @) 4)\"]),
 		);
 	*/
-	psm_mas ms2m (/*AUTOINST*/);
+	InstModule ms2m (/*AUTOINST*/);
 
   Typing \\[verilog-auto] will make this into:
 
-	psm_mas ms2m (/*AUTOINST*/
+	InstModule ms2m (/*AUTOINST*/
 	    // Outputs
 	    .ptl_mapvalidx		(ptl_mapvalid[2]),
 	    .ptl_mapvalidp1x		(ptl_mapvalid[3]));
@@ -8229,21 +8234,21 @@ Templates:
 
   Alternatively, using a regular expression for @:
 
-	/* psm_mas AUTO_TEMPLATE \"_\\([a-z]+\\)\" (
+	/* InstModule AUTO_TEMPLATE \"_\\([a-z]+\\)\" (
 		.ptl_mapvalidx		(@_ptl_mapvalid),
 		.ptl_mapvalidp1x	(ptl_mapvalid_@),
 		);
 	*/
-	psm_mas ms2_FOO (/*AUTOINST*/);
-	psm_mas ms2_BAR (/*AUTOINST*/);
+	InstModule ms2_FOO (/*AUTOINST*/);
+	InstModule ms2_BAR (/*AUTOINST*/);
 
   Typing \\[verilog-auto] will make this into:
 
-	psm_mas ms2_FOO (/*AUTOINST*/
+	InstModule ms2_FOO (/*AUTOINST*/
 	    // Outputs
 	    .ptl_mapvalidx		(FOO_ptl_mapvalid),
 	    .ptl_mapvalidp1x		(ptl_mapvalid_FOO));
-	psm_mas ms2_BAR (/*AUTOINST*/
+	InstModule ms2_BAR (/*AUTOINST*/
 	    // Outputs
 	    .ptl_mapvalidx		(BAR_ptl_mapvalid),
 	    .ptl_mapvalidp1x		(ptl_mapvalid_BAR));
@@ -8289,8 +8294,8 @@ Lisp Templates:
 	vl-width       Width of the input/output port ('3' for [2:0]).
                        May be a (...) expression if bits isn't a constant.
 	vl-dir         Direction of the pin input/output/inout.
-	vl-cell-type   Module name/type of the cell ('psm_mas').
-	vl-cell-name   Instance name of the cell ('ms2m').
+	vl-cell-type   Module name/type of the cell ('InstModule').
+	vl-cell-name   Instance name of the cell ('instName').
 
   Normal Lisp variables may be used in expressions.  See
   `verilog-read-defines' which can set vh-{definename} variables for use
@@ -8400,29 +8405,29 @@ automatically derived from the module header of the instantiated netlist.
 See \\[verilog-auto-inst] for limitations, and templates to customize the
 output.
 
-For example, first take the submodule inst.v:
+For example, first take the submodule InstModule.v:
 
-	module inst (o,i)
+	module InstModule (o,i)
 	   parameter PAR;
 	endmodule
 
 This is then used in a upper level module:
 
-	module ex_inst (o,i)
+	module ExampInst (o,i)
 	   parameter PAR;
-	   inst #(/*AUTOINSTPARAM*/)
-		inst (/*AUTOINST*/);
+	   InstModule #(/*AUTOINSTPARAM*/)
+		instName (/*AUTOINST*/);
 	endmodule
 
 Typing \\[verilog-auto] will make this into:
 
-	module ex_inst (o,i)
+	module ExampInst (o,i)
 	   output o;
 	   input i;
-	   inst (/*AUTOINSTPARAM*/
-		 // Parameters
-		 .PAR			(PAR));
-		inst (/*AUTOINST*/);
+	   InstModule #(/*AUTOINSTPARAM*/
+		        // Parameters
+		        .PAR	(PAR));
+		instName (/*AUTOINST*/);
 	endmodule
 
 Where the list of parameter connections come from the inst module.
@@ -8506,7 +8511,7 @@ Limitations:
 
 An example:
 
-	module ex_reg (o,i)
+	module ExampReg (o,i)
 	   output o;
 	   input i;
 	   /*AUTOREG*/
@@ -8515,12 +8520,12 @@ An example:
 
 Typing \\[verilog-auto] will make this into:
 
-	module ex_reg (o,i)
+	module ExampReg (o,i)
 	   output o;
 	   input i;
 	   /*AUTOREG*/
 	   // Beginning of automatic regs (for this module's undeclared outputs)
-	   reg			o;
+	   reg		o;
 	   // End of automatics
 	   always o = i;
 	endmodule"
@@ -8557,27 +8562,29 @@ Limitations:
 
 An example (see `verilog-auto-inst' for what else is going on here):
 
-	module ex_reg_input (o,i)
+	module ExampRegInput (o,i)
 	   output o;
 	   input i;
 	   /*AUTOREGINPUT*/
-           inst inst (/*AUTOINST*/);
+           InstModule instName
+             (/*AUTOINST*/);
 	endmodule
 
 Typing \\[verilog-auto] will make this into:
 
-	module ex_reg_input (o,i)
+	module ExampRegInput (o,i)
 	   output o;
 	   input i;
 	   /*AUTOREGINPUT*/
 	   // Beginning of automatic reg inputs (for undeclared ...
-	   reg [31:0]		iv;		// From inst of inst.v
+	   reg [31:0]		iv;	// From inst of inst.v
 	   // End of automatics
-	   inst inst (/*AUTOINST*/
-		      // Outputs
-		      .o			(o[31:0]),
-		      // Inputs
-		      .iv			(iv));
+	   InstModule instName
+             (/*AUTOINST*/
+	      // Outputs
+	      .o		(o[31:0]),
+	      // Inputs
+	      .iv		(iv));
 	endmodule"
   (save-excursion
     ;; Point must be at insertion point.
@@ -8615,27 +8622,29 @@ Limitations:
 
 An example (see `verilog-auto-inst' for what else is going on here):
 
-	module ex_wire (o,i)
+	module ExampWire (o,i)
 	   output o;
 	   input i;
 	   /*AUTOWIRE*/
-           inst inst (/*AUTOINST*/);
+           InstModule instName
+	     (/*AUTOINST*/);
 	endmodule
 
 Typing \\[verilog-auto] will make this into:
 
-	module ex_wire (o,i)
+	module ExampWire (o,i)
 	   output o;
 	   input i;
 	   /*AUTOWIRE*/
 	   // Beginning of automatic wires
 	   wire [31:0]		ov;	// From inst of inst.v
 	   // End of automatics
-	   inst inst (/*AUTOINST*/
-		      // Outputs
-		      .ov	(ov[31:0]),
-		      // Inputs
-		      .i	(i));
+	   InstModule instName
+	     (/*AUTOINST*/
+	      // Outputs
+	      .ov	(ov[31:0]),
+	      // Inputs
+	      .i	(i));
 	   wire o = | ov;
 	endmodule"
   (save-excursion
@@ -8681,25 +8690,27 @@ Limitations:
 
 An example (see `verilog-auto-inst' for what else is going on here):
 
-	module ex_output (ov,i)
+	module ExampOutput (ov,i)
 	   input i;
 	   /*AUTOOUTPUT*/
-	   inst inst (/*AUTOINST*/);
+	   InstModule instName
+	     (/*AUTOINST*/);
 	endmodule
 
 Typing \\[verilog-auto] will make this into:
 
-	module ex_output (ov,i)
+	module ExampOutput (ov,i)
 	   input i;
 	   /*AUTOOUTPUT*/
 	   // Beginning of automatic outputs (from unused autoinst outputs)
-	   output [31:0]	ov;			// From inst of inst.v
+	   output [31:0]	ov;	// From inst of inst.v
 	   // End of automatics
-	   inst inst (/*AUTOINST*/
-		      // Outputs
-		      .ov			(ov[31:0]),
-		      // Inputs
-		      .i			(i));
+	   InstModule instName
+	     (/*AUTOINST*/
+	      // Outputs
+	      .ov	(ov[31:0]),
+	      // Inputs
+	      .i	(i));
 	endmodule
 
 You may also provide an optional regular expression, in which case only
@@ -8743,7 +8754,7 @@ won't optimize away the outputs.
 
 An example:
 
-	module ex_output_every (o,i,tempa,tempb)
+	module ExampOutputEvery (o,i,tempa,tempb)
 	   output o;
 	   input i;
 	   /*AUTOOUTPUTEVERY*/
@@ -8754,13 +8765,13 @@ An example:
 
 Typing \\[verilog-auto] will make this into:
 
-	module ex_output_every (o,i,tempa,tempb)
+	module ExampOutputEvery (o,i,tempa,tempb)
 	   output o;
 	   input i;
 	   /*AUTOOUTPUTEVERY*/
 	   // Beginning of automatic outputs (every signal)
-	   output		tempb;
-	   output		tempa;
+	   output	tempb;
+	   output	tempa;
 	   // End of automatics
 	   wire tempa = i;
 	   wire tempb = tempa;
@@ -8805,25 +8816,27 @@ Limitations:
 
 An example (see `verilog-auto-inst' for what else is going on here):
 
-	module ex_input (ov,i)
+	module ExampInput (ov,i)
 	   output [31:0] ov;
 	   /*AUTOINPUT*/
-	   inst inst (/*AUTOINST*/);
+	   InstModule instName
+	     (/*AUTOINST*/);
 	endmodule
 
 Typing \\[verilog-auto] will make this into:
 
-	module ex_input (ov,i)
+	module ExampInput (ov,i)
 	   output [31:0] ov;
 	   /*AUTOINPUT*/
 	   // Beginning of automatic inputs (from unused autoinst inputs)
-	   input		i;			// From inst of inst.v
+	   input	i;	// From inst of inst.v
 	   // End of automatics
-	   inst inst (/*AUTOINST*/
-		      // Outputs
-		      .ov			(ov[31:0]),
-		      // Inputs
-		      .i			(i));
+	   InstModule instName
+	     (/*AUTOINST*/
+	      // Outputs
+	      .ov	(ov[31:0]),
+	      // Inputs
+	      .i	(i));
 	endmodule
 
 You may also provide an optional regular expression, in which case only
@@ -8881,25 +8894,27 @@ Limitations:
 
 An example (see `verilog-auto-inst' for what else is going on here):
 
-	module ex_inout (ov,i)
+	module ExampInout (ov,i)
 	   input i;
 	   /*AUTOINOUT*/
-	   inst inst (/*AUTOINST*/);
+	   InstModule instName
+	     (/*AUTOINST*/);
 	endmodule
 
 Typing \\[verilog-auto] will make this into:
 
-	module ex_inout (ov,i)
+	module ExampInout (ov,i)
 	   input i;
 	   /*AUTOINOUT*/
 	   // Beginning of automatic inouts (from unused autoinst inouts)
-	   inout [31:0]	ov;			// From inst of inst.v
+	   inout [31:0]	ov;	// From inst of inst.v
 	   // End of automatics
-	   inst inst (/*AUTOINST*/
-		      // Inouts
-		      .ov			(ov[31:0]),
-		      // Inputs
-		      .i			(i));
+	   InstModule instName
+	     (/*AUTOINST*/
+	      // Inouts
+	      .ov	(ov[31:0]),
+	      // Inputs
+	      .i	(i));
 	endmodule
 
 You may also provide an optional regular expression, in which case only
@@ -8956,11 +8971,11 @@ Limitations:
 
 An example:
 
-	module ex_shell (/*AUTOARG*/)
-	   /*AUTOINOUTMODULE(\"ex_main\")*/
+	module ExampShell (/*AUTOARG*/)
+	   /*AUTOINOUTMODULE(\"ExampMain\")*/
 	endmodule
 
-	module ex_main (i,o,io)
+	module ExampMain (i,o,io)
           input i;
           output o;
           inout io;
@@ -8968,16 +8983,25 @@ An example:
 
 Typing \\[verilog-auto] will make this into:
 
-	module ex_shell (/*AUTOARG*/i,o,io)
-	   /*AUTOINOUTMODULE(\"ex_main\")*/
+	module ExampShell (/*AUTOARG*/i,o,io)
+	   /*AUTOINOUTMODULE(\"ExampMain\")*/
            // Beginning of automatic in/out/inouts (from specific module)
            input i;
            output o;
            inout io;
 	   // End of automatics
-	endmodule"
+	endmodule
+
+You may also provide an optional regular expression, in which case only
+signals matching the regular expression will be included.  For example the
+same expansion will result from only extracting signals starting with i:
+
+	   /*AUTOINOUTMODULE(\"ExampMain\",\"^i\")*/"
   (save-excursion
-    (let* ((submod (car (verilog-read-auto-params 1))) submodi)
+    (let* ((params (verilog-read-auto-params 1 2))
+	   (submod (nth 0 params))
+	   (regexp (nth 1 params))
+	   submodi)
       ;; Lookup position, etc of co-module
       ;; Note this may raise an error
       (when (setq submodi (verilog-modi-lookup submod t))
@@ -8994,6 +9018,13 @@ Typing \\[verilog-auto] will make this into:
 			     (verilog-modi-get-inouts submodi)
 			     (append (verilog-modi-get-inouts modi)))))
 	  (forward-line 1)
+	  (when regexp
+	    (setq sig-list-i  (verilog-signals-matching-regexp
+			       sig-list-i regexp)
+		  sig-list-o  (verilog-signals-matching-regexp
+			       sig-list-o regexp)
+		  sig-list-io (verilog-signals-matching-regexp
+			       sig-list-io regexp)))
 	  (when v2k (verilog-repair-open-comma))
 	  (when (or sig-list-i sig-list-o sig-list-io)
 	    (verilog-insert-indent "// Beginning of automatic in/out/inouts (from specific module)\n")
@@ -9052,7 +9083,7 @@ OOps!
 
 An example:
 
-	   always @ (/*AUTOSENSE*/) begin
+	   always @ (/*AS*/) begin
 	      /* AUTO_CONSTANT (`constant) */
 	      outin = ina | inb | `constant;
 	      out = outin;
@@ -9060,8 +9091,16 @@ An example:
 
 Typing \\[verilog-auto] will make this into:
 
-	   always @ (/*AUTOSENSE*/ina or inb) begin
+	   always @ (/*AS*/ina or inb) begin
 	      /* AUTO_CONSTANT (`constant) */
+	      outin = ina | inb | `constant;
+	      out = outin;
+	   end
+
+Note in Verilog 2001, you can often get the same result from the new @*
+operator.  (This was added to the language in part due to AUTOSENSE!)
+
+	   always @* begin
 	      outin = ina | inb | `constant;
 	      out = outin;
 	   end"
@@ -9219,7 +9258,7 @@ them to a one.
 
 An example of making a stub for another module:
 
-    module FooStub (/*AUTOINST*/);
+    module ExampStub (/*AUTOINST*/);
 	/*AUTOINOUTMODULE(\"Foo\")*/
         /*AUTOTIEOFF*/
         // verilator lint_off UNUSED
@@ -9231,7 +9270,7 @@ An example of making a stub for another module:
 
 Typing \\[verilog-auto] will make this into:
 
-    module FooStub (/*AUTOINST*/...);
+    module ExampStub (/*AUTOINST*/...);
 	/*AUTOINOUTMODULE(\"Foo\")*/
         // Beginning of autotieoff
         output [2:0] foo;
@@ -9300,8 +9339,8 @@ You can add signals you do not want included in AUTOUNUSED with
 
 An example of making a stub for another module:
 
-    module FooStub (/*AUTOINST*/);
-	/*AUTOINOUTMODULE(\"Foo\")*/
+    module ExampStub (/*AUTOINST*/);
+	/*AUTOINOUTMODULE(\"Examp\")*/
         /*AUTOTIEOFF*/
         // verilator lint_off UNUSED
         wire _unused_ok = &{1'b0,
@@ -9524,12 +9563,12 @@ The hooks `verilog-before-auto-hook' and `verilog-auto-hook' are
 called before and after this function, respectively.
 
 For example:
-	module (/*AUTOARG*/)
+	module ModuleName (/*AUTOARG*/)
 	/*AUTOINPUT*/
 	/*AUTOOUTPUT*/
 	/*AUTOWIRE*/
 	/*AUTOREG*/
-	somesub sub #(/*AUTOINSTPARAM*/) (/*AUTOINST*/);
+	InstMod instName #(/*AUTOINSTPARAM*/) (/*AUTOINST*/);
 
 You can also update the AUTOs from the shell using:
 	emacs --batch  <filenames.v>  -f verilog-batch-auto
