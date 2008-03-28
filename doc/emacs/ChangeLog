@@ -1,3 +1,46 @@
+2008-03-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mark.texi (Mark): Rearrange nodes.
+	(Persistent Mark): Rename from Transient Mark.
+	(Mark, Setting Mark, Marking Objects, Persistent Mark, Mark Ring):
+	Describe Transient Mark mode as the default.
+
+	* basic.texi (Basic Undo): Don't mention setting the mark, which isn't
+	the default behavior with Transient Mark mode off.
+	(Position Info): Fix typo.
+
+	* display.texi (Standard Faces): Reference the Mark node.  Remove
+	discussion of the region face, which is discussed there.
+
+	* emacs.texi (Top): Update node listings.
+
+	* files.texi (Diff Mode, Misc File Ops): Describe Transient Mark mode
+	as the default.
+
+	* fixit.texi (Undo): Standardize choice of undo key sequence.
+	(Undo, Spelling): Describe Transient Mark mode as the default.
+
+	* frames.texi (Mouse Commands): Treat Transient Mark mode as the
+	default.
+
+	* glossary.texi (Glossary): Treat Transient Mark mode as the default.
+
+	* killing.texi (Kill Ring, Accumulating Text): Assume Transient Mark
+	mode is the default, and note that the mark is not activated when set.
+
+	* programs.texi (Moving by Defuns, Expressions, Comment Commands):
+	Describe Transient Mark mode as the default.
+
+	* search.texi (Basic Isearch): Reference the Mark Ring node.
+	(Replace, Unconditional Replace, Other Repeating Search):
+	Describe Transient Mark mode as the default.
+
+	* text.texi (Words, Pages, Fill Commands, HTML Mode): Describe
+	Transient Mark mode as the default.
+	(Paragraphs): Describe how M-h behaves when region is active.
+
+	* trouble.texi (Quitting): Clarify effects of C-g.
+
 2008-03-13  Glenn Morris  <rgm@gnu.org>
 
 	* emacs.texi (EMACSVER): Set to 23.0.60.
