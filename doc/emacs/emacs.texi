@@ -302,11 +302,9 @@ Help
 The Mark and the Region
 
 * Setting Mark::	Commands to set the mark.
-* Transient Mark::	How to make Emacs highlight the region--
-			  when there is one.
-* Momentary Mark::      Enabling Transient Mark mode momentarily.
-* Using Region::	Summary of ways to operate on contents of the region.
 * Marking Objects::	Commands to put region around textual units.
+* Using Region::	Summary of ways to operate on contents of the region.
+* Persistent Mark::	Keeping the mark active all the time.
 * Mark Ring::		Previous mark positions saved so you can go back there.
 * Global Mark Ring::	Previous mark positions in various buffers.
 
