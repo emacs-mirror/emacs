@@ -1,7 +1,32 @@
+2008-03-28  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-menu.el (cal-menu-holidays-menu)
+	(cal-menu-list-holidays-year, cal-menu-list-holidays-following-year)
+	(cal-menu-list-holidays-previous-year): Simplify now that 2nd arg of
+	holiday-list is optional.
+	(calendar-mouse-holidays): Remove un-needed local `l'.
+
+	* calendar/cal-move.el (calendar-cursor-to-nearest-date):
+	Remove un-needed local `date'.
+	(calendar-cursor-to-visible-date): Use let rather than let*.
+	Remove un-needed local `first-of-month-weekday'.
+
+	* calendar/calendar.el (abbreviated-calendar-year): Move to diary-lib.
+
+	* calendar/diary-lib.el (print-diary-entries-hook, diary-list-entries):
+	Doc fixes.
+	(abbreviated-calendar-year): Move here from calendar.el.  Doc fix.
+	(diary-header-line-flag, diary-header-line-format): Declare.
+	(diary-pull-attrs): Check for multiple matches.
+	(diary-list-entries-2): Simplify finding start of date.
+	(diary-show-all-entries, make-diary-entry): Respect non-nil values of
+	pop-up-frames.
+	(diary-mark-entries-1): Re-use offset in abbreviated-year case.
+	(mark-sexp-diary-entries): Remove superfluous call to diary-pull-attrs.
+
 2008-03-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc-hg.el (vc-hg-state, vc-hg-dir-state): Deal with 'missing 
-	files.
+	* vc-hg.el (vc-hg-state, vc-hg-dir-state): Deal with 'missing files.
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Fix predicate.
 
