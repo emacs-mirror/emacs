@@ -137,6 +137,7 @@ If nil, /etc/resolv.conf will be consulted.")
   "Write a DNS packet according to SPEC.
 If TCP-P, the first two bytes of the package with be the length field."
   (with-temp-buffer
+    (set-buffer-multibyte nil)
     (dns-write-bytes (dns-get 'id spec) 2)
     (dns-write-bytes
      (logior
