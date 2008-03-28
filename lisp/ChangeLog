@@ -1,3 +1,10 @@
+2008-03-28  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* progmodes/compile.el (compilation-mode-tool-bar-map): Only enable
+	kill if a process is running.
+
+	* progmodes/grep.el (grep-mode-tool-bar-map): The same.
+
 2008-03-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el: Add new backend function 'status-extra-headers.
