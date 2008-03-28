@@ -101,8 +101,8 @@
 
 1994-05-26  Stephen A. Wood  (saw@cebaf.gov)
 
-        * fortran.el: (fortran-link-matching-do): Ignore DO statements
-        with line numbers.
+	* fortran.el (fortran-link-matching-do): Ignore DO statements
+	with line numbers.
 
 1994-05-26  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
 
@@ -116,17 +116,17 @@
 
 	* files.el: Add more risky-local-variable properties.
 
-	* fill.el (fill-region-as-paragraph): if left-margin is nonzero,
+	* fill.el (fill-region-as-paragraph): If left-margin is nonzero,
 	do adaptive-fill processing even for one-line paragraphs.
 
 	* c-mode.el (c-fill-paragraph): Don't include part of comment
-        terminator in the fill-prefix.
+	terminator in the fill-prefix.
 
 	* server.el (server-kill-emacs-query-function): Ignore killed buffers.
 
 1994-05-24  Kenneth Manheimer  (ken.manheimer@nist.gov)
 
-	* allout.el (outline-chart-subtree): include outline-next-
+	* allout.el (outline-chart-subtree): Include outline-next-
 	heading in loop conditions to detect end-of-buffer (and avoid
 	infinite loop).
 
@@ -245,8 +245,7 @@
 
 1994-05-20  Noah Friedman  (friedman@splode.com)
 
-        * rsz-mini.el: Enable resize-minibuffer-mode when this file is
-        loaded.
+	* rsz-mini.el: Enable resize-minibuffer-mode when this file is loaded.
 
 1994-05-20  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -291,7 +290,7 @@
 
 1994-05-19  Daniel Quinlan  (quinlan@bucknell.edu)
 
- 	* info.el (info-insert-file-contents): Avoid conflict with jka-compr.
+	* info.el (info-insert-file-contents): Avoid conflict with jka-compr.
 
 1994-05-19  Boris Goldowsky  (boris@mink.cs.rochester.edu)
 
@@ -345,7 +344,7 @@
 
 1994-05-12  Kenneth Manheimer  (klm@coil.nist.gov)
 
-        * allout.el (outline-mode): Use outline-this-or-next-heading.
+	* allout.el (outline-mode): Use outline-this-or-next-heading.
 	* allout.el (outline-this-or-next-heading): New function.
 	* allout.el (outline-mode): Fixed topic body reindentation scheme
 	so programming code is not indented unless
@@ -454,7 +453,7 @@
 	it never did anything.
 
 	* ispell4.el (ispell-message): Add `ispell-message-text-end' and
-	`ispell-message-limit'.  Spell-check subject as well as body.
+	`ispell-message-limit'. Spell-check subject as well as body.
 
 1994-05-10  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
@@ -467,7 +466,7 @@
 	new functions.
 
 	* calendar.el (calendar-cursor-to-date): Fix error return.
-	 (calendar-iso-date-string): Repair punctuation.
+	(calendar-iso-date-string): Repair punctuation.
 
 1994-05-10  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
 
@@ -488,8 +487,8 @@
 	* files.el (file-chase-links): Delete redundant slashes.
 	Match `..' only at start of string.
 
-	* gud.el (gud-gdb-marker-filter, gud-mipsdbx-marker-filter,
-	gud-perldb-marker-filter): Allow marker string to arrive in
+	* gud.el (gud-gdb-marker-filter, gud-mipsdbx-marker-filter)
+	(gud-perldb-marker-filter): Allow marker string to arrive in
 	mid-line.
 
 1994-05-10  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -504,7 +503,7 @@
 	* rmailsum.el (rmail-make-basic-summary-line): Get all the lines of
 	the From field.
 
-	* menu-bar.el (menu-bar-file-menu): Add Apply Patch and Compare Files
+	* menu-bar.el (menu-bar-file-menu): Add Apply Patch and Compare Files.
 
 	* ediff.el: Doc fixes.
 
@@ -520,7 +519,7 @@
 
 1994-05-08  Kenneth Manheimer  (klm@coil.nist.gov)
 
-	* allout.el (outline-init) New user interface for control of
+	* allout.el (outline-init): New user interface for control of
 	outline-mode session setup, sets up `outline-find-file-hook',
 	`outline-layout', and `outline-auto-activation'.
 
@@ -553,7 +552,7 @@
 	Delete duplicate entry for ISO calendar.
 	(calendar-event-to-date): Set buffer in case calendar isn't current.
 
-1994-05-08  David K�gedal  (davidk@lysator.liu.se)
+1994-05-08  David Kågedal  (davidk@lysator.liu.se)
 
 	* tempo.el (tempo-insert-region, tempo-show-completion-buffer)
 	(tempo-leave-completion-buffer): New variables.
@@ -733,7 +732,7 @@
 
 1994-05-02  Morten Welinder  (terra@diku.dk)
 
-	* isearch.el (isearch-case-fold-search): new possible value `yes'
+	* isearch.el (isearch-case-fold-search): New possible value `yes'
 	is like t except that mixed case in search string is ignored.
 	(isearch-toggle-case-fold): New function.
 	(isearch-search): Don't undo the work of isearch-toggle-case-fold.
@@ -752,8 +751,8 @@
 	underscores before giving the file to uudecode.
 
 	* gnus-uu.el (gnus-uu-save-in-digest): Doc fix.
-	(gnus-uu-save-articles, gnus-uu-save-article,
-	gnus-uu-digest-and-forward, gnus-uu-marked-digest-and-forward):
+	(gnus-uu-save-articles, gnus-uu-save-article)
+	(gnus-uu-digest-and-forward, gnus-uu-marked-digest-and-forward):
 	Changed old functions and added new functions to digest and
 	forward articles.
 	(gnus-uu-mark-thread): New function to mark a thread for later
@@ -765,15 +764,15 @@
 	(gnus-uu-edit-begin-line, gnus-uu-decode-and-show-in-buffer):
 	Select the current article before starting work.
 	(gnus-uu-decode-and-view-all-unread-articles)
-	(gnus-uu-decode-and-view-all-articles):  Two new functions for
+	(gnus-uu-decode-and-view-all-articles): Two new functions for
 	decoding and viewing all (unread) articles in a newsgroup.
 
-	* gnus-uu.el (gnus-uu-view-directory, gnus-uu-unpack-archives,
-	gnus-uu-treat-archive): gnus-uu will now treat archives in
+	* gnus-uu.el (gnus-uu-view-directory, gnus-uu-unpack-archives)
+	(gnus-uu-treat-archive): gnus-uu will now treat archives in
 	archives (etc) properly when viewing.
 
-	* gnus-uu.el (gnus-uu-threaded-multi-decode-and-save,
-	gnus-uu-threaded-multi-decode-and-view): New interactive functions
+	* gnus-uu.el (gnus-uu-threaded-multi-decode-and-save)
+	(gnus-uu-threaded-multi-decode-and-view): New interactive functions
 	for decoding/saving threads.  Bound to `C-c C-v C-j'.
 	(gnus-uu-save-article): Added RFC1153-compliant digest saving.
 
@@ -782,7 +781,7 @@
 
 	* gnus-uu.el (gnus-uu-decode-and-show-in-buffer)
 	(gnus-uu-decode-and-strip, gnus-uu-grab-articles)
-	(gnus-uu-decode-and-view-or-save):  Allow multiple
+	(gnus-uu-decode-and-view-or-save): Allow multiple
 	encoded files to be decoded (and viewed) in one fell swoop.
 	(gnus-uu-work-dir): New variable.
 
@@ -799,8 +798,8 @@
 	* gnus-uu.el (gnus-uu-uustrip-article-as): Disabled
 	case-fold-search and changed gnus-uu-body-line to be more
 	restrictive.
-	(gnus-uu-multi-decode-and-view-or-save,
-	gnus-uu-uustrip-article-as): Changed hard returns to \r.
+	(gnus-uu-multi-decode-and-view-or-save)
+	(gnus-uu-uustrip-article-as): Changed hard returns to \r.
 	(gnus-uu-post-reply-mode): New mode for sending encoded files.
 	(gnus-uu-post-news, gnus-uu-post-insert-binary-in-article)
 	(gnus-uu-post-encode-uuencode, gnus-uu-post-encode-mime-uuencode)
@@ -830,29 +829,29 @@
 1994-05-02  Daniel Quinlan  (quinlan@bucknell.edu)
 
 	* dired.el: Unspecified location of chown for Linux (Linux doesn't
-	  put chown in /etc).
+	put chown in /etc).
 
 1994-05-02  Per Abrahamsen  (abraham@eupectic)
 
-        * double.el (double-translate-key): Changed 'delete to 127 to make
-        the non-X11 version work.
+	* double.el (double-translate-key): Changed 'delete to 127 to make
+	the non-X11 version work.
 
 1994-05-02  David M. Smith  (maa036@lancaster.ac.uk)
 
 	* ielm.el (ielm-dynamic-multiline-inputs): New variable.
 	(ielm-return): Support it.
 
-	* ielm.el (ielm-print-working-buffer): New command
-	(ielm-change-working-buffer): New command
-	(ielm-display-working-buffer): New command
+	* ielm.el (ielm-print-working-buffer): New command.
+	(ielm-change-working-buffer): New command.
+	(ielm-display-working-buffer): New command.
 	(ielm-map): Bindings for new commands; bindings from
 	shared-lisp-mode-map; Lemacs support.
 
 	* ielm.el (ielm-eval-input): Give bindings in scope during the eval
-	non-clashing names (ielm- prefix)
+	non-clashing names (ielm- prefix).
 
-	* ielm.el (ielm-get-old-input): New function
-	(inferior-emacs-lisp-mode): Bind it to comint-get-old-input
+	* ielm.el (ielm-get-old-input): New function.
+	(inferior-emacs-lisp-mode): Bind it to comint-get-old-input.
 
 1994-05-02  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -938,7 +937,7 @@
 
 1994-04-30  Morten Welinder  (terra@tyr.diku.dk)
 
-        * internal.el: Don't bind [mouse-1]; that's done elsewhere.
+	* internal.el: Don't bind [mouse-1]; that's done elsewhere.
 	Define lower-upper case correspondence for the three mostly
 	used code pages.
 
@@ -964,22 +963,22 @@
 	* allout.el: major code speedups, bug fixes, behavior
 	   refinements, doc-string clarification and elaboration, etc.
 	   Prominent new features include:
-	  - Exposure changes and navigation are greatly accelerated.
-	  - More elaborate and clear doc-string for outline-mode,
-	    giving better guidance on use of the mode.
-	  - A new exposure-layout syntax, which accomodates outlines
-	    with multiple top-level topics.  (See `outline-expose' and
-	    `outline-new-exposure'.)
-	  - Automatic exposure and verfication-prompting on attempts to
-	    change text within concealed regions, before they are
-	    applied.  (Undo affecting concealed regions is only
-	    exposed, not verified, to facilitate smooth undo sequences.)
-	  - 'hot-spot' navigation implemented.  When the cursor is on a
-	    topic's bullet, regular-character keystrokes will be
-	    interepreted as if they were preceded by ^C, when
-	    appropriate, so users can navigate and adjust exposure,
-	    etc, with single-stroke commands.
-	  - Lucid emacs accomodated.
+	 - Exposure changes and navigation are greatly accelerated.
+	 - More elaborate and clear doc-string for outline-mode,
+	   giving better guidance on use of the mode.
+	 - A new exposure-layout syntax, which accomodates outlines
+	   with multiple top-level topics.  (See `outline-expose' and
+	   `outline-new-exposure'.)
+	 - Automatic exposure and verfication-prompting on attempts to
+	   change text within concealed regions, before they are
+	   applied.  (Undo affecting concealed regions is only
+	   exposed, not verified, to facilitate smooth undo sequences.)
+	 - 'hot-spot' navigation implemented.  When the cursor is on a
+	   topic's bullet, regular-character keystrokes will be
+	   interepreted as if they were preceded by ^C, when
+	   appropriate, so users can navigate and adjust exposure,
+	   etc, with single-stroke commands.
+	 - Lucid emacs accomodated.
 
 1994-04-29  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -1041,7 +1040,7 @@
 	(gud-marker-acc): New variable, replacing the
 	debugger-specific accumulation variables.
 	(dbx): On Irix, emit a marker so that the source is displayed initially
-        with the marker at the first executable statement.
+	with the marker at the first executable statement.
 
 	* gud.el (dbx): Fix gud-break under SunOS, at least.  (I suspect
 	this is a general problem, because of the \n for some reason.)
@@ -1096,7 +1095,7 @@
 
 1994-04-27  Noah Friedman  (friedman@splode.com)
 
-        * yow.el: Added comment indicating author.
+	* yow.el: Added comment indicating author.
 
 1994-04-26  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
 
@@ -1113,8 +1112,8 @@
 
 1994-04-25  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
 
-	* rmailsum.el (rmail-summary-scroll-msg-up,
-	rmail-summary-scroll-msg-down): Scroll rmail-buffer explicitly.
+	* rmailsum.el (rmail-summary-scroll-msg-up)
+	(rmail-summary-scroll-msg-down): Scroll rmail-buffer explicitly.
 
 1994-04-25  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -1153,7 +1152,7 @@
 
 1994-04-24  Simon Marshall  (Simon.Marshall@mail.esrin.esa.it)
 
-	* shell.el (shell-dirstack-query): defaults to nil.
+	* shell.el (shell-dirstack-query): Defaults to nil.
 	(shell-mode): Guesses shell-dirstack-query based on shell name.
 
 1994-04-24  Lawrence R. Dodd  (dodd@roebling.poly.edu)
@@ -1269,16 +1268,16 @@
 
 1994-04-21  Boris Goldowsky  (boris@moose.cs.rochester.edu)
 
-	* avoid.el: (mouse-avoidance-point-position): New function, using
+	* avoid.el (mouse-avoidance-point-position): New function, using
 	new `compute-motion' functionality.  Use of this fixes bugs
 	involving wrapped lines & horizontally-scrolled windows.
-        * avoid.el: New avoidance mode, "exile", like "banish" but temporary.
+	* avoid.el: New avoidance mode, "exile", like "banish" but temporary.
 
 	* avoid.el: Jump/animate modes now keep track of net offset that
 	they have moved the mouse, and try to keep this near 0.  No longer
 	wraps to other side of screen.
 	* avoid.el (mouse-avoidance-mode): Update mode line.
-        * avoid.el (mouse-avoidance-*-hook): Do nothing if inside kbd macro.
+	* avoid.el (mouse-avoidance-*-hook): Do nothing if inside kbd macro.
 
 1994-04-21  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -1286,11 +1285,11 @@
 
 	* gud.el (gud-filter): Call comint-output-filter at the end.
 
-1994-04-21  Francesco Potorti`  (pot@fly.cnuce.cnr.it)
+1994-04-21  Francesco Potortì  (pot@fly.cnuce.cnr.it)
 
-	* cmacexp.el (c-macro-expansion): changed the algorithm to allow
+	* cmacexp.el (c-macro-expansion): Changed the algorithm to allow
 	__FILE__ and __LINE__ directives to be expanded correctly.
-	(c-macro-expansion): use a forth optional argument DISPLAY meaning
+	(c-macro-expansion): Use a fourth optional argument DISPLAY meaning
 	it should print messages at the start and end of preprocessing.
 	All callers changed.
 	(c-macro-expand): Don't display message here.
@@ -1445,21 +1444,21 @@
 
 1994-04-14  Lars Magne Ingebrigtsen  (larsi@bera.ifi.uio.no)
 
-        * gnus-uu.el (gnus-uu-enter-interactive-file): Escape any special
-        characters in file names.
-        (gnus-uu-call-asynchronous, gnus-uu-treat-archive): Likewise.
+	* gnus-uu.el (gnus-uu-enter-interactive-file): Escape any special
+	characters in file names.
+	(gnus-uu-call-asynchronous, gnus-uu-treat-archive): Likewise.
 
-        * gnus-uu.el (gnus-uu-uustrip-article-as): Added more corrections
-        of corrupt uucode.
-        (gnus-uu-uustrip-article-as): Changed the algorithm for finding
-        begin/body lines of encoded articles.
-        (gnus-uu-check-correct-stripped-uucode): Handle
-        extraneous empty lines in uuencoded postings.
+	* gnus-uu.el (gnus-uu-uustrip-article-as): Added more corrections
+	of corrupt uucode.
+	(gnus-uu-uustrip-article-as): Changed the algorithm for finding
+	begin/body lines of encoded articles.
+	(gnus-uu-check-correct-stripped-uucode): Handle
+	extraneous empty lines in uuencoded postings.
 
-        * gnus-uu.el (gnus-uu-uustrip-article-as, gnus-uu-clean-up):
-        Check before calling process-status.
-        (gnus-uu-uuencode-and-post): Added possibly non-standard
-        posting of uuencoded files.
+	* gnus-uu.el (gnus-uu-uustrip-article-as, gnus-uu-clean-up):
+	Check before calling process-status.
+	(gnus-uu-uuencode-and-post): Added possibly non-standard
+	posting of uuencoded files.
 
 1994-04-14  Simon Marshall  (Simon.Marshall@mail.esrin.esa.it)
 
@@ -1510,7 +1509,7 @@
 
 1994-04-13  Stephen Gildea  (gildea@stop.mail-abuse.org)
 
-	* mh-e.el, mh-utils.el: (mh-progs, mh-lib): Move from mh-e.el
+	* mh-e.el, mh-utils.el (mh-progs, mh-lib): Move from mh-e.el
 	to mh-utils.el for Emacs 19.23, which doesn't define them in paths.el.
 
 	* mh-utils.el (mh-find-progs): Add paths for BSDI.  Put local
@@ -1605,7 +1604,7 @@
 	* cust-print.el: Simplify top-level definition of defalias
 	for Emacs 18.
 
-	* edebug.el: (keywordp): Remove definition.
+	* edebug.el (keywordp): Remove definition.
 	(edebug-form): Check whether keywordp is defined.
 
 1994-04-09  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -1723,7 +1722,7 @@
 
 1994-04-05  Daniel LaLiberte  (liberte@churchy.gnu.ai.mit.edu)
 
-	* cust-print.el:  Change install-* and uninstall-*
+	* cust-print.el: Change install-* and uninstall-*
 	to *-install and *-uninstall.
 
 	* eval-region.el: Change install-* and uninstall-*
@@ -1762,25 +1761,24 @@
 1994-04-04  Daniel LaLiberte  (liberte@spiff.gnu.ai.mit.edu)
 
 	* edebug.el: Change "-emacs-" to "-original-" throughout.
-	(edebug-last-sexp): Fix missing ";;"
+	(edebug-last-sexp): Fix missing ";;".
 	(edebug-read): Fix docstring, &optional arg,
-	        and the check that stream is current-buffer.
+	and the check that stream is current-buffer.
 	(edebug-install-read-eval-functions): Use (elisp-eval-region-install).
 	(edebug-uninstall-read-eval-functions): Restore to function values.
 	(edebug-eval-defun): Repair check for edebug-all-defs.
 	(edebug-top-level-form): Set edebug-all-defs to t.
 	(edebug-read-and-maybe-wrap-form1): Call edebug-original-read
-					   instead of read.
+	instead of read.
 	(edebug-enter): Bind pre-command-hook and post-command-hook to nil.
-	        Reset these variables and executing-macro to outside values.
+	Reset these variables and executing-macro to outside values.
 	(edebug-display): Reset global variables to outside values.
 	(edebug-recursive-edit): Reset global variables to outside values.
 	(edebug-outside-excursion): Set outside values of global variables
-				   in case they were changed by side effect.
+	in case they were changed by side effect.
 	(edebug-instrument-callee): Use edebug-original-read instaed of read.
 	(edebug-eval-result-list): While evaluating evaluation list,
-	        bind edebug-execution-mode and edebug-trace to nil.
-
+	bind edebug-execution-mode and edebug-trace to nil.
 
 1994-04-04  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -1806,10 +1804,10 @@
 
 1994-04-02  Karl Fogel  (kfogel@phylo.life.uiuc.edu)
 
-        * saveplace.el (save-place-version-control): New var, for determining
-        how to back up the master saved-places file.
-        (save-place-alist-to-file): Bind version-control depending on
-        `save-place-version-control'.
+	* saveplace.el (save-place-version-control): New var, for determining
+	how to back up the master saved-places file.
+	(save-place-alist-to-file): Bind version-control depending on
+	`save-place-version-control'.
 	(hook for find-file-hooks): Specify the APPEND arg to add-hook.
 
 1994-04-01  Ethan Bradford  (ethanb@ptolemy.astro.washington.edu)
@@ -1983,9 +1981,9 @@
 	* gud.el (gud-gdb-complete-command): New defun to support true
 	GDB completion in the GUD buffer.  Requires assistance from
 	GDB in the form of the `complete' command.
-	(gud-gdb-complete-in-progress, gud-gdb-complete-string,
-	gud-gdb-complete-break, gud-gdb-complete-list,
-	gud-gdb-complete-filter): New.
+	(gud-gdb-complete-in-progress, gud-gdb-complete-string)
+	(gud-gdb-complete-break, gud-gdb-complete-list)
+	(gud-gdb-complete-filter): New.
 	(gdb): Bind TAB to gud-gdb-complete-command.
 
 1994-03-25  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -2003,10 +2001,10 @@
 	* edebug.el: New version from author.
 
 	* cust-print.el Change "internal" to "original" throughout.
-        (add-custom-printer, delete-custom-printer) replace old
+	(add-custom-printer, delete-custom-printer): Replace old
 	customizers.
-        (with-custom-print) new
-        (custom-prin1-to-string) Made it more robust.
+	(with-custom-print): New.
+	(custom-prin1-to-string): Made it more robust.
 
 1994-03-23  Simon Marshall  (simonm@penelope)
 
@@ -2075,8 +2073,8 @@
 1994-03-20  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* select.el (x-valid-simple-selection-p): Accept an overlay.
-	(xselect-convert-to-string, xselect-convert-to-length):
-	(xselect-convert-to-filename xselect-convert-to-charpos):
+	(xselect-convert-to-string, xselect-convert-to-length)
+	(xselect-convert-to-filename xselect-convert-to-charpos)
 	(xselect-convert-to-lineno, xselect-convert-to-colno): Likewise.
 
 	* subr.el (one-window-p): New argument all-frames.
@@ -2111,14 +2109,12 @@
 
 1994-03-18  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
 
-
 	* help.el (help-with-tutorial): Avoid unexplained large blank area.
 
 	* disp-table.el (create-glyph): Don't use slots that look like ASCII.
 	(standard-display-ascii): Error if using a windowing system.
 	(standard-display-g1, standard-display-graphic): Ditto.
 	(standard-display-underline): If window system, use underline font.
-
 
 1994-03-18  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -2194,7 +2190,7 @@
 	(Man-getpage-in-background): Require env before printing message.
 
 	* mh-comp.el, mh-funcs.el, mh-mime.el, mh-pick.el, mh-seq.el,
-	mh-utils.el: New files.
+	* mh-utils.el: New files.
 	* mh-e.el: Version 4.0 from Gildea.
 
 1994-03-14  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
@@ -2229,7 +2225,7 @@
 	* appt.el: Doc fix.
 
 	* add-log.el, ange-ftp.el, cplus-md.el, dired-aux.el, dired.el,
-	files.el, gnus.el, ispell.el, subr.el, texinfmt.el: Don't use
+	* files.el, gnus.el, ispell.el, subr.el, texinfmt.el: Don't use
 	triple-hyphen in a character class.
 	* scheme.el (scheme-let-indent): Put hyphen in a safer place in
 	the character class.
@@ -2246,7 +2242,7 @@
 
 	* mouse.el (mouse-kill): Select the clicked window first.
 
-	* outline.el: (outline-mode, outline-level): Doc fix.
+	* outline.el (outline-mode, outline-level): Doc fix.
 	(outline-on-heading-p): Use bolp, not bobp.
 	(outline-hide-other): Rename from hide-other.
 	(outline-hide-sublevels): Rename from hide-sublevels.
@@ -2267,7 +2263,7 @@
 
 	* rmail.el (rmail-ignored-headers): Add several x400 header types.
 
-	* ispell.el (ispell-pdict-save, ispell-kill-ispell, ispell-continue):
+	* ispell.el (ispell-pdict-save, ispell-kill-ispell, ispell-continue)
 	(ispell-help): Add autoloads.
 
 	* bookmark.el (kill-emacs-hook): Don't autoload this hook.
@@ -2477,15 +2473,15 @@
 	* shell.el (shell-get-current-command, shell-after-partial-filename):
 	Functions deleted.
 
-	* shell.el (shell-dynamic-complete-environment-variable,
-	shell-replace-by-expanded-directory): New commands.
-	(shell-match-partial-variable,
-	shell-dynamic-complete-as-environment-variable): New functions.
+	* shell.el (shell-dynamic-complete-environment-variable)
+	(shell-replace-by-expanded-directory): New commands.
+	(shell-match-partial-variable)
+	(shell-dynamic-complete-as-environment-variable): New functions.
 
-	* comint.el (comint-after-partial-filename-command,
-	comint-dynamic-complete-filename-command,
-	comint-dynamic-complete-command-command,
-	comint-get-current-command): Deleted.
+	* comint.el (comint-after-partial-filename-command)
+	(comint-dynamic-complete-filename-command)
+	(comint-dynamic-complete-command-command)
+	(comint-get-current-command): Deleted.
 
 	* comint.el (comint-input-sentinel-functions):
 	Replaces comint-input-sentinel.
@@ -2508,8 +2504,8 @@
 
 	* comint.el (comint-word): New function.
 	(comint-match-partial-filename): Use it.
-	(comint-after-partial-filename, comint-match-partial-variable,
-	comint-dynamic-complete-variable): Deleted.
+	(comint-after-partial-filename, comint-match-partial-variable)
+	(comint-dynamic-complete-variable): Deleted.
 
 	* comint.el (comint-dynamic-complete):
 	Run hooks on comint-dynamic-complete-functions.
@@ -2542,8 +2538,7 @@
 
 1994-03-03  Christian Lynbech  (lynbech@daimi.aau.dk)
 
-	* appt.el: Better use add-hook than setq when setting
-	display-time-hook
+	* appt.el: Better use add-hook than setq when setting display-time-hook.
 
 1994-03-03  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
 
@@ -2636,8 +2631,8 @@
 
 1994-03-01  Ed Reingold  (reingold@goldman.gnu.ai.mit.edu)
 
-	* calendar.el: (calendar-current-date): Use fixed assoc list for
-        month names so that changing the array of names doesn't screw up
+	* calendar.el (calendar-current-date): Use fixed assoc list for
+	month names so that changing the array of names doesn't screw up
 	the determination of the current date.
 
 1994-03-01  Ethan Bradford  (ethanb@ptolemy.astro.washington.edu)
@@ -2768,7 +2763,7 @@
 
 1994-02-22  Jay K. Adams  (jka@mustang.ece.cmu.edu)
 
-	* jka-compr.el: (jka-compr-partial-uncompress): Make dd give you
+	* jka-compr.el (jka-compr-partial-uncompress): Make dd give you
 	one more block than you think you need.
 
 	* jka-compr.el (jka-compr-dd-blocksize): Change default value to 256.
@@ -2779,8 +2774,8 @@
 	Removed autoload for `backquote'.
 	Removed arglist specifications for `documentation' and `fset'.
 	(ad-emacs19-p, ad-use-jwz-compiler): Removed these variables.
-	(ad-lemacs-p, ad-v19-compiled-p, ad-subr-arglist,
-	ad-make-advised-docstring): Removed reference to `ad-emacs19-p'.
+	(ad-lemacs-p, ad-v19-compiled-p, ad-subr-arglist)
+	(ad-make-advised-docstring): Removed reference to `ad-emacs19-p'.
 	(ad-compiled-p): Renamed from `ad-v19-compiled-p'.  Removed old
 	definition of `ad-compiled-p'.
 	(ad-compiled-code): Renamed from `ad-v19-compiled-code'.
@@ -2793,8 +2788,8 @@
 	are now at the top level.
 	(ad-advised-byte-code-definition): Renamed to `ad-advised-byte-code'
 	and removed the definition of `ad-advised-byte-code' via `fset'.
-	(ad-advised-byte-code-definition, ad-recover-byte-code,
-	ad-stop-advice, ad-recover-normality): Removed
+	(ad-advised-byte-code-definition, ad-recover-byte-code)
+	(ad-stop-advice, ad-recover-normality): Removed
 	`ad-real-byte-codify'-cation of their definitions.
 	(ad-adjust-stack-sizes): Removed.
 	(ad-enable-definition-hooks, ad-disable-definition-hooks):
@@ -2820,7 +2815,7 @@
 	changed the default formatting of advised docstrings.
 	(ad-make-plain-docstring, ad-make-freeze-docstring): New functions.
 
-	* advice.el: (ad-recover-all, ad-scan-byte-code-for-fsets):
+	* advice.el (ad-recover-all, ad-scan-byte-code-for-fsets):
 	Removed unused condition variable `ignore-errors'.
 
 	* advice.el (ad-save-real-definition): New macro to save real
@@ -2838,7 +2833,7 @@
 1994-02-22  Ed Reingold  (reingold@mole.gnu.ai.mit.edu)
 
 	* calendar.el (calendar-cursor-to-date): Fix to handle starred
-        days correctly.
+	days correctly.
 
 1994-02-22  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
 
@@ -2890,8 +2885,8 @@
 
 1994-02-17  Noah Friedman  (friedman@splode.com)
 
-        * files.el (interpreter-mode-alist): Add entries for awk, gawk, and
-        scm scripts.
+	* files.el (interpreter-mode-alist): Add entries for awk, gawk, and
+	scm scripts.
 
 1994-02-16  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -2940,7 +2935,7 @@
 	Update copyright year in displayed message.
 
 	* faces.el (face-initialize): Specify default characteristics
-	for the	standard faces.  Use face-fill-in to set up existing frames.
+	for the standard faces.  Use face-fill-in to set up existing frames.
 	(face-fill-in, face-try-color-list): New subroutines.
 	Handle underline, foreground and background in the
 	frame-independent info of a face.
@@ -2963,11 +2958,11 @@
 	* fileio.c (Fsubstitute_in_file_name): Remove long-dead code
 	that looked at USER before LOGNAME.
 
-	* time.el (display-time-filter):  Remove unnecessary (getenv "LOGNAME")
+	* time.el (display-time-filter): Remove unnecessary (getenv "LOGNAME")
 	and (getenv "USER"), since (user-login-name) already does this.
 	* gnuspost.el (gnus-inews-login-name): Likewise.
 	* gnus.el (gnus-user-login-name): Fix doc string accordingly.
-	* subr.el (user-original-login-name):  Reduce to a defalias, since
+	* subr.el (user-original-login-name): Reduce to a defalias, since
 	it's redundant with user-login-name.  All callers changed to use
 	user-login-name.
 
@@ -3119,11 +3114,11 @@
 	(calendar-cursor-to-date): Add optional parameter to cause error
 	signal when cursor is not on a date---this allows lots of
 	simplifications throughout the code.
-	(calendar-forward-month,calendar-set-mark,
-	calendar-exchange-point-and-mark,calendar-count-days-region,
-	calendar-print-day-of-year,calendar-print-iso-date,
-	calendar-print-julian-date,calendar-print-islamic-date,
-	calendar-print-hebrew-date,calendar-print-astro-day-number):
+	(calendar-forward-month,calendar-set-mark)
+	(calendar-exchange-point-and-mark,calendar-count-days-region)
+	(calendar-print-day-of-year,calendar-print-iso-date)
+	(calendar-print-julian-date,calendar-print-islamic-date)
+	(calendar-print-hebrew-date,calendar-print-astro-day-number):
 	Use simplification.
 
 	* holidays.el (calendar-cursor-holidays): Use new error arg
@@ -3132,13 +3127,13 @@
 	* diary.el (view-diary-entries,diary-islamic-date): Use new error arg
 	to calendar-cursor-to-date.
 
-	* diary-ins.el (insert-diary-entry,insert-weekly-diary-entry,
-	insert-monthly-diary-entry,insert-yearly-diary-entry,
-	insert-anniversary-diary-entry,insert-block-diary-entry,
-	insert-cyclic-diary-entry,insert-hebrew-diary-entry,
-	insert-monthly-hebrew-diary-entry,insert-yearly-hebrew-diary-entry,
-	insert-islamic-diary-entry,insert-monthly-islamic-diary-entry,
-	insert-yearly-islamic-diary-entry): Use new error arg
+	* diary-ins.el (insert-diary-entry,insert-weekly-diary-entry)
+	(insert-monthly-diary-entry,insert-yearly-diary-entry)
+	(insert-anniversary-diary-entry,insert-block-diary-entry)
+	(insert-cyclic-diary-entry,insert-hebrew-diary-entry)
+	(insert-monthly-hebrew-diary-entry,insert-yearly-hebrew-diary-entry)
+	(insert-islamic-diary-entry,insert-monthly-islamic-diary-entry)
+	(insert-yearly-islamic-diary-entry): Use new error arg
 	to calendar-cursor-to-date.
 
 	* solar.el (calendar-sunrise-sunset): Use new error arg
@@ -3226,7 +3221,7 @@
 
 	* mouse.el (mouse-yank-secondary): Do move point.
 	(mouse-yank-at-point): New var.
-	(mouse-yank-at-click, mouse-yank-secondary) Obey that.
+	(mouse-yank-at-click, mouse-yank-secondary): Obey that.
 
 	* menu-bar.el: Use > as convention for another menu follows.
 	(menu-bar-edit-menu): Add entry for Emerge.
@@ -3240,7 +3235,7 @@
 	(emerge-set-keys): Put them into the emerge-edit-keymap.
 	(emerge-minor-modes-list): Add defvar.
 	(emerge-before-flag, emerge-after-flag): Move defvars up.
-	(emerge-files-remote, emerge-files-with-ancestor-remote):
+	(emerge-files-remote, emerge-files-with-ancestor-remote)
 	(emerge-remote-exit): Var exit-func renamed to emerge-exit-func.
 
 1994-02-05  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
@@ -3379,8 +3374,8 @@
 
 	* mouse-sel.el (mouse-sel-version): Don't base version number on
 	RCS revision.  Updated to version 2.0.
-	(mouse-sel-set-selection-function, mouse-sel-get-selection-function,
-	 mouse-sel-check-selection-function):
+	(mouse-sel-set-selection-function, mouse-sel-get-selection-function)
+	(mouse-sel-check-selection-function):
 	Check whether X11 functions are bound when setting defaults.
 	(mouse-extend): Check whether modify-frame-parameters is bound before
 	calling it.  Add support to kill region with double-mouse-3.
@@ -3413,7 +3408,7 @@
 
 1994-02-02  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
-	* vc.el	(vc-parse-buffer): arrange for old properties to get
+	* vc.el (vc-parse-buffer): Arrange for old properties to get
 	cleared when their match string is not found in the master file.
 
 1994-02-01  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -3454,17 +3449,17 @@
 
 	* tabify.el (tabify): Don't delete back before initial START.
 
-	* appt.el: (appt-display-interval, appt-display-duration)
+	* appt.el (appt-display-interval, appt-display-duration)
 	(appt-message-warning-time): Use larger defaults.
 
-1994-01-31  (saw@cebaf.gov)
+1994-01-31  Stephen A. Wood  (saw@cebaf.gov)
 
 	* fortran.el (calculate-fortran-indent): Handle
 	Fortran 90 INTERFACE and SELECT/CASE blocks.
 
 1994-01-31  Boris Goldowsky  (boris@moose.cs.rochester.edu)
 
-	* avoid.el: (mouse-avoidance-nudge-mouse): Use (frame-width) and
+	* avoid.el (mouse-avoidance-nudge-mouse): Use (frame-width) and
 	(frame-height) instead of erroneous (window-width) and (window-height).
 	(mouse-avoidance-simple-hook): Raise frame first.
 	(mouse-avoidance-fancy-hook): If moving mouse would enter
@@ -3490,8 +3485,8 @@
 
 1994-01-31  Karl Heuer  (kwzh@mole.gnu.ai.mit.edu)
 
-	* rmailsum.el (rmail-summary-mail, rmail-summary-continue,
-	rmail-summary-reply, rmail-summary-retry-failure): Fix rmail
+	* rmailsum.el (rmail-summary-mail, rmail-summary-continue)
+	(rmail-summary-reply, rmail-summary-retry-failure): Fix rmail
 	summary commands to work with rmail-mail-new-frame.
 
 1994-01-30  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
@@ -3518,24 +3513,23 @@
 
 	* calendar.el (calendar-version): New function.
 	Adjustments to commentary at top of file.
-	(diary-entry-marker, calendar-today-marker,
-	calendar-holiday-marker): Don't autoload them; change definitions
+	(diary-entry-marker, calendar-today-marker)
+	(calendar-holiday-marker): Don't autoload them; change definitions
 	to support monochrome and color workstations.
-	(calendar-french-date-string,calendar-mayan-date-string): Autoload
-	them.
-	(calendar-day-of-year-string, calendar-iso-date-string,
-	calendar-julian-date-string,calendar-islamic-date-string,
-	calendar-hebrew-date-string,calendar-astro-date-string): New functions
-	(calendar-print-day-of-year, calendar-print-iso-date,
-	calendar-print-iso-date,calendar-print-julian-date,
-	calendar-print-islamic-date,calendar-print-hebrew-date,
-	calendar-print-astro-day-number): Use them.
+	(calendar-french-date-string,calendar-mayan-date-string): Autoload them.
+	(calendar-day-of-year-string, calendar-iso-date-string)
+	(calendar-julian-date-string,calendar-islamic-date-string)
+	(calendar-hebrew-date-string,calendar-astro-date-string): New functions.
+	(calendar-print-day-of-year, calendar-print-iso-date)
+	(calendar-print-iso-date,calendar-print-julian-date)
+	(calendar-print-islamic-date,calendar-print-hebrew-date)
+	(calendar-print-astro-day-number): Use them.
 	(calendar-mode-map): Add mouse support.
 	(calendar-unmark,mark-visible-calendar-date,calendar-mark-today):
 	Rewritten.
 
-	* diary.el (diary-day-of-year, diary-iso-date,	diary-islamic-date,
-	diary-hebrew-date, diary-julian-date, diary-astro-day-number):
+	* diary.el (diary-day-of-year, diary-iso-date, diary-islamic-date)
+	(diary-hebrew-date, diary-julian-date, diary-astro-day-number):
 	Use new functions from calendar.el.
 
 	* holidays.el (list-calendar-holidays): Fix mode line.
@@ -3842,10 +3836,10 @@
 
 	* shell.el (shell-cd): Function removed.
 	(shell-prefixed-directory-name): New defsubst.
-	(shell-process-popd, shell-process-pushd, shell-process-cd,
-	shell-resync-dirs): Apply it to ARG when it's a directory name.  Use
-	(concat comint-file-name-prefix "~") in place of (getenv "HOME") or
-	"~".  Call cd instead of shell-cd.
+	(shell-process-popd, shell-process-pushd, shell-process-cd)
+	(shell-resync-dirs): Apply it to ARG when it's a directory name.
+	Use (concat comint-file-name-prefix "~") in place of (getenv "HOME")
+	or "~".  Call cd instead of shell-cd.
 
 	* menu-bar.el (mouse-menu-choose-yank): Don't use
 	rotate-yank-pointer; set kill-ring-yank-pointer explicitly
@@ -3910,7 +3904,7 @@
 	* files.el (auto-mode-alist): Default mode for "changelo" set to
 	change-log-mode to support ms-dos 8+3 file names.  AAAARRGGG!  Also
 	use emacs-lisp-mode for "_emacs" file which is the equivalent of
-	".emacs"
+	".emacs".
 
 	* bytecomp.el (byte-compile-file) [ms-dos]: Save as binary.
 
@@ -3918,7 +3912,7 @@
 
 	* files.el (make-backup-file-name, backup-file-name-p) [ms-dos]:
 	Use "*.bak" as backup file name.
-	(user-init-file): new variable.
+	(user-init-file): New variable.
 
 	* inc-vers.el [ms-dos]: Save version.el as *binary*.
 
@@ -3933,7 +3927,7 @@
 
 	* novice.el (enable-command, disable-command): Use user-init-file.
 
-	* desktop.el: (desktop-buffer-mh): New function for mh mail system.
+	* desktop.el (desktop-buffer-mh): New function for mh mail system.
 	(desktop-buffer-handlers): Add desktop-buffer-mh.
 	(desktop-buffer): Correct setting of auto-fill-mode.
 	Make the compilation silent using (eval-when-compile ...)
@@ -3945,7 +3939,7 @@
 	(desktop-save): Use desktop-create-buffer-form.
 	(desktop-value-to-string): New function.
 	(desktop-outvar): Clean-up using desktop-value-to-string.
-	(desktop-save): clean-up Using desktop-value-to-string.
+	(desktop-save): Clean-up using desktop-value-to-string.
 	(desktop-save): Decide Emacs version at compile time.
 	(desktop-locals-to-save): New variable.
 	(desktop-truncate): New function.
@@ -4025,9 +4019,9 @@
 
 1993-01-01  Martin Boyer  <mboyer@ireq-robot.hydro.qc.ca>
 
-  	* bibtex.el (bibtex-field-name, bibtex-field-const, bibtex-field-text):
-  	Adapted to Emacs 19 regex rules.
-  	(bibtex-reference): Removed one set of parentheses (a workaround).
+	* bibtex.el (bibtex-field-name, bibtex-field-const, bibtex-field-text):
+	Adapted to Emacs 19 regex rules.
+	(bibtex-reference): Removed one set of parentheses (a workaround).
 
 1993-01-01  Michael D. Ernst  (mernst@research.microsoft.com)
 
@@ -4152,11 +4146,11 @@
 
 1993-12-22  Noah Friedman  (friedman@splode.com)
 
-        * lisp-mnt.el (Bogus-Bureaucratic-Cruft): Changed to
-        `X-Bogus-Bureaucratic-Cruft'.
-        Change comments to indicate that any header starting with `X-' is
-        not supposed to be implemented.  This gives us the same "out"
-        that RFC822 does.
+	* lisp-mnt.el (Bogus-Bureaucratic-Cruft): Changed to
+	`X-Bogus-Bureaucratic-Cruft'.
+	Change comments to indicate that any header starting with `X-' is
+	not supposed to be implemented.  This gives us the same "out"
+	that RFC822 does.
 
 1993-12-16  Richard Stallman  (rms@srarc2)
 
@@ -4213,7 +4207,7 @@
 	* gud.el (gud-mipsdbx-massage-args, gud-mipsdbx-marker-filter):
 	New functions for dbx support on Mips under Ultrix.
 	(gud-dbx-mips-p, gud-mipsdbx-marker-acc): New variables.
-	(dbx) If gud-dbx-mips-p is non-nil, overload above two functions
+	(dbx): If gud-dbx-mips-p is non-nil, overload above two functions
 	and initialize appropriate command strings for dbx.
 
 1993-12-12  Richard Stallman  (rms@srarc2)
@@ -4269,7 +4263,7 @@
 
 1993-12-08  Boris Goldowsky  (boris@mink.cs.rochester.edu)
 
-	* shadowfile.el: (shadow-noquery): Use it.
+	* shadowfile.el (shadow-noquery): Use it.
 	(shadow-copy-file): Use abbreviate-file-name to
 	avoid incorrect warnings.
 	Lucid support commented out (didn't work and caused compiler warnings).
@@ -4279,16 +4273,16 @@
 	* compile.el (compilation-error-regexp-alist): Generalize
 	`"foo.c", line 13:' regexp to also match `"foo.c", line 13 pos 1...'.
 
-	* loaddefs.el (point-to-register-compatibility-binding,
-	jump-to-register-compatibility-binding,
-	copy-to-register-compatibility-binding,
-	insert-register-compatibility-binding): Add defaliases for these.
+	* loaddefs.el (point-to-register-compatibility-binding)
+	(jump-to-register-compatibility-binding)
+	(copy-to-register-compatibility-binding)
+	(insert-register-compatibility-binding): Add defaliases for these.
 	(ctl-x-map): Bind / j x g to those, respectively, so \[...] always
 	expands to the C-x r ... bindings.
 
 1993-12-08  Stephen Gildea  (gildea@stop.mail-abuse.org)
 
-	* time-stamp.el (time-stamp-month-dd-yyyy): no leading zero on day.
+	* time-stamp.el (time-stamp-month-dd-yyyy): No leading zero on day.
 
 1993-12-08  Richard Stallman  (rms@srarc2)
 
@@ -4310,8 +4304,8 @@
 
 1993-12-06  Noah Friedman  (friedman@splode.com)
 
-        * loaddefs.el: Remove autoload for `rlogin-with-args', which no
-        longer exists.
+	* loaddefs.el: Remove autoload for `rlogin-with-args', which no
+	longer exists.
 
 1993-12-06  Michael D. Ernst  (mernst@monozygote)
 
@@ -4334,15 +4328,15 @@
 1993-12-06  Anders Holst  (aho@sans.kth.se)
 
 	* hippie-exp.el (;; Keywords:): Changed to "abbrev".
-        (hippie-expand-ignore-buffers): New variable.
-        (he-regexp-member): New function.
-        (hippie-expand-try-functions-list): Added `try-expand-list'.
-        (try-expand-line-all-buffers, try-expand-list-all-buffers,
-        try-expand-dabbrev-all-buffers): Use `he-regexp-member' and
-        `hippie-expand-ignore-buffers'.
-        (he-list-search): Don't find list containing point.
-        (he-dab-search-regexp): Just match at beginning of words.
-        (he-dabbrev-beg): Never move point forward.
+	(hippie-expand-ignore-buffers): New variable.
+	(he-regexp-member): New function.
+	(hippie-expand-try-functions-list): Added `try-expand-list'.
+	(try-expand-line-all-buffers, try-expand-list-all-buffers,
+	try-expand-dabbrev-all-buffers): Use `he-regexp-member' and
+	`hippie-expand-ignore-buffers'.
+	(he-list-search): Don't find list containing point.
+	(he-dab-search-regexp): Just match at beginning of words.
+	(he-dabbrev-beg): Never move point forward.
 
 1993-12-05  Paul Eggert  (eggert@twinsun.com)
 
@@ -4368,7 +4362,7 @@
 
 	* comint.el (comint-mode-map): Put comint-show-output on C-M-l.
 
-	* cplus-md.el (c++-indent-line, calculate-c++-indent):
+	* cplus-md.el (c++-indent-line, calculate-c++-indent)
 	(indent-c++-exp): Recognize `friend' without `class'.
 
 	* rmail.el (rmail): Doc fix.
@@ -4511,15 +4505,15 @@
 1993-12-01  Morten Welinder  (terra@tyr.diku.dk)
 
 	* desktop.el: Add keywords.
-	(desktop-outvar): clean-up output using fewer quotes and \n for
+	(desktop-outvar): Clean-up output using fewer quotes and \n for
 	newlines.
-	(desktop-save): print buffer information using \n for newlines.
-	(desktop-save-buffer-p): doc fix.
-	(desktop-save): bug in mark-activity saving.
-	(desktop-buffer-rmail): doc fix.
-	(desktop-buffer-rmail, desktop-buffer-dired, desktop-buffer): use
-	`eq' instead of `equal'.
-	(desktop-clear): end up with one window.
+	(desktop-save): Print buffer information using \n for newlines.
+	(desktop-save-buffer-p): Doc fix.
+	(desktop-save): Bug in mark-activity saving.
+	(desktop-buffer-rmail): Doc fix.
+	(desktop-buffer-rmail, desktop-buffer-dired, desktop-buffer):
+	Use `eq' instead of `equal'.
+	(desktop-clear): End up with one window.
 
 1993-12-01  Richard Stallman  (rms@srarc2)
 
@@ -4533,13 +4527,13 @@
 
 1993-12-01  Noah Friedman  (friedman@splode.com)
 
-        * rlogin.el (rlogin-filter): initialize `region-begin' to
-        (marker-position proc-mark), not just (point), whatever random
-        value that may be.
-        Put bindings for `proc-mark', `region-begin', and `window' in
-        separate setq forms.
-        In determining whether window-start readjustment is needed, do not
-        examine scroll-step; it is irrelevant.
+	* rlogin.el (rlogin-filter): Initialize `region-begin' to
+	(marker-position proc-mark), not just (point), whatever random
+	value that may be.
+	Put bindings for `proc-mark', `region-begin', and `window' in
+	separate setq forms.
+	In determining whether window-start readjustment is needed, do not
+	examine scroll-step; it is irrelevant.
 
 1993-11-30  Richard Stallman  (rms@srarc2)
 
@@ -4579,15 +4573,15 @@
 
 1993-11-24  Rob Riepel  (riepel@Snowflake.Stanford.edu)
 
-        * tpu-edt.el (tpu-quoted-insert): New function.
-        (tpu-reset-control-keys): Remove C-f mapping.
-        Insert (in file) fsets for free/bound cursor, scroll
-        margins, key mappings for same.
+	* tpu-edt.el (tpu-quoted-insert): New function.
+	(tpu-reset-control-keys): Remove C-f mapping.
+	Insert (in file) fsets for free/bound cursor, scroll
+	margins, key mappings for same.
 
-        * tpu-extras.el: Remove free/bound cursor and scroll
-        margin fsets and key mappings.  Add autoload cookies.
+	* tpu-extras.el: Remove free/bound cursor and scroll
+	margin fsets and key mappings.  Add autoload cookies.
 
-        * tpu-doc.el: Add sample test for tpu-set-scroll-margins.
+	* tpu-doc.el: Add sample test for tpu-set-scroll-margins.
 
 1993-11-24  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -4654,8 +4648,8 @@
 
 1993-11-22  Morten Welinder  (terra@tyr.diku.dk)
 
-	* add-log.el (add-change-log-entry): put buffer in change-log-mode.
-	(find-change-log): correct calculation of file one directory out.
+	* add-log.el (add-change-log-entry): Put buffer in change-log-mode.
+	(find-change-log): Correct calculation of file one directory out.
 
 1993-11-22  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -4732,8 +4726,8 @@
 
 1993-11-19  Robert J. Chassell  (bob@geech.gnu.ai.mit.edu)
 
-        * texinfmt.el (texinfo-if-set, texinfo-if-clear): Act
-          appropriately when flat neither set nor cleared.
+	* texinfmt.el (texinfo-if-set, texinfo-if-clear): Act
+	appropriately when flat neither set nor cleared.
 
 1993-11-19  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -4790,7 +4784,7 @@
 
 1993-11-15  Per Bothner  (bothner@cygnus.com)
 
-	* iso-acc.el (iso-accents-list):  Added /A for A-with-ring
+	* iso-acc.el (iso-accents-list): Added /A for A-with-ring
 	and /E for AE-ligature, with lowercase versions.  These
 	letters are used (with O-with-slash) in Norwegian and Danish.
 
@@ -4809,15 +4803,15 @@
 
 1993-11-15  Robert J. Chassell  (bob@grackle.stockbridge.ma.us)
 
-        * page.el: Add `provide'.
-        (narrow-to-page): Enable page-delimiter to span lines.
+	* page.el: Add `provide'.
+	(narrow-to-page): Enable page-delimiter to span lines.
 
-        * page-ext.el: Revise documentation.  Add `provide'.
-        (pages-directory-for-adding-addresses-narrowing-p):
-        New user option for adding addresses.  Default to narrowing.
-        (pages-directory-for-addresses): Intall user settable options.
-        (add-new-page): Insert new page in specified location.
-        (original-page-delimiter): Set default value to "^^L".
+	* page-ext.el: Revise documentation.  Add `provide'.
+	(pages-directory-for-adding-addresses-narrowing-p):
+	New user option for adding addresses.  Default to narrowing.
+	(pages-directory-for-addresses): Intall user settable options.
+	(add-new-page): Insert new page in specified location.
+	(original-page-delimiter): Set default value to "^^L".
 
 1993-11-15  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
@@ -4902,11 +4896,11 @@
 
 1993-11-10  Robert J. Chassell  (bob@kropotkin.gnu.ai.mit.edu)
 
-        * texinfo.el (texinfo-texi2dvi-command): Separate `texi2dvi'
+	* texinfo.el (texinfo-texi2dvi-command): Separate `texi2dvi'
 	command from `tex' command so `texinfo-format-region' can use
 	straight `tex' command.
-        (texinfo-format-buffer): Use `texinfo-texi2dvi-command'
-        (texinfo-delete-from-print-queue): Revise documentation.
+	(texinfo-format-buffer): Use `texinfo-texi2dvi-command'.
+	(texinfo-delete-from-print-queue): Revise documentation.
 	(texinfo-quit-job): Use comint-send-input.
 
 	* texinfmt.el (texinfo-format-region): Change `texinfo-[start
@@ -4971,7 +4965,7 @@
 
 1993-11-08  Robert J. Chassell  (bob@geech.gnu.ai.mit.edu)
 
-        * texinfo.el (texinfo-show-structure): Indent appendices properly.
+	* texinfo.el (texinfo-show-structure): Indent appendices properly.
 
 1993-11-08  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -5046,12 +5040,12 @@
 
 1993-11-03  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
-        * tex-mode.el (tex-alt-print): New function for menu bar.
-        (tex-define-common-keys, tex-mode-map): Move some items from
+	* tex-mode.el (tex-alt-print): New function for menu bar.
+	(tex-define-common-keys, tex-mode-map): Move some items from
 	tex-define-common-keys to tex-mode-map.
 	Add more menu-enable properties.
-        (tex-append): Cope with both the original
-        Pascal-based TeX and the newer C-based TeX.
+	(tex-append): Cope with both the original
+	Pascal-based TeX and the newer C-based TeX.
 
 1993-11-03  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -5106,7 +5100,7 @@
 
 1993-10-25  Karl Fogel  (kfogel@mole.gnu.ai.mit.edu)
 
-        * bookmark.el (bookmark-load, bookmark-write-file): Made
+	* bookmark.el (bookmark-load, bookmark-write-file): Made
 	enable-local-eval be nil when loading a bookmark file, since
 	bookmark context strings can contain eval forms from the files in
 	which the bookmarks are set, and we don't want them evalled when
@@ -5114,11 +5108,11 @@
 
 	Got rid of ###autoload to put a bookmark menu on the menu-bar.
 	Now it will appear on the File menu -- that change is made in
-        menu-bar.el.  See below:
+	menu-bar.el.  See below:
 
-        * menu-bar.el: Added a define-key for menu-bar-bookmark-map, so
-        that bookmarks will appear on the File menu of the menu-bar, right
-        after the Print Buffer item.
+	* menu-bar.el: Added a define-key for menu-bar-bookmark-map, so
+	that bookmarks will appear on the File menu of the menu-bar, right
+	after the Print Buffer item.
 
 1993-10-25  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -5135,7 +5129,7 @@
 
 1993-10-25  Brian Fox  (bfox@albert.gnu.ai.mit.edu)
 
- 	* ispell.el (ispell): If the buffer to spell has no associated
+	* ispell.el (ispell): If the buffer to spell has no associated
 	file, or, the associated file has a special handler, use a
 	temporary file with the buffer contents to pass to the local
 	ispell process.
@@ -5195,7 +5189,7 @@
 	* shell.el (shell-read-input-ring, shell-input-ring-file-name):
 	Moved to, and renamed in, comint.el.
 
-	* shell.el (shell-dynamic-complete-command):  Make sure local
+	* shell.el (shell-dynamic-complete-command): Make sure local
 	completion-ignore-case is nil.
 
 	* shell.el (shell-mode): Set buffer-local variable paragraph-start
@@ -5214,19 +5208,19 @@
 	* comint.el (comint-previous-matching-input-string): Moved to
 	comint-previous-matching-input-position.
 	(comint-previous-matching-input-string): Use it.
-	(comint-search-arg, comint-search-start,
-	comint-previous-input-string): New subroutines.
-	(comint-previous-input, comint-next-input,
-	comint-previous-matching-input, comint-next-matching-input,
-	comint-previous-matching-input-from-input,
-	comint-next-matching-input-from-input): Use them.
+	(comint-search-arg, comint-search-start)
+	(comint-previous-input-string): New subroutines.
+	(comint-previous-input, comint-next-input)
+	(comint-previous-matching-input, comint-next-matching-input)
+	(comint-previous-matching-input-from-input)
+	(comint-next-matching-input-from-input): Use them.
 
 	* comint.el (comint-mode-map): Added signal menu-bar.  Moved
 	comint-backward/forward-matching-input to output menu-bar, since
 	they move within the buffer rather than do input.
 
-	* comint.el (comint-send-input, comint-after-pmark-p,
-	comint-kill-input, comint-proc-query): Removed serialisation of
+	* comint.el (comint-send-input, comint-after-pmark-p)
+	(comint-kill-input, comint-proc-query): Removed serialisation of
 	obtaining the process mark's marker-position.
 
 	* comint.el, shell.el: Commented out comint/shell-load-hooks.
@@ -5253,20 +5247,20 @@
 
 	* comint.el (comint-file-name-prefix): New variable.
 	(comint-directory): New inline subroutine.
-	(comint-dynamic-complete-filename, comint-dynamic-complete-variable,
-	comint-dynamic-list-filename-completions): Use it.
+	(comint-dynamic-complete-filename, comint-dynamic-complete-variable)
+	(comint-dynamic-list-filename-completions): Use it.
 
-	* comint.el (comint-dynamic-complete-filename,
-	comint-dynamic-complete-variable,
-	comint-dynamic-list-filename-completions): Make sure local
+	* comint.el (comint-dynamic-complete-filename)
+	(comint-dynamic-complete-variable)
+	(comint-dynamic-list-filename-completions): Make sure local
 	completion-ignore-case is nil.
 
 	* comint.el (comint-next-prompt, comint-previous-prompt): Use
 	paragraph-start and paragraph motion commands rather than
 	re-search-forward and re-search-backward commands.
 
-	* comint.el (comint-dynamic-list-input-ring,
-	comint-previous-matching-input-string): Use ring-empty-p rather
+	* comint.el (comint-dynamic-list-input-ring)
+	(comint-previous-matching-input-string): Use ring-empty-p rather
 	than zerop and ring-length.
 
 	* comint.el (comint-input-ignoredups): New variable.
@@ -5375,8 +5369,8 @@
 	* calendar.el (calendar-week-start-day): New var (autoloaded) to
 	allow the calendar week to start on any day, not just Sunday.
 	(calendar-mod): New support function.
-	(calendar-cursor-to-visible-date, generate-calendar-month,
-	calendar-beginning-of-week, calendar-end-of-week): Rewritten to
+	(calendar-cursor-to-visible-date, generate-calendar-month)
+	(calendar-beginning-of-week, calendar-end-of-week): Rewritten to
 	use new var calendar-week-start-day.
 
 	* holidays.el (holiday-easter-etc): Fix Ascension Day string.
@@ -5387,12 +5381,12 @@
 	(solar-equinoxes-solstices): Use them to fix names for
 	southern hemisphere.
 
-	* calendar.el (calendar-day-name-array, calendar-month-name-array,
-	calendar-islamic-month-name-array,
-	calendar-hebrew-month-name-array-common-year,
-	calendar-hebrew-month-name-array-leap-year):  Change to defvar.
+	* calendar.el (calendar-day-name-array, calendar-month-name-array)
+	(calendar-islamic-month-name-array)
+	(calendar-hebrew-month-name-array-common-year)
+	(calendar-hebrew-month-name-array-leap-year): Change to defvar.
 
-	* diary.el (hebrew-calendar-parashiot-names):  Change to defvar.
+	* diary.el (hebrew-calendar-parashiot-names): Change to defvar.
 
 1993-10-18  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -5402,25 +5396,24 @@
 
 1993-10-18  Noah Friedman  (friedman@splode.com)
 
-        * rlogin.el (rlogin-initially-track-cwd): New variable.
-        (rlogin): Use it to determine whether enable directory tracking
-        via ange-ftp.
-        (rlogin-mode): Make `comint-filename-prefix' local here.
+	* rlogin.el (rlogin-initially-track-cwd): New variable.
+	(rlogin): Use it to determine whether enable directory tracking
+	via ange-ftp.
+	(rlogin-mode): Make `comint-filename-prefix' local here.
 
-        * rlogin.el (rlogin): Arguments to function are now a string with
-        multiple words (hostname first) and an optional prefix.
-        (rlogin-with-args): Function deleted.
+	* rlogin.el (rlogin): Arguments to function are now a string with
+	multiple words (hostname first) and an optional prefix.
+	(rlogin-with-args): Function deleted.
 
-        * rlogin.el (rlogin): Set process filter after calling
-        `rlogin-mode' since the latter called `comint-mode', which sets
-        its own initial process filter.
+	* rlogin.el (rlogin): Set process filter after calling
+	`rlogin-mode' since the latter called `comint-mode', which sets
+	its own initial process filter.
 
 1993-10-18  Barry A. Warsaw, ITB  (warsaw@anthem)
 
-	* reporter.el:
-	(reporter-submit-bug-report, reporter-mailer): reporter-mailer
-	variable can now take a list of mailers, trying each one until an
-	commandp one is found.
+	* reporter.el (reporter-submit-bug-report, reporter-mailer):
+	reporter-mailer variable can now take a list of mailers,
+	trying each one until an commandp one is found.
 
 	* reporter.el: Fixed elisp archive address.
 	Handle dumping of buffer local variables via reporter-eval-buffer.
@@ -5469,7 +5462,7 @@
 	* bookmark.el (bookmark-jump): bookmark-jump now gives a
 	default value if no bookmark is entered manually.
 	(bookmark-set): Default to bookmark-current-bookmark or
-        buffer-name the way bookmark-jump does.
+	buffer-name the way bookmark-jump does.
 
 	* bookmark.el (ctl-x-map): Check if C-x r is a prefix
 	before using it as one.
@@ -5483,12 +5476,12 @@
 	bookmark-jump.  Support compressed files.
 	(bookmark-jump): Call bookmark-jump-noselect.
 	Offer to relocate if necessary, but change default dir to that of
-        the old	bookmark in read-file-name.
+	the old bookmark in read-file-name.
 
-	* bookmark.el: (bookmark-set, bookmark-rename, bookmark-delete,
-	bookmark-write-file, bookmark-load, Bookmark-menu-show-filenames,
-	Bookmark-menu-hide-filenames, Bookmark-menu-bookmark,
-	Bookmark-menu-save, Bookmark-menu-load): Fixed the save-excursion
+	* bookmark.el (bookmark-set, bookmark-rename, bookmark-delete)
+	(bookmark-write-file, bookmark-load, Bookmark-menu-show-filenames)
+	(Bookmark-menu-hide-filenames, Bookmark-menu-bookmark)
+	(Bookmark-menu-save, Bookmark-menu-load): Fixed the save-excursion
 	bugs by wrapping things in save-window-excursion as well.
 
 	(bookmark-make-menu-bar-alist): Added sorting.
@@ -5546,10 +5539,10 @@
 
 1993-10-04  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
-	* vc.el	(vc-next-action): Fix (throw ... ) invocation to work with 19;
+	* vc.el (vc-next-action): Fix (throw ... ) invocation to work with 19;
 	allows vc-next-action on all marked files in a dired buffer to work.
 
-	(vc-finish-logentry) There isn't necessarily a *VC-log-entry* buffer
+	(vc-finish-logentry): There isn't necessarily a *VC-log-entry* buffer
 	to remove if this function was called from within a dired buffer.  Fix
 	its handling of this case.
 
@@ -5827,7 +5820,7 @@
 	candidates, souped up for configurability.
 	(comint-dynamic-complete-variable): New command.
 	(comint-file-name-autolist): New variable.
-	(comint-file-name-addsuffix): New variable,
+	(comint-file-name-addsuffix): New variable.
 	(comint-file-name-recexact): New variable.
 
 1993-09-20  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -5954,24 +5947,24 @@
 
 1993-09-17  Jonathan Stigelman  <Stig@netcom.com>
 
-        * hilit19.el:
-        - (hilit-rehighlight-region): added (save-restriction (widen))
-          to avoid hangups in dired.
-        - Also slight improvements to fortran patterns and
-          hilit-default-face-table doc string
-        - added optional case-fold argument to hilit-set-mode-patterns
-        - added hilit-rehighlight-buffer-quietly to dired-after-readin-hook
-        - fixed bug in hilit-string-find that mishandled some strings: "\\"
-        - work-around for bug in next-overlay-change
-        - the pattern matcher now starts it's searches from the end of the
+	* hilit19.el:
+	- (hilit-rehighlight-region): Added (save-restriction (widen))
+	  to avoid hangups in dired.
+	- Also slight improvements to fortran patterns and
+	  hilit-default-face-table doc string
+	- added optional case-fold argument to hilit-set-mode-patterns
+	- added hilit-rehighlight-buffer-quietly to dired-after-readin-hook
+	- fixed bug in hilit-string-find that mishandled some strings: "\\"
+	- work-around for bug in next-overlay-change
+	- the pattern matcher now starts it's searches from the end of the
 	  most recently highlighted region (which is not necessarily the end
 	  of the most recently matched regex).
-        - code moved from hilit-highlight-region to hilit-set-mode-patterns.
-          This will affect you if you pass your patterns directly to
-          hilit-highlight-region....use a pseudo-mode instead.
-        - twiddled C/C++, latex, texinfo, fortran, nroff patterns.
-        - added calendar-mode, icon-mode and pascal-mode patterns
-        - diverged lisp-mode and emacs-lisp-mode...also added lisp keywords.
+	- code moved from hilit-highlight-region to hilit-set-mode-patterns.
+	  This will affect you if you pass your patterns directly to
+	  hilit-highlight-region....use a pseudo-mode instead.
+	- twiddled C/C++, latex, texinfo, fortran, nroff patterns.
+	- added calendar-mode, icon-mode and pascal-mode patterns
+	- diverged lisp-mode and emacs-lisp-mode...also added lisp keywords.
 
 1993-09-17  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -6068,7 +6061,7 @@
 
 1993-09-09  Noah Friedman  (friedman@splode.com)
 
-        * rlogin.el: require 'shell.
+	* rlogin.el: require 'shell.
 
 1993-09-08  Paul Eggert  (eggert@twinsun.com)
 
@@ -6082,13 +6075,13 @@
 	comint-filename-prefix from elts.
 
 	* comint.el (comint-filename-prefix): New variable.
-	(comint-replace-by-expanded-filename, comint-dynamic-complete,
-	comint-dynamic-list-completions): Prepend it to absolute file
+	(comint-replace-by-expanded-filename, comint-dynamic-complete)
+	(comint-dynamic-list-completions): Prepend it to absolute file
 	names before completing.
 	* shell.el (shell-cd): New function, like `cd' but prepend
 	comint-filename-prefix.
-	(shell-resync-dirs, shell-process-cd, shell-process-pushd,
-	shell-process-popd): Use shell-cd in place of cd.
+	(shell-resync-dirs, shell-process-cd, shell-process-pushd)
+	(shell-process-popd): Use shell-cd in place of cd.
 	* rlogin.el (rlogin): After rlogin-mode, set
 	comint-filename-prefix locally to indicate the host, and cd to
 	/HOST:~/.
@@ -6181,9 +6174,9 @@
 	current-time-zone yields nil, don't bother with
 	calendar-next-time-zone-transition.  Use clearer names for local vars.
 
-	(calendar-time-zone, calendar-daylight-time-offset,
-	calendar-{standard,daylight}-time-zone-name,
-	calendar-daylight-savings-{starts,ends}): Default to US Eastern rules
+	(calendar-time-zone, calendar-daylight-time-offset)
+	(calendar-{standard,daylight}-time-zone-name)
+	(calendar-daylight-savings-{starts,ends}): Default to US Eastern rules
 	for information that is not available.
 
 	(calendar-daylight-savings-{starts,ends}-time): New vars, replacing
@@ -6218,16 +6211,16 @@
 
 1993-08-19  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
-        * solar.el (solar-sunrise, solar-sunset, solar-longitude-of-sun):
-        Make both arguments to solar-mod float.
+	* solar.el (solar-sunrise, solar-sunset, solar-longitude-of-sun):
+	Make both arguments to solar-mod float.
 
-        (sunrise-sunset): Change screen-width to frame-width.
+	(sunrise-sunset): Change screen-width to frame-width.
 
-        * calendar.el (calendar-absolute-from-iso,
-        american-calendar-display-form, european-calendar-display-form):
-        Fix typos in doc strings doc strings.
+	* calendar.el (calendar-absolute-from-iso,
+	american-calendar-display-form, european-calendar-display-form):
+	Fix typos in doc strings doc strings.
 
-        (calendar-mode-map): Use "[prior]" and "[next]" in key bindings.
+	(calendar-mode-map): Use "[prior]" and "[next]" in key bindings.
 
 1993-08-18  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
@@ -6337,9 +6330,9 @@
 
 1993-08-10  Rob Riepel  (riepel@Snowflake.Stanford.edu)
 
-        * tpu-edt.el (tpu-help): Use variables for "n" and "p".
+	* tpu-edt.el (tpu-help): Use variables for "n" and "p".
 	(tpu-help-N, tpu-help-n, tpu-help-P, tpu-help-p): New vars.
-        * tpu-mapper.el: Insert (in buffer) setqs for tpu-help-... variables.
+	* tpu-mapper.el: Insert (in buffer) setqs for tpu-help-... variables.
 
 1993-08-09  Paul Eggert  (eggert@twinsun.com)
 
@@ -6371,30 +6364,30 @@
 
 1993-08-09  Rob Riepel  (riepel@Snowflake.Stanford.edu)
 
-        * tpu-doc.el: Added section on local variables.
+	* tpu-doc.el: Added section on local variables.
 
-        * tpu-edt.el (tpu-version): Print version number rather than the RCS
-        revision number.
+	* tpu-edt.el (tpu-version): Print version number rather than the RCS
+	revision number.
 
-        * tpu-edt.el (tpu-next-file-buffer): Bind starting-buffer with let.
-        * tpu-edt.el (tpu-load-xkeys): Check value of tpu-xkeys-file.
+	* tpu-edt.el (tpu-next-file-buffer): Bind starting-buffer with let.
+	* tpu-edt.el (tpu-load-xkeys): Check value of tpu-xkeys-file.
 	Make sure to use the "*scratch*" buffer.
 
-        * tpu-edt.el (tpu-lm-replace): Changed variable searching-forward
-        to tpu-searching-forward.
-        (tpu-substitute): Likewise.
+	* tpu-edt.el (tpu-lm-replace): Changed variable searching-forward
+	to tpu-searching-forward.
+	(tpu-substitute): Likewise.
 	(tpu-toggle-search-direction): Likewise.
-        (tpu-search-forward, tpu-search-reverse, tpu-set-search): Likewise.
-        (tpu-search-internal, tpu-adjust-search): Likewise.
+	(tpu-search-forward, tpu-search-reverse, tpu-set-search): Likewise.
+	(tpu-search-internal, tpu-adjust-search): Likewise.
 
-        * tpu-extras.el (tpu-search-internal): Changed variable
-        searching-forward to tpu-searching-forward.
+	* tpu-extras.el (tpu-search-internal): Changed variable
+	searching-forward to tpu-searching-forward.
 
-        * tpu-extras.el: Changed "edit-picture-hook" to
-        "picture-mode-hook" for emacs version 19.
+	* tpu-extras.el: Changed "edit-picture-hook" to
+	"picture-mode-hook" for emacs version 19.
 
-        * tpu-mapper.el (tpu-gnu-map-key): Repaired the key name
-        generation code to work with the latest version of emacs.
+	* tpu-mapper.el (tpu-gnu-map-key): Repaired the key name
+	generation code to work with the latest version of emacs.
 
 1993-08-08  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -6459,8 +6452,8 @@
 	* menu-bar.el (menu-bar-mode): Defvar removed.
 	(menu-bar-mode): Rewritten to parallel scroll-bar-mode.
 
-	* info.el (Info-goto-emacs-command-node,
-	Info-goto-emacs-key-command-node): Doc fix.
+	* info.el (Info-goto-emacs-command-node)
+	(Info-goto-emacs-key-command-node): Doc fix.
 
 	* help.el (help-for-help): Mention C-k and C-f.
 
@@ -6496,15 +6489,15 @@
 
 1993-08-04  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
-        * diary.el (list-diary-entries): Split diary-display-hook into two
-        pieces, diary-display-hook and diary-hook.  If diary-display-hook
-        is nil, use simple display.
-        (include-other-diary-files): Set those hooks properly for other files.
+	* diary.el (list-diary-entries): Split diary-display-hook into two
+	pieces, diary-display-hook and diary-hook.  If diary-display-hook
+	is nil, use simple display.
+	(include-other-diary-files): Set those hooks properly for other files.
 
-        * calendar.el (diary-display-hook): Change default and fix doc string.
-        (diary-hook): New user variable.
-        (diary-date-forms, calendar-date-display-form): Don't autoload
-        them so the European/American style is decided at load time.
+	* calendar.el (diary-display-hook): Change default and fix doc string.
+	(diary-hook): New user variable.
+	(diary-date-forms, calendar-date-display-form): Don't autoload
+	them so the European/American style is decided at load time.
 
 1993-08-03  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -6532,7 +6525,7 @@
 	(make-face-bold, make-face-italic, make-face-bold-italic)
 	(make-face-unbold, make-face-unitalic): Update global-face-data.
 	Ignore a list found in the font slot.
-	(make-face-bold-internal, make-face-italic-internal):
+	(make-face-bold-internal, make-face-italic-internal)
 	(make-face-bold-italic-internal): New subroutines.
 	(x-create-frame-with-faces): If global-face-data's font slot
 	indicates bold and/or italic, make it so.
@@ -6602,7 +6595,7 @@
 
 	* dissociate.el (dissociated-press):
 	Use `(random N)' instead of while loop.
-	* dunnet.el: (dun-endgame-question, tcom, tloc):
+	* dunnet.el (dun-endgame-question, tcom, tloc):
 	Use (random N) instead of combination of %, abs and random.
 	* life.el (life-insert-random-pattern): Simplify (% (abs (random)) N)
 	to (random N).
@@ -6818,8 +6811,8 @@
 
 1993-07-28  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
-	* comint.el (comint-replace-by-expanded-filename,
-	comint-dynamic-complete): Say "Sole completion" instead of "Unique
+	* comint.el (comint-replace-by-expanded-filename)
+	(comint-dynamic-complete): Say "Sole completion" instead of "Unique
 	completion", for consistency with the rest of the known universe.
 
 1993-07-28  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -6962,7 +6955,7 @@
 	* vc.el (vc-backend-revert): Use `co -f' instead of deleting the
 	working file ourselves; that way, if `co' fails, we won't have
 	deleted the working file.
-	(vc-backend-steal):  Don't delete the working file.  Use `rcs -u -l',
+	(vc-backend-steal): Don't delete the working file.  Use `rcs -u -l',
 	not `rcs -u ; rcs -l'; it's faster.  Use vc-backend-dispatch -- the
 	old code couldn't have possibly worked.
 
@@ -7313,34 +7306,34 @@
 
 	Changes from Anders Holst, to bring hippie-expand up to version 1.2:
 	* hippie-exp.el (hippie-expand-max-buffers): New variable.
-	(try-expand-line-all-buffers, try-expand-list-all-buffers,
-	try-expand-dabbrev-all-buffers): Use it.
+	(try-expand-line-all-buffers, try-expand-list-all-buffers)
+	(try-expand-dabbrev-all-buffers): Use it.
 	(try-expand-list, try-expand-list-all-buffers): New functions.
 	(he-string-beg, he-string-end, he-search-loc): These values are
 	now markers, not integers.  Uses changed.
 	(he-reset-string, he-substitute-string): Use a marker to preserve
 	the old position of point.
-	(try-expand-all-abbrevs): handle case the same way as the
-        usual expand-abbrev (which is not a very good way, but for
-        consistency...).
+	(try-expand-all-abbrevs): Handle case the same way as the
+	usual expand-abbrev (which is not a very good way, but for
+	consistency...).
 	(he-dabbrev-beg): Use `skip-syntax' instead of `skip-chars', to
-        adjust its behavior to different modes.
+	adjust its behavior to different modes.
 	(hippie-expand): Don't messages which try function it is using,
-        when the expansion itself is done in the minibuffer (it was very
-        annoying to have the message obscuring the expansion).
-	(try-complete-file-name, try-complete-file-name-partially,
-	try-complete-lisp-symbol, try-complete-lisp-symbol-partially,
-	try-expand-line, try-expand-line-all-buffers,
-	try-expand-all-abbrevs, try-expand-dabbrev,
-	try-expand-dabbrev-all-buffers): No unnecessary "resetting" of the
+	when the expansion itself is done in the minibuffer (it was very
+	annoying to have the message obscuring the expansion).
+	(try-complete-file-name, try-complete-file-name-partially)
+	(try-complete-lisp-symbol, try-complete-lisp-symbol-partially)
+	(try-expand-line, try-expand-line-all-buffers)
+	(try-expand-all-abbrevs, try-expand-dabbrev)
+	(try-expand-dabbrev-all-buffers): No unnecessary "resetting" of the
 	epansion, when no expansion is done (caused the buffer to be
 	marked as changed, although nothing was done, among other things).
 	(he-reset-string): Undoing of last expansion at a later occasion, now
-        undoes correctly (before, it garbled things up).
-	(make-hippie-expand-function): now uses "(function ...)"
-        instead of "'" (matters for compilation).
-	(try-expand-line, try-expand-line-all-buffers,
-	he-line-search-regexp): uses `comint-prompt-regexp' instead of
+	undoes correctly (before, it garbled things up).
+	(make-hippie-expand-function): Now uses "(function ...)"
+	instead of "'" (matters for compilation).
+	(try-expand-line, try-expand-line-all-buffers)
+	(he-line-search-regexp): Uses `comint-prompt-regexp' instead of
 	`shell-prompt-pattern', to strip off prompt in process buffers.
 
 1993-07-14  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
@@ -7503,47 +7496,47 @@
 
 1993-07-07  Robert J. Chassell  (bob@grackle)
 
-        * texnfo-upd.el: Fix typo re `texinfo-sequential-node-update.'
-        Ensure that no commands depend on the value of
-        case-fold-search.
+	* texnfo-upd.el: Fix typo re `texinfo-sequential-node-update.'
+	Ensure that no commands depend on the value of
+	case-fold-search.
 	Rewrite messages.  Avoid using `mark-whole-buffer'.
 
 	(texinfo-start-menu-description):
-        New function to insert title as description in a menu.
-        (texinfo-make-menu-list): Remove automatic title insertion.
+	New function to insert title as description in a menu.
+	(texinfo-make-menu-list): Remove automatic title insertion.
 	(texinfo-master-menu): Error message if file
-        contains too few nodes for a master menu.
+	contains too few nodes for a master menu.
 	Handle the case where no master menu was inserted.
-        (texinfo-insert-master-menu-list): Only attempt to insert detailed
-        master menu if there is one.
-        Insert a master menu only after `Top' node and before next node.
+	(texinfo-insert-master-menu-list): Only attempt to insert detailed
+	master menu if there is one.
+	Insert a master menu only after `Top' node and before next node.
 
-        (texinfo-check-for-node-name): Offer section title as prompt.
-        (texinfo-copy-next-section-title): Copy title correctly.
+	(texinfo-check-for-node-name): Offer section title as prompt.
+	(texinfo-copy-next-section-title): Copy title correctly.
 	Handle failure to find @node.
-        (texinfo-copy-menu): Error message if menu empty.
-        (texinfo-pointer-name):  Find only those
-        section commands that are accompanied by `@node' lines.
-        (texinfo-section-types-regexp): Look for subh and subs, not just sub.
-        (texinfo-make-one-menu): Copy node-name correctly for message.
-        (texinfo-copy-menu-title): Copy title as it
-        should rather than node line.
+	(texinfo-copy-menu): Error message if menu empty.
+	(texinfo-pointer-name): Find only those
+	section commands that are accompanied by `@node' lines.
+	(texinfo-section-types-regexp): Look for subh and subs, not just sub.
+	(texinfo-make-one-menu): Copy node-name correctly for message.
+	(texinfo-copy-menu-title): Copy title as it
+	should rather than node line.
 
-        (texinfo-find-higher-level-node): Stop search at limit.
+	(texinfo-find-higher-level-node): Stop search at limit.
 	Special handling for `top' and `chapter' levels.
-        (texinfo-copy-menu-title): Rewrite to handle outer include files.
-        (texinfo-multi-file-update): Update all nodes properly (and sooner);
-        rewrite doc string and interactive. Copy title properly.
-        (texinfo-all-menus-update): Fixed typo that
-        caused the function to create a master menu when it shouldn't.
-        Update pre-existing master menu, if there is one.
+	(texinfo-copy-menu-title): Rewrite to handle outer include files.
+	(texinfo-multi-file-update): Update all nodes properly (and sooner);
+	rewrite doc string and interactive. Copy title properly.
+	(texinfo-all-menus-update): Fixed typo that
+	caused the function to create a master menu when it shouldn't.
+	Update pre-existing master menu, if there is one.
 
 	(texinfo-incorporate-descriptions): Use a regexp search to look for
 	both kinds of menu item.
 	(texinfo-menu-indent-description): Likewise.
 	(texinfo-incorporate-menu-entry-names): New function.
 	(texinfo-insert-menu): Handle both kinds of menu item.
- 	(texinfo-multi-files-insert-main-menu): Likewise.
+	(texinfo-multi-files-insert-main-menu): Likewise.
 	(texinfo-update-node): Pass t as second arg to push-mark.
 	(texinfo-sequential-node-update): Likewise.
 	(texinfo-insert-node-lines): Bind `title' at a higher level.
@@ -7678,8 +7671,8 @@
 
 1993-07-03  Jim Blandy  (jimb@churchy.gnu.ai.mit.edu)
 
-	* faces.el (make-face-bold, make-face-italic,
-	make-face-bold-italic, make-face-unbold, make-face-unitalic):
+	* faces.el (make-face-bold, make-face-italic)
+	(make-face-bold-italic, make-face-unbold, make-face-unitalic):
 	Properly pass noerror argument to recursive calls.
 
 	* frame.el (frame-remove-geometry-params): New function.
@@ -7691,7 +7684,7 @@
 
 1993-07-03  Jim Blandy  (jimb@churchy.gnu.ai.mit.edu)
 
-        * term/x-win.el: Check the reverseVideo/ReverseVideo resource,
+	* term/x-win.el: Check the reverseVideo/ReverseVideo resource,
 	correctly distinguish between "on" and "off" values, and put a
 	parameter in default-frame-alist.
 	* frame.el (frame-initialize): Don't call x-get-resource here.
@@ -7774,7 +7767,7 @@
 	Adjust commentary and doc strings.
 	(forms-mode): Add ###autoload.
 	(forms-find-file): Add ###autoload.
-	(forms-find-file-other-window):	Add ###autoload.
+	(forms-find-file-other-window): Add ###autoload.
 
 1993-06-30  Paul Eggert  (eggert@twinsun.com)
 
@@ -7792,8 +7785,8 @@
 
 	* gud.el: Add history lists to the debugging commands, so we don't
 	have to retype the filename every invocation.
-	(gud-gdb-history, gud-sdb-history, gud-dbx-history,
-	gud-xdb-history): New variables.
+	(gud-gdb-history, gud-sdb-history, gud-dbx-history)
+	(gud-xdb-history): New variables.
 	(gdb, sdb, dbx, xdb): Use them when reading the argument string.
 
 	* mouse.el (mouse-drag-region-1): Commented out.
@@ -8065,104 +8058,104 @@
 
 1993-06-18  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
-        * calendar.el (calendar-version): Update to 5.1.  Fixed a variety
-        of spelling error in comments and doc strings.
-        (calendar-sexp-debug): New variable to turn off error catching.
+	* calendar.el (calendar-version): Update to 5.1.  Fixed a variety
+	of spelling error in comments and doc strings.
+	(calendar-sexp-debug): New variable to turn off error catching.
 	(calendar-absolute-from-gregorian): Removed unused vars month, day.
-        (view-calendar-holidays-initially, all-hebrew-calendar-holidays,
-        all-christian-calendar-holidays, all-christian-islamic-holidays,
-        diary-nonmarking-symbol, hebrew-diary-entry-symbol,
-        islamic-diary-entry-symbol, diary-include-string,
-        abbreviated-calendar-year, european-calendar-style,
-        european-calendar-display-form, american-calendar-display-form,
-        calendar-date-display-form, print-diary-entries-hook,
-        list-diary-entries-hook, nongregorian-diary-listing-hook,
-        nongregorian-diary-marking-hook, diary-list-include-blanks,
-        holidays-in-diary-buffer, general-holidays,
-        increment-calendar-month, calendar-sum, calendar-string-spread,
-        calendar-absolute-from-iso, calendar-print-iso-date,
-        hebrew-calendar-elapsed-days, list-yahrzeit-dates,
-        calendar-print-astro-day-number): Fix doc strings.
-        (calendar-nth-named-day): Rewritten to include optional day of month.
-        (general-holidays, calendar-holidays, hebrew-holidays,
-        christian-holidays, islamic-holidays,
-        solar-holidays): Rewritten to include require of cal-dst.el and to
-        show the time of the change to/from daylight saving time.
-        (calendar-current-time-zone, calendar-time-zone,
-        calendar-daylight-time-offset, calendar-standard-time-zone-name,
-        calendar-daylight-time-zone-name, calendar-daylight-savings-starts,
-        calendar-daylight-savings-ends,
-        calendar-daylight-savings-switchover-time): Moved to cal-dst.el.
-        (calendar-location-name, calendar-time-display-form, calendar-latitude,
-        calendar-longitude): Moved to solar.el.
-        (calendar-holidays): Unquote it!
+	(view-calendar-holidays-initially, all-hebrew-calendar-holidays)
+	(all-christian-calendar-holidays, all-christian-islamic-holidays)
+	(diary-nonmarking-symbol, hebrew-diary-entry-symbol)
+	(islamic-diary-entry-symbol, diary-include-string)
+	(abbreviated-calendar-year, european-calendar-style)
+	(european-calendar-display-form, american-calendar-display-form)
+	(calendar-date-display-form, print-diary-entries-hook)
+	(list-diary-entries-hook, nongregorian-diary-listing-hook)
+	(nongregorian-diary-marking-hook, diary-list-include-blanks)
+	(holidays-in-diary-buffer, general-holidays)
+	(increment-calendar-month, calendar-sum, calendar-string-spread)
+	(calendar-absolute-from-iso, calendar-print-iso-date)
+	(hebrew-calendar-elapsed-days, list-yahrzeit-dates)
+	(calendar-print-astro-day-number): Fix doc strings.
+	(calendar-nth-named-day): Rewritten to include optional day of month.
+	(general-holidays, calendar-holidays, hebrew-holidays)
+	(christian-holidays, islamic-holidays)
+	(solar-holidays): Rewritten to include require of cal-dst.el and to
+	show the time of the change to/from daylight saving time.
+	(calendar-current-time-zone, calendar-time-zone)
+	(calendar-daylight-time-offset, calendar-standard-time-zone-name)
+	(calendar-daylight-time-zone-name, calendar-daylight-savings-starts)
+	(calendar-daylight-savings-ends)
+	(calendar-daylight-savings-switchover-time): Moved to cal-dst.el.
+	(calendar-location-name, calendar-time-display-form, calendar-latitude)
+	(calendar-longitude): Moved to solar.el.
+	(calendar-holidays): Unquote it!
 
-        * solar.el (calendar-holiday-solar-equinoxes-solstices): Renamed
-        solar-equinoxes-solstices.
-        (calendar-time-display-form, calendar-latitude,
-        calendar-longitude): Moved from calendar.el.
-        (calendar-time-zone, calendar-standard-time-zone-name,
-        calendar-daylight-time-zone-name,
-        calendar-daylight-savings-starts, calendar-daylight-savings-ends):
-        Take default values from calendar-current-time-zone, instead of
-        being overwritten in open code if they were set to nil.
-        (solar-time-string): Subtract calendar-daylight-time-offset when
-        computing dst-ends.  Avoid rounding errors when rounding time to
-        the nearest minute.
+	* solar.el (calendar-holiday-solar-equinoxes-solstices): Renamed
+	solar-equinoxes-solstices.
+	(calendar-time-display-form, calendar-latitude)
+	(calendar-longitude): Moved from calendar.el.
+	(calendar-time-zone, calendar-standard-time-zone-name)
+	(calendar-daylight-time-zone-name)
+	(calendar-daylight-savings-starts, calendar-daylight-savings-ends):
+	Take default values from calendar-current-time-zone, instead of
+	being overwritten in open code if they were set to nil.
+	(solar-time-string): Subtract calendar-daylight-time-offset when
+	computing dst-ends.  Avoid rounding errors when rounding time to
+	the nearest minute.
 
-        * diary.el (list-sexp-diary-entries,
-        hebrew-calendar-year-Saturday-incomplete-Sunday,
-        hebrew-calendar-year-Monday-incomplete-Tuesday,
-        hebrew-calendar-year-Tuesday-regular-Thursday,
-        hebrew-calendar-year-Thursday-complete-Sunday,
-        hebrew-calendar-year-Saturday-complete-Thursday,
-        hebrew-calendar-year-Monday-complete-Saturday,
-        hebrew-calendar-year-Thursday-incomplete-Sunday): Fix doc strings.
-        (diary-sexp-entry): Use calendar-sexp-debug to turn off error catching.
+	* diary.el (list-sexp-diary-entries)
+	(hebrew-calendar-year-Saturday-incomplete-Sunday)
+	(hebrew-calendar-year-Monday-incomplete-Tuesday)
+	(hebrew-calendar-year-Tuesday-regular-Thursday)
+	(hebrew-calendar-year-Thursday-complete-Sunday)
+	(hebrew-calendar-year-Saturday-complete-Thursday)
+	(hebrew-calendar-year-Monday-complete-Saturday)
+	(hebrew-calendar-year-Thursday-incomplete-Sunday): Fix doc strings.
+	(diary-sexp-entry): Use calendar-sexp-debug to turn off error catching.
 
-        * diary-ins.el (insert-cyclic-diary-entry): Fix date form.
+	* diary-ins.el (insert-cyclic-diary-entry): Fix date form.
 
-        * cal-mayan.el (calendar-mayan-days-before-absolute-zero,
-        calendar-mayan-haab-difference, calendar-mayan-tzolkin-difference,
-        calendar-mayan-tzolkin-haab-on-or-before,
-        calendar-previous-calendar-round-date,
-        calendar-absolute-from-mayan-long-count,
-        calendar-print-mayan-date): Fix doc strings.
+	* cal-mayan.el (calendar-mayan-days-before-absolute-zero)
+	(calendar-mayan-haab-difference, calendar-mayan-tzolkin-difference)
+	(calendar-mayan-tzolkin-haab-on-or-before)
+	(calendar-previous-calendar-round-date)
+	(calendar-absolute-from-mayan-long-count)
+	(calendar-print-mayan-date): Fix doc strings.
 
-        * holidays.el (calendar-holiday-function-fixed,
-        calendar-holiday-function-float, calendar-holiday-function-julian,
-        calendar-holiday-function-islamic,
-        calendar-holiday-function-hebrew, calendar-holiday-function-sexp,
-        calendar-holiday-function-advent,
-        calendar-holiday-function-easter-etc,
-        calendar-holiday-function-greek-orthodox-easter,
-        calendar-holiday-function-rosh-hashanah-etc,
-        calendar-holiday-function-hanukkah,
-        calendar-holiday-function-passover-etc,
-        calendar-holiday-function-tisha-b-av-etc): Renamed without words
-        "calendar" and "function"; changed argument from a list of values to
-        individual values.  Fixed doc strings.
-        (calendar-holiday-function-if): Removed.
-        (calendar-holiday-solar-equinoxes-solstices): Renamed
-        solar-equinoxes-solstices.
-        (calendar-holiday-list): Rewrote to accomodate the name changes
-        above and the unquoting of calendar-holidays.
-        (calendar-cursor-holidays):  Change screen-width to frame-width.
-        (holiday-sexp): Rewritten.
+	* holidays.el (calendar-holiday-function-fixed)
+	(calendar-holiday-function-float, calendar-holiday-function-julian)
+	(calendar-holiday-function-islamic)
+	(calendar-holiday-function-hebrew, calendar-holiday-function-sexp)
+	(calendar-holiday-function-advent)
+	(calendar-holiday-function-easter-etc)
+	(calendar-holiday-function-greek-orthodox-easter)
+	(calendar-holiday-function-rosh-hashanah-etc)
+	(calendar-holiday-function-hanukkah)
+	(calendar-holiday-function-passover-etc)
+	(calendar-holiday-function-tisha-b-av-etc): Renamed without words
+	"calendar" and "function"; changed argument from a list of values to
+	individual values.  Fixed doc strings.
+	(calendar-holiday-function-if): Removed.
+	(calendar-holiday-solar-equinoxes-solstices): Renamed
+	solar-equinoxes-solstices.
+	(calendar-holiday-list): Rewrote to accomodate the name changes
+	above and the unquoting of calendar-holidays.
+	(calendar-cursor-holidays): Change screen-width to frame-width.
+	(holiday-sexp): Rewritten.
 
-        * lunar.el (lunar-phase): Use time conversion from solar.el
+	* lunar.el (lunar-phase): Use time conversion from solar.el.
 
-        * cal-dst.el: New file.
-        (calendar-/, calendar-%, calendar-absolute-from-time,
-        calendar-time-from-absolute, calendar-next-time-zone-transition,
-        calendar-time-zone-daylight-rules): New functions.
-        (calendar-current-time-zone): Moved from calendar.el and rewritten.
-        (calendar-current-time-zone-cache): New variable.
-        (calendar-current-time-zone, calendar-time-zone,
-        calendar-daylight-time-offset, calendar-standard-time-zone-name,
-        calendar-daylight-time-zone-name,
-        calendar-daylight-savings-starts, calendar-daylight-savings-ends,
-        calendar-daylight-savings-switchover-time): Moved from calendar.el.
+	* cal-dst.el: New file.
+	(calendar-/, calendar-%, calendar-absolute-from-time)
+	(calendar-time-from-absolute, calendar-next-time-zone-transition)
+	(calendar-time-zone-daylight-rules): New functions.
+	(calendar-current-time-zone): Moved from calendar.el and rewritten.
+	(calendar-current-time-zone-cache): New variable.
+	(calendar-current-time-zone, calendar-time-zone)
+	(calendar-daylight-time-offset, calendar-standard-time-zone-name)
+	(calendar-daylight-time-zone-name)
+	(calendar-daylight-savings-starts, calendar-daylight-savings-ends)
+	(calendar-daylight-savings-switchover-time): Moved from calendar.el.
 
 1993-06-17  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
@@ -8177,13 +8170,13 @@
 
 1993-06-17  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* faces.el (make-face-bold, make-face-italic,
-	make-face-bold-italic, make-face-unbold, make-face-unitalic):
+	* faces.el (make-face-bold, make-face-italic)
+	(make-face-bold-italic, make-face-unbold, make-face-unitalic):
 	Always pass the frame parameter to internal-try-face-font; we only
 	want to set the face for this frame.
 
-	* faces.el (make-face-bold, make-face-italic,
-	make-face-bold-italic, make-face-unbold, make-face-unitalic):
+	* faces.el (make-face-bold, make-face-italic)
+	(make-face-bold-italic, make-face-unbold, make-face-unitalic):
 	Fix error messages.
 
 1993-06-17  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -8278,10 +8271,10 @@
 
 1993-06-15  Shane Hartman  (shane@nugget.spr.com)
 
-        * gud.el (xdb): New debugger supported (xdb under HPUX-PARISC).
-        (gud-xdb-debugger-startup): New function.
-        (gud-xdb-file-name, gud-xdb-accumulation): New functions.
-        (gud-xdb-marker-filter, gud-xdb-paths, gud-xdb-find-file): New.
+	* gud.el (xdb): New debugger supported (xdb under HPUX-PARISC).
+	(gud-xdb-debugger-startup): New function.
+	(gud-xdb-file-name, gud-xdb-accumulation): New functions.
+	(gud-xdb-marker-filter, gud-xdb-paths, gud-xdb-find-file): New.
 
 1993-06-14  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -8443,8 +8436,8 @@
 
 1993-06-10  Shane Hartman  (shane@nugget.spr.com)
 
-        * c++-mode.el (calculate-c++-indent): Respect
-        c-continued-brace-offset (as in c-mode.el).
+	* c++-mode.el (calculate-c++-indent): Respect
+	c-continued-brace-offset (as in c-mode.el).
 
 1993-06-10  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
@@ -8476,8 +8469,8 @@
 	(byte-compile-file): Changed prompting in read-file-name.
 	(byte-compile-insert-header): Put a magic number at top of .elc files,
 	fixed backwards test of byte-compile-compatibility.
-	(byte-compile-form, byte-defop-compiler19, byte-compile-list,
-	byte-compile-concat, byte-compile-insert): Likewise.
+	(byte-compile-form, byte-defop-compiler19, byte-compile-list)
+	(byte-compile-concat, byte-compile-insert): Likewise.
 	(byte-compile-condition-case): Added checking for unknown conditions.
 	(batch-byte-recompile-directory): New function.
 
@@ -8514,11 +8507,11 @@
 
 1993-06-07  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
-        * calendar.el (calendar-current-time-zone): Change variable names
-        to make them more readable.
-        (calendar-time-zone, calendar-standard-time-zone-name,
-        calendar-daylight-time-zone-name, calendar-daylight-savings-ends,
-        calendar-daylight-savings-starts): Don't autload them.
+	* calendar.el (calendar-current-time-zone): Change variable names
+	to make them more readable.
+	(calendar-time-zone, calendar-standard-time-zone-name)
+	(calendar-daylight-time-zone-name, calendar-daylight-savings-ends)
+	(calendar-daylight-savings-starts): Don't autload them.
 
 1993-06-07  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -8625,8 +8618,8 @@
 
 1993-06-04  Paul Eggert  (eggert@twinsun.com)
 
-	* timezone.el: (timezone-make-date-arpa-standard,
-	timezone-make-date-sortable): Move common code into timezone-fix-time.
+	* timezone.el (timezone-make-date-arpa-standard)
+	(timezone-make-date-sortable): Move common code into timezone-fix-time.
 	(timezone-fix-time): Merge common code from above two functions.
 	Yield time zone at end of result vector.
 	Set time zone offset correctly as of the given time,
@@ -8634,19 +8627,19 @@
 	(timezone-make-arpa-date, timezone-zone-to-minute): Convert
 	current-time-zone style timezones into RFC-822 style timezones.
 
-	(timezone-time-from-absolute, timezone-time-zone-from-absolute,
-	timezone-day-number, timezone-absolute-from-gregorian):
+	(timezone-time-from-absolute, timezone-time-zone-from-absolute)
+	(timezone-day-number, timezone-absolute-from-gregorian):
 	More functions borrowed from Reingold's calendar package.
 
 	(timezone-make-arpa-date, timezone-make-sortable-date): Can safely
 	assume that year includes century, since timezone-fix-time guarantees
 	this.
 
-	* gnuspost.el (gnus-current-time-zone):	New function, which tries
+	* gnuspost.el (gnus-current-time-zone): New function, which tries
 	current-time-zone, and if that fails falls back on gnus-local-timezone.
 	(gnus-inews-date): Use it.
-	(gnus-inews-valid-date): New optional args TIME (default now) and ZONE
-		(default GMT).
+	(gnus-inews-valid-date): New optional args TIME (default now)
+	and ZONE (default GMT).
 	(gnus-inews-buggy-date): New optional arg TIME (default now).
 
 	* gnus.el (gnus-local-timezone): Now used only if current-time-zone
@@ -8679,10 +8672,10 @@
 
 1993-06-03  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
-        * calendar.el (calendar-holidays): Quote it to delay evaluation
-        until it's needed.
+	* calendar.el (calendar-holidays): Quote it to delay evaluation
+	until it's needed.
 
-        * holidays.el (calendar-holiday-list): Eval calendar-holidays.
+	* holidays.el (calendar-holiday-list): Eval calendar-holidays.
 
 1993-06-03  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -8758,24 +8751,24 @@
 
 1993-06-02  Edward M. Reingold  (reingold@emr.cs.uiuc.edu)
 
-        * calendar.el (calendar-daylight-savings-starts): Mention use of
-        nil value in documentation string.
-        (calendar-daylight-time-offset): New variable.
-        (calendar-daylight-savings-switchover-time):  New variable.
-        (calendar-mode): Mention them.
-        (calendar-time-zone, calendar-print-astro-day-number,
-        calendar-time-display-form): Change Universal Time (UT) to
-        Coordinated Universal Time (UTC).
+	* calendar.el (calendar-daylight-savings-starts): Mention use of
+	nil value in documentation string.
+	(calendar-daylight-time-offset): New variable.
+	(calendar-daylight-savings-switchover-time): New variable.
+	(calendar-mode): Mention them.
+	(calendar-time-zone, calendar-print-astro-day-number,
+	calendar-time-display-form): Change Universal Time (UT) to
+	Coordinated Universal Time (UTC).
 
-        *solar.el (solar-setup, solar-ephemeris-time, sunrise-sunset): Change
-        Universal Time (UT) to Coordinated Universal Time (UTC).
-        (solar-time-string): Use calendar-daylight-time-offset instead of
-        1 hr, and use calendar-daylight-savings-switchover-time instead of
-        midnight.  Add an optional parameter to allow forcing the use of
-        standard or daylight saving time.  Fix code so it works in
-        southern hemisphere (start of dst precedes end of dst in a
-        calendar year) and when dst either starts or ends in a calendar
-        year, but not both.
+	*solar.el (solar-setup, solar-ephemeris-time, sunrise-sunset): Change
+	Universal Time (UT) to Coordinated Universal Time (UTC).
+	(solar-time-string): Use calendar-daylight-time-offset instead of
+	1 hr, and use calendar-daylight-savings-switchover-time instead of
+	midnight.  Add an optional parameter to allow forcing the use of
+	standard or daylight saving time.  Fix code so it works in
+	southern hemisphere (start of dst precedes end of dst in a
+	calendar year) and when dst either starts or ends in a calendar
+	year, but not both.
 
 1993-06-01  Ken Manheimer  (klm@coil.nist.gov)
 
@@ -8931,13 +8924,17 @@
 
 1993-05-30  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	 * faces.el (x-resolve-font-name): Fix args to error; the format
-	 string was changed, but not the arguments to be substituted.
+	* faces.el (x-resolve-font-name): Fix args to error; the format
+	string was changed, but not the arguments to be substituted.
 
-	 * faces.el (x-resolve-font-name): Give correct error message
-	 depending on whether or not FACE was non-nil.
+	* faces.el (x-resolve-font-name): Give correct error message
+	depending on whether or not FACE was non-nil.
 
 See ChangeLog.3 for earlier changes.
+
+;; Local Variables:
+;; coding: utf-8
+;; End:
 
     Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004, 2005, 2006,
       2007, 2008  Free Software Foundation, Inc.
