@@ -44,15 +44,17 @@ and cancels the command that invoked the recursive edit.
 @cindex quitting
 @kindex C-g
   Quitting with @kbd{C-g} is the way to get rid of a partially typed
-command, or a numeric argument that you don't want.  It also stops a
-running command in the middle in a relatively safe way, so you can use
-it if you accidentally give a command which takes a long time.  In
-particular, it is safe to quit out of a kill command; either your text
-will @emph{all} still be in the buffer, or it will @emph{all} be in
-the kill ring, or maybe both.  Quitting an incremental search does
-special things, documented under searching; it may take two successive
-@kbd{C-g} characters to get out of a search (@pxref{Incremental
-Search}).
+command, or a numeric argument that you don't want.  Furthermore, if
+you are in the middle of a command that is running, @kbd{C-g} stops
+the command in a relatively safe way.  For example, if you quit out of
+a kill command that is taking a long time, either your text will
+@emph{all} still be in the buffer, or it will @emph{all} be in the
+kill ring, or maybe both.  If the region is active, @kbd{C-g}
+deactivates the mark, unless Transient Mark mode is off
+(@pxref{Persistent Mark}).  If you are in the middle of an incremental
+search, @kbd{C-g} does special things; it may take two successive
+@kbd{C-g} characters to get out of a search.  @xref{Incremental
+Search}, for details.
 
   On MS-DOS, the character @kbd{C-@key{BREAK}} serves as a quit character
 like @kbd{C-g}.  The reason is that it is not feasible, on MS-DOS, to
@@ -65,7 +67,6 @@ with the user.  By contrast, it @emph{is} feasible to recognize
 @ifnottex
 @xref{MS-DOS Keyboard}.
 @end ifnottex
-
 
 @findex keyboard-quit
   @kbd{C-g} works by setting the variable @code{quit-flag} to @code{t}
