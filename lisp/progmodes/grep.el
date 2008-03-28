@@ -240,6 +240,8 @@ See `compilation-error-screen-columns'"
 	 :help "Goto next match")
 	(tool-bar-local-item 
 	 "cancel" 'kill-compilation 'kill-compilation map
+	 :enable '(let ((buffer (compilation-find-buffer)))
+		    (get-buffer-process buffer))
 	 :help "Stop grep")
 	(tool-bar-local-item 
 	 "refresh" 'recompile 'recompile map
