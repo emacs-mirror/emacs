@@ -217,7 +217,7 @@ the key sequence @kbd{C-S-backspace}.
 
 @table @kbd
 @item C-w
-Kill region (from point to the mark) (@code{kill-region}).
+Kill region (@code{kill-region}).  @xref{Mark}.
 @item M-d
 Kill word (@code{kill-word}).  @xref{Words}.
 @item M-@key{DEL}
@@ -299,14 +299,16 @@ This is the usual way to move text from one file to another.
 
 @kindex C-y
 @findex yank
-  The command @kbd{C-y} (@code{yank}) reinserts the text of the most recent
-kill.  It leaves the cursor at the end of the text.  It sets the mark at
-the beginning of the text.  @xref{Mark}.
-
-  @kbd{C-u C-y} leaves the cursor in front of the text, and sets the
-mark after it.  This happens only if the argument is specified with just
-a @kbd{C-u}, precisely.  Any other sort of argument, including @kbd{C-u}
-and digits, specifies an earlier kill to yank (@pxref{Earlier Kills}).
+  The command @kbd{C-y} (@code{yank}) reinserts the text of the most
+recent kill, leaving the cursor at the end of the text.  It also adds
+the position of the beginning of the text to the mark ring, without
+activating the mark; this allows you to jump easily to that position
+with @kbd{C-@key{SPC}} (@pxref{Mark Ring}).  With a plain prefix
+argument (@kbd{C-u C-y}), it instead leaves the cursor in front of the
+text, and adds the position of the end of the text to the mark ring.
+Using other sort of prefix argument specifies an earlier kill; for
+example, @kbd{C-u 4 C-y} reinserts the fourth most recent kill.
+@xref{Earlier Kills}).
 
 @cindex yanking and text properties
 @vindex yank-excluded-properties
@@ -491,13 +493,13 @@ copy-to-buffer} is similar, except that any existing text in the other
 buffer is deleted, so the buffer is left containing just the text newly
 copied into it.
 
-  To retrieve the accumulated text from another buffer, use the
-command @kbd{M-x insert-buffer}; this too takes @var{buffername} as an
-argument.  It inserts a copy of the whole text in buffer
-@var{buffername} into the current buffer at point, and sets the mark
-after the inserted text.  Alternatively, you can select the other
-buffer for editing, then copy text from it by killing.
-@xref{Buffers}, for background information on buffers.
+  The command @kbd{M-x insert-buffer} can be used to retrieve the
+accumulated text from another buffer.  This prompts for the name of a
+buffer, and inserts a copy of all the text in that buffer into the
+current buffer at point, leaving point at the beginning of the
+inserted text.  It also adds the position of the end of the inserted
+text to the mark ring, without activating the mark.  @xref{Buffers},
+for background information on buffers.
 
   Instead of accumulating text within Emacs, in a buffer, you can append
 text directly into a file with @kbd{M-x append-to-file}, which takes
