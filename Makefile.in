@@ -262,8 +262,8 @@ EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 # leim is not included because it needs special handling.
 SUBDIR = lib-src src
 
-# The makefiles of the directories in $SUBDIR.
-SUBDIR_MAKEFILES = lib-src/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispref/Makefile doc/lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile
+# The subdir makefiles created by config.status.
+SUBDIR_MAKEFILES = lib-src/Makefile doc/emacs/Makefile doc/misc/Makefile doc/lispref/Makefile doc/lispintro/Makefile src/Makefile oldXMenu/Makefile lwlib/Makefile leim/Makefile lisp/Makefile
 
 # Subdirectories to install, and where they'll go.
 # lib-src's makefile knows how to install it, so we don't do that here.
@@ -368,6 +368,9 @@ lwlib/Makefile: $(srcdir)/lwlib/Makefile.in config.status
 	./config.status
 
 leim/Makefile: $(srcdir)/leim/Makefile.in config.status
+	./config.status
+
+lisp/Makefile: $(srcdir)/lisp/Makefile.in config.status
 	./config.status
 
 # ==================== Installation ====================

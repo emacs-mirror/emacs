@@ -1,3 +1,8 @@
+2008-03-28  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (SUBDIR_MAKEFILES): Add lisp/Makefile.
+	(lisp/Makefile): New rule.
+
 2008-03-13  Glenn Morris  <rgm@gnu.org>
 
 	* configure.in (AC_INIT): Fix version number.
