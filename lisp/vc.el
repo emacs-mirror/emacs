@@ -615,7 +615,6 @@
 ;;; Code:
 
 (require 'vc-hooks)
-(require 'ring)
 (require 'tool-bar)
 
 (eval-when-compile
