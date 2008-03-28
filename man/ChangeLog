@@ -1,3 +1,7 @@
+2008-03-28  Jason Rumney  <jasonr@gnu.org>
+
+	* display.texi (Display Custom): Mention overlay-margin in text.
+
 2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.2 released.
