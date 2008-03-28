@@ -1,3 +1,10 @@
+2008-03-28  Jason Rumney  <jasonr@gnu.org>
+
+	* image.c (pbm_load): Allow color values up to 65535.
+	Throw an error if max_color_idx is outside the supported range.
+	Report an error when image size is invalid.
+	Read two bytes at a time when raw images have max_color_idx above 255.
+
 2008-03-26  Alexandre Oliva  <aoliva@redhat.com>  (tiny change)
 
 	* regex.c (EXTEND_BUFFER): Change order of pointer addition
