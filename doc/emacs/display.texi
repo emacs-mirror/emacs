@@ -402,8 +402,7 @@ This face is used for highlighting the current Query Replace match.
 This face is used for lazy highlighting of Isearch and Query Replace
 matches other than the current one.
 @item region
-This face is used for displaying a selected region (when Transient Mark
-mode is enabled---see below).
+This face is used for displaying a selected region (@pxref{Mark}).
 @item secondary-selection
 This face is used for displaying a secondary X selection (@pxref{Secondary
 Selection}).
@@ -418,14 +417,6 @@ The face for highlighting the @samp{\} or @samp{^} that indicates
 a control character.  It's also used when @samp{\} indicates a
 nobreak space or nobreak (soft) hyphen.
 @end table
-
-@cindex @code{region} face
-  When Transient Mark mode is enabled, the text of the region is
-highlighted when the mark is active.  This uses the face named
-@code{region}; you can control the style of highlighting by changing the
-style of this face (@pxref{Face Customization}).  @xref{Transient Mark},
-for more information about Transient Mark mode and activation and
-deactivation of the mark.
 
   These faces control the appearance of parts of the Emacs frame.
 They exist as faces to provide a consistent way to customize the
