@@ -1,3 +1,7 @@
+2008-03-28  Magnus Henoch  <mange@freemail.hu>
+
+	* net/dns.el (dns-write): Use set-buffer-multibyte.
+
 2008-03-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-bzr.el (vc-bzr-sha1): New fun.
