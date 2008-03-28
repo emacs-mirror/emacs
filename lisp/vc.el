@@ -581,20 +581,16 @@
 ;;   already support this, only the front-end needs to be change to
 ;;   handle multiple files at a time.
 ;;
-;; - add a mechanism to for ignoring files.
+;; - add a mechanism for ignoring files.
 ;;
 ;; - deal with push/pull operations.
 ;;
+;; - vc-next-action should do something about 'missing files. Maybe
+;;   just warn, or offer to checkout.
+;;
 ;; - decide if vc-status should replace vc-dired.
 ;;
-;; - vc-status needs mouse bindings and some color bling.
-;;
-;; - vc-status-header should be made backend specific.
-;;
-;; - vc-status needs to show missing files. It probably needs to have
-;;   another state for those files. The user might want to restore
-;;   them, or remove them from the VCS. C-x v v might also need
-;;   adjustments.
+;; - vc-status needs mouse bindings.
 ;;
 ;; - vc-status toolbar needs more icons.
 ;;
