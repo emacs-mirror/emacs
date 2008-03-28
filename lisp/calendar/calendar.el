@@ -445,16 +445,6 @@ details, see the documentation for the variable `list-diary-entries-hook'."
   :type 'string
   :group 'diary)
 
-;; FIXME explain range. FIXME tweak range to always be +-50 of
-;; present, if not already.
-(defcustom abbreviated-calendar-year t
-  "Interpret a two-digit year DD in a diary entry as either 19DD or 20DD.
-For the Gregorian calendar; similarly for the Hebrew, Islamic and
-Baha'i calendars.  If this variable is nil, years must be written in
-full."
-  :type 'boolean
-  :group 'diary)
-
 ;;;###autoload
 (defcustom european-calendar-style nil
   "Use the European style of dates in the diary and in any displays.
