@@ -560,30 +560,32 @@
 ;; - vc-update/vc-merge should deal with VC systems that don't
 ;;   update/merge on a file basis, but on a whole repository basis.
 ;;
+;; - deal with push/pull operations.
+;;
+;; - "snapshots" should be renamed to "branches", and thoroughly reworked.
+;;
 ;; - the backend sometimes knows when a file it opens has been marked
 ;;   by the VCS as having a "conflict". Find a way to pass this info -
 ;;   to VC so that it can turn on smerge-mode when opening such a
 ;;   file.
 ;;
-;; - the *VC-log* buffer needs font-locking.
-;;
-;; - make it easier to write logs, maybe C-x 4 a should add to the log
-;;   buffer if there's one instead of the ChangeLog.
-;;
-;; - make vc-state for all backends return 'unregistered instead of
-;;   nil for unregistered files, then update vc-next-action.
-;;
 ;; - add a generic mechanism for remembering the current branch names,
 ;;   display the branch name in the mode-line. Replace
 ;;   vc-cvs-sticky-tag with that.
+;;
+;; - the *VC-log* buffer needs font-locking.
+;;
+;; - make it easier to write logs.  Maybe C-x 4 a should add to the log
+;;   buffer, if one is present, instead of adding to the ChangeLog.
+;;
+;; - make vc-state for all backends return 'unregistered instead of
+;;   nil for unregistered files, then update vc-next-action.
 ;;
 ;; - vc-register should register a fileset at a time. The backends
 ;;   already support this, only the front-end needs to be change to
 ;;   handle multiple files at a time.
 ;;
 ;; - add a mechanism for ignoring files.
-;;
-;; - deal with push/pull operations.
 ;;
 ;; - vc-next-action should do something about 'missing files. Maybe
 ;;   just warn, or offer to checkout.
@@ -603,8 +605,6 @@
 ;;   files. Now that unregistered and ignored files are shown in
 ;;   vc-dired/vc-status, it is possible that these commands are called
 ;;   for unregistered/ignored files.
-;;
-;; - "snapshots" should be renamed to "branches", and thoroughly reworked.
 ;;
 ;; - do not default to RCS anymore when the current directory is not
 ;;   controlled by any VCS and the user does C-x v v
