@@ -264,6 +264,18 @@
        `(vc-git-after-dir-status-stage1 (quote ,update-function) ,status-buffer)))
     (current-buffer)))
 
+(defun vc-git-status-extra-headers (dir)
+  (let ((str (with-output-to-string
+               (with-current-buffer standard-output
+                 (vc-git--out-ok "symbolic-ref" "HEAD")))))
+    (concat
+     (propertize "Branch     : " 'face 'font-lock-type-face)
+     (propertize 
+      (if (string-match "^\\(refs/heads/\\)?\\(.+\\)$" str)
+	  (match-string 2 str)
+	"not (detached HEAD)")
+       'face 'font-lock-variable-name-face))))
+
 ;;; STATE-CHANGING FUNCTIONS
 
 (defun vc-git-create-repo ()

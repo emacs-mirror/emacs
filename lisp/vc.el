@@ -182,6 +182,10 @@
 ;;   change.
 ;;   This is a replacement for dir-state.
 ;;
+;; - status-extra-headers (dir)
+;;   
+;;   Return a string that will be added to the *vc-status* buffer header.
+;;
 ;; * working-revision (file)
 ;;
 ;;   Return the working revision of FILE.  This is the revision fetched
@@ -2655,11 +2659,17 @@ With prefix arg READ-SWITCHES, specify a value to override
 
 (defvar vc-status nil)
 
+(defun vc-default-status-extra-headers (backend dir)
+  "Extra      : Add backend specific headers here")
+
 (defun vc-status-headers (backend dir)
   (concat
-   (format "VC backend : %s\n" backend)
-   "Repository : The repository goes here\n"
-   (format "Working dir: %s\n" dir)))
+   (propertize "VC backend : " 'face 'font-lock-type-face)
+   (propertize (format "%s\n" backend) 'face 'font-lock-variable-name-face)
+   (propertize "Working dir: " 'face 'font-lock-type-face)
+   (propertize (format "%s\n" dir) 'face 'font-lock-variable-name-face)
+   (vc-call-backend backend 'status-extra-headers dir)
+   "\n"))
 
 (defun vc-status-printer (fileentry)
   "Pretty print FILEENTRY."
