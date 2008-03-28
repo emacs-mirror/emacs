@@ -594,6 +594,10 @@ of Windows with third party IPv6 stacks installed.  Previously IPv6 was
 supported on other platforms, but not on Windows due to using the winsock
 1.1 header file, even though Emacs was linking to the winsock 2 library.
 
+** Busy cursor (hourglass) now displays on MS-Windows.
+When Emacs is busy, an hourglass mouse cursor is displayed on Windows.
+Previously only X supported the busy cursor.
+
 ** More keys available on MS-Windows.
 Keys normally associated with IMEs, and some exotic keys not normally found
 on standard keyboards have been given names so they can be bound to functions
