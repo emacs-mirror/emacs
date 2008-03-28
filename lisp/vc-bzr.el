@@ -121,17 +121,31 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
       (let ((root (vc-find-root file vc-bzr-admin-checkout-format-file)))
 	(when root (vc-file-setprop file 'bzr-root root)))))
 
-(defun vc-bzr-registered (file)
-  "Return non-nil if FILE is registered with bzr.
+(require 'sha1)                         ;For sha1-program
 
-For speed, this function tries first to parse Bzr internal file
-`checkout/dirstate', but it may fail if Bzr internal file format
-has changed.  As a safeguard, the `checkout/dirstate' file is
-only parsed if it contains the string `#bazaar dirstate flat
-format 3' in the first line.
+(defun vc-bzr-sha1 (file)
+  (with-temp-buffer
+    (set-buffer-multibyte nil)
+    (let ((prog sha1-program)
+          (args nil))
+      (when (consp prog)
+	(setq args (cdr prog))
+        (setq prog (car prog)))
+      (apply 'call-process prog file t nil args)
+      (buffer-substring (point-min) (+ (point-min) 40)))))
 
-If the `checkout/dirstate' file cannot be parsed, fall back to
-running `vc-bzr-state'."
+(defun vc-bzr-state-heuristic (file)
+  "Like `vc-bzr-state' but hopefully without running Bzr."
+  ;; `bzr status' is excrutiatingly slow with large histories and
+  ;; pending merges, so try to avoid using it until they fix their
+  ;; performance problems.
+  ;; This function tries first to parse Bzr internal file
+  ;; `checkout/dirstate', but it may fail if Bzr internal file format
+  ;; has changed.  As a safeguard, the `checkout/dirstate' file is
+  ;; only parsed if it contains the string `#bazaar dirstate flat
+  ;; format 3' in the first line.
+  ;; If the `checkout/dirstate' file cannot be parsed, fall back to
+  ;; running `vc-bzr-state'."
   (lexical-let ((root (vc-bzr-root file)))
     (when root    ; Short cut.
       ;; This looks at internal files.  May break if they change
@@ -146,13 +160,44 @@ running `vc-bzr-state'."
                 (vc-bzr-state file)     ; Some other unknown format?
               (let* ((relfile (file-relative-name file root))
                      (reldir (file-name-directory relfile)))
-                (re-search-forward
-                 (concat "^\0"
-                         (if reldir (regexp-quote (directory-file-name reldir)))
-                         "\0"
-                         (regexp-quote (file-name-nondirectory relfile))
-                         "\0")
-                 nil t)))))))))
+                (if (re-search-forward
+                     (concat "^\0"
+                             (if reldir (regexp-quote
+                                         (directory-file-name reldir)))
+                             "\0"
+                             (regexp-quote (file-name-nondirectory relfile))
+                             "\0"
+                             "[^\0]*\0"           ;id?
+                             "\\([^\0]*\\)\0"     ;"a/f/d", a=removed?
+                             "\\([^\0]*\\)\0"     ;sha1?
+                             "\\([^\0]*\\)\0"     ;size?
+                             "[^\0]*\0"           ;"y/n", executable?
+                             "[^\0]*\0"           ;?
+                             "\\([^\0]*\\)\0"     ;"a/f/d" a=added?
+                             "[^\0]*\0"           ;sha1 again?
+                             "[^\0]*\0"           ;size again?
+                             "[^\0]*\0"           ;"y/n", executable again?
+                             "[^\0]*\0$")         ;last revid?
+                     nil t)
+                    ;; FIXME: figure out which of the first or the second
+                    ;; "size" and "sha1" we should use.  They seem to always
+                    ;; be equal, but there's probably a good reason why
+                    ;; there are 2 entries.
+                    (cond
+                     ((eq (char-after (match-beginning 4)) ?a) 'removed)
+                     ((eq (char-after (match-beginning 3)) ?a) 'added)
+                     ((and (eq (string-to-number (match-string 3))
+                               (nth 7 (file-attributes file)))
+                           (equal (match-string 2)
+                                  (vc-bzr-sha1 file)))
+                      'up-to-date)
+                     (t 'edited))
+                  'unregistered)))))))))
+
+(defun vc-bzr-registered (file)
+  "Return non-nil if FILE is registered with bzr."
+  (let ((state (vc-bzr-state-heuristic file)))
+    (not (memq state '(nil unregistered ignored)))))
 
 (defconst vc-bzr-state-words
   "added\\|ignored\\|kind changed\\|modified\\|removed\\|renamed\\|unknown"
@@ -263,6 +308,8 @@ If any error occurred in running `bzr status', then return nil."
   (eq 'unchanged (car (vc-bzr-status file))))
 
 (defun vc-bzr-working-revision (file)
+  ;; Together with the code in vc-state-heuristic, this makes it possible
+  ;; to get the initial VC state of a Bzr file even if Bzr is not installed.
   (lexical-let*
       ((rootdir (vc-bzr-root file))
        (branch-format-file (expand-file-name vc-bzr-admin-branch-format-file
