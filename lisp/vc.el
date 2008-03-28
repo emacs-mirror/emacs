@@ -592,6 +592,8 @@
 ;;
 ;; - vc-status needs mouse bindings.
 ;;
+;; - vc-status needs more key bindings for VC actions.
+;;
 ;; - vc-status toolbar needs more icons.
 ;;
 ;; - vc-status: refresh should not completely wipe out the current
