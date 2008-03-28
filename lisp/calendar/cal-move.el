@@ -39,9 +39,8 @@
   "Move the cursor to the closest date.
 The position of the cursor is unchanged if it is already on a date.
 Returns the list (month day year) giving the cursor position."
-  (let ((date (calendar-cursor-to-date))
-        (column (current-column)))
-    (or date
+  (or (calendar-cursor-to-date)
+      (let ((column (current-column)))
         (when (> 3 (count-lines (point-min) (point)))
           (goto-line 3)
           (move-to-column column))
@@ -64,10 +63,9 @@ Returns the list (month day year) giving the cursor position."
 ;;;###cal-autoload
 (defun calendar-cursor-to-visible-date (date)
   "Move the cursor to DATE that is on the screen."
-  (let* ((month (extract-calendar-month date))
-         (day (extract-calendar-day date))
-         (year (extract-calendar-year date))
-         (first-of-month-weekday (calendar-day-of-week (list month 1 year))))
+  (let ((month (extract-calendar-month date))
+        (day (extract-calendar-day date))
+        (year (extract-calendar-year date)))
     (goto-line (+ 3
                   (/ (+ day  -1
                         (mod
