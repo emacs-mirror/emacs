@@ -1038,10 +1038,11 @@ The return value is the current column.  */)
      and scan through it again.  */
   if (!NILP (force) && col > goal)
     {
+      int c;
       EMACS_INT pos_byte = PT_BYTE;
-      DEC_POS (pos_byte);
-      int c = FETCH_CHAR (pos_byte);
 
+      DEC_POS (pos_byte);
+      c = FETCH_CHAR (pos_byte);
       if (c == '\t' && prev_col < goal)
 	{
 	  EMACS_INT goal_pt, goal_pt_byte;

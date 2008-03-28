@@ -1,3 +1,7 @@
+2008-03-28  Andreas Schwab  <schwab@suse.de>
+
+	* indent.c (Fmove_to_column): Move declaration before statements.
+
 2008-03-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* frame.h (enum fullscreen_type): Give it a name.  Move it before use.
