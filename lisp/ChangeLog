@@ -1,3 +1,8 @@
+2008-03-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-status-kill-dir-status-process): Simplify.
+	(vc-status-refresh): Make sure the buffer is live.
+
 2008-03-28  Wilson Snyder  <wsnyder@wsnyder.org>
 
 	* progmodes/verilog-mode.el (verilog-auto-inout-module):

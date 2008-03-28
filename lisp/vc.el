@@ -2981,16 +2981,16 @@ Throw an error if another update process is in progress."
       ;; be asynchronous.  It should compute the results and call the
       ;; function passed as a an arg to update the vc-status buffer with
       ;; the results.
-      (setq vc-status-process-buffer
-	    (vc-call-backend
-	     backend 'dir-status default-directory
-	     #'vc-update-vc-status-buffer (current-buffer))))))
+      (let ((buf (vc-call-backend
+		  backend 'dir-status default-directory
+		  #'vc-update-vc-status-buffer (current-buffer))))
+	(setq vc-status-process-buffer
+	      (if (buffer-live-p buf) buf nil))))))
 
 (defun vc-status-kill-dir-status-process ()
   "Kill the temporary buffer and associated process."
   (interactive)
-  (when (and (bufferp vc-status-process-buffer)
-	     (buffer-live-p vc-status-process-buffer))
+  (when (buffer-live-p vc-status-process-buffer)
     (let ((proc (get-buffer-process vc-status-process-buffer)))
       (when proc (delete-process proc))
       (setq vc-status-process-buffer nil)
