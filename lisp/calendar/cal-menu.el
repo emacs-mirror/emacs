@@ -102,8 +102,7 @@
           (push (vector (format "hol-year-%d" i)
                         `(lambda ()
                            (interactive)
-                           (holiday-list (+ displayed-year ,(- i 5))
-                                         (+ displayed-year ,(- i 5))))
+                           (holiday-list (+ displayed-year ,(- i 5))))
                         :label `(format "For Year %d"
                                        (+ displayed-year ,(- i 5))))
                 l))
@@ -162,20 +161,17 @@ POSITION and MENU are passed to `x-popup-menu'."
 (defun cal-menu-list-holidays-year ()
   "Display a list of the holidays of the selected date's year."
   (interactive)
-  (let ((year (extract-calendar-year (calendar-cursor-to-date))))
-    (holiday-list year year)))
+  (holiday-list (extract-calendar-year (calendar-cursor-to-date))))
 
 (defun cal-menu-list-holidays-following-year ()
   "Display a list of the holidays of the following year."
   (interactive)
-  (let ((year (1+ (extract-calendar-year (calendar-cursor-to-date)))))
-    (holiday-list year year)))
+  (holiday-list (1+ (extract-calendar-year (calendar-cursor-to-date)))))
 
 (defun cal-menu-list-holidays-previous-year ()
   "Display a list of the holidays of the previous year."
   (interactive)
-  (let ((year (1- (extract-calendar-year (calendar-cursor-to-date)))))
-    (holiday-list year year)))
+  (holiday-list (1- (extract-calendar-year (calendar-cursor-to-date)))))
 
 (defun calendar-event-to-date (&optional error)
   "Date of last event.
@@ -206,22 +202,23 @@ ERROR is non-nil, otherwise just returns nil."
     (calendar-cursor-holidays)))
 
 (autoload 'calendar-check-holidays "holidays")
-(autoload 'diary-list-entries "diary-lib")
 
 (defun calendar-mouse-holidays (&optional event)
   "Pop up menu of holidays for mouse selected date.
 EVENT is the event that invoked this command."
   (interactive "e")
   (let* ((date (calendar-event-to-date))
-         (l (mapcar 'list (calendar-check-holidays date)))
          (title (format "Holidays for %s" (calendar-date-string date)))
          (selection
           (cal-menu-x-popup-menu
            event
            (list title
-                 (append (list title) (or l '("None")))))))
+                 (append (list title)
+                         (or (mapcar 'list (calendar-check-holidays date))
+                             '("None")))))))
     (and selection (call-interactively selection))))
 
+(autoload 'diary-list-entries "diary-lib")
 (defvar holidays-in-diary-buffer)       ; only called from calendar.el
 
 (defun calendar-mouse-view-diary-entries (&optional date diary event)
