@@ -345,10 +345,7 @@ available.  If all recorded changes have already been undone, the undo
 command displays an error message and does nothing.
 
   The undo command applies only to changes in the buffer; you can't
-use it to undo mere cursor motion.  However, some cursor motion
-commands set the mark, so if you use these commands from time to time,
-you can move back to the neighborhoods you have moved through by
-popping the mark ring (@pxref{Mark Ring}).
+use it to undo mere cursor motion.
 
 @node Basic Files
 @section Files
@@ -532,7 +529,7 @@ counts lines within the page, showing both numbers in the echo area.
 
 @kindex M-=
 @findex count-lines-region
-  Use @kbd{M-=} (@code{count-lines-region}) to displays the number of
+  Use @kbd{M-=} (@code{count-lines-region}) to display the number of
 lines in the region (@pxref{Mark}).  @xref{Pages}, for the command
 @kbd{C-x l} which counts the lines in the current page.
 
