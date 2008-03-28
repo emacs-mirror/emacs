@@ -192,19 +192,20 @@ describes the style of such diary entries."
   :group 'diary)
 
 (defcustom print-diary-entries-hook 'lpr-buffer
-  "List of functions called after a temporary diary buffer is prepared.
-The buffer shows only the diary entries currently visible in the diary
-buffer.  The default just does the printing.  Other uses might include, for
-example, rearranging the lines into order by day and time, saving the buffer
-instead of deleting it, or changing the function used to do the printing."
+  "Run by `print-diary-entries' after preparing a temporary diary buffer.
+The buffer shows only the diary entries currently visible in the
+diary buffer.  The default just does the printing.  Other uses
+might include, for example, rearranging the lines into order by
+day and time, saving the buffer instead of deleting it, or
+changing the function used to do the printing."
   :type 'hook
   :group 'diary)
 
 (defcustom diary-unknown-time -9999
   "Value returned by `diary-entry-time' when no time is found.
-The default value -9999 causes entries with no recognizable time to be placed
-before those with times; 9999 would place entries with no recognizable time
-after those with times."
+The default value -9999 causes entries with no recognizable time
+to be placed before those with times; 9999 would place entries
+with no recognizable time after those with times."
   :type 'integer
   :group 'diary
   :version "20.3")
@@ -235,6 +236,16 @@ Used by the function `diary-remind', a pseudo-pattern is a list of
 expressions that can involve the keywords `days' (a number), `date' (a list of
 month, day, year), and `diary-entry' (a string)."
   :type 'sexp
+  :group 'diary)
+
+(defcustom abbreviated-calendar-year t
+  "Interpret a two-digit year DD in a diary entry as either 19DD or 20DD.
+This applies to the Gregorian, Hebrew, Islamic, and Baha'i calendars.
+When the current century is added to a two-digit year, if the result
+is more than 50 years in the future, the previous century is assumed.
+If the result is more than 50 years in the past, the next century is assumed.
+If this variable is nil, years must be written in full."
+  :type 'boolean
   :group 'diary)
 
 (defcustom diary-outlook-formats
@@ -282,6 +293,8 @@ template following the rules above."
   :version "22.1"
   :group 'diary)
 
+(defvar diary-header-line-flag)
+(defvar diary-header-line-format)
 
 (defun diary-set-header (symbol value)
   "Set SYMBOL's value to VALUE, and redraw the diary header if necessary."
@@ -487,10 +500,12 @@ pairs."
               attrname (nth 2 attr)
               type (nth 3 attr)
               attrvalue nil)
-        ;; FIXME multiple matches?
-        (if (string-match regexp entry)
-            (setq attrvalue (match-string-no-properties regnum entry)
-                  entry (replace-match "" t t entry)))
+        ;; If multiple matches, replace all, use the last (which may
+        ;; be the first instance in the line, if the regexp is
+        ;; anchored with $).
+        (while (string-match regexp entry)
+          (setq attrvalue (match-string-no-properties regnum entry)
+                entry (replace-match "" t t entry)))
         (and attrvalue
              (setq attrvalue (diary-attrtype-convert attrvalue type))
              (setq ret-attr (append ret-attr (list attrname attrvalue))))))
@@ -561,7 +576,6 @@ entries of the desired type.  Returns non-nil if any entries were found."
          (day (format "\\*\\|0*%d" day))
          (year (format "\\*\\|0*%d%s" year
                        (if abbreviated-calendar-year
-                           ;; FIXME was %d in non-greg case.
                            (format "\\|%02d" (% year 100))
                          "")))
         (case-fold-search t)
@@ -585,16 +599,11 @@ entries of the desired type.  Returns non-nil if any entries were found."
               (backward-char 1)
             ;; Found a nonempty diary entry--make it
             ;; visible and add it to the list.
+            (setq date-start (line-end-position 0))
             ;; Actual entry starts on the next-line?
-            ;; FIXME not a valid case AFAICS.
             (if (looking-at "[ \t]*\n[ \t]") (forward-line 1))
             (setq entry-found t
-                  entry-start (point)
-                  ;; If bolp, must have done (forward-line 1).
-                  ;; FIXME Why number > 1?
-                  ;; FIXME why not set before f-l 1?
-                  date-start (line-end-position (if (and (bolp) (> number 1))
-                                                    -1 0)))
+                  entry-start (point))
             (forward-line 1)
             (while (looking-at "[ \t]") ; continued entry
               (forward-line 1))
@@ -645,26 +654,22 @@ SPECIFIER is the applicability.  If the variable `diary-list-include-blanks'
 is non-nil, this list includes a dummy diary entry consisting of the empty
 string for a date with no diary entries.
 
-After the list is prepared, the hooks `nongregorian-diary-listing-hook',
-`list-diary-entries-hook', `diary-display-hook', and `diary-hook' are run.
-These hooks have the following distinct roles:
+After the list is prepared, the following hooks are run:
 
-    `nongregorian-diary-listing-hook' can cull dates from the diary
-        and each included file, for example to process Islamic diary
-        entries.  Applied to *each* file.
+  `nongregorian-diary-listing-hook' can cull dates from the diary
+      and each included file, for example to process Islamic diary
+      entries.  Applied to *each* file.
 
-    `list-diary-entries-hook' adds or manipulates diary entries from
-        external sources.  Used, for example, to include diary entries
-        from other files or to sort the diary entries.  Invoked *once* only,
-        before the display hook is run.
+  `list-diary-entries-hook' adds or manipulates diary entries from
+      external sources.  Used, for example, to include diary entries
+      from other files or to sort the diary entries.  Invoked *once*
+      only, before the display hook is run.
 
-    `diary-display-hook' does the actual display of information.  If this is
-        nil, `simple-diary-display' will be used.  Use `add-hook' to use
-        `fancy-diary-display', if desired.  If you want no diary display, use
-        add-hook to set this to `ignore'.
+  `diary-display-hook' does the actual display of information.  If nil,
+      `simple-diary-display' is used.  Use `add-hook' to use
+      `fancy-diary-display', if desired, or `ignore' for no display.
 
-    `diary-hook' is run last.  This can be used for an appointment
-        notification function.
+  `diary-hook' is run last.  This is used e.g. by `appt-check'.
 
 Functions called by these hooks may use the variables ORIGINAL-DATE
 and NUMBER, which are the arguments with which this function was called.
@@ -705,7 +710,6 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
         ;; d-s-p is passed to the diary display function.
         (let ((diary-saved-point (point)))
           (save-excursion
-            ;; FIXME move after goto? Syntax?
             (setq file-glob-attrs (cadr (diary-pull-attrs nil "")))
             (with-syntax-table diary-syntax-table
               (goto-char (point-min))
@@ -1024,7 +1028,8 @@ all entries, not just some, are visible.  If there is no diary buffer, one
 is created."
   (interactive)
   (let ((d-file (diary-check-diary-file))
-        (pop-up-frames (window-dedicated-p (selected-window))))
+        (pop-up-frames (or pop-up-frames
+                           (window-dedicated-p (selected-window)))))
     (with-current-buffer (or (find-buffer-visiting d-file)
                              (find-file-noselect d-file t))
       (when (eq major-mode default-major-mode) (diary-mode))
@@ -1159,10 +1164,16 @@ function that converts absolute dates to dates of the appropriate type.  "
                                           (calendar-current-date)))
                                       (calendar-current-date))))
                                   (y (+ (string-to-number y-str)
-                                        (* 100 (/ current-y 100)))))
-                             (if (> (- y current-y) 50)
+                                        ;; Current century, eg 2000.
+                                        (* 100 (/ current-y 100))))
+                                  (offset (- y current-y)))
+                             ;; Add 2-digit year to current century.
+                             ;; If more than 50 years in the future,
+                             ;; assume last century. If more than 50
+                             ;; years in the past, assume next century.
+                             (if (> offset 50)
                                  (- y 100)
-                               (if (> (- current-y y) 50)
+                               (if (< offset -50)
                                    (+ y 100)
                                  y)))
                          (string-to-number y-str)))))
@@ -1270,7 +1281,7 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
       (setq marking-diary-entry (char-equal (preceding-char) ?\())
       (re-search-backward "(")
       (let ((sexp-start (point))
-            sexp entry entry-start marks)
+            sexp entry entry-start)
         (forward-sexp)
         (setq sexp (buffer-substring-no-properties sexp-start (point)))
         (forward-char 1)
@@ -1290,14 +1301,10 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
           (when (setq mark (diary-sexp-entry
                             sexp entry
                             (calendar-gregorian-from-absolute date)))
-            ;; FIXME does this make sense?
-            (setq marks (diary-pull-attrs entry file-glob-attrs)
-                  marks (nth 1 (diary-pull-attrs entry file-glob-attrs)))
             (mark-visible-calendar-date
              (calendar-gregorian-from-absolute date)
-             (if (< 0 (length marks))
-                 marks
-               (if (consp mark) (car mark))))))))))
+             (or (cadr (diary-pull-attrs entry file-glob-attrs))
+                 (if (consp mark) (car mark))))))))))
 
 (defun mark-included-diary-files ()
   "Mark the diary entries from other diary files with those of the diary file.
@@ -1876,13 +1883,13 @@ marked on the calendar."
   "Insert a diary entry STRING which may be NONMARKING in FILE.
 If omitted, NONMARKING defaults to nil and FILE defaults to
 `diary-file'."
-  (let ((pop-up-frames (window-dedicated-p (selected-window))))
+  (let ((pop-up-frames (or pop-up-frames
+                           (window-dedicated-p (selected-window)))))
     (find-file-other-window (substitute-in-file-name (or file diary-file))))
   (when (eq major-mode default-major-mode) (diary-mode))
   (widen)
   (diary-unhide-everything)
   (goto-char (point-max))
-  ;; FIXME cf hack-local-variables.
   (when (let ((case-fold-search t))
           (search-backward "Local Variables:"
                            (max (- (point-max) 3000) (point-min))
