@@ -274,12 +274,12 @@ just as M-w would do so with the text it copies to the kill ring.
 any more when used in a minibuffer or a dedicated window.  Instead, they
 fallback on using pop-to-buffer which will use some other window.
 
-*** Many commands that read a buffer name now provide a list of all buffers
-sorted by recency in the list of minibuffer default values available
-via M-n or down-arrow.  It is also possible to search this buffer list
-in the minibuffer using incremental search commands C-s and C-M-s
-(for instance, `C-x b C-s substr RET RET' to select a buffer by part
-of the buffer name).
+*** When M-n in the minibuffer reaches the end of the list of defaults,
+it adds the completion list to the end, so next M-n continues putting
+completion items to the minibuffer.  The same principle applies to
+incremental search commands as well: C-s or C-M-s starts searching
+the default values and after the end of defaults they continue
+searching minibuffer completion items.
 
 *** In C-x d, if you type M-n you get the visited file name of the
 current buffer.
