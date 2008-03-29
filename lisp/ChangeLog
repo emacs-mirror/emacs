@@ -1,3 +1,8 @@
+2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/remember.el (remember-diary-convert-entry): Prefer boundp
+	to with-no-warnings.
+
 2008-03-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.13.

@@ -481,7 +481,7 @@ If this is nil, then `diary-file' will be used instead."
         (replace-match
          (let ((style (if (boundp 'calendar-date-style)
                           calendar-date-style
-                        (if (with-no-warnings european-calendar-style)
+                        (if (bound-and-true-p european-calendar-style)
                             'european
                           'american))))
            (cond ((eq style 'european)
