@@ -71,7 +71,7 @@ typedef unsigned long Time;
 #undef Z
 #define Z (current_buffer->text->z)
 #else /* not HAVE_CARBON */
-#include <QuickDraw.h>		/* for WindowPtr */
+#include <QuickDraw.h>		/* for WindowRef */
 #include <QDOffscreen.h>	/* for GWorldPtr */
 #include <Appearance.h>		/* for ThemeCursor */
 #include <Windows.h>
@@ -98,7 +98,7 @@ typedef unsigned long Time;
 /* Whether to use Quartz 2D routines for drawing operations other than
    texts.  */
 #ifndef USE_CG_DRAWING
-#if USE_ATSUI && MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
 #define USE_CG_DRAWING 1
 #endif
 #endif
@@ -117,7 +117,14 @@ typedef unsigned long Time;
 #endif
 #endif
 
-typedef WindowPtr Window;
+/* Whether to use HIToolbar.  */
+#ifndef USE_MAC_TOOLBAR
+#if USE_CG_DRAWING && MAC_OS_X_VERSION_MAX_ALLOWED >= 1030 && MAC_OS_X_VERSION_MIN_REQUIRED != 1020
+#define USE_MAC_TOOLBAR 1
+#endif
+#endif
+
+typedef WindowRef Window;
 typedef GWorldPtr Pixmap;
 
 #define Cursor ThemeCursor
