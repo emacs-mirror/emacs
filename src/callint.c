@@ -513,35 +513,16 @@ invoke it.  If KEYS is omitted or nil, the return value of
 	  break;
 
 	case 'b':   		/* Name of existing buffer */
-	case 'B':		/* Name of buffer, possibly nonexistent */
-	  {
-	    Lisp_Object tema, temb, temc;
+	  args[i] = Fcurrent_buffer ();
+	  if (EQ (selected_window, minibuf_window))
+	    args[i] = Fother_buffer (args[i], Qnil, Qnil);
+	  args[i] = Fread_buffer (callint_message, args[i], Qt);
+	  break;
 
-	    /* Get a list of buffer names (except internal buffers), and
-	       use this list for default values.  Put either current
-	       buffer or other-buffer in front.  */
-	    tema = Qnil;
-	    temc = Fcurrent_buffer ();
-	    if (*tem == 'B' || EQ (selected_window, minibuf_window))
-	      temc = Fother_buffer (temc, Qnil, Qnil);
-	    tema = Fcons (XBUFFER (temc)->name, tema);
-	    teml = Fbuffer_list (selected_frame);
-	    for (; CONSP (teml); teml = XCDR (teml))
-	      {
-		temb = XCAR (teml);
-		if (EQ (temb, temc))
-		  continue;
-		if (NILP (temb))
-		  continue;
-		if (NILP (XBUFFER (temb)->name))
-		  continue;
-		if (SREF (XBUFFER (temb)->name, 0) == ' ')
-		  continue;
-		tema = Fcons (XBUFFER (temb)->name, tema);
-	      }
-	    args[i] = Fread_buffer (callint_message, Fnreverse (tema),
-				    *tem == 'b' ? Qt : Qnil);
-	  }
+	case 'B':		/* Name of buffer, possibly nonexistent */
+	  args[i] = Fread_buffer (callint_message,
+				  Fother_buffer (Fcurrent_buffer (), Qnil, Qnil),
+				  Qnil);
 	  break;
 
         case 'c':		/* Character */
