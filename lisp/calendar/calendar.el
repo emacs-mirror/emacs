@@ -352,19 +352,11 @@ matches any day, month, or year, respectively.  If the date does
 not contain a year, it is generic and applies to any year.  A
 DAYNAME entry applies to the appropriate day of the week in every week.
 
-The European style (in which the day precedes the month) can be
-used instead, if you execute `european-calendar' when in the
-calendar, or set `european-calendar-style' to t in your .emacs
-file.  The European forms (see `european-date-diary-pattern') are
-
-            DAY/MONTH
-            DAY/MONTH/YEAR
-            DAY MONTHNAME
-            DAY MONTHNAME YEAR
-            DAYNAME
-
-To revert to the default American style from the European style, execute
-`american-calendar' in the calendar.
+You can customize `diary-date-forms' to your preferred format.
+Three default styles are provided: `american-date-diary-pattern',
+`european-date-diary-pattern', and `iso-date-diary-pattern'.
+You can choose between these by setting `calendar-date-style' in your
+.emacs file, or by using `calendar-set-date-style' when in the calendar.
 
 A diary entry can be preceded by the character `diary-nonmarking-symbol'
 \(ordinarily `&') to make that entry nonmarking--that is, it will not be
@@ -447,34 +439,75 @@ details, see the documentation for the variable `list-diary-entries-hook'."
 
 ;;;###autoload
 (defcustom european-calendar-style nil
-  "Use the European style of dates in the diary and in any displays.
-If this variable is non-nil, a date 1/2/1990 would be interpreted as
-February 1, 1990.  The default European date styles (see
-`european-date-diary-pattern') are
-
-            DAY/MONTH
-            DAY/MONTH/YEAR
-            DAY MONTHNAME
-            DAY MONTHNAME YEAR
-            DAYNAME
-
-Names can be capitalized or not, written in full (as specified by the
-variable `calendar-day-name-array'), or abbreviated (as specified by
-`calendar-day-abbrev-array') with or without a period.
+  "Non-nil means use the European style of dates in the diary and display.
+In this case, a date like 1/2/1990 would be interpreted as
+February 1, 1990.  See `european-date-diary-pattern' for the
+default European diary date styles.
 
 Setting this variable directly does not take effect (if the
 calendar package is already loaded).  Rather, use either
-\\[customize] or the functions `european-calendar' and
-`american-calendar'."
+\\[customize] or the function `calendar-set-date-style'."
   :type 'boolean
   ;; Without :initialize (require 'calendar) throws an error because
-  ;; american-calendar is undefined at this point.
+  ;; calendar-set-date-style is undefined at this point.
   :initialize 'custom-initialize-default
   :set (lambda (symbol value)
          (if value
-             (european-calendar)
-           (american-calendar)))
+             (calendar-set-date-style 'european)
+           (calendar-set-date-style 'american)))
   :group 'diary)
+
+;;;###autoload
+(make-obsolete-variable 'european-calendar-style 'calendar-date-style "23.1")
+
+;; Used by various other packages.
+;;;###autoload
+(defcustom calendar-date-style (if european-calendar-style 'european
+                                 'american)
+  "Your preferred style for writing dates.
+The options are:
+`american' - month/day/year
+`european' - day/month/year
+`iso'      - year/month/day
+This affects how dates written in your diary are interpreted.
+It also affects date display, as well as those calendar and diary
+functions that take a date as an argument, e.g. `diary-date', by
+changing the order in which the arguments are interpreted.
+
+Setting this variable directly does not take effect (if the
+calendar package is already loaded).  Rather, use either
+\\[customize] or the function `calendar-set-date-style'."
+  :version "23.1"
+  :type '(choice (const american :tag "Month/Day/Year")
+                 (const european :tag "Day/Month/Year")
+                 (const iso      :tag "Year/Month/Day"))
+  :initialize 'custom-initialize-default
+  :set (lambda (symbol value)
+         (calendar-set-date-style value))
+  :group 'calendar)
+
+;; Next three are provided to aid in setting diary-date-forms.
+(defcustom iso-date-diary-pattern
+  '((month "[-/]" day "[^-/0-9]")
+    (year "[-/]" month "[-/]" day "[^0-9]")
+    (monthname "-" day "[^-0-9]")
+    (year "-" monthname "-" day "[^0-9]")
+    (dayname "\\W"))
+    "List of pseudo-patterns describing the ISO style of dates.
+The defaults are: MONTH[-/]DAY; YEAR[-/]MONTH[-/]DAY; MONTHNAME-DAY;
+YEAR-MONTHNAME-DAY; DAYNAME.  Normally you should not customize this,
+but `diary-date-forms' (which see)."
+    :version "23.1"
+    :type '(repeat (choice (cons :tag "Backup"
+                               :value (backup . nil)
+                               (const backup)
+                               (repeat (list :inline t :format "%v"
+                                             (symbol :tag "Keyword")
+                                             (choice symbol regexp))))
+                         (repeat (list :inline t :format "%v"
+                                       (symbol :tag "Keyword")
+                                       (choice symbol regexp)))))
+    :group 'diary)
 
 (defcustom american-date-diary-pattern
   '((month "/" day "[^/0-9]")
@@ -482,8 +515,10 @@ calendar package is already loaded).  Rather, use either
     (monthname " *" day "[^,0-9]")
     (monthname " *" day ", *" year "[^0-9]")
     (dayname "\\W"))
-  "List of pseudo-patterns describing the American patterns of date used.
-See the documentation of `diary-date-forms' for an explanation."
+  "List of pseudo-patterns describing the American style of dates.
+The defaults are: MONTH/DAY; MONTH/DAY/YEAR; MONTHNAME DAY;
+MONTHNAME DAY, YEAR; DAYNAME.  Normally you should not customize this,
+but `diary-date-forms' (which see)."
   :type '(repeat (choice (cons :tag "Backup"
                                :value (backup . nil)
                                (const backup)
@@ -501,8 +536,10 @@ See the documentation of `diary-date-forms' for an explanation."
     (backup day " *" monthname "\\W+\\<\\([^*0-9]\\|\\([0-9]+[:aApP]\\)\\)")
     (day " *" monthname " *" year "[^0-9]")
     (dayname "\\W"))
-  "List of pseudo-patterns describing the European patterns of date used.
-See the documentation of `diary-date-forms' for an explanation."
+  "List of pseudo-patterns describing the European style of dates.
+The defaults are: DAY/MONTH; DAY/MONTH/YEAR; DAY MONTHNAME;
+DAY MONTHNAME YEAR; DAYNAME.  Normally you should not customize this, but
+`diary-date-forms' (which see)."
   :type '(repeat (choice (cons :tag "Backup"
                                :value (backup . nil)
                                (const backup)
@@ -516,10 +553,11 @@ See the documentation of `diary-date-forms' for an explanation."
 
 (defvar diary-font-lock-keywords)
 
-(defcustom diary-date-forms
-  (if european-calendar-style
-      european-date-diary-pattern
-    american-date-diary-pattern)
+(defcustom diary-date-forms (cond ((eq calendar-date-style 'iso)
+                                   iso-date-diary-pattern)
+                                  ((eq calendar-date-style 'european)
+                                   european-date-diary-pattern)
+                                  (t american-date-diary-pattern))
   "List of pseudo-patterns describing the forms of date used in the diary.
 The patterns on the list must be MUTUALLY EXCLUSIVE and should not match
 any portion of the diary entry itself, just the date component.
@@ -543,7 +581,10 @@ If, to be mutually exclusive, a pseudo-pattern must match a portion of the
 diary entry itself, the first element of the pattern MUST be `backup'.  This
 directive causes the date recognizer to back up to the beginning of the
 current word of the diary entry, so in no case can the pattern match more than
-a portion of the first word of the diary entry."
+a portion of the first word of the diary entry.
+
+For examples of three common styles, see `american-date-diary-pattern',
+`european-date-diary-pattern', and `iso-date-diary-pattern'."
   :type '(repeat (choice (cons :tag "Backup"
                                :value (backup . nil)
                                (const backup)
@@ -564,62 +605,86 @@ a portion of the first word of the diary entry."
                 (diary))))
   :group 'diary)
 
+;; Next three are provided to aid in setting calendar-date-display-form.
+(defcustom iso-calendar-display-form '((format "%s-%.2d-%.2d" year
+                                               (string-to-number month)
+                                               (string-to-number day)))
+  "Pseudo-pattern governing the way a date appears in the ISO style.
+Normally you should not customize this, but `calendar-date-display-form'
+\(which see)."
+  :type 'sexp
+  :version "23.1"
+  :group 'calendar)
+
 (defcustom european-calendar-display-form
   '((if dayname (concat dayname ", ")) day " " monthname " " year)
   "Pseudo-pattern governing the way a date appears in the European style.
-See the documentation of `calendar-date-display-form' for an explanation."
+Normally you should not customize this, but `calendar-date-display-form'
+\(which see)."
   :type 'sexp
   :group 'calendar)
 
 (defcustom american-calendar-display-form
   '((if dayname (concat dayname ", ")) monthname " " day ", " year)
   "Pseudo-pattern governing the way a date appears in the American style.
-See the documentation of `calendar-date-display-form' for an explanation."
+Normally you should not customize this, but `calendar-date-display-form'
+\(which see)."
   :type 'sexp
   :group 'calendar)
 
-(defcustom calendar-date-display-form
-  (if european-calendar-style
-      european-calendar-display-form
-    american-calendar-display-form)
-  "Pseudo-pattern governing the way a date appears.
-
-Used by the function `calendar-date-string', a pseudo-pattern is a list of
-expressions that can involve the keywords `month', `day', and `year', all
-numbers in string form, and `monthname' and `dayname', both alphabetic
-strings.  For example, the ISO standard would use the pseudo- pattern
-
-       '(year \"-\" month \"-\" day)
-
-while a typical American form would be
+(defcustom calendar-date-display-form (cond ((eq calendar-date-style 'iso)
+                                             iso-calendar-display-form)
+                                            ((eq calendar-date-style 'european)
+                                             european-calendar-display-form)
+                                            (t american-calendar-display-form))
+  "Pseudo-pattern governing the way a calendar date appears.
+Used by the function `calendar-date-string' (which see), a pseudo-pattern
+is a list of expressions that can involve the keywords `month', `day',
+and `year' (all numbers in string form), and `monthname' and `dayname'
+\(both alphabetic strings).  For example, a typical American form would be
 
        '(month \"/\" day \"/\" (substring year -2))
 
-and
+whereas
 
        '((format \"%9s, %9s %2s, %4s\" dayname monthname day year))
 
-would give the usual American style in fixed-length fields.
-
-See the documentation of the function `calendar-date-string'."
+would give the usual American style in fixed-length fields.  The variables
+`iso-calendar-display-form', `european-calendar-display-form', and
+`american-calendar-display-form' provide some defaults for three common
+styles."
   :type 'sexp
   :group 'calendar)
+
+(defun calendar-set-date-style (style)
+  "Set the style of calendar and diary dates to STYLE (a symbol).
+The valid styles are described in the documentation of `calendar-date-style'."
+  (interactive (list (intern
+                      (completing-read "Date style: "
+                                       '("american" "european" "iso") nil t
+                                       nil nil "american"))))
+  (or (memq style '(american european iso))
+      (setq style 'american))
+  (setq calendar-date-style style
+        calendar-date-display-form
+        (symbol-value (intern-soft (format "%s-calendar-display-form" style)))
+        diary-date-forms
+        (symbol-value (intern-soft (format "%s-date-diary-pattern" style))))
+  (update-calendar-mode-line))
 
 (defun european-calendar ()
   "Set the interpretation and display of dates to the European style."
   (interactive)
-  (setq european-calendar-style t
-        calendar-date-display-form european-calendar-display-form
-        diary-date-forms european-date-diary-pattern)
-  (update-calendar-mode-line))
+  (calendar-set-date-style 'european))
+
+(make-obsolete 'european-calendar 'calendar-set-date-style "23.1")
 
 (defun american-calendar ()
   "Set the interpretation and display of dates to the American style."
   (interactive)
-  (setq european-calendar-style nil
-        calendar-date-display-form american-calendar-display-form
-        diary-date-forms american-date-diary-pattern)
-  (update-calendar-mode-line))
+  (calendar-set-date-style 'american))
+
+(make-obsolete 'american-calendar 'calendar-set-date-style "23.1")
 
 ;; FIXME move to diary-lib and adjust appt.
 ;; Add appt-make-list as an option?
@@ -631,25 +696,27 @@ Can be used for appointment notification."
 
 (defcustom diary-display-hook nil
   "List of functions that handle the display of the diary.
-If nil (the default), `simple-diary-display' is used.  Use `ignore' for no
-diary display.
+If nil (the default), `simple-diary-display' is used.  Use
+`ignore' for no diary display.
 
-Ordinarily, this just displays the diary buffer (with holidays indicated in
-the mode line), if there are any relevant entries.  At the time these
-functions are called, the variable `diary-entries-list' is a list, in order
-by date, of all relevant diary entries in the form of ((MONTH DAY YEAR)
-STRING), where string is the diary entry for the given date.  This can be
-used, for example, a different buffer for display (perhaps combined with
-holidays), or produce hard copy output.
+Ordinarily, this just displays the diary buffer (with holidays
+indicated in the mode line), if there are any relevant entries.
+At the time these functions are called, the variable
+`diary-entries-list' is a list, in order by date, of all relevant
+diary entries in the form of ((MONTH DAY YEAR) STRING), where
+string is the diary entry for the given date.  This can be used,
+for example, a different buffer for display (perhaps combined
+with holidays), or produce hard copy output.
 
-A function `fancy-diary-display' is provided as an alternative
-choice for this hook; this function prepares a special noneditable diary
-buffer with the relevant diary entries that has neat day-by-day arrangement
-with headings.  The fancy diary buffer will show the holidays unless the
-variable `holidays-in-diary-buffer' is set to nil.  Ordinarily, the fancy
-diary buffer will not show days for which there are no diary entries, even
-if that day is a holiday; if you want such days to be shown in the fancy
-diary buffer, set the variable `diary-list-include-blanks' to t."
+A function `fancy-diary-display' is provided for use with this
+hook; this function prepares a special noneditable diary buffer
+with the relevant diary entries that has neat day-by-day
+arrangement with headings.  The fancy diary buffer will show the
+holidays unless the variable `holidays-in-diary-buffer' is set to
+nil.  Ordinarily, the fancy diary buffer will not show days for
+which there are no diary entries, even if that day is a holiday;
+if you want such days to be shown in the fancy diary buffer, set
+the variable `diary-list-include-blanks' non-nil."
   :type 'hook
   :options '(fancy-diary-display)
   :initialize 'custom-initialize-default
@@ -668,6 +735,10 @@ somewhat; setting it to nil makes the diary display faster."
   "Turn debugging on when evaluating a sexp in the diary or holiday list."
   :type 'boolean
   :group 'calendar)
+
+;; The various holiday variables are autoloaded because people
+;; are used to using them to set calendar-holidays without having to
+;; explicitly load this file.
 
 ;;;###autoload
 (defcustom general-holidays
