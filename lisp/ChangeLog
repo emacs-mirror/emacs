@@ -1,3 +1,11 @@
+2008-03-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.13.
+
+	* net/tramp-ftp.el: Require 'cl when byte-compiling.
+
+	* net/trampver.el: Update release number.
+
 2008-03-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc-hooks.el (vc-menu-map-filter): Be more careful when finding
