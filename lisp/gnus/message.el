@@ -5345,19 +5345,18 @@ In posting styles use `(\"Expires\" (make-expires-date 30))'."
 		   ;; Quote a string containing non-ASCII characters.
 		   ;; It will make the RFC2047 encoder cause an error
 		   ;; if there are special characters.
-		   (let ((default-enable-multibyte-characters t))
-		     (with-temp-buffer
-		       (insert (car name))
-		       (goto-char (point-min))
-		       (while (search-forward "\"" nil t)
-			 (when (prog2
-				   (backward-char)
-				   (zerop (% (skip-chars-backward "\\\\") 2))
-				 (goto-char (match-beginning 0)))
-			   (insert "\\"))
-			 (forward-char))
-		       ;; Those quotes will be removed by the RFC2047 encoder.
-		       (concat "\"" (buffer-string) "\"")))
+                   (mm-with-multibyte-buffer
+                     (insert (car name))
+                     (goto-char (point-min))
+                     (while (search-forward "\"" nil t)
+                       (when (prog2
+                                 (backward-char)
+                                 (zerop (% (skip-chars-backward "\\\\") 2))
+                               (goto-char (match-beginning 0)))
+                         (insert "\\"))
+                       (forward-char))
+                     ;; Those quotes will be removed by the RFC2047 encoder.
+                     (concat "\"" (buffer-string) "\""))
 		 (car name))
 	     (nth 1 name))
 	   "'s message of \""

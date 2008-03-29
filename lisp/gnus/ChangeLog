@@ -1,11 +1,15 @@
+2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* message.el (message-make-in-reply-to): Use mm-with-multibyte-buffer.
+
 2008-03-28  Michael Harnois  <mdharnois@gmail.com>  (tiny change)
 
 	* nnimap.el (nnimap-find-minmax-uid): Fix Exchange 2007 IMAP problem.
 
 2008-03-24  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* message.el (message-signature-separator): Change default.  Improve
-	custom type.
+	* message.el (message-signature-separator): Change default.
+	Improve custom type.
 	(message-cite-function): Change default to
 	message-cite-original-without-signature.
 
@@ -18,9 +22,9 @@
 	(message-shorten-references): Be more strict when building list of
 	valid references to comply with GNKSA.
 
-        * gnus-group.el (gnus-read-ephemeral-bug-group)
-        (gnus-read-ephemeral-debian-bug-group)
-        (gnus-read-ephemeral-emacs-bug-group): Use the correct variable.
+	* gnus-group.el (gnus-read-ephemeral-bug-group)
+	(gnus-read-ephemeral-debian-bug-group)
+	(gnus-read-ephemeral-emacs-bug-group): Use the correct variable.
 
 	* message.el (message-info): Don't use booleanp which isn't supported
 	in Emacs 21 and XEmacs.
