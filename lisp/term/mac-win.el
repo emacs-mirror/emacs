@@ -2253,7 +2253,7 @@ See also `mac-dnd-known-types'."
 	 (handler (cdr type-info))
 	 (w (posn-window (event-start event))))
     (when handler
-      (if (and (windowp w) (window-live-p w)
+      (if (and (window-live-p w)
 	       (not (window-minibuffer-p w))
 	       (not (window-dedicated-p w)))
 	  ;; If dropping in an ordinary window which we could use,
