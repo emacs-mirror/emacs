@@ -624,11 +624,11 @@ valid (year > 1900 or something)."
                 ;;(or (nth 6 time1) (nth 6 time2)) ;; FIXME?
                 )))
 
-(defun icalendar--datetime-to-noneuropean-date (datetime &optional separator)
-  "Convert the decoded DATETIME to non-european-style format.
+(defun icalendar--datetime-to-american-date (datetime &optional separator)
+  "Convert the decoded DATETIME to American-style format.
 Optional argument SEPARATOR gives the separator between month,
 day, and year.  If nil a blank character is used as separator.
-Non-European format: \"month day year\"."
+American format: \"month day year\"."
   (if datetime
       (format "%d%s%d%s%d" (nth 4 datetime) ;month
               (or separator " ")
@@ -637,6 +637,9 @@ Non-European format: \"month day year\"."
               (nth 5 datetime))         ;year
     ;; datetime == nil
     nil))
+
+(define-obsolete-function-alias 'icalendar--datetime-to-noneuropean-date
+  'icalendar--datetime-to-american-date "icalendar 0.19")
 
 (defun icalendar--datetime-to-european-date (datetime &optional separator)
   "Convert the decoded DATETIME to European format.
@@ -653,15 +656,33 @@ FIXME"
     ;; datetime == nil
     nil))
 
+(defun icalendar--datetime-to-iso-date (datetime &optional separator)
+  "Convert the decoded DATETIME to ISO format.
+Optional argument SEPARATOR gives the separator between month,
+day, and year.  If nil a blank character is used as separator.
+ISO format: (year month day)."
+  (if datetime
+      (format "%d%s%d%s%d" (nth 5 datetime) ;year
+              (or separator " ")
+              (nth 4 datetime)            ;month
+              (or separator " ")
+              (nth 3 datetime))           ;day
+    ;; datetime == nil
+    nil))
+
 (defun icalendar--datetime-to-diary-date (datetime &optional separator)
   "Convert the decoded DATETIME to diary format.
 Optional argument SEPARATOR gives the separator between month,
 day, and year.  If nil a blank character is used as separator.
-Call icalendar--datetime-to-(non)-european-date according to
-value of `european-calendar-style'."
-  (if european-calendar-style
-      (icalendar--datetime-to-european-date datetime separator)
-    (icalendar--datetime-to-noneuropean-date datetime separator)))
+Call icalendar--datetime-to-*-date according to the
+value of `calendar-date-style' (or the older `european-calendar-style')."
+  (funcall (intern-soft (format "icalendar--datetime-to-%s-date"
+                                (if (boundp 'calendar-date-style)
+                                    calendar-date-style
+                                  (if (with-no-warnings european-calendar-style)
+                                      'european
+                                    'american))))
+           datetime separator))
 
 (defun icalendar--datetime-to-colontime (datetime)
   "Extract the time part of a decoded DATETIME into 24-hour format.
