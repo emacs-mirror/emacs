@@ -1,3 +1,8 @@
+2008-03-29  Juri Linkov  <juri@jurta.org>
+
+	* callint.c (Fcall_interactively): Revert 2008-03-16 change
+	for interactive code letters 'b' and 'B'.
+
 2008-03-29  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fexpand_file_name): Convert the value of $HOME to a
