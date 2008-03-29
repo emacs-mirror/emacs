@@ -129,7 +129,7 @@ Lisp_Object Vdefault_frame_alist;
 Lisp_Object Vdefault_frame_scroll_bars;
 Lisp_Object Vmouse_position_function;
 Lisp_Object Vmouse_highlight;
-Lisp_Object Vdelete_frame_functions;
+static Lisp_Object Vdelete_frame_functions, Qdelete_frame_functions;
 
 int focus_follows_mouse;
 
@@ -1334,6 +1334,8 @@ delete_frame_handler (Lisp_Object arg)
   return Qnil;
 }
 
+extern Lisp_Object Qrun_hook_with_args;
+
 DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 2, "",
        doc: /* Delete FRAME, permanently eliminating it from use.
 If omitted, FRAME defaults to the selected frame.
@@ -1410,21 +1412,14 @@ But FORCE inhibits this too.  */)
      unless FORCE is `noelisp' or frame is a tooltip.
      FORCE is set to `noelisp' when handling a disconnect from the terminal,
      so we don't dare call Lisp code.  */
-  if (!NILP (Vrun_hooks) && !EQ (force, Qnoelisp)
-      && NILP (Fframe_parameter (frame, intern ("tooltip"))))
-    {
-      Lisp_Object args[2];
-      struct gcpro gcpro1, gcpro2;
-
-      /* Don't let a rogue function in `delete-frame-functions'
-	 prevent the frame deletion. */
-      GCPRO2 (args[0], args[1]);
-      args[0] = intern ("delete-frame-functions");
-      args[1] = frame;
-      internal_condition_case_2 (Frun_hook_with_args, 2, args,
-				 Qt, delete_frame_handler);
-      UNGCPRO;
-    }
+  if (NILP (Vrun_hooks) || !NILP (Fframe_parameter (frame, intern ("tooltip"))))
+    ;
+  if (EQ (force, Qnoelisp))
+    pending_funcalls
+      = Fcons (list3 (Qrun_hook_with_args, Qdelete_frame_functions, frame),
+	       pending_funcalls);
+  else
+    safe_call2 (Qrun_hook_with_args, Qdelete_frame_functions, frame);
 
   /* The hook may sometimes (indirectly) cause the frame to be deleted.  */
   if (! FRAME_LIVE_P (f))
@@ -4526,13 +4521,13 @@ when the mouse is over clickable text.  */);
 The functions are run with one arg, the frame to be deleted.
 See `delete-frame'.
 
-Note that functions in this list may be called twice on the same
-frame.  In the second invocation, the frame is already deleted, and
-the function should do nothing.  (You can use `frame-live-p' to check
-for this.)  This wrinkle happens when an earlier function in
-`delete-frame-functions' (indirectly) calls `delete-frame'
-recursively.  */);
+Note that functions in this list may be called just before the frame is
+actually deleted, or some time later (or even both when an earlier function
+in `delete-frame-functions' (indirectly) calls `delete-frame'
+recursively).  */);
   Vdelete_frame_functions = Qnil;
+  Qdelete_frame_functions = intern ("delete-frame-functions");
+  staticpro (&Qdelete_frame_functions);
 
   DEFVAR_KBOARD ("default-minibuffer-frame", Vdefault_minibuffer_frame,
 		 doc: /* Minibufferless frames use this frame's minibuffer.

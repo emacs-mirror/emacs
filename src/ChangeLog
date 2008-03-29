@@ -1,3 +1,19 @@
+2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (pending_funcalls): New var.
+	(timer_check): Run it.
+	(syms_of_keyboard): Initialize it.
+	* terminal.c (Qrun_hook_with_args, Qdelete_terminal_functions)
+	(Vdelete_terminal_functions): New vars.
+	(syms_of_terminal): Initialize them.
+	(Fdelete_terminal): Run delete-terminal-functions.
+	* xdisp.c (safe_eval): Rewrite.
+	(safe_call2): New fun.
+	* frame.c (Qdelete_frame_functions): New var.
+	(syms_of_frame): Initialize it.
+	(Fdelete_frame): Use it and use safe_call2 and pending_funcalls.
+	* lisp.h (safe_call2, pending_funcalls): Declare.
+
 2008-03-28  Andreas Schwab  <schwab@suse.de>
 
 	* indent.c (Fmove_to_column): Move declaration before statements.

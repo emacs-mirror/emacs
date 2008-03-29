@@ -2316,33 +2316,6 @@ safe_eval_handler (arg)
 /* Evaluate SEXPR and return the result, or nil if something went
    wrong.  Prevent redisplay during the evaluation.  */
 
-Lisp_Object
-safe_eval (sexpr)
-     Lisp_Object sexpr;
-{
-  Lisp_Object val;
-
-  if (inhibit_eval_during_redisplay)
-    val = Qnil;
-  else
-    {
-      int count = SPECPDL_INDEX ();
-      struct gcpro gcpro1;
-
-      GCPRO1 (sexpr);
-      specbind (Qinhibit_redisplay, Qt);
-      /* Use Qt to ensure debugger does not run,
-	 so there is no possibility of wanting to redisplay.  */
-      val = internal_condition_case_1 (Feval, sexpr, Qt,
-				       safe_eval_handler);
-      UNGCPRO;
-      val = unbind_to (count, val);
-    }
-
-  return val;
-}
-
-
 /* Call function ARGS[0] with arguments ARGS[1] to ARGS[NARGS - 1].
    Return the result, or nil if something went wrong.  Prevent
    redisplay during the evaluation.  */
@@ -2387,6 +2360,27 @@ safe_call1 (fn, arg)
   args[0] = fn;
   args[1] = arg;
   return safe_call (2, args);
+}
+
+static Lisp_Object Qeval;
+
+Lisp_Object
+safe_eval (Lisp_Object sexpr)
+{
+  return safe_call1 (Qeval, sexpr);
+}
+
+/* Call function FN with one argument ARG.
+   Return the result, or nil if something went wrong.  */
+
+Lisp_Object
+safe_call2 (Lisp_Object fn, Lisp_Object arg1, Lisp_Object arg2)
+{
+  Lisp_Object args[3];
+  args[0] = fn;
+  args[1] = arg1;
+  args[2] = arg2;
+  return safe_call (3, args);
 }
 
 
@@ -8634,7 +8628,7 @@ current_message ()
 {
   Lisp_Object msg;
 
-  if (NILP (echo_area_buffer[0]))
+  if (!BUFFERP (echo_area_buffer[0]))
     msg = Qnil;
   else
     {
@@ -24358,6 +24352,9 @@ syms_of_xdisp ()
 
   staticpro (&Qinhibit_point_motion_hooks);
   Qinhibit_point_motion_hooks = intern ("inhibit-point-motion-hooks");
+
+  Qeval = intern ("eval");
+  staticpro (&Qeval);
 
   QCdata = intern (":data");
   staticpro (&QCdata);

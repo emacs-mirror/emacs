@@ -4505,6 +4505,13 @@ timer_resume_idle ()
 /* This is only for debugging.  */
 struct input_event last_timer_event;
 
+/* List of elisp functions to call, delayed because they were generated in
+   a context where Elisp could not be safely run (e.g. redisplay, signal,
+   ...).  Each lement has the form (FUN . ARGS).  */
+Lisp_Object pending_funcalls;
+
+extern Lisp_Object Qapply;
+
 /* Check whether a timer has fired.  To prevent larger problems we simply
    disregard elements that are not proper timers.  Do not make a circular
    timer list for the time being.
@@ -4540,6 +4547,14 @@ timer_check (do_it_now)
     idle_timers = Qnil;
   chosen_timer = Qnil;
   GCPRO3 (timers, idle_timers, chosen_timer);
+
+  /* First run the code that was delayed.  */
+  while (CONSP (pending_funcalls))
+    {
+      Lisp_Object funcall = XCAR (pending_funcalls);
+      pending_funcalls = XCDR (pending_funcalls);
+      safe_call2 (Qapply, XCAR (funcall), XCDR (funcall));
+    }
 
   if (CONSP (timers) || CONSP (idle_timers))
     {
@@ -11726,6 +11741,8 @@ struct event_head head_table[] = {
 void
 syms_of_keyboard ()
 {
+  pending_funcalls = Qnil;
+
   Vpre_help_message = Qnil;
   staticpro (&Vpre_help_message);
 

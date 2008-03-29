@@ -2776,6 +2776,7 @@ EXFUN (Ffetch_bytecode, 1);
 extern void init_eval_once P_ ((void));
 extern Lisp_Object safe_call P_ ((int, Lisp_Object *));
 extern Lisp_Object safe_call1 P_ ((Lisp_Object, Lisp_Object));
+extern Lisp_Object safe_call2 (Lisp_Object, Lisp_Object, Lisp_Object);
 extern void init_eval P_ ((void));
 extern void syms_of_eval P_ ((void));
 
@@ -3025,6 +3026,7 @@ EXFUN (Fset_output_flow_control, 2);
 EXFUN (Fset_input_meta_mode, 2);
 EXFUN (Fset_quit_char, 1);
 EXFUN (Fset_input_mode, 4);
+extern Lisp_Object pending_funcalls;
 extern int detect_input_pending P_ ((void));
 extern int detect_input_pending_ignore_squeezables P_ ((void));
 extern int detect_input_pending_run_timers P_ ((int));

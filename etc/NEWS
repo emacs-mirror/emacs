@@ -614,6 +614,7 @@ for the list of extra keys that are available.
 
 * Incompatible Lisp Changes in Emacs 23.1
 
++++
 ** The multibyteness of process filters is determined by the coding-system
 used for decoding.  The functions `process-filter-multibyte-p' and
 `set-process-filter-multibyte' are obsolete.
@@ -663,6 +664,8 @@ functions and variables (formerly used for Tamil script).
 
 
 * Lisp Changes in Emacs 23.1
+
+** When deleting a terminal, run the special hook `delete-terminal-functions'.
 
 ** The `read-shell-command' function does what its name says, with completion.
 It uses the minibuffer-local-shell-command-map for that.
