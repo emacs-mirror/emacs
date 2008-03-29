@@ -142,27 +142,26 @@ Driven by the variable `calendar-date-display-form'."
 If MONTH, DAY (Julian) is visible, the value returned is corresponding
 Gregorian date in the form of the list (((month day year) STRING)).  Returns
 nil if it is not visible in the current calendar window."
-  (let ((m1 displayed-month)
-        (y1 displayed-year)
-        (m2 displayed-month)
-        (y2 displayed-year)
-        (year))
-    (increment-calendar-month m1 y1 -1)
-    (increment-calendar-month m2 y2 1)
-    (let* ((start-date (calendar-absolute-from-gregorian
-                        (list m1 1 y1)))
-           (end-date (calendar-absolute-from-gregorian
-                      (list m2 (calendar-last-day-of-month m2 y2) y2)))
-           (julian-start (calendar-julian-from-absolute start-date))
-           (julian-end (calendar-julian-from-absolute end-date))
-           (julian-y1 (extract-calendar-year julian-start))
-           (julian-y2 (extract-calendar-year julian-end)))
-      (setq year (if (< 10 month) julian-y1 julian-y2))
-      (let ((date (calendar-gregorian-from-absolute
-                   (calendar-absolute-from-julian
-                    (list month day year)))))
-        (if (calendar-date-is-visible-p date)
-            (list (list date string)))))))
+  (let* ((m1 displayed-month)
+         (y1 displayed-year)
+         (m2 displayed-month)
+         (y2 displayed-year)
+         (start-date (progn
+                       (increment-calendar-month m1 y1 -1)
+                       (calendar-absolute-from-gregorian (list m1 1 y1))))
+         (end-date (progn
+                     (increment-calendar-month m2 y2 1)
+                     (calendar-absolute-from-gregorian
+                      (list m2 (calendar-last-day-of-month m2 y2) y2))))
+         (julian-start (calendar-julian-from-absolute start-date))
+         (julian-end (calendar-julian-from-absolute end-date))
+         (julian-y1 (extract-calendar-year julian-start))
+         (julian-y2 (extract-calendar-year julian-end))
+         (year (if (< 10 month) julian-y1 julian-y2))
+         (date (calendar-gregorian-from-absolute
+                (calendar-absolute-from-julian (list month day year)))))
+    (if (calendar-date-is-visible-p date)
+        (list (list date string)))))
 
 ;;;###cal-autoload
 (defun calendar-absolute-from-astro (d)
