@@ -1,3 +1,194 @@
+2008-03-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* frame.h (struct frame) [MAC_OS]: New member external_tool_bar.
+	(FRAME_EXTERNAL_TOOL_BAR) [MAC_OS]: Use it.
+
+	* mac.c (xrm_get_preference_database): Remove BLOCK_INPUT.
+	[TARGET_API_MAC_CARBON] (cfdate_to_lisp): Obtain microsec value.
+	Use kCFAbsoluteTimeIntervalSince1970.
+	(wakeup_from_rne_enabled_p) [MAC_OSX]: Remove variable.
+	(ENABLE_WAKEUP_FROM_RNE, DISABLE_WAKEUP_FROM_RNE) [MAC_OSX]:
+	Remove macros.
+	[MAC_OSX] (socket_callback): Do nothing.
+	[MAC_OSX] (select_and_poll_event): Use CFRunLoopRunInMode instead of
+	ReceiveNextEvent.
+	[MAC_OSX] (sys_select): Likewise.  Don't set context as argument to
+	socket_callback.
+	(mac_wakeup_from_rne) [MAC_OSX]: Do nothing.
+
+	* macfns.c (mac_window): Replace WindowPtr with WindowRef.
+	(mac_get_window_bounds): Move extern to macterm.h.
+	(compute_tip_xy) [TARGET_API_MAC_CARBON]: Use GetGlobalMouse.
+	(mac_window) [USE_MAC_TOOLBAR]: Set toolbar_win_gravity.
+	(x_set_tool_bar_lines) [USE_MAC_TOOLBAR]: Set FRAME_EXTERNAL_TOOL_BAR.
+
+	* macgui.h: Replace WindowPtr with WindowRef.
+	(USE_MAC_TOOLBAR): New define.
+	(USE_CG_DRAWING): Don't require USE_ATSUI.
+
+	* macmenu.c: Replace MenuHandle and GetMenuHandle with MenuRef and
+	GetMenuRef, respectively.  Replace WindowPtr with WindowRef.
+	Replace ControlHandle with ControlRef.
+	[!TARGET_API_MAC_CARBON]: Include Quickdraw.h instead of QuickDraw.h.
+	(install_menu_quit_handler): Rename arg MENU_HANDLE to ROOT_MENU.
+	[TARGET_API_MAC_CARBON] (menu_target_item_handler): Don't call next
+	handler.  Return immediately unless popup is activated.
+	[TARGET_API_MAC_CARBON] (install_menu_target_item_handler):
+	Remove argument.  Install handler to application.
+	(set_frame_menubar): Don't change deep_p.
+	(mac_menu_show): Use FRAME_OUTER_TO_INNER_DIFF_X and
+	FRAME_OUTER_TO_INNER_DIFF_Y.
+	(DIALOG_BUTTON_COMMAND_ID_OFFSET, DIALOG_BUTTON_COMMAND_ID_P)
+	(DIALOG_BUTTON_COMMAND_ID_VALUE, DIALOG_BUTTON_MAKE_COMMAND_ID)
+	[HAVE_DIALOGS]: New macros.
+	[HAVE_DIALOGS] (mac_handle_dialog_event, create_and_show_dialog):
+	Use them.
+	(fill_menu) [TARGET_API_MAC_CARBON]: Use SetMenuItemHierarchicalMenu.
+	(fill_menubar) [TARGET_API_MAC_CARBON]: Use CFString.
+	(mac_dialog_modal_filter, Fx_popup_dialog) [MAC_OSX]: Put special
+	treatment for Fmessage_box, Fyes_or_no_p, and Fy_or_n_p in #if 0
+	as it is not compatible with y-or-n-p-with-timeout.
+	(timer_check) [TARGET_API_MAC_CARBON]: Add extern.
+	[TARGET_API_MAC_CARBON] (mac_handle_dialog_event): Use QuitEventLoop
+	instead of QuitAppModalLoopForWindow.  Consolidate QuitEventLoop calls.
+	(pop_down_dialog) [TARGET_API_MAC_CARBON]: New function.
+	[TARGET_API_MAC_CARBON] (create_and_show_dialog): Use it for unwind.
+	Run timers during dialog popup.
+	(Fmenu_or_popup_active_p) [TARGET_API_MAC_CARBON]: Use popup_activated.
+	(quit_dialog_event_loop) [TARGET_API_MAC_CARBON]: New variable.
+	[TARGET_API_MAC_CARBON] (mac_handle_dialog_event): Set it if dialog
+	event loop should be quit.
+	[TARGET_API_MAC_CARBON] (create_and_show_dialog): Quit dialog event loop
+	if quit_dialog_event_loop is set.
+
+	* macselect.c [!TARGET_API_MAC_CARBON]: Include Scrap.h.
+	[MAC_OSX] (install_service_handler): Rename from init_service_handler.
+	All callers changed.  Return OSStatus value.
+	(Selection): New typedef.  Use instead of ScrapRef.
+	(mac_get_selection_from_symbol): Rename from get_scrap_from_symbol.
+	(mac_valid_selection_target_p): Rename from valid_scrap_target_type_p.
+	(mac_clear_selection): Rename from clear_scrap.
+	(get_flavor_type_from_symbol): New argument SEL and subsume function of
+	scrap_has_target_type.  All uses changed.
+	(mac_get_selection_ownership_info, mac_valid_selection_value_p)
+	(mac_selection_has_target_p): New functions.
+	(mac_put_selection_value): Rename from put_scrap_string.
+	(mac_get_selection_value): Rename from get_scrap_string.
+	(mac_get_selection_target_list): Rename from get_scrap_target_type_list.
+	(put_scrap_private_timestamp, scrap_has_target_type)
+	(get_scrap_private_timestamp): Remove functions.
+	(SCRAP_FLAVOR_TYPE_EMACS_TIMESTAMP): Remove define.
+	(x_own_selection, x_get_local_selection):
+	Use mac_valid_selection_value_p.
+	(x_own_selection): Don't use put_scrap_private_timestamp.
+	Record OWNERSHIP-INFO into Vselection_alist instead.
+	(x_get_local_selection): Don't check type if request is local.
+	(Fx_selection_owner_p): Don't use get_scrap_private_timestamp.
+	Detect ownership change with OWNERSHIP-INFO in Vselection_alist instead.
+
+	* macterm.c: Replace MenuHandle and GetMenuHandle with MenuRef and
+	GetMenuRef, respectively.  Replace WindowPtr with WindowRef.
+	Replace ControlHandle with ControlRef.
+	(USE_CARBON_EVENTS): Remove.  Use TARGET_API_MAC_CARBON instead.
+	[MAC_OS8] (do_get_menus): Rename variable `menu_handle' to `menu'.
+	(mac_begin_cg_clip): New arg F.  Call SetPortWindowPort. All callers
+	changed so as not to call SetPortWindowPort.
+	(mac_begin_cg_clip) [USE_CG_DRAWING]: Call mac_prepare_for_quickdraw.
+	(mac_draw_image_string_atsui) [USE_ATSUI]: New function created from
+	mac_draw_string_common.
+	(mac_draw_image_string_qd): Likewise.
+	(mac_draw_string_common): Use them.  Add INLINE.
+	(XTmouse_position, x_scroll_bar_report_motion) [TARGET_API_MAC_CARBON]:
+	Use FRAME_OUTER_TO_INNER_DIFF_X, FRAME_OUTER_TO_INNER_DIFF_Y, and
+	GetGlobalMouse.
+	(x_set_mouse_pixel_position) [MAC_OSX]: Use FRAME_OUTER_TO_INNER_DIFF_X
+	and FRAME_OUTER_TO_INNER_DIFF_Y.
+	[TARGET_API_MAC_CARBON] (mac_handle_mouse_event): Likewise.
+	[USE_MAC_TSM] (mac_handle_text_input_event): Likewise.
+	(x_make_frame_visible) [TARGET_API_MAC_CARBON]: Move code for
+	repositioning window to mac_handle_window_event.
+	(x_make_frame_invisible) [TARGET_API_MAC_CARBON]: Move code for
+	saving window location to mac_handle_window_event
+	[USE_MAC_FONT_PANEL] (mac_show_hide_font_panel): Install handler here.
+	(install_menu_target_item_handler): Remove argument in extern.
+	[TARGET_API_MAC_CARBON] (mac_event_to_emacs_modifiers):
+	Also accept command events.
+	(do_keystroke): New function created from XTread_socket.
+	(init_command_handler): Remove functions.
+	[TARGET_API_MAC_CARBON] (mac_handle_window_event): Reposition window
+	and save window location by kEventWindowShowing and kEventWindowHiding
+	handlers here.  Don't call next handler for window state change and
+	focus events.
+	(mac_handle_keyboard_event) [TARGET_API_MAC_CARBON]: New function.
+	(install_window_handler) [TARGET_API_MAC_CARBON]: Register handlers for
+	kEventWindowShowing and kEventWindowHiding events.  Move installation
+	of mouse, font, text input and menu target item handlers to
+	install_application_handler.
+	(install_application_handler) [TARGET_API_MAC_CARBON]: New function.
+	(mac_handle_cg_display_reconfig) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	New function.
+	(init_dm_notification_handler) [MAC_OS_X_VERSION_MAX_ALLOWED >= 1030]:
+	Register it.
+	(XTread_socket) [TARGET_API_MAC_CARBON]:
+	Consolidate SendEventToEventTarget calls.
+	Use FRAME_OUTER_TO_INNER_DIFF_X and FRAME_OUTER_TO_INNER_DIFF_Y.
+	Move keyboard handler to mac_handle_keyboard_event.
+	(XTread_socket) [!TARGET_API_MAC_CARBON]: Use do_keystroke.
+	(mac_initialize) [TARGET_API_MAC_CARBON]: Don't call
+	init_command_handler.  Call install_application_handler.
+	(x_draw_fringe_bitmap) [MAC_OSX]: Extend fringe	background to scroll
+	bar gap.
+	(x_scroll_bar_create) [MAC_OSX]: Set bar->fringe_extended_p.
+	(XTset_vertical_scroll_bar) [MAC_OSX]: Put leftmost/rightmost
+	scroll bars on frame edge.  Check fringe background extension.
+	Don't clear extended fringe background area.
+	(TOOLBAR_IDENTIFIER, TOOLBAR_ICON_ITEM_IDENTIFIER)
+	(TOOLBAR_ITEM_COMMAND_ID_OFFSET, TOOLBAR_ITEM_COMMAND_ID_P)
+	(TOOLBAR_ITEM_COMMAND_ID_VALUE, TOOLBAR_ITEM_MAKE_COMMAND_ID):
+	[USE_MAC_TOOLBAR]: New macros.
+	(mac_move_window_with_gravity, mac_get_window_origin_with_gravity)
+	(mac_handle_toolbar_event, mac_image_spec_to_cg_image)
+	(mac_create_frame_tool_bar, update_frame_tool_bar, free_frame_tool_bar)
+	(mac_tool_bar_note_mouse_movement, mac_handle_toolbar_command_event)
+	[USE_MAC_TOOLBAR]: New functions.
+	(mac_handle_window_event) [USE_MAC_TOOLBAR]: Reposition window
+	manually if previous repositioning has failed.
+	(mac_handle_keyboard_event): Use precomputed event kind.
+	(XTread_socket) [USE_MAC_TOOLBAR]: Handle click in structure region
+	as tool bar item click.  Handle mouse movement over tool bar items.
+	(frame_highlight, frame_unhighlight): Don't call
+	ActivateControl/DeactivateControl here.
+	[USE_MAC_TOOLBAR] (free_frame_tool_bar): Suppress animation when
+	frame-notice-user-settings is non-nil.
+	[USE_MAC_FONT_PANEL] (mac_handle_font_event): Also record parameter
+	for kEventParamFMFontStyle.
+	[TARGET_API_MAC_CARBON] (mac_handle_keyboard_event): Don't check
+	mac_pass_command_to_system and mac_pass_control_to_system here.
+	(XTread_socket): Call ActivateControl/DeactivateControl here.
+	(XTread_socket) [TARGET_API_MAC_CARBON]:
+	Check mac_pass_command_to_system and mac_pass_control_to_system here.
+	[TARGET_API_MAC_CARBON] (mac_handle_window_event): Don't use invisible
+	frame as parent window for repositioning.
+
+	* macterm.h (struct scroll_bar): Rename member control_handle_low
+	and control_handle_high to control_ref_low and control_ref_high.
+	All uses changed.
+	(SCROLL_BAR_CONTROL_REF, SET_SCROLL_BAR_CONTROL_REF): Rename from
+	SCROLL_BAR_CONTROL_HANDLE and SET_SCROLL_BAR_CONTROL_HANDLE,
+	respectively.  All uses changed.
+	(XCreatePixmap, XCreatePixmapFromBitmapData, XSetWindowBackground)
+	(install_window_handler, remove_window_handler): Replace WindowPtr
+	with WindowRef in externs.
+	(mac_get_window_bounds): Move extern from macfns.c.
+	(FRAME_OUTER_TO_INNER_DIFF_X, FRAME_OUTER_TO_INNER_DIFF_Y): New macros.
+	(struct mac_output) [USE_MAC_TOOLBAR]: New member toolbar_win_gravity.
+	(struct scroll_bar) [MAC_OSX]: New member fringe_extended_p.
+	(update_frame_tool_bar, free_frame_tool_bar) [USE_MAC_TOOLBAR]:
+	Add externs.
+
+	* xdisp.c (update_tool_bar, redisplay_tool_bar, redisplay_window)
+	[USE_MAC_TOOLBAR]: Sync with GTK+ tool bar display.
+
 2008-03-28  Jason Rumney  <jasonr@gnu.org>
 
 	* image.c (pbm_load): Allow color values up to 65535.
