@@ -1,5 +1,16 @@
 2008-03-29  Juri Linkov  <juri@jurta.org>
 
+	* window.c (Fdisplay_buffer): Move call to
+	Vsplit_window_preferred_function out of conditions that check
+	if window is eligible for vertical splitting.
+	When Vsplit_window_preferred_function is non-nil, call it and use
+	its non-nil return value as window.  Otherwise, continue doing
+	vertical splitting using Fsplit_window with arg horflag=nil.
+	(syms_of_window) <Vsplit_window_preferred_function>: Change the
+	default value from `split-window' to nil.
+
+2008-03-29  Juri Linkov  <juri@jurta.org>
+
 	* callint.c (Fcall_interactively): Revert 2008-03-16 change
 	for interactive code letters 'b' and 'B'.
 
