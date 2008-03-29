@@ -1,3 +1,8 @@
+2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-bzr.el (vc-bzr-state-heuristic): Fix last change for when there
+	are conflicts.
+
 2008-03-29  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-update): Check if the buffer is unsaved only if it

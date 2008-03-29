@@ -167,28 +167,30 @@ Invoke the bzr command adding `BZR_PROGRESS_BAR=none' and
                              "\0"
                              (regexp-quote (file-name-nondirectory relfile))
                              "\0"
-                             "[^\0]*\0"           ;id?
-                             "\\([^\0]*\\)\0"     ;"a/f/d", a=removed?
-                             "\\([^\0]*\\)\0"     ;sha1?
-                             "\\([^\0]*\\)\0"     ;size?
-                             "[^\0]*\0"           ;"y/n", executable?
-                             "[^\0]*\0"           ;?
-                             "\\([^\0]*\\)\0"     ;"a/f/d" a=added?
-                             "[^\0]*\0"           ;sha1 again?
-                             "[^\0]*\0"           ;size again?
-                             "[^\0]*\0"           ;"y/n", executable again?
-                             "[^\0]*\0$")         ;last revid?
+                             "[^\0]*\0"       ;id?
+                             "\\([^\0]*\\)\0" ;"a/f/d", a=removed?
+                             "[^\0]*\0"       ;sha1 (empty if conflicted)?
+                             "\\([^\0]*\\)\0" ;size?
+                             "[^\0]*\0"       ;"y/n", executable?
+                             "[^\0]*\0"       ;?
+                             "\\([^\0]*\\)\0" ;"a/f/d" a=added?
+                             "\\([^\0]*\\)\0" ;sha1 again?
+                             "[^\0]*\0"       ;size again?
+                             "[^\0]*\0"       ;"y/n", executable again?
+                             "[^\0]*\0"       ;last revid?
+                             ;; There are more fields when merges are pending.
+                             )
                      nil t)
-                    ;; FIXME: figure out which of the first or the second
-                    ;; "size" and "sha1" we should use.  They seem to always
-                    ;; be equal, but there's probably a good reason why
-                    ;; there are 2 entries.
+                    ;; Apparently the second sha1 is the one we want: when
+                    ;; there's a conflict, the first sha1 is absent (and the
+                    ;; first size seems to correspond to the file with
+                    ;; conflict markers).
                     (cond
-                     ((eq (char-after (match-beginning 4)) ?a) 'removed)
+                     ((eq (char-after (match-beginning 1)) ?a) 'removed)
                      ((eq (char-after (match-beginning 3)) ?a) 'added)
-                     ((and (eq (string-to-number (match-string 3))
+                     ((and (eq (string-to-number (match-string 2))
                                (nth 7 (file-attributes file)))
-                           (equal (match-string 2)
+                           (equal (match-string 4)
                                   (vc-bzr-sha1 file)))
                       'up-to-date)
                      (t 'edited))
