@@ -1378,9 +1378,15 @@ See also the function `substitute-in-file-name'.  */)
 #endif /* VMS */
 	  || nm[1] == 0)	/* ~ by itself */
 	{
+	  Lisp_Object tem;
+
 	  if (!(newdir = (unsigned char *) egetenv ("HOME")))
 	    newdir = (unsigned char *) "";
 	  nm++;
+	  /* egetenv may return a unibyte string, which will bite us since
+	     we expect the directory to be multibyte.  */
+	  tem = string_to_multibyte (build_string (newdir));
+	  newdir = SDATA (tem);
 #ifdef DOS_NT
 	  collapse_newdir = 0;
 #endif
