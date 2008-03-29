@@ -1,3 +1,8 @@
+2008-03-29  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-hebrew.el (holiday-hebrew): Simplify.
+	* calendar/cal-julian.el (holiday-julian): Simplify.
+
 2008-03-29  Juri Linkov  <juri@jurta.org>
 
 	* window.el (split-window-preferred-horizontally): New function.
