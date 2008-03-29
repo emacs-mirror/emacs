@@ -1,5 +1,7 @@
 2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (with-temp-buffer): Assume kill-buffer can change cur-buf.
+
 	* textmodes/remember.el (remember-diary-convert-entry): Prefer boundp
 	to with-no-warnings.
 

@@ -2557,11 +2557,12 @@ See also `with-temp-file' and `with-output-to-string'."
   (declare (indent 0) (debug t))
   (let ((temp-buffer (make-symbol "temp-buffer")))
     `(let ((,temp-buffer (generate-new-buffer " *temp*")))
-       (unwind-protect
-	   (with-current-buffer ,temp-buffer
-	     ,@body)
-	 (and (buffer-name ,temp-buffer)
-	      (kill-buffer ,temp-buffer))))))
+       ;; FIXME: kill-buffer can change current-buffer in some odd cases.
+       (with-current-buffer ,temp-buffer
+         (unwind-protect
+	     (progn ,@body)
+           (and (buffer-name ,temp-buffer)
+                (kill-buffer ,temp-buffer)))))))
 
 (defmacro with-output-to-string (&rest body)
   "Execute BODY, return the text it sent to `standard-output', as a string."
