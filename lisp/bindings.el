@@ -650,7 +650,7 @@ is okay.  See `mode-line-format'.")
 	"^No later matching history item$"
 	"^No earlier matching history item$"
 	"^End of history; no default available$"
-	"^End of history; no next item$"
+	"^End of defaults; no next item$"
 	"^Beginning of history; no preceding item$"
 	"^No recursive edit is in progress$"
 	"^Changes to be undone are outside visible portion of buffer$"
