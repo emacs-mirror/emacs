@@ -1,3 +1,8 @@
+2008-03-29  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc-hooks.el (vc-menu-map-filter): Be more careful when finding
+	the current backend.
+
 2008-03-29  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (diary-file, american-date-diary-pattern)
