@@ -1047,9 +1047,14 @@ that is inserted into the command line before the filename."
 	  (when (and (not (eq t okstatus))
                      (or (not (integerp status))
                          (and okstatus (< okstatus status))))
-	    (pop-to-buffer (current-buffer))
-	    (goto-char (point-min))
-	    (shrink-window-if-larger-than-buffer)
+            ;; Don't show internal temp buffers.  Especially since, together
+            ;; with with-temp-buffer and pop-up-frames, this can result in
+            ;; bugs where with-temp-buffer ends up not preserving
+            ;; current-buffer (because kill-buffer doesn't preserve it).
+            (unless (eq ?\s (aref (buffer-name (current-buffer)) 0))
+              (pop-to-buffer (current-buffer))
+              (goto-char (point-min))
+              (shrink-window-if-larger-than-buffer))
 	    (error "Running %s...FAILED (%s)" command
 		   (if (integerp status) (format "status %d" status) status))))
 	(if vc-command-messages

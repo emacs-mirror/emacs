@@ -1,3 +1,7 @@
+2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-do-command): Don't show internal temp buffers.
+
 2008-03-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-ae-reopen-application): New function.
@@ -17,8 +21,8 @@
 
 2008-03-23  Andreas Schwab  <schwab@suse.de>
 
-	* menu-bar.el (menu-bar-showhide-fringe-ind-menu) [mixed]: Fix
-	radio button condition.
+	* menu-bar.el (menu-bar-showhide-fringe-ind-menu) [mixed]:
+	Fix radio button condition.
 	[box]: Likewise.
 	[customize]: Add radio button.
 
@@ -30,8 +34,8 @@
 
 2008-03-19  Wilson Snyder  <wsnyder@wsnyder.org>
 
-	* progmodes/verilog-mode.el (verilog-easy-menu-filter): New
-	function.
+	* progmodes/verilog-mode.el (verilog-easy-menu-filter):
+	New function.
 	(verilog-stmt-menu, verilog-menu): Add :help.
 	(verilog-customize, verilog-font-customize)
 	(electric-verilog-backward-sexp, electric-verilog-forward-sexp)
@@ -39,8 +43,8 @@
 	(verilog-auto-search-do, verilog-auto-re-search-do)
 	(verilog-skip-forward-comment-or-string): Fix verilog-auto
 	expansion when a .* appears inside a string.
-	(verilog-re-search-forward, verilog-re-search-backward): Add
-	comment to recall how this works.
+	(verilog-re-search-forward, verilog-re-search-backward):
+	Add comment to recall how this works.
 
 2008-03-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
