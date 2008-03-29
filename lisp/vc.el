@@ -2750,6 +2750,9 @@ With prefix arg READ-SWITCHES, specify a value to override
     (define-key map [register]
       '(menu-item "Register" vc-status-register
 		  :help "Register file set into the version control system"))
+    (define-key map [update]
+      '(menu-item "Update" vc-update
+		  :help "Update the current fileset's files to their tip revisions"))
     ;; vc-print-log uses the current buffer, not a file.
     ;; (define-key map [log]
     ;;  '(menu-item "Show history" vc-status-print-log
@@ -2815,6 +2818,7 @@ With prefix arg READ-SWITCHES, specify a value to override
     ;; VC commands.
     (define-key map "=" 'vc-diff)
     (define-key map "a" 'vc-status-register)
+    (define-key map "+" 'vc-update)
     ;; Can't be "g" (as in vc map), so "A" for "Annotate".
     (define-key map "A" 'vc-annotate)
     ;; vc-print-log uses the current buffer, not a file.
@@ -3364,8 +3368,9 @@ contains changes, and the backend supports merging news, then any recent
 changes from the current branch are merged into the working file."
   (interactive)
   (dolist (file (vc-deduce-fileset))
-    (if (buffer-modified-p (get-file-buffer file))
-	(error "Please kill or save all modified buffers before updating."))
+    (when (let ((buf (get-file-buffer file)))
+	    (and buf (buffer-modified-p buf)))
+      (error "Please kill or save all modified buffers before updating."))
     (if (vc-up-to-date-p file)
 	(vc-checkout file nil t)
       (if (eq (vc-checkout-model file) 'locking)
