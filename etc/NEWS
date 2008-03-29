@@ -530,6 +530,13 @@ Running processes on a remote host can be controlled by settings in
 When the variable `file-precious-flag' is set, the success of a remote
 file copy is checked via the file's checksum.
 
+** Calendar and diary
+
+*** There is a new date style, `iso', essentially year/month/day.
+The variable `european-calendar-style' is obsolete - use `calendar-date-style'.
+Similarly, the commands `american-calendar' and `european-calendar'
+should be replaced by `calendar-set-date-style'.
+
 ** Miscellaneous programming mode changes
 
 *** The file etc/emacs.py now supports both Python 2 and 3, meaning
