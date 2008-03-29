@@ -1,3 +1,8 @@
+2008-03-29  Glenn Morris  <rgm@gnu.org>
+
+	* calendar.texi: Update for `calendar-date-style' replacing
+	`european-calendar'.
+
 2008-03-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mark.texi (Mark): Rearrange nodes.
