@@ -1,5 +1,8 @@
 2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* xt-mouse.el (xterm-mouse-mode): Use delete-terminal-functions.
+	(xterm-mouse-handle-delete-frame): Delete.
+
 	* term/xterm.el (terminal-init-xterm): Use delete-terminal-functions.
 	(xterm-turn-on-modify-other-keys, xterm-turn-off-modify-other-keys)
 	(xterm-remove-modify-other-keys): Lookup terminal rather than frame

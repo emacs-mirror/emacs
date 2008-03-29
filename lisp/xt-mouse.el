@@ -205,34 +205,24 @@ single clicks are supported.  When turned on, the normal xterm
 mouse functionality for such clicks is still available by holding
 down the SHIFT key while pressing the mouse button."
   :global t :group 'mouse
+  (let ((do-hook (if xterm-mouse-mode 'add-hook 'remove-hook)))
+    (funcall do-hook 'terminal-init-xterm-hook
+             'turn-on-xterm-mouse-tracking-on-terminal)
+    (funcall do-hook 'delete-terminal-functions
+             'turn-off-xterm-mouse-tracking-on-terminal)
+    (funcall do-hook 'suspend-tty-functions
+             'turn-off-xterm-mouse-tracking-on-terminal)
+    (funcall do-hook 'resume-tty-functions
+             'turn-on-xterm-mouse-tracking-on-terminal)
+    (funcall do-hook 'suspend-hook 'turn-off-xterm-mouse-tracking)
+    (funcall do-hook 'suspend-resume-hook 'turn-on-xterm-mouse-tracking)
+    (funcall do-hook 'kill-emacs-hook 'turn-off-xterm-mouse-tracking))
   (if xterm-mouse-mode
       ;; Turn it on
       (progn
-	;; Frame creation and deletion.
-        (add-hook 'terminal-init-xterm-hook
-                  'turn-on-xterm-mouse-tracking-on-terminal)
-
-	(add-hook 'delete-frame-functions 'xterm-mouse-handle-delete-frame)
-	
-	;; Restore normal mouse behaviour outside Emacs.
-        (add-hook 'suspend-tty-functions
-		  'turn-off-xterm-mouse-tracking-on-terminal)
-	(add-hook 'resume-tty-functions
-		  'turn-on-xterm-mouse-tracking-on-terminal)
-	(add-hook 'suspend-hook 'turn-off-xterm-mouse-tracking)
-	(add-hook 'suspend-resume-hook 'turn-on-xterm-mouse-tracking)
-	(add-hook 'kill-emacs-hook 'turn-off-xterm-mouse-tracking)
 	(setq mouse-position-function #'xterm-mouse-position-function)
 	(turn-on-xterm-mouse-tracking))
     ;; Turn it off
-    (remove-hook 'delete-frame-functions 'xterm-mouse-handle-delete-frame)
-    (remove-hook 'suspend-tty-functions 
-		 'turn-off-xterm-mouse-tracking-on-terminal)
-    (remove-hook 'resume-tty-functions 
-		 'turn-on-xterm-mouse-tracking-on-terminal)
-    (remove-hook 'suspend-hook 'turn-off-xterm-mouse-tracking)
-    (remove-hook 'suspend-resume-hook 'turn-on-xterm-mouse-tracking)
-    (remove-hook 'kill-emacs-hook 'turn-off-xterm-mouse-tracking)
     (turn-off-xterm-mouse-tracking 'force)
     (setq mouse-position-function nil)))
 
@@ -268,12 +258,6 @@ down the SHIFT key while pressing the mouse button."
     ;; to send it too few times (or to fail to let xterm-mouse events
     ;; pass by untranslated).
     (send-string-to-terminal "\e[?1000l" terminal)))
-
-(defun xterm-mouse-handle-delete-frame (frame)
-  "Turn off xterm mouse tracking if FRAME is the last frame on its device."
-  (when (and (eq t (frame-live-p frame))
-	     (<= 1 (length (frames-on-display-list (frame-terminal frame)))))
-    (turn-off-xterm-mouse-tracking-on-terminal frame)))
 
 (provide 'xt-mouse)
 
