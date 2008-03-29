@@ -1,3 +1,9 @@
+2008-03-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.1.13.
+
+	* trampver.texi: Update release number.
+
 2008-03-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Foreign Groups): Add gnus-read-ephemeral-gmane-group,
