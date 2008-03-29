@@ -1,3 +1,7 @@
+2008-03-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term/mac-win.el (mac-dnd-drop-data): Remove redundant check.
+
 2008-03-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* Version 22.2 released.
