@@ -2,7 +2,7 @@
 
 	* vc.el (vc-update): Check if the buffer is unsaved only if it
 	actually exists.
-	(vc-status-mode-map, vc-status-menu-map): Bind vc-update.
+	(vc-status-mode-map, vc-status-menu-map): Bind vc-update and vc-print-log.
 
 2008-03-28  Magnus Henoch  <mange@freemail.hu>
 

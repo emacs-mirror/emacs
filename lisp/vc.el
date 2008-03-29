@@ -617,7 +617,6 @@
 
 (eval-when-compile
   (require 'cl)
-  (require 'compile)
   (require 'dired)      ; for dired-map-over-marks macro
   (require 'dired-aux))	; for dired-kill-{line,tree}
 
@@ -2753,10 +2752,9 @@ With prefix arg READ-SWITCHES, specify a value to override
     (define-key map [update]
       '(menu-item "Update" vc-update
 		  :help "Update the current fileset's files to their tip revisions"))
-    ;; vc-print-log uses the current buffer, not a file.
-    ;; (define-key map [log]
-    ;;  '(menu-item "Show history" vc-status-print-log
-    ;;  :help "List the change log of the current file set in a window"))
+    (define-key map [log]
+     '(menu-item "Show history" vc-print-log
+     :help "List the change log of the current file set in a window"))
 
     ;; Movement.
     (define-key map [separator-movement] '("--"))
@@ -2821,8 +2819,7 @@ With prefix arg READ-SWITCHES, specify a value to override
     (define-key map "+" 'vc-update)
     ;; Can't be "g" (as in vc map), so "A" for "Annotate".
     (define-key map "A" 'vc-annotate)
-    ;; vc-print-log uses the current buffer, not a file.
-    ;; (define-key map "l" 'vc-status-print-log)
+    (define-key map "l" 'vc-print-log)
     ;; The remainder.
     (define-key map "f" 'vc-status-find-file)
     (define-key map "\C-m" 'vc-status-find-file)
@@ -2966,7 +2963,7 @@ Throw an error if another update process is in progress."
       (error "Another update process is in progress, cannot run two at a time")
     ;; This is not very efficient; ewoc could use a new function here.
     ;; We clear the ewoc, but remember the marked files so that we can
-    ;; mark them after the refresh is done.
+    ;; mark them again after the refresh is done.
     (setq vc-status-crt-marked
 	  (mapcar
 	   (lambda (elem)
