@@ -1,3 +1,52 @@
+2008-03-29  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (diary-file, american-date-diary-pattern)
+	(european-date-diary-pattern,european-calendar-display-form)
+	(american-calendar-display-form, diary-display-hook): Doc fixes.
+	(european-calendar-style): Doc fix.  Use calendar-set-date-style for
+	custom :set.  Mark as obsolete.
+	(calendar-date-style, iso-date-diary-pattern)
+	(iso-calendar-display-form): New user variables.
+	(diary-date-forms, calendar-date-display-form): Set using
+	calendar-date-style.  Doc fix.
+	(calendar-set-date-style): New command.
+	(european-calendar, american-calendar): Use calendar-set-date-style.
+	Mark as obsolete.
+
+	* calendar/diary-lib.el (number): Move declaration where needed.
+	(diary-mail-entries, list-sexp-diary-entries): Doc fixes.
+	(diary-make-date): New function.
+	(diary-date, diary-block, diary-anniversary, diary-cyclic): Doc fix.
+	Use diary-make-date.
+	(diary-date-display-form, diary-insert-entry-1): New functions.
+	(insert-monthly-diary-entry, insert-yearly-diary-entry):
+	Use diary-insert-entry-1.
+	(insert-anniversary-diary-entry, insert-block-diary-entry)
+	(insert-cyclic-diary-entry): Use diary-date-display-form.
+
+	* calendar/cal-bahai.el, calendar/cal-hebrew.el, calendar/cal-islam.el:
+	Autoload diary-insert-entry-1.
+	* calendar/cal-bahai.el (diary-bahai-insert-entry)
+	(diary-bahai-insert-monthly-entry, diary-bahai-insert-yearly-entry):
+	* calendar/cal-hebrew.el (insert-hebrew-diary-entry)
+	(insert-monthly-hebrew-diary-entry, insert-yearly-hebrew-diary-entry)
+	* calendar/cal-islam.el (insert-islamic-diary-entry)
+	(insert-monthly-islamic-diary-entry, insert-yearly-islamic-diary-entry):
+	Use diary-insert-entry-1.
+
+	* calendar/cal-hebrew.el (diary-make-date): Autoload it.
+	(diary-yahrzeit): Doc fix.  Use diary-make-date.
+
+	* calendar/icalendar.el (icalendar--datetime-to-american-date):
+	New name for icalendar--datetime-to-noneuropean-date.  Make old name
+	obsolete alias.
+	(icalendar--datetime-to-iso-date): New function.
+	(icalendar--datetime-to-diary-date): Doc fix.  Respect
+	calendar-date-style if bound.
+
+	* textmodes/remember.el (remember-diary-convert-entry):
+	Respect calendar-date-style if bound.
+
 2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xt-mouse.el (xterm-mouse-mode): Use delete-terminal-functions.
