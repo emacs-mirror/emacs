@@ -215,9 +215,7 @@
   (goto-char (point-min))
   (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
     (push (cons (match-string 1) 'unregistered) vc-git-status-result))
-  (funcall update-function (nreverse vc-git-status-result) status-buffer)
-  ;; Remove the temporary buffer.
-  (kill-buffer (current-buffer)))
+  (funcall update-function (nreverse vc-git-status-result) status-buffer))
 
 (defun vc-git-after-dir-status-stage1 (update-function status-buffer)
   (goto-char (point-min))
@@ -248,21 +246,16 @@
   ;; Further things that would have to be fixed later:
   ;; - how to handle unregistered directories
   ;; - how to support vc-status on a subdir of the project tree
-  (with-current-buffer
-      (get-buffer-create
-       (expand-file-name " *VC-Git* tmp status" dir))
-    (set (make-local-variable 'vc-git-status-result) nil)
-    (cd dir)
-    (erase-buffer)
-    (if (vc-git--empty-db-p)
-        (progn
-          (vc-git-command (current-buffer) 'async nil "ls-files" "-z" "-c")
-          (vc-exec-after
-           `(vc-git-after-dir-status-stage1-empty-db (quote ,update-function) ,status-buffer)))
-      (vc-git-command (current-buffer) 'async nil "diff-index" "-z" "HEAD")
-      (vc-exec-after
-       `(vc-git-after-dir-status-stage1 (quote ,update-function) ,status-buffer)))
-    (current-buffer)))
+  (set (make-local-variable 'vc-git-status-result) nil)
+  (if (vc-git--empty-db-p)
+      (progn
+	(vc-git-command (current-buffer) 'async nil "ls-files" "-z" "-c")
+	(vc-exec-after
+	 `(vc-git-after-dir-status-stage1-empty-db 
+	   (quote ,update-function) ,status-buffer)))
+    (vc-git-command (current-buffer) 'async nil "diff-index" "-z" "HEAD")
+    (vc-exec-after
+     `(vc-git-after-dir-status-stage1 (quote ,update-function) ,status-buffer))))
 
 (defun vc-git-status-extra-headers (dir)
   (let ((str (with-output-to-string

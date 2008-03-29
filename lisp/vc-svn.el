@@ -175,19 +175,15 @@ If you want to force an empty list of arguments, use t."
            (filename (match-string 2)))
        (when state
          (setq result (cons (cons filename state) result)))))
-    (kill-buffer (current-buffer))
     (funcall callback result buffer)))
 
 (defun vc-svn-dir-status (dir callback buffer)
   "Run 'svn status' for DIR and update BUFFER via CALLBACK.
 CALLBACK is called as (CALLBACK RESULT BUFFER), where
 RESULT is a list of conses (FILE . STATE) for directory DIR."
-  (with-current-buffer (get-buffer-create
-                       (generate-new-buffer-name " *vc svn status*"))
-    (vc-svn-command (current-buffer) 'async nil "status")
-    (vc-exec-after
-     `(vc-svn-after-dir-status (quote ,callback) ,buffer))
-    (current-buffer)))
+  (vc-svn-command (current-buffer) 'async nil "status")
+  (vc-exec-after
+   `(vc-svn-after-dir-status (quote ,callback) ,buffer)))
 
 (defun vc-svn-working-revision (file)
   "SVN-specific version of `vc-working-revision'."

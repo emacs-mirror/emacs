@@ -498,21 +498,15 @@ REV is the revision to check out into WORKFILE."
 	(when (and translated (not (eq (cdr translated) 'up-to-date)))
 	  (push (cons file (cdr translated)) result))
 	(forward-line))
-      ;; Remove the temporary buffer.
-      (kill-buffer (current-buffer))
       (funcall update-function result status-buffer)))
 
 ;; XXX Experimental function for the vc-dired replacement.
 (defun vc-hg-dir-status (dir update-function status-buffer)
   "Return a list of conses (file . state) for DIR."
-  (with-current-buffer
-      (get-buffer-create
-       (expand-file-name " *VC-hg* tmp status" dir))
-    (erase-buffer)
-    (vc-hg-command (current-buffer) 'async dir "status")
-    (vc-exec-after
-     `(vc-hg-after-dir-status (quote ,update-function) ,status-buffer))
-    (current-buffer)))
+  (erase-buffer)
+  (vc-hg-command (current-buffer) 'async dir "status")
+  (vc-exec-after
+   `(vc-hg-after-dir-status (quote ,update-function) ,status-buffer)))
 
 ;; XXX this adds another top level menu, instead figure out how to
 ;; replace the Log-View menu.

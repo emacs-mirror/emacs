@@ -3,6 +3,25 @@
 	* vc-hooks.el (vc-menu-map-filter): Be more careful when finding
 	the current backend.
 
+	* vc.el (vc-status-menu-map, vc-status-mode-map): Bind vc-revert.
+	(vc-status-refresh): Create a temporary buffer and call the
+	`dir-status' backend function from that buffer.
+
+	* vc-bzr.el (vc-bzr-dir-status): Don't create a buffer.
+	(vc-bzr-after-dir-status): Don't kill the buffer.
+
+	* vc-cvs.el (vc-cvs-dir-status): Don't create a buffer.
+	(vc-cvs-after-dir-status): Don't kill the buffer.
+
+	* vc-git.el (vc-git-dir-status): Don't create a buffer.
+	(vc-git-after-dir-status-stage2): Don't kill the buffer.
+
+	* vc-hg.el (vc-hg-dir-status): Don't create a buffer.
+	(vc-hg-after-dir-status): Don't kill the buffer.
+
+	* vc-svn.el (vc-svn-dir-status): Don't create a buffer.
+	(vc-svn-after-dir-status): Don't kill the buffer.
+
 2008-03-29  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (diary-file, american-date-diary-pattern)

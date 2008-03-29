@@ -171,19 +171,16 @@
 ;;
 ;;   Produce RESULT: a list of conses of the form (file . vc-state)
 ;;   for the files in DIR.  If a command needs to be run to compute
-;;   this list, it should be run asynchronously.  When RESULT is
-;;   computed, it should be passed back by doing:
-;;       (funcall UPDATE-FUNCTION RESULT STATUS-BUFFER)
-;;   Return the buffer used for the asynchronous call.  This buffer
-;;   is used to kill the status update process on demand.
-;;   This function is used by vc-status, a replacement for vc-dired.
+;;   this list, it should be run asynchronously using (current-buffer)
+;;   as the buffer for the command.  When RESULT is computed, it should
+;;   be passed back by doing: (funcall UPDATE-FUNCTION RESULT STATUS-BUFFER)
+;;   This function is used by `vc-status', a replacement for `vc-dired'.
 ;;   vc-status is still under development, and is NOT feature
 ;;   complete.  As such, the requirements for this function might
-;;   change.
-;;   This is a replacement for dir-state.
+;;   change.  This is a replacement for `dir-state'.
 ;;
 ;; - status-extra-headers (dir)
-;;   
+;;
 ;;   Return a string that will be added to the *vc-status* buffer header.
 ;;
 ;; * working-revision (file)
@@ -2739,7 +2736,7 @@ With prefix arg READ-SWITCHES, specify a value to override
       '(menu-item "Hide up-to-date" vc-status-hide-up-to-date
 		  :help "Hide up-to-date items from display"))
     ;; VC commands.
-    (define-key map [separator-vc-commands] '("--"))
+    (define-key map [sepvccmd] '("--"))
     (define-key map [annotate]
       '(menu-item "Annotate" vc-annotate
 		  :help "Display the edit history of the current file using colors"))
@@ -2750,14 +2747,17 @@ With prefix arg READ-SWITCHES, specify a value to override
       '(menu-item "Register" vc-status-register
 		  :help "Register file set into the version control system"))
     (define-key map [update]
-      '(menu-item "Update" vc-update
+      '(menu-item "Update to latest version" vc-update
 		  :help "Update the current fileset's files to their tip revisions"))
+    (define-key map [revert]
+      '(menu-item "Revert to base version" vc-revert
+		  :help "Revert working copies of the selected fileset to their repository contents."))
     (define-key map [log]
      '(menu-item "Show history" vc-print-log
      :help "List the change log of the current file set in a window"))
 
     ;; Movement.
-    (define-key map [separator-movement] '("--"))
+    (define-key map [sepmv] '("--"))
     (define-key map [next-line]
       '(menu-item "Next line" vc-status-next-line
 		  :help "Go to the next line" :keys "n"))
@@ -2765,7 +2765,7 @@ With prefix arg READ-SWITCHES, specify a value to override
       '(menu-item "Previous line" vc-status-previous-line
 		  :help "Go to the previous line"))
     ;; Marking.
-    (define-key map [separator-marking] '("--"))
+    (define-key map [sepmrk] '("--"))
     (define-key map [unmark-all]
       '(menu-item "Unmark All" vc-status-unmark-all-files
 		  :help "Unmark all files that are in the same state as the current file\
@@ -2786,7 +2786,7 @@ With prefix arg READ-SWITCHES, specify a value to override
       '(menu-item "Mark" vc-status-mark
 		  :help "Mark the current file or all files in the region"))
 
-    (define-key map [separator-open] '("--"))
+    (define-key map [sepopn] '("--"))
     (define-key map [open-other]
       '(menu-item "Open in other window" vc-status-find-file-other-window
 		  :help "Find the file on the current line, in another window"))
@@ -2814,12 +2814,13 @@ With prefix arg READ-SWITCHES, specify a value to override
     (define-key map "p" 'vc-status-previous-line)
     (define-key map [backtab] 'vc-status-previous-line)
     ;; VC commands.
-    (define-key map "=" 'vc-diff)
+    (define-key map "=" 'vc-diff)   ;; C-x v =
     (define-key map "a" 'vc-status-register)
-    (define-key map "+" 'vc-update)
+    (define-key map "+" 'vc-update) ;; C-x v +
+    (define-key map "U" 'vc-revert) ;; u is taken by unmark.
     ;; Can't be "g" (as in vc map), so "A" for "Annotate".
     (define-key map "A" 'vc-annotate)
-    (define-key map "l" 'vc-print-log)
+    (define-key map "l" 'vc-print-log) ;; C-x v l
     ;; The remainder.
     (define-key map "f" 'vc-status-find-file)
     (define-key map "\C-m" 'vc-status-find-file)
@@ -2961,9 +2962,9 @@ Throw an error if another update process is in progress."
   (interactive)
   (if vc-status-process-buffer
       (error "Another update process is in progress, cannot run two at a time")
-    ;; This is not very efficient; ewoc could use a new function here.
     ;; We clear the ewoc, but remember the marked files so that we can
     ;; mark them again after the refresh is done.
+    ;; This is not very efficient; ewoc could use a new function here.
     (setq vc-status-crt-marked
 	  (mapcar
 	   (lambda (elem)
@@ -2973,17 +2974,29 @@ Throw an error if another update process is in progress."
 	    (lambda (crt) (vc-status-fileinfo->marked crt)))))
     (ewoc-filter vc-status (lambda (node) nil))
 
-    (let ((backend (vc-responsible-backend default-directory)))
+    (let ((backend (vc-responsible-backend default-directory))
+	  (status-buffer (current-buffer))
+	  (def-dir default-directory))
       (vc-set-mode-line-busy-indicator)
-      ;; Call the dir-status backend function. dir-status is supposed to
-      ;; be asynchronous.  It should compute the results and call the
-      ;; function passed as a an arg to update the vc-status buffer with
-      ;; the results.
-      (let ((buf (vc-call-backend
-		  backend 'dir-status default-directory
-		  #'vc-update-vc-status-buffer (current-buffer))))
-	(setq vc-status-process-buffer
-	      (if (buffer-live-p buf) buf nil))))))
+      ;; Call the `dir-status' backend function.
+      ;; `dir-status' is supposed to be asynchronous.
+      ;; It should compute the results, and then call the function
+      ;; passed as an argument in order to update the vc-status buffer
+      ;; with the results.
+
+      ;; Create a buffer that can be used by `dir-status' and call
+      ;; `dir-status' with this buffer as the current buffer.  Use
+      ;; `vc-status-process-buffer' to remember this buffer, so that
+      ;; it can be used later to kill the update process in case it
+      ;; takes too long.
+      (setq vc-status-process-buffer
+	    (get-buffer-create
+	     (generate-new-buffer-name (format " *VC-%s* status" backend))))
+      (with-current-buffer vc-status-process-buffer
+	(cd def-dir)
+	(erase-buffer)
+	(vc-call-backend backend 'dir-status def-dir
+			 #'vc-update-vc-status-buffer status-buffer)))))
 
 (defun vc-status-kill-dir-status-process ()
   "Kill the temporary buffer and associated process."

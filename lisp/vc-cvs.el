@@ -927,20 +927,14 @@ state."
 	      (push (cons file status) result))))))
       (goto-char (point-max))
       (widen))
-      ;; Remove the temporary buffer.
-      (kill-buffer (current-buffer))
       (funcall update-function result status-buffer)))
 
 ;; XXX Experimental function for the vc-dired replacement.
 (defun vc-cvs-dir-status (dir update-function status-buffer)
   "Create a list of conses (file . state) for DIR."
-  (with-current-buffer
-      (get-buffer-create (expand-file-name " *VC-cvs* tmp status" dir))
-    (erase-buffer)
-    (vc-cvs-command (current-buffer) 'async dir "status")
-    (vc-exec-after
-     `(vc-cvs-after-dir-status (quote ,update-function) ,status-buffer))
-    (current-buffer)))
+  (vc-cvs-command (current-buffer) 'async dir "status")
+  (vc-exec-after
+   `(vc-cvs-after-dir-status (quote ,update-function) ,status-buffer)))
 
 (defun vc-cvs-get-entries (dir)
   "Insert the CVS/Entries file from below DIR into the current buffer.

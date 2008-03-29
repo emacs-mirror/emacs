@@ -677,23 +677,16 @@ Optional argument LOCALP is always ignored."
 	(setq translated (assoc status-str translation))
 	(push (cons file (cdr translated)) result)
 	(forward-line))
-      ;; Remove the temporary buffer.
-      (kill-buffer (current-buffer))
       (funcall update-function result status-buffer)))
 
 ;; XXX Experimental function for the vc-dired replacement.
 ;; XXX This probably needs some further refinement and testing.
 (defun vc-bzr-dir-status (dir update-function status-buffer)
   "Return a list of conses (file . state) for DIR."
-  (with-current-buffer
-      (get-buffer-create
-       (expand-file-name " *VC-bzr* tmp status" dir))
-    (erase-buffer)
-    ;; XXX: Is this the right command to use?
-    (vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S")
-    (vc-exec-after
-     `(vc-bzr-after-dir-status (quote ,update-function) ,status-buffer))
-    (current-buffer)))
+  ;; XXX: Is this the right command to use?
+  (vc-bzr-command "status" (current-buffer) 'async dir "-v" "-S")
+  (vc-exec-after
+   `(vc-bzr-after-dir-status (quote ,update-function) ,status-buffer)))
 
 ;;; Revision completion
 
