@@ -532,6 +532,7 @@ file copy is checked via the file's checksum.
 
 ** Calendar and diary
 
++++
 *** There is a new date style, `iso', essentially year/month/day.
 The variable `european-calendar-style' is obsolete - use `calendar-date-style'.
 Similarly, the commands `american-calendar' and `european-calendar'
