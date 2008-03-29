@@ -1709,6 +1709,19 @@ in `selection-converter-alist', which see."
 	      (setq modifiers (cons (car modifier-mask) modifiers)))))
     modifiers))
 
+(defun mac-ae-reopen-application (event)
+  "Show some frame in response to the Apple event EVENT.
+The frame to be shown is chosen from visible or iconified frames
+if possible.  If there's no such frame, a new frame is created."
+  (interactive "e")
+  (unless (frame-visible-p (selected-frame))
+    (let ((frame (or (car (visible-frame-list))
+		     (car (filtered-frame-list 'frame-visible-p)))))
+      (if frame
+	  (select-frame frame)
+	(switch-to-buffer-other-frame "*scratch*"))))
+  (select-frame-set-input-focus (selected-frame)))
+
 (defun mac-ae-open-documents (event)
   "Open the documents specified by the Apple event EVENT."
   (interactive "e")
@@ -1765,9 +1778,9 @@ Currently the `mailto' scheme is supported."
 (define-key mac-apple-event-map [core-event open-application] 0)
 
 ;; Received when a dock or application icon is clicked and Emacs is
-;; already running.  Simply ignored.  Another idea is to make a new
-;; frame if all frames are invisible.
-(define-key mac-apple-event-map [core-event reopen-application] 'ignore)
+;; already running.
+(define-key mac-apple-event-map [core-event reopen-application]
+  'mac-ae-reopen-application)
 
 (define-key mac-apple-event-map [core-event open-documents]
   'mac-ae-open-documents)
