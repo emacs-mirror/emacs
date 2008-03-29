@@ -1196,7 +1196,7 @@ the entire file with @kbd{s} (@code{diary-show-all-entries}).
   Here are some sample diary entries, illustrating different ways of
 formatting a date.  The examples all show dates in American order
 (month, day, year), but Calendar mode supports European order (day,
-month, year) as an option.
+month, year) and ISO order (year, month, day) as options.
 
 @example
 4/20/93  Switch-over to new tabulation system
@@ -1234,18 +1234,14 @@ this matches any month, day, or year, respectively.  Thus, a diary entry
 @samp{3/*/*} matches any day in March of any year; so does @samp{march
 *}.
 
-@vindex european-calendar-style
-@findex european-calendar
-@findex american-calendar
-  If you prefer the European style of writing dates---in which the day
-comes before the month---type @kbd{M-x european-calendar} while in the
-calendar, or set the variable @code{european-calendar-style} to @code{t}
-with @kbd{M-x customize}, or @emph{before} using any calendar or diary
-command.  This mode interprets all dates in the diary in the European
-manner, and also uses European style for displaying diary dates.  (Note
-that there is no comma after the @var{monthname} in the European style.)
-To go back to the (default) American style of writing dates, type
-@kbd{M-x american-calendar}.
+@vindex calendar-date-style
+@findex calendar-set-date-style
+  If you prefer the European style of writing dates (in which the day
+comes before the month), or the ISO style (in which the order is year,
+month, day), type @kbd{M-x calendar-set-date-style} while in the
+calendar, or customize the variable @code{calendar-date-style}.  This
+affects how diary dates are interpreted, date display, and the order in
+which some commands expect their arguments to be given.
 
   You can use the name of a day of the week as a generic date which
 applies to any date falling on that day of the week.  You can abbreviate
@@ -1341,10 +1337,10 @@ entry.  The entry looks like this:
 
 @noindent
 This entry applies to October 31 in any year after 1948; @samp{10 31
-1948} specifies the date.  (If you are using the European calendar
-style, the month and day are interchanged.)  The reason this expression
-requires a beginning year is that advanced diary functions can use it to
-calculate the number of elapsed years.
+1948} specifies the date.  (If you are using the European or ISO
+calendar style, the input order of month, day and year is different.)
+The reason this expression requires a beginning year is that advanced
+diary functions can use it to calculate the number of elapsed years.
 
   A @dfn{block} diary entry applies to a specified range of consecutive
 dates.  Here is a block diary entry that applies to all dates from June
@@ -1357,8 +1353,8 @@ dates.  Here is a block diary entry that applies to all dates from June
 
 @noindent
 The @samp{6 24 1990} indicates the starting date and the @samp{7 10 1990}
-indicates the stopping date.  (Again, if you are using the European calendar
-style, the month and day are interchanged.)
+indicates the stopping date.  (Again, if you are using the European or ISO
+calendar style, the input order of month, day and year is different.)
 
 @kindex i b @r{(Calendar mode)}
 @findex insert-block-diary-entry
@@ -1382,7 +1378,8 @@ which looks like this:
 @noindent
 This entry applies to March 1, 1990 and every 50th day following;
 @samp{3 1 1990} specifies the starting date.  (If you are using the
-European calendar style, the month and day are interchanged.)
+European or ISO calendar style, the input order of month, day and year
+is different.)
 
   All three of these commands make marking diary entries.  To insert a
 nonmarking entry, give a numeric argument to the command.  For example,
