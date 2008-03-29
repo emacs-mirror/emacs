@@ -550,8 +550,6 @@ FILENAME being the file containing the diary entry."
                               (list marker (buffer-file-name) literal)
                               globcolor))))))
 
-(defvar number)                     ; not clear this should use number
-
 (defun diary-list-entries-2 (date mark globattr list-only
                                   &optional months symbol)
   "Internal subroutine of `diary-list-entries'.
@@ -623,6 +621,7 @@ entries of the desired type.  Returns non-nil if any entries were found."
 (defvar original-date)                  ; from diary-list-entries
 (defvar file-glob-attrs)
 (defvar list-only)
+(defvar number)
 
 (defun diary-list-entries-1 (months symbol absfunc)
   "List diary entries of a certain type.
@@ -1052,7 +1051,7 @@ should ensure that all relevant variables are set.
 
 \(setq diary-mail-days 3
       diary-file \"/path/to/diary.file\"
-      european-calendar-style t
+      calendar-date-style 'european
       diary-mail-addr \"user@host.name\")
 
 \(diary-mail-entries)
@@ -1519,12 +1518,13 @@ on a weekend:
 A number of built-in functions are available for this type of
 diary entry.  In the following, the optional parameter MARK
 specifies a face or single-character string to use when
-highlighting the day in the calendar.
+highlighting the day in the calendar.  For those functions that
+take MONTH, DAY, and YEAR as arguments, the order of the input
+parameters changes according to `calendar-date-style' (e.g. to
+DAY MONTH YEAR in the European style).
 
   %%(diary-date MONTH DAY YEAR &optional MARK) text
-    Entry applies if date is MONTH, DAY, YEAR.  (If
-    `european-calendar-style' is non-nil, the parameter order
-    should be changed to DAY, MONTH, YEAR).  DAY, MONTH, and YEAR can
+    Entry applies if date is MONTH, DAY, YEAR.  DAY, MONTH, and YEAR can
     be a list of integers, `t' (meaning all values), or an integer.
 
   %%(diary-float MONTH DAYNAME N &optional DAY MARK) text
@@ -1537,25 +1537,22 @@ highlighting the day in the calendar.
 
   %%(diary-block M1 D1 Y1 M2 D2 Y2 &optional MARK) text
     Entry will appear on dates between M1/D1/Y1 and M2/D2/Y2,
-    inclusive.  (If `european-calendar-style' is non-nil, the
-    parameter order should be changed to D1, M1, Y1, D2, M2, Y2.)
+    inclusive.
 
   %%(diary-anniversary MONTH DAY YEAR &optional MARK) text
-    Entry will appear on anniversary dates of MONTH DAY,
-    YEAR.  (If `european-calendar-style' is non-nil, the parameter
-    order should be changed to DAY, MONTH, YEAR.)  Text
-    can contain `%d' or `%d%s'; `%d' will be replaced by the number of
-    years since the MONTH DAY, YEAR, and `%s' by the ordinal ending of
-    that number (i.e. `st', `nd', `rd' or `th', as appropriate).  The
-    anniversary of February 29 is considered to be March 1 in a non-leap year.
+    Entry will appear on anniversary dates of MONTH DAY, YEAR.
+    Text can contain `%d' or `%d%s'; `%d' will be replaced by the
+    number of years since the MONTH DAY, YEAR, and `%s' by the
+    ordinal ending of that number (i.e. `st', `nd', `rd' or `th',
+    as appropriate).  The anniversary of February 29 is
+    considered to be March 1 in a non-leap year.
 
   %%(diary-cyclic N MONTH DAY YEAR &optional MARK) text
-    Entry will appear every N days, starting MONTH DAY, YEAR. (If
-    `european-calendar-style' is non-nil, the parameter order
-    should be changed to N, DAY, MONTH, YEAR.)  Text
-    can contain `%d' or `%d%s'; `%d' will be replaced by the number of
-    repetitions since the MONTH DAY, YEAR and `%s' by the ordinal ending
-    of that number (i.e. `st', `nd', `rd' or `th', as appropriate).
+    Entry will appear every N days, starting MONTH DAY, YEAR.
+    Text can contain `%d' or `%d%s'; `%d' will be replaced by the
+    number of repetitions since the MONTH DAY, YEAR and `%s' by
+    the ordinal ending of that number (i.e. `st', `nd', `rd' or
+    `th', as appropriate).
 
   %%(diary-remind SEXP DAYS &optional MARKING) text
     Entry is a reminder for diary sexp SEXP.  DAYS is either a
@@ -1574,8 +1571,7 @@ highlighting the day in the calendar.
     Text is assumed to be the name of the person; the date is the
     date of death on the *civil* calendar.  The diary entry will
     appear on the proper Hebrew-date anniversary and on the day
-    before.  (If `european-calendar-style' is non-nil, the
-    parameter order should be changed to DAY, MONTH, YEAR.)
+    before.
 
 All the remaining functions do not accept any text, and so only
 make sense with `fancy-diary-display'.  Most produce output every day.
@@ -1653,6 +1649,19 @@ best if they are non-marking."
     entry-found))
 
 
+(defun diary-make-date (a b c)
+  "Convert A B C into the internal calendar date form.
+The expected order of the inputs depends on `calendar-date-style',
+e.g. in the European case, A = day, B = month, C = year.  Returns
+a list\(MONTH DAY YEAR), i.e. the American style, which is the
+form used internally by the calendar and diary."
+  (cond ((eq calendar-date-style 'iso)  ; YMD
+         (list b c a))
+        ((eq calendar-date-style 'european) ; DMY
+         (list b a c))
+        (t (list a b c))))
+
+
 ;;; Sexp diary functions.
 
 (defvar date)
@@ -1661,54 +1670,48 @@ best if they are non-marking."
 ;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-date (month day year &optional mark)
   "Specific date(s) diary entry.
-Entry applies if date is MONTH, DAY, YEAR if `european-calendar-style' is nil,
-and DAY, MONTH, YEAR otherwise.  DAY, MONTH, and YEAR can be lists of
-integers, `t' (meaning all values), or an integer.
+Entry applies if date is MONTH, DAY, YEAR.  Each parameter can be
+a list of integers, `t' (meaning all values), or an integer.  The
+order of the input parameters changes according to `calendar-date-style'
+\(e.g. to DAY MONTH YEAR in the European style).
 
 An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
-  (let ((dd (if european-calendar-style
-                month
-              day))
-        (mm (if european-calendar-style
-                day
-              month))
-        (m (extract-calendar-month date))
-        (y (extract-calendar-year date))
-        (d (extract-calendar-day date)))
-    (if (and
-         (or (and (listp dd) (memq d dd))
-             (equal d dd)
-             (eq dd t))
-         (or (and (listp mm) (memq m mm))
-             (equal m mm)
-             (eq mm t))
-         (or (and (listp year) (memq y year))
-             (equal y year)
-             (eq year t)))
-        (cons mark entry))))
+  (let* ((ddate (diary-make-date month day year))
+         (dd (extract-calendar-day ddate))
+         (mm (extract-calendar-month ddate))
+         (yy (extract-calendar-year ddate))
+         (m (extract-calendar-month date))
+         (y (extract-calendar-year date))
+         (d (extract-calendar-day date)))
+    (and
+     (or (and (listp dd) (memq d dd))
+         (equal d dd)
+         (eq dd t))
+     (or (and (listp mm) (memq m mm))
+         (equal m mm)
+         (eq mm t))
+     (or (and (listp yy) (memq y yy))
+         (equal y yy)
+         (eq yy t))
+     (cons mark entry))))
 
 ;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-block (m1 d1 y1 m2 d2 y2 &optional mark)
   "Block diary entry.
-Entry applies if date is between, or on one of, two dates.
-The order of the parameters is M1, D1, Y1, M2, D2, Y2 if
-`european-calendar-style' is nil, and D1, M1, Y1, D2, M2, Y2 otherwise.
+Entry applies if date is between, or on one of, two dates.  The
+order of the input parameters changes according to
+`calendar-date-style' (e.g. to D1, M1, Y1, D2, M2, Y2 in the European style).
 
 An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
-
   (let ((date1 (calendar-absolute-from-gregorian
-                (if european-calendar-style
-                    (list d1 m1 y1)
-                  (list m1 d1 y1))))
+                (diary-make-date m1 d1 y1)))
         (date2 (calendar-absolute-from-gregorian
-                (if european-calendar-style
-                    (list d2 m2 y2)
-                  (list m2 d2 y2))))
+                (diary-make-date m2 d2 y2)))
         (d (calendar-absolute-from-gregorian date)))
-    (if (and (<= date1 d) (<= d date2))
-        (cons mark entry))))
+    (and (<= date1 d) (<= d date2)
+         (cons mark entry))))
 
 ;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-float (month dayname n &optional day mark)
@@ -1786,53 +1789,48 @@ highlighting the day in the calendar."
 ;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-anniversary (month day &optional year mark)
   "Anniversary diary entry.
-Entry applies if date is the anniversary of MONTH, DAY, YEAR if
-`european-calendar-style' is nil, and DAY, MONTH, YEAR otherwise.  The
-diary entry can contain `%d' or `%d%s'; the %d will be replaced by the
-number of years since the MONTH DAY, YEAR and the %s will be replaced by
-the ordinal ending of that number (that is, `st', `nd', `rd' or `th', as
-appropriate.  The anniversary of February 29 is considered to be March 1
-in non-leap years.
+Entry applies if date is the anniversary of MONTH, DAY, YEAR.
+The order of the input parameters changes according to
+`calendar-date-style' (e.g. to DAY MONTH YEAR in the European style).
 
-An optional parameter MARK specifies a face or single-character string to
-use when highlighting the day in the calendar."
-  (let* ((d (if european-calendar-style
-                month
-              day))
-         (m (if european-calendar-style
-                day
-              month))
+The diary entry can contain `%d' or `%d%s'; the %d will be
+replaced by the number of years since the MONTH, DAY, YEAR, and the
+%s will be replaced by the ordinal ending of that number (that
+is, `st', `nd', `rd' or `th', as appropriate.  The anniversary of
+February 29 is considered to be March 1 in non-leap years.
+
+An optional parameter MARK specifies a face or single-character
+string to use when highlighting the day in the calendar."
+  (let* ((ddate (diary-make-date month day year))
+         (dd (extract-calendar-day ddate))
+         (mm (extract-calendar-month ddate))
+         (yy (extract-calendar-year ddate))
          (y (extract-calendar-year date))
-         (diff (if year (- y year) 100)))
-    (if (and (= m 2) (= d 29) (not (calendar-leap-year-p y)))
-        (setq m 3
-              d 1))
-    (if (and (> diff 0) (calendar-date-equal (list m d y) date))
-        (cons mark (format entry diff (diary-ordinal-suffix diff))))))
+         (diff (if yy (- y yy) 100)))
+    (and (= mm 2) (= dd 29) (not (calendar-leap-year-p y))
+         (setq mm 3
+               dd 1))
+    (and (> diff 0) (calendar-date-equal (list mm dd y) date)
+         (cons mark (format entry diff (diary-ordinal-suffix diff))))))
 
 ;; To be called from diary-sexp-entry, where DATE, ENTRY are bound.
 (defun diary-cyclic (n month day year &optional mark)
   "Cycle diary entry--entry applies every N days starting at MONTH, DAY, YEAR.
-If `european-calendar-style' is non-nil, parameters are N, DAY, MONTH, YEAR.
-ENTRY can contain `%d' or `%d%s'; the %d will be replaced by the number of
-repetitions since the MONTH DAY, YEAR and %s will be replaced by the
-ordinal ending of that number (that is, `st', `nd', `rd' or `th', as
-appropriate.
+The order of the input parameters changes according to
+`calendar-date-style' (e.g. to N DAY MONTH YEAR in the European
+style).  ENTRY can contain `%d' or `%d%s'; the %d will be
+replaced by the number of repetitions since the MONTH DAY YEAR,
+and %s by the ordinal ending of that number (that is, `st', `nd',
+`rd' or `th', as appropriate.
 
-An optional parameter MARK specifies a face or single-character string to
-use when highlighting the day in the calendar."
-  (let* ((d (if european-calendar-style
-                month
-              day))
-         (m (if european-calendar-style
-                day
-              month))
-         (diff (- (calendar-absolute-from-gregorian date)
+An optional parameter MARK specifies a face or single-character
+string to use when highlighting the day in the calendar."
+  (let* ((diff (- (calendar-absolute-from-gregorian date)
                   (calendar-absolute-from-gregorian
-                   (list m d year))))
+                   (diary-make-date month day year))))
          (cycle (/ diff n)))
-    (if (and (>= diff 0) (zerop (% diff n)))
-        (cons mark (format entry cycle (diary-ordinal-suffix cycle))))))
+    (and (>= diff 0) (zerop (% diff n))
+         (cons mark (format entry cycle (diary-ordinal-suffix cycle))))))
 
 (defun diary-day-of-year ()
   "Day of year and number of days remaining in the year of date diary entry."
@@ -1918,39 +1916,73 @@ Prefix argument ARG makes the entry nonmarking."
   (make-diary-entry (calendar-day-name (calendar-cursor-to-date t))
                     arg))
 
+(defun diary-date-display-form (&optional type)
+  "Return value for `calendar-date-display-form' using `calendar-date-style.'
+Optional symbol TYPE is either `monthly' or `yearly'."
+  (cond ((eq type 'monthly) (cond ((eq calendar-date-style 'iso)
+                                   '((format "*-*-%.2d"
+                                             (string-to-number day))))
+                                  ((eq calendar-date-style 'european)
+                                   '(day " * "))
+                                  (t '("* " day ))))
+        ((eq type 'yearly) (cond ((eq calendar-date-style 'iso)
+                                  '((format "*-%.2d-%.2d"
+                                            (string-to-number month)
+                                            (string-to-number day))))
+                                 ((eq calendar-date-style 'european)
+                                  '(day " " monthname))
+                                 (t '(monthname " " day))))
+        ;; Iso cannot contain "-", because this form used eg by
+        ;; insert-anniversary-diary-entry.
+        (t (cond ((eq calendar-date-style 'iso)
+                 '((format "%s %.2d %.2d" year
+                           (string-to-number month) (string-to-number day))))
+                 ((eq calendar-date-style 'european)
+                  '(day " " month " " year))
+                 (t '(month " " day " " year))))))
+
+(defun diary-insert-entry-1 (&optional type nomark months symbol absfunc)
+  "Subroutine to insert a diary entry related to the date at point.
+TYPE is the type of entry (`monthly' or `yearly').  NOMARK
+non-nil means make the entry non-marking.  Array MONTHS is used
+in place of `calendar-month-name-array'.  String SYMBOL marks the
+type of diary entry.  Function ABSFUNC converts absolute dates to
+dates of the appropriate type."
+  (let ((calendar-date-display-form (if type
+                                        (diary-date-display-form type)
+                                      calendar-date-display-form))
+        (calendar-month-name-array (or months calendar-month-name-array))
+        (date (calendar-cursor-to-date t)))
+    (make-diary-entry
+     (format "%s%s" (or symbol "")
+             (calendar-date-string
+              (if absfunc
+                  (funcall absfunc (calendar-absolute-from-gregorian date))
+                date)
+              (not absfunc)
+              (not type)))
+     nomark)))
+
 ;;;###cal-autoload
 (defun insert-monthly-diary-entry (arg)
   "Insert a monthly diary entry for the day of the month indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let ((calendar-date-display-form
-         (if european-calendar-style
-             '(day " * ")
-           '("* " day))))
-    (make-diary-entry (calendar-date-string (calendar-cursor-to-date t) t)
-                      arg)))
+  (diary-insert-entry-1 'monthly arg))
 
 ;;;###cal-autoload
 (defun insert-yearly-diary-entry (arg)
   "Insert an annual diary entry for the day of the year indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let ((calendar-date-display-form
-         (if european-calendar-style
-             '(day " " monthname)
-           '(monthname " " day))))
-    (make-diary-entry (calendar-date-string (calendar-cursor-to-date t) t)
-                      arg)))
+  (diary-insert-entry-1 'yearly arg))
 
 ;;;###cal-autoload
 (defun insert-anniversary-diary-entry (arg)
   "Insert an anniversary diary entry for the date given by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let ((calendar-date-display-form
-         (if european-calendar-style
-             '(day " " month " " year)
-           '(month " " day " " year))))
+  (let ((calendar-date-display-form (diary-date-display-form)))
     (make-diary-entry
      (format "%s(diary-anniversary %s)"
              sexp-diary-entry-symbol
@@ -1962,10 +1994,7 @@ Prefix argument ARG makes the entry nonmarking."
   "Insert a block diary entry for the days between the point and marked date.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let ((calendar-date-display-form
-         (if european-calendar-style
-             '(day " " month " " year)
-           '(month " " day " " year)))
+  (let ((calendar-date-display-form (diary-date-display-form))
         (cursor (calendar-cursor-to-date t))
         (mark (or (car calendar-mark-ring)
                   (error "No mark set in this buffer")))
@@ -1988,10 +2017,7 @@ Prefix argument ARG makes the entry nonmarking."
   "Insert a cyclic diary entry starting at the date given by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let ((calendar-date-display-form
-         (if european-calendar-style
-             '(day " " month " " year)
-           '(month " " day " " year))))
+  (let ((calendar-date-display-form (diary-date-display-form)))
     (make-diary-entry
      (format "%s(diary-cyclic %d %s)"
              sexp-diary-entry-symbol
