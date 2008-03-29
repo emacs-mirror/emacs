@@ -284,27 +284,26 @@ nil if it is not visible in the current calendar window."
              (if (<  9 month) (- month  9) (+ month 3))
              (if (<  8 month) (- month  8) (+ month 4))
              (if (<  7 month) (- month  7) (+ month 5))))
-      (let ((m1 displayed-month)
-              (y1 displayed-year)
-              (m2 displayed-month)
-              (y2 displayed-year)
-            (year))
-          (increment-calendar-month m1 y1 -1)
-          (increment-calendar-month m2 y2 1)
-        (let* ((start-date (calendar-absolute-from-gregorian
-                            (list m1 1 y1)))
-               (end-date (calendar-absolute-from-gregorian
-                          (list m2 (calendar-last-day-of-month m2 y2) y2)))
-                 (hebrew-start (calendar-hebrew-from-absolute start-date))
-                 (hebrew-end (calendar-hebrew-from-absolute end-date))
-                 (hebrew-y1 (extract-calendar-year hebrew-start))
-               (hebrew-y2 (extract-calendar-year hebrew-end)))
-          (setq year (if (< 6 month) hebrew-y2 hebrew-y1))
-          (let ((date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-hebrew
-                        (list month day year)))))
-              (if (calendar-date-is-visible-p date)
-                (list (list date string))))))))
+      (let* ((m1 displayed-month)
+             (y1 displayed-year)
+             (m2 displayed-month)
+             (y2 displayed-year)
+             (start-date (progn
+                           (increment-calendar-month m1 y1 -1)
+                           (calendar-absolute-from-gregorian (list m1 1 y1))))
+             (end-date (progn
+                         (increment-calendar-month m2 y2 1)
+                         (calendar-absolute-from-gregorian
+                          (list m2 (calendar-last-day-of-month m2 y2) y2))))
+             (hebrew-start (calendar-hebrew-from-absolute start-date))
+             (hebrew-end (calendar-hebrew-from-absolute end-date))
+             (hebrew-y1 (extract-calendar-year hebrew-start))
+             (hebrew-y2 (extract-calendar-year hebrew-end))
+             (year (if (< 6 month) hebrew-y2 hebrew-y1))
+             (date (calendar-gregorian-from-absolute
+                    (calendar-absolute-from-hebrew (list month day year)))))
+        (if (calendar-date-is-visible-p date)
+            (list (list date string))))))
 
 ;; h-r-h-e should be called from holidays code.
 (declare-function holiday-filter-visible-calendar "holidays" (l))
