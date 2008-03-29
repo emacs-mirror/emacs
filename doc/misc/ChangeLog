@@ -1,3 +1,7 @@
+2008-03-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Top): Fix version.  Add SASL.
+
 2008-03-29  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.1.13.

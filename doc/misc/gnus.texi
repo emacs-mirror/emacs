@@ -392,7 +392,7 @@ people should be empowered to do what they want by using (or abusing)
 the program.
 
 @c Adjust ../Makefile.in if you change the following line:
-This manual corresponds to Gnus v5.10.9.
+This manual corresponds to Gnus v5.13
 
 @heading Other related manuals
 @itemize
@@ -400,6 +400,7 @@ This manual corresponds to Gnus v5.10.9.
 @item Emacs-MIME:     Composing messages; @acronym{MIME}-specific parts.
 @item Sieve:          Managing Sieve scripts in Emacs.
 @item PGG:            @acronym{PGP/MIME} with Gnus.
+@item SASL:           @acronym{SASL} authentication in Emacs.
 @end itemize
 
 @end iftex
