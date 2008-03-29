@@ -192,7 +192,7 @@ nil if it is not visible in the current calendar window."
                          (list displayed-month 15 displayed-year))))
          (m (extract-calendar-month islamic-date))
          (y (extract-calendar-year islamic-date))
-        (date))
+         date)
     (unless (< m 1)                   ; Islamic calendar doesn't apply
       (increment-calendar-month m y (- 10 month))
       (if (> m 7)                      ; Islamic date might be visible
@@ -241,20 +241,18 @@ window.  See `list-islamic-diary-entries' for more information."
                         'calendar-islamic-from-absolute
                         'mark-islamic-calendar-date-pattern))
 
+
+(autoload 'diary-insert-entry-1 "diary-lib")
+
 ;;;###cal-autoload
 (defun insert-islamic-diary-entry (arg)
   "Insert a diary entry.
 For the Islamic date corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let ((calendar-month-name-array calendar-islamic-month-name-array))
-    (make-diary-entry
-     (concat islamic-diary-entry-symbol
-             (calendar-date-string
-              (calendar-islamic-from-absolute
-               (calendar-absolute-from-gregorian (calendar-cursor-to-date t)))
-              nil t))
-     arg)))
+  (diary-insert-entry-1 nil arg calendar-islamic-month-name-array
+                        islamic-diary-entry-symbol
+                        'calendar-islamic-from-absolute))
 
 ;;;###cal-autoload
 (defun insert-monthly-islamic-diary-entry (arg)
@@ -262,16 +260,9 @@ Prefix argument ARG makes the entry nonmarking."
 For the day of the Islamic month corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let ((calendar-date-display-form (if european-calendar-style
-                                        '(day " * ")
-                                      '("* " day )))
-        (calendar-month-name-array calendar-islamic-month-name-array))
-    (make-diary-entry
-     (concat islamic-diary-entry-symbol
-             (calendar-date-string
-              (calendar-islamic-from-absolute
-               (calendar-absolute-from-gregorian (calendar-cursor-to-date t)))))
-     arg)))
+  (diary-insert-entry-1 'monthly arg calendar-islamic-month-name-array
+                        islamic-diary-entry-symbol
+                        'calendar-islamic-from-absolute))
 
 ;;;###cal-autoload
 (defun insert-yearly-islamic-diary-entry (arg)
@@ -279,16 +270,9 @@ Prefix argument ARG makes the entry nonmarking."
 For the day of the Islamic year corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let ((calendar-date-display-form (if european-calendar-style
-                                        '(day " " monthname)
-                                      '(monthname " " day)))
-        (calendar-month-name-array calendar-islamic-month-name-array))
-    (make-diary-entry
-     (concat islamic-diary-entry-symbol
-             (calendar-date-string
-              (calendar-islamic-from-absolute
-               (calendar-absolute-from-gregorian (calendar-cursor-to-date t)))))
-     arg)))
+  (diary-insert-entry-1 'yearly arg calendar-islamic-month-name-array
+                        islamic-diary-entry-symbol
+                        'calendar-islamic-from-absolute))
 
 (defvar date)
 
