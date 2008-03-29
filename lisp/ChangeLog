@@ -1,5 +1,10 @@
 2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* term/xterm.el (terminal-init-xterm): Use delete-terminal-functions.
+	(xterm-turn-on-modify-other-keys, xterm-turn-off-modify-other-keys)
+	(xterm-remove-modify-other-keys): Lookup terminal rather than frame
+	in xterm-modify-other-keys-terminal-list.
+
 	* vc-bzr.el (vc-bzr-state-heuristic): Fix last change for when there
 	are conflicts.
 

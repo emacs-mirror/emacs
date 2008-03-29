@@ -500,7 +500,7 @@
 	      (add-hook 'suspend-hook 'xterm-turn-off-modify-other-keys)
 	      (add-hook 'suspend-resume-hook 'xterm-turn-on-modify-other-keys)
 	      (add-hook 'kill-emacs-hook 'xterm-remove-modify-other-keys)
-	      (add-hook 'delete-frame-functions 'xterm-remove-modify-other-keys)
+	      (add-hook 'delete-terminal-functions 'xterm-remove-modify-other-keys)
 	      ;; Add the selected frame to the list of frames that
 	      ;; need to deal with modify-other-keys.
 	      (push (frame-terminal (selected-frame))
@@ -627,26 +627,25 @@ versions of xterm."
 
 (defun xterm-turn-on-modify-other-keys ()
   "Turn on the modifyOtherKeys feature of xterm."
-  (let ((frame (selected-frame)))
-    (when (and (frame-live-p frame)
-	       (memq frame xterm-modify-other-keys-terminal-list))
+  (let ((terminal (frame-terminal (selected-frame))))
+    (when (and (terminal-live-p terminal)
+	       (memq terminal xterm-modify-other-keys-terminal-list))
       (send-string-to-terminal "\e[>4;1m"))))
 
 (defun xterm-turn-off-modify-other-keys (&optional frame)
   "Turn off the modifyOtherKeys feature of xterm."
-  (setq frame (and frame (selected-frame)))
-  (when (and (frame-live-p frame)
-	     (memq frame xterm-modify-other-keys-terminal-list))
-    (send-string-to-terminal "\e[>4m")))
+  (let ((terminal (when frame (frame-terminal frame))))
+    (when (and (frame-live-p terminal)
+               (memq terminal xterm-modify-other-keys-terminal-list))
+      (send-string-to-terminal "\e[>4m"))))
 
-(defun xterm-remove-modify-other-keys (&optional frame)
+(defun xterm-remove-modify-other-keys (&optional terminal)
   "Turn off the modifyOtherKeys feature of xterm and remove frame from consideration."
-  (setq frame (and frame (selected-frame)))
-  (when (and (frame-live-p frame)
-	     (memq frame xterm-modify-other-keys-terminal-list))
+  (setq terminal (and terminal (frame-terminal (selected-frame))))
+  (when (and (terminal-live-p terminal)
+	     (memq terminal xterm-modify-other-keys-terminal-list))
     (setq xterm-modify-other-keys-terminal-list
-	  (delq (frame-terminal frame)
-		xterm-modify-other-keys-terminal-list))
+	  (delq terminal xterm-modify-other-keys-terminal-list))
     (send-string-to-terminal "\e[>4m")))
 
 ;; arch-tag: 12e7ebdd-1e6c-4b25-b0f9-35ace25e855a
