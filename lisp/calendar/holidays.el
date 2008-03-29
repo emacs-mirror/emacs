@@ -186,7 +186,7 @@ The optional LABEL is used to label the buffer created."
      (list start-year end-year which name)))
   (unless y2 (setq y2 y1))
   (message "Computing holidays...")
-  (let* ((calendar-holidays (if l l calendar-holidays))
+  (let* ((calendar-holidays (or l calendar-holidays))
          (title (or label "Holidays"))
          (holiday-list nil)
          (s (calendar-absolute-from-gregorian (list 2 1 y1)))
