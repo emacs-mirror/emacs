@@ -346,13 +346,12 @@ since it could result in memory overflow and make Emacs crash."
 	     (split-height-threshold windows integer)
              (split-window-preferred-function
               windows
-              (choice (const :tag "vertically" split-window)
+              (choice (const :tag "vertically" nil)
                       ;; FIXME: Add `sensibly' which chooses between
                       ;; vertical or horizontal splits depending on the size
                       ;; and shape of the window.
                       (const :tag "horizontally"
-                             (lambda (window)
-                               (split-window window nil 'horiz))))
+                             split-window-preferred-horizontally))
 	      "23.1")
 	     (window-min-height windows integer)
 	     (window-min-width windows integer)
