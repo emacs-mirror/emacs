@@ -218,9 +218,6 @@ void x_explicitly_set_name P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_menu_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_title P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_tool_bar_lines P_ ((struct frame *, Lisp_Object, Lisp_Object));
-
-extern void mac_get_window_bounds P_ ((struct frame *, Rect *, Rect *));
-
 
 
 /* Store the screen positions of frame F into XPTR and YPTR.
@@ -1685,6 +1682,25 @@ x_set_tool_bar_lines (f, value, oldval)
   /* Make sure we redisplay all windows in this frame.  */
   ++windows_or_buffers_changed;
 
+#if USE_MAC_TOOLBAR
+  FRAME_TOOL_BAR_LINES (f) = 0;
+  if (nlines)
+    {
+      FRAME_EXTERNAL_TOOL_BAR (f) = 1;
+      if (FRAME_MAC_P (f) && !IsWindowToolbarVisible (FRAME_MAC_WINDOW (f)))
+	/* Make sure next redisplay shows the tool bar.  */
+	XWINDOW (FRAME_SELECTED_WINDOW (f))->update_mode_line = Qt;
+    }
+  else
+    {
+      if (FRAME_EXTERNAL_TOOL_BAR (f))
+        free_frame_tool_bar (f);
+      FRAME_EXTERNAL_TOOL_BAR (f) = 0;
+    }
+
+  return;
+#endif
+
   delta = nlines - FRAME_TOOL_BAR_LINES (f);
 
   /* Don't resize the tool-bar to more than we have room for.  */
@@ -2255,11 +2271,11 @@ mac_window (f)
 	  FRAME_MAC_WINDOW (f) = NULL;
 	}
     }
-#else
+#else  /* !TARGET_API_MAC_CARBON */
   FRAME_MAC_WINDOW (f)
     = NewCWindow (NULL, &r, "\p", false, zoomDocProc,
-		  (WindowPtr) -1, 1, (long) f->output_data.mac);
-#endif
+		  (WindowRef) -1, 1, (long) f->output_data.mac);
+#endif  /* !TARGET_API_MAC_CARBON */
   /* so that update events can find this mac_output struct */
   f->output_data.mac->mFP = f;  /* point back to emacs frame */
 
@@ -2278,6 +2294,16 @@ mac_window (f)
   if (FRAME_MAC_WINDOW (f))
     XSetWindowBackground (FRAME_MAC_DISPLAY(f), FRAME_MAC_WINDOW (f),
 			  FRAME_BACKGROUND_PIXEL (f));
+
+#if USE_MAC_TOOLBAR
+  /* At the moment, the size of the tool bar is not yet known.  We
+     record the gravity value of the newly created window and use it
+     to adjust the position of the window (especially for a negative
+     specification of its vertical position) when the tool bar is
+     first redisplayed.  */
+  if (FRAME_EXTERNAL_TOOL_BAR (f))
+    f->output_data.mac->toolbar_win_gravity = f->win_gravity;
+#endif
 
   validate_x_resource_name ();
 
@@ -3112,7 +3138,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
       UNBLOCK_INPUT;
     }
 #if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
-  else
+  else				/* CGDisplayScreenSize == NULL */
 #endif
 #endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030  */
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1030 || MAC_OS_X_VERSION_MIN_REQUIRED == 1020
@@ -3149,7 +3175,7 @@ If omitted or nil, that stands for the selected frame's display.  */)
       UNBLOCK_INPUT;
     }
 #if MAC_OS_X_VERSION_MIN_REQUIRED == 1020
-  else
+  else				/* CGDisplayScreenSize == NULL */
 #endif
 #endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030  */
 #if MAC_OS_X_VERSION_MAX_ALLOWED < 1030 || MAC_OS_X_VERSION_MIN_REQUIRED == 1020
@@ -4068,8 +4094,12 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
       Point mouse_pos;
 
       BLOCK_INPUT;
+#if TARGET_API_MAC_CARBON
+      GetGlobalMouse (&mouse_pos);
+#else
       GetMouse (&mouse_pos);
       LocalToGlobal (&mouse_pos);
+#endif
       *root_x = mouse_pos.h;
       *root_y = mouse_pos.v;
       UNBLOCK_INPUT;
