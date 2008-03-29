@@ -479,13 +479,22 @@ If this is nil, then `diary-file' will be used instead."
         (setq entry (concat entry " " remember-annotation)))
     (if (string-match "\\([0-9]+\\)\\.\\([0-9]+\\)\\.\\([0-9]+\\)" entry)
         (replace-match
-         (if european-calendar-style
-             (concat (match-string 3 entry) "/"
-                     (match-string 2 entry) "/"
-                     (match-string 1 entry))
-           (concat (match-string 2 entry) "/"
-                   (match-string 3 entry) "/"
-                   (match-string 1 entry)))
+         (let ((style (if (boundp 'calendar-date-style)
+                          calendar-date-style
+                        (if (with-no-warnings european-calendar-style)
+                            'european
+                          'american))))
+           (cond ((eq style 'european)
+                  (concat (match-string 3 entry) "/"
+                          (match-string 2 entry) "/"
+                          (match-string 1 entry)))
+                 ((eq style 'iso)
+                  (concat (match-string 1 entry) "-"
+                          (match-string 2 entry) "-"
+                          (match-string 3 entry)))
+                 (t (concat (match-string 2 entry) "/"
+                            (match-string 3 entry) "/"
+                            (match-string 1 entry)))))
          t t entry)
       entry)))
 
