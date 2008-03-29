@@ -1,3 +1,8 @@
+2008-03-29  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name): Convert the value of $HOME to a
+	multibyte string.
+
 2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keyboard.c (pending_funcalls): New var.
