@@ -999,7 +999,11 @@ Whether the passphrase is cached at all is controlled by
 (defun mml2015-epg-passphrase-callback (context key-id ignore)
   (if (eq key-id 'SYM)
       (epg-passphrase-callback-function context key-id nil)
-    (let* (entry
+    (let* ((password-cache-key-id
+	    (if (eq key-id 'PIN)
+		"PIN"
+	       key-id))
+	   entry
 	   (passphrase
 	    (password-read
 	     (if (eq key-id 'PIN)
@@ -1007,14 +1011,12 @@ Whether the passphrase is cached at all is controlled by
 	       (if (setq entry (assoc key-id epg-user-id-alist))
 		   (format "Passphrase for %s %s: " key-id (cdr entry))
 		 (format "Passphrase for %s: " key-id)))
-	     (if (eq key-id 'PIN)
-		 "PIN"
-	       key-id))))
+	     password-cache-key-id)))
       (when passphrase
 	(let ((password-cache-expiry mml2015-passphrase-cache-expiry))
-	  (password-cache-add key-id passphrase))
+	  (password-cache-add password-cache-key-id passphrase))
 	(setq mml2015-epg-secret-key-id-list
-	      (cons key-id mml2015-epg-secret-key-id-list))
+	      (cons password-cache-key-id mml2015-epg-secret-key-id-list))
 	(copy-sequence passphrase)))))
 
 (defun mml2015-epg-find-usable-key (keys usage)

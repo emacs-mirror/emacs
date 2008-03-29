@@ -1552,20 +1552,20 @@ If FORMAT, also format the current score file."
 				      (lambda (score)
 					(length (gnus-score-get header score)))
 				      scores)))
-		;; Call the scoring function for this type of "header".
 		(when (if (and gnus-inhibit-slow-scoring
-			       (if (and (stringp gnus-inhibit-slow-scoring)
+			       (or (eq gnus-inhibit-slow-scoring t)
+				   (and (stringp gnus-inhibit-slow-scoring)
 					;; Always true here?
 					;; (stringp gnus-newsgroup-name)
-					(string-match gnus-inhibit-slow-scoring
-						      gnus-newsgroup-name))
-				   t
-				 nil)
+					(string-match
+					 gnus-inhibit-slow-scoring
+					 gnus-newsgroup-name)))
 			       (> 0 (nth 1 (assoc header gnus-header-index))))
 			  (progn
 			    (gnus-message
 			     7 "Scoring on headers or body skipped.")
 			    nil)
+			;; Call the scoring function for this type of "header".
 			(setq new (funcall (nth 2 entry) scores header
 					   now expire trace)))
 		  (push new news))))

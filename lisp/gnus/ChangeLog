@@ -1,3 +1,56 @@
+2008-03-28  Michael Harnois  <mdharnois@gmail.com>  (tiny change)
+
+	* nnimap.el (nnimap-find-minmax-uid): Fix Exchange 2007 IMAP problem.
+
+2008-03-24  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-signature-separator): Change default.  Improve
+	custom type.
+	(message-cite-function): Change default to
+	message-cite-original-without-signature.
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Add message-cite-function
+	toggle.
+
+	* message.el (message-check-news-body-syntax): Fix signature check.
+	(message-setup-1): Mark buffer as unmodified _after_ running
+	message-setup-hook and handling message-alternative-emails.
+	(message-shorten-references): Be more strict when building list of
+	valid references to comply with GNKSA.
+
+        * gnus-group.el (gnus-read-ephemeral-bug-group)
+        (gnus-read-ephemeral-debian-bug-group)
+        (gnus-read-ephemeral-emacs-bug-group): Use the correct variable.
+
+	* message.el (message-info): Don't use booleanp which isn't supported
+	in Emacs 21 and XEmacs.
+
+2008-03-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-group.el (gnus-gmane-group-download-format): Rename from
+	gnus-group-gmane-group-download-format.
+	(gnus-group-read-ephemeral-gmane-group): Rename from
+	gnus-group-read-ephemeral-gmane-group.
+	(gnus-read-ephemeral-gmane-group-url): Rename from
+	gnus-group-read-ephemeral-gmane-group-url.
+	(gnus-bug-group-download-format-alist):  New variable.
+	(gnus-read-ephemeral-bug-group, gnus-read-ephemeral-debian-bug-group)
+	(gnus-read-ephemeral-emacs-bug-group): New commands.
+
+2008-03-21  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-article-browse-html-article): Fix documentation.
+	(gnus-visible-headers): Improve custom type.
+
+2008-03-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mml.el (mml-menu): Add workarounds for XEmacs.
+
+	* gnus-art.el (gnus-article-browse-html-article): Inhibit display of
+	X-Boundary header.
+
+	* message.el (message-simplify-recipients): Fix previous commit.
+
 2008-03-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mm-util.el (mm-set-buffer-multibyte): New function.
@@ -5,6 +58,85 @@
 
 	* gnus-win.el (gnus-configure-frame, gnus-all-windows-visible-p):
 	Prefer fboundp to functionp so it works with macros as well.
+
+2008-03-19  Glenn Morris  <rgm@gnu.org>
+
+	* tls.el (open-tls-stream): Restore use of `tls-end-of-info'.
+	Accidentally removed in the sync process with Emacs.
+
+2008-03-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-alter-recipients-discard-bogus-full-name): New
+	function.
+	(message-alter-recipients-function): New variable.
+	(message-get-reply-headers): Use it.
+	(message-replace-header): New helper function.
+	(message-recipients-without-full-name): New variable.
+	(message-simplify-recipients): New command.
+
+	* mml.el (mml-menu): Add toggle for gnus-gcc-externalize-attachments.
+
+	* message.el (message-info): Handle EasyPG manual.
+
+	* mml.el (mml-menu): Add entry for EasyPG.
+
+2008-03-18  Nils Ackermann  <nils@ackermath.info>  (tiny change)
+
+	* nnmh.el (nnmh-request-expire-articles): Prefer expiry-target group
+	parameter.
+
+	* message.el (message-disassociate-draft): Specify drafts group name
+	fully.
+
+2008-03-17  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-split-fancy-with-parent): Eliminate
+	unnecessary duplicates from the match list.
+
+2008-03-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-button-handle-info-keystrokes): Don't use optional
+	args of `how-many' of which the XEmacs version doesn't take; declare
+	Info-index-next as function.
+
+2008-03-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-score.el (gnus-score-headers): Fix handling of
+	gnus-inhibit-slow-scoring.
+
+	* gnus-art.el (gnus-article-browse-html-article): Fix type in doc
+	string.
+	(gnus-button-url-regexp): Improve handling of parenthesis.
+	(gnus-button-alist): Extend gnus-button-handle-info-keystrokes entry.
+	(gnus-button-handle-info-keystrokes): Handle index entries.
+
+2008-03-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mail-source.el (mail-source-delete-old-incoming) Fix regexp to find
+	Incoming* files.
+
+2008-03-13  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-sources): Renamed from auth-source-choices.
+	(auth-source-pick): Use it.
+
+2008-03-12  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* auth-source.el (auth-source-protocols)
+	(auth-source-protocols-customize, auth-source-choices): Added and
+	modified variable customizations and defaults.
+	(auth-source-pick, auth-source-user-or-password)
+	(auth-source-protocol-defaults, auth-source-user-or-password-imap)
+	(auth-source-user-or-password-pop3, auth-source-user-or-password-ssh)
+	(auth-source-user-or-password-sftp)
+	(auth-source-user-or-password-smtp): Use new variables and provide an
+	interface to netrc.el.
+
+2008-03-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nntp.el (nntp-open-telnet-stream, nntp-open-via-rlogin-and-telnet)
+	(nntp-open-via-rlogin-and-netcat, nntp-open-via-telnet-and-telnet):
+	Make sure the nntp port to specify is a string.
 
 2008-03-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -15,8 +147,8 @@
 	nntp-with-open-group macro.
 	(nntp-with-open-group): Use the function, so it's easier to debug.
 	Add indentation and debugging info.
-	(nntp-open-telnet-stream, nntp-open-via-rlogin-and-telnet): Recommend the
-	use of the netcat alternatives.
+	(nntp-open-telnet-stream, nntp-open-via-rlogin-and-telnet): Recommend
+	the use of the netcat alternatives.
 
 	* rfc2047.el (rfc2047-decode-string): Don't use `m'.
 	Avoid mm-string-as-multibyte as well.
@@ -52,6 +184,11 @@
 	* gnus-msg.el: Use with-current-buffer.
 
 	* message.el (message-ignored-resent-headers): Add "Delivered-To".
+
+2008-03-10  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-epg-passphrase-callback): Type cast KEY-ID to a
+	string for caching if it is 'PIN.
 
 2008-03-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -2095,7 +2232,7 @@
 
 	* gnus.el (gnus-version-number): Bump version.
 
-2007-05-01 Lars Magne Ingebrigtsen <lars@ingebrigtsen.no>
+2007-05-01  Lars Magne Ingebrigtsen  <lars@ingebrigtsen.no>
 
 	* gnus.el: No Gnus v0.6 is released.
 

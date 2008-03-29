@@ -75,6 +75,12 @@ timeout of 16 seconds (see @code{password-cache-expiry}).  If
 passphrase is managed by this mechanism.  Passwords for ManageSieve
 connections are managed by this mechanism, after querying the user
 about whether to do so.
+
+@item Using EasyPG with Gnus
+When EasyPG, is available, Gnus will use it instead of @acronym{PGG}.
+EasyPG is an Emacs user interface to GNU Privacy Guard.  @xref{Top,
+,EasyPG Assistant user's manual, epa, EasyPG Assistant user's manual}.
+EasyPG is included in Emacs 23 and available separately as well.
 @end itemize
 
 @item Changes in group mode
@@ -97,6 +103,15 @@ Customization}.
 @item Gnus now supports sticky article buffers.  Those are article buffers
 that are not reused when you select another article.  @xref{Sticky
 Articles}.
+
+@c @item Bookmarks
+@c FIXME: To be added
+
+@item Gnus can selectively display @samp{text/html} articles
+with a WWW browser with @kbd{K H}.  @xref{MIME Commands}.
+
+@c gnus-registry-marks
+@c FIXME: To be added
 
 @item International host names (@acronym{IDNA}) can now be decoded
 inside article bodies using @kbd{W i}
@@ -254,6 +269,13 @@ This feature, accessible via the functions
 renumbers all articles in a group, starting from 1 and removing gaps.
 As a consequence, you get a correct total article count (until
 messages are deleted again).
+
+@c @item nnmairix.el
+@c FIXME
+
+@c @item nnir.el
+@c FIXME
+
 @end itemize
 
 @item Appearance

@@ -2543,6 +2543,29 @@ gnus-summary-show-article-from-menu-as-charset-%s" cs))))
 	["Followup via news" gnus-summary-followup-to-mail t]
 	["Followup via news and yank"
 	 gnus-summary-followup-to-mail-with-original t]
+	["Strip signature on reply"
+	 (lambda ()
+	   (interactive)
+	   (if (not (memq message-cite-function
+			  '(message-cite-original-without-signature
+			    message-cite-original)))
+	       ;; Stupid workaround for XEmacs not honoring :visible.
+	       (message "Can't toggle this value of `message-cite-function'")
+	     (setq message-cite-function
+		   (if (eq message-cite-function
+			   'message-cite-original-without-signature)
+		       'message-cite-original
+		     'message-cite-original-without-signature))))
+	 ;; XEmacs barfs on :visible.
+	 ,@(if (featurep 'xemacs) nil
+	     '(:visible (memq message-cite-function
+			      '(message-cite-original-without-signature
+				message-cite-original))))
+	 :style toggle
+	 :selected (eq message-cite-function
+		       'message-cite-original-without-signature)
+	 ,@(if (featurep 'xemacs) nil
+	     '(:help "Strip signature from cited article when replying."))]
 	;;("Draft"
 	;;["Send" gnus-summary-send-draft t]
 	;;["Send bounced" gnus-resend-bounced-mail t])

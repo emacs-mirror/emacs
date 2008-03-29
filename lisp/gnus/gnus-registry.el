@@ -520,7 +520,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	       matches)
 	   (when (and this-sender
 		      (equal sender this-sender))
-	     (setq found (append (gnus-registry-fetch-groups key) found))
+	     (let ((groups (gnus-registry-fetch-groups key)))
+	       (dolist (group groups)
+		 (setq found (append (list group) (delete group found)))))
 	     (push key matches)
 	     (gnus-message
 	      ;; raise level of messaging if gnus-registry-track-extra
@@ -542,7 +544,9 @@ See the Info node `(gnus)Fancy Mail Splitting' for more details."
 	       matches)
 	   (when (and this-subject
 		      (equal subject this-subject))
-	     (setq found (append (gnus-registry-fetch-groups key) found))
+	     (let ((groups (gnus-registry-fetch-groups key)))
+	       (dolist (group groups)
+		 (setq found (append (list group) (delete group found)))))
 	     (push key matches)
 	     (gnus-message
 	      ;; raise level of messaging if gnus-registry-track-extra

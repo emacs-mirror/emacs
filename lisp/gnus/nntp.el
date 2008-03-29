@@ -1885,7 +1885,10 @@ Please refer to the following variables to customize the connection:
 - `nntp-end-of-line'."
   (let ((command `(,nntp-telnet-command
 		   ,@nntp-telnet-switches
-		   ,nntp-address ,nntp-port-number))
+		   ,nntp-address
+		   ,(if (integerp nntp-port-number)
+			(number-to-string nntp-port-number)
+		      nntp-port-number)))
 	proc)
     (and nntp-pre-command
 	 (push nntp-pre-command command))
@@ -1928,8 +1931,11 @@ Please refer to the following variables to customize the connection:
     (setq proc (apply 'start-process "nntpd" buffer command))
     (with-current-buffer buffer
       (nntp-wait-for-string "^r?telnet")
-      (process-send-string proc (concat "open " nntp-address
-					" " nntp-port-number "\n"))
+      (process-send-string proc (concat "open " nntp-address " "
+					(if (integerp nntp-port-number)
+					    (number-to-string nntp-port-number)
+					  nntp-port-number)
+					"\n"))
       (nntp-wait-for-string "^\r*20[01]")
       (beginning-of-line)
       (delete-region (point-min) (point))
@@ -1970,7 +1976,9 @@ Please refer to the following variables to customize the connection:
 		   ,nntp-via-netcat-command
 		   ,@nntp-via-netcat-switches
 		   ,nntp-address
-		   ,nntp-port-number)))
+		   ,(if (integerp nntp-port-number)
+			(number-to-string nntp-port-number)
+		      nntp-port-number))))
     (apply 'start-process "nntpd" buffer command)))
 
 (defun nntp-open-via-telnet-and-telnet (buffer)
@@ -2029,7 +2037,9 @@ Please refer to the following variables to customize the connection:
 				     ,nntp-telnet-command
 				     ,@nntp-telnet-switches
 				     ,nntp-address
-				     ,nntp-port-number)))
+				     ,(if (integerp nntp-port-number)
+					  (number-to-string nntp-port-number)
+					nntp-port-number))))
 	  (process-send-string proc
 			       (concat (mapconcat 'identity
 						  real-telnet-command " ")

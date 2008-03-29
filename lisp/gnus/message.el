@@ -415,9 +415,17 @@ for `message-cross-post-insert-note'."
 
 ;;; End of variables adopted from `message-utils.el'.
 
-(defcustom message-signature-separator "^-- *$"
-  "Regexp matching the signature separator."
-  :type 'regexp
+(defcustom message-signature-separator "^-- $"
+  "Regexp matching the signature separator.
+This variable is used to strip off the signature from quoted text
+when `message-cite-function' is
+`message-cite-original-without-signature'.  Most useful values
+are \"^-- $\" (strict) and \"^-- *$\" (loose; allow missing
+whitespace)."
+  :type '(choice (const :tag "strict" "^-- $")
+		 (const :tag "loose" "^-- *$")
+		 regexp)
+  :version "23.1" ;; No Gnus (changed default)
   :link '(custom-manual "(message)Various Message Variables")
   :group 'message-various)
 
@@ -1010,7 +1018,7 @@ Used by `message-yank-original' via `message-yank-cite'."
   :link '(custom-manual "(message)Insertion Variables")
   :type 'integer)
 
-(defcustom message-cite-function 'message-cite-original
+(defcustom message-cite-function 'message-cite-original-without-signature
   "*Function for citing an original message.
 Predefined functions include `message-cite-original' and
 `message-cite-original-without-signature'.
@@ -1020,6 +1028,7 @@ Note that these functions use `mail-citation-hook' if that is non-nil."
 		(function-item sc-cite-original)
 		(function :tag "Other"))
   :link '(custom-manual "(message)Insertion Variables")
+  :version "23.1" ;; No Gnus (changed default)
   :group 'message-insertion)
 
 (defcustom message-indent-citation-function 'message-indent-citation
@@ -2484,12 +2493,19 @@ Point is left at the beginning of the narrowed-to region."
 (defun message-info (&optional arg)
   "Display the Message manual.
 
-Prefixed with one \\[universal-argument], display the Emacs MIME manual.
-Prefixed with two \\[universal-argument]'s, display the PGG manual."
+Prefixed with one \\[universal-argument], display the Emacs MIME
+manual.  With two \\[universal-argument]'s, display the EasyPG or
+PGG manual, depending on the value of `mml2015-use'."
   (interactive "p")
-  (cond ((eq arg 16) (Info-goto-node "(pgg)Top"))
-	((eq arg  4) (Info-goto-node "(emacs-mime)Top"))
-	(t           (Info-goto-node "(message)Top"))))
+  (Info-goto-node (format "(%s)Top"
+			  (cond ((eq arg 16) mml2015-use)
+				((eq arg  4) 'emacs-mime)
+				;; `booleanp' only available in Emacs 22+
+				((and (not (memq arg '(nil t)))
+				      (symbolp arg))
+				 arg)
+				(t
+				 'message)))))
 
 
 
@@ -5058,12 +5074,16 @@ Otherwise, generate and save a value for `canlock-password' first."
    ;; Check the length of the signature.
    (message-check 'signature
      (goto-char (point-max))
-     (if (> (count-lines (point) (point-max)) 5)
-	 (y-or-n-p
-	  (format
-	   "Your .sig is %d lines; it should be max 4.  Really post? "
-	   (1- (count-lines (point) (point-max)))))
-       t))
+     (if (not (re-search-backward message-signature-separator nil t))
+	 t
+       (if (>= (count-lines (1+ (point-at-eol)) (point-max)) 5)
+	   (if (message-gnksa-enable-p 'signature)
+	       (y-or-n-p
+		(format "Signature is excessively long (%d lines).  Really post? "
+			(count-lines (1+ (point-at-eol)) (point-max))))
+	     (message "Denied posting -- Excessive signature.")
+	     nil)
+	 t)))
    ;; Ensure that text follows last quoted portion.
    (message-check 'quoting-style
      (goto-char (point-max))
@@ -5882,8 +5902,10 @@ they are."
     (with-temp-buffer
       (insert references)
       (goto-char (point-min))
-      ;; Cons a list of valid references.
-      (while (re-search-forward "<[^>]+>" nil t)
+      ;; Cons a list of valid references.  GNKSA says we must not include MIDs
+      ;; with whitespace or missing brackets (7.a "Does not propagate broken
+      ;; Message-IDs in original References").
+      (while (re-search-forward "<[^ <]+@[^ <]+>" nil t)
 	(push (match-string 0) refs))
       (setq refs (nreverse refs)
 	    count (length refs)))
@@ -6207,11 +6229,12 @@ are not included."
   (save-restriction
     (message-narrow-to-headers)
     (run-hooks 'message-header-setup-hook))
-  (set-buffer-modified-p nil)
   (setq buffer-undo-list nil)
   (when message-generate-hashcash
     ;; Generate hashcash headers for recipients already known
     (mail-add-payment-async))
+  ;; Gnus posting styles are applied via buffer-local `message-setup-hook'
+  ;; values.
   (run-hooks 'message-setup-hook)
   ;; Do this last to give it precedence over posting styles, etc.
   (when (message-mail-p)
@@ -6220,6 +6243,8 @@ are not included."
       (if message-alternative-emails
 	  (message-use-alternative-email-as-from))))
   (message-position-point)
+  ;; Allow correct handling of `message-checksum' in `message-yank-original':
+  (set-buffer-modified-p nil)
   (undo-boundary))
 
 (defun message-set-auto-save-file-name ()
@@ -6247,7 +6272,7 @@ are not included."
   "Disassociate the message buffer from the drafts directory."
   (when message-draft-article
     (nndraft-request-expire-articles
-     (list message-draft-article) "drafts" nil t)))
+     (list message-draft-article) "nndraft:drafts" nil t)))
 
 (defun message-insert-headers ()
   "Generate the headers for the article."
@@ -6312,6 +6337,29 @@ is a function used to switch to and display the mail buffer."
     (message-pop-to-buffer (message-buffer-name "posting" nil newsgroups))
     (message-setup `((Newsgroups . ,(or newsgroups ""))
 		     (Subject . ,(or subject ""))))))
+
+(defun message-alter-recipients-discard-bogus-full-name (addrcell)
+  "Discard mail address in full names.
+When the full name in reply headers contains the mail
+address (e.g. \"foo@bar <foo@bar>\"), discard full name.
+ADDRCELL is a cons cell where the car is the mail address and the
+cdr is the complete address (full name and mail address)."
+  (if (string-match (concat (regexp-quote (car addrcell)) ".*"
+			    (regexp-quote (car addrcell)))
+		    (cdr addrcell))
+      (cons (car addrcell) (car addrcell))
+    addrcell))
+
+(defcustom message-alter-recipients-function nil
+  "Function called to allow alteration of reply header structures.
+It is called in `message-get-reply-headers' for each recipient.
+The function is called with one parameter, a cons cell ..."
+  :type '(choice (const :tag "None" nil)
+		 (const :tag "Discard bogus full name"
+			message-alter-recipients-discard-bogus-full-name)
+		 function)
+  :version "23.1" ;; No Gnus
+  :group 'message-headers)
 
 (defun message-get-reply-headers (wide &optional to-address address-headers)
   (let (follow-to mct never-mct to cc author mft recipients extra)
@@ -6413,7 +6461,11 @@ want to get rid of this query permanently.")))
       (setq recipients
 	    (mapcar
 	     (lambda (addr)
-	       (cons (downcase (mail-strip-quoted-names addr)) addr))
+	       (if message-alter-recipients-function
+		   (funcall message-alter-recipients-function
+			    (cons (downcase (mail-strip-quoted-names addr))
+				  addr))
+		 (cons (downcase (mail-strip-quoted-names addr)) addr)))
 	     (message-tokenize-header recipients)))
       ;; Remove first duplicates.  (Why not all duplicates?  Is this a bug?)
       (let ((s recipients))
@@ -7904,6 +7956,56 @@ Header and body are separated by `mail-header-separator'."
 	(when (buffer-live-p buff)
 	  (kill-buffer buff))))
     (message "%s message(s) sent, %s skipped." sent skipped)))
+
+(defun message-replace-header (header new-value &optional after force)
+  "Remove HEADER and insert the NEW-VALUE.
+If AFTER, insert after this header.  If FORCE, insert new field
+even if NEW-VALUE is empty."
+  ;; Similar to `nnheader-replace-header' but for message buffers.
+  (save-excursion
+    (save-restriction
+      (message-narrow-to-headers)
+      (message-remove-header header))
+    (when (or force (> (length new-value) 0))
+      (if after
+	  (message-position-on-field header after)
+	(message-position-on-field header))
+      (insert new-value))))
+
+(defcustom message-recipients-without-full-name
+  (list "ding@gnus.org"
+	"bugs@gnus.org"
+	"emacs-devel@gnu.org"
+	"emacs-pretest-bug@gnu.org"
+	"bug-gnu-emacs@gnu.org")
+  "Mail addresses that have no full name.
+Used in `message-simplify-recipients'."
+  ;; Maybe the addresses could be extracted from
+  ;; `gnus-parameter-to-list-alist'?
+  :type '(choice (const :tag "None" nil)
+		 (repeat string))
+  :version "23.1" ;; No Gnus
+  :group 'message-headers)
+
+(defun message-simplify-recipients ()
+  (interactive)
+  (dolist (hdr '("Cc" "To"))
+    (message-replace-header
+     hdr
+     (mapconcat
+      (lambda (addrcomp)
+	(if (and message-recipients-without-full-name
+		 (string-match
+		  (regexp-opt message-recipients-without-full-name)
+		  (cadr addrcomp)))
+	    (cadr addrcomp)
+	  (if (car addrcomp)
+	      (message-make-from (car addrcomp) (cadr addrcomp))
+	    (cadr addrcomp))))
+      (when (message-fetch-field hdr)
+	(mail-extract-address-components
+	 (message-fetch-field hdr) t))
+      ", "))))
 
 (when (featurep 'xemacs)
   (require 'messagexmas)

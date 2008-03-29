@@ -391,6 +391,17 @@ like they want it to behave.  A program should not control people;
 people should be empowered to do what they want by using (or abusing)
 the program.
 
+@c Adjust ../Makefile.in if you change the following line:
+This manual corresponds to Gnus v5.10.9.
+
+@heading Other related manuals
+@itemize
+@item Message manual: Composing messages
+@item Emacs-MIME:     Composing messages; @acronym{MIME}-specific parts.
+@item Sieve:          Managing Sieve scripts in Emacs.
+@item PGG:            @acronym{PGP/MIME} with Gnus.
+@end itemize
+
 @end iftex
 
 @menu
@@ -2734,6 +2745,55 @@ This might take quite a while, especially if you subscribe to lots of
 groups from different @acronym{NNTP} servers.  Also @pxref{Group Levels};
 @code{gnus-activate-level} also affects activation of foreign
 newsgroups.
+
+
+The following commands create ephemeral groups.  They can be called not
+only from the Group buffer, but in any Gnus buffer.
+
+@table @code
+@item gnus-read-ephemeral-gmane-group
+@findex gnus-read-ephemeral-gmane-group
+@vindex gnus-gmane-group-download-format
+Read an ephemeral group on Gmane.org.  The articles are downloaded via
+HTTP using the URL specified by @code{gnus-gmane-group-download-format}.
+Gnus will prompt you for a group name, the start article number and an
+the article range.
+
+@item gnus-read-ephemeral-gmane-group-url
+@findex gnus-read-ephemeral-gmane-group-url
+This command is similar to @code{gnus-read-ephemeral-gmane-group}, but
+the group name and the article number and range are constructed from a
+given @acronym{URL}.  Supported @acronym{URL} formats include e.g.
+@url{http://thread.gmane.org/gmane.foo.bar/12300/focus=12399},
+@url{http://thread.gmane.org/gmane.foo.bar/12345/},
+@url{http://article.gmane.org/gmane.foo.bar/12345/},
+@url{http://permalink.gmane.org/gmane.foo.bar/12345/}, and
+@url{http://news.gmane.org/group/gmane.foo.bar/thread=12345}.
+
+@item gnus-read-ephemeral-emacs-bug-group
+@findex gnus-read-ephemeral-emacs-bug-group
+Read an Emacs bug report in an ephemeral group.  Gnus will prompt for a
+bug number.  The default is the number at point.  The @acronym{URL} is
+specified in @code{gnus-bug-group-download-format-alist}.
+
+@item gnus-read-ephemeral-debian-bug-group
+@findex gnus-read-ephemeral-debian-bug-group
+Read a Debian bug report in an ephemeral group.  Analog to
+@code{gnus-read-ephemeral-emacs-bug-group}.
+@end table
+
+Some of these command are also useful for article buttons, @xref{Article
+Buttons}.
+
+Here is an example:
+@lisp
+(require 'gnus-art)
+(add-to-list
+ 'gnus-button-alist
+ '("#\\([0-9]+\\)\\>" 1
+   (string-match "\\<emacs\\>" (or gnus-newsgroup-name ""))
+   gnus-read-ephemeral-emacs-bug-group 1))
+@end lisp
 
 
 @node Group Parameters
@@ -9679,6 +9739,21 @@ The rest of these @acronym{MIME} commands do not use the numerical prefix in
 the same manner:
 
 @table @kbd
+@item K H
+@kindex K H (Summary)
+@findex gnus-article-browse-html-article
+View @samp{text/html} parts of the current article with a WWW browser.
+The message header is added to the beginning of every html part unless
+the prefix argument is given.
+
+Warning: Spammers use links to images in HTML articles to verify whether
+you have read the message.  As this command passes the @acronym{HTML}
+content to the browser without eliminating these ``web bugs'' you should
+only use it for mails from trusted senders.
+
+If you always want to display @acronym{HTML} parts in the browser, set
+@code{mm-text-html-renderer} to @code{nil}.
+
 @item K b
 @kindex K b (Summary)
 Make all the @acronym{MIME} parts have buttons in front of them.  This is
@@ -9834,7 +9909,7 @@ Display "multipart/alternative" parts as "multipart/mixed".
 @item gnus-mime-display-multipart-related-as-mixed
 Display "multipart/related" parts as "multipart/mixed".
 
-If displaying "text/html" is discouraged, see
+If displaying @samp{text/html} is discouraged, see
 @code{mm-discouraged-alternatives}, images or other material inside a
 "multipart/related" part might be overlooked when this variable is
 @code{nil}.  @ref{Display Customization, Display Customization, ,
@@ -11539,7 +11614,7 @@ command respects the @samp{print=} specifications in the
 @item i (Article)
 @kindex i (Article)
 Insert the contents of the @acronym{MIME} object into the buffer
-(@code{gnus-mime-inline-part}) as text/plain.  If given a prefix, insert
+(@code{gnus-mime-inline-part}) as @samp{text/plain}.  If given a prefix, insert
 the raw contents without decoding.  If given a numerical prefix, you can
 do semi-manual charset stuff (see
 @code{gnus-summary-show-article-charset-alist} in @ref{Paging the
@@ -16883,7 +16958,7 @@ summary buffer.
 (add-to-list 'nnmail-extra-headers nnrss-url-field)
 @end lisp
 
-Even if you have added @code{"text/html"} to the
+Even if you have added @samp{text/html} to the
 @code{mm-discouraged-alternatives} variable (@pxref{Display
 Customization, ,Display Customization, emacs-mime, The Emacs MIME
 Manual}) since you don't want to see @acronym{HTML} parts, it might be
@@ -22243,12 +22318,16 @@ inserted.
 @node Formatting Fonts
 @subsection Formatting Fonts
 
+@cindex %(, %)
+@vindex gnus-mouse-face
 There are specs for highlighting, and these are shared by all the format
 variables.  Text inside the @samp{%(} and @samp{%)} specifiers will get
 the special @code{mouse-face} property set, which means that it will be
 highlighted (with @code{gnus-mouse-face}) when you put the mouse pointer
 over it.
 
+@cindex %@{, %@}
+@vindex gnus-face-0
 Text inside the @samp{%@{} and @samp{%@}} specifiers will have their
 normal faces set using @code{gnus-face-0}, which is @code{bold} by
 default.  If you say @samp{%1@{}, you'll get @code{gnus-face-1} instead,
@@ -22256,6 +22335,9 @@ and so on.  Create as many faces as you wish.  The same goes for the
 @code{mouse-face} specs---you can say @samp{%3(hello%)} to have
 @samp{hello} mouse-highlighted with @code{gnus-mouse-face-3}.
 
+@cindex %<<, %>>, guillemets
+@c @cindex %<<, %>>, %«, %», guillemets
+@vindex gnus-balloon-face-0
 Text inside the @samp{%<<} and @samp{%>>} specifiers will get the
 special @code{balloon-help} property set to
 @code{gnus-balloon-face-0}.  If you say @samp{%1<<}, you'll get
@@ -23445,14 +23527,22 @@ the second element is the regexp match group that is to be replaced by
 the picture; and the third element is the name of the file to be
 displayed.
 
-The following variables customize where Smiley will look for these
-files:
+The following variables customize the appearance of the smileys:
 
 @table @code
 
+@item smiley-style
+@vindex smiley-style
+Specifies the smiley style.  Predefined smiley styles include
+@code{low-color} (small 13x14 pixel, three-color images), @code{medium}
+(more colorful images, 16x16 pixel), and @code{grayscale} (grayscale
+images, 14x14 pixel).  The default depends on the height of the default
+face.
+
 @item smiley-data-directory
 @vindex smiley-data-directory
-Where Smiley will look for smiley faces files.
+Where Smiley will look for smiley faces files.  You shouldn't set this
+variable anymore.  Customize @code{smiley-style} instead.
 
 @item gnus-smiley-file-types
 @vindex gnus-smiley-file-types
@@ -26190,29 +26280,27 @@ that.  Not reliably, at least.  Older versions of Gnus may work on older
 Emacs versions.  Particularly, Gnus 5.10.8 should also work on Emacs
 20.7 and XEmacs 21.1.
 
-There are some vague differences between Gnus on the various
-platforms---XEmacs features more graphics (a logo and a toolbar)---but
-other than that, things should look pretty much the same under all
-Emacsen.
-
 
 @node Gnus Development
 @subsection Gnus Development
 
 Gnus is developed in a two-phased cycle.  The first phase involves much
-discussion on the @samp{ding@@gnus.org} mailing list, where people
+discussion on the development mailing list @samp{ding@@gnus.org}, where people
 propose changes and new features, post patches and new back ends.  This
 phase is called the @dfn{alpha} phase, since the Gnusae released in this
 phase are @dfn{alpha releases}, or (perhaps more commonly in other
 circles) @dfn{snapshots}.  During this phase, Gnus is assumed to be
 unstable and should not be used by casual users.  Gnus alpha releases
-have names like ``Red Gnus'' and ``Quassia Gnus''.
+have names like ``Oort Gnus'' and ``No Gnus''.  @xref{Gnus Versions}.
 
-After futzing around for 50-100 alpha releases, Gnus is declared
+After futzing around for 10-100 alpha releases, Gnus is declared
 @dfn{frozen}, and only bug fixes are applied.  Gnus loses the prefix,
-and is called things like ``Gnus 5.6.32'' instead.  Normal people are
+and is called things like ``Gnus 5.10.1'' instead.  Normal people are
 supposed to be able to use these, and these are mostly discussed on the
-@samp{gnu.emacs.gnus} newsgroup.
+@samp{gnu.emacs.gnus} newsgroup.  This newgroup is mirrored to the
+mailing list @samp{info-gnus-english@@gnu.org} which is carried on Gmane
+as @samp{gmane.emacs.gnus.user}.  These releases are finally integrated
+in Emacs.
 
 @cindex Incoming*
 @vindex mail-source-delete-incoming
@@ -26232,10 +26320,16 @@ either discarded or totally rewritten.  People reading the mailing list
 usually keep up with these rapid changes, while people on the newsgroup
 can't be assumed to do so.
 
-@c FIXME:
-@c ding = gmane.emacs.gnus.general
-@c newsgroup = gnu.emacs.gnus = gmane.emacs.gnus.user = info-gnus-english
+So if you have problems with or questions about the alpha versions,
+direct those to the ding mailing list @samp{ding@@gnus.org}.  This list
+is also available on Gmane as @samp{gmane.emacs.gnus.general}.
 
+@cindex Incoming*
+@vindex mail-source-delete-incoming
+Some variable defaults differ between alpha Gnusae and released Gnusae,
+in particular, @code{mail-source-delete-incoming}.  This is to prevent
+lossage of mail if an alpha release hiccups while handling the mail.
+@xref{Mail Source Customization}.
 
 @node Contributors
 @subsection Contributors
@@ -27469,7 +27563,7 @@ variables should change those regexps accordingly.  For example:
 @item
 Old intermediate incoming mail files (@file{Incoming*}) are deleted
 after a couple of days, not immediately.  @xref{Mail Source
-Customization}.  (New in Gnus 5.10.10)
+Customization}.  (New in Gnus 5.10.10 / Emacs 22.2)
 
 @end itemize
 

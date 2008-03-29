@@ -1017,14 +1017,6 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     (define-key main "\C-c\C-m" map)
     main))
 
-;; (defun mml-toggle-gcc-externalize-attachments ()
-;;   (interactive)
-;;   (prog1
-;;       (setq gnus-gcc-externalize-attachments
-;; 	    (not gnus-gcc-externalize-attachments))
-;;     (message "gnus-gcc-externalize-attachments is `%s'."
-;; 	     gnus-gcc-externalize-attachments)))
-
 (easy-menu-define
   mml-menu mml-mode-map ""
   `("Attachments"
@@ -1037,13 +1029,29 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     ["Attach External..." mml-attach-external
      ,@(if (featurep 'xemacs) '(t)
 	 '(:help "Attach reference to an external file"))]
-    ;; ["Externalize Attachments"
-    ;;  (lambda () (interactive) (mml-toggle-gcc-externalize-attachments))
-    ;; ,@(if (featurep 'xemacs) nil
-    ;; 	'(:help "Save attachments as external parts in Gcc copies"))
-    ;; :visible (booleanp gnus-gcc-externalize-attachments)
-    ;; :style radio
-    ;; :selected (equal gnus-gcc-externalize-attachments t) ]
+    ;; FIXME: Is it possible to do this without using
+    ;; `gnus-gcc-externalize-attachments'?
+    ["Externalize Attachments"
+     (lambda ()
+       (interactive)
+       (if (not (and (boundp 'gnus-gcc-externalize-attachments)
+		     (memq gnus-gcc-externalize-attachments
+			   '(all t nil))))
+	   ;; Stupid workaround for XEmacs not honoring :visible.
+	   (message "Can't handle this value of `gnus-gcc-externalize-attachments'")
+	 (setq gnus-gcc-externalize-attachments
+	       (not gnus-gcc-externalize-attachments))
+	 (message "gnus-gcc-externalize-attachments is `%s'."
+		  gnus-gcc-externalize-attachments)))
+     ;; XEmacs barfs on :visible.
+     ,@(if (featurep 'xemacs) nil
+	 '(:visible (and (boundp 'gnus-gcc-externalize-attachments)
+			 (memq gnus-gcc-externalize-attachments
+			       '(all t nil)))))
+     :style toggle
+     :selected gnus-gcc-externalize-attachments
+     ,@(if (featurep 'xemacs) nil
+	 '(:help "Save attachments as external parts in Gcc copies"))]
     "----"
     ;;
     ("Change Security Method"
@@ -1094,9 +1102,18 @@ If HANDLES is non-nil, use it instead reparsing the buffer."
     ["Emacs MIME manual" (lambda () (interactive) (message-info 4))
      ,@(if (featurep 'xemacs) '(t)
 	 '(:help "Display the Emacs MIME manual"))]
-    ["PGG manual" (lambda () (interactive) (message-info 16))
+    ["PGG manual" (lambda () (interactive) (message-info mml2015-use))
+     ;; XEmacs barfs on :visible.
+     ,@(if (featurep 'xemacs) nil
+	 '(:visible (equal mml2015-use 'pgg)))
      ,@(if (featurep 'xemacs) '(t)
-	 '(:help "Display the PGG manual"))]))
+	 '(:help "Display the PGG manual"))]
+    ["EasyPG manual" (lambda () (interactive) (message-info mml2015-use))
+     ;; XEmacs barfs on :visible.
+     ,@(if (featurep 'xemacs) nil
+	 '(:visible (equal mml2015-use 'epg)))
+     ,@(if (featurep 'xemacs) '(t)
+	 '(:help "Display the EasyPG manual"))]))
 
 (defvar mml-mode nil
   "Minor mode for editing MML.")

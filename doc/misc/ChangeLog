@@ -1,3 +1,45 @@
+2008-03-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Foreign Groups): Add gnus-read-ephemeral-gmane-group,
+	gnus-read-ephemeral-gmane-group-url,
+	gnus-read-ephemeral-emacs-bug-group,
+	gnus-read-ephemeral-debian-bug-group.
+
+2008-03-21  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (MIME Commands): Add gnus-article-browse-html-article.
+
+	* gnus-news.texi: Add EasyPG.  Add gnus-article-browse-html-article.
+	Add FIXMEs for Bookmarks and gnus-registry-marks.
+
+2008-03-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Smileys): Document `smiley-style'.
+
+2008-03-21  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Gnus Development): Clarify difference between ding and
+	gnu.emacs.gnus.
+	(MIME Commands, Using MIME, RSS): Fix markup.
+
+	* gnus-faq.texi ([8.4]): Ditto.
+
+2008-03-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Emacsen): Remove obsolete stuff.
+
+2008-03-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Oort Gnus): Add version info WRT
+	`mail-source-delete-incoming'.
+
+2008-03-16  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus.texi (Top): Add "Other related manuals" and version info in
+	`iftex' output.
+	(Formatting Fonts): Add index entries for gnus-mouse-face, gnus-face-0,
+	gnus-balloon-face-0 and the corresponding format specifiers.
+
 2008-03-26  Michael Albinus  <michael.albinus@gmx.de>
 
 	* tramp.texi (Filename completion): Remove footnote about let-bind
@@ -24,8 +66,8 @@
 2008-03-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus.texi (Example Methods, Direct Functions, Indirect Functions)
-	(Common Variables): Give precedence to the netcat methods over the telnet
-	methods, and mention that they are more reliable.
+	(Common Variables): Give precedence to the netcat methods over the
+	telnet methods, and mention that they are more reliable.
 
 2008-03-13  Carsten Dominik  <dominik@science.uva.nl>
 

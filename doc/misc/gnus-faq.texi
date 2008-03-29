@@ -2131,21 +2131,22 @@ Which mailing lists and newsgroups are there?
 
 @subsubheading Answer
 
-There's the newsgroup gnu.emacs.gnus
-(also available as
-@uref{http://dir.gmane.org/gmane.emacs.gnus.user, 
-gmane.emacs.gnus.user})
-which deals with general Gnus questions.
-The ding mailing list (ding@@gnus.org) deals with development of
-Gnus. You can read the ding list via NNTP, too under the name
-@uref{http://dir.gmane.org/gmane.emacs.gnus.general, 
-gmane.emacs.gnus.general} from news.gmane.org.
+There's the newsgroup gnu.emacs.gnus (also available as
+@uref{http://dir.gmane.org/gmane.emacs.gnus.user,
+gmane.emacs.gnus.user}) which deals with general Gnus questions.  If you
+have questions about development versions of Gnus, you should better ask
+on the ding mailing list, see below.
 
 If you want to stay in the big8,
 news.software.newssreaders is also read by some Gnus
 users (but chances for qualified help are much better in
-the above groups) and if you speak German, there's
+the above groups). If you speak German, there's
 de.comm.software.gnus.
+
+The ding mailing list (ding@@gnus.org) deals with development of
+Gnus. You can read the ding list via NNTP, too under the name
+@uref{http://dir.gmane.org/gmane.emacs.gnus.general, 
+gmane.emacs.gnus.general} from news.gmane.org.
 
 @node [8.5]
 @subsubheading Question 8.5

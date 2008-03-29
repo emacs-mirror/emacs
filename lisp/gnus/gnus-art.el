@@ -178,12 +178,15 @@ If `gnus-visible-headers' is non-nil, this variable will be ignored."
   "*All headers that do not match this regexp will be hidden.
 This variable can also be a list of regexp of headers to remain visible.
 If this variable is non-nil, `gnus-ignored-headers' will be ignored."
-  :type '(repeat :value-to-internal (lambda (widget value)
-				      (custom-split-regexp-maybe value))
-		 :match (lambda (widget value)
-			  (or (stringp value)
-			      (widget-editable-list-match widget value)))
-		 regexp)
+  :type '(choice
+	  (repeat :value-to-internal (lambda (widget value)
+				       (custom-split-regexp-maybe value))
+		  :match (lambda (widget value)
+			   (or (stringp value)
+			       (widget-editable-list-match widget value)))
+		  regexp)
+	  (const :tag "Use gnus-ignored-headers" nil)
+	  regexp)
   :group 'gnus-article-hiding)
 
 (defcustom gnus-sorted-header-list
@@ -2962,7 +2965,6 @@ message header will be added to the bodies of the \"text/html\" parts."
 	       (setq showed t)))))
     showed))
 
-;; FIXME: Documentation in texi/gnus.texi missing.
 (defun gnus-article-browse-html-article (&optional arg)
   "View \"text/html\" parts of the current article with a WWW browser.
 The message header is added to the beginning of every html part unless
@@ -2970,18 +2972,20 @@ the prefix argument ARG is given.
 
 Warning: Spammers use links to images in HTML articles to verify
 whether you have read the message.  As
-`gnus-article-browse-html-article' passes the unmodified HTML
-content to the browser without eliminating these \"web bugs\" you
-should only use it for mails from trusted senders.
+`gnus-article-browse-html-article' passes the HTML content to the
+browser without eliminating these \"web bugs\" you should only
+use it for mails from trusted senders.
 
-If you alwasy want to display HTML part in the browser, set
+If you always want to display HTML parts in the browser, set
 `mm-text-html-renderer' to nil."
   ;; Cf. `mm-w3m-safe-url-regexp'
   (interactive "P")
   (if arg
       (gnus-summary-show-article)
     (let ((gnus-visible-headers (or (get 'gnus-visible-headers 'standard-value)
-				    gnus-visible-headers)))
+				    gnus-visible-headers))
+	  ;; As we insert a <hr>, there's no need for the body boundary.
+	  (gnus-treat-body-boundary nil))
       (gnus-summary-show-article)))
   (with-current-buffer gnus-article-buffer
     (let ((header (unless arg
@@ -6894,7 +6898,8 @@ groups."
 	 (concat
 	  "\\(?:"
 	  ;; Match paired parentheses, e.g. in Wikipedia URLs:
-	  "[" chars punct "]+" "(" "[" chars punct "]+" "[" chars "]*)" "[" chars "]"
+	  ;; http://thread.gmane.org/47B4E3B2.3050402@gmail.com
+	  "[" chars punct "]+" "(" "[" chars punct "]+" "[" chars "]*)" "[" chars "]*"
 	  "\\|"
 	  "[" chars punct     "]+" "[" chars "]"
 	  "\\)"))
@@ -7339,9 +7344,9 @@ positives are possible."
      1 (>= gnus-button-emacs-level 1) gnus-button-handle-info-url-kde 2)
     ("\\((Info-goto-node\\|(info\\)[ \t\n]*\\(\"[^\"]*\"\\))" 0
      (>= gnus-button-emacs-level 1) gnus-button-handle-info-url 2)
-    ("\\b\\(C-h\\|<?[Ff]1>?\\)[ \t\n]+i[ \t\n]+d?[ \t\n]?m[ \t\n]+\\([^ ]+ ?[^ ]+\\)[ \t\n]+RET"
-     ;; Info links like `C-h i d m CC Mode RET'
-     0 (>= gnus-button-emacs-level 1) gnus-button-handle-info-keystrokes 2)
+    ("\\b\\(C-h\\|<?[Ff]1>?\\)[ \t\n]+i[ \t\n]+d?[ \t\n]?m[ \t\n]+[^ ]+ ?[^ ]+[ \t\n]+RET\\([ \t\n]+i[ \t\n]+[^ ]+ ?[^ ]+[ \t\n]+RET\\([ \t\n,]*\\)\\)?"
+     ;; Info links like `C-h i d m Gnus RET' or `C-h i d m Gnus RET i partial RET'
+     0 (>= gnus-button-emacs-level 1) gnus-button-handle-info-keystrokes 0)
     ;; This is custom
     ("M-x[ \t\n]\\(customize-[^ ]+\\)[ \t\n]RET[ \t\n]\\([^ ]+\\)[ \t\n]RET" 0
      (>= gnus-button-emacs-level 1) gnus-button-handle-custom 1 2)
@@ -7887,13 +7892,40 @@ url is put as the `gnus-button-url' overlay property on the button."
 
 ;; (info) will autoload info.el
 (declare-function Info-menu "info" (menu-item &optional fork))
+(declare-function Info-index-next "info" (num))
 
 (defun gnus-button-handle-info-keystrokes (url)
   "Call `info' when pushing the corresponding URL button."
-  ;; For links like `C-h i d m gnus RET', `C-h i d m CC Mode RET'.
-  (info)
-  (Info-directory)
-  (Info-menu url))
+  ;; For links like `C-h i d m gnus RET part RET , ,', `C-h i d m CC Mode RET'.
+  (let (node indx comma)
+    (if (string-match
+	 (concat "\\b\\(C-h\\|<?[Ff]1>?\\)[ \t\n]+i[ \t\n]+d?[ \t\n]?m[ \t\n]+"
+		 "\\([^ ]+ ?[^ ]+\\)[ \t\n]+RET"
+		 "\\([ \t\n]+i[ \t\n]+[^ ]+ ?[^ ]+[ \t\n]+RET"
+		 "\\(?:[ \t\n,]*\\)\\)?")
+	 url)
+	(setq node (match-string 2 url)
+	      indx (match-string 3 url))
+      (error "Can't parse %s" url))
+    (info)
+    (Info-directory)
+    (Info-menu node)
+    (when (> (length indx) 0)
+      (string-match (concat "[ \t\n]+i[ \t\n]+\\([^ ]+ ?[^ ]+\\)[ \t\n]+RET"
+			    "\\([ \t\n,]*\\)")
+		    indx)
+      (setq comma (match-string 2 indx))
+      (setq indx  (match-string 1 indx))
+      (Info-index indx)
+      (when comma
+	(dotimes (i (with-temp-buffer
+		      (insert comma)
+		      ;; Note: the XEmacs version of `how-many' takes
+		      ;; no optional argument.
+		      (goto-char (point-min))
+		      (how-many ",")))
+	  (Info-index-next 1)))
+      nil)))
 
 ;; Called after pgg-snarf-keys-region, which autoloads pgg.el.
 (declare-function pgg-display-output-buffer "pgg" (start end status))
