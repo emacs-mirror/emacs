@@ -3848,16 +3848,22 @@ displayed.  */)
       else
 	window = Fget_largest_window (frames, Qt);
 
-      /* If the largest window is tall enough, full-width, and either eligible
-	 for splitting or the only window, split it.  */
-      if (!NILP (window)
-	  && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
-	  && WINDOW_FULL_WIDTH_P (XWINDOW (window))
-	       && (window_height (window) >= split_height_threshold
-		   || (NILP (XWINDOW (window)->parent)))
-	  && (window_height (window)
-	      >= (2 * window_min_size_2 (XWINDOW (window), 0))))
-	window = call1 (Vsplit_window_preferred_function, window);
+      if (!NILP (Vsplit_window_preferred_function))
+	tem = call1 (Vsplit_window_preferred_function, window);
+
+      if (!NILP (tem))
+	window = tem;
+      else
+	/* If the largest window is tall enough, full-width, and either eligible
+	   for splitting or the only window, split it.  */
+	if (!NILP (window)
+	    && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
+	    && WINDOW_FULL_WIDTH_P (XWINDOW (window))
+	    && (window_height (window) >= split_height_threshold
+		|| (NILP (XWINDOW (window)->parent)))
+	    && (window_height (window)
+		>= (2 * window_min_size_2 (XWINDOW (window), 0))))
+	  window = Fsplit_window (window, Qnil, Qnil);
       else
 	{
 	  Lisp_Object upper, other;
@@ -3867,12 +3873,12 @@ displayed.  */)
 	     splitting and selected or the only window, split it.  */
 	  if (!NILP (window)
 	      && ! FRAME_NO_SPLIT_P (XFRAME (XWINDOW (window)->frame))
-		   && ((EQ (window, selected_window)
-			&& window_height (window) >= split_height_threshold)
-		       || (NILP (XWINDOW (window)->parent)))
-		   && (window_height (window)
-		       >= (2 * window_min_size_2 (XWINDOW (window), 0))))
-	    window = call1 (Vsplit_window_preferred_function, window);
+	      && ((EQ (window, selected_window)
+		   && window_height (window) >= split_height_threshold)
+		  || (NILP (XWINDOW (window)->parent)))
+	      && (window_height (window)
+		  >= (2 * window_min_size_2 (XWINDOW (window), 0))))
+	    window = Fsplit_window (window, Qnil, Qnil);
 	  else
 	    window = Fget_lru_window (frames, Qnil);
 	  /* If Fget_lru_window returned nil, try other approaches.  */
@@ -7596,9 +7602,12 @@ If there is only one window, it is split regardless of this value.  */);
 	       doc: /* Function to use to split a window.
 This is used by `display-buffer' to allow the user to choose whether
 to split windows horizontally or vertically or some mix of the two.
+When this variable is nil, `display-buffer' splits windows vertically.
+Otherwise, `display-buffer' calls this function to split a window.
 It is called with a window as single argument and should split it in two
-and return the new window.  */);
-  Vsplit_window_preferred_function = intern ("split-window");
+and return the new window, or return an appropriate existing window
+if splitting is not eligible.  */);
+  Vsplit_window_preferred_function = Qnil;
 
   DEFVAR_INT ("window-min-height", &window_min_height,
 	      doc: /* *Delete any window less than this tall (including its mode line).
