@@ -9,7 +9,7 @@
 @c In the Tramp CVS, the version number is auto-frobbed from
 @c configure.ac, so you should edit that file and run
 @c "autoconf && ./configure" to change the version number.
-@set trampver 2.1.13-pre
+@set trampver 2.1.13
 
 @c Other flags from configuration
 @set instprefix /usr/local
