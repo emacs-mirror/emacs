@@ -63,11 +63,6 @@
 	* gnus-win.el (gnus-configure-frame, gnus-all-windows-visible-p):
 	Prefer fboundp to functionp so it works with macros as well.
 
-2008-03-19  Glenn Morris  <rgm@gnu.org>
-
-	* tls.el (open-tls-stream): Restore use of `tls-end-of-info'.
-	Accidentally removed in the sync process with Emacs.
-
 2008-03-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-alter-recipients-discard-bogus-full-name): New
