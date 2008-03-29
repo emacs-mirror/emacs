@@ -1,5 +1,14 @@
 2008-03-29  Juri Linkov  <juri@jurta.org>
 
+	* window.el (split-window-preferred-horizontally): New function.
+
+	* cus-start.el (split-window-preferred-function):
+	Set choice for "vertically" to nil instead of split-window.
+	Set choice for "horizontally" to split-window-preferred-horizontally
+	instead of lambda.
+
+2008-03-29  Juri Linkov  <juri@jurta.org>
+
 	* simple.el (minibuffer-default-add-function): New variable with
 	the default to minibuffer-default-add-completions.
 	(minibuffer-default-add-done): New variable.  Make it buffer-local.
