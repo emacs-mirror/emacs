@@ -1304,10 +1304,49 @@ makes the search case-sensitive."
 
 (defvar minibuffer-temporary-goal-position nil)
 
+(defvar minibuffer-default-add-function 'minibuffer-default-add-completions
+  "Function run by `goto-history-element' before consuming `minibuffer-default'.
+This is useful to dynamically add more elements to the list `minibuffer-default'
+when `goto-history-element' reaches the end of this list.
+Before calling this function `goto-history-element' sets the variable
+`minibuffer-default-add-done' to t, so it will call this function only
+once.  In special cases, when this function needs to be called more
+than once, it can set `minibuffer-default-add-done' to nil explicitly,
+overriding the setting of this variable to t in `goto-history-element'.")
+
+(defvar minibuffer-default-add-done nil
+  "When nil, add more elements to the end of the list of default values.
+The value nil causes `goto-history-element' to add more elements to
+the list of defaults when it reaches the end of this list.  It does
+this by calling a function defined by `minibuffer-default-add-function'.")
+
+(make-variable-buffer-local 'minibuffer-default-add-done)
+
+(defun minibuffer-default-add-completions ()
+  "Return a list of all completions without the default value.
+This function is used to add all elements of the completion table to
+the end of the list of defaults just after the default value."
+  (interactive)
+  (let ((def minibuffer-default)
+	(all (all-completions ""
+			      minibuffer-completion-table
+			      minibuffer-completion-predicate
+			      t)))
+    (if (listp def)
+	(append def all)
+      (cons def (delete def all)))))
+
 (defun goto-history-element (nabs)
   "Puts element of the minibuffer history in the minibuffer.
 The argument NABS specifies the absolute history position."
   (interactive "p")
+  (when (and (not minibuffer-default-add-done)
+	     (functionp minibuffer-default-add-function)
+	     (< nabs (- (if (listp minibuffer-default)
+			    (length minibuffer-default)
+			  1))))
+    (setq minibuffer-default-add-done t
+	  minibuffer-default (funcall minibuffer-default-add-function)))
   (let ((minimum (if minibuffer-default
 		     (- (if (listp minibuffer-default)
 			    (length minibuffer-default)
@@ -1320,7 +1359,7 @@ The argument NABS specifies the absolute history position."
 	      (minibuffer-contents-no-properties)))
     (if (< nabs minimum)
 	(if minibuffer-default
-	    (error "End of history; no next item")
+	    (error "End of defaults; no next item")
 	  (error "End of history; no default available")))
     (if (> nabs (length (symbol-value minibuffer-history-variable)))
 	(error "Beginning of history; no preceding item"))
