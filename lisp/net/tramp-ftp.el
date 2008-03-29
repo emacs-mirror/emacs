@@ -32,7 +32,11 @@
 (require 'tramp)
 (autoload 'tramp-set-connection-property "tramp-cache")
 
-(eval-when-compile (require 'custom))
+(eval-when-compile
+
+  ;; Pacify byte-compiler.
+  (require 'cl)
+  (require 'custom))
 
 ;; Disable Ange-FTP from file-name-handler-alist.
 ;; To handle EFS, the following functions need to be dealt with:
