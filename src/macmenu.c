@@ -39,7 +39,7 @@ Boston, MA 02110-1301, USA.  */
 #if !TARGET_API_MAC_CARBON
 #include <MacTypes.h>
 #include <Menus.h>
-#include <QuickDraw.h>
+#include <Quickdraw.h>
 #include <ToolUtils.h>
 #include <Fonts.h>
 #include <Controls.h>
@@ -200,7 +200,7 @@ static void list_of_items P_ ((Lisp_Object));
 
 static void find_and_call_menu_selection P_ ((FRAME_PTR, int, Lisp_Object,
 					      void *));
-static int fill_menu P_ ((MenuHandle, widget_value *, enum mac_menu_kind, int));
+static int fill_menu P_ ((MenuRef, widget_value *, enum mac_menu_kind, int));
 static void fill_menubar P_ ((widget_value *, int));
 static void dispose_menus P_ ((enum mac_menu_kind, int));
 
@@ -882,7 +882,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
 /* Regard ESC and C-g as Cancel even without the Cancel button.  */
 
-#ifdef MAC_OSX
+#if 0 /* defined (MAC_OSX) */
 static Boolean
 mac_dialog_modal_filter (dialog, event, item_hit)
      DialogRef dialog;
@@ -991,7 +991,7 @@ for instance using the window manager, then this produces a quit and
        but I don't want to make one now.  */
     CHECK_WINDOW (window);
 
-#ifdef MAC_OSX
+#if 0 /* defined (MAC_OSX) */
   /* Special treatment for Fmessage_box, Fyes_or_no_p, and Fy_or_n_p.  */
   if (EQ (position, Qt)
       && STRINGP (Fcar (contents))
@@ -1162,7 +1162,7 @@ x_activate_menubar (f)
 #endif
     if (menu_id)
       {
-        MenuHandle menu = GetMenuHandle (menu_id);
+        MenuRef menu = GetMenuRef (menu_id);
 
         if (menu)
           {
@@ -1595,14 +1595,16 @@ menu_target_item_handler (next_handler, event, data)
      EventRef event;
      void *data;
 {
-  OSStatus err, result;
+  OSStatus err;
   MenuRef menu;
   MenuItemIndex menu_item;
   Lisp_Object help;
   GrafPtr port;
   int specpdl_count = SPECPDL_INDEX ();
 
-  result = CallNextEventHandler (next_handler, event);
+  /* Don't be bothered with the overflowed toolbar items menu.  */
+  if (!popup_activated ())
+    return eventNotHandledErr;
 
   err = GetEventParameter (event, kEventParamDirectObject, typeMenuRef,
 			   NULL, sizeof (MenuRef), NULL, &menu);
@@ -1626,30 +1628,21 @@ menu_target_item_handler (next_handler, event, data)
   SetPort (port);
   unbind_to (specpdl_count, Qnil);
 
-  return err == noErr ? noErr : result;
+  return err == noErr ? noErr : eventNotHandledErr;
 }
-#endif
 
 OSStatus
-install_menu_target_item_handler (window)
-     WindowPtr window;
+install_menu_target_item_handler ()
 {
-  OSStatus err = noErr;
-#if TARGET_API_MAC_CARBON
   static const EventTypeSpec specs[] =
     {{kEventClassMenu, kEventMenuTargetItem}};
-  static EventHandlerUPP menu_target_item_handlerUPP = NULL;
 
-  if (menu_target_item_handlerUPP == NULL)
-    menu_target_item_handlerUPP =
-      NewEventHandlerUPP (menu_target_item_handler);
-
-  err = InstallWindowEventHandler (window, menu_target_item_handlerUPP,
-				   GetEventTypeCount (specs), specs,
-				   NULL, NULL);
-#endif
-  return err;
+  return InstallApplicationEventHandler (NewEventHandlerUPP
+					 (menu_target_item_handler),
+					 GetEventTypeCount (specs),
+					 specs, NULL, NULL);
 }
+#endif  /* TARGET_API_MAC_CARBON */
 
 /* Event handler function that pops down a menu on C-g.  We can only pop
    down menus if CancelMenuTracking is present (OSX 10.3 or later).  */
@@ -1687,15 +1680,15 @@ menu_quit_handler (nextHandler, theEvent, userData)
 }
 #endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030 */
 
-/* Add event handler to all menus that belong to KIND so we can detect C-g.
-   MENU_HANDLE is the root menu of the tracking session to dismiss
-   when C-g is detected.  NULL means the menu bar.
-   If CancelMenuTracking isn't available, do nothing.  */
+/* Add event handler to all menus that belong to KIND so we can detect
+   C-g.  ROOT_MENU is the root menu of the tracking session to dismiss
+   when C-g is detected.  NULL means the menu bar.  If
+   CancelMenuTracking isn't available, do nothing.  */
 
 static void
-install_menu_quit_handler (kind, menu_handle)
+install_menu_quit_handler (kind, root_menu)
      enum mac_menu_kind kind;
-     MenuHandle menu_handle;
+     MenuRef root_menu;
 {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
   static const EventTypeSpec typesList[] =
@@ -1708,13 +1701,13 @@ install_menu_quit_handler (kind, menu_handle)
 #endif
   for (id = min_menu_id[kind]; id < min_menu_id[kind + 1]; id++)
     {
-      MenuHandle menu = GetMenuHandle (id);
+      MenuRef menu = GetMenuRef (id);
 
       if (menu == NULL)
 	break;
       InstallMenuEventHandler (menu, menu_quit_handler,
 			       GetEventTypeCount (typesList),
-			       typesList, menu_handle, NULL);
+			       typesList, root_menu, NULL);
     }
 #endif	/* MAC_OS_X_VERSION_MAX_ALLOWED >= 1030 */
 }
@@ -1738,10 +1731,13 @@ set_frame_menubar (f, first_time, deep_p)
 
   XSETFRAME (Vmenu_updating_frame, f);
 
+  /* This seems to be unnecessary for Carbon.  */
+#if 0
   if (! menubar_widget)
     deep_p = 1;
   else if (pending_menu_activation && !deep_p)
     deep_p = 1;
+#endif
 
   if (deep_p)
     {
@@ -1978,7 +1974,7 @@ pop_down_menu (arg)
 {
   struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
   FRAME_PTR f = p->pointer;
-  MenuHandle menu = GetMenuHandle (min_menu_id[MAC_MENU_POPUP]);
+  MenuRef menu = GetMenuRef (min_menu_id[MAC_MENU_POPUP]);
 
   BLOCK_INPUT;
 
@@ -2024,8 +2020,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   int i;
   int menu_item_choice;
   UInt32 menu_item_selection;
-  MenuHandle menu;
-  Point pos;
+  MenuRef menu;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
   widget_value **submenu_stack
     = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
@@ -2231,11 +2226,8 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   free_menubar_widget_value_tree (first_wv);
 
   /* Adjust coordinates to be root-window-relative.  */
-  pos.h = x;
-  pos.v = y;
-
-  SetPortWindowPort (FRAME_MAC_WINDOW (f));
-  LocalToGlobal (&pos);
+  x += f->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
+  y += f->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
 
   /* No selection has been chosen yet.  */
   menu_item_selection = 0;
@@ -2248,13 +2240,13 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
   /* Display the menu.  */
   popup_activated_flag = 1;
-  menu_item_choice = PopUpMenuSelect (menu, pos.v, pos.h, 0);
+  menu_item_choice = PopUpMenuSelect (menu, y, x, 0);
   popup_activated_flag = 0;
 
   /* Get the refcon to find the correct item */
   if (menu_item_choice)
     {
-      MenuHandle sel_menu = GetMenuHandle (HiWord (menu_item_choice));
+      MenuRef sel_menu = GetMenuRef (HiWord (menu_item_choice));
 
       if (sel_menu)
 	GetMenuItemRefCon (sel_menu, LoWord (menu_item_choice),
@@ -2330,13 +2322,24 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
 #if TARGET_API_MAC_CARBON
 
+#define DIALOG_BUTTON_COMMAND_ID_OFFSET 'Bt\0\0'
+#define DIALOG_BUTTON_COMMAND_ID_P(id)			\
+  (((id) & ~0xffff) == DIALOG_BUTTON_COMMAND_ID_OFFSET)
+#define DIALOG_BUTTON_COMMAND_ID_VALUE(id)	\
+  ((id) - DIALOG_BUTTON_COMMAND_ID_OFFSET)
+#define DIALOG_BUTTON_MAKE_COMMAND_ID(value)	\
+  ((value) + DIALOG_BUTTON_COMMAND_ID_OFFSET)
+
+extern EMACS_TIME timer_check P_ ((int));
+static int quit_dialog_event_loop;
+
 static pascal OSStatus
 mac_handle_dialog_event (next_handler, event, data)
      EventHandlerCallRef next_handler;
      EventRef event;
      void *data;
 {
-  OSStatus err;
+  OSStatus err, result = eventNotHandledErr;
   WindowRef window = (WindowRef) data;
 
   switch (GetEventClass (event))
@@ -2349,15 +2352,14 @@ mac_handle_dialog_event (next_handler, event, data)
 				 typeHICommand, NULL, sizeof (HICommand),
 				 NULL, &command);
 	if (err == noErr)
-	  if ((command.commandID & ~0xffff) == 'Bt\0\0')
+	  if (DIALOG_BUTTON_COMMAND_ID_P (command.commandID))
 	    {
 	      SetWRefCon (window, command.commandID);
-	      err = QuitAppModalLoopForWindow (window);
-
-	      return err == noErr ? noErr : eventNotHandledErr;
+	      quit_dialog_event_loop = 1;
+	      break;
 	    }
 
-	return CallNextEventHandler (next_handler, event);
+	result = CallNextEventHandler (next_handler, event);
       }
       break;
 
@@ -2367,8 +2369,8 @@ mac_handle_dialog_event (next_handler, event, data)
 	char char_code;
 
 	result = CallNextEventHandler (next_handler, event);
-	if (result == noErr)
-	  return noErr;
+	if (result != eventNotHandledErr)
+	  break;
 
 	err = GetEventParameter (event, kEventParamKeyMacCharCodes,
 				 typeChar, NULL, sizeof (char),
@@ -2377,7 +2379,7 @@ mac_handle_dialog_event (next_handler, event, data)
 	  switch (char_code)
 	    {
 	    case kEscapeCharCode:
-	      err = QuitAppModalLoopForWindow (window);
+	      quit_dialog_event_loop = 1;
 	      break;
 
 	    default:
@@ -2392,23 +2394,26 @@ mac_handle_dialog_event (next_handler, event, data)
 					   typeUInt32, NULL, sizeof (UInt32),
 					   NULL, &key_code);
 		if (err == noErr)
-		  {
-		    if (mac_quit_char_key_p (modifiers, key_code))
-		      err = QuitAppModalLoopForWindow (window);
-		    else
-		      err = eventNotHandledErr;
-		  }
+		  if (mac_quit_char_key_p (modifiers, key_code))
+		    quit_dialog_event_loop = 1;
 	      }
 	      break;
 	    }
-
-	return err == noErr ? noErr : result;
       }
       break;
 
     default:
       abort ();
     }
+
+  if (quit_dialog_event_loop)
+    {
+      err = QuitEventLoop (GetCurrentEventLoop ());
+      if (err == noErr)
+	result = noErr;
+    }
+
+  return result;
 }
 
 static OSStatus
@@ -2443,6 +2448,25 @@ install_dialog_event_handler (window)
 #define DIALOG_ICON_LEFT_MARGIN (24)
 #define DIALOG_ICON_TOP_MARGIN (15)
 
+static Lisp_Object
+pop_down_dialog (arg)
+     Lisp_Object arg;
+{
+  struct Lisp_Save_Value *p = XSAVE_VALUE (arg);
+  WindowRef window = p->pointer;
+
+  BLOCK_INPUT;
+
+  if (popup_activated_flag)
+    EndAppModalStateForWindow (window);
+  DisposeWindow (window);
+  popup_activated_flag = 0;
+
+  UNBLOCK_INPUT;
+
+  return Qnil;
+}
+
 static int
 create_and_show_dialog (f, first_wv)
      FRAME_PTR f;
@@ -2456,6 +2480,7 @@ create_and_show_dialog (f, first_wv)
   Rect empty_rect, *rects;
   WindowRef window = NULL;
   ControlRef *buttons, default_button = NULL, text;
+  int specpdl_count = SPECPDL_INDEX ();
 
   dialog_name = first_wv->name;
   nb_buttons = dialog_name[1] - '0';
@@ -2472,8 +2497,11 @@ create_and_show_dialog (f, first_wv)
 			 kWindowStandardHandlerAttribute,
 			 &empty_rect, &window);
   if (err == noErr)
-    err = SetThemeWindowBackground (window, kThemeBrushMovableModalBackground,
-				    true);
+    {
+      record_unwind_protect (pop_down_dialog, make_save_value (window, 0));
+      err = SetThemeWindowBackground (window, kThemeBrushMovableModalBackground,
+				      true);
+    }
   if (err == noErr)
     err = SetWindowTitleWithCFString (window, (dialog_name[0] == 'Q'
 					       ? CFSTR ("Question")
@@ -2518,14 +2546,16 @@ create_and_show_dialog (f, first_wv)
 	    }
 	  if (err == noErr)
 	    {
+	      UInt32 command_id;
+
 	      OffsetRect (&rects[i], -rects[i].left, -rects[i].top);
 	      if (rects[i].right < DIALOG_BUTTON_MIN_WIDTH)
 		rects[i].right = DIALOG_BUTTON_MIN_WIDTH;
 	      else if (rects[i].right > DIALOG_MAX_INNER_WIDTH)
 		rects[i].right = DIALOG_MAX_INNER_WIDTH;
 
-	      err = SetControlCommandID (buttons[i],
-					 'Bt\0\0' + (int) wv->call_data);
+	      command_id = DIALOG_BUTTON_MAKE_COMMAND_ID ((int) wv->call_data);
+	      err = SetControlCommandID (buttons[i], command_id);
 	    }
 	  if (err != noErr)
 	    break;
@@ -2696,18 +2726,66 @@ create_and_show_dialog (f, first_wv)
       SetWRefCon (window, 0);
       ShowWindow (window);
       BringToFront (window);
-      err = RunAppModalLoopForWindow (window);
+      popup_activated_flag = 1;
+      err = BeginAppModalStateForWindow (window);
+    }
+  if (err == noErr)
+    {
+      EventTargetRef toolbox_dispatcher = GetEventDispatcherTarget ();
+
+      quit_dialog_event_loop = 0;
+      while (1)
+	{
+	  EMACS_TIME next_time = timer_check (1);
+	  long secs = EMACS_SECS (next_time);
+	  long usecs = EMACS_USECS (next_time);
+	  EventTimeout timeout;
+	  EventRef event;
+
+	  if (secs < 0 || (secs == 0 && usecs == 0))
+	    {
+	      /* Sometimes timer_check returns -1 (no timers) even if
+		 there are timers.  So do a timeout anyway.  */
+	      secs = 1;
+	      usecs = 0;
+	    }
+
+	  timeout = (secs * kEventDurationSecond
+		     + usecs * kEventDurationMicrosecond);
+	  err = ReceiveNextEvent (0, NULL, timeout, kEventRemoveFromQueue,
+				  &event);
+	  if (err == noErr)
+	    {
+	      SendEventToEventTarget (event, toolbox_dispatcher);
+	      ReleaseEvent (event);
+	    }
+#if 0 /* defined (MAC_OSX) */
+	  else if (err != eventLoopTimedOutErr)
+	    {
+	      if (err == eventLoopQuitErr)
+		err = noErr;
+	      break;
+	    }
+#else
+	  /* The return value of ReceiveNextEvent seems to be
+	     unreliable.  Use our own global variable instead.  */
+	  if (quit_dialog_event_loop)
+	    {
+	      err = noErr;
+	      break;
+	    }
+#endif
+	}
     }
   if (err == noErr)
     {
       UInt32 command_id = GetWRefCon (window);
 
-      if ((command_id & ~0xffff) == 'Bt\0\0')
-	result = command_id - 'Bt\0\0';
+      if (DIALOG_BUTTON_COMMAND_ID_P (command_id))
+	result = DIALOG_BUTTON_COMMAND_ID_VALUE (command_id);
     }
 
-  if (window)
-    DisposeWindow (window);
+  unbind_to (specpdl_count, Qnil);
 
   return result;
 }
@@ -2724,8 +2802,8 @@ mac_dialog (widget_value *wv)
   int i;
   int dialog_width;
   Rect rect;
-  WindowPtr window_ptr;
-  ControlHandle ch;
+  WindowRef window_ptr;
+  ControlRef ch;
   int left;
   EventRecord event_record;
   SInt16 part_code;
@@ -2754,7 +2832,7 @@ mac_dialog (widget_value *wv)
       wv = wv->next;
     }
 
-  window_ptr = GetNewCWindow (DIALOG_WINDOW_RESOURCE, NULL, (WindowPtr) -1);
+  window_ptr = GetNewCWindow (DIALOG_WINDOW_RESOURCE, NULL, (WindowRef) -1);
 
   SetPortWindowPort (window_ptr);
 
@@ -3031,7 +3109,7 @@ name_is_separator (name)
 
 static void
 add_menu_item (menu, pos, wv)
-     MenuHandle menu;
+     MenuRef menu;
      int pos;
      widget_value *wv;
 {
@@ -3108,7 +3186,7 @@ add_menu_item (menu, pos, wv)
 
 static int
 fill_menu (menu, wv, kind, submenu_id)
-     MenuHandle menu;
+     MenuRef menu;
      widget_value *wv;
      enum mac_menu_kind kind;
      int submenu_id;
@@ -3120,10 +3198,14 @@ fill_menu (menu, wv, kind, submenu_id)
       add_menu_item (menu, pos, wv);
       if (wv->contents && submenu_id < min_menu_id[kind + 1])
 	{
-	  MenuHandle submenu = NewMenu (submenu_id, "\pX");
+	  MenuRef submenu = NewMenu (submenu_id, "\pX");
 
 	  InsertMenu (submenu, -1);
+#if TARGET_API_MAC_CARBON
+	  SetMenuItemHierarchicalMenu (menu, pos, submenu);
+#else
 	  SetMenuItemHierarchicalID (menu, pos, submenu_id);
+#endif
 	  submenu_id = fill_menu (submenu, wv->contents, kind, submenu_id + 1);
 	}
     }
@@ -3139,8 +3221,6 @@ fill_menubar (wv, deep_p)
      int deep_p;
 {
   int id, submenu_id;
-  MenuHandle menu;
-  Str255 title;
 #if !TARGET_API_MAC_CARBON
   int title_changed_p = 0;
 #endif
@@ -3162,41 +3242,59 @@ fill_menubar (wv, deep_p)
        wv != NULL && id < min_menu_id[MAC_MENU_MENU_BAR + 1];
        wv = wv->next, id++)
     {
+      OSStatus err = noErr;
+      MenuRef menu;
+#if TARGET_API_MAC_CARBON
+      CFStringRef title;
+
+      title = CFStringCreateWithCString (NULL, wv->name,
+					 kCFStringEncodingMacRoman);
+#else
+      Str255 title;
+
       strncpy (title, wv->name, 255);
       title[255] = '\0';
       c2pstr (title);
+#endif
 
-      menu = GetMenuHandle (id);
+      menu = GetMenuRef (id);
       if (menu)
 	{
 #if TARGET_API_MAC_CARBON
-	  Str255 old_title;
+	  CFStringRef old_title;
 
-	  GetMenuTitle (menu, old_title);
-	  if (!EqualString (title, old_title, false, false))
+	  err = CopyMenuTitleAsCFString (menu, &old_title);
+	  if (err == noErr)
 	    {
-#ifdef MAC_OSX
-	      if (id + 1 == min_menu_id[MAC_MENU_MENU_BAR + 1]
-		  || GetMenuRef (id + 1) == NULL)
+	      if (CFStringCompare (title, old_title, 0) != kCFCompareEqualTo)
 		{
-		  /* This is a workaround for Mac OS X 10.5 where just
-		     calling SetMenuTitle fails to change the title of
-		     the last (Help) menu in the menu bar.  */
-		  DeleteMenu (id);
-		  DisposeMenu (menu);
-		  menu = NULL;
-		}
-	      else
+#ifdef MAC_OSX
+		  if (id + 1 == min_menu_id[MAC_MENU_MENU_BAR + 1]
+		      || GetMenuRef (id + 1) == NULL)
+		    {
+		      /* This is a workaround for Mac OS X 10.5 where
+			 just calling SetMenuTitleWithCFString fails
+			 to change the title of the last (Help) menu
+			 in the menu bar.  */
+		      DeleteMenu (id);
+		      DisposeMenu (menu);
+		      menu = NULL;
+		    }
+		  else
 #endif	/* MAC_OSX */
-		SetMenuTitle (menu, title);
+		    err = SetMenuTitleWithCFString (menu, title);
+		}
+	      CFRelease (old_title);
 	    }
+	  else
+	    err = SetMenuTitleWithCFString (menu, title);
 #else  /* !TARGET_API_MAC_CARBON */
 	  if (!EqualString (title, (*menu)->menuData, false, false))
 	    {
 	      DeleteMenu (id);
 	      DisposeMenu (menu);
 	      menu = NewMenu (id, title);
-	      InsertMenu (menu, GetMenuHandle (id + 1) ? id + 1 : 0);
+	      InsertMenu (menu, GetMenuRef (id + 1) ? id + 1 : 0);
 	      title_changed_p = 1;
 	    }
 #endif  /* !TARGET_API_MAC_CARBON */
@@ -3204,19 +3302,32 @@ fill_menubar (wv, deep_p)
 
       if (!menu)
 	{
+#if TARGET_API_MAC_CARBON
+	  err = CreateNewMenu (id, 0, &menu);
+	  if (err == noErr)
+	    err = SetMenuTitleWithCFString (menu, title);
+#else
 	  menu = NewMenu (id, title);
-	  InsertMenu (menu, 0);
-#if !TARGET_API_MAC_CARBON
-	  title_changed_p = 1;
 #endif
+	  if (err == noErr)
+	    {
+	      InsertMenu (menu, 0);
+#if !TARGET_API_MAC_CARBON
+	      title_changed_p = 1;
+#endif
+	    }
 	}
+#if TARGET_API_MAC_CARBON
+      CFRelease (title);
+#endif
 
-      if (wv->contents)
-        submenu_id = fill_menu (menu, wv->contents, MAC_MENU_MENU_BAR_SUB,
-				submenu_id);
+      if (err == noErr)
+	if (wv->contents)
+	  submenu_id = fill_menu (menu, wv->contents, MAC_MENU_MENU_BAR_SUB,
+				  submenu_id);
     }
 
-  if (id < min_menu_id[MAC_MENU_MENU_BAR + 1] && GetMenuHandle (id))
+  if (id < min_menu_id[MAC_MENU_MENU_BAR + 1] && GetMenuRef (id))
     {
       dispose_menus (MAC_MENU_MENU_BAR, id);
 #if !TARGET_API_MAC_CARBON
@@ -3240,7 +3351,7 @@ dispose_menus (kind, id)
 {
   for (id = max (id, min_menu_id[kind]); id < min_menu_id[kind + 1]; id++)
     {
-      MenuHandle menu = GetMenuHandle (id);
+      MenuRef menu = GetMenuRef (id);
 
       if (menu == NULL)
 	break;
@@ -3265,9 +3376,13 @@ DEFUN ("menu-or-popup-active-p", Fmenu_or_popup_active_p, Smenu_or_popup_active_
        doc: /* Return t if a menu or popup dialog is active.  */)
      ()
 {
+#if TARGET_API_MAC_CARBON
+  return (popup_activated ()) ? Qt : Qnil;
+#else
   /* Always return Qnil since menu selection functions do not return
      until a selection has been made or cancelled.  */
   return Qnil;
+#endif
 }
 
 void
