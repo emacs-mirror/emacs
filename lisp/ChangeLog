@@ -1,3 +1,19 @@
+2008-03-29  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (minibuffer-default-add-function): New variable with
+	the default to minibuffer-default-add-completions.
+	(minibuffer-default-add-done): New variable.  Make it buffer-local.
+	(minibuffer-default-add-completions): New function.
+	(goto-history-element): Set minibuffer-default-add-done to t and
+	call a function in minibuffer-default-add-function when the
+	specified absolute history position is greater than the length of
+	the minibuffer-default list and minibuffer-default-add-done is nil.
+	Change "^End of history; no next item$" to "^End of defaults;
+	no next item$".
+
+	* bindings.el (debug-ignored-errors): Change "^End of history;
+	no next item$" to "^End of defaults; no next item$".
+
 2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (with-temp-buffer): Assume kill-buffer can change cur-buf.
