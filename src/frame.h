@@ -219,7 +219,7 @@ struct frame
      be used for output.  */
   unsigned glyphs_initialized_p : 1;
 
-#if defined (USE_GTK)
+#if defined (USE_GTK) || defined (MAC_OS)
   /* Nonzero means using a tool bar that comes from the toolkit.  */
   int external_tool_bar;
 #endif
@@ -554,7 +554,7 @@ typedef struct frame *FRAME_PTR;
 
 /* Nonzero if this frame should display a tool bar
    in a way that does not use any text lines.  */
-#if defined (USE_GTK)
+#if defined (USE_GTK) || defined (MAC_OS)
 #define FRAME_EXTERNAL_TOOL_BAR(f) (f)->external_tool_bar
 #else
 #define FRAME_EXTERNAL_TOOL_BAR(f) 0
