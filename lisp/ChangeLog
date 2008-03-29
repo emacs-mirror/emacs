@@ -1,3 +1,8 @@
+2008-03-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ae-reopen-application): New function.
+	(mac-apple-event-map): Bind "reopen application" Apple event to it.
+
 2008-03-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* term/mac-win.el (mac-dnd-drop-data): Remove redundant check.
