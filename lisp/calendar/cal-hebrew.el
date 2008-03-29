@@ -285,25 +285,25 @@ nil if it is not visible in the current calendar window."
              (if (<  8 month) (- month  8) (+ month 4))
              (if (<  7 month) (- month  7) (+ month 5))))
       (let ((m1 displayed-month)
-            (y1 displayed-year)
-            (m2 displayed-month)
-            (y2 displayed-year)
+              (y1 displayed-year)
+              (m2 displayed-month)
+              (y2 displayed-year)
             (year))
-        (increment-calendar-month m1 y1 -1)
-        (increment-calendar-month m2 y2 1)
+          (increment-calendar-month m1 y1 -1)
+          (increment-calendar-month m2 y2 1)
         (let* ((start-date (calendar-absolute-from-gregorian
                             (list m1 1 y1)))
                (end-date (calendar-absolute-from-gregorian
                           (list m2 (calendar-last-day-of-month m2 y2) y2)))
-               (hebrew-start (calendar-hebrew-from-absolute start-date))
-               (hebrew-end (calendar-hebrew-from-absolute end-date))
-               (hebrew-y1 (extract-calendar-year hebrew-start))
+                 (hebrew-start (calendar-hebrew-from-absolute start-date))
+                 (hebrew-end (calendar-hebrew-from-absolute end-date))
+                 (hebrew-y1 (extract-calendar-year hebrew-start))
                (hebrew-y2 (extract-calendar-year hebrew-end)))
           (setq year (if (< 6 month) hebrew-y2 hebrew-y1))
           (let ((date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-hebrew
                         (list month day year)))))
-            (if (calendar-date-is-visible-p date)
+              (if (calendar-date-is-visible-p date)
                 (list (list date string))))))))
 
 ;; h-r-h-e should be called from holidays code.
@@ -595,20 +595,18 @@ window.  See `list-hebrew-diary-entries' for more information."
                         'calendar-hebrew-from-absolute
                         'mark-hebrew-calendar-date-pattern))
 
+
+(autoload 'diary-insert-entry-1 "diary-lib")
+
 ;;;###cal-autoload
 (defun insert-hebrew-diary-entry (arg)
   "Insert a diary entry.
 For the Hebrew date corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let ((calendar-month-name-array calendar-hebrew-month-name-array-leap-year))
-    (make-diary-entry
-     (concat hebrew-diary-entry-symbol
-             (calendar-date-string
-              (calendar-hebrew-from-absolute
-               (calendar-absolute-from-gregorian (calendar-cursor-to-date t)))
-              nil t))
-     arg)))
+  (diary-insert-entry-1 nil arg calendar-hebrew-month-name-array-leap-year
+                        hebrew-diary-entry-symbol
+                        'calendar-hebrew-from-absolute))
 
 ;;;###cal-autoload
 (defun insert-monthly-hebrew-diary-entry (arg)
@@ -616,16 +614,9 @@ Prefix argument ARG makes the entry nonmarking."
 For the day of the Hebrew month corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let ((calendar-date-display-form (if european-calendar-style
-                                        '(day " * ")
-                                      '("* " day )))
-        (calendar-month-name-array calendar-hebrew-month-name-array-leap-year))
-    (make-diary-entry
-     (concat hebrew-diary-entry-symbol
-             (calendar-date-string
-              (calendar-hebrew-from-absolute
-               (calendar-absolute-from-gregorian (calendar-cursor-to-date t)))))
-     arg)))
+  (diary-insert-entry-1 'monthly arg calendar-hebrew-month-name-array-leap-year
+                        hebrew-diary-entry-symbol
+                        'calendar-hebrew-from-absolute))
 
 ;;;###cal-autoload
 (defun insert-yearly-hebrew-diary-entry (arg)
@@ -633,16 +624,9 @@ Prefix argument ARG makes the entry nonmarking."
 For the day of the Hebrew year corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
   (interactive "P")
-  (let ((calendar-date-display-form (if european-calendar-style
-                                         '(day " " monthname)
-                                       '(monthname " " day)))
-         (calendar-month-name-array calendar-hebrew-month-name-array-leap-year))
-    (make-diary-entry
-     (concat hebrew-diary-entry-symbol
-             (calendar-date-string
-              (calendar-hebrew-from-absolute
-               (calendar-absolute-from-gregorian (calendar-cursor-to-date t)))))
-     arg)))
+  (diary-insert-entry-1 'yearly arg calendar-hebrew-month-name-array-leap-year
+                        hebrew-diary-entry-symbol
+                        'calendar-hebrew-from-absolute))
 
 ;;;###autoload
 (defun list-yahrzeit-dates (death-date start-year end-year)
@@ -745,23 +729,24 @@ use when highlighting the day in the calendar."
 
 (defvar entry)
 
+(autoload 'diary-make-date "diary-lib")
+
 ;;;###diary-autoload
 (defun diary-yahrzeit (death-month death-day death-year &optional mark)
   "Yahrzeit diary entry--entry applies if date is Yahrzeit or the day before.
-Parameters are DEATH-MONTH, DEATH-DAY, DEATH-YEAR; the diary entry is assumed
-to be the name of the person.  Date of death is on the *civil* calendar;
-although the date of death is specified by the civil calendar, the proper
-Hebrew calendar Yahrzeit is determined.  If `european-calendar-style' is
-non-nil, the order of the parameters is changed to DEATH-DAY, DEATH-MONTH,
-DEATH-YEAR.
+Parameters are DEATH-MONTH, DEATH-DAY, DEATH-YEAR; the diary
+entry is assumed to be the name of the person.  Although the date
+of death is specified by the civil calendar, the proper Hebrew
+calendar Yahrzeit is determined.
+
+The order of the input parameters changes according to `calendar-date-style'
+\(e.g. to DEATH-DAY, DEATH-MONTH, DEATH-YEAR in the European style).
 
 An optional parameter MARK specifies a face or single-character string to
 use when highlighting the day in the calendar."
   (let* ((h-date (calendar-hebrew-from-absolute
                   (calendar-absolute-from-gregorian
-                   (if european-calendar-style
-                       (list death-day death-month death-year)
-                     (list death-month death-day death-year)))))
+                   (diary-make-date death-month death-day death-year))))
          (h-month (extract-calendar-month h-date))
          (h-day (extract-calendar-day h-date))
          (h-year (extract-calendar-year h-date))
