@@ -603,51 +603,33 @@ xg_set_geometry (f)
      FRAME_PTR f;
 {
   if (f->size_hint_flags & USPosition)
-  {
-    int left = f->left_pos;
-    int xneg = f->size_hint_flags & XNegative;
-    int top = f->top_pos;
-    int yneg = f->size_hint_flags & YNegative;
-    char geom_str[32];
+    {
+      int left = f->left_pos;
+      int xneg = f->size_hint_flags & XNegative;
+      int top = f->top_pos;
+      int yneg = f->size_hint_flags & YNegative;
+      char geom_str[32];
 
-    if (xneg)
-      left = -left;
-    if (yneg)
-      top = -top;
+      if (xneg)
+        left = -left;
+      if (yneg)
+        top = -top;
 
-    sprintf (geom_str, "=%dx%d%c%d%c%d",
-             FRAME_PIXEL_WIDTH (f),
-             FRAME_TOTAL_PIXEL_HEIGHT (f),
-             (xneg ? '-' : '+'), left,
-             (yneg ? '-' : '+'), top);
+      sprintf (geom_str, "=%dx%d%c%d%c%d",
+               FRAME_PIXEL_WIDTH (f),
+               FRAME_TOTAL_PIXEL_HEIGHT (f),
+               (xneg ? '-' : '+'), left,
+               (yneg ? '-' : '+'), top);
 
-    if (!gtk_window_parse_geometry (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                                    geom_str))
-      fprintf (stderr, "Failed to parse: '%s'\n", geom_str);
-  } else if (f->size_hint_flags & PPosition) {
+      if (!gtk_window_parse_geometry (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+                                      geom_str))
+        fprintf (stderr, "Failed to parse: '%s'\n", geom_str);
+    }
+  else if (f->size_hint_flags & PPosition)
     gtk_window_move (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
                      f->left_pos, f->top_pos);
-  }
 }
 
-
-/* Resize the outer window of frame F after chainging the height.
-   This happend when the menu bar or the tool bar is added or removed.
-   COLUMNS/ROWS is the size the edit area shall have after the resize.  */
-
-static void
-xg_resize_outer_widget (f, columns, rows)
-     FRAME_PTR f;
-     int columns;
-     int rows;
-{
-  /* If we are not mapped yet, set geometry once again, as window
-     height now have changed.  */
-  if (! GTK_WIDGET_MAPPED (FRAME_GTK_OUTER_WIDGET (f)))
-    xg_set_geometry (f);
-  else
-    xg_frame_set_char_size (f, columns, rows);
-}
 
 /* Function to handle resize of our frame.  As we have a Gtk+ tool bar
    and a Gtk+ menu bar, we get resize events for the edit part of the
@@ -705,27 +687,29 @@ static void
 x_wm_size_hint_off (f)
      FRAME_PTR f;
 {
-    GdkGeometry size_hints;
-    gint hint_flags = 0;
-    memset (&size_hints, 0, sizeof (size_hints));
-    hint_flags |= GDK_HINT_RESIZE_INC | GDK_HINT_MIN_SIZE;
-    size_hints.width_inc = 1;
-    size_hints.height_inc = 1;
-    hint_flags |= GDK_HINT_BASE_SIZE;
-    size_hints.base_width = 1;
-    size_hints.base_height = 1;
-    size_hints.min_width  = 1;
-    size_hints.min_height = 1;
-    gtk_window_set_geometry_hints (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                                   FRAME_GTK_WIDGET (f),
-                                   &size_hints,
-                                   hint_flags);
-    /* Make sure these get set again in next call to x_wm_set_size_hint. */
-    f->output_data.x->hint_flags &= ~hint_flags;
-    flush_and_sync (f);
+  GdkGeometry size_hints;
+  gint hint_flags = 0;
+  memset (&size_hints, 0, sizeof (size_hints));
+  hint_flags |= GDK_HINT_RESIZE_INC | GDK_HINT_MIN_SIZE;
+  size_hints.width_inc = 1;
+  size_hints.height_inc = 1;
+  hint_flags |= GDK_HINT_BASE_SIZE;
+  size_hints.base_width = 1;
+  size_hints.base_height = 1;
+  size_hints.min_width  = 1;
+  size_hints.min_height = 1;
+  gtk_window_set_geometry_hints (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+                                 NULL,
+                                 &size_hints,
+                                 hint_flags);
+  /* Make sure these get set again in next call to x_wm_set_size_hint. */
+  f->output_data.x->hint_flags &= ~hint_flags;
+  flush_and_sync (f);
 }
 
-/* Update our widget size to be COLS/ROWS characters for frame F.  */
+/* Resize the outer window of frame F after chainging the height.
+   This happend when the menu bar or the tool bar is added or removed.
+   COLUMNS/ROWS is the size the edit area shall have after the resize.  */
 
 void
 xg_frame_set_char_size (f, cols, rows)
@@ -754,7 +738,6 @@ xg_frame_set_char_size (f, cols, rows)
      after calculating that value.  */
   pixelwidth = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, cols);
 
-
   /* Must resize our top level widget.  Font size may have changed,
      but not rows/cols.
      Turn wm hints (min/max size and size increments) of temporarly.
@@ -763,6 +746,7 @@ xg_frame_set_char_size (f, cols, rows)
   x_wm_size_hint_off (f);
   gtk_window_resize (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
                      pixelwidth, pixelheight);
+  flush_and_sync (f);
   x_wm_set_size_hint (f, 0, 0);
 }
 
@@ -975,7 +959,8 @@ x_wm_set_size_hint (f, flags, user_position)
 
     hint_flags |= GDK_HINT_BASE_SIZE;
     base_width = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, 0);
-    base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0);
+    base_height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, 0)
+      + FRAME_MENUBAR_HEIGHT (f) + FRAME_TOOLBAR_HEIGHT (f);
 
     check_frame_size (f, &min_rows, &min_cols);
 
@@ -1028,7 +1013,7 @@ x_wm_set_size_hint (f, flags, user_position)
         BLOCK_INPUT;
 
         gtk_window_set_geometry_hints (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                                       FRAME_GTK_WIDGET (f),
+                                       NULL,
                                        &size_hints,
                                        hint_flags);
 
@@ -2960,7 +2945,7 @@ xg_update_frame_menubar (f)
 
   /* The height has changed, resize outer widget and set columns
      rows to what we had before adding the menu bar.  */
-  xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
+  xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
 
   SET_FRAME_GARBAGED (f);
   UNBLOCK_INPUT;
@@ -2989,7 +2974,7 @@ free_frame_menubar (f)
 
       /* The height has changed, resize outer widget and set columns
          rows to what we had before removing the menu bar.  */
-      xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
+      xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
 
       SET_FRAME_GARBAGED (f);
       UNBLOCK_INPUT;
@@ -3593,7 +3578,7 @@ xg_tool_bar_detach_callback (wbox, w, client_data)
 
       /* The height has changed, resize outer widget and set columns
          rows to what we had before detaching the tool bar.  */
-      xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
+      xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
     }
 }
 
@@ -3624,7 +3609,7 @@ xg_tool_bar_attach_callback (wbox, w, client_data)
 
       /* The height has changed, resize outer widget and set columns
          rows to what we had before attaching the tool bar.  */
-      xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
+      xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
     }
 }
 
@@ -4122,7 +4107,7 @@ update_frame_tool_bar (f)
       && ! FRAME_X_OUTPUT (f)->toolbar_detached)
     {
       FRAME_TOOLBAR_HEIGHT (f) = new_req.height;
-      xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
+      xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
     }
 
   UNBLOCK_INPUT;
@@ -4155,7 +4140,7 @@ free_frame_tool_bar (f)
 
       /* The height has changed, resize outer widget and set columns
          rows to what we had before removing the tool bar.  */
-      xg_resize_outer_widget (f, FRAME_COLS (f), FRAME_LINES (f));
+      xg_frame_set_char_size (f, FRAME_COLS (f), FRAME_LINES (f));
       UNBLOCK_INPUT;
     }
 }
