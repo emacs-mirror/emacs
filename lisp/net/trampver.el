@@ -30,14 +30,14 @@
 ;; "autoconf && ./configure" to change them.  (X)Emacs version check is defined
 ;; in macro AC_EMACS_INFO of aclocal.m4; should be changed only there.
 
-(defconst tramp-version "2.1.13"
+(defconst tramp-version "2.1.14-pre"
   "This version of Tramp.")
 
 (defconst tramp-bug-report-address "tramp-devel@gnu.org"
   "Email address to send bug reports to.")
 
 ;; Check for (X)Emacs version.
-(let ((x (if (or (< emacs-major-version 21)	(and (featurep 'xemacs)	     (< emacs-minor-version 4)))    (format "Tramp 2.1.13 is not fit for %s"	    (when (string-match "^.*$" (emacs-version))	      (match-string 0 (emacs-version))))    "ok")))
+(let ((x (if (or (< emacs-major-version 21)	(and (featurep 'xemacs)	     (< emacs-minor-version 4)))    (format "Tramp 2.1.14-pre is not fit for %s"	    (when (string-match "^.*$" (emacs-version))	      (match-string 0 (emacs-version))))    "ok")))
   (unless (string-match "\\`ok\\'" x) (error "%s" x)))
 
 (provide 'trampver)
