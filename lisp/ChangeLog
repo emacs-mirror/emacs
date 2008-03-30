@@ -1,3 +1,10 @@
+2008-03-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-do-copy-or-rename-file): Fix check for
+	overwriting when NEWNAME is a local file.
+
+	* net/trampver.el: Update release number.
+
 2008-03-30  Alexandre Julliard  <julliard@winehq.org>
 
 	* vc-git.el: Make vc-status display information about copies,
