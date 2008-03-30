@@ -4,6 +4,8 @@
 	dbus-call-method.
 	(Receiving Method Calls): The timeout can be set by the calling client.
 
+	* trampver.texi: Update release number.
+
 2008-03-29  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Top): Fix version.  Add SASL.
