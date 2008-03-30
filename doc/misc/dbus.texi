@@ -425,13 +425,19 @@ which carries the input parameters to the object owning the method to
 be called, and a reply message returning the resulting output
 parameters from the object.
 
-@defun dbus-call-method bus service path interface method &rest args
+@defun dbus-call-method bus service path interface method &optional :timeout timeout &rest args
 This function calls @var{method} on the D-Bus @var{bus}.  @var{bus} is
 either the symbol @code{:system} or the symbol @code{:session}.
 
 @var{service} is the D-Bus service name to be used.  @var{path} is the
 D-Bus object path, @var{service} is registered at.  @var{interface} is
 an interface offered by @var{service}.  It must provide @var{method}.
+
+If the parameter @code{:timeout} is given, the following integer
+@var{timeout} specifies the maximun number of milliseconds the method
+call must return.  The default value is 25.000.  If the method call
+doesn't return in time, a D-Bus error is raised (@pxref{Errors and
+Events}).
 
 All other arguments args are passed to @var{method} as arguments.
 They are converted into D-Bus types as described in @ref{Type
@@ -546,7 +552,8 @@ used as arguments for the reply message of @var{method}.  This list
 can be composed like the input parameters in @ref{Type Conversion}.
 
 The default D-Bus timeout when waiting for a message reply is 25
-seconds.  Therefore, @var{handler} shall not last longer than
+seconds.  This value could be even smaller, depending on the calling
+client.  Therefore, @var{handler} shall not last longer than
 absolutely necessary.
 
 @code{dbus-register-method} returns a Lisp symbol, which can be used
