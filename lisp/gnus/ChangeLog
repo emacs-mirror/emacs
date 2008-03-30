@@ -1,3 +1,14 @@
+2008-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* nntp.el (nntp-netcat-command): Rename from nntp-via-netcat-command.
+	(nntp-netcat-switches): Rename from nntp-via-netcat-switches.
+	(nntp-open-telnet, nntp-open-rlogin): Use with-current-buffer.
+	(nntp-service-to-port): New function.
+	(nntp-open-via-rlogin-and-netcat, nntp-open-via-telnet-and-telnet)
+	(nntp-open-telnet-stream, nntp-open-via-rlogin-and-telnet): Use it.
+	(nntp-open-netcat-stream): New function.
+	(nntp-open-via-rlogin-and-netcat): Don't use a pty.
+
 2008-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* message.el (message-make-in-reply-to): Use mm-with-multibyte-buffer.

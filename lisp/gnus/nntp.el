@@ -84,11 +84,12 @@ Direct connections:
 - `nntp-open-network-stream' (the default),
 - `nntp-open-ssl-stream',
 - `nntp-open-tls-stream',
+- `nntp-open-netcat-stream'.
 - `nntp-open-telnet-stream'.
 
 Indirect connections:
-- `nntp-open-via-rlogin-and-telnet',
 - `nntp-open-via-rlogin-and-netcat',
+- `nntp-open-via-rlogin-and-telnet',
 - `nntp-open-via-telnet-and-telnet'.")
 
 (defvoo nntp-never-echoes-commands nil
@@ -143,12 +144,13 @@ This command is used by the `nntp-open-via-telnet-and-telnet' method.")
 (defvoo nntp-via-telnet-switches '("-8")
   "*Switches given to the telnet command `nntp-via-telnet-command'.")
 
-(defvoo nntp-via-netcat-command "nc"
+(defvoo nntp-netcat-command "nc"
   "*Netcat command used to connect to the nntp server.
-This command is used by the `nntp-open-via-rlogin-and-netcat' method.")
+This command is used by the `nntp-open-netcat-stream' and
+`nntp-open-via-rlogin-and-netcat' methods.")
 
-(defvoo nntp-via-netcat-switches nil
-  "*Switches given to the netcat command `nntp-via-netcat-command'.")
+(defvoo nntp-netcat-switches nil
+  "*Switches given to the netcat command `nntp-netcat-command'.")
 
 (defvoo nntp-via-user-name nil
   "*User name to log in on an intermediate host with.
@@ -1801,9 +1803,21 @@ via telnet.")
 (defvoo nntp-telnet-passwd nil
   "Password to use to log in via telnet with.")
 
+(defun nntp-service-to-port (svc)
+  (cond
+   ((integerp svc) (number-to-string svc))
+   ((string-match "\\`[[:digit:]]\\'" svc) svc)
+   (t
+    (with-temp-buffer
+      (ignore-errors (insert-file-contents "/etc/services"))
+      (goto-char (point-min))
+      (if (re-search-forward (concat "^" (regexp-quote svc)
+                                     "[ \t]+\\([[:digit:]]+\\)/tcp"))
+          (match-string 1)
+        svc)))))
+
 (defun nntp-open-telnet (buffer)
-  (save-excursion
-    (set-buffer buffer)
+  (with-current-buffer buffer
     (erase-buffer)
     (let ((proc (apply
 		 'start-process
@@ -1859,8 +1873,7 @@ via telnet.")
 		(apply 'start-process
 		       "nntpd" buffer nntp-rlogin-program nntp-address
 		       nntp-rlogin-parameters))))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (nntp-wait-for-string "^\r*20[01]")
       (beginning-of-line)
       (delete-region (point-min) (point))
@@ -1873,7 +1886,7 @@ via telnet.")
 
 (defun nntp-open-telnet-stream (buffer)
   "Open a nntp connection by telnet'ing the news server.
-`nntp-open-via-netcat' is recommended in place of this function
+`nntp-open-netcat-stream' is recommended in place of this function
 because it is more reliable.
 
 Please refer to the following variables to customize the connection:
@@ -1886,9 +1899,7 @@ Please refer to the following variables to customize the connection:
   (let ((command `(,nntp-telnet-command
 		   ,@nntp-telnet-switches
 		   ,nntp-address
-		   ,(if (integerp nntp-port-number)
-			(number-to-string nntp-port-number)
-		      nntp-port-number)))
+		   ,(nntp-service-to-port nntp-port-number)))
 	proc)
     (and nntp-pre-command
 	 (push nntp-pre-command command))
@@ -1932,9 +1943,7 @@ Please refer to the following variables to customize the connection:
     (with-current-buffer buffer
       (nntp-wait-for-string "^r?telnet")
       (process-send-string proc (concat "open " nntp-address " "
-					(if (integerp nntp-port-number)
-					    (number-to-string nntp-port-number)
-					  nntp-port-number)
+					(nntp-service-to-port nntp-port-number)
 					"\n"))
       (nntp-wait-for-string "^\r*20[01]")
       (beginning-of-line)
@@ -1960,26 +1969,46 @@ Please refer to the following variables to customize the connection:
 - `nntp-via-rlogin-command-switches',
 - `nntp-via-user-name',
 - `nntp-via-address',
-- `nntp-via-netcat-command',
-- `nntp-via-netcat-switches',
+- `nntp-netcat-command',
+- `nntp-netcat-switches',
 - `nntp-address',
-- `nntp-port-number',
-- `nntp-end-of-line'."
+- `nntp-port-number'."
   (let ((command `(,@(when nntp-pre-command
 		       (list nntp-pre-command))
 		   ,nntp-via-rlogin-command
-		   ,@(when nntp-via-rlogin-command-switches
-		       nntp-via-rlogin-command-switches)
+		   ,@nntp-via-rlogin-command-switches
 		   ,@(when nntp-via-user-name
 		       (list "-l" nntp-via-user-name))
 		   ,nntp-via-address
-		   ,nntp-via-netcat-command
-		   ,@nntp-via-netcat-switches
+		   ,nntp-netcat-command
+		   ,@nntp-netcat-switches
 		   ,nntp-address
-		   ,(if (integerp nntp-port-number)
-			(number-to-string nntp-port-number)
-		      nntp-port-number))))
-    (apply 'start-process "nntpd" buffer command)))
+		   ,(nntp-service-to-port nntp-port-number))))
+    ;; A non-nil connection type results in mightily odd behavior where
+    ;; (process-send-string proc "\^M") ends up sending a "\n" to the
+    ;; ssh process.  --Stef
+    ;; Also a nil connection allow ssh-askpass to work under X11.
+    (let ((process-connection-type nil))
+      (apply 'start-process "nntpd" buffer command))))
+
+(defun nntp-open-netcat-stream (buffer)
+  "Open a connection to an nntp server through netcat.
+I.e. use the `nc' command rather than Emacs's builtin networking code.
+
+Please refer to the following variables to customize the connection:
+- `nntp-pre-command',
+- `nntp-netcat-command',
+- `nntp-netcat-switches',
+- `nntp-address',
+- `nntp-port-number'."
+  (let ((command `(,nntp-netcat-command
+		   ,@nntp-netcat-switches
+                   ,nntp-address
+                   ,(nntp-service-to-port nntp-port-number))))
+    (and nntp-pre-command (push nntp-pre-command command))
+    (let ((process-connection-type nil)) ;See `nntp-open-via-rlogin-and-netcat'.
+      (apply 'start-process "nntpd" buffer command))))
+ 
 
 (defun nntp-open-via-telnet-and-telnet (buffer)
   "Open a connection to an nntp server through an intermediate host.
@@ -2037,9 +2066,7 @@ Please refer to the following variables to customize the connection:
 				     ,nntp-telnet-command
 				     ,@nntp-telnet-switches
 				     ,nntp-address
-				     ,(if (integerp nntp-port-number)
-					  (number-to-string nntp-port-number)
-					nntp-port-number))))
+				     ,(nntp-service-to-port nntp-port-number))))
 	  (process-send-string proc
 			       (concat (mapconcat 'identity
 						  real-telnet-command " ")

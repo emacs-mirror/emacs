@@ -13144,7 +13144,7 @@ netcat connection to the news server as follows:
 @lisp
 (nntp "outside"
       (nntp-pre-command "runsocks")
-      (nntp-open-connection-function nntp-open-via-netcat)
+      (nntp-open-connection-function nntp-open-netcat-stream)
       (nntp-address "the.news.server"))
 @end lisp
 
@@ -13619,8 +13619,8 @@ then define a server as follows:
       (nntp-address "snews.bar.com"))
 @end lisp
 
-@findex nntp-open-via-netcat
-@item nntp-open-via-netcat
+@findex nntp-open-netcat-stream
+@item nntp-open-netcat-stream
 Opens a connection to an @acronym{NNTP} server using the @code{netcat}
 program.  You might wonder why this function exists, since we have
 the default @code{nntp-open-network-stream} which would do the job.  (One
@@ -13631,7 +13631,7 @@ connections to the outside world thanks to a command wrapper like
 @lisp
 (nntp "socksified"
       (nntp-pre-command "runsocks")
-      (nntp-open-connection-function nntp-open-via-netcat)
+      (nntp-open-connection-function nntp-open-netcat-stream)
       (nntp-address "the.news.server"))
 @end lisp
 
@@ -13640,7 +13640,7 @@ session, which is not a good idea.
 
 @findex nntp-open-telnet-stream
 @item nntp-open-telnet-stream
-Like @code{nntp-open-via-netcat}, but uses @code{telnet} rather than
+Like @code{nntp-open-netcat-stream}, but uses @code{telnet} rather than
 @code{netcat}.  @code{telnet} is a bit less robust because of things
 like line-end-conversion, but sometimes netcat is simply
 not available.  The previous example would turn into:
@@ -13821,16 +13821,16 @@ String to use as end-of-line marker when talking to the @acronym{NNTP}
 server.  This is @samp{\r\n} by default, but should be @samp{\n} when
 using a non native telnet connection function.
 
-@item nntp-via-netcat-command
-@vindex nntp-via-netcat-command
+@item nntp-netcat-command
+@vindex nntp-netcat-command
 Command to use when connecting to the @acronym{NNTP} server through
 @samp{netcat}.  This is @emph{not} for an intermediate host.  This is
 just for the real @acronym{NNTP} server.  The default is
 @samp{nc}.
 
-@item nntp-via-netcat-switches
-@vindex nntp-via-netcat-switches
-A list of switches to pass to @code{nntp-via-netcat-command}.  The default
+@item nntp-netcat-switches
+@vindex nntp-netcat-switches
+A list of switches to pass to @code{nntp-netcat-command}.  The default
 is @samp{()}.
 
 @end table
