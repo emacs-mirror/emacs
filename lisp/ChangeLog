@@ -72,7 +72,7 @@
 2008-03-29  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (diary-file, american-date-diary-pattern)
-	(european-date-diary-pattern,european-calendar-display-form)
+	(european-date-diary-pattern, european-calendar-display-form)
 	(american-calendar-display-form, diary-display-hook): Doc fixes.
 	(european-calendar-style): Doc fix.  Use calendar-set-date-style for
 	custom :set.  Mark as obsolete.
@@ -135,7 +135,8 @@
 
 	* vc.el (vc-update): Check if the buffer is unsaved only if it
 	actually exists.
-	(vc-status-mode-map, vc-status-menu-map): Bind vc-update and vc-print-log.
+	(vc-status-mode-map, vc-status-menu-map): Bind vc-update and
+	vc-print-log.
 
 2008-03-28  Magnus Henoch  <mange@freemail.hu>
 
@@ -256,8 +257,7 @@
 
 2008-03-26  Jay Belanger  <jay.p.belanger@gmail.com>
 
-	* calc/calc-store.el (calc-read-var-name-history):
-	New variable.
+	* calc/calc-store.el (calc-read-var-name-history): New variable.
 	(calc-read-var-name): Use `calc-read-var-name-history'.
 
 2008-03-26  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -2413,7 +2413,7 @@
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Define and
 	initialize in one step.  Add :help.  Use :enable to activate menu
-	items. Show the key binding for edebug-defun.
+	items.  Show the key binding for edebug-defun.
 	(lisp-interaction-mode-map): Add a menu.
 
 	* term.el (term-mode-map): Define and initialize in one step.
