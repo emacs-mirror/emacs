@@ -1,3 +1,9 @@
+2008-03-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbus.texi (Synchronous Methods): New parameter TIMEOUT for
+	dbus-call-method.
+	(Receiving Method Calls): The timeout can be set by the calling client.
+
 2008-03-29  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Top): Fix version.  Add SASL.
