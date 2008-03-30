@@ -1,3 +1,9 @@
+2008-03-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* dbusbind.c (QCdbus_timeout): New D-Bus internal symbol.
+	(Fdbus_call_method): New parameter TIMEOUT.
+	(dbus-send-signal): Optimize UNGCPRO call.
+
 2008-03-29  Juri Linkov  <juri@jurta.org>
 
 	* window.c (Fdisplay_buffer): Move call to
