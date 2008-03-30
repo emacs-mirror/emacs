@@ -2955,11 +2955,10 @@ and `rename'.  FILENAME and NEWNAME must be absolute file names."
   (let ((t1 (tramp-tramp-file-p filename))
 	(t2 (tramp-tramp-file-p newname)))
 
-    (unless ok-if-already-exists
-      (when (and t2 (file-exists-p newname))
-	(with-parsed-tramp-file-name newname nil
-	  (tramp-error
-	   v 'file-already-exists "File %s already exists" newname))))
+    (when (and (not ok-if-already-exists) (file-exists-p newname))
+      (with-parsed-tramp-file-name (if t1 filename newname) nil
+	(tramp-error
+	 v 'file-already-exists "File %s already exists" newname)))
 
     (prog1
 	(cond
