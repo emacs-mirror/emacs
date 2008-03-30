@@ -1,3 +1,17 @@
+2008-03-30  Alexandre Julliard  <julliard@winehq.org>
+
+	* vc-git.el: Make vc-status display information about copies,
+	renames and permission changes.
+	(vc-git-extra-fileinfo): New defstruct.
+	(vc-git-escape-file-name, vc-git-file-type-as-string)
+	(vc-git-rename-as-string, vc-git-permissions-as-string)
+	(vc-git-status-printer): New functions.
+	(vc-git-after-dir-status-stage2): Also return vc-git-extra-fileinfo.
+	(vc-git-after-dir-status-stage1): Look for copies, renames and
+	permission changes.
+	(vc-git-after-dir-status-stage1-empty-db): Set permissions.
+	(vc-git-dir-status): Ask for staged files and renames.
+
 2008-03-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el: Allow backends to display backend specific information in

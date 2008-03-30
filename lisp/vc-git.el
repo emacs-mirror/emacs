@@ -208,23 +208,133 @@
       (propertize def-ml
                   'help-echo (concat help-echo "\nCurrent branch: " branch)))))
 
+(defstruct (vc-git-extra-fileinfo
+            (:copier nil)
+            (:constructor vc-git-create-extra-fileinfo (old-perm new-perm &optional rename-state orig-name))
+            (:conc-name vc-git-extra-fileinfo->))
+  old-perm new-perm   ;; permission flags
+  rename-state        ;; rename or copy state
+  orig-name)          ;; original name for renames or copies
+
+(defun vc-git-escape-file-name (name)
+  "Escape a file name if necessary."
+  (if (string-match "[\n\t\"\\]" name)
+      (concat "\""
+              (mapconcat (lambda (c)
+                   (case c
+                     (?\n "\\n")
+                     (?\t "\\t")
+                     (?\\ "\\\\")
+                     (?\" "\\\"")
+                     (t (char-to-string c))))
+                 name "")
+              "\"")
+    name))
+
+(defun vc-git-file-type-as-string (old-perm new-perm)
+  "Return a string describing the file type based on its permissions."
+  (let* ((old-type (lsh (or old-perm 0) -9))
+	 (new-type (lsh (or new-perm 0) -9))
+	 (str (case new-type
+		(?\100  ;; file
+		 (case old-type
+		   (?\100 nil)
+		   (?\120 "   (type change symlink -> file)")
+		   (?\160 "   (type change subproject -> file)")))
+		 (?\120  ;; symlink
+		  (case old-type
+		    (?\100 "   (type change file -> symlink)")
+		    (?\160 "   (type change subproject -> symlink)")
+		    (t "   (symlink)")))
+		  (?\160  ;; subproject
+		   (case old-type
+		     (?\100 "   (type change file -> subproject)")
+		     (?\120 "   (type change symlink -> subproject)")
+		     (t "   (subproject)")))
+                  (?\110 nil)  ;; directory (internal, not a real git state)
+		  (?\000  ;; deleted or unknown
+		   (case old-type
+		     (?\120 "   (symlink)")
+		     (?\160 "   (subproject)")))
+		  (t (format "   (unknown type %o)" new-type)))))
+    (cond (str (propertize str 'face 'font-lock-comment-face))
+          ((eq new-type ?\110) "/")
+          (t ""))))
+
+(defun vc-git-rename-as-string (state extra)
+  "Return a string describing the copy or rename associated with INFO, or an empty string if none."
+  (let ((rename-state (when extra 
+			(vc-git-extra-fileinfo->rename-state extra))))
+    (if rename-state
+        (propertize
+         (concat "   ("
+                 (if (eq rename-state 'copy) "copied from "
+                   (if (eq state 'added) "renamed from "
+                     "renamed to "))
+                 (vc-git-escape-file-name (vc-git-extra-fileinfo->orig-name extra))
+                 ")") 'face 'font-lock-comment-face)
+      "")))
+
+(defun vc-git-permissions-as-string (old-perm new-perm)
+  "Format a permission change as string."
+  (propertize
+   (if (or (not old-perm)
+           (not new-perm)
+           (eq 0 (logand ?\111 (logxor old-perm new-perm))))
+       "  "
+     (if (eq 0 (logand ?\111 old-perm)) "+x" "-x"))
+  'face 'font-lock-type-face))
+
+(defun vc-git-status-printer (info)
+  "Pretty-printer for the vc-status-fileinfo structure."
+  (let* ((state (vc-status-fileinfo->state info))
+         (extra (vc-status-fileinfo->extra info))
+         (old-perm (when extra (vc-git-extra-fileinfo->old-perm extra)))
+         (new-perm (when extra (vc-git-extra-fileinfo->new-perm extra))))
+    (insert
+     "  "
+     (propertize (format "%c" (if (vc-status-fileinfo->marked info) ?* ? ))
+                 'face 'font-lock-type-face)
+     "  "
+     (propertize
+      (format "%-12s" state)
+      'face (cond ((eq state 'up-to-date) 'font-lock-builtin-face)
+		  ((eq state 'missing) 'font-lock-warning-face)
+		  (t 'font-lock-variable-name-face))
+      'mouse-face 'highlight)
+     "  " (vc-git-permissions-as-string old-perm new-perm)
+     "     "
+     (propertize (vc-git-escape-file-name (vc-status-fileinfo->name info))
+                 'face 'font-lock-function-name-face
+                 'mouse-face 'highlight)
+     (vc-git-file-type-as-string old-perm new-perm)
+     (vc-git-rename-as-string state extra))))
+
 ;; Variable used to keep the intermediate results for vc-git-status.
 (defvar vc-git-status-result nil)
 
 (defun vc-git-after-dir-status-stage2 (update-function status-buffer)
   (goto-char (point-min))
   (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
-    (push (cons (match-string 1) 'unregistered) vc-git-status-result))
+    (push (list (match-string 1) 'unregistered (vc-git-create-extra-fileinfo 0 0)) vc-git-status-result))
   (funcall update-function (nreverse vc-git-status-result) status-buffer))
 
 (defun vc-git-after-dir-status-stage1 (update-function status-buffer)
   (goto-char (point-min))
   (while (re-search-forward
-	  ":[0-7]\\{6\\} [0-7]\\{6\\} [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\([ADMUT]\\)\0\\([^\0]+\\)\0"
+          ":\\([0-7]\\{6\\}\\) \\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} [0-9a-f]\\{40\\} \\(\\([ADMUT]\\)\0\\([^\0]+\\)\\|\\([CR]\\)[0-9]*\0\\([^\0]+\\)\0\\([^\0]+\\)\\)\0"
 	  nil t 1)
-    (let ((filename (match-string 2))
-	  (status (vc-git--state-code (match-string 1))))
-      (push (cons filename status) vc-git-status-result)))
+    (let ((old-perm (string-to-number (match-string 1) 8))
+          (new-perm (string-to-number (match-string 2) 8))
+          (state (or (match-string 4) (match-string 6)))
+          (name (or (match-string 5) (match-string 7)))
+          (new-name (match-string 8)))
+      (if new-name  ; copy or rename
+          (if (eq ?C (string-to-char state))
+              (push (list new-name 'added (vc-git-create-extra-fileinfo old-perm new-perm 'copy name)) vc-git-status-result)
+            (push (list name 'removed (vc-git-create-extra-fileinfo 0 0 'rename new-name)) vc-git-status-result)
+            (push (list new-name 'added (vc-git-create-extra-fileinfo old-perm new-perm 'rename name)) vc-git-status-result))
+        (push (list name (vc-git--state-code state) (vc-git-create-extra-fileinfo old-perm new-perm)) vc-git-status-result))))
   (erase-buffer)
   (vc-git-command (current-buffer) 'async nil "ls-files" "-z" "-o"
 		  "--directory" "--no-empty-directory" "--exclude-standard")
@@ -233,8 +343,10 @@
 
 (defun vc-git-after-dir-status-stage1-empty-db (update-function status-buffer)
   (goto-char (point-min))
-  (while (re-search-forward "\\([^\0]*?\\)\0" nil t 1)
-    (push (cons (match-string 1) 'added) vc-git-status-result))
+  (while (re-search-forward "\\([0-7]\\{6\\}\\) [0-9a-f]\\{40\\} 0\t\\([^\0]+\\)\0" nil t)
+    (let ((new-perm (string-to-number (match-string 1) 8))
+          (name (match-string 2)))
+      (push (list name 'added (vc-git-create-extra-fileinfo 0 new-perm)) vc-git-status-result)))
   (erase-buffer)
   (vc-git-command (current-buffer) 'async nil "ls-files" "-z" "-o"
 		  "--directory" "--no-empty-directory" "--exclude-standard")
@@ -249,11 +361,11 @@
   (set (make-local-variable 'vc-git-status-result) nil)
   (if (vc-git--empty-db-p)
       (progn
-	(vc-git-command (current-buffer) 'async nil "ls-files" "-z" "-c")
+	(vc-git-command (current-buffer) 'async nil "ls-files" "-z" "-c" "-s")
 	(vc-exec-after
 	 `(vc-git-after-dir-status-stage1-empty-db 
 	   (quote ,update-function) ,status-buffer)))
-    (vc-git-command (current-buffer) 'async nil "diff-index" "-z" "HEAD")
+    (vc-git-command (current-buffer) 'async nil "diff-index" "-z" "-M" "HEAD")
     (vc-exec-after
      `(vc-git-after-dir-status-stage1 (quote ,update-function) ,status-buffer))))
 
