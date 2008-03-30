@@ -1,3 +1,18 @@
+2008-03-30  Jan Djärv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_set_geometry): Fix indentation.
+	(xg_resize_outer_widget): Removed
+	(x_wm_size_hint_off): Fix indentation.
+	(xg_frame_set_char_size): Call flush_and_sync after
+	gtk_window_resize.
+	(x_wm_set_size_hint): Pass NULL as geometry window to
+	gtk_window_set_geometry_hints due to Gtk+ bug nr 68668.
+	Add menu bar and tool bar height to base height.
+	(xg_update_frame_menubar, free_frame_menubar)
+	(xg_tool_bar_detach_callback, xg_tool_bar_attach_callback)
+	(update_frame_tool_bar, free_frame_tool_bar): Change
+	xg_resize_outer_widget to xg_frame_set_char_size.
+
 2008-03-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbusbind.c (QCdbus_timeout): New D-Bus internal symbol.
