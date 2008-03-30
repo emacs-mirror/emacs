@@ -183,6 +183,14 @@
 ;;
 ;;   Return a string that will be added to the *vc-status* buffer header.
 ;;
+;; - status-printer (fileinfo)
+;;
+;;   Pretty print the `vc-status-fileinfo' FILEINFO.
+;;   If a backend needs to show more information than the default FILE
+;;   and STATE in the vc-status listing, it can store that extra
+;;   information in `vc-status-fileinfo->extra'.  This function can be
+;;   used to display that extra information in the vc-status buffer.
+;;
 ;; * working-revision (file)
 ;;
 ;;   Return the working revision of FILE.  This is the revision fetched
@@ -2644,11 +2652,14 @@ With prefix arg READ-SWITCHES, specify a value to override
 
 (defstruct (vc-status-fileinfo
             (:copier nil)
-            (:constructor vc-status-create-fileinfo (state name &optional marked))
+            (:constructor
+	     vc-status-create-fileinfo (name state extra &optional marked))
             (:conc-name vc-status-fileinfo->))
   marked
   state
-  name)
+  name
+  ;; For storing backend specific information.
+  extra)
 
 (defvar vc-status nil)
 
@@ -2664,7 +2675,7 @@ With prefix arg READ-SWITCHES, specify a value to override
    (vc-call-backend backend 'status-extra-headers dir)
    "\n"))
 
-(defun vc-status-printer (fileentry)
+(defun vc-default-status-printer (backend fileentry)
   "Pretty print FILEENTRY."
   ;; If you change the layout here, change vc-status-move-to-goal-column.
   (let ((state (vc-status-fileinfo->state fileentry)))
@@ -2685,9 +2696,13 @@ With prefix arg READ-SWITCHES, specify a value to override
       'face 'font-lock-function-name-face
       'mouse-face 'highlight))))
 
+(defun vc-status-printer (fileentry)
+  (let ((backend (vc-responsible-backend default-directory)))
+    (vc-call-backend backend 'status-printer fileentry)))
+
 (defun vc-status-move-to-goal-column ()
   (beginning-of-line)
-  ;; Must be in sync with vc-status-printer.
+  ;; Must be in sync with vc-default-status-printer.
   (forward-char 25))
 
 (defun vc-status-prepare-status-buffer (dir &optional create-new)
@@ -2918,8 +2933,12 @@ With prefix arg READ-SWITCHES, specify a value to override
     (when entries
       ;; Insert the entries we got into the ewoc.
       (dolist (entry entries)
+	(let* ((file (car entry))
+	       (entrycdr (cdr entry))
+	       (state (if (listp entrycdr) (nth 1 entry)))
+	       (extra (if (listp entrycdr) (nth 2 entry))))
 	(ewoc-enter-last vc-status
-			 (vc-status-create-fileinfo (cdr entry) (car entry))))
+			 (vc-status-create-fileinfo file state extra))))
       ;; If we had marked items before the refresh, try mark them here.
       ;; XXX: there should be a better way to do this...
       (when vc-status-crt-marked
@@ -2954,7 +2973,10 @@ With prefix arg READ-SWITCHES, specify a value to override
 	    (ewoc-invalidate vc-status crt))
 	;; Could not find the file, insert a new entry.
 	(ewoc-enter-last
-	 vc-status (vc-status-create-fileinfo (cdr entry) (car entry)))))))
+	 ;; XXX: `vc-status-fileinfo->extra' is not set here.
+	 ;; It might need to be.
+	 vc-status 
+	 (vc-status-create-fileinfo (car entry) (cdr entry) nil))))))
 
 (defun vc-status-refresh ()
   "Refresh the contents of the VC status buffer.

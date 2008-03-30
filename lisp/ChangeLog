@@ -1,3 +1,14 @@
+2008-03-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el: Allow backends to display backend specific information in
+	the vc-status listing.
+	(vc-status-fileinfo): Add a field for backend specific information.
+	(vc-status-printer): Rename to ...
+	(vc-default-status-printer): ... this.
+	(vc-status-printer): New function.
+	(vc-update-vc-status-buffer): Set the backend specific file info
+	if provided.
+
 2008-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/remember.el (remember-diary-convert-entry): Revert last
