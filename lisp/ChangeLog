@@ -14,6 +14,9 @@
 	* calendar/cal-julian.el (holiday-julian): Fix a problem with holidays
 	in the last fortnight in Julian October.
 
+	* calendar/calendar.el (increment-calendar-month): Doc fix.
+	(calendar-date-is-visible-p): Doc fix.  Simplify.
+
 	* calendar/holidays.el (holiday-filter-visible-calendar): Return result
 	from dolist.
 
