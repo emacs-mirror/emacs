@@ -378,17 +378,14 @@ suppress.  For example, (not mapcar) will suppress warnings about mapcar."
 
 ;;;###autoload
 (defun byte-compile-warnings-safe-p (x)
+  "Return non-nil if X is valid as a value of `byte-compile-warnings'."
   (or (booleanp x)
       (and (listp x)
            (if (eq (car x) 'not) (setq x (cdr x))
              t)
 	   (equal (mapcar
 		   (lambda (e)
-		     (when (memq e '(free-vars unresolved
-				     callargs redefine
-				     obsolete noruntime
-				     cl-functions interactive-only
-				     make-local mapcar))
+		     (when (memq e byte-compile-warning-types)
 		       e))
 		   x)
 		  x))))
