@@ -8,6 +8,9 @@
 	* calendar/cal-bahai.el (calendar-bahai-date-string): Avoid an error for
 	pre-Bahai dates.
 
+	* calendar/cal-julian.el (holiday-julian): Fix a problem with holidays
+	in the last fortnight in Julian October.
+
 	* calendar/holidays.el (holiday-filter-visible-calendar): Return result
 	from dolist.
 
