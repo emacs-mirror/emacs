@@ -74,11 +74,6 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg00059.html
 Fix is already in the trunk, and can wait till after 22.2.
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-01/msg00147.html
 
-** Auto-Save bug when file/directory no longer exists
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-11/msg00058.html
-Fix is already in the trunk, and can wait till after 22.2.
-2008-02-23 change to fileio.c by cyd.
-
 ** Shell-script indenting of &&, |
 Patch here:
 http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02814.html
