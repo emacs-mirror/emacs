@@ -38,6 +38,11 @@
 
 2008-03-31  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-bahai.el (diary-bahai-mark-entries):
+	* calendar/cal-hebrew.el (mark-hebrew-diary-entries):
+	* calendar/cal-islam.el (mark-islamic-diary-entries):
+	Fix argument order in call to diary-mark-entries-1.
+
 	* calendar/cal-bahai.el (calendar-bahai-date-string): Avoid an error for
 	pre-Bahai dates.
 	(holiday-bahai): Use an algorithm actually relevant to this calendar
