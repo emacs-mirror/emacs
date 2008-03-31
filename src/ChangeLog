@@ -1,3 +1,7 @@
+2008-03-31  Juri Linkov  <juri@jurta.org>
+
+	* window.c (Fdisplay_buffer): Reinitialize `tem' to nil.
+
 2008-03-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_set_geometry): Fix indentation.
