@@ -28,12 +28,7 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements the features of calendar.el and
-;; diary.el that deal with the Hebrew calendar.
-
-;; Technical details of all the calendrical calculations can be found in
-;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
-;; and Nachum Dershowitz, Cambridge University Press (2001).
+;; See calendar.el.
 
 ;;; Code:
 
@@ -616,10 +611,10 @@ passed to `mark-visible-calendar-date' as MARK."
   "Mark days in the calendar window that have Hebrew date diary entries.
 Marks each entry in `diary-file' (or included files) visible in the calendar
 window.  See `list-hebrew-diary-entries' for more information."
-  (diary-mark-entries-1 calendar-hebrew-month-name-array-leap-year
+  (diary-mark-entries-1 'mark-hebrew-calendar-date-pattern
+                        calendar-hebrew-month-name-array-leap-year
                         hebrew-diary-entry-symbol
-                        'calendar-hebrew-from-absolute
-                        'mark-hebrew-calendar-date-pattern))
+                        'calendar-hebrew-from-absolute))
 
 
 (autoload 'diary-insert-entry-1 "diary-lib")
