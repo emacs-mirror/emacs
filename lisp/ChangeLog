@@ -1,3 +1,8 @@
+2008-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/holidays.el (holiday-filter-visible-calendar): Return result
+	from dolist.
+
 2008-03-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* hi-lock.el (hi-lock-mode): Fix typos in docstring.
