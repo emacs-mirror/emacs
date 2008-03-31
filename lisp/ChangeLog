@@ -43,6 +43,9 @@
 
 	* calendar/cal-china.el (holiday-chinese-new-year): Doc fix.
 
+	* calendar/cal-islam.el (holiday-islamic): Remove un-needed let.
+	Use and.
+
 	* calendar/cal-julian.el (holiday-julian): Fix a problem with holidays
 	in the last fortnight in Julian October.
 
