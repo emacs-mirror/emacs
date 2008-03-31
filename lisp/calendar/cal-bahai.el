@@ -126,8 +126,9 @@ Defaults to today's date if DATE is not given."
          (y (extract-calendar-year bahai-date))
          (m (extract-calendar-month bahai-date))
          (d (extract-calendar-day bahai-date))
-         (monthname (if (and (= m 19)
-                             (<= d 0))
+         (monthname (if (or (< m 1)     ; pre-Bahai, avoid aref error
+                            (and (= m 19)
+                                 (<= d 0)))
                         "Ayyám-i-Há"
                       (aref calendar-bahai-month-name-array (1- m))))
          (day (int-to-string
@@ -195,6 +196,7 @@ Reads a year, month and day."
 (defvar displayed-month)
 (defvar displayed-year)
 
+;; FIXME same as islamic.
 ;;;###holiday-autoload
 (defun holiday-bahai (month day string)
   "Holiday on MONTH, DAY (Bahá'í) called STRING.
@@ -208,6 +210,8 @@ nil if it is not visible in the current calendar window."
          (y (extract-calendar-year bahai-date))
          date)
     (unless (< m 1)                    ; Bahá'í calendar doesn't apply
+      ;; FIXME makes no sense (?), since there are not 12 months in a year.
+      ;; Suspect this was copied from cal-islam.
       (increment-calendar-month m y (- 10 month))
       (if (> m 7)                       ; Bahá'í date might be visible
           (let ((date (calendar-gregorian-from-absolute
