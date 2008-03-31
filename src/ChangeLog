@@ -1,5 +1,9 @@
 2008-03-31  Chong Yidong  <cyd@stupidchicken.com>
 
+	* xdisp.c (next_overlay_string): Don't set
+	overlay_strings_at_end_processed_p if we're currently reading from
+	a display string.
+
 	* fileio.c (auto_save_error_occurred): New var.
 	(auto_save_error): Set it.
 	(Fdo_auto_save): Don't overwrite the error message if an auto-save
