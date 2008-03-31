@@ -59,11 +59,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00073.html
 ** don't require path hints for *shell*
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-01/msg00046.html
 
-** Two display bugs involving interactions between after-string and
-display properties of adjacent overlays
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00119.html
-First bug is fixed in trunk: 2008-02-29 checkin to xdisp.c by cyd.
-
 ** overlay face property not used for after-string property
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00124.html
 
