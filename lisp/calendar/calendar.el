@@ -1213,20 +1213,23 @@ with descriptive strings such as
 (defconst cal-hebrew-yahrzeit-buffer "*Yahrzeits*"
   "Name of the buffer used by `list-yahrzeit-dates'.")
 
-(defmacro increment-calendar-month (mon yr n)
+(defmacro increment-calendar-month (mon yr n &optional nmonths)
   "Increment the variables MON and YR by N months.
 Forward if N is positive or backward if N is negative.
 A negative YR is interpreted as BC; -1 being 1 BC, and so on.
-This is only appropriate for calendars with 12 months per year."
-  `(let (macro-y)
-     ;; FIXME 12 could be an optional arg, if needed.
+Optional NMONTHS is the number of months per year (default 12)."
+  ;; Can view this as a form of base-nmonths arithmetic, in which "a
+  ;; year" = "ten", and we never bother to use hundreds.
+  `(let ((nmonths (or ,nmonths 12))
+         macro-y)
      (if (< ,yr 0) (setq ,yr (1+ ,yr))) ; -1 BC -> 0 AD, etc
-     (setq macro-y (+ (* ,yr 12) ,mon -1 ,n)
-           ,mon (1+ (mod macro-y 12))
-           ,yr (/ macro-y 12))
-;;;      (setq macro-y (+ (* ,yr 12) ,mon -1 ,n)
-;;;            ,yr (/ macro-y 12)
-;;;            ,mon (- macro-y (* ,yr 12)))
+     (setq macro-y (+ (* ,yr nmonths) ,mon -1 ,n)
+           ,mon (1+ (mod macro-y nmonths))
+           ,yr (/ macro-y nmonths))
+     ;; Alternative:
+;;;      (setq macro-y (+ (* ,yr nmonths) ,mon -1 ,n)
+;;;            ,yr (/ macro-y nmonths)
+;;;            ,mon (- macro-y (* ,yr nmonths)))
      (and (< macro-y 0) (> ,mon 1) (setq ,yr (1- ,yr)))
      (if (< ,yr 1) (setq ,yr (1- ,yr))))) ; 0 AD -> -1 BC, etc
 
