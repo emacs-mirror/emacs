@@ -1,5 +1,8 @@
 2008-03-31  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-bahai.el (calendar-bahai-date-string): Avoid an error for
+	pre-Bahai dates.
+
 	* calendar/holidays.el (holiday-filter-visible-calendar): Return result
 	from dolist.
 
