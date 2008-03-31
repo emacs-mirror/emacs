@@ -1,3 +1,10 @@
+2008-03-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* fileio.c (auto_save_error_occurred): New var.
+	(auto_save_error): Set it.
+	(Fdo_auto_save): Don't overwrite the error message if an auto-save
+	error occurred.
+
 2008-03-31  Jason Rumney  <jasonr@gnu.org>
 
 	* dired.c (Ffile_attributes) [WINDOWSNT]: Cast uid and gid to unsigned.
