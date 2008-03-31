@@ -976,8 +976,16 @@ Elements of the attribute list are:
      shorter than an int (e.g., `short'), GCC whines about comparison
      being always false due to limited range of data type.  Fix by
      copying s.st_uid and s.st_gid into int variables.  */
+#ifdef WINDOWSNT
+  /* Windows uses signed short for the uid and gid in the stat structure,
+     but we use an int for getuid (limited to the range 0-60000).
+     So users with uid > 32767 need their uid patched back here.  */ 
+  uid = (unsigned short) s.st_uid;
+  gid = (unsigned short) s.st_gid;
+#else
   uid = s.st_uid;
   gid = s.st_gid;
+#endif
   if (NILP (id_format) || EQ (id_format, Qinteger))
     {
       values[2] = make_fixnum_or_float (uid);
