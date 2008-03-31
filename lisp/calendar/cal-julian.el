@@ -136,16 +136,20 @@ Driven by the variable `calendar-date-display-form'."
 (defvar displayed-month)
 (defvar displayed-year)
 
+;; FIXME same as hebrew
 ;;;###holiday-autoload
 (defun holiday-julian (month day string)
   "Holiday on MONTH, DAY (Julian) called STRING.
 If MONTH, DAY (Julian) is visible, the value returned is corresponding
 Gregorian date in the form of the list (((month day year) STRING)).  Returns
 nil if it is not visible in the current calendar window."
+  ;; We need to choose the Julian year associated with month and day
+  ;; that might make them visible.
   (let* ((m1 displayed-month)
          (y1 displayed-year)
          (m2 displayed-month)
          (y2 displayed-year)
+         ;; Absolute date of first/last dates in calendar window.
          (start-date (progn
                        (increment-calendar-month m1 y1 -1)
                        (calendar-absolute-from-gregorian (list m1 1 y1))))
@@ -153,11 +157,21 @@ nil if it is not visible in the current calendar window."
                      (increment-calendar-month m2 y2 1)
                      (calendar-absolute-from-gregorian
                       (list m2 (calendar-last-day-of-month m2 y2) y2))))
+         ;; Julian date of first/last date in calendar window.
          (julian-start (calendar-julian-from-absolute start-date))
          (julian-end (calendar-julian-from-absolute end-date))
+         ;; Julian year of first/last dates.
+         ;; Can only differ if displayed-month = 12, 1, 2.
          (julian-y1 (extract-calendar-year julian-start))
          (julian-y2 (extract-calendar-year julian-end))
-         (year (if (< 10 month) julian-y1 julian-y2))
+         ;; Choose which year might be visible in the window.
+         ;; Obviously it only matters when y1 and y2 differ, ie
+         ;; when the _Julian_ new year is visible.
+         ;; In the Gregorian case, we'd use y1 (the lower year)
+         ;; when month >= 11. In the Julian case, there is an offset
+         ;; of two weeks (ie 1 Nov Greg = 19 Oct Julian). So we use
+         ;; month >= 10, since it can't cause any problems.
+         (year (if (> month 9) julian-y1 julian-y2))
          (date (calendar-gregorian-from-absolute
                 (calendar-absolute-from-julian (list month day year)))))
     (if (calendar-date-is-visible-p date)
