@@ -3848,6 +3848,7 @@ displayed.  */)
       else
 	window = Fget_largest_window (frames, Qt);
 
+      tem = Qnil;
       if (!NILP (Vsplit_window_preferred_function))
 	tem = call1 (Vsplit_window_preferred_function, window);
 
