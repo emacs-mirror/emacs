@@ -1,3 +1,18 @@
+2008-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* doc-view.el: Compute displayed pages first (in PDF).
+	(doc-view-current-converter-processes): Rename from
+	doc-view-current-converter-process.  Update users.
+	(doc-view-sentinel): Test buffer's liveness.
+	(doc-view-pdf/ps->png-sentinel): Remove.
+	(doc-view-start-process): New function.
+	(doc-view-dvi->pdf, doc-view-pdf/ps->png, doc-view-pdf->txt)
+	(doc-view-ps->pdf): Use it.
+	(doc-view-pdf->png-1, doc-view-pdf->png, doc-view-active-pages):
+	New functions.
+	(doc-view-convert-current-doc, doc-view-goto-page): Use them.
+	(doc-view-mode): Kill the processes when leaving the mode.
+
 2008-03-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/bytecomp.el (byte-compile-warnings-safe-p):

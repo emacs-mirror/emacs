@@ -223,18 +223,23 @@ has finished."
 
 (defvar doc-view-current-files nil
   "Only used internally.")
+(make-variable-buffer-local 'doc-view-current-files)
 
-(defvar doc-view-current-converter-process nil
+(defvar doc-view-current-converter-processes nil
   "Only used internally.")
+(make-variable-buffer-local 'doc-view-current-converter-processes)
 
 (defvar doc-view-current-timer nil
   "Only used internally.")
+(make-variable-buffer-local 'doc-view-current-timer)
 
 (defvar doc-view-current-cache-dir nil
   "Only used internally.")
+(make-variable-buffer-local 'doc-view-current-cache-dir)
 
 (defvar doc-view-current-search-matches nil
   "Only used internally.")
+(make-variable-buffer-local 'doc-view-current-search-matches)
 
 (defvar doc-view-pending-cache-flush nil
   "Only used internally.")
@@ -342,7 +347,7 @@ Can be `dvi', `pdf', or `ps'.")
       (when (and (> page len)
                  ;; As long as the converter is running, we don't know
                  ;; how many pages will be available.
-                 (null doc-view-current-converter-process))
+                 (null doc-view-current-converter-processes))
 	(setq page len)))
     (setf (doc-view-current-page) page
 	  (doc-view-current-info)
@@ -350,7 +355,7 @@ Can be `dvi', `pdf', or `ps'.")
 	   (propertize
 	    (format "Page %d of %d." page len) 'face 'bold)
 	   ;; Tell user if converting isn't finished yet
-	   (if doc-view-current-converter-process
+	   (if doc-view-current-converter-processes
 	       " (still converting...)\n"
 	     "\n")
 	   ;; Display context infos if this page matches the last search
@@ -366,9 +371,22 @@ Can be `dvi', `pdf', or `ps'.")
     ;; We used to find the file name from doc-view-current-files but
     ;; that's not right if the pages are not generated sequentially
     ;; or if the page isn't in doc-view-current-files yet.
-    (doc-view-insert-image (expand-file-name (format "page-%d.png" page)
-                                             (doc-view-current-cache-dir))
-                           :pointer 'arrow)
+    (let ((file (expand-file-name (format "page-%d.png" page)
+                                  (doc-view-current-cache-dir))))
+      (doc-view-insert-image file :pointer 'arrow)
+      (when (and (not (file-exists-p file))
+                 doc-view-current-converter-processes)
+        ;; The PNG file hasn't been generated yet.
+        (doc-view-pdf->png-1 doc-view-buffer-file-name file page
+                             (lexical-let ((page page)
+                                           (win (selected-window)))
+                               (lambda ()
+                                 (and (eq (current-buffer) (window-buffer win))
+                                      ;; If we changed page in the mean
+                                      ;; time, don't mess things up.
+                                      (eq (doc-view-current-page win) page)
+                                      (with-selected-window win
+                                        (doc-view-goto-page page))))))))
     (overlay-put (doc-view-current-overlay)
                  'help-echo (doc-view-current-info))))
 
@@ -413,12 +431,11 @@ Can be `dvi', `pdf', or `ps'.")
 ;;;; Utility Functions
 
 (defun doc-view-kill-proc ()
-  "Kill the current converter process."
+  "Kill the current converter process(es)."
   (interactive)
-  (when doc-view-current-converter-process
+  (while doc-view-current-converter-processes
     (ignore-errors ;; Maybe it's dead already?
-      (kill-process doc-view-current-converter-process))
-    (setq doc-view-current-converter-process nil))
+      (kill-process (pop doc-view-current-converter-processes))))
   (when doc-view-current-timer
     (cancel-timer doc-view-current-timer)
     (setq doc-view-current-timer nil))
@@ -532,72 +549,94 @@ Should be invoked when the cached images aren't up-to-date."
   (if (not (string-match "finished" event))
       (message "DocView: process %s changed status to %s."
                (process-name proc) event)
-    (with-current-buffer (process-get proc 'buffer)
-      (setq doc-view-current-converter-process nil
-            mode-line-process nil)
-      (funcall (process-get proc 'callback)))))
+    (when (buffer-live-p (process-get proc 'buffer))
+      (with-current-buffer (process-get proc 'buffer)
+        (setq doc-view-current-converter-processes
+              (delq proc doc-view-current-converter-processes))
+        (setq mode-line-process
+              (if doc-view-current-converter-processes
+                  (format ":%s" (car doc-view-current-converter-processes))))
+        (funcall (process-get proc 'callback))))))
+
+(defun doc-view-start-process (name program args callback)
+  ;; Make sure the process is started in an existing directory,
+  ;; (rather than some file-name-handler-managed dir, for example).
+  (let* ((default-directory (expand-file-name "~/"))
+         (proc (apply 'start-process name doc-view-conversion-buffer
+                      program args)))
+    (push proc doc-view-current-converter-processes)
+    (setq mode-line-process (list (format ":%s" proc)))
+    (set-process-sentinel proc 'doc-view-sentinel)
+    (process-put proc 'buffer   (current-buffer))
+    (process-put proc 'callback callback)))
 
 (defun doc-view-dvi->pdf (dvi pdf callback)
   "Convert DVI to PDF asynchronously and call CALLBACK when finished."
-  (setq doc-view-current-converter-process
-	(start-process "dvi->pdf" doc-view-conversion-buffer
-		       doc-view-dvipdfm-program
-		       "-o" pdf dvi)
-	mode-line-process (list (format ":%s" doc-view-current-converter-process)))
-  (set-process-sentinel doc-view-current-converter-process 'doc-view-sentinel)
-  (process-put doc-view-current-converter-process 'buffer   (current-buffer))
-  (process-put doc-view-current-converter-process 'callback callback))
+  (doc-view-start-process "dvi->pdf" doc-view-dvipdfm-program
+                          (list "-o" pdf dvi)
+                          callback))
 
-(defun doc-view-pdf/ps->png-sentinel (proc event)
-  "If PDF/PS->PNG conversion was successful, update the display."
-  (if (not (string-match "finished" event))
-      (message "DocView: converter process changed status to %s." event)
-    ;; FIXME: kill the process if we kill the buffer?
-    (when (buffer-live-p (process-get proc 'buffer))
-      (with-current-buffer (process-get proc 'buffer)
-        (setq doc-view-current-converter-process nil
-              mode-line-process nil)
-        (when doc-view-current-timer
-          (cancel-timer doc-view-current-timer)
-          (setq doc-view-current-timer nil))
-        ;; Yippie, finished.  Update the display!
-        (doc-view-display (current-buffer) 'force)))))
 
 (defun doc-view-pdf/ps->png (pdf-ps png)
   "Convert PDF-PS to PNG asynchronously."
-  (setq doc-view-current-converter-process
-        ;; Make sure the process is started in an existing directory,
-        ;; (rather than some file-name-handler-managed dir, for example).
-        (let ((default-directory (file-name-directory pdf-ps)))
-          (apply 'start-process
-                 (append (list "pdf/ps->png" doc-view-conversion-buffer
-                               doc-view-ghostscript-program)
-                         doc-view-ghostscript-options
-                         (list (format "-r%d" (round doc-view-resolution)))
-                         (list (concat "-sOutputFile=" png))
-                         (list pdf-ps))))
-	mode-line-process (list (format ":%s" doc-view-current-converter-process)))
-  (process-put doc-view-current-converter-process
-	       'buffer (current-buffer))
-  (set-process-sentinel doc-view-current-converter-process
-			'doc-view-pdf/ps->png-sentinel)
+  (doc-view-start-process
+   "pdf/ps->png" doc-view-ghostscript-program
+   (append doc-view-ghostscript-options
+           (list (format "-r%d" (round doc-view-resolution))
+                 (concat "-sOutputFile=" png)
+                 pdf-ps))
+   (lambda () 
+     (when doc-view-current-timer
+       (cancel-timer doc-view-current-timer)
+       (setq doc-view-current-timer nil))
+     (doc-view-display (current-buffer) 'force)))
+  ;; Update the displayed pages as soon as they're done generating.
   (when doc-view-conversion-refresh-interval
     (setq doc-view-current-timer
-	  (run-at-time "1 secs" doc-view-conversion-refresh-interval
-		       'doc-view-display
-		       (current-buffer)))))
+          (run-at-time "1 secs" doc-view-conversion-refresh-interval
+                       'doc-view-display
+                       (current-buffer)))))
+
+(defun doc-view-pdf->png-1 (pdf png page callback)
+  "Convert a PAGE of a PDF file to PNG asynchronously.
+Call CALLBACK with no arguments when done."
+  (doc-view-start-process
+   "pdf->png-1" doc-view-ghostscript-program
+   (append doc-view-ghostscript-options
+           (list (format "-r%d" (round doc-view-resolution))
+                 ;; Sadly, `gs' only supports the page-range
+                 ;; for PDF files.
+                 (format "-dFirstPage=%d" page)
+                 (format "-dLastPage=%d" page)
+                 (concat "-sOutputFile=" png)
+                 pdf))
+   callback))
+
+(defun doc-view-pdf->png (pdf png pages)
+  "Convert a PDF file to PNG asynchronously.
+Start by converting PAGES, and then the rest."
+  (if (null pages)
+      (doc-view-pdf/ps->png pdf png)
+    ;; We could render several `pages' with a single process if they're
+    ;; (almost) consecutive, but since in 99% of the cases, there'll be only
+    ;; a single page anyway, and of the remaining 1%, few cases will have
+    ;; consecutive pages, it's not worth the trouble.
+    (lexical-let ((pdf pdf) (png png) (rest (cdr pages)))
+      (doc-view-pdf->png-1
+       pdf (format png (car pages)) (car pages)
+       (lambda ()
+         (if rest
+             (doc-view-pdf->png pdf png rest)
+           ;; Yippie, the important pages are done, update the display.
+           (clear-image-cache)
+           ;; Convert the rest of the pages.
+           (doc-view-pdf/ps->png pdf png)))))))
 
 (defun doc-view-pdf->txt (pdf txt callback)
   "Convert PDF to TXT asynchronously and call CALLBACK when finished."
-  (setq doc-view-current-converter-process
-	(start-process "pdf->txt" doc-view-conversion-buffer
-		       doc-view-pdftotext-program "-raw"
-		       pdf txt)
-	mode-line-process (list (format ":%s" doc-view-current-converter-process)))
-  (set-process-sentinel doc-view-current-converter-process
-			'doc-view-sentinel)
-  (process-put doc-view-current-converter-process 'buffer (current-buffer))
-  (process-put doc-view-current-converter-process 'callback callback))
+  (doc-view-start-process "pdf->txt" doc-view-pdftotext-program
+                          (list "-raw" pdf txt)
+                          callback))
 
 (defun doc-view-doc->txt (txt callback)
   "Convert the current document to text and call CALLBACK when done."
@@ -625,18 +664,21 @@ Should be invoked when the cached images aren't up-to-date."
 
 (defun doc-view-ps->pdf (ps pdf callback)
   "Convert PS to PDF asynchronously and call CALLBACK when finished."
-  (setq doc-view-current-converter-process
-	(start-process "ps->pdf" doc-view-conversion-buffer
-		       doc-view-ps2pdf-program
-		       ;; Avoid security problems when rendering files from
-		       ;; untrusted sources.
-		       "-dSAFER"
-		       ;; in-file and out-file
-		       ps pdf)
-	mode-line-process (list (format ":%s" doc-view-current-converter-process)))
-  (set-process-sentinel doc-view-current-converter-process 'doc-view-sentinel)
-  (process-put doc-view-current-converter-process 'buffer   (current-buffer))
-  (process-put doc-view-current-converter-process 'callback callback))
+  (doc-view-start-process "ps->pdf" doc-view-ps2pdf-program
+                          (list
+                           ;; Avoid security problems when rendering files from
+                           ;; untrusted sources.
+                           "-dSAFER"
+                           ;; in-file and out-file
+                           ps pdf)
+                          callback))
+
+(defun doc-view-active-pages ()
+  (let ((pages ()))
+    (dolist (win (get-buffer-window-list (current-buffer) nil 'visible))
+      (let ((page (image-mode-window-get 'page win)))
+        (unless (memq page pages) (push page pages))))
+    pages))
 
 (defun doc-view-convert-current-doc ()
   "Convert `doc-view-buffer-file-name' to a set of png files, one file per page.
@@ -660,6 +702,10 @@ Those files are saved in the directory given by the function
             (png-file png-file))
          (doc-view-dvi->pdf doc-view-buffer-file-name pdf
                             (lambda () (doc-view-pdf/ps->png pdf png-file)))))
+     (pdf
+      (let ((pages (doc-view-active-pages)))
+        ;; Convert PDF to PNG images starting with the active pages.
+        (doc-view-pdf->png doc-view-buffer-file-name png-file pages)))
       (t
        ;; Convert to PNG images.
        (doc-view-pdf/ps->png doc-view-buffer-file-name png-file)))))
@@ -733,7 +779,7 @@ ARGS is a list of image descriptors."
                        (list (cons 'slice slice) image)
                      image))
                   ;; We're trying to display a page that doesn't exist.
-                  (doc-view-current-converter-process
+                  (doc-view-current-converter-processes
                    ;; Maybe the page doesn't exist *yet*.
                    "Cannot display this page (yet)!")
                   (t
@@ -808,7 +854,7 @@ For now these keys are useful:
 (defun doc-view-open-text ()
   "Open a buffer with the current doc's contents as text."
   (interactive)
-  (if doc-view-current-converter-process
+  (if doc-view-current-converter-processes
       (message "DocView: please wait till conversion finished.")
     (let ((txt (expand-file-name "doc.txt" (doc-view-current-cache-dir))))
       (if (file-readable-p txt)
@@ -914,7 +960,7 @@ If BACKWARD is non-nil, jump to the previous match."
 		     (doc-view-search-no-of-matches
 		      doc-view-current-search-matches)))
 	;; We must convert to TXT first!
-	(if doc-view-current-converter-process
+	(if doc-view-current-converter-processes
 	    (message "DocView: please wait till conversion finished.")
 	  (doc-view-doc->txt txt (lambda () (doc-view-search nil))))))))
 
@@ -1060,15 +1106,13 @@ toggle between displaying the document or editing it as text.
   (when (not (string= doc-view-buffer-file-name buffer-file-name))
     (write-region nil nil doc-view-buffer-file-name))
 
-  (make-local-variable 'doc-view-current-files)
-  (make-local-variable 'doc-view-current-converter-process)
-  (make-local-variable 'doc-view-current-timer)
-  (make-local-variable 'doc-view-current-cache-dir)
-  (make-local-variable 'doc-view-current-search-matches)
   (add-hook 'change-major-mode-hook
-	    (lambda () (remove-overlays (point-min) (point-max) 'doc-view t))
+	    (lambda ()
+              (doc-view-kill-proc)
+              (remove-overlays (point-min) (point-max) 'doc-view t))
 	    nil t)
   (add-hook 'clone-indirect-buffer-hook 'doc-view-clone-buffer-hook nil t)
+  (add-hook 'kill-buffer 'doc-view-kill-proc nil t)
 
   (remove-overlays (point-min) (point-max) 'doc-view t) ;Just in case.
   ;; Keep track of display info ([vh]scroll, page number, overlay, ...)
