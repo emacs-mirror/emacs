@@ -421,19 +421,25 @@ Gregorian date Sunday, December 31, 1 BC."
 
 ;;;###holiday-autoload
 (defun holiday-chinese-new-year ()
-  "Date of Chinese New Year."
+  "Date of Chinese New Year, if visible in calendar.
+Returns (((MONTH DAY YEAR) TEXT)), where the date is Gregorian."
   (let ((m displayed-month)
         (y displayed-year))
-    (increment-calendar-month m y 1)
+    ;; In the Gregorian calendar, CNY falls between Jan 21 and Feb 20.
+    ;; Jan is visible if displayed-month = 12, 1, 2; Feb if d-m = 1, 2, 3.
+    ;; If we shift the calendar forward one month, we can do a
+    ;; one-sided test, namely: d-m <= 4 means CNYN might be visible.
+    (increment-calendar-month m y 1)    ; shift forward a month
     (if (< m 5)
         (let ((chinese-new-year
                (calendar-gregorian-from-absolute
                 (cadr (assoc 1 (chinese-year y))))))
           (if (calendar-date-is-visible-p chinese-new-year)
-          (list
-           (list chinese-new-year
-                 (format "Chinese New Year (%s)"
-                         (calendar-chinese-sexagesimal-name (+ y 57))))))))))
+              (list
+               (list chinese-new-year
+                     (format "Chinese New Year (%s)"
+                             (calendar-chinese-sexagesimal-name
+                              (+ y 57))))))))))
 
 ;;;###cal-autoload
 (defun calendar-chinese-date-string (&optional date)
