@@ -1216,12 +1216,17 @@ with descriptive strings such as
 (defmacro increment-calendar-month (mon yr n)
   "Increment the variables MON and YR by N months.
 Forward if N is positive or backward if N is negative.
-A negative YR is interpreted as BC; -1 being 1 BC, and so on."
+A negative YR is interpreted as BC; -1 being 1 BC, and so on.
+This is only appropriate for calendars with 12 months per year."
   `(let (macro-y)
+     ;; FIXME 12 could be an optional arg, if needed.
      (if (< ,yr 0) (setq ,yr (1+ ,yr))) ; -1 BC -> 0 AD, etc
      (setq macro-y (+ (* ,yr 12) ,mon -1 ,n)
            ,mon (1+ (mod macro-y 12))
            ,yr (/ macro-y 12))
+;;;      (setq macro-y (+ (* ,yr 12) ,mon -1 ,n)
+;;;            ,yr (/ macro-y 12)
+;;;            ,mon (- macro-y (* ,yr 12)))
      (and (< macro-y 0) (> ,mon 1) (setq ,yr (1- ,yr)))
      (if (< ,yr 1) (setq ,yr (1- ,yr))))) ; 0 AD -> -1 BC, etc
 
@@ -1257,6 +1262,7 @@ inclusive.  The standard macro `dotimes' is preferable in most cases."
             ,index (1+ ,index)))
     sum))
 
+;; FIXME bind q to bury-buffer?
 (defmacro calendar-in-read-only-buffer (buffer &rest body)
   "Switch to BUFFER and executes the forms in BODY.
 First creates or erases BUFFER as needed.  Leaves BUFFER read-only,
@@ -2310,11 +2316,12 @@ interpreted as BC; -1 being 1 BC, and so on."
   (redraw-calendar))
 
 (defun calendar-date-is-visible-p (date)
-  "Return t if DATE is valid and is visible in the calendar window."
-  (let ((gap (calendar-interval
-              displayed-month displayed-year
-              (extract-calendar-month date) (extract-calendar-year date))))
-    (and (calendar-date-is-valid-p date) (> 2 gap) (< -2 gap))))
+  "Return non-nil if DATE is valid and is visible in the calendar window."
+  (and (calendar-date-is-valid-p date)
+       (< (abs (calendar-interval
+                displayed-month displayed-year
+                (extract-calendar-month date) (extract-calendar-year date)))
+          2)))
 
 (defun calendar-date-is-valid-p (date)
   "Return t if DATE is a valid date."
