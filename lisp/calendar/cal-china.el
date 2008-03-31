@@ -428,7 +428,7 @@ Returns (((MONTH DAY YEAR) TEXT)), where the date is Gregorian."
     ;; In the Gregorian calendar, CNY falls between Jan 21 and Feb 20.
     ;; Jan is visible if displayed-month = 12, 1, 2; Feb if d-m = 1, 2, 3.
     ;; If we shift the calendar forward one month, we can do a
-    ;; one-sided test, namely: d-m <= 4 means CNYN might be visible.
+    ;; one-sided test, namely: d-m <= 4 means CNY might be visible.
     (increment-calendar-month m y 1)    ; shift forward a month
     (if (< m 5)
         (let ((chinese-new-year
