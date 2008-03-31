@@ -864,18 +864,39 @@ replace chars to try and eliminate some spurious differences."
       (delete-file file1)
       (delete-file file2))))
 
-(defun smerge-refine ()
-  "Highlight the parts of the conflict that are different."
-  (interactive)
-  ;; FIXME: make it work with 3-way conflicts.
+(defun smerge-refine (&optional part)
+  "Highlight the words of the conflict that are different.
+For 3-way conflicts, highlights only 2 of the 3 parts.
+A numeric argument PART can be used to specify which 2 parts;
+repeating the command will highlight other 2 parts."
+  (interactive
+   (if (integerp current-prefix-arg) (list current-prefix-arg)
+     (smerge-match-conflict)
+     (let* ((prop (get-text-property (match-beginning 0) 'smerge-refine-part))
+            (part (if (and (consp prop)
+                           (eq (buffer-chars-modified-tick) (car prop)))
+                      (cdr prop))))
+       ;; If already highlighted, cycle.
+       (list (if (integerp part) (1+ (mod part 3)))))))
+
+  (if (and (integerp part) (or (< part 1) (> part 3)))
+      (error "No conflict part nb %s" part))
   (smerge-match-conflict)
   (remove-overlays (match-beginning 0) (match-end 0) 'smerge 'refine)
-  (smerge-ensure-match 1)
-  (smerge-ensure-match 3)
-  ;; Match 1 and 3 may be one and the same in case of trivial diff3 -A conflict.
-  (let ((n1 (if (eq (match-end 1) (match-end 3)) 2 1)))
+  ;; Ignore `part' if not applicable, and default it if not provided.
+  (setq part (cond ((null (match-end 2)) 2)
+                   ((eq (match-end 1) (match-end 3)) 1)
+                   ((integerp part) part)
+                   (t 2)))
+  (let ((n1 (if (eq part 1) 2 1))
+        (n2 (if (eq part 3) 2 3)))
+    (smerge-ensure-match n1)
+    (smerge-ensure-match n2)
+    (put-text-property (match-beginning 0) (1+ (match-beginning 0))
+                       'smerge-refine-part
+                       (cons (buffer-chars-modified-tick) part))
     (smerge-refine-subst (match-beginning n1) (match-end n1)
-                         (match-beginning 3)  (match-end 3)
+                         (match-beginning n2)  (match-end n2)
                          '((smerge . refine)
                            (face . smerge-refined-change)))))
 

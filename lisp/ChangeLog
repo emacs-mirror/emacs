@@ -1,3 +1,8 @@
+2008-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-refine): Allow highlighting other subparts
+	in 3-way conflicts.
+
 2008-03-31  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-bahai.el (calendar-bahai-date-string): Avoid an error for
