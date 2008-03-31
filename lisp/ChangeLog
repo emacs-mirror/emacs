@@ -40,6 +40,8 @@
 
 	* calendar/cal-bahai.el (calendar-bahai-date-string): Avoid an error for
 	pre-Bahai dates.
+	(holiday-bahai): Use an algorithm actually relevant to this calendar
+	system.
 
 	* calendar/cal-china.el (holiday-chinese-new-year): Doc fix.
 
