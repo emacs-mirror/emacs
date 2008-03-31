@@ -275,10 +275,23 @@ The holidays are those in the list `calendar-holidays'."
   "Holiday on MONTH, DAY (Gregorian) called STRING.
 If MONTH, DAY is visible, the value returned is the list (((MONTH DAY year)
 STRING)).  Returns nil if it is not visible in the current calendar window."
+  ;; This determines whether a given month is visible in the calendar.
+  ;; cf calendar-date-is-visible-p (which also checks the year part).
+  ;; The day is irrelevant since only full months are displayed.
+  ;; Since the calendar displays three months at a time, month N
+  ;; is visible if displayed-month = N-1, N, N+1.
+  ;; In particular, November is visible if d-m = 10, 11, 12.
+  ;; This is useful, because we can do a one-sided test:
+  ;; November is visible if d-m > 9. (Similarly, February is visible if
+  ;; d-m < 4.)
+  ;; To determine if December is visible, we can shift the calendar
+  ;; back a month and ask if November is visible; to determine if
+  ;; October is visible, we can shift it forward a month and ask if
+  ;; November is visible; etc.
   (let ((m displayed-month)
         (y displayed-year))
     (increment-calendar-month m y (- 11 month))
-    (if (> m 9)
+    (if (> m 9)                         ; is november visible?
         (list (list (list month day y) string)))))
 
 (defun holiday-float (month dayname n string &optional day)
@@ -336,12 +349,11 @@ Returns nil if it is not visible in the current calendar window."
 
 (defun holiday-filter-visible-calendar (l)
   "Return a list of all visible holidays of those on L."
-  (let ((visible ()))
-    (dolist (p l)
+  (let (visible)
+    (dolist (p l visible)
       (and (car p)
            (calendar-date-is-visible-p (car p))
-           (push p visible)))
-    visible))
+           (push p visible)))))
 
 (define-obsolete-function-alias
   'filter-visible-calendar-holidays 'holiday-filter-visible-calendar "23.1")
