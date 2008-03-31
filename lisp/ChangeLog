@@ -1,5 +1,8 @@
 2008-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* smerge-mode.el (smerge-apply-resolution-patch): New fun.
+	(smerge-resolve): Add various resolution heuristics.
+
 	* smerge-mode.el (smerge-refine): Allow highlighting other subparts
 	in 3-way conflicts.
 
