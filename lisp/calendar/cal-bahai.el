@@ -195,13 +195,15 @@ Reads a year, month and day."
 (defvar displayed-month)
 (defvar displayed-year)
 
-;; FIXME same as islamic.
 ;;;###holiday-autoload
 (defun holiday-bahai (month day string)
   "Holiday on MONTH, DAY (Bahá'í) called STRING.
 If MONTH, DAY (Bahá'í) is visible, the value returned is corresponding
 Gregorian date in the form of the list (((month day year) STRING)).  Returns
 nil if it is not visible in the current calendar window."
+  ;; Since the calendar window shows 3 months at a time, there are
+  ;; approx +/- 45 days either side of the central month.
+  ;; Since the Bahai months have 19 days, this means up to +/- 3 months.
   (let* ((bahai-date (calendar-bahai-from-absolute
                       (calendar-absolute-from-gregorian
                        (list displayed-month 15 displayed-year))))
@@ -209,14 +211,20 @@ nil if it is not visible in the current calendar window."
          (y (extract-calendar-year bahai-date))
          date)
     (unless (< m 1)                    ; Bahá'í calendar doesn't apply
-      ;; FIXME makes no sense (?), since there are not 12 months in a year.
-      ;; Suspect this was copied from cal-islam.
-      (increment-calendar-month m y (- 10 month))
-      (if (> m 7)                       ; Bahá'í date might be visible
-          (let ((date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-bahai (list month day y)))))
-            (if (calendar-date-is-visible-p date)
-                (list (list date string))))))))
+      ;; Cf holiday-fixed, holiday-islamic.
+      ;; With a +- 3 month calendar window, and 19 months per year,
+      ;; month 16 is special.  When m16 is central is when the
+      ;; end-of-year first appears.  When m1 is central, m16 is no
+      ;; longer visible.  Hence we can do a one-sided test to see if
+      ;; m16 is visible.  m16 is visible when the central month >= 13.
+      ;; To see if other months are visible we can shift the range
+      ;; accordingly.
+      (increment-calendar-month m y (- 16 month) 19)
+      (and (> m 12)                     ; Bahá'í date might be visible
+           (calendar-date-is-visible-p
+            (setq date (calendar-gregorian-from-absolute
+                        (calendar-absolute-from-bahai (list month day y)))))
+           (list (list date string))))))
 
 (autoload 'diary-list-entries-1 "diary-lib")
 
