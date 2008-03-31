@@ -267,10 +267,10 @@ passed to `mark-visible-calendar-date' as MARK."
   "Mark days in the calendar window that have Bahá'í date diary entries.
 Marks each entry in `diary-file' (or included files) visible in the calendar
 window.  See `diary-bahai-list-entries' for more information."
-  (diary-mark-entries-1 calendar-bahai-month-name-array
+  (diary-mark-entries-1 'calendar-bahai-mark-date-pattern
+                        calendar-bahai-month-name-array
                         bahai-diary-entry-symbol
-                        'calendar-bahai-from-absolute
-                        'calendar-bahai-mark-date-pattern))
+                        'calendar-bahai-from-absolute))
 
 (define-obsolete-function-alias
   'mark-bahai-diary-entries 'diary-bahai-mark-entries "23.1")
