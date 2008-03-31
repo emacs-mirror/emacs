@@ -123,25 +123,24 @@ Defaults to today's date if DATE is not given."
   (let* ((bahai-date (calendar-bahai-from-absolute
                       (calendar-absolute-from-gregorian
                        (or date (calendar-current-date)))))
-         (y (extract-calendar-year bahai-date))
-         (m (extract-calendar-month bahai-date))
-         (d (extract-calendar-day bahai-date))
-         (monthname (if (or (< m 1)     ; pre-Bahai, avoid aref error
-                            (and (= m 19)
-                                 (<= d 0)))
-                        "Ayyám-i-Há"
-                      (aref calendar-bahai-month-name-array (1- m))))
-         (day (int-to-string
-               (if (<= d 0)
-                   (+ d (if (calendar-bahai-leap-year-p y) 5 4))
-                 d)))
-         (year (int-to-string y))
-         (month (int-to-string m))
-         dayname)
+         (y (extract-calendar-year bahai-date)))
     (if (< y 1)
-        ""
-      ;; Can't call calendar-date-string because of monthname oddity.
-      (mapconcat 'eval calendar-date-display-form ""))))
+        ""                              ; pre-Bahai
+      (let* ((m (extract-calendar-month bahai-date))
+             (d (extract-calendar-day bahai-date))
+             (monthname (if (and (= m 19)
+                                 (<= d 0))
+                            "Ayyám-i-Há"
+                          (aref calendar-bahai-month-name-array (1- m))))
+             (day (int-to-string
+                   (if (<= d 0)
+                       (+ d (if (calendar-bahai-leap-year-p y) 5 4))
+                     d)))
+             (year (int-to-string y))
+             (month (int-to-string m))
+             dayname)
+        ;; Can't call calendar-date-string because of monthname oddity.
+        (mapconcat 'eval calendar-date-display-form "")))))
 
 ;;;###cal-autoload
 (defun calendar-bahai-print-date ()
