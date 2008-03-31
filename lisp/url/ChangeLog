@@ -1,4 +1,4 @@
-2008-01-29  John Wiegley  <johnw@newartisans.com>
+2008-03-31  John Wiegley  <johnw@newartisans.com>
 
 	* url-auth.el (url-digest-auth): Changed an if so that the
 	interaction between the PROMPT and OVERWRITE arguments can no
