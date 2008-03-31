@@ -1,3 +1,8 @@
+2008-03-31  Glenn Morris  <rgm@gnu.org>
+
+	* message.el (mml2015-use): Declare for compiler.
+	(message-info): Require mml2015 when appropriate.
+
 2008-03-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* nntp.el (nntp-netcat-command): Rename from nntp-via-netcat-command.
