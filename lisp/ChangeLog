@@ -1,12 +1,12 @@
 2008-03-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* vc.el (vc-status-add-entry): Assume ENTRY is a list not a cons.
+	* vc.el (vc-status-add-entry): Assume ENTRY is a list, not a cons.
 	(vc-status-mark-buffer-changed): Handle the extra field.
 
 	* vc-bzr.el (vc-bzr-after-dir-status):
 	* vc-cvs.el (vc-cvs-after-dir-status):
 	* vc-hg.el (vc-hg-after-dir-status):
-	* vc-svn.el (vc-svn-after-dir-status): Return a list not a cons.
+	* vc-svn.el (vc-svn-after-dir-status): Return a list, not a cons.
 
 2008-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
