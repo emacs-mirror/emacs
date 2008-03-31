@@ -2489,6 +2489,7 @@ Point is left at the beginning of the narrowed-to region."
 
 
 (autoload 'Info-goto-node "info")
+(defvar mml2015-use)
 
 (defun message-info (&optional arg)
   "Display the Message manual.
@@ -2497,8 +2498,11 @@ Prefixed with one \\[universal-argument], display the Emacs MIME
 manual.  With two \\[universal-argument]'s, display the EasyPG or
 PGG manual, depending on the value of `mml2015-use'."
   (interactive "p")
+  ;; Why not `info', which is in loaddefs.el?
   (Info-goto-node (format "(%s)Top"
-			  (cond ((eq arg 16) mml2015-use)
+			  (cond ((eq arg 16)
+				 (require 'mml2015)
+				 mml2015-use)
 				((eq arg  4) 'emacs-mime)
 				;; `booleanp' only available in Emacs 22+
 				((and (not (memq arg '(nil t)))
