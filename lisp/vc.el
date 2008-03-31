@@ -603,6 +603,13 @@
 ;;
 ;; - vc-status toolbar needs more icons.
 ;;
+;; - the dir-status backend function should take as an argument an
+;;   optional fileset.  and return the results just for that fileset.
+;;   This can be used to speed up status buffer updates after VC
+;;   operations.
+;;
+;; - keep the *vc-status* buffer sorted by file name.
+;;
 ;; - vc-status: refresh should not completely wipe out the current
 ;;   contents of the vc-status buffer.
 ;;
