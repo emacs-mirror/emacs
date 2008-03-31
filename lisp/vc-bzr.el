@@ -675,7 +675,7 @@ Optional argument LOCALP is always ignored."
 	      (buffer-substring-no-properties (+ (point) 4)
 					      (line-end-position)))
 	(setq translated (assoc status-str translation))
-	(push (cons file (cdr translated)) result)
+	(push (list file (cdr translated)) result)
 	(forward-line))
       (funcall update-function result status-buffer)))
 

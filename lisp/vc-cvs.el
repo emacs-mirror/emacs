@@ -900,7 +900,7 @@ state."
       (while (looking-at "? \\(.*\\)")
 	(setq file (file-relative-name 
 		    (expand-file-name (match-string 1) subdir)))
-	(push (cons file 'unregistered) result)
+	(push (list file 'unregistered) result)
 	(forward-line 1))
       ;; A file entry.
       (when (re-search-forward "^File: " nil t)
@@ -911,7 +911,7 @@ state."
 	  (setq file (file-relative-name 
 		      (expand-file-name (match-string 1) subdir)))
 	  (if (not (re-search-forward "\\=[ \t]+Status: \\(.*\\)" nil t))
-	      (push (cons file 'unregistered) result)
+	      (push (list file 'unregistered) result)
 	    (setq status-str (match-string 1))
 	    (setq status
 		  (cond
@@ -924,7 +924,7 @@ state."
 		   ((string-match "Locally Removed" status-str) 'removed)
 		   (t 'edited)))
 	    (unless (eq status 'up-to-date)
-	      (push (cons file status) result))))))
+	      (push (list file status) result))))))
       (goto-char (point-max))
       (widen))
       (funcall update-function result status-buffer)))

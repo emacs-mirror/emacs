@@ -174,7 +174,7 @@ If you want to force an empty list of arguments, use t."
       (let ((state (cdr (assq (aref (match-string 1) 0) state-map)))
            (filename (match-string 2)))
        (when state
-         (setq result (cons (cons filename state) result)))))
+         (setq result (cons (list filename state) result)))))
     (funcall callback result buffer)))
 
 (defun vc-svn-dir-status (dir callback buffer)

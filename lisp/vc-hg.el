@@ -496,7 +496,7 @@ REV is the revision to check out into WORKFILE."
 					      (line-end-position)))
 	(setq translated (assoc status-char translation))
 	(when (and translated (not (eq (cdr translated) 'up-to-date)))
-	  (push (cons file (cdr translated)) result))
+	  (push (list file (cdr translated)) result))
 	(forward-line))
       (funcall update-function result status-buffer)))
 

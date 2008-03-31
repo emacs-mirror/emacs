@@ -169,12 +169,14 @@
 ;;
 ;; - dir-status (dir update-function status-buffer)
 ;;
-;;   Produce RESULT: a list of conses of the form (file . vc-state)
-;;   for the files in DIR.  If a command needs to be run to compute
-;;   this list, it should be run asynchronously using (current-buffer)
-;;   as the buffer for the command.  When RESULT is computed, it should
-;;   be passed back by doing: (funcall UPDATE-FUNCTION RESULT STATUS-BUFFER)
-;;   This function is used by `vc-status', a replacement for `vc-dired'.
+;;   Produce RESULT: a list of lists of the form (FILE VC-STATE EXTRA)
+;;   for the files in DIR.
+;;   EXTRA can be used for backend specific information about FILE.
+;;   If a command needs to be run to compute this list, it should be
+;;   run asynchronously using (current-buffer) as the buffer for the
+;;   command.  When RESULT is computed, it should be passed back by
+;;   doing: (funcall UPDATE-FUNCTION RESULT STATUS-BUFFER) This
+;;   function is used by `vc-status', a replacement for `vc-dired'.
 ;;   vc-status is still under development, and is NOT feature
 ;;   complete.  As such, the requirements for this function might
 ;;   change.  This is a replacement for `dir-state'.
@@ -2941,11 +2943,10 @@ With prefix arg READ-SWITCHES, specify a value to override
       ;; Insert the entries we got into the ewoc.
       (dolist (entry entries)
 	(let* ((file (car entry))
-	       (entrycdr (cdr entry))
-	       (state (if (listp entrycdr) (nth 1 entry)))
-	       (extra (if (listp entrycdr) (nth 2 entry))))
-	(ewoc-enter-last vc-status
-			 (vc-status-create-fileinfo file state extra))))
+	       (state (nth 1 entry))
+	       (extra (nth 2 entry)))
+	  (ewoc-enter-last vc-status
+			   (vc-status-create-fileinfo file state extra))))
       ;; If we had marked items before the refresh, try mark them here.
       ;; XXX: there should be a better way to do this...
       (when vc-status-crt-marked
@@ -2964,7 +2965,7 @@ With prefix arg READ-SWITCHES, specify a value to override
   ;; This will be used to automatically add files with the "modified"
   ;; state when saving them.
 
-  ;; ENTRY is (FILENAME . STATE)
+  ;; ENTRY has the form (FILENAME STATE EXTRA)
   (with-current-buffer buffer
     (let ((crt (ewoc-nth vc-status 0))
 	  (fname (car entry)))
@@ -2976,14 +2977,13 @@ With prefix arg READ-SWITCHES, specify a value to override
       (if crt
 	  (progn
 	    ;; Found the file, just update the status.
-	    (setf (vc-status-fileinfo->state (ewoc-data crt)) (cdr entry))
+	    (setf (vc-status-fileinfo->state (ewoc-data crt)) (nth 1 entry))
+	    (setf (vc-status-fileinfo->extra (ewoc-data crt)) (nth 2 entry))
 	    (ewoc-invalidate vc-status crt))
 	;; Could not find the file, insert a new entry.
 	(ewoc-enter-last
-	 ;; XXX: `vc-status-fileinfo->extra' is not set here.
-	 ;; It might need to be.
-	 vc-status 
-	 (vc-status-create-fileinfo (car entry) (cdr entry) nil))))))
+	 vc-status
+	 (vc-status-create-fileinfo fname (nth 1 entry) (nth 2 entry)))))))
 
 (defun vc-status-refresh ()
   "Refresh the contents of the VC status buffer.
@@ -3210,6 +3210,9 @@ that share the same state."
 (defun vc-status-mark-buffer-changed (&optional fname)
   (let* ((file (or fname (expand-file-name buffer-file-name)))
 	 (state (and (vc-backend file) (vc-state file)))
+	 ;; XXX: EXTRA is not set here.
+	 ;; It might need to be.
+	 (extra nil)
 	 (found-vc-status-buf nil))
     (save-excursion
       (dolist (status-buf (buffer-list))
@@ -3221,7 +3224,8 @@ that share the same state."
 	    ;; This test is cvs-string-prefix-p
 	    (when (eq t (compare-strings file nil (length ddir) ddir nil nil))
 	      (let* ((file-short (substring file (length ddir)))
-		     (entry (cons file-short (if state state 'unregistered))))
+		     (entry
+		      (list file-short (if state state 'unregistered) extra)))
 		(vc-status-add-entry entry status-buf))))))
       ;; We didn't find any vc-status buffers, remove the hook, it is
       ;; not needed.
