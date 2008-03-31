@@ -11,6 +11,8 @@
 	* calendar/cal-bahai.el (calendar-bahai-date-string): Avoid an error for
 	pre-Bahai dates.
 
+	* calendar/cal-china.el (holiday-chinese-new-year): Doc fix.
+
 	* calendar/cal-julian.el (holiday-julian): Fix a problem with holidays
 	in the last fortnight in Julian October.
 
