@@ -1,3 +1,8 @@
+2008-03-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-warnings-safe-p):
+	Use `byte-compile-warning-types'.  Add docstring.
+
 2008-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* smerge-mode.el (smerge-apply-resolution-patch): New fun.
