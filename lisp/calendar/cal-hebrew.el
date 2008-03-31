@@ -278,12 +278,37 @@ Gregorian date in the form of the list (((month day year) STRING)).  Returns
 nil if it is not visible in the current calendar window."
   ;; This test is only to speed things up a bit; it works fine without it.
   (if (memq displayed-month
+            ;; What this is doing is equivalent to +1,2,3,4,5 modulo 12, ie:
+            ;;  (mapcar (lambda (n) (let ((x (mod n 12)))
+            ;;                        (if (zerop x) 12
+            ;;                          x)))
+            ;;          (number-sequence (1+ month) (+ 5 month)))
+            ;; Ie it makes a list:
+            ;;  2  3  4  5  6 when month = 1
+            ;;  3  4  5  6  7 when month = 2
+            ;; ...
+            ;;  8  9 10 11 12 when month = 7
+            ;;  9 10 11 12  1 when month = 8
+            ;; ...
+            ;; 12  1  2  3  4 when month = 11
+            ;;  1  2  3  4  5 when month = 12
+            ;; This implies that hebrew month N cannot occur outside
+            ;; Gregorian months N:N+6 (the calendar shows
+            ;; displayed-month +/- 1 at any time).
+            ;; So to put it another way:
+            ;;  (calendar-interval month 1 displayed-month
+            ;;                    (if (> month displayed-month) 2 1))
+            ;; must be >= 1 and <= 5.  This could be expanded to:
+            ;;  (if (> month displayed-month) (+ 12 (- displayed-month month))
+            ;;    (- displayed-month month)
             (list
              (if (< 11 month) (- month 11) (+ month 1))
              (if (< 10 month) (- month 10) (+ month 2))
              (if (<  9 month) (- month  9) (+ month 3))
              (if (<  8 month) (- month  8) (+ month 4))
              (if (<  7 month) (- month  7) (+ month 5))))
+      ;; This is the same as holiday-julian, except the test of which
+      ;; year to use is different.
       (let* ((m1 displayed-month)
              (y1 displayed-year)
              (m2 displayed-month)
@@ -299,6 +324,8 @@ nil if it is not visible in the current calendar window."
              (hebrew-end (calendar-hebrew-from-absolute end-date))
              (hebrew-y1 (extract-calendar-year hebrew-start))
              (hebrew-y2 (extract-calendar-year hebrew-end))
+             ;; Hebrew new year is start of month 7.
+             ;; If hmonth >= 7, choose the higher year, y2.
              (year (if (< 6 month) hebrew-y2 hebrew-y1))
              (date (calendar-gregorian-from-absolute
                     (calendar-absolute-from-hebrew (list month day year)))))
