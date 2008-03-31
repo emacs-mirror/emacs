@@ -136,7 +136,6 @@ Driven by the variable `calendar-date-display-form'."
 (defvar displayed-month)
 (defvar displayed-year)
 
-;; FIXME same as hebrew
 ;;;###holiday-autoload
 (defun holiday-julian (month day string)
   "Holiday on MONTH, DAY (Julian) called STRING.
@@ -145,6 +144,8 @@ Gregorian date in the form of the list (((month day year) STRING)).  Returns
 nil if it is not visible in the current calendar window."
   ;; We need to choose the Julian year associated with month and day
   ;; that might make them visible.
+  ;; This is the same as holiday-hebrew, except that the test for
+  ;; which year to use is different.
   (let* ((m1 displayed-month)
          (y1 displayed-year)
          (m2 displayed-month)
