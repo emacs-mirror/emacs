@@ -13126,6 +13126,7 @@ configuration to the example above:
 
 See also @code{nntp-via-rlogin-command-switches}.  Here's an example for
 an indirect connection:
+
 @lisp
 (setq gnus-select-method
       '(nntp "indirect"
@@ -13137,6 +13138,9 @@ an indirect connection:
              (nntp-open-connection-function nntp-open-via-rlogin-and-netcat)))
 @end lisp
 
+This means that you have to have set up @code{ssh-agent} correctly to
+provide automatic authorization, of course.
+
 If you're behind a firewall, but have direct access to the outside world
 through a wrapper command like "runsocks", you could open a socksified
 netcat connection to the news server as follows:
@@ -13147,11 +13151,6 @@ netcat connection to the news server as follows:
       (nntp-open-connection-function nntp-open-netcat-stream)
       (nntp-address "the.news.server"))
 @end lisp
-
-This means that you have to have set up @code{ssh-agent} correctly to
-provide automatic authorization, of course.  And to get a compressed
-connection, you have to have the @samp{Compression} option in the
-@code{ssh} @file{config} file.
 
 
 @node Creating a Virtual Server
@@ -13702,9 +13701,7 @@ line-end-conversion, but sometimes @code{netcat} is simply not available.
 @item nntp-telnet-command
 @vindex nntp-telnet-command
 Command used to connect to the real @acronym{NNTP} server from the
-intermediate host.  The default is @samp{nc}.  You can also use other
-programs like @uref{http://www.imasy.or.jp/~gotoh/ssh/connect.html,
-connect} instead.
+intermediate host.  The default is @samp{telnet}.
 
 @item nntp-telnet-switches
 @vindex nntp-telnet-switches

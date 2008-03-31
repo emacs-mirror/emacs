@@ -1,3 +1,9 @@
+2008-03-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Example Methods): Fix description about ssh-agent.
+	(Indirect Functions): Fix the default value of nntp-telnet-command;
+	remove link to connect.html.
+
 2008-03-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* dbus.texi (Synchronous Methods): New parameter TIMEOUT for
