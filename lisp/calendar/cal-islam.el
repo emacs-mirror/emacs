@@ -253,10 +253,10 @@ passed to `mark-visible-calendar-date' as MARK."
   "Mark days in the calendar window that have Islamic date diary entries.
 Marks each entry in `diary-file' (or included files) visible in the calendar
 window.  See `list-islamic-diary-entries' for more information."
-  (diary-mark-entries-1 calendar-islamic-month-name-array
+  (diary-mark-entries-1 'mark-islamic-calendar-date-pattern
+                        calendar-islamic-month-name-array
                         islamic-diary-entry-symbol
-                        'calendar-islamic-from-absolute
-                        'mark-islamic-calendar-date-pattern))
+                        'calendar-islamic-from-absolute))
 
 
 (autoload 'diary-insert-entry-1 "diary-lib")
