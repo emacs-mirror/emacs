@@ -939,30 +939,10 @@ To use this function, add it to `diary-display-hook'."
                                  :type 'diary-entry)
                 (insert this-entry ?\n))
               (save-excursion
-                (let* ((marks (nth 4 entry))
-                       (faceinfo marks)
-                       temp-face)
+                (let ((marks (nth 4 entry))
+                      temp-face)
                   (when marks
-                    ;; FIXME duplicate code with calendar.el.
-                    (setq temp-face (make-symbol
-                                     (apply
-                                      'concat "temp-face-"
-                                      (mapcar (lambda (sym)
-                                                (if (stringp sym)
-                                                    sym
-                                                  (symbol-name sym)))
-                                              marks))))
-                    (make-face temp-face)
-                    ;; Remove :face info from the marks,
-                    ;; copy the face info into temp-face
-                    (while (setq faceinfo (memq :face faceinfo))
-                      ;; FIXME not read.
-                      (copy-face (read (nth 1 faceinfo)) temp-face)
-                      (setcar faceinfo nil)
-                      (setcar (cdr faceinfo) nil))
-                    (setq marks (delq nil marks))
-                    ;; Apply the font aspects.
-                    (apply 'set-face-attribute temp-face nil marks)
+                    (setq temp-face (calendar-make-temp-face marks))
                     (search-backward this-entry)
                     (overlay-put
                      (make-overlay (match-beginning 0) (match-end 0))
