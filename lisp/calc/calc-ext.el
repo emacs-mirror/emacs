@@ -136,8 +136,6 @@
   (define-key calc-mode-map "\M-k" 'calc-copy-as-kill)
   (define-key calc-mode-map "\C-w" 'calc-kill-region)
   (define-key calc-mode-map "\M-w" 'calc-copy-region-as-kill)
-  (define-key calc-mode-map "\C-y" 'calc-yank)
-  (define-key calc-mode-map [mouse-2] 'calc-yank)
   (define-key calc-mode-map "\C-_" 'calc-undo)
   (define-key calc-mode-map "\C-xu" 'calc-undo)
   (define-key calc-mode-map "\M-\C-m" 'calc-last-args)
