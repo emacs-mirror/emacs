@@ -1,5 +1,7 @@
 2008-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* casefiddle.c (casify_object): Fix up int/EMACS_INT mixup.
+
 	* charset.c (Funibyte_charset, Fset_unibyte_charset): Remove.
 
 2008-03-31  Juri Linkov  <juri@jurta.org>
@@ -9,7 +11,7 @@
 2008-03-30  Jan Djärv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_set_geometry): Fix indentation.
-	(xg_resize_outer_widget): Removed
+	(xg_resize_outer_widget): Remove.
 	(x_wm_size_hint_off): Fix indentation.
 	(xg_frame_set_char_size): Call flush_and_sync after
 	gtk_window_resize.
@@ -18,8 +20,8 @@
 	Add menu bar and tool bar height to base height.
 	(xg_update_frame_menubar, free_frame_menubar)
 	(xg_tool_bar_detach_callback, xg_tool_bar_attach_callback)
-	(update_frame_tool_bar, free_frame_tool_bar): Change
-	xg_resize_outer_widget to xg_frame_set_char_size.
+	(update_frame_tool_bar, free_frame_tool_bar):
+	Change xg_resize_outer_widget to xg_frame_set_char_size.
 
 2008-03-30  Michael Albinus  <michael.albinus@gmx.de>
 

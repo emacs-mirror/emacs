@@ -105,11 +105,11 @@ casify_object (flag, obj)
 	    }
 	}
       return obj;
-		}
-	      else
-		{
-      EMACS_INT i, i_byte, len;
-      EMACS_INT size = SCHARS (obj);
+    }
+  else
+    {
+      EMACS_INT i, i_byte, size = SCHARS (obj);
+      int len;
       USE_SAFE_ALLOCA;
       unsigned char *dst, *o;
       /* Over-allocate by 12%: this is a minor overhead, but should be
