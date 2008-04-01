@@ -1,3 +1,18 @@
+2008-04-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.el (epa-decrypt-region): Explain the reason why this
+	function should not be used in Lisp programs.
+	(epa-decrypt-armor-in-region): Ditto.
+	(epa-verify-region): Ditto.
+	(epa-verify-cleartext-in-region): Ditto.
+	(epa-sign-region): Ditto.
+	(epa-encrypt-region): Ditto.
+
+	* epg.el (epg-start-receive-keys): Fix typo in docstring.
+
+	* epa.el (epa-select-keys): Show menu even if there is no key in
+	GnuPG's keyring.
+
 2008-04-01  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/calendar.el (calendar-make-temp-face): New function.
