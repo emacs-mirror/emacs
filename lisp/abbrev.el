@@ -49,16 +49,11 @@ define global abbrevs instead."
   :group 'abbrev-mode
   :group 'convenience)
 
-(defun abbrev-mode (&optional arg)
+(define-minor-mode abbrev-mode
   "Toggle Abbrev mode in the current buffer.
 With optional argument ARG, turn abbrev mode on if ARG is
 positive, otherwise turn it off.  In Abbrev mode, inserting an
-abbreviation causes it to expand and be replaced by its expansion."
-  (interactive "P")
-  (setq abbrev-mode
-	(if (null arg) (not abbrev-mode)
-	  (> (prefix-numeric-value arg) 0)))
-  (force-mode-line-update))
+abbreviation causes it to expand and be replaced by its expansion.")
 
 (defcustom abbrev-mode nil
   "Enable or disable Abbrev mode.
