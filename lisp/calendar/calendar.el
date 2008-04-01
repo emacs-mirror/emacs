@@ -48,32 +48,35 @@
 ;; Islamic calendar, to the Baha'i calendar, to the French
 ;; Revolutionary calendar, to the Mayan calendar, to the Chinese
 ;; calendar, to the Coptic calendar, to the Ethiopic calendar, and to
-;; the astronomical (Julian) day number.  When floating point is
-;; available, times of sunrise/sunset can be displayed, as can the
-;; phases of the moon.  Appointment notification for diary entries is
-;; available.  Calendar printing via LaTeX is available.
+;; the astronomical (Julian) day number.  Times of sunrise/sunset can
+;; be displayed, as can the phases of the moon.  Appointment
+;; notification for diary entries is available.  Calendar printing via
+;; LaTeX is available.
 
 ;; The following files are part of the calendar/diary code:
 
-;;       appt.el                       Appointment notification
-;;       cal-china.el                  Chinese calendar
-;;       cal-coptic.el                 Coptic/Ethiopic calendars
-;;       cal-dst.el                    Daylight saving time rules
-;;       cal-hebrew.el                 Hebrew calendar
-;;       cal-islam.el                  Islamic calendar
-;;       cal-bahai.el                  Baha'i calendar
-;;       cal-iso.el                    ISO calendar
-;;       cal-julian.el                 Julian/astronomical calendars
-;;       cal-mayan.el                  Mayan calendars
-;;       cal-menu.el                   Menu support
-;;       cal-move.el                   Movement in the calendar
-;;       cal-persia.el                 Persian calendar
-;;       cal-tex.el                    Calendars in LaTeX
-;;       cal-x.el                      X-windows dedicated frame functions
-;;       diary-lib.el                  Diary functions
-;;       holidays.el                   Holiday functions
-;;       lunar.el                      Phases of the moon
-;;       solar.el                      Sunrise/sunset, equinoxes/solstices
+;;    appt.el                    Appointment notification
+;;    cal-bahai.el               Baha'i calendar
+;;    cal-china.el               Chinese calendar
+;;    cal-coptic.el              Coptic/Ethiopic calendars
+;;    cal-dst.el                 Daylight saving time rules
+;;    cal-french.el              French revolutionary calendar
+;;    cal-hebrew.el              Hebrew calendar
+;;    cal-html.el                Calendars in HTML
+;;    cal-islam.el               Islamic calendar
+;;    cal-iso.el                 ISO calendar
+;;    cal-julian.el              Julian/astronomical calendars
+;;    cal-mayan.el               Mayan calendars
+;;    cal-menu.el                Menu support
+;;    cal-move.el                Movement in the calendar
+;;    cal-persia.el              Persian calendar
+;;    cal-tex.el                 Calendars in LaTeX
+;;    cal-x.el                   Dedicated frame functions
+;;    calendar.el                This file
+;;    diary-lib.el               Diary functions
+;;    holidays.el                Holiday functions
+;;    lunar.el                   Phases of the moon
+;;    solar.el                   Sunrise/sunset, equinoxes/solstices
 
 ;; Technical details of all the calendrical calculations can be found in
 ;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
@@ -1666,7 +1669,7 @@ after the inserted text.  Returns t."
     (define-key map "q"   'exit-calendar)
     (define-key map "a"   'calendar-list-holidays)
     (define-key map "h"   'calendar-cursor-holidays)
-    (define-key map "x"   'mark-calendar-holidays)
+    (define-key map "x"   'calendar-mark-holidays)
     (define-key map "u"   'calendar-unmark)
     (define-key map "m"   'mark-diary-entries)
     (define-key map "d"   'diary-view-entries)
@@ -1837,9 +1840,6 @@ EVENT is the last mouse event."
 (defvar calendar-mark-ring nil
   "Used by `calendar-set-mark'.")
 
-(defvar calendar-starred-day nil
-  "Stores the value of the last date that `calendar-star-date' replaced.")
-
 (defun calendar-mode ()
   "A major mode for the calendar window.
 
@@ -1851,11 +1851,11 @@ For a complete description, type \
   (setq major-mode 'calendar-mode
         mode-name "Calendar"
         buffer-read-only t
+        buffer-undo-list t
         indent-tabs-mode nil)
   (use-local-map calendar-mode-map)
   (update-calendar-mode-line)
   (make-local-variable 'calendar-mark-ring)
-  (make-local-variable 'calendar-starred-day)
   (make-local-variable 'displayed-month) ; month in middle of window
   (make-local-variable 'displayed-year)  ; year in middle of window
   ;; Most functions only work if displayed-month and displayed-year are set,
@@ -1984,12 +1984,7 @@ ERROR is non-nil, otherwise just returns nil."
           (list month
                 (string-to-number (buffer-substring (1+ (point)) (+ 4 (point))))
                 year))
-      (if (and (looking-at "\\*")
-               (save-excursion
-                 (re-search-backward "[^*]")
-                 (looking-at ".\\*\\*")))
-          (list month calendar-starred-day year)
-        (if error (error "Not on a date!"))))))
+      (if error (error "Not on a date!")))))
 
 (add-to-list 'debug-ignored-errors "Not on a date!")
 
@@ -2316,7 +2311,8 @@ interpreted as BC; -1 being 1 BC, and so on."
   (interactive)
   (setq mark-holidays-in-calendar nil
         mark-diary-entries-in-calendar nil)
-  (redraw-calendar))
+  (with-current-buffer calendar-buffer
+    (mapc 'delete-overlay (overlays-in (point-min) (point-max)))))
 
 (defun calendar-date-is-visible-p (date)
   "Return non-nil if DATE is valid and is visible in the calendar window."
@@ -2370,14 +2366,10 @@ MARK defaults to `diary-entry-marker'."
            ((facep mark)
             (overlay-put
              (make-overlay (1- (point)) (1+ (point))) 'face mark))
-           ;; Single-character.
+           ;; Single-character mark, goes after the date.
            ((and (stringp mark) (= (length mark) 1))
-            (let ((inhibit-read-only t))
-              (forward-char 1)
-              ;; Insert before delete so as to better preserve markers.
-              (insert mark)
-              (delete-char 1)
-              (forward-char -2)))
+            (overlay-put
+             (make-overlay (1+ (point)) (+ 2 (point))) 'display mark))
            (t                           ; attr list
             (let ((temp-face
                    (make-symbol
@@ -2392,6 +2384,7 @@ MARK defaults to `diary-entry-marker'."
               (make-face temp-face)
               ;; Remove :face info from mark, copy the face info into temp-face.
               (while (setq faceinfo (memq :face faceinfo))
+                ;; FIXME not read.
                 (copy-face (read (nth 1 faceinfo)) temp-face)
                 (setcar faceinfo nil)
                 (setcar (cdr faceinfo) nil))
@@ -2404,17 +2397,19 @@ MARK defaults to `diary-entry-marker'."
 (defun calendar-star-date ()
   "Replace the date under the cursor in the calendar window with asterisks.
 You might want to add this function to `today-visible-calendar-hook'."
-  (let ((inhibit-read-only t)
-        (modified (buffer-modified-p)))
-    (forward-char 1)
-    (setq calendar-starred-day
-          (string-to-number (buffer-substring (point) (- (point) 2))))
-    ;; Insert before deleting, to better preserve markers.
-    (insert "**")
-    (forward-char -2)
-    (delete-char -2)
-    (forward-char 1)
-    (restore-buffer-modified-p modified)))
+  (unless (catch 'found
+            (dolist (ol (overlays-at (point)))
+              (and (overlay-get ol 'calendar-star)
+                   (throw 'found t))))
+    (let ((ol (make-overlay (1- (point)) (point))))
+      (overlay-put ol 'display "*")
+      (overlay-put ol 'calendar-star t)
+      ;; Use copy-sequence to avoid merging of identical 'display props.
+      ;; Use two overlays so as not to mess up
+      ;; calendar-cursor-to-nearest-date (and calendar-forward-day).
+      (overlay-put (setq ol (make-overlay (point) (1+ (point))))
+                   'display (copy-sequence "*"))
+      (overlay-put ol 'calendar-star t))))
 
 (defun calendar-mark-today ()
   "Mark the date under the cursor in the calendar window.
