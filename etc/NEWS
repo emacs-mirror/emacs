@@ -901,7 +901,8 @@ $TERM inherited by Emacs you will have to look inside initial-environment.
 
 *** The `window-system' variable has been made frame-local.  The new
 `initial-window-system' variable contains the `window-system' value
-for the first frame.
+for the first frame.  `window-system' is also now a function that
+takes a frame argument.
 
 *** You can specify a terminal device (`tty' parameter) and a terminal
 type (`tty-type' parameter) to `make-terminal-frame'.
