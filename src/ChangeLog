@@ -8647,22 +8647,21 @@
 	(x_term_init) [!HAVE_GTK_MULTIDISPLAY]: Refuse to create secondary
 	X connections.
 
-	* frame.c (Fframep): Deal with output_initial.
-	(Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list, Qtty)
-	(Qtty_type, Qwindow_system, Qenvironment)
-	(Qterm_environment_variable, Qdisplay_environment_variable): New vars.
+	* frame.c: Include termchar.h.
+	(Qterminal, Qterminal_live_p, Qburied_buffer_list, Qtty, Qtty_type)
+	(Qwindow_system, Qenvironment, Qterm_environment_variable)
+	(Qdisplay_environment_variable): New vars.
+	(Fframep): Deal with output_initial.
+	(Fframe-live-p): Doc fix.
+	(Fwindow-system): New function.
 	(x_set_screen_gamma, store_frame_param): Fix compilation errors.
 	(make_terminal_frame): Don't create frames on a terminal that is
-	being deleted.
-	(make_terminal_frame): Use FRAME_BACKGROUND_PIXEL and
-	FRAME_FOREGROUND_PIXEL.
+	being deleted.  Use FRAME_BACKGROUND_PIXEL and FRAME_FOREGROUND_PIXEL.
 	(store_frame_param): Check for found_for_frame before calling XFRAME.
 	(Fmake_terminal_frame): Handle NULL tty names correctly.
 	(syms_of_frame): Enhance doc string of `default-frame-alist'.
-	(Fdelete_frame): Remove unused variable `count'.
-	(Qenvironment): New variable.
-	(Fdelete_frame): Don't allow other frames to refer to a deleted
-	frame in their 'environment parameter.
+	(Fdelete_frame): Remove unused variable `count'.  Don't allow other
+	frames to refer to a deleted frame in their 'environment parameter.
 	(Fframe_with_environment): New function.
 	(syms_of_frame): Defsubr it.  Initialize and staticpro Qenvironment.
 	(get_future_frame_param): New function.
