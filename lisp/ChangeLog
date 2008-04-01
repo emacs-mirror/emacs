@@ -1,5 +1,10 @@
 2008-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* mouse.el (mouse-major-mode-menu-prefix): Remove.  Remove uses.
+	(mouse-menu-non-singleton): Rename from mouse-major-mode-menu-1.
+	Use map-keymap.
+	(minor-mode-menu-from-indicator): Use it.  Simplify.
+
 	* bindings.el (mode-line-mode-menu): Move before (new) first use.
 	(mode-line-major-mode-keymap, mode-line-minor-mode-keymap):
 	Bind the key directly to the menu.
