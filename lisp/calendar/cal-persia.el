@@ -27,8 +27,7 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements the features of calendar.el and
-;; diary.el that deal with the Persian calendar.
+;; See calendar.el.
 
 ;;; Code:
 
@@ -148,13 +147,13 @@ Gregorian date Sunday, December 31, 1 BC."
                         (calendar-absolute-from-gregorian
                          (or date (calendar-current-date)))))
          (y (extract-calendar-year persian-date))
-         (m (extract-calendar-month persian-date)))
-    (let ((monthname (aref persian-calendar-month-name-array (1- m)))
-          (day (int-to-string (extract-calendar-day persian-date)))
-          (dayname nil)
-          (month (int-to-string m))
-          (year (int-to-string y)))
-      (mapconcat 'eval calendar-date-display-form ""))))
+         (m (extract-calendar-month persian-date))
+         (monthname (aref persian-calendar-month-name-array (1- m)))
+         (day (int-to-string (extract-calendar-day persian-date)))
+         (year (int-to-string y))
+         (month (int-to-string m))
+         dayname)
+    (mapconcat 'eval calendar-date-display-form "")))
 
 ;;;###cal-autoload
 (defun calendar-print-persian-date ()
