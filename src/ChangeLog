@@ -1,5 +1,7 @@
 2008-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* xdisp.c (try_window_id): Don't forget to reset delta_bytes.
+
 	* casefiddle.c (casify_object): Fix up int/EMACS_INT mixup.
 
 	* charset.c (Funibyte_charset, Fset_unibyte_charset): Remove.

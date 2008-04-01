@@ -15009,7 +15009,8 @@ try_window_id (w)
     }
   else
     {
-      delta = dvpos = dy = run.current_y = run.desired_y = run.height = 0;
+      delta = delta_bytes = dvpos = dy
+	= run.current_y = run.desired_y = run.height = 0;
       first_unchanged_at_end_row = NULL;
     }
   IF_DEBUG (debug_dvpos = dvpos; debug_dy = dy);
