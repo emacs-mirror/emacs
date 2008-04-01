@@ -2390,27 +2390,35 @@ Returns the corresponding Gregorian date."
 (defun calendar-make-temp-face (attrlist)
   "Return a temporary face based on the attributes in ATTRLIST.
 ATTRLIST is a list with elements of the form :face face :foreground color."
-  (let ((temp-face (make-symbol
-                    (mapconcat (lambda (sym)
-                                 (cond
-                                  ((symbolp sym) (symbol-name sym))
-                                  ((numberp sym) (number-to-string sym))
-                                  (t sym)))
-                               attrlist "")))
-        (faceinfo attrlist))
-  (make-face temp-face)
-  ;; Remove :face info, copy into temp-face.
-  (while (setq faceinfo (memq :face faceinfo))
-    ;; FIXME is there any point doing this multiple times, or could we
-    ;; just take the last?
-    (condition-case nil
-        (copy-face (intern-soft (cadr faceinfo)) temp-face)
-      (error nil))
-    (setq faceinfo (cddr faceinfo)))
-  (setq attrlist (delq nil attrlist))
-  ;; Apply the font aspects.
-  (apply 'set-face-attribute temp-face nil attrlist)
-  temp-face))
+  (let ((attrs attrlist)
+        faceinfo face temp-face)
+    ;; Separate :face from the other attributes.  Use the last :face
+    ;; if there are more than one.  FIXME is merging meaningful?
+    (while attrs
+      (if (eq (car attrs) :face)
+          (setq face (intern-soft (cadr attrs))
+                attrs (cddr attrs))
+        (push (car attrs) faceinfo)
+        (setq attrs (cdr attrs))))
+    (or (facep face) (setq face 'default))
+    (if (not faceinfo)
+        ;; No attributes to apply, so just use an existing-face.
+        face
+      ;; FIXME should we be using numbered temp-faces, re-using where poss?
+      (setq temp-face
+            (make-symbol
+             (concat ":caltemp"
+                     (mapconcat (lambda (sym)
+                                  (cond
+                                   ((symbolp sym) (symbol-name sym))
+                                   ((numberp sym) (number-to-string sym))
+                                   (t sym)))
+                                attrlist ""))))
+      (make-face temp-face)
+      (copy-face face temp-face)
+      ;; Apply the font aspects.
+      (apply 'set-face-attribute temp-face nil (nreverse faceinfo))
+      temp-face)))
 
 (defun mark-visible-calendar-date (date &optional mark)
   "Mark DATE in the calendar window with MARK.
