@@ -28,8 +28,7 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements menu bar and popup menu support for
-;; calendar.el.
+;; See calendar.el.
 
 ;;; Code:
 
@@ -109,7 +108,7 @@
         (nreverse l))
     "--"
     ["Unmark Calendar" calendar-unmark]
-    ["Mark Holidays" mark-calendar-holidays]))
+    ["Mark Holidays" calendar-mark-holidays]))
 
 (defconst cal-menu-goto-menu
   '("Go To"
