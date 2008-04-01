@@ -1,3 +1,14 @@
+2008-04-01  Jason Rumney  <jasonr@gnu.org>
+
+	* international/characters.el (script-list): Add phonetic script,
+	covering IPA (previously Latin), Phonetic Extensions and
+	Phonetic Extensions Supplement (both previously unassigned).
+
+	* international/fontset.el (setup-default-fontset): Use unicode fonts
+	that cover bopomofo script for bopomofo.
+	Likewise for braille and mathematical.
+	Use unicode scripts that cover the phonetic script for IPA.
+
 2008-04-01  Johan Bockgård  <bojohan@gnu.org>
 
 	* emacs-lisp/cl-macs.el (frame-parameter) <defsetf>: Make it
