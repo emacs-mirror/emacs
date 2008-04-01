@@ -6,8 +6,6 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id$
-
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -1060,12 +1058,14 @@ Used in `find-file-not-found-functions'."
 
 (defalias 'vc-menu-map vc-menu-map)
 
+(declare-function vc-responsible-backend "vc" (file &optional register))
+
 (defun vc-menu-map-filter (orig-binding)
   (if (and (symbolp orig-binding) (fboundp orig-binding))
       (setq orig-binding (indirect-function orig-binding)))
   (let ((ext-binding
          (when vc-mode
-	   (vc-call-backend 
+	   (vc-call-backend
 	    (if buffer-file-name
 		(vc-backend buffer-file-name)
 	      (vc-responsible-backend default-directory))
