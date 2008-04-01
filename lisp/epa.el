@@ -543,9 +543,7 @@ NAMES is a list of strings to be matched with keys.  If it is nil, all
 the keys are listed.
 If SECRET is non-nil, list secret keys instead of public keys."
   (let ((keys (epg-list-keys context names secret)))
-    (if (> (length keys) 1)
-	(epa--select-keys prompt keys)
-      keys)))
+    (epa--select-keys prompt keys)))
 
 (defun epa--show-key (key)
   (let* ((primary-sub-key (car (epg-key-sub-key-list key)))
@@ -812,7 +810,20 @@ If no one is selected, symmetric encryption will be performed.  ")))
 (defun epa-decrypt-region (start end)
   "Decrypt the current region between START and END.
 
-Don't use this command in Lisp programs!"
+Don't use this command in Lisp programs!
+Since this function operates on regions, it does some tricks such
+as coding-system detection and unibyte/multibyte conversion.  If
+you are sure how the data in the region should be treated, you
+should consider using the string based counterpart
+`epg-decrypt-string', or the file based counterpart
+`epg-decrypt-file' instead.
+
+For example:
+
+\(let ((context (epg-make-context 'OpenPGP)))
+  (decode-coding-string
+    (epg-decrypt-string context (buffer-substring start end))
+    'utf-8))"
   (interactive "r")
   (save-excursion
     (let ((context (epg-make-context epa-protocol))
@@ -859,7 +870,8 @@ Don't use this command in Lisp programs!"
 (defun epa-decrypt-armor-in-region (start end)
   "Decrypt OpenPGP armors in the current region between START and END.
 
-Don't use this command in Lisp programs!"
+Don't use this command in Lisp programs!
+See the reason described in the `epa-decrypt-region' documentation."
   (interactive "r")
   (save-excursion
     (save-restriction
@@ -885,7 +897,20 @@ Don't use this command in Lisp programs!"
 (defun epa-verify-region (start end)
   "Verify the current region between START and END.
 
-Don't use this command in Lisp programs!"
+Don't use this command in Lisp programs!
+Since this function operates on regions, it does some tricks such
+as coding-system detection and unibyte/multibyte conversion.  If
+you are sure how the data in the region should be treated, you
+should consider using the string based counterpart
+`epg-verify-string', or the file based counterpart
+`epg-verify-file' instead.
+
+For example:
+
+\(let ((context (epg-make-context 'OpenPGP)))
+  (decode-coding-string
+    (epg-verify-string context (buffer-substring start end))
+    'utf-8))"
   (interactive "r")
   (let ((context (epg-make-context epa-protocol))
 	plain)
@@ -924,7 +949,8 @@ Don't use this command in Lisp programs!"
   "Verify OpenPGP cleartext signed messages in the current region
 between START and END.
 
-Don't use this command in Lisp programs!"
+Don't use this command in Lisp programs!
+See the reason described in the `epa-verify-region' documentation."
   (interactive "r")
   (save-excursion
     (save-restriction
@@ -954,7 +980,19 @@ Don't use this command in Lisp programs!"
 (defun epa-sign-region (start end signers mode)
   "Sign the current region between START and END by SIGNERS keys selected.
 
-Don't use this command in Lisp programs!"
+Don't use this command in Lisp programs!
+Since this function operates on regions, it does some tricks such
+as coding-system detection and unibyte/multibyte conversion.  If
+you are sure how the data should be treated, you should consider
+using the string based counterpart `epg-sign-string', or the file
+based counterpart `epg-sign-file' instead.
+
+For example:
+
+\(let ((context (epg-make-context 'OpenPGP)))
+  (epg-sign-string
+    context
+    (encode-coding-string (buffer-substring start end) 'utf-8)))"
   (interactive
    (let ((verbose current-prefix-arg))
      (setq epa-last-coding-system-specified
@@ -1022,7 +1060,20 @@ Uses the `derived-mode-parent' property of the symbol to trace backwards."
 (defun epa-encrypt-region (start end recipients sign signers)
   "Encrypt the current region between START and END for RECIPIENTS.
 
-Don't use this command in Lisp programs!"
+Don't use this command in Lisp programs!
+Since this function operates on regions, it does some tricks such
+as coding-system detection and unibyte/multibyte conversion.  If
+you are sure how the data should be treated, you should consider
+using the string based counterpart `epg-encrypt-string', or the
+file based counterpart `epg-encrypt-file' instead.
+
+For example:
+
+\(let ((context (epg-make-context 'OpenPGP)))
+  (epg-encrypt-string
+    context
+    (encode-coding-string (buffer-substring start end) 'utf-8)
+    nil))"
   (interactive
    (let ((verbose current-prefix-arg)
 	 (context (epg-make-context epa-protocol))
@@ -1077,9 +1128,7 @@ If no one is selected, symmetric encryption will be performed.  ")
 
 ;;;###autoload
 (defun epa-delete-keys (keys &optional allow-secret)
-  "Delete selected KEYS.
-
-Don't use this command in Lisp programs!"
+  "Delete selected KEYS."
   (interactive
    (let ((keys (epa--marked-keys)))
      (unless keys
@@ -1094,9 +1143,7 @@ Don't use this command in Lisp programs!"
 
 ;;;###autoload
 (defun epa-import-keys (file)
-  "Import keys from FILE.
-
-Don't use this command in Lisp programs!"
+  "Import keys from FILE."
   (interactive "fFile: ")
   (setq file (expand-file-name file))
   (let ((context (epg-make-context epa-protocol)))
@@ -1115,9 +1162,7 @@ Don't use this command in Lisp programs!"
 
 ;;;###autoload
 (defun epa-import-keys-region (start end)
-  "Import keys from the region.
-
-Don't use this command in Lisp programs!"
+  "Import keys from the region."
   (interactive "r")
   (let ((context (epg-make-context epa-protocol)))
     (message "Importing...")
@@ -1134,9 +1179,7 @@ Don't use this command in Lisp programs!"
 ;;;###autoload
 (defun epa-import-armor-in-region (start end)
   "Import keys in the OpenPGP armor format in the current region
-between START and END.
-
-Don't use this command in Lisp programs!"
+between START and END."
   (interactive "r")
   (save-excursion
     (save-restriction
@@ -1156,9 +1199,7 @@ Don't use this command in Lisp programs!"
 
 ;;;###autoload
 (defun epa-export-keys (keys file)
-  "Export selected KEYS to FILE.
-
-Don't use this command in Lisp programs!"
+  "Export selected KEYS to FILE."
   (interactive
    (let ((keys (epa--marked-keys))
 	 default-name)
@@ -1185,9 +1226,7 @@ Don't use this command in Lisp programs!"
 
 ;;;###autoload
 (defun epa-insert-keys (keys)
-  "Insert selected KEYS after the point.
-
-Don't use this command in Lisp programs!"
+  "Insert selected KEYS after the point."
   (interactive
    (list (epa-select-keys (epg-make-context epa-protocol)
 			  "Select keys to export.  ")))

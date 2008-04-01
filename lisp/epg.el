@@ -2411,7 +2411,7 @@ If you use this function, you will need to wait for the completion of
 `epg-gpg-program' by using `epg-wait-for-completion' and call
 `epg-reset' to clear a temporaly output file.
 If you are unsure, use synchronous version of this function
-`epg-generate-key-from-file' or `epg-generate-key-from-string' instead."
+`epg-receive-keys' instead."
   (epg-context-set-operation context 'receive-keys)
   (epg-context-set-result context nil)
   (epg--start context (cons "--recv-keys" key-id-list)))
