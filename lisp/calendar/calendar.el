@@ -2322,6 +2322,45 @@ interpreted as BC; -1 being 1 BC, and so on."
                 (extract-calendar-month date) (extract-calendar-year date)))
           2)))
 
+(defun calendar-nongregorian-visible-p (month day toabs fromabs switch)
+  "Return non-nil if MONTH, DAY is visible in the calendar window.
+MONTH and DAY are in some non-Gregorian calendar system.  The
+functions TOABS and FROMABS convert that system to and from
+absolute, respectively.  SWITCH is a function that takes a single
+argument (a local month number).  It applies when the local year
+changes across the calendar window, and returns non-nil if the
+specified month should be associated with the higher year.
+Returns the corresponding Gregorian date."
+  ;; We need to choose the local year associated with month and day
+  ;; that might make them visible.
+  (let* ((m1 displayed-month)
+         (y1 displayed-year)
+         (m2 displayed-month)
+         (y2 displayed-year)
+         ;; Absolute date of first/last dates in calendar window.
+         (start-date (progn
+                       (increment-calendar-month m1 y1 -1)
+                       (calendar-absolute-from-gregorian (list m1 1 y1))))
+         (end-date (progn
+                     (increment-calendar-month m2 y2 1)
+                     (calendar-absolute-from-gregorian
+                      (list m2 (calendar-last-day-of-month m2 y2) y2))))
+         ;; Local date of first/last date in calendar window.
+         (local-start (funcall fromabs start-date))
+         (local-end (funcall fromabs end-date))
+         ;; Local year of first/last dates.
+         ;; Can only differ if displayed-month = 12, 1, 2.
+         (local-y1 (extract-calendar-year local-start))
+         (local-y2 (extract-calendar-year local-end))
+         ;; Choose which year might be visible in the window.
+         ;; Obviously it only matters when y1 and y2 differ, ie
+         ;; when the _local_ new year is visible.
+         (year (if (funcall switch month) local-y2 local-y1))
+         (date (calendar-gregorian-from-absolute
+                (funcall toabs (list month day year)))))
+    (if (calendar-date-is-visible-p date)
+        date)))
+
 (defun calendar-date-is-valid-p (date)
   "Return t if DATE is a valid date."
   (let ((month (extract-calendar-month date))
