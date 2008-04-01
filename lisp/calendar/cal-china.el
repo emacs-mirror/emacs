@@ -27,21 +27,19 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements the features of calendar.el,
-;; diary.el, and holidays.el that deal with the Chinese calendar.  The rules
-;; used for the Chinese calendar are those of Baolin Liu (see L. E. Doggett's
-;; article "Calendars" in the Explanatory Supplement to the Astronomical
-;; Almanac, second edition, 1992) for the calendar as revised at the beginning
-;; of the Qing dynasty in 1644.  The nature of the astronomical calculations
-;; is such that precise calculations cannot be made without great expense in
-;; time, so that the calendars produced may not agree perfectly with published
-;; tables--but no two pairs of published tables agree perfectly either!  Liu's
-;; rules produce a calendar for 2033 which is not accepted by all authorities.
-;; The date of Chinese New Year is correct from 1644-2051.
+;; See calendar.el.
 
-;; Technical details of all the calendrical calculations can be found in
-;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
-;; and Nachum Dershowitz, Cambridge University Press (2001).
+;; The rules used for the Chinese calendar are those of Baolin Liu
+;; (see L. E. Doggett's article "Calendars" in the Explanatory
+;; Supplement to the Astronomical Almanac, second edition, 1992) for
+;; the calendar as revised at the beginning of the Qing dynasty in
+;; 1644.  The nature of the astronomical calculations is such that
+;; precise calculations cannot be made without great expense in time,
+;; so that the calendars produced may not agree perfectly with
+;; published tables--but no two pairs of published tables agree
+;; perfectly either!  Liu's rules produce a calendar for 2033 which is
+;; not accepted by all authorities.  The date of Chinese New Year is
+;; correct from 1644-2051.
 
 ;; Note to maintainers:
 ;; Use `chinese-year-cache-init' every few years to recenter the default
