@@ -1,5 +1,7 @@
 2008-04-01  Glenn Morris  <rgm@gnu.org>
 
+	* vc-hooks.el (vc-responsible-backend): Declare as function.
+
 	* calendar/calendar.el (calendar-nongregorian-visible-p): New function.
 	* calendar/cal-hebrew.el (calendar-hebrew-date-is-visible-p):
 	* calendar/cal-julian.el (holiday-julian): Use it.
