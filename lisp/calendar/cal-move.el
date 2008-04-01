@@ -27,8 +27,7 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements movement in the calendar for
-;; calendar.el.
+;; See calendar.el.
 
 ;;; Code:
 
@@ -102,16 +101,16 @@ Movement is backward if ARG is negative."
   (let* ((cursor-date (calendar-cursor-to-date t))
          (month (extract-calendar-month cursor-date))
          (day (extract-calendar-day cursor-date))
-         (year (extract-calendar-year cursor-date)))
-    (increment-calendar-month month year arg)
-    (let ((last (calendar-last-day-of-month month year)))
-      (if (< last day)
-          (setq day last)))
-    ;; Put the new month on the screen, if needed, and go to the new date.
-    (let ((new-cursor-date (list month day year)))
-      (if (not (calendar-date-is-visible-p new-cursor-date))
-          (calendar-other-month month year))
-      (calendar-cursor-to-visible-date new-cursor-date)))
+         (year (extract-calendar-year cursor-date))
+         (last (progn
+                 (increment-calendar-month month year arg)
+                 (calendar-last-day-of-month month year)))
+         (day (min last day))
+         ;; Put the new month on the screen, if needed, and go to the new date.
+         (new-cursor-date (list month day year)))
+    (if (not (calendar-date-is-visible-p new-cursor-date))
+        (calendar-other-month month year))
+    (calendar-cursor-to-visible-date new-cursor-date))
   (run-hooks 'calendar-move-hook))
 
 ;;;###cal-autoload
@@ -288,18 +287,19 @@ Moves forward if ARG is negative."
          (month (extract-calendar-month date))
          (day (extract-calendar-day date))
          (year (extract-calendar-year date))
-         (last-day (calendar-last-day-of-month month year)))
-    (unless (= day last-day)
-      (calendar-cursor-to-visible-date (list month last-day year))
-      (setq arg (1- arg)))
-    (increment-calendar-month month year arg)
-    (let ((last-day (list
-                     month
-                     (calendar-last-day-of-month month year)
-                     year)))
-      (if (not (calendar-date-is-visible-p last-day))
-          (calendar-other-month month year)
-        (calendar-cursor-to-visible-date last-day))))
+         (last-day (calendar-last-day-of-month month year))
+         (last-day (progn
+                     (unless (= day last-day)
+                       (calendar-cursor-to-visible-date
+                        (list month last-day year))
+                       (setq arg (1- arg)))
+                     (increment-calendar-month month year arg)
+                     (list month
+                           (calendar-last-day-of-month month year)
+                           year))))
+    (if (not (calendar-date-is-visible-p last-day))
+        (calendar-other-month month year)
+      (calendar-cursor-to-visible-date last-day)))
   (run-hooks 'calendar-move-hook))
 
 ;;;###cal-autoload
