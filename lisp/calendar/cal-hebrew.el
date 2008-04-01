@@ -266,7 +266,6 @@ Reads a year, month, and day."
   (or noecho (calendar-print-hebrew-date)))
 
 (defvar displayed-month)                ; from generate-calendar
-(defvar displayed-year)
 
 (defun calendar-hebrew-date-is-visible-p (month day)
   "Return non-nil if Hebrew MONTH DAY is visible in the calendar window.
@@ -302,30 +301,12 @@ Returns the corresponding Gregorian date."
              (if (<  9 month) (- month  9) (+ month 3))
              (if (<  8 month) (- month  8) (+ month 4))
              (if (<  7 month) (- month  7) (+ month 5))))
-      ;; This is the same as holiday-julian, except the test of which
-      ;; year to use is different.
-      (let* ((m1 displayed-month)
-             (y1 displayed-year)
-             (m2 displayed-month)
-             (y2 displayed-year)
-             (start-date (progn
-                           (increment-calendar-month m1 y1 -1)
-                           (calendar-absolute-from-gregorian (list m1 1 y1))))
-             (end-date (progn
-                         (increment-calendar-month m2 y2 1)
-                         (calendar-absolute-from-gregorian
-                          (list m2 (calendar-last-day-of-month m2 y2) y2))))
-             (hebrew-start (calendar-hebrew-from-absolute start-date))
-             (hebrew-end (calendar-hebrew-from-absolute end-date))
-             (hebrew-y1 (extract-calendar-year hebrew-start))
-             (hebrew-y2 (extract-calendar-year hebrew-end))
-             ;; Hebrew new year is start of month 7.
-             ;; If hmonth >= 7, choose the higher year, y2.
-             (year (if (< 6 month) hebrew-y2 hebrew-y1))
-             (date (calendar-gregorian-from-absolute
-                    (calendar-absolute-from-hebrew (list month day year)))))
-        (if (calendar-date-is-visible-p date)
-            date))))
+      (calendar-nongregorian-visible-p
+       month day 'calendar-absolute-from-hebrew
+       'calendar-hebrew-from-absolute
+       ;; Hebrew new year is start of month 7.
+       ;; If hmonth >= 7, choose the higher year.
+       (lambda (m) (> m 6)))))
 
 ;;;###holiday-autoload
 (defun holiday-hebrew (month day string)
@@ -338,6 +319,8 @@ nil if it is not visible in the current calendar window."
 
 ;; h-r-h-e should be called from holidays code.
 (declare-function holiday-filter-visible-calendar "holidays" (l))
+
+(defvar displayed-year)
 
 ;;;###holiday-autoload
 (defun holiday-rosh-hashanah-etc ()
