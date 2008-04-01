@@ -1,3 +1,10 @@
+2008-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* bindings.el (mode-line-mode-menu): Move before (new) first use.
+	(mode-line-major-mode-keymap, mode-line-minor-mode-keymap):
+	Bind the key directly to the menu.
+	(mode-line-mode-menu-1, mode-line-mode-menu): Remove functions.
+
 2008-04-01  Daiki Ueno  <ueno@unixuser.org>
 
 	* epa.el (epa-decrypt-region): Explain the reason why this

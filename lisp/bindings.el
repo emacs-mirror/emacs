@@ -282,11 +282,14 @@ buffer size, the line number and the column number.")
 (defvar mode-line-modes nil
   "Mode-line control for displaying major and minor modes.")
 
+(defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
+Menu of mode operations in the mode line.")
+
 (defvar mode-line-major-mode-keymap
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line down-mouse-1] 'mouse-major-mode-menu)
     (define-key map [mode-line mouse-2] 'describe-mode)
-    (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
+    (define-key map [mode-line down-mouse-3] mode-line-mode-menu)
     map) "\
 Keymap to display on major mode.")
 
@@ -294,8 +297,8 @@ Keymap to display on major mode.")
   (let ((map (make-sparse-keymap)))
     (define-key map [mode-line down-mouse-1] 'mouse-minor-mode-menu)
     (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
-    (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
-    (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
+    (define-key map [mode-line down-mouse-3] mode-line-mode-menu)
+    (define-key map [header-line down-mouse-3] mode-line-mode-menu)
     map) "\
 Keymap to display on minor modes.")
 
@@ -494,19 +497,6 @@ Switch to the most recently selected buffer other than the current one."
     (select-window (posn-window (event-start event)))
     (previous-buffer)))
 
-(defvar mode-line-mode-menu (make-sparse-keymap "Minor Modes") "\
-Menu of mode operations in the mode line.")
-
-(defun mode-line-mode-menu-1 (event)
-  (interactive "e")
-  (save-selected-window
-    (select-window (posn-window (event-start event)))
-    (let* ((selection (mode-line-mode-menu event))
-	   (binding (and selection (lookup-key mode-line-mode-menu
-					       (vector (car selection))))))
-      (if binding
-	  (call-interactively binding)))))
-
 (defmacro bound-and-true-p (var)
   "Return the value of symbol VAR if it is bound, else nil."
   `(and (boundp (quote ,var)) ,var))
@@ -559,10 +549,6 @@ Menu of mode operations in the mode line.")
   `(menu-item ,(purecopy "Abbrev (Abbrev)") abbrev-mode
 	      :help "Automatically expand abbreviations"
 	      :button (:toggle . abbrev-mode)))
-
-(defun mode-line-mode-menu (event)
-  (interactive "@e")
-  (x-popup-menu event mode-line-mode-menu))
 
 (defun mode-line-minor-mode-help (event)
   "Describe minor mode for EVENT on minor modes area of the mode line."
