@@ -26,8 +26,7 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements the diary features as described
-;; in calendar.el.
+;; See calendar.el.
 
 ;;; Code:
 
@@ -944,6 +943,7 @@ To use this function, add it to `diary-display-hook'."
                        (faceinfo marks)
                        temp-face)
                   (when marks
+                    ;; FIXME duplicate code with calendar.el.
                     (setq temp-face (make-symbol
                                      (apply
                                       'concat "temp-face-"
@@ -956,6 +956,7 @@ To use this function, add it to `diary-display-hook'."
                     ;; Remove :face info from the marks,
                     ;; copy the face info into temp-face
                     (while (setq faceinfo (memq :face faceinfo))
+                      ;; FIXME not read.
                       (copy-face (read (nth 1 faceinfo)) temp-face)
                       (setcar faceinfo nil)
                       (setcar (cdr faceinfo) nil))
