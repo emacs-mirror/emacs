@@ -2387,6 +2387,31 @@ Returns the corresponding Gregorian date."
    (= (extract-calendar-day date1) (extract-calendar-day date2))
    (= (extract-calendar-year date1) (extract-calendar-year date2))))
 
+(defun calendar-make-temp-face (attrlist)
+  "Return a temporary face based on the attributes in ATTRLIST.
+ATTRLIST is a list with elements of the form :face face :foreground color."
+  (let ((temp-face (make-symbol
+                    (mapconcat (lambda (sym)
+                                 (cond
+                                  ((symbolp sym) (symbol-name sym))
+                                  ((numberp sym) (number-to-string sym))
+                                  (t sym)))
+                               attrlist "")))
+        (faceinfo attrlist))
+  (make-face temp-face)
+  ;; Remove :face info, copy into temp-face.
+  (while (setq faceinfo (memq :face faceinfo))
+    ;; FIXME is there any point doing this multiple times, or could we
+    ;; just take the last?
+    (condition-case nil
+        (copy-face (intern-soft (cadr faceinfo)) temp-face)
+      (error nil))
+    (setq faceinfo (cddr faceinfo)))
+  (setq attrlist (delq nil attrlist))
+  ;; Apply the font aspects.
+  (apply 'set-face-attribute temp-face nil attrlist)
+  temp-face))
+
 (defun mark-visible-calendar-date (date &optional mark)
   "Mark DATE in the calendar window with MARK.
 MARK is a single-character string, a list of face attributes/values, or a face.
@@ -2410,28 +2435,9 @@ MARK defaults to `diary-entry-marker'."
             (overlay-put
              (make-overlay (1+ (point)) (+ 2 (point))) 'display mark))
            (t                           ; attr list
-            (let ((temp-face
-                   (make-symbol
-                    (apply 'concat "temp-"
-                           (mapcar (lambda (sym)
-                                     (cond
-                                      ((symbolp sym) (symbol-name sym))
-                                      ((numberp sym) (number-to-string sym))
-                                      (t sym)))
-                                   mark))))
-                  (faceinfo mark))
-              (make-face temp-face)
-              ;; Remove :face info from mark, copy the face info into temp-face.
-              (while (setq faceinfo (memq :face faceinfo))
-                ;; FIXME not read.
-                (copy-face (read (nth 1 faceinfo)) temp-face)
-                (setcar faceinfo nil)
-                (setcar (cdr faceinfo) nil))
-              (setq mark (delq nil mark))
-              ;; Apply the font aspects.
-              (apply 'set-face-attribute temp-face nil mark)
-              (overlay-put
-               (make-overlay (1- (point)) (1+ (point))) 'face temp-face))))))))
+            (overlay-put
+             (make-overlay (1- (point)) (1+ (point))) 'face
+             (calendar-make-temp-face mark))))))))
 
 (defun calendar-star-date ()
   "Replace the date under the cursor in the calendar window with asterisks.
