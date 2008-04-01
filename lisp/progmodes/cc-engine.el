@@ -6333,7 +6333,8 @@ comment at the start of cc-engine.el for more info."
       ;; the searchable range.
       (let* ((macro-start (c-query-macro-start))
 	     (lim (max (or lim (point-min)) (or macro-start (point-min))))
-	     before-lparen after-rparen)
+	     before-lparen after-rparen
+	     (pp-count-out 20))	; Max number of paren/brace constructs before we give up
 	(narrow-to-region lim (c-point 'eol))
 
 	;; Search backwards for the defun's argument list.  We give up if we
@@ -6355,7 +6356,8 @@ comment at the start of cc-engine.el for more info."
 	;; {
 
 	(catch 'knr
-	  (while t ; go round one paren/bracket construct each time round.
+	  (while (> pp-count-out 0) ; go back one paren/bracket pair each time.
+	    (setq pp-count-out (1- pp-count-out))
 	    (c-syntactic-skip-backward "^)]}")
 	    (cond ((eq (char-before) ?\))
 		   (setq after-rparen (point)))
