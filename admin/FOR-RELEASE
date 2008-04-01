@@ -50,9 +50,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00175.html
 If this feature might be easy to implement and safe, we can add it to
 Emacs 22 at some point.
 
-** mouse-2 and calc-yank
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00048.html
-
 ** query-replace / longlines / C-o
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-12/msg00073.html
 
