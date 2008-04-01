@@ -436,55 +436,54 @@ month to a page.  It shows holiday and diary entries if
          (d2 (calendar-absolute-from-gregorian
               (list end-month
                     (calendar-last-day-of-month end-month end-year)
-                    end-year))))
-    (increment-calendar-month end-month end-year (1- n))
-    (let ((diary-list (if cal-tex-diary
-                          (cal-tex-list-diary-entries d1 d2)))
-          (holidays (if cal-tex-holidays
-                        (cal-tex-list-holidays d1 d2)))
-          other-month other-year small-months-at-start)
-      (cal-tex-insert-preamble (cal-tex-number-weeks month year 1) t "12pt")
-      (cal-tex-cmd cal-tex-cal-one-month)
-      (dotimes (i n)
-        (setq other-month month
-              other-year year)
-        (increment-calendar-month other-month other-year -1)
-        (insert (cal-tex-mini-calendar other-month other-year "lastmonth"
-                                       "\\cellwidth" "\\cellheight"))
-        (increment-calendar-month other-month other-year 2)
-        (insert (cal-tex-mini-calendar other-month other-year "nextmonth"
-                                       "\\cellwidth" "\\cellheight"))
-        (cal-tex-insert-month-header 1 month year month year)
-        (cal-tex-insert-day-names)
-        (cal-tex-nl ".2cm")
-        (if (setq small-months-at-start
-                  (< 1 (mod (- (calendar-day-of-week (list month 1 year))
+                    end-year)))
+         (diary-list (progn
+                       (increment-calendar-month end-month end-year (1- n))
+                       (if cal-tex-diary (cal-tex-list-diary-entries d1 d2))))
+         (holidays (if cal-tex-holidays (cal-tex-list-holidays d1 d2)))
+         other-month other-year small-months-at-start)
+    (cal-tex-insert-preamble (cal-tex-number-weeks month year 1) t "12pt")
+    (cal-tex-cmd cal-tex-cal-one-month)
+    (dotimes (i n)
+      (setq other-month month
+            other-year year)
+      (increment-calendar-month other-month other-year -1)
+      (insert (cal-tex-mini-calendar other-month other-year "lastmonth"
+                                     "\\cellwidth" "\\cellheight"))
+      (increment-calendar-month other-month other-year 2)
+      (insert (cal-tex-mini-calendar other-month other-year "nextmonth"
+                                     "\\cellwidth" "\\cellheight"))
+      (cal-tex-insert-month-header 1 month year month year)
+      (cal-tex-insert-day-names)
+      (cal-tex-nl ".2cm")
+      (if (setq small-months-at-start
+                (< 1 (mod (- (calendar-day-of-week (list month 1 year))
                                calendar-week-start-day)
-                            7)))
-            (insert "\\lastmonth\\nextmonth\\hspace*{-2\\cellwidth}"))
-        (cal-tex-insert-blank-days month year cal-tex-day-prefix)
-        (cal-tex-insert-days month year diary-list holidays
-                             cal-tex-day-prefix)
-        (cal-tex-insert-blank-days-at-end month year cal-tex-day-prefix)
-        (if (and (not small-months-at-start)
-                 (< 1 (mod (- (1- calendar-week-start-day)
-                              (calendar-day-of-week
-                               (list month
-                                     (calendar-last-day-of-month month year)
-                                     year)))
-                           7)))
-            (insert "\\vspace*{-\\cellwidth}\\hspace*{-2\\cellwidth}"
-                    "\\lastmonth\\nextmonth%
+                          7)))
+          (insert "\\lastmonth\\nextmonth\\hspace*{-2\\cellwidth}"))
+      (cal-tex-insert-blank-days month year cal-tex-day-prefix)
+      (cal-tex-insert-days month year diary-list holidays
+                           cal-tex-day-prefix)
+      (cal-tex-insert-blank-days-at-end month year cal-tex-day-prefix)
+      (if (and (not small-months-at-start)
+               (< 1 (mod (- (1- calendar-week-start-day)
+                            (calendar-day-of-week
+                             (list month
+                                   (calendar-last-day-of-month month year)
+                                   year)))
+                         7)))
+          (insert "\\vspace*{-\\cellwidth}\\hspace*{-2\\cellwidth}"
+                  "\\lastmonth\\nextmonth%
 "))
-        (unless (= i (1- n))
-          (run-hooks 'cal-tex-month-hook)
-          (cal-tex-newpage)
-          (increment-calendar-month month year 1)
-          (cal-tex-vspace "-2cm")
-          (cal-tex-insert-preamble
-           (cal-tex-number-weeks month year 1) t "12pt" t)))
-      (cal-tex-end-document)
-      (run-hooks 'cal-tex-hook))))
+      (unless (= i (1- n))
+        (run-hooks 'cal-tex-month-hook)
+        (cal-tex-newpage)
+        (increment-calendar-month month year 1)
+        (cal-tex-vspace "-2cm")
+        (cal-tex-insert-preamble
+         (cal-tex-number-weeks month year 1) t "12pt" t))))
+  (cal-tex-end-document)
+  (run-hooks 'cal-tex-hook))
 
 ;;;###cal-autoload
 (defun cal-tex-cursor-month (arg)
@@ -494,45 +493,44 @@ produced (default 1).  The calendar is condensed onto one page.
 It shows holiday and diary entries if `cal-tex-holidays' and
 `cal-tex-diary', respectively, are non-nil."
   (interactive "p")
-  (let* ((date (calendar-cursor-to-date t))
+  (let* ((n (or arg 1))
+         (date (calendar-cursor-to-date t))
          (month (extract-calendar-month date))
          (year (extract-calendar-year date))
          (end-month month)
          (end-year year)
-         (n (or arg 1))
          (d1 (calendar-absolute-from-gregorian (list month 1 year)))
          (d2 (calendar-absolute-from-gregorian
               (list end-month
                     (calendar-last-day-of-month end-month end-year)
-                    end-year))))
-    (increment-calendar-month end-month end-year (1- n))
-    (let ((diary-list (if cal-tex-diary
-                          (cal-tex-list-diary-entries d1 d2)))
-          (holidays (if cal-tex-holidays
-                        (cal-tex-list-holidays d1 d2)))
-          other-month other-year)
-      (cal-tex-insert-preamble (cal-tex-number-weeks month year n) nil"12pt")
-      (if (> n 1)
-          (cal-tex-cmd cal-tex-cal-multi-month)
-        (cal-tex-cmd cal-tex-cal-one-month))
-      (cal-tex-insert-month-header n month year end-month end-year)
-      (cal-tex-insert-day-names)
-      (cal-tex-nl ".2cm")
-      (cal-tex-insert-blank-days month year cal-tex-day-prefix)
-      (dotimes (idummy n)
-        (setq other-month month
-              other-year year)
-        (cal-tex-insert-days month year diary-list holidays cal-tex-day-prefix)
-        (when (= 6 (mod (calendar-absolute-from-gregorian
-                         (list month
-                               (calendar-last-day-of-month month year)
-                               year))
-                        7))           ; last day of month was Saturday
-          (cal-tex-hfill)
-          (cal-tex-nl))
-        (increment-calendar-month month year 1))
-      (cal-tex-insert-blank-days-at-end end-month end-year cal-tex-day-prefix)
-      (cal-tex-end-document)))
+                    end-year)))
+         (diary-list (progn
+                       (increment-calendar-month end-month end-year (1- n))
+                       (if cal-tex-diary (cal-tex-list-diary-entries d1 d2))))
+         (holidays (if cal-tex-holidays (cal-tex-list-holidays d1 d2)))
+         other-month other-year)
+    (cal-tex-insert-preamble (cal-tex-number-weeks month year n) nil "12pt")
+    (if (> n 1)
+        (cal-tex-cmd cal-tex-cal-multi-month)
+      (cal-tex-cmd cal-tex-cal-one-month))
+    (cal-tex-insert-month-header n month year end-month end-year)
+    (cal-tex-insert-day-names)
+    (cal-tex-nl ".2cm")
+    (cal-tex-insert-blank-days month year cal-tex-day-prefix)
+    (dotimes (idummy n)
+      (setq other-month month
+            other-year year)
+      (cal-tex-insert-days month year diary-list holidays cal-tex-day-prefix)
+      (when (= 6 (mod (calendar-absolute-from-gregorian
+                       (list month
+                             (calendar-last-day-of-month month year)
+                             year))
+                      7))           ; last day of month was Saturday
+        (cal-tex-hfill)
+        (cal-tex-nl))
+      (increment-calendar-month month year 1))
+    (cal-tex-insert-blank-days-at-end end-month end-year cal-tex-day-prefix))
+  (cal-tex-end-document)
   (run-hooks 'cal-tex-hook))
 
 (defun cal-tex-insert-days (month year diary-list holidays day-format)
@@ -1633,14 +1631,15 @@ non-nil, means add to end of buffer without erasing current contents."
       ""
     (let ((head "")
           (tail string)
-          (list cal-tex-LaTeX-subst-list))
+          (list cal-tex-LaTeX-subst-list)
+          ch pair)
       (while (not (string-equal tail ""))
-        (let* ((ch (substring-no-properties tail 0 1))
-               (pair (assoc ch list)))
-          (if (and pair (string-equal ch "\""))
-              (setq list (reverse list))) ; quote changes meaning each time
-          (setq tail (substring-no-properties tail 1)
-                head (concat head (if pair (cdr pair) ch)))))
+        (setq ch (substring-no-properties tail 0 1)
+              pair (assoc ch list))
+        (if (and pair (string-equal ch "\""))
+            (setq list (reverse list))) ; quote changes meaning each time
+        (setq tail (substring-no-properties tail 1)
+              head (concat head (if pair (cdr pair) ch))))
       head)))
 
 (defun cal-tex-month-name (month)
