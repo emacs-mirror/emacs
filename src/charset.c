@@ -1170,42 +1170,6 @@ DEFUN ("define-charset-alias", Fdefine_charset_alias,
 }
 
 
-DEFUN ("unibyte-charset", Funibyte_charset, Sunibyte_charset, 0, 0, 0,
-       doc: /* Return the unibyte charset (set by `set-unibyte-charset').  */)
-     ()
-{
-  return CHARSET_NAME (CHARSET_FROM_ID (charset_unibyte));
-}
-
-
-DEFUN ("set-unibyte-charset", Fset_unibyte_charset, Sset_unibyte_charset,
-       1, 1, 0,
-       doc: /* Set the unibyte charset to CHARSET.
-This determines how unibyte/multibyte conversion is done.  See also
-function `unibyte-charset'.  */)
-     (charset)
-     Lisp_Object charset;
-{
-  struct charset *cs;
-  int i, c;
-
-  CHECK_CHARSET_GET_CHARSET (charset, cs);
-  if (! cs->ascii_compatible_p
-      || cs->dimension != 1)
-    error ("Inappropriate unibyte charset: %s", SDATA (SYMBOL_NAME (charset)));
-  charset_unibyte = cs->id;
-  memset (unibyte_has_multibyte_table, 1, 128);
-  for (i = 128; i < 256; i++)
-    {
-      c = DECODE_CHAR (cs, i);
-      unibyte_to_multibyte_table[i] = (c < 0 ? BYTE8_TO_CHAR (i) : c);
-      unibyte_has_multibyte_table[i] = c >= 0;
-    }
-
-  return Qnil;
-}
-
-
 DEFUN ("charset-plist", Fcharset_plist, Scharset_plist, 1, 1, 0,
        doc: /* Return the property list of CHARSET.  */)
      (charset)
@@ -2142,8 +2106,6 @@ syms_of_charset ()
   defsubr (&Smap_charset_chars);
   defsubr (&Sdefine_charset_internal);
   defsubr (&Sdefine_charset_alias);
-  defsubr (&Sunibyte_charset);
-  defsubr (&Sset_unibyte_charset);
   defsubr (&Scharset_plist);
   defsubr (&Sset_charset_plist);
   defsubr (&Sunify_charset);

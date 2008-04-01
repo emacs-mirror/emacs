@@ -1,3 +1,7 @@
+2008-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* charset.c (Funibyte_charset, Fset_unibyte_charset): Remove.
+
 2008-03-31  Juri Linkov  <juri@jurta.org>
 
 	* window.c (Fdisplay_buffer): Reinitialize `tem' to nil.

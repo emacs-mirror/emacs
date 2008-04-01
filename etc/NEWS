@@ -773,12 +773,6 @@ charsets ordered by priority.
 
 *** The new function `set-charset-priority' sets priorities of charsets.
 
-*** The new function `unibyte-charset' returns the current unibyte
-charset.  The unibyte charset determines how unibyte/multibyte
-conversion is done.
-
-*** The new function `set-unibyte-charset' sets the unibyte charset.
-
 *** The new function `unibyte-string' make a unibyte string from bytes.
 
 *** The new function `define-char-code-property' defines a character
