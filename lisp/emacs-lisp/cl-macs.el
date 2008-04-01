@@ -1757,7 +1757,7 @@ Example:
 (defsetf frame-parameters modify-frame-parameters t)
 (defsetf frame-visible-p cl-set-frame-visible-p)
 (defsetf frame-width set-screen-width t)
-(defsetf frame-parameter set-frame-parameter)
+(defsetf frame-parameter set-frame-parameter t)
 (defsetf getenv setenv t)
 (defsetf get-register set-register)
 (defsetf global-key-binding global-set-key)
