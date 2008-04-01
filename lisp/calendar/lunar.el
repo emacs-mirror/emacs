@@ -27,8 +27,7 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements lunar phases for calendar.el and
-;; diary.el.
+;; See calendar.el.
 
 ;; Based on ``Astronomical Formulae for Calculators,'' 3rd ed., by Jean Meeus,
 ;; Willmann-Bell, Inc., 1985 and ``Astronomical Algorithms'' by Jean Meeus,
@@ -38,10 +37,6 @@
 
 ;; The author would be delighted to have an astronomically more sophisticated
 ;; person rewrite the code for the lunar calculations in this file!
-
-;; Technical details of all the calendrical calculations can be found in
-;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
-;; and Nachum Dershowitz, Cambridge University Press (2001).
 
 ;;; Code:
 
@@ -145,32 +140,33 @@ remainder mod 4 gives the phase: 0 new moon, 1 first quarter, 2 full moon,
 
 (defun lunar-phase-list (month year)
   "List of lunar phases for three months starting with Gregorian MONTH, YEAR."
-  (let ((end-month month)
-        (end-year year)
-        (start-month month)
-        (start-year year))
-    (increment-calendar-month end-month end-year 3)
-    (increment-calendar-month start-month start-year -1)
-    (let* ((end-date (list (list end-month 1 end-year)))
-           (start-date (list (list start-month
+  (let* ((end-month month)
+         (end-year year)
+         (start-month month)
+         (start-year year)
+         (end-date (progn
+                     (increment-calendar-month end-month end-year 3)
+                     (list (list end-month 1 end-year))))
+         (start-date (progn
+                       (increment-calendar-month start-month start-year -1)
+                       (list (list start-month
                                    (calendar-last-day-of-month
                                     start-month start-year)
-                                   start-year)))
-           (index (* 4
-                     (truncate
+                                   start-year))))
+         (index (* 4 (truncate
                       (* 12.3685
                          (+ year
                             ( / (calendar-day-number (list month 1 year))
                                 366.0)
                             -1900)))))
-           (new-moon (lunar-phase index))
-           (list))
-      (while (calendar-date-compare new-moon end-date)
-        (if (calendar-date-compare start-date new-moon)
-            (setq list (append list (list new-moon))))
-        (setq index (1+ index)
-              new-moon (lunar-phase index)))
-      list)))
+         (new-moon (lunar-phase index))
+         list)
+    (while (calendar-date-compare new-moon end-date)
+      (if (calendar-date-compare start-date new-moon)
+          (setq list (append list (list new-moon))))
+      (setq index (1+ index)
+            new-moon (lunar-phase index)))
+    list))
 
 (defun lunar-phase-name (phase)
   "Name of lunar PHASE.
@@ -375,17 +371,18 @@ as governed by the values of `calendar-daylight-savings-starts',
          (year (+ (extract-calendar-year date)
                   (/ (calendar-day-number date) 365.25)))
          (k (floor (* (- year 2000.0) 12.3685)))
-         (date (lunar-new-moon-time k)))
-    (while (< date d)
-      (setq k (1+ k)
-            date (lunar-new-moon-time k)))
-    (let* ((a-date (calendar-absolute-from-astro date))
-           (time (* 24 (- a-date (truncate a-date))))
-           (date (calendar-gregorian-from-absolute (truncate a-date)))
-           (adj (dst-adjust-time date time)))
-      (calendar-astro-from-absolute
-       (+ (calendar-absolute-from-gregorian (car adj))
-          (/ (cadr adj) 24.0))))))
+         (date (lunar-new-moon-time k))
+         (a-date (progn
+                   (while (< date d)
+                     (setq k (1+ k)
+                           date (lunar-new-moon-time k)))
+                   (calendar-absolute-from-astro date)))
+         (time (* 24 (- a-date (truncate a-date))))
+         (date (calendar-gregorian-from-absolute (truncate a-date)))
+         (adj (dst-adjust-time date time)))
+    (calendar-astro-from-absolute
+     (+ (calendar-absolute-from-gregorian (car adj))
+        (/ (cadr adj) 24.0)))))
 
 (provide 'lunar)
 
