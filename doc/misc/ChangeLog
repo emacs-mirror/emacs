@@ -1,3 +1,8 @@
+2008-04-01  Daiki Ueno  <ueno@unixuser.org>
+
+	* epa.texi (Encrypting/decrypting *.gpg files): Document
+	epa-file-name-regexp.
+
 2008-03-31  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Example Methods): Fix description about ssh-agent.
