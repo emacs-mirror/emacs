@@ -1,3 +1,10 @@
+2008-04-01  Jay Belanger  <jay.p.belanger@gmail.com>
+
+	* calc/calc.el: Autoload `calc-yank'.
+	(calc-mode-map): Add keybindings for `calc-yank'.
+	* calc/calc-ext.el (calc-init-extensions): Remove keybinding
+	assignments for `calc-yank'.
+
 2008-03-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-status-add-entry): Assume ENTRY is a list, not a cons.
