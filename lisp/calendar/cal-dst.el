@@ -28,8 +28,7 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements the features of calendar.el and
-;; holiday.el that deal with daylight saving time.
+;; See calendar.el.
 
 ;;; Code:
 
