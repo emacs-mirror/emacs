@@ -27,12 +27,7 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements the features of calendar.el and
-;; diary.el that deal with the Julian calendar.
-
-;; Technical details of all the calendrical calculations can be found in
-;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
-;; and Nachum Dershowitz, Cambridge University Press (2001).
+;; See calendar.el.
 
 ;;; Code:
 
