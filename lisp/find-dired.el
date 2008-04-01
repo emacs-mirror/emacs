@@ -239,7 +239,11 @@ Thus ARG can also contain additional grep options."
 (defun find-dired-filter (proc string)
   ;; Filter for \\[find-dired] processes.
   (let ((buf (process-buffer proc))
-	(inhibit-read-only t))
+	(inhibit-read-only t)
+	(l-opt (and (consp find-ls-option)
+		    (string-match "l" (cdr find-ls-option))))
+	(size-regexp
+	 "^ +[^ \t\r\n]+ +[^ \t\r\n]+ +[^ \t\r\n]+ +[^ \t\r\n]+ +\\([0-9]+\\)"))
     (if (buffer-name buf)		; not killed?
 	(save-excursion
 	  (set-buffer buf)
@@ -262,6 +266,12 @@ Thus ARG can also contain additional grep options."
 		(goto-char (- end 3))	; no error if < 0
 		(while (search-forward " ./" nil t)
 		  (delete-region (point) (- (point) 2)))
+		;; Make output line up by padding the file size
+		(when l-opt
+		  (goto-char (- end 3))
+		  (when (re-search-forward size-regexp nil t)
+		    (replace-match (format "%10s" (match-string 1))
+				   nil nil nil 1)))
 		;; Find all the complete lines in the unprocessed
 		;; output and process it to add text properties.
 		(goto-char (point-max))
@@ -269,8 +279,7 @@ Thus ARG can also contain additional grep options."
 		    (progn
 		      (dired-insert-set-properties (process-mark proc)
 						   (1+ (point)))
-		      (move-marker (process-mark proc) (1+ (point)))))
-		))))
+		      (move-marker (process-mark proc) (1+ (point)))))))))
       ;; The buffer has been killed.
       (delete-process proc))))
 
