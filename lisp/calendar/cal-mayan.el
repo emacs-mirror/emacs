@@ -28,28 +28,7 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements the features of calendar.el and
-;; diary.el that deal with the Mayan calendar.  It was written jointly by
-
-;;  Stewart M. Clamen                School of Computer Science
-;;  clamen@cs.cmu.edu                Carnegie Mellon University
-;;                                   5000 Forbes Avenue
-;;                                   Pittsburgh, PA 15213
-
-;; and
-
-;;  Edward M. Reingold               Department of Computer Science
-;;  (217) 333-6733                   University of Illinois at Urbana-Champaign
-;;  reingold@cs.uiuc.edu             1304 West Springfield Avenue
-;;                                   Urbana, Illinois 61801
-
-;; Technical details of the Mayan calendrical calculations can be found in
-;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
-;; and Nachum Dershowitz, Cambridge University Press (2001), and in
-;; ``Calendrical Calculations, Part II: Three Historical Calendars''
-;; by E. M. Reingold,  N. Dershowitz, and S. M. Clamen,
-;; Software--Practice and Experience, Volume 23, Number 4 (April, 1993),
-;; pages 383-404.
+;; See calendar.el.
 
 ;;; Code:
 
@@ -96,20 +75,17 @@ but some use 1137140.  Using 1232041 gives you Spinden's correlation; using
 
 (defun calendar-string-to-mayan-long-count (str)
   "Given STR, a string of format \"%d.%d.%d.%d.%d\", return list of numbers."
-  (let ((c (length str))
-        (cc 0)
+  (let ((end 0)
         rlc)
-    (condition-case condition
+    (condition-case nil
         (progn
-          (while (< cc c)
-            (let* ((start (string-match "[0-9]+" str cc))
-                   (end (match-end 0))
-                   (datum (read (substring str start end))))
-              (setq rlc (cons datum rlc)
-                    cc end)))
+          ;; cf split-string.
+          (while (string-match "[0-9]+" str end)
+            (setq rlc (cons (string-to-number (match-string 0 str)) rlc)
+                  end (match-end 0)))
           (unless (= (length rlc) 5) (signal 'invalid-read-syntax nil)))
       (invalid-read-syntax nil))
-    (reverse rlc)))
+    (nreverse rlc)))
 
 (defun calendar-mayan-haab-from-absolute (date)
   "Convert absolute DATE into a Mayan haab date (a pair)."
@@ -361,18 +337,18 @@ Long count is a list (baktun katun tun uinal kin)"
   "Move cursor to Mayan long count DATE.
 Echo Mayan date unless NOECHO is non-nil."
   (interactive
-   (let (lc)
-     (while (not lc)
-       (let ((datum
-              (calendar-string-to-mayan-long-count
-               (read-string "Mayan long count (baktun.katun.tun.uinal.kin): "
-                            (calendar-mayan-long-count-to-string
-                             (calendar-mayan-long-count-from-absolute
-                              (calendar-absolute-from-gregorian
-                               (calendar-current-date))))))))
-         (if (calendar-mayan-long-count-common-era datum)
-             (setq lc datum))))
-     (list lc)))
+   (let (datum)
+     (while (not (setq datum
+                       (calendar-string-to-mayan-long-count
+                        (read-string
+                         "Mayan long count (baktun.katun.tun.uinal.kin): "
+                         (calendar-mayan-long-count-to-string
+                          (calendar-mayan-long-count-from-absolute
+                           (calendar-absolute-from-gregorian
+                            (calendar-current-date))))))
+                       datum (if (calendar-mayan-long-count-common-era datum)
+                                 (list datum)))))
+     datum))
   (calendar-goto-date
    (calendar-gregorian-from-absolute
     (calendar-absolute-from-mayan-long-count date)))
