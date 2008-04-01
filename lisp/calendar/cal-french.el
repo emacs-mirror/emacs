@@ -27,15 +27,7 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements the features of calendar.el and
-;; diary.el that deal with the French Revolutionary calendar.
-
-;; Technical details of the French Revolutionary calendar can be found in
-;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
-;; and Nachum Dershowitz, Cambridge University Press (2001), and in
-;; ``Calendrical Calculations, Part II: Three Historical Calendars'' by
-;; E. M. Reingold, N. Dershowitz, and S. M. Clamen, Software--Practice and
-;; Experience, Volume 23, Number 4 (April, 1993), pages 383-404.
+;; See calendar.el.
 
 ;;; Code:
 
@@ -207,49 +199,47 @@ Defaults to today's date if DATE is not given."
   "Move cursor to French Revolutionary date DATE.
 Echo French Revolutionary date unless NOECHO is non-nil."
   (interactive
-   (let ((accents (french-calendar-accents))
-         (months (french-calendar-month-name-array))
-         (special-days (french-calendar-special-days-array)))
-     (let* ((year
-             (progn
-               (calendar-read
-                (if accents
-                    "Année de la Révolution (>0): "
-                  "Anne'e de la Re'volution (>0): ")
-                (lambda (x) (> x 0))
-                (int-to-string
-                 (extract-calendar-year
-                  (calendar-french-from-absolute
-                   (calendar-absolute-from-gregorian
-                    (calendar-current-date))))))))
-            (month-list
-             (mapcar 'list
-                     (append months
-                             (if (french-calendar-leap-year-p year)
-                                 (mapcar
-                                  (lambda (x) (concat "Jour " x))
-                                  french-calendar-special-days-array)
+   (let* ((months (french-calendar-month-name-array))
+          (special-days (french-calendar-special-days-array))
+          (year (progn
+                  (calendar-read
+                   (if (french-calendar-accents)
+                       "Année de la Révolution (>0): "
+                     "Anne'e de la Re'volution (>0): ")
+                   (lambda (x) (> x 0))
+                   (int-to-string
+                    (extract-calendar-year
+                     (calendar-french-from-absolute
+                      (calendar-absolute-from-gregorian
+                       (calendar-current-date))))))))
+          (month-list
+           (mapcar 'list
+                   (append months
+                           (if (french-calendar-leap-year-p year)
+                               (mapcar
+                                (lambda (x) (concat "Jour " x))
+                                french-calendar-special-days-array)
+                             (reverse
+                              (cdr ; we don't want rev. day in a non-leap yr
                                (reverse
-                                (cdr ; we don't want rev. day in a non-leap yr
-                                 (reverse
-                                  (mapcar
-                                   (lambda (x)
-                                     (concat "Jour " x))
-                                   special-days))))))))
-            (completion-ignore-case t)
-            (month (cdr (assoc-string
-                         (completing-read
-                          "Mois ou Sansculottide: "
-                          month-list
-                          nil t)
-                         (calendar-make-alist month-list 1 'car) t)))
-            (day (if (> month 12)
-                     (- month 12)
-                   (calendar-read
-                    "Jour (1-30): "
-                    (lambda (x) (and (<= 1 x) (<= x 30))))))
-            (month (if (> month 12) 13 month)))
-       (list (list month day year)))))
+                                (mapcar
+                                 (lambda (x)
+                                   (concat "Jour " x))
+                                 special-days))))))))
+          (completion-ignore-case t)
+          (month (cdr (assoc-string
+                       (completing-read
+                        "Mois ou Sansculottide: "
+                        month-list
+                        nil t)
+                       (calendar-make-alist month-list 1 'car) t)))
+          (day (if (> month 12)
+                   (- month 12)
+                 (calendar-read
+                  "Jour (1-30): "
+                  (lambda (x) (and (<= 1 x) (<= x 30))))))
+          (month (if (> month 12) 13 month)))
+     (list (list month day year))))
   (calendar-goto-date (calendar-gregorian-from-absolute
                        (calendar-absolute-from-french date)))
   (or noecho (calendar-print-french-date)))
