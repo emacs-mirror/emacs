@@ -1,3 +1,52 @@
+2008-04-01  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/calendar.el (calendar-nongregorian-visible-p): New function.
+	* calendar/cal-hebrew.el (calendar-hebrew-date-is-visible-p):
+	* calendar/cal-julian.el (holiday-julian): Use it.
+
+	* calendar/cal-hebrew.el (hebrew-calendar-elapsed-days): Doc fix.
+	(calendar-hebrew-date-is-visible-p): Extract some common code into
+	separate function.
+	(holiday-hebrew, mark-hebrew-calendar-date-pattern): Use it.
+
+	* calendar/cal-menu.el (cal-menu-holidays-menu):
+	* calendar/calendar.el (calendar-mode-map): Use calendar-mark-holidays
+	rather than obsolete alias.
+
+	* calendar/calendar.el (mark-visible-calendar-date): Also use overlay
+	for mark characters.
+	(calendar-unmark): Unmark by removing all overlays, rather than
+	redrawing.
+	(calendar-starred-day): Remove.
+	(calendar-mode): Disable undo.  Don't make calendar-starred-day local.
+	(calendar-cursor-to-date): No need for special star handling now
+	using overlays.
+	(calendar-star-date): Use overlays.
+
+	* calendar/cal-french.el (calendar-goto-french-date):
+	* calendar/cal-hebrew.el (calendar-hebrew-from-absolute)
+	(holiday-hanukkah, mark-hebrew-calendar-date-pattern):
+	* calendar/cal-move.el (calendar-forward-month, calendar-end-of-month):
+	* calendar/cal-persia.el (calendar-persian-date-string):
+	* calendar/cal-tex.el (cal-tex-cursor-month-landscape)
+	(cal-tex-cursor-month, cal-tex-LaTeXify-string):
+	* calendar/lunar.el (lunar-phase-list, lunar-new-moon-on-or-after):
+	* calendar/solar.el (solar-equinoxes-solstices):
+	Reduce nesting of some lets.
+
+	* calendar/cal-mayan.el (calendar-string-to-mayan-long-count):
+	(calendar-goto-mayan-long-count-date): Simplify.
+
+	* calendar/holidays.el (calendar-holiday-list, holiday-easter-etc):
+	Simplify by using mapcar.
+	(calendar-list-holidays): Return holiday-list.
+	(list-holidays): Use let rather than let*.  Remove un-needed locals
+	`d', `never'.
+	(calendar-check-holidays): Return result from dolist.
+	(holiday-float): Use a single let*.  Simplify if-and to and.
+	(holiday-sexp, holiday-advent, holiday-greek-orthodox-easter): Use a
+	single let*.
+
 2008-04-01  Jay Belanger  <jay.p.belanger@gmail.com>
 
 	* calc/calc.el: Autoload `calc-yank'.
