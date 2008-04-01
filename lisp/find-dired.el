@@ -240,37 +240,50 @@ Thus ARG can also contain additional grep options."
   ;; Filter for \\[find-dired] processes.
   (let ((buf (process-buffer proc))
 	(inhibit-read-only t))
-    (if (buffer-name buf)		; not killed?
-	(save-excursion
-	  (set-buffer buf)
+    (if (buffer-name buf)
+	(with-current-buffer buf
 	  (save-restriction
 	    (widen)
-	    (save-excursion
-	      (let ((buffer-read-only nil)
-		    (end (point-max)))
-		(goto-char end)
-		(insert string)
-		(goto-char end)
-		(or (looking-at "^")
-		    (forward-line 1))
-		(while (looking-at "^")
-		  (insert "  ")
+	    (let ((buffer-read-only nil)
+		  (beg (point-max))
+		  (l-opt (and (consp find-ls-option)
+			      (string-match "l" (cdr find-ls-option))))
+		  (ls-regexp (concat "^ +[^ \t\r\n]+\\( +[^ \t\r\n]+\\) +"
+				     "[^ \t\r\n]+ +[^ \t\r\n]+\\( +[0-9]+\\)")))
+	      (goto-char beg)
+	      (insert string)
+	      (goto-char beg)
+	      (or (looking-at "^")
 		  (forward-line 1))
-		;; Convert ` ./FILE' to ` FILE'
-		;; This would lose if the current chunk of output
-		;; starts or ends within the ` ./', so back up a bit:
-		(goto-char (- end 3))	; no error if < 0
-		(while (search-forward " ./" nil t)
-		  (delete-region (point) (- (point) 2)))
-		;; Find all the complete lines in the unprocessed
-		;; output and process it to add text properties.
-		(goto-char (point-max))
-		(if (search-backward "\n" (process-mark proc) t)
-		    (progn
-		      (dired-insert-set-properties (process-mark proc)
-						   (1+ (point)))
-		      (move-marker (process-mark proc) (1+ (point)))))
-		))))
+	      (while (looking-at "^")
+		(insert "  ")
+		(forward-line 1))
+	      ;; Convert ` ./FILE' to ` FILE'
+	      ;; This would lose if the current chunk of output
+	      ;; starts or ends within the ` ./', so back up a bit:
+	      (goto-char (- beg 3))	; no error if < 0
+	      (while (search-forward " ./" nil t)
+		(delete-region (point) (- (point) 2)))
+	      ;; Pad the number of links and file size.  This is a
+	      ;; quick and dirty way of getting the columns to line up
+	      ;; most of the time, but it's not foolproof.
+	      (when l-opt
+		(goto-char beg)
+		(goto-char (line-beginning-position))
+		(while (re-search-forward ls-regexp nil t)
+		  (replace-match (format "%4s" (match-string 1))
+				 nil nil nil 1)
+		  (replace-match (format "%9s" (match-string 2))
+				 nil nil nil 2)
+		  (forward-line 1)))
+	      ;; Find all the complete lines in the unprocessed
+	      ;; output and process it to add text properties.
+	      (goto-char (point-max))
+	      (if (search-backward "\n" (process-mark proc) t)
+		  (progn
+		    (dired-insert-set-properties (process-mark proc)
+						 (1+ (point)))
+		    (move-marker (process-mark proc) (1+ (point))))))))
       ;; The buffer has been killed.
       (delete-process proc))))
 
