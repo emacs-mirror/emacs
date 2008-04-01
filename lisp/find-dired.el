@@ -248,9 +248,8 @@ Thus ARG can also contain additional grep options."
 		  (beg (point-max))
 		  (l-opt (and (consp find-ls-option)
 			      (string-match "l" (cdr find-ls-option))))
-		  (links-regexp "^ +[^ \t\r\n]+\\( +[^ \t\r\n]+\\)")
-		  (size-regexp
-		   "^ +[^ \t\r\n]+ +[^ \t\r\n]+ +[^ \t\r\n]+ +[^ \t\r\n]+\\( +[0-9]+\\)"))
+		  (ls-regexp (concat "^ +[^ \t\r\n]+\\( +[^ \t\r\n]+\\) +"
+				     "[^ \t\r\n]+ +[^ \t\r\n]+\\( +[0-9]+\\)")))
 	      (goto-char beg)
 	      (insert string)
 	      (goto-char beg)
@@ -271,15 +270,11 @@ Thus ARG can also contain additional grep options."
 	      (when l-opt
 		(goto-char beg)
 		(goto-char (line-beginning-position))
-		(while (re-search-forward links-regexp nil t)
+		(while (re-search-forward ls-regexp nil t)
 		  (replace-match (format "%4s" (match-string 1))
 				 nil nil nil 1)
-		  (forward-line 1))
-		(goto-char beg)
-		(goto-char (line-beginning-position))
-		(while (re-search-forward size-regexp nil t)
-		  (replace-match (format "%9s" (match-string 1))
-				 nil nil nil 1)
+		  (replace-match (format "%9s" (match-string 2))
+				 nil nil nil 2)
 		  (forward-line 1)))
 	      ;; Find all the complete lines in the unprocessed
 	      ;; output and process it to add text properties.
