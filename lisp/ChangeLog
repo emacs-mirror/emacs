@@ -1,3 +1,8 @@
+2008-04-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* find-dired.el (find-dired-filter): Fix last patch to handle
+	multi-line process input.  Pad link numbers too.
+
 2008-04-01  Jari Aalto  <jari.aalto@cante.net>
 
 	* find-dired.el (find-dired-filter): Align columns by padding file
