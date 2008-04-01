@@ -4,7 +4,7 @@
 ;;   2008  Free Software Foundation, Inc.
 
 ;; Author: Nachum Dershowitz <nachum@cs.uiuc.edu>
-;;      Edward M. Reingold <reingold@cs.uiuc.edu>
+;;         Edward M. Reingold <reingold@cs.uiuc.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: Hebrew calendar, calendar, diary
@@ -45,7 +45,8 @@
     12))
 
 (defun hebrew-calendar-elapsed-days (year)
-  "Days from Sunday before start of Hebrew calendar to mean conjunction of Tishri of Hebrew YEAR."
+  "Days to mean conjunction of Tishri of Hebrew YEAR.
+Measured from Sunday before start of Hebrew calendar."
   (let* ((months-elapsed
           (+ (* 235 (/ (1- year) 19)) ; months in complete cycles so far
              (* 12 (% (1- year) 19))  ; regular months in this cycle
@@ -133,16 +134,18 @@ Gregorian date Sunday, December 31, 1 BC."
          (year (+ 3760 (extract-calendar-year greg-date)))
          (month (aref [9 10 11 12 1 2 3 4 7 7 7 8]
                       (1- (extract-calendar-month greg-date))))
+         (length (progn
+                   (while (>= date (calendar-absolute-from-hebrew
+                                    (list 7 1 (1+ year))))
+                     (setq year (1+ year)))
+                   (hebrew-calendar-last-month-of-year year)))
          day)
-    (while (>= date (calendar-absolute-from-hebrew (list 7 1 (1+ year))))
-      (setq year (1+ year)))
-    (let ((length (hebrew-calendar-last-month-of-year year)))
-      (while (> date
-                (calendar-absolute-from-hebrew
-                 (list month
-                       (hebrew-calendar-last-day-of-month month year)
-                       year)))
-        (setq month (1+ (% month length)))))
+    (while (> date
+              (calendar-absolute-from-hebrew
+               (list month
+                     (hebrew-calendar-last-day-of-month month year)
+                     year)))
+      (setq month (1+ (% month length))))
     (setq day (1+
                (- date (calendar-absolute-from-hebrew (list month 1 year)))))
     (list month day year)))
@@ -265,12 +268,9 @@ Reads a year, month, and day."
 (defvar displayed-month)                ; from generate-calendar
 (defvar displayed-year)
 
-;;;###holiday-autoload
-(defun holiday-hebrew (month day string)
-  "Holiday on MONTH, DAY (Hebrew) called STRING.
-If MONTH, DAY (Hebrew) is visible, the value returned is corresponding
-Gregorian date in the form of the list (((month day year) STRING)).  Returns
-nil if it is not visible in the current calendar window."
+(defun calendar-hebrew-date-is-visible-p (month day)
+  "Return non-nil if Hebrew MONTH DAY is visible in the calendar window.
+Returns the corresponding Gregorian date."
   ;; This test is only to speed things up a bit; it works fine without it.
   (if (memq displayed-month
             ;; What this is doing is equivalent to +1,2,3,4,5 modulo 12, ie:
@@ -325,7 +325,16 @@ nil if it is not visible in the current calendar window."
              (date (calendar-gregorian-from-absolute
                     (calendar-absolute-from-hebrew (list month day year)))))
         (if (calendar-date-is-visible-p date)
-            (list (list date string))))))
+            date))))
+
+;;;###holiday-autoload
+(defun holiday-hebrew (month day string)
+  "Holiday on MONTH, DAY (Hebrew) called STRING.
+If MONTH, DAY (Hebrew) is visible, the value returned is corresponding
+Gregorian date in the form of the list (((month day year) STRING)).  Returns
+nil if it is not visible in the current calendar window."
+  (let ((gdate (calendar-hebrew-date-is-visible-p month day)))
+    (if gdate (list (list gdate string)))))
 
 ;; h-r-h-e should be called from holidays code.
 (declare-function holiday-filter-visible-calendar "holidays" (l))
@@ -395,34 +404,35 @@ nil if it is not visible in the current calendar window."
   ;; This test is only to speed things up a bit, it works fine without it.
   (if (memq displayed-month
             '(10 11 12 1 2))
-      (let ((m displayed-month)
-            (y displayed-year))
-        (increment-calendar-month m y 1)
-        (let* ((h-y (extract-calendar-year
+      (let* ((m displayed-month)
+             (y displayed-year)
+             (h-y (progn
+                    (increment-calendar-month m y 1)
+                    (extract-calendar-year
                      (calendar-hebrew-from-absolute
                       (calendar-absolute-from-gregorian
-                       (list m (calendar-last-day-of-month m y) y)))))
-               (abs-h (calendar-absolute-from-hebrew (list 9 25 h-y))))
-          (holiday-filter-visible-calendar
-           (list
-            (list (calendar-gregorian-from-absolute (1- abs-h))
-                  "Erev Hanukkah")
-            (list (calendar-gregorian-from-absolute abs-h)
-                  "Hanukkah (first day)")
-            (list (calendar-gregorian-from-absolute (1+ abs-h))
-                  "Hanukkah (second day)")
-            (list (calendar-gregorian-from-absolute (+ abs-h 2))
-                  "Hanukkah (third day)")
-            (list (calendar-gregorian-from-absolute (+ abs-h 3))
-                  "Hanukkah (fourth day)")
-            (list (calendar-gregorian-from-absolute (+ abs-h 4))
-                  "Hanukkah (fifth day)")
-            (list (calendar-gregorian-from-absolute (+ abs-h 5))
-                  "Hanukkah (sixth day)")
-            (list (calendar-gregorian-from-absolute (+ abs-h 6))
-                  "Hanukkah (seventh day)")
-            (list (calendar-gregorian-from-absolute (+ abs-h 7))
-                  "Hanukkah (eighth day)")))))))
+                       (list m (calendar-last-day-of-month m y) y))))))
+             (abs-h (calendar-absolute-from-hebrew (list 9 25 h-y))))
+        (holiday-filter-visible-calendar
+         (list
+          (list (calendar-gregorian-from-absolute (1- abs-h))
+                "Erev Hanukkah")
+          (list (calendar-gregorian-from-absolute abs-h)
+                "Hanukkah (first day)")
+          (list (calendar-gregorian-from-absolute (1+ abs-h))
+                "Hanukkah (second day)")
+          (list (calendar-gregorian-from-absolute (+ abs-h 2))
+                "Hanukkah (third day)")
+          (list (calendar-gregorian-from-absolute (+ abs-h 3))
+                "Hanukkah (fourth day)")
+          (list (calendar-gregorian-from-absolute (+ abs-h 4))
+                "Hanukkah (fifth day)")
+          (list (calendar-gregorian-from-absolute (+ abs-h 5))
+                "Hanukkah (sixth day)")
+          (list (calendar-gregorian-from-absolute (+ abs-h 6))
+                "Hanukkah (seventh day)")
+          (list (calendar-gregorian-from-absolute (+ abs-h 7))
+                "Hanukkah (eighth day)"))))))
 
 ;;;###holiday-autoload
 (defun holiday-passover-etc ()
@@ -568,39 +578,9 @@ passed to `mark-visible-calendar-date' as MARK."
                           (list month day year)))))
               (if (calendar-date-is-visible-p date)
                   (mark-visible-calendar-date date color)))
-          ;; Month and day in any year--this taken from the holiday stuff.
-          ;; This test is only to speed things up a bit, it works
-          ;; fine without it.
-          (if (memq displayed-month
-                    (list
-                     (if (< 11 month) (- month 11) (+ month 1))
-                     (if (< 10 month) (- month 10) (+ month 2))
-                     (if (<  9 month) (- month  9) (+ month 3))
-                     (if (<  8 month) (- month  8) (+ month 4))
-                     (if (<  7 month) (- month  7) (+ month 5))))
-              (let ((m1 displayed-month)
-                    (y1 displayed-year)
-                    (m2 displayed-month)
-                    (y2 displayed-year)
-                    year)
-                (increment-calendar-month m1 y1 -1)
-                (increment-calendar-month m2 y2 1)
-                (let* ((start-date (calendar-absolute-from-gregorian
-                                    (list m1 1 y1)))
-                       (end-date (calendar-absolute-from-gregorian
-                                  (list m2
-                                        (calendar-last-day-of-month m2 y2)
-                                        y2)))
-                       (hebrew-start (calendar-hebrew-from-absolute start-date))
-                       (hebrew-end (calendar-hebrew-from-absolute end-date))
-                       (hebrew-y1 (extract-calendar-year hebrew-start))
-                       (hebrew-y2 (extract-calendar-year hebrew-end)))
-                  (setq year (if (< 6 month) hebrew-y2 hebrew-y1))
-                  (let ((date (calendar-gregorian-from-absolute
-                               (calendar-absolute-from-hebrew
-                                (list month day year)))))
-                    (if (calendar-date-is-visible-p date)
-                        (mark-visible-calendar-date date color)))))))
+          ;; Month and day in any year.
+          (let ((gdate (calendar-hebrew-date-is-visible-p month day)))
+            (if gdate (mark-visible-calendar-date gdate color))))
       (calendar-mark-complex month day year
                              'calendar-hebrew-from-absolute color))))
 
