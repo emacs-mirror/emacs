@@ -1,5 +1,9 @@
 2008-04-01  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/calendar.el (calendar-make-temp-face): New function.
+	(mark-visible-calendar-date):
+	* calendar/diary-lib.el (fancy-diary-display): Use it.
+
 	* vc-hooks.el (vc-responsible-backend): Declare as function.
 
 	* calendar/calendar.el (calendar-nongregorian-visible-p): New function.
