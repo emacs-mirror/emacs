@@ -37,10 +37,6 @@ http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-02/msg00103.html
 ** M-x grep significantly slower in emacs 22 (compared to emacs 21)
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-09/msg00155.html
 
-** Emacs CVS: find-file.el - Line up all columns in output
-http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00039.html
-Do we need papers for Jari Aalto? [no, we have them already]
-
 ** emacs crashs when remote x-windows closes after make-frame-on-display
 even when other frame was closed due to assertion in xcd_xlib.c
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2007-10/msg00082.html
