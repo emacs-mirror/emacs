@@ -28,9 +28,8 @@
 
 ;;; Commentary:
 
-;; This collection of functions implements the features of calendar.el,
-;; diary.el, and holiday.el that deal with times of day, sunrise/sunset, and
-;; equinoxes/solstices.
+;; See calendar.el.  This file implements features that deal with
+;; times of day, sunrise/sunset, and equinoxes/solstices.
 
 ;; Based on the ``Almanac for Computers 1984,'' prepared by the Nautical
 ;; Almanac Office, United States Naval Observatory, Washington, 1984, on
@@ -47,10 +46,6 @@
 ;;
 ;;    2. Equinox/solstice times will be accurate to the minute for years
 ;;       1951--2050.  For other years the times will be within +/- 1 minute.
-
-;; Technical details of all the calendrical calculations can be found in
-;; ``Calendrical Calculations: The Millennium Edition'' by Edward M. Reingold
-;; and Nachum Dershowitz, Cambridge University Press (2001).
 
 ;;; Code:
 
@@ -1018,47 +1013,48 @@ solstice.  These formulae are only to be used between 1000 BC and 3000 AD."
 (defun solar-equinoxes-solstices ()
   "Local date and time of equinoxes and solstices, if visible in the calendar.
 Requires floating point."
-  (let ((m displayed-month)
-        (y displayed-year))
-    (increment-calendar-month m y (cond ((= 1 (% m 3)) -1)
-                                        ((= 2 (% m 3))  1)
-                                        (t              0)))
-    (let* ((calendar-standard-time-zone-name
-            (if calendar-time-zone calendar-standard-time-zone-name "UTC"))
-           (calendar-daylight-savings-starts
-            (if calendar-time-zone calendar-daylight-savings-starts))
-           (calendar-daylight-savings-ends
-            (if calendar-time-zone calendar-daylight-savings-ends))
-           (calendar-time-zone (if calendar-time-zone calendar-time-zone 0))
-           (k (1- (/ m 3)))
-           (d0 (solar-equinoxes/solstices k y))
-           (d1 (list (car d0) (floor (cadr d0)) (nth 2 d0)))
-           (h0 (* 24 (- (cadr d0) (floor (cadr d0)))))
-           (adj (dst-adjust-time d1 h0))
-           (d (list (caar adj)
-                    (+ (car (cdar adj))
-                       (/ (cadr adj) 24.0))
-                    (cadr (cdar adj))))
-           ;; The following is nearly as accurate, but not quite:
-           ;; (d0 (solar-date-next-longitude
-           ;;     (calendar-astro-from-absolute
-           ;;      (calendar-absolute-from-gregorian
-           ;;       (list (+ 3 (* k 3)) 15 y)))
-           ;;     90))
-           ;; (abs-day (calendar-absolute-from-astro d)))
-           (abs-day (calendar-absolute-from-gregorian d)))
-      (list
-       (list (calendar-gregorian-from-absolute (floor abs-day))
-             (format "%s %s"
-                     (nth k (if (and calendar-latitude
-                                     (< (calendar-latitude) 0))
-                                solar-s-hemi-seasons
-                              solar-n-hemi-seasons))
-                     (solar-time-string
-                      (* 24 (- abs-day (floor abs-day)))
-                      (if (dst-in-effect abs-day)
-                          calendar-daylight-time-zone-name
-                        calendar-standard-time-zone-name))))))))
+  (let* ((m displayed-month)
+         (y displayed-year)
+         (calendar-standard-time-zone-name
+          (if calendar-time-zone calendar-standard-time-zone-name "UTC"))
+         (calendar-daylight-savings-starts
+          (if calendar-time-zone calendar-daylight-savings-starts))
+         (calendar-daylight-savings-ends
+          (if calendar-time-zone calendar-daylight-savings-ends))
+         (calendar-time-zone (if calendar-time-zone calendar-time-zone 0))
+         (k (progn
+              (increment-calendar-month m y (cond ((= 1 (% m 3)) -1)
+                                                  ((= 2 (% m 3))  1)
+                                                  (t              0)))
+              (1- (/ m 3))))
+         (d0 (solar-equinoxes/solstices k y))
+         (d1 (list (car d0) (floor (cadr d0)) (nth 2 d0)))
+         (h0 (* 24 (- (cadr d0) (floor (cadr d0)))))
+         (adj (dst-adjust-time d1 h0))
+         (d (list (caar adj)
+                  (+ (car (cdar adj))
+                     (/ (cadr adj) 24.0))
+                  (cadr (cdar adj))))
+         ;; The following is nearly as accurate, but not quite:
+         ;; (d0 (solar-date-next-longitude
+         ;;     (calendar-astro-from-absolute
+         ;;      (calendar-absolute-from-gregorian
+         ;;       (list (+ 3 (* k 3)) 15 y)))
+         ;;     90))
+         ;; (abs-day (calendar-absolute-from-astro d)))
+         (abs-day (calendar-absolute-from-gregorian d)))
+    (list
+     (list (calendar-gregorian-from-absolute (floor abs-day))
+           (format "%s %s"
+                   (nth k (if (and calendar-latitude
+                                   (< (calendar-latitude) 0))
+                              solar-s-hemi-seasons
+                            solar-n-hemi-seasons))
+                   (solar-time-string
+                    (* 24 (- abs-day (floor abs-day)))
+                    (if (dst-in-effect abs-day)
+                        calendar-daylight-time-zone-name
+                      calendar-standard-time-zone-name)))))))
 
 
 (provide 'solar)
