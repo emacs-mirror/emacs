@@ -1031,6 +1031,8 @@ Used by `calc-user-invocation'.")
       (define-key map "\C-m" 'calc-enter)
       (define-key map "\M-\C-m" 'calc-last-args-stub)
       (define-key map "\C-j" 'calc-over)
+      (define-key map "\C-y" 'calc-yank)
+      (define-key map [mouse-2] 'calc-yank)
       
       (mapc (lambda (x) (define-key map (char-to-string x) 'undefined))
             "lOW")
@@ -1182,7 +1184,9 @@ Used by `calc-user-invocation'.")
     calc-missing-key calc-mod calc-other-window calc-over calc-percent
     calc-pop-above calc-power calc-roll-down calc-roll-up
     calc-shift-Y-prefix-help calc-tutorial calcDigit-letter
-    report-calc-bug)))
+    report-calc-bug)
+
+ ("calc-yank" calc-yank)))
 
 
 ;;;###autoload (define-key ctl-x-map "*" 'calc-dispatch)
