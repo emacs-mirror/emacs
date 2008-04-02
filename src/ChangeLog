@@ -8,8 +8,6 @@
 	* keyboard.c (Vthis_command_keys_shift_translated): New var.
 	(command_loop_1): Avoid running the direct display versions of
 	forward-char and backward-char if shift-selection may occur.
-	Don't change the value of transient-mark-mode; this is now handled
-	by handle-shift-selection.
 	(read_key_sequence): Set Vthis_command_keys_shift_translated if
 	shift-translation takes place.
 
