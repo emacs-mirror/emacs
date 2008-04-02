@@ -243,7 +243,7 @@ CODE, where N and CODE are in the following relation:
 	      (setq size (string-to-number (match-string 1)))
 	    (search-forward "\nSIZE ")
 	    (setq size (read (current-buffer)))
-	    ;; The following kludgy code is t avoid bugs of several
+	    ;; The following kludgy code is to avoid bugs of several
 	    ;; fonts which have wrong SIZE record.
 	    (and (string-match "jiskan" bdfname)
 		 (<= size (/ (aref font-bounding-box 1) 3))
