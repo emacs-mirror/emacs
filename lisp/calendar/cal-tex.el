@@ -608,10 +608,11 @@ The entry is formatted using DAY-FORMAT."
               (mod
                (- (calendar-day-of-week (list month last-day year))
                   calendar-week-start-day)
-               7)))
-        (calendar-for-loop i from (1+ blank-days) to 6 do
-           (if (memq i cal-tex-which-days)
-               (insert (format day-format "" "") "{}{}{}{}%\n"))))))
+               7))
+             (i blank-days))
+        (while (<= (setq i (1+ i)) 6)
+          (if (memq i cal-tex-which-days)
+              (insert (format day-format "" "") "{}{}{}{}%\n"))))))
 
 (defun cal-tex-first-blank-p (month year)
   "Determine if any days of the first week will be printed.
@@ -631,15 +632,16 @@ in the calendar starting in MONTH YEAR."
   "Determine if any days of the last week will be printed.
 Return t if there will there be any days of the last week printed
 in the calendar starting in MONTH YEAR."
-  (let ((last-day (calendar-last-day-of-month month year))
-        any-days the-sunday)          ; the day of week of last Sunday
-    (calendar-for-loop i from (- last-day 6) to last-day do
-       (if (zerop (calendar-day-of-week (list month i year)))
-           (setq the-sunday i)))
-    (calendar-for-loop i from the-sunday to last-day do
-       (if (memq (calendar-day-of-week (list month i year))
-                 cal-tex-which-days)
-           (setq any-days t)))
+  (let* ((last-day (calendar-last-day-of-month month year))
+         (i (- last-day 7))
+         any-days the-sunday)          ; the day of week of last Sunday
+    (while (<= (setq i (1+ i)) last-day)
+      (if (zerop (calendar-day-of-week (list month i year)))
+          (setq the-sunday i)))
+    (setq i (1- the-sunday))
+    (while (<= (setq i (1+ i)) last-day)
+      (if (memq (calendar-day-of-week (list month i year)) cal-tex-which-days)
+          (setq any-days t)))
     any-days))
 
 (defun cal-tex-number-weeks (month year n)
@@ -1396,6 +1398,7 @@ Uses the 24-hour clock if `cal-tex-24' is non-nil.  Produces
 hourly sections for the period specified by `cal-tex-daily-start'
 and `cal-tex-daily-end'."
   (let ((month-name (cal-tex-month-name (extract-calendar-month date)))
+        (i (1- cal-tex-daily-start))
         hour)
     (cal-tex-banner "cal-tex-daily-page")
     (cal-tex-b-makebox "4cm" "l")
@@ -1417,22 +1420,22 @@ and `cal-tex-daily-end'."
     (cal-tex-hspace ".4cm")
     (cal-tex-rule "0mm" "16.1cm" "1mm")
     (cal-tex-nl ".1cm")
-    (calendar-for-loop i from cal-tex-daily-start to cal-tex-daily-end do
-       (cal-tex-cmd "\\noindent")
-       (setq hour (if cal-tex-24
-                      i
-                    (mod i 12)))
-       (if (zerop hour) (setq hour 12))
-       (cal-tex-b-makebox "1cm" "c")
-       (cal-tex-arg (number-to-string hour))
-       (cal-tex-e-makebox)
-       (cal-tex-rule "0mm" "15.5cm" ".2mm")
-       (cal-tex-nl ".2cm")
-       (cal-tex-b-makebox "1cm" "c")
-       (cal-tex-arg "$\\diamond$" )
-       (cal-tex-e-makebox)
-       (cal-tex-rule "0mm" "15.5cm" ".2mm")
-       (cal-tex-nl ".2cm"))
+    (while (<= (setq i (1+ i)) cal-tex-daily-end)
+      (cal-tex-cmd "\\noindent")
+      (setq hour (if cal-tex-24
+                     i
+                   (mod i 12)))
+      (if (zerop hour) (setq hour 12))
+      (cal-tex-b-makebox "1cm" "c")
+      (cal-tex-arg (number-to-string hour))
+      (cal-tex-e-makebox)
+      (cal-tex-rule "0mm" "15.5cm" ".2mm")
+      (cal-tex-nl ".2cm")
+      (cal-tex-b-makebox "1cm" "c")
+      (cal-tex-arg "$\\diamond$" )
+      (cal-tex-e-makebox)
+      (cal-tex-rule "0mm" "15.5cm" ".2mm")
+      (cal-tex-nl ".2cm"))
     (cal-tex-hfill)
     (insert (cal-tex-mini-calendar
              (extract-calendar-month (cal-tex-previous-month date))
