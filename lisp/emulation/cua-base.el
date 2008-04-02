@@ -1579,12 +1579,14 @@ shifted movement key, set `cua-highlight-region-shift-only'."
 	  (list
 	   transient-mark-mode
 	   (and (boundp 'delete-selection-mode) delete-selection-mode)
-	   (and (boundp 'pc-selection-mode) pc-selection-mode)))
+	   (and (boundp 'pc-selection-mode) pc-selection-mode)
+	   shift-select-mode))
     (if (and (boundp 'delete-selection-mode) delete-selection-mode)
 	(delete-selection-mode -1))
     (if (and (boundp 'pc-selection-mode) pc-selection-mode)
 	(pc-selection-mode -1))
     (cua--deactivate)
+    (setq shift-select-mode nil)
     (setq transient-mark-mode (and cua-mode
 				   (if cua-highlight-region-shift-only
 				       (not cua--explicit-region-start)
@@ -1595,6 +1597,7 @@ shifted movement key, set `cua-highlight-region-shift-only'."
 	(delete-selection-mode 1))
     (if (nth 2 cua--saved-state)
 	(pc-selection-mode 1))
+    (setq shift-select-mode (nth 3 cua--saved-state))
     (if (interactive-p)
 	(message "CUA mode disabled.%s%s%s%s"
 		 (if (nth 1 cua--saved-state) " Delete-Selection" "")
