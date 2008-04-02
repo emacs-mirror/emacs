@@ -1679,6 +1679,72 @@ the open-parenthesis that starts a defun; see `beginning-of-defun'."
     (c-keep-region-active)
     (= arg 0)))
 
+(defun c-defun-name ()
+  "Return the name of the current defun, or NIL if there isn't one.
+\"Defun\" here means a function, or other top level construct
+with a brace block."
+  (interactive)
+  (c-save-buffer-state
+      (beginning-of-defun-function end-of-defun-function
+       where pos name-end)
+ 
+    (save-excursion
+      ;; Move back out of any macro/comment/string we happen to be in.
+      (c-beginning-of-macro)
+      (setq pos (c-literal-limits))
+      (if pos (goto-char (car pos)))
+
+      (setq where (c-where-wrt-brace-construct))
+
+      ;; Move to the beginning of the current defun, if any, if we're not
+      ;; already there.
+      (if (eq where 'outwith-function)
+	  nil
+	(unless (eq where 'at-header)
+	  (c-backward-to-nth-BOF-{ 1 where)
+	  (c-beginning-of-decl-1))
+
+	;; Pick out the defun name, according to the type of defun.
+	(cond
+	 ((and (looking-at c-type-prefix-key)
+	       (progn (c-forward-token-2 2) ; over "struct foo "
+		      (eq (char-after) ?\{)))
+	  ;; struct, union, enum, or similar:
+	  (c-backward-syntactic-ws)
+	  (setq name-end (point))
+	  (buffer-substring-no-properties
+	   (progn
+	     (c-backward-token-2 2)
+	     (point))
+	   name-end))
+
+	 ((looking-at "DEFUN\\_>")
+	  ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
+	  ;; DEFUN(POSIX::STREAM-LOCK, stream lockp &key BLOCK SHARED START LENGTH) ==> POSIX::STREAM-LOCK	  
+	  (down-list 1)
+	  (c-forward-syntactic-ws)
+	  (when (eq (char-after) ?\")
+	    (forward-sexp 1)
+	    (c-forward-token-2))	; over the comma and following WS.
+	  (buffer-substring-no-properties
+	   (point)
+	   (progn
+	     (c-forward-token-2)
+	     (c-backward-syntactic-ws)
+	     (point))))
+		
+	 (t
+	 ;; Normal function or initializer.
+	  (when (c-syntactic-re-search-forward "[{(]" nil t)
+	    (backward-char)
+	    (c-backward-syntactic-ws)
+	    (when (eq (char-before) ?\=) ; struct foo bar = {0, 0} ;
+	      (c-backward-token-2)
+	      (c-backward-syntactic-ws))
+	    (setq name-end (point))
+	    (c-backward-token-2)
+	    (buffer-substring-no-properties (point) name-end))))))))
+
 (defun c-declaration-limits (near)
   ;; Return a cons of the beginning and end positions of the current
   ;; top level declaration or macro.  If point is not inside any then
@@ -1809,6 +1875,15 @@ function does not require the declaration to contain a brace block."
 	(error "Cannot find any declaration")
       (goto-char (car decl-limits))
       (push-mark (cdr decl-limits) nil t))))
+
+(defun c-cpp-define-name ()
+  "Return the name of the current CPP macro, or NIL if we're not in one."
+  (interactive)
+  (save-excursion
+    (and c-opt-cpp-macro-define-start
+	 (c-beginning-of-macro)
+	 (looking-at c-opt-cpp-macro-define-start)
+	 (match-string-no-properties 1))))
 
 
 ;; Movement by statements.
