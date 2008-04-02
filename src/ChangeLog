@@ -1,3 +1,29 @@
+2008-04-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* callint.c (Vshift_select_mode): New var.
+	(Finteractive): Document new ^ spec.
+	(Fcall_interactively): Call handle-shift-selection if the ^ spec
+	is present.
+
+	* keyboard.c (Vthis_command_keys_shift_translated): New var.
+	(command_loop_1): Avoid running the direct display versions of
+	forward-char and backward-char if shift-selection may occur.
+	Don't change the value of transient-mark-mode; this is now handled
+	by handle-shift-selection.
+	(read_key_sequence): Set Vthis_command_keys_shift_translated if
+	shift-translation takes place.
+
+	* buffer.c (Vtransient_mark_mode): Move docstring to simple.el to
+	avoid clobbering by define-minor-mode.
+
+	* cmds.c (Fforward_char, Fbackward_char, Fforward_line)
+	(Fbeginning_of_line, Fend_of_line): Add ^ interactive spec.
+
+	* syntax.c (Fforward_word): Add ^ interactive spec.
+
+	* window.c (Fscroll_up, Fscroll_down, Fscroll_left)
+	(Fscroll_right): Add ^ interactive spec.
+
 2008-04-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (try_window_id): Don't forget to reset delta_bytes.
