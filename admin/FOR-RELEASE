@@ -64,10 +64,6 @@ http://lists.gnu.org/archive/html/emacs-devel/2008-02/msg02939.html
 Patch available at
 http://lists.gnu.org/archive/html/bug-gnu-emacs/2008-03/msg00014.html
 
-** slow editing in .h files
-Patch available at
-http://lists.gnu.org/archive/html/emacs-devel/2008-03/msg00658.html
-
 * WINDOWS SUPPORT BUGS (for 22.3 or later).
 
 ** Description in the "Open with..." dialog should tell about the purpose
