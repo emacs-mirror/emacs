@@ -686,19 +686,19 @@ useful for editing binary files."
 
 (defun forward-to-indentation (&optional arg)
   "Move forward ARG lines and position at first nonblank character."
-  (interactive "p")
+  (interactive "^p")
   (forward-line (or arg 1))
   (skip-chars-forward " \t"))
 
 (defun backward-to-indentation (&optional arg)
   "Move backward ARG lines and position at first nonblank character."
-  (interactive "p")
+  (interactive "^p")
   (forward-line (- (or arg 1)))
   (skip-chars-forward " \t"))
 
 (defun back-to-indentation ()
   "Move point to the first non-whitespace character on this line."
-  (interactive)
+  (interactive "^")
   (beginning-of-line 1)
   (skip-syntax-forward " " (line-end-position))
   ;; Move back over chars that have whitespace syntax but have the p flag.
@@ -757,7 +757,7 @@ of the accessible part of the buffer.
 
 Don't use this command in Lisp programs!
 \(goto-char (point-min)) is faster and avoids clobbering the mark."
-  (interactive "P")
+  (interactive "^P")
   (or (consp arg)
       (and transient-mark-mode mark-active)
       (push-mark))
@@ -782,7 +782,7 @@ of the accessible part of the buffer.
 
 Don't use this command in Lisp programs!
 \(goto-char (point-max)) is faster and avoids clobbering the mark."
-  (interactive "P")
+  (interactive "^P")
   (or (consp arg)
       (and transient-mark-mode mark-active)
       (push-mark))
@@ -3379,12 +3379,15 @@ a mistake; see the documentation of `set-mark'."
   "Deactivate the mark by setting `mark-active' to nil.
 \(That makes a difference only in Transient Mark mode.)
 Also runs the hook `deactivate-mark-hook'."
-  (cond
-   ((eq transient-mark-mode 'lambda)
-    (setq transient-mark-mode nil))
-   (transient-mark-mode
-    (setq mark-active nil)
-    (run-hooks 'deactivate-mark-hook))))
+  (when transient-mark-mode
+    (if (or (eq transient-mark-mode 'lambda)
+	    (and (eq (car-safe transient-mark-mode) 'only)
+		 (null (cdr transient-mark-mode))))
+	(setq transient-mark-mode nil)
+      (if (eq (car-safe transient-mark-mode) 'only)
+	  (setq transient-mark-mode (cdr transient-mark-mode)))
+      (setq mark-active nil)
+      (run-hooks 'deactivate-mark-hook))))
 
 (defun activate-mark ()
   "Activate the mark."
@@ -3545,8 +3548,10 @@ argument, unconditionally set mark where point is, even if
 Novice Emacs Lisp programmers often try to use the mark for the wrong
 purposes.  See the documentation of `set-mark' for more information."
   (interactive "P")
-  (if (eq transient-mark-mode 'lambda)
-      (setq transient-mark-mode nil))
+  (cond ((eq transient-mark-mode 'lambda)
+	 (setq transient-mark-mode nil))
+	((eq (car-safe transient-mark-mode) 'only)
+	 (deactivate-mark)))
   (cond
    ((and (consp arg) (> (prefix-numeric-value arg) 4))
     (push-mark-command nil))
@@ -3624,19 +3629,49 @@ Does not set point.  Does nothing if mark ring is empty."
   "Put the mark where point is now, and point where the mark is now.
 This command works even when the mark is not active,
 and it reactivates the mark.
-With prefix arg, `transient-mark-mode' is enabled temporarily."
+
+If Transient Mark mode is on, a prefix arg deactivates the mark
+if it is active, and otherwise avoids reactivating it.  If
+Transient Mark mode is off, a prefix arg enables Transient Mark
+mode temporarily."
   (interactive "P")
-  (deactivate-mark)
-  (let ((omark (mark t)))
+  (let ((omark (mark t))
+	(temp-highlight (eq (car-safe transient-mark-mode) 'only)))
     (if (null omark)
         (error "No mark set in this buffer"))
+    (deactivate-mark)
     (set-mark (point))
     (goto-char omark)
-    (if (or (and arg (region-active-p)) ; (xor arg (not (region-active-p)))
-            (not (or arg (region-active-p))))
-        (deactivate-mark)
-      (activate-mark))
+    (cond (temp-highlight
+	   (setq transient-mark-mode (cons 'only transient-mark-mode)))
+	  ((or (and arg (region-active-p)) ; (xor arg (not (region-active-p)))
+	       (not (or arg (region-active-p))))
+	   (deactivate-mark))
+	  (t (activate-mark)))
     nil))
+
+(defun handle-shift-selection ()
+  "Check for shift translation, and operate on the mark accordingly.
+This is called whenever a command with a `^' character in its
+`interactive' spec is invoked while `shift-select-mode' is
+non-nil.
+
+If the command was invoked through shift-translation, set the
+mark and activate the region temporarily, unless it was already
+set in this way.  If the command was invoked without
+shift-translation and a region is temporarily active, deactivate
+the mark."
+  (cond (this-command-keys-shift-translated
+	 (unless (and mark-active
+		      (eq (car-safe transient-mark-mode) 'only))
+	   (setq transient-mark-mode
+		 (cons 'only
+		       (unless (eq transient-mark-mode 'lambda)
+			 transient-mark-mode)))
+	   (push-mark nil nil t)))
+	((eq (car-safe transient-mark-mode) 'only)
+	 (setq transient-mark-mode (cdr transient-mark-mode))
+	 (deactivate-mark))))
 
 (define-minor-mode transient-mark-mode
   "Toggle Transient Mark mode.
@@ -3662,6 +3697,27 @@ commands which are sensitive to the Transient Mark mode."
   :global t
   :init-value (not noninteractive)
   :group 'editing-basics)
+
+;; The variable transient-mark-mode is ugly: it can take on special
+;; values.  Document these here.
+(defvar transient-mark-mode t
+  "*Non-nil if Transient Mark mode is enabled.
+See the command `transient-mark-mode' for a description of this minor mode.
+
+Non-nil also enables highlighting of the region whenever the mark is active.
+The variable `highlight-nonselected-windows' controls whether to highlight
+all windows or just the selected window.
+
+If the value is `lambda', that enables Transient Mark mode
+temporarily.  After any subsequent action that would normally
+deactivate the mark (such as buffer modification), Transient Mark mode
+is turned off.
+
+If the value is (only . OLDVAL), that enables Transient Mark mode
+temporarily.  After any subsequent point motion command that is not
+shift-translated, or any other action that would normally deactivate
+the mark (such as buffer modification), the value of
+`transient-mark-mode' is set to OLDVAL.")
 
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.
@@ -3720,7 +3776,7 @@ when there is no goal column.
 If you are thinking of using this in a Lisp program, consider
 using `forward-line' instead.  It is usually easier to use
 and more reliable (no dependence on goal column, etc.)."
-  (interactive "p\np")
+  (interactive "^p\np")
   (or arg (setq arg 1))
   (if (and next-line-add-newlines (= arg 1))
       (if (save-excursion (end-of-line) (eobp))
@@ -3753,7 +3809,7 @@ when there is no goal column.
 If you are thinking of using this in a Lisp program, consider using
 `forward-line' with a negative argument instead.  It is usually easier
 to use and more reliable (no dependence on goal column, etc.)."
-  (interactive "p\np")
+  (interactive "^p\np")
   (or arg (setq arg 1))
   (if (interactive-p)
       (condition-case nil
@@ -4111,7 +4167,7 @@ which are part of the text that the image rests on.)
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (let (done)
     (while (not done)
@@ -4146,7 +4202,7 @@ which are part of the text that the image rests on.)
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
 To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
 
   (let ((orig (point))
@@ -4376,7 +4432,7 @@ With argument 0, interchanges line point is in with line mark is in."
 (defun backward-word (&optional arg)
   "Move backward until encountering the beginning of a word.
 With argument, do this that many times."
-  (interactive "p")
+  (interactive "^p")
   (forward-word (- (or arg 1))))
 
 (defun mark-word (&optional arg allow-extend)
