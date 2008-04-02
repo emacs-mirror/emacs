@@ -193,62 +193,54 @@ The result has the proper form for `calendar-daylight-savings-starts'."
          (d (extract-calendar-day date))
          (y (extract-calendar-year date))
          (last (calendar-last-day-of-month m y))
-         (candidate-rules
+         j rlist
+         (candidate-rules               ; these return Gregorian dates
           (append
            ;; Day D of month M.
-           (list (list 'list m d 'year))
+           `((list ,m ,d year))
            ;; The first WEEKDAY of month M.
            (if (< d 8)
-               (list (list 'calendar-nth-named-day 1 weekday m 'year)))
+               `((calendar-nth-named-day 1 ,weekday ,m year)))
            ;; The last WEEKDAY of month M.
            (if (> d (- last 7))
-               (list (list 'calendar-nth-named-day -1 weekday m 'year)))
-           ;; The first WEEKDAY after day J of month M, for D-6 < J <= D.
-           (let (l)
-             (calendar-for-loop j from (max 2 (- d 6)) to (min d (- last 8)) do
-                                (setq l
-                                      (cons
-                                       (list 'calendar-nth-named-day
-                                             1 weekday m 'year j)
-                                       l)))
-             l)
+               `((calendar-nth-named-day -1 ,weekday ,m year)))
+           (progn
+             ;; The first WEEKDAY after day J of month M, for D-6 < J <= D.
+             (setq j (1- (max 2 (- d 6))))
+             (while (<= (setq j (1+ j)) (min d (- last 8)))
+               (push `(calendar-nth-named-day 1 ,weekday ,m year ,j) rlist))
+             rlist)
            ;; 01-01 and 07-01 for this year's Persian calendar.
+           ;; FIXME what does the Persian calendar have to do with this?
            (if (and (= m 3) (<= 20 d) (<= d 21))
                '((calendar-gregorian-from-absolute
-                  (calendar-absolute-from-persian
-                   (list 1 1 (- year 621))))))
+                  (calendar-absolute-from-persian `(1 1 ,(- year 621))))))
            (if (and (= m 9) (<= 22 d) (<= d 23))
                '((calendar-gregorian-from-absolute
-                  (calendar-absolute-from-persian
-                   (list 7 1 (- year 621))))))))
+                  (calendar-absolute-from-persian `(7 1 ,(- year 621))))))))
          (prevday-sec (- -1 utc-diff)) ; last sec of previous local day
-         (year (1+ y)))
+         (year (1+ y))
+         new-rules)
     ;; Scan through the next few years until only one rule remains.
-    (while (let ((rules candidate-rules)
-                 new-rules)
-             (dolist (rule rules)
-               (let ((date
-                      ;; The following is much faster than
-                      ;; (calendar-absolute-from-gregorian (eval rule)).
-                      (cond ((eq (car rule) 'calendar-nth-named-day)
-                             (eval (cons 'calendar-nth-named-absday
-                                         (cdr rule))))
-                            ((eq (car rule) 'calendar-gregorian-from-absolute)
-                             (eval (cadr rule)))
-                            (t (calendar-absolute-from-gregorian
-                                (eval rule))))))
-                 (or (equal
-                      (current-time-zone
-                       (calendar-time-from-absolute date prevday-sec))
-                      (current-time-zone
-                       (calendar-time-from-absolute (1+ date) prevday-sec)))
-                     (setq new-rules (cons rule new-rules)))))
-             ;; If no rules remain, just use the first candidate rule;
-             ;; it's wrong in general, but it's right for at least one year.
-             (setq candidate-rules (if new-rules (nreverse new-rules)
-                                     (list (car candidate-rules)))
-                   year (1+ year))
-             (cdr candidate-rules)))
+    (while (cdr candidate-rules)
+      (dolist (rule candidate-rules)
+        ;; The rule we return should give a Gregorian date, but here
+        ;; we require an absolute date.  The following is for efficiency.
+        (setq date (cond ((eq (car rule) 'calendar-nth-named-day)
+                          (eval (cons 'calendar-nth-named-absday (cdr rule))))
+                         ((eq (car rule) 'calendar-gregorian-from-absolute)
+                          (eval (cdr rule)))
+                         (t (calendar-absolute-from-gregorian (eval rule)))))
+        (or (equal (current-time-zone
+                    (calendar-time-from-absolute date prevday-sec))
+                   (current-time-zone
+                    (calendar-time-from-absolute (1+ date) prevday-sec)))
+            (setq new-rules (cons rule new-rules))))
+      ;; If no rules remain, just use the first candidate rule;
+      ;; it's wrong in general, but it's right for at least one year.
+      (setq candidate-rules (if new-rules (nreverse new-rules)
+                              (list (car candidate-rules)))
+            year (1+ year)))
     (car candidate-rules)))
 
 ;; TODO it might be better to extract this information directly from
