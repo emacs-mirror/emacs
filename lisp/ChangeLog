@@ -1,3 +1,12 @@
+2008-04-02  Alan Mackenzie  <acm@muc.de>
+
+	* progmodes/cc-cmds.el (c-defun-name, c-cpp-define-name): New
+	optimised functions to get the name of the current defun/macro.
+
+	* add-log.el (add-log-current-defun): Move the functionality which
+	gets the current function name for C like modes to cc-cmds.el,
+	thus optimising for speed.
+
 2008-04-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (deactivate-mark): When the mark is temporarily
