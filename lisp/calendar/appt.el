@@ -64,9 +64,9 @@
 ;; You can change the way the appointment window is created/deleted by
 ;; setting the variables
 ;;
-;;	     appt-disp-window-function
+;;           appt-disp-window-function
 ;; and
-;; 	     appt-delete-window-function
+;;           appt-delete-window-function
 ;;
 ;; For instance, these variables could be set to functions that display
 ;; appointments in pop-up frames, which are lowered or iconified after
@@ -231,8 +231,8 @@ The variable `appt-audible' controls the audible reminder."
   ;; vars appt-msg-window and appt-visible are dropped.
   (let ((appt-display-format
          (if (eq appt-display-format 'ignore)
-               (cond (appt-msg-window 'window)
-                     (appt-visible 'echo))
+             (cond (appt-msg-window 'window)
+                   (appt-visible 'echo))
            appt-display-format)))
     (if appt-audible (beep 1))
     (cond ((eq appt-display-format 'window)
@@ -273,12 +273,12 @@ The following variables control appointment notification:
         Controls the format in which reminders are displayed.
 
 `appt-audible'
-	Variable used to determine if reminder is audible.
-	Default is t.
+        Variable used to determine if reminder is audible.
+        Default is t.
 
 `appt-message-warning-time'
-	Variable used to determine when appointment message
-	should first be displayed.
+        Variable used to determine when appointment message
+        should first be displayed.
 
 `appt-display-mode-line'
         If non-nil, a generic message giving the time remaining
@@ -295,31 +295,31 @@ The following variables are only relevant if reminders are being
 displayed in a window:
 
 `appt-display-duration'
-	The number of seconds an appointment message is displayed.
+        The number of seconds an appointment message is displayed.
 
 `appt-disp-window-function'
-    	Function called to display appointment window.
+        Function called to display appointment window.
 
 `appt-delete-window-function'
-    	Function called to remove appointment window and buffer."
+        Function called to remove appointment window and buffer."
   (interactive "P")                     ; so people can force updates
   (let* ((min-to-app -1)
-	 (prev-appt-mode-string appt-mode-string)
-	 (prev-appt-display-count (or appt-display-count 0))
-	 ;; Non-nil means do a full check for pending appointments and
-	 ;; display in whatever ways the user has selected.  When no
-	 ;; appointment is being displayed, we always do a full check.
-	 (full-check
-	  (or (not appt-now-displayed)
-	      ;; This is true every appt-display-interval minutes.
-	      (zerop (mod prev-appt-display-count appt-display-interval))))
-	 ;; Non-nil means only update the interval displayed in the mode line.
-	 (mode-line-only (unless full-check appt-now-displayed))
+         (prev-appt-mode-string appt-mode-string)
+         (prev-appt-display-count (or appt-display-count 0))
+         ;; Non-nil means do a full check for pending appointments and
+         ;; display in whatever ways the user has selected.  When no
+         ;; appointment is being displayed, we always do a full check.
+         (full-check
+          (or (not appt-now-displayed)
+              ;; This is true every appt-display-interval minutes.
+              (zerop (mod prev-appt-display-count appt-display-interval))))
+         ;; Non-nil means only update the interval displayed in the mode line.
+         (mode-line-only (unless full-check appt-now-displayed))
          now cur-comp-time appt-comp-time)
     (when (or full-check mode-line-only)
       (save-excursion
-	;; Convert current time to minutes after midnight (12.01am = 1).
-	(setq now (decode-time)
+        ;; Convert current time to minutes after midnight (12.01am = 1).
+        (setq now (decode-time)
               cur-comp-time (+ (* 60 (nth 2 now)) (nth 1 now)))
         ;; At first check in any day, update appointments to today's list.
         (if (or force                      ; eg initialize, diary save
@@ -418,12 +418,12 @@ message APPT-MSG in a separate buffer."
   (let ((this-window (selected-window))
         (appt-disp-buf (set-buffer (get-buffer-create appt-buffer-name))))
     (if (cdr (assq 'unsplittable (frame-parameters)))
-	;; In an unsplittable frame, use something somewhere else.
-	(display-buffer appt-disp-buf)
+        ;; In an unsplittable frame, use something somewhere else.
+        (display-buffer appt-disp-buf)
       (unless (or (special-display-p (buffer-name appt-disp-buf))
-		  (same-window-p (buffer-name appt-disp-buf)))
-	;; By default, split the bottom window and use the lower part.
-	(appt-select-lowest-window)
+                  (same-window-p (buffer-name appt-disp-buf)))
+        ;; By default, split the bottom window and use the lower part.
+        (appt-select-lowest-window)
         ;; Split the window, unless it's too small to do so.
         (when (>= (window-height) (* 2 window-min-height))
           (select-window (split-window))))
@@ -450,22 +450,22 @@ message APPT-MSG in a separate buffer."
 Usually just deletes the appointment buffer."
   (let ((window (get-buffer-window appt-buffer-name t)))
     (and window
-	 (or (eq window (frame-root-window (window-frame window)))
-	     (delete-window window))))
+         (or (eq window (frame-root-window (window-frame window)))
+             (delete-window window))))
   (kill-buffer appt-buffer-name)
   (if appt-audible
       (beep 1)))
 
 (defun appt-select-lowest-window ()
-"Select the lowest window on the frame."
+  "Select the lowest window on the frame."
   (let ((lowest-window (selected-window))
-	(bottom-edge (nth 3 (window-edges)))
+        (bottom-edge (nth 3 (window-edges)))
         next-bottom-edge)
     (walk-windows (lambda (w)
-		      (when (< bottom-edge (setq next-bottom-edge
-                                                 (nth 3 (window-edges w))))
-			(setq bottom-edge next-bottom-edge
-			      lowest-window w))) 'nomini)
+                    (when (< bottom-edge (setq next-bottom-edge
+                                               (nth 3 (window-edges w))))
+                      (setq bottom-edge next-bottom-edge
+                            lowest-window w))) 'nomini)
     (select-window lowest-window)))
 
 (defconst appt-time-regexp
@@ -610,8 +610,8 @@ hour and minute parts."
               0)))
     ;; Convert the time appointment time into 24 hour time.
     (cond ((and (string-match "pm" time2conv) (< hr 12))
-	   (setq hr (+ 12 hr)))
-	  ((and (string-match "am" time2conv) (= hr 12))
+           (setq hr (+ 12 hr)))
+          ((and (string-match "am" time2conv) (= hr 12))
            (setq hr 0)))
     ;; Convert the actual time into minutes.
     (+ (* hr 60) min)))
@@ -651,7 +651,7 @@ This function is intended for use with `write-file-functions'."
 
 ;;;###autoload
 (defun appt-activate (&optional arg)
-"Toggle checking of appointments.
+  "Toggle checking of appointments.
 With optional numeric argument ARG, turn appointment checking on if
 ARG is positive, otherwise off."
   (interactive "P")
