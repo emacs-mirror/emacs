@@ -6200,18 +6200,11 @@ to the value obtained by calling `current-time'.
 If the buffer has never been shown in a window, the value is nil.  */);
 
   DEFVAR_LISP ("transient-mark-mode", &Vtransient_mark_mode,
-	       doc: /* *Non-nil means deactivate the mark when the buffer contents change.
-Non-nil also enables highlighting of the region whenever the mark is active.
-The variable `highlight-nonselected-windows' controls whether to highlight
-all windows or just the selected window.
-
-If the value is `lambda', that enables Transient Mark mode temporarily
-until the next buffer modification.  If a command sets the value to `only',
-that enables Transient Mark mode for the following command only.
-During that following command, the value of `transient-mark-mode'
-is `identity'.  If it is still `identity' at the end of that command,
-it changes to nil.  */);
+	       doc: /* */);
   Vtransient_mark_mode = Qnil;
+  /* The docstring is in simple.el.  If we put it here, it would be
+     overwritten when transient-mark-mode is defined using
+     define-minor-mode.  */
 
   DEFVAR_LISP ("inhibit-read-only", &Vinhibit_read_only,
 	       doc: /* *Non-nil means disregard read-only status of buffers or characters.
