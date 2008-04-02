@@ -1,5 +1,13 @@
 2008-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* progmodes/sh-script.el (sh-mode-map): Rename the menu. Add :help.
+	Add menu entries corresponding to all the key bindings.
+
+	* emacs-lisp/debug.el (debugger-mode-map):
+	* textmodes/conf-mode.el (conf-mode-map): Add a menu.
+	(conf-align-assignments): Only work on the region if it is active.
+	(conf-quote-normal): Use when instead of if.  Remove redundant test.
+
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Add menu entries
 	for tracing and re-builder.
 

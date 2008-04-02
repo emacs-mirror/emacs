@@ -446,7 +446,7 @@ This is buffer-local in every such buffer.")
 
 (defvar sh-mode-map
   (let ((map (make-sparse-keymap))
-	(menu-map (make-sparse-keymap "Insert")))
+	(menu-map (make-sparse-keymap)))
     (define-key map "\C-c(" 'sh-function)
     (define-key map "\C-c\C-w" 'sh-while)
     (define-key map "\C-c\C-u" 'sh-until)
@@ -483,17 +483,68 @@ This is buffer-local in every such buffer.")
     (define-key map "\C-c:" 'sh-set-shell)
     (define-key map [remap backward-sentence] 'sh-beginning-of-command)
     (define-key map [remap forward-sentence] 'sh-end-of-command)
-    (define-key map [menu-bar insert] (cons "Insert" menu-map))
-    (define-key menu-map [sh-while]	'("While Loop" . sh-while))
-    (define-key menu-map [sh-until]	'("Until Loop" . sh-until))
-    (define-key menu-map [sh-tmp-file]	'("Temporary File" . sh-tmp-file))
-    (define-key menu-map [sh-select]	'("Select Statement" . sh-select))
-    (define-key menu-map [sh-repeat]	'("Repeat Loop" . sh-repeat))
-    (define-key menu-map [sh-getopts]	'("Options Loop" . sh-while-getopts))
-    (define-key menu-map [sh-indexed-loop] '("Indexed Loop" . sh-indexed-loop))
-    (define-key menu-map [sh-if]	'("If Statement" . sh-if))
-    (define-key menu-map [sh-for]	'("For Loop" . sh-for))
-    (define-key menu-map [sh-case]	'("Case Statement" . sh-case))
+    (define-key map [menu-bar sh-script] (cons "Sh-Script" menu-map))
+    (define-key menu-map [sh-learn-buffer-indent]
+      '(menu-item "Learn buffer indentation" sh-learn-buffer-indent
+		  :help "Learn how to indent the buffer the way it currently is."))
+    (define-key menu-map [sh-learn-line-indent]
+      '(menu-item "Learn line indentation" sh-learn-line-indent
+		  :help "Learn how to indent a line as it currently is indented"))
+    (define-key menu-map [sh-show-indent]
+      '(menu-item "Show indentation" sh-show-indent
+		  :help "Set the indentation for the current line"))
+    (define-key menu-map [sh-set-indent]
+      '(menu-item "Set indentation" sh-set-indent
+		  :help "Set the indentation for the current line"))
+
+    (define-key menu-map [sh-s0] '("--"))
+    ;; Insert
+    (define-key menu-map [sh-function]
+      '(menu-item "Function..." sh-function
+		  :help "Insert a function definition"))
+    (define-key menu-map [sh-add]
+      '(menu-item "Addition..." sh-add
+		  :help "Insert an addition of VAR and prefix DELTA for Bourne (type) shell"))
+    (define-key menu-map [sh-until]
+      '(menu-item "Until Loop" sh-until
+		  :help "Insert an until loop"))
+    (define-key menu-map [sh-repeat]
+      '(menu-item "Repeat Loop" sh-repeat
+		  :help "Insert a repeat loop definition"))
+    (define-key menu-map [sh-while]
+      '(menu-item "While Loop" sh-while
+		  :help "Insert a while loop"))
+    (define-key menu-map [sh-getopts]
+      '(menu-item "Options Loop" sh-while-getopts
+		  :help "Insert a while getopts loop."))
+    (define-key menu-map [sh-indexed-loop]
+      '(menu-item "Indexed Loop" sh-indexed-loop
+		  :help "Insert an indexed loop from 1 to n."))
+    (define-key menu-map [sh-select]
+      '(menu-item "Select Statement" sh-select
+		  :help "Insert a select statement "))
+    (define-key menu-map [sh-if]
+      '(menu-item "If Statement" sh-if
+		  :help "Insert an if statement"))
+    (define-key menu-map [sh-for]
+      '(menu-item "For Loop" sh-for
+		  :help "Insert a for loop"))
+    (define-key menu-map [sh-case]
+      '(menu-item "Case Statement" sh-case
+		  :help "Insert a case/switch statement"))
+    (define-key menu-map [sh-s1] '("--"))
+    (define-key menu-map [sh-exec]
+      '(menu-item "Execute region" sh-execute-region
+		  :help "Pass optional header and region to a subshell for noninteractive execution"))
+    (define-key menu-map [sh-exec-interpret]
+      '(menu-item "Execute script..." executable-interpret
+		  :help "Run script with user-specified args, and collect output in a buffer"))
+    (define-key menu-map [sh-set-shell]
+      '(menu-item "Set shell type..." sh-set-shell
+		  :help "Set this buffer's shell to SHELL (a string)"))
+    (define-key menu-map [sh-backslash-region]
+      '(menu-item "Backslash region" sh-backslash-region
+		  :help "Insert, align, or delete end-of-line backslashes on the lines in the region."))
     map)
   "Keymap used in Shell-Script mode.")
 
@@ -815,7 +866,7 @@ See `sh-feature'.")
      (:foreground "yellow" :weight bold))
     (((class color)
       (background light))
-     (:foreground "tan" ))
+     (:foreground "tan1" ))
     (t
      (:weight bold)))
   "Face to show a here-document"
