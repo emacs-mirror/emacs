@@ -661,6 +661,8 @@ static int store_user_signal_events P_ ((void));
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
 static int cannot_suspend;
+
+extern Lisp_Object Qidentity, Qonly;
 
 /* Install the string STR as the beginning of the string of echoing,
    so that it serves as a prompt for the next character.
@@ -1967,6 +1969,14 @@ command_loop_1 ()
 
       if (!NILP (current_buffer->mark_active) && !NILP (Vrun_hooks))
 	{
+	  /* In Emacs 22, setting transient-mark-mode to `only' was a
+	     way of turning it on for just one command.  This usage is
+	     obsolete, but support it anyway.  */
+	  if (EQ (Vtransient_mark_mode, Qidentity))
+	    Vtransient_mark_mode = Qnil;
+	  else if (EQ (Vtransient_mark_mode, Qonly))
+	    Vtransient_mark_mode = Qidentity;
+
 	  if (!NILP (Vdeactivate_mark) && !NILP (Vtransient_mark_mode))
 	    {
 	      /* We could also call `deactivate'mark'.  */
