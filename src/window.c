@@ -5597,7 +5597,7 @@ scroll_command (n, direction)
   unbind_to (count, Qnil);
 }
 
-DEFUN ("scroll-up", Fscroll_up, Sscroll_up, 0, 1, "P",
+DEFUN ("scroll-up", Fscroll_up, Sscroll_up, 0, 1, "^P",
        doc: /* Scroll text of current window upward ARG lines.
 If ARG is omitted or nil, scroll upward by a near full screen.
 A near full screen is `next-screen-context-lines' less than a full screen.
@@ -5611,7 +5611,7 @@ When calling from a program, supply as argument a number, nil, or `-'.  */)
   return Qnil;
 }
 
-DEFUN ("scroll-down", Fscroll_down, Sscroll_down, 0, 1, "P",
+DEFUN ("scroll-down", Fscroll_down, Sscroll_down, 0, 1, "^P",
        doc: /* Scroll text of current window down ARG lines.
 If ARG is omitted or nil, scroll down by a near full screen.
 A near full screen is `next-screen-context-lines' less than a full screen.
@@ -5717,7 +5717,7 @@ specifies the window to scroll.  This takes precedence over
   return Qnil;
 }
 
-DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 0, 2, "P\np",
+DEFUN ("scroll-left", Fscroll_left, Sscroll_left, 0, 2, "^P\np",
        doc: /* Scroll selected window display ARG columns left.
 Default for ARG is window width minus 2.
 Value is the total amount of leftward horizontal scrolling in
@@ -5747,7 +5747,7 @@ by this function.  This happens in an interactive call.  */)
   return result;
 }
 
-DEFUN ("scroll-right", Fscroll_right, Sscroll_right, 0, 2, "P\np",
+DEFUN ("scroll-right", Fscroll_right, Sscroll_right, 0, 2, "^P\np",
        doc: /* Scroll selected window display ARG columns right.
 Default for ARG is window width minus 2.
 Value is the total amount of leftward horizontal scrolling in
