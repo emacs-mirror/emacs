@@ -132,6 +132,9 @@ int this_command_key_count_reset;
 Lisp_Object raw_keybuf;
 int raw_keybuf_count;
 
+/* Non-nil if the present key sequence was obtained by shift translation.  */
+Lisp_Object Vthis_command_keys_shift_translated;
+
 #define GROW_RAW_KEYBUF							\
  if (raw_keybuf_count == XVECTOR (raw_keybuf)->size)			\
    raw_keybuf = larger_vector (raw_keybuf, raw_keybuf_count * 2, Qnil)  \
@@ -658,8 +661,6 @@ static int store_user_signal_events P_ ((void));
 /* Nonzero means don't try to suspend even if the operating system seems
    to support it.  */
 static int cannot_suspend;
-
-extern Lisp_Object Qidentity, Qonly;
 
 /* Install the string STR as the beginning of the string of echoing,
    so that it serves as a prompt for the next character.
@@ -1648,6 +1649,7 @@ command_loop_1 ()
       Vthis_command = Qnil;
       real_this_command = Qnil;
       Vthis_original_command = Qnil;
+      Vthis_command_keys_shift_translated = Qnil;
 
       /* Read next key sequence; i gets its length.  */
       i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
@@ -1761,7 +1763,9 @@ command_loop_1 ()
 
 	      /* Recognize some common commands in common situations and
 		 do them directly.  */
-	      if (EQ (Vthis_command, Qforward_char) && PT < ZV)
+	      if (EQ (Vthis_command, Qforward_char) && PT < ZV
+		  && NILP (Vthis_command_keys_shift_translated)
+		  && !CONSP (Vtransient_mark_mode))
 		{
                   struct Lisp_Char_Table *dp
 		    = window_display_table (XWINDOW (selected_window));
@@ -1801,7 +1805,9 @@ command_loop_1 ()
 		    direct_output_forward_char (1);
 		  goto directly_done;
 		}
-	      else if (EQ (Vthis_command, Qbackward_char) && PT > BEGV)
+	      else if (EQ (Vthis_command, Qbackward_char) && PT > BEGV
+		       && NILP (Vthis_command_keys_shift_translated)
+		       && !CONSP (Vtransient_mark_mode))
 		{
                   struct Lisp_Char_Table *dp
 		    = window_display_table (XWINDOW (selected_window));
@@ -1961,14 +1967,6 @@ command_loop_1 ()
 
       if (!NILP (current_buffer->mark_active) && !NILP (Vrun_hooks))
 	{
-	  /* Setting transient-mark-mode to `only' is a way of
-	     turning it on for just one command.  */
-
-	  if (EQ (Vtransient_mark_mode, Qidentity))
-	    Vtransient_mark_mode = Qnil;
-	  if (EQ (Vtransient_mark_mode, Qonly))
-	    Vtransient_mark_mode = Qidentity;
-
 	  if (!NILP (Vdeactivate_mark) && !NILP (Vtransient_mark_mode))
 	    {
 	      /* We could also call `deactivate'mark'.  */
@@ -9209,6 +9207,11 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   /* Likewise, for key_translation_map and input-decode-map.  */
   volatile keyremap keytran, indec;
 
+  /* Non-zero if we are trying to map a key by changing an upper-case
+     letter to lower case, or a shifted function key to an unshifted
+     one. */
+  volatile int shift_translated = 0;
+
   /* If we receive a `switch-frame' or `select-window' event in the middle of
      a key sequence, we put it off for later.
      While we're reading, we keep the event here.  */
@@ -10127,6 +10130,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	     might get translated through function-key-map.  */
 	  keybuf[t - 1] = new_key;
 	  mock_input = max (t, mock_input);
+	  shift_translated = 1;
 
 	  goto replay_sequence;
 	}
@@ -10168,6 +10172,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 		 input-decode-map doesn't need to go through it again.  */
 	      fkey.start = fkey.end = 0;
 	      keytran.start = keytran.end = 0;
+	      shift_translated = 1;
 
 	      goto replay_sequence;
 	    }
@@ -10186,7 +10191,13 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   if ((dont_downcase_last || first_binding >= nmaps)
       && t > 0
       && t - 1 == original_uppercase_position)
-    keybuf[t - 1] = original_uppercase;
+    {
+      keybuf[t - 1] = original_uppercase;
+      shift_translated = 0;
+    }
+
+  if (shift_translated)
+    Vthis_command_keys_shift_translated = Qt;
 
   /* Occasionally we fabricate events, perhaps by expanding something
      according to function-key-map, or by adding a prefix symbol to a
@@ -10204,8 +10215,6 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	echo_char (keybuf[t]);
       add_command_key (keybuf[t]);
     }
-
-
 
   UNGCPRO;
   return t;
@@ -12099,6 +12108,14 @@ This is the command `repeat' will try to repeat.  */);
 The command can set this variable; whatever is put here
 will be in `last-command' during the following command.  */);
   Vthis_command = Qnil;
+
+  DEFVAR_LISP ("this-command-keys-shift-translated",
+	       &Vthis_command_keys_shift_translated,
+	       doc: /* Non-nil if the key sequence activating this command was shift-translated.
+Shift-translation occurs when there is no binding for the key sequence
+as entered, but a binding was found by changing an upper-case letter
+to lower-case, or a shifted function key to an unshifted one.  */);
+  Vthis_command_keys_shift_translated = Qnil;
 
   DEFVAR_LISP ("this-original-command", &Vthis_original_command,
 	       doc: /* The command bound to the current key sequence before remapping.
