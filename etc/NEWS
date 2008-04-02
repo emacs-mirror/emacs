@@ -137,12 +137,6 @@ the currently selected Emacs frame.
 
 ** Emacs now supports the SVG image format through librsvg2.
 
-** Transient Mark Mode is now on by default.
-
-** mark-even-if-inactive now defaults to t
-
-** C-SPC C-SPC in transient-mark-mode pushes a mark without activating it.
-
 ** If you set find-file-confirm-nonexistent-file to t, then C-x C-f
 requires confirmation before opening a non-existent file.
 
@@ -151,14 +145,16 @@ Unix socket in a GNU/Linux console to talk to server, rather than faking events
 using the client program mev.  This C level approach provides mouse
 highlighting, and help echoing in the minibuffer.
 
-** The new variable next-error-recenter specifies how next-error should
+** Recentering changes
+
+*** The new variable next-error-recenter specifies how next-error should
 recenter the visited source file.  Its value can be a number (for example,
 0 for top line, -1 for bottom line), or nil for no recentering.
 
-** New command recenter-top-bottom moves the current line to window
+*** New command recenter-top-bottom moves the current line to window
 center, top and bottom on successive invokations.
 
-** C-l is bound to the new command recenter-top-bottom, rather than recenter.
+*** C-l is bound to the new command recenter-top-bottom, rather than recenter.
 
 ** The mode-line displays a `@' if the default-directory for the current buffer
 is on a remote machine, or a hyphen otherwise.
@@ -228,26 +224,51 @@ the history list.
 
 * Editing Changes in Emacs 23.1
 
+** Mark changes
+
++++
+*** Transient Mark mode is now on by default.
+
++++
+*** mark-even-if-inactive now defaults to t
+
++++
+*** When Transient Mark mode is on, C-SPC C-SPC pushes a mark without activating it.
+
++++
+*** When Transient Mark mode is on, M-q now fills the region if the
+region is active.  Otherwise, it fills the current paragraph.
+
++++
+*** When Transient Mark mode is on, M-$ now checks spelling of the
+region if the region is active.  Otherwise, it checks spelling of the
+word at point.
+
+*** When Transient Mark mode is on, TAB now indents the region if the
+region is active.
+
+*** `use-empty-active-region' controls whether an empty active region
+in Transient Mark mode should make commands operate on that empty
+region.
+
+** Temporarily active regions
+
+*** The new variable shift-select-mode, non-nil by default, controls
+shift-selection.  When Shift Select mode is on, shift-translated
+motion keys (e.g. S-left and S-down) activate and extend a temporary
+region, similar to mouse-selection.
+
+*** Temporarily active regions, created using shift-selection or
+mouse-selection, are not necessarily deactivated in the next command.
+They are only deactivated after point motion commands that are not
+shift-translated, or after commands that would ordinarily deactivate
+the mark in Transient Mark mode (e.g., any command that modifies the
+buffer).
+
 +++
 ** C-M-% now shows replacement as it would look in the buffer, with
 `\N' and `\&' substituted according to the match.  Old behavior can be
 restored by customizing `query-replace-show-replacement'.
-
-+++
-** M-q now fills the region if the region is active and
-`transient-mark-mode' is turned on.  Otherwise, it fills the current
-paragraph.
-
-+++
-** M-$ now checks spelling of the region if the region is active and
-`transient-mark-mode' is turned on.  Otherwise, it checks spelling of the
-word at point.
-
-** TAB now indents the region if the region is active and
-`transient-mark-mode' is turned on.
-
-** `use-empty-active-region' controls whether an empty active region
-in Transient Mark mode should make commands operate on that empty region.
 
 ** C-z now invokes `suspend-frame', C-x C-c now invokes
 `save-buffers-kill-terminal'.
@@ -684,6 +705,14 @@ functions and variables (formerly used for Tamil script).
 
 * Lisp Changes in Emacs 23.1
 
+** The variable `this-command-keys-shift-translated' is non-nil if the
+key sequence invoking the current command was found by
+shift-translation.
+
+** The new interactive spec code ^ says to first call
+handle-shift-selection if shift-select-mode is non-nil, before reading
+the command arguments.
+
 ** When deleting a terminal, run the special hook `delete-terminal-functions'.
 
 ** The `read-shell-command' function does what its name says, with completion.
@@ -731,6 +760,12 @@ an active region that they should operate on.
 is enabled and there is an active region.  This is NOT the best function
 to use to test whether a command should operate on the region instead
 of the usual behavior -- for that, use `use-region-p'.
+
+** If a command sets `transient-mark-mode' to (only . OLDVAL), that
+means to activate transient-mark-mode temporarily, until the next
+unshifted point motion command or mark deactivation.  Afterwards,
+reset transient-mark-mode to the value OLDVAL.  The values `only' and
+`identity', introduced in Emacs 22, are now deprecated.
 
 ** New keymap `input-decode-map' overrides like key-translation-map, but
 applies before function-key-map.  Also it is terminal-local contrary to
