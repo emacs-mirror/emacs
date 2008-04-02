@@ -437,7 +437,13 @@ It is bound to `C-x 4 A'.
 
 ** talk.el has been extended for multiple tty support.
 
-** compilation-auto-jump-to-first-error tells `compile' to jump to
+** Compile and grep modes
+
+*** The mode-line entry for the *compilation* and *grep* buffer is color coded.
+It has different colors for to show that: (a) the command is still
+running, (b) successful completion, (c) error.
+
+*** compilation-auto-jump-to-first-error tells `compile' to jump to
 the first error encountered during compilations.
 
 ** In the `copyright' package, you can specify your copyright holders' names.
@@ -461,6 +467,7 @@ Use --no-members if you want the old default behaviour of not tagging
 struct members in C, members variables in C++ and variables in PHP.
 
 ** VC
+
 *** Clicking on the VC mode-line entry now pops the VC menu.
 
 *** The VC mode-line entry now has a tooltip that explains the VC file status.
@@ -478,6 +485,10 @@ as a single changeset.
 the current line.
 
 *** vc-git supports the "git grep" command.
+
+*** Asynchronous VC commands display [Waiting...] in the mode-line
+of the corresponding buffer as long as the asynchronous process is
+active.
 
 ** log-edit now has a command bound to C-c C-d to show the diff for
 the files involved.
