@@ -1,3 +1,29 @@
+2008-04-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (deactivate-mark): When the mark is temporarily
+	active, restore the original value of transient-mark-mode.
+	(set-mark-command): First deactivate the mark if was temporarily
+	active.
+	(exchange-point-and-mark): Reactivate the mark if it was
+	temporarily active.
+	(handle-shift-selection): New fun.
+	(transient-mark-mode): Move var documentation here from buffer.c.
+	(next-line, previous-line, backward-word, move-end-of-line)
+	(move-beginning-of-line, forward-to-indentation)
+	(backward-to-indentation, back-to-indentation)
+	(beginning-of-buffer, end-of-buffer): Add ^ interactive spec.
+
+	* mouse.el (mouse-set-region-1): Save the old value of
+	transient-mark-mode.
+	(mouse-drag-track): Ignore the now-obsolete value `identity' for
+	transient-mark-mode.
+
+	* textmodes/paragraphs.el (forward-paragraph)
+	(backward-paragraph, forward-sentence, backward-sentence): Add ^
+	interactive spec.
+
+	* emulation/cua-base.el (cua-mode): Turn off shift-select-mode.
+
 2008-04-02  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-make-tramp-temp-file): Use
