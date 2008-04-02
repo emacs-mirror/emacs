@@ -360,9 +360,9 @@ Computes values for 10 years either side of YEAR."
     (save-excursion
       (insert "'(")
       (dotimes (n 21)
-	(princ (cons year (compute-chinese-year year)) (current-buffer))
-	(insert (if (= n 20) ")" "\n"))
-	(setq year (1+ year)))
+        (princ (cons year (compute-chinese-year year)) (current-buffer))
+        (insert (if (= n 20) ")" "\n"))
+        (setq year (1+ year)))
       (setq end (point)))
     (save-excursion
       ;; fill-column -/+ 5.
