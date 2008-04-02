@@ -51,6 +51,8 @@ Lisp_Object Qenable_recursive_minibuffers;
    even if mark_active is 0.  */
 Lisp_Object Vmark_even_if_inactive;
 
+Lisp_Object Vshift_select_mode, Qhandle_shift_selection;
+
 Lisp_Object Vmouse_leave_buffer_hook, Qmouse_leave_buffer_hook;
 
 Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qprogn, Qif, Qwhen;
@@ -115,14 +117,16 @@ x -- Lisp expression read but not evaluated.
 X -- Lisp expression read and evaluated.
 z -- Coding system.
 Z -- Coding system, nil if no prefix arg.
-In addition, if the string begins with `*'
- then an error is signaled if the buffer is read-only.
- This happens before reading any arguments.
-If the string begins with `@', then Emacs searches the key sequence
- which invoked the command for its first mouse click (or any other
- event which specifies a window), and selects that window before
- reading any arguments.  You may use both `@' and `*'; they are
- processed in the order that they appear.
+
+In addition, if the string begins with `*', an error is signaled if
+  the buffer is read-only.
+If the string begins with `@', Emacs searches the key sequence which
+ invoked the command for its first mouse click (or any other event
+ which specifies a window).
+If the string begins with `^' and `shift-select-mode' is non-nil,
+ Emacs first calls the function `handle-shift-select'.
+You may use `@', `*', and `^' together.  They are processed in the
+ order that they appear, before reading any arguments.
 usage: (interactive ARGS)  */)
      (args)
      Lisp_Object args;
@@ -445,6 +449,12 @@ invoke it.  If KEYS is omitted or nil, the return value of
 
 	      Fselect_window (tem, Qnil);
 	    }
+	  string++;
+	}
+      else if (*string == '^')
+	{
+	  if (! NILP (Vshift_select_mode))
+	    call0 (Qhandle_shift_selection);
 	  string++;
 	}
       else break;
@@ -905,6 +915,9 @@ syms_of_callint ()
   Qplus = intern ("+");
   staticpro (&Qplus);
 
+  Qhandle_shift_selection = intern ("handle-shift-selection");
+  staticpro (&Qhandle_shift_selection);
+
   Qcall_interactively = intern ("call-interactively");
   staticpro (&Qcall_interactively);
 
@@ -961,6 +974,20 @@ When the option is non-nil, deactivation of the mark
 turns off region highlighting, but commands that use the mark
 behave as if the mark were still active.  */);
   Vmark_even_if_inactive = Qt;
+
+  DEFVAR_LISP ("shift-select-mode", &Vshift_select_mode,
+	       doc: /* When non-nil, shifted motion keys activate the mark momentarily.
+
+While the mark is activated in this way, any shift-translated point
+motion key extends the region, and if Transient Mark mode was off, it
+is temporarily turned on.  Furthermore, the mark will be deactivated
+by any subsequent point motion key that was not shift-translated, or
+by any action that normally deactivates the mark in Transient Mark
+mode.
+
+See `this-command-keys-shift-translated' for the meaning of
+shift-translation.  */);
+  Vshift_select_mode = Qt;
 
   DEFVAR_LISP ("mouse-leave-buffer-hook", &Vmouse_leave_buffer_hook,
 	       doc: /* Hook to run when about to switch windows with a mouse command.
