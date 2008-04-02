@@ -1,3 +1,9 @@
+2008-04-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* ps-print.el (ps-generate-postscript-with-faces): If the face
+	specified by the overlay's `face' property is a string, assume
+	it's a string name and intern it to get the face symbol.
+
 2008-04-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* find-dired.el (find-dired-filter): Fix last patch to handle
