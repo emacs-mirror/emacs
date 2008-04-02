@@ -1,3 +1,8 @@
+2008-04-02  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-make-tramp-temp-file): Use
+	`tramp-drop-volume-letter' for the local file name part.
+
 2008-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/sh-script.el (sh-mode-map): Rename the menu. Add :help.
