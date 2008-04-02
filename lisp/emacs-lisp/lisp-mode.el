@@ -273,7 +273,8 @@
 (defvar emacs-lisp-mode-map 
   (let ((map (make-sparse-keymap "Emacs-Lisp"))
 	(menu-map (make-sparse-keymap "Emacs-Lisp"))
-	(prof-map (make-sparse-keymap)))
+	(prof-map (make-sparse-keymap))
+	(tracing-map (make-sparse-keymap)))
     (set-keymap-parent map lisp-mode-shared-map)
     (define-key map "\e\t" 'lisp-complete-symbol)
     (define-key map "\e\C-x" 'eval-defun)
@@ -286,6 +287,23 @@
     (define-key menu-map [checkdoc]
       '(menu-item "Check Documentation Strings" checkdoc
 		  :help "Check documentation strings for style requirements"))
+    (define-key menu-map [re-builder]
+      '(menu-item "Construct Regexp" re-builder
+		  :help "Construct a regexp interactively"))
+    (define-key menu-map [tracing] (cons "Tracing" tracing-map))
+    (define-key tracing-map [tr-a]
+      '(menu-item "Untrace all" untrace-all
+		  :help "Untraces all currently traced functions"))
+    (define-key tracing-map [tr-uf]
+      '(menu-item "Untrace function..." untrace-function
+		  :help "Untraces FUNCTION and possibly activates all remaining advice"))
+    (define-key tracing-map [tr-sep] '("--"))
+    (define-key tracing-map [tr-q]
+      '(menu-item "Trace function quietly..." trace-function
+		  :help "Trace the function with trace output going quietly to a buffer"))
+    (define-key tracing-map [tr-f]
+      '(menu-item "Trace function..." trace-function
+		  :help "Trace the function given as a argument"))
     (define-key menu-map [profiling] (cons "Profiling" prof-map))
     (define-key prof-map [prof-restall]
       '(menu-item "Remove Instrumentation for All Functions" elp-restore-all

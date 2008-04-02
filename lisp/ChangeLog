@@ -1,3 +1,8 @@
+2008-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-map): Add menu entries
+	for tracing and re-builder.
+
 2008-04-02  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/appt.el (appt-disp-window-function): Doc fix.
