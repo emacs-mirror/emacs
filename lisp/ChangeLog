@@ -1,5 +1,14 @@
 2008-04-02  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/appt.el (appt-disp-window-function): Doc fix.
+	(appt-display-message): Move beep before display.
+	(appt-check): Make interactive.  Reduce the number of lets.
+	Use string-equal to compare mode-line strings.
+	(appt-disp-window): Pluralize "minute" as needed.  Make appt buffer
+	read-only.
+	(appt-select-lowest-window, appt-make-list): Reduce the number of lets.
+	(appt-delete): Simplify.
+
 	* calendar/cal-china.el (holiday-chinese-new-year): Use a single let.
 
 	* calendar/cal-dst.el (calendar-time-zone-daylight-rules): Simplify.
