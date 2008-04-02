@@ -6676,7 +6676,11 @@ If FACE is not a valid face name, use default face."
 			      ((ps-e-overlay-get overlay 'face))
 			      (t face)
 			      ))))
-		(setq overlays (cdr overlays))))
+		(setq overlays (cdr overlays)))
+	      ;; Ediff refinement overlays specify faces by name, as a
+	      ;; string, not as symbols.
+	      (if (stringp face)
+		  (setq face (intern face))))
 	    ;; Plot up to this record.
 	    (and before-string
 		 (ps-plot-string before-string))
