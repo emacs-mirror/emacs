@@ -1965,8 +1965,9 @@ Return the local name of the temporary file."
 	  (tramp-file-name-method vec)
 	  (tramp-file-name-user vec)
 	  (tramp-file-name-host vec)
-	  (expand-file-name
-	   tramp-temp-name-prefix (tramp-get-remote-tmpdir vec))))
+	  (tramp-drop-volume-letter
+	   (expand-file-name
+	    tramp-temp-name-prefix (tramp-get-remote-tmpdir vec)))))
 	result)
     (while (not result)
       ;; `make-temp-file' would be the natural choice for
