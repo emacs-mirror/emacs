@@ -250,20 +250,27 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
 ;; Backward-compatibility alias.  FIXME make obsolete.
 (put 'holiday-face 'face-alias 'holiday)
 
-(defcustom diary-entry-marker (if (display-color-p) 'diary "+")
+;; These don't respect changes in font-lock-mode after loading.
+(defcustom diary-entry-marker (if (and font-lock-mode (display-color-p))
+                                  'diary
+                                "+")
   "How to mark dates that have diary entries.
 The value can be either a single-character string or a face."
   :type '(choice string face)
   :group 'diary)
 
-(defcustom calendar-today-marker (if (display-color-p) 'calendar-today "=")
+(defcustom calendar-today-marker (if (and font-lock-mode (display-color-p))
+                                     'calendar-today
+                                   "=")
   "How to mark today's date in the calendar.
 The value can be either a single-character string or a face.
 Used by `calendar-mark-today'."
   :type '(choice string face)
   :group 'calendar)
 
-(defcustom calendar-holiday-marker (if (display-color-p) 'holiday "*")
+(defcustom calendar-holiday-marker (if (and font-lock-mode (display-color-p))
+                                       'holiday
+                                     "*")
   "How to mark notable dates in the calendar.
 The value can be either a single-character string or a face."
   :type '(choice string face)
@@ -852,29 +859,28 @@ calendar."
   '((if all-hebrew-calendar-holidays
         (holiday-hebrew
          11
-         (let ((m displayed-month)
-               (y displayed-year))
-           (increment-calendar-month m y 1)
-           (let* ((h-year (extract-calendar-year
+         (let* ((m displayed-month)
+                (y displayed-year)
+                (h-year (progn
+                          (increment-calendar-month m y 1)
+                          (extract-calendar-year
                            (calendar-hebrew-from-absolute
                             (calendar-absolute-from-gregorian
-                             (list m
-                                   (calendar-last-day-of-month m y)
-                                   y)))))
-                  (s-s
-                   (calendar-hebrew-from-absolute
-                    (if (= 6
-                           (% (calendar-absolute-from-hebrew
-                               (list 7 1 h-year))
-                              7))
-                        (calendar-dayname-on-or-before
-                         6 (calendar-absolute-from-hebrew
-                            (list 11 17 h-year)))
+                             (list m (calendar-last-day-of-month m y) y))))))
+                (s-s
+                 (calendar-hebrew-from-absolute
+                  (if (= 6
+                         (% (calendar-absolute-from-hebrew
+                             (list 7 1 h-year))
+                            7))
                       (calendar-dayname-on-or-before
                        6 (calendar-absolute-from-hebrew
-                          (list 11 16 h-year))))))
-                  (day (extract-calendar-day s-s)))
-             day))
+                          (list 11 17 h-year)))
+                    (calendar-dayname-on-or-before
+                     6 (calendar-absolute-from-hebrew
+                        (list 11 16 h-year))))))
+                (day (extract-calendar-day s-s)))
+           day)
          "Shabbat Shirah")))
   "Component of the default value of `hebrew-holidays'.")
 ;;;###autoload
@@ -883,17 +889,16 @@ calendar."
 ;;;###autoload
 (defvar hebrew-holidays-4
   '((holiday-passover-etc)
-    (if (and all-hebrew-calendar-holidays
-             (let ((m displayed-month)
-                   (y displayed-year)
-                   year)
-               (increment-calendar-month m y -1)
-               (setq year (extract-calendar-year
-                           (calendar-julian-from-absolute
-                            (calendar-absolute-from-gregorian
-                             (list m 1 y)))))
-               (= 21 (% year 28))))
-        (holiday-julian 3 26 "Kiddush HaHamah"))
+    (and all-hebrew-calendar-holidays
+         (let* ((m displayed-month)
+                (y displayed-year)
+                (year (progn
+                        (increment-calendar-month m y -1)
+                        (extract-calendar-year
+                         (calendar-julian-from-absolute
+                          (calendar-absolute-from-gregorian (list m 1 y)))))))
+           (= 21 (% year 28)))
+         (holiday-julian 3 26 "Kiddush HaHamah"))
     (if all-hebrew-calendar-holidays
         (holiday-tisha-b-av-etc)))
     "Component of the default value of `hebrew-holidays'.")
@@ -988,8 +993,7 @@ calendar."
                (extract-calendar-year
                 (calendar-islamic-from-absolute
                  (calendar-absolute-from-gregorian
-                  (list
-                   m (calendar-last-day-of-month m y) y)))))))
+                  (list m (calendar-last-day-of-month m y) y)))))))
     (if all-islamic-calendar-holidays
         (holiday-islamic 1 10 "Ashura"))
     (if all-islamic-calendar-holidays
@@ -1258,6 +1262,8 @@ inclusive.  The standard macro `dotimes' is preferable in most cases."
     (while (>= ,final (setq ,var (1+ ,var)))
       ,@body)))
 
+(make-obsolete 'calendar-for-loop "use `dotimes' or `while' instead." "23.1")
+
 (defmacro calendar-sum (index initial condition expression)
   "For INDEX = INITIAL, +1, ... (as long as CONDITION holds), sum EXPRESSION."
   (declare (debug (symbolp form form form)))
@@ -1475,10 +1481,8 @@ Optional integers MON and YR are used instead of today's date."
          (month (extract-calendar-month today))
          (day (extract-calendar-day today))
          (year (extract-calendar-year today))
-         (today-visible
-          (or (not mon)
-              (let ((offset (calendar-interval mon yr month year)))
-                (and (<= offset 1) (>= offset -1)))))
+         (today-visible (or (not mon)
+                            (<= (abs (calendar-interval mon yr month year)) 1)))
          (day-in-week (calendar-day-of-week today))
          (in-calendar-window (eq (window-buffer (selected-window))
                                  (get-buffer calendar-buffer))))
@@ -1537,7 +1541,8 @@ line."
           (- (calendar-day-of-week (list month 1 year))
              calendar-week-start-day)
           7))
-         (last (calendar-last-day-of-month month year)))
+         (last (calendar-last-day-of-month month year))
+         string)
    (goto-char (point-min))
    (calendar-insert-indented
     (calendar-string-spread
@@ -1547,8 +1552,9 @@ line."
    ;; Use the first two characters of each day to head the columns.
    (dotimes (i 7)
      (insert
-      (let ((string
-             (calendar-day-name (mod (+ calendar-week-start-day i) 7) nil t)))
+      (progn
+        (setq string
+              (calendar-day-name (mod (+ calendar-week-start-day i) 7) nil t))
         (if enable-multibyte-characters
             (truncate-string-to-width string 2)
           (substring string 0 2)))
@@ -2030,16 +2036,16 @@ handle dates in years BC."
          (d3 (% d2 1461))
          (n1 (/ d3 365))
          (day (1+ (% d3 365)))
-         (year (+ (* 400 n400) (* 100 n100) (* n4 4) n1)))
+         (year (+ (* 400 n400) (* 100 n100) (* n4 4) n1))
+         (month 1)
+         mdays)
     (if (or (= n100 4) (= n1 4))
         (list 12 31 year)
-      (let ((year (1+ year))
-            (month 1))
-        (while (let ((mdays (calendar-last-day-of-month month year)))
-                 (and (< mdays day)
-                      (setq day (- day mdays))))
-          (setq month (1+ month)))
-        (list month day year)))))
+      (setq year (1+ year))
+      (while (< (setq mdays (calendar-last-day-of-month month year)) day)
+        (setq day (- day mdays)
+              month (1+ month)))
+      (list month day year))))
 
 (defun calendar-other-month (month year)
   "Display a three-month calendar centered around MONTH and YEAR."
@@ -2430,8 +2436,10 @@ MARK defaults to `diary-entry-marker'."
           (calendar-cursor-to-visible-date date)
           (setq mark
                 (or (and (stringp mark) (= (length mark) 1) mark) ; single-char
-                    (and (listp mark) (> (length mark) 0) mark)   ; attr list
-                    (and (facep mark) mark)                       ; face-name
+                    (and font-lock-mode
+                         (or
+                          (and (listp mark) (> (length mark) 0) mark) ; attrs
+                          (and (facep mark) mark))) ; face-name
                     diary-entry-marker))
           (cond
            ;; Face or an attr-list that contained a face.
@@ -2524,11 +2532,7 @@ If DAY is omitted, it defaults to 1 if N>0, and MONTH's last day otherwise."
 
 (defun calendar-nth-named-day (n dayname month year &optional day)
   "The date of Nth DAYNAME in MONTH, YEAR before/after optional DAY.
-A DAYNAME of 0 means Sunday, 1 means Monday, and so on.  If N<0,
-return the Nth DAYNAME before MONTH DAY, YEAR (inclusive).
-If N>0, return the Nth DAYNAME after MONTH DAY, YEAR (inclusive).
-
-If DAY is omitted, it defaults to 1 if N>0, and MONTH's last day otherwise."
+Like `calendar-nth-named-absday', but returns a Gregorian date."
   (calendar-gregorian-from-absolute
    (calendar-nth-named-absday n dayname month year day)))
 
