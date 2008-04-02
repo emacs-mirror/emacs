@@ -69,9 +69,9 @@ not align (only setting space according to `conf-assignment-space')."
   :type 'boolean
   :group 'conf)
 
-
 (defvar conf-mode-map
-  (let ((map (make-sparse-keymap)))
+  (let ((map (make-sparse-keymap))
+	(menu-map (make-sparse-keymap)))
     (define-key map "\C-c\C-u" 'conf-unix-mode)
     (define-key map "\C-c\C-w" 'conf-windows-mode)
     (define-key map "\C-c\C-j" 'conf-javaprop-mode)
@@ -85,6 +85,49 @@ not align (only setting space according to `conf-assignment-space')."
     (define-key map "\C-c\"" 'conf-quote-normal)
     (define-key map "\C-c'" 'conf-quote-normal)
     (define-key map "\C-c\C-a" 'conf-align-assignments)
+    (define-key map [menu-bar sh-script] (cons "Conf" menu-map))
+    (define-key menu-map [conf-windows-mode]
+      '(menu-item "Windows mode"
+		  conf-windows-mode
+		  :help "Conf Mode starter for Windows style Conf files"
+		  :button (:radio . (eq major-mode 'conf-windows-mode))))
+    (define-key menu-map [conf-javaprop-mode]
+      '(menu-item "Java properties mode"
+		  conf-javaprop-mode
+		  :help "Conf Mode starter for Java properties files"
+		  :button (:radio . (eq major-mode 'conf-javaprop-mode))))
+    (define-key menu-map [conf-space-keywords]
+      '(menu-item "Space keywords mode..."
+		  conf-space-keywords
+		  :help "Enter Conf Space mode using regexp KEYWORDS to match the keywords"
+		  :button (:radio . (eq major-mode 'conf-space-keywords))))
+    (define-key menu-map [conf-ppd-mode]
+      '(menu-item "PPD mode"
+		  conf-ppd-mode
+		  :help "Conf Mode starter for Adobe/CUPS PPD files"
+		  :button (:radio . (eq major-mode 'conf-ppd-mode))))
+    (define-key menu-map [conf-colon-mode]
+      '(menu-item "Colon mode"
+		  conf-colon-mode
+		  :help "Conf Mode starter for Colon files"
+		  :button (:radio . (eq major-mode 'conf-colon-mode))))
+    (define-key menu-map [conf-unix-mode]
+      '(menu-item "Unix mode"
+		  conf-unix-mode
+		  :help "Conf Mode starter for Unix style Conf files"
+		  :button (:radio . (eq major-mode 'conf-unix-mode))))
+    (define-key menu-map [conf-xdefaults-mode]
+      '(menu-item "Xdefaults mode"
+		  conf-xdefaults-mode
+		  :help "Conf Mode starter for Xdefaults files"
+		  :button (:radio . (eq major-mode 'conf-xdefaults-mode))))
+    (define-key menu-map [c-s0] '("--"))
+    (define-key menu-map [conf-quote-normal]
+      '(menu-item "Set quote syntax normal" conf-quote-normal
+		  :help "Set the syntax of \' and \" to punctuation"))
+    (define-key menu-map [conf-align-assignments]
+      '(menu-item "Align assignments" conf-align-assignments
+		  :help "Align assignments"))
     map)
   "Local keymap for `conf-mode' buffers.")
 
@@ -215,37 +258,43 @@ whitespace.")
 ;; `align', I'd be glad to hear.
 (defun conf-align-assignments (&optional arg)
   (interactive "P")
+  "Align the assignments in the buffer or active region.
+In Transient Mark mode, if the mark is active, operate on the
+contents of the region.  Otherwise, operate on the whole buffer."
   (setq arg (if arg
 		(prefix-numeric-value arg)
 	      conf-assignment-column))
   (save-excursion
-    (goto-char (point-min))
-    (while (not (eobp))
-      (let ((cs (comment-beginning)))	; go before comment if within
-	(if cs (goto-char cs)))
-      (while (forward-comment 9))	; max-int?
-      (when (and (not (eobp))
-		 (looking-at conf-assignment-regexp))
-	(goto-char (match-beginning 1))
-	(delete-region (point) (match-end 1))
-	(if conf-assignment-sign
-	    (if (>= arg 0)
-		(progn
-		  (indent-to-column arg)
+    (save-restriction
+      (when (use-region-p)
+	(narrow-to-region (region-beginning) (region-end)))
+      (goto-char (point-min))
+      (while (not (eobp))
+	(let ((cs (comment-beginning)))	; go before comment if within
+	  (if cs (goto-char cs)))
+	(while (forward-comment 9))	; max-int?
+	(when (and (not (eobp))
+		   (looking-at conf-assignment-regexp))
+	  (goto-char (match-beginning 1))
+	  (delete-region (point) (match-end 1))
+	  (if conf-assignment-sign
+	      (if (>= arg 0)
+		  (progn
+		    (indent-to-column arg)
+		    (or (not conf-assignment-space)
+			(memq (char-before (point)) '(?\s ?\t)) (insert ?\s))
+		    (insert conf-assignment-sign
+			    (if (and conf-assignment-space (not (eolp))) ?\s "")))
+		(insert (if conf-assignment-space ?\s "") conf-assignment-sign)
+		(unless (eolp)
+		  (indent-to-column (- arg))
 		  (or (not conf-assignment-space)
-                      (memq (char-before (point)) '(?\s ?\t)) (insert ?\s))
-		  (insert conf-assignment-sign
-                          (if (and conf-assignment-space (not (eolp))) ?\s "")))
-	      (insert (if conf-assignment-space ?\s "") conf-assignment-sign)
-	      (unless (eolp)
-		(indent-to-column (- arg))
-		(or (not conf-assignment-space)
-                    (memq (char-before (point)) '(?\s ?\t)) (insert ?\s))))
-	  (unless (eolp)
-	    (if (>= (current-column) (abs arg))
-		(insert ?\s)
-	      (indent-to-column (abs arg))))))
-      (forward-line))))
+		      (memq (char-before (point)) '(?\s ?\t)) (insert ?\s))))
+	    (unless (eolp)
+	      (if (>= (current-column) (abs arg))
+		  (insert ?\s)
+		(indent-to-column (abs arg))))))
+	(forward-line)))))
 
 
 (defun conf-quote-normal (arg)
@@ -259,14 +308,13 @@ both, i.e. quotes delimit strings, except when they are
 unbalanced, but hey...)"
   (interactive "P")
   (let ((table (copy-syntax-table (syntax-table))))
-    (if (or (not arg) (= (prefix-numeric-value arg) 1))
-        (modify-syntax-entry ?\' "." table))
-    (if (or (not arg) (= (prefix-numeric-value arg) 2))
-        (modify-syntax-entry ?\" "." table))
+    (when (or (not arg) (= (prefix-numeric-value arg) 1))
+      (modify-syntax-entry ?\' "." table))
+    (when (or (not arg) (= (prefix-numeric-value arg) 2))
+      (modify-syntax-entry ?\" "." table))
     (set-syntax-table table)
-    (and (boundp 'font-lock-mode)
-	 font-lock-mode
-	 (font-lock-fontify-buffer))))
+    (when font-lock-mode
+      (font-lock-fontify-buffer))))
 
 
 (defun conf-outline-level ()
