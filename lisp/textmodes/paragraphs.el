@@ -217,7 +217,7 @@ A line which `paragraph-start' matches either separates paragraphs
 A paragraph end is the beginning of a line which is not part of the paragraph
 to which the end of the previous line belongs, or the end of the buffer.
 Returns the count of paragraphs left to move."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (let* ((opoint (point))
 	 (fill-prefix-regexp
@@ -361,7 +361,7 @@ paragraph is preceded by a blank line, the paragraph starts at that
 blank line.
 
 See `forward-paragraph' for more information."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (forward-paragraph (- arg)))
 
@@ -445,7 +445,7 @@ With negative argument, move backward repeatedly to start of sentence.
 
 The variable `sentence-end' is a regular expression that matches ends of
 sentences.  Also, every paragraph boundary terminates sentences as well."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (let ((opoint (point))
         (sentence-end (sentence-end)))
@@ -477,7 +477,7 @@ It works using `query-replace-regexp'."
 (defun backward-sentence (&optional arg)
   "Move backward to start of sentence.  With arg, do it arg times.
 See `forward-sentence' for more information."
-  (interactive "p")
+  (interactive "^p")
   (or arg (setq arg 1))
   (forward-sentence (- arg)))
 
