@@ -21,7 +21,7 @@ suitable for anyone from beginners to experts.
 
 ** Major modes should have a menu entry.  Examples of modes that do
 not have one at the moment and probably should: text-mode,
-change-log-mode, conf-*-mode, debugger-mode.
+change-log-mode, texinfo-mode, nroff-mode, reb-mode.
 
 ** Change the text for the mode-line tooltips to not use things like C-x 0.
 In general make sure that tooltips have obvious meanings.  Check if
