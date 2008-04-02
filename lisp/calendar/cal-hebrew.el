@@ -374,6 +374,7 @@ nil if it is not visible in the current calendar window."
                    "Hoshanah Rabbah")))
            (output-list
             (holiday-filter-visible-calendar mandatory)))
+      ;; FIXME simplify?
       (if all-hebrew-calendar-holidays
           (setq output-list
                 (append
@@ -655,7 +656,8 @@ from the cursor position."
                   (calendar-absolute-from-gregorian death-date)))
          (h-month (extract-calendar-month h-date))
          (h-day (extract-calendar-day h-date))
-         (h-year (extract-calendar-year h-date)))
+         (h-year (extract-calendar-year h-date))
+         (i (1- start-year)))
     (calendar-in-read-only-buffer cal-hebrew-yahrzeit-buffer
       (calendar-set-mode-line
        (format "Yahrzeit dates for %s = %s"
@@ -665,7 +667,7 @@ from the cursor position."
                           calendar-hebrew-month-name-array-leap-year
                         calendar-hebrew-month-name-array-common-year)))
                  (calendar-date-string h-date nil t))))
-      (calendar-for-loop i from start-year to end-year do
+      (while (<= (setq i (1+ i)) end-year)
         (insert
          (calendar-date-string
           (calendar-gregorian-from-absolute
@@ -673,8 +675,8 @@ from the cursor position."
             h-date
             (extract-calendar-year
              (calendar-hebrew-from-absolute
-              (calendar-absolute-from-gregorian (list 1 1 i))))))) "\n")))
-    (message "Computing Yahrzeits...done")))
+              (calendar-absolute-from-gregorian (list 1 1 i))))))) "\n"))))
+  (message "Computing Yahrzeits...done"))
 
 (defvar date)
 
