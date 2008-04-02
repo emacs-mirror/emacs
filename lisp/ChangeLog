@@ -1,3 +1,31 @@
+2008-04-02  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/cal-china.el (holiday-chinese-new-year): Use a single let.
+
+	* calendar/cal-dst.el (calendar-time-zone-daylight-rules): Simplify.
+
+	* calendar/cal-hebrew.el (list-yahrzeit-dates):
+	* calendar/cal-tex.el (cal-tex-insert-blank-days-at-end)
+	(cal-tex-last-blank-p, cal-tex-daily-page): Expand calendar-for-loops.
+
+	* calendar/calendar.el (diary-entry-marker, calendar-today-marker)
+	(calendar-holiday-marker, mark-visible-calendar-date):
+	* calendar/diary-lib.el (fancy-diary-display):
+	Check for font-lock-mode before using faces.
+
+	* calendar/calendar.el (hebrew-holidays-3, generate-calendar-month)
+	(calendar-gregorian-from-absolute): Reduce the number of lets.
+	(hebrew-holidays-4, generate-calendar-window): Simplify.
+	(calendar-for-loop): Make obsolete.
+	(calendar-nth-named-day): Doc fix.
+
+	* calendar/diary-lib.el (diary-list-entries, fancy-diary-display)
+	(print-diary-entries, mark-sexp-diary-entries, calendar-mark-complex)
+	(calendar-mark-1, list-sexp-diary-entries, diary-remind):
+	Reduce the number of lets.
+	(mark-sexp-diary-entries, calendar-mark-complex):
+	Expand calendar-for-loops.
+
 2008-04-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* find-dired.el (find-dired-filter): Fix last patch to handle
