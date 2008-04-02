@@ -691,8 +691,11 @@ This should be bound to a mouse drag event."
 
 (defun mouse-set-region-1 ()
   ;; Set transient-mark-mode for a little while.
-  (if (memq transient-mark-mode '(nil identity))
-      (setq transient-mark-mode 'only))
+  (unless (eq (car-safe transient-mark-mode) 'only)
+    (setq transient-mark-mode
+	  (cons 'only
+		(unless (eq transient-mark-mode 'lambda)
+		  transient-mark-mode))))
   (setq mouse-last-region-beg (region-beginning))
   (setq mouse-last-region-end (region-end))
   (setq mouse-last-region-tick (buffer-modified-tick)))
@@ -1029,11 +1032,6 @@ should only be used by mouse-drag-region."
 			      (overlay-start mouse-drag-overlay))
 			   region-termination))
 		       last-command this-command)
-		  (when (eq transient-mark-mode 'identity)
-		    ;; Reset `transient-mark-mode' to avoid expanding the region
-		    ;; while scrolling (compare thread on "Erroneous selection
-		    ;; extension ..." on bug-gnu-emacs from 2007-06-10).
-		    (setq transient-mark-mode nil))
 		  (push-mark region-commencement t t)
 		  (goto-char region-termination)
 		  (if (not do-mouse-drag-region-post-process)
