@@ -564,6 +564,10 @@ int uniscribe_check_otf (font, otf_spec)
   DWORD table;
   int i, retval = 0;
 
+  /* Check the spec is in the right format.  */
+  if (!CONSP (otf_spec) || Flength (val) < 3)
+    return 0;
+
   /* Break otf_spec into its components.  */
   script = XCAR (otf_spec);
   rest = XCDR (otf_spec);
@@ -608,6 +612,10 @@ int uniscribe_check_otf (font, otf_spec)
       /* Skip if no features requested from this table.  */
       if (NILP (features[i]))
 	continue;
+
+      /* If features is not a cons, this font spec is messed up.  */
+      if (!CONSP (features[i]))
+	goto no_support;
 
       /* Read GPOS/GSUB header.  */
       OTF_INT16_VAL (tbl, 4, &scriptlist_table);
