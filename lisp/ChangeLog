@@ -1,3 +1,8 @@
+2008-04-03  Giuliano Procida  <giuliano.procida@googlemail.com>  (tiny change)
+
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords):
+	Recognize `sub ($$)'.
+
 2008-04-03  Richard Sharman  <rsharman@pobox.com>
 
 	* hilit-chg.el (highlight-changes-mode): Rename from
