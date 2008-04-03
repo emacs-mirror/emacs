@@ -1,3 +1,8 @@
+2008-04-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-mouse-set-clear-breakpoint):
+	Fix in disassembly buffer (regression in 22.2).
+
 2008-04-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* shell.el (shell-dynamic-complete-filename): New fun.
