@@ -868,8 +868,8 @@ Prefix arg means justify as well."
   '(TeX-mode plain-TeX-mode LaTeX-mode tex-mode)
   "*Modes that look like TeX to `add-log-current-defun'.")
 
-(declare-function c-beginning-of-defun "cc-cmds" (&optional arg))
-(declare-function c-end-of-defun "cc-cmds" (&optional arg))
+(declare-function c-cpp-define-name "cc-cmds" ())
+(declare-function c-defun-name      "cc-cmds" ())
 
 ;;;###autoload
 (defun add-log-current-defun ()
