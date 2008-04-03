@@ -1,3 +1,8 @@
+2008-04-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* callint.c (Fcall_interactively): Handle temporary region even
+	when shift-select-mode is off.
+
 2008-04-03  Jason Rumney  <jasonr@gnu.org>
 
 	* w32uniscribe.c (uniscribe_check_otf): Sanity check otf_spec.
