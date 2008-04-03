@@ -1,5 +1,9 @@
 2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* arc-mode.el (archive-mode-map): Obey mouse-1-click-follows-link.
+	(archive-try-jka-compr): New function.
+	(archive-set-buffer-as-visiting-file): Use it.
+
 	* tar-mode.el (tar-mode-map): Obey mouse-1-click-follows-link.
 
 2008-04-03  Chong Yidong  <cyd@stupidchicken.com>
