@@ -1,3 +1,34 @@
+2008-04-03  Richard Sharman  <rsharman@pobox.com>
+
+	* hilit-chg.el (highlight-changes-mode): Rename from
+	highlight-changes; no longer uses sub-modes active and
+	passive;  implemented by define-minor-mode.
+	(highlight-changes-toggle-visibility): New function, to replace
+	the old passive/active submodes of global-highlight-changes-mode;
+	implemented by define-minor-mode.
+	(global-highlight-changes-mode'): Rename from
+	global-highlight-changes; rewrite using define-globalized-minor-mode.
+	(hilit-chg-major-mode-hook, hilit-chg-check-global)
+	(hilit-chg-post-command-hook, hilit-chg-check-global)
+	(hilit-chg-update-all-buffers, hilit-chg-turn-off-maybe): Remove due
+	to use of define-globalized-minor-mode.
+	(highlight-changes-global-initial-state): Change to be boolean.
+	(highlight-changes-visible-string, highlight-changes-invisible-string):
+	Rename from highlight-changes-active-string and
+	highlight-changes-passive-string.
+	(hilit-chg-update, hilit-chg-set): Use them.
+	(global-highlight-changes-mode): Rename from global-highlight-changes.
+	(hilit-chg-map-changes, hilit-chg-display-changes): Add arguments to
+	docstring.
+	(hilit-chg-hide-changes): Rewrite to use dolist.
+	(hilit-chg-set-face-on-change, hilit-chg-update)
+	(highlight-changes-rotate-faces): Use highlight-changes-visible-mode
+	variable instead of testing highlight-changes-mode.
+	(highlight-markup-buffers): Add reuire ediff-util;  argument on calls
+	to highlight-changes-mode changed.
+	(highlight-compare-with-file): Fix problems with interactive
+	call giving invalid default file.
+
 2008-04-03  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-mouse-set-clear-breakpoint):
