@@ -1979,11 +1979,12 @@ static char *magick[] = {
 (declare-function gud-break  "gdb-ui" t t) ; gud-def
 
 (defun gdb-mouse-set-clear-breakpoint (event)
-  "Set/clear breakpoint in left fringe/margin with mouse click."
+  "Set/clear breakpoint in left fringe/margin at mouse click.
+If not in a source or disassembly buffer just set point."
   (interactive "e")
   (mouse-minibuffer-check event)
   (let ((posn (event-end event)))
-    (if (buffer-file-name)
+    (if (or (buffer-file-name) (eq major-mode 'gdb-assembler-mode))
 	(if (numberp (posn-point posn))
 	    (with-selected-window (posn-window posn)
 	      (save-excursion
