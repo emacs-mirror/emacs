@@ -36,6 +36,7 @@ extern char *index P_ ((const char *, int));
 
 extern Lisp_Object Qcursor_in_echo_area;
 extern Lisp_Object Qfile_directory_p;
+extern Lisp_Object Qonly;
 
 Lisp_Object Vcurrent_prefix_arg, Qminus, Qplus;
 Lisp_Object Qcall_interactively;
@@ -454,7 +455,13 @@ invoke it.  If KEYS is omitted or nil, the return value of
       else if (*string == '^')
 	{
 	  if (! NILP (Vshift_select_mode))
-	    call0 (Qhandle_shift_selection);
+	    call1 (Qhandle_shift_selection, Qnil);
+	  /* Even if shift-select-mode is off, temporarily active
+	     regions could be set using the mouse, and should be
+	     deactivated.  */
+	  else if (CONSP (Vtransient_mark_mode)
+		   && EQ (XCAR (Vtransient_mark_mode), Qonly))
+	    call1 (Qhandle_shift_selection, Qt);
 	  string++;
 	}
       else break;
