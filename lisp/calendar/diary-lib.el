@@ -210,7 +210,7 @@ with no recognizable time after those with times."
   :version "20.3")
 
 (defcustom diary-mail-addr
-  (if (boundp 'user-mail-address) user-mail-address "")
+  (or (bound-and-true-p user-mail-address) "")
   "Email address that `diary-mail-entries' will send email to."
   :group 'diary
   :type  'string
