@@ -1,3 +1,7 @@
+2008-04-03  Jason Rumney  <jasonr@gnu.org>
+
+	* w32uniscribe.c (uniscribe_check_otf): Sanity check otf_spec.
+
 2008-04-03  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (CATEGORY_MASK_ANY): Add CATEGORY_MASK_UTF_16_AUTO.
