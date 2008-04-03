@@ -11,13 +11,13 @@
 2008-04-03  Richard Sharman  <rsharman@pobox.com>
 
 	* hilit-chg.el (highlight-changes-mode): Rename from
-	highlight-changes; no longer uses sub-modes active and
-	passive;  implemented by define-minor-mode.
+	highlight-changes; no longer uses sub-modes active and passive;
+	implemented by define-minor-mode.
 	(highlight-changes-toggle-visibility): New function, to replace
 	the old passive/active submodes of global-highlight-changes-mode;
 	implemented by define-minor-mode.
-	(global-highlight-changes-mode'): Rename from
-	global-highlight-changes; rewrite using define-globalized-minor-mode.
+	(global-highlight-changes-mode): Rename from global-highlight-changes;
+	rewrite using define-globalized-minor-mode.
 	(hilit-chg-major-mode-hook, hilit-chg-check-global)
 	(hilit-chg-post-command-hook, hilit-chg-check-global)
 	(hilit-chg-update-all-buffers, hilit-chg-turn-off-maybe): Remove due
@@ -34,7 +34,7 @@
 	(hilit-chg-set-face-on-change, hilit-chg-update)
 	(highlight-changes-rotate-faces): Use highlight-changes-visible-mode
 	variable instead of testing highlight-changes-mode.
-	(highlight-markup-buffers): Add reuire ediff-util;  argument on calls
+	(highlight-markup-buffers): Add reuire ediff-util; argument on calls
 	to highlight-changes-mode changed.
 	(highlight-compare-with-file): Fix problems with interactive
 	call giving invalid default file.
@@ -89,8 +89,8 @@
 	* international/fontset.el (create-fontset-from-x-resource):
 	Handle the error of X resource more gracefully.
 
-	* international/latin1-disp.el (latin1-display): Don't use
-	make-char.  Fix the argument to set-char-table-range.
+	* international/latin1-disp.el (latin1-display): Don't use make-char.
+	Fix the argument to set-char-table-range.
 	(latin1-display-identities): Don't use make-char.
 	(latin1-display-reset): Use map-charset-chars instead of directly
 	calling standard-display-default.
