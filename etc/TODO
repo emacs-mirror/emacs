@@ -33,6 +33,9 @@ It can use the same icons as gud.
 ** Check what minor modes don't use define-minor-mode and convert them
 to use it.
 
+** Convert all defvars with leading `*' in the doc-strings into defcustoms
+of appropriate :type and :group.
+
 * Small but important fixes needed in existing features:
 
 ** Flymake's customization mechanism needs to be both simpler (fewer
