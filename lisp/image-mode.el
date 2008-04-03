@@ -244,6 +244,31 @@ stopping if the top or bottom edge of the image is reached."
     (image-set-window-hscroll (max 0 (- img-width win-width)))
     (image-set-window-vscroll (max 0 (- img-height win-height)))))
 
+;; Adjust frame and image size.
+
+(defun image-mode-fit-frame ()
+  "Fit the frame to the current image.
+This function assumes the current frame has only one window."
+  ;; FIXME: This does not take into account decorations like mode-line,
+  ;; minibuffer, header-line, ...
+  (interactive)
+  (let* ((saved (frame-parameter nil 'image-mode-saved-size))
+         (display (image-get-display-property))
+         (size (image-size display)))
+    (if (and saved
+             (eq (caar saved) (frame-width))
+             (eq (cdar saved) (frame-height)))
+        (progn ;; Toggle back to previous non-fitted size.
+          (set-frame-parameter nil 'image-mode-saved-size nil)
+          (setq size (cdr saved)))
+      ;; Round up size, and save current size so we can toggle back to it.
+      (setcar size (ceiling (car size)))
+      (setcdr size (ceiling (cdr size)))
+      (set-frame-parameter nil 'image-mode-saved-size
+                           (cons size (cons (frame-width) (frame-height)))))
+    (set-frame-width  (selected-frame) (car size))
+    (set-frame-height (selected-frame) (cdr size))))
+
 ;;; Image Mode setup
 
 (defvar image-type nil

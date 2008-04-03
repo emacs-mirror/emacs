@@ -1,5 +1,7 @@
 2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* image-mode.el (image-mode-fit-frame): New command.
+
 	* simple.el (beginning-of-buffer, end-of-buffer, goto-line, undo)
 	(copy-region-as-kill, kill-ring-save, use-region-p, mark-word)
 	(keyboard-escape-quit): Check region-active-p i.s.o transient-mark-mode.
