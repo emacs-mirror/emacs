@@ -1,3 +1,14 @@
+2008-04-03  Kenichi Handa  <handa@m17n.org>
+
+	* international/latin1-disp.el (latin1-display): Don't use
+	make-char.  Fix the argument to set-char-table-range.
+	(latin1-display-identities): Don't use make-char.
+	(latin1-display-reset): Use map-charset-chars instead of directly
+	calling standard-display-default.
+	(latin1-display-check-font): Don't use make-char.
+	(latin1-display-setup): Likewise.
+	(latin1-display-ucs-per-lynx): Likewise.
+
 2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/timer.el (timer): Define as a defstruct, so we can
