@@ -1,3 +1,8 @@
+2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-win.el (gnus-configure-frame, gnus-all-windows-visible-p):
+	Fix last change in case the element is not even a symbol.
+
 2008-03-31  Glenn Morris  <rgm@gnu.org>
 
 	* message.el (mml2015-use): Declare for compiler.
@@ -81,8 +86,8 @@
 
 2008-03-19  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* message.el (message-alter-recipients-discard-bogus-full-name): New
-	function.
+	* message.el (message-alter-recipients-discard-bogus-full-name):
+	New function.
 	(message-alter-recipients-function): New variable.
 	(message-get-reply-headers): Use it.
 	(message-replace-header): New helper function.
