@@ -1,3 +1,7 @@
+2008-04-03  Jason Rumney  <jasonr@gnu.org>
+
+	* ftfont.c (ftfont_get_open_type_spec): Check spec->script, not val.
+
 2008-04-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* callint.c (Vshift_select_mode): New var.
