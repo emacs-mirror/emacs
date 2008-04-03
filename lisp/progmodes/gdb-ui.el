@@ -1978,7 +1978,7 @@ static char *magick[] = {
   (interactive "e")
   (mouse-minibuffer-check event)
   (let ((posn (event-end event)))
-    (if (buffer-file-name)
+    (if (or (buffer-file-name) (eq major-mode 'gdb-assembler-mode))
 	(if (numberp (posn-point posn))
 	    (with-selected-window (posn-window posn)
 	      (save-excursion
