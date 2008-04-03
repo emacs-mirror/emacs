@@ -247,11 +247,11 @@ colors then use this, if you want fancier faces then set
   'highlight-changes-visibility-initial-state)
 
 (defcustom highlight-changes-visibility-initial-state t
-  "Controls whether changes are initially be visible in Highlight Changes mode.
+  "Controls whether changes are initially visible in Highlight Changes mode.
 
-This controls the initial value of highlght-changes-visibile-mode.
+This controls the initial value of `highlight-changes-visible-mode'.
 When a buffer is in Highlight Changes mode the function
-highlght-changes-visibile-mode is used to toggle the mode on or off."
+`highlight-changes-visible-mode' is used to toggle the mode on or off."
   :type 'boolean
   :group 'highlight-changes)
 
@@ -467,7 +467,7 @@ Otherwise, this list will be constructed when needed from
   :group 'highlight-changes)
 
 
-(defun hilit-chg-map-changes  (func &optional start-position end-position)
+(defun hilit-chg-map-changes (func &optional start-position end-position)
   "Call function FUNC for each region used by Highlight Changes mode.
 If START-POSITION is nil, (point-min) is used.
 If END-POSITION is nil, (point-max) is used.
@@ -618,7 +618,7 @@ This allows you to manually remove highlighting from uninteresting changes."
               (hilit-chg-make-ov type beg end)))))))
 
 (defun hilit-chg-update ()
-  "Update a buffer's highlight changes when visibiility changed."
+  "Update a buffer's highlight changes when visibility changed."
   (if highlight-changes-visible-mode
       ;; changes are visible
       (progn
@@ -1006,8 +1006,8 @@ changes are made, so \\[highlight-changes-next-change] and
   'global-highlight-changes-mode "22.1")
 
 (defun highlight-changes-mode-turn-on ()
-  "See if highlight-changes-mode should be turned on for this buffer.
-This is called when global-highlight-changes-mode is turned on."
+  "See if Highlight Changes mode should be turned on for this buffer.
+This is called when `global-highlight-changes-mode' is turned on."
   (or highlight-changes-mode			; do nothing if already on
       (if
 	  (cond
