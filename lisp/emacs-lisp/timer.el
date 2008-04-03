@@ -35,29 +35,45 @@
 ;; triggered-p is nil if the timer is active (waiting to be triggered),
 ;;  t if it is inactive ("already triggered", in theory)
 
-(defun timer-create ()
-  "Create a timer object which can be passed to `timer-activate'."
-  (let ((timer (make-vector 8 nil)))
-    (aset timer 0 t)
-    timer))
+(eval-when-compile (require 'cl))
+
+(defstruct (timer
+            (:constructor nil)
+            (:copier nil)
+            (:constructor timer-create ())
+            (:type vector)
+            (:conc-name timer--))
+  (triggered t)
+  high-seconds low-seconds usecs repeat-delay function args idle-delay)
 
 (defun timerp (object)
   "Return t if OBJECT is a timer."
   (and (vectorp object) (= (length object) 8)))
+
+;; Pseudo field `time'.
+(defun timer--time (timer)
+  (list (timer--high-seconds timer)
+        (timer--low-seconds timer)
+        (timer--usecs timer)))
+
+(defsetf timer--time
+  (lambda (timer time)
+    (or (timerp timer) (error "Invalid timer"))
+    (setf (timer--high-seconds timer) (pop time))
+    (setf (timer--low-seconds timer)
+	  (if (consp time) (car time) time))
+    (setf (timer--usecs timer) (or (and (consp time) (consp (cdr time))
+					(cadr time))
+				   0))))
+
 
 (defun timer-set-time (timer time &optional delta)
   "Set the trigger time of TIMER to TIME.
 TIME must be in the internal format returned by, e.g., `current-time'.
 If optional third argument DELTA is a positive number, make the timer
 fire repeatedly that many seconds apart."
-  (or (timerp timer)
-      (error "Invalid timer"))
-  (aset timer 1 (car time))
-  (aset timer 2 (if (consp (cdr time)) (car (cdr time)) (cdr time)))
-  (aset timer 3 (or (and (consp (cdr time)) (consp (cdr (cdr time)))
-			 (nth 2 time))
-		    0))
-  (aset timer 4 (and (numberp delta) (> delta 0) delta))
+  (setf (timer--time timer) time)
+  (setf (timer--repeat-delay timer) (and (numberp delta) (> delta 0) delta))
   timer)
 
 (defun timer-set-idle-time (timer secs &optional repeat)
@@ -66,19 +82,11 @@ SECS may be an integer, floating point number, or the internal
 time format (HIGH LOW USECS) returned by, e.g., `current-idle-time'.
 If optional third argument REPEAT is non-nil, make the timer
 fire each time Emacs is idle for that many seconds."
-  (or (timerp timer)
-      (error "Invalid timer"))
   (if (consp secs)
-      (progn (aset timer 1 (car secs))
-	     (aset timer 2 (if (consp (cdr secs)) (car (cdr secs)) (cdr secs)))
-	     (aset timer 3 (or (and (consp (cdr secs)) (consp (cdr (cdr secs)))
-				    (nth 2 secs))
-			       0)))
-    (aset timer 1 0)
-    (aset timer 2 0)
-    (aset timer 3 0)
+      (setf (timer--time timer) secs)
+    (setf (timer--time timer) '(0 0 0))
     (timer-inc-time timer secs))
-  (aset timer 4 repeat)
+  (setf (timer--repeat-delay timer) repeat)
   timer)
 
 (defun timer-next-integral-multiple-of-time (time secs)
@@ -115,6 +123,7 @@ of SECS seconds since the epoch.  SECS may be a fraction."
 (defun timer-relative-time (time secs &optional usecs)
   "Advance TIME by SECS seconds and optionally USECS microseconds.
 SECS may be either an integer or a floating point number."
+  ;; FIXME: we should just use (time-add time (list 0 secs usecs))
   (let ((high (car time))
 	(low (if (consp (cdr time)) (nth 1 time) (cdr time)))
 	(micro (if (numberp (car-safe (cdr-safe (cdr time))))
@@ -136,16 +145,22 @@ SECS may be either an integer or a floating point number."
 
     (list high low (and (/= micro 0) micro))))
 
+(defun timer--time-less-p (t1 t2)
+  "Say whether time value T1 is less than time value T2."
+  ;; FIXME just use time-less-p.
+  (destructuring-bind (high1 low1 micro1) (timer--time t1)
+    (destructuring-bind (high2 low2 micro2) (timer--time t2)
+      (or (< high1 high2)
+          (and (= high1 high2)
+               (or (< low1 low2)
+                   (and (= low1 low2)
+                        (< micro1 micro2))))))))
+
 (defun timer-inc-time (timer secs &optional usecs)
   "Increment the time set in TIMER by SECS seconds and USECS microseconds.
 SECS may be a fraction.  If USECS is omitted, that means it is zero."
-  (let ((time (timer-relative-time
-	       (list (aref timer 1) (aref timer 2) (aref timer 3))
-	       secs
-	       usecs)))
-    (aset timer 1 (nth 0 time))
-    (aset timer 2 (nth 1 time))
-    (aset timer 3 (or (nth 2 time) 0))))
+  (setf (timer--time timer)
+        (timer-relative-time (timer--time timer) secs usecs)))
 
 (defun timer-set-time-with-usecs (timer time usecs &optional delta)
   "Set the trigger time of TIMER to TIME plus USECS.
@@ -153,12 +168,9 @@ TIME must be in the internal format returned by, e.g., `current-time'.
 The microsecond count from TIME is ignored, and USECS is used instead.
 If optional fourth argument DELTA is a positive number, make the timer
 fire repeatedly that many seconds apart."
-  (or (timerp timer)
-      (error "Invalid timer"))
-  (aset timer 1 (nth 0 time))
-  (aset timer 2 (nth 1 time))
-  (aset timer 3 usecs)
-  (aset timer 4 (and (numberp delta) (> delta 0) delta))
+  (setf (timer--time timer) time)
+  (setf (timer--usecs timer) usecs)
+  (setf (timer--repeat-delay timer) (and (numberp delta) (> delta 0) delta))
   timer)
 (make-obsolete 'timer-set-time-with-usecs
                "use `timer-set-time' and `timer-inc-time' instead."
@@ -168,34 +180,20 @@ fire repeatedly that many seconds apart."
   "Make TIMER call FUNCTION with optional ARGS when triggering."
   (or (timerp timer)
       (error "Invalid timer"))
-  (aset timer 5 function)
-  (aset timer 6 args)
+  (setf (timer--function timer) function)
+  (setf (timer--args timer) args)
   timer)
 
-(defun timer-activate (timer &optional triggered-p reuse-cell)
-  "Put TIMER on the list of active timers.
-
-If TRIGGERED-P is t, that means to make the timer inactive
-\(put it on the list, but mark it as already triggered).
-To remove from the list, use `cancel-timer'.
-
-REUSE-CELL, if non-nil, is a cons cell to reuse instead
-of allocating a new one."
+(defun timer--activate (timer &optional triggered-p reuse-cell idle)
   (if (and (timerp timer)
-	   (integerp (aref timer 1))
-	   (integerp (aref timer 2))
-	   (integerp (aref timer 3))
-	   (aref timer 5))
-      (let ((timers timer-list)
+	   (integerp (timer--high-seconds timer))
+	   (integerp (timer--low-seconds timer))
+	   (integerp (timer--usecs timer))
+	   (timer--function timer))
+      (let ((timers (if idle timer-idle-list timer-list))
 	    last)
 	;; Skip all timers to trigger before the new one.
-	(while (and timers
-		    (or (> (aref timer 1) (aref (car timers) 1))
-			(and (= (aref timer 1) (aref (car timers) 1))
-			     (> (aref timer 2) (aref (car timers) 2)))
-			(and (= (aref timer 1) (aref (car timers) 1))
-			     (= (aref timer 2) (aref (car timers) 2))
-			     (> (aref timer 3) (aref (car timers) 3)))))
+	(while (and timers (timer--time-less-p (car timers) timer))
 	  (setq last timers
 		timers (cdr timers)))
 	(if reuse-cell
@@ -206,11 +204,24 @@ of allocating a new one."
 	;; Insert new timer after last which possibly means in front of queue.
 	(if last
 	    (setcdr last reuse-cell)
-	  (setq timer-list reuse-cell))
-	(aset timer 0 triggered-p)
-	(aset timer 7 nil)
+          (if idle
+              (setq timer-idle-list reuse-cell)
+            (setq timer-list reuse-cell)))
+	(setf (timer--triggered timer) triggered-p)
+	(setf (timer--idle-delay timer) idle)
 	nil)
     (error "Invalid or uninitialized timer")))
+
+(defun timer-activate (timer &optional triggered-p reuse-cell idle)
+  "Put TIMER on the list of active timers.
+
+If TRIGGERED-P is t, that means to make the timer inactive
+\(put it on the list, but mark it as already triggered).
+To remove from the list, use `cancel-timer'.
+
+REUSE-CELL, if non-nil, is a cons cell to reuse instead
+of allocating a new one."
+  (timer--activate timer triggered-p reuse-cell nil))
 
 (defun timer-activate-when-idle (timer &optional dont-wait reuse-cell)
   "Arrange to activate TIMER whenever Emacs is next idle.
@@ -220,36 +231,7 @@ is already idle.
 
 REUSE-CELL, if non-nil, is a cons cell to reuse instead
 of allocating a new one."
-  (if (and (timerp timer)
-	   (integerp (aref timer 1))
-	   (integerp (aref timer 2))
-	   (integerp (aref timer 3))
-	   (aref timer 5))
-      (let ((timers timer-idle-list)
-	    last)
-	;; Skip all timers to trigger before the new one.
-	(while (and timers
-		    (or (> (aref timer 1) (aref (car timers) 1))
-			(and (= (aref timer 1) (aref (car timers) 1))
-			     (> (aref timer 2) (aref (car timers) 2)))
-			(and (= (aref timer 1) (aref (car timers) 1))
-			     (= (aref timer 2) (aref (car timers) 2))
-			     (> (aref timer 3) (aref (car timers) 3)))))
-	  (setq last timers
-		timers (cdr timers)))
-	(if reuse-cell
-	    (progn
-	      (setcar reuse-cell timer)
-	      (setcdr reuse-cell timers))
-	  (setq reuse-cell (cons timer timers)))
-	;; Insert new timer after last which possibly means in front of queue.
-	(if last
-	    (setcdr last reuse-cell)
-	  (setq timer-idle-list reuse-cell))
-	(aset timer 0 (not dont-wait))
-	(aset timer 7 t)
-	nil)
-    (error "Invalid or uninitialized timer")))
+  (timer--activate timer (not dont-wait) reuse-cell 'idle))
 
 (defalias 'disable-timeout 'cancel-timer)
 
@@ -278,16 +260,12 @@ that was removed from the timer list."
 This affects ordinary timers such as are scheduled by `run-at-time',
 and idle timers such as are scheduled by `run-with-idle-timer'."
   (interactive "aCancel timers of function: ")
-  (let ((tail timer-list))
-    (while tail
-      (if (eq (aref (car tail) 5) function)
-          (setq timer-list (delq (car tail) timer-list)))
-      (setq tail (cdr tail))))
-  (let ((tail timer-idle-list))
-    (while tail
-      (if (eq (aref (car tail) 5) function)
-          (setq timer-idle-list (delq (car tail) timer-idle-list)))
-      (setq tail (cdr tail)))))
+  (dolist (timer timer-list)
+    (if (eq (timer--function timer) function)
+        (setq timer-list (delq timer timer-list))))
+  (dolist (timer timer-idle-list)
+    (if (eq (timer--function timer) function)
+        (setq timer-idle-list (delq timer timer-idle-list)))))
 
 ;; Record the last few events, for debugging.
 (defvar timer-event-last nil
@@ -308,8 +286,9 @@ how many will really happen.")
   "Calculate number of seconds from when TIMER will run, until TIME.
 TIMER is a timer, and stands for the time when its next repeat is scheduled.
 TIME is a time-list."
-  (let ((high (- (car time) (aref timer 1)))
-	(low (- (nth 1 time) (aref timer 2))))
+  ;; FIXME: (time-to-seconds (time-subtract (timer--time timer) time))
+  (let ((high (- (car time) (timer--high-seconds timer)))
+	(low (- (nth 1 time) (timer--low-seconds timer))))
     (+ low (* high 65536))))
 
 (defun timer-event-handler (timer)
@@ -324,29 +303,30 @@ This function is called, by name, directly by the C code."
 	  ;; Delete from queue.  Record the cons cell that was used.
 	  (setq cell (cancel-timer-internal timer))
 	  ;; Re-schedule if requested.
-	  (if (aref timer 4)
-	      (if (aref timer 7)
+	  (if (timer--repeat-delay timer)
+	      (if (timer--idle-delay timer)
 		  (timer-activate-when-idle timer nil cell)
-		(timer-inc-time timer (aref timer 4) 0)
+		(timer-inc-time timer (timer--repeat-delay timer) 0)
 		;; If real time has jumped forward,
 		;; perhaps because Emacs was suspended for a long time,
 		;; limit how many times things get repeated.
 		(if (and (numberp timer-max-repeats)
 			 (< 0 (timer-until timer (current-time))))
 		    (let ((repeats (/ (timer-until timer (current-time))
-				      (aref timer 4))))
+				      (timer--repeat-delay timer))))
 		      (if (> repeats timer-max-repeats)
-			  (timer-inc-time timer (* (aref timer 4) repeats)))))
+			  (timer-inc-time timer (* (timer--repeat-delay timer)
+                                                   repeats)))))
 		(timer-activate timer t cell)
 		(setq retrigger t)))
 	  ;; Run handler.
 	  ;; We do this after rescheduling so that the handler function
 	  ;; can cancel its own timer successfully with cancel-timer.
 	  (condition-case nil
-	      (apply (aref timer 5) (aref timer 6))
+	      (apply (timer--function timer) (timer--args timer))
 	    (error nil))
 	  (if retrigger
-	      (aset timer 0 nil)))
+	      (setf (timer--triggered timer) nil)))
       (error "Bogus timer event"))))
 
 ;; This function is incompatible with the one in levents.el.
@@ -500,11 +480,7 @@ The value is a list that the debugger can pass to `with-timeout-unsuspend'
 when it exits, to make these timers start counting again."
   (mapcar (lambda (timer)
 	    (cancel-timer timer)
-	    (list timer
-		  (time-subtract
-		   ;; The time that this timer will go off.
-		   (list (aref timer 1) (aref timer 2) (aref timer 3))
-		   (current-time))))
+	    (list timer (time-subtract (timer--time timer) (current-time))))
 	  with-timeout-timers))
 
 (defun with-timeout-unsuspend (timer-spec-list)
@@ -565,5 +541,5 @@ If the user does not answer after SECONDS seconds, return DEFAULT-VALUE."
 
 (provide 'timer)
 
-;;; arch-tag: b1a9237b-7787-4382-9e46-8f2c3b3273e0
+;; arch-tag: b1a9237b-7787-4382-9e46-8f2c3b3273e0
 ;;; timer.el ends here

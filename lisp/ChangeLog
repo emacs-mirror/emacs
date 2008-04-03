@@ -1,7 +1,20 @@
+2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/timer.el (timer): Define as a defstruct, so we can
+	name the fields, to make the code clearer.
+	Rewrite all `aset' and `aref' using the defined accessors.
+	(timer--time): New pseudo-field.
+	(timer-set-time, timer-set-idle-time, timer-inc-time)
+	(timer-set-time-with-usecs, with-timeout-suspend): Use it.
+	(timer--time-less-p): New function.
+	(timer--activate): New function, extracted from timer-activate.
+	(timer-activate-when-idle, timer-activate): Use it.
+	(cancel-function-timers): Use dolist.
+
 2008-04-03  Glenn Morris  <rgm@gnu.org>
 
-	* add-log.el (c-beginning-of-defun, c-end-of-defun): Remove
-	declarations; no longer used.
+	* add-log.el (c-beginning-of-defun, c-end-of-defun):
+	Remove declarations; no longer used.
 	(c-cpp-define-name, c-defun-name): Declare as functions.
 
 	* calendar/diary-lib.el (diary-mail-addr): Use bound-and-true-p.
