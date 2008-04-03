@@ -191,7 +191,7 @@ This is a fine thing to set in your `.emacs' file.")
     shell-dynamic-complete-environment-variable
     shell-dynamic-complete-command
     shell-replace-by-expanded-directory
-    comint-dynamic-complete-filename)
+    shell-dynamic-complete-filename)
   "List of functions called to perform completion.
 This variable is used to initialize `comint-dynamic-complete-functions' in the
 shell buffer.
@@ -1003,6 +1003,19 @@ See `shell-dynamic-complete-filename'.  Returns t if successful."
 	  (insert " "))
       success)))
 
+(defun shell-dynamic-complete-filename ()
+  "Dynamically complete the filename at point.
+This completes only if point is at a suitable position for a
+filename argument."
+  (interactive)
+  (let ((opoint (point))
+	(beg (comint-line-beginning-position)))
+    (when (save-excursion
+	    (goto-char (if (re-search-backward "[;|&]" beg t)
+			   (match-end 0)
+			 beg))
+	    (re-search-forward "[^ \t][ \t]" opoint t))
+      (comint-dynamic-complete-as-filename))))
 
 (defun shell-match-partial-variable ()
   "Return the shell variable at point, or nil if none is found."
