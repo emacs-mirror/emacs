@@ -1,7 +1,13 @@
+2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (beginning-of-buffer, end-of-buffer, goto-line, undo)
+	(copy-region-as-kill, kill-ring-save, use-region-p, mark-word)
+	(keyboard-escape-quit): Check region-active-p i.s.o transient-mark-mode.
+
 2008-04-02  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-cmds.el (c-defun-name, c-cpp-define-name): New
-	optimised functions to get the name of the current defun/macro.
+	* progmodes/cc-cmds.el (c-defun-name, c-cpp-define-name):
+	New optimised functions to get the name of the current defun/macro.
 
 	* add-log.el (add-log-current-defun): Move the functionality which
 	gets the current function name for C like modes to cc-cmds.el,
@@ -11,8 +17,7 @@
 
 	* simple.el (deactivate-mark): When the mark is temporarily
 	active, restore the original value of transient-mark-mode.
-	(set-mark-command): First deactivate the mark if was temporarily
-	active.
+	(set-mark-command): First deactivate the mark if was temporarily active.
 	(exchange-point-and-mark): Reactivate the mark if it was
 	temporarily active.
 	(handle-shift-selection): New fun.
@@ -35,8 +40,8 @@
 
 2008-04-02  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-make-tramp-temp-file): Use
-	`tramp-drop-volume-letter' for the local file name part.
+	* net/tramp.el (tramp-make-tramp-temp-file):
+	Use `tramp-drop-volume-letter' for the local file name part.
 
 2008-04-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -95,8 +100,7 @@
 
 2008-04-01  Jari Aalto  <jari.aalto@cante.net>
 
-	* find-dired.el (find-dired-filter): Align columns by padding file
-	sizes.
+	* find-dired.el (find-dired-filter): Align columns by padding file sizes.
 
 2008-04-01  Jason Rumney  <jasonr@gnu.org>
 

@@ -759,7 +759,7 @@ Don't use this command in Lisp programs!
 \(goto-char (point-min)) is faster and avoids clobbering the mark."
   (interactive "^P")
   (or (consp arg)
-      (and transient-mark-mode mark-active)
+      (region-active-p)
       (push-mark))
   (let ((size (- (point-max) (point-min))))
     (goto-char (if (and arg (not (consp arg)))
@@ -783,9 +783,7 @@ of the accessible part of the buffer.
 Don't use this command in Lisp programs!
 \(goto-char (point-max)) is faster and avoids clobbering the mark."
   (interactive "^P")
-  (or (consp arg)
-      (and transient-mark-mode mark-active)
-      (push-mark))
+  (or (consp arg) (region-active-p) (push-mark))
   (let ((size (- (point-max) (point-min))))
     (goto-char (if (and arg (not (consp arg)))
 		   (- (point-max)
@@ -861,8 +859,7 @@ If there's a number in the buffer at point, it is the default for ARG."
 	(if window (select-window window)
 	  (switch-to-buffer-other-window buffer))))
   ;; Leave mark at previous position
-  (or (and transient-mark-mode mark-active)
-      (push-mark))
+  (or (region-active-p) (push-mark))
   ;; Move to the specified line number in that buffer.
   (save-restriction
     (widen)
@@ -1619,7 +1616,7 @@ as an argument limits undo to changes within the current region."
 		       ;; it shows nothing else happened in between.
 		       (gethash list undo-equiv-table))))
       (setq undo-in-region
-	    (if transient-mark-mode mark-active (and arg (not (numberp arg)))))
+	    (or (region-active-p) (and arg (not (numberp arg)))))
       (if undo-in-region
 	  (undo-start (region-beginning) (region-end))
 	(undo-start))
@@ -1641,7 +1638,7 @@ as an argument limits undo to changes within the current region."
 		 (if next (setq equiv next))))
 	(setq pending-undo-list equiv)))
     (undo-more
-     (if (or transient-mark-mode (numberp arg))
+     (if (numberp arg)
 	 (prefix-numeric-value arg)
        1))
     ;; Record the fact that the just-generated undo records come from an
@@ -2857,8 +2854,7 @@ This command's old key binding has been given to `kill-ring-save'."
   (if (eq last-command 'kill-region)
       (kill-append (filter-buffer-substring beg end) (< end beg))
     (kill-new (filter-buffer-substring beg end)))
-  (if transient-mark-mode
-      (setq deactivate-mark t))
+  (setq deactivate-mark t)
   nil)
 
 (defun kill-ring-save (beg end)
@@ -2883,7 +2879,9 @@ visual feedback indicating the extent of the region being copied."
 	    ;; look like a C-g typed as a command.
 	    (inhibit-quit t))
 	(if (pos-visible-in-window-p other-end (selected-window))
-	    (unless (and transient-mark-mode
+            ;; Swap point-and-mark quickly so as to show the region that
+            ;; was selected.  Don't do it if the region is highlighted.
+	    (unless (and (region-active-p)
 			 (face-background 'region))
 	      ;; Swap point and mark.
 	      (set-marker (mark-marker) (point) (current-buffer))
@@ -3453,7 +3451,7 @@ to the region instead.  Such commands should use this subroutine to
 test whether to do that.
 
 This function also obeys `use-empty-active-region'."
-  (and transient-mark-mode mark-active
+  (and (region-active-p)
        (or use-empty-active-region (> (region-end) (region-beginning)))))
 
 (defun region-active-p ()
@@ -4445,7 +4443,7 @@ it marks the next ARG words after the ones already marked."
   (interactive "P\np")
   (cond ((and allow-extend
 	      (or (and (eq last-command this-command) (mark t))
-		  (and transient-mark-mode mark-active)))
+		  (region-active-p)))
 	 (setq arg (if arg (prefix-numeric-value arg)
 		     (if (< (mark) (point)) -1 1)))
 	 (set-mark
@@ -4986,7 +4984,7 @@ or go back to just one window (by deleting all but the selected window)."
 	 (abort-recursive-edit))
 	(current-prefix-arg
 	 nil)
-	((and transient-mark-mode mark-active)
+	((region-active-p)
 	 (deactivate-mark))
 	((> (recursion-depth) 0)
 	 (exit-recursive-edit))
