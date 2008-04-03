@@ -1,5 +1,8 @@
 2008-04-03  Chong Yidong  <cyd@stupidchicken.com>
 
+	* shell.el (shell-dynamic-complete-filename): New fun.
+	(shell-dynamic-complete-functions): Use it.
+
 	* help-fns.el (describe-variable): Undo 2008-02-25 change.
 
 2008-04-03  Kenichi Handa  <handa@m17n.org>
