@@ -355,7 +355,7 @@ ftfont_get_open_type_spec (Lisp_Object otf_spec)
   if (! spec)
     return NULL;
   spec->script = XCAR (otf_spec);
-  if (! NILP (val))
+  if (! NILP (spec->script))
     {
       OTF_SYM_TAG (spec->script, spec->script_tag);
       val = assq_no_quit (spec->script, Votf_script_alist);
