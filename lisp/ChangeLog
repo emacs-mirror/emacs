@@ -4,6 +4,9 @@
 
 2008-04-03  Kenichi Handa  <handa@m17n.org>
 
+	* international/fontset.el (create-fontset-from-x-resource):
+	Handle the error of X resource more gracefully.
+
 	* international/latin1-disp.el (latin1-display): Don't use
 	make-char.  Fix the argument to set-char-table-range.
 	(latin1-display-identities): Don't use make-char.
