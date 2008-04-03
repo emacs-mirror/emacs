@@ -62,6 +62,9 @@ int w32font_text_extents P_ ((struct font *font, unsigned *code, int nglyphs,
 int w32font_draw P_ ((struct glyph_string *s, int from, int to,
                       int x, int y, int with_background));
 
+
+int uniscribe_check_otf P_ ((LOGFONT *font, Lisp_Object otf_spec));
+
 #endif
 
 /* arch-tag: ef9d9675-a2a5-4d01-9526-815e9a3da7cb
