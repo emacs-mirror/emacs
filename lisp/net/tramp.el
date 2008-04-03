@@ -1957,6 +1957,21 @@ FILE must be a local file name on a connection identified via VEC."
 (put 'with-connection-property 'edebug-form-spec t)
 (font-lock-add-keywords 'emacs-lisp-mode '("\\<with-connection-property\\>"))
 
+(eval-and-compile			; silence compiler
+  (if (memq system-type '(cygwin windows-nt))
+      (defun tramp-drop-volume-letter (name)
+	"Cut off unnecessary drive letter from file NAME.
+The function `tramp-handle-expand-file-name' calls `expand-file-name'
+locally on a remote file name.  When the local system is a W32 system
+but the remote system is Unix, this introduces a superfluous drive
+letter into the file name.  This function removes it."
+	(save-match-data
+	  (if (string-match tramp-root-regexp name)
+	      (replace-match "/" nil t name)
+	    name)))
+
+    (defalias 'tramp-drop-volume-letter 'identity)))
+
 (defsubst tramp-make-tramp-temp-file (vec)
   "Create a temporary file on the remote host identified by VEC.
 Return the local name of the temporary file."
@@ -3484,21 +3499,6 @@ This is like `dired-recursive-delete-directory' for Tramp files."
   (expand-file-name "~/"))
 
 ;; Canonicalization of file names.
-
-(eval-and-compile			; silence compiler
-  (if (memq system-type '(cygwin windows-nt))
-      (defun tramp-drop-volume-letter (name)
-	"Cut off unnecessary drive letter from file NAME.
-The function `tramp-handle-expand-file-name' calls `expand-file-name'
-locally on a remote file name.  When the local system is a W32 system
-but the remote system is Unix, this introduces a superfluous drive
-letter into the file name.  This function removes it."
-	(save-match-data
-	  (if (string-match tramp-root-regexp name)
-	      (replace-match "/" nil t name)
-	    name)))
-
-    (defalias 'tramp-drop-volume-letter 'identity)))
 
 (defun tramp-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for Tramp files.
