@@ -1058,7 +1058,7 @@ The intention is that (in the US) `local-holidays' be set in
 site-init.el and `other-holidays' be set by the user.
 
 Entries on the list are expressions that return (possibly empty) lists of
-items of the form ((month day year) string) of a holiday in the in the
+items of the form ((month day year) string) of a holiday in the
 three-month period centered around `displayed-month' of `displayed-year'.
 Several basic functions are provided for this purpose:
 
@@ -1092,18 +1092,18 @@ To add the last day of Hanukkah to the list, use
 
      (holiday-hebrew 10 2 \"Last day of Hanukkah\")
 
-since the Hebrew months are numbered with 1 starting from Nisan, while to
-add the Islamic feast celebrating Mohammed's birthday use
+since the Hebrew months are numbered with 1 starting from Nisan.
+To add the Islamic feast celebrating Mohammed's birthday, use
 
      (holiday-islamic 3 12 \"Mohammed's Birthday\")
 
-since the Islamic months are numbered from 1 starting with Muharram.  To
-add an entry for the Baha'i festival of Ridvan, use
+since the Islamic months are numbered from 1 starting with Muharram.
+To add an entry for the Baha'i festival of Ridvan, use
 
      (holiday-bahai 2 13 \"Festival of Ridvan\")
 
-since the Baha'i months are numbered from 1 starting with Baha.  To
-add Thomas Jefferson's birthday, April 2, 1743 (Julian), use
+since the Baha'i months are numbered from 1 starting with Baha.
+To add Thomas Jefferson's birthday, April 2, 1743 (Julian), use
 
      (holiday-julian 4 2 \"Jefferson's Birthday\")
 
