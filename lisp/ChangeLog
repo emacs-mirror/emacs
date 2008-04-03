@@ -1,3 +1,13 @@
+2008-04-03  Glenn Morris  <rgm@gnu.org>
+
+	* add-log.el (c-beginning-of-defun, c-end-of-defun): Remove
+	declarations; no longer used.
+	(c-cpp-define-name, c-defun-name): Declare as functions.
+
+	* calendar/diary-lib.el (diary-mail-addr): Use bound-and-true-p.
+
+	* net/tramp.el (tramp-drop-volume-letter): Move definition before use.
+
 2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-mtn.el (vc-mtn-command): Avoid localization of messages.
