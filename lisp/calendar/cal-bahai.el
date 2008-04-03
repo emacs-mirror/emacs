@@ -226,6 +226,33 @@ nil if it is not visible in the current calendar window."
                         (calendar-absolute-from-bahai (list month day y)))))
            (list (list date string))))))
 
+(autoload 'holiday-fixed "holidays")
+
+;;;###holiday-autoload
+(defun holiday-bahai-new-year ()
+  "Holiday entry for the Bahá'í New Year, if visible in the calendar window."
+  (holiday-fixed 3 21
+                 (format "Bahá'í New Year (Naw-Ruz) %d"
+                         (- displayed-year (1- 1844)))))
+
+;;;###holiday-autoload
+(defun holiday-bahai-ridvan (&optional all)
+  "Holidays related to Ridvan, as visible in the calendar window.
+Only considers the first, ninth, and twelfth days, unless ALL or
+`all-bahai-calendar-holidays' is non-nil."
+  (let ((ord ["First" "Second" "Third" "Fourth" "Fifth" "Sixth"
+              "Seventh" "Eighth" "Ninth" "Tenth" "Eleventh" "Twelfth"])
+        (show '(0 8 11))
+        rid h)
+    (if (or all all-bahai-calendar-holidays)
+        (setq show (number-sequence 0 11)))
+    ;; More trouble than it was worth...?
+    (dolist (i show (nreverse rid))
+      (if (setq h (holiday-fixed (if (< i 10) 4 5)
+                                 (+ i (if (< i 10) 21 -9))
+                                 (format "%s Day of Ridvan" (aref ord i))))
+          (push (car h) rid)))))
+
 (autoload 'diary-list-entries-1 "diary-lib")
 
 ;;;###diary-autoload
