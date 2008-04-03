@@ -341,6 +341,12 @@ static HWND w32_visible_system_caret_hwnd;
 extern HMENU current_popup_menu;
 static int menubar_in_use = 0;
 
+/* From w32uniscribe.c  */
+#ifdef USE_FONT_BACKEND
+extern void syms_of_w32uniscribe ();
+extern int uniscribe_available;
+#endif
+
 /* Function prototypes for hourglass support.  */
 static void show_hourglass P_ ((struct frame *));
 static void hide_hourglass P_ ((void));
@@ -4443,6 +4449,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
     {
       /* Perhaps, we must allow frame parameter, say `font-backend',
 	 to specify which font backends to use.  */
+      if (uniscribe_available)
+	register_font_driver (&uniscribe_font_driver, f);
       register_font_driver (&w32font_driver, f);
 
       x_default_parameter (f, parameters, Qfont_backend, Qnil,
@@ -9357,6 +9365,10 @@ globals_of_w32fns ()
 
   /* MessageBox does not work without this when linked to comctl32.dll 6.0.  */
   InitCommonControls ();
+
+#ifdef USE_FONT_BACKEND
+  syms_of_w32uniscribe ();
+#endif
 }
 
 #undef abort
