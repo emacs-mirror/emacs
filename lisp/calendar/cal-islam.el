@@ -218,6 +218,23 @@ nil if it is not visible in the current calendar window."
                         (calendar-absolute-from-islamic (list month day y)))))
            (list (list date string))))))
 
+;;;###holiday-autoload
+(defun holiday-islamic-new-year ()
+  "Holiday entry for the Islamic New Year, if visible in the calendar window."
+  (let ((date (caar (holiday-islamic 1 1 "")))
+        (m displayed-month)
+        (y displayed-year))
+    (and date
+         (list (list date
+                     (format "Islamic New Year %d"
+                             (progn
+                               (increment-calendar-month m y 1)
+                               (extract-calendar-year
+                                (calendar-islamic-from-absolute
+                                 (calendar-absolute-from-gregorian
+                                  (list m (calendar-last-day-of-month m y) y)
+                                  ))))))))))
+
 (autoload 'diary-list-entries-1 "diary-lib")
 
 ;;;###diary-autoload
