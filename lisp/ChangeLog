@@ -53,6 +53,7 @@
 	all-hebrew-calendar-holidays.
 	(hebrew-holidays, christian-holidays, islamic-holidays, bahai-holidays):
 	Simplify using new functions.
+	(calendar-holidays): Doc fix.
 	(generate-calendar-window): Use bound-and-true-p.
 
 	* calendar/diary-lib.el (diary-mail-addr): Use bound-and-true-p.
