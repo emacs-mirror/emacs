@@ -39,19 +39,19 @@
 (defun calendar-holiday-list ()
   "Form the list of holidays that occur on dates in the calendar window.
 The holidays are those in the list `calendar-holidays'."
-  (sort (delq nil
-              (mapcar (lambda (p)
-                        (car
-                         (if calendar-debug-sexp
-                             (let ((stack-trace-on-error t))
-                               (eval p))
-                           (condition-case nil
-                               (eval p)
-                             (error (beep)
-                                    (message "Bad holiday list item: %s" p)
-                                    (sleep-for 2))))))
-                      calendar-holidays))
-        'calendar-date-compare))
+  (let (res h)
+    (sort
+     (dolist (p calendar-holidays res)
+       (if (setq h (if calendar-debug-sexp
+                       (let ((stack-trace-on-error t))
+                         (eval p))
+                     (condition-case nil
+                         (eval p)
+                       (error (beep)
+                              (message "Bad holiday list item: %s" p)
+                              (sleep-for 2)))))
+           (setq res (append h res))))
+     'calendar-date-compare)))
 
 (defvar displayed-month)                ; from generate-calendar
 (defvar displayed-year)
@@ -322,13 +322,12 @@ Returns nil if it is not visible in the current calendar window."
          (list (list (calendar-nth-named-day n dayname month y d)
                      string)))))
 
-(defun holiday-filter-visible-calendar (l)
-  "Return a list of all visible holidays of those on L."
-  (let (visible)
-    (dolist (p l visible)
-      (and (car p)
-           (calendar-date-is-visible-p (car p))
-           (push p visible)))))
+(defun holiday-filter-visible-calendar (hlist)
+  "Filter list of holidays HLIST, and return only the visible ones.
+HLIST is a list of elements of the form (DATE) TEXT."
+  (delq nil (mapcar (lambda (p)
+                      (and (car p) (calendar-date-is-visible-p (car p)) p))
+                    hlist)))
 
 (define-obsolete-function-alias
   'filter-visible-calendar-holidays 'holiday-filter-visible-calendar "23.1")
@@ -394,28 +393,29 @@ holidays (with more entries if `all-christian-calendar-holidays'
 is non-nil)."
   ;; Backwards compatibility layer.
   (if (not n)
-      (delq nil                   ; filter out nil (not visible) dates
-            (mapcar (lambda (e)
-                      (apply 'holiday-easter-etc e))
-                    (append
-                     (if all-christian-calendar-holidays
-                         '((-63 "Septuagesima Sunday")
-                           (-56 "Sexagesima Sunday")
-                           (-49 "Shrove Sunday")
-                           (-48 "Shrove Monday")
-                           (-47 "Shrove Tuesday")
-                           (-14 "Passion Sunday")
-                           (-7 "Palm Sunday")
-                           (-3 "Maundy Thursday")
-                           (35 "Rogation Sunday")
-                           (39 "Ascension Day")
-                           (49 "Pentecost (Whitsunday)")
-                           (50 "Whitmonday")
-                           (56 "Trinity Sunday")
-                           (60 "Corpus Christi")))
-                     '((0 "Easter Sunday")
-                       (-2 "Good Friday")
-                       (-46 "Ash Wednesday")))))
+      (apply 'append
+             (mapcar (lambda (e)
+                       (apply 'holiday-easter-etc e))
+                     ;; The combined list is not in order.
+                     (append
+                      (if all-christian-calendar-holidays
+                          '((-63 "Septuagesima Sunday")
+                            (-56 "Sexagesima Sunday")
+                            (-49 "Shrove Sunday")
+                            (-48 "Shrove Monday")
+                            (-47 "Shrove Tuesday")
+                            (-14 "Passion Sunday")
+                            (-7 "Palm Sunday")
+                            (-3 "Maundy Thursday")
+                            (35 "Rogation Sunday")
+                            (39 "Ascension Day")
+                            (49 "Pentecost (Whitsunday)")
+                            (50 "Whitmonday")
+                            (56 "Trinity Sunday")
+                            (60 "Corpus Christi")))
+                      '((-46 "Ash Wednesday")
+                        (-2 "Good Friday")
+                        (0 "Easter Sunday")))))
     (let* ((century (1+ (/ displayed-year 100)))
            (shifted-epact               ; age of moon for April 5...
             (% (+ 14 (* 11 (% displayed-year 19)) ; ...by Nicaean rule
@@ -433,10 +433,10 @@ is non-nil)."
            (paschal-moon ; day after the full moon on or after March 21
             (- (calendar-absolute-from-gregorian (list 4 19 displayed-year))
                adjusted-epact))
-           (abs-easter (calendar-dayname-on-or-before 0 (+ paschal-moon 7))))
-      (holiday-filter-visible-calendar
-       (list (list (calendar-gregorian-from-absolute (+ abs-easter n))
-                   string))))))
+           (abs-easter (calendar-dayname-on-or-before 0 (+ paschal-moon 7)))
+           (greg (calendar-gregorian-from-absolute (+ abs-easter n))))
+      (if (calendar-date-is-visible-p greg)
+          (list (list greg string))))))
 
 ;; Prior call to calendar-julian-from-absolute will autoload cal-julian.
 (declare-function calendar-absolute-from-julian "cal-julian" (date))
