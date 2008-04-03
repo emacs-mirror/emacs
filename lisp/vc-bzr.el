@@ -357,6 +357,16 @@ If any error occurred in running `bzr status', then return nil."
   "Always return nil, as Bzr cannot register explicit versions."
   nil)
 
+(defun vc-bzr-previous-revision (file rev)
+  (if (string-match "\\`[0-9]+\\'" rev)
+      (number-to-string (1- (string-to-number rev)))
+    (concat "before:" rev)))
+
+(defun vc-bzr-next-revision (file rev)
+  (if (string-match "\\`[0-9]+\\'" rev)
+      (number-to-string (1+ (string-to-number rev)))
+    (error "Don't know how to compute the next revision of %s" rev)))
+
 (defun vc-bzr-register (files &optional rev comment)
   "Register FILE under bzr.
 Signal an error unless REV is nil.
