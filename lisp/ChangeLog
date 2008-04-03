@@ -1,5 +1,7 @@
 2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (auto-mode-alist): Use archive-mode for Debian packages.
+
 	* arc-mode.el (archive-mode-map): Obey mouse-1-click-follows-link.
 	(archive-try-jka-compr): New function.
 	(archive-set-buffer-as-visiting-file): Use it.
