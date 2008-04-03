@@ -1619,7 +1619,7 @@ Example:
   (defsetf nth (n x) (v) (list 'setcar (list 'nthcdr n x) v))
 
 \(fn NAME [FUNC | ARGLIST (STORE) BODY...])"
-  (if (listp arg1)
+  (if (and (listp arg1) (consp args))
       (let* ((largs nil) (largsr nil)
 	     (temps nil) (tempsr nil)
 	     (restarg nil) (rest-temps nil)

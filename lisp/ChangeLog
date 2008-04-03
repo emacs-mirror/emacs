@@ -1,5 +1,7 @@
 2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/cl-macs.el (defsetf): Accept a lambda for the 2-arg form.
+
 	* vc-bzr.el (vc-bzr-previous-revision, vc-bzr-next-revision): New funs.
 
 2008-04-03  Chong Yidong  <cyd@stupidchicken.com>
