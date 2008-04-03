@@ -1352,7 +1352,7 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 
   /* Get the intervals for the part of the string we are inserting.  */
   intervals = BUF_INTERVALS (buf);
-  if (outgoing_nbytes < BUF_Z_BYTE (buf) - BUF_BEG_BYTE (buf))
+  if (nchars < BUF_Z (buf) - BUF_BEG (buf))
     {
       if (buf == current_buffer && PT <= from)
 	from += nchars;

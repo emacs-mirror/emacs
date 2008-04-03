@@ -1,3 +1,8 @@
+2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* insdel.c (insert_from_buffer_1): Don't compare bytes in destination
+	buffer with byte-size of source buffer.
+
 2008-04-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* callint.c (Fcall_interactively): Handle temporary region even
