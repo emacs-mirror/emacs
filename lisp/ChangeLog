@@ -1,5 +1,7 @@
 2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-mtn.el (vc-mtn-command): Avoid localization of messages.
+
 	* vc-bzr.el (vc-bzr-checkout): Simplify.
 
 	* image-mode.el (image-mode-fit-frame): New command.

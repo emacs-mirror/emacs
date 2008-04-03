@@ -67,7 +67,10 @@
 
 (defun vc-mtn-command (buffer okstatus files &rest flags)
   "A wrapper around `vc-do-command' for use in vc-mtn.el."
-  (apply 'vc-do-command buffer okstatus vc-mtn-command files flags))
+  (let ((process-environment
+         ;; Avoid localization of messages so we can parse the output.
+         (cons "LC_MESSAGES=C" process-environment)))
+    (apply 'vc-do-command buffer okstatus vc-mtn-command files flags)))
 
 (defun vc-mtn-state (file)
   ;; If `mtn' fails or returns status>0, or if the search files, just
