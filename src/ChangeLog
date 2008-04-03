@@ -1,3 +1,12 @@
+2008-04-03  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (CATEGORY_MASK_ANY): Add CATEGORY_MASK_UTF_16_AUTO.
+	(CATEGORY_MASK_UTF_16): Likewise.
+	(detect_coding_utf_16): Add heuristics to reject utf-16 for a
+	binary file.
+	(detect_coding): Add null-byte detection for a binary file.
+	(detect_coding_system): Likewise.
+
 2008-04-03  Jason Rumney  <jasonr@gnu.org>
 
 	* ftfont.c (ftfont_get_open_type_spec): Check spec->script, not val.
