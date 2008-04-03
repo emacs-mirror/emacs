@@ -994,15 +994,15 @@ calendar."
 (defcustom bahai-holidays
   '((holiday-bahai-new-year)
     (holiday-bahai-ridvan)      ; respects all-bahai-calendar-holidays
-    (if all-bahai-calendar-holidays
-        (append
-         (holiday-fixed 11 26 "Day of the Covenant")
-         (holiday-fixed 11 28 "Ascension of `Abdu'l-Baha")))
     (holiday-fixed  5 23 "Declaration of the Bab")
     (holiday-fixed  5 29 "Ascension of Baha'u'llah")
     (holiday-fixed  7  9 "Martyrdom of the Bab")
     (holiday-fixed 10 20 "Birth of the Bab")
-    (holiday-fixed 11 12 "Birth of Baha'u'llah"))
+    (holiday-fixed 11 12 "Birth of Baha'u'llah")
+    (if all-bahai-calendar-holidays
+        (append
+         (holiday-fixed 11 26 "Day of the Covenant")
+         (holiday-fixed 11 28 "Ascension of `Abdu'l-Baha"))))
   "Baha'i holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
