@@ -831,12 +831,12 @@ calendar."
   "Component of the default value of `hebrew-holidays'.")
 ;;;###autoload
 (put 'hebrew-holidays-1 'risky-local-variable t)
+;;;###autoload
+(make-obsolete-variable 'hebrew-holidays-1 'hebrew-holidays "23.1")
 
 ;;;###autoload
 (defvar hebrew-holidays-2
-  '((if all-hebrew-calendar-holidays
-        (holiday-hanukkah)
-      (holiday-hebrew 9 25 "Hanukkah"))
+  '((holiday-hanukkah)         ; respects all-hebrew-calendar-holidays
     (if all-hebrew-calendar-holidays
       (holiday-hebrew
        10
@@ -853,6 +853,8 @@ calendar."
   "Component of the default value of `hebrew-holidays'.")
 ;;;###autoload
 (put 'hebrew-holidays-2 'risky-local-variable t)
+;;;###autoload
+(make-obsolete-variable 'hebrew-holidays-2 'hebrew-holidays "23.1")
 
 ;;;###autoload
 (defvar hebrew-holidays-3
@@ -885,6 +887,8 @@ calendar."
   "Component of the default value of `hebrew-holidays'.")
 ;;;###autoload
 (put 'hebrew-holidays-3 'risky-local-variable t)
+;;;###autoload
+(make-obsolete-variable 'hebrew-holidays-3 'hebrew-holidays "23.1")
 
 ;;;###autoload
 (defvar hebrew-holidays-4
@@ -904,13 +908,22 @@ calendar."
     "Component of the default value of `hebrew-holidays'.")
 ;;;###autoload
 (put 'hebrew-holidays-4 'risky-local-variable t)
+;;;###autoload
+(make-obsolete-variable 'hebrew-holidays-4 'hebrew-holidays "23.1")
 
 ;;;###autoload
-(defcustom hebrew-holidays (append hebrew-holidays-1 hebrew-holidays-2
-                                   hebrew-holidays-3 hebrew-holidays-4)
+(defcustom hebrew-holidays
+  '((holiday-passover-etc)
+    (holiday-rosh-hashanah-etc)
+    (holiday-hanukkah)
+    (if all-hebrew-calendar-holidays
+        (append
+         (holiday-tisha-b-av-etc)
+         (holiday-hebrew-misc))))
   "Jewish holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
+  :version "23.1"            ; removed dependency on hebrew-holidays-N
   :group 'holidays)
 ;;;###autoload
 (put 'hebrew-holidays 'risky-local-variable t)
@@ -925,48 +938,15 @@ calendar."
 
 ;;;###autoload
 (defcustom christian-holidays
-  '((if all-christian-calendar-holidays
-        (holiday-fixed 1 6 "Epiphany"))
-    (holiday-easter-etc 0 "Easter Sunday")
-    (holiday-easter-etc -2 "Good Friday")
-    (holiday-easter-etc -46 "Ash Wednesday")
-    (if all-christian-calendar-holidays
-        (holiday-easter-etc -63 "Septuagesima Sunday"))
-    (if all-christian-calendar-holidays
-        (holiday-easter-etc -56 "Sexagesima Sunday"))
-    (if all-christian-calendar-holidays
-        (holiday-easter-etc -49 "Shrove Sunday"))
-    (if all-christian-calendar-holidays
-        (holiday-easter-etc -48 "Shrove Monday"))
-    (if all-christian-calendar-holidays
-        (holiday-easter-etc -47 "Shrove Tuesday"))
-    (if all-christian-calendar-holidays
-        (holiday-easter-etc -14 "Passion Sunday"))
-    (if all-christian-calendar-holidays
-        (holiday-easter-etc -7 "Palm Sunday"))
-    (if all-christian-calendar-holidays
-        (holiday-easter-etc -3 "Maundy Thursday"))
-    (if all-christian-calendar-holidays
-        (holiday-easter-etc 35 "Rogation Sunday"))
-    (if all-christian-calendar-holidays
-        (holiday-easter-etc 39 "Ascension Day"))
-    (if all-christian-calendar-holidays
-        (holiday-easter-etc 49 "Pentecost (Whitsunday)"))
-    (if all-christian-calendar-holidays
-        (holiday-easter-etc 50 "Whitmonday"))
-    (if all-christian-calendar-holidays
-        (holiday-easter-etc 56 "Trinity Sunday"))
-    (if all-christian-calendar-holidays
-        (holiday-easter-etc 60 "Corpus Christi"))
-    (if all-christian-calendar-holidays
-        (holiday-greek-orthodox-easter))
-    (if all-christian-calendar-holidays
-        (holiday-fixed 8 15 "Assumption"))
-    (if all-christian-calendar-holidays
-        (holiday-advent 0 "Advent"))
+  '((holiday-easter-etc)    ; respects all-christian-calendar-holidays
     (holiday-fixed 12 25 "Christmas")
     (if all-christian-calendar-holidays
-        (holiday-julian 12 25 "Eastern Orthodox Christmas")))
+        (append
+         (holiday-fixed 1 6 "Epiphany")
+         (holiday-julian 12 25 "Eastern Orthodox Christmas")
+         (holiday-greek-orthodox-easter)
+         (holiday-fixed 8 15 "Assumption")
+         (holiday-advent 0 "Advent"))))
   "Christian holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
@@ -984,31 +964,17 @@ calendar."
 
 ;;;###autoload
 (defcustom islamic-holidays
-  '((holiday-islamic
-     1 1
-     (format "Islamic New Year %d"
-             (let ((m displayed-month)
-                   (y displayed-year))
-               (increment-calendar-month m y 1)
-               (extract-calendar-year
-                (calendar-islamic-from-absolute
-                 (calendar-absolute-from-gregorian
-                  (list m (calendar-last-day-of-month m y) y)))))))
-    (if all-islamic-calendar-holidays
-        (holiday-islamic 1 10 "Ashura"))
-    (if all-islamic-calendar-holidays
-        (holiday-islamic 3 12 "Mulad-al-Nabi"))
-    (if all-islamic-calendar-holidays
-        (holiday-islamic 7 26 "Shab-e-Mi'raj"))
-    (if all-islamic-calendar-holidays
-        (holiday-islamic 8 15 "Shab-e-Bara't"))
+  '((holiday-islamic-new-year)
     (holiday-islamic 9 1 "Ramadan Begins")
     (if all-islamic-calendar-holidays
-        (holiday-islamic 9 27 "Shab-e Qadr"))
-    (if all-islamic-calendar-holidays
-        (holiday-islamic 10 1 "Id-al-Fitr"))
-    (if all-islamic-calendar-holidays
-        (holiday-islamic 12 10 "Id-al-Adha")))
+        (append
+         (holiday-islamic 1 10 "Ashura")
+         (holiday-islamic 3 12 "Mulad-al-Nabi")
+         (holiday-islamic 7 26 "Shab-e-Mi'raj")
+         (holiday-islamic 8 15 "Shab-e-Bara't")
+         (holiday-islamic 9 27 "Shab-e Qadr")
+         (holiday-islamic 10 1 "Id-al-Fitr")
+         (holiday-islamic 12 10 "Id-al-Adha"))))
   "Islamic holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
@@ -1026,39 +992,17 @@ calendar."
 
 ;;;###autoload
 (defcustom bahai-holidays
-  '((holiday-fixed
-     3 21
-     (format "Baha'i New Year (Naw-Ruz) %d" (- displayed-year (1- 1844))))
-    (holiday-fixed  4 21 "First Day of Ridvan")
+  '((holiday-bahai-new-year)
+    (holiday-bahai-ridvan)      ; respects all-bahai-calendar-holidays
     (if all-bahai-calendar-holidays
-        (holiday-fixed  4 22 "Second Day of Ridvan"))
-    (if all-bahai-calendar-holidays
-        (holiday-fixed  4 23 "Third Day of Ridvan"))
-    (if all-bahai-calendar-holidays
-        (holiday-fixed  4 24 "Fourth Day of Ridvan"))
-    (if all-bahai-calendar-holidays
-        (holiday-fixed  4 25 "Fifth Day of Ridvan"))
-    (if all-bahai-calendar-holidays
-        (holiday-fixed  4 26 "Sixth Day of Ridvan"))
-    (if all-bahai-calendar-holidays
-        (holiday-fixed  4 27 "Seventh Day of Ridvan"))
-    (if all-bahai-calendar-holidays
-        (holiday-fixed  4 28 "Eighth Day of Ridvan"))
-    (holiday-fixed  4 29 "Ninth Day of Ridvan")
-    (if all-bahai-calendar-holidays
-        (holiday-fixed  4 30 "Tenth Day of Ridvan"))
-    (if all-bahai-calendar-holidays
-        (holiday-fixed  5  1 "Eleventh Day of Ridvan"))
-    (holiday-fixed  5  2 "Twelfth Day of Ridvan")
+        (append
+         (holiday-fixed 11 26 "Day of the Covenant")
+         (holiday-fixed 11 28 "Ascension of `Abdu'l-Baha")))
     (holiday-fixed  5 23 "Declaration of the Bab")
     (holiday-fixed  5 29 "Ascension of Baha'u'llah")
     (holiday-fixed  7  9 "Martyrdom of the Bab")
     (holiday-fixed 10 20 "Birth of the Bab")
-    (holiday-fixed 11 12 "Birth of Baha'u'llah")
-    (if all-bahai-calendar-holidays
-        (holiday-fixed 11 26 "Day of the Covenant"))
-    (if all-bahai-calendar-holidays
-        (holiday-fixed 11 28 "Ascension of `Abdu'l-Baha")))
+    (holiday-fixed 11 12 "Birth of Baha'u'llah"))
   "Baha'i holidays.
 See the documentation for `calendar-holidays' for details."
   :type 'sexp
@@ -1501,9 +1445,8 @@ Optional integers MON and YR are used instead of today's date."
         ;; Adjust the window to exactly fit the displayed calendar.
         (fit-window-to-buffer nil nil calendar-minimum-window-height))
       (sit-for 0))
-    (if (and (boundp 'font-lock-mode)
-             font-lock-mode)
-        (font-lock-fontify-buffer))
+    (and (bound-and-true-p font-lock-mode)
+         (font-lock-fontify-buffer))
     (and mark-holidays-in-calendar
 ;;;         (calendar-date-is-valid-p today) ; useful for BC dates
          (calendar-mark-holidays)
