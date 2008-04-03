@@ -1,16 +1,16 @@
 2008-04-03  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* viper-macs.el (viper-read-fast-keysequence): use viper-read-event
-	instead of viper-read-key.
-	
-	* viper.el (viper-mode): move the check for fundamental mode.
-	
-	* viper-utils.el (viper-get-saved-cursor-color-in-replace-mode)
-	viper-get-saved-cursor-color-in-insert-mode): get rid of redundant
+
+	* emulation/viper-macs.el (viper-read-fast-keysequence):
+	Use viper-read-event instead of viper-read-key.
+
+	* emulation/viper.el (viper-mode): Move the check for fundamental mode.
+
+	* emulation/viper-utils.el (viper-get-saved-cursor-color-in-insert-mode)
+	(viper-get-saved-cursor-color-in-replace-mode): Get rid of redundant
 	let-statements.
-	
-	* viper*.el: replaced load with require in eval-when-compile.
-	
+
+	* emulation/viper*.el: Replace load with require in eval-when-compile.
+
 2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (auto-mode-alist): Use archive-mode for Debian packages.
@@ -75,8 +75,8 @@
 	(holiday-bahai-new-year, holiday-bahai-ridvan): New functions.
 
 	* calendar/cal-hebrew.el (holiday-rosh-hashanah-etc)
-	(holiday-passover-etc, holiday-hanukkah): Doc fix.  Add optional
-	argument.  Simplify.
+	(holiday-passover-etc, holiday-hanukkah): Doc fix.
+	Add optional argument.  Simplify.
 	(holiday-tisha-b-av-etc): Use memq rather than unless.
 	(holiday-julian): Autoload it.
 	(holiday-hebrew-misc): New function.
@@ -8909,7 +8909,7 @@
 
 	* ediff*.el: Uncomment declare-function.
 
-	* viper*.el: Uncomment declare-function.
+	* emulation/viper*.el: Uncomment declare-function.
 
 2008-01-09  Tassilo Horn  <tassilo@member.fsf.org>
 
