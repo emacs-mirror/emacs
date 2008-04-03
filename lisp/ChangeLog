@@ -1,3 +1,9 @@
+2008-04-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hilit-chg.el (highlight-changes-visibility-initial-state)
+	(hilit-chg-update, highlight-changes-mode-turn-on):
+	Fix typos in docstrings.
+
 2008-04-03  Stephen Berman  <Stephen.Berman@gmx.net>
 
 	* newcomment.el (comment-enter-backward): Be careful to restore
