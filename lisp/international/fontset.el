@@ -944,7 +944,9 @@ See the documentation of `create-fontset-from-fontset-spec' for the format.")
 	fontset-spec)
     (while (setq fontset-spec (x-get-resource (format "fontset-%d" idx)
 					      (format "Fontset-%d" idx)))
-      (create-fontset-from-fontset-spec fontset-spec t 'noerror)
+      (condition-case nil
+	  (create-fontset-from-fontset-spec fontset-spec t 'noerror)
+	(error (message "Fontset-%d: invalid specification in X resource" idx)))
       (setq idx (1+ idx)))))
 
 ;;
