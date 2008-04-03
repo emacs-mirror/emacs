@@ -1,3 +1,7 @@
+2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el (tar-mode-map): Obey mouse-1-click-follows-link.
+
 2008-04-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (handle-shift-selection): New arg.

@@ -498,6 +498,8 @@ is visible (and the real data of the buffer is hidden)."
     (define-key map "M" 'tar-chmod-entry)
     (define-key map "G" 'tar-chgrp-entry)
     (define-key map "O" 'tar-chown-entry)
+    ;; Let mouse-1 follow the link.
+    (define-key map [follow-link] 'mouse-face)
 
     ;; Make menu bar items.
 
