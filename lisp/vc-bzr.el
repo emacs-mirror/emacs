@@ -400,17 +400,10 @@ REV non-nil gets an error."
           (vc-bzr-command "cat" t 0 file "-r" rev)
         (vc-bzr-command "cat" t 0 file))))
 
-(defun vc-bzr-checkout (file &optional editable rev destfile)
-  "Checkout revision REV of FILE from bzr to DESTFILE.
-EDITABLE is ignored."
-  (unless destfile
-    (setq destfile (vc-version-backup-file-name file rev)))
-  (let ((coding-system-for-read 'binary)
-        (coding-system-for-write 'binary))
-    (with-temp-file destfile
-      (if (and rev (stringp rev) (not (string= rev "")))
-          (vc-bzr-command "cat" t 0 file "-r" rev)
-        (vc-bzr-command "cat" t 0 file)))))
+(defun vc-bzr-checkout (file &optional editable rev)
+  (if rev (error "Operation not supported")
+    ;; Else, there's nothing to do.
+    nil))
 
 (defun vc-bzr-revert (file &optional contents-done)
   (unless contents-done
@@ -445,18 +438,18 @@ EDITABLE is ignored."
   (vc-setup-buffer buffer)
   ;; If the buffer exists from a previous invocation it might be
   ;; read-only.
-    ;; FIXME: `vc-bzr-command' runs `bzr log' with `LC_MESSAGES=C', so
-    ;; the log display may not what the user wants - but I see no other
-    ;; way of getting the above regexps working.
-    (dolist (file files)
+  ;; FIXME: `vc-bzr-command' runs `bzr log' with `LC_MESSAGES=C', so
+  ;; the log display may not what the user wants - but I see no other
+  ;; way of getting the above regexps working.
+  (dolist (file files)
     (vc-exec-after
      `(let ((inhibit-read-only t))
-      (with-current-buffer buffer
-	;; Insert the file name so that log-view.el can find it.
+        (with-current-buffer buffer
+          ;; Insert the file name so that log-view.el can find it.
           (insert "Working file: " ',file "\n")) ;; Like RCS/CVS.
         (apply 'vc-bzr-command "log" ',buffer 'async ',file
                ',(if (stringp vc-bzr-log-switches)
-		 (list vc-bzr-log-switches)
+                     (list vc-bzr-log-switches)
                    vc-bzr-log-switches))))))
 
 (defun vc-bzr-show-log-entry (revision)
