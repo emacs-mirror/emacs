@@ -1,3 +1,8 @@
+2008-04-03  Stephen Berman  <Stephen.Berman@gmx.net>
+
+	* newcomment.el (comment-enter-backward): Be careful to restore
+	position changed during narrowing.
+
 2008-04-03  Giuliano Procida  <giuliano.procida@googlemail.com>  (tiny change)
 
 	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords):
