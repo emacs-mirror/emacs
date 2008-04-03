@@ -35,7 +35,32 @@
 	Remove declarations; no longer used.
 	(c-cpp-define-name, c-defun-name): Declare as functions.
 
+	* calendar/cal-bahai.el (holiday-fixed): Autoload it.
+	(holiday-bahai-new-year, holiday-bahai-ridvan): New functions.
+
+	* calendar/cal-hebrew.el (holiday-rosh-hashanah-etc)
+	(holiday-passover-etc, holiday-hanukkah): Doc fix.  Add optional
+	argument.  Simplify.
+	(holiday-tisha-b-av-etc): Use memq rather than unless.
+	(holiday-julian): Autoload it.
+	(holiday-hebrew-misc): New function.
+
+	* calendar/cal-islam.el (holiday-islamic-new-year): New function.
+
+	* calendar/calendar.el (hebrew-holidays-1, hebrew-holidays-2)
+	(hebrew-holidays-3, hebrew-holidays-4): Make obsolete.
+	(hebrew-holidays-2): Just use holiday-hanukkah now it respects
+	all-hebrew-calendar-holidays.
+	(hebrew-holidays, christian-holidays, islamic-holidays, bahai-holidays):
+	Simplify using new functions.
+	(generate-calendar-window): Use bound-and-true-p.
+
 	* calendar/diary-lib.el (diary-mail-addr): Use bound-and-true-p.
+
+	* calendar/holidays.el (calendar-holiday-list): Fix previous change.
+	(holiday-filter-visible-calendar): Doc fix.  Use mapcar.
+	(holiday-easter-etc): Fix nesting of result.  Tweak holiday order.
+	Use calendar-date-is-visible-p, not holiday-filter-visible-calendar.
 
 	* net/tramp.el (tramp-drop-volume-letter): Move definition before use.
 
