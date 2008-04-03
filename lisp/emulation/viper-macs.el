@@ -38,10 +38,8 @@
 ;; in order to spare non-viperized emacs from being viperized
 (if noninteractive
     (eval-when-compile
-      (let ((load-path (cons (expand-file-name ".") load-path)))
-	(or (featurep 'viper-cmd)
-	    (load "viper-cmd.el" nil t 'nosuffix))
-	)))
+      (require 'viper-cmd)
+      ))
 ;; end pacifier
 
 (require 'viper-util)
@@ -873,9 +871,13 @@ name from there."
   (let ((lis (vector event))
 	next-event)
     (while (and (viper-fast-keysequence-p)
-		(viper-keyseq-is-a-possible-macro lis macro-alist))
-      (setq next-event (viper-read-key))
-      ;;(setq next-event (viper-read-event))
+           (viper-keyseq-is-a-possible-macro lis macro-alist))
+      ;; Seems that viper-read-event is more robust here. We need to be able to
+      ;; place these events on unread-command-events list. If we use
+      ;; viper-read-key then events will be converted to keys, and sometimes
+      ;; (e.g., (control \[)) those keys differ from the corresponding events.
+      ;; So, do not use (setq next-event (viper-read-key))
+      (setq next-event (viper-read-event))
       (or (viper-mouse-event-p next-event)
 	  (setq lis (vconcat lis (vector next-event)))))
     lis))

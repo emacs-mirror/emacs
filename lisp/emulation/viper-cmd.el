@@ -1839,13 +1839,13 @@ invokes the command before that, etc."
 	     (concat "`" (viper-array-to-string keys) "'")
 	     (viper-abbreviate-string
 	      (if (featurep 'xemacs)
-	       (replace-in-string ; xemacs
-		(cond ((characterp text) (char-to-string text))
-		      ((stringp text) text)
-		      (t ""))
-		"\n" "^J")
-	       text ; emacs
-	       )
+		  (replace-in-string ; xemacs
+		   (cond ((characterp text) (char-to-string text))
+			 ((stringp text) text)
+			 (t ""))
+		   "\n" "^J")
+		text ; emacs
+		)
 	      max-text-len
 	      "  inserting  `" "'" "    ......."))
     ))
@@ -2159,9 +2159,9 @@ To turn this feature off, set this variable to nil."
 			(key-binding (setq key (read-key-sequence nil))))
 		  (cond ((eq cmd 'self-insert-command)
 			 (if (featurep 'xemacs)
-			  (insert (events-to-keys key)) ; xemacs
-			  (insert key) ; emacs
-			  ))
+			     (insert (events-to-keys key)) ; xemacs
+			   (insert key) ; emacs
+			   ))
 			((memq cmd '(exit-minibuffer viper-exit-minibuffer))
 			 nil)
 			(t (command-execute cmd)))
@@ -3450,7 +3450,8 @@ controlled by the sign of prefix numeric value."
 ;; (which is called from viper-search-forward/backward/next).  If the value of
 ;; viper-search-scroll-threshold is negative - don't scroll.
 (defun viper-adjust-window ()
-  (let ((win-height (if (featurep 'xemacs) (window-displayed-height)
+  (let ((win-height (if (featurep 'xemacs)
+			(window-displayed-height)
 		      (1- (window-height)))) ; adjust for modeline
 	(pt (point))
 	at-top-p at-bottom-p

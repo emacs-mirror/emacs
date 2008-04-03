@@ -41,10 +41,8 @@
 ;; in order to spare non-viperized emacs from being viperized
 (if noninteractive
     (eval-when-compile
-      (let ((load-path (cons (expand-file-name ".") load-path)))
-	(or (featurep 'viper-cmd)
-	    (load "viper-cmd.el" nil t 'nosuffix))
-	)))
+      (require 'viper-cmd)
+      ))
 ;; end pacifier
 
 (require 'viper-util)

@@ -1,3 +1,16 @@
+2008-04-03  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper-macs.el (viper-read-fast-keysequence): use viper-read-event
+	instead of viper-read-key.
+	
+	* viper.el (viper-mode): move the check for fundamental mode.
+	
+	* viper-utils.el (viper-get-saved-cursor-color-in-replace-mode)
+	viper-get-saved-cursor-color-in-insert-mode): get rid of redundant
+	let-statements.
+	
+	* viper*.el: replaced load with require in eval-when-compile.
+	
 2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (auto-mode-alist): Use archive-mode for Debian packages.

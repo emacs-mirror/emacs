@@ -46,10 +46,8 @@
 ;; in order to spare non-viperized emacs from being viperized
 (if noninteractive
     (eval-when-compile
-      (let ((load-path (cons (expand-file-name ".") load-path)))
-	(or (featurep 'viper-cmd)
-	    (load "viper-cmd.el" nil t 'nosuffix))
-	)))
+      (require 'viper-cmd)
+      ))
 ;; end pacifier
 
 (require 'viper-util)
@@ -2077,7 +2075,8 @@ Please contact your system administrator. "
 	      ;; create temp buffer for the region
 	      (setq temp-buf (get-buffer-create " *ex-write*"))
 	      (set-buffer temp-buf)
-	      (if (featurep 'xemacs) (set-visited-file-name ex-file)
+	      (if (featurep 'xemacs)
+		  (set-visited-file-name ex-file)
 		(set-visited-file-name ex-file 'noquery))
 	      (erase-buffer)
 	      (if (and file-exists ex-append)

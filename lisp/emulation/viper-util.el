@@ -209,10 +209,9 @@ Otherwise return the normal value."
     (if (featurep 'emacs) 'frame-parameter 'frame-property)
     (selected-frame)
     'viper-saved-cursor-color-in-replace-mode)
-   (let ((ecolor (viper-frame-value viper-emacs-state-cursor-color)))
-     (or (and (eq viper-current-state 'emacs-mode)
-	      ecolor)
-	 (viper-frame-value viper-vi-state-cursor-color)))))
+   (or (and (eq viper-current-state 'emacs-mode)
+	    (viper-frame-value viper-emacs-state-cursor-color))
+       (viper-frame-value viper-vi-state-cursor-color))))
 
 (defsubst viper-get-saved-cursor-color-in-insert-mode ()
   (or
@@ -220,10 +219,9 @@ Otherwise return the normal value."
     (if (featurep 'emacs) 'frame-parameter 'frame-property)
     (selected-frame)
     'viper-saved-cursor-color-in-insert-mode)
-   (let ((ecolor (viper-frame-value viper-emacs-state-cursor-color)))
-     (or (and (eq viper-current-state 'emacs-mode)
-	      ecolor)
-	 (viper-frame-value viper-vi-state-cursor-color)))))
+   (or (and (eq viper-current-state 'emacs-mode)
+	    (viper-frame-value viper-emacs-state-cursor-color))
+       (viper-frame-value viper-vi-state-cursor-color))))
 
 (defsubst viper-get-saved-cursor-color-in-emacs-mode ()
   (or
@@ -996,7 +994,7 @@ Otherwise return the normal value."
 ;; This function lets function-key-map convert key sequences into logical
 ;; keys.  This does a better job than viper-read-event when it comes to kbd
 ;; macros, since it enables certain macros to be shared between X and TTY modes
-;; by correctly mapping key sequences for Left/Right/... (one an ascii
+;; by correctly mapping key sequences for Left/Right/... (on an ascii
 ;; terminal) into logical keys left, right, etc.
 (defun viper-read-key ()
   (let ((overriding-local-map viper-overriding-map)
@@ -1206,9 +1204,9 @@ Otherwise return the normal value."
 
 (defun viper-key-press-events-to-chars (events)
   (mapconcat (if (featurep 'xemacs)
-	      (lambda (elt) (char-to-string (event-to-character elt))) ; xemacs
-	      'char-to-string ; emacs
-	      )
+		 (lambda (elt) (char-to-string (event-to-character elt))) ; xemacs
+	       'char-to-string ; emacs
+	       )
 	     events
 	     ""))
 
