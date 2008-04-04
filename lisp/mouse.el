@@ -201,19 +201,7 @@ Default to the Edit menu if the major mode doesn't define a menu."
 		   menu-bar-edit-menu))
 	 uniq)
     (if ancestor
-	;; Make our menu inherit from the desired keymap which we want
-	;; to display as the menu now.
-	;; Sometimes keymaps contain duplicate menu code, leading to
-	;; duplicates in the popped-up menu. Avoid this by simply
-	;; taking the first of any identically-named menus.
-	;; http://lists.gnu.org/archive/html/emacs-devel/2007-11/msg00469.html
-	(set-keymap-parent newmap
-			   (progn
-			     (dolist (e ancestor)
-			       (unless (and (listp e)
-					    (assoc (car e) uniq))
-				 (setq uniq (append uniq (list e)))))
-			     uniq)))
+	(set-keymap-parent newmap ancestor))
     (popup-menu newmap event prefix)))
 
 
@@ -225,7 +213,7 @@ Otherwise return the whole menu."
       (let (submap)
         (map-keymap
          (lambda (k v) (setq submap (if submap t (cons k v))))
-         menubar)
+         (keymap-canonicalize menubar))
         (if (eq submap t)
             menubar
           (lookup-key menubar (vector (car submap)))))))
@@ -246,21 +234,20 @@ not it is actually displayed."
 	 ;; display non-empty menu pane names.
 	 (minor-mode-menus
 	  (mapcar
-	   (function
-	    (lambda (menu)
-	      (let* ((minor-mode (car menu))
-		     (menu (cdr menu))
-		     (title-or-map (cadr menu)))
-		(or (stringp title-or-map)
-		    (setq menu
-			  (cons 'keymap
-				(cons (concat
-				       (capitalize (subst-char-in-string
-						    ?- ?\s (symbol-name
-							    minor-mode)))
-				       " Menu")
-				      (cdr menu)))))
-		menu)))
+           (lambda (menu)
+             (let* ((minor-mode (car menu))
+                    (menu (cdr menu))
+                    (title-or-map (cadr menu)))
+               (or (stringp title-or-map)
+                   (setq menu
+                         (cons 'keymap
+                               (cons (concat
+                                      (capitalize (subst-char-in-string
+                                                   ?- ?\s (symbol-name
+                                                           minor-mode)))
+                                      " Menu")
+                                     (cdr menu)))))
+               menu))
 	   (minor-mode-key-binding [menu-bar])))
 	 (local-title-or-map (and local-menu (cadr local-menu)))
 	 (global-title-or-map (cadr global-menu)))

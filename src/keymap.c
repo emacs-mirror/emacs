@@ -731,6 +731,26 @@ map_keymap (map, fun, args, data, autoload)
   UNGCPRO;
 }
 
+Lisp_Object Qkeymap_canonicalize;
+
+/* Same as map_keymap, but does it right, properly eliminating duplicate
+   bindings due to inheritance.   */
+void
+map_keymap_canonical (map, fun, args, data)
+     map_keymap_function_t fun;
+     Lisp_Object map, args;
+     void *data;
+{
+  struct gcpro gcpro1;
+  GCPRO1 (args);
+  /* map_keymap_canonical may be used from redisplay (e.g. when building menus)
+     so be careful to ignore errors and to inhibit redisplay.  */
+  map = safe_call1 (Qkeymap_canonicalize, map);
+  /* No need to use `map_keymap' here because canonical map has no parent.  */
+  map_keymap_internal (map, fun, args, data);
+  UNGCPRO;
+}
+
 DEFUN ("map-keymap-internal", Fmap_keymap_internal, Smap_keymap_internal, 2, 2, 0,
        doc: /* Call FUNCTION once for each event binding in KEYMAP.
 FUNCTION is called with two arguments: the event that is bound, and
@@ -3407,13 +3427,15 @@ describe_map (map, prefix, elt_describer, partial, shadow,
   kludge = Fmake_vector (make_number (1), Qnil);
   definition = Qnil;
 
+  GCPRO3 (prefix, definition, kludge);
+
+  map = call1 (Qkeymap_canonicalize, map);
+
   for (tail = map; CONSP (tail); tail = XCDR (tail))
     length_needed++;
 
   vect = ((struct describe_map_elt *)
 	  alloca (sizeof (struct describe_map_elt) * length_needed));
-
-  GCPRO3 (prefix, definition, kludge);
 
   for (tail = map; CONSP (tail); tail = XCDR (tail))
     {
@@ -3849,6 +3871,9 @@ syms_of_keymap ()
   staticpro (&apropos_accumulate);
   apropos_predicate = Qnil;
   apropos_accumulate = Qnil;
+
+  Qkeymap_canonicalize = intern ("keymap-canonicalize");
+  staticpro (&Qkeymap_canonicalize);
 
   /* Now we are ready to set up this property, so we can
      create char tables.  */

@@ -1,5 +1,9 @@
 2008-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* keymap.c (Qkeymap_canonicalize): New var.
+	(Fmap_keymap_internal): New fun.
+	(describe_map): Use keymap-canonicalize.
+
 	* undo.c (last_boundary_buffer, last_boundary_position): New vars.
 	(Fundo_boundary): Set them.
 	(syms_of_undo): Initialize them.

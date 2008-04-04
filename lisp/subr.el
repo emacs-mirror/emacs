@@ -550,6 +550,33 @@ Don't call this function; it is for internal use only."
     (dolist (p list)
       (funcall function (car p) (cdr p)))))
 
+(defun keymap-canonicalize (map)
+  "Return an equivalent keymap, without inheritance."
+  (let ((bindings ())
+        (ranges ()))
+    (while (keymapp map)
+      (setq map (map-keymap-internal
+                 (lambda (key item)
+                   (if (consp key)
+                       ;; Treat char-ranges specially.
+                       (push (cons key item) ranges)
+                     (push (cons key item) bindings)))
+                 map)))
+    (setq map (funcall (if ranges 'make-keymap 'make-sparse-keymap)
+                       (keymap-prompt map)))
+    (dolist (binding ranges)
+      ;; Treat char-ranges specially.
+      (define-key map (car binding) (cdr binding)))
+    (dolist (binding (prog1 bindings (setq bindings ())))
+      (let* ((key (car binding))
+             (item (cdr binding))
+             (oldbind (assq key bindings)))
+        ;; Newer bindings override older.
+        (if oldbind (setq bindings (delq oldbind bindings)))
+        (when item                      ;nil bindings just hide older ones.
+          (push binding bindings))))
+    (nconc map bindings)))
+
 (put 'keyboard-translate-table 'char-table-extra-slots 0)
 
 (defun keyboard-translate (from to)

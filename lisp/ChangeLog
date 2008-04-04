@@ -1,5 +1,9 @@
 2008-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* subr.el (keymap-canonicalize): New function.
+	* mouse.el (mouse-menu-non-singleton): Use it.
+	(mouse-major-mode-menu): Remove hack made unnecessary.
+
 	* simple.el (set-fill-column): Prompt rather than error by default.
 
 2008-04-04  Andreas Schwab  <schwab@suse.de>
