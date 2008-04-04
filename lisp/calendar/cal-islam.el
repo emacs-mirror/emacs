@@ -39,32 +39,32 @@
 "Array of strings giving the names of the Islamic months.")
 
 (eval-and-compile
-  (autoload 'calendar-absolute-from-julian "cal-julian"))
+  (autoload 'calendar-julian-to-absolute "cal-julian"))
 
 (defconst calendar-islamic-epoch
-  (eval-when-compile (calendar-absolute-from-julian '(7 16 622)))
+  (eval-when-compile (calendar-julian-to-absolute '(7 16 622)))
   "Absolute date of start of Islamic calendar = July 16, 622 AD (Julian).")
 
-(defun islamic-calendar-leap-year-p (year)
+(defun calendar-islamic-leap-year-p (year)
   "Return t if YEAR is a leap year on the Islamic calendar."
   (memq (% year 30)
         (list 2 5 7 10 13 16 18 21 24 26 29)))
 
-(defun islamic-calendar-last-day-of-month (month year)
+(defun calendar-islamic-last-day-of-month (month year)
   "The last day in MONTH during YEAR on the Islamic calendar."
   (cond
    ((memq month (list 1 3 5 7 9 11)) 30)
    ((memq month (list 2 4 6 8 10)) 29)
-   (t (if (islamic-calendar-leap-year-p year) 30 29))))
+   (t (if (calendar-islamic-leap-year-p year) 30 29))))
 
-(defun islamic-calendar-day-number (date)
+(defun calendar-islamic-day-number (date)
   "Return the day number within the year of the Islamic date DATE."
   (let ((month (extract-calendar-month date)))
     (+ (* 30 (/ month 2))
        (* 29 (/ (1- month) 2))
        (extract-calendar-day date))))
 
-(defun calendar-absolute-from-islamic (date)
+(defun calendar-islamic-to-absolute (date)
   "Absolute date of Islamic DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
@@ -83,11 +83,14 @@ Gregorian date Sunday, December 31, 1 BC."
                                     ((< y 25) 8)
                                     ((< y 27) 9)
                                     (t 10))))
-    (+ (islamic-calendar-day-number date) ; days so far this year
+    (+ (calendar-islamic-day-number date) ; days so far this year
        (* (1- year) 354)                  ; days in all non-leap years
        (* 11 (/ year 30))             ; leap days in complete cycles
        leap-years-in-cycle            ; leap days this cycle
        (1- calendar-islamic-epoch)))) ; days before start of calendar
+
+(define-obsolete-function-alias 'calendar-absolute-from-islamic
+  'calendar-islamic-to-absolute "23.1")
 
 (defun calendar-islamic-from-absolute (date)
   "Compute the Islamic date (month day year) corresponding to absolute DATE.
@@ -100,21 +103,21 @@ Gregorian date Sunday, December 31, 1 BC."
            (year             ; search forward from the approximation
             (+ approx
                (calendar-sum y approx
-                             (>= date (calendar-absolute-from-islamic
+                             (>= date (calendar-islamic-to-absolute
                                        (list 1 1 (1+ y))))
                              1)))
            (month                       ; search forward from Muharram
             (1+ (calendar-sum m 1
                               (> date
-                                 (calendar-absolute-from-islamic
+                                 (calendar-islamic-to-absolute
                                   (list m
-                                        (islamic-calendar-last-day-of-month
+                                        (calendar-islamic-last-day-of-month
                                          m year)
                                         year)))
                               1)))
            (day                    ; calculate the day by subtraction
             (- date
-               (1- (calendar-absolute-from-islamic (list month 1 year))))))
+               (1- (calendar-islamic-to-absolute (list month 1 year))))))
       (list month day year))))
 
 ;;;###cal-autoload
@@ -132,13 +135,16 @@ Driven by the variable `calendar-date-display-form'."
       (calendar-date-string islamic-date nil t))))
 
 ;;;###cal-autoload
-(defun calendar-print-islamic-date ()
+(defun calendar-islamic-print-date ()
   "Show the Islamic calendar equivalent of the date under the cursor."
   (interactive)
   (let ((i (calendar-islamic-date-string (calendar-cursor-to-date t))))
     (if (string-equal i "")
         (message "Date is pre-Islamic")
       (message "Islamic date (until sunset): %s" i))))
+
+(define-obsolete-function-alias 'calendar-print-islamic-date
+  'calendar-islamic-print-date "23.1")
 
 (defun calendar-islamic-read-date ()
   "Interactively read the arguments for an Islamic date command.
@@ -159,19 +165,22 @@ Reads a year, month, and day."
                        (mapcar 'list (append month-array nil))
                        nil t)
                       (calendar-make-alist month-array 1) t)))
-         (last (islamic-calendar-last-day-of-month month year))
+         (last (calendar-islamic-last-day-of-month month year))
          (day (calendar-read
                (format "Islamic calendar day (1-%d): " last)
                (lambda (x) (and (< 0 x) (<= x last))))))
     (list (list month day year))))
 
 ;;;###cal-autoload
-(defun calendar-goto-islamic-date (date &optional noecho)
+(defun calendar-islamic-goto-date (date &optional noecho)
   "Move cursor to Islamic DATE; echo Islamic date unless NOECHO is non-nil."
   (interactive (calendar-islamic-read-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-islamic date)))
-  (or noecho (calendar-print-islamic-date)))
+                       (calendar-islamic-to-absolute date)))
+  (or noecho (calendar-islamic-print-date)))
+
+(define-obsolete-function-alias 'calendar-goto-islamic-date
+  'calendar-islamic-goto-date "23.1")
 
 (defvar displayed-month)                ; from generate-calendar
 (defvar displayed-year)
@@ -215,7 +224,7 @@ nil if it is not visible in the current calendar window."
       (and (> m 7)                      ; Islamic date might be visible
            (calendar-date-is-visible-p
             (setq date (calendar-gregorian-from-absolute
-                        (calendar-absolute-from-islamic (list month day y)))))
+                        (calendar-islamic-to-absolute (list month day y)))))
            (list (list date string))))))
 
 ;;;###holiday-autoload
@@ -238,7 +247,7 @@ nil if it is not visible in the current calendar window."
 (autoload 'diary-list-entries-1 "diary-lib")
 
 ;;;###diary-autoload
-(defun list-islamic-diary-entries ()
+(defun diary-islamic-list-entries ()
   "Add any Islamic date entries from the diary file to `diary-entries-list'.
 Islamic date diary entries must be prefaced by `islamic-diary-entry-symbol'
 \(normally an `I').  The same `diary-date-forms' govern the style
@@ -253,33 +262,41 @@ marked in the calendar.  This function is provided for use with
                         islamic-diary-entry-symbol
                         'calendar-islamic-from-absolute))
 
+(define-obsolete-function-alias 'list-islamic-diary-entries
+  'diary-islamic-list-entries "23.1")
+
 (autoload 'calendar-mark-1 "diary-lib")
 
 ;;;###diary-autoload
-(defun mark-islamic-calendar-date-pattern (month day year &optional color)
+(defun calendar-islamic-mark-date-pattern (month day year &optional color)
   "Mark dates in calendar window that conform to Islamic date MONTH/DAY/YEAR.
 A value of 0 in any position is a wildcard.  Optional argument COLOR is
 passed to `mark-visible-calendar-date' as MARK."
   (calendar-mark-1 month day year 'calendar-islamic-from-absolute
-                   'calendar-absolute-from-islamic color))
+                   'calendar-islamic-to-absolute color))
+
+(define-obsolete-function-alias 'mark-islamic-calendar-date-pattern
+  'calendar-islamic-mark-date-pattern "23.1")
 
 (autoload 'diary-mark-entries-1 "diary-lib")
 
 ;;;###diary-autoload
-(defun mark-islamic-diary-entries ()
+(defun diary-islamic-mark-entries ()
   "Mark days in the calendar window that have Islamic date diary entries.
 Marks each entry in `diary-file' (or included files) visible in the calendar
-window.  See `list-islamic-diary-entries' for more information."
-  (diary-mark-entries-1 'mark-islamic-calendar-date-pattern
+window.  See `diary-islamic-list-entries' for more information."
+  (diary-mark-entries-1 'calendar-islamic-mark-date-pattern
                         calendar-islamic-month-name-array
                         islamic-diary-entry-symbol
                         'calendar-islamic-from-absolute))
 
+(define-obsolete-function-alias
+  'mark-islamic-diary-entries 'diary-islamic-mark-entries "23.1")
 
 (autoload 'diary-insert-entry-1 "diary-lib")
 
 ;;;###cal-autoload
-(defun insert-islamic-diary-entry (arg)
+(defun diary-islamic-insert-entry (arg)
   "Insert a diary entry.
 For the Islamic date corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
@@ -288,8 +305,11 @@ Prefix argument ARG makes the entry nonmarking."
                         islamic-diary-entry-symbol
                         'calendar-islamic-from-absolute))
 
+(define-obsolete-function-alias 'insert-islamic-diary-entry
+  'diary-islamic-insert-entry "23.1")
+
 ;;;###cal-autoload
-(defun insert-monthly-islamic-diary-entry (arg)
+(defun diary-islamic-insert-monthly-entry (arg)
   "Insert a monthly diary entry.
 For the day of the Islamic month corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
@@ -298,8 +318,11 @@ Prefix argument ARG makes the entry nonmarking."
                         islamic-diary-entry-symbol
                         'calendar-islamic-from-absolute))
 
+(define-obsolete-function-alias 'insert-monthly-islamic-diary-entry
+  'diary-islamic-insert-monthly-entry "23.1")
+
 ;;;###cal-autoload
-(defun insert-yearly-islamic-diary-entry (arg)
+(defun diary-islamic-insert-yearly-entry (arg)
   "Insert an annual diary entry.
 For the day of the Islamic year corresponding to the date indicated by point.
 Prefix argument ARG makes the entry nonmarking."
@@ -307,6 +330,8 @@ Prefix argument ARG makes the entry nonmarking."
   (diary-insert-entry-1 'yearly arg calendar-islamic-month-name-array
                         islamic-diary-entry-symbol
                         'calendar-islamic-from-absolute))
+(define-obsolete-function-alias
+  'insert-yearly-islamic-diary-entry 'diary-islamic-insert-yearly-entry "23.1")
 
 (defvar date)
 
