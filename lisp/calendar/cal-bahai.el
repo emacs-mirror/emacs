@@ -73,9 +73,9 @@
 (defconst calendar-bahai-leap-base
   (+ (/ 1844 4) (- (/ 1844 100)) (/ 1844 400))
   "Number of leap years between 1 and 1844 AD, inclusive.
-Used by `calendar-absolute-from-bahai'.")
+Used by `calendar-bahai-to-absolute'.")
 
-(defun calendar-absolute-from-bahai (date)
+(defun calendar-bahai-to-absolute (date)
   "Compute absolute date from Bahá'í date DATE.
 The absolute date is the number of days elapsed since the (imaginary)
 Gregorian date Sunday, December 31, 1 BC."
@@ -96,6 +96,9 @@ Gregorian date Sunday, December 31, 1 BC."
          0)
        day)))                           ; days so far this month
 
+(define-obsolete-function-alias 'calendar-absolute-from-bahai
+  'calendar-bahai-to-absolute "23.1")
+
 (defun calendar-bahai-from-absolute (date)
   "Bahá'í date (month day year) corresponding to the absolute DATE."
   (if (< date calendar-bahai-epoch)
@@ -109,11 +112,11 @@ Gregorian date Sunday, December 31, 1 BC."
                         1 0)))
            (month                       ; search forward from Baha
             (1+ (calendar-sum m 1
-                  (> date (calendar-absolute-from-bahai (list m 19 year)))
+                  (> date (calendar-bahai-to-absolute (list m 19 year)))
                   1)))
            (day                     ; calculate the day by subtraction
             (- date
-               (1- (calendar-absolute-from-bahai (list month 1 year))))))
+               (1- (calendar-bahai-to-absolute (list month 1 year))))))
       (list month day year))))
 
 ;;;###cal-autoload
@@ -186,7 +189,7 @@ Reads a year, month and day."
   "Move cursor to Bahá'í date DATE; echo Bahá'í date unless NOECHO is non-nil."
   (interactive (calendar-bahai-read-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-bahai date)))
+                       (calendar-bahai-to-absolute date)))
   (or noecho (calendar-bahai-print-date)))
 
 (define-obsolete-function-alias
@@ -223,7 +226,7 @@ nil if it is not visible in the current calendar window."
       (and (> m 12)                     ; Bahá'í date might be visible
            (calendar-date-is-visible-p
             (setq date (calendar-gregorian-from-absolute
-                        (calendar-absolute-from-bahai (list month day y)))))
+                        (calendar-bahai-to-absolute (list month day y)))))
            (list (list date string))))))
 
 (autoload 'holiday-fixed "holidays")
@@ -281,7 +284,7 @@ will not be marked in the calendar.  This function is provided for use with
 A value of 0 in any position is a wildcard.  Optional argument COLOR is
 passed to `mark-visible-calendar-date' as MARK."
   (calendar-mark-1 month day year 'calendar-bahai-from-absolute
-                   'calendar-absolute-from-bahai color))
+                   'calendar-bahai-to-absolute color))
 
 (define-obsolete-function-alias
   'mark-bahai-calendar-date-pattern 'calendar-bahai-mark-date-pattern "23.1")
