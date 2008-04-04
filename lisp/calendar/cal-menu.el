@@ -56,9 +56,9 @@
      ["Monthly" diary-bahai-insert-monthly-entry]
      ["Yearly" diary-bahai-insert-yearly-entry])
     ("Insert Islamic"
-     ["One time" insert-islamic-diary-entry]
-     ["Monthly" insert-monthly-islamic-diary-entry]
-     ["Yearly" insert-yearly-islamic-diary-entry])
+     ["One time" diary-islamic-insert-entry]
+     ["Monthly" diary-islamic-insert-monthly-entry]
+     ["Yearly" diary-islamic-insert-yearly-entry])
     ("Insert Hebrew"
      ["One time" insert-hebrew-diary-entry]
      ["Monthly" insert-monthly-hebrew-diary-entry]
@@ -121,24 +121,24 @@
     ["End of Year" calendar-end-of-year]
     ["Other Date" calendar-goto-date]
     ["Day of Year" calendar-goto-day-of-year]
-    ["ISO Week" calendar-goto-iso-week]
-    ["ISO Date" calendar-goto-iso-date]
-    ["Astronomical Date" calendar-goto-astro-day-number]
+    ["ISO Week" calendar-iso-goto-week]
+    ["ISO Date" calendar-iso-goto-date]
+    ["Astronomical Date" calendar-astro-goto-day-number]
     ["Hebrew Date" calendar-goto-hebrew-date]
-    ["Persian Date" calendar-goto-persian-date]
+    ["Persian Date" calendar-persian-goto-date]
     ["Baha'i Date" calendar-bahai-goto-date]
-    ["Islamic Date" calendar-goto-islamic-date]
-    ["Julian Date" calendar-goto-julian-date]
+    ["Islamic Date" calendar-islamic-goto-date]
+    ["Julian Date" calendar-julian-goto-date]
     ["Chinese Date" calendar-goto-chinese-date]
     ["Coptic Date" calendar-goto-coptic-date]
     ["Ethiopic Date" calendar-goto-ethiopic-date]
     ("Mayan Date"
-     ["Next Tzolkin" calendar-next-tzolkin-date]
-     ["Previous Tzolkin" calendar-previous-tzolkin-date]
-     ["Next Haab" calendar-next-haab-date]
-     ["Previous Haab" calendar-previous-haab-date]
-     ["Next Round" calendar-next-calendar-round-date]
-     ["Previous Round" calendar-previous-calendar-round-date])
+     ["Next Tzolkin" calendar-mayan-next-tzolkin-date]
+     ["Previous Tzolkin" calendar-mayan-previous-tzolkin-date]
+     ["Next Haab" calendar-mayan-next-haab-date]
+     ["Previous Haab" calendar-mayan-previous-haab-date]
+     ["Next Round" calendar-mayan-next-round-date]
+     ["Previous Round" calendar-mayan-previous-round-date])
     ["French Date" calendar-goto-french-date]))
 
 (defconst cal-menu-scroll-menu
