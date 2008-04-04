@@ -345,6 +345,9 @@ Long count is a list (baktun katun tun uinal kin)"
      ;; Days before absolute date 0.
      (- calendar-mayan-days-before-absolute-zero)))
 
+(define-obsolete-function-alias 'calendar-absolute-from-mayan-long-count
+  'calendar-mayan-long-count-to-absolute "23.1")
+
 (defun calendar-mayan-long-count-common-era (lc)
   "Return non-nil if long count LC represents a date in the Common Era."
   (let ((base (calendar-mayan-long-count-from-absolute 1)))
