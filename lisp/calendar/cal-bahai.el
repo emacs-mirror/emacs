@@ -239,12 +239,12 @@ nil if it is not visible in the current calendar window."
 (defun holiday-bahai-ridvan (&optional all)
   "Holidays related to Ridvan, as visible in the calendar window.
 Only considers the first, ninth, and twelfth days, unless ALL or
-`all-bahai-calendar-holidays' is non-nil."
+`calendar-bahai-all-holidays-flag' is non-nil."
   (let ((ord ["First" "Second" "Third" "Fourth" "Fifth" "Sixth"
               "Seventh" "Eighth" "Ninth" "Tenth" "Eleventh" "Twelfth"])
         (show '(0 8 11))
         rid h)
-    (if (or all all-bahai-calendar-holidays)
+    (if (or all calendar-bahai-all-holidays-flag)
         (setq show (number-sequence 0 11)))
     ;; More trouble than it was worth...?
     (dolist (i show (nreverse rid))
