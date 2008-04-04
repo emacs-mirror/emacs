@@ -41,10 +41,10 @@
   "Array of the month names in the Coptic calendar.")
 
 (eval-and-compile
-  (autoload 'calendar-absolute-from-julian "cal-julian"))
+  (autoload 'calendar-julian-to-absolute "cal-julian"))
 
 (defvar coptic-calendar-epoch
-  (eval-when-compile (calendar-absolute-from-julian '(8 29 284)))
+  (eval-when-compile (calendar-julian-to-absolute '(8 29 284)))
   "Absolute date of start of Coptic calendar = August 29, 284 AD (Julian).")
 
 (defvar coptic-name "Coptic"
