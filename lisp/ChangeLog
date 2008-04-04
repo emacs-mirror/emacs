@@ -1,7 +1,11 @@
+2008-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (set-fill-column): Prompt rather than error by default.
+
 2008-04-04  Andreas Schwab  <schwab@suse.de>
 
-	* calendar/cal-dst.el (calendar-time-zone-daylight-rules): Reset
-	new-rules after each round.
+	* calendar/cal-dst.el (calendar-time-zone-daylight-rules):
+	Reset new-rules after each round.
 
 	* Makefile.in (cal-autoloads): New target.
 	(compile, compile-always, recompile): Depend on it.
@@ -15,25 +19,25 @@
 
 	* ediff-hook: deleted all invocations of (autoload ...).
 
-	* ediff-util.el (ediff-setup): make window-min-height a local variable
+	* ediff-util.el (ediff-setup): Make window-min-height a local variable
 	in ediff control window, and set its min height to 2.
-	(ediff-setup-control-buffer): dedicate the control window.
-	(ediff-toggle-multiframe): undedicate control window.
+	(ediff-setup-control-buffer): Dedicate the control window.
+	(ediff-toggle-multiframe): Undedicate control window.
 	Work directly with ediff-setup-windows-multiframe and
 	ediff-setup-windows-plain.
 
-	* ediff-wind (ediff-choose-window-setup-function-automatically): new
-	function.
-	(ediff-window-setup-function): change initialization.
-	(ediff-setup-windows-automatic): deleted.
-	(ediff-setup-windows-plain-merge): make control window dedicated.
-	(ediff-destroy-control-frame): do not skip frames if working in a
+	* ediff-wind (ediff-choose-window-setup-function-automatically):
+	New function.
+	(ediff-window-setup-function): Change initialization.
+	(ediff-setup-windows-automatic): Delete.
+	(ediff-setup-windows-plain-merge): Make control window dedicated.
+	(ediff-destroy-control-frame): Do not skip frames if working in a
 	single frame.
 
-	* emulation/viper-ex.el: move provide's forward, prevent recursion in
+	* emulation/viper-ex.el: Move provide's forward, prevent recursion in
 	eval-when-compile.
 
-	* emulation/viper-util.el: move provide's forward, prevent recursion in
+	* emulation/viper-util.el: Move provide's forward, prevent recursion in
 	eval-when-compile.
 
 2008-04-04  Glenn Morris  <rgm@gnu.org>
@@ -47,8 +51,8 @@
 	Rename islamic-calendar-last-day-of-month.  Update callers.
 	(calendar-islamic-day-number):
 	Rename islamic-calendar-day-number.  Update callers.
-	(calendar-islamic-to-absolute): Rename
-	calendar-absolute-from-islamic.  Update callers, keep old name as alias.
+	(calendar-islamic-to-absolute): Rename calendar-absolute-from-islamic.
+	Update callers, keep old name as alias.
 	(calendar-islamic-print-date): Rename calendar-print-islamic-date.
 	Update callers, keep old name as alias.
 	(calendar-islamic-goto-date): Rename calendar-goto-islamic-date.
@@ -82,9 +86,9 @@
 	Update callers, keep old name as alias.
 	(calendar-astro-to-absolute): Rename calendar-absolute-from-astro.
 	Update callers, keep old name as alias.
-	(calendar-astro-print-day-number): Rename
-	calendar-print-astro-day-number.  Update callers, keep old name as
-	alias.
+	(calendar-astro-print-day-number):
+	Rename calendar-print-astro-day-number.  Update callers, keep old
+	name as alias.
 	(calendar-astro-goto-day-number): Rename calendar-goto-astro-day-number.
 	Update callers, keep old name as alias.
 
@@ -94,24 +98,24 @@
 	Update callers, keep old name as alias.
 	(calendar-mayan-read-haab-date): Rename calendar-read-mayan-haab-date.
 	Update callers.
-	(calendar-mayan-read-tzolkin-date): Rename
-	calendar-read-mayan-tzolkin-date.  Update callers.
+	(calendar-mayan-read-tzolkin-date):
+	Rename calendar-read-mayan-tzolkin-date.  Update callers.
 	(calendar-mayan-next-haab-date): Rename calendar-next-haab-date.
 	Keep old name as alias.
 	(calendar-mayan-previous-haab-date): Rename calendar-previous-haab-date.
 	Keep old name as alias.
 	(calendar-mayan-next-tzolkin-date): Rename calendar-next-tzolkin-date.
 	Keep old name as alias.
-	(calendar-mayan-previous-tzolkin-date): Rename
-	calendar-previous-tzolkin-date.  Keep old name as alias.
-	(calendar-mayan-next-round-date): Rename
-	calendar-next-calendar-round-date.  Keep old name as alias.
-	(calendar-mayan-previous-round-date): Rename
-	calendar-previous-calendar-round-date.  Keep old name as alias.
+	(calendar-mayan-previous-tzolkin-date):
+	Rename calendar-previous-tzolkin-date.  Keep old name as alias.
+	(calendar-mayan-next-round-date):
+	Rename calendar-next-calendar-round-date.  Keep old name as alias.
+	(calendar-mayan-previous-round-date):
+	Rename calendar-previous-calendar-round-date.  Keep old name as alias.
 	(calendar-mayan-long-count-to-absolute): Rename
 	calendar-absolute-from-mayan-long-count.  Keep old name as alias.
-	(calendar-mayan-goto-long-count-date): Rename
-	calendar-goto-mayan-long-count-date.  Keep old name as alias.
+	(calendar-mayan-goto-long-count-date):
+	Rename calendar-goto-mayan-long-count-date.  Keep old name as alias.
 
 	* calendar/cal-persia.el (calendar-persian-month-name-array):
 	Rename persian-calendar-month-name-array.  Update callers.
@@ -119,8 +123,8 @@
 	Update callers.
 	(calendar-persian-leap-year-p): Rename persian-calendar-leap-year-p.
 	Update callers.
-	(calendar-persian-last-day-of-month): Rename
-	persian-calendar-last-day-of-month.  Update callers.
+	(calendar-persian-last-day-of-month):
+	Rename persian-calendar-last-day-of-month.  Update callers.
 	(calendar-persian-to-absolute): Rename calendar-absolute-from-persian.
 	Update callers, keep old name as alias.
 	(calendar-persian-print-date): Rename calendar-print-persian-date.
@@ -142,12 +146,12 @@
 	* calendar/calendar.el (calendar-hebrew-all-holidays-flag):
 	Rename all-hebrew-calendar-holidays.  Update callers, keep old name
 	as alias.
-	(calendar-christian-all-holidays-flag): Rename
-	all-christian-calendar-holidays.  Update callers, keep old name as
-	alias.
-	(calendar-islamic-all-holidays-flag): Rename
-	all-islamic-calendar-holidays.   Update callers, keep old name as
-	alias.
+	(calendar-christian-all-holidays-flag):
+	Rename all-christian-calendar-holidays.  Update callers, keep old
+	name as alias.
+	(calendar-islamic-all-holidays-flag):
+	Rename all-islamic-calendar-holidays.   Update callers, keep old
+	name as alias.
 	(calendar-bahai-all-holidays-flag): Rename all-bahai-calendar-holidays.
 	Update callers, keep old name as alias.
 	* calendar/cal-bahai.el, calendar/cal-hebrew.el, calendar/holidays.el:

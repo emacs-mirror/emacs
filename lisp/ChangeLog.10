@@ -6769,7 +6769,7 @@
 	(ruler-mode-mouse-current-grab-object): New variables.
 	(ruler-mode-comment-column-face, ruler-mode-goal-column-face):
 	New faces.
-	(ruler-mode-mouse-set-fill-column): Removed.
+	(ruler-mode-mouse-set-fill-column): Remove.
 	(ruler-mode-mouse-grab-any-column)
 	(ruler-mode-mouse-drag-any-column-iteration)
 	(ruler-mode-mouse-drag-any-column): New functions.
