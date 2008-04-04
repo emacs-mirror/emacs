@@ -565,7 +565,7 @@ int uniscribe_check_otf (font, otf_spec)
   int i, retval = 0;
 
   /* Check the spec is in the right format.  */
-  if (!CONSP (otf_spec) || Flength (val) < 3)
+  if (!CONSP (otf_spec) || Flength (otf_spec) < 3)
     return 0;
 
   /* Break otf_spec into its components.  */
