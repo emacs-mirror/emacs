@@ -439,7 +439,7 @@ is non-nil)."
           (list (list greg string))))))
 
 ;; Prior call to calendar-julian-from-absolute will autoload cal-julian.
-(declare-function calendar-absolute-from-julian "cal-julian" (date))
+(declare-function calendar-julian-to-absolute "cal-julian" (date))
 
 (defun holiday-greek-orthodox-easter ()
   "Date of Easter according to the rule of the Council of Nicaea."
@@ -456,7 +456,7 @@ is non-nil)."
                 (* 11 (% julian-year 19)))
              30))
          (paschal-moon      ; day after full moon on or after March 21
-          (- (calendar-absolute-from-julian (list 4 19 julian-year))
+          (- (calendar-julian-to-absolute (list 4 19 julian-year))
              shifted-epact))
          (nicaean-easter           ; Sunday following the Paschal moon
           (calendar-gregorian-from-absolute
