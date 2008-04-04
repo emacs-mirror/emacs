@@ -67,7 +67,9 @@
 	(viper-get-saved-cursor-color-in-replace-mode): Get rid of redundant
 	let-statements.
 
-	* emulation/viper*.el: Replace load with require in eval-when-compile.
+	* emulation/viper-ex.el, emulation/viper-macs.el:
+	* emulation/viper-mous.el:
+	Replace load with require in eval-when-compile.
 
 2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
