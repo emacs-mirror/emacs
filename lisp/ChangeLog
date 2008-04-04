@@ -19,10 +19,10 @@
 	(ediff-destroy-control-frame): do not skip frames if working in a
 	single frame.
 	
-	* emulation/viper-ex.el: move provide's forward, prevent ecursion in
+	* emulation/viper-ex.el: move provide's forward, prevent recursion in
 	eval-when-compile.
 	
-	* emulation/viper-util.el: move provide's forward, prevent ecursion in
+	* emulation/viper-util.el: move provide's forward, prevent recursion in
 	eval-when-compile.
 	
 2008-04-04  Glenn Morris  <rgm@gnu.org>
