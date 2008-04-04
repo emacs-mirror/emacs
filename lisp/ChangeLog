@@ -1,5 +1,7 @@
 2008-04-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* vc-bzr.el (vc-bzr-state): Use when instead of if.
+
 	* vc.el (vc-default-status-fileinfo-extra): New function.
 	(vc-status-mark-buffer-changed): Use it.
 	(vc-update-vc-status-buffer): Allow for partial updates.
