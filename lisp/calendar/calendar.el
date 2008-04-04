@@ -1266,7 +1266,7 @@ with disabled undo.  Leaves point at point-min, displays BUFFER."
 ;;   163   hebrew-calendar-last-month-of-year
 ;;    66   calendar-date-compare
 ;;    65   hebrew-calendar-days-in-year
-;;    60   calendar-absolute-from-julian
+;;    60   calendar-julian-to-absolute
 ;;    50   calendar-absolute-from-hebrew
 ;;    43   calendar-date-equal
 ;;    38   calendar-gregorian-from-absolute
@@ -1501,7 +1501,7 @@ line."
    (goto-char (point-min))
    (calendar-insert-indented
     (calendar-string-spread
-     (list (format "%s %d" (calendar-month-name month) year)) ?  20)
+     (list (format "%s %d" (calendar-month-name month) year)) ?\s 20)
     indent t)
    (calendar-insert-indented "" indent) ; go to proper spot
    ;; Use the first two characters of each day to head the columns.
@@ -1599,25 +1599,25 @@ after the inserted text.  Returns t."
     (define-key map "\e=" 'calendar-count-days-region)
     (define-key map "gd"  'calendar-goto-date)
     (define-key map "gD"  'calendar-goto-day-of-year)
-    (define-key map "gj"  'calendar-goto-julian-date)
-    (define-key map "ga"  'calendar-goto-astro-day-number)
+    (define-key map "gj"  'calendar-julian-goto-date)
+    (define-key map "ga"  'calendar-astro-goto-day-number)
     (define-key map "gh"  'calendar-goto-hebrew-date)
-    (define-key map "gi"  'calendar-goto-islamic-date)
+    (define-key map "gi"  'calendar-islamic-goto-date)
     (define-key map "gb"  'calendar-bahai-goto-date)
     (define-key map "gC"  'calendar-goto-chinese-date)
     (define-key map "gk"  'calendar-goto-coptic-date)
     (define-key map "ge"  'calendar-goto-ethiopic-date)
-    (define-key map "gp"  'calendar-goto-persian-date)
-    (define-key map "gc"  'calendar-goto-iso-date)
-    (define-key map "gw"  'calendar-goto-iso-week)
+    (define-key map "gp"  'calendar-persian-goto-date)
+    (define-key map "gc"  'calendar-iso-goto-date)
+    (define-key map "gw"  'calendar-iso-goto-week)
     (define-key map "gf"  'calendar-goto-french-date)
-    (define-key map "gml"  'calendar-goto-mayan-long-count-date)
-    (define-key map "gmpc" 'calendar-previous-calendar-round-date)
-    (define-key map "gmnc" 'calendar-next-calendar-round-date)
-    (define-key map "gmph" 'calendar-previous-haab-date)
-    (define-key map "gmnh" 'calendar-next-haab-date)
-    (define-key map "gmpt" 'calendar-previous-tzolkin-date)
-    (define-key map "gmnt" 'calendar-next-tzolkin-date)
+    (define-key map "gml"  'calendar-mayan-goto-long-count-date)
+    (define-key map "gmpc" 'calendar-mayan-previous-round-date)
+    (define-key map "gmnc" 'calendar-mayan-next-round-date)
+    (define-key map "gmph" 'calendar-mayan-previous-haab-date)
+    (define-key map "gmnh" 'calendar-mayan-next-haab-date)
+    (define-key map "gmpt" 'calendar-mayan-previous-tzolkin-date)
+    (define-key map "gmnt" 'calendar-mayan-next-tzolkin-date)
     (define-key map "Aa"   'appt-add)
     (define-key map "Ad"   'appt-delete)
     (define-key map "S"   'calendar-sunrise-sunset)
@@ -1640,15 +1640,15 @@ after the inserted text.  Returns t."
     (define-key map "pC"  'calendar-print-chinese-date)
     (define-key map "pk"  'calendar-print-coptic-date)
     (define-key map "pe"  'calendar-print-ethiopic-date)
-    (define-key map "pp"  'calendar-print-persian-date)
-    (define-key map "pc"  'calendar-print-iso-date)
-    (define-key map "pj"  'calendar-print-julian-date)
-    (define-key map "pa"  'calendar-print-astro-day-number)
+    (define-key map "pp"  'calendar-persian-print-date)
+    (define-key map "pc"  'calendar-iso-print-date)
+    (define-key map "pj"  'calendar-julian-print-date)
+    (define-key map "pa"  'calendar-astro-print-day-number)
     (define-key map "ph"  'calendar-print-hebrew-date)
-    (define-key map "pi"  'calendar-print-islamic-date)
+    (define-key map "pi"  'calendar-islamic-print-date)
     (define-key map "pb"  'calendar-bahai-print-date)
     (define-key map "pf"  'calendar-print-french-date)
-    (define-key map "pm"  'calendar-print-mayan-date)
+    (define-key map "pm"  'calendar-mayan-print-date)
     (define-key map "po"  'calendar-print-other-dates)
     (define-key map "id"  'insert-diary-entry)
     (define-key map "iw"  'insert-weekly-diary-entry)
@@ -1660,9 +1660,9 @@ after the inserted text.  Returns t."
     (define-key map "ihd" 'insert-hebrew-diary-entry)
     (define-key map "ihm" 'insert-monthly-hebrew-diary-entry)
     (define-key map "ihy" 'insert-yearly-hebrew-diary-entry)
-    (define-key map "iid" 'insert-islamic-diary-entry)
-    (define-key map "iim" 'insert-monthly-islamic-diary-entry)
-    (define-key map "iiy" 'insert-yearly-islamic-diary-entry)
+    (define-key map "iid" 'diary-islamic-insert-entry)
+    (define-key map "iim" 'diary-islamic-insert-monthly-entry)
+    (define-key map "iiy" 'diary-islamic-insert-yearly-entry)
     (define-key map "iBd" 'diary-bahai-insert-entry)
     (define-key map "iBm" 'diary-bahai-insert-monthly-entry)
     (define-key map "iBy" 'diary-bahai-insert-yearly-entry)
@@ -1862,8 +1862,8 @@ the STRINGS are just concatenated and the result truncated."
                (let ((date (condition-case nil
                                (calendar-cursor-to-nearest-date)
                              (error (calendar-current-date)))))
-                 (mapcar 'eval  calendar-mode-line-format))
-               ?  (frame-width)))
+                 (mapcar 'eval calendar-mode-line-format))
+               ?\s (frame-width)))
         (force-mode-line-update))))
 
 (defun calendar-window-list ()
