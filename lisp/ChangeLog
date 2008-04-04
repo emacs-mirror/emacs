@@ -1,3 +1,9 @@
+2008-04-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-default-status-fileinfo-extra): New function.
+	(vc-status-mark-buffer-changed): Use it.
+	(vc-update-vc-status-buffer): Allow for partial updates.
+
 2008-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/tramp.el (after-init-hook): Don't wrap a lambda around

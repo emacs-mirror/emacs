@@ -175,11 +175,19 @@
 ;;   If a command needs to be run to compute this list, it should be
 ;;   run asynchronously using (current-buffer) as the buffer for the
 ;;   command.  When RESULT is computed, it should be passed back by
-;;   doing: (funcall UPDATE-FUNCTION RESULT STATUS-BUFFER) This
-;;   function is used by `vc-status', a replacement for `vc-dired'.
-;;   vc-status is still under development, and is NOT feature
-;;   complete.  As such, the requirements for this function might
-;;   change.  This is a replacement for `dir-state'.
+;;   doing: (funcall UPDATE-FUNCTION RESULT STATUS-BUFFER nil).
+;;   If the backend uses a process filter, hence it produces partial results, 
+;;   they can be passed back by doing:
+;;      (funcall UPDATE-FUNCTION RESULT STATUS-BUFFER t)
+;;   and then do a (funcall UPDATE-FUNCTION RESULT STATUS-BUFFER nil)
+;;   when all the results have been computed.
+;;   To provide more backend specific functionality for `vc-status'
+;;   the following functions might be needed: `status-extra-headers',
+;;   `status-printer', `extra-status-menu' and `status-fileinfo-extra'.
+;;   This function is used by `vc-status', a replacement for
+;;   `vc-dired'.  vc-status is still under development, and is NOT
+;;   feature complete.  As such, the requirements for this function
+;;   might change.  This is a replacement for `dir-state'.
 ;;
 ;; - status-extra-headers (dir)
 ;;
@@ -192,6 +200,10 @@
 ;;   and STATE in the vc-status listing, it can store that extra
 ;;   information in `vc-status-fileinfo->extra'.  This function can be
 ;;   used to display that extra information in the vc-status buffer.
+;;
+;; - status-fileinfo-extra (file)
+;;
+;;   Compute `vc-status-fileinfo->extra' for FILE.
 ;;
 ;; * working-revision (file)
 ;;
@@ -579,6 +591,12 @@
 ;; - add a generic mechanism for remembering the current branch names,
 ;;   display the branch name in the mode-line. Replace
 ;;   vc-cvs-sticky-tag with that.
+;;
+;; - vc-diff should be able to show the diff for all files in a
+;;   changeset, especially for VC systems that have per repository version numbers.
+;;   log-view should take advantage of this.
+;;
+;; - a way to do repository wide log (instead of just per file/fileset) is needed.
 ;;
 ;; - the *VC-log* buffer needs font-locking.
 ;;
@@ -1049,7 +1067,6 @@ BUF defaults to \"*vc*\", can be a string and will be created if necessary."
         (setq mode-line-process
               (let ((status (process-status p)))
                 ;; Leave mode-line uncluttered, normally.
-                ;; (Let known any weirdness in-form-ally. ;-)  --ttn
                 (unless (eq 'exit status)
                   (format " (%s)" status))))
         (let (vc-sentinel-movepoint)
@@ -2659,6 +2676,9 @@ With prefix arg READ-SWITCHES, specify a value to override
 ;;; Experimental code for the vc-dired replacement
 (require 'ewoc)
 
+
+;; Used to store information for the files displayed in the *VC status* buffer.
+;; Each item displayed corresponds to one of these defstructs.
 (defstruct (vc-status-fileinfo
             (:copier nil)
             (:constructor
@@ -2673,9 +2693,15 @@ With prefix arg READ-SWITCHES, specify a value to override
 (defvar vc-status nil)
 
 (defun vc-default-status-extra-headers (backend dir)
+  ;; Be loud by default to remind people to add coded to display
+  ;; backend specific headers.
+  ;; XXX: change this to return nil before the release.
   "Extra      : Add backend specific headers here")
 
 (defun vc-status-headers (backend dir)
+  "Display the headers in the *VC status* buffer.
+It calls the `status-extra-headers' backend method to display backend
+specific headers."
   (concat
    (propertize "VC backend : " 'face 'font-lock-type-face)
    (propertize (format "%s\n" backend) 'face 'font-lock-variable-name-face)
@@ -2710,6 +2736,7 @@ With prefix arg READ-SWITCHES, specify a value to override
     (vc-call-backend backend 'status-printer fileentry)))
 
 (defun vc-status-move-to-goal-column ()
+  ;; Used to keep the cursor on the file name column.
   (beginning-of-line)
   ;; Must be in sync with vc-default-status-printer.
   (forward-char 25))
@@ -2841,7 +2868,11 @@ With prefix arg READ-SWITCHES, specify a value to override
     (define-key map "=" 'vc-diff)   ;; C-x v =
     (define-key map "a" 'vc-status-register)
     (define-key map "+" 'vc-update) ;; C-x v +
+
+    ;;XXX: Maybe use something else here, so we can use 'U' for unmark
+    ;;all, similar to 'M'..
     (define-key map "U" 'vc-revert) ;; u is taken by unmark.
+
     ;; Can't be "g" (as in vc map), so "A" for "Annotate".
     (define-key map "A" 'vc-annotate)
     (define-key map "l" 'vc-print-log) ;; C-x v l
@@ -2869,6 +2900,8 @@ With prefix arg READ-SWITCHES, specify a value to override
 (defun vc-default-extra-status-menu (backend)
   nil)
 
+;; This is used to that VC backends could add backend specific menu
+;; items to vc-status-menu-map.
 (defun vc-status-menu-map-filter (orig-binding)
   (when (and (symbolp orig-binding) (fboundp orig-binding))
     (setq orig-binding (indirect-function orig-binding)))
@@ -2937,7 +2970,11 @@ With prefix arg READ-SWITCHES, specify a value to override
 
 (put 'vc-status-mode 'mode-class 'special)
 
-(defun vc-update-vc-status-buffer (entries buffer)
+(defun vc-update-vc-status-buffer (entries buffer &optional more-to-come)
+  ;; ENTRIES is a list of (FILE VC_STATE EXTRA) items.
+  ;; BUFFER is the *vc-status* buffer to be updated with ENTRIES
+  ;; If MORE-TO-COME is true, then more updates will come from the
+  ;; asynchronous process.
   (with-current-buffer buffer
     (when entries
       ;; Insert the entries we got into the ewoc.
@@ -2956,9 +2993,11 @@ With prefix arg READ-SWITCHES, specify a value to override
 	     (setf (vc-status-fileinfo->marked arg) t)))
 	 vc-status))
       (ewoc-goto-node vc-status (ewoc-nth vc-status 0)))
-    (setq vc-status-process-buffer nil)
-    ;; We are done, turn off the mode-line "in progress" message.
-    (setq mode-line-process nil)))
+    ;; No more updates are expected from the asynchronous process.
+    (unless more-to-come
+      (setq vc-status-process-buffer nil)
+      ;; We are done, turn off the mode-line "in progress" message.
+      (setq mode-line-process nil))))
 
 (defun vc-status-add-entry (entry buffer)
   ;; Add one ENTRY to the vc-status buffer BUFFER.
@@ -3020,7 +3059,7 @@ Throw an error if another update process is in progress."
       ;; takes too long.
       (setq vc-status-process-buffer
 	    (get-buffer-create
-	     (generate-new-buffer-name (format " *VC-%s* status" backend))))
+	     (generate-new-buffer-name (format " *VC-%s* tmp status" backend))))
       (with-current-buffer vc-status-process-buffer
 	(cd def-dir)
 	(erase-buffer)
@@ -3207,12 +3246,11 @@ that share the same state."
    vc-status
    (lambda (crt) (not (eq (vc-status-fileinfo->state crt) 'up-to-date)))))
 
+(defun vc-default-status-fileinfo-extra (backend file)
+  nil)
+
 (defun vc-status-mark-buffer-changed (&optional fname)
   (let* ((file (or fname (expand-file-name buffer-file-name)))
-	 (state (and (vc-backend file) (vc-state file)))
-	 ;; XXX: EXTRA is not set here.
-	 ;; It might need to be.
-	 (extra nil)
 	 (found-vc-status-buf nil))
     (save-excursion
       (dolist (status-buf (buffer-list))
@@ -3223,9 +3261,17 @@ that share the same state."
 	  (let ((ddir (expand-file-name default-directory)))
 	    ;; This test is cvs-string-prefix-p
 	    (when (eq t (compare-strings file nil (length ddir) ddir nil nil))
-	      (let* ((file-short (substring file (length ddir)))
-		     (entry
-		      (list file-short (if state state 'unregistered) extra)))
+	      (let*
+		  ((file-short (substring file (length ddir)))
+		   (backend (vc-backend file))
+		   (state (and backend (vc-state file)))
+		   ;; XXX: EXTRA is not set here.
+		   ;; It might need to be.
+		   (extra
+		    (and backend
+			 (vc-call-backend backend 'status-fileinfo-extra file)))
+		   (entry
+		    (list file-short (if state state 'unregistered) extra)))
 		(vc-status-add-entry entry status-buf))))))
       ;; We didn't find any vc-status buffers, remove the hook, it is
       ;; not needed.
