@@ -1,16 +1,24 @@
+2008-04-04  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (cal-autoloads): New target.
+	(compile, compile-always, recompile): Depend on it.
+	($(lisp)/calendar/cal-loaddefs.el)
+	($(lisp)/calendar/diary-loaddefs.el)
+	($(lisp)/calendar/hol-loaddefs.el): Depend on calendar/*.el.
+
 2008-04-04  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* ediff*el: replaced load with require in eval-when-compile.
-	
+
 	* ediff-hook: deleted all invocations of (autoload ...).
-	
+
 	* ediff-util.el (ediff-setup): make window-min-height a local variable
 	in ediff control window, and set its min height to 2.
 	(ediff-setup-control-buffer): dedicate the control window.
 	(ediff-toggle-multiframe): undedicate control window.
 	Work directly with ediff-setup-windows-multiframe and
 	ediff-setup-windows-plain.
-	
+
 	* ediff-wind (ediff-choose-window-setup-function-automatically): new
 	function.
 	(ediff-window-setup-function): change initialization.
@@ -18,13 +26,13 @@
 	(ediff-setup-windows-plain-merge): make control window dedicated.
 	(ediff-destroy-control-frame): do not skip frames if working in a
 	single frame.
-	
+
 	* emulation/viper-ex.el: move provide's forward, prevent recursion in
 	eval-when-compile.
-	
+
 	* emulation/viper-util.el: move provide's forward, prevent recursion in
 	eval-when-compile.
-	
+
 2008-04-04  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/cal-bahai.el (calendar-bahai-to-absolute): Rename
