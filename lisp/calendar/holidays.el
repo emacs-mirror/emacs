@@ -389,7 +389,7 @@ Nth day before or after Easter.
 
 For backwards compatibility, if this function is called with no
 arguments, then it returns a list of \"standard\" Easter-related
-holidays (with more entries if `all-christian-calendar-holidays'
+holidays (with more entries if `calendar-christian-all-holidays-flag'
 is non-nil)."
   ;; Backwards compatibility layer.
   (if (not n)
@@ -398,7 +398,7 @@ is non-nil)."
                        (apply 'holiday-easter-etc e))
                      ;; The combined list is not in order.
                      (append
-                      (if all-christian-calendar-holidays
+                      (if calendar-christian-all-holidays-flag
                           '((-63 "Septuagesima Sunday")
                             (-56 "Sexagesima Sunday")
                             (-49 "Shrove Sunday")
