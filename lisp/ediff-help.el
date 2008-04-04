@@ -31,10 +31,8 @@
 (defvar ediff-multiframe)
 
 (eval-when-compile
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil t 'nosuffix))
-    ))
+  (require 'ediff-init)
+  )
 ;; end pacifier
 
 (require 'ediff-init)

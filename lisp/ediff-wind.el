@@ -46,17 +46,11 @@
 
 
 (eval-when-compile
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil t 'nosuffix))
-    (or (featurep 'ediff-util)
-	(load "ediff-util.el" nil t 'nosuffix))
-    (or (featurep 'ediff-help)
-	(load "ediff-help.el" nil t 'nosuffix))
-    (or (featurep 'ediff-tbar)
-	(featurep 'emacs)
-	(load "ediff-tbar.el" 'noerror nil 'nosuffix))
-    ))
+  (require 'ediff-init)
+  (require 'ediff-util)
+  (require 'ediff-help)
+  (require 'ediff-tbar nil 'noerror)
+  )
 ;; end pacifier
 
 (require 'ediff-init)
@@ -76,17 +70,24 @@
   :group 'frames)
 
 
-(defcustom ediff-window-setup-function 'ediff-setup-windows-automatic
-  "*Function called to set up windows.
-Ediff provides a choice of three functions: `ediff-setup-windows-plain', for
-doing everything in one frame, `ediff-setup-windows-multiframe', which sets
-the control panel in a separate frame, and
-`ediff-setup-windows-automatic' (the default), which chooses an appropriate
-behavior based on the current window system.  If the multiframe function
-detects that one of the buffers A/B is seen in some other frame, it will try
-to keep that buffer in that frame.
+;; Determine which window setup function to use based on current window system.
+(defun ediff-choose-window-setup-function-automatically ()
+  (if (ediff-window-display-p)
+      'ediff-setup-windows-multiframe
+    'ediff-setup-windows-plain))
 
-If you don't like the two functions provided---write your own one.
+(defcustom ediff-window-setup-function (ediff-choose-window-setup-function-automatically)
+  "*Function called to set up windows.
+Ediff provides a choice of two functions: `ediff-setup-windows-plain', for
+doing everything in one frame and `ediff-setup-windows-multiframe', which sets
+the control panel in a separate frame. By default, the appropriate function is
+chosen automatically depending on the current window system.
+However, `ediff-toggle-multiframe' can be used to toggle between the multiframe
+display and the single frame display.
+If the multiframe function detects that one of the buffers A/B is seen in some
+other frame, it will try to keep that buffer in that frame.
+
+If you don't like any of the two provided functions, write your own one.
 The basic guidelines:
     1. It should leave the control buffer current and the control window
        selected.
@@ -98,8 +99,7 @@ The basic guidelines:
        Buffer C may not be used in jobs that compare only two buffers.
 If you plan to do something fancy, take a close look at how the two
 provided functions are written."
-  :type '(choice (const :tag "Automatic" ediff-setup-windows-automatic)
-		 (const :tag "Multi Frame" ediff-setup-windows-multiframe)
+  :type '(choice (const :tag "Multi Frame" ediff-setup-windows-multiframe)
 		 (const :tag "Single Frame" ediff-setup-windows-plain)
 		 (function :tag "Other function"))
   :group 'ediff-window)
@@ -294,8 +294,7 @@ into icons, regardless of the window manager."
 ;; Select the lowest window on the frame.
 (defun ediff-select-lowest-window ()
   (if (featurep 'xemacs)
-      (select-window (frame-lowest-window)) ; xemacs
-    ;; emacs
+      (select-window (frame-lowest-window))
     (let* ((lowest-window (selected-window))
 	   (bottom-edge (car (cdr (cdr (cdr (window-edges))))))
 	   (last-window (save-excursion
@@ -337,12 +336,6 @@ into icons, regardless of the window manager."
        buffer-A buffer-B buffer-C control-buffer))
   (run-hooks 'ediff-after-setup-windows-hook))
 
-;; Set up windows using the correct method based on the current window system.
-(defun ediff-setup-windows-automatic (buffer-A buffer-B buffer-C control-buffer)
-  (if (ediff-window-display-p)
-      (ediff-setup-windows-multiframe buffer-A buffer-B buffer-C control-buffer)
-    (ediff-setup-windows-plain buffer-A buffer-B buffer-C control-buffer)))
-
 ;; Just set up 3 windows.
 ;; Usually used without windowing systems
 ;; With windowing, we want to use dedicated frames.
@@ -367,6 +360,7 @@ into icons, regardless of the window manager."
 	    ;; this lets us have local versions of ediff-split-window-function
 	    split-window-function ediff-split-window-function))
     (delete-other-windows)
+    (set-window-dedicated-p (selected-window) nil)
     (split-window-vertically)
     (ediff-select-lowest-window)
     (ediff-setup-control-buffer control-buffer)
@@ -426,6 +420,7 @@ into icons, regardless of the window manager."
 	    split-window-function ediff-split-window-function
 	    three-way-comparison ediff-3way-comparison-job))
     (delete-other-windows)
+    (set-window-dedicated-p (selected-window) nil)
     (split-window-vertically)
     (ediff-select-lowest-window)
     (ediff-setup-control-buffer control-buffer)
@@ -895,7 +890,7 @@ into icons, regardless of the window manager."
    (or
     ;; only one window
     (eq wind (next-window wind 'ignore-minibuffer (window-frame wind)))
-    ;; none is dedicated
+    ;; none is dedicated (in multiframe setup)
     (not (ediff-frame-has-dedicated-windows (window-frame wind)))
     )))
 
@@ -908,8 +903,8 @@ into icons, regardless of the window manager."
 	fheight fwidth adjusted-parameters)
 
     (ediff-with-current-buffer ctl-buffer
-      (if (featurep 'xemacs)
-	  (if (featurep 'menubar) (set-buffer-menubar nil)))
+      (if (and (featurep 'xemacs) (featurep 'menubar))
+	  (set-buffer-menubar nil))
       ;;(setq user-grabbed-mouse (ediff-user-grabbed-mouse))
       (run-hooks 'ediff-before-setup-control-frame-hook))
 
@@ -921,9 +916,8 @@ into icons, regardless of the window manager."
 	    ediff-control-frame ctl-frame)
       ;; protect against undefined face-attribute
       (condition-case nil
-	  (unless (featurep 'xemacs)
-	    (when (face-attribute 'mode-line :box)
-	      (set-face-attribute 'mode-line ctl-frame :box nil)))
+	  (if (and (featurep 'emacs) (face-attribute 'mode-line :box))
+	      (set-face-attribute 'mode-line ctl-frame :box nil))
 	(error)))
 
     (setq ctl-frame-iconified-p (ediff-frame-iconified-p ctl-frame))
@@ -1048,11 +1042,12 @@ into icons, regardless of the window manager."
   (ediff-with-current-buffer ctl-buffer
     (if (and (ediff-window-display-p) (frame-live-p ediff-control-frame))
 	(let ((ctl-frame ediff-control-frame))
-	  (if (featurep 'xemacs)
-	      (if (featurep 'menubar) (set-buffer-menubar default-menubar)))
+	  (if (and (featurep 'xemacs) (featurep 'menubar))
+	      (set-buffer-menubar default-menubar))
 	  (setq ediff-control-frame nil)
 	  (delete-frame ctl-frame))))
-  (ediff-skip-unsuitable-frames)
+  (if ediff-multiframe
+      (ediff-skip-unsuitable-frames))
   ;;(ediff-reset-mouse nil)
   )
 

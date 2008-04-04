@@ -46,7 +46,8 @@
 ;; in order to spare non-viperized emacs from being viperized
 (if noninteractive
     (eval-when-compile
-      (require 'viper-cmd)
+      (if (not (featurep 'viper-cmd))
+	  (require 'viper-cmd))
       ))
 ;; end pacifier
 

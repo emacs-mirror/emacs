@@ -107,30 +107,30 @@
 
 ;;; Code:
 
+(provide 'ediff)
 
 ;; Compiler pacifier
 (defvar cvs-cookie-handle)
 (defvar ediff-last-dir-patch)
 (defvar ediff-patch-default-directory)
+(defvar ediff-control-window)
 
 (eval-and-compile
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
 
 
 (eval-when-compile
-  (and noninteractive
-       (load "dired" nil t))
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (provide 'ediff) ; to break recursive load cycle
-    (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil t 'nosuffix))
-    (or (featurep 'ediff-mult)
-	(load "ediff-mult.el" nil t 'nosuffix))
-    (or (featurep 'ediff-ptch)
-	(load "ediff-ptch.el" nil t 'nosuffix))
-    (or (featurep 'ediff-vers)
-	(load "ediff-vers.el" nil t 'nosuffix))
-    ))
+  (require 'dired)
+  (require 'ediff-init)
+  (if (not (featurep 'ediff-mult))
+      (require 'ediff-mult))
+  (if (not (featurep 'ediff-util))
+      (require 'ediff-util))
+  (require 'ediff-wind)
+  (if (not (featurep 'ediff-ptch))
+      (require 'ediff-ptch))
+  (require 'ediff-vers)
+  )
 ;; end pacifier
 
 (require 'ediff-init)
@@ -1512,8 +1512,6 @@ With optional NODE, goes to that node."
 (require 'ediff-util)
 
 (run-hooks 'ediff-load-hook)
-
-(provide 'ediff)
 
 
 ;;; Local Variables:

@@ -26,6 +26,9 @@
 
 ;;; Code:
 
+(provide 'viper-util)
+
+
 ;; Compiler pacifier
 (defvar viper-overriding-map)
 (defvar pm-color-alist)
@@ -1555,9 +1558,6 @@ This option is appropriate if you like Emacs-style words."
 		 (setq i (1+ i) start (1+ start)))
 	       res))))))
 
-
-
-(provide 'viper-util)
 
 
 ;;; Local Variables:

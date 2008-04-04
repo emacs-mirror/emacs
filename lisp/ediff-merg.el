@@ -35,12 +35,9 @@
 (defvar ediff-window-config-saved)
 
 (eval-when-compile
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil t 'nosuffix))
-    (or (featurep 'ediff-util)
-	(load "ediff-util.el" nil t 'nosuffix))
-    ))
+  (require 'ediff-init)
+  (require 'ediff-util)
+  )
 ;; end pacifier
 
 (require 'ediff-init)

@@ -795,7 +795,7 @@ to temp files when Ediff needs to find fine differences."
 
 (if (ediff-has-face-support-p)
     (if (featurep 'xemacs)
-	(progn ; xemacs
+	(progn
 	  (defalias 'ediff-valid-color-p 'valid-color-name-p)
 	  (defalias 'ediff-get-face 'get-face))
       (defalias 'ediff-valid-color-p (if (fboundp 'color-defined-p)
@@ -805,7 +805,7 @@ to temp files when Ediff needs to find fine differences."
 
 (if (ediff-window-display-p)
     (if (featurep 'xemacs)
-	(progn   ; xemacs
+	(progn
 	  (defalias 'ediff-display-pixel-width 'device-pixel-width)
 	  (defalias 'ediff-display-pixel-height 'device-pixel-height))
       (defalias 'ediff-display-pixel-width

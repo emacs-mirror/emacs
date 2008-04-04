@@ -52,19 +52,19 @@
 ;;;###autoload
 (if (featurep 'xemacs)
     (progn
-    (defun ediff-xemacs-init-menus ()
-      (when (featurep 'menubar)
-	(add-submenu
-	 '("Tools") ediff-menu "OO-Browser...")
-	(add-submenu
-	 '("Tools") ediff-merge-menu "OO-Browser...")
-	(add-submenu
-	 '("Tools") epatch-menu "OO-Browser...")
-	(add-submenu
-	 '("Tools") ediff-misc-menu "OO-Browser...")
-	(add-menu-button
-	 '("Tools") "-------" "OO-Browser...")
-	))
+      (defun ediff-xemacs-init-menus ()
+	(when (featurep 'menubar)
+	  (add-submenu
+	   '("Tools") ediff-menu "OO-Browser...")
+	  (add-submenu
+	   '("Tools") ediff-merge-menu "OO-Browser...")
+	  (add-submenu
+	   '("Tools") epatch-menu "OO-Browser...")
+	  (add-submenu
+	   '("Tools") ediff-misc-menu "OO-Browser...")
+	  (add-menu-button
+	   '("Tools") "-------" "OO-Browser...")
+	  ))
       (defvar ediff-menu
 	'("Compare"
 	  ["Two Files..."  ediff-files t]
@@ -85,47 +85,47 @@
 	  ["Regions Line-by-line..." ediff-regions-linewise t]
 	  ))
       (defvar ediff-merge-menu
-      '("Merge"
-	["Files..."  ediff-merge-files t]
-	["Files with Ancestor..." ediff-merge-files-with-ancestor t]
-	["Buffers..."  ediff-merge-buffers t]
-	["Buffers with Ancestor..."
-	 ediff-merge-buffers-with-ancestor t]
-	"---"
-	["Directories..."  ediff-merge-directories t]
-	["Directories with Ancestor..."
-	 ediff-merge-directories-with-ancestor t]
-	"---"
-	["Revisions..."  ediff-merge-revisions t]
-	["Revisions with Ancestor..."
-	 ediff-merge-revisions-with-ancestor t]
-	["Directory Revisions..." ediff-merge-directory-revisions t]
-	["Directory Revisions with Ancestor..."
-	 ediff-merge-directory-revisions-with-ancestor t]
-	))
+	'("Merge"
+	  ["Files..."  ediff-merge-files t]
+	  ["Files with Ancestor..." ediff-merge-files-with-ancestor t]
+	  ["Buffers..."  ediff-merge-buffers t]
+	  ["Buffers with Ancestor..."
+	   ediff-merge-buffers-with-ancestor t]
+	  "---"
+	  ["Directories..."  ediff-merge-directories t]
+	  ["Directories with Ancestor..."
+	   ediff-merge-directories-with-ancestor t]
+	  "---"
+	  ["Revisions..."  ediff-merge-revisions t]
+	  ["Revisions with Ancestor..."
+	   ediff-merge-revisions-with-ancestor t]
+	  ["Directory Revisions..." ediff-merge-directory-revisions t]
+	  ["Directory Revisions with Ancestor..."
+	   ediff-merge-directory-revisions-with-ancestor t]
+	  ))
       (defvar epatch-menu
-      '("Apply Patch"
-	["To a file..."  ediff-patch-file t]
-	["To a buffer..." ediff-patch-buffer t]
-	))
+	'("Apply Patch"
+	  ["To a file..."  ediff-patch-file t]
+	  ["To a buffer..." ediff-patch-buffer t]
+	  ))
       (defvar ediff-misc-menu
-      '("Ediff Miscellanea"
-	["Ediff Manual" ediff-documentation t]
-	["Customize Ediff" ediff-customize t]
-	["List Ediff Sessions" ediff-show-registry t]
-	["Use separate frame for Ediff control buffer"
-	 ediff-toggle-multiframe
-	 :style toggle
-	 :selected (if (and (featurep 'ediff-util)
-			    (boundp 'ediff-window-setup-function))
-		       (eq ediff-window-setup-function
-			   'ediff-setup-windows-multiframe))]
-	["Use a toolbar with Ediff control buffer"
-	 ediff-toggle-use-toolbar
-	 :style toggle
-	 :selected (if (featurep 'ediff-tbar)
-		       (ediff-use-toolbar-p))]))
-
+	'("Ediff Miscellanea"
+	  ["Ediff Manual" ediff-documentation t]
+	  ["Customize Ediff" ediff-customize t]
+	  ["List Ediff Sessions" ediff-show-registry t]
+	  ["Use separate frame for Ediff control buffer"
+	   ediff-toggle-multiframe
+	   :style toggle
+	   :selected (if (and (featurep 'ediff-util)
+			      (boundp 'ediff-window-setup-function))
+			 (eq ediff-window-setup-function
+			     'ediff-setup-windows-multiframe))]
+	  ["Use a toolbar with Ediff control buffer"
+	   ediff-toggle-use-toolbar
+	   :style toggle
+	   :selected (if (featurep 'ediff-tbar)
+			 (ediff-use-toolbar-p))]))
+      
       ;; put these menus before Object-Oriented-Browser in Tools menu
       (if (and (featurep 'menubar) (not (featurep 'infodock))
 	       (not (featurep 'ediff-hook)))
@@ -143,7 +143,7 @@
 	(symbol-value 'menu-bar-ediff-merge-menu))
   (defvar menu-bar-ediff-menu (make-sparse-keymap "Compare"))
   (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu))
-
+  
   ;; define ediff-menu
   (define-key menu-bar-ediff-menu [window]
     '("This Window and Next Window" . compare-windows))
@@ -227,6 +227,7 @@
     '("Ediff Manual" . ediff-documentation)))
 
 (provide 'ediff-hook)
+
 
 ;;; arch-tag: 512f8656-8a4b-4789-af5d-5c6144498df3
 ;;; ediff-hook.el ends here

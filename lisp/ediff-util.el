@@ -27,6 +27,8 @@
 ;;; Code:
 
 
+(provide 'ediff-util)
+
 ;; Compiler pacifier
 (defvar ediff-patch-diagnostics)
 (defvar ediff-patchbufer)
@@ -45,26 +47,18 @@
   (unless (fboundp 'declare-function) (defmacro declare-function (&rest  r))))
 
 (eval-when-compile
-  (let ((load-path (cons (expand-file-name ".") load-path)))
-    (provide 'ediff-util) ; to break recursive load cycle
-    (or (featurep 'ediff-init)
-	(load "ediff-init.el" nil t 'nosuffix))
-    (or (featurep 'ediff-help)
-	(load "ediff-help.el" nil t 'nosuffix))
-    (or (featurep 'ediff-mult)
-	(load "ediff-mult.el" nil t 'nosuffix))
-    (or (featurep 'ediff-wind)
-	(load "ediff-wind.el" nil t 'nosuffix))
-    (or (featurep 'ediff-diff)
-	(load "ediff-diff.el" nil t 'nosuffix))
-    (or (featurep 'ediff-merg)
-	(load "ediff-merg.el" nil t 'nosuffix))
-    (or (featurep 'ediff)
-	(load "ediff.el" nil t 'nosuffix))
-    (or (featurep 'ediff-tbar)
-	(featurep 'emacs)
-	(load "ediff-tbar.el" 'noerror nil 'nosuffix))
-    ))
+  (require 'ediff-init)
+  (require 'ediff-help)
+  (if (not (featurep 'ediff-mult))
+      (require 'ediff-mult))
+  (require 'ediff-mult)
+  (require 'ediff-wind)
+  (if (not (featurep 'ediff-diff))
+      (require 'ediff-diff))
+  (require 'ediff-merg)
+  (require 'ediff)
+  (require 'ediff-tbar nil 'noerror)
+  )
 ;; end pacifier
 
 
@@ -305,6 +299,9 @@ to invocation.")
       (make-local-variable 'ediff-merge-window-share)
       (make-local-variable 'ediff-window-setup-function)
       (make-local-variable 'ediff-keep-variants)
+
+      (make-local-variable 'window-min-height)
+      (setq window-min-height 2)
 
       (if (featurep 'xemacs)
 	  (make-local-hook 'ediff-after-quit-hook-internal))
@@ -581,6 +578,7 @@ to invocation.")
 		  (ediff-multiframe-setup-p)
 		  ediff-wide-display-p))
 
+    (set-window-dedicated-p (selected-window) t)
     ;; In multiframe, toolbar is set in ediff-setup-control-frame
     (if (not (ediff-multiframe-setup-p))
 	(ediff-make-bottom-toolbar)) ; this checks if toolbar is requested
@@ -1305,11 +1303,21 @@ which see."
 	       (if (featurep 'emacs) "" "X")))
 
   (cond ((eq ediff-window-setup-function 'ediff-setup-windows-multiframe)
+	 (setq ediff-multiframe nil)
 	 (setq window-setup-func 'ediff-setup-windows-plain))
 	((eq ediff-window-setup-function 'ediff-setup-windows-plain)
 	 (if (ediff-in-control-buffer-p)
 	     (ediff-kill-bottom-toolbar))
-	 (setq window-setup-func 'ediff-setup-windows-multiframe)))
+	 (if (ediff-buffer-live-p ediff-control-buffer)
+	     (set-window-dedicated-p ediff-control-window nil))
+	 (setq ediff-multiframe t)
+	 (setq window-setup-func 'ediff-setup-windows-multiframe))
+	(t
+	 (if (ediff-buffer-live-p ediff-control-buffer)
+	     (set-window-dedicated-p ediff-control-window nil))
+	 (setq ediff-multiframe t)
+	 (setq window-setup-func 'ediff-setup-windows-multiframe))
+	)
 
   ;; change default
   (setq-default ediff-window-setup-function window-setup-func)
@@ -3406,13 +3414,11 @@ Without an argument, it saves customized diff argument, if available
     (unless (and buf-A-file-name
 		 (file-exists-p buf-A-file-name)
 		 (not (ediff-file-remote-p buf-A-file-name)))
-      (setq file-A
-	    (ediff-make-temp-file ediff-buffer-A)))
+      (setq file-A (ediff-make-temp-file ediff-buffer-A)))
     (unless (and buf-B-file-name
 		 (file-exists-p buf-B-file-name)
 		 (not (ediff-file-remote-p buf-B-file-name)))
-      (setq file-B
-	    (ediff-make-temp-file ediff-buffer-B)))
+      (setq file-B (ediff-make-temp-file ediff-buffer-B)))
     (or (ediff-buffer-live-p ediff-custom-diff-buffer)
 	(setq ediff-custom-diff-buffer
 	      (get-buffer-create
@@ -3424,14 +3430,16 @@ Without an argument, it saves customized diff argument, if available
      ediff-custom-diff-program ediff-custom-diff-buffer 'synchronize
      ediff-custom-diff-options
      ;; repetition of buf-A-file-name is needed so it'll return a file
-     (or file-A buf-A-file-name)
-     (or file-B buf-B-file-name))
+     (or (and buf-A-file-name (file-exists-p buf-A-file-name) buf-A-file-name)
+	 file-A)
+     (or (and buf-B-file-name (file-exists-p buf-B-file-name) buf-B-file-name)
+	 file-B))
     ;; put the diff file in diff-mode, if it is available
     (if (fboundp 'diff-mode)
 	(with-current-buffer ediff-custom-diff-buffer
 	  (diff-mode)))
-    (and file-A (delete-file file-A))
-    (and file-B (delete-file file-B))
+    (and file-A (file-exists-p file-A) (delete-file file-A))
+    (and file-B (file-exists-p file-B) (delete-file file-B))
     ))
 
 (defun ediff-show-diff-output (arg)
@@ -4045,13 +4053,12 @@ Mail anyway? (y or n) ")
   (if (featurep 'xemacs)
       (zmacs-deactivate-region)
     (deactivate-mark)))
+
 (defun ediff-activate-mark ()
   (if (featurep 'xemacs)
       (zmacs-activate-region)
-    (progn
-      (make-local-variable 'transient-mark-mode)
-      (setq mark-active t
-	    transient-mark-mode t))))
+    (make-local-variable 'transient-mark-mode)
+    (setq mark-active t transient-mark-mode t)))
 
 (defun ediff-nuke-selective-display ()
   (if (featurep 'xemacs)
@@ -4279,8 +4286,6 @@ Mail anyway? (y or n) ")
 ;;(ediff-load-version-control 'silent)
 
 (run-hooks 'ediff-load-hook)
-
-(provide 'ediff-util)
 
 
 ;; Local Variables:

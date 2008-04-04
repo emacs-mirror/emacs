@@ -36,13 +36,11 @@
 
 (and noninteractive
      (eval-when-compile
-       (let ((load-path (cons (expand-file-name ".") load-path)))
-	 (load "pcl-cvs" 'noerror)
-	 (load "rcs" 'noerror)
-	 ;; (load "vc" 'noerror) ; this sometimes causes compiler error
-	 (or (featurep 'ediff-init)
-	     (load "ediff-init.el" nil t 'nosuffix))
-	 )))
+       (require 'pcvs nil 'noerror)
+       (require 'rcs nil 'noerror)
+       (require 'vc)
+       (require 'ediff-init)
+       ))
 ;; end pacifier
 
 (defcustom ediff-keep-tmp-versions nil
