@@ -1,3 +1,7 @@
+2008-04-04  Jason Rumney  <jasonr@gnu.org>
+
+	* INSTALL: Update W32 API requirements.
+
 2008-04-03  Jason Rumney  <jasonr@gnu.org>
 
 	* gmake.defs, nmake.defs (UNISCRIBE): New variable.
