@@ -487,10 +487,11 @@ Point is assumed to be just at the end of a comment."
       ;; comment-end = ""
       (progn (backward-char) (skip-syntax-backward " "))
     (cond
-     ((save-restriction
-        (narrow-to-region (line-beginning-position) (point))
-        (goto-char (point-min))
-        (re-search-forward (concat comment-end-skip "\\'") nil t))
+     ((save-excursion
+        (save-restriction
+          (narrow-to-region (line-beginning-position) (point))
+          (goto-char (point-min))
+          (re-search-forward (concat comment-end-skip "\\'") nil t)))
       (goto-char (match-beginning 0)))
      ;; comment-end-skip not found.  Maybe we're at EOB which implicitly
      ;; closes the comment.

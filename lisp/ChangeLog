@@ -1,3 +1,8 @@
+2008-04-04  Stephen Berman  <Stephen.Berman@gmx.net>
+
+	* newcomment.el (comment-enter-backward): Be careful to restore
+	position changed during narrowing.
+
 2008-04-03  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-mouse-set-clear-breakpoint):
@@ -10,8 +15,8 @@
 
 2008-04-02  Alan Mackenzie  <acm@muc.de>
 
-	* progmodes/cc-cmds.el (c-defun-name, c-cpp-define-name): New
-	optimised functions to get the name of the current defun/macro.
+	* progmodes/cc-cmds.el (c-defun-name, c-cpp-define-name):
+	New optimised functions to get the name of the current defun/macro.
 
 	* add-log.el (add-log-current-defun): Move the functionality which
 	gets the current function name for C like modes to cc-cmds.el,
