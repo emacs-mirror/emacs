@@ -612,7 +612,6 @@ int uniscribe_check_otf (font, otf_spec)
       unsigned short script_table, langsys_table, n_langs;
       unsigned short feature_index, n_features;
       DWORD tbl = feature_tables[i];
-      Lisp_Object feature;
 
       /* Skip if no features requested from this table.  */
       if (NILP (features[i]))
@@ -680,10 +679,9 @@ int uniscribe_check_otf (font, otf_spec)
       /* Check the features.  Features may contain nil according to
 	 documentation in font_prop_validate_otf, so count them.  */
       n_match_features = 0;
-      rest = features[i];
-      for (feature = XCAR (rest); CONSP (rest); feature = CAR_SAFE (rest))
+      for (rest = features[i]; CONSP (rest); rest = XCDR (rest))
 	{
-	  rest = XCDR (rest);
+	  Lisp_Object feature = XCAR (rest);
 	  if (!NILP (feature))
 	    n_match_features++;
 	}
