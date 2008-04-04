@@ -1,3 +1,9 @@
+2008-04-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hilit-chg.el (global-highlight-changes-mode)
+	(highlight-changes-passive-string, highlight-changes-active-string):
+	Mark as obsolete since 23.1, not 22.1.
+
 2008-04-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* hilit-chg.el (highlight-changes-visibility-initial-state)
