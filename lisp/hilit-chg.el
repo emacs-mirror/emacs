@@ -270,7 +270,7 @@ a string with a leading space."
   :group 'highlight-changes)
 
 (define-obsolete-variable-alias 'highlight-changes-active-string
-  'highlight-changes-visible-string "22.1")
+  'highlight-changes-visible-string "23.1")
 
 (defcustom highlight-changes-invisible-string " -Chg"
   "The string used when in Highlight Changes mode and changes are hidden.
@@ -281,7 +281,7 @@ a string with a leading space."
   :group 'highlight-changes)
 
 (define-obsolete-variable-alias 'highlight-changes-passive-string
-  'highlight-changes-invisible-string "22.1")
+  'highlight-changes-invisible-string "23.1")
 
 
 
@@ -998,12 +998,12 @@ changes are made, so \\[highlight-changes-next-change] and
 ;; ======================= global-highlight-changes-mode ==============
 
 ;;;###autoload
-(define-globalized-minor-mode global-highlight-changes-mode 
+(define-globalized-minor-mode global-highlight-changes-mode
   highlight-changes-mode highlight-changes-mode-turn-on)
 
 (define-obsolete-function-alias
  'global-highlight-changes
-  'global-highlight-changes-mode "22.1")
+  'global-highlight-changes-mode "23.1")
 
 (defun highlight-changes-mode-turn-on ()
   "See if Highlight Changes mode should be turned on for this buffer.
