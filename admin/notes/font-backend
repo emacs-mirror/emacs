@@ -25,9 +25,13 @@ The new files are:
 		utilizing methods provided by ftfont.c.
 	w32font.c -- font driver on w32 using Windows native fonts,
 		corresponding to xfont.c
+	w32uniscribe.c -- font driver on w32, using the uniscribe API
+	        to provide complex script support for opentype fonts on
+		Windows 2000 and later, or earlier versions of Windows
+		with uniscribe installed as an add-on.
 
-So we already have codes for X.  For the other systems (w32 and mac),
-it seems that we need these files:
+So we already have codes for X and w32.  For Mac it seems that we need
+these files:
 	atmfont.c -- font-driver on mac using ATM fonts, corresponding
 		to xfont.c
 As BDF fonts are currently used on w32, we may also implement these:
