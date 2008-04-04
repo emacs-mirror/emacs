@@ -168,12 +168,12 @@ you will probably also want to add `include-other-diary-files' to
   "List of functions called for listing diary file and included files.
 As the files are processed for diary entries, these functions are used
 to cull relevant entries.  You can use any or all of
-`list-hebrew-diary-entries', `list-islamic-diary-entries' and
+`list-hebrew-diary-entries', `diary-islamic-list-entries' and
 `diary-bahai-list-entries'.  The documentation for these functions
 describes the style of such diary entries."
   :type 'hook
   :options '(list-hebrew-diary-entries
-             list-islamic-diary-entries
+             diary-islamic-list-entries
              diary-bahai-list-entries)
   :group 'diary)
 
@@ -181,12 +181,12 @@ describes the style of such diary entries."
   "List of functions called for marking diary file and included files.
 As the files are processed for diary entries, these functions are used
 to cull relevant entries.  You can use any or all of
-`mark-hebrew-diary-entries', `mark-islamic-diary-entries' and
+`mark-hebrew-diary-entries', `diary-islamic-mark-entries' and
 `bahai-mark-diary-entries'.  The documentation for these functions
 describes the style of such diary entries."
   :type 'hook
   :options '(mark-hebrew-diary-entries
-             mark-islamic-diary-entries
+             diary-islamic-mark-entries
              diary-bahai-mark-entries)
   :group 'diary)
 
@@ -2097,8 +2097,8 @@ and return a font-lock pattern matching array of MONTHS and marking SYMBOL."
                                cal-hebrew
                                calendar-hebrew-month-name-array-leap-year
                                hebrew-diary-entry-symbol)
-   (diary-font-lock-keywords-1 mark-islamic-diary-entries
-                               list-islamic-diary-entries
+   (diary-font-lock-keywords-1 diary-islamic-mark-entries
+                               diary-islamic-list-entries
                                cal-islam
                                calendar-islamic-month-name-array
                                islamic-diary-entry-symbol)
