@@ -51,7 +51,7 @@
 
 (require 'calendar)
 (require 'cal-dst)
-;; calendar-absolute-from-astro and v versa are cal-autoloads.
+;; calendar-astro-to-absolute and v versa are cal-autoloads.
 ;;;(require 'cal-julian)
 
 
@@ -723,7 +723,7 @@ The values of `calendar-daylight-savings-starts',
 `calendar-daylight-savings-starts-time', `calendar-daylight-savings-ends',
 `calendar-daylight-savings-ends-time', `calendar-daylight-time-offset', and
 `calendar-time-zone' are used to interpret local time."
-  (let* ((a-d (calendar-absolute-from-astro d))
+  (let* ((a-d (calendar-astro-to-absolute d))
          ;; Get Universal Time.
          (date (calendar-astro-from-absolute
                 (- a-d
@@ -735,7 +735,7 @@ The values of `calendar-daylight-savings-starts',
                         (extract-calendar-year
                          (calendar-gregorian-from-absolute
                           (floor
-                           (calendar-absolute-from-astro
+                           (calendar-astro-to-absolute
                             date)))))))
          (U (/ (- date 2451545) 3652500))
          (longitude
@@ -1041,7 +1041,7 @@ Requires floating point."
          ;;      (calendar-absolute-from-gregorian
          ;;       (list (+ 3 (* k 3)) 15 y)))
          ;;     90))
-         ;; (abs-day (calendar-absolute-from-astro d)))
+         ;; (abs-day (calendar-astro-to-absolute d)))
          (abs-day (calendar-absolute-from-gregorian d)))
     (list
      (list (calendar-gregorian-from-absolute (floor abs-day))
