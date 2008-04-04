@@ -1,5 +1,106 @@
 2008-04-04  Glenn Morris  <rgm@gnu.org>
 
+	* calendar/cal-bahai.el (calendar-bahai-to-absolute): Rename
+	calendar-absolute-from-bahai.  Update callers, keep old name as alias.
+
+	* calendar/cal-islam.el (calendar-islamic-leap-year-p):
+	Rename islamic-calendar-leap-year-p.  Update callers.
+	(calendar-islamic-last-day-of-month):
+	Rename islamic-calendar-last-day-of-month.  Update callers.
+	(calendar-islamic-day-number):
+	Rename islamic-calendar-day-number.  Update callers.
+	(calendar-islamic-to-absolute): Rename
+	calendar-absolute-from-islamic.  Update callers, keep old name as alias.
+	(calendar-islamic-print-date): Rename calendar-print-islamic-date.
+	Update callers, keep old name as alias.
+	(calendar-islamic-goto-date): Rename calendar-goto-islamic-date.
+	Keep old name as alias.
+	(diary-islamic-list-entries): Rename list-islamic-diary-entries.
+	Update callers, keep old name as alias.
+	(calendar-islamic-mark-date-pattern):
+	Rename mark-islamic-calendar-date-pattern.  Update callers, keep old
+	name as alias.
+	(diary-islamic-insert-entry): Rename insert-islamic-diary-entry.
+	Keep old name as alias.
+	(diary-islamic-insert-monthly-entry):
+	Rename insert-monthly-islamic-diary-entry.  Keep old name as alias.
+	(diary-islamic-insert-yearly-entry):
+	Rename insert-yearly-islamic-diary-entry.  Keep old name as alias.
+
+	* calendar/cal-iso.el (calendar-iso-to-absolute): Rename
+	calendar-absolute-from-iso.  Update callers, keep old name as alias.
+	(calendar-iso-print-date): Rename calendar-print-iso-date.
+	Update callers, keep old name as alias.
+	(calendar-iso-goto-date): Rename calendar-goto-iso-date.
+	Keep old name as alias.
+	(calendar-iso-goto-week): Rename calendar-goto-iso-week.
+	Keep old name as alias.
+
+	* calendar/cal-julian.el (calendar-julian-to-absolute): Rename
+	calendar-absolute-from-julian.  Update callers, keep old name as alias.
+	(calendar-julian-print-date): Rename calendar-print-julian-date.
+	Update callers, keep old name as alias.
+	(calendar-julian-goto-date): Rename calendar-goto-julian-date.
+	Update callers, keep old name as alias.
+	(calendar-astro-to-absolute): Rename calendar-absolute-from-astro.
+	Update callers, keep old name as alias.
+	(calendar-astro-print-day-number): Rename
+	calendar-print-astro-day-number.  Update callers, keep old name as
+	alias.
+	(calendar-astro-goto-day-number): Rename calendar-goto-astro-day-number.
+	Update callers, keep old name as alias.
+
+	* calendar/cal-mayan.el (calendar-mayan-string-from-long-count):
+	Rename calendar-string-to-mayan-long-count.  Update callers.
+	(calendar-mayan-print-date): Rename calendar-print-mayan-date.
+	Update callers, keep old name as alias.
+	(calendar-mayan-read-haab-date): Rename calendar-read-mayan-haab-date.
+	Update callers.
+	(calendar-mayan-read-tzolkin-date): Rename
+	calendar-read-mayan-tzolkin-date.  Update callers.
+	(calendar-mayan-next-haab-date): Rename calendar-next-haab-date.
+	Keep old name as alias.
+	(calendar-mayan-previous-haab-date): Rename calendar-previous-haab-date.
+	Keep old name as alias.
+	(calendar-mayan-next-tzolkin-date): Rename calendar-next-tzolkin-date.
+	Keep old name as alias.
+	(calendar-mayan-previous-tzolkin-date): Rename
+	calendar-previous-tzolkin-date.  Keep old name as alias.
+	(calendar-mayan-next-round-date): Rename
+	calendar-next-calendar-round-date.  Keep old name as alias.
+	(calendar-mayan-previous-round-date): Rename
+	calendar-previous-calendar-round-date.  Keep old name as alias.
+	(calendar-mayan-long-count-to-absolute): Rename
+	calendar-absolute-from-mayan-long-count.  Keep old name as alias.
+	(calendar-mayan-goto-long-count-date): Rename
+	calendar-goto-mayan-long-count-date.  Keep old name as alias.
+
+	* calendar/cal-persia.el (calendar-persian-month-name-array):
+	Rename persian-calendar-month-name-array.  Update callers.
+	(calendar-persian-epoch): Rename persian-calendar-epoch.
+	Update callers.
+	(calendar-persian-leap-year-p): Rename persian-calendar-leap-year-p.
+	Update callers.
+	(calendar-persian-last-day-of-month): Rename
+	persian-calendar-last-day-of-month.  Update callers.
+	(calendar-persian-to-absolute): Rename calendar-absolute-from-persian.
+	Update callers, keep old name as alias.
+	(calendar-persian-print-date): Rename calendar-print-persian-date.
+	Update callers, keep old name as alias.
+	(calendar-persian-goto-date): Rename calendar-goto-persian-date.
+	Keep old name as alias.
+
+	* calendar/cal-china.el, calendar/cal-coptic.el, calendar/cal-islam.el:
+	* calendar/cal-persia.el, calendar/holidays.el, calendar/lunar.el:
+	* calendar/solar.el: Update for cal-julian name changes.
+
+	* calendar/cal-dst.el: Update for persian name changes.
+
+	* calendar/cal-menu.el, calendar/calendar.el:
+	Update for islamic, iso, julian, mayan, persian name changes.
+
+	* calendar/diary-lib.el: Update for islamic name changes.
+
 	* calendar/calendar.el (calendar-hebrew-all-holidays-flag):
 	Rename all-hebrew-calendar-holidays.  Update callers, keep old name
 	as alias.
