@@ -240,7 +240,8 @@ The result has the proper form for `calendar-daylight-savings-starts'."
       ;; it's wrong in general, but it's right for at least one year.
       (setq candidate-rules (if new-rules (nreverse new-rules)
                               (list (car candidate-rules)))
-            year (1+ year)))
+	    new-rules nil
+	    year (1+ year)))
     (car candidate-rules)))
 
 ;; TODO it might be better to extract this information directly from

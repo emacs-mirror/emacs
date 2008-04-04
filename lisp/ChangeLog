@@ -1,5 +1,8 @@
 2008-04-04  Andreas Schwab  <schwab@suse.de>
 
+	* calendar/cal-dst.el (calendar-time-zone-daylight-rules): Reset
+	new-rules after each round.
+
 	* Makefile.in (cal-autoloads): New target.
 	(compile, compile-always, recompile): Depend on it.
 	($(lisp)/calendar/cal-loaddefs.el)
