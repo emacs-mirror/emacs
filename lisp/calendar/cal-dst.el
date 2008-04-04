@@ -181,7 +181,7 @@ Return nil if no such transition can be found."
            (setq lo probe)))
        hi))))
 
-(autoload 'calendar-absolute-from-persian "cal-persia")
+(autoload 'calendar-persian-to-absolute "cal-persia")
 
 (defun calendar-time-zone-daylight-rules (abs-date utc-diff)
   "Return daylight transition rule for ABS-DATE, UTC-DIFF sec offset from UTC.
@@ -214,10 +214,10 @@ The result has the proper form for `calendar-daylight-savings-starts'."
            ;; FIXME what does the Persian calendar have to do with this?
            (if (and (= m 3) (<= 20 d) (<= d 21))
                '((calendar-gregorian-from-absolute
-                  (calendar-absolute-from-persian `(1 1 ,(- year 621))))))
+                  (calendar-persian-to-absolute `(1 1 ,(- year 621))))))
            (if (and (= m 9) (<= 22 d) (<= d 23))
                '((calendar-gregorian-from-absolute
-                  (calendar-absolute-from-persian `(7 1 ,(- year 621))))))))
+                  (calendar-persian-to-absolute `(7 1 ,(- year 621))))))))
          (prevday-sec (- -1 utc-diff)) ; last sec of previous local day
          (year (1+ y))
          new-rules)
