@@ -325,7 +325,7 @@ nil if it is not visible in the current calendar window."
 ;;;###holiday-autoload
 (defun holiday-rosh-hashanah-etc (&optional all)
   "List of dates related to Rosh Hashanah, as visible in calendar window.
-Shows only the major holidays, unless `all-hebrew-calendar-holidays'
+Shows only the major holidays, unless `calendar-hebrew-all-holidays-flag'
 or ALL is non-nil."
   (when (memq displayed-month '(8 9 10 11))
     (let ((abs-r-h (calendar-absolute-from-hebrew
@@ -343,7 +343,7 @@ or ALL is non-nil."
                "Shemini Atzeret")
          (list (calendar-gregorian-from-absolute (+ abs-r-h 22))
                "Simchat Torah"))
-        (when (or all all-hebrew-calendar-holidays)
+        (when (or all calendar-hebrew-all-holidays-flag)
           (list
            (list (calendar-gregorian-from-absolute
                   (calendar-dayname-on-or-before 6 (- abs-r-h 4)))
@@ -378,7 +378,7 @@ or ALL is non-nil."
 ;;;###holiday-autoload
 (defun holiday-hanukkah (&optional all)
   "List of dates related to Hanukkah, as visible in calendar window.
-Shows only Hanukkah, unless `all-hebrew-calendar-holidays' or ALL
+Shows only Hanukkah, unless `calendar-hebrew-all-holidays-flag' or ALL
 is non-nil."
   ;; This test is only to speed things up a bit, it works fine without it.
   (when (memq displayed-month '(10 11 12 1 2))
@@ -395,7 +395,7 @@ is non-nil."
                  "seventh" "eighth"])
            han)
       (holiday-filter-visible-calendar
-       (if (or all all-hebrew-calendar-holidays)
+       (if (or all calendar-hebrew-all-holidays-flag)
            (append
             (list
              (list (calendar-gregorian-from-absolute (1- abs-h))
@@ -410,7 +410,7 @@ is non-nil."
 ;;;###holiday-autoload
 (defun holiday-passover-etc (&optional all)
   "List of dates related to Passover, as visible in calendar window.
-Shows only the major holidays, unless `all-hebrew-calendar-holidays'
+Shows only the major holidays, unless `calendar-hebrew-all-holidays-flag'
 or ALL is non-nil."
   (when (< displayed-month 8)
     (let ((abs-p (calendar-absolute-from-hebrew
@@ -422,7 +422,7 @@ or ALL is non-nil."
          (list (calendar-gregorian-from-absolute abs-p) "Passover")
          (list (calendar-gregorian-from-absolute (+ abs-p 50))
                     "Shavuot"))
-        (when (or all all-hebrew-calendar-holidays)
+        (when (or all calendar-hebrew-all-holidays-flag)
           (list
            (list (calendar-gregorian-from-absolute
                   (calendar-dayname-on-or-before 6 (- abs-p 43)))
