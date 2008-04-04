@@ -392,7 +392,7 @@ struct frame
 
      These two are mutually exclusive.  They might both be zero, if the
      frame has been made invisible without an icon.  */
-  unsigned char visible : 1;
+  unsigned char visible : 2;
   unsigned char iconified : 1;
 
   /* Let's not use bitfields for volatile variables.  */

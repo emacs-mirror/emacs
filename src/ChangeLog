@@ -1,5 +1,8 @@
 2008-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* frame.h (struct frame): Give one more bit to `visible' since we use
+	values larger than 1 to indicate obscured frames on ttys.
+
 	* keymap.c (Qkeymap_canonicalize): New var.
 	(Fmap_keymap_internal): New fun.
 	(describe_map): Use keymap-canonicalize.
