@@ -4553,7 +4553,7 @@ Falls back to normal file name handler if no Tramp file name handler exists."
 ;; `tramp-completion-file-name-handler' will be delayed.
 ;;;###autoload(add-hook
 ;;;###autoload 'after-init-hook
-;;;###autoload '(lambda () (tramp-register-completion-file-name-handler)))
+;;;###autoload 'tramp-register-completion-file-name-handler)
 (tramp-register-completion-file-name-handler)
 
 ;;;###autoload

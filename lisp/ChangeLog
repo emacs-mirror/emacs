@@ -1,5 +1,8 @@
 2008-04-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* net/tramp.el (after-init-hook): Don't wrap a lambda around
+	tramp-register-completion-file-name-handler.
+
 	* subr.el (keymap-canonicalize): New function.
 	* mouse.el (mouse-menu-non-singleton): Use it.
 	(mouse-major-mode-menu): Remove hack made unnecessary.
