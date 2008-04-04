@@ -1,6 +1,8 @@
 2008-04-04  Jason Rumney  <jasonr@gnu.org>
 
 	* w32uniscribe.c (uniscribe_check_otf): Fix last change.
+	(uniscribe_check_otf): Add GC protection before consing. 
+	Rearrange loop for counting features.
 
 2008-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
