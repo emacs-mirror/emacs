@@ -3265,8 +3265,6 @@ that share the same state."
 		  ((file-short (substring file (length ddir)))
 		   (backend (vc-backend file))
 		   (state (and backend (vc-state file)))
-		   ;; XXX: EXTRA is not set here.
-		   ;; It might need to be.
 		   (extra
 		    (and backend
 			 (vc-call-backend backend 'status-fileinfo-extra file)))
