@@ -33,7 +33,7 @@
 
 (require 'calendar)
 
-(defun calendar-absolute-from-iso (date)
+(defun calendar-iso-to-absolute (date)
   "The number of days elapsed between the Gregorian date 12/31/1 BC and DATE.
 The `ISO year' corresponds approximately to the Gregorian year, but
 weeks start on Monday and end on Sunday.  The first week of the ISO year is
@@ -49,6 +49,9 @@ Sunday).  The Gregorian date Sunday, December 31, 1 BC is imaginary."
        (* 7 (1- (extract-calendar-month date)))
        (if (zerop day) 6 (1- day)))))
 
+(define-obsolete-function-alias 'calendar-absolute-from-iso
+  'calendar-iso-to-absolute "23.1")
+
 (defun calendar-iso-from-absolute (date)
   "Compute the `ISO commercial date' corresponding to the absolute DATE.
 The ISO year corresponds approximately to the Gregorian year, but weeks
@@ -62,11 +65,11 @@ date Sunday, December 31, 1 BC."
                   (calendar-gregorian-from-absolute (- date 3))))
          (year (+ approx
                   (calendar-sum y approx
-                                (>= date (calendar-absolute-from-iso
+                                (>= date (calendar-iso-to-absolute
                                           (list 1 1 (1+ y))))
                                 1))))
     (list
-     (1+ (/ (- date (calendar-absolute-from-iso (list 1 1 year))) 7))
+     (1+ (/ (- date (calendar-iso-to-absolute (list 1 1 year))) 7))
      (% date 7)
      year)))
 
@@ -83,11 +86,14 @@ date Sunday, December 31, 1 BC."
             (extract-calendar-year iso-date))))
 
 ;;;###cal-autoload
-(defun calendar-print-iso-date ()
+(defun calendar-iso-print-date ()
   "Show equivalent ISO date for the date under the cursor."
   (interactive)
   (message "ISO date: %s"
            (calendar-iso-date-string (calendar-cursor-to-date t))))
+
+(define-obsolete-function-alias 'calendar-print-iso-date
+  'calendar-iso-print-date "23.1")
 
 (defun calendar-iso-read-date (&optional dayflag)
   "Interactively read the arguments for an ISO date command.
@@ -113,25 +119,31 @@ taken to be 1)."
                 1)))
     (list (list week day year))))
 
-(define-obsolete-function-alias
-  'calendar-iso-read-args 'calendar-iso-read-date "23.1")
+(define-obsolete-function-alias 'calendar-iso-read-args
+  'calendar-iso-read-date "23.1")
 
 ;;;###cal-autoload
-(defun calendar-goto-iso-date (date &optional noecho)
+(defun calendar-iso-goto-date (date &optional noecho)
   "Move cursor to ISO DATE; echo ISO date unless NOECHO is non-nil."
   (interactive (calendar-iso-read-date t))
   (calendar-goto-date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-iso date)))
-  (or noecho (calendar-print-iso-date)))
+                       (calendar-iso-to-absolute date)))
+  (or noecho (calendar-iso-print-date)))
+
+(define-obsolete-function-alias 'calendar-goto-iso-date
+  'calendar-iso-goto-date "23.1")
 
 ;;;###cal-autoload
-(defun calendar-goto-iso-week (date &optional noecho)
+(defun calendar-iso-goto-week (date &optional noecho)
   "Move cursor to ISO DATE; echo ISO date unless NOECHO is non-nil.
 Interactively, goes to the first day of the specified week."
   (interactive (calendar-iso-read-date))
   (calendar-goto-date (calendar-gregorian-from-absolute
-                       (calendar-absolute-from-iso date)))
-  (or noecho (calendar-print-iso-date)))
+                       (calendar-iso-to-absolute date)))
+  (or noecho (calendar-iso-print-date)))
+
+(define-obsolete-function-alias 'calendar-goto-iso-week
+  'calendar-iso-goto-week "23.1")
 
 (defvar date)
 
