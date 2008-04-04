@@ -804,7 +804,7 @@ See the documentation for `calendar-holidays' for details."
 ;;;###autoload
 (put 'other-holidays 'risky-local-variable t)
 
-(defcustom all-hebrew-calendar-holidays nil
+(defcustom calendar-hebrew-all-holidays-flag nil
   "If nil, show only major holidays from the Hebrew calendar.
 This means only those Jewish holidays that appear on secular calendars.
 Otherwise, show all the holidays that would appear in a complete Hebrew
@@ -812,10 +812,13 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
+(define-obsolete-variable-alias 'all-hebrew-calendar-holidays
+  'calendar-hebrew-all-holidays-flag "23.1")
+
 ;;;###autoload
 (defvar hebrew-holidays-1
   '((holiday-rosh-hashanah-etc)
-    (if all-hebrew-calendar-holidays
+    (if calendar-hebrew-all-holidays-flag
         (holiday-julian
          11
          (let ((m displayed-month)
@@ -836,8 +839,8 @@ calendar."
 
 ;;;###autoload
 (defvar hebrew-holidays-2
-  '((holiday-hanukkah)         ; respects all-hebrew-calendar-holidays
-    (if all-hebrew-calendar-holidays
+  '((holiday-hanukkah)         ; respects calendar-hebrew-all-holidays-flag
+    (if calendar-hebrew-all-holidays-flag
       (holiday-hebrew
        10
        (let ((h-year (extract-calendar-year
@@ -848,7 +851,7 @@ calendar."
                      7))
              11 10))
        "Tzom Teveth"))
-    (if all-hebrew-calendar-holidays
+    (if calendar-hebrew-all-holidays-flag
         (holiday-hebrew 11 15 "Tu B'Shevat")))
   "Component of the default value of `hebrew-holidays'.")
 ;;;###autoload
@@ -858,7 +861,7 @@ calendar."
 
 ;;;###autoload
 (defvar hebrew-holidays-3
-  '((if all-hebrew-calendar-holidays
+  '((if calendar-hebrew-all-holidays-flag
         (holiday-hebrew
          11
          (let* ((m displayed-month)
@@ -893,7 +896,7 @@ calendar."
 ;;;###autoload
 (defvar hebrew-holidays-4
   '((holiday-passover-etc)
-    (and all-hebrew-calendar-holidays
+    (and calendar-hebrew-all-holidays-flag
          (let* ((m displayed-month)
                 (y displayed-year)
                 (year (progn
@@ -903,7 +906,7 @@ calendar."
                           (calendar-absolute-from-gregorian (list m 1 y)))))))
            (= 21 (% year 28)))
          (holiday-julian 3 26 "Kiddush HaHamah"))
-    (if all-hebrew-calendar-holidays
+    (if calendar-hebrew-all-holidays-flag
         (holiday-tisha-b-av-etc)))
     "Component of the default value of `hebrew-holidays'.")
 ;;;###autoload
@@ -916,7 +919,7 @@ calendar."
   '((holiday-passover-etc)
     (holiday-rosh-hashanah-etc)
     (holiday-hanukkah)
-    (if all-hebrew-calendar-holidays
+    (if calendar-hebrew-all-holidays-flag
         (append
          (holiday-tisha-b-av-etc)
          (holiday-hebrew-misc))))
@@ -928,7 +931,7 @@ See the documentation for `calendar-holidays' for details."
 ;;;###autoload
 (put 'hebrew-holidays 'risky-local-variable t)
 
-(defcustom all-christian-calendar-holidays nil
+(defcustom calendar-christian-all-holidays-flag nil
   "If nil, show only major holidays from the Christian calendar.
 This means only those Christian holidays that appear on secular calendars.
 Otherwise, show all the holidays that would appear in a complete Christian
@@ -936,11 +939,14 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
+(define-obsolete-variable-alias 'all-christian-calendar-holidays
+  'calendar-christian-all-holidays-flag "23.1")
+
 ;;;###autoload
 (defcustom christian-holidays
-  '((holiday-easter-etc)    ; respects all-christian-calendar-holidays
+  '((holiday-easter-etc)    ; respects calendar-christian-all-holidays-flag
     (holiday-fixed 12 25 "Christmas")
-    (if all-christian-calendar-holidays
+    (if calendar-christian-all-holidays-flag
         (append
          (holiday-fixed 1 6 "Epiphany")
          (holiday-julian 12 25 "Eastern Orthodox Christmas")
@@ -954,7 +960,7 @@ See the documentation for `calendar-holidays' for details."
 ;;;###autoload
 (put 'christian-holidays 'risky-local-variable t)
 
-(defcustom all-islamic-calendar-holidays nil
+(defcustom calendar-islamic-all-holidays-flag nil
   "If nil, show only major holidays from the Islamic calendar.
 This means only those Islamic holidays that appear on secular calendars.
 Otherwise, show all the holidays that would appear in a complete Islamic
@@ -962,11 +968,14 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
+(define-obsolete-variable-alias 'all-islamic-calendar-holidays
+  'calendar-islamic-all-holidays-flag "23.1")
+
 ;;;###autoload
 (defcustom islamic-holidays
   '((holiday-islamic-new-year)
     (holiday-islamic 9 1 "Ramadan Begins")
-    (if all-islamic-calendar-holidays
+    (if calendar-islamic-all-holidays-flag
         (append
          (holiday-islamic 1 10 "Ashura")
          (holiday-islamic 3 12 "Mulad-al-Nabi")
@@ -982,7 +991,7 @@ See the documentation for `calendar-holidays' for details."
 ;;;###autoload
 (put 'islamic-holidays 'risky-local-variable t)
 
-(defcustom all-bahai-calendar-holidays nil
+(defcustom calendar-bahai-all-holidays-flag nil
   "If nil, show only major holidays from the Baha'i calendar.
 These are the days on which work and school must be suspended.
 Otherwise, show all the holidays that would appear in a complete Baha'i
@@ -990,16 +999,19 @@ calendar."
   :type 'boolean
   :group 'holidays)
 
+(define-obsolete-variable-alias 'all-bahai-calendar-holidays
+  'calendar-bahai-all-holidays-flag "23.1")
+
 ;;;###autoload
 (defcustom bahai-holidays
   '((holiday-bahai-new-year)
-    (holiday-bahai-ridvan)      ; respects all-bahai-calendar-holidays
+    (holiday-bahai-ridvan)      ; respects calendar-bahai-all-holidays-flag
     (holiday-fixed  5 23 "Declaration of the Bab")
     (holiday-fixed  5 29 "Ascension of Baha'u'llah")
     (holiday-fixed  7  9 "Martyrdom of the Bab")
     (holiday-fixed 10 20 "Birth of the Bab")
     (holiday-fixed 11 12 "Birth of Baha'u'llah")
-    (if all-bahai-calendar-holidays
+    (if calendar-bahai-all-holidays-flag
         (append
          (holiday-fixed 11 26 "Day of the Covenant")
          (holiday-fixed 11 28 "Ascension of `Abdu'l-Baha"))))
