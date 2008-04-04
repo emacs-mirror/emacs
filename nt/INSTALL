@@ -365,13 +365,11 @@
   headers it is using, are not suitable for building Emacs.  GCC version
   2.95 or later is needed, because that is when the Windows port gained
   sufficient support for anonymous structs and unions to cope with some
-  definitions from winnt.h that are used by addsection.c.  The W32 API
-  headers that come with Cygwin b20.1 are incomplete, and do not include
-  some definitions required by addsection.c, for instance.  Also, older
-  releases of the W32 API headers from Anders Norlander contain a typo
-  in the definition of IMAGE_FIRST_SECTION in winnt.h, which
-  addsection.c relies on.  Versions of w32api-xxx.zip from at least
-  1999-11-18 onwards are okay.
+  definitions from winnt.h that are used by addsection.c.
+  Older versions of the W32 API headers that come with Cygwin and MinGW
+  may be missing some definitions required by Emacs, or broken in other
+  ways. In particular, uniscribe APIs were added to mingw cvs on
+  2006-03-26, so releases from before then cannot be used.
 
   When in doubt about correctness of what configure did, look at the file
   config.log, which shows all the failed test programs and compiler
